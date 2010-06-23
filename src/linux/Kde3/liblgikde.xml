@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+<Project TargetType="1" TabSize="4" IndentSize="4" UseTabs="1" ShowWhitespace="0" Compiler="0" Makefile="./Makefile" IncludePaths="/opt/kde3/include
+/usr/lib/qt3/include
+/usr/include/qt3
+/usr/include/kde
+../../../include/common
+../../../include/linux/X
+" LibPaths="/opt/kde3/lib
+/usr/lib/qt3/lib" Libs="kdecore
+kdeui
+kio
+qt-mt" TargetName="lgikde3">
+	<Node Name="Source" Type="1" Platforms="7" Open="1">
+		<Node File="./LgiKde.cpp" Type="2" Platforms="7" />
+	</Node>
+	<Node Name="Headers" Type="1" Platforms="7" Open="1">
+		<Node File="../../../include/linux/X/LgiWinManGlue.h" Type="3" Platforms="7" />
+	</Node>
+	<Node Name="Resources" Type="1" Platforms="7" Open="1">
+		<Node File="./Makefile" Type="3" Platforms="7" />
+	</Node>
+</Project>

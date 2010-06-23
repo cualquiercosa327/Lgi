@@ -1,0 +1,352 @@
+
+#include "Lgi.h"
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+GClipBoard::GClipBoard(GView *o)
+{
+	Open = false;
+	Owner = o;
+    #if WIN32NATIVE
+	if (Owner)
+		Open = OpenClipboard(Owner->Handle());
+	#endif
+}
+
+GClipBoard::~GClipBoard()
+{
+	if (Open)
+	{
+		CloseClipboard();
+		Open = FALSE;
+	}
+}
+
+bool GClipBoard::Empty()
+{
+	return EmptyClipboard();
+}
+
+// Text
+bool GClipBoard::Text(char *Str, bool AutoEmpty)
+{
+	bool Status = false;
+
+	if (Str)
+	{
+		char *n = LgiToNativeCp(Str);
+		if (n)
+		{
+			Status = Binary(CF_TEXT, (uchar*)n, strlen(n)+1, AutoEmpty);
+			DeleteArray(n);
+		}
+	}
+
+	return Status;
+}
+
+char *GClipBoard::Text()
+{
+	int Len = 0;
+	char *Str = NULL;
+	if (Binary(CF_TEXT, (uchar**) &Str, &Len))
+	{
+		char *r = LgiFromNativeCp(Str);
+		DeleteArray(Str);
+		return r;
+	}
+
+	DeleteArray(Str);
+	return 0;
+}
+
+bool GClipBoard::TextW(char16 *Str, bool AutoEmpty)
+{
+	if (Str)
+	{
+		int Len = StrlenW(Str);
+		return Binary(CF_UNICODETEXT, (uchar*) Str, (Len+1) * sizeof(ushort), AutoEmpty);
+	}
+
+	return false;
+}
+
+char16 *GClipBoard::TextW()
+{
+	int Len = 0;
+	char16 *Str = NULL;
+	if (Binary(CF_UNICODETEXT, (uchar**) &Str, &Len))
+	{
+		char16 *s = NewStrW(Str,Len/2);
+		DeleteArray(Str);
+		return s;
+	}
+
+	DeleteArray(Str);
+	return 0;
+}
+
+// Bitmap
+bool GClipBoard::Bitmap(GSurface *pDC, bool AutoEmpty)
+{
+	bool Status = FALSE;
+
+	Empty();
+	if (pDC)
+	{
+		int Bytes = BMPWIDTH(pDC->X() * pDC->GetBits());
+		int Colours = (pDC->GetBits()>8) ? ((pDC->GetBits() != 24) ? 3 : 0) : 1 << pDC->GetBits();
+		int HeaderSize = sizeof(BITMAPINFOHEADER);
+		int PaletteSize = Colours * sizeof(RGBQUAD);
+		int MapSize = Bytes * pDC->Y();
+
+		HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, HeaderSize + PaletteSize + MapSize);
+		if (hMem)
+		{
+			BITMAPINFO *Info = (BITMAPINFO*) GlobalLock(hMem);
+			if (Info)
+			{
+				// Header
+				Info->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+				Info->bmiHeader.biWidth = pDC->X();
+				Info->bmiHeader.biHeight = pDC->Y();
+				Info->bmiHeader.biPlanes = 1;
+				Info->bmiHeader.biBitCount = pDC->GetBits();
+				
+				if (pDC->GetBits() == 16 OR
+					pDC->GetBits() == 32)
+				{
+					Info->bmiHeader.biCompression = BI_BITFIELDS;
+				}
+				else
+				{
+					Info->bmiHeader.biCompression = BI_RGB;
+				}
+
+				Info->bmiHeader.biSizeImage = 0;
+				Info->bmiHeader.biXPelsPerMeter = 3000;
+				Info->bmiHeader.biYPelsPerMeter = 3000;
+				Info->bmiHeader.biClrUsed = 0;
+				Info->bmiHeader.biClrImportant = 0;
+
+				if (pDC->GetBits() <= 8)
+				{
+					// Palette
+					GPalette *Pal = pDC->Palette();
+					RGBQUAD *Rgb = Info->bmiColors;
+					if (Pal)
+					{
+						GdcRGB *p = (*Pal)[0];
+						if (p)
+						{
+							for (int i=0; i<Colours; i++, p++, Rgb++)
+							{
+								Rgb->rgbRed = p->R;
+								Rgb->rgbGreen = p->G;
+								Rgb->rgbBlue = p->B;
+								Rgb->rgbReserved = p->Flags;
+							}
+						}
+					}
+					else
+					{
+						memset(Rgb, 0, Colours * sizeof(RGBQUAD));
+					}
+				}
+				else
+				{
+					int *Primaries = (int*) Info->bmiColors;
+					
+					switch (pDC->GetBits())
+					{
+						case 16:
+						{
+							Primaries[0] = Rgb16(255, 0, 0);
+							Primaries[1] = Rgb16(0, 255, 0);
+							Primaries[2] = Rgb16(0, 0, 255);
+							break;
+						}
+						case 32:
+						{
+							Primaries[0] = Rgba32(255, 0, 0, 0);
+							Primaries[1] = Rgba32(0, 255, 0, 0);
+							Primaries[2] = Rgba32(0, 0, 255, 0);
+							break;
+						}
+					}
+				}
+
+				// Bits
+				uchar *Dest = ((uchar*)Info) + HeaderSize + PaletteSize;
+				for (int y=pDC->Y()-1; y>=0; y--)
+				{
+					uchar *s = (*pDC)[y];
+					if (s)
+					{
+						memcpy(Dest, s, Bytes);
+					}
+					Dest += Bytes;
+				}
+
+				Status = SetClipboardData(CF_DIB, hMem) != 0;
+			}
+			else
+			{
+				GlobalFree(hMem);
+			}
+		}
+	}
+	return Status;
+}
+
+GSurface *GClipBoard::ConvertFromPtr(void *Ptr)
+{
+	GSurface *pDC = NULL;
+	if (Ptr)
+	{
+		BITMAPINFO *Info = (BITMAPINFO*) Ptr;
+		if (Info)
+		{
+			pDC = new GMemDC;
+			if (pDC AND
+				(Info->bmiHeader.biCompression == BI_RGB OR
+				Info->bmiHeader.biCompression == BI_BITFIELDS))
+			{
+				if (pDC->Create(Info->bmiHeader.biWidth,
+						Info->bmiHeader.biHeight,
+						max(Info->bmiHeader.biPlanes * Info->bmiHeader.biBitCount, 8)))
+				{
+					int Colours = 0;
+					char *Source = (char*) Info->bmiColors;
+
+					// do palette
+					if (pDC->GetBits() <= 8)
+					{
+						if (Info->bmiHeader.biClrUsed > 0)
+						{
+							Colours = Info->bmiHeader.biClrUsed;
+						}
+						else
+						{
+							Colours = 1 << pDC->GetBits();
+						}
+
+						GPalette *Pal = new GPalette(NULL, Colours);
+						if (Pal)
+						{
+							GdcRGB *d = (*Pal)[0];
+							RGBQUAD *s = (RGBQUAD*) Source;
+							if (d)
+							{
+								for (int i=0; i<Colours; i++, d++, s++)
+								{
+									d->R = s->rgbRed;
+									d->G = s->rgbGreen;
+									d->B = s->rgbBlue;
+									d->Flags = s->rgbReserved;
+								}
+							}
+							Source = (char*) s;
+							pDC->Palette(Pal);
+						}
+					}
+
+					if (Info->bmiHeader.biCompression == BI_BITFIELDS)
+					{
+						Source += sizeof(DWORD) * 3;
+					}
+
+					// do pixels
+					int Bytes = BMPWIDTH(pDC->X() * pDC->GetBits());
+					for (int y=pDC->Y()-1; y>=0; y--)
+					{
+						uchar *d = (*pDC)[y];
+						if (d)
+						{
+							memcpy(d, Source, Bytes);
+						}
+						Source += Bytes;
+					}
+				}
+			}
+		}
+	}
+	return pDC;
+}
+
+GSurface *GClipBoard::Bitmap()
+{
+	HGLOBAL hMem = GetClipboardData(CF_DIB);
+	void *Ptr = GlobalLock(hMem);
+	GSurface *pDC = 0;
+	if (Ptr)
+	{
+		pDC = ConvertFromPtr(Ptr);
+		GlobalUnlock(hMem);
+	}
+	return pDC;
+}
+
+bool GClipBoard::Binary(int Format, uchar *Ptr, int Len, bool AutoEmpty)
+{
+	bool Status = FALSE;
+
+	if (AutoEmpty)
+	{
+		Empty();
+	}
+
+	if (Ptr AND Len > 0)
+	{
+		HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, Len);
+		if (hMem)
+		{
+			char *Data = (char*) GlobalLock(hMem);
+			if (Data)
+			{
+				memcpy(Data, Ptr, Len);
+				GlobalUnlock(hMem);
+				Status = SetClipboardData(Format, hMem) != 0;
+			}
+			else
+			{
+				GlobalFree(hMem);
+			}
+		}
+	}
+
+	return Status;
+}
+
+bool GClipBoard::Binary(int Format, uchar **Ptr, int *Len)
+{
+	bool Status = false;
+
+	if (Ptr AND Len)
+	{
+		HGLOBAL hMem = GetClipboardData(Format);
+		if (hMem)
+		{
+			*Len = GlobalSize(hMem);
+			uchar *Data = (uchar*) GlobalLock(hMem);
+			if (Data)
+			{
+				*Ptr = new uchar[*Len+2];
+				if (*Ptr)
+				{
+					memcpy(*Ptr, Data, *Len);
+					
+					// String termination
+					(*Ptr)[*Len] = 0;
+					(*Ptr)[*Len+1] = 0;
+
+					Status = true;
+				}
+			}
+
+			GlobalUnlock(hMem);
+		}
+	}
+
+	return Status;
+}
+

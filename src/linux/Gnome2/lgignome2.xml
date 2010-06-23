@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<Project TargetType="1" TabSize="4" IndentSize="4" UseTabs="1" ShowWhitespace="0" Compiler="0" Makefile="./Makefile" IncludePaths="../../../include/common
+../../../include/linux/X
+/usr/include/libgnomeui-2.0
+/usr/lib/glib-2.0/include
+/usr/lib/gtk-2.0/include
+/usr/include/atk-1.0
+/usr/include/libgnome-2.0
+/usr/include/libbonobo-2.0
+/usr/include/libgnomecanvas-2.0
+/usr/include/libart-2.0
+/usr/include/libbonoboui-2.0
+/usr/include/gtk-2.0
+/usr/include/cairo
+/usr/include/glib-2.0
+/usr/include/pango-1.0
+/usr/include/gnome-vfs-2.0" Libs="gnome-2
+gtk-x11-2.0
+gnomeui-2">
+	<Node Name="Source" Type="1" Platforms="7" Open="1">
+		<Node File="/home/fret/Code/Lgi/src/linux/Gnome2/LgiGnome.cpp" Type="2" Platforms="7" />
+	</Node>
+	<Node Name="Headers" Type="1" Platforms="7" Open="1">
+		<Node File="../../../include/linux/X/LgiWinManGlue.h" Type="3" Platforms="7" />
+	</Node>
+	<Node Name="Resources" Type="1" Platforms="7" Open="1">
+		<Node File="./Makefile" Type="3" Platforms="7" />
+	</Node>
+</Project>

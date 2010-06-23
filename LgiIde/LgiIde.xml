@@ -1,0 +1,44 @@
+<?xml version="1.0" ?>
+<Project TabSize="4" IndentSize="4" UseTabs="1" Makefile="./Makefile.linux" Exe="./lgiide" ShowWhitespace="0" IncludePaths="./Code
+../include/common
+../include/linux/X
+" BuildType="0" TargetType="0" TargetName="lgiide" Compiler="0">
+	<Node Name="Source Files" Type="1" Platforms="7" Open="1">
+		<Node Name="Ftp" Type="1" Platforms="7" Open="0">
+			<Node File="./Code/FtpThread.cpp" Type="2" Platforms="7" />
+			<Node File="./Code/FtpThread.h" Type="3" Platforms="7" />
+			<Node File="../src/common/INet/IFtp.cpp" Type="2" Platforms="7" />
+			<Node File="../include/common/IFtp.h" Type="3" Platforms="7" />
+		</Node>
+		<Node Name="Source Code" Type="1" Platforms="7" Open="0">
+			<Node File="../src/common/Coding/GLexCpp.cpp" Type="2" Platforms="7" />
+			<Node File="./Code/SysCharSupport.cpp" Type="2" Platforms="7" />
+		</Node>
+		<Node File="./Code/FindInFiles.cpp" Type="2" Platforms="7" />
+		<Node File="./Code/FindInFiles.h" Type="3" Platforms="7" />
+		<Node File="./Code/GHistory.cpp" Type="2" Platforms="7" />
+		<Node File="./Code/GHistory.h" Type="3" Platforms="7" />
+		<Node File="./Code/IdeDoc.cpp" Type="2" Platforms="7" />
+		<Node File="./Code/IdeDoc.h" Type="3" Platforms="7" />
+		<Node File="./Code/IdeProject.cpp" Type="2" Platforms="7" />
+		<Node File="./Code/IdeProject.h" Type="3" Platforms="7" />
+		<Node File="./Code/LgiIde.cpp" Type="2" Platforms="7" />
+		<Node File="./Code/LgiIde.h" Type="3" Platforms="7" />
+		<Node File="./Code/LgiUtils.cpp" Type="2" Platforms="7" />
+		<Node File="./Code/MemDumpViewer.cpp" Type="2" Platforms="7" />
+		<Node File="./Code/SpaceTabConv.cpp" Type="2" Platforms="7" />
+		<Node File="./Code/SpaceTabConv.h" Type="3" Platforms="7" />
+	</Node>
+	<Node Name="Lgi" Type="1" Platforms="7" Open="1">
+		<Node File="../src/common/Text/GDocView.cpp" Type="2" Platforms="7" />
+		<Node File="../src/common/Lgi/GMdi.cpp" Type="2" Platforms="7" />
+		<Node File="../src/common/Text/GTextView3.cpp" Type="2" Platforms="7" />
+		<Node File="../src/common/Lgi/LgiMain.cpp" Type="2" Platforms="7" />
+		<Node File="../src/common/Gdc2/Filters/Png.cpp" Type="2" Platforms="7" />
+	</Node>
+	<Node Name="Resources" Type="1" Platforms="7" Open="0">
+		<Node File="./Code/resource.h" Type="3" Platforms="7" />
+		<Node File=".\Code\Script1.rc" Type="5" Platforms="7" />
+	</Node>
+	<Node File="/home/matthew/Code/Lgi/LgiLinux.xml" Type="4" Platforms="7" />
+</Project>

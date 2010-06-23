@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<Project TabSize="4" IndentSize="4" UseTabs="1" ShowWhitespace="0" Makefile="./Makefile.linux" IncludePaths="../include/common
+../include/win32
+
+" TargetType="1" TargetName="lgiskin" Compiler="0" LibPaths="../DebugX
+../ReleaseX" Libs="lgi">
+	<Node Name="Source Files" Type="1" Open="1" Platforms="7">
+		<Node File="../src/common/Skins/Gel/Gel.cpp" Type="2" Platforms="7" />
+		<Node File="../src/common/Gdc2/Path/GPath.cpp" Type="2" Platforms="7" />
+		<Node File="../include/common/GSkinEngine.h" Type="3" Platforms="7" />
+		<Node File="./Makefile.linux" Type="3" Platforms="7" />
+	</Node>
+</Project>

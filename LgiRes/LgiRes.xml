@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Project TabSize="4"
+	 IndentSize="4"
+	 UseTabs="1"
+	 ShowWhitespace="0"
+	 Makefile="./Makefile"
+	 Exe="./lgires"
+	 TargetType="0"
+	 TargetName="lgires"
+	 IncludePaths="../include/common
+../include/linux/X
+./Code
+"
+	 Compiler="0"
+	 Pos="223,47,1418,1051">
+	<Node Name="Resources"
+		 Type="1"
+		 Open="0"
+		 Platforms="7">
+		<Node File="./Code/lgires.lr8"
+			 Type="5"
+			 Platforms="7" />
+		<Node File="./Makefile"
+			 Type="3"
+			 Platforms="7" />
+	</Node>
+	<Node Name="Objects"
+		 Type="1"
+		 Open="1"
+		 Platforms="7">
+		<Node Name="Dialog"
+			 Type="1"
+			 Open="1"
+			 Platforms="7">
+			<Node File="./Code/LgiRes_Dialog.cpp"
+				 Type="2"
+				 Platforms="7" />
+			<Node File="./Code/LgiRes_Dialog.h"
+				 Type="3"
+				 Platforms="7" />
+			<Node File="./Code/LgiRes_TableLayout.cpp"
+				 Type="2"
+				 Platforms="7" />
+		</Node>
+		<Node Name="Menu"
+			 Type="1"
+			 Open="1"
+			 Platforms="7">
+			<Node File="./Code/LgiRes_Menu.cpp"
+				 Type="2"
+				 Platforms="7" />
+			<Node File="./Code/LgiRes_Menu.h"
+				 Type="3"
+				 Platforms="7" />
+		</Node>
+		<Node Name="String"
+			 Type="1"
+			 Open="1"
+			 Platforms="7">
+			<Node File="./Code/LgiRes_String.cpp"
+				 Type="2"
+				 Platforms="7" />
+			<Node File="./Code/LgiRes_String.h"
+				 Type="3"
+				 Platforms="7" />
+		</Node>
+		<Node File="./Code/LgiResApp.cpp"
+			 Type="2"
+			 Platforms="7" />
+		<Node File="/home/matthew/Code/Lgi/LgiRes/Code/LgiResEdit.h"
+			 Type="3"
+			 Platforms="7" />
+		<Node File="./Code/Search.cpp"
+			 Type="2"
+			 Platforms="7" />
+		<Node File="./Code/ShowLanguages.cpp"
+			 Type="2"
+			 Platforms="7" />
+	</Node>
+	<Node Name="Lgi"
+		 Type="1"
+		 Open="1"
+		 Platforms="7">
+		<Node File="../src/common/Lgi/GAbout.cpp"
+			 Type="2"
+			 Platforms="7" />
+	</Node>
+	<Node File="/home/fret/Code/Lgi/LgiLinux.xml"
+		 Type="4"
+		 Platforms="7" />
+	<Mru Items="2"
+		 Item0="C:\Data\Code\Scribe-Branches\v2.00\Resources\Scribe.lr8"
+		 Item1="D:\Home\matthew\Desktop\Scribe.lr8" />
+</Project>

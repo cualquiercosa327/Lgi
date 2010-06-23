@@ -1,0 +1,476 @@
+/**
+	\file
+	\author Matthew Allen
+	\date 24/5/2002
+	\brief Common file system header
+	Copyright (C) 1995-2002, <a href="mailto:fret@memecode.com">Matthew Allen</a>
+*/
+
+#ifndef __FILE_H
+#define __FILE_H
+
+#include <fcntl.h>
+
+#include "GMem.h"
+#include "GStream.h"
+#include "GArray.h"
+
+#ifdef WIN32
+
+// #include <dos.h>
+// #include <sys\types.h>
+// #include <sys\stat.h>
+// #include <io.h>
+
+typedef HANDLE							OsFile;
+#define INVALID_HANDLE					INVALID_HANDLE_VALUE
+#define ValidHandle(hnd)				((hnd) != INVALID_HANDLE_VALUE)
+
+#define O_READ							GENERIC_READ
+#define O_WRITE							GENERIC_WRITE
+#define O_READWRITE						(GENERIC_READ | GENERIC_WRITE)
+#define O_SHARE							0x01000000
+#define O_NO_CACHE						0x00800000
+
+#else
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <dirent.h>
+#include <unistd.h>
+
+typedef int								OsFile;
+#define INVALID_HANDLE					-1
+#define ValidHandle(hnd)				((hnd) >= 0)
+
+#define O_READ							O_RDONLY
+#define O_WRITE							O_WRONLY
+#ifdef MAC
+#define O_SHARE							O_SHLOCK
+#else
+#define O_SHARE							0
+#endif
+#define O_READWRITE						O_RDWR
+
+#endif
+
+/////////////////////////////////////////////////////////////////////
+// Defines
+#define FileDev							(GFileSystem::GetInstance())
+#define MAX_PATH						260
+
+// File system types (used by GDirectory and GVolume)
+#define VT_NONE							0
+#define VT_3_5FLOPPY					1
+#define VT_5_25FLOPPY					2
+#define VT_HARDDISK						3
+#define VT_CDROM						4
+#define VT_RAMDISK						5
+#define VT_REMOVABLE					6
+#define VT_FOLDER						7
+#define VT_FILE							8
+#define VT_DESKTOP						9
+#define VT_NETWORK_NEIGHBOURHOOD		10
+#define VT_NETWORK_MACHINE				11
+#define VT_NETWORK_SHARE				12
+#define VT_NETWORK_PRINTER				13
+#define VT_NETWORK_GROUP				14	 // e.g. workgroup
+#define VT_MAX							15
+
+// Volume attributes
+#define VA_CASE_SENSITIVE				0x0001
+#define VA_CASE_PRESERVED				0x0002
+#define VA_UNICODE_ON_DISK				0x0004
+#define VA_LFN_API						0x4000
+#define VA_COMPRESSED					0x8000
+
+// File attributes
+#define FA_NORMAL						0x0000
+#define FA_READONLY						0x0001
+#define FA_HIDDEN						0x0002
+#define FA_SYSTEM						0x0004
+#define FA_VOLUME						0x0008
+#define FA_DIRECTORY					0x0010
+#define FA_ARCHIVE						0x0020
+
+/////////////////////////////////////////////////////////////////////
+// Abstract classes
+
+/// Generic directory iterator
+class LgiClass GDirectory
+{
+public:
+	virtual ~GDirectory() { }
+
+	/// \brief Starts the search. The entries '.' and '..' are never returned.
+	/// The default pattern returns all files.
+	/// \return Non zero on success
+	virtual int First
+	(
+		/// The path of the directory
+		char *Name,
+		/// The pattern to match files against.
+		/// \sa The default LGI_ALL_FILES matchs all files.
+		char *Pattern = LGI_ALL_FILES
+	) = 0;
+	
+	/// \brief Get the next match
+	/// \return Non zero on success
+	virtual int Next() = 0;
+
+	/// \brief Finish the search
+	/// \return Non zero on success
+	virtual int Close() = 0;
+
+	/// \brief Constructs the full path of the current directory entry
+	/// \return Non zero on success
+	virtual bool Path
+	(
+		// The buffer to write to
+		char *s,
+		// The size of the output buffer in bytes
+		int BufSize
+	) = 0;
+
+	/// Gets the current entries attributes (platform specific)
+	virtual long GetAttributes() = 0;
+	
+	/// Gets the name of the current entry. (Doesn't include the path).
+	virtual char *GetName() = 0;
+	
+	/// Gets the user id of the current entry. (Doesn't have any meaning on Win32).
+	virtual int GetUser
+	(
+		/// If true gets the group id instead of the user id.
+		bool Group
+	) = 0;
+	
+	/// Gets the entries creation time. You can convert this to an easy to read for using GDateTime.
+	virtual const uint64 GetCreationTime() = 0;
+
+	/// Gets the entries last access time. You can convert this to an easy to read for using GDateTime.
+	virtual const uint64 GetLastAccessTime() = 0;
+
+	/// Gets the entries last modified time.  You can convert this to an easy to read for using GDateTime.
+	virtual const uint64 GetLastWriteTime() = 0;
+
+	/// Returns the size of the entry.
+	virtual const uint64 GetSize() = 0;
+
+	/// Returns true if the entry is a sub-directory.
+	virtual bool IsDir() = 0;
+	
+	/// Returns true if the entry is read only.
+	virtual bool IsReadOnly() = 0;
+
+	/// \brief Returns true if the entry is hidden.
+	/// This is equivilant to a attribute flag on win32 and a leading '.' on unix.
+	virtual bool IsHidden() = 0;
+
+	/// Creates an copy of this type of GDirectory class.
+	virtual GDirectory *Clone() = 0;
+	
+	/// Gets the type code of the current entry. See the VT_?? defines for possible values.
+	virtual int GetType() = 0;
+
+	/// Converts a string to the 64-bit value returned from the date functions.
+	bool ConvertToTime(char *Str, uint64 Time);
+
+	/// Converts the 64-bit value returned from the date functions to a string.
+	bool ConvertToDate(char *Str, uint64 Time);
+};
+
+/// Describes a volume connected to the system
+class LgiClass GVolume
+{
+	friend class GFileSystem;
+
+protected:
+	char *_Name;
+	char *_Path;
+	int _Type;			// VT_??
+	int _Flags;			// VA_??
+	int64 _Size;
+	int64 _Free;
+
+public:
+	GVolume();
+	virtual ~GVolume();
+
+	char *Name() { return _Name; }
+	char *Path() { return _Path; }
+	int Type() { return _Type; } // VT_??
+	int Flags() { return _Flags; }
+	uint64 Size() { return _Size; }
+	uint64 Free() { return _Free; }
+
+	virtual bool IsMounted() = 0;
+	virtual bool SetMounted(bool Mount) = 0;
+	virtual GVolume *First() = 0;
+	virtual GVolume *Next() = 0;
+	virtual GDirectory *GetContents() = 0;
+};
+
+
+/// An implementation of GDirectory for the file system
+class LgiClass GDirImpl : public GDirectory
+{
+	class GDirImplPrivate *d;
+	
+public:
+	GDirImpl();
+	~GDirImpl();
+
+	int First(char *Path, char *Pattern);
+	int Next();
+	int Close();
+	bool Path(char *s, int len = -1);
+	GDirectory *Clone();
+
+	long GetAttributes();
+	bool IsDir();
+	bool IsHidden();
+	bool IsReadOnly();
+	char *GetName();
+	const uint64 GetCreationTime();
+	const uint64 GetLastAccessTime();
+	const uint64 GetLastWriteTime();
+	const uint64 GetSize();
+	int GetUser(bool Group);
+	int GetType();
+};
+
+typedef int (*CopyFileCallback)(void *token, int64 Done, int64 Total);
+
+/// A singleton class for accessing the file system
+class LgiClass GFileSystem
+{
+	friend class GFile;
+	static GFileSystem *Instance;
+	class GFileSystemPrivate *d;
+
+	GVolume *Root;
+
+public:
+	GFileSystem();
+	~GFileSystem();
+	
+	#ifdef WIN32
+	static bool Win9x;
+	#endif
+	
+	/// Return the current instance of the file system. The shorthand for this is "FileDev".
+	static GFileSystem *GetInstance() { return Instance; }
+
+	/// Call this when the devices on the system change. For instance on windows
+	/// when you receive WM_DEVICECHANGE.
+	void OnDeviceChange(char *Reserved = 0);
+
+	/// Gets the root volume of the system.
+	GVolume *GetRootVolume();
+	
+	/// Returns a dynamically allocated GDirectory to iterate a directory in the file system.
+	GDirectory *GetDir();
+
+	/// Copies a file
+	bool Copy
+	(
+		/// The file to copy from...
+		char *From,
+		/// The file to copy to. Any existing file there will be overwritten without warning.
+		char *To,
+		/// Optional callback when some data is copied.
+		CopyFileCallback Callback = 0,
+		/// A user defined token passed to the callback function
+		void *Token = 0
+	);
+
+	/// Delete file
+	bool Delete(char *FileName, bool ToTrash = true);
+	/// Delete files
+	bool Delete
+	(
+		/// The list of files to delete
+		GArray<char*> &Files,
+		/// A list of status codes where 0 means success and non-zero is an error code, usually an OS error code. NULL if not required.
+		GArray<int> *Status = 0,
+		/// true if you want the files moved to the trash folder, false if you want them deleted directly
+		bool ToTrash = true
+	);
+	
+	/// Create a directory
+	bool CreateDirectory(char *PathName);
+	
+	/// Remove's a directory	
+	bool RemoveDirectory
+	(
+		/// The path to remove
+		char *PathName,
+		/// True if you want this function to recursively delete all contents of the path passing in.
+		bool Recurse = false
+	);
+	
+	bool SetCurrentDirectory(char *PathName);
+	bool GetCurrentDirectory(char *PathName, int Length);
+
+	/// Moves a file to a new location. Only works on the same device.
+	bool Move(char *OldName, char *NewName);
+};
+
+#ifdef BEOS
+
+#define GFileOps()						\
+	GFilePre char GFilePost;			\
+	GFilePre int8 GFilePost;			\
+	GFilePre uint8 GFilePost;			\
+	GFilePre int16 GFilePost;			\
+	GFilePre uint16 GFilePost;			\
+	GFilePre signed int GFilePost;		\
+	GFilePre unsigned int GFilePost;	\
+	GFilePre signed long GFilePost;		\
+	GFilePre unsigned long GFilePost;	\
+	GFilePre int64 GFilePost;			\
+	GFilePre uint64 GFilePost;			\
+	GFilePre double GFilePost
+
+#else
+
+#define GFileOps()						\
+	GFilePre char GFilePost;			\
+	GFilePre uint8 GFilePost;			\
+	GFilePre int16 GFilePost;			\
+	GFilePre uint16 GFilePost;			\
+	GFilePre signed int GFilePost;		\
+	GFilePre unsigned int GFilePost;	\
+	GFilePre signed long GFilePost;		\
+	GFilePre unsigned long GFilePost;	\
+	GFilePre int64 GFilePost;			\
+	GFilePre uint64 GFilePost;			\
+	GFilePre double GFilePost
+
+#endif
+
+/// Generic file access class
+class LgiClass GFile : public GStream
+{
+protected:
+	class GFilePrivate *d;
+
+	int SwapRead(uchar *Buf, int Size);
+	int SwapWrite(uchar *Buf, int Size);
+
+public:
+	GFile();
+	virtual ~GFile();
+
+	OsFile Handle();
+
+	/// \brief Opens a file
+	/// \return Non zero on success
+	int Open
+	(
+		/// The path of the file to open
+		char *Name,
+		/// The mode to open the file with. One of O_READ, O_WRITE or O_READWRITE.
+		int Attrib
+	);
+	
+	/// Returns non zero if the class is associated with an open file handle.
+	bool IsOpen();
+	
+	/// Closes the file.
+	int Close();
+	
+	/// Gets the mode that the file was openned with.
+	int GetOpenMode();
+
+	/// Gets the block size
+	int GetBlockSize();
+
+	/// \brief Gets the current file pointer.
+	/// \return The file pointer or -1 on error.
+	int64 GetPos();
+	
+	/// \brief Sets the current file pointer.
+	/// \return The new file pointer or -1 on error.
+	int64 SetPos(int64 Pos);
+
+	/// \brief Gets the file size.
+	/// \return The file size or -1 on error.
+	int64 GetSize();
+
+	/// \brief Sets the file size.
+	/// \return The new file size or -1 on error.
+	int64 SetSize(int64 Size);
+
+	/// \brief Reads bytes into memory from the current file pointer.
+	/// \return The number of bytes read or <= 0.
+	int Read(void *Buffer, int Size, int Flags = 0);
+
+	/// \brief Writes bytes from memory to the current file pointer.
+	/// \return The number of bytes written or <= 0.
+	int Write(void *Buffer, int Size, int Flags = 0);
+
+	/// Gets the path used to open the file
+	virtual char *GetName();
+	
+	/// Moves the current file pointer.
+	virtual int64 Seek(int64 To, int Whence);
+	
+	/// Returns true if the current file pointer is at the end of the file.
+	virtual bool Eof();
+
+	/// Resets the status value.
+	virtual void SetStatus(bool s = false);
+	
+	/// \brief Returns true if all operations were successful since the file was openned or SetStatus
+	/// was used to reset the file's status.
+	virtual bool GetStatus();
+
+	/// \brief Sets the swap option. When switched on all integer reads/writes will have their bytes 
+	/// swaped.
+	virtual void SetSwap(bool s);
+	
+	/// Gets the current swap setting.
+	virtual bool GetSwap();
+
+	// String
+	virtual int ReadStr(char *Buf, int Size);
+	virtual int WriteStr(char *Buf, int Size);
+
+	// Operators
+	#define GFilePre		virtual GFile &operator >> (
+	#define GFilePost		&i)
+	GFileOps();
+	#undef GFilePre
+	#undef GFilePost
+
+	#define GFilePre		virtual GFile &operator << (
+	#define GFilePost		i)
+	GFileOps();
+	#undef GFilePre
+	#undef GFilePost
+};
+
+// Functions
+LgiFunc int64 LgiFileSize(char *FileName);
+LgiFunc bool FileExists(char *File);
+LgiFunc bool DirExists(char *Dir);
+LgiFunc bool ResolveShortcut(char *LinkFile, char *Path, int Len);
+LgiFunc void WriteStr(GFile &f, char *s);
+LgiFunc char *ReadStr(GFile &f DeclDebugArgs);
+LgiFunc int SizeofStr(char *s);
+LgiFunc char *ReadTextFile(char *File);
+LgiFunc bool LgiTrimDir(char *Path);
+LgiFunc bool LgiIsRelativePath(char *Path);
+LgiFunc char *LgiMakeRelativePath(char *Base, char *Path);
+LgiFunc bool LgiMakePath(char *Str, int StrBufLen, char *Dir, char *File);
+LgiFunc char *LgiGetExtension(char *File);
+LgiFunc bool LgiIsFileNameExecutable(char *FileName);
+LgiFunc bool LgiIsFileExecutable(char *FileName, GStreamI *f, int64 Start, int64 Len);
+LgiFunc char *GetErrorName(int e);
+
+/// Get information about the disk that a file resides on.
+LgiFunc bool LgiGetDriveInfo(char *Path, uint64 *Free, uint64 *Size = 0, uint64 *Available = 0);
+
+#endif

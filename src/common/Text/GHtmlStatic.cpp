@@ -1,0 +1,367 @@
+#include "Lgi.h"
+#include "GHtml.h"
+
+char16 GHtmlListItem[] = { 0x2022, ' ', 0 };
+
+char16 *WcharToChar16(wchar_t *i)
+{
+	static char16 Buf[256];
+	char16 *o = Buf;
+	while (*i)
+	{
+		*o++ = *i++;
+	}
+	*o++ = 0;
+	return Buf;
+}
+
+GHtmlStatic *GHtmlStatic::Inst = 0;
+
+GHtmlStatic::GHtmlStatic() :
+	VarMap(8, true),
+	StyleMap(8, false),
+	ColourMap(8, false, 0, -1)
+{
+	Refs = 0;
+
+	// Character entities
+	#define DefVar(s, v)	VarMap.Add(WcharToChar16(s), v)
+	DefVar(L"quot", 0x22);			// quotation mark = APL quote, U+0022 ISOnum
+	DefVar(L"amp", 0x26);			// ampersand, U+0026 ISOnum
+	DefVar(L"lt", 0x3C);				// less-than sign, U+003C ISOnum
+	DefVar(L"gt", 0x3E);				// greater-than sign, U+003E ISOnum
+	DefVar(L"OElig", 0x0152);		// latin capital ligature OE, U+0152 ISOlat2
+	DefVar(L"oelig", 0x0153);		// latin small ligature oe, U+0153 ISOlat2
+	DefVar(L"Scaron", 0x0160);		// latin capital letter S with caron, U+0160 ISOlat2
+	DefVar(L"scaron", 0x0161);		// latin small letter s with caron, U+0161 ISOlat2
+	DefVar(L"Yuml", 0x0178);			// latin capital letter Y with diaeresis, U+0178 ISOlat2
+	DefVar(L"circ", 0x02C6);			// modifier letter circumflex accent, U+02C6 ISOpub
+	DefVar(L"tilde", 0x02DC);		// small tilde, U+02DC ISOdia
+	DefVar(L"ensp", 0x2002);			// en space, U+2002 ISOpub
+	DefVar(L"emsp", 0x2003);			// em space, U+2003 ISOpub
+	DefVar(L"thinsp", 0x2009);		// thin space, U+2009 ISOpub
+	DefVar(L"zwnj", 0x200C);			// zero width non-joiner, U+200C NEW RFC 2070
+	DefVar(L"zwj", 0x200D);			// zero width joiner, U+200D NEW RFC 2070
+	DefVar(L"lrm", 0x200E);			// left-to-right mark, U+200E NEW RFC 2070
+	DefVar(L"rlm", 0x200F);			// right-to-left mark, U+200F NEW RFC 2070
+	DefVar(L"ndash", 0x2013);		// en dash, U+2013 ISOpub
+	DefVar(L"mdash", 0x2014);		// em dash, U+2014 ISOpub
+	DefVar(L"lsquo", 0x2018);		// left single quotation mark, U+2018 ISOnum
+	DefVar(L"rsquo", 0x2019);		// right single quotation mark, U+2019 ISOnum
+	DefVar(L"sbquo", 0x201A);		// single low-9 quotation mark, U+201A NEW
+	DefVar(L"ldquo", 0x201C);		// left double quotation mark, U+201C ISOnum
+	DefVar(L"rdquo", 0x201D);		// right double quotation mark, U+201D ISOnum
+	DefVar(L"bdquo", 0x201E);		// double low-9 quotation mark, U+201E NEW
+	DefVar(L"dagger", 0x2020);		// dagger, U+2020 ISOpub
+	DefVar(L"Dagger", 0x2021);		// double dagger, U+2021 ISOpub
+	DefVar(L"permil", 0x2030);		// per mille sign, U+2030 ISOtech
+	DefVar(L"lsaquo", 0x2039);		// single left-pointing angle quotation mark, U+2039 ISO proposed
+	DefVar(L"rsaquo", 0x203A);		// single right-pointing angle quotation mark, U+203A ISO proposed
+	DefVar(L"euro", 0x20AC);			// euro sign, U+20AC NEW
+	DefVar(L"bull", 0x2022);		// Entity bull
+
+	#if ShowNbsp
+	DefVar(L"nbsp", 0x25cb);			// no-break space
+	#else
+	DefVar(L"nbsp", 0xa0);			// no-break space = non-breaking space, U+00A0 ISOnum
+	#endif
+
+	DefVar(L"iexcl", 0xA1);			// inverted exclamation mark, U+00A1 ISOnum
+	DefVar(L"cent", 0xA2);			// cent sign, U+00A2 ISOnum
+	DefVar(L"pound", 0xA3);			// pound sign, U+00A3 ISOnum
+	DefVar(L"curren", 0xA4);			// currency sign, U+00A4 ISOnum
+	DefVar(L"yen", 0xA5);			// yen sign = yuan sign, U+00A5 ISOnum
+	DefVar(L"brvbar", 0xA6);			// broken bar = broken vertical bar, U+00A6 ISOnum
+	DefVar(L"sect", 0xA7);			// section sign, U+00A7 ISOnum
+	DefVar(L"uml", 0xA8);			// diaeresis = spacing diaeresis, U+00A8 ISOdia
+	DefVar(L"copy", 0xA9);			// copyright sign, U+00A9 ISOnum
+	DefVar(L"ordf", 0xAA);			// feminine ordinal indicator, U+00AA ISOnum
+	DefVar(L"laquo", 0xAB);			// left-pointing double angle quotation mark = left pointing guillemet, U+00AB ISOnum
+	DefVar(L"not", 0xAC);			// not sign, U+00AC ISOnum
+	DefVar(L"shy", 0xAD);			// soft hyphen = discretionary hyphen, U+00AD ISOnum
+	DefVar(L"reg", 0xAE);			// registered sign = registered trade mark sign, U+00AE ISOnum
+	DefVar(L"macr", 0xAF);			// macron = spacing macron = overline = APL overbar, U+00AF ISOdia
+	DefVar(L"deg", 0xB0);			// degree sign, U+00B0 ISOnum
+	DefVar(L"plusmn", 0xB1);			// plus-minus sign = plus-or-minus sign, U+00B1 ISOnum
+	DefVar(L"sup2", 0xB2);			// superscript two = superscript digit two = squared, U+00B2 ISOnum
+	DefVar(L"sup3", 0xB3);			// superscript three = superscript digit three = cubed, U+00B3 ISOnum
+	DefVar(L"acute", 0xB4);			// acute accent = spacing acute, U+00B4 ISOdia
+	DefVar(L"micro", 0xB5);			// micro sign, U+00B5 ISOnum
+	DefVar(L"para", 0xB6);			// pilcrow sign = paragraph sign, U+00B6 ISOnum
+	DefVar(L"middot", 0xB7);			// middle dot = Georgian comma = Greek middle dot, U+00B7 ISOnum
+	DefVar(L"cedil", 0xB8);			// cedilla = spacing cedilla, U+00B8 ISOdia
+	DefVar(L"sup1", 0xB9);			// superscript one = superscript digit one, U+00B9 ISOnum
+	DefVar(L"ordm", 0xBA);			// masculine ordinal indicator, U+00BA ISOnum
+	DefVar(L"raquo", 0xBB);			// right-pointing double angle quotation mark = right pointing guillemet, U+00BB ISOnum
+	DefVar(L"frac14", 0xBC);			// vulgar fraction one quarter fraction one quarter, U+00BC ISOnum
+	DefVar(L"frac12", 0xBD);			// vulgar fraction one half fraction one half, U+00BD ISOnum
+	DefVar(L"frac34", 0xBE);			// vulgar fraction three quarters fraction three quarters, U+00BE ISOnum
+	DefVar(L"iquest", 0xBF);			// inverted question mark turned question mark, U+00BF ISOnum
+	DefVar(L"Agrave", 0xC0);			// latin capital letter A with grave latin capital letter A grave, U+00C0 ISOlat1
+	DefVar(L"Aacute", 0xC1);			// latin capital letter A with acute, U+00C1 ISOlat1
+	DefVar(L"Acirc", 0xC2);			// latin capital letter A with circumflex, U+00C2 ISOlat1
+	DefVar(L"Atilde", 0xC3);			// latin capital letter A with tilde, U+00C3 ISOlat1
+	DefVar(L"Auml", 0xC4);			// latin capital letter A with diaeresis, U+00C4 ISOlat1
+	DefVar(L"Aring", 0xC5);			// latin capital letter A with ring above latin capital letter A ring, U+00C5 ISOlat1
+	DefVar(L"AElig", 0xC6);			// latin capital letter AE latin capital ligature AE, U+00C6 ISOlat1
+	DefVar(L"Ccedil", 0xC7);			// latin capital letter C with cedilla, U+00C7 ISOlat1
+	DefVar(L"Egrave", 0xC8);			// latin capital letter E with grave, U+00C8 ISOlat1
+	DefVar(L"Eacute", 0xC9);			// latin capital letter E with acute, U+00C9 ISOlat1
+	DefVar(L"Ecirc", 0xCA);			// latin capital letter E with circumflex, U+00CA ISOlat1
+	DefVar(L"Euml", 0xCB);			// latin capital letter E with diaeresis, U+00CB ISOlat1
+	DefVar(L"Igrave", 0xCC);			// latin capital letter I with grave, U+00CC ISOlat1
+	DefVar(L"Iacute", 0xCD);			// latin capital letter I with acute, U+00CD ISOlat1
+	DefVar(L"Icirc", 0xCE);			// latin capital letter I with circumflex, U+00CE ISOlat1
+	DefVar(L"Iuml", 0xCF);			// latin capital letter I with diaeresis, U+00CF ISOlat1
+	DefVar(L"ETH", 0xD0);			// latin capital letter ETH, U+00D0 ISOlat1
+	DefVar(L"Ntilde", 0xD1);			// latin capital letter N with tilde, U+00D1 ISOlat1
+	DefVar(L"Ograve", 0xD2);			// latin capital letter O with grave, U+00D2 ISOlat1
+	DefVar(L"Oacute", 0xD3);			// latin capital letter O with acute, U+00D3 ISOlat1
+	DefVar(L"Ocirc", 0xD4);			// latin capital letter O with circumflex, U+00D4 ISOlat1
+	DefVar(L"Otilde", 0xD5);			// latin capital letter O with tilde, U+00D5 ISOlat1
+	DefVar(L"Ouml", 0xD6);			// latin capital letter O with diaeresis, U+00D6 ISOlat1
+	DefVar(L"times", 0xD7);			// multiplication sign, U+00D7 ISOnum
+	DefVar(L"Oslash", 0xD8);			// latin capital letter O with stroke = latin capital letter O slash, U+00D8 ISOlat1
+	DefVar(L"Ugrave", 0xD9);			// latin capital letter U with grave, U+00D9 ISOlat1
+	DefVar(L"Uacute", 0xDA);			// latin capital letter U with acute, U+00DA ISOlat1
+	DefVar(L"Ucirc", 0xDB);			// latin capital letter U with circumflex, U+00DB ISOlat1
+	DefVar(L"Uuml", 0xDC);			// latin capital letter U with diaeresis, U+00DC ISOlat1
+	DefVar(L"Yacute", 0xDD);			// latin capital letter Y with acute, U+00DD ISOlat1
+	DefVar(L"THORN", 0xDE);			// latin capital letter THORN, U+00DE ISOlat1
+	DefVar(L"szlig", 0xDF);			// latin small letter sharp s = ess-zed, U+00DF ISOlat1
+	DefVar(L"agrave", 0xE0);			// latin small letter a with grave latin small letter a grave, U+00E0 ISOlat1
+	DefVar(L"aacute", 0xE1);			// latin small letter a with acute, U+00E1 ISOlat1
+	DefVar(L"acirc", 0xE2);			// latin small letter a with circumflex, U+00E2 ISOlat1
+	DefVar(L"atilde", 0xE3);			// latin small letter a with tilde, U+00E3 ISOlat1
+	DefVar(L"auml", 0xE4);			// latin small letter a with diaeresis, U+00E4 ISOlat1
+	DefVar(L"aring", 0xE5);			// latin small letter a with ring above latin small letter a ring, U+00E5 ISOlat1
+	DefVar(L"aelig", 0xE6);			// latin small letter ae latin small ligature ae, U+00E6 ISOlat1
+	DefVar(L"ccedil", 0xE7);			// latin small letter c with cedilla, U+00E7 ISOlat1
+	DefVar(L"egrave", 0xE8);			// latin small letter e with grave, U+00E8 ISOlat1
+	DefVar(L"eacute", 0xE9);			// latin small letter e with acute, U+00E9 ISOlat1
+	DefVar(L"ecirc", 0xEA);			// latin small letter e with circumflex, U+00EA ISOlat1
+	DefVar(L"euml", 0xEB);			// latin small letter e with diaeresis, U+00EB ISOlat1
+	DefVar(L"igrave", 0xEC);			// latin small letter i with grave, U+00EC ISOlat1
+	DefVar(L"iacute", 0xED);			// latin small letter i with acute, U+00ED ISOlat1
+	DefVar(L"icirc", 0xEE);			// latin small letter i with circumflex, U+00EE ISOlat1
+	DefVar(L"iuml", 0xEF);			// latin small letter i with diaeresis, U+00EF ISOlat1
+	DefVar(L"eth", 0xF0);			// latin small letter eth, U+00F0 ISOlat1
+	DefVar(L"ntilde", 0xF1);			// latin small letter n with tilde, U+00F1 ISOlat1
+	DefVar(L"ograve", 0xF2);			// latin small letter o with grave, U+00F2 ISOlat1
+	DefVar(L"oacute", 0xF3);			// latin small letter o with acute, U+00F3 ISOlat1
+	DefVar(L"ocirc", 0xF4);			// latin small letter o with circumflex, U+00F4 ISOlat1
+	DefVar(L"otilde", 0xF5);			// latin small letter o with tilde, U+00F5 ISOlat1
+	DefVar(L"ouml", 0xF6);			// latin small letter o with diaeresis, U+00F6 ISOlat1
+	DefVar(L"divide", 0xF7);			// division sign, U+00F7 ISOnum
+	DefVar(L"oslash", 0xF8);			// latin small letter o with stroke, latin small letter o slash, U+00F8 ISOlat1
+	DefVar(L"ugrave", 0xF9);			// latin small letter u with grave, U+00F9 ISOlat1
+	DefVar(L"uacute", 0xFA);			// latin small letter u with acute, U+00FA ISOlat1
+	DefVar(L"ucirc", 0xFB);			// latin small letter u with circumflex, U+00FB ISOlat1
+	DefVar(L"uuml", 0xFC);			// latin small letter u with diaeresis, U+00FC ISOlat1
+	DefVar(L"yacute", 0xFD);			// latin small letter y with acute, U+00FD ISOlat1
+	DefVar(L"thorn", 0xFE);			// latin small letter thorn with, U+00FE ISOlat1
+	DefVar(L"yuml", 0xFF);			// latin small letter y with diaeresis, U+00FF ISOlat1
+
+	// Supported styles
+	#define DefStyle(s, v) StyleMap.Add((char*)#s, v)
+	DefStyle(color, CSS_COLOUR);
+	DefStyle(background, CSS_BACKGROUND);
+	DefStyle(background-color, CSS_BACKGROUND_COLOUR);
+	DefStyle(background-repeat, CSS_BACKGROUND_REPEAT);
+	DefStyle(font, CSS_FONT);
+	DefStyle(text-align, CSS_TEXT_ALIGN);
+	DefStyle(vertical-align, CSS_VERTICAL_ALIGN);
+	DefStyle(font-size, CSS_FONT_SIZE);
+	DefStyle(font-weight, CSS_FONT_WEIGHT);
+	DefStyle(font-family, CSS_FONT_FAMILY);
+	DefStyle(font-style, CSS_FONT_STYLE);
+	DefStyle(width, CSS_WIDTH);
+	DefStyle(height, CSS_HEIGHT);
+	DefStyle(margin, CSS_MARGIN);
+	DefStyle(margin-left, CSS_MARGIN_LEFT);
+	DefStyle(margin-right, CSS_MARGIN_RIGHT);
+	DefStyle(margin-top, CSS_MARGIN_TOP);
+	DefStyle(margin-bottom, CSS_MARGIN_BOTTOM);
+	DefStyle(padding, CSS_PADDING);
+	DefStyle(padding-left, CSS_PADDING_LEFT);
+	DefStyle(padding-top, CSS_PADDING_TOP);
+	DefStyle(padding-right, CSS_PADDING_RIGHT);
+	DefStyle(padding-bottom, CSS_PADDING_BOTTOM);
+	DefStyle(border, CSS_BORDER);
+	DefStyle(border-left, CSS_BORDER_LEFT);
+	DefStyle(border-right, CSS_BORDER_RIGHT);
+	DefStyle(border-top, CSS_BORDER_TOP);
+	DefStyle(border-bottom, CSS_BORDER_BOTTOM);
+	
+	// Html colours
+	#define DefColour(s, v) ColourMap.Add((char*)#s, v)
+
+	DefColour(LC_BLACK, LC_BLACK);
+	DefColour(LC_DKGREY, LC_DKGREY);
+	DefColour(LC_MIDGREY, LC_MIDGREY);
+	DefColour(LC_LTGREY, LC_LTGREY);
+	DefColour(LC_WHITE, LC_WHITE);
+	DefColour(LC_SHADOW, LC_SHADOW);
+	DefColour(LC_LOW, LC_LOW);
+	DefColour(LC_MED, LC_MED);
+	DefColour(LC_HIGH, LC_HIGH);
+	DefColour(LC_LIGHT, LC_LIGHT);
+	DefColour(LC_DIALOG, LC_DIALOG);
+	DefColour(LC_WORKSPACE, LC_WORKSPACE);
+	DefColour(LC_TEXT, LC_TEXT);
+	DefColour(LC_SELECTION, LC_SELECTION);
+	DefColour(LC_SEL_TEXT, LC_SEL_TEXT);
+	DefColour(LC_ACTIVE_TITLE, LC_ACTIVE_TITLE);
+	DefColour(LC_ACTIVE_TITLE_TEXT, LC_ACTIVE_TITLE_TEXT);
+	DefColour(LC_INACTIVE_TITLE, LC_INACTIVE_TITLE);
+	DefColour(LC_INACTIVE_TITLE_TEXT, LC_INACTIVE_TITLE_TEXT);
+
+	DefColour(AliceBlue, Rgb24(0xF0, 0xF8, 0xFF));
+	DefColour(AntiqueWhite, Rgb24(0xFA, 0xEB, 0xD7));
+	DefColour(Aqua, Rgb24(0x00, 0xFF, 0xFF));
+	DefColour(Aquamarine, Rgb24(0x7F, 0xFF, 0xD4));
+	DefColour(Azure, Rgb24(0xF0, 0xFF, 0xFF));
+	DefColour(Beige, Rgb24(0xF5, 0xF5, 0xDC));
+	DefColour(Bisque, Rgb24(0xFF, 0xE4, 0xC4));
+	DefColour(Black, Rgb24(0x00, 0x00, 0x00));
+	DefColour(BlanchedAlmond, Rgb24(0xFF, 0xEB, 0xCD));
+	DefColour(Blue, Rgb24(0x00, 0x00, 0xFF));
+	DefColour(BlueViolet, Rgb24(0x8A, 0x2B, 0xE2));
+	DefColour(Brown, Rgb24(0xA5, 0x2A, 0x2A));
+	DefColour(BurlyWood, Rgb24(0xDE, 0xB8, 0x87));
+	DefColour(CadetBlue, Rgb24(0x5F, 0x9E, 0xA0));
+	DefColour(Chartreuse, Rgb24(0x7F, 0xFF, 0x00));
+	DefColour(Chocolate, Rgb24(0xD2, 0x69, 0x1E));
+	DefColour(Coral, Rgb24(0xFF, 0x7F, 0x50));
+	DefColour(CornflowerBlue, Rgb24(0x64, 0x95, 0xED));
+	DefColour(Cornsilk, Rgb24(0xFF, 0xF8, 0xDC));
+	DefColour(Crimson, Rgb24(0xDC, 0x14, 0x3C));
+	DefColour(Cyan, Rgb24(0x00, 0xFF, 0xFF));
+	DefColour(DarkBlue, Rgb24(0x00, 0x00, 0x8B));
+	DefColour(DarkCyan, Rgb24(0x00, 0x8B, 0x8B));
+	DefColour(DarkGoldenRod, Rgb24(0xB8, 0x86, 0x0B));
+	DefColour(DarkGray, Rgb24(0xA9, 0xA9, 0xA9));
+	DefColour(DarkGreen, Rgb24(0x00, 0x64, 0x00));
+	DefColour(DarkKhaki, Rgb24(0xBD, 0xB7, 0x6B));
+	DefColour(DarkMagenta, Rgb24(0x8B, 0x00, 0x8B));
+	DefColour(DarkOliveGreen, Rgb24(0x55, 0x6B, 0x2F));
+	DefColour(Darkorange, Rgb24(0xFF, 0x8C, 0x00));
+	DefColour(DarkOrchid, Rgb24(0x99, 0x32, 0xCC));
+	DefColour(DarkRed, Rgb24(0x8B, 0x00, 0x00));
+	DefColour(DarkSalmon, Rgb24(0xE9, 0x96, 0x7A));
+	DefColour(DarkSeaGreen, Rgb24(0x8F, 0xBC, 0x8F));
+	DefColour(DarkSlateBlue, Rgb24(0x48, 0x3D, 0x8B));
+	DefColour(DarkSlateGray, Rgb24(0x2F, 0x4F, 0x4F));
+	DefColour(DarkTurquoise, Rgb24(0x00, 0xCE, 0xD1));
+	DefColour(DarkViolet, Rgb24(0x94, 0x00, 0xD3));
+	DefColour(DeepPink, Rgb24(0xFF, 0x14, 0x93));
+	DefColour(DeepSkyBlue, Rgb24(0x00, 0xBF, 0xFF));
+	DefColour(DimGray, Rgb24(0x69, 0x69, 0x69));
+	DefColour(DodgerBlue, Rgb24(0x1E, 0x90, 0xFF));
+	DefColour(FireBrick, Rgb24(0xB2, 0x22, 0x22));
+	DefColour(FloralWhite, Rgb24(0xFF, 0xFA, 0xF0));
+	DefColour(ForestGreen, Rgb24(0x22, 0x8B, 0x22));
+	DefColour(Fuchsia, Rgb24(0xFF, 0x00, 0xFF));
+	DefColour(Gainsboro, Rgb24(0xDC, 0xDC, 0xDC));
+	DefColour(GhostWhite, Rgb24(0xF8, 0xF8, 0xFF));
+	DefColour(Gold, Rgb24(0xFF, 0xD7, 0x00));
+	DefColour(GoldenRod, Rgb24(0xDA, 0xA5, 0x20));
+	DefColour(Gray, Rgb24(0x80, 0x80, 0x80));
+	DefColour(Green, Rgb24(0x00, 0x80, 0x00));
+	DefColour(GreenYellow, Rgb24(0xAD, 0xFF, 0x2F));
+	DefColour(HoneyDew, Rgb24(0xF0, 0xFF, 0xF0));
+	DefColour(HotPink, Rgb24(0xFF, 0x69, 0xB4));
+	DefColour(IndianRed , Rgb24(0xCD, 0x5C, 0x5C));
+	DefColour(Indigo , Rgb24(0x4B, 0x00, 0x82));
+	DefColour(Ivory, Rgb24(0xFF, 0xFF, 0xF0));
+	DefColour(Khaki, Rgb24(0xF0, 0xE6, 0x8C));
+	DefColour(Lavender, Rgb24(0xE6, 0xE6, 0xFA));
+	DefColour(LavenderBlush, Rgb24(0xFF, 0xF0, 0xF5));
+	DefColour(LawnGreen, Rgb24(0x7C, 0xFC, 0x00));
+	DefColour(LemonChiffon, Rgb24(0xFF, 0xFA, 0xCD));
+	DefColour(LightBlue, Rgb24(0xAD, 0xD8, 0xE6));
+	DefColour(LightCoral, Rgb24(0xF0, 0x80, 0x80));
+	DefColour(LightCyan, Rgb24(0xE0, 0xFF, 0xFF));
+	DefColour(LightGoldenRodYellow, Rgb24(0xFA, 0xFA, 0xD2));
+	DefColour(LightGrey, Rgb24(0xD3, 0xD3, 0xD3));
+	DefColour(LightGreen, Rgb24(0x90, 0xEE, 0x90));
+	DefColour(LightPink, Rgb24(0xFF, 0xB6, 0xC1));
+	DefColour(LightSalmon, Rgb24(0xFF, 0xA0, 0x7A));
+	DefColour(LightSeaGreen, Rgb24(0x20, 0xB2, 0xAA));
+	DefColour(LightSkyBlue, Rgb24(0x87, 0xCE, 0xFA));
+	DefColour(LightSlateBlue, Rgb24(0x84, 0x70, 0xFF));
+	DefColour(LightSlateGray, Rgb24(0x77, 0x88, 0x99));
+	DefColour(LightSteelBlue, Rgb24(0xB0, 0xC4, 0xDE));
+	DefColour(LightYellow, Rgb24(0xFF, 0xFF, 0xE0));
+	DefColour(Lime, Rgb24(0x00, 0xFF, 0x00));
+	DefColour(LimeGreen, Rgb24(0x32, 0xCD, 0x32));
+	DefColour(Linen, Rgb24(0xFA, 0xF0, 0xE6));
+	DefColour(Magenta, Rgb24(0xFF, 0x00, 0xFF));
+	DefColour(Maroon, Rgb24(0x80, 0x00, 0x00));
+	DefColour(MediumAquaMarine, Rgb24(0x66, 0xCD, 0xAA));
+	DefColour(MediumBlue, Rgb24(0x00, 0x00, 0xCD));
+	DefColour(MediumOrchid, Rgb24(0xBA, 0x55, 0xD3));
+	DefColour(MediumPurple, Rgb24(0x93, 0x70, 0xD8));
+	DefColour(MediumSeaGreen, Rgb24(0x3C, 0xB3, 0x71));
+	DefColour(MediumSlateBlue, Rgb24(0x7B, 0x68, 0xEE));
+	DefColour(MediumSpringGreen, Rgb24(0x00, 0xFA, 0x9A));
+	DefColour(MediumTurquoise, Rgb24(0x48, 0xD1, 0xCC));
+	DefColour(MediumVioletRed, Rgb24(0xC7, 0x15, 0x85));
+	DefColour(MidnightBlue, Rgb24(0x19, 0x19, 0x70));
+	DefColour(MintCream, Rgb24(0xF5, 0xFF, 0xFA));
+	DefColour(MistyRose, Rgb24(0xFF, 0xE4, 0xE1));
+	DefColour(Moccasin, Rgb24(0xFF, 0xE4, 0xB5));
+	DefColour(NavajoWhite, Rgb24(0xFF, 0xDE, 0xAD));
+	DefColour(Navy, Rgb24(0x00, 0x00, 0x80));
+	DefColour(OldLace, Rgb24(0xFD, 0xF5, 0xE6));
+	DefColour(Olive, Rgb24(0x80, 0x80, 0x00));
+	DefColour(OliveDrab, Rgb24(0x6B, 0x8E, 0x23));
+	DefColour(Orange, Rgb24(0xFF, 0xA5, 0x00));
+	DefColour(OrangeRed, Rgb24(0xFF, 0x45, 0x00));
+	DefColour(Orchid, Rgb24(0xDA, 0x70, 0xD6));
+	DefColour(PaleGoldenRod, Rgb24(0xEE, 0xE8, 0xAA));
+	DefColour(PaleGreen, Rgb24(0x98, 0xFB, 0x98));
+	DefColour(PaleTurquoise, Rgb24(0xAF, 0xEE, 0xEE));
+	DefColour(PaleVioletRed, Rgb24(0xD8, 0x70, 0x93));
+	DefColour(PapayaWhip, Rgb24(0xFF, 0xEF, 0xD5));
+	DefColour(PeachPuff, Rgb24(0xFF, 0xDA, 0xB9));
+	DefColour(Peru, Rgb24(0xCD, 0x85, 0x3F));
+	DefColour(Pink, Rgb24(0xFF, 0xC0, 0xCB));
+	DefColour(Plum, Rgb24(0xDD, 0xA0, 0xDD));
+	DefColour(PowderBlue, Rgb24(0xB0, 0xE0, 0xE6));
+	DefColour(Purple, Rgb24(0x80, 0x00, 0x80));
+	DefColour(Red, Rgb24(0xFF, 0x00, 0x00));
+	DefColour(RosyBrown, Rgb24(0xBC, 0x8F, 0x8F));
+	DefColour(RoyalBlue, Rgb24(0x41, 0x69, 0xE1));
+	DefColour(SaddleBrown, Rgb24(0x8B, 0x45, 0x13));
+	DefColour(Salmon, Rgb24(0xFA, 0x80, 0x72));
+	DefColour(SandyBrown, Rgb24(0xF4, 0xA4, 0x60));
+	DefColour(SeaGreen, Rgb24(0x2E, 0x8B, 0x57));
+	DefColour(SeaShell, Rgb24(0xFF, 0xF5, 0xEE));
+	DefColour(Sienna, Rgb24(0xA0, 0x52, 0x2D));
+	DefColour(Silver, Rgb24(0xC0, 0xC0, 0xC0));
+	DefColour(SkyBlue, Rgb24(0x87, 0xCE, 0xEB));
+	DefColour(SlateBlue, Rgb24(0x6A, 0x5A, 0xCD));
+	DefColour(SlateGray, Rgb24(0x70, 0x80, 0x90));
+	DefColour(Snow, Rgb24(0xFF, 0xFA, 0xFA));
+	DefColour(SpringGreen, Rgb24(0x00, 0xFF, 0x7F));
+	DefColour(SteelBlue, Rgb24(0x46, 0x82, 0xB4));
+	DefColour(Tan, Rgb24(0xD2, 0xB4, 0x8C));
+	DefColour(Teal, Rgb24(0x00, 0x80, 0x80));
+	DefColour(Thistle, Rgb24(0xD8, 0xBF, 0xD8));
+	DefColour(Tomato, Rgb24(0xFF, 0x63, 0x47));
+	DefColour(Turquoise, Rgb24(0x40, 0xE0, 0xD0));
+	DefColour(Violet, Rgb24(0xEE, 0x82, 0xEE));
+	DefColour(VioletRed, Rgb24(0xD0, 0x20, 0x90));
+	DefColour(Wheat, Rgb24(0xF5, 0xDE, 0xB3));
+	DefColour(White, Rgb24(0xFF, 0xFF, 0xFF));
+	DefColour(WhiteSmoke, Rgb24(0xF5, 0xF5, 0xF5));
+	DefColour(Yellow, Rgb24(0xFF, 0xFF, 0x00));
+	DefColour(YellowGreen, Rgb24(0x9A, 0xCD, 0x32));
+
+}
+
+GHtmlStatic::~GHtmlStatic()
+{
+}
+

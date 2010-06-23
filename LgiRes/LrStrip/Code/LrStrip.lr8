@@ -1,0 +1,37 @@
+<resources>
+<string-group name="_Dialog Symbols_">
+<String Ref="1" Cid="506" Define="IDD_APP"
+	en="Lgi Resource Language Strip"/>
+<String Ref="2" Cid="500" Define="IDC_CMD_LINE"
+	en="Command Line Options"/>
+<String Ref="4" Cid="501" Define="IDC_LOAD_FILE"
+	en="Load Resource File"/>
+<String Ref="5" Cid="-1" Define="IDC_STATIC"
+	en="Languages:"/>
+<String Ref="6" Cid="502" Define="IDC_LANG"/>
+<String Ref="7" Cid="503" Define="IDS_7"
+	en="Language"/>
+<String Ref="8" Cid="504" Define="IDS_8"
+	en="Id"/>
+<String Ref="9" Cid="1" Define="IDOK"
+	en="Strip"/>
+<String Ref="10" Cid="2" Define="IDCANCEL"
+	en="Close"/>
+<String Ref="11" Cid="505" Define="IDS_11"
+	en="Include"/>
+</string-group>
+
+<Dialog pos="7,7,400,436" ref="1">
+	<Button pos="241,24,380,44" ref="4"/>
+	<StaticText pos="17,31,107,44" ref="5"/>
+	<ListView pos="17,52,380,387" ref="6">
+		<Column ref="7" width="233"/>
+		<Column ref="8" width="50"/>
+		<Column ref="11" width="50"/>
+	</ListView>
+	<Button pos="234,395,303,415" ref="9"/>
+	<Button pos="311,395,380,415" ref="10"/>
+	<Button pos="17,395,163,415" ref="2"/>
+</Dialog>
+
+</resources>

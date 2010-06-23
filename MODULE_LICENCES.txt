@@ -1,0 +1,38 @@
+		
+		MODULE LICENSES
+		---------------
+
+This document covers the licenses of various code included in Lgi from
+sources other than Memecode. If something isn't covered explicitly here
+then the code was written by Matthew Allen / Memecode and is licensed
+under the LGPL v2.1
+
+The 'Inclusion' section specifies whether the source is include in the
+default binary distribution of Lgi or not.
+
+include\common\md5.h
+src\common\General\md5.cpp
+	Author: Aladdin Enterprises
+	License: Origin not be misrepresented, Altered versions plainly marked,
+			 Notice may not be removed from source.
+	Inclusion: Yes.
+
+src\common\Lgi\LgiRand.cpp
+	Author:	Takuji Nishimura and Makoto Matsumoto
+	License: Include (C) notice, don't use Authors names.
+	Inclusion: Yes
+
+src\common\INet\AuthNtlm\*
+	Author: Andrew Tridgell, Jeremy Allison
+	License: GPL v2
+	Inclusion: In releases prior to v3.3.0
+
+src\win32\INet\MibAccess.*
+	Author: Stas Khirman <staskh@rocketmail.com>
+	License: "Free software: no warranty; use anywhere is ok;"
+	Inclusion: Win32 releases only.
+
+src\common\Db\bfs\*
+	Author: "Axel Dofler" <axeld@pinc-software.de>
+	License: OpenBeOS License / MIT
+	Inclusion: No

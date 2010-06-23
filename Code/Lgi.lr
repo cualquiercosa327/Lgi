@@ -1,0 +1,146 @@
+<string-group name="_Dialog Symbols_">
+<string Ref=1 Id=1 Define="IDD_FONT"
+	Text(13)="Font">
+<string Ref=2 Id=2 Define="IDS_2"
+	Text(13)="Face">
+<string Ref=3 Id=3 Define="IDC_STATIC"
+	Text(13)="Style">
+<string Ref=4 Id=4 Define="IDC_FONT">
+<string Ref=5 Id=9 Define="IDC_UNDERLINE"
+	Text(13)="Underline">
+<string Ref=6 Id=6 Define="IDC_STATIC"
+	Text(13)="Size">
+<string Ref=7 Id=7 Define="IDC_SIZE">
+<string Ref=8 Id=8 Define="IDC_SELECT_SIZE">
+<string Ref=9 Id=10 Define="IDC_BOLD"
+	Text(13)="Bold">
+<string Ref=10 Id=11 Define="IDC_ITALIC"
+	Text(13)="Italic">
+<string Ref=11 Id=11 Define="IDC_PREVIEW">
+<string Ref=12 Id=12 Define="IDC_STATIC"
+	Text(13)="Preview:">
+<string Ref=13 Id=13 Define="IDOK"
+	Text(13)="Ok">
+<string Ref=14 Id=14 Define="IDCANCEL"
+	Text(13)="Cancel">
+<string Ref=15 Id=15 Define="IDD_FIND"
+	Text(13)="Find">
+<string Ref=16 Id=16 Define="IDS_16"
+	Text(13)="Find what:">
+<string Ref=17 Id=17 Define="IDC_TEXT">
+<string Ref=18 Id=18 Define="IDOK"
+	Text(13)="Find Next">
+<string Ref=19 Id=19 Define="IDCANCEL"
+	Text(13)="Cancel">
+<string Ref=20 Id=20 Define="IDC_MATCH_WORD"
+	Text(13)="Match whole word only">
+<string Ref=21 Id=21 Define="IDC_MATCH_CASE"
+	Text(13)="Match case">
+<string Ref=22 Id=22 Define="IDC_PREV_SEARCH">
+<string Ref=23 Id=23 Define="IDD_REPLACE"
+	Text(13)="Replace">
+<string Ref=24 Id=16 Define="IDS_16"
+	Text(13)="Find what:">
+<string Ref=25 Id=17 Define="IDC_TEXT">
+<string Ref=26 Id=18 Define="IDC_FIND"
+	Text(13)="Find Next">
+<string Ref=27 Id=19 Define="IDCANCEL"
+	Text(13)="Cancel">
+<string Ref=28 Id=20 Define="IDC_MATCH_WORD"
+	Text(13)="Match whole word only">
+<string Ref=29 Id=21 Define="IDC_MATCH_CASE"
+	Text(13)="Match case">
+<string Ref=30 Id=22 Define="IDC_PREV_SEARCH">
+<string Ref=31 Id=19 Define="IDC_REPLACE"
+	Text(13)="Replace">
+<string Ref=32 Id=19 Define="IDOK"
+	Text(13)="Replace All">
+<string Ref=33 Id=33 Define="IDS_33"
+	Text(13)="Replace with:">
+<string Ref=34 Id=34 Define="IDC_REPLACE_WITH">
+<string Ref=35 Id=35 Define="IDC_PREV_REPLACE">
+<string Ref=36 Id=36 Define="IDD_FILE_SELECT"
+	Text(13)="Select">
+<string Ref=37 Id=37 Define="IDS_37"
+	Text(13)="Look in:">
+<string Ref=38 Id=38 Define="IDC_PATH">
+<string Ref=39 Id=39 Define="IDC_DROP">
+<string Ref=40 Id=40 Define="IDC_BACK"
+	Text(13)="<-">
+<string Ref=41 Id=41 Define="IDC_UP"
+	Text(13)="Up">
+<string Ref=42 Id=42 Define="IDC_NEW"
+	Text(13)="New">
+<string Ref=43 Id=43 Define="IDC_VIEW">
+<string Ref=44 Id=44 Define="IDS_44"
+	Text(13)="File name:">
+<string Ref=45 Id=45 Define="IDS_45"
+	Text(13)="Files of type:">
+<string Ref=46 Id=46 Define="IDC_FILE">
+<string Ref=47 Id=47 Define="IDC_TYPE">
+<string Ref=48 Id=48 Define="IDOK"
+	Text(13)="Ok">
+<string Ref=49 Id=49 Define="IDCANCEL"
+	Text(13)="Cancel">
+</string-group>
+
+<Dialog pos="7,7,489,349" Ref=36>
+	<StaticText pos="17,31,72,44" Ref=37>
+	<EditBox pos="94,24,338,44" Ref=38>
+	<Custom pos='339,24,359,44' ctrl='GFolderDropDown' Ref=39>
+	<Button pos="381,24,408,44" Ref=40>
+	<Button pos="409,24,436,44" Ref=41>
+	<Button pos="437,24,464,44" Ref=42>
+	<Custom pos='17,52,464,275' ctrl='GFolderView' Ref=43>
+	<StaticText pos="17,290,79,303" Ref=44>
+	<StaticText pos="17,318,79,331" Ref=45>
+	<EditBox pos="94,283,359,303" Ref=46>
+	<ComboBox pos="94,311,359,331" Ref=47>
+	<Button pos="395,283,464,303" Ref=48>
+	<Button pos="395,311,464,331" Ref=49>
+</Dialog>
+
+<Dialog pos="7,7,386,116" Ref=15>
+	<StaticText pos="17,31,72,44" Ref=16>
+	<EditBox pos="94,24,261,44" Ref=17>
+	<Button pos="297,24,366,44" Ref=18>
+	<Button pos="297,52,366,72" Ref=19>
+	<CheckBox pos="17,59,149,72" Ref=20>
+	<CheckBox pos="17,80,100,93" Ref=21>
+	<ComboBox pos="262,24,282,44" Ref=22>
+</Dialog>
+
+<Dialog pos="7,7,302,318" Ref=1>
+	<ListView pos="17,31,177,177" Ref=4>
+		<Column Ref=2 width=137>
+	</ListView>
+	<Group pos="185,24,282,114" Ref=3>
+		<CheckBox pos="14,63,83,76" Ref=5>
+		<CheckBox pos="14,21,83,34" Ref=9>
+		<CheckBox pos="14,42,83,55" Ref=10>
+	</Group>
+	<Group pos="185,122,282,177" Ref=6>
+		<EditBox pos="14,21,69,41" Ref=7>
+		<ComboBox pos="70,21,90,41" Ref=8>
+	</Group>
+	<Bitmap pos="17,199,282,268" Ref=11>
+	<StaticText pos="17,185,86,198" Ref=12>
+	<Button pos="178,276,226,296" Ref=13>
+	<Button pos="234,276,282,296" Ref=14>
+</Dialog>
+
+<Dialog pos="7,7,387,152" Ref=23>
+	<StaticText pos="17,31,72,44" Ref=24>
+	<EditBox pos="94,24,261,44" Ref=25>
+	<Button pos="297,24,366,44" Ref=26>
+	<Button pos="297,108,366,128" Ref=27>
+	<CheckBox pos="17,87,149,100" Ref=28>
+	<CheckBox pos="17,108,100,121" Ref=29>
+	<ComboBox pos="262,24,282,44" Ref=30>
+	<Button pos="297,52,366,72" Ref=31>
+	<Button pos="297,80,366,100" Ref=32>
+	<StaticText pos="17,59,86,72" Ref=33>
+	<EditBox pos="94,52,261,72" Ref=34>
+	<ComboBox pos="262,52,282,72" Ref=35>
+</Dialog>
+

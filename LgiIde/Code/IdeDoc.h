@@ -1,0 +1,95 @@
+#ifndef _IDE_DOC_H_
+#define _IDE_DOC_H_
+
+#include "GMdi.h"
+#include "GTextView3.h"
+
+enum DefnType
+{
+	DefnNone,
+	DefnDefine,
+	DefnFunc,
+	DefnClass,
+	DefnEnum,
+	DefnTypedef,
+};
+
+class DefnInfo
+{
+public:
+	DefnType Type;
+	char *Name;
+	char *File;
+	int Line;
+	
+	DefnInfo(DefnType type, char *file, char16 *s, int line)
+	{
+		Type = type;
+		File = NewStr(file);
+		
+		while (strchr(" \t\r\n", *s)) s++;	
+		Line = line;
+		Name = LgiNewUtf16To8(s);
+		if (Name AND Type == DefnFunc)
+		{
+			if (strlen(Name) > 42)
+			{
+				char *b = strchr(Name, '(');
+				if (b)
+				{
+					if (strlen(b) > 5)
+					{
+						strcpy(b, "(...)");
+					}
+					else
+					{
+						*b = 0;
+					}
+				}
+			}
+			
+			char *t;
+			while (t = strchr(Name, '\t'))
+			{
+				*t = ' ';
+			}
+		}		
+	}
+	
+	~DefnInfo()
+	{
+		DeleteArray(Name);
+		DeleteArray(File);
+	}
+};
+
+class IdeDoc : public GMdiChild
+{
+	class IdeDocPrivate *d;
+
+public:
+	IdeDoc(class AppWnd *a, NodeSource *src, char *file);
+	~IdeDoc();
+
+	void SetProject(IdeProject *p);	
+	IdeProject *GetProject();
+	char *GetFileName();
+	void SetFileName(char *f, bool Write);
+	void SetFocus();
+	bool SetClean();
+	void SetDirty();
+	bool OnRequestClose(bool OsShuttingDown);
+	int OnNotify(GViewI *v, int f);
+	GTextView3 *GetEdit();
+	void OnPosChange();
+	void OnPaint(GSurface *pDC);
+	bool IsFile(char *File);
+
+	// Source tools
+	bool BuildIncludePaths(List<char> &Paths);
+	bool BuildHeaderList(char16 *Cpp, List<char> &Headers, List<char> &IncPaths);
+	bool BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Funcs, DefnType LimitTo, bool Debug = false);
+	bool FindDefn(char16 *Def, char16 *Source, List<DefnInfo> &Matches);
+};
+
+#endif

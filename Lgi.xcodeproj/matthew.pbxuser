@@ -1,0 +1,1829 @@
+// !$*UTF8*$!
+{
+	0867D690FE84028FC02AAC07 /* Project object */ = {
+		activeBuildConfigurationName = Development;
+		activeTarget = 8DC2EF4F0486A6940098B216 /* Lgi */;
+		addToTargets = (
+			8DC2EF4F0486A6940098B216 /* Lgi */,
+		);
+		breakpoints = (
+			34DAF3EB1118C43D002E09CD /* Lgi.cpp:1356 */,
+			34344C261148E92600038E1C /* GSemaphore.cpp:256 */,
+			34344C481149901600038E1C /* GSymLookup.h:331 */,
+			34344C6411499B7800038E1C /* GSymLookup.h:277 */,
+			34B77290114AF6420088FB36 /* GGeneral.cpp:149 */,
+			345B94FB114FA66B00722E8C /* GLayout.cpp:414 */,
+			343AC34711581B1900083450 /* GWindow.cpp:1315 */,
+		);
+		codeSenseManager = 3465BDD708C5DEA700B4C217 /* Code sense */;
+		perUserDictionary = {
+			"PBXConfiguration.PBXBreakpointsDataSource.v1:1CA1AED706398EBD00589147" = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXBreakpointsDataSource_BreakpointID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					20,
+					210,
+					20,
+					110,
+					109,
+					20,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXBreakpointsDataSource_ActionID,
+					PBXBreakpointsDataSource_TypeID,
+					PBXBreakpointsDataSource_BreakpointID,
+					PBXBreakpointsDataSource_UseID,
+					PBXBreakpointsDataSource_LocationID,
+					PBXBreakpointsDataSource_ConditionID,
+					PBXBreakpointsDataSource_ContinueID,
+				);
+			};
+			PBXConfiguration.PBXFileTableDataSource3.PBXBookmarksDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXBookmarksDataSource_NameID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					223,
+					206,
+					233,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXBookmarksDataSource_LocationID,
+					PBXBookmarksDataSource_NameID,
+					PBXBookmarksDataSource_CommentsID,
+				);
+			};
+			PBXConfiguration.PBXFileTableDataSource3.PBXErrorsWarningsDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXErrorsWarningsDataSource_LocationID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					481,
+					286,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXErrorsWarningsDataSource_TypeID,
+					PBXErrorsWarningsDataSource_MessageID,
+					PBXErrorsWarningsDataSource_LocationID,
+				);
+			};
+			PBXConfiguration.PBXFileTableDataSource3.PBXExecutablesDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXExecutablesDataSource_NameID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					22,
+					487,
+					278,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXExecutablesDataSource_ActiveFlagID,
+					PBXExecutablesDataSource_NameID,
+					PBXExecutablesDataSource_CommentsID,
+				);
+			};
+			PBXConfiguration.PBXFileTableDataSource3.PBXFileTableDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					515,
+					20,
+					93,
+					43,
+					43,
+					20,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXFileDataSource_FiletypeID,
+					PBXFileDataSource_Filename_ColumnID,
+					PBXFileDataSource_Built_ColumnID,
+					PBXFileDataSource_ObjectSize_ColumnID,
+					PBXFileDataSource_Errors_ColumnID,
+					PBXFileDataSource_Warnings_ColumnID,
+					PBXFileDataSource_Target_ColumnID,
+				);
+			};
+			PBXConfiguration.PBXFileTableDataSource3.PBXFindDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXFindDataSource_LocationID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					332,
+					334,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXFindDataSource_MessageID,
+					PBXFindDataSource_LocationID,
+				);
+			};
+			PBXConfiguration.PBXFileTableDataSource3.PBXSymbolsDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXSymbolsDataSource_SymbolNameID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					16,
+					203,
+					231,
+					208,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXSymbolsDataSource_SymbolTypeIconID,
+					PBXSymbolsDataSource_SymbolNameID,
+					PBXSymbolsDataSource_SymbolTypeID,
+					PBXSymbolsDataSource_ReferenceNameID,
+				);
+			};
+			PBXConfiguration.PBXFileTableDataSource3.XCSCMDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					20,
+					644,
+					20,
+					67,
+					43,
+					43,
+					20,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXFileDataSource_SCM_ColumnID,
+					PBXFileDataSource_FiletypeID,
+					PBXFileDataSource_Filename_ColumnID,
+					PBXFileDataSource_Built_ColumnID,
+					PBXFileDataSource_ObjectSize_ColumnID,
+					PBXFileDataSource_Errors_ColumnID,
+					PBXFileDataSource_Warnings_ColumnID,
+					PBXFileDataSource_Target_ColumnID,
+				);
+			};
+			PBXConfiguration.PBXTargetDataSource.PBXTargetDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					494,
+					60,
+					20,
+					91,
+					43,
+					43,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXFileDataSource_FiletypeID,
+					PBXFileDataSource_Filename_ColumnID,
+					PBXTargetDataSource_PrimaryAttribute,
+					PBXFileDataSource_Built_ColumnID,
+					PBXFileDataSource_ObjectSize_ColumnID,
+					PBXFileDataSource_Errors_ColumnID,
+					PBXFileDataSource_Warnings_ColumnID,
+				);
+			};
+			PBXPerProjectTemplateStateSaveDate = 293112340;
+			PBXPrepackagedSmartGroups_v2 = (
+				{
+					PBXTransientLocationAtTop = bottom;
+					absolutePathToBundle = "";
+					activationKey = OldTargetSmartGroup;
+					clz = PBXTargetSmartGroup;
+					description = "Displays all targets of the project.";
+					globalID = 1C37FABC04509CD000000102;
+					name = Targets;
+					preferences = {
+						image = Targets;
+					};
+				},
+				{
+					PBXTransientLocationAtTop = bottom;
+					absolutePathToBundle = "";
+					clz = PBXTargetSmartGroup2;
+					description = "Displays all targets of the project as well as nested build phases.";
+					globalID = 1C37FBAC04509CD000000102;
+					name = Targets;
+					preferences = {
+						image = Targets;
+					};
+				},
+				{
+					PBXTransientLocationAtTop = bottom;
+					absolutePathToBundle = "";
+					clz = PBXExecutablesSmartGroup;
+					description = "Displays all executables of the project.";
+					globalID = 1C37FAAC04509CD000000102;
+					name = Executables;
+					preferences = {
+						image = Executable;
+					};
+				},
+				{
+					" PBXTransientLocationAtTop " = bottom;
+					absolutePathToBundle = "";
+					clz = PBXErrorsWarningsSmartGroup;
+					description = "Displays files with errors or warnings.";
+					globalID = 1C08E77C0454961000C914BD;
+					name = "Errors and Warnings";
+					preferences = {
+						fnmatch = "";
+						image = WarningsErrors;
+						recursive = 1;
+						regex = "";
+						root = "<PROJECT>";
+					};
+				},
+				{
+					PBXTransientLocationAtTop = bottom;
+					absolutePathToBundle = "";
+					clz = PBXFilenameSmartGroup;
+					description = "Filters items in a given group (potentially recursively) based on matching the name with the regular expression of the filter.";
+					globalID = 1CC0EA4004350EF90044410B;
+					name = "Implementation Files";
+					preferences = {
+						canSave = 1;
+						fnmatch = "";
+						image = SmartFolder;
+						isLeaf = 0;
+						recursive = 1;
+						regex = "?*\\.[mcMC]";
+						root = "<PROJECT>";
+					};
+				},
+				{
+					PBXTransientLocationAtTop = bottom;
+					absolutePathToBundle = "";
+					clz = PBXFilenameSmartGroup;
+					description = "This group displays Interface Builder NIB Files.";
+					globalID = 1CC0EA4004350EF90041110B;
+					name = "NIB Files";
+					preferences = {
+						canSave = 1;
+						fnmatch = "*.nib";
+						image = SmartFolder;
+						isLeaf = 0;
+						recursive = 1;
+						regex = "";
+						root = "<PROJECT>";
+					};
+				},
+				{
+					PBXTransientLocationAtTop = no;
+					absolutePathToBundle = "";
+					clz = PBXFindSmartGroup;
+					description = "Displays Find Results.";
+					globalID = 1C37FABC05509CD000000102;
+					name = "Find Results";
+					preferences = {
+						image = spyglass;
+					};
+				},
+				{
+					PBXTransientLocationAtTop = no;
+					absolutePathToBundle = "";
+					clz = PBXBookmarksSmartGroup;
+					description = "Displays Project Bookmarks.";
+					globalID = 1C37FABC05539CD112110102;
+					name = Bookmarks;
+					preferences = {
+						image = Bookmarks;
+					};
+				},
+				{
+					PBXTransientLocationAtTop = bottom;
+					absolutePathToBundle = "";
+					clz = XCSCMSmartGroup;
+					description = "Displays files with interesting SCM status.";
+					globalID = E2644B35053B69B200211256;
+					name = SCM;
+					preferences = {
+						image = PBXRepository;
+						isLeaf = 0;
+					};
+				},
+				{
+					PBXTransientLocationAtTop = bottom;
+					absolutePathToBundle = "";
+					clz = PBXSymbolsSmartGroup;
+					description = "Displays all symbols for the project.";
+					globalID = 1C37FABC04509CD000100104;
+					name = "Project Symbols";
+					preferences = {
+						image = ProjectSymbols;
+						isLeaf = 1;
+					};
+				},
+				{
+					PBXTransientLocationAtTop = bottom;
+					absolutePathToBundle = "";
+					clz = PBXFilenameSmartGroup;
+					description = "Filters items in a given group (potentially recursively) based on matching the name with the regular expression of the filter.";
+					globalID = PBXTemplateMarker;
+					name = "Simple Filter SmartGroup";
+					preferences = {
+						canSave = 1;
+						fnmatch = "*.nib";
+						image = SmartFolder;
+						isLeaf = 0;
+						recursive = 1;
+						regex = "";
+						root = "<PROJECT>";
+					};
+				},
+				{
+					PBXTransientLocationAtTop = bottom;
+					absolutePathToBundle = "";
+					clz = PBXFilenameSmartGroup;
+					description = "Filters items in a given group (potentially recursively) based on matching the name with the regular expression of the filter.";
+					globalID = PBXTemplateMarker;
+					name = "Simple Regular Expression SmartGroup";
+					preferences = {
+						canSave = 1;
+						fnmatch = "";
+						image = SmartFolder;
+						isLeaf = 0;
+						recursive = 1;
+						regex = "?*\\.[mcMC]";
+						root = "<PROJECT>";
+					};
+				},
+				{
+					PBXTransientLocationAtTop = bottom;
+					clz = XDDesignSmartGroup;
+					description = "Displays Xdesign models";
+					globalID = 2E4A936305E6979E00701470;
+					name = Design;
+					preferences = {
+						image = Design;
+						isLeaf = 0;
+					};
+				},
+			);
+			PBXWorkspaceStateSaveDate = 293112340;
+		};
+		perUserProjectItems = {
+			347A710111787477006D75A7 = 347A710111787477006D75A7 /* PBXTextBookmark */;
+			347A710211787477006D75A7 = 347A710211787477006D75A7 /* PBXTextBookmark */;
+			347A710411787477006D75A7 = 347A710411787477006D75A7 /* PBXTextBookmark */;
+			34F80BA21178768A00E2019C = 34F80BA21178768A00E2019C /* PBXTextBookmark */;
+			34F80BA51178768A00E2019C = 34F80BA51178768A00E2019C /* PBXTextBookmark */;
+			34F80BA61178768A00E2019C = 34F80BA61178768A00E2019C /* PBXTextBookmark */;
+			34F80BA71178768A00E2019C = 34F80BA71178768A00E2019C /* PBXTextBookmark */;
+			34F80BA81178768A00E2019C = 34F80BA81178768A00E2019C /* PBXTextBookmark */;
+			34F80BC01178770200E2019C = 34F80BC01178770200E2019C /* PBXTextBookmark */;
+			34F80BC11178770200E2019C = 34F80BC11178770200E2019C /* PBXTextBookmark */;
+			34F80BC21178770200E2019C = 34F80BC21178770200E2019C /* PBXTextBookmark */;
+			34F80BC31178770200E2019C = 34F80BC31178770200E2019C /* PBXTextBookmark */;
+			34F80BD111787D5300E2019C = 34F80BD111787D5300E2019C /* PBXTextBookmark */;
+			34F80BDF1178863A00E2019C = 34F80BDF1178863A00E2019C /* PBXTextBookmark */;
+			34F80BE01178863A00E2019C = 34F80BE01178863A00E2019C /* PBXTextBookmark */;
+			34F80BE11178863A00E2019C = 34F80BE11178863A00E2019C /* PBXTextBookmark */;
+			34F80BE21178863A00E2019C = 34F80BE21178863A00E2019C /* PBXTextBookmark */;
+			34F80BE31178863A00E2019C = 34F80BE31178863A00E2019C /* PBXTextBookmark */;
+			34F80BE41178863A00E2019C = 34F80BE41178863A00E2019C /* PBXTextBookmark */;
+			34F80BE51178863A00E2019C = 34F80BE51178863A00E2019C /* PBXTextBookmark */;
+			34F80BFB117889D500E2019C = 34F80BFB117889D500E2019C /* PBXTextBookmark */;
+			34F80C0E11788A2000E2019C /* PBXTextBookmark */ = 34F80C0E11788A2000E2019C /* PBXTextBookmark */;
+			34F80C1811788AD400E2019C /* PBXTextBookmark */ = 34F80C1811788AD400E2019C /* PBXTextBookmark */;
+			34F80C1C11788B8800E2019C /* PBXTextBookmark */ = 34F80C1C11788B8800E2019C /* PBXTextBookmark */;
+			34F80C2111788BD500E2019C /* PBXTextBookmark */ = 34F80C2111788BD500E2019C /* PBXTextBookmark */;
+			34F80C2211788BD500E2019C /* PBXBookmark */ = 34F80C2211788BD500E2019C /* PBXBookmark */;
+			34F80C2311788BD500E2019C /* PBXTextBookmark */ = 34F80C2311788BD500E2019C /* PBXTextBookmark */;
+			34F80C2411788BD500E2019C /* PBXTextBookmark */ = 34F80C2411788BD500E2019C /* PBXTextBookmark */;
+			34F80C2911788D4600E2019C /* PBXTextBookmark */ = 34F80C2911788D4600E2019C /* PBXTextBookmark */;
+			34F80C2C11788D7F00E2019C /* PBXTextBookmark */ = 34F80C2C11788D7F00E2019C /* PBXTextBookmark */;
+		};
+		sourceControlManager = 3465BDD608C5DEA700B4C217 /* Source Control */;
+		userBuildSettings = {
+		};
+	};
+	340BFC14096A0E0100A11AE6 /* LgiCommon.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {818, 3724}}";
+			sepNavSelRange = "{5752, 0}";
+			sepNavVisRect = "{{0, 1598}, {818, 446}}";
+			sepNavWindowFrame = "{{61, 220}, {750, 558}}";
+		};
+	};
+	340BFC49096A9D4600A11AE6 /* GArray.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {953, 5698}}";
+			sepNavSelRange = "{2022, 31}";
+			sepNavVisRange = "{1900, 263}";
+			sepNavVisRect = "{{0, 196}, {879, 486}}";
+		};
+	};
+	340BFD1C096AA96800A11AE6 /* GSemaphore.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {755, 1232}}";
+			sepNavSelRange = "{191, 9}";
+			sepNavVisRange = "{104, 439}";
+			sepNavVisRect = "{{0, 0}, {831, 415}}";
+			sepNavWindowFrame = "{{226, 137}, {750, 558}}";
+		};
+	};
+	340FEA9C096E375600E534D5 /* GToolBar.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {728, 4298}}";
+			sepNavSelRange = "{5251, 12}";
+			sepNavVisRect = "{{0, 2689}, {728, 544}}";
+		};
+	};
+	3416C25D09676E0600DD79DC /* MacTypes.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {800, 10584}}";
+			sepNavSelRange = "{16462, 49}";
+			sepNavVisRect = "{{0, 5463}, {711, 429}}";
+			sepNavWindowFrame = "{{383, 103}, {750, 558}}";
+		};
+	};
+	3416C26709676F4C00DD79DC /* SFNTTypes.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {872, 6845}}";
+			sepNavSelRange = "{14398, 11}";
+			sepNavVisRect = "{{0, 0}, {872, 630}}";
+		};
+	};
+	3416C27A096775AF00DD79DC /* GRect.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {787, 3542}}";
+			sepNavSelRange = "{577, 22}";
+			sepNavVisRange = "{3220, 809}";
+			sepNavVisRect = "{{0, 127}, {963, 651}}";
+			sepNavWindowFrame = "{{232, 100}, {1002, 781}}";
+		};
+	};
+	3429212B1087D57200578ECC /* GCss.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {802, 15778}}";
+			sepNavSelRange = "{10512, 9}";
+			sepNavVisRange = "{10113, 697}";
+		};
+	};
+	3429212D1087D58100578ECC /* GCss.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {802, 7854}}";
+			sepNavSelRange = "{5619, 0}";
+			sepNavVisRange = "{5354, 594}";
+		};
+	};
+	342D52FA0F0CBE0A002A1C7C /* GFileSelect.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {830, 1778}}";
+			sepNavSelRange = "{1215, 0}";
+			sepNavVisRect = "{{0, 728}, {830, 456}}";
+		};
+	};
+	34344C261148E92600038E1C /* GSemaphore.cpp:256 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 34D2CC8408F116550009968C /* GSemaphore.cpp */;
+		functionName = "GSemaphore::Unlock()";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 256;
+		location = Lgi;
+		modificationTime = 293112433.827996;
+		state = 2;
+	};
+	34344C481149901600038E1C /* GSymLookup.h:331 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 34B423810EBE762000D370A7 /* GSymLookup.h */;
+		functionName = "Lookup ( /// The return string buffer char *buf, /// The buffer's length int buflen, /// The addresses Addr *Ip, /// Numbers of addresses int IpLen )";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 331;
+		location = Lgi;
+		modificationTime = 293112433.828005;
+		state = 2;
+	};
+	34344C6411499B7800038E1C /* GSymLookup.h:277 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 34B423810EBE762000D370A7 /* GSymLookup.h */;
+		functionName = "Lookup ( /// The return string buffer char *buf, /// The buffer's length int buflen, /// The addresses Addr *Ip, /// Numbers of addresses int IpLen )";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 277;
+		location = Lgi;
+		modificationTime = 293112433.828035;
+		state = 2;
+	};
+	34372ACF0C46E0290090CDC9 /* GDocView.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {711, 1862}}";
+			sepNavSelRange = "{849, 12}";
+			sepNavVisRect = "{{0, 0}, {711, 435}}";
+		};
+	};
+	343AC34711581B1900083450 /* GWindow.cpp:1315 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 34D2CCAB08F1183F0009968C /* GWindow.cpp */;
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 1315;
+		location = Lgi;
+		modificationTime = 293112433.828182;
+		state = 2;
+	};
+	343BF8410B58A110008AFE75 /* GMenu.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {809, 6384}}";
+			sepNavSelRange = "{4444, 27}";
+			sepNavVisRange = "{4590, 715}";
+			sepNavVisRect = "{{0, 1181}, {895, 610}}";
+			sepNavWindowFrame = "{{274, 48}, {934, 730}}";
+		};
+	};
+	3443CBFD0C16BA64008F7B02 /* GOptionsFile.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {809, 2492}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRange = "{0, 796}";
+			sepNavVisRect = "{{0, 1091}, {774, 408}}";
+			sepNavWindowFrame = "{{38, 80}, {873, 672}}";
+		};
+	};
+	3446E2B508D0E4AF005024EB /* Gdc2.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {802, 19908}}";
+			sepNavSelRange = "{4227, 0}";
+			sepNavVisRange = "{3896, 541}";
+			sepNavVisRect = "{{0, 18664}, {855, 486}}";
+			sepNavWindowFrame = "{{251, 217}, {893, 561}}";
+		};
+	};
+	3446E2B608D0E4AF005024EB /* GMemDC.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {787, 7448}}";
+			sepNavSelRange = "{4693, 0}";
+			sepNavVisRange = "{4107, 668}";
+			sepNavVisRect = "{{0, 7084}, {780, 505}}";
+			sepNavWindowFrame = "{{162, 39}, {1023, 739}}";
+		};
+	};
+	3446E2B708D0E4AF005024EB /* GPrintDC.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {879, 882}}";
+			sepNavSelRange = "{244, 27}";
+			sepNavVisRect = "{{0, 14}, {879, 486}}";
+			sepNavWindowFrame = "{{38, 172}, {920, 801}}";
+		};
+	};
+	3446E2B808D0E4AF005024EB /* GScreenDC.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {787, 6482}}";
+			sepNavSelRange = "{5559, 138}";
+			sepNavVisRange = "{5303, 743}";
+			sepNavVisRect = "{{0, 1400}, {780, 505}}";
+			sepNavWindowFrame = "{{199, 62}, {959, 767}}";
+		};
+	};
+	3446E2CF08D0E5C2005024EB /* Gdc2.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {787, 23268}}";
+			sepNavSelRange = "{32085, 8}";
+			sepNavVisRange = "{31661, 1012}";
+			sepNavVisRect = "{{0, 14268}, {844, 486}}";
+			sepNavWindowFrame = "{{192, 39}, {1084, 739}}";
+		};
+	};
+	3446E32008D0E9D6005024EB /* 8Bit.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {831, 11228}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRect = "{{0, 0}, {831, 594}}";
+			sepNavWindowFrame = "{{15, 50}, {870, 723}}";
+		};
+	};
+	3446E32408D0E9D6005024EB /* 32Bit.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {820, 6636}}";
+			sepNavSelRange = "{3142, 0}";
+			sepNavVisRect = "{{0, 2512}, {820, 516}}";
+			sepNavWindowFrame = "{{305, 75}, {859, 645}}";
+		};
+	};
+	344AF35F08E0322F004ED88C /* GXmlTree.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {802, 20382}}";
+			sepNavSelRange = "{22618, 50}";
+			sepNavVisRange = "{22424, 442}";
+			sepNavVisRect = "{{0, 0}, {687, 445}}";
+		};
+	};
+	344AF36208E03284004ED88C /* GDateTime.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {762, 17990}}";
+			sepNavSelRange = "{13203, 0}";
+			sepNavVisRange = "{12840, 662}";
+			sepNavVisRect = "{{0, 13551}, {780, 505}}";
+			sepNavWindowFrame = "{{42, 52}, {885, 726}}";
+		};
+	};
+	344AF36708E04156004ED88C /* GSurface.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {861, 21210}}";
+			sepNavSelRange = "{25073, 16}";
+			sepNavVisRange = "{24760, 530}";
+			sepNavVisRect = "{{0, 12142}, {780, 505}}";
+			sepNavWindowFrame = "{{282, 282}, {750, 558}}";
+		};
+	};
+	344AF38308E045C5004ED88C /* GStream.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {711, 3177}}";
+			sepNavSelRange = "{1374, 3}";
+			sepNavVisRect = "{{0, 0}, {711, 428}}";
+			sepNavWindowFrame = "{{273, 397}, {750, 558}}";
+		};
+	};
+	344AF38F08E04707004ED88C /* GVariant.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {711, 13972}}";
+			sepNavSelRange = "{14048, 14}";
+			sepNavVisRect = "{{0, 13090}, {711, 402}}";
+		};
+	};
+	344AF39508E0476A004ED88C /* GApp.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {738, 12964}}";
+			sepNavSelRange = "{11201, 23}";
+			sepNavVisRange = "{10792, 578}";
+			sepNavVisRect = "{{0, 6415}, {830, 456}}";
+			sepNavWindowFrame = "{{337, 145}, {750, 558}}";
+		};
+	};
+	344AF3A008E048C2004ED88C /* GProcess.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {802, 11928}}";
+			sepNavSelRange = "{13925, 19}";
+			sepNavVisRange = "{13618, 562}";
+			sepNavVisRect = "{{0, 10010}, {738, 452}}";
+			sepNavWindowFrame = "{{308, 310}, {750, 558}}";
+		};
+	};
+	344AF3AE08E049CA004ED88C /* GXml.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {879, 2156}}";
+			sepNavSelRange = "{2055, 0}";
+			sepNavVisRect = "{{0, 1654}, {879, 486}}";
+			sepNavWindowFrame = "{{291, 279}, {750, 558}}";
+		};
+	};
+	344AF3C208E04A94004ED88C /* LgiDefs.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {809, 5894}}";
+			sepNavSelRange = "{7547, 781}";
+			sepNavVisRange = "{7472, 953}";
+			sepNavVisRect = "{{0, 511}, {802, 505}}";
+			sepNavWindowFrame = "{{500, 127}, {750, 558}}";
+		};
+	};
+	344AF3C808E04B32004ED88C /* GProperties.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {842, 21041}}";
+			sepNavSelRange = "{20505, 21}";
+			sepNavVisRect = "{{0, 20107}, {711, 428}}";
+		};
+	};
+	344AF3CB08E04B63004ED88C /* GLibrary.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {802, 2128}}";
+			sepNavSelRange = "{1584, 61}";
+			sepNavVisRange = "{1147, 781}";
+			sepNavVisRect = "{{0, 910}, {885, 516}}";
+			sepNavWindowFrame = "{{192, 116}, {970, 731}}";
+		};
+	};
+	344AF3D608E04BE0004ED88C /* GLibrary.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {885, 532}}";
+			sepNavSelRange = "{292, 0}";
+			sepNavVisRect = "{{0, 0}, {885, 516}}";
+			sepNavWindowFrame = "{{267, 195}, {750, 558}}";
+		};
+	};
+	344AF3DC08E04C75004ED88C /* GObject.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {846, 840}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRect = "{{0, 0}, {846, 417}}";
+		};
+	};
+	344B736308D83E8300D49457 /* Lgi.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {830, 3178}}";
+			sepNavSelRange = "{6478, 0}";
+			sepNavVisRect = "{{0, 2702}, {830, 456}}";
+			sepNavWindowFrame = "{{84, 220}, {750, 558}}";
+		};
+	};
+	344B736B08D83F1800D49457 /* GGeneral.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {738, 6888}}";
+			sepNavSelRange = "{2192, 0}";
+			sepNavVisRange = "{1722, 713}";
+			sepNavVisRect = "{{0, 5113}, {830, 456}}";
+			sepNavWindowFrame = "{{107, 142}, {920, 636}}";
+		};
+	};
+	344B737708D83F6C00D49457 /* LgiClasses.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {787, 25214}}";
+			sepNavSelRange = "{33374, 0}";
+			sepNavVisRange = "{32984, 782}";
+			sepNavVisRect = "{{0, 17598}, {780, 505}}";
+			sepNavWindowFrame = "{{255, 69}, {948, 686}}";
+		};
+	};
+	344B737A08D8401600D49457 /* Lgi.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {738, 24360}}";
+			sepNavSelRange = "{3165, 16}";
+			sepNavVisRange = "{2088, 1228}";
+			sepNavVisRect = "{{0, 6538}, {830, 456}}";
+			sepNavWindowFrame = "{{200, 82}, {902, 696}}";
+		};
+	};
+	344B738008D8406900D49457 /* GFuncs.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {846, 3626}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRect = "{{0, 0}, {846, 417}}";
+		};
+	};
+	344B738608D840CF00D49457 /* GFile.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {755, 24514}}";
+			sepNavSelRange = "{401, 0}";
+			sepNavVisRange = "{116, 623}";
+			sepNavVisRect = "{{0, 12673}, {830, 456}}";
+			sepNavWindowFrame = "{{164, 92}, {907, 838}}";
+		};
+	};
+	344B738908D8410B00D49457 /* LgiMsg.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {818, 4592}}";
+			sepNavSelRange = "{4119, 0}";
+			sepNavVisRect = "{{0, 2948}, {818, 446}}";
+			sepNavWindowFrame = "{{37, 39}, {873, 739}}";
+		};
+	};
+	344B738C08D8414400D49457 /* GGuiUtils.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {787, 6132}}";
+			sepNavSelRange = "{6249, 0}";
+			sepNavVisRange = "{5629, 1102}";
+			sepNavVisRect = "{{0, 6206}, {818, 486}}";
+			sepNavWindowFrame = "{{61, 124}, {885, 607}}";
+		};
+	};
+	344D1B0508F4A26300228075 /* GSlider.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {844, 686}}";
+			sepNavSelRange = "{136, 0}";
+			sepNavVisRect = "{{0, 0}, {844, 486}}";
+			sepNavWindowFrame = "{{130, 334}, {750, 558}}";
+		};
+	};
+	344D1B0C08F4A2DB00228075 /* LgiRes.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {818, 14210}}";
+			sepNavSelRange = "{16603, 50}";
+			sepNavVisRect = "{{0, 12342}, {818, 446}}";
+			sepNavWindowFrame = "{{211, 300}, {750, 558}}";
+		};
+	};
+	344D1B1208F4A30D00228075 /* GFilter.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {738, 27454}}";
+			sepNavSelRange = "{32460, 0}";
+			sepNavVisRange = "{32183, 690}";
+		};
+	};
+	344D1B1408F4A33400228075 /* GRadioGroup.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {909, 7154}}";
+			sepNavSelRange = "{5562, 0}";
+			sepNavVisRect = "{{0, 4482}, {909, 178}}";
+		};
+	};
+	344D1B1608F4A36300228075 /* GBitmap.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {816, 2674}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRange = "{0, 528}";
+			sepNavVisRect = "{{0, 0}, {816, 474}}";
+			sepNavWindowFrame = "{{38, 418}, {750, 558}}";
+		};
+	};
+	344D1B1708F4A36300228075 /* GButton.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {802, 5348}}";
+			sepNavSelRange = "{3169, 0}";
+			sepNavVisRange = "{0, 586}";
+			sepNavVisRect = "{{0, 2989}, {802, 505}}";
+			sepNavWindowFrame = "{{206, 77}, {953, 701}}";
+		};
+	};
+	344D1B1808F4A36300228075 /* GCheckBox.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {816, 3458}}";
+			sepNavSelRange = "{1907, 0}";
+			sepNavVisRect = "{{0, 1562}, {816, 474}}";
+		};
+	};
+	344D1B1908F4A36300228075 /* GCombo.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {787, 9632}}";
+			sepNavSelRange = "{3531, 13}";
+			sepNavVisRange = "{3357, 620}";
+			sepNavVisRect = "{{0, 0}, {844, 511}}";
+			sepNavWindowFrame = "{{84, 376}, {750, 558}}";
+		};
+	};
+	344D1B1A08F4A36300228075 /* GEdit.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {802, 4228}}";
+			sepNavSelRange = "{2993, 0}";
+			sepNavVisRange = "{2826, 349}";
+			sepNavVisRect = "{{0, 1641}, {830, 456}}";
+			sepNavWindowFrame = "{{236, 414}, {750, 558}}";
+		};
+	};
+	344D1B1B08F4A36300228075 /* GList.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {787, 51492}}";
+			sepNavSelRange = "{14569, 0}";
+			sepNavVisRange = "{14135, 723}";
+			sepNavVisRect = "{{0, 30290}, {818, 446}}";
+			sepNavWindowFrame = "{{287, 220}, {750, 558}}";
+		};
+	};
+	344D1B1C08F4A36300228075 /* GPanel.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {909, 3612}}";
+			sepNavSelRange = "{3631, 0}";
+			sepNavVisRect = "{{0, 2984}, {909, 178}}";
+		};
+	};
+	344D1B1D08F4A36300228075 /* GProgress.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {711, 1259}}";
+			sepNavSelRange = "{267, 0}";
+			sepNavVisRect = "{{0, 0}, {711, 428}}";
+			sepNavWindowFrame = "{{130, 334}, {750, 558}}";
+		};
+	};
+	344D1B1E08F4A36300228075 /* GProgressDlg.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {846, 7783}}";
+			sepNavSelRange = "{3765, 0}";
+			sepNavVisRect = "{{0, 2420}, {846, 662}}";
+		};
+	};
+	344D1B1F08F4A36300228075 /* GSplitter.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {809, 7826}}";
+			sepNavSelRange = "{8298, 0}";
+			sepNavVisRange = "{7778, 584}";
+			sepNavVisRect = "{{0, 3800}, {830, 456}}";
+			sepNavWindowFrame = "{{38, 66}, {948, 686}}";
+		};
+	};
+	344D1B2008F4A36300228075 /* GStatusBar.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {802, 3346}}";
+			sepNavSelRange = "{814, 28}";
+			sepNavVisRange = "{621, 483}";
+			sepNavVisRect = "{{0, 800}, {844, 486}}";
+			sepNavWindowFrame = "{{214, 175}, {969, 805}}";
+		};
+	};
+	344D1B2108F4A36300228075 /* GTableLayout.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {818, 9044}}";
+			sepNavSelRange = "{9960, 0}";
+			sepNavVisRect = "{{0, 7170}, {818, 446}}";
+		};
+	};
+	344D1B2208F4A36300228075 /* GTabView.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {855, 8708}}";
+			sepNavSelRange = "{7912, 0}";
+			sepNavVisRect = "{{0, 6804}, {855, 486}}";
+			sepNavWindowFrame = "{{176, 292}, {750, 558}}";
+		};
+	};
+	344D1B2308F4A36300228075 /* GTextLabel.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {831, 3710}}";
+			sepNavSelRange = "{3439, 0}";
+			sepNavVisRect = "{{0, 2572}, {831, 415}}";
+			sepNavWindowFrame = "{{61, 220}, {750, 558}}";
+		};
+	};
+	344D1B2408F4A36300228075 /* GToolBar.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {738, 31360}}";
+			sepNavSelRange = "{6890, 22}";
+			sepNavVisRange = "{5232, 692}";
+			sepNavVisRect = "{{0, 11661}, {780, 505}}";
+			sepNavWindowFrame = "{{214, 70}, {991, 693}}";
+		};
+	};
+	344D1B2508F4A36300228075 /* GTree.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {848, 21532}}";
+			sepNavSelRange = "{12707, 0}";
+			sepNavVisRange = "{0, 674}";
+			sepNavVisRect = "{{0, 10804}, {848, 456}}";
+		};
+	};
+	345B94FB114FA66B00722E8C /* GLayout.cpp:414 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 34D2CC9708F1173C0009968C /* GLayout.cpp */;
+		functionName = "GLayout::SetScrollBars(bool x, bool y)";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 414;
+		modificationTime = 293112433.828159;
+		state = 1;
+	};
+	345C1BF20B3F4AFF00E80FF1 /* LgiClass.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {830, 3276}}";
+			sepNavSelRange = "{3366, 43}";
+			sepNavVisRect = "{{0, 1837}, {830, 456}}";
+			sepNavWindowFrame = "{{233, 68}, {948, 686}}";
+		};
+	};
+	345C1EC80B46017000E80FF1 /* LgiWidgets.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {844, 4998}}";
+			sepNavSelRange = "{8475, 39}";
+			sepNavVisRect = "{{0, 4456}, {844, 511}}";
+			sepNavWindowFrame = "{{15, 34}, {803, 739}}";
+		};
+	};
+	345F4B9E0F058D4F0015A7EE /* GScrollBar.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {818, 1232}}";
+			sepNavSelRange = "{2035, 13}";
+			sepNavVisRect = "{{0, 704}, {818, 486}}";
+		};
+	};
+	345F9C2208F0F622007DAFE2 /* GView.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {804, 27132}}";
+			sepNavSelRange = "{36661, 0}";
+			sepNavVisRange = "{35837, 1135}";
+			sepNavVisRect = "{{0, 1409}, {687, 445}}";
+			sepNavWindowFrame = "{{56, 93}, {965, 685}}";
+		};
+	};
+	34637EB90F876EB1005A9B80 /* GDateTime.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {787, 3878}}";
+			sepNavSelRange = "{598, 0}";
+			sepNavVisRange = "{0, 754}";
+			sepNavVisRect = "{{0, 2429}, {780, 505}}";
+		};
+	};
+	3465BDD608C5DEA700B4C217 /* Source Control */ = {
+		isa = PBXSourceControlManager;
+		fallbackIsa = XCSourceControlManager;
+		isSCMEnabled = 0;
+		scmConfiguration = {
+		};
+		scmType = "";
+	};
+	3465BDD708C5DEA700B4C217 /* Code sense */ = {
+		isa = PBXCodeSenseManager;
+		indexTemplatePath = "";
+	};
+	3465BDD808C5DEC100B4C217 /* GContainers.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {757, 29764}}";
+			sepNavSelRange = "{29841, 7}";
+			sepNavVisRect = "{{0, 27951}, {757, 448}}";
+			sepNavWindowFrame = "{{15, 50}, {870, 723}}";
+		};
+	};
+	34666FFE0D323C4F00E80BC9 /* GThreadCommon.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {973, 1764}}";
+			sepNavSelRange = "{1705, 17}";
+			sepNavVisRect = "{{0, 1471}, {973, 237}}";
+		};
+	};
+	3476680E093F1FD400623A44 /* LgiInterfaces.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {809, 6174}}";
+			sepNavSelRange = "{8375, 32}";
+			sepNavVisRange = "{8407, 1172}";
+			sepNavVisRect = "{{0, 4298}, {818, 446}}";
+			sepNavWindowFrame = "{{61, 45}, {948, 686}}";
+		};
+	};
+	34766827093F207D00623A44 /* GFile.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {755, 6846}}";
+			sepNavSelRange = "{10, 0}";
+			sepNavVisRange = "{0, 596}";
+			sepNavVisRect = "{{0, 482}, {830, 456}}";
+			sepNavWindowFrame = "{{263, 121}, {942, 842}}";
+		};
+	};
+	34766831093F20EE00623A44 /* GThread.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {856, 840}}";
+			sepNavSelRange = "{387, 0}";
+			sepNavVisRect = "{{0, 0}, {856, 610}}";
+			sepNavWindowFrame = "{{165, 39}, {895, 739}}";
+		};
+	};
+	347677630FE5BB2800E2E445 /* md5.c */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {861, 5572}}";
+			sepNavSelRange = "{12565, 67}";
+			sepNavVisRange = "{11806, 985}";
+		};
+	};
+	347A710111787477006D75A7 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34983BE208F4A54C0054868C /* GDragAndDrop.cpp */;
+		name = "GDragAndDrop.cpp: 526";
+		rLen = 4;
+		rLoc = 10585;
+		rType = 0;
+		vrLen = 906;
+		vrLoc = 10054;
+	};
+	347A710211787477006D75A7 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34F96DA90DB9B82B009C64B8 /* GDragAndDrop.h */;
+		name = "GDragAndDrop.h: 72";
+		rLen = 41;
+		rLoc = 1553;
+		rType = 0;
+		vrLen = 998;
+		vrLoc = 597;
+	};
+	347A710411787477006D75A7 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34D2CCAB08F1183F0009968C /* GWindow.cpp */;
+		name = "GWindow.cpp: 170";
+		rLen = 19;
+		rLoc = 2808;
+		rType = 0;
+		vrLen = 782;
+		vrLoc = 2880;
+	};
+	3489C3E90DD1C4DB0095F0E1 /* GMru.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {728, 588}}";
+			sepNavSelRange = "{290, 0}";
+			sepNavVisRect = "{{0, 149}, {728, 425}}";
+		};
+	};
+	349330490F60CE440092EAE8 /* GViewCommon.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {738, 24780}}";
+			sepNavSelRange = "{22878, 12}";
+			sepNavVisRange = "{22531, 773}";
+			sepNavVisRect = "{{0, 5175}, {687, 445}}";
+			sepNavWindowFrame = "{{15, 43}, {1212, 730}}";
+		};
+	};
+	3493304B0F60CE690092EAE8 /* GViewPriv.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {787, 1876}}";
+			sepNavSelRange = "{346, 0}";
+			sepNavVisRange = "{0, 653}";
+			sepNavVisRect = "{{0, 1358}, {780, 505}}";
+		};
+	};
+	34983BE208F4A54C0054868C /* GDragAndDrop.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {738, 21532}}";
+			sepNavSelRange = "{7074, 4}";
+			sepNavVisRange = "{6690, 573}";
+			sepNavVisRect = "{{0, 7727}, {802, 505}}";
+			sepNavWindowFrame = "{{15, 81}, {1060, 692}}";
+		};
+	};
+	34983BE508F4A5790054868C /* GMenu.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {762, 18536}}";
+			sepNavSelRange = "{18560, 35}";
+			sepNavVisRange = "{17974, 828}";
+			sepNavVisRect = "{{0, 790}, {780, 505}}";
+			sepNavWindowFrame = "{{316, 39}, {966, 739}}";
+		};
+	};
+	34983C1208F5482D0054868C /* GDocView.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {738, 2632}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRect = "{{0, 0}, {738, 458}}";
+		};
+	};
+	34983C1308F5482D0054868C /* GTextView3.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {809, 61866}}";
+			sepNavSelRange = "{46237, 0}";
+			sepNavVisRange = "{45970, 696}";
+			sepNavVisRect = "{{0, 14}, {830, 456}}";
+			sepNavWindowFrame = "{{15, 101}, {873, 672}}";
+		};
+	};
+	34983C1608F5484C0054868C /* GToolTip.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {802, 7406}}";
+			sepNavSelRange = "{4438, 23}";
+			sepNavVisRange = "{4171, 508}";
+		};
+	};
+	34983C1808F548620054868C /* GClipBoard.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {809, 3080}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRange = "{0, 687}";
+			sepNavVisRect = "{{0, 1668}, {879, 486}}";
+			sepNavWindowFrame = "{{84, 182}, {1043, 752}}";
+		};
+	};
+	34983C1D08F548DF0054868C /* GAlert.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {711, 1134}}";
+			sepNavSelRange = "{184, 33}";
+			sepNavVisRect = "{{0, 0}, {711, 429}}";
+			sepNavWindowFrame = "{{457, 220}, {750, 558}}";
+		};
+	};
+	34983C2008F548DF0054868C /* GInput.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {953, 1358}}";
+			sepNavSelRange = "{795, 0}";
+			sepNavVisRange = "{499, 592}";
+			sepNavVisRect = "{{0, 280}, {855, 486}}";
+			sepNavWindowFrame = "{{61, 397}, {750, 558}}";
+		};
+	};
+	34983C2108F548DF0054868C /* GMru.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {728, 4942}}";
+			sepNavSelRange = "{4604, 0}";
+			sepNavVisRect = "{{0, 3644}, {728, 425}}";
+		};
+	};
+	34983C2208F548DF0054868C /* GTrayIcon.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {809, 8442}}";
+			sepNavSelRange = "{7147, 20}";
+			sepNavVisRange = "{6771, 707}";
+			sepNavVisRect = "{{0, 3156}, {830, 456}}";
+			sepNavWindowFrame = "{{107, 355}, {750, 558}}";
+		};
+	};
+	34983C2308F548DF0054868C /* LgiRand.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {836, 532}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRect = "{{0, 0}, {836, 500}}";
+		};
+	};
+	34983C2D08F5492E0054868C /* GPassword.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {836, 2127}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRect = "{{0, 0}, {836, 682}}";
+			sepNavWindowFrame = "{{229, 190}, {875, 812}}";
+		};
+	};
+	34A3ABF60EF5AA0A009A5E95 /* GDisplayString.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {787, 15232}}";
+			sepNavSelRange = "{15626, 5}";
+			sepNavVisRange = "{15300, 809}";
+			sepNavVisRect = "{{0, 511}, {802, 505}}";
+		};
+	};
+	34A3ABF80EF5AA1A009A5E95 /* GDisplayString.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {855, 1792}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRect = "{{0, 0}, {855, 486}}";
+		};
+	};
+	34A671960F3725860073A86C /* GContainers.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {830, 2870}}";
+			sepNavSelRange = "{171, 0}";
+			sepNavVisRect = "{{0, 0}, {830, 456}}";
+		};
+	};
+	34ADC9E00F4CC395009C6B75 /* GAutoPtr.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {687, 994}}";
+			sepNavSelRange = "{891, 0}";
+			sepNavVisRect = "{{0, 451}, {687, 445}}";
+			sepNavWindowFrame = "{{15, 90}, {991, 683}}";
+		};
+	};
+	34B423810EBE762000D370A7 /* GSymLookup.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {755, 5362}}";
+			sepNavSelRange = "{6330, 0}";
+			sepNavVisRange = "{6688, 671}";
+			sepNavVisRect = "{{0, 3108}, {830, 456}}";
+			sepNavWindowFrame = "{{15, 42}, {1060, 692}}";
+		};
+	};
+	34B4A4FE0C05962100CDD0D1 /* GPrinter.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {830, 1078}}";
+			sepNavSelRange = "{1216, 0}";
+			sepNavVisRect = "{{0, 605}, {830, 456}}";
+		};
+	};
+	34B4A5000C05966000CDD0D1 /* Base64.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {861, 2772}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRange = "{0, 680}";
+			sepNavVisRect = "{{0, 0}, {728, 386}}";
+		};
+	};
+	34B4A50A0C0598B600CDD0D1 /* GMem.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {830, 1330}}";
+			sepNavSelRange = "{1242, 0}";
+			sepNavVisRect = "{{0, 836}, {830, 456}}";
+			sepNavWindowFrame = "{{38, 278}, {761, 474}}";
+		};
+	};
+	34B4A50E0C0598E900CDD0D1 /* GMem.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {830, 952}}";
+			sepNavSelRange = "{784, 0}";
+			sepNavVisRect = "{{0, 308}, {830, 456}}";
+			sepNavWindowFrame = "{{15, 81}, {1060, 692}}";
+		};
+	};
+	34B5EAE30DD5B39F005A24D0 /* GFileSelect.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {816, 6678}}";
+			sepNavSelRange = "{4181, 0}";
+			sepNavVisRange = "{3806, 661}";
+			sepNavVisRect = "{{0, 671}, {780, 505}}";
+			sepNavWindowFrame = "{{61, 157}, {833, 574}}";
+		};
+	};
+	34B77290114AF6420088FB36 /* GGeneral.cpp:149 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 344B736B08D83F1800D49457 /* GGeneral.cpp */;
+		functionName = "_lgi_assert(bool b, char *test, char *file, int line)";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 149;
+		location = Lgi;
+		modificationTime = 293112433.828052;
+		state = 2;
+	};
+	34B9545C0939DB5A00477A2D /* GString.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {973, 2912}}";
+			sepNavSelRange = "{860, 3}";
+			sepNavVisRect = "{{0, 379}, {973, 237}}";
+			sepNavWindowFrame = "{{107, 220}, {750, 558}}";
+		};
+	};
+	34B954820939DCC400477A2D /* INet.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {738, 27300}}";
+			sepNavSelRange = "{33382, 0}";
+			sepNavVisRange = "{32947, 525}";
+			sepNavVisRect = "{{0, 11319}, {802, 505}}";
+			sepNavWindowFrame = "{{57, 77}, {775, 701}}";
+		};
+	};
+	34B954860939DCDD00477A2D /* INet.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {738, 5012}}";
+			sepNavSelRange = "{6680, 0}";
+			sepNavVisRange = "{6239, 630}";
+			sepNavVisRect = "{{0, 3220}, {885, 516}}";
+			sepNavWindowFrame = "{{231, 101}, {949, 851}}";
+		};
+	};
+	34B954870939DCDD00477A2D /* INetTools.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {738, 742}}";
+			sepNavSelRange = "{724, 79}";
+			sepNavVisRect = "{{0, 290}, {738, 452}}";
+			sepNavWindowFrame = "{{314, 166}, {750, 558}}";
+		};
+	};
+	34CDDAE008C5DF5B005EAAC7 /* LgiMac.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {711, 428}}";
+			sepNavSelRange = "{47, 0}";
+			sepNavVisRect = "{{0, 0}, {711, 428}}";
+		};
+	};
+	34CDDAE108C5DF5B005EAAC7 /* LgiOsClasses.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {802, 505}}";
+			sepNavSelRange = "{231, 0}";
+			sepNavVisRect = "{{0, 0}, {802, 505}}";
+			sepNavWindowFrame = "{{222, 220}, {750, 558}}";
+		};
+	};
+	34CDDAE208C5DF5B005EAAC7 /* LgiOsDefs.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {787, 5026}}";
+			sepNavSelRange = "{921, 32}";
+			sepNavVisRange = "{408, 760}";
+			sepNavVisRect = "{{0, 976}, {936, 610}}";
+			sepNavWindowFrame = "{{142, 39}, {975, 739}}";
+		};
+	};
+	34CDDAEA08C5DFB1005EAAC7 /* GString.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {794, 12250}}";
+			sepNavSelRange = "{3980, 43}";
+			sepNavVisRect = "{{0, 3873}, {794, 445}}";
+			sepNavWindowFrame = "{{38, 178}, {833, 574}}";
+		};
+	};
+	34CDDAEC08C5DFCF005EAAC7 /* GFontCodePages.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1106, 22175}}";
+			sepNavSelRange = "{64, 18}";
+			sepNavVisRect = "{{0, 0}, {711, 428}}";
+			sepNavWindowFrame = "{{413, 245}, {750, 558}}";
+		};
+	};
+	34CEBFE60DDC5EF800DE0E0B /* GCombo.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {816, 1428}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRect = "{{0, 954}, {816, 474}}";
+		};
+	};
+	34D2CC4E08F0FB490009968C /* GPopup.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {818, 11732}}";
+			sepNavSelRange = "{9703, 13}";
+			sepNavVisRect = "{{0, 7083}, {774, 408}}";
+			sepNavWindowFrame = "{{50, 220}, {750, 558}}";
+		};
+	};
+	34D2CC6008F0FC7F0009968C /* GFontSystem.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {836, 7084}}";
+			sepNavSelRange = "{3330, 0}";
+			sepNavVisRect = "{{0, 2235}, {836, 500}}";
+		};
+	};
+	34D2CC6208F0FCA00009968C /* GFont.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {787, 25284}}";
+			sepNavSelRange = "{3642, 6}";
+			sepNavVisRange = "{3421, 497}";
+			sepNavVisRect = "{{0, 12726}, {830, 456}}";
+			sepNavWindowFrame = "{{207, 48}, {893, 730}}";
+		};
+	};
+	34D2CC7208F115AD0009968C /* GFont.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {787, 9996}}";
+			sepNavSelRange = "{7812, 6}";
+			sepNavVisRange = "{6567, 1390}";
+			sepNavVisRect = "{{0, 10224}, {844, 486}}";
+			sepNavWindowFrame = "{{117, 39}, {840, 739}}";
+		};
+	};
+	34D2CC8408F116550009968C /* GSemaphore.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {756, 3934}}";
+			sepNavSelRange = "{4161, 0}";
+			sepNavVisRange = "{3881, 544}";
+			sepNavVisRect = "{{0, 3138}, {711, 402}}";
+			sepNavWindowFrame = "{{231, 111}, {884, 667}}";
+		};
+	};
+	34D2CC8B08F116A80009968C /* GThread.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {810, 1414}}";
+			sepNavSelRange = "{930, 15}";
+			sepNavVisRange = "{772, 425}";
+			sepNavVisRect = "{{0, 896}, {711, 402}}";
+			sepNavWindowFrame = "{{253, 39}, {934, 739}}";
+		};
+	};
+	34D2CC9708F1173C0009968C /* GLayout.cpp */ = {
+		isa = PBXFileReference;
+		fileEncoding = 30;
+		lastKnownFileType = sourcecode.cpp.cpp;
+		name = GLayout.cpp;
+		path = /Users/matthew/Code/Lgi/src/mac/Lgi/GLayout.cpp;
+		sourceTree = "<absolute>";
+	};
+	34D2CCA308F117A20009968C /* GFont_A.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {919, 2057}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRect = "{{0, 314}, {919, 714}}";
+		};
+	};
+	34D2CCA408F117A20009968C /* GFont_W.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {711, 6061}}";
+			sepNavSelRange = "{1326, 0}";
+			sepNavVisRect = "{{0, 660}, {711, 428}}";
+			sepNavWindowFrame = "{{107, 355}, {750, 558}}";
+		};
+	};
+	34D2CCA908F1181C0009968C /* GFontSelect.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {818, 2478}}";
+			sepNavSelRange = "{1931, 0}";
+			sepNavVisRect = "{{0, 548}, {818, 446}}";
+			sepNavWindowFrame = "{{15, 87}, {948, 686}}";
+		};
+	};
+	34D2CCAB08F1183F0009968C /* GWindow.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {738, 27874}}";
+			sepNavSelRange = "{8193, 0}";
+			sepNavVisRange = "{7590, 900}";
+			sepNavVisRect = "{{0, 7000}, {780, 505}}";
+			sepNavWindowFrame = "{{151, 39}, {969, 739}}";
+		};
+	};
+	34D2CCEC08F11BEF0009968C /* GWidgets.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {755, 4900}}";
+			sepNavSelRange = "{1126, 0}";
+			sepNavVisRange = "{1367, 431}";
+			sepNavVisRect = "{{0, 3220}, {780, 505}}";
+			sepNavWindowFrame = "{{125, 76}, {925, 702}}";
+		};
+	};
+	34D979D01150F0E100CE462B /* GLayout.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {738, 3514}}";
+			sepNavSelRange = "{2499, 0}";
+			sepNavVisRange = "{2221, 633}";
+		};
+	};
+	34DA5CB60DE0DE930050C7E4 /* GScrollBar.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {787, 7770}}";
+			sepNavSelRange = "{57, 9}";
+			sepNavVisRange = "{0, 833}";
+			sepNavVisRect = "{{0, 5158}, {848, 456}}";
+		};
+	};
+	34DAF3EB1118C43D002E09CD /* Lgi.cpp:1356 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 344B737A08D8401600D49457 /* Lgi.cpp */;
+		functionName = "LgiFindFile(char *Name)";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 1356;
+		location = Lgi;
+		modificationTime = 293112433.827969;
+		state = 2;
+	};
+	34E51DAF0D2EFCCB0021AA08 /* GList.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {830, 7168}}";
+			sepNavSelRange = "{10049, 5}";
+			sepNavVisRect = "{{0, 5295}, {830, 456}}";
+		};
+	};
+	34F2E6590E1849D300E8DA6A /* GTree.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {755, 3122}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRange = "{0, 697}";
+			sepNavVisRect = "{{0, 2454}, {844, 486}}";
+		};
+	};
+	34F80BA21178768A00E2019C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34F96DA90DB9B82B009C64B8 /* GDragAndDrop.h */;
+		name = "GDragAndDrop.h: 190";
+		rLen = 15;
+		rLoc = 5253;
+		rType = 0;
+		vrLen = 1273;
+		vrLoc = 4298;
+	};
+	34F80BA51178768A00E2019C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34D2CCAB08F1183F0009968C /* GWindow.cpp */;
+		name = "GWindow.cpp: 333";
+		rLen = 6;
+		rLoc = 7374;
+		rType = 0;
+		vrLen = 922;
+		vrLoc = 6164;
+	};
+	34F80BA61178768A00E2019C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34F96DA90DB9B82B009C64B8 /* GDragAndDrop.h */;
+		name = "GDragAndDrop.h: 190";
+		rLen = 15;
+		rLoc = 5253;
+		rType = 0;
+		vrLen = 1273;
+		vrLoc = 4298;
+	};
+	34F80BA71178768A00E2019C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34D2CCAB08F1183F0009968C /* GWindow.cpp */;
+		name = "GWindow.cpp: 186";
+		rLen = 0;
+		rLoc = 3355;
+		rType = 0;
+		vrLen = 880;
+		vrLoc = 2660;
+	};
+	34F80BA81178768A00E2019C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34983BE208F4A54C0054868C /* GDragAndDrop.cpp */;
+		name = "GDragAndDrop.cpp: 628";
+		rLen = 531;
+		rLoc = 12709;
+		rType = 0;
+		vrLen = 916;
+		vrLoc = 12512;
+	};
+	34F80BC01178770200E2019C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34D2CCAB08F1183F0009968C /* GWindow.cpp */;
+		name = "GWindow.cpp: 207";
+		rLen = 0;
+		rLoc = 3955;
+		rType = 0;
+		vrLen = 925;
+		vrLoc = 2938;
+	};
+	34F80BC11178770200E2019C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34983BE208F4A54C0054868C /* GDragAndDrop.cpp */;
+		name = "GDragAndDrop.cpp: 632";
+		rLen = 0;
+		rLoc = 12826;
+		rType = 0;
+		vrLen = 901;
+		vrLoc = 12527;
+	};
+	34F80BC21178770200E2019C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34D2CCAB08F1183F0009968C /* GWindow.cpp */;
+		name = "GWindow.cpp: 207";
+		rLen = 0;
+		rLoc = 3955;
+		rType = 0;
+		vrLen = 847;
+		vrLoc = 3391;
+	};
+	34F80BC31178770200E2019C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34983BE208F4A54C0054868C /* GDragAndDrop.cpp */;
+		name = "GDragAndDrop.cpp: 626";
+		rLen = 0;
+		rLoc = 12702;
+		rType = 0;
+		vrLen = 901;
+		vrLoc = 12527;
+	};
+	34F80BD111787D5300E2019C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34D2CCAB08F1183F0009968C /* GWindow.cpp */;
+		name = "GWindow.cpp: 214";
+		rLen = 0;
+		rLoc = 3955;
+		rType = 0;
+		vrLen = 897;
+		vrLoc = 2979;
+	};
+	34F80BDF1178863A00E2019C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34983BE208F4A54C0054868C /* GDragAndDrop.cpp */;
+		name = "GDragAndDrop.cpp: 337";
+		rLen = 4;
+		rLoc = 7074;
+		rType = 0;
+		vrLen = 573;
+		vrLoc = 6690;
+	};
+	34F80BE01178863A00E2019C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34B954860939DCDD00477A2D /* INet.h */;
+		name = "INet.h: 306";
+		rLen = 0;
+		rLoc = 6680;
+		rType = 0;
+		vrLen = 630;
+		vrLoc = 6239;
+	};
+	34F80BE11178863A00E2019C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34B954820939DCC400477A2D /* INet.cpp */;
+		name = "INet.cpp: 1715";
+		rLen = 0;
+		rLoc = 33382;
+		rType = 0;
+		vrLen = 545;
+		vrLoc = 32927;
+	};
+	34F80BE21178863A00E2019C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34D2CCAB08F1183F0009968C /* GWindow.cpp */;
+		name = "GWindow.cpp: 214";
+		rLen = 0;
+		rLoc = 3955;
+		rType = 0;
+		vrLen = 828;
+		vrLoc = 3048;
+	};
+	34F80BE31178863A00E2019C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34983BE208F4A54C0054868C /* GDragAndDrop.cpp */;
+		name = "GDragAndDrop.cpp: 337";
+		rLen = 4;
+		rLoc = 7074;
+		rType = 0;
+		vrLen = 573;
+		vrLoc = 6690;
+	};
+	34F80BE41178863A00E2019C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34B954860939DCDD00477A2D /* INet.h */;
+		name = "INet.h: 306";
+		rLen = 0;
+		rLoc = 6680;
+		rType = 0;
+		vrLen = 630;
+		vrLoc = 6239;
+	};
+	34F80BE51178863A00E2019C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34B954820939DCC400477A2D /* INet.cpp */;
+		name = "INet.cpp: 1715";
+		rLen = 0;
+		rLoc = 33382;
+		rType = 0;
+		vrLen = 545;
+		vrLoc = 32927;
+	};
+	34F80BFB117889D500E2019C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34D2CCAB08F1183F0009968C /* GWindow.cpp */;
+		name = "GWindow.cpp: 216";
+		rLen = 0;
+		rLoc = 4004;
+		rType = 0;
+		vrLen = 858;
+		vrLoc = 3437;
+	};
+	34F80C0E11788A2000E2019C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34D2CCAB08F1183F0009968C /* GWindow.cpp */;
+		name = "GWindow.cpp: 216";
+		rLen = 0;
+		rLoc = 4004;
+		rType = 0;
+		vrLen = 855;
+		vrLoc = 3479;
+	};
+	34F80C1811788AD400E2019C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34D2CCAB08F1183F0009968C /* GWindow.cpp */;
+		name = "GWindow.cpp: 216";
+		rLen = 0;
+		rLoc = 4004;
+		rType = 0;
+		vrLen = 982;
+		vrLoc = 3183;
+	};
+	34F80C1C11788B8800E2019C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34B954820939DCC400477A2D /* INet.cpp */;
+		name = "INet.cpp: 1715";
+		rLen = 0;
+		rLoc = 33382;
+		rType = 0;
+		vrLen = 525;
+		vrLoc = 32947;
+	};
+	34F80C2111788BD500E2019C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34B954820939DCC400477A2D /* INet.cpp */;
+		name = "INet.cpp: 1715";
+		rLen = 0;
+		rLoc = 33382;
+		rType = 0;
+		vrLen = 525;
+		vrLoc = 32947;
+	};
+	34F80C2211788BD500E2019C /* PBXBookmark */ = {
+		isa = PBXBookmark;
+		fRef = 34D2CCAB08F1183F0009968C /* GWindow.cpp */;
+	};
+	34F80C2311788BD500E2019C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34B954820939DCC400477A2D /* INet.cpp */;
+		name = "INet.cpp: 1715";
+		rLen = 0;
+		rLoc = 33382;
+		rType = 0;
+		vrLen = 525;
+		vrLoc = 32947;
+	};
+	34F80C2411788BD500E2019C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34D2CCAB08F1183F0009968C /* GWindow.cpp */;
+		name = "GWindow.cpp: 408";
+		rLen = 0;
+		rLoc = 8299;
+		rType = 0;
+		vrLen = 782;
+		vrLoc = 8074;
+	};
+	34F80C2911788D4600E2019C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34D2CCAB08F1183F0009968C /* GWindow.cpp */;
+		name = "GWindow.cpp: 370";
+		rLen = 0;
+		rLoc = 7472;
+		rType = 0;
+		vrLen = 984;
+		vrLoc = 7131;
+	};
+	34F80C2C11788D7F00E2019C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34D2CCAB08F1183F0009968C /* GWindow.cpp */;
+		name = "GWindow.cpp: 403";
+		rLen = 0;
+		rLoc = 8193;
+		rType = 0;
+		vrLen = 900;
+		vrLoc = 7590;
+	};
+	34F96DA90DB9B82B009C64B8 /* GDragAndDrop.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {738, 3010}}";
+			sepNavSelRange = "{5253, 15}";
+			sepNavVisRange = "{4298, 1273}";
+			sepNavVisRect = "{{0, 2160}, {844, 486}}";
+			sepNavWindowFrame = "{{148, 37}, {1060, 692}}";
+		};
+	};
+	8DC2EF4F0486A6940098B216 /* Lgi */ = {
+		activeExec = 0;
+	};
+}

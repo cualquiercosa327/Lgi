@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<Project TargetType="0" TabSize="4" IndentSize="4" UseTabs="1" ShowWhitespace="0" Compiler="0" Makefile="./Makefile" IncludePaths="../include/common
+../include/linux/Xcb
+">
+	<Node Name="Source" Type="1" Platforms="7" Open="1">
+		<Node File="../src/common/Lgi/LgiMain.cpp" Type="2" Platforms="7" />
+		<Node File="./Rich.cpp" Type="2" Platforms="7" />
+		<Node Name="Html" Type="1" Platforms="7" Open="1">
+			<Node File="../src/common/Text/GHtml2.cpp" Type="2" Platforms="7" />
+			<Node File="../include/common/GHtml2.h" Type="3" Platforms="7" />
+			<Node File="../include/common/GHtmlPriv2.h" Type="3" Platforms="7" />
+			<Node File="../src/common/Text/GHtmlStatic.cpp" Type="2" Platforms="7" />
+			<Node File="../include/common/GHtmlStatic.h" Type="3" Platforms="7" />
+		</Node>
+		<Node Name="Edit" Type="1" Platforms="7" Open="1">
+			<Node File="../src/common/Widgets/GHtmlEdit.cpp" Type="2" Platforms="7" />
+			<Node File="../include/common/GHtmlEdit.h" Type="3" Platforms="7" />
+		</Node>
+	</Node>
+	<Node File="/home/matthew/Code/Lgi/LgiLinux.xml" Type="4" Platforms="7" />
+</Project>
