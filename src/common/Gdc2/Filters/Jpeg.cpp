@@ -109,7 +109,7 @@ public:
 /////////////////////////////////////////////////////////////////////
 #ifdef FILTER_UI
 #include "Lgi.h"
-#include "../../../i.Mage/Code/resdefs.h"
+#include "../../../../i.Mage/Code/resdefs.h"
 
 class GJpegOptions : public GDialog
 {
