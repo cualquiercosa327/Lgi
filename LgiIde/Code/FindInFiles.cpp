@@ -32,10 +32,11 @@ FindInFiles::~FindInFiles()
 	DeleteObj(Params);
 }
 
-void SerializeHistory(GHistory *h, char *opt, ObjProperties *p, bool Write)
+void SerializeHistory(GHistory *h, char *opt, GOptionsFile *p, bool Write)
 {
 	if (h AND p)
 	{
+		GVariant v;
 		if (Write)
 		{
 			GStringPipe b;
@@ -47,16 +48,15 @@ void SerializeHistory(GHistory *h, char *opt, ObjProperties *p, bool Write)
 			}
 			if (s = b.NewStr())
 			{
-				p->Set(opt, s);
+				p->SetValue(opt, v = s);
 				DeleteArray(s);
 			}
 		}
 		else
 		{
-			char *s;
-			if (p->Get(opt, s))
+			if (p->GetValue(opt, v))
 			{
-				GToken t(s, "|");
+				GToken t(v.Str(), "|");
 				h->DeleteArrays();
 				for (int i=0; i<t.Length(); i++)
 				{

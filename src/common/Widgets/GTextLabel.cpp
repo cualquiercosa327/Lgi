@@ -189,18 +189,18 @@ void GText::OnPaint(GSurface *pDC)
 	bool Status = false;
 
 	GViewFill *ForeFill = GetForegroundFill();
-	COLOUR Fore = ForeFill ? Rgb32To24(ForeFill->GetC32()) : LC_TEXT;
+	COLOUR Fore32 = ForeFill ? ForeFill->GetC32() : Rgb24To32(LC_TEXT);
 
 	GViewFill *BackFill = GetBackgroundFill();
-	COLOUR Back = BackFill ? Rgb32To24(BackFill->GetC32()) : LC_MED;
+	COLOUR Back32 = BackFill ? BackFill->GetC32() : Rgb24To32(LC_MED);
 	
 	GFont *f = GetFont();
 	if (d->Lock(_FL))
 	{
 		if (d->Strs.First())
 		{
-			f->Transparent(false);
-			f->Colour(Fore, Back);
+			f->Transparent(Back32 == 0);
+			f->Colour32(Fore32, Back32);
 
 			int y = 0;
 			for (GDisplayString *s = d->Strs.First(); s; s = d->Strs.Next())
@@ -213,8 +213,8 @@ void GText::OnPaint(GSurface *pDC)
 				else
 				{
 					GRect r(0, y, X()-1, y + s->Y() - 1);
-					f->Transparent(false);
-					f->Colour(LC_LIGHT, LC_MED);
+					f->Transparent(Back32 == 0);
+					f->Colour32(Rgb24To32(LC_LIGHT), Back32);
 					s->Draw(pDC, 1, y+1, &r);
 					
 					f->Transparent(true);
@@ -227,7 +227,7 @@ void GText::OnPaint(GSurface *pDC)
 
 			if (y < Y())
 			{
-				pDC->Colour(Back, 24);
+				pDC->Colour(Back32, 32);
 				pDC->Rectangle(0, y, X()-1, Y()-1);
 			}
 			Status = true;
@@ -237,7 +237,7 @@ void GText::OnPaint(GSurface *pDC)
 	
 	if (!Status)
 	{
-		pDC->Colour(Back, 24);
+		pDC->Colour(Back32, 32);
 		pDC->Rectangle();
 	}
 

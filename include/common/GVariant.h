@@ -222,7 +222,7 @@ public:
 	/// Sets the value to a DOM variable reference
 	bool SetDomRef(GDom *obj, char *name);
 	/// Sets the value to a copy of	block of binary data
-	bool SetBinary(int Len, void *Data);
+	bool SetBinary(int Len, void *Data, bool Own = false);
 	/// Sets the value to a copy of the list
 	bool SetList(List<GVariant> *Lst = 0);
 	/// Sets the value to a hashtable

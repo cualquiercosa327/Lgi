@@ -2,7 +2,6 @@
 #define _GHTML2_PRIV_H_
 
 #include "GCss.h"
-#include "GProperties.h"
 
 namespace Html2
 {
@@ -188,10 +187,12 @@ public:
 	void FlowText(GTag *Tag, GFlowRegion *c, GFont *Font, char16 *Text, GCss::LengthType Align);
 };
 
-class GTag : public GDom, public ObjProperties, public GCss
+class GTag : public GDom, public GCss
 {
 	static bool Selected;
 	friend class HtmlEdit;
+
+	GHashTbl<char*, char*> Attr;
 
 	// Text
 	GAutoWString Txt, PreTxt;
@@ -268,6 +269,10 @@ public:
 
 	// Events
 	void OnChange(PropType Prop);
+
+	// Attributes
+	bool Get(char *attr, char *&val) { val = Attr.Find(attr); return val != 0; }
+	void Set(char *attr, char *val);
 
 	// Methods
 	char16 *Text() { return Txt; }

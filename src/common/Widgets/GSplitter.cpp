@@ -36,13 +36,6 @@ public:
 GSplitter::GSplitter()
 {
 	d = new GSplitterPrivate;
-	
-	GRect r(0, 0, 2000, 1000);
-	SetPos(r);
-	Name("LGI_Spliter");
-	d->SplitSet = d->SplitPos = -1;
-	d->Moving = false;
-
 	d->PosA.ZOff(0, 0);
 	d->PosB.ZOff(0, 0);
 	d->ViewA = 0;
@@ -50,6 +43,12 @@ GSplitter::GSplitter()
 	d->BorderA = true;
 	d->BorderB = true;
 	d->SplitFollow = false;
+
+	GRect r(0, 0, 2000, 1000);
+	SetPos(r);
+	Name("LGI_Spliter");
+	d->SplitSet = d->SplitPos = -1;
+	d->Moving = false;
 
 	Border(true);
 	Raised(true);

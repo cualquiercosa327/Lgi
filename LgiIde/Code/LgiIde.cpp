@@ -436,8 +436,7 @@ class AppWndPrivate
 public:
 	AppWnd *App;
 	GMdiParent *Mdi;
-	char *OptionsFile;
-	ObjProperties Options;
+	GOptionsFile Options;
 	GSplitter *Sp;
 	List<IdeDoc> Docs;
 	List<IdeProject> Projects;
@@ -820,6 +819,7 @@ public:
 
 	void SerializeStringList(char *Opt, List<char> *Lst, bool Write)
 	{
+		GVariant v;
 		if (Write)
 		{
 			GBytePipe p;
@@ -829,22 +829,18 @@ public:
 			}
 			
 			int Size = p.GetSize();
-			void *Mem = p.New();
-			if (Mem)
-			{
-				Options.Set(Opt, Mem, Size);
-				DeleteArray((char*&)Mem);
-			}
+			
+			v.SetBinary(Size, p.New(), true);
+			Options.SetValue(Opt, v);
 		}
 		else
 		{
 			Lst->DeleteArrays();
 
-			char *Data;
-			int Len;
-			if (Options.Get(Opt, (void*&)Data, Len))
+			if (Options.GetValue(Opt, v) && v.Type == GV_BINARY)
 			{
-				for (char *s=Data; (int)s<(int)Data+Len; s += strlen(s) + 1)
+				char *Data = (char*)v.Value.Binary.Data;
+				for (char *s=Data; (int)s<(int)Data+v.Value.Binary.Length; s += strlen(s) + 1)
 				{
 					Lst->Insert(NewStr(s));
 				}
@@ -866,61 +862,35 @@ public:
 		RecentFilesMenu = 0;
 		RecentProjectsMenu = 0;
 		Icons = LgiLoadImageList("icons.png", 16, 16);
-		
-		char Exe[256];
-		LgiGetExePath(Exe, sizeof(Exe));
-		LgiMakePath(Exe, sizeof(Exe), Exe, AppName);
-		strcat(Exe, ".r");
-		OptionsFile = NewStr(Exe);
-		if (OptionsFile)
-		{
-			GFile f;
-			if (FileExists(OptionsFile) AND f.Open(OptionsFile, O_READ))
-			{
-				Options.Serialize(f, false);
-				
-				char *s;
-				if (Options.Get("WndPos", s))
-				{
-					GRect p;
-					if (p.SetStr(s) && p.x1 >= 0 && p.y1 >= 0)
-					{
-						App->SetPos(p);
-					}
-				}
 
-				SerializeStringList("RecentFiles", &RecentFiles, false);
-				SerializeStringList("RecentProjects", &RecentProjects, false);
-			}
-			else
+		GVariant s;
+		if (Options.GetValue("WndPos", s))
+		{
+			GRect p;
+			if (p.SetStr(s.Str()) && p.x1 >= 0 && p.y1 >= 0)
 			{
-				printf("Couldn't open options.\n");
+				App->SetPos(p);
 			}
 		}
+
+		SerializeStringList("RecentFiles", &RecentFiles, false);
+		SerializeStringList("RecentProjects", &RecentProjects, false);
 	}
 	
 	~AppWndPrivate()
 	{
-		if (OptionsFile)
-		{
-			GFile f;
-			if (f.Open(OptionsFile, O_WRITE))
-			{
-				Options.Set("WndPos", App->GetPos().Describe());
-				if (Sp)
-					Options.Set("SplitPos", (int)Sp->Value());
-				
-				SerializeStringList("RecentFiles", &RecentFiles, true);
-				SerializeStringList("RecentProjects", &RecentProjects, true);
-				Options.Serialize(f, true);
-			}
-		}
+		GVariant v;
+		Options.SetValue("WndPos", v = App->GetPos().Describe());
+		if (Sp)
+			Options.SetValue("SplitPos", v = (int)Sp->Value());
+		
+		SerializeStringList("RecentFiles", &RecentFiles, true);
+		SerializeStringList("RecentProjects", &RecentProjects, true);
 		
 		RecentFiles.DeleteArrays();
 		RecentProjects.DeleteArrays();
 		Docs.DeleteObjects();
 		Projects.DeleteObjects();
-		DeleteArray(OptionsFile);
 		DeleteObj(Icons);
 	}
 };
@@ -1006,9 +976,9 @@ AppWnd::AppWnd()
 		d->Sp = new GSplitter;
 		if (d->Sp)
 		{
-			int v = 200;
-			d->Options.Get("SplitPos", v);
-			d->Sp->Value(max(v, 20));
+			GVariant v = 200;
+			d->Options.GetValue("SplitPos", v);
+			d->Sp->Value(max(v.CastInt32(), 20));
 			d->Sp->Attach(this);
 			d->Tree = new IdeTree;
 			if (d->Tree)
@@ -1346,7 +1316,7 @@ int AppWnd::OnEvent(GMessage *m)
 	return GWindow::OnEvent(m);
 }
 
-ObjProperties *AppWnd::GetOptions()
+GOptionsFile *AppWnd::GetOptions()
 {
 	return &d->Options;
 }
@@ -2033,11 +2003,6 @@ int LgiMain(OsAppArguments &AppArgs)
 {
 	printf("LgiIde v%.2f\n", LgiIdeVer);
 	GApp a("application/LgiIde", AppArgs);
-	for (int i=0; i<AppArgs.Args; i++)
-	{
-		printf("asd [%i]=%s\n", i, AppArgs.Arg[i]);
-	}
-
 	if (a.IsOk())
 	{	
 		a.AppWnd = new AppWnd;

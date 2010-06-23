@@ -921,6 +921,10 @@ bool GView::SetPos(GRect &p, bool Repaint)
 				// SetFocus(hOld);
 			}
 		}
+		else if (GetParent())
+		{
+			OnPosChange();
+		}
 		
 		if (Repaint)
 		{

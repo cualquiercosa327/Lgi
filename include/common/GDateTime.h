@@ -219,7 +219,7 @@ public:
 	// File
 	int Sizeof();
 	bool Serialize(class GFile &f, bool Write);
-	bool Serialize(class ObjProperties *Props, char *Name, bool Write);
+	bool Serialize(class GDom *Props, char *Name, bool Write);
 
 	// operators
 	bool operator <(GDateTime &dt);

@@ -1667,11 +1667,7 @@ bool DoEvery::DoNow()
 GViewFill::GViewFill(COLOUR c, int Bits)
 {
 	Type = Solid;
-	#ifndef LGI_STATIC
 	c32 = CBit(32, c, Bits);
-	#else
-	c32 = 0;
-	#endif
 
 	#ifdef WIN32
 	hBrush = NULL;

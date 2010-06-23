@@ -467,7 +467,7 @@ bool GVariant::SetDomRef(GDom *obj, char *name)
 	return Value.DomRef.Name != 0;
 }
 
-bool GVariant::SetBinary(int Len, void *Data)
+bool GVariant::SetBinary(int Len, void *Data, bool Own)
 {
 	bool Status = false;
 
@@ -475,22 +475,23 @@ bool GVariant::SetBinary(int Len, void *Data)
 
 	Type = GV_BINARY;
 	Value.Binary.Length = Len;
-	Value.Binary.Data = new uchar[Value.Binary.Length];
-	if (Value.Binary.Data)
+	if (Own)
 	{
-		if (Data)
-		{
-			memcpy(Value.Binary.Data, Data, Value.Binary.Length);
-		}
-		else
-		{
-			memset(Value.Binary.Data, 0, Value.Binary.Length);
-		}
-
+		Value.Binary.Data = Data;
 		Status = true;
 	}
+	else
+	{
+		if (Value.Binary.Data = new uchar[Value.Binary.Length])
+		{
+			if (Data)
+				memcpy(Value.Binary.Data, Data, Value.Binary.Length);
+			else
+				memset(Value.Binary.Data, 0, Value.Binary.Length);
 
-	// if (Dirty) *Dirty = true;
+			Status = true;
+		}
+	}
 
 	return Status;
 }

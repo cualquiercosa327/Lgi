@@ -14,6 +14,7 @@
 #endif
 #include "resdefs.h"
 #include "GDocView.h"
+#include "GOptionsFile.h"
 
 #define LgiIdeVer				0.0
 
@@ -141,7 +142,7 @@ public:
 	void OnReceiveFiles(GArray<char*> &Files);
 	int GetBuildMode();
 	GTree *GetTree();
-	ObjProperties *GetOptions();
+	GOptionsFile *GetOptions();
 	GList *GetFtpLog();
 	IdeDoc *FindOpenFile(char *FileName);
 };

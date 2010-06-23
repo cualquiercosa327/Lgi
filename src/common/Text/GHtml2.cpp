@@ -294,7 +294,7 @@ static bool ParseColour(char *s, GCss::ColorDef &c)
 	return false;
 }
 
-static char *ParsePropList(char *s, ObjProperties *Obj, bool &Closed)
+static char *ParsePropList(char *s, GDom *Obj, bool &Closed)
 {
 	while (s && *s && *s != '>')
 	{
@@ -330,7 +330,8 @@ static char *ParsePropList(char *s, ObjProperties *Obj, bool &Closed)
 
 			if (Value && Name)
 			{
-				Obj->Set(Name, Value);
+				GVariant v;
+				Obj->SetValue(Name, v = Value);
 			}
 
 			DeleteArray(Value);
@@ -1473,6 +1474,13 @@ void GTag::OnChange(PropType Prop)
 	{
 		int sad=0;
 	}
+}
+
+void GTag::Set(char *attr, char *val)
+{
+	char *existing = Attr.Find(attr);
+	if (existing) DeleteArray(existing);
+	Attr.Add(attr, NewStr(val));
 }
 
 bool GTag::GetVariant(char *Name, GVariant &Value, char *Array)

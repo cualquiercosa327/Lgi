@@ -360,6 +360,9 @@ DumpTime("ms hook");
 
 	if
 	(
+		#ifdef LGI_STATIC
+		0
+		#else
 		(
 			!ObjArgs
 			OR
@@ -367,6 +370,7 @@ DumpTime("ms hook");
 		)
 		AND
 		!GetOption("noskin")
+		#endif
 	)
 	{
 		#ifdef SKIN_MAGIC

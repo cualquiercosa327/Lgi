@@ -153,13 +153,13 @@ void GTypeFace::Quality(int i)
 
 void GTypeFace::Fore(COLOUR c)
 {
-	d->_Fore = c;
+	d->_Fore = Rgb24To32(c);
 	_OnPropChange(false);
 }
 
 void GTypeFace::Back(COLOUR c)
 {
-	d->_Back = c;
+	d->_Back = Rgb24To32(c);
 	_OnPropChange(false);
 }
 
@@ -189,8 +189,15 @@ void GTypeFace::Transparent(bool i)
 
 void GTypeFace::Colour(COLOUR Fore, COLOUR Back)
 {
-	d->_Fore = Fore;
-	d->_Back = Back;
+	d->_Fore = Rgb24To32(Fore);
+	d->_Back = Rgb24To32(Back);
+	_OnPropChange(false);
+}
+
+void GTypeFace::Colour32(COLOUR Fore32, COLOUR Back32)
+{
+	d->_Fore = Fore32;
+	d->_Back = Back32;
 	_OnPropChange(false);
 }
 
@@ -227,12 +234,12 @@ int GTypeFace::Quality()
 
 COLOUR GTypeFace::Fore()
 {
-	return d->_Fore;
+	return Rgb32To24(d->_Fore);
 }
 
 COLOUR GTypeFace::Back()
 {
-	return d->_Back;
+	return Rgb32To24(d->_Back);
 }
 
 int GTypeFace::GetWeight()

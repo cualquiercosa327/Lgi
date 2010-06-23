@@ -376,16 +376,12 @@ public:
 	/// Returns the amount of space below the baseline.
 	double Descent();
 
-	/* Deprecated
-	void Width(int i);
-	int Width();
-	char *CodePage();
-	void CodePage(char *i);
-	*/
-
-	/// Set the foreground and background colour.
+	/// Set the foreground and background in 24-bit colour.
 	/// \sa GTypeFace::Fore() and GTypeFace::Back()
 	virtual void Colour(COLOUR Fore, COLOUR Back = 0xFFFFFFFF);
+
+	/// Set the foreground and background in 32-bit colour.
+	virtual void Colour32(COLOUR Fore32, COLOUR Back32 = 0xFFFFFFFF);
 };
 
 /// \brief Font class.
