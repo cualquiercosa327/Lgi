@@ -88,7 +88,9 @@
 	<Node File="/home/fret/Code/Lgi/LgiLinux.xml"
 		 Type="4"
 		 Platforms="7" />
-	<Mru Items="2"
-		 Item0="C:\Data\Code\Scribe-Branches\v2.00\Resources\Scribe.lr8"
-		 Item1="D:\Home\matthew\Desktop\Scribe.lr8" />
+	<Mru Items="4"
+		 Item0="D:\Home\matthew\Desktop\image.lr8"
+		 Item1="C:\Data\Code\i.Mage\Code\image.lr8"
+		 Item2="C:\Data\Code\Scribe-Branches\v2.00\Resources\Scribe.lr8"
+		 Item3="D:\Home\matthew\Desktop\Scribe.lr8" />
 </Project>

@@ -962,7 +962,7 @@ void CtrlDlg::_Paint(GSurface *pDC, int Ox, int Oy)
 CtrlText::CtrlText(ResDialog *dlg, GXmlTag *load) :
 	ResDialogCtrl(dlg, Res_StaticText, load)
 {
-	if (Str)
+	if (Str && !load)
 	{
 		Str->SetDefine("IDC_STATIC");
 	}
@@ -1158,7 +1158,7 @@ CtrlGroup::CtrlGroup(ResDialog *dlg, GXmlTag *load) :
 {
 	AcceptChildren = true;
 
-	if (Str)
+	if (Str && !load)
 	{
 		Str->SetDefine("IDC_STATIC");
 	}
@@ -3253,7 +3253,7 @@ ResDialogCtrl *ResDialog::CreateCtrl(int Tool, GXmlTag *load)
 		case UI_TEXT:
 		{
 			Ctrl = new CtrlText(this, load);
-			if (Ctrl && Ctrl->Str)
+			if (Ctrl && Ctrl->Str && !load)
 			{
 				Ctrl->Str->Set("Some text");
 			}
@@ -3267,7 +3267,7 @@ ResDialogCtrl *ResDialog::CreateCtrl(int Tool, GXmlTag *load)
 		case UI_CHECKBOX:
 		{
 			Ctrl = new CtrlCheckbox(this, load);
-			if (Ctrl && Ctrl->Str)
+			if (Ctrl && Ctrl->Str && !load)
 			{
 				Ctrl->Str->Set("Checkbox");
 			}
@@ -3276,7 +3276,7 @@ ResDialogCtrl *ResDialog::CreateCtrl(int Tool, GXmlTag *load)
 		case UI_BUTTON:
 		{
 			Ctrl = new CtrlButton(this, load);
-			if (Ctrl && Ctrl->Str)
+			if (Ctrl && Ctrl->Str && !load)
 			{
 				static int i = 1;
 				char Text[256];
@@ -3288,7 +3288,7 @@ ResDialogCtrl *ResDialog::CreateCtrl(int Tool, GXmlTag *load)
 		case UI_GROUP:
 		{
 			Ctrl = new CtrlGroup(this, load);
-			if (Ctrl && Ctrl->Str)
+			if (Ctrl && Ctrl->Str && !load)
 			{
 				Ctrl->Str->Set("Text");
 			}
@@ -3297,7 +3297,7 @@ ResDialogCtrl *ResDialog::CreateCtrl(int Tool, GXmlTag *load)
 		case UI_RADIO:
 		{
 			Ctrl = new CtrlRadio(this, load);
-			if (Ctrl && Ctrl->Str)
+			if (Ctrl && Ctrl->Str && !load)
 			{
 				Ctrl->Str->Set("Radio");
 			}

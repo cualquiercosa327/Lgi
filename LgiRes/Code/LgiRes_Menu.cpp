@@ -282,6 +282,10 @@ void ResMenu::EnumItems(List<ResMenuItem> &Items)
 void ResMenu::Create(GXmlTag *load)
 {
 	Name("IDM_MENU");
+
+	if (load)
+		Read(load, Lr8File);
+
 	if (Resource::Item) Resource::Item->Update();
 	Visible(true);
 }
