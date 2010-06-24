@@ -231,6 +231,7 @@ public:
 	#endif
 	GArray<GViewI*> DeleteLater;
 	GMouse LastMove;
+	GAutoString Name;
 	
 	// Clipboard handling
 	int Clipboard, Utf8, Utf8String;
@@ -413,7 +414,23 @@ GApp::~GApp()
 
 char *GApp::GetName()
 {
-    return 0;
+	if (!d->Name)
+	{
+		char n[MAX_PATH];
+		if (LgiGetExeFile(n, sizeof(n)))
+		{
+			char *dir = strrchr(n, DIR_CHAR);
+			if (dir)
+			{
+				dir++;
+				char *e = LgiGetExtension(dir);
+				if (e) e[-1] = 0;
+				d->Name.Reset(NewStr(dir));
+			}
+		}
+	}
+	
+    return d->Name;
 }
 
 GApp *GApp::ObjInstance()

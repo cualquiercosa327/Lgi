@@ -137,6 +137,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\common\Lgi\GCss.cpp" />
+    <ClCompile Include="src\common\Lgi\GOptionsFile.cpp" />
     <ClCompile Include="src\linux\Lgi\GApp.cpp" />
     <ClCompile Include="src\win32\Lgi\GGeneral.cpp" />
     <ClCompile Include="src\common\Lgi\GGuiUtils.cpp" />
@@ -235,6 +237,7 @@
     <ClCompile Include="src\win32\INet\MibAccess.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\common\GCss.h" />
     <ClInclude Include="include\common\GViewPriv.h" />
     <ClInclude Include="include\common\GLibrary.h" />
     <ClInclude Include="include\common\GSemaphore.h" />

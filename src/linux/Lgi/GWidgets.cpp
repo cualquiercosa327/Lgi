@@ -15,14 +15,21 @@
 #include "GSlider.h"
 #include "GBitmap.h"
 
+using namespace Gtk;
+#include "LgiWidget.h"
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 #define GreyBackground()
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 GDialog::GDialog()
 	: ResObject(Res_Dialog)
+	#ifdef __GTK_H__
+	, GWindow(Gtk::gtk_dialog_new())
+	#endif
 {
 	Name("Dialog");
+	_View = GTK_WIDGET(Wnd);
 	IsModal = false;
 	_SetDynamic(false);
 }
@@ -84,7 +91,33 @@ int GDialog::DoModal(OsView OverrideParent)
 {
 	ModalStatus = -1;
 
-	#if defined XWIN
+	#if defined __GTK_H__
+
+	if (GetParent())
+		gtk_window_set_transient_for(GTK_WINDOW(Wnd), GetParent()->WindowHandle());
+
+	if (GObject::Name())
+		gtk_window_set_title(GTK_WINDOW(Wnd), GObject::Name());
+
+	gtk_dialog_set_has_separator(GTK_DIALOG(Wnd), false);
+	gtk_window_set_default_size(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
+	
+	GtkWidget *content_area = gtk_dialog_get_content_area(GTK_DIALOG(Wnd));
+	if (content_area)
+	{
+		if (Root = lgi_widget_new(this, Pos.X(), Pos.Y(), true))
+		{
+			gtk_container_add(GTK_CONTAINER(content_area), Root);
+			gtk_widget_show(Root);
+		}
+	}
+	
+	OnCreate();
+	AttachChildren();
+	IsModal = true;
+	gint r = gtk_dialog_run(GTK_DIALOG(Wnd));
+
+	#elif defined XWIN
 	/*
 	XWidget *Grab = XWidget::GetMouseGrabber();
 	if (Grab)
@@ -192,14 +225,9 @@ void GDialog::EndModal(int Code)
 {
 	if (IsModal)
 	{
-		// _Dump(this);
-
 		IsModal = false;
 		ModalStatus = Code;
-		
-		#if defined XWIN
-		LgiApp->Exit();
-		#endif
+		gtk_dialog_response(GTK_DIALOG(Wnd), Code);
 	}
 	else
 	{
@@ -784,7 +812,7 @@ void GSlider::OnMouseMove(GMouse &m)
 #endif
 
 #ifdef LgiThreadBitmapLoad
-class GBitmapThread : public GThread
+class GBitmapThread : public ::GThread
 {
 	GBitmap *Bmp;
 	char *File;

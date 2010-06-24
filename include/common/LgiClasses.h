@@ -1255,7 +1255,11 @@ protected:
 	void SetDragHandlers(bool On);
 
 public:
+	#ifdef __GTK_H__
+	GWindow(Gtk::GtkWidget *w = 0);
+	#else
 	GWindow();
+	#endif
 	~GWindow();
 
 	char *GetClass() { return "GWindow"; }

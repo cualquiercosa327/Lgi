@@ -210,26 +210,35 @@ LgiFunc void _lgi_sleep(int i);
 /// Edge type: Flat
 #define FLAT						4
 
-/// The directory separator character on Linux as a char
-#define DIR_CHAR					'/'
-/// The directory separator character on Linux as a string
-#define DIR_STR						"/"
+#ifdef WIN32
+	/// The directory separator character on Linux as a char
+	#define DIR_CHAR				'\\'
+	/// The directory separator character on Linux as a string
+	#define DIR_STR					"\\"
+	/// The path list separator character for Linux
+	#define LGI_PATH_SEPARATOR		";"
+	/// The pattern that matches all files in Linux
+	#define LGI_ALL_FILES			"*.*"
+	/// The stardard extension for dynamically linked code
+	#define LGI_LIBRARY_EXT			"dll"
+#else
+	/// The directory separator character on Linux as a char
+	#define DIR_CHAR				'/'
+	/// The directory separator character on Linux as a string
+	#define DIR_STR					"/"
+	/// The path list separator character for Linux
+	#define LGI_PATH_SEPARATOR		":"
+	/// The pattern that matches all files in Linux
+	#define LGI_ALL_FILES			"*"
+	/// The stardard extension for dynamically linked code
+	#define LGI_LIBRARY_EXT			"so"
+#endif
 /// The standard end of line string for Linux
 #define EOL_SEQUENCE				"\n"
 /// Tests a char for being a slash
 #define IsSlash(c)					(((c)=='/')OR((c)=='\\'))
 /// Tests a char for being a quote
 #define IsQuote(c)					(((c)=='\"')OR((c)=='\''))
-/// The path list separator character for Linux
-#define LGI_PATH_SEPARATOR			":"
-/// The pattern that matches all files in Linux
-#define LGI_ALL_FILES				"*"
-/// The stardard extension for dynamically linked code
-#ifdef WIN32
-#define LGI_LIBRARY_EXT             "dll"
-#else
-#define LGI_LIBRARY_EXT				"so"
-#endif
 
 /// Base point for system messages.
 #define M_SYSTEM					(1000)

@@ -11,11 +11,13 @@ GOptionsFile::GOptionsFile(char *BaseName, char *FileName) : GSemaphore("GOption
 	else
 	{
 		char FullPath[MAX_PATH];
-		LgiGetSystemPath(LSP_APP_ROOT, FullPath, sizeof(FullPath));
-		LgiMakePath(FullPath, sizeof(FullPath), FullPath, BaseName ? BaseName : (char*)"Options");
-		if (!LgiGetExtension(FullPath))
-			strsafecat(FullPath, ".xml", sizeof(FullPath));
-		File = NewStr(FullPath);
+		if (LgiGetSystemPath(LSP_APP_ROOT, FullPath, sizeof(FullPath)))
+		{
+			LgiMakePath(FullPath, sizeof(FullPath), FullPath, BaseName ? BaseName : (char*)"Options");
+			if (!LgiGetExtension(FullPath))
+				strsafecat(FullPath, ".xml", sizeof(FullPath));
+			File = NewStr(FullPath);
+		}
 	}
 
 	Tag = NewStr("Options");

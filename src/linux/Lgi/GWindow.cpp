@@ -61,13 +61,12 @@ public:
 ///////////////////////////////////////////////////////////////////////
 #define GWND_CREATE		0x0010000
 
-GWindow::GWindow() :
-	GView(0)
+GWindow::GWindow(GtkWidget *w) : GView(0)
 {
 	d = new GWindowPrivate;
 	_QuitOnClose = false;
 	Menu = 0;
-	Wnd = 0;
+	Wnd = GTK_WINDOW(w);
 	Root = 0;
 	VirtualFocusId = 0;
 	_Default = 0;
@@ -175,7 +174,9 @@ bool GWindow::Attach(GViewI *p)
 {
 	bool Status = false;
 	
-	if (Wnd = GTK_WINDOW(gtk_window_new(GTK_WINDOW_TOPLEVEL)))
+	if (!Wnd)
+		Wnd = GTK_WINDOW(gtk_window_new(GTK_WINDOW_TOPLEVEL));
+	if (Wnd)
 	{
 		_View = GTK_WIDGET(Wnd);
 		
