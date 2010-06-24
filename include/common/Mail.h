@@ -104,7 +104,7 @@ public:
 			char *n = strnchr(t, '\r', len);
 			if (n)
 			{
-				Text = NewStr(t, (int)n-(int)t);
+				Text = NewStr(t, n-t);
 			}
 			else
 			{

@@ -8,12 +8,12 @@
 **              fret@memecode.com
 */
 
+#include <math.h>
 #include "Lgi.h"
 #if HAS_LIBJPEG
 
 #include <stdio.h>
 #include <string.h>
-#include <math.h>
 
 #include "GLibraryUtils.h"
 #include "GScrollBar.h"

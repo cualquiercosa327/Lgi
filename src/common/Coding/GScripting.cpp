@@ -6,6 +6,7 @@
 #include <ctype.h>
 
 #include "Lgi.h"
+#include "GToken.h"
 #include "GScripting.h"
 #include "GLexCpp.h"
 #include "GScriptingPriv.h"

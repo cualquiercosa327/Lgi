@@ -193,7 +193,7 @@ class GVariables : public GArray<GVariant>
 {
 	friend class GVirtualMachinePriv;
 
-	GHashTable Lut;
+	GHashTbl<char*,int> Lut;
 
 public:
 	int Scope;
@@ -207,17 +207,17 @@ public:
 
 	int Var(char *n, bool create = false)
 	{
-		void *p = Lut.Find(n);
+		int p = Lut.Find(n);
 		if (p)
 		{
-			return ((int)p) - 1;
+			return p - 1;
 		}
 
 		if (create)
 		{
 			int Len = Length();
 
-			Lut.Add(n, (void*)(Len + 1));
+			Lut.Add(n, Len + 1);
 			Length(Len + 1);
 
 			return Len;

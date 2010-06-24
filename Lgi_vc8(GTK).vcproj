@@ -85,7 +85,7 @@
 				ProgramDatabaseFile="$(IntDir)\Lgi8.pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
-				ImportLibrary="$(OutDir)\Lgi8.lib"
+				ImportLibrary="$(OutDir)\LgiGtk8.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -182,7 +182,7 @@
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(IntDir)\Lgi8d.pdb"
 				SubSystem="2"
-				ImportLibrary="$(OutDir)/Lgi8d.lib"
+				ImportLibrary="$(OutDir)/LgiGtk8d.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -640,12 +640,24 @@
 						>
 					</File>
 				</Filter>
+				<Filter
+					Name="GCss"
+					>
+					<File
+						RelativePath=".\src\common\Lgi\GCss.cpp"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="General"
 				>
 				<File
 					RelativePath=".\src\common\INet\Base64.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\common\Lgi\GOptionsFile.cpp"
 					>
 				</File>
 				<File

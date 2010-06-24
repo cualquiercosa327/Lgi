@@ -677,7 +677,8 @@ GDbField *SvRecordset::InsertField(char *Name, int Type, int Length, int Index)
 		Index = F.Length();
 	}
 
-	SvField *f = new SvField(this, Index, GAutoString(NewStr(Name)));
+    GAutoString n(NewStr(Name));
+	SvField *f = new SvField(this, Index, n);
 	if (f)
 	{
 		F.Insert(f, Index);

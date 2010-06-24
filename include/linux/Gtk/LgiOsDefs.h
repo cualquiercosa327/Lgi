@@ -153,7 +153,12 @@ LgiFunc void LgiSleep(DWORD i);
 LgiFunc void _lgi_sleep(int i);
 #endif
 
+#ifndef WIN32
 #define atoi64						atoll
+#else
+#define atoi64						_atoi64
+#endif
+
 #define _snprintf					snprintf
 #define _vsnprintf					vsnprintf
 

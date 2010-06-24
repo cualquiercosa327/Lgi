@@ -1,5 +1,5 @@
-#include "Lgi.h"
 #include <math.h>
+#include "Lgi.h"
 #include "GScripting.h"
 #include "GScriptingPriv.h"
 

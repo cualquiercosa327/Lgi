@@ -490,7 +490,7 @@ bool MailIMap::WriteBuf(bool ObsurePass, const char *Buffer)
 		{
 			if (ObsurePass)
 			{
-				char *Sp = strrchr(Buffer, ' ');
+				char *Sp = (char*)strrchr(Buffer, ' ');
 				if (Sp)
 				{
 					strcpy(Sp + 1, "********\r\n");
@@ -1698,7 +1698,7 @@ bool MailIMap::GetParts(int Message, GStreamI &Out, char *Parts, char **Flags)
 									{
 										if (Flags)
 										{
-											*Flags = NewStr(Start, (int)End-(int)Start);
+											*Flags = NewStr(Start, End-Start);
 										}
 										s = End + 1;
 									}

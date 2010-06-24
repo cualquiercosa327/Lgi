@@ -1,3 +1,5 @@
+#include <math.h>
+
 #include "Lgi.h"
 #include "GFilterUi.h"
 #include "GPath.h"

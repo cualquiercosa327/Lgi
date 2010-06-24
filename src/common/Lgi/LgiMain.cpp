@@ -3,6 +3,7 @@
  */
 
 #include "Lgi.h"
+#include "GToken.h"
 
 /** \brief The main entry point of a Lgi program
 
