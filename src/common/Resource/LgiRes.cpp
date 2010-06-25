@@ -273,7 +273,7 @@ printf("%s:%i - Str='%s'\n", _FL, Str);
 				{
 					f++;
 					
-					#if defined WIN32
+					#if WIN32
 					char *Period = strrchr(f, '.');
 					if (Period)
 					{
@@ -1385,7 +1385,7 @@ bool GMenuLoader::Load(LgiMenuRes *MenuRes, GXmlTag *Tag, ResFileFormat Format, 
 			#endif
 		}
 
-		#ifdef WIN32
+		#if WIN32NATIVE
 		if (Info)
 		#endif
 		{
@@ -1471,7 +1471,7 @@ bool GMenu::Load(GView *w, char *Res, char *TagList)
 		{
 			if (stricmp(m->Name(), Res) == 0)
 			{
-				#ifdef WIN32
+				#if WIN32NATIVE
 				Status = GSubMenu::Load(m, m->Tag, r->GetFormat(), Tags);
 				#else
 				Status = GMenuLoader::Load(m, m->Tag, r->GetFormat(), Tags);

@@ -589,9 +589,15 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 
 	Empty();
 	
-	GdkVisual *Vis = gdk_visual_get_system();
+	GdkVisual Vis = *gdk_visual_get_system();
+	if (Bits == 8)
+	{
+	    Vis.type = GDK_VISUAL_DIRECT_COLOR;
+	    Vis.depth = 8;
+	}
+	
 	d->Img = gdk_image_new(	GDK_IMAGE_FASTEST,
-							Vis,
+							&Vis,
 							x,
 							y);
 	if (!d->Img)

@@ -778,6 +778,7 @@ public:
 	{
 		Device = d;
 		GlobalColour = 0;
+    	ZeroObj(OptVal);
 
 		// Palette information
 		GammaCorrection = 1.0;
