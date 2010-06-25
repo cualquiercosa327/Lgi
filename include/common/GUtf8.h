@@ -74,8 +74,6 @@ public:
 
 	/// Assign a new pointer to the string
 	GUtf8Str &operator =(char *s);
-	/// \returns the 'nth' character from the current point, or zero if out of range.
-	uint32 operator [](int i);
 
 	/// Allocates a block of memory containing the wide representation of the string.
 	char16 *ToWide();

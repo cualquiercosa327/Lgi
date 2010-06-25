@@ -677,7 +677,14 @@ int GDisplayString::CharAt(int Px)
 				Status++;
 			}
 		}
-		else printf("%s:%i - pango_layout_xy_to_index failed.\n", _FL);
+		else if (Trailing)
+		{
+		    GUtf8Str u(Str + Index);
+		    if (u)
+		        u++;		    
+		    Status = (OsChar*)u.GetPtr() - Str;
+		}
+		else Status = 0;
 	}
 	
 	#else

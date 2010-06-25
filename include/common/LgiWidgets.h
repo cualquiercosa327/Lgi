@@ -211,7 +211,7 @@ class LgiClass GDialog :
 	friend class GControl;
 
 private:
-	bool IsModal;
+	bool IsModal, _Resizable;
 	int ModalStatus;
 
 	#if WIN32NATIVE
@@ -265,8 +265,11 @@ public:
 	bool OnRequestClose(bool OsClose);
 	void OnPosChange();
 	
-	#ifdef MAC
+	#if defined(MAC)
 	void OnPaint(GSurface *pDC);
+	#elif defined(__GTK_H__)
+    bool IsResizeable();
+    void IsResizeable(bool r);
 	#endif
 };
 

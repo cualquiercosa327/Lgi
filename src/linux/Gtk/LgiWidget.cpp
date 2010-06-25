@@ -2,6 +2,7 @@
 
 using namespace Gtk;
 #include "LgiWidget.h"
+#include "gdk/gdkkeysyms.h"
 
 static void lgi_widget_class_init(LgiWidgetClass *klass);
 static void lgi_widget_init(LgiWidget *cpu);
@@ -66,6 +67,11 @@ GtkWidget *lgi_widget_new(GViewI *target, int w, int h, bool pour_largest)
 		p->h = h;
 		p->pour_largest = pour_largest;
 
+        if (target->GetTabStop())
+        {
+            gtk_widget_set_can_focus(GTK_WIDGET(p), TRUE);
+        }
+
    		gtk_widget_add_events(  GTK_WIDGET(p),
    		                        GDK_BUTTON_PRESS_MASK |
    		                        GDK_BUTTON_RELEASE_MASK |
@@ -77,7 +83,10 @@ GtkWidget *lgi_widget_new(GViewI *target, int w, int h, bool pour_largest)
                                 GDK_BUTTON1_MOTION_MASK |
                                 GDK_BUTTON2_MOTION_MASK |
                                 GDK_BUTTON3_MOTION_MASK |
-                                GDK_EXPOSURE_MASK);
+                                GDK_EXPOSURE_MASK |
+                                GDK_FOCUS_CHANGE_MASK |
+                                GDK_KEY_PRESS_MASK |
+                                GDK_KEY_RELEASE_MASK);
 	}	
 	return GTK_WIDGET(p);
 }
@@ -193,6 +202,61 @@ static gboolean lgi_widget_client_event(GtkWidget *wid, GdkEventClient *ev)
 	return TRUE;
 }
 
+static gboolean lgi_widget_focus_event(GtkWidget *wid, GdkEventFocus *e)
+{
+	LgiWidget *p = LGI_WIDGET(wid);
+    GView *v = dynamic_cast<GView*>(p->target);
+    if (v)
+    {
+        v->OnFocus(e->in);
+    }
+	return TRUE;
+}
+
+static gboolean lgi_widget_key_event(GtkWidget *wid, GdkEventKey *e)
+{
+    if (e->keyval == GDK_Shift_L ||
+        e->keyval == GDK_Shift_R ||
+        e->keyval == GDK_Control_L ||
+        e->keyval == GDK_Control_R ||
+        e->keyval == GDK_Alt_L ||
+        e->keyval == GDK_Alt_R)
+    {
+        return TRUE;
+    }
+
+	LgiWidget *p = LGI_WIDGET(wid);
+    GView *v = dynamic_cast<GView*>(p->target);
+    if (v)
+    {
+        GKey k;
+        k.Down(e->type == GDK_KEY_PRESS);
+        k.c16 = k.vkey = e->keyval;
+        k.Shift((e->state & 1) != 0);
+        k.Ctrl((e->state & 4) != 0);
+        k.Alt((e->state & 8) != 0);
+        
+        k.IsChar = !k.Ctrl() && (k.c16 >= ' ' && k.c16 <= 0x7f);
+        switch (k.c16)
+        {
+            case GDK_BackSpace: k.c16 = VK_BACKSPACE; k.IsChar = true; break;
+            case GDK_Left: k.vkey = VK_LEFT; break;
+            case GDK_Right: k.vkey = VK_RIGHT; break;
+            case GDK_Up: k.vkey = VK_UP; break;
+            case GDK_Down: k.vkey = VK_DOWN; break;
+            case GDK_Home: k.vkey = VK_HOME; break;
+            case GDK_End: k.vkey = VK_END; break;
+        }        
+
+        GWindow *w = v->GetWindow();
+        if (w)
+            w->HandleViewKey(v, k);
+        else
+            v->OnKey(k);
+    }
+    return TRUE;
+}
+
 static void lgi_widget_class_init(LgiWidgetClass *klass)
 {
 	GtkObjectClass *object_class = (GtkObjectClass *)klass;
@@ -210,6 +274,10 @@ static void lgi_widget_class_init(LgiWidgetClass *klass)
 	widget_class->enter_notify_event = lgi_widget_mouse_enter_leave;
 	widget_class->leave_notify_event = lgi_widget_mouse_enter_leave;
 	widget_class->client_event = lgi_widget_client_event;
+	widget_class->focus_in_event = lgi_widget_focus_event;
+	widget_class->focus_out_event = lgi_widget_focus_event;
+	widget_class->key_press_event = lgi_widget_key_event;
+	widget_class->key_release_event = lgi_widget_key_event;
 
 	GtkContainerClass *container_class = (GtkContainerClass*)klass;
 	container_class->add = lgi_widget_add;

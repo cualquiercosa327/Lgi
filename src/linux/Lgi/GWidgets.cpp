@@ -31,6 +31,7 @@ GDialog::GDialog()
 	Name("Dialog");
 	_View = GTK_WIDGET(Wnd);
 	IsModal = false;
+	_Resizable = false;
 	_SetDynamic(false);
 }
 
@@ -87,6 +88,16 @@ public:
 	}
 };
 
+bool GDialog::IsResizeable()
+{
+    return _Resizable;
+}
+
+void GDialog::IsResizeable(bool r)
+{
+    _Resizable = r;
+}
+
 int GDialog::DoModal(OsView OverrideParent)
 {
 	ModalStatus = -1;
@@ -100,7 +111,15 @@ int GDialog::DoModal(OsView OverrideParent)
 		gtk_window_set_title(GTK_WINDOW(Wnd), GObject::Name());
 
 	gtk_dialog_set_has_separator(GTK_DIALOG(Wnd), false);
-	gtk_window_set_default_size(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
+	if (IsResizeable())
+	{
+	    gtk_window_set_default_size(Wnd, Pos.X(), Pos.Y());
+	}
+	else
+	{
+	    gtk_widget_set_size_request(GTK_WIDGET(Wnd), Pos.X(), Pos.Y());
+	    gtk_window_set_resizable(Wnd, FALSE);
+	}
 	
 	GtkWidget *content_area = gtk_dialog_get_content_area(GTK_DIALOG(Wnd));
 	if (content_area)
@@ -115,93 +134,14 @@ int GDialog::DoModal(OsView OverrideParent)
 	OnCreate();
 	AttachChildren();
 	IsModal = true;
+
+    /*
+    g_signal_connect (G_OBJECT(Wnd),
+                    "map-event",
+                    G_CALLBACK(GDialogMapped),
+                    this); */
 	gint r = gtk_dialog_run(GTK_DIALOG(Wnd));
 
-	#elif defined XWIN
-	/*
-	XWidget *Grab = XWidget::GetMouseGrabber();
-	if (Grab)
-	{
-		Capture(false);
-	}
-	*/
-
-	GViewI *Parent = GetParent();
-	if (Attach(0))
-	{
-		GView *ParentHnd = Parent ? Parent->GetGView() : 0;
-		
-		if (!ParentHnd && Parent)
-		{
-			printf("DoModal error: No handle for Parent.\n");
-		}
-		if (Wnd)
-		{
-			// Wnd->Modal(ParentHnd);
-			/*
-			XcbAtom XaMotifWmHints("_MOTIF_WM_HINTS");
-			XcbAtom XaWmStateModal("_NET_WM_STATE_MODAL");
-			XcbAtom XaWmState("_NET_WM_STATE");
-			
-			MotifWmHints Hints;
-			if (ParentHnd)
-			{
-				Hints.InputMode = MWM_INPUT_FULL_APPLICATION_MODAL;
-				Hints.Flags |= MWM_HINTS_INPUT_MODE;
-			}
-			
-			xcb_change_property(XcbConn(),
-								XCB_PROP_MODE_REPLACE,
-								Handle(),
-								XaMotifWmHints.Atom(),
-								XaMotifWmHints.Atom(),
-								32,
-								5,
-								(unsigned char *) &Hints);
-
-			if (ParentHnd)
-			{
-				int e = 0;
-				
-				if (Parent && Parent->Visible())
-				{
-					// e = XSetTransientForHint(XDisplay(), handle(), Owner->handle());
-				}
-				
-				xcb_atom_t a = XaWmStateModal.Atom();
-				xcb_change_property(XcbConn(),
-									XCB_PROP_MODE_REPLACE,
-									Handle(),
-									XaWmState.Atom(),
-									XA_ATOM,
-									32,
-									1,
-									(unsigned char *)&a);
-				
-				if (e == 1 && ParentHnd)
-				{
-					ParentHnd->SetIgnoreInput(true);
-				}
-			}
-			*/
-		}
-		
-		AttachChildren();
-		Visible(true);
-
-		IsModal = true;
-		
-		while (IsModal)
-		{
-			LgiApp->Run();
-		}
-
-		if (ParentHnd)
-		{
-			ParentHnd->SetIgnoreInput(false);
-		}
-		Visible(false);
-	}
 	#endif
 
 	return ModalStatus;

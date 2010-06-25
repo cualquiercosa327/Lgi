@@ -84,6 +84,12 @@ GWindow::~GWindow()
 		LgiApp->AppWnd = 0;
 	}
 
+    if (Root)
+    {
+        gtk_widget_destroy(Root);
+        Root = 0;
+    }
+
 	DeleteObj(Menu);
 	DeleteObj(d);
 	DeleteObj(_Lock);

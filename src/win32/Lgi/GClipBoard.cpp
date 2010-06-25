@@ -1,15 +1,19 @@
 
 #include "Lgi.h"
 
+class GClipBoardPriv
+{
+public:
+};
+
 ///////////////////////////////////////////////////////////////////////////////////////////////
 GClipBoard::GClipBoard(GView *o)
 {
+    d = new GClipBoardPriv;
 	Open = false;
 	Owner = o;
-    #if WIN32NATIVE
 	if (Owner)
 		Open = OpenClipboard(Owner->Handle());
-	#endif
 }
 
 GClipBoard::~GClipBoard()
@@ -19,6 +23,7 @@ GClipBoard::~GClipBoard()
 		CloseClipboard();
 		Open = FALSE;
 	}
+	DeleteObj(d);
 }
 
 bool GClipBoard::Empty()

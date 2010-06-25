@@ -1817,7 +1817,7 @@ GSurface *LoadDC(char *Name, bool UseOSLoader)
 		LgiTrace("%s:%i - Couldn't open '%s' for reading.\n", _FL, Name);
 	}
 	
-	#if defined WIN32
+	#if WIN32NATIVE
 	if (!pDC)
 	{
 		// a resource... lock and load gentlemen

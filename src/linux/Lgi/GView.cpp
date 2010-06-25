@@ -151,6 +151,7 @@ void GView::_Delete()
 	    #ifdef LINUX
 		LgiApp->UnregisterHandle(this);
 		#endif
+		gtk_widget_destroy(_View);
 		_View = 0;
 	}
 	

@@ -615,11 +615,6 @@ public:
 			GRect r = v->GetPos();
 			r.Offset(Pos.x1 - r.x1 + Cx, Pos.y1 - r.y1 + Cy);
 
-			if (Izza(GEdit))
-			{
-				int asd=0;
-			}
-			
 			if (Izza(GList) OR
 				Izza(GTree) OR
 				Izza(GTabView) OR
@@ -915,12 +910,9 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 	{
 		LgiTrace("\tRowAfter[%i]: min=%i max=%i\n", i, MinRow[i], MaxRow[i]);
 	}
-	#endif
-
-	#if DEBUG_LAYOUT
 	for (i=0; i<Cols.Length(); i++)
 	{
-		LgiTrace("\tFinal[%i]=%i\n", i, MinCol[i]);
+		LgiTrace("\tFinalCol[%i]=%i\n", i, MinCol[i]);
 	}
 	#endif
 

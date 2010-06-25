@@ -680,7 +680,7 @@
 					Name="Clipboard"
 					>
 					<File
-						RelativePath=".\src\win32\Lgi\GClipBoard.cpp"
+						RelativePath=".\src\linux\Lgi\GClipBoard.cpp"
 						>
 					</File>
 				</Filter>
@@ -940,6 +940,10 @@
 			</File>
 			<File
 				RelativePath=".\include\common\LgiCommon.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\common\LgiDefs.h"
 				>
 			</File>
 			<File

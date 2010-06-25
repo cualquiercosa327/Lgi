@@ -846,7 +846,16 @@ bool GView::Focus()
 		return GetWindow()->VirtualFocusId == GetId();
 	}
 
-	#if WIN32NATIVE
+    #if defined(__GTK_H__)
+    if (_View)
+    {
+        bool Has = gtk_widget_is_focus(_View);
+		if (Has)
+			SetFlag(WndFlags, GWF_FOCUS);
+		else
+			ClearFlag(WndFlags, GWF_FOCUS);
+    }
+	#elif WIN32NATIVE
 	if (_View)
 	{
 		HWND hFocus = GetFocus();
@@ -924,7 +933,7 @@ void GView::Focus(bool i)
 				printf("xcb_set_input_focus to %s/%p mapstate=%i Par=%i\n",
 					GetClass(), this, GetMapState(), Wnd ? Wnd->GetMapState() : -1);
 				#endif
-				// xcb_set_input_focus(XcbConn(), XCB_INPUT_FOCUS_PARENT, _View, XCB_CURRENT_TIME);
+				gtk_widget_grab_focus(_View);
 			}
 		}
 		else
@@ -1147,6 +1156,10 @@ void GView::SetTabStop(bool b)
 		ClearFlag(d->WndStyle, WS_TABSTOP);
 	#else
 	d->TabStop = b;
+	#endif
+	#ifdef __GTK_H__
+	if (_View)
+        gtk_widget_set_can_focus(_View, b);
 	#endif
 }
 

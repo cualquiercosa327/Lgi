@@ -9,16 +9,11 @@ class LgiClass GClipBoard
 	char *Txt;
 	GSurface *pDC;
 
-#ifdef XWIN
-	bool GotEvent;
-	void OnEvent(GMessage *Event);
-#endif
-	
 public:
 	GClipBoard(GView *o);
 	~GClipBoard();
 
-	bool IsOpen() { return true; }
+	bool IsOpen() { return Open; }
 	bool Empty();
 
 	// Text
@@ -31,7 +26,7 @@ public:
 	// Bitmap
 	bool Bitmap(GSurface *pDC, bool AutoEmpty = true);
 	GSurface *Bitmap();
-	#ifdef WIN32
+	#if WIN32NATIVE
 	GSurface *ConvertFromPtr(void *Ptr);
 	#endif
 
