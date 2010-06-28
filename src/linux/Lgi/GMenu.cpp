@@ -172,7 +172,6 @@ int GSubMenu::Float(GView *From, int x, int y, bool Left)
 {
 	static int Depth = 0;
 
-	printf("Float %p %i %i %i\n", From, x, y, Left);
 	while (From && !From->Handle())
 	{
 		From = dynamic_cast<GView*>(From->GetParent());
@@ -184,9 +183,6 @@ int GSubMenu::Float(GView *From, int x, int y, bool Left)
 		return -1;
 	}
 
-	printf(" Hnd=%i\n", From->Handle());
-
-	#ifndef WIN32
 	SubMenuImpl *m = Info->IsSub();
 	if (!m)
 	{
@@ -206,7 +202,6 @@ int GSubMenu::Float(GView *From, int x, int y, bool Left)
 			r.Offset(x - r.x1, y - r.y1);
 			m->SetPos(r);
 			
-			printf("Float loop start\n");
 			m->Visible(true);
 			if (m->Handle())
 			{
@@ -217,8 +212,6 @@ int GSubMenu::Float(GView *From, int x, int y, bool Left)
 					LgiSleep(1);
 				}
 			}
-			
-			printf("Float loop finished.\n");
 		}
 		else
 		{
@@ -232,7 +225,6 @@ int GSubMenu::Float(GView *From, int x, int y, bool Left)
 			return i->Id();
 		}
 	}
-	#endif
 
 	return 0;
 }

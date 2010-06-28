@@ -332,8 +332,6 @@ void SubMenuImpl::Layout(int Bx, int By)
 
 void SubMenuImpl::Visible(bool b)
 {
-LgiTrace("%p::SubMenuImpl::Visible(%i)\n", this, b);
-
 	if (b)
 	{
 		Layout(GetPos().x1, GetPos().y1);

@@ -140,6 +140,7 @@
     <ClCompile Include="src\common\Lgi\GCss.cpp" />
     <ClCompile Include="src\common\Lgi\GOptionsFile.cpp" />
     <ClCompile Include="src\linux\Lgi\GApp.cpp" />
+    <ClCompile Include="src\linux\Lgi\GClipBoard.cpp" />
     <ClCompile Include="src\win32\Lgi\GGeneral.cpp" />
     <ClCompile Include="src\common\Lgi\GGuiUtils.cpp" />
     <ClCompile Include="src\common\Lgi\GObject.cpp" />
@@ -197,7 +198,6 @@
     <ClCompile Include="src\common\INet\Base64.cpp" />
     <ClCompile Include="src\common\Lgi\LgiRand.cpp" />
     <ClCompile Include="src\common\Lgi\GMru.cpp" />
-    <ClCompile Include="src\win32\Lgi\GClipBoard.cpp" />
     <ClCompile Include="src\common\Lgi\GDataDlg.cpp" />
     <ClCompile Include="src\common\General\GPassword.cpp" />
     <ClCompile Include="src\common\Text\GString.cpp" />

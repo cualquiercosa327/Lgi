@@ -250,8 +250,6 @@ void GCombo::DoMenu()
 	GdcPt2 p(0, Y());
 	PointToScreen(p);
 
-printf("DoMenu Hnd=%p, p=%i,%i\n", Handle(), p.x, p.y);
-
 	if (d->Menu)
 	{
 		int Result = d->Menu->Float(this, p.x, p.y, true);

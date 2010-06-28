@@ -1758,25 +1758,6 @@ bool ResEditBox::Res_Read(GXmlTag *Tag)
 
 			Res_SetPos(Tag);
 			Res_SetStrRef(Tag);
-
-			/*
-			ObjProperties Props;
-			char *s;
-			if (s = Tag->GetAttr("pw"))
-			{
-				Props.Set("password", atoi(s));
-			}
-			if (s = Tag->GetAttr("enabled"))
-			{
-				Props.Set("enabled", atoi(s));
-			}
-			if (s = Tag->GetAttr("multiline"))
-			{
-				Props.Set("multiline", atoi(s));
-			}
-			if (Props.FirstKey())
-			{
-			*/
 			Factory->Res_SetProperties(Object, Tag);
 		}
 	}

@@ -10,7 +10,6 @@ static void lgi_widget_size_request(GtkWidget *widget, GtkRequisition *requisiti
 static void lgi_widget_size_allocate(GtkWidget *widget, GtkAllocation *allocation);
 static void lgi_widget_realize(GtkWidget *widget);
 static gboolean lgi_widget_expose(GtkWidget *widget, GdkEventExpose *event);
-static void lgi_widget_paint(GtkWidget *widget);
 static void lgi_widget_destroy(GtkObject *object);
 static gboolean lgi_widget_click(GtkWidget *widget, GdkEventButton *ev);
 static gboolean lgi_widget_motion(GtkWidget *widget, GdkEventMotion *ev);
@@ -409,13 +408,6 @@ lgi_widget_expose(GtkWidget *widget, GdkEventExpose *event)
 	g_return_val_if_fail(LGI_IS_WIDGET(widget), FALSE);
 	g_return_val_if_fail(event != NULL, FALSE);
 
-	lgi_widget_paint(widget);
-	return FALSE;
-}
-
-void
-lgi_widget_paint(GtkWidget *widget)
-{
 	LgiWidget *p = LGI_WIDGET(widget);
 	
 	if (GTK_WIDGET_DRAWABLE(widget))
@@ -431,8 +423,9 @@ lgi_widget_paint(GtkWidget *widget)
 		}
 		else printf("%s:%i - No view to paint widget.\n", _FL);
 	}
-}
 
+	return FALSE;
+}
 
 static void
 lgi_widget_destroy(GtkObject *object)

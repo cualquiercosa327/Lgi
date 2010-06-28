@@ -632,7 +632,7 @@ bool GPopup::Attach(GViewI *p)
 	#else
 	
 	if (p) SetParent(p);
-	if (GetParent())
+	if (!p || GetParent())
 	{
 		#if WIN32NATIVE
 
@@ -684,7 +684,7 @@ bool GPopup::Attach(GViewI *p)
 			{
 				_Window = Owner->GetWindow();
 			}
-			else
+			else if (p)
 			{
 				_Window = p->GetWindow();
 			}
@@ -702,6 +702,8 @@ void GPopup::Visible(bool i)
 	bool Was = GView::Visible();
 
 	#if defined __GTK_H__
+	if (!Wnd)
+		Attach(0);
     if (Wnd)
     {
 	    if (i)

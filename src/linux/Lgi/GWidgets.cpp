@@ -135,11 +135,6 @@ int GDialog::DoModal(OsView OverrideParent)
 	AttachChildren();
 	IsModal = true;
 
-    /*
-    g_signal_connect (G_OBJECT(Wnd),
-                    "map-event",
-                    G_CALLBACK(GDialogMapped),
-                    this); */
 	gint r = gtk_dialog_run(GTK_DIALOG(Wnd));
 
 	#endif

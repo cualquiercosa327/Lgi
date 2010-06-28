@@ -733,6 +733,7 @@ bool GWindow::SetPos(GRect &p, bool Repaint)
 	Pos = p;
 	if (Wnd)
 	{
+		gtk_window_set_default_size(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
 	}
 	return true;
 }

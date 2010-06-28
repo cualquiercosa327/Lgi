@@ -1,5 +1,7 @@
 #include "Lgi.h"
 #include "GButton.h"
+#include "GEdit.h"
+#include "GCombo.h"
 
 #define IDM_EXIT 4
 
@@ -18,6 +20,7 @@ public:
         MoveToCenter();
         if (Attach(0))
         {
+            /*
             #if 1
             Menu = new GMenu();
             Menu->Attach(this);
@@ -37,7 +40,7 @@ public:
             s->AppendItem("About", 31, true);
             #endif
 
-            GToolBar *t = new GToolBar;
+			GToolBar *t = new GToolBar;
             t->SetImageList(i, 16, 16);
             t->AppendButton("New", 1);
             t->AppendButton("Open", 2);
@@ -52,6 +55,13 @@ public:
             split->Value(200);
             AddView(split);
             #endif
+			*/
+
+			GCombo *c;
+			AddView(c = new GCombo(100, 10, 40, 100, 20, ""));
+			c->Insert("One");
+			c->Insert("Two");
+			c->Insert("Three");
             
             AttachChildren();
             Visible(true);

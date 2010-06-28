@@ -373,7 +373,7 @@ void GView::OnNcPaint(GSurface *pDC, GRect &r)
 {
 	int Border = Sunken() || Raised() ? _BorderSize : 0;
 	if (
-		#ifdef WIN32
+		#if WIN32NATIVE
 		!_View &&
 		#endif	
 		Border == 2)

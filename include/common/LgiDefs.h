@@ -115,10 +115,14 @@ typedef		unsigned long long			uint64;
 #if !WIN32NATIVE
 #ifdef UNICODE
 typedef		char16						TCHAR;
+#ifndef		_T
 #define		_T(arg)						L##arg
+#endif
 #else
 typedef		char						TCHAR;
+#ifndef		_T
 #define		_T(arg)						arg
+#endif
 #endif
 #endif
 

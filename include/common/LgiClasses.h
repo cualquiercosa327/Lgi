@@ -423,7 +423,7 @@ protected:
 	
 	#if defined __GTK_H__
 	
-	friend void lgi_widget_paint(Gtk::GtkWidget *widget);
+	friend Gtk::gboolean lgi_widget_expose(Gtk::GtkWidget *widget, Gtk::GdkEventExpose *e);
     friend Gtk::gboolean lgi_widget_click(Gtk::GtkWidget *widget, Gtk::GdkEventButton *ev);
     friend Gtk::gboolean lgi_widget_motion(Gtk::GtkWidget *widget, Gtk::GdkEventMotion *ev);
 	friend Gtk::gboolean GViewCallback(Gtk::GtkWidget *widget, Gtk::GdkEvent  *event, GView *view);

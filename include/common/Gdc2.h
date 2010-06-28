@@ -1222,6 +1222,7 @@ public:
 
 		Gtk::GdkImage *GetImage();
 		GdcPt2 GetSize();
+		Gtk::cairo_t *GetCairo();
 
 		#endif
 		
