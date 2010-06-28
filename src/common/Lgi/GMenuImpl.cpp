@@ -619,20 +619,11 @@ void MenuItemImpl::ShowSub()
 
 				v->Visible(true);
 			}
-			else
-			{
-				printf("%s:%i - Attach submenu failed.\n", __FILE__, __LINE__);
-			}
+			else printf("%s:%i - Attach submenu failed.\n", _FL);
 		}
-		else
-		{
-			printf("%s:%i - No child view.\n", __FILE__, __LINE__);
-		}
+		else printf("%s:%i - No child view.\n", _FL);
 	}
-	else
-	{
-		printf("%s:%i - No child menu, huh?\n", __FILE__, __LINE__);
-	}
+	else printf("%s:%i - No child menu, huh?\n", _FL);
 }
 
 void MenuItemImpl::OnMouseClick(GMouse &m)

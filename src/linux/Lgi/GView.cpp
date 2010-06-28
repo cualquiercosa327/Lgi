@@ -637,7 +637,7 @@ void GView::PointToScreen(GdcPt2 &p)
 	GViewI *c = this;
 
 	// Find real parent
-	while (c->GetParent())
+	while (c->GetParent() && !dynamic_cast<GWindow*>(c))
 	{
 		GRect n = c->GetPos();
 		p.x += n.x1;

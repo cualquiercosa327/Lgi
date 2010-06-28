@@ -201,8 +201,10 @@ int GSubMenu::Float(GView *From, int x, int y, bool Left)
 			GRect r = m->GetPos();
 			r.Offset(x - r.x1, y - r.y1);
 			m->SetPos(r);
-			
+			m->SetParent(From);			
 			m->Visible(true);
+			
+			LgiTrace("Starting float loop...\n");
 			if (m->Handle())
 			{
 				// Wait for the menu to hide itself
@@ -212,11 +214,9 @@ int GSubMenu::Float(GView *From, int x, int y, bool Left)
 					LgiSleep(1);
 				}
 			}
+			LgiTrace("Finished float loop...\n");
 		}
-		else
-		{
-			printf("%s:%i - Depth was %i!?!\n", __FILE__, __LINE__, Depth);
-		}
+		else printf("%s:%i - Depth was %i!?!\n", _FL, Depth);
 		Depth--;
 
 		GMenuItem *i = m->ItemClicked();

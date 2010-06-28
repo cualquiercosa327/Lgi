@@ -779,11 +779,13 @@ public:
 		Device = d;
 		GlobalColour = 0;
     	ZeroObj(OptVal);
+    	ScrX = ScrY = 0;
+    	ScrBits = 0;
 
 		// Palette information
 		GammaCorrection = 1.0;
 
-		#if defined WIN32
+		#if WIN32NATIVE
 		// Get mode stuff
 		HWND hDesktop = GetDesktopWindow();
 		HDC hScreenDC = GetDC(hDesktop);
@@ -822,12 +824,19 @@ public:
 		
 		// Get mode stuff
 		Gtk::GdkDisplay *Dsp = Gtk::gdk_display_get_default();
-		Gtk::GdkScreen *Scr = Dsp ? Gtk::gdk_display_get_default_screen(Dsp) : 0;
-		Gtk::GdkVisual *Vis = Scr ? Gtk::gdk_screen_get_system_visual(Scr) : 0;
-
-		ScrX = Scr ? Gtk::gdk_screen_get_width(Scr) : 1024;
-		ScrY = Scr ? Gtk::gdk_screen_get_height(Scr) : 768;
-		ScrBits = Vis ? Vis->depth : 0;
+		Gtk::gint Screens = Gtk::gdk_display_get_n_screens(Dsp);
+		for (Gtk::gint i=0; i<Screens; i++)
+		{
+            Gtk::GdkScreen *Scr = Gtk::gdk_display_get_screen(Dsp, i);
+            if (Scr)
+            {
+		        ScrX = Gtk::gdk_screen_get_width(Scr);
+		        ScrY = Gtk::gdk_screen_get_height(Scr);
+		        Gtk::GdkVisual *Vis = Gtk::gdk_screen_get_system_visual(Scr);
+		        if (Vis)
+		            ScrBits = Vis->depth;
+		    }
+        }
 		
 		printf("Screen: %i x %i @ %i bpp\n", ScrX, ScrY, ScrBits);
 

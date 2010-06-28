@@ -578,6 +578,7 @@ GPopupFocusOut( GtkWidget       *widget,
 				GPopup          *This)
 {
     This->Visible(false);
+    LgiTrace("Got GPopupFocusOut\n");
 	return FALSE;
 }
 
@@ -587,6 +588,7 @@ GPopupExpose(	GtkWidget		*widget,
 				GdkEventExpose	*ev,
 				GtkWidget		*top)
 {
+    LgiTrace("Got GPopupExpose\n");
 	if (gtk_window_get_resizable(GTK_WINDOW(top)))
 	{
 		gtk_window_resize(GTK_WINDOW(top), widget->allocation.width, widget->allocation.height);
@@ -632,7 +634,8 @@ bool GPopup::Attach(GViewI *p)
 	#else
 	
 	if (p) SetParent(p);
-	if (!p || GetParent())
+	else p = GetParent();
+	if (p)
 	{
 		#if WIN32NATIVE
 
@@ -658,6 +661,7 @@ bool GPopup::Attach(GViewI *p)
 
 		if (Wnd)
 		{
+		    LgiTrace("Attaching Popup at %s\n", Pos.GetStr());
 			gtk_window_move(GTK_WINDOW(Wnd), Pos.x1, Pos.y1);
 		    gtk_window_set_default_size(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
 		}
@@ -684,7 +688,7 @@ bool GPopup::Attach(GViewI *p)
 			{
 				_Window = Owner->GetWindow();
 			}
-			else if (p)
+			else
 			{
 				_Window = p->GetWindow();
 			}
@@ -702,7 +706,7 @@ void GPopup::Visible(bool i)
 	bool Was = GView::Visible();
 
 	#if defined __GTK_H__
-	if (!Wnd)
+	if (i && !Wnd)
 		Attach(0);
     if (Wnd)
     {
@@ -711,9 +715,6 @@ void GPopup::Visible(bool i)
 	        gtk_widget_show_all(Wnd);
 			AttachChildren();
 	        gtk_widget_grab_focus(Wnd);
-
-    		// uint32 v[] = {true};
-	    	// xcb_change_window_attributes(XcbConn(), Handle(), XCB_CW_OVERRIDE_REDIRECT, v);
 	    }
 	    else gtk_widget_hide(Wnd);
 
