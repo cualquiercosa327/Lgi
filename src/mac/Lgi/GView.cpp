@@ -589,6 +589,8 @@ bool GView::SetPos(GRect &p, bool Repaint)
 		MoveControl(_View, Pos.x1 + o, Pos.y1 + o);
 		SizeControl(_View, Pos.X(), Pos.Y());
 	}
+	else if (GetParent())
+		OnPosChange();
 
 	return true;
 }
@@ -718,9 +720,10 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 			Up.Set(0, 0, Pos.X()-1, Pos.Y()-1);
 		}
 
-		while (p != 0 && p->Handle() != 0)
+		while (p && !dynamic_cast<GWindow*>(p) && !p->Handle())
 		{
-			Up.Offset(p->GetPos().x1, p->GetPos().y1);
+			GRect r = p->GetPos();
+			Up.Offset(r.x1, r.y1);
 			p = p->GetParent();
 		}
 
@@ -1798,8 +1801,8 @@ GViewI *GView::FindControl(OsView hCtrl)
 		return this;
 	}
 
-	Iterator<GViewI> List(&Children);
-	for (GViewI *c = List.First(); c; c = List.Next())
+	List<GViewI>::I it = Children.Start();
+	for (GViewI *c = *it; c; c = *++it)
 	{
 		GViewI *Ctrl = c->FindControl(hCtrl);
 		if (Ctrl)

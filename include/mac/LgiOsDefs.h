@@ -17,6 +17,7 @@
 #include <Carbon/Carbon.h>
 #include "LgiInc.h"
 #include "LgiDefs.h"
+#include "GAutoPtr.h"
 #include "LgiClass.h"
 #include "pthread.h"
 

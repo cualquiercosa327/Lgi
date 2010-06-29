@@ -101,6 +101,13 @@ void GScreenDC::SetClient(GRect *c)
 {
 	if (d->Ctx)
 	{
+		#if 0
+		char sp[64];
+		memset(sp, ' ', d->Stack.Length()<<2);
+		sp[d->Stack.Length()<<2] = 0;
+		printf("%sSetClient %s\n", sp, c ? c->GetStr() : "");
+		#endif
+		
 		if (c)
 		{
 			CGContextSaveGState(d->Ctx);
@@ -109,8 +116,8 @@ void GScreenDC::SetClient(GRect *c)
 			d->Rc.Offset(-d->Rc.x1, -d->Rc.y1);
 			
 			CGRect rect = {{c->x1, c->y1}, {c->X(), c->Y()}};
-			CGContextClipToRect(d->Ctx, rect);
-			CGContextTranslateCTM(d->Ctx, c->x1, c->y1); 
+			//CGContextClipToRect(d->Ctx, rect);
+			CGContextTranslateCTM(d->Ctx, c->x1, c->y1);
 		}
 		else
 		{
@@ -119,7 +126,9 @@ void GScreenDC::SetClient(GRect *c)
 			d->Stack.Length(d->Stack.Length()-1);
 			CGContextRestoreGState(d->Ctx);			
 		}
+		
 	}
+	else printf("%s:%i - No context?\n", _FL);
 }
 
 int GScreenDC::GetFlags()

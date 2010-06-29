@@ -40,7 +40,7 @@ bool GDialog::LoadFromResource(int Resource)
 	char n[256];
 	GRect p;
 
-	bool Status = GLgiRes::LoadFromResource(Resource, Children, &p, n);
+	bool Status = GLgiRes::LoadFromResource(Resource, this, &p, n);
 	if (Status)
 	{
 		Name(n);

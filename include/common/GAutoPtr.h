@@ -7,7 +7,6 @@
 #include "GArray.h"
 
 #ifdef __cplusplus
-
 template<class X>
 class GAutoPtrRef
 {

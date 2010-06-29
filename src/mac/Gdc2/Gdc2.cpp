@@ -220,7 +220,7 @@ COLOUR CBit(int DstBits, COLOUR c, int SrcBits, GPalette *Pal)
 	}
 	else
 	{
-		COLOUR c24 = 0;
+		// COLOUR c24 = 0;
 
 		switch (SrcBits)
 		{
@@ -515,7 +515,7 @@ uchar *GPalette::MakeLut(int Bits)
 	{
 		if (!Lut)
 		{
-			GdcRGB *p = (*this)[0];
+			// GdcRGB *p = (*this)[0];
 
 			int Size = 1 << Bits;
 			switch (Bits)
@@ -1228,7 +1228,7 @@ GPalette *GdcDevice::GetSystemPalette()
 
 void GdcDevice::SetColourPaletteType(int Type)
 {
-	bool SetOpt = true;
+	// bool SetOpt = true;
 
 	/*
 	switch (Type)

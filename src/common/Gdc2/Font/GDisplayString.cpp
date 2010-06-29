@@ -48,7 +48,7 @@ GDisplayString::GDisplayString(GFont *f, char *s, int l, GSurface *pdc, int tabO
 	pDC = pdc;
 	Font = f;
 	
-	#if WIN32NATIVE
+	#if defined(MAC) || WIN32NATIVE
 	Str = LgiNewUtf8To16(s, l);
 	#else
 	Str = NewStr(s, l);
@@ -95,7 +95,7 @@ GDisplayString::GDisplayString(GFont *f, char16 *s, int l, GSurface *pdc, int ta
 	pDC = pdc;
 	Font = f;
 
-    #if WIN32NATIVE	
+    #if defined(MAC) || WIN32NATIVE	
 	Str = NewStrW(s, len = l);
 	#else
 	Str = LgiNewUtf16To8(s, l < 0 ? -1 : l * sizeof(char16));

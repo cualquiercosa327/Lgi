@@ -113,7 +113,6 @@ typedef		unsigned long long			uint64;
 #endif
 
 #if !WIN32NATIVE
-#error wer
 #ifdef UNICODE
 typedef		char16						TCHAR;
 #ifndef		_T

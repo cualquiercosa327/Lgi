@@ -1202,16 +1202,15 @@ bool GWindow::Attach(GViewI *p)
 			LgiTrace("%s:%i - InstallEventHandler failed (%i)\n", _FL, e);
 		}
 
-		HIViewRef Content = 0;
-		e = HIViewFindByID(HIViewGetRoot(Wnd), kHIViewWindowContentID, &Content);
-		if (Content)
+		e = HIViewFindByID(HIViewGetRoot(Wnd), kHIViewWindowContentID, &_View);
+		if (_View)
 		{
 			EventTypeSpec	CtrlEvents[] =
 			{
 				{ kEventClassControl, kEventControlDraw },
 			};
 			EventHandlerRef CtrlHandler = 0;
-			e = InstallEventHandler(GetControlEventTarget(Content),
+			e = InstallEventHandler(GetControlEventTarget(_View),
 									NewEventHandlerUPP(LgiRootCtrlProc),
 									GetEventTypeCount(CtrlEvents),
 									CtrlEvents,
@@ -1222,7 +1221,7 @@ bool GWindow::Attach(GViewI *p)
 				LgiTrace("%s:%i - InstallEventHandler failed (%i)\n", _FL, e);
 			}
 
-			HIViewChangeFeatures(Content, kHIViewIsOpaque, 0);
+			HIViewChangeFeatures(_View, kHIViewIsOpaque, 0);
 		}
 
 		Status = true;
@@ -1630,6 +1629,7 @@ void GWindow::OnPaint(GSurface *pDC)
 
 void GWindow::OnPosChange()
 {
+	printf("GWindow::OnPosChange() %s %i,%i\n", GetPos().GetStr(), d->Sx, d->Sy);
 	GView::OnPosChange();
 
 	if (d->Sx != X() OR	d->Sy != Y())
@@ -1637,10 +1637,6 @@ void GWindow::OnPosChange()
 		Pour();
 		d->Sx = X();
 		d->Sy = Y();
-	}
-	else
-	{
-		// printf("Window '%s' Not Layout: x,y=%i,%i == %i,%i\n", Name(), d->Sx, d->Sy, X(), Y());
 	}
 }
 
@@ -1654,53 +1650,18 @@ void GWindow::OnPosChange()
 void GWindow::Pour()
 {
 	GRect r = GetClient();
-	
-	//printf("::Pour r=%s\n", r.GetStr());
-
+	// printf("::Pour r=%s\n", r.GetStr());
 	GRegion Client(r);
-
-	/*
-	GRegion Update;
-
-	Iterator<GViewI> Lst(&Children);
-	for (GViewI *w = Lst.First(); w; w = Lst.Next())
-	{
-		GRect OldPos = w->GetPos();
-		Update.Union(&OldPos);
-
-		if (w->Pour(Client))
-		{
-			GRect p = w->GetPos();
-
-			//printf("::Pour p=%s\n", p.GetStr());
-
-			if (NOT w->Visible())
-			{
-				w->Visible(true);
-			}
-
-			w->Invalidate();
-
-			Client.Subtract(&w->GetPos());
-			Update.Subtract(&w->GetPos());
-		}
-		else
-		{
-			// non-pourable
-			// printf("::Pour non pourable\n");
-		}
-	}
-	*/
 	
 	GRegion Update(Client);
 	bool HasTools = false;
 	GViewI *v;
-	Iterator<GViewI> Lst(&Children);
+	List<GViewI>::I Lst = Children.Start();
 
 	{
 		GRegion Tools;
 		
-		for (v = Lst.First(); v; v = Lst.Next())
+		for (v = *Lst; v; v = *++Lst)
 		{
 			if (IsTool(v))
 			{
@@ -1757,7 +1718,8 @@ void GWindow::Pour()
 		}
 	}
 
-	for (GViewI *v = Lst.First(); v; v = Lst.Next())
+	Lst = Children.Start();
+	for (GViewI *v = *Lst; v; v = *++Lst)
 	{
 		if (!IsTool(v))
 		{

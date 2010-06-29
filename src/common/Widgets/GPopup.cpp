@@ -104,6 +104,13 @@ bool IsWindow(OsView Wnd)
 	#endif
 }
 
+#elif defined MAC
+
+bool IsWindow(OsView v)
+{
+	return true;
+}
+
 #endif
 
 uint32 LgiGetViewPid(OsView View)

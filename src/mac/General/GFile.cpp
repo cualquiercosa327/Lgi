@@ -19,7 +19,6 @@
 #include <stdarg.h>
 #include <dirent.h>
 
-#include "LgiDefs.h"
 #include "GFile.h"
 #include "GContainers.h"
 #include "GToken.h"

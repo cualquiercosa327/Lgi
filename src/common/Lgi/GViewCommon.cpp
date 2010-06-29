@@ -442,6 +442,7 @@ void GView::_Paint(GSurface *pDC, int Ox, int Oy)
 			p.Offset(Ox, Oy);
 			pDC->SetClient(&p);
 			w->_Paint(pDC, p.x1, p.y1);
+			pDC->SetClient(0);
 		}
 	}
 	#endif
@@ -1265,12 +1266,10 @@ void GView::SetFont(GFont *Font, bool OwnIt)
 
 		d->FontOwn = OwnIt;
 		d->Font = Font;
+		#if WIN32NATIVE
 		if (_View)
-		{
-			#if WIN32NATIVE
 			SendMessage(_View, WM_SETFONT, (WPARAM) (Font ? Font->Handle() : 0), 0);
-			#endif
-		}
+		#endif
 
 		for (GViewI *p = GetParent(); p; p = p->GetParent())
 		{

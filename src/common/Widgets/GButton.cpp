@@ -270,16 +270,24 @@ void GButton::OnPaint(GSurface *pDC)
 {
 	#ifdef MAC
 
+	#if 0
 	pDC->Colour(LC_MED, 24);	
 	pDC->Rectangle();
 
 	GRect c = GetClient();
+	for (GViewI *v = this; v && !v->Handle(); v = v->GetParent())
+	{
+		GRect p = v->GetPos();
+		c.Offset(p.x1, p.y2);
+	}
+	printf("c=%s\n", c.GetStr());
+	
 	Rect Bounds = { c.y1, c.x1+2, c.y2-1, c.x2-1 };
 	ThemeButtonDrawInfo Info;
 	Info.state = d->Pressed ? kThemeStatePressed : (Enabled() ? kThemeStateActive : kThemeStateInactive);
 	Info.value = Default() ? kThemeButtonOn : kThemeButtonOff;
 	Info.adornment = Focus() ? kThemeAdornmentFocus : kThemeAdornmentNone;
-	
+
 	GLabelData User;
 	User.Ctrl = this;
 	User.pDC = pDC;
@@ -294,6 +302,7 @@ void GButton::OnPaint(GSurface *pDC)
 								(UInt32)&User);
 	
 	d->Cur = Info;
+	#endif
 	
 	#else
 

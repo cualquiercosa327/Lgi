@@ -11,7 +11,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "LgiDefs.h"
 #include "LgiOsDefs.h"
 #include "GMem.h"
 #include "GSemaphore.h"
