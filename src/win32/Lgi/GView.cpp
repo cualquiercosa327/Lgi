@@ -588,7 +588,7 @@ GWin32Class *GView::CreateClassW32(char *Class, HICON Icon, int AddStyles)
 
 bool GView::IsAttached()
 {
-	return (_View && IsWindow(_View)) || GetParent() != 0;
+	return _View && IsWindow(_View);
 }
 
 bool GView::Attach(GViewI *p)
@@ -652,7 +652,7 @@ bool GView::Attach(GViewI *p)
 		if (!_View)
 		{
 			DWORD e = GetLastError();
-			int asd=0;
+			LgiAssert(!"CreateWindowEx failed");
 		}
 		#endif
 

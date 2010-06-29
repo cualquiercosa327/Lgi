@@ -911,14 +911,14 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 					if (!Status || Msg.message == WM_QUIT)
 						break;
 
-					#if 0 //def _DEBUG
+					#ifdef _DEBUG
 					int64 Last = LgiCurrentTime();
 					#endif
 					
 					TranslateMessage(&Msg);
 					DispatchMessage(&Msg);
 
-					#if 0 //def _DEBUG
+					#ifdef _DEBUG
 					int64 Now = LgiCurrentTime();
 					if (Now - Last > 1000)
 					{

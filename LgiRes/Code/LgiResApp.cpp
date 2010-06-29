@@ -1915,7 +1915,7 @@ public:
 		GRect p;
 		char *n = 0;
 
-		if (LoadFromResource(IDD_COMPARE, Children, &p, n))
+		if (LoadFromResource(IDD_COMPARE, this, &p, n))
 		{
 			SetPos(p);
 			Name(n);

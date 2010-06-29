@@ -568,7 +568,10 @@ bool LgiExecute(char *File, char *Arguments, char *Dir)
 		{
 			int64 Now = LgiCurrentTime();
 			Status = (int) ShellExecuteW(NULL, L"open", f, a, d, 5);
-			LgiTrace("ShellExecuteW took %I64i\n", LgiCurrentTime() - Now);
+			#ifdef _DEBUG
+			if (LgiCurrentTime() - Now > 1000)
+				LgiTrace("ShellExecuteW took %I64i\n", LgiCurrentTime() - Now);
+			#endif
 		}
 		DeleteArray(f);
 		DeleteArray(a);

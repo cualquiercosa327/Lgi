@@ -7,7 +7,7 @@
 /// because the CSS spec is written with 'color' as the spelling.
 
 #include "LgiInc.h"
-#include "LgiDefs.h"
+#include "LgiOsDefs.h"
 #include "GMem.h"
 #include "Gdc2.h"
 #include "GAutoPtr.h"

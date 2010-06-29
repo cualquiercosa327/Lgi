@@ -1477,7 +1477,8 @@ void ResStringGroup::OnCommand(int Cmd)
 
 void ResStringGroup::Create(GXmlTag *load)
 {
-	Read(load, Lr8File);
+	if (load)
+		Read(load, Lr8File);
 }
 
 ////////////////////////////////////////////////////////////////////
