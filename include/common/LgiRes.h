@@ -83,7 +83,7 @@ public:
 
 	// Instantiate resources
 	bool LoadDialog(int Resource,
-					List<GViewI> &Children,
+					GViewI *Parent,
 					GRect *Pos = 0,
 					char *Name = 0,
 					GEventsI *ScriptEngine = 0);

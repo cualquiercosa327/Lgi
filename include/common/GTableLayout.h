@@ -25,6 +25,7 @@ class LgiClass GTableLayout :
 	class GTableLayoutPrivate *d;
 
 public:
+	char *GetClass() { return "GTableLayout"; }
 	GTableLayout();
 	~GTableLayout();
 

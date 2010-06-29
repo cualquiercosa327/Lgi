@@ -47,8 +47,8 @@ public:
 	(
 		/// The resource ID
 		int Resource,
-		/// The list of children to populate
-		List<GViewI> &Children,
+		/// The target view to populate
+		GViewI *Parent,
 		/// The size of the view in the resource
 		GRect *Pos = 0,
 		/// The name of the window

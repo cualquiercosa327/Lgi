@@ -1745,6 +1745,25 @@ GdcPt2 &GView::GetWindowBorderSize()
 	return s;
 }
 
+#ifdef _DEBUG
+void GView::_Dump(int Depth)
+{
+	char Sp[65];
+	memset(Sp, ' ', Depth << 2);
+	Sp[Depth<<2] = 0;
+	char s[256];
+	sprintf(s, "%s%p::%s %s (%p:%p)\n", Sp, this, GetClass(), GetPos().GetStr(), d->Parent, d->ParentI);
+	LgiTrace(s);
+	List<GViewI>::I i = Children.Start();
+	for (GViewI *c = *i; c; c = *++i)
+	{
+		GView *v = c->GetGView();
+		if (v)
+			v->_Dump(Depth+1);
+	}
+}
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 List<GViewFactory> *GViewFactory::Factories;
 

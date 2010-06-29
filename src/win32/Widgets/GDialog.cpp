@@ -80,7 +80,7 @@ GDialog::~GDialog()
 bool GDialog::LoadFromResource(int Resource)
 {
 	char n[256];
-	bool Status = GLgiRes::LoadFromResource(Resource, Children, &Pos, n);
+	bool Status = GLgiRes::LoadFromResource(Resource, this, &Pos, n);
 	if (Status)
 	{
 		Name(n);

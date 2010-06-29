@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #include "Lgi.h"
 #include <ole2.h>
 #include <commctrl.h>
@@ -8,6 +6,7 @@
 #include "GSymLookup.h"
 #include "GDocView.h"
 #include "GToken.h"
+#include <stdio.h>
 
 HINSTANCE _lgi_app_instance = 0;
 extern LPTOP_LEVEL_EXCEPTION_FILTER _PrevExceptionHandler;

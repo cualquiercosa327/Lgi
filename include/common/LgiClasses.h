@@ -1007,6 +1007,7 @@ public:
 	#if defined(_DEBUG)
 	bool _Debug;
 	void Debug();
+	void _Dump(int Depth = 0);
 	#endif
 };
 

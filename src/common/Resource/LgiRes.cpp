@@ -1091,14 +1091,14 @@ bool LgiMenuRes::Read(GXmlTag *t, ResFileFormat Format)
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // Dialog
-bool GLgiRes::LoadFromResource(int Resource, List<GViewI> &Children, GRect *Pos, char *Name)
+bool GLgiRes::LoadFromResource(int Resource, GViewI *Parent, GRect *Pos, char *Name)
 {
 	LgiGetResObj();
 
 	for (LgiResources  *r=LgiResources::ResourceContainers.First(); r;
 						r=LgiResources::ResourceContainers.Next())
 	{
-		if (r->LoadDialog(Resource, Children, Pos, Name))
+		if (r->LoadDialog(Resource, Parent, Pos, Name))
 		{
 			return true;
 		}
@@ -1247,7 +1247,7 @@ char *LgiLoadString(int Res, char *Default)
 	return s ? s : Default;
 }
 
-bool LgiResources::LoadDialog(int Resource, List<GViewI> &Children, GRect *Pos, char *Name, GEventsI *Engine)
+bool LgiResources::LoadDialog(int Resource, GViewI *Parent, GRect *Pos, char *Name, GEventsI *Engine)
 {
 	bool Status = false;
 
@@ -1300,7 +1300,7 @@ bool LgiResources::LoadDialog(int Resource, List<GViewI> &Children, GRect *Pos, 
 								w->SetPos(r);
 								*/
 
-								Children.Insert(w);
+								Parent->AddView(w);
 							}
 						}
 						else

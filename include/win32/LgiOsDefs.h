@@ -13,6 +13,9 @@
 
 #pragma warning(disable : 4251 4275)
 
+#define WIN32GTK                    0
+#define WIN32NATIVE                 1
+
 #include <string.h>
 #include "LgiInc.h"
 #include "LgiDefs.h"
@@ -21,14 +24,11 @@
 //////////////////////////////////////////////////////////////////
 // Includes
 #define WIN32_LEAN_AND_MEAN
-#include "windows.h"
 #include "winsock2.h"
+#include "windows.h"
 #include "SHELLAPI.H"
 #include "COMMDLG.H"
 #include "LgiInc.h"
-
-#define WIN32GTK                    0
-#define WIN32NATIVE                 1
 
 //////////////////////////////////////////////////////////////////
 // Typedefs

@@ -588,7 +588,7 @@ GWin32Class *GView::CreateClassW32(char *Class, HICON Icon, int AddStyles)
 
 bool GView::IsAttached()
 {
-	return _View && IsWindow(_View);
+	return (_View && IsWindow(_View)) || GetParent() != 0;
 }
 
 bool GView::Attach(GViewI *p)
@@ -991,6 +991,7 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 		while (p && !p->Handle())
 		{
 			GViewI *Par = p->GetParent();
+			GView *VPar = Par?Par->GetGView():0;
 			GRect w = p->GetPos();
 			GRect c = p->GetClient(false);
 			if (Frame && p == this)

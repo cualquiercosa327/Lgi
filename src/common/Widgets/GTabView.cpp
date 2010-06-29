@@ -789,8 +789,6 @@ bool GTabPage::OnKey(GKey &k)
 bool GTabPage::LoadFromResource(int Res)
 {
 	char n[256] = "";
-	List<GViewI> l;
-	bool Status = GLgiRes::LoadFromResource(Res, l, 0, n);
 
 	GViewIterator *ch = IterateViews();
 	if (ch)
@@ -804,11 +802,7 @@ bool GTabPage::LoadFromResource(int Res)
 		DeleteObj(ch);
 	}
 	
-	for (GViewI *v=l.First(); v; v=l.Next())
-	{
-		Append(v);
-	}
-
+	bool Status = GLgiRes::LoadFromResource(Res, this, 0, n);
 	if (ValidStr(n))
 		Name(n);
 

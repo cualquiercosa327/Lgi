@@ -14,7 +14,6 @@
 #include <fcntl.h>
 
 #include "LgiInc.h"
-#include "LgiDefs.h"
 #include "LgiOsDefs.h"
 
 #include <stdlib.h>

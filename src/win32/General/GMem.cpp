@@ -12,7 +12,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-#include "windows.h"
 #include "GMem.h"
 #include "process.h"
 

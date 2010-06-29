@@ -11,10 +11,9 @@
 #include <stdio.h>
 
 // sub-system headers
-#include "LgiInc.h"
-#include "LgiDefs.h"				// Xp
-#include "LgiClass.h"
 #include "LgiOsDefs.h"				// Platform specific
+#include "LgiInc.h"
+#include "LgiClass.h"
 #include "Progress.h"				// Xp
 #include "GFile.h"					// Platform specific
 #include "GMem.h"					// Platform specific

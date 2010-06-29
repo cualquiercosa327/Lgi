@@ -226,12 +226,12 @@
 // My includes
 #include "LgiInc.h"							// Xp
 
+#include "LgiOsDefs.h"						// Platform specific 
 #include "LgiMsgs.h"						// Xp
 #include "LgiDefs.h"						// Xp
 #include "GMem.h"                           // Platform specific 
 #include "GString.h"						// Xp
 #include "LgiClass.h"						// Xp
-#include "LgiOsDefs.h"						// Platform specific 
 #include "Progress.h"						// Xp
 #include "GFile.h"							// Platform specific
 #include "Gdc2.h"							// Platform specific

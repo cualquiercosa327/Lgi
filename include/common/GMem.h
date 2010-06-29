@@ -13,7 +13,7 @@
 #define __MEMORY_H
 
 #include "LgiInc.h"
-#include "LgiDefs.h"
+#include "LgiOsDefs.h"
 
 #ifndef __cplusplus
 typedef unsigned char bool;
