@@ -116,7 +116,7 @@ SysCharSupport::SysCharSupport(AppWnd *app)
 
 	if (Attach(0))
 	{
-		d->LoadFromResource(IDD_CHAR, Children, &GetPos());
+		d->LoadFromResource(IDD_CHAR, this, &GetPos());
 		MoveToCenter();
 		AttachChildren();
 		GetViewById(IDC_MATCH, d->Match);
