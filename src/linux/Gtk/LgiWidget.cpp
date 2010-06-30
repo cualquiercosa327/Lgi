@@ -511,12 +511,7 @@ lgi_widget_size_request(GtkWidget *widget, GtkRequisition *requisition)
         requisition->height = p->h;
 	}
 
-	LgiTrace("%s::req %i,%i\n", p->target->GetClass(), requisition->width, requisition->height);
-
-	if (!gtk_widget_get_parent(widget))
-	{
-		printf("%s:%i - req %i,%i\n", _FL, requisition->width, requisition->height);
-	}
+	// LgiTrace("%s::req %i,%i\n", p->target->GetClass(), requisition->width, requisition->height);
 }
 
 static void

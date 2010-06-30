@@ -751,6 +751,10 @@
 						RelativePath=".\src\common\Gdc2\GFuncs.cpp"
 						>
 					</File>
+					<File
+						RelativePath=".\src\common\Gdc2\Path\GPath.cpp"
+						>
+					</File>
 				</Filter>
 				<Filter
 					Name="Font"
@@ -926,6 +930,14 @@
 				</File>
 				<File
 					RelativePath=".\src\win32\INet\MibAccess.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Gel Skin"
+				>
+				<File
+					RelativePath=".\src\common\Skins\Gel\Gel.cpp"
 					>
 				</File>
 			</Filter>

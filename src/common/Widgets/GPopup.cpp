@@ -585,7 +585,6 @@ GPopupFocusOut( GtkWidget       *widget,
 				GPopup          *This)
 {
     This->Visible(false);
-    LgiTrace("Got GPopupFocusOut\n");
 	return FALSE;
 }
 
@@ -595,13 +594,34 @@ GPopupExpose(	GtkWidget		*widget,
 				GdkEventExpose	*ev,
 				GtkWidget		*top)
 {
-    LgiTrace("Got GPopupExpose\n");
 	if (gtk_window_get_resizable(GTK_WINDOW(top)))
 	{
 		gtk_window_resize(GTK_WINDOW(top), widget->allocation.width, widget->allocation.height);
 		gtk_window_set_resizable(GTK_WINDOW(top), FALSE);
 	}
 	return FALSE;
+}
+
+static void
+PopupPos(GtkMenu *menu, gint *x, gint *y, gboolean *push_in, GdcPt2 *user_data)
+{
+    *x = user_data->x;
+    *y = user_data->y;    
+}
+
+void PopupDetach(GtkWidget *attach_widget, GtkMenu *menu)
+{
+    LgiTrace("PopupDetach\n");
+}
+
+void PopupCancel(GtkMenuShell *menushell, gpointer user_data)
+{
+    LgiTrace("PopupCancel\n");
+}
+
+void PopupSelect(GtkMenuShell *menushell, gpointer user_data)
+{
+    LgiTrace("PopupSelect\n");
 }
 #endif
 
@@ -649,42 +669,62 @@ bool GPopup::Attach(GViewI *p)
 		SetStyle(WS_POPUP);
 		GView::Attach(GetParent());
 		
+		AttachChildren();
+
 		#elif defined __GTK_H__
 		
 		if (!Wnd)
 		{
-		    Wnd = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+		    #if 1
+		    Wnd = gtk_menu_new();
+            g_signal_connect (G_OBJECT(Wnd),
+                            "cancel",
+                            G_CALLBACK(PopupCancel),
+                            this);
+            g_signal_connect (G_OBJECT(Wnd),
+                            "selection-done",
+                            G_CALLBACK(PopupSelect),
+                            this);
+		    #else
+		    Wnd = gtk_window_new(GTK_WINDOW_POPUP);
+		    gtk_window_set_accept_focus(GTK_WINDOW(Wnd), true);
+		    gtk_window_set_focus_on_map(GTK_WINDOW(Wnd), true);
 		    gtk_window_set_decorated(GTK_WINDOW(Wnd), FALSE);
 		    gtk_window_set_type_hint(GTK_WINDOW(Wnd), GDK_WINDOW_TYPE_HINT_DROPDOWN_MENU);
 
 		    if (p && p->WindowHandle())
-		        gtk_window_set_transient_for (GTK_WINDOW(Wnd), GTK_WINDOW(p->WindowHandle()));
+		        gtk_window_set_transient_for(GTK_WINDOW(Wnd), GTK_WINDOW(p->WindowHandle()));
 
             g_signal_connect (G_OBJECT(Wnd),
                             "focus-out-event",
                             G_CALLBACK(GPopupFocusOut),
                             this);
+            #endif
 		}
 
 		if (Wnd)
 		{
-		    LgiTrace("Attaching Popup at %s\n", Pos.GetStr());
+		    // LgiTrace("Attaching Popup at %s\n", Pos.GetStr());
 			gtk_window_move(GTK_WINDOW(Wnd), Pos.x1, Pos.y1);
 		    gtk_window_set_default_size(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
 		}
 
         if (!_View)
         {
+            // GtkWidget *item = gtk_menu_item_new();
 		    _View = lgi_widget_new(this, Pos.X(), Pos.Y(), false);
+		    // gtk_container_add(GTK_CONTAINER(item), _View);
+            gtk_menu_shell_append(GTK_MENU_SHELL(Wnd), _View);
+            
+            /*
 		    gtk_container_add(GTK_CONTAINER(Wnd), _View);
-
 			gtk_widget_add_events(GTK_WIDGET(_View), GDK_EXPOSURE_MASK);
             g_signal_connect (G_OBJECT(_View),
                             "expose-event",
                             G_CALLBACK(GPopupExpose),
                             Wnd);
+            */
 		}		
-
 		#endif
 
 		AttachChildren();
@@ -717,6 +757,10 @@ void GPopup::Visible(bool i)
 		Attach(0);
     if (Wnd)
     {
+        #if 1
+        gtk_widget_show_all(Wnd);
+        gtk_menu_popup(GTK_MENU(Wnd), 0, 0, (GtkMenuPositionFunc)PopupPos, new GdcPt2(Pos.x1, Pos.y1), 0, gtk_get_current_event_time());
+        #else
 	    if (i)
 	    {
 	        gtk_widget_show_all(Wnd);
@@ -724,6 +768,7 @@ void GPopup::Visible(bool i)
 	        gtk_widget_grab_focus(Wnd);
 	    }
 	    else gtk_widget_hide(Wnd);
+	    #endif
 
 		GView::Visible(i);
 	}
@@ -763,6 +808,13 @@ void GPopup::Visible(bool i)
 
 bool GPopup::Visible()
 {
+    #if defined __GTK_H__
+    if (Wnd)
+    {
+        GView::Visible(gtk_widget_get_visible(Wnd));
+    }
+    #endif
+
 	return GView::Visible();
 }
 

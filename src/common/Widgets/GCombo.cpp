@@ -503,9 +503,7 @@ void GCombo::OnPaint(GSurface *pDC)
 	{
 		char *n = Name();
 		if (n)
-		{
 			d->Text = new GDisplayString(GetFont(), n);
-		}
 	}
 
 	#ifdef MAC

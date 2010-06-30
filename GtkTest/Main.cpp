@@ -2,8 +2,50 @@
 #include "GButton.h"
 #include "GEdit.h"
 #include "GCombo.h"
+#include "LgiSkinGel.h"
 
 #define IDM_EXIT 4
+
+class Test : public GDialog
+{
+public:
+    Test(GViewI *p)
+    {
+        SetParent(p);
+        SetPos(GRect(0, 0, 300, 300));
+        MoveToCenter();
+        
+		GCombo *c;
+		AddView(c = new GCombo(100, 10, 40, 100, 20, ""));
+		c->Insert("One");
+		c->Insert("Two");
+		c->Insert("Three");
+
+		AddView(new GButton(50, 10, 10, -1, -1, "Open"));
+
+        /*
+		AddView(c = new GCombo(200, 10, 140, 100, 20, ""));
+		c->Insert("One");
+		c->Insert("Two");
+		c->Insert("Three");
+		*/
+
+        DoModal();
+    }
+    
+	int OnNotify(GViewI *c, int f)
+	{
+		switch (c->GetId())
+		{
+		    case 50:
+		    {
+		        Test Dlg(this);
+		        break;
+		    }
+		}
+		return 0;
+	}
+};
 
 class App : public GWindow
 {
@@ -56,13 +98,9 @@ public:
             AddView(split);
             #endif
 			*/
+			
+			AddView(new GButton(50, 10, 10, -1, -1, "Open"));
 
-			GCombo *c;
-			AddView(c = new GCombo(100, 10, 40, 100, 20, ""));
-			c->Insert("One");
-			c->Insert("Two");
-			c->Insert("Three");
-            
             AttachChildren();
             Visible(true);
         }
@@ -78,6 +116,19 @@ public:
 		}
 		return 0;
 	}
+	
+	int OnNotify(GViewI *c, int f)
+	{
+		switch (c->GetId())
+		{
+		    case 50:
+		    {
+		        Test Dlg(this);
+		        break;
+		    }
+		}
+		return 0;
+	}
 };
 
 int LgiMain(OsAppArguments &AppArgs)
@@ -85,6 +136,8 @@ int LgiMain(OsAppArguments &AppArgs)
     GApp a("application/x-gtk-test", AppArgs);
     if (a.IsOk())
     {
+        a.SkinEngine = CreateSkinEngine(&a);
+
         a.AppWnd = new App;
         a.Run();
     }    

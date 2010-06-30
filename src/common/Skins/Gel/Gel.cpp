@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdio.h>
 
 #include "Lgi.h"
@@ -7,6 +8,7 @@
 #include "GCombo.h"
 #include "GCheckBox.h"
 #include "GRadioGroup.h"
+#include "LgiSkinGel.h"
 
 #ifdef WIN32
 #define BTN_TEXT_OFFSET_Y	-1
@@ -915,10 +917,6 @@ public:
 	}
 };
 
-extern "C"
-#if defined(WIN32) || defined(BEOS)
-__declspec(dllexport)
-#endif
 GSkinEngine *
 CreateSkinEngine(class GApp *App)
 {
