@@ -173,7 +173,7 @@ void GCheckBox::OnMouseExit(GMouse &m)
 
 bool GCheckBox::OnKey(GKey &k)
 {
-	if (!k.IsChar)
+	if (k.IsChar)
 	{
 		switch (k.vkey)
 		{

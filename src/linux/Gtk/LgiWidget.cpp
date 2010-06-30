@@ -211,8 +211,26 @@ static gboolean lgi_widget_focus_event(GtkWidget *wid, GdkEventFocus *e)
 	return TRUE;
 }
 
+void BuildTabStops(GViewI *v, ::GArray<GViewI*> &a)
+{
+    if (v->Enabled() &&
+        v->Visible() &&
+        v->GetTabStop())
+        a.Add(v);
+    
+    GAutoPtr<GViewIterator> it(v->IterateViews());
+    for (GViewI *c = it->First(); c; c = it->Next())
+    {
+        if (c->Enabled() &&
+            c->Visible())
+            BuildTabStops(c, a);
+    }
+}
+
 static gboolean lgi_widget_key_event(GtkWidget *wid, GdkEventKey *e)
 {
+    #if 1
+    // This is useful for debugging...
     if (e->keyval == GDK_Shift_L ||
         e->keyval == GDK_Shift_R ||
         e->keyval == GDK_Control_L ||
@@ -222,6 +240,7 @@ static gboolean lgi_widget_key_event(GtkWidget *wid, GdkEventKey *e)
     {
         return TRUE;
     }
+    #endif
 
 	LgiWidget *p = LGI_WIDGET(wid);
     GView *v = dynamic_cast<GView*>(p->target);
@@ -237,6 +256,8 @@ static gboolean lgi_widget_key_event(GtkWidget *wid, GdkEventKey *e)
         k.IsChar = !k.Ctrl() && (k.c16 >= ' ' && k.c16 <= 0x7f);
         switch (k.c16)
         {
+            case GDK_ISO_Left_Tab:
+            case GDK_Tab:       k.c16 = VK_TAB; k.IsChar = true; break;
             case GDK_Return:    k.c16 = VK_RETURN; k.IsChar = true; break;
             case GDK_BackSpace: k.c16 = VK_BACKSPACE; k.IsChar = true; break;
             case GDK_Left:      k.vkey = VK_LEFT; break;
@@ -249,9 +270,32 @@ static gboolean lgi_widget_key_event(GtkWidget *wid, GdkEventKey *e)
 
         GWindow *w = v->GetWindow();
         if (w)
-            w->HandleViewKey(v, k);
+        {
+            if (!w->HandleViewKey(v, k) &&
+                (k.vkey == GDK_Tab || k.vkey == GDK_ISO_Left_Tab)&&
+                k.Down())
+            {
+                // Do tab between controls
+                ::GArray<GViewI*> a;
+                BuildTabStops(w, a);
+                int idx = a.IndexOf((GViewI*)v);
+                if (idx >= 0)
+                {
+                    idx += k.Shift() ? -1 : 1;
+                    int next_idx = idx == 0 ? a.Length() -1 : idx % a.Length();                    
+                    GViewI *next = a[next_idx];
+                    if (next)
+                    {
+                        // LgiTrace("Setting focus to %i of %i: %s, %s, %i\n", next_idx, a.Length(), next->GetClass(), next->GetPos().GetStr(), next->GetId());
+                        next->Focus(true);
+                    }
+                }
+            }
+        }
         else
             v->OnKey(k);
+        
+        
     }
     return TRUE;
 }

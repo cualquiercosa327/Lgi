@@ -383,7 +383,6 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 	#endif
 	
 	// Window didn't want the key...
-	// k.Trace("Handle");
 	switch (k.vkey)
 	{
 		case VK_RETURN:
