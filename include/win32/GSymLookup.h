@@ -7,6 +7,7 @@
 #include "ImageHlp.h"
 #include <direct.h>
 #include <stdio.h>
+#undef _T
 #include <tchar.h>
 
 #if _MSC_VER < 1300

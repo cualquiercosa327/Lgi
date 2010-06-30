@@ -7,29 +7,32 @@
 #include <ctype.h>
 #include <fcntl.h>
 
-#if defined WIN32
+#ifdef WIN32
 #include <winsock2.h>
 #include <shlobj.h>
 #endif
 
 #include "Lgi.h"
 #include "GToken.h"
+
 #ifdef LINUX
 #include "LgiWinManGlue.h"
 #endif
 
 #if defined POSIX
-
-	#include <sys/time.h>
-	#include <sys/types.h>
-	#include <pwd.h>
-	#include <sys/utsname.h>
-	#include "GProcess.h"
-
+#include <sys/time.h>
+#include <sys/types.h>
+#include <pwd.h>
+#include <sys/utsname.h>
+#include "GProcess.h"
 #elif defined BEOS
+#include <Path.h>
+#endif
 
-	#include <Path.h>
-
+#if defined(WIN32) && defined(__GTK_H__)
+#include "../win32/GSymLookup.h"
+#else
+#include "GSymLookup.h"
 #endif
 
 //////////////////////////////////////////////////////////////////////////
@@ -517,11 +520,6 @@ void LgiTrace(char *Msg, ...)
 	}
 }
 
-#if defined(WIN32) && defined(__GTK_H__)
-#include "../win32/GSymLookup.h"
-#else
-#include "GSymLookup.h"
-#endif
 #define STACK_SIZE 12
 
 void LgiStackTrace(char *Msg, ...)

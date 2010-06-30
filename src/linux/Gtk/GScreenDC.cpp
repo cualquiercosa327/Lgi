@@ -176,10 +176,16 @@ void GScreenDC::SetClient(GRect *c)
 	if (c)
 	{
 		d->Client = *c;
+
+        GdkRectangle r = {c->x1, c->y1, c->X(), c->Y()};
+        gdk_gc_set_clip_rectangle(d->gc, &r);
 	}
 	else
 	{
 		d->Client.ZOff(-1, -1);
+
+        GdkRectangle r = {0, 0, X(), Y()};
+        gdk_gc_set_clip_rectangle(d->gc, &r);
 	}
 	
 	OriginX = -d->Client.x1;
@@ -236,36 +242,18 @@ GRect GScreenDC::ClipRgn(GRect *c)
 	if (c)
 	{
 		Clip = *c;
+		// LgiTrace("Setting clip %s client=%s\n", Clip.GetStr(), d->Client.GetStr());
 
-		/*
-		xcb_rectangle_t r = {c->x1-OriginX, c->y1-OriginY, c->X(), c->Y()};
-		xcb_void_cookie_t c =
-			xcb_set_clip_rectangles_checked (
-				XcbConn(),
-				XCB_CLIP_ORDERING_UNSORTED,
-				*d->Gc,
-				0,
-				0,
-				1,
-				&r);
-		XcbCheck(c);
-		*/
+        GdkRectangle r = {c->x1+d->Client.x1, c->y1+d->Client.y1, c->X(), c->Y()};
+        gdk_gc_set_clip_rectangle(d->gc, &r);
 	}
 	else
 	{
-		/*
-		xcb_rectangle_t r = {0, 0, X(), Y()};
-		xcb_void_cookie_t c =
-			xcb_set_clip_rectangles_checked (
-				XcbConn(),
-				XCB_CLIP_ORDERING_UNSORTED,
-				*d->Gc,
-				0,
-				0,
-				1,
-				&r);
-		XcbCheck(c);
-		*/
+	    Clip.ZOff(-1, -1);
+		// LgiTrace("Removing clip\n");
+
+        GdkRectangle r = {d->Client.x1, d->Client.y1, X(), Y()};
+        gdk_gc_set_clip_rectangle(d->gc, &r);
 	}
 
 	Translate();

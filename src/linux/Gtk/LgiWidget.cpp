@@ -5,15 +5,7 @@ using namespace Gtk;
 #include "gdk/gdkkeysyms.h"
 
 static void lgi_widget_class_init(LgiWidgetClass *klass);
-static void lgi_widget_init(LgiWidget *cpu);
-static void lgi_widget_size_request(GtkWidget *widget, GtkRequisition *requisition);
-static void lgi_widget_size_allocate(GtkWidget *widget, GtkAllocation *allocation);
-static void lgi_widget_realize(GtkWidget *widget);
-static gboolean lgi_widget_expose(GtkWidget *widget, GdkEventExpose *event);
-static void lgi_widget_destroy(GtkObject *object);
-static gboolean lgi_widget_click(GtkWidget *widget, GdkEventButton *ev);
-static gboolean lgi_widget_motion(GtkWidget *widget, GdkEventMotion *ev);
-static gboolean lgi_widget_scroll(GtkWidget *widget, GdkEventScroll *ev);
+static void lgi_widget_init(LgiWidget *w);
 
 static void
 lgi_widget_forall(	GtkContainer   *container,
@@ -118,11 +110,16 @@ static gboolean lgi_widget_click(GtkWidget *widget, GdkEventButton *ev)
     GView *v = dynamic_cast<GView*>(p->target);
     if (v)
     {
+        // LgiTrace("click %i,%i,%i,%i,%i,%i,%i,%i,%i\n", ev->axes, ev->button, ev->device, ev->send_event, ev->state, ev->time, ev->type, ev->x, ev->y);
         GMouse m;
         m.Target = v;
         m.x = ev->x;
         m.y = ev->y;
-        m.Down(ev->type == GDK_BUTTON_PRESS);
+        m.Double(ev->type == GDK_2BUTTON_PRESS ||
+                ev->type == GDK_3BUTTON_PRESS);
+        m.Down( ev->type == GDK_BUTTON_PRESS ||
+                ev->type == GDK_2BUTTON_PRESS ||
+                ev->type == GDK_3BUTTON_PRESS);
         m.Left(ev->button == 1);
         m.Middle(ev->button == 2);
         m.Right(ev->button == 3);
@@ -139,13 +136,17 @@ static gboolean lgi_widget_motion(GtkWidget *widget, GdkEventMotion *ev)
     GView *v = dynamic_cast<GView*>(p->target);
     if (v)
     {
+        // LgiTrace("motion %i,%i,%i,%i,%x,%i,%i,%i,%i\n", ev->axes, ev->device, ev->is_hint, ev->send_event, ev->state, ev->time, ev->type, ev->x, ev->y);
         GMouse m;
         m.Target = v;
         m.x = ev->x;
         m.y = ev->y;
-        m.Down(false);
+        m.Down((ev->state & GDK_BUTTON_PRESS_MASK) != 0);
+        m.Left(ev->state & 0x100);
+        m.Middle(ev->state & 0x200);
+        m.Right(ev->state & 0x400);
 
-		// LgiTrace("%s::OnMouseMove %i,%i\n", v->GetClass(), m.x, m.y);
+		// m.Trace("Move");
         v->_Mouse(m, true);
     }    
     return TRUE;
@@ -206,9 +207,7 @@ static gboolean lgi_widget_focus_event(GtkWidget *wid, GdkEventFocus *e)
 	LgiWidget *p = LGI_WIDGET(wid);
     GView *v = dynamic_cast<GView*>(p->target);
     if (v)
-    {
         v->OnFocus(e->in);
-    }
 	return TRUE;
 }
 
@@ -238,13 +237,14 @@ static gboolean lgi_widget_key_event(GtkWidget *wid, GdkEventKey *e)
         k.IsChar = !k.Ctrl() && (k.c16 >= ' ' && k.c16 <= 0x7f);
         switch (k.c16)
         {
+            case GDK_Return:    k.c16 = VK_RETURN; k.IsChar = true; break;
             case GDK_BackSpace: k.c16 = VK_BACKSPACE; k.IsChar = true; break;
-            case GDK_Left: k.vkey = VK_LEFT; break;
-            case GDK_Right: k.vkey = VK_RIGHT; break;
-            case GDK_Up: k.vkey = VK_UP; break;
-            case GDK_Down: k.vkey = VK_DOWN; break;
-            case GDK_Home: k.vkey = VK_HOME; break;
-            case GDK_End: k.vkey = VK_END; break;
+            case GDK_Left:      k.vkey = VK_LEFT; break;
+            case GDK_Right:     k.vkey = VK_RIGHT; break;
+            case GDK_Up:        k.vkey = VK_UP; break;
+            case GDK_Down:      k.vkey = VK_DOWN; break;
+            case GDK_Home:      k.vkey = VK_HOME; break;
+            case GDK_End:       k.vkey = VK_END; break;
         }        
 
         GWindow *w = v->GetWindow();
@@ -256,69 +256,18 @@ static gboolean lgi_widget_key_event(GtkWidget *wid, GdkEventKey *e)
     return TRUE;
 }
 
-static void lgi_widget_class_init(LgiWidgetClass *klass)
-{
-	GtkObjectClass *object_class = (GtkObjectClass *)klass;
-	object_class->destroy = lgi_widget_destroy;
-
-	GtkWidgetClass *widget_class = (GtkWidgetClass *)klass;
-	widget_class->realize = lgi_widget_realize;
-	widget_class->size_request = lgi_widget_size_request;
-	widget_class->size_allocate = lgi_widget_size_allocate;
-	widget_class->expose_event = lgi_widget_expose;
-	widget_class->button_press_event = lgi_widget_click;
-	widget_class->button_release_event = lgi_widget_click;
-	widget_class->motion_notify_event = lgi_widget_motion;
-	widget_class->scroll_event = lgi_widget_scroll;
-	widget_class->enter_notify_event = lgi_widget_mouse_enter_leave;
-	widget_class->leave_notify_event = lgi_widget_mouse_enter_leave;
-	widget_class->client_event = lgi_widget_client_event;
-	widget_class->focus_in_event = lgi_widget_focus_event;
-	widget_class->focus_out_event = lgi_widget_focus_event;
-	widget_class->key_press_event = lgi_widget_key_event;
-	widget_class->key_release_event = lgi_widget_key_event;
-
-	GtkContainerClass *container_class = (GtkContainerClass*)klass;
-	container_class->add = lgi_widget_add;
-	container_class->remove = lgi_widget_remove;
-	container_class->forall = lgi_widget_forall;
-	container_class->child_type = lgi_widget_child_type;
-}
-
 static void
-lgi_widget_init(LgiWidget *w)
+lgi_widget_destroy(GtkObject *object)
 {
-	GTK_WIDGET_UNSET_FLAGS(w, GTK_NO_WINDOW);
-	w->target = 0;
-	w->w = 0;
-	w->h = 0;
-	w->pour_largest = false;
-}
+	g_return_if_fail(object != NULL);
+	g_return_if_fail(LGI_IS_WIDGET(object));
 
-static void
-lgi_widget_size_request(GtkWidget *widget, GtkRequisition *requisition)
-{
-	g_return_if_fail(widget != NULL);
-	g_return_if_fail(LGI_IS_WIDGET(widget));
-	g_return_if_fail(requisition != NULL);
+	LgiWidget *p = LGI_WIDGET(object);
+	void *klass = gtk_type_class(gtk_widget_get_type());
 
-	LgiWidget *p = LGI_WIDGET(widget);
-	if (p->pour_largest)
+	if (GTK_OBJECT_CLASS(klass)->destroy)
 	{
-	    requisition->width = 10;
-	    requisition->height = 10;
-	}
-	else
-	{
-        requisition->width = p->w;
-        requisition->height = p->h;
-	}
-
-	LgiTrace("%s::req %i,%i\n", p->target->GetClass(), requisition->width, requisition->height);
-
-	if (!gtk_widget_get_parent(widget))
-	{
-		printf("%s:%i - req %i,%i\n", _FL, requisition->width, requisition->height);
+		(* GTK_OBJECT_CLASS(klass)->destroy)(object);
 	}
 }
 
@@ -400,7 +349,6 @@ lgi_widget_realize(GtkWidget *widget)
 	lgi_widget_size_allocate(widget, &widget->allocation);
 }
 
-
 static gboolean
 lgi_widget_expose(GtkWidget *widget, GdkEventExpose *event)
 {
@@ -425,21 +373,6 @@ lgi_widget_expose(GtkWidget *widget, GdkEventExpose *event)
 	}
 
 	return FALSE;
-}
-
-static void
-lgi_widget_destroy(GtkObject *object)
-{
-	g_return_if_fail(object != NULL);
-	g_return_if_fail(LGI_IS_WIDGET(object));
-
-	LgiWidget *p = LGI_WIDGET(object);
-	void *klass = gtk_type_class(gtk_widget_get_type());
-
-	if (GTK_OBJECT_CLASS(klass)->destroy)
-	{
-		(* GTK_OBJECT_CLASS(klass)->destroy)(object);
-	}
 }
 
 void
@@ -515,3 +448,69 @@ lgi_widget_add(GtkContainer *wid, GtkWidget *child)
 	}
 }
 
+static void
+lgi_widget_size_request(GtkWidget *widget, GtkRequisition *requisition)
+{
+	g_return_if_fail(widget != NULL);
+	g_return_if_fail(LGI_IS_WIDGET(widget));
+	g_return_if_fail(requisition != NULL);
+
+	LgiWidget *p = LGI_WIDGET(widget);
+	if (p->pour_largest)
+	{
+	    requisition->width = 10;
+	    requisition->height = 10;
+	}
+	else
+	{
+        requisition->width = p->w;
+        requisition->height = p->h;
+	}
+
+	LgiTrace("%s::req %i,%i\n", p->target->GetClass(), requisition->width, requisition->height);
+
+	if (!gtk_widget_get_parent(widget))
+	{
+		printf("%s:%i - req %i,%i\n", _FL, requisition->width, requisition->height);
+	}
+}
+
+static void
+lgi_widget_class_init(LgiWidgetClass *klass)
+{
+	GtkObjectClass *object_class = (GtkObjectClass *)klass;
+	object_class->destroy = lgi_widget_destroy;
+
+	GtkWidgetClass *widget_class = (GtkWidgetClass *)klass;
+	widget_class->realize = lgi_widget_realize;
+	widget_class->size_request = lgi_widget_size_request;
+	widget_class->size_allocate = lgi_widget_size_allocate;
+	widget_class->expose_event = lgi_widget_expose;
+	widget_class->button_press_event = lgi_widget_click;
+	widget_class->button_release_event = lgi_widget_click;
+	widget_class->motion_notify_event = lgi_widget_motion;
+	widget_class->scroll_event = lgi_widget_scroll;
+	widget_class->enter_notify_event = lgi_widget_mouse_enter_leave;
+	widget_class->leave_notify_event = lgi_widget_mouse_enter_leave;
+	widget_class->client_event = lgi_widget_client_event;
+	widget_class->focus_in_event = lgi_widget_focus_event;
+	widget_class->focus_out_event = lgi_widget_focus_event;
+	widget_class->key_press_event = lgi_widget_key_event;
+	widget_class->key_release_event = lgi_widget_key_event;
+
+	GtkContainerClass *container_class = (GtkContainerClass*)klass;
+	container_class->add = lgi_widget_add;
+	container_class->remove = lgi_widget_remove;
+	container_class->forall = lgi_widget_forall;
+	container_class->child_type = lgi_widget_child_type;
+}
+
+static void
+lgi_widget_init(LgiWidget *w)
+{
+	GTK_WIDGET_UNSET_FLAGS(w, GTK_NO_WINDOW);
+	w->target = 0;
+	w->w = 0;
+	w->h = 0;
+	w->pour_largest = false;
+}

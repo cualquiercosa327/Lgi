@@ -495,7 +495,7 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 	{
 		if (InThread())
 		{
-			GRect Client = Frame ? GView::GetPos() : GView::GetClient(true);
+			GRect Client = Frame ? GView::GetPos() : GView::GetClient(false);
 
 			static bool Repainting = false;
 			

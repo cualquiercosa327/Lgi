@@ -802,9 +802,6 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 {
 	#if defined __GTK_H__
 	
-	if (!Hnd)
-		return;
-	
 	Gtk::cairo_t *cr = pDC->GetCairo();
 	if (!cr)
 	{
@@ -836,12 +833,15 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 		Gtk::cairo_rectangle(cr, 0, 0, x, y);
 		Gtk::cairo_fill(cr);
 	}
-	COLOUR f = Font->Fore();
-	Gtk::cairo_set_source_rgb(cr,
-								(double)R24(f)/255.0,
-								(double)G24(f)/255.0,
-								(double)B24(f)/255.0);
-	Gtk::pango_cairo_show_layout(cr, Hnd);
+	if (Hnd)
+	{
+	    COLOUR f = Font->Fore();
+	    Gtk::cairo_set_source_rgb(cr,
+								    (double)R24(f)/255.0,
+								    (double)G24(f)/255.0,
+								    (double)B24(f)/255.0);
+	    Gtk::pango_cairo_show_layout(cr, Hnd);
+	}
 	
 	cairo_identity_matrix(cr);
 	
