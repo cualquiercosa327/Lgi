@@ -202,6 +202,10 @@ bool GWindow::Attach(GViewI *p)
 							"client-event",
 							G_CALLBACK(GWindowClientEvent),
 							this);
+		g_signal_connect(	G_OBJECT(Wnd),
+							"button-press-event",
+							G_CALLBACK(GWindowClientEvent),
+							this);
 
 		gtk_window_set_default_size(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
 		gtk_widget_add_events(GTK_WIDGET(Wnd), GDK_ALL_EVENTS_MASK);

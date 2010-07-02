@@ -101,6 +101,13 @@ public:
 			
 			AddView(new GButton(50, 10, 10, -1, -1, "Open"));
 
+		    GCombo *c;
+		    AddView(c = new GCombo(100, 10, 40, 100, 20, ""));
+		    c->Insert("One");
+		    c->Insert("Two");
+		    c->Insert("Three");
+
+
             AttachChildren();
             Visible(true);
         }

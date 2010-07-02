@@ -629,8 +629,9 @@ void PopupGrabBroken(GtkWidget *widget, GdkEventGrabBroken *ev, GPopup *popup)
     popup->Visible(false);
 }
 
-gboolean PopupButtonPress(GtkWidget *widget, GdkEventButton *e, GPopup *popup)
+gboolean PopupButtonEvent(GtkWidget *widget, GdkEventButton *e, GPopup *popup)
 {
+    LgiTrace("PopupButtonPress\n");
     GtkWindow *WidgetParent = (GtkWindow*)gtk_widget_get_parent_window(widget);
     GtkWindow *PopupParent = (GtkWindow*)gtk_widget_get_parent_window(popup->Handle());
     bool Over = WidgetParent == PopupParent;
@@ -639,7 +640,7 @@ gboolean PopupButtonPress(GtkWidget *widget, GdkEventButton *e, GPopup *popup)
         popup->Visible(false);
     }
     
-    return false;            
+    return FALSE;            
 }
 #endif
 
@@ -689,47 +690,37 @@ bool GPopup::Attach(GViewI *p)
 		
 		AttachChildren();
 
-		#elif defined __GTK_H__
+		#elif 1 // defined __GTK_H__
 		
 		if (!Wnd)
 		{
-		    #if 0
-		    Wnd = gtk_menu_new();
-            g_signal_connect (G_OBJECT(Wnd),
-                            "cancel",
-                            G_CALLBACK(PopupCancel),
-                            this);
-            g_signal_connect (G_OBJECT(Wnd),
-                            "selection-done",
-                            G_CALLBACK(PopupSelect),
-                            this);
-		    #else
-		    Wnd = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-		    gtk_window_set_accept_focus(GTK_WINDOW(Wnd), true);
-		    gtk_window_set_focus_on_map(GTK_WINDOW(Wnd), true);
+		    Wnd = gtk_window_new(GTK_WINDOW_POPUP);
 		    gtk_window_set_decorated(GTK_WINDOW(Wnd), FALSE);
 		    gtk_window_set_type_hint(GTK_WINDOW(Wnd), GDK_WINDOW_TYPE_HINT_DROPDOWN_MENU);
-
-		    if (p && p->WindowHandle())
-		        gtk_window_set_transient_for(GTK_WINDOW(Wnd), GTK_WINDOW(p->WindowHandle()));
-
-
-            g_signal_connect (G_OBJECT(Wnd),
-                            "grab-broken-event",
-                            G_CALLBACK(PopupGrabBroken),
-                            this);
+    		gtk_widget_add_events(Wnd, gtk_widget_get_events(Wnd) | GDK_BUTTON_PRESS_MASK);
             g_signal_connect (G_OBJECT(Wnd),
                             "button-press-event",
-                            G_CALLBACK(PopupButtonPress),
+                            G_CALLBACK(PopupButtonEvent),
                             this);
             gtk_grab_add(Wnd);
             /*
-            g_signal_connect (G_OBJECT(Wnd),
-                            "focus-out-event",
-                            G_CALLBACK(GPopupFocusOut),
-                            this);
-                            */            
-            #endif
+            GdkGrabStatus s = gdk_pointer_grab( GDK_WINDOW(Wnd),
+                                                TRUE,
+                                                (GdkEventMask) GDK_BUTTON_PRESS_MASK, // GDK_BUTTON_RELEASE_MASK,
+                                                NULL,
+                                                NULL,
+                                                GDK_CURRENT_TIME);
+            if (s == GDK_GRAB_SUCCESS)
+            {
+                LgiTrace("Grab success.\n");
+            }
+            else
+            {
+                LgiTrace("%s:%i - Error: failed to grab mouse.\n", _FL);
+                gtk_widget_destroy(Wnd);
+                return false;
+            }
+            */
 		}
 
 		if (Wnd)
@@ -741,17 +732,27 @@ bool GPopup::Attach(GViewI *p)
 
         if (!_View)
         {
-            // GtkWidget *item = gtk_menu_item_new();
 		    _View = lgi_widget_new(this, Pos.X(), Pos.Y(), false);
 		    gtk_container_add(GTK_CONTAINER(Wnd), _View);
+            /*
 			gtk_widget_add_events(GTK_WIDGET(_View), GDK_EXPOSURE_MASK);
             g_signal_connect (G_OBJECT(_View),
                             "expose-event",
                             G_CALLBACK(GPopupExpose),
                             Wnd);
+
+            g_signal_connect (G_OBJECT(_View),
+                            "grab-broken-event",
+                            G_CALLBACK(PopupGrabBroken),
+                            this);
+            g_signal_connect (G_OBJECT(Wnd),
+                            "button-press-event",
+                            G_CALLBACK(PopupButtonPress),
+                            this);
+            gtk_grab_add(_View);
+            */
 		}		
 		#endif
-
 		AttachChildren();
 
 		if (!_Window)
@@ -779,21 +780,21 @@ void GPopup::Visible(bool i)
 
 	#if defined __GTK_H__
 	if (i && !Wnd)
-		Attach(0);
+	{
+		if (!Attach(0))
+		    return;
+	}
+	
     if (Wnd)
     {
-        #if 0
-        gtk_widget_show_all(Wnd);
-        gtk_menu_popup(GTK_MENU(Wnd), 0, 0, (GtkMenuPositionFunc)PopupPos, new GdcPt2(Pos.x1, Pos.y1), 0, gtk_get_current_event_time());
-        #else
 	    if (i)
-	    {
 	        gtk_widget_show_all(Wnd);
-			AttachChildren();
-	        gtk_widget_grab_focus(Wnd);
+	    else
+	    {
+	        gtk_grab_remove(Wnd);
+	        gtk_widget_hide(Wnd);
+	        // gdk_pointer_ungrab(GDK_CURRENT_TIME);
 	    }
-	    else gtk_widget_hide(Wnd);
-	    #endif
 
 		GView::Visible(i);
 	}
