@@ -30,7 +30,7 @@ int PipeSize[] = { 29491, 56 << 10, 64 << 10, 128 << 10, 256 << 10, 512 << 10, 1
 class GPaneThrottle : public GStatusPane
 {
 	GSlider *Slider;
-	FileTransferWindow *App;
+	GDom *App;
 	int Pipe;
 
 	void Set()
@@ -40,17 +40,19 @@ class GPaneThrottle : public GStatusPane
 
 		if (App)
 		{
+			/*
 			App->SetDataRate(	(Value() == 100) ? -1 :
 								(Value() * (PipeSize[Pipe]/8)) / 100 );
+			*/
 
 			GVariant v;
-			App->GetOptions()->SetValue(OPT_Throttle, v = Value());
-			App->GetOptions()->SetValue(OPT_PipeSize, v = Pipe);
+			App->SetValue(OPT_Throttle, v = Value());
+			App->SetValue(OPT_PipeSize, v = Pipe);
 		}
 	}
 
 public:
-	GPaneThrottle(FileTransferWindow *app);
+	GPaneThrottle(GDom *app);
 
 	int OnNotify(GViewI *Ctrl, int Flags);
 	void OnPaint(GSurface *pDC);
@@ -58,7 +60,7 @@ public:
 	void OnMouseClick(GMouse &m);
 };
 
-GPaneThrottle::GPaneThrottle(FileTransferWindow *app)
+GPaneThrottle::GPaneThrottle(GDom *app)
 {
 	Pipe = -1;
 	App = app;
@@ -111,12 +113,12 @@ void GPaneThrottle::OnPaint(GSurface *pDC)
 			if (Pipe < 0)
 			{
 				GVariant v;
-				if (App->GetOptions()->GetValue(OPT_PipeSize, v))
+				if (App->GetValue(OPT_PipeSize, v))
 					Pipe = v.CastInt32();
 				if (Slider)
 				{
 					v = 100;
-					if (App->GetOptions()->GetValue(OPT_Throttle, v))
+					if (App->GetValue(OPT_Throttle, v))
 						Slider->Value(v.CastInt32());
 				}
 			}
@@ -198,7 +200,7 @@ void GPaneThrottle::OnMouseClick(GMouse &m)
 
 class GPaneHistory : public GStatusPane
 {
-	FileTransferWindow *App;
+	GDom *App;
 	int64 Cur;
 	int64 Max;
 	int64 Last;
@@ -225,14 +227,14 @@ class GPaneHistory : public GStatusPane
 	}
 
 public:
-	GPaneHistory(FileTransferWindow *app);
+	GPaneHistory(GDom *app);
 	~GPaneHistory();
 
 	void OnPaint(GSurface *pDC);
 	void Value(int64 i);
 };
 
-GPaneHistory::GPaneHistory(FileTransferWindow *app)
+GPaneHistory::GPaneHistory(GDom *app)
 {
 	Width = HISTORY_TEXT_WIDTH + MAX_SAMPLE + 2;
 	App = app;
@@ -374,12 +376,10 @@ void GPaneHistory::Value(int64 i)
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
-FileTransferProgress::FileTransferProgress(	FileTransferWindow *App,
+FileTransferProgress::FileTransferProgress(	GDom *App,
 											GStatusBar *Status,
-											GStatusPane *Info[_STATUS_MAX],
 											bool Limit) : Timer(300)
 {
-	StatusInfo = Info;
 	StartTime = StartPos = 0;
 	ProgressPane = 0;
 

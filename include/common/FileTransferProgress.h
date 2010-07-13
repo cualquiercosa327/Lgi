@@ -22,26 +22,16 @@
 #define OPT_PipeSize				"PipeSize"	// (int)
 
 // Classes
-class FileTransferWindow
-{
-public:
-	virtual GXmlTag *GetOptions() = 0;
-	virtual void SetDataRate(int Percent) = 0;
-};
-
 class FileTransferProgress : public Progress
 {
 	int64 StartTime;
 	int64 StartPos;
 	GProgressStatusPane *ProgressPane;
-	GStatusPane **StatusInfo;
+	GArray<GStatusPane*> StatusInfo;
 	DoEvery Timer;
 
 public:
-	FileTransferProgress(FileTransferWindow *App,
-						GStatusBar *Status,
-						GStatusPane *StatusInfo[_STATUS_MAX],
-						bool Limit = false);
+	FileTransferProgress(GDom *App, GStatusBar *Status, bool Limit = false);
 
 	void SetLimits(int64 l, int64 h);
 	void Value(int64 v);
