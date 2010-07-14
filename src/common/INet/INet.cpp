@@ -8,6 +8,9 @@
 **              fret@memecode.com
 */
 
+#ifdef LINUX
+#include <netinet/tcp.h>
+#endif
 #include <ctype.h>
 
 #include "GFile.h"
@@ -54,9 +57,6 @@
 	#include <ctype.h>
 	#include <netdb.h>
 	#include <errno.h>
-	#ifdef LINUX
-	#include <linux/tcp.h>
-	#endif
     #include "LgiCommon.h"
 	
 	#define SOCKET_ERROR -1

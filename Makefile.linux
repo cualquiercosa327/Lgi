@@ -199,7 +199,6 @@ GApp.o : ./src/linux/Lgi/GApp.cpp ./include/common/Lgi.h \
 	./include/linux/Gtk/LgiWinManGlue.h \
 	./include/common/GToken.h \
 	./include/common/GUtf8.h \
-	/usr/include/xcb/xcb_keysyms.h \
 	./include/common/GLibraryUtils.h
 	@echo $(<F) [$(Gui)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
