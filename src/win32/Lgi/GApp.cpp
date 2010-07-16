@@ -372,35 +372,6 @@ DumpTime("ms hook");
 		#endif
 	)
 	{
-		#ifdef SKIN_MAGIC
-
-		char *SkinFile = LgiFindFile("PC_Angel_2.smf");
-		if (!SkinFile)
-		{
-			SkinFile = NewStr("C:\\Public\\SoftThinks\\Skinning\\PC_Angel_2.smf");
-		}
-
-		bool SkinInit = InitSkinMagicLib(AppArgs.hInstance,	"Dialog", 0, 0);
-		if (SkinInit)
-		{
-			if (LoadSkinFile(SkinFile))
-			{
-				SetDialogSkin("Dialog");
-			}
-			else
-			{
-				LgiMsg(0, "LoadSkinFile failed.\n", "Error");
-			}
-		}
-		else
-		{
-			LgiMsg(0, "InitSkinMagicLib failed.\n", "Error");
-		}
-
-		DeleteArray(SkinFile);
-
-		#else
-
 		// Load library
 		char SkinLibName[] =
 		#ifdef __GNUC__
@@ -424,6 +395,7 @@ DumpTime("ms hook");
 		#endif
 			;
 		
+		#if HAS_SHARED_OBJECT_SKIN
 		d->SkinLib = new GLibrary(SkinLibName);
 		if (d->SkinLib)
 		{
@@ -442,7 +414,9 @@ DumpTime("ms hook");
 				printf("Failed to load '%s'\n", SkinLibName);
 			}
 		}
-
+		#else
+		extern GSkinEngine *CreateSkinEngine(GApp *App);
+		SkinEngine = CreateSkinEngine(this);
 		#endif
 	}
 
