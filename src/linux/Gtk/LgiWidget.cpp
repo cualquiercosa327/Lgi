@@ -19,7 +19,7 @@ lgi_widget_forall(	GtkContainer   *container,
 }
 
 static
-GType lgi_widget_child_type (GtkContainer   *container)
+GType lgi_widget_child_type(GtkContainer   *container)
 {
 	return GTK_TYPE_WIDGET;
 }
@@ -106,11 +106,12 @@ lgi_widget_remove(GtkContainer *wid, GtkWidget *child)
 
 static gboolean lgi_widget_click(GtkWidget *widget, GdkEventButton *ev)
 {
+    LgiTrace("click %i,%i,%i,%i,%i,%i,%i,%i,%i\n", ev->axes, ev->button, ev->device, ev->send_event, ev->state, ev->time, ev->type, ev->x, ev->y);
+
 	LgiWidget *p = LGI_WIDGET(widget);
     GView *v = dynamic_cast<GView*>(p->target);
     if (v)
     {
-        // LgiTrace("click %i,%i,%i,%i,%i,%i,%i,%i,%i\n", ev->axes, ev->button, ev->device, ev->send_event, ev->state, ev->time, ev->type, ev->x, ev->y);
         GMouse m;
         m.Target = v;
         m.x = ev->x;

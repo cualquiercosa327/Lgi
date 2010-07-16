@@ -2439,7 +2439,8 @@ GCompiledCode *GCompiler::Compile(GScriptContext *Context, char *FileName, char 
 		if (!d->Lex(Script, FileName) ||
 			!d->Compile())
 		{
-			DeleteObj(d->Code);
+			if (!Previous)
+				DeleteObj(d->Code);
 		}
 	}
 

@@ -631,7 +631,9 @@ void PopupGrabBroken(GtkWidget *widget, GdkEventGrabBroken *ev, GPopup *popup)
 
 gboolean PopupButtonEvent(GtkWidget *widget, GdkEventButton *e, GPopup *popup)
 {
-    LgiTrace("PopupButtonPress\n");
+    LgiTrace("PopupButtonPress cur_grab=%p\n", gtk_grab_get_current());
+    gtk_grab_remove(widget);
+    
     GtkWindow *WidgetParent = (GtkWindow*)gtk_widget_get_parent_window(widget);
     GtkWindow *PopupParent = (GtkWindow*)gtk_widget_get_parent_window(popup->Handle());
     bool Over = WidgetParent == PopupParent;
@@ -640,7 +642,7 @@ gboolean PopupButtonEvent(GtkWidget *widget, GdkEventButton *e, GPopup *popup)
         popup->Visible(false);
     }
     
-    return FALSE;            
+    return TRUE;            
 }
 #endif
 
@@ -703,6 +705,7 @@ bool GPopup::Attach(GViewI *p)
                             G_CALLBACK(PopupButtonEvent),
                             this);
             gtk_grab_add(Wnd);
+            
             /*
             GdkGrabStatus s = gdk_pointer_grab( GDK_WINDOW(Wnd),
                                                 TRUE,

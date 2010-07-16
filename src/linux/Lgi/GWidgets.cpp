@@ -25,7 +25,7 @@ using namespace Gtk;
 GDialog::GDialog()
 	: ResObject(Res_Dialog)
 	#ifdef __GTK_H__
-	, GWindow(gtk_dialog_new_with_buttons(0, 0, GTK_DIALOG_MODAL | GTK_DIALOG_NO_SEPARATOR, 0))
+	, GWindow(gtk_dialog_new_with_buttons(0, 0, (GtkDialogFlags) (GTK_DIALOG_MODAL | GTK_DIALOG_NO_SEPARATOR), 0))
 	#endif
 {
 	Name("Dialog");

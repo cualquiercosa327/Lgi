@@ -171,6 +171,7 @@ GWindowCallback(GtkWidget   *widget,
 
 static gboolean GWindowClientEvent(GtkWidget *widget, GdkEventClient *ev, GWindow *Wnd)
 {
+    LgiTrace("GWindowClientEvent\n");
 	GMessage m(ev->data.l[0], ev->data.l[1], ev->data.l[2]);
     Wnd->OnEvent(&m);
 	return FALSE;
