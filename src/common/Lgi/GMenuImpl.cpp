@@ -407,8 +407,19 @@ MenuImpl::MenuImpl(GMenu *Menu)
 	SetPos(r);
 }
 
+using namespace Gtk;
 MenuImpl::~MenuImpl()
 {
+	if (_View)
+	{
+		GtkWidget *par = gtk_widget_get_parent(_View);
+		if (par)
+		{
+			bool b = GTK_IS_CONTAINER(par);
+			printf("is container = %i\n", b);
+		}
+	}
+
 	DeleteObj(d);
 }
 

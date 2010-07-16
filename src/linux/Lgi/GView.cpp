@@ -151,6 +151,7 @@ void GView::_Delete()
 	    #ifdef LINUX
 		LgiApp->UnregisterHandle(this);
 		#endif
+		printf("destroy %p\n", _View);
 		gtk_widget_destroy(_View);
 		_View = 0;
 	}
@@ -769,7 +770,10 @@ bool GView::Attach(GViewI *parent)
 
 	SetParent(parent);
 	if (!_View)
+	{
 		_View = lgi_widget_new(this, Pos.X(), Pos.Y(), false);
+		printf("create %p\n", _View);
+	}
 	
 	if (_View)
 	{
@@ -811,7 +815,7 @@ bool GView::Attach(GViewI *parent)
 		{
 			ClearFlag(WndFlags, GWF_FOCUS);
 			Focus(true);
-			printf("%s:%i - Setting initial focus to %s\n", _FL, GetClass());
+			// printf("%s:%i - Setting initial focus to %s\n", _FL, GetClass());
 		}
 
 		OnCreate();

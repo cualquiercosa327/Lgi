@@ -226,15 +226,16 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 
 	Empty();
 	
-	GdkVisual Vis = *gdk_visual_get_system();
+	GdkVisual *Vis = gdk_visual_get_system();
 	if (Bits == 8)
 	{
-	    Vis.type = GDK_VISUAL_DIRECT_COLOR;
-	    Vis.depth = 8;
+		Vis = gdk_visual_get_best_with_depth(8);
+	    // Vis.type = GDK_VISUAL_DIRECT_COLOR;
+	    // Vis.depth = 8;
 	}
 	
 	d->Img = gdk_image_new(	GDK_IMAGE_FASTEST,
-							&Vis,
+							Vis,
 							x,
 							y);
 	if (!d->Img)
@@ -255,6 +256,7 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 	pMem->Flags = 0;
 	pMem->Base = (uchar*)d->Img->mem;
 
+	#if 0
 	printf("Created gdk image %ix%i @ %i bpp line=%i (%i) ptr=%p Vis=%p\n",
 		pMem->x,
 		pMem->y,
@@ -263,6 +265,7 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 		pMem->Bits*pMem->x/8,
 		pMem->Base,
 		Vis);
+	#endif
 
 	int NewOp = (pApp) ? Op() : GDC_SET;
 

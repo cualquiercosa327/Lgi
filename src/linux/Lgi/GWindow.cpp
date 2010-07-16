@@ -86,7 +86,7 @@ GWindow::~GWindow()
 
     if (Root)
     {
-        gtk_widget_destroy(Root);
+        // gtk_widget_destroy(Root);
         Root = 0;
     }
 
