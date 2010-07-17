@@ -530,7 +530,7 @@ bool MailIMap::Read(GStreamI *Out)
 				if (Out)
 				{
 					Out->Write(Buffer, strlen(Buffer));
-					Out->Write("\r\n", 2);
+					Out->Write((char*)"\r\n", 2);
 				}
 				else
 				{

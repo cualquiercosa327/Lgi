@@ -115,16 +115,17 @@ void GScreenDC::SetClient(GRect *c)
 			d->Rc = *c;
 			d->Rc.Offset(-d->Rc.x1, -d->Rc.y1);
 			
-			CGRect rect = {{c->x1, c->y1}, {c->X(), c->Y()}};
-			//CGContextClipToRect(d->Ctx, rect);
-			CGContextTranslateCTM(d->Ctx, c->x1, c->y1);
+			GRect *Prev = d->Stack.Length() > 1 ? &d->Stack[d->Stack.Length()-2] : 0;
+			CGRect rect = {{c->x1 - (Prev?Prev->x1:0), c->y1 - (Prev?Prev->y1:0)}, {c->X(), c->Y()}};
+			CGContextClipToRect(d->Ctx, rect);
+			CGContextTranslateCTM(d->Ctx, rect.origin.x, rect.origin.y);
 		}
 		else
 		{
 			d->Rc = d->Stack[d->Stack.Length()-1];
 
 			d->Stack.Length(d->Stack.Length()-1);
-			CGContextRestoreGState(d->Ctx);			
+			CGContextRestoreGState(d->Ctx);
 		}
 		
 	}

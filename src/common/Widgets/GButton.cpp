@@ -270,7 +270,6 @@ void GButton::OnPaint(GSurface *pDC)
 {
 	#ifdef MAC
 
-	#if 0
 	pDC->Colour(LC_MED, 24);	
 	pDC->Rectangle();
 
@@ -280,7 +279,6 @@ void GButton::OnPaint(GSurface *pDC)
 		GRect p = v->GetPos();
 		c.Offset(p.x1, p.y2);
 	}
-	printf("c=%s\n", c.GetStr());
 	
 	Rect Bounds = { c.y1, c.x1+2, c.y2-1, c.x2-1 };
 	ThemeButtonDrawInfo Info;
@@ -302,7 +300,6 @@ void GButton::OnPaint(GSurface *pDC)
 								(UInt32)&User);
 	
 	d->Cur = Info;
-	#endif
 	
 	#else
 
