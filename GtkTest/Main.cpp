@@ -109,7 +109,7 @@ public:
 
 
             AttachChildren();
-            LgiMsg(this, "Test", "App");
+            // LgiMsg(this, "Test", "App");
             Visible(true);
         }
     }

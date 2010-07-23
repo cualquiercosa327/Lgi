@@ -149,14 +149,14 @@ public:
 		/// The return string buffer
 		char *buf,
 		/// The buffer's length
-		int buflen,
+		int buffer_len,
 		/// The address
 		Addr *Ip,
 		/// Cound of IP's
 		int IpLen
 	)
 	{
-		if (!buf || buflen < 1 || !Ip || IpLen < 1)
+		if (!buf || buffer_len < 1 || !Ip || IpLen < 1)
 			return false;
 
 		#if _MSC_VER >= 1300
@@ -166,6 +166,7 @@ public:
 		#endif
 
 		bool Status = true;
+		char *buf_end = buf + buffer_len;
 		for (int i=0; i<IpLen; i++)
 		{
 			MEMORY_BASIC_INFORMATION mbi;
@@ -192,50 +193,50 @@ public:
 				if (mod) mod++;
 				else mod = module;
 
+				bool found_addr = false;
 				if (SymGetSymFromAddr(hProcess, (DWORD_PTR)Ip[i], &symDisplacement, pSymbol))
 				{
 					if (SymGetLineFromAddr(hProcess, (DWORD_PTR)Ip[i], &symDisplacement, &Line))
 					{
-						int Ch = Sprintf(buf, buflen, TCHAR_FORMAT ",%s:%i", mod, Line.FileName, Line.LineNumber);
+						int Ch = Sprintf(buf, buf_end-buf, "%08.8x: "TCHAR_FORMAT", %s:%i", Ip[i], mod, Line.FileName, Line.LineNumber);
 						if (Ch > 0)
-						{
 							buf += Ch;
-							buflen -= Ch;
-						}
-						else Status = false;
+						else
+							Status = false;
+						found_addr = true;
 					}
-					else
+					else if (pSymbol->Name[0] != '$')
 					{
-						if (pSymbol->Name[0] != '$')
-						{
-							int Ch = Sprintf(buf, buflen, TCHAR_FORMAT ",%s+0x%x", mod, pSymbol->Name, symDisplacement);
-							if (Ch > 0)
-							{
-								buf += Ch;
-								buflen -= Ch;
-							}
-							else Status = false;
-						}
+						int Ch = Sprintf(buf, buf_end-buf, "%08.8x: "TCHAR_FORMAT ", %s+0x%x", Ip[i], mod, pSymbol->Name, symDisplacement);
+						if (Ch > 0)
+							buf += Ch;
+						else
+							Status = false;
+						found_addr = true;
 					}
 				}
-				else
+
+				if (!found_addr)
 				{
-					int Ch = Sprintf(buf, buflen, TCHAR_FORMAT ",0x%x", mod, Ip[i]);
+					int Ch = Sprintf(buf, buf_end-buf, "%08.8x: "TCHAR_FORMAT, Ip[i], mod);
 					if (Ch > 0)
-					{
 						buf += Ch;
-						buflen -= Ch;
-					}
-					else Status = false;
+					else
+						Status = false;
 				}
+			}
+			else
+			{
+				int Ch = Sprintf(buf, buf_end-buf, "%08.8x: unknown module", Ip[i]);
+				if (Ch > 0)
+					buf += Ch;
+				else
+					Status = false;
 			}
 
-			int Ch = Sprintf(buf, buflen, "\r\n");
+			int Ch = Sprintf(buf, buf_end-buf, "\r\n");
 			if (Ch > 0)
-			{
 				buf += Ch;
-				buflen -= Ch;
-			}
 		}
 
 		return Status;
@@ -249,7 +250,6 @@ public:
 		int i = 0;
 
 		// Save the stack trace
-		#define STACK_SIZE 12
 		Addr RegEbp = 0;
 		memset(addr, 0, sizeof(Addr) * len);
 
@@ -269,7 +269,7 @@ public:
 			);  
 		#endif
 
-		for (i=-1; i<len; i++)
+		for (i=0; i<len; i++)
 		{
 			if ((RegEbp & 3) != 0 ||
 				IsBadReadPtr( (void*)RegEbp, 8 ))

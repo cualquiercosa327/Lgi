@@ -4,6 +4,9 @@
 
 LPTOP_LEVEL_EXCEPTION_FILTER _PrevExceptionHandler = 0;
 
+#if _MSC_VER >= 1400
+// VS2005 or later, write a mini-dump
+
 typedef enum _MINIDUMP_TYPE {
   MiniDumpNormal                           = 0x00000000,
   MiniDumpWithDataSegs                     = 0x00000001,
@@ -112,3 +115,71 @@ LONG __stdcall GApp::_ExceptionFilter(LPEXCEPTION_POINTERS e, char *ProductId)
 	return EXCEPTION_EXECUTE_HANDLER;
 }
 
+#else // VC6
+
+
+/*
+#include "StackWalker.h"
+
+class MyStackWalker : public StackWalker
+{
+	char *Cur;
+
+public:
+	char Buf[4096];
+
+	MyStackWalker()
+	{
+		Cur = Buf;
+	}
+
+	void OnOutput(LPCSTR szText)
+	{
+		LgiTrace("%s", szText);
+
+		int Len = strlen(szText);
+		int Cp = min(sizeof(Buf)-1-(Cur-Buf), Len);
+		memcpy(Cur, szText, Cp);
+		Cur += Cp;
+		*Cur = 0;
+		LgiAssert(Cur < Buf+sizeof(Buf));
+	}
+};
+
+LONG __stdcall GApp::_ExceptionFilter(LPEXCEPTION_POINTERS e, char *ProductId)
+{
+	SetUnhandledExceptionFilter(0); // We can't handle crashes within
+									// ourself, so let the default handler
+									// do it.
+
+	MyStackWalker s;
+	LgiTrace("Application crash:\n\n");
+	s.ShowCallstack();
+	MessageBox(0, s.Buf, "Application Crash", MB_OK);
+
+	return EXCEPTION_EXECUTE_HANDLER;
+}
+*/
+#include "GSymLookup.h"
+
+LONG __stdcall GApp::_ExceptionFilter(LPEXCEPTION_POINTERS e, char *ProductId)
+{
+	SetUnhandledExceptionFilter(0); // We can't handle crashes within
+									// ourself, so let the default handler
+									// do it.
+
+	
+	char buf[1024];
+	GSymLookup s;
+	GSymLookup::Addr a[12];
+	int len = s.BackTrace(a, 12);
+	if (s.Lookup(buf, sizeof(buf), a, len))
+	{
+		LgiTrace("%s\n", buf);
+		MessageBox(0, buf, "Application Crash", MB_OK);
+	}
+
+	return EXCEPTION_EXECUTE_HANDLER;
+}
+
+#endif

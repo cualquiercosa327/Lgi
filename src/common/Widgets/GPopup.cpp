@@ -644,6 +644,7 @@ gboolean PopupButtonEvent(GtkWidget *widget, GdkEventButton *e, GPopup *popup)
     
     return TRUE;            
 }
+
 #endif
 
 bool GPopup::Attach(GViewI *p)
@@ -700,30 +701,12 @@ bool GPopup::Attach(GViewI *p)
 		    gtk_window_set_decorated(GTK_WINDOW(Wnd), FALSE);
 		    gtk_window_set_type_hint(GTK_WINDOW(Wnd), GDK_WINDOW_TYPE_HINT_DROPDOWN_MENU);
     		gtk_widget_add_events(Wnd, gtk_widget_get_events(Wnd) | GDK_BUTTON_PRESS_MASK);
+
             g_signal_connect (G_OBJECT(Wnd),
                             "button-press-event",
                             G_CALLBACK(PopupButtonEvent),
                             this);
             gtk_grab_add(Wnd);
-            
-            /*
-            GdkGrabStatus s = gdk_pointer_grab( GDK_WINDOW(Wnd),
-                                                TRUE,
-                                                (GdkEventMask) GDK_BUTTON_PRESS_MASK, // GDK_BUTTON_RELEASE_MASK,
-                                                NULL,
-                                                NULL,
-                                                GDK_CURRENT_TIME);
-            if (s == GDK_GRAB_SUCCESS)
-            {
-                LgiTrace("Grab success.\n");
-            }
-            else
-            {
-                LgiTrace("%s:%i - Error: failed to grab mouse.\n", _FL);
-                gtk_widget_destroy(Wnd);
-                return false;
-            }
-            */
 		}
 
 		if (Wnd)
@@ -737,26 +720,8 @@ bool GPopup::Attach(GViewI *p)
         {
 		    _View = lgi_widget_new(this, Pos.X(), Pos.Y(), false);
 		    gtk_container_add(GTK_CONTAINER(Wnd), _View);
-            /*
-			gtk_widget_add_events(GTK_WIDGET(_View), GDK_EXPOSURE_MASK);
-            g_signal_connect (G_OBJECT(_View),
-                            "expose-event",
-                            G_CALLBACK(GPopupExpose),
-                            Wnd);
-
-            g_signal_connect (G_OBJECT(_View),
-                            "grab-broken-event",
-                            G_CALLBACK(PopupGrabBroken),
-                            this);
-            g_signal_connect (G_OBJECT(Wnd),
-                            "button-press-event",
-                            G_CALLBACK(PopupButtonPress),
-                            this);
-            gtk_grab_add(_View);
-            */
 		}		
 		#endif
-		AttachChildren();
 
 		if (!_Window)
 		{

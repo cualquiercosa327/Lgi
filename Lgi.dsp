@@ -322,6 +322,30 @@ SOURCE=.\src\common\General\GDateTime.cpp
 SOURCE=.\include\common\GDateTime.h
 # End Source File
 # End Group
+# Begin Group "Crash Handler"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\include\win32\GSymLookup.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\src\win32\Lgi\LgiException.cpp
+# End Source File
+# End Group
+# Begin Group "Skin"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\src\common\Skins\Gel\Gel.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\src\common\Gdc2\Path\GPath.cpp
+# End Source File
+# End Group
 # Begin Source File
 
 SOURCE=.\src\win32\Lgi\GApp.cpp
@@ -369,10 +393,6 @@ SOURCE=.\src\win32\Lgi\GWindow.cpp
 # Begin Source File
 
 SOURCE=.\src\common\Lgi\Lgi.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\src\win32\Lgi\LgiException.cpp
 # End Source File
 # Begin Source File
 
@@ -887,10 +907,6 @@ SOURCE=.\include\common\INetTools.h
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
-# Begin Source File
-
-SOURCE=.\include\win32\GSymLookup.h
-# End Source File
 # Begin Source File
 
 SOURCE=.\include\common\Lgi.h

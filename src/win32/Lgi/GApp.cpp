@@ -103,6 +103,8 @@ public:
 /////////////////////////////////////////////////////////////////////////////
 LONG __stdcall _ExceptionFilter_Redir(LPEXCEPTION_POINTERS e)
 {
+	Sleep(30000);
+
 	if (LgiApp)
 		return LgiApp->_ExceptionFilter(e, LgiApp->d->ProductId);
 	else
@@ -264,8 +266,6 @@ DumpTime("priv");
 	{
 		ProductName = ParseVer(pVersionResource, "StringFileInfo.0c0904b0.ProductName");
 		ProductVer = ParseVer(pVersionResource, "StringFileInfo.0c0904b0.ProductVersion");
-		// VerQueryValue(pVersionResource, "\\StringFileInfo\\0c0904b0\\ProductName", &pvProductName, &iProductNameLen);
-		// VerQueryValue(pVersionResource, "\\StringFileInfo\\0c0904b0\\ProductVersion", &pvProductVersion, &iProductVersionLen);
 	}
 	if (ProductName && ProductVer)
 	{
@@ -275,7 +275,7 @@ DumpTime("priv");
 	}
 
     InitializeCriticalSection(&StackTraceSync);
-	#ifndef _DEBUG
+	#if 1 // ndef _DEBUG
 	_PrevExceptionHandler = SetUnhandledExceptionFilter(_ExceptionFilter_Redir);
 	#endif
 

@@ -36,3 +36,10 @@ src\common\Db\bfs\*
 	Author: "Axel Dofler" <axeld@pinc-software.de>
 	License: OpenBeOS License / MIT
 	Inclusion: No
+
+src\win32\General\StackWalker.cpp
+include\win32\StackWalker.h
+	Author: Jochen Kalmbach
+	License: BSD
+	Inclusion: Yes
+	http://www.codeproject.com/KB/threads/StackWalker.aspx
