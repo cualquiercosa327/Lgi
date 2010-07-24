@@ -1241,17 +1241,17 @@ char *GDirImpl::GetName()
 
 const uint64 GDirImpl::GetCreationTime()
 {
-	return d->Stat.st_ctime;
+	return (uint64)d->Stat.st_ctime * 1000;
 }
 
 const uint64 GDirImpl::GetLastAccessTime()
 {
-	return d->Stat.st_atime;
+	return (uint64)d->Stat.st_atime * 1000;
 }
 
 const uint64 GDirImpl::GetLastWriteTime()
 {
-	return d->Stat.st_mtime;
+	return (uint64)d->Stat.st_mtime * 1000;
 }
 
 const uint64 GDirImpl::GetSize()

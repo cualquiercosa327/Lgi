@@ -1629,7 +1629,6 @@ void GWindow::OnPaint(GSurface *pDC)
 
 void GWindow::OnPosChange()
 {
-	printf("GWindow::OnPosChange() %s %i,%i\n", GetPos().GetStr(), d->Sx, d->Sy);
 	GView::OnPosChange();
 
 	if (d->Sx != X() OR	d->Sy != Y())

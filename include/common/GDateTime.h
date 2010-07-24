@@ -22,6 +22,15 @@
 #define GDTF_TIME_MASK				0x0f0
 
 /// A date/time class
+///
+/// This class interacts with system times represented as 64bit ints. The various OS support different
+/// formats for that 64bit int values. On windows the system times are in 100-nanosecond intervals since 
+/// January 1, 1601 (UTC), as per the FILETIME structure, on Posix systems (Linux/Mac) the 64bit values
+/// are in milliseconds since January 1, 1970 UTC. This is just unix time * 1000. If you are serializing
+/// these 64bit values you should take that into account, they are NOT cross platform. The GDirectory class
+/// uses the same 64bit values as accepted here for the file's last modified timestamp etc. To convert the
+/// 64bit values to seconds, divide by GDateTime::Second64Bit, useful for calculating the time in seconds
+/// between 2 GDateTime objects.
 class LgiClass GDateTime
 {
 	/// 1 - DaysInMonth

@@ -720,7 +720,6 @@ bool IFtp::ListDir(List<IFtpEntry> *Dir)
 
 	try
 	{
-		printf("List: Setupdata...\n");
 		if (Dir &&
 			IsOpen() &&
 			SetupData(true))
@@ -736,7 +735,6 @@ bool IFtp::ListDir(List<IFtpEntry> *Dir)
 			WriteLine();
 				
 			// Accept the data connection
-			printf("List: ConnectData...\n");
 			if (ConnectData())
 			{
 				VerifyRange(ReadLine(), 1);

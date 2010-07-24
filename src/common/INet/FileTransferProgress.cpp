@@ -108,7 +108,6 @@ void GPaneThrottle::OnPaint(GSurface *pDC)
 			Slider->SetNotify(this);
 			Slider->SetLimits(0, 100);
 			Slider->Value(100);
-			printf("Attaching slider @ %s\n", Sr.GetStr());
 
 			if (Pipe < 0)
 			{

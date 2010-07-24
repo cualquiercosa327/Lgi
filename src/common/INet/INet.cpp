@@ -866,7 +866,6 @@ bool GSocket::Accept(GSocketI *c)
 		{
 			if (IsReadable(1000))
 			{
-				printf("Got new connection...\n");
 				NewSocket = accept(d->Socket, &Address, &Length);
 				break;
 			}
