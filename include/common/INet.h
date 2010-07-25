@@ -256,19 +256,20 @@ public:
 
 class LgiNetClass GSocks5Socket : public GSocket
 {
-	char *Proxy;
+	GAutoString Proxy;
 	int Port;
-	char *UserName;
-	char *Password;
+	GAutoString UserName;
+	GAutoString Password;
 
 protected:
 	bool Socks5Connected;
 
 public:
-	GSocks5Socket(char *proxy, int port, char *username, char *password);
-	~GSocks5Socket();
+	GSocks5Socket();
 
 	// Connection
+	void SetProxy(char *proxy, int port, char *username, char *password);
+	void SetProxy(const GSocks5Socket *s);
 	int Open(char *HostAddr, int port);
 
 	// Server

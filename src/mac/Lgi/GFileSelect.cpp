@@ -175,6 +175,7 @@ public:
 						if (Save)
 						{
 							char *Buffer = CFStringToUtf8(r.saveFileName);
+							printf("Buffer='%s'\n", Buffer);
 							if (Buffer)
 							{
 								LgiMakePath((char*)path,
@@ -369,6 +370,8 @@ bool GFileSelect::Open()
 	if (e) printf("%s:%i - NavGetDefaultDialogCreationOptions failed with %i\n", _FL, e);
 	else
 	{
+		if (Name())
+			o.saveFileName = Utf8ToCFString(Name());
 		o.modality = kWindowModalityAppModal;
 		if (MultiSelect())
 			o.optionFlags |= kNavAllowMultipleFiles;
@@ -415,6 +418,8 @@ bool GFileSelect::OpenFolder()
 	if (e) printf("%s:%i - NavGetDefaultDialogCreationOptions failed with %i\n", _FL, e);
 	else
 	{
+		if (Name())
+			o.saveFileName = Utf8ToCFString(Name());
 		o.modality = kWindowModalityAppModal;
 		
 		NavEventUPP EventUPP = NewNavEventUPP(Lgi_NavEventProc);
@@ -457,6 +462,8 @@ bool GFileSelect::Save()
 	if (e) printf("%s:%i - NavGetDefaultDialogCreationOptions failed with %i\n", _FL, e);
 	else
 	{
+		if (Name())
+			o.saveFileName = Utf8ToCFString(Name());
 		o.modality = kWindowModalityAppModal;
 		
 		NavEventUPP EventUPP = NewNavEventUPP(Lgi_NavEventProc);

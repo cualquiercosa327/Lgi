@@ -677,7 +677,8 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 						#ifndef __BIG_ENDIAN__
 						c = LgiSwap32(c);
 						#endif
-						printf("%s:%i - Cmd='%04.4s'\n", _FL, &c);
+						if (c != '0000')
+							printf("%s:%i - Cmd='%04.4s'\n", _FL, &c);
 						#endif
 
 						extern int *ReturnFloatCommand;

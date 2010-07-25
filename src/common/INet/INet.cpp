@@ -1162,6 +1162,9 @@ int GSocket::Error(void *Param)
 		OnError(d->LastError, s);
 	}
 	else
+		#if defined(MAC)
+		if (d->LastError != 36)
+		#endif
 	{
 		OnError(d->LastError, (Error->Code >= 0) ? Error->Msg : (char*)"<unknown error>");
 	}
@@ -1446,23 +1449,25 @@ bool WhatsMyIp(char *IpAddr)
 #define SOCKS5_AUTH_GSSAPI			1
 #define SOCKS5_AUTH_USER_PASS		2
 
-GSocks5Socket::GSocks5Socket(	char *proxy,
-										int port,
-										char *username,
-										char *password)
+GSocks5Socket::GSocks5Socket()
 {
 	Socks5Connected = false;
-	Proxy = NewStr(proxy);
-	Port = port;
-	UserName = NewStr(username);
-	Password = NewStr(password);
 }
 
-GSocks5Socket::~GSocks5Socket()
+void GSocks5Socket::SetProxy(const GSocks5Socket *s)
 {
-	DeleteObj(Proxy);
-	DeleteObj(UserName);
-	DeleteObj(Password);
+	Proxy.Reset(s ? NewStr(s->Proxy) : 0);
+	Port = s ? s->Port : 0;
+	UserName.Reset(s ? NewStr(s->UserName) : 0);
+	Password.Reset(s ? NewStr(s->Password) : 0);
+}
+
+void GSocks5Socket::SetProxy(char *proxy, int port, char *username, char *password)
+{
+	Proxy.Reset(NewStr(proxy));
+	Port = port;
+	UserName.Reset(NewStr(username));
+	Password.Reset(NewStr(password));
 }
 
 int GSocks5Socket::Open(char *HostAddr, int port)

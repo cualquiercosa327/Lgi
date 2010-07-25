@@ -425,6 +425,13 @@ bool LgiExecute(char *File, char *Args, char *Dir)
 	return Status;
 }
 
+CFStringRef Utf8ToCFString(char *s, int len)
+{
+	if (s && len < 0)
+		len = strlen(s);
+	return CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)s, len, kCFStringEncodingUTF8, false);
+}
+
 char *CFStringToUtf8(CFStringRef r)
 {
 	char *Buffer = 0;
@@ -448,7 +455,7 @@ char *CFStringToUtf8(CFStringRef r)
 							0,
 							false,
 							(UInt8*)Buffer,
-							sizeof(Buffer),
+							Used,
 							&Used);
 
 			Buffer[Used] = 0;

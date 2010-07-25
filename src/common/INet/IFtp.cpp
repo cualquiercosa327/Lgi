@@ -283,11 +283,11 @@ IFtpEntry::~IFtpEntry()
 #define Verify(i, ret) { int Code = i; if (Code != ret) throw Code; }
 #define VerifyRange(i, range) { int Code = i; if ((Code/100) != range) throw Code; }
 
-IFtp::IFtp(FtpSocketFactory sockFactory, void *factoryParam)
+IFtp::IFtp(/* FtpSocketFactory sockFactory, void *factoryParam */)
 {
 	d = new IFtpPrivate;
-	SockFactory = sockFactory;
-	FactoryParam = factoryParam;
+	// SockFactory = sockFactory;
+	// FactoryParam = factoryParam;
 	Authenticated = false;
 	Meter = 0;
 
@@ -1146,7 +1146,7 @@ bool IFtp::SetupData(bool Binary)
 		d->Data.Reset();
 
 		if (IsOpen())
-			d->Data.Reset(SockFactory ? SockFactory(FactoryParam) : new GSocket());
+			d->Data.Reset(Socket ? dynamic_cast<GSocketI*>(Socket->Clone()) : new GSocket());
 
 		if (d->Data)
 		{
@@ -1258,7 +1258,7 @@ bool IFtp::ConnectData()
 	}
 	else
 	{
-		d->Data.Reset(SockFactory ? SockFactory(FactoryParam) : new GSocket());
+		d->Data.Reset(Socket ? dynamic_cast<GSocket*>(Socket->Clone()) : new GSocket());
 		if (d->Data)
 			return d->Listen->Accept(d->Data);
 	}

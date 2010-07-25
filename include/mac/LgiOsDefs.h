@@ -326,6 +326,7 @@ LgiFunc char *strupr(char *a);
 LgiFunc char *p2c(unsigned char *s);
 LgiFunc void c2p255(Str255 &d, char *s);
 LgiFunc char *CFStringToUtf8(CFStringRef r);
+LgiFunc CFStringRef Utf8ToCFString(char *s, int len = -1);
 
 /// Convert a string d'n'd format to an OS dependant integer.
 LgiFunc int FormatToInt(char *s);
