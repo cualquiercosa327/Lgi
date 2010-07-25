@@ -88,7 +88,11 @@ public:
 };
 
 /// Unicode text editor control.
-class GTextView3 :
+class
+#ifdef MAC
+LgiClass
+#endif
+	GTextView3 :
 	public GDocView,
 	public ResObject
 {

@@ -58,50 +58,49 @@ GAbout::GAbout(	GView *parent,
 
 	GRect rc(x, 10, x+190, 145);
 	GView *Ctrl = GViewFactory::Create("GTextView3");
-	if (!Ctrl) Ctrl = GViewFactory::Create("GTextView2");
 	if (Ctrl)
 	{
-		Children.Insert(Ctrl);
-		if (Ctrl)
+		AddView(Ctrl);
+
+		GRect r(rc.x1, rc.y1, 1000, 500);
+
+		Ctrl->SetId(IDM_MESSAGE);
+		Ctrl->SetPos(r);
+		Ctrl->SetNotify(this);
+		char *Str = p.NewStr();
+		Ctrl->Name(Str);
+
+		GFontType Type;
+		Type.GetSystemFont("System");
+		GFont *f = Type.Create();
+		if (f)
 		{
-			GRect r(rc.x1, rc.y1, 1000, 500);
-
-			Ctrl->SetId(IDM_MESSAGE);
-			Ctrl->SetPos(r);
-			Ctrl->SetNotify(this);
-			char *Str = p.NewStr();
-			Ctrl->Name(Str);
-
-			GFontType Type;
-			Type.GetSystemFont("System");
-			GFont *f = Type.Create();
-			if (f)
-			{
-				Ctrl->SetFont(f);
-				DeleteObj(f);
-			}
-
-			GDocView *View = dynamic_cast<GDocView*>(Ctrl);
-			if (View)
-			{
-				View->SetEnv(this);
-				View->SetBackColour(LC_MED);
-				View->SetReadOnly(true);
-				View->SetCursor(Str ? strlen(Str) : 0, false);
-
-				int x = 0, y = 0;
-				View->GetTextExtent(x, y);
-				x += 4;
-				y += 4;
-				x = max(x, 100);
-				if (Img) y = max(y, Img->Y() - 30);
-				
-				rc.Dimension(x-1, y-1);
-				Ctrl->SetPos(rc);
-			}
-
-			DeleteArray(Str);
+			Ctrl->SetFont(f);
+			DeleteObj(f);
 		}
+
+		GDocView *View = dynamic_cast<GDocView*>(Ctrl);
+		if (View)
+		{
+			View->SetEnv(this);
+			View->SetBackColour(LC_MED);
+			View->SetReadOnly(true);
+			View->SetCursor(Str ? strlen(Str) : 0, false);
+
+			int x = 0, y = 0;
+			View->GetTextExtent(x, y);
+			printf("x=%i, y=%i\n", x, y);
+			x += 4;
+			y += 4;
+			x = max(x, 100);
+			if (Img) y = max(y, Img->Y() - 30);
+			
+			rc.Dimension(x-1, y-1);
+			Ctrl->SetPos(rc);
+		}
+		else LgiAssert(!"You need to fix RTTI for your build of Lgi");
+
+		DeleteArray(Str);
 	}
 
 	GRect BtnPos(rc.x2 - 60, rc.y2 + 10, rc.x2, rc.y2 + 30);

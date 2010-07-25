@@ -115,7 +115,11 @@ public:
 class GDocFindReplaceParams {};
 
 /// TextView class is a base for all text controls
-class GDocView : public GLayout
+class
+#ifdef MAC
+LgiClass
+#endif
+GDocView : public GLayout
 {
 	friend class GDocumentEnv;
 

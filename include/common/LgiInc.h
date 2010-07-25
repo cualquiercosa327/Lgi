@@ -49,8 +49,19 @@
 		#else
 			#define LgiFunc			extern
 		#endif
-		#define LgiClass
-		#define LgiExtern		extern
+		
+		#if __GNUC__ >= 4
+			#if LGI_LIBRARY
+				#define LgiClass		__attribute__((visibility("default")))
+				#define LgiExtern		extern
+			#else
+				#define LgiClass		__attribute__((visibility("default")))
+				#define LgiExtern		extern
+			#endif
+		#else
+			#define LgiClass
+			#define LgiExtern		extern
+		#endif
 
 	#endif
 

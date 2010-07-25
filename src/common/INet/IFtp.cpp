@@ -816,6 +816,7 @@ bool IFtp::ListDir(List<IFtpEntry> *Dir)
 				Status = true;
 			}
 		}
+		else printf("%s:%i - SetupData failed.\n", _FL);
 	}
 	catch (int Error)
 	{
@@ -1146,9 +1147,23 @@ bool IFtp::SetupData(bool Binary)
 		d->Data.Reset();
 
 		if (IsOpen())
-			d->Data.Reset(Socket ? dynamic_cast<GSocketI*>(Socket->Clone()) : new GSocket());
+		{
+			if (Socket)
+			{
+				GStreamI *nstream = Socket->Clone();
+				GSocket *nsock = dynamic_cast<GSocket*>(nstream);
+				d->Data.Reset(nsock);
+				// printf("ns=%p nsock=%p\n", nstream, nsock);
+			}
+			else
+			{
+				d->Data.Reset(new GSocket());
+			}
+		}
 
-		if (d->Data)
+		if (!d->Data)
+			printf("%s:%i - No data socket, Socket=%p.\n", _FL, Socket.Get());
+		else
 		{
 			PassiveMode = false;
 
