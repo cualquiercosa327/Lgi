@@ -180,9 +180,7 @@ GDocApp<OptionsFmt>::GDocApp(char *appname, char *icon, char *optsname)
 		#if defined WIN32
 		GWin32Class *c = GWin32Class::Create(d->AppName);
 		if (c)
-		{
 			c->Class.a.hIcon = LoadIcon(LgiProcessInst(), ((int)icon&0xffff0000)?icon:MAKEINTRESOURCE(icon));
-		}
 		#else
 		d->Icon = NewStr(icon);
 		#endif
@@ -350,10 +348,10 @@ bool GDocApp<OptionsFmt>::_LoadMenu(char *Resource)
 
 		if (_FileMenu)
 		{
-			_FileMenu->AppendItem("&Open", IDM_OPEN, true);
-			_FileMenu->AppendItem("&Save", IDM_SAVE, true);
-			_FileMenu->AppendItem("Save &As", IDM_SAVEAS, true);
-			_FileMenu->AppendItem("&Close", IDM_CLOSE, true);
+			_FileMenu->AppendItem("&Open\tCtrl+O", IDM_OPEN, true);
+			_FileMenu->AppendItem("&Save\tCtrl+S", IDM_SAVE, true);
+			_FileMenu->AppendItem("Save &As\tCtrl+A", IDM_SAVEAS, true);
+			_FileMenu->AppendItem("Close\tCtrl+W", IDM_CLOSE, true);
 			_FileMenu->AppendSeparator();
 
 			GSubMenu *Recent = _FileMenu->AppendSub("Recent...");
@@ -364,7 +362,7 @@ bool GDocApp<OptionsFmt>::_LoadMenu(char *Resource)
 				GMru::Serialize(Options, "Mru", false);
 			}
 
-			_FileMenu->AppendItem("E&xit", IDM_EXIT, true);
+			_FileMenu->AppendItem("&Quit\tCtrl+Q", IDM_EXIT, true);
 		}
 	}
 
@@ -540,18 +538,20 @@ int GDocApp<OptionsFmt>::OnCommand(int Cmd, int Event, OsView Window)
 		{
 			if (!GetCurFile())
 			{
-				GMessage m(M_COMMAND, IDM_SAVEAS, 0);
-				GMru::OnEvent(&m);
+				GMru::OnCommand(IDM_SAVEAS);
+				return 0;
 			}
 			else
 			{
 				_SaveFile(GetCurFile());
+				return 0;
 			}
 			break;
 		}
 		case IDM_CLOSE:
 		{
-			_Close();
+			if (SetDirty(false))
+				_Close();
 			break;
 		}
 		case IDM_EXIT:
