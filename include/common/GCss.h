@@ -215,7 +215,7 @@ public:
 		TextDecorUnderline,
 		TextDecorOverline,
 		TextDecorLineThrough,
-		TextDecorBlink ,
+		TextDecorBlink,
 	};
 
 	enum ColorType {

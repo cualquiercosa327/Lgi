@@ -231,6 +231,21 @@ GAutoString GCss::ToString()
 						if (s) p.Print("font-style:%s;", s);
 						break;
 					}
+					case PropTextDecoration:
+					{
+						TextDecorType *d = (TextDecorType*)v;
+						switch (*d)
+						{
+							case TextDecorInherit: s= "inherit"; break;
+							case TextDecorNone: s= "none"; break;
+							case TextDecorUnderline: s= "underline"; break;
+							case TextDecorOverline: s= "overline"; break;
+							case TextDecorLineThrough: s= "line-Through"; break;
+							case TextDecorBlink: s= "blink"; break;
+						}
+						if (s) p.Print("text-decoration:%s;", s);
+						break;
+					}
 					default:
 					{
 						LgiAssert(!"Impl me.");
@@ -281,7 +296,20 @@ GAutoString GCss::ToString()
 			}
 			case TypeColor:
 			{
-				LgiAssert(!"Impl me.");
+				ColorDef *c = (ColorDef*)v;
+				switch (c->Type)
+				{
+					case ColorRgb:
+					{
+						p.Print("color:#%02.2x%02.2x%02.2x;", R32(c->Rgb32), G32(c->Rgb32), B32(c->Rgb32));
+						break;
+					}
+					default:
+					{
+						LgiAssert(!"Impl me.");
+						break;
+					}
+				}
 				break;
 			}
 			case TypeImage:

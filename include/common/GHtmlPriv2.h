@@ -78,10 +78,36 @@ class GFlowRegion;
 
 struct GTagHit
 {
-	GTag *Hit;
-	GFlowRect *Block;
-	int Near;
-	int Index;
+	GTag *Hit; // Tag that was hit, or nearest tag, otherwise NULL
+	int Near; // 0 if a direct hit, >0 is near miss, -1 if invalid.
+
+	GFlowRect *Block; // Text block hit
+	int Index; // If Block!=NULL then index into text, otherwise -1.
+
+	GTagHit()
+	{
+		Hit = 0;
+		Block = 0;
+		Near = -1;
+		Index = -1;
+	}
+
+	bool operator <(GTagHit &h)
+	{
+		if (!Hit)
+			return false;
+
+		if (!h.Hit)
+			return true;
+
+		LgiAssert(	Near >= 0 &&
+					h.Near >= 0);
+
+		if (Near < h.Near)
+			return true;
+
+		return false;
+	}
 };
 
 struct GInfo
@@ -292,7 +318,7 @@ public:
 	void OnPaint(GSurface *pDC);
 	void SetSize(GdcPt2 &s);
 	void SetTag(char *Tag);
-	bool GetTagByPos(int x, int y, GTagHit *Hit);
+	GTagHit GetTagByPos(int x, int y);
 	GTag *GetTagByName(char *Name);
 	void CopyClipboard(GBytePipe &p);
 	GTag *IsAnchor(GAutoString *Uri);

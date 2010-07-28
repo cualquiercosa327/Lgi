@@ -459,6 +459,7 @@ public:
 	HtmlEdit(GHtmlEdit *edit) : GHtml2(100, 0, 0, 100, 100)
 	{
 		// Construct the basics
+		SetReadOnly(false);
 		Edit = edit;
 		b = 0;
 		SetEnv(this);

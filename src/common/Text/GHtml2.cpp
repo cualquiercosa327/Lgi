@@ -2111,62 +2111,46 @@ int GTag::NearestChar(GFlowRect *Tr, int x, int y)
 	return -1;
 }
 
-bool GTag::GetTagByPos(int x, int y, GTagHit *Hit)
+GTagHit GTag::GetTagByPos(int x, int y)
 {
-	bool Status = false;
+	GTagHit r;
 
 	for (GTag *t=Tags.First(); t; t=Tags.Next())
 	{
-		if (t->GetTagByPos(x - t->Pos.x, y - t->Pos.y, Hit) &&
-			Hit->Near == 0)
+		GTagHit hit = t->GetTagByPos(x - t->Pos.x, y - t->Pos.y);
+		if (hit < r)
 		{
-			return true;
+			r = hit;
 		}
 	}
 
 	if (TagId == TAG_IMG)
 	{
-		GRect r(0, 0, Size.x - 1, Size.y - 1);
-		if (r.Overlap(x, y))
+		GRect img(0, 0, Size.x - 1, Size.y - 1);
+		if (img.Overlap(x, y))
 		{
-			Hit->Hit = this;
-			Hit->Block = 0;
-			Hit->Near = 0;
-			Hit->Index = -1;
-			return true;
+			r.Hit = this;
+			r.Block = 0;
+			r.Near = 0;
 		}
 	}
 	else if (Text())
 	{
 		for (GFlowRect *Tr=TextPos.First(); Tr; Tr=TextPos.Next())
 		{
-			int n = IsNearRect(Tr, x, y);
-
-			if (n == 0)
+			GTagHit hit;
+			hit.Hit = this;
+			hit.Block = Tr;
+			hit.Near = IsNearRect(Tr, x, y);
+			if (hit < r)
 			{
-				Hit->Hit = this;
-				Hit->Block = Tr;
-				Hit->Near = 0;
-				Hit->Index = NearestChar(Tr, x, y);
-
-				// LgiTrace("Direct Hit on '%s' @ pos %i\n", Tag, Hit->Index);
-				return true;
-			}
-			else if (!Hit->Hit || (Hit->Hit && n < Hit->Near))
-			{
-				Hit->Hit = this;
-				Hit->Block = Tr;
-				Hit->Near = n;
-				Hit->Index = NearestChar(Tr, x, y);
-
-				// LgiTrace("Near Miss on '%s' @ pos %i and %i pixels\n", Tag, Hit->Index, Hit->Near);
-
-				Status = true;
+				r = hit;
+				r.Index = NearestChar(Tr, x, y);
 			}
 		}
 	}
 
-	return Status;
+	return r;
 }
 
 void GTag::SetImage(char *Uri, GSurface *Img)
@@ -4949,8 +4933,8 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, char16 *Text, GC
 
 	int LineStart = 0;
 
-	#if 0
-	if (!*Text)
+	#if 1
+	if (!Tag->Html->GetReadOnly() && !*Text)
 	{
 		GFlowRect *Tr = new GFlowRect;
 		Tr->Tag = Tag;
@@ -5258,6 +5242,17 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 			// Flow in the rest of the text...
 			TextPos.FlowText(this, Flow, f, Text(), GetAlign(true));
 		}
+		/*
+		else if (TagId == TAG_BR)
+		{
+			GFlowRect *fr = new GFlowRect;
+			fr->ZOff(4, f->GetHeight());
+			fr->Offset(Flow->x1, Flow->y1);
+			fr->Tag = this;
+			fr->Text = L" ";
+			fr->Len = 1;
+			TextPos.Insert(fr);
+		}*/
 	}
 
 	// Flow children
@@ -5967,6 +5962,7 @@ GHtml2::GHtml2(int id, int x, int y, int cx, int cy, GDocumentEnv *e)
 	CssMap(0, false)
 {
 	d = new GHtmlPrivate2;
+	SetReadOnly(true);
 	ViewWidth = -1;
 	MemDC = 0;
 	SetId(id);
@@ -6947,7 +6943,7 @@ void GHtml2::OnMouseClick(GMouse &m)
 					Invalidate();
 				}
 			}
-			else
+			else if (Over)
 			{
 				d->WordSelectMode = false;
 				UnSelectAll();
@@ -7213,15 +7209,8 @@ GTag *GHtml2::GetTagByPos(int x, int y, int *Index)
 {
 	if (Tag)
 	{
-		GTagHit Hit;
-		Hit.Block = 0;
-		Hit.Hit = 0;
-		Hit.Index = -1;
-		Hit.Near = 0x7fffffff;
-		
-		bool Status = Tag->GetTagByPos(x, y, &Hit);
-
-		if (Status || Hit.Near < 3)
+		GTagHit Hit = Tag->GetTagByPos(x, y);
+		if (Hit.Hit && Hit.Near < 30)
 		{
 			if (Index) *Index = Hit.Index;
 			return Hit.Hit;
