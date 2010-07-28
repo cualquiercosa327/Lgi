@@ -37,17 +37,17 @@ public:
 		PropNull = 0,
 
 		// Enum based props
-		PropDisplay = TypeEnum<<8,
-		PropFloat,
-		PropPosition,
-		PropOverflow,
-		PropVisibility,
-		PropFontStyle,
-		PropFontVariant,
-		PropFontWeight,
-		PropBackgroundRepeat,
-		PropBackgroundAttachment,
-		PropTextDecoration,
+		PropDisplay = TypeEnum<<8,	// DisplayType
+		PropFloat,					// FloatType
+		PropPosition,				// PositionType
+		PropOverflow,				// OverflowType
+		PropVisibility,				// VisibilityType
+		PropFontStyle,				// FontStyleType
+		PropFontVariant,			// FontVariantType
+		PropFontWeight,				// FontWeightType
+		PropBackgroundRepeat,		// RepeatType
+		PropBackgroundAttachment,	// AttachmentType
+		PropTextDecoration,			// TextDecorType
 
 		// Length based props
 		PropZIndex = TypeLen<<8,
@@ -269,6 +269,7 @@ public:
 		bool IsValid() { return Type != LenInherit; }
 		bool IsDynamic() { return Type == LenPercent || Type == LenInherit; }
 		bool operator !=(Len &l) { return Type != l.Type || Value != l.Value; }
+		bool ToString(GStream &p);
 	};
 
 	struct LgiClass ColorStop
@@ -302,6 +303,7 @@ public:
 			Stops = c.Stops;
 			return *this;
 		}
+		bool ToString(GStream &p);
 	};
 
 	enum BorderStyle {
@@ -343,6 +345,7 @@ public:
 	struct LgiClass ImageDef
 	{
 		ImageType Type;
+		GAutoString Ref;
 		GSurface *Img;
 
 		ImageDef()

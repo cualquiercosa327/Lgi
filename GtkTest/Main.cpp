@@ -2,7 +2,7 @@
 #include "GButton.h"
 #include "GEdit.h"
 #include "GCombo.h"
-#include "LgiSkinGel.h"
+// #include "LgiSkinGel.h"
 
 #define IDM_EXIT 4
 
@@ -144,7 +144,7 @@ int LgiMain(OsAppArguments &AppArgs)
     GApp a("application/x-gtk-test", AppArgs);
     if (a.IsOk())
     {
-        a.SkinEngine = CreateSkinEngine(&a);
+        // a.SkinEngine = CreateSkinEngine(&a);
 
         a.AppWnd = new App;
         a.Run();

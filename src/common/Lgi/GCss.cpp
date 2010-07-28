@@ -136,6 +136,9 @@ GCss::GCss() : Props(0, false, PropNull)
 		Lut.Add("font-style", PropFontStyle);
 		Lut.Add("font-variant", PropFontVariant);
 		Lut.Add("font-weight", PropFontWeight);
+		Lut.Add("background", PropBackgroundColor);
+		Lut.Add("background-color", PropBackgroundColor);
+		Lut.Add("background-image", PropBackgroundImage);
 		Lut.Add("background-repeat", PropBackgroundRepeat);
 		Lut.Add("background-attachment", PropBackgroundAttachment);
 		Lut.Add("z-index", PropZIndex);
@@ -164,9 +167,6 @@ GCss::GCss() : Props(0, false, PropNull)
 		Lut.Add("background-y", PropBackgroundY);
 		Lut.Add("clip", PropClip);
 		Lut.Add("color", PropColor);
-		Lut.Add("background", PropBackgroundColor);
-		Lut.Add("background-color", PropBackgroundColor);
-		Lut.Add("background-image", PropBackgroundImage);
 		Lut.Add("font-family", PropFontFamily);
 	}
 }
@@ -181,6 +181,65 @@ GCss::~GCss()
 	Empty();
 }
 
+bool GCss::Len::ToString(GStream &p)
+{
+	char *Unit = 0;
+	switch (Type)
+	{
+		case LenPx: Unit = "px"; break;
+		case LenPt: Unit = "pt"; break;
+		case LenEm: Unit = "em"; break;
+		case LenEx: Unit = "ex"; break;
+		case LenPercent: Unit = "%"; break;
+	}
+
+	if (Unit)
+	{
+		p.Print("%g%s", Value, Unit);
+	}
+	else
+	{
+		switch (Type)
+		{
+			case LenInherit: Unit = "Inherit"; break;
+			case LenAuto: Unit = "Auto"; break;
+			case LenNormal: Unit = "Normal"; break;
+			default: return false;
+		}
+
+		if (Unit)
+		{
+			p.Print("%s", Unit);
+		}
+		else
+		{
+			LgiAssert(!"Impl me.");
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool GCss::ColorDef::ToString(GStream &p)
+{
+	switch (Type)
+	{
+		case ColorRgb:
+		{
+			p.Print("#%02.2x%02.2x%02.2x", R32(Rgb32), G32(Rgb32), B32(Rgb32));
+			break;
+		}
+		default:
+		{
+			LgiAssert(!"Impl me.");
+			return false;
+		}
+	}
+
+	return true;
+}
+
 GAutoString GCss::ToString()
 {
 	GStringPipe p;
@@ -193,6 +252,7 @@ GAutoString GCss::ToString()
 			case TypeEnum:
 			{
 				char *s = 0;
+				char *Name = PropName(Prop);
 				switch (Prop)
 				{
 					case PropFontWeight:
@@ -215,7 +275,6 @@ GAutoString GCss::ToString()
 							case FontWeight800: s = "800"; break;
 							case FontWeight900: s = "900"; break;
 						}
-						if (s) p.Print("font-weight:%s;", s);
 						break;
 					}
 					case PropFontStyle:
@@ -228,7 +287,6 @@ GAutoString GCss::ToString()
 							case FontStyleItalic: s = "italic"; break;
 							case FontStyleOblique: s = "oblique"; break;
 						}
-						if (s) p.Print("font-style:%s;", s);
 						break;
 					}
 					case PropTextDecoration:
@@ -243,7 +301,105 @@ GAutoString GCss::ToString()
 							case TextDecorLineThrough: s= "line-Through"; break;
 							case TextDecorBlink: s= "blink"; break;
 						}
-						if (s) p.Print("text-decoration:%s;", s);
+						break;
+					}
+					case PropDisplay:
+					{
+						DisplayType *d = (DisplayType*)v;
+						switch (*d)
+						{
+							case DispInherit: s = "inherit"; break;
+							case DispBlock: s = "block"; break;
+							case DispInline: s = "inline"; break;
+							case DispInlineBlock: s = "inline-block"; break;
+							case DispListItem: s = "list-item"; break;
+							case DispNone: s = "none"; break;
+						}
+						break;
+					}
+					case PropFloat:
+					{
+						FloatType *d = (FloatType*)v;
+						switch (*d)
+						{
+							case FloatInherit: s = "inherit"; break;
+							case FloatLeft: s = "left"; break;
+							case FloatRight: s = "right"; break;
+							case FloatNone: s = "none"; break;
+						}
+						break;
+					}
+					case PropPosition:
+					{
+						PositionType *d = (PositionType*)v;
+						switch (*d)
+						{
+							case PosInherit: s = "inherit"; break;
+							case PosStatic: s = "static"; break;
+							case PosRelative: s = "relative"; break;
+							case PosAbsolute: s = "absolute"; break;
+							case PosFixed: s = "fixed"; break;
+						}
+						break;
+					}
+					case PropOverflow:
+					{
+						OverflowType *d = (OverflowType*)v;
+						switch (*d)
+						{
+							case OverflowInherit: s = "inherit"; break;
+							case OverflowVisible: s = "visible"; break;
+							case OverflowHidden: s = "hidden"; break;
+							case OverflowScroll: s = "scroll"; break;
+							case OverflowAuto: s = "auto"; break;
+						}
+						break;
+					}
+					case PropVisibility:
+					{
+						VisibilityType *d = (VisibilityType*)v;
+						switch (*d)
+						{
+							case VisibilityInherit: s = "inherit"; break;
+							case VisibilityVisible: s = "visible"; break;
+							case VisibilityHidden: s = "hidden"; break;
+							case VisibilityCollapse: s = "collapse"; break;
+						}
+						break;
+					}
+					case PropFontVariant:
+					{
+						FontVariantType *d = (FontVariantType*)v;
+						switch (*d)
+						{
+							case FontVariantInherit: s = "inherit"; break;
+							case FontVariantNormal: s = "normal"; break;
+							case FontVariantSmallCaps: s = "small-caps"; break;
+						}
+						break;
+					}
+					case PropBackgroundRepeat:
+					{
+						RepeatType *d = (RepeatType*)v;
+						switch (*d)
+						{
+							case RepeatInherit: s = "inherit"; break;
+							case RepeatBoth: s = "repeat"; break;
+							case RepeatX: s = "repeat-x"; break;
+							case RepeatY: s = "repeat-y"; break;
+							case RepeatNone: s = "none"; break;
+						}
+						break;
+					}
+					case PropBackgroundAttachment:
+					{
+						AttachmentType *d = (AttachmentType*)v;
+						switch (*d)
+						{
+							case AttachmentInherit: s = "inherit"; break;
+							case AttachmentScroll: s = "scroll"; break;
+							case AttachmentFixed: s = "fixed"; break;
+						}
 						break;
 					}
 					default:
@@ -253,78 +409,93 @@ GAutoString GCss::ToString()
 					}
 				}
 				
+				if (s) p.Print("%s:%s;", Name, s);
 				break;
 			}
 			case TypeLen:
 			{
 				Len *l = (Len*)v;
-				char *Unit = 0;
 				char *Name = PropName(Prop);
-				switch (l->Type)
-				{
-					case LenPx: Unit = "px"; break;
-					case LenPt: Unit = "pt"; break;
-					case LenEm: Unit = "em"; break;
-					case LenEx: Unit = "ex"; break;
-					case LenPercent: Unit = "%"; break;
-				}
-
-				if (Unit)
-				{
-					p.Print("%s:%g%s;", Name, l->Value, Unit);
-				}
-				else
-				{
-					switch (l->Type)
-					{
-						case LenInherit: Unit = "Inherit"; break;
-						case LenAuto: Unit = "Auto"; break;
-						case LenNormal: Unit = "Normal"; break;
-					}
-
-					if (Unit)
-						p.Print("%s:%s;", Name, Unit);
-					else
-						LgiAssert(!"Impl me.");
-				}
+				p.Print("%s:", Name);
+				l->ToString(p);
+				p.Print(";");
 				break;
 			}
 			case TypeGRect:
 			{
-				LgiAssert(!"Impl me.");
+				GRect *r = (GRect*)v;
+				char *Name = PropName(Prop);
+				p.Print("%s:rect(%ipx,%ipx,%ipx,%ipx);", Name, r->y1, r->x2, r->y2, r->x1);
 				break;
 			}
 			case TypeColor:
 			{
 				ColorDef *c = (ColorDef*)v;
-				switch (c->Type)
+				char *Name = PropName(Prop);
+				p.Print("%s:", Name);
+				c->ToString(p);
+				p.Print(";");
+				break;
+			}
+			case TypeImage:
+			{
+				ImageDef *i = (ImageDef*)v;
+				char *Name = PropName(Prop);
+				switch (i->Type)
 				{
-					case ColorRgb:
+					case ImageInherit:
 					{
-						p.Print("color:#%02.2x%02.2x%02.2x;", R32(c->Rgb32), G32(c->Rgb32), B32(c->Rgb32));
+						p.Print("%s:inherit;", Name);
 						break;
 					}
-					default:
+					case ImageOwn:
+					case ImageRef:
 					{
-						LgiAssert(!"Impl me.");
+						if (i->Ref)
+							p.Print("%s:url(%s);", Name, i->Ref.Get());
 						break;
 					}
 				}
 				break;
 			}
-			case TypeImage:
-			{
-				LgiAssert(!"Impl me.");
-				break;
-			}
 			case TypeBorder:
 			{
-				LgiAssert(!"Impl me.");
+				BorderDef *b = (BorderDef*)v;
+				char *Name = PropName(Prop);
+
+				p.Print("%s:", Name);
+				b->ToString(p);
+
+				char *s = 0;
+				switch (b->Style)
+				{
+					case BorderNone: s = "none"; break;
+					case BorderHidden: s = "hidden"; break;
+					case BorderDotted: s = "dotted"; break;
+					case BorderDashed: s = "dashed"; break;
+					case BorderDouble: s = "double"; break;
+					case BorderGroove: s = "groove"; break;
+					case BorderRidge: s = "ridge"; break;
+					case BorderInset: s = "inset"; break;
+					case BorderOutset: s = "outset"; break;
+					default:
+					case BorderSolid: s = "solid"; break;
+				}
+				p.Print(" %s ", s);
+				b->Color.ToString(p);
+				p.Print(";");
 				break;
 			}
 			case TypeStrings:
 			{
-				LgiAssert(!"Impl me.");
+				StringsDef *s = (StringsDef*)v;
+				char *Name = PropName(Prop);
+				p.Print("%s:", Name);
+				for (int i=0; i<s->Length(); i++)
+				{
+					p.Print("%s%s", i?",":"", (*s)[i]);
+				}
+				p.Print(";");
 				break;
 			}
 			default:
