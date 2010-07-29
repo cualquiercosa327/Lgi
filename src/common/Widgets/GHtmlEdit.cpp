@@ -3,6 +3,7 @@
 #include "GHtmlPriv2.h"
 #include "GSkinEngine.h"
 #include "GCombo.h"
+#include "GScrollBar.h"
 
 #define IDC_STYLE					100
 #define IDC_FONT					101
@@ -479,7 +480,11 @@ public:
 	{
 		GHtml2::OnPaint(pDC);
 
+		int LineY = GetFont()->GetHeight();
+		int sx, sy;
+		GetScrollPos(sx, sy);
 		GRect c = GetCursorPos();
+		c.Offset(0, -LineY*sy);
 		c.Size(-1, -1);
 		pDC->Colour(Rgb24(255, 0, 0), 24);
 		pDC->Box(&c);
@@ -948,6 +953,22 @@ public:
 		Invalidate();
 	}
 
+	bool GetLine(GTag *t, int idx, GArray<GFlowRect*> &Rects)
+	{
+		if (!t || idx < 0)
+			return false;
+
+		Block *Close = 0;
+		for (int i=0; i<Blocks.Length(); i++)
+		{
+			Block *b = &Blocks[i];
+			if (b->t == t)
+			{
+			}
+		}
+		return Close;
+	}
+
 	void MoveCursor(int Dx, int Dy, bool Selecting = false)
 	{
 		if (Blocks.Length() == 0)
@@ -1117,6 +1138,32 @@ public:
 				SetCursorVis(true);
 				Edit->SetIgnorePulse(true);
 				OnCursorChanged();
+
+				// Check if we need to scroll the window at all
+				if (VScroll)
+				{
+					LgiYield(); // Cursor position updates on paint
+
+					int LineY = GetFont()->GetHeight();
+					int64 Pos = VScroll->Value();
+					GRect Client = GetClient();
+					GRect c = GetCursorPos();
+					c.Offset(0, -Pos * LineY);
+
+					// LgiTrace("cli=%s c=%s\n", Client.GetStr(), c.GetStr());
+					if (c.y1 < 0)
+					{
+						// Scroll up to keep cursor on screen
+						int Lines = abs(c.y1 / LineY) + 1;
+						VScroll->Value(max(0, Pos - Lines));
+					}
+					else if (c.y2 > Client.y2)
+					{
+						// Scroll down to show cursor
+						int Lines = (c.y2 - Client.y2) / LineY + 1;
+						VScroll->Value(Pos + Lines);
+					}
+				}
 			}
 		}
 	}
@@ -1644,6 +1691,22 @@ public:
 		{
 			switch (k.c16)
 			{
+				case VK_HOME:
+				{
+					if (k.Down())
+					{
+					}
+					return true;
+					break;
+				}
+				case VK_END:
+				{
+					if (k.Down())
+					{
+					}
+					return true;
+					break;
+				}
 				case VK_DELETE:
 				{
 					if (k.Down())

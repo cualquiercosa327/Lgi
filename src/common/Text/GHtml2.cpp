@@ -1463,6 +1463,7 @@ GTag::GTag(GHtml2 *h, GTag *p) : Attr(0, false)
 	Info = 0;
 	MinContent = 0;
 	MaxContent = 0;
+	Pos.x = Pos.y = 0;
 
 	#ifdef _DEBUG
 	Debug = false;
@@ -1564,6 +1565,14 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 		}
 	}
 
+	if (Attr.Length())
+	{
+		char *a;
+		for (char *v = Attr.First(&a); v; v = Attr.Next(&a))
+		{
+			p.Print(" %s=\"%s\"", a, v);
+		}
+	}
 	if (Props.Length())
 	{
 		GAutoString s = ToString();
@@ -2141,10 +2150,14 @@ GTagHit GTag::GetTagByPos(int x, int y)
 
 	for (GTag *t=Tags.First(); t; t=Tags.Next())
 	{
-		GTagHit hit = t->GetTagByPos(x - t->Pos.x, y - t->Pos.y);
-		if (hit < r)
+		if (t->Pos.x >= 0 &&
+			t->Pos.y >= 0)
 		{
-			r = hit;
+			GTagHit hit = t->GetTagByPos(x - t->Pos.x, y - t->Pos.y);
+			if (hit < r)
+			{
+				r = hit;
+			}
 		}
 	}
 
@@ -2166,6 +2179,7 @@ GTagHit GTag::GetTagByPos(int x, int y)
 			hit.Hit = this;
 			hit.Block = Tr;
 			hit.Near = IsNearRect(Tr, x, y);
+			LgiAssert(hit.Near >= 0);
 			if (hit < r)
 			{
 				r = hit;
