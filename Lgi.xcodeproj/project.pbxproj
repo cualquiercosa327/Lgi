@@ -19,6 +19,7 @@
 		3427C3BE11FC02AE002AC215 /* LgiInc.h in Headers */ = {isa = PBXBuildFile; fileRef = 3427C3BD11FC02AE002AC215 /* LgiInc.h */; };
 		3429212C1087D57200578ECC /* GCss.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3429212B1087D57200578ECC /* GCss.cpp */; };
 		3429212E1087D58100578ECC /* GCss.h in Headers */ = {isa = PBXBuildFile; fileRef = 3429212D1087D58100578ECC /* GCss.h */; };
+		342CE46211FDAB57000B1F3C /* LgiRes.h in Headers */ = {isa = PBXBuildFile; fileRef = 342CE46111FDAB57000B1F3C /* LgiRes.h */; };
 		342D52FB0F0CBE0A002A1C7C /* GFileSelect.h in Headers */ = {isa = PBXBuildFile; fileRef = 342D52FA0F0CBE0A002A1C7C /* GFileSelect.h */; };
 		342D78F111FAD1AF005BADBD /* GStream.h in Headers */ = {isa = PBXBuildFile; fileRef = 342D78F011FAD1AF005BADBD /* GStream.h */; };
 		34372AD00C46E0290090CDC9 /* GDocView.h in Headers */ = {isa = PBXBuildFile; fileRef = 34372ACF0C46E0290090CDC9 /* GDocView.h */; };
@@ -168,6 +169,7 @@
 		3427C3BD11FC02AE002AC215 /* LgiInc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LgiInc.h; path = include/common/LgiInc.h; sourceTree = "<group>"; };
 		3429212B1087D57200578ECC /* GCss.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GCss.cpp; path = src/common/Lgi/GCss.cpp; sourceTree = "<group>"; };
 		3429212D1087D58100578ECC /* GCss.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GCss.h; path = include/common/GCss.h; sourceTree = "<group>"; };
+		342CE46111FDAB57000B1F3C /* LgiRes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LgiRes.h; path = include/common/LgiRes.h; sourceTree = "<group>"; };
 		342D52FA0F0CBE0A002A1C7C /* GFileSelect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GFileSelect.h; path = include/common/GFileSelect.h; sourceTree = "<group>"; };
 		342D78F011FAD1AF005BADBD /* GStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GStream.h; path = include/common/GStream.h; sourceTree = "<group>"; };
 		34372ACF0C46E0290090CDC9 /* GDocView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GDocView.h; path = include/common/GDocView.h; sourceTree = "<group>"; };
@@ -568,6 +570,7 @@
 		344D1B0B08F4A2C300228075 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				342CE46111FDAB57000B1F3C /* LgiRes.h */,
 				344D1B0C08F4A2DB00228075 /* LgiRes.cpp */,
 				344D1B0D08F4A2DB00228075 /* Res.cpp */,
 			);
@@ -770,6 +773,7 @@
 				342D78F111FAD1AF005BADBD /* GStream.h in Headers */,
 				34463F2511FBE25E009BB91F /* GTextView3.h in Headers */,
 				3427C3BE11FC02AE002AC215 /* LgiInc.h in Headers */,
+				342CE46211FDAB57000B1F3C /* LgiRes.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1026,6 +1030,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = i386;
+				COPY_PHASE_STRIP = NO;
 				INSTALL_PATH = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				OTHER_CFLAGS = (
@@ -1035,6 +1040,7 @@
 				);
 				PREBINDING = NO;
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				STRIP_INSTALLED_PRODUCT = NO;
 				USER_HEADER_SEARCH_PATHS = "include/common include/mac include/posix";
 			};
 			name = Development;

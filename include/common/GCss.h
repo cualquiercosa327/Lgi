@@ -354,6 +354,11 @@ public:
 			Img = 0;
 		}
 
+		ImageDef(const ImageDef &o)
+		{
+			*this = o;
+		}
+
 		~ImageDef()
 		{
 			if (Type == ImageOwn)
@@ -361,10 +366,22 @@ public:
 		}
 
 		bool Parse(char *&s);
-		bool operator !=(ImageDef &i)
+		bool operator !=(const ImageDef &i)
 		{
-			LgiAssert(!"Not impl.");
+			if (Type != i.Type)
+				return false;
+			if (Ref && i.Ref)
+				return stricmp(Ref, i.Ref) == 0;
 			return true;
+		}
+		
+		ImageDef &operator =(const ImageDef &o)
+		{
+			Type = o.Type;
+			Ref.Reset(NewStr(o.Ref));
+			DeleteObj(Img);
+			if (o.Img) Img = new GMemDC(o.Img);
+			return *this;
 		}
 	};
 
