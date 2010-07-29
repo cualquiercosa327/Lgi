@@ -11,6 +11,7 @@
 #include "GVariant.h"
 #include "GFindReplaceDlg.h"
 
+#define DEBUG_TABLE_LAYOUT			0
 #define LUIS_DEBUG					0
 #define CRASH_TRACE					0
 #ifdef MAC
@@ -49,6 +50,29 @@ static char16 WhiteW[] =			{' ', '\t', '\r', '\n', 0};
 
 #define SkipWhiteSpace(s)			while (*s && IsWhiteSpace(*s)) s++;
 #define SubtractPtr(a, b)			( (((int)(a))-((int)(b))) / sizeof(*a) )
+
+static char DefaultCss[] = {
+"a				{ color: blue; text-decoration: underline; }"
+"body			{ margin: 8px; }"
+"strong			{ font-weight: bolder; }"
+"pre				{ font-family: monospace }"
+"h1				{ font-size: 2em; margin: .67em 0px; }"
+"h2				{ font-size: 1.5em; margin: .75em 0px; }"
+"h3				{ font-size: 1.17em; margin: .83em 0px; }"
+"h4, p,"
+"blockquote, ul,"
+"fieldset, form,"
+"ol, dl, dir,"
+"menu            { margin: 1.12em 0px; }"
+"h5              { font-size: .83em; margin: 1.5em 0px; }"
+"h6              { font-size: .75em; margin: 1.67em 0px; }"
+"strike, del		{ text-decoration: line-through; }"
+"hr              { border: 1px inset; }"
+"center          { text-align: center; }"
+"h1, h2, h3, h4,"
+"h5, h6, b,"
+"strong          { font-weight: bolder; }"
+};
 
 
 //////////////////////////////////////////////////////////////////////
@@ -1415,7 +1439,7 @@ void GFlowRegion::Insert(GFlowRect *Tr)
 //////////////////////////////////////////////////////////////////////
 bool GTag::Selected = false;
 
-GTag::GTag(GHtml2 *h, GTag *p)
+GTag::GTag(GHtml2 *h, GTag *p) : Attr(0, false)
 {
 	TipId = 0;
 	IsBlock = false;
@@ -2509,10 +2533,14 @@ void GTag::SetStyle()
 		case TAG_TD:
 		{
 			char *s;
-			if (Get("colspan", s)) Span.x = atoi(s);
-			else Span.x = 1;
-			if (Get("rowspan", s)) Span.y = atoi(s);
-			else Span.y = 1;
+			if (Get("colspan", s))
+				Span.x = atoi(s);
+			else
+				Span.x = 1;
+			if (Get("rowspan", s))
+				Span.y = atoi(s);
+			else
+				Span.y = 1;
 			break;
 		}
 		case TAG_IMG:
@@ -4305,7 +4333,6 @@ T Sum(GArray<T> &a)
 	return s;
 }
 
-#define DEBUG_LAYOUT	1
 void GTag::LayoutTable(GFlowRegion *f)
 {
 	GdcPt2 s;
@@ -4313,7 +4340,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 	if (!Cells)
 	{
 		Cells = new GCellStore(this);
-		#if defined(_DEBUG) && DEBUG_LAYOUT
+		#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 		if (Cells && Debug)
 			Cells->Dump();
 		#endif
@@ -4330,7 +4357,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 		Len BdrSpacing = BorderSpacing();
 		int CellSpacing = BdrSpacing.IsValid() ? BdrSpacing.Value : 0;
 		int AvailableX = f->ResolveX(Width(), Font); // Width().Type != LenInherit ? Width.Get(f, Font, true) : f->X();
-		#if defined(_DEBUG) && DEBUG_LAYOUT
+		#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 		if (Debug)
 			LgiTrace("AvailableX=%i\n", AvailableX);
 		#endif
@@ -4371,7 +4398,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 								t->MaxContent = 16;
 							}
 							
-							#if defined(_DEBUG) && DEBUG_LAYOUT
+							#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 							if (Debug)
 								LgiTrace("Content[%i,%i] min=%i max=%i\n", x, y, t->MinContent, t->MaxContent);
 							#endif
@@ -4398,7 +4425,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 			TotalX += MinCol[x] + CellSpacing;
 		}
 
-		#if defined(_DEBUG) && DEBUG_LAYOUT
+		#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 		if (Debug)
 			LgiTrace("Detect: TotalX=%i\n", TotalX);
 		#endif
@@ -4441,7 +4468,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 							t->MinContent = max(x, t->MinContent);
 							t->MaxContent = max(x, t->MaxContent);
 							
-							#if defined(_DEBUG) && DEBUG_LAYOUT
+							#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 							if (Debug)
 								LgiTrace("DynWidth [%i,%i] = %i->%i\n", t->Cell.x, t->Cell.y, t->MinContent, t->MaxContent);
 							#endif
@@ -4476,7 +4503,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 			TotalX += MinCol[x] + CellSpacing;
 		}
 
-		#if defined(_DEBUG) && DEBUG_LAYOUT
+		#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 		if (Debug)
 			LgiTrace("Dynamic: TotalX=%i\n", TotalX);
 		
@@ -4734,7 +4761,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 							DistributeSize(MaxRow, y, t->Span.y, t->Size.y, CellSpacing);
 						}
 
-						#if defined(_DEBUG) && DEBUG_LAYOUT
+						#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 						if (Debug)
 							LgiTrace("[%i,%i]=%i,%i Rx=%i\n", t->Cell.x, t->Cell.y, t->Size.x, t->Size.y, Rx);
 						#endif
@@ -4835,6 +4862,8 @@ void GTag::LayoutTable(GFlowRegion *f)
 			Cx = CellSpacing;
 			Cy += MaxRow[y] + CellSpacing;
 		}
+
+		DumpCols();
 
 		switch (GetAlign(true))
 		{

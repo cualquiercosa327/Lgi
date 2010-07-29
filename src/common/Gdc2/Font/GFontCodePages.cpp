@@ -1055,9 +1055,10 @@ void *LgiNewConvertCp(char *OutCp, void *In, char *InCp, int InLen)
 				GFontSystem *Iconv = GetIconv();
 				iconv_t Conv;
 				if (Iconv &&
-					(Conv = Iconv->libiconv_open(OutInfo->GetIconvName(), InInfo->GetIconvName())) >= 0)
+					(int)(Conv = Iconv->libiconv_open(OutInfo->GetIconvName(), InInfo->GetIconvName())) >= 0)
 				{
 					char *i = (char*)In;
+					LgiAssert((int)Conv != 0xffffffff);
 
 					while (InLen)
 					{
