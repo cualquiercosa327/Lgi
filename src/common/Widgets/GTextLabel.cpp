@@ -3,6 +3,7 @@
 
 #include "Lgi.h"
 #include "GTextLabel.h"
+#include "GUtf8.h"
 
 class GTextPrivate : public GSemaphore
 {

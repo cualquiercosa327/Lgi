@@ -172,7 +172,8 @@ class LgiClass GXmlTree
 {
 	friend class GXmlTag;
 	GXmlTreePrivate *d;
-	
+
+protected:
 	GXmlTag *Parse(GXmlTag *Tag, GXmlAlloc *Alloc, char *&t, bool &NoChildren, bool InTypeDef);
 	void Output(GXmlTag *t, int Depth);
 

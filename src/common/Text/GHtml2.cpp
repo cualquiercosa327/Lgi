@@ -10,6 +10,7 @@
 #include "GScrollBar.h"
 #include "GVariant.h"
 #include "GFindReplaceDlg.h"
+#include "GUtf8.h"
 
 #define DEBUG_TABLE_LAYOUT			0
 #define LUIS_DEBUG					0
@@ -1546,9 +1547,54 @@ int GTag::GetTextStart()
 	return 0;
 }
 
+bool TextToStream(GStream &Out, char16 *Text)
+{
+	if (!Text)
+		return true;
+
+	uint8 Buf[256];
+	uint8 *s = Buf;
+	int Len = sizeof(Buf);
+	while (*Text)
+	{
+		#define WriteExistingContent() \
+			if (s > Buf) \
+				Out.Write(Buf, s - Buf); \
+			s = Buf; \
+			Len = sizeof(Buf); \
+			Buf[0] = 0;
+
+		if (*Text == '<' || *Text == '>')
+		{
+			WriteExistingContent();
+			Out.Print("&%ct;", *Text == '<' ? 'l' : 'g');
+		}
+		else if (*Text == 0xa0)
+		{
+			WriteExistingContent();
+			Out.Write("&nbsp;", 6);
+		}
+		else
+		{
+			LgiUtf32To8(*Text, s, Len);
+			if (Len < 16)
+			{
+				WriteExistingContent();
+			}
+		}
+
+		Text++;
+	}
+
+	if (s > Buf)
+		Out.Write(Buf, s - Buf);
+
+	return true;
+}
+
 bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 {
-	char *t8 = LgiNewUtf16To8(Text());
+	// char *t8 = LgiNewUtf16To8(Text());
 	char *Tabs = new char[Depth+1];
 	memset(Tabs, '\t', Depth);
 	Tabs[Depth] = 0;
@@ -1570,7 +1616,8 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 		char *a;
 		for (char *v = Attr.First(&a); v; v = Attr.Next(&a))
 		{
-			p.Print(" %s=\"%s\"", a, v);
+			if (stricmp(a, "style"))
+				p.Print(" %s=\"%s\"", a, v);
 		}
 	}
 	if (Props.Length())
@@ -1583,7 +1630,8 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 	{
 		if (Tag)
 		{
-			p.Print(">%s", t8?t8:(char*)"");
+			p.Write(">", 1);
+			TextToStream(p, Text());
 		}
 
 		bool Last = IsBlock;
@@ -1607,21 +1655,22 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 	}
 	else if (Tag)
 	{
-		if (t8)
+		if (Text())
 		{
-			p.Print(">%s</%s>", t8, Tag);
+			p.Write(">", 1);
+			TextToStream(p, Text());
+			p.Print("</%s>", Tag);
 		}
 		else
 		{
 			p.Print("/>\n");
 		}
 	}
-	else if (t8)
+	else
 	{
-		p.Print("%s", t8);
+		TextToStream(p, Text());
 	}
 
-	DeleteArray(t8);
 	DeleteArray(Tabs);
 
 	return true;
@@ -6303,6 +6352,14 @@ char16 *GHtml2::NameW()
 
 bool GHtml2::Name(char *s)
 {
+	GFile Out;
+	if (s && Out.Open("D:\\Home\\matthew\\Desktop\\scribe-input.html", O_WRITE))
+	{
+		Out.SetSize(0);
+		Out.Write(s, strlen(s));
+		Out.Close();
+	}
+
 	#if LUIS_DEBUG
 	LgiTrace("%s:%i html(%p).src(%p)='%30.30s'\n", __FILE__, __LINE__, this, Source, Source);
 	#endif
@@ -6356,7 +6413,7 @@ bool GHtml2::Name(char *s)
 char *GHtml2::Name()
 {
 	#if LUIS_DEBUG
-	LgiTrace("%s:%i html(%p).src(%p)='%30.30s'\n", __FILE__, __LINE__, this, Source, Source);
+	LgiTrace("%s:%i html(%p).src(%p)='%30.30s'\n", _FL, this, Source, Source);
 	#endif
 
 	if (!Source)
@@ -6364,6 +6421,15 @@ char *GHtml2::Name()
 		GStringPipe s(1024);
 		Tag->CreateSource(s);
 		Source = s.NewStr();
+	}
+
+
+	GFile Out;
+	if (Out.Open("D:\\Home\\matthew\\Desktop\\scribe-output.html", O_WRITE))
+	{
+		Out.SetSize(0);
+		Out.Write(Source, strlen(Source));
+		Out.Close();
 	}
 
 	return Source;
@@ -6383,8 +6449,7 @@ int GHtml2::OnEvent(GMessage *Msg)
 			char *Uri = (char*)MsgA(Msg);
 			GSurface *Img = (GSurface*)MsgB(Msg);
 
-			LgiTrace("M_IMAGE_LOADED img=%p\n", Img);
-
+			// LgiTrace("M_IMAGE_LOADED img=%p\n", Img);
 			if (Uri && Img && Tag)
 			{
 				int Used = 0;

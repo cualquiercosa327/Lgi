@@ -10,6 +10,7 @@
 #include "GScripting.h"
 #include "GLexCpp.h"
 #include "GScriptingPriv.h"
+#include "GUtf8.h"
 
 extern GHostFunc SystemLibrary[];
 

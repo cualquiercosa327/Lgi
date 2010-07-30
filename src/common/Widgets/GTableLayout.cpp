@@ -12,6 +12,7 @@
 #include "GRadioGroup.h"
 #include "GBitmap.h"
 #include "GTabView.h"
+#include "GUtf8.h"
 
 #define Izza(c)				dynamic_cast<c*>(v)
 #define CELL_SPACING		4

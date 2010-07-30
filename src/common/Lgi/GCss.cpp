@@ -14,6 +14,8 @@ char *GCss::PropName(PropType p)
 		if (p == t)
 			return s;
 	}
+
+	LgiAssert(!"Add this field to the LUT");
 	return 0;
 }
 
@@ -127,6 +129,7 @@ GCss::GCss() : Props(0, false, PropNull)
 {
 	if (Lut.Length() == 0)
 	{
+		Lut.Add("text-decoration", PropTextDecoration);
 		Lut.Add("display", PropDisplay);
 		Lut.Add("float", PropFloat);
 		Lut.Add("position", PropPosition);
@@ -160,6 +163,10 @@ GCss::GCss() : Props(0, false, PropNull)
 		Lut.Add("padding-right", PropPaddingRight);
 		Lut.Add("padding-bottom", PropPaddingBottom);
 		Lut.Add("padding-left", PropPaddingLeft);
+		Lut.Add("border-top", PropBorderTop);
+		Lut.Add("border-right", PropBorderRight);
+		Lut.Add("border-bottom", PropBorderBottom);
+		Lut.Add("border-left", PropBorderLeft);
 		Lut.Add("line-height", PropLineHeight);
 		Lut.Add("vertical-align", PropVerticalAlign);
 		Lut.Add("fontsize", PropFontSize);

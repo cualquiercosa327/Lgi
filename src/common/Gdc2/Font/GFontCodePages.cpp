@@ -4,6 +4,7 @@
 
 #include "Lgi.h"
 #include "GToken.h"
+#include "GUtf8.h"
 
 typedef uint32 iso2022jp_block[16];
 iso2022jp_block *iso2022jp_map[128];

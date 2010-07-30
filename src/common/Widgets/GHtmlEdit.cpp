@@ -1434,7 +1434,8 @@ public:
 								DeleteObj(Del);
 								continue;
 							}
-							else if (n->TagId == TAG_BR)
+							else if (n->TagId == TAG_P ||
+									 n->TagId == TAG_BR)
 							{
 								n->Detach();
 								DeleteObj(n);
@@ -1478,7 +1479,8 @@ public:
 				if (t)
 				{
 					char16 *c = t->Text() + t->Cursor + s;
-					if (*c) memmove(c, c + 1, (StrlenW(c + 1) + 1) * sizeof(*t->Text()));
+					if (*c)
+						memmove(c, c + 1, (StrlenW(c + 1) + 1) * sizeof(*t->Text()));
 					Status = true;
 				}
 			}
@@ -1844,6 +1846,7 @@ public:
 		else if (t->Cursor >= 0)
 		{
 			LgiAssert(!"Tag has Cursor index without being pointed at.");
+			t->Cursor = -1;
 			return false;
 		}
 

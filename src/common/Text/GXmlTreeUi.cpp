@@ -11,6 +11,7 @@
 #include "GEdit.h"
 #include "GTree.h"
 #include "GControlTree.h"
+#include "GUtf8.h"
 
 #include <ctype.h>
 
