@@ -7,11 +7,19 @@ char *GDocView::WhiteSpace		= " \t\r\n";
 char *GDocView::Delimiters		= "!@#$%^&*()'\":;,.<>/?[]{}-=+\\|`~";
 char *GDocView::UrlDelim		= "!~/:%+-?@&$#._=,;*()|";
 
+GDocumentEnv::GDocumentEnv(GDocView *v)
+{
+	if (v)
+	{
+		Viewers.Add(v);
+	}
+}
+
 GDocumentEnv::~GDocumentEnv()
 {
-	if (Viewer)
+	for (int i=0; i<Viewers.Length(); i++)
 	{
-		Viewer->Environment = 0;
+		Viewers[i]->Environment = 0;
 	}
 }
 

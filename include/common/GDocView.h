@@ -62,10 +62,10 @@ class GDocumentEnv
 	friend class GDocView;
 
 protected:
-	GDocView *Viewer;
+	GArray<GDocView*> Viewers;
 
 public:
-	GDocumentEnv(GDocView *v = 0) { Viewer = v; }
+	GDocumentEnv(GDocView *v = 0);
 	virtual ~GDocumentEnv();
 	
 	/// Creating a context menu, usually when the user right clicks on the 
@@ -220,12 +220,14 @@ public:
 	{
 		if (Environment)
 		{
-			Environment->Viewer = 0;
+			LgiAssert(Environment->Viewers.HasItem(this));
+			Environment->Viewers.Delete(this);
 		}
 		Environment = e;
 		if (Environment)
 		{
-			Environment->Viewer = this;
+			LgiAssert(!Environment->Viewers.HasItem(this));
+			Environment->Viewers.Add(this);
 		}
 	}
 	
