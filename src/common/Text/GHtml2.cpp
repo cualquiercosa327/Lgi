@@ -1506,7 +1506,15 @@ void GTag::Set(char *attr, char *val)
 {
 	char *existing = Attr.Find(attr);
 	if (existing) DeleteArray(existing);
-	Attr.Add(attr, NewStr(val));
+
+	if (val)
+	{
+		Attr.Add(attr, NewStr(val));
+	}
+	else
+	{
+		Attr.Delete(attr);
+	}
 }
 
 bool GTag::GetVariant(char *Name, GVariant &Value, char *Array)
