@@ -1312,6 +1312,9 @@ public:
 		{
 			DeleteArray(Source);
 
+			if (Selection)
+				Delete();
+
 			if (t->Cursor < 0)
 			{
 				if (Cursor) Cursor->Cursor = -1;
@@ -1627,8 +1630,10 @@ public:
 
 			if (Selection)
 			{
+				Delete();
 			}
-			else if (t->Text())
+			
+			if (t->Text())
 			{
 				GTag *Insert = t->TagId == CONTENT ? t->Parent : t;
 				int Idx = t->TagId == CONTENT && t->Parent ? t->Parent->Tags.IndexOf(t) + 1 : 0;
