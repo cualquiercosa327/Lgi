@@ -405,7 +405,7 @@ public:
 				}
 				case ILessThanEqual:
 				{
-					f.Print("\t%p %s < %s\n",
+					f.Print("\t%p %s <= %s\n",
 							c.u8 - Base - 1,
 							c.r[0].GetStr(),
 							c.r[1].GetStr());
@@ -414,7 +414,7 @@ public:
 				}
 				case IGreaterThan:
 				{
-					f.Print("\t%p %s < %s\n",
+					f.Print("\t%p %s > %s\n",
 							c.u8 - Base - 1,
 							c.r[0].GetStr(),
 							c.r[1].GetStr());
@@ -423,7 +423,7 @@ public:
 				}
 				case IGreaterThanEqual:
 				{
-					f.Print("\t%p %s < %s\n",
+					f.Print("\t%p %s >= %s\n",
 							c.u8 - Base - 1,
 							c.r[0].GetStr(),
 							c.r[1].GetStr());
@@ -1208,7 +1208,7 @@ public:
 						*Dst = Dst->CastDouble() > Src->CastDouble();
 					else if (Src->Type == GV_DATETIME || Dst->Type == GV_DATETIME)
 						*Dst = *Dst->Value.Date > *Src->Value.Date;
-					else if (Src->Type == GV_STRING)
+					else if (Dst->Type == GV_STRING && Src->Type == GV_STRING)
 					{
 						char *d = Dst->Str();
 						char *s = Src->Str();

@@ -614,7 +614,7 @@ public:
 
 		char *utf = LgiNewUtf16To8(s, len * sizeof(char16));
 		if (!utf)
-			return;
+			utf = NewStr("");
 
 		r.Scope = SCOPE_GLOBAL;
 		r.Index = Code->Globals.Length();
@@ -2440,7 +2440,11 @@ GCompiledCode *GCompiler::Compile(GScriptContext *Context, char *FileName, char 
 			!d->Compile())
 		{
 			if (!Previous)
+			{
 				DeleteObj(d->Code);
+			}
+			else d->Code = 0;
+			return false;
 		}
 	}
 

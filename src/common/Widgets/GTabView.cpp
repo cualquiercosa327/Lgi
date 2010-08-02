@@ -211,6 +211,17 @@ int64 GTabView::Value()
 	return d->Current;
 }
 
+void GTabView::OnCreate()
+{
+	TabIterator it(Children);
+	GTabPage *p = it[d->Current];
+	if (p)
+	{
+		p->Attach(this);
+		p->Visible(true);
+	}
+}
+
 void GTabView::Value(int64 i)
 {
 	if (i != d->Current)
@@ -227,7 +238,7 @@ void GTabView::Value(int64 i)
 		OnPosChange();
 
 		GTabPage *p = it[d->Current];
-		if (p)
+		if (p && IsAttached())
 		{
 			p->Attach(this);
 			p->Visible(true);

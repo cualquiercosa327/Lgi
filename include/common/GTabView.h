@@ -70,6 +70,7 @@ public:
 	void OnMouseClick(GMouse &m);
 	bool OnKey(GKey &k);
 	void OnFocus(bool f);
+	void OnCreate();
 };
 
 class LgiClass GTabPage :

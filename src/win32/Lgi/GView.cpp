@@ -615,6 +615,7 @@ bool GView::Attach(GViewI *p)
         else
             return false;
 
+		LgiAssert(!Parent || Parent->Handle() != 0);
 		if (IsWin9x)
 		{
 			char *Text = LgiToNativeCp(GObject::Name());

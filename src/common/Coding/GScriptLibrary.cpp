@@ -148,7 +148,7 @@ bool SystemFunctions::Strchr(GVariant *Ret, ArgumentArray &Args)
 	char *str = Args[0]->CastString();
 	char *ch = Args[1]->CastString();
 	// int str_len = Args.Length() > 2 ? Args[2]->CastInt32() : -1;
-	int rev = Args.Length() > 3 ? Args[3]->CastInt32() : false;
+	bool rev = Args.Length() >= 3 ? Args[2]->CastBool() : false;
 	if (str AND ch)
 	{
 		GUtf8Ptr Str(str);
@@ -706,6 +706,25 @@ bool SystemFunctions::Execute(GVariant *Ret, ArgumentArray &Args)
 	return Status;
 }
 
+bool SystemFunctions::GetInputDlg(GVariant *Ret, ArgumentArray &Args)
+{
+	if (Args.Length() < 4)
+		return false;
+
+	GViewI *Parent = CastGView(*Args[0]);
+	char *InitVal = Args[1]->Str();
+	char *Msg = Args[2]->Str();
+	char *Title = Args[3]->Str();
+	bool Pass = Args.Length() > 4 ? Args[4]->CastBool() : false;
+	GInput Dlg(Parent, InitVal, Msg, Title, Pass);
+	if (Dlg.DoModal())
+	{
+		*Ret = Dlg.Str;
+	}
+
+	return true;
+}
+
 #define DefFn(Name) \
 	GHostFunc(#Name, 0, (ScriptCmd)&SystemFunctions::Name)
 
@@ -741,6 +760,7 @@ GHostFunc SystemLibrary[] =
 
 	// System
 	DefFn(Execute),
+	DefFn(GetInputDlg),
 
 	// End of list marker
 	GHostFunc(0, 0, 0),

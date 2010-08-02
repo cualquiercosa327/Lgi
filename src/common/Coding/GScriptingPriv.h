@@ -357,6 +357,10 @@ protected:
 		switch (o)
 		{
 			case OpAssign:
+			case OpMinusEquals:
+			case OpPlusEquals:
+			case OpMulEquals:
+			case OpDivEquals:
 				return 16;
 
 			case OpAnd:
@@ -396,6 +400,7 @@ protected:
 				return 2;
 		}
 
+		LgiAssert(!"Really?");
 		return -1;
 	}
 
@@ -613,6 +618,9 @@ public:
 		/// Executes a command and returns it's output:
 		/// String Execute(String Application, String CmdLine);
 		bool Execute(GVariant *Ret, ArgumentArray &Args);
+		/// Gets an input string from the user
+		/// String GetInputDlg(Window Parent, String InitialValue, String Question, String Title[, bool IsPassword]);
+		bool GetInputDlg(GVariant *Ret, ArgumentArray &Args);
 };
 
 #endif
