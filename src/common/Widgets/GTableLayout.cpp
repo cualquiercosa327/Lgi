@@ -243,8 +243,9 @@ public:
 	bool FirstLayout;
 	GRect LayoutBounds;
 	int LayoutMinX, LayoutMaxX;
+	GTableLayout *Ctrl;
 
-	GTableLayoutPrivate();
+	GTableLayoutPrivate(GTableLayout *ctrl);
 	~GTableLayoutPrivate();
 	TableCell *GetCellAt(int cx, int cy);
 	void Layout(GRect &Client);
@@ -742,8 +743,9 @@ void DistributeSize(GArray<int> &a, GArray<CellFlag> &Flags, int Start, int Span
 	}
 }
 
-GTableLayoutPrivate::GTableLayoutPrivate()
+GTableLayoutPrivate::GTableLayoutPrivate(GTableLayout *ctrl)
 {
+	Ctrl = ctrl;
 	FirstLayout = false;
 	CellSpacing = CELL_SPACING;
 	LayoutBounds.ZOff(-1, -1);
@@ -954,11 +956,13 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 	#if DEBUG_PROFILE
 	LgiTrace("GTableLayout::Layout = %i ms\n", (int)(LgiCurrentTime()-Start));
 	#endif
+
+	Ctrl->SendNotify(GTABLELAYOUT_LAYOUT_CHANGED);
 }
 
 GTableLayout::GTableLayout() : ResObject(Res_Table)
 {
-	d = new GTableLayoutPrivate;
+	d = new GTableLayoutPrivate(this);
 	SetPourLargest(true);
 	Name("GTableLayout");
 }

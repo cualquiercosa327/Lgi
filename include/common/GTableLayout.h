@@ -4,6 +4,8 @@
 #ifndef _GTABLE_LAYOUT_H_
 #define _GTABLE_LAYOUT_H_
 
+#define GTABLELAYOUT_LAYOUT_CHANGED			20
+
 /// A layout cell, not currently implemened.
 class GLayoutCell : public GDom
 {

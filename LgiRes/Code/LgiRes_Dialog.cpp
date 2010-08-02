@@ -1435,7 +1435,7 @@ void CtrlTabs::OnPaint(GSurface *pDC)
 	int x = 2;
 	for (CtrlTab *Tab = Tabs.First(); Tab; Tab = Tabs.Next(), i++)
 	{
-		char *Str = Tab->Str->Get();
+		char *Str = Tab->Str ? Tab->Str->Get() : 0;
 		GDisplayString ds(SysFont, Str);
 
 		int Width = 12 + ds.X();
@@ -1603,6 +1603,9 @@ void CtrlTabs::OnMouseClick(GMouse &m)
 							CtrlTab *t = Tabs.ItemAt(Current);
 							if (t)
 							{
+								if (!t->Str)
+									t->Str = Dlg->CreateSymbol();
+
 								GInput Input(this, t->Str->Get(), "Enter tab name:", "Rename");
 								Input.SetParent(Dlg);
 								if (Input.DoModal() && Input.Str)

@@ -1946,6 +1946,9 @@ public:
 
 	bool CheckTree(GTag *t, IsOkData &Ok)
 	{
+		if (!t)
+			return false;
+
 		if (t->Parent && !t->Parent->Tags.HasItem(t))
 		{
 			LgiAssert(!"Tag heirarchy error.");
@@ -2069,6 +2072,9 @@ public:
 
 	void PrepareForEdit(GTag *t)
 	{
+		if (!t)
+			return;
+
 		if
 		(
 			t->Tag &&

@@ -149,8 +149,10 @@ CtrlControlTree::CtrlControlTree(ResDialog *dlg, GXmlTag *load) :
 {
 	d = new CtrlControlTreePriv(dlg);
 
-	CtNode *i = new CtNode(d, this, 0);
-	Insert(i);
+	if (!load)
+	{
+		Insert(new CtNode(d, this, 0));
+	}
 }
 
 CtrlControlTree::~CtrlControlTree()

@@ -6360,6 +6360,7 @@ char16 *GHtml2::NameW()
 
 bool GHtml2::Name(char *s)
 {
+	/*
 	GFile Out;
 	if (s && Out.Open("D:\\Home\\matthew\\Desktop\\scribe-input.html", O_WRITE))
 	{
@@ -6367,6 +6368,7 @@ bool GHtml2::Name(char *s)
 		Out.Write(s, strlen(s));
 		Out.Close();
 	}
+	*/
 
 	#if LUIS_DEBUG
 	LgiTrace("%s:%i html(%p).src(%p)='%30.30s'\n", __FILE__, __LINE__, this, Source, Source);
@@ -6431,7 +6433,7 @@ char *GHtml2::Name()
 		Source = s.NewStr();
 	}
 
-
+	/*
 	GFile Out;
 	if (Out.Open("D:\\Home\\matthew\\Desktop\\scribe-output.html", O_WRITE))
 	{
@@ -6439,6 +6441,7 @@ char *GHtml2::Name()
 		Out.Write(Source, strlen(Source));
 		Out.Close();
 	}
+	*/
 
 	return Source;
 }

@@ -170,10 +170,9 @@ ResString::~ResString()
 
 int ResString::SetRef(int r)
 {
-	if (r == 441)
+	if (r == 184)
 	{
-		LgiTrace("%i = %p\n", r, this);
-		LgiAssert(Group && Group->Strs.HasItem(this));
+		int asd=0;
 	}
 	Ref = r;
 	return Ref;
