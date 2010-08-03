@@ -17,6 +17,7 @@
 #include "Gdc2.h"
 #include "GString.h"
 #include "GUtf8.h"
+#include "GUtf8.h"
 
 //////////////////////////////////////////////////////////////////////////////////
 XmlValue::XmlValue(Xml *x)

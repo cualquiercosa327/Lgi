@@ -13,6 +13,7 @@
 #include <ctype.h>
 #include "Lgi.h"
 #include "GToken.h"
+#include "GUtf8.h"
 
 static int NextId = 0;
 #define DEBUG_INFO		0

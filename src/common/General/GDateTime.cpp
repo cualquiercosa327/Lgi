@@ -124,7 +124,7 @@ int GDateTime::SystemTimeZone(bool ForceUpdate)
 		if (!gettimeofday(&tp, &tzp))
 		{
 			// FIXME: check this works in DST as well... e.g. tzp.tz_dsttime;
-			CurTz = tzp.tz_minuteswest;
+			CurTz = -tzp.tz_minuteswest;
 		}
 		else
 		{

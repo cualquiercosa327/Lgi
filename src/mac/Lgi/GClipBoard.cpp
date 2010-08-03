@@ -74,12 +74,15 @@ bool GClipBoard::Text(char *Str, bool AutoEmpty)
 			{
 				OSStatus e;
 
-				CFDataRef Data=  CFDataCreate(kCFAllocatorDefault, (UInt8*)w, StrlenW(w) * sizeof(*w));
-				if (!Data) printf("%s:%i - CFDataCreate failed\n", __FILE__, __LINE__);
+				CFDataRef Data = CFDataCreate(kCFAllocatorDefault, (UInt8*)w, StrlenW(w) * sizeof(*w));
+				if (!Data) printf("%s:%i - CFDataCreate failed\n", _FL);
 				else
 				{
+					e = PasteboardClear(d->Pb);
+					if (e) printf("%s:%i - PasteboardClear failed with %i\n", _FL, e);
+
 					e = PasteboardPutItemFlavor(d->Pb, (PasteboardItemID)1, CFSTR(kClipboardTextType), Data, 0);
-					if (e) printf("%s:%i - PasteboardPutItemFlavor failed with %i\n", __FILE__, __LINE__, e);
+					if (e) printf("%s:%i - PasteboardPutItemFlavor failed with %i\n", _FL, e);
 					else
 					{
 						Status = true;

@@ -16,6 +16,7 @@
 #include "GScrollBar.h"
 #include "GEdit.h"
 #include "GViewPriv.h"
+#include "GUtf8.h"
 
 #define ADJ_LEFT					1
 #define ADJ_RIGHT					2

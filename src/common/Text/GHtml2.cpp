@@ -1580,7 +1580,7 @@ bool TextToStream(GStream &Out, char16 *Text)
 		else if (*Text == 0xa0)
 		{
 			WriteExistingContent();
-			Out.Write("&nbsp;", 6);
+			Out.Write((char*)"&nbsp;", 6);
 		}
 		else
 		{
@@ -1638,7 +1638,7 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 	{
 		if (Tag)
 		{
-			p.Write(">", 1);
+			p.Write((char*)">", 1);
 			TextToStream(p, Text());
 		}
 
@@ -1665,7 +1665,7 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 	{
 		if (Text())
 		{
-			p.Write(">", 1);
+			p.Write((char*)">", 1);
 			TextToStream(p, Text());
 			p.Print("</%s>", Tag);
 		}
@@ -6452,6 +6452,7 @@ int GHtml2::OnEvent(GMessage *Msg)
 	{
 		case M_COPY:
 		{
+			printf("Got M_COPY\n");
 			Copy();
 			break;
 		}
@@ -6925,7 +6926,7 @@ bool GHtml2::OnKey(GKey &k)
 			case 'f':
 			case 'F':
 			{
-				if (k.Ctrl())
+				if (k.Modifier())
 				{
 					GFindDlg Dlg(this, 0, FindCallback, this);
 					Dlg.DoModal();
@@ -6939,7 +6940,8 @@ bool GHtml2::OnKey(GKey &k)
 			case VK_INSERT:
 			#endif
 			{
-				if (k.Ctrl())
+				printf("Got 'c', mod=%i\n", k.Modifier());
+				if (k.Modifier())
 				{
 					Copy();
 					Status = true;

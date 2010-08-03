@@ -92,6 +92,15 @@ public:
 	void Alt(bool i)	{ AssignFlag(Flags, LGI_EF_ALT, i); }
 	void Shift(bool i)	{ AssignFlag(Flags, LGI_EF_SHIFT, i); }
 	void System(bool i)	{ AssignFlag(Flags, LGI_EF_SYSTEM, i); }
+
+	bool Modifier()
+	{
+		#ifdef MAC
+		return System(); // "Apple" key
+		#else
+		return Ctrl();
+		#endif
+	}
 };
 
 /// All the information related to a keyboard event
