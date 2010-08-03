@@ -817,6 +817,9 @@ bool GTabPage::LoadFromResource(int Res)
 	if (ValidStr(n))
 		Name(n);
 
+	if (IsAttached())
+		AttachChildren();
+
 	return Status;
 }
 

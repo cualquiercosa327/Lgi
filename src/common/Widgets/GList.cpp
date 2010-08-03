@@ -1700,7 +1700,7 @@ int GList::OnNotify(GViewI *Ctrl, int Flags)
 		Invalidate(&ItemsPos);
 	}
 
-	return 0;
+	return GLayout::OnNotify(Ctrl, Flags);
 }
 
 GRect &GList::GetClientRect()
