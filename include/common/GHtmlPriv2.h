@@ -202,6 +202,12 @@ public:
 	~GFlowRect()
 	{
 	}
+
+	int Start();
+	bool OverlapX(int x) { return x >= x1 && x <= x2; }
+	bool OverlapY(int y) { return y >= y1 && y <= y2; }
+	bool OverlapX(GFlowRect *b) { return !(b->x2 < x1 || b->x1 > x2); }
+	bool OverlapY(GFlowRect *b) { return !(b->y2 < y1 || b->y1 > y2); }
 };
 
 class GArea : public List<GFlowRect>

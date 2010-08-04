@@ -14,6 +14,7 @@
 #define IDC_MAKE_LINK				106
 #define IDC_FORE_COLOUR				107
 #define IDC_BACK_COLOUR				108
+#define IDC_DEBUG_WND				109
 
 #define TOOLBAR_HT					18
 
@@ -50,6 +51,11 @@ uint32 IconData[] =
 };
 GInlineBmp Icons = { 96, 16, 16, IconData };
 
+int XSort(GFlowRect **a, GFlowRect **b)
+{
+	return (*a)->x1 - (*b)->x1;
+}
+
 bool CanHaveText(HtmlTag TagId)
 {
 	switch (TagId)
@@ -66,6 +72,20 @@ bool CanHaveText(HtmlTag TagId)
 	return true;
 }
 
+int GFlowRect::Start()
+{
+	if (!Tag) return -1;
+	char16 *t = Tag->Text();
+	if (!t) return -1;
+	char16 *e = t + StrlenW(t);
+	if (Text < t || Text >= e)
+	{
+		LgiAssert(!"Text should always point into the tag's buffer");
+		return -1;
+	}
+	return Text - t;
+}
+
 class Btn : public GLayout
 {
 	int Val;
@@ -74,6 +94,7 @@ class Btn : public GLayout
 	int HasLeft;
 	int HasRight;
 	bool Toggle;
+	GAutoPtr<GDisplayString> Str;
 
 public:
 	int SpaceAfter;
@@ -88,8 +109,25 @@ public:
 		HasRight = -1;
 		Toggle = toggle;
 		SpaceAfter = 0;
-		
+
 		GRect r(0, 0, wid-1, TOOLBAR_HT);
+		SetPos(r);
+		SetTabStop(TAB_STOP);
+	}
+
+	Btn(int cmd, bool toggle, char *Text)
+	{
+		Val = 0;
+		SetId(cmd);
+		Icon = -1;
+		Img = 0;
+		HasLeft = -1;
+		HasRight = -1;
+		Toggle = toggle;
+		SpaceAfter = 0;
+		
+		Str.Reset(new GDisplayString(SysBold, Text));
+		GRect r(0, 0, Str->X()+16, TOOLBAR_HT);
 		SetPos(r);
 		SetTabStop(TAB_STOP);
 	}
@@ -166,7 +204,12 @@ public:
 			Mem.Line(1, 1, 1, Y()-2);
 		}
 
-		if (Img)
+		if (Str)
+		{
+			int dwn = Value() ? 1 : 0;
+			Str->Draw(&Mem, (Mem.X()-Str->X())/2+dwn, (Mem.Y()-Str->Y())/2+dwn);
+		}
+		else if (Img)
 		{
 			GRect r(0, 0, Img->TileX()-1, Img->TileY()-1);
 			r.Offset(((X()-Img->TileX())>>1)+Val, ((Y()-Img->TileY())>>1)+Val);
@@ -1081,15 +1124,136 @@ public:
 		if (!t || idx < 0)
 			return false;
 
-		Block *Close = 0;
-		for (int i=0; i<Blocks.Length(); i++)
+		char16 *Base = t->Text();
+		if (Base)
 		{
-			Block *b = &Blocks[i];
-			if (b->t == t)
+			GFlowRect *Inside = 0;
+			char16 *End = Base + StrlenW(Base);
+			for (GFlowRect *f = t->TextPos.First(); f; f = t->TextPos.Next())
 			{
+				if (f->Text >= Base && f->Text < End)
+				{
+					int Start = f->Text - Base;
+					if (idx >= Start && idx < Start + f->Len)
+					{
+						// This flow rect is where the index is
+						Inside = f;
+						break;
+					}
+				}
+				else
+				{
+					int asd=0;
+				}
+			}
+
+			if (Inside)
+			{
+				Rects.Add(Inside);
+
+				// Iterate over the current tags block of text
+				for (GFlowRect *f = t->TextPos.First(); f; f = t->TextPos.Next())
+				{
+					if (f != Inside && f->OverlapY(Inside))
+					{
+						Rects.Add(f);
+					}
+				}
+
+				// Seek backwards looking for blocks of text on the same line
+				int Added = 1;
+				GTag *b;
+				for (b = PrevTag(t); b && Added > 0; b = PrevTag(b))
+				{
+					Added = 0;
+					for (GFlowRect *f = b->TextPos.First(); f; f = b->TextPos.Next())
+					{
+						if (f->OverlapY(Inside))
+						{
+							Rects.Add(f);
+							Added++;
+						}
+					}
+				}
+
+				// Seek forwards looking for blocks of text on the same line
+				Added = 1;
+				for (b = NextTag(t); b && Added > 0; b = NextTag(b))
+				{
+					Added = 0;
+					for (GFlowRect *f = b->TextPos.First(); f; f = b->TextPos.Next())
+					{
+						if (f->OverlapY(Inside))
+						{
+							Rects.Add(f);
+							Added++;
+						}
+					}
+				}
 			}
 		}
-		return Close;
+
+		Rects.Sort(XSort);
+		return Rects.Length() > 0;
+	}
+
+	void SetCursor(GTag *NewCur, int NewPos, bool Selecting = false)
+	{
+		if (NewCur)
+		{
+			// Selection stuff
+			if (Selecting && !Selection)
+			{
+				// Selection is starting, save current cursor as the selection end.
+				Selection = Cursor;
+				Selection->Selection = Cursor->Cursor;
+			}
+			else if (!Selecting && Selection)
+			{
+				// Selection ending...
+				Selection->Selection = -1;
+				Selection = 0;
+			}
+
+			// Set new cursor
+			if (Cursor != NewCur)
+			{
+				Cursor->Cursor = -1;
+				Cursor = NewCur;
+			}
+			Cursor->Cursor = NewPos;
+
+			// Update the window
+			SetCursorVis(true);
+			Edit->SetIgnorePulse(true);
+			OnCursorChanged();
+
+			// Check if we need to scroll the window at all
+			if (VScroll)
+			{
+				LgiYield(); // Cursor position updates on paint
+
+				int LineY = GetFont()->GetHeight();
+				int64 Pos = VScroll->Value();
+				GRect Client = GetClient();
+				GRect c = GetCursorPos();
+				c.Offset(0, -Pos * LineY);
+
+				// LgiTrace("cli=%s c=%s\n", Client.GetStr(), c.GetStr());
+				if (c.y1 < 0)
+				{
+					// Scroll up to keep cursor on screen
+					int Lines = abs(c.y1 / LineY) + 1;
+					VScroll->Value(max(0, Pos - Lines));
+				}
+				else if (c.y2 > Client.y2)
+				{
+					// Scroll down to show cursor
+					int Lines = (c.y2 - Client.y2) / LineY + 1;
+					VScroll->Value(Pos + Lines);
+				}
+			}
+		}
 	}
 
 	void MoveCursor(int Dx, int Dy, bool Selecting = false)
@@ -1233,61 +1397,7 @@ public:
 				}
 			}
 
-			if (NewCur)
-			{
-				// Selection stuff
-				if (Selecting && !Selection)
-				{
-					// Selection is starting, save current cursor as the selection end.
-					Selection = Cursor;
-					Selection->Selection = Cursor->Cursor;
-				}
-				else if (!Selecting && Selection)
-				{
-					// Selection ending...
-					Selection->Selection = -1;
-					Selection = 0;
-				}
-
-				// Set new cursor
-				if (t != NewCur)
-				{
-					t->Cursor = -1;
-					Cursor = NewCur;
-				}
-				Cursor->Cursor = NewPos;
-
-				// Update the window
-				SetCursorVis(true);
-				Edit->SetIgnorePulse(true);
-				OnCursorChanged();
-
-				// Check if we need to scroll the window at all
-				if (VScroll)
-				{
-					LgiYield(); // Cursor position updates on paint
-
-					int LineY = GetFont()->GetHeight();
-					int64 Pos = VScroll->Value();
-					GRect Client = GetClient();
-					GRect c = GetCursorPos();
-					c.Offset(0, -Pos * LineY);
-
-					// LgiTrace("cli=%s c=%s\n", Client.GetStr(), c.GetStr());
-					if (c.y1 < 0)
-					{
-						// Scroll up to keep cursor on screen
-						int Lines = abs(c.y1 / LineY) + 1;
-						VScroll->Value(max(0, Pos - Lines));
-					}
-					else if (c.y2 > Client.y2)
-					{
-						// Scroll down to show cursor
-						int Lines = (c.y2 - Client.y2) / LineY + 1;
-						VScroll->Value(Pos + Lines);
-					}
-				}
-			}
+			SetCursor(NewCur, NewPos, Selecting);
 		}
 	}
 
@@ -1825,14 +1935,32 @@ public:
 				{
 					if (k.Down())
 					{
+						GArray<GFlowRect*> Rects;
+						if (GetLine(Cursor, Cursor->Cursor, Rects))
+						{
+							GFlowRect *First = Rects[0];
+							if (First)
+							{
+								SetCursor(First->Tag, First->Start(), k.Shift());
+							}
+						}
 					}
 					return true;
 					break;
 				}
 				case VK_END:
 				{
-					if (k.Down())
+					if (Cursor && k.Down())
 					{
+						GArray<GFlowRect*> Rects;
+						if (GetLine(Cursor, Cursor->Cursor, Rects))
+						{
+							GFlowRect *Last = Rects[Rects.Length()-1];
+							if (Last)
+							{
+								SetCursor(Last->Tag, Last->Start() + Last->Len, k.Shift());
+							}
+						}
 					}
 					return true;
 					break;
@@ -2030,6 +2158,14 @@ public:
 	{
 		return Tag;
 	}
+
+	#ifdef _DEBUG
+	void OnDebug(GSurface *pDC)
+	{
+		pDC->Colour(LC_WORKSPACE, 24);
+		pDC->Rectangle();
+	}
+	#endif
 };
 #endif
 
@@ -2048,6 +2184,9 @@ public:
 	Btn *ForeColour;
 	Btn *BackColour;
 	Btn *MakeLink;
+	#ifdef _DEBUG
+	GWindow *DebugWnd;
+	#endif
 
 	GHtmlEditPriv()
 	{
@@ -2063,10 +2202,12 @@ public:
 		MakeLink = 0;
 		ForeColour = 0;
 		BackColour = 0;
+		DebugWnd = 0;
 	}
 
 	~GHtmlEditPriv()
 	{
+		DeleteObj(DebugWnd);
 		DeleteObj(Icons);
 	}
 
@@ -2113,6 +2254,35 @@ public:
 	}
 };
 
+#ifdef _DEBUG
+class DebugWnd : public GWindow
+{
+	GHtmlEditPriv *d;
+
+public:
+	DebugWnd(GHtmlEditPriv *priv)
+	{
+		d = priv;
+		Name("Html Edit Debug");
+		SetPos(GRect(0, 0, 800, 600));
+		MoveToCenter();
+		if (Attach(0))
+		{
+			Visible(true);
+		}
+	}
+
+	~DebugWnd()
+	{
+		d->DebugWnd = 0;
+	}
+
+	void OnPaint(GSurface *pDC)
+	{
+		d->e->OnDebug(pDC);
+	}
+};
+#endif
 
 GHtmlEdit::GHtmlEdit()
 {
@@ -2165,6 +2335,12 @@ GHtmlEdit::GHtmlEdit()
 	Children.Insert(d->BackColour = new Btn(IDC_BACK_COLOUR, 4, false, d->Icons, 24));
 	d->BackColour->SpaceAfter = 8;
 	Children.Insert(d->MakeLink = new Btn(IDC_MAKE_LINK, 5, false, d->Icons, 24));
+
+	#ifdef _DEBUG
+	d->MakeLink->SpaceAfter = 8;
+	Children.Insert(new Btn(IDC_DEBUG_WND, false, "Debug"));
+	#endif
+
 	Children.Insert(d->e = new ::HtmlEdit(this));
 
 	OnPosChange();
@@ -2206,6 +2382,14 @@ int GHtmlEdit::OnNotify(GViewI *c, int f)
 				if (i.DoModal())
 					d->e->MakeLink(i.Str);
 			}
+			break;
+		}
+		case IDC_DEBUG_WND:
+		{
+			if (!d->DebugWnd)
+				d->DebugWnd = new DebugWnd(d);
+			else
+				DeleteObj(d->DebugWnd);
 			break;
 		}
 	}
