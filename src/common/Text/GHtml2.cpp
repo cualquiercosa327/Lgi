@@ -5873,7 +5873,7 @@ void GTag::OnPaint(GSurface *pDC)
 			OnPaintBorder(pDC);
 
 			GFont *f = GetFont();
-			if (f && TextPos.Length() > 0)
+			if (f)
 			{
 				#define FontColour(s) \
 				f->Transparent(!s); \
@@ -5913,6 +5913,20 @@ void GTag::OnPaint(GSurface *pDC)
 						int Start = SubtractPtr(Tr->Text, Text());
 						int Done = 0;
 						int x = Tr->x1;
+
+						if (Tr->Len == 0)
+						{
+							// Is this a selection edge point?
+							if (!Selected && Min == 0)
+							{
+								Selected = !Selected;
+							}
+							else if (Selected && Max == 0)
+							{
+								Selected = !Selected;
+							}
+							break;
+						}
 
 						while (Done < Tr->Len)
 						{
@@ -6699,6 +6713,10 @@ GTag *GHtml2::PrevTag(GTag *t)
 				GTag *Last = GetLastChild(Prev);
 				return Last ? Last : Prev;
 			}
+			else
+			{
+				return p->Parent;
+			}
 		}
 	}
 
@@ -6780,7 +6798,7 @@ bool GHtml2::IsCursorFirst()
 			{
 				int CIdx = Cur->Parent ? Cur->Parent->Tags.IndexOf(Cur) : 0;
 				int SIdx = Sel->Parent ? Sel->Parent->Tags.IndexOf(Sel) : 0;
-				if (CIdx <= SIdx)
+				if (CIdx < SIdx)
 				{
 					return true;
 				}

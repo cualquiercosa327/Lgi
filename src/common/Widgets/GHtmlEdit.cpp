@@ -15,6 +15,7 @@
 #define IDC_FORE_COLOUR				107
 #define IDC_BACK_COLOUR				108
 #define IDC_DEBUG_WND				109
+#define IDC_HTML_EDIT				110
 
 #define TOOLBAR_HT					18
 
@@ -78,7 +79,7 @@ int GFlowRect::Start()
 	char16 *t = Tag->Text();
 	if (!t) return -1;
 	char16 *e = t + StrlenW(t);
-	if (Text < t || Text >= e)
+	if (Text < t || Text > e)
 	{
 		LgiAssert(!"Text should always point into the tag's buffer");
 		return -1;
@@ -523,6 +524,7 @@ public:
 	HtmlEdit(GHtmlEdit *edit) : GHtml2(100, 0, 0, 100, 100)
 	{
 		// Construct the basics
+		SetId(IDC_HTML_EDIT);
 		SetReadOnly(false);
 		Edit = edit;
 		b = 0;
@@ -534,7 +536,7 @@ public:
 
 	void OnDocumentChange()
 	{
-		Edit->SendNotify(GTVN_DOC_CHANGED);
+		SendNotify(GTVN_DOC_CHANGED);
 	}
 
 	#ifdef _DEBUG
@@ -625,6 +627,7 @@ public:
 							Cursor = a;
 						}
 						
+						LgiAssert(b != Selection && b != Cursor);
 						b->Detach();
 						DeleteObj(b);
 						
@@ -1117,6 +1120,7 @@ public:
 		}
 		
 		Invalidate();
+		SendNotify(GTVN_CURSOR_CHANGED);
 	}
 
 	bool GetLine(GTag *t, int idx, GArray<GFlowRect*> &Rects)
@@ -1134,7 +1138,7 @@ public:
 				if (f->Text >= Base && f->Text < End)
 				{
 					int Start = f->Text - Base;
-					if (idx >= Start && idx < Start + f->Len)
+					if (idx >= Start && idx <= Start + f->Len)
 					{
 						// This flow rect is where the index is
 						Inside = f;
@@ -1608,6 +1612,7 @@ public:
 						}
 					}
 
+					Selection = 0;
 					Cursor = First;
 					Cursor->Cursor = FirstMarkerValue;
 					Status = true;
@@ -1625,6 +1630,7 @@ public:
 					{
 						if (n->TagId == TAG_BR)
 						{
+							LgiAssert(n != Selection && n != Cursor);
 							n->Detach();
 							DeleteObj(n);
 							break;
@@ -1666,6 +1672,8 @@ public:
 							{
 								GTag *Del = n;
 								n = PrevTag(n);
+
+								LgiAssert(Del != Selection && Del != Cursor);
 								Del->Detach();
 								DeleteObj(Del);
 								continue;
@@ -1673,6 +1681,7 @@ public:
 							else if (n->TagId == TAG_P ||
 									 n->TagId == TAG_BR)
 							{
+								LgiAssert(n != Selection && n != Cursor);
 								n->Detach();
 								DeleteObj(n);
 
@@ -1716,7 +1725,42 @@ public:
 				{
 					char16 *c = t->Text() + t->Cursor + s;
 					if (*c)
+					{
 						memmove(c, c + 1, (StrlenW(c + 1) + 1) * sizeof(*t->Text()));
+					}
+					if (!ValidStrW(t->Text()))
+					{
+						t->Cursor = -1;
+						while (Cursor = (Backwards ? PrevTag(Cursor) : NextTag(Cursor)))
+						{
+							if (Cursor->Text())
+								break;
+						}
+						if (Cursor)
+						{
+							if (Backwards)
+								Cursor->Cursor = StrlenW(Cursor->Text());
+							else
+								Cursor->Cursor = 0;
+						}
+
+						if (t->TagId == CONTENT)
+						{
+							GTag *a = NextTag(t);
+							if (a && a->TagId == TAG_BR)
+							{
+								LgiAssert(a != Selection && a != Cursor);
+								a->Detach();
+								DeleteObj(a);
+							}
+
+							LgiAssert(t != Selection && t != Cursor);
+							t->Detach();
+							DeleteObj(t);
+						}
+
+						OnCursorChanged();
+					}
 					Status = true;
 				}
 			}
@@ -1767,10 +1811,15 @@ public:
 						}
 						t->Cursor = -1;
 
-						n = new GTag(t->Html, 0);
-						if (n)
+						if (n = new GTag(t->Html, 0))
 						{
 							n->SetTag("br");
+							Insert->Attach(n, Idx);
+						}
+						if (n = new GTag(t->Html, 0))
+						{
+							n->TagId = CONTENT;
+							n->Text(NewStrW(L""));
 							Insert->Attach(n, Idx);
 						}
 
@@ -2164,6 +2213,55 @@ public:
 	{
 		pDC->Colour(LC_WORKSPACE, 24);
 		pDC->Rectangle();
+		SysFont->Colour(LC_TEXT, LC_WORKSPACE);
+		SysFont->Transparent(true);
+
+		char16 Empty[] = {0};
+
+		#define AllowEmpty(s) ((s)?(s):Empty)
+
+		int x = 6;
+		int y = pDC->Y() / 2 - 10;
+		if (Cursor)
+		{
+			char m[256];
+			GTag *t;
+			int cy;
+			for (cy = y, t = PrevTag(Cursor); t && cy > 0; t = PrevTag(t))
+			{
+				SysFont->Fore(t == Selection ? Rgb24(0, 0xcc, 0) : LC_TEXT);
+				sprintf(m, "<%s>%S", t->Tag?t->Tag:"CONTENT", AllowEmpty(t->Text()));
+				GDisplayString s(SysFont, m);
+				cy -= s.Y();
+				s.Draw(pDC, x, cy);
+			}
+
+			sprintf(m, "<%s>%.*S", Cursor->Tag?Cursor->Tag:"CONTENT", Cursor->Cursor, Cursor->Text());
+			SysFont->Fore(Rgb24(0, 0, 255));
+			GDisplayString s(SysFont, m);
+			s.Draw(pDC, x, y);
+			SysFont->Fore(Rgb24(255, 0, 0));
+			GDisplayString s2(SysFont, "[cursor]");
+			s2.Draw(pDC, x+s.X(), y);
+			SysFont->Fore(Rgb24(0, 0, 255));
+			GDisplayString s3(SysFont, Cursor->Text()+Cursor->Cursor);
+			s3.Draw(pDC, x+s.X()+s2.X(), y);
+
+			SysFont->Fore(LC_TEXT);
+			for (cy = y, t = NextTag(Cursor); t && cy < pDC->Y(); t = NextTag(t))
+			{
+				SysFont->Fore(t == Selection ? Rgb24(0, 0xcc, 0) : LC_TEXT);
+				sprintf(m, "<%s>%S", t->Tag?t->Tag:"CONTENT", AllowEmpty(t->Text()));
+				GDisplayString s(SysFont, m);
+				cy += s.Y();
+				s.Draw(pDC, x, cy);
+			}
+		}
+		else
+		{
+			GDisplayString s(SysFont, "No cursor.");
+			s.Draw(pDC, x, y);
+		}
 	}
 	#endif
 };
@@ -2355,6 +2453,22 @@ int GHtmlEdit::OnNotify(GViewI *c, int f)
 {
 	switch (c->GetId())
 	{
+		case IDC_HTML_EDIT:
+		{
+			#ifdef _DEBUG
+			if (f == GTVN_CURSOR_CHANGED ||
+				f == GTVN_DOC_CHANGED)
+			{
+				if (d->DebugWnd)
+					d->DebugWnd->Invalidate();
+
+			}
+			#endif
+
+			SendNotify(f);
+			return 0;
+			break;
+		}
 		case IDC_BOLD:
 		{
 			d->IsBold->Value(d->e->OnBold());
@@ -2384,6 +2498,7 @@ int GHtmlEdit::OnNotify(GViewI *c, int f)
 			}
 			break;
 		}
+		#ifdef _DEBUG
 		case IDC_DEBUG_WND:
 		{
 			if (!d->DebugWnd)
@@ -2392,6 +2507,7 @@ int GHtmlEdit::OnNotify(GViewI *c, int f)
 				DeleteObj(d->DebugWnd);
 			break;
 		}
+		#endif
 	}
 
 	return GDocView::OnNotify(c, f);
