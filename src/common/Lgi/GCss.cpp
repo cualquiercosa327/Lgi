@@ -3,7 +3,22 @@
 #include "LgiCommon.h"
 
 #define SkipWhite(s) 	while (*s && strchr(WhiteSpace, *s)) s++;
+
 #define IsNumeric(s)	((*s) && (strchr("-.", *s) || isdigit(*s)))
+
+#define CopyPropOnSave(Type, Id) \
+	{ \
+		Type *e = (Type*)Props.Find(Id); \
+		if (e) *e = *t; \
+		else Props.Add(Id, new Type(*t)); \
+	}
+#define ReleasePropOnSave(Type, Id) \
+	{ \
+		Type *e = (Type*)Props.Find(Id); \
+		if (e) *e = *t; \
+		else Props.Add(Id, t.Release()); \
+	}
+
 
 GHashTbl<char*, GCss::PropType> GCss::Lut(0, false);
 char *GCss::PropName(PropType p)
@@ -129,6 +144,11 @@ GCss::GCss() : Props(0, false, PropNull)
 {
 	if (Lut.Length() == 0)
 	{
+		Lut.Add("border-collapse", PropBorderCollapse);
+		Lut.Add("letter-spacing", PropLetterSpacing);
+		Lut.Add("list-style-type", PropListStyleType);
+		Lut.Add("word-wrap", PropWordWrap);
+		Lut.Add("text-align", PropTextAlign);
 		Lut.Add("text-decoration", PropTextDecoration);
 		Lut.Add("display", PropDisplay);
 		Lut.Add("float", PropFloat);
@@ -155,14 +175,17 @@ GCss::GCss() : Props(0, false, PropNull)
 		Lut.Add("right", PropRight);
 		Lut.Add("bottom", PropBottom);
 		Lut.Add("left", PropLeft);
+		Lut.Add("margin", PropMargin);
 		Lut.Add("margin-top", PropMarginTop);
 		Lut.Add("margin-right", PropMarginRight);
 		Lut.Add("margin-bottom", PropMarginBottom);
 		Lut.Add("margin-left", PropMarginLeft);
+		Lut.Add("padding", PropPadding);
 		Lut.Add("padding-top", PropPaddingTop);
 		Lut.Add("padding-right", PropPaddingRight);
 		Lut.Add("padding-bottom", PropPaddingBottom);
 		Lut.Add("padding-left", PropPaddingLeft);
+		Lut.Add("border", PropBorder);
 		Lut.Add("border-top", PropBorderTop);
 		Lut.Add("border-right", PropBorderRight);
 		Lut.Add("border-bottom", PropBorderBottom);
@@ -776,7 +799,7 @@ void GCss::OnChange(PropType Prop)
 {
 }
 
-bool GCss::Parse(char *&s)
+bool GCss::Parse(char *&s, ParsingStyle Type)
 {
 	if (!s) return false;
 
@@ -796,6 +819,7 @@ bool GCss::Parse(char *&s)
 		PropType PropId = Lut.Find(Prop);
 		int PropType = (int)PropId >> 8;
 		SkipWhite(s);
+		char *ValueStart = s;
 
 		// Do the data parsing based on type
 		switch (PropType)
@@ -840,6 +864,27 @@ bool GCss::Parse(char *&s)
 						else *t = FloatInherit;
 						break;
 					}
+					case PropFontStyle:
+					{
+						FontStyleType *w = (FontStyleType*)Props.Find(PropId);
+						if (!w) Props.Add(PropId, w = new FontStyleType);
+
+						     if (ParseWord(s, "inherit")) *w = FontStyleInherit;
+						else if (ParseWord(s, "normal")) *w = FontStyleNormal;
+						else if (ParseWord(s, "italic")) *w = FontStyleItalic;
+						else if (ParseWord(s, "Oblique")) *w = FontStyleOblique;
+						break;
+					}
+					case PropFontVariant:
+					{
+						FontVariantType *w = (FontVariantType*)Props.Find(PropId);
+						if (!w) Props.Add(PropId, w = new FontVariantType);
+
+						     if (ParseWord(s, "inherit")) *w = FontVariantInherit;
+						else if (ParseWord(s, "normal")) *w = FontVariantNormal;
+						else if (ParseWord(s, "small-caps")) *w = FontVariantSmallCaps;
+						break;
+					}
 					case PropFontWeight:
 					{
 						FontWeightType *w = (FontWeightType*)Props.Find(PropId);
@@ -861,6 +906,56 @@ bool GCss::Parse(char *&s)
 						else if (ParseWord(s, "900")) *w = FontWeight900;
 						break;
 					}
+					case PropTextDecoration:
+					{
+						TextDecorType *w = (TextDecorType*)Props.Find(PropId);
+						if (!w) Props.Add(PropId, w = new TextDecorType);
+
+						     if (ParseWord(s, "inherit")) *w = TextDecorInherit;
+						else if (ParseWord(s, "none")) *w = TextDecorNone;
+						else if (ParseWord(s, "underline")) *w = TextDecorUnderline;
+						else if (ParseWord(s, "overline")) *w = TextDecorOverline;
+						else if (ParseWord(s, "line-through")) *w = TextDecorLineThrough;
+						else if (ParseWord(s, "blink")) *w = TextDecorBlink;
+						break;
+					}
+					case PropWordWrap:
+					{
+						WordWrapType *w = (WordWrapType*)Props.Find(PropId);
+						if (!w) Props.Add(PropId, w = new WordWrapType);
+
+						if (ParseWord(s, "break-word")) *w = WrapBreakWord;
+						else *w = WrapNormal;
+						break;
+					}
+					case PropBorderCollapse:
+					{
+						BorderCollapseType *w = (BorderCollapseType*)Props.Find(PropId);
+						if (!w) Props.Add(PropId, w = new BorderCollapseType);
+
+						     if (ParseWord(s, "inherit")) *w = CollapseInherit;
+						else if (ParseWord(s, "Collapse")) *w = CollapseCollapse;
+						else if (ParseWord(s, "Separate")) *w = CollapseSeparate;
+						break;
+					}
+					case PropBackgroundRepeat:
+					{
+						RepeatType *w = (RepeatType*)Props.Find(PropId);
+						if (!w) Props.Add(PropId, w = new RepeatType);
+
+						     if (ParseWord(s, "inherit")) *w = RepeatInherit;
+						else if (ParseWord(s, "repeat-x")) *w = RepeatX;
+						else if (ParseWord(s, "repeat-y")) *w = RepeatY;
+						else if (ParseWord(s, "no-repeat")) *w = RepeatNone;
+						else if (ParseWord(s, "repeat")) *w = RepeatBoth;
+						break;
+					}
+					case PropListStyleType:
+					case PropLetterSpacing:
+					{
+						// Fixme: do not care right now...
+						break;
+					}
 					default:
 					{
 						LgiAssert(!"Prop parsing support not implemented.");
@@ -871,11 +966,26 @@ bool GCss::Parse(char *&s)
 			case TypeLen:
 			{
 				GAutoPtr<Len> t(new Len);
-				if (t->Parse(s, PropId == PropZIndex))
+				if (t->Parse(s, PropId == PropZIndex ? ParseRelaxed : Type))
 				{
-					Len *e = (Len*)Props.Find(PropId);
-					if (e) *e = *t;
-					else Props.Add(PropId, t.Release());
+					if (PropId == PropPadding)
+					{
+						CopyPropOnSave(Len, PropPaddingLeft);
+						CopyPropOnSave(Len, PropPaddingRight);
+						CopyPropOnSave(Len, PropPaddingTop);
+						ReleasePropOnSave(Len, PropPaddingBottom);
+					}
+					else if (PropId == PropMargin)
+					{
+						CopyPropOnSave(Len, PropMarginLeft);
+						CopyPropOnSave(Len, PropMarginRight);
+						CopyPropOnSave(Len, PropMarginTop);
+						ReleasePropOnSave(Len, PropMarginBottom);
+					}
+					else
+					{
+						ReleasePropOnSave(Len, PropId);
+					}
 				}
 				else LgiAssert(!"Parsing failed.");
 				break;
@@ -883,7 +993,8 @@ bool GCss::Parse(char *&s)
 			case TypeColor:
 			{
 				GAutoPtr<ColorDef> t(new ColorDef);
-				if (t->Parse(s))
+				if (t->Parse(s) ||
+					OnUnhandledColor(t, s))
 				{
 					ColorDef *e = (ColorDef*)Props.Find(PropId);
 					if (e) *e = *t;
@@ -904,146 +1015,32 @@ bool GCss::Parse(char *&s)
 				else LgiAssert(!"Parsing failed.");
 				break;
 			}
+			case TypeBorder:
+			{
+				GAutoPtr<BorderDef> t(new BorderDef);
+				if (t->Parse(s))
+				{
+					if (PropId == PropBorder)
+					{
+						CopyPropOnSave(BorderDef, PropBorderLeft);
+						CopyPropOnSave(BorderDef, PropBorderRight);
+						CopyPropOnSave(BorderDef, PropBorderTop);
+						ReleasePropOnSave(BorderDef, PropBorderBottom);
+					}
+					else
+					{
+						ReleasePropOnSave(BorderDef, PropId);
+					}
+				}
+				break;
+			}
 			default:
 			{
-				LgiAssert(!"Unsupported property type.");
+				if (Type == ParseStrict)
+					LgiAssert(!"Unsupported property type.");
 				break;
 			}
 		}
-
-	
-		/*
-		// Parse individual properties
-		if (ParseProp(s, "width"))
-			_width.Parse(s);
-		else if (ParseProp(s, "min-width"))
-			min_width.Parse(s);
-		else if (ParseProp(s, "max-width"))
-			max_width.Parse(s);
-		else if (ParseProp(s, "height"))
-			_height.Parse(s);
-		else if (ParseProp(s, "min-height"))
-			min_height.Parse(s);
-		else if (ParseProp(s, "max-height"))
-			max_height.Parse(s);
-		else if (ParseProp(s, "top"))
-			_top.Parse(s);
-		else if (ParseProp(s, "right"))
-			_right.Parse(s);
-		else if (ParseProp(s, "bottom"))
-			_bottom.Parse(s);
-		else if (ParseProp(s, "left"))
-			_left.Parse(s);
-		else if (ParseProp(s, "margin-top"))
-			margin_top.Parse(s);
-		else if (ParseProp(s, "margin-right"))
-			margin_right.Parse(s);
-		else if (ParseProp(s, "margin-bottom"))
-			margin_bottom.Parse(s);
-		else if (ParseProp(s, "margin-left"))
-			margin_left.Parse(s);
-		else if (ParseProp(s, "padding-top"))
-			padding_top.Parse(s);
-		else if (ParseProp(s, "padding-right"))
-			padding_right.Parse(s);
-		else if (ParseProp(s, "padding-bottom"))
-			padding_bottom.Parse(s);
-		else if (ParseProp(s, "padding-left"))
-			padding_left.Parse(s);
-		else if (ParseProp(s, "line-height"))
-			line_height.Parse(s);
-		else if (ParseProp(s, "vertical-align"))
-			vertical_align.Parse(s);
-		else if (ParseProp(s, "z-index"))
-			_zindex.Parse(s);
-		else if (ParseProp(s, "font-family"))
-			font_family.Reset(ParseString(s));
-		else if (ParseProp(s, "font-size"))
-			font_size.Parse(s);
-		else if (ParseProp(s, "font-style"))
-		{
-			GAutoString v(ParseString(s));
-			if (!v) ;
-			else if (!stricmp(v, "inherit"))		font_style = FontStyleInherit;
-			else if (!stricmp(v, "normal"))			font_style = FontStyleNormal;
-			else if (!stricmp(v, "italic"))			font_style = FontStyleItalic;
-			else if (!stricmp(v, "oblique"))		font_style = FontStyleOblique;
-		}
-		else if (ParseProp(s, "font-variant"))
-		{
-			GAutoString v(ParseString(s));
-			if (!v) ;
-			else if (!stricmp(v, "inherit"))		font_variant = FontVariantInherit;
-			else if (!stricmp(v, "normal"))			font_variant = FontVariantNormal;
-			else if (!stricmp(v, "small-caps"))		font_variant = FontVariantSmallCaps;
-		}
-		else if (ParseProp(s, "font-weight"))
-		{
-			GAutoString v(ParseString(s));
-			if (!v) ;
-			else if (!stricmp(v, "inherit"))		font_weight = FontWeightInherit;
-			else if (!stricmp(v, "normal"))			font_weight = FontWeightNormal;
-			else if (!stricmp(v, "bold"))			font_weight = FontWeightBold;
-			else if (!stricmp(v, "bolder"))			font_weight = FontWeightBolder;
-			else if (!stricmp(v, "lighter"))		font_weight = FontWeightLighter;
-			else if (!stricmp(v, "100"))			font_weight = FontWeight100;
-			else if (!stricmp(v, "200"))			font_weight = FontWeight200;
-			else if (!stricmp(v, "300"))			font_weight = FontWeight300;
-			else if (!stricmp(v, "400"))			font_weight = FontWeight400;
-			else if (!stricmp(v, "500"))			font_weight = FontWeight500;
-			else if (!stricmp(v, "600"))			font_weight = FontWeight600;
-			else if (!stricmp(v, "700"))			font_weight = FontWeight700;
-			else if (!stricmp(v, "800"))			font_weight = FontWeight800;
-			else if (!stricmp(v, "900"))			font_weight = FontWeight900;
-		}
-		else if (ParseProp(s, "color"))
-		{
-			_colour.Parse(s);
-		}
-		else if (ParseProp(s, "background-colour") ||
-				 ParseProp(s, "background"))
-		{
-			background_colour.Parse(s);
-		}
-		else if (ParseProp(s, "background-image"))
-		{
-			background_image.Parse(s);
-		}
-		else if (ParseProp(s, "display"))
-		{
-			GAutoString v(ParseString(s));
-			if (!v) ;
-			else if (!stricmp(v, "inherit"))		_display = DispInherit;
-			else if (!stricmp(v, "block"))			_display = DispBlock;
-			else if (!stricmp(v, "inline"))			_display = DispInline;
-			else if (!stricmp(v, "inline-block"))	_display = DispInlineBlock;
-			else if (!stricmp(v, "list-item"))		_display = DispListItem;
-			else if (!stricmp(v, "none"))			_display = DispNone;
-		}
-		else if (ParseProp(s, "position"))
-		{
-			GAutoString v(ParseString(s));
-			if (!v) ;
-			else if (!stricmp(v, "inherit"))		_position = PosInherit;
-			else if (!stricmp(v, "static"))			_position = PosStatic;
-			else if (!stricmp(v, "relative"))		_position = PosRelative;
-			else if (!stricmp(v, "absolute"))		_position = PosAbsolute;
-			else if (!stricmp(v, "fixed"))			_position = PosFixed;
-		}
-		else if (ParseProp(s, "float"))
-		{
-			GAutoString v(ParseString(s));
-			if (!v) ;
-			else if (!stricmp(v, "inherit"))		_float = FloatInherit;
-			else if (!stricmp(v, "left"))			_float = FloatLeft;
-			else if (!stricmp(v, "right"))			_float = FloatRight;
-			else if (!stricmp(v, "none"))			_float = FloatNone;
-		}
-		else
-		{
-			LgiAssert(!"Unhandled css property");
-		}
-		*/
 
 		// End of property delimiter
 		while (*s && *s != ';') s++;
@@ -1056,7 +1053,7 @@ bool GCss::Parse(char *&s)
 }
 
 /////////////////////////////////////////////////////////////////////////////
-bool GCss::Len::Parse(char *&s, bool AllowNoUnits)
+bool GCss::Len::Parse(char *&s, ParsingStyle ParseType)
 {
 	if (!s) return false;
 	
@@ -1064,6 +1061,21 @@ bool GCss::Len::Parse(char *&s, bool AllowNoUnits)
 	if (ParseWord(s, "inherit")) Type = LenInherit;
 	else if (ParseWord(s, "auto")) Type = LenInherit;
 	else if (ParseWord(s, "normal")) Type = LenNormal;
+
+	else if (ParseWord(s, "center")) Type = AlignCenter;
+	else if (ParseWord(s, "left")) Type = AlignLeft;
+	else if (ParseWord(s, "right")) Type = AlignRight;
+	else if (ParseWord(s, "justify")) Type = AlignJustify;
+
+	else if (ParseWord(s, "xx-small")) Type = SizeXXSmall;
+	else if (ParseWord(s, "x-small")) Type = SizeXSmall;
+	else if (ParseWord(s, "small")) Type = SizeSmall;
+	else if (ParseWord(s, "medium")) Type = SizeMedium;
+	else if (ParseWord(s, "large")) Type = SizeLarge;
+	else if (ParseWord(s, "x-large")) Type = SizeXLarge;
+	else if (ParseWord(s, "xx-large")) Type = SizeXXLarge;
+	else if (ParseWord(s, "smaller")) Type = SizeSmaller;
+	else if (ParseWord(s, "larger")) Type = SizeLarger;
 	else if (IsNumeric(s))
 	{
 		Value = atof(s);
@@ -1074,7 +1086,8 @@ bool GCss::Len::Parse(char *&s, bool AllowNoUnits)
 		else if (ParseWord(s, "pt")) Type = LenPt;
 		else if (ParseWord(s, "em")) Type = LenEm;
 		else if (ParseWord(s, "ex")) Type = LenEx;
-		else if (AllowNoUnits) Type = LenPx;
+		else if (ParseWord(s, "cm")) Type = LenCm;
+		else if (ParseType == ParseRelaxed) Type = LenPx;
 		else return false;
 	}
 	else return false;
@@ -1264,7 +1277,7 @@ bool GCss::BorderDef::Parse(char *&s)
 	if (!s)
 		return false;
 
-	if (!Len::Parse(s, true))		
+	if (!Len::Parse(s, ParseRelaxed))
 		return false;
 
 	SkipWhite(s);

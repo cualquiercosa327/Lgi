@@ -20,6 +20,11 @@
 class LgiClass GCss
 {
 public:
+	enum ParsingStyle {
+		ParseStrict,
+		ParseRelaxed,
+	};
+
 	enum PropTypes {
 		TypeEnum = 1,
 		TypeLen,
@@ -48,6 +53,11 @@ public:
 		PropBackgroundRepeat,		// RepeatType
 		PropBackgroundAttachment,	// AttachmentType
 		PropTextDecoration,			// TextDecorType
+		PropWordWrap,				// WordWraptype
+		PropListStyleType,
+		PropLetterSpacing,
+		PropFont,
+		PropBorderCollapse,			// BorderCollapseType
 
 		// Length based props
 		PropZIndex = TypeLen<<8,
@@ -61,10 +71,12 @@ public:
 		PropRight,
 		PropBottom,
 		PropLeft,
+		PropMargin,
 		PropMarginTop,
 		PropMarginRight,
 		PropMarginBottom,
 		PropMarginLeft,
+		PropPadding,
 		PropPaddingTop,
 		PropPaddingRight,
 		PropPaddingBottom,
@@ -83,19 +95,32 @@ public:
 
 		// ColorDef based
 		PropColor = TypeColor<<8,
+		PropBackground,
 		PropBackgroundColor,
 
 		// ImageDef based
 		PropBackgroundImage = TypeImage<<8,
 		
 		// BorderDef based
-		PropBorderTop = TypeBorder<<8,
+		PropBorder = TypeBorder <<8,
+		PropBorderTop,
 		PropBorderRight,
 		PropBorderBottom,
 		PropBorderLeft,
 
 		// StringsDef based
 		PropFontFamily = TypeStrings<<8,
+	};
+
+	enum BorderCollapseType {
+		CollapseInherit,
+		CollapseCollapse,
+		CollapseSeparate,
+	};
+
+	enum WordWrapType {
+		WrapNormal,
+		WrapBreakWord,
 	};
 
 	enum DisplayType {
@@ -124,6 +149,7 @@ public:
 		LenPt,
 		LenEm,
 		LenEx,
+		LenCm,
 		LenPercent,
 		LenNormal,
 
@@ -265,7 +291,7 @@ public:
 			Value = 0.0;
 		}
 
-		bool Parse(char *&s, bool AllowNoUnits = false);
+		bool Parse(char *&s, ParsingStyle Type = ParseStrict);
 		bool IsValid() { return Type != LenInherit; }
 		bool IsDynamic() { return Type == LenPercent || Type == LenInherit; }
 		bool operator !=(Len &l) { return Type != l.Type || Value != l.Value; }
@@ -329,6 +355,12 @@ public:
 			Style = BorderNone;
 			if (init)
 				Parse(init);
+		}
+
+		BorderDef(const BorderDef &db) : Len(db)
+		{
+			Color = db.Color;
+			Style = db.Style;
 		}
 		
 		bool Parse(char *&s);
@@ -552,7 +584,7 @@ public:
 	
 	void Empty();
 	virtual void OnChange(PropType Prop);
-	virtual bool Parse(char *&Defs);
+	virtual bool Parse(char *&Defs, ParsingStyle Type = ParseStrict);
 	bool operator ==(GCss &c);
 	bool operator !=(GCss &c) { return !(*this == c); }
 	bool CopyStyle(const GCss &c);
@@ -565,6 +597,8 @@ protected:
 	GHashTbl<int, void*> Props;
 	static GHashTbl<char*, PropType> Lut;
 	static char *PropName(PropType p);
+
+	virtual bool OnUnhandledColor(ColorDef *def, char *&s) { return false; }
 };
 
 #pragma pack(pop)

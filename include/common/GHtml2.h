@@ -76,6 +76,7 @@ public:
 
 	// Html
 	char *GetClass() { return "GHtml2"; }
+	bool GetFormattedContent(char *MimeType, GAutoString &Out);
 
 	/// Get the tag at an x,y location
 	GTag *GetTagByPos(int x, int y, int *Index);
@@ -134,6 +135,7 @@ public:
 	virtual void OnCursorChanged() {}
 };
 
+/*
 /// All the CSS styles the HTML control uses/supports
 enum CssStyle
 {
@@ -182,7 +184,7 @@ enum CssStyle
 	CSS_VERTICAL_ALIGN,
 	CSS_TEXT_ALIGN,
 };
-
+*/
 
 }
 #endif

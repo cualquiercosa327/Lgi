@@ -27,6 +27,8 @@
 
 // Util macros
 
+/// Returns true if 'c' is an ascii character
+#define IsAlpha(c)					(((c) >= 'a' AND (c) <= 'z') OR ((c) >= 'A' AND (c) <= 'Z'))
 /// Returns true if 'c' is whitespace
 #define IsWhiteSpace(c)				((c) < 126 AND strchr(GDocView::WhiteSpace, c) != 0)
 /// Returns true if 'c' is a delimiter
@@ -283,6 +285,11 @@ public:
 	virtual void OnEnter(GKey &k) {}
 	/// Called when the user clicks a URL
 	virtual void OnUrl(char *Url) {}
+
+	///////////////////////////////////////////////////////////////////////
+
+	/// Gets the document in format of a desired MIME type
+	virtual bool GetFormattedContent(char *MimeType, GAutoString &Out) { return false; }
 };
 
 #endif

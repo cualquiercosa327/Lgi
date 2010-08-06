@@ -534,6 +534,31 @@ public:
 		{
 			return Fonts.First();
 		}
+		else if (Size.Type == GCss::SizeXXSmall ||
+				Size.Type == GCss::SizeXSmall ||
+				Size.Type == GCss::SizeSmall ||
+				Size.Type == GCss::SizeMedium ||
+				Size.Type == GCss::SizeLarge ||
+				Size.Type == GCss::SizeXLarge ||
+				Size.Type == GCss::SizeXXLarge)
+		{
+			double Table[] =
+			{
+				0.4, // SizeXXSmall
+				0.5, // SizeXSmall
+				0.7, // SizeSmall
+				1.0, // SizeMedium
+				1.3, // SizeLarge
+				1.7, // SizeXLarge
+				2.0, // SizeXXLarge
+			};
+
+			int Idx = Size.Type-GCss::SizeXXSmall;
+			LgiAssert(Idx >= 0 && Idx < CountOf(Table));
+			PtSize = Default->PointSize() * Table[Idx];
+			if (PtSize < MinimumPointSize)
+				PtSize = MinimumPointSize;
+		}
 		else LgiAssert(!"Not impl.");
 
 		if (f = new GFont)
@@ -765,6 +790,8 @@ public:
 
 	int ResolveY(GCss::Len l, GFont *f)
 	{
+		int ScreenDpi = 96; // Haha, where should I get this from?
+
 		switch (l.Type)
 		{
 			case GCss::LenInherit:
@@ -775,8 +802,11 @@ public:
 
 			case GCss::LenPt:
 			{
-				int ScreenDpi = 96; // Haha, where should I get this from?
 				return l.Value * ScreenDpi / 72.0;
+			}
+			case GCss::LenCm:
+			{
+				return l.Value * ScreenDpi / 2.54;
 			}
 			case GCss::LenEm:
 			{
@@ -2434,13 +2464,13 @@ void GTag::SetStyle()
 	if (Get("width", s))
 	{
 		Len l;
-		if (l.Parse(s, true))
+		if (l.Parse(s, ParseRelaxed))
 			Width(l);
 	}
 	if (Get("height", s))
 	{
 		Len l;
-		if (l.Parse(s, true))
+		if (l.Parse(s, ParseRelaxed))
 			Height(l);
 	}
 	if (Get("align", s))
@@ -2588,12 +2618,12 @@ void GTag::SetStyle()
 			Len l;
 			char *s;
 			if (Get("cellspacing", s) &&
-				l.Parse(s, true))
+				l.Parse(s, ParseRelaxed))
 			{
 				BorderSpacing(l);
 			}
 			if (Get("cellpadding", s) &&
-				l.Parse(s, true))
+				l.Parse(s, ParseRelaxed))
 			{
 				_CellPadding(l);
 			}
@@ -2790,6 +2820,15 @@ void GTag::SetCssStyle(char *Style)
 		}
 
 		// Parse CSS
+
+		#if 1
+
+		// The new GCss library way...
+		GCss::Parse(Style, GCss::ParseRelaxed);
+
+		#else
+
+		// Old pre-CSS library way of parsing CSS
 		GToken Vars(Style, ";");
 		for (int v=0; v<Vars.Length(); v++)
 		{
@@ -2799,7 +2838,7 @@ void GTag::SetCssStyle(char *Style)
 				char *VarName = TrimStr(Var[0]);
 				if (VarName)
 				{
-					CssStyle Style = (CssStyle)(int)GHtmlStatic::Inst->StyleMap.Find(VarName);
+					GCss::PropType Style = GHtmlStatic::Inst->StyleMap.Find(VarName);
 					DeleteArray(VarName);
 					char *Value = Var[1];
 					while (*Value && strchr(" \t", *Value)) Value++;
@@ -2812,7 +2851,7 @@ void GTag::SetCssStyle(char *Style)
 
 					switch (Style)
 					{
-						case CSS_TEXT_ALIGN:
+						case GCss::PropTextAlign:
 						{
 							if (!stricmp(Value, "center"))
 								TextAlign(Len(AlignCenter));
@@ -2822,7 +2861,7 @@ void GTag::SetCssStyle(char *Style)
 								TextAlign(Len(AlignRight));
 							break;
 						}
-						case CSS_VERTICAL_ALIGN:
+						case GCss::PropVerticalAlign:
 						{
 							if (!stricmp(Value, "top"))
 								VerticalAlign(Len(VerticalTop));
@@ -2832,7 +2871,7 @@ void GTag::SetCssStyle(char *Style)
 								VerticalAlign(Len(VerticalBottom));
 							break;
 						}
-						case CSS_MARGIN:
+						case GCss::PropMargin:
 						{
 							Len l;
 							GToken t(Value);
@@ -2855,28 +2894,28 @@ void GTag::SetCssStyle(char *Style)
 							}
 							break;
 						}
-						case CSS_MARGIN_LEFT:
+						case GCss::PropMarginLeft:
 						{
 							Len l;
 							if (l.Parse(Value, true))
 								MarginLeft(l);
 							break;
 						}
-						case CSS_MARGIN_RIGHT:
+						case GCss::PropMarginRight:
 						{
 							Len l;
 							if (l.Parse(Value))
 								MarginRight(l);
 							break;
 						}
-						case CSS_MARGIN_TOP:
+						case GCss::PropMarginTop:
 						{
 							Len l;
 							if (l.Parse(Value))
 								MarginTop(l);
 							break;
 						}
-						case CSS_MARGIN_BOTTOM:
+						case GCss::PropMarginBottom:
 						{
 							Len l;
 							if (l.Parse(Value))
@@ -2884,7 +2923,7 @@ void GTag::SetCssStyle(char *Style)
 							break;
 						}
 
-						case CSS_PADDING:
+						case GCss::PropPadding:
 						{
 							Len l;
 							GToken t(Value);
@@ -2907,28 +2946,28 @@ void GTag::SetCssStyle(char *Style)
 							}
 							break;
 						}
-						case CSS_PADDING_LEFT:
+						case GCss::PropPaddingLeft:
 						{
 							Len l;
 							if (l.Parse(Value, true))
 								PaddingLeft(l);
 							break;
 						}
-						case CSS_PADDING_TOP:
+						case GCss::PropPaddingTop:
 						{
 							Len l;
 							if (l.Parse(Value, true))
 								PaddingTop(l);
 							break;
 						}
-						case CSS_PADDING_RIGHT:
+						case GCss::PropPaddingRight:
 						{
 							Len l;
 							if (l.Parse(Value, true))
 								PaddingRight(l);
 							break;
 						}
-						case CSS_PADDING_BOTTOM:
+						case GCss::PropPaddingBottom:
 						{
 							Len l;
 							if (l.Parse(Value, true))
@@ -2936,7 +2975,7 @@ void GTag::SetCssStyle(char *Style)
 							break;
 						}
 
-						case CSS_BORDER:
+						case GCss::PropBorder:
 						{
 							BorderDef b;
 							if (b.Parse(Value))
@@ -2948,28 +2987,28 @@ void GTag::SetCssStyle(char *Style)
 							}
 							break;
 						}
-						case CSS_BORDER_LEFT:
+						case GCss::PropBorderLeft:
 						{
 							BorderDef b;
 							if (b.Parse(Value))
 								BorderLeft(b);
 							break;
 						}
-						case CSS_BORDER_TOP:
+						case GCss::PropBorderTop:
 						{
 							BorderDef b;
 							if (b.Parse(Value))
 								BorderTop(b);
 							break;
 						}
-						case CSS_BORDER_RIGHT:
+						case GCss::PropBorderRight:
 						{
 							BorderDef b;
 							if (b.Parse(Value))
 								BorderRight(b);
 							break;
 						}
-						case CSS_BORDER_BOTTOM:
+						case GCss::PropBorderBottom:
 						{
 							BorderDef b;
 							if (b.Parse(Value))
@@ -2977,7 +3016,7 @@ void GTag::SetCssStyle(char *Style)
 							break;
 						}
 
-						case CSS_COLOUR:
+						case GCss::PropColor:
 						{
 							if (TagId != TAG_TABLE)
 							{
@@ -2989,8 +3028,8 @@ void GTag::SetCssStyle(char *Style)
 							}
 							break;
 						}
-						case CSS_BACKGROUND:
-						case CSS_BACKGROUND_COLOUR:
+						case GCss::PropBackground:
+						case GCss::PropBackgroundColor:
 						{
 							ColorDef c;
 							bool Status = ParseColour(Value, c);
@@ -3011,7 +3050,7 @@ void GTag::SetCssStyle(char *Style)
 							}
 							break;
 						}
-						case CSS_BACKGROUND_REPEAT:
+						case GCss::PropBackgroundRepeat:
 						{
 							if (stricmp(Value, "repeat") == 0)
 							{
@@ -3031,7 +3070,7 @@ void GTag::SetCssStyle(char *Style)
 							}
 							break;
 						}
-						case CSS_FONT:
+						case GCss::PropFont:
 						{
 							if (ValidStr(Value))
 							{
@@ -3101,7 +3140,7 @@ void GTag::SetCssStyle(char *Style)
 							}
 							break;
 						}
-						case CSS_FONT_FAMILY:
+						case GCss::PropFontFamily:
 						{
 							if (ValidStr(Value))
 							{
@@ -3131,14 +3170,14 @@ void GTag::SetCssStyle(char *Style)
 							}
 							break;
 						}
-						case CSS_FONT_SIZE:
+						case GCss::PropFontSize:
 						{
 							Len s;
 							if (s.Parse(Value))
 								FontSize(s);
 							break;
 						}
-						case CSS_FONT_WEIGHT:
+						case GCss::PropFontWeight:
 						{
 							if (stristr(Value, "bold"))
 							{
@@ -3146,7 +3185,7 @@ void GTag::SetCssStyle(char *Style)
 							}
 							break;
 						}
-						case CSS_FONT_STYLE:
+						case GCss::PropFontStyle:
 						{
 							if (stricmp(Value, "normal") == 0)
 							{
@@ -3160,14 +3199,14 @@ void GTag::SetCssStyle(char *Style)
 							}
 							break;
 						}
-						case CSS_WIDTH:
+						case GCss::PropWidth:
 						{
 							Len l;
 							if (l.Parse(Value, true))
 								Width(l);
 							break;
 						}
-						case CSS_HEIGHT:
+						case GCss::PropHeight:
 						{
 							Len l;
 							if (l.Parse(Value, true))
@@ -3178,6 +3217,8 @@ void GTag::SetCssStyle(char *Style)
 				}
 			}
 		}
+
+		#endif
 	}
 }
 
@@ -4150,6 +4191,28 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 	#endif
 
 	return 0;
+}
+
+bool GTag::OnUnhandledColor(GCss::ColorDef *def, char *&s)
+{
+	char *e = s;
+	while (*e && (IsText(*e) || *e == '_'))
+		e++;
+
+	char old = *e;
+	*e = 0;
+	int m = GHtmlStatic::Inst->ColourMap.Find(s);
+	*e = old;
+	s = e;
+
+	if (m >= 0)
+	{
+		def->Type = GCss::ColorRgb;
+		def->Rgb32 = Rgb24To32(m);
+		return true;
+	}
+
+	return false;
 }
 
 void GTag::ZeroTableElements()
@@ -7554,6 +7617,11 @@ bool GHtml2::GetLinkDoubleClick()
 void GHtml2::SetLinkDoubleClick(bool b)
 {
 	d->LinkDoubleClick = b;
+}
+
+bool GHtml2::GetFormattedContent(char *MimeType, GAutoString &Out)
+{
+	return false;
 }
 
 ////////////////////////////////////////////////////////////////////////

@@ -246,6 +246,7 @@ class GTag : public GDom, public GCss
 	GTag *GetTable();
 	char *NextTag(char *s);
 	void ZeroTableElements();
+	bool OnUnhandledColor(GCss::ColorDef *def, char *&s);
 	
 	COLOUR _Colour(bool Fore);
 	COLOUR GetFore() { return _Colour(true); }

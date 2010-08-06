@@ -1,6 +1,7 @@
 #ifndef _GHTMLSTATIC_H_
 #define _GHTMLSTATIC_H_
 
+#include "GCss.h"
 #include "GHashTable.h"
 
 extern char16 GHtmlListItem[];
@@ -13,9 +14,9 @@ public:
 	static GHtmlStatic *Inst;
 
 	int Refs;
-	GHashTbl<char16*,int>	VarMap;
-	GHashTbl<char*,int>		StyleMap;
-	GHashTbl<char*,int>		ColourMap;
+	GHashTbl<char16*,int>			VarMap;
+	GHashTbl<char*,GCss::PropType>	StyleMap;
+	GHashTbl<char*,int>				ColourMap;
 
 	GHtmlStatic();
 	~GHtmlStatic();

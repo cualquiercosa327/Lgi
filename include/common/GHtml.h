@@ -128,6 +128,7 @@ public:
 	GDom *getElementById(char *Id);
 };
 
+/*
 /// All the CSS styles the HTML control uses/supports
 enum CssStyle
 {
@@ -176,6 +177,7 @@ enum CssStyle
 	CSS_VERTICAL_ALIGN,
 	CSS_TEXT_ALIGN,
 };
+*/
 
 /// The CSS align types
 enum CssAlign
