@@ -5988,6 +5988,21 @@ void GTag::OnPaint(GSurface *pDC)
 							{
 								Selected = !Selected;
 							}
+
+							if (Cursor >= 0)
+							{
+								// Is this the cursor, then draw it and save it's position
+								if (Cursor == Start + Done - Base)
+								{
+									Html->d->CursorPos.Set(x, Tr->y1, x + 1, Tr->y2);
+
+									if (Html->d->CursorPos.x1 > Tr->x2)
+										Html->d->CursorPos.Offset(Tr->x2 - Html->d->CursorPos.x1, 0);
+
+									CursorPos = Html->d->CursorPos;
+									Html->d->CursorPos.Offset(AbsX(), AbsY());
+								}
+							}
 							break;
 						}
 

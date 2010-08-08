@@ -1000,7 +1000,8 @@ bool GCss::Parse(char *&s, ParsingStyle Type)
 					if (e) *e = *t;
 					else Props.Add(PropId, t.Release());
 				}
-				else LgiAssert(!"Parsing failed.");
+				else if (Type == ParseStrict)
+					LgiAssert(!"Parsing failed.");
 				break;
 			}
 			case TypeStrings:

@@ -2209,58 +2209,142 @@ public:
 	}
 
 	#ifdef _DEBUG
+	struct DbgDs : public GDisplayString
+	{
+	public:
+		COLOUR c;
+
+		DbgDs(GFont *f, char *s, COLOUR col) : GDisplayString(f, s)
+		{
+			c = col;
+		}
+
+		DbgDs(GFont *f, char16 *s, COLOUR col) : GDisplayString(f, s)
+		{
+			c = col;
+		}
+	};
+
+	struct DbgInf
+	{
+		int Depth;
+		GArray<DbgDs*> Ds;
+
+		DbgInf(GTag *t = 0)
+		{
+			Depth = 0;
+			while (t && (t = t->Parent))
+			{
+				Depth++;
+			}
+		}
+	};
+
 	void OnDebug(GSurface *pDC)
 	{
-		pDC->Colour(LC_WORKSPACE, 24);
+		GArray<DbgInf*> Inf;
+
+		#if 0
+		pDC->Colour(Rgb24(255, 0, 255), 24);
 		pDC->Rectangle();
-		SysFont->Colour(LC_TEXT, LC_WORKSPACE);
-		SysFont->Transparent(true);
+		#endif
+		SysFont->Transparent(false);
 
 		char16 Empty[] = {0};
 
 		#define AllowEmpty(s) ((s)?(s):Empty)
 
-		int x = 6;
 		int y = pDC->Y() / 2 - 10;
 		if (Cursor)
 		{
 			char m[256];
 			GTag *t;
 			int cy;
+			DbgDs *ds;
+			COLOUR c;
+			
 			for (cy = y, t = PrevTag(Cursor); t && cy > 0; t = PrevTag(t))
 			{
-				SysFont->Fore(t == Selection ? Rgb24(0, 0xcc, 0) : LC_TEXT);
-				sprintf(m, "<%s>%S", t->Tag?t->Tag:"CONTENT", AllowEmpty(t->Text()));
-				GDisplayString s(SysFont, m);
-				cy -= s.Y();
-				s.Draw(pDC, x, cy);
+				DbgInf *Line = new DbgInf(t);
+				sprintf(m, "<%s>", t->Tag?t->Tag:"CONTENT");
+				Line->Ds.Add(ds = new DbgDs(SysFont, m, LC_TEXT));
+
+				char16 *Txt = t->Text();
+				if (ValidStrW(Txt))
+					Line->Ds.Add(ds = new DbgDs(SysFont, Txt, t == Selection ? Rgb24(0, 222, 0) : LC_TEXT));
+				else if (Txt)
+					Line->Ds.Add(ds = new DbgDs(SysFont, "[empty-str]", t == Selection ? Rgb24(0, 222, 0) : Rgb24(0xdd, 0xdd, 0xdd)));
+				else if (t->TagId == CONTENT)
+					Line->Ds.Add(ds = new DbgDs(SysFont, "[null-ptr]", t == Selection ? Rgb24(0, 222, 0) : Rgb24(255, 0, 0)));
+				Inf.AddAt(0, Line);
 			}
 
+			DbgInf *Cur = new DbgInf(Cursor);
 			sprintf(m, "<%s>%.*S", Cursor->Tag?Cursor->Tag:"CONTENT", Cursor->Cursor, Cursor->Text());
-			SysFont->Fore(Rgb24(0, 0, 255));
-			GDisplayString s(SysFont, m);
-			s.Draw(pDC, x, y);
-			SysFont->Fore(Rgb24(255, 0, 0));
-			GDisplayString s2(SysFont, "[cursor]");
-			s2.Draw(pDC, x+s.X(), y);
-			SysFont->Fore(Rgb24(0, 0, 255));
-			GDisplayString s3(SysFont, Cursor->Text()+Cursor->Cursor);
-			s3.Draw(pDC, x+s.X()+s2.X(), y);
+			Cur->Ds.Add(ds = new DbgDs(SysFont, m, Rgb24(0, 0, 255)));
+			Cur->Ds.Add(ds = new DbgDs(SysFont, "[cursor]", Rgb24(255, 0, 0)));
+			Cur->Ds.Add(ds = new DbgDs(SysFont, Cursor->Text()+Cursor->Cursor, Rgb24(0, 0, 255)));
+			int CursorLine = Inf.Length();
+			Inf.AddAt(Inf.Length(), Cur);
 
 			SysFont->Fore(LC_TEXT);
 			for (cy = y, t = NextTag(Cursor); t && cy < pDC->Y(); t = NextTag(t))
 			{
-				SysFont->Fore(t == Selection ? Rgb24(0, 0xcc, 0) : LC_TEXT);
-				sprintf(m, "<%s>%S", t->Tag?t->Tag:"CONTENT", AllowEmpty(t->Text()));
-				GDisplayString s(SysFont, m);
-				cy += s.Y();
-				s.Draw(pDC, x, cy);
+				DbgInf *Line = new DbgInf(t);
+				sprintf(m, "<%s>", t->Tag?t->Tag:"CONTENT");
+				Line->Ds.Add(ds = new DbgDs(SysFont, m, LC_TEXT));
+
+				char16 *Txt = t->Text();
+				if (ValidStrW(Txt))
+					Line->Ds.Add(ds = new DbgDs(SysFont, Txt, t == Selection ? Rgb24(0, 222, 0) : LC_TEXT));
+				else if (Txt)
+					Line->Ds.Add(ds = new DbgDs(SysFont, "[empty-str]", t == Selection ? Rgb24(0, 222, 0) : Rgb24(0xdd, 0xdd, 0xdd)));
+				else if (t->TagId == CONTENT)
+					Line->Ds.Add(ds = new DbgDs(SysFont, "[null-ptr]", t == Selection ? Rgb24(0, 222, 0) : Rgb24(255, 0, 0)));
+				Inf.AddAt(Inf.Length(), Line);
 			}
+
+			pDC->Colour(LC_WORKSPACE, 24);
+			pDC->Rectangle(0, 0, pDC->X(), cy-1);
+
+			cy = (pDC->Y() / 2 - 10) - (SysFont->GetHeight() * CursorLine);
+			for (int i=0; i<Inf.Length(); i++)
+			{
+				DbgInf *Line = Inf[i];
+				int x = Line->Depth * 12;
+				int cy2 = cy + SysFont->GetHeight() - 1;
+				pDC->Colour(LC_WORKSPACE, 24);
+				pDC->Rectangle(0, cy, x-1, cy2);
+				pDC->Colour(Rgb24(0xdd, 0xdd, 0xdd), 24);
+				for (int a=0; a<Line->Depth; a++)
+				{
+					int lx = a * 12 + 6;
+					pDC->Line(lx, cy, lx, cy2); 
+				}
+
+				for (int n=0; n<Line->Ds.Length(); n++)
+				{
+					DbgDs *ds = Line->Ds[n];
+					SysFont->Colour(ds->c, LC_WORKSPACE);
+					ds->Draw(pDC, x, cy);
+					x += ds->X();
+					LgiTrace("Deleting %p\n", ds);
+					DeleteObj(ds);
+
+					pDC->Colour(LC_WORKSPACE, 24);
+					pDC->Rectangle(x, cy, pDC->X(), cy2);
+				}
+				cy = cy2 + 1;
+				DeleteObj(Line);
+			}
+
+			pDC->Colour(LC_WORKSPACE, 24);
+			pDC->Rectangle(0, cy, pDC->X(), pDC->Y());
 		}
 		else
 		{
 			GDisplayString s(SysFont, "No cursor.");
-			s.Draw(pDC, x, y);
+			s.Draw(pDC, 6, 6);
 		}
 	}
 	#endif
@@ -2362,8 +2446,7 @@ public:
 	{
 		d = priv;
 		Name("Html Edit Debug");
-		SetPos(GRect(0, 0, 800, 600));
-		MoveToCenter();
+		SetPos(GRect(1800, 200, 3000, 1000));
 		if (Attach(0))
 		{
 			Visible(true);
