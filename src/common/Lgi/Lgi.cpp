@@ -789,7 +789,8 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 						if (Base)
 						{
 							LgiMakePath(Dst, DstSize, Base, Name);
-							Status = DirExists(Dst) || FileDev->CreateDirectory(Dst);
+							// Status = DirExists(Dst) || FileDev->CreateDirectory(Dst);
+							Status = true;
 						}
 					}
 				}

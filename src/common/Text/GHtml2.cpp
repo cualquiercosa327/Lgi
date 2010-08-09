@@ -744,6 +744,8 @@ public:
 
 	int ResolveX(GCss::Len l, GFont *f)
 	{
+		int ScreenDpi = 96; // Haha, where should I get this from?
+
 		switch (l.Type)
 		{
 			case GCss::LenInherit:
@@ -751,10 +753,9 @@ public:
 			case GCss::LenPx:
 				return min(l.Value, X());
 			case GCss::LenPt:
-			{
-				int ScreenDpi = 96; // Haha, where should I get this from?
 				return l.Value * ScreenDpi / 72.0;
-			}
+			case GCss::LenCm:
+				return l.Value * ScreenDpi / 2.54;
 			case GCss::LenEm:
 			{
 				if (!f)

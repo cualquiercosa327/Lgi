@@ -512,28 +512,18 @@ public:
 		
 		char Obj[MAX_PATH];
 		LgiMakePath(Obj, sizeof(Obj), DataPath, "Script.asm");
-		GFile f;
-		if (f.Open(Obj, O_WRITE))
 		{
-			f.SetSize(0);
-			bool Decomp = Decompile(Context, Code, &f);
-			f.Close();
-			if (!Decomp)
+			GFile f;
+			if (f.Open(Obj, O_WRITE))
 			{
-				LgiAssert(!"Decompilation failed.");
-				return false;
-			}
-		}
-
-		LgiMakePath(Obj, sizeof(Obj), Obj, "..\\Script.run");
-		if (f.Open(Obj, O_WRITE))
-		{
-			f.SetSize(0);
-			for (int k=0; k<Code->Globals.Length(); k++)
-			{
-				f.Print("G%i = ", k);
-				DumpVariant(&f, Code->Globals[k]);
-				f.Print("\n");
+				f.SetSize(0);
+				bool Decomp = Decompile(Context, Code, &f);
+				f.Close();
+				if (!Decomp)
+				{
+					LgiAssert(!"Decompilation failed.");
+					return false;
+				}
 			}
 		}
 		#endif
