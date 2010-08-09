@@ -2384,12 +2384,16 @@ public:
 		MakeLink = 0;
 		ForeColour = 0;
 		BackColour = 0;
+		#ifdef _DEBUG
 		DebugWnd = 0;
+		#endif
 	}
 
 	~GHtmlEditPriv()
 	{
+		#ifdef _DEBUG
 		DeleteObj(DebugWnd);
+		#endif
 		DeleteObj(Icons);
 	}
 
