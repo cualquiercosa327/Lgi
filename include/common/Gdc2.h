@@ -807,9 +807,9 @@ public:
 
 	// Alpha channel	
 	/// Returns true if this Surface has an alpha channel
-	virtual bool IsAlpha() { return pAlphaDC != 0; }
+	virtual bool HasAlpha() { return pAlphaDC != 0; }
 	/// Creates or destroys the alpha channel for this surface
-	virtual bool IsAlpha(bool b);
+	virtual bool HasAlpha(bool b);
 	/// Returns true if we are drawing on the alpha channel
 	bool DrawOnAlpha() { return ((Flags & GDC_DRAW_ON_ALPHA) != 0); }
 	/// True if you want to edit the alpha channel rather than the colour bits

@@ -70,7 +70,7 @@ GMemDC::GMemDC(GSurface *pDC)
 		Blt(0, 0, pDC);
 
 		if (pDC->AlphaDC() AND
-			IsAlpha(true))
+			HasAlpha(true))
 		{
 			pAlphaDC->Blt(0, 0, pDC->AlphaDC());
 		}

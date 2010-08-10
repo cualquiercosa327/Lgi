@@ -639,7 +639,7 @@ bool GdcGif::ReadImage(GSurface *pdc, GStream *in)
 							if (Transparent)
 							{
 								// Setup alpha channel
-								pDC->IsAlpha(true);
+								pDC->HasAlpha(true);
 								GSurface *Alpha = pDC->AlphaDC();
 								if (Alpha)
 								{

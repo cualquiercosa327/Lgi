@@ -555,7 +555,7 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 								if (info_ptr->num_trans > 0 AND
 									info_ptr->trans)
 								{
-									pDC->IsAlpha(true);
+									pDC->HasAlpha(true);
 									GSurface *Alpha = pDC->AlphaDC();
 									if (Alpha)
 									{

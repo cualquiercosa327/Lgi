@@ -1290,7 +1290,7 @@ void GSurface::Arc(double cx, double cy, double radius, double start, double end
 void GSurface::FilledArc(double cx, double cy, double radius, double start, double end) {}
 void GSurface::StretchBlt(GRect *d, GSurface *Src, GRect *s) {}
 
-bool GSurface::IsAlpha(bool b)
+bool GSurface::HasAlpha(bool b)
 {
 	DrawOnAlpha(false);
 
@@ -1318,7 +1318,7 @@ bool GSurface::IsAlpha(bool b)
 		DeleteObj(pAlphaDC);
 	}
 
-	return (b == IsAlpha());
+	return (b == HasAlpha());
 }
 
 bool GSurface::DrawOnAlpha(bool Draw)

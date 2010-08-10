@@ -819,7 +819,7 @@ bool GdcIco::ReadImage(GSurface *pDC, GStream *In)
 			
 			if (AndBytes)
 			{
-				pDC->IsAlpha(true);
+				pDC->HasAlpha(true);
 			}			
 
 			GSurface *pAlpha = pDC->AlphaDC();
