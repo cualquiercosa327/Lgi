@@ -437,7 +437,19 @@ enum LgiSystemPath
 	///		[Linux] = ~/.$AppName
 	/// Where $AppName = GApp::GetName.
 	/// If the given folder doesn't exist it will be created.
-	LSP_APP_ROOT
+	LSP_APP_ROOT,
+	/// This is the user's documents folder
+	///		[Win32] ~\My Documents
+	///		[Mac] ~\Documents
+	LSP_USER_DOCUMENTS,
+	/// This is the user's music folder
+	///		[Win32] ~\My Music
+	///		[Mac] ~\Music
+	LSP_USER_MUSIC,
+	/// This is the user's video folder
+	///		[Win32] ~\My Videos
+	///		[Mac] ~\Movies
+	LSP_USER_VIDEO,
 };
 
 //

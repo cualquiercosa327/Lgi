@@ -183,11 +183,11 @@ void GButton::OnMouseEnter(GMouse &m)
 	if (IsCapturing())
 	{
 		Value(d->Pressed + 1);
-		// LgiTrace("Mousein d->Pressed=%i\n", d->Pressed);
 	}
 	else if (Enabled())
 	{
-		Invalidate();
+		if (!LgiApp->SkinEngine)
+			Invalidate();
 	}
 }
 
@@ -197,11 +197,11 @@ void GButton::OnMouseExit(GMouse &m)
 	if (IsCapturing())
 	{
 		Value(d->Pressed - 1);
-		// LgiTrace("Mouseout d->Pressed=%i\n", d->Pressed);
 	}
 	else if (Enabled())
 	{
-		Invalidate();
+		if (!LgiApp->SkinEngine)
+			Invalidate();
 	}
 }
 

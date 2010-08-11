@@ -729,6 +729,66 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 		
 		switch (Which)
 		{
+			case LSP_USER_DOCUMENTS:
+			{
+				#if defined WIN32
+
+				char *f = GetWin32Folder(CSIDL_MYDOCUMENTS);
+				if (f)
+				{
+					strsafecpy(Dst, f, DstSize);
+					DeleteArray(f);
+					Status = true;
+				}
+
+				#else
+
+				LgiAssert(!"Not implemented");
+
+				#endif
+				
+				break;
+			}
+			case LSP_USER_MUSIC:
+			{
+				#if defined WIN32
+
+				char *f = GetWin32Folder(CSIDL_MYMUSIC);
+				if (f)
+				{
+					strsafecpy(Dst, f, DstSize);
+					DeleteArray(f);
+					Status = true;
+				}
+
+				#else
+
+				LgiAssert(!"Not implemented");
+
+				#endif
+				
+				break;
+			}
+			case LSP_USER_VIDEO:
+			{
+				#if defined WIN32
+
+				char *f = GetWin32Folder(CSIDL_MYVIDEO);
+				if (f)
+				{
+					strsafecpy(Dst, f, DstSize);
+					DeleteArray(f);
+					Status = true;
+				}
+
+				#else
+
+				LgiAssert(!"Not implemented");
+
+				#endif
+				
+				break;
+			}
 			case LSP_APP_INSTALL:
 			{
 				if (LgiGetExePath(Dst, DstSize))
