@@ -3,21 +3,6 @@ Microsoft Developer Studio Workspace File, Format Version 6.00
 
 ###############################################################################
 
-Project: "Gel"=..\Gel\Gel.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-    Begin Project Dependency
-    Project_Dep_Name Lgi
-    End Project Dependency
-}}}
-
-###############################################################################
-
 Project: "Lgi"=..\Lgi.dsp - Package Owner=<4>
 
 Package=<5>
@@ -40,9 +25,6 @@ Package=<4>
 {{{
     Begin Project Dependency
     Project_Dep_Name Lgi
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name Gel
     End Project Dependency
 }}}
 

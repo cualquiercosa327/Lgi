@@ -1,0 +1,300 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Source Files\Core">
+      <UniqueIdentifier>{27bd7af5-c077-4562-bf95-059f5b8c093e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\Memory">
+      <UniqueIdentifier>{dae4b576-87b0-4682-a55f-375da320e1cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\File">
+      <UniqueIdentifier>{2ae85f82-734d-436f-926c-aeb9a1b009eb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\Stream">
+      <UniqueIdentifier>{acdb08f8-f948-4141-95e7-c33c6bf3709b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\Thread">
+      <UniqueIdentifier>{27baec5f-5af5-449f-8d9f-afbb65769b82}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\Resources">
+      <UniqueIdentifier>{20971021-3859-40e1-bd2d-7281cbf376c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\DateTime">
+      <UniqueIdentifier>{b0258697-f5cc-4962-bac5-6b70560711d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Skin">
+      <UniqueIdentifier>{6a17fb70-de42-496f-8c21-06f8d3d1c77d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics">
+      <UniqueIdentifier>{e147eb55-e2dc-4c43-99e6-faa43e8cdcc6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Font">
+      <UniqueIdentifier>{095d1d2f-4804-4057-a6c8-88029ec7b4d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Surfaces">
+      <UniqueIdentifier>{f3704a36-6fe4-49b4-bb23-6ea5edbd5bf9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Widgets">
+      <UniqueIdentifier>{c976db9b-1ae8-4669-9612-dcc5a35676cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Menu">
+      <UniqueIdentifier>{976d2a28-56a4-466f-99d9-9340ff9fc2ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Applicators">
+      <UniqueIdentifier>{2d535ffa-bf5e-4855-9107-4c45e9f34805}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Filters">
+      <UniqueIdentifier>{46ea1b94-a932-4e75-a167-3ebb798394ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Dialogs">
+      <UniqueIdentifier>{951f60a1-84f9-4cb8-975d-7e7b344251d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Text">
+      <UniqueIdentifier>{921c9595-ad45-4f63-8287-146b9ff4e72d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Network">
+      <UniqueIdentifier>{05b492bf-8114-46ee-a00a-e157494e1aa9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\common\General\GContainers.cpp">
+      <Filter>Source Files\Core\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="src\win32\General\GMem.cpp">
+      <Filter>Source Files\Core\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="src\win32\General\GFile.cpp">
+      <Filter>Source Files\Core\File</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Lgi\GStream.cpp">
+      <Filter>Source Files\Core\Stream</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Lgi\GLibrary.cpp">
+      <Filter>Source Files\Core\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Lgi\GSemaphore.cpp">
+      <Filter>Source Files\Core\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="src\win32\Lgi\GThread.cpp">
+      <Filter>Source Files\Core\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Resource\LgiRes.cpp">
+      <Filter>Source Files\Core\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Resource\Res.cpp">
+      <Filter>Source Files\Core\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\win32\Lgi\GApp.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\win32\Lgi\GClipBoard.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\win32\Lgi\GGeneral.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\General\GDateTime.cpp">
+      <Filter>Source Files\Core\DateTime</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Skins\Gel\Gel.cpp">
+      <Filter>Source Files\Skin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Gdc2\Path\GPath.cpp">
+      <Filter>Source Files\Skin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Lgi\GGuiUtils.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\win32\Lgi\GLayout.cpp">
+      <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\win32\Lgi\GMenu.cpp">
+      <Filter>Source Files\Graphics\Menu</Filter>
+    </ClCompile>
+    <ClCompile Include="src\win32\Lgi\GWindow.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\win32\Lgi\GView.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Lgi\GViewCommon.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Lgi\GVariant.cpp">
+      <Filter>Source Files\Core\Stream</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Lgi\GObject.cpp">
+      <Filter>Source Files\Core\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Lgi\Lgi.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\win32\Lgi\LgiException.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Gdc2\Font\GDisplayString.cpp">
+      <Filter>Source Files\Graphics\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Gdc2\Font\GFont.cpp">
+      <Filter>Source Files\Graphics\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Gdc2\Font\GFont_A.cpp">
+      <Filter>Source Files\Graphics\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Gdc2\Font\GFont_W.cpp">
+      <Filter>Source Files\Graphics\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Gdc2\Font\GFontCodePages.cpp">
+      <Filter>Source Files\Graphics\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Gdc2\Font\GFontSystem.cpp">
+      <Filter>Source Files\Graphics\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Gdc2\8Bit.cpp">
+      <Filter>Source Files\Graphics\Applicators</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Gdc2\15Bit.cpp">
+      <Filter>Source Files\Graphics\Applicators</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Gdc2\16Bit.cpp">
+      <Filter>Source Files\Graphics\Applicators</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Gdc2\24Bit.cpp">
+      <Filter>Source Files\Graphics\Applicators</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Gdc2\32Bit.cpp">
+      <Filter>Source Files\Graphics\Applicators</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Gdc2\Alpha.cpp">
+      <Filter>Source Files\Graphics\Applicators</Filter>
+    </ClCompile>
+    <ClCompile Include="src\win32\Gdc2\GMemDC.cpp">
+      <Filter>Source Files\Graphics\Surfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="src\win32\Gdc2\GPrintDC.cpp">
+      <Filter>Source Files\Graphics\Surfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="src\win32\Gdc2\GScreenDC.cpp">
+      <Filter>Source Files\Graphics\Surfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="src\win32\Gdc2\Gdc2.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Gdc2\Filters\GFilter.cpp">
+      <Filter>Source Files\Graphics\Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Gdc2\GRect.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Lgi\GAlert.cpp">
+      <Filter>Source Files\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Gdc2\GSurface.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Lgi\GFontSelect.cpp">
+      <Filter>Source Files\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Lgi\LgiMsg.cpp">
+      <Filter>Source Files\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Text\GString.cpp">
+      <Filter>Source Files\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Text\GUtf8.cpp">
+      <Filter>Source Files\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Text\GXmlTree.cpp">
+      <Filter>Source Files\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Widgets\GBitmap.cpp">
+      <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Widgets\GButton.cpp">
+      <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Widgets\GCheckBox.cpp">
+      <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Widgets\GCombo.cpp">
+      <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Widgets\GList.cpp">
+      <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Widgets\GPopup.cpp">
+      <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Widgets\GProgressDlg.cpp">
+      <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Widgets\GRadioGroup.cpp">
+      <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Widgets\GSplitter.cpp">
+      <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Widgets\GStatusBar.cpp">
+      <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Widgets\GTableLayout.cpp">
+      <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Widgets\GTabView.cpp">
+      <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Widgets\GTextLabel.cpp">
+      <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Widgets\GToolBar.cpp">
+      <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Widgets\GTree.cpp">
+      <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\win32\Lgi\GScrollBar.cpp">
+      <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Lgi\GToolTip.cpp">
+      <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\win32\Widgets\GProgress.cpp">
+      <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\win32\Widgets\GEdit.cpp">
+      <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\INet\Base64.cpp">
+      <Filter>Source Files\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\INet\INet.cpp">
+      <Filter>Source Files\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\INet\INetTools.cpp">
+      <Filter>Source Files\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Gdc2\GFuncs.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\win32\Widgets\GDialog.cpp">
+      <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Text\GToken.cpp">
+      <Filter>Source Files\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Lgi\LgiRand.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\win32\Widgets\GSlider.cpp">
+      <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

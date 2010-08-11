@@ -289,6 +289,10 @@ ResDialogCtrl::ResDialogCtrl(ResDialog *dlg, char *CtrlTypeName, GXmlTag *load) 
 		if (Dlg)
 		{
 			Str = Dlg->Symbols->FindRef(r);
+			LgiAssert(Str);
+
+			if (!Str) // oh well we should have one anyway... fix things up so to speak.
+				Dlg->Symbols->CreateStr();
 		}
 
 		LgiAssert(Str);

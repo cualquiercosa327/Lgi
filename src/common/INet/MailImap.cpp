@@ -1072,6 +1072,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 								p.Print("A%04.4i AUTHENTICATE XOAUTH %s\r\n", AuthCmd, B64.Get());
 								GAutoString Cmd(p.NewStr());
 								int w = Socket->Write(Cmd, strlen(Cmd));
+								Log(Cmd, MAIL_SEND_COLOUR);
 								if (w > 0)
 								{
 									LoggedIn = ReadResponse(AuthCmd);							
