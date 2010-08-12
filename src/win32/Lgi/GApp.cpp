@@ -359,7 +359,7 @@ DumpTime("ms hook");
 
 	if
 	(
-		#if defined(LGI_STATIC) && _MSC_VER < 1600
+		#if 0 // defined(LGI_STATIC) && _MSC_VER < 1600
 		0
 		#else
 		(

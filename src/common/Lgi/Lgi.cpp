@@ -708,8 +708,19 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 {
 	bool Status = false;
 
-	#if defined(WIN32) || !defined(CSIDL_LOCAL_APPDATA)
-	#define CSIDL_LOCAL_APPDATA					0x001c
+	#if defined(WIN32)
+		#if !defined(CSIDL_MYDOCUMENTS)
+			#define CSIDL_MYDOCUMENTS					0x0005
+		#endif
+		#if !defined(CSIDL_MYMUSIC)
+			#define CSIDL_MYMUSIC						0x000d
+		#endif
+		#if !defined(CSIDL_MYVIDEO)
+			#define CSIDL_MYVIDEO						0x000e
+		#endif
+		#if !defined(CSIDL_LOCAL_APPDATA)
+			#define CSIDL_LOCAL_APPDATA					0x001c
+		#endif
 	#endif
 
 	if (Dst)

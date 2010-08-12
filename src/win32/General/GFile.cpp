@@ -81,38 +81,41 @@ typedef wchar_t char16;
 bool FileExists(char *Name)
 {
 	bool Status = false;
-	HANDLE hFind = INVALID_HANDLE_VALUE;
-	
-	if (GFileSystem::Win9x)
+	if (Name)
 	{
-		char *n = LgiToNativeCp(Name);
-		if (n)
-		{
-			WIN32_FIND_DATA Info;
-			hFind = FindFirstFile(n, &Info);
-			if (hFind != INVALID_HANDLE_VALUE)
-				Status = strcmp(Info.cFileName, ".") != 0;
-			DeleteArray(n);
-		}
-	}
-	else
-	{
+		HANDLE hFind = INVALID_HANDLE_VALUE;
 		
-		char16 *n = LgiNewUtf8To16(Name);
-		if (n)
+		if (GFileSystem::Win9x)
 		{
-			WIN32_FIND_DATAW Info;
-			hFind = FindFirstFileW(n, &Info);
-			if (hFind != INVALID_HANDLE_VALUE)
-				Status = StrcmpW(Info.cFileName, L".") != 0;
-			DeleteArray(n);
+			char *n = LgiToNativeCp(Name);
+			if (n)
+			{
+				WIN32_FIND_DATA Info;
+				hFind = FindFirstFile(n, &Info);
+				if (hFind != INVALID_HANDLE_VALUE)
+					Status = strcmp(Info.cFileName, ".") != 0;
+				DeleteArray(n);
+			}
 		}
-	}
+		else
+		{
+			
+			char16 *n = LgiNewUtf8To16(Name);
+			if (n)
+			{
+				WIN32_FIND_DATAW Info;
+				hFind = FindFirstFileW(n, &Info);
+				if (hFind != INVALID_HANDLE_VALUE)
+					Status = StrcmpW(Info.cFileName, L".") != 0;
+				DeleteArray(n);
+			}
+		}
 
-	if (hFind != INVALID_HANDLE_VALUE)
-	{
-		FindClose(hFind);
-		return true;
+		if (hFind != INVALID_HANDLE_VALUE)
+		{
+			FindClose(hFind);
+			return true;
+		}
 	}
 
 	return false;
