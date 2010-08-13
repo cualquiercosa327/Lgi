@@ -664,69 +664,93 @@ GDirectory *GFileSystem::GetDir()
 	return new GDirImpl;
 }
 
-bool GFileSystem::Copy(char *From, char *To, CopyFileCallback Callback, void *Token)
+bool GFileSystem::Copy(char *From, char *To, int *ErrorCode, CopyFileCallback Callback, void *Token)
 {
-	bool Status = false;
-
-	if (From AND To)
+	if (!From || !To)
 	{
-		GFile In, Out;
-		if (In.Open(From, O_READ) AND
-			Out.Open(To, O_WRITE))
+		if (ErrorCode) *ErrorCode = ERROR_INVALID_PARAMETER;
+		return false;
+	}
+
+	GFile In, Out;
+	if (!In.Open(From, O_READ))
+	{
+		if (ErrorCode) *ErrorCode = In.GetError();
+		return false;
+	}
+
+	if (!Out.Open(To, O_WRITE))
+	{
+		if (ErrorCode) *ErrorCode = Out.GetError();
+		return false;
+	}
+
+	if (Out.SetSize(0))
+	{
+		if (ErrorCode) *ErrorCode = ERROR_WRITE_FAULT;
+		return false;
+	}
+
+	int64 Size = In.GetSize();
+	if (!Size)
+	{
+		return true;
+	}
+
+	int64 Block = min((1 << 20), Size);
+	char *Buf = new char[Block];
+	if (!Buf)
+	{
+		if (ErrorCode) *ErrorCode = ERROR_NOT_ENOUGH_MEMORY;
+		return false;
+	}
+
+	int64 i = 0;
+	while (i < Size)
+	{
+		int r = In.Read(Buf, Block);
+		if (r > 0)
 		{
-			Out.SetSize(0);
-			int64 Size = In.GetSize();
-			if (!Size)
-				return true;
-
-			int64 Block = min((1 << 20), Size);
-			char *Buf = new char[Block];
-			if (Buf)
+			int Written = 0;
+			while (Written < r)
 			{
-				int64 i = 0;
-				while (i < Size)
+				int w = Out.Write(Buf + Written, r - Written);
+				if (w > 0)
 				{
-					int r = In.Read(Buf, Block);
-					if (r > 0)
-					{
-						int Written = 0;
-						while (Written < r)
-						{
-							int w = Out.Write(Buf + Written, r - Written);
-							if (w > 0)
-							{
-								Written += w;
-							}
-							else
-							{
-								goto ExitCopyLoop;
-							}
-						}
-						i += Written;
-
-						if (Callback)
-						{
-							if (!Callback(Token, i, Size))
-							{
-								break;
-							}
-						}
-					}
-					else break;
+					Written += w;
 				}
-
-				ExitCopyLoop:
-				DeleteArray(Buf);
-				Status = i == Size;
-				if (!Status)
+				else
 				{
-					Delete(To, false);
+					if (ErrorCode) *ErrorCode = ERROR_WRITE_FAULT;
+					goto ExitCopyLoop;
+				}
+			}
+			i += Written;
+
+			if (Callback)
+			{
+				if (!Callback(Token, i, Size))
+				{
+					break;
 				}
 			}
 		}
+		else break;
 	}
 
-	return Status;
+	ExitCopyLoop:
+	DeleteArray(Buf);
+	if (i == Size)
+	{
+		if (ErrorCode) *ErrorCode = ERROR_SUCCESS;
+	}
+	else
+	{
+		Out.Close();
+		Delete(To, false);
+	}
+
+	return i == Size;
 }
 
 bool GFileSystem::Delete(GArray<char*> &Files, GArray<int> *Status, bool ToTrash)
@@ -1538,6 +1562,7 @@ public:
 	bool	Swap;
 	bool	Status;
 	int		CreateThread;
+	DWORD	LastError;
 
 	GFilePrivate()
 	{
@@ -1546,6 +1571,7 @@ public:
 		Attributes = 0;
 		Swap = false;
 		Status = false;
+		LastError = 0;
 	}
 
 	~GFilePrivate()
@@ -1662,8 +1688,7 @@ int GFile::Open(char *File, int Mode)
 
 		if (!ValidHandle(d->hFile))
 		{
-			DWORD Error = GetLastError();
-			switch (Error)
+			switch (d->LastError = GetLastError())
 			{
 				case 2:
 				case 3:
@@ -1681,8 +1706,7 @@ int GFile::Open(char *File, int Mode)
 				}
 			}
 		}
-
-		if (ValidHandle(d->hFile))
+		else
 		{
 			d->Attributes = Mode;
 			d->Name = NewStr(File);
@@ -1699,6 +1723,11 @@ int GFile::Open(char *File, int Mode)
 bool GFile::IsOpen()
 {
 	return ValidHandle(d->hFile);
+}
+
+int GFile::GetError()
+{
+	return d->LastError;
 }
 
 int GFile::Close()
@@ -1762,24 +1791,32 @@ int64 GFile::SetPos(int64 Pos)
 
 int GFile::Read(void *Buffer, int Size, int Flags)
 {
-	DWORD Red;
-	d->Status &= ReadFile(d->hFile, Buffer, Size, &Red, NULL) != 0 AND Red > 0;
-	return Red;
+	DWORD Bytes = 0;
+	if (ReadFile(d->hFile, Buffer, Size, &Bytes, NULL))
+	{
+		d->Status &= Bytes > 0;
+	}
+	else
+	{
+		d->LastError = GetLastError();
+	}
+
+	return Bytes;
 }
 
 int GFile::Write(void *Buffer, int Size, int Flags)
 {
-	DWORD Written = 0;
-	if (WriteFile(d->hFile, Buffer, Size, &Written, NULL))
+	DWORD Bytes = 0;
+	if (WriteFile(d->hFile, Buffer, Size, &Bytes, NULL))
 	{
-		d->Status &= Written > 0;
+		d->Status &= Bytes > 0;
 	}
 	else
 	{
-		DWORD Err = GetLastError();
-		int asd=0;
+		d->LastError = GetLastError();
 	}
-	return Written;
+
+	return Bytes;
 }
 
 int64 GFile::Seek(int64 To, int Whence)

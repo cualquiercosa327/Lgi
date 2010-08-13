@@ -279,6 +279,8 @@ public:
 		char *From,
 		/// The file to copy to. Any existing file there will be overwritten without warning.
 		char *To,
+		/// The error code or zero on success
+		int *Status = 0,
 		/// Optional callback when some data is copied.
 		CopyFileCallback Callback = 0,
 		/// A user defined token passed to the callback function
@@ -377,11 +379,14 @@ public:
 	
 	/// Returns non zero if the class is associated with an open file handle.
 	bool IsOpen();
+
+	/// Returns the most recent error code encountered.
+	int GetError();
 	
 	/// Closes the file.
 	int Close();
 	
-	/// Gets the mode that the file was openned with.
+	/// Gets the mode that the file was opened with.
 	int GetOpenMode();
 
 	/// Gets the block size
