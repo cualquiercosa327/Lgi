@@ -376,7 +376,7 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 					if (!pDC->Create(	info_ptr->width,
 										info_ptr->height,
 										#ifdef MAC
-										Bits == 24 ? 32 :
+										RequestBits == 24 ? 32 :
 										#endif
 										max(RequestBits, 8)))
 					{

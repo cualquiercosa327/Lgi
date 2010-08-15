@@ -739,8 +739,95 @@ OSStatus MoveFileToTrash(CFURLRef fileURL)
 	return err;
 }
 
-bool GFileSystem::Copy(char *From, char *To, CopyFileCallback Callback, void *Token)
+bool GFileSystem::Copy(char *From, char *To, int *ErrorCode, CopyFileCallback Callback, void *Token)
 {
+	if (!From || !To)
+	{
+		if (ErrorCode) *ErrorCode = paramErr;
+		return false;
+	}
+
+	GFile In, Out;
+	if (!In.Open(From, O_READ))
+	{
+		if (ErrorCode) *ErrorCode = In.GetError();
+		return false;
+	}
+
+	if (!Out.Open(To, O_WRITE))
+	{
+		if (ErrorCode) *ErrorCode = Out.GetError();
+		return false;
+	}
+
+	if (Out.SetSize(0))
+	{
+		if (ErrorCode) *ErrorCode = writErr;
+		return false;
+	}
+
+	int64 Size = In.GetSize();
+	if (!Size)
+	{
+		return true;
+	}
+
+	int64 Block = min((1 << 20), Size);
+	char *Buf = new char[Block];
+	if (!Buf)
+	{
+		if (ErrorCode) *ErrorCode = notEnoughBufferSpace;
+		return false;
+	}
+
+	int64 i = 0;
+	while (i < Size)
+	{
+		int r = In.Read(Buf, Block);
+		if (r > 0)
+		{
+			int Written = 0;
+			while (Written < r)
+			{
+				int w = Out.Write(Buf + Written, r - Written);
+				if (w > 0)
+				{
+					Written += w;
+				}
+				else
+				{
+					if (ErrorCode) *ErrorCode = writErr;
+					goto ExitCopyLoop;
+				}
+			}
+			i += Written;
+
+			if (Callback)
+			{
+				if (!Callback(Token, i, Size))
+				{
+					break;
+				}
+			}
+		}
+		else break;
+	}
+
+	ExitCopyLoop:
+	DeleteArray(Buf);
+	if (i == Size)
+	{
+		if (ErrorCode) *ErrorCode = noErr;
+	}
+	else
+	{
+		Out.Close();
+		Delete(To, false);
+	}
+
+	return i == Size;
+
+	/*
 	bool Status = false;
 
 	if (From AND To)
@@ -795,6 +882,7 @@ bool GFileSystem::Copy(char *From, char *To, CopyFileCallback Callback, void *To
 	}
 
 	return Status;
+	*/
 }
 
 bool GFileSystem::Delete(GArray<char*> &Files, GArray<int> *Status, bool ToTrash)
@@ -1270,6 +1358,7 @@ public:
 	bool Swap;
 	int Status;
 	int Attributes;
+	int LastError;
 	
 	GFilePrivate()
 	{
@@ -1278,6 +1367,7 @@ public:
 		Swap = false;
 		Status = true;
 		Attributes = 0;
+		LastError = noErr;
 	}
 	
 	~GFilePrivate()
@@ -1298,6 +1388,11 @@ GFile::~GFile()
 		Close();
 	}
 	DeleteObj(d);
+}
+
+int GFile::GetError()
+{
+	return d->LastError;
 }
 
 OsFile GFile::Handle()
@@ -1332,44 +1427,44 @@ LgiFunc void _DumpOpenFiles()
 
 int GFile::Open(char *File, int Mode)
 {
-	int Status = false;
-
-	if (File)
+	if (!File)
 	{
-		if (TestFlag(Mode, O_WRITE) OR
-			TestFlag(Mode, O_READWRITE))
-		{
-			Mode |= O_CREAT;
-		}
-
-		Close();
-		d->hFile = open(File, Mode | O_LARGEFILE, S_IRUSR | S_IWUSR);
-		if (ValidHandle(d->hFile))
-		{
-			#ifdef _FILE_OPEN
-			if (_FileLock.Lock(_FL))
-			{
-				_FileOpen.Add(File, this);
-				_FileLock.Unlock();
-			}
-			#endif
-			
-			d->Attributes = Mode;
-			d->Name = new char[strlen(File)+1];
-			if (d->Name)
-			{
-				strcpy(d->Name, File);
-			}
-			Status = true;
-			d->Status = true;
-		}
-		else
-		{
-			printf("GFile::Open failed\n\topen(%s,%08.8x) = %i\n\terrno=%s (%s)\n", File, Mode, d->hFile, GetErrorName(errno), GetErrorDesc(errno));
-		}
+		d->LastError = paramErr;
+		return false;
+	}
+	
+	if (TestFlag(Mode, O_WRITE) OR
+		TestFlag(Mode, O_READWRITE))
+	{
+		Mode |= O_CREAT;
 	}
 
-	return Status;
+	Close();
+	d->hFile = open(File, Mode | O_LARGEFILE, S_IRUSR | S_IWUSR);
+	if (!ValidHandle(d->hFile))
+	{
+		d->LastError = errno;
+		printf("GFile::Open failed\n\topen(%s,%08.8x) = %i\n\terrno=%s (%s)\n", File, Mode, d->hFile, GetErrorName(errno), GetErrorDesc(errno));
+		return false;
+	}
+	
+	#ifdef _FILE_OPEN
+	if (_FileLock.Lock(_FL))
+	{
+		_FileOpen.Add(File, this);
+		_FileLock.Unlock();
+	}
+	#endif
+	
+	d->Attributes = Mode;
+	d->Name = new char[strlen(File)+1];
+	if (d->Name)
+	{
+		strsafecpy(d->Name, File, sizeof(d->Name));
+	}
+	d->Status = true;
+
+	return true;
 }
 
 int GFile::Close()

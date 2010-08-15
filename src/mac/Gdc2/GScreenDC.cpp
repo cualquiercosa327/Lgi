@@ -25,6 +25,13 @@ public:
 		Ctx = 0;
 		Rc.ZOff(-1, -1);
 	}
+	
+	GRect Client()
+	{
+		GRect r = Rc;
+		r.Offset(-r.x1, -r.y1);
+		return r;
+	}
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -43,7 +50,7 @@ GScreenDC::GScreenDC(GWindow *w, void *param)
 		Rect r;
 		if (GetWindowBounds(d->Wnd->WindowHandle(), kWindowContentRgn, &r))
 		{
-			printf("%s:%i - GetWindowBounds failed\n", __FILE__, __LINE__);
+			printf("%s:%i - GetWindowBounds failed\n", _FL);
 		}
 		else
 		{
@@ -99,31 +106,39 @@ GView *GScreenDC::GetView()
 
 void GScreenDC::SetClient(GRect *c)
 {
+	// 'c' is in absolute coordinates
 	if (d->Ctx)
 	{
-		#if 0
-		char sp[64];
-		memset(sp, ' ', d->Stack.Length()<<2);
-		sp[d->Stack.Length()<<2] = 0;
-		printf("%sSetClient %s\n", sp, c ? c->GetStr() : "");
-		#endif
-		
 		if (c)
 		{
 			CGContextSaveGState(d->Ctx);
+
+			int Ox = 0, Oy = 0;
+
 			d->Stack.Add(d->Rc);
 			d->Rc = *c;
-			d->Rc.Offset(-d->Rc.x1, -d->Rc.y1);
+			Ox += d->Stack[d->Stack.Length()-1].x1;
+			Oy += d->Stack[d->Stack.Length()-1].y1;
+
+			#if 0
+			char sp[64];
+			memset(sp, ' ', (d->Stack.Length()-1)<<2);
+			sp[(d->Stack.Length()-1)<<2] = 0;
+			printf("%sSetClient %s %i,%i (", sp, c ? c->GetStr() : "", Ox, Oy);
+			for (int i=0; i<d->Stack.Length(); i++)
+			{
+				printf("%s|", d->Stack[i].GetStr());
+			}
+			printf(")\n");
+			#endif
 			
-			GRect *Prev = d->Stack.Length() > 1 ? &d->Stack[d->Stack.Length()-2] : 0;
-			CGRect rect = {{c->x1 - (Prev?Prev->x1:0), c->y1 - (Prev?Prev->y1:0)}, {c->X(), c->Y()}};
+			CGRect rect = {{c->x1, c->y1-Oy}, {c->X(), c->Y()}};
 			CGContextClipToRect(d->Ctx, rect);
 			CGContextTranslateCTM(d->Ctx, rect.origin.x, rect.origin.y);
 		}
 		else
 		{
 			d->Rc = d->Stack[d->Stack.Length()-1];
-
 			d->Stack.Length(d->Stack.Length()-1);
 			CGContextRestoreGState(d->Ctx);
 		}
@@ -177,7 +192,8 @@ GRect GScreenDC::ClipRgn(GRect *Rgn)
 	if (Rgn)
 	{
 		GRect c = *Rgn;
-		c.Bound(&d->Rc);
+		GRect Client = d->Client();
+		c.Bound(&Client);
 		
 		CGContextSaveGState(d->Ctx);
 		CGRect rect = {{c.x1, c.y1}, {c.X(), c.Y()}};
@@ -383,8 +399,12 @@ void GScreenDC::Rectangle(GRect *a)
 {
 	if (d->Ctx)
 	{
+		GRect c;
 		if (!a)
-			a = &d->Rc;
+		{
+			c = d->Client();
+			a = &c;
+		}
 
 		CGRect r = {{a->x1, a->y1}, {a->x2-a->x1+1.0, a->y2-a->y1+1.0}};
 		CGContextFillRect(d->Ctx, r);

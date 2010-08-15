@@ -771,6 +771,21 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 					DeleteArray(f);
 					Status = true;
 				}
+				
+				#elif defined MAC
+				
+				FSRef Ref;
+				OSErr e = FSFindFolder(kUserDomain, kMusicDocumentsFolderType, kDontCreateFolder, &Ref);
+				if (e) printf("%s:%i - FSFindFolder failed e=%i\n", _FL, e);
+				else
+				{
+					GAutoString a = FSRefPath(Ref);
+					if (a)
+					{
+						strsafecpy(Dst, a, DstSize);
+						return true;
+					}
+				}				
 
 				#else
 
@@ -790,6 +805,21 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 					strsafecpy(Dst, f, DstSize);
 					DeleteArray(f);
 					Status = true;
+				}
+
+				#elif defined MAC
+
+				FSRef Ref;
+				OSErr e = FSFindFolder(kUserDomain, kMovieDocumentsFolderType, kDontCreateFolder, &Ref);
+				if (e) printf("%s:%i - FSFindFolder failed e=%i\n", _FL, e);
+				else
+				{
+					GAutoString a = FSRefPath(Ref);
+					if (a)
+					{
+						strsafecpy(Dst, a, DstSize);
+						return true;
+					}
 				}
 
 				#else
