@@ -117,8 +117,9 @@ void GScreenDC::SetClient(GRect *c)
 
 			d->Stack.Add(d->Rc);
 			d->Rc = *c;
-			Ox += d->Stack[d->Stack.Length()-1].x1;
-			Oy += d->Stack[d->Stack.Length()-1].y1;
+			GRect &Last = d->Stack[d->Stack.Length()-1];
+			Ox += Last.x1;
+			Oy += Last.y1;
 
 			#if 0
 			char sp[64];
@@ -132,7 +133,7 @@ void GScreenDC::SetClient(GRect *c)
 			printf(")\n");
 			#endif
 			
-			CGRect rect = {{c->x1, c->y1-Oy}, {c->X(), c->Y()}};
+			CGRect rect = {{c->x1-Ox, c->y1-Oy}, {c->X(), c->Y()}};
 			CGContextClipToRect(d->Ctx, rect);
 			CGContextTranslateCTM(d->Ctx, rect.origin.x, rect.origin.y);
 		}

@@ -277,7 +277,7 @@ void GButton::OnPaint(GSurface *pDC)
 	for (GViewI *v = this; v && !v->Handle(); v = v->GetParent())
 	{
 		GRect p = v->GetPos();
-		c.Offset(p.x1, p.y2);
+		c.Offset(p.x1, p.y1);
 	}
 	
 	Rect Bounds = { c.y1, c.x1+2, c.y2-1, c.x2-1 };
