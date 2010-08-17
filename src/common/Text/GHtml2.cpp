@@ -2279,6 +2279,18 @@ GTagHit GTag::GetTagByPos(int x, int y)
 	return r;
 }
 
+void GTag::Find(int TagType, GArray<GTag*> &Out)
+{
+	if (TagId == TagType)
+	{
+		Out.Add(this);
+	}
+	for (GTag *t=Tags.First(); t; t=Tags.Next())
+	{
+		t->Find(TagType, Out);
+	}
+}
+
 void GTag::SetImage(char *Uri, GSurface *Img)
 {
 	if (Img)
@@ -7635,8 +7647,63 @@ void GHtml2::SetLinkDoubleClick(bool b)
 	d->LinkDoubleClick = b;
 }
 
-bool GHtml2::GetFormattedContent(char *MimeType, GAutoString &Out)
+bool GHtml2::GetFormattedContent(char *MimeType, GAutoString &Out, GArray<GDocView::ContentMedia> *Media)
 {
+	if (!MimeType)
+	{
+		LgiAssert(0);
+		return false;
+	}
+
+	if (stricmp(MimeType, "text/html"))
+	{
+		// We can handle this type...
+		GArray<GTag*> Imgs;
+		if (Media)
+		{
+			// Find all the image tags...
+			Tag->Find(TAG_IMG, Imgs);
+
+			// Give them CID's if they don't already have them
+			for (int i=0; Imgs.Length(); i++)
+			{
+				GTag *Img = Imgs[i];
+				char *Cid, *Src;
+				if (Img->Get("src", Src) &&
+					!Img->Get("cid", Cid))
+				{
+					char id[256];
+					sprintf(id, "%x.%x", LgiCurrentTime(), LgiRand());
+					Img->Set("cid", id);
+					Img->Get("cid", Cid);
+				}
+
+				if (Src && Cid)
+				{
+					GFile *f = new GFile;
+					if (f)
+					{
+						if (f->Open(Src, O_READ))
+						{
+							// Add the exported image stream to the media array
+							GDocView::ContentMedia &m = Media->New();
+							m.Id.Reset(NewStr(Cid));
+							m.Stream.Reset(f);
+						}
+					}
+				}
+			}
+		}
+
+		// Export the HTML, including the CID's from the first step
+		Out.Reset(NewStr(Name()));
+	}
+	else if (stricmp(MimeType, "text/plain"))
+	{
+		// Convert DOM tree down to text instead...
+		// FIXME
+	}
+
 	return false;
 }
 

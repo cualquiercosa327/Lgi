@@ -332,6 +332,7 @@ public:
 	bool CreateSource(GStringPipe &p, int Depth = 0, bool LastWasBlock = true);
 	bool GetVariant(char *Name, GVariant &Value, char *Array = 0);
 	bool SetVariant(char *Name, GVariant &Value, char *Array = 0);
+	void Find(int TagType, GArray<GTag*> &Tags);
 
 	// Window
 	bool OnMouseClick(GMouse &m);

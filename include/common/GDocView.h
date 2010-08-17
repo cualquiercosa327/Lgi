@@ -5,6 +5,8 @@
 #ifndef __GDOCVIEW_H
 #define __GDOCVIEW_H
 
+#include "GVariant.h"
+
 // Word wrap
 
 /// No word wrapping
@@ -288,8 +290,24 @@ public:
 
 	///////////////////////////////////////////////////////////////////////
 
+	struct ContentMedia
+	{
+		GAutoString Id;
+		GVariant Data;
+		GAutoPtr<GStream> Stream;
+	};
+
 	/// Gets the document in format of a desired MIME type
-	virtual bool GetFormattedContent(char *MimeType, GAutoString &Out) { return false; }
+	virtual bool GetFormattedContent
+	(
+		/// [In] The desired mime type of the content
+		char *MimeType,
+		/// [Out] The content in the specified mime type
+		GAutoString &Out,
+		/// [Out/Optional] Any attached media files that the content references
+		GArray<ContentMedia> *Media = 0
+	)
+	{ return false; }
 };
 
 #endif

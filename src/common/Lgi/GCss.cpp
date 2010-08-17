@@ -956,6 +956,16 @@ bool GCss::Parse(char *&s, ParsingStyle Type)
 						// Fixme: do not care right now...
 						break;
 					}
+					case PropBackgroundAttachment:
+					{
+						AttachmentType *w = (AttachmentType*)Props.Find(PropId);
+						if (!w) Props.Add(PropId, w = new AttachmentType);
+
+						     if (ParseWord(s, "inherit")) *w = AttachmentInherit;
+						else if (ParseWord(s, "scroll")) *w = AttachmentScroll;
+						else if (ParseWord(s, "fixed")) *w = AttachmentFixed;
+						break;						
+					}
 					default:
 					{
 						LgiAssert(!"Prop parsing support not implemented.");
@@ -987,7 +997,8 @@ bool GCss::Parse(char *&s, ParsingStyle Type)
 						ReleasePropOnSave(Len, PropId);
 					}
 				}
-				else LgiAssert(!"Parsing failed.");
+				else if (Type == ParseStrict)
+					LgiAssert(!"Parsing failed.");
 				break;
 			}
 			case TypeColor:
