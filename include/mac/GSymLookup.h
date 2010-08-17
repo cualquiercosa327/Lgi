@@ -341,7 +341,7 @@ public:
 	}
 	
 	/// Gets the current stack
-	int BackTrace(Addr *buffer, int max_frames)
+	int BackTrace(long Eip, long Ebp, Addr *buffer, int max_frames)
 	{
 		#if 0
 

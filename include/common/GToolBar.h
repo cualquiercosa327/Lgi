@@ -123,6 +123,10 @@ protected:
 	int			TipId;
 	bool		NeedsRightClick;
 
+	#ifdef MAC
+	HIToolbarItemRef ItemRef;
+	#endif
+
 	GArray<GDisplayString*> Text;
 	void Layout();
 
@@ -204,6 +208,10 @@ protected:
 	// Overridable
 	virtual void ContextMenu(GMouse &m);	
 	virtual int PostDescription(GView *Ctrl, char *Text);
+	
+	#ifdef MAC
+	HIToolbarRef ToolbarRef;
+	#endif
 
 public:
 	GToolBar();
@@ -290,6 +298,10 @@ public:
 	void OnMouseMove(GMouse &m);
 	bool Pour(GRegion &r);
 	void OnCreate();
+
+	#ifdef MAC
+	bool Attach(GViewI *parent);
+	#endif
 };
 
 /// Loads a toolbar from a file

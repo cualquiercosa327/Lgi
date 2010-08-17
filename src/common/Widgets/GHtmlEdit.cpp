@@ -25,6 +25,8 @@
 
 using namespace Html2;
 
+static char16 EmptyStr[] = {0};
+
 uint32 IconData[] =
 {
 	/*
@@ -1819,7 +1821,7 @@ public:
 						if (n = new GTag(t->Html, 0))
 						{
 							n->TagId = CONTENT;
-							n->Text(NewStrW(L""));
+							n->Text(NewStrW(EmptyStr));
 							Insert->Attach(n, Idx);
 						}
 
@@ -2450,7 +2452,8 @@ public:
 	{
 		d = priv;
 		Name("Html Edit Debug");
-		SetPos(GRect(1800, 200, 3000, 1000));
+		GRect r(1800, 200, 3000, 1000);
+		SetPos(r);
 		if (Attach(0))
 		{
 			Visible(true);
