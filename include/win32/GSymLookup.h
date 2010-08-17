@@ -242,7 +242,7 @@ public:
 		return Status;
 	}
 	
-	int BackTrace(Addr *addr, int len)
+	int BackTrace(long Eip, long Ebp, Addr *addr, int len)
 	{
 		if (!addr || len < 1)
 			return 0;
@@ -250,33 +250,38 @@ public:
 		int i = 0;
 
 		// Save the stack trace
-		Addr RegEbp = 0;
-		memset(addr, 0, sizeof(Addr) * len);
-
-		#ifdef _MSC_VER
-		// Microsoft C++
-		_asm {
-			mov eax, ebp
-			mov RegEbp, eax
+		Addr RegEbp = Ebp;
+		if (!Ebp)
+		{
+			memset(addr, 0, sizeof(Addr) * len);
+			#ifdef _MSC_VER
+			// Microsoft C++
+			_asm {
+				mov eax, ebp
+				mov RegEbp, eax
+			}
+			#else
+			// GCC
+			asm("movl %%ebp, %%eax;"
+				"movl %%eax, %0;"
+				:"=r"(RegEbp)	/* output */
+				:				/* no input */
+				:"%eax"			/* clobbered register */
+				);  
+			#endif
 		}
-		#else
-		// GCC
-		asm("movl %%ebp, %%eax;"
-			"movl %%eax, %0;"
-			:"=r"(RegEbp)	/* output */
-			:				/* no input */
-			:"%eax"			/* clobbered register */
-			);  
-		#endif
 
-		for (i=0; i<len; i++)
+		if (Eip)
+			addr[i++] = Eip;
+
+		for (; i<len; i++)
 		{
 			if ((RegEbp & 3) != 0 ||
 				IsBadReadPtr( (void*)RegEbp, 8 ))
 				break;
 
-			if (i >= 0)
-				addr[i] = (Addr) *((uint8**)RegEbp + 1);
+			// if (i >= 0)
+			addr[i] = (Addr) *((uint8**)RegEbp + 1);
 			RegEbp = *(Addr*)RegEbp;
 		}
 

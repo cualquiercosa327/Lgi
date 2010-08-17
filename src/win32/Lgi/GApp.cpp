@@ -103,8 +103,6 @@ public:
 /////////////////////////////////////////////////////////////////////////////
 LONG __stdcall _ExceptionFilter_Redir(LPEXCEPTION_POINTERS e)
 {
-	Sleep(30000);
-
 	if (LgiApp)
 		return LgiApp->_ExceptionFilter(e, LgiApp->d->ProductId);
 	else

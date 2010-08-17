@@ -527,7 +527,7 @@ void LgiStackTrace(char *Msg, ...)
 	GSymLookup::Addr Stack[STACK_SIZE];
 	ZeroObj(Stack);
 	GSymLookup *Lu = LgiApp->GetSymLookup();
-	int Frames = Lu ? Lu->BackTrace(Stack, STACK_SIZE) : 0;
+	int Frames = Lu ? Lu->BackTrace(0, 0, Stack, STACK_SIZE) : 0;
 	if (Msg)
 	{
 		char Buffer[2049] = "";

@@ -2444,26 +2444,26 @@ bool GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &In)
 			void *c = Lib.GetAddress(Method);
 			if (c)
 			{
-				// uint32 a = ArgVal.Length();
-				// uint32 b = (uint32) &ArgVal[Args.Length()-1];
+				uint32 a = ArgVal.Length();
+				uint32 b = (uint32) &ArgVal[Args.Length()-1];
 				uint32 r = 0;
 
 				#if defined(_MSC_VER)
 				_asm
 				{
-					mov ecx, a;
-					mov ebx, b;
+					mov ecx, a
+					mov ebx, b
 				}
 				label1:
 				_asm
 				{
-					push [ebx];
-					sub ebx, 4;
-					loop label1;
+					push [ebx]
+					sub ebx, 4
+					loop label1
 					
-					mov ebx, c;
-					call ebx;
-					mov r, eax;
+					mov ebx, c
+					call ebx
+					mov r, eax
 				}
 				#else
 				// Not implemented
