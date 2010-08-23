@@ -26,6 +26,18 @@ GClipBoard::~GClipBoard()
 	DeleteObj(d);
 }
 
+bool GClipBoard::EnumFormats(GArray<FormatType> &Formats)
+{
+	UINT Idx = 0;
+	UINT Fmt;
+	while (Fmt = EnumClipboardFormats(Idx))
+	{
+		Formats.Add(Fmt);
+		Idx++;
+	}
+	return Formats.Length() > 0;
+}
+
 bool GClipBoard::Empty()
 {
 	return EmptyClipboard();

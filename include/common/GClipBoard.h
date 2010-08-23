@@ -10,11 +10,18 @@ class LgiClass GClipBoard
 	GSurface *pDC;
 
 public:
+	#if defined(WIN32NATIVE)
+	typedef int FormatType;
+	#else
+	#error "Not impl."
+	#endif
+
 	GClipBoard(GView *o);
 	~GClipBoard();
 
 	bool IsOpen() { return Open; }
 	bool Empty();
+	bool EnumFormats(GArray<FormatType> &Formats);
 
 	// Text
 	bool Text(char *Str, bool AutoEmpty = true);
@@ -31,8 +38,8 @@ public:
 	#endif
 
 	// Binary
-	bool Binary(int Format, uint8 *Ptr, int Len, bool AutoEmpty);	// Set
-	bool Binary(int Format, uint8 **Ptr, int *Len);	// Get
+	bool Binary(FormatType Format, uint8 *Ptr, int Len, bool AutoEmpty);	// Set
+	bool Binary(FormatType Format, uint8 **Ptr, int *Len);	// Get
 };
 
 #endif

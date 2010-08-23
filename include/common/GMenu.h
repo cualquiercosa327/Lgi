@@ -147,7 +147,7 @@ public:
 		/// Command ID to post to the OnCommand() handler
 		int Id,
 		/// True if the item should be enabled
-		bool Enabled,
+		bool Enabled = true,
 		/// The index into the list to insert at, or -1 to insert at the end
 		int Where = -1,
 		// Shortcut if not embeded in "Str"

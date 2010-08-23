@@ -593,6 +593,10 @@ SOURCE=.\include\common\GMru.h
 
 SOURCE=.\src\win32\Lgi\GClipBoard.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=.\include\common\GClipBoard.h
+# End Source File
 # End Group
 # Begin Group "Md5"
 

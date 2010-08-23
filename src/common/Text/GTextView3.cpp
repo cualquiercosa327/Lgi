@@ -10,7 +10,7 @@
 #include <imm.h>
 #endif
 
-#define SubtractPtr(a, b)			(a - b)
+#define SubtractPtr(a, b)			((a) - (b))
 
 #define GDCF_UTF8					-1
 #define LUIS_DEBUG					0

@@ -350,7 +350,7 @@ bool GDocApp<OptionsFmt>::_LoadMenu(char *Resource)
 		{
 			_FileMenu->AppendItem("&Open\tCtrl+O", IDM_OPEN, true);
 			_FileMenu->AppendItem("&Save\tCtrl+S", IDM_SAVE, true);
-			_FileMenu->AppendItem("Save &As\tCtrl+A", IDM_SAVEAS, true);
+			_FileMenu->AppendItem("Save &As", IDM_SAVEAS, true);
 			_FileMenu->AppendItem("Close\tCtrl+W", IDM_CLOSE, true);
 			_FileMenu->AppendSeparator();
 
