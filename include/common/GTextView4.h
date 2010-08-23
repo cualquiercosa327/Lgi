@@ -2,8 +2,8 @@
 /// \author Matthew Allen
 /// \brief A unicode text editor
 
-#ifndef __GTEXTVIEW3_H
-#define __GTEXTVIEW3_H
+#ifndef __GTEXTVIEW4_H
+#define __GTEXTVIEW4_H
 
 #include "GDocView.h"
 #include "GUndo.h"
@@ -19,7 +19,7 @@
 
 extern char Delimiters[];
 
-class GTextView3;
+class GTextView4;
 
 class GTextStyle
 {
@@ -36,10 +36,10 @@ public:
 	};
 
 	/// The view the style is for
-	GTextView3 *View;
+	GTextView4 *View;
 	/// When you write several bits of code to do styling assign them
 	/// different owner id's so that they can manage the lifespan of their
-	/// own styles. GTextView3::PourStyle is owner '0', anything else it
+	/// own styles. GTextView4::PourStyle is owner '0', anything else it
 	/// will leave alone.
 	int Owner;
 	/// The start index into the text buffer of the region to style.
@@ -92,13 +92,13 @@ class
 #ifdef MAC
 LgiClass
 #endif
-	GTextView3 :
+	GTextView4 :
 	public GDocView,
 	public ResObject
 {
 	friend class GTextStyle;
 	friend class GUrl;
-	friend class GTextView3Undo;
+	friend class GTextView4Undo;
 	friend bool Text_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User);
 
 protected:
@@ -130,8 +130,8 @@ protected:
 		}
 	};
 	
-	class GTextView3Private *d;
-	friend class GTextView3Private;
+	class GTextView4Private *d;
+	friend class GTextView4Private;
 
 	// Options
 	bool Dirty;
@@ -194,15 +194,15 @@ protected:
 
 public:
 	// Construction
-	GTextView3(	int Id,
+	GTextView4(	int Id,
 				int x,
 				int y,
 				int cx,
 				int cy,
 				GFontType *FontInfo = 0);
-	~GTextView3();
+	~GTextView4();
 
-	char *GetClass() { return "GTextView3"; }
+	char *GetClass() { return "GTextView4"; }
 
 	// Data
 	char *Name();

@@ -267,7 +267,7 @@ public:
 	}
 };
 
-void GTextStyle::RefreshLayout(int Start, int Len)
+void GTextView3::GStyle::RefreshLayout(int Start, int Len)
 {
 	View->PourText(Start, Len);
 	View->PourStyle(Start, Len);
@@ -909,7 +909,7 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 	#endif
 }
 
-bool GTextView3::InsertStyle(GTextStyle *s)
+bool GTextView3::InsertStyle(GStyle *s)
 {
 	if (!s)
 		return false;
@@ -919,7 +919,7 @@ bool GTextView3::InsertStyle(GTextStyle *s)
 	int Last = 0;
 	int n = 0;
 
-	for (GTextStyle *i=Style.First(); i; i=Style.Next(), n++)
+	for (GStyle *i=Style.First(); i; i=Style.Next(), n++)
 	{
 		if (s->Overlap(i))
 		{
@@ -951,9 +951,9 @@ bool GTextView3::InsertStyle(GTextStyle *s)
 	return true;
 }
 
-GTextStyle *GTextView3::GetNextStyle(int Where)
+GTextView3::GStyle *GTextView3::GetNextStyle(int Where)
 {
-	GTextStyle *s = (Where >= 0) ? Style.First() : Style.Next();
+	GStyle *s = (Where >= 0) ? Style.First() : Style.Next();
 	while (s)
 	{
 		// determin whether style is relevent..
@@ -981,12 +981,12 @@ GTextStyle *GTextView3::GetNextStyle(int Where)
 	return 0;
 }
 
-class GUrl : public GTextStyle
+class GUrl : public GTextView3::GStyle
 {
 public:
 	bool Email;
 
-	GUrl(int own) : GTextStyle(own)
+	GUrl(int own) : GStyle(own)
 	{
 		Email = false;
 	}
@@ -1074,9 +1074,9 @@ public:
 	}
 };
 
-GTextStyle *GTextView3::HitStyle(int i)
+GTextView3::GStyle *GTextView3::HitStyle(int i)
 {
-	for (GTextStyle *s=Style.First(); s; s=Style.Next())
+	for (GStyle *s=Style.First(); s; s=Style.Next())
 	{
 		if (i >= s->Start AND i < s->Start+s->Len)
 		{
@@ -1093,7 +1093,7 @@ void GTextView3::PourStyle(int Start, int Length)
 	int StartTime = LgiCurrentTime();
 	#endif
 
-	for (GTextStyle *s = Style.First(); s; )
+	for (GStyle *s = Style.First(); s; )
 	{
 		if (s->Owner == 0)
 		{
@@ -2773,7 +2773,7 @@ void GTextView3::OnMouseClick(GMouse &m)
 			{
 				SetCursor(Hit, m.Shift());
 
-				GTextStyle *s = HitStyle(Hit);
+				GStyle *s = HitStyle(Hit);
 				if (s)
 				{
 					Processed = s->OnMouseClick(&m);
@@ -2850,7 +2850,7 @@ void GTextView3::OnMouseClick(GMouse &m)
 				RClick->AppendSeparator();
 				#endif
 
-				GTextStyle *s = HitStyle(HitText(m.x, m.y));
+				GStyle *s = HitStyle(HitText(m.x, m.y));
 				if (s)
 				{
 					if (s->OnMenu(RClick))
@@ -3064,7 +3064,7 @@ void GTextView3::OnMouseMove(GMouse &m)
 	c.Offset(-c.x1, -c.y1);
 	if (c.Overlap(m.x, m.y))
 	{
-		GTextStyle *s = HitStyle(Hit);
+		GStyle *s = HitStyle(Hit);
 		TCHAR *c = (s) ? s->GetCursor() : 0;
 		if (!c) c = IDC_IBEAM;
 		::SetCursor(LoadCursor(0, MAKEINTRESOURCE(c)));
@@ -4037,7 +4037,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 				NextSelection = SelMax;
 			}
 
-			GTextStyle *NextStyle = GetNextStyle((l) ? l->Start : 0);
+			GStyle *NextStyle = GetNextStyle((l) ? l->Start : 0);
 
 			DocOffset = (l) ? l->r.y1 : 0;
 
@@ -4138,7 +4138,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 							TextX = Ds.X();
 							Ds.Draw(pOut, Tr.x1, Tr.y1, 0);
 
-							if (NextStyle->Style == GTextStyle::DecorSquiggle)
+							if (NextStyle->Decor == GStyle::DecorSquiggle)
 							{
 								pOut->Colour(NextStyle->DecorColour, 24);
 								for (int i=0; i<TextX; i++)

@@ -21,72 +21,6 @@ extern char Delimiters[];
 
 class GTextView3;
 
-class GTextStyle
-{
-	friend class GUrl;
-
-protected:
-	void RefreshLayout(int Start, int Len);
-
-public:
-	enum StyleDecor
-	{
-		DecorNone,
-		DecorSquiggle,
-	};
-
-	/// The view the style is for
-	GTextView3 *View;
-	/// When you write several bits of code to do styling assign them
-	/// different owner id's so that they can manage the lifespan of their
-	/// own styles. GTextView3::PourStyle is owner '0', anything else it
-	/// will leave alone.
-	int Owner;
-	/// The start index into the text buffer of the region to style.
-	int Start;
-	/// The length of the styled region
-	int Len;
-	/// The font to draw the styled text in
-	GFont *Font;
-	/// The colour to draw with (24 bit)
-	COLOUR c;
-	/// Optional extra decor not supported by the fonts
-	StyleDecor Style;
-	/// Colour for the optional decor.
-	COLOUR DecorColour;
-
-	/// Application base data
-	char *Data;
-
-	GTextStyle(int owner)
-	{
-		Owner = owner;
-		View = 0;
-		c = 0;
-		Font = 0;
-		Start = -1;
-		Len = 0;
-		Style = DecorNone;
-		DecorColour = 0;
-		Data = 0;
-	}
-
-	virtual bool OnMouseClick(GMouse *m) { return false; }
-	virtual bool OnMenu(GSubMenu *m) { return false; }
-	virtual void OnMenuClick(int i) {}
-	virtual TCHAR *GetCursor() { return 0; }
-
-	/// Returns true if this style overlaps the position of 's'
-	bool Overlap(GTextStyle *s)
-	{
-		if (s->Start + s->Len < Start ||
-			s->Start > Start + Len)
-			return false;
-
-		return true;
-	}
-};
-
 /// Unicode text editor control.
 class
 #ifdef MAC
@@ -96,10 +30,78 @@ LgiClass
 	public GDocView,
 	public ResObject
 {
-	friend class GTextStyle;
 	friend class GUrl;
 	friend class GTextView3Undo;
 	friend bool Text_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User);
+
+public:
+	class GStyle
+	{
+		friend class GUrl;
+
+	protected:
+		void RefreshLayout(int Start, int Len);
+
+	public:
+		enum StyleDecor
+		{
+			DecorNone,
+			DecorSquiggle,
+		};
+
+		/// The view the style is for
+		GTextView3 *View;
+		/// When you write several bits of code to do styling assign them
+		/// different owner id's so that they can manage the lifespan of their
+		/// own styles. GTextView3::PourStyle is owner '0', anything else it
+		/// will leave alone.
+		int Owner;
+		/// The start index into the text buffer of the region to style.
+		int Start;
+		/// The length of the styled region
+		int Len;
+		/// The font to draw the styled text in
+		GFont *Font;
+		/// The colour to draw with (24 bit)
+		COLOUR c;
+		/// Optional extra decor not supported by the fonts
+		StyleDecor Decor;
+		/// Colour for the optional decor.
+		COLOUR DecorColour;
+
+		/// Application base data
+		char *Data;
+
+		GStyle(int owner)
+		{
+			Owner = owner;
+			View = 0;
+			c = 0;
+			Font = 0;
+			Start = -1;
+			Len = 0;
+			Decor = DecorNone;
+			DecorColour = 0;
+			Data = 0;
+		}
+
+		virtual bool OnMouseClick(GMouse *m) { return false; }
+		virtual bool OnMenu(GSubMenu *m) { return false; }
+		virtual void OnMenuClick(int i) {}
+		virtual TCHAR *GetCursor() { return 0; }
+
+		/// Returns true if this style overlaps the position of 's'
+		bool Overlap(GStyle *s)
+		{
+			if (s->Start + s->Len < Start ||
+				s->Start > Start + Len)
+				return false;
+
+			return true;
+		}
+	};
+
+	friend class GTextView3::GStyle;
 
 protected:
 	// Internal classes
@@ -150,7 +152,7 @@ protected:
 	GRect CursorPos;
 
 	List<GTextLine> Line;
-	List<GTextStyle> Style;		// sorted in 'Start' order
+	List<GStyle> Style;		// sorted in 'Start' order
 
 	// For ::Name(...)
 	char *TextCache;
@@ -174,9 +176,9 @@ protected:
 	int MatchText(char16 *Text, bool MatchWord, bool MatchCase, bool SelectionOnly);
 	
 	// styles
-	bool InsertStyle(GTextStyle *s);
-	GTextStyle *GetNextStyle(int Where = -1);
-	GTextStyle *HitStyle(int i);
+	bool InsertStyle(GStyle *s);
+	GStyle *GetNextStyle(int Where = -1);
+	GStyle *HitStyle(int i);
 	int GetColumn();
 
 	// Overridables
@@ -214,8 +216,6 @@ public:
 	char *GetMimeType() { return "text/plain"; }
 	int GetSize() { return Size; }
 
-	virtual bool Insert(int At, char16 *Data, int Len);
-	virtual bool Delete(int At, int Len);
 	int HitText(int x, int y);
 	void DeleteSelection(char16 **Cut = 0);
 
@@ -302,6 +302,8 @@ public:
 	int OnHitTest(int x, int y);
 
 	// Virtuals
+	virtual bool Insert(int At, char16 *Data, int Len);
+	virtual bool Delete(int At, int Len);
 	virtual void OnEnter(GKey &k);
 	virtual void OnUrl(char *Url);
 };
