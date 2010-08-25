@@ -966,6 +966,34 @@ bool GCss::Parse(char *&s, ParsingStyle Type)
 						else if (ParseWord(s, "fixed")) *w = AttachmentFixed;
 						break;						
 					}
+					case PropOverflow:
+					{
+						OverflowType *w = (OverflowType*)Props.Find(PropId);
+						if (!w) Props.Add(PropId, w = new OverflowType);
+
+						     if (ParseWord(s, "inherit")) *w = OverflowInherit;
+						else if (ParseWord(s, "visible")) *w = OverflowVisible;
+						else if (ParseWord(s, "hidden")) *w = OverflowHidden;
+						else if (ParseWord(s, "scroll")) *w = OverflowScroll;
+						else if (ParseWord(s, "auto")) *w = OverflowAuto;
+						break;
+					}
+					case PropVisibility:
+					{
+						VisibilityType *w = (VisibilityType*)Props.Find(PropId);
+						if (!w) Props.Add(PropId, w = new VisibilityType);
+
+						     if (ParseWord(s, "inherit")) *w = VisibilityInherit;
+						else if (ParseWord(s, "visible")) *w = VisibilityVisible;
+						else if (ParseWord(s, "hidden")) *w = VisibilityHidden;
+						else if (ParseWord(s, "collapse")) *w = VisibilityCollapse;
+						break;
+					}
+					case PropFont:
+					{
+						// FIXME
+						break;
+					}
 					default:
 					{
 						LgiAssert(!"Prop parsing support not implemented.");
