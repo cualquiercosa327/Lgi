@@ -11,6 +11,9 @@
 #if GPL_COMPATIBLE
 #include "AuthNtlm/Ntlm.h"
 #endif
+#if HAS_LIBGSASL
+#include "gsasl.h"
+#endif
 
 #define Ws(s)			while (*s && strchr(WhiteSpace, *s)) s++
 #define SkipWhite(s)	while ((s - Buffer) < Used && strchr(" \t", *s)) s++;
@@ -612,7 +615,22 @@ void Hex(char *Out, uchar *In, int Len = -1)
 	}
 }
 
-#include "GMap.h"
+bool MailIMap::ReadLine()
+{
+	int Len = 0;
+	Buf[0] = 0;
+	do
+	{
+		int r = Socket->Read(Buf+Len, sizeof(Buf)-Len);
+		if (r < 1)
+			return false;
+		Len += r;
+	}
+	while (!stristr(Buf, "\r\n"));
+
+	Log(Buf, MAIL_RECEIVE_COLOUR);
+	return true;
+}
 
 bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *Password, char *&Cookie, int Flags)
 {
@@ -632,7 +650,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 		// prepare address
 		if (Port < 1)
 		{
-			if (Flags)
+			if (Flags & MAIL_SSL)
 				Port = IMAP_SSL_PORT;
 			else
 				Port = IMAP_PORT;
@@ -752,9 +770,29 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 						strcat(AuthTypeStr, AuthType);
 					}
 
-					// do auth
+					// Do auth
+					#if 0
+					if (!stricmp(AuthType, "GSSAPI"))
+					{
+						int AuthCmd = d->NextCmd++;
+						sprintf(Buf, "A%04.4i AUTHENTICATE GSSAPI\r\n", AuthCmd);
+						if (WriteBuf() &&
+							ReadLine() &&
+							Buf[0] == '+')
+						{
+							// Start GSSAPI
+							Gsasl *ctx = NULL;
+							int rc = gsasl_init(&ctx);
+							if (rc == GSASL_OK)
+							{
+								gsasl_done (ctx);
+							}
+						}						
+					}
+					else
+					#endif
 					if (stricmp(AuthType, "LOGIN") == 0 ||
-						stricmp(AuthType, "OTP") == 0)
+							 stricmp(AuthType, "OTP") == 0)
 					{
 						// clear text authentication
 						int AuthCmd = d->NextCmd++;
@@ -889,7 +927,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 									int b = ConvertBase64ToBinary(Out, sizeof(Out), In, strlen(In));
 									Out[b] = 0;
 									
-									GMap<char*, char*> Map;
+									GHashTbl<char*, char*> Map;
 									char *s = (char*)Out;
 									while (s && *s)
 									{
@@ -900,7 +938,8 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 
 										if (Var && Eq && Val && strcmp(Eq, "=") == 0)
 										{
-											Map[Var] = Val;
+											Map.Add(Var, Val);
+											Val = 0;
 										}
 
 										DeleteArray(Var);
@@ -919,7 +958,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 									if (s) *s = 0;
 
 									int Nc = 1;
-									char *Realm = Map["realm"];
+									char *Realm = Map.Find("realm");
 									char DigestUri[256];
 									if (Realm)
 									{
@@ -935,7 +974,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 									p.Print(",nc=%08.8i", Nc);
 									p.Print(",digest-uri=\"%s\"", DigestUri);
 									p.Print(",cnonce=\"%s\"", Cnonce);
-									char *Nonce = Map["nonce"];
+									char *Nonce = Map.Find("nonce");
 									if (Nonce)
 									{
 										p.Print(",nonce=\"%s\"", Nonce);
@@ -944,12 +983,12 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 									{
 										p.Print(",realm=\"%s\"", Realm);
 									}
-									char *Charset = Map["charset"];
+									char *Charset = Map.Find("charset");
 									if (Charset)
 									{
 										p.Print(",charset=%s", Charset);
 									}
-									char *Qop = Map["qop"];
+									char *Qop = Map.Find("qop");
 									if (Qop)
 									{
 										p.Print(",qop=%s", Qop);
@@ -960,7 +999,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 									uchar md5[16];
 									sprintf(Buf, "%s:%s:%s", User, Realm ? Realm : (char*)"", Password);
 									MDStringToDigest((uchar*)a1, Buf);
-									char *Authzid = Map["authzid"];
+									char *Authzid = Map.Find("authzid");
 									char *a1end = a1 + 16;
 									if (Authzid)
 									{										

@@ -339,6 +339,8 @@ public:
 #define MAIL_USE_NTLM				0x10
 /// Secure auth
 #define MAIL_SECURE_AUTH			0x20
+/// Use SSL
+#define MAIL_SSL					0x40
 
 /// Mail sending protocol
 class MailSink : public MailProtocol
@@ -787,6 +789,7 @@ protected:
 	bool WriteBuf(bool ObsurePass = false, const char *Buffer = 0);
 	bool ReadResponse(int Cmd = -1, GStringPipe *Out = 0, bool Plus = false);
 	bool Read(GStreamI *Out = 0);
+	bool ReadLine();
 
 public:
 	// Typedefs

@@ -223,6 +223,7 @@
 #define HAS_LIBPNG_ZLIB						1
 #define HAS_FILE_CMD						0
 #define HAS_SHARED_OBJECT_SKIN				0
+#define HAS_LIBGSASL						1
 
 // My includes
 #include "LgiInc.h"							// Xp

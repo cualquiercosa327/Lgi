@@ -452,9 +452,14 @@ extern GDataStoreI *OpenMail3
 /// \return a valid ptr or NULL on failure
 extern GDataStoreI *OpenImap
 (
+	/// The host name of the IMAP server
 	char *Host,
+	/// The user name of the account to connect to
 	char *User,
+	/// [Optional] The password of the user
 	char *Pass,
+	/// Various flags that control the type of connection made:
+	/// \sa #MAIL_SSL, #MAIL_SECURE_AUTH
 	int ConnectFlags,
 	GDataEventsI *Callback,
 	GStream *Log,
