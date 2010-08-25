@@ -119,14 +119,6 @@ public:
 /// An implementation of the remote file system interface for FTP connections
 class IFtp : public IFileProtocol
 {
-/*
-public:
-	/// An optional callback for creating specialized sockets.
-	/// The param is the value passed into IFtp::IFtp()
-	/// \returns a dynamically allocated object implementing a socket connection
-	typedef GSocketI *(*FtpSocketFactory)(void *Param);
-*/
-
 protected:
 	class IFtpPrivate *d;
 
@@ -162,13 +154,7 @@ protected:
 
 public:
 	/// Construct an FTP protocol handler.
-	IFtp
-	(
-		/// [Optional] Callback to create a specialized socket for connections
-		// FtpSocketFactory SockFactory = 0,
-		/// [Optional] A user application defined parameter passed to the SockFactory call (if not NULL)
-		// void *FactoryParam = 0
-	);
+	IFtp();
 	virtual ~IFtp();
 
 	/// \returns the current charset
