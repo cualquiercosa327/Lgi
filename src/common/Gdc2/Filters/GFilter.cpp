@@ -744,9 +744,9 @@ bool GdcIco::ReadImage(GSurface *pDC, GStream *In)
 		Read(In, &ImageOffset, sizeof(ImageOffset));
 		
 		int BytesLeft = BytesInRes;
-		
+
 		int64 CurrentPos = In->GetPos();
-		In->SetPos(In->GetPos() + ImageOffset);
+		In->SetPos(ImageOffset);
 
 		BMP_WININFO	Header;
 		GdcRGB *Colours;
@@ -757,12 +757,29 @@ bool GdcIco::ReadImage(GSurface *pDC, GStream *In)
 		In->Read(&Header, sizeof(Header));
 		BytesLeft -= sizeof(Header);
 
-		int Cols = 1 << (Header.Bits);
-		Colours = new GdcRGB[Cols];
+		if (!Header.Sx) Header.Sx = Width;
+		if (!Header.Sy) Header.Sy = Height;
+		if (!Header.Bits)
+		{
+			if (BitCount) Header.Bits = BitCount;
+			else if (ColorCount)
+			{
+				for (int i=1; i<=8; i++)
+				{
+					if (1 << i >= ColorCount)
+					{
+						BitCount = Header.Bits = i;
+						break;
+					}
+				}
+			}
+		}
+
+		Colours = new GdcRGB[ColorCount];
 		if (Colours)
 		{
-			In->Read(Colours, sizeof(GdcRGB) * Cols);
-			BytesLeft -= sizeof(GdcRGB) * Cols;
+			In->Read(Colours, sizeof(GdcRGB) * ColorCount);
+			BytesLeft -= sizeof(GdcRGB) * ColorCount;
 		}
 
 		Header.Sy >>= 1;
@@ -811,8 +828,8 @@ bool GdcIco::ReadImage(GSurface *pDC, GStream *In)
 			GPalette *Pal = new GPalette;
 			if (Pal)
 			{
-				Pal->SetSize(Cols);
-				memcpy((*Pal)[0], Colours, sizeof(GdcRGB) * Cols);
+				Pal->SetSize(ColorCount);
+				memcpy((*Pal)[0], Colours, sizeof(GdcRGB) * ColorCount);
 				Pal->SwapRAndB();
 				pDC->Palette(Pal, true);
 			}
