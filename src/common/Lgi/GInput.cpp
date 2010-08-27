@@ -24,7 +24,7 @@ GInput::GInput(GViewI *parent, char *InitStr, char *Msg, char *Title, bool Passw
 	CallbackParam = callbackparam;
 
 	GText *Txt = new GText(-1, 5, 5, -1, -1, Msg);
-	GDisplayString MsgDs(SysFont, InitStr?InitStr:(char*)"");
+	GDisplayString MsgDs(SysFont, InitStr?InitStr:(char*)"A");
 	int Dx = LgiApp->GetMetric(LGI_MET_DECOR_X) + 10;
 	int Dy = LgiApp->GetMetric(LGI_MET_DECOR_Y);
 	

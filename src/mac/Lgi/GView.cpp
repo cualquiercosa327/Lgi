@@ -260,9 +260,7 @@ GViewPrivate::GViewPrivate()
 				&BaseClass
 			);
 		if (e)
-		{
 			printf("%s:%i - HIObjectRegisterSubclass failed (e=%i).\n", __FILE__, __LINE__, e);
-		}
 	}
 }
 	
@@ -1102,8 +1100,6 @@ int VirtualKeyToLgi(UInt32 Virt)
 	return 0;
 }
 
-#define GViewThisPtr		'gvtp'
-
 struct WasteOfSpace
 {
 	HIViewRef Obj;
@@ -1123,7 +1119,7 @@ CarbonControlProc
 	UInt32 eventClass = GetEventClass(inEvent);
 	UInt32 eventKind = GetEventKind(inEvent);
 	
-	WasteOfSpace *d = (WasteOfSpace *) userData;
+	WasteOfSpace *d = (WasteOfSpace*) userData;
 	GView *v = d ? d->v : 0;
 
 	switch (eventClass)
@@ -1298,6 +1294,20 @@ CarbonControlProc
 					p->OnFocus(f);
 					
 					Status = noErr;
+					break;
+				}
+				case kEventControlGetSizeConstraints:
+				{
+					HISize min, max;
+					min.width = max.width = v->X();
+					min.height = max.height = v->Y();
+
+					Status = SetEventParameter( inEvent, kEventParamMinimumSize, typeHISize,
+												sizeof( HISize ), &min );
+
+					Status = SetEventParameter( inEvent, kEventParamMaximumSize, typeHISize,
+												sizeof( HISize ), &max );
+					Status = noErr ;
 					break;
 				}
 			}
@@ -1484,6 +1494,30 @@ CarbonControlProc
 			}
 			break;
 		}
+		case kEventClassToolbarItem:
+		{
+			printf("got kEventClassToolbarItem\n");
+			if (eventKind == kEventToolbarItemCreateCustomView)
+			{
+				printf("got kEventToolbarItemCreateCustomView\n");
+				EventTargetRef myButtonEventTarget; 
+				HIViewRef myButton; 
+				Rect myButtonRect = {0,0,20,80}; 
+
+				CreatePushButtonControl(NULL, &myButtonRect, 
+					 CFSTR("Push!"), &myButton); 
+				SetEventParameter (inEvent, kEventParamControlRef, 
+                             typeControlRef, sizeof(myButton), &myButton); 
+				myButtonEventTarget = GetControlEventTarget(myButton); 
+				/*
+				InstallEventHandler (myButtonEventTarget, 
+						MyButtonEventHandler, 
+						GetEventTypeCount(pushButtonEvents), 
+						pushButtonEvents, NULL, NULL);
+						*/
+			}
+			break;
+		}
 		case kEventClassScrollable:
 		{
 			if (eventKind == kEventScrollableGetInfo)
@@ -1568,13 +1602,13 @@ CarbonControlProc
 }
 
 HIObjectClassRef ViewClass = 0;
+#define kLgiGViewClassID CFSTR("com.memecode.lgi.GView") 
 
 OsView GView::_CreateCustomView()
 {
 	OsView Hnd = 0;
 	OSStatus e;
 	
-	CFStringRef Class = CFSTR("com.memecode.LgiView");
 	if (!ViewClass)
 	{
 		static EventTypeSpec LgiViewEvents[] =
@@ -1591,6 +1625,7 @@ OsView GView::_CreateCustomView()
 			{ kEventClassControl, kEventControlSetFocusPart },
 			{ kEventClassControl, kEventControlBoundsChanged },
 			// { kEventClassControl, kEventControlSetCursor },
+			{ kEventClassControl, kEventControlGetSizeConstraints },
 
 			{ kEventClassTextInput, kEventTextInputUnicodeForKeyEvent },
 			{ kEventClassKeyboard, kEventRawKeyUp },
@@ -1600,7 +1635,7 @@ OsView GView::_CreateCustomView()
 			{ kEventClassScrollable, kEventScrollableScrollTo }
 		};
 		
-		e = HIObjectRegisterSubclass(	Class,
+		e = HIObjectRegisterSubclass(	kLgiGViewClassID,
 										kHIViewClassID,
 										0,
 										CarbonControlProc,
@@ -1627,7 +1662,7 @@ OsView GView::_CreateCustomView()
 		GView *Myself = this;
 		e = SetEventParameter(Ev, GViewThisPtr, typeVoidPtr, sizeof(Myself), &Myself); 
 											
-		if (e = HIObjectCreate(Class, Ev, (HIObjectRef*)&Hnd))
+		if (e = HIObjectCreate(kLgiGViewClassID, Ev, (HIObjectRef*)&Hnd))
 		{
 			printf("%s:%i - HIObjectCreate failed with %i\n", _FL, e);
 			Hnd = 0;
@@ -1700,7 +1735,7 @@ bool GView::_Attach(GViewI *parent)
 					if (e) LgiTrace("%s:%i - HIViewAddSubview(%p,%p) failed with '%i' (name=%s).\n",
 									_FL, Par, _View, e, Name());
 					else
-					{						
+					{
 						OnCreate();
 						OnAttach();
 

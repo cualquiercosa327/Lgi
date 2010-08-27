@@ -2002,6 +2002,13 @@ void GToolBar::Empty()
 	}
 }
 
+#ifdef MAC
+bool GToolBar::Attach(GViewI *parent)
+{
+	return GLayout::Attach(parent);
+}
+#endif
+
 ///////////////////////////////////////////////////////////////////////
 COLOUR Map(GSurface *pDC, COLOUR c)
 {

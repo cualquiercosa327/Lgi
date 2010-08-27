@@ -301,6 +301,13 @@ public:
 
 	#ifdef MAC
 	bool Attach(GViewI *parent);
+	
+	class Custom : public GView
+	{
+	public:
+		Custom();
+		~Custom();
+	};
 	#endif
 };
 

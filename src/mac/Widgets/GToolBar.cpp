@@ -1269,6 +1269,9 @@ bool GToolBar::Attach(GViewI *parent)
 			SetWindowToolbar(Hnd, ToolbarRef);
 			ShowHideWindowToolbar(Hnd, true, false);
 			CFRelease(ToolbarRef);
+
+			HIToolbarSetDisplayMode(ToolbarRef,
+									d->Text ? kHIToolbarDisplayModeIconAndLabel : kHIToolbarDisplayModeIconOnly);
 			
 			r.y2 -= 60;
 			Wnd->SetPos(r);
@@ -1423,6 +1426,12 @@ bool GToolBar::TextLabels()
 void GToolBar::TextLabels(bool i)
 {
 	d->Text = i;
+	
+	if (ToolbarRef)
+	{
+		HIToolbarSetDisplayMode(ToolbarRef,
+								i ? kHIToolbarDisplayModeIconAndLabel : kHIToolbarDisplayModeIconOnly);
+	}
 }
 
 GFont *GToolBar::GetFont()
@@ -2140,14 +2149,93 @@ bool GToolBar::AppendBreak()
 	return false;
 }
 
+static HIObjectClassRef CustomItem = 0;
+#define kLgiToolbarItemClassID CFSTR("com.memecode.lgi.toolbaritem") 
+
+extern
+pascal
+OSStatus
+CarbonControlProc
+(
+	EventHandlerCallRef nextHandler, 
+	EventRef inEvent,
+	void * userData
+);
+
+GToolBar::Custom::Custom()
+{
+	/*
+	kMyButtonToolbarItemClassID, 
+	kHIToolbarItemClassID, 0, MyButtonToolbarItemHandler, 
+	GetEventTypeCount( buttonEvents ), buttonEvents, 0, NULL
+	*/
+
+	OSStatus err;
+	if (!CustomItem)
+	{
+		EventTypeSpec Events[] =
+		{
+			{ kEventClassHIObject, kEventHIObjectConstruct },
+			{ kEventClassHIObject, kEventHIObjectInitialize },
+			{ kEventClassHIObject, kEventHIObjectDestruct },
+			{ kEventClassToolbarItem, kEventToolbarItemCreateCustomView },
+		};
+
+		err = HIObjectRegisterSubclass(	kLgiToolbarItemClassID,
+										kHIToolbarItemClassID,
+										0,
+										CarbonControlProc,
+										CountOf(Events),
+										Events,
+										0,
+										&CustomItem);
+		if (err) printf("%s:%i - HIObjectRegisterSubclass failed %i\n", _FL, err);
+	}
+
+	EventRef event;
+	err = CreateEvent(0, kEventClassHIObject, kEventHIObjectInitialize, GetCurrentEventTime(), 0, &event); 
+	if (err)
+		printf("%s:%i - CreateEvent failed %i\n", _FL, err);
+	else
+	{
+		GView *Myself = this;
+		err = SetEventParameter(event, GViewThisPtr, typeVoidPtr, sizeof(Myself), &Myself); 
+
+		UInt32 options = 0;
+		CFStringRef Id = CFSTR("MyCustomIdentifier");
+		SetEventParameter(	event, kEventParamToolbarItemIdentifier, 
+							typeCFStringRef, sizeof(CFStringRef), &Id);
+		SetEventParameter(	event, kEventParamAttributes, typeUInt32, 
+							sizeof( UInt32 ), &options ); 
+
+		err = HIObjectCreate(kLgiToolbarItemClassID, event, (HIObjectRef*)&_View);
+		if (err)
+			printf("%s:%i - HIObjectCreate failed %i\n", _FL, err);
+	}
+}
+
+GToolBar::Custom::~Custom()
+{
+}
+
 bool GToolBar::AppendControl(GView *Ctrl)
 {
 	bool Status = false;
 	if (Ctrl)
 	{
-		Ctrl->SetParent(this);
-		AttachButton(Ctrl);
-		Status = true;
+		#ifdef MAC
+		Custom *Cust = dynamic_cast<Custom*>(Ctrl);
+		if (Cust && ToolbarRef)
+		{
+			AddView(Cust);
+		}
+		else
+		#endif
+		{
+			Ctrl->SetParent(this);
+			AttachButton(Ctrl);
+			Status = true;
+		}
 	}
 	return Status;
 }

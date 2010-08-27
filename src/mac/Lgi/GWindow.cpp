@@ -1198,10 +1198,7 @@ bool GWindow::Attach(GViewI *p)
 												WndEvents,
 												(void*)this,
 												&Handler);
-		if (e)
-		{
-			LgiTrace("%s:%i - InstallEventHandler failed (%i)\n", _FL, e);
-		}
+		if (e) LgiTrace("%s:%i - InstallEventHandler failed (%i)\n", _FL, e);
 
 		e = HIViewFindByID(HIViewGetRoot(Wnd), kHIViewWindowContentID, &_View);
 		if (_View)

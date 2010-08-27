@@ -161,6 +161,7 @@ LgiFunc void LgiSleep(int i);
 #define LGI_LIBRARY_EXT				"dylib"
 
 // Carbon user events
+#define GViewThisPtr				'gvtp'
 #define kEventClassUser				'user'
 #define kEventUser					1
 #define kEventParamLgiEvent			'Lgie'

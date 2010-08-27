@@ -10,8 +10,8 @@ class LgiClass GClipBoard
 	GSurface *pDC;
 
 public:
-	#if defined(WIN32NATIVE)
-	typedef int FormatType;
+	#if defined(WIN32NATIVE) || defined(MAC)
+	typedef uint32 FormatType;
 	#else
 	#error "Not impl."
 	#endif
