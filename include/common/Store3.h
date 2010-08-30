@@ -249,7 +249,7 @@ public:
 	virtual GDataIterator<GDataPropI*> &Fields() = 0;
 	/// Deletes all child objects from disk and memory.
 	/// \return true on success;
-	virtual bool DeleteAllChildren() { return false; }
+	virtual Store3Status DeleteAllChildren() { return Store3Error; }
 	/// Called when the user selects the folder in the UI
 	virtual void OnSelect(bool s) {}
 	/// Called when the user selects a relevant context menu command
