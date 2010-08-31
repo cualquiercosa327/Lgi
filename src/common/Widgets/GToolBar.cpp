@@ -481,7 +481,6 @@ void GImageList::Draw(GSurface *pDest, int Dx, int Dy, int Image, int Flags)
 												r.x1, r.y1,
 												r.X(), r.Y(),
 												Blend);
-					printf("%s:%i - Status=%i\n", _FL, Status);
 					if (!Status)
 					{
 						int ScreenBits = GdcD->GetBits();
@@ -995,6 +994,7 @@ void GToolButton::Value(int64 b)
 		{
 			if (Value() != b)
 			{
+				Value(b);
 				SetDown(b);
 				Invalidate();
 			}

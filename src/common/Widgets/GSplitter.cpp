@@ -2,7 +2,7 @@
 
 //////////////////////////////////////////////////////////////////////////////
 #define SPLITER_BORDER			4
-#define SPLITER_BAR				5
+#define SPLITER_BAR_DEFAULT		6
 #define SPLITER_INSET			2
 #define SPLITER_MIN_X			(2*SPLITER_INSET)
 #define SPLITER_MIN_Y			(2*SPLITER_INSET)
@@ -26,6 +26,7 @@ public:
 	GView *ViewB;
 	bool BorderA;
 	bool BorderB;
+	int BarSize;
 
 	#ifdef WIN32
 	HCURSOR OldCursor;
@@ -43,6 +44,7 @@ GSplitter::GSplitter()
 	d->BorderA = true;
 	d->BorderB = true;
 	d->SplitFollow = false;
+	d->BarSize = SPLITER_BAR_DEFAULT;
 
 	GRect r(0, 0, 2000, 1000);
 	SetPos(r);
@@ -76,6 +78,8 @@ GSplitter::~GSplitter()
 	DeleteObj(d);
 }
 
+int GSplitter::BarSize() { return d->BarSize; }
+void GSplitter::BarSize(int i) { d->BarSize = i; CalcRegions(); }
 bool GSplitter::Border() { return TestFlag(WndFlags, GWF_BORDER); }
 void GSplitter::Border(bool i) { (i) ? SetFlag(WndFlags, GWF_BORDER) : ClearFlag(WndFlags, GWF_BORDER); }
 bool GSplitter::IsVertical() { return d->Vertical; }
@@ -238,12 +242,12 @@ void GSplitter::CalcRegions(bool Follow)
 	if (d->Vertical)
 	{
 		d->PosA.x2 = d->PosA.x1 + d->SplitPos;
-		d->PosB.x1 = d->PosA.x2 + SPLITER_BAR;
+		d->PosB.x1 = d->PosA.x2 + d->BarSize;
 	}
 	else
 	{
 		d->PosA.y2 = d->PosA.y1 + d->SplitPos;
-		d->PosB.y1 = d->PosA.y2 + SPLITER_BAR;
+		d->PosB.y1 = d->PosA.y2 + d->BarSize;
 	}
 
 	GRect r = d->PosA;

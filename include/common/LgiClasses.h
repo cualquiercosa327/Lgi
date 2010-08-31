@@ -1477,6 +1477,12 @@ public:
 	/// Sets the right/bottom view
 	void SetViewB(GView *b, bool Border = true);
 
+	/// Get the size of the bar that splits the views
+	int BarSize();
+	
+	/// Set the bar size
+	void BarSize(int i);
+
 	bool Border();
 	void Border(bool i);
 	GViewI *FindControl(OsView hCtrl);
