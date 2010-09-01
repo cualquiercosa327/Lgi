@@ -994,7 +994,6 @@ void GToolButton::Value(int64 b)
 		{
 			if (Value() != b)
 			{
-				Value(b);
 				SetDown(b);
 				Invalidate();
 			}
