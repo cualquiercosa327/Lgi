@@ -154,4 +154,48 @@
 	}
 
 
+#define DynFunc10(ret, func, argtype1, argname1,		\
+							argtype2, argname2,			\
+							argtype3, argname3,			\
+							argtype4, argname4,			\
+							argtype5, argname5,			\
+							argtype6, argname6,			\
+							argtype7, argname7,			\
+							argtype8, argname8,			\
+							argtype9, argname9,			\
+							argtype10, argname10)		\
+	ret func(argtype1 argname1,							\
+			 argtype2 argname2,							\
+			 argtype3 argname3,							\
+			 argtype4 argname4,							\
+			 argtype5 argname5,							\
+			 argtype6 argname6,							\
+			 argtype7 argname7,							\
+			 argtype8 argname8,							\
+			 argtype9 argname9,							\
+			 argtype10 argname10)						\
+	{													\
+		typedef ret (CALL_TYPE *p_##func)(argtype1,		\
+								argtype2,				\
+								argtype3,				\
+								argtype4,				\
+								argtype5,				\
+								argtype6,				\
+								argtype7,				\
+								argtype8,				\
+								argtype9,				\
+								argtype10);				\
+		p_##func p = (p_##func) GetAddress(#func);		\
+		if (p)											\
+		{												\
+			return p(argname1, argname2,				\
+					 argname3, argname4,				\
+					 argname5, argname6,				\
+					 argname7, argname8,				\
+					 argname9, argname10);				\
+		}												\
+		BreakPoint										\
+		return 0;										\
+	}
+
 #endif
