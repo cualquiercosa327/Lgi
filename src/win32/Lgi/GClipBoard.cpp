@@ -303,7 +303,7 @@ GSurface *GClipBoard::Bitmap()
 	return pDC;
 }
 
-bool GClipBoard::Binary(int Format, uchar *Ptr, int Len, bool AutoEmpty)
+bool GClipBoard::Binary(FormatType Format, uchar *Ptr, int Len, bool AutoEmpty)
 {
 	bool Status = FALSE;
 
@@ -334,7 +334,7 @@ bool GClipBoard::Binary(int Format, uchar *Ptr, int Len, bool AutoEmpty)
 	return Status;
 }
 
-bool GClipBoard::Binary(int Format, uchar **Ptr, int *Len)
+bool GClipBoard::Binary(FormatType Format, uchar **Ptr, int *Len)
 {
 	bool Status = false;
 
