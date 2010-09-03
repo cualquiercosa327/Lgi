@@ -667,7 +667,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 
 		// Set SSL mode
 		GVariant v;
-		if (Flags == 2)
+		if (Flags == MAIL_SSL)
 			v = "SSL";
 		Socket->SetValue(GSocket_Protocol, v);
 

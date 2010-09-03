@@ -126,7 +126,7 @@ void GSemaphore::_Unlock()
 
 	if (pthread_mutex_unlock(&_Sem))
 	{
-		printf("\t%s:%i - pthread_mutex_unlock errored\n", __FILE__, __LINE__);
+		printf("\t%s:%i - pthread_mutex_unlock errored\n", _FL);
 	}
 
 	#endif

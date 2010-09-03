@@ -817,7 +817,7 @@ bool GCss::Parse(char *&s, ParsingStyle Type)
 			return false;
 		s++;			
 		PropType PropId = Lut.Find(Prop);
-		int PropType = (int)PropId >> 8;
+		PropTypes PropType = (PropTypes)((int)PropId >> 8);
 		SkipWhite(s);
 		char *ValueStart = s;
 
@@ -1194,8 +1194,9 @@ bool GCss::ColorDef::Parse(char *&s)
 		}
 		else return false;
 	}
-	else if (ParseWord(s, "rgb("))
+	else if (ParseWord(s, "rgb") && *s == '(')
 	{
+		s++;
 		int r = ParseComponent(s);
 		ParseExpect(s, ',');
 		int g = ParseComponent(s);
@@ -1206,8 +1207,9 @@ bool GCss::ColorDef::Parse(char *&s)
 		Type = ColorRgb;
 		Rgb32 = Rgb32(r, g, b);
 	}
-	else if (ParseWord(s, "rgba("))
+	else if (ParseWord(s, "rgba") && *s == '(')
 	{
+		s++;
 		int r = ParseComponent(s);
 		ParseExpect(s, ',');
 		int g = ParseComponent(s);
