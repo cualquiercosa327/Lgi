@@ -148,6 +148,9 @@ public:
 	/// Returns the amount of space below the baseline.
 	double Descent();
 
+	/// /returns true if the font types are the same
+	bool operator ==(GTypeFace &t);
+
 	/// Set the foreground and background in 24-bit colour.
 	/// \sa GTypeFace::Fore() and GTypeFace::Back()
 	virtual void Colour(COLOUR Fore, COLOUR Back = 0xFFFFFFFF);

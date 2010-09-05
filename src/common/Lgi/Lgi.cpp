@@ -673,7 +673,8 @@ bool LgiMakePath(char *Str, int StrSize, char *Path, char *File)
 		#define EndStr() Str[strlen(Str)-1]
 		#define EndDir() if (!strchr(Dir, EndStr())) strcat(Str, DIR_STR);
 
-		char *End = Str + strlen(Str) - 1;
+		int Len = strlen(Str);
+		char *End = Str + (Len ? Len - 1 : 0);
 		if (strchr(Dir, *End) AND End > Str)
 		{
 			*End = 0;

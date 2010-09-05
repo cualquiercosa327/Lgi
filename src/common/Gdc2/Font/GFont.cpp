@@ -120,6 +120,23 @@ GTypeFace::~GTypeFace()
 	DeleteObj(d);
 }
 
+bool GTypeFace::operator ==(GTypeFace &t)
+{
+	if (Face() == 0 ^ t.Face() == 0)
+		return false;
+	if (Face() && t.Face() && stricmp(Face(), t.Face()) != 0)
+		return false;
+	if (PointSize() != t.PointSize())
+		return false;
+	if (GetWeight() != t.GetWeight())
+		return false;
+	if (Italic() != t.Italic())
+		return false;
+	if (Underline() != t.Underline())
+		return false;
+	return true;
+}
+
 // set
 void GTypeFace::Face(char *s)
 {
@@ -929,11 +946,23 @@ bool GFont::Create(char *face, int height, int Param)
 	{
 		// Lookup ID
 		#if 1
+		if (!Face())
+		{
+			LgiAssert(!"No font face");
+			return false;
+		}
+		
 		CFStringRef fontName = CFStringCreateWithBytes(	kCFAllocatorDefault,
 														(UInt8*)Face(),
 														strlen(Face()),
 														kCFStringEncodingUTF8,
 														false);
+		if (!fontName)
+		{
+			printf("%s:%i - Couldn't create cfstr from '%s'\n", _FL, Face());
+			return false;
+		}
+		
 		ATSFontRef atsFont = ATSFontFindFromName(fontName, kATSOptionFlagsDefault);
 		CFRelease(fontName);
 		ATSUFontID font = FMGetFontFromATSFontRef(atsFont);

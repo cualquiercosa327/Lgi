@@ -393,6 +393,19 @@ public:
 	{
 		return Fonts.ItemAt(i);
 	}
+	
+	GFont *FindMatch(GFont *m)
+	{
+		for (GFont *f = Fonts.First(); f; f = Fonts.Next())
+		{
+			if (*f == *m)
+			{
+				return f;
+			}
+		}
+		
+		return 0;
+	}
 
 	GFont *GetFont(GCss *Style)
 	{
@@ -563,7 +576,8 @@ public:
 
 		if (f = new GFont)
 		{
-			f->Face(ValidStr(Face[0])?Face[0]:Default->Face());
+			char *ff = ValidStr(Face[0]) ? Face[0] : Default->Face();
+			f->Face(ff);
 			f->PointSize(PtSize ? PtSize : Default->PointSize());
 			f->Bold(IsBold);
 			f->Italic(IsItalic);
@@ -574,14 +588,25 @@ public:
 			{
 				// Broken font...
 				f->Face(Default->Face());
-				if (!f->Create((char*)0, 0))
+				GFont *DefMatch = FindMatch(f);
+				printf("Falling back to default face for '%s:%i', DefMatch=%p\n", ff, f->PointSize(), DefMatch);
+				if (DefMatch)
 				{
 					DeleteObj(f);
-					return Fonts.First();
+					return DefMatch;
+				}
+				else
+				{
+					if (!f->Create((char*)0, 0))
+					{
+						DeleteObj(f);
+						return Fonts.First();
+					}
 				}
 			}
 
 			// Not already cached
+			printf("Insert %s %p\n", f?f->Face():0, f);
 			Fonts.Insert(f);
 			LgiAssert(f->Face());
 			return f;
@@ -4144,6 +4169,7 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 			char *n = NextTag(s);
 			int Len = n ? SubtractPtr(n, s) : strlen(s);
 			GAutoWString Txt(CleanText(s, Len, true, InPreTag));
+			printf("Clean '%.*s' = '%S'\n", Len, s, Txt.Get());
 			if (Txt && *Txt)
 			{
 				if (InPreTag)
@@ -6465,15 +6491,15 @@ char16 *GHtml2::NameW()
 
 bool GHtml2::Name(char *s)
 {
-	/*
+	#if 0
 	GFile Out;
-	if (s && Out.Open("D:\\Home\\matthew\\Desktop\\scribe-input.html", O_WRITE))
+	if (s && Out.Open("~\\Desktop\\html-input.html", O_WRITE))
 	{
 		Out.SetSize(0);
 		Out.Write(s, strlen(s));
 		Out.Close();
 	}
-	*/
+	#endif
 
 	#if LUIS_DEBUG
 	LgiTrace("%s:%i html(%p).src(%p)='%30.30s'\n", __FILE__, __LINE__, this, Source, Source);
