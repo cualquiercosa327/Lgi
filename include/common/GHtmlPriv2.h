@@ -12,6 +12,7 @@ namespace Html2
 enum HtmlTag
 {
 	CONTENT,
+	CONDITIONAL,
 	ROOT,
 	TAG_UNKNOWN,
 	TAG_HTML,
@@ -256,6 +257,7 @@ public:
 	// Object
 	HtmlTag TagId;
 	char *Tag; // My tag
+	GAutoString Condition;
 	char *HtmlId;
 	GInfo *Info;
 	int TipId;

@@ -4,7 +4,24 @@
 
 #define SkipWhite(s) 	while (*s && strchr(WhiteSpace, *s)) s++;
 
-#define IsNumeric(s)	((*s) && (strchr("-.", *s) || isdigit(*s)))
+#define IsNumeric(s) \
+	( \
+		(*(s)) && \
+		( \
+			strchr("-.", *(s)) || \
+			(*(s) >= '0' && *(s) <= '9') \
+		) \
+	)
+
+#define IsAlpha(s) \
+	( \
+		(*(s)) && \
+		( \
+			(*(s) >= 'a' && *(s) <= 'A') || \
+			(*(s) >= 'A' && *(s) <= 'Z') || \
+			(*(s) > 0xa0) \
+		) \
+	)
 
 #define CopyPropOnSave(Type, Id) \
 	{ \
@@ -155,7 +172,9 @@ GCss::GCss() : Props(0, false, PropNull)
 		Lut.Add("position", PropPosition);
 		Lut.Add("overflow", PropOverflow);
 		Lut.Add("visibility", PropVisibility);
+		Lut.Add("font", PropFont);
 		Lut.Add("font-size", PropFontSize);
+		Lut.Add("fontsize", PropFontSize); // Really, do we need this in the real world??
 		Lut.Add("font-style", PropFontStyle);
 		Lut.Add("font-variant", PropFontVariant);
 		Lut.Add("font-weight", PropFontWeight);
@@ -192,7 +211,6 @@ GCss::GCss() : Props(0, false, PropNull)
 		Lut.Add("border-left", PropBorderLeft);
 		Lut.Add("line-height", PropLineHeight);
 		Lut.Add("vertical-align", PropVerticalAlign);
-		Lut.Add("fontsize", PropFontSize);
 		Lut.Add("background-x", PropBackgroundX);
 		Lut.Add("background-y", PropBackgroundY);
 		Lut.Add("clip", PropClip);
@@ -991,7 +1009,42 @@ bool GCss::Parse(char *&s, ParsingStyle Type)
 					}
 					case PropFont:
 					{
-						// FIXME
+						while (*s)
+						{
+							// Try and guess the parts in any order...
+							SkipWhite(s);
+							if (*s == ';')
+							{
+								s++;
+								break;
+							}
+
+							if (IsNumeric(s))
+							{
+								// Point size...?
+								GAutoPtr<Len> Pt(new Len);
+								if (Pt->Parse(s, Type))
+								{
+									FontSize(*Pt);
+								}
+								else break;
+							}
+							else if (IsAlpha(s) || *s == '\"' || *s == '\'')
+							{
+								// Face name...
+								GAutoPtr<StringsDef> Fam(new StringsDef);
+								if (Fam->Parse(s))
+								{
+									FontFamily(*Fam);
+								}
+								else break;
+							}
+							else
+							{
+								LgiAssert(!"What now?");
+								break;
+							}
+						}
 						break;
 					}
 					default:

@@ -187,7 +187,10 @@ static char *ParseName(char *s, char **Name)
 {
 	SkipWhiteSpace(s);
 	char *Start = s;
-	while (*s && (IsLetter(*s) || strchr("!-:", *s) || IsDigit(*s))) s++;
+	while (*s && (IsLetter(*s) || strchr("!-:", *s) || IsDigit(*s)))
+	{
+		s++;
+	}
 	if (Name)
 	{
 		int Len = SubtractPtr(s, Start);
@@ -3881,6 +3884,53 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 				s = strstr(s, "-->");
 				if (s) s += 3;
 			}
+			else if (s[1] == '!' &&
+					s[2] == '[')
+			{
+				// Parse conditional...
+				char *StartTag = s;
+				s += 3;
+				char *Cond = 0;
+				s = ParseName(s, &Cond);
+				if (!Cond)
+				{
+					while (*s && *s != ']')
+						s++;
+					if (*s == ']') s++;
+					if (*s == '>') s++;
+					return s;
+				}
+
+				bool IsIf = false, IsEndIf = false;
+				if (!stricmp(Cond, "if"))
+				{
+					if (!IsFirst)
+					{
+						DeleteArray(Cond);
+						s = StartTag;
+						goto DoChildTag;
+					}
+
+					TagId = CONDITIONAL;
+					SkipWhiteSpace(s);
+					char *Start = s;
+					while (*s && *s != ']')
+						s++;
+					Condition.Reset(NewStr(Start, s-Start));
+					Tag = NewStr("[if]");
+					Info = GetTagInfo(Tag);
+					IsBlock = false;
+				}
+				else if (!stricmp(Cond, "endif"))
+				{
+					IsEndIf = true;
+				}
+				DeleteArray(Cond);
+				if (*s == ']') s++;
+				if (*s == '>') s++;
+				if (IsEndIf)
+					return s;
+			}
 			else if (s[1] != '/')
 			{
 				// Start tag
@@ -4051,6 +4101,7 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 				else
 				{
 					// Child tag
+					DoChildTag:
 					GTag *c = new GTag(Html, this);
 					if (c)
 					{
@@ -5392,16 +5443,6 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 		Pos.x = Flow->x1;
 		Pos.y = Flow->y1;
 
-		/*
-		if (TagId == TAG_TD)
-		{
-			Flow->x1 += CellPadding;
-			Flow->cx += CellPadding;
-			Flow->x2 -= CellPadding;
-			Flow->y1 += CellPadding;
-		}
-		*/
-
 		Flow->x1 -= Pos.x;
 		Flow->x2 -= Pos.x;
 		Flow->cx -= Pos.x;
@@ -5444,17 +5485,11 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 			// Flow in the rest of the text...
 			TextPos.FlowText(this, Flow, f, Text(), GetAlign(true));
 		}
-		/*
-		else if (TagId == TAG_BR)
+
+		if (TagId == CONDITIONAL)
 		{
-			GFlowRect *fr = new GFlowRect;
-			fr->ZOff(4, f->GetHeight());
-			fr->Offset(Flow->x1, Flow->y1);
-			fr->Tag = this;
-			fr->Text = L" ";
-			fr->Len = 1;
-			TextPos.Insert(fr);
-		}*/
+			int asd=0;
+		}
 	}
 
 	// Flow children
