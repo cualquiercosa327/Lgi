@@ -3006,10 +3006,28 @@ int MailMessage::EncodeQuotedPrintable(GStreamI &Out, GStreamI &In)
 				o = OutBuf;
 				Status += w;
 			}
-			else if (*s & 0x80 ||
-					 // *s == '.' ||
-					 *s == '=')
+			else if (*s == '.')
 			{
+				// If the '.' character happens to fall at the
+				// end of a paragraph and gets pushed onto the next line it
+				// forms the magic \r\n.\r\n sequence that ends an SMTP data
+				// session. Which is bad. The solution taken here is to 
+				// hex encode it if it falls at the start of the line.
+				// Otherwise allow it through unencoded.
+
+				if (o == OutBuf)
+				{
+					sprintf(o, "=%02.2X", (uchar)*s);
+					o += 3;
+				}
+				else
+				{
+					*o++ = *s;
+				}
+			}
+			else if (*s & 0x80 || *s == '=')
+			{
+				// Require hex encoding of 8-bit chars and the equals itself.
 				sprintf(o, "=%02.2X", (uchar)*s);
 				o += 3;
 			}

@@ -192,6 +192,102 @@ GdcLibTiff::~GdcLibTiff()
 {
 }
 
+/// This swaps the R and B components as well as flips the image on the Y
+/// axis. Which is the required format to read and write TIFF's. Use it a
+/// 2nd time to restore the image to it's original state.
+void SwapRBandY(GSurface *pDC)
+{
+	for (int y1=0, y2 = pDC->Y()-1; y1<=y2; y1++, y2--)
+	{
+		switch (pDC->GetBits())
+		{
+			case 24:
+			{
+				Pixel24 *s1 = (Pixel24*)(*pDC)[y1];
+				Pixel24 *s2 = (Pixel24*)(*pDC)[y2];
+				Pixel24 *e1 = (Pixel24*) ((*pDC)[y1] + (pDC->X() * s1->Size));
+
+				if (y1 == y2)
+				{
+					uint8 t;
+					while (s1 < e1)
+					{
+						t = s1->r;
+						s1->r = s1->b;
+						s1->b = t;
+						s1++;
+					}
+				}
+				else
+				{
+					Pixel24 t;
+					while (s1 < e1)
+					{
+						t = *s1;
+
+						s1->r = s2->b;
+						s1->g = s2->g;
+						s1->b = s2->r;
+
+						s2->r = t.b;
+						s2->g = t.g;
+						s2->b = t.r;
+
+						s1++;
+						s2++;
+					}
+				}
+				break;
+			}
+			case 32:
+			{
+				Pixel32 *s1 = (Pixel32*)(*pDC)[y1];
+				Pixel32 *s2 = (Pixel32*)(*pDC)[y2];
+				Pixel32 *e1 = s1 + pDC->X();
+
+				if (y1 == y2)
+				{
+					uint8 t;
+					while (s1 < e1)
+					{
+						t = s1->r;
+						s1->r = s1->b;
+						s1->b = t;
+						s1++;
+					}
+				}
+				else
+				{
+					Pixel32 t;
+					while (s1 < e1)
+					{
+						t = *s1;
+
+						s1->r = s2->b;
+						s1->g = s2->g;
+						s1->b = s2->r;
+						s1->a = s2->a;
+
+						s2->r = t.b;
+						s2->g = t.g;
+						s2->b = t.r;
+						s2->a = t.a;
+
+						s1++;
+						s2++;
+					}
+				}
+				break;
+			}
+			default:
+			{
+				LgiAssert(!"Not impl.");
+				break;
+			}
+		}
+	}
+}
+
 bool GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 {
 	GVariant v;
@@ -223,6 +319,8 @@ bool GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 			{
 				uint8 *d = (*pDC)[0];
 				Lib->TIFFRGBAImageGet(&img, (uint32*)d, pDC->X(), pDC->Y());
+				SwapRBandY(pDC);
+
 				Status = true;
 			}
 
