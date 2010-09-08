@@ -59,9 +59,9 @@ protected:
 	StrLang *GetLang(char *i);
 	GAutoString Define;		// #define used in code to reference
 	int Ref;			// globally unique
+	int Id;				// numerical value used in code to reference
 
 public:
-	int Id;				// numerical value used in code to reference
 	char *Tag;			// Optional component tag, for turning off features.
 	List<StrLang> Items;
 	GView *UpdateWnd;
@@ -74,6 +74,8 @@ public:
 	// Data
 	int GetRef() { return Ref; }
 	int SetRef(int r);
+	int GetId() { return Id; }
+	int SetId(int id);
 	char *Get(GLanguageId Lang = 0);
 	void Set(char *s, GLanguageId Lang = 0);
 	void UnDupelicate();

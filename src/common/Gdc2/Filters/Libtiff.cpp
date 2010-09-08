@@ -369,6 +369,8 @@ bool GdcLibTiff::WriteImage(GStream *Out, GSurface *pDC)
 		Lib->TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
 
 		Status = true;
+		SwapRBandY(pDC);
+
 		for (int y=0; y<pDC->Y(); y++)
 		{
 			uint8 *Scan = (*pDC)[y];
@@ -380,6 +382,7 @@ bool GdcLibTiff::WriteImage(GStream *Out, GSurface *pDC)
 		}
 
 		Lib->TIFFClose(tif);
+		SwapRBandY(pDC);
 	}
 	else
 	{

@@ -107,8 +107,8 @@ bool ResMenuItem::Serialize(FieldTree &Fields)
 		if (Str.GetRef() == 0)
 			Str.SetRef(Str.GetGroup()->UniqueRef());
 		
-		if (ValidStr(Str.GetDefine()) AND Str.Id == 0)
-			Str.Id = Str.GetGroup()->UniqueId(Str.GetDefine());
+		if (ValidStr(Str.GetDefine()) AND Str.GetId() == 0)
+			Str.SetId(Str.GetGroup()->UniqueId(Str.GetDefine()));
 	}
 
 	Fields.Serialize(this, VAL_Separator, Sep);

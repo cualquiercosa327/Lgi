@@ -340,7 +340,7 @@ public:
 			}
 			if (!r && CtrlId)
 			{
-				if (s->Id == CtrlId)
+				if (s->GetId() == CtrlId)
 				{
 					r = new Result(App, s);
 				}

@@ -178,6 +178,13 @@ int ResString::SetRef(int r)
 	return Ref;
 }
 
+int ResString::SetId(int id)
+{
+	LgiAssert(id != 0);
+	Id = id;
+	return Id;
+}
+
 void ResString::SetDefine(char *s)
 {
 	Define.Reset(NewStr(s));
@@ -188,8 +195,8 @@ ResString &ResString::operator =(ResString &s)
 	memcpy(RefStr, s.RefStr, sizeof(RefStr));
 	memcpy(IdStr, s.IdStr, sizeof(IdStr));
 	
-	SetRef(s.Ref);
-	Id = s.Id;
+	SetRef(s.GetRef());
+	SetId(s.GetId());
 	
 	SetDefine(s.GetDefine());
 	DeleteObj(Tag);
@@ -298,6 +305,22 @@ bool ResString::Test(ErrorCollection *e)
 {
 	bool Status = true;
 
+	if (Id == 0)
+	{
+		ErrorInfo *Err = &e->StrErr.New();
+		Err->Str = this;
+		Err->Msg.Reset(NewStr("No ctrl id."));
+		Status = false;
+	}
+
+	if (Ref == 0)
+	{
+		ErrorInfo *Err = &e->StrErr.New();
+		Err->Str = this;
+		Err->Msg.Reset(NewStr("No resource ref."));
+		Status = false;
+	}
+
 	if (!ValidStr(Define))
 	{
 		ErrorInfo *Err = &e->StrErr.New();
@@ -333,7 +356,7 @@ bool ResString::Read(GXmlTag *t, ResFileFormat Format)
 		if ((n = t->GetAttr("Cid")) OR
 			(n = t->GetAttr("Id")))
 		{
-			Id = atoi(n);
+			SetId(atoi(n));
 		}
 		if (n = t->GetAttr("Define"))
 		{
@@ -687,7 +710,7 @@ void ResString::OnMouseClick(GMouse &m)
 						int NewId = Group->AppWindow->GetUniqueCtrlId();
 						for (ResString *s = sl.First(); s; s = sl.Next())
 						{
-							s->Id = NewId;
+							s->SetId(NewId);
 							s->Update();
 						}
 						break;
@@ -1016,41 +1039,6 @@ void ResStringGroup::RemoveUnReferenced()
 	}
 }
 
-/*
-void ResStringGroup::SetCurrent(GLanguageId Id)
-{
-	if (!Id)
-	{
-		// List all the languages being edited
-		List<GLanguage> l;
-		for (int i=0; i<Lang.Length(); i++)
-		{
-			l.Insert(Lang[i]);
-		}
-
-		// Display the list
-		LangDlg Dlg(Ui, l, CurrentLang);
-		if (Dlg.DoModal() AND Dlg.Lang)
-		{
-			if (Dlg.Lang)
-			{
-				Id = Dlg.Lang->Id;
-			}
-		}
-	}
-
-	for (int i=0; i<Lang.Length(); i++)
-	{
-		if (Id == Lang[i]->Id)
-		{
-			CurrentLang = i;
-			LgiAssert(CurrentLang < Lang.Length());
-			break;
-		}
-	}
-}
-*/
-
 int ResStringGroup::OnCommand(int Cmd, int Event, OsView hWnd)
 {
 	switch (Cmd)
@@ -1141,7 +1129,7 @@ ResString *ResStringGroup::CreateStr(bool User)
 	ResString *s = new ResString(this);
 	if (s)
 	{
-		s->Id = s->SetRef(App()->GetUniqueStrRef());
+		s->SetId(s->SetRef(App()->GetUniqueStrRef()));
 
 		if (User)
 		{

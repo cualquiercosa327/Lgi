@@ -1437,7 +1437,7 @@ void AppWnd::FindStrings(List<ResString> &Strs, char *Define, int *CtrlId)
 
 						if (CtrlId)
 						{
-							if (*CtrlId == Str->Id)
+							if (*CtrlId == Str->GetId())
 							{
 								Strs.Insert(Str);
 								continue;
@@ -1459,7 +1459,7 @@ int AppWnd::GetUniqueCtrlId()
 		List<Resource> l;
 		if (Objs->ListObjects(l))
 		{
-			GHashTable t;
+			GHashTbl<int, int> t;
 			for (Resource *r = l.First(); r; r = l.Next())
 			{
 				StringList *sl = r->GetStrs();
@@ -1467,14 +1467,12 @@ int AppWnd::GetUniqueCtrlId()
 				{
 					for (ResString *s = sl->First(); s; s = sl->Next())
 					{
-						char Id[32];
-						sprintf(Id, "%i", s->Id);
-						if (!t.Find(Id))
+						if (!t.Find(s->GetId()))
 						{
-							t.Add(Id, (void*) s->Id);
+							t.Add(s->GetId(), s->GetId());
 						}
 
-						Max = max(s->Id, Max);
+						Max = max(s->GetId(), Max);
 					}
 				}
 			}
@@ -1482,9 +1480,7 @@ int AppWnd::GetUniqueCtrlId()
 			int i = 500;
 			while (true)
 			{
-				char Id[32];
-				sprintf(Id, "%i", i);
-				if (t.Find(Id))
+				if (t.Find(i))
 				{
 					i++;
 				}
@@ -2812,15 +2808,15 @@ bool AppWnd::WriteDefines(GFile &Defs)
 					{
 						if (stricmp(s->GetDefine(), "IDOK") == 0)
 						{
-							s->Id = IDOK;
+							s->SetId(IDOK);
 						}
 						else if (stricmp(s->GetDefine(), "IDCANCEL") == 0)
 						{
-							s->Id = IDCANCEL;
+							s->SetId(IDCANCEL);
 						}
 						else if (stricmp(s->GetDefine(), "IDC_STATIC") == 0)
 						{
-							s->Id = -1;
+							s->SetId(-1);
 						}
 						else if (stricmp(s->GetDefine(), "-1") == 0)
 						{
@@ -2830,7 +2826,7 @@ bool AppWnd::WriteDefines(GFile &Defs)
 						{
 							// Remove dupe ID's
 							char IdStr[32];
-							sprintf(IdStr, "%i", s->Id);
+							sprintf(IdStr, "%i", s->GetId());
 							char *Define;
 							if (Define = (char*)Ident.Find(IdStr))
 							{
@@ -2841,7 +2837,7 @@ bool AppWnd::WriteDefines(GFile &Defs)
 									int NewId = GetUniqueCtrlId();
 									for (ResString *Ns = n.First(); Ns; Ns = n.Next())
 									{
-										Ns->Id = NewId;
+										Ns->SetId(NewId);
 									}
 								}
 							}
@@ -2855,13 +2851,14 @@ bool AppWnd::WriteDefines(GFile &Defs)
 							if (CtrlId = Def.Find(s->GetDefine()))
 							{
 								// Already there...
-								s->Id = CtrlId;
+								s->SetId(CtrlId);
 							}
 							else
 							{
 								// Add...
-								LgiAssert(s->Id);
-								Def.Add(s->GetDefine(), s->Id);
+								LgiAssert(s->GetId());
+								if (s->GetId())
+									Def.Add(s->GetDefine(), s->GetId());
 							}
 						}
 					}
@@ -3454,7 +3451,7 @@ bool AppWnd::LoadWin32(char *FileName)
 											ImportDefine *Def = Defines.GetDefine(T[0]);
 											if (Def)
 											{
-												Dlg->Str->Id = atoi(Def->Value);
+												Dlg->Str->SetId(atoi(Def->Value));
 											}
 										}
 									}
@@ -3583,7 +3580,7 @@ bool AppWnd::LoadWin32(char *FileName)
 										ImportDefine *Def = Defines.GetDefine(T[2]);
 										if (Def)
 										{
-											Ctrl->Str->Id = atoi(Def->Value);
+											Ctrl->Str->SetId(atoi(Def->Value));
 										}
 
 										GRect r;
@@ -3606,7 +3603,7 @@ bool AppWnd::LoadWin32(char *FileName)
 										ImportDefine *Def = Defines.GetDefine(T[1]);
 										if (Def)
 										{
-											Ctrl->Str->Id = atoi(Def->Value);
+											Ctrl->Str->SetId(atoi(Def->Value));
 										}
 
 										GRect r;
@@ -3629,7 +3626,7 @@ bool AppWnd::LoadWin32(char *FileName)
 										ImportDefine *Def = Defines.GetDefine(T[1]);
 										if (Def)
 										{
-											Ctrl->Str->Id = atoi(Def->Value);
+											Ctrl->Str->SetId(atoi(Def->Value));
 										}
 
 										GRect r;
@@ -3652,7 +3649,7 @@ bool AppWnd::LoadWin32(char *FileName)
 										ImportDefine *Def = Defines.GetDefine(T[1]);
 										if (Def)
 										{
-											Ctrl->Str->Id = atoi(Def->Value);
+											Ctrl->Str->SetId(atoi(Def->Value));
 										}
 
 										GRect r;
@@ -3676,7 +3673,7 @@ bool AppWnd::LoadWin32(char *FileName)
 										ImportDefine *Def = Defines.GetDefine(T[2]);
 										if (Def)
 										{
-											Ctrl->Str->Id = atoi(Def->Value);
+											Ctrl->Str->SetId(atoi(Def->Value));
 										}
 
 										GRect r;
@@ -3701,7 +3698,7 @@ bool AppWnd::LoadWin32(char *FileName)
 										ImportDefine *Def = Defines.GetDefine(T[2]);
 										if (Def)
 										{
-											Ctrl->Str->Id = atoi(Def->Value);
+											Ctrl->Str->SetId(atoi(Def->Value));
 										}
 
 										GRect r;
@@ -3777,7 +3774,7 @@ bool AppWnd::LoadWin32(char *FileName)
 											ImportDefine *Def = Defines.GetDefine(Id);
 											if (Def)
 											{
-												Ctrl->Str->Id = atoi(Def->Value);
+												Ctrl->Str->SetId(atoi(Def->Value));
 											}
 
 											Dlg->AddView(Ctrl->View());
@@ -3796,7 +3793,7 @@ bool AppWnd::LoadWin32(char *FileName)
 										ImportDefine *Def = Defines.GetDefine(T[1]);
 										if (Def)
 										{
-											Ctrl->Str->Id = atoi(Def->Value);
+											Ctrl->Str->SetId(atoi(Def->Value));
 										}
 
 										GRect r;
@@ -3819,7 +3816,7 @@ bool AppWnd::LoadWin32(char *FileName)
 										ImportDefine *Def = Defines.GetDefine(T[1]);
 										if (Def)
 										{
-											Ctrl->Str->Id = atoi(Def->Value);
+											Ctrl->Str->SetId(atoi(Def->Value));
 										}
 
 										GRect r;
@@ -3846,7 +3843,7 @@ bool AppWnd::LoadWin32(char *FileName)
 										CtrlDlg *Obj = dynamic_cast<CtrlDlg*>(Wnd);
 										if (Obj)
 										{
-											if (Obj->Str->Id == Dlg->Str->Id)
+											if (Obj->Str->GetId() == Dlg->Str->GetId())
 											{
 												MatchObj = Obj;
 												Match = d;
@@ -3885,8 +3882,8 @@ bool AppWnd::LoadWin32(char *FileName)
 										{
 											for (ResDialogCtrl *Mc = Old.First(); Mc; Mc = Old.Next())
 											{
-												if (Mc->Str->Id == c->Str->Id AND
-													Mc->Str->Id > 0)
+												if (Mc->Str->GetId() == c->Str->GetId() AND
+													Mc->Str->GetId() > 0)
 												{
 													MatchCtrl = Mc;
 													break;
@@ -3977,7 +3974,7 @@ bool AppWnd::LoadWin32(char *FileName)
 											ImportDefine *Def = Defines.GetDefine(T[0]);
 											if (Def)
 											{
-												Str->Id = atoi(Def->Value);
+												Str->SetId(atoi(Def->Value));
 											}
 
 											Str->SetDefine(T[0]);
@@ -4113,7 +4110,7 @@ bool AppWnd::LoadWin32(char *FileName)
 														for (GTreeItem *o = MenuItem[MenuLevel-1]->GetChild(); o; o = o->GetNext(), n++)
 														{
 															ResMenuItem *Res = dynamic_cast<ResMenuItem*>(o);
-															if (Res AND Res->Str.Id == Id)
+															if (Res AND Res->Str.GetId() == Id)
 															{
 																i = Res;
 																break;
@@ -4147,7 +4144,7 @@ bool AppWnd::LoadWin32(char *FileName)
 															ImportDefine *id = Defines.GetDefine(i->Str.GetDefine());
 															if (id)
 															{
-																i->Str.Id = atoi(id->Value);
+																i->Str.SetId(atoi(id->Value));
 																i->Str.UnDupelicate();
 															}
 														}
