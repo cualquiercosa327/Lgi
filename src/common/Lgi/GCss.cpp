@@ -17,7 +17,7 @@
 	( \
 		(*(s)) && \
 		( \
-			(*(s) >= 'a' && *(s) <= 'A') || \
+			(*(s) >= 'a' && *(s) <= 'z') || \
 			(*(s) >= 'A' && *(s) <= 'Z') || \
 			(*(s) > 0xa0) \
 		) \
@@ -776,45 +776,112 @@ bool GCss::operator ==(GCss &c)
 	return Eq;
 }
 
+void GCss::DeleteProp(PropType p)
+{
+	void *Data = Props.Find(p);
+	if (Data)
+	{
+		DeleteProp(p, Data);
+		Props.Delete(p);
+	}
+}
+
+void GCss::DeleteProp(PropType Prop, void *Data)
+{
+	if (!Data)
+		return;
+
+	int Type = Prop >> 8;
+	switch (Type)
+	{
+		case TypeEnum:
+			delete ((PropType*)Data);
+			break;
+		case TypeLen:
+			delete ((Len*)Data);
+			break;
+		case TypeGRect:
+			delete ((GRect*)Data);
+			break;
+		case TypeColor:
+			delete ((ColorDef*)Data);
+			break;
+		case TypeImage:
+			delete ((ImageDef*)Data);
+			break;
+		case TypeBorder:
+			delete ((BorderDef*)Data);
+			break;
+		case TypeStrings:
+			delete ((StringsDef*)Data);
+			break;
+		default:
+			LgiAssert(!"Unknown property type.");
+			break;
+	}
+}
+
 void GCss::Empty()
 {
 	int Prop;
 	for (void *Data=Props.First(&Prop); Data; Data=Props.Next(&Prop))
 	{
-		int Type = Prop >> 8;
-		switch (Type)
-		{
-			case TypeEnum:
-				delete ((PropType*)Data);
-				break;
-			case TypeLen:
-				delete ((Len*)Data);
-				break;
-			case TypeGRect:
-				delete ((GRect*)Data);
-				break;
-			case TypeColor:
-				delete ((ColorDef*)Data);
-				break;
-			case TypeImage:
-				delete ((ImageDef*)Data);
-				break;
-			case TypeBorder:
-				delete ((BorderDef*)Data);
-				break;
-			case TypeStrings:
-				delete ((StringsDef*)Data);
-				break;
-			default:
-				LgiAssert(!"Unknown property type.");
-				break;
-		}
+		DeleteProp((PropType)Prop, Data);
 	}
 	Props.Empty();
 }
 
 void GCss::OnChange(PropType Prop)
 {
+}
+
+bool GCss::ParseFontStyle(PropType PropId, char *&s)
+{
+	FontStyleType *w = (FontStyleType*)Props.Find(PropId);
+	if (!w) Props.Add(PropId, w = new FontStyleType);
+
+		 if (ParseWord(s, "inherit")) *w = FontStyleInherit;
+	else if (ParseWord(s, "normal")) *w = FontStyleNormal;
+	else if (ParseWord(s, "italic")) *w = FontStyleItalic;
+	else if (ParseWord(s, "Oblique")) *w = FontStyleOblique;
+	else return false;
+
+	return true;
+}
+
+bool GCss::ParseFontVariant(PropType PropId, char *&s)
+{
+	FontVariantType *w = (FontVariantType*)Props.Find(PropId);
+	if (!w) Props.Add(PropId, w = new FontVariantType);
+
+		 if (ParseWord(s, "inherit")) *w = FontVariantInherit;
+	else if (ParseWord(s, "normal")) *w = FontVariantNormal;
+	else if (ParseWord(s, "small-caps")) *w = FontVariantSmallCaps;
+	else return false;
+	return true;
+}
+
+bool GCss::ParseFontWeight(PropType PropId, char *&s)
+{
+	FontWeightType *w = (FontWeightType*)Props.Find(PropId);
+	if (!w) Props.Add(PropId, w = new FontWeightType);
+
+	if (ParseWord(s, "Inherit")) *w = FontWeightInherit;
+	else if (ParseWord(s, "Normal")) *w = FontWeightNormal;
+	else if (ParseWord(s, "Bold")) *w = FontWeightBold;
+	else if (ParseWord(s, "Bolder")) *w = FontWeightBolder;
+	else if (ParseWord(s, "Lighter")) *w = FontWeightLighter;
+	else if (ParseWord(s, "100")) *w = FontWeight100;
+	else if (ParseWord(s, "200")) *w = FontWeight200;
+	else if (ParseWord(s, "300")) *w = FontWeight300;
+	else if (ParseWord(s, "400")) *w = FontWeight400;
+	else if (ParseWord(s, "500")) *w = FontWeight500;
+	else if (ParseWord(s, "600")) *w = FontWeight600;
+	else if (ParseWord(s, "700")) *w = FontWeight700;
+	else if (ParseWord(s, "800")) *w = FontWeight800;
+	else if (ParseWord(s, "900")) *w = FontWeight900;
+	else return false;
+	return true;
 }
 
 bool GCss::Parse(char *&s, ParsingStyle Type)
@@ -884,44 +951,17 @@ bool GCss::Parse(char *&s, ParsingStyle Type)
 					}
 					case PropFontStyle:
 					{
-						FontStyleType *w = (FontStyleType*)Props.Find(PropId);
-						if (!w) Props.Add(PropId, w = new FontStyleType);
-
-						     if (ParseWord(s, "inherit")) *w = FontStyleInherit;
-						else if (ParseWord(s, "normal")) *w = FontStyleNormal;
-						else if (ParseWord(s, "italic")) *w = FontStyleItalic;
-						else if (ParseWord(s, "Oblique")) *w = FontStyleOblique;
+						ParseFontStyle(PropId, s);
 						break;
 					}
 					case PropFontVariant:
 					{
-						FontVariantType *w = (FontVariantType*)Props.Find(PropId);
-						if (!w) Props.Add(PropId, w = new FontVariantType);
-
-						     if (ParseWord(s, "inherit")) *w = FontVariantInherit;
-						else if (ParseWord(s, "normal")) *w = FontVariantNormal;
-						else if (ParseWord(s, "small-caps")) *w = FontVariantSmallCaps;
+						ParseFontVariant(PropId, s);
 						break;
 					}
 					case PropFontWeight:
 					{
-						FontWeightType *w = (FontWeightType*)Props.Find(PropId);
-						if (!w) Props.Add(PropId, w = new FontWeightType);
-
-						if (ParseWord(s, "Inherit")) *w = FontWeightInherit;
-						else if (ParseWord(s, "Normal")) *w = FontWeightNormal;
-						else if (ParseWord(s, "Bold")) *w = FontWeightBold;
-						else if (ParseWord(s, "Bolder")) *w = FontWeightBolder;
-						else if (ParseWord(s, "Lighter")) *w = FontWeightLighter;
-						else if (ParseWord(s, "100")) *w = FontWeight100;
-						else if (ParseWord(s, "200")) *w = FontWeight200;
-						else if (ParseWord(s, "300")) *w = FontWeight300;
-						else if (ParseWord(s, "400")) *w = FontWeight400;
-						else if (ParseWord(s, "500")) *w = FontWeight500;
-						else if (ParseWord(s, "600")) *w = FontWeight600;
-						else if (ParseWord(s, "700")) *w = FontWeight700;
-						else if (ParseWord(s, "800")) *w = FontWeight800;
-						else if (ParseWord(s, "900")) *w = FontWeight900;
+						ParseFontWeight(PropId, s);
 						break;
 					}
 					case PropTextDecoration:
@@ -1009,40 +1049,53 @@ bool GCss::Parse(char *&s, ParsingStyle Type)
 					}
 					case PropFont:
 					{
+						// Clear any existing style info.
+						DeleteProp(PropFontStyle);
+						DeleteProp(PropFontVariant);
+						DeleteProp(PropFontWeight);
+						DeleteProp(PropFontSize);
+						DeleteProp(PropLineHeight);
+						DeleteProp(PropFontFamily);
+
+						bool ApplySize = true;
 						while (*s)
 						{
 							// Try and guess the parts in any order...
 							SkipWhite(s);
 							if (*s == ';')
+								break;
+
+							if (*s == '/')
+							{
+								ApplySize = false;
+								s++;
+							}
+							else if (*s == ',')
 							{
 								s++;
-								break;
 							}
-
-							if (IsNumeric(s))
+							else
 							{
 								// Point size...?
 								GAutoPtr<Len> Pt(new Len);
 								if (Pt->Parse(s, Type))
 								{
-									FontSize(*Pt);
+									if (ApplySize)
+										FontSize(*Pt);
+									else
+										LineHeight(*Pt);
 								}
-								else break;
-							}
-							else if (IsAlpha(s) || *s == '\"' || *s == '\'')
-							{
-								// Face name...
-								GAutoPtr<StringsDef> Fam(new StringsDef);
-								if (Fam->Parse(s))
+								else if (!ParseFontStyle(PropFontStyle, s) &&
+										 !ParseFontVariant(PropFontVariant, s) &&
+										 !ParseFontWeight(PropFontWeight, s))
 								{
-									FontFamily(*Fam);
+									// Face name...
+									GAutoPtr<StringsDef> Fam(new StringsDef);
+									if (Fam->Parse(s))
+										FontFamily(*Fam);
+									else
+										break;
 								}
-								else break;
-							}
-							else
-							{
-								LgiAssert(!"What now?");
-								break;
 							}
 						}
 						break;

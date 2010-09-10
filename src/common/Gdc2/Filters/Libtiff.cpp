@@ -288,6 +288,51 @@ void SwapRBandY(GSurface *pDC)
 	}
 }
 
+void SwapRB(GSurface *pDC)
+{
+	for (int y1=0; y1<pDC->Y(); y1++)
+	{
+		switch (pDC->GetBits())
+		{
+			case 24:
+			{
+				Pixel24 *s1 = (Pixel24*)(*pDC)[y1];
+				Pixel24 *e1 = (Pixel24*) ((*pDC)[y1] + (pDC->X() * s1->Size));
+
+				uint8 t;
+				while (s1 < e1)
+				{
+					t = s1->r;
+					s1->r = s1->b;
+					s1->b = t;
+					s1++;
+				}
+				break;
+			}
+			case 32:
+			{
+				Pixel32 *s1 = (Pixel32*)(*pDC)[y1];
+				Pixel32 *e1 = s1 + pDC->X();
+
+				uint8 t;
+				while (s1 < e1)
+				{
+					t = s1->r;
+					s1->r = s1->b;
+					s1->b = t;
+					s1++;
+				}
+				break;
+			}
+			default:
+			{
+				LgiAssert(!"Not impl.");
+				break;
+			}
+		}
+	}
+}
+
 bool GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 {
 	GVariant v;
@@ -369,7 +414,7 @@ bool GdcLibTiff::WriteImage(GStream *Out, GSurface *pDC)
 		Lib->TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
 
 		Status = true;
-		SwapRBandY(pDC);
+		SwapRB(pDC);
 
 		for (int y=0; y<pDC->Y(); y++)
 		{
@@ -382,7 +427,7 @@ bool GdcLibTiff::WriteImage(GStream *Out, GSurface *pDC)
 		}
 
 		Lib->TIFFClose(tif);
-		SwapRBandY(pDC);
+		SwapRB(pDC);
 	}
 	else
 	{
