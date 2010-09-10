@@ -4220,7 +4220,7 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 			char *n = NextTag(s);
 			int Len = n ? SubtractPtr(n, s) : strlen(s);
 			GAutoWString Txt(CleanText(s, Len, true, InPreTag));
-			printf("Clean '%.*s' = '%S'\n", Len, s, Txt.Get());
+			// printf("Clean '%.*s' = '%S'\n", Len, s, Txt.Get());
 			if (Txt && *Txt)
 			{
 				if (InPreTag)

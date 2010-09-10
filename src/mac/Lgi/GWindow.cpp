@@ -511,6 +511,7 @@ void GWindow::Quit(bool DontDelete)
 	d->DeleteWhenDone = !DontDelete;
 	if (Wnd)
 	{
+		_Delete();
 		SetDragHandlers(false);
 		OsWindow w = Wnd;
 		Wnd = 0;
