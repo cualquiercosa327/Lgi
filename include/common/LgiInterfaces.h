@@ -290,6 +290,24 @@ public:
 	virtual GViewI *operator [](int Idx) = 0;
 };
 
+class GViewLayoutInfo
+{
+public:
+	struct Range
+	{
+		// 0 if unknown, -1 for "all available"
+		int32 Min, Max;
+
+		Range()
+		{
+			Min = Max = 0;
+		}
+	};
+
+	Range Width; 
+	Range Height;
+};
+
 class GViewI : public GEventsI
 {
 	friend class GView;
@@ -407,6 +425,7 @@ public:
 	virtual bool Invalidate(GRect *r = 0, bool Repaint = false, bool NonClient = false) = 0;
 	virtual bool Invalidate(GRegion *r, bool Repaint = false, bool NonClient = false) = 0;
 	virtual void SetPulse(int Ms = -1) = 0;
+	virtual bool OnLayout(GViewLayoutInfo &Inf) = 0;
 
 protected:
 	virtual bool OnViewMouse(GView *v, GMouse &m) = 0;

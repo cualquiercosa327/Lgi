@@ -10,11 +10,15 @@ under the LGPL v2.1
 The 'Inclusion' section specifies whether the source is include in the
 default binary distribution of Lgi or not.
 
-include\common\md5.h
-src\common\General\md5.cpp
+src\common\Hash\md5\*
 	Author: Aladdin Enterprises
 	License: Origin not be misrepresented, Altered versions plainly marked,
 			 Notice may not be removed from source.
+	Inclusion: Yes.
+
+src\common\Hash\sha1\*
+	Source: http://www.packetizer.com/security/sha1
+	License: Freeware Public License.
 	Inclusion: Yes.
 
 src\common\Lgi\LgiRand.cpp

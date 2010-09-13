@@ -603,11 +603,23 @@ SOURCE=.\include\common\GClipBoard.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\src\common\General\md5.c
+SOURCE=.\src\common\Hash\md5\md5.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\include\common\md5.h
+SOURCE=.\src\common\Hash\md5\md5.h
+# End Source File
+# End Group
+# Begin Group "Sha1"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\src\common\Hash\sha1\sha1.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\src\common\Hash\sha1\sha1.h
 # End Source File
 # End Group
 # Begin Source File
@@ -858,26 +870,6 @@ SOURCE=.\src\common\Lgi\GInput.cpp
 # Begin Group "Source"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
-# Begin Group "NtlmAuth"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\src\common\INet\AuthNtlm\Smbdes.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\src\common\INet\AuthNtlm\Smbencrypt.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\src\common\INet\AuthNtlm\Smbmd4.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\src\common\INet\AuthNtlm\Smbutil.cpp
-# End Source File
-# End Group
 # Begin Source File
 
 SOURCE=.\src\common\INet\INet.cpp
@@ -902,10 +894,6 @@ SOURCE=.\include\common\INet.h
 
 SOURCE=.\include\common\INetTools.h
 # End Source File
-# End Group
-# Begin Group "Mime Message"
-
-# PROP Default_Filter ""
 # End Group
 # End Group
 # Begin Group "Header Files"

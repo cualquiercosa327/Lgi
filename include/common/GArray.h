@@ -361,6 +361,27 @@ public:
 		}
 	}
 
+	/// Appends an array of elements
+	void Add
+	(
+		/// Array to insert
+		GArray<Type> &a
+		
+	)
+	{
+		int old = len;
+		if (Length(len + a.Length()))
+		{
+			for (int i=0; i<a.Length(); i++, old++)
+				p[old] = a[i];
+		}
+	}
+	GArray<Type> &operator +(GArray<Type> &a)
+	{
+		Add(a);
+		return *this;
+	}
+
 	/// Inserts an element into the array
 	bool AddAt
 	(

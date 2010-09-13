@@ -105,8 +105,9 @@ extern GDb *OpenCsvDatabase(char *s);		// add 'GDb-Csv.cpp' to your project
 extern GDb *OpenTsvDatabase(char *s);		// add 'GDb-Csv.cpp' to your project
 extern GDb *OpenMetakitDatabase(char *s);	// add 'GDb-Metakit.cpp' to your project
 extern GDb *OpenBfsDatabase(char *s);		// add 'GDb-Bfs.cpp' and 'Bfs.cpp' to your project
-extern GDb *OpenMysqlDatabase(char *s);		// add 'GDb-Mysql.cpp'
+extern GDb *OpenLibmysqlDatabase(char *s);	// add 'GDb-Libmysql.cpp'
 											// pass 'mysql://username:password@host/database'
+extern GDb *OpenMysqlDirectDatabase(char *s); // add 'GDb-Mysql-direct.cpp'
 
 // Util
 extern char *LgiTsvTok(char *&s);

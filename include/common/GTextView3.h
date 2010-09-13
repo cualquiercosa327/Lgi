@@ -300,6 +300,7 @@ public:
 	int OnNotify(GViewI *Ctrl, int Flags);
 	void OnPulse();
 	int OnHitTest(int x, int y);
+	bool OnLayout(GViewLayoutInfo &Inf);
 
 	// Virtuals
 	virtual bool Insert(int At, char16 *Data, int Len);

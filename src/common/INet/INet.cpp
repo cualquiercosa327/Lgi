@@ -19,7 +19,7 @@
 #include "GString.h"
 #include "LgiCommon.h"
 #include "LgiOsClasses.h"
-#include "md5.h"
+#include "../../src/common/Hash/md5/md5.h"
 #include "GRegKey.h"
 #ifdef MAC
 #include <SystemConfiguration/SCDynamicStoreCopySpecific.h>

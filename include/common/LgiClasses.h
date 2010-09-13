@@ -1003,6 +1003,8 @@ public:
 	int OnCommand(int Cmd, int Event, OsView Wnd);
 	/// Called after the view is attached to a new parent
 	void OnAttach();
+	/// Called to get layout information for the control
+	bool OnLayout(GViewLayoutInfo &Inf) { return false; }
 
 	#if defined(_DEBUG)
 	bool _Debug;
