@@ -313,7 +313,7 @@ bool GDateTime::GetDaylightSavingsInfo(GArray<GDstInfo> &Info, GDateTime &Start,
 		Status = true;
 	}
 	
-	#elif defined LINUX
+	#elif defined(MAC) || defined LINUX
 	
 	FILE *f = popen("zdump -v /etc/localtime", "r");
 	if (f)

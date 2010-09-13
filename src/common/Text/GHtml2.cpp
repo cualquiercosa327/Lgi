@@ -609,7 +609,6 @@ public:
 			}
 
 			// Not already cached
-			printf("Insert %s %p\n", f?f->Face():0, f);
 			Fonts.Insert(f);
 			LgiAssert(f->Face());
 			return f;

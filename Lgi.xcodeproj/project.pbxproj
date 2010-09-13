@@ -16,6 +16,9 @@
 		3416C25E09676E0600DD79DC /* MacTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 3416C25D09676E0600DD79DC /* MacTypes.h */; };
 		3416C26809676F4C00DD79DC /* SFNTTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 3416C26709676F4C00DD79DC /* SFNTTypes.h */; };
 		3416C27B096775AF00DD79DC /* GRect.h in Headers */ = {isa = PBXBuildFile; fileRef = 3416C27A096775AF00DD79DC /* GRect.h */; };
+		341BE43F123ED1E6009BF203 /* md5.h in Headers */ = {isa = PBXBuildFile; fileRef = 341BE43E123ED1E6009BF203 /* md5.h */; };
+		341BE442123ED1F1009BF203 /* sha1.c in Sources */ = {isa = PBXBuildFile; fileRef = 341BE440123ED1F1009BF203 /* sha1.c */; };
+		341BE443123ED1F1009BF203 /* sha1.h in Headers */ = {isa = PBXBuildFile; fileRef = 341BE441123ED1F1009BF203 /* sha1.h */; };
 		3427C3BE11FC02AE002AC215 /* LgiInc.h in Headers */ = {isa = PBXBuildFile; fileRef = 3427C3BD11FC02AE002AC215 /* LgiInc.h */; };
 		3429212C1087D57200578ECC /* GCss.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3429212B1087D57200578ECC /* GCss.cpp */; };
 		3429212E1087D58100578ECC /* GCss.h in Headers */ = {isa = PBXBuildFile; fileRef = 3429212D1087D58100578ECC /* GCss.h */; };
@@ -166,6 +169,9 @@
 		3416C25D09676E0600DD79DC /* MacTypes.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MacTypes.h; path = /System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/CarbonCore.framework/Versions/A/Headers/MacTypes.h; sourceTree = "<absolute>"; };
 		3416C26709676F4C00DD79DC /* SFNTTypes.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SFNTTypes.h; path = /System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/ATS.framework/Versions/A/Headers/SFNTTypes.h; sourceTree = "<absolute>"; };
 		3416C27A096775AF00DD79DC /* GRect.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GRect.h; path = include/common/GRect.h; sourceTree = "<group>"; };
+		341BE43E123ED1E6009BF203 /* md5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = md5.h; path = src/common/Hash/md5/md5.h; sourceTree = "<group>"; };
+		341BE440123ED1F1009BF203 /* sha1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sha1.c; path = src/common/Hash/sha1/sha1.c; sourceTree = "<group>"; };
+		341BE441123ED1F1009BF203 /* sha1.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sha1.h; path = src/common/Hash/sha1/sha1.h; sourceTree = "<group>"; };
 		3427C3BD11FC02AE002AC215 /* LgiInc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LgiInc.h; path = include/common/LgiInc.h; sourceTree = "<group>"; };
 		3429212B1087D57200578ECC /* GCss.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GCss.cpp; path = src/common/Lgi/GCss.cpp; sourceTree = "<group>"; };
 		3429212D1087D58100578ECC /* GCss.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GCss.h; path = include/common/GCss.h; sourceTree = "<group>"; };
@@ -242,7 +248,7 @@
 		3476680E093F1FD400623A44 /* LgiInterfaces.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LgiInterfaces.h; path = include/common/LgiInterfaces.h; sourceTree = "<group>"; };
 		34766827093F207D00623A44 /* GFile.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GFile.h; path = include/common/GFile.h; sourceTree = "<group>"; };
 		34766831093F20EE00623A44 /* GThread.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GThread.h; path = include/common/GThread.h; sourceTree = "<group>"; };
-		347677630FE5BB2800E2E445 /* md5.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = md5.c; path = src/common/General/md5.c; sourceTree = "<group>"; };
+		347677630FE5BB2800E2E445 /* md5.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = md5.c; path = src/common/Hash/md5/md5.c; sourceTree = "<group>"; };
 		3489C3E90DD1C4DB0095F0E1 /* GMru.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GMru.h; path = include/common/GMru.h; sourceTree = "<group>"; };
 		349330490F60CE440092EAE8 /* GViewCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GViewCommon.cpp; path = src/common/Lgi/GViewCommon.cpp; sourceTree = "<group>"; };
 		3493304B0F60CE690092EAE8 /* GViewPriv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GViewPriv.h; path = include/common/GViewPriv.h; sourceTree = "<group>"; };
@@ -405,6 +411,17 @@
 			name = Regions;
 			sourceTree = "<group>";
 		};
+		341BE43D123ED1CE009BF203 /* Hashing */ = {
+			isa = PBXGroup;
+			children = (
+				341BE440123ED1F1009BF203 /* sha1.c */,
+				341BE441123ED1F1009BF203 /* sha1.h */,
+				341BE43E123ED1E6009BF203 /* md5.h */,
+				347677630FE5BB2800E2E445 /* md5.c */,
+			);
+			name = Hashing;
+			sourceTree = "<group>";
+		};
 		3429212A1087D55900578ECC /* Css */ = {
 			isa = PBXGroup;
 			children = (
@@ -485,6 +502,7 @@
 		344B736A08D83F0700D49457 /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				341BE43D123ED1CE009BF203 /* Hashing */,
 				34E9BF35121AA21800C1F0FA /* Exceptions */,
 				344D1B5208F4A52200228075 /* D'n'd */,
 				344AF36408E0328B004ED88C /* Date/Time */,
@@ -496,7 +514,6 @@
 				344D1B0B08F4A2C300228075 /* Resources */,
 				344AF38208E045A6004ED88C /* Stream */,
 				345F9C4108F0FAA9007DAFE2 /* Threads */,
-				347677630FE5BB2800E2E445 /* md5.c */,
 				344AF39508E0476A004ED88C /* GApp.cpp */,
 				34983C1808F548620054868C /* GClipBoard.cpp */,
 				344B736B08D83F1800D49457 /* GGeneral.cpp */,
@@ -782,6 +799,8 @@
 				34463F2511FBE25E009BB91F /* GTextView3.h in Headers */,
 				3427C3BE11FC02AE002AC215 /* LgiInc.h in Headers */,
 				342CE46211FDAB57000B1F3C /* LgiRes.h in Headers */,
+				341BE43F123ED1E6009BF203 /* md5.h in Headers */,
+				341BE443123ED1F1009BF203 /* sha1.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -935,6 +954,7 @@
 				3429212C1087D57200578ECC /* GCss.cpp in Sources */,
 				34D979D11150F0E100CE462B /* GLayout.cpp in Sources */,
 				3444A36112275BDD004ADADE /* GToolBar.cpp in Sources */,
+				341BE442123ED1F1009BF203 /* sha1.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
