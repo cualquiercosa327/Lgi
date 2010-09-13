@@ -478,6 +478,7 @@ class MysqlDirectField : public GDbField
 {
 public:
 	class MysqlDirectRs *Rs;
+	int col;
 	uint8 type, decimals;
 	uint16 charset, flags;
 	uint32 length;
@@ -489,8 +490,7 @@ public:
 	GAutoString org_name;
 	GAutoString default_val;
 
-	MysqlDirectField();
-
+	MysqlDirectField(MysqlDirectRs *rs);
 	operator char*();
 
 	char *Name();
@@ -511,7 +511,7 @@ public:
 	typedef GArray<GAutoString> Row;
 
 	char *Sql;
-	GArray<MysqlDirectField> Field;
+	GArray<MysqlDirectField*> Field;
 	GHashTbl<char*,MysqlDirectField*> Idx;
 	int Cursor;
 	GArray<Row> Rows;
@@ -520,6 +520,7 @@ public:
 	~MysqlDirectRs();
 
 	char *Name();
+	bool Eof() { return Cursor < 0 || Cursor >= Rows.Length(); }
 
 	GDbField &operator [](int Index);
 	GDbField &operator [](char *Name);	
@@ -545,19 +546,24 @@ public:
 	bool DeleteRecord();
 };
 
-MysqlDirectField::MysqlDirectField()
+MysqlDirectField::MysqlDirectField(MysqlDirectRs *rs)
 {
-	Rs = 0;
+	Rs = rs;
+	col = Rs->Fields();
+	Rs->Field.Add(this);
 }
 
 MysqlDirectField::operator char*()
 {
-	return 0;
+	if (Rs->Eof())
+		return 0;
+	
+	return Rs->Rows[Rs->Cursor][col];
 }
 
 char *MysqlDirectField::Name()
 {
-	return 0;
+	return name;
 }
 
 bool MysqlDirectField::Name(char *Str)
@@ -620,6 +626,7 @@ MysqlDirectRs::MysqlDirectRs(char *s)
 
 MysqlDirectRs::~MysqlDirectRs()
 {
+	Field.DeleteObjects();
 	DeleteArray(Sql);
 }
 
@@ -631,7 +638,7 @@ char *MysqlDirectRs::Name()
 GDbField &MysqlDirectRs::operator [](int Index)
 {
 	if (Index >= 0 && Index < Field.Length())
-		return Field[Index];
+		return *Field[Index];
 
 	return Null;
 }
@@ -850,12 +857,13 @@ public:
 						{
 							LoggedIn = true;
 
-							if (u.Path)
+							if (u.Path && u.Path[0] == '/')
 							{
-								InitDb(u.Path);
+								InitDb(u.Path + 1);
 							}
 							else
 							{
+								// Read in a list of databases
 								GAutoPtr<GDbRecordset> r(Open("show databases;"));
 								if (r)
 								{
@@ -928,6 +936,7 @@ public:
 		GAutoPtr<MysqlPacket> p(new MysqlPacket);
 		uint8 Cmd = COM_INIT_DB;
 		*p << Cmd;
+		PacketIdx = 0;
 		p->Write(Name);
 		if (!p->Write(*this))
 			return false;
@@ -957,17 +966,17 @@ public:
 		uint8 r = Response(p), filler;
 		while (ValidDataResponse(r))
 		{
-			MysqlDirectField &fld = Rs->Field.New();
-			fld.Rs = Rs;
-			fld.cat = p->LenStr(r);
-			fld.db = p->LenStr();
-			fld.table = p->LenStr();
-			fld.org_tbl = p->LenStr();
-			fld.name = p->LenStr();
-			fld.org_name = p->LenStr();
-			*p >> filler >> fld.charset >> fld.length >> fld.type >> fld.flags >> fld.decimals >> filler;
-			fld.default_val = p->LenStr();
-			Rs->Idx.Add(fld.name, &fld);
+			MysqlDirectField *fld = new MysqlDirectField(Rs);
+
+			fld->cat = p->LenStr(r);
+			fld->db = p->LenStr();
+			fld->table = p->LenStr();
+			fld->org_tbl = p->LenStr();
+			fld->name = p->LenStr();
+			fld->org_name = p->LenStr();
+			*p >> filler >> fld->charset >> fld->length >> fld->type >> fld->flags >> fld->decimals >> filler;
+			fld->default_val = p->LenStr();
+			Rs->Idx.Add(fld->name, fld);
 
 			r = Response(p);
 		}
@@ -976,19 +985,18 @@ public:
 			return 0;
 
 		r = Response(p);
-		int CurCol = Cols;
-		MysqlDirectRs::Row *CurRow = 0;
 		while (r >= 1 && r <= 251)
 		{
-			if (CurCol >= Cols)
+			MysqlDirectRs::Row *CurRow = &Rs->Rows.New();
+			for (int c=0; c<Cols; c++)
 			{
-				CurCol = 0;
-				CurRow = &Rs->Rows.New();
-			}
+				GAutoString &field = CurRow->New();
+				if (c)
+					*p >> r;
 
-			GAutoString &field = CurRow->New();
-			if (r != 251)
-				field = p->LenStr(r);
+				if (r != 251)
+					field = p->LenStr(r);
+			}
 
 			r = Response(p);
 		}

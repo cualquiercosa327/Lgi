@@ -107,7 +107,10 @@ extern GDb *OpenMetakitDatabase(char *s);	// add 'GDb-Metakit.cpp' to your proje
 extern GDb *OpenBfsDatabase(char *s);		// add 'GDb-Bfs.cpp' and 'Bfs.cpp' to your project
 extern GDb *OpenLibmysqlDatabase(char *s);	// add 'GDb-Libmysql.cpp'
 											// pass 'mysql://username:password@host/database'
+											// (will cause your app to become GPL)
 extern GDb *OpenMysqlDirectDatabase(char *s); // add 'GDb-Mysql-direct.cpp'
+											// pass 'mysql://username:password@host/database'
+											// (will _NOT_ cause your app to become GPL)
 
 // Util
 extern char *LgiTsvTok(char *&s);
