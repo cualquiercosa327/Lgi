@@ -581,25 +581,20 @@ void GSurface::Box(int x1, int y1, int x2, int y2)
 
 void GSurface::Rectangle(GRect *a)
 {
+	GRect b;
 	if (a)
-	{
-		GRect b = a;
-
-		OrgRgn(b);
-		b.Normal();
-		b.Bound(&Clip);
-
-		if (b.Valid())
-		{
-			pApp->SetPtr(b.x1, b.y1);
-			pApp->Rectangle(b.X(), b.Y());
-			Update(GDC_BITS_CHANGE);
-		}
-	}
+		b = a;
 	else
+		b.ZOff(pMem->x-1, pMem->y-1);
+
+	OrgRgn(b);
+	b.Normal();
+	b.Bound(&Clip);
+
+	if (b.Valid())
 	{
-		pApp->SetPtr(0, 0);
-		pApp->Rectangle(X(), Y());
+		pApp->SetPtr(b.x1, b.y1);
+		pApp->Rectangle(b.X(), b.Y());
 		Update(GDC_BITS_CHANGE);
 	}
 }

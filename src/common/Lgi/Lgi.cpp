@@ -722,6 +722,12 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 		#if !defined(CSIDL_LOCAL_APPDATA)
 			#define CSIDL_LOCAL_APPDATA					0x001c
 		#endif
+		#if !defined(CSIDL_COMMON_APPDATA)
+			#define CSIDL_COMMON_APPDATA				0x0023
+		#endif
+		#if !defined(CSIDL_APPDATA)
+			#define CSIDL_APPDATA						0x001a
+		#endif
 	#endif
 
 	if (Dst)
@@ -1014,11 +1020,11 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 				#endif
 				break;
 			}
-			case LSP_APP_DATA:
+			case LSP_COMMON_APP_DATA:
 			{
 				#if defined WIN32
 
-				char *f = GetWin32Folder(CSIDL_APPDATA);
+				char *f = GetWin32Folder(CSIDL_COMMON_APPDATA);
 				if (f)
 				{
 					strsafecpy(Dst, f, DstSize);
@@ -1054,10 +1060,10 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 				#endif
 				break;
 			}
-			case LSP_LOCAL_APP_DATA:
+			case LSP_USER_APP_DATA:
 			{
 				#if defined WIN32
-				char *f = GetWin32Folder(CSIDL_LOCAL_APPDATA);
+				char *f = GetWin32Folder(CSIDL_APPDATA);
 				if (f)
 				{
 					strsafecpy(Dst, f, DstSize);
@@ -1082,7 +1088,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 
 				#elif defined LINUX
 
-				strcpy(Dst, "/usr/local");
+				strcpy(Dst, "/usr");
 				Status = true;
 
 				#endif

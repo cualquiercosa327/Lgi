@@ -107,7 +107,10 @@ void GMemDC::SetClient(GRect *c)
 			SetWindowOrgEx(hDC, -c->x1, -c->y1, NULL);
 		}
 
+		GRect Doc(0, 0, pMem->x-1, pMem->y-1);
 		Clip = d->Client = *c;
+		Clip.Bound(&Doc);
+		
 		OriginX = -c->x1;
 		OriginY = -c->y1;
 	}
