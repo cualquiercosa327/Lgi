@@ -2636,6 +2636,8 @@ void GetTopCtrls(List<ResDialogCtrl> &Top, List<ResDialogCtrl> &Selection)
 
 void ResDialog::Copy(bool Delete)
 {
+	bool Status = false;
+
 	// Deselect the dialog... can't cut that
 	OnDeselect(dynamic_cast<ResDialogCtrl*>(Children.First()));
 	
@@ -2694,19 +2696,6 @@ void ResDialog::Copy(bool Delete)
 			}
 		}
 
-		if (Delete)
-		{
-			// delete them
-			for (c = Selection.First(); c; c = Selection.First())
-			{
-				c->View()->Detach();
-				Selection.Delete(c);
-				DeleteObj(c);
-			}
-		}
-
-		// Repaint
-		GView::Invalidate();
 
 		// Read the file in and copy to the clipboard
 		GStringPipe Xml;
@@ -2719,7 +2708,7 @@ void ResDialog::Copy(bool Delete)
 
 				char16 *w = LgiNewUtf8To16(s);
 				Clip.TextW(w);
-				Clip.Text(s, false);
+				Status = Clip.Text(s, false);
 				DeleteObj(w);
 			}
 
@@ -2727,6 +2716,21 @@ void ResDialog::Copy(bool Delete)
 		}
 
 		DeleteObj(Root);
+
+
+		if (Delete && Status)
+		{
+			// delete them
+			for (c = Selection.First(); c; c = Selection.First())
+			{
+				c->View()->Detach();
+				Selection.Delete(c);
+				DeleteObj(c);
+			}
+		}
+
+		// Repaint
+		GView::Invalidate();
 	}
 }
 

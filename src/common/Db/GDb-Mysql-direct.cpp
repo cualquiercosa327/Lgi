@@ -994,6 +994,8 @@ public:
 				if (c)
 					*p >> r;
 
+				if (r == 0)
+					break;
 				if (r != 251)
 					field = p->LenStr(r);
 			}
