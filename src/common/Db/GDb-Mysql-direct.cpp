@@ -1,3 +1,9 @@
+/**
+	\file
+	\author Matthew Allen <fret@memecode.com>
+	\brief Simple implementation of the mysql TCP protocol according to:
+		http://forge.mysql.com/wiki/MySQL_Internals_ClientServer_Protocol
+*/
 #include "Lgi.h"
 #include "GDb.h"
 #include "INet.h"

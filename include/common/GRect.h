@@ -107,7 +107,7 @@ public:
 	/// Sets the width and height
 	void Dimension(GRect *a);
 
-	/// Sets the rectangle to the union of this object and 'b'
+	/// Sets the rectangle to the intersection of this object and 'b'
 	void Bound(GRect *b);
 
 	/// Returns true if the point 'x,y' is in this rectangle
