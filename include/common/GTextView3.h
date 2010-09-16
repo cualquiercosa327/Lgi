@@ -7,6 +7,7 @@
 
 #include "GDocView.h"
 #include "GUndo.h"
+#include "GDragAndDrop.h"
 
 // use CRLF as opposed to just LF
 // internally it uses LF only... this is just to remember what to
@@ -28,7 +29,8 @@ LgiClass
 #endif
 	GTextView3 :
 	public GDocView,
-	public ResObject
+	public ResObject,
+	public GDragDropTarget
 {
 	friend class GUrl;
 	friend class GTextView3Undo;
@@ -301,6 +303,8 @@ public:
 	void OnPulse();
 	int OnHitTest(int x, int y);
 	bool OnLayout(GViewLayoutInfo &Inf);
+	int WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState);
+	int OnDrop(char *Format, GVariant *Data, GdcPt2 Pt, int KeyState);
 
 	// Virtuals
 	virtual bool Insert(int At, char16 *Data, int Len);

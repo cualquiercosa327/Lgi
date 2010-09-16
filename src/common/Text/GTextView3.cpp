@@ -2664,8 +2664,56 @@ void GTextView3::OnPosChange()
 	}
 }
 
+int GTextView3::WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState)
+{
+	for (char *s = Formats.First(); s; )
+	{
+		if (!stricmp(s, "text/uri-list") ||
+			!stricmp(s, "text/html") ||
+			!stricmp(s, "UniformResourceLocatorW"))
+		{
+			s = Formats.Next();
+		}
+		else
+		{
+			LgiTrace("Ignoring format '%s'\n", s);
+			Formats.Delete(s);
+			DeleteArray(s);
+			s = Formats.Current();
+		}
+	}
+
+	return Formats.Length() ? DROPEFFECT_COPY : DROPEFFECT_NONE;
+}
+
+int GTextView3::OnDrop(char *Format, GVariant *Data, GdcPt2 Pt, int KeyState)
+{
+	if (!stricmp(Format, "text/uri-list") ||
+		!stricmp(Format, "text/html") ||
+		!stricmp(Format, "UniformResourceLocatorW"))
+	{
+		if (Data->IsBinary())
+		{
+			char16 *e = (char16*) ((char*)Data->Value.Binary.Data + Data->Value.Binary.Length);
+			char16 *s = (char16*)Data->Value.Binary.Data;
+			int len = 0;
+			while (s < e && s[len])
+			{
+				len++;
+			}
+			Insert(Cursor, s, len);
+			Invalidate();
+			return DROPEFFECT_COPY;
+		}
+	}
+
+	return DROPEFFECT_NONE;
+}
+
 void GTextView3::OnCreate()
 {
+	SetWindow(this);
+	DropTarget(true);
 }
 
 void GTextView3::OnEscape(GKey &K)
