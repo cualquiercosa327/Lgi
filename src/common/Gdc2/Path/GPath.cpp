@@ -1394,6 +1394,14 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 		int x2 = (int)ceil(Bounds.x2);
 		int Width = x2 - x1 + 1;
 		uchar *Alpha = new uchar[Width];
+		
+		#if 0
+			#define CHECK_XV(idx)		LgiAssert((idx) >= 0 && (idx) < VectorCount)
+			#define CHECK_ALPHA(idx)	LgiAssert((idx) >= 0 && (idx) < Width)
+		#else
+			#define CHECK_XV(idx)
+			#define CHECK_ALPHA(idx)
+		#endif
 
 		GRectF Doc = Bounds;
 		Doc.Offset(Mat.m[0], Mat.m[1]);
@@ -1511,9 +1519,11 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 											}
 											#endif
 
+											CHECK_XV(n-1);
 											if (n == 0 OR a->Cx >= xv[n-1]->Cx)
 											{
 												// Insert at end
+												CHECK_XV(n);
 												xv[n++] = a;
 											}
 											else
@@ -1523,13 +1533,17 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 												// Insert in the middle or start
 												for (int i=0; i<n; i++)
 												{
+													CHECK_XV(i);
 													if (a->Cx < xv[i]->Cx)
 													{
 														for (int k = n - 1; k >= i; k--)
 														{
+															CHECK_XV(k+1);
+															CHECK_XV(k);
 															xv[k+1] = xv[k];
 														}
 
+														CHECK_XV(i);
 														xv[i] = a;
 														n++;
 														break;
@@ -1543,6 +1557,7 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 										{
 											if (Depth == 0)
 											{
+												CHECK_XV(i);
 												x[Xs++] = xv[i]->Cx;
 											}
 
@@ -1622,6 +1637,7 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 
 									if ((Sx>>SUB_SHIFT) == (Ex>>SUB_SHIFT))
 									{
+										CHECK_ALPHA(Sx>>SUB_SHIFT);
 										Alpha[Sx>>SUB_SHIFT] += Ex-Sx;
 									}
 									else
@@ -1629,18 +1645,21 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 										int Before = SUB_SAMPLE - (Sx & SUB_MASK);
 										if (Before)
 										{
+											CHECK_ALPHA(Sx>>SUB_SHIFT);
 											Alpha[Sx>>SUB_SHIFT] += Before;
 											Sx += Before;
 										}
 
 										for (int k=Sx>>SUB_SHIFT; k<(Ex>>SUB_SHIFT); k++)
 										{
+											CHECK_ALPHA(k);
 											Alpha[k] += SUB_SAMPLE;
 										}
 
 										int After = Ex & SUB_MASK;
 										if (After)
 										{
+											CHECK_ALPHA(Ex>>SUB_SHIFT);
 											Alpha[Ex>>SUB_SHIFT] += After;
 										}
 									}
@@ -1846,7 +1865,7 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 	}
 }
 
-void GPath::Stroke(GSurface *pDC, GBrush &Brush, int Width)
+void GPath::Stroke(GSurface *pDC, GBrush &Brush, double Width)
 {
 	if (!Point)
 	{

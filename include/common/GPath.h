@@ -385,7 +385,7 @@ public:
 
 	// Colouring
 	void Fill(GSurface *pDC, GBrush &Brush);
-	void Stroke(GSurface *pDC, GBrush &Brush, int Width);
+	void Stroke(GSurface *pDC, GBrush &Brush, double Width);
 };
 
 void FlattenQuadratic(GPointF *&Out, GPointF &p1, GPointF &p2, GPointF &p3, int Steps);
