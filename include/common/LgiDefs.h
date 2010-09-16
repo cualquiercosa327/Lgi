@@ -414,13 +414,11 @@ enum LgiSystemPath
 	///		[Mac] = ~/Library
 	///		[Linux] = /usr
 	LSP_USER_APP_DATA,
-	/*
 	/// Machine + user specific application data (probably should not use)
 	///		[Win32] = ~\Local Settings\Application Data
 	///		[Mac] = ~/Library
 	///		[Linux] = /usr/local
 	LSP_LOCAL_APP_DATA,
-	*/
 	/// Desktop dir
 	///		i.e. ~/Desktop
 	LSP_DESKTOP,

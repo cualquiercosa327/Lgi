@@ -4148,19 +4148,24 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 				//			<b>
 				//			</font>
 				//		</b>
-				char *e = strchr(s, '>');
-				if (e)
+				char *EndBracket = strchr(s, '>');
+				if (EndBracket)
 				{
+					char *e = EndBracket;
+					while (e > s && strchr(WhiteSpace, e[-1]))
+						e--;
+					char Prev = *e;
 					*e = 0;
 					GTag *Open = Html->GetOpenTag(s);
-					*e = '>';
+					*e = Prev;
+					
 					if (Open)
 					{
 						Open->WasClosed = true;
 					}
 					else
 					{
-						s = e + 1;
+						s = EndBracket + 1;
 						continue;
 					}
 				}
@@ -4179,6 +4184,8 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 						s++;
 						t++;
 					}
+
+					SkipWhiteSpace(s);
 
 					if (*s == '>')
 					{

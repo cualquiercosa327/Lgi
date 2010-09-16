@@ -1094,6 +1094,19 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 				#endif
 				break;
 			}
+			case LSP_LOCAL_APP_DATA:
+			{
+				#if defined WIN32
+				char *f = GetWin32Folder(CSIDL_LOCAL_APPDATA);
+				if (f)
+				{
+					strsafecpy(Dst, f, DstSize);
+					DeleteArray(f);
+					Status = true;
+				}
+				#endif
+				break;
+			}
 			case LSP_DESKTOP:
 			{
 				#if defined WIN32
