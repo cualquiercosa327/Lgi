@@ -156,6 +156,14 @@ public:
 		return r;
 	}
 	
+	bool operator ==(const GRect &r)
+	{
+		return	x1 == r.x1 &&
+				y1 == r.y1 &&
+				x2 == r.x2 &&
+				y2 == r.y2;
+	}
+	
 	GRect &operator =(const GRect &r);	
 	
 	GRect &operator =(OsRect &r)

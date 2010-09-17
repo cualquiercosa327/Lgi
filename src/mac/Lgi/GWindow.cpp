@@ -501,6 +501,20 @@ void GWindow::SetDragHandlers(bool On)
 	}
 }
 
+static void _ClearChildHandles(GViewI *v)
+{
+	GViewIterator *it = v->IterateViews();
+	if (it)
+	{
+		for (GViewI *v = it->First(); v; v = it->Next())
+		{
+			_ClearChildHandles(v);
+			v->Detach();			
+		}
+	}
+	DeleteObj(it);
+}
+
 void GWindow::Quit(bool DontDelete)
 {
 	if (_QuitOnClose)
@@ -511,8 +525,8 @@ void GWindow::Quit(bool DontDelete)
 	d->DeleteWhenDone = !DontDelete;
 	if (Wnd)
 	{
-		_Delete();
 		SetDragHandlers(false);
+		// _ClearChildHandles(this);
 		OsWindow w = Wnd;
 		Wnd = 0;
 		DisposeWindow(w);

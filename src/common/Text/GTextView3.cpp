@@ -547,7 +547,7 @@ void GTextView3::OnFontChange()
 	if (Font)
 	{
 		// get line height
-		int OldLineY = LineY;
+		// int OldLineY = LineY;
 		LineY = Font->GetHeight();
 		if (LineY < 1) LineY = 1;
 
@@ -595,7 +595,7 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 
 	GRect Client = GetClient();
 	int Mx = Client.X() - d->Margin.x1;
-	int y = 0;
+	// int y = 0;
 
 	MaxX = 0;
 
@@ -701,7 +701,7 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 		for (int i=Start; i<Size; i = e)
 		{
 			// seek till next char of interest
-			int Chars = 0;
+			// int Chars = 0;
 
 			if (WrapType == TEXTED_WRAP_NONE)
 			{
@@ -2469,7 +2469,7 @@ bool GTextView3::OnReplace(char16 *Find, char16 *Replace, bool All, bool MatchWo
 {
 	if (ValidStrW(Find))
 	{
-		int Max = -1;
+		// int Max = -1;
 		int FindLen = StrlenW(Find);
 		int ReplaceLen = StrlenW(Replace);
 		int OldCursor = Cursor;
@@ -3559,7 +3559,7 @@ bool GTextView3::OnKey(GKey &k)
 					}
 					#endif
 					
-					int Old = Cursor;
+					// int Old = Cursor;
 					GTextLine *l = GetLine(Cursor);
 					if (l)
 					{
@@ -3588,7 +3588,7 @@ bool GTextView3::OnKey(GKey &k)
 					}
 					#endif
 
-					int Old = Cursor;
+					// int Old = Cursor;
 					GTextLine *l = GetLine(Cursor);
 					if (l)
 					{
