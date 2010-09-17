@@ -1341,7 +1341,11 @@ GViewI *GView::WindowFromPoint(int x, int y)
 		Tabs[Debug_Depth] = 0;
 	}
 
-	for (GViewI *c = Children.First(); c; c = Children.Next())
+	// We iterate over the child in reverse order because if they overlap the
+	// end of the list is on "top". So they should get the click or whatever
+	// before the the lower windows.
+	List<GViewI>::I it = Children.End();
+	for (GViewI *c = *it; c; c = *--it)
 	{
 		GRect CPos = c->GetPos();
 		
