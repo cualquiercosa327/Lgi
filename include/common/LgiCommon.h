@@ -127,7 +127,7 @@ LgiFunc bool LgiGetSystemPath
 LgiFunc char *LgiFindFile(char *Name);
 
 /// Returns 0 to end search
-typedef bool (*RecursiveFileSearch_Callback)(char *Path, class GDirectory *Dir);
+typedef bool (*RecursiveFileSearch_Callback)(void *UserData, char *Path, class GDirectory *Dir);
 /// \brief Recursively search for files
 /// \return Non zero if something was found
 LgiFunc bool LgiRecursiveFileSearch
@@ -143,7 +143,9 @@ LgiFunc bool LgiRecursiveFileSearch
 	/// [optional] File count
 	uint64 *Count = 0,
 	/// [optional] Callback for match
-	RecursiveFileSearch_Callback Callback = 0
+	RecursiveFileSearch_Callback Callback = 0,
+	/// [options] Callback user data
+	void *UserData = 0
 );
 
 // Resources

@@ -1497,38 +1497,59 @@ int AppWnd::GetUniqueCtrlId()
 
 int AppWnd::GetUniqueStrRef(int	Start)
 {
-	int Ref = Start;
+	if (!Objs)
+		return -1;
 
-	if (Objs)
+	List<Resource> l;
+	if (!Objs->ListObjects(l))
+		return -1;
+
+	GHashTbl<int, ResString*> Map;
+	GArray<ResString*> Dupes;
+
+	for (Resource *r = l.First(); r; r = l.Next())
 	{
-		List<Resource> l;
-		if (Objs->ListObjects(l))
+		ResStringGroup *Grp = r->GetStringGroup();
+		if (Grp)
 		{
-			while (true)
+			List<ResString>::I it = Grp->GetStrs()->Start();
+			for (ResString *s = *it; s; s = *++it)
 			{
-				bool Found = false;
-				for (Resource *r = l.First(); r AND !Found; r = l.Next())
+				ResString *Existing = Map.Find(s->GetRef());
+				if (Existing)
 				{
-					ResStringGroup *Grp = dynamic_cast<ResStringGroup*>(r);
-					if (Grp)
-					{
-						Found = Grp->FindRef(Ref);
-					}
-				}
-
-				if (Found)
-				{
-					Ref++;
+					// These get their ref's reset to a unique value as a side
+					// effect of this function...
+					Dupes.Add(s);
 				}
 				else
 				{
-					break;
+					Map.Add(s->GetRef(), s);
 				}
+			}			
+		}
+	}
+
+	for (int i=Start; true; i++)
+	{
+		if (!Map.Find(i))
+		{
+			if (Dupes.Length())
+			{
+				ResString *s = Dupes[0];
+				Dupes.DeleteAt(0);
+				s->SetRef(i);
+
+				SetDirty(true);
+			}
+			else
+			{
+				return i;
 			}
 		}
 	}
 
-	return Ref;
+	return -1;
 }
 
 ResString *AppWnd::GetStrFromRef(int Ref)
@@ -2545,6 +2566,10 @@ bool AppWnd::LoadLgi(char *FileName)
 						else if (stricmp(t->Tag, "menu") == 0)
 						{
 							RType = TYPE_MENU;
+						}
+						else
+						{
+							LgiAssert(!"Unexpected tag");
 						}
 
 						if (RType > 0)
@@ -4090,7 +4115,7 @@ bool AppWnd::LoadWin32(char *FileName)
 											if (i)
 											{
 												GLanguage *Lang = GFindLang(Language);
-												i->Str.Set(Text, (Lang) ? Lang->Id : (char*)"en");
+												i->GetStr()->Set(Text, (Lang) ? Lang->Id : (char*)"en");
 											}
 
 											MenuNextItem = 0;
@@ -4110,7 +4135,7 @@ bool AppWnd::LoadWin32(char *FileName)
 														for (GTreeItem *o = MenuItem[MenuLevel-1]->GetChild(); o; o = o->GetNext(), n++)
 														{
 															ResMenuItem *Res = dynamic_cast<ResMenuItem*>(o);
-															if (Res AND Res->Str.GetId() == Id)
+															if (Res AND Res->GetStr()->GetId() == Id)
 															{
 																i = Res;
 																break;
@@ -4138,21 +4163,21 @@ bool AppWnd::LoadWin32(char *FileName)
 													if (!MenuNewLang)
 													{
 														// Set Id
-														i->Str.SetDefine(T[2]);
-														if (i->Str.GetDefine())
+														i->GetStr()->SetDefine(T[2]);
+														if (i->GetStr()->GetDefine())
 														{
-															ImportDefine *id = Defines.GetDefine(i->Str.GetDefine());
+															ImportDefine *id = Defines.GetDefine(i->GetStr()->GetDefine());
 															if (id)
 															{
-																i->Str.SetId(atoi(id->Value));
-																i->Str.UnDupelicate();
+																i->GetStr()->SetId(atoi(id->Value));
+																i->GetStr()->UnDupelicate();
 															}
 														}
 													}
 
 													// Set Text
 													GLanguage *Lang = GFindLang(Language);
-													i->Str.Set(Text, (Lang) ? Lang->Id : (char*)"en");
+													i->GetStr()->Set(Text, (Lang) ? Lang->Id : (char*)"en");
 												}
 											}
 										}

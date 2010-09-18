@@ -146,6 +146,8 @@ ResString::ResString(ResStringGroup *grp)
 	{
 		LgiAssert(0);
 	}
+
+	LgiStackTrace("%p::ResString\n", this);
 }
 
 ResString::~ResString()
@@ -170,10 +172,6 @@ ResString::~ResString()
 
 int ResString::SetRef(int r)
 {
-	if (r == 184)
-	{
-		int asd=0;
-	}
 	Ref = r;
 	return Ref;
 }
@@ -321,6 +319,7 @@ bool ResString::Test(ErrorCollection *e)
 		Status = false;
 	}
 
+	#if 0
 	if (!ValidStr(Define))
 	{
 		ErrorInfo *Err = &e->StrErr.New();
@@ -328,6 +327,7 @@ bool ResString::Test(ErrorCollection *e)
 		Err->Msg.Reset(NewStr("No define name."));
 		Status = false;
 	}
+	#endif
 
 	for (StrLang *s = Items.First(); s; s = Items.Next())
 	{
@@ -614,6 +614,25 @@ bool ResString::Serialize(FieldTree &Fields)
 	}
 
 	return true;
+}
+
+int ResString::NewId()
+{
+	List<ResString> sl;
+
+	if (Group && Group->AppWindow)
+	{
+		Group->AppWindow->FindStrings(sl, Define);
+		int NewId = Group->AppWindow->GetUniqueCtrlId();
+		for (ResString *s = sl.First(); s; s = sl.Next())
+		{
+			s->SetId(NewId);
+			s->Update();
+		}
+	}
+	else LgiAssert(!"Invalid ptrs.");
+
+	return Id;
 }
 
 int ResString::GetCols()

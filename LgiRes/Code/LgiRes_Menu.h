@@ -25,11 +25,13 @@ class ResMenuItem : public GTreeItem, public FieldSource
 	bool Sep;
 	bool Enabled;
 	GAutoString Short;
+	ResString *_Str;
 
 public:
-	ResString Str;
+	ResString *GetStr();
 
 	ResMenuItem(ResMenu *menu);
+	~ResMenuItem();
 
 	bool Separator() { return Sep; }
 	void Separator(bool i) { Sep = i; }
@@ -40,6 +42,7 @@ public:
 
 	char *GetText(int i=0);
 	ResMenu *GetMenu() { return Menu; }
+	ResMenuItem *FindByRef(int Ref);
 	bool GetFields(FieldTree &Fields);
 	bool Serialize(FieldTree &Fields);
 
@@ -47,6 +50,7 @@ public:
 	bool Write(GXmlTag *t, int Tabs);
 
 	void OnMouseClick(GMouse &m);
+	bool OnNew();
 };
 
 class ResMenu : public Resource, public GTree
@@ -67,11 +71,12 @@ public:
 	GView *Wnd() { return dynamic_cast<GView*>(this); }
 	void SetLanguages() { if (Group) Group->SetLanguages(); }
 	List<ResString> *GetStrs() { return (Group)?Group->GetStrs():0; }
-	ResStringGroup *GetGroup() { return Group; }
 	ResString *GetStringByRef(int Ref);
+	ResMenuItem *GetItemByRef(int Ref);
 	void EnumItems(List<ResMenuItem> &Items);
 	ResMenu *IsMenu() { return this; }
 	void OnShowLanguages();
+	ResStringGroup *GetStringGroup() { return Group; }
 
 	// Tree
 	void OnItemClick(GTreeItem *Item, GMouse &m);

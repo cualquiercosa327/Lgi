@@ -93,6 +93,7 @@
 
 #define StrDialogSymbols			"_Dialog Symbols_"
 extern char TranslationStrMagic[];
+extern char AppName[];
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 // Functions
@@ -147,6 +148,7 @@ public:
 	virtual int Type() { return ResType; }
 	virtual void Type(int i) { ResType = i; }
 	virtual void Create(GXmlTag *load) = 0; // called when users creates
+	virtual ResStringGroup *GetStringGroup() { return 0; }
 	
 	// Sub classes
 	virtual ResStringGroup *IsStringGroup() { return 0; }

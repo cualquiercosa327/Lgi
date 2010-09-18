@@ -1,4 +1,4 @@
-/* asdasd2
+/*
 **	FILE:			LgiRes_Menu.cpp
 **	AUTHOR:			Matthew Allen
 **	DATE:			6/3/2000
@@ -21,21 +21,51 @@
 #define VAL_Enabled				"Enabled"
 #define VAL_Shortcut			"Shortcut"
 
-ResMenuItem::ResMenuItem(ResMenu *menu) :
-	Str((menu)?menu->Group:0)
+ResMenuItem::ResMenuItem(ResMenu *menu)
 {
 	Sep = false;
 	Enabled = true;
 	Menu = menu;
+	_Str = 0;
+}
+
+ResMenuItem::~ResMenuItem()
+{
+	if (_Str)
+		Menu->GetStringGroup()->DeleteStr(_Str);
+}
+
+ResString *ResMenuItem::GetStr()
+{
+	return _Str;
+}
+
+bool ResMenuItem::OnNew()
+{
+	_Str = Menu->GetStringGroup()->CreateStr();
+	if (!_Str)
+		return false;
+
+	if (!_Str->GetDefine())
+	{
+		int Uid = Menu->App()->GetUniqueCtrlId();
+		char Def[256];
+		sprintf(Def, "IDM_MENU_%i", Uid);
+		_Str->SetDefine(Def);
+		_Str->SetId(Uid);
+	}
+
+	return true;
 }
 
 void ResMenuItem::OnMouseClick(GMouse &m)
 {
 	if (m.IsContextMenu())
 	{
-		GSubMenu *RClick = new GSubMenu;
-		if (RClick)
+		ResString *Str = GetStr();
+		if (Str)
 		{
+			GSubMenu RClick;
 			bool PasteData = false;
 			bool PasteTranslations = false;
 
@@ -47,33 +77,38 @@ void ResMenuItem::OnMouseClick(GMouse &m)
 					PasteTranslations = strstr(Clip, TranslationStrMagic);
 
 					char *p = Clip;
-					while (*p AND strchr(" \r\n\t", *p)) p++;
+					while (*p && strchr(" \r\n\t", *p)) p++;
 					PasteData = *p == '<';
 					DeleteArray(Clip);
 				}
 			}
 
-			RClick->AppendItem("Copy Text", IDM_COPY_TEXT, true);
-			RClick->AppendItem("Paste Text", IDM_PASTE_TEXT, PasteTranslations);
+			RClick.AppendItem("Copy Text", IDM_COPY_TEXT, true);
+			RClick.AppendItem("Paste Text", IDM_PASTE_TEXT, PasteTranslations);
+			RClick.AppendSeparator();
+			RClick.AppendItem("New Id", IDM_NEW_ID, true);
 
 			if (Tree->GetMouse(m, true))
 			{
-				switch (RClick->Float(Tree, m.x, m.y))
+				switch (RClick.Float(Tree, m.x, m.y))
 				{
 					case IDM_COPY_TEXT:
 					{
-						Str.CopyText();
+						Str->CopyText();
 						break;
 					}
 					case IDM_PASTE_TEXT:
 					{
-						Str.PasteText();
+						Str->PasteText();
+						break;
+					}
+					case IDM_NEW_ID:
+					{
+						Str->NewId();
 						break;
 					}
 				}
 			}
-
-			DeleteObj(RClick);
 		}
 	}
 }
@@ -85,13 +120,18 @@ char *ResMenuItem::GetText(int i)
 		return "--------------";
 	}
 
-	char *s = Str.Get();
+	ResString *Str = GetStr();
+	char *s = Str ? Str->Get() : 0;
 	return (s) ? s : (char*)"<null>";
 }
 
 bool ResMenuItem::GetFields(FieldTree &Fields)
 {
-	Str.GetFields(Fields);
+	ResString *Str = GetStr();
+	if (!Str)
+		return false;
+
+	Str->GetFields(Fields);
 	Fields.Insert(this, DATA_BOOL, 300, VAL_Separator, "Separator");
 	Fields.Insert(this, DATA_BOOL, 301, VAL_Enabled, "Enabled");
 	Fields.Insert(this, DATA_STR, 301, VAL_Shortcut, "Shortcut");
@@ -100,15 +140,19 @@ bool ResMenuItem::GetFields(FieldTree &Fields)
 
 bool ResMenuItem::Serialize(FieldTree &Fields)
 {
-	Str.Serialize(Fields);
+	ResString *Str = GetStr();
+	if (!Str)
+		return false;
+
+	Str->Serialize(Fields);
 	
 	if (Fields.GetMode() == FieldTree::ObjToUi)
 	{
-		if (Str.GetRef() == 0)
-			Str.SetRef(Str.GetGroup()->UniqueRef());
+		if (Str->GetRef() == 0)
+			Str->SetRef(Str->GetGroup()->UniqueRef());
 		
-		if (ValidStr(Str.GetDefine()) AND Str.GetId() == 0)
-			Str.SetId(Str.GetGroup()->UniqueId(Str.GetDefine()));
+		if (ValidStr(Str->GetDefine()) && Str->GetId() == 0)
+			Str->SetId(Str->GetGroup()->UniqueId(Str->GetDefine()));
 	}
 
 	Fields.Serialize(this, VAL_Separator, Sep);
@@ -134,25 +178,19 @@ bool ResMenuItem::Read(GXmlTag *t, ResMenuItem *Parent)
 			Enabled = (n = t->GetAttr("enabled")) ? atoi(n) : true;
 			Short.Reset(NewStr(t->GetAttr("shortcut")));
 
-			if ((n = t->GetAttr("ref")) AND
-				Menu AND
+			if ((n = t->GetAttr("ref")) &&
+				Menu &&
 				Menu->Group)
 			{
 				int Ref = atoi(n);
-				ResString *s = Menu->Group->FindRef(Ref);
-
-				if (s)
+				_Str = Menu->GetStringByRef(Ref);
+				LgiAssert(_Str);
+				if (!_Str)
 				{
-					// Copy the data from the string resource
-					// allocated by the string group into
-					// our object, allocated as part of this
-					// item
-					Str = *s;
-					
-					// Delete the string group allocated version
-					// leaving the group containing just our
-					// copy of the string
-					DeleteObj(s);
+					if (!(_Str = Menu->GetStringGroup()->CreateStr()))
+					{
+						LgiAssert(!"Create str failed.");
+					}
 				}
 			}
 
@@ -173,7 +211,7 @@ bool ResMenuItem::Read(GXmlTag *t, ResMenuItem *Parent)
 				for (GXmlTag *c = t->Children.First(); c; c = t->Children.Next())
 				{
 					ResMenuItem *i = new ResMenuItem(Menu);
-					if (i AND i->Read(c, this))
+					if (i && i->Read(c, this))
 					{
 						Status = true;
 					}
@@ -201,7 +239,7 @@ bool ResMenuItem::Write(GXmlTag *t, int Tabs)
 	else
 	{
 		if (!Enabled) t->SetAttr("Enabled", 0);
-		t->SetAttr("Ref", Str.GetRef());
+		t->SetAttr("Ref", _Str->GetRef());
 		if (Short) t->SetAttr("Shortcut", Short);
 		else t->DelAttr("Shortcut");
 	}
@@ -211,7 +249,7 @@ bool ResMenuItem::Write(GXmlTag *t, int Tabs)
 		for (ResMenuItem *i = dynamic_cast<ResMenuItem*>(GetChild()); i; i = dynamic_cast<ResMenuItem*>(i->GetNext()))
 		{
 			GXmlTag *c = new GXmlTag;
-			if (c AND i->Write(c, 0))
+			if (c && i->Write(c, 0))
 			{
 				t->InsertTag(c);
 			}
@@ -337,14 +375,19 @@ int ResMenu::OnCommand(int Cmd, int Event, OsView hWnd)
 		{
 			ResMenuItem *Item = dynamic_cast<ResMenuItem*>(Selection());
 			GTreeItem *New = 0;
+
+			ResMenuItem *NewItem = new ResMenuItem(this);
+			if (NewItem && !NewItem->OnNew())
+			{
+				DeleteObj(NewItem);
+				LgiMsg(GetTree(), "Unrecoverable error creating menu item (corrupt refs?)", AppName);
+				return -1;
+			}
+
 			if (Item)
-			{
-				New = Item->Insert(new ResMenuItem(this), 0);
-			}
+				New = Item->Insert(NewItem, 0);
 			else
-			{
-				New = Insert(new ResMenuItem(this), 0);
-			}
+				New = Insert(NewItem, 0);
 
 			if (New)
 			{
@@ -363,13 +406,21 @@ int ResMenu::OnCommand(int Cmd, int Event, OsView hWnd)
 
 				GTreeItem *Parent = Item->GetParent();
 				GTreeItem *New = 0;
+				ResMenuItem *NewItem = new ResMenuItem(this);
+				if (NewItem && !NewItem->OnNew())
+				{
+					DeleteObj(NewItem);
+					LgiMsg(GetTree(), "Unrecoverable error creating menu item (corrupt refs?)", AppName);
+					return -1;
+				}
+
 				if (Parent)
 				{
-					New = Parent->Insert(new ResMenuItem(this), n);
+					New = Parent->Insert(NewItem, n);
 				}
 				else
 				{
-					New = Insert(new ResMenuItem(this), n);
+					New = Insert(NewItem, n);
 				}
 
 				if (New)
@@ -466,6 +517,38 @@ int ResMenu::OnCommand(int Cmd, int Event, OsView hWnd)
 	return 0;
 }
 
+ResMenuItem *ResMenuItem::FindByRef(int Ref)
+{
+	for (GTreeItem *i = Items.First(); i; i = Items.Next())
+	{
+		ResMenuItem *m = dynamic_cast<ResMenuItem*>(i);
+		if (m)
+		{
+			ResMenuItem *f = m->FindByRef(Ref);
+			if (f)
+				return f;
+		}
+	}
+
+	return 0;
+}
+
+ResMenuItem *ResMenu::GetItemByRef(int Ref)
+{
+	for (GTreeItem *i = Items.First(); i; i = Items.Next())
+	{
+		ResMenuItem *m = dynamic_cast<ResMenuItem*>(i);
+		if (m)
+		{
+			ResMenuItem *f = m->FindByRef(Ref);
+			if (f)
+				return f;
+		}
+	}
+
+	return 0;
+}
+
 ResString *ResMenu::GetStringByRef(int Ref)
 {
 	return Group ? Group->FindRef(Ref) : 0;
@@ -473,7 +556,7 @@ ResString *ResMenu::GetStringByRef(int Ref)
 
 bool ResMenu::Test(ErrorCollection *e)
 {
-	return true;
+	return Group->Test(e);
 }
 
 bool ResMenu::Read(GXmlTag *t, ResFileFormat Format)
@@ -504,10 +587,11 @@ bool ResMenu::Read(GXmlTag *t, ResFileFormat Format)
 				LgiAssert(0);
 			}
 		}
-		else if (stricmp(c->Tag, "submenu") == 0)
+		else if (!stricmp(c->Tag, "submenu") ||
+				 !stricmp(c->Tag, "menuitem"))
 		{
 			ResMenuItem *i = new ResMenuItem(this);
-			if (i AND i->Read(c))
+			if (i && i->Read(c))
 			{
 			}
 			else
@@ -517,7 +601,11 @@ bool ResMenu::Read(GXmlTag *t, ResFileFormat Format)
 				DeleteObj(i);
 			}
 		}
-		else break;
+		else
+		{
+			LgiAssert(!"Unexpected tag.");
+			break;
+		}
 	}
 
 	return Status;
@@ -535,7 +623,7 @@ bool ResMenu::Write(GXmlTag *t, ResFileFormat Format)
 	if (Group)
 	{
 		GXmlTag *g = new GXmlTag;
-		if (g AND Group->Write(g, Format))
+		if (g && Group->Write(g, Format))
 		{
 			t->InsertTag(g);
 		}
@@ -553,7 +641,7 @@ bool ResMenu::Write(GXmlTag *t, ResFileFormat Format)
 		if (m)
 		{
 			GXmlTag *c = new GXmlTag;
-			if (c AND m->Write(c, 1))
+			if (c && m->Write(c, 1))
 			{
 				t->InsertTag(c);
 			}
@@ -651,7 +739,7 @@ void ResMenuUi::OnCreate()
 	if (Tools)
 	{
 		char *FileName = LgiFindFile("_MenuIcons.gif");
-		if (FileName AND Tools->SetBitmap(FileName, 16, 16))
+		if (FileName && Tools->SetBitmap(FileName, 16, 16))
 		{
 			Tools->Attach(this);
 
@@ -717,5 +805,3 @@ int ResMenuUi::CurrentTool()
 void ResMenuUi::SelectTool(int i)
 {
 }
-
-

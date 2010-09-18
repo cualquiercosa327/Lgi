@@ -76,6 +76,7 @@ public:
 	int SetRef(int r);
 	int GetId() { return Id; }
 	int SetId(int id);
+	int NewId(); // Creates a new Id based on #define
 	char *Get(GLanguageId Lang = 0);
 	void Set(char *s, GLanguageId Lang = 0);
 	void UnDupelicate();
@@ -128,6 +129,7 @@ public:
 
 	GView *Wnd() { return dynamic_cast<GView*>(this); }
 	bool Attach(GViewI *Parent) { return GList::Attach(Parent); }
+	ResStringGroup *GetStringGroup() { return this; }
 
 	// Methods
 	void Create(GXmlTag *load);

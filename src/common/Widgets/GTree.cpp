@@ -97,6 +97,7 @@ void GTreeNode::_Visible(bool v)
 {
 	for (GTreeItem *i=GetChild(); i; i=i->GetNext())
 	{
+		LgiAssert(i != this);
 		i->OnVisible(v);
 		i->_Visible(v);
 	}
@@ -104,6 +105,8 @@ void GTreeNode::_Visible(bool v)
 
 GTreeItem *GTreeNode::Insert(GTreeItem *Obj, int Idx)
 {
+	LgiAssert(Obj != this);
+
 	if (Obj && Obj->Tree)
 	{
 		Obj->Remove();

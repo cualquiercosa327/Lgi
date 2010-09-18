@@ -423,7 +423,7 @@ Results::Results(AppWnd *app, Search *params)
 					r->IsMenu()->EnumItems(Items);
 					for (ResMenuItem *c = Items.First(); c && d->Searching; c = Items.Next())
 					{
-						Result *Res = d->Test(&c->Str);
+						Result *Res = d->Test(c->GetStr());
 						if (Res)
 						{
 							Res->Menu = c;

@@ -355,7 +355,8 @@ bool LgiRecursiveFileSearch(char *Root,
 							GArray<char*> *Files,
 							uint64 *Size,
 							uint64 *Count,
-							RecursiveFileSearch_Callback Callback)
+							RecursiveFileSearch_Callback Callback,
+							void *UserData)
 {
 	bool Status = false;
 
@@ -376,7 +377,7 @@ bool LgiRecursiveFileSearch(char *Root,
 
 			if (Callback)
 			{
-				if (!Callback(Name, Dir))
+				if (!Callback(UserData, Name, Dir))
 				{
 					continue;
 				}
@@ -390,7 +391,8 @@ bool LgiRecursiveFileSearch(char *Root,
 										Files,
 										Size,
 										Count,
-										Callback);
+										Callback,
+										UserData);
 
 			}
 			else
