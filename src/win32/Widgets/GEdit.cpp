@@ -51,8 +51,7 @@ GEdit::GEdit(int id, int x, int y, int cx, int cy, char *name) :
 	SetStyle(WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL | WS_TABSTOP);
 	SetFont(SysFont);
 
-	#ifdef SKIN_MAGIC
-	#else
+	#ifndef SKIN_MAGIC
 	if (SubClass)
 	{
 		SubClass->SubClass("EDIT");

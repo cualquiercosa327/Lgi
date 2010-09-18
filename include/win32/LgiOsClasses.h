@@ -102,8 +102,8 @@ public:
 public:
 	union
 	{
-		WNDCLASSA a;
-		WNDCLASSW w;
+		WNDCLASSEXA a;
+		WNDCLASSEXW w;
 	} Class;
 
 	GWin32Class(char *Name);

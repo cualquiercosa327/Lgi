@@ -21,6 +21,8 @@
 
 #define DEBUG_OVER				0
 #define OLD_WM_CHAR_MODE		1
+#define GWL_LGI_MAGIC			8
+#define GWL_EXTRA_BYTES			12
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 bool In_SetWindowPos = false;
@@ -204,6 +206,8 @@ LRESULT CALLBACK GWin32Class::Redir(HWND hWnd, UINT m, WPARAM a, LPARAM b)
 			GView *View = ViewI->GetGView();
 			if (View) View->_View = hWnd;
 			SetWindowLong(hWnd, GWL_USERDATA, (int) ViewI);
+			DWORD Prev = SetWindowLong(hWnd, GWL_LGI_MAGIC, LGI_GViewMagic);
+			int asd=0;
 		}
 	}
 
@@ -240,6 +244,11 @@ LRESULT CALLBACK GWin32Class::SubClassRedir(HWND hWnd, UINT m, WPARAM a, LPARAM 
 			}
 		}
 		SetWindowLong(hWnd, GWL_USERDATA, (int) ViewI);
+		SetLastError(0);
+		SetWindowLong(hWnd, GWL_LGI_MAGIC, LGI_GViewMagic);
+		DWORD err = GetLastError();
+		LgiAssert(!err);
+
 	}
 
 	GViewI *Wnd = (GViewI*) GetWindowLong(hWnd, GWL_USERDATA);
@@ -264,16 +273,22 @@ GWin32Class::GWin32Class(char *name)
 {
 	Name(name);
 
-	Class.a.style = CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW;
-	Class.a.lpfnWndProc = (WNDPROC) Redir;
-	Class.a.cbClsExtra = 0;
-	Class.a.cbWndExtra = 8;
-	Class.a.hInstance = 0;
-	Class.a.hIcon = 0;
-	Class.a.hCursor = 0; // LoadCursor(LgiProcessInst(), MAKEINTRESOURCE(IDC_ARROW));
-	Class.a.hbrBackground = 0;
-	Class.a.lpszMenuName = 0;
-	Class.a.lpszClassName = 0;
+	ZeroObj(Class);
+
+	if (IsWin9x)
+	{
+		Class.a.lpfnWndProc = (WNDPROC) Redir;
+		Class.a.style = CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW;
+		Class.a.cbWndExtra = GWL_EXTRA_BYTES;
+		Class.a.cbSize = sizeof(Class.a);
+	}
+	else
+	{
+		Class.w.lpfnWndProc = (WNDPROC) Redir;
+		Class.w.style = CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW;
+		Class.w.cbWndExtra = GWL_EXTRA_BYTES;
+		Class.w.cbSize = sizeof(Class.w);
+	}
 
 	ParentProc = 0;
 }
@@ -327,22 +342,25 @@ GWin32Class *GWin32Class::Create(char *ClassName)
 
 bool GWin32Class::Register()
 {
+	bool Status = false;
 	if (!Class.a.lpszClassName)
 	{
 		Class.a.hInstance = LgiProcessInst();
 		if (IsWin9x)
 		{
 			Class.a.lpszClassName = Name();
-			return RegisterClassA(&Class.a) != 0;
+			Status = RegisterClassExA(&Class.a) != 0;
+			LgiAssert(Status);
 		}
 		else
 		{
 			Class.w.lpszClassName = NameW();
-			return RegisterClassW(&Class.w);
+			Status = RegisterClassExW(&Class.w) != 0;
+			LgiAssert(Status);
 		}
 	}
 
-	return true;
+	return Status;
 }
 
 bool GWin32Class::SubClass(char *Parent)
@@ -354,7 +372,7 @@ bool GWin32Class::SubClass(char *Parent)
 		if (!Class.a.lpszClassName)
 		{
 			HBRUSH hBr = Class.a.hbrBackground;
-			if (GetClassInfoA(LgiProcessInst(), Parent, &Class.a))
+			if (GetClassInfoExA(LgiProcessInst(), Parent, &Class.a))
 			{
 				ParentProc = Class.a.lpfnWndProc;
 				if (hBr)
@@ -362,13 +380,14 @@ bool GWin32Class::SubClass(char *Parent)
 					Class.a.hbrBackground = hBr;
 				}
 
-				Class.a.cbWndExtra = max(Class.a.cbWndExtra, 8);
+				Class.a.cbWndExtra = max(Class.a.cbWndExtra, GWL_EXTRA_BYTES);
 				Class.a.hInstance = LgiProcessInst();
 				Class.a.lpfnWndProc = (WNDPROC) SubClassRedir;
 
 				Class.a.lpszClassName = Name();
 
-				Status = RegisterClassA(&Class.a) != 0;
+				Status = RegisterClassExA(&Class.a) != 0;
+				LgiAssert(Status);
 			}
 		}
 		else Status = true;
@@ -378,10 +397,10 @@ bool GWin32Class::SubClass(char *Parent)
 		if (!Class.w.lpszClassName)
 		{
 			HBRUSH hBr = Class.w.hbrBackground;
-			char16 *p = LgiNewUtf8To16(Parent);
+			GAutoWString p(LgiNewUtf8To16(Parent));
 			if (p)
 			{
-				if (GetClassInfoW(LgiProcessInst(), p, &Class.w))
+				if (GetClassInfoExW(LgiProcessInst(), p, &Class.w))
 				{
 					ParentProc = Class.w.lpfnWndProc;
 					if (hBr)
@@ -389,15 +408,14 @@ bool GWin32Class::SubClass(char *Parent)
 						Class.w.hbrBackground = hBr;
 					}
 
-					Class.w.cbWndExtra = max(Class.w.cbWndExtra, 8);
+					Class.w.cbWndExtra = max(Class.w.cbWndExtra, GWL_EXTRA_BYTES);
 					Class.w.hInstance = LgiProcessInst();
 					Class.w.lpfnWndProc = (WNDPROC) SubClassRedir;
 
 					Class.w.lpszClassName = NameW();
-					Status = RegisterClassW(&Class.w) != 0;
+					Status = RegisterClassExW(&Class.w) != 0;
+					LgiAssert(Status);
 				}
-
-				DeleteArray(p);
 			}
 		}
 		else Status = true;
@@ -429,7 +447,29 @@ GViewI *GWindowFromHandle(HWND hWnd)
 {
 	if (hWnd)
 	{
-		int32 m = GetWindowLong(hWnd, 4);
+		SetLastError(0);
+		int32 m = GetWindowLong(hWnd, GWL_LGI_MAGIC);
+		#ifdef _DEBUG
+		DWORD err = GetLastError();
+		if (err == 1413)
+		{
+			TCHAR name[256];
+			if (GetClassName(hWnd, name, sizeof(name)))
+			{
+				WNDCLASSEX cls;
+				ZeroObj(cls);
+				cls.cbSize = sizeof(WNDCLASSEX);
+				if (GetClassInfoEx(LgiApp->GetInstance(), name, &cls))
+				{
+					if (cls.cbWndExtra >= 8)
+					{
+						LgiAssert(!"Really?");
+					}
+				}
+			}
+		}
+		#endif
+
 		if (m == LGI_GViewMagic)
 		{
 			return (GViewI*)GetWindowLong(hWnd, GWL_USERDATA);
@@ -659,8 +699,6 @@ bool GView::Attach(GViewI *p)
 
 		if (_View)
 		{
-			long lng = GetWindowLong(_View, 0);
-			SetWindowLong(_View, 4, LGI_GViewMagic);
 			Status = (_View != 0);
 
 			if (d->Font)
