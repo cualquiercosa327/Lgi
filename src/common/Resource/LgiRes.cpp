@@ -1260,23 +1260,30 @@ bool LgiResources::LoadDialog(int Resource, GViewI *Parent, GRect *Pos, char *Na
 			if (Dlg->Id() == ((int) Resource))
 			{
 				// found the dialog to load, set properties
-				if (Name AND Dlg->Name())
+				if (Dlg->Name())
 				{
-					strcpy(Name, Dlg->Name());
+					if (Name)
+						strcpy(Name, Dlg->Name());
+					else if (Parent)
+						Parent->Name(Dlg->Name());
 				}
 				
+				int x = Dlg->X();
+				int y = Dlg->Y();
+				#ifdef LINUX
+				x -= 6;
+				y -= 20;
+				#else
+				x += LgiApp->GetMetric(LGI_MET_DECOR_X) - 4;
+				y += LgiApp->GetMetric(LGI_MET_DECOR_Y) - 18;
+				#endif
 				if (Pos)
-				{
-					int x = Dlg->X();
-					int y = Dlg->Y();
-					#ifdef LINUX
-					x -= 6;
-					y -= 20;
-					#else
-					x += LgiApp->GetMetric(LGI_MET_DECOR_X) - 4;
-					y += LgiApp->GetMetric(LGI_MET_DECOR_Y) - 18;
-					#endif
 					Pos->ZOff(x, y);
+				else if (Parent)
+				{
+					GRect r = Parent->GetPos();
+					r.Dimension(x, y);
+					Parent->SetPos(r);
 				}
 
 				// instantiate control list

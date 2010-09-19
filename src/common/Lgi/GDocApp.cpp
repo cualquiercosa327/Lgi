@@ -194,6 +194,33 @@ GDocApp<OptionsFmt>::~GDocApp()
 	DeleteObj(Options);
 }
 
+
+template <typename OptionsFmt>
+bool GDocApp<OptionsFmt>::SetLanguage(char *LangId)
+{	
+	if (!_LangOptsName)
+		return false;
+	
+	if (LgiMsg(	this,
+				LgiLoadString(L_DOCAPP_RESTART_APP, "Changing the language requires restarting the application.\nDo you want to restart?"),
+				d->AppName,
+				MB_YESNO) != IDYES)
+		return false;
+
+	GVariant v;
+	GetOptions()->SetValue(_LangOptsName, v = LangId);
+	GetOptions()->Serialize(true);
+	LgiCloseApp();
+
+	char Exe[MAX_PATH];
+	if (LgiGetExeFile(Exe, sizeof(Exe)))
+	{
+		LgiExecute(Exe);
+	}
+
+	return true;
+}
+
 template <typename OptionsFmt>
 char *GDocApp<OptionsFmt>::GetOptionsFileName()
 {
@@ -247,6 +274,18 @@ bool GDocApp<OptionsFmt>::_DoSerialize(bool Write)
 
 	if (!Write)
 	{
+		GVariant Lang;
+		if (_LangOptsName &&
+			Options->GetValue(_LangOptsName, Lang))
+		{
+			GXmlTag *t = new GXmlTag("language");
+			if (t)
+			{
+				t->SetAttr("id", Lang.Str());
+				LgiApp->SetConfig(t);
+			}
+		}
+
 		// read misc options
 		GMru::Serialize(Options, "Mru", false);
 		SerializeOptions(Options, false);
@@ -330,7 +369,7 @@ bool GDocApp<OptionsFmt>::_Destroy()
 }
 
 template <typename OptionsFmt>
-bool GDocApp<OptionsFmt>::_LoadMenu(char *Resource)
+bool GDocApp<OptionsFmt>::_LoadMenu(char *Resource, char *Tags)
 {
 	if (Menu = new GMenu)
 	{
@@ -338,7 +377,7 @@ bool GDocApp<OptionsFmt>::_LoadMenu(char *Resource)
 
 		if (Resource)
 		{
-			Menu->Load(this, Resource);
+			Menu->Load(this, Resource, Tags);
 			_FileMenu = Menu->AppendSub("&File", 0);
 		}
 		else
@@ -469,7 +508,10 @@ bool GDocApp<OptionsFmt>::SetDirty(bool Dirty)
 		else
 		{
 			// Clearing dirty
-			int Result = LgiMsg(this, "Do you want to save your changes?", d->AppName, MB_YESNOCANCEL);
+			int Result = LgiMsg(this,
+								LgiLoadString(L_DOCAPP_SAVE_CHANGE, "Do you want to save your changes?"),
+								d->AppName,
+								MB_YESNOCANCEL);
 			if (Result == IDYES)
 			{
 				if (!ValidStr(d->CurFile))

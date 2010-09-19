@@ -112,4 +112,8 @@
 #define L_ERROR_COPY_FAILED					-1027
 #define L_ERROR_OPENING_TEMP_FILE			-1028
 
+// GDocApp
+#define L_DOCAPP_SAVE_CHANGE				-1100
+#define L_DOCAPP_RESTART_APP				-1101
+
 #endif

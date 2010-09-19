@@ -36,7 +36,7 @@ private:
 
 protected:
 	/// Loads the given menu.
-	bool			_LoadMenu(char *Resource = 0);
+	bool			_LoadMenu(char *Resource = 0, char *Tags = 0);
 	/// Call this to create the window, usually in the constructor of your main window class.
 	bool			_Create();
 	/// Call this to destroy the window, usually in the destuctor of your main window class.
@@ -51,6 +51,9 @@ protected:
 
 	// Data
 	GSubMenu		*_FileMenu;
+
+	/// Set this to the name of the language setting in the option file.
+	char			*_LangOptsName;
 
 public:
 	/// Creates the class.
@@ -87,6 +90,14 @@ public:
 	virtual bool SerializeOptions(OptionsFmt *Options, bool Write) { return false; }
 	/// This is called when the dirty state changes.
 	virtual void OnDirty(bool NewValue) {}
+
+	/// Set the language for the application, which causes a restart. The lang id is saved
+	/// to the options file, the user is asked whether they want to restart, if yes, then
+	/// the application closes, and executes itself.
+	///
+	/// \sa Requires _LangOptsName to be set to the option name of the language setting.
+	/// \sa Uses the resource string L_DOCAPP_RESTART_APP to warn the user of the restart (there is an english default).
+	bool SetLanguage(char *LangId);
 
 	// Impl
 	void OnReceiveFiles(GArray<char*> &Files);
