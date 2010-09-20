@@ -742,41 +742,55 @@ GDirectory *GFileSystem::GetDir()
 	return new GDirImpl;
 }
 
-bool GFileSystem::Copy(char *From, char *To, CopyFileCallback Callback, void *Token)
+bool GFileSystem::Copy(char *From, char *To, int *Status, CopyFileCallback Callback, void *Token)
 {
 	GArray<char> Buf;
+
+	if (Status)
+		*Status = 0;
+
 	if (Buf.Length(2 << 20))
 	{
 		GFile In, Out;
-		if (In.Open(From, O_READ) &&
-			Out.Open(To, O_WRITE))
+		if (!In.Open(From, O_READ))
 		{
-			int64 Size = In.GetSize(), Done = 0;
-			for (int64 i=0; i<Size; i++)
+			if (Status)
+				*Status = In.GetError();
+			return false;
+		}
+		
+		if (!Out.Open(To, O_WRITE))
+		{
+			if (Status)
+				*Status = Out.GetError();
+			return false;
+		}
+
+		int64 Size = In.GetSize(), Done = 0;
+		for (int64 i=0; i<Size; i++)
+		{
+			int Copy = min(Size - i, Buf.Length());
+			int r = In.Read(&Buf[0], Copy);
+			if (r <= 0)
+				break;
+			
+			while (r > 0)
 			{
-				int Copy = min(Size - i, Buf.Length());
-				int r = In.Read(&Buf[0], Copy);
-				if (r <= 0)
+				int w = Out.Write(&Buf[0], r);
+				if (w <= 0)
 					break;
 				
-				while (r > 0)
-				{
-					int w = Out.Write(&Buf[0], r);
-					if (w <= 0)
-						break;
-					
-					r -= w;
-					Done += w;
-					if (Callback)
-						Callback(Token, Done, Size);
-				}
-				
-				if (r > 0)
-					break;
+				r -= w;
+				Done += w;
+				if (Callback)
+					Callback(Token, Done, Size);
 			}
 			
-			return Done == Size;
+			if (r > 0)
+				break;
 		}
+		
+		return Done == Size;
 	}
 	
 	return false;
@@ -1218,6 +1232,7 @@ public:
 	bool Swap;
 	int Status;
 	int Attributes;
+	int ErrorCode;
 	
 	GFilePrivate()
 	{
@@ -1226,6 +1241,7 @@ public:
 		Swap = false;
 		Status = true;
 		Attributes = 0;
+		ErrorCode = 0;
 	}
 	
 	~GFilePrivate()
@@ -1251,6 +1267,11 @@ GFile::~GFile()
 OsFile GFile::Handle()
 {
 	return d->hFile;
+}
+
+int GFile::GetError()
+{
+	return d->ErrorCode;
 }
 
 bool GFile::IsOpen()
@@ -1285,7 +1306,13 @@ int GFile::Open(char *File, int Mode)
 		}
 		else
 		{
-			printf("GFile::Open failed\n\topen(%s,%08.8x) = %i\n\terrno=%s (%s)\n", File, Mode, d->hFile, GetErrorName(errno), GetErrorDesc(errno));
+			d->ErrorCode = errno;
+			printf("GFile::Open failed\n\topen(%s,%08.8x) = %i\n\terrno=%s (%s)\n",
+				File, 
+				Mode, 
+				d->hFile,
+				GetErrorName(d->ErrorCode),
+				GetErrorDesc(d->ErrorCode));
 		}
 	}
 

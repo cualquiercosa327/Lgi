@@ -748,7 +748,7 @@ INet.o : ./src/common/INet/INet.cpp ./include/common/GFile.h \
 	./include/common/GString.h \
 	./include/common/LgiCommon.h \
 	./include/linux/Gtk/LgiOsClasses.h \
-	./include/common/md5.h \
+	./src/common/Hash/md5/md5.h \
 	./include/common/LgiNetInc.h
 	@echo $(<F) [$(Gui)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -760,7 +760,7 @@ INetTools.o : ./src/common/INet/INetTools.cpp ./include/common/GMem.h \
 	@echo $(<F) [$(Gui)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-md5.o : ./src/common/General/md5.c ./include/common/md5.h
+md5.o : ./src/common/Hash/md5/md5.c ./src/common/Hash/md5/md5.h
 	@echo $(<F) [$(Gui)]
 	$(CC) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 

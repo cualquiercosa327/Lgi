@@ -106,7 +106,7 @@ public:
 	}
 	
 	/// Gets the current stack
-	int BackTrace(Addr *addr, int len)
+	int BackTrace(int Epb, int Eip, Addr *addr, int len)
 	{
 		return backtrace((void**)addr, len);
 	}
