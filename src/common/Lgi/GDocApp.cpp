@@ -164,6 +164,7 @@ template <typename OptionsFmt>
 GDocApp<OptionsFmt>::GDocApp(char *appname, char *icon, char *optsname)
 {
 	Options = 0;
+	_LangOptsName = 0;
 	d = new GDocAppPrivate(optsname);
 
 	GRect r(0, 0, 800, 600);
