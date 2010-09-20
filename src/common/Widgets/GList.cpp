@@ -2277,7 +2277,7 @@ void GList::OnMouseClick(GMouse &m)
 
 						// Check if the handler hung for a long time...
 						bool HandlerHung = LgiCurrentTime() - StartHandler > 200;
-						if (!HandlerHung)
+						if (!HandlerHung && !m.Double())
 						{
 							// Start d'n'd watcher pulse...
 							SetPulse(100);
