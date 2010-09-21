@@ -374,11 +374,11 @@ int GControl::OnEvent(GMessage *Msg)
 		{
 			if (IsWindowUnicode(_View))
 			{
-				GObject::NameW((char16*)Msg->b);
+				GBase::NameW((char16*)Msg->b);
 			}
 			else
 			{
-				GObject::Name((char*)Msg->b);
+				GBase::Name((char*)Msg->b);
 			}
 			break;
 		}

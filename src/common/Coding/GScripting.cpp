@@ -1494,7 +1494,7 @@ bool GScriptEnginePrivate::Compile_Expression(int &Cur, int Depth)
 				{
 					if (PrevIsOp == 1)
 					{
-						GObject u;
+						GBase u;
 						u.NameW(t);
 						Term.Print("%s:%i - Not expecting '%s', 2nd operator in a row.\n", ErrorTitle(), Lines[StartToken], u.Name());
 						break;
@@ -1509,7 +1509,7 @@ bool GScriptEnginePrivate::Compile_Expression(int &Cur, int Depth)
 				{
 					if (PrevIsOp == 0)
 					{
-						GObject u;
+						GBase u;
 						u.NameW(t);
 						Term.Print("%s:%i - Not expecting '%s' after non-operator token.\n", ErrorTitle(), Lines[StartToken], u.Name());
 						break;
@@ -1625,7 +1625,7 @@ GVariant *GScriptEnginePrivate::Execute_Expression(int &Cur, GDom *Src, int Dept
 				{
 					if (PrevIsOp == 1)
 					{
-						GObject u;
+						GBase u;
 						u.NameW(t);
 						Term.Print("%s:%i - '%s' was the 2nd operator in a row.\n", ErrorTitle(), Lines[StartToken], u.Name());
 						break;
@@ -1640,7 +1640,7 @@ GVariant *GScriptEnginePrivate::Execute_Expression(int &Cur, GDom *Src, int Dept
 				{
 					if (PrevIsOp == 0)
 					{
-						GObject u;
+						GBase u;
 						u.NameW(t);
 						Term.Print("%s:%i - Not expecting '%s' after non-operator.\n", ErrorTitle(), Lines[StartToken], u.Name());
 						break;
@@ -3310,7 +3310,7 @@ bool GScriptEnginePrivate::Compile_Statement(GArray<GCode> &To, int &Cur)
 							}
 							else
 							{
-								GObject u;
+								GBase u;
 								u.NameW(t);
 								Term.Print("%s:%i - Not expecting token '%s' in argument list.\n",
 									ErrorTitle(),

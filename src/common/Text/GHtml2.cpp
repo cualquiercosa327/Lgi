@@ -6526,8 +6526,8 @@ bool GHtml2::NameW(char16 *s)
 
 char16 *GHtml2::NameW()
 {
-	GObject::Name(Source);
-	return GObject::NameW();
+	GBase::Name(Source);
+	return GBase::NameW();
 }
 
 bool GHtml2::Name(char *s)

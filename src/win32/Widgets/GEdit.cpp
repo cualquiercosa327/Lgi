@@ -121,7 +121,7 @@ char *GEdit::Name()
 {
 	if (Handle())
 	{
-		GObject::Name(0);
+		GBase::Name(0);
 
 		char *s = GControl::Name();
 		if (s)
@@ -143,7 +143,7 @@ char *GEdit::Name()
 		return s;
 	}
 	
-	return GObject::Name();
+	return GBase::Name();
 }
 
 bool GEdit::Name(char *n)
@@ -206,7 +206,7 @@ int GEdit::SysOnNotify(int Code)
 		if (Str)
 		{
 			SendMessage(Handle(), WM_GETTEXT, (WPARAM) (Len+1), (LPARAM) Str);
-			GObject::Name(Str);
+			GBase::Name(Str);
 			DeleteArray(Str);
 		}
 

@@ -267,6 +267,15 @@ protected:
 public:
 	GSocks5Socket();
 
+	GSocks5Socket &operator=(const GSocks5Socket &s)
+	{
+		Proxy.Reset(NewStr(s.Proxy));
+		UserName.Reset(NewStr(s.UserName));
+		Password.Reset(NewStr(s.Password));
+		Port = s.Port;
+		return *this;
+	}
+
 	// Connection
 	void SetProxy(char *proxy, int port, char *username, char *password);
 	void SetProxy(const GSocks5Socket *s);

@@ -86,7 +86,7 @@ public:
 };
 
 // Win32 window class
-class LgiClass GWin32Class : public GObject
+class LgiClass GWin32Class : public GBase
 {
 	friend class GControl;
 	friend class GApp;

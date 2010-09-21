@@ -137,7 +137,7 @@ namespace Storage2
 	};
 
 	class StorageKitImpl :
-		public GObject,
+		public GBase,
 		public StorageKit,
 		public GSemaphore
 	{

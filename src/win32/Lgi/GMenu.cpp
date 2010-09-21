@@ -40,7 +40,16 @@ public:
 			)
 		)
 		{
-			RootMenuBack = GetSysColor(COLOR_MENUBAR);
+			#ifndef SPI_GETFLATMENU
+			#define SPI_GETFLATMENU 0x1022
+			#endif
+
+			BOOL Flat = true;
+			SystemParametersInfo(SPI_GETFLATMENU, 0, &Flat, 0);
+			if (Flat)
+				RootMenuBack = GetSysColor(COLOR_MENUBAR);
+			else
+				RootMenuBack = GetSysColor(COLOR_MENU);
 		}
 		else
 		{
@@ -564,7 +573,7 @@ bool GMenuItem::ScanForAccel()
 	}
 	else
 	{
-		char *n = GObject::Name();
+		char *n = GBase::Name();
 		if (n)
 		{
 			char *Tab = strchr(n, '\t');
@@ -779,15 +788,15 @@ void GMenuItem::Checked(bool c)
 
 bool GMenuItem::Name(char *Txt)
 {
-	bool Status = GObject::Name(Txt);
+	bool Status = GBase::Name(Txt);
 	if (Status)
 	{
 		char *n = NewStr(Txt);
 		if (n)
 		{
 			// Set OS menu structure
-			Info.dwTypeData = GObject::Name();
-			Info.cch = strlen(GObject::Name());
+			Info.dwTypeData = GBase::Name();
+			Info.cch = strlen(GBase::Name());
 			Info.fType |= MFT_STRING;
 			Info.fMask |= MIIM_TYPE | MIIM_DATA;
 

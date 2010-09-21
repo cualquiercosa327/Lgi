@@ -587,7 +587,7 @@ bool SystemFunctions::New(GVariant *Ret, ArgumentArray &Args)
 	if (!c)
 		return false;
 
-	GObject o;
+	GBase o;
 	o.Name(Args[0]->CastString());
 	GTypeDef *t = c->GetType(o.NameW());
 	if (t)

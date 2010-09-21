@@ -658,7 +658,7 @@ bool GView::Attach(GViewI *p)
 		LgiAssert(!Parent || Parent->Handle() != 0);
 		if (IsWin9x)
 		{
-			char *Text = LgiToNativeCp(GObject::Name());
+			char *Text = LgiToNativeCp(GBase::Name());
 
 			_View = CreateWindowEx(	GetExStyle() & ~WS_EX_CONTROLPARENT,
 									Cls->Name(),
@@ -675,7 +675,7 @@ bool GView::Attach(GViewI *p)
 		}
 		else
 		{
-			char16 *Text = GObject::NameW();
+			char16 *Text = GBase::NameW();
 
 			_View = CreateWindowExW(GetExStyle() & ~WS_EX_CONTROLPARENT,
 									Cls->NameW(),

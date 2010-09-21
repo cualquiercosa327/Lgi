@@ -120,7 +120,7 @@ public:
 };
 
 /// Attachment descriptor
-class FileDescriptor : public GObject
+class FileDescriptor : public GBase
 {
 protected:
 	// Global
@@ -171,7 +171,7 @@ public:
 #define MAIL_ADDR_FROM				3
 
 /// Address dscriptor
-class AddressDescriptor : public GObject
+class AddressDescriptor : public GBase
 {
 public:
 	uint8 Status;

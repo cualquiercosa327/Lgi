@@ -105,6 +105,15 @@
     <Filter Include="Source Files\Widgets\Css">
       <UniqueIdentifier>{86f8be86-775b-4647-ad0f-ccf20928b1fa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Core\Hashing">
+      <UniqueIdentifier>{088c4a6e-df59-430b-9e0f-933e8fb363af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\Hashing\Md5">
+      <UniqueIdentifier>{8841e7ba-d196-4ae5-b362-93592ef209a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\Hashing\Sha1">
+      <UniqueIdentifier>{581cbf86-93a9-472d-b142-21478f5a1259}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\linux\Lgi\GApp.cpp">
@@ -386,9 +395,6 @@
     <ClCompile Include="src\common\INet\INetTools.cpp">
       <Filter>Source Files\Network</Filter>
     </ClCompile>
-    <ClCompile Include="src\common\General\md5.c">
-      <Filter>Source Files\Network</Filter>
-    </ClCompile>
     <ClCompile Include="src\win32\INet\MibAccess.cpp">
       <Filter>Source Files\Network</Filter>
     </ClCompile>
@@ -400,6 +406,12 @@
     </ClCompile>
     <ClCompile Include="src\linux\Lgi\GClipBoard.cpp">
       <Filter>Source Files\General\Clipboard</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Hash\md5\md5.c">
+      <Filter>Source Files\Core\Hashing\Md5</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Hash\sha1\sha1.c">
+      <Filter>Source Files\Core\Hashing\Sha1</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -558,6 +570,12 @@
     </ClInclude>
     <ClInclude Include="include\common\GCss.h">
       <Filter>Source Files\Widgets\Css</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\Hash\md5\md5.h">
+      <Filter>Source Files\Core\Hashing\Md5</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\Hash\sha1\sha1.h">
+      <Filter>Source Files\Core\Hashing\Sha1</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
