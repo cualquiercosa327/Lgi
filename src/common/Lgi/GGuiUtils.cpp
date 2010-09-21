@@ -124,6 +124,13 @@ LgiFunc void _lgi_read_colour_config(char *Tag, uint32 *c)
 }
 
 ////////////////////////////////////////////////////////////////////////////
+#ifdef __GTK_H__
+COLOUR ColTo24(Gtk::GdkColor &c)
+{
+	return Rgb24(c.red >> 8, c.green >> 8, c.blue >> 8);
+}
+#endif
+
 void LgiInitColours()
 {
 	int i = 0;
@@ -136,7 +143,71 @@ void LgiInitColours()
 	_LgiColours[i++] = Rgb24(0xff, 0xff, 0xff); // LC_WHITE
 
 	// Variable colours
-	#if defined _XP_CTRLS
+	#if defined __GTK_H__
+	Gtk::GtkStyle *s = Gtk::gtk_widget_get_default_style();
+	if (s)
+	{
+		/*
+			GTK_STATE_NORMAL,
+			GTK_STATE_ACTIVE,
+			GTK_STATE_PRELIGHT,
+			GTK_STATE_SELECTED,
+			GTK_STATE_INSENSITIVE,
+		*/
+
+		Gtk::gchar** files = Gtk::gtk_rc_get_default_files();
+		if (files)
+		{
+			for (int i=0; files[i]; i++)
+			{
+				printf("[%i]='%s'\n", i, files[i]);
+			}
+		}
+
+		Gtk::GtkSettings *set = Gtk::gtk_settings_get_default();
+		if (set)
+		{
+			
+			g_object_unref(scan);
+		}
+
+		printf("<table>\n");
+		char *Name[] = { "fg", "bg", "light", "dark", "mid", "text", "base", "aa" };
+		typedef Gtk::GdkColor cp[5];
+		cp *c[] = { &s->fg, &s->bg, &s->light, &s->dark, &s->mid, &s->text, &s->base, &s->text_aa };
+		for (int n=0; n<8; n++)
+		{
+			printf("<tr><td>%s\n", Name[n]);
+			for (int i=0; i<5; i++)
+			{
+				cp *k = c[n];
+				Gtk::GdkColor *m = k[i];
+				printf("<td style='background:#%06.6x'>&nbsp;\n", ColTo24(*m));
+			}
+		}
+		
+		_LgiColours[i++] = ColTo24(s->dark[Gtk::GTK_STATE_NORMAL]); // LC_SHADOW
+		_LgiColours[i++] = ColTo24(s->dark[Gtk::GTK_STATE_NORMAL]); // LC_LOW
+		_LgiColours[i++] = Rgb24(0xbc, 0xa9, 0xd4); // LC_MED
+		_LgiColours[i++] = Rgb24(0xdd, 0xd4, 0xe9); // LC_HIGH
+		_LgiColours[i++] = Rgb24(0xff, 0xff, 0xff); // LC_LIGHT
+		_LgiColours[i++] = Rgb24(0xbc, 0xa9, 0xd4); // LC_DIALOG
+		_LgiColours[i++] = Rgb24(0xeb, 0xe6, 0xf2); // LC_WORKSPACE
+		_LgiColours[i++] = Rgb24(0x35, 0x1f, 0x4f); // LC_TEXT
+		_LgiColours[i++] = Rgb24(0xbf, 0x67, 0x93); // LC_SELECTION
+		_LgiColours[i++] = Rgb24(0xff, 0xff, 0xff); // LC_SEL_TEXT
+		_LgiColours[i++] = Rgb24(0x70, 0x3a, 0xec); // LC_ACTIVE_TITLE
+		_LgiColours[i++] = Rgb24(0xff, 0xff, 0xff); // LC_ACTIVE_TITLE_TEXT
+		_LgiColours[i++] = Rgb24(0x80, 0x80, 0x80); // LC_INACTIVE_TITLE
+		_LgiColours[i++] = Rgb24(0x40, 0x40, 0x40); // LC_INACTIVE_TITLE_TEXT
+		_LgiColours[i++] = Rgb24(0xbc, 0xa9, 0xd4); // LC_MENU_BACKGROUND
+		_LgiColours[i++] = Rgb24(0x35, 0x1f, 0x4f); // LC_MENU_TEXT
+
+		g_object_unref(s);
+	}
+	else printf("%s:%i - gtk_style_new failed.\n", _FL);
+	
+	#elif defined _XP_CTRLS
 	_LgiColours[i++] = Rgb24(0x42, 0x27, 0x63); // LC_SHADOW
 	_LgiColours[i++] = Rgb24(0x7a, 0x54, 0xa9); // LC_LOW
 	_LgiColours[i++] = Rgb24(0xbc, 0xa9, 0xd4); // LC_MED

@@ -173,9 +173,12 @@ bool GFontSystem::EnumerateFonts(List<char> &Fonts)
 			}
 		}
 
+		#elif defined __GTK_H__
+
+		
+
 		#elif defined XWIN
 
-		/*
 		XObject o;
 		XftFontSet *Set = XftListFonts(	o.XDisplay(), 0,
 										0,
@@ -194,7 +197,6 @@ bool GFontSystem::EnumerateFonts(List<char> &Fonts)
 			
 			XftFontSetDestroy(Set);
 		}
-		*/
 		
 		#elif defined MAC
 

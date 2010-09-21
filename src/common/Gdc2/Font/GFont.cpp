@@ -1444,13 +1444,45 @@ bool GFontType::GetSystemFont(char *Which)
 	#elif defined LINUX
 
 	// Define some defaults.. in case the system settings aren't there
+	char DefFont[256] =
 	#ifdef __CYGWIN__
-	char DefFont[] = "Luxi Sans";
+		"Luxi Sans";
 	#else
-	char DefFont[] = "Sans";
+		"Sans";
 	#endif
 	int DefSize = 10;
 	int Offset = 0;
+
+	static bool First = true;
+	if (First)
+	{
+		Gtk::GtkStyle *s = Gtk::gtk_style_new();
+		if (s)
+		{
+			const char *fam = Gtk::pango_font_description_get_family(s->font_desc);
+			if (fam)
+			{
+				strsafecpy(DefFont, fam, sizeof(DefFont));
+			}
+			else printf("%s:%i - pango_font_description_get_family failed.\n", _FL);
+
+			if (Gtk::pango_font_description_get_size_is_absolute(s->font_desc))
+			{
+				float Px = Gtk::pango_font_description_get_size(s->font_desc) / PANGO_SCALE;
+				float Dpi = 96.0; // FIXME: some reasonable default
+				// Pt = Dpi / 72
+				DefSize = (Px * 72.0) / Dpi;
+			}
+			else
+			{
+				DefSize = Gtk::pango_font_description_get_size(s->font_desc) / PANGO_SCALE;
+			}
+			
+			printf("DefFont=%s, %i\n", DefFont, DefSize);
+			g_object_unref(s);
+		}
+		else printf("%s:%i - gtk_style_new failed.\n", _FL);
+	}
 	
 	#endif
 
@@ -1476,11 +1508,10 @@ bool GFontType::GetSystemFont(char *Which)
 			Info.PointSize(11);
 			Status = true;
 
-			#elif defined LINUX
+			#elif defined __GTK_H__
 
-			static GFontTypeCache Cache(DefFont, DefSize);
-			Info.Face(Cache.GetFace("font"));
-			Info.PointSize(Cache.GetSize()+Offset);
+			Info.Face(DefFont);
+			Info.PointSize(DefSize);
 			Status = true;
 		
 			#elif defined MAC
@@ -1527,11 +1558,10 @@ bool GFontType::GetSystemFont(char *Which)
 			Info.PointSize(11);
 			Status = true;
 
-			#elif defined LINUX
+			#elif defined __GTK_H__
 
-			static GFontTypeCache Cache(DefFont, DefSize);
-			Info.Face(Cache.GetFace("menuFont"));
-			Info.PointSize(Cache.GetSize()+Offset);
+			Info.Face(DefFont);
+			Info.PointSize(DefSize);
 			Status = true;
 
 			#elif defined MAC
@@ -1577,9 +1607,10 @@ bool GFontType::GetSystemFont(char *Which)
 
 			#elif defined LINUX
 
-			static GFontTypeCache Cache(DefFont, DefSize);
-			Info.Face(Cache.GetFace("toolBarFont"));
-			Info.PointSize(Cache.GetSize()+Offset);
+			#elif defined __GTK_H__
+
+			Info.Face(DefFont);
+			Info.PointSize(DefSize-1);
 			Status = true;
 
 			#elif defined MAC
@@ -1624,11 +1655,10 @@ bool GFontType::GetSystemFont(char *Which)
 			Info.PointSize(11);
 			Status = true;
 
-			#elif defined LINUX
+			#elif defined __GTK_H__
 
-			static GFontTypeCache Cache(DefFont, DefSize);
-			Info.Face(Cache.GetFace("taskbarFont"));
-			Info.PointSize(Cache.GetSize()+Offset);
+			Info.Face(DefFont);
+			Info.PointSize(DefSize);
 			Status = true;
 
 			#elif defined MAC
@@ -1682,11 +1712,10 @@ bool GFontType::GetSystemFont(char *Which)
 			Info.PointSize(9);
 			Status = true;
 
-			#elif defined LINUX
+			#elif defined __GTK_H__
 
-			static GFontTypeCache Cache(DefFont, DefSize-1);
-			Info.Face(Cache.GetFace("toolBarFont"));
-			Info.PointSize(Cache.GetSize()+Offset);
+			Info.Face(DefFont);
+			Info.PointSize(DefSize-1);
 			Status = true;
 			
 			#elif defined MAC
@@ -1729,10 +1758,8 @@ bool GFontType::GetSystemFont(char *Which)
 
 			#elif defined LINUX
 
-			static GFontTypeCache Cache(DefFont, DefSize);
-			Cache.GetFace("font");
 			Info.Face("Courier New");
-			Info.PointSize(Cache.GetSize()+Offset-2);
+			Info.PointSize(DefSize);
 			Status = true;
 			
 			#elif defined MAC

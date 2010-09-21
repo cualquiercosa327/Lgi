@@ -772,7 +772,6 @@ bool GView::Attach(GViewI *parent)
 	if (!_View)
 	{
 		_View = lgi_widget_new(this, Pos.X(), Pos.Y(), false);
-		printf("create %p\n", _View);
 	}
 	
 	if (_View)
