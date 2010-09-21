@@ -1723,92 +1723,90 @@ char *GUri::Get()
 
 bool GUri::Set(char *uri)
 {
-	bool Status = false;
+	if (!uri)
+		return false;
 
-	if (uri)
+	Empty();
+
+	char *s = uri;
+	SkipWs(s);
+
+	// Scan ahead and check for protocol...
+	char *p = s;
+	while (*s AND isalpha(*s)) s++;
+	if (s[0] == ':')
 	{
-		Empty();
+		Protocol = NewStr(p, s - p);
+		s++;
+		if (*s == '/') s++;
+		if (*s == '/') s++;
+	}
+	else
+	{
+		// No protocol, so assume it's a host name
+		s = p;
+	}
 
-		char *s = uri;
-		SkipWs(s);
+	// Scan over the host name
+	p = s;
+	while (	*s AND
+			*s > ' ' AND
+			*s < 127 AND
+			*s != '/' AND
+			*s != '\\')
+	{
+		s++;
+	}
 
-		// Scan ahead and check for protocol...
-		char *p = s;
-		while (*s AND isalpha(*s)) s++;
-		if (s[0] == ':')
+	Host = NewStr(p, s - p);
+	if (Host)
+	{
+		char *At = strchr(Host, '@');
+		if (At)
 		{
-			Protocol = NewStr(p, s - p);
-			s++;
-			if (*s == '/') s++;
-			if (*s == '/') s++;
-		}
-		else
-		{
-			// No protocol, so assume it's a host name
-			s = p;
-		}
-
-		// Scan over the host name
-		p = s;
-		while (	*s AND
-				*s > ' ' AND
-				*s < 127 AND
-				*s != '/' AND
-				*s != '\\')
-		{
-			s++;
-		}
-
-		Host = NewStr(p, s - p);
-		if (Host)
-		{
-			char *At = strchr(Host, '@');
-			if (At)
-			{
-				*At++ = 0;
-				char *Col = strchr(Host, ':');
-				if (Col)
-				{
-					*Col++ = 0;
-					Pass = NewStr(Col);
-				}
-				User = NewStr(Host);
-
-				memmove(Host, At, strlen(At) + 1);
-			}
-
+			*At++ = 0;
 			char *Col = strchr(Host, ':');
 			if (Col)
 			{
 				*Col++ = 0;
-				Port = atoi(Col);
+				Pass = NewStr(Col);
 			}
+			User = NewStr(Host);
+
+			memmove(Host, At, strlen(At) + 1);
 		}
 
-		if (*s == '/')
+		char *Col = strchr(Host, ':');
+		if (Col)
 		{
-			Path = NewStr(s);
-			
-			char *i = Path, *o = Path;
-			while (*i)
-			{
-				if (*i == '%' AND i[1] AND i[2])
-				{
-					char h[3] = {i[1], i[2], 0};
-					*o++ = htoi(h);
-					i+=2;
-				}
-				else
-				{
-					*o++ = *i;
-				}
-				i++;
-			}
-			*o = 0;
+			*Col++ = 0;
+			Port = atoi(Col);
 		}
 	}
 
-	return Status;
+	if (*s == '/')
+	{
+		Path = NewStr(s);
+		
+		char *i = Path, *o = Path;
+		while (*i)
+		{
+			if (*i == '%' AND i[1] AND i[2])
+			{
+				char h[3] = {i[1], i[2], 0};
+				*o++ = htoi(h);
+				i+=2;
+			}
+			else
+			{
+				*o++ = *i;
+			}
+			i++;
+		}
+		*o = 0;
+	}
+
+	return Host || Path;
 }
 
 GAutoString GUri::Encode(char *s, char *ExtraCharsToEncode)

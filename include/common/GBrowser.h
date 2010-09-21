@@ -15,6 +15,9 @@ public:
 	~GBrowser();
 
 	bool SetUri(char *Uri = 0);
+	void OnPosChange();
+	int OnNotify(GViewI *c, int f);
+	int OnEvent(GMessage *m);
 };
 
 #endif
