@@ -42,7 +42,7 @@ public:
 	int Y() { return Pos.Y(); }
 };
 
-class LgiClass LgiMenuRes : public GObject
+class LgiClass LgiMenuRes : public GBase
 {
 	LgiResources *Res;
 

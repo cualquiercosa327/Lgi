@@ -33,14 +33,14 @@ class GImageList;
 class GDialog;
 
 // General objects
-class LgiClass GObject
+class LgiClass GBase
 {
 	char *_Name8;
 	char16 *_Name16;
 
 public:
-	GObject();	
-	virtual ~GObject();
+	GBase();	
+	virtual ~GBase();
 
 	virtual char *Name();
 	virtual bool Name(char *n);

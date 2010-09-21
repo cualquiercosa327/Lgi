@@ -619,7 +619,7 @@ void GWindow::SetDefault(GViewI *v)
 
 bool GWindow::Name(char *n)
 {
-	bool Status = GObject::Name(n);
+	bool Status = GBase::Name(n);
 
 	if (Wnd && _View)
 	{
@@ -631,7 +631,7 @@ bool GWindow::Name(char *n)
 
 char *GWindow::Name()
 {
-	return GObject::Name();
+	return GBase::Name();
 }
 
 GRect &GWindow::GetClient(bool ClientSpace)
@@ -1050,3 +1050,5 @@ void GWindow::SetFirstFocus(OsView Hnd)
 void GWindow::OnMap(bool m)
 {
 }
+
+

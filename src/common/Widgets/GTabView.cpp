@@ -725,7 +725,7 @@ bool GTabPage::Attach(GViewI *parent)
 
 char *GTabPage::Name()
 {
-	return GObject::Name();
+	return GBase::Name();
 }
 
 bool GTabPage::Name(char *name)

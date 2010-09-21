@@ -116,21 +116,21 @@ void GButton::Default(bool b)
 bool GButton::Name(char *n)
 {
 	bool Status = GView::Name(n);
-	d->Layout(GetFont(), GObject::Name());
+	d->Layout(GetFont(), GBase::Name());
 	return Status;
 }
 
 bool GButton::NameW(char16 *n)
 {
 	bool Status = GView::NameW(n);
-	d->Layout(GetFont(), GObject::Name());
+	d->Layout(GetFont(), GBase::Name());
 	return Status;
 }
 
 void GButton::SetFont(GFont *Fnt, bool OwnIt)
 {
 	GView::SetFont(Fnt, OwnIt);
-	d->Layout(GetFont(), GObject::Name());
+	d->Layout(GetFont(), GBase::Name());
 	Invalidate();
 }
 

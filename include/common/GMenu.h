@@ -73,7 +73,7 @@ public:
 
 /// Sub menu.
 class LgiClass GSubMenu :
-	public GObject,
+	public GBase,
 	public GTarget,
 	// public GFlags,
 	public GMenuLoader,
@@ -229,7 +229,7 @@ public:
 
 /// An item an a menu
 class LgiClass GMenuItem :
-	public GObject,
+	public GBase,
 	public GTarget
 	// public GFlags
 {

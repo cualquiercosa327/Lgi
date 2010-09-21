@@ -93,7 +93,7 @@ class ObjProperties;
 typedef ObjProperties *pObjProperties;
 
 class ObjProperties :
-	public GObject
+	public GBase
 {
 	friend class ObjTree;
 
@@ -168,7 +168,7 @@ public:
 	bool SerializeText(GFile &f, bool Write);
 };
 
-class ObjTree : public GObject
+class ObjTree : public GBase
 {
 	ObjProperties *Root;
 

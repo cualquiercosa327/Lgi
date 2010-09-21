@@ -94,21 +94,21 @@ void GCheckBox::Value(int64 i)
 bool GCheckBox::Name(char *n)
 {
 	bool Status = GView::Name(n);
-	d->Layout(GetFont(), GObject::Name());
+	d->Layout(GetFont(), GBase::Name());
 	return Status;
 }
 
 bool GCheckBox::NameW(char16 *n)
 {
 	bool Status = GView::NameW(n);
-	d->Layout(GetFont(), GObject::Name());
+	d->Layout(GetFont(), GBase::Name());
 	return Status;
 }
 
 void GCheckBox::SetFont(GFont *Fnt, bool OwnIt)
 {
 	GView::SetFont(Fnt, OwnIt);
-	d->Layout(GetFont(), GObject::Name());
+	d->Layout(GetFont(), GBase::Name());
 	Invalidate();
 }
 

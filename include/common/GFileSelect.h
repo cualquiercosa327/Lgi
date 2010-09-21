@@ -3,7 +3,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // File select dialog
-class LgiClass GFileType : public GObject
+class LgiClass GFileType : public GBase
 {
 	char *Ext;
 	int _Data;
@@ -46,7 +46,7 @@ public:
 /// }
 /// \endcode
 class LgiClass GFileSelect :
-	public GObject
+	public GBase
 {
 	class GFileSelectPrivate *d;
 

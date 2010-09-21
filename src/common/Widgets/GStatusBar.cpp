@@ -135,7 +135,7 @@ bool GStatusPane::Name(char *n)
 	{
 		if (Lock(_FL))
 		{
-			Status = GObject::Name(n);
+			Status = GBase::Name(n);
 			GRect p(0, 0, X()-1, Y()-1);
 			p.Size(1, 1);
 			Invalidate(&p);

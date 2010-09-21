@@ -107,8 +107,8 @@ int GDialog::DoModal(OsView OverrideParent)
 	if (GetParent())
 		gtk_window_set_transient_for(GTK_WINDOW(Wnd), GetParent()->WindowHandle());
 
-	if (GObject::Name())
-		gtk_window_set_title(GTK_WINDOW(Wnd), GObject::Name());
+	if (GBase::Name())
+		gtk_window_set_title(GTK_WINDOW(Wnd), GBase::Name());
 
 	gtk_dialog_set_has_separator(GTK_DIALOG(Wnd), false);
 	if (IsResizeable())

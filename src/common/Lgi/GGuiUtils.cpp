@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "Lgi.h"
 #include "GSkinEngine.h"
+#include "GToken.h"
 #ifdef LINUX
 #include "LgiWinManGlue.h"
 #endif
@@ -125,6 +126,7 @@ LgiFunc void _lgi_read_colour_config(char *Tag, uint32 *c)
 
 ////////////////////////////////////////////////////////////////////////////
 #ifdef __GTK_H__
+using namespace Gtk;
 COLOUR ColTo24(Gtk::GdkColor &c)
 {
 	return Rgb24(c.red >> 8, c.green >> 8, c.blue >> 8);
@@ -143,71 +145,7 @@ void LgiInitColours()
 	_LgiColours[i++] = Rgb24(0xff, 0xff, 0xff); // LC_WHITE
 
 	// Variable colours
-	#if defined __GTK_H__
-	Gtk::GtkStyle *s = Gtk::gtk_widget_get_default_style();
-	if (s)
-	{
-		/*
-			GTK_STATE_NORMAL,
-			GTK_STATE_ACTIVE,
-			GTK_STATE_PRELIGHT,
-			GTK_STATE_SELECTED,
-			GTK_STATE_INSENSITIVE,
-		*/
-
-		Gtk::gchar** files = Gtk::gtk_rc_get_default_files();
-		if (files)
-		{
-			for (int i=0; files[i]; i++)
-			{
-				printf("[%i]='%s'\n", i, files[i]);
-			}
-		}
-
-		Gtk::GtkSettings *set = Gtk::gtk_settings_get_default();
-		if (set)
-		{
-			
-			g_object_unref(scan);
-		}
-
-		printf("<table>\n");
-		char *Name[] = { "fg", "bg", "light", "dark", "mid", "text", "base", "aa" };
-		typedef Gtk::GdkColor cp[5];
-		cp *c[] = { &s->fg, &s->bg, &s->light, &s->dark, &s->mid, &s->text, &s->base, &s->text_aa };
-		for (int n=0; n<8; n++)
-		{
-			printf("<tr><td>%s\n", Name[n]);
-			for (int i=0; i<5; i++)
-			{
-				cp *k = c[n];
-				Gtk::GdkColor *m = k[i];
-				printf("<td style='background:#%06.6x'>&nbsp;\n", ColTo24(*m));
-			}
-		}
-		
-		_LgiColours[i++] = ColTo24(s->dark[Gtk::GTK_STATE_NORMAL]); // LC_SHADOW
-		_LgiColours[i++] = ColTo24(s->dark[Gtk::GTK_STATE_NORMAL]); // LC_LOW
-		_LgiColours[i++] = Rgb24(0xbc, 0xa9, 0xd4); // LC_MED
-		_LgiColours[i++] = Rgb24(0xdd, 0xd4, 0xe9); // LC_HIGH
-		_LgiColours[i++] = Rgb24(0xff, 0xff, 0xff); // LC_LIGHT
-		_LgiColours[i++] = Rgb24(0xbc, 0xa9, 0xd4); // LC_DIALOG
-		_LgiColours[i++] = Rgb24(0xeb, 0xe6, 0xf2); // LC_WORKSPACE
-		_LgiColours[i++] = Rgb24(0x35, 0x1f, 0x4f); // LC_TEXT
-		_LgiColours[i++] = Rgb24(0xbf, 0x67, 0x93); // LC_SELECTION
-		_LgiColours[i++] = Rgb24(0xff, 0xff, 0xff); // LC_SEL_TEXT
-		_LgiColours[i++] = Rgb24(0x70, 0x3a, 0xec); // LC_ACTIVE_TITLE
-		_LgiColours[i++] = Rgb24(0xff, 0xff, 0xff); // LC_ACTIVE_TITLE_TEXT
-		_LgiColours[i++] = Rgb24(0x80, 0x80, 0x80); // LC_INACTIVE_TITLE
-		_LgiColours[i++] = Rgb24(0x40, 0x40, 0x40); // LC_INACTIVE_TITLE_TEXT
-		_LgiColours[i++] = Rgb24(0xbc, 0xa9, 0xd4); // LC_MENU_BACKGROUND
-		_LgiColours[i++] = Rgb24(0x35, 0x1f, 0x4f); // LC_MENU_TEXT
-
-		g_object_unref(s);
-	}
-	else printf("%s:%i - gtk_style_new failed.\n", _FL);
-	
-	#elif defined _XP_CTRLS
+	#if defined _XP_CTRLS
 	_LgiColours[i++] = Rgb24(0x42, 0x27, 0x63); // LC_SHADOW
 	_LgiColours[i++] = Rgb24(0x7a, 0x54, 0xa9); // LC_LOW
 	_LgiColours[i++] = Rgb24(0xbc, 0xa9, 0xd4); // LC_MED
@@ -258,6 +196,57 @@ void LgiInitColours()
 	_LgiColours[i++] = GetSysColor(COLOR_INACTIVECAPTIONTEXT); // LC_INACTIVE_TITLE_TEXT
 	_LgiColours[i++] = GetSysColor(COLOR_MENU); // LC_MENU_BACKGROUND
 	_LgiColours[i++] = GetSysColor(COLOR_MENUTEXT); // LC_MENU_TEXT
+	#elif defined __GTK_H__
+
+	Gtk::GtkSettings *set = Gtk::gtk_settings_get_default();
+	if (!set)
+	{
+		printf("%s:%i - gtk_settings_get_for_screen failed.\n", __FILE__, __LINE__);
+		return false;
+	}
+	
+	char PropName[] = "gtk-color-scheme";
+	Gtk::gchararray Value = 0;
+	Gtk::g_object_get(G_OBJECT(set), PropName, &Value, 0);	
+	GToken Lines(Value, "\n");
+	GHashTbl<char*, COLOUR> Colours;
+	for (int i=0; i<Lines.Length(); i++)
+	{
+		char *var = Lines[i];
+		char *col = strchr(var, ':');
+		if (col)
+		{
+			*col = 0;
+
+			char *val = col + 1;
+			if (*val == ' ') val++;
+			if (*val == '#') val++;
+			uint64 c = htoi64(val);
+			COLOUR c24 = ((c >> 8) & 0xff) |
+						((c >> 16) & 0xff00) |
+						((c >> 24) & 0xff0000);
+			Colours.Add(var, c24);
+			printf("%s=%x\n", var, c24);
+		}
+	}
+
+	_LgiColours[i++] = GdcMixColour(Colours.Find("bg_color"), Rgb24(0, 0, 0), 0.25); // LC_SHADOW
+	_LgiColours[i++] = GdcMixColour(Colours.Find("bg_color"), Rgb24(0, 0, 0), 0.5); // LC_LOW
+	_LgiColours[i++] = Colours.Find("bg_color"); // LC_MED
+	_LgiColours[i++] = GdcMixColour(Colours.Find("bg_color"), Rgb24(255, 255, 255), 0.5); // LC_HIGH
+	_LgiColours[i++] = GdcMixColour(Colours.Find("bg_color"), Rgb24(255, 255, 255), 0.25); // LC_LIGHT
+	_LgiColours[i++] = Colours.Find("bg_color"); // LC_DIALOG
+	_LgiColours[i++] = Colours.Find("base_color"); // LC_WORKSPACE
+	_LgiColours[i++] = Colours.Find("text_color"); // LC_TEXT
+	_LgiColours[i++] = Colours.Find("selected_bg_color"); // LC_SELECTION
+	_LgiColours[i++] = Colours.Find("selected_fg_color"); // LC_SEL_TEXT
+	_LgiColours[i++] = Rgb24(0x70, 0x3a, 0xec); // LC_ACTIVE_TITLE
+	_LgiColours[i++] = Rgb24(0xff, 0xff, 0xff); // LC_ACTIVE_TITLE_TEXT
+	_LgiColours[i++] = Rgb24(0x80, 0x80, 0x80); // LC_INACTIVE_TITLE
+	_LgiColours[i++] = Rgb24(0x40, 0x40, 0x40); // LC_INACTIVE_TITLE_TEXT
+	_LgiColours[i++] = Colours.Find("bg_color"); // LC_MENU_BACKGROUND
+	_LgiColours[i++] = Colours.Find("text_color"); // LC_MENU_TEXT
+
 	#else // defaults for non-windows, plain greys
 
 	#ifdef LINUX
@@ -378,7 +367,7 @@ union DEVMODEU
 
 #endif
 
-bool LgiGetDisplays(GArray<GDisplayInfo*> &Displays, GRect *AllDisplays)
+bool LgiGetDisplays(::GArray<GDisplayInfo*> &Displays, GRect *AllDisplays)
 {
 	#if WIN32NATIVE
 	if (AllDisplays)
@@ -560,4 +549,6 @@ GViewI *GetNextTabStop(GViewI *v, bool Back)
 
 	return 0;
 }
+
+
 

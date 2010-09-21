@@ -869,6 +869,7 @@ void LgiResources::Res_SetStrRef(ResObject *Obj, int Ref)
 	{
 		if (s->Ref == Ref)
 		{
+
 			GView *w = CastToGWnd(Obj);
 			if (w)
 			{
@@ -1060,7 +1061,7 @@ bool LgiMenuRes::Read(GXmlTag *t, ResFileFormat Format)
 		char *n;
 		if (n = t->GetAttr("name"))
 		{
-			GObject::Name(n);
+			GBase::Name(n);
 		}
 
 		for (GXmlTag *c = t->Children.First(); c; c = t->Children.Next())

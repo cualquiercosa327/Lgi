@@ -364,7 +364,7 @@ public:
 ///
 /// For a GView with scroll bars use GLayout.
 ///
-class LgiClass GView : virtual public GViewI, virtual public GObject
+class LgiClass GView : virtual public GViewI, virtual public GBase
 {
 	friend		class GWindow;
 	friend		class GLayout;
@@ -1538,7 +1538,7 @@ public:
 	~GStatusPane();
 
 	char *GetClass() { return "GStatusPane"; }
-	char *Name() { return GObject::Name(); }
+	char *Name() { return GBase::Name(); }
 	bool Name(char *n);
 	void OnPaint(GSurface *pDC);
 
@@ -1551,7 +1551,7 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////
-class LgiClass GCommand : public GObject //, public GFlags
+class LgiClass GCommand : public GBase //, public GFlags
 {
 	int			Flags;
 	bool		PrevValue;
@@ -1579,7 +1579,7 @@ public:
 
 /// Put an icon in the system tray
 class LgiClass GTrayIcon :
-	public GObject
+	public GBase
 	// public GFlags
 {
 	friend class GTrayWnd;

@@ -1460,7 +1460,7 @@ GButton *FindDefault(GViewI *w)
 
 bool GView::Name(char *n)
 {
-	GObject::Name(n);
+	GBase::Name(n);
 
 	if (_View)
 	{
@@ -1473,7 +1473,7 @@ bool GView::Name(char *n)
 		}
 		else
 		{
-			char16 *Temp = GObject::NameW();
+			char16 *Temp = GBase::NameW();
 			SetWindowTextW(_View, Temp ? Temp : L"");
 		}
 		#endif
@@ -1504,7 +1504,7 @@ char *GView::Name()
 					char *Temp = (char*)LgiNewConvertCp("utf-8", Buf, LgiAnsiToLgiCp());
 					if (Temp)
 					{
-						GObject::Name(Temp);
+						GBase::Name(Temp);
 						DeleteArray(Temp);
 					}
 				}
@@ -1512,7 +1512,7 @@ char *GView::Name()
 			}
 			else
 			{
-				GObject::Name(0);
+				GBase::Name(0);
 			}
 		}
 		else
@@ -1522,17 +1522,17 @@ char *GView::Name()
 	}
 	#endif
 
-	return GObject::Name();
+	return GBase::Name();
 }
 
 bool GView::NameW(char16 *n)
 {
-	GObject::NameW(n);
+	GBase::NameW(n);
 
 	#if WIN32NATIVE
 	if (_View && n)
 	{
-		char16 *Txt = GObject::NameW();
+		char16 *Txt = GBase::NameW();
 		if (IsWin9x)
 		{
 			char *Temp = (char*)LgiNewConvertCp(LgiAnsiToLgiCp(), n, "utf-16");
@@ -1573,19 +1573,19 @@ char16 *GView::NameW()
 					Buf[0] = 0;
 					int Chars = GetWindowTextW(_View, Buf, Length+1);
 					Buf[Chars] = 0;
-					GObject::NameW(Buf);
+					GBase::NameW(Buf);
 				}
 				DeleteArray(Buf);
 			}
 			else
 			{
-				GObject::NameW(0);
+				GBase::NameW(0);
 			}
 		}
 	}
 	#endif
 
-	return GObject::NameW();
+	return GBase::NameW();
 }
 
 GViewI *GView::FindControl(int Id)

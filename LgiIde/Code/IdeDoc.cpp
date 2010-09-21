@@ -1463,7 +1463,7 @@ bool MatchSymbol(DefnInfo *Def, char16 *Symbol)
 {
 	static char16 Dots[] = {':', ':', 0};
 
-	GObject o;
+	GBase o;
 	o.Name(Def->Name);
 	char16 *Name = o.NameW();
 

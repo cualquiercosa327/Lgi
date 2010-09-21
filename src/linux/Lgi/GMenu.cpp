@@ -564,7 +564,7 @@ void GMenuItem::_Paint(GSurface *pDC, int Flags)
 
 bool GMenuItem::ScanForAccel()
 {
-	char *n = GObject::Name();
+	char *n = GBase::Name();
 	if (n AND Menu)
 	{
 		char *Tab = strchr(n, '\t');
@@ -691,7 +691,7 @@ void GMenuItem::Checked(bool c)
 
 bool GMenuItem::Name(char *n)
 {
-	return GObject::Name(n);
+	return GBase::Name(n);
 }
 
 void GMenuItem::Enabled(bool e)
@@ -724,7 +724,7 @@ int GMenuItem::Id()
 
 char *GMenuItem::Name()
 {
-	return GObject::Name();
+	return GBase::Name();
 }
 
 bool GMenuItem::Separator()

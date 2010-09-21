@@ -284,7 +284,7 @@ public:
 	virtual void OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GListColumn *c) = 0;
 };
 
-class LgiClass GListItemColumn : public GObject, public GItem, public GListItemPainter
+class LgiClass GListItemColumn : public GBase, public GItem, public GListItemPainter
 {
 	GListItem *_Item;
 	int _Column;

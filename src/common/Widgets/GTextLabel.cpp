@@ -133,14 +133,14 @@ bool GText::GetWrap()
 void GText::SetWrap(bool b)
 {
 	d->Wrap = b;
-	d->Layout(GetFont(), GObject::Name(), X());
+	d->Layout(GetFont(), GBase::Name(), X());
 	Invalidate();
 }
 
 bool GText::Name(char *n)
 {
 	bool Status = GView::Name(n);
-	d->Layout(GetFont(), GObject::Name(), X());
+	d->Layout(GetFont(), GBase::Name(), X());
 	Invalidate();
 	return Status;
 }
@@ -148,7 +148,7 @@ bool GText::Name(char *n)
 bool GText::NameW(char16 *n)
 {
 	bool Status = GView::NameW(n);
-	d->Layout(GetFont(), GObject::Name(), X());
+	d->Layout(GetFont(), GBase::Name(), X());
 	Invalidate();
 	return Status;
 }
@@ -156,7 +156,7 @@ bool GText::NameW(char16 *n)
 void GText::SetFont(GFont *Fnt, bool OwnIt)
 {
 	GView::SetFont(Fnt, OwnIt);
-	d->Layout(GetFont(), GObject::Name(), X());
+	d->Layout(GetFont(), GBase::Name(), X());
 	Invalidate();
 }
 
@@ -181,7 +181,7 @@ void GText::OnPosChange()
 {
 	if (d->Wrap)
 	{
-		d->Layout(GetFont(), GObject::Name(), X());
+		d->Layout(GetFont(), GBase::Name(), X());
 	}
 }
 

@@ -61,21 +61,21 @@ int GRadioGroup::OnEvent(GMessage *m)
 bool GRadioGroup::Name(char *n)
 {
 	bool Status = GView::Name(n);
-	d->Layout(GetFont(), GObject::Name());
+	d->Layout(GetFont(), GBase::Name());
 	return Status;
 }
 
 bool GRadioGroup::NameW(char16 *n)
 {
 	bool Status = GView::NameW(n);
-	d->Layout(GetFont(), GObject::Name());
+	d->Layout(GetFont(), GBase::Name());
 	return Status;
 }
 
 void GRadioGroup::SetFont(GFont *Fnt, bool OwnIt)
 {
 	GView::SetFont(Fnt);
-	d->Layout(GetFont(), GObject::Name());
+	d->Layout(GetFont(), GBase::Name());
 	Invalidate();
 }
 
@@ -252,21 +252,21 @@ int GRadioButton::OnEvent(GMessage *m)
 bool GRadioButton::Name(char *n)
 {
 	bool Status = GView::Name(n);
-	d->Layout(GetFont(), GObject::Name());
+	d->Layout(GetFont(), GBase::Name());
 	return Status;
 }
 
 bool GRadioButton::NameW(char16 *n)
 {
 	bool Status = GView::NameW(n);
-	d->Layout(GetFont(), GObject::Name());
+	d->Layout(GetFont(), GBase::Name());
 	return Status;
 }
 
 void GRadioButton::SetFont(GFont *Fnt, bool OwnIt)
 {
 	GView::SetFont(Fnt, OwnIt);
-	d->Layout(GetFont(), GObject::Name());
+	d->Layout(GetFont(), GBase::Name());
 	Invalidate();
 }
 

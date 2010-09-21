@@ -3,19 +3,19 @@
 #include "GString.h"
 
 //////////////////////////////////////////////////////////////////////////
-GObject::GObject()
+GBase::GBase()
 {
 	_Name8 = 0;
 	_Name16 = 0;
 }
 
-GObject::~GObject()
+GBase::~GBase()
 {
 	DeleteArray(_Name8);
 	DeleteArray(_Name16);
 }
 
-char *GObject::Name()
+char *GBase::Name()
 {
 	if (!_Name8 AND _Name16)
 	{
@@ -25,7 +25,7 @@ char *GObject::Name()
 	return _Name8;
 }
 
-bool GObject::Name(char *n)
+bool GBase::Name(char *n)
 {
 	if (n == _Name8) return true;
 
@@ -36,7 +36,7 @@ bool GObject::Name(char *n)
 	return _Name8 != 0;
 }
 
-char16 *GObject::NameW()
+char16 *GBase::NameW()
 {
 	if (!_Name16 AND _Name8)
 	{
@@ -46,7 +46,7 @@ char16 *GObject::NameW()
 	return _Name16;
 }
 
-bool GObject::NameW(char16 *n)
+bool GBase::NameW(char16 *n)
 {
 	if (n == _Name16) return true;
 
