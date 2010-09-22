@@ -260,6 +260,7 @@ bool GDocApp<OptionsFmt>::_DoSerialize(bool Write)
 		{
 			GRect r = GetPos();
 			d->SetOpt(Options, "Pos", r.Describe());
+			printf("Writing pos %s\n", r.GetStr());
 		}
 
 		// save misc options
@@ -294,16 +295,10 @@ bool GDocApp<OptionsFmt>::_DoSerialize(bool Write)
 		// window pos
 		GRect r(100, 100, 500, 400);
 		GVariant Pos;
-		if (d->GetOpt(Options, "Pos", Pos))
+		if (d->GetOpt(Options, "Pos", Pos) &&
+			r.SetStr(Pos.Str()))
 		{
-			GToken p(Pos.Str(), ",");
-			if (p.Length() == 4)
-			{
-				r.x1 = atoi(p[0]);
-				r.y1 = atoi(p[1]);
-				r.x2 = atoi(p[2]);
-				r.y2 = atoi(p[3]);
-			}
+			printf("Read pos %s\n", r.GetStr());
 		}
 
 		SetPos(r);

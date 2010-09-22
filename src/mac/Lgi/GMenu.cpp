@@ -890,7 +890,7 @@ bool GMenuItem::Name(char *n)
 		*out++ = 0;
 	}
 
-	bool Status = GObject::Name(Tmp);
+	bool Status = GBase::Name(Tmp);
 	if (Status && Parent)
 	{
 		CFStringRef s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)Tmp, strlen(Tmp), kCFStringEncodingUTF8, false);
@@ -1017,7 +1017,7 @@ int GMenuItem::Id()
 
 char *GMenuItem::Name()
 {
-	return GObject::Name();
+	return GBase::Name();
 }
 
 bool GMenuItem::Separator()

@@ -939,7 +939,8 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 						CGContextSaveGState(pDC->Handle());
 						
 						CGRect rect = *r;
-						rect.origin.y -= rect.size.height;
+						rect.origin.x -= Ox;
+						rect.origin.y = pDC->Y() - rect.origin.y + Oy;
 						rect.size.width += 1.0;
 						rect.size.height += 1.0;
 						#if 1

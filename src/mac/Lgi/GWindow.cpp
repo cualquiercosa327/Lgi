@@ -1181,8 +1181,8 @@ bool GWindow::Attach(GViewI *p)
 	
 	if (Wnd)
 	{
-		if (GObject::Name())
-			Name(GObject::Name());
+		if (GBase::Name())
+			Name(GBase::Name());
 		
 		EventTypeSpec	WndEvents[] =
 		{
@@ -1471,7 +1471,7 @@ void GWindow::SetDefault(GViewI *v)
 
 bool GWindow::Name(char *n)
 {
-	bool Status = GObject::Name(n);
+	bool Status = GBase::Name(n);
 
 	if (Wnd)
 	{	
@@ -1501,7 +1501,7 @@ bool GWindow::Name(char *n)
 
 char *GWindow::Name()
 {
-	return GObject::Name();
+	return GBase::Name();
 }
 
 GRect &GWindow::GetClient(bool ClientSpace)
@@ -1620,6 +1620,7 @@ bool GWindow::SetPos(GRect &p, bool Repaint)
 	{
 		Rect rc;
 		rc = Pos;
+		printf("SetWndPos %s\n", Pos.GetStr());
 		OSStatus e = SetWindowBounds(Wnd, kWindowStructureRgn, &rc);
 		if (e) printf("%s:%i - SetWindowBounds error e=%i\n", _FL, e);
 	}

@@ -543,10 +543,12 @@ void GMemDC::SetClient(GRect *c)
 {
 	if (c)
 	{
-		d->Client = *c;
+		GRect Doc(0, 0, pMem->x-1, pMem->y-1);
+		Clip = d->Client = *c;
+		Clip.Bound(&Doc);
+		
 		OriginX = -c->x1;
 		OriginY = -c->y1;
-		Clip.ZOff(c->X()-1, c->Y()-1);
 	}
 	else
 	{
