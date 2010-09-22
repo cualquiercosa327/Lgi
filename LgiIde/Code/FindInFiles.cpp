@@ -245,7 +245,7 @@ void FindInFilesThread::SearchFile(char *File)
 	}
 }
 
-bool FindInFilesCallback(char *Path, GDirectory *Dir)
+bool FindInFilesCallback(void *UserData, char *Path, GDirectory *Dir)
 {
 	if (Dir->IsDir())
 	{
