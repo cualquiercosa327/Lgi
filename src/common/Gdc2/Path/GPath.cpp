@@ -38,11 +38,23 @@
 
 // #define DEBUG_LOG				Log.Print
 #ifndef LGI_SKIN
-// #define DEBUG_LOG				Log.Print
+	// #define DEBUG_LOG				Log.Print
 #endif
 #ifdef DEBUG_LOG
-GFile Log;
+	GFile Log;
 #endif
+#ifdef _DEBUG
+	#ifdef DEBUG_LOG
+		#define PathAssert(b)			if (!(b)) { Log.Close(); \
+											_asm int 3 \
+											}
+	#else
+		#define PathAssert(b)			if (!(b)) _asm int 3
+	#endif
+#else
+	#define PathAssert(b)
+#endif
+
 
 #define DEBUG_SCALE				1.0
 
@@ -97,9 +109,12 @@ public:
 
 	bool Rasterize(bool aa)
 	{
-		for (int n=0; n<Points; n++)
+		Bounds = p[0];
+		for (int n=1; n<Points; n++)
 		{
-			Bounds.Union(p[n]);
+			double y = p[n].y;
+			Bounds.y1 = min(Bounds.y1, y);
+			Bounds.y2 = max(Bounds.y2, y);
 		}
 
 		if (aa)
@@ -126,9 +141,10 @@ public:
 					int End = ToInt(b->y);
 					if (End > Cur)
 					{
-						LgiAssert(End >= Cur);
+						PathAssert(End >= Cur);
 
 						double k = b->x - a->x;
+						double Rx;
 						if (k == 0.0)
 						{
 							// vertical line
@@ -136,16 +152,14 @@ public:
 							{
 								int Yi = (s>>SUB_SHIFT) - y1;
 
-								LgiAssert(Yi < n);
-
-								aax[Yi].x[s&SUB_MASK] = a->x;
-
-								#if defined(_DEBUG) && DEBUG_NEGITIVE_X
-								if (aax[Yi].x[s&SUB_MASK] < 1.0)
-								{
-									// _asm int 3
-								}
-								#endif
+								PathAssert(Yi < n);
+								aax[Yi].x[s&SUB_MASK] = Rx = a->x;
+								Bounds.x1 = min(Bounds.x1, Rx);
+								Bounds.x2 = max(Bounds.x2, Rx);
+								/*
+								PathAssert(	aax[Yi].x[s&SUB_MASK] >= Bounds.x1 - GPointF::Threshold &&
+											aax[Yi].x[s&SUB_MASK] <= Bounds.x2 + GPointF::Threshold);
+								*/
 							}
 						}
 						else
@@ -159,24 +173,23 @@ public:
 							{
 								int Yi = (s>>SUB_SHIFT) - y1;
 
-								LgiAssert(Yi < n);
+								PathAssert(Yi < n);
 
 								Ry = ToDbl(s);
-								aax[Yi].x[s&SUB_MASK] = (Ry - Lb) / Lm;
-
-								#if defined(_DEBUG) && DEBUG_NEGITIVE_X
-								if (aax[Yi].x[s&SUB_MASK] < 1.0)
-								{
-									// _asm int 3
-								}
-								#endif
+								aax[Yi].x[s&SUB_MASK] = Rx = (Ry - Lb) / Lm;
+								Bounds.x1 = min(Bounds.x1, Rx);
+								Bounds.x2 = max(Bounds.x2, Rx);
+								/*
+								PathAssert(	aax[Yi].x[s&SUB_MASK] >= Bounds.x1 - GPointF::Threshold &&
+											aax[Yi].x[s&SUB_MASK] <= Bounds.x2 + GPointF::Threshold);
+								*/
 							}
 						}
 
 						Cur = End + 1;
 					}
 
-					LgiAssert(a >= p);
+					PathAssert(a >= p);
 					a += Inc;
 					b += Inc;
 				}
@@ -979,7 +992,7 @@ bool GPath::Text(	GFont *Font,
 												default:
 												case TT_PRIM_CSPLINE: // cubic
 												{
-													LgiAssert(0);
+													PathAssert(0);
 													break;
 												}
 											}
@@ -1295,7 +1308,7 @@ bool GPath::Flatten()
 					v->Points = i - Start + 1;
 
 					// Check it's valid
-					LgiAssert(v->Points > 1);
+					PathAssert(v->Points > 1);
 
 					// Store the pointer to the start of the vector
 					v->p = Point + Start;
@@ -1354,7 +1367,7 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 {
 	if (!GdcD || !pDC || !(*pDC)[0])
 	{
-		LgiAssert(0);
+		PathAssert(0);
 		return;
 	}
 
@@ -1377,6 +1390,8 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 				ko++;
 			}
 		}
+
+		DEBUG_LOG("Bounds=%g,%g,%g,%g\n", Bounds.x1, Bounds.y1, Bounds.x2, Bounds.y2);
 		#endif
 
 		// Loop scanlines
@@ -1394,10 +1409,10 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 		int x2 = (int)ceil(Bounds.x2);
 		int Width = x2 - x1 + 1;
 		uchar *Alpha = new uchar[Width];
-		
+
 		#if 0
-			#define CHECK_XV(idx)		LgiAssert((idx) >= 0 && (idx) < VectorCount)
-			#define CHECK_ALPHA(idx)	LgiAssert((idx) >= 0 && (idx) < Width)
+			#define CHECK_XV(idx)		PathAssert((idx) >= 0 && (idx) < VectorCount)
+			#define CHECK_ALPHA(idx)	PathAssert((idx) >= 0 && (idx) < Width)
 		#else
 			#define CHECK_XV(idx)
 			#define CHECK_ALPHA(idx)
@@ -1441,8 +1456,8 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 						int Aay1 = (New->aay1 - y1) >> SUB_SHIFT;
 						int Aay2 = (New->aay2 - y1) >> SUB_SHIFT;
 
-						LgiAssert(Aay1 >= 0 AND Aay1 < Height);
-						LgiAssert(Aay2 >= 0 AND Aay2 < Height);
+						PathAssert(Aay1 >= 0 AND Aay1 < Height);
+						PathAssert(Aay2 >= 0 AND Aay2 < Height);
 
 						Events[Aay1] |= ADD_EVENT;
 						Events[Aay2] |= REMOVE_EVENT;
@@ -1482,7 +1497,7 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 									// Remove old active vecs
 									for (GVector *Old=Active.First(); Old; )
 									{
-										LgiAssert(Old->aay2 >= y);
+										PathAssert(Old->aay2 >= y);
 										
 										if (Old->aay2 == y)
 										{
@@ -1515,7 +1530,7 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 											#if defined(_DEBUG) && DEBUG_NEGITIVE_X
 											if (a->Cx < 1.0)
 											{
-												LgiAssert(0);
+												PathAssert(0);
 											}
 											#endif
 
@@ -1576,7 +1591,9 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 									{
 										double Cx = a->aax[(y>>SUB_SHIFT) - a->y1].x[s];
 
-										if (Xs == 0 OR Cx >= x[Xs-1])
+										PathAssert(Cx >= Bounds.x1 - GPointF::Threshold && Cx <= Bounds.x2 + GPointF::Threshold);
+
+										if (Xs == 0 OR (Xs > 0 && Cx >= x[Xs-1]))
 										{
 											// Insert at end
 											x[Xs++] = Cx;
@@ -1608,7 +1625,7 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 							#if defined(_DEBUG) && DEBUG_ODD_EDGES
 							if (Xs % 2 == 1)
 							{
-								LgiAssert(0);
+								PathAssert(0);
 							}
 							#endif
 
@@ -1718,7 +1735,7 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 					{
 						if (y < v->y1 OR y > v->y2)
 						{
-							LgiAssert(0);
+							PathAssert(0);
 						}
 
 						double Cx = v->x[y - v->y1];
@@ -1746,7 +1763,7 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 					#if defined(_DEBUG) && DEBUG_ODD_EDGES
 					if (Xs % 2 == 1)
 					{
-						LgiAssert(0);
+						PathAssert(0);
 					}
 					#endif
 
@@ -2083,7 +2100,7 @@ bool GLinearBlendBrush::Start(GRopArgs &Args)
 
 void GLinearBlendBrush::Rop(GRopArgs &Args)
 {
-	LgiAssert(GdcD);
+	PathAssert(GdcD);
 
 	uchar *DivLut = Div255Lut;
 	uchar *Alpha = Args.Alpha;
