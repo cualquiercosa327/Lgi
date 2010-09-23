@@ -138,7 +138,10 @@ GWindowCallback(GtkWidget   *widget,
 				GWindow     *This)
 {
 	if (!event)
+	{
+		printf("%s:%i - No event %i\n", _FL);
 		return FALSE;
+	}
 
 	switch (event->type)
 	{

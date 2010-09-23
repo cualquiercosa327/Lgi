@@ -480,6 +480,52 @@
 						>
 					</File>
 				</Filter>
+				<Filter
+					Name="Hash"
+					>
+					<Filter
+						Name="Md5"
+						>
+						<File
+							RelativePath=".\src\common\Hash\md5\md5.c"
+							>
+							<FileConfiguration
+								Name="Release|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									ObjectFile="$(IntDir)\$(InputName)1.obj"
+									XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+								/>
+							</FileConfiguration>
+							<FileConfiguration
+								Name="Debug|Win32"
+								>
+								<Tool
+									Name="VCCLCompilerTool"
+									ObjectFile="$(IntDir)\$(InputName)1.obj"
+									XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+								/>
+							</FileConfiguration>
+						</File>
+						<File
+							RelativePath=".\src\common\Hash\md5\md5.h"
+							>
+						</File>
+					</Filter>
+					<Filter
+						Name="Sha1"
+						>
+						<File
+							RelativePath=".\src\common\Hash\sha1\sha1.c"
+							>
+						</File>
+						<File
+							RelativePath=".\src\common\Hash\sha1\sha1.h"
+							>
+						</File>
+					</Filter>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="Widgets"
@@ -918,10 +964,6 @@
 				</File>
 				<File
 					RelativePath=".\include\common\INetTools.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\common\General\md5.c"
 					>
 				</File>
 				<File

@@ -179,7 +179,7 @@ void LgiInitColours()
 	_LgiColours[i++] = GetSysColor(COLOR_INACTIVECAPTIONTEXT); // LC_INACTIVE_TITLE_TEXT
 	_LgiColours[i++] = GetSysColor(COLOR_MENU); // LC_MENU_BACKGROUND
 	_LgiColours[i++] = GetSysColor(COLOR_MENUTEXT); // LC_MENU_TEXT
-	#elif WIN32NATIVE
+	#elif WIN32
 	_LgiColours[i++] = GetSysColor(COLOR_3DDKSHADOW); // LC_SHADOW
 	_LgiColours[i++] = GetSysColor(COLOR_3DSHADOW); // LC_LOW
 	_LgiColours[i++] = GetSysColor(COLOR_3DFACE); // LC_MED
@@ -197,12 +197,11 @@ void LgiInitColours()
 	_LgiColours[i++] = GetSysColor(COLOR_MENU); // LC_MENU_BACKGROUND
 	_LgiColours[i++] = GetSysColor(COLOR_MENUTEXT); // LC_MENU_TEXT
 	#elif defined __GTK_H__
-
 	Gtk::GtkSettings *set = Gtk::gtk_settings_get_default();
 	if (!set)
 	{
 		printf("%s:%i - gtk_settings_get_for_screen failed.\n", __FILE__, __LINE__);
-		return false;
+		return;
 	}
 	
 	char PropName[] = "gtk-color-scheme";

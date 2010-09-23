@@ -106,7 +106,15 @@ lgi_widget_remove(GtkContainer *wid, GtkWidget *child)
 
 static gboolean lgi_widget_click(GtkWidget *widget, GdkEventButton *ev)
 {
-    LgiTrace("click %i,%i,%i,%i,%i,%i,%i,%i,%i\n", ev->axes, ev->button, ev->device, ev->send_event, ev->state, ev->time, ev->type, ev->x, ev->y);
+    bool BtnDown =  ev->type == GDK_BUTTON_PRESS ||
+                    ev->type == GDK_2BUTTON_PRESS ||
+                    ev->type == GDK_3BUTTON_PRESS;
+    static int asd = 0;
+    LgiTrace("click %i,%i,%i,%i,%i,%i,%s,%i,%i\n", ev->axes, ev->button, ev->device, ev->send_event, ev->state, ev->time, BtnDown?"down":"up", ev->x, ev->y);
+    if (++asd == 4)
+    {
+        int wer=0;
+    }
 
 	LgiWidget *p = LGI_WIDGET(widget);
     GView *v = dynamic_cast<GView*>(p->target);
@@ -518,6 +526,17 @@ lgi_widget_size_request(GtkWidget *widget, GtkRequisition *requisition)
 	// LgiTrace("%s::req %i,%i\n", p->target->GetClass(), requisition->width, requisition->height);
 }
 
+gboolean
+lgi_widget_configure(GtkWidget *widget, GdkEventConfigure *ev)
+{
+	LgiWidget *p = LGI_WIDGET(widget);
+	if (p)
+	{
+	    p->target->OnPosChange();
+    }    
+    return TRUE;
+}
+
 static void
 lgi_widget_class_init(LgiWidgetClass *klass)
 {
@@ -526,6 +545,7 @@ lgi_widget_class_init(LgiWidgetClass *klass)
 
 	GtkWidgetClass *widget_class = (GtkWidgetClass *)klass;
 	widget_class->realize = lgi_widget_realize;
+	widget_class->configure_event = lgi_widget_configure;
 	widget_class->size_request = lgi_widget_size_request;
 	widget_class->size_allocate = lgi_widget_size_allocate;
 	widget_class->expose_event = lgi_widget_expose;
