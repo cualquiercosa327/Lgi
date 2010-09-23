@@ -645,6 +645,13 @@ gboolean PopupButtonEvent(GtkWidget *widget, GdkEventButton *e, GPopup *popup)
     return TRUE;            
 }
 
+gboolean PopupMapEvent(GtkWidget *widget, GdkEvent *e, GPopup *Wnd)
+{
+	printf("Adding grab for popup...\n");
+    gtk_grab_add(widget);
+	return FALSE;
+}
+
 #endif
 
 bool GPopup::Attach(GViewI *p)
@@ -707,7 +714,10 @@ bool GPopup::Attach(GViewI *p)
                             "button-press-event",
                             G_CALLBACK(PopupButtonEvent),
                             this);
-            gtk_grab_add(Wnd);
+            g_signal_connect (G_OBJECT(Wnd),
+                            "map-event",
+                            G_CALLBACK(PopupMapEvent),
+                            this);
 		}
 
 		if (Wnd)
@@ -835,6 +845,7 @@ void GDropDown::OnFocus(bool f)
 }
 
 GPopup *GDropDown::GetPopup()
+
 {
 	return Popup;
 }

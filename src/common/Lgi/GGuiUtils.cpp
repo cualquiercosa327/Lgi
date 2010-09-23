@@ -226,7 +226,6 @@ void LgiInitColours()
 						((c >> 16) & 0xff00) |
 						((c >> 24) & 0xff0000);
 			Colours.Add(var, c24);
-			printf("%s=%x\n", var, c24);
 		}
 	}
 

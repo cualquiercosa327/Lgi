@@ -362,6 +362,7 @@ public:
 
 	void OnPosChange()
 	{
+		printf("panel onposchange %s\n", GetPos().GetStr());
 		GPanel::OnPosChange();
 		if (Tab)
 		{

@@ -1478,7 +1478,6 @@ bool GFontType::GetSystemFont(char *Which)
 				DefSize = Gtk::pango_font_description_get_size(s->font_desc) / PANGO_SCALE;
 			}
 			
-			printf("DefFont=%s, %i\n", DefFont, DefSize);
 			g_object_unref(s);
 		}
 		else printf("%s:%i - gtk_style_new failed.\n", _FL);

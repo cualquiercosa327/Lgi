@@ -171,7 +171,6 @@ GWindowCallback(GtkWidget   *widget,
 
 static gboolean GWindowClientEvent(GtkWidget *widget, GdkEventClient *ev, GWindow *Wnd)
 {
-    LgiTrace("GWindowClientEvent\n");
 	GMessage m(ev->data.l[0], ev->data.l[1], ev->data.l[2]);
     Wnd->OnEvent(&m);
 	return FALSE;
@@ -200,11 +199,11 @@ bool GWindow::Attach(GViewI *p)
 							G_CALLBACK(GWindowCallback),
 							this);
 		g_signal_connect(	G_OBJECT(Wnd),
-							"client-event",
-							G_CALLBACK(GWindowClientEvent),
+							"button-press-event",
+							G_CALLBACK(GWindowCallback),
 							this);
 		g_signal_connect(	G_OBJECT(Wnd),
-							"button-press-event",
+							"client-event",
 							G_CALLBACK(GWindowClientEvent),
 							this);
 

@@ -441,6 +441,9 @@ lgi_widget_setsize(GtkWidget *wid, int width, int height)
 void
 lgi_widget_setchildpos(GtkWidget *parent, GtkWidget *child, int x, int y)
 {
+	if (!LGI_IS_WIDGET(parent))
+		return;
+
 	LgiWidget *p = LGI_WIDGET(parent);
 	if (p)
 	{

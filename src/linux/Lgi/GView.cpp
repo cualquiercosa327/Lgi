@@ -151,7 +151,8 @@ void GView::_Delete()
 	    #ifdef LINUX
 		LgiApp->UnregisterHandle(this);
 		#endif
-		printf("destroy %p\n", _View);
+
+		printf("destroy %p parent=%p, iscon=%p\n", _View, gtk_widget_get_parent(_View), GTK_IS_CONTAINER(gtk_widget_get_parent(_View)));
 		gtk_widget_destroy(_View);
 		_View = 0;
 	}
@@ -464,6 +465,9 @@ bool GView::SetCursor(int CursorId)
 
 bool GView::SetPos(GRect &p, bool Repaint)
 {
+	if (p == Pos)
+		return true;
+
 	Pos = p;
 
 	if (_View)
@@ -485,6 +489,10 @@ bool GView::SetPos(GRect &p, bool Repaint)
 									Pos.x1 + o,
 									Pos.y1 + o);
 		}
+	}
+	else
+	{
+		OnPosChange();
 	}
 
 	return true;
