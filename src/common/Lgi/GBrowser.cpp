@@ -128,10 +128,10 @@ public:
 		
 		if (IsFile)
 		{
-			GAutoString u(ReadTextFile(u.Path));
-			if (u)
+			GAutoString txt(ReadTextFile(u.Path));
+			if (txt)
 			{
-				Html->Name(u);
+				Html->Name(txt);
 			}
 			else return false;
 		}
@@ -150,6 +150,7 @@ public:
 
 GBrowserThread::GBrowserThread(GBrowserPriv *priv)
 {
+	Loop = true;
 	d = priv;
 	Run();
 }
@@ -228,9 +229,13 @@ int GBrowserThread::Main()
 GBrowser::GBrowser(char *Title, char *Uri)
 {
 	d = new GBrowserPriv(this);
-	Name(Title?Title:"Browser");
+	d->Back = 0;
+	d->Forward = 0;
+	d->UriEdit = 0;
+	d->Html = 0;
+	Name(Title?Title:(char*)"Browser");
 
-	GRect r(0, 0, 1000, 800);
+	GRect r(0, 0, 800, 600);
 	SetPos(r);
 	MoveToCenter();
 
@@ -290,18 +295,22 @@ void GBrowser::OnPosChange()
 	e.y2 = e.y1 + SysFont->GetHeight() + 8;
 	GRect back = e;
 	GRect forward = e;
-	back.x2 = back.x1 + d->Back->X() - 1;
+	back.x2 = back.x1 + (d->Back ? d->Back->X() - 1 : 0);
 	forward.x1 = back.x2 + 1;
-	forward.x2 = forward.x1 + d->Forward->X() - 1;
+	forward.x2 = forward.x1 + (d->Forward ? d->Forward->X() - 1 : 0);
 	e.x1 = forward.x2 + 1;
 
 	GRect h = c;
 	h.y1 = e.y2 + 1;
 
-	d->Back->SetPos(back);
-	d->Forward->SetPos(forward);
-	d->UriEdit->SetPos(e);
-	d->Html->SetPos(h);
+	if (d->Back)
+		d->Back->SetPos(back);
+	if (d->Forward)
+		d->Forward->SetPos(forward);
+	if (d->UriEdit)
+		d->UriEdit->SetPos(e);
+	if (d->Html)
+		d->Html->SetPos(h);
 }
 
 int GBrowser::OnNotify(GViewI *c, int f)
@@ -310,6 +319,7 @@ int GBrowser::OnNotify(GViewI *c, int f)
 	{
 		case IDC_URI:
 		{
+			printf("uri notify %i\n", f);
 			if (f == VK_RETURN)
 			{
 				char *u = c->Name();
