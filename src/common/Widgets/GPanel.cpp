@@ -172,7 +172,7 @@ bool GPanel::Pour(GRegion &r)
 
 		return true;
 	}
-	else LgiAssert(!"No best rect");
+
 	return false;
 }
 

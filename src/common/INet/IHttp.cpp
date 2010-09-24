@@ -204,22 +204,20 @@ bool IHttp::GetFile(GViewI *Parent, char *File, GStream &Out, int Format, int *P
 		Host[HostLen] = 0;
 
 		// get part
-		if (Format == GET_TYPE_NORMAL)
+		if (Format & GET_TYPE_NORMAL)
 		{
 			Buf.Print("GET %s HTTP/1.0\r\n", File);
 		}
-		else if (Format == GET_TYPE_FILE_HOST)
+		else
 		{
 			Buf.Print(	"GET %s HTTP/1.0\r\n"
 						"Host: %s\r\n",
-						FilePart,
+						ValidStr(FilePart) ? FilePart : (char*)"/",
 						Host);
 		}
-		else
+		if (Format & GET_NO_CACHE)
 		{
-			// invalid argument
-			printf("%s:%i - Invalid format.\n", __FILE__, __LINE__);
-			return 0;
+			Buf.Print("Cache-Control: no-cache\r\n");
 		}
 		
 		// resume info

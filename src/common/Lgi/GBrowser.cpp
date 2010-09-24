@@ -7,19 +7,20 @@
 #include "GButton.h"
 
 #define M_LOADED		(M_USER+3000)
+#define M_BUSY			(M_USER+3001)
 
 enum {
 	IDC_HTML = 100,
 	IDC_URI,
 	IDC_BACK,
-	IDC_FORWARD
+	IDC_FORWARD,
+	IDC_STOP
 };
 
 class GBrowserPriv;
 class GBrowserThread : public GThread, public GSemaphore
 {
 	GBrowserPriv *d;
-	GAutoPtr<GSocket> s;
 	GArray<GAutoString> Work;
 	bool Loop;
 
@@ -58,6 +59,7 @@ public:
 	GEdit *UriEdit;
 	GButton *Back;
 	GButton *Forward;
+	GButton *Stop;
 	GArray<GAutoString> History;
 	int CurHistory;
 
@@ -123,6 +125,9 @@ public:
 			{
 				// Probably...?
 				IsHttp = true;
+				u.Protocol = NewStr("http");
+				History[CurHistory].Reset(u.Get());
+				Uri = History[CurHistory];
 			}
 		}
 		
@@ -144,6 +149,10 @@ public:
 
 		GAutoString a(u.Get());
 		UriEdit->Name(a);
+
+		Wnd->SetCtrlEnabled(IDC_BACK, CurHistory > 0);
+		Wnd->SetCtrlEnabled(IDC_FORWARD, CurHistory < History.Length() - 1);
+
 		return true;
 	}
 };
@@ -175,6 +184,8 @@ bool GBrowserThread::Add(char *Uri)
 
 int GBrowserThread::Main()
 {
+	bool IsBusy = false;
+
 	while (Loop)
 	{
 		GAutoString Uri;
@@ -184,7 +195,13 @@ int GBrowserThread::Main()
 			{
 				Uri = Work[0];
 				Work.DeleteAt(0, true);
+
+				if (!IsBusy)
+					d->Wnd->PostEvent(M_BUSY, IsBusy = true);
 			}
+			else if (IsBusy)
+				d->Wnd->PostEvent(M_BUSY, IsBusy = false);
+
 			Unlock();
 		}
 
@@ -193,6 +210,7 @@ int GBrowserThread::Main()
 			GUri u(Uri);
 			if (!u.Port)
 				u.Port = HTTP_PORT;
+
 
 			IHttp h;
 			int Status = 0;
@@ -203,17 +221,16 @@ int GBrowserThread::Main()
 				if (Proxy.Host)
 					h.SetProxy(Proxy.Host, Proxy.Port);
 
-				s.Reset(new GSocket);
-				if (h.Open(s, u.Host, u.Port))
+				if (h.Open(new GSocket, u.Host, u.Port))
 				{
-					bool b = h.GetFile(0, Uri, *p, GET_TYPE_NORMAL, &Status);
-					if (b)
+					bool b = h.GetFile(0, Uri, *p, GET_TYPE_NORMAL|GET_NO_CACHE, &Status);
+					GBrowserPriv::FilePtr f = d->Lock();
+					if (!b)
 					{
-						GBrowserPriv::FilePtr f = d->Lock();
-						f->Files->Add(Uri, p.Release());
-
-						d->Wnd->PostEvent(M_LOADED);
+						p->Print("<h1>HTTP Error</h1>\nCode: %i<br>", Status);
 					}
+					f->Files->Add(Uri, p.Release());
+					d->Wnd->PostEvent(M_LOADED);
 				}
 			}
 		}
@@ -233,6 +250,7 @@ GBrowser::GBrowser(char *Title, char *Uri)
 	d->Forward = 0;
 	d->UriEdit = 0;
 	d->Html = 0;
+	d->Stop = 0;
 	Name(Title?Title:(char*)"Browser");
 
 	GRect r(0, 0, 800, 600);
@@ -243,12 +261,16 @@ GBrowser::GBrowser(char *Title, char *Uri)
 	{
 		AddView(d->Back = new GButton(IDC_BACK, 0, 0, 30, 20, "<-"));
 		AddView(d->Forward = new GButton(IDC_FORWARD, 0, 0, 30, 20, "->"));
+		AddView(d->Stop = new GButton(IDC_STOP, 0, 0, -1, 20, "Stop"));
 		AddView(d->UriEdit = new GEdit(IDC_URI, 0, 0, 100, 20, 0));
 		AddView(d->Html = new Html2::GHtml2(IDC_HTML, 0, 0, 100, 100));
 		AttachChildren();
 		OnPosChange();
 		Visible(true);
 
+		d->Back->Enabled(false);
+		d->Forward->Enabled(false);
+		d->Stop->Enabled(false);
 		if (Uri)
 			SetUri(Uri);
 	}
@@ -295,10 +317,13 @@ void GBrowser::OnPosChange()
 	e.y2 = e.y1 + SysFont->GetHeight() + 8;
 	GRect back = e;
 	GRect forward = e;
+	GRect stop = e;
 	back.x2 = back.x1 + (d->Back ? d->Back->X() - 1 : 0);
 	forward.x1 = back.x2 + 1;
 	forward.x2 = forward.x1 + (d->Forward ? d->Forward->X() - 1 : 0);
-	e.x1 = forward.x2 + 1;
+	stop.x1 = forward.x2 + 1;
+	stop.x2 = stop.x1 + (d->Stop ? d->Stop->X() - 1 : 0);
+	e.x1 = stop.x2 + 1;
 
 	GRect h = c;
 	h.y1 = e.y2 + 1;
@@ -307,6 +332,8 @@ void GBrowser::OnPosChange()
 		d->Back->SetPos(back);
 	if (d->Forward)
 		d->Forward->SetPos(forward);
+	if (d->Stop)
+		d->Stop->SetPos(stop);
 	if (d->UriEdit)
 		d->UriEdit->SetPos(e);
 	if (d->Html)
@@ -330,7 +357,20 @@ int GBrowser::OnNotify(GViewI *c, int f)
 		}
 		case IDC_BACK:
 		{
-			d->CurHistory--;
+			if (d->CurHistory > 0)
+			{
+				d->CurHistory--;
+				d->LoadCurrent();
+			}
+			break;
+		}
+		case IDC_FORWARD:
+		{
+			if (d->CurHistory < d->History.Length() - 1)
+			{
+				d->CurHistory++;
+				d->LoadCurrent();
+			}
 			break;
 		}
 	}
@@ -354,6 +394,11 @@ int GBrowser::OnEvent(GMessage *m)
 				d->LoadStream(s);
 				DeleteObj(s);
 			}			
+			break;
+		}
+		case M_BUSY:
+		{
+			SetCtrlEnabled(IDC_STOP, MsgA(m));
 			break;
 		}
 	}

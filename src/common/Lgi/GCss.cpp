@@ -843,8 +843,13 @@ bool GCss::ParseFontStyle(PropType PropId, char *&s)
 		 if (ParseWord(s, "inherit")) *w = FontStyleInherit;
 	else if (ParseWord(s, "normal")) *w = FontStyleNormal;
 	else if (ParseWord(s, "italic")) *w = FontStyleItalic;
-	else if (ParseWord(s, "Oblique")) *w = FontStyleOblique;
-	else return false;
+	else if (ParseWord(s, "oblique")) *w = FontStyleOblique;
+	else
+	{
+		Props.Delete(PropId);
+		DeleteObj(w);
+		return false;
+	}
 
 	return true;
 }
@@ -857,7 +862,12 @@ bool GCss::ParseFontVariant(PropType PropId, char *&s)
 		 if (ParseWord(s, "inherit")) *w = FontVariantInherit;
 	else if (ParseWord(s, "normal")) *w = FontVariantNormal;
 	else if (ParseWord(s, "small-caps")) *w = FontVariantSmallCaps;
-	else return false;
+	else
+	{
+		Props.Delete(PropId);
+		DeleteObj(w);
+		return false;
+	}
 	return true;
 }
 
@@ -880,7 +890,12 @@ bool GCss::ParseFontWeight(PropType PropId, char *&s)
 	else if (ParseWord(s, "700")) *w = FontWeight700;
 	else if (ParseWord(s, "800")) *w = FontWeight800;
 	else if (ParseWord(s, "900")) *w = FontWeight900;
-	else return false;
+	else
+	{
+		Props.Delete(PropId);
+		DeleteObj(w);
+		return false;
+	}
 	return true;
 }
 

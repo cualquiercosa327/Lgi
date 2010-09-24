@@ -60,7 +60,11 @@ GButton::GButton(int id, int x, int y, int cx, int cy, char *name) :
 	int Extra = 20;
 	#endif
 	
-	GRect r(x, y, x+(cx<0?d->Txt->X()+Extra:cx), y+(cy<0?d->Txt->Y()+7:cy));
+	GRect r(x,
+			y,
+			x + (cx < 0 ? d->Txt->X() + Extra : cx),
+			y + (cy < 0 ? d->Txt->Y() + 7 : cy)
+			);
 	LgiAssert(r.Valid());
 	SetPos(r);
 	SetId(id);

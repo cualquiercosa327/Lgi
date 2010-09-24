@@ -3,8 +3,8 @@
 
 #include "INet.h"
 
-#define GET_TYPE_NORMAL				1
-#define GET_TYPE_FILE_HOST			2
+#define GET_TYPE_NORMAL				0x1 // Use basic URI, else file + host format
+#define GET_NO_CACHE				0x2
 
 class IHttp
 {
