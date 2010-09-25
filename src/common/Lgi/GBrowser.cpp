@@ -14,7 +14,7 @@ enum {
 	IDC_URI,
 	IDC_BACK,
 	IDC_FORWARD,
-	IDC_STOP
+	IDC_REFRESH_STOP
 };
 
 class GBrowserPriv;
@@ -32,7 +32,7 @@ public:
 	int Main();
 };
 
-class GBrowserPriv : public GSemaphore
+class GBrowserPriv : public GDocumentEnv
 {
 public:
 	typedef GHashTbl<char*,GStream*> Collection;
@@ -155,6 +155,51 @@ public:
 
 		return true;
 	}
+
+	bool OnNavigate(char *Uri)
+	{
+		LgiAssert(false);
+		return false;
+	}
+
+	LoadType GetContent(LoadJob *&j)
+	{
+		if (!j || !j->Uri)
+			return LoadError;
+
+		char *Uri = History[CurHistory];
+		GUri u(j->Uri);
+		char *LoadFileName = 0;
+		if (u.Protocol)
+		{
+			
+		}
+		else LoadFileName = j->Uri;		
+		
+		if (LoadFileName)
+		{
+			char p[MAX_PATH];
+			LgiMakePath(p, sizeof(p), Uri, "..");
+			LgiMakePath(p, sizeof(p), p, LoadFileName);
+			if (FileExists(p))
+			{
+				GFile *f;
+				if (j->Stream.Reset(f = new GFile))
+				{
+					if (!f->Open(p, O_READ))
+					{
+						j->Stream.Reset();
+						j->Error.Reset(NewStr("Can't open file."));
+						return LoadError;
+					}
+
+					return LoadImmediate;
+				}
+			}
+		}
+
+		return LoadError;
+	}
 };
 
 GBrowserThread::GBrowserThread(GBrowserPriv *priv)
@@ -261,16 +306,16 @@ GBrowser::GBrowser(char *Title, char *Uri)
 	{
 		AddView(d->Back = new GButton(IDC_BACK, 0, 0, 30, 20, "<-"));
 		AddView(d->Forward = new GButton(IDC_FORWARD, 0, 0, 30, 20, "->"));
-		AddView(d->Stop = new GButton(IDC_STOP, 0, 0, -1, 20, "Stop"));
+		AddView(d->Stop = new GButton(IDC_REFRESH_STOP, 0, 0, -1, 20, "Refresh"));
 		AddView(d->UriEdit = new GEdit(IDC_URI, 0, 0, 100, 20, 0));
 		AddView(d->Html = new Html2::GHtml2(IDC_HTML, 0, 0, 100, 100));
 		AttachChildren();
 		OnPosChange();
 		Visible(true);
 
+		d->Html->SetEnv(d);
 		d->Back->Enabled(false);
 		d->Forward->Enabled(false);
-		d->Stop->Enabled(false);
 		if (Uri)
 			SetUri(Uri);
 	}
@@ -398,7 +443,10 @@ int GBrowser::OnEvent(GMessage *m)
 		}
 		case M_BUSY:
 		{
-			SetCtrlEnabled(IDC_STOP, MsgA(m));
+			if (MsgA(m))
+				SetCtrlName(IDC_REFRESH_STOP, "Stop");
+			else
+				SetCtrlName(IDC_REFRESH_STOP, "Refresh");
 			break;
 		}
 	}

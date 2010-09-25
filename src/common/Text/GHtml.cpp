@@ -1864,6 +1864,24 @@ void GTag::SetImage(char *Uri, GSurface *Img)
 	}
 }
 
+void GTag::LoadImage(char *Uri)
+{
+	GDocumentEnv::LoadJob *j = Html->Environment->NewJob();
+	if (j)
+	{
+		j->Uri.Reset(NewStr(Uri));
+		j->View = Html;
+		j->UserData = this;
+
+		GDocumentEnv::LoadType Result = Html->Environment->GetContent(j);
+		if (Result == GDocumentEnv::LoadImmediate)
+		{
+			SetImage(Uri, j->pDC.Release());
+		}
+		DeleteObj(j);
+	}
+}
+
 void GTag::LoadImages()
 {
 	char *Uri = 0;
@@ -1871,11 +1889,7 @@ void GTag::LoadImages()
 		!Image &&
 		Get("src", Uri))
 	{
-		GSurface *s = 0;
-		if (Html->Environment->GetImageUri(Uri, &s))
-		{
-			SetImage(Uri, s);
-		}
+		LoadImage(Uri);
 	}
 
 	for (GTag *t=Tags.First(); t; t=Tags.Next())
@@ -2122,7 +2136,7 @@ void GTag::SetStyle()
 			char *Back;
 			if (Get("background", Back) && Html->Environment)
 			{
-				Html->Environment->GetImageUri(Back, &Image);
+				LoadImage(Back);
 			}
 			break;
 		}
@@ -2188,11 +2202,7 @@ void GTag::SetStyle()
 			if (Html->Environment &&
 				Get("src", Uri))
 			{
-				GSurface *s = 0;
-				if (Html->Environment->GetImageUri(Uri, &s))
-				{
-					SetImage(Uri, s);
-				}
+				LoadImage(Uri);
 			}
 			break;
 		}
@@ -2582,7 +2592,7 @@ void GTag::SetCssStyle(char *Style)
 
 								if (Html->Environment)
 								{
-									Html->Environment->GetImageUri(Value, &Image);
+									LoadImage(Value);
 								}
 							}
 							break;
@@ -5804,6 +5814,7 @@ int GHtml::OnEvent(GMessage *Msg)
 			Copy();
 			break;
 		}
+		#ifdef M_IMAGE_LOADED
 		case M_IMAGE_LOADED:
 		{
 			char *Uri = (char*)MsgA(Msg);
@@ -5831,6 +5842,7 @@ int GHtml::OnEvent(GMessage *Msg)
 			DeleteObj(Img);
 			break;
 		}
+		#endif
 	}
 
 	return GDocView::OnEvent(Msg);
@@ -6584,7 +6596,7 @@ void GHtml::OnMouseClick(GMouse &m)
 													char File[256] = "";
 													if (Environment)
 													{
-														Environment->GetImageUri(cid, 0, File, sizeof(File));
+														// Environment->GetImageUri(cid, 0, File, sizeof(File));
 													}
 													
 													*e = Delim;

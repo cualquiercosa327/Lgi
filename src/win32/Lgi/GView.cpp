@@ -2082,6 +2082,7 @@ int GView::OnEvent(GMessage *Msg)
 				}
 				break;
 			}
+			/*
 			case M_GTHREADWORK_COMPELTE:
 			{
 				GThreadOwner *Owner = (GThreadOwner *) Msg->a;
@@ -2090,6 +2091,7 @@ int GView::OnEvent(GMessage *Msg)
 				DeleteObj(WorkUnit);
 				break;
 			}
+			*/
 			case WM_NCCALCSIZE:
 			{
 				bool Thin = (Sunken() || Raised()) && _BorderSize == 1;

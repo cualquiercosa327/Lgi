@@ -48,18 +48,9 @@ enum HtmlTag
 	TAG_H4,
 	TAG_H5,
 	TAG_H6,
-	TAG_HR
-};
-
-enum GLengthUnit
-{
-	LengthNull = 0,
-	LengthPixels,
-	LengthPercentage,
-	LengthPoint,
-	LengthEm,
-	LengthEx,
-	LengthRemaining
+	TAG_HR,
+	TAG_IFRAME,
+	TAG_LINK,
 };
 
 enum TagInfoFlags
@@ -129,7 +120,7 @@ class GLength
 protected:
 	float d;
 	float PrevAbs;
-	GLengthUnit u;
+	GCss::LengthType u;
 
 public:
 	GLength();
@@ -140,7 +131,7 @@ public:
 	float GetPrevAbs() { return PrevAbs; }
 	operator float();
 	GLength &operator =(float val);
-	GLengthUnit GetUnits();
+	GCss::LengthType GetUnits();
 	void Set(char *s);
 	float Get(GFlowRegion *Flow, GFont *Font, bool Lock = false);
 	float GetRaw() { return d; }
@@ -280,9 +271,10 @@ public:
 	GFont *Font;
 	
 	// Images
-	GSurface *Image;
+	GAutoPtr<GSurface> Image;
 	void SetImage(char *uri, GSurface *i);
-	void LoadImages();
+	void LoadImage(char *Uri); // Load just this URI
+	void LoadImages(); // Recursive load all image URI's
 	void ImageLoaded(char *uri, GSurface *img, int &Used);
 
 	// Table stuff

@@ -247,7 +247,7 @@ typedef SOCKET						OsSocket;
 	///
 	/// MsgA = (GThreadOwner*) Owner;
 	/// MsgB = (GThreadWork*) WorkUnit;
-	#define M_GTHREADWORK_COMPELTE		(M_USER+0x100c)
+	// #define M_GTHREADWORK_COMPELTE		(M_USER+0x100c)
 
 // Directories
 #define DIR_CHAR					'\\'

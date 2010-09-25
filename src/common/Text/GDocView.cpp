@@ -23,6 +23,21 @@ GDocumentEnv::~GDocumentEnv()
 	}
 }
 
+void GDocumentEnv::OnDone(GThreadJob *j)
+{
+	LoadJob *ld = dynamic_cast<LoadJob*>(j);
+	if (ld && Lock(_FL))
+	{
+		if (Viewers.HasItem(ld->View))
+		{
+			ld->View->OnContent(ld);
+			j = ld = 0;
+		}
+		Unlock();
+	}
+	DeleteObj(j);
+}
+
 bool GDocView::AlphaOrDigit(char c)
 {
 	return IsDigit(c) OR IsLetter(c);
@@ -74,50 +89,47 @@ char16 *ConvertToCrLf(char16 *Text)
 }
 
 //////////////////////////////////////////////////////////////////////////////////
-bool GDefaultDocumentEnv::GetImageUri(char *Uri, GSurface **pDC, char *FileName, int FileBufSize)
+GDocumentEnv::LoadType GDefaultDocumentEnv::GetContent(LoadJob *&j)
 {
-	if (ValidStr(Uri))
+	if (!j || !ValidStr(j->Uri))
+		return LoadError;
+
+	char Exe[256];
+	LgiGetExePath(Exe, sizeof(Exe));
+
+	#ifdef WIN32
+	if (stristr(Exe, "\\Debug") OR
+		stristr(Exe, "\\Release"))
 	{
-		char Exe[256];
-		LgiGetExePath(Exe, sizeof(Exe));
-
-		#ifdef WIN32
-		if (stristr(Exe, "\\Debug") OR
-			stristr(Exe, "\\Release"))
-		{
-			LgiTrimDir(Exe);
-		}
-		#endif
-
-		char File[256];
-		LgiMakePath(File, sizeof(File), Exe, Uri);
-
-		if (!FileExists(File))
-		{
-			char *f = LgiFindFile(Uri);
-			if (f)
-			{
-				strsafecpy(File, f, sizeof(File));
-				DeleteArray(f);
-			}
-		}
-		
-		if (FileExists(File))
-		{
-			if (pDC)
-			{
-				*pDC = LoadDC(File);
-			}
-			else if (FileName)
-			{
-				strsafecpy(FileName, File, FileBufSize);
-			}
-
-			return true;
-		}
-
+		LgiTrimDir(Exe);
 	}
-	return false;
+	#endif
+
+	char File[MAX_PATH];
+	LgiMakePath(File, sizeof(File), Exe, j->Uri);
+
+	if (!FileExists(File))
+	{
+		GAutoString f(LgiFindFile(j->Uri));
+		if (f)
+			strsafecpy(File, f, sizeof(File));
+	}
+	
+	if (FileExists(File))
+	{
+		if (j->Pref == GDocumentEnv::LoadJob::FmtFilename)
+		{
+			j->Filename.Reset(NewStr(File));
+			return LoadImmediate;
+		}
+		else
+		{
+			j->pDC.Reset(LoadDC(File));
+			return LoadImmediate;
+		}
+	}
+
+	return LoadError;
 }
 
 bool GDefaultDocumentEnv::OnNavigate(char *Uri)

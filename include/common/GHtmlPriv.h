@@ -262,6 +262,7 @@ public:
 	// Images
 	GSurface *Image;
 	void SetImage(char *uri, GSurface *i);
+	void LoadImage(char *Uri);
 	void LoadImages();
 	void ImageLoaded(char *uri, GSurface *img, int &Used);
 

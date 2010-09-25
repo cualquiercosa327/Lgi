@@ -52,6 +52,9 @@ protected:
 	// Display
 	GSurface			*MemDC;
 
+	// Data that has to be accessed under Lock
+	GArray<GDocumentEnv::LoadJob*> Jobs;
+
 	// Methods
 	void _New();
 	void _Delete();
@@ -126,6 +129,7 @@ public:
 	void OnPulse();
 	int OnEvent(GMessage *Msg);
 	char *GetMimeType() { return "text/html"; }
+	void OnContent(GDocumentEnv::LoadJob *Res);
 
 	// Javascript handlers
 	GDom *getElementById(char *Id);

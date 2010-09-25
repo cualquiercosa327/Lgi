@@ -52,25 +52,88 @@
 /// Returns true if 'c' is email address character
 #define EmailChar(c)				(strchr("._-:+", (c)) OR AlphaOrDigit((c)))
 
-// Messages
-#define M_IMAGE_LOADED				(M_USER + 0x500) // a=(char*)Uri, b=(GSurface*)pDC;
-
 extern char16 *ConvertToCrLf(char16 *Text);
 
 // Call back class to handle viewer events
 class GDocView;
 
 /// An environment class to handle requests from the text view to the outside world.
-class GDocumentEnv
+class GDocumentEnv : public GThreadOwner
 {
-	friend class GDocView;
-
-protected:
 	GArray<GDocView*> Viewers;
 
 public:
 	GDocumentEnv(GDocView *v = 0);
 	virtual ~GDocumentEnv();
+
+	enum LoadType
+	{
+		LoadError,
+		LoadNotImpl,
+		LoadImmediate,
+		LoadDeferred,
+	};
+
+	struct LoadJob : public GThreadJob
+	{
+		enum PrefFormat
+		{
+			FmtNone,
+			FmtStream,
+			FmtSurface,
+			FmtFilename,
+		};
+		
+		// View data
+		GDocView *View;
+		void *UserData;
+		PrefFormat Pref;
+
+		// Input data
+		GAutoString Uri;
+
+		// Output data
+		GAutoPtr<GStreamI> Stream;
+		GAutoPtr<GSurface> pDC;
+		GAutoString Filename;
+		GAutoString Error;
+
+		LoadJob(GThreadTarget *o) : GThreadJob(o)
+		{
+			View = 0;
+			UserData = 0;
+			Pref = FmtNone;
+		}
+	};
+
+	LoadJob *NewJob()
+	{
+		return new LoadJob(this);
+	}
+
+	bool AttachView(GDocView *v)
+	{
+		if (!v)
+			return false;
+		if (!Lock(_FL))
+			return false;
+		LgiAssert(!Viewers.HasItem(v));
+		Viewers.Add(v);
+		Unlock();
+		return true;
+	}
+
+	bool DetachView(GDocView *v)
+	{
+		if (!v)
+			return false;
+		if (!Lock(_FL))
+			return false;
+		LgiAssert(Viewers.HasItem(v));
+		Viewers.Delete(v);
+		Unlock();
+		return true;
+	}
 	
 	/// Creating a context menu, usually when the user right clicks on the 
 	/// document.
@@ -80,13 +143,11 @@ public:
 	/// are clicked.
 	virtual bool OnMenu(GDocView *View, int Id, void *Context) { return false; }
 	
-	/// Return an external image resource based on URI
-	///
-	/// Either by setting *pDC to something or by sending the GDocView a M_IMAGE_LOADED message
-	/// sometime down the track with the Uri loaded and the image handle. This
-	/// is useful for loading images in the background. In that case you should still return
-	/// true here but leave the *pDC as NULL.
-	virtual bool GetImageUri(char *Uri, GSurface **pDC, char *FileName = 0, int FileBufSize = 0) { return 0; }
+	/// Asks the env to get some data linked from the document, e.g. a css file or an iframe source etc.
+	/// If the GetContent implementation takes ownership of the job pointer then it should set 'j' to NULL.
+	virtual LoadType GetContent(LoadJob *&j) { return LoadNotImpl; }
+	/// After the env's thread loads the resource it calls this to pass it to the doc
+	void OnDone(GThreadJob *j);
 	
 	/// Handle a click on URI
 	virtual bool OnNavigate(char *Uri) { return false; }
@@ -111,7 +172,7 @@ public:
 class GDefaultDocumentEnv : public GDocumentEnv
 {
 public:
-	bool GetImageUri(char *Uri, GSurface **pDC, char *FileName = 0, int FileBufSize = 0);
+	LoadType GetContent(LoadJob *&j);
 	bool OnNavigate(char *Uri);
 };
 
@@ -222,18 +283,14 @@ public:
 	/// Set the current environment
 	virtual void SetEnv(GDocumentEnv *e)
 	{
-		if (Environment)
-		{
-			LgiAssert(Environment->Viewers.HasItem(this));
-			Environment->Viewers.Delete(this);
-		}
+		if (Environment) Environment->DetachView(this);
 		Environment = e;
-		if (Environment)
-		{
-			LgiAssert(!Environment->Viewers.HasItem(this));
-			Environment->Viewers.Add(this);
-		}
+		if (Environment) Environment->AttachView(this);
 	}
+	/// When the env has loaded a resource it can pass it to the doc control via this method.
+	/// It MUST be thread safe. Often an environment will call this function directly from
+	/// it's worker thread.
+	virtual void OnContent(GDocumentEnv::LoadJob *Res) {}
 	
 	///////////////////////////////////////////////////////////////////////
 	// State / Selection

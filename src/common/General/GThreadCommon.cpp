@@ -1,6 +1,7 @@
 #include "Lgi.h"
 
 //////////////////////////////////////////////////////////////////////////////
+/*
 class GThreadOwnerPriv : public GSemaphore
 {
 public:
@@ -110,3 +111,5 @@ void GThreadOwner::AddWork(GThreadWork *w)
 		d->Thread = new GWorkerThread(d);
 	}
 }
+
+*/
