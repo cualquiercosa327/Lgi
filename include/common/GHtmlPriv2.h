@@ -283,7 +283,7 @@ public:
 	uint16 MinContent, MaxContent;
 	GCellStore *Cells;
 	#ifdef _DEBUG
-	bool Debug;
+	int Debug;
 	#endif
 
 	// Text

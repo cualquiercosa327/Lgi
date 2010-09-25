@@ -5,6 +5,7 @@
 #include "IHttp.h"
 #include "GEdit.h"
 #include "GButton.h"
+#include "GToken.h"
 
 #define M_LOADED		(M_USER+3000)
 #define M_BUSY			(M_USER+3001)
@@ -23,12 +24,14 @@ class GBrowserThread : public GThread, public GSemaphore
 	GBrowserPriv *d;
 	GArray<GAutoString> Work;
 	bool Loop;
+	OsSocket SockHnd;
 
 public:
 	GBrowserThread(GBrowserPriv *priv);
 	~GBrowserThread();
 
 	bool Add(char *Uri);
+	void Stop();
 	int Main();
 };
 
@@ -62,6 +65,7 @@ public:
 	GButton *Stop;
 	GArray<GAutoString> History;
 	int CurHistory;
+	bool Loading;
 
 	GBrowserPriv(GBrowser *wnd)
 	{
@@ -69,6 +73,7 @@ public:
 		Html = 0;
 		Back = Forward = 0;
 		CurHistory = 0;
+		Loading = false;
 	}
 
 	FilePtr Lock()
@@ -158,8 +163,33 @@ public:
 
 	bool OnNavigate(char *Uri)
 	{
-		LgiAssert(false);
-		return false;
+		GUri u(Uri);
+		char Sep, Buf[MAX_PATH];
+		if (!u.Protocol)
+		{
+			// Relative link?
+			char *Cur = History[CurHistory];
+			if (strchr(Cur, '\\'))
+				Sep = '\\';
+			else
+				Sep = '/';
+			
+			// Trim off filename...
+			char *Last = strrchr(Cur, Sep);
+			if (Last)
+				sprintf(Buf, "%.*s%c%s", Last - Cur, Cur, Sep, Uri);
+			else
+				sprintf(Buf, "%s%c%s", Cur, Sep, Uri);
+
+			Uri = Buf;
+		}
+		else if (!stricmp(u.Protocol, "mailto"))
+		{
+			LgiExecute(Uri);
+			return true;
+		}
+
+		return Wnd->SetUri(Uri);
 	}
 
 	LoadType GetContent(LoadJob *&j)
@@ -183,17 +213,39 @@ public:
 			LgiMakePath(p, sizeof(p), p, LoadFileName);
 			if (FileExists(p))
 			{
-				GFile *f;
-				if (j->Stream.Reset(f = new GFile))
+				char *Ext = LgiGetExtension(p);
+				if
+				(
+					Ext &&
+					(
+						!stricmp(Ext, "jpg") ||
+						!stricmp(Ext, "jpeg") ||
+						!stricmp(Ext, "gif") ||
+						!stricmp(Ext, "png") ||
+						!stricmp(Ext, "tif") ||
+						!stricmp(Ext, "tiff") ||
+						!stricmp(Ext, "bmp") ||
+						!stricmp(Ext, "ico")
+					)
+				)
 				{
-					if (!f->Open(p, O_READ))
-					{
-						j->Stream.Reset();
-						j->Error.Reset(NewStr("Can't open file."));
-						return LoadError;
-					}
-
+					j->pDC.Reset(LoadDC(p));
 					return LoadImmediate;
+				}
+				else
+				{
+					GFile *f;
+					if (j->Stream.Reset(f = new GFile))
+					{
+						if (!f->Open(p, O_READ))
+						{
+							j->Stream.Reset();
+							j->Error.Reset(NewStr("Can't open file."));
+							return LoadError;
+						}
+
+						return LoadImmediate;
+					}
 				}
 			}
 		}
@@ -206,6 +258,7 @@ GBrowserThread::GBrowserThread(GBrowserPriv *priv)
 {
 	Loop = true;
 	d = priv;
+	SockHnd = INVALID_SOCKET;
 	Run();
 }
 
@@ -214,6 +267,20 @@ GBrowserThread::~GBrowserThread()
 	Loop = false;
 	while (!IsExited())
 		LgiSleep(10);
+}
+
+void GBrowserThread::Stop()
+{
+	if (SockHnd != INVALID_SOCKET)
+	{
+		LgiTrace("CloseSock %p\n", SockHnd);
+		#ifdef WIN32
+		closesocket(SockHnd);
+		#else
+		close(SockHnd);
+		#endif
+		SockHnd = INVALID_SOCKET;
+	}
 }
 
 bool GBrowserThread::Add(char *Uri)
@@ -256,7 +323,6 @@ int GBrowserThread::Main()
 			if (!u.Port)
 				u.Port = HTTP_PORT;
 
-
 			IHttp h;
 			int Status = 0;
 			GAutoPtr<GStream> p(new GStringPipe);
@@ -266,9 +332,13 @@ int GBrowserThread::Main()
 				if (Proxy.Host)
 					h.SetProxy(Proxy.Host, Proxy.Port);
 
-				if (h.Open(new GSocket, u.Host, u.Port))
+				GSocket *Sock = new GSocket;
+				if (h.Open(Sock, u.Host, u.Port))
 				{
+					SockHnd = Sock->Handle();
+					LgiTrace("Sock %p\n", SockHnd);
 					bool b = h.GetFile(0, Uri, *p, GET_TYPE_NORMAL|GET_NO_CACHE, &Status);
+					LgiTrace("b %i\n", b);
 					GBrowserPriv::FilePtr f = d->Lock();
 					if (!b)
 					{
@@ -276,13 +346,12 @@ int GBrowserThread::Main()
 					}
 					f->Files->Add(Uri, p.Release());
 					d->Wnd->PostEvent(M_LOADED);
+					SockHnd = INVALID_SOCKET;
+					LgiTrace("Sock %p\n", SockHnd);
 				}
 			}
 		}
-		else
-		{
-			LgiSleep(50);
-		}		
+		else LgiSleep(50);
 	}
 
 	return false;
@@ -309,11 +378,13 @@ GBrowser::GBrowser(char *Title, char *Uri)
 		AddView(d->Stop = new GButton(IDC_REFRESH_STOP, 0, 0, -1, 20, "Refresh"));
 		AddView(d->UriEdit = new GEdit(IDC_URI, 0, 0, 100, 20, 0));
 		AddView(d->Html = new Html2::GHtml2(IDC_HTML, 0, 0, 100, 100));
+
 		AttachChildren();
 		OnPosChange();
 		Visible(true);
 
 		d->Html->SetEnv(d);
+		d->Html->SetLinkDoubleClick(false);
 		d->Back->Enabled(false);
 		d->Forward->Enabled(false);
 		if (Uri)
@@ -418,6 +489,18 @@ int GBrowser::OnNotify(GViewI *c, int f)
 			}
 			break;
 		}
+		case IDC_REFRESH_STOP:
+		{
+			if (d->Loading)
+			{
+				d->Thread->Stop();
+			}
+			else // refresh
+			{
+				d->LoadCurrent();
+			}
+			break;
+		}
 	}
 
 	return 0;
@@ -443,7 +526,7 @@ int GBrowser::OnEvent(GMessage *m)
 		}
 		case M_BUSY:
 		{
-			if (MsgA(m))
+			if (d->Loading = MsgA(m))
 				SetCtrlName(IDC_REFRESH_STOP, "Stop");
 			else
 				SetCtrlName(IDC_REFRESH_STOP, "Refresh");

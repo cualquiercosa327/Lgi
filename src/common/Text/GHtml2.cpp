@@ -12,7 +12,7 @@
 #include "GFindReplaceDlg.h"
 #include "GUtf8.h"
 
-#define DEBUG_TABLE_LAYOUT			0
+#define DEBUG_TABLE_LAYOUT			1
 #define LUIS_DEBUG					0
 #define CRASH_TRACE					0
 #ifdef MAC
@@ -1321,7 +1321,7 @@ void GCellStore::Dump()
 		for (x=0; x<Sx; x++)
 		{
 			GTag *t = Get(x, y);
-			LgiTrace("%p ", t);
+			LgiTrace("%p  ", t);
 		}
 		LgiTrace("\n");
 
@@ -2427,8 +2427,6 @@ void GTag::SetStyle()
 	}
 	#endif
 
-	// GFont *Def = GetFont();
-
 	if (Get("Color", s))
 	{
 		ColorDef Def;
@@ -2527,6 +2525,11 @@ void GTag::SetStyle()
 				c.Rgb32 = Rgb32(0, 0, 255);
 				Color(c);
 				TextDecoration(TextDecorUnderline);
+
+				if (s = Html->CssMap.Find("a"))
+					SetCssStyle(s);
+				if (s = Html->CssMap.Find("a:link"))
+					SetCssStyle(s);
 			}
 			break;
 		}
@@ -2603,10 +2606,9 @@ void GTag::SetStyle()
 	}
 
 	// Tag style
-	char *Style = Html->CssMap.Find(Tag);
-	if (Style)
+	if (s = (TagId == TAG_A) ? 0 : Html->CssMap.Find(Tag))
 	{
-		SetCssStyle(Style);
+		SetCssStyle(s);
 	}
 
 	if (HtmlId)
@@ -2614,9 +2616,9 @@ void GTag::SetStyle()
 		char b[256];
 		snprintf(b, sizeof(b)-1, "%s#%s", Tag, HtmlId);
 		b[sizeof(b)-1] = 0;
-		if (Style = Html->CssMap.Find(b))
+		if (s = Html->CssMap.Find(b))
 		{
-			SetCssStyle(Style);
+			SetCssStyle(s);
 		}
 	}
 	if (Get("class", Class))
@@ -2625,22 +2627,20 @@ void GTag::SetStyle()
 		char c[256];
 		snprintf(c, sizeof(c)-1, ".%s", Class);
 		c[sizeof(c)-1] = 0;
-		Style = Html->CssMap.Find(c);
-		if (Style)
+		if (s = Html->CssMap.Find(c))
 		{
-			SetCssStyle(Style);
+			SetCssStyle(s);
 		}
 
 		snprintf(c, sizeof(c)-1, "%s.%s", Tag, Class);
-		Style = Html->CssMap.Find(c);
-		if (Style)
+		if (s = Html->CssMap.Find(c))
 		{
-			SetCssStyle(Style);
+			SetCssStyle(s);
 		}
 	}
-	if (Get("style", Style))
+	if (Get("style", s))
 	{
-		SetCssStyle(Style);
+		SetCssStyle(s);
 	}
 
 	switch (TagId)
@@ -4091,16 +4091,14 @@ void GTag::LayoutTable(GFlowRegion *f)
 		ZeroTableElements();
 		Len BdrSpacing = BorderSpacing();
 		int CellSpacing = BdrSpacing.IsValid() ? BdrSpacing.Value : 0;
-		// GCss::Len Margin = MarginLeft();
-		// int MarginX1 = Margin.IsValid() ? f->ResolveX(Margin, Font) : 0;
-		// Margin = MarginRight();
-		// int MarginX2 = Margin.IsValid() ? f->ResolveX(Margin, Font) : 0;
 		int AvailableX = f->ResolveX(Width(), Font);
-		// AvailableX -= MarginX1;
-		// AvailableX -= MarginX2;
+		GCss::Len Border = BorderLeft();
+		int BorderX1 = Border.IsValid() ? f->ResolveX(Border, Font) : 0;
+		Border = BorderRight();
+		int BorderX2 = Border.IsValid() ? f->ResolveX(Border, Font) : 0;
 		#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 		if (Debug)
-			LgiTrace("AvailableX=%i\n", AvailableX);
+			LgiTrace("AvailableX=%i, BorderX1=%i, BorderX2=%i\n", AvailableX, BorderX1, BorderX2);
 		#endif
 
 		// The col and row sizes
@@ -4159,7 +4157,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 		}
 		
 		// How much space used so far?
-		int TotalX = BorderLeft().Value + BorderRight().Value + CellSpacing;
+		int TotalX = BorderX1 + BorderX2 + CellSpacing;
 		int x;
 		for (x=0; x<s.x; x++)
 		{
@@ -4238,7 +4236,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 			}
 		}
 
-		TotalX = BorderLeft().Value + BorderRight().Value;
+		TotalX = BorderX1 + BorderX2 + CellSpacing;
 		for (x=0; x<s.x; x++)
 		{
 			TotalX += MinCol[x] + CellSpacing;
@@ -4482,6 +4480,13 @@ void GTag::LayoutTable(GFlowRegion *f)
 				{
 					if (t->Cell.x == x && t->Cell.y == y)
 					{
+						#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
+						if (Debug)
+						{
+							int asd=0;
+						}
+						#endif
+
 						GRect Box(0, 0, -CellSpacing, 0);
 						for (int i=0; i<t->Span.x; i++)
 						{
@@ -4813,40 +4818,6 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, char16 *Text, GC
 		Tag->Size.x = max(Tag->Size.x, Tr->x2);
 		Tag->Size.y = max(Tag->Size.y, Tr->y2);
 
-		#if 0
-		if (Wrap)
-		{
-			// New line here... process alignment.
-			switch (Align)
-			{
-				case AlignCenter:
-				{
-					GFlowRect *r = ItemAt(LineStart);
-					if (r)
-					{
-						int MinX = r->x1, MaxX = r->x2;
-						while (r = Next())
-						{
-							MinX = min(MinX, r->x1);
-							MaxX = max(MaxX, r->x2);
-						}
-
-						int Tx = MaxX - MinX;
-						int Fx = Flow->x2 - Flow->x1;
-						int Offset = (Fx - Tx) / 2;
-						for (r = ItemAt(LineStart); r; r = Next())
-						{
-							r->Offset(Offset, 0);
-						}
-					}
-					break;
-				}
-			}
-
-			LineStart = Length();
-		}
-		#endif
-
 		if (Tr->Len == 0)
 			break;
 	}
@@ -4864,6 +4835,11 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 
 	Size.x = 0;
 	Size.y = 0;
+
+	if (Debug)
+	{
+		int asd=0;
+	}
 
 	switch (TagId)
 	{
@@ -4965,14 +4941,14 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 			}
 		}
 
+		// Indent the margin...
+		Flow->Indent(f, MarginLeft(), MarginTop(), MarginRight(), MarginBottom(), true);
+
 		// Set the width if any
-		if (Width().IsValid())
+		if (TagId != TAG_TD && Width().IsValid())
 			Size.x = Flow->ResolveX(Width(), f);
 		else
 			Size.x = Flow->X();
-
-		// Indent the margin...
-		Flow->Indent(f, MarginLeft(), MarginTop(), MarginRight(), MarginBottom(), true);
 
 		Pos.x = Flow->x1;
 		Pos.y = Flow->y1;
@@ -5100,29 +5076,6 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 		}
 		case TAG_BR:
 		{
-			/*
-			if (Flow->cx == Flow->x1)
-			{
-				// Create insertion point
-				GFlowRect *Tr = new GFlowRect;
-				if (Tr)
-				{
-					int Idx = Parent->Tags.IndexOf(this);
-					GTag *Prev = Idx > 0 ? Parent->Tags[Idx-1] : Parent;
-
-					Tr->Text = L"";
-					Tr->Tag = Prev;
-					Tr->x1 = Tr->x2 = Flow->cx;
-					Tr->y1 = Flow->y1;
-					Tr->y2 = Tr->y1 + f->GetHeight();
-					Prev->TextPos.Insert(Tr);
-					Flow->Insert(Tr);
-
-					Flow->y2 = max(Flow->y2, Tr->y2+1);
-				}
-			}
-			*/
-
 			Flow->FinishLine();
 			Size.y = Flow->y2 - OldFlowY2;
 			break;
