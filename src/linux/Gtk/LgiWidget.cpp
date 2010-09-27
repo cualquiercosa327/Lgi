@@ -63,6 +63,9 @@ GtkWidget *lgi_widget_new(GViewI *target, int w, int h, bool pour_largest)
             gtk_widget_set_can_focus(GTK_WIDGET(p), TRUE);
         }
 
+		#if 1
+		gtk_widget_add_events(GTK_WIDGET(p), GDK_ALL_EVENTS_MASK);
+		#else
    		gtk_widget_add_events(  GTK_WIDGET(p),
    		                        GDK_BUTTON_PRESS_MASK |
    		                        GDK_BUTTON_RELEASE_MASK |
@@ -76,8 +79,10 @@ GtkWidget *lgi_widget_new(GViewI *target, int w, int h, bool pour_largest)
                                 GDK_BUTTON3_MOTION_MASK |
                                 GDK_EXPOSURE_MASK |
                                 GDK_FOCUS_CHANGE_MASK |
+                                GDK_STRUCTURE_MASK |
                                 GDK_KEY_PRESS_MASK |
                                 GDK_KEY_RELEASE_MASK);
+		#endif
 	}	
 	return GTK_WIDGET(p);
 }
@@ -530,6 +535,7 @@ gboolean
 lgi_widget_configure(GtkWidget *widget, GdkEventConfigure *ev)
 {
 	LgiWidget *p = LGI_WIDGET(widget);
+	printf("lgi_widget_configure %p\n", p);
 	if (p)
 	{
 	    p->target->OnPosChange();
@@ -545,7 +551,7 @@ lgi_widget_class_init(LgiWidgetClass *klass)
 
 	GtkWidgetClass *widget_class = (GtkWidgetClass *)klass;
 	widget_class->realize = lgi_widget_realize;
-	widget_class->configure_event = lgi_widget_configure;
+	// widget_class->configure_event = lgi_widget_configure;
 	widget_class->size_request = lgi_widget_size_request;
 	widget_class->size_allocate = lgi_widget_size_allocate;
 	widget_class->expose_event = lgi_widget_expose;
@@ -577,3 +583,4 @@ lgi_widget_init(LgiWidget *w)
 	w->h = 0;
 	w->pour_largest = false;
 }
+

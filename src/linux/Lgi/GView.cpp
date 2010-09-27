@@ -490,11 +490,8 @@ bool GView::SetPos(GRect &p, bool Repaint)
 									Pos.y1 + o);
 		}
 	}
-	else
-	{
-		OnPosChange();
-	}
 
+	OnPosChange();
 	return true;
 }
 
@@ -595,6 +592,7 @@ int GView::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{
+		#if 0 // def M_GTHREADWORK_COMPELTE
 		case M_GTHREADWORK_COMPELTE:
 		{
 			GThreadOwner *Owner = (GThreadOwner*) MsgA(Msg);
@@ -603,6 +601,7 @@ int GView::OnEvent(GMessage *Msg)
 			DeleteObj(WorkUnit);
 			break;
 		}
+		#endif
 		case M_X11_INVALIDATE:
 		{
 			X11_INVALIDATE_PARAMS *p = (X11_INVALIDATE_PARAMS*)MsgA(Msg);

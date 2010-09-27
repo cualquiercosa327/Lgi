@@ -1749,14 +1749,58 @@ bool GGlobalColour::RemapBitmap(GSurface *pDC)
 GSurface *GInlineBmp::Create()
 {
 	GSurface *pDC = new GMemDC;
-	if (pDC->Create(X, Y, Bits))
+	if (pDC->Create(X, Y, 32))
 	{
 		int Line = X * Bits / 8;
 		for (int y=0; y<Y; y++)
 		{
-			memcpy((*pDC)[y], ((uchar*)Data) + (y * Line), Line);
+			void *addr = ((uchar*)Data) + (y * Line);
+			switch (Bits)
+			{
+				case 16:
+				{
+					uint32 *out = (uint32*)(*pDC)[y];
+					uint16 *in = (uint16*)addr;
+					uint16 *end = in + X;
+					while (in < end)
+					{
+						*out = Rgb16To32(*in);						
+						in++;
+						out++;
+					}
+					break;
+				}
+				case 24:
+				{
+					Pixel32 *out = (Pixel32*)(*pDC)[y];
+					Pixel32 *end = out + X;
+					Pixel24 *in = (Pixel24*)addr;
+					while (out < end)
+					{
+						out->r = in->r;
+						out->g = in->g;
+						out->b = in->b;
+						out->a = 255;
+						out++;
+						in = in->Next();
+					}
+					break;
+				}
+				case 32:
+				{
+					for (int y=0; y<Y; y++)
+						memcpy((*pDC)[y], addr, Line);
+					break;
+				}
+				default:
+				{
+					LgiAssert(!"Not a valid bit depth.");
+					break;
+				}
+			}
 		}
 	}
 
 	return pDC;
 }
+

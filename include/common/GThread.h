@@ -60,6 +60,8 @@ public:
 ////////////////////////////////////////////////////////////////////////////////////////
 class GThreadOwner;
 class GThreadTarget;
+class GThreadWorker;
+
 class GThreadJob
 {
 	friend class GThreadWorker;

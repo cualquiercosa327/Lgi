@@ -43,6 +43,8 @@
 #ifdef DEBUG_LOG
 	GFile Log;
 #endif
+
+#ifdef _MSC_VER
 #ifdef _DEBUG
 	#ifdef DEBUG_LOG
 		#define PathAssert(b)			if (!(b)) { Log.Close(); \
@@ -51,6 +53,9 @@
 	#else
 		#define PathAssert(b)			if (!(b)) _asm int 3
 	#endif
+#else
+	#define PathAssert(b)
+#endif
 #else
 	#define PathAssert(b)
 #endif

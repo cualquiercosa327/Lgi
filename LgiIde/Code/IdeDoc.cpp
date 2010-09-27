@@ -449,7 +449,7 @@ public:
 		bool LongComment = false;
 		COLOUR CommentColour = Rgb24(0, 0x80, 0);
 		char16 Eoc[] = { '*', '/', 0 };
-		for (GTextLine *l=Line.First(); l; l=Line.Next())
+		for (GTextLine *l=GTextView3::Line.First(); l; l=GTextView3::Line.Next())
 		{
 			char16 *s = Text + l->Start;			
 			if (LongComment)
