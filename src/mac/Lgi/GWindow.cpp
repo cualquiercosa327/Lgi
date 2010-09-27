@@ -1620,7 +1620,6 @@ bool GWindow::SetPos(GRect &p, bool Repaint)
 	{
 		Rect rc;
 		rc = Pos;
-		printf("SetWndPos %s\n", Pos.GetStr());
 		OSStatus e = SetWindowBounds(Wnd, kWindowStructureRgn, &rc);
 		if (e) printf("%s:%i - SetWindowBounds error e=%i\n", _FL, e);
 	}

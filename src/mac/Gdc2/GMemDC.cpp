@@ -160,6 +160,7 @@ public:
 	CGContextRef Bmp;
 	CGColorSpaceRef Cs;
 	GRect Client;
+	GAutoPtr<uchar, true> BitsMem;
 
 	GMemDCPrivate()
 	{
@@ -186,6 +187,8 @@ public:
 			CGColorSpaceRelease(Cs);
 			Cs = 0;
 		}
+		
+		BitsMem.Reset();
 	}
 };
 
@@ -288,11 +291,13 @@ bool GMemDC::Unlock()
 	return true;
 }
 
+/*
 void ReleaseData(void *info, const void *data, size_t size)
 {
 	GMemDCPrivate *d = (GMemDCPrivate*)info;
 	DeleteArray(d->Data);
 }
+*/
 
 bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 {
@@ -310,9 +315,9 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 			LineLen = ((Bits * x + (Align - 1)) / Align) * (Align / 8);
 		}
 		
-		d->Data = new uchar[LineLen * y];
-		if (d->Data)
+		if (d->BitsMem.Reset(new uchar[LineLen * y]))
 		{
+			d->Data = d->BitsMem;
 			if (Bits <= 8)
 			{
 				d->Cs = CGColorSpaceCreateDeviceGray();

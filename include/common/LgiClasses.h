@@ -186,7 +186,7 @@ protected:
 	void DeleteMeLater(GViewI *v);
 	void SetClipBoardContent(OsView Hnd, GVariant &v);
 	bool GetClipBoardContent(OsView Hnd, GVariant &v, GArray<char*> &Types);
-
+	
 	#endif
 
 	friend class GMouseHook;

@@ -106,7 +106,6 @@ bool GPanel::Attach(GViewI *Wnd)
 
 bool GPanel::Pour(GRegion &r)
 {
-	printf("GPanel::Pour\n");
 	int Sx = CalcWidth();
 	GRect *Best = 0;
 	if (Open())
@@ -167,7 +166,6 @@ bool GPanel::Pour(GRegion &r)
 			r.y2 = r.y1 - OpenSize;
 		}
 
-		printf("Setpos %s, %p, %i\n", r.GetStr(), Handle(), IsAttached());
 		SetPos(r, true);
 
 		return true;

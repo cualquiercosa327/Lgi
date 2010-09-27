@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		340811450E304AD0007D21F7 /* GHashTable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 340811440E304AD0007D21F7 /* GHashTable.cpp */; };
 		340BFC15096A0E0100A11AE6 /* LgiCommon.h in Headers */ = {isa = PBXBuildFile; fileRef = 340BFC14096A0E0100A11AE6 /* LgiCommon.h */; };
 		340BFC4A096A9D4600A11AE6 /* GArray.h in Headers */ = {isa = PBXBuildFile; fileRef = 340BFC49096A9D4600A11AE6 /* GArray.h */; };
 		340BFD1D096AA96800A11AE6 /* GSemaphore.h in Headers */ = {isa = PBXBuildFile; fileRef = 340BFD1C096AA96800A11AE6 /* GSemaphore.h */; };
@@ -148,6 +147,7 @@
 		34D2CCAA08F1181C0009968C /* GFontSelect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D2CCA908F1181C0009968C /* GFontSelect.cpp */; };
 		34D2CCAC08F1183F0009968C /* GWindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D2CCAB08F1183F0009968C /* GWindow.cpp */; };
 		34D2CCED08F11BEF0009968C /* GWidgets.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D2CCEC08F11BEF0009968C /* GWidgets.cpp */; };
+		34D4D55B1250AF98000DA1FD /* GHashTable.h in Headers */ = {isa = PBXBuildFile; fileRef = 34D4D55A1250AF98000DA1FD /* GHashTable.h */; };
 		34D979D11150F0E100CE462B /* GLayout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D979D01150F0E100CE462B /* GLayout.cpp */; };
 		34DA5CB70DE0DE930050C7E4 /* GScrollBar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34DA5CB60DE0DE930050C7E4 /* GScrollBar.cpp */; };
 		34E51DB00D2EFCCB0021AA08 /* GList.h in Headers */ = {isa = PBXBuildFile; fileRef = 34E51DAF0D2EFCCB0021AA08 /* GList.h */; };
@@ -160,7 +160,6 @@
 		0867D69BFE84028FC02AAC07 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		0867D6A5FE840307C02AAC07 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		089C1667FE841158C02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		340811440E304AD0007D21F7 /* GHashTable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GHashTable.cpp; path = src/common/General/GHashTable.cpp; sourceTree = "<group>"; };
 		340BFC14096A0E0100A11AE6 /* LgiCommon.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LgiCommon.h; path = include/common/LgiCommon.h; sourceTree = "<group>"; };
 		340BFC49096A9D4600A11AE6 /* GArray.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GArray.h; path = include/common/GArray.h; sourceTree = "<group>"; };
 		340BFD1C096AA96800A11AE6 /* GSemaphore.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GSemaphore.h; path = include/common/GSemaphore.h; sourceTree = "<group>"; };
@@ -301,6 +300,7 @@
 		34D2CCA908F1181C0009968C /* GFontSelect.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GFontSelect.cpp; path = src/common/Lgi/GFontSelect.cpp; sourceTree = "<group>"; };
 		34D2CCAB08F1183F0009968C /* GWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GWindow.cpp; path = src/mac/Lgi/GWindow.cpp; sourceTree = "<group>"; };
 		34D2CCEC08F11BEF0009968C /* GWidgets.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GWidgets.cpp; path = src/mac/Lgi/GWidgets.cpp; sourceTree = "<group>"; };
+		34D4D55A1250AF98000DA1FD /* GHashTable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GHashTable.h; path = include/common/GHashTable.h; sourceTree = "<group>"; };
 		34D979D01150F0E100CE462B /* GLayout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GLayout.cpp; path = src/common/Lgi/GLayout.cpp; sourceTree = "<group>"; };
 		34DA5CB60DE0DE930050C7E4 /* GScrollBar.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GScrollBar.cpp; path = src/common/Widgets/GScrollBar.cpp; sourceTree = "<group>"; };
 		34E51DAF0D2EFCCB0021AA08 /* GList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GList.h; path = include/common/GList.h; sourceTree = "<group>"; };
@@ -563,11 +563,11 @@
 		344B738408D840A800D49457 /* Memory */ = {
 			isa = PBXGroup;
 			children = (
+				34D4D55A1250AF98000DA1FD /* GHashTable.h */,
 				34ADC9E00F4CC395009C6B75 /* GAutoPtr.h */,
 				340BFC49096A9D4600A11AE6 /* GArray.h */,
 				3465BDD808C5DEC100B4C217 /* GContainers.cpp */,
 				34A671960F3725860073A86C /* GContainers.h */,
-				340811440E304AD0007D21F7 /* GHashTable.cpp */,
 				34B4A50A0C0598B600CDD0D1 /* GMem.cpp */,
 				34B4A50E0C0598E900CDD0D1 /* GMem.h */,
 				344AF3C808E04B32004ED88C /* GProperties.cpp */,
@@ -673,7 +673,6 @@
 		34D2CC5008F0FB510009968C /* Widgets */ = {
 			isa = PBXGroup;
 			children = (
-				3444A36012275BDD004ADADE /* GToolBar.cpp */,
 				3429212A1087D55900578ECC /* Css */,
 				34DA5C2C0DE0339E0050C7E4 /* Mac Native */,
 				344D1B1608F4A36300228075 /* GBitmap.cpp */,
@@ -696,6 +695,7 @@
 				344D1B2208F4A36300228075 /* GTabView.cpp */,
 				344D1B2308F4A36300228075 /* GTextLabel.cpp */,
 				34983C1308F5482D0054868C /* GTextView3.cpp */,
+				3444A36012275BDD004ADADE /* GToolBar.cpp */,
 				34983C1608F5484C0054868C /* GToolTip.cpp */,
 				344D1B2508F4A36300228075 /* GTree.cpp */,
 				34D2CCEC08F11BEF0009968C /* GWidgets.cpp */,
@@ -801,6 +801,7 @@
 				342CE46211FDAB57000B1F3C /* LgiRes.h in Headers */,
 				341BE43F123ED1E6009BF203 /* md5.h in Headers */,
 				341BE443123ED1F1009BF203 /* sha1.h in Headers */,
+				34D4D55B1250AF98000DA1FD /* GHashTable.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -947,7 +948,6 @@
 				34666FFF0D323C4F00E80BC9 /* GThreadCommon.cpp in Sources */,
 				34B5EAE40DD5B39F005A24D0 /* GFileSelect.cpp in Sources */,
 				34DA5CB70DE0DE930050C7E4 /* GScrollBar.cpp in Sources */,
-				340811450E304AD0007D21F7 /* GHashTable.cpp in Sources */,
 				34A3ABF70EF5AA0A009A5E95 /* GDisplayString.cpp in Sources */,
 				3493304A0F60CE440092EAE8 /* GViewCommon.cpp in Sources */,
 				347677640FE5BB2800E2E445 /* md5.c in Sources */,

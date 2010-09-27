@@ -503,6 +503,11 @@ public:
 			}
 		}
 	}
+	
+	~GMacVolume()
+	{
+		_Sub.DeleteObjects();
+	}
 
 	bool IsMounted()
 	{
@@ -1450,7 +1455,7 @@ int GFile::Open(char *File, int Mode)
 	
 	#ifdef _FILE_OPEN
 	if (_FileLock.Lock(_FL))
-	{
+	{5
 		_FileOpen.Add(File, this);
 		_FileLock.Unlock();
 	}

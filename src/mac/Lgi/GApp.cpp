@@ -234,9 +234,11 @@ public:
 	GSymLookup SymLookup;
 	GAutoString Mime;
 	GAutoString Name;
+	EventHandlerUPP AppEventUPP;
 
 	GAppPrivate()
 	{
+		AppEventUPP = 0;
 		FileSystem = 0;
 		GdcSystem = 0;
 		Config = 0;
@@ -246,6 +248,8 @@ public:
 
 	~GAppPrivate()
 	{
+		if (AppEventUPP)
+			DisposeEventHandlerUPP(AppEventUPP);
 		DeleteObj(SkinLib);
 		
 		for (void *p = MimeToApp.First(); p; p = MimeToApp.Next())
@@ -431,7 +435,7 @@ GApp::GApp(char *AppMime, OsAppArguments &AppArgs, GAppArguments *ObjArgs) :
 
 	EventHandlerRef Handler = 0;
 	OSStatus e =	InstallApplicationEventHandler(
-						NewEventHandlerUPP(AppProc),
+						d->AppEventUPP = NewEventHandlerUPP(AppProc),
 						GetEventTypeCount(AppEvents), AppEvents,
 						(void*)this, &Handler);
 	if (e)

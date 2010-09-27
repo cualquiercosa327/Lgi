@@ -92,14 +92,14 @@ GMenuItem *GSubMenu::AppendItem(char *Str, int Id, bool Enabled, int Where, char
 	GMenuItem *i = new GMenuItem(Menu, this, Where, Shortcut);
 	if (i)
 	{
-		Items.Insert(i, Where);
-		
-		i->Name(Str);
-		i->Parent = this;
-		i->Menu = Menu;
-
 		if (Info)
 		{
+			Items.Insert(i, Where);
+			
+			i->Name(Str);
+			i->Parent = this;
+			i->Menu = Menu;
+
 			Str = i->Name();
 			CFStringRef s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)Str, strlen(Str), kCFStringEncodingUTF8, false);
 			OSStatus e = AppendMenuItemTextWithCFString(Info, s, 0, 0, &i->Info);
@@ -113,15 +113,13 @@ GMenuItem *GSubMenu::AppendItem(char *Str, int Id, bool Enabled, int Where, char
 			i->Enabled(Enabled);
 			i->ScanForAccel();
 			
-			// printf("AppendItem '%s' Sub=%p Item=%i\n", Str, Info, i->Info);
+			return i;
 		}
 		else
 		{
 			printf("%s:%i - No menu to attach item to.\n", __FILE__, __LINE__);
 			DeleteObj(i);
 		}
-
-		return i;
 	}
 
 	return 0;
@@ -403,6 +401,7 @@ GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, int Pos, char *Shortcut)
 GMenuItem::~GMenuItem()
 {
 	DeleteObj(Child);
+	DeleteObj(d);
 }
 
 void GMenuItem::OnAttach(bool Attach)

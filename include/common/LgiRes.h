@@ -76,7 +76,6 @@ class LgiClass LgiResources : public ResFactory
 public:
 	GHashTbl<char*, char*> LanguageNames;
 	List<LgiStringRes> Strings;
-	static List<LgiResources> ResourceContainers;
 
 	LgiResources(char *FileName = 0, bool Warn = false);
 	virtual ~LgiResources();
@@ -114,4 +113,14 @@ public:
 	GDom* Res_GetDom(ResObject *Obj);
 };
 
+class GResourceContainer : public GArray<LgiResources*>
+{
+public:
+	~GResourceContainer()
+	{
+		DeleteObjects();
+	}
+};
+
+LgiExtern GResourceContainer _ResourceOwner;
 LgiExtern LgiResources *LgiGetResObj(bool Warn = false, char *filename = 0);

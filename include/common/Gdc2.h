@@ -1210,7 +1210,7 @@ public:
 		GRect ClipRgn() { return Clip; }
 
 		#if defined MAC
-		
+				
 		OsPainter Handle();
 		OsBitmap GetBitmap();
 		CGColorSpaceRef GetColourSpace();

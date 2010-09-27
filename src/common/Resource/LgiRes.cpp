@@ -211,7 +211,7 @@ public:
 	}
 };
 
-List<LgiResources> LgiResources::ResourceContainers;
+GResourceContainer _ResourceOwner;
 
 LgiResources::LgiResources(char *FileName, bool Warn)
 {
@@ -221,7 +221,7 @@ LgiResources::LgiResources(char *FileName, bool Warn)
 	if (Languages) *Languages = 0;
 
 	// global pointer list
-	ResourceContainers.Insert(this);
+	_ResourceOwner.Add(this);
 
 	char File[256] = "";
 	char *FullPath = 0;
@@ -364,7 +364,7 @@ printf("%s:%i - FullPath='%s'\n", _FL, FullPath);
 
 LgiResources::~LgiResources()
 {
-	ResourceContainers.Delete(this);
+	_ResourceOwner.Delete(this);
 	LanguageNames.DeleteArrays();
 	
 	Dialogs.DeleteObjects();
@@ -1096,10 +1096,10 @@ bool GLgiRes::LoadFromResource(int Resource, GViewI *Parent, GRect *Pos, char *N
 {
 	LgiGetResObj();
 
-	for (LgiResources  *r=LgiResources::ResourceContainers.First(); r;
-						r=LgiResources::ResourceContainers.Next())
+	for (int i=0; i<_ResourceOwner.Length(); i++)
 	{
-		if (r->LoadDialog(Resource, Parent, Pos, Name))
+		
+		if (_ResourceOwner[i]->LoadDialog(Resource, Parent, Pos, Name))
 		{
 			return true;
 		}
@@ -1494,10 +1494,10 @@ bool GMenu::Load(GView *w, char *Res, char *TagList)
 
 LgiResources *LgiGetResObj(bool Warn, char *filename)
 {
-	if (LgiResources::ResourceContainers.Length() == 0)
+	if (_ResourceOwner.Length() == 0)
 	{
 		new LgiResources(filename, Warn);
 	}
 
-	return LgiResources::ResourceContainers.First();
+	return _ResourceOwner[0];
 }
