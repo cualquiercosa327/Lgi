@@ -93,9 +93,16 @@ public:
 	bool WordSelectMode;
 	GdcPt2 Content;
 	bool LinkDoubleClick;
+	
+	// This UID is used to match data load events with their source document.
+	// Sometimes data will arrive after the document that asked for it has
+	// already been unloaded. So by assigned each document an UID we can check
+	// the job UID against it and discard old data.
+	uint32 DocumentUid;
 
 	GHtmlPrivate2()
 	{
+		DocumentUid = 0;
 		LinkDoubleClick = true;
 		WordSelectMode = false;
 		// Static = Inst.Static;
@@ -1174,6 +1181,17 @@ GCss::LengthType GTag::GetAlign(bool x)
 }
 
 //////////////////////////////////////////////////////////////////////
+bool GTag::HasChild(GTag *c)
+{
+	List<GTag>::I it = Tags.Start();
+	for (GTag *t = *it; t; t = *++it)
+	{
+		if (t == c || t->HasChild(c))
+			return true;
+	}
+	return false;
+}
+
 bool GTag::Attach(GTag *Child, int Idx)
 {
 	if (TagId == CONTENT)
@@ -2348,12 +2366,15 @@ void GTag::SetImage(char *Uri, GSurface *Img)
 
 void GTag::LoadImage(char *Uri)
 {
+	#if 1
 	GDocumentEnv::LoadJob *j = Html->Environment->NewJob();
 	if (j)
 	{
+		LgiAssert(Html);
 		j->Uri.Reset(NewStr(Uri));
 		j->View = Html;
 		j->UserData = this;
+		j->UserUid = Html->d->DocumentUid;
 
 		GDocumentEnv::LoadType Result = Html->Environment->GetContent(j);
 		if (Result == GDocumentEnv::LoadImmediate)
@@ -2362,6 +2383,7 @@ void GTag::LoadImage(char *Uri)
 		}
 		DeleteObj(j);
 	}
+	#endif
 }
 
 void GTag::LoadImages()
@@ -2460,9 +2482,11 @@ void GTag::SetStyle()
 					GDocumentEnv::LoadJob *j = Html->Environment->NewJob();
 					if (j)
 					{
+						LgiAssert(Html);
 						j->Uri.Reset(NewStr(Href));
 						j->View = Html;
 						j->UserData = this;
+						j->UserUid = Html->d->DocumentUid;
 						// j->Pref = GDocumentEnv::LoadJob::FmtFilename;
 
 						GDocumentEnv::LoadType Result = Html->Environment->GetContent(j);
@@ -3477,9 +3501,11 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 								GDocumentEnv::LoadJob *j = Html->Environment->NewJob();
 								if (j)
 								{
+									LgiAssert(Html);
 									j->Uri.Reset(NewStr(Src));
 									j->View = Html;
 									j->UserData = this;
+									j->UserUid = Html->d->DocumentUid;
 
 									GDocumentEnv::LoadType Result = Html->Environment->GetContent(j);
 									if (Result == GDocumentEnv::LoadImmediate)
@@ -6021,6 +6047,8 @@ char16 *GHtml2::NameW()
 
 bool GHtml2::Name(char *s)
 {
+	d->DocumentUid++;
+
 	#if 0
 	GFile Out;
 	if (s && Out.Open("~\\Desktop\\html-input.html", O_WRITE))
@@ -6031,18 +6059,10 @@ bool GHtml2::Name(char *s)
 	}
 	#endif
 
-	#if LUIS_DEBUG
-	LgiTrace("%s:%i html(%p).src(%p)='%30.30s'\n", __FILE__, __LINE__, this, Source, Source);
-	#endif
-
 	_Delete();
 	_New();
 
 	Source = NewStr(s);
-
-	#if LUIS_DEBUG
-	LgiTrace("%s:%i html(%p).src(%p)='%30.30s'\n", __FILE__, __LINE__, this, Source, Source);
-	#endif
 
 	if (Source)
 	{
@@ -6124,17 +6144,23 @@ int GHtml2::OnEvent(GMessage *Msg)
 				for (int i=0; i<Jobs.Length(); i++)
 				{
 					GDocumentEnv::LoadJob *j = Jobs[i];
-					if (j->UserData)
+					GDocView *Me = this;
+					if (j->View == Me &&
+						j->UserUid == d->DocumentUid)
 					{
-						GTag *t = (GTag*)j->UserData;
-						if (t->Html == this)
+						if (j->UserData && j->pDC)
 						{
-							t->SetImage(j->Uri, j->pDC.Release());
-							ViewWidth = 0;
+							GTag *t = (GTag*)j->UserData;
+							if (Tag->HasChild(t))
+							{
+								LgiAssert(t->TagId == TAG_IMG);
+								t->SetImage(j->Uri, j->pDC.Release());
+								ViewWidth = 0;
+							}
 						}
-						else LgiAssert(!"Not the right job for us.");
+						else LgiAssert(!"No img or ptr.");
 					}
-					else LgiAssert(!"No tag.");
+					// else it's from another HTML control, ignore
 				}
 				Jobs.DeleteObjects();
 				Unlock();
@@ -6938,6 +6964,7 @@ void GHtml2::OnMouseClick(GMouse &m)
 															j->Uri.Reset(NewStr(cid));
 															j->View = this;
 															j->Pref = GDocumentEnv::LoadJob::FmtFilename;
+															j->UserUid = d->DocumentUid;
 
 															GDocumentEnv::LoadType Result = Environment->GetContent(j);
 															if (Result == GDocumentEnv::LoadImmediate)

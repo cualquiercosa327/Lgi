@@ -259,7 +259,7 @@ public:
 	GHtml2 *Html;
 	GTag *Parent;
 	List<GTag> Tags;
-
+	bool HasChild(GTag *c);
 	bool Attach(GTag *Child, int Idx = -1);
 	void Detach();
 	GTag *GetBlockParent(int *Idx = 0);

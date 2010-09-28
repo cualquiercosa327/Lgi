@@ -87,6 +87,7 @@ public:
 		// View data
 		GDocView *View;
 		void *UserData;
+		uint32 UserUid;
 		PrefFormat Pref;
 
 		// Input data
@@ -101,6 +102,7 @@ public:
 		LoadJob(GThreadTarget *o) : GThreadJob(o)
 		{
 			View = 0;
+			UserUid = 0;
 			UserData = 0;
 			Pref = FmtNone;
 		}

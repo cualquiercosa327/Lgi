@@ -434,8 +434,6 @@ GApp::~GApp()
 	DeleteObj(SystemBold);
 	DeleteObj(MouseHook);
 
-	LgiResources::ResourceContainers.DeleteObjects();
-
 	TheApp = 0;
 	DeleteObj(SkinEngine);
 
