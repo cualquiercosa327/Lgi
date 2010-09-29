@@ -41,7 +41,7 @@ GTag &GTag::operator =(GTag &t)
 	{
 		for (GNamedVariant *v=t.First(); v; v=t.Next())
 		{
-			GNamedVariant *n = NEW(GNamedVariant(v->Name()));
+			GNamedVariant *n = new GNamedVariant(v->Name());
 			if (n)
 			{
 				Insert(n);
@@ -209,7 +209,7 @@ bool GTag::SetVariant(char *Name, GVariant &Value, char *Array)
 		}
 		else
 		{
-			GNamedVariant *n = NEW(GNamedVariant(Name));
+			GNamedVariant *n = new GNamedVariant(Name);
 			if (n)
 			{
 				(GVariant&)*n = Value;

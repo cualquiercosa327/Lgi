@@ -4123,7 +4123,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 		}
 
 		#ifdef DOUBLE_BUFFER_PAINT
-		GMemDC *pMem = NEW(GMemDC);
+		GMemDC *pMem = new GMemDC;
 		pOut = pMem;
 		#endif
 		if (Text AND
@@ -4494,7 +4494,7 @@ int GTextView3::OnEvent(GMessage *Msg)
 				if (hIMC)
 				{
 					int Size = ImmGetCompositionString(hIMC, GCS_RESULTSTR, NULL, 0);
-					char *Buf = NEW(char[Size]);
+					char *Buf = new char[Size];
 					if (Buf)
 					{
 						ImmGetCompositionString(hIMC, GCS_RESULTSTR, Buf, Size);

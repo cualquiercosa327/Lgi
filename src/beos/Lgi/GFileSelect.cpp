@@ -37,7 +37,7 @@ public:
 		ParentWnd = 0;
 		WaitForMessage = false;
 		Size = 4096;
-		FileStr = NEW(char[Size]);
+		FileStr = new char[Size];
 		if (FileStr)
 		{
 			*FileStr = 0;
@@ -133,12 +133,12 @@ public:
 		Dir.GetRef(&DirRef);
 	
 		Messenger = 0;
-		Panel = NEW(BFilePanel(	Mode,
+		Panel = new BFilePanel(	Mod,
 								NULL,
 								&DirRef,
 								NodeType,
 								MultiSel,
-								NEW(BMessage(M_CHANGE)),
+								new BMessage(M_CHANGE),
 								NULL,
 								TRUE, // modal
 								FALSE)); // hide when done
@@ -156,7 +156,7 @@ public:
 				Wnd->Unlock();
 			}
 			
-			Messenger = NEW(BMessenger(this));
+			Messenger = new BMessenger(this);
 			Panel->SetTarget(*Messenger);
 			Panel->Show();
 			Wait();
@@ -169,7 +169,7 @@ public:
 
 GFileSelect::GFileSelect()
 {
-	d = NEW(GFileSelectPrivate);
+	d = new GFileSelectPrivate;
 }
 
 GFileSelect::~GFileSelect()
@@ -247,7 +247,7 @@ GFileType *GFileSelect::TypeAt(int n)
 
 bool GFileSelect::Type(char *Description, char *Extension, int Data)
 {
-	GFileType *Type = NEW(GFileType);
+	GFileType *Type = new GFileType;
 	if (Type)
 	{
 		Type->Description(Description);

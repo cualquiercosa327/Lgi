@@ -177,7 +177,7 @@ COLOUR HlsToRgb(COLOUR Hls)
 
 GSurface *ConvertDC(GSurface *pDC, int Bits)
 {
-	GSurface *pNew = NEW(GMemDC);
+	GSurface *pNew = new GMemDC;
 	if (pNew AND pNew->Create(pDC->X(), pDC->Y(), Bits))
 	{
 		pNew->Blt(0, 0, pDC);
@@ -423,7 +423,7 @@ void GPalette::Set(GPalette *pPal)
 	{
 		if (pPal->Data)
 		{
-			Data = NEW(GdcRGB[pPal->Size]);
+			Data = new GdcRGB[pPal->Size];
 			if (Data)
 			{
 				memcpy(Data, pPal->Data, sizeof(GdcRGB) * pPal->Size);
@@ -438,7 +438,7 @@ void GPalette::Set(uchar *pPal, int s)
 {
 	DeleteArray(Data);
 	Size = 0;
-	Data = NEW(GdcRGB[s]);
+	Data = new GdcRGB[s];
 	if (Data)
 	{
 		if (pPal)
@@ -462,7 +462,7 @@ bool GPalette::Update()
 
 bool GPalette::SetSize(int s)
 {
-	GdcRGB *New = NEW(GdcRGB[s]);
+	GdcRGB *New = new GdcRGB[s];
 	if (New)
 	{
 		memset(New, 0, s * sizeof(GdcRGB));
@@ -505,7 +505,7 @@ uchar *GPalette::MakeLut(int Bits)
 	{
 		case 15:
 		{
-			Lut = NEW(uchar[Size]);
+			Lut = new uchar[Size];
 			if (Lut)
 			{
 				for (int i=0; i<Size; i++)
@@ -521,7 +521,7 @@ uchar *GPalette::MakeLut(int Bits)
 		}
 		case 16:
 		{
-			Lut = NEW(uchar[Size]);
+			Lut = new uchar[Size];
 			if (Lut)
 			{
 				for (int i=0; i<Size; i++)
@@ -803,7 +803,7 @@ bool GDeviceContext::IsAlpha(bool b)
 	{
 		if (NOT pAlphaDC)
 		{
-			pAlphaDC = NEW(GMemDC);
+			pAlphaDC = new GMemDC;
 		}
 
 		if (pAlphaDC AND pMem)
@@ -1105,7 +1105,7 @@ public:
 		ScrBits = GetDeviceCaps(hScreenDC, BITSPIXEL);
 
 		int Colours = 1 << ScrBits;
-		pSysPal = (ScrBits <= 8) ? NEW(GPalette(0, Colours)) : 0;
+		pSysPal = (ScrBits <= 8) ? new GPalette(0, Colours) : 0;
 		if (pSysPal)
 		{
 			GdcRGB *p = (*pSysPal)[0];
@@ -1148,7 +1148,7 @@ public:
 		// printf("Screen: %i x %i @ %i bpp\n", ScrX, ScrY, ScrBits);
 
 		int Colours = 1 << ScrBits;
-		pSysPal = (ScrBits <= 8) ? NEW(GPalette(0, Colours)) : 0;
+		pSysPal = (ScrBits <= 8) ? new GPalette(0, Colours) : 0;
 		if (pSysPal)
 		{
 		}
@@ -1167,7 +1167,7 @@ public:
 		#endif
 
 		// Calcuate lookups
-		CharSquareData = NEW(ulong[255+255+1]);
+		CharSquareData = new ulong[255+255+1];
 		if (CharSquareData)
 		{
 			for (int i = -255; i <= 255; i++)
@@ -1178,7 +1178,7 @@ public:
 
 		// Divide by 255 lookup, real handy for alpha blending 8 bit components
 		int Size = (255 * 255) * 2;
-		Div255 = NEW(uchar[Size]);
+		Div255 = new uchar[Size];
 		if (Div255)
 		{
 			for (int i=0; i<Size; i++)
@@ -1201,7 +1201,7 @@ public:
 GdcDevice *GdcDevice::pInstance = 0;
 GdcDevice::GdcDevice()
 {
-	d = NEW(GdcDevicePrivate(this));
+	d = new GdcDevicePrivate(this);
 	pInstance = this;
 }
 
@@ -1658,10 +1658,10 @@ bool GSprite::SetSize(int x, int y, int BitSize, GSurface *pScr)
 		HotY = 0;
 		DrawMode = 0;
 
-		pBack = NEW(GMemDC);
-		pMask = NEW(GMemDC);
-		pColour = NEW(GMemDC);
-		pTemp = NEW(GMemDC);
+		pBack = new GMemDC;
+		pMask = new GMemDC;
+		pColour = new GMemDC;
+		pTemp = new GMemDC;
 
 		if (pBack AND pMask AND pColour AND pTemp)
 		{
@@ -1672,7 +1672,7 @@ bool GSprite::SetSize(int x, int y, int BitSize, GSurface *pScr)
 			{
 				if (pScreen->GetBits() == 8)
 				{
-					pTemp->Palette(NEW(GPalette(pScreen->Palette())));
+					pTemp->Palette(new GPalette(pScreen->Palette()));
 				}
 
 				Status = true;
@@ -2001,7 +2001,7 @@ public:
 
 GGlobalColour::GGlobalColour()
 {
-	d = NEW(GGlobalColourPrivate);
+	d = new GGlobalColourPrivate;
 }
 
 GGlobalColour::~GGlobalColour()
@@ -2047,7 +2047,7 @@ bool GGlobalColour::RemapBitmap(GSurface *pDC)
 ////////////////////////////////////////////////////////////////////////
 GSurface *GInlineBmp::Create()
 {
-	GSurface *pDC = NEW(GMemDC);
+	GSurface *pDC = new GMemDC;
 	if (pDC->Create(X, Y, Bits))
 	{
 		int Line = X * Bits / 8;

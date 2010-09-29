@@ -44,7 +44,7 @@ public:
 
 XMainWindow::XMainWindow() : XWidget((char*)0, true)
 {
-	d = NEW(XMainWindowPrivate);
+	d = new XMainWindowPrivate;
 }
 
 XMainWindow::~XMainWindow()
@@ -136,7 +136,7 @@ XMenuBar *XMainWindow::menuBar()
 {
 	if (NOT d->Menu)
 	{
-		d->Menu = NEW(XMenuBar);
+		d->Menu = new XMenuBar;
 		if (d->Menu)
 		{
 			OsPoint p(0, 0);

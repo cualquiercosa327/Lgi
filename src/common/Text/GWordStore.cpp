@@ -29,7 +29,7 @@ public:
 
 GWordStore::GWordStore(char *file)
 {
-	d = NEW(GWordStorePriv);
+	d = new GWordStorePriv;
 	d->File = NewStr(file);
 	if (d->File)
 	{

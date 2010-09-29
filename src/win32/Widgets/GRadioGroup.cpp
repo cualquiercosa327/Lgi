@@ -32,7 +32,7 @@ int GRadioGroupPrivate::NextId = 10000;
 GRadioGroup::GRadioGroup(int id, int x, int y, int cx, int cy, char *name, int Init)
 	: ResObject(Res_Group)
 {
-	d = NEW(GRadioGroupPrivate);
+	d = new GRadioGroupPrivate;
 	d->InitVal = Init;
 
 	Name(name);
@@ -184,7 +184,7 @@ void GRadioGroup::OnPaint(GSurface *pDC)
 
 GRadioButton *GRadioGroup::Append(int x, int y, char *name)
 {
-	GRadioButton *But = NEW(GRadioButton(d->NextId++, x, y, -1, -1, name));
+	GRadioButton *But = new GRadioButton(d->NextId++, x, y, -1, -1, name);
 	if (But)
 	{
 		Children.Insert(But);
@@ -215,7 +215,7 @@ public:
 GRadioButton::GRadioButton(int id, int x, int y, int cx, int cy, char *name)
 	: ResObject(Res_RadioBox)
 {
-	d = NEW(GRadioButtonPrivate);
+	d = new GRadioButtonPrivate;
 
 	Name(name);
 

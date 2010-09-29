@@ -250,7 +250,7 @@ public:
 			{
 				_bstr_t bstr((v.vt & VT_BYREF) ? *v.pbstrVal : v.bstrVal, false);
 				DeleteArray(Value);
-				Value = NEW(char[bstr.length()+1]);
+				Value = new char[bstr.length()+1];
 				if (Value)
 				{
 					for (int i=0; i<bstr.length(); i++)
@@ -320,7 +320,7 @@ class GAdoRecordset : public GDbRecordset
 public:
 	GAdoRecordset(ADODB::_ConnectionPtr &Con, char *Sql)
 	{
-		NullField = NEW(GAdoField(0, 0));
+		NullField = new GAdoField(0, 0);
 		if (Sql)
 		{
 			Rs1.CreateInstance(__uuidof(ADODB::Recordset));
@@ -332,7 +332,7 @@ public:
 				{
 					for (int i=0; i<CountFields(); i++)
 					{
-						Fields.Insert(NEW(GAdoField(Rs1, i)));
+						Fields.Insert(new GAdoField(Rs1, i));
 					}
 				}
 				else
@@ -568,7 +568,7 @@ public:
 	// Retrieving data
 	GDbRecordset *OpenRecordset(char *Sql)
 	{
-		return NEW(GAdoRecordset(Con, Sql));
+		return new GAdoRecordset(Con, Sql);
 	}
 
 	GDbRecordset *GetTables()
@@ -585,7 +585,7 @@ public:
 /////////////////////////////////////////////////////////////////
 GDb *OpenAdoDatabase(char *Name)
 {
-	GAdoDb *Db = NEW(GAdoDb);
+	GAdoDb *Db = new GAdoDb;
 	if (Db AND NOT Db->Connect(Name))
 	{
 		DeleteObj(Db);

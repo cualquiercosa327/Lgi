@@ -8,7 +8,7 @@ QMenuItem *QMenuItem::Cursor = 0;
 
 QMenuItem::QMenuItem(QMenuBar *Menu, QMenuData *Parent, GMenuItem *i)
 {
-	Item = NEW(QMenuItemPrivate(Menu, Parent, this, i));
+	Item = new QMenuItemPrivate(Menu, Parent, this, i);
 	isTabStop(false);
 }
 
@@ -201,7 +201,7 @@ void QMenuItem::enterEvent(XlibEvent *e)
 ////////////////////////////////////////////////////////////////////
 QMenuData::QMenuData(QMenuBar *Menu, QMenuItem *Parent)
 {
-	Data = NEW(QMenuDataPrivate(Menu, Parent));
+	Data = new QMenuDataPrivate(Menu, Parent);
 }
 
 QMenuData::~QMenuData()
@@ -221,7 +221,7 @@ QWidget *QMenuData::GetWidget()
 
 QMenuItem *QMenuData::insertItem(GMenuItem *item, int cmd, int where)
 {
-	QMenuItem *i = NEW(QMenuItem(Data->Menu, this, item));
+	QMenuItem *i = new QMenuItem(Data->Menu, this, item);
 	if (i)
 	{
 		i->Item->Cmd = cmd;
@@ -236,7 +236,7 @@ QMenuItem *QMenuData::insertItem(GMenuItem *item, QPopupMenu *sub, int where)
 	QMenuItem *i = 0;
 	if (sub)
 	{
-		i = NEW(QMenuItem(Data->Menu, this, item));
+		i = new QMenuItem(Data->Menu, this, item);
 		if (i)
 		{
 			sub->Data->Menu = Data->Menu;
@@ -252,7 +252,7 @@ QMenuItem *QMenuData::insertItem(GMenuItem *item, QPopupMenu *sub, int where)
 
 QMenuItem *QMenuData::insertSeparator(int where)
 {
-	QMenuItem *i = NEW(QMenuItem(Data->Menu, this, 0));
+	QMenuItem *i = new QMenuItem(Data->Menu, this, 0);
 	if (i)
 	{
 		i->Item->Separator = true;
@@ -270,7 +270,7 @@ void QMenuData::deleteItem(QMenuItem *i)
 //////////////////////////////////////////////////////////////////////
 QMenuBar::QMenuBar() : QMenuData(this, 0)
 {
-	MenuBar = NEW(QMenuBarPrivate);
+	MenuBar = new QMenuBarPrivate;
 	Data->Widget = this;
 	setText("QMenuBar");
 	isTabStop(false);

@@ -98,7 +98,7 @@ GSubMenu::GSubMenu(char *name, bool Popup)
 		char *Temp = NewStrLessAnd(name);
 		if (Temp)
 		{
-			Info = NEW(BMenu(Temp));
+			Info = new BMenu(Temp);
 			DeleteArray(Temp);
 		}
 	}
@@ -115,7 +115,7 @@ GSubMenu::~GSubMenu()
 
 GMenuItem *GSubMenu::AppendItem(char *Str, int Id, bool Enabled, int Where)
 {
-	GMenuItem *i = NEW(GMenuItem);
+	GMenuItem *i = new GMenuItem;
 	if (Info AND i)
 	{
 		Items.Insert(i, Where);
@@ -139,7 +139,7 @@ GMenuItem *GSubMenu::AppendItem(char *Str, int Id, bool Enabled, int Where)
 
 GMenuItem *GSubMenu::AppendSeparator(int Where)
 {
-	GMenuItem *i = NEW(GMenuItem(NEW(BSeparatorItem)));
+	GMenuItem *i = new GMenuItem(new BSeparatorItem);
 	if (Info AND i)
 	{
 		Items.Insert(i, Where);
@@ -157,7 +157,7 @@ GMenuItem *GSubMenu::AppendSeparator(int Where)
 GSubMenu *GSubMenu::AppendSub(char *Str, int Where)
 {
 	GSubMenu *Sub = 0;
-	GMenuItem *i = NEW(GMenuItem(Sub = NEW(GSubMenu(Str))));
+	GMenuItem *i = new GMenuItem(Sub = new GSubMenu(Str));
 	if (Info AND i)
 	{
 		Items.Insert(i, Where);
@@ -235,8 +235,8 @@ void GSubMenu::_CopyMenu(BMenu *To, GSubMenu *From)
 			else if (i->Sub())
 			{
 				// submenu
-				GSubMenu *Sub = NEW(GSubMenu(i->Name()));
-				GMenuItem *Item = NEW(GMenuItem(Sub));
+				GSubMenu *Sub = new GSubMenu(i->Name());
+				GMenuItem *Item = new GMenuItem(Sub);
 				if (Item)
 				{
 					if (From->GetImageList())
@@ -251,7 +251,7 @@ void GSubMenu::_CopyMenu(BMenu *To, GSubMenu *From)
 			else
 			{
 				// normal item
-				GMenuItem *Item = NEW(GMenuItem);
+				GMenuItem *Item = new GMenuItem;
 				if (Item)
 				{
 					Item->Id(i->Id());
@@ -273,7 +273,7 @@ int GSubMenu::Float(GView *Parent, int x, int y, bool Left)
 {
 	if (Info)
 	{
-		BPopUpMenu *Popup = NEW(BPopUpMenu("PopUpMenu"));
+		BPopUpMenu *Popup = new BPopUpMenu("PopUpMenu");
 		if (Popup)
 		{
 			_CopyMenu(Popup, this);
@@ -365,19 +365,19 @@ public:
 
 GMenuItem::GMenuItem()
 {
-	d = NEW(GMenuItemPrivate);
+	d = new GMenuItemPrivate;
 	Menu = 0;
 	Parent = 0;
 	Child = 0;
 	Position = -1;
 	_Icon = -1;
 	
-	Info = NEW(LgiMenuItem(this, "<error>", d->Msg = NEW(BMessage(M_COMMAND))));
+	Info = new LgiMenuItem(this, "<error>", d->Msg = new BMessage(M_COMMAND));
 }
 
 GMenuItem::GMenuItem(BMenuItem *item)
 {
-	d = NEW(GMenuItemPrivate);
+	d = new GMenuItemPrivate;
 	Menu = 0;
 	Parent = 0;
 	Child = 0;
@@ -389,7 +389,7 @@ GMenuItem::GMenuItem(BMenuItem *item)
 
 GMenuItem::GMenuItem(GSubMenu *p)
 {
-	d = NEW(GMenuItemPrivate);
+	d = new GMenuItemPrivate;
 	Menu = 0;
 	Parent = 0;
 	Child = p;
@@ -398,7 +398,7 @@ GMenuItem::GMenuItem(GSubMenu *p)
 
 	if (Child)
 	{
-		Info = NEW(LgiMenuItem(this, Child->Info));
+		Info = new LgiMenuItem(this, Child->Info);
 		if (Info)
 		{
 			Child->Parent = this;
@@ -612,10 +612,10 @@ public:
 
 GMenu::GMenu()
 {
-	d = NEW(GMenuPrivate);
+	d = new GMenuPrivate;
 	Window = NULL;
 	Menu = this;
-	Info = d->Bar = NEW(BMenuBar(BRect(0, 0, 1, 1), "LGI::GMenu"));
+	Info = d->Bar = new BMenuBar(BRect(0, 0, 1, 1), "LGI::GMenu");
 }
 
 GMenu::~GMenu()
@@ -686,7 +686,7 @@ bool GMenu::OnKey(GView *v, GKey &k)
 /*
 GMenuItem *GMenu::AppendItem(char *Str, int Id, bool Enabled, int Where)
 {
-	GMenuItem *Item = NEW(GMenuItem());
+	GMenuItem *Item = new GMenuItem();
 	if (Item)
 	{
 		if (Window AND Window->_View)
@@ -715,7 +715,7 @@ GMenuItem *GMenu::AppendItem(char *Str, int Id, bool Enabled, int Where)
 
 GMenuItem *GMenu::AppendSeparator(int Where)
 {
-	GMenuItem *Item = NEW(GMenuItem(NEW(BSeparatorItem)));
+	GMenuItem *Item = new GMenuItem(new BSeparatorItem);
 	if (Item)
 	{
 		Item->Menu = this;
@@ -730,7 +730,7 @@ GMenuItem *GMenu::AppendSeparator(int Where)
 GSubMenu *GMenu::AppendSub(char *Str, int Where)
 {
 	GSubMenu *Sub = 0;
-	GMenuItem *Item = NEW(GMenuItem(Sub = NEW(GSubMenu(Str))));
+	GMenuItem *Item = new GMenuItem(Sub = new GSubMenu(Str));
 	if (Item)
 	{
 		Item->Menu = this;

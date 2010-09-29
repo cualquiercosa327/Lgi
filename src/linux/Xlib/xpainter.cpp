@@ -161,7 +161,7 @@ public:
 
 XPainter::XPainter()
 {
-	d = NEW(GPainterPrivate);
+	d = new GPainterPrivate;
 }
 
 XPainter::~XPainter()
@@ -236,7 +236,7 @@ bool XPainter::Begin(XWidget *w)
 			GRegion *Clip = d->Widget->_GetClipRgn();
 			if (Clip)
 			{
-				XClip *c = NEW(XClip);
+				XClip *c = new XClip;
 				if (c)
 				{
 					c->System = true;
@@ -294,7 +294,7 @@ void XPainter::PushClip(int x1, int y1, int x2, int y2)
 		XClip *l = d->Clip.Last();
 		if (l)
 		{
-			XClip *c = NEW(XClip);
+			XClip *c = new XClip;
 			if (c)
 			{
 				c->System = false;
@@ -595,7 +595,7 @@ void XPainter::drawText(int x, int y, char16 *text, int len, int *backColour, GR
 		{
 			if (NOT d->ForeCol)
 			{
-				d->ForeCol = NEW(XftColor);
+				d->ForeCol = new XftColor;
 				if (d->ForeCol)
 				{
 					XRenderColor c;

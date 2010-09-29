@@ -93,17 +93,17 @@ int LgiMsg(GViewI *Parent, char *Str, char *Title, int Type, ...)
 		{
 			case MB_OK:
 			{
-				Dlg = NEW(BAlert((Title) ? Title : "Message", Buffer, "Ok"));
+				Dlg = new BAlert((Title) ? Title : "Message", Buffer, "Ok");
 				break;
 			}
 			case MB_YESNO:
 			{
-				Dlg = NEW(BAlert((Title) ? Title : "Message", Buffer, "Yes", "No", NULL, B_WIDTH_AS_USUAL, B_IDEA_ALERT));
+				Dlg = new BAlert((Title) ? Title : "Message", Buffer, "Yes", "No", NULL, B_WIDTH_AS_USUAL, B_IDEA_ALERT);
 				break;
 			}
 			case MB_YESNOCANCEL:
 			{
-				Dlg = NEW(BAlert((Title) ? Title : "Message", Buffer, "Yes", "No", "Cancel", B_WIDTH_AS_USUAL, B_IDEA_ALERT));
+				Dlg = new BAlert((Title) ? Title : "Message", Buffer, "Yes", "No", "Cancel", B_WIDTH_AS_USUAL, B_IDEA_ALERT);
 				break;
 			}
 			default:
@@ -240,7 +240,7 @@ int LgiMsg(GViewI *Parent, char *Str, char *Title, int Type, ...)
 		va_list Arg;
 		va_start(Arg, Type);
 		int Size = vsnprintf(0, 0, Str, Arg);
-		char *Buffer = NEW(char[Size+1]);
+		char *Buffer = new char[Size+1];
 		if (Buffer)
 		{
 			vsprintf(Buffer, Str, Arg);

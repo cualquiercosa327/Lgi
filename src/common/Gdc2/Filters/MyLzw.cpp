@@ -54,7 +54,7 @@ public:
 		InBuf = 0;
 		
 		CodeBufSize = TIFF_LZW_BUFFER;
-		CodeBuf = NEW(uchar[TIFF_LZW_BUFFER]);
+		CodeBuf = new uchar[TIFF_LZW_BUFFER];
 	}
 	
 	~LzwPrivate()
@@ -69,7 +69,7 @@ public:
 		{
 			// Grow the buffer
 			int NewSize = CodeBufSize << 2;
-			uchar *NewBuf = NEW(uchar[NewSize]);
+			uchar *NewBuf = new uchar[NewSize];
 			if (NewBuf)
 			{
 				// Copy over the codes
@@ -122,7 +122,7 @@ public:
 			{
 				DeleteArray(InBuf);
 				BitsLeft = 0;
-				InBuf = NEW(uchar[InBufSize]);
+				InBuf = new uchar[InBufSize];
 				if (InBuf)
 				{
 					if (Pipe)
@@ -333,11 +333,11 @@ public:
 		int InputLen = In->GetSize();
 
 		// Allocate encoder tables.
-		uchar *packet = NEW(uchar[256]);
-		short *hash_code = NEW(short[MaxHashTable]);
-		short *hash_prefix = NEW(short[MaxHashTable]);
-		uchar *hash_suffix = NEW(uchar[MaxHashTable]);
-		uchar *Input = NEW(uchar[InputLen]);
+		uchar *packet = new uchar[256];
+		short *hash_code = new short[MaxHashTable];
+		short *hash_prefix = new short[MaxHashTable];
+		uchar *hash_suffix = new uchar[MaxHashTable];
+		uchar *Input = new uchar[InputLen];
 
 		if (In AND
 			Out AND
@@ -354,7 +354,7 @@ public:
 			EoiCode = ClearCode + 1;
 			NextCode = ClearCode + 2;
 			BitPos = Datum = 0;
-			InPos = InBuf = NEW(uchar[InBufSize]);
+			InPos = InBuf = new uchar[InBufSize];
 			Pipe = Out;
 			memset(hash_code, 0, sizeof(*hash_code)*MaxHashTable);
 
@@ -475,7 +475,7 @@ public:
 //////////////////////////////////////////////////////////////////
 Lzw::Lzw()
 {
-	d = NEW(LzwPrivate);
+	d = new LzwPrivate;
 	Meter = 0;
 }
 

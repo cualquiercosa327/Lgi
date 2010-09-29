@@ -410,7 +410,7 @@ void GPalette::Set(GPalette *pPal)
 	{
 		if (pPal->Data)
 		{
-			Data = NEW(GdcRGB[pPal->Size]);
+			Data = new GdcRGB[pPal->Size];
 			if (Data)
 			{
 				memcpy(Data, pPal->Data, sizeof(GdcRGB) * pPal->Size);
@@ -425,7 +425,7 @@ void GPalette::Set(uchar *pPal, int s)
 {
 	DeleteArray(Data);
 	Size = 0;
-	Data = NEW(GdcRGB[s]);
+	Data = new GdcRGB[s];
 	if (Data)
 	{
 		if (pPal)
@@ -461,7 +461,7 @@ bool GPalette::Update()
 bool GPalette::SetSize(int s)
 {
 	int Len = sizeof(GdcRGB) * s;
-	Data = NEW(GdcRGB[Len]);
+	Data = new GdcRGB[Len];
 	if (Data)
 	{
 		Size = s;
@@ -501,7 +501,7 @@ uchar *GPalette::MakeLut(int Bits)
 	{
 		case 15:
 		{
-			Lut = NEW(uchar[Size]);
+			Lut = new uchar[Size];
 			if (Lut)
 			{
 				for (int i=0; i<Size; i++)
@@ -517,7 +517,7 @@ uchar *GPalette::MakeLut(int Bits)
 		}
 		case 16:
 		{
-			Lut = NEW(uchar[Size]);
+			Lut = new uchar[Size];
 			if (Lut)
 			{
 				for (int i=0; i<Size; i++)
@@ -780,7 +780,7 @@ bool GDeviceContext::IsAlpha(bool b)
 	{
 		if (NOT pAlphaDC)
 		{
-			pAlphaDC = NEW(GMemDC);
+			pAlphaDC = new GMemDC;
 		}
 
 		if (pAlphaDC AND pMem)
@@ -1113,7 +1113,7 @@ public:
 		}
 
 		// Calcuate lookups
-		CharSquareData = NEW(ulong[255+255+1]);
+		CharSquareData = new ulong[255+255+1];
 		if (CharSquareData)
 		{
 			for (int i = -255; i <= 255; i++)
@@ -1124,7 +1124,7 @@ public:
 
 		// Divide by 255 lookup, real handy for alpha blending 8 bit components
 		int Size = (255 * 255) * 2;
-		Div255 = NEW(uchar[Size]);
+		Div255 = new uchar[Size];
 		if (Div255)
 		{
 			for (int i=0; i<Size; i++)
@@ -1150,7 +1150,7 @@ GdcDevice *GdcDevice::pInstance = 0;
 GdcDevice::GdcDevice()
 {
 	pInstance = this;
-	d = NEW(GdcDevicePrivate(this));
+	d = new GdcDevicePrivate(this);
 }
 
 GdcDevice::~GdcDevice()
@@ -1366,7 +1366,7 @@ public:
 
 GGlobalColour::GGlobalColour()
 {
-	d = NEW(GGlobalColourPrivate);
+	d = new GGlobalColourPrivate;
 }
 
 GGlobalColour::~GGlobalColour()
@@ -1636,10 +1636,10 @@ bool GSprite::SetSize(int x, int y, int BitSize, GSurface *pScr)
 		HotY = 0;
 		DrawMode = 0;
 
-		pBack = NEW(GMemDC);
-		pMask = NEW(GMemDC);
-		pColour = NEW(GMemDC);
-		pTemp = NEW(GMemDC);
+		pBack = new GMemDC;
+		pMask = new GMemDC;
+		pColour = new GMemDC;
+		pTemp = new GMemDC;
 
 		if (pBack AND pMask AND pColour AND pTemp)
 		{
@@ -1650,7 +1650,7 @@ bool GSprite::SetSize(int x, int y, int BitSize, GSurface *pScr)
 			{
 				if (pScreen->GetBits() == 8)
 				{
-					pTemp->Palette(NEW(GPalette(pScreen->Palette())));
+					pTemp->Palette(new GPalette(pScreen->Palette()));
 				}
 
 				Status = TRUE;

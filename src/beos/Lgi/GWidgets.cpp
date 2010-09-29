@@ -415,7 +415,7 @@ class GButtonRedir : public BButton
 	
 public:
 	GButtonRedir(GButton *obj) :
-		BButton(BRect(0, 0, 1, 1), "Button", "", NEW(BMessage(M_CHANGE)))
+		BButton(BRect(0, 0, 1, 1), "Button", "", new BMessage(M_CHANGE))
 	{
 		Obj = obj;
 	}
@@ -461,10 +461,10 @@ public:
 };
 
 GButton::GButton(int id, int x, int y, int cx, int cy, char *name)
-	: GControl(NEW(GButtonRedir(this)))
+	: GControl(new GButtonRedir(this))
 	, ResObject(Res_Button)
 {
-	d = NEW(GButtonPrivate);
+	d = new GButtonPrivate;
 	d->Button = dynamic_cast<GButtonRedir*>(_View);
 	Name(name);
 	Pos.Set(x, y, x+cx, y+cy);
@@ -605,7 +605,7 @@ _OsEditFrame::_OsEditFrame(GEdit *edit, const BRect &r) :
 	Edit = edit;
 	DefaultViewColour();
 	
-	View = NEW(_OsEditView(this, BRect(2, 2, 6, 6)));
+	View = new _OsEditView(this, BRect(2, 2, 6, 6));
 	if (View)
 	{
 		AddChild(View);
@@ -640,10 +640,10 @@ public:
 };
 
 GEdit::GEdit(int id, int x, int y, int cx, int cy, char *name) :
-	GControl(NEW(_OsEditFrame(this, BRect(x, y, x+cx, y+cy)))),
+	GControl(new _OsEditFrame(this, BRect(x, y, x+cx, y+cy))),
 	ResObject(Res_EditBox)
 {
-	d = NEW(GEditPrivate);
+	d = new GEditPrivate;
 	d->Edit = dynamic_cast<_OsEditFrame*>(Handle());
 	
 	GdcPt2 Size = SizeOfStr((name)?name:(char*)"A");
@@ -824,7 +824,7 @@ class GCheckBoxRedir : public BCheckBox
 	
 public:
 	GCheckBoxRedir(GCheckBox *obj, int Init) :
-		BCheckBox(BRect(0,0,1,1), "Check", "", NEW(BMessage(M_CHANGE)))
+		BCheckBox(BRect(0,0,1,1), "Check", "", new BMessage(M_CHANGE))
 	{
 		Obj = obj;
 		Notify = false;
@@ -849,7 +849,7 @@ public:
 };
 
 GCheckBox::GCheckBox(int id, int x, int y, int cx, int cy, char *name, int InitState)
-	: GControl(Box = NEW(GCheckBoxRedir(this, InitState)) )
+	: GControl(Box = new GCheckBoxRedir(this, InitState)))
 	, ResObject(Res_CheckBox)
 {
 	GdcPt2 Size = SizeOfStr(name);
@@ -907,7 +907,7 @@ int GCheckBox::OnEvent(BMessage *Msg)
 // Text
 /*
 GText::GText(int id, int x, int y, int cx, int cy, char *name) :
-	GControl(NEW(BViewRedir(this)))
+	GControl(new BViewRedir(this))
 	, ResObject(Res_StaticText)
 {
 	GdcPt2 Size = SizeOfStr(name);
@@ -974,7 +974,7 @@ bool GText::Name(char *n)
 /*
 int GRadioGroup::NextId = 20000;
 GRadioGroup::GRadioGroup(int id, int x, int y, int cx, int cy, char *name, int Init)
-	: GControl(Box = NEW(BSub<BBox>(this)))
+	: GControl(Box = new BSub<BBox>(this))
 	, ResObject(Res_Group)
 {
 	Pos.Set(x, y, x+cx, y+cy);
@@ -1070,7 +1070,7 @@ int GRadioGroup::OnEvent(BMessage *Msg)
 
 GRadioButton *GRadioGroup::Append(int x, int y, char *name)
 {
-	GRadioButton *But = NEW(GRadioButton(NextId++, x, y, -1, -1, name));
+	GRadioButton *But = new GRadioButton(NextId++, x, y, -1, -1, name);
 	if (But)
 	{
 		Children.Insert(But);
@@ -1086,7 +1086,7 @@ class GRadioButtonRedir : public BRadioButton
 	
 public:
 	GRadioButtonRedir(GRadioButton *obj) :
-		BRadioButton(BRect(0,0,1,1), "RadioBtn", "", NEW(BMessage(WM_CHANGE)))
+		BRadioButton(BRect(0,0,1,1), "RadioBtn", "", new BMessage(WM_CHANGE))
 	{
 		Obj = obj;
 		DefaultViewColour();
@@ -1107,7 +1107,7 @@ public:
 };
 
 GRadioButton::GRadioButton(int id, int x, int y, int cx, int cy, char *name, bool first)
-	: GControl(Button = NEW(GRadioButtonRedir(this)) )
+	: GControl(Button = new GRadioButtonRedir(this)))
 	, ResObject(Res_RadioBox)
 {
 	GdcPt2 Size = SizeOfStr(name);
@@ -1168,7 +1168,7 @@ int GRadioButton::OnEvent(BMessage *Msg)
 #include "GSlider.h"
 
 GSlider::GSlider(int id, int x, int y, int cx, int cy, char *name, bool vert) :
-	GControl(NEW(BViewRedir(this))),
+	GControl(new BViewRedir(this)),
 	ResObject(Res_Slider)
 {
 	SetId(id);
@@ -1320,7 +1320,7 @@ void GSlider::OnMouseMove(GMouse &m)
 #include "GBitmap.h"
 
 GBitmap::GBitmap(int id, int x, int y, char *FileName, bool Async) :
-	GControl(NEW(BViewRedir(this))),
+	GControl(new BViewRedir(this)),
 	ResObject(Res_Bitmap)
 {
 	SetId(id);
@@ -1426,7 +1426,7 @@ bool GItemContainer::Load(char *File)
 	GSurface *pDC = LoadDC(File);
 	if (pDC)
 	{
-		ImageList = NEW(GImageList(24, 24, pDC));
+		ImageList = new GImageList(24, 24, pDC);
 		if (ImageList)
 		{
 			#ifdef WIN32
@@ -1441,7 +1441,7 @@ bool GItemContainer::Load(char *File)
 ///////////////////////////////////////////////////////////////////////////////////////////
 /*
 GProgress::GProgress(int id, int x, int y, int cx, int cy, char *name) :
-	GControl(NEW(BViewRedir(this)))
+	GControl(new BViewRedir(this))
 	, ResObject(Res_Progress)
 {
 	SetId(id);

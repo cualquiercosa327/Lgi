@@ -56,18 +56,18 @@ GApp::GApp(char *Mime, OsAppArguments &OsArgs, GAppArguments *AppArgs) : BApplic
 	LgiAssert(sizeof(char16) == 4);
 
 	// Private data
-	d = NEW(GAppPrivate);
+	d = new GAppPrivate;
 	TheApp = this;
 	d->Args = OsArgs;
 
 	// Setup LGI Sub-systems
 	GFontSystem::Inst();
-	d->FileSystem = NEW(GFileSystem);
-	d->GdcSystem = NEW(GdcDevice);
+	d->FileSystem = new GFileSystem;
+	d->GdcSystem = new GdcDevice;
 
 	srand(system_time());
 	LgiInitColours();
-	// MouseHook = NEW(GMouseHook);
+	// MouseHook = new GMouseHook;
 	MouseHook = 0;
 	AppWnd = 0;
 	SetAppArgs(OsArgs);
@@ -82,7 +82,7 @@ GApp::GApp(char *Mime, OsAppArguments &OsArgs, GAppArguments *AppArgs) : BApplic
 		{
 			SystemNormal->Transparent(true);
 			
-			SystemBold = NEW(GFont);
+			SystemBold = new GFont;
 			if (SystemBold)
 			{
 				*SystemBold = *SystemNormal;
@@ -101,9 +101,9 @@ GApp::GApp(char *Mime, OsAppArguments &OsArgs, GAppArguments *AppArgs) : BApplic
 	{
 		// Load library
 		#if defined(_DEBUG)
-		d->SkinLib = NEW(GLibrary("liblgiskind"));
+		d->SkinLib = new GLibrary("liblgiskind");
 		#else
-		d->SkinLib = NEW(GLibrary("liblgiskin"));
+		d->SkinLib = new GLibrary("liblgiskin");
 		#endif
 		if (d->SkinLib)
 		{
@@ -286,7 +286,7 @@ GXmlTag *GApp::GetConfig(char *Tag)
 
 			if (FileExists(Path))
 			{
-				d->Config = NEW(GXmlTag("Config"));
+				d->Config = new GXmlTag("Config");
 				if (d->Config)
 				{
 					GFile f;
@@ -301,7 +301,7 @@ GXmlTag *GApp::GetConfig(char *Tag)
 
 		if (NOT d->Config)
 		{
-			d->Config = NEW(GXmlTag("Options"));
+			d->Config = new GXmlTag("Options");
 		}
 	}
 

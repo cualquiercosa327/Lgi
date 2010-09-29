@@ -23,7 +23,7 @@ Stack<StackType>::~Stack()
 template <class StackType>
 void Stack<StackType>::Push(StackType *Data)
 {
-	StackType *Temp = NEW(StackNode);
+	StackType *Temp = new StackNode;
 
 	if (Temp)
 	{
@@ -87,12 +87,12 @@ void Que<QueType>::Insert(QueType *Data)
 {
 	if (Last)
 	{
-		Last->Next = NEW(QueNode);
+		Last->Next = new QueNode;
 		Last = Last->Next;
 	}
 	else
 	{
-		First = Last = NEW(QueNode);
+		First = Last = new QueNode;
 	}
 
 	Last->Next = 0;
@@ -157,7 +157,7 @@ void PriorityQue<PQueType>::SetSize(long NewSize)
 {
 	if (NewSize > 0)
 	{
-		PQueNode *Temp = NEW(PQueNode[NewSize]);
+		PQueNode *Temp = new PQueNode[NewSize];
 		
 		if (Temp)
 		{

@@ -99,9 +99,9 @@ public:
 };
 
 GWindow::GWindow() :
-	GView(NEW(BViewRedir(this)))
+	GView(new BViewRedir(this))
 {
-	d = NEW(GWindowPrivate);
+	d = new GWindowPrivate;
 	_Window = this;
 	_Default = 0;
 	Menu = 0;
@@ -110,7 +110,7 @@ GWindow::GWindow() :
 	Handle()->SetViewColor(B_TRANSPARENT_COLOR);
 	Handle()->SetFlags(Handle()->Flags() & ~B_NAVIGABLE);
 
-	Wnd = NEW(GWnd(this));
+	Wnd = new GWnd(this);
 }
 
 GWindow::~GWindow()

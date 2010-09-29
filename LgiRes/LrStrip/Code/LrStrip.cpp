@@ -23,7 +23,7 @@ public:
 		Lang = l;
 		SetText(l->Name, 0);
 		SetText(l->Id, 1);
-		Inc = NEW(GListItemCheckBox(this, 2));
+		Inc = new GListItemCheckBox(this, 2);
 	}
 
 	bool Value() { return Inc->Value(); }
@@ -82,7 +82,7 @@ public:
 
 		Langs.Empty();
 		DeleteObj(Tree);
-		Tree = NEW(GXmlTag);
+		Tree = new GXmlTag;
 		if (Tree)
 		{
 			if (File)
@@ -105,7 +105,7 @@ public:
 
 						for (GLanguage *l = Lst.First(); l; l = Lst.Next())
 						{
-							Inc->Insert(NEW(LangInc(l)));
+							Inc->Insert(new LangInc(l));
 						}
 
 						Status = true;
@@ -277,7 +277,7 @@ public:
 
 int LgiMain(OsAppArguments &AppArgs)
 {
-	GApp *a = NEW(GApp("application/lrstrip", AppArgs));
+	GApp *a = new GApp("application/lrstrip", AppArgs);
 	if (a)
 	{
 		{

@@ -24,7 +24,7 @@ char16 *ConvertToCrLf(char16 *Text)
 			Len++;
 		}
 
-		char16 *Temp = NEW(char16[Len+Lfs+1]);
+		char16 *Temp = new char16[Len+Lfs+1];
 		if (Temp)
 		{
 			char16 *d=Temp;

@@ -99,7 +99,7 @@ XWidget *XApplication::WantsFocus = 0;
 
 XApplication::XApplication(int args, char **arg) : GSemaphore("XApplication")
 {
-	d = NEW(XApplicationPrivate);
+	d = new XApplicationPrivate;
 	_App = this;
 	if (NOT XInitThreads())
 	{
@@ -292,7 +292,7 @@ void XApplication::SetClipImage(XWidget *w, GSurface *pDC)
 			GMemDC *pMem = 0;
 			if (NOT pSrc OR pDC->GetBits() != GdcD->GetBits())
 			{
-				pMem = NEW(GMemDC(pDC->X(), pDC->Y(), GdcD->GetBits()));
+				pMem = new GMemDC(pDC->X(), pDC->Y(), GdcD->GetBits());
 				if (pMem)
 				{
 					pMem->Blt(0, 0, pDC);
@@ -321,7 +321,7 @@ XWidget *XApplication::desktop()
 {
 	if (NOT Desktop)
 	{
-		Desktop = NEW(DesktopWidget);
+		Desktop = new DesktopWidget;
 	}
 	return Desktop;
 }
@@ -530,7 +530,7 @@ void XApplication::onEvent(XEvent &Event)
 			{
 				// Clear out any Expose events waiting in the queue
 				// We only want to process the last one.
-				GRegion *c = NEW(GRegion);
+				GRegion *c = new GRegion;
 				do
 				{
 					if (Event.xexpose.width > 0 AND
@@ -546,7 +546,7 @@ void XApplication::onEvent(XEvent &Event)
 				while (XCheckTypedWindowEvent(Dsp, Event.xexpose.window, Expose, &Event));
 				
 				/*
-				XRectangle *x = NEW(XRectangle[c.GetSize()]);
+				XRectangle *x = new XRectangle[c.GetSize()];
 				GRect *r = c[0];
 				if (x AND r)
 				{

@@ -388,7 +388,7 @@ printf("\tSize=%i Start=%i End=%i Add=%s\n", Size, Start, End, Add.Describe());
 /////////////////////////////////////////////////////////////////////////////////////
 XScrollBar::XScrollBar(XWidget *p, char *name) : XWidget(p->handle(), name)
 {
-	d = NEW(XScrollBarPrivate(this));
+	d = new XScrollBarPrivate(this);
 }
 
 XScrollBar::~XScrollBar()

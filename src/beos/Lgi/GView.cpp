@@ -611,8 +611,8 @@ GViewI *GView::_Over = 0;
 
 GView::GView(BView *view)
 {
-	d = NEW(GViewPrivate);
-	_View = view ? view : NEW(DefaultOsView(this));
+	d = new GViewPrivate;
+	_View = view ? view : new DefaultOsView(this);
 	_MouseInfo = 0;
 	_CaptureThread = 0;
 	_PulseThread = 0;
@@ -693,7 +693,7 @@ GView::~GView()
 
 GViewIterator *GView::IterateViews()
 {
-	return NEW(GViewIter(this));
+	return new GViewIter(this);
 }
 
 bool GView::AddView(GViewI *v, int Where)
@@ -1258,7 +1258,7 @@ void GView::Quit(bool DontDelete)
 		if (Wnd)
 		{
 			BMessenger m(0, Wnd);
-			m.SendMessage(NEW(BMessage(B_QUIT_REQUESTED)));
+			m.SendMessage(new BMessage(B_QUIT_REQUESTED));
 		}
 	}
 	else if (_View)
@@ -1454,7 +1454,7 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool NonClient)
 				if (r)
 				{
 					BRect Rc = *r;
-					BRegion *Rgn = NEW(BRegion(Rc));
+					BRegion *Rgn = new BRegion(Rc);
 					_View->ConstrainClippingRegion(Rgn);
 					_View->Draw(Rc);
 					_View->ConstrainClippingRegion(NULL);
@@ -1575,7 +1575,7 @@ bool GView::PostEvent(int Cmd, int a, int b)
 
 	if (Lock())
 	{
-		BMessage *Msg = NEW(BMessage(Cmd));
+		BMessage *Msg = new BMessage(Cmd);
 		if (Msg)
 		{
 			Msg->AddInt32("a", a);
@@ -2127,7 +2127,7 @@ bool _setup_mouse_thread(GView::OsMouseInfo *&i, OsThread &t)
 	/*
 	if (NOT i)
 	{
-		i = NEW(GView::OsMouseInfo);
+		i = new GView::OsMouseInfo;
 		if (i)
 		{
 			i->Buttons = 0;
@@ -2817,7 +2817,7 @@ List<GViewFactory> *GViewFactory::Factories;
 
 GViewFactory::GViewFactory()
 {
-	if (NOT Factories) Factories = NEW(List<GViewFactory>);
+	if (NOT Factories) Factories = new List<GViewFactory>;
 	if (Factories) Factories->Insert(this);
 }
 

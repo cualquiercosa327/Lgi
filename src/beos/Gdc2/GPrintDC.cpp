@@ -16,7 +16,7 @@ public:
 
 GPrintDC::GPrintDC(void *Handle, char *PrintJobName)
 {
-	d = NEW(GPrintDCPrivate);
+	d = new GPrintDCPrivate;
 }
 
 GPrintDC::~GPrintDC()

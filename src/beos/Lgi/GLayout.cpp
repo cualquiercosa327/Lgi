@@ -14,7 +14,7 @@
 
 //////////////////////////////////////////////////////////////////////////////
 GLayout::GLayout() :
-	GView(NEW(BViewRedir(this)))
+	GView(new BViewRedir(this))
 {
 	_PourLargest = false;
 	VScroll = 0;
@@ -127,7 +127,7 @@ bool GLayout::SetScrollBars(bool x, bool y)
 		{
 			if (NOT HScroll)
 			{
-				HScroll = NEW(GScrollBar(IDC_HSCROLL, 0, 0, 100, 10, "GLayout->HScroll"));
+				HScroll = new GScrollBar(IDC_HSCROLL, 0, 0, 100, 10, "GLayout->HScroll");
 				if (HScroll)
 				{
 					HScroll->SetNotify(this);
@@ -146,7 +146,7 @@ bool GLayout::SetScrollBars(bool x, bool y)
 		{
 			if (NOT VScroll)
 			{
-				VScroll = NEW(GScrollBar(IDC_VSCROLL, 0, 0, 10, 100, "GLayout->VScroll"));
+				VScroll = new GScrollBar(IDC_VSCROLL, 0, 0, 10, 100, "GLayout->VScroll");
 				if (VScroll)
 				{
 					VScroll->SetNotify(this);

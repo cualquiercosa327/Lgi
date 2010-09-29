@@ -79,7 +79,7 @@ int GTreeCompareFunc(const BListItem *a, const BListItem *b)
 
 GTreeItem *GTreeItem::Insert(GTreeItem *Obj, int Pos)
 {
-	GTreeItem *NewObj = (Obj) ? Obj : NEW(GTreeItem);
+	GTreeItem *NewObj = (Obj) ? Obj : new GTreeItem;
 	if (NewObj AND Tree)
 	{
 		bool Lock = Tree->LockLooper();
@@ -241,13 +241,13 @@ bool GTree::Attach(GViewI *parent)
 	SetParent(parent);
 	if (GetParent())
 	{
-		ScrollView = NEW(BScrollView(	"scroll_cities",
+		ScrollView = new BScrollView(	"scroll_cities",
 										this,
 										B_FOLLOW_LEFT | B_FOLLOW_TOP,
 										0,
 										TRUE,
 										TRUE,
-										B_NO_BORDER));
+										B_NO_BORDER);
 		if (ScrollView)
 		{
 			GetParent()->GetBView()->AddChild(ScrollView);
@@ -314,7 +314,7 @@ int GTree::OnEvent(BMessage *Msg)
 
 GTreeItem *GTree::Insert(GTreeItem *Obj, int Pos)
 {
-	GTreeItem *NewObj = (Obj) ? Obj : NEW(GTreeItem);
+	GTreeItem *NewObj = (Obj) ? Obj : new GTreeItem;
 	if (NewObj)
 	{
 		NewObj->Tree = this;

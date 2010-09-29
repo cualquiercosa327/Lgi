@@ -61,7 +61,7 @@ char *ReadStr(GFile &f)
 
 	if (Len > 0)
 	{
-		s = NEW(char[Len+1]);
+		s = new char[Len+1];
 		if (s)
 		{
 			f.Read(s, Len);
@@ -150,7 +150,7 @@ char *ReadTextFile(char *File)
 		if (f.Open(File, O_READ))
 		{
 			int Size = f.GetSize();
-			char *m = NEW(char[Size+1]);
+			char *m = new char[Size+1];
 			if (m)
 			{
 				int r = f.Read(m, Size);
@@ -228,7 +228,7 @@ public:
 			BVolume v;
 			while (r.GetNextVolume(&v) == B_NO_ERROR)
 			{
-				c.Insert(NEW(BeOSVol(&v)));
+				c.Insert(new BeOSVol(&v));
 			}
 		}
 	}
@@ -304,7 +304,7 @@ public:
 GFileSystem::GFileSystem()
 {
 	Instance = this;
-	d = NEW(GFileSystemPrivate);
+	d = new GFileSystemPrivate;
 }
 
 GFileSystem::~GFileSystem()
@@ -316,7 +316,7 @@ GVolume *GFileSystem::GetRootVolume()
 {
 	if (NOT d->RootVol)
 	{
-		d->RootVol = NEW(BeOSVol);
+		d->RootVol = new BeOSVol;
 	}
 
 	return d->RootVol;
@@ -324,7 +324,7 @@ GVolume *GFileSystem::GetRootVolume()
 
 GDirectory *GFileSystem::GetDir()
 {
-	return NEW(GDirImpl);
+	return new GDirImpl;
 }
 
 bool GFileSystem::DeleteFile(char *FileName, bool ToTrash)
@@ -543,7 +543,7 @@ public:
 
 GDirImpl::GDirImpl()
 {
-	d = NEW(GDirImplPrivate);
+	d = new GDirImplPrivate;
 }
 
 GDirImpl::~GDirImpl()
@@ -558,7 +558,7 @@ bool GDirImpl::IsReadOnly()
 
 GDirectory *GDirImpl::Clone()
 {
-	return NEW(GDirImpl);
+	return new GDirImpl;
 }
 
 int GDirImpl::GetUser(bool Group)
@@ -601,7 +601,7 @@ int GDirImpl::First(char *Path, char *Pattern)
 		
 		if (NOT d->Dir)
 		{
-			d->Dir = NEW(BDirectory(Path));
+			d->Dir = new BDirectory(Path);
 		}
 		else
 		{
@@ -740,7 +740,7 @@ public:
 
 GFile::GFile()
 {
-	d = NEW(GFilePrivate);
+	d = new GFilePrivate;
 }
 
 GFile::~GFile()
@@ -1034,7 +1034,7 @@ bool VDirView::Read(char *Dir)
 	Node *Current;
 	if (strlen(CurrentDir) > 3)
 	{
-		Current = NEW(Node("..", FA_DIRECTORY, 0));
+		Current = new Node("..", FA_DIRECTORY, 0);
 		if (Current)
 		{
 			if (NOT Root)
@@ -1056,7 +1056,7 @@ bool VDirView::Read(char *Dir)
 	{
 		if (strcmp(GetName(), ".") AND strcmp(GetName(), ".."))
 		{
-			Current = NEW(Node(GetName(), GetAttributes(), GetSize()));
+			Current = new Node(GetName(), GetAttributes(), GetSize());
 			if (Current)
 			{
 				if (NOT Root)
@@ -1078,7 +1078,7 @@ bool VDirView::Read(char *Dir)
 	Done = First("*.*", 0x0, 0x2F);
 	while (NOT Done)
 	{
-		Current = NEW(Node(GetName(), GetAttributes(), GetSize()));
+		Current = new Node(GetName(), GetAttributes(), GetSize());
 		if (Current)
 		{
 			if (NOT Root)
@@ -1098,7 +1098,7 @@ bool VDirView::Read(char *Dir)
 
 	if (Root AND Items)
 	{
-		Index = NEW(Node*[Items]);
+		Index = new Node*[Items];
 		if (Index)
 		{
 			Node **Ptr = Root->Traverse(Index, TRUE);
@@ -1194,7 +1194,7 @@ NodeInfo::NodeInfo(char *n, int a, quad s)
 {
 	if (n)
 	{
-		Name = NEW(char[strlen(n)+1]);
+		Name = new char[strlen(n)+1];
 		if (Name)
 		{
 			strcpy(Name, n);

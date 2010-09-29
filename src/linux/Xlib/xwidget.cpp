@@ -334,7 +334,7 @@ public:
 											&tx, &ty,
 											&Wind);
 
-					DecorationSize = NEW(OsPoint(tx, ty));
+					DecorationSize = new OsPoint(tx, ty);
 				}
 				else
 				{
@@ -416,7 +416,7 @@ XWidget *XWidget::OwnsClipboard = 0;
 XWidget::XWidget(Window Existing, bool AddToList)
 {
 	_event = 0;
-	d = NEW(XWidgetPrivate(this, false, Existing));
+	d = new XWidgetPrivate(this, false, Existing);
 	
 	d->AddToList = AddToList;
 	if (AddToList)
@@ -428,7 +428,7 @@ XWidget::XWidget(Window Existing, bool AddToList)
 XWidget::XWidget(char *name, bool top)
 {
 	_event = 0;
-	d = NEW(XWidgetPrivate(this, top, 0));
+	d = new XWidgetPrivate(this, top, 0);
 	
 	if (XApp()->Lock(_FL))
 	{
@@ -808,7 +808,7 @@ void XWidget::setIcon(char *Path)
 		if (Icon)
 		{
 			int Len = Icon->X() * Icon->Y() + 2;
-			uint32 *Buf = NEW(uint32[Len]);
+			uint32 *Buf = new uint32[Len];
 			if (Buf)
 			{
 				// Slap the X,Y in the first 2 32bit values

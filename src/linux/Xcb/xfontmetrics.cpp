@@ -19,7 +19,7 @@ public:
 
 XFontMetrics::XFontMetrics(XFont *f)
 {
-	Data = NEW(XFontMetricsPrivate);
+	Data = new XFontMetricsPrivate;
 	Data->f = f;
 	f->GetScale(Data->ScaleX, Data->ScaleY);
 
@@ -164,7 +164,7 @@ uchar *XFontMetrics::GetCoverage(uchar *Map, int Max)
 		int Bytes = (Max + 1) >> 3;
 		if (NOT Map)
 		{
-			Map = NEW(uchar[Bytes]);
+			Map = new uchar[Bytes];
 		}
 		if (Map)
 		{

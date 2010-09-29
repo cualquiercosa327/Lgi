@@ -23,7 +23,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////
 QPopupMenu::QPopupMenu() : QMenuData(0, 0)
 {
-	Popup = NEW(QPopupMenuPrivate);
+	Popup = new QPopupMenuPrivate;
 	isTabStop(false);
 }
 

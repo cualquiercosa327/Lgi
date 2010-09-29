@@ -153,7 +153,7 @@ public:
 
 XFont::XFont()
 {
-	Data = NEW(XFontPrivate);
+	Data = new XFontPrivate;
 }
 
 XFont::~XFont()

@@ -74,9 +74,9 @@ public:
 
 	LzwPrivate()
 	{
-		code_value = NEW(int[MAX_TABLE_SIZE]);
-		prefix_code = NEW(uint[MAX_TABLE_SIZE]);
-		append_character = NEW(uchar[MAX_TABLE_SIZE]);
+		code_value = new int[MAX_TABLE_SIZE];
+		prefix_code = new uint[MAX_TABLE_SIZE];
+		append_character = new uchar[MAX_TABLE_SIZE];
 
 		SetBits(9);
 		Reset();
@@ -111,7 +111,7 @@ public:
 
 Lzw::Lzw()
 {
-	d = NEW(LzwPrivate);
+	d = new LzwPrivate;
 }
 
 Lzw::~Lzw()

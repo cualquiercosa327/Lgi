@@ -337,7 +337,7 @@ public:
 	
 	void PushClip(int x1, int y1, int x2, int y2)
 	{
-		GRect *Next = NEW(GRect(Ox + x1, Oy + y1, Ox + x2, Ox + y2));
+		GRect *Next = new GRect(Ox + x1, Oy + y1, Ox + x2, Ox + y2);
 		if (Next)
 		{
 			GRect *Last = Clip.Last();
@@ -447,7 +447,7 @@ public:
 /////////////////////////////////////////////////////////////////////////////////////
 GPrintDC::GPrintDC(void *Handle, char *PrintJobName)
 {
-	d = NEW(GPrintDCPrivate);
+	d = new GPrintDCPrivate;
 	d->Handle = Handle;
 	d->PrintJobName = NewStr(PrintJobName);
 }
@@ -495,7 +495,7 @@ GPrintDC::~GPrintDC()
 		char a[256];
 		sprintf(a, "-t \"%s\" %s", d->PrintJobName, d->FileName);
 		LgiExecute("kprinter", a);
-		NEW(DeleterThread(d->FileName));
+		new DeleterThread(d->FileName);
 	}	
 	
 	DeleteObj(d);
@@ -515,7 +515,7 @@ XPainter *GPrintDC::Handle()
 {
 	if (NOT d->p)
 	{
-		d->p = NEW(PrintPainter(this));
+		d->p = new PrintPainter(this);
 	}
 	
 	return d->p;

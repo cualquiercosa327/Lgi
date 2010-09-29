@@ -86,7 +86,7 @@ class GdcPngFactory : public GFilterFactory
 
 	GFilter *NewObject()
 	{
-		return NEW(GdcPng);
+		return new GdcPng;
 	}
 } PngFactory;
 
@@ -212,7 +212,7 @@ uchar GdcPng::PaethPredictor(uchar a, uchar b, uchar c)
 bool GdcPng::ProcessData()
 {
 	int Line = ((pDC->X() * Header.TotalBits) + 7) / 8;
-	uchar *Buf = NEW(uchar[1+Line]);
+	uchar *Buf = new uchar[1+Line];
 
 	for (; DataPipe.Pop(Buf, 1+Line); )
 	{
@@ -287,7 +287,7 @@ bool GdcPng::ProcessData()
 
 		if (NOT PrevScanLine)
 		{
-			PrevScanLine = NEW(uchar[Line]);
+			PrevScanLine = new uchar[Line];
 		}
 
 		if (PrevScanLine)
@@ -423,7 +423,7 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext)
 				case PLTE:
 				{
 					int Colours = Length / 3;
-					GPalette *Pal = NEW(GPalette);
+					GPalette *Pal = new GPalette;
 					if (Pal AND Pal->SetSize(Colours))
 					{
 						for (int i=0; i<Colours; i++)
@@ -448,8 +448,8 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext)
 					{
 						int InSize = Length;
 						int OutSize = 65536;
-						uchar *InBuf = NEW(uchar[InSize]);
-						uchar *OutBuf = NEW(uchar[OutSize]);
+						uchar *InBuf = new uchar[InSize];
+						uchar *OutBuf = new uchar[OutSize];
 
 						if (InBuf AND
 							OutBuf AND
@@ -624,7 +624,7 @@ bool GdcPng::WriteImage(GSurface *pDC)
 		if (Pal)
 		{
 			int Size = Pal->GetSize()*3;
-			uchar *Data = NEW(uchar[Size]);
+			uchar *Data = new uchar[Size];
 			if (Data)
 			{
 				uchar *d = Data;
@@ -646,7 +646,7 @@ bool GdcPng::WriteImage(GSurface *pDC)
 
 		// write IDAT's
 		int Line = ((pDC->X() * Header.TotalBits) + 7) / 8;
-		uchar *Data = NEW(uchar[Line+1]);
+		uchar *Data = new uchar[Line+1];
 		if (Data)
 		{
 			for (int y=0; y<pDC->Y(); y++)
@@ -744,8 +744,8 @@ bool GdcPng::WriteImage(GSurface *pDC)
 
 			// compress image
 			int Size = 32 << 10;
-			uchar *InBuf = NEW(uchar[Size]);
-			uchar *OutBuf = NEW(uchar[Size]);
+			uchar *InBuf = new uchar[Size];
+			uchar *OutBuf = new uchar[Size];
 			if (InBuf AND OutBuf)
 			{
 				// ZLIB stuff to compress the stream

@@ -396,7 +396,7 @@ TextDocument::TextDocument()
 	Lines = 1;
 	Length = 0;
 	Alloc = 1;
-	Data = NEW(char[1]);
+	Data = new char[1];
 	if (Data) *Data = 0;
 
 	IgnoreUndo = 0;
@@ -459,7 +459,7 @@ bool TextDocument::SetLength(int Len)
 	if (Len + 1 > Alloc)
 	{
 		int NewAlloc = (Len + TEXT_BLOCK) & (~TEXT_MASK);
-		char *Temp = NEW(char[NewAlloc]);
+		char *Temp = new char[NewAlloc];
 		if (Temp)
 		{
 			memset(Temp + Length, 0, NewAlloc - Length);
@@ -630,11 +630,11 @@ bool TextDocument::Lock(TextLock *Lock, int StartLine, int Ls, int CodePageId)
 		ushort *CodePage = (CodePageId < TVCP_MAX) ? CodePages[CodePageId] : 0;
 		if (CodePage)
 		{
-			Lock->LineW = NEW(ushort*[Lock->Lines]);
+			Lock->LineW = new ushort*[Lock->Lines];
 		}
 		else
 		{
-			Lock->Line = NEW(char*[Lock->Lines]);
+			Lock->Line = new char*[Lock->Lines];
 		}
 
 		char *c = FindLine(StartLine);
@@ -648,7 +648,7 @@ bool TextDocument::Lock(TextLock *Lock, int StartLine, int Ls, int CodePageId)
 					{
 						char *Eol = c + StrLen(c);
 						int Len = (int)Eol-(int)c;
-						Lock->LineW[i] = NEW(ushort[Len + 1]);
+						Lock->LineW[i] = new ushort[Len + 1];
 						if (Lock->LineW[i])
 						{
 							for (int n=0; n<Len; n++)
@@ -739,7 +739,7 @@ bool TextDocument::Insert(GCursor *At, char *Text, int Len)
 				TruncateQueue();
 
 				// add new undo info in
-				if (UserAction *a = NEW(UserAction))
+				if (UserAction *a = new UserAction)
 				{
 					a->Text = NewStr(Text, Len);
 					a->x = At->x;
@@ -783,7 +783,7 @@ bool TextDocument::Delete(GCursor *From, int Len, char *Buffer)
 				TruncateQueue();
 
 				// add new undo info in
-				if (UserAction *a = NEW(UserAction))
+				if (UserAction *a = new UserAction)
 				{
 					a->Text = NewStr(c, Len);
 					a->x = From->x;
@@ -910,7 +910,7 @@ void TextView::SetStatus(char *Msg)
 	if (Msg)
 	{
 		DeleteArray(StatusMsg);
-		StatusMsg = NEW(char[strlen(Msg)+1]);
+		StatusMsg = new char[strlen(Msg)+1];
 		if (StatusMsg)
 		{
 			strcpy(StatusMsg, Msg);
@@ -929,7 +929,7 @@ bool TextView::ClipText(char *Str, int Len)
 		}
 
 		DeleteArray(ClipData);
-		ClipData = NEW(char[Len+1]);
+		ClipData = new char[Len+1];
 		if (ClipData)
 		{
 			memcpy(ClipData, Str, Len);

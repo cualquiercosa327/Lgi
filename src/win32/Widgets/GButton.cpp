@@ -26,7 +26,7 @@ public:
 GButton::GButton(int id, int x, int y, int cx, int cy, char *name) :
 	ResObject(Res_Button)
 {
-	d = NEW(GButtonPrivate);
+	d = new GButtonPrivate;
 	Name(name);
 	GRect r(x, y, x+cx, y+cy);
 	SetPos(r);

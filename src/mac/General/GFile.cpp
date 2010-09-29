@@ -556,7 +556,7 @@ public:
 			if (f.Open("/etc/fstab", O_READ))
 			{
 				int Len = f.GetSize();
-				char *Buf = NEW(char[Len+1]);
+				char *Buf = new char[Len+1];
 				if (Buf)
 				{
 					f.Read(Buf, Len);
@@ -575,7 +575,7 @@ public:
 								strlen(M[1]) > 1 AND
 								stricmp(M[2], "swap") != 0)
 							{
-								v = NEW(GMacVolume(0));
+								v = new GMacVolume(0);
 								if (v)
 								{
 									char *MountName = strrchr(Mount, '/');
@@ -1503,7 +1503,7 @@ int GFile::Print(char *Format, ...)
 
 		va_start(Arg, Format);
 		int Size = vsnprintf(0, 0, Format, Arg);
-		char *Buffer = NEW(char[Size+1]);
+		char *Buffer = new char[Size+1];
 		if (Buffer)
 		{
 			vsprintf(Buffer, Format, Arg);

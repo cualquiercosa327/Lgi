@@ -49,7 +49,7 @@ CalcTableChecksum(ulong *Table, ulong Length)
 
 ushort *ReadUShortArray(GFile &F, int Size)
 {
-	ushort *Data = NEW(ushort[Size]);
+	ushort *Data = new ushort[Size];
 	if (Data)
 	{
 		for (int i=0; i<Size; i++)
@@ -62,7 +62,7 @@ ushort *ReadUShortArray(GFile &F, int Size)
 
 short *ReadShortArray(GFile &F, int Size)
 {
-	short *Data = NEW(short[Size]);
+	short *Data = new short[Size];
 	if (Data)
 	{
 		for (int i=0; i<Size; i++)
@@ -109,7 +109,7 @@ void GFont::SetWidths()
 		HDC hDC = CreateCompatibleDC(0);
 		HFONT hOld = (HFONT) SelectObject(hDC, hFont);
 
-		Widths = NEW(float[256]);
+		Widths = new float[256];
 		if (Widths)
 		{
 			for (int i=0; i<256; i++)
@@ -671,7 +671,7 @@ bool TtfLocation::Read(GFile &F)
 
 		if (Type)
 		{
-			ulong *Ptr = NEW(ulong[Entries]);
+			ulong *Ptr = new ulong[Entries];
 			Data = Ptr;
 
 			for (int i=0; i<Entries; i++)
@@ -681,7 +681,7 @@ bool TtfLocation::Read(GFile &F)
 		}
 		else
 		{
-			ushort *Ptr = NEW(ushort[Entries]);
+			ushort *Ptr = new ushort[Entries];
 			Data = Ptr;
 
 			for (int i=0; i<Entries; i++)
@@ -781,7 +781,7 @@ bool TtfGlyph::Read(GFile &F)
 
 	if (Contours >= 0)
 	{
-		EndPtsOfContours = NEW(ushort[Contours]);
+		EndPtsOfContours = new ushort[Contours];
 		if (EndPtsOfContours)
 		{
 			for (int i=0; i<Contours; i++)
@@ -793,13 +793,13 @@ bool TtfGlyph::Read(GFile &F)
 		}
 
 		F >> InstructionLength;
-		Instructions = NEW(uchar[InstructionLength]);
+		Instructions = new uchar[InstructionLength];
 		if (Instructions)
 		{
 			F.Read(Instructions, InstructionLength);
 		}
 
- 		Flags = NEW(uchar[Points]);
+ 		Flags = new uchar[Points];
 		if (Flags)
 		{
 			for (int i=0; i<Points; i++)
@@ -822,7 +822,7 @@ bool TtfGlyph::Read(GFile &F)
 			}
 		}
 
-		X = NEW(int[Points]);
+		X = new int[Points];
 		if (X)
 		{
 			int CurX = 0;
@@ -854,7 +854,7 @@ bool TtfGlyph::Read(GFile &F)
 			}
 		}
 
-		Y = NEW(int[Points]);
+		Y = new int[Points];
 		if (Y)
 		{
 			int CurY = 0;
@@ -1112,7 +1112,7 @@ bool TtfContour::SetPoints(int p)
 	if (p > Alloc)
 	{
 		int NewAlloc = (p + 31) & (~0x1F);
-		CPt *New = NEW(CPt[NewAlloc]);
+		CPt *New = new CPt[NewAlloc];
 		if (New)
 		{
 			MemCpy(New, Point, sizeof(CPt)*Points);
@@ -1144,8 +1144,8 @@ void TtfContour::Bezier(CPt *p, double Threshold)
 	{
 		int OldPts = 3;
 		int NewPts = 0;
-		CPt *BufA = NEW(CPt[1024]);
-		CPt *BufB = NEW(CPt[1024]);
+		CPt *BufA = new CPt[1024];
+		CPt *BufB = new CPt[1024];
 		CPt *Old = BufA;
 		CPt *New = BufB;
 
@@ -1472,15 +1472,15 @@ bool TtfGlyph::Rasterize(GSurface *pDC, GRect *pDest, double xppem, double yppem
 
 	if (pDC AND pDest AND EndPtsOfContours)
 	{
-		TtfContour *pCon = NEW(TtfContour[Contours]);
+		TtfContour *pCon = new TtfContour[Contours];
 		if (pCon)
 		{
 			int StartPoint = 0;
 
 			pDC->Colour(0xFF);
 
-			DataList *XList = NEW(DataList[pDest->Y() + 1]);
-			DataList *YList = NEW(DataList[pDest->X() + 1]);
+			DataList *XList = new DataList[pDest->Y() + 1];
+			DataList *YList = new DataList[pDest->X() + 1];
 
 			if (XList)
 			{
@@ -1811,7 +1811,7 @@ bool TtfCMap::Read(GFile &F)
 
 	F >> Version;
 	F >> Tables;
-	Table = NEW(TtfCMapTable[Tables]);
+	Table = new TtfCMapTable[Tables];
 	if (Table)
 	{
 		for (int i=0; i<Tables; i++)
@@ -1830,7 +1830,7 @@ bool TtfCMap::Read(GFile &F)
 			{
 				case 0:
 				{
-					Table[i].Map = NEW(TtfCMapByteEnc);
+					Table[i].Map = new TtfCMapByteEnc;
 					if (NOT Fravorite)
 					{
 						Fravorite = Table[i].Map;
@@ -1839,7 +1839,7 @@ bool TtfCMap::Read(GFile &F)
 				}
 				case 4:
 				{
-					Table[i].Map = NEW(TtfCMapSegDelta);
+					Table[i].Map = new TtfCMapSegDelta;
 					Fravorite = Table[i].Map;
 					break;
 				}
@@ -1962,8 +1962,8 @@ bool TtfRaster::Rasterize(double xPPEm, double yPPEm, int OverSample)
 	YPixelsPerEm = yPPEm;
 	Glyphs = Profile->NumGlyphs;
 
-	pSource = NEW(GRect[Glyphs]);
-	BaseLine = NEW(int[Glyphs]);
+	pSource = new GRect[Glyphs];
+	BaseLine = new int[Glyphs];
 
 	if (Glyph AND pSource AND BaseLine)
 	{
@@ -1989,7 +1989,7 @@ bool TtfRaster::Rasterize(double xPPEm, double yPPEm, int OverSample)
 			TotalY += y;
 		}
 
-		TtfResizeDC *pOver = NEW(TtfResizeDC);
+		TtfResizeDC *pOver = new TtfResizeDC;
 		if (pOver AND pOver->Create(MaxX * OverSample, TotalY * OverSample, 8))
 		{
 			pOver->Colour(0);
@@ -2030,7 +2030,7 @@ bool TtfRaster::Rasterize(double xPPEm, double yPPEm, int OverSample)
 				}
 			}
 
-			pDC = NEW(GSurface);
+			pDC = new GSurface;
 			if (pDC AND pDC->Create(MaxX, TotalY, 8))
 			{
 				if (OverSample > 1)
@@ -2190,7 +2190,7 @@ bool GdcTtf::Load(GFile &F)
 		int ObjectLoad = 0;
 
 		Tables = FileHeader.NumTables;
-		TableList = NEW(TtfTable[Tables]);
+		TableList = new TtfTable[Tables];
 		if (TableList)
 		{
 			for (int i=0; i<Tables; i++)
@@ -2244,7 +2244,7 @@ bool GdcTtf::Load(GFile &F)
 		Info = SeekTag("glyf", &F);
 		if (Info)
 		{
-			Glyph = NEW(TtfGlyph*[Profile.NumGlyphs]);
+			Glyph = new TtfGlyph*[Profile.NumGlyphs];
 			Info->Table = Glyph;
 
 			if (Glyph)
@@ -2253,7 +2253,7 @@ bool GdcTtf::Load(GFile &F)
 				{
 					if (Location[i] != Location[i+1])
 					{
-						Glyph[i] = NEW(TtfGlyph);
+						Glyph[i] = new TtfGlyph;
 						if (Glyph[i])
 						{
 							F.Seek(Info->Offset + Location[i], SEEK_SET);
@@ -2300,7 +2300,7 @@ bool GdcTtf::Rasterize(int Point, int StyleFlags, int OverSample, int XDpi, int 
 {
 	bool Status = FALSE;
 
-	pTest = NEW(GSurface);
+	pTest = new GSurface;
 	if (pTest)
 	{
 		pTest->Create(600, 800, 24);
@@ -2312,7 +2312,7 @@ bool GdcTtf::Rasterize(int Point, int StyleFlags, int OverSample, int XDpi, int 
 
 	if (YDpi < 0) YDpi = XDpi;
 
-	TtfRaster *New = NEW(TtfRaster);
+	TtfRaster *New = new TtfRaster;
 	if (New)
 	{
 		double Sx = ((double) Point * XDpi) / 72.0;
@@ -2322,7 +2322,7 @@ bool GdcTtf::Rasterize(int Point, int StyleFlags, int OverSample, int XDpi, int 
 		New->Parent = this;
 		if (New->Rasterize(Sx, Sy, OverSample))
 		{
-			TtfRaster **Temp = NEW(TtfRaster*[Rasters+1]);
+			TtfRaster **Temp = new TtfRaster*[Rasters+1];
 			if (Temp)
 			{
 				MemCpy(Temp, Raster, sizeof(TtfRaster*)*Rasters);
@@ -2576,7 +2576,7 @@ void GdcTtf::Text(GSurface *pDC, int x, int y, char *Str, int Len)
 			int CurY = y + (r * Header.yMax);
 			int Space = max((int) (PixelsPerEm / TTF_SPACE), 1);
 
-			GdcFontApp *Pen = NEW(GdcFontApp);
+			GdcFontApp *Pen = new GdcFontApp;
 			if (Pen)
 			{
 				GApplicator *pOldApp = pDC->Applicator();

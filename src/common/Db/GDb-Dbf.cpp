@@ -178,7 +178,7 @@ GDbRecordset *GDbfDb::Open(char *Name)
 		sprintf(d, "%s%c%s", Dir, DIR_CHAR, Name);
 		if (FileExists(d))
 		{
-			return NEW(GDbfRecordset(d));
+			return new GDbfRecordset(d);
 		}
 	}
 
@@ -208,7 +208,7 @@ char *GDbfRecord::GetData()
 		if (Index >= 0)
 		{
 			// Allocate space
-			Data = NEW(char[Recordset->MemLength]);
+			Data = new char[Recordset->MemLength];
 			if (Data)
 			{
 				// Seek to start of the record
@@ -424,13 +424,13 @@ bool GDbfField::Get(GVariant &v)
 GDbfRecordset::GDbfRecordset(char *file)
 {
 	FileName = NewStr(file);
-	File = (FileName) ? NEW(GFile) : 0;
+	File = (FileName) ? new GFile : 0;
 	DiskLength = 0;
 	MemLength = 0;
 	HeaderLength = 0;
 	RecordCount = 0;
 	Current = 0;
-	NullField = NEW(GDbfField(0));
+	NullField = new GDbfField(0);
 
 	int MemOffset = 0;
 	if (File AND File->Open(FileName, O_READ))
@@ -454,7 +454,7 @@ GDbfRecordset::GDbfRecordset(char *file)
 			File->Read(Name, 11);
 			if (Name[0] != 0x0d)
 			{
-				GDbfField *Fld = NEW(GDbfField(this));
+				GDbfField *Fld = new GDbfField(this);
 				if (Fld)
 				{
 					Fld->FldName = NewStr(Name);
@@ -542,7 +542,7 @@ GDbfRecordset::GDbfRecordset(char *file)
 		// Create record objects
 		for (uint i=0; i<RecordCount; i++)
 		{
-			R.Insert(NEW(GDbfRecord(this)));
+			R.Insert(new GDbfRecord(this));
 		}
 	}
 }
@@ -653,7 +653,7 @@ bool GDbfRecordset::DeleteRecord()
 ///////////////////////////////////////////////////////////////////
 GDb *OpenDbfDatabase(char *Dir)
 {
-	GDbfDb *Dbf = NEW(GDbfDb);
+	GDbfDb *Dbf = new GDbfDb;
 	if (Dbf AND Dbf->Connect(Dir))
 	{
 		return Dbf;

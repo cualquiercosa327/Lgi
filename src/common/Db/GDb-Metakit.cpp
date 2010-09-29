@@ -229,7 +229,7 @@ MkTable::MkTable(MkDb *db, c4_Property *tbl)
 
 	for (int n=0; n<View.NumProperties(); n++)
 	{
-		F.Insert(NEW(MkField(this, (c4_Property*) &View.NthProperty(n))));
+		F.Insert(new MkField(this, (c4_Property*) &View.NthProperty(n)));
 	}
 }
 
@@ -367,12 +367,12 @@ MkDb::~MkDb()
 
 bool MkDb::Connect(char *Init)
 {
-	File = NEW(c4_Storage(Init, true));
+	File = new c4_Storage(Init, true);
 	if (File)
 	{
 		for (int n=0; n<File->NumProperties(); n++)
 		{
- 			T.Insert(NEW(MkTable(this, (c4_Property *) &File->NthProperty(n))));
+ 			T.Insert(new MkTable(this, (c4_Property *) &File->NthProperty(n)));
 		}
 	}
 
@@ -410,6 +410,6 @@ GDbRecordset *MkDb::TableAt(int i)
 //////////////////////////////////////////////////////////////////
 GDb *OpenMetakitDatabase(char *s)
 {
-	return NEW(MkDb(s));
+	return new MkDb(s);
 }
 

@@ -90,7 +90,7 @@ String::String(char *Src)
 {
 	Length = (Src) ? strlen(Src) : 0;
 	Alloc = Length;
-	Data = NEW(char[Alloc]);
+	Data = new char[Alloc];
 	if (Data AND Src)
 	{
 		strcpy(Data, Src);
@@ -109,7 +109,7 @@ bool String::SetLength(int Len)
 	if (Len > Alloc - 1)
 	{
 		int NewAlloc = Len + 32;
-		char *Temp = NEW(char[NewAlloc]);
+		char *Temp = new char[NewAlloc];
 		if (Temp)
 		{
 			if (Data)
@@ -399,7 +399,7 @@ void String::Format(char *Format, ...)
 {
 	if (Format)
 	{
-		char *Buffer = NEW(char[2048]);
+		char *Buffer = new char[2048];
 		if (Buffer)
 		{
 			va_list Arg;

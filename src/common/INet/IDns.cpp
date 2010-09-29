@@ -140,7 +140,7 @@ bool IDnsResolve(GArray<char*> &Results, char *Name, int Type, int Class)
 	{
 		#if 0
 		// TCP
-		GSocketI *s = NEW(GSocket);
+		GSocketI *s = new GSocket;
 		if (s)
 		{
 			if (s->Open(Ns[n], DNS_PORT))

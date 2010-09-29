@@ -45,8 +45,8 @@ GSelectFont::GSelectFont(GView *parent, char *Face)
 	int DefFont = 0;
 	int DefSize = 0;
 	
-	Children.Insert(NEW(GText(-1, 10, 10, -1, -1, "Font:")));
-	Children.Insert(CFont = NEW(GCombo(100, 50, 10, 100, 20, "Font")));
+	Children.Insert(new GText(-1, 10, 10, -1, -1, "Font:"));
+	Children.Insert(CFont = new GCombo(100, 50, 10, 100, 20, "Font"));
 	if (CFont)
 	{
 		int32 numFamilies = count_font_families();
@@ -79,8 +79,8 @@ GSelectFont::GSelectFont(GView *parent, char *Face)
 		CFont->Value(DefFont);
 	}
 	
-	Children.Insert(NEW(GText(-1, 10, 40, -1, -1, "Size:")));
-	Children.Insert(CSize = NEW(GCombo(100, 50, 40, 100, 20, "Size")));
+	Children.Insert(new GText(-1, 10, 40, -1, -1, "Size:"));
+	Children.Insert(CSize = new GCombo(100, 50, 40, 100, 20, "Size"));
 	if (CSize)
 	{
 		int n=0;
@@ -98,8 +98,8 @@ GSelectFont::GSelectFont(GView *parent, char *Face)
 		CSize->Value(DefSize);
 	}
 	
-	Children.Insert(NEW(GButton(IDOK, 20, 70, 60, 20, "Ok")));
-	Children.Insert(NEW(GButton(IDCANCEL, 90, 70, 60, 20, "Cancel")));
+	Children.Insert(new GButton(IDOK, 20, 70, 60, 20, "Ok"));
+	Children.Insert(new GButton(IDCANCEL, 90, 70, 60, 20, "Cancel"));
 }
 
 GSelectFont::~GSelectFont()

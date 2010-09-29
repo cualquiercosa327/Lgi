@@ -145,11 +145,11 @@ public:
 			ParseRule::Keywords.Add("delete");
 			
 			// Initialize some custom rules
-			NEW(Identifier);
-			NEW(ClassName);
-			NEW(EnumName);
-			NEW(TypedefName);
-			NEW(IntegerConst);
+			new Identifier;
+			new ClassName;
+			new EnumName;
+			new TypedefName;
+			new IntegerConst;
 			
 			// Load the grammer
 			char *Grammar = ReadTextFile(f);
@@ -167,7 +167,7 @@ public:
 					else if (ValidStr(t[i]))
 					{
 						// Rule
-						NEW(ParseRule(t, i));
+						new ParseRule(t, i);
 					}
 					else break;
 				}
@@ -264,13 +264,13 @@ ParseRule::ParseRule(GToken &t, int &i)
 				{
 					if (NOT Cond[c])
 					{
-						Cond[c] = NEW(RuleArr);
+						Cond[c] = new RuleArr;
 					}
 					
 					GToken p(s, " ");
 					for (int n=0; n<p.Length(); n++)
 					{
-						(*Cond[c])[Cond[c]->Length()] = NEW(ParseRule(p[n]));
+						(*Cond[c])[Cond[c]->Length()] = new ParseRule(p[n]);
 					}
 
 					c++;

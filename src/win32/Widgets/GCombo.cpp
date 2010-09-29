@@ -41,7 +41,7 @@ public:
 GCombo::GCombo(int id, int x, int y, int cx, int cy, char *name) :
 	ResObject(Res_ComboBox)
 {
-	d = NEW(GComboPrivate);
+	d = new GComboPrivate;
 	Name(name);
 	GRect r(x, y, x+cx, y+200);
 	SetPos(r);

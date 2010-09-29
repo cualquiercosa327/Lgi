@@ -31,7 +31,6 @@ LgiFunc bool LgiCanReadMemory(void *p, int Len = 1);
 	void operator				delete(void *p);
 	void operator				delete(void *p, char *file, int line);
 
-	#define NEW(obj)			new(__FILE__, __LINE__) obj
 	#define DeleteObj(obj)		if (obj) { _vmem_file = __FILE__; _vmem_line = __LINE__; delete obj; ((int*)obj) = 0; }
 	#define DeleteArray(obj)	if (obj) { _vmem_file = __FILE__; _vmem_line = __LINE__; delete [] obj ; ((int*)obj) = 0; }
 

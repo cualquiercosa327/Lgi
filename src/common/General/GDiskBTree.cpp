@@ -155,7 +155,7 @@ public:
 		{
 			if (NOT GetBit(i))
 			{
-				BNode *New = NEW(BNode(this));
+				BNode *New = new BNode(this);
 				if (New)
 				{
 					New->Offset = i << NODE_SHIFT;
@@ -166,7 +166,7 @@ public:
 		}
 
 		// Allocate at the end of the file
-		BNode *New = NEW(BNode(this));
+		BNode *New = new BNode(this);
 		if (New)
 		{
 			New->Offset = F.GetSize();
@@ -236,7 +236,7 @@ bool BNode::Read(int64 Off, bool Create)
 				Status = true;
 				if (H.LeftBlock)
 				{
-					Left = NEW(BNode(Tree));
+					Left = new BNode(Tree);
 					if (Left)
 					{
 						Left->Parent = this;
@@ -245,7 +245,7 @@ bool BNode::Read(int64 Off, bool Create)
 				}
 				if (H.RightBlock)
 				{
-					Right = NEW(BNode(Tree));
+					Right = new BNode(Tree);
 					if (Right)
 					{
 						Right->Parent = this;
@@ -295,7 +295,7 @@ uint8 *BNode::GetData()
 		if (Tree->F.SetPos(Off) == Off)
 		{
 			int Size = NODE_SIZE - sizeof(H);
-			D = NEW(uint8[Size]);
+			D = new uint8[Size];
 			if (D)
 			{
 				if (Tree->F.Read(D, Size) != Size)
@@ -465,7 +465,7 @@ bool BNode::Insert(char *Key, void *Data)
 //////////////////////////////////////////////////////////////////////////////////////
 GDiskBTree::GDiskBTree(char *File, int DataSize)
 {
-	d = NEW(GDiskBTreePrivate);
+	d = new GDiskBTreePrivate;
 	d->DataSize = DataSize;
 	if (File) Open(File);
 }
@@ -509,7 +509,7 @@ bool GDiskBTree::Open(char *File)
 
 		if (H.Magic == TREE_MAGIC)
 		{
-			d->Root = NEW(BNode(d));
+			d->Root = new BNode(d);
 			if (d->Root)
 			{
 				Status = d->Root->Read(NODE_SIZE, Create);
@@ -560,7 +560,7 @@ bool GDiskBTree::Empty()
 		d->SetBit(0, true);
 		d->SetBit(1, true);
 
-		d->Root = NEW(BNode(d));
+		d->Root = new BNode(d);
 		if (d->Root)
 		{
 			Status = d->Root->Read(NODE_SIZE, true);

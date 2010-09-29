@@ -33,7 +33,7 @@ public:
 
 GMemDC::GMemDC(int x, int y, int bits)
 {
-	d = NEW(GMemDCPrivate);
+	d = new GMemDCPrivate;
 	if (x AND y AND bits)
 	{
 		Create(x, y, bits);
@@ -42,13 +42,13 @@ GMemDC::GMemDC(int x, int y, int bits)
 
 GMemDC::GMemDC(GSurface *pDC)
 {
-	d = NEW(GMemDCPrivate);
+	d = new GMemDCPrivate;
 	if (pDC AND Create(pDC->X(), pDC->Y(), pDC->GetBits()))
 	{
 		Blt(0, 0, pDC);
 		if (pDC->Palette())
 		{
-			GPalette *Pal = NEW(GPalette(pDC->Palette()));
+			GPalette *Pal = new GPalette(pDC->Palette());
 			if (Pal)
 			{
 				Palette(Pal, TRUE);
@@ -118,17 +118,17 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 	}
 
 	DeleteObj(d->Bmp);
-	d->Bmp = NEW(BBitmap(BRect(0, 0, x-1, y-1), Mode, true, true));
+	d->Bmp = new BBitmap(BRect(0, 0, x-1, y-1), Mode, true, true);
 	if (d->Bmp)
 	{
 		BRect r(0, 0, x-1, y-1);
-		d->View = NEW(BView(r, "GMemDC", B_FOLLOW_NONE, 0));
+		d->View = new BView(r, "GMemDC", B_FOLLOW_NONE, 0);
 		if (d->View)
 		{
 			d->Bmp->AddChild(d->View);
 		}
 		
-		pMem = NEW(GBmpMem);
+		pMem = new GBmpMem;
 		if (pMem)
 		{
 			pMem->Base = (uchar*) d->Bmp->Bits();

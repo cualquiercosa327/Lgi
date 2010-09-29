@@ -79,7 +79,7 @@ public:
 	
 	void PushClip(int x1, int y1, int x2, int y2)
 	{
-		GRect *Next = NEW(GRect(Ox + x1, Oy + y1, Ox + x2, Ox + y2));
+		GRect *Next = new GRect(Ox + x1, Oy + y1, Ox + x2, Ox + y2);
 		if (Next)
 		{
 			GRect *Last = Clip.Last();
@@ -353,7 +353,7 @@ public:
 
 GMemDC::GMemDC(int x, int y, int bits)
 {
-	d = NEW(GMemDCPrivate);
+	d = new GMemDCPrivate;
 	
 	if (bits > 0)
 	{
@@ -363,7 +363,7 @@ GMemDC::GMemDC(int x, int y, int bits)
 
 GMemDC::GMemDC(GSurface *pDC)
 {
-	d = NEW(GMemDCPrivate);
+	d = new GMemDCPrivate;
 	
 	if (pDC AND
 		Create(pDC->X(), pDC->Y(), pDC->GetBits()))
@@ -381,7 +381,7 @@ XPainter *GMemDC::Handle()
 {
 	if (NOT d->p)
 	{
-		d->p = NEW(ImagePainter(this));
+		d->p = new ImagePainter(this);
 	}
 	return d->p;
 }
@@ -541,11 +541,11 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 	if (x < 1 OR y < 1 OR Bits < 1) return false;
 	if (Bits < 8) Bits = 8;
 
-	d->Bmp = NEW(XBitmapImage);
+	d->Bmp = new XBitmapImage;
 	if (d->Bmp AND
 		d->Bmp->create(x, y, Bits))
 	{
-		if (NOT pMem) pMem = NEW(GBmpMem);
+		if (NOT pMem) pMem = new GBmpMem;
 		if (pMem)
 		{
 			pMem->Base = d->Bmp->scanLine(0);

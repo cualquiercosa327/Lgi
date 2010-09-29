@@ -134,7 +134,7 @@ bool LgiWmMimeToApps(char *Mime, Lgi::GArray<Lgi::GAppInfo*> &Apps, int Limit)
 			{
 				GnomeVFSMimeApplication *a = (GnomeVFSMimeApplication*)lst->data;
 				
-				Lgi::GAppInfo *i = NEW(Lgi::GAppInfo);
+				Lgi::GAppInfo *i = new Lgi::GAppInfo;
 				if (i)
 				{
 					i->Path = NewStr((char*)gnome_vfs_mime_application_get_exec(a));

@@ -91,7 +91,7 @@ bool LgiGetsAppForMimeType(char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 				BEntry e(&ap);
 				if (e.GetPath(&p) == B_OK)
 				{
-					GAppInfo *i = NEW(GAppInfo);
+					GAppInfo *i = new GAppInfo;
 					if (i)
 					{
 						i->Path = NewStr((char*) p.Path());

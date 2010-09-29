@@ -53,6 +53,6 @@ public:
 
 GDb *OpenBfsDatabase(char *s)
 {
-	return NEW(GBfsDb(s));
+	return new GBfsDb(s);
 }
 

@@ -35,7 +35,7 @@ GScreenDC::GScreenDC(OsView view, void *param)
 {
 	LgiAssert(view);
 
-	d = NEW(GScreenPrivate);
+	d = new GScreenPrivate;
 	d->View = view;
 }
 
@@ -410,7 +410,7 @@ void GScreenDC::Polygon(int Points, GdcPt2 *Data)
 {
 	if (Points > 0 AND Data)
 	{
-		BPoint *p = NEW(BPoint[Points]);
+		BPoint *p = new BPoint[Points];
 		if (p)
 		{
 			for (int i=0; i<Points; i++)

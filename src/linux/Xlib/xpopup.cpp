@@ -18,7 +18,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////
 QPopup::QPopup(int i)
 {
-	Popup = NEW(QPopupPrivate);
+	Popup = new QPopupPrivate;
 
 	setText("QPopup");
 

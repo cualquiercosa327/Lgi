@@ -29,7 +29,7 @@ char *QStrToUtf8(QString s)
 	
 	QCString utf = s.utf8();
 	int Len = utf.length();
-	n = NEW(char[Len + 1]);
+	n = new char[Len + 1];
 	if (n)
 	{
 		memcpy(n, (const char*)utf, Len);
@@ -55,7 +55,7 @@ bool LgiWmMimeToApps(char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 	for (it=offers.begin(); Apps.Length()<Limit AND it!=offers.end(); it++)
 	{
 		KService::Ptr service = (*it).service();
-		GAppInfo *App = NEW(GAppInfo);
+		GAppInfo *App = new GAppInfo;
 		if (App)
 		{
 			Apps.Add(App);

@@ -34,12 +34,12 @@ public:
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 GScreenDC::GScreenDC()
 {
-	d = NEW(GScreenPrivate);
+	d = new GScreenPrivate;
 }
 
 GScreenDC::GScreenDC(OsView view, void *param)
 {
-	d = NEW(GScreenPrivate);
+	d = new GScreenPrivate;
 	d->View = view;
 	d->p.Begin(d->View);
 }
@@ -346,7 +346,7 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 				if (Src->GetBits() != GetBits())
 				{
 					// Do on the fly depth conversion...
-					GSurface *t = NEW(GMemDC);
+					GSurface *t = new GMemDC;
 					if (t)
 					{
 						if (t->Create(a->X(), a->Y(), GetBits()))

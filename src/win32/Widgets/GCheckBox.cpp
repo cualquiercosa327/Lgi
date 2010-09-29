@@ -28,7 +28,7 @@ public:
 GCheckBox::GCheckBox(int id, int x, int y, int cx, int cy, char *name, int initstate) :
 	ResObject(Res_CheckBox)
 {
-	d = NEW(GCheckBoxPrivate);
+	d = new GCheckBoxPrivate;
 	d->InitState = initstate;
 
 	Name(name);

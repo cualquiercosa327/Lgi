@@ -127,7 +127,7 @@ public:
 		
 		WordCount = ReadUChar();
 		DeleteArray(ParameterWords);
-		ParameterWords = NEW(ushort[WordCount]);
+		ParameterWords = new ushort[WordCount];
 		if (ParameterWords)
 		{
 			Conn->Read((char*) ParameterWords, sizeof(ushort)*WordCount, 0);
@@ -135,7 +135,7 @@ public:
 
 		ByteCount = ReadUChar();
 		DeleteArray(Buffer);
-		Buffer = NEW(uchar[ByteCount]);
+		Buffer = new uchar[ByteCount];
 		if (Buffer)
 		{
 			Conn->Read((char*) Buffer, sizeof(uchar)*ByteCount, 0);

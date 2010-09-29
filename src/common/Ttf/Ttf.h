@@ -214,7 +214,7 @@ public:
 		if (Size >= Alloc)
 		{
 			int NewAlloc = (Size + 16) & (~0xF);
-			double *Temp = NEW(double[NewAlloc]);
+			double *Temp = new double[NewAlloc];
 			if (Temp)
 			{
 				memcpy(Temp, Data, sizeof(double)*Size);

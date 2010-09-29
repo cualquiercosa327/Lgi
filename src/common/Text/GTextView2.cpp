@@ -157,7 +157,7 @@ GTextView2::GTextView2(	int Id,
 
 	// Data
 	Alloc = ALLOC_BLOCK;
-	Text = NEW(char[Alloc]);
+	Text = new char[Alloc];
 	if (Text) *Text = 0;
 	Cursor = 0;
 	CharSize = 1; // or 2
@@ -188,7 +188,7 @@ GTextView2::GTextView2(	int Id,
 		Handle()->SetViewColor(B_TRANSPARENT_COLOR);
 		#endif
 
-		BlueUnderline = NEW(GFont);
+		BlueUnderline = new GFont;
 		if (BlueUnderline)
 		{
 			*BlueUnderline = *Font;
@@ -244,7 +244,7 @@ void GTextView2::SetFont(GFont *f, bool OwnIt)
 	{
 		if (NOT Font)
 		{
-			Font = NEW(GFont(*f));
+			Font = new GFont(*f);
 		}
 		else
 		{
@@ -416,7 +416,7 @@ void GTextView2::PourText()
 			}
 
 
-			GTextLine *l = NEW(GTextLine);
+			GTextLine *l = new GTextLine;
 			if (l)
 			{
 				l->Start = LastChar;
@@ -686,7 +686,7 @@ void GTextView2::PourStyle()
 							for ( ; (((int)e-(int)Text) < Size) AND 
 									UrlChar(*e); e++);
 
-							GUrl *Url = NEW(GUrl(this));
+							GUrl *Url = new GUrl(this);
 							if (Url)
 							{
 								Url->Email = false;
@@ -720,7 +720,7 @@ void GTextView2::PourStyle()
 
 							if (FoundDot)
 							{
-								GUrl *Url = NEW(GUrl(this));
+								GUrl *Url = new GUrl(this);
 								if (Url)
 								{
 									Url->Email = true;
@@ -758,7 +758,7 @@ bool GTextView2::Insert(int At, char *Data, int Len)
 		NewAlloc += ALLOC_BLOCK - (NewAlloc % ALLOC_BLOCK);
 		if (NewAlloc != Alloc)
 		{
-			char *NewText = NEW(char[NewAlloc]);
+			char *NewText = new char[NewAlloc];
 			if (NewText)
 			{
 				if (Text)
@@ -897,7 +897,7 @@ bool GTextView2::Name(char *s)
 	DeleteArray(Text);
 	Size = s ? strlen(s) : 0;
 	Alloc = Size + 1;
-	Text = NEW(char[Alloc]);
+	Text = new char[Alloc];
 	Cursor = 0;
 	if (Text)
 	{
@@ -1098,7 +1098,7 @@ char *ConvertToCrLf(char *Text)
 			Len++;
 		}
 
-		char *Temp = NEW(char[Len+Lfs+1]);
+		char *Temp = new char[Len+Lfs+1];
 		if (Temp)
 		{
 			char *d=Temp;
@@ -1260,7 +1260,7 @@ bool GTextView2::Open(char *Name)
 		DeleteArray(Text);
 		Size = f.GetSize();
 		Alloc = Size + 1;
-		Text = NEW(char[Alloc]);
+		Text = new char[Alloc];
 		SetCursor(0, false);
 		if (Text)
 		{
@@ -1564,7 +1564,7 @@ bool GTextView2::OnMultiLineTab(bool In)
 		Max = SeekLine(Max, EndLine);
 	}
 
-	int *Indexes = NEW(int[Ls]);
+	int *Indexes = new int[Ls];
 	if (Indexes)
 	{
 		p.Pop((uchar*)Indexes, Ls*sizeof(int));
@@ -1736,7 +1736,7 @@ void GTextView2::OnMouseClick(GMouse &m)
 		}
 		else if (m.Right())
 		{
-			GSubMenu *RClick = NEW(GSubMenu);
+			GSubMenu *RClick = new GSubMenu;
 			if (RClick)
 			{
 				char *ClipText = 0;
@@ -2346,7 +2346,7 @@ void GTextView2::OnPaint(GSurface *pDC)
 	}
 
 	#ifdef DOUBLE_BUFFER_PAINT
-	GMemDC *pMem = NEW(GMemDC);
+	GMemDC *pMem = new GMemDC;
 	pOut = pMem;
 	#endif
 	if (Text AND
@@ -2715,7 +2715,7 @@ class GTextView2_Factory : public GViewFactory
 	{
 		if (stricmp(Class, "GTextView2") == 0)
 		{
-			return NEW(GTextView2(-1, 0, 0, 100, 100));
+			return new GTextView2(-1, 0, 0, 100, 100);
 		}
 
 		return 0;

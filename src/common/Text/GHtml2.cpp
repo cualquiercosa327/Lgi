@@ -6139,6 +6139,7 @@ int GHtml2::OnEvent(GMessage *Msg)
 		}
 		case M_JOBS_LOADED:
 		{
+			LgiTrace("M_JOBS_LOADED started\n");
 			if (Lock(_FL))
 			{
 				for (int i=0; i<Jobs.Length(); i++)
@@ -6168,6 +6169,8 @@ int GHtml2::OnEvent(GMessage *Msg)
 
 			OnPosChange();
 			Invalidate();
+
+			LgiTrace("M_JOBS_LOADED ended\n");
 			break;
 		}
 		/*
