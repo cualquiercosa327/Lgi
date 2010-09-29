@@ -64,7 +64,7 @@ enum GSocketLogTypes
 
 /// Virtual base class for a socket. See the documentation for GSocket for a more
 /// through treatment of this object's API.
-class GSocketI : virtual public GStreamI, virtual public GDomI
+class GSocketI : virtual public GStreamI
 {
 public:
 	virtual ~GSocketI() {}

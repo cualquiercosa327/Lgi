@@ -1265,13 +1265,11 @@ bool GDom::SetValue(char *Var, GVariant &Value)
 			if (Object)
 			{
 				if (Name[0] == 0)
-				{
-					LgiTrace("%s:%i - Warning name parse failed for '%s'\n",
-						__FILE__, __LINE__, Var);
-				}
+					LgiTrace("%s:%i - Warning name parse failed for '%s'\n", _FL, Var);
 				else
-				{			
-					Status = Object->SetVariant(Name, Value, ValidStr(Arr) ? Arr : 0);
+				{
+					bool Valid = ValidStr(Arr);
+					Status = Object->SetVariant(Name, Value, Valid ? Arr : 0);
 				}
 			}
 

@@ -8,6 +8,9 @@
 #include "GUtf8.h"
 
 ////////////////////////////////////////////////////////////////////////////
+#undef GPL_COMPATIBLE
+#define GPL_COMPATIBLE 1
+
 #if GPL_COMPATIBLE
 #include "AuthNtlm/Ntlm.h"
 #endif
@@ -632,6 +635,13 @@ bool MailIMap::ReadLine()
 	return true;
 }
 
+#if HAS_LIBGSASL
+int GsaslCallback(Gsasl *ctx, Gsasl_session *sctx, Gsasl_property prop)
+{
+	return 0;
+}
+#endif
+
 bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *Password, char *&Cookie, int Flags)
 {
 	bool Status = false;
@@ -710,12 +720,17 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 
 					ClearDialog();
 				}
+				else Log("Read CAPABILITY response failed", MAIL_ERROR_COLOUR);
 			}
+			else Log("Write CAPABILITY cmd failed", MAIL_ERROR_COLOUR);
 
-			if (IMAP4Server)
+			if (!IMAP4Server)
+				Log("CAPABILITY says not an IMAP4Server", MAIL_ERROR_COLOUR);
+			else
 			{
 				char *DefaultAuthType = 0;
-				bool TryAllAuths = Auths.Length() == 0;
+				bool TryAllAuths = Auths.Length() == 0 &&
+									!(Flags & (MAIL_USE_PLAIN | MAIL_USE_LOGIN | MAIL_USE_NTLM));
 
 				if (TryAllAuths)
 				{
@@ -723,15 +738,15 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 				}
 				if (TestFlag(Flags, MAIL_USE_PLAIN) || TryAllAuths)
 				{
-					Auths.Insert(DefaultAuthType = NewStr("PLAIN"));
+					Auths.Insert(DefaultAuthType = NewStr("PLAIN"), 0);
 				}
 				if (TestFlag(Flags, MAIL_USE_LOGIN) || TryAllAuths)
 				{
-					Auths.Insert(DefaultAuthType = NewStr("LOGIN"));
+					Auths.Insert(DefaultAuthType = NewStr("LOGIN"), 0);
 				}
 				if (TestFlag(Flags, MAIL_USE_NTLM) || TryAllAuths)
 				{
-					Auths.Insert(DefaultAuthType = NewStr("NTLM"));
+					Auths.Insert(DefaultAuthType = NewStr("NTLM"), 0);
 				}
 
 				// SSL
@@ -751,6 +766,11 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 						{
 							TlsError = true;
 						}
+					}
+					else LgiAssert(0);
+					if (TlsError)
+					{
+						Log("STARTTLS failed", MAIL_ERROR_COLOUR);
 					}
 				}
 
@@ -782,12 +802,25 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 						{
 							// Start GSSAPI
 							Gsasl *ctx = NULL;
+							Gsasl_session *sess = NULL;
 							int rc = gsasl_init(&ctx);
 							if (rc == GSASL_OK)
 							{
-								gsasl_done (ctx);
+								char *mechs;
+								rc = gsasl_client_mechlist(ctx, &mechs);
+  								gsasl_callback_set(ctx, GsaslCallback);
+								rc = gsasl_client_start(ctx, AuthType, &sess);
+								if (rc != GSASL_OK)
+								{
+									Log("gsasl_client_start failed", MAIL_ERROR_COLOUR);
+								}
+
+								// gsasl_step(ctx, 
+								gsasl_done(ctx);
 							}
+							else Log("gsasl_init failed", MAIL_ERROR_COLOUR);
 						}						
+						else Log("AUTHENTICATE GSSAPI failed", MAIL_ERROR_COLOUR);
 					}
 					else
 					#endif
@@ -834,6 +867,71 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 						}						
 					}
 					#if GPL_COMPATIBLE
+					else if (stricmp(AuthType, "NTLM") == 0)
+					{
+						// NT Lan Man authentication
+						
+						// Username is in the format: User[@Domain]
+						char UserDom[256];
+						strcpy(UserDom, User);
+						char *Domain = strchr(UserDom, '@');
+						if (Domain)
+						{
+							*Domain++ = 0;
+						}
+						else
+						{
+							Domain = UserDom + strlen(UserDom);
+						}
+
+						int AuthCmd = d->NextCmd++;
+						sprintf(Buf, "A%04.4i AUTHENTICATE NTLM\r\n", AuthCmd);
+						if (WriteBuf())
+						{
+							if (ReadResponse(AuthCmd))
+							{
+								tSmbNtlmAuthRequest   request;              
+								tSmbNtlmAuthChallenge challenge;
+								tSmbNtlmAuthResponse  response;
+								char tmpstr[32];
+
+								buildSmbNtlmAuthRequest(&request,UserDom,Domain);
+								ZeroObj(Buf);
+								ConvertBinaryToBase64(Buf, sizeof(Buf), (uchar*) &request, SmbLength(&request));
+								strcat(Buf, "\r\n");
+								WriteBuf();
+
+								/* read challange data from server, convert from base64 */
+
+								Buf[0] = 0;
+								ClearDialog();
+								if (ReadResponse())
+								{
+									/* buffer should contain the string "+ [base 64 data]" */
+
+									char *Line = Dialog.First();
+									LgiAssert(Line);
+									ChopNewLine(Line);
+									ConvertBase64ToBinary((uchar*) &challenge, sizeof(challenge), Line+2, strlen(Line)-2);
+
+									/* prepare response, convert to base64, send to server */
+
+									buildSmbNtlmAuthResponse(&challenge, &response, User, Password);
+									ZeroObj(Buf);
+									ConvertBinaryToBase64(Buf, sizeof(Buf), (uchar*) &response, SmbLength(&response));
+									strcat(Buf, "\r\n");
+									WriteBuf();
+
+									/* read line from server, it should be "[seq] OK blah blah blah" */
+
+									LoggedIn = ReadResponse(AuthCmd);
+								}
+							}
+						}
+
+						ClearDialog();
+					}
+					#else // use the LGPL libntml
 					else if (stricmp(AuthType, "NTLM") == 0)
 					{
 						// NT Lan Man authentication

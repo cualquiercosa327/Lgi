@@ -71,6 +71,6 @@ extern void dumpSmbNtlmAuthRequest(FILE *fp, tSmbNtlmAuthRequest *request);
 extern void dumpSmbNtlmAuthChallenge(FILE *fp, tSmbNtlmAuthChallenge *challenge);
 extern void dumpSmbNtlmAuthResponse(FILE *fp, tSmbNtlmAuthResponse *response);
 
-LgiNetFunc void buildSmbNtlmAuthRequest(tSmbNtlmAuthRequest *request, char *user, char *domain);
-LgiNetFunc void buildSmbNtlmAuthResponse(tSmbNtlmAuthChallenge *challenge, tSmbNtlmAuthResponse *response, char *user, char *password);
+void buildSmbNtlmAuthRequest(tSmbNtlmAuthRequest *request, char *user, char *domain);
+void buildSmbNtlmAuthResponse(tSmbNtlmAuthChallenge *challenge, tSmbNtlmAuthResponse *response, char *user, char *password);
 

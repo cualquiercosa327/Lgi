@@ -203,7 +203,7 @@ public:
 	}
 };
 
-GSocket::GSocket()
+GSocket::GSocket(GStreamI *logger)
 {
 	BytesWritten = 0;
 	BytesRead = 0;

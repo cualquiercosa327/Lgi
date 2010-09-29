@@ -106,7 +106,7 @@ public:
 	int			BytesRead;
 
 	/// Creates the class
-	GSocket();
+	GSocket(GStreamI *logger = 0);
 	
 	/// Destroys the class
 	~GSocket();
