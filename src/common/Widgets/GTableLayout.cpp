@@ -734,17 +734,25 @@ public:
 				Izza(GList) ||
 				Izza(GTree) ||
 				Izza(GTabView) ||
-				(Izza(GEdit) && Izza(GEdit)->MultiLine()) ||
-				(v->OnLayout(Inf) && Inf.Height.Max < 0)
+				(Izza(GEdit) && Izza(GEdit)->MultiLine())
 			)
 			{
 				r.y2 = Pos.y2;
 			}
+			else if (v->OnLayout(Inf))
+			{
+				if (Inf.Height.Max < 0)
+					r.y2 = Pos.y2;
+				else
+					r.y2 = r.y1 + Inf.Height.Max - 1;
+			}
+			
 			if (!Izza(GButton) && !Tbl)
 			{
 				r.x2 = r.x1 + Pos.X() - 1;
 			}
 
+			printf("%s = %s\n", v->GetClass(), r.GetStr());
 			New[i] = r;
 			MaxY = max(MaxY, r.y2 - Pos.y1);
 			Cx += r.X() + CELL_SPACING;
@@ -791,11 +799,11 @@ public:
 		int OffsetY = 0;
 		if (AlignY == AlignCenter)
 		{
-			OffsetY = (Pos.Y() - (MaxY - Pos.y1)) / 2;
+			OffsetY = (Pos.Y() - MaxY) / 2;
 		}
 		else if (AlignY == AlignMax)
 		{
-			OffsetY = Pos.Y() - (MaxY - Pos.y1);
+			OffsetY = Pos.Y() - MaxY;
 		}
 		for (n=0; n<Children.Length(); n++)
 		{
