@@ -13,6 +13,7 @@
 #include "GBitmap.h"
 #include "GTabView.h"
 #include "GUtf8.h"
+#include "GScrollBar.h"
 
 #define Izza(c)				dynamic_cast<c*>(v)
 #define CELL_SPACING		4
@@ -435,7 +436,8 @@ public:
 				// Max += x + 10;
 				// Flag = SizeGrow;
 			}
-			else if (Izza(GEdit))
+			else if (Izza(GEdit) ||
+					 Izza(GScrollBar))
 			{
 				Min = max(Min, 40);
 				Max = max(Max, 1000);
@@ -550,6 +552,10 @@ public:
 					GRect r = v->GetPos();
 					r.y2 = r.y1 + y - 1;
 					v->SetPos(r);
+				}
+				else if (Izza(GScrollBar))
+				{
+					Pos.y2 += 15;
 				}
 				else if (Izza(GEdit) ||
 						 Izza(GButton) ||
@@ -740,7 +746,7 @@ public:
 			}
 
 			New[i] = r;
-			MaxY = max(MaxY, r.y2);
+			MaxY = max(MaxY, r.y2 - Pos.y1);
 			Cx += r.X() + CELL_SPACING;
 			if (Cx >= Pos.X())
 			{

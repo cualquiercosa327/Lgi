@@ -732,7 +732,7 @@ ResObject *LgiResources::CreateObject(GXmlTag *t, ResObject *Parent)
 				if (!Wnd)
 				{
 					// Not a "ResObject"
-					LgiAssert(0);
+					LgiAssert(!"Not a ResObject");
 					DeleteObj(v);
 				}
 			}

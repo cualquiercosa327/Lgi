@@ -1667,8 +1667,7 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 										int Before = SUB_SAMPLE - (Sx & SUB_MASK);
 										if (Before)
 										{
-											int Idx = Sx>>SUB_SHIFT;
-											CHECK_ALPHA(Idx);
+											CHECK_ALPHA(Sx>>SUB_SHIFT);
 											Alpha[Sx>>SUB_SHIFT] += Before;
 											Sx += Before;
 										}
