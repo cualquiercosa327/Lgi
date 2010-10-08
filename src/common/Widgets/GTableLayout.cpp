@@ -752,7 +752,7 @@ public:
 				r.x2 = r.x1 + Pos.X() - 1;
 			}
 
-			printf("%s = %s\n", v->GetClass(), r.GetStr());
+			// printf("%s = %s\n", v->GetClass(), r.GetStr());
 			New[i] = r;
 			MaxY = max(MaxY, r.y2 - Pos.y1);
 			Cx += r.X() + CELL_SPACING;
