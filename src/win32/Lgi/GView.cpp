@@ -449,7 +449,7 @@ GViewI *GWindowFromHandle(HWND hWnd)
 	{
 		SetLastError(0);
 		int32 m = GetWindowLong(hWnd, GWL_LGI_MAGIC);
-		#ifdef _DEBUG
+		#if 0 // def _DEBUG
 		DWORD err = GetLastError();
 		if (err == 1413)
 		{

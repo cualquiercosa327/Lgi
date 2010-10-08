@@ -57,12 +57,13 @@ public:
 	{
 		if (t->Tag AND stricmp(t->Tag, "String") == 0)
 		{
-			for (GXmlAttr *a = t->Attr.First(); a; a = t->Attr.Next())
+			for (int i=0; i<t->Attr.Length(); i++)
 			{
-				GLanguage *l = GFindLang(a->Name);
+				GXmlAttr &a = t->Attr[i];
+				GLanguage *l = GFindLang(a.GetName());
 				if (l)
 				{
-					if (NOT Langs.Find(l->Id))
+					if (!Langs.Find(l->Id))
 					{
 						Langs.Add(l->Id, l);
 					}
@@ -133,21 +134,17 @@ public:
 	{
 		if (t->Tag AND stricmp(t->Tag, "String") == 0)
 		{
-			for (GXmlAttr *a = t->Attr.First(); a; )
+			for (int i=0; i<t->Attr.Length(); i++)
 			{
-				GLanguage *l = GFindLang(a->Name);
+				GLanguage *l = GFindLang(t->Attr[i].GetName());
 				if (l)
 				{
-					if (NOT Langs.Find(l->Id))
+					if (!Langs.Find(l->Id))
 					{
-						t->Attr.Delete(a);
-						DeleteObj(a);
-						a = t->Attr.Current();
-						continue;
+						t->DelAttr(t->Attr[i].GetName());
+						i--;
 					}
 				}
-
-				a = t->Attr.Next();
 			}
 		}
 
@@ -239,7 +236,10 @@ public:
 				{
 					// put together the list of langs
 					Langs.Empty();
-					for (LangInc *i = (LangInc*)Inc->First(); i; i = (LangInc*)Inc->Next())
+
+					List<LangInc> LangLst;
+					Inc->GetAll(LangLst);
+					for (LangInc *i = LangLst.First(); i; i = LangLst.Next())
 					{
 						if (i->Value())
 						{
@@ -277,44 +277,39 @@ public:
 
 int LgiMain(OsAppArguments &AppArgs)
 {
-	GApp *a = new GApp("application/lrstrip", AppArgs);
-	if (a)
+	GApp a("application/lrstrip", AppArgs);
+	if (a.IsOk())
 	{
+		App *w;
+		a.AppWnd = w = new App;
+
+		char In[256];
+		char Out[256];
+		char Langs[256];
+		if (LgiApp->GetOption("In", In) AND
+			LgiApp->GetOption("Out", Out) AND
+			LgiApp->GetOption("Langs", Langs))
 		{
-			App Wnd;
-
-			char In[256];
-			char Out[256];
-			char Langs[256];
-			if (LgiApp->GetOption("In", In) AND
-				LgiApp->GetOption("Out", Out) AND
-				LgiApp->GetOption("Langs", Langs))
+			if (w->Load(In))
 			{
-				if (Wnd.Load(In))
+				if (stricmp(Langs, "all"))
 				{
-					if (stricmp(Langs, "all"))
+					w->Langs.Empty();
+
+					GToken l(Langs, " ,;");
+					for (int i=0; i<l.Length(); i++)
 					{
-						Wnd.Langs.Empty();
-
-						GToken l(Langs, " ,;");
-						for (int i=0; i<l.Length(); i++)
-						{
-							Wnd.Langs.Add(l[i]);
-						}
+						w->Langs.Add(l[i]);
 					}
-
-					Wnd.Save(Out);
 				}
 
-				Wnd.Children.DeleteObjects();
-			}
-			else
-			{
-				Wnd.DoModal();
+				w->Save(Out);
 			}
 		}
-
-		DeleteObj(a);
+		else
+		{
+			w->DoModal();
+		}
 	}
 
 	return 0;

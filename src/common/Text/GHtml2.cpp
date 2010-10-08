@@ -4862,11 +4862,6 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 	Size.x = 0;
 	Size.y = 0;
 
-	if (Debug)
-	{
-		int asd=0;
-	}
-
 	switch (TagId)
 	{
 		case TAG_IFRAME:

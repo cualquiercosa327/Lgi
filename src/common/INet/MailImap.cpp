@@ -8,9 +8,6 @@
 #include "GUtf8.h"
 
 ////////////////////////////////////////////////////////////////////////////
-#undef GPL_COMPATIBLE
-#define GPL_COMPATIBLE 1
-
 #if GPL_COMPATIBLE
 #include "AuthNtlm/Ntlm.h"
 #endif
@@ -931,7 +928,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 
 						ClearDialog();
 					}
-					#else // use the LGPL libntml
+					#elif 0 // use the LGPL libntml
 					else if (stricmp(AuthType, "NTLM") == 0)
 					{
 						// NT Lan Man authentication

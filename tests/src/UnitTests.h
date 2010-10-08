@@ -1,7 +1,7 @@
 #ifndef _UNIT_TESTS_H_
 #define _UNIT_TESTS_H_
 
-class UnitTest: public GObject
+class UnitTest: public GBase
 {
 public:
 	UnitTest(char *name)

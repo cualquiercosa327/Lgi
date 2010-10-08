@@ -62,7 +62,7 @@ bool GWordStore::Serialize(char *FileName, bool Load)
 	{
 		if (f.Open(Name, O_READ))
 		{
-			if (NOT d->File)
+			if (!d->File)
 			{
 				d->File = NewStr(Name);
 			}
@@ -74,7 +74,7 @@ bool GWordStore::Serialize(char *FileName, bool Load)
 			GStringPipe p;
 			char Buf[4<<10];
 			int Words = 0;
-			while (NOT f.Eof())
+			while (!f.Eof())
 			{
 				int r = f.Read(Buf, sizeof(Buf));
 				if (r > 0)
