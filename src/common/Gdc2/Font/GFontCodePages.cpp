@@ -127,40 +127,39 @@ bool LgiIsUtf8(char *s, int len)
 			goto Utf8Error; \
 		s++;
 
-	if (s)
-	{
-		char *Start = s;
-		while (*s && (len < 0 || (((int)s-(int)Start) < len) ) )
-		{
-			if (IsUtf8_1Byte(*s))
-			{
-				s++;
-			}
-			else if (IsUtf8_2Byte(*s))
-			{
-				s++;
-				LenCheck(1);
-				TrailCheck();
-			}
-			else if (IsUtf8_3Byte(*s))
-			{
-				s++;
-				LenCheck(2);
-				TrailCheck();
-				TrailCheck();
-			}
-			else if (IsUtf8_4Byte(*s))
-			{
-				s++;
-				LenCheck(3);
-				TrailCheck();
-				TrailCheck();
-				TrailCheck();
-			}
-			else goto Utf8Error;
-		}
-	}
+	if (!s || *s == 0)
+		return true;
 
+	char *Start = s;
+	while (*s && (len < 0 || (((int)s-(int)Start) < len) ) )
+	{
+		if (IsUtf8_1Byte(*s))
+		{
+			s++;
+		}
+		else if (IsUtf8_2Byte(*s))
+		{
+			s++;
+			LenCheck(1);
+			TrailCheck();
+		}
+		else if (IsUtf8_3Byte(*s))
+		{
+			s++;
+			LenCheck(2);
+			TrailCheck();
+			TrailCheck();
+		}
+		else if (IsUtf8_4Byte(*s))
+		{
+			s++;
+			LenCheck(3);
+			TrailCheck();
+			TrailCheck();
+			TrailCheck();
+		}
+		else goto Utf8Error;
+	}
 	return true;
 
 Utf8Error:
