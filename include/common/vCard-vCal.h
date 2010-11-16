@@ -3,6 +3,7 @@
 
 #include "ScribeDefs.h"
 #include "Store3.h"
+#include "GToken.h"
 
 #define FIELD_PERMISSIONS				2000
 
@@ -10,6 +11,35 @@ class VIoPriv;
 class VIo
 {
 protected:
+	class TypesList : public GArray<GAutoString>
+	{
+	public:
+		TypesList(char *init = 0)
+		{
+			if (init)
+			{
+				GToken t(init, ",");
+				for (int i=0; i<t.Length(); i++)
+					New().Reset(NewStr(t[i]));
+			}
+		}
+
+		bool Find(char *s)
+		{
+			for (int i=0; i<Length(); i++)
+			{
+				if (stricmp((*this)[i], s) == 0)
+					return true;
+			}
+			return false;
+		}
+
+		void Empty()
+		{
+			Length(0);
+		}
+	};
+
 	VIoPriv *d;
 
 	bool ParseDate(GDateTime &out, char *in);
@@ -19,8 +49,8 @@ protected:
 	char *Unfold(char *In);
 	char *UnMultiLine(char *In);
 
-	bool ReadField(GStreamI &s, char **Name, char **Type, char **Data);
-	void WriteField(GStreamI &s, char *Name, char *Type, char *Data);
+	bool ReadField(GStreamI &s, char **Name, TypesList *Type, char **Data);
+	void WriteField(GStreamI &s, char *Name, TypesList *Type, char *Data);
 
 public:
 	VIo();

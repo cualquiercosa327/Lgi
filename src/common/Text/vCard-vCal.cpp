@@ -10,13 +10,27 @@
 
 #define ClearFields() \
 	DeleteArray(Field); \
-	DeleteArray(Type); \
+	Types.Empty(); \
 	DeleteArray(Data)
 
 
-#define IsVar(str) (Field != 0 AND stricmp(Field, str) == 0)
-
 #define IsType(str) (Types.Find(str) != 0)
+
+#if 1
+bool IsVar(char *field, char *s)
+{
+	if (!s)
+		return false;
+
+	char *dot = strchr(field, '.');
+	if (dot)
+		return stricmp(dot + 1, s) == 0;
+
+	return stricmp(field, s) == 0;
+}
+#else
+#define IsVar(field, str) (field != 0 AND stricmp(field, str) == 0)
+#endif
 
 char *DeEscape(char *s, bool QuotedPrintable)
 {
@@ -465,29 +479,24 @@ bool VCard::Import(GDataPropI *c, GStreamI *s)
 		return false;
 
 	char *Field = 0;
-	char *Type = 0;
+	TypesList Types;
 	char *Data = 0;
 
 	int PrefEmail = -1;
 	GArray<char*> Emails;
 
-	while (ReadField(*s, &Field, &Type, &Data))
+	while (ReadField(*s, &Field, &Types, &Data))
 	{
 		if (stricmp(Field, "begin") == 0 AND
 			stricmp(Data, "vcard") == 0)
 		{
-			while (ReadField(*s, &Field, &Type, &Data))
+			while (ReadField(*s, &Field, &Types, &Data))
 			{
 				if (stricmp(Field, "end") == 0 AND
 					stricmp(Data, "vcard") == 0)
 					goto ExitLoop;
 
-				GHashTable Types(0, false);
-				GToken t(Type, ",");
-				for (int i=0; i<t.Length(); i++)
-					Types.Add(t[i]);
-
-				if (IsVar("n"))
+				if (IsVar(Field, "n"))
 				{
 					if (stristr(Data, "Ollis"))
 					{
@@ -517,11 +526,11 @@ bool VCard::Import(GDataPropI *c, GStreamI *s)
 						Status = true;
 					}
 				}
-				else if (IsVar("nickname"))
+				else if (IsVar(Field, "nickname"))
 				{
 					c->SetStr(FIELD_NICK, Data);
 				}
-				else if (IsVar("tel"))
+				else if (IsVar(Field, "tel"))
 				{
 					GToken Phone(Data, ";", false);
 					for (int p=0; p<Phone.Length(); p++)
@@ -561,7 +570,7 @@ bool VCard::Import(GDataPropI *c, GStreamI *s)
 						}
 					}
 				}
-				else if (IsVar("email"))
+				else if (IsVar(Field, "email"))
 				{
 					if (IsType("pref"))
 					{
@@ -569,12 +578,12 @@ bool VCard::Import(GDataPropI *c, GStreamI *s)
 					}
 					Emails.Add(NewStr(Data));
 				}
-				else if (IsVar("org"))
+				else if (IsVar(Field, "org"))
 				{
 					GToken Org(Data, ";", false);
 					if (Org[0]) c->SetStr(FIELD_COMPANY, Org[0]);
 				}
-				else if (IsVar("adr"))
+				else if (IsVar(Field, "adr"))
 				{
 					bool IsWork = IsType("work");
 					bool IsHome = IsType("home");
@@ -599,21 +608,21 @@ bool VCard::Import(GDataPropI *c, GStreamI *s)
 					if (Addr[5]) c->SetStr(IsWork ? FIELD_WORK_POSTCODE : FIELD_HOME_POSTCODE, Addr[5]);
 					if (Addr[6]) c->SetStr(IsWork ? FIELD_WORK_COUNTRY : FIELD_HOME_COUNTRY, Addr[6]);
 				}
-				else if (IsVar("note"))
+				else if (IsVar(Field, "note"))
 				{
 					c->SetStr(FIELD_NOTE, Data);
 				}
-				else if (IsVar("uid"))
+				else if (IsVar(Field, "uid"))
 				{
 					GToken n(Data, ";", false);
 					c->SetStr(FIELD_UID, n[0]);
 				}
-				else if (IsVar("x-perm"))
+				else if (IsVar(Field, "x-perm"))
 				{
 					int Perms = atoi(Data);
 					c->SetInt(FIELD_PERMISSIONS, Perms);
 				}
-				else if (IsVar("url"))
+				else if (IsVar(Field, "url"))
 				{
 					bool IsWork = IsType("work");
 					bool IsHome = IsType("home");
@@ -626,7 +635,7 @@ bool VCard::Import(GDataPropI *c, GStreamI *s)
 						c->SetStr(FIELD_WORK_WEBPAGE, Data);
 					}
 				}
-				else if (IsVar("nickname"))
+				else if (IsVar(Field, "nickname"))
 				{
 					c->SetStr(FIELD_NICK, Data);
 				}
@@ -666,12 +675,12 @@ bool VCard::Import(GDataPropI *c, GStreamI *s)
 	return Status;
 }
 
-bool VIo::ReadField(GStreamI &s, char **Name, char **Type, char **Data)
+bool VIo::ReadField(GStreamI &s, char **Name, TypesList *Type, char **Data)
 {
 	bool Status = false;
 
 	DeleteArray(*Name);
-	DeleteArray(*Type);
+	if (Type) Type->Empty();
 	DeleteArray(*Data);
 
 	if (Name AND Data)
@@ -782,7 +791,11 @@ bool VIo::ReadField(GStreamI &s, char **Name, char **Type, char **Data)
 						if (val)
 						{
 							*val++ = 0;
-							Mod.Add(var, NewStr(val));
+
+							if (Type && !stricmp(var, "type"))
+								Type->New().Reset(NewStr(val));
+							else
+								Mod.Add(var, NewStr(val));
 						}
 					}
 				}
@@ -813,14 +826,6 @@ bool VIo::ReadField(GStreamI &s, char **Name, char **Type, char **Data)
 
 			Status = *Data != 0;
 
-			if (*Type = (char*)Mod.Find("type"))
-			{
-				if (!Mod.Delete("type"))
-				{
-					LgiAssert(0);
-				}
-			}
-
 			for (char *m = (char*)Mod.First(); m; m = (char*)Mod.Next())
 			{
 				DeleteArray(m);
@@ -831,16 +836,18 @@ bool VIo::ReadField(GStreamI &s, char **Name, char **Type, char **Data)
 	return Status;
 }
 
-void VIo::WriteField(GStreamI &s, char *Name, char *Type, char *Data)
+void VIo::WriteField(GStreamI &s, char *Name, TypesList *Type, char *Data)
 {
 	if (Name AND Data)
 	{
 		int64 Size = s.GetSize();
 
+		GStreamPrint(&s, "%s", Name);
 		if (Type)
-			GStreamPrint(&s, "%s;type=%s", Name, Type);
-		else
-			GStreamPrint(&s, "%s", Name);
+		{
+			for (int i=0; i<Type->Length(); i++)
+				GStreamPrint(&s, "%stype=%s", i?"":";", (*Type)[i]);
+		}
 		
 		bool Is8Bit = false;
 		bool HasEq = false;
@@ -907,21 +914,21 @@ bool VCard::Export(GDataPropI *c, GStreamI *o)
 			WriteField(*o, Field, 0, str);				\
 		} }
 
-	OutputTypedField("tel", FIELD_WORK_PHONE, "Work");
-	OutputTypedField("tel", FIELD_WORK_MOBILE, "Work,Cell");
-	OutputTypedField("tel", FIELD_WORK_FAX, "Work,Fax");
-	OutputTypedField("tel", FIELD_HOME_PHONE, "Home");
-	OutputTypedField("tel", FIELD_HOME_MOBILE, "Home,Cell");
-	OutputTypedField("tel", FIELD_HOME_FAX, "Home,Fax");
+	OutputTypedField("tel", FIELD_WORK_PHONE, &TypesList("Work"));
+	OutputTypedField("tel", FIELD_WORK_MOBILE, &TypesList("Work,Cell"));
+	OutputTypedField("tel", FIELD_WORK_FAX, &TypesList("Work,Fax"));
+	OutputTypedField("tel", FIELD_HOME_PHONE, &TypesList("Home"));
+	OutputTypedField("tel", FIELD_HOME_MOBILE, &TypesList("Home,Cell"));
+	OutputTypedField("tel", FIELD_HOME_FAX, &TypesList("Home,Fax"));
 	OutputField("org", FIELD_COMPANY);
-	OutputTypedField("email", FIELD_EMAIL, "internet,pref");
+	OutputTypedField("email", FIELD_EMAIL, &TypesList("internet,pref"));
 	char *Alt;
 	if (Alt = c->GetStr(FIELD_ALT_EMAIL))
 	{
 		GToken t(Alt, ",");
 		for (int i=0; i<t.Length(); i++)
 		{
-			WriteField(*o, "email", "internet", t[i]);
+			WriteField(*o, "email", &TypesList("internet"), t[i]);
 		}
 	}
 
@@ -947,7 +954,7 @@ bool VCard::Export(GDataPropI *c, GStreamI *o)
 				State?State:Empty,
 				PostCode?PostCode:Empty,
 				Country?Country:Empty);
-		WriteField(*o, "adr", "home", s);
+		WriteField(*o, "adr", &TypesList("home"), s);
 	}
 
 	Street = Suburb = PostCode = State = Country = 0;
@@ -965,7 +972,7 @@ bool VCard::Export(GDataPropI *c, GStreamI *o)
 				State?State:Empty,
 				PostCode?PostCode:Empty,
 				Country?Country:Empty);
-		WriteField(*o, "adr", "work", s);
+		WriteField(*o, "adr", &TypesList("work"), s);
 	}
 
 	// OutputField("X-Perm", FIELD_PERMISSIONS);
@@ -973,11 +980,11 @@ bool VCard::Export(GDataPropI *c, GStreamI *o)
 	char *Url;
 	if (Url = c->GetStr(FIELD_HOME_WEBPAGE))
 	{
-		WriteField(*o, "url", "home", Url);
+		WriteField(*o, "url", &TypesList("home"), Url);
 	}
 	if (Url = c->GetStr(FIELD_WORK_WEBPAGE))
 	{
-		WriteField(*o, "url", "work", Url);
+		WriteField(*o, "url", &TypesList("work"), Url);
 	}
 	char *Nick;
 	if (Nick = c->GetStr(FIELD_NICK))
@@ -1007,26 +1014,21 @@ bool VCal::Import(GDataPropI *c, GStreamI *In)
 	#if 1
 
 	char *Field = 0;
-	char *Type = 0;
+	TypesList Types;
 	char *Data = 0;
 	bool SetType = false;
 
-	while (ReadField(*In, &Field, &Type, &Data))
+	while (ReadField(*In, &Field, &Types, &Data))
 	{
 		if (stricmp(Field, "begin") == 0 AND
 			stricmp(Data, "vcalendar") == 0)
 		{
-			while (ReadField(*In, &Field, &Type, &Data))
+			while (ReadField(*In, &Field, &Types, &Data))
 			{
 				if (stricmp(Field, "end") == 0 AND
 					stricmp(Data, "vcalendar") == 0)
 					goto ExitLoop;
 				
-
-				GHashTable Types(0, false);
-				GToken t(Type, ",");
-				for (int i=0; i<t.Length(); i++)
-					Types.Add(t[i]);
 
 				if
 				(
@@ -1049,13 +1051,13 @@ bool VCal::Import(GDataPropI *c, GStreamI *In)
 						c->SetInt(FIELD_CAL_TYPE, Type);
 					}
 
-					while (ReadField(*In, &Field, &Type, &Data))
+					while (ReadField(*In, &Field, &Types, &Data))
 					{
 						if (stricmp(Field, "end") == 0 AND
 							stricmp(Data, SectionType) == 0)
 							break;
 
-						if (IsVar("dtstart"))
+						if (IsVar(Field, "dtstart"))
 						{
 							GDateTime d;
 							if (ParseDate(d, Data))
@@ -1063,7 +1065,7 @@ bool VCal::Import(GDataPropI *c, GStreamI *In)
 								c->SetDate(FIELD_CAL_START_UTC, &d);
 							}
 						}
-						else if (IsVar("dtend"))
+						else if (IsVar(Field, "dtend"))
 						{
 							GDateTime d;
 							if (ParseDate(d, Data))
@@ -1071,11 +1073,11 @@ bool VCal::Import(GDataPropI *c, GStreamI *In)
 								c->SetDate(FIELD_CAL_END_UTC, &d);
 							}
 						}
-						else if (IsVar("summary"))
+						else if (IsVar(Field, "summary"))
 						{
 							c->SetStr(FIELD_CAL_SUBJECT, Data);
 						}
-						else if (IsVar("description"))
+						else if (IsVar(Field, "description"))
 						{
 							char *Sum = UnMultiLine(Data);
 							if (Sum)
@@ -1084,16 +1086,16 @@ bool VCal::Import(GDataPropI *c, GStreamI *In)
 								DeleteArray(Sum);
 							}
 						}
-						else if (IsVar("location"))
+						else if (IsVar(Field, "location"))
 						{
 							c->SetStr(FIELD_CAL_LOCATION, Data);
 						}
-						else if (IsVar("uid"))
+						else if (IsVar(Field, "uid"))
 						{
 							char *Uid = Data;
 							c->SetStr(FIELD_UID, Uid);
 						}
-						else if (IsVar("x-showas"))
+						else if (IsVar(Field, "x-showas"))
 						{
 							char *n = Data;
 
@@ -1114,7 +1116,7 @@ bool VCal::Import(GDataPropI *c, GStreamI *In)
 								c->SetInt(FIELD_CAL_SHOW_TIME_AS, 0);
 							}
 						}
-						else if (IsVar("attendee"))
+						else if (IsVar(Field, "attendee"))
 						{
 							char *e = stristr(Data, "mailto=");
 							if (e)
