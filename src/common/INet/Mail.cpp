@@ -686,8 +686,7 @@ void StrCopyToEOL(char *d, char *s)
 MailTransaction::MailTransaction()
 {
 	Index = -1;
-	// Flags = 0;
-	// Delete = false;
+	Flags = 0;
 	Status = false;
 	Oversize = false;
 	Stream = 0;
@@ -1935,6 +1934,10 @@ bool MailReceiveFolder::Receive(GArray<MailTransaction*> &Trans, MailCallbacks *
 					if (c.Copy(&i, t->Stream))
 					{
 						Status = t->Status = true;
+						if (Callbacks && Callbacks->OnReceive)
+						{
+							Callbacks->OnReceive(t, Callbacks->CallbackData);
+						}
 					}
 				}
 			}

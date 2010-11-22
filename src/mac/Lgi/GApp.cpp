@@ -394,10 +394,10 @@ GApp::GApp(char *AppMime, OsAppArguments &AppArgs, GAppArguments *ObjArgs) :
 		LgiExitApp();
 	}
 	
-	#if 0
-	if (NOT GetOption("noskin"))
+	if (!GetOption("noskin"))
 	{
-		// Load library
+		#if 0
+		// Load dynamic library skin engine
 		char Name[64];
 		#ifdef _DEBUG
 		char *Build = "d";
@@ -407,6 +407,9 @@ GApp::GApp(char *AppMime, OsAppArguments &AppArgs, GAppArguments *ObjArgs) :
 		
 		sprintf(Name, "lgiskin%s.%s", Build, LGI_LIBRARY_EXT);
 		d->SkinLib = new GLibrary(Name);
+		#else
+		// Static version of the skinning engine
+		#endif
 		if (d->SkinLib)
 		{
 			if (d->SkinLib->IsLoaded())
@@ -424,8 +427,7 @@ GApp::GApp(char *AppMime, OsAppArguments &AppArgs, GAppArguments *ObjArgs) :
 			}
 		}
 	}
-	#endif
-
+	
 	// Setup application handler
 	EventTypeSpec	AppEvents[] =
 	{

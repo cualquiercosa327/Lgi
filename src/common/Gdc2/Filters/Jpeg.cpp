@@ -227,7 +227,7 @@ void j_skip_input_data(j_decompress_ptr cinfo, long num_bytes)
 
 boolean j_resync_to_restart(j_decompress_ptr cinfo, int desired)
 {
-    JpegStream *s = (JpegStream*)cinfo->client_data;
+    // JpegStream *s = (JpegStream*)cinfo->client_data;
     LgiAssert(0); // not impl
     return false;
 }

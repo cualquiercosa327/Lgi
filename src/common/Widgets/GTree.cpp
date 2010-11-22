@@ -1474,6 +1474,7 @@ bool GTree::Delete(GTreeItem *Obj)
 
 void GTree::OnPulse()
 {
+	printf("OnPulse() %p\n", d->DropTarget);
 	if (d->DropTarget)
 	{
 		int64 p = LgiCurrentTime() - d->DropSelectTime;
@@ -1528,6 +1529,7 @@ void GTree::OnPulse()
 
 void GTree::OnDragEnter()
 {
+printf("OnDragEnter()\n");
 	InsideDragOp(true);
 	SetPulse(120);
 }

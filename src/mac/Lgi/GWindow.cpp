@@ -173,7 +173,7 @@ OSErr GWindow::HandlerCallback(DragTrackingMessage *tracking, DragRef theDrag)
 
 	GdcPt2 p(Ms.h, Ms.v);
 	PointToView(p);
-
+	
 	SInt16 modifiers = 0, mouseDownModifiers = 0, mouseUpModifiers = 0;
 	GetDragModifiers(theDrag, &modifiers, &mouseDownModifiers, &mouseUpModifiers);
 
@@ -197,12 +197,6 @@ OSErr GWindow::HandlerCallback(DragTrackingMessage *tracking, DragRef theDrag)
 			Img.Reset(new CGImg(&m));
 			s.Draw(&m, 6, 0);
 
-			/*
-			m.Colour(0, 32);
-			m.Rectangle();
-			Img.Reset(new CGImg(&m));
-			*/
-
 			HIPoint Offset = { 16, 16 };
 			if (Img)
 			{
@@ -214,7 +208,9 @@ OSErr GWindow::HandlerCallback(DragTrackingMessage *tracking, DragRef theDrag)
 	
 	GViewI *v = WindowFromPoint(p.x, p.y);
 	// printf("%s:%o - Dropping... %i,%i v=%p, tracking=%i, modifiers=%x\n", _FL, p.x, p.y, v, *tracking, modifiers);
-	if (v)
+	if (!v)
+		printf("%s:%i - no window from point: %i,%i (%i,%i).\n", _FL, p.x, p.y, (int)Ms.h, (int)Ms.v);
+	else
 	{
 		GView *gv = v->GetGView();
 		if (gv)
@@ -445,7 +441,6 @@ OSErr GWindow::HandlerCallback(DragTrackingMessage *tracking, DragRef theDrag)
 		}
 		else printf("%s:%i - No view.\n", _FL);
 	}
-	else printf("%s:%i - no window from point.\n", _FL);
 	
 	return Status;
 }

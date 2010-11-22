@@ -4732,6 +4732,8 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, char16 *Text, GC
 		return;
 
 	int LineStart = 0;
+	char16 *Start = Text;
+	int FullLen = StrlenW(Text);
 
 	#if 1
 	if (!Tag->Html->GetReadOnly() && !*Text)
@@ -4763,7 +4765,7 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, char16 *Text, GC
 		// if (Flow->x1 == Flow->cx && *Text == ' ') Text++;
 		Tr->Text = Text;
 
-		GDisplayString ds(Font, Text);
+		GDisplayString ds(Font, Text, 1024);
 		int Chars = ds.CharAt(Flow->X());
 		bool Wrap = false;
 		if (Text[Chars])
@@ -4773,9 +4775,7 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, char16 *Text, GC
 			// Seek back to the nearest break opportunity
 			int n = Chars;
 			while (n > 0 && !StrchrW(WhiteW, Text[n]))
-			{
 				n--;
-			}
 
 			if (n == 0)
 			{

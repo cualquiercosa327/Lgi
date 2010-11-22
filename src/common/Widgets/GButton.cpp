@@ -272,7 +272,7 @@ void GButton::OnFocus(bool f)
 
 void GButton::OnPaint(GSurface *pDC)
 {
-	#if 0 // def MAC
+	#ifdef MAC
 
 	pDC->Colour(LC_MED, 24);	
 	pDC->Rectangle();
