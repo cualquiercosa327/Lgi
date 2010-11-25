@@ -4765,7 +4765,7 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, char16 *Text, GC
 		// if (Flow->x1 == Flow->cx && *Text == ' ') Text++;
 		Tr->Text = Text;
 
-		GDisplayString ds(Font, Text, 1024);
+		GDisplayString ds(Font, Text, min(1024, FullLen - (Text-Start)));
 		int Chars = ds.CharAt(Flow->X());
 		bool Wrap = false;
 		if (Text[Chars])

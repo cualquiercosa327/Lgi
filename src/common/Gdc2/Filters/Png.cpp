@@ -319,7 +319,8 @@ void PNGAPI LibPngWrite(png_structp Png, png_bytep Ptr, png_size_t Size)
 	if (i)
 	{
 		i->s->Write(Ptr, Size);
-		i->m->Value(Png->flush_rows);
+		if (i->m)
+			i->m->Value(Png->flush_rows);
 	}
 	else
 	{

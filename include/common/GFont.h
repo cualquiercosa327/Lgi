@@ -469,11 +469,13 @@ public:
 	
 	size_t libiconv(iconv_t cd, IconvChar** inbuf, size_t *inbytesleft, char **outbuf, size_t *outbytesleft)
 	{
-        #ifdef LINUX
-		return ::iconv(cd, (char**) inbuf, inbytesleft, outbuf, outbytesleft);
-        #else
-		return ::iconv(cd, (const char**) inbuf, inbytesleft, outbuf, outbytesleft);
-        #endif
+		return ::iconv(cd, 
+			#ifdef LINUX
+			(char**)
+			#else
+			(const char**) 
+			#endif
+			inbuf, inbytesleft, outbuf, outbytesleft);
 	}
 	
 	int libiconv_close(iconv_t cd)

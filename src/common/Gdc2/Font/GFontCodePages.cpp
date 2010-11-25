@@ -692,6 +692,7 @@ GCharset("cp1133",			"Cp1133 (Laotian)"),
 // Japanese
 GCharset("euc-jp",			"EUC-JP", 0, "csEUCPkdFmtJapanese"),
 GCharset("shift_jis",		"SHIFT_JIS", 0, "MS_Kanji,csShiftJIS"),
+GCharset("cp932",			"cp932", 0, 0),
 GCharset("iso-2022-jp",		"ISO-2022-JP", 0, "csISO2022JP"),
 GCharset("iso-2022-jp-1",	"ISO-2022-JP-1"),
 GCharset("iso-2022-jp-2",	"ISO-2022-JP-2", 0, "csISO2022JP2"),
