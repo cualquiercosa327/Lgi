@@ -2593,6 +2593,15 @@ void GTag::SetStyle()
 			PaddingLeft(Len(DefaultBodyMargin));
 			PaddingTop(Len(DefaultBodyMargin));
 			PaddingRight(Len(DefaultBodyMargin));
+			
+			if (Get("text", s))
+			{
+				ColorDef c;
+				if (c.Parse(s))
+				{
+					Color(c);
+				}
+			}
 			break;
 		}
 	}

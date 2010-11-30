@@ -846,7 +846,7 @@ void VIo::WriteField(GStreamI &s, char *Name, TypesList *Type, char *Data)
 		if (Type)
 		{
 			for (int i=0; i<Type->Length(); i++)
-				GStreamPrint(&s, "%stype=%s", i?"":";", (*Type)[i]);
+				GStreamPrint(&s, "%stype=%s", i?"":";", (*Type)[i].Get());
 		}
 		
 		bool Is8Bit = false;
