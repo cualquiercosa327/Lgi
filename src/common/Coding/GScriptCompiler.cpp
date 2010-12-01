@@ -1,3 +1,4 @@
+/// \file
 #include "Lgi.h"
 #include "GScripting.h"
 #include "GScriptingPriv.h"
@@ -261,6 +262,7 @@ public:
 	}
 };
 
+/// Scripting language compiler implementation
 class GCompilerPriv :
 	public GCompileTools,
 	public GScriptUtils
@@ -344,6 +346,7 @@ public:
 		}
 	}
 
+	/// Assemble a zero argument instruction
 	bool Asm0(int Tok, uint8 Op)
 	{
 		DebugInfo(Tok);
@@ -360,6 +363,7 @@ public:
 		return true;
 	}
 
+	/// Assemble one arg instruction
 	bool Asm1(int Tok, uint8 Op, GVarRef a)
 	{
 		DebugInfo(Tok);
@@ -377,6 +381,7 @@ public:
 		return true;
 	}
 
+	/// Assemble two arg instruction
 	bool Asm2(int Tok, uint8 Op, GVarRef a, GVarRef b)
 	{
 		DebugInfo(Tok);
@@ -395,6 +400,7 @@ public:
 		return true;
 	}
 
+	/// Assemble three arg instruction
 	bool Asm3(int Tok, uint8 Op, GVarRef a, GVarRef b, GVarRef c)
 	{
 		DebugInfo(Tok);
@@ -414,6 +420,7 @@ public:
 		return true;
 	}
 
+	/// Assemble four arg instruction
 	bool Asm4(int Tok, uint8 Op, GVarRef a, GVarRef b, GVarRef c, GVarRef d)
 	{
 		DebugInfo(Tok);
@@ -439,6 +446,7 @@ public:
 		return true;
 	}
 
+	/// Convert the source from one big string into an array of tokens
 	bool Lex(char *Source, char *FileName)
 	{
 		char16 *w = LgiNewUtf8To16(Source);
@@ -534,6 +542,7 @@ public:
 		return false;
 	}
 
+	/// Create a null var ref
 	void AllocNull(GVarRef &r)
 	{
 		r.Scope = SCOPE_GLOBAL;
@@ -545,6 +554,7 @@ public:
 		Code->Globals[r.Index].Type = GV_NULL;
 	}
 
+	/// Allocate a constant double
 	void AllocConst(GVarRef &r, double d)
 	{
 		r.Scope = SCOPE_GLOBAL;
@@ -552,6 +562,7 @@ public:
 		Code->Globals[r.Index] = d;
 	}
 
+	/// Allocate a constant int
 	void AllocConst(GVarRef &r, int i)
 	{
 		r.Scope = SCOPE_GLOBAL;
@@ -578,6 +589,7 @@ public:
 		Code->Globals[r.Index] = i;
 	}
 
+	/// Allocate a constant string
 	void AllocConst(GVarRef &r, char *s, int len = -1)
 	{
 		LgiAssert(s != 0);
@@ -608,6 +620,7 @@ public:
 		}
 	}
 
+	/// Allocate a constant wide string
 	void AllocConst(GVarRef &r, char16 *s, int len)
 	{
 		LgiAssert(s != 0);
@@ -641,6 +654,7 @@ public:
 		}
 	}
 
+	/// Find a variable by name, creating it if needed
 	GVarRef FindVariable(GVariant &Name, bool Create)
 	{
 		GVarRef r = {0, -1};
@@ -668,6 +682,7 @@ public:
 		return r;
 	}
 
+	/// Build asm to assign a var ref
 	bool AssignVarRef(Node &n, GVarRef &Value)
 	{
 		/*
@@ -862,6 +877,7 @@ public:
 		return true;
 	}
 
+	/// Convert a token stream to a var ref
 	bool TokenToVarRef(Node &n)
 	{
 		if (!n.Reg.Valid())
@@ -1063,6 +1079,7 @@ public:
 		return true;
 	}
 
+	/// Parse expression into a node tree
 	bool Expression(int &Cur, GArray<Node> &n, int Depth = 0)
 	{
 		if (Cur >= 0 AND Cur < Tokens.Length())
@@ -1249,6 +1266,7 @@ public:
 		return true;
 	}
 
+	/// Allocate a register (must be mirrored with DeallocReg)
 	bool AllocReg(GVarRef &r, char *file, int line)
 	{
 		for (int i=0; i<MAX_REGISTER; i++)
@@ -1286,6 +1304,7 @@ public:
 		return false;
 	}
 
+	/// Deallocate a register
 	bool DeallocReg(GVarRef &r)
 	{
 		if (r.Scope == SCOPE_REGISTER && r.Index >= 0)
@@ -1302,6 +1321,7 @@ public:
 		return true;
 	}
 
+	/// Count allocated registers
 	int RegAllocCount()
 	{
 		int c = 0;
@@ -1551,6 +1571,7 @@ public:
 		return false;
 	}
 
+	/// Parses and assembles an expression
 	bool DoExpression(int &Cur, GVarRef *Result)
 	{
 		GArray<Node> n;
@@ -1563,6 +1584,7 @@ public:
 		return false;
 	}
 
+	/// Parses statements
 	bool DoStatements(int &Cur, bool MoreThanOne = true)
 	{
 		while (Cur < Tokens.Length())
@@ -1618,6 +1640,7 @@ public:
 		return true;
 	}
 
+	/// Parses if/else if/else construct
 	bool DoIf(int &Cur)
 	{
 		Cur++;
@@ -1783,6 +1806,7 @@ public:
 		}
 	};
 
+	/// Parses while construct
 	bool DoWhile(int &Cur)
 	{
 		Cur++;
@@ -1849,6 +1873,7 @@ public:
 		return true;
 	}
 
+	/// Parses for construct
 	bool DoFor(int &Cur)
 	{
 		/*
@@ -1978,7 +2003,7 @@ public:
 		return true;
 	}
 
-	// Compile a return statement
+	/// Compiles return construct
 	bool DoReturn(int &Cur)
 	{
 		GVarRef ReturnValue;
@@ -2117,6 +2142,7 @@ public:
 		return OnError(Cur, "Unexpected EOF in function.");
 	}
 
+	/// Compiles struct construct
 	bool DoStruct(int &Cur)
 	{
 		bool Status = false;
@@ -2299,6 +2325,7 @@ public:
 		return false;
 	}
 
+	/// Compiler entry point
 	bool Compile()
 	{
 		int Cur = 0;

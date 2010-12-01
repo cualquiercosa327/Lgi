@@ -1,0 +1,436 @@
+<html>
+<head>
+	<link href="scripting.css" rel="stylesheet" type="text/css">
+	<title>Lgi Scripting Library</title>
+</head>
+<body>
+
+	<h1>Lgi Scripting Library</h1>
+	<div class=menu>
+			<span><a href="index.html">Index</a></span>
+			<span><a href="syntax.html">Syntax</a></span>
+			<span>Library</span>
+	</div>
+
+	<div>
+		These are the built in methods for the Lgi scripting language:
+
+		<table class=idx>
+			<tr>
+				<td>
+						<h5>String handling:</h5>
+						<a href="#Strchr">Strchr</a><br>
+						<a href="#Strstr">Strstr</a><br>
+						<a href="#Strcmp">Strcmp</a><br>
+						<a href="#Substr">Substr</a><br>
+						<a href="#LoadString">LoadString</a><br>
+						<a href="#FormatSize">FormatSize</a><br>
+						<a href="#Sprintf">Sprintf</a><br>
+						<a href="#Tokenize">Tokenize</a><br>
+				<td>
+						<h5>Containers/Objects:</h5>
+						<a href="#NewHashTable">NewHashTable</a><br>
+						<a href="#NewList">NewList</a><br>
+						<a href="#DeleteElement">DeleteElement</a><br>
+						<a href="#New">New</a><br>
+						<a href="#Delete">Delete</a><br>
+				<td>
+						<h5>Files:</h5>
+						<a href="#ReadTextFile">ReadTextFile</a><br>
+						<a href="#WriteTextFile">WriteTextFile</a><br>
+						<a href="#SelectFiles">SelectFiles</a><br>
+						<a href="#ListFiles">ListFiles</a><br>
+						<a href="#DeleteFile">DeleteFile</a><br>
+				<td>
+						<h5>Time:</h5>
+						<a href="#Sleep">Sleep</a><br>
+						<a href="#ClockTick">ClockTick</a><br>
+						<a href="#Now">Now</a><br>
+				<td>
+						<h5>General:</h5>
+						<a href="#Execute">Execute</a><br>
+						<a href="#GetInputDlg">GetInputDlg</a><br>
+		</table>
+
+		<h4>string <a name="Strchr">Strchr</a>(str, ch[, len]);</h4>
+			<div>
+				Finds a unicode character in a string.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> str - the string to search in
+					<li> ch - the character to find
+					<li> [Optional] len - the maximum length in 'str' to search
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> The remainder of the string starting with the character found or NULL if not found.
+				</ul>				
+			</div>
+
+		<h4>string <a name="Strstr">Strstr</a>(str1, str2[, case_insensitive[, len]]);</h4>
+			<div>
+				Finds a string in another string.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> str1 - the string to search in
+					<li> str2 - the string to search for
+					<li> [Optional] case_insensitive - true if you want case sensitivity (default: false)
+					<li> [Optional] len - the maximum length in 'str' to search (default: the whole of 'str1')
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> The remainder of the string starting with the string found or NULL if not found.
+				</ul>				
+			</div>
+
+		<h4>int <a name="Strcmp">Strcmp</a>(str1, str2[, case_insensitive[, len]]);</h4>
+			<div>
+				Compares 2 strings.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> str1 - the first string to compare
+					<li> str2 - the second string to compare
+					<li> [Optional] case_insensitive - true if you want case sensitivity (default: false)
+					<li> [Optional] len - the maximum length in characters to compare (default: the whole strings)
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> zero if the strings are the same, non-zero if they are not.
+				</ul>				
+			</div>
+
+		<h4>string <a name="Substr">Substr</a>(str, start[, len]);</h4>
+			<div>
+				Returns a part of another string.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> str - the whole string
+					<li> start - the zero based character index of the sub string you want
+					<li> [Optional] len - the length of the substring (default: the rest of the string)
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> part of the string.
+				</ul>				
+			</div>
+
+		<h4>string <a name="LoadString">LoadString</a>(id);</h4>
+			<div>
+				Loads a string from the resource file.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> id - the string's id.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> A string or NULL on failure.
+				</ul>
+			</div>
+
+		<h4>string <a name="FormatSize">FormatSize</a>(bytes);</h4>
+			<div>
+				Formats a number of bytes in KB, MB or GB as appropriate.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> bytes - the size to format.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> A string containing the size description.
+				</ul>
+			</div>
+
+		<h4>string <a name="Sprintf">Sprintf</a>(format[, args, ...]);</h4>
+			<div>
+				Formats a string.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> format - the format of the output string, same as C's <a href="http://en.wikipedia.org/wiki/Printf#printf_format_placeholders">printf</a>.
+					<li> [optional]args - any arguments that are required to be formatted.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> A formatted string.
+				</ul>
+			</div>
+
+		<h4>list <a name="Tokenize">Tokenize</a>(string, delimiter);</h4>
+			<div>
+				Splits a string up into segments according to the delimiter specified.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> string - the string to split.
+					<li> delimiter - the delimiter character, only the first character is used.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> A list of strings, possibly empty.
+				</ul>
+			</div>
+
+		<h4>hashtable <a name="NewHashTable">NewHashTable</a>();</h4>
+			<div>
+				Returns an empty hash table object.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> (none)
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> a hash table object.
+				</ul>
+				<br>
+				See also <a href="http://www.memecode.com/xyz/view.php?id=6108">this</a> page on container 
+				type handling.
+			</div>
+
+		<h4>list <a name="NewList">NewList</a>();</h4>
+			<div>
+				Returns an empty list object.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> (none)
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> a list object.
+				</ul>
+				<br>
+				See also <a href="http://www.memecode.com/xyz/view.php?id=6108">this</a> page on container 
+				type handling.
+			</div>
+
+		<h4>bool <a name="DeleteElement">DeleteElement</a>(container, index);</h4>
+			<div>
+				Returns an empty list object.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> container - the list or hashtable container to delete from
+					<li> index - the index of the element, if 'container' is a list, then specify the
+						integer index of the element to delete. If it's a hash table, specific the
+						key of the element to delete as a string.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> non-zero if successful, zero on error.
+				</ul>
+			</div>
+
+		<h4>object <a name="New">New</a>(object);</h4>
+			<div>
+				Creates a custom object.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> object - the name of the object.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> A new object.
+				</ul>
+			</div>
+
+		<h4>void <a name="Delete">Delete</a>(object);</h4>
+			<div>
+				Deletes a custom object.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> object - the ptr of the object to delete.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> Nothing.
+				</ul>
+			</div>
+
+		<h4>string <a name="ReadTextFile">ReadTextFile</a>(filename);</h4>
+			<div>
+				Returns the contents of a text file.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> filename - the name of the file
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> the contents of the file as a string.
+				</ul>
+			</div>
+
+		<h4>bool <a name="WriteTextFile">WriteTextFile</a>(filename, data);</h4>
+			<div>
+				Writes the contents of a variable to a text file.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> filename - the name of the file
+					<li> data - the date to write, can either be a string or a binary object
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> non-zero on succes, zero on failure.
+				</ul>
+			</div>
+
+		<h4>list <a name="SelectFiles">SelectFiles</a>(parent_wnd[, file_types[, initial_dir[, multi_select]]]);</h4>
+			<div>
+				Shows a file select dialog.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> parent_wnd - the handle of the parent window.
+					<li> [optional] file_types - the types of files to select, e.g. "*.gif;*.png;*.jpg".
+					<li> [optional] initial_dir - the initial folder to select from.
+					<li> [optional] multi_select - TRUE if multiple file can be selected.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> list of filenames.
+				</ul>
+			</div>
+
+		<h4>list <a name="ListFiles">ListFiles</a>(folder_path[, pattern]);</h4>
+			<div>
+				Lists files in a folder.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> folder_path - the folder to list.
+					<li> [optional] pattern - the files to list, e.g. "*.gif".
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> list of filenames.
+				</ul>
+			</div>
+
+
+		<h4>bool <a name="DeleteFile">DeleteFile</a>(path);</h4>
+			<div>
+				Deletes a file.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> path - The path to the file to delete.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> True if the file is deleted.
+				</ul>
+			</div>
+
+		<h4>void <a name="Sleep">Sleep</a>(ms);</h4>
+			<div>
+				Pauses the current thread.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> ms - The number of milliseconds to pause for.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> Nothing.
+				</ul>
+			</div>
+
+		<h4>int64 <a name="ClockTick">ClockTick</a>();</h4>
+			<div>
+				Returns the current clock tick.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> None.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> A 64bit clock time from an unknown epoch, in milliseconds. Useful for timing things.
+				</ul>
+			</div>
+
+
+		<h4>int64 <a name="Now">Now</a>();</h4>
+			<div>
+				Returns the current date time.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> None.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> A GDateTime variant set to the current date and time.
+				</ul>
+			</div>
+
+		<h4>string <a name="Execute">Execute</a>(executable, arguments);</h4>
+			<div>
+				Executes a process.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> executable - The path to the executable.
+					<li> arguments - Arguments to pass to the executable.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> A string containing what the process wrote to stdout.
+				</ul>
+			</div>
+
+		<h4>string <a name="GetInputDlg">GetInputDlg</a>(parent_wnd, initial_value, msg, title, is_password);</h4>
+			<div>
+				Asks the user for input using a dialog.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> parent_wnd - The handle of the parent window.
+					<li> initial_value - The initial value in the editbox field.
+					<li> msg - A message above the editbox.
+					<li> title - The title of the dialog.
+					<li> is_password - True if you want the editbox content obsured by dot characters.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> A string containing what the user entered.
+				</ul>
+			</div>
+
+	</div>
+
+</body>
+</html>

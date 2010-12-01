@@ -130,6 +130,7 @@ public:
 	int OnEvent(GMessage *Msg);
 	char *GetMimeType() { return "text/html"; }
 	void OnContent(GDocumentEnv::LoadJob *Res);
+	bool GotoAnchor(char *Name);
 
 	// Javascript handlers
 	GDom *getElementById(char *Id);

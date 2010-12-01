@@ -93,6 +93,7 @@ public:
 	bool WordSelectMode;
 	GdcPt2 Content;
 	bool LinkDoubleClick;
+	GAutoString OnLoadAnchor;
 	
 	// This UID is used to match data load events with their source document.
 	// Sometimes data will arrive after the document that asked for it has
@@ -2174,6 +2175,27 @@ GTag *GTag::GetBlockParent(int *Idx)
 
 			return t->Parent;
 		}
+	}
+
+	return 0;
+}
+
+GTag *GTag::GetAnchor(char *Name)
+{
+	if (!Name)
+		return 0;
+
+	char *n;
+	if (IsAnchor(0) && Get("name", n) && n && !stricmp(Name, n))
+	{
+		return this;
+	}
+
+	List<GTag>::I it = Tags.Start();
+	for (GTag *t=*it; t; t=*++it)
+	{
+		GTag *Result = t->GetAnchor(Name);
+		if (Result) return Result;
 	}
 
 	return 0;
@@ -6118,16 +6140,6 @@ char *GHtml2::Name()
 		Source = s.NewStr();
 	}
 
-	/*
-	GFile Out;
-	if (Out.Open("D:\\Home\\matthew\\Desktop\\scribe-output.html", O_WRITE))
-	{
-		Out.SetSize(0);
-		Out.Write(Source, strlen(Source));
-		Out.Close();
-	}
-	*/
-
 	return Source;
 }
 
@@ -6325,6 +6337,13 @@ void GHtml2::OnPaint(GSurface *ScreenDC)
 		LgiTrace("GHtml2 paint crash\n");
 	}
 	#endif
+
+	if (d->OnLoadAnchor && VScroll)
+	{
+		GAutoString a = d->OnLoadAnchor;
+		GotoAnchor(a);
+		LgiAssert(d->OnLoadAnchor == 0);
+	}
 }
 
 GTag *GHtml2::GetOpenTag(char *Tag)
@@ -7350,6 +7369,26 @@ void GHtml2::OnContent(GDocumentEnv::LoadJob *Res)
 		Unlock();
 		PostEvent(M_JOBS_LOADED);
 	}
+}
+
+bool GHtml2::GotoAnchor(char *Name)
+{
+	if (Tag)
+	{
+		GTag *a = Tag->GetAnchor(Name);
+		if (a)
+		{
+			if (VScroll)
+			{
+				int LineY = GetFont()->GetHeight();
+				VScroll->Value(a->AbsY() / LineY);
+			}
+			else
+				d->OnLoadAnchor.Reset(NewStr(Name));
+		}
+	}
+
+	return false;
 }
 
 ////////////////////////////////////////////////////////////////////////

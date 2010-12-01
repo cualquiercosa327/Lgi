@@ -100,6 +100,12 @@ public:
 			return false;
 
 		GUri u;
+		char *Hash = strrchr(Uri, '#');
+		if (Hash &&
+			(strchr(Hash, '/') || strchr(Hash, '\\')))
+			Hash = 0;
+		if (Hash)
+			*Hash = 0;
 		bool IsFile = FileExists(Uri);
 		bool IsHttp = false;
 
@@ -150,6 +156,12 @@ public:
 			if (!Thread)
 				Thread.Reset(new GBrowserThread(this));
 			Thread->Add(Uri);
+		}
+
+		if (Hash)
+		{
+			Html->GotoAnchor(Hash + 1);
+			*Hash = '#';
 		}
 
 		GAutoString a(u.Get());

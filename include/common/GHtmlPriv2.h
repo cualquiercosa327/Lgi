@@ -327,6 +327,7 @@ public:
 	bool GetVariant(char *Name, GVariant &Value, char *Array = 0);
 	bool SetVariant(char *Name, GVariant &Value, char *Array = 0);
 	void Find(int TagType, GArray<GTag*> &Tags);
+	GTag *GetAnchor(char *Name);
 
 	// Window
 	bool OnMouseClick(GMouse &m);

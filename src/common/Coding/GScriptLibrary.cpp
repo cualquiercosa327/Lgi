@@ -572,9 +572,18 @@ bool SystemFunctions::FormatSize(GVariant *Ret, ArgumentArray &Args)
 	return true;
 }
 
-bool SystemFunctions::Now(GVariant *Ret, ArgumentArray &Args)
+bool SystemFunctions::ClockTick(GVariant *Ret, ArgumentArray &Args)
 {
 	*Ret = (int64)LgiCurrentTime();
+	return true;
+}
+
+bool SystemFunctions::Now(GVariant *Ret, ArgumentArray &Args)
+{
+	Ret->Empty();
+	Ret->Type = GV_DATETIME;
+	Ret->Value.Date = new GDateTime;
+	Ret->Value.Date->SetNow();
 	return true;
 }
 
@@ -755,6 +764,7 @@ GHostFunc SystemLibrary[] =
 	DefFn(DeleteFile),
 
 	// Time	
+	DefFn(ClockTick),
 	DefFn(Sleep),
 	DefFn(Now),
 

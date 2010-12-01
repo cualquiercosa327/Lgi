@@ -117,6 +117,7 @@ extern char *InstToString(GInstruction i);
 #define SCOPE_LOCAL			1
 #define SCOPE_GLOBAL		2
 
+/// 32bit variable reference, used to track where a variable is during compilation.
 struct GVarRef
 {
 	/// \sa #SCOPE_REGISTER, #SCOPE_LOCAL or #SCOPE_GLOBAL
@@ -305,6 +306,7 @@ public:
 	bool SetVariant(char *Name, GVariant &Value, char *Arr = 0);
 };
 
+/// Container of compiled byte code
 class GCompiledCode
 {
 	friend class GCompilerPriv;
@@ -321,10 +323,14 @@ public:
 	GCompiledCode(GCompiledCode &copy);
 	~GCompiledCode();
 
+	/// Size of the byte code
 	int Length() { return ByteCode.Length(); }
 	GCompiledCode &operator =(GCompiledCode &c);
+	/// Gets a method defined in the code
 	GFunctionInfo *GetMethod(char *Name, bool Create = false);
+	/// Sets a global variable
 	GVariant *Set(char *Name, GVariant &v);
+	/// Gets the definition of a struct or custom type
 	GTypeDef *GetType(char16 *Name) { return Types.Find(Name); }
 };
 
@@ -486,9 +492,15 @@ class GCompiler : public GScriptUtils
 	class GCompilerPriv *d;
 
 public:
-	GCompiler(SystemFunctions *sf);
+	/// Constructor
+	GCompiler
+	(
+		/// The system library functions
+		SystemFunctions *sf
+	);
 	~GCompiler();
 
+	/// Compile the source into byte code.
 	GCompiledCode *Compile(GScriptContext *Context, char *FileName, char *Script, GStream *Log = 0, GCompiledCode *previous = 0);
 };
 
@@ -612,6 +624,8 @@ public:
 		/// Sleeps a number of milliseconds
 		bool Sleep(GVariant *Ret, ArgumentArray &Args);
 		/// Get the current tick count
+		bool ClockTick(GVariant *Ret, ArgumentArray &Args);
+		/// Get the date time
 		bool Now(GVariant *Ret, ArgumentArray &Args);
 
 	// System

@@ -1,3 +1,4 @@
+/// \file
 #ifndef _LGI_SCRIPTING_H_
 #define _LGI_SCRIPTING_H_
 
@@ -74,6 +75,7 @@ public:
 	int htoi(char16 *s);
 };
 
+/// The base context class for scripting engines
 class GScriptContext : public GScriptUtils
 {
 public:
