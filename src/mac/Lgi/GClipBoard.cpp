@@ -137,14 +137,29 @@ char *GClipBoard::Text()
 								{
 									int Size = CFDataGetLength(Data);
 									int Ch = Size / sizeof(char16);
-									char16 *w = new char16[Ch+1];
+									GAutoWString w(new char16[Ch+1]);
 									if (w)
 									{
 										memcpy(w, CFDataGetBytePtr(Data), Size);
 										w[Ch] = 0;
-										
+																				
+										// Convert '\r' to '\n', which all Lgi applications expect
+										bool HasR = false, HasN = false;
+										for (char16 *c = w; *c; c++)
+										{
+											if (*c == '\n') HasN = true;
+											else if (*c == '\r') HasR = true;
+										}
+										if (HasR && !HasN)
+										{
+											for (char16 *c = w; *c; c++)
+											{
+												if (*c == '\r')
+													*c = '\n';
+											}
+										}
+
 										Txt = Status = LgiNewUtf16To8(w);
-										DeleteArray(w);
 									}
 								}
 							}

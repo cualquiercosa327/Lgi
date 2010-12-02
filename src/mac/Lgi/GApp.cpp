@@ -919,11 +919,28 @@ GAutoString GApp::GetFileMimeType(char *File)
 		}		
 	}
 	
+	char *Ext = LgiGetExtension(File);
+	if (Ext)
+	{
+		CFStringRef e = CFStringCreateWithCString(NULL, Ext, kCFStringEncodingUTF8);
+		CFStringRef uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, e, NULL);
+		CFStringRef mime = UTTypeCopyPreferredTagWithClass(uti, kUTTagClassMIMEType);
+		
+		Ret.Reset(CFStringToUtf8(mime));
+		
+		CFRelease(uti);
+		CFRelease(mime);
+		CFRelease(e);
+	}
+	
+	LgiAssert(Ret);
 	return Ret;
 }
 
 bool GApp::GetAppsForMimeType(char *Mime, GArray<GAppInfo*> &Apps)
 {
+	// Use LSCopyApplicationForMIMEType?
+
 	// Find alternative version of the MIME type (e.g. x-type and type).
 	char AltMime[256];
 	strcpy(AltMime, Mime);
