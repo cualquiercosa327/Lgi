@@ -2374,6 +2374,21 @@ void GTag::SetImage(char *Uri, GSurface *Img)
 	{
 		Image.Reset(Img);
 		
+		char *rs;
+		if (Get("rect", rs))
+		{
+			GRect r;
+			if (r.SetStr(rs))
+			{
+				GAutoPtr<GSurface> t(new GMemDC(r.X(), r.Y(), Image->GetBits()));
+				if (t)
+				{
+					t->Blt(0, 0, Image, &r);
+					Image = t;
+				}
+			}
+		}
+
 		for (GTag *t = this; t; t = t->Parent)
 		{
 			t->MinContent = 0;
