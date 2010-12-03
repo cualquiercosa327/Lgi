@@ -335,72 +335,87 @@ bool FlipDC(GSurface *pDC, int Dir)
 
 bool RotateDC(GSurface *pDC, double Angle)
 {
-	GSurface *pOld = new GMemDC;
-	bool Status = false;
+	if (!pDC)
+		return false;
 
-	if (pDC AND pOld AND pOld->Create(pDC->X(), pDC->Y(), pDC->GetBits()))
+	GAutoPtr<GSurface> pOld(new GMemDC(pDC));
+
+	// do the rotation
+	if (Angle == 180)
 	{
-		// copy the palette
-		// GPalette *Pal = (pDC->Palette()) ? new GPalette(pDC->Palette()) : 0;
+		GSurface *pOldAlpha = pOld->AlphaDC();
+		GSurface *pAlpha = pDC->AlphaDC();
 
-		// copy the bits
-		pOld->Blt(0, 0, pDC);
-
-		// do the rotation
-		if (Angle == 180)
+		for (int y=0; y<pOld->Y(); y++)
 		{
-			// int Line = (pDC->X() * pDC->GetBits() + 7) / 8;
+			for (int x=0; x<pOld->X(); x++)
+			{
+				pDC->Colour(pOld->Get(x, y));
+				pDC->Set(pOld->X()-x-1, pOld->Y()-y-1);
 
+				if (pOldAlpha && pAlpha)
+				{
+					pAlpha->Colour(pOldAlpha->Get(x, y));
+					pAlpha->Set(pOld->X()-x-1, pOld->Y()-y-1);
+				}
+			}
+		}
+	}
+	else if (Angle == 90 OR Angle == 270)
+	{
+		if (!pDC->Create(pOld->Y(), pOld->X(), pOld->GetBits()))
+			return false;
+
+		GSurface *pOldAlpha = pOld->AlphaDC();
+		if (pOldAlpha)
+		{
+			pDC->HasAlpha(true);
+		}
+
+		GSurface *pAlpha = pDC->AlphaDC();
+		if (Angle == 90)
+		{
 			for (int y=0; y<pOld->Y(); y++)
 			{
 				for (int x=0; x<pOld->X(); x++)
 				{
 					pDC->Colour(pOld->Get(x, y));
-					pDC->Set(pOld->X()-x-1, pOld->Y()-y-1);
-				}
-			}
+					pDC->Set(pDC->X()-y-1, x);
 
-			Status = true;
-		}
-		else if (Angle == 90 OR Angle == 270)
-		{
-			if (pDC->Create(pOld->Y(), pOld->X(), pOld->GetBits()))
-			{
-				if (Angle == 90)
-				{
-					for (int y=0; y<pOld->Y(); y++)
+					if (pOldAlpha && pAlpha)
 					{
-						for (int x=0; x<pOld->X(); x++)
-						{
-							pDC->Colour(pOld->Get(x, y));
-							pDC->Set(pDC->X()-y-1, x);
-						}
+						pAlpha->Colour(pOldAlpha->Get(x, y));
+						pAlpha->Set(pDC->X()-y-1, x);
 					}
 				}
-				else
-				{
-					for (int y=0; y<pOld->Y(); y++)
-					{
-						for (int x=0; x<pOld->X(); x++)
-						{
-							pDC->Colour(pOld->Get(x, y));
-							pDC->Set(y, pDC->Y()-x-1);
-						}
-					}
-				}
-
-				Status = true;
 			}
 		}
 		else
 		{
-			// free angle
+			for (int y=0; y<pOld->Y(); y++)
+			{
+				int Dy = pDC->Y() - 1;
+				for (int x=0; x<pOld->X(); x++, Dy--)
+				{
+					pDC->Colour(pOld->Get(x, y));
+					pDC->Set(y, Dy);
+
+					if (pOldAlpha && pAlpha)
+					{
+						pAlpha->Colour(pOldAlpha->Get(x, y));
+						pAlpha->Set(y, Dy);
+					}
+				}
+			}
 		}
 	}
+	else
+	{
+		// free angle
+		return false;
+	}
 
-	DeleteObj(pOld);
-
-	return Status;
+	return true;
 }
 
 bool FlipXDC(GSurface *pDC)
