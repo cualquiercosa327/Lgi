@@ -3,6 +3,8 @@
 #include "Lgi.h"
 #include "GDocView.h"
 
+#define SubtractPtr(a, b)		((a)-(b))
+
 char *GDocView::WhiteSpace		= " \t\r\n";
 char *GDocView::Delimiters		= "!@#$%^&*()'\":;,.<>/?[]{}-=+\\|`~";
 char *GDocView::UrlDelim		= "!~/:%+-?@&$#._=,;*()|";
@@ -38,11 +40,7 @@ void GDocumentEnv::OnDone(GThreadJob *j)
 	DeleteObj(j);
 }
 
-bool GDocView::AlphaOrDigit(char c)
-{
-	return IsDigit(c) OR IsLetter(c);
-}
-
+//////////////////////////////////////////////////////////////////////////////////
 char16 *ConvertToCrLf(char16 *Text)
 {
 	if (Text)
@@ -86,6 +84,94 @@ char16 *ConvertToCrLf(char16 *Text)
 	}
 
 	return Text;
+}
+
+//////////////////////////////////////////////////////////////////////////////////
+bool LgiDetectLinks(GArray<GLinkInfo> &Links, char16 *Text, int Size)
+{
+	if (!Text)
+		return false;
+
+	if (Size < 0)
+		Size = StrlenW(Text);
+
+	static char16 Http[] = {'h', 't', 't', 'p', ':', '/', '/', 0 };
+	static char16 Https[] = {'h', 't', 't', 'p', 's', ':', '/', '/', 0};
+
+	for (int i=0; i<Size; i++)
+	{
+		switch (Text[i])
+		{
+			case 'h':
+			case 'H':
+			{
+				if (StrnicmpW(Text+i, Http, 6) == 0 OR
+					StrnicmpW(Text+i, Https, 7) == 0)
+				{
+					// find end
+					char16 *s = Text + i;
+					char16 *e = s + 6;
+					for ( ; (SubtractPtr(e, Text) < Size) AND 
+							UrlChar(*e); e++);
+					
+					while
+					(
+						e > s AND
+						!
+						(
+							isalpha(e[-1]) OR
+							isdigit(e[-1]) OR
+							e[-1] == '/'
+						)
+					)
+						e--;
+
+					GLinkInfo &Url = Links.New();
+					Url.Email = false;
+					Url.Start = SubtractPtr(s, Text);
+					Url.Len = SubtractPtr(e, s);
+					i = SubtractPtr(e, Text);
+				}
+				break;
+			}
+			case '@':
+			{
+				// find start
+				char16 *s = Text + (max(i, 1) - 1);
+				
+				for ( ; s > Text AND EmailChar(*s); s--)
+					;
+
+				if (s < Text + i)
+				{
+					if (!EmailChar(*s))
+						s++;
+
+					bool FoundDot = false;
+					char16 *Start = Text + i + 1;
+					char16 *e = Start;
+					for ( ; (SubtractPtr(e, Text) < Size) AND 
+							EmailChar(*e); e++)
+					{
+						if (*e == '.') FoundDot = true;
+					}
+					while (e > Start AND e[-1] == '.') e--;
+
+					if (FoundDot)
+					{
+						GLinkInfo &Url = Links.New();
+						Url.Email = true;
+						Url.Start = SubtractPtr(s, Text);
+						Url.Len = SubtractPtr(e, s);
+						i = SubtractPtr(e, Text);
+					}
+				}
+				break;
+			}
+		}
+	}
+
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////////////

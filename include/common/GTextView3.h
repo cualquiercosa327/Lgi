@@ -95,8 +95,14 @@ public:
 		/// Returns true if this style overlaps the position of 's'
 		bool Overlap(GStyle *s)
 		{
-			if (s->Start + s->Len < Start ||
-				s->Start > Start + Len)
+			return Overlap(s->Start, s->Len);
+		}
+
+		/// Returns true if this style overlaps the position of 's'
+		bool Overlap(int sStart, int sLen)
+		{
+			if (sStart + sLen < Start ||
+				sStart >= Start + Len)
 				return false;
 
 			return true;

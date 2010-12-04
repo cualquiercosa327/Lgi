@@ -30,29 +30,43 @@
 // Util macros
 
 /// Returns true if 'c' is an ascii character
-#define IsAlpha(c)					(((c) >= 'a' AND (c) <= 'z') OR ((c) >= 'A' AND (c) <= 'Z'))
+#define IsAlpha(c)					(((c) >= 'a' && (c) <= 'z') || ((c) >= 'A' && (c) <= 'Z'))
 /// Returns true if 'c' is whitespace
-#define IsWhiteSpace(c)				((c) < 126 AND strchr(GDocView::WhiteSpace, c) != 0)
+#define IsWhiteSpace(c)				((c) < 126 && strchr(GDocView::WhiteSpace, c) != 0)
 /// Returns true if 'c' is a delimiter
-#define IsDelimiter(c)				((c) < 126 AND strchr(GDocView::Delimiters, c) != 0)
+#define IsDelimiter(c)				((c) < 126 && strchr(GDocView::Delimiters, c) != 0)
 /// Returns true if 'c' is a digit (number)
-#define IsDigit(c)					((c) >= '0' AND (c) <= '9')
+#define IsDigit(c)					((c) >= '0' && (c) <= '9')
 /// Returns true if 'c' is letter
-#define IsLetter(c)					(((c) >= 'a' AND (c) <= 'z') OR ((c) >= 'A' AND (c) <= 'Z'))
+#define IsLetter(c)					(((c) >= 'a' && (c) <= 'z') || ((c) >= 'A' && (c) <= 'Z'))
 /// Returns true if 'c' is a letter or number
-#define IsText(c)					(IsDigit(c) OR IsAlpha(c) OR (c) == '_')
+#define IsText(c)					(IsDigit(c) || IsAlpha(c) || (c) == '_')
 /// Returns true if 'c' is word boundry
-#define IsWordBoundry(c)			(strchr(GDocView::WhiteSpace, c) OR strchr(GDocView::Delimiters, c))
+#define IsWordBoundry(c)			(strchr(GDocView::WhiteSpace, c) || strchr(GDocView::Delimiters, c))
+/// Returns true if 'c' is alphanumeric or a digit
+#define AlphaOrDigit(c)				(IsDigit(c) || IsLetter(c))
 /// Returns true if 'c' is a valid URL character
 #define UrlChar(c)					( \
-										strchr(GDocView::UrlDelim, (c)) OR \
-										AlphaOrDigit((c)) OR \
+										strchr(GDocView::UrlDelim, (c)) || \
+										AlphaOrDigit((c)) || \
 										((c) >= 256) \
 									)
 /// Returns true if 'c' is email address character
-#define EmailChar(c)				(strchr("._-:+", (c)) OR AlphaOrDigit((c)))
+#define EmailChar(c)				(strchr("._-:+", (c)) || AlphaOrDigit((c)))
 
 extern char16 *ConvertToCrLf(char16 *Text);
+
+/// This class contains infomation about a link.
+/// \sa LgiDetectLinks
+struct GLinkInfo
+{
+	int Start;
+	int Len;
+	bool Email;
+};
+
+/// Detects links in text, returning their location and type
+extern bool LgiDetectLinks(GArray<GLinkInfo> &Links, char16 *Text, int Size = -1);
 
 // Call back class to handle viewer events
 class GDocView;
@@ -199,7 +213,6 @@ public:
 	static char *WhiteSpace;
 	static char *Delimiters;
 	static char *UrlDelim;
-	static bool AlphaOrDigit(char c);
 
 	///////////////////////////////////////////////////////////////////////
 	// Properties

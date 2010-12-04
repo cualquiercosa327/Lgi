@@ -1093,9 +1093,30 @@ void GTextView3::PourStyle(int Start, int Length)
 	int StartTime = LgiCurrentTime();
 	#endif
 
+	if (!Text || Size < 1)
+		return;
+
+	// Expand re-style are to word boundaries before and after the area of change
+	if (Length < 0)
+		Length = 0;
+	
+	while (Start > 0 && UrlChar(Text[Start-1]))
+	{
+		// Move the start back
+		Start--;
+		Length++;
+	}
+	while (Start + Length < Size && UrlChar(Text[Start+Length]))
+	{
+		// Move the end back
+		Length++;
+	}
+
+	// Delete all the styles that we own inside the changed area
 	for (GStyle *s = Style.First(); s; )
 	{
-		if (s->Owner == 0)
+		if (s->Owner == 0 &&
+			s->Overlap(Start, Length))
 		{
 			Style.Delete();
 			DeleteObj(s);
@@ -1104,8 +1125,33 @@ void GTextView3::PourStyle(int Start, int Length)
 		else s = Style.Next();
 	}
 
-	if (UrlDetect AND Text)
+	if (UrlDetect)
 	{
+		#if 1
+		
+		GArray<GLinkInfo> Links;
+		if (LgiDetectLinks(Links, Text + Start, Length))
+		{
+			for (int i=0; i<Links.Length(); i++)
+			{
+				GLinkInfo &Inf = Links[i];
+				GUrl *Url = new GUrl(0);
+				if (Url)
+				{
+					Url->View = this;
+					Url->Start = Inf.Start + Start;
+					Url->Len = Inf.Len;
+					Url->Email = Inf.Email;
+					Url->Font = Underline;
+					Url->c = d->UrlColour;
+
+					InsertStyle(Url);
+				}
+			}
+		}
+
+		#else
+
 		char16 Http[] = {'h', 't', 't', 'p', ':', '/', '/', 0 };
 		char16 Https[] = {'h', 't', 't', 'p', 's', ':', '/', '/', 0};
 
@@ -1197,6 +1243,8 @@ void GTextView3::PourStyle(int Start, int Length)
 				}
 			}
 		}
+
+		#endif
 	}
 
 	#ifdef _DEBUG

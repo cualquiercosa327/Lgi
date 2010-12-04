@@ -19,7 +19,7 @@
 #define MAX_NAME_SIZE						64
 #define EMAIL_LINE_SIZE						76
 
-#define IsDigit(c) ((c) >= '0' AND (c) <= '9')
+// #define IsDigit(c) ((c) >= '0' AND (c) <= '9')
 
 // MIME content types
 #define CONTENT_NONE						0
