@@ -206,7 +206,7 @@
 /// \brief Define as '1' if Iconv is available else as '0'
 /// \sa http://www.gnu.org/software/libiconv
 #ifdef MAC
-#define HAS_ICONV							0
+#define HAS_ICONV							1
 #else
 #define HAS_ICONV							1
 #endif

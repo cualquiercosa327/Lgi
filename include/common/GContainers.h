@@ -397,7 +397,7 @@ public:
 		/// The string
 		char *Str,
 		/// The length in bytes
-		int Len=-1
+		int Chars = -1
 	);
 	/// Inserts a wide char string into the container
 	virtual int Push
@@ -405,7 +405,7 @@ public:
 		/// The string
 		char16 *Str,
 		/// The length in characters
-		int Len = -1
+		int Chars = -1
 	);
 
 	/// Creates a null terminated utf-8 string out of the classes contents

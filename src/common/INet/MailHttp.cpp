@@ -4,6 +4,7 @@
 #include "Lgi.h"
 #include "Mail.h"
 #include "GToken.h"
+#include "GDocView.h"
 
 //////////////////////////////////////////////////////////////////////////
 #include "IHttp.h"

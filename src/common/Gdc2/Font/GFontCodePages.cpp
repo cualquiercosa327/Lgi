@@ -862,6 +862,14 @@ int LgiBufConvertCp(void *Out, char *OutCp, int OutLen, void *&In, char *InCp, i
 				OutInfo->Type == CpIconv)
 			{
 			    #if HAS_ICONV
+
+				// Set locale yet?
+				static bool sl = false;
+				if (!sl)
+				{
+					sl = true;
+					setlocale(LC_ALL,"");
+				}
 			    
 				// Iconv conversion
 				GFontSystem *Iconv = GetIconv();
@@ -874,9 +882,6 @@ int LgiBufConvertCp(void *Out, char *OutCp, int OutLen, void *&In, char *InCp, i
 					char *o = (char*)Out;
 					char *i = (char*)In;
 
-					// Reset state
-					// Iconv->libiconv(i, 0, 0, 0, 0);
-
 					// Convert
 					char *Start = o;
 					int s = Iconv->libiconv(Conv, (IconvChar**)&i, (size_t*)&InLen, &o, (size_t*)&OutLen);
@@ -884,14 +889,6 @@ int LgiBufConvertCp(void *Out, char *OutCp, int OutLen, void *&In, char *InCp, i
 
 					In = (void*)i;
 					Status = (int)o-(int)Out;
-
-					/*
-					bool Jp = InInfo->Charset ? stristr(InInfo->Charset, "-jp") != 0 : 0;
-					if (Jp)
-					{
-						printf("JpConv: s=%i InLen=%i Status=%i\n", s, InLength, Status);
-					}
-					*/
 				}
 				else
 				{

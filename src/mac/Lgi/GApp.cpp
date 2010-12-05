@@ -332,6 +332,8 @@ GApp::GApp(char *AppMime, OsAppArguments &AppArgs, GAppArguments *ObjArgs) :
 	d = new GAppPrivate;
 	d->Mime.Reset(NewStr(AppMime));
 
+	setlocale(LC_ALL,"");
+
 	// Catch and ignore SIGPIPE
 	signal(SIGPIPE, OnSigPipe);
 	

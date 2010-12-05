@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <ctype.h>
 
-#define _POSIX_TIMERS
+// #define _POSIX_TIMERS
 #include <time.h>
 
 #include "Lgi.h"

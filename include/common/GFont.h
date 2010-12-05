@@ -377,13 +377,16 @@ LgiFunc char *LgiDetectCharset
 	// may not want to bother depending on what sort of app your
 	// writing.
 	//
+	#ifdef MAC
+	//#define LIBICONV_PLUG
+	#endif
 	#ifdef __MINGW32__
 	#include "../iconv.h"
 	#else
 	#include "iconv.h"
 	#endif
 
-	#ifdef WIN32
+	#if defined(WIN32)
 	typedef const char IconvChar;
 	#else
 	typedef char IconvChar;
@@ -469,13 +472,7 @@ public:
 	
 	size_t libiconv(iconv_t cd, IconvChar** inbuf, size_t *inbytesleft, char **outbuf, size_t *outbytesleft)
 	{
-		return ::iconv(cd, 
-			#ifdef LINUX
-			(char**)
-			#else
-			(const char**) 
-			#endif
-			inbuf, inbytesleft, outbuf, outbytesleft);
+		return ::iconv(cd, inbuf, inbytesleft, outbuf, outbytesleft);
 	}
 	
 	int libiconv_close(iconv_t cd)

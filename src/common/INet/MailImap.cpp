@@ -6,6 +6,7 @@
 #include "Base64.h"
 #include "INetTools.h"
 #include "GUtf8.h"
+#include "GDocView.h"
 
 ////////////////////////////////////////////////////////////////////////////
 #if GPL_COMPATIBLE
