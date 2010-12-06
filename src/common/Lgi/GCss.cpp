@@ -214,6 +214,7 @@ GCss::GCss() : Props(0, false, PropNull)
 		Lut.Add("background-x", PropBackgroundX);
 		Lut.Add("background-y", PropBackgroundY);
 		Lut.Add("clip", PropClip);
+		Lut.Add("x-rect", PropXSubRect);
 		Lut.Add("color", PropColor);
 		Lut.Add("font-family", PropFontFamily);
 	}
@@ -1191,6 +1192,37 @@ bool GCss::Parse(char *&s, ParsingStyle Type)
 					else
 					{
 						ReleasePropOnSave(BorderDef, PropId);
+					}
+				}
+				break;
+			}
+			case TypeGRect:
+			{
+				GRect r;
+				if (ParseWord(s, "rect"))
+				{
+					SkipWhite(s);
+					if (*s == '(')
+					{
+						s++;
+						r.y1 = ParseComponent(s);
+						if (*s == ',') s++;
+						else break;
+						r.x2 = ParseComponent(s);
+						if (*s == ',') s++;
+						else break;
+						r.y2 = ParseComponent(s);
+						if (*s == ',') s++;
+						else break;
+						r.x1 = ParseComponent(s);
+						if (*s == ')')
+						{
+							s++;
+
+							GRect *e = (GRect*)Props.Find(PropId);
+							if (e) *e = r;
+							else Props.Add(PropId, new GRect(r));
+						}
 					}
 				}
 				break;

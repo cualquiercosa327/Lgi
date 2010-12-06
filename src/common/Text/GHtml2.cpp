@@ -2374,18 +2374,14 @@ void GTag::SetImage(char *Uri, GSurface *Img)
 	{
 		Image.Reset(Img);
 		
-		char *rs;
-		if (Get("rect", rs))
+		GRect r = XSubRect();
+		if (r.Valid())
 		{
-			GRect r;
-			if (r.SetStr(rs))
+			GAutoPtr<GSurface> t(new GMemDC(r.X(), r.Y(), Image->GetBits()));
+			if (t)
 			{
-				GAutoPtr<GSurface> t(new GMemDC(r.X(), r.Y(), Image->GetBits()));
-				if (t)
-				{
-					t->Blt(0, 0, Image, &r);
-					Image = t;
-				}
+				t->Blt(0, 0, Image, &r);
+				Image = t;
 			}
 		}
 

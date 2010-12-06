@@ -92,6 +92,7 @@ public:
 
 		// GRect based props
 		PropClip = TypeGRect<<8,
+		PropXSubRect,
 
 		// ColorDef based
 		PropColor = TypeColor<<8,
@@ -565,6 +566,7 @@ public:
 
 	Accessor(Overflow, OverflowType, OverflowInherit);
 	Accessor(Clip, GRect, GRect(0, 0, -1, -1));
+	Accessor(XSubRect, GRect, GRect(0, 0, -1, -1));
 	Accessor(Visibility, VisibilityType, VisibilityInherit);
 
 	Accessor(FontFamily, StringsDef, StringsDef());

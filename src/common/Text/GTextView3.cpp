@@ -1087,7 +1087,7 @@ GTextView3::GStyle *GTextView3::HitStyle(int i)
 	return 0;	
 }
 
-void GTextView3::PourStyle(int Start, int Length)
+void GTextView3::PourStyle(int Start, int EditSize)
 {
 	#ifdef _DEBUG
 	int StartTime = LgiCurrentTime();
@@ -1096,10 +1096,9 @@ void GTextView3::PourStyle(int Start, int Length)
 	if (!Text || Size < 1)
 		return;
 
+	int Length = max(EditSize, 0);
+
 	// Expand re-style are to word boundaries before and after the area of change
-	if (Length < 0)
-		Length = 0;
-	
 	while (Start > 0 && UrlChar(Text[Start-1]))
 	{
 		// Move the start back
@@ -1115,14 +1114,41 @@ void GTextView3::PourStyle(int Start, int Length)
 	// Delete all the styles that we own inside the changed area
 	for (GStyle *s = Style.First(); s; )
 	{
-		if (s->Owner == 0 &&
-			s->Overlap(Start, Length))
+		if (s->Owner == 0)
 		{
-			Style.Delete();
-			DeleteObj(s);
-			s = Style.Current();
+			if (EditSize > 0)
+			{
+				if (s->Start > Start)
+				{
+					s->Start += EditSize;
+				}
+
+				if (s->Overlap(Start, abs(EditSize)))
+				{
+					Style.Delete();
+					DeleteObj(s);
+					s = Style.Current();
+					continue;
+				}
+			}
+			else
+			{
+				if (s->Overlap(Start, -EditSize))
+				{
+					Style.Delete();
+					DeleteObj(s);
+					s = Style.Current();
+					continue;
+				}
+				
+				if (s->Start > Start)
+				{
+					s->Start += EditSize;
+				}
+			}
 		}
-		else s = Style.Next();
+		
+		s = Style.Next();
 	}
 
 	if (UrlDetect)
