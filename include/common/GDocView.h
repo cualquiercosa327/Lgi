@@ -72,7 +72,11 @@ extern bool LgiDetectLinks(GArray<GLinkInfo> &Links, char16 *Text, int Size = -1
 class GDocView;
 
 /// An environment class to handle requests from the text view to the outside world.
-class GDocumentEnv : public GThreadOwner
+class
+#ifdef MAC
+LgiClass
+#endif
+GDocumentEnv : public GThreadOwner
 {
 	GArray<GDocView*> Viewers;
 
@@ -88,7 +92,11 @@ public:
 		LoadDeferred,
 	};
 
-	struct LoadJob : public GThreadJob
+	struct
+	#ifdef MAC
+	LgiClass
+	#endif
+	LoadJob : public GThreadJob
 	{
 		enum PrefFormat
 		{

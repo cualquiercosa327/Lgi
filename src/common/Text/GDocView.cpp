@@ -28,15 +28,19 @@ GDocumentEnv::~GDocumentEnv()
 void GDocumentEnv::OnDone(GThreadJob *j)
 {
 	LoadJob *ld = dynamic_cast<LoadJob*>(j);
-	if (ld && Lock(_FL))
+	if (ld)
 	{
-		if (Viewers.HasItem(ld->View))
+		if (Lock(_FL))
 		{
-			ld->View->OnContent(ld);
-			j = ld = 0;
+			if (Viewers.HasItem(ld->View))
+			{
+				ld->View->OnContent(ld);
+				j = ld = 0;
+			}
+			Unlock();
 		}
-		Unlock();
 	}
+	else LgiAssert(!"RTTI failed.");
 	DeleteObj(j);
 }
 

@@ -377,9 +377,6 @@ LgiFunc char *LgiDetectCharset
 	// may not want to bother depending on what sort of app your
 	// writing.
 	//
-	#ifdef MAC
-	//#define LIBICONV_PLUG
-	#endif
 	#ifdef __MINGW32__
 	#include "../iconv.h"
 	#else
@@ -462,7 +459,7 @@ public:
 				size_t*, outbytesleft);
 	DynFunc1(int, libiconv_close, iconv_t, cd);
 
-	#else
+	#elif !defined(MAC)
 
 	// Use glibc I guess
 	iconv_t libiconv_open(const char *tocode, const char *fromcode)

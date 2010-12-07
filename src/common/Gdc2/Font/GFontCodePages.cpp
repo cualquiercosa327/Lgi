@@ -6,6 +6,17 @@
 #include "GToken.h"
 #include "GUtf8.h"
 
+#ifdef MAC
+// This converts a normal charset to an Apple encoding ID
+static CFStringEncoding CharsetToEncoding(char *cs)
+{
+	CFStringRef InputCs = CFStringCreateWithCString(0, cs, kCFStringEncodingUTF8);
+	CFStringEncoding enc = CFStringConvertIANACharSetNameToEncoding(InputCs);
+	CFRelease(InputCs);
+	return enc;
+}
+#endif
+
 typedef uint32 iso2022jp_block[16];
 iso2022jp_block *iso2022jp_map[128];
 iso2022jp_block iso2022jp_blocks[] =
@@ -861,7 +872,24 @@ int LgiBufConvertCp(void *Out, char *OutCp, int OutLen, void *&In, char *InCp, i
 			if (InInfo->Type == CpIconv OR
 				OutInfo->Type == CpIconv)
 			{
-			    #if HAS_ICONV
+				#if defined(MAC)
+
+				CFStringEncoding InEnc = CharsetToEncoding(InInfo->Charset);
+				CFStringEncoding OutEnc = CharsetToEncoding(OutInfo->Charset);
+				if (InEnc != kCFStringEncodingInvalidId &&
+					OutEnc != kCFStringEncodingInvalidId)
+				{
+					CFStringRef r = CFStringCreateWithBytes(0, (const UInt8 *)In, InLen, InEnc, false);
+					if (r)
+					{
+						CFRange g = { 0, CFStringGetLength(r) };
+						CFIndex ret = CFStringGetBytes(r, g, OutEnc, '?', false, (UInt8*)Out, OutLen, 0);
+						CFRelease(r);
+						return ret;
+					}
+				}
+				
+			    #elif HAS_ICONV
 
 				// Set locale yet?
 				static bool sl = false;
@@ -1049,7 +1077,32 @@ void *LgiNewConvertCp(char *OutCp, void *In, char *InCp, int InLen)
 			if (InInfo->Type == CpIconv ||
 				OutInfo->Type == CpIconv)
 			{
-				#if HAS_ICONV
+				#if defined(MAC)
+				
+				CFStringEncoding InEnc = CharsetToEncoding(InInfo->Charset);
+				CFStringEncoding OutEnc = CharsetToEncoding(OutInfo->Charset);
+				if (InEnc != kCFStringEncodingInvalidId &&
+					OutEnc != kCFStringEncodingInvalidId)
+				{
+					CFStringRef r = CFStringCreateWithBytes(0, (const UInt8 *)In, InLen, InEnc, false);
+					if (r)
+					{
+						CFRange g = { 0, CFStringGetLength(r) };
+						CFIndex used = 0;
+						CFIndex ret;
+						while ((ret = CFStringGetBytes(r, g, OutEnc, '?', false, (UInt8*)Buf, sizeof(Buf), &used)) > 0 && g.length > 0)
+						{
+							b.Write(Buf, used);
+							g.location += ret;
+							g.length -= ret;
+						}
+						
+						CFRelease(r);
+					}
+				}
+				
+				#elif HAS_ICONV
+				
 				GFontSystem *Iconv = GetIconv();
 				iconv_t Conv;
 				if (Iconv &&
@@ -1076,6 +1129,7 @@ void *LgiNewConvertCp(char *OutCp, void *In, char *InCp, int InLen)
 					InCp = "iso-8859-1";
 					goto BufConvert;
 				}
+				
 				#endif
 			}
 			else
