@@ -295,6 +295,7 @@ public:
 	char *Host;
 	int Port;
 	char *Path;
+	char *Anchor;
 
 	/// Parser for URI's.
 	GUri

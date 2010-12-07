@@ -99,19 +99,12 @@ public:
 		if (!Uri)
 			return false;
 
-		GUri u;
-		char *Hash = strrchr(Uri, '#');
-		if (Hash &&
-			(strchr(Hash, '/') || strchr(Hash, '\\')))
-			Hash = 0;
-		if (Hash)
-			*Hash = 0;
-		bool IsFile = FileExists(Uri);
+		GUri u(Uri);
+		bool IsFile = FileExists(u.Path);
 		bool IsHttp = false;
 
 		if (IsFile)
 		{
-			u.Path = NewStr(Uri);
 			u.Protocol = NewStr("file");
 		}
 		else if (u.Set(Uri))
@@ -158,10 +151,9 @@ public:
 			Thread->Add(Uri);
 		}
 
-		if (Hash)
+		if (u.Anchor)
 		{
-			Html->GotoAnchor(Hash + 1);
-			*Hash = '#';
+			Html->GotoAnchor(u.Anchor);
 		}
 
 		GAutoString a(u.Get());
@@ -180,7 +172,7 @@ public:
 		if (!u.Protocol)
 		{
 			// Relative link?
-			char *Cur = History[CurHistory];
+			char *Cur = History[CurHistory], *c;
 			if (strchr(Cur, '\\'))
 				Sep = '\\';
 			else
@@ -188,10 +180,31 @@ public:
 			
 			// Trim off filename...
 			char *Last = strrchr(Cur, Sep);
-			if (Last)
-				sprintf(Buf, "%.*s%c%s", Last - Cur, Cur, Sep, Uri);
+			GToken t(Uri, "\\/");
+			int Ch;
+			if (*Uri != '#' && Last)
+				sprintf(Buf, "%.*s", Last - Cur, Cur);
 			else
-				sprintf(Buf, "%s%c%s", Cur, Sep, Uri);
+				strsafecpy(Buf, Cur, sizeof(Buf));
+
+			char *End = Buf + strlen(Buf) - 1;
+			if (*End == Sep)
+				*End = 0;
+
+			for (int i=0; i<t.Length(); i++)
+			{
+				if (!stricmp(t[i], "."))
+					;
+				else if (!stricmp(t[i], ".."))
+				{
+					if (End = strrchr(Buf, Sep))
+						*End = 0;
+				}
+				else if (t[i][0] == '#')
+					sprintf(Buf+strlen(Buf), "%s", t[i]);
+				else
+					sprintf(Buf+strlen(Buf), "%c%s", Sep, t[i]);
+			}
 
 			Uri = Buf;
 		}
@@ -413,6 +426,13 @@ bool GBrowser::SetUri(char *Uri)
 {
 	if (Uri)
 	{
+		char s[MAX_PATH];
+		if (DirExists(Uri))
+		{
+			sprintf(s, "%s%cindex.html", Uri, DIR_CHAR);
+			Uri = s;
+		}
+
 		// Delete history past the current point
 		while (d->History.Length() > d->CurHistory + 1)
 		{

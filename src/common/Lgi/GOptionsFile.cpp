@@ -4,6 +4,7 @@
 GOptionsFile::GOptionsFile(char *BaseName, char *FileName) : GSemaphore("GOptionsFile")
 {
 	File = 0;
+	Dirty = false;
 	if (FileName AND FileExists(FileName))
 	{
 		File = NewStr(FileName);
@@ -17,11 +18,11 @@ GOptionsFile::GOptionsFile(char *BaseName, char *FileName) : GSemaphore("GOption
 			if (!LgiGetExtension(FullPath))
 				strsafecat(FullPath, ".xml", sizeof(FullPath));
 			File = NewStr(FullPath);
+			Dirty = !FileExists(File);
 		}
 	}
 
 	Tag = NewStr("Options");
-	Dirty = false;
 	Error = 0;
 
 	if (Lock(_FL))

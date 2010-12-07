@@ -1662,6 +1662,7 @@ GUri::GUri(char *uri)
 	Host = 0;
 	Port = 0;
 	Path = 0;
+	Anchor = 0;
 	if (uri)
 		Set(uri);
 }
@@ -1679,6 +1680,7 @@ GUri &GUri::operator =(GUri &u)
 	Pass = NewStr(u.Pass);
 	Host = NewStr(u.Host);
 	Path = NewStr(u.Path);
+	Anchor = NewStr(u.Anchor);
 	return *this;
 }
 
@@ -1690,6 +1692,7 @@ void GUri::Empty()
 	DeleteArray(Pass);
 	DeleteArray(Host);
 	DeleteArray(Path);
+	DeleteArray(Anchor);
 }
 
 char *GUri::Get()
@@ -1718,6 +1721,8 @@ char *GUri::Get()
 		char *s = e ? e : Path;
 		p.Print("%s%s", *s == '/' ? "" : "/", s);
 	}
+	if (Anchor)
+		p.Print("#%s", Anchor);
 	return p.NewStr();
 }
 
@@ -1734,59 +1739,87 @@ bool GUri::Set(char *uri)
 	// Scan ahead and check for protocol...
 	char *p = s;
 	while (*s AND isalpha(*s)) s++;
-	if (s[0] == ':')
+	if (s[0] == ':' && s[1] == '/' && s[2] == '/')
 	{
 		Protocol = NewStr(p, s - p);
-		s++;
-		if (*s == '/') s++;
-		if (*s == '/') s++;
+		s += 3;
 	}
 	else
 	{
-		// No protocol, so assume it's a host name
+		// No protocol, so assume it's a host name or path
 		s = p;
 	}
 
-	// Scan over the host name
-	p = s;
-	while (	*s AND
-			*s > ' ' AND
-			*s < 127 AND
-			*s != '/' AND
-			*s != '\\')
+	// Check for path
+	bool HasPath = false;
+	if
+	(
+		(s[0] && s[1] == ':')
+		||
+		(s[0] == '/')
+		||
+		(s[0] == '\\')
+	)
 	{
-		s++;
+		HasPath = true;
 	}
-
-	Host = NewStr(p, s - p);
-	if (Host)
+	else
 	{
-		char *At = strchr(Host, '@');
-		if (At)
+		// Scan over the host name
+		p = s;
+		while (	*s AND
+				*s > ' ' AND
+				*s < 127 AND
+				*s != '/' AND
+				*s != '\\')
 		{
-			*At++ = 0;
+			s++;
+		}
+
+		Host = NewStr(p, s - p);
+		if (Host)
+		{
+			char *At = strchr(Host, '@');
+			if (At)
+			{
+				*At++ = 0;
+				char *Col = strchr(Host, ':');
+				if (Col)
+				{
+					*Col++ = 0;
+					Pass = NewStr(Col);
+				}
+				User = NewStr(Host);
+
+				memmove(Host, At, strlen(At) + 1);
+			}
+
 			char *Col = strchr(Host, ':');
 			if (Col)
 			{
 				*Col++ = 0;
-				Pass = NewStr(Col);
+				Port = atoi(Col);
 			}
-			User = NewStr(Host);
-
-			memmove(Host, At, strlen(At) + 1);
 		}
 
-		char *Col = strchr(Host, ':');
-		if (Col)
-		{
-			*Col++ = 0;
-			Port = atoi(Col);
-		}
+		HasPath = *s == '/';
 	}
 
-	if (*s == '/')
+	if (HasPath)
 	{
-		Path = NewStr(s);
+		char *Start = s;
+		while (*s && *s != '#')
+			s++;
+
+		if (*s)
+		{
+			Path = NewStr(Start, s - Start);
+			Anchor = NewStr(s + 1);
+		}
+		else
+		{
+			Path = NewStr(Start);
+		}
 		
 		char *i = Path, *o = Path;
 		while (*i)
