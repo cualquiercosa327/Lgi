@@ -1614,4 +1614,7 @@ struct GColourStop
 /// Draws a horizontal or vertical gradient
 LgiFunc void LgiFillGradient(GSurface *pDC, GRect &r, bool Vert, GArray<GColourStop> &Stops);
 
+/// Draws a windows HICON onto a surface at Dx, Dy
+LgiFunc void LgiDrawIcon(GSurface *pDC, int Dx, int Dy, HICON ico);
+
 #endif

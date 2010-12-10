@@ -27,11 +27,56 @@
 int Pixel24::Size = 3;
 int Pixel32::Size = 4;
 
-/****************************** Locals **************************************************************************************/
-
-/****************************** Inline Assembler Routines *******************************************************************/
-
 /****************************** Helper Functions ****************************************************************************/
+void LgiDrawIcon(GSurface *pDC, int Dx, int Dy, HICON ico)
+{
+	ICONINFO iconinfo;
+	GetIconInfo(ico, &iconinfo);
+	BITMAP bm, msk;
+	GetObject(iconinfo.hbmColor, sizeof(bm), &bm);
+	GetObject(iconinfo.hbmMask, sizeof(msk), &msk);
+	GArray<uint8> bits, mask;
+	int bmp_bpp = bm.bmPlanes * bm.bmBitsPixel;
+	int msk_bpp = msk.bmPlanes * msk.bmBitsPixel;
+	bits.Length(bm.bmWidthBytes * bm.bmHeight);
+	mask.Length(msk.bmWidthBytes * msk.bmHeight);
+	GetBitmapBits(iconinfo.hbmColor, bits.Length(), &bits[0]);
+	GetBitmapBits(iconinfo.hbmMask, mask.Length(), &mask[0]);
+
+	bool HasAlpha = false;
+	int y;
+	for (y=0; !HasAlpha && y<bm.bmHeight; y++)
+	{
+		Pixel32 *c = (Pixel32*) &bits[y * bm.bmWidthBytes];
+		for (int x=0; x<bm.bmWidth; x++)
+		{
+			if (c[x].a > 0)
+			{
+				HasAlpha = true;
+				break;
+			}
+		}
+	}					
+
+	for (y=0; y<bm.bmHeight; y++)
+	{
+		uint32 *c = (uint32*) &bits[y * bm.bmWidthBytes];
+		uint8 *m = &mask[y * msk.bmWidthBytes];
+		for (int x=0; x<bm.bmWidth; x++)
+		{
+			int bit = 1 << (7 - (x&7));
+			if (!(m[x>>3] & bit))
+			{
+				if (HasAlpha)
+					pDC->Colour(c[x], 32);
+				else
+					pDC->Colour(c[x] | Rgba32(0, 0, 0, 255), 32);
+				pDC->Set(Dx + x, Dy + y);
+			}				
+		}
+	}					
+}
+
 COLOUR RgbToHls(COLOUR Rgb24)
 {
 	int nMax;
