@@ -345,18 +345,24 @@ void GScreenDC::Line(int x1, int y1, int x2, int y2)
 
 void GScreenDC::Circle(double cx, double cy, double radius)
 {
-	CGRect r = {{cx-radius, cy-radius}, {cx+radius, cy+radius}};
-	CGContextBeginPath(d->Ctx);
-	CGContextAddEllipseInRect(d->Ctx, r);
-	CGContextStrokePath(d->Ctx);
+	if (d->Ctx)
+	{
+		CGRect r = {{cx-radius, cy-radius}, {radius*2.0, radius*2.0}};
+		CGContextBeginPath(d->Ctx);
+		CGContextAddEllipseInRect(d->Ctx, r);
+		CGContextStrokePath(d->Ctx);
+	}
 }
 
 void GScreenDC::FilledCircle(double cx, double cy, double radius)
 {
-	CGRect r = {{cx-radius, cy-radius}, {radius*2.0, radius*2.0}};
-	CGContextBeginPath(d->Ctx);
-	CGContextAddEllipseInRect(d->Ctx, r);
-	CGContextFillPath(d->Ctx);
+	if (d->Ctx)
+	{
+		CGRect r = {{cx-radius, cy-radius}, {radius*2.0, radius*2.0}};
+		CGContextBeginPath(d->Ctx);
+		CGContextAddEllipseInRect(d->Ctx, r);
+		CGContextFillPath(d->Ctx);
+	}
 }
 
 void GScreenDC::Arc(double cx, double cy, double radius, double start, double end)
@@ -369,10 +375,24 @@ void GScreenDC::FilledArc(double cx, double cy, double radius, double start, dou
 
 void GScreenDC::Ellipse(double cx, double cy, double x, double y)
 {
+	if (d->Ctx)
+	{
+		CGRect r = {{cx-x, cy-y}, {x*2.0, y*2.0}};
+		CGContextBeginPath(d->Ctx);
+		CGContextAddEllipseInRect(d->Ctx, r);
+		CGContextStrokePath(d->Ctx);
+	}
 }
 
 void GScreenDC::FilledEllipse(double cx, double cy, double x, double y)
 {
+	if (d->Ctx)
+	{
+		CGRect r = {{cx-x, cy-y}, {x*2.0, y*2.0}};
+		CGContextBeginPath(d->Ctx);
+		CGContextAddEllipseInRect(d->Ctx, r);
+		CGContextFillPath(d->Ctx);
+	}
 }
 
 void GScreenDC::Box(int x1, int y1, int x2, int y2)
