@@ -1164,71 +1164,73 @@ bool MailSmtp::Open(GSocketI *S,
 				Error(_FL, "Failed to connect socket to %s:%i\n", Server, Port);
 			else
 			{
+				GStringPipe Str;
+
 				// receive signon message
 				VERIFY_RET_VAL(ReadReply("220"));
+
+				// Rfc 2554 ESMTP authentication
+				SmtpHello:
+				sprintf(Buffer, "EHLO %s\r\n", (ValidNonWSStr(LocalDomain)) ? LocalDomain : "default");
+				VERIFY_RET_VAL(Write(0, true));
+				bool HasSmtpExtensions = ReadReply("250", &Str);
+
+				bool Authed = false;
+				bool NoAuthTypes = false;
+				bool SupportsStartTLS = false;
+				GHashTable TheirAuthTypes;
+
+				// Look through the response for the auth line
+				char *Response = Str.NewStr();
+				if (Response)
+				{
+					GToken Lines(Response, "\n");
+					for (int i=0; i<Lines.Length(); i++)
+					{
+						char *l = Lines[i];
+						char *AuthStr = strstr(l, "AUTH");
+						if (AuthStr)
+						{
+							// walk through AUTH types
+							GToken Types(AuthStr + 4, " ,;");
+							for (int a=0; a<Types.Length(); a++)
+							{
+								TheirAuthTypes.Add(Types[a]);
+							}
+						}
+						if (stristr(l, "STARTTLS"))
+						{
+							SupportsStartTLS = true;
+						}
+					}
+					DeleteArray(Response);
+				}
+
+				if (SupportsStartTLS && TestFlag(Flags, MAIL_USE_STARTTLS))
+				{
+					strcpy(Buffer, "STARTTLS\r\n");
+					VERIFY_RET_VAL(Write(0, true));
+					VERIFY_RET_VAL(ReadReply("220", &Str));
+
+					GVariant v;
+					if (Socket->SetValue(GSocket_Protocol, v="SSL"))
+					{
+						Flags &= ~MAIL_USE_STARTTLS;
+						goto SmtpHello;
+					}
+					else
+					{
+						// SSL init failed... what to do here?
+					}
+				}
+
 
 				if (ValidStr(UserName) &&
 					ValidStr(Password))
 				{
-					GStringPipe Str;
-
-					// Rfc 2554 ESMTP authentication
-					SmtpHello:
-					sprintf(Buffer, "EHLO %s\r\n", (ValidNonWSStr(LocalDomain)) ? LocalDomain : "default");
-					VERIFY_RET_VAL(Write(0, true));
-					VERIFY_RET_VAL(ReadReply("250", &Str));
-
-					bool Authed = false;
-					bool NoAuthTypes = false;
-					bool SupportsStartTLS = false;
-					GHashTable TheirAuthTypes;
 					GHashTable MyAuthTypes(16);
 					MyAuthTypes.Add("PLAIN");
 					MyAuthTypes.Add("LOGIN");
-
-					// Look through the response for the auth line
-					char *Response = Str.NewStr();
-					if (Response)
-					{
-						GToken Lines(Response, "\n");
-						for (int i=0; i<Lines.Length(); i++)
-						{
-							char *l = Lines[i];
-							char *AuthStr = strstr(l, "AUTH");
-							if (AuthStr)
-							{
-								// walk through AUTH types
-								GToken Types(AuthStr + 4, " ,;");
-								for (int a=0; a<Types.Length(); a++)
-								{
-									TheirAuthTypes.Add(Types[a]);
-								}
-							}
-							if (stristr(l, "STARTTLS"))
-							{
-								SupportsStartTLS = true;
-							}
-						}
-						DeleteArray(Response);
-					}
-
-					if (SupportsStartTLS && TestFlag(Flags, MAIL_USE_STARTTLS))
-					{
-						strcpy(Buffer, "STARTTLS\r\n");
-						VERIFY_RET_VAL(Write(0, true));
-						VERIFY_RET_VAL(ReadReply("220", &Str));
-
-						GVariant v;
-						if (Socket->SetValue(GSocket_Protocol, v="SSL"))
-						{
-							Flags &= ~MAIL_USE_STARTTLS;
-							goto SmtpHello;
-						}
-						else
-						{
-							// SSL init failed... what to do here?
-						}
-					}
 
 					if (TheirAuthTypes.Length() == 0)
 					{
@@ -1258,7 +1260,6 @@ bool MailSmtp::Open(GSocketI *S,
 						else
 						{						
 							NoAuthTypes = true;
-							goto NormalLogin;
 						}
 					}
 
@@ -1334,12 +1335,35 @@ bool MailSmtp::Open(GSocketI *S,
 				}
 				else
 				{
+					/*
 					NormalLogin:
 					// Normal SMTP login
 					// send HELO message
 					sprintf(Buffer, "HELO %s\r\n", (ValidNonWSStr(LocalDomain)) ? LocalDomain : "default");
 					VERIFY_RET_VAL(Write(0, true));
 					VERIFY_RET_VAL(ReadReply("250"));
+
+					if (Flags & MAIL_SOURCE_STARTTLS)
+					{
+						if (SupportsStartTLS && TestFlag(Flags, MAIL_USE_STARTTLS))
+						{
+							strcpy(Buffer, "STARTTLS\r\n");
+							VERIFY_RET_VAL(Write(0, true));
+							VERIFY_RET_VAL(ReadReply("220", &Str));
+
+							GVariant v;
+							if (Socket->SetValue(GSocket_Protocol, v="SSL"))
+							{
+								Flags &= ~MAIL_USE_STARTTLS;
+								goto SmtpHello;
+							}
+							else
+							{
+								// SSL init failed... what to do here?
+							}
+						}
+					}
+					*/
 
 					Status = true;
 				}
