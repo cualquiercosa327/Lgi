@@ -23,10 +23,10 @@ public:
 		Transparent = 0
 	};
 
-	GColour(COLOUR *list = 0, int items = 0);
+	GColour(GArray<COLOUR> *c32 = 0);
 
 	// Methods
-	void SetColourList(COLOUR *c32_list, int items);
+	void SetColourList(GArray<COLOUR> *c32 = 0);
 
 	// GView
 	int64 Value();

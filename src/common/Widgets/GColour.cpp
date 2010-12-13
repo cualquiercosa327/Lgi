@@ -55,7 +55,7 @@ public:
 			int i = m.y / 16;
 			if (i == 0)
 			{
-				Colour->Value(-1);
+				Colour->Value(0);
 			}
 			else
 			{
@@ -70,23 +70,21 @@ public:
 	void Value(int64 i) { Colour->Value(i); }
 };
 
-GColour::GColour(COLOUR *list, int items) :
+GColour::GColour(GArray<COLOUR> *col32) :
 	ResObject(Res_Custom), GDropDown(-1, 0, 0, 10, 10, 0)
 {
 	c32 = Rgb32(0, 0, 255);
 
 	SetPopup(new GColourPopup(this));
-	if (list)
-		SetColourList(list, items);
+	if (col32)
+		SetColourList(col32);
 }
 
-void GColour::SetColourList(COLOUR *list, int items)
+void GColour::SetColourList(GArray<COLOUR> *col32)
 {
-	if (!list) items = 0;
-	Presets.Length(items);
-	if (list)
+	if (col32)
 	{
-		memcpy(&Presets[0], list, sizeof(COLOUR) * Presets.Length());
+		Presets = *col32;
 	}
 
 	if (GetPopup())
