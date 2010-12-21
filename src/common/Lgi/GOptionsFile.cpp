@@ -106,6 +106,9 @@ bool GOptionsFile::Serialize(bool Write)
 				}
 			}
 		}
+		else if (Write)
+			LgiAssert(!"Failed to open file.");
+
 		Unlock();
 	}
 

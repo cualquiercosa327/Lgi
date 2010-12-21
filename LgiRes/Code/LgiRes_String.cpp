@@ -147,7 +147,7 @@ ResString::ResString(ResStringGroup *grp)
 		LgiAssert(0);
 	}
 
-	LgiStackTrace("%p::ResString\n", this);
+	// LgiStackTrace("%p::ResString\n", this);
 }
 
 ResString::~ResString()
@@ -303,7 +303,7 @@ bool ResString::Test(ErrorCollection *e)
 {
 	bool Status = true;
 
-	if (Id == 0)
+	if (ValidStr(Define) && Id == 0)
 	{
 		ErrorInfo *Err = &e->StrErr.New();
 		Err->Str = this;
@@ -352,21 +352,25 @@ bool ResString::Read(GXmlTag *t, ResFileFormat Format)
 		char *n = 0;
 
 		SetRef(t->GetAsInt("Ref"));
-
-		if ((n = t->GetAttr("Cid")) OR
-			(n = t->GetAttr("Id")))
-		{
-			SetId(atoi(n));
-		}
-		if (n = t->GetAttr("Define"))
+		if ((n = t->GetAttr("Define")) &&
+			ValidStr(n))
 		{
 			SetDefine(n);
+
+			char *c;
+			if ((c = t->GetAttr("Cid")) ||
+				(c = t->GetAttr("Id")))
+			{
+				int cid = atoi(c);
+				SetId(cid);
+			}
 		}
 		if (n = t->GetAttr("Tag"))
 		{
 			DeleteArray(Tag);
 			Tag = NewStr(n);
 		}
+
 
 		for (int i=0; i<t->Attr.Length(); i++)
 		{
@@ -425,8 +429,11 @@ bool ResString::Write(GXmlTag *t, ResFileFormat Format)
 {
 	t->Tag = NewStr("String");
 	t->SetAttr("Ref", Ref);
-	t->SetAttr("Cid", Id);
-	if (Define) t->SetAttr("Define", Define);
+	if (ValidStr(Define))
+	{
+		t->SetAttr("Cid", Id);
+		t->SetAttr("Define", Define);
+	}
 	if (Tag) t->SetAttr("Tag", Tag);
 
 	StrLang *s;
