@@ -1685,6 +1685,18 @@ void GList::EmptyColumns()
 
 int GList::OnEvent(GMessage *Msg)
 {
+	switch (MsgCode(Msg))
+	{
+		#ifdef WIN32
+		case WM_VSCROLL:
+		{
+			if (VScroll)
+				return VScroll->OnEvent(Msg);
+			break;
+		}
+		#endif
+	}
+
 	return GLayout::OnEvent(Msg);
 }
 

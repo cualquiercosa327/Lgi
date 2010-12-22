@@ -83,6 +83,21 @@ void GEdit::Select(int Start, int Len)
 	}
 }
 
+bool GEdit::GetSelection(int &Start, int &Len)
+{
+	if (!_View)
+		return false;
+
+	DWORD s = 0, e = 0;
+	SendMessage(_View, EM_GETSEL, (WPARAM)&s, (LPARAM)&e);
+	if (s == e)
+		return false;
+
+	Start = s;
+	Len = e - s;
+	return true;
+}
+
 bool GEdit::MultiLine()
 {
 	return TestFlag(GetStyle(), ES_MULTILINE);
