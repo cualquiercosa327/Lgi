@@ -336,6 +336,11 @@ public:
 		Cell.Offset(Cx, Cy);
 	}
 
+	bool IsSpanned()
+	{
+		return Cell.X() > 1 || Cell.Y() > 1;
+	}
+
 	bool GetVariant(char *Name, GVariant &Value, char *Array)
 	{
 		return false;
@@ -397,125 +402,126 @@ public:
 		for (int i=0; i<Children.Length(); i++)
 		{
 			GView *v = Children[i];
-			if (Izza(GText))
+
+			GViewLayoutInfo Inf;
+			if (v->OnLayout(Inf))
 			{
-				PreLayoutTextCtrl(v, Min, Max);
-				if (Max > Min)
+				if (Inf.Width.Max < 0)
+					Flag = SizeGrow;
+				else
+					Max = max(Max, Inf.Width.Max);
+
+				if (Inf.Width.Min)
+					Min = max(Min, Inf.Width.Min);
+			}
+			else
+			{
+				if (Izza(GText))
 				{
+					PreLayoutTextCtrl(v, Min, Max);
+					if (Max > Min)
+					{
+						Flag = SizeGrow;
+					}
+					else
+					{
+						if (Flag < SizeFixed)
+							Flag = SizeFixed;
+					}
+				}
+				else if (Izza(GCheckBox) ||
+						 Izza(GRadioButton))
+				{
+					int cmin = 0, cmax = 0;
+					PreLayoutTextCtrl(v, cmin, cmax);
+					Min = max(Min, cmin + 16);
+					Max = max(Max, cmax + 16);
+				}
+				else if (Izza(GButton))
+				{
+					GDisplayString ds(v->GetFont(), v->Name());
+					int x = max(v->X(), ds.X() + BUTTON_OVERHEAD_X);
+					if (x > v->X())
+					{
+						GRect r = v->GetPos();
+						r.x2 = r.x1 + x - 1;
+						v->SetPos(r);
+					}
+
+					Min = max(Min, x);
+					Max = max(Max, x);
+					if (Flag < SizeFixed)
+						Flag = SizeFixed;
+					// Max += x + 10;
+					// Flag = SizeGrow;
+				}
+				else if (Izza(GEdit) ||
+						 Izza(GScrollBar))
+				{
+					Min = max(Min, 40);
+					Max = max(Max, 1000);
+					Flag = SizeGrow;
+				}
+				else if (Izza(GCombo))
+				{
+					GCombo *Cbo = Izza(GCombo);
+					GFont *f = Cbo->GetFont();
+					int x = 0;
+					char *t;
+					for (int i=0; t = (*Cbo)[i]; i++)
+					{
+						GDisplayString ds(f, t);
+						x = max(ds.X(), x);
+					}				
+					
+					Min = max(Min, 40);
+					Max = max(Max, x + 32);
+					Flag = SizeGrow;
+				}
+				else if (Izza(GBitmap))
+				{
+					GBitmap *b = Izza(GBitmap);
+					GSurface *Dc = b->GetSurface();
+					if (Dc)
+					{
+						Min = max(Min, Dc->X() + 4);
+						Max = max(Max, Dc->X() + 4);
+					}
+					else
+					{
+						Min = max(Min, 3000);
+						Max = max(Max, 3000);
+					}
+				}
+				else if (Izza(GList))
+				{
+					GList *Lst = Izza(GList);
+					int m = 0;
+					for (int i=0; i<Lst->GetColumns(); i++)
+					{
+						m += Lst->ColumnAt(i)->Width();
+					}
+					m = max(m, 40);
+					Min = max(Min, 60);
+					Max = max(Max, (m * 2) + 20);
+					Flag = SizeGrow;
+				}
+				else if (Izza(GTree) ||
+						 Izza(GTabView))
+				{
+					Min = max(Min, 40);
+					Max = max(Max, 3000);
 					Flag = SizeGrow;
 				}
 				else
 				{
-					if (Flag < SizeFixed)
-						Flag = SizeFixed;
-				}
-			}
-			else if (Izza(GCheckBox) ||
-					 Izza(GRadioButton))
-			{
-				int cmin = 0, cmax = 0;
-				PreLayoutTextCtrl(v, cmin, cmax);
-				Min = max(Min, cmin + 16);
-				Max = max(Max, cmax + 16);
-			}
-			else if (Izza(GButton))
-			{
-				GDisplayString ds(v->GetFont(), v->Name());
-				int x = max(v->X(), ds.X() + BUTTON_OVERHEAD_X);
-				if (x > v->X())
-				{
-					GRect r = v->GetPos();
-					r.x2 = r.x1 + x - 1;
-					v->SetPos(r);
-				}
-
-				Min = max(Min, x);
-				Max = max(Max, x);
-				if (Flag < SizeFixed)
-					Flag = SizeFixed;
-				// Max += x + 10;
-				// Flag = SizeGrow;
-			}
-			else if (Izza(GEdit) ||
-					 Izza(GScrollBar))
-			{
-				Min = max(Min, 40);
-				Max = max(Max, 1000);
-				Flag = SizeGrow;
-			}
-			else if (Izza(GCombo))
-			{
-				GCombo *Cbo = Izza(GCombo);
-				GFont *f = Cbo->GetFont();
-				int x = 0;
-				char *t;
-				for (int i=0; t = (*Cbo)[i]; i++)
-				{
-					GDisplayString ds(f, t);
-					x = max(ds.X(), x);
-				}				
-				
-				Min = max(Min, 40);
-				Max = max(Max, x + 32);
-				Flag = SizeGrow;
-			}
-			else if (Izza(GBitmap))
-			{
-				GBitmap *b = Izza(GBitmap);
-				GSurface *Dc = b->GetSurface();
-				if (Dc)
-				{
-					Min = max(Min, Dc->X() + 4);
-					Max = max(Max, Dc->X() + 4);
-				}
-				else
-				{
-					Min = max(Min, 3000);
-					Max = max(Max, 3000);
-				}
-			}
-			else if (Izza(GList))
-			{
-				GList *Lst = Izza(GList);
-				int m = 0;
-				for (int i=0; i<Lst->GetColumns(); i++)
-				{
-					m += Lst->ColumnAt(i)->Width();
-				}
-				m = max(m, 40);
-				Min = max(Min, 60);
-				Max = max(Max, (m * 2) + 20);
-				Flag = SizeGrow;
-			}
-			else if (Izza(GTree) ||
-					 Izza(GTabView))
-			{
-				Min = max(Min, 40);
-				Max = max(Max, 3000);
-				Flag = SizeGrow;
-			}
-			else
-			{
-				GTableLayout *Tbl = Izza(GTableLayout);
-				if (Tbl)
-				{
-					GRect r(0, 0, 10000, 10000);
-					Tbl->d->Layout(r);
-					Min = max(Min, Tbl->d->LayoutMinX);
-					Max = max(Max, Tbl->d->LayoutMaxX);
-				}
-				else
-				{
-					GViewLayoutInfo Inf;
-					if (v->OnLayout(Inf))
+					GTableLayout *Tbl = Izza(GTableLayout);
+					if (Tbl)
 					{
-						if (Inf.Height.Max < 0)
-							Flag = SizeGrow;
-						else
-							Max = max(Max, Inf.Height.Max);
-
-						if (Inf.Height.Min)
-							Min = max(Min, Inf.Height.Min);
+						GRect r(0, 0, 10000, 10000);
+						Tbl->d->Layout(r);
+						Min = max(Min, Tbl->d->LayoutMinX);
+						Max = max(Max, Tbl->d->LayoutMaxX);
 					}
 					else
 					{
@@ -959,13 +965,55 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 			if (c)
 			{
 				// Single cell
-				if (c->Cell.x1 == Cx &&
-					c->Cell.y1 == Cy)
+				if (c->Cell.x1 == Cx && c->Cell.y1 == Cy && !c->IsSpanned())
 				{
 					int x = CountRange<int>(MinCol, c->Cell.x1, c->Cell.x2) +
 							((c->Cell.X() - 1) * CellSpacing);
-
 					c->Layout(x, MinRow[Cy], MaxRow[Cy], RowFlags[Cy]);
+				}
+
+				Cx += c->Cell.X();
+			}
+			else break;
+		}
+	}
+
+	for (Cy=0; Cy<Rows.Length(); Cy++)
+	{
+		for (Cx=0; Cx<Cols.Length(); )
+		{
+			TableCell *c = GetCellAt(Cx, Cy);
+			if (c)
+			{
+				// Spanned cell
+				if (c->Cell.x1 == Cx && c->Cell.y1 == Cy && c->IsSpanned())
+				{
+					int x = CountRange<int>(MinCol, c->Cell.x1, c->Cell.x2) +
+							((c->Cell.X() - 1) * CellSpacing);
+					int MaxY = MaxRow[Cy];
+
+					c->Layout(x, MinRow[Cy], MaxY, RowFlags[Cy]);
+
+					// This code stops the max being set on spanned cells.
+					GArray<int> Growable;
+					for (int i=0; i<c->Cell.Y(); i++)
+					{
+						if (MaxRow[Cy+i] > MinRow[Cy+i])
+							Growable.Add(Cy+i);
+					}
+					if (Growable.Length())
+					{
+						int Amt = MaxY / Growable.Length();
+						for (int i=0; i<Growable.Length(); i++)
+						{
+							int Idx = Growable[i];
+							MaxRow[Idx] = max(Amt, MaxRow[Idx]);
+						}
+					}
+					else
+					{
+						MaxRow[c->Cell.y2] = max(MaxY, MaxRow[c->Cell.y2]);
+					}
 				}
 
 				Cx += c->Cell.X();

@@ -1091,19 +1091,17 @@ in memory.
 */
 bool GListItem::SetText(char *s, int i)
 {
-	if (s && i >= 0)
-	{
-		// Delete any existing column
-		DeleteArray((char*&)d->Str[i]);
-		DeleteObj(d->Display[i]);
+	if (i < 0)
+		return false;
+		
+	// Delete any existing column
+	DeleteArray((char*&)d->Str[i]);
+	DeleteObj(d->Display[i]);
 
-		// Add new string in
-		d->Str[i] = NewStr(s);
+	// Add new string in
+	d->Str[i] = NewStr(s);
 
-		return true;
-	}
-
-	return false;
+	return true;
 }
 
 // User can override this if they want to use their own data

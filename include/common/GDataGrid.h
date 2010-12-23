@@ -13,8 +13,14 @@ public:
 		GDG_READONLY = 0x1,
 	};
 
-	GDataGrid(int CtrlId);
+	typedef GListItem *(*ItemFactory)(void *userdata);
+
+	GDataGrid(int CtrlId, ItemFactory Func = 0, void *userdata = 0);
 	~GDataGrid();
+
+	bool CanAddRecord();
+	void CanAddRecord(bool b);
+	void SetFactory(ItemFactory Func = 0, void *userdata = 0);
 
 	void OnItemSelect(GArray<GListItem*> &Items);
 	void OnItemClick(GListItem *Item, GMouse &m);
@@ -23,8 +29,9 @@ public:
 	int OnNotify(GViewI *c, int f);
 	void OnMouseWheel(double Lines);
 	void OnPaint(GSurface *pDC);
-
+	bool OnLayout(GViewLayoutInfo &Inf);
 	void SetColFlag(int Col, GDataGridFlags Flags);
+	GListItem *NewItem();
 };
 
 #endif

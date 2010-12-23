@@ -2,7 +2,12 @@
 #include "GDataGrid.h"
 #include "GEdit.h"
 
-#define IDC_EDIT		2020
+enum Controls
+{
+	IDC_DELETE = 2000,
+	IDC_EDIT,
+};
+#define M_CLOSE_EDIT	(M_USER+2000)
 #define CELL_EDGE		2
 
 struct GDataGridPriv
@@ -13,12 +18,24 @@ struct GDataGridPriv
 	GListItem *Cur;
 	bool Dirty, PosDirty;
 	GArray<GDataGrid::GDataGridFlags> Flags;
+	GListItem *NewRecord;
+	GDataGrid::ItemFactory Factory;
+	void *UserData;
 
 	GDataGridPriv(GDataGrid *t);
 	void Save();
 	void UpdatePos();
 	void Create(int NewCol = -1);
 	void MoveCell(int dx);
+	void Invalidate();
+
+	GListItem *NewItem()
+	{
+		if (Factory)
+			return Factory(UserData);
+		
+		return new GListItem;
+	}
 };
 
 class GDataGridEdit : public GEdit
@@ -34,57 +51,70 @@ public:
 
 	bool OnKey(GKey &k)
 	{
-		if (!GEdit::OnKey(k) &&
-			!k.IsChar &&
-			k.Down())
+		if (!GEdit::OnKey(k) && k.Down())
 		{
-			switch (k.vkey)
+			if (k.IsChar)
 			{
-				case VK_LEFT:
+			}
+			else
+			{
+				switch (k.vkey)
 				{
-					int Start, Len;
-					if (GetSelection(Start, Len))
+					case VK_RETURN:
 					{
+						GListItem *s = d->This->GetSelected();
+						int Idx = s ? d->This->IndexOf(s) : -1;
+						d->Save();
+						if (Idx >= 0)
+						{
+							s->Select(false);
+							if (s = d->This->ItemAt(Idx + 1))
+								s->Select(true);
+
+						}
 						break;
 					}
+					case VK_LEFT:
+					{
+						int Start, Len;
+						if (GetSelection(Start, Len))
+						{
+							break;
+						}
 
-					if (GetCaret() ==  0)
-					{
-						d->MoveCell(-1);
-					}
-					break;
-				}
-				case VK_RIGHT:
-				{
-					int Start, Len;
-					if (GetSelection(Start, Len))
-					{
+						if (GetCaret() ==  0)
+						{
+							d->MoveCell(-1);
+						}
 						break;
 					}
-
-					char16 *Txt = NameW();
-					Len = Txt ? StrlenW(Txt) : 0;
-					int Cursor = GetCaret();
-					if (Cursor >= Len)
+					case VK_RIGHT:
 					{
-						d->MoveCell(1);
-					}
-					break;
-				}
-				case VK_PAGEUP:
-				case VK_PAGEDOWN:
-				case VK_UP:
-				case VK_DOWN:
-				{
-					bool b = d->This->OnKey(k);
+						int Start, Len;
+						if (GetSelection(Start, Len))
+						{
+							break;
+						}
 
-					if (d->e)
-					{
-						GRect rc = d->e->GetPos();
-						rc.Size(-CELL_EDGE, -CELL_EDGE);
-						d->This->Invalidate(&rc);
+						char16 *Txt = NameW();
+						Len = Txt ? StrlenW(Txt) : 0;
+						int Cursor = GetCaret();
+						if (Cursor >= Len)
+						{
+							d->MoveCell(1);
+						}
+						break;
 					}
-					break;
+					case VK_PAGEUP:
+					case VK_PAGEDOWN:
+					case VK_UP:
+					case VK_DOWN:
+					{
+						bool b = d->This->OnKey(k);
+						d->Invalidate();
+						return b;
+						break;
+					}
 				}
 			}
 		}
@@ -95,6 +125,10 @@ public:
 
 GDataGridPriv::GDataGridPriv(GDataGrid *t)
 {
+	Factory = 0;
+	UserData = 0;
+
+	NewRecord = 0;
 	Dirty = false;
 	PosDirty = false;
 	Cur = 0;
@@ -105,10 +139,18 @@ GDataGridPriv::GDataGridPriv(GDataGrid *t)
 
 void GDataGridPriv::Save()
 {
-	if (Dirty && Cur)
+	if (Dirty && Cur && e)
 	{
 		char *OldTxt = e->Name();
-		Cur->SetText(OldTxt, Col);			
+		if (!OldTxt && Cur == NewRecord)
+			return;
+
+		Cur->SetText(OldTxt, Col);
+
+		if (Cur == NewRecord)
+		{
+			This->Insert(NewRecord = NewItem());
+		}
 	}
 }
 
@@ -126,6 +168,16 @@ void GDataGridPriv::UpdatePos()
 			e->Focus(true);
 			PosDirty = false;
 		}
+	}
+}
+
+void GDataGridPriv::Invalidate()
+{
+	if (e)
+	{
+		GRect p = e->GetPos();
+		p.Size(-CELL_EDGE, -CELL_EDGE);
+		This->Invalidate();
 	}
 }
 
@@ -147,26 +199,26 @@ void GDataGridPriv::Create(int NewCol)
 		return;
 
 	GListItem *i = This->GetSelected();
+	if (!i)
+		return;
+
 	if (!Cur || i != Cur || (NewCol >= 0 && NewCol != Col))
 	{
 		Save();
 		Cur = i;
 		if (NewCol >= 0)
+			Col = NewCol;
+		if (Flags[Col] & GDataGrid::GDG_READONLY)
 		{
-			if (Flags[NewCol] & GDataGrid::GDG_READONLY)
+			// Pick a valid column
+			for (int i=0; i<This->GetColumns(); i++)
 			{
-				// Pick a valid column
-				for (int i=0; i<This->GetColumns(); i++)
+				if (Col != i && !(Flags[i] & GDataGrid::GDG_READONLY))
 				{
-					if (NewCol != i && !(Flags[i] & GDataGrid::GDG_READONLY))
-					{
-						NewCol = i;
-						break;
-					}
+					Col = i;
+					break;
 				}
 			}
-
-			Col = NewCol;
 		}
 
 		char *CurText = i->GetText(Col);
@@ -191,12 +243,10 @@ void GDataGridPriv::Create(int NewCol)
 			}
 			else
 			{
-				GRect Old = e->GetPos();
-				Old.Size(-CELL_EDGE, -CELL_EDGE);
-				This->Invalidate(&Old);
-
+				Invalidate();
 				e->SetPos(rc);
 				e->Name(CurText);
+				Invalidate();
 			}
 
 			e->Select(0);
@@ -205,13 +255,17 @@ void GDataGridPriv::Create(int NewCol)
 	}
 }
 
-GDataGrid::GDataGrid(int CtrlId) : GList(CtrlId, 0, 0, 1000, 1000)
+////////////////////////////////////////////////////////////////////////////////////////////////////
+GDataGrid::GDataGrid(int CtrlId, ItemFactory Func, void *userdata) :
+	GList(CtrlId, 0, 0, 1000, 1000)
 {
+	_ObjName = Res_Custom;
+
 	DrawGridLines(true);
-	MultiSelect(false);
 	SetPourLargest(true);
 
 	d = new GDataGridPriv(this);
+	SetFactory(Func, userdata);
 }
 
 GDataGrid::~GDataGrid()
@@ -221,15 +275,45 @@ GDataGrid::~GDataGrid()
 
 void GDataGrid::OnItemSelect(GArray<GListItem*> &Items)
 {
-	d->Create();
+	if (Items.Length() == 1)
+	{
+		d->Create();
+	}
+	else if (d->e)
+	{
+		d->Cur = 0;
+		PostEvent(M_CLOSE_EDIT);
+	}
+
+	GList::OnItemSelect(Items);
 }
 
 void GDataGrid::OnItemClick(GListItem *Item, GMouse &m)
 {
-	int ClickCol = ColumnAtX(m.x);
-	if (ClickCol != d->Col)
+	if (m.IsContextMenu())
 	{
-		d->Create(ClickCol);
+		GSubMenu s;
+		s.AppendItem("Delete", IDC_DELETE);
+		m.ToScreen();
+		switch (s.Float(this, m.x, m.y, m.Left()))
+		{
+			case IDC_DELETE:
+			{
+				List<GListItem> Sel;
+				GetSelection(Sel);
+				Sel.Delete(d->NewRecord);
+				Sel.DeleteObjects();
+				break;
+			}
+		}
+	}
+	else
+	{
+		int ClickCol = ColumnAtX(m.x);
+		if (ClickCol != d->Col)
+		{
+			d->Create(ClickCol);
+		}
 	}
 }
 
@@ -242,6 +326,11 @@ int GDataGrid::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{
+		case M_CLOSE_EDIT:
+		{
+			DeleteObj(d->e);
+			break;
+		}
 	}
 
 	return GList::OnEvent(Msg);
@@ -290,3 +379,65 @@ void GDataGrid::OnPaint(GSurface *pDC)
 		pDC->Box(&p);
 	}
 }
+
+bool GDataGrid::OnLayout(GViewLayoutInfo &Inf)
+{
+	Inf.Width.Min = 16;
+	for (int i=0; i<GetColumns(); i++)
+	{
+		Inf.Width.Min += ColumnAt(i)->Width();
+	}
+	Inf.Width.Max = Inf.Width.Min + 20;
+	
+	Inf.Height.Min = 50;
+	Inf.Height.Max = 2000;
+	
+	return true;
+}
+
+bool GDataGrid::CanAddRecord()
+{
+	return d->NewRecord;
+}
+
+void GDataGrid::CanAddRecord(bool b)
+{
+	if (b)
+	{
+		if (!d->NewRecord)
+			Insert(d->NewRecord = d->NewItem());
+	}
+	else
+	{
+		DeleteObj(d->NewRecord);
+	}
+}
+
+GListItem *GDataGrid::NewItem()
+{
+	return d->NewItem();
+}
+
+void GDataGrid::SetFactory(ItemFactory Func, void *userdata)
+{
+	d->Factory = Func;
+	d->UserData = userdata;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+class GDataGridFactory : public GViewFactory
+{
+	GView *NewView(char *Class, GRect *Pos, char *Text)
+	{
+		if (Class AND
+			stricmp(Class, "GDataGrid") == 0)
+		{
+			return new GDataGrid(0);
+		}
+
+		return 0;
+	}
+
+};
+
+static GDataGridFactory _Factory;

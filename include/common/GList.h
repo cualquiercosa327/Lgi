@@ -413,7 +413,11 @@ public:
 		for (GListItem *i=*It; i; i=*++It)
 		{
 			if (i->Select())
-				n.Insert(dynamic_cast<T*>(i));
+			{
+				T *ptr = dynamic_cast<T*>(i);
+				if (ptr)
+					n.Insert(ptr);
+			}
 		}
 		return n.Length() > 0;
 	}
@@ -425,7 +429,9 @@ public:
 		List<GListItem>::I It = Items.Start();
 		for (GListItem *i=*It; i; i=*++It)
 		{
-			n.Insert(dynamic_cast<T*>(i));
+			T *ptr = dynamic_cast<T*>(i);
+			if (ptr)
+				n.Insert(ptr);
 		}
 		return n.Length() > 0;
 	}
