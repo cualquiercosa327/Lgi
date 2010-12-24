@@ -50,6 +50,8 @@
 /// Escape pressed
 /// \sa GList, GView::OnNotify
 #define GLIST_NOTIFY_ESC_KEY		15
+/// Items dropped on the control
+#define GLIST_NOTIFY_ITEMS_DROPPED	16
 
 // Messages
 #define WM_END_EDIT_LABEL			(WM_USER+0x556)
@@ -676,7 +678,9 @@ public:
 	/// Deletes the item at index 'Index'
 	bool Delete(int Index);
 	/// Deletes the item 'p'
-	bool Delete(GListItem *p);
+	virtual bool Delete(GListItem *p);
+	/// Remove the item 'Obj' but don't delete it
+	virtual bool Remove(GListItem *Obj);
 	/// Inserts the item 'p' at index 'Index'.
 	bool Insert
 	(
@@ -689,7 +693,7 @@ public:
 		bool Update = true
 	);
 	/// Insert a list of item
-	bool Insert
+	virtual bool Insert
 	(
 		/// The items to insert
 		List<GListItem> &l,
@@ -699,8 +703,6 @@ public:
 		/// then you should pass false here and then update just once at the end of the insertions.
 		bool Update = true
 	);
-	/// Remove the item 'Obj' but don't delete it
-	bool Remove(GListItem *Obj);
 	/// Return true if the item 'Obj' is in the list
 	bool HasItem(GListItem *Obj);
 	/// Return the index of the item 'Obj' or -1 if not present
@@ -717,9 +719,9 @@ public:
 	);
 
 	/// Removes all items from list and delete the objects.
-	void Empty();
+	virtual void Empty();
 	/// Removes all references to externally owned items. Doesn't delete objects.
-	void RemoveAll();
+	virtual void RemoveAll();
 	/// Resizes all the columns to their content, allowing a little extra space for visual effect
 	void ResizeColumnsToContent(int Border = DEFAULT_COLUMN_SPACING);
 };

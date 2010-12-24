@@ -71,6 +71,7 @@ public:
 	~GDragDropSource();
 
 	/// Start a drag operation
+	/// \returns The operation that took effect: #DROPEFFECT_NONE, #DROPEFFECT_COPY etc. 
 	int Drag(GView *SourceWnd, int Effect);
 
 	/// Called when window is registered

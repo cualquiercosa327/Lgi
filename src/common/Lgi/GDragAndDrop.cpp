@@ -145,6 +145,8 @@ HRESULT GDataObject::GetData(FORMATETC *pFormatEtc, STGMEDIUM *PMedium)
 		int Size = 0;
 		switch (Data.Type)
 		{
+			case GV_NULL:
+				break;
 			case GV_BINARY:
 			{
 				Ptr = (uchar*)Data.Value.Binary.Data;
@@ -155,6 +157,12 @@ HRESULT GDataObject::GetData(FORMATETC *pFormatEtc, STGMEDIUM *PMedium)
 			{
 				Ptr = (uchar*)Data.Value.String;
 				Size = Ptr ? strlen((char*)Ptr) + 1 : 0;
+				break;
+			}
+			default:
+			{
+				// Unsupported format...
+				LgiAssert(0);
 				break;
 			}
 		}

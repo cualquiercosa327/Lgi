@@ -2862,8 +2862,12 @@ bool GList::GetUpdateRegion(GListItem *i, GRegion &r)
 
 bool GList::Insert(GListItem *i, int Index, bool Update)
 {
+	#if 1
+	List<GListItem> l;
+	l.Insert(i);
+	return Insert(l, Index, Update);
+	#else
 	bool Status = false;
-
 	if (i && Lock(_FL))
 	{
 		// Insert
@@ -2902,8 +2906,8 @@ bool GList::Insert(GListItem *i, int Index, bool Update)
 
 		Unlock();
 	}
-
 	return Status;
+	#endif
 }
 
 bool GList::Insert(List<GListItem> &l, int Index, bool Update)
