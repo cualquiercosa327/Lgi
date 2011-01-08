@@ -52,6 +52,10 @@
 #define GLIST_NOTIFY_ESC_KEY		15
 /// Items dropped on the control
 #define GLIST_NOTIFY_ITEMS_DROPPED	16
+/// Sent when the control requests a context menu 
+/// outside of the existing items, i.e. in the blank
+/// space below the items.
+#define GLIST_NOTIFY_CONTEXT_MENU	17
 
 // Messages
 #define WM_END_EDIT_LABEL			(WM_USER+0x556)

@@ -1520,7 +1520,10 @@ void GList::OnItemClick(GListItem *Item, GMouse &m)
 {
 	if (Item)
 	{
-		Item->OnMouseClick(m);
+		GMouse ms = m;
+		ms.x -= Item->Pos.x1;
+		ms.y -= Item->Pos.y1;
+		Item->OnMouseClick(ms);
 	}
 }
 
@@ -2373,7 +2376,12 @@ void GList::OnMouseClick(GMouse &m)
 					OnItemClick(Item, m);
 				}
 
-				SendNotify(m.Double() ? GLIST_NOTIFY_DBL_CLICK : GLIST_NOTIFY_CLICK);
+				if (m.IsContextMenu())
+					SendNotify(GLIST_NOTIFY_CONTEXT_MENU);
+				else if (m.Double())
+					SendNotify(GLIST_NOTIFY_DBL_CLICK);
+				else
+					SendNotify(GLIST_NOTIFY_CLICK);
 			}
 		}
 		else // Up Click
@@ -2719,13 +2727,19 @@ void GList::OnMouseMove(GMouse &m)
 			}
 			case CLICK_ITEM:
 			{
-				if (IsCapturing() &&
-					abs(d->DragStart.x-m.x) > DRAG_THRESHOLD ||
-					abs(d->DragStart.y-m.y) > DRAG_THRESHOLD)
+				GListItem *Cur = Items.ItemAt(d->DragData);
+				if (Cur)
 				{
-					OnItemBeginDrag(Items.ItemAt(d->DragData), m);
-					d->DragMode = DRAG_NONE;
-					Capture(false);
+					Cur->OnMouseMove(m);
+					
+					if (IsCapturing() &&
+						abs(d->DragStart.x-m.x) > DRAG_THRESHOLD ||
+						abs(d->DragStart.y-m.y) > DRAG_THRESHOLD)
+					{
+						OnItemBeginDrag(Cur, m);
+						d->DragMode = DRAG_NONE;
+						Capture(false);
+					}
 				}
 				break;
 			}
@@ -2739,6 +2753,18 @@ void GList::OnMouseMove(GMouse &m)
 					SetCursor(LCUR_SizeHor);
 				}
 				#endif
+				
+				List<GListItem> s;
+				if (GetSelection(s))
+				{
+					for (GListItem *c=s.First(); c; c=s.Next())
+					{
+						GMouse ms = m;
+						ms.x -= c->Pos.x1;
+						ms.y -= c->Pos.y1;
+						c->OnMouseMove(ms);
+					}
+				}
 				break;
 			}
 		}
