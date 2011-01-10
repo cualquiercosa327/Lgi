@@ -2444,8 +2444,10 @@ bool GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &In)
 			void *c = Lib.GetAddress(Method);
 			if (c)
 			{
-				// uint32 a = ArgVal.Length();
-				// uint32 b = (uint32) &ArgVal[Args.Length()-1];
+				#if defined(_MSC_VER)
+				uint32 a = ArgVal.Length();
+				uint32 b = (uint32) &ArgVal[Args.Length()-1];
+				#endif
 				uint32 r = 0;
 
 				#if defined(_MSC_VER)
