@@ -907,6 +907,7 @@ bool GView::GetMouse(GMouse &m, bool ScreenCoords)
 	}
 	m.x = p.x;
 	m.y = p.y;
+	m.Target = this;
 
 	// buttons
 	m.Flags =	((GetAsyncKeyState(VK_LBUTTON)&0x8000) ? LGI_EF_LEFT : 0) |
