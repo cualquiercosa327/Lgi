@@ -102,6 +102,12 @@
     <Filter Include="Source Files\Network">
       <UniqueIdentifier>{48cbbcd0-1fdb-4c25-860f-ea6060dad3ad}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Network\Hash">
+      <UniqueIdentifier>{0cec38de-d79c-40bd-b2fa-8d62dd7e59c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Skin">
+      <UniqueIdentifier>{e2d132ec-20e3-42f1-b57c-d341053b1131}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\win32\Lgi\GApp.cpp">
@@ -383,14 +389,23 @@
     <ClCompile Include="src\common\INet\INet.cpp">
       <Filter>Source Files\Network</Filter>
     </ClCompile>
-    <ClCompile Include="src\common\General\md5.c">
-      <Filter>Source Files\Network</Filter>
-    </ClCompile>
     <ClCompile Include="src\win32\INet\MibAccess.cpp">
       <Filter>Source Files\Network</Filter>
     </ClCompile>
     <ClCompile Include="src\common\Lgi\GOptionsFile.cpp">
       <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Hash\md5\md5.c">
+      <Filter>Source Files\Network\Hash</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Hash\sha1\sha1.c">
+      <Filter>Source Files\Network\Hash</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Skins\Gel\Gel.cpp">
+      <Filter>Source Files\Skin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Gdc2\Path\GPath.cpp">
+      <Filter>Source Files\Skin</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -543,6 +558,12 @@
     </ClInclude>
     <ClInclude Include="src\win32\INet\MibAccess.h">
       <Filter>Source Files\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\Hash\md5\md5.h">
+      <Filter>Source Files\Network\Hash</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\Hash\sha1\sha1.h">
+      <Filter>Source Files\Network\Hash</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

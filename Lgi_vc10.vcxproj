@@ -139,11 +139,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\common\General\md5.c" />
+    <ClCompile Include="src\common\Gdc2\Path\GPath.cpp" />
+    <ClCompile Include="src\common\Hash\md5\md5.c" />
+    <ClCompile Include="src\common\Hash\sha1\sha1.c" />
     <ClCompile Include="src\common\INet\INet.cpp" />
     <ClCompile Include="src\common\INet\INetTools.cpp" />
     <ClCompile Include="src\common\Lgi\GCss.cpp" />
     <ClCompile Include="src\common\Lgi\GOptionsFile.cpp" />
+    <ClCompile Include="src\common\Skins\Gel\Gel.cpp" />
     <ClCompile Include="src\common\Text\GUtf8.cpp" />
     <ClCompile Include="src\win32\INet\MibAccess.cpp" />
     <ClCompile Include="src\win32\Lgi\GApp.cpp" />
@@ -286,6 +289,8 @@
     <ClInclude Include="include\common\LgiDefs.h" />
     <ClInclude Include="include\win32\LgiOsClasses.h" />
     <ClInclude Include="include\win32\LgiOsDefs.h" />
+    <ClInclude Include="src\common\Hash\md5\md5.h" />
+    <ClInclude Include="src\common\Hash\sha1\sha1.h" />
     <ClInclude Include="src\win32\INet\MibAccess.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
