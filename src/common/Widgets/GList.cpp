@@ -2251,6 +2251,7 @@ void GList::OnMouseClick(GMouse &m)
 			else if (ItemsPos.Overlap(m.x, m.y))
 			{
 				// Clicked in the items area
+				bool HandlerHung = false;
 				int ItemIndex = -1;
 				GListItem *Item = HitItem(m.x, m.y, &ItemIndex);
 				GViewI *Notify = Item ? (GetNotify()) ? GetNotify() : GetParent() : 0;
@@ -2289,7 +2290,7 @@ void GList::OnMouseClick(GMouse &m)
 						d->DeleteFlag = 0;
 
 						// Check if the handler hung for a long time...
-						bool HandlerHung = LgiCurrentTime() - StartHandler > 200;
+						HandlerHung = LgiCurrentTime() - StartHandler > 200;
 						if (!HandlerHung && !m.Double())
 						{
 							// Start d'n'd watcher pulse...
@@ -2376,12 +2377,15 @@ void GList::OnMouseClick(GMouse &m)
 					OnItemClick(Item, m);
 				}
 
-				if (m.IsContextMenu())
-					SendNotify(GLIST_NOTIFY_CONTEXT_MENU);
-				else if (m.Double())
-					SendNotify(GLIST_NOTIFY_DBL_CLICK);
-				else
-					SendNotify(GLIST_NOTIFY_CLICK);
+				if (!HandlerHung)
+				{
+					if (m.IsContextMenu())
+						SendNotify(GLIST_NOTIFY_CONTEXT_MENU);
+					else if (m.Double())
+						SendNotify(GLIST_NOTIFY_DBL_CLICK);
+					else
+						SendNotify(GLIST_NOTIFY_CLICK);
+				}
 			}
 		}
 		else // Up Click
