@@ -234,6 +234,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\common\Lgi\GOptionsFile.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\win32\Lgi\GPrinter.cpp"
 					>
 				</File>
@@ -473,6 +477,14 @@
 						>
 					</File>
 				</Filter>
+				<Filter
+					Name="Skin"
+					>
+					<File
+						RelativePath=".\src\common\Skins\Gel\Gel.cpp"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="Widgets"
@@ -673,6 +685,26 @@
 						>
 					</File>
 				</Filter>
+				<Filter
+					Name="Hash"
+					>
+					<File
+						RelativePath=".\src\common\Hash\md5\md5.c"
+						>
+					</File>
+					<File
+						RelativePath=".\src\common\Hash\md5\md5.h"
+						>
+					</File>
+					<File
+						RelativePath=".\src\common\Hash\sha1\sha1.c"
+						>
+					</File>
+					<File
+						RelativePath=".\src\common\Hash\sha1\sha1.h"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="Text"
@@ -718,6 +750,10 @@
 					</File>
 					<File
 						RelativePath=".\src\common\Gdc2\GFuncs.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\src\common\Gdc2\Path\GPath.cpp"
 						>
 					</File>
 				</Filter>
@@ -883,10 +919,6 @@
 				</File>
 				<File
 					RelativePath=".\include\common\INetTools.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\common\General\md5.c"
 					>
 				</File>
 				<File
