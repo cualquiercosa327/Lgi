@@ -149,6 +149,7 @@ typedef union
 	unsigned char *b;
 	#endif
 	void **vp;
+	int i;
 
 }	GPointer;
 
