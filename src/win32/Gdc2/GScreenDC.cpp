@@ -313,7 +313,7 @@ GRect GScreenDC::ClipRgn(GRect *Rgn)
 		HRGN hRgn = CreateRectRgn(Clip.x1, Clip.y1, Clip.x2+1, Clip.y2+1);
 		if (hRgn)
 		{
-			// SelectClipRgn(hDC, hRgn);
+			SelectClipRgn(hDC, hRgn);
 			DeleteObject(hRgn);
 		}
 	}
