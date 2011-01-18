@@ -17,8 +17,8 @@ class GDocAppPrivate
 {
 public:
 	// Data
-	char			*OptionsFile;
-	char			*OptionsParam;
+	GAutoString		OptionsFile;
+	GAutoString		OptionsParam;
 	char			*AppName;
 	char			*CurFile;
 	char			*Icon;
@@ -26,8 +26,7 @@ public:
 
 	GDocAppPrivate(char *param)
 	{
-		OptionsFile = 0;
-		OptionsParam = NewStr(param);
+		OptionsParam.Reset(NewStr(param));
 		AppName = 0;
 		CurFile = 0;
 		Icon = 0;
@@ -37,22 +36,21 @@ public:
 	~GDocAppPrivate()
 	{
 		// Release memory
-		DeleteArray(OptionsFile);
 		DeleteArray(AppName);
 		DeleteArray(Icon);
 		DeleteArray(CurFile);
 	}
 	
-	char *GetOptionsFile(char *Ext)
+	GAutoString GetOptionsFile(char *Ext)
 	{
 		// Get options file
-		char *Status = 0;
+		GAutoString Status;
 		char Buf[256];
 		if (LgiApp->GetOption("o", Buf, sizeof(Buf)))
 		{
 			if (FileExists(Buf))
 			{
-				Status = NewStr(Buf);
+				Status.Reset(NewStr(Buf));
 			}
 		}
 
@@ -76,12 +74,12 @@ public:
 					sprintf(File+strlen(File), ".%s", Ext);
 				}
 
-				Status = LgiFindFile(File);
+				Status.Reset(LgiFindFile(File));
 				if (!Status)
 				{
 					// No options file yet... so create one in the
 					// app's directory
-					Status = NewStr(Buf);
+					Status.Reset(NewStr(Buf));
 				}
 			}
 		}
@@ -257,7 +255,7 @@ bool GDocApp<OptionsFmt>::_DoSerialize(bool Write)
 
 	if (!Options)
 	{
-		Options = new OptionsFmt(d->OptionsParam);
+		Options = new OptionsFmt(d->OptionsParam, d->OptionsFile);
 	}
 
 	if (Write)
@@ -314,7 +312,7 @@ bool GDocApp<OptionsFmt>::_DoSerialize(bool Write)
 	}
 
 	return Status;
-}
+ }
 
 template <typename OptionsFmt>
 bool GDocApp<OptionsFmt>::_SerializeFile(bool Write)
