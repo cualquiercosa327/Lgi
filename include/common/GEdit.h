@@ -5,19 +5,19 @@
 #ifndef _GEDIT_H_
 #define _GEDIT_H_
 
+#if !WIN32NATIVE
+#include "GTextView3.h"
+#endif
+
 /// An edit box allowing the user to enter text
 class LgiClass GEdit :
+	#if WIN32NATIVE
 	public GControl,
 	public ResObject
-{
-	/*
-	#if defined BEOS
-	class _OsEditFrame *Edit;
-	#elif defined LINUX
-	class _OsTextView *Edit;
+	#else
+	public GTextView3
 	#endif
-	*/
-
+{
 protected:
 	class GEditPrivate *d;
 	#if WIN32NATIVE
@@ -45,6 +45,7 @@ public:
 
 	char *GetClass() { return "GEdit"; }
 
+
 	/// Gets "Allow multiple lines"
 	bool MultiLine();
 	/// Sets "Allow multiple lines"
@@ -66,23 +67,17 @@ public:
 	/// Sets the Caret position in characters
 	void SetCaret(int Pos);
 
-	int OnEvent(GMessage *Msg);
 	bool OnKey(GKey &k);
+	
+	#if WIN32NATIVE
+	int OnEvent(GMessage *Msg);
+	void OnAttach();
 	char *Name();
 	bool Name(char *s);
 	char16 *NameW();
 	bool NameW(char16 *s);
-	
-	#if WIN32NATIVE
-	void OnAttach();
 	#else
-	void Enabled(bool e);
-	bool Enabled();
-	void Focus(bool f);
-	bool Focus();
-	bool SetPos(GRect &p, bool Repaint = false);
-	int OnNotify(GViewI *c, int f);
-	void OnCreate();
+	void OnEnter(GKey &k);
 	#endif
 };
 

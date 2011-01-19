@@ -95,6 +95,7 @@
 		34766828093F207D00623A44 /* GFile.h in Headers */ = {isa = PBXBuildFile; fileRef = 34766827093F207D00623A44 /* GFile.h */; };
 		34766832093F20EE00623A44 /* GThread.h in Headers */ = {isa = PBXBuildFile; fileRef = 34766831093F20EE00623A44 /* GThread.h */; };
 		347677640FE5BB2800E2E445 /* md5.c in Sources */ = {isa = PBXBuildFile; fileRef = 347677630FE5BB2800E2E445 /* md5.c */; };
+		3478B20A12E6F87200936EFA /* GEdit.h in Headers */ = {isa = PBXBuildFile; fileRef = 3478B20912E6F87200936EFA /* GEdit.h */; };
 		3489C3EA0DD1C4DB0095F0E1 /* GMru.h in Headers */ = {isa = PBXBuildFile; fileRef = 3489C3E90DD1C4DB0095F0E1 /* GMru.h */; };
 		3493304A0F60CE440092EAE8 /* GViewCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349330490F60CE440092EAE8 /* GViewCommon.cpp */; };
 		3493304C0F60CE690092EAE8 /* GViewPriv.h in Headers */ = {isa = PBXBuildFile; fileRef = 3493304B0F60CE690092EAE8 /* GViewPriv.h */; };
@@ -247,6 +248,7 @@
 		34766827093F207D00623A44 /* GFile.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GFile.h; path = include/common/GFile.h; sourceTree = "<group>"; };
 		34766831093F20EE00623A44 /* GThread.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GThread.h; path = include/common/GThread.h; sourceTree = "<group>"; };
 		347677630FE5BB2800E2E445 /* md5.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = md5.c; path = src/common/Hash/md5/md5.c; sourceTree = "<group>"; };
+		3478B20912E6F87200936EFA /* GEdit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GEdit.h; path = include/common/GEdit.h; sourceTree = "<group>"; };
 		3489C3E90DD1C4DB0095F0E1 /* GMru.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GMru.h; path = include/common/GMru.h; sourceTree = "<group>"; };
 		349330490F60CE440092EAE8 /* GViewCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GViewCommon.cpp; path = src/common/Lgi/GViewCommon.cpp; sourceTree = "<group>"; };
 		3493304B0F60CE690092EAE8 /* GViewPriv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GViewPriv.h; path = include/common/GViewPriv.h; sourceTree = "<group>"; };
@@ -680,6 +682,7 @@
 				34983C1208F5482D0054868C /* GDocView.cpp */,
 				34372ACF0C46E0290090CDC9 /* GDocView.h */,
 				344D1B1A08F4A36300228075 /* GEdit.cpp */,
+				3478B20912E6F87200936EFA /* GEdit.h */,
 				34D979D01150F0E100CE462B /* GLayout.cpp */,
 				344D1B1B08F4A36300228075 /* GList.cpp */,
 				34E51DAF0D2EFCCB0021AA08 /* GList.h */,
@@ -800,6 +803,7 @@
 				341BE43F123ED1E6009BF203 /* md5.h in Headers */,
 				341BE443123ED1F1009BF203 /* sha1.h in Headers */,
 				34D4D55B1250AF98000DA1FD /* GHashTable.h in Headers */,
+				3478B20A12E6F87200936EFA /* GEdit.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

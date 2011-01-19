@@ -16,6 +16,9 @@ public:
 	}
 };
 
+static _OsFontType SysFontType;
+
+/*
 class _OsTextView : public GTextView3
 {
 	GEdit *Edit;
@@ -119,12 +122,15 @@ public:
 		}
 	}
 };
+*/
 
 class GEditPrivate
 {
 public:
 	bool FocusOnCreate;
-	class _OsTextView *Edit;
+	bool Multiline;
+	bool Password;
+	// class _OsTextView *Edit;
 	
 	GEditPrivate()
 	{
@@ -133,19 +139,27 @@ public:
 };
 
 GEdit::GEdit(int id, int x, int y, int cx, int cy, char *name) :
+	#if WIN32NATIVE
 	ResObject(Res_EditBox)
+	#else
+	GTextView3(id, x, y, cx, cy, &SysFontType)
+	#endif
 {
+	#if !WIN32NATIVE
+	_ObjName = Res_EditBox;
+	SetUrlDetect(false);
+	SetWrapType(TEXTED_WRAP_NONE);
+	#endif
 	_OsFontType Type;
 	d = new GEditPrivate;
-	d->Edit = new _OsTextView(this, &Type);
 
-	GdcPt2 Size = SizeOfStr((name)?name:(char*)"A");
-	if (cx < 0) cx = Size.x + 6;
-	if (cy < 0) cy = Size.y + 4;
+	GDisplayString Ds(SysFont, (name)?name:(char*)"A");
+	if (cx < 0) cx = Ds.X() + 6;
+	if (cy < 0) cy = Ds.Y() + 4;
 
-	if (d->Edit)
-		d->Edit->SetMultiLine(false);
-	SetId(id);
+	d->Multiline = false;
+	d->Password = false;
+
 	Sunken(true);
 	if (name) Name(name);
 
@@ -155,138 +169,29 @@ GEdit::GEdit(int id, int x, int y, int cx, int cy, char *name) :
 
 GEdit::~GEdit()
 {
-	DeleteObj(d->Edit);
 	DeleteObj(d);
 }
 
 void GEdit::Select(int Start, int Len)
 {
-	if (d->Edit)
-	{
-		d->Edit->SetCursor(Start, false);
-		d->Edit->SetCursor(Start + (Len > 0 ? Len : 0x7fffffff) - 1, true);
-	}	
-}
-
-void GEdit::OnCreate()
-{
-	if (d->Edit)
-	{
-		d->Edit->SetParent(this);
-		d->Edit->SetPos(GetClient());
-		d->Edit->Attach(this);
-		d->Edit->SetNotify(this);
-		
-		if (d->FocusOnCreate)
-		{
-			d->FocusOnCreate = false;
-			d->Edit->Focus(true);
-		}
-		
-		#ifdef XWIN
-		// d->Edit->Handle()->wantKeys(Handle()->wantKeys());
-		#endif
-	}
-}
-
-int GEdit::OnNotify(GViewI *c, int f)
-{
-	if (c == d->Edit AND
-		f == GTVN_DOC_CHANGED)
-	{
-		SendNotify();
-	}
-
-	return 0;
-}
-
-bool GEdit::Enabled()
-{
-	return d->Edit->Enabled();
-}
-
-void GEdit::Enabled(bool e)
-{
-	d->Edit->Enabled(e);
-	d->Edit->SetReadOnly(!e);
-}
-
-void GEdit::Focus(bool f)
-{
-	if (d->Edit->IsAttached())
-		d->Edit->Focus(f);
-	else
-		d->FocusOnCreate = f;
-}
-
-bool GEdit::Focus()
-{
-	return d->Edit->Focus();
-}
-
-bool GEdit::SetPos(GRect &p, bool Repaint)
-{
-	GView::SetPos(p, Repaint);
-
-	if (d->Edit)
-	{
-		GRect c = GetClient();
-		d->Edit->SetPos(c, Repaint);
-	}
-	else return false;
-	
-	return true;
-}
-
-char *GEdit::Name()
-{
-	return d->Edit ? d->Edit->Name() : 0;
-}
-
-bool GEdit::Name(char *n)
-{
-	return d->Edit ? d->Edit->Name(n) : false;
-}
-
-char16 *GEdit::NameW()
-{
-	return d->Edit ? d->Edit->NameW() : 0;
-}
-
-bool GEdit::NameW(char16 *n)
-{
-	return d->Edit ? d->Edit->NameW(n) : false;
-}
-
-bool GEdit::MultiLine()
-{
-	return d->Edit->GetMultiLine();
-}
-
-void GEdit::MultiLine(bool m)
-{
-	if (d->Edit) d->Edit->SetMultiLine(m);
-}
-
-void GEdit::Password(bool m)
-{
-	if (d->Edit) d->Edit->SetPassword(m);
+	SetCursor(Start, false);
+	SetCursor(Start + (Len > 0 ? Len : 0x7fffffff) - 1, true);
 }
 
 int GEdit::GetCaret()
 {
-	return d->Edit ? d->Edit->GetCursor() : 0;
+	return GetCursor();
 }
 
 void GEdit::SetCaret(int i)
 {
-	if (d->Edit) d->Edit->SetCursor(i, false);
+	SetCursor(i, false);
 }
 
 void GEdit::Value(int64 i)
 {
 	char Str[32];
-	sprintf(Str, "%i", (int)i);
+	sprintf(Str, LGI_PrintfInt64, i);
 	Name(Str);
 }
 
@@ -296,26 +201,51 @@ int64 GEdit::Value()
 	return (n) ? atoi(n) : 0;
 }
 
+bool GEdit::MultiLine()
+{
+	return d->Multiline;
+}
+
+void GEdit::MultiLine(bool m)
+{
+	d->Multiline = m;
+}
+
+bool GEdit::Password()
+{
+	return d->Password;
+}
+
+void GEdit::Password(bool m)
+{
+	SetObscurePassword(d->Password = m);
+}
+
 bool GEdit::OnKey(GKey &k)
 {
-	return false;
-}
-
-int GEdit::OnEvent(GMessage *Msg)
-{
-	switch (MsgCode(Msg))
+	if (!d->Multiline &&
+		(k.vkey == VK_TAB || k.c16 == '\t' || k.c16 == '\r'))
 	{
-		case M_CUT:
-		case M_COPY:
-		case M_PASTE:
+		if (k.c16 == '\r')
 		{
-			printf("d->edit=%p c/c/p msg\n", d->Edit);
-			if (d->Edit)
-				return d->Edit->OnEvent(Msg);
-			break;
+			GTextView3::OnKey(k);
 		}
+		
+		return false;
 	}
-	
-	return GView::OnEvent(Msg);
+
+	bool Status = GTextView3::OnKey(k);
+	return Status;
 }
 
+void GEdit::OnEnter(GKey &k)
+{
+	if (d->Multiline)
+	{
+		GTextView3::OnEnter(k);
+	}
+	else
+	{
+		SendNotify(VK_RETURN);
+	}
+}

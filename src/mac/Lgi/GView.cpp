@@ -1276,6 +1276,10 @@ CarbonControlProc
 					if (e) printf("%s:%i - error (%i)\n", __FILE__, __LINE__, e);
 					
 					bool f = Part != kControlFocusNoPart;
+
+					printf("Focus(%i) %s %p\n", f, v->GetClass(), v);
+					
+					/*
 					GView *p = 0;
 					if (dynamic_cast<GEdit*>(v))
 					{
@@ -1283,15 +1287,16 @@ CarbonControlProc
 						p = i ? i->GetGView() : v;
 					}
 					else p = v;
+					*/
 
 					#if 0
 					printf("Focus change id=%i %s (%s) %i -> %i\n",
 						v->GetId(), v->GetClass(), p->GetClass(), TestFlag(p->WndFlags, GWF_FOCUS), f);
 					#endif
 					
-					if (f) SetFlag(p->WndFlags, GWF_FOCUS);
-					else ClearFlag(p->WndFlags, GWF_FOCUS);
-					p->OnFocus(f);
+					if (f) SetFlag(v->WndFlags, GWF_FOCUS);
+					else ClearFlag(v->WndFlags, GWF_FOCUS);
+					v->OnFocus(f);
 					
 					Status = noErr;
 					break;

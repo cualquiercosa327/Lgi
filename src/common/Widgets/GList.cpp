@@ -397,25 +397,26 @@ public:
 
 	void OnFocus(bool f)
 	{
+		printf("GItemEditBox::OnFocus(%i)\n", f);
 		if (!f)
 		{
 			#if WIN32NATIVE
 			HWND pop = GetLastActivePopup(Handle());
 			HWND par = GetParent()->Handle();
-			// LgiTrace("pop=%p\n", pop);
 			if (pop &&
 				pop != Handle() &&
 				par != pop &&
 				IsWindow(pop) &&
 				IsWindowVisible(pop))
 			{
-				// LgiTrace("pop=%p and isvisible\n", pop);
 				return;
 			}
 			#endif
 
 			GetParent()->Visible(false);
 		}
+		
+		GEdit::OnFocus(f);
 	}
 
 	bool OnKey(GKey &k)
@@ -431,7 +432,7 @@ public:
 			return true;
 		}
 		
-		return false;
+		return GEdit::OnKey(k);
 	}
 };
 

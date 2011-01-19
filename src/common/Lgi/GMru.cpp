@@ -71,12 +71,15 @@ bool GMru::_OpenFile(char *File, bool ReadOnly)
 	return Status;
 }
 
-bool GMru::_SaveFile(char *File)
+bool GMru::_SaveFile(char *FileName)
 {
 	bool Status = false;
 
-	if (File)
+	if (FileName)
 	{
+		char File[MAX_PATH];
+		strsafecpy(File, FileName, sizeof(File));
+		
 		if (!FileExists(File) &&
 			GetSelectedType() &&
 			GetSelectedType()->Extension())
