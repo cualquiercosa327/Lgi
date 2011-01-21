@@ -25,7 +25,8 @@ class GVirtualMachinePriv
 {
 	struct StackFrame
 	{
-		int Frame;
+		int CurrentFrameSize;
+		int PrevFrameStart;
 		int ReturnIp;
 		GVariant *ReturnValue;
 	};
@@ -550,13 +551,14 @@ public:
 
 			// Set up stack for function call
 			StackFrame &Sf = Frames.New();
-			Sf.Frame = Frame;
+			Sf.CurrentFrameSize = Frame;
+			Sf.PrevFrameStart = 0;
 			Sf.ReturnIp = e - c.u8;
 			Sf.ReturnValue = Ret;
 
 			int LocalsBase = Locals.Length();
 			Locals.Length(LocalsBase + Frame);
-			Scope[1] = &Locals[0];
+			Scope[1] = &Locals[LocalsBase];
 
 			if (Args)
 			{
@@ -891,13 +893,14 @@ public:
 
 					// Set up stack for function call
 					StackFrame &Sf = Frames.New();
-					Sf.Frame = Frame;
+					Sf.CurrentFrameSize = Frame;
+					Sf.PrevFrameStart = Scope[1] - &Locals[0];
 					Sf.ReturnValue = Resolve();
 					uint16 Args = *c.u16++;
 
+					// Increase the local stack size
 					int LocalsBase = Locals.Length();
 					Locals.Length(LocalsBase + Frame);
-					Scope[1] = &Locals[0];
 
 					// Put the arguments of the function call into the local array
 					GArray<GVariant*> Arg;
@@ -909,6 +912,9 @@ public:
 
 						Locals[LocalsBase+i] = *Resolve();
 					}
+
+					// Now adjust the local stack to point to the locals for the function
+					Scope[1] = &Locals[LocalsBase];
 
 					#if LOG_ASM
 					f.Print(")\n");
@@ -940,10 +946,10 @@ public:
 
 						Frames.Length(Frames.Length()-1);
 						
-						if (Locals.Length() >= Sf.Frame)
+						if (Locals.Length() >= Sf.CurrentFrameSize)
 						{
-							Locals.Length(Locals.Length() - Sf.Frame);
-							Scope[1] = Locals.Length() ? &Locals[0] : 0;
+							Locals.Length(Locals.Length() - Sf.CurrentFrameSize);
+							Scope[1] = &Locals[Sf.PrevFrameStart];
 						}
 						else
 						{
