@@ -289,6 +289,9 @@ public:
 	/// Empties the toolbar of buttons
 	void Empty();
 
+	/// Gets the number of buttons
+	int Length() { return Children.Length(); }
+
 	// Events
 	int OnEvent(GMessage *Msg);
 	void OnPaint(GSurface *pDC);

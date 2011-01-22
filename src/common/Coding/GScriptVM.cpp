@@ -894,7 +894,7 @@ public:
 					// Set up stack for function call
 					StackFrame &Sf = Frames.New();
 					Sf.CurrentFrameSize = Frame;
-					Sf.PrevFrameStart = Scope[1] - &Locals[0];
+					Sf.PrevFrameStart = Locals.Length() ? Scope[1] - &Locals[0] : 0;
 					Sf.ReturnValue = Resolve();
 					uint16 Args = *c.u16++;
 
