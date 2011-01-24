@@ -1558,6 +1558,9 @@ char *LgiFindFile(char *Name)
 		printf("%s:%i - Exe='%s'\n", __FILE__, __LINE__, Exe);
 		#endif
 
+		char CurWorking[MAX_PATH];
+		getcwd(CurWorking, sizeof(CurWorking));
+
 		char *PrefPath[] =
 		{
 			".",
@@ -1576,6 +1579,7 @@ char *LgiFindFile(char *Name)
 			"../../Debug",
 			"../../Release",
 			#endif
+			CurWorking,
 			0
 		};
 
@@ -1583,29 +1587,23 @@ char *LgiFindFile(char *Name)
 		for (char **Pref = PrefPath; *Pref; Pref++)
 		{
 			char Path[256];
-			LgiMakePath(Path, sizeof(Path), Exe, *Pref);
-
-			#if DEBUG_FIND_FILE
-			printf("%s:%i - Path='%s'\n", __FILE__, __LINE__, Path);
-			#endif
-
-			LgiMakePath(Path, sizeof(Path), Path, Name);
-
-			#if DEBUG_FIND_FILE
-			printf("%s:%i - Path='%s'\n", __FILE__, __LINE__, Path);
-			#endif
-			
-			if (FileExists(Path))
+			if (LgiIsRelativePath(*Pref))
 			{
-				return NewStr(Path);
+				LgiMakePath(Path, sizeof(Path), Exe, *Pref);
+				LgiMakePath(Path, sizeof(Path), Path, Name);
 			}
+			else
+			{
+				LgiMakePath(Path, sizeof(Path), *Pref, Name);
+			}
+
+			if (FileExists(Path))
+				return NewStr(Path);
 
 			#ifdef WIN32
 			strcat(Path, ".lnk");
 			if (ResolveShortcut(Path, Path, sizeof(Path)))
-			{
 				return NewStr(Path);
-			}
 			#endif
 		}
 

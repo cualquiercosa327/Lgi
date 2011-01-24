@@ -1,30 +1,10 @@
 #include "Lgi.h"
 #include "GOptionsFile.h"
 
-GOptionsFile::GOptionsFile(char *BaseName, char *FileName) : GSemaphore("GOptionsFile")
+void GOptionsFile::_Init()
 {
-	File = 0;
 	Dirty = false;
-	if (FileName AND FileExists(FileName))
-	{
-		File = NewStr(FileName);
-	}
-	else
-	{
-		char FullPath[MAX_PATH];
-		if (LgiGetSystemPath(LSP_APP_ROOT, FullPath, sizeof(FullPath)))
-		{
-			LgiMakePath(FullPath, sizeof(FullPath), FullPath, BaseName ? BaseName : (char*)"Options");
-			if (!LgiGetExtension(FullPath))
-				strsafecat(FullPath, ".xml", sizeof(FullPath));
-			File = NewStr(FullPath);
-			Dirty = !FileExists(File);
-		}
-	}
-
 	Tag = NewStr("Options");
-	Error = 0;
-
 	if (Lock(_FL))
 	{
 		_Defaults();
@@ -32,9 +12,40 @@ GOptionsFile::GOptionsFile(char *BaseName, char *FileName) : GSemaphore("GOption
 	}
 }
 
+GOptionsFile::GOptionsFile(char *FileName) : GSemaphore("GOptionsFile")
+{
+	_Init();
+
+	if (FileExists(FileName))
+		File.Reset(NewStr(FileName));
+	else
+		SetMode(PortableMode);
+}
+
+GOptionsFile::GOptionsFile(PortableType Mode, char *BaseName) : GSemaphore("GOptionsFile")
+{
+	_Init();
+
+	SetMode(Mode, BaseName);
+}
+
 GOptionsFile::~GOptionsFile()
 {
-	DeleteArray(File);
+}
+
+bool GOptionsFile::SetMode(PortableType Mode, char *BaseName)
+{
+	char FullPath[MAX_PATH];
+	if (!LgiGetSystemPath(Mode == DesktopMode ? LSP_APP_ROOT : LSP_APP_INSTALL, FullPath, sizeof(FullPath)))
+		return false;
+
+	LgiMakePath(FullPath, sizeof(FullPath), FullPath, BaseName ? BaseName : (char*)"Options");
+	if (!LgiGetExtension(FullPath))
+		strsafecat(FullPath, ".xml", sizeof(FullPath));
+	File.Reset(NewStr(FullPath));
+	Dirty = !FileExists(File);
+
+	return true;
 }
 
 bool GOptionsFile::_OnAccess(bool Start)
@@ -68,8 +79,7 @@ bool GOptionsFile::IsValid()
 
 void GOptionsFile::SetFile(char *f)
 {
-	DeleteArray(File);
-	File = NewStr(f);
+	File.Reset(NewStr(f));
 	Dirty = true;
 }
 

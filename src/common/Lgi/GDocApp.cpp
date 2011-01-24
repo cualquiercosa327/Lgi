@@ -255,7 +255,10 @@ bool GDocApp<OptionsFmt>::_DoSerialize(bool Write)
 
 	if (!Options)
 	{
-		Options = new OptionsFmt(d->OptionsParam, d->OptionsFile);
+		if (FileExists(d->OptionsFile))
+			Options = new OptionsFmt(d->OptionsFile);
+		else
+			Options = new OptionsFmt(GOptionsFile::PortableMode, d->OptionsParam);
 	}
 
 	if (Write)

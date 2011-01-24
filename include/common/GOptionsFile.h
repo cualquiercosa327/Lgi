@@ -7,13 +7,23 @@
 
 class LgiClass GOptionsFile : public GXmlTag, public GSemaphore
 {
-	char *File;
-	char *Error;
+public:
+	enum PortableType
+	{
+		UnknownMode,
+		PortableMode,
+		DesktopMode,
+	};
+
+private:
+	GAutoString File;
+	GAutoString Error;
 	bool Dirty;
 	
 	char *LockFile;
 	int LockLine;
 
+	void _Init();
 	bool _OnAccess(bool Start);
 
 	// Don't allow non-threadsafe access to these
@@ -30,13 +40,16 @@ protected:
 	virtual void _Defaults() {}
 
 public:
-	GOptionsFile(char *BaseName = 0, char *FileName = 0);
+	GOptionsFile(char *FileName = 0);
+	GOptionsFile(PortableType Mode, char *BaseName = 0);
 	~GOptionsFile();
+
+	void SetFile(char *f);
+	bool SetMode(PortableType Mode, char *BaseName = 0);
 
 	bool IsValid();
 	char *GetFile() { return File; }
 	char *GetError() { return Error; }
-	void SetFile(char *f);
 	bool Serialize(bool Write);
 	bool DeleteValue(char *Name);
 
