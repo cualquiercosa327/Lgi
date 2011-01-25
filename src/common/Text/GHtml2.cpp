@@ -11,6 +11,7 @@
 #include "GVariant.h"
 #include "GFindReplaceDlg.h"
 #include "GUtf8.h"
+#include "Emoji.h"
 
 #define DEBUG_TABLE_LAYOUT			1
 #define LUIS_DEBUG					0
@@ -94,6 +95,8 @@ public:
 	GdcPt2 Content;
 	bool LinkDoubleClick;
 	GAutoString OnLoadAnchor;
+	bool DecodeEmoji;
+	GAutoString EmojiImg;
 	
 	// This UID is used to match data load events with their source document.
 	// Sometimes data will arrive after the document that asked for it has
@@ -106,9 +109,24 @@ public:
 		DocumentUid = 0;
 		LinkDoubleClick = true;
 		WordSelectMode = false;
-		// Static = Inst.Static;
 		CursorVis = false;
 		CursorPos.ZOff(-1, -1);
+
+		char EmojiPng[MAX_PATH];
+		#ifdef MAC
+		LgiGetExeFile(EmojiPng, sizeof(EmojiPng));
+		LgiMakePath(EmojiPng, sizeof(EmojiPng), EmojiPng, "Contents/Resources/Emoji.png");
+		#else
+		LgiGetSystemPath(LSP_APP_INSTALL, EmojiPng, sizeof(EmojiPng));
+		LgiMakePath(EmojiPng, sizeof(EmojiPng), EmojiPng, "resources/emoji.png");
+		#endif
+		if (FileExists(EmojiPng))
+		{
+			DecodeEmoji = true;
+			EmojiImg.Reset(NewStr(EmojiPng));
+		}
+		else
+			DecodeEmoji = false;
 	}
 
 	~GHtmlPrivate2()
@@ -3232,11 +3250,10 @@ char *GTag::ParseText(char *Doc)
 			
 			// Output text
 			Html->SetCharset(OriginalCp);
-			char16 *t = CleanText(s, (int)e-(int)s, false);
+			GAutoWString t(CleanText(s, (int)e-(int)s, false));
 			if (t)
 			{
 				Utf16.Push(t);
-				DeleteArray(t);
 			}			
 			s = e;
 		}
@@ -3799,9 +3816,101 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 			char *n = NextTag(s);
 			int Len = n ? SubtractPtr(n, s) : strlen(s);
 			GAutoWString Txt(CleanText(s, Len, true, InPreTag));
-			// printf("Clean '%.*s' = '%S'\n", Len, s, Txt.Get());
 			if (Txt && *Txt)
 			{
+				// This loop processes the text into lengths that need different treatment
+				enum TxtClass
+				{
+					TxtNone,
+					TxtEmoji,
+					TxtEol,
+					TxtNull,
+				};
+
+				char16 *Start = Txt;
+				GTag *Child;
+				for (char16 *c = Txt; true; c++)
+				{
+					TxtClass Cls = TxtNone;
+					if (Html->d->DecodeEmoji && *c >= EMOJI_START && *c <= EMOJI_END)
+						Cls = TxtEmoji;
+					else if (InPreTag && *c == '\n')
+						Cls = TxtEol;
+					else if (!*c)
+						Cls = TxtNull;
+
+					if (Cls)
+					{
+						if (c > Start)
+						{
+							// Emit the text before the point of interest...
+							GAutoWString Cur;
+							if (Start == Txt && !*c)
+							{
+								// Whole string
+								Cur = Txt;
+							}
+							else
+							{
+								// Sub-string
+								Cur.Reset(NewStrW(Start, c - Start));
+							}
+
+							if (Tags.Length() == 0 &&
+								(!Info || !Info->NoText()) &&
+								!Text())
+							{
+								Text(Cur.Release());
+							}
+							else if (Child = new GTag(Html, this))
+							{
+								Child->Text(Cur.Release());
+							}
+						}
+
+						// Now process the text of interest...
+						if (Cls == TxtEmoji)
+						{
+							// Emit the emoji image
+							GTag *img = new GTag(Html, this);
+							if (img)
+							{
+								img->Tag = NewStr("img");
+								if (img->Info = GetTagInfo(img->Tag))
+									img->TagId = img->Info->Id;
+
+								GRect rc;
+								EMOJI_CH2LOC(*c, rc);
+
+								img->Set("src", Html->d->EmojiImg);
+
+								char css[256];
+								sprintf(css, "x-rect: rect(%i,%i,%i,%i);", rc.y1, rc.x2, rc.y2, rc.x1);
+								img->Set("style", css);
+								img->SetStyle();
+							}
+							Start = c + 1;
+						}
+						else if (Cls == TxtEol)
+						{
+							// Emit the <br> tag
+							GTag *br = new GTag(Html, this);
+							if (br)
+							{
+								br->Tag = NewStr("br");
+								if (br->Info = GetTagInfo(br->Tag))
+									br->TagId = br->Info->Id;
+							}
+							Start = c + 1;
+						}
+					}
+					
+					// Check for the end of string...
+					if (!*c)
+						break;
+				}
+
+				/*
 				if (InPreTag)
 				{
 					for (char16 *s=Txt; s && *s; )
@@ -3847,6 +3956,7 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 						c->Text(Txt.Release());
 					}
 				}
+				*/
 			}
 
 			s = n;
@@ -7400,6 +7510,16 @@ bool GHtml2::GotoAnchor(char *Name)
 	}
 
 	return false;
+}
+
+bool GHtml2::GetEmoji()
+{
+	return d->DecodeEmoji;
+}
+
+void GHtml2::SetEmoji(bool i)
+{
+	d->DecodeEmoji = i;
 }
 
 ////////////////////////////////////////////////////////////////////////

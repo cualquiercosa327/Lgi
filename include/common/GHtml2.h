@@ -89,6 +89,9 @@ public:
 	// Options
 	bool GetLinkDoubleClick();
 	void SetLinkDoubleClick(bool b);
+	void SetLoadImages(bool i);
+	bool GetEmoji();
+	void SetEmoji(bool i);
 
 	// GDocView
 	
@@ -104,7 +107,6 @@ public:
 	char *GetSelection();
 	
 	// Prop
-	void SetLoadImages(bool i);
 
 	// Window
 
@@ -139,57 +141,6 @@ public:
 	bool OnFind(class GFindReplaceCommon *Params);
 	virtual void OnCursorChanged() {}
 };
-
-/*
-/// All the CSS styles the HTML control uses/supports
-enum CssStyle
-{
-	CSS_NULL = 0,
-
-	// Colour
-	CSS_COLOUR,
-	CSS_BACKGROUND,
-	CSS_BACKGROUND_COLOUR,
-	CSS_BACKGROUND_REPEAT,
-
-	// Font
-	CSS_FONT,
-	CSS_FONT_SIZE,
-	CSS_FONT_WEIGHT,
-	CSS_FONT_FAMILY,
-	CSS_FONT_STYLE,
-
-	// Dimensions
-	CSS_WIDTH,
-	CSS_HEIGHT,
-
-	// Margin
-	CSS_MARGIN,
-	CSS_MARGIN_LEFT,
-	CSS_MARGIN_RIGHT,
-	CSS_MARGIN_TOP,
-	CSS_MARGIN_BOTTOM,
-
-	// Padding
-	CSS_PADDING,
-	CSS_PADDING_LEFT,
-	CSS_PADDING_TOP,
-	CSS_PADDING_RIGHT,
-	CSS_PADDING_BOTTOM,
-
-	// Border
-	CSS_BORDER,
-	CSS_BORDER_LEFT,
-	CSS_BORDER_TOP,
-	CSS_BORDER_RIGHT,
-	CSS_BORDER_BOTTOM,
-
-	// Alignment
-	CSS_ALIGN,
-	CSS_VERTICAL_ALIGN,
-	CSS_TEXT_ALIGN,
-};
-*/
 
 }
 #endif
