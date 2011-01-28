@@ -74,6 +74,9 @@ public:
         #endif
     };
 
+	/// Returns true if all the components are in a valid range
+	bool IsValid();
+
 	/// Returns the day
 	int Day() { return _Day; }
 	/// Sets the day

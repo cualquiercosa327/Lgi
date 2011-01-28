@@ -100,6 +100,19 @@ GDateTime::~GDateTime()
 {
 }
 
+#define InRange(v, low, high) ((v) >= low && (v) <= high)
+bool GDateTime::IsValid()
+{
+	return	InRange(_Day, 1, 31) &&
+			InRange(_Year, 1600, 2100) &&
+			InRange(_Thousands, 0, 999) &&
+			InRange(_Month, 1, 12) &&
+			InRange(_Seconds, 0, 59) &&
+			InRange(_Minutes, 0, 59) &&
+			InRange(_Hours, 0, 23) &&
+			InRange(_Tz, -720, 720);
+}
+
 void GDateTime::SetTimeZone(int NewTz, bool ConvertTime)
 {
 	if (ConvertTime AND NewTz != _Tz)
@@ -756,7 +769,6 @@ bool GDateTime::SetDate(char *Str)
 					_Year = atoi(T[2]);
 					break;
 				}
-				default:
 				case GDTF_DAY_MONTH_YEAR:
 				{
 					_Day = atoi(T[0]);
@@ -769,6 +781,53 @@ bool GDateTime::SetDate(char *Str)
 					_Year = atoi(T[0]);
 					_Month = atoi(T[1]);
 					_Day = atoi(T[2]);
+					break;
+				}
+				default:
+				{
+					int n[3] =
+					{
+						atoi(T[0]),
+						atoi(T[1]),
+						atoi(T[2])
+					};
+
+					if (n[0] > 1000)
+					{
+						// yyyy/m/d
+						_Year = n[0];
+						_Month = n[1];
+						_Day = n[2];
+					}
+					else if (n[2] > 1000)
+					{
+						_Year = n[2];
+						if (n[0] > 12)
+						{
+							// d/m/yyyy
+							_Day = n[0];
+							_Month = n[1];
+						}
+						else if (n[1] > 12)
+						{
+							// m/d/yyyy
+							_Day = n[1];
+							_Month = n[0];
+						}
+						else if ((DefaultFormat & GDTF_DATE_MASK) == GDTF_MONTH_DAY_YEAR)
+						{
+							// Assume m/d/yyyy
+							_Day = n[1];
+							_Month = n[0];
+						}
+						else
+						{
+							// Who knows???
+							// Assume d/m/yyyy
+							_Day = n[0];
+							_Month = n[1];
+						}
+					}
 					break;
 				}
 			}
