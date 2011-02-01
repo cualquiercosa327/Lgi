@@ -1445,6 +1445,11 @@ GRect GSurface::ClipRgn(GRect *Rgn)
 
 GRect GSurface::ClipRgn()
 {
+	/*
+	GRect c = Clip;
+	c.Offset(OriginX, OriginY);
+	return c;
+	*/
 	return Clip;
 }
 

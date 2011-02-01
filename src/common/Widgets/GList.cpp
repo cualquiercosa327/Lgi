@@ -1520,20 +1520,13 @@ void GList::SetMode(GListMode m)
 void GList::OnItemClick(GListItem *Item, GMouse &m)
 {
 	if (Item)
-	{
-		GMouse ms = m;
-		ms.x -= Item->Pos.x1;
-		ms.y -= Item->Pos.y1;
-		Item->OnMouseClick(ms);
-	}
+		Item->OnMouseClick(m);
 }
 
 void GList::OnItemBeginDrag(GListItem *Item, GMouse &m)
 {
 	if (Item)
-	{
 		Item->OnBeginDrag(m);
-	}
 }
 
 void GList::OnItemSelect(GArray<GListItem*> &It)
