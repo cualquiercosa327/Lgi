@@ -21,6 +21,11 @@
 #define GDTF_24HOUR					0x020
 #define GDTF_TIME_MASK				0x0f0
 
+/// Format the date with a leading zero
+#define GDTF_DAY_LEADINGZ			0x100
+/// Format the month with a leading zero
+#define GDTF_MONTH_LEADINGZ			0x200
+
 /// A date/time class
 ///
 /// This class interacts with system times represented as 64bit ints. The various OS support different
@@ -53,9 +58,9 @@ class LgiClass GDateTime
 	int16 _Tz;			// in minutes (+10 == 600 etc)
 
 	/// Combination of (#GDTF_DAY_MONTH_YEAR or #GDTF_MONTH_DAY_YEAR or #GDTF_YEAR_MONTH_DAY) and (#GDTF_12HOUR or #GDTF_24HOUR)
-	uchar _Format;
+	uint16 _Format;
 	/// The default formatting of datetimes
-	static uchar DefaultFormat;
+	static uint16 DefaultFormat;
 	/// The default date separator character
 	static char DefaultSeparator;
 
@@ -130,18 +135,18 @@ public:
 	/// Gets the current formatting of the date, the format only effects
 	/// the representation of the date when converted to/from a string.
 	/// \returns a bit mask of (#GDTF_DAY_MONTH_YEAR or #GDTF_MONTH_DAY_YEAR or #GDTF_YEAR_MONTH_DAY) and (#GDTF_12HOUR or #GDTF_24HOUR)
-	uchar GetFormat() { return _Format; }
+	uint16 GetFormat() { return _Format; }
 	/// Sets the current formatting of the date, the format only effects
 	/// the representation of the date when converted to/from a string
 	void SetFormat
 	(
 		/// a bit mask of (#GDTF_DAY_MONTH_YEAR or #GDTF_MONTH_DAY_YEAR or #GDTF_YEAR_MONTH_DAY) and (#GDTF_12HOUR or #GDTF_24HOUR)
-		uchar f
+		uint16 f
 	) { _Format = f; }
 	/// The default format for the date when formatted as a string
-	static uchar GetDefaultFormat();
+	static uint16 GetDefaultFormat();
 	/// Sets the default format for the date when formatted as a string
-	static void SetDefaultFormat(uchar f) { DefaultFormat = f; }
+	static void SetDefaultFormat(uint16 f) { DefaultFormat = f; }
 
 	/// Returns the day of the week as an index, 0=sun, 1=mon, 2=teus etc
 	int DayOfWeek();

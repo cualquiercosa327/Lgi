@@ -24,16 +24,16 @@
 #include "GToken.h"
 
 //////////////////////////////////////////////////////////////////////////////
-uchar GDateTime::DefaultFormat = GDTF_DEFAULT;
+uint16 GDateTime::DefaultFormat = GDTF_DEFAULT;
 char GDateTime::DefaultSeparator = '/';
 
-uchar GDateTime::GetDefaultFormat()
+uint16 GDateTime::GetDefaultFormat()
 {
 	if (DefaultFormat == GDTF_DEFAULT)
 	{
 		#ifdef WIN32
 
-		char s[2] = {'1', 0};
+		char s[80] = "1";
 		GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_IDATE, s, sizeof(s));
 		switch (atoi(s))
 		{
@@ -61,6 +61,18 @@ uchar GDateTime::GetDefaultFormat()
 
 		if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_SDATE, s, sizeof(s)))
 			DefaultSeparator = s[0];
+
+		if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_SSHORTDATE, s, sizeof(s)))
+		{
+			GToken t(s, "/");
+			for (int i=0; i<t.Length(); i++)
+			{
+				if (!stricmp(t[i], "mm"))
+					DefaultFormat |= GDTF_MONTH_LEADINGZ;
+				else if (!stricmp(t[i], "dd"))
+					DefaultFormat |= GDTF_DAY_LEADINGZ;
+			}
+		}
 
 		#else
 
@@ -612,21 +624,28 @@ void GDateTime::SetNow()
 
 void GDateTime::GetDate(char *Str)
 {
-	if (Str)
+	if (!Str)
+		return;
+
+	int c = 0;
+	switch (_Format & GDTF_DATE_MASK)
 	{
-		switch (_Format & GDTF_DATE_MASK)
-		{
-			case GDTF_MONTH_DAY_YEAR:
-				sprintf(Str, "%i%c%i%c%i", _Month, DefaultSeparator, _Day, DefaultSeparator, _Year);
-				break;
-			default:
-			case GDTF_DAY_MONTH_YEAR:
-				sprintf(Str, "%i%c%i%c%i", _Day, DefaultSeparator, _Month, DefaultSeparator, _Year);
-				break;
-			case GDTF_YEAR_MONTH_DAY:
-				sprintf(Str, "%i%c%i%c%i", _Year, DefaultSeparator, _Month, DefaultSeparator, _Day);
-				break;
-		}
+		case GDTF_MONTH_DAY_YEAR:
+			c += sprintf(Str+c, _Format&GDTF_MONTH_LEADINGZ?"%02.2i"  :"%i"  , _Month);
+			c += sprintf(Str+c, _Format&GDTF_DAY_LEADINGZ  ?"%c%02.2i":"%c%i", DefaultSeparator, _Day);
+			c += sprintf(Str+c, "%c%i", DefaultSeparator, _Year);
+			break;
+		default:
+		case GDTF_DAY_MONTH_YEAR:
+			c += sprintf(Str+c, _Format&GDTF_DAY_LEADINGZ  ?"%02.2i"  :"%i"  , _Day);
+			c += sprintf(Str+c, _Format&GDTF_MONTH_LEADINGZ?"%c%02.2i":"%c%i", DefaultSeparator, _Month);
+			c += sprintf(Str+c, "%c%i", DefaultSeparator, _Year);
+			break;
+		case GDTF_YEAR_MONTH_DAY:
+			c += sprintf(Str+c, "%i", _Year);
+			c += sprintf(Str+c, _Format&GDTF_MONTH_LEADINGZ?"%c%02.2i":"%c%i", DefaultSeparator, _Month);
+			c += sprintf(Str+c, _Format&GDTF_DAY_LEADINGZ  ?"%c%02.2i":"%c%i", DefaultSeparator, _Day);
+			break;
 	}
 }
 

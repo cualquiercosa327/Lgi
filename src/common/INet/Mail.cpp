@@ -1909,13 +1909,17 @@ bool MailReceiveFolder::Open(GSocketI *S, char *RemoteHost, int Port, char *User
 		GDirectory *Dir = FileDev->GetDir();
 		if (Dir)
 		{
-			for (bool b = Dir->First(d->Path, "*.mail"); b; b = Dir->Next())
+			for (bool b = Dir->First(d->Path, LGI_ALL_FILES); b; b = Dir->Next())
 			{
 				if (!Dir->IsDir())
 				{
-					char p[300];
-					Dir->Path(p, sizeof(p));
-					d->Mail.Insert(new MailItem(p));
+					if (MatchStr("*.eml", Dir->GetName()) ||
+						MatchStr("*.mail", Dir->GetName()))
+					{
+						char p[300];
+						Dir->Path(p, sizeof(p));
+						d->Mail.Insert(new MailItem(p));
+					}
 				}
 			}
 			DeleteObj(Dir);
