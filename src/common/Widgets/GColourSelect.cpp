@@ -1,14 +1,14 @@
 #include <stdio.h>
 
 #include "Lgi.h"
-#include "GColour.h"
+#include "GColourSelect.h"
 
-class GColourPopup : public GPopup
+class GColourSelectPopup : public GPopup
 {
-	GColour *Colour;
+	GColourSelect *Colour;
 
 public:
-	GColourPopup(GColour *Parent) : GPopup(Parent)
+	GColourSelectPopup(GColourSelect *Parent) : GPopup(Parent)
 	{
 		SetParent(Colour = Parent);
 		GRect r(0, 0, 100, 16 + 4);
@@ -70,17 +70,17 @@ public:
 	void Value(int64 i) { Colour->Value(i); }
 };
 
-GColour::GColour(GArray<COLOUR> *col32) :
+GColourSelect::GColourSelect(GArray<COLOUR> *col32) :
 	ResObject(Res_Custom), GDropDown(-1, 0, 0, 10, 10, 0)
 {
 	c32 = Rgb32(0, 0, 255);
 
-	SetPopup(new GColourPopup(this));
+	SetPopup(new GColourSelectPopup(this));
 	if (col32)
 		SetColourList(col32);
 }
 
-void GColour::SetColourList(GArray<COLOUR> *col32)
+void GColourSelect::SetColourList(GArray<COLOUR> *col32)
 {
 	if (col32)
 	{
@@ -94,12 +94,12 @@ void GColour::SetColourList(GArray<COLOUR> *col32)
 	}
 }
 
-int64 GColour::Value()
+int64 GColourSelect::Value()
 {
 	return c32;
 }
 
-void GColour::Value(int64 i)
+void GColourSelect::Value(int64 i)
 {
 	if (c32 != (COLOUR)i)
 	{
@@ -114,7 +114,7 @@ void GColour::Value(int64 i)
 	}
 }
 
-void GColour::OnPaint(GSurface *pDC)
+void GColourSelect::OnPaint(GSurface *pDC)
 {
 	GDropDown::OnPaint(pDC);
 
@@ -145,9 +145,9 @@ class GColourFactory : public GViewFactory
 	GView *NewView(char *Class, GRect *Pos, char *Text)
 	{
 		if (Class AND
-			stricmp(Class, "GColour") == 0)
+			stricmp(Class, "GColourSelect") == 0)
 		{
-			return new GColour;
+			return new GColourSelect;
 		}
 
 		return 0;

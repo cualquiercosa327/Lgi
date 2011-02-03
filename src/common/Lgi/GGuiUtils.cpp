@@ -79,6 +79,7 @@ uint32 _LgiColours[LC_MAXIMUM];
 
 #define ReadColourConfig(def)	_lgi_read_colour_config("Colour."#def, _LgiColours+i++)
 
+/*
 int _hex_to_int(char h)
 {
 	if (h >= '0' AND h <= '9')
@@ -97,31 +98,26 @@ int _hex_to_int(char h)
 	LgiAssert(0);
 	return 0;
 }
+*/
 
-LgiFunc void _lgi_read_colour_config(char *Tag, uint32 *c)
+bool _lgi_read_colour_config(char *Tag, uint32 *c)
 {
-	GXmlTag *Col = LgiApp->GetConfig(Tag);
-	if (Col)
-	{
-		char *h;
-		if (h = Col->GetAttr("Hex"))
-		{
-			int n = 0;
-			if (*h == '#') h++;
-			
-			for (int i=0; i<5; i++)
-			{
-				n |= _hex_to_int(*h++);
-				n <<= 4;
-			}
-			n |= _hex_to_int(*h++);
+	if (!c || !Tag)
+		return false;
 
-			if (c)
-			{
-				*c = Rgb24( n>>16, n>>8, n );
-			}
-		}
-	}
+	GXmlTag *Col = LgiApp->GetConfig(Tag);
+	if (!Col)
+		return false;
+
+	char *h;
+	if (!(h = Col->GetAttr("Hex")))
+		return false;
+
+	if (*h == '#') h++;
+	int n = htoi(h);
+
+	*c = Rgb24( n>>16, n>>8, n );
+	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////

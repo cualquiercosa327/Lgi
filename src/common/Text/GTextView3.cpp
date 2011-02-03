@@ -68,7 +68,7 @@
 #define CONVERT_CODEPAGE_BASE		200
 
 #if !defined(WIN32) && !defined(toupper)
-#define toupper(c)					(((c)>='a'AND(c)<='z') ? (c)-'a'+'A' : (c))
+#define toupper(c)					(((c)>='a'&&(c)<='z') ? (c)-'a'+'A' : (c))
 #endif
 
 static char SelectWordDelim[] = " \t\n.,()[]<>=?/\\{}\"\';:+=-|!@#$%^&*";
@@ -108,7 +108,7 @@ public:
 	bool LayoutDirty;
 	int DirtyStart, DirtyLen;
 	bool SimpleDelete;
-	COLOUR UrlColour;
+	COLOUR UrlColour32;
 	bool CenterCursor;
 	int WordSelectMode;
 
@@ -126,8 +126,12 @@ public:
 		WordSelectMode = -1;
 		PourX = -1;
 		DirtyStart = DirtyLen = 0;
-		UrlColour = Rgb24(0, 0, 255);
-		_lgi_read_colour_config("colour.LC_URL", (uint32*)&UrlColour);
+		UrlColour32 = Rgb32(0, 0, 255);
+		
+		uint32 c24 = 0;
+		if (_lgi_read_colour_config("colour.LC_URL", &c24))
+			UrlColour32 = Rgb24To32(c24);
+
 		CenterCursor = false;
 		
 		LayoutDirty = true;
@@ -356,7 +360,8 @@ GTextView3::GTextView3(	int Id,
 		{
 			*Underline = *Font;
 			Underline->Underline(true);
-			Underline->Fore(d->UrlColour);
+			if (A32(d->UrlColour32))
+				Underline->Fore(Rgb32To24(d->UrlColour32));
 			Underline->Create();
 		}
 
@@ -535,7 +540,9 @@ void GTextView3::SetFont(GFont *f, bool OwnIt)
 				Underline = new GFont;
 			*Underline = *Font;
 			Underline->Underline(true);
-			Underline->Fore(d->UrlColour);
+			
+			if (A32(d->UrlColour32))
+				Underline->Fore(Rgb24To32(d->UrlColour32));
 		}
 
 		OnFontChange();
@@ -605,9 +612,9 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 	if (d->SimpleDelete OR Start)
 	{
 		d->SimpleDelete = false;
-		if (!SimplePour AND
-			WrapType == TEXTED_WRAP_NONE AND
-			Length > 0 AND
+		if (!SimplePour &&
+			WrapType == TEXTED_WRAP_NONE &&
+			Length > 0 &&
 			Length < 100)
 		{
 			SimplePour = true;
@@ -650,7 +657,7 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 				printf("PartialPour Start=%i Length=%i\n", Start, Length);
 				#endif
 				bool Done = false;
-				for (GTextLine *l=Line.Last(); l AND !Done; l=Line.Last())
+				for (GTextLine *l=Line.Last(); l && !Done; l=Line.Last())
 				{
 					Done = l == Current;
 					Line.Delete(l);
@@ -669,7 +676,7 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 		Line.DeleteObjects();
 	}
 
-	if (Text AND Font AND Mx > 0)
+	if (Text && Font && Mx > 0)
 	{
 		// break array, break out of loop when we hit these chars
 		#define ExitLoop(c)	(	(c) == 0 OR								\
@@ -679,8 +686,8 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 							)
 
 		// extra breaking oportunities
-		#define ExtraBreak(c) (	( (c) >= 0x3040 AND (c) <= 0x30FF ) OR	\
-								( (c) >= 0x3300 AND (c) <= 0x9FAF )		\
+		#define ExtraBreak(c) (	( (c) >= 0x3040 && (c) <= 0x30FF ) OR	\
+								( (c) >= 0x3300 && (c) <= 0x9FAF )		\
 							)
 
 		// tracking vars
@@ -707,7 +714,7 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 			{
 				// Seek line/doc end
 				char16 *End;
-				for (End = Text + i; *End AND *End != '\n'; *End++);
+				for (End = Text + i; *End && *End != '\n'; *End++);
 				e = SubtractPtr(End, Text);
 				GDisplayString ds(Font, Text + i, e - i);
 				Cx = ds.X();
@@ -767,7 +774,7 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 
 					// Seek back some characters if we are mid word
 					int OldE = e;
-					if (e < Size AND
+					if (e < Size &&
 						Text[e] != '\n')
 					{
 						while (e > i)
@@ -785,7 +792,7 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 					if (e == i)
 					{
 						// No line break at all, so seek forward instead
-						for (e=OldE; e < Size AND Text[e] != '\n'; e++)
+						for (e=OldE; e < Size && Text[e] != '\n'; e++)
 						{
 							if (ExitLoop(Text[e]) OR
 								ExtraBreak(Text[e]))
@@ -938,7 +945,7 @@ bool GTextView3::InsertStyle(GStyle *s)
 			}
 		}
 
-		if (s->Start >= Last AND s->Start < i->Start)
+		if (s->Start >= Last && s->Start < i->Start)
 		{
 			Style.Insert(s, n);
 			return true;
@@ -960,14 +967,14 @@ GTextView3::GStyle *GTextView3::GetNextStyle(int Where)
 		// styles in the selected region are ignored
 		int Min = min(SelStart, SelEnd);
 		int Max = max(SelStart, SelEnd);
-		if (SelStart >= 0 AND
-			s->Start >= Min AND
+		if (SelStart >= 0 &&
+			s->Start >= Min &&
 			s->Start+s->Len < Max)
 		{
 			// style is completely inside selection: ignore
 			s = Style.Next();
 		}
-		else if (Where >= 0 AND
+		else if (Where >= 0 &&
 			s->Start+s->Len < Where)
 		{
 			s = Style.Next();
@@ -995,7 +1002,7 @@ public:
 	{
 		if (View)
 		{
-			if ( (m AND m->Left() AND m->Double()) OR (!m) )
+			if ( (m && m->Left() && m->Double()) OR (!m) )
 			{
 				char *Utf8 = LgiNewUtf16To8(View->NameW() + Start, Len * sizeof(char16));
 				if (Utf8)
@@ -1060,7 +1067,7 @@ public:
 	{
 		#ifdef WIN32
 		GArray<int> Ver;
-		if (LgiGetOs(&Ver) == LGI_OS_WINNT AND
+		if (LgiGetOs(&Ver) == LGI_OS_WINNT &&
 			Ver[0] >= 5)
 		{
 			return MAKEINTRESOURCE(32649); // hand
@@ -1078,7 +1085,7 @@ GTextView3::GStyle *GTextView3::HitStyle(int i)
 {
 	for (GStyle *s=Style.First(); s; s=Style.Next())
 	{
-		if (i >= s->Start AND i < s->Start+s->Len)
+		if (i >= s->Start && i < s->Start+s->Len)
 		{
 			return s;
 		}
@@ -1169,7 +1176,7 @@ void GTextView3::PourStyle(int Start, int EditSize)
 					Url->Len = Inf.Len;
 					Url->Email = Inf.Email;
 					Url->Font = Underline;
-					Url->c = d->UrlColour;
+					Url->c32 = d->UrlColour32;
 
 					InsertStyle(Url);
 				}
@@ -1194,12 +1201,12 @@ void GTextView3::PourStyle(int Start, int EditSize)
 						// find end
 						char16 *s = Text + i;
 						char16 *e = s + 6;
-						for ( ; (SubtractPtr(e, Text) < Size) AND 
+						for ( ; (SubtractPtr(e, Text) < Size) && 
 								UrlChar(*e); e++);
 						
 						while
 						(
-							e > s AND
+							e > s &&
 							!
 							(
 								isalpha(e[-1]) OR
@@ -1230,7 +1237,7 @@ void GTextView3::PourStyle(int Start, int EditSize)
 					// find start
 					char16 *s = Text + (max(i, 1) - 1);
 					
-					for ( ; s > Text AND EmailChar(*s); s--)
+					for ( ; s > Text && EmailChar(*s); s--)
 						;
 
 					if (s < Text + i)
@@ -1241,12 +1248,12 @@ void GTextView3::PourStyle(int Start, int EditSize)
 						bool FoundDot = false;
 						char16 *Start = Text + i + 1;
 						char16 *e = Start;
-						for ( ; (SubtractPtr(e, Text) < Size) AND 
+						for ( ; (SubtractPtr(e, Text) < Size) && 
 								EmailChar(*e); e++)
 						{
 							if (*e == '.') FoundDot = true;
 						}
-						while (e > Start AND e[-1] == '.') e--;
+						while (e > Start && e[-1] == '.') e--;
 
 						if (FoundDot)
 						{
@@ -1280,7 +1287,7 @@ void GTextView3::PourStyle(int Start, int EditSize)
 
 bool GTextView3::Insert(int At, char16 *Data, int Len)
 {
-	if (!ReadOnly AND Len > 0)
+	if (!ReadOnly && Len > 0)
 	{
 		// limit input to valid data
 		At = min(Size, At);
@@ -1402,7 +1409,7 @@ bool GTextView3::Delete(int At, int Len)
 			PourText(At, -Len);
 			PourStyle(At, -Len);
 			
-			if (Cursor >= At AND Cursor <= At + Len)
+			if (Cursor >= At && Cursor <= At + Len)
 			{
 				SetCursor(At, false, HasNewLine);
 			}
@@ -1416,7 +1423,7 @@ bool GTextView3::Delete(int At, int Len)
 				{
 					GTextLine *Repaint = 0;
 					GTextLine *Prev = Line[Index-1];
-					if (Prev AND PrevLineStart != Prev->Start)
+					if (Prev && PrevLineStart != Prev->Start)
 					{
 						// Paint previous line down
 						Repaint = Prev;
@@ -1424,7 +1431,7 @@ bool GTextView3::Delete(int At, int Len)
 					else
 					{
 						GTextLine *Next = Line[Index+1];
-						if (Next AND NextLineStart != Next->Start)
+						if (Next && NextLineStart != Next->Start)
 						{
 							// Paint next line down
 							Repaint = Next;
@@ -1471,7 +1478,7 @@ GTextView3::GTextLine *GTextView3::GetLine(int Offset, int *Index)
 	int i = 0;
 	for (GTextLine *l=Line.First(); l; l=Line.Next(), i++)
 	{
-		if (Offset >= l->Start AND Offset <= l->Start+l->Len)
+		if (Offset >= l->Start && Offset <= l->Start+l->Len)
 		{
 			if (Index)
 			{
@@ -1610,7 +1617,7 @@ char *GTextView3::GetSelection()
 
 bool GTextView3::HasSelection()
 {
-	return (SelStart >= 0) AND (SelStart != SelEnd);
+	return (SelStart >= 0) && (SelStart != SelEnd);
 }
 
 void GTextView3::SelectAll()
@@ -1691,7 +1698,7 @@ void GTextView3::SetCursor(int i, bool Select, bool ForceFullUpdate)
 	int s = SelStart, e = SelEnd, c = Cursor;
 	
 	// If there is going to be a selected area
-	if (Select AND i != SelStart)
+	if (Select && i != SelStart)
 	{
 		// Then set the start
 		if (SelStart < 0)
@@ -1717,7 +1724,7 @@ void GTextView3::SetCursor(int i, bool Select, bool ForceFullUpdate)
 	// check the cursor is on the screen
 	int ToIndex = 0;
 	GTextLine *To = GetLine(Cursor, &ToIndex);
-	if (VScroll AND To)
+	if (VScroll && To)
 	{
 		GRect Client = GetClient();
 		int DisplayLines = Client.Y() / LineY;
@@ -1765,7 +1772,7 @@ void GTextView3::SetCursor(int i, bool Select, bool ForceFullUpdate)
 		// Update just the selection bounds
 		GRect Client = GetClient();
 		int Start, End;
-		if (SelStart >= 0 AND s >= 0)
+		if (SelStart >= 0 && s >= 0)
 		{
 			// Selection has changed, union the before and after regions
 			Start = min(Cursor, c);
@@ -1787,7 +1794,7 @@ void GTextView3::SetCursor(int i, bool Select, bool ForceFullUpdate)
 		GTextLine *SLine = GetLine(Start);
 		GTextLine *ELine = GetLine(End);
 		GRect u;
-		if (SLine AND ELine)
+		if (SLine && ELine)
 		{
 			if (SLine->r.Valid())
 			{
@@ -1970,7 +1977,7 @@ bool GTextView3::ClearDirty(bool Ask, char *FileName)
 		{
 			GFileSelect Select;
 			Select.Parent(this);
-			if (!FileName AND
+			if (!FileName &&
 				Select.Save())
 			{
 				FileName = Select.Name();
@@ -2010,7 +2017,7 @@ bool GTextView3::Open(char *Name, char *CharSet)
 				c8[Bytes+2] = 0;
 				c8[Bytes+3] = 0;
 
-				if ((uchar)c8[0] == 0xff AND (uchar)c8[1] == 0xfe)
+				if ((uchar)c8[0] == 0xff && (uchar)c8[1] == 0xfe)
 				{
 					// utf-16
 					if (!CharSet)
@@ -2057,7 +2064,7 @@ bool GTextView3::Open(char *Name, char *CharSet)
 					Alloc = Size + 1;
 					Dirty = false;
 					
-					if (Text AND Text[0] == 0xfeff) // unicode byte order mark
+					if (Text && Text[0] == 0xfeff) // unicode byte order mark
 					{
 						memmove(Text, Text+1, Size * sizeof(*Text));
 						Size--;
@@ -2102,7 +2109,7 @@ bool GTextView3::Save(char *Name, char *CharSet)
 				{
 					int Start = 0;
 					Status = true;
-					for (int i=0; i<=Len AND Status; i++)
+					for (int i=0; i<=Len && Status; i++)
 					{
 						if (c8[i] == '\n' OR i >= Len)
 						{
@@ -2161,7 +2168,7 @@ void GTextView3::UpdateScrollBars(bool Reset)
 
 			GRect After = GetClient();
 
-			if (Before != After AND GetWrapType())
+			if (Before != After && GetWrapType())
 			{
 				d->SetDirty(0, Size);
 				Inval = true;
@@ -2190,14 +2197,14 @@ bool GTextView3::DoCase(bool Upper)
 			{
 				if (Upper)
 				{
-					if (Text[i] >= 'a' AND Text[i] <= 'z')
+					if (Text[i] >= 'a' && Text[i] <= 'z')
 					{
 						Text[i] = Text[i] - 'a' + 'A';
 					}
 				}
 				else
 				{
-					if (Text[i] >= 'A' AND Text[i] <= 'Z')
+					if (Text[i] >= 'A' && Text[i] <= 'Z')
 					{
 						Text[i] = Text[i] - 'A' + 'a';
 					}
@@ -2230,7 +2237,7 @@ void GTextView3::GotoLine(int i)
 bool GTextView3::DoGoto()
 {
 	GInput Dlg(this, "", LgiLoadString(L_TEXTCTRL_GOTO_LINE, "Goto line:"), "Text");
-	if (Dlg.DoModal() == IDOK AND
+	if (Dlg.DoModal() == IDOK &&
 		Dlg.Str)
 	{
 		GotoLine(atoi(Dlg.Str) - 1);
@@ -2284,7 +2291,7 @@ bool Text_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User)
 
 	v->d->FindReplaceParams->LastFind = LgiNewUtf8To16(Dlg->Find);
 
-	if (v->HasSelection() AND
+	if (v->HasSelection() &&
 		v->SelEnd < v->SelStart)
 	{
 		v->Cursor = v->SelStart;
@@ -2409,7 +2416,7 @@ int GTextView3::MatchText(char16 *Find, bool MatchWord, bool MatchCase, bool Sel
 		
 		// Setup range to search
 		int Begin, End;
-		if (SelectionOnly AND HasSelection())
+		if (SelectionOnly && HasSelection())
 		{
 			Begin = min(SelStart, SelEnd);
 			End = max(SelStart, SelEnd);
@@ -2470,7 +2477,7 @@ int GTextView3::MatchText(char16 *Find, bool MatchWord, bool MatchCase, bool Sel
 					}
 				}
 				
-				if (!Wrap AND (i + 1 > End - FindLen))
+				if (!Wrap && (i + 1 > End - FindLen))
 				{
 					Wrap = true;
 					i = Begin;
@@ -2513,7 +2520,7 @@ int GTextView3::MatchText(char16 *Find, bool MatchWord, bool MatchCase, bool Sel
 					}
 				}
 			
-				if (!Wrap AND (i + 1 > End - FindLen))
+				if (!Wrap && (i + 1 > End - FindLen))
 				{
 					Wrap = true;
 					i = Begin;
@@ -2586,27 +2593,27 @@ int GTextView3::SeekLine(int i, GTextViewSeek Where)
 	{
 		case PrevLine:
 		{
-			for (; i > 0 AND Text[i] != '\n'; i--);
+			for (; i > 0 && Text[i] != '\n'; i--);
 			if (i > 0) i--;
-			for (; i > 0 AND Text[i] != '\n'; i--);
+			for (; i > 0 && Text[i] != '\n'; i--);
 			if (i > 0) i++;
 			break;
 		}
 		case NextLine:
 		{
-			for (; i < Size AND Text[i] != '\n'; i++);
+			for (; i < Size && Text[i] != '\n'; i++);
 			i++;
 			break;
 		}
 		case StartLine:
 		{
-			for (; i > 0 AND Text[i] != '\n'; i--);
+			for (; i > 0 && Text[i] != '\n'; i--);
 			if (i > 0) i++;
 			break;
 		}
  		case EndLine:
 		{
-			for (; i < Size AND Text[i] != '\n'; i++);
+			for (; i < Size && Text[i] != '\n'; i++);
 			break;
 		}
 		default:
@@ -2629,7 +2636,7 @@ bool GTextView3::OnMultiLineTab(bool In)
 
 	GBytePipe p;
 	int Ls = 0, i;
-	for (i=Min; i<Max AND i<Size; i=SeekLine(i, NextLine))
+	for (i=Min; i<Max && i<Size; i=SeekLine(i, NextLine))
 	{
 		p.Write((uchar*)&i, sizeof(i));
 		Ls++;
@@ -2650,7 +2657,7 @@ bool GTextView3::OnMultiLineTab(bool In)
 			{
 				// <-
 				int n = Indexes[i], Space = 0;
-				for (; Space<IndentSize AND n<Size; n++)
+				for (; Space<IndentSize && n<Size; n++)
 				{
 					if (Text[n] == 9)
 					{
@@ -2674,7 +2681,7 @@ bool GTextView3::OnMultiLineTab(bool In)
 			{
 				// ->
 				int Len = Indexes[i];
-				for (; Text[Len] != '\n' AND Len<Size; Len++);
+				for (; Text[Len] != '\n' && Len<Size; Len++);
 				if (Len > Indexes[i])
 				{
 					if (HardTabs)
@@ -2729,7 +2736,7 @@ void GTextView3::OnPosChange()
 		SetScrollBars(false, ScrollYNeeded);
 		UpdateScrollBars();
 
-		if (GetWrapType() AND d->PourX != X())
+		if (GetWrapType() && d->PourX != X())
 		{
 			d->PourX = X();
 			d->SetDirty(0, Size);
@@ -2834,7 +2841,7 @@ int GTextView3::HitText(int x, int y)
 
 				return l->Start + Char;
 			}
-			else if (y >= l->r.y1 AND y <= l->r.y2)
+			else if (y >= l->r.y1 && y <= l->r.y2)
 			{
 				// Click horizontally before of after line
 				if (x < l->r.x1)
@@ -3285,11 +3292,11 @@ bool GTextView3::OnKey(GKey &k)
 							int x = GetColumn();							
 							int Add = IndentSize - (x % IndentSize);
 							
-							if (HardTabs AND ((x + Add) % TabSize) == 0)
+							if (HardTabs && ((x + Add) % TabSize) == 0)
 							{
 								int Rx = x;
 								int Remove;
-								for (Remove = Cursor; Text[Remove - 1] == ' ' AND Rx % TabSize != 0; Remove--, Rx--);
+								for (Remove = Cursor; Text[Remove - 1] == ' ' && Rx % TabSize != 0; Remove--, Rx--);
 								int Chars = Cursor - Remove;
 								Delete(Remove, Chars);
 								Insert(Remove, &k.c16, 1);
@@ -3317,7 +3324,7 @@ bool GTextView3::OnKey(GKey &k)
 						{
 							char16 In = k.GetChar();
 
-							if (In AND Insert(Cursor, &In, 1))
+							if (In && Insert(Cursor, &In, 1))
 							{
 								l = GetLine(Cursor);
 								int NewLen = (l) ? l->Len : 0;
@@ -3357,7 +3364,7 @@ bool GTextView3::OnKey(GKey &k)
 					{						
 						char Del = Cursor > 0 ? Text[Cursor-1] : 0;
 						
-						if (Del == ' ' AND (!HardTabs OR IndentSize != TabSize))
+						if (Del == ' ' && (!HardTabs OR IndentSize != TabSize))
 						{
 							// Delete soft tab
 							int x = GetColumn();
@@ -3384,7 +3391,7 @@ bool GTextView3::OnKey(GKey &k)
 								break;
 							}
 						}
-						else if (Del == '\t' AND HardTabs AND IndentSize != TabSize)
+						else if (Del == '\t' && HardTabs && IndentSize != TabSize)
 						{
 							int x = GetColumn();
 							Delete(--Cursor, 1);
@@ -3455,10 +3462,10 @@ bool GTextView3::OnKey(GKey &k)
 						if (k.Down())
 						{
 							int Start = Cursor;
-							while (IsWhiteSpace(Text[Cursor-1]) AND Cursor > 0)
+							while (IsWhiteSpace(Text[Cursor-1]) && Cursor > 0)
 								Cursor--;
 
-							while (!IsWhiteSpace(Text[Cursor-1]) AND Cursor > 0)
+							while (!IsWhiteSpace(Text[Cursor-1]) && Cursor > 0)
 								Cursor--;
 
 							Delete(Cursor, Start - Cursor);
@@ -3483,7 +3490,7 @@ bool GTextView3::OnKey(GKey &k)
 			{
 				if (k.Down())
 				{
-					if (SelStart >= 0 AND
+					if (SelStart >= 0 &&
 						!k.Shift())
 					{
 						SetCursor(min(SelStart, SelEnd), false);
@@ -3503,7 +3510,7 @@ bool GTextView3::OnKey(GKey &k)
 						{
 							// word move/select
 							bool StartWhiteSpace = IsWhiteSpace(Text[n]);
-							bool LeftWhiteSpace = n > 0 AND IsWhiteSpace(Text[n-1]);
+							bool LeftWhiteSpace = n > 0 && IsWhiteSpace(Text[n-1]);
 
 							if (!StartWhiteSpace OR
 								Text[n] == '\n')
@@ -3512,7 +3519,7 @@ bool GTextView3::OnKey(GKey &k)
 							}
 							
 							// Skip ws
-							for (; n > 0 AND strchr(" \t", Text[n]); n--)
+							for (; n > 0 && strchr(" \t", Text[n]); n--)
 								;
 							
 							if (Text[n] == '\n')
@@ -3523,7 +3530,7 @@ bool GTextView3::OnKey(GKey &k)
 							{
 								if (IsDelimiter(Text[n]))
 								{
-									for (; n > 0 AND IsDelimiter(Text[n]); n--);
+									for (; n > 0 && IsDelimiter(Text[n]); n--);
 								}
 								else
 								{
@@ -3556,7 +3563,7 @@ bool GTextView3::OnKey(GKey &k)
 			{
 				if (k.Down())
 				{
-					if (SelStart >= 0 AND
+					if (SelStart >= 0 &&
 						!k.Shift())
 					{
 						SetCursor(max(SelStart, SelEnd), false);
@@ -3577,7 +3584,7 @@ bool GTextView3::OnKey(GKey &k)
 							// word move/select
 							if (IsWhiteSpace(Text[n]))
 							{
-								for (; n<Size AND IsWhiteSpace(Text[n]); n++);
+								for (; n<Size && IsWhiteSpace(Text[n]); n++);
 							}
 							else
 							{
@@ -3600,7 +3607,7 @@ bool GTextView3::OnKey(GKey &k)
 									}
 								}
 
-								if (n < Size AND
+								if (n < Size &&
 									Text[n] != '\n')
 								{
 									if (IsWhiteSpace(Text[n]))
@@ -3718,7 +3725,7 @@ bool GTextView3::OnKey(GKey &k)
 							char16 *Line = Text + l->Start;
 							char16 *s;
 							char16 SpTab[] = {' ', '\t', 0};
-							for (s = Line; (SubtractPtr(s,Line) < l->Len) AND StrchrW(SpTab, *s); s++);
+							for (s = Line; (SubtractPtr(s,Line) < l->Len) && StrchrW(SpTab, *s); s++);
 							int Whitespace = SubtractPtr(s, Line);
 
 							if (l->Start + Whitespace == Cursor)
@@ -3813,7 +3820,7 @@ bool GTextView3::OnKey(GKey &k)
 								DeleteSelection();
 							}
 						}
-						else if (Cursor < Size AND
+						else if (Cursor < Size &&
 								Delete(Cursor, 1))
 						{
 							Invalidate();
@@ -3827,14 +3834,14 @@ bool GTextView3::OnKey(GKey &k)
 			{
 				if (k.c16 == 17) break;
 
-				if (k.Modifier() AND
+				if (k.Modifier() &&
 					!k.Alt())
 				{
 					switch (k.GetChar())
 					{
 						case 0xbd: // Ctrl+'-'
 						{
-							if (k.Down() AND
+							if (k.Down() &&
 								Font->PointSize() > 1)
 							{
 								Font->PointSize(Font->PointSize() - 1);
@@ -3845,7 +3852,7 @@ bool GTextView3::OnKey(GKey &k)
 						}
 						case 0xbb: // Ctrl+'+'
 						{
-							if (k.Down() AND
+							if (k.Down() &&
 								Font->PointSize() < 100)
 							{
 								Font->PointSize(Font->PointSize() + 1);
@@ -3926,7 +3933,7 @@ bool GTextView3::OnKey(GKey &k)
 						case 'v':
 						case 'V':
 						{
-							if (!k.Shift() AND
+							if (!k.Shift() &&
 								!GetReadOnly())
 							{
 								if (k.Down())
@@ -3981,7 +3988,7 @@ bool GTextView3::OnKey(GKey &k)
 						}
 						case VK_RETURN:
 						{
-							if (!GetReadOnly() AND !k.Shift())
+							if (!GetReadOnly() && !k.Shift())
 							{
 								if (k.Down())
 								{
@@ -4012,11 +4019,11 @@ void GTextView3::OnEnter(GKey &k)
 	char16 InsertStr[256] = {'\n', 0};
 
 	GTextLine *CurLine = GetLine(Cursor);
-	if (CurLine AND AutoIndent)
+	if (CurLine && AutoIndent)
 	{
 		int WsLen = 0;
-		for (;	WsLen < CurLine->Len AND
-				WsLen < (Cursor - CurLine->Start) AND
+		for (;	WsLen < CurLine->Len &&
+				WsLen < (Cursor - CurLine->Start) &&
 				strchr(" \t", Text[CurLine->Start + WsLen]); WsLen++);
 		if (WsLen > 0)
 		{
@@ -4046,7 +4053,7 @@ int GTextView3::TextWidth(GFont *f, char16 *s, int Len, int x, int Origin)
 		else
 		{
 			char16 *e;
-			for (e = c; SubtractPtr(e, s) < Len AND *e != 9; e++);
+			for (e = c; SubtractPtr(e, s) < Len && *e != 9; e++);
 			
 			GDisplayString ds(f, c, SubtractPtr(e, c));
 			w += ds.X();
@@ -4095,7 +4102,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 
 		GSurface *pOut = pDC;
 		bool DrawSel = false;
-		COLOUR Fore = LC_TEXT;
+		COLOUR Fore32 = Rgb24To32(LC_TEXT);
 		COLOUR Selected = LC_SELECTION;
 		GViewFill *BackFill = GetBackgroundFill();
 		COLOUR Back = (!ReadOnly) ? (BackFill ? Rgb32To24(BackFill->GetC32()) : LC_WORKSPACE) : BackColour;
@@ -4111,7 +4118,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 
 		if (!Enabled())
 		{
-			Fore = LC_LOW;
+			Fore32 = Rgb24To32(LC_LOW);
 			Back = LC_MED;
 		}
 
@@ -4119,11 +4126,11 @@ void GTextView3::OnPaint(GSurface *pDC)
 		GMemDC *pMem = new GMemDC;
 		pOut = pMem;
 		#endif
-		if (Text AND
+		if (Text &&
 			Font
 			#ifdef DOUBLE_BUFFER_PAINT
-			AND
-			pMem AND
+			&&
+			pMem &&
 			pMem->Create(r.X()-d->Margin.x1, LineY, GdcD->GetBits())
 			#endif
 			)
@@ -4132,7 +4139,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 			int SelMax = max(SelStart, SelEnd);
 
 			// font properties
-			Font->Colour(Fore, Back);
+			Font->Colour(Rgb32To24(Fore32), Back);
 			Font->Transparent(false);
 
 			// draw margins
@@ -4147,9 +4154,9 @@ void GTextView3::OnPaint(GSurface *pDC)
 			GTextLine *l=Line.ItemAt(k);
 			int Dy = (l) ? -l->r.y1 : 0;
 			int NextSelection = (SelStart != SelEnd) ? SelMin : -1; // offset where selection next changes
-			if (l AND
-				SelStart >= 0 AND
-				SelStart < l->Start AND
+			if (l &&
+				SelStart >= 0 &&
+				SelStart < l->Start &&
 				SelEnd > l->Start)
 			{
 				// start of visible area is in selection
@@ -4165,7 +4172,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 
 			// loop through all visible lines
 			int y = d->Margin.y1;
-			for (; l AND l->r.y1+Dy < r.Y(); l=Line.Next())
+			for (; l && l->r.y1+Dy < r.Y(); l=Line.Next())
 			{
 				GRect Tr = l->r;
 				#ifdef DOUBLE_BUFFER_PAINT
@@ -4187,7 +4194,8 @@ void GTextView3::OnPaint(GSurface *pDC)
 				}
 				else
 				{
-					Font->Colour((l->Col&0x80000000)?Fore:l->Col, Back);
+					COLOUR c32 = A32(l->Col32) ? l->Col32 : Fore32;
+					Font->Colour(Rgb32To24(c32), Back);
 				}
 
 				// draw text
@@ -4207,8 +4215,8 @@ void GTextView3::OnPaint(GSurface *pDC)
 					if (NextStyle)
 					{
 						// start
-						if (l->Overlap(NextStyle->Start) AND
-							NextStyle->Start > Cur AND
+						if (l->Overlap(NextStyle->Start) &&
+							NextStyle->Start > Cur &&
 							NextStyle->Start - Cur < Block)
 						{
 							Block = NextStyle->Start - Cur;
@@ -4216,8 +4224,8 @@ void GTextView3::OnPaint(GSurface *pDC)
 
 						// end
 						int StyleEnd = NextStyle->Start + NextStyle->Len;
-						if (l->Overlap(StyleEnd) AND
-							StyleEnd > Cur AND
+						if (l->Overlap(StyleEnd) &&
+							StyleEnd > Cur &&
 							StyleEnd - Cur < Block)
 						{
 							Block = StyleEnd - Cur;
@@ -4226,7 +4234,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 
 					// check for next selection change
 					// this may truncate the style
-					if (NextSelection > Cur AND
+					if (NextSelection > Cur &&
 						NextSelection - Cur < Block)
 					{
 						Block = NextSelection - Cur;
@@ -4236,15 +4244,16 @@ void GTextView3::OnPaint(GSurface *pDC)
 					
 					int TabOri = Tr.x1 - d->Margin.x1;
 
-					if (NextStyle AND							// There is a style
-						(Cur < SelMin OR Cur >= SelMax) AND		// AND we're not drawing a selection block
-						Cur >= NextStyle->Start AND				// AND we're inside the styled area
+					if (NextStyle &&							// There is a style
+						(Cur < SelMin OR Cur >= SelMax) &&		// AND we're not drawing a selection block
+						Cur >= NextStyle->Start &&				// AND we're inside the styled area
 						Cur < NextStyle->Start+NextStyle->Len)
 					{
 						if (NextStyle->Font)
 						{
 							// draw styled text
-							NextStyle->Font->Colour(NextStyle->c, Back);
+							if (A32(NextStyle->c32))
+								NextStyle->Font->Colour(Rgb32To24(NextStyle->c32), Back);
 							NextStyle->Font->Transparent(false);
 
 							LgiAssert(l->Start + Done >= 0);
@@ -4267,7 +4276,8 @@ void GTextView3::OnPaint(GSurface *pDC)
 									pOut->Set(Tr.x1+i, Tr.y2-(i%2));
 							}
 
-							NextStyle->Font->Colour(Fore, Back);
+							COLOUR c32 = A32(l->Col32) ? l->Col32 : Fore32;
+							NextStyle->Font->Colour(Rgb32To24(c32), Back);
 						}
 					}
 					else
@@ -4287,7 +4297,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 						Ds.Draw(pOut, Tr.x1, Tr.y1, 0);
 					}
 
-					if (NextStyle AND
+					if (NextStyle &&
 						Cur+Block >= NextStyle->Start+NextStyle->Len)
 					{
 						// end of this styled block
@@ -4304,7 +4314,8 @@ void GTextView3::OnPaint(GSurface *pDC)
 						}
 						else
 						{
-							Font->Colour((l->Col&0x80000000)?Fore:l->Col, Back);
+							COLOUR c32 = A32(l->Col32) ? l->Col32 : Fore32;
+							Font->Colour(Rgb32To24(c32), Back);
 						}
 						NextSelection = (NextSelection == SelMin) ? SelMax : -1;
 					}
@@ -4316,7 +4327,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 
 				// eol processing
 				int EndOfLine = l->Start+l->Len;
-				if (EndOfLine >= SelMin AND EndOfLine < SelMax)
+				if (EndOfLine >= SelMin && EndOfLine < SelMax)
 				{
 					// draw the '\n' at the end of the line as selected
 					pOut->Colour(Font->Back(), 24);
@@ -4333,7 +4344,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 				if (Focus())
 				{
 					// draw the cursor if on this line
-					if (Cursor >= l->Start AND Cursor <= l->Start+l->Len)
+					if (Cursor >= l->Start && Cursor <= l->Start+l->Len)
 					{
 						CursorPos.ZOff(1, LineY-1);
 
@@ -4354,7 +4365,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 								ScrollX = ScrollX + Cur.x2 - Scr.x2 + 40;
 								Invalidate();
 							}
-							else if (Cur.x1 < Scr.x1 AND ScrollX > 0)
+							else if (Cur.x1 < Scr.x1 && ScrollX > 0)
 							{
 								ScrollX = max(0, Cur.x1 - 40);
 								Invalidate();
@@ -4368,7 +4379,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 							c.Offset(-d->Margin.x1, -y);
 							#endif
 
-							pOut->Colour((!ReadOnly) ? Fore : Rgb24(192, 192, 192), 24);
+							pOut->Colour((!ReadOnly) ? Rgb32To24(Fore32) : Rgb24(192, 192, 192), 24);
 							pOut->Rectangle(&c);
 						}
 
@@ -4517,7 +4528,7 @@ int GTextView3::OnEvent(GMessage *Msg)
 
 int GTextView3::OnNotify(GViewI *Ctrl, int Flags)
 {
-	if (Ctrl->GetId() == IDC_VSCROLL AND VScroll)
+	if (Ctrl->GetId() == IDC_VSCROLL && VScroll)
 	{
 		Invalidate();
 	}

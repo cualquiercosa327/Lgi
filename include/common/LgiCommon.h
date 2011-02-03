@@ -188,7 +188,7 @@ LgiFunc void LgiRandomize(uint Seed);
 /// Returns a random number between 0 and Max-1
 LgiFunc uint LgiRand(uint Max = 0);
 
-LgiFunc void _lgi_read_colour_config(char *Tag, uint32 *c);
+LgiFunc bool _lgi_read_colour_config(char *Tag, uint32 *c);
 
 /// Plays a sound
 LgiFunc bool LgiPlaySound
