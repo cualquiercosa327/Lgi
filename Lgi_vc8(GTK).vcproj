@@ -794,7 +794,7 @@
 						>
 					</File>
 					<File
-						RelativePath=".\src\common\Gdc2\GFuncs.cpp"
+						RelativePath=".\src\common\Gdc2\GdcCommon.cpp"
 						>
 					</File>
 					<File

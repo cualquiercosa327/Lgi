@@ -1,6 +1,7 @@
 // Clipboard Implementation
 #include "Lgi.h"
 #include "GVariant.h"
+#include "GClipBoard.h"
 
 using namespace Gtk;
 
