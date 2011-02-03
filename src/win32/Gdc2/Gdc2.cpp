@@ -238,7 +238,19 @@ GSurface *ConvertDC(GSurface *pDC, int Bits)
 	return pDC;
 }
 
-COLOUR GdcMixColour(COLOUR c1, COLOUR c2, double HowMuchC1)
+GColour GdcMixColour(GColour c1, GColour c2, float HowMuchC1)
+{
+	float HowMuchC2 = 1.0 - HowMuchC1;
+
+	int r = (c1.r()*HowMuchC1) + (c2.r()*HowMuchC2);
+	int g = (c1.g()*HowMuchC1) + (c2.g()*HowMuchC2);
+	int b = (c1.b()*HowMuchC1) + (c2.b()*HowMuchC2);
+	int a = (c1.a()*HowMuchC1) + (c2.a()*HowMuchC2);
+	
+	return GColour(r, g, b, a);
+}
+
+COLOUR GdcMixColour(COLOUR c1, COLOUR c2, float HowMuchC1)
 {
 	double HowMuchC2 = 1.0 - HowMuchC1;
 	int r = (R24(c1)*HowMuchC1) + (R24(c2)*HowMuchC2);

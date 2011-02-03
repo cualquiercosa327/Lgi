@@ -1555,8 +1555,13 @@ LgiFunc bool WriteDC(char *Name, GSurface *pDC);
 /// Converts a colour to a different bit depth
 LgiFunc COLOUR CBit(int DstBits, COLOUR c, int SrcBits = 24, GPalette *Pal = 0);
 
+#ifdef __cplusplus
+/// blends 2 colours by the amount specified
+LgiClass GColour GdcMixColour(GColour a, GColour b, float HowMuchA = 0.5);
+#endif
+
 /// blends 2 24bit colours by the amount specified
-LgiFunc COLOUR GdcMixColour(COLOUR a, COLOUR b, double HowMuchA = 0.5);
+LgiFunc COLOUR GdcMixColour(COLOUR a, COLOUR b, float HowMuchA = 0.5);
 
 /// Turns a colour into an 8 bit grey scale representation
 LgiFunc COLOUR GdcGreyScale(COLOUR c, int Bits = 24);
