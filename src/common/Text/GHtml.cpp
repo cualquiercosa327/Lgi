@@ -11,6 +11,7 @@
 #include "GScrollBar.h"
 #include "GVariant.h"
 #include "GFindReplaceDlg.h"
+#include "GClipBoard.h"
 
 #define LUIS_DEBUG					0
 #define CRASH_TRACE					0

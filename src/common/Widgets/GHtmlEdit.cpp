@@ -4,6 +4,7 @@
 #include "GSkinEngine.h"
 #include "GCombo.h"
 #include "GScrollBar.h"
+#include "GClipBoard.h"
 
 #define IDC_STYLE					100
 #define IDC_FONT					101

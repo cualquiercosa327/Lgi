@@ -18,6 +18,7 @@
 #include "GButton.h"
 #include "GVariant.h"
 #include "GToken.h"
+#include "GClipBoard.h"
 
 ////////////////////////////////////////////////////////////////////
 #define IDC_LIST					100

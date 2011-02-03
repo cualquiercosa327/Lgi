@@ -13,6 +13,7 @@
 #include "GButton.h"
 #include "GTabView.h"
 #include "FtpThread.h"
+#include "GClipBoard.h"
 
 #define IDM_SAVE				102
 #define IDM_BREAKPOINT			313

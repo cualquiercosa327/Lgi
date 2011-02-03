@@ -18,6 +18,7 @@
 #include "GTextLabel.h"
 #include "GCombo.h"
 #include "GButton.h"
+#include "GClipBoard.h"
 
 ////////////////////////////////////////////////////////////////////////////
 LangDlg::LangDlg(GView *parent, List<GLanguage> &l, int Init)

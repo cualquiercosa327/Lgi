@@ -10,6 +10,7 @@
 #include "INet.h"
 #include "GListItemCheckBox.h"
 #include "FtpThread.h"
+#include "GClipBoard.h"
 
 extern char *Untitled;
 

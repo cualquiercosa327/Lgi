@@ -12,6 +12,7 @@
 #include "GFindReplaceDlg.h"
 #include "GUtf8.h"
 #include "Emoji.h"
+#include "GClipBoard.h"
 
 #define DEBUG_TABLE_LAYOUT			1
 #define LUIS_DEBUG					0
