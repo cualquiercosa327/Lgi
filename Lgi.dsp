@@ -707,7 +707,7 @@ SOURCE=.\include\common\Gdc2.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\src\common\Gdc2\GFuncs.cpp
+SOURCE=.\src\common\Gdc2\GdcCommon.cpp
 # End Source File
 # End Group
 # Begin Group "Font"
