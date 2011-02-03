@@ -59,7 +59,7 @@
 		344B736C08D83F1800D49457 /* GGeneral.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344B736B08D83F1800D49457 /* GGeneral.cpp */; };
 		344B737808D83F6C00D49457 /* LgiClasses.h in Headers */ = {isa = PBXBuildFile; fileRef = 344B737708D83F6C00D49457 /* LgiClasses.h */; };
 		344B737B08D8401600D49457 /* Lgi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344B737A08D8401600D49457 /* Lgi.cpp */; };
-		344B738108D8406900D49457 /* GFuncs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344B738008D8406900D49457 /* GFuncs.cpp */; };
+		344B738108D8406900D49457 /* GdcCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344B738008D8406900D49457 /* GdcCommon.cpp */; };
 		344B738708D840CF00D49457 /* GFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344B738608D840CF00D49457 /* GFile.cpp */; };
 		344B738A08D8410B00D49457 /* LgiMsg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344B738908D8410B00D49457 /* LgiMsg.cpp */; };
 		344B738D08D8414400D49457 /* GGuiUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344B738C08D8414400D49457 /* GGuiUtils.cpp */; };
@@ -212,7 +212,7 @@
 		344B736B08D83F1800D49457 /* GGeneral.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GGeneral.cpp; path = src/mac/Lgi/GGeneral.cpp; sourceTree = "<group>"; };
 		344B737708D83F6C00D49457 /* LgiClasses.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LgiClasses.h; path = include/common/LgiClasses.h; sourceTree = "<group>"; };
 		344B737A08D8401600D49457 /* Lgi.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Lgi.cpp; path = src/common/Lgi/Lgi.cpp; sourceTree = "<group>"; };
-		344B738008D8406900D49457 /* GFuncs.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GFuncs.cpp; path = src/common/Gdc2/GFuncs.cpp; sourceTree = "<group>"; };
+		344B738008D8406900D49457 /* GdcCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GdcCommon.cpp; path = src/common/Gdc2/GdcCommon.cpp; sourceTree = "<group>"; };
 		344B738608D840CF00D49457 /* GFile.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GFile.cpp; path = src/mac/General/GFile.cpp; sourceTree = "<group>"; };
 		344B738908D8410B00D49457 /* LgiMsg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = LgiMsg.cpp; path = src/common/Lgi/LgiMsg.cpp; sourceTree = "<group>"; };
 		344B738C08D8414400D49457 /* GGuiUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GGuiUtils.cpp; path = src/common/Lgi/GGuiUtils.cpp; sourceTree = "<group>"; };
@@ -438,7 +438,7 @@
 				344D1B1108F4A2F900228075 /* Filters */,
 				344B738208D8408500D49457 /* Font */,
 				3446E31F08D0E9BB005024EB /* Applicators */,
-				344B738008D8406900D49457 /* GFuncs.cpp */,
+				344B738008D8406900D49457 /* GdcCommon.cpp */,
 				3446E2CF08D0E5C2005024EB /* Gdc2.h */,
 				3446E2B508D0E4AF005024EB /* Gdc2.cpp */,
 				344AF36708E04156004ED88C /* GSurface.cpp */,
@@ -878,7 +878,7 @@
 				3446E32B08D0E9E4005024EB /* Alpha.cpp in Sources */,
 				344B736C08D83F1800D49457 /* GGeneral.cpp in Sources */,
 				344B737B08D8401600D49457 /* Lgi.cpp in Sources */,
-				344B738108D8406900D49457 /* GFuncs.cpp in Sources */,
+				344B738108D8406900D49457 /* GdcCommon.cpp in Sources */,
 				344B738708D840CF00D49457 /* GFile.cpp in Sources */,
 				344B738A08D8410B00D49457 /* LgiMsg.cpp in Sources */,
 				344B738D08D8414400D49457 /* GGuiUtils.cpp in Sources */,

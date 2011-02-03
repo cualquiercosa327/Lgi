@@ -1,5 +1,6 @@
-// BeOS Clipboard Implementation
+// MacOSX Clipboard Implementation
 #include "Lgi.h"
+#include "GClipBoard.h"
 
 #define kClipboardTextType				"public.utf16-plain-text"
 
