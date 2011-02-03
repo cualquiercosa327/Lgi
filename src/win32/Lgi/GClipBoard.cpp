@@ -1,5 +1,6 @@
 
 #include "Lgi.h"
+#include "GClipBoard.h"
 
 class GClipBoardPriv
 {

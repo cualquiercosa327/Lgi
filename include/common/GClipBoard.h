@@ -1,6 +1,8 @@
+/// \file
 #ifndef _GCLIPBOARD_H
 #define _GCLIPBOARD_H
 
+/// Clipboard API
 class LgiClass GClipBoard
 {
 	class GClipBoardPriv *d;
@@ -10,12 +12,16 @@ class LgiClass GClipBoard
 	GSurface *pDC;
 
 public:
+	/// On windows, this equates to a CF_TEXT, CF_BITMAP, CF_DIB type #define
 	typedef uint32 FormatType;
 
+	/// Creates the clipboard access object.
 	GClipBoard(GView *o);
 	~GClipBoard();
 
 	bool IsOpen() { return Open; }
+
+	/// Empties the clipboard of it's current content.
 	bool Empty();
 	bool EnumFormats(GArray<FormatType> &Formats);
 

@@ -1902,12 +1902,29 @@ MailReceiveFolder::~MailReceiveFolder()
 
 bool MailReceiveFolder::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Password, char *&Cookie, int Flags)
 {
-	bool Status = false;
+	// We don't use the socket so just free it here...
+	DeleteObj(S);
 
-	if (DirExists(d->Path))
+	// Argument check
+	if (!DirExists(d->Path))
+		return false;
+	GAutoPtr<GDirectory> Dir(FileDev->GetDir());
+	if (!Dir)
+		return false;
+
+	// Loop through files, looking for email
+	for (bool b = Dir->First(d->Path, "*.*"); b; b = Dir->Next())
 	{
-		GDirectory *Dir = FileDev->GetDir();
-		if (Dir)
+		if
+		(
+			!Dir->IsDir()
+			&&
+			(
+				MatchStr("*.eml", Dir->GetName())
+				||
+				MatchStr("*.mail", Dir->GetName())
+			)
+		)
 		{
 			for (bool b = Dir->First(d->Path, LGI_ALL_FILES); b; b = Dir->Next())
 			{
@@ -1922,12 +1939,10 @@ bool MailReceiveFolder::Open(GSocketI *S, char *RemoteHost, int Port, char *User
 					}
 				}
 			}
-			DeleteObj(Dir);
 		}
-		Status = true;
 	}
 
-	return Status;
+	return true;
 }
 
 bool MailReceiveFolder::Close()

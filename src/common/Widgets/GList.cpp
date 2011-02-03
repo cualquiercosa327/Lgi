@@ -3245,6 +3245,11 @@ void GList::Pour()
 		CompletelyVisible = 0;
 		bool SomeHidden = false;
 
+		if (Items.Length() == 4)
+		{
+			int asd=0;
+		}
+
 		ForAllItems(i)
 		{
 			if (n < FirstVisible || n > LastVisible)

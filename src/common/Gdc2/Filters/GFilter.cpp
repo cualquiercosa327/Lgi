@@ -13,6 +13,7 @@
 #include "Gdc2.h"
 #include "GString.h"
 #include "GVariant.h"
+#include "GClipBoard.h"
 
 #ifndef WIN32
 #define BI_RLE8       1L

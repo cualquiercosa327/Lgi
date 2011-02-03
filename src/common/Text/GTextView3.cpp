@@ -9,6 +9,7 @@
 #ifdef WIN32
 #include <imm.h>
 #endif
+#include "GClipBoard.h"
 
 #define SubtractPtr(a, b)			((a) - (b))
 
