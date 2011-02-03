@@ -599,6 +599,8 @@ public:
 	bool operator !=(GPalette &p);
 };
 
+#include "GColour.h"
+
 class LgiClass GBmpMem
 {
 public:

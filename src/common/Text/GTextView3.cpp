@@ -108,7 +108,7 @@ public:
 	bool LayoutDirty;
 	int DirtyStart, DirtyLen;
 	bool SimpleDelete;
-	COLOUR UrlColour32;
+	GColour UrlColour;
 	bool CenterCursor;
 	int WordSelectMode;
 
@@ -126,11 +126,11 @@ public:
 		WordSelectMode = -1;
 		PourX = -1;
 		DirtyStart = DirtyLen = 0;
-		UrlColour32 = Rgb32(0, 0, 255);
+		UrlColour.Rgb(0, 0, 255);
 		
 		uint32 c24 = 0;
 		if (_lgi_read_colour_config("colour.LC_URL", &c24))
-			UrlColour32 = Rgb24To32(c24);
+			UrlColour.c24(c24);
 
 		CenterCursor = false;
 		
@@ -360,8 +360,8 @@ GTextView3::GTextView3(	int Id,
 		{
 			*Underline = *Font;
 			Underline->Underline(true);
-			if (A32(d->UrlColour32))
-				Underline->Fore(Rgb32To24(d->UrlColour32));
+			if (!d->UrlColour.Transparent())
+				Underline->Fore(d->UrlColour.c24());
 			Underline->Create();
 		}
 
@@ -541,8 +541,8 @@ void GTextView3::SetFont(GFont *f, bool OwnIt)
 			*Underline = *Font;
 			Underline->Underline(true);
 			
-			if (A32(d->UrlColour32))
-				Underline->Fore(Rgb24To32(d->UrlColour32));
+			if (!d->UrlColour.Transparent())
+				Underline->Fore(d->UrlColour.c24());
 		}
 
 		OnFontChange();
@@ -1176,7 +1176,7 @@ void GTextView3::PourStyle(int Start, int EditSize)
 					Url->Len = Inf.Len;
 					Url->Email = Inf.Email;
 					Url->Font = Underline;
-					Url->c32 = d->UrlColour32;
+					Url->c = d->UrlColour;
 
 					InsertStyle(Url);
 				}
@@ -4194,7 +4194,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 				}
 				else
 				{
-					COLOUR c32 = A32(l->Col32) ? l->Col32 : Fore32;
+					COLOUR c32 = l->c.Transparent() ? Fore32 : l->c.c32();
 					Font->Colour(Rgb32To24(c32), Back);
 				}
 
@@ -4252,8 +4252,8 @@ void GTextView3::OnPaint(GSurface *pDC)
 						if (NextStyle->Font)
 						{
 							// draw styled text
-							if (A32(NextStyle->c32))
-								NextStyle->Font->Colour(Rgb32To24(NextStyle->c32), Back);
+							if (!NextStyle->c.Transparent())
+								NextStyle->Font->Colour(NextStyle->c.c24(), Back);
 							NextStyle->Font->Transparent(false);
 
 							LgiAssert(l->Start + Done >= 0);
@@ -4271,12 +4271,12 @@ void GTextView3::OnPaint(GSurface *pDC)
 
 							if (NextStyle->Decor == GStyle::DecorSquiggle)
 							{
-								pOut->Colour(NextStyle->DecorColour, 24);
+								pOut->Colour(NextStyle->DecorColour.c24(), 24);
 								for (int i=0; i<TextX; i++)
 									pOut->Set(Tr.x1+i, Tr.y2-(i%2));
 							}
 
-							COLOUR c32 = A32(l->Col32) ? l->Col32 : Fore32;
+							COLOUR c32 = l->c.Transparent() ? Fore32 : l->c.c32();
 							NextStyle->Font->Colour(Rgb32To24(c32), Back);
 						}
 					}
@@ -4314,7 +4314,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 						}
 						else
 						{
-							COLOUR c32 = A32(l->Col32) ? l->Col32 : Fore32;
+							COLOUR c32 = l->c.Transparent() ? Fore32 : l->c.c32();
 							Font->Colour(Rgb32To24(c32), Back);
 						}
 						NextSelection = (NextSelection == SelMin) ? SelMax : -1;

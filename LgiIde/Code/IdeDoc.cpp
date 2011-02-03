@@ -447,14 +447,14 @@ public:
 		Lut['\t'] = true;
 		
 		bool LongComment = false;
-		COLOUR CommentColour = Rgb24(0, 0x80, 0);
+		COLOUR CommentColour = Rgb32(0, 0x80, 0);
 		char16 Eoc[] = { '*', '/', 0 };
 		for (GTextLine *l=GTextView3::Line.First(); l; l=GTextView3::Line.Next())
 		{
 			char16 *s = Text + l->Start;			
 			if (LongComment)
 			{
-				l->Col = CommentColour;
+				l->Col32 = CommentColour;
 				if (StrnstrW(s, Eoc, l->Len))
 				{
 					LongComment = false;
@@ -465,17 +465,17 @@ public:
 				while (*s <= 256 AND Lut[*s]) s++;
 				if (*s == '#')
 				{
-					l->Col = Rgb24(0, 0, 222);
+					l->Col32 = Rgb32(0, 0, 222);
 				}
 				else if (s[0] == '/')
 				{
 					if (s[1] == '/')
 					{
-						l->Col = CommentColour;
+						l->Col32 = CommentColour;
 					}
 					else if (s[1] == '*')
 					{
-						l->Col = CommentColour;
+						l->Col32 = CommentColour;
 						LongComment = StrnstrW(s, Eoc, l->Len) == 0;
 					}
 				}

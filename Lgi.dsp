@@ -691,6 +691,10 @@ SOURCE=.\include\common\GXmlTree.h
 # PROP Default_Filter ""
 # Begin Source File
 
+SOURCE=.\include\common\GColour.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\src\common\Gdc2\GColourReduce.cpp
 # End Source File
 # Begin Source File

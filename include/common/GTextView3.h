@@ -64,13 +64,13 @@ public:
 		int Len;
 		/// The font to draw the styled text in
 		GFont *Font;
-		/// The colour to draw with (32 bit). If transparent, then the default 
+		/// The colour to draw with. If transparent, then the default 
 		/// line colour is used.
-		COLOUR c32;
+		GColour c;
 		/// Optional extra decor not supported by the fonts
 		StyleDecor Decor;
 		/// Colour for the optional decor.
-		COLOUR DecorColour;
+		GColour DecorColour;
 
 		/// Application base data
 		char *Data;
@@ -79,12 +79,10 @@ public:
 		{
 			Owner = owner;
 			View = 0;
-			c32 = 0;
 			Font = 0;
 			Start = -1;
 			Len = 0;
 			Decor = DecorNone;
-			DecorColour = 0;
 			Data = 0;
 		}
 
@@ -128,11 +126,13 @@ protected:
 		int Start;		// Start offset
 		int Len;		// length of text
 		GRect r;		// Screen location
-		COLOUR Col32;	// Colour of line (32 bit)... transparent (0) = default colour
+		GColour c;		// Colour of line... transparent = default colour
 
 		GTextLine()
 		{
-			Col32 = 0;
+			Start = -1;
+			Len = 0;
+			r.ZOff(-1, -1);
 		}
 		virtual ~GTextLine() {}
 		bool Overlap(int i)
