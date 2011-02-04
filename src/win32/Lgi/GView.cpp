@@ -1638,6 +1638,10 @@ int GView::OnEvent(GMessage *Msg)
 						{
 							GMouse m = lgi_adjust_click(Ms, _Over);
 							_Over->OnMouseExit(m);
+
+							#if DEBUG_OVER
+							LgiTrace("LoseOver=%p '%-20s'\n", _Over, _Over->Name());
+							#endif
 						}
 
 						_Over = MouseOver;
@@ -1645,7 +1649,7 @@ int GView::OnEvent(GMessage *Msg)
 						if (_Over)
 						{
 							#if DEBUG_OVER
-							LgiTrace("SetOver=%p '%-20s'\n", _Over, _Over->Name());
+							LgiTrace("GetOver=%p '%-20s'\n", _Over, _Over->Name());
 							#endif
 
 							GMouse m = lgi_adjust_click(Ms, _Over);
@@ -1691,12 +1695,12 @@ int GView::OnEvent(GMessage *Msg)
 						}
 						else
 						{
+							#if DEBUG_OVER
+							LgiTrace("LoseOver=%p '%-20s'\n", _Over, _Over->Name());
+							#endif
+
 							_Over->OnMouseExit(Ms);
 							_Over = 0;
-
-							#if DEBUG_OVER
-							LgiTrace("SetOver=NULL\n");
-							#endif
 						}
 					}
 				}
@@ -1727,6 +1731,10 @@ int GView::OnEvent(GMessage *Msg)
 				{
 					if (_Over)
 					{
+						#if DEBUG_OVER
+						LgiTrace("LoseOver=%p '%-20s'\n", _Over, _Over->Name());
+						#endif
+
 						GMouse m = lgi_adjust_click(Ms, _Over);
 						_Over->OnMouseExit(m);
 					}
@@ -1739,7 +1747,7 @@ int GView::OnEvent(GMessage *Msg)
 						_Over->OnMouseEnter(m);
 
 						#if DEBUG_OVER
-						LgiTrace("SetOver=%p '%-20s'\n", _Over, _Over->Name());
+						LgiTrace("GetOver=%p '%-20s'\n", _Over, _Over->Name());
 						#endif
 					}
 				}
