@@ -213,6 +213,25 @@ GRect GScreenDC::ClipRgn()
 	return Clip;
 }
 
+GColour GScreenDC::Colour(GColour c)
+{
+	GColour Prev(d->Cur, 32);
+
+	d->Cur = c.c32();
+	if (d->Ctx)
+	{
+		float r = (float)R32(d->Cur)/255.0;
+		float g = (float)G32(d->Cur)/255.0;
+		float b = (float)B32(d->Cur)/255.0;
+		float a = (float)A32(d->Cur)/255.0;
+		
+		CGContextSetRGBFillColor(d->Ctx, r, g, b, a);
+		CGContextSetRGBStrokeColor(d->Ctx, r, g, b, a);
+	}
+
+	return Prev;
+}
+
 COLOUR GScreenDC::Colour(COLOUR c, int Bits)
 {
 	COLOUR Prev = d->Cur;

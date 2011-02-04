@@ -859,7 +859,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 
 	if (!Font->Transparent())
 	{
-		COLOUR Old = pDC->Colour(Font->Back(), 24);
+		GColour Old = pDC->Colour(Font->Back());
 		if (r)
 		{
 			GRect a = r;
@@ -873,7 +873,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 		pDC->Colour(Old);
 	}
 	
-	if (Hnd AND pDC AND len > 0)
+	if (Hnd && pDC && len > 0)
 	{
 		OSStatus e;
 		OsPainter dc = pDC->Handle();
@@ -890,9 +890,9 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 		{
 			// Set style attr
 			ATSURGBAlphaColor c;
-			c.red = (double) R24(Font->Fore()) / 255.0;
-			c.green = (double) G24(Font->Fore()) / 255.0;
-			c.blue = (double) B24(Font->Fore()) / 255.0;
+			c.red = (double) Font->Fore().r() / 255.0;
+			c.green = (double) Font->Fore().g() / 255.0;
+			c.blue = (double) Font->Fore().b() / 255.0;
 			c.alpha = 1.0;
 			
 			ATSUAttributeTag Tags[]			= {kATSURGBAlphaColorTag};
