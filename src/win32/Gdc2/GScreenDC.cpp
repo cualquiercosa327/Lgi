@@ -373,6 +373,13 @@ COLOUR GScreenDC::Colour(COLOUR c, int Bits)
 	return Prev;
 }
 
+GColour GScreenDC::Colour(GColour c)
+{
+	GColour cPrev(d->Col, GetBits());
+	Colour(c.c32(), 32);
+	return cPrev;
+}
+
 int GScreenDC::Op(int Op)
 {
 	int Prev = d->Mode;

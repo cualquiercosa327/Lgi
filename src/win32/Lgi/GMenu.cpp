@@ -437,7 +437,7 @@ void GMenuItem::_PaintText(GSurface *pDC, int x, int y, int Width)
 		if (Underline)
 		{
 			int UnderX = s->X();
-			pDC->Colour(Font->Fore(), 24);
+			pDC->Colour(Font->Fore());
 			pDC->Line(x, y+s->Y()-1, x+max(s->X()-2, 1), y+s->Y()-1);
 		}
 

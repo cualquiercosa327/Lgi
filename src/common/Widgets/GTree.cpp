@@ -793,12 +793,12 @@ void GTreeItem::OnPaint(ItemPaintCtx &Ctx)
 
 			// Foreground
 			GViewFill *Fill = i->GetForegroundFill();
-			Ctx.Fore = Fill ? Fill->GetC32() : (IsSelected ? LC_SEL_TEXT : LC_TEXT);
+			Ctx.Fore = Fill ? Fill->GetFlat().c24() : (IsSelected ? LC_SEL_TEXT : LC_TEXT);
 
 			// Background	
 			Fill = i->GetBackgroundFill();
 			Ctx.Back =	Fill ?
-						Fill->GetC32() :
+						Fill->GetFlat().c24() :
 						(IsSelected ? SelBack : LC_WORKSPACE);
 
 			i->OnPaint(Ctx);
@@ -1371,12 +1371,12 @@ void GTree::OnPaint(GSurface *pDC)
 
 		// Foreground
 		GViewFill *Fill = i->GetForegroundFill();
-		Ctx.Fore = Fill ? Fill->GetC32() : (IsSelected ? LC_SEL_TEXT : LC_TEXT);
+		Ctx.Fore = Fill ? Fill->GetFlat().c24() : (IsSelected ? LC_SEL_TEXT : LC_TEXT);
 
 		// Background	
 		Fill = i->GetBackgroundFill();
 		Ctx.Back =	Fill ?
-					Fill->GetC32() :
+					Fill->GetFlat().c24() :
 					(IsSelected ? SelBack : LC_WORKSPACE);
 
 		i->OnPaint(Ctx);

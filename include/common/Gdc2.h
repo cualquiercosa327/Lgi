@@ -528,77 +528,6 @@ public:
 	int x, y, z;
 };
 
-#ifdef WIN32
-#pragma pack(push, before_pack)
-#pragma pack(1)
-#endif
-
-/// RGB Colour
-class LgiClass GdcRGB
-{
-public:
-	uchar R, G, B;
-	#ifndef MAC
-	uchar Flags;
-	#endif
-
-	void Set(uchar r, uchar g, uchar b, uchar f = 0)
-	{
-		R = r;
-		G = g;
-		B = b;
-		#ifndef MAC
-		Flags = f;
-		#endif
-	}
-};
-
-#ifdef WIN32
-#pragma pack(pop, before_pack)
-#endif
-
-/// Array of RGB colours
-class LgiClass GPalette
-{
-protected:
-	#if WIN32NATIVE
-	HPALETTE	hPal;
-	LOGPALETTE	*Data;
-	#else
-	int			Size;
-	GdcRGB		*Data;
-	#endif
-	uchar *Lut;
-
-public:
-	GPalette();
-	virtual ~GPalette();
-
-	#if WIN32NATIVE
-	HPALETTE Handle() { return hPal; }
-	#endif
-
-	GPalette(GPalette *pPal);	
-	GPalette(uchar *pPal, int s = 256);
-	void Set(GPalette *pPal);
-	void Set(uchar *pPal, int s = 256);
-
-	int GetSize();
-	GdcRGB *operator [](int i);
-	bool Update();
-	bool SetSize(int s = 256);
-	void SwapRAndB();
-	int MatchRgb(COLOUR Rgb);
-	void CreateCube();
-	void CreateGreyScale();
-	bool Load(GFile &F);
-	bool Save(GFile &F, int Format);
-	uchar *MakeLut(int Bits = 16);
-
-	bool operator ==(GPalette &p);
-	bool operator !=(GPalette &p);
-};
-
 #include "GColour.h"
 
 class LgiClass GBmpMem
@@ -841,6 +770,12 @@ public:
 		/// The bit depth of the new colour or 0 to indicate the depth is the same as the current Surface
 		int Bits = 0
 	);
+	/// Sets the current colour
+	virtual GColour Colour
+	(
+		/// The new colour
+		GColour c
+	);
 	/// Gets the current blending mode in operation
 	virtual int Op() { return (pApp) ? pApp->GetOp() : 0; }
 	/// Sets the current blending mode in operation
@@ -1032,6 +967,7 @@ public:
 
 	COLOUR Colour();
 	COLOUR Colour(COLOUR c, int Bits = 0);
+	GColour Colour(GColour c);
 
 	int Op();
 	int Op(int Op);
@@ -1296,6 +1232,7 @@ public:
 	OsPainter Handle();
 	COLOUR Colour();
 	COLOUR Colour(COLOUR c, int Bits = 0);
+	GColour Colour(GColour c);
 	GdcPt2 GetSize() { return GdcPt2(X(), Y()); }
 
 	void Set(int x, int y);

@@ -586,6 +586,25 @@ COLOUR GPrintDC::Colour()
 	return d->c;
 }
 
+GColour GPrintDC::Colour(GColour c)
+{
+	GColour Prev(d->c, 24);
+	COLOUR c24 = c.c24();
+	if (c24 != d->c)
+	{
+		d->c = c24;
+		if (d->Ps.IsOpen())
+		{
+			d->Ps.Print("%f %f %f setrgbcolor\n",
+				(double) R24(d->c) / 255.0,
+				(double) G24(d->c) / 255.0,
+				(double) B24(d->c) / 255.0);
+		}
+	}
+	
+	return Prev;
+}
+
 COLOUR GPrintDC::Colour(COLOUR c, int Bits)
 {
 	COLOUR c24 = CBit(24, c, Bits?Bits:24);

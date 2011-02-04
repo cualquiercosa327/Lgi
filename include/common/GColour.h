@@ -4,6 +4,77 @@
 #ifndef _GCOLOUR_H_
 #define _GCOLOUR_H_
 
+#ifdef WIN32
+#pragma pack(push, before_pack)
+#pragma pack(1)
+#endif
+
+/// RGB Colour
+class LgiClass GdcRGB
+{
+public:
+	uchar R, G, B;
+	#ifndef MAC
+	uchar Flags;
+	#endif
+
+	void Set(uchar r, uchar g, uchar b, uchar f = 0)
+	{
+		R = r;
+		G = g;
+		B = b;
+		#ifndef MAC
+		Flags = f;
+		#endif
+	}
+};
+
+#ifdef WIN32
+#pragma pack(pop, before_pack)
+#endif
+
+/// Palette of colours
+class LgiClass GPalette
+{
+protected:
+	#if WIN32NATIVE
+	HPALETTE	hPal;
+	LOGPALETTE	*Data;
+	#else
+	int			Size;
+	GdcRGB		*Data;
+	#endif
+	uchar *Lut;
+
+public:
+	GPalette();
+	virtual ~GPalette();
+
+	#if WIN32NATIVE
+	HPALETTE Handle() { return hPal; }
+	#endif
+
+	GPalette(GPalette *pPal);	
+	GPalette(uchar *pPal, int s = 256);
+	void Set(GPalette *pPal);
+	void Set(uchar *pPal, int s = 256);
+
+	int GetSize();
+	GdcRGB *operator [](int i);
+	bool Update();
+	bool SetSize(int s = 256);
+	void SwapRAndB();
+	int MatchRgb(COLOUR Rgb);
+	void CreateCube();
+	void CreateGreyScale();
+	bool Load(GFile &F);
+	bool Save(GFile &F, int Format);
+	uchar *MakeLut(int Bits = 16);
+
+	bool operator ==(GPalette &p);
+	bool operator !=(GPalette &p);
+};
+
 /// A colour definition
 class LgiClass GColour
 {
@@ -43,6 +114,27 @@ public:
 
 	/// Conversion from COLOUR
 	GColour(COLOUR c, int bits)
+	{
+		Set(c, bits);
+	}
+
+	bool Transparent()
+	{
+		if (space == Col32)
+			return A32(p32) == 0;
+		else if (space == Col8)
+			return !pal || p8 < pal->GetSize();
+		return true;
+	}
+
+	/// Sets the colour to a rgb(a) value
+	void Rgb(int r, int g, int b, int a = 255)
+	{
+		c32(Rgba32(r, g, b, a));
+	}
+
+	/// Sets the colour
+	void Set(COLOUR c, int bits)
 	{
 		pal = 0;
 		switch (bits)
@@ -85,20 +177,23 @@ public:
 			}
 		}
 	}
-
-	bool Transparent()
+	
+	COLOUR Get(int bits)
 	{
-		if (space == Col32)
-			return A32(p32) == 0;
-		else if (space == Col8)
-			return !pal || p8 < pal->GetSize();
-		return true;
-	}
-
-	/// Sets the colour to a rgb(a) value
-	void Rgb(int r, int g, int b, int a = 255)
-	{
-		c32(Rgba32(r, g, b, a));
+		switch (bits)
+		{
+			case 8:
+				if (space == Col8)
+					return p8;
+				LgiAssert(!"Not supported.");
+				break;
+			case 24:
+				return c24();
+			case 32:
+				return c32();
+		}
+		
+		return 0;
 	}
 
 	/// Gets the red component (0-255)

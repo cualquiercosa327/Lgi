@@ -57,7 +57,7 @@ public:
 
 protected:
 	FillType Type;
-	COLOUR c32;
+	GColour Col;
 	GSurface *pDC;
 	
 	#ifdef WIN32
@@ -65,6 +65,7 @@ protected:
 	#endif
 
 public:
+	GViewFill(GColour c);
 	GViewFill(COLOUR c, int Bits = -1);
 	GViewFill(GSurface *dc, bool Copy = true);
 	GViewFill(const GViewFill &f);
@@ -72,11 +73,11 @@ public:
 
     void Empty();
 
-    GViewFill &operator =(COLOUR col32)
+    GViewFill &operator =(GColour col)
     {
         Empty();
         Type = Solid;
-        c32 = col32;
+        Col = col;
         return *this;
     }
     
@@ -84,17 +85,17 @@ public:
     {
         Empty();
         Type = Solid;
-        c32 = Rgba32(r, g, b, a);
+        Col.Rgb(r, g, b, a);
     }
     
-	COLOUR GetC32()
+	GColour GetFlat() const
 	{
-	    return c32;
+	    return Col;
 	}
 	
 	bool IsTransparent()
 	{
-	    return Type == Solid && A32(c32) == 0;
+	    return Type == Solid && Col.a() == 0;
 	}
 	
 	void Fill(GSurface *pDC, GRect *r = 0, GdcPt2 *Origin = 0);

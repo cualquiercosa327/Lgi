@@ -1406,9 +1406,9 @@ void GListItem::OnPaint(GItem::ItemPaintCtx &Ctx)
 	{
 		GViewFill *Fill;
 		if (Fill = GetForegroundFill())
-			Ctx.Fore = Fill->GetC32();
+			Ctx.Fore = Fill->GetFlat().c24();
 		if (Fill = GetBackgroundFill())
-			Ctx.Back = Fill->GetC32();
+			Ctx.Back = Fill->GetFlat().c24();
 	}
 
 	// Icon?
@@ -3537,12 +3537,12 @@ void GList::OnPaint(GSurface *pDC)
 
 				if (Fill = i->GetForegroundFill())
 				{
-					Ctx.Fore = Fill->GetC32();
+					Ctx.Fore = Fill->GetFlat().c24();
 					LastSelected = -1;
 				}
 				if (Fill = i->GetBackgroundFill())
 				{
-					Ctx.Fore = Fill->GetC32();
+					Ctx.Fore = Fill->GetFlat().c24();
 					LastSelected = -1;
 				}
 

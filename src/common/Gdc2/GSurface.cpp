@@ -1453,6 +1453,14 @@ GRect GSurface::ClipRgn()
 	return Clip;
 }
 
+GColour GSurface::Colour(GColour c)
+{
+	LgiAssert(pApp);
+	GColour cPrev(pApp->c, GetBits());
+	pApp->c = CBit(GetBits(), c.c32(), 32);
+	return cPrev;
+}
+
 COLOUR GSurface::Colour(COLOUR c, int Bits)
 {
 	LgiAssert(pApp);

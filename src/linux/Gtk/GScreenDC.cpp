@@ -19,7 +19,7 @@ class GScreenPrivate
 public:
 	int x, y, Bits;
 	bool Own;
-	COLOUR Col;
+	GColour Col;
 	GRect Client;
 
 	OsView v;
@@ -30,7 +30,6 @@ public:
 	{
 		x = y = Bits = 0;
 		Own = false;
-		Col = 0;
 		v = 0;
 		d = 0;
 		gc = 0;
@@ -262,19 +261,38 @@ GRect GScreenDC::ClipRgn(GRect *c)
 
 COLOUR GScreenDC::Colour()
 {
-	return d->Col;
+	return d->Col.Get(GetBits());
 }
 
 COLOUR GScreenDC::Colour(COLOUR c, int Bits)
 {
 	COLOUR Prev = Colour();
 
-	d->Col = c;
+	d->Col.Set(c, Bits);
 
-	c = CBit(32, c, Bits>0 ? Bits : GdcD->GetBits());
 	if (d->gc)
 	{
+		int r = d->Col.r();
+		int g = d->Col.g();
+		int b = d->Col.b();
 		GdkColor col = { 0, (R32(c)<<8)|R32(c), (G32(c)<<8)|G32(c), (B32(c)<<8)|B32(c) };
+		gdk_gc_set_rgb_fg_color(d->gc, &col);
+		gdk_gc_set_rgb_bg_color(d->gc, &col);
+	}
+
+	return Prev;
+}
+
+GColour GScreenDC::Colour(GColour c)
+{
+	GColour Prev = d->Col;
+	d->Col = c;
+	if (d->gc)
+	{
+		int r = c.r();
+		int g = c.g();
+		int b = c.b();
+		GdkColor col = { 0, (r<<8)|r, (g<<8)|g, (b<<8)|b };
 		gdk_gc_set_rgb_fg_color(d->gc, &col);
 		gdk_gc_set_rgb_bg_color(d->gc, &col);
 	}

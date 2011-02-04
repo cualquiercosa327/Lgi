@@ -4106,7 +4106,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 		COLOUR Fore32 = Rgb24To32(LC_TEXT);
 		COLOUR Selected = LC_SELECTION;
 		GViewFill *BackFill = GetBackgroundFill();
-		COLOUR Back = (!ReadOnly) ? (BackFill ? Rgb32To24(BackFill->GetC32()) : LC_WORKSPACE) : BackColour;
+		COLOUR Back = (!ReadOnly) ? (BackFill ? BackFill->GetFlat().c24() : LC_WORKSPACE) : BackColour;
 
 		bool HasFocus = Focus();
 		if (!HasFocus)
@@ -4331,7 +4331,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 				if (EndOfLine >= SelMin && EndOfLine < SelMax)
 				{
 					// draw the '\n' at the end of the line as selected
-					pOut->Colour(Font->Back(), 24);
+					pOut->Colour(Font->Back());
 					pOut->Rectangle(Tr.x2, Tr.y1, Tr.x2+7, Tr.y2);
 					Tr.x2 += 7;
 				}

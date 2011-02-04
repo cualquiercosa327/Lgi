@@ -10,6 +10,7 @@
 #include "LgiOsClasses.h"
 #include "GLibrary.h"
 #include "GLibraryUtils.h"
+#include "GColour.h"
 
 //////////////////////////////////////////////////////////////
 // Defines
@@ -101,11 +102,13 @@ public:
 	void Quality(int i);
 	/// Sets the foreground colour as a 24 bit RGB value
 	void Fore(COLOUR c);
+	void Fore(GColour c);
 	/// Sets the background colour as a 24 bit RGB value. In most systems this is not important,
 	/// but on BeOS the anti-aliasing is done from the foreground colour to the background colour
 	/// with no regards for what is underneath the rendered text, thus you need to set the back
 	/// colour correctly
 	void Back(COLOUR c);
+	void Back(GColour c);
 	/// Sets the font's weight, use one the weight defines in GFont.h, e.g. #FW_NORMAL, #FW_BOLD
 	void SetWeight(int Weight);
 	/// Set a bold font
@@ -128,9 +131,9 @@ public:
 	/// Gets the quality setting
 	int Quality();
 	/// Gets the foreground colour in 24bit RGB.
-	COLOUR Fore();
+	GColour Fore();
 	/// Gets the background colour in 24bit RGB.
-	COLOUR Back();
+	GColour Back();
 	/// Returns the font weight.
 	int GetWeight();
 	/// Returns true if this is a bold font.
@@ -155,8 +158,8 @@ public:
 	/// \sa GTypeFace::Fore() and GTypeFace::Back()
 	virtual void Colour(COLOUR Fore, COLOUR Back = 0xFFFFFFFF);
 
-	/// Set the foreground and background in 32-bit colour.
-	virtual void Colour32(COLOUR Fore32, COLOUR Back32 = 0xFFFFFFFF);
+	/// Set the foreground and background colour.
+	virtual void Colour(GColour Fore, GColour Back);
 };
 
 /// \brief Font class.

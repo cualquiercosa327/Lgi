@@ -78,8 +78,8 @@ public:
 	int _Quality;
 
 	// Output
-	COLOUR _Fore;
-	COLOUR _Back;
+	GColour _Fore;
+	GColour _Back;
 	int _TabSize;
 	bool _Transparent;
 	bool _SubGlyphs;
@@ -96,8 +96,8 @@ public:
 		_Italic = false;
 		_Underline = false;
 		_CodePage = NewStr("utf-8");
-		_Fore = Rgb24(0, 0, 0);
-		_Back = Rgb24(255, 255, 255);
+		_Fore.Rgb(0, 0, 0);
+		_Back.Rgb(255, 255, 255);
 		_TabSize = 32;
 		_Transparent = false;
 		_SubGlyphs = GFontSystem::Inst()->GetDefaultGlyphSub();
@@ -170,13 +170,25 @@ void GTypeFace::Quality(int i)
 
 void GTypeFace::Fore(COLOUR c)
 {
-	d->_Fore = Rgb24To32(c);
+	d->_Fore.c24(c);
+	_OnPropChange(false);
+}
+
+void GTypeFace::Fore(GColour c)
+{
+	d->_Fore = c;
 	_OnPropChange(false);
 }
 
 void GTypeFace::Back(COLOUR c)
 {
-	d->_Back = Rgb24To32(c);
+	d->_Back.c24(c);
+	_OnPropChange(false);
+}
+
+void GTypeFace::Back(GColour c)
+{
+	d->_Back = c;
 	_OnPropChange(false);
 }
 
@@ -206,15 +218,15 @@ void GTypeFace::Transparent(bool i)
 
 void GTypeFace::Colour(COLOUR Fore, COLOUR Back)
 {
-	d->_Fore = Rgb24To32(Fore);
-	d->_Back = Rgb24To32(Back);
+	d->_Fore.c24(Fore);
+	d->_Back.c24(Back);
 	_OnPropChange(false);
 }
 
-void GTypeFace::Colour32(COLOUR Fore32, COLOUR Back32)
+void GTypeFace::Colour(GColour Fore, GColour Back)
 {
-	d->_Fore = Fore32;
-	d->_Back = Back32;
+	d->_Fore = Fore;
+	d->_Back = Back;
 	_OnPropChange(false);
 }
 
@@ -249,14 +261,14 @@ int GTypeFace::Quality()
 	return d->_Quality;
 }
 
-COLOUR GTypeFace::Fore()
+GColour GTypeFace::Fore()
 {
-	return Rgb32To24(d->_Fore);
+	return d->_Fore;
 }
 
-COLOUR GTypeFace::Back()
+GColour GTypeFace::Back()
 {
-	return Rgb32To24(d->_Back);
+	return d->_Back;
 }
 
 int GTypeFace::GetWeight()

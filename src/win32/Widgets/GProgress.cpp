@@ -76,13 +76,13 @@ int GProgress::OnEvent(GMessage *Msg)
 			GViewFill *f;
 			if (f = GetForegroundFill())
 			{
-				COLOUR c32 = f->GetC32();
-				PostMessage(_View, PBM_SETBARCOLOR, 0, RGB(R32(c32), G32(c32), B32(c32)));
+				GColour c = f->GetFlat();
+				PostMessage(_View, PBM_SETBARCOLOR, 0, c.c24());
 			}
 			if (f = GetBackgroundFill())
 			{
-				COLOUR c32 = f->GetC32();
-				PostMessage(_View, PBM_SETBKCOLOR, 0, RGB(R32(c32), G32(c32), B32(c32)));
+				GColour c = f->GetFlat();
+				PostMessage(_View, PBM_SETBKCOLOR, 0, c.c24());
 			}
 			break;
 		}
@@ -95,8 +95,8 @@ bool GProgress::SetForegroundFill(GViewFill *Fill)
 {
 	if (_View AND Fill)
 	{
-		COLOUR c32 = Fill->GetC32();
-		SendMessage(_View, PBM_SETBARCOLOR, 0, RGB(R32(c32), G32(c32), B32(c32)));
+		GColour c32 = Fill->GetFlat();
+		SendMessage(_View, PBM_SETBARCOLOR, 0, c32.c24());
 	}
 	else
 	{
@@ -110,8 +110,8 @@ bool GProgress::SetBackgroundFill(GViewFill *Fill)
 {
 	if (_View AND Fill)
 	{
-		COLOUR c32 = Fill->GetC32();
-		SendMessage(_View, PBM_SETBKCOLOR, 0, RGB(R32(c32), G32(c32), B32(c32)));
+		GColour c = Fill->GetFlat();
+		SendMessage(_View, PBM_SETBKCOLOR, 0, c.c24());
 	}
 	else
 	{

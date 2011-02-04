@@ -1784,11 +1784,19 @@ bool DoEvery::DoNow()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
+GViewFill::GViewFill(GColour c)
+{
+	Type = Solid;
+	Col = c;
+	#ifdef WIN32
+	hBrush = NULL;
+	#endif
+}
+
 GViewFill::GViewFill(COLOUR c, int Bits)
 {
 	Type = Solid;
-	c32 = CBit(32, c, Bits);
-
+	Col.c32(CBit(32, c, Bits));
 	#ifdef WIN32
 	hBrush = NULL;
 	#endif
@@ -1796,7 +1804,7 @@ GViewFill::GViewFill(COLOUR c, int Bits)
 
 GViewFill::GViewFill(GSurface *dc, bool Copy)
 {
-    c32 = 0;
+    Col.c32(0);
 	Type = Copy ? OwnBitmap : RefBitmap;
 	#ifndef LGI_STATIC
 	if (Copy)
@@ -1812,7 +1820,7 @@ GViewFill::GViewFill(GSurface *dc, bool Copy)
 
 GViewFill::GViewFill(const GViewFill &f)
 {
-	c32 = f.c32;
+	Col = f.GetFlat();
 	Type = f.Type;
 	if (Type == OwnBitmap)
 	{
@@ -1842,7 +1850,7 @@ void GViewFill::Empty()
 
     Type = None;
     pDC = 0;
-    c32 = 0;
+    Col.c32(0);
 
 	#ifdef WIN32
 	if (hBrush)
@@ -1858,7 +1866,7 @@ void GViewFill::Fill(GSurface *pDC, GRect *r, GdcPt2 *Origin)
 	#ifndef LGI_STATIC
 	if (Type == Solid)
 	{
-		pDC->Colour(c32, 32);
+		pDC->Colour(Col);
 		pDC->Rectangle(r);
 	}
 	else if (Type == OwnBitmap || Type == RefBitmap)
@@ -1895,7 +1903,7 @@ HBRUSH GViewFill::GetBrush()
 	{
 		LOGBRUSH LogBrush;
 		LogBrush.lbStyle = BS_SOLID;
-		LogBrush.lbColor = Rgb32To24(GetC32());
+		LogBrush.lbColor = GetFlat().c24();
 		LogBrush.lbHatch = 0;
 		hBrush = CreateBrushIndirect(&LogBrush);
 	}

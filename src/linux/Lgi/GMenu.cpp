@@ -440,7 +440,7 @@ void GMenuItem::_PaintText(GSurface *pDC, int x, int y, int Width)
 							GDisplayString ds(Font, s, 1); 
 							int UnderX = ds.X();
 							int Ascent = ceil(Font->GetAscent());
-							pDC->Colour(Font->Fore(), 24);
+							pDC->Colour(Font->Fore());
 							pDC->Line(x, y+Ascent+1, x+max(UnderX-2, 1), y+Ascent+1);
 							Underline = false;
 						}

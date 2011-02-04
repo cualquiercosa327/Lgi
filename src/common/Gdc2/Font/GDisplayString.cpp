@@ -811,7 +811,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 
 	int Ox = 0, Oy = 0;
 	pDC->GetOrigin(Ox, Oy);
-	COLOUR b = Font->Back();
+	COLOUR b = Font->Back().c24();
 	
 	Gtk::cairo_set_source_rgb(cr,
 								(double)R24(b)/255.0,
@@ -835,7 +835,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 	}
 	if (Hnd)
 	{
-	    COLOUR f = Font->Fore();
+	    COLOUR f = Font->Fore().c24();
 	    Gtk::cairo_set_source_rgb(cr,
 								    (double)R24(f)/255.0,
 								    (double)G24(f)/255.0,
@@ -1049,7 +1049,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 						if (Info[i].Str[0] == '\t')
 						{
 							// Invisible tab... draw blank space
-							pDC->Colour(Font->Back(), 24);
+							pDC->Colour(Font->Back());
 							pDC->Rectangle(&b);
 						}
 						else
@@ -1107,7 +1107,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 			Font AND
 			!Font->Transparent())
 	{
-		pDC->Colour(Font->Back(), 24);
+		pDC->Colour(Font->Back());
 		pDC->Rectangle(r);
 	}
 	
