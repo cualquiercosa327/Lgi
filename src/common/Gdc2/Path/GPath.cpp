@@ -948,7 +948,7 @@ bool GPath::Text(	GFont *Font,
 										#endif
 
 										TTPOLYCURVE *c = (TTPOLYCURVE*) (tt + 1);
-										while ((uint)c < ((uint)tt) + tt->cb)
+										while ((uint8*)c < ((uint8*)tt) + tt->cb)
 										{
 											switch (c->wType)
 											{
@@ -1176,7 +1176,7 @@ bool GPath::Flatten()
 					}
 
 					// Get the index into the array of point
-					int k = (((int)c-(int)Point)/sizeof(*c)) - 1;
+					int k = (c - Point) - 1;
 					if (k >= 0)
 					{
 						#ifdef DEBUG_LOG
@@ -1244,7 +1244,7 @@ bool GPath::Flatten()
 		}
 
 		// Calculate the number of points in the array
-		Points = (((int)c-(int)Point)/sizeof(*c));
+		Points = c - Point;
 
 		// Set the end of the points to be a full shape
 		Outline.Add(Points);
@@ -1946,7 +1946,7 @@ void GSolidBrush::Rop(GRopArgs &Args)
 		case 24:
 		{
 			Pixel24 *d = (Pixel24*) Args.Pixels;
-			Pixel24 *end = (Pixel24*) ((int)d + (Args.Len * Pixel24::Size));
+			Pixel24 *end = (Pixel24*) ((uint8*)d + (Args.Len * Pixel24::Size));
 			Pixel24 s;
 
 			s.r = R32(c32);

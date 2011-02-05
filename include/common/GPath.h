@@ -214,6 +214,12 @@ public:
 		MakeAlphaLut();
 	}
 
+	GSolidBrush(GColour c)
+	{
+		c32 = c.c32();
+		MakeAlphaLut();
+	}
+
 	GSolidBrush(int r, int g, int b, int a = 255)
 	{
 		c32 = Rgba32(r, g, b, a);
