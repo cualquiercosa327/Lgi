@@ -517,10 +517,6 @@ bool GdcGif::ReadImage(GSurface *pdc, GStream *in)
 	s = in;
 	ProcessedScanlines = 0;
 
-	#if defined(MAC) && defined(__BIG_ENDIAN__)
-	SetSwap(true);
-	#endif
-
 	if (pDC && s)
 	{
 		bad_code_count = 0;

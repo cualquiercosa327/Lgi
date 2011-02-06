@@ -254,21 +254,21 @@ GRect GMemDC::ClipRgn(GRect *Rgn)
 
 CGImg *GMemDC::GetImg(GRect *Sub)
 {
-	if (pMem)
-	{
-		uchar *rgb = pPalette ? (uchar*)((*pPalette)[0]) : 0;
-		
-		return new CGImg
-					(
-						pMem->x,
-						pMem->y,
-						pMem->Bits,
-						pMem->Line,
-						d->Data,
-						rgb,
-						Sub
-					);
-	}
+	if (!pMem)
+		return 0;
+
+	uchar *rgb = pPalette ? (uchar*)((*pPalette)[0]) : 0;
+	
+	return new CGImg
+				(
+					pMem->x,
+					pMem->y,
+					pMem->Bits,
+					pMem->Line,
+					d->Data,
+					rgb,
+					Sub
+				);
 }
 
 OsBitmap GMemDC::GetBitmap()

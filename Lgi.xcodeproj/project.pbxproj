@@ -974,7 +974,7 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
-		34BA94D80B33ADB400493CD3 /* Development */ = {
+		34BA94D80B33ADB400493CD3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
@@ -1002,9 +1002,9 @@
 				PRODUCT_NAME = Lgi;
 				WRAPPER_EXTENSION = framework;
 			};
-			name = Development;
+			name = Debug;
 		};
-		34BA94D90B33ADB400493CD3 /* Deployment */ = {
+		34BA94D90B33ADB400493CD3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COPY_PHASE_STRIP = YES;
@@ -1025,32 +1025,9 @@
 				PRODUCT_NAME = Lgi;
 				WRAPPER_EXTENSION = framework;
 			};
-			name = Deployment;
+			name = Release;
 		};
-		34BA94DA0B33ADB400493CD3 /* Default */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_1)",
-				);
-				FRAMEWORK_SEARCH_PATHS_QUOTED_1 = "\"$(SYSTEM_DEVELOPER_DIR)/SDKs/MacOSX10.4u.sdk/System/Library/Frameworks\"";
-				FRAMEWORK_VERSION = A;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = Lgi_Prefix.pch;
-				INFOPLIST_FILE = Info.plist;
-				INSTALL_PATH = "$(HOME)/Library/Frameworks";
-				LIBRARY_STYLE = DYNAMIC;
-				MACH_O_TYPE = mh_dylib;
-				PRODUCT_NAME = Lgi;
-				WRAPPER_EXTENSION = framework;
-			};
-			name = Default;
-		};
-		34BA94DC0B33ADB400493CD3 /* Development */ = {
+		34BA94DC0B33ADB400493CD3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = i386;
@@ -1068,9 +1045,9 @@
 				STRIP_INSTALLED_PRODUCT = NO;
 				USER_HEADER_SEARCH_PATHS = "include/common include/mac include/posix";
 			};
-			name = Development;
+			name = Debug;
 		};
-		34BA94DD0B33ADB400493CD3 /* Deployment */ = {
+		34BA94DD0B33ADB400493CD3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = i386;
@@ -1084,18 +1061,7 @@
 				SDKROOT = /Developer/SDKs/MacOSX10.5.sdk;
 				USER_HEADER_SEARCH_PATHS = "include/common include/mac include/posix";
 			};
-			name = Deployment;
-		};
-		34BA94DE0B33ADB400493CD3 /* Default */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = i386;
-				INSTALL_PATH = "@executable_path/../Frameworks";
-				PREBINDING = NO;
-				SDKROOT = /Developer/SDKs/MacOSX10.5.sdk;
-				USER_HEADER_SEARCH_PATHS = "include/common include/mac include/posix";
-			};
-			name = Default;
+			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
@@ -1103,22 +1069,20 @@
 		34BA94D70B33ADB400493CD3 /* Build configuration list for PBXNativeTarget "Lgi" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				34BA94D80B33ADB400493CD3 /* Development */,
-				34BA94D90B33ADB400493CD3 /* Deployment */,
-				34BA94DA0B33ADB400493CD3 /* Default */,
+				34BA94D80B33ADB400493CD3 /* Debug */,
+				34BA94D90B33ADB400493CD3 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Default;
+			defaultConfigurationName = Debug;
 		};
 		34BA94DB0B33ADB400493CD3 /* Build configuration list for PBXProject "Lgi" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				34BA94DC0B33ADB400493CD3 /* Development */,
-				34BA94DD0B33ADB400493CD3 /* Deployment */,
-				34BA94DE0B33ADB400493CD3 /* Default */,
+				34BA94DC0B33ADB400493CD3 /* Debug */,
+				34BA94DD0B33ADB400493CD3 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Default;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 	};

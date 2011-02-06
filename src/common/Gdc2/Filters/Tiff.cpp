@@ -546,6 +546,11 @@ bool GdcTiff::ProcessRead(GSurface *pDC)
 	{
 		B = Bits >= 8 ? Bits : 8;
 	}
+	
+	#ifdef MAC
+	if (B == 24)
+		B = 32;
+	#endif
 
 	if (pDC AND
 		pDC->Create(X, Y, B))
@@ -779,6 +784,27 @@ bool GdcTiff::ProcessRead(GSurface *pDC)
 										0
 										:
 										0xff;
+							}
+						}
+					}
+					else if (B == 32 && Bits == 24)
+					{
+						// Upconvert Rgb24 to Rgb32
+						for (int y=0; y<Cy; y++)
+						{
+							Pixel32 *d = (Pixel32*)(*pDC)[y];
+							Pixel24 *s = (Pixel24*)(*pDC)[y];
+							Pixel32 *e = d;
+							d += pDC->X() - 1;
+							s += pDC->X() - 1;
+							while (d >= e)
+							{
+								d->r = s->r;
+								d->g = s->g;
+								d->b = s->b;
+								d->a = 255;
+								s--;
+								d--;
 							}
 						}
 					}
