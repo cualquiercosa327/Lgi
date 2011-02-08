@@ -137,6 +137,7 @@ protected:
 
 	// Write to memory
 	uchar *Data;
+	GAutoPtr<GStream> DataStream;
 
 public:
 	FileDescriptor(GStreamI *embed, int64 Offset, int64 Size, char *Name);

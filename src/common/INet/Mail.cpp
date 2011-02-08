@@ -804,6 +804,11 @@ GStreamI *FileDescriptor::GotoObject()
 	{
 		return &File;
 	}
+	else if (Data && Size > 0)
+	{
+		DataStream.Reset(new GMemStream(Data, Size, false));
+		return DataStream;
+	}
 
 	return 0;
 }
@@ -3728,7 +3733,7 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 
 				sprintf(Buffer, "Content-Transfer-Encoding: base64\r\n\r\n");
 				Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
-				Status &= EncodeBase64(Out, *F) > 0;
+				Status &= F ? EncodeBase64(Out, *F) > 0 : false;
 			}
 
 			FileDes = FileDesc.Next();
