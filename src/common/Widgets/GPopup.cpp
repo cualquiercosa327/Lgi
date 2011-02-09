@@ -663,7 +663,6 @@ bool GPopup::Attach(GViewI *p)
 		GWindow *w = p->GetWindow();
 		if (w)
 		{
-			printf("Popup Pos: %s\n", GetPos().GetStr());
 			if (GView::Attach(w))
 			{
 				HIViewRef p = HIViewGetSuperview(_View);
@@ -673,11 +672,7 @@ bool GPopup::Attach(GViewI *p)
 					HIViewSetZOrder(_View, kHIViewZOrderAbove, 	f);
 				}
 				
-				w->DelView(this);
-				w->AddView(this, 0);
-
 				AttachChildren();
-				
 				return true;
 			}
 			else printf("%s:%i - error\n", _FL);

@@ -906,7 +906,7 @@ public:
 	/// true if the mouse event is over the view
 	bool IsOver(GMouse &m);
 	/// returns the sub window located at the point x,y	
-	GViewI *WindowFromPoint(int x, int y);
+	GViewI *WindowFromPoint(int x, int y, bool Debug = false);
 	/// Sets a timer to call the OnPulse() event
 	void SetPulse
 	(

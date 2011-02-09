@@ -400,12 +400,12 @@ bool GView::_Mouse(GMouse &m, bool Move)
 		if (First)
 		{
 			First = false;
-			// _DumpHeirarchy(GetWindow());			
-			// _Dump(0, GetWindow(), HIViewGetRoot(GetWindow()->WindowHandle()));
+			//_DumpHeirarchy(GetWindow());			
+			//_Dump(0, GetWindow(), HIViewGetRoot(GetWindow()->WindowHandle()));
 		}
 		
 		printf("_Mouse %p,%s %i,%i down=%i move=%i\n",
-			this, GetClassName(),
+			this, GetClass(),
 			m.x, m.y,
 			m.Down(), Move);
 	}

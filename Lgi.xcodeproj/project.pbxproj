@@ -116,6 +116,7 @@
 		34A3ABF70EF5AA0A009A5E95 /* GDisplayString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34A3ABF60EF5AA0A009A5E95 /* GDisplayString.cpp */; };
 		34A3ABF90EF5AA1A009A5E95 /* GDisplayString.h in Headers */ = {isa = PBXBuildFile; fileRef = 34A3ABF80EF5AA1A009A5E95 /* GDisplayString.h */; };
 		34A671970F3725860073A86C /* GContainers.h in Headers */ = {isa = PBXBuildFile; fileRef = 34A671960F3725860073A86C /* GContainers.h */; };
+		34A8A3BD1303408000CAA8DF /* GPopup.h in Headers */ = {isa = PBXBuildFile; fileRef = 34A8A3BC1303408000CAA8DF /* GPopup.h */; };
 		34ADC9E10F4CC395009C6B75 /* GAutoPtr.h in Headers */ = {isa = PBXBuildFile; fileRef = 34ADC9E00F4CC395009C6B75 /* GAutoPtr.h */; };
 		34B423820EBE762000D370A7 /* GSymLookup.h in Headers */ = {isa = PBXBuildFile; fileRef = 34B423810EBE762000D370A7 /* GSymLookup.h */; };
 		34B4A4FF0C05962100CDD0D1 /* GPrinter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34B4A4FE0C05962100CDD0D1 /* GPrinter.cpp */; };
@@ -269,6 +270,7 @@
 		34A3ABF60EF5AA0A009A5E95 /* GDisplayString.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GDisplayString.cpp; path = src/common/Gdc2/Font/GDisplayString.cpp; sourceTree = "<group>"; };
 		34A3ABF80EF5AA1A009A5E95 /* GDisplayString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GDisplayString.h; path = include/common/GDisplayString.h; sourceTree = "<group>"; };
 		34A671960F3725860073A86C /* GContainers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GContainers.h; path = include/common/GContainers.h; sourceTree = "<group>"; };
+		34A8A3BC1303408000CAA8DF /* GPopup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GPopup.h; path = include/common/GPopup.h; sourceTree = "<group>"; };
 		34ADC9E00F4CC395009C6B75 /* GAutoPtr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GAutoPtr.h; path = include/common/GAutoPtr.h; sourceTree = "<group>"; };
 		34B423810EBE762000D370A7 /* GSymLookup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GSymLookup.h; path = include/mac/GSymLookup.h; sourceTree = "<group>"; };
 		34B4A4FE0C05962100CDD0D1 /* GPrinter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GPrinter.cpp; path = src/mac/Lgi/GPrinter.cpp; sourceTree = "<group>"; };
@@ -688,6 +690,7 @@
 				34E51DAF0D2EFCCB0021AA08 /* GList.h */,
 				344D1B1C08F4A36300228075 /* GPanel.cpp */,
 				34D2CC4E08F0FB490009968C /* GPopup.cpp */,
+				34A8A3BC1303408000CAA8DF /* GPopup.h */,
 				344D1B1D08F4A36300228075 /* GProgress.cpp */,
 				344D1B1E08F4A36300228075 /* GProgressDlg.cpp */,
 				344D1B1408F4A33400228075 /* GRadioGroup.cpp */,
@@ -804,6 +807,7 @@
 				341BE443123ED1F1009BF203 /* sha1.h in Headers */,
 				34D4D55B1250AF98000DA1FD /* GHashTable.h in Headers */,
 				3478B20A12E6F87200936EFA /* GEdit.h in Headers */,
+				34A8A3BD1303408000CAA8DF /* GPopup.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

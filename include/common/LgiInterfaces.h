@@ -417,7 +417,7 @@ public:
 	virtual void PointToScreen(GdcPt2 &p) = 0;
 	virtual void PointToView(GdcPt2 &p) = 0;
 	virtual bool WindowVirtualOffset(GdcPt2 *Offset) = 0;	
-	virtual GViewI *WindowFromPoint(int x, int y) = 0;
+	virtual GViewI *WindowFromPoint(int x, int y, bool Debug = false) = 0;
 	virtual GdcPt2 &GetWindowBorderSize() = 0;
 	virtual bool IsOver(GMouse &m) = 0;
 

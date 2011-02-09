@@ -990,24 +990,22 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 					int Cx = m.x - Client.left;
 					int Cy = m.y - Client.top;
 					
-					// extern bool Debug_WindowFromPoint;
-					// Debug_WindowFromPoint = true;
 					m.Target = v->WindowFromPoint(Cx, Cy);
-					// Debug_WindowFromPoint = false;
-					
 					if (m.Target)
 					{
-						m.ToView();
-						
-						GView *v = m.Target->GetGView();
-						if (v)
+						if (v->GetWindow()->HandleViewMouse(v, m))
 						{
-							if (v->_Mouse(m, false))
-								result = noErr;
+							m.ToView();
+							GView *v = m.Target->GetGView();
+							if (v)
+							{
+								if (v->_Mouse(m, false))
+									result = noErr;
+							}
+							else printf("%s:%i - Not a GView\n", _FL);
 						}
-						else printf("%s:%i - Not a GView\n", __FILE__, __LINE__);
 					}
-					else printf("%s:%i - No target window for mouse event.\n", __FILE__, __LINE__);
+					else printf("%s:%i - No target window for mouse event.\n", _FL);
 					
 					break;
 				}
@@ -1267,6 +1265,27 @@ bool GWindow::OnRequestClose(bool OsShuttingDown)
 
 bool GWindow::HandleViewMouse(GView *v, GMouse &m)
 {
+	#ifdef MAC
+	if (m.Down())
+	{
+		GAutoPtr<GViewIterator> it(IterateViews());
+		for (GViewI *n = it->Last(); n; n = it->Prev())
+		{
+			GPopup *p = dynamic_cast<GPopup*>(n);
+			if (p)
+			{
+				GRect pos = p->GetPos();
+				if (!pos.Overlap(m.x, m.y))
+				{
+					printf("Closing Popup, m=%i,%i not over pos=%s\n", m.x, m.y, pos.GetStr());
+					p->Visible(false);
+				}
+			}
+			else break;
+		}
+	}
+	#endif
+
 	for (int i=0; i<d->Hooks.Length(); i++)
 	{
 		if (d->Hooks[i].Flags & GMouseEvents)
