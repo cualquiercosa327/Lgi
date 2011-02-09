@@ -2216,7 +2216,6 @@ bool GTextView3::DoCase(bool Upper)
 			d->SetDirty(Min, 0);
 			Invalidate();
 
-			printf("docase GTVN_DOC_CHANGED\n");
 			SendNotify(GTVN_DOC_CHANGED);
 		}
 	}

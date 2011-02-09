@@ -663,6 +663,7 @@ bool GPopup::Attach(GViewI *p)
 		GWindow *w = p->GetWindow();
 		if (w)
 		{
+			printf("Popup Pos: %s\n", GetPos().GetStr());
 			if (GView::Attach(w))
 			{
 				HIViewRef p = HIViewGetSuperview(_View);
@@ -679,11 +680,11 @@ bool GPopup::Attach(GViewI *p)
 				
 				return true;
 			}
-			else printf("%s:%i - error\n", __FILE__, __LINE__);
+			else printf("%s:%i - error\n", _FL);
 		}
-		else printf("%s:%i - error\n", __FILE__, __LINE__);
+		else printf("%s:%i - error\n", _FL);
 	}
-	else printf("%s:%i - error\n", __FILE__, __LINE__);
+	else printf("%s:%i - error\n", _FL);
 	
 	return false;
 	

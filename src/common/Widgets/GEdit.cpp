@@ -172,6 +172,13 @@ GEdit::~GEdit()
 	DeleteObj(d);
 }
 
+void GEdit::SendNotify(int Data)
+{
+	printf("GEdit::SendNotify(%i)\n", Data);
+	if (Data == GTVN_DOC_CHANGED)
+		return GTextView3::SendNotify(0);
+}
+
 void GEdit::Select(int Start, int Len)
 {
 	SetCursor(Start, false);

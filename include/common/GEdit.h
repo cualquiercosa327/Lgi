@@ -78,6 +78,7 @@ public:
 	bool NameW(char16 *s);
 	#else
 	void OnEnter(GKey &k);
+	void SendNotify(int Data);
 	#endif
 };
 
