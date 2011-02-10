@@ -64,7 +64,8 @@ uint16 GDateTime::GetDefaultFormat()
 
 		if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_SSHORTDATE, s, sizeof(s)))
 		{
-			GToken t(s, "/");
+			char Sep[] = { DefaultSeparator, '/', '\\', '-', '.', 0 };
+			GToken t(s, Sep);
 			for (int i=0; i<t.Length(); i++)
 			{
 				if (!stricmp(t[i], "mm"))

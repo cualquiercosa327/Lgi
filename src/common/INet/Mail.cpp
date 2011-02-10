@@ -2166,7 +2166,8 @@ bool MailPop3::ReadReply()
 
 		char *Cr = strchr(Buffer, '\r');
 		if (Cr) *Cr = 0;
-		Log(Buffer, (Status) ? MAIL_RECEIVE_COLOUR : MAIL_ERROR_COLOUR);
+		if (ValidStr(Buffer))
+			Log(Buffer, (Status) ? MAIL_RECEIVE_COLOUR : MAIL_ERROR_COLOUR);
 		if (Cr) *Cr = '\r';
 
 		if (!Status)
