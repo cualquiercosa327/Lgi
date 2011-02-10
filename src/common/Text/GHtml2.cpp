@@ -46,7 +46,6 @@
 #define DefaultTableBorder			GT_TRANSPARENT
 #endif
 #define DefaultTextColour			Rgb32(0, 0, 0)
-#define MinFontSize					8
 #define ShowNbsp					0
 
 static char WordDelim[]	=			".,<>/?[]{}()*&^%$#@!+|\'\"";
@@ -540,11 +539,12 @@ public:
 		}
 		else if (Size.Type == GCss::LenPt)
 		{
+			double Pt = max(MinimumPointSize, Size.Value);
 			for (f=Fonts.First(); f; f=Fonts.Next())
 			{
 				if (f->Face() &&
 					stricmp(f->Face(), Face[0]) == 0 &&
-					f->PointSize() == Size.Value &&
+					f->PointSize() == Pt &&
 					f->Bold() == IsBold &&
 					f->Italic() == IsItalic &&
 					f->Underline() == IsUnderline)
@@ -554,7 +554,7 @@ public:
 				}
 			}
 
-			PtSize = Size.Value;
+			PtSize = Pt;
 		}
 		else if (Size.Type == GCss::LenPercent)
 		{

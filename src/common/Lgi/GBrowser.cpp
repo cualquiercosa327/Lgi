@@ -398,8 +398,14 @@ GBrowser::GBrowser(char *Title, char *Uri)
 
 	if (Attach(0))
 	{
-		AddView(d->Back = new GButton(IDC_BACK, 0, 0, 30, 20, "<-"));
-		AddView(d->Forward = new GButton(IDC_FORWARD, 0, 0, 30, 20, "->"));
+		#ifdef MAC
+		#define BTN_X 50
+		#else
+		#define BTN_X 30
+		#endif
+		
+		AddView(d->Back = new GButton(IDC_BACK, 0, 0, BTN_X, 20, "<-"));
+		AddView(d->Forward = new GButton(IDC_FORWARD, 0, 0, BTN_X, 20, "->"));
 		AddView(d->Stop = new GButton(IDC_REFRESH_STOP, 0, 0, -1, 20, "Refresh"));
 		AddView(d->UriEdit = new GEdit(IDC_URI, 0, 0, 100, 20, 0));
 		AddView(d->Html = new Html2::GHtml2(IDC_HTML, 0, 0, 100, 100));
