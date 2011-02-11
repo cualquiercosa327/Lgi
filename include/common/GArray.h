@@ -81,6 +81,12 @@ public:
 	{
 		return len;
 	}
+	
+	/// Makes the length fixed..
+	void SetFixedLength()
+	{
+		fixed = true;
+	}
 
 	/// Sets the length of available entries
 	bool Length(uint32 i)
@@ -88,7 +94,10 @@ public:
 		if (i > 0)
 		{
 			if (i > len && fixed)
+			{
+				LgiAssert(!"Attempt to enlarged fixed array.");
 				return false;
+			}
 
 			uint nalloc = alloc;
 			if (i < len)
@@ -177,6 +186,8 @@ public:
 		)
 		{
 			ZeroObj(t);
+			if (fixed && i >= len)
+				LgiAssert(!"Attempt to enlarged fixed array.");
 			return t;
 		}
 		

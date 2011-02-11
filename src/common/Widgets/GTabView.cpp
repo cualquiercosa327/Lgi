@@ -190,7 +190,7 @@ bool GTabView::Attach(GViewI *parent)
 	if (Status)
 	{
 		TabIterator it(Children);
-		GTabPage *p = it[d->Current];
+		GTabPage *p = d->Current < it.Length() ? it[d->Current] : 0;
 		if (p)
 		{
 			OnPosChange();
@@ -214,7 +214,7 @@ int64 GTabView::Value()
 void GTabView::OnCreate()
 {
 	TabIterator it(Children);
-	GTabPage *p = it[d->Current];
+	GTabPage *p = d->Current < it.Length() ? it[d->Current] : 0;
 	if (p)
 	{
 		p->Attach(this);
