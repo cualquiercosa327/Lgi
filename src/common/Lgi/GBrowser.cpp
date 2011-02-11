@@ -15,7 +15,9 @@ enum {
 	IDC_URI,
 	IDC_BACK,
 	IDC_FORWARD,
-	IDC_REFRESH_STOP
+	IDC_REFRESH_STOP,
+	IDC_SEARCH_TXT,
+	IDC_SEARCH,
 };
 
 class GBrowserPriv;
@@ -60,17 +62,21 @@ public:
 	Html2::GHtml2 *Html;
 	GAutoPtr<GBrowserThread> Thread;
 	GEdit *UriEdit;
+	GEdit *SearchEdit;
 	GButton *Back;
 	GButton *Forward;
 	GButton *Stop;
+	GButton *Search;
 	GArray<GAutoString> History;
 	int CurHistory;
 	bool Loading;
+	GBrowser::GBrowserEvents *Events;
 
 	GBrowserPriv(GBrowser *wnd)
 	{
 		Wnd = wnd;
 		Html = 0;
+		Events = 0;
 		Back = Forward = 0;
 		CurHistory = 0;
 		Loading = false;
@@ -100,6 +106,11 @@ public:
 			return false;
 
 		GUri u(Uri);
+		#ifdef WIN32
+		char *ch;
+		while (ch = strchr(u.Path, '/'))
+			*ch = '\\';
+		#endif
 		bool IsFile = FileExists(u.Path);
 		bool IsHttp = false;
 
@@ -388,6 +399,8 @@ GBrowser::GBrowser(char *Title, char *Uri)
 	d->Back = 0;
 	d->Forward = 0;
 	d->UriEdit = 0;
+	d->SearchEdit = 0;
+	d->Search = 0;
 	d->Html = 0;
 	d->Stop = 0;
 	Name(Title?Title:(char*)"Browser");
@@ -408,6 +421,8 @@ GBrowser::GBrowser(char *Title, char *Uri)
 		AddView(d->Forward = new GButton(IDC_FORWARD, 0, 0, BTN_X, 20, "->"));
 		AddView(d->Stop = new GButton(IDC_REFRESH_STOP, 0, 0, -1, 20, "Refresh"));
 		AddView(d->UriEdit = new GEdit(IDC_URI, 0, 0, 100, 20, 0));
+		AddView(d->SearchEdit = new GEdit(IDC_SEARCH_TXT, 0, 0, 100, 20, ""));
+		AddView(d->Search = new GButton(IDC_SEARCH, 0, 0, -1, 20, "Search"));
 		AddView(d->Html = new Html2::GHtml2(IDC_HTML, 0, 0, 100, 100));
 
 		AttachChildren();
@@ -472,15 +487,22 @@ void GBrowser::OnPosChange()
 	GRect back = e;
 	GRect forward = e;
 	GRect stop = e;
+	GRect search_txt = e;
+	GRect search_btn = e;
+	GRect uri = e;
 	back.x2 = back.x1 + (d->Back ? d->Back->X() - 1 : 0);
 	forward.x1 = back.x2 + 1;
 	forward.x2 = forward.x1 + (d->Forward ? d->Forward->X() - 1 : 0);
 	stop.x1 = forward.x2 + 1;
 	stop.x2 = stop.x1 + (d->Stop ? d->Stop->X() - 1 : 0);
-	e.x1 = stop.x2 + 1;
+	uri.x1 = stop.x2 + 1;
+	search_btn.x1 = search_btn.x2 - d->Search->X() + 1;
+	search_txt.x2 = search_btn.x1 - 1;
+	search_txt.x1 = search_txt.x2 - 99;
+	uri.x2 = search_txt.x1 - 1;
 
-	GRect h = c;
-	h.y1 = e.y2 + 1;
+	GRect html = c;
+	html.y1 = e.y2 + 1;
 
 	if (d->Back)
 		d->Back->SetPos(back);
@@ -489,18 +511,53 @@ void GBrowser::OnPosChange()
 	if (d->Stop)
 		d->Stop->SetPos(stop);
 	if (d->UriEdit)
-		d->UriEdit->SetPos(e);
+		d->UriEdit->SetPos(uri);
+	if (d->SearchEdit)
+		d->SearchEdit->SetPos(search_txt);
+	if (d->Search)
+		d->Search->SetPos(search_btn);
 	if (d->Html)
-		d->Html->SetPos(h);
+		d->Html->SetPos(html);
+}
+
+void GBrowser::SetEvents(GBrowserEvents *Events)
+{
+	d->Events = Events;
+}
+
+bool GBrowser::SetHtml(char *Html)
+{
+	d->History.Length(++d->CurHistory);
+	d->Html->Name(Html);
+	d->UriEdit->Name(0);
+	d->Back->Enabled(d->CurHistory > 0);
+	d->Forward->Enabled(d->CurHistory < d->History.Length() - 1);
+
+	return true;
 }
 
 int GBrowser::OnNotify(GViewI *c, int f)
 {
 	switch (c->GetId())
 	{
+		case IDC_SEARCH_TXT:
+		{
+			if (f != VK_RETURN)
+				break;
+			// else fall through
+		}
+		case IDC_SEARCH:
+		{
+			if (d->Events && d->SearchEdit)
+			{
+				char *Search = d->SearchEdit->Name();
+				if (Search)
+					d->Events->OnSearch(this, Search);
+			}
+			break;
+		}
 		case IDC_URI:
 		{
-			printf("uri notify %i\n", f);
 			if (f == VK_RETURN)
 			{
 				char *u = c->Name();
