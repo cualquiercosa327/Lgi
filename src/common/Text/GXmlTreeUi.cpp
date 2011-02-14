@@ -81,6 +81,18 @@ GXmlToUi::~GXmlToUi()
 	DeleteObj(d);
 }
 
+void GXmlToUi::EmptyAll(GViewI *Ui)
+{
+	if (Ui)
+	{
+		for (Mapping *m=d->Maps.First(); m; m=d->Maps.Next())
+		{
+			if (m->Hint == GV_STRING)
+				Ui->SetCtrlName(m->Id, 0);
+		}
+	}
+}
+
 void GXmlToUi::EnableAll(GViewI *Ui, bool Enable)
 {
 	if (Ui)

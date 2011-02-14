@@ -35,6 +35,8 @@ public:
 	virtual bool Convert(GDom *Tag, GViewI *ui, bool ToUI);
 	/// Disable/enable all control
 	void EnableAll(GViewI *ui, bool Enable);
+	/// Empty all controls of text / value
+	void EmptyAll(GViewI *ui);
 };
 
 #endif

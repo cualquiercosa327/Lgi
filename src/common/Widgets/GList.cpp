@@ -2327,6 +2327,7 @@ void GList::OnMouseClick(GMouse &m)
 					else
 					{
 						bool PostSelect = false;
+						bool SelectionChanged = false;
 						
 						ForAllItems(i)
 						{
@@ -2350,7 +2351,11 @@ void GList::OnMouseClick(GMouse &m)
 							}
 							else if (!m.Modifier() || !MultiSelect())
 							{
-								i->Select(false);
+								if (i->Select())
+								{
+									i->Select(false);
+									SelectionChanged = true;
+								}
 							}
 						}
 
@@ -2365,6 +2370,11 @@ void GList::OnMouseClick(GMouse &m)
 							d->DragMode = SELECT_ITEMS;
 							SetPulse(100);
 							Capture(true);
+						}
+
+						if (SelectionChanged)
+						{
+							SendNotify(GLIST_NOTIFY_SELECT);
 						}
 					}
 
