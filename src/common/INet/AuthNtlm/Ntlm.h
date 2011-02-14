@@ -16,6 +16,9 @@ typedef unsigned char	uint8;
  * be manipulated except by the use of the routines provided
  */
 
+#include "Smb.h"
+
+/*
 typedef struct
 {
 uint16  len;
@@ -62,6 +65,7 @@ uint32        flags;
 uint8         buffer[1024];
 uint32        bufIndex;
 }tSmbNtlmAuthResponse;
+*/
 
 /* public: */
 

@@ -9,8 +9,14 @@
 #include "GDocView.h"
 
 ////////////////////////////////////////////////////////////////////////////
-#if GPL_COMPATIBLE
+#if defined(_DEBUG) || GPL_COMPATIBLE
+
+#if 0
 #include "AuthNtlm/Ntlm.h"
+#else
+#include "../../src/common/Hash/ntlm/ntlm.h"
+#endif
+
 #endif
 #if HAS_LIBGSASL
 #include "gsasl.h"
@@ -864,67 +870,98 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 							}
 						}						
 					}
-					#if GPL_COMPATIBLE
+					#if defined(_DEBUG) || GPL_COMPATIBLE
 					else if (stricmp(AuthType, "NTLM") == 0)
 					{
 						// NT Lan Man authentication
-						
-						// Username is in the format: User[@Domain]
-						char UserDom[256];
-						strcpy(UserDom, User);
-						char *Domain = strchr(UserDom, '@');
-						if (Domain)
+						OSVERSIONINFO ver;
+						ZeroObj(ver);
+						ver.dwOSVersionInfoSize = sizeof(ver);
+						if (!GetVersionEx(&ver))
 						{
-							*Domain++ = 0;
+							DWORD err = GetLastError();
+							Log("Couldn't get OS version", MAIL_ERROR_COLOUR);
 						}
 						else
 						{
-							Domain = UserDom + strlen(UserDom);
-						}
-
-						int AuthCmd = d->NextCmd++;
-						sprintf(Buf, "A%04.4i AUTHENTICATE NTLM\r\n", AuthCmd);
-						if (WriteBuf())
-						{
-							if (ReadResponse(AuthCmd))
+							#if 0
+							// Username is in the format: User[@Domain]
+							char UserDom[256];
+							strcpy(UserDom, User);
+							char *Domain = strchr(UserDom, '@');
+							if (Domain)
 							{
-								tSmbNtlmAuthRequest   request;              
-								tSmbNtlmAuthChallenge challenge;
-								tSmbNtlmAuthResponse  response;
-								char tmpstr[32];
+								*Domain++ = 0;
+							}
+							else
+							{
+								Domain = UserDom + strlen(UserDom);
+							}
 
-								buildSmbNtlmAuthRequest(&request,UserDom,Domain);
-								ZeroObj(Buf);
-								ConvertBinaryToBase64(Buf, sizeof(Buf), (uchar*) &request, SmbLength(&request));
-								strcat(Buf, "\r\n");
-								WriteBuf();
-
-								/* read challange data from server, convert from base64 */
-
-								Buf[0] = 0;
-								ClearDialog();
-								if (ReadResponse())
+							int AuthCmd = d->NextCmd++;
+							sprintf(Buf, "A%04.4i AUTHENTICATE NTLM\r\n", AuthCmd);
+							if (WriteBuf())
+							{
+								if (ReadResponse(AuthCmd, 0, true))
 								{
-									/* buffer should contain the string "+ [base 64 data]" */
+									tSmbNtlmAuthRequest   request;              
+									tSmbNtlmAuthChallenge challenge;
+									tSmbNtlmAuthResponse  response;
+									char tmpstr[32];
 
-									char *Line = Dialog.First();
-									LgiAssert(Line);
-									ChopNewLine(Line);
-									ConvertBase64ToBinary((uchar*) &challenge, sizeof(challenge), Line+2, strlen(Line)-2);
+									buildSmbNtlmAuthRequest(&request, UserDom, Domain);
+									request.osVer.Major = ver.dwMajorVersion;
+									request.osVer.Minor = ver.dwMinorVersion;
+									request.osVer.BuildNumber = ver.dwBuildNumber;
+									request.osVer.Reserved = 0x0f000000;
 
-									/* prepare response, convert to base64, send to server */
-
-									buildSmbNtlmAuthResponse(&challenge, &response, User, Password);
 									ZeroObj(Buf);
-									ConvertBinaryToBase64(Buf, sizeof(Buf), (uchar*) &response, SmbLength(&response));
+									ConvertBinaryToBase64(Buf, sizeof(Buf), (uchar*) &request, SmbLength(&request));
 									strcat(Buf, "\r\n");
 									WriteBuf();
 
-									/* read line from server, it should be "[seq] OK blah blah blah" */
+									/* read challange data from server, convert from base64 */
 
-									LoggedIn = ReadResponse(AuthCmd);
+									Buf[0] = 0;
+									ClearDialog();
+									if (ReadResponse())
+									{
+										ZeroObj(response);
+										ZeroObj(challenge);
+
+										/* buffer should contain the string "+ [base 64 data]" */
+										char *Line = Dialog.First();
+										LgiAssert(Line);
+										ChopNewLine(Line);
+										int LineLen = strlen(Line);
+										int challengeLen = sizeof(challenge);
+										int c = ConvertBase64ToBinary((uchar*) &challenge, sizeof(challenge), Line+2, LineLen-2);
+										challenge.bufIndex = c - (challenge.buffer-(uint8*)&challenge);
+
+										/* prepare response, convert to base64, send to server */
+										buildSmbNtlmAuthResponse(&challenge, &response, User, Password);
+										response.osVer.Major = ver.dwMajorVersion;
+										response.osVer.Minor = ver.dwMinorVersion;
+										response.osVer.BuildNumber = ver.dwBuildNumber;
+										response.osVer.Reserved = 0x0f000000;
+										ZeroObj(Buf);
+										c = ConvertBinaryToBase64(Buf, sizeof(Buf), (uchar*) &response, SmbLength(&response));
+										strcat(Buf, "\r\n");
+										WriteBuf();
+
+										/* read line from server, it should be "[seq] OK blah blah blah" */
+										LoggedIn = ReadResponse(AuthCmd);
+									}
 								}
 							}
+
+							#else
+
+							ntlm_msg1 msg1;
+							ntlm_msg2 msg2;
+							ntlm_msg3 msg3;
+
+							#endif
 						}
 
 						ClearDialog();
