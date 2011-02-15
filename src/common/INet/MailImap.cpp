@@ -957,7 +957,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 
 										buildSmbNtlmAuthResponse(&challenge,
 																&response,
-																username,
+																User,
 																"machine_name???",
 																0,
 																Password,
@@ -970,6 +970,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 											response.v2.version.ntlmRevisionCurrent = 0x0f;
 										}
 										
+										#if 0
 										{
 											uint8 *r1 = (uint8*)&response;
 											uint8 *r2 = (uint8*)&response_good;
@@ -981,6 +982,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 												}
 											}
 										}
+										#endif
 										
 										ZeroObj(Buf);
 										c = ConvertBinaryToBase64(Buf, sizeof(Buf), (uchar*) &response, SmbLength(&response));
