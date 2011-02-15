@@ -9,14 +9,10 @@
 #include "GDocView.h"
 
 ////////////////////////////////////////////////////////////////////////////
-#if defined(_DEBUG) || GPL_COMPATIBLE
-
-#if 0
+#if GPL_COMPATIBLE
 #include "AuthNtlm/Ntlm.h"
 #else
-#include "../../src/common/Hash/ntlm/ntlm.h"
-#endif
-
+#include "../../src/common/INet/libntlm-0.4.2/ntlm.h"
 #endif
 #if HAS_LIBGSASL
 #include "gsasl.h"
@@ -622,6 +618,11 @@ void Hex(char *Out, uchar *In, int Len = -1)
 	}
 }
 
+void _unpack(void *ptr, int ptrsize, char *b64)
+{
+	int c = ConvertBase64ToBinary((uchar*) ptr, ptrsize, b64, strlen(b64));
+}
+
 bool MailIMap::ReadLine()
 {
 	int Len = 0;
@@ -870,7 +871,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 							}
 						}						
 					}
-					#if defined(_DEBUG) || GPL_COMPATIBLE
+					#if GPL_COMPATIBLE || defined(_LIBNTLM_H)
 					else if (stricmp(AuthType, "NTLM") == 0)
 					{
 						// NT Lan Man authentication
@@ -884,7 +885,6 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 						}
 						else
 						{
-							#if 0
 							// Username is in the format: User[@Domain]
 							char UserDom[256];
 							strcpy(UserDom, User);
@@ -904,20 +904,24 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 							{
 								if (ReadResponse(AuthCmd, 0, true))
 								{
-									tSmbNtlmAuthRequest   request;              
-									tSmbNtlmAuthChallenge challenge;
-									tSmbNtlmAuthResponse  response;
+									tSmbNtlmAuthNegotiate	negotiate;              
+									tSmbNtlmAuthChallenge	challenge;
+									tSmbNtlmAuthResponse	response;
 									char tmpstr[32];
 
-									buildSmbNtlmAuthRequest(&request, UserDom, Domain);
-									request.osVer.Major = ver.dwMajorVersion;
-									request.osVer.Minor = ver.dwMinorVersion;
-									request.osVer.BuildNumber = ver.dwBuildNumber;
-									request.osVer.Reserved = 0x0f000000;
+									buildSmbNtlmAuthNegotiate(&negotiate, 0, 0);
+									if (NTLM_VER(&negotiate) == 2)
+									{
+										negotiate.v2.version.major = ver.dwMajorVersion;
+										negotiate.v2.version.minor = ver.dwMinorVersion;
+										negotiate.v2.version.buildNumber = ver.dwBuildNumber;
+										negotiate.v2.version.ntlmRevisionCurrent = 0x0f;
+									}
 
 									ZeroObj(Buf);
-									ConvertBinaryToBase64(Buf, sizeof(Buf), (uchar*) &request, SmbLength(&request));
-									strcat(Buf, "\r\n");
+									int negotiateLen = SmbLength(&negotiate);
+									int c = ConvertBinaryToBase64(Buf, sizeof(Buf), (uchar*)&negotiate, negotiateLen);
+									strcpy(Buf + c, "\r\n");
 									WriteBuf();
 
 									/* read challange data from server, convert from base64 */
@@ -926,24 +930,58 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 									ClearDialog();
 									if (ReadResponse())
 									{
-										ZeroObj(response);
-										ZeroObj(challenge);
-
 										/* buffer should contain the string "+ [base 64 data]" */
-										char *Line = Dialog.First();
-										LgiAssert(Line);
-										ChopNewLine(Line);
-										int LineLen = strlen(Line);
-										int challengeLen = sizeof(challenge);
-										int c = ConvertBase64ToBinary((uchar*) &challenge, sizeof(challenge), Line+2, LineLen-2);
-										challenge.bufIndex = c - (challenge.buffer-(uint8*)&challenge);
+
+										#if 1
+											ZeroObj(challenge);
+											char *Line = Dialog.First();
+											LgiAssert(Line);
+											ChopNewLine(Line);
+											int LineLen = strlen(Line);
+											int challengeLen = sizeof(challenge);
+											c = ConvertBase64ToBinary((uchar*) &challenge, sizeof(challenge), Line+2, LineLen-2);
+											if (NTLM_VER(&challenge) == 2)
+												challenge.v2.bufIndex = c - (challenge.v2.buffer-(uint8*)&challenge);
+											else
+												challenge.v1.bufIndex = c - (challenge.v1.buffer-(uint8*)&challenge);
+
+										#endif
+
 
 										/* prepare response, convert to base64, send to server */
-										buildSmbNtlmAuthResponse(&challenge, &response, User, Password);
-										response.osVer.Major = ver.dwMajorVersion;
-										response.osVer.Minor = ver.dwMinorVersion;
-										response.osVer.BuildNumber = ver.dwBuildNumber;
-										response.osVer.Reserved = 0x0f000000;
+										ZeroObj(response);
+										FILETIME time = {0, 0};
+										SYSTEMTIME stNow;
+										GetSystemTime(&stNow);
+										SystemTimeToFileTime(&stNow, &time);
+
+										buildSmbNtlmAuthResponse(&challenge,
+																&response,
+																username,
+																"machine_name???",
+																0,
+																Password,
+																(uint8*)&time);
+										if (NTLM_VER(&response) == 2)
+										{
+											response.v2.version.major = ver.dwMajorVersion;
+											response.v2.version.minor = ver.dwMinorVersion;
+											response.v2.version.buildNumber = ver.dwBuildNumber;
+											response.v2.version.ntlmRevisionCurrent = 0x0f;
+										}
+										
+										{
+											uint8 *r1 = (uint8*)&response;
+											uint8 *r2 = (uint8*)&response_good;
+											for (int i=0; i<sizeof(response); i++)
+											{
+												if (r1[i] != r2[i])
+												{
+													int asd=0;
+												}
+											}
+										}
+										
 										ZeroObj(Buf);
 										c = ConvertBinaryToBase64(Buf, sizeof(Buf), (uchar*) &response, SmbLength(&response));
 										strcat(Buf, "\r\n");
@@ -952,79 +990,6 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 										/* read line from server, it should be "[seq] OK blah blah blah" */
 										LoggedIn = ReadResponse(AuthCmd);
 									}
-								}
-							}
-
-							#else
-
-							ntlm_msg1 msg1;
-							ntlm_msg2 msg2;
-							ntlm_msg3 msg3;
-
-							#endif
-						}
-
-						ClearDialog();
-					}
-					#elif 0 // use the LGPL libntml
-					else if (stricmp(AuthType, "NTLM") == 0)
-					{
-						// NT Lan Man authentication
-						
-						// Username is in the format: User[@Domain]
-						char UserDom[256];
-						strcpy(UserDom, User);
-						char *Domain = strchr(UserDom, '@');
-						if (Domain)
-						{
-							*Domain++ = 0;
-						}
-						else
-						{
-							Domain = UserDom + strlen(UserDom);
-						}
-
-						int AuthCmd = d->NextCmd++;
-						sprintf(Buf, "A%04.4i AUTHENTICATE NTLM\r\n", AuthCmd);
-						if (WriteBuf())
-						{
-							if (ReadResponse(AuthCmd))
-							{
-								tSmbNtlmAuthRequest   request;              
-								tSmbNtlmAuthChallenge challenge;
-								tSmbNtlmAuthResponse  response;
-								char tmpstr[32];
-
-								buildSmbNtlmAuthRequest(&request,UserDom,Domain);
-								ZeroObj(Buf);
-								ConvertBinaryToBase64(Buf, sizeof(Buf), (uchar*) &request, SmbLength(&request));
-								strcat(Buf, "\r\n");
-								WriteBuf();
-
-								/* read challange data from server, convert from base64 */
-
-								Buf[0] = 0;
-								ClearDialog();
-								if (ReadResponse())
-								{
-									/* buffer should contain the string "+ [base 64 data]" */
-
-									char *Line = Dialog.First();
-									LgiAssert(Line);
-									ChopNewLine(Line);
-									ConvertBase64ToBinary((uchar*) &challenge, sizeof(challenge), Line+2, strlen(Line)-2);
-
-									/* prepare response, convert to base64, send to server */
-
-									buildSmbNtlmAuthResponse(&challenge, &response, User, Password);
-									ZeroObj(Buf);
-									ConvertBinaryToBase64(Buf, sizeof(Buf), (uchar*) &response, SmbLength(&response));
-									strcat(Buf, "\r\n");
-									WriteBuf();
-
-									/* read line from server, it should be "[seq] OK blah blah blah" */
-
-									LoggedIn = ReadResponse(AuthCmd);
 								}
 							}
 						}

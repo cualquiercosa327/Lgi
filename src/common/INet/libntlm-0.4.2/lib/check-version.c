@@ -23,7 +23,7 @@
 #include <config.h>
 
 #include <stddef.h>
-#include <strverscmp.h>
+#include "strverscmp.h"
 
 /* Get specification. */
 #include "check-version.h"
