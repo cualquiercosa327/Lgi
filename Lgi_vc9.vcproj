@@ -4,6 +4,7 @@
 	Version="9.00"
 	Name="Lgi_vc9"
 	ProjectGUID="{95DF9CA4-6D37-4A85-A648-80C2712E0DA1}"
+	RootNamespace="Lgi_vc9"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -17,7 +18,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory=".\Lib"
-			IntermediateDirectory=".\Release.NET"
+			IntermediateDirectory=".\$(ConfigurationName)9"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
@@ -113,7 +114,7 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory=".\Lib"
-			IntermediateDirectory=".\Debug.NET"
+			IntermediateDirectory=".\$(ConfigurationName)9"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
@@ -684,6 +685,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\common\Text\GUtf8.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\common\Text\GXmlTree.cpp"
 					>
 				</File>
@@ -707,7 +712,7 @@
 						>
 					</File>
 					<File
-						RelativePath=".\src\common\Gdc2\GFuncs.cpp"
+						RelativePath=".\src\common\Gdc2\GdcCommon.cpp"
 						>
 					</File>
 				</Filter>
@@ -845,6 +850,18 @@
 				</File>
 				<File
 					RelativePath=".\src\common\Lgi\GInput.cpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="GelSkin"
+				>
+				<File
+					RelativePath=".\src\common\Skins\Gel\Gel.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\common\Gdc2\Path\GPath.cpp"
 					>
 				</File>
 			</Filter>
