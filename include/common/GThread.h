@@ -107,7 +107,7 @@ class GThreadWorker : public GThread, public GSemaphore
 	bool Loop;
 
 public:
-	GThreadWorker(GThreadTarget *First)
+	GThreadWorker(GThreadTarget *First) : GSemaphore("GThreadWorker")
 	{
 		Loop = false;
 		if (First)
@@ -186,17 +186,17 @@ public:
 				DoJob(j);
 				if (Lock(_FL))
 				{
-					if (Owners.IndexOf(j->Owner) >= 0)
-					{
-						// Pass job back to owner.
-						j->Owner->OnDone(j);
-					}
-					else
+					if (Owners.IndexOf(j->Owner) < 0)
 					{
 						// Owner is gone already... delete the job.
 						DeleteObj(j);
 					}
 					Unlock();
+				}
+				if (j)
+				{
+					// Pass job back to owner.
+					j->Owner->OnDone(j);
 				}
 			}
 			else LgiSleep(50);

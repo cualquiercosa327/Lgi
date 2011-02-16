@@ -33,16 +33,11 @@
 
 #include "ntlm.h"
 #include "md4.h"
+#include "../../src/common/Hash/md5/md5.h"
 #include <assert.h>
 
-#ifdef NTLM_UNIQUE_MODULE
-# include "des.c"
-# include "md4.c"
-# include "smbencrypt.c"
-#else
-# include "des.h"
-# include "md4.h"
-#endif
+#include "des.h"
+#include "md4.h"
 
 char versionString[] = PACKAGE_STRING;
 
@@ -507,15 +502,13 @@ NTOWFv2(const char *password, const char *user, const char *domain, uint8 *outpu
 				output);
 }
 
-void
-buildSmbNtlmAuthResponse(tSmbNtlmAuthChallenge * challenge,
-						tSmbNtlmAuthResponse * response,
-						const char *user,
-						const char *workstation,
-						const char *domain,
-						const char *password,
-						const uint8 time[8])
-{
+#define LM_HASH_LEN 16
+#define LM_RESP_LEN 24
+
+#define NTLM_HASH_LEN 16
+#define NTLM_RESP_LEN 24
+
+/*
 	uint8 LmChallengeResponse[24];
 	uint8 NtChallengeResponse[24];
 	uint8 ClientChallenge[8] = {0, 0, 0, 0, 0, 0, 0, 0}; // yeah no idea...
@@ -567,6 +560,120 @@ buildSmbNtlmAuthResponse(tSmbNtlmAuthChallenge * challenge,
 
 		memcpy(NtChallengeResponse + 16, Temp, 8);
 	}
+*/
+
+void
+md5sum(uint8 *in, int len, uint8 *out)
+{
+	md5_state_t s;
+	md5_init(&s);
+	md5_append(&s, in, len);
+	md5_finish(&s, out);
+}
+
+bool
+NTLM_Hash(const char *password, unsigned char *hash)
+{
+	uint16 uPass[256] = {0};
+	int uPassLen = 0;
+	const char *in = password;
+	uint16 *out = uPass;
+
+	if (!password)
+		return false;
+
+	// convert password to unicode
+	while (*in)
+		*out++ = *in++ & 0x7f;
+	uPassLen = (out - uPass) * sizeof(uPass[0]);
+	*out++ = 0;
+
+	// md4 it	
+	md4_buffer((const char *)uPass, uPassLen, hash);
+	return true;
+}
+
+static uint8
+des_setkeyparity(uint8 x)
+{
+  if ((((x >> 7) ^ (x >> 6) ^ (x >> 5) ^
+        (x >> 4) ^ (x >> 3) ^ (x >> 2) ^
+        (x >> 1)) & 0x01) == 0)
+    x |= 0x01;
+  else
+    x &= 0xfe;
+  return x;
+}
+
+static void
+des_makekey(const uint8 *raw, uint8 *key)
+{
+  key[0] = des_setkeyparity(raw[0]);
+  key[1] = des_setkeyparity((uint8) ((raw[0] << 7) | (raw[1] >> 1)) );
+  key[2] = des_setkeyparity((uint8) ((raw[1] << 6) | (raw[2] >> 2)) );
+  key[3] = des_setkeyparity((uint8) ((raw[2] << 5) | (raw[3] >> 3)) );
+  key[4] = des_setkeyparity((uint8) ((raw[3] << 4) | (raw[4] >> 4)) );
+  key[5] = des_setkeyparity((uint8) ((raw[4] << 3) | (raw[5] >> 5)) );
+  key[6] = des_setkeyparity((uint8) ((raw[5] << 2) | (raw[6] >> 6)) );
+  key[7] = des_setkeyparity((uint8) (raw[6] << 1));
+}
+
+static void
+des_encrypt(const uint8 *key, const uint8 *src, uint8 *hash)
+{
+	gl_des_ctx c;
+	gl_des_setkey(&c, key);
+	gl_des_ecb_encrypt(&c, src, hash);
+}
+
+void
+LM_Response(const uint8 *hash, const uint8 *challenge, uint8 *response)
+{
+	uint8 keybytes[21], k1[8], k2[8], k3[8];
+
+	memcpy(keybytes, hash, 16);
+	memset(keybytes + 16, 0, 5);
+
+	des_makekey(keybytes     , k1);
+	des_makekey(keybytes +  7, k2);
+	des_makekey(keybytes + 14, k3);
+
+	des_encrypt(k1, challenge, response);
+	des_encrypt(k2, challenge, response + 8);
+	des_encrypt(k3, challenge, response + 16);
+}
+
+void
+buildSmbNtlmAuthResponse(tSmbNtlmAuthChallenge * challenge,
+						tSmbNtlmAuthResponse * response,
+						const char *user,
+						const char *workstation,
+						const char *domain,
+						const char *password,
+						const uint8 time[8])
+{
+
+	uint8 lmResp[LM_RESP_LEN], ntlmResp[NTLM_RESP_LEN], ntlmHash[NTLM_HASH_LEN];
+	if (challenge->v2.flagBits.NEGOTIATE_NTLM2)
+	{
+		uint8 sessionHash[16], temp[16];
+
+		GenerateRandom(lmResp, 8);
+		memset(lmResp + 8, 0, LM_RESP_LEN - 8);
+
+		memcpy(temp, challenge->v2.challengeData, 8);
+		memcpy(temp + 8, lmResp, 8);
+		md5sum(temp, 16, sessionHash);
+
+		NTLM_Hash(password, ntlmHash);
+		LM_Response(ntlmHash, sessionHash, ntlmResp);
+	}
+	else
+	{
+		NTLM_Hash(password, ntlmHash);
+		LM_Response(ntlmHash, challenge->v2.challengeData, ntlmResp);
+	}
+
 
 	response->v1.flags =	NTLMSSP_NEGOTIATE_UNICODE |
 							NTLMSSP_REQUEST_TARGET |
@@ -594,8 +701,8 @@ buildSmbNtlmAuthResponse(tSmbNtlmAuthChallenge * challenge,
 		AddString(response, workStation, workstation);
 	}
 
-	AddBytes(response, lmResponse, LmChallengeResponse, sizeof(LmChallengeResponse));
-	AddBytes(response, ntResponse, NtChallengeResponse, 24);
+	AddBytes(response, lmResponse, lmResp, sizeof(lmResp));
+	AddBytes(response, ntResponse, ntlmResp, sizeof(ntlmResp));
 	// AddString(response, sessionKey, NULL);
 }
 

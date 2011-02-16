@@ -320,6 +320,9 @@ hmac_md5
 	unsigned char *digest/* caller digest to be filled in */
 );
 
+LIBEXTERN int
+GenerateRandom(uint8 *ptr, int len);
+
 # ifdef __cplusplus
 }
 # endif

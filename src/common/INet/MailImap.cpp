@@ -23,6 +23,169 @@
 #define SkipNonWhite(s) while ((s - Buffer) < Used && !strchr(WhiteSpace, *s)) s++;
 #define ExpectChar(ch)	{ if ((s - Buffer) >= Used || *s != ch) return 0; s++; }
 
+struct StrRange
+{
+	int Start, End;
+	
+	void Set(int s, int e)
+	{
+		Start = s;
+		End = e;
+	}
+
+	int Len() { return End - Start; }
+};
+
+int ParseImapResponse(GArray<char> &Buf, int Used, GArray<StrRange> &Ranges, int Names)
+{
+	Ranges.Length(0);
+
+	if (Used <= 0)
+		return 0;
+
+	char *Buffer = &Buf[0];
+	if (*Buffer != '*')
+		return 0;
+
+	char *s = Buffer + 1;
+	char *Start;
+	for (int n=0; n<Names; n++)
+	{
+		SkipWhite(s);
+		Start = s;
+		SkipNonWhite(s);
+		if (s <= Start) return 0;
+		Ranges.New().Set(Start - Buffer, s - Buffer); // The msg seq or UID
+	}
+	
+	// Look for start of block
+	SkipWhite(s);
+	if (s[0] == '\r' &&
+		s[1] == '\n')
+	{
+		s += 2;
+		return s - Buffer;
+	}
+
+	if (*s != '(')
+		return 0;
+	s++;
+
+	// Parse fields
+	int MsgSize = 0;
+	while (s - Buffer < Used)
+	{
+		// Field name
+		SkipWhite(s);
+		if (*s == ')')
+		{
+			ExpectChar(')');
+			ExpectChar('\r');
+			ExpectChar('\n');
+			
+			MsgSize = s - Buffer;
+			LgiAssert(MsgSize <= Used);
+			break;
+		}
+
+		Start = s;
+		SkipNonWhite(s);
+		if (s <= Start)
+			return 0;
+		Ranges.New().Set(Start - Buffer, s - Buffer);
+
+		// Field value
+		SkipWhite(s);
+		if (*s == '{')
+		{
+			// Parse multiline
+			s++;
+			int Size = atoi(s);
+			while ((s - Buffer) < Used && *s != '}') s++;
+			ExpectChar('}');
+			ExpectChar('\r');
+			ExpectChar('\n');
+			Start = s;
+			s += Size;
+			if ((s - Buffer) >= Used)
+				return 0;
+			Ranges.New().Set(Start - Buffer, s - Buffer);				
+		}
+		else
+		{
+			// Parse single
+			if (*s == '(')
+			{
+				s++;
+				Start = s;
+				
+				int Depth = 1;
+				while ((s - Buffer) < Used)
+				{
+					if (*s == '\"')
+					{
+						s++;
+						while ((s - Buffer) < Used && *s != '\"')
+						{
+							s++;
+						}
+					}
+
+					if (*s == '(')
+						Depth++;
+					else if (*s == ')')
+					{
+						Depth--;
+						if (Depth == 0)
+							break;
+					}
+					s++;
+				}			
+				
+				if (*s != ')')
+					return 0;
+				Ranges.New().Set(Start - Buffer, s - Buffer);
+				s++;
+			}
+			else
+			{
+				if (*s == '\'' || *s == '\"')
+				{
+					char *Begin = s;
+					char Delim = *s++;
+					Start = s;
+					while (*s && (s - Buffer) < Used && *s != Delim)
+						s++;
+					if (*s == Delim)
+					{
+						Ranges.New().Set(Start - Buffer, s - Buffer);
+						s++;
+					}
+					else
+					{
+						// Parse error;
+						return 0;
+					}
+				}
+				else
+				{
+					Start = s;
+					while (*s && (s - Buffer) < Used)
+					{
+						if (strchr(WhiteSpace, *s) || *s == ')')
+							break;
+
+						s++;
+					}
+					Ranges.New().Set(Start - Buffer, s - Buffer);
+				}
+			}
+		}
+	}
+
+	return MsgSize;
+}
+
 ////////////////////////////////////////////////////////////////////////////
 bool MailIMap::Http(GSocketI *S,
 					GAutoString *OutHeaders,
@@ -890,13 +1053,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 							strcpy(UserDom, User);
 							char *Domain = strchr(UserDom, '@');
 							if (Domain)
-							{
 								*Domain++ = 0;
-							}
-							else
-							{
-								Domain = UserDom + strlen(UserDom);
-							}
 
 							int AuthCmd = d->NextCmd++;
 							sprintf(Buf, "A%04.4i AUTHENTICATE NTLM\r\n", AuthCmd);
@@ -955,11 +1112,14 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 										GetSystemTime(&stNow);
 										SystemTimeToFileTime(&stNow, &time);
 
+									    char HostName[256] = "";
+										gethostname(HostName, sizeof(HostName));
+
 										buildSmbNtlmAuthResponse(&challenge,
 																&response,
-																User,
-																"machine_name???",
-																0,
+																UserDom,
+																HostName,
+																Domain,
 																Password,
 																(uint8*)&time);
 										if (NTLM_VER(&response) == 2)
@@ -1242,20 +1402,31 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 						{
 							for (char *Dlg = Dialog.First(); Dlg; Dlg=Dialog.Next())
 							{
-								GToken t(Dlg, " ");
-								if (t.Length() >= 5)
+								GArray<GAutoString> t;
+								char *s = Dlg;
+								while (*s)
 								{
-									if (strcmp(t[0], "*") == 0 &&
-										stricmp(t[1], "list") == 0)
-									{
-										char *Sep = TrimStr(t[3], "\"");
-										if (Sep)
-										{
-											d->FolderSep = *Sep;
-											DeleteArray(Sep);
-										}
+									GAutoString a = ImapBasicTokenize(s);
+									if (a)
+										t.New() = a;
+									else
 										break;
+								}								
+
+								if (t.Length() >= 5 &&
+									strcmp(t[0], "*") == 0 &&
+									stricmp(t[1], "list") == 0)
+								{
+									for (int i=2; i<t.Length(); i++)
+									{
+										s = t[i];
+										if (strlen(s) == 1)
+										{
+											d->FolderSep = *s;
+											break;
+										}
 									}
+									break;
 								}
 							}
 						}
@@ -1437,171 +1608,28 @@ char *MailIMap::SequenceToString(GArray<int> *Seq)
 	return p.NewStr();
 }
 
-struct StrRange
+static void RemoveBytes(GArray<char> &a, int &Used, int Bytes)
 {
-	int Start, End;
-	
-	void Set(int s, int e)
-	{
-		Start = s;
-		End = e;
-	}
+	int Remain = Used - Bytes;
+	if (Remain > 0)
+		memmove(&a[0], &a[Bytes], Remain);
+	Used -= Bytes;
+}
 
-	int Len() { return End - Start; }
-};
-
-int ParseImapResponse(GArray<char> &Buf, int Used, GArray<StrRange> &Ranges)
+static bool PopLine(GArray<char> &a, int &Used, GAutoString &Line)
 {
-	Ranges.Length(0);
-
-	if (Used <= 0)
-		return 0;
-
-	char *Buffer = &Buf[0];
-	if (*Buffer != '*')
-		return 0;
-
-	// Parse the msg seq or UID
-	char *s = Buffer + 1;
-	SkipWhite(s);
-	char *Start = s;
-	SkipNonWhite(s);
-	if (s <= Start) return 0;
-	Ranges.New().Set(Start - Buffer, s - Buffer); // The msg seq or UID
-
-	// Parse over the response name
-	SkipWhite(s);
-	Start = s;
-	SkipNonWhite(s);
-	if (s <= Start) return 0;
-	Ranges.New().Set(Start - Buffer, s - Buffer); // The response name
-	
-	// Look for start of block
-	SkipWhite(s);
-	if (s[0] == '\r' &&
-		s[1] == '\n')
+	for (int i=0; i<Used; i++)
 	{
-		s += 2;
-		return s - Buffer;
-	}
-
-	if (*s != '(')
-		return 0;
-	s++;
-
-	// Parse fields
-	int MsgSize = 0;
-	while (s - Buffer < Used)
-	{
-		// Field name
-		SkipWhite(s);
-		if (*s == ')')
+		if (a[i] == '\n')
 		{
-			ExpectChar(')');
-			ExpectChar('\r');
-			ExpectChar('\n');
-			
-			MsgSize = s - Buffer;
-			LgiAssert(MsgSize <= Used);
-			break;
-		}
-
-		Start = s;
-		SkipNonWhite(s);
-		if (s <= Start)
-			return 0;
-		Ranges.New().Set(Start - Buffer, s - Buffer);
-
-		// Field value
-		SkipWhite(s);
-		if (*s == '{')
-		{
-			// Parse multiline
-			s++;
-			int Size = atoi(s);
-			while ((s - Buffer) < Used && *s != '}') s++;
-			ExpectChar('}');
-			ExpectChar('\r');
-			ExpectChar('\n');
-			Start = s;
-			s += Size;
-			if ((s - Buffer) >= Used)
-				return 0;
-			Ranges.New().Set(Start - Buffer, s - Buffer);				
-		}
-		else
-		{
-			// Parse single
-			if (*s == '(')
-			{
-				s++;
-				Start = s;
-				
-				int Depth = 1;
-				while ((s - Buffer) < Used)
-				{
-					if (*s == '\"')
-					{
-						s++;
-						while ((s - Buffer) < Used && *s != '\"')
-						{
-							s++;
-						}
-					}
-
-					if (*s == '(')
-						Depth++;
-					else if (*s == ')')
-					{
-						Depth--;
-						if (Depth == 0)
-							break;
-					}
-					s++;
-				}			
-				
-				if (*s != ')')
-					return 0;
-				Ranges.New().Set(Start - Buffer, s - Buffer);
-				s++;
-			}
-			else
-			{
-				if (*s == '\'' || *s == '\"')
-				{
-					char *Begin = s;
-					char Delim = *s++;
-					Start = s;
-					while (*s && (s - Buffer) < Used && *s != Delim)
-						s++;
-					if (*s == Delim)
-					{
-						Ranges.New().Set(Start - Buffer, s - Buffer);
-						s++;
-					}
-					else
-					{
-						// Parse error;
-						return 0;
-					}
-				}
-				else
-				{
-					Start = s;
-					while (*s && (s - Buffer) < Used)
-					{
-						if (strchr(WhiteSpace, *s) || *s == ')')
-							break;
-
-						s++;
-					}
-					Ranges.New().Set(Start - Buffer, s - Buffer);
-				}
-			}
+			i++;
+			Line.Reset(NewStr(&a[0], i));
+			RemoveBytes(a, Used, i);
+			return true;
 		}
 	}
 
-	return MsgSize;
+	return false;
 }
 
 bool MailIMap::Fetch(bool ByUid, char *Seq, char *Parts, FetchCallback Callback, void *UserData, GStreamI *RawCopy)
@@ -1652,7 +1680,7 @@ bool MailIMap::Fetch(bool ByUid, char *Seq, char *Parts, FetchCallback Callback,
 
 					// See if we can parse out a single response
 					GArray<StrRange> Ranges;
-					while (MsgSize = ParseImapResponse(Buf, Used, Ranges))
+					while (MsgSize = ParseImapResponse(Buf, Used, Ranges, 2))
 					{
 						char *b = &Buf[0];
 						LgiAssert(Ranges.Length() >= 2);
@@ -1702,56 +1730,40 @@ bool MailIMap::Fetch(bool ByUid, char *Seq, char *Parts, FetchCallback Callback,
 						}
 
 						// Remove this msg from buffer
-						int Remain = Used - MsgSize;
-						if (Remain > 0)
-							memmove(b, b + MsgSize, Remain);
-						Used -= MsgSize;
+						RemoveBytes(Buf, Used, MsgSize);
 					}
 
 					// Look for the end marker
 					if (Used > 0 && Buf[0] != '*')
 					{
-						GStringPipe p;
-						char Line[256];
-						p.Write(&Buf[0], Used);
+						GAutoString Line;
 						
-						do
+						while (PopLine(Buf, Used, Line))
 						{
-							while (p.Pop(Line, sizeof(Line)))
+							GToken t(Line, " \r\n");
+							if (t.Length() >= 2)
 							{
-								GToken t(Line, " \r\n");
-								if (t.Length() >= 2)
+								char *r = t[0];
+								if (*r == 'A')
 								{
-									char *r = t[0];
-									if (*r == 'A')
+									bool Status = !stricmp(t[1], "Ok");
+									int Response = atoi(r + 1);
+									Log(Line, Status ? MAIL_RECEIVE_COLOUR : MAIL_ERROR_COLOUR);
+									if (Response == Cmd)
 									{
-										int Response = atoi(r + 1);
-										if (Response == Cmd)
-										{
-											Status = !stricmp(t[1], "Ok");
-											Log(Line, Status ? MAIL_RECEIVE_COLOUR : MAIL_ERROR_COLOUR);
-											Done = true;
-											break;
-										}
-										else
-											Log(&Buf[0], MAIL_ERROR_COLOUR);
+										Done = true;
+										break;
 									}
-									else
-										Log(&Buf[0], MAIL_ERROR_COLOUR);
 								}
+								else Log(&Buf[0], MAIL_ERROR_COLOUR);
 							}
-
-							if (Done)
-								break;
-
-							r = Socket->Read(Line, sizeof(Line));
-							if (r > 0)
+							else
 							{
-								p.Push(Line, r);
+								LgiAssert(!"What happened?");
+								Done = true;
+								break;
 							}
-							else break;
 						}
-						while (Socket->IsOpen());
 					}
 				}
 				else break;
