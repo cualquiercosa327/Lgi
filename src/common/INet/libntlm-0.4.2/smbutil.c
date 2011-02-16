@@ -508,60 +508,6 @@ NTOWFv2(const char *password, const char *user, const char *domain, uint8 *outpu
 #define NTLM_HASH_LEN 16
 #define NTLM_RESP_LEN 24
 
-/*
-	uint8 LmChallengeResponse[24];
-	uint8 NtChallengeResponse[24];
-	uint8 ClientChallenge[8] = {0, 0, 0, 0, 0, 0, 0, 0}; // yeah no idea...
-	uint8 *ServerChallenge = 0;
-	uint16 BothChallenges[16];
-	uint8 ResponseKeyLM[16];
-	uint8 ResponseKeyNT[16];
-	uint8 Temp[512], *t = Temp;
-	int TempLen = 0;
-
-	if (NTLM_VER(challenge) == 2)
-		ServerChallenge = challenge->v2.challengeData;
-	else
-		ServerChallenge = challenge->v1.challengeData;
-
-	NTOWFv2(password, user, domain, ResponseKeyLM);
-	NTOWFv2(password, user, domain, ResponseKeyNT);
-
-	*t++ = 1;
-	*t++ = 1;
-	Z(6);
-	memcpy(t, time, 8);
-	t += 8;
-	memcpy(t, ClientChallenge, 8);
-	t += 8;
-	Z(4);
-	GetString(challenge, targetInfo, t);
-	t += strlen(t);
-	Z(4);
-	TempLen = t - Temp;
-	assert(TempLen < sizeof(Temp));
-
-	memcpy(BothChallenges, ServerChallenge, 8);
-	memcpy(BothChallenges + 8, ClientChallenge, 8);
-	hmac_md5(ResponseKeyLM, sizeof(ResponseKeyLM),
-			(uint8*)BothChallenges, sizeof(BothChallenges),
-			LmChallengeResponse);
-	memcpy(LmChallengeResponse + 16, ClientChallenge, 8);
-
-
-	{
-		uint8 SvrChalAndTemp[512];
-		memcpy(SvrChalAndTemp, ServerChallenge, 8);
-		memcpy(SvrChalAndTemp + 8, Temp, TempLen);
-
-		hmac_md5(ResponseKeyNT, sizeof(ResponseKeyNT),
-				(uint8*)SvrChalAndTemp, TempLen + 8,
-				NtChallengeResponse);
-
-		memcpy(NtChallengeResponse + 16, Temp, 8);
-	}
-*/
-
 void
 md5sum(uint8 *in, int len, uint8 *out)
 {

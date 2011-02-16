@@ -118,6 +118,10 @@ SOURCE=..\..\..\Hash\md5\md5.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\lib\random.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\smbencrypt.c
 # End Source File
 # Begin Source File
