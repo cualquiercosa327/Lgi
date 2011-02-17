@@ -39,6 +39,7 @@ extern void TokeniseStrList(char *Str, List<char> &Output, char *Delim);
 extern char ConvHexToBin(char c);
 #define ConvBinToHex(i) (((i)<10)?'0'+(i):'A'+(i)-10)
 extern void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *DefaultDomain);
+extern bool IsValidEmail(char *email, GAutoString *out = 0);
 extern char *DecodeRfc2047(char *Str);
 extern char *EncodeRfc2047(char *Str, char *CodePage, List<char> *CharsetPrefs, int LineLength = 0);
 extern char *DecodeBase64Str(char *Str, int Len = -1);

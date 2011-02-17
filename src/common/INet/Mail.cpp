@@ -528,11 +528,140 @@ GAutoString RemovePairs(char *Str, CharPair *Pairs)
 	return GAutoString(NewStr(s, Len));
 }
 
+bool IsValidEmail(char *email, GAutoString *out)
+{
+	// Local part
+	char *e = email;
+	char buf[321];
+	char *o = buf;
+
+	if (!e || *e == '.')
+		return false;
+
+	#define OutputChar()	\
+		if (o - buf >= sizeof(buf) - 1)	\
+			return false;	\
+		*o++ = *e++
+
+	// Local part
+	while (*e)
+	{
+		if (strchr("!#$%&\'*+-/=?^_`.{|}~", *e) ||
+			isalpha(*e) ||
+			isdigit(*e))
+		{
+			OutputChar();
+		}
+		else if (*e == '\"')
+		{
+			// Quoted string
+			OutputChar();
+
+			bool quote = false;
+			while (*e && !quote)
+			{
+				quote = *e == '\"';
+				OutputChar();
+			}
+		}
+		else if (*e == '\\')
+		{
+			// Quoted character
+			e++;
+			if (*e < ' ' || *e >= 0x7f)
+				return false;
+			OutputChar();
+		}
+		else if (*e == '@')
+		{
+			break;
+		}
+		else
+		{
+			// Illegal character
+			return false;
+		}
+	}
+
+	// Process the '@'
+	if (*e != '@' || o - buf > 64)
+		return false;
+	OutputChar();
+	
+	// Domain part...
+	if (*e == '[')
+	{
+		// IP addr
+		OutputChar();
+
+		// Initial char must by a number
+		if (!isdigit(*e))
+			return false;
+		
+		// Check the rest...
+		char *Start = e;
+		while (*e)
+		{
+			if (isdigit(*e) ||
+				*e == '.')
+			{
+				OutputChar();
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		// Not a valid IP
+		if (e - Start > 15)
+			return false;
+
+		if (*e != ']')
+			return false;
+
+		OutputChar();
+	}
+	else
+	{
+		// Hostname, check initial char
+		if (!isalpha(*e) && !isdigit(*e))
+			return false;
+		
+		// Check the rest.
+		while (*e)
+		{
+			if (isalpha(*e) ||
+				isdigit(*e) ||
+				strchr(".-", *e))
+			{
+				OutputChar();
+			}
+			else
+			{
+				return false;
+			}
+		}
+	}
+
+	// Remove any trailing dot/dash
+	while (strchr(".-", o[-1]))
+		o--;
+
+	// Output
+	*o = 0;
+	LgiAssert(o - buf <= sizeof(buf));
+	if (out)
+		out->Reset(NewStr(buf, o - buf));
+	return true;
+}
+
 void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *DefaultDomain)
 {
 	/* Testing code
 	char *Input[] =
 	{
+		"\"@MM-Social Mailman List\" <social@cisra.canon.com.au>",
 		"'Matthew Allen (fret)' <fret@memecode.com>",
 		"Matthew Allen (fret) <fret@memecode.com>",
 		"\"'Matthew Allen'\" <fret@memecode.com>",
@@ -548,13 +677,11 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
 		0
 	};
 
-	char *Name = 0;
-	char *Addr = 0;
-
+	GAutoString Name, Addr;
 	for (char **i = Input; *i; i++)
 	{
-		DecodeAddrName(*i, Name, Addr, "ozemail.com.au");
-		printf("N=%-24s A=%-24s\n", Name, Addr);
+		DecodeAddrName(*i, Name, Addr, "name.com");
+		LgiTrace("N=%-24s A=%-24s\n", Name, Addr);
 	}
 	*/
 
@@ -628,9 +755,10 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
 	int i;
 	for (i=0; i<Str.Length(); i++)
 	{
-		if (strchr(Str[i], '@'))
+		GAutoString Parsed, Trimmed = RemovePairs(Str[i], Pairs);
+		if (IsValidEmail(Trimmed, &Parsed))
 		{
-			Addr = RemovePairs(Str[i], Pairs);
+			Addr = Parsed;
 			DeleteArray(Str[i]);
 			Str.DeleteAt(i, true);
 			break;
