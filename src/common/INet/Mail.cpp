@@ -688,8 +688,6 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
 	if (!Start)
 		return;
 
-	// LgiTrace("DecodeAddrName(%s)\n", Start);
-
 	GArray<char*> Str;
 	for (char *c = Start; *c; )
 	{
@@ -752,6 +750,7 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
 		{0, 0},
 	};
 	
+	// Process the email address
 	int i;
 	for (i=0; i<Str.Length(); i++)
 	{
@@ -765,16 +764,29 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
 		}
 	}
 
-	GStringPipe n;
+	// Process the remaining parts into the name
+	GStringPipe n(256);
 	for (i=0; i<Str.Length(); i++)
 	{
-		GAutoString s = RemovePairs(Str[i], Pairs);
-		if (s)
+		GAutoString Name = RemovePairs(Str[i], Pairs);
+		if (Name)
 		{
 			if (n.GetSize())
 				n.Push(" ");
 
-			n.Push(s);
+			// De-quote the string
+			char *s = Name;
+			for (char *e = Name; e && *e; )
+			{
+				if (*e == '\\')
+				{
+					n.Write(s, e - s);
+					s = ++e;
+				}
+				else
+					e++;
+			}
+			n.Write(s, e - s);
 		}
 	}
 	Name.Reset(n.NewStr());
