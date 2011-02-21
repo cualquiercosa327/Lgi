@@ -600,37 +600,45 @@ bool GXmlTag::Dump(int Depth)
 
 GXmlAttr *GXmlTag::_Attr(char *Name, bool Wr)
 {
-	if (Name)
+	if (!Name)
+		return 0;
+
+	// Validate the name...
+	for (char *c = Name; *c; c++)
 	{
-		if (Wr && !Allocator)
+		if (!isalpha(*c) &&
+			!isdigit(*c) &&
+			!strchr("-_()", *c))
 		{
-			Allocator = new XmlNormalAlloc;
-		}
-
-		for (int i=0; i<Attr.Length(); i++)
-		{
-			GXmlAttr *a = &Attr[i];
-			if (a->Name && stricmp(a->Name, Name) == 0)
-			{
-				if (Wr)
-				{
-					Allocator->Free(a->Value);
-					a->Value = 0;
-				}
-				return a;
-			}
-		}
-
-		if (Wr)
-		{
-			// Create
-			GXmlAttr &n = Attr.New();
-			n.Name = Allocator->Alloc(Name);
-			return &n;
+			LgiAssert(!"Invalid attribute name.");
+			return 0;
 		}
 	}
 
-	return 0;
+	if (Wr && !Allocator)
+		Allocator = new XmlNormalAlloc;
+
+	for (int i=0; i<Attr.Length(); i++)
+	{
+		GXmlAttr *a = &Attr[i];
+		if (a->Name && stricmp(a->Name, Name) == 0)
+		{
+			if (Wr)
+			{
+				Allocator->Free(a->Value);
+				a->Value = 0;
+			}
+			return a;
+		}
+	}
+
+	if (!Wr)
+		return 0;
+
+	// Create
+	GXmlAttr &n = Attr.New();
+	n.Name = Allocator->Alloc(Name);
+	return &n;
 }
 
 bool GXmlTag::DelAttr(char *Name)
