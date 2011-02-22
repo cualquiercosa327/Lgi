@@ -11,7 +11,8 @@ class GDataGrid : public GList, public GDragDropSource, public GDragDropTarget
 public:
 	enum GDataGridFlags
 	{
-		GDG_READONLY = 0x1,
+		GDG_READONLY	= 0x1,
+		GDG_INTEGER		= 0x2,
 	};
 
 	typedef GListItem *(*ItemFactory)(void *userdata);
@@ -26,7 +27,7 @@ public:
 	void CanAddRecord(bool b);
 	void SetFactory(ItemFactory Func = 0, void *userdata = 0);
 	GListItem *NewItem();
-	void SetColFlag(int Col, GDataGridFlags Flags);
+	void SetColFlag(int Col, GDataGridFlags Flags, GVariant *Arg = 0);
 	IndexArray *GetDeletedItems();
 
 	// Impl

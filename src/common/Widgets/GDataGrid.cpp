@@ -1,6 +1,7 @@
 #include "Lgi.h"
 #include "GDataGrid.h"
 #include "GEdit.h"
+#include "GCombo.h"
 
 enum Controls
 {
@@ -14,10 +15,11 @@ struct GDataGridPriv
 {
 	GDataGrid *This;
 	int Col;
-	class GDataGridEdit *e;
+	GView *e;
 	GListItem *Cur;
 	bool Dirty, PosDirty;
 	GArray<GDataGrid::GDataGridFlags> Flags;
+	GArray<GVariant> ColumnArgs;
 	GListItem *NewRecord;
 	GDataGrid::ItemFactory Factory;
 	void *UserData;
@@ -89,6 +91,7 @@ public:
 						if (GetCaret() ==  0)
 						{
 							d->MoveCell(-1);
+							return true;
 						}
 						break;
 					}
@@ -106,6 +109,7 @@ public:
 						if (Cursor >= Len)
 						{
 							d->MoveCell(1);
+							return true;
 						}
 						break;
 					}
@@ -146,11 +150,24 @@ void GDataGridPriv::Save()
 {
 	if (Dirty && Cur && e)
 	{
-		char *OldTxt = e->Name();
-		if (!OldTxt && Cur == NewRecord)
-			return;
+		if (Flags[Col] & GDataGrid::GDG_INTEGER)
+		{
+			int64 OldVal = e->Value();
+			if (OldVal < 0 && Cur == NewRecord)
+				return;
 
-		Cur->SetText(OldTxt, Col);
+			char t[64];
+			sprintf(t, LGI_PrintfInt64, OldVal);
+			Cur->SetText(t, Col);
+		}
+		else
+		{
+			char *OldTxt = e->Name();
+			if (!OldTxt && Cur == NewRecord)
+				return;
+
+			Cur->SetText(OldTxt, Col);
+		}
 
 		if (Cur == NewRecord)
 		{
@@ -167,10 +184,21 @@ void GDataGridPriv::UpdatePos()
 		if (r)
 		{
 			GRect rc = *r;
-			rc.x2--;
-			rc.y2--;
+
+			if (Flags[Col] & GDataGrid::GDG_INTEGER)
+			{
+				rc.Offset(2, 0);
+			}
+			else
+			{
+				rc.x2--;
+				rc.y2--;
+			}
+
 			e->SetPos(rc);
 			e->Focus(true);
+			
+			
 			PosDirty = false;
 		}
 	}
@@ -182,7 +210,7 @@ void GDataGridPriv::Invalidate()
 	{
 		GRect p = e->GetPos();
 		p.Size(-CELL_EDGE, -CELL_EDGE);
-		This->Invalidate();
+		This->Invalidate(&p);
 	}
 }
 
@@ -209,10 +237,14 @@ void GDataGridPriv::Create(int NewCol)
 
 	if (!Cur || i != Cur || (NewCol >= 0 && NewCol != Col))
 	{
+		int OldCtrl = Flags[Col] & GDataGrid::GDG_INTEGER;
+
 		Save();
 		Cur = i;
+
 		if (NewCol >= 0)
 			Col = NewCol;
+
 		if (Flags[Col] & GDataGrid::GDG_READONLY)
 		{
 			// Pick a valid column
@@ -232,25 +264,59 @@ void GDataGridPriv::Create(int NewCol)
 			Col = NewCol;
 		}
 
+		int NewCtrl = Flags[Col] & GDataGrid::GDG_INTEGER;
+
 		char *CurText = i->GetText(Col);
 		GRect *r = i->GetPos(Col);
 		if (r)
 		{
+			GDataGridEdit *Edit = 0;
+			GCombo *Combo = 0;
 			GRect rc = r;
-			rc.x2 -= 1;
-			rc.y2 -= 1;
-			if (!e)
+			
+			if (!e || (NewCtrl ^ OldCtrl))
 			{
-				// Create edit control with the correct info for the cell
-				if (e = new GDataGridEdit(this, IDC_EDIT, rc.x1, rc.y1, rc.X(), rc.Y(), CurText))
+				if (e)
 				{
-					#if 0 // def _DEBUG
-					e->SetBackgroundFill(new GViewFill(Rgb24(255, 222, 222), 24));
-					#endif
-					e->Sunken(false);
-					e->Attach(This);
-					e->SetPos(rc);
+					Invalidate();
+					DeleteObj(e);
 				}
+
+				if (Flags[Col] & GDataGrid::GDG_INTEGER)
+				{
+					if (e = Combo = new GCombo(IDC_EDIT, rc.x1, rc.y1, rc.X(), rc.Y(), 0))
+					{
+						GVariant &e = ColumnArgs[Col];
+						if (e.Type == GV_LIST)
+						{
+							for (GVariant *v = e.Value.Lst->First(); v; v = e.Value.Lst->Next())
+							{
+								char *s = v->Str();
+								Combo->Insert(s);
+							}
+						}
+
+						if (CurText)
+							Combo->Name(CurText);
+						else
+							Combo->Value(-1);
+					}
+				}
+				else
+				{
+					rc.x2 -= 1;
+					rc.y2 -= 1;
+
+					// Create edit control with the correct info for the cell
+					if (e = Edit = new GDataGridEdit(this, IDC_EDIT, rc.x1, rc.y1, rc.X(), rc.Y(), CurText))
+					{
+						e->Sunken(false);
+					}
+				}
+
+				e->SetPos(rc);
+				e->Attach(This);
+				Invalidate();
 			}
 			else
 			{
@@ -260,7 +326,8 @@ void GDataGridPriv::Create(int NewCol)
 				Invalidate();
 			}
 
-			e->Select(0);
+			if (Edit)
+				Edit->Select(0);
 			e->Focus(true);
 		}			
 	}
@@ -394,9 +461,11 @@ int GDataGrid::OnNotify(GViewI *c, int f)
 	return GList::OnNotify(c, f);
 }
 
-void GDataGrid::SetColFlag(int Col, GDataGridFlags Flags)
+void GDataGrid::SetColFlag(int Col, GDataGridFlags Flags, GVariant *Arg)
 {
 	d->Flags[Col] = Flags;
+	if (Arg)
+		d->ColumnArgs[Col] = *Arg;
 }
 
 void GDataGrid::OnMouseWheel(double Lines)
@@ -410,7 +479,7 @@ void GDataGrid::OnPaint(GSurface *pDC)
 	GList::OnPaint(pDC);
 
 	d->UpdatePos();
-	if (d->e)
+	if (d->e && !(d->Flags[d->Col] & GDG_INTEGER))
 	{
 		pDC->Colour(LC_BLACK, 24);
 		GRect p = d->e->GetPos();
