@@ -691,6 +691,11 @@ bool GFont::Create(char *face, int height, int Param)
 	HDC hDC = (Param) ? (HDC)Param : GetDC(0);
 	int LogPixelsY = GetDeviceCaps(hDC, LOGPIXELSY);
 	int Win32Height = -MulDiv(PointSize(), LogPixelsY, 72);
+	int Cs = GTypeFace::d->_Face && stristr(GTypeFace::d->_Face, "wingdings")
+			?
+			SYMBOL_CHARSET
+			:
+			ANSI_CHARSET;
 
 	d->OwnerUnderline = Face() AND
 						stricmp(Face(), "Courier New") == 0 AND 
@@ -705,7 +710,7 @@ bool GFont::Create(char *face, int height, int Param)
 							GTypeFace::d->_Italic,
 							d->OwnerUnderline ? false : GTypeFace::d->_Underline,
 							false,
-							ANSI_CHARSET,
+							Cs,
 							OUT_DEFAULT_PRECIS,
 							CLIP_DEFAULT_PRECIS,
 							GTypeFace::d->_Quality,
