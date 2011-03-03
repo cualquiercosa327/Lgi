@@ -775,8 +775,8 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
 				n.Push(" ");
 
 			// De-quote the string
-			char *s = Name;
-			for (char *e = Name; e && *e; )
+			char *s = Name, *e;
+			for (e = Name; e && *e; )
 			{
 				if (*e == '\\')
 				{

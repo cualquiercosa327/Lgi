@@ -174,9 +174,21 @@ GEdit::~GEdit()
 
 void GEdit::SendNotify(int Data)
 {
-	printf("GEdit::SendNotify(%i)\n", Data);
 	if (Data == GTVN_DOC_CHANGED)
 		return GTextView3::SendNotify(0);
+	else if (Data == VK_RETURN)
+		return GTextView3::SendNotify(Data);
+}
+
+bool GEdit::GetSelection(int &Start, int &Len)
+{
+	int Sel = GetCursor(false);
+	Start = GetCursor();
+	if (Sel < Start)
+		Len = Start - Sel + 1;
+	else
+		Len = Sel - Start + 1;
+	return true;
 }
 
 void GEdit::Select(int Start, int Len)
