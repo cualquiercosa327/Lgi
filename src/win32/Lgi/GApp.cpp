@@ -626,7 +626,7 @@ char *GApp::GetArgumentAt(int n)
 	return 0;
 }
 
-bool GApp::GetOption(char *Option, GArray<char> &Buf)
+bool GApp::GetOption(char *Option, GAutoString &Buf)
 {
 	if (!ValidStr(Option))
 	{
@@ -662,14 +662,7 @@ bool GApp::GetOption(char *Option, GArray<char> &Buf)
 					char16 End = (*c == '\'' OR *c == '\"') ? *c++ : ' ';
 					char16 *e = StrchrW(c, End);
 					if (!e) e = c + StrlenW(c);
-					char *Arg = LgiNewUtf16To8(c, (int)e-(int)c);
-					if (Arg)
-					{
-						int ArgLen = strlen(Arg);
-						Buf.Length(ArgLen + 1);
-						strcpy(&Buf[0], Arg);
-						DeleteArray(Arg);
-					}
+					Buf.Reset(LgiNewUtf16To8(c, (int)e-(int)c));
 				}
 
 				// yeah we got the option
@@ -688,13 +681,11 @@ bool GApp::GetOption(char *Option, GArray<char> &Buf)
 
 bool GApp::GetOption(char *Option, char *Dest, int DestLen)
 {
-	GArray<char> Buf;
+	GAutoString Buf;
 	if (GetOption(Option, Buf))
 	{
 		if (Dest)
-		{
 			strsafecpy(Dest, &Buf[0], DestLen);
-		}
 		return true;
 	}
 	return false;

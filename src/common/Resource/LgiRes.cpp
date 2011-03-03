@@ -1359,15 +1359,21 @@ LgiStringRes *LgiMenuRes::GetString(GXmlTag *Tag)
 	return 0;
 }
 
-bool TagAdd(char *Tag, GHashTable &TagList)
+bool TagAdd(char *Tags, GHashTable &TagList)
 {
 	bool Add = true;
-	if (Tag)
+	if (Tags)
 	{
-		GToken t(Tag);
+		GToken t(Tags);
 		for (int i=0; i<t.Length(); i++)
 		{
-			if (!TagList.Find(t[i]))
+			char *Tag = t[i];
+			if (*Tag == '!')
+			{
+				if (TagList.Find(Tag + 1))
+					return false;
+			}
+			else if (!TagList.Find(Tag))
 			{
 				Add = false;
 				break;

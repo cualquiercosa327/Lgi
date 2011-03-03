@@ -287,7 +287,7 @@ public:
 		/// The option to look for.
 		char *Option,
 		/// The buffer to receive the value.
-		GArray<char> &Buf
+		GAutoString &Buf
 	);
 
 	/// \brief Parses the command line for a switch
