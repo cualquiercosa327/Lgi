@@ -219,9 +219,9 @@ public:
 	/// Decode a string with entities
 	char *DecodeEntities(char *s, int len = -1);
 	/// Encode a string to use entities
-	char *EncodeEntities(char *s, int len = -1);
+	char *EncodeEntities(char *s, int len = -1, char *extra_characters = 0);
 	/// Encode a string to use entities
-	bool EncodeEntities(GStreamI *out, char *s, int len);
+	bool EncodeEntities(GStreamI *out, char *s, int len, char *extra_characters = 0);
 };
 
 #endif

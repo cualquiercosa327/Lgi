@@ -2,6 +2,11 @@
 import os
 import sys
 import stat
+import subprocess
+
+def System(cmd):
+	p = subprocess.Popen(cmd)
+	
 
 def RemoveFolder(path):
 	d = os.listdir(path)
@@ -30,7 +35,9 @@ for line in tmp:
 	if line.find("LGI_VER") > 0:
 		p = line.split()
 		version = p[2].strip("\"")
-package_name = os.getcwd().split(os.sep)[-2].lower() + "-" + sys.platform + "-" + version
+package_name = os.getcwd().split(os.sep)[-2].lower() + "-" + version
+source_package_name = os.getcwd().split(os.sep)[-2].lower() + "-src-" + version
+binary_package_name = os.getcwd().split(os.sep)[-2].lower() + "-" + sys.platform + "-" + version
 out = os.path.abspath(os.getcwd() + os.sep + ".." + os.sep + package_name)
 print "Package name:", package_name
 
@@ -39,15 +46,32 @@ if not os.path.exists(out):
 if not os.path.exists(out):
 	raise AssertionError("OutDir doesn't exist.")
 
-print "Checking out Lgi..."
-RemoveFolder(out)
-r = os.system("svn co https://lgi.svn.sourceforge.net/svnroot/lgi/trunk " + out)
+if 1:
+	print "Checking out Lgi..."
+	RemoveFolder(out)
+	r = os.system("svn co https://lgi.svn.sourceforge.net/svnroot/lgi/trunk " + out)
 
-print "Striping out .svn folders..."
-RemoveSvnFolders(out)
+	print "Striping out .svn folders..."
+	RemoveSvnFolders(out)
 
-print "Create the documentation..."
-docs_folder = os.path.join(out, "docs")
-cmd = "doxygen " + os.path.join(docs_folder, "lgi.dox")
-os.chdir(docs_folder)
-os.system(cmd);
+	print "Create the documentation..."
+	docs_folder = os.path.join(out, "docs")
+	cmd = "doxygen " + os.path.join(docs_folder, "lgi.dox")
+	os.chdir(docs_folder)
+	os.system(cmd);
+
+print "Deleting non-distributable files..."
+f = os.path.join(out, "src", "linux", "Docs", "X11proto.zip")
+if os.path.exists(f):
+	os.remove(f)
+
+print "Creating source zip file..."
+zip_file = os.path.join(out, "..", source_package_name + ".zip")
+os.chdir(out)
+cmd = "\"\"c:\Program Files\WinZip\WINZIP32.EXE\" -a -r \"" + zip_file + "\" *.*\""
+if os.path.exists(zip_file):
+	os.remove(zip_file)
+System(cmd)
+
+
+print "Building the software..."

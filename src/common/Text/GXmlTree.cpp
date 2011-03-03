@@ -145,10 +145,13 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////////
-char *GXmlTree::EncodeEntities(char *s, int len)
+char *EncodeEntitiesAttr = "<>\n\"";
+char *EncodeEntitiesContent = "<>\"";
+
+char *GXmlTree::EncodeEntities(char *s, int len, char *extra_characters)
 {
 	GStringPipe p;
-	if (EncodeEntities(&p, s, len))
+	if (EncodeEntities(&p, s, len, extra_characters))
 	{
 		return p.NewStr();
 	}
@@ -156,7 +159,7 @@ char *GXmlTree::EncodeEntities(char *s, int len)
 	return 0;
 }
 
-bool GXmlTree::EncodeEntities(GStreamI *to, char *start, int len)
+bool GXmlTree::EncodeEntities(GStreamI *to, char *start, int len, char *extra_characters)
 {
 	if (!start || !to)
 		return 0;
@@ -167,10 +170,9 @@ bool GXmlTree::EncodeEntities(GStreamI *to, char *start, int len)
 	{
 		char *e = s;
 		while (	*e &&
-				*e != '\"' &&
 				*e != Amp &&
-				*e != '<' &&
-				*e != '>' &&
+				*e != '\r' &&
+				(!extra_characters || !strchr(extra_characters, *e)) &&
 				(len < 0 || e < start + len))
 			e++;
 		
@@ -188,6 +190,9 @@ bool GXmlTree::EncodeEntities(GStreamI *to, char *start, int len)
 					break;
 				case '&':
 					to->Write((char*)"&amp;", 5);
+					break;
+				case '\r':
+					// Do nothing...
 					break;
 				default:
 				{
@@ -1335,7 +1340,7 @@ void GXmlTree::Output(GXmlTag *t, int Depth)
 		GStreamPrint(d->File, " %s=\"", a.Name);
 		
 		// Encode the value
-		EncodeEntities(d->File, a.Value, -1);
+		EncodeEntities(d->File, a.Value, -1, EncodeEntitiesAttr);
 
 		// Write the delimiter
 		d->File->Write((void*)"\"", 1);
@@ -1356,7 +1361,7 @@ void GXmlTree::Output(GXmlTag *t, int Depth)
 		
 		if (HasContent)
 		{
-			EncodeEntities(d->File, t->Content, -1);
+			EncodeEntities(d->File, t->Content, -1, EncodeEntitiesContent);
 			if (c)
 			{
 				d->File->Write((char*)"\n", 1);
