@@ -201,15 +201,11 @@
 #define __LGI_H
 
 /// Library version
-#define LGI_VER								"3.2.1"
+#define LGI_VER								"3.4.0"
 
 /// \brief Define as '1' if Iconv is available else as '0'
 /// \sa http://www.gnu.org/software/libiconv
-#ifdef MAC
 #define HAS_ICONV							1
-#else
-#define HAS_ICONV							1
-#endif
 /// \brief Define as '1' if libjpeg is available else as '0'
 /// \sa http://freshmeat.net/projects/libjpeg/?topic_id=105%2C809
 #define HAS_LIBJPEG							1
