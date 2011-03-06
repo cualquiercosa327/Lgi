@@ -62,15 +62,21 @@ bool LgiGetMimeTypeExtensions(char *Mime, GArray<char*> &Ext)
 	}
 	else
 	{
-		#define HardCodeExtention(Mime, Ext1, Ext2) \
-			else if (!stricmp(Mime, Mime)) \
+		#define HardCodeExtention(mime, Ext1, Ext2) \
+			else if (!stricmp(Mime, mime)) \
 			{	if (Ext1) Ext.Add(NewStr(Ext1)); \
 				if (Ext2) Ext.Add(NewStr(Ext2)); }
 
 		if (!Mime);
 		HardCodeExtention("text/calendar", "ics", 0)
 		HardCodeExtention("text/x-vcard", "vcf", 0)
-		HardCodeExtention("text/mbox", "mbx", "mbox");
+		HardCodeExtention("text/mbox", "mbx", "mbox")
+		HardCodeExtention("text/html", "html", 0)
+		HardCodeExtention("text/plain", "txt", 0)
+		HardCodeExtention("message/rfc822", "eml", 0)
+		HardCodeExtention("audio/mpeg", "mp3", 0)
+		HardCodeExtention("application/msword", "doc", 0)
+		HardCodeExtention("application/pdf", "pdf", 0)
 	}
 
 	return Ext.Length() > Start;
