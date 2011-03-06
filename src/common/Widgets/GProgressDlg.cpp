@@ -125,7 +125,7 @@ GProgressPane::GProgressPane()
 	Children.Insert(ValText	= new GText(IDC_VALUE, 6, 22, (PANE_X - 20) / 2, 14, ""));
 	Children.Insert(Rate	= new GText(IDC_RATE, PANE_X / 2, 22, (PANE_X - 20) / 2, 14, ""));
 	Children.Insert(Bar		= new GProgress(IDC_PROGRESS, 6, 41, PANE_X - 14, 10, "Progress"));
-	Children.Insert(But		= new GButton(IDC_BUTTON, (PANE_X - 100) / 2, 59, 100, 18, "Request Abort"));
+	Children.Insert(But		= new GButton(IDC_BUTTON, (PANE_X - 100) / 2, 59, 120, 18, "Request Abort"));
 }
 
 GProgressPane::~GProgressPane()
@@ -290,20 +290,23 @@ void GProgressPane::SetDescription(char *d)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-#ifdef WIN32
-#define DefX		((GetSystemMetrics(SM_CXDLGFRAME) * 2))
-#define DefY		((GetSystemMetrics(SM_CYDLGFRAME) * 2) + GetSystemMetrics(SM_CYCAPTION))
-#else
-#define DefX		-1
-#define DefY		-1
-#endif
+// #ifdef WIN32
+// #define DefX		((GetSystemMetrics(SM_CXDLGFRAME) * 2))
+// #define DefY		((GetSystemMetrics(SM_CYDLGFRAME) * 2) + GetSystemMetrics(SM_CYCAPTION))
+// #else
+#define DefX		LgiApp->GetMetric(LGI_MET_DECOR_X)
+#define DefY		LgiApp->GetMetric(LGI_MET_DECOR_Y)
+// #endif
 
 GProgressDlg::GProgressDlg(GView *parent, bool wait)
 {
 	Wait = wait;
 	SetParent(parent);
 
-	GRect r(0, 0, DefX + PANE_X, DefY + PANE_Y * 2);
+	GRect r(0,
+			0,
+			LgiApp->GetMetric(LGI_MET_DECOR_X) + PANE_X,
+			LgiApp->GetMetric(LGI_MET_DECOR_Y) + PANE_Y * 2);
 	r.Offset(400, 400);
 	SetPos(r);
 	MoveToCenter();

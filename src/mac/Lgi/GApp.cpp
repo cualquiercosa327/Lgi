@@ -807,19 +807,17 @@ char *GApp::GetArgumentAt(int n)
 
 bool GApp::GetOption(char *Option, char *Dest, int DestLen)
 {
-	GArray<char> Buf;
+	GAutoString Buf;
 	if (GetOption(Option, Buf))
 	{
 		if (Dest)
-		{
-			strsafecpy(Dest, &Buf[0], DestLen);
-		}
+			strsafecpy(Dest, Buf, DestLen);
 		return true;
 	}
 	return false;
 }
 
-bool GApp::GetOption(char *Option, GArray<char> &Buf)
+bool GApp::GetOption(char *Option, GAutoString &Buf)
 {
 	if (IsOk() AND Option)
 	{
@@ -853,9 +851,7 @@ bool GApp::GetOption(char *Option, GArray<char> &Buf)
 								int Len = (int)End-(int)Arg;
 								if (Len > 0)
 								{
-									Buf.Length(Len + 1);
-									memcpy(&Buf[0], Arg, Len);
-									Buf[Len] = 0;
+									Buf.Reset(NewStr(Arg, Len));
 								}
 								else return false;
 							}
@@ -863,8 +859,7 @@ bool GApp::GetOption(char *Option, GArray<char> &Buf)
 						}
 						else
 						{
-							Buf.Length(strlen(Arg)+1);
-							strcpy(&Buf[0], Arg);
+							Buf.Reset(NewStr(Arg));
 						}
 					}
 

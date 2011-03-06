@@ -521,9 +521,9 @@ void GWindow::Quit(bool DontDelete)
 	if (Wnd)
 	{
 		SetDragHandlers(false);
-		// _ClearChildHandles(this);
 		OsWindow w = Wnd;
 		Wnd = 0;
+		_View = 0;
 		DisposeWindow(w);
 	}
 }
