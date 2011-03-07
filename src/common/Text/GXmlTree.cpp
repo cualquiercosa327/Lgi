@@ -112,7 +112,7 @@ public:
 	GStreamI *File;
 	char *Error;
 	int Flags;
-	GHashTbl<char*,char*> Entities;
+	GHashTbl<char*,char16> Entities;
 	GHashTable NoChildTags;
 	XmlPoolAlloc *Allocator;
 	
@@ -129,9 +129,11 @@ public:
 		StyleFile = 0;
 		StyleType = 0;
 
-		Entities.Add("lt", NewStr("<"));
-		Entities.Add("gt", NewStr(">"));
-		Entities.Add("amp", NewStr("&"));
+		Entities.Add("lt", '<');
+		Entities.Add("gt", '>');
+		Entities.Add("amp", '&');
+		Entities.Add("quot", '\"');
+		Entities.Add("apos", '\'');
 	}
 	
 	~GXmlTreePrivate()
@@ -140,13 +142,12 @@ public:
 		DeleteArray(StyleType);
 		DeleteArray(StyleFile);
 		LgiAssert(Allocator == 0);		
-		Entities.DeleteArrays();
 	}
 };
 
 //////////////////////////////////////////////////////////////////////////////
-char *EncodeEntitiesAttr = "<>\n\"";
-char *EncodeEntitiesContent = "<>\"";
+char *EncodeEntitiesAttr	= "\'<>\"\n";
+char *EncodeEntitiesContent	= "\'<>\"";
 
 char *GXmlTree::EncodeEntities(char *s, int len, char *extra_characters)
 {
@@ -190,6 +191,12 @@ bool GXmlTree::EncodeEntities(GStreamI *to, char *start, int len, char *extra_ch
 					break;
 				case '&':
 					to->Write((char*)"&amp;", 5);
+					break;
+				case '\'':
+					to->Write((char*)"&apos;", 6);
+					break;
+				case '\"':
+					to->Write((char*)"&quot;", 6);
 					break;
 				case '\r':
 					// Do nothing...
@@ -239,13 +246,10 @@ char *GXmlTree::DecodeEntities(char *s, int len)
 					e++;
 					char16 c16;
 					if (*e == 'x')
-					{
 						c16 = htoi(++e);
-					}
 					else
-					{
 						c16 = atoi(e);
-					}
+
 					char *c8 = LgiNewUtf16To8(&c16, sizeof(char16));
 					if (c8)
 					{
@@ -257,25 +261,24 @@ char *GXmlTree::DecodeEntities(char *s, int len)
 				}
 				else
 				{
-					char *Def = 0;
+					int len;
 					char *Col = strchr(e, ';');
-					if (Col && (Col - e) < 16)
+					char16 Def = 0;
+					if (Col && (len = (Col - e)) < 16)
 					{
-						*Col = 0;
-						Def = (char*)d->Entities.Find(e);
-						*Col = ';';
+						char tmp[16];
+						memcpy(tmp, e, len);
+						tmp[len] = 0;
+						Def = d->Entities.Find(tmp);
 						if (Def)
 						{
-							p.Push(Def);
+							LgiAssert(Def <= 0xff);
+							uchar u = Def;
+							p.Write(&u, 1);
 							s = Col + 1;
 						}
-						else
-						{
-							p.Write((char*)"&", 1);
-							s = e;
-						}
 					}
-					else
+					if (!Def)
 					{
 						p.Write((char*)"&", 1);
 						s = e;
@@ -1230,7 +1233,11 @@ bool GXmlTree::Read(GXmlTag *Root, GStreamI *File, GXmlFactory *Factory)
 												Value.Name &&
 												!d->Entities.Find(Ent.Name))
 											{
-												d->Entities.Add(Ent.Name, NewStr(Value.Name));
+												GVariant v(Value.Name);
+												char16 *w = v.WStr();
+												if (w)
+													d->Entities.Add(Ent.Name, *w);
+
 											}
 										}
 									}
@@ -1435,7 +1442,7 @@ GHashTable *GXmlTree::NoChildTags()
 	return &d->NoChildTags;
 }
 
-GHashTbl<char*,char*> *GXmlTree::GetEntityTable()
+GHashTbl<char*,char16> *GXmlTree::GetEntityTable()
 {
 	return &d->Entities;
 }

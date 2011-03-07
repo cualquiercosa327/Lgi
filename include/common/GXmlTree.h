@@ -215,7 +215,7 @@ public:
 	void SetStyleFile(char *stylefile, char *styletype = "text/css");
 
 	/// Add entities
-	GHashTbl<char*,char*> *GetEntityTable();
+	GHashTbl<char*,char16> *GetEntityTable();
 	/// Decode a string with entities
 	char *DecodeEntities(char *s, int len = -1);
 	/// Encode a string to use entities
