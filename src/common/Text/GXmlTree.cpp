@@ -237,7 +237,15 @@ char *GXmlTree::DecodeEntities(char *s, int len)
 				if (*e == '#')
 				{
 					e++;
-					char16 c16 = atoi(e);
+					char16 c16;
+					if (*e == 'x')
+					{
+						c16 = htoi(++e);
+					}
+					else
+					{
+						c16 = atoi(e);
+					}
 					char *c8 = LgiNewUtf16To8(&c16, sizeof(char16));
 					if (c8)
 					{
