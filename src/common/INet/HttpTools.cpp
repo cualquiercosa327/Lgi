@@ -318,9 +318,7 @@ GXmlTag *WebPage::GetRoot(GStream *Log)
 			GStringPipe p;
 			p.Push(Html);
 			
-			// t.GetEntityTable()->Add("amp", (void*)NewStr("&"));
-			t.GetEntityTable()->Add("quot", NewStr("\'"));
-			t.GetEntityTable()->Add("nbsp", NewStr(" "));
+			t.GetEntityTable()->Add("nbsp", ' ');
 			
 			if (!t.Read(Parsed, &p, 0) && Log)
 			{
