@@ -58,6 +58,13 @@ class ResDialogUi;
 	void cls::OnMouseClick(GMouse &m) { ResDialogCtrl::OnMouseClick(m); } \
 	void cls::OnMouseMove(GMouse &m) { ResDialogCtrl::OnMouseMove(m); }
 
+enum DlgSelectMode
+{
+	SelNone,
+	SelSet,
+	SelAdd,
+};
+
 class ResDialogCtrl : public FieldSource, public ResObject
 {
 	friend class ResDialog;
@@ -78,7 +85,7 @@ protected:
 	GRect DragRgn;
 	GdcPt2 DragStart;
 	bool MoveCtrl;
-	int SelectMode;
+	DlgSelectMode SelectMode;
 	GRect SelectStart;
 
 	bool AcceptChildren;
@@ -351,8 +358,6 @@ public:
 class CtrlTab : public ResDialogCtrl, public GView
 {
 public:
-	GRect r;
-
 	CtrlTab(ResDialog *dlg, GXmlTag *load);
 
 	DECL_DIALOG_CTRL(UI_TAB)

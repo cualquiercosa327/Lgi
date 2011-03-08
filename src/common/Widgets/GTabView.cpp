@@ -799,7 +799,7 @@ bool GTabPage::OnKey(GKey &k)
 
 bool GTabPage::LoadFromResource(int Res)
 {
-	char n[256] = "";
+	GAutoString n;
 
 	GViewIterator *ch = IterateViews();
 	if (ch)
@@ -813,7 +813,7 @@ bool GTabPage::LoadFromResource(int Res)
 		DeleteObj(ch);
 	}
 	
-	bool Status = GLgiRes::LoadFromResource(Res, this, 0, n);
+	bool Status = GLgiRes::LoadFromResource(Res, this, 0, &n);
 	if (ValidStr(n))
 		Name(n);
 

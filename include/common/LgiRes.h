@@ -16,7 +16,7 @@ public:
 	int Id;
 	char *Str;
 	char *Tag;
-	bool IsString;
+	// bool IsString;
 
 	LgiStringRes(LgiResources *res);
 	~LgiStringRes();
@@ -45,10 +45,10 @@ public:
 class LgiClass LgiMenuRes : public GBase
 {
 	LgiResources *Res;
+	GHashTbl<int, LgiStringRes*> Strings;
 
 public:
 	GXmlTag *Tag;
-	List<LgiStringRes> Strings;
 
 	LgiMenuRes(LgiResources *res);
 	~LgiMenuRes();
@@ -75,7 +75,6 @@ class LgiClass LgiResources : public ResFactory
 
 public:
 	GHashTbl<char*, char*> LanguageNames;
-	List<LgiStringRes> Strings;
 
 	LgiResources(char *FileName = 0, bool Warn = false);
 	virtual ~LgiResources();
@@ -84,8 +83,9 @@ public:
 	bool LoadDialog(int Resource,
 					GViewI *Parent,
 					GRect *Pos = 0,
-					char *Name = 0,
-					GEventsI *ScriptEngine = 0);
+					GAutoString *Name = 0,
+					GEventsI *ScriptEngine = 0,
+					char *Tags = 0);
 	LgiStringRes *StrFromRef(int Ref);
 	char *StringFromRef(int Ref);
 	char *StringFromId(int Ref);
@@ -103,7 +103,7 @@ public:
 	void Res_SetPos(ResObject *Obj, char *s);
 	GRect Res_GetPos(ResObject *Obj);
 	int Res_GetStrRef(ResObject *Obj);
-	void Res_SetStrRef(ResObject *Obj, int Ref);
+	bool Res_SetStrRef(ResObject *Obj, int Ref, ResReadCtx *Ctx);
 	void Res_Attach(ResObject *Obj, ResObject *Parent);
 	bool Res_GetChildren(ResObject *Obj, List<ResObject> *l, bool Deep);
 	void Res_Append(ResObject *Obj, ResObject *Parent);

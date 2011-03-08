@@ -366,8 +366,8 @@ Results::Results(AppWnd *app, Search *params)
 	
 	GLgiRes r;
 	GRect p;
-	char n[256] = "";
-	if (r.LoadFromResource(IDD_RESULTS, this, &p, n))
+	GAutoString n;
+	if (r.LoadFromResource(IDD_RESULTS, this, &p, &n))
 	{
 		SetPos(p);
 		MoveToCenter();

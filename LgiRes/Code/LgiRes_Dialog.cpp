@@ -280,7 +280,7 @@ ResDialogCtrl::ResDialogCtrl(ResDialog *dlg, char *CtrlTypeName, GXmlTag *load) 
 	MoveCtrl = false;
 	Vis = true;
 	Client.ZOff(-1, -1);
-	SelectMode = 0;
+	SelectMode = SelNone;
 	SelectStart.ZOff(-1, -1);
 
 	if (load)
@@ -438,9 +438,11 @@ void ResDialogCtrl::TabString(char *Str)
 
 GRect ResDialogCtrl::AbsPos()
 {
-	GRect r(0, 0, View()->X()-1, View()->Y()-1);
+	GViewI *w = View();
+	GRect r = w->GetPos();
+	r.Offset(-r.x1, -r.y1);
 
-	for (GViewI *w = View(); w && w != Dlg; w = w->GetParent())
+	for (; w && w != Dlg; w = w->GetParent())
 	{
 		GRect pos = w->GetPos();
 		if (w->GetParent())
@@ -661,7 +663,7 @@ void ResDialogCtrl::OnMouseClick(GMouse &m)
 						}
 					}
 
-					SelectMode = (m.Shift()) ? 2 : 1;
+					SelectMode = (m.Shift()) ? SelAdd : SelSet;
 					SelectStart = View()->GetPos();
 				}
 			}
@@ -752,7 +754,7 @@ void ResDialogCtrl::OnMouseClick(GMouse &m)
 			{
 				if (DragCtrl == 0)
 				{
-					Dlg->SelectRect(this, &DragRgn, SelectMode != 2);
+					Dlg->SelectRect(this, &DragRgn, SelectMode != SelAdd);
 				}
 				else
 				{
@@ -782,14 +784,14 @@ void ResDialogCtrl::OnMouseClick(GMouse &m)
 			MoveCtrl = false;
 		}
 		
-		if (SelectMode > 0)
+		if (SelectMode > SelNone)
 		{
 			GRect r = View()->GetPos();
 			if (SelectStart == r)
 			{
-				Dlg->OnSelect(this, SelectMode != 2);
+				Dlg->OnSelect(this, SelectMode != SelAdd);
 			}
-			SelectMode = 0;
+			SelectMode = SelNone;
 		}
 	}
 }
@@ -1457,7 +1459,7 @@ void CtrlTabs::OnPaint(GSurface *pDC)
 			}
 		}
 
-		Tab->r = t;
+		Tab->View()->SetPos(t);
 
 		pDC->Colour(LC_LIGHT, 24);
 		pDC->Line(t.x1, t.y1+2, t.x1, t.y2);
@@ -1543,15 +1545,16 @@ void CtrlTabs::OnMouseClick(GMouse &m)
 			int i = 0;
 			for (CtrlTab *Tab = Tabs.First(); Tab; Tab = Tabs.Next(), i++)
 			{
-				if (Tab->r.Overlap(m.x, m.y) &&
-					i != Current)
+				if (Tab->View()->GetPos().Overlap(m.x, m.y) /* && i != Current*/)
 				{
 					ToTab();
 					Current = i;
 					FromTab();
 
-					Dlg->OnSelect(this);
+					Dlg->OnSelect(Tab);
 					Invalidate();
+
+					return;
 				}
 			}
 		}
@@ -1666,6 +1669,10 @@ void CtrlTabs::OnMouseClick(GMouse &m)
 
 			return;
 		}
+	}
+	else
+	{
+		int asd=0;
 	}
 
 	ResDialogCtrl::OnMouseClick(m);
@@ -2889,7 +2896,8 @@ void ResDialog::Paste()
 						CreateSymbols = false;
 						ResDialogCtrl *Ctrl = dynamic_cast<ResDialogCtrl*>(CreateCtrl(t));
 						CreateSymbols = true;
-						if (Ctrl && Res_Read(Ctrl, t))
+						ResReadCtx Ctx;
+						if (Ctrl && Res_Read(Ctrl, t, Ctx))
 						{
 							NewCtrls.Insert(Ctrl);
 						}
@@ -3695,7 +3703,8 @@ bool ResDialog::Read(GXmlTag *t, ResFileFormat Format)
 		// Dlg->Str = 0;
 
 		// Load the resource
-		Status = Res_Read(Dlg, t);
+		ResReadCtx Ctx;
+		Status = Res_Read(Dlg, t, Ctx);
 		Item->Update();
 	}
 

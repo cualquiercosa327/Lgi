@@ -64,7 +64,7 @@ public:
 	bool Load(	class LgiMenuRes *MenuRes,
 				GXmlTag *Tag,
 				ResFileFormat Format,
-				GHashTable &TagList);
+				class TagHash *TagList);
 
 	virtual GMenuItem *AppendItem(char *Str, int Id, bool Enabled, int Where = -1, char *Shortcut = 0) = 0;
 	virtual GSubMenu *AppendSub(char *Str, int Where = -1) = 0;

@@ -1930,9 +1930,9 @@ public:
 	{
 		Lst = 0;
 		GRect p;
-		char *n = 0;
+		GAutoString n;
 
-		if (LoadFromResource(IDD_COMPARE, this, &p, n))
+		if (LoadFromResource(IDD_COMPARE, this, &p, &n))
 		{
 			SetPos(p);
 			Name(n);

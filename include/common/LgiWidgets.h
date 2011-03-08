@@ -52,7 +52,9 @@ public:
 		/// The size of the view in the resource
 		GRect *Pos = 0,
 		/// The name of the window
-		char *Name = 0
+		GAutoString *Name = 0,
+		/// [Optional] List of tags to exclude/include items
+		char *TagList = 0
 	);
 };
 
@@ -230,7 +232,9 @@ protected:
 	bool LoadFromResource
 	(
 		/// The resource ID
-		int Resource
+		int Resource,
+		/// [Optional] tag list to exclude/include various controls via tag
+		char *TagList = 0
 	);
 
 public:

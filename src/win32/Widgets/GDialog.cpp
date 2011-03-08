@@ -77,14 +77,12 @@ GDialog::~GDialog()
 	DeleteObj(Mem);
 }
 
-bool GDialog::LoadFromResource(int Resource)
+bool GDialog::LoadFromResource(int Resource, char *TagList)
 {
-	char n[256];
-	bool Status = GLgiRes::LoadFromResource(Resource, this, &Pos, n);
-	if (Status)
-	{
+	GAutoString n;
+	bool Status = GLgiRes::LoadFromResource(Resource, this, &Pos, &n, TagList);
+	if (Status && n)
 		Name(n);
-	}
 	return Status;
 }
 

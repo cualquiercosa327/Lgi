@@ -30,6 +30,53 @@
 #define DEBUG_RES_FILE						0
 #define CastToGWnd(RObj)					((RObj != 0) ? dynamic_cast<GView*>(RObj) : 0)
 
+class TagHash : public GHashTable, public ResReadCtx
+{
+public:
+	TagHash(char *TagList)
+	{
+		GToken Toks(TagList);
+		for (int i=0; i<Toks.Length(); i++)
+			Add(Toks[i]);
+	}
+
+	bool Check(char *Tags)
+	{
+		bool Result = true;
+		if (Tags)
+		{
+			GToken t(Tags);
+			for (int i=0; i<t.Length(); i++)
+			{
+				char *Tag = t[i];
+				if (*Tag == '!')
+				{
+					if (Find(Tag + 1))
+						return false;
+				}
+				else if (!Find(Tag))
+				{
+					Result = false;
+					break;
+				}
+			}
+		}
+		return Result;
+	}
+
+	bool Check(GXmlTag *t)
+	{
+		if (!t)
+			return false;
+
+		char *Tag = t->GetAttr("Tag");
+		if (Tag)
+			return Check(Tag);
+
+		return true;
+	}
+};
+
 char *LgiStringRes::CodePage = 0;
 GLanguage *LgiStringRes::CurLang = 0;
 
@@ -40,7 +87,7 @@ LgiStringRes::LgiStringRes(LgiResources *res)
 	Id = 0;
 	Str = 0;
 	Tag = 0;
-	IsString = false;
+	// IsString = false;
 }
 
 LgiStringRes::~LgiStringRes()
@@ -196,18 +243,21 @@ class LgiResourcesPrivate
 public:
 	bool Ok;
 	ResFileFormat Format;
-	char *File;
+	GAutoString File;
+	GHashTbl<int, LgiStringRes*> StrRef;
+	GHashTbl<int, LgiStringRes*> Strings;
+	GHashTbl<int, LgiStringRes*> DlgStrings;
+
 
 	LgiResourcesPrivate()
 	{
 		Ok = false;
 		Format = Lr8File;
-		File = 0;
 	}
 
 	~LgiResourcesPrivate()
 	{
-		DeleteArray(File);
+		StrRef.DeleteObjects();
 	}
 };
 
@@ -368,7 +418,6 @@ LgiResources::~LgiResources()
 	LanguageNames.DeleteArrays();
 	
 	Dialogs.DeleteObjects();
-	Strings.DeleteObjects();
 	Menus.DeleteObjects();
 	DeleteArray(Languages);
 	DeleteObj(d);
@@ -410,13 +459,12 @@ bool LgiResources::Load(char *FileName)
 {
 	bool Status = false;
 
-	DeleteArray(d->File);
 	if (FileName)
 	{
 		GFile F;
 		if (F.Open(FileName, O_READ))
 		{
-			d->File = NewStr(FileName);
+			d->File.Reset(NewStr(FileName));
 			d->Format = Lr8File;
 			char *Ext = LgiGetExtension(FileName);
 			if (Ext AND stricmp(Ext, "lr") == 0)
@@ -477,8 +525,12 @@ bool LgiResources::Load(char *FileName)
 									}
 
 									// Save the string for later.
-									Strings.Insert(s);
-									s->IsString = IsString;
+									d->StrRef.Add(s->Ref, s);
+									if (IsString)
+										d->Strings.Add(s->Id, s);
+									else
+										d->DlgStrings.Add(s->Id, s);
+									// s->IsString = IsString;
 									d->Ok = true;
 								}
 								else
@@ -551,6 +603,9 @@ bool LgiResources::Load(char *FileName)
 
 LgiStringRes *LgiResources::StrFromRef(int Ref)
 {
+	return d->StrRef.Find(Ref);
+
+	/*
 	for (LgiStringRes *s = Strings.First(); s; s = Strings.Next())
 	{
 		if (s->Ref == Ref)
@@ -560,12 +615,14 @@ LgiStringRes *LgiResources::StrFromRef(int Ref)
 	}
 
 	return 0;
+	*/
 }
 
 char *LgiResources::StringFromId(int Id)
 {
 	LgiStringRes *NotStr = 0;
 
+	/*
 	List<LgiStringRes>::I it = Strings.Start();
 	while (it.Each())
 	{
@@ -582,12 +639,22 @@ char *LgiResources::StringFromId(int Id)
 			}
 		}
 	}
+	*/
+
+	LgiStringRes *sr;
+
+	if (sr = d->Strings.Find(Id))
+		return sr->Str;
+
+	if (sr = d->DlgStrings.Find(Id))
+		return sr->Str;
 
 	return NotStr ? NotStr->Str : 0;
 }
 
 char *LgiResources::StringFromRef(int Ref)
 {
+	/*
 	for (LgiStringRes *s = Strings.First(); s; s = Strings.Next())
 	{
 		if (s->Ref == Ref)
@@ -595,8 +662,10 @@ char *LgiResources::StringFromRef(int Ref)
 			return s->Str;
 		}
 	}
+	*/
 
-	return 0;
+	LgiStringRes *s = d->StrRef.Find(Ref);
+	return s ? s->Str : 0;
 }
 
 #include "GTextLabel.h"
@@ -653,6 +722,7 @@ ResObject *LgiResources::CreateObject(GXmlTag *t, ResObject *Parent)
 		}
 		else if (stricmp(t->Tag, Res_Tab) == 0)
 		{
+			/*
 			if (Parent)
 			{
 				// GView *p = (GView*) Parent;
@@ -662,6 +732,8 @@ ResObject *LgiResources::CreateObject(GXmlTag *t, ResObject *Parent)
 					Wnd = Ctrl->Append("<error>");
 				}
 			}
+			*/
+			Wnd = new GTabPage(0);
 		}
 		else if (stricmp(t->Tag, Res_ListView) == 0)
 		{
@@ -863,37 +935,39 @@ int LgiResources::Res_GetStrRef(ResObject *Obj)
 	return 0;
 }
 
-void LgiResources::Res_SetStrRef(ResObject *Obj, int Ref)
+bool LgiResources::Res_SetStrRef(ResObject *Obj, int Ref, ResReadCtx *Ctx)
 {
-	for (LgiStringRes *s = Strings.First(); s; s = Strings.Next())
+	LgiStringRes *s = d->StrRef.Find(Ref);
+	if (!s)
+		return false;
+
+	if (Ctx && !Ctx->Check(s->Tag))
+		return false;
+
+	GView *w = CastToGWnd(Obj);
+	if (w)
 	{
-		if (s->Ref == Ref)
+		w->Name(s->Str);
+		w->SetId(s->Id);
+	}
+	else if (Obj)
+	{
+		GListColumn *Col = dynamic_cast<GListColumn*>(Obj);
+		if (Col)
 		{
-
-			GView *w = CastToGWnd(Obj);
-			if (w)
+			Col->Name(s->Str);
+		}
+		else
+		{
+			GTabPage *Page = dynamic_cast<GTabPage*>(Obj);
+			if (Page)
 			{
-				w->Name(s->Str);
-				w->SetId(s->Id);
+				Page->Name(s->Str);
 			}
-			else if (Obj)
-			{
-				GListColumn *Col = dynamic_cast<GListColumn*>(Obj);
-				if (Col)
-				{
-					Col->Name(s->Str);
-					return;
-				}
-
-				GTabPage *Page = dynamic_cast<GTabPage*>(Obj);
-				if (Page)
-				{
-					Page->Name(s->Str);
-				}
-			}
-			break;
 		}
 	}
+
+	return true;
 }
 
 void LgiResources::Res_Attach(ResObject *Obj, ResObject *Parent)
@@ -960,11 +1034,11 @@ void LgiResources::Res_Append(ResObject *Obj, ResObject *Parent)
 			Lst->AddColumn(Col);
 		}
 
-		GTabPage *Tab = dynamic_cast<GTabPage*>(Obj);
-		GTabView *Tabs = dynamic_cast<GTabView*>(Parent);
-		if (Tab AND Tabs)
+		GTabView *Tab = dynamic_cast<GTabView*>(Obj);
+		GTabPage *Page = dynamic_cast<GTabPage*>(Parent);
+		if (Tab AND Page)
 		{
-			Tabs->Append(Tab);
+			Tab->Append(Page);
 		}
 	}
 }
@@ -1073,7 +1147,7 @@ bool LgiMenuRes::Read(GXmlTag *t, ResFileFormat Format)
 					LgiStringRes *s = new LgiStringRes(Res);
 					if (s AND s->Read(i, Format))
 					{
-						Strings.Insert(s);
+						Strings.Add(s->Ref, s);
 					}
 					else
 					{
@@ -1092,14 +1166,13 @@ bool LgiMenuRes::Read(GXmlTag *t, ResFileFormat Format)
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // Dialog
-bool GLgiRes::LoadFromResource(int Resource, GViewI *Parent, GRect *Pos, char *Name)
+bool GLgiRes::LoadFromResource(int Resource, GViewI *Parent, GRect *Pos, GAutoString *Name, char *TagList)
 {
 	LgiGetResObj();
 
 	for (int i=0; i<_ResourceOwner.Length(); i++)
-	{
-		
-		if (_ResourceOwner[i]->LoadDialog(Resource, Parent, Pos, Name))
+	{		
+		if (_ResourceOwner[i]->LoadDialog(Resource, Parent, Pos, Name, 0, TagList))
 		{
 			return true;
 		}
@@ -1248,13 +1321,14 @@ char *LgiLoadString(int Res, char *Default)
 	return s ? s : Default;
 }
 
-bool LgiResources::LoadDialog(int Resource, GViewI *Parent, GRect *Pos, char *Name, GEventsI *Engine)
+bool LgiResources::LoadDialog(int Resource, GViewI *Parent, GRect *Pos, GAutoString *Name, GEventsI *Engine, char *TagList)
 {
 	bool Status = false;
 
 	if (Resource)
 	{
 		ScriptEngine = Engine;
+		TagHash Tags(TagList);
 
 		for (LgiDialogRes *Dlg = Dialogs.First(); Dlg; Dlg = Dialogs.Next())
 		{
@@ -1264,20 +1338,22 @@ bool LgiResources::LoadDialog(int Resource, GViewI *Parent, GRect *Pos, char *Na
 				if (Dlg->Name())
 				{
 					if (Name)
-						strcpy(Name, Dlg->Name());
+						Name->Reset(NewStr(Dlg->Name()));
 					else if (Parent)
 						Parent->Name(Dlg->Name());
 				}
 				
 				int x = Dlg->X();
 				int y = Dlg->Y();
+				/*
 				#ifdef LINUX
 				x -= 6;
 				y -= 20;
 				#else
+				*/
 				x += LgiApp->GetMetric(LGI_MET_DECOR_X) - 4;
 				y += LgiApp->GetMetric(LGI_MET_DECOR_Y) - 18;
-				#endif
+				// #endif
 				if (Pos)
 					Pos->ZOff(x, y);
 				else if (Parent)
@@ -1288,38 +1364,30 @@ bool LgiResources::LoadDialog(int Resource, GViewI *Parent, GRect *Pos, char *Na
 				}
 
 				// instantiate control list
-				for (GXmlTag *t = Dlg->Dialog->Children.First(); t; t = Dlg->Dialog->Children.Next())
+				List<GXmlTag>::I it = Dlg->Dialog->Children.Start();
+				for (GXmlTag *t = *it; t; t = *++it)
 				{
 					ResObject *Obj = CreateObject(t, 0);
 					if (Obj)
 					{
-						if (Res_Read(Obj, t))
+						if (Tags.Check(t))
 						{
-							GView *w = dynamic_cast<GView*>(Obj);
-							if (w)
+							if (Res_Read(Obj, t, Tags))
 							{
-								/*
-								GRect r = w->GetPos();
-								#ifdef WIN32
-								r.Offset(-2, -16);
-								#else
-								r.Offset(-3, -17);
-								#endif
-								w->SetPos(r);
-								*/
-
-								Parent->AddView(w);
+								GView *w = dynamic_cast<GView*>(Obj);
+								if (w)
+									Parent->AddView(w);
 							}
-						}
-						else
-						{
-							LgiMsg(	NULL,
-									LgiLoadString(	L_ERROR_RES_RESOURCE_READ_FAILED,
-													"Resource read error, tag: %s"),
-									"LgiResources::LoadDialog",
-									MB_OK,
-									t->Tag);
-							break;
+							else
+							{
+								LgiMsg(	NULL,
+										LgiLoadString(	L_ERROR_RES_RESOURCE_READ_FAILED,
+														"Resource read error, tag: %s"),
+										"LgiResources::LoadDialog",
+										MB_OK,
+										t->Tag);
+								break;
+							}
 						}
 					}
 					else
@@ -1346,6 +1414,11 @@ LgiStringRes *LgiMenuRes::GetString(GXmlTag *Tag)
 		if (n)
 		{
 			int Ref = atoi(n);
+			LgiStringRes *s = Strings.Find(Ref);
+			if (s)
+				return s;
+
+			/*
 			for (LgiStringRes *s = Strings.First(); s; s = Strings.Next())
 			{
 				if (s->Ref == Ref)
@@ -1353,37 +1426,14 @@ LgiStringRes *LgiMenuRes::GetString(GXmlTag *Tag)
 					return s;
 				}
 			}
+			*/
 		}
 	}
 
 	return 0;
 }
 
-bool TagAdd(char *Tags, GHashTable &TagList)
-{
-	bool Add = true;
-	if (Tags)
-	{
-		GToken t(Tags);
-		for (int i=0; i<t.Length(); i++)
-		{
-			char *Tag = t[i];
-			if (*Tag == '!')
-			{
-				if (TagList.Find(Tag + 1))
-					return false;
-			}
-			else if (!TagList.Find(Tag))
-			{
-				Add = false;
-				break;
-			}
-		}
-	}
-	return Add;
-}
-
-bool GMenuLoader::Load(LgiMenuRes *MenuRes, GXmlTag *Tag, ResFileFormat Format, GHashTable &TagList)
+bool GMenuLoader::Load(LgiMenuRes *MenuRes, GXmlTag *Tag, ResFileFormat Format, TagHash *TagList)
 {
 	bool Status = false;
 
@@ -1411,7 +1461,7 @@ bool GMenuLoader::Load(LgiMenuRes *MenuRes, GXmlTag *Tag, ResFileFormat Format, 
 					LgiStringRes *Str = MenuRes->GetString(t);
 					if (Str AND Str->Str)
 					{
-						bool Add = TagAdd(Str->Tag, TagList);
+						bool Add = !TagList || TagList->Check(Str->Tag);
 						GSubMenu *Sub = AppendSub(Str->Str);
 						if (Sub)
 						{
@@ -1447,7 +1497,7 @@ bool GMenuLoader::Load(LgiMenuRes *MenuRes, GXmlTag *Tag, ResFileFormat Format, 
 						LgiStringRes *Str = MenuRes->GetString(t);
 						if (Str AND Str->Str)
 						{
-							if (TagAdd(Str->Tag, TagList))
+							if (!TagList || TagList->Check(Str->Tag))
 							{
 								int Enabled = (n = t->GetAttr("enabled")) ? atoi(n) : true;
 								char *Shortcut = t->GetAttr("shortcut");
@@ -1474,21 +1524,15 @@ bool GMenu::Load(GView *w, char *Res, char *TagList)
 	LgiResources *r = LgiGetResObj();
 	if (r)
 	{
-		GHashTable Tags;
-		GToken Toks(TagList);
-		for (int i=0; i<Toks.Length(); i++)
-		{
-			Tags.Add(Toks[i]);
-		}
-
+		TagHash Tags(TagList);
 		for (LgiMenuRes *m = r->Menus.First(); m; m = r->Menus.Next())
 		{
 			if (stricmp(m->Name(), Res) == 0)
 			{
 				#if WIN32NATIVE
-				Status = GSubMenu::Load(m, m->Tag, r->GetFormat(), Tags);
+				Status = GSubMenu::Load(m, m->Tag, r->GetFormat(), &Tags);
 				#else
-				Status = GMenuLoader::Load(m, m->Tag, r->GetFormat(), Tags);
+				Status = GMenuLoader::Load(m, m->Tag, r->GetFormat(), &Tags);
 				#endif
 				break;
 			}

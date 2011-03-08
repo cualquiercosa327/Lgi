@@ -43,18 +43,6 @@ struct GLanguage
 	}
 };
 
-/*
-class LangInfo
-{
-public:
-	int Id;
-	char *Name;
-	char *CodePage;
-	int Win32Id;
-	char *Win32Define;
-};
-*/
-
 LgiExtern GLanguage LgiLanguageTable[];
 LgiExtern GLanguage *GFindLang(GLanguageId Id, char *Name = 0);
 LgiExtern GLanguage *GFindOldLang(int OldId);
@@ -86,16 +74,13 @@ LgiExtern char Res_Custom[];
 class ResObjectImpl;
 class ResFactory;
 
-class LgiClass ResParent
+struct LgiClass ResReadCtx
 {
-public:
-	ResParent() {}
-	virtual ~ResParent() {}
-
-	virtual void *GetRealPtr() { return 0; }
+	virtual bool Check(char *tags) { return true; }
+	virtual bool Check(GXmlTag *t) { return true; }
 };
 
-class LgiClass ResObject : public ResParent
+class LgiClass ResObject
 {
 private:
 	ResObjectImpl *_ObjImpl;
@@ -105,7 +90,7 @@ protected:
 
 public:
 	ResObject(char *Name);
-	~ResObject();
+	virtual ~ResObject();
 
 	char *GetObjectName() { return _ObjName; }
 	virtual ResObjectImpl *GetObjectImpl(ResFactory *f);
@@ -116,7 +101,7 @@ class LgiClass ResFactory
 {
 public:
 	// Use to read and write the objects
-	bool Res_Read(ResObject *Obj, GXmlTag *Tag);
+	bool Res_Read(ResObject *Obj, GXmlTag *Tag, ResReadCtx &Ctx);
 	bool Res_Write(ResObject *Obj, GXmlTag *Tag);
 
 	// Overide
@@ -128,7 +113,7 @@ public:
 	virtual void		Res_SetPos		(ResObject *Obj, char *s) = 0;
 	virtual GRect		Res_GetPos		(ResObject *Obj) = 0;
 	virtual int			Res_GetStrRef	(ResObject *Obj) = 0;
-	virtual void		Res_SetStrRef	(ResObject *Obj, int Ref) = 0;
+	virtual bool		Res_SetStrRef	(ResObject *Obj, int Ref, ResReadCtx *Ctx) = 0;
 	virtual void		Res_Attach		(ResObject *Obj, ResObject *Parent) = 0;
 	virtual bool		Res_GetChildren	(ResObject *Obj, List<ResObject> *l, bool Deep) = 0;
 	virtual void		Res_Append		(ResObject *Obj, ResObject *Parent) = 0;
