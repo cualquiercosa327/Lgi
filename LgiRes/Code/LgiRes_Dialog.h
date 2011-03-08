@@ -176,7 +176,7 @@ public:
 	ResObject *CreateObject(GXmlTag *Tag, ResObject *Parent);
 
 	int Res_GetStrRef(ResObject *Obj);
-	void Res_SetStrRef(ResObject *Obj, int Id);
+	bool Res_SetStrRef(ResObject *Obj, int Id, ResReadCtx *Ctx);
 	void Res_SetPos(ResObject *Obj, int x1, int y1, int x2, int y2);
 	void Res_SetPos(ResObject *Obj, char *s);
 	GRect Res_GetPos(ResObject *Obj);

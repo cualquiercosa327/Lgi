@@ -2450,19 +2450,19 @@ int ResDialog::Res_GetStrRef(ResObject *Obj)
 	return -1;
 }
 
-void ResDialog::Res_SetStrRef(ResObject *Obj, int Ref)
+bool ResDialog::Res_SetStrRef(ResObject *Obj, int Ref, ResReadCtx *Ctx)
 {
 	ResDialogCtrl *Ctrl = 0;
-	if (Obj && Symbols)
-	{
-		Ctrl = dynamic_cast<ResDialogCtrl*>((ResDialogCtrl*)Obj);
-		if (Ctrl)
-		{
-			Ctrl->StrFromRef(Ref);
-		}
-	}
+	if (!Obj || !Symbols)
+		return false;
 
+	Ctrl = dynamic_cast<ResDialogCtrl*>((ResDialogCtrl*)Obj);
+	if (!Ctrl)
+		return false;
+
+	Ctrl->StrFromRef(Ref);
 	LgiAssert(Ctrl && Ctrl->Str);
+	return Ctrl->Str != 0;
 }
 
 void ResDialog::Res_Attach(ResObject *Obj, ResObject *Parent)
