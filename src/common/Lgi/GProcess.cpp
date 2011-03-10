@@ -69,8 +69,12 @@ bool LgiIsProcess(OsProcessId Pid)
 			}
 			CloseHandle(hProc);
 		}
+	
+	#elif defined(MAC)
+	
+		Status = !kill(Pid, 0);
 
-	#elif defined(LINUX) || defined(MAC)
+	#elif defined(LINUX)
 
 		char ProcPath[256];
 		sprintf(ProcPath, "/proc/%i", Pid);

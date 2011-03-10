@@ -35,12 +35,12 @@ void GDialog::OnPosChange()
 {
 }
 
-bool GDialog::LoadFromResource(int Resource)
+bool GDialog::LoadFromResource(int Resource, char *TagList)
 {
-	char n[256];
+	GAutoString n;
 	GRect p;
 
-	bool Status = GLgiRes::LoadFromResource(Resource, this, &p, n);
+	bool Status = GLgiRes::LoadFromResource(Resource, this, &p, &n, TagList);
 	if (Status)
 	{
 		Name(n);

@@ -1277,8 +1277,6 @@ CarbonControlProc
 					
 					bool f = Part != kControlFocusNoPart;
 
-					printf("Focus(%i) %s %p\n", f, v->GetClass(), v);
-					
 					/*
 					GView *p = 0;
 					if (dynamic_cast<GEdit*>(v))

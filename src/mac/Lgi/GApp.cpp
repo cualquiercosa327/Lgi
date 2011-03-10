@@ -50,6 +50,14 @@ void OsAppArguments::Set(char *CmdLine)
 	
 	GArray<char> Raw;
 	GArray<int> Offsets;
+
+	char Exe[256];
+	LgiGetExeFile(Exe, sizeof(Exe));
+	int Len = strlen(Exe);
+	Raw.Length(Len + 1);
+	strcpy(&Raw[0], Exe);
+	Offsets.Add(0);
+
 	for (char *s = CmdLine; *s; )
 	{
 		while (*s && strchr(WhiteSpace, *s)) s++;
@@ -62,6 +70,7 @@ void OsAppArguments::Set(char *CmdLine)
 			{
 				Raw.Add(*e);
 			}
+			Raw.Add(0);
 		}
 		else
 		{
@@ -70,6 +79,7 @@ void OsAppArguments::Set(char *CmdLine)
 			{
 				Raw.Add(*e);
 			}
+			Raw.Add(0);
 		}
 		s = *e ? e + 1 : e;
 	}	

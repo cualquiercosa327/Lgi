@@ -2,7 +2,7 @@
 #include "GSharedMemory.h"
 #include "GVariant.h"
 
-#ifdef LINUX
+#ifndef WIN32
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
@@ -15,10 +15,10 @@ public:
 	int Size;
 	void *Ptr;
 
-	#if defined(LINUX)
-	int Id;
-	#elif defined(WIN32)
+	#if defined(WIN32)
 	HANDLE hMem;
+	#else
+	int Id;
 	#endif
 	
 	GSharedMemoryPrivate(char *name, int size)
@@ -27,9 +27,26 @@ public:
 		Size = size;
 		Ptr = 0;
 		
-		#if defined(LINUX)
+		#if defined(WIN32)
+		GVariant v = Name;
+		hMem = CreateFileMapping(	INVALID_HANDLE_VALUE,
+									NULL,
+									PAGE_READWRITE,
+									0,
+									Size,
+									#ifdef UNICODE
+									v.WStr());
+									#else
+									Name);
+									#endif
+		if (hMem)
+		{
+			Ptr = MapViewOfFile(hMem, FILE_MAP_WRITE, 0, 0, Size);
+		}
+		#else
 		int Hash = LgiHash<uchar>((uchar*)Name, 0, true);
 		Id = shmget(Hash, Size, 0644);
+		// printf("Shared mem '%s', Hash=%x, Id=%i\n", Name, Hash, Id);
 		bool New = false;
 		if (Id < 0)
 		{
@@ -51,32 +68,36 @@ public:
 			{
 				memset(Ptr, 0, Size);
 			}
-		}
-		#elif defined(WIN32)
-		GVariant v = Name;
-		hMem = CreateFileMapping(	INVALID_HANDLE_VALUE,
-									NULL,
-									PAGE_READWRITE,
-									0,
-									Size,
-									#ifdef UNICODE
-									v.WStr());
-									#else
-									Name);
-									#endif
-		if (hMem)
-		{
-			Ptr = MapViewOfFile(hMem, FILE_MAP_WRITE, 0, 0, Size);
+		
+			/*
+			shmid_ds ds;
+			shmctl(Id, IPC_STAT, &ds);
+			printf("attach shm_nattch=%i\n", ds.shm_nattch);
+			*/
 		}
 		#endif
 	}
 	
 	~GSharedMemoryPrivate()
 	{
-		#if defined(LINUX)
-		shmdt(Ptr);
-		#elif defined(WIN32)
+		#if defined(WIN32)
 		Destroy();
+		#else
+		if (Ptr)
+		{
+			/*
+			shmid_ds ds;
+			shmctl(Id, IPC_STAT, &ds);
+			printf("detach shm_nattch=%i\n", ds.shm_nattch);
+			*/
+			shmdt(Ptr);
+		}
+		/*
+		else
+		{
+			printf("shm: No ptr\n");
+		}
+		*/
 		#endif
 		
 		DeleteArray(Name);
@@ -84,13 +105,7 @@ public:
 	
 	void Destroy()
 	{
-		#if defined LINUX
-		if (Id >= 0)
-		{
-			shmctl(Id, IPC_RMID, 0);
-			Id = -1;
-		}
-		#elif defined WIN32
+		#if defined WIN32
 		if (Ptr)
 		{
 			UnmapViewOfFile(Ptr);
@@ -100,6 +115,12 @@ public:
 		{
 			CloseHandle(hMem);
 			hMem = 0;
+		}
+		#else
+		if (Id >= 0)
+		{
+			shmctl(Id, IPC_RMID, 0);
+			Id = -1;
 		}
 		#endif
 		
