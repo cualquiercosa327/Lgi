@@ -50,6 +50,7 @@
 				<td>
 						<h5>General:</h5>
 						<a href="#Execute">Execute</a><br>
+						<a href="#System">System</a><br>
 						<a href="#GetInputDlg">GetInputDlg</a><br>
 		</table>
 
@@ -398,7 +399,23 @@
 
 		<h4>string <a name="Execute">Execute</a>(executable, arguments);</h4>
 			<div>
-				Executes a process.
+				Executes a process, waits for it to finish, and then returns the stdout as a string.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> executable - The path to the executable.
+					<li> arguments - Arguments to pass to the executable.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> A string containing what the process wrote to stdout.
+				</ul>
+			</div>
+
+		<h4>bool <a name="System">System</a>(executable, arguments);</h4>
+			<div>
+				Executes a process and doesn't wait for it to finish.
 				<br><br>
 				Arguments:
 				<ul>

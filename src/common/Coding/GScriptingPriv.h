@@ -629,9 +629,12 @@ public:
 		bool Now(GVariant *Ret, ArgumentArray &Args);
 
 	// System
-		/// Executes a command and returns it's output:
+		/// Executes a command, waits for it to finish, then returns it's output:
 		/// String Execute(String Application, String CmdLine);
 		bool Execute(GVariant *Ret, ArgumentArray &Args);
+		/// Executes a command and doesn't wait for it to return:
+		/// Bool System(String Application, String CmdLine);
+		bool System(GVariant *Ret, ArgumentArray &Args);
 		/// Gets an input string from the user
 		/// String GetInputDlg(Window Parent, String InitialValue, String Question, String Title[, bool IsPassword]);
 		bool GetInputDlg(GVariant *Ret, ArgumentArray &Args);

@@ -715,6 +715,15 @@ bool SystemFunctions::Execute(GVariant *Ret, ArgumentArray &Args)
 	return Status;
 }
 
+bool SystemFunctions::System(GVariant *Ret, ArgumentArray &Args)
+{
+	if (Args.Length() < 2)
+		return false;
+
+	*Ret = LgiExecute(Args[0]->Str(), Args[1]->Str());
+	return true;
+}
+
 bool SystemFunctions::GetInputDlg(GVariant *Ret, ArgumentArray &Args)
 {
 	if (Args.Length() < 4)
@@ -770,6 +779,7 @@ GHostFunc SystemLibrary[] =
 
 	// System
 	DefFn(Execute),
+	DefFn(System),
 	DefFn(GetInputDlg),
 
 	// End of list marker
