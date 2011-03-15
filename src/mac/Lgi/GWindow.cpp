@@ -1451,11 +1451,43 @@ void GWindow::Raise()
 
 GWindowZoom GWindow::GetZoom()
 {
+	if (Wnd)
+	{
+		bool c = IsWindowCollapsed(Wnd);
+		printf("IsWindowCollapsed=%i\n", c);
+		if (c)
+			return GZoomMin;
+		
+		c = IsWindowInStandardState(Wnd, NULL, NULL);
+		printf("IsWindowInStandardState=%i\n", c);
+		if (!c)
+			return GZoomMax;
+	}
+
 	return GZoomNormal;
 }
 
 void GWindow::SetZoom(GWindowZoom i)
 {
+	OSStatus e = 0;
+	switch (i)
+	{
+		case GZoomMin:
+		{
+			e = CollapseWindow(Wnd, true);
+			if (e) printf("%s:%i - CollapseWindow failed with %i\n", _FL, e);
+			else printf("GZoomMin ok.\n");
+			break;
+		}
+		default:
+		case GZoomNormal:
+		{
+			e = CollapseWindow(Wnd, false);
+			if (e) printf("%s:%i - [Un]CollapseWindow failed with %i\n", _FL, e);
+			else printf("GZoomNormal ok.\n");
+			break;
+		}
+	}
 }
 
 GViewI *GWindow::GetDefault()
