@@ -175,10 +175,10 @@ bool IHttp::GetFile(GViewI *Parent, char *File, GStream &Out, int Format, int *P
 	if (File && Socket)
 	{
 		GStringPipe Buf;
-		char *ContentStr = "Content-Length:";
-		char Line[4096] = "", *Cur = Line;
-		int ContentLength = 0;
-		int DataToGo = 1000000000;
+		// char *ContentStr = "Content-Length:";
+		// char Line[4096] = "", *Cur = Line;
+		// int ContentLength = 0;
+		// int DataToGo = 1000000000;
 
 		char FilePart[256];
 		char Host[256];
