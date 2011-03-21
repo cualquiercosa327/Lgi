@@ -422,12 +422,10 @@ bool LgiExecute(char *File, char *Args, char *Dir)
 						char *p;
 						while (p = LgiTokStr(Args))
 						{
-							LgiTrace("a[%i]='%s'\n", a.Length(), p);
 							a.Add(p);
 						}
 						a.Add(0);
 						
-						LgiTrace("execve(%s, %i)\n", File, a.Length());
 						char *env[] = {0};
 						execve(File, &a[0], env);
 					}
