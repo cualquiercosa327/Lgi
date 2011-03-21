@@ -720,7 +720,9 @@ bool SystemFunctions::System(GVariant *Ret, ArgumentArray &Args)
 	if (Args.Length() < 2)
 		return false;
 
-	*Ret = LgiExecute(Args[0]->Str(), Args[1]->Str());
+	char *Exe = Args[0]->Str();
+	char *Arg = Args[1]->Str();
+	*Ret = LgiExecute(Exe, Arg);
 	return true;
 }
 

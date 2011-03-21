@@ -48,78 +48,78 @@ void OsAppArguments::Set(char *CmdLine)
 	GArray<char> Raw;
 	GArray<int> Offsets;
 
-// printf("%s:%i - SetArgs\n", _FL);
+printf("%s:%i - SetArgs\n", _FL);
 
 	char Exe[256];
 	Offsets.Add(0);
 	if (LgiGetExeFile(Exe, sizeof(Exe)))
 	{
 		int Len = strlen(Exe);
-// printf("%s:%i - SetArgs len=%i\n", _FL, Len);
+printf("%s:%i - SetArgs len=%i\n", _FL, Len);
 		Raw.Length(Len + 1);
-// printf("%s:%i - SetArgs Exe='%s'\n", _FL, Exe);
+printf("%s:%i - SetArgs Exe='%s'\n", _FL, Exe);
 		strcpy(&Raw[0], Exe);
-// printf("%s:%i - SetArgs\n", _FL);
+printf("%s:%i - SetArgs\n", _FL);
 	}
 	else
 	{
-// printf("%s:%i - SetArgs\n", _FL);
+printf("%s:%i - SetArgs\n", _FL);
 		Raw.Add(0);
 	}
 
-// printf("%s:%i - SetArgs CmdLine=%p\n", _FL, CmdLine);
+printf("%s:%i - SetArgs CmdLine=%p\n", _FL, CmdLine);
 	if (CmdLine)
 	{
-// printf("%s:%i - SetArgs CmdLine='%s'\n", _FL, CmdLine);
+printf("%s:%i - SetArgs CmdLine='%s'\n", _FL, CmdLine);
 		for (char *s = CmdLine; *s; )
 		{
-// printf("%s:%i - SetArgs s='%s' (%i)\n", _FL, s, s - CmdLine);
+printf("%s:%i - SetArgs s='%s' (%i)\n", _FL, s, s - CmdLine);
 			while (*s && strchr(WhiteSpace, *s)) s++;
 			char *e;
 			if (*s == '\'' || *s == '\"')
 			{
 				char delim = *s++;
-// printf("%s:%i - SetArgs delim=%c\n", _FL, delim);
+printf("%s:%i - SetArgs delim=%c\n", _FL, delim);
 				Offsets.Add(Raw.Length());
-// printf("%s:%i - SetArgs\n", _FL);
+printf("%s:%i - SetArgs\n", _FL);
 				while (*e && *e != delim)
 				{
 					Raw.Add(*e++);
 				}
-// printf("%s:%i - SetArgs e='%s'\n", _FL, e);
+printf("%s:%i - SetArgs e='%s'\n", _FL, e);
 				Raw.Add(0);
 			}
 			else
 			{
-// printf("%s:%i - SetArgs\n", _FL);
+printf("%s:%i - SetArgs\n", _FL);
 				Offsets.Add(Raw.Length());
-// printf("%s:%i - SetArgs\n", _FL);
+printf("%s:%i - SetArgs\n", _FL);
 				for (e = s; *e && !strchr(WhiteSpace, *e); e++)
 				{
 					Raw.Add(*e);
 				}
-// printf("%s:%i - SetArgs e='%s'\n", _FL, e);
+printf("%s:%i - SetArgs e='%s'\n", _FL, e);
 				Raw.Add(0);
 			}
-// printf("%s:%i - SetArgs\n", _FL);
+printf("%s:%i - SetArgs\n", _FL);
 			s = *e ? e + 1 : e;
-// printf("%s:%i - SetArgs s='%s' (%i)\n", _FL, s, s - CmdLine);
+printf("%s:%i - SetArgs s='%s' (%i)\n", _FL, s, s - CmdLine);
 		}
 	}
 
-// printf("%s:%i - SetArgs\n", _FL);
+printf("%s:%i - SetArgs\n", _FL);
 	d->Str.Reset(Raw.Release());
-// printf("%s:%i - SetArgs Offsets=%i\n", _FL, Offsets.Length());
+printf("%s:%i - SetArgs Offsets=%i\n", _FL, Offsets.Length());
 	for (int n=0; n<Offsets.Length(); n++)
 	{
 		d->Ptr[n] = d->Str + Offsets[n];
 	}
-// printf("%s:%i - SetArgs\n", _FL);
+printf("%s:%i - SetArgs\n", _FL);
 	
 	Args = d->Ptr.Length();
-// printf("%s:%i - SetArgs\n", _FL);
+printf("%s:%i - SetArgs\n", _FL);
 	Arg = &d->Ptr[0];
-// printf("%s:%i - SetArgs\n", _FL);
+printf("%s:%i - SetArgs\n", _FL);
 }
 
 OsAppArguments &OsAppArguments::operator =(OsAppArguments &a)

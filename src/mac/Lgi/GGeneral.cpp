@@ -400,24 +400,47 @@ bool LgiExecute(char *File, char *Args, char *Dir)
 		{
 			FSRef r;
 			OSStatus e = FSPathMakeRef((UInt8*)File, &r, NULL);
-			if (e) printf("%s:%i - FSPathMakeRef faied with %i\n", __FILE__, __LINE__, e);
+			if (e) printf("%s:%i - FSPathMakeRef faied with %i\n", _FL, e);
 			else
-			{	
-				/*
-				FSSpec t;
-				e = FSGetCatalogInfo(&r, kFSCatInfoNone, 0, 0, &t, 0);
-				if (e) printf("%s:%i - NativePathNameToFSSpec faied with %i\n", __FILE__, __LINE__, e);
+			{
+				// Is this an executable file or a document?
+				struct stat s;
+				int st = stat(File, &s);
+				if (st == 0 &&
+					S_ISREG(s.st_mode) &&
+					(s.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH)))
+				{
+					// Executable?
+					if (!fork())
+					{
+						if (Dir)
+							chdir(Dir);
+							
+						GArray<char*> a;
+						a.Add(File);
+						
+						char *p;
+						while (p = LgiTokStr(Args))
+						{
+							LgiTrace("a[%i]='%s'\n", a.Length(), p);
+							a.Add(p);
+						}
+						a.Add(0);
+						
+						LgiTrace("execve(%s, %i)\n", File, a.Length());
+						char *env[] = {0};
+						execve(File, &a[0], env);
+					}
+					
+					return true;
+				}
 				else
-				{		
-					e = FinderLaunch(1, &t);
-					if (e) printf("%s:%i - FinderLaunch faied with %i\n", __FILE__, __LINE__, e);
+				{
+					// Document?
+					e = FinderLaunch(1, &r);
+					if (e) printf("%s:%i - FinderLaunch faied with %i\n", _FL, e);
 					else Status = true;
 				}
-				*/
-
-				e = FinderLaunch(1, &r);
-				if (e) printf("%s:%i - FinderLaunch faied with %i\n", __FILE__, __LINE__, e);
-				else Status = true;
 			}
 		}
 	}
