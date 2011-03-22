@@ -48,6 +48,7 @@ public:
 	DynFunc1(int, TIFFRGBAImageEnd, t::TIFFRGBAImage*, a);
 	DynFunc4(int, TIFFRGBAImageGet, t::TIFFRGBAImage*, img, uint32*, ptr, uint32, x, uint32, y);
 	DynFunc4(int, TIFFWriteScanline, t::TIFF*, tif, t::tdata_t, ptr, uint32, a, t::tsample_t, b);
+	DynFunc4(int, TIFFReadScanline, t::TIFF*, tif, t::tdata_t, ptr, uint32, a, t::tsample_t, b);
 	
 	int TIFFGetField(t::TIFF *tif, t::ttag_t tag, ...)
 	{
@@ -333,6 +334,11 @@ void SwapRB(GSurface *pDC)
 	}
 }
 
+struct Cmyka
+{
+	uint8 c, m, y, k, a;
+};
+
 bool GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 {
 	GVariant v;
@@ -360,7 +366,44 @@ bool GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 		if (Lib->TIFFRGBAImageBegin(&img, tif, 0, PrevError))
 		{
 			int Bits = img.bitspersample * img.samplesperpixel;
-			if (pDC->Create(img.width, img.height, 32))
+			
+			if (img.samplesperpixel == 5)
+			{
+				int rowlen = img.width * img.samplesperpixel * img.bitspersample / 8;
+				GArray<uint8> a;
+				if (a.Length(rowlen) &&
+					pDC->Create(img.width, img.height, 32))
+				{
+					for (int y=0; y<img.height; y++)
+					{
+						int r = Lib->TIFFReadScanline(tif, &a[0], y, 0);
+						if (r != 1)
+							break;
+
+						Pixel32 *d = (Pixel32*) (*pDC)[y];
+						Pixel32 *e = d + img.width;
+						Cmyka *s = (Cmyka*) &a[0];
+						while (d < e)
+						{
+							double C = (double) s->c / 255;
+							double M = (double) s->m / 255;
+							double Y = (double) s->y / 255;
+							double K = (double) s->k / 255;
+
+							d->r = (1.0 - min(1, C * (1.0 - K) + K)) * 255;
+							d->g = (1.0 - min(1, M * (1.0 - K) + K)) * 255;
+							d->b = (1.0 - min(1, Y * (1.0 - K) + K)) * 255;
+							d->a = s->a;
+
+							d++;
+							s++;
+						}
+					}
+
+					Status = true;
+				}
+			}
+			else if (pDC->Create(img.width, img.height, 32))
 			{
 				uint8 *d = (*pDC)[0];
 				Lib->TIFFRGBAImageGet(&img, (uint32*)d, pDC->X(), pDC->Y());
