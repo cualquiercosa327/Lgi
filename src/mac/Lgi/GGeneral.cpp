@@ -410,6 +410,11 @@ bool LgiExecute(char *File, char *Args, char *Dir)
 					S_ISREG(s.st_mode) &&
 					(s.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH)))
 				{
+					#if 0
+					char cmd[512];
+					snprintf(cmd, sizeof(cmd), "%s %s &", File, Args);
+					system(cmd);
+					#else
 					// Executable?
 					if (!fork())
 					{
@@ -431,6 +436,7 @@ bool LgiExecute(char *File, char *Args, char *Dir)
 					}
 					
 					return true;
+					#endif
 				}
 				else
 				{

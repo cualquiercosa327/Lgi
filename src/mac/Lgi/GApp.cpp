@@ -344,6 +344,12 @@ pascal OSStatus AppProc(EventHandlerCallRef inHandlerCallRef, EventRef inEvent, 
 					GWindow *a = LgiApp->AppWnd;
 					if (a)
 					{
+						/*
+						printf("%s:%i - onfrontswitch(true) %x act=%i switch=%i\n", _FL,
+							eventKind,
+							eventKind == kEventAppActivated,
+							eventKind == kEventAppFrontSwitched);
+						*/
 						a->OnFrontSwitch(true);
 					}
 					

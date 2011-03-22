@@ -31,12 +31,14 @@ public:
 	bool InitVisible;
 	DragTrackingHandlerUPP TrackingHandler;
 	DragReceiveHandlerUPP ReceiveHandler;
+	uint64 LastMinimize;
 
 	GMenu *EmptyMenu;
 
 	GWindowPrivate(GWindow *wnd)
 	{
 		InitVisible = false;
+		LastMinimize = 0;
 		Wnd = wnd;
 		TrackingHandler = 0;
 		ReceiveHandler = 0;
@@ -554,7 +556,16 @@ void GWindow::OnFrontSwitch(bool b)
 		}
 		else if (IsWindowCollapsed(WindowHandle()))
 		{
-			CollapseWindow(WindowHandle(), false);
+			uint64 Now = LgiCurrentTime();
+			if (Now - d->LastMinimize < 1000)
+			{
+				// printf("%s:%i - CollapseWindow ignored via timeout\n", _FL);
+			}
+			else
+			{
+				// printf("%s:%i - CollapseWindow "LGI_PrintfInt64","LGI_PrintfInt64"\n", _FL, Now, d->LastMinimize);
+				CollapseWindow(WindowHandle(), false);
+			}
 		}
 	}
 }
@@ -687,7 +698,7 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 						#ifndef __BIG_ENDIAN__
 						c = LgiSwap32(c);
 						#endif
-						if (c != '0000')
+						// if (c != '0000')
 							printf("%s:%i - Cmd='%04.4s'\n", _FL, &c);
 						#endif
 
@@ -702,16 +713,11 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 							LgiCloseApp();
 							result = noErr;
 						}
-						/*
-						else if (command.commandID == kHICommandHide)
+						else if (command.commandID == kHICommandMinimizeWindow ||
+								 command.commandID == kHICommandMinimizeAll)
 						{
-							HideWindow(w->Wnd);
+							w->d->LastMinimize = LgiCurrentTime();
 						}
-						else if (command.commandID == kHICommandMinimizeWindow)
-						{
-							CollapseWindow(w->Wnd, true);
-						}
-						*/
 						else if (command.commandID == kHICommandClose)
 						{
 							if (v->OnRequestClose(false))
@@ -726,7 +732,6 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 						}
 					}
 				}
-				// result = noErr;
 			}
 			break;
 		}
@@ -756,6 +761,13 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 					}
 					
 					result = noErr;
+					break;
+				}
+				case kEventWindowCollapsing:
+				{
+					GWindow *w = v->GetWindow();
+					if (w)
+						w->d->LastMinimize = LgiCurrentTime();
 					break;
 				}
 				case kEventWindowActivated:
@@ -1187,7 +1199,7 @@ bool GWindow::Attach(GViewI *p)
 			{ kEventClassWindow, kEventWindowBoundsChanged },
 			{ kEventClassWindow, kEventWindowActivated },
 			{ kEventClassWindow, kEventWindowShown },
-			// { kEventClassWindow, kEventWindowCursorChange },
+			{ kEventClassWindow, kEventWindowCollapsing },
 			
 			{ kEventClassMouse, kEventMouseDown },
 			{ kEventClassMouse, kEventMouseUp },
@@ -1454,12 +1466,12 @@ GWindowZoom GWindow::GetZoom()
 	if (Wnd)
 	{
 		bool c = IsWindowCollapsed(Wnd);
-		printf("IsWindowCollapsed=%i\n", c);
+		// printf("IsWindowCollapsed=%i\n", c);
 		if (c)
 			return GZoomMin;
 		
 		c = IsWindowInStandardState(Wnd, NULL, NULL);
-		printf("IsWindowInStandardState=%i\n", c);
+		// printf("IsWindowInStandardState=%i\n", c);
 		if (!c)
 			return GZoomMax;
 	}
@@ -1476,7 +1488,7 @@ void GWindow::SetZoom(GWindowZoom i)
 		{
 			e = CollapseWindow(Wnd, true);
 			if (e) printf("%s:%i - CollapseWindow failed with %i\n", _FL, e);
-			else printf("GZoomMin ok.\n");
+			// else printf("GZoomMin ok.\n");
 			break;
 		}
 		default:
@@ -1484,7 +1496,7 @@ void GWindow::SetZoom(GWindowZoom i)
 		{
 			e = CollapseWindow(Wnd, false);
 			if (e) printf("%s:%i - [Un]CollapseWindow failed with %i\n", _FL, e);
-			else printf("GZoomNormal ok.\n");
+			// else printf("GZoomNormal ok.\n");
 			break;
 		}
 	}
