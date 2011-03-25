@@ -700,6 +700,18 @@ int StrlenW(char16 *a)
 	return i;
 }
 
+int AtoiW(char16 *a)
+{
+	int i = 0;
+	while (a && *a >= '0' && *a <= '9')
+	{
+		i *= 10;
+		i += *a - '0';
+		a++;
+	}
+	return i;
+}
+
 int HtoiW(char16 *a)
 {
 	int i = 0;
