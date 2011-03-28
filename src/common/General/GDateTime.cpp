@@ -145,6 +145,7 @@ int GDateTime::SystemTimeZone(bool ForceUpdate)
 
 		#ifdef MAC
 
+		/*
 		struct timeval tp;
 		struct timezone tzp;
 		if (!gettimeofday(&tp, &tzp))
@@ -158,6 +159,10 @@ int GDateTime::SystemTimeZone(bool ForceUpdate)
 			LgiAssert(0);
 			LgiTrace("%s:%i - SystemTimeZone() failed badly.\n", __FILE__, __LINE__);
 		}
+		*/
+		
+		CFTimeZoneRef tz = CFTimeZoneCopySystem();
+		#error "Imp me."
 		
 		#else
 		
