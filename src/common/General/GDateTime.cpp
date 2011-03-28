@@ -162,7 +162,20 @@ int GDateTime::SystemTimeZone(bool ForceUpdate)
 		*/
 		
 		CFTimeZoneRef tz = CFTimeZoneCopySystem();
-		#error "Imp me."
+		CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
+		Boolean dst = CFTimeZoneIsDaylightSavingTime(tz, now);
+		if (dst)
+		{
+			CFAbsoluteTime next = CFTimeZoneGetNextDaylightSavingTimeTransition(tz, now);
+			CurTz = CFTimeZoneGetSecondsFromGMT(tz, next + 100) / 60;
+		}
+		else
+		{
+			CurTz = CFTimeZoneGetSecondsFromGMT(tz, now) / 60;
+		}
+
+		CurTzOff = CFTimeZoneGetDaylightSavingTimeOffset(tz, now) / 60;
+		CFRelease(tz);
 		
 		#else
 		
