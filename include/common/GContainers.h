@@ -395,7 +395,7 @@ public:
 	virtual int Push
 	(
 		/// The string
-		char *Str,
+		const char *Str,
 		/// The length in bytes
 		int Chars = -1
 	);
@@ -403,7 +403,7 @@ public:
 	virtual int Push
 	(
 		/// The string
-		char16 *Str,
+		const char16 *Str,
 		/// The length in characters
 		int Chars = -1
 	);

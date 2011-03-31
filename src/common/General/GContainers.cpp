@@ -1360,20 +1360,20 @@ int GStringPipe::Pop(char *Str, int BufSize)
 	return 0;
 }
 
-int GStringPipe::Push(char *Str, int Len)
+int GStringPipe::Push(const char *Str, int Len)
 {
 	if (Str)
 	{
-		return Write((uchar*) Str, (Len>=0) ? Len : strlen(Str));
+		return Write((void*)Str, (Len>=0) ? Len : strlen(Str));
 	}
 	return 0;
 }
 
-int GStringPipe::Push(char16 *Str, int Len)
+int GStringPipe::Push(const char16 *Str, int Len)
 {
 	if (Str)
 	{
-		return Write((uchar*) Str, ((Len>=0) ? Len : StrlenW(Str)) * sizeof(char16));
+		return Write((void*)Str, ((Len>=0) ? Len : StrlenW(Str)) * sizeof(char16));
 	}
 	return 0;
 }

@@ -53,10 +53,10 @@ public:
 #define AssignFlag(f, bit, to) if (to) f |= bit; else f &= ~(bit)
 
 /// Writes a debug statement to a file in the executables directory
-LgiFunc void LgiTrace(char *Format, ...);
+LgiFunc void LgiTrace(const char *Format, ...);
 
 /// Same as LgiTrace but writes a stack trace as well
-LgiFunc void LgiStackTrace(char *Format, ...);
+LgiFunc void LgiStackTrace(const char *Format, ...);
 
 /// General user interface event
 class LgiClass GUiEvent

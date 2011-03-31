@@ -321,7 +321,7 @@ LgiFunc GView *GWindowFromHandle(OsView hWnd);
 LgiFunc int GetMouseWheelLines();
 LgiFunc int WinPointToHeight(int Pt);
 LgiFunc int WinHeightToPoint(int Ht);
-LgiFunc int stricmp(char *a, char *b);
+LgiFunc int stricmp(const char *a, const char *b);
 LgiFunc char *strlwr(char *a);
 LgiFunc char *strupr(char *a);
 LgiFunc char *p2c(unsigned char *s);

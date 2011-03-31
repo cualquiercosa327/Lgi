@@ -84,7 +84,7 @@ public:
 	virtual GStreamI *Clone() { return 0; }
 
 	/// \brief Formats a string and then writes it.
-	virtual int Print(char *Format, ...);
+	virtual int Print(const char *Format, ...);
 };
 
 /// Defines an API for terminating a stream. 

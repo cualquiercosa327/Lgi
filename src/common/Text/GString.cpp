@@ -73,7 +73,7 @@ char *strnistr(char *a, char *b, int n)
 	return NULL;
 }
 
-int strnicmp(char *a, char *b, int i)
+int strnicmp(const char *a, const char *b, int i)
 {
 	int Cmp = -1;
 	if (a && b && i > 0)
@@ -111,7 +111,7 @@ char *stristr(char *a, char *b)
 	return NULL;
 }
 
-char *strsafecpy(char *dst, char *src, int len)
+char *strsafecpy(char *dst, const char *src, int len)
 {
 	char *d = dst;
 
@@ -129,7 +129,7 @@ char *strsafecpy(char *dst, char *src, int len)
 	return d;
 }
 
-char *strsafecat(char *dst, char *src, int len)
+char *strsafecat(char *dst, const char *src, int len)
 {
 	char *d = dst;
 
@@ -172,7 +172,7 @@ int strcmp(char *a, char *b)
 	return c;
 }
 
-int stricmp(char *a, char *b)
+int stricmp(const char *a, const char *b)
 {
 	int c = -1;
 	if (a && b)
@@ -269,7 +269,7 @@ bool ValidStr(char *s)
 	return false;
 }
 
-char *NewStr(char *s, int Len)
+char *NewStr(const char *s, int Len)
 {
 	if (s)
 	{
@@ -666,7 +666,7 @@ char16 *StrncpyW(char16 *a, char16 *b, int n)
 	return a;
 }
 
-void StrcatW(char16 *a, char16 *b)
+void StrcatW(char16 *a, const char16 *b)
 {
 	if (a && b)
 	{
@@ -686,7 +686,7 @@ void StrcatW(char16 *a, char16 *b)
 	}
 }
 
-int StrlenW(char16 *a)
+int StrlenW(const char16 *a)
 {
 	if (!a)
 		return 0;

@@ -1838,7 +1838,7 @@ bool MailIMap::GetParts(int Message, GStreamI &Out, char *Parts, char **Flags)
 						}
 						else
 						{
-							char *Field = LgiTokStr(s);
+							char *Field = LgiTokStr((const char*&)s);
 							if (!Field) break;
 
 							if (stricmp(Field, "Flags") == 0)
@@ -2217,7 +2217,7 @@ bool MailIMap::GetFolders(List<MailImapFolder> &Folders)
 				{
 					GArray<GAutoString> t;
 					char *s;
-					while (s = LgiTokStr(d))
+					while (s = LgiTokStr((const char*&)d))
 					{
 						t[t.Length()].Reset(s);
 					}

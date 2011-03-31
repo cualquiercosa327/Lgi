@@ -104,7 +104,7 @@ static void *_LgiAssert(void *Param)
 	return Assert;
 }
 
-void _lgi_assert(bool b, char *test, char *file, int line)
+void _lgi_assert(bool b, const char *test, const char *file, int line)
 {
 	static bool Asserting = false;
 
@@ -382,7 +382,7 @@ OSErr FinderLaunch(long nTargets, FSRef *targetList)
 	return err;
 }
 
-bool LgiExecute(char *File, char *Args, char *Dir)
+bool LgiExecute(const char *File, const char *Args, const char *Dir)
 {
 	bool Status = false;
 
@@ -421,7 +421,7 @@ bool LgiExecute(char *File, char *Args, char *Dir)
 						if (Dir)
 							chdir(Dir);
 							
-						GArray<char*> a;
+						GArray<const char*> a;
 						a.Add(File);
 						
 						char *p;
@@ -432,7 +432,7 @@ bool LgiExecute(char *File, char *Args, char *Dir)
 						a.Add(0);
 						
 						char *env[] = {0};
-						execve(File, &a[0], env);
+						execve(File, (char*const*)&a[0], env);
 					}
 					
 					return true;
@@ -442,7 +442,7 @@ bool LgiExecute(char *File, char *Args, char *Dir)
 				{
 					// Document?
 					e = FinderLaunch(1, &r);
-					if (e) printf("%s:%i - FinderLaunch faied with %i\n", _FL, e);
+					if (e) printf("%s:%i - FinderLaunch faied with %i\n", _FL, (int)e);
 					else Status = true;
 				}
 			}

@@ -148,18 +148,18 @@ bool LgiPostEvent(OsView Wnd, int Event, int a, int b)
 							&Ev);
 	if (e)
 	{
-		printf("%s:%i - CreateEvent failed with %i\n", __FILE__, __LINE__, e);
+		printf("%s:%i - CreateEvent failed with %i\n", __FILE__, __LINE__, (int)e);
 	}
 	else
 	{
 		EventTargetRef t = GetControlEventTarget(Wnd);
 		
 		e = SetEventParameter(Ev, kEventParamLgiEvent, typeUInt32, sizeof(Event), &Event);
-		if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, e);
+		if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, (int)e);
 		e = SetEventParameter(Ev, kEventParamLgiA, typeUInt32, sizeof(a), &a);
-		if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, e);
+		if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, (int)e);
 		e = SetEventParameter(Ev, kEventParamLgiB, typeUInt32, sizeof(b), &b);
-		if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, e);
+		if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, (int)e);
 		
 		// printf("Sent event %x,%x,%x\n", Event, a, b);
 		bool Status = false;
@@ -167,9 +167,9 @@ bool LgiPostEvent(OsView Wnd, int Event, int a, int b)
 		#if 1
 		
 		e = SetEventParameter(Ev, kEventParamPostTarget, typeEventTargetRef, sizeof(t), &t);
-		if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, e);
+		if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, (int)e);
 		e = PostEventToQueue(GetMainEventQueue(), Ev, kEventPriorityStandard);
-		if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, e);
+		if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, (int)e);
 		else Status = true;
 		
 		#else
@@ -302,7 +302,7 @@ int LgiGetOs
 		else if (Gestalt(gestaltSystemVersion, &i) == noErr)
 		{
 			char s[10];
-			sprintf(s, "%x", i);
+			sprintf(s, "%x", (int)i);
 			char *e = s + strlen(s) - 1;
 			char a[3] = { e[-1], 0 };
 			char b[3] = { e[0], 0 };
@@ -323,9 +323,9 @@ int LgiGetOs
 	#endif
 }
 
-char *LgiGetOsName()
+const char *LgiGetOsName()
 {
-	char *Str[] =
+	const char *Str[] =
 	{
 		"Unknown",
 		"Win32",
@@ -449,7 +449,7 @@ bool LgiRecursiveFileSearch(char *Root,
 #define _vsnprintf vsnprintf
 #endif
 
-void LgiTrace(char *Msg, ...)
+void LgiTrace(const char *Msg, ...)
 {
 	#if defined _INC_MALLOC && WIN32NATIVE
 	if (_heapchk() != _HEAPOK)
@@ -524,7 +524,7 @@ void LgiTrace(char *Msg, ...)
 
 #define STACK_SIZE 12
 
-void LgiStackTrace(char *Msg, ...)
+void LgiStackTrace(const char *Msg, ...)
 {
 	GSymLookup::Addr Stack[STACK_SIZE];
 	ZeroObj(Stack);
@@ -655,9 +655,12 @@ bool LgiIsRelativePath(char *Path)
 	return true; // Correct or not???
 }
 
-bool LgiMakePath(char *Str, int StrSize, char *Path, char *File)
+bool LgiMakePath(char *Str, int StrSize, const char *Path, const char *File)
 {
-	LgiAssert(Str != 0 && StrSize > 0 && Path != 0 && File != 0);
+	LgiAssert(Str != 0 &&
+			  StrSize > 0 &&
+			  Path != 0 &&
+			  File != 0);
 
 	if (StrSize <= 4)
 	{
@@ -1720,7 +1723,7 @@ void LgiFormatSize(char *Str, uint64 Size)
 	}
 }
 
-char *LgiTokStr(char *&s)
+char *LgiTokStr(const char *&s)
 {
 	char *Status = 0;
 
@@ -1734,7 +1737,7 @@ char *LgiTokStr(char *&s)
 			if (strchr("\'\"", *s))
 			{
 				char Delim = *s++;
-				char *e = strchr(s, Delim);
+				const char *e = strchr(s, Delim);
 				if (!e)
 				{
 					// error, no end delimiter
@@ -1746,7 +1749,7 @@ char *LgiTokStr(char *&s)
 			}
 			else
 			{
-				char *e = s;
+				const char *e = s;
 				while (*e AND !strchr(Delim, *e)) e++;
 				Status = NewStr(s, (int)e-(int)s);
 				s = e;

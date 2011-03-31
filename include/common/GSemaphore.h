@@ -7,7 +7,7 @@ class LgiClass GSemaphore
 {
 	OsThreadId _Thread;
 	OsSemaphore _Sem;
-	char *File;
+	const char *File;
 	int Line;
 	#ifdef _DEBUG
 	bool _DebugSem;
@@ -35,7 +35,7 @@ public:
 	bool Lock
 	(
 		/// The file name of the locker
-		char *file,
+		const char *file,
 		/// The line number of the locker
 		int line
 	);
@@ -45,7 +45,7 @@ public:
 		/// In ms
 		int Timeout,
 		/// The file of the locker
-		char *file,
+		const char *file,
 		/// The line number of the locker
 		int line
 	);

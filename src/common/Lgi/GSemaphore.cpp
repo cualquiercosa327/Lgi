@@ -132,7 +132,7 @@ void GSemaphore::_Unlock()
 	#endif
 }
 
-bool GSemaphore::Lock(char *file, int line)
+bool GSemaphore::Lock(const char *file, int line)
 {
 	int64 Start = LgiCurrentTime();
 	bool Status = false;
@@ -204,7 +204,7 @@ bool GSemaphore::Lock(char *file, int line)
 	return Status;
 }
 
-bool GSemaphore::LockWithTimeout(int Timeout, char *file, int line)
+bool GSemaphore::LockWithTimeout(int Timeout, const char *file, int line)
 {
 	int64 Start = LgiCurrentTime();
 	bool Status = false;

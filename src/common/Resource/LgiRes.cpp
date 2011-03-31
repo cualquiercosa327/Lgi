@@ -27,7 +27,7 @@
 
 // #include "GXml.h"
 
-#define DEBUG_RES_FILE						0
+#define DEBUG_RES_FILE						1
 #define CastToGWnd(RObj)					((RObj != 0) ? dynamic_cast<GView*>(RObj) : 0)
 
 class TagHash : public GHashTable, public ResReadCtx
@@ -277,7 +277,7 @@ LgiResources::LgiResources(char *FileName, bool Warn)
 	char *FullPath = 0;
 
 #if DEBUG_RES_FILE
-printf("%s:%i - Filename='%s'\n", _FL, FileName);
+LgiTrace("%s:%i - Filename='%s'\n", _FL, FileName);
 #endif
 	
 	if (FileExists(FileName))
@@ -292,7 +292,7 @@ printf("%s:%i - Filename='%s'\n", _FL, FileName);
 			char *f = strrchr(FileName, DIR_CHAR);
 
 #if DEBUG_RES_FILE
-printf("%s:%i - f='%s'\n", _FL, f);
+LgiTrace("%s:%i - f='%s'\n", _FL, f);
 #endif
 
 			if (f)
@@ -305,7 +305,7 @@ printf("%s:%i - f='%s'\n", _FL, f);
 			}
 
 #if DEBUG_RES_FILE
-printf("%s:%i - File='%s'\n", _FL, File);
+LgiTrace("%s:%i - File='%s'\n", _FL, File);
 #endif
 		}
 		else
@@ -315,7 +315,7 @@ printf("%s:%i - File='%s'\n", _FL, File);
 			if (LgiGetExeFile(Str, sizeof(Str)))
 			{
 #if DEBUG_RES_FILE
-printf("%s:%i - Str='%s'\n", _FL, Str);
+LgiTrace("%s:%i - Str='%s'\n", _FL, Str);
 #endif
 
 				char *f = strrchr(Str, DIR_CHAR);
@@ -335,7 +335,7 @@ printf("%s:%i - Str='%s'\n", _FL, Str);
 				}
 
 #if DEBUG_RES_FILE
-printf("%s:%i - File='%s'\n", _FL, File);
+LgiTrace("%s:%i - File='%s'\n", _FL, File);
 #endif
 			}
 			else
@@ -355,19 +355,19 @@ printf("%s:%i - File='%s'\n", _FL, File);
 		#endif
 
 #if DEBUG_RES_FILE
-printf("%s:%i - File='%s'\n", _FL, File);
+LgiTrace("%s:%i - File='%s'\n", _FL, File);
 #endif
 
 		strcpy(End, ".lr8");
 
 #if DEBUG_RES_FILE
-printf("%s:%i - File='%s'\n", _FL, File);
+LgiTrace("%s:%i - File='%s'\n", _FL, File);
 #endif
 
 		FullPath = LgiFindFile(File);
 
 #if DEBUG_RES_FILE
-printf("%s:%i - FullPath='%s'\n", _FL, FullPath);
+LgiTrace("%s:%i - FullPath='%s'\n", _FL, FullPath);
 #endif
 
 		if (!FullPath)

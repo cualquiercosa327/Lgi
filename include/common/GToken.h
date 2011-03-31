@@ -16,11 +16,11 @@ class LgiClass GToken : public GArray<char*>
 
 public:
 	GToken();
-	GToken(char *Str, char *Delimiters = " \r\n\t,", bool GroupDelim = true, int Length = -1);
+	GToken(const char *Str, const char *Delimiters = " \r\n\t,", bool GroupDelim = true, int Length = -1);
 	~GToken();
 
 	/// Parses a string with set delimiters
-	void Parse(char *Str, char *Delimiters = " \r\n\t,", bool GroupDelim = true, int Length = -1);
+	void Parse(const char *Str, const char *Delimiters = " \r\n\t,", bool GroupDelim = true, int Length = -1);
 	
 	/// Empties the object
 	void Empty();

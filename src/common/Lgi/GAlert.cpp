@@ -7,32 +7,32 @@
 #define CMD_BASE		100
 
 GAlert::GAlert(	GViewI *parent,
-				char *Title,
-				char *Text,
-				char *Btn1,
-				char *Btn2,
-				char *Btn3)
+				const char *Title,
+				const char *Text,
+				const char *Btn1,
+				const char *Btn2,
+				const char *Btn3)
 {
 	GText *t = 0;
-	Children.Insert(t = new GText(-1, 8, 8, -1, -1, Text));
+	Children.Insert(t = new GText(-1, 8, 8, -1, -1, (char*)Text));
 	if (t)
 	{
 		// Setup dialog
 		SetParent(parent);
-		Name(Title);
+		Name((char*)Title);
 
 		List<GButton> Btns;
-		List<char> Names;
+		List<const char> Names;
 		if (Btn1) Names.Insert(Btn1);
 		if (Btn2) Names.Insert(Btn2);
 		if (Btn3) Names.Insert(Btn3);
 		int i = 1, Tx = 0;
-		for (char *n=Names.First(); n; n=Names.Next())
+		for (const char *n=Names.First(); n; n=Names.Next())
 		{
-			GDisplayString ds(SysFont, n);
+			GDisplayString ds(SysFont, (char*)n);
 			int x = ds.X();
 			GButton *v;
-			Btns.Insert(v = new GButton(CMD_BASE + i++, 0, 0, 30 + x, 20, n));
+			Btns.Insert(v = new GButton(CMD_BASE + i++, 0, 0, 30 + x, 20, (char*)n));
 			Tx += v->X() + ((i>1) ? 10 : 0);
 		}
 		

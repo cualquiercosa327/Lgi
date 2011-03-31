@@ -1635,15 +1635,15 @@ public:
 		/// The parent view
 		GViewI *parent,
 		/// The dialog title
-		char *Title,
+		const char *Title,
 		/// The body of the message
-		char *Text,
+		const char *Text,
 		/// The first button text
-		char *Btn1,
+		const char *Btn1,
 		/// The [optional] 2nd buttons text
-		char *Btn2 = 0,
+		const char *Btn2 = 0,
 		/// The [optional] 3rd buttons text
-		char *Btn3 = 0
+		const char *Btn3 = 0
 	);
 
 	int OnNotify(GViewI *Ctrl, int Flags);

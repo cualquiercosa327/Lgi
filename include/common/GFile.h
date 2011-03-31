@@ -469,7 +469,7 @@ LgiFunc char *ReadTextFile(char *File);
 LgiFunc bool LgiTrimDir(char *Path);
 LgiFunc bool LgiIsRelativePath(char *Path);
 LgiFunc char *LgiMakeRelativePath(char *Base, char *Path);
-LgiFunc bool LgiMakePath(char *Str, int StrBufLen, char *Dir, char *File);
+LgiFunc bool LgiMakePath(char *Str, int StrBufLen, const char *Dir, const char *File);
 LgiFunc char *LgiGetExtension(char *File);
 LgiFunc bool LgiIsFileNameExecutable(char *FileName);
 LgiFunc bool LgiIsFileExecutable(char *FileName, GStreamI *f, int64 Start, int64 Len);

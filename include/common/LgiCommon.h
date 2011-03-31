@@ -76,7 +76,7 @@ LgiFunc char *LgiToNativeCp(char *In, int InLen = -1);
 /// Converts a string from the native 8bit charset of the OS to utf-8
 LgiFunc char *LgiFromNativeCp(char *In, int InLen = -1);
 /// Returns the next token in a string, leaving the argument pointing to the end of the token
-LgiFunc char *LgiTokStr(char *&s);
+LgiFunc char *LgiTokStr(const char *&s);
 /// Formats a data size into appropriate units
 LgiFunc void LgiFormatSize
 (
@@ -161,7 +161,7 @@ LgiFunc char *LgiLoadString(int Res, char *Default = 0);
 /// \returns One of the defines starting with #LGI_OS_UNKNOWN in LgiDefs.h
 LgiFunc int LgiGetOs(GArray<int> *Ver = 0);
 /// Gets the current operation systems name.
-LgiFunc char *LgiGetOsName();
+LgiFunc const char *LgiGetOsName();
 
 // System
 
@@ -175,11 +175,11 @@ LgiFunc char *LgiGetOsName();
 LgiFunc bool LgiExecute
 (
 	/// The file to open
-	char *File,
+	const char *File,
 	/// The arguments to pass to the program
-	char *Arguments="",
+	const char *Arguments="",
 	/// The directory to run in
-	char *Dir=0
+	const char *Dir=0
 );
 
 /// Initializes the random number generator

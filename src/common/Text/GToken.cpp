@@ -36,7 +36,7 @@ GToken::GToken()
 	fixed = true;
 }
 
-GToken::GToken(char *Str, char *Delimiters, bool GroupDelim, int Length)
+GToken::GToken(const char *Str, const char *Delimiters, bool GroupDelim, int Length)
 {
 	Raw = 0;
 	fixed = true;
@@ -48,7 +48,7 @@ GToken::~GToken()
 	Empty();
 }
 
-void GToken::Parse(char *Str, char *Delimiters, bool GroupDelim, int Length)
+void GToken::Parse(const char *Str, const char *Delimiters, bool GroupDelim, int Length)
 {
 	Empty();
 	if (Str)
@@ -58,9 +58,9 @@ void GToken::Parse(char *Str, char *Delimiters, bool GroupDelim, int Length)
 		ZeroObj(Lut);
 		if (Delimiters)
 		{
-			for (char *d=Delimiters; *d; d++)
+			for (const char *d=Delimiters; *d; d++)
 			{
-				Lut[(uchar)*d] = true;
+				Lut[(const uchar)*d] = true;
 			}
 		}
 

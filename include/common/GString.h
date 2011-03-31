@@ -85,7 +85,7 @@ LgiFunc char *stristr
 // LgiFunc int stricmp(char *a, char *b);
 LgiFunc char *strnistr(char *a, char *b, int n);
 #ifndef WIN32
-LgiFunc int strnicmp(char *a, char *b, int i);
+LgiFunc int strnicmp(const char *a, const char *b, int i);
 #endif
 
 
@@ -99,7 +99,7 @@ LgiFunc char *strsafecpy
 	/// The destination string buffer
 	char *dst,
 	/// The string to append to 'dst'
-	char *src,
+	const char *src,
 	/// The size in bytes of 'dst'
 	int len
 );
@@ -113,7 +113,7 @@ LgiFunc char *strsafecat
 	/// The destination string buffer
 	char *dst,
 	/// The string to append to 'dst'
-	char *src,
+	const char *src,
 	/// The size in bytes of 'dst'
 	int len
 );
@@ -146,7 +146,7 @@ LgiFunc bool ValidStr(char *s);
 LgiFunc char *NewStr
 (
 	/// The input string
-	char *s,
+	const char *s,
 	/// The maximum number of bytes in the input string to use or -1 for the whole string.
 	int Len = -1
 );
@@ -190,9 +190,9 @@ LgiFunc char16 *StrcpyW(char16 *a, char16 *b);
 LgiFunc char16 *StrncpyW(char16 *a, char16 *b, int n);
 
 /// Count the number of char16's in a wide string
-LgiFunc int StrlenW(char16 *a);
+LgiFunc int StrlenW(const char16 *a);
 /// Append a wide string to another
-LgiFunc void StrcatW(char16 *a, char16 *b);
+LgiFunc void StrcatW(char16 *a, const char16 *b);
 /// Convert a wide string to an integer
 LgiFunc int AtoiW(char16 *a);
 /// Convert a wide hex string to an integer

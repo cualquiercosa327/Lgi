@@ -75,7 +75,7 @@ int GStreamPrint(GStreamI *s, char *Format, ...)
 	return Chars;
 }
 
-int GStream::Print(char *Format, ...)
+int GStream::Print(const char *Format, ...)
 {
 	int Chars = 0;
 
