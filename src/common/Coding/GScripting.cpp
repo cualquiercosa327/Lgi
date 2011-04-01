@@ -1289,7 +1289,7 @@ GVariant *GScriptEnginePrivate::Var(char16 *name, bool create)
 	{
 		char b[256];
 		int Len = StrlenW(name) * sizeof(*name);
-		int Bytes = LgiBufConvertCp(b, "utf-8", sizeof(b), (void*&)name, LGI_WideCharset, Len);
+		int Bytes = LgiBufConvertCp(b, "utf-8", sizeof(b), (const void*&)name, LGI_WideCharset, Len);
 		b[Bytes/sizeof(*b)] = 0;
 
 		GVariant *v = 0;
@@ -1392,7 +1392,7 @@ bool GScriptEnginePrivate::Require(int &Cur, char *tok)
 			int Len = StrlenW(t) * sizeof(*t);
 			if (Len < 32)
 			{
-				int Bytes = LgiBufConvertCp(b, "utf-8", sizeof(b), (void*&)t, LGI_WideCharset, Len);
+				int Bytes = LgiBufConvertCp(b, "utf-8", sizeof(b), (const void*&)t, LGI_WideCharset, Len);
 				b[Bytes/sizeof(*b)] = 0;
 				if (stricmp(b, tok) == 0)
 				{
@@ -1651,7 +1651,7 @@ GVariant *GScriptEnginePrivate::Execute_Expression(int &Cur, GDom *Src, int Dept
 					if (Next AND Next[0] == '(' AND Next[1] == 0)
 					{
 						char Name[256];
-						void *In = t;
+						const void *In = t;
 						int InLen = StrlenW(t) * sizeof(*t);
 						int Converted = LgiBufConvertCp(Name, "utf-8", sizeof(Name)-1, In, LGI_WideCharset, InLen);
 						Name[Converted] = 0;

@@ -772,7 +772,7 @@ GFontSystem *GetIconv()
 
 /////////////////////////////////////////////////////////////////////////////
 // Utf-16 conversion
-int LgiByteLen(void *p, char *cp)
+int LgiByteLen(const void *p, char *cp)
 {
 	if (p AND cp)
 	{
@@ -802,7 +802,7 @@ int LgiCpToAnsi(char *cp)
 	return Ansi;
 }
 
-int LgiBufConvertCp(void *Out, char *OutCp, int OutLen, void *&In, char *InCp, int &InLen)
+int LgiBufConvertCp(void *Out, char *OutCp, int OutLen, const void *&In, char *InCp, int &InLen)
 {
 	int Status = 0;
 
@@ -1045,7 +1045,7 @@ int LgiBufConvertCp(void *Out, char *OutCp, int OutLen, void *&In, char *InCp, i
 	return Status;
 }
 
-void *LgiNewConvertCp(char *OutCp, void *In, char *InCp, int InLen)
+void *LgiNewConvertCp(char *OutCp, const void *In, char *InCp, int InLen)
 {
 	GBytePipe b;
 
@@ -1154,7 +1154,7 @@ void *LgiNewConvertCp(char *OutCp, void *In, char *InCp, int InLen)
 	return b.GetSize() ? b.New(sizeof(char16)) : 0;
 }
 
-char16 *LgiNewUtf8To16(char *In, int InLen)
+char16 *LgiNewUtf8To16(const char *In, int InLen)
 {
 	if (In)
 	{
@@ -1164,7 +1164,7 @@ char16 *LgiNewUtf8To16(char *In, int InLen)
 	return 0;
 }
 
-char *LgiNewUtf16To8(char16 *In, int InLen)
+char *LgiNewUtf16To8(const char16 *In, int InLen)
 {
 	if (In)
 	{
@@ -1415,7 +1415,7 @@ char *LgiDetectCharset(char *Utf8, int Len, List<char> *Prefs)
 	return Status;
 }
 
-char *LgiToNativeCp(char *In, int InLen)
+char *LgiToNativeCp(const char *In, int InLen)
 {
 	char *Cp = LgiAnsiToLgiCp();
 

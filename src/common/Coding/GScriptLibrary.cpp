@@ -69,7 +69,7 @@ int GScriptUtils::atoi(char16 *s)
 	{
 		char b[64];
 		int Len = StrlenW(s) * sizeof(*s);
-		int Bytes = LgiBufConvertCp(b, "utf-8", sizeof(b), (void*&)s, LGI_WideCharset, Len);
+		int Bytes = LgiBufConvertCp(b, "utf-8", sizeof(b), (const void*&)s, LGI_WideCharset, Len);
 		b[Bytes/sizeof(*b)] = 0;
 		i = ::atoi(b);
 	}
@@ -106,7 +106,7 @@ double GScriptUtils::atof(char16 *s)
 	{
 		char b[64];
 		int Len = StrlenW(s) * sizeof(*s);
-		int Bytes = LgiBufConvertCp(b, "utf-8", sizeof(b), (void*&)s, LGI_WideCharset, Len);
+		int Bytes = LgiBufConvertCp(b, "utf-8", sizeof(b), (const void*&)s, LGI_WideCharset, Len);
 		b[Bytes/sizeof(*b)] = 0;
 		i = ::atof(b);
 	}
@@ -120,7 +120,7 @@ int GScriptUtils::htoi(char16 *s)
 	{
 		char b[64];
 		int Len = StrlenW(s) * sizeof(*s);
-		int Bytes = LgiBufConvertCp(b, "utf-8", sizeof(b), (void*&)s, LGI_WideCharset, Len);
+		int Bytes = LgiBufConvertCp(b, "utf-8", sizeof(b), (const void*&)s, LGI_WideCharset, Len);
 		b[Bytes/sizeof(*b)] = 0;
 		i = ::htoi(b);
 	}

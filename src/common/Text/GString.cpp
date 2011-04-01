@@ -172,6 +172,7 @@ int strcmp(char *a, char *b)
 	return c;
 }
 
+#ifndef WIN32
 int stricmp(const char *a, const char *b)
 {
 	int c = -1;
@@ -189,7 +190,6 @@ int stricmp(const char *a, const char *b)
 	return c;
 }
 
-#ifndef WIN32
 char *strupr(char *a)
 {
 	for (char *s = a; s && *s; s++)

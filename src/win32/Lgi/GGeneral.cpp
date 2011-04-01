@@ -397,7 +397,7 @@ bool LgiGetAppsForMimeType(char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 						char *Path = TypeEntry.GetStr();
 						if (Path)
 						{
-							char *c = Path;
+							const char *c = Path;
 							char *Part = LgiTokStr(c);
 							if (Part)
 							{
@@ -491,7 +491,7 @@ static char *LgiFindArgsStart(char *File)
 	return 0;
 }
 
-bool LgiExecute(char *File, char *Arguments, char *Dir)
+bool LgiExecute(const char *File, const char *Arguments, const char *Dir)
 {
 	int Status = 0;
 	
@@ -844,7 +844,7 @@ char *GetWin32Folder(int Id)
 }
 
 //////////////////////////////////////////////////////////////////////
-void _lgi_assert(bool b, char *test, char *file, int line)
+void _lgi_assert(bool b, const char *test, const char *file, int line)
 {
 	static bool Asserting = false;
 

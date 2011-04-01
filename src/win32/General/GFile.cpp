@@ -811,7 +811,7 @@ bool GFileSystem::Delete(GArray<char*> &Files, GArray<int> *Status, bool ToTrash
 						int InSize = strlen(Files[i]);
 						char16 Buf[300];
 						ZeroObj(Buf);
-						void *InPtr = Files[i];
+						const void *InPtr = Files[i];
 						LgiBufConvertCp(Buf, LGI_WideCharset, sizeof(Buf), InPtr, "utf-8", InSize);
 						int Chars = StrlenW(Buf);
 						int Len = Name.Length();

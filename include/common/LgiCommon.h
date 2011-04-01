@@ -27,7 +27,7 @@ extern "C"
 // Codepages
 
 /// Converts a buffer of text to a different charset
-LgiFunc int LgiBufConvertCp(void *Out, char *OutCp, int OutLen, void *&In, char *InCp, int &InLen);
+LgiFunc int LgiBufConvertCp(void *Out, char *OutCp, int OutLen, const void *&In, char *InCp, int &InLen);
 /// \brief Converts a string to a new charset
 /// \return A dynamically allocate, null terminated string in the new charset
 LgiFunc void *LgiNewConvertCp
@@ -35,19 +35,19 @@ LgiFunc void *LgiNewConvertCp
 	/// Output charset
 	char *OutCp,
 	/// Input buffer
-	void *In,
+	const void *In,
 	/// The input data's charset
 	char *InCp,
 	/// Bytes of valid data in the input
 	int InLen = -1
 );
 /// Converts a utf-8 string into a wide character string
-LgiFunc char16 *LgiNewUtf8To16(char *In, int InLen = -1);
+LgiFunc char16 *LgiNewUtf8To16(const char *In, int InLen = -1);
 /// Converts a wide character string into a utf-8 string
 LgiFunc char *LgiNewUtf16To8
 (
 	/// Input string
-	char16 *In,
+	const char16 *In,
 	/// Number of bytes in the input or -1 for NULL terminated
 	int InLen = -1
 );
@@ -56,7 +56,7 @@ LgiFunc bool LgiIsCpImplemented(char *Cp);
 /// Converts the ANSI code page to a charset name
 LgiFunc char *LgiAnsiToLgiCp(int AnsiCodePage = -1);
 /// Calculate the byte length of a string
-LgiFunc int LgiByteLen(void *Str, char *Cp);
+LgiFunc int LgiByteLen(const void *Str, char *Cp);
 /// Calculate the number of characters in a string
 LgiFunc int LgiCharLen(void *Str, char *Cp, int Bytes = -1);
 /// Move a pointer along a utf-8 string by characters
@@ -72,7 +72,7 @@ LgiFunc char *LgiSeekUtf8
 /// Return true if the string is valid utf-8
 LgiFunc bool LgiIsUtf8(char *s, int len = -1);
 /// Converts a string to the native 8bit charset of the OS from utf-8
-LgiFunc char *LgiToNativeCp(char *In, int InLen = -1);
+LgiFunc char *LgiToNativeCp(const char *In, int InLen = -1);
 /// Converts a string from the native 8bit charset of the OS to utf-8
 LgiFunc char *LgiFromNativeCp(char *In, int InLen = -1);
 /// Returns the next token in a string, leaving the argument pointing to the end of the token

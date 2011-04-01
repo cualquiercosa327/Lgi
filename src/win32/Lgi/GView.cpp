@@ -153,7 +153,7 @@ GKey::GKey(int v, int flags)
 	{
 		uchar c = (uchar)vkey; 
 		
-		void *In = &c;
+		const void *In = &c;
 		int Len = 1;
 		Cp = LgiAnsiToLgiCp(GetInputACP());
 		LgiBufConvertCp(&c16, "ucs-2", sizeof(c16), In, Cp, Len);

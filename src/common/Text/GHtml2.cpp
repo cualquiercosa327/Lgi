@@ -3088,7 +3088,7 @@ char16 *GTag::CleanText(char *s, int Len, bool ConversionAllowed, bool KeepWhite
 							{
 								// Unicode Number
 								char n[32] = "";
-								void *In = Var + 1;
+								const void *In = Var + 1;
 								int Len = StrlenW(Var + 1) * sizeof(char16);
 								if (LgiBufConvertCp(n, "iso-8859-1", sizeof(n), In, "utf-16", Len))
 								{
