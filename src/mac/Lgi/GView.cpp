@@ -755,18 +755,6 @@ int GView::OnEvent(GMessage *Msg)
 {
 	switch (Msg->m)
 	{
-		/*
-		case M_X11_INVALIDATE:
-		{
-			X11_INVALIDATE_PARAMS *p = (X11_INVALIDATE_PARAMS*)MsgA(Msg);
-			if (p && p->View == this)
-			{
-				Invalidate(p->Rgn.Valid() ? &p->Rgn : 0, p->Repaint);
-				DeleteObj(p);
-			}
-			break;
-		}
-		*/
 		case M_PULSE:
 		{
 			OnPulse();

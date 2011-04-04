@@ -219,7 +219,8 @@ public:
 
 			Uri = Buf;
 		}
-		else if (!stricmp(u.Protocol, "mailto"))
+		else if (!stricmp(u.Protocol, "mailto") ||
+				 !stricmp(u.Protocol, "http"))
 		{
 			LgiExecute(Uri);
 			return true;
@@ -496,7 +497,7 @@ void GBrowser::OnPosChange()
 	stop.x1 = forward.x2 + 1;
 	stop.x2 = stop.x1 + (d->Stop ? d->Stop->X() - 1 : 0);
 	uri.x1 = stop.x2 + 1;
-	search_btn.x1 = search_btn.x2 - d->Search->X() + 1;
+	search_btn.x1 = search_btn.x2 - (d->Search ? d->Search->X() - 1 : 0);
 	search_txt.x2 = search_btn.x1 - 1;
 	search_txt.x1 = search_txt.x2 - 99;
 	uri.x2 = search_txt.x1 - 1;

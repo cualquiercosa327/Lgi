@@ -630,7 +630,7 @@ public:
 				// Broken font...
 				f->Face(Default->Face());
 				GFont *DefMatch = FindMatch(f);
-				printf("Falling back to default face for '%s:%i', DefMatch=%p\n", ff, f->PointSize(), DefMatch);
+				// printf("Falling back to default face for '%s:%i', DefMatch=%p\n", ff, f->PointSize(), DefMatch);
 				if (DefMatch)
 				{
 					DeleteObj(f);
@@ -2113,9 +2113,9 @@ bool GTag::OnMouseClick(GMouse &m)
 {
 	bool Processed = false;
 
-	char msg[256];
-	sprintf(msg, "iscontext=%i", m.IsContextMenu());
-	m.Trace(msg);
+	// char msg[256];
+	// sprintf(msg, "iscontext=%i", m.IsContextMenu());
+	// m.Trace(msg);
 	
 	if (m.IsContextMenu())
 	{
@@ -6426,15 +6426,13 @@ void GHtml2::OnPaint(GSurface *ScreenDC)
 
 		if (Tag)
 		{
-			//for (int r=0; r<2; r++)
-			//{
-				Layout();
-			// }
+			Layout();
 
 			if (VScroll)
 			{
 				int LineY = GetFont()->GetHeight();
-				pDC->SetOrigin(0, VScroll->Value() * LineY);
+				int Vs = VScroll->Value();
+				pDC->SetOrigin(0, Vs * LineY);
 			}
 
 			Tag->OnPaint(pDC);
@@ -7503,7 +7501,10 @@ bool GHtml2::GotoAnchor(char *Name)
 			if (VScroll)
 			{
 				int LineY = GetFont()->GetHeight();
-				VScroll->Value(a->AbsY() / LineY);
+				int Ay = a->AbsY();
+				int Scr = Ay / LineY;
+				VScroll->Value(Scr);
+				PostEvent(M_CHANGE, (GMessage::Param)VScroll);
 			}
 			else
 				d->OnLoadAnchor.Reset(NewStr(Name));

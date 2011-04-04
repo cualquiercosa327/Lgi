@@ -1738,11 +1738,13 @@ bool GUri::Set(char *uri)
 
 	// Scan ahead and check for protocol...
 	char *p = s;
-	while (*s AND isalpha(*s)) s++;
-	if (s[0] == ':' && s[1] == '/' && s[2] == '/')
+	while (*s && isalpha(*s)) s++;
+	if (s[0] == ':') // && s[1] == '/' && s[2] == '/'
 	{
 		Protocol = NewStr(p, s - p);
-		s += 3;
+		s++;
+		if (*s == '/') s++;
+		if (*s == '/') s++;
 	}
 	else
 	{

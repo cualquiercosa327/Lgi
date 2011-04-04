@@ -557,7 +557,7 @@ void GWindow::OnFrontSwitch(bool b)
 		else if (IsWindowCollapsed(WindowHandle()))
 		{
 			uint64 Now = LgiCurrentTime();
-			if (0) // Now - d->LastMinimize < 1000)
+			if (Now - d->LastMinimize < 1000)
 			{
 				// printf("%s:%i - CollapseWindow ignored via timeout\n", _FL);
 			}
