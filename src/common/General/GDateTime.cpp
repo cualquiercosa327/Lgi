@@ -896,7 +896,7 @@ bool GDateTime::SetTime(char *Str)
 	if (Str)
 	{
 		GToken T(Str, ":.");
-		if (T.Length() >= 2 AND T.Length() <= 4)
+		if (T.Length() >= 2 && T.Length() <= 4)
 		{
 			_Hours = atoi(T[0]);
 			_Minutes = atoi(T[1]);
@@ -924,11 +924,7 @@ bool GDateTime::SetTime(char *Str)
 				}
 			}
 
-			if (T.Length() > 3)
-			{
-				_Thousands = atoi(T[3]);
-			}
-
+			_Thousands = (T.Length() > 3) ? atoi(T[3]) : 0;
 			Status = true;
 		}
 	}
