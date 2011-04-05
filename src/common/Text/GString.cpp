@@ -90,7 +90,7 @@ int strnicmp(const char *a, const char *b, int i)
 	return Cmp;
 }
 
-char *stristr(char *a, char *b)
+char *stristr(const char *a, const char *b)
 {
 	if (a && b)
 	{
@@ -102,7 +102,7 @@ char *stristr(char *a, char *b)
 				for (i=0; a[i] && tolower(a[i]) == tolower(b[i]); i++)
 					;
 
-				if (b[i] == 0) return a;
+				if (b[i] == 0) return (char*)a;
 			}
 			a++;
 		}
@@ -247,7 +247,7 @@ char *TrimStr(char *s, char *Delim)
 	return NULL;
 }
 
-bool ValidStr(char *s)
+bool ValidStr(const char *s)
 {
 	if (s)
 	{
@@ -774,7 +774,7 @@ bool MatchStrW(char16 *a, char16 *b)
 	return 0;
 }
 
-char16 *NewStrW(char16 *Str, int l)
+char16 *NewStrW(const char16 *Str, int l)
 {
 	char16 *s = 0;
 	if (Str)
@@ -803,16 +803,16 @@ bool ValidStrW(char16 *s)
 	return false;
 }
 
-char *LgiDecodeUri(char *uri, int len)
+char *LgiDecodeUri(const char *uri, int len)
 {
 	GStringPipe p;
 	if (uri)
 	{
-		char *end = len >= 0 ? uri + len : 0;
-		for (char *s=uri; s && *s; )
+		const char *end = len >= 0 ? uri + len : 0;
+		for (const char *s=uri; s && *s; )
 		{
 			int Len;
-			char *e = s;
+			const char *e = s;
 			for (Len = 0; *e && *e != '%' && (!end || e < end); e++)
 				Len++;
 			
@@ -871,7 +871,7 @@ char *LgiEncodeUri(char *uri, int len)
 			if ((!end || e < end) && *e)
 			{
 				char h[4];
-				sprintf(h, "%%%02.2X", (uchar)*e);
+				sprintf(h, "%%%2.2X", (uchar)*e);
 				p.Push(h, 3);
 				s = ++e;
 			}

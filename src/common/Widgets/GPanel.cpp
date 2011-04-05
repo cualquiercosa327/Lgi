@@ -12,7 +12,7 @@
 #include "GPanel.h"
 
 //////////////////////////////////////////////////////////////////////////////
-GPanel::GPanel(char *name, int size, bool open)
+GPanel::GPanel(const char *name, int size, bool open)
 {
 	Ds = 0;
 	if (name) Name(name);

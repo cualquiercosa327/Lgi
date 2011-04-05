@@ -371,7 +371,7 @@ bool GDateTime::GetDaylightSavingsInfo(GArray<GDstInfo> &Info, GDateTime &Start,
 		}		
 		fclose(f);
 		
-		GHashTbl<char*,int> Lut(0, false);
+		GHashTbl<const char*,int> Lut(0, false);
 		Lut.Add("Jan", 1);
 		Lut.Add("Feb", 2);
 		Lut.Add("Mar", 3);

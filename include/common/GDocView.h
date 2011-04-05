@@ -250,7 +250,7 @@ public:
 
 	char *GetCharset() { return Charset; }
 	void SetCharset(char *s) { char *cs = NewStr(s); DeleteArray(Charset); Charset = cs; }
-	virtual char *GetMimeType() = 0;
+	virtual const char *GetMimeType() = 0;
 
 	///////////////////////////////////////////////////////////////////////
 	// Object
@@ -283,7 +283,7 @@ public:
 		SetEnv(0);
 	}
 
-	char *GetClass() { return "GDocView"; }
+	const char *GetClass() { return "GDocView"; }
 
 	/// Open a file handler
 	virtual bool Open(char *Name, char *Cs = 0) { return false; }

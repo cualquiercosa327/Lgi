@@ -42,7 +42,7 @@ public:
 	/// Append an existing tab
 	bool Append(GTabPage *Page, int Where = -1);
 	/// Append a new tab with the title 'name'
-	GTabPage *Append(char *name, int Where = -1);
+	GTabPage *Append(const char *name, int Where = -1);
 	/// Delete a tab
 	bool Delete(GTabPage *Page);
 
@@ -89,13 +89,13 @@ class LgiClass GTabPage :
 	bool Attach(GViewI *parent);
 
 public:
-	GTabPage(char *name);
+	GTabPage(const char *name);
 	~GTabPage();
 
 	char *GetClass() { return "GTabPage"; }
 
 	char *Name();
-	bool Name(char *n);
+	bool Name(const char *n);
 	GTabView *GetTabControl() { return TabCtrl; }
 
 	int OnEvent(GMessage *Msg);

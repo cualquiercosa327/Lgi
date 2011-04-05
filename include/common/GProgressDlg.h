@@ -37,7 +37,7 @@ public:
 	~GProgressPane();
 
 	char *GetDescription();
-	void SetDescription(char *d);
+	void SetDescription(const char *d);
 	void GetLimits(int64 *l, int64 *h) { Progress::GetLimits(l, h); }
 	void SetLimits(int64 l, int64 h);
 	int64 Value() { return Progress::Value(); }
@@ -79,7 +79,7 @@ public:
 	/// Returns the description of the first pane
 	char *GetDescription();
 	/// Sets the description of the first pane
-	void SetDescription(char *d);
+	void SetDescription(const char *d);
 	/// Returns the upper and lower limits of the first pane
 	void GetLimits(int64 *l, int64 *h);
 	/// Sets the upper and lower limits of the first pane
@@ -93,9 +93,9 @@ public:
 	/// Sets the current value of the first pane
 	void Value(int64 v);
 	/// Returns the type description of the first pane
-	char *GetType();
+	const char *GetType();
 	/// Sets the type description of the first pane
-	void SetType(char *t);
+	void SetType(const char *t);
 	/// Returns whether the user has cancelled the operation
 	bool Cancel();
 	/// Syncs an external list of progress objects with the dialog

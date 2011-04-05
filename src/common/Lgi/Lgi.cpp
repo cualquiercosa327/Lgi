@@ -633,7 +633,7 @@ char *LgiMakeRelativePath(char *Base, char *Path)
 	return Status.NewStr();
 }
 
-bool LgiIsRelativePath(char *Path)
+bool LgiIsRelativePath(const char *Path)
 {
 	if (!Path)
 		return false;
@@ -1564,7 +1564,7 @@ char *LgiFindFile(char *Name)
 		char CurWorking[MAX_PATH];
 		getcwd(CurWorking, sizeof(CurWorking));
 
-		char *PrefPath[] =
+		const char *PrefPath[] =
 		{
 			".",
 			"..",
@@ -1587,7 +1587,7 @@ char *LgiFindFile(char *Name)
 		};
 
 		// Look in prefered paths first...
-		for (char **Pref = PrefPath; *Pref; Pref++)
+		for (const char **Pref = PrefPath; *Pref; Pref++)
 		{
 			char Path[256];
 			if (LgiIsRelativePath(*Pref))

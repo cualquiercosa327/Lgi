@@ -39,11 +39,11 @@ public:
 		/// height
 		int cy,
 		/// Initial text
-		char *name
+		const char *name
 	);
 	~GEdit();
 
-	char *GetClass() { return "GEdit"; }
+	const char *GetClass() { return "GEdit"; }
 
 
 	/// Gets "Allow multiple lines"
@@ -73,9 +73,9 @@ public:
 	int OnEvent(GMessage *Msg);
 	void OnAttach();
 	char *Name();
-	bool Name(char *s);
+	bool Name(const char *s);
 	char16 *NameW();
-	bool NameW(char16 *s);
+	bool NameW(const char16 *s);
 	#else
 	void OnEnter(GKey &k);
 	void SendNotify(int Data);

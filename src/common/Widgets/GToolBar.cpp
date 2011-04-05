@@ -785,7 +785,7 @@ GToolButton::~GToolButton()
 	Text.DeleteObjects();
 }
 
-bool GToolButton::Name(char *n)
+bool GToolButton::Name(const char *n)
 {
 	bool s = GView::Name(n);
 
@@ -1923,7 +1923,7 @@ bool GToolBar::SetImageList(GImageList *l, int bx, int by, bool Own)
 	return d->ImgList != 0;
 }
 
-GToolButton *GToolBar::AppendButton(char *Tip, int Id, int Type, int Enabled, int IconId)
+GToolButton *GToolBar::AppendButton(const char *Tip, int Id, int Type, int Enabled, int IconId)
 {
 	bool HasIcon = IconId != TOOL_ICO_NONE;
 

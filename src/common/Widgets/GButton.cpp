@@ -48,7 +48,7 @@ public:
 	}
 };
 
-GButton::GButton(int id, int x, int y, int cx, int cy, char *name) :
+GButton::GButton(int id, int x, int y, int cx, int cy, const char *name) :
 	ResObject(Res_Button)
 {
 	d = new GButtonPrivate;
@@ -117,14 +117,14 @@ void GButton::Default(bool b)
 	}
 }
 
-bool GButton::Name(char *n)
+bool GButton::Name(const char *n)
 {
 	bool Status = GView::Name(n);
 	d->Layout(GetFont(), GBase::Name());
 	return Status;
 }
 
-bool GButton::NameW(char16 *n)
+bool GButton::NameW(const char16 *n)
 {
 	bool Status = GView::NameW(n);
 	d->Layout(GetFont(), GBase::Name());

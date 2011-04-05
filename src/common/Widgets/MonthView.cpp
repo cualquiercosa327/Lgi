@@ -2,10 +2,10 @@
 #include "Gdc2.h"
 #include "MonthView.h"
 
-char *ShortDayNames[7];
-char *FullDayNames[7];
-char *ShortMonthNames[12];
-char *FullMonthNames[12];
+const char *ShortDayNames[7];
+const char *FullDayNames[7];
+const char *ShortMonthNames[12];
+const char *FullMonthNames[12];
 char MonthView::Buf[256];
 
 MonthView::MonthView(GDateTime *dt)

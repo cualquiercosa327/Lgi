@@ -33,7 +33,7 @@ public:
 
 int GRadioGroupPrivate::NextId = 10000;
 
-GRadioGroup::GRadioGroup(int id, int x, int y, int cx, int cy, char *name, int Init)
+GRadioGroup::GRadioGroup(int id, int x, int y, int cx, int cy, const char *name, int Init)
 	: ResObject(Res_Group)
 {
 	d = new GRadioGroupPrivate;
@@ -58,14 +58,14 @@ int GRadioGroup::OnEvent(GMessage *m)
 	return GView::OnEvent(m);
 }
 
-bool GRadioGroup::Name(char *n)
+bool GRadioGroup::Name(const char *n)
 {
 	bool Status = GView::Name(n);
 	d->Layout(GetFont(), GBase::Name());
 	return Status;
 }
 
-bool GRadioGroup::NameW(char16 *n)
+bool GRadioGroup::NameW(const char16 *n)
 {
 	bool Status = GView::NameW(n);
 	d->Layout(GetFont(), GBase::Name());
@@ -215,7 +215,7 @@ public:
 	}
 };
 
-GRadioButton::GRadioButton(int id, int x, int y, int cx, int cy, char *name)
+GRadioButton::GRadioButton(int id, int x, int y, int cx, int cy, const char *name)
 	: ResObject(Res_RadioBox)
 {
 	d = new GRadioButtonPrivate;
@@ -249,14 +249,14 @@ int GRadioButton::OnEvent(GMessage *m)
 	return GView::OnEvent(m);
 }
 
-bool GRadioButton::Name(char *n)
+bool GRadioButton::Name(const char *n)
 {
 	bool Status = GView::Name(n);
 	d->Layout(GetFont(), GBase::Name());
 	return Status;
 }
 
-bool GRadioButton::NameW(char16 *n)
+bool GRadioButton::NameW(const char16 *n)
 {
 	bool Status = GView::NameW(n);
 	d->Layout(GetFont(), GBase::Name());

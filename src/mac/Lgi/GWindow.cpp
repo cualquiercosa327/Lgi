@@ -116,7 +116,7 @@ GWindow::GWindow() :
 		);
 	if (e)
 	{
-		printf("%s:%i - CreateNewWindow failed (e=%i).\n", __FILE__, __LINE__, e); 
+		printf("%s:%i - CreateNewWindow failed (e=%i).\n", _FL, (int)e); 
 	}
 }
 
@@ -295,7 +295,7 @@ OSErr GWindow::HandlerCallback(DragTrackingMessage *tracking, DragRef theDrag)
 							if (e)
 							{
 								Src = 0;
-								printf("%s:%i - GetFlavorData('%04.4s') failed with %i\n", _FL, &Type, e);
+								printf("%s:%i - GetFlavorData('%4.4s') failed with %i\n", _FL, &Type, e);
 							}
 							else
 							{
@@ -628,27 +628,27 @@ bool GWindow::PostEvent(int Event, int a, int b)
 								&Ev);
 		if (e)
 		{
-			printf("%s:%i - CreateEvent failed with %i\n", __FILE__, __LINE__, e);
+			printf("%s:%i - CreateEvent failed with %i\n", _FL, (int)e);
 		}
 		else
 		{
 			EventTargetRef t = GetWindowEventTarget(Wnd);
 			
 			e = SetEventParameter(Ev, kEventParamLgiEvent, typeUInt32, sizeof(Event), &Event);
-			if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, e);
+			if (e) printf("%s:%i - error %i\n", _FL, (int)e);
 			e = SetEventParameter(Ev, kEventParamLgiA, typeUInt32, sizeof(a), &a);
-			if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, e);
+			if (e) printf("%s:%i - error %i\n", _FL, (int)e);
 			e = SetEventParameter(Ev, kEventParamLgiB, typeUInt32, sizeof(b), &b);
-			if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, e);
+			if (e) printf("%s:%i - error %i\n", _FL, (int)e);
 			
 			// printf("Sending event to window %i,%i,%i\n", Event, a, b);
 
 			#if 1
 			
 			e = SetEventParameter(Ev, kEventParamPostTarget, typeEventTargetRef, sizeof(t), &t);
-			if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, e);
+			if (e) printf("%s:%i - error %i\n", _FL, (int)e);
 			e = PostEventToQueue(GetMainEventQueue(), Ev, kEventPriorityStandard);
-			if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, e);
+			if (e) printf("%s:%i - error %i\n", _FL, (int)e);
 			Status = e == 0;
 			
 			#else
@@ -699,7 +699,7 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 						c = LgiSwap32(c);
 						#endif
 						// if (c != '0000')
-							printf("%s:%i - Cmd='%04.4s'\n", _FL, &c);
+							printf("%s:%i - Cmd='%4.4s'\n", _FL, (char*)&c);
 						#endif
 
 						extern int *ReturnFloatCommand;
@@ -781,7 +781,7 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 							OSStatus e = SetRootMenu(m->Handle());
 							if (e)
 							{
-								printf("%s:%i - SetRootMenu failed (e=%i)\n", __FILE__, __LINE__, e);
+								printf("%s:%i - SetRootMenu failed (e=%i)\n", _FL, (int)e);
 							}
 						}
 						else
@@ -796,7 +796,7 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 								OSStatus e = SetRootMenu(w->d->EmptyMenu->Handle());
 								if (e)
 								{
-									printf("%s:%i - SetRootMenu failed (e=%i)\n", __FILE__, __LINE__, e);
+									printf("%s:%i - SetRootMenu failed (e=%i)\n", _FL, (int)e);
 								}
 							}
 						}
@@ -1032,9 +1032,9 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 
 					// the point parameter is in view-local coords.
 					OSStatus status = GetEventParameter(inEvent, kEventParamMouseLocation, typeQDPoint, NULL, sizeof(Point), NULL, &Pt);
-					if (status) printf("error(%i) getting kEventParamMouseLocation\n", status);
+					if (status) printf("error(%i) getting kEventParamMouseLocation\n", (int)status);
 					status = GetEventParameter(inEvent, kEventParamKeyModifiers, typeUInt32, NULL, sizeof(modifierKeys), NULL, &modifierKeys);
-					if (status) printf("error(%i) getting kEventParamKeyModifiers\n", status);
+					if (status) printf("error(%i) getting kEventParamKeyModifiers\n", (int)status);
 					
 					GMouse m;
 					m.ViewCoords = false;
@@ -1087,11 +1087,11 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 					GetWindowBounds(v->WindowHandle(), kWindowContentRgn, &Client);
 					
 					OSStatus status = GetEventParameter(inEvent, kEventParamMouseLocation, typeQDPoint, NULL, sizeof(Point), NULL, &Pt);
-					if (status) printf("error(%i) getting kEventParamMouseLocation\n", status);
+					if (status) printf("error(%i) getting kEventParamMouseLocation\n", (int)status);
 					status = GetEventParameter(inEvent, kEventParamKeyModifiers, typeUInt32, NULL, sizeof(modifierKeys), NULL, &modifierKeys);
-					if (status) printf("error(%i) getting kEventParamKeyModifiers\n", status);
+					if (status) printf("error(%i) getting kEventParamKeyModifiers\n", (int)status);
 					status = GetEventParameter(inEvent, kEventParamMouseWheelDelta, typeSInt32, NULL, sizeof(Delta), NULL, &Delta);
-					if (status) printf("error(%i) getting kEventParamMouseWheelDelta\n", status);
+					if (status) printf("error(%i) getting kEventParamMouseWheelDelta\n", (int)status);
 					
 					if (Target = v->WindowFromPoint(Pt.h - Client.left, Pt.v - Client.top))
 					{
@@ -1487,7 +1487,7 @@ void GWindow::SetZoom(GWindowZoom i)
 		case GZoomMin:
 		{
 			e = CollapseWindow(Wnd, true);
-			if (e) printf("%s:%i - CollapseWindow failed with %i\n", _FL, e);
+			if (e) printf("%s:%i - CollapseWindow failed with %i\n", _FL, (int)e);
 			// else printf("GZoomMin ok.\n");
 			break;
 		}
@@ -1495,7 +1495,7 @@ void GWindow::SetZoom(GWindowZoom i)
 		case GZoomNormal:
 		{
 			e = CollapseWindow(Wnd, false);
-			if (e) printf("%s:%i - [Un]CollapseWindow failed with %i\n", _FL, e);
+			if (e) printf("%s:%i - [Un]CollapseWindow failed with %i\n", _FL, (int)e);
 			// else printf("GZoomNormal ok.\n");
 			break;
 		}
@@ -1527,7 +1527,7 @@ void GWindow::SetDefault(GViewI *v)
 	}
 }
 
-bool GWindow::Name(char *n)
+bool GWindow::Name(const char *n)
 {
 	bool Status = GBase::Name(n);
 
@@ -1539,7 +1539,7 @@ bool GWindow::Name(char *n)
 			OSStatus e = SetWindowTitleWithCFString(Wnd, s);
 			if (e)
 			{
-				printf("%s:%i - SetWindowTitleWithCFString failed (e=%i)\n", __FILE__, __LINE__, e);
+				printf("%s:%i - SetWindowTitleWithCFString failed (e=%i)\n", _FL, (int)e);
 			}
 			else
 			{
@@ -1651,7 +1651,7 @@ GRect &GWindow::GetPos()
 		}
 		else
 		{
-			printf("%s:%i - GetWindowBounds failed (e=%i)\n", __FILE__, __LINE__, e);
+			printf("%s:%i - GetWindowBounds failed (e=%i)\n", _FL, (int)e);
 		}
 	}
 
@@ -1679,7 +1679,7 @@ bool GWindow::SetPos(GRect &p, bool Repaint)
 		Rect rc;
 		rc = Pos;
 		OSStatus e = SetWindowBounds(Wnd, kWindowStructureRgn, &rc);
-		if (e) printf("%s:%i - SetWindowBounds error e=%i\n", _FL, e);
+		if (e) printf("%s:%i - SetWindowBounds error e=%i\n", _FL, (int)e);
 	}
 
 	return true;

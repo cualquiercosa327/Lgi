@@ -66,8 +66,8 @@ public:
 				ResFileFormat Format,
 				class TagHash *TagList);
 
-	virtual GMenuItem *AppendItem(char *Str, int Id, bool Enabled, int Where = -1, char *Shortcut = 0) = 0;
-	virtual GSubMenu *AppendSub(char *Str, int Where = -1) = 0;
+	virtual GMenuItem *AppendItem(const char *Str, int Id, bool Enabled, int Where = -1, char *Shortcut = 0) = 0;
+	virtual GSubMenu *AppendSub(const char *Str, int Where = -1) = 0;
 	virtual GMenuItem *AppendSeparator(int Where = -1) = 0;
 };
 
@@ -119,7 +119,7 @@ public:
 	GSubMenu
 	(
 		/// Name of the menu
-		char *name = (char*)"",
+		const char *name = "",
 		/// True if it's popup
 		bool Popup = true
 	);
@@ -143,7 +143,7 @@ public:
 		///		<li> Alt+Del
 		///		<li> F2
 		/// </ul>
-		char *Str,
+		const char *Str,
 		/// Command ID to post to the OnCommand() handler
 		int Id,
 		/// True if the item should be enabled
@@ -158,7 +158,7 @@ public:
 	GSubMenu *AppendSub
 	(
 		/// The text of the item
-		char *Str,
+		const char *Str,
 		/// The index to insert the item, or -1 to insert on the end
 		int Where = -1
 	);
@@ -301,7 +301,7 @@ public:
 	void Checked(bool c);
 	/// \brief Set the text of the item
 	/// \sa GSubMenu::AppendItem()
-	bool Name(char *n);
+	bool Name(const char *n);
 	/// Enable or disable the item
 	void Enabled(bool e);
 	void Visible(bool v);

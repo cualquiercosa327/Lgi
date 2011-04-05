@@ -30,7 +30,7 @@ public:
 	GPopup(GView *owner);
 	~GPopup();
 
-	char *GetClass() { return "GPopup"; }
+	const char *GetClass() { return "GPopup"; }
 	bool GetCancelled() { return Cancelled; }
 	bool Attach(GViewI *p);
 	void Visible(bool i);

@@ -5,7 +5,7 @@
 #include <dlfcn.h>
 #endif
 
-GLibrary::GLibrary(char *File)
+GLibrary::GLibrary(const char *File)
 {
 	FileName = 0;
 	hLib = 0;
@@ -20,7 +20,7 @@ GLibrary::~GLibrary()
 	Unload();
 }
 
-bool GLibrary::Load(char *File)
+bool GLibrary::Load(const char *File)
 {
 	Unload();
 

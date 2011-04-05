@@ -1519,7 +1519,7 @@ char *GTextView3::Name()
 	return TextCache;
 }
 
-bool GTextView3::Name(char *s)
+bool GTextView3::Name(const char *s)
 {
 	UndoQue.Empty();
 	DeleteArray(TextCache);
@@ -1565,7 +1565,7 @@ char16 *GTextView3::NameW()
 	return Text;
 }
 
-bool GTextView3::NameW(char16 *s)
+bool GTextView3::NameW(const char16 *s)
 {
 	DeleteArray(Text);
 	Size = s ? StrlenW(s) : 0;

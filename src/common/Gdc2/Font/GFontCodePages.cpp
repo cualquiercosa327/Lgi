@@ -8,7 +8,7 @@
 
 #ifdef MAC
 // This converts a normal charset to an Apple encoding ID
-static CFStringEncoding CharsetToEncoding(char *cs)
+static CFStringEncoding CharsetToEncoding(const char *cs)
 {
 	CFStringRef InputCs = CFStringCreateWithCString(0, cs, kCFStringEncodingUTF8);
 	CFStringEncoding enc = CFStringConvertIANACharSetNameToEncoding(InputCs);
@@ -128,7 +128,7 @@ public:
 } Iso2022Jp;
 
 /////////////////////////////////////////////////////////////////////////////////////
-bool LgiIsUtf8(char *s, int len)
+bool LgiIsUtf8(const char *s, int len)
 {
 	#define LenCheck(Need) \
 		if (len >= 0 && (len - (s - Start)) < Need) \
@@ -141,7 +141,7 @@ bool LgiIsUtf8(char *s, int len)
 	if (!s || *s == 0)
 		return true;
 
-	char *Start = s;
+	const char *Start = s;
 	while (*s && (len < 0 || (((int)s-(int)Start) < len) ) )
 	{
 		if (IsUtf8_1Byte(*s))
@@ -576,7 +576,7 @@ short _gdc_koi8ru_mapping[128] =
 
 #endif
 
-GCharset::GCharset(char *cp, char *des, short *map, char *alt)
+GCharset::GCharset(const char *cp, const char *des, short *map, const char *alt)
 {
 	Charset = cp;
 	Description = des;
@@ -622,7 +622,7 @@ bool GCharset::IsUnicode()
 	return (Type == CpUtf8) OR (Type == CpWide);
 }
 
-char *GCharset::GetIconvName()
+const char *GCharset::GetIconvName()
 {
 	return IconvName ? IconvName : Charset;
 }
@@ -749,7 +749,7 @@ GCharset()
 
 static GCharsetSystem CharsetSystem;
 
-GCharset *LgiGetCpInfo(char *Cs)
+GCharset *LgiGetCpInfo(const char *Cs)
 {
 	return CharsetSystem.GetCsInfo(Cs);
 }
@@ -772,7 +772,7 @@ GFontSystem *GetIconv()
 
 /////////////////////////////////////////////////////////////////////////////
 // Utf-16 conversion
-int LgiByteLen(const void *p, char *cp)
+int LgiByteLen(const void *p, const char *cp)
 {
 	if (p AND cp)
 	{
@@ -802,7 +802,7 @@ int LgiCpToAnsi(char *cp)
 	return Ansi;
 }
 
-int LgiBufConvertCp(void *Out, char *OutCp, int OutLen, const void *&In, char *InCp, int &InLen)
+int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, const char *InCp, int &InLen)
 {
 	int Status = 0;
 
@@ -1045,7 +1045,7 @@ int LgiBufConvertCp(void *Out, char *OutCp, int OutLen, const void *&In, char *I
 	return Status;
 }
 
-void *LgiNewConvertCp(char *OutCp, const void *In, char *InCp, int InLen)
+void *LgiNewConvertCp(const char *OutCp, const void *In, const char *InCp, int InLen)
 {
 	GBytePipe b;
 
@@ -1174,7 +1174,7 @@ char *LgiNewUtf16To8(const char16 *In, int InLen)
 	return 0;
 }
 
-int LgiCharLen(void *Str, char *Cp, int Bytes)
+int LgiCharLen(const void *Str, const char *Cp, int Bytes)
 {
 	if (Str AND Cp)
 	{
@@ -1227,7 +1227,7 @@ bool LgiIsCpImplemented(char *Cp)
 	return LgiGetCpInfo(Cp) != 0;
 }
 
-char *LgiAnsiToLgiCp(int AnsiCodePage)
+const char *LgiAnsiToLgiCp(int AnsiCodePage)
 {
 	if (AnsiCodePage < 0)
 	{
@@ -1294,7 +1294,7 @@ char *LgiAnsiToLgiCp(int AnsiCodePage)
 	return 0;
 }
 
-char *LgiSeekUtf8(char *Ptr, int D, char *Start)
+char *LgiSeekUtf8(const char *Ptr, int D, char *Start)
 {
 	uchar *p = (uchar*)Ptr;
 	if (p)
@@ -1365,9 +1365,9 @@ bool LgiMatchCharset(short *Map, char16 *Utf, bool &Has8Bit)
 	return false;
 }
 
-char *LgiDetectCharset(char *Utf8, int Len, List<char> *Prefs)
+const char *LgiDetectCharset(const char *Utf8, int Len, List<char> *Prefs)
 {
-	char *Status = "utf-8"; // The default..
+	const char *Status = "utf-8"; // The default..
 
 	GAutoWString Utf((char16*)LgiNewConvertCp("utf-16", Utf8, "utf-8", Len));
 	if (Utf)
@@ -1417,7 +1417,7 @@ char *LgiDetectCharset(char *Utf8, int Len, List<char> *Prefs)
 
 char *LgiToNativeCp(const char *In, int InLen)
 {
-	char *Cp = LgiAnsiToLgiCp();
+	const char *Cp = LgiAnsiToLgiCp();
 
 	#ifdef WIN32
 	GCharset *CpInfo = LgiGetCpInfo(Cp);
@@ -1457,7 +1457,7 @@ char *LgiToNativeCp(const char *In, int InLen)
 
 char *LgiFromNativeCp(char *In, int InLen)
 {
-	char *Cp = LgiAnsiToLgiCp();
+	const char *Cp = LgiAnsiToLgiCp();
 
 	#ifdef WIN32
 	GCharset *CpInfo = LgiGetCpInfo(Cp);
@@ -1573,7 +1573,7 @@ GCharsetSystem::~GCharsetSystem()
 	DeleteObj(d);
 }
 
-GCharset *GCharsetSystem::GetCsInfo(char *Cp)
+GCharset *GCharsetSystem::GetCsInfo(const char *Cp)
 {
 	if (Cp AND d)
 	{

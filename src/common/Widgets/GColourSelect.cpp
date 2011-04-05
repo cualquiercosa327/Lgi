@@ -28,7 +28,7 @@ public:
 			char s[64];
 			
 			SysFont->Colour(LC_BLACK, LC_MED);
-			GDisplayString ds(SysFont, LgiLoadString(L_COLOUR_NONE, "No Colour"));
+			GDisplayString ds(SysFont, (char*)LgiLoadString(L_COLOUR_NONE, "No Colour"));
 			ds.Draw(pDC, r.x1 + 2, r.y1 + 2);
 
 			for (int i=0; i<Colour->Presets.Length(); i++)

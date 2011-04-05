@@ -106,7 +106,7 @@ public:
 	}
 };
 
-GText::GText(int id, int x, int y, int cx, int cy, char *name) :
+GText::GText(int id, int x, int y, int cx, int cy, const char *name) :
 	ResObject(Res_StaticText)
 {
 	d = new GTextPrivate;
@@ -137,7 +137,7 @@ void GText::SetWrap(bool b)
 	Invalidate();
 }
 
-bool GText::Name(char *n)
+bool GText::Name(const char *n)
 {
 	bool Status = GView::Name(n);
 	d->Layout(GetFont(), GBase::Name(), X());
@@ -145,7 +145,7 @@ bool GText::Name(char *n)
 	return Status;
 }
 
-bool GText::NameW(char16 *n)
+bool GText::NameW(const char16 *n)
 {
 	bool Status = GView::NameW(n);
 	d->Layout(GetFont(), GBase::Name(), X());

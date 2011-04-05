@@ -23,11 +23,11 @@ public:
 		/// The parent view
 		GViewI *parent,
 		/// The initial value in the edit box
-		char *InitStr = "",
+		const char *InitStr = "",
 		/// The message to display in the text box
-		char *Msg = "Enter String",
+		const char *Msg = "Enter String",
 		/// The title of the window
-		char *Title = "Input",
+		const char *Title = "Input",
 		/// True if you want the edit box characters hashed out for a password
 		bool Password = false,
 		/// [Optional] If this parameter is supplied then a "..." button is added to the dialog.

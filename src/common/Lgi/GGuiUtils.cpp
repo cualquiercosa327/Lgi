@@ -100,7 +100,7 @@ int _hex_to_int(char h)
 }
 */
 
-bool _lgi_read_colour_config(char *Tag, uint32 *c)
+bool _lgi_read_colour_config(const char *Tag, uint32 *c)
 {
 	if (!c || !Tag)
 		return false;

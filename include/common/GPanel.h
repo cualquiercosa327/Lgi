@@ -26,7 +26,7 @@ protected:
 	virtual int CalcWidth();
 
 public:
-	GPanel(char *name, int size, bool open = true);
+	GPanel(const char *name, int size, bool open = true);
 	~GPanel();
 
 	bool Open();

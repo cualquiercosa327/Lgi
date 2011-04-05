@@ -28,12 +28,12 @@ public:
 		/// The height
 		int cy,
 		/// The initial text
-		char *name
+		const char *name
 	);
 	~GCombo();
 
 	// Properties
-	char *GetClass() { return "GCombo"; }
+	const char *GetClass() { return "GCombo"; }
 	/// Returns whether to sort the list
 	bool Sort();
 	/// Sets whether to sort the list
@@ -51,7 +51,7 @@ public:
 	/// Returns the select item
 	int64 Value();
 	/// Sets the selected item by name
-	bool Name(char *n);
+	bool Name(const char *n);
 	/// Returns the selected item's name
 	char *Name();
 	/// Gets the menu used
@@ -90,7 +90,7 @@ public:
 	bool Insert
 	(
 		/// The new item
-		char *p,
+		const char *p,
 		/// The location to insert or -1 for the end of the list
 		int Index = -1
 	);

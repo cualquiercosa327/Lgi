@@ -29,7 +29,7 @@ public:
 	virtual void *Alloc(size_t Size) = 0;
 	virtual void Free(void *Ptr) = 0;
 
-	char *Alloc(char *s, int len = -1)
+	char *Alloc(const char *s, int len = -1)
 	{
 		if (!s) return 0;
 		if (len < 0) len = strlen(s);
@@ -79,7 +79,7 @@ protected:
 	GAutoRefPtr<GXmlAlloc> Allocator;
 
 	bool Write;
-	GXmlAttr *_Attr(char *Name, bool Write);
+	GXmlAttr *_Attr(const char *Name, bool Write);
 	bool GetVariant(char *Name, GVariant &Value, char *Array);
 	bool SetVariant(char *Name, GVariant &Value, char *Array);
 
@@ -101,7 +101,7 @@ public:
 	GXmlTag
 	(
 		/// [Optional] Start with this name
-		char *tag = 0,
+		const char *tag = 0,
 		/// [Optional] Use this allocator
 		GXmlAlloc *alloc = 0
 	);	
@@ -119,30 +119,30 @@ public:
 	void EmptyChildren();
 
 	/// \return true if the tag is 's'
-	bool IsTag(char *s) { return Tag && s ? stricmp(Tag, s) == 0 : false; }
+	bool IsTag(const char *s) { return Tag && s ? stricmp(Tag, s) == 0 : false; }
 
 	/// Get the string value of a named attribute
-	char *GetAttr(char *Name);
+	char *GetAttr(const char *Name);
 	/// Get the value of a named attribute as an int
-	int GetAsInt(char *Name);
+	int GetAsInt(const char *Name);
 	/// Set the value of a named attribute to a string
-	bool SetAttr(char *Name, char *Value);
+	bool SetAttr(const char *Name, const char *Value);
 	/// Set the value of a named attribute to an int
-	bool SetAttr(char *Name, int Value);
+	bool SetAttr(const char *Name, int Value);
 	/// Deletes an attribute
-	bool DelAttr(char *Name);
+	bool DelAttr(const char *Name);
 
 	/// Read/write a native C integer into an attribute
-	bool SerializeAttr(char *Attr, int &Int);	
+	bool SerializeAttr(const char *Attr, int &Int);	
 	/// Read/write a native C dynamically allocated string into an attribute
-	bool SerializeAttr(char *Attr, char *&Str);
+	bool SerializeAttr(const char *Attr, char *&Str);
 	/// Read/write a native C double into an attribute
-	bool SerializeAttr(char *Attr, double &Dbl);
+	bool SerializeAttr(const char *Attr, double &Dbl);
 		
 	/// Read/write all your native types in here
 	virtual bool Serialize() { return false; }
 	/// Returns a pointer to a child tag if present, or NULL if not.
-	GXmlTag *GetTag(char *Name, bool Create = false);
+	GXmlTag *GetTag(const char *Name, bool Create = false);
 	/// Creates a sub tag if it doesn't already exist.
 	GXmlTag *CreateTag(char *Name, char *Content = 0);
 	/// Inserts a child tag.
@@ -215,13 +215,13 @@ public:
 	void SetStyleFile(char *stylefile, char *styletype = "text/css");
 
 	/// Add entities
-	GHashTbl<char*,char16> *GetEntityTable();
+	GHashTbl<const char*,char16> *GetEntityTable();
 	/// Decode a string with entities
 	char *DecodeEntities(char *s, int len = -1);
 	/// Encode a string to use entities
-	char *EncodeEntities(char *s, int len = -1, char *extra_characters = 0);
+	char *EncodeEntities(char *s, int len = -1, const char *extra_characters = 0);
 	/// Encode a string to use entities
-	bool EncodeEntities(GStreamI *out, char *s, int len, char *extra_characters = 0);
+	bool EncodeEntities(GStreamI *out, char *s, int len, const char *extra_characters = 0);
 };
 
 #endif

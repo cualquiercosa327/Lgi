@@ -46,9 +46,9 @@
 
 struct ErrorCodeType
 {
-	char *Name;
+	const char *Name;
 	int Code;
-	char *Desc;
+	const char *Desc;
 }
 ErrorCodes[] =
 {
@@ -229,7 +229,7 @@ ErrorCodes[] =
 	{"NONE", 0, "No error"},
 };
 
-char *GetErrorName(int e)
+const char *GetErrorName(int e)
 {
 	for (ErrorCodeType *c=ErrorCodes; c->Code; c++)
 	{
@@ -244,7 +244,7 @@ char *GetErrorName(int e)
 	return s;
 }
 
-char *GetErrorDesc(int e)
+const char *GetErrorDesc(int e)
 {
 	for (ErrorCodeType *c=ErrorCodes; c->Code; c++)
 	{
@@ -287,7 +287,7 @@ int64 LgiFileSize(char *FileName)
 	return 0;
 }
 
-bool DirExists(char *FileName)
+bool DirExists(const char *FileName)
 {
 	bool Status = false;
 	
@@ -305,7 +305,7 @@ bool DirExists(char *FileName)
 	return Status;
 }
 
-bool FileExists(char *FileName)
+bool FileExists(const char *FileName)
 {
 	bool Status = false;
 	
@@ -1181,7 +1181,7 @@ GDirectory *GDirImpl::Clone()
 	return new GDirImpl;
 }
 
-int GDirImpl::First(char *Name, char *Pattern)
+int GDirImpl::First(const char *Name, const char *Pattern)
 {
 	Close();
 
@@ -1449,7 +1449,7 @@ int GFile::Open(char *File, int Mode)
 	if (!ValidHandle(d->hFile))
 	{
 		d->LastError = errno;
-		printf("GFile::Open failed\n\topen(%s,%08.8x) = %i\n\terrno=%s (%s)\n", File, Mode, d->hFile, GetErrorName(errno), GetErrorDesc(errno));
+		printf("GFile::Open failed\n\topen(%s,%8.8x) = %i\n\terrno=%s (%s)\n", File, Mode, d->hFile, GetErrorName(errno), GetErrorDesc(errno));
 		return false;
 	}
 	

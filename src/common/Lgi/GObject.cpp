@@ -25,7 +25,7 @@ char *GBase::Name()
 	return _Name8;
 }
 
-bool GBase::Name(char *n)
+bool GBase::Name(const char *n)
 {
 	if (n == _Name8) return true;
 
@@ -46,7 +46,7 @@ char16 *GBase::NameW()
 	return _Name16;
 }
 
-bool GBase::NameW(char16 *n)
+bool GBase::NameW(const char16 *n)
 {
 	if (n == _Name16) return true;
 

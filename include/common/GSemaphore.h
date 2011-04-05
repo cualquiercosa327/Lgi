@@ -25,7 +25,7 @@ public:
 	GSemaphore
 	(
 		/// Optional name for the semaphore
-		char *name = 0
+		const char *name = 0
 	);
 	virtual ~GSemaphore();
 
@@ -66,14 +66,14 @@ public:
 	    bool Locked;
 	
 	public:
-	    Auto(GSemaphore *s, char *file, int line)
+	    Auto(GSemaphore *s, const char *file, int line)
 	    {
 	        LgiAssert(s);
 	        Locked = (Sem = s) ? Sem->Lock(file, line) : 0;
 			LgiAssert(Locked);
 	    }
 
-	    Auto(GSemaphore *s, int timeout, char *file, int line)
+	    Auto(GSemaphore *s, int timeout, const char *file, int line)
 	    {
 	        LgiAssert(s);
 	        Locked = (Sem = s) ? Sem->LockWithTimeout(timeout, file, line) : 0;

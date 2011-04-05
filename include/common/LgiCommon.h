@@ -27,17 +27,17 @@ extern "C"
 // Codepages
 
 /// Converts a buffer of text to a different charset
-LgiFunc int LgiBufConvertCp(void *Out, char *OutCp, int OutLen, const void *&In, char *InCp, int &InLen);
+LgiFunc int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, const char *InCp, int &InLen);
 /// \brief Converts a string to a new charset
 /// \return A dynamically allocate, null terminated string in the new charset
 LgiFunc void *LgiNewConvertCp
 (
 	/// Output charset
-	char *OutCp,
+	const char *OutCp,
 	/// Input buffer
 	const void *In,
 	/// The input data's charset
-	char *InCp,
+	const char *InCp,
 	/// Bytes of valid data in the input
 	int InLen = -1
 );
@@ -52,29 +52,29 @@ LgiFunc char *LgiNewUtf16To8
 	int InLen = -1
 );
 /// Return true if Lgi support the charset
-LgiFunc bool LgiIsCpImplemented(char *Cp);
+LgiFunc bool LgiIsCpImplemented(const char *Cp);
 /// Converts the ANSI code page to a charset name
-LgiFunc char *LgiAnsiToLgiCp(int AnsiCodePage = -1);
+LgiFunc const char *LgiAnsiToLgiCp(int AnsiCodePage = -1);
 /// Calculate the byte length of a string
-LgiFunc int LgiByteLen(const void *Str, char *Cp);
+LgiFunc int LgiByteLen(const void *Str, const char *Cp);
 /// Calculate the number of characters in a string
-LgiFunc int LgiCharLen(void *Str, char *Cp, int Bytes = -1);
+LgiFunc int LgiCharLen(const void *Str, const char *Cp, int Bytes = -1);
 /// Move a pointer along a utf-8 string by characters
 LgiFunc char *LgiSeekUtf8
 (
 	/// Pointer to the current character
-	char *Ptr,
+	const char *Ptr,
 	/// The number of characters to move forward or back
 	int D,
 	/// The start of the memory buffer if you known
 	char *Start = 0
 );
 /// Return true if the string is valid utf-8
-LgiFunc bool LgiIsUtf8(char *s, int len = -1);
+LgiFunc bool LgiIsUtf8(const char *s, int len = -1);
 /// Converts a string to the native 8bit charset of the OS from utf-8
 LgiFunc char *LgiToNativeCp(const char *In, int InLen = -1);
 /// Converts a string from the native 8bit charset of the OS to utf-8
-LgiFunc char *LgiFromNativeCp(char *In, int InLen = -1);
+LgiFunc char *LgiFromNativeCp(const char *In, int InLen = -1);
 /// Returns the next token in a string, leaving the argument pointing to the end of the token
 LgiFunc char *LgiTokStr(const char *&s);
 /// Formats a data size into appropriate units
@@ -90,7 +90,7 @@ LgiFunc void LgiFormatSize
 LgiFunc char *LgiDecodeUri
 (
 	/// The URI
-	char *uri,
+	const char *uri,
 	/// The length or -1 if NULL terminated
 	int len = -1
 );
@@ -99,7 +99,7 @@ LgiFunc char *LgiDecodeUri
 LgiFunc char *LgiEncodeUri
 (
 	/// The URI
-	char *uri,
+	const char *uri,
 	/// The length or -1 if NULL terminated
 	int len = -1
 );
@@ -153,7 +153,7 @@ LgiFunc bool LgiRecursiveFileSearch
 /// Gets the currently selected language
 LgiFunc struct GLanguage *LgiGetLanguageId();
 /// Loads a string from the resource file
-LgiFunc char *LgiLoadString(int Res, char *Default = 0);
+LgiFunc const char *LgiLoadString(int Res, const char *Default = 0);
 
 // Os version functions
 
@@ -188,7 +188,7 @@ LgiFunc void LgiRandomize(uint Seed);
 /// Returns a random number between 0 and Max-1
 LgiFunc uint LgiRand(uint Max = 0);
 
-LgiFunc bool _lgi_read_colour_config(char *Tag, uint32 *c);
+LgiFunc bool _lgi_read_colour_config(const char *Tag, uint32 *c);
 
 /// Plays a sound
 LgiFunc bool LgiPlaySound

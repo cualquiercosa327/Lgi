@@ -28,14 +28,14 @@ class LgiClass GLibrary
 	_SysLibHandle hLib;
 
 public:
-	GLibrary(char *File = 0);
+	GLibrary(const char *File = 0);
 	virtual ~GLibrary();
 
 	_SysLibHandle Handle() { return hLib; }
 	char *GetFileName() { return FileName; }
 	virtual bool IsLoaded() { return hLib != 0; }
 
-	bool Load(char *File);
+	bool Load(const char *File);
 	bool Unload();
 	void *GetAddress(char *Resource);
 };

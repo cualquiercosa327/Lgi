@@ -6,10 +6,10 @@
 #include "GDateTime.h"
 
 /////////////////////////////////////////////////////////////////////////////////////
-extern char *ShortDayNames[7];
-extern char *FullDayNames[7];
-extern char *ShortMonthNames[12];
-extern char *FullMonthNames[12];
+extern const char *ShortDayNames[7];
+extern const char *FullDayNames[7];
+extern const char *ShortMonthNames[12];
+extern const char *FullMonthNames[12];
 
 class MonthView
 {

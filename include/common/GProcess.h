@@ -29,11 +29,11 @@ public:
 	bool Run
 	(
 		/// The path to the executable to run
-		char *Exe,
+		const char *Exe,
 		/// The arguments to pass to the program
-		char *Args,
+		const char *Args,
 		/// The current directory to start the program in
-		char *Dir,
+		const char *Dir,
 		/// If true, calling Run will block until the process
 		/// exits, else Run will exit after starting the process.
 		///

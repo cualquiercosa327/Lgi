@@ -13,7 +13,7 @@ protected:
 	int64 Start;
 	int64 Val;
 	int64 Low, High;
-	char *Type;
+	const char *Type;
 	double Scale;
 	bool Canceled;
 
@@ -25,15 +25,15 @@ public:
 	virtual ~Progress();
 
 	virtual char *GetDescription() { return Description; }
-	virtual void SetDescription(char *d = 0);
+	virtual void SetDescription(const char *d = 0);
 	virtual void GetLimits(int64 *l, int64 *h);
 	virtual void SetLimits(int64 l, int64 h);
 	virtual int64 Value() { return Val; }
 	virtual void Value(int64 v) { Val = v; }
 	virtual double GetScale() { return Scale; }
 	virtual void SetScale(double s) { Scale = s; }
-	virtual char *GetType() { return Type; }
-	virtual void SetType(char *t) { Type = t; }
+	virtual const char *GetType() { return Type; }
+	virtual void SetType(const char *t) { Type = t; }
 	
 	virtual bool Cancel() { return Canceled; }
 	virtual void Cancel(bool i) { Canceled = i; }

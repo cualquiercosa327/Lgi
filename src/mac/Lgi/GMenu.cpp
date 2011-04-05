@@ -19,7 +19,7 @@ static int NextId = 0;
 #define DEBUG_INFO		0
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-GSubMenu::GSubMenu(char *name, bool Popup)
+GSubMenu::GSubMenu(const char *name, bool Popup)
 {
 	Menu = 0;
 	Parent = 0;
@@ -87,7 +87,7 @@ GMenuItem *GSubMenu::ItemAt(int Id)
 	return Items.ItemAt(Id);
 }
 
-GMenuItem *GSubMenu::AppendItem(char *Str, int Id, bool Enabled, int Where, char *Shortcut)
+GMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Where, char *Shortcut)
 {
 	GMenuItem *i = new GMenuItem(Menu, this, Where, Shortcut);
 	if (i)
@@ -155,7 +155,7 @@ GMenuItem *GSubMenu::AppendSeparator(int Where)
 	return 0;
 }
 
-GSubMenu *GSubMenu::AppendSub(char *Str, int Where)
+GSubMenu *GSubMenu::AppendSub(const char *Str, int Where)
 {
 	GMenuItem *i = new GMenuItem;
 	if (i)
@@ -874,7 +874,7 @@ void GMenuItem::Checked(bool c)
 	}
 }
 
-bool GMenuItem::Name(char *n)
+bool GMenuItem::Name(const char *n)
 {
 	char *Tmp = NewStr(n);
 	if (Tmp)

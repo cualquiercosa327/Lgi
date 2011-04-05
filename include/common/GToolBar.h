@@ -136,13 +136,13 @@ public:
 	GToolButton(int Bx, int By);
 	~GToolButton();
 
-	char *GetClass() { return "GToolButton"; }
+	const char *GetClass() { return "GToolButton"; }
 
 	int64 Value() { return Down; }
 	void Value(int64 i);
 
 	char *Name() { return GView::Name(); }
-	bool Name(char *n);
+	bool Name(const char *n);
 
 	/// Gets the icon index into the parent GToolBar's image list
 	int Image() { return ImgIndex; }
@@ -217,7 +217,7 @@ public:
 	GToolBar();
 	~GToolBar();
 
-	char *GetClass() { return "GToolBar"; }
+	const char *GetClass() { return "GToolBar"; }
 
 	/// Called when a button is clicked
 	virtual void OnButtonClick(GToolButton *Btn);
@@ -265,7 +265,7 @@ public:
 	GToolButton *AppendButton
 	(
 		/// The buttons help tip
-		char *Tip,
+		const char *Tip,
 		/// The ID to post to the main window when activated
 		int Id,
 		/// The type of button

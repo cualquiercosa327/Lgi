@@ -12,6 +12,7 @@
 		340BFD1D096AA96800A11AE6 /* GSemaphore.h in Headers */ = {isa = PBXBuildFile; fileRef = 340BFD1C096AA96800A11AE6 /* GSemaphore.h */; };
 		340FEA9E096E375600E534D5 /* GToolBar.h in Headers */ = {isa = PBXBuildFile; fileRef = 340FEA9C096E375600E534D5 /* GToolBar.h */; };
 		340FEA9F096E375600E534D5 /* GToolTabBar.h in Headers */ = {isa = PBXBuildFile; fileRef = 340FEA9D096E375600E534D5 /* GToolTabBar.h */; };
+		3413BBC21349EC6900AE15B0 /* GXmlTree.h in Headers */ = {isa = PBXBuildFile; fileRef = 3413BBC11349EC6900AE15B0 /* GXmlTree.h */; };
 		3416C25E09676E0600DD79DC /* MacTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 3416C25D09676E0600DD79DC /* MacTypes.h */; };
 		3416C26809676F4C00DD79DC /* SFNTTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 3416C26709676F4C00DD79DC /* SFNTTypes.h */; };
 		3416C27B096775AF00DD79DC /* GRect.h in Headers */ = {isa = PBXBuildFile; fileRef = 3416C27A096775AF00DD79DC /* GRect.h */; };
@@ -166,6 +167,7 @@
 		340BFD1C096AA96800A11AE6 /* GSemaphore.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GSemaphore.h; path = include/common/GSemaphore.h; sourceTree = "<group>"; };
 		340FEA9C096E375600E534D5 /* GToolBar.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GToolBar.h; path = include/common/GToolBar.h; sourceTree = "<group>"; };
 		340FEA9D096E375600E534D5 /* GToolTabBar.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GToolTabBar.h; path = include/common/GToolTabBar.h; sourceTree = "<group>"; };
+		3413BBC11349EC6900AE15B0 /* GXmlTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GXmlTree.h; path = include/common/GXmlTree.h; sourceTree = "<group>"; };
 		3416C25D09676E0600DD79DC /* MacTypes.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MacTypes.h; path = /System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/CarbonCore.framework/Versions/A/Headers/MacTypes.h; sourceTree = "<absolute>"; };
 		3416C26709676F4C00DD79DC /* SFNTTypes.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SFNTTypes.h; path = /System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/ATS.framework/Versions/A/Headers/SFNTTypes.h; sourceTree = "<absolute>"; };
 		3416C27A096775AF00DD79DC /* GRect.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GRect.h; path = include/common/GRect.h; sourceTree = "<group>"; };
@@ -552,6 +554,7 @@
 		344B738308D8409900D49457 /* Text */ = {
 			isa = PBXGroup;
 			children = (
+				3413BBC11349EC6900AE15B0 /* GXmlTree.h */,
 				34B4A52F0C059A2100CDD0D1 /* GUtf8.cpp */,
 				34B9545C0939DB5A00477A2D /* GString.h */,
 				344AF3AE08E049CA004ED88C /* GXml.cpp */,
@@ -808,6 +811,7 @@
 				34D4D55B1250AF98000DA1FD /* GHashTable.h in Headers */,
 				3478B20A12E6F87200936EFA /* GEdit.h in Headers */,
 				34A8A3BD1303408000CAA8DF /* GPopup.h in Headers */,
+				3413BBC21349EC6900AE15B0 /* GXmlTree.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

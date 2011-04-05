@@ -54,9 +54,9 @@ static COLOUR IconColour[IconMax] =
 	Rgba32(255, 192, 0, IconAlpha), // bool true
 };
 
-static char *IconName[IconMax];
+static const char *IconName[IconMax];
 
-static char **GetIconNames()
+static const char **GetIconNames()
 {
 	if (!IconName[0])
 	{
@@ -150,11 +150,11 @@ public:
 	{
 		View = v;
 
-		dsNot = new GDisplayString(SysFont, LgiLoadString(L_FUI_NOT, "Not"));
-		dsNew = new GDisplayString(SysBold, LgiLoadString(L_FUI_NEW, "New"));
-		dsAnd = new GDisplayString(SysBold, LgiLoadString(L_FUI_AND, "And"));
-		dsOr  = new GDisplayString(SysBold, LgiLoadString(L_FUI_OR, "Or"));
-		dsLegend = new GDisplayString(SysBold, LgiLoadString(L_FUI_LEGEND, "Legend:"));
+		dsNot = new GDisplayString(SysFont, (char*)LgiLoadString(L_FUI_NOT, "Not"));
+		dsNew = new GDisplayString(SysBold, (char*)LgiLoadString(L_FUI_NEW, "New"));
+		dsAnd = new GDisplayString(SysBold, (char*)LgiLoadString(L_FUI_AND, "And"));
+		dsOr  = new GDisplayString(SysBold, (char*)LgiLoadString(L_FUI_OR, "Or"));
+		dsLegend = new GDisplayString(SysBold, (char*)LgiLoadString(L_FUI_LEGEND, "Legend:"));
 		
 		ShowLegend = true;
 		Callback = 0;
@@ -1154,7 +1154,7 @@ void GFilterView::OnPaint(GSurface *pDC)
 		d->dsLegend->Draw(&Buf, x, y);
 		x += 8 + d->dsLegend->X();
 
-		char **Ico = GetIconNames();
+		const char **Ico = GetIconNames();
 		for (int i=0; i<IconMax; i++)
 		{
 			if (Ico[i])
@@ -1163,7 +1163,7 @@ void GFilterView::OnPaint(GSurface *pDC)
 				Buf.Blt(x, y, d->Icons[i]);
 				x += 3 + d->Icons[i]->X();
 				Buf.Op(GDC_SET);
-				GDisplayString ds(SysFont, IconName[i]);
+				GDisplayString ds(SysFont, (char*)IconName[i]);
 				ds.Draw(&Buf, x, y);
 				x += 12 + ds.X();
 			}

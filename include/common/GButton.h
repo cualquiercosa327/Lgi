@@ -40,11 +40,11 @@ public:
 		/// height
 		int cy,
 		/// Initial text
-		char *name
+		const char *name
 	);
 	~GButton();
 	
-	char *GetClass() { return "GButton"; }
+	const char *GetClass() { return "GButton"; }
 	
 	/// True if the button is the default action on the dialog
 	bool Default();
@@ -68,8 +68,8 @@ public:
 	// Impl
 	char *Name() { return GView::Name(); }
 	char16 *NameW() { return GView::NameW(); }
-	bool Name(char *n);
-	bool NameW(char16 *n);
+	bool Name(const char *n);
+	bool NameW(const char16 *n);
 	void SetFont(GFont *Fnt, bool OwnIt = false);
 };
 

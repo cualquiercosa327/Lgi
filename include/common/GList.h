@@ -230,13 +230,13 @@ class LgiClass GListColumn
 	friend class GList;
 
 public:
-	GListColumn(GList *parent, char *name, int width);
+	GListColumn(GList *parent, const char *name, int width);
 	virtual ~GListColumn();
 
 	// properties
 	
 	/// Sets the text
-	void Name(char *n);
+	void Name(const char *n);
 	/// Gets the text
 	char *Name();
 	/// Sets the width
@@ -517,11 +517,11 @@ public:
 		/// The height
 		int cy,
 		/// An unseen descriptor of the control
-		char *name = "List"
+		const char *name = "List"
 	);
 	~GList();
 
-	char *GetClass() { return "GList"; }
+	const char *GetClass() { return "GList"; }
 
 	// Overridables
 	
@@ -600,7 +600,7 @@ public:
 	GListColumn *AddColumn
 	(
 		/// The text for the column or NULL for no text
-		char *Name,
+		const char *Name,
 		/// The width of the column
 		int Width = 50,
 		/// The index to insert at, or -1 to append to the end

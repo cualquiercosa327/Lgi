@@ -112,7 +112,7 @@ public:
 	GStreamI *File;
 	char *Error;
 	int Flags;
-	GHashTbl<char*,char16> Entities;
+	GHashTbl<const char*,char16> Entities;
 	GHashTable NoChildTags;
 	XmlPoolAlloc *Allocator;
 	
@@ -146,10 +146,10 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////////
-char *EncodeEntitiesAttr	= "\'<>\"\n";
-char *EncodeEntitiesContent	= "\'<>\"";
+const char *EncodeEntitiesAttr	= "\'<>\"\n";
+const char *EncodeEntitiesContent	= "\'<>\"";
 
-char *GXmlTree::EncodeEntities(char *s, int len, char *extra_characters)
+char *GXmlTree::EncodeEntities(char *s, int len, const char *extra_characters)
 {
 	GStringPipe p;
 	if (EncodeEntities(&p, s, len, extra_characters))
@@ -160,7 +160,7 @@ char *GXmlTree::EncodeEntities(char *s, int len, char *extra_characters)
 	return 0;
 }
 
-bool GXmlTree::EncodeEntities(GStreamI *to, char *start, int len, char *extra_characters)
+bool GXmlTree::EncodeEntities(GStreamI *to, char *start, int len, const char *extra_characters)
 {
 	if (!start || !to)
 		return 0;
@@ -297,7 +297,7 @@ char *GXmlTree::DecodeEntities(char *s, int len)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-GXmlTag::GXmlTag(char *tag, GXmlAlloc *alloc)
+GXmlTag::GXmlTag(const char *tag, GXmlAlloc *alloc)
 {
 	Tag = NewStr(tag);
 	Write = 0;
@@ -399,7 +399,7 @@ GXmlTag *GXmlTag::CreateTag(char *Name, char *Content)
 	return c;
 }
 
-GXmlTag *GXmlTag::GetTag(char *Name, bool Create)
+GXmlTag *GXmlTag::GetTag(const char *Name, bool Create)
 {
 	GToken p(Name, ".");
 
@@ -621,13 +621,13 @@ bool GXmlTag::Dump(int Depth)
 	return true;
 }
 
-GXmlAttr *GXmlTag::_Attr(char *Name, bool Wr)
+GXmlAttr *GXmlTag::_Attr(const char *Name, bool Wr)
 {
 	if (!Name)
 		return 0;
 
 	// Validate the name...
-	for (char *c = Name; *c; c++)
+	for (const char *c = Name; *c; c++)
 	{
 		if (!isalpha(*c) &&
 			!isdigit(*c) &&
@@ -664,7 +664,7 @@ GXmlAttr *GXmlTag::_Attr(char *Name, bool Wr)
 	return &n;
 }
 
-bool GXmlTag::DelAttr(char *Name)
+bool GXmlTag::DelAttr(const char *Name)
 {
 	for (int i=0; i<Attr.Length(); i++)
 	{
@@ -680,19 +680,19 @@ bool GXmlTag::DelAttr(char *Name)
 	return false;
 }
 
-char *GXmlTag::GetAttr(char *n)
+char *GXmlTag::GetAttr(const char *n)
 {
 	GXmlAttr *a = _Attr(n, false);
 	return a ? a->Value : 0;	
 }
 
-int GXmlTag::GetAsInt(char *n)
+int GXmlTag::GetAsInt(const char *n)
 {
 	GXmlAttr *a = _Attr(n, false);
 	return a ? atoi(a->Value) : -1;	
 }
 
-bool GXmlTag::SetAttr(char *n, char *Value)
+bool GXmlTag::SetAttr(const char *n, const char *Value)
 {
 	GXmlAttr *a = _Attr(n, true);
 	if (a)
@@ -703,7 +703,7 @@ bool GXmlTag::SetAttr(char *n, char *Value)
 	return false;
 }
 
-bool GXmlTag::SetAttr(char *n, int Value)
+bool GXmlTag::SetAttr(const char *n, int Value)
 {
 	GXmlAttr *a = _Attr(n, true);
 	if (a)
@@ -716,7 +716,7 @@ bool GXmlTag::SetAttr(char *n, int Value)
 	return false;
 }
 
-bool GXmlTag::SerializeAttr(char *Attr, int &Int)
+bool GXmlTag::SerializeAttr(const char *Attr, int &Int)
 {
 	GXmlAttr *a = _Attr(Attr, Write);
 	if (a)
@@ -737,7 +737,7 @@ bool GXmlTag::SerializeAttr(char *Attr, int &Int)
 	return false;
 }
 
-bool GXmlTag::SerializeAttr(char *Name, char *&Str)
+bool GXmlTag::SerializeAttr(const char *Name, char *&Str)
 {
 	GXmlAttr *a = _Attr(Name, Write);
 	if (a)
@@ -764,7 +764,7 @@ bool GXmlTag::SerializeAttr(char *Name, char *&Str)
 	return false;
 }
 
-bool GXmlTag::SerializeAttr(char *Attr, double &Dbl)
+bool GXmlTag::SerializeAttr(const char *Attr, double &Dbl)
 {
 	GXmlAttr *a = _Attr(Attr, Write);
 	if (a)
@@ -1442,7 +1442,7 @@ GHashTable *GXmlTree::NoChildTags()
 	return &d->NoChildTags;
 }
 
-GHashTbl<char*,char16> *GXmlTree::GetEntityTable()
+GHashTbl<const char*,char16> *GXmlTree::GetEntityTable()
 {
 	return &d->Entities;
 }

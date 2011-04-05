@@ -771,7 +771,7 @@ void GApp::OnReceiveFiles(GArray<char*> &Files)
 	}
 }
 
-GXmlTag *GApp::GetConfig(char *Tag)
+GXmlTag *GApp::GetConfig(const char *Tag)
 {
 	if (IsOk() AND !d->Config)
 	{

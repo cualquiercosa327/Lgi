@@ -221,7 +221,7 @@ public:
 	) = 0;
 	
 	/// Gets the application conf stored in lgi.conf
-	virtual GXmlTag *GetConfig(char *Tag) = 0;
+	virtual GXmlTag *GetConfig(const char *Tag) = 0;
 
 	/// Sets a single tag in the config. (Not written to disk)
 	virtual void SetConfig(GXmlTag *Tag) = 0;
@@ -333,7 +333,7 @@ public:
 	virtual GViewIterator *IterateViews() = 0;
 
 	// Threading
-	virtual bool Lock(char *file, int line, int TimeOut = -1) = 0;
+	virtual bool Lock(const char *file, int line, int TimeOut = -1) = 0;
 	virtual void Unlock() = 0;
 	virtual bool InThread() = 0;
 
@@ -356,10 +356,13 @@ public:
 	virtual bool SetForegroundFill(GViewFill *Fill) = 0;
 	virtual GViewFill *GetBackgroundFill() = 0;
 	virtual bool SetBackgroundFill(GViewFill *Fill) = 0;
-	virtual bool Name(char *n) = 0;
+
+	virtual bool Name(const char *n) = 0;
+	virtual bool NameW(const char16 *n) = 0;
+
 	virtual char *Name() = 0;
-	virtual bool NameW(char16 *n) = 0;
 	virtual char16 *NameW() = 0;
+	
 	virtual GFont *GetFont() = 0;
 	virtual void SetFont(GFont *Fnt, bool OwnIt = false) = 0;
 	virtual GRect &GetPos() = 0;
@@ -375,7 +378,7 @@ public:
 	virtual void SetTabStop(bool b) = 0;
 	virtual int64 Value() = 0;
 	virtual void Value(int64 i) = 0;
-	virtual char *GetClass() { return "GViewI"; } // mainly for debugging
+	virtual const char *GetClass() { return "GViewI"; } // mainly for debugging
 
 	// Events
 	virtual void SendNotify(int Data = 0) = 0;
@@ -398,7 +401,7 @@ public:
 	virtual int64 GetCtrlValue(int Id) = 0;
 	virtual void SetCtrlValue(int Id, int64 i) = 0;
 	virtual char *GetCtrlName(int Id) = 0;
-	virtual void SetCtrlName(int Id, char *s) = 0;
+	virtual void SetCtrlName(int Id, const char *s) = 0;
 	virtual bool GetCtrlEnabled(int Id) = 0;
 	virtual void SetCtrlEnabled(int Id, bool Enabled) = 0;
 	virtual bool GetCtrlVisible(int Id) = 0;

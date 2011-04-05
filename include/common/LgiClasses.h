@@ -244,7 +244,7 @@ public:
 	void SetName(char *Name);
 
 	/// Returns the version of Lgi used. String returned is in the form '#.#.#'
-	char *GetLgiVersion() { return LGI_VER; }
+	const char *GetLgiVersion() { return LGI_VER; }
 
 	/// Resets the arguments
 	void SetAppArgs(OsAppArguments &AppArgs);
@@ -303,7 +303,7 @@ public:
 	);
 	
 	/// Gets the application conf stored in lgi.conf
-	GXmlTag *GetConfig(char *Tag);
+	GXmlTag *GetConfig(const char *Tag);
 
 	/// Sets a single tag in the config. (Not written to disk)
 	void SetConfig(GXmlTag *Tag);
@@ -639,7 +639,7 @@ public:
 	bool Lock
 	(
 		/// The file name of the caller
-		char *file,
+		const char *file,
 		/// The line number of the caller
 		int line,
 		/// The timeout in milli-seconds or -1 to block until locked.
@@ -751,13 +751,13 @@ public:
 	/// text between utf-8 and wide to satify any requirement. Generally once the opposing
 	/// version of the string is required both the utf-8 and wide copies of the string
 	/// remain cached in RAM until the Name is changed.
-	bool Name(char *n);
+	bool Name(const char *n);
 	
 	/// Returns the utf-8 text associated with this view
 	char *Name();
 	
 	/// Sets the wide char text associated with this view
-	virtual bool NameW(char16 *n);
+	virtual bool NameW(const char16 *n);
 
 	/// \brief Returns the wide char text associated with this view
 	///
@@ -818,7 +818,7 @@ public:
 	/// GView::CreateClass().
 	///
 	/// \returns the Class' name for debugging
-	char *GetClass() { return "GView"; }
+	const char *GetClass() { return "GView"; }
 
 	/// \brief Captures all mouse events to this view
 	///
@@ -871,7 +871,7 @@ public:
 	/// Gets the name (text) of the control identified by the ID
 	char *GetCtrlName(int Id);
 	/// Sets the name (text) of the control identified by the ID
-	void SetCtrlName(int Id, char *s);
+	void SetCtrlName(int Id, const char *s);
 	/// Gets the enabled state of the control identified by the ID
 	bool GetCtrlEnabled(int Id);
 	/// Sets the enabled state of the control identified by the ID
@@ -1091,7 +1091,7 @@ public:
 	GLayout();
 	~GLayout();
 
-	char *GetClass() { return "GLayout"; }
+	const char *GetClass() { return "GLayout"; }
 
 	/// Gets the current scroll bar values.
 	virtual void GetScrollPos(int &x, int &y);
@@ -1266,7 +1266,7 @@ public:
 	#endif
 	~GWindow();
 
-	char *GetClass() { return "GWindow"; }
+	const char *GetClass() { return "GWindow"; }
 
 	/// Lays out the child views into the client area.
 	virtual void Pour();
@@ -1340,7 +1340,7 @@ public:
 
 	// Props
 	OsWindow WindowHandle() { return Wnd; }
-	bool Name(char *n);
+	bool Name(const char *n);
 	char *Name();
 	bool SetPos(GRect &p, bool Repaint = false);
 	GRect &GetClient(bool InClientSpace = true);
@@ -1442,7 +1442,7 @@ public:
 	GSplitter();
 	~GSplitter();
 
-	char *GetClass() { return "GSplitter"; }
+	const char *GetClass() { return "GSplitter"; }
 
 	/// Get the position of the split in px
 	int64 Value(); // Use to set/get the split position
@@ -1516,7 +1516,7 @@ public:
 	GStatusBar();
 	~GStatusBar();
 
-	char *GetClass() { return "GStatusBar"; }
+	const char *GetClass() { return "GStatusBar"; }
 	bool Pour(GRegion &r);
 	void OnPaint(GSurface *pDC);
 
@@ -1538,7 +1538,7 @@ public:
 	GStatusPane();
 	~GStatusPane();
 
-	char *GetClass() { return "GStatusPane"; }
+	const char *GetClass() { return "GStatusPane"; }
 	char *Name() { return GBase::Name(); }
 	bool Name(char *n);
 	void OnPaint(GSurface *pDC);
@@ -1735,9 +1735,9 @@ LgiFunc int LgiMsg
 	/// The parent view or NULL if none available
 	GViewI *Parent,
 	/// The message's text. This is a printf format string that you can pass arguments to
-	char *Msg,
+	const char *Msg,
 	/// The title of the message box window
-	char *Title = 0,
+	const char *Title = 0,
 	/// The type of buttons below the message. Can be one of:
 	/// #MB_OK, #MB_OKCANCEL, #MB_YESNO or #MB_YESNOCANCEL.
 	int Type = MB_OK,

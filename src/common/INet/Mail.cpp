@@ -376,7 +376,7 @@ char *EncodeRfc2047(char *Str, char *CodePage, List<char> *CharsetPrefs, int Lin
 
 		// pick an encoding
 		bool Base64 = false;
-		char *DestCp = "utf-8";
+		const char *DestCp = "utf-8";
 		int Len = strlen(Str);;
 		if (stricmp(CodePage, "utf-8") == 0)
 		{
@@ -3701,7 +3701,7 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 
 			if (Text)
 			{
-				char *Cs = 0;
+				const char *Cs = 0;
 				char *Txt = Text, *Mem = 0;
 				
 				// Detect charset

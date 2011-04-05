@@ -28,13 +28,14 @@ public:
 		/// The height
 		int cy,
 		/// The text of the label
-		char *name,
+		const char *name,
 		/// The initial state of the control
 		int InitState = false
 	);
 	~GCheckBox();
 
 	// Methods
+	const char *GetClass() { return "GCheckBox"; }
 	
 	/// Returns whether the control is 3 state
 	bool ThreeState();
@@ -55,8 +56,8 @@ public:
 	// Impl
 	char *Name() { return GView::Name(); }
 	char16 *NameW() { return GView::NameW(); }
-	bool Name(char *n);
-	bool NameW(char16 *n);
+	bool Name(const char *n);
+	bool NameW(const char16 *n);
 	void SetFont(GFont *Fnt, bool OwnIt = false);
 
 	void OnMouseClick(GMouse &m);

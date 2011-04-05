@@ -17,10 +17,10 @@ class LgiClass GRadioGroup :
 	void OnCreate();
 
 public:
-	GRadioGroup(int id, int x, int y, int cx, int cy, char *name, int Init = 0);
+	GRadioGroup(int id, int x, int y, int cx, int cy, const char *name, int Init = 0);
 	~GRadioGroup();
 	
-	char *GetClass() { return "GRadioGroup"; }
+	const char *GetClass() { return "GRadioGroup"; }
 
 	/// Returns the index of the set radio button
 	int64 Value();
@@ -37,8 +37,8 @@ public:
 
 	char *Name() { return GView::Name(); }
 	char16 *NameW() { return GView::NameW(); }
-	bool Name(char *n);
-	bool NameW(char16 *n);
+	bool Name(const char *n);
+	bool NameW(const char16 *n);
 	void SetFont(GFont *Fnt, bool OwnIt = false);
 };
 
@@ -52,16 +52,16 @@ class LgiClass GRadioButton :
 	class GRadioButtonPrivate *d;
 
 public:
-	GRadioButton(int id, int x, int y, int cx, int cy, char *name);
+	GRadioButton(int id, int x, int y, int cx, int cy, const char *name);
 	~GRadioButton();
 
-	char *GetClass() { return "GRadioButton"; }
+	const char *GetClass() { return "GRadioButton"; }
 
 	// Impl
 	char *Name() { return GView::Name(); }
 	char16 *NameW() { return GView::NameW(); }
-	bool Name(char *n);
-	bool NameW(char16 *n);
+	bool Name(const char *n);
+	bool NameW(const char16 *n);
 	int64 Value();
 	void Value(int64 i);
 	void SetFont(GFont *Fnt, bool OwnIt = false);

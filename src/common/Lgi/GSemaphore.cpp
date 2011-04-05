@@ -11,14 +11,14 @@ char *SemPrint(OsSemaphore *s)
 	char *c = Buf;
 	for (int i=0; i<sizeof(OsSemaphore); i++)
 	{
-		sprintf(c, "%02.2X,", ((uchar*)s)[i]);
+		sprintf(c, "%2.2X,", ((uchar*)s)[i]);
 		c += 3;
 	}
 	
 	return Buf;
 }
 
-GSemaphore::GSemaphore(char *name)
+GSemaphore::GSemaphore(const char *name)
 {
 	_Thread = 0;
 	_Count = 0;

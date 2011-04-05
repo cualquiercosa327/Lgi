@@ -1307,7 +1307,7 @@ GLanguage *LgiGetLanguageId()
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Load string
-char *LgiLoadString(int Res, char *Default)
+const char *LgiLoadString(int Res, const char *Default)
 {
 	char *s = 0;
 	LgiResources *r = LgiGetResObj();

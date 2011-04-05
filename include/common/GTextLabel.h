@@ -27,16 +27,16 @@ public:
 		/// The height
 		int cy,
 		/// Utf-8 text for the label
-		char *name
+		const char *name
 	);
 	~GText();
 	
-	char *GetClass() { return "GTextLabel"; }
+	const char *GetClass() { return "GTextLabel"; }
 
 	/// Set the text
-	bool Name(char *n);
+	bool Name(const char *n);
 	/// Set the text with a wide string
-	bool NameW(char16 *n);
+	bool NameW(const char16 *n);
 	/// Sets the font used to render the text
 	void SetFont(GFont *Fnt, bool OwnIt = false);
 

@@ -106,6 +106,19 @@ class GHashTbl
 		    return 0;
 	    }
 
+		char *New(const char *s)
+	    {
+		    int Len = strlen(s) + 1;
+		    if (Used < Size - Len)
+		    {
+			    char *p = Mem + Used;
+			    strcpy(p, s);
+			    Used += Len;
+			    return p;
+		    }
+		    return 0;
+	    }
+		
 	    char16 *New(char16 *s)
 	    {
 		    int Len = StrlenW(s) + sizeof(char16);
@@ -198,6 +211,23 @@ class GHashTbl
 					#endif
 			}
 
+		// const char
+			uint Hash(const char *s) { return LgiHash<uchar>((uchar*)s, 0, Case); }
+			char *CopyKey(const char *a) { return NewStr(a); }
+			int SizeKey(const char *a) { return strlen(a) + 1; }
+			void FreeKey(const char *&a) { DeleteArray(a); }
+			bool CmpKey(const char *a, const char *b)
+			{
+				if (Case)
+					return strcmp(a, b) == 0;
+				else
+					#ifdef WIN32
+					return stricmp(a, b) == 0;
+					#else
+					return strcasecmp(a, b) == 0;
+					#endif
+			}
+	
 		// char16
 			uint Hash(char16 *s) { return LgiHash<char16>(s, 0, Case); }
 			char16 *CopyKey(char16 *a) { return NewStrW(a); }

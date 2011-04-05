@@ -573,7 +573,7 @@ int GItemEdit::OnEvent(GMessage *Msg)
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 // List column
-GListColumn::GListColumn(GList *parent, char *name, int width)
+GListColumn::GListColumn(GList *parent, const char *name, int width)
 	: ResObject(Res_Column)
 {
 	d = new GListColumnPrivate(parent);
@@ -617,12 +617,12 @@ void GListColumn::Resizable(bool i)
 	d->CanResize = i;
 }
 
-void GListColumn::Name(char *n)
+void GListColumn::Name(const char *n)
 {
 	DeleteArray(d->cName);
 	DeleteObj(d->Txt);
 	d->cName = NewStr(n);
-	d->Txt = new GDisplayString(SysFont, n);
+	d->Txt = new GDisplayString(SysFont, (char*)n);
 	if (d->Parent)
 	{
 		d->Parent->Invalidate(&d->Parent->ColumnHeader);
@@ -1453,7 +1453,7 @@ void GListItem::OnPaint(GItem::ItemPaintCtx &Ctx)
 
 //////////////////////////////////////////////////////////////////////////////
 // List control
-GList::GList(int id, int x, int y, int cx, int cy, char *name)
+GList::GList(int id, int x, int y, int cx, int cy, const char *name)
 	: ResObject(Res_ListView)
 {
 	d = new GListPrivate;
@@ -1565,7 +1565,7 @@ void GList::OnItemSelect(GArray<GListItem*> &It)
 	SendNotify(GLIST_NOTIFY_SELECT);
 }
 
-GListColumn *GList::AddColumn(char *Name, int Width, int Where)
+GListColumn *GList::AddColumn(const char *Name, int Width, int Where)
 {
 	GListColumn *c = 0;
 

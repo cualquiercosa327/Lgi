@@ -18,13 +18,13 @@
 #define IDC_EDIT			101
 
 //////////////////////////////////////////////////////////////////////////////
-GInput::GInput(GViewI *parent, char *InitStr, char *Msg, char *Title, bool Password, GInputCallback callback, void *callbackparam)
+GInput::GInput(GViewI *parent, const char *InitStr, const char *Msg, const char *Title, bool Password, GInputCallback callback, void *callbackparam)
 {
 	Callback = callback;
 	CallbackParam = callbackparam;
 
 	GText *Txt = new GText(-1, 5, 5, -1, -1, Msg);
-	GDisplayString MsgDs(SysFont, ValidStr(InitStr)?InitStr:(char*)"A");
+	GDisplayString MsgDs(SysFont, (char*)(ValidStr(InitStr)?InitStr:"A"));
 	int Dx = LgiApp->GetMetric(LGI_MET_DECOR_X) + 10;
 	int Dy = LgiApp->GetMetric(LGI_MET_DECOR_Y);
 	

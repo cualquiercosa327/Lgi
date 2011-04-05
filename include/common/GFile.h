@@ -108,10 +108,10 @@ public:
 	virtual int First
 	(
 		/// The path of the directory
-		char *Name,
+		const char *Name,
 		/// The pattern to match files against.
 		/// \sa The default LGI_ALL_FILES matchs all files.
-		char *Pattern = LGI_ALL_FILES
+		const char *Pattern = LGI_ALL_FILES
 	) = 0;
 	
 	/// \brief Get the next match
@@ -221,7 +221,7 @@ public:
 	GDirImpl();
 	~GDirImpl();
 
-	int First(char *Path, char *Pattern);
+	int First(const char *Path, const char *Pattern);
 	int Next();
 	int Close();
 	bool Path(char *s, int len = -1);
@@ -459,21 +459,21 @@ public:
 
 // Functions
 LgiFunc int64 LgiFileSize(char *FileName);
-LgiFunc bool FileExists(char *File);
-LgiFunc bool DirExists(char *Dir);
+LgiFunc bool FileExists(const char *File);
+LgiFunc bool DirExists(const char *Dir);
 LgiFunc bool ResolveShortcut(char *LinkFile, char *Path, int Len);
 LgiFunc void WriteStr(GFile &f, char *s);
 LgiFunc char *ReadStr(GFile &f DeclDebugArgs);
 LgiFunc int SizeofStr(char *s);
 LgiFunc char *ReadTextFile(char *File);
 LgiFunc bool LgiTrimDir(char *Path);
-LgiFunc bool LgiIsRelativePath(char *Path);
+LgiFunc bool LgiIsRelativePath(const char *Path);
 LgiFunc char *LgiMakeRelativePath(char *Base, char *Path);
 LgiFunc bool LgiMakePath(char *Str, int StrBufLen, const char *Dir, const char *File);
 LgiFunc char *LgiGetExtension(char *File);
 LgiFunc bool LgiIsFileNameExecutable(char *FileName);
 LgiFunc bool LgiIsFileExecutable(char *FileName, GStreamI *f, int64 Start, int64 Len);
-LgiFunc char *GetErrorName(int e);
+LgiFunc const char *GetErrorName(int e);
 
 /// Get information about the disk that a file resides on.
 LgiFunc bool LgiGetDriveInfo(char *Path, uint64 *Free, uint64 *Size = 0, uint64 *Available = 0);

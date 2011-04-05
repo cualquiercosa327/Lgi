@@ -213,16 +213,16 @@ public:
 				GFontType *FontInfo = 0);
 	~GTextView3();
 
-	char *GetClass() { return "GTextView3"; }
+	const char *GetClass() { return "GTextView3"; }
 
 	// Data
 	char *Name();
-	bool Name(char *s);
+	bool Name(const char *s);
 	char16 *NameW();
-	bool NameW(char16 *s);
+	bool NameW(const char16 *s);
 	int64 Value();
 	void Value(int64 i);
-	char *GetMimeType() { return "text/plain"; }
+	const char *GetMimeType() { return "text/plain"; }
 	int GetSize() { return Size; }
 
 	int HitText(int x, int y);

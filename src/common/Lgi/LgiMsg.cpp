@@ -72,7 +72,7 @@ public:
 };
 #endif
 
-int LgiMsg(GViewI *Parent, char *Str, char *Title, int Type, ...)
+int LgiMsg(GViewI *Parent, const char *Str, const char *Title, int Type, ...)
 {
 	int Res = 0;
 
@@ -175,7 +175,7 @@ int LgiMsg(GViewI *Parent, char *Str, char *Title, int Type, ...)
 
 		GMsgDlg Dlg;
 		Dlg.SetParent(Parent);
-		Dlg.Name(Title ? Title : (char*)"Message");
+		Dlg.Name((char*)(Title ? Title : "Message"));
 
 		GText *Text = new GText(-1, 10, 10, -1, -1, Buffer);
 		DeleteArray(Buffer);

@@ -70,7 +70,7 @@ public:
 	}
 };
 
-GCombo::GCombo(int id, int x, int y, int cx, int cy, char *name) :
+GCombo::GCombo(int id, int x, int y, int cx, int cy, const char *name) :
 	ResObject(Res_ComboBox)
 {
 	d = new GComboPrivate;
@@ -132,7 +132,7 @@ char *GCombo::operator [](int i)
 	return d->Items.ItemAt(i);
 }
 
-bool GCombo::Name(char *n)
+bool GCombo::Name(const char *n)
 {
 	if (ValidStr(n))
 	{
@@ -231,7 +231,7 @@ bool GCombo::Delete(char *p)
 	return false;
 }
 
-bool GCombo::Insert(char *p, int Index)
+bool GCombo::Insert(const char *p, int Index)
 {
 	bool Status = false;
 	if (p)

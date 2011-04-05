@@ -76,9 +76,9 @@ LgiFunc char *strnistr
 LgiFunc char *stristr
 (
 	/// The string to search
-	char *a,
+	const char *a,
 	/// The string to find
-	char *b
+	const char *b
 );
 
 
@@ -141,7 +141,7 @@ LgiFunc int64 htoi64
 /// on the start or end.
 LgiFunc char *TrimStr(char *s, char *Delim = " \r\n\t");
 /// Returns true if the string points to something with one or more non-whitespace characters.
-LgiFunc bool ValidStr(char *s);
+LgiFunc bool ValidStr(const char *s);
 /// Makes a heap allocated copy of a string.
 LgiFunc char *NewStr
 (
@@ -203,7 +203,7 @@ LgiFunc int64 HtoiW64(char16 *a);
 LgiFunc char16 *NewStrW
 (
 	/// The input string
-	char16 *s,
+	const char16 *s,
 	/// The maximum number of bytes in the input string to use or -1 for the whole string.
 	int Len = -1
 );

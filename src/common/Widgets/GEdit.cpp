@@ -138,7 +138,7 @@ public:
 	}
 };
 
-GEdit::GEdit(int id, int x, int y, int cx, int cy, char *name) :
+GEdit::GEdit(int id, int x, int y, int cx, int cy, const char *name) :
 	#if WIN32NATIVE
 	ResObject(Res_EditBox)
 	#else
@@ -153,7 +153,7 @@ GEdit::GEdit(int id, int x, int y, int cx, int cy, char *name) :
 	_OsFontType Type;
 	d = new GEditPrivate;
 
-	GDisplayString Ds(SysFont, (name)?name:(char*)"A");
+	GDisplayString Ds(SysFont, (char*)(name?name:"A"));
 	if (cx < 0) cx = Ds.X() + 6;
 	if (cy < 0) cy = Ds.Y() + 4;
 

@@ -176,7 +176,7 @@ GWindow *GView::GetWindow()
 	return dynamic_cast<GWindow*>(_Window);
 }
 
-bool GView::Lock(char *file, int line, int TimeOut)
+bool GView::Lock(const char *file, int line, int TimeOut)
 {
 	if (!_Window)
 		GetWindow();
@@ -1185,7 +1185,7 @@ char *GView::GetCtrlName(int Id)
 	return (w) ? w->Name() : 0;
 }
 
-void GView::SetCtrlName(int Id, char *s)
+void GView::SetCtrlName(int Id, const char *s)
 {
 	GViewI *w = FindControl(Id);
 	if (w)
@@ -1457,7 +1457,7 @@ GButton *FindDefault(GViewI *w)
 	return But;
 }
 
-bool GView::Name(char *n)
+bool GView::Name(const char *n)
 {
 	GBase::Name(n);
 
@@ -1524,7 +1524,7 @@ char *GView::Name()
 	return GBase::Name();
 }
 
-bool GView::NameW(char16 *n)
+bool GView::NameW(const char16 *n)
 {
 	GBase::NameW(n);
 

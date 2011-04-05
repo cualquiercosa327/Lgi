@@ -30,7 +30,7 @@ public:
 	/// Call this constructor for embeded scrollbar say in a window
 	GScrollBar();
 	
-	char *GetClass() { return "GScrollBar"; }
+	const char *GetClass() { return "GScrollBar"; }
 
 	/// Call this constructor for a control based scrollbar, say in a dialog
 	GScrollBar(int id, int x, int y, int cx, int cy, char *name);

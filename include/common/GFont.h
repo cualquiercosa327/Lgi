@@ -307,25 +307,25 @@ class LgiClass GCharset
 {
 public:
 	/// Standard charset name
-	char *Charset;
+	const char *Charset;
 	/// Human description
-	char *Description;
+	const char *Description;
 	/// 128 shorts that map the 0x80-0xff range to unicode
 	short *UnicodeMap;
 	/// Charset's name for calling iconv
-	char *IconvName;
+	const char *IconvName;
 	/// Comma separated list of alternate names used for this charset
-	char *AlternateNames;
+	const char *AlternateNames;
 	/// General type of the charset
 	GCharSetType Type;
 
 	/// Constructor
-	GCharset(char *cp = 0, char *des = 0, short *map = 0, char *alt = 0);
+	GCharset(const char *cp = 0, const char *des = 0, short *map = 0, const char *alt = 0);
 
 	/// Returns true if the charset is a unicode variant
 	bool IsUnicode();
 	/// Gets the iconv name
-	char *GetIconvName();
+	const char *GetIconvName();
 	/// Returns whether Lgi can convert to/from this charset at the moment.
 	bool IsAvailable();
 };
@@ -342,7 +342,7 @@ public:
 	~GCharsetSystem();
 
 	// Get the charset info
-	GCharset *GetCsInfo(char *Cp);
+	GCharset *GetCsInfo(const char *Cp);
 	GCharset *GetCsList();
 };
 
@@ -352,10 +352,10 @@ LgiFunc GCharset *LgiGetCsInfo(char *Cs);
 /// one with a NULL 'Charset' member. 
 LgiFunc GCharset *LgiGetCsList();
 /// Returns the charset that best fits the input data
-LgiFunc char *LgiDetectCharset
+LgiFunc const char *LgiDetectCharset
 (
 	/// The input text
-	char *Utf8,
+	const char *Utf8,
 	/// The byte length of the input text
 	int Len = -1,
 	/// An optional list of prefered charsets to look through first

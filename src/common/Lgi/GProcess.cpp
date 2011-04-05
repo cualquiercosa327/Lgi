@@ -207,7 +207,7 @@ public:
 		w = 0;
 	}
 
-	GNativeString(char *utf)
+	GNativeString(const char *utf)
 	{
 		n = 0;
 		w = 0;
@@ -221,7 +221,7 @@ public:
 		DeleteArray(w);
 	}
 
-	GNativeString &operator =(char *utf)
+	GNativeString &operator =(const char *utf)
 	{
 		DeleteArray(w);
 		DeleteArray(n);
@@ -349,7 +349,7 @@ bool GProcess::Terminate()
 
 bool GNativeString::WinNT = LgiGetOs() == LGI_OS_WINNT;
 
-bool GProcess::Run(char *Exe, char *Arguments, char *Dir, bool Wait, GStream *In, GStream *Out, int Priority)
+bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool Wait, GStream *In, GStream *Out, int Priority)
 {
 	bool Status = false;
 
@@ -629,15 +629,15 @@ bool GProcess::Run(char *Exe, char *Arguments, char *Dir, bool Wait, GStream *In
 		Pipe Error;
 		
 		GArray<char*> a;
-		a.Add(Exe);
-		for (char *s=Arguments; s AND *s; )
+		a.Add((char*)Exe);
+		for (const char *s=Arguments; s AND *s; )
 		{
 			// skip white
 			while (*s AND strchr(" \t\r\n", *s)) s++;
 			
 			// Find token
 			GStringPipe p(256);
-			char *n;
+			const char *n;
 			char d = 0;
 			if (strchr("\"\'", *s))
 			{

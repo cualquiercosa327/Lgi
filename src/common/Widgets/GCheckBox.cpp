@@ -36,7 +36,7 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Check box
-GCheckBox::GCheckBox(int id, int x, int y, int cx, int cy, char *name, int InitState) :
+GCheckBox::GCheckBox(int id, int x, int y, int cx, int cy, const char *name, int InitState) :
 	ResObject(Res_CheckBox)
 {
 	d = new GCheckBoxPrivate;
@@ -91,14 +91,14 @@ void GCheckBox::Value(int64 i)
 	}
 }
 
-bool GCheckBox::Name(char *n)
+bool GCheckBox::Name(const char *n)
 {
 	bool Status = GView::Name(n);
 	d->Layout(GetFont(), GBase::Name());
 	return Status;
 }
 
-bool GCheckBox::NameW(char16 *n)
+bool GCheckBox::NameW(const char16 *n)
 {
 	bool Status = GView::NameW(n);
 	d->Layout(GetFont(), GBase::Name());

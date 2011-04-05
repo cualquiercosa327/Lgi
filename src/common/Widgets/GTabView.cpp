@@ -288,7 +288,7 @@ bool GTabView::Append(GTabPage *Page, int Where)
 	return false;
 }
 
-GTabPage *GTabView::Append(char *name, int Where)
+GTabPage *GTabView::Append(const char *name, int Where)
 {
 	GTabPage *Page = new GTabPage(name);
 	if (Page)
@@ -604,7 +604,7 @@ char *_lgi_gview_cmp(GView *a, GView *b)
 }
 
 
-GTabPage::GTabPage(char *name) : ResObject(Res_Tab)
+GTabPage::GTabPage(const char *name) : ResObject(Res_Tab)
 {
 	GRect r(0, 0, 1000, 1000);
 	SetPos(r);
@@ -728,7 +728,7 @@ char *GTabPage::Name()
 	return GBase::Name();
 }
 
-bool GTabPage::Name(char *name)
+bool GTabPage::Name(const char *name)
 {
 	bool Status = GView::Name(name);
 	if (GetParent()) GetParent()->Invalidate();

@@ -268,7 +268,7 @@ void GPalette::CreateCube()
 
 void TrimWhite(char *s)
 {
-	char *White = " \r\n\t";
+	const char *White = " \r\n\t";
 	char *c = s;
 	while (*c AND strchr(White, *c)) c++;
 	if (c != s)

@@ -107,7 +107,7 @@ void DumpHnd(HIViewRef v, int depth)
 	GView *Ptr = GWindowFromHandle(v);
 	
 	char Buf[256];
-	char *Class = 0;
+	const char *Class = 0;
 	if (!Ptr)
 	{
 		if (!GetControlProperty(v, 'meme', 'type', sizeof(Buf), 0, Buf))

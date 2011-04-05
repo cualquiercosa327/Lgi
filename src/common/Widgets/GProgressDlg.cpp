@@ -78,7 +78,7 @@ void Progress::GetLimits(int64 *l, int64 *h)
 	if (h) *h = High;
 }
 
-void Progress::SetDescription(char *d)
+void Progress::SetDescription(const char *d)
 {
 	char *Desc = NewStr(d);
 	DeleteArray(Description);
@@ -280,7 +280,7 @@ char *GProgressPane::GetDescription()
 	return Progress::GetDescription();
 }
 
-void GProgressPane::SetDescription(char *d)
+void GProgressPane::SetDescription(const char *d)
 {
 	Progress::SetDescription(d);
 	if (Desc)
@@ -421,7 +421,7 @@ char *GProgressDlg::GetDescription()
 	return (Pane) ? Pane->GetDescription() : 0;
 }
 
-void GProgressDlg::SetDescription(char *d)
+void GProgressDlg::SetDescription(const char *d)
 {
 	GProgressPane *Pane = Progri.First();
 	if (Pane)
@@ -471,13 +471,13 @@ void GProgressDlg::SetScale(double s)
 	if (Pane) Pane->Progress::SetScale(s);
 }
 
-char *GProgressDlg::GetType()
+const char *GProgressDlg::GetType()
 {
 	GProgressPane *Pane = Progri.First();
 	return (Pane) ? Pane->GetType() : 0;
 }
 
-void GProgressDlg::SetType(char *t)
+void GProgressDlg::SetType(const char *t)
 {
 	GProgressPane *Pane = Progri.First();
 	if (Pane) Pane->SetType(t);
