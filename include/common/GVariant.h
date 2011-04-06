@@ -174,9 +174,9 @@ public:
 	/// Constructor for double
 	GVariant(double i);
 	/// Constructor for string
-	GVariant(char *s);
+	GVariant(const char *s);
 	/// Constructor for wide string
-	GVariant(char16 *s);
+	GVariant(const char16 *s);
 	/// Constructor for ptr
 	GVariant(void *p);
 	/// Constructor for DOM ptr
@@ -201,9 +201,9 @@ public:
 	/// Assign double value
 	GVariant &operator =(double i);
 	/// Assign string value (makes a copy)
-	GVariant &operator =(char *s);
+	GVariant &operator =(const char *s);
 	/// Assign a wide string value (makes a copy)
-	GVariant &operator =(char16 *s);
+	GVariant &operator =(const char16 *s);
 	/// Assign another variant value
 	GVariant &operator =(GVariant const &i);
 	/// Assign value to a void ptr

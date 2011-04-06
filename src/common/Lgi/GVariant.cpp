@@ -42,14 +42,14 @@ GVariant::GVariant(double i)
 	Value.Dbl = i;
 }
 
-GVariant::GVariant(char *s)
+GVariant::GVariant(const char *s)
 {
 	Type = GV_STRING;
 	User = 0;
 	Value.String = NewStr(s);
 }
 
-GVariant::GVariant(char16 *s)
+GVariant::GVariant(const char16 *s)
 {
 	Type = GV_WSTRING;
 	User = 0;
@@ -251,7 +251,7 @@ GVariant &GVariant::operator =(double i)
 	return *this;
 }
 
-GVariant &GVariant::operator =(char *s)
+GVariant &GVariant::operator =(const char *s)
 {
 	Empty();
 	if (s)
@@ -259,12 +259,11 @@ GVariant &GVariant::operator =(char *s)
 		Type = GV_STRING;
 		Value.String = NewStr(s);
 	}
-	// if (Dirty) *Dirty = true;
 
 	return *this;
 }
 
-GVariant &GVariant::operator =(char16 *s)
+GVariant &GVariant::operator =(const char16 *s)
 {
 	Empty();
 	if (s)
