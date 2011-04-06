@@ -99,7 +99,7 @@ public:
 		int				WndStyle;				// Win32 hWnd Style
 		int				WndExStyle;				// Win32 hWnd ExStyle
 		int				WndDlgCode;				// Win32 Dialog Code (WM_GETDLGCODE)
-		char			*WndClass;
+		const char		*WndClass;
 		UINT			TimerId;
 
 	#else

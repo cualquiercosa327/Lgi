@@ -145,7 +145,7 @@ int GetInputACP()
 
 GKey::GKey(int v, int flags)
 {
-	char *Cp = 0;
+	const char *Cp = 0;
 
 	vkey = v;
 	c16 = 0;
@@ -269,7 +269,7 @@ LRESULT CALLBACK GWin32Class::SubClassRedir(HWND hWnd, UINT m, WPARAM a, LPARAM 
 	}
 }
 
-GWin32Class::GWin32Class(char *name)
+GWin32Class::GWin32Class(const char *name)
 {
 	Name(name);
 
@@ -307,7 +307,7 @@ GWin32Class::~GWin32Class()
 	Class.a.lpszClassName = NULL;
 }
 
-GWin32Class *GWin32Class::Create(char *ClassName)
+GWin32Class *GWin32Class::Create(const char *ClassName)
 {
 	GWin32Class *c = 0;
 
@@ -586,17 +586,17 @@ void GView::SetExStyle(uint32 i)
 	d->WndExStyle = i;
 }
 
-char *GView::GetClassW32()
+const char *GView::GetClassW32()
 {
 	return d->WndClass;
 }
 
-void GView::SetClassW32(char *c)
+void GView::SetClassW32(const char *c)
 {
 	d->WndClass = c;
 }
 
-GWin32Class *GView::CreateClassW32(char *Class, HICON Icon, int AddStyles)
+GWin32Class *GView::CreateClassW32(const char *Class, HICON Icon, int AddStyles)
 {
 	if (Class)
 	{
@@ -639,7 +639,7 @@ bool GView::Attach(GViewI *p)
 	GView *Parent = d->GetParent();
 	_Window = Parent ? Parent->_Window : this;
 
-    char *ClsName = GetClassW32();
+    const char *ClsName = GetClassW32();
     if (!ClsName)
         ClsName = GetClass();
 	if (ClsName)

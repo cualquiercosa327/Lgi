@@ -16,17 +16,17 @@ public:
 		/// The parent window
 		GView *parent,
 		/// The application name
-		char *AppName,
+		const char *AppName,
 		/// The version
 		double Ver,
 		/// The description of the application
-		char *Text,
+		const char *Text,
 		/// The filename of a graphic to display
-		char *AboutGraphic,
+		const char *AboutGraphic,
 		/// URL for the app
-		char *Url,
+		const char *Url,
 		/// Support email addr for the app
-		char *Email
+		const char *Email
 	);
 
 	int OnNotify(GViewI *Ctrl, int Flags);

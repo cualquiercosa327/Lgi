@@ -576,7 +576,7 @@ void GApp::SetConfig(GXmlTag *Tag)
 	}
 }
 
-GXmlTag *GApp::GetConfig(char *Tag)
+GXmlTag *GApp::GetConfig(const char *Tag)
 {
 	if (IsOk() && !d->Config)
 	{

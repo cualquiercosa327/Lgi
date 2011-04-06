@@ -215,7 +215,7 @@ class GHashTbl
 			uint Hash(const char *s) { return LgiHash<uchar>((uchar*)s, 0, Case); }
 			char *CopyKey(const char *a) { return NewStr(a); }
 			int SizeKey(const char *a) { return strlen(a) + 1; }
-			void FreeKey(const char *&a) { DeleteArray(a); }
+			void FreeKey(const char *&a) { DeleteArray((char*&)a); }
 			bool CmpKey(const char *a, const char *b)
 			{
 				if (Case)

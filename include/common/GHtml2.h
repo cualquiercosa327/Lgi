@@ -78,7 +78,7 @@ public:
 	~GHtml2();
 
 	// Html
-	char *GetClass() { return "GHtml2"; }
+	const char *GetClass() { return "GHtml2"; }
 	bool GetFormattedContent(char *MimeType, GAutoString &Out, GArray<GDocView::ContentMedia> *Media = 0);
 
 	/// Get the tag at an x,y location
@@ -130,7 +130,7 @@ public:
 	void OnPosChange();
 	void OnPulse();
 	int OnEvent(GMessage *Msg);
-	char *GetMimeType() { return "text/html"; }
+	const char *GetMimeType() { return "text/html"; }
 	void OnContent(GDocumentEnv::LoadJob *Res);
 	bool GotoAnchor(char *Name);
 

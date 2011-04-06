@@ -470,7 +470,7 @@ LgiFunc bool LgiTrimDir(char *Path);
 LgiFunc bool LgiIsRelativePath(const char *Path);
 LgiFunc char *LgiMakeRelativePath(char *Base, char *Path);
 LgiFunc bool LgiMakePath(char *Str, int StrBufLen, const char *Dir, const char *File);
-LgiFunc char *LgiGetExtension(char *File);
+LgiFunc char *LgiGetExtension(const char *File);
 LgiFunc bool LgiIsFileNameExecutable(char *FileName);
 LgiFunc bool LgiIsFileExecutable(char *FileName, GStreamI *f, int64 Start, int64 Len);
 LgiFunc const char *GetErrorName(int e);

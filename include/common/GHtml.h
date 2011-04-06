@@ -74,7 +74,7 @@ public:
 	~GHtml();
 
 	// Html
-	char *GetClass() { return "GHtml"; }
+	const char *GetClass() { return "GHtml"; }
 
 	/// Get the tag at an x,y location
 	GTag *GetTagByPos(int x, int y, int *Index);
@@ -122,7 +122,7 @@ public:
 	void OnPosChange();
 	void OnPulse();
 	int OnEvent(GMessage *Msg);
-	char *GetMimeType() { return "text/html"; }
+	const char *GetMimeType() { return "text/html"; }
 
 	// Javascript handlers
 	GDom *getElementById(char *Id);

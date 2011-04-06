@@ -16,7 +16,7 @@
 #include "GScrollBar.h"
 
 ////////////////////////////////////////////////////////////////////
-RLogEntry::RLogEntry(char *t, char *desc, int Len, COLOUR Col)
+RLogEntry::RLogEntry(const char *t, const char *desc, int Len, COLOUR Col)
 {
 	c = Col;
 	if (desc)
@@ -309,7 +309,7 @@ void GLog::SetView(RLogView *View)
 	LogView = View;
 }
 
-void GLog::Write(COLOUR c, char *Buffer, int Len, char *Desc)
+void GLog::Write(COLOUR c, const char *Buffer, int Len, char *Desc)
 {
 	if (Buffer)
 	{
@@ -326,7 +326,7 @@ void GLog::Write(COLOUR c, char *Buffer, int Len, char *Desc)
 					F.Write(Entry->Desc, strlen(Entry->Desc));
 					F.Write((char*)"   ", 3);
 				}
-				F.Write(Buffer, strlen(Buffer));
+				F.Write((char*)Buffer, strlen(Buffer));
 				F.Write((char*)"\r\n", 2);
 				F.Close();
 			}
@@ -339,7 +339,7 @@ void GLog::Write(COLOUR c, char *Buffer, int Len, char *Desc)
 	}
 }
 
-void GLog::Print(COLOUR c, char *Str, ...)
+void GLog::Print(COLOUR c, const char *Str, ...)
 {
 	if (Str)
 	{

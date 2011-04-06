@@ -467,13 +467,13 @@ protected:
 	void SetDlgCode(uint32 i);
 
     /// \brief Gets the win32 class passed to CreateWindowEx()
-	char *GetClassW32();
+	const char *GetClassW32();
 	/// \brief Sets the win32 class passed to CreateWindowEx()
-	void SetClassW32(char *s);
+	void SetClassW32(const char *s);
 	/// \brief Creates a class to pass to CreateWindowEx(). If this methed is not
 	/// explicitly called then the string from GetClass() is used to create a class,
 	/// which is usually the name of the object.
-	GWin32Class *CreateClassW32(char *Class = 0, HICON Icon = 0, int AddStyles = 0);
+	GWin32Class *CreateClassW32(const char *Class = 0, HICON Icon = 0, int AddStyles = 0);
 
 	virtual int		SysOnNotify(int Code) { return 0; }
 

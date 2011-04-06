@@ -43,7 +43,7 @@ public:
 	SubMenuImpl(GSubMenu *Sub);
 	~SubMenuImpl();
 	
-	char *GetClass() { return "SubMenuImpl"; }
+	const char *GetClass() { return "SubMenuImpl"; }
 	bool Visible() { return GPopup::Visible(); }
 	void Visible(bool b);
 	void Layout(int x, int y);
@@ -63,7 +63,7 @@ public:
 	MenuImpl(GMenu *Sub);
 	~MenuImpl();
 	
-	char *GetClass() { return "MenuImpl"; }
+	const char *GetClass() { return "MenuImpl"; }
 	bool Pour(GRegion &r);
     void OnPaint(GSurface *pDC);
 	bool HasSubOpen();
@@ -80,7 +80,7 @@ public:
 	MenuItemImpl(GMenuItem *Item);
 	~MenuItemImpl();
 	
-	char *GetClass() { return "MenuItemImpl"; }
+	const char *GetClass() { return "MenuItemImpl"; }
 	GMenuItem *Item();
 	void ShowSub();
 	void HideSub(bool SetClick = false);

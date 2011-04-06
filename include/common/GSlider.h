@@ -26,7 +26,7 @@ public:
 	GSlider(int id, int x, int y, int cx, int cy, char *name, bool vert);
 	~GSlider();
 
-	char *GetClass() { return "GSlider"; }
+	const char *GetClass() { return "GSlider"; }
 
 	/// Sets the position of the slider
 	void Value(int64 i);

@@ -124,7 +124,7 @@ LgiFunc bool LgiGetSystemPath
 	int DstSize
 );
 /// Finds a file in the applications directory or nearby
-LgiFunc char *LgiFindFile(char *Name);
+LgiFunc char *LgiFindFile(const char *Name);
 
 /// Returns 0 to end search
 typedef bool (*RecursiveFileSearch_Callback)(void *UserData, char *Path, class GDirectory *Dir);

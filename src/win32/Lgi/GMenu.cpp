@@ -59,7 +59,7 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-GSubMenu::GSubMenu(char *name, bool Popup)
+GSubMenu::GSubMenu(const char *name, bool Popup)
 {
 	if (Popup)
 	{
@@ -110,7 +110,7 @@ GSubMenu::~GSubMenu()
 	}
 }
 
-GMenuItem *GSubMenu::AppendItem(char *Str, int Id, bool Enabled, int Where, char *Shortcut)
+GMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Where, char *Shortcut)
 {
 	GMenuItem *Item = new GMenuItem(Menu, this, Items.Length(), Shortcut);
 	if (Item)
@@ -154,7 +154,7 @@ GMenuItem *GSubMenu::AppendSeparator(int Where)
 	return Item;
 }
 
-GSubMenu *GSubMenu::AppendSub(char *Str, int Where)
+GSubMenu *GSubMenu::AppendSub(const char *Str, int Where)
 {
 	GMenuItem *Item = new GMenuItem(Menu, this, Items.Length());
 	GSubMenu *Sub = new GSubMenu;
@@ -786,7 +786,7 @@ void GMenuItem::Checked(bool c)
 	Update();
 }
 
-bool GMenuItem::Name(char *Txt)
+bool GMenuItem::Name(const char *Txt)
 {
 	bool Status = GBase::Name(Txt);
 	if (Status)

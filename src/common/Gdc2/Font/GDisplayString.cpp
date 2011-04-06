@@ -43,7 +43,7 @@ public:
 	}
 };
 
-GDisplayString::GDisplayString(GFont *f, char *s, int l, GSurface *pdc, int tabOrigin)
+GDisplayString::GDisplayString(GFont *f, const char *s, int l, GSurface *pdc, int tabOrigin)
 {
 	pDC = pdc;
 	Font = f;
@@ -90,7 +90,7 @@ GDisplayString::GDisplayString(GFont *f, char *s, int l, GSurface *pdc, int tabO
 	Layout();
 }
 
-GDisplayString::GDisplayString(GFont *f, char16 *s, int l, GSurface *pdc, int tabOrigin)
+GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc, int tabOrigin)
 {
 	pDC = pdc;
 	Font = f;

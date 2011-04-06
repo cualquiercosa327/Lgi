@@ -13,12 +13,12 @@
 #define IDM_MESSAGE			102
 
 GAbout::GAbout(	GView *parent,
-				char *AppName,
+				const char *AppName,
 				double Ver,
-				char *Text,
-				char *AboutGraphic,
-				char *Url,
-				char *Email)
+				const char *Text,
+				const char *AboutGraphic,
+				const char *Url,
+				const char *Email)
 {
 	SetParent(parent);
 	if (!AppName) AppName = "Application";
@@ -39,7 +39,7 @@ GAbout::GAbout(	GView *parent,
 	p.Print("Build: %s, %s\n\n", __DATE__, __TIME__);
 	if (Url) p.Print("Homepage:\n\t%s\n", Url);
 	if (Email) p.Print("Email:\n\t%s\n", Email);
-	if (Text) p.Write(Text, strlen(Text));
+	if (Text) p.Write((char*)Text, strlen(Text));
 
 	GView *Img = 0;
 	int x = 10;

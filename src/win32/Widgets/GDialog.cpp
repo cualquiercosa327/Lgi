@@ -415,17 +415,17 @@ int GControl::OnEvent(GMessage *Msg)
 	return Status;
 }
 
-GdcPt2 GControl::SizeOfStr(char *Str)
+GdcPt2 GControl::SizeOfStr(const char *Str)
 {
 	GdcPt2 Pt(0, 0);
 	if (Str)
 	{
-		for (char *s=Str; s && *s; )
+		for (const char *s=Str; s && *s; )
 		{
-			char *e = strchr(s, '\n');
+			const char *e = strchr(s, '\n');
 			if (!e) e = s + strlen(s);
 
-			GDisplayString ds(SysFont, s, e - s);
+			GDisplayString ds(SysFont, (char*)s, e - s);
 
 			Pt.y += ds.Y();
 			Pt.x = max(Pt.x, ds.X());

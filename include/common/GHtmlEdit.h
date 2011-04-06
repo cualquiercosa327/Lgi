@@ -13,7 +13,7 @@ public:
 	GHtmlEdit();
 	~GHtmlEdit();
 
-	char *GetMimeType() { return "text/html"; }
+	const char *GetMimeType() { return "text/html"; }
 	void OnPaint(GSurface *pDC);
 	void OnCreate();
 	void OnPosChange();

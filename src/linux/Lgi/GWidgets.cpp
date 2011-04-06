@@ -215,15 +215,15 @@ int GControl::OnEvent(GMessage *Msg)
 	return 0;
 }
 
-GdcPt2 GControl::SizeOfStr(char *Str)
+GdcPt2 GControl::SizeOfStr(const char *Str)
 {
 	int y = SysFont->GetHeight();
 	GdcPt2 Pt(0, 0);
 
 	if (Str)
 	{
-		char *e = 0;
-		for (char *s = Str; s AND *s; s = e?e+1:0)
+		const char *e = 0;
+		for (const char *s = Str; s AND *s; s = e?e+1:0)
 		{
 			e = strchr(s, '\n');
 			int Len = e ? (int)e-(int)s : strlen(s);

@@ -29,7 +29,7 @@ public:
 				int Init = 0);
 	~GTabView();
 	
-	char *GetClass() { return "GTabView"; }
+	const char *GetClass() { return "GTabView"; }
 
 	/// Gets the selected tab
 	int64 Value();
@@ -92,7 +92,7 @@ public:
 	GTabPage(const char *name);
 	~GTabPage();
 
-	char *GetClass() { return "GTabPage"; }
+	const char *GetClass() { return "GTabPage"; }
 
 	char *Name();
 	bool Name(const char *n);

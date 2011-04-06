@@ -78,7 +78,7 @@ int64 LgiFileSize(char *FileName)
 
 typedef wchar_t char16;
 
-bool FileExists(char *Name)
+bool FileExists(const char *Name)
 {
 	bool Status = false;
 	if (Name)
@@ -121,7 +121,7 @@ bool FileExists(char *Name)
 	return false;
 }
 
-bool DirExists(char *Dir)
+bool DirExists(const char *Dir)
 {
 	DWORD e = 0;
 	if (GFileSystem::Win9x)
@@ -139,7 +139,7 @@ bool DirExists(char *Dir)
 	return e != 0xFFFFFFFF AND TestFlag(e, FILE_ATTRIBUTE_DIRECTORY);
 }
 
-char *GetErrorName(int e)
+const char *GetErrorName(int e)
 {
 	static char Buf[256];
 	char *s = Buf;
@@ -1290,7 +1290,7 @@ bool GDirImpl::Path(char *s, int BufLen)
 	return Status;
 }
 
-int GDirImpl::First(char *Name, char *Pattern)
+int GDirImpl::First(const char *Name, const char *Pattern)
 {
 	Close();
 
@@ -1305,11 +1305,11 @@ int GDirImpl::First(char *Name, char *Pattern)
 			// raw drive
 			if (!strchr(Name, DIR_CHAR))
 			{
-				strcat(Name, DIR_STR);
+				strcat((char*)Name, DIR_STR);
 			}
 		}
 
-		char *End = strrchr(Name, DIR_CHAR);
+		char *End = strrchr((char*)Name, DIR_CHAR);
 		if (End)
 		{
 			// dir

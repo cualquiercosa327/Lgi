@@ -839,16 +839,16 @@ char *LgiDecodeUri(const char *uri, int len)
 	return p.NewStr();
 }
 
-char *LgiEncodeUri(char *uri, int len)
+char *LgiEncodeUri(const char *uri, int len)
 {
 	GStringPipe p;
 	if (uri)
 	{
-		char *end = len >= 0 ? uri + len : 0;
-		for (char *s=uri; s && *s; )
+		const char *end = len >= 0 ? uri + len : 0;
+		for (const char *s=uri; s && *s; )
 		{
 			int Len;
-			char *e = s;
+			const char *e = s;
 			for
 			(
 				Len = 0;

@@ -59,7 +59,7 @@ public:
 				GDisplayString *n = new GDisplayString(f, Len ? s : (char*)"", Len ? Len : 1);
 				if (Wrap)
 				{
-					int All = LgiCharLen((OsChar*)*n, sizeof(OsChar) < 2 ? "utf-8" : LGI_WideCharset);
+					int All = LgiCharLen((const OsChar*)*n, sizeof(OsChar) < 2 ? "utf-8" : LGI_WideCharset);
 					int Ch = n->CharAt(Width);
 					if (Ch <= 0)
 					{

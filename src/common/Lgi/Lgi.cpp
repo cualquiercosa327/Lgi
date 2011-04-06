@@ -1509,11 +1509,11 @@ bool LgiGetExePath(char *Dst, int DstSize)
 	return LgiGetSystemPath(LSP_EXE, Dst, DstSize);
 }
 
-char *LgiGetExtension(char *File)
+char *LgiGetExtension(const char *File)
 {
 	if (File)
 	{
-		char *Dot = strrchr(File, '.');
+		char *Dot = strrchr((char*)File, '.');
 		if (Dot AND !strchr(Dot, DIR_CHAR))
 		{
 			return Dot + 1;
@@ -1525,7 +1525,7 @@ char *LgiGetExtension(char *File)
 
 #define DEBUG_FIND_FILE		0
 
-char *LgiFindFile(char *Name)
+char *LgiFindFile(const char *Name)
 {
 	char *Result = 0;
 	
@@ -1612,7 +1612,7 @@ char *LgiFindFile(char *Name)
 
 		// General search fall back...
 		GArray<char*> Ext, Files;
-		Ext.Add(Name);
+		Ext.Add((char*)Name);
 
 		#if DEBUG_FIND_FILE
 		printf("%s:%i - Exe='%s'\n", __FILE__, __LINE__, Exe);

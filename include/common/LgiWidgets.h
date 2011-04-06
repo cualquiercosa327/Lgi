@@ -291,7 +291,7 @@ protected:
 	GWin32Class *SubClass;
 	#endif
 
-	GdcPt2 SizeOfStr(char *Str);
+	GdcPt2 SizeOfStr(const char *Str);
 
 public:
 	#if WIN32NATIVE

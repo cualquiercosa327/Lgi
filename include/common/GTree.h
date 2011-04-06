@@ -165,7 +165,7 @@ public:
 	GTree(int id, int x, int y, int cx, int cy, char *name = 0);
 	~GTree();
 
-	char *GetClass() { return "GTree"; }
+	const char *GetClass() { return "GTree"; }
 
 	/// Called when an item is clicked
 	virtual void OnItemClick(GTreeItem *Item, GMouse &m);

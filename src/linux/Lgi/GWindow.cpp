@@ -619,7 +619,7 @@ void GWindow::SetDefault(GViewI *v)
 	}
 }
 
-bool GWindow::Name(char *n)
+bool GWindow::Name(const char *n)
 {
 	bool Status = GBase::Name(n);
 

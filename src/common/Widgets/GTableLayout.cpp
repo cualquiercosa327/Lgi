@@ -246,7 +246,7 @@ int LayoutTextCtrl(GView *v, int Offset, int Width)
 		for (char *s = t; s && *s; )
 		{
 			GDisplayString d(f, s, min(1000, e - s));
-			if (!(OsChar*)d)
+			if (!(const OsChar*)d)
 			{
 				LgiAssert(0);
 				break;

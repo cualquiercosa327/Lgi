@@ -30,7 +30,7 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-GEdit::GEdit(int id, int x, int y, int cx, int cy, char *name) :
+GEdit::GEdit(int id, int x, int y, int cx, int cy, const char *name) :
 	#ifdef SKIN_MAGIC
 	GControl("EDIT"),
 	#else
@@ -161,7 +161,7 @@ char *GEdit::Name()
 	return GBase::Name();
 }
 
-bool GEdit::Name(char *n)
+bool GEdit::Name(const char *n)
 {
 	bool Old = d->IgnoreNotify;
 	d->IgnoreNotify = true;
@@ -171,13 +171,13 @@ bool GEdit::Name(char *n)
 	if (n AND strchr(n, '\n'))
 	{
 		GStringPipe p(256);
-		for (char *s = n; s AND *s; )
+		for (char *s = (char*)n; s AND *s; )
 		{
 			char *nl = strchr(s, '\n');
 			if (nl)
 			{
 				p.Write(s, nl-s);
-				p.Write((char*)"\r\n", 2);
+				p.Write("\r\n", 2);
 				s = nl + 1;
 			}
 			else
@@ -203,7 +203,7 @@ char16 *GEdit::NameW()
 	return GControl::NameW();
 }
 
-bool GEdit::NameW(char16 *s)
+bool GEdit::NameW(const char16 *s)
 {
 	bool Old = d->IgnoreNotify;
 	d->IgnoreNotify = true;

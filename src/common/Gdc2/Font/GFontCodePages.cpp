@@ -901,8 +901,8 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 			    
 				// Iconv conversion
 				GFontSystem *Iconv = GetIconv();
-				char *InCs = InInfo->GetIconvName();
-				char *OutCs = OutInfo->GetIconvName();
+				const char *InCs = InInfo->GetIconvName();
+				const char *OutCs = OutInfo->GetIconvName();
 				iconv_t Conv;
 				if (Iconv && ((Conv = Iconv->libiconv_open(OutCs, InCs)) >= 0))
 				{
@@ -1455,7 +1455,7 @@ char *LgiToNativeCp(const char *In, int InLen)
 	return (char*)LgiNewConvertCp(Cp, In, "utf-8", InLen);
 }
 
-char *LgiFromNativeCp(char *In, int InLen)
+char *LgiFromNativeCp(const char *In, int InLen)
 {
 	const char *Cp = LgiAnsiToLgiCp();
 
@@ -1482,7 +1482,7 @@ char *LgiFromNativeCp(char *In, int InLen)
 			{
 				// Work out how many chars 'InLen' bytes is
 				int Bytes = InLen;
-				char *i = In;
+				const char *i = In;
 				int Chars = 0;
 				while (*i AND Bytes > 0)
 				{

@@ -106,14 +106,14 @@ public:
 		WNDCLASSEXW w;
 	} Class;
 
-	GWin32Class(char *Name);
+	GWin32Class(const char *Name);
 	~GWin32Class();
 
 	bool Register();
 	bool SubClass(char *Parent);
 	LRESULT CALLBACK CallParent(OsView hWnd, UINT m, WPARAM a, LPARAM b);
 
-	static GWin32Class *Create(char *ClassName);
+	static GWin32Class *Create(const char *ClassName);
 };
 
 #include "GRegKey.h"

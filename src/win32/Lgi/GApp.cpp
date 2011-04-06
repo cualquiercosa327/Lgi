@@ -520,11 +520,11 @@ OsAppArguments *GApp::GetAppArgs()
 	return IsOk() ? &d->Args : 0;
 }
 
-GXmlTag *GApp::GetConfig(char *Tag)
+GXmlTag *GApp::GetConfig(const char *Tag)
 {
 	if (IsOk() AND !d->Config)
 	{
-		char File[] = "lgi.conf";
+		const char File[] = "lgi.conf";
 		char Path[256];
 		if (LgiGetExePath(Path, sizeof(Path)))
 		{

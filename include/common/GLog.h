@@ -25,7 +25,7 @@ friend class GLog;
 	COLOUR c;
 
 public:
-	RLogEntry(char *t, char *desc = 0, int Len = -1, COLOUR c = 0);
+	RLogEntry(const char *t, const char *desc = 0, int Len = -1, COLOUR c = 0);
 	~RLogEntry();
 };
 
@@ -76,8 +76,8 @@ public:
 	~GLog();
 
 	void SetView(RLogView *View);
-	void Print(COLOUR c, char *Str, ...);
-	void Write(COLOUR c, char *Str, int Len = -1, char *Desc = 0);
+	void Print(COLOUR c, const char *Str, ...);
+	void Write(COLOUR c, const char *Str, int Len = -1, char *Desc = 0);
 };
 
 #endif

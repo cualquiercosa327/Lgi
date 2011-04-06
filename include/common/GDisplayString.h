@@ -55,7 +55,7 @@ public:
 		/// The base font. Must not be destroyed during the lifetime of this object.
 		GFont *f,
 		/// Utf-8 input string
-		char *s,
+		const char *s,
 		/// Number of bytes in the input string or -1 for NULL terminated.
 		int l = -1,
 		GSurface *pdc = 0,
@@ -67,7 +67,7 @@ public:
 		/// The base font. Must not be destroyed during the lifetime of this object.
 		GFont *f,
 		/// A wide character input string
-		char16 *s,
+		const char16 *s,
 		/// The number of characters in the input string (NOT the number of bytes) or -1 for NULL terminated
 		int l = -1,
 		GSurface *pdc = 0,
@@ -100,7 +100,7 @@ public:
 	void Length(int NewLen);
 
 	/// Returns the pointer to the native string
-	operator OsChar*() { return Str; }
+	operator const OsChar*() { return Str; }
 
 	/// Returns the width of the whole string
 	int X();

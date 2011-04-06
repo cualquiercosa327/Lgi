@@ -202,7 +202,7 @@ public:
 				GFontType *FontInfo = 0);
 	~GTextView4();
 
-	char *GetClass() { return "GTextView4"; }
+	const char *GetClass() { return "GTextView4"; }
 
 	// Data
 	char *Name();
@@ -211,7 +211,7 @@ public:
 	bool NameW(char16 *s);
 	int64 Value();
 	void Value(int64 i);
-	char *GetMimeType() { return "text/plain"; }
+	const char *GetMimeType() { return "text/plain"; }
 	int GetSize() { return Size; }
 
 	struct EditInfo
