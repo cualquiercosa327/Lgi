@@ -667,7 +667,7 @@ public:
 	
 	// Customization menu
 	GDom *CustomDom;
-	char *CustomProp;
+	const char *CustomProp;
 
 	// bitmap cache
 	GMemDC *pColour;
@@ -1389,7 +1389,7 @@ void GToolBar::Customizable(ObjProperties *Store, char *Option)
 }
 */
 
-void GToolBar::Customizable(GDom *Store, char *Option)
+void GToolBar::Customizable(GDom *Store, const char *Option)
 {
 	d->CustomDom = Store;
 	d->CustomProp = Option;

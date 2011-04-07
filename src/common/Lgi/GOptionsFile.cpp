@@ -12,7 +12,7 @@ void GOptionsFile::_Init()
 	}
 }
 
-GOptionsFile::GOptionsFile(char *FileName) : GSemaphore("GOptionsFile")
+GOptionsFile::GOptionsFile(const char *FileName) : GSemaphore("GOptionsFile")
 {
 	_Init();
 
@@ -22,7 +22,7 @@ GOptionsFile::GOptionsFile(char *FileName) : GSemaphore("GOptionsFile")
 		SetMode(PortableMode);
 }
 
-GOptionsFile::GOptionsFile(PortableType Mode, char *BaseName) : GSemaphore("GOptionsFile")
+GOptionsFile::GOptionsFile(PortableType Mode, const char *BaseName) : GSemaphore("GOptionsFile")
 {
 	_Init();
 
@@ -33,7 +33,7 @@ GOptionsFile::~GOptionsFile()
 {
 }
 
-bool GOptionsFile::SetMode(PortableType Mode, char *BaseName)
+bool GOptionsFile::SetMode(PortableType Mode, const char *BaseName)
 {
 	char FullPath[MAX_PATH];
 	if (!LgiGetSystemPath(Mode == DesktopMode ? LSP_APP_ROOT : LSP_APP_INSTALL, FullPath, sizeof(FullPath)))
@@ -77,7 +77,7 @@ bool GOptionsFile::IsValid()
 	return Status;
 }
 
-void GOptionsFile::SetFile(char *f)
+void GOptionsFile::SetFile(const char *f)
 {
 	File.Reset(NewStr(f));
 	Dirty = true;
@@ -125,7 +125,7 @@ bool GOptionsFile::Serialize(bool Write)
 	return Status;
 }
 
-bool GOptionsFile::DeleteValue(char *Name)
+bool GOptionsFile::DeleteValue(const char *Name)
 {
 	bool Status = false;
 
@@ -139,7 +139,7 @@ bool GOptionsFile::DeleteValue(char *Name)
 	return Status;
 }
 
-bool GOptionsFile::CreateTag(char *Name)
+bool GOptionsFile::CreateTag(const char *Name)
 {
 	GXmlTag *Status = 0;
 
@@ -152,7 +152,7 @@ bool GOptionsFile::CreateTag(char *Name)
 	return Status != 0;
 }
 
-bool GOptionsFile::DeleteTag(char *Name)
+bool GOptionsFile::DeleteTag(const char *Name)
 {
 	bool Status = false;
 
@@ -171,7 +171,7 @@ bool GOptionsFile::DeleteTag(char *Name)
 	return Status;
 }
 
-GXmlTag *GOptionsFile::LockTag(char *Name, char *File, int Line)
+GXmlTag *GOptionsFile::LockTag(const char *Name, const char *File, int Line)
 {
 	GXmlTag *t = 0;
 

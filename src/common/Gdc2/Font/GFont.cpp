@@ -1153,7 +1153,7 @@ GFont &GFont::operator =(GFont &f)
 }
 
 ///////////////////////////////////////////////////////////////////////
-GFontType::GFontType(char *face, int pointsize)
+GFontType::GFontType(const char *face, int pointsize)
 {
 	#if defined WIN32
 
@@ -1188,7 +1188,7 @@ char *GFontType::GetFace()
 	#endif
 }
 
-void GFontType::SetFace(char *Face)
+void GFontType::SetFace(const char *Face)
 {
 	#ifdef WIN32
 	if (Face) strcpy(Info.lfFaceName, Face);
@@ -1313,7 +1313,7 @@ bool GFontType::Serialize(ObjProperties *Options, char *OptName, bool Write)
 }
 */
 
-bool GFontType::Serialize(GDom *Options, char *OptName, bool Write)
+bool GFontType::Serialize(GDom *Options, const char *OptName, bool Write)
 {
 	bool Status = false;
 

@@ -33,14 +33,14 @@
 class TagHash : public GHashTable, public ResReadCtx
 {
 public:
-	TagHash(char *TagList)
+	TagHash(const char *TagList)
 	{
 		GToken Toks(TagList);
 		for (int i=0; i<Toks.Length(); i++)
 			Add(Toks[i]);
 	}
 
-	bool Check(char *Tags)
+	bool Check(const char *Tags)
 	{
 		bool Result = true;
 		if (Tags)
@@ -1517,7 +1517,7 @@ bool GMenuLoader::Load(LgiMenuRes *MenuRes, GXmlTag *Tag, ResFileFormat Format, 
 	return Status;
 }
 
-bool GMenu::Load(GView *w, char *Res, char *TagList)
+bool GMenu::Load(GView *w, const char *Res, const char *TagList)
 {
 	bool Status = false;
 

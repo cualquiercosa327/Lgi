@@ -152,7 +152,7 @@ bool GPassword::Serialize(ObjProperties *Options, char *Prop, int Write)
 }
 */
 
-bool GPassword::Serialize(GDom *Options, char *Prop, int Write)
+bool GPassword::Serialize(GDom *Options, const char *Prop, int Write)
 {
 	bool Status = false;
 	if (Options AND Prop)

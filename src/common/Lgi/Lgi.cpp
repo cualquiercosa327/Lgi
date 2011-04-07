@@ -1611,7 +1611,8 @@ char *LgiFindFile(const char *Name)
 		}
 
 		// General search fall back...
-		GArray<char*> Ext, Files;
+		GArray<const char*> Ext;
+		GArray<char*> Files;
 		Ext.Add((char*)Name);
 
 		#if DEBUG_FIND_FILE

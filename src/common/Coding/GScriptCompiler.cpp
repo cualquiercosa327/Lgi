@@ -231,7 +231,7 @@ public:
 	/// Add a file/line reference for the next token
 	void Add(char *FileName, int Line)
 	{
-		char *Empty = "";
+		const char *Empty = "";
 		char *d = FileName ? strrchr(FileName, DIR_CHAR) : 0;
 		if (d) FileName = d + 1;
 
@@ -316,7 +316,7 @@ public:
 		Defines.DeleteArrays();
 	}
 
-	bool OnError(int Tok, char *Msg, ...)
+	bool OnError(int Tok, const char *Msg, ...)
 	{
 		if (Log)
 		{
@@ -2591,7 +2591,7 @@ GStringPipe *GScriptEngine2::GetTerm()
 	return &d->Log;
 }
 
-bool GScriptEngine2::CallMethod(char *Method, GVariant *Ret, ArgumentArray &Args)
+bool GScriptEngine2::CallMethod(const char *Method, GVariant *Ret, ArgumentArray &Args)
 {
 	if (!d->Code || !Method)
 		return false;

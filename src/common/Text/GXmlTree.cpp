@@ -392,7 +392,7 @@ GXmlTag &GXmlTag::operator =(GXmlTag &t)
 	return *this;
 }
 
-GXmlTag *GXmlTag::CreateTag(char *Name, char *Content)
+GXmlTag *GXmlTag::CreateTag(const char *Name, char *Content)
 {
 	GXmlTag *c = GetTag(Name, true);
 	if (c) c->Content = NewStr(Content);

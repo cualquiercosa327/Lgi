@@ -749,7 +749,7 @@ void GDateTime::Get(char *Str)
 	}
 }
 
-bool GDateTime::Set(char *Str)
+bool GDateTime::Set(const char *Str)
 {
 	bool Status = false;
 
@@ -789,7 +789,7 @@ void GDateTime::Month(char *m)
 	IsMonth(dec, 12)
 }
 
-bool GDateTime::SetDate(char *Str)
+bool GDateTime::SetDate(const char *Str)
 {
 	bool Status = false;
 
@@ -889,7 +889,7 @@ bool GDateTime::SetDate(char *Str)
 	return Status;
 }
 
-bool GDateTime::SetTime(char *Str)
+bool GDateTime::SetTime(const char *Str)
 {
 	bool Status = false;
 

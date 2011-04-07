@@ -79,7 +79,7 @@ char *GSemaphore::GetName()
 	return _Name;
 }
 
-void GSemaphore::SetName(char *s)
+void GSemaphore::SetName(const char *s)
 {
 	DeleteArray(_Name);
 	_Name = NewStr(s);

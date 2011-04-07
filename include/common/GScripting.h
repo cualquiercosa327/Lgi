@@ -129,7 +129,7 @@ public:
 	virtual GStringPipe *GetTerm() NotImplmentedRet0
 
 	/// Call a method with the given parameters.
-	virtual bool CallMethod(char *Method, GVariant *Ret, ArgumentArray &Args) NotImplmentedRet0
+	virtual bool CallMethod(const char *Method, GVariant *Ret, ArgumentArray &Args) NotImplmentedRet0
 
 	/// Dump the stack variables to the terminal
 	virtual void DumpVariables() NotImplmented
@@ -153,7 +153,7 @@ public:
 	bool EvaluateExpression(GVariant *Result, GDom *VariableSource, char *Expression);
 	GVariant *Var(char16 *name, bool create = true);
 	GStringPipe *GetTerm();
-	bool CallMethod(char *Method, GVariant *Ret, ArgumentArray &Args);
+	bool CallMethod(const char *Method, GVariant *Ret, ArgumentArray &Args);
 	void DumpVariables();
 };
 
@@ -175,7 +175,7 @@ public:
 	bool EvaluateExpression(GVariant *Result, GDom *VariableSource, char *Expression);
 	GVariant *Var(char16 *name, bool create = true);
 	GStringPipe *GetTerm();
-	bool CallMethod(char *Method, GVariant *Ret, ArgumentArray &Args);
+	bool CallMethod(const char *Method, GVariant *Ret, ArgumentArray &Args);
 	void DumpVariables();
 };
 

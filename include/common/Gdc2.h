@@ -1207,7 +1207,7 @@ class LgiClass GPrintDC
 	class GPrintDCPrivate *d;
 
 public:
-	GPrintDC(void *Handle, char *PrintJobName);
+	GPrintDC(void *Handle, const char *PrintJobName);
 	~GPrintDC();
 
 	bool IsPrint() { return true; }

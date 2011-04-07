@@ -124,7 +124,7 @@ bool GPrinter::Serialize(char *&Str, bool Write)
 	return true;
 }
 
-GPrintDC *GPrinter::StartDC(char *PrintJobName, GView *Parent)
+GPrintDC *GPrinter::StartDC(const char *PrintJobName, GView *Parent)
 {
 	return new GPrintDC(d->Printer, PrintJobName);
 }
