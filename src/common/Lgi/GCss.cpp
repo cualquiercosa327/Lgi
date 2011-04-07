@@ -37,10 +37,10 @@
 	}
 
 
-GHashTbl<char*, GCss::PropType> GCss::Lut(0, false);
-char *GCss::PropName(PropType p)
+GHashTbl<const char*, GCss::PropType> GCss::Lut(0, false);
+const char *GCss::PropName(PropType p)
 {
-	char *s;
+	const char *s;
 	for (PropType t = Lut.First(&s); t; t = Lut.Next(&s))
 	{
 		if (p == t)
@@ -52,7 +52,7 @@ char *GCss::PropName(PropType p)
 }
 
 /////////////////////////////////////////////////////////////////////////////
-bool ParseWord(char *&s, char *word)
+bool ParseWord(char *&s, const char *word)
 {
 	char *doc = s;
 	while (*doc && *word)
@@ -232,7 +232,7 @@ GCss::~GCss()
 
 bool GCss::Len::ToString(GStream &p)
 {
-	char *Unit = 0;
+	const char *Unit = 0;
 	switch (Type)
 	{
 		case LenPx: Unit = "px"; break;
@@ -300,8 +300,8 @@ GAutoString GCss::ToString()
 		{
 			case TypeEnum:
 			{
-				char *s = 0;
-				char *Name = PropName(Prop);
+				const char *s = 0;
+				const char *Name = PropName(Prop);
 				switch (Prop)
 				{
 					case PropFontWeight:
@@ -464,7 +464,7 @@ GAutoString GCss::ToString()
 			case TypeLen:
 			{
 				Len *l = (Len*)v;
-				char *Name = PropName(Prop);
+				const char *Name = PropName(Prop);
 				p.Print("%s:", Name);
 				l->ToString(p);
 				p.Print(";");
@@ -473,14 +473,14 @@ GAutoString GCss::ToString()
 			case TypeGRect:
 			{
 				GRect *r = (GRect*)v;
-				char *Name = PropName(Prop);
+				const char *Name = PropName(Prop);
 				p.Print("%s:rect(%ipx,%ipx,%ipx,%ipx);", Name, r->y1, r->x2, r->y2, r->x1);
 				break;
 			}
 			case TypeColor:
 			{
 				ColorDef *c = (ColorDef*)v;
-				char *Name = PropName(Prop);
+				const char *Name = PropName(Prop);
 				p.Print("%s:", Name);
 				c->ToString(p);
 				p.Print(";");
@@ -489,7 +489,7 @@ GAutoString GCss::ToString()
 			case TypeImage:
 			{
 				ImageDef *i = (ImageDef*)v;
-				char *Name = PropName(Prop);
+				const char *Name = PropName(Prop);
 				switch (i->Type)
 				{
 					case ImageInherit:
@@ -510,12 +510,12 @@ GAutoString GCss::ToString()
 			case TypeBorder:
 			{
 				BorderDef *b = (BorderDef*)v;
-				char *Name = PropName(Prop);
+				const char *Name = PropName(Prop);
 
 				p.Print("%s:", Name);
 				b->ToString(p);
 
-				char *s = 0;
+				const char *s = 0;
 				switch (b->Style)
 				{
 					case BorderNone: s = "none"; break;
@@ -538,7 +538,7 @@ GAutoString GCss::ToString()
 			case TypeStrings:
 			{
 				StringsDef *s = (StringsDef*)v;
-				char *Name = PropName(Prop);
+				const char *Name = PropName(Prop);
 				p.Print("%s:", Name);
 				for (int i=0; i<s->Length(); i++)
 				{

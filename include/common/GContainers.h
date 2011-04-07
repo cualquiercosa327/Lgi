@@ -353,7 +353,7 @@ public:
 	/// Reads bytes off the start of the container
 	int Read(void *Buffer, int Size, int Flags = 0);
 	/// Writes bytes to the end of the container
-	int Write(void *Buffer, int Size, int Flags = 0);
+	int Write(const void *Buffer, int Size, int Flags = 0);
 
 	/// Reads a 2 byte integer from the start
 	int Pop(short &i);

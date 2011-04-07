@@ -23,7 +23,7 @@ class LgiClass GSlider :
 	int Tx, Ty;
 
 public:
-	GSlider(int id, int x, int y, int cx, int cy, char *name, bool vert);
+	GSlider(int id, int x, int y, int cx, int cy, const char *name, bool vert);
 	~GSlider();
 
 	const char *GetClass() { return "GSlider"; }

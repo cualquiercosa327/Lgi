@@ -10,7 +10,7 @@ p_vscprintf lgi_vscprintf = 0;
 #endif
 
 //////////////////////////////////////////////////////////////////////
-int GStreamPrint(GStreamI *s, char *Format, ...)
+int GStreamPrint(GStreamI *s, const char *Format, ...)
 {
 	int Chars = 0;
 

@@ -99,7 +99,7 @@ protected:
 	class GSocketImplPrivate *d;
 
 	// Methods
-	void Log(char *Msg, int Ret, char *Buf, int Len);
+	void Log(const char *Msg, int Ret, const char *Buf, int Len);
 
 public:
 	int			BytesWritten;
@@ -160,7 +160,7 @@ public:
 	int Open
 	(
 		/// The name of the remote host.
-		char *HostAddr,
+		const char *HostAddr,
 		/// The port on the remote host.
 		int Port
 	);
@@ -186,7 +186,7 @@ public:
 	int Write
 	(
 		/// Pointer to the data to write
-		void *Data,
+		const void *Data,
 		/// Numbers of bytes to write
 		int Len,
 		/// Flags to pass to send
@@ -231,10 +231,10 @@ public:
 	void OnWrite(char *Data, int Len) {}
 	
 	/// Gets called when an error occurs.
-	void OnError(int ErrorCode, char *ErrorDescription) {}
+	void OnError(int ErrorCode, const char *ErrorDescription) {}
 	
 	/// Gets called when some information is available.
-	void OnInformation(char *Str) {}
+	void OnInformation(const char *Str) {}
 	
 	/// Parameter change handler.
 	int SetParameter

@@ -261,8 +261,8 @@ public:
 	char *GetSelection();
 
 	// File IO
-	bool Open(char *Name, char *Cs = 0);
-	bool Save(char *Name, char *Cs = 0);
+	bool Open(const char *Name, const char *Cs = 0);
+	bool Save(const char *Name, const char *Cs = 0);
 
 	// Clipboard IO
 	bool Cut();

@@ -784,12 +784,12 @@ void GView::Enabled(bool i)
 		if (i)
 		{
 			OSStatus e = EnableControl(_View);
-			if (e) printf("%s:%i - Error enabling control (%i)\n", _FL);
+			if (e) printf("%s:%i - Error enabling control (%i)\n", _FL, (int)e);
 		}
 		else
 		{
 			OSStatus e = DisableControl(_View);
-			if (e) printf("%s:%i - Error disabling control (%i)\n", _FL);
+			if (e) printf("%s:%i - Error disabling control (%i)\n", _FL, (int)e);
 		}
 		#endif
 	}
@@ -1787,7 +1787,7 @@ GViewFactory::~GViewFactory()
 	}
 }
 
-GView *GViewFactory::Create(char *Class, GRect *Pos, char *Text)
+GView *GViewFactory::Create(const char *Class, GRect *Pos, const char *Text)
 {
 	if (Factories && ValidStr(Class))
 	{

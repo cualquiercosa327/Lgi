@@ -126,7 +126,7 @@ bool GLibrary::Unload()
 	return true;
 }
 
-void *GLibrary::GetAddress(char *Resource)
+void *GLibrary::GetAddress(const char *Resource)
 {
 	void *p = 0;
 	

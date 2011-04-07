@@ -162,7 +162,7 @@ protected:
 	void OnDragExit();
 	
 public:
-	GTree(int id, int x, int y, int cx, int cy, char *name = 0);
+	GTree(int id, int x, int y, int cx, int cy, const char *name = 0);
 	~GTree();
 
 	const char *GetClass() { return "GTree"; }

@@ -9,7 +9,7 @@ class LgiClass LgiStringRes
 	LgiResources *Res;
 
 public:
-	static char *CodePage;
+	static const char *CodePage;
 	static GLanguage *CurLang;
 
 	int Ref;

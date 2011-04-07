@@ -365,7 +365,7 @@ GScrollBar::GScrollBar()
 	d = new GScrollBarPrivate(this);
 }
 
-GScrollBar::GScrollBar(int id, int x, int y, int cx, int cy, char *name)
+GScrollBar::GScrollBar(int id, int x, int y, int cx, int cy, const char *name)
 	:	ResObject(Res_ScrollBar)	
 {
 	d = new GScrollBarPrivate(this);

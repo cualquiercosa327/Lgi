@@ -211,11 +211,11 @@ char *strlwr(char *a)
 }
 #endif
 
-char *TrimStr(char *s, char *Delim)
+char *TrimStr(const char *s, const char *Delim)
 {
 	if (s)
 	{
-		char *Start = s;
+		const char *Start = s;
 		while (*Start && strchr(Delim, *Start))
 		{
 			Start++;
@@ -224,7 +224,7 @@ char *TrimStr(char *s, char *Delim)
 		int StartLen = strlen(Start);
 		if (StartLen > 0)
 		{
-			char *End = Start + strlen(Start) - 1;
+			const char *End = Start + strlen(Start) - 1;
 			while (*End && End > Start && strchr(Delim, *End))
 			{
 				End--;
@@ -290,7 +290,7 @@ char *NewStr(const char *s, int Len)
 #define tolower(c) ( ((c)>='A' && (c)<='Z') ? (c)-'A'+'a' : (c) )
 #endif
 
-bool MatchStr(char *Template, char *Data)
+bool MatchStr(const char *Template, const char *Data)
 {
 	if (!Template)
 	{
@@ -316,7 +316,7 @@ bool MatchStr(char *Template, char *Data)
 
 			if (*Template)
 			{
-				char *EndA;
+				const char *EndA;
 				for (EndA = Template; *EndA && *EndA!='?' && *EndA!='*'; EndA++);
 				int SegLen = (int)EndA-(int)Template;
 				char *Seg = NewStr(Template, SegLen);

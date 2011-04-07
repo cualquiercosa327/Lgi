@@ -207,7 +207,7 @@ protected:
 
 	// Overridable
 	virtual void ContextMenu(GMouse &m);	
-	virtual int PostDescription(GView *Ctrl, char *Text);
+	virtual int PostDescription(GView *Ctrl, const char *Text);
 	
 	#ifdef MAC
 	HIToolbarRef ToolbarRef;

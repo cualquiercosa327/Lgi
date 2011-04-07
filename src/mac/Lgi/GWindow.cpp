@@ -256,7 +256,7 @@ OSErr GWindow::HandlerCallback(DragTrackingMessage *tracking, DragRef theDrag)
 				if (e) printf("CountDragItems=%i Items=%i\n", e, Items);
 				DragItemRef ItemRef = 0;
 				e = GetDragItemReferenceNumber(theDrag, 1, &ItemRef);
-				if (e) printf("GetDragItemReferenceNumber=%i Ref=%i\n", e, ItemRef);
+				if (e) printf("GetDragItemReferenceNumber=%i Ref=%i\n", e, (int)ItemRef);
 				UInt16 numFlavors = 0;
 				e = CountDragItemFlavors(theDrag, ItemRef, &numFlavors);
 				if (e) printf("CountDragItemFlavors=%i numFlavors=%i\n", e, numFlavors);
@@ -295,7 +295,7 @@ OSErr GWindow::HandlerCallback(DragTrackingMessage *tracking, DragRef theDrag)
 							if (e)
 							{
 								Src = 0;
-								printf("%s:%i - GetFlavorData('%4.4s') failed with %i\n", _FL, &Type, e);
+								printf("%s:%i - GetFlavorData('%4.4s') failed with %i\n", _FL, (char*)&Type, (int)e);
 							}
 							else
 							{

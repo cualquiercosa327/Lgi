@@ -599,8 +599,8 @@ public:
 protected:
 	inline void DeleteProp(PropType p, void *Ptr);
 	GHashTbl<int, void*> Props;
-	static GHashTbl<char*, PropType> Lut;
-	static char *PropName(PropType p);
+	static GHashTbl<const char*, PropType> Lut;
+	static const char *PropName(PropType p);
 
 	bool ParseFontStyle(PropType p, char *&s);
 	bool ParseFontVariant(PropType p, char *&s);

@@ -194,16 +194,16 @@ LgiFunc bool _lgi_read_colour_config(const char *Tag, uint32 *c);
 LgiFunc bool LgiPlaySound
 (
 	/// File name of the sound to play
-	char *FileName,
+	const char *FileName,
 	/// 0 or SND_ASYNC. If 0 the function blocks till the sound finishes.
 	int Flags
 );
 
-/// Returns the mime type of the file
+/// Returns the file extensions associated with the mimetype
 LgiFunc bool LgiGetMimeTypeExtensions
 (
 	/// The returned mime type
-	char *Mime,
+	const char *Mime,
 	/// The extensions
 	GArray<char*> &Ext
 );
@@ -212,7 +212,7 @@ LgiFunc bool LgiGetMimeTypeExtensions
 LgiFunc bool LgiGetFileMimeType
 (
 	/// File to file type of
-	char *File,
+	const char *File,
 	/// Pointer to buffer to receive mime-type
 	char *MimeType,
 	/// Buffer length
@@ -223,7 +223,7 @@ LgiFunc bool LgiGetFileMimeType
 LgiFunc bool LgiGetAppForMimeType
 (
 	/// Type of the file to find and app for
-	char *Mime,
+	const char *Mime,
 	/// Path to the executable of the app that can handle the file type.
 	char *AppPath,
 	/// Size of the 'AppPath' buffer
@@ -238,7 +238,7 @@ LgiFunc bool LgiGetAppsForMimeType
 	/// Two special cases exist:
 	/// - application/email gets the default email client
 	/// - application/browser get the default web browser
-	char *Mime,
+	const char *Mime,
 	/// The applications that can handle the 
 	GArray<GAppInfo*> &Apps,
 	/// Limit the length of the results, i.e. stop looking after 'Limit' matches.
@@ -257,7 +257,7 @@ LgiFunc int LgiIsReleaseBuild();
 #if defined WIN32
 
 /// Registers an active x control
-LgiFunc bool RegisterActiveXControl(char *Dll);
+LgiFunc bool RegisterActiveXControl(const char *Dll);
 
 #elif defined LINUX
 

@@ -2,7 +2,7 @@
 #include "GProgress.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-GProgress::GProgress(int id, int x, int y, int cx, int cy, char *name) :
+GProgress::GProgress(int id, int x, int y, int cx, int cy, const char *name) :
 	ResObject(Res_Progress)
 {
 	SetId(id);

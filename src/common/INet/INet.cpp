@@ -536,7 +536,7 @@ int GSocket::GetRemotePort()
 	return 0;
 }
 
-int GSocket::Open(char *HostAddr, int Port)
+int GSocket::Open(const char *HostAddr, int Port)
 {
 	int Status = -1;
 	
@@ -904,7 +904,7 @@ int GSocket::Close()
 	return true;
 }
 
-void GSocket::Log(char *Msg, int Ret, char *Buf, int Len)
+void GSocket::Log(const char *Msg, int Ret, const char *Buf, int Len)
 {
 	if (d->LogFile)
 	{
@@ -925,14 +925,14 @@ void GSocket::Log(char *Msg, int Ret, char *Buf, int Len)
 					for (int i=0; i<Len;)
 					{
 						char Ascii[32], *a = Ascii;
-						sprintf(s, "%08.8X\t", i);
+						sprintf(s, "%8.8X\t", i);
 						for (int n = i + 16; i<Len AND i<n; i++)
 						{
 							*a = (uchar)Buf[i];
 							if (*a < ' ') *a = '.';
 							a++;
 
-							sprintf(s+strlen(s), "%02.2X ", (uchar)Buf[i]);
+							sprintf(s+strlen(s), "%2.2X ", (uchar)Buf[i]);
 						}
 						*a++ = 0;
 						while (strlen(s) < 58)
@@ -955,7 +955,7 @@ void GSocket::Log(char *Msg, int Ret, char *Buf, int Len)
 	}
 }
 
-int GSocket::Write(void *Data, int Len, int Flags)
+int GSocket::Write(const void *Data, int Len, int Flags)
 {
 	if (!ValidSocket(d->Socket) || !Data)
 		return -1;
@@ -1052,7 +1052,7 @@ int GSocket::Error(void *Param)
 	class ErrorMsg {
 	public:
 		int Code;
-		char *Msg;
+		const char *Msg;
 	}
 	ErrorCodes[] =
 	{
@@ -1166,7 +1166,7 @@ int GSocket::Error(void *Param)
 		if (d->LastError != 36)
 		#endif
 	{
-		OnError(d->LastError, (Error->Code >= 0) ? Error->Msg : (char*)"<unknown error>");
+		OnError(d->LastError, (Error->Code >= 0) ? Error->Msg : "<unknown error>");
 	}
 
 
@@ -1651,7 +1651,7 @@ int GSocks5Socket::Open(char *HostAddr, int port)
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-static char *Ws = " \t\r\n";
+static const char *Ws = " \t\r\n";
 #define SkipWs(s) while (*s AND strchr(Ws, *s)) s++;
 
 GUri::GUri(char *uri)
@@ -1704,7 +1704,7 @@ char *GUri::Get()
 	}
 	if (User OR Pass)
 	{
-		char *Empty = "";
+		const char *Empty = "";
 		p.Print("%s:%s@", User?User:Empty, Pass?Pass:Empty);
 	}
 	if (Host)
@@ -1854,7 +1854,7 @@ GAutoString GUri::Encode(char *s, char *ExtraCharsToEncode)
 			if (*s == ' ' || (ExtraCharsToEncode && strchr(ExtraCharsToEncode, *s)))
 			{
 				char h[4];
-				sprintf(h, "%%%02.2X", (uint32)(uchar)*s++);
+				sprintf(h, "%%%2.2X", (uint32)(uchar)*s++);
 				p.Write(h, 3);
 			}
 			else

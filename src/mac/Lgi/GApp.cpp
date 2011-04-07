@@ -370,7 +370,7 @@ GSkinEngine *GApp::SkinEngine = 0;
 GApp *TheApp = 0;
 GMouseHook *GApp::MouseHook = 0;
 
-GApp::GApp(char *AppMime, OsAppArguments &AppArgs, GAppArguments *ObjArgs) :
+GApp::GApp(const char *AppMime, OsAppArguments &AppArgs, GAppArguments *ObjArgs) :
 	OsApplication(AppArgs.Args, AppArgs.Arg)
 {
 	TheApp = this;
@@ -546,9 +546,9 @@ char *GApp::GetName()
 	return 0;
 }
 
-void GApp::SetName(char *Name)
+void GApp::SetName(const char *Name)
 {
-	d->Name.Reset(Name);
+	d->Name.Reset(NewStr(Name));
 }
 
 GApp *GApp::ObjInstance()
@@ -591,7 +591,7 @@ int GApp::GetMetric(int Metric)
 			{
 				Rect r;
 				OSStatus e = GetWindowBounds(AppWnd->WindowHandle(), kWindowTitleBarRgn, &r);
-				if (e) printf("%s:%i - GetWindowBounds failed with %i\n", _FL, e);
+				if (e) printf("%s:%i - GetWindowBounds failed with %i\n", _FL, (int)e);
 				else
 				{
 					int y = r.bottom - r.top;
@@ -850,7 +850,7 @@ char *GApp::GetArgumentAt(int n)
 	return n >= 0 AND n < d->Args.Args ? d->Args.Arg[n] : 0;
 }
 
-bool GApp::GetOption(char *Option, char *Dest, int DestLen)
+bool GApp::GetOption(const char *Option, char *Dest, int DestLen)
 {
 	GAutoString Buf;
 	if (GetOption(Option, Buf))
@@ -862,7 +862,7 @@ bool GApp::GetOption(char *Option, char *Dest, int DestLen)
 	return false;
 }
 
-bool GApp::GetOption(char *Option, GAutoString &Buf)
+bool GApp::GetOption(const char *Option, GAutoString &Buf)
 {
 	if (IsOk() AND Option)
 	{
@@ -940,7 +940,7 @@ void GApp::OnCommandLine()
 	Files.DeleteArrays();
 }
 
-GAutoString GApp::GetFileMimeType(char *File)
+GAutoString GApp::GetFileMimeType(const char *File)
 {
 	GAutoString Ret;
 

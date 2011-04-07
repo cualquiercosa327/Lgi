@@ -99,7 +99,7 @@ char *GFontSelect::GetSelectedFace()
 	return 0;
 }
 
-void GFontSelect::InsertFont(char *f)
+void GFontSelect::InsertFont(const char *f)
 {
 	if (f AND f[0] != '@')
 	{
@@ -127,10 +127,10 @@ int SortFunc(GListItem *a, GListItem *b, int Data)
 
 void GFontSelect::EnumerateFonts()
 {
-	List<char> Fonts;
+	List<const char> Fonts;
 	if (GFontSystem::Inst()->EnumerateFonts(Fonts))
 	{
-		for (char *n = Fonts.First(); n; n = Fonts.Next())
+		for (const char *n = Fonts.First(); n; n = Fonts.Next())
 		{
 			InsertFont(n);
 			DeleteArray(n);

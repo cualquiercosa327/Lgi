@@ -1807,7 +1807,7 @@ void GToolBar::OnButtonClick(GToolButton *Btn)
 	}
 }
 
-int GToolBar::PostDescription(GView *Ctrl, char *Text)
+int GToolBar::PostDescription(GView *Ctrl, const char *Text)
 {
 	if (GetParent())
 	{

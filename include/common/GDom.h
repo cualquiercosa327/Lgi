@@ -21,19 +21,19 @@ class LgiClass GDom : virtual public GDomI
 	friend class GVirtualMachinePriv;
 
 protected:
-	GDom *ResolveObject(char *Var, char *Name, char *Array);
+	GDom *ResolveObject(const char *Var, char *Name, char *Array);
 
 	virtual bool _OnAccess(bool Start) { return true; }
-	virtual bool GetVariant(char *Name, GVariant &Value, char *Array = 0) { return false; }
-	virtual bool SetVariant(char *Name, GVariant &Value, char *Array = 0) { return false; }
-	virtual bool CallMethod(char *Name, GArray<GVariant> &Args) { return false; }
+	virtual bool GetVariant(const char *Name, GVariant &Value, char *Array = 0) { return false; }
+	virtual bool SetVariant(const char *Name, GVariant &Value, char *Array = 0) { return false; }
+	virtual bool CallMethod(const char *Name, GArray<GVariant> &Args) { return false; }
 
 public:
 	/// Gets an object's property
 	bool GetValue
 	(
 		/// The string describing the property
-		char *Var,
+		const char *Var,
 		/// The value returned
 		GVariant &Value
 	);
@@ -42,7 +42,7 @@ public:
 	bool SetValue
 	(
 		/// The string describing the property
-		char *Var,
+		const char *Var,
 		/// The value to set the property to
 		GVariant &Value
 	);

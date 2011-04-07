@@ -12,77 +12,17 @@
 #include "GDom.h"
 
 /// Stream printf
-LgiFunc int GStreamPrint(GStreamI *s, char *fmt, ...);
+LgiFunc int GStreamPrint(GStreamI *s, const char *fmt, ...);
 
-///
 /// \brief Virtual base class for a data source or sink.
-/// 
-/// Defines the API
-/// for all the streaming data classes. Allows applications to plug
-/// different types of date streams into functions that take a GStream.
-/// Typically this means being able to swap files with sockets or data
-/// buffers etc.
-/// 
 class LgiClass GStream : virtual public GStreamI, public GDom
 {
 public:
 	virtual ~GStream() {}
 
-	/// Open a connection
-	/// \returns > zero on success
-	virtual int Open
-	(
-		/// A string connection parameter
-		char *Str = 0,
-		/// An integer connection parameter
-		int Int = 0
-	)
-	{
-		return 0;
-	}
+	int Read(void *Ptr, int Size, int Flags = 0) { return 0; }
+	int Write(const void *Ptr, int Size, int Flags = 0) { return 0; }
 	
-	/// Returns true is the connection is still open
-	virtual bool IsOpen()
-	{
-		return false;
-	}
-	
-	/// Closes the connection
-	/// \returns > zero on success
-	virtual int Close()
-	{
-		return 0;
-	}
-
-	/// \brief Gets the size of the stream
-	/// \return The size or -1 on error (e.g. the information is not available)
-	virtual int64 GetSize() { return -1; }
-	
-	/// \brief Sets the size of the stream
-	/// \return The new size or -1 on error (e.g. the size is not set-able)
-	virtual int64 SetSize(int64 Size) { return -1; }
-
-	/// \brief Gets the current position of the stream
-	/// \return Current position or -1 on error (e.g. the position is not known)
-	virtual int64 GetPos() { return -1; }
-
-	/// \brief Sets the current position of the stream
-	/// \return The new current position or -1 on error (e.g. the position can't be set)
-	virtual int64 SetPos(int64 Pos) { return -1; }
-
-	/// \brief Read bytes out of the stream
-	/// \return > 0 on succes, which indicates the number of bytes read
-	virtual int Read(void *Buffer, int Size, int Flags = 0) { return 0; }
-
-	/// \brief Write bytes to the stream
-	/// \return > 0 on succes, which indicates the number of bytes written
-	virtual int Write(void *Buffer, int Size, int Flags = 0) { return 0; }
-
-	/// \brief Creates a dynamically allocated copy of the same type of stream.
-	/// This new stream is not connected to anything.
-	/// \return The new stream or NULL on error.
-	virtual GStreamI *Clone() { return 0; }
-
 	/// \brief Formats a string and then writes it.
 	virtual int Print(const char *Format, ...);
 };
@@ -235,13 +175,13 @@ public:
 	int64 SetPos(int64 p) { return Pos = p; }
 
 	/// Opens a file and reads it all into memory
-	int Open(char *Str, int Int);
+	int Open(const char *Str, int Int);
 	/// Changes the size of the memory block, keeping any common bytes
 	int64 SetSize(int64 Size);
 
 	bool IsOk();
 	int Read(void *Buffer, int Size, int Flags = 0);
-	int Write(void *Buffer, int Size, int Flags = 0);
+	int Write(const void *Buffer, int Size, int Flags = 0);
 	int Write(GStream *Out, int Size);
 	GStreamI *Clone();
 };
@@ -259,7 +199,7 @@ public:
 		s = p;
 	}
 
-	int Open(char *Str, int Int)		{ return s->Open(Str, Int); }
+	int Open(const char *Str, int Int)	{ return s->Open(Str, Int); }
 	bool IsOpen()						{ return s->IsOpen(); }
 	int Close()							{ return s->Close(); }
 	int64 GetSize()						{ return s->GetSize(); }
@@ -267,7 +207,7 @@ public:
 	int64 GetPos()						{ return s->GetPos(); }
 	int64 SetPos(int64 Pos)				{ return s->SetPos(Pos); }
 	int Read(void *b, int l, int f = 0) { return s->Read(b, l, f); }
-	int Write(void *b, int l, int f = 0) { return s->Write(b, l, f); }
+	int Write(const void *b, int l, int f = 0) { return s->Write(b, l, f); }
 	bool GetValue(char *n, GVariant &v) { return s->GetValue(n, v); }
 	bool SetValue(char *n, GVariant &v) { return s->SetValue(n, v); }
 
@@ -292,7 +232,7 @@ public:
 	~GTempStream();
 
 	int GetMaxMemSize() { return MaxMemSize; }
-	int Write(void *Buffer, int Size, int Flags = 0);
+	int Write(const void *Buffer, int Size, int Flags = 0);
 	void Empty();
 };
 

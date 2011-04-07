@@ -222,7 +222,7 @@ bool Prop::SerializeText(GFile &f, bool Write)
 				f.Write(Str, strlen(Str));
 				for (int i=0; i<Size; i++)
 				{
-					sprintf(Str, "%02.2X", (uchar)Value.Cp[i]);
+					sprintf(Str, "%2.2X", (uchar)Value.Cp[i]);
 					f.Write(Str, 2);
 				}
 				f.Write((char*)")\r\n", 3);
@@ -943,7 +943,7 @@ int Prop_Compare(Prop *a, Prop *b, int data)
 
 bool ObjProperties::SerializeText(GFile &f, bool Write)
 {
-	char *s = "[Properties]";
+	const char *s = "[Properties]";
 
 	if (Write)
 	{
@@ -1351,7 +1351,7 @@ bool ObjTree::Serialize(GFile &f, bool Write)
 
 char *Trim(char *s)
 {
-	char *Delim = "\r\n\t ";
+	const char *Delim = "\r\n\t ";
 	while (s AND *s AND strchr(Delim, *s))
 	{
 		s++;

@@ -77,7 +77,7 @@ public:
 	}
 };
 
-char *LgiStringRes::CodePage = 0;
+const char *LgiStringRes::CodePage = 0;
 GLanguage *LgiStringRes::CurLang = 0;
 
 LgiStringRes::LgiStringRes(LgiResources *res)
@@ -132,7 +132,7 @@ bool LgiStringRes::Read(GXmlTag *t, ResFileFormat Format)
 			Tag = NewStr(n);
 		}
 
-		char *Cp = LgiStringRes::CodePage;
+		const char *Cp = LgiStringRes::CodePage;
 		char Name[256];
 		strcpy(Name, LgiStringRes::CurLang->Id);
 		n = 0;

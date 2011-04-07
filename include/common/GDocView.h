@@ -218,9 +218,9 @@ protected:
 
 public:
 	// Static
-	static char *WhiteSpace;
-	static char *Delimiters;
-	static char *UrlDelim;
+	static const char *WhiteSpace;
+	static const char *Delimiters;
+	static const char *UrlDelim;
 
 	///////////////////////////////////////////////////////////////////////
 	// Properties
@@ -286,9 +286,9 @@ public:
 	const char *GetClass() { return "GDocView"; }
 
 	/// Open a file handler
-	virtual bool Open(char *Name, char *Cs = 0) { return false; }
+	virtual bool Open(const char *Name, const char *Cs = 0) { return false; }
 	/// Save a file handler
-	virtual bool Save(char *Name, char *Cs = 0) { return false; }
+	virtual bool Save(const char *Name, const char *Cs = 0) { return false; }
 
 	///////////////////////////////////////////////////////////////////////
 

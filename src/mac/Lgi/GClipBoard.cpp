@@ -12,7 +12,7 @@ public:
 	GClipBoardPriv()
 	{
 		OSStatus e = PasteboardCreate(kPasteboardClipboard, &Pb);
-		if (e) printf("%s:%i - PasteboardCreate failed with %i\n", __FILE__, __LINE__, e);
+		if (e) printf("%s:%i - PasteboardCreate failed with %i\n", __FILE__, __LINE__, (int)e);
 	}
 
 	~GClipBoardPriv()
@@ -46,7 +46,7 @@ bool GClipBoard::Empty()
 	if (d->Pb)
 	{
 		OSStatus e = PasteboardClear(d->Pb);
-		if (e) printf("%s:%i - PastbaordClear failed with %i\n", __FILE__, __LINE__, e);
+		if (e) printf("%s:%i - PastbaordClear failed with %i\n", __FILE__, __LINE__, (int)e);
 		else Status = true;
 		
 		DeleteArray(Txt);
@@ -80,10 +80,10 @@ bool GClipBoard::Text(char *Str, bool AutoEmpty)
 				else
 				{
 					e = PasteboardClear(d->Pb);
-					if (e) printf("%s:%i - PasteboardClear failed with %i\n", _FL, e);
+					if (e) printf("%s:%i - PasteboardClear failed with %i\n", _FL, (int)e);
 
 					e = PasteboardPutItemFlavor(d->Pb, (PasteboardItemID)1, CFSTR(kClipboardTextType), Data, 0);
-					if (e) printf("%s:%i - PasteboardPutItemFlavor failed with %i\n", _FL, e);
+					if (e) printf("%s:%i - PasteboardPutItemFlavor failed with %i\n", _FL, (int)e);
 					else
 					{
 						Status = true;
@@ -109,7 +109,7 @@ char *GClipBoard::Text()
 		OSStatus e;
 		
 		e = PasteboardGetItemCount(d->Pb, &Items);
-		if (e) printf("%s:%i - PasteboardGetItemCount failed with %i\n", __FILE__, __LINE__, e);
+		if (e) printf("%s:%i - PasteboardGetItemCount failed with %i\n", __FILE__, __LINE__, (int)e);
 		else
 		{
 			for (UInt32 i=1; i<=Items; i++)
@@ -117,12 +117,12 @@ char *GClipBoard::Text()
 				PasteboardItemID Id;
 				
 				e = PasteboardGetItemIdentifier(d->Pb, i, &Id);
-				if (e) printf("%s:%i - PasteboardGetItemIdentifier failed with %i\n", __FILE__, __LINE__, e);
+				if (e) printf("%s:%i - PasteboardGetItemIdentifier failed with %i\n", __FILE__, __LINE__, (int)e);
 				else
 				{
 					CFArrayRef Flavours;
 					e = PasteboardCopyItemFlavors(d->Pb, Id, &Flavours);
-					if (e) printf("%s:%i - PasteboardCopyItemFlavors failed with %i\n", __FILE__, __LINE__, e);
+					if (e) printf("%s:%i - PasteboardCopyItemFlavors failed with %i\n", __FILE__, __LINE__, (int)e);
 					else
 					{
 						int FCount = CFArrayGetCount(Flavours);
@@ -133,7 +133,7 @@ char *GClipBoard::Text()
 							{
 								CFDataRef Data;
 								e = PasteboardCopyItemFlavorData(d->Pb, Id, Type, &Data);
-								if (e) printf("%s:%i - PasteboardCopyItemFlavorData failed with %i\n", __FILE__, __LINE__, e);
+								if (e) printf("%s:%i - PasteboardCopyItemFlavorData failed with %i\n", __FILE__, __LINE__, (int)e);
 								else
 								{
 									int Size = CFDataGetLength(Data);

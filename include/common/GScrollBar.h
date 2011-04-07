@@ -33,7 +33,7 @@ public:
 	const char *GetClass() { return "GScrollBar"; }
 
 	/// Call this constructor for a control based scrollbar, say in a dialog
-	GScrollBar(int id, int x, int y, int cx, int cy, char *name);
+	GScrollBar(int id, int x, int y, int cx, int cy, const char *name);
 	~GScrollBar();
 
 	/// Returns the size of the bar, i.e. the width if vertical or the height if horizontal

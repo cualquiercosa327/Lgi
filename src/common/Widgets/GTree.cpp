@@ -809,7 +809,7 @@ void GTreeItem::OnPaint(ItemPaintCtx &Ctx)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-GTree::GTree(int id, int x, int y, int cx, int cy, char *name) :
+GTree::GTree(int id, int x, int y, int cx, int cy, const char *name) :
 	ResObject(Res_TreeView)
 {
 	d = new GTreePrivate;

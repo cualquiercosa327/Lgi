@@ -17,9 +17,10 @@ class LgiClass GProgress :
 	#endif
 
 public:
-	GProgress(int id, int x, int y, int cx, int cy, char *name);
+	GProgress(int id, int x, int y, int cx, int cy, const char *name);
 	~GProgress();
 
+	const char *GetClass() { return "GProgress"; }
 	/// Sets the range that the Value() is between
 	void SetLimits(int64 l, int64 h);
 	/// Sets the point between the limits that defines where the progress is up to

@@ -139,7 +139,7 @@ LgiFunc int64 htoi64
 ///
 /// \returns A dynamically allocated copy of the input without any delimiter characters
 /// on the start or end.
-LgiFunc char *TrimStr(char *s, char *Delim = " \r\n\t");
+LgiFunc char *TrimStr(const char *s, const char *Delim = " \r\n\t");
 /// Returns true if the string points to something with one or more non-whitespace characters.
 LgiFunc bool ValidStr(const char *s);
 /// Makes a heap allocated copy of a string.
@@ -154,9 +154,9 @@ LgiFunc char *NewStr
 LgiFunc bool MatchStr
 (
 	/// The wildcard template
-	char *Template,
+	const char *Template,
 	/// The string to test against.
-	char *Data
+	const char *Data
 );
 
 /// Find a character in a wide string

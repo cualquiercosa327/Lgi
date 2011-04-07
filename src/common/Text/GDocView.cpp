@@ -5,9 +5,9 @@
 
 #define SubtractPtr(a, b)		((a)-(b))
 
-char *GDocView::WhiteSpace		= " \t\r\n";
-char *GDocView::Delimiters		= "!@#$%^&*()'\":;,.<>/?[]{}-=+\\|`~";
-char *GDocView::UrlDelim		= "!~/:%+-?@&$#._=,;*()|";
+const char *GDocView::WhiteSpace		= " \t\r\n";
+const char *GDocView::Delimiters		= "!@#$%^&*()'\":;,.<>/?[]{}-=+\\|`~";
+const char *GDocView::UrlDelim			= "!~/:%+-?@&$#._=,;*()|";
 
 GDocumentEnv::GDocumentEnv(GDocView *v)
 {

@@ -15,15 +15,15 @@ enum ResFileFormat
 	XmlFile,			// Straight XML.
 };
 
-typedef char *GLanguageId;
+typedef const char *GLanguageId;
 
 struct GLanguage
 {
-	char *Name;
+	const char *Name;
 	GLanguageId Id;
 	int Win32Id;
 	int OldId;
-	char *CodePage;
+	const char *CodePage;
 
 	bool IsEnglish()
 	{
@@ -44,7 +44,7 @@ struct GLanguage
 };
 
 LgiExtern GLanguage LgiLanguageTable[];
-LgiExtern GLanguage *GFindLang(GLanguageId Id, char *Name = 0);
+LgiExtern GLanguage *GFindLang(GLanguageId Id, const char *Name = 0);
 LgiExtern GLanguage *GFindOldLang(int OldId);
 
 ////////////////////////////////////////////////////////////////////

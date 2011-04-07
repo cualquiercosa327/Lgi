@@ -34,7 +34,7 @@ enum CellFlag
 	SizeGrow,
 };
 
-char *FlagToString(CellFlag f)
+const char *FlagToString(CellFlag f)
 {
 	switch (f)
 	{

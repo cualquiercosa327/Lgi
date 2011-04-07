@@ -96,7 +96,7 @@ GMemStream::~GMemStream()
 	Close();
 }
 
-int GMemStream::Open(char *Str, int Int)
+int GMemStream::Open(const char *Str, int Int)
 {
 	GFile f;
 	if (f.Open(Str, O_READ))
@@ -165,7 +165,7 @@ int GMemStream::Read(void *Buffer, int Size, int Flags)
 	return Bytes;
 }
 
-int GMemStream::Write(void *Buffer, int Size, int Flags)
+int GMemStream::Write(const void *Buffer, int Size, int Flags)
 {
 	int Bytes = 0;
 	if (Buffer && Size > 0)
@@ -266,7 +266,7 @@ void GTempStream::Empty()
 	s = 0;
 }
 
-int GTempStream::Write(void *Buffer, int Size, int Flags)
+int GTempStream::Write(const void *Buffer, int Size, int Flags)
 {
 	if (s == &Null)
 	{

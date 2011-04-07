@@ -28,7 +28,7 @@ GSubMenu::GSubMenu(const char *name, bool Popup)
 	OSStatus e = CreateNewMenu(	NextId++, // MenuId
 								0, // MenuAttributes
 								&Info);
-	if (e) printf("%s:%i - can't create menu (e=%i)\n", __FILE__, __LINE__, e);
+	if (e) printf("%s:%i - can't create menu (e=%i)\n", __FILE__, __LINE__, (int)e);
 	#if DEBUG_INFO
 	else printf("CreateNewMenu()=%p\n", Info);
 	#endif
@@ -103,7 +103,7 @@ GMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Where
 			Str = i->Name();
 			CFStringRef s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)Str, strlen(Str), kCFStringEncodingUTF8, false);
 			OSStatus e = AppendMenuItemTextWithCFString(Info, s, 0, 0, &i->Info);
-			if (e) printf("%s:%i - AppendMenuItemTextWithCFString failed (e=%i)\n", __FILE__, __LINE__, e);
+			if (e) printf("%s:%i - AppendMenuItemTextWithCFString failed (e=%i)\n", __FILE__, __LINE__, (int)e);
 			#if DEBUG_INFO
 			else printf("AppendMenuItemTextWithCFString(%p, %s)=%p\n", Info, Str, i->Info);
 			#endif
@@ -139,7 +139,7 @@ GMenuItem *GSubMenu::AppendSeparator(int Where)
 		if (Info)
 		{
 			OSStatus e = AppendMenuItemTextWithCFString(Info, 0, kMenuItemAttrSeparator, 0, &i->Info);
-			if (e) printf("%s:%i - AppendMenuItemTextWithCFString failed (e=%i)\n", __FILE__, __LINE__, e);
+			if (e) printf("%s:%i - AppendMenuItemTextWithCFString failed (e=%i)\n", __FILE__, __LINE__, (int)e);
 			#if DEBUG_INFO
 			else printf("AppendMenuItemTextWithCFString(%p, ---)=%p\n", Info, i->Info);
 			#endif
@@ -182,7 +182,7 @@ GSubMenu *GSubMenu::AppendSub(const char *Str, int Where)
 				Str = i->Name();
 				s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)Str, strlen(Str), kCFStringEncodingUTF8, false);
 				e = SetMenuTitleWithCFString(i->Child->Info, s);
-				if (e) printf("%s:%i - SetMenuTitleWithCFString failed (e=%i)\n", __FILE__, __LINE__, e);
+				if (e) printf("%s:%i - SetMenuTitleWithCFString failed (e=%i)\n", __FILE__, __LINE__, (int)e);
 				#if DEBUG_INFO
 				else printf("SetMenuTitleWithCFString(%p, %s)\n", i->Child->Info, Str);
 				#endif
@@ -196,7 +196,7 @@ GSubMenu *GSubMenu::AppendSub(const char *Str, int Where)
 				else
 				{
 					e = SetMenuItemHierarchicalMenu(Info, i->Info, i->Child->Info);	
-					if (e) printf("%s:%i - Error: SetMenuItemHierarchicalMenu(%p, %i, %p) = %i\n", __FILE__, __LINE__, Parent->Parent->Info, Parent->Info, Info, e);
+					if (e) printf("%s:%i - Error: SetMenuItemHierarchicalMenu(%p, %i, %p) = %i\n", __FILE__, __LINE__, Parent->Parent->Info, Parent->Info, Info, (int)e);
 				}
 			}
 		}
@@ -309,7 +309,7 @@ int GSubMenu::Float(GView *From, int x, int y, bool Left)
 		}
 		else
 		{
-			printf("%s:%i - ContextualMenuSelect failed (e=%i)\n", __FILE__, __LINE__, e);
+			printf("%s:%i - ContextualMenuSelect failed (e=%i)\n", __FILE__, __LINE__, (int)e);
 			Cmd = 0;
 		}
 
@@ -777,7 +777,7 @@ bool GMenuItem::ScanForAccel()
 		e = SetMenuItemModifiers(Parent->Info, Info, ModMask);
 
 		if (e) printf("%s:%i - SetMenuItemModifiers() failed with %i\n",
-						__FILE__, __LINE__, e);
+						__FILE__, __LINE__, (int)e);
 		
 		switch (Key)
 		{
@@ -812,7 +812,7 @@ bool GMenuItem::ScanForAccel()
 											false,
 											Key);
 				if (e) printf("%s:%i - SetMenuItemCommandKey(%i/%c) failed with %i\n",
-								__FILE__, __LINE__, Key, Key, e);
+								__FILE__, __LINE__, Key, Key, (int)e);
 				break;
 			}
 		}

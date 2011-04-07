@@ -153,7 +153,7 @@ public:
 	/// Gets the text associated with the column 'Col'
 	virtual char *GetText(int Col=0) { return 0; }
 	/// Sets the text associated with the column 'Col'
-	virtual bool SetText(char *s, int Col=0) { return false; }
+	virtual bool SetText(const char *s, int Col=0) { return false; }
 	/// Gets the icon index
 	virtual int GetImage(int Flags = 0) { return -1; }
 	/// Sets the icon index
@@ -351,7 +351,7 @@ public:
 	// Properties
 	
 	/// Set the text for a given column
-	bool SetText(char *s, int i=0);
+	bool SetText(const char *s, int i=0);
 
 	/// \brief Get the text for a given column.
 	///

@@ -21,9 +21,9 @@ public:
 	}
 
 	char *Extension() { return Ext; }
-	bool Extension(char *e) { return (Ext = NewStr(e)) != 0; }
+	bool Extension(const char *e) { return (Ext = NewStr(e)) != 0; }
 	char *Description() { return Name(); }
-	bool Description(char *d) { return Name(d); }
+	bool Description(const char *d) { return Name(d); }
 	int Data() { return _Data; }
 	void Data(int i) { _Data = i; }
 
@@ -59,7 +59,7 @@ public:
 	/// Returns the first file name selected.
 	char *Name();
 	/// Sets the file name
-	bool Name(char *n);
+	bool Name(const char *n);
 	/// Returns the n'th file name selected
 	char *operator [](int i);
 	/// Returns the number of file names selected
@@ -79,15 +79,15 @@ public:
 	/// Gets the initial directory to open in
 	char *InitialDir();
 	/// Sets the initial directory to open in
-	void InitialDir(char *InitDir);
+	void InitialDir(const char *InitDir);
 	/// Gets the title of the dialog box
 	char *Title();
 	/// Sets the title of the dialog box
-	void Title(char *Title);
+	void Title(const char *Title);
 	/// Gets the default extension to append to files selected without an extension
 	char *DefaultExtension();
 	/// Sets the default extension to append to files selected without an extension
-	void DefaultExtension(char *DefExt);
+	void DefaultExtension(const char *DefExt);
 
 	// File types
 	
@@ -101,9 +101,9 @@ public:
 	bool Type
 	(
 		/// This full description of the file type
-		char *Description,
+		const char *Description,
 		/// The extension(s) of the file type: e.g: '*.png;*.gif;*.jpg'
-		char *Extension,
+		const char *Extension,
 		/// Application defined 32-bit value.
 		int Data = 0
 	);

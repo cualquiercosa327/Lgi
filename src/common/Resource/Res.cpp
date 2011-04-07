@@ -207,7 +207,7 @@ GLanguage LgiLanguageTable[] =
 	{0}
 };
 
-GLanguage *GFindLang(char *Id, char *Name)
+GLanguage *GFindLang(const GLanguageId Id, const char *Name)
 {
 	if (Id AND Id[0] AND Id[1])
 	{

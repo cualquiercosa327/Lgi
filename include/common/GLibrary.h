@@ -37,7 +37,7 @@ public:
 
 	bool Load(const char *File);
 	bool Unload();
-	void *GetAddress(char *Resource);
+	void *GetAddress(const char *Resource);
 };
 
 // Runtime linking macros

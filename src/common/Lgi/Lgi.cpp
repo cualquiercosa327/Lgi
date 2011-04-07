@@ -1488,7 +1488,7 @@ bool LgiGetExeFile(char *Dst, int DstSize)
 			}
 			else
 			{
-				printf("%s:%i - GetProcessBundleLocation failed (e=%i).\n", __FILE__, __LINE__, s);
+				printf("%s:%i - GetProcessBundleLocation failed (e=%i).\n", __FILE__, __LINE__, (int)s);
 			}
 		}
 		else

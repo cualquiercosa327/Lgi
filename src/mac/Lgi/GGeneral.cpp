@@ -245,7 +245,7 @@ bool _GetIniField(char *Grp, char *Field, char *In, char *Out, int OutSize)
 	return false;
 }
 
-bool LgiGetAppsForMimeType(char *Mime, GArray<GAppInfo*> &Apps, int Limit)
+bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 {
 	bool Status = false;
 
@@ -400,7 +400,7 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir)
 		{
 			FSRef r;
 			OSStatus e = FSPathMakeRef((UInt8*)File, &r, NULL);
-			if (e) printf("%s:%i - FSPathMakeRef faied with %i\n", _FL, e);
+			if (e) printf("%s:%i - FSPathMakeRef faied with %i\n", _FL, (int)e);
 			else
 			{
 				// Is this an executable file or a document?

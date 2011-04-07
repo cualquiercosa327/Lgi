@@ -1054,15 +1054,15 @@ char *GVariant::CastString()
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-GDom *GDom::ResolveObject(char *Var, char *Name, char *Array)
+GDom *GDom::ResolveObject(const char *Var, char *Name, char *Array)
 {
 	GDom *Object = this;
 
 	// Tokenise the string
 	GArray<char*> t;
-	for (char *s = Var; s AND *s; )
+	for (const char *s = Var; s AND *s; )
 	{
-		char *e = s;
+		const char *e = s;
 		while (*e AND *e != '.')
 		{
 			if (*e == '[')
@@ -1211,7 +1211,7 @@ ResolveDone:
 	return Object;
 }
 
-bool GDom::GetValue(char *Var, GVariant &Value)
+bool GDom::GetValue(const char *Var, GVariant &Value)
 {
 	bool Status = false;
 
@@ -1249,7 +1249,7 @@ bool GDom::GetValue(char *Var, GVariant &Value)
 	return Status;
 }
 
-bool GDom::SetValue(char *Var, GVariant &Value)
+bool GDom::SetValue(const char *Var, GVariant &Value)
 {
 	bool Status = false;
 

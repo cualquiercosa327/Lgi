@@ -225,7 +225,7 @@ public:
 	(
 		/// The application's mime type. Typically 'application/x-[appname]'. This
 		/// is mostly ignored on Win32 and Linux, but is useful on BeOS.
-		char *MimeType,
+		const char *MimeType,
 		/// The arguments passed in by the OS.
 		OsAppArguments &AppArgs,
 		/// Optional args
@@ -241,7 +241,7 @@ public:
 	
 	/// Set the application name.
 	/// This is currently used to generate the leaf folder for #LSP_APP_ROOT
-	void SetName(char *Name);
+	void SetName(const char *Name);
 
 	/// Returns the version of Lgi used. String returned is in the form '#.#.#'
 	const char *GetLgiVersion() { return LGI_VER; }
@@ -285,7 +285,7 @@ public:
 	bool GetOption
 	(
 		/// The option to look for.
-		char *Option,
+		const char *Option,
 		/// The buffer to receive the value.
 		GAutoString &Buf
 	);
@@ -295,7 +295,7 @@ public:
 	bool GetOption
 	(
 		/// The option to look for.
-		char *Option,
+		const char *Option,
 		/// The buffer to receive the value of the command line parameter or NULL if you don't care.
 		char *Dst = 0,
 		/// The buffer size in bytes
@@ -316,7 +316,7 @@ public:
 	GAutoString GetFileMimeType
 	(
 		/// The file to identify
-		char *File
+		const char *File
 	);
 
     /// Gets the applications that can handle a file of a certain mime type
@@ -1694,11 +1694,11 @@ class LgiClass GViewFactory
 	virtual GView *NewView
 	(
 		/// The name of the class to create
-		char *Class,
+		const char *Class,
 		/// The initial position of the view
 		GRect *Pos,
 		/// The initial text of the view
-		char *Text
+		const char *Text
 	) = 0;
 
 public:
@@ -1706,7 +1706,7 @@ public:
 	virtual ~GViewFactory();
 
 	/// Create a view by name.
-	static GView *Create(char *Class, GRect *Pos = 0, char *Text = 0);
+	static GView *Create(const char *Class, GRect *Pos = 0, const char *Text = 0);
 };
 
 //////////////////////////////////////////////////////////

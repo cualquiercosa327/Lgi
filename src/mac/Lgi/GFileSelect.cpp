@@ -131,7 +131,7 @@ public:
 								{
 									CFArrayAppendValue(identifiers, uti);
 								}
-								else printf("%s:%i - UTTypeCreatePreferredIdentifierForTag failed\n");
+								else printf("%s:%i - UTTypeCreatePreferredIdentifierForTag failed\n", _FL);
 								
 								CFRelease(s);
 							}
@@ -139,9 +139,9 @@ public:
 					}
 
 					OSStatus e = NavDialogSetFilterTypeIdentifiers(Dlg, identifiers);
-					if (e) printf("%s:%i - NavDialogSetFilterTypeIdentifiers failed with %i\n", _FL, e);
+					if (e) printf("%s:%i - NavDialogSetFilterTypeIdentifiers failed with %i\n", _FL, (int)e);
 				}
-				else printf("%s:%i - CFArrayCreateMutable failed\n");
+				else printf("%s:%i - CFArrayCreateMutable failed\n", _FL);
 			}
 		}
 	}
@@ -152,7 +152,7 @@ public:
 		
 		NavReplyRecord r;
 		OSStatus e = NavDialogGetReply(Dlg, &r);
-		if (e) printf("%s:%i - NavDialogGetReply failed with %i\n", _FL, e);
+		if (e) printf("%s:%i - NavDialogGetReply failed with %i\n", _FL, (int)e);
 		else if (Status = r.validRecord)
 		{
 			long len = 0;
@@ -166,7 +166,7 @@ public:
 					DescType typeCode;
 					Size size;
 					e = AEGetNthPtr(&r.selection, i+1, typeFSRef, &theAEKeyword, &typeCode, &fs, sizeof(fs), &size);
-					if (e) printf("%s:%i - AEGetNthPtr(%i) failed with %i\n", _FL, i, e);
+					if (e) printf("%s:%i - AEGetNthPtr(%i) failed with %i\n", _FL, i, (int)e);
 					else
 					{
 						UInt8 path[300];
@@ -228,7 +228,7 @@ char *GFileSelect::Name()
 	return d->Files.First();
 }
 
-bool GFileSelect::Name(char *n)
+bool GFileSelect::Name(const char *n)
 {
 	d->Files.DeleteArrays();
 	if (n)
@@ -264,7 +264,7 @@ GFileType *GFileSelect::TypeAt(int n)
 	return d->Types.ItemAt(n);
 }
 
-bool GFileSelect::Type(char *Description, char *Extension, int Data)
+bool GFileSelect::Type(const char *Description, const char *Extension, int Data)
 {
 	GFileType *Type = new GFileType;
 	if (Type)
@@ -307,7 +307,7 @@ void GFileSelect::MultiSelect(bool Multi)
 	{										\
 		return Var;							\
 	}										\
-	void GFileSelect::Func(char *i)			\
+	void GFileSelect::Func(const char *i)	\
 	{										\
 		DeleteArray(Var);					\
 		if (i)								\
@@ -367,7 +367,7 @@ bool GFileSelect::Open()
 	NavDialogCreationOptions o;
 	ZeroObj(o);
 	OSStatus e = NavGetDefaultDialogCreationOptions(&o);
-	if (e) printf("%s:%i - NavGetDefaultDialogCreationOptions failed with %i\n", _FL, e);
+	if (e) printf("%s:%i - NavGetDefaultDialogCreationOptions failed with %i\n", _FL, (int)e);
 	else
 	{
 		if (Name())
@@ -386,13 +386,13 @@ bool GFileSelect::Open()
 									0, // ObjectUPP,
 									d,
 									&Dlg);
-		if (e) printf("%s:%i - NavCreateGetFileDialog failed with %i\n", _FL, e);
+		if (e) printf("%s:%i - NavCreateGetFileDialog failed with %i\n", _FL, (int)e);
 		else
 		{
 			d->DoTypes(Dlg);
 			
 			e = NavDialogRun(Dlg);
-			if (e) printf("%s:%i - NavDialogRun failed with %i\n", _FL, e);
+			if (e) printf("%s:%i - NavDialogRun failed with %i\n", _FL, (int)e);
 			else
 			{
 				Status = d->DoReply(Dlg);
@@ -415,7 +415,7 @@ bool GFileSelect::OpenFolder()
 	NavDialogCreationOptions o;
 	ZeroObj(o);
 	OSStatus e = NavGetDefaultDialogCreationOptions(&o);
-	if (e) printf("%s:%i - NavGetDefaultDialogCreationOptions failed with %i\n", _FL, e);
+	if (e) printf("%s:%i - NavGetDefaultDialogCreationOptions failed with %i\n", _FL, (int)e);
 	else
 	{
 		if (Name())
@@ -430,13 +430,13 @@ bool GFileSelect::OpenFolder()
 										0, // ObjectUPP,
 										d,
 										&Dlg);
-		if (e) printf("%s:%i - NavCreateGetFileDialog failed with %i\n", _FL, e);
+		if (e) printf("%s:%i - NavCreateGetFileDialog failed with %i\n", _FL, (int)e);
 		else
 		{
 			d->DoTypes(Dlg);
 			
 			e = NavDialogRun(Dlg);
-			if (e) printf("%s:%i - NavDialogRun failed with %i\n", _FL, e);
+			if (e) printf("%s:%i - NavDialogRun failed with %i\n", _FL, (int)e);
 			else
 			{
 				Status = d->DoReply(Dlg);
@@ -459,7 +459,7 @@ bool GFileSelect::Save()
 	NavDialogCreationOptions o;
 	ZeroObj(o);
 	OSStatus e = NavGetDefaultDialogCreationOptions(&o);
-	if (e) printf("%s:%i - NavGetDefaultDialogCreationOptions failed with %i\n", _FL, e);
+	if (e) printf("%s:%i - NavGetDefaultDialogCreationOptions failed with %i\n", _FL, (int)e);
 	else
 	{
 		if (Name())
@@ -475,13 +475,13 @@ bool GFileSelect::Save()
 									EventUPP,
 									d,
 									&Dlg);
-		if (e) printf("%s:%i - NavCreatePutFileDialog failed with %i\n", _FL, e);
+		if (e) printf("%s:%i - NavCreatePutFileDialog failed with %i\n", _FL, (int)e);
 		else
 		{
 			d->DoTypes(Dlg);
 			
 			e = NavDialogRun(Dlg);
-			if (e) printf("%s:%i - NavDialogRun failed with %i\n", _FL, e);
+			if (e) printf("%s:%i - NavDialogRun failed with %i\n", _FL, (int)e);
 			else
 			{
 				Status = d->DoReply(Dlg, true);

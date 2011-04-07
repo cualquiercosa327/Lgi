@@ -93,7 +93,7 @@ public:
 	virtual ~GTypeFace();
 
 	/// Sets the font face name
-	void Face(char *s);
+	void Face(const char *s);
 	/// Sets the point size
 	void PointSize(int i);
 	/// Sets the tab size in device units (pixels)
@@ -205,7 +205,7 @@ public:
 	bool Create
 	(
 		/// The new font face
-		char *Face = 0,
+		const char *Face = 0,
 		/// The pt size
 		int PtSize = -1,
 		/// An OS specific parameter. This is typically a Win32 HDC when creating a font
@@ -279,10 +279,10 @@ public:
 	bool Serialize(GDom *Options, char *OptName, bool Write);
 
 	/// Read the font from the LGI config
-	bool GetConfigFont(char *Tag);
+	bool GetConfigFont(const char *Tag);
 	
 	/// Read the font from LGI config (if there) and then the system settings
-	bool GetSystemFont(char *Which);
+	bool GetSystemFont(const char *Which);
 
 	/// Read from OS reference
 	bool GetFromRef(OsFont Handle);
@@ -403,8 +403,8 @@ class LgiClass GFontSystem : public GLibrary
 
 private:
 	// System Font List
-	List<char> AllFonts;
-	List<char> SubFonts; // Fonts yet to be scanned for substitution
+	List<const char> AllFonts;
+	List<const char> SubFonts; // Fonts yet to be scanned for substitution
 
 	// Missing Glyph Substitution
 	uchar Lut[MAX_UNICODE+1];
@@ -420,7 +420,7 @@ public:
 	~GFontSystem();
 
 	/// Enumerate all installed fonts
-	bool EnumerateFonts(List<char> &Fonts);
+	bool EnumerateFonts(List<const char> &Fonts);
 
 	/// Returns whether the current Lgi implementation supports glyph sub
 	bool GetGlyphSubSupport();

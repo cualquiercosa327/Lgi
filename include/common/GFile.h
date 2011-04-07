@@ -372,7 +372,7 @@ public:
 	int Open
 	(
 		/// The path of the file to open
-		char *Name,
+		const char *Name,
 		/// The mode to open the file with. One of O_READ, O_WRITE or O_READWRITE.
 		int Attrib
 	);
@@ -414,7 +414,7 @@ public:
 
 	/// \brief Writes bytes from memory to the current file pointer.
 	/// \return The number of bytes written or <= 0.
-	int Write(void *Buffer, int Size, int Flags = 0);
+	int Write(const void *Buffer, int Size, int Flags = 0);
 
 	/// Gets the path used to open the file
 	virtual char *GetName();

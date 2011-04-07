@@ -116,7 +116,7 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc, 
 		if (len > 0)
 		{
 			OSStatus e = ATSUCreateTextLayout(&Hnd);
-			if (e) printf("%s:%i - ATSUCreateTextLayout failed with %i.\n", __FILE__, __LINE__, e);
+			if (e) printf("%s:%i - ATSUCreateTextLayout failed with %i.\n", __FILE__, __LINE__, (int)e);
 		}
 	}
 	
@@ -191,14 +191,14 @@ void GDisplayString::Layout()
 		OSStatus e = ATSUSetTextPointerLocation(Hnd, Str, 0, len, len);
 		if (e)
 		{
-			printf("%s:%i - ATSUSetTextPointerLocation failed with errorcode %i (%S)\n", _FL, e, Str);
+			printf("%s:%i - ATSUSetTextPointerLocation failed with errorcode %i (%S)\n", _FL, (int)e, Str);
 		}
 		else
 		{
 			e = ATSUSetRunStyle(Hnd, Font->Handle(), 0, len);
 			if (e)
 			{
-				printf("%s:%i - ATSUSetRunStyle failed with errorcode %i (%S)\n", _FL, e, Str);
+				printf("%s:%i - ATSUSetRunStyle failed with errorcode %i (%S)\n", _FL, (int)e, Str);
 			}
 			else
 			{
@@ -213,7 +213,7 @@ void GDisplayString::Layout()
 					ATSUAttributeValuePtr   theValues[1] = {&dc};
 
 					e = ATSUSetLayoutControls(Hnd, 1, theTags, theSizes, theValues);
-					if (e) printf("%s:%i - ATSUSetLayoutControls failed (e=%i)\n", __FILE__, __LINE__, e);
+					if (e) printf("%s:%i - ATSUSetLayoutControls failed (e=%i)\n", __FILE__, __LINE__, (int)e);
 				}
 
 				#if 0
@@ -301,7 +301,7 @@ void GDisplayString::Layout()
 												&fDescent);
 				if (e)
 				{
-					printf("%s:%i - ATSUGetUnjustifiedBounds failed with errorcode %i (%S)\n", __FILE__, __LINE__, e, Str);
+					printf("%s:%i - ATSUGetUnjustifiedBounds failed with errorcode %i (%S)\n", __FILE__, __LINE__, (int)e, Str);
 				}
 				else
 				{
@@ -653,7 +653,7 @@ int GDisplayString::CharAt(int Px)
 		UniCharArrayOffset Off = 0, Off2 = 0;
 		Boolean IsLeading;
 		OSStatus e = ATSUPositionToOffset(Hnd, FloatToFixed(Px), FloatToFixed(y / 2), &Off, &IsLeading, &Off2);
-		if (e) printf("%s:%i - ATSUPositionToOffset failed with %i, CharAt(%i) x=%i len=%i\n", __FILE__, __LINE__, e, Px, x, len);
+		if (e) printf("%s:%i - ATSUPositionToOffset failed with %i, CharAt(%i) x=%i len=%i\n", __FILE__, __LINE__, (int)e, Px, x, len);
 		else
 		{
 			// printf("CharAt(%i) off=%i,%i Leading=%i x=%i len=%i\n", Px, Off, Off2, IsLeading, x, len);
@@ -884,7 +884,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 		e = ATSUSetLayoutControls(Hnd, 1, theTags, theSizes, theValues);
 		if (e)
 		{
-			printf("%s:%i - ATSUSetLayoutControls failed (e=%i)\n", __FILE__, __LINE__, e);
+			printf("%s:%i - ATSUSetLayoutControls failed (e=%i)\n", __FILE__, __LINE__, (int)e);
 		}
 		else
 		{
@@ -958,7 +958,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 				}
 				if (e)
 				{
-					printf("%s:%i - ATSUDrawText failed with %i, len=%i, str=%.20S\n", __FILE__, __LINE__, e, len, Str);
+					printf("%s:%i - ATSUDrawText failed with %i, len=%i, str=%.20S\n", __FILE__, __LINE__, (int)e, len, Str);
 				}
 				else
 				{
@@ -982,7 +982,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 			}
 			else
 			{
-				printf("%s:%i - Error setting font attr (e=%i)\n", __FILE__, __LINE__, e);
+				printf("%s:%i - Error setting font attr (e=%i)\n", __FILE__, __LINE__, (int)e);
 			}
 		}
 	}

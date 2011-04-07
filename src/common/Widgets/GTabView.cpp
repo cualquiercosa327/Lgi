@@ -82,7 +82,7 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 // Tab Control
-GTabView::GTabView(int id, int x, int y, int cx, int cy, char *name, int Init) :
+GTabView::GTabView(int id, int x, int y, int cx, int cy, const char *name, int Init) :
 	ResObject(Res_TabView)
 {
 	d = new GTabViewPrivate;
@@ -593,8 +593,8 @@ char *_lgi_gview_cmp(GView *a, GView *b)
 				"GView: %p,%p Hnd: %x,%x",
 				dynamic_cast<GView*>(a),
 				dynamic_cast<GView*>(b),
-				a->Handle(),
-				b->Handle());
+				(int) a->Handle(),
+				(int) b->Handle());
 	}
 	else
 	{

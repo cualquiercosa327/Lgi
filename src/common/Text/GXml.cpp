@@ -102,7 +102,7 @@ XmlTag::XmlTag()
 
 XmlTag::XmlTag(Xml *x, char *&s)
 {
-	char *Whitespace = " \r\n\t";
+	const char *Whitespace = " \r\n\t";
 	Name = 0;
 	X = x;
 

@@ -1995,7 +1995,7 @@ bool GTextView3::ClearDirty(bool Ask, char *FileName)
 	return true;
 }
 
-bool GTextView3::Open(char *Name, char *CharSet)
+bool GTextView3::Open(const char *Name, const char *CharSet)
 {
 	bool Status = false;
 	GFile f;
@@ -2092,7 +2092,7 @@ bool GTextView3::Open(char *Name, char *CharSet)
 	return Status;
 }
 
-bool GTextView3::Save(char *Name, char *CharSet)
+bool GTextView3::Save(const char *Name, const char *CharSet)
 {
 	GFile f;
 	if (f.Open(Name, O_WRITE))
@@ -2357,7 +2357,12 @@ bool GTextView3::DoReplace()
 		d->FindReplaceParams->MatchCase = Dlg.MatchCase;
 		d->FindReplaceParams->SelectionOnly = Dlg.SelectionOnly;
 		
-		printf("DoReplace '%S'->'%S' %i,%i,%i\n", d->FindReplaceParams->LastFind, d->FindReplaceParams->LastReplace, d->FindReplaceParams->MatchWord, d->FindReplaceParams->MatchCase, d->FindReplaceParams->SelectionOnly);
+		printf("DoReplace '%S'->'%S' %i,%i,%i\n",
+			d->FindReplaceParams->LastFind,
+			d->FindReplaceParams->LastReplace,
+			d->FindReplaceParams->MatchWord,
+			d->FindReplaceParams->MatchCase,
+			d->FindReplaceParams->SelectionOnly);
 	}
 
 	switch (Action)
@@ -4581,7 +4586,7 @@ bool GTextView3::OnLayout(GViewLayoutInfo &Inf)
 ///////////////////////////////////////////////////////////////////////////////
 class GTextView3_Factory : public GViewFactory
 {
-	GView *NewView(char *Class, GRect *Pos, char *Text)
+	GView *NewView(const char *Class, GRect *Pos, const char *Text)
 	{
 		if (stricmp(Class, "GTextView3") == 0)
 		{

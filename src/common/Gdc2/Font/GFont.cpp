@@ -138,7 +138,7 @@ bool GTypeFace::operator ==(GTypeFace &t)
 }
 
 // set
-void GTypeFace::Face(char *s)
+void GTypeFace::Face(const char *s)
 {
 	if (s AND
 		s != d->_Face AND
@@ -660,7 +660,7 @@ int GFont::GetParam()
 	return d->Param;
 }
 
-bool GFont::Create(char *face, int height, int Param)
+bool GFont::Create(const char *face, int height, int Param)
 {
 	bool FaceChanging = false;
 
@@ -1039,12 +1039,12 @@ bool GFont::Create(char *face, int height, int Param)
 		}
 		else
 		{
-			printf("%s:%i - Error getting font id (e=%i)\n", __FILE__, __LINE__, e);
+			printf("%s:%i - Error getting font id (e=%i)\n", __FILE__, __LINE__, (int)e);
 		}
 	}
 	else
 	{
-		printf("%s:%i - Error creating font (e=%i)\n", __FILE__, __LINE__, e);
+		printf("%s:%i - Error creating font (e=%i)\n", __FILE__, __LINE__, (int)e);
 	}
 	
 	#endif
@@ -1365,7 +1365,7 @@ bool GFontType::Serialize(GDom *Options, char *OptName, bool Write)
 	return Status;
 }
 
-bool GFontType::GetConfigFont(char *Tag)
+bool GFontType::GetConfigFont(const char *Tag)
 {
 	bool Status = false;
 
@@ -1435,7 +1435,7 @@ public:
 	}
 };
 
-bool GFontType::GetSystemFont(char *Which)
+bool GFontType::GetSystemFont(const char *Which)
 {
 	bool Status = false;
 
@@ -1540,7 +1540,7 @@ bool GFontType::GetSystemFont(char *Which)
 										Name,
 										&Size,
 										&St);
-			if (e) printf("%s:%i - GetThemeFont failed with %i\n", __FILE__, __LINE__, e);
+			if (e) printf("%s:%i - GetThemeFont failed with %i\n", __FILE__, __LINE__, (int)e);
 			else
 			{
 				Info.Face(p2c(Name));
@@ -1590,7 +1590,7 @@ bool GFontType::GetSystemFont(char *Which)
 										Name,
 										&Size,
 										&St);
-			if (e) printf("%s:%i - GetThemeFont failed with %i\n", __FILE__, __LINE__, e);
+			if (e) printf("%s:%i - GetThemeFont failed with %i\n", __FILE__, __LINE__, (int)e);
 			else
 			{
 				Info.Face(p2c(Name));
@@ -1639,7 +1639,7 @@ bool GFontType::GetSystemFont(char *Which)
 										Name,
 										&Size,
 										&St);
-			if (e) printf("%s:%i - GetThemeFont failed with %i\n", __FILE__, __LINE__, e);
+			if (e) printf("%s:%i - GetThemeFont failed with %i\n", __FILE__, __LINE__, (int)e);
 			else
 			{
 				Info.Face(p2c(Name));
@@ -1687,7 +1687,7 @@ bool GFontType::GetSystemFont(char *Which)
 										Name,
 										&Size,
 										&St);
-			if (e) printf("%s:%i - GetThemeFont failed with %i\n", __FILE__, __LINE__, e);
+			if (e) printf("%s:%i - GetThemeFont failed with %i\n", __FILE__, __LINE__, (int)e);
 			else
 			{
 				Info.Face(p2c(Name));
@@ -1744,7 +1744,7 @@ bool GFontType::GetSystemFont(char *Which)
 										Name,
 										&Size,
 										&St);
-			if (e) printf("%s:%i - GetThemeFont failed with %i\n", __FILE__, __LINE__, e);
+			if (e) printf("%s:%i - GetThemeFont failed with %i\n", __FILE__, __LINE__, (int)e);
 			else
 			{
 				Info.Face(p2c(Name));

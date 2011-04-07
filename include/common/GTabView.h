@@ -25,7 +25,7 @@ public:
 				int y = 0,
 				int cx = 1000,
 				int cy = 1000,
-				char *name = 0,
+				const char *name = 0,
 				int Init = 0);
 	~GTabView();
 	

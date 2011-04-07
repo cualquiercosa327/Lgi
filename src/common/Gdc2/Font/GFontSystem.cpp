@@ -136,13 +136,13 @@ int CALLBACK _EnumFonts(ENUMLOGFONT FAR *lpelf,
 }
 #endif
 
-int StringSort(char *a, char *b, int Data)
+int StringSort(const char *a, const char *b, int Data)
 {
 	if (a AND b) return stricmp(a, b);
 	return 0;
 }
 
-bool GFontSystem::EnumerateFonts(List<char> &Fonts)
+bool GFontSystem::EnumerateFonts(List<const char> &Fonts)
 {
 	if (!AllFonts.First())
 	{
@@ -246,7 +246,7 @@ bool GFontSystem::EnumerateFonts(List<char> &Fonts)
 
 	if (AllFonts.First() AND &AllFonts != &Fonts)
 	{
-		for (char *s=AllFonts.First(); s; s=AllFonts.Next())
+		for (const char *s=AllFonts.First(); s; s=AllFonts.Next())
 		{
 			Fonts.Insert(NewStr(s));
 		}
@@ -357,7 +357,7 @@ GFont *GFontSystem::GetGlyph(int u, GFont *UserFont)
 				{
 					// Reorder font list to prefer certain known as good fonts or
 					// avoid certain bad fonts.
-					List<char> Ascend, Descend;
+					List<const char> Ascend, Descend;
 					
 					if (LgiGetOs() == LGI_OS_WINNT)
 					{
@@ -398,11 +398,11 @@ GFont *GFontSystem::GetGlyph(int u, GFont *UserFont)
 					}
 
 					// Prefer these fonts...
-					List<char> Temp;
-					char *p;
+					List<const char> Temp;
+					const char *p;
 					for (p=Ascend.First(); p; p=Ascend.Next())
 					{
-						for (char *f=SubFonts.First(); f; )
+						for (const char *f=SubFonts.First(); f; )
 						{
 							if (MatchStr(p, f))
 							{
@@ -425,7 +425,7 @@ GFont *GFontSystem::GetGlyph(int u, GFont *UserFont)
 					Temp.Empty();
 					for (p=Descend.First(); p; p=Descend.Next())
 					{
-						for (char *f=SubFonts.First(); f; )
+						for (const char *f=SubFonts.First(); f; )
 						{
 							if (MatchStr(p, f))
 							{
@@ -447,7 +447,7 @@ GFont *GFontSystem::GetGlyph(int u, GFont *UserFont)
 					// Delete fonts prefixed with '@' to the end, as they are for
 					// vertical rendering... and aren't suitable for what LGI uses
 					// fonts for.
-					for (char *f=SubFonts.First(); f; )
+					for (const char *f=SubFonts.First(); f; )
 					{
 						if (*f == '@')
 						{
@@ -474,7 +474,7 @@ GFont *GFontSystem::GetGlyph(int u, GFont *UserFont)
 		try
 		{
 		#endif
-			char *s;
+			const char *s;
 			while (	(d->Used < CountOf(Font) - 1) AND
 					(s = SubFonts.First()))
 			{

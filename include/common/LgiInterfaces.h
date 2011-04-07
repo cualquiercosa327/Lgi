@@ -31,23 +31,66 @@ class GDomI
 public:
 	virtual ~GDomI() {}
 
-	virtual bool GetValue(char *Var, GVariant &Value) { return false; }
-	virtual bool SetValue(char *Var, GVariant &Value) { return false; }
+	virtual bool GetValue(const char *Var, GVariant &Value) { return false; }
+	virtual bool SetValue(const char *Var, GVariant &Value) { return false; }
 };
 
+/// Stream interface class
+/// 
+/// Defines the API
+/// for all the streaming data classes. Allows applications to plug
+/// different types of date streams into functions that take a GStream.
+/// Typically this means being able to swap files with sockets or data
+/// buffers etc.
+/// 
 class GStreamI : virtual public GDomI
 {
 public:
-	virtual int Open(char *Str = 0, int Int = 0) { return false; }
+	/// Open a connection
+	/// \returns > zero on success
+	virtual int Open
+	(
+		/// A string connection parameter
+		const char *Str = 0,
+		/// An integer connection parameter
+		int Int = 0
+	)
+	{ return false; }
+
+	/// Returns true is the stream is still open
 	virtual bool IsOpen() { return false; }
+
+	/// Closes the connection
+	/// \returns > zero on success
 	virtual int Close() { return 0; }
 
+	/// \brief Gets the size of the stream
+	/// \return The size or -1 on error (e.g. the information is not available)
 	virtual int64 GetSize() { return -1; }
+
+	/// \brief Sets the size of the stream
+	/// \return The new size or -1 on error (e.g. the size is not set-able)
 	virtual int64 SetSize(int64 Size) { return -1; }
+
+	/// \brief Gets the current position of the stream
+	/// \return Current position or -1 on error (e.g. the position is not known)
 	virtual int64 GetPos() { return -1; }
+
+	/// \brief Sets the current position of the stream
+	/// \return The new current position or -1 on error (e.g. the position can't be set)
 	virtual int64 SetPos(int64 Pos) { return -1; }
-	virtual int Read(void *Buffer, int Size, int Flags = 0) { return 0; }
-	virtual int Write(void *Buffer, int Size, int Flags = 0) { return 0; }
+
+	/// \brief Read bytes out of the stream
+	/// \return > 0 on succes, which indicates the number of bytes read
+	virtual int Read(void *Buffer, int Size, int Flags = 0) = 0;
+
+	/// \brief Write bytes to the stream
+	/// \return > 0 on succes, which indicates the number of bytes written
+	virtual int Write(const void *Buffer, int Size, int Flags = 0) = 0;
+
+	/// \brief Creates a dynamically allocated copy of the same type of stream.
+	/// This new stream is not connected to anything.
+	/// \return The new stream or NULL on error.
 	virtual GStreamI *Clone() { return 0; }
 };
 
@@ -137,9 +180,9 @@ public:
 	/// Called when data is written
 	virtual void OnWrite(char *Data, int Len) {}
 	/// Called when an error occurs
-	virtual void OnError(int ErrorCode, char *ErrorDescription) {}
+	virtual void OnError(int ErrorCode, const char *ErrorDescription) {}
 	/// Called when some events happens
-	virtual void OnInformation(char *Str) {}
+	virtual void OnInformation(const char *Str) {}
 
 	/// Process an error
 	virtual int Error(void *Param) { return 0; }

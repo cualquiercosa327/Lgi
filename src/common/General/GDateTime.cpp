@@ -650,20 +650,20 @@ void GDateTime::GetDate(char *Str)
 	switch (_Format & GDTF_DATE_MASK)
 	{
 		case GDTF_MONTH_DAY_YEAR:
-			c += sprintf(Str+c, _Format&GDTF_MONTH_LEADINGZ?"%02.2i"  :"%i"  , _Month);
-			c += sprintf(Str+c, _Format&GDTF_DAY_LEADINGZ  ?"%c%02.2i":"%c%i", DefaultSeparator, _Day);
+			c += sprintf(Str+c, _Format&GDTF_MONTH_LEADINGZ?"%2.2i"  :"%i"  , _Month);
+			c += sprintf(Str+c, _Format&GDTF_DAY_LEADINGZ  ?"%c%2.2i":"%c%i", DefaultSeparator, _Day);
 			c += sprintf(Str+c, "%c%i", DefaultSeparator, _Year);
 			break;
 		default:
 		case GDTF_DAY_MONTH_YEAR:
-			c += sprintf(Str+c, _Format&GDTF_DAY_LEADINGZ  ?"%02.2i"  :"%i"  , _Day);
-			c += sprintf(Str+c, _Format&GDTF_MONTH_LEADINGZ?"%c%02.2i":"%c%i", DefaultSeparator, _Month);
+			c += sprintf(Str+c, _Format&GDTF_DAY_LEADINGZ  ?"%2.2i"  :"%i"  , _Day);
+			c += sprintf(Str+c, _Format&GDTF_MONTH_LEADINGZ?"%c%2.2i":"%c%i", DefaultSeparator, _Month);
 			c += sprintf(Str+c, "%c%i", DefaultSeparator, _Year);
 			break;
 		case GDTF_YEAR_MONTH_DAY:
 			c += sprintf(Str+c, "%i", _Year);
-			c += sprintf(Str+c, _Format&GDTF_MONTH_LEADINGZ?"%c%02.2i":"%c%i", DefaultSeparator, _Month);
-			c += sprintf(Str+c, _Format&GDTF_DAY_LEADINGZ  ?"%c%02.2i":"%c%i", DefaultSeparator, _Day);
+			c += sprintf(Str+c, _Format&GDTF_MONTH_LEADINGZ?"%c%2.2i":"%c%i", DefaultSeparator, _Month);
+			c += sprintf(Str+c, _Format&GDTF_DAY_LEADINGZ  ?"%c%2.2i":"%c%i", DefaultSeparator, _Day);
 			break;
 	}
 }
@@ -677,11 +677,11 @@ void GDateTime::GetTime(char *Str)
 			case GDTF_12HOUR:
 			default:
 			{
-				sprintf(Str, "%i:%02.2i:%02.2i%s", Convert24HrTo12Hr(_Hours), _Minutes, _Seconds, Convert24HrToAmPm(_Hours));
+				sprintf(Str, "%i:%2.2i:%2.2i%s", Convert24HrTo12Hr(_Hours), _Minutes, _Seconds, Convert24HrToAmPm(_Hours));
 				break;
 			}
 			case GDTF_24HOUR:
-				sprintf(Str, "%i:%02.2i:%02.2i", _Hours, _Minutes, _Seconds);
+				sprintf(Str, "%i:%2.2i:%2.2i", _Hours, _Minutes, _Seconds);
 				break;
 		}
 	}

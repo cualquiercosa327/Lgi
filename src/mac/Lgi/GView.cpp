@@ -209,7 +209,7 @@ GViewProc
 		}
 	}
 	
-	printf("event %i,%i\n", eventClass, eventKind);
+	printf("event %d,%d\n", (unsigned)eventClass, (unsigned)eventKind);
 
 	return Status;
 }
@@ -260,7 +260,7 @@ GViewPrivate::GViewPrivate()
 				&BaseClass
 			);
 		if (e)
-			printf("%s:%i - HIObjectRegisterSubclass failed (e=%i).\n", __FILE__, __LINE__, e);
+			printf("%s:%i - HIObjectRegisterSubclass failed (e=%i).\n", __FILE__, __LINE__, (int)e);
 	}
 }
 	
@@ -1081,7 +1081,7 @@ int VirtualKeyToLgi(UInt32 Virt)
 		case 6: return 'z';
 		
 		default:
-			printf("%s:%i - unimplemented virt->lgi code mapping: %i\n", __FILE__, __LINE__, Virt);
+			printf("%s:%i - unimplemented virt->lgi code mapping: %d\n", _FL, (unsigned)Virt);
 			break;
 	}
 	
@@ -1160,7 +1160,7 @@ CarbonControlProc
 														&d->Obj);
 						if (e)
 						{
-							printf("%s:%i - failed to get view ptr (e=%i).\n", _FL, e);
+							printf("%s:%i - failed to get view ptr (e=%i).\n", _FL, (int)e);
 							d->Obj = 0;
 						}
 
@@ -1261,7 +1261,7 @@ CarbonControlProc
 				{
 					ControlPartCode Part;
 					OSStatus e = GetEventParameter(inEvent, kEventParamControlPart, typeControlPartCode, NULL, sizeof(Part), NULL, &Part);
-					if (e) printf("%s:%i - error (%i)\n", __FILE__, __LINE__, e);
+					if (e) printf("%s:%i - error (%i)\n", __FILE__, __LINE__, (int)e);
 					
 					bool f = Part != kControlFocusNoPart;
 
@@ -1325,9 +1325,9 @@ CarbonControlProc
 					UInt32		mods = 0;
 
 					OSStatus e = GetEventParameter(inEvent, kEventParamKeyCode, typeUInt32, NULL, sizeof(UInt32), NULL, &key);
-					if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, e);
+					if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, (int)e);
 					e = GetEventParameter(inEvent, kEventParamKeyModifiers, typeUInt32, NULL, sizeof(mods), NULL, &mods);
-					if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, e);
+					if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, (int)e);
 					
 					GKey k;
 					if (k.c16 = VirtualKeyToLgi(key))
@@ -1362,9 +1362,9 @@ CarbonControlProc
 					UInt32		mods = 0;
 
 					OSStatus e = GetEventParameter(inEvent, kEventParamKeyCode, typeUInt32, NULL, sizeof(UInt32), NULL, &key);
-					if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, e);
+					if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, (int)e);
 					e = GetEventParameter(inEvent, kEventParamKeyModifiers, typeUInt32, NULL, sizeof(mods), NULL, &mods);
-					if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, e);
+					if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, (int)e);
 					
 					GKey k;
 					if (k.c16 = VirtualKeyToLgi(key))
@@ -1419,13 +1419,13 @@ CarbonControlProc
 					text = new UniChar[actualSize+1];
 					e = GetEventParameter(inEvent, kEventParamTextInputSendText, typeUnicodeText, NULL, actualSize, NULL, text);
 					e = GetEventParameter(inEvent, kEventParamTextInputSendKeyboardEvent, typeEventRef, NULL, sizeof(src), NULL, &src);
-					if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, e);
+					if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, (int)e);
 					else
 					{
 						e = GetEventParameter(src, kEventParamKeyModifiers, typeUInt32, NULL, sizeof(mods), NULL, &mods);
-						if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, e);
+						if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, (int)e);
 						e = GetEventParameter(src, kEventParamKeyCode, typeUInt32, NULL, sizeof(UInt32), NULL, &key);
-						if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, e);
+						if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, (int)e);
 					}
 					
 					GKey k;
@@ -1522,7 +1522,7 @@ CarbonControlProc
 				{
 					OSStatus e = SetEventParameter(inEvent, kEventParamImageSize,
 						 typeHISize, sizeof( size ), &size );
-					if (e) printf("%s:%i - SetEventParameter failed with %e\n", _FL, e);
+					if (e) printf("%s:%i - SetEventParameter failed with %i\n", _FL, (int)e);
 					/*
 					e = SetEventParameter(inEvent, kEventParamViewSize,
 						 typeHISize, sizeof( size ), &size );
@@ -1531,7 +1531,7 @@ CarbonControlProc
 
 					e = SetEventParameter(inEvent, kEventParamLineSize,
 						 typeHISize, sizeof( line ), &line );
-					if (e) printf("%s:%i - SetEventParameter failed with %e\n", _FL, e);
+					if (e) printf("%s:%i - SetEventParameter failed with %i\n", _FL, (int)e);
 					HIViewGetBounds(v->Handle(), &bounds);
 					SetEventParameter(inEvent, kEventParamViewSize, typeHISize, sizeof(bounds.size), &bounds.size);
 					SetEventParameter(inEvent, kEventParamOrigin, typeHIPoint, sizeof(origin), &origin);
@@ -1560,7 +1560,7 @@ CarbonControlProc
 			}
 			else
 			{
-				printf("%s:%i - Unknown scroll event '%04.4s'\n", _FL, &eventKind);
+				printf("%s:%i - Unknown scroll event '%4.4s'\n", _FL, (char*)&eventKind);
 			}
 			break;
 		}
@@ -1584,7 +1584,7 @@ CarbonControlProc
 		}
 		default:
 		{
-			printf("%s:%i - Unhandled event %i,%i\n", __FILE__, __LINE__, eventClass, eventKind);
+			printf("%s:%i - Unhandled event %d,%d\n", __FILE__, __LINE__, (unsigned)eventClass, (unsigned)eventKind);
 			break;
 		}
 	}
@@ -1655,7 +1655,7 @@ OsView GView::_CreateCustomView()
 											
 		if (e = HIObjectCreate(kLgiGViewClassID, Ev, (HIObjectRef*)&Hnd))
 		{
-			printf("%s:%i - HIObjectCreate failed with %i\n", _FL, e);
+			printf("%s:%i - HIObjectCreate failed with %i\n", _FL, (int)e);
 			Hnd = 0;
 		}
 		else
@@ -1747,7 +1747,7 @@ bool GView::_Attach(GViewI *parent)
 				}
 				else printf("%s:%i - No parent to attach to\n", _FL);
 			}
-			else printf("%s:%i - HIObjectCreate failed (%i)\n", _FL, e);
+			else printf("%s:%i - HIObjectCreate failed (%i)\n", _FL, (int)e);
 		}
 		else printf("%s:%i - No window to attach to.\n", _FL);
 	}

@@ -466,7 +466,7 @@ bool GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 	else
 	{
 		Cr.ZOff(-1, -1);
-		printf("%s:%i - Bmp type check failed '%.2s'.\n", __FILE__, __LINE__, &File.Type);
+		printf("%s:%i - Bmp type check failed '%.2s'.\n", __FILE__, __LINE__, (char*)&File.Type);
 	}
 
 	pDC->ClipRgn(&Cr);

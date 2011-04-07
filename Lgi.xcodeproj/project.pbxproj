@@ -133,6 +133,7 @@
 		34B954850939DCC400477A2D /* INetTools.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34B954830939DCC400477A2D /* INetTools.cpp */; };
 		34B954880939DCDD00477A2D /* INet.h in Headers */ = {isa = PBXBuildFile; fileRef = 34B954860939DCDD00477A2D /* INet.h */; };
 		34B954890939DCDD00477A2D /* INetTools.h in Headers */ = {isa = PBXBuildFile; fileRef = 34B954870939DCDD00477A2D /* INetTools.h */; };
+		34BC1E1F134DC748005451EE /* Res.h in Headers */ = {isa = PBXBuildFile; fileRef = 34BC1E1E134DC748005451EE /* Res.h */; };
 		34CDDAE308C5DF5B005EAAC7 /* LgiMac.h in Headers */ = {isa = PBXBuildFile; fileRef = 34CDDAE008C5DF5B005EAAC7 /* LgiMac.h */; };
 		34CDDAE408C5DF5B005EAAC7 /* LgiOsClasses.h in Headers */ = {isa = PBXBuildFile; fileRef = 34CDDAE108C5DF5B005EAAC7 /* LgiOsClasses.h */; };
 		34CDDAE508C5DF5B005EAAC7 /* LgiOsDefs.h in Headers */ = {isa = PBXBuildFile; fileRef = 34CDDAE208C5DF5B005EAAC7 /* LgiOsDefs.h */; };
@@ -288,6 +289,7 @@
 		34B954830939DCC400477A2D /* INetTools.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = INetTools.cpp; path = src/common/INet/INetTools.cpp; sourceTree = SOURCE_ROOT; };
 		34B954860939DCDD00477A2D /* INet.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = INet.h; path = include/common/INet.h; sourceTree = SOURCE_ROOT; };
 		34B954870939DCDD00477A2D /* INetTools.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = INetTools.h; path = include/common/INetTools.h; sourceTree = SOURCE_ROOT; };
+		34BC1E1E134DC748005451EE /* Res.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Res.h; path = include/common/Res.h; sourceTree = "<group>"; };
 		34CDDAE008C5DF5B005EAAC7 /* LgiMac.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LgiMac.h; path = include/mac/LgiMac.h; sourceTree = "<group>"; };
 		34CDDAE108C5DF5B005EAAC7 /* LgiOsClasses.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LgiOsClasses.h; path = include/mac/LgiOsClasses.h; sourceTree = "<group>"; };
 		34CDDAE208C5DF5B005EAAC7 /* LgiOsDefs.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LgiOsDefs.h; path = include/mac/LgiOsDefs.h; sourceTree = "<group>"; };
@@ -595,6 +597,7 @@
 				342CE46111FDAB57000B1F3C /* LgiRes.h */,
 				344D1B0C08F4A2DB00228075 /* LgiRes.cpp */,
 				344D1B0D08F4A2DB00228075 /* Res.cpp */,
+				34BC1E1E134DC748005451EE /* Res.h */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -812,6 +815,7 @@
 				3478B20A12E6F87200936EFA /* GEdit.h in Headers */,
 				34A8A3BD1303408000CAA8DF /* GPopup.h in Headers */,
 				3413BBC21349EC6900AE15B0 /* GXmlTree.h in Headers */,
+				34BC1E1F134DC748005451EE /* Res.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

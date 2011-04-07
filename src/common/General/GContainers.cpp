@@ -1258,7 +1258,7 @@ int GBytePipe::Pop(double &i)
 	return 0;
 }
 
-int GBytePipe::Write(void *Ptr, int Size, int Flags)
+int GBytePipe::Write(const void *Ptr, int Size, int Flags)
 {
 	int Status = 0;
 

@@ -36,7 +36,7 @@ class GFontSelect : public GDialog
 	GButton *Ctrl12;
 
 	char *GetSelectedFace();
-	void InsertFont(char *Face);
+	void InsertFont(const char *Face);
 	void EnumerateFonts();
 	void OnCreate();
 	void UpdatePreview();

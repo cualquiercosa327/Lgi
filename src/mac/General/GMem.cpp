@@ -33,19 +33,19 @@ void MemorySizeToStr(char *Str, uint64 Size)
 
 	if (Size >= G)
 	{
-		sprintf(Str, "%.2 G", Size / G);
+		sprintf(Str, "%.2f G", (double) Size / G);
 	}
 	else if (Size >= M)
 	{
-		sprintf(Str, "%.2f M", Size / M);
+		sprintf(Str, "%.2f M", (double) Size / M);
 	}
 	else if (Size >= (10 * K))
 	{
-		sprintf(Str, "%.2f K", Size / K);
+		sprintf(Str, "%.2f K", (double) Size / K);
 	}
 	else
 	{
-		sprintf(Str, "%ld bytes", Size);
+		sprintf(Str, LGI_PrintfInt64" bytes", Size);
 	}
 
 	#undef K

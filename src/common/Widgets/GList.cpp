@@ -1090,7 +1090,7 @@ Calling this to store your data is optional. Just override the
 "GetText" function to return your own data to avoid duplication
 in memory.
 */
-bool GListItem::SetText(char *s, int i)
+bool GListItem::SetText(const char *s, int i)
 {
 	if (i < 0)
 		return false;
