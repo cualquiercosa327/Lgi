@@ -121,7 +121,7 @@ GCompiledCode &GCompiledCode::operator =(GCompiledCode &c)
 	return *this;
 }
 
-GFunctionInfo *GCompiledCode::GetMethod(char *Name, bool Create)
+GFunctionInfo *GCompiledCode::GetMethod(const char *Name, bool Create)
 {
 	for (int i=0; i<Methods.Length(); i++)
 	{

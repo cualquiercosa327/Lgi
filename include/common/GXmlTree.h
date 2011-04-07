@@ -144,7 +144,7 @@ public:
 	/// Returns a pointer to a child tag if present, or NULL if not.
 	GXmlTag *GetTag(const char *Name, bool Create = false);
 	/// Creates a sub tag if it doesn't already exist.
-	GXmlTag *CreateTag(char *Name, char *Content = 0);
+	GXmlTag *CreateTag(const char *Name, char *Content = 0);
 	/// Inserts a child tag.
 	virtual void InsertTag(GXmlTag *t);
 	/// Removes this tag from the DOM heirarchy.

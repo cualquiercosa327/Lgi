@@ -135,7 +135,7 @@ LgiFunc bool LgiRecursiveFileSearch
 	/// Start search in this dir
 	char *Root,
 	/// Extensions to match
-	GArray<char*> *Ext = 0,
+	GArray<const char*> *Ext = 0,
 	/// [optional] Output filenames
 	GArray<char*> *Files = 0,
 	/// [optional] Output total size

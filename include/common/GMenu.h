@@ -433,9 +433,9 @@ public:
 		/// The parent view for any error message boxes
 		GView *p,
 		/// The resource to load. Will probably change to an int sometime.
-		char *Res,
+		const char *Res,
 		/// Optional list of comma or space separated tags
-		char *Tags = 0
+		const char *Tags = 0
 	);
 	
 	/// \brief See if any of the accelerators match the key event

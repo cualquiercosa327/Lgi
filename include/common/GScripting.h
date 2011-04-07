@@ -30,7 +30,7 @@ struct GFunc
 	GFuncType Type;
 	char *Method;
 
-	GFunc(char *m = 0, GFuncType t = NullFunc)
+	GFunc(const char *m = 0, GFuncType t = NullFunc)
 	{
 		Type = t;
 		Method = NewStr(m);
@@ -50,7 +50,7 @@ struct GHostFunc : public GFunc
 	char *Args;
 	ScriptCmd Func;
 	
-	GHostFunc(char *method, char *args, ScriptCmd proc) : GFunc(method, HostFunc)
+	GHostFunc(const char *method, const char *args, ScriptCmd proc) : GFunc(method, HostFunc)
 	{
 		Args = NewStr(args);
 		Func = proc;

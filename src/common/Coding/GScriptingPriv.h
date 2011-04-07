@@ -157,7 +157,7 @@ struct GVarRef
 		return r.Scope != Scope || r.Index != Index;
 	}
 
-	char *GetStr()
+	const char *GetStr()
 	{
 		if (Index < 0)
 			return "NoRef";
@@ -302,8 +302,8 @@ public:
 	}
 
 	int Sizeof() { return Size; }
-	bool GetVariant(char *Name, GVariant &Value, char *Arr = 0);
-	bool SetVariant(char *Name, GVariant &Value, char *Arr = 0);
+	bool GetVariant(const char *Name, GVariant &Value, char *Arr = 0);
+	bool SetVariant(const char *Name, GVariant &Value, char *Arr = 0);
 };
 
 /// Container of compiled byte code
@@ -327,7 +327,7 @@ public:
 	int Length() { return ByteCode.Length(); }
 	GCompiledCode &operator =(GCompiledCode &c);
 	/// Gets a method defined in the code
-	GFunctionInfo *GetMethod(char *Name, bool Create = false);
+	GFunctionInfo *GetMethod(const char *Name, bool Create = false);
 	/// Sets a global variable
 	GVariant *Set(char *Name, GVariant &v);
 	/// Gets the definition of a struct or custom type

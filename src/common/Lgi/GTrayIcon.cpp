@@ -260,7 +260,7 @@ GTrayIcon::~GTrayIcon()
 	DeleteObj(d);
 }
 
-bool GTrayIcon::Load(TCHAR *Str)
+bool GTrayIcon::Load(const TCHAR *Str)
 {
 	#if WIN32NATIVE
 	

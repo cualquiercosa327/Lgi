@@ -74,7 +74,7 @@ public:
 LgiFunc GImageList *LgiLoadImageList
 (
 	/// The file to load
-	char *File,
+	const char *File,
 	/// The width of the icons
 	int x,
 	/// The height of the icons
@@ -248,7 +248,7 @@ public:
 		/// Set this to the properties store to switch on the right click menu, or NULL to switch it off.
 		GDom *Store = 0,
 		/// This is the property that the toolbar stores state under. It should be unique for every toolbar.
-		char *Option = 0
+		const char *Option = 0
 	);
 	/// Sets the image list to use via a file
 	bool SetBitmap(char *File, int Bx, int By);
@@ -320,7 +320,7 @@ LgiFunc GToolBar *LgiLoadToolbar
 	/// A parent window for error message boxes
 	GViewI *Parent,
 	/// The graphics file to load as the image list
-	char *File,
+	const char *File,
 	/// The width of the icons
 	int x = 24,
 	/// The height of the icons

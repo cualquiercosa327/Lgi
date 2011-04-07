@@ -21,7 +21,7 @@ public:
 	(
 		/// The unique name of the memory block. Should be the same string used by all processes
 		/// wishing to access the same memory.
-		char *Name,
+		const char *Name,
 		/// The number of bytes to allocate, should also be the same in all processes connecting
 		/// to the shared memory.
 		int Size

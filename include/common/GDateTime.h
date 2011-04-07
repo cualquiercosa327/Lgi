@@ -167,17 +167,17 @@ public:
 	void SetNow();
 	/// Parses a date time from a string
 	/// \sa GDateTime::GetFormat()
-	bool Set(char *Str);
+	bool Set(const char *Str);
 	/// Sets the date and time from a 64 bit int (os specific)
 	bool Set(uint64 s);
 	/// Sets the time from a time_t
 	bool Set(time_t tt);
 	/// Parses the date from a string
 	/// \sa GDateTime::GetFormat()
-	bool SetDate(char *Str);
+	bool SetDate(const char *Str);
 	/// Parses the time from a string
 	/// \sa GDateTime::GetFormat()
-	bool SetTime(char *Str);
+	bool SetTime(const char *Str);
 
 	/// \returns whether a year is a leap year or not
 	bool IsLeapYear

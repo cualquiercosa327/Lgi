@@ -110,7 +110,7 @@ public:
 		return 0;
 	}
 
-	N Reverse(V v)
+	N Reverse(const V v)
 	{
 		for (Mapping *m=Maps.First(); m; m=Maps.Next())
 		{

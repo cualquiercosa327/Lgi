@@ -21,7 +21,7 @@ public:
 	void Set(char *Buf);
 	
 	// bool Serialize(ObjProperties *Options, char *Option, int Write);
-	bool Serialize(GDom *Options, char *Option, int Write);
+	bool Serialize(GDom *Options, const char *Option, int Write);
 	void Serialize(char *Password, int Write);
 	
 	void Delete(GDom *Options, char *Option);

@@ -52,7 +52,7 @@ public:
 	char *GetValue();
 
 	void SetNot(bool b);
-	void SetField(char *s);
+	void SetField(const char *s);
 	void SetOp(int i);
 	void SetValue(char *s);
 

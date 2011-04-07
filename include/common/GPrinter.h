@@ -30,7 +30,7 @@ public:
 	);
 
 	/// Start a print job
-	GPrintDC *StartDC(char *PrintJobName, GView *Parent = 0);
+	GPrintDC *StartDC(const char *PrintJobName, GView *Parent = 0);
 
 	/// Browse to a printer
 	bool Browse(GView *Parent);

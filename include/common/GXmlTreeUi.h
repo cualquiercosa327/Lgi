@@ -24,11 +24,11 @@ public:
 	typedef GTreeItem *(*CreateTreeItem)(void *User);
 
 	/// Create attribute <-> UI element mapping for generic control
-	void Map(char *Attr, int UiIdent, int Type = GV_NULL);
+	void Map(const char *Attr, int UiIdent, int Type = GV_NULL);
 	/// Create attribute <-> UI element mapping for GList control
-	void Map(char *Element, int UiIdent, CreateListItem Factory, char *ChildElements, void *User = 0);
+	void Map(const char *Element, int UiIdent, CreateListItem Factory, char *ChildElements, void *User = 0);
 	/// Create attribute <-> UI element mapping for GTree control
-	void Map(char *Element, int UiIdent, CreateTreeItem Factory, char *ChildElements, void *User = 0);
+	void Map(const char *Element, int UiIdent, CreateTreeItem Factory, char *ChildElements, void *User = 0);
 	/// Clear all mappings
 	void EmptyMaps();
 	/// Convert data to/from an XML tag

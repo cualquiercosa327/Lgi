@@ -216,7 +216,7 @@ class GTag : public GDom, public GCss
 	static bool Selected;
 	friend class HtmlEdit;
 
-	GHashTbl<char*, char*> Attr;
+	GHashTbl<const char*, char*> Attr;
 
 	// Text
 	GAutoWString Txt, PreTxt;
@@ -298,8 +298,8 @@ public:
 	void OnChange(PropType Prop);
 
 	// Attributes
-	bool Get(char *attr, char *&val) { val = Attr.Find(attr); return val != 0; }
-	void Set(char *attr, char *val);
+	bool Get(const char *attr, char *&val) { val = Attr.Find(attr); return val != 0; }
+	void Set(const char *attr, const char *val);
 
 	// Methods
 	char16 *Text() { return Txt; }
@@ -324,8 +324,8 @@ public:
 	void CopyClipboard(GBytePipe &p);
 	GTag *IsAnchor(GAutoString *Uri);
 	bool CreateSource(GStringPipe &p, int Depth = 0, bool LastWasBlock = true);
-	bool GetVariant(char *Name, GVariant &Value, char *Array = 0);
-	bool SetVariant(char *Name, GVariant &Value, char *Array = 0);
+	bool GetVariant(const char *Name, GVariant &Value, char *Array = 0);
+	bool SetVariant(const char *Name, GVariant &Value, char *Array = 0);
 	void Find(int TagType, GArray<GTag*> &Tags);
 	GTag *GetAnchor(char *Name);
 

@@ -246,7 +246,7 @@ public:
 	virtual bool GetOption
 	(
 		/// The option to look for.
-		char *Option,
+		const char *Option,
 		/// The buffer to receive the value.
 		GAutoString &Buf
 	) = 0;
@@ -256,7 +256,7 @@ public:
 	virtual bool GetOption
 	(
 		/// The option to look for.
-		char *Option,
+		const char *Option,
 		/// The buffer to receive the value of the command line parameter or NULL if you don't care.
 		char *Dst = 0,
 		/// The buffer size in bytes
@@ -276,7 +276,7 @@ public:
 	virtual GAutoString GetFileMimeType
 	(
 		/// The file to identify
-		char *File
+		const char *File
 	) = 0;
 		
 	/// Get a system metric

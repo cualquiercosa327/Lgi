@@ -35,13 +35,13 @@
 #define MAIL_INFO_COLOUR					Rgb24(0, 0, 0)
 
 // Helper functions
-extern void TokeniseStrList(char *Str, List<char> &Output, char *Delim);
+extern void TokeniseStrList(char *Str, List<char> &Output, const char *Delim);
 extern char ConvHexToBin(char c);
 #define ConvBinToHex(i) (((i)<10)?'0'+(i):'A'+(i)-10)
 extern void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *DefaultDomain);
 extern bool IsValidEmail(char *email, GAutoString *out = 0);
 extern char *DecodeRfc2047(char *Str);
-extern char *EncodeRfc2047(char *Str, char *CodePage, List<char> *CharsetPrefs, int LineLength = 0);
+extern char *EncodeRfc2047(char *Str, const char *CodePage, List<char> *CharsetPrefs, int LineLength = 0);
 extern char *DecodeBase64Str(char *Str, int Len = -1);
 extern char *DecodeQuotedPrintableStr(char *Str, int Len = -1);
 extern bool Is8Bit(char *Text);
@@ -253,14 +253,14 @@ public:
 	void Empty();
 
 	virtual char *GetBody();
-	virtual bool SetBody(char *Txt, int Bytes = -1, bool Copy = true, char *Cs = 0);
+	virtual bool SetBody(const char *Txt, int Bytes = -1, bool Copy = true, const char *Cs = 0);
 	virtual char *GetBodyCharset();
-	virtual bool SetBodyCharset(char *Cs, bool Copy = true);
+	virtual bool SetBodyCharset(const char *Cs, bool Copy = true);
 
 	virtual char *GetHtml();
-	virtual bool SetHtml(char *Txt, int Bytes = -1, bool Copy = true, char *Cs = 0);
+	virtual bool SetHtml(const char *Txt, int Bytes = -1, bool Copy = true, const char *Cs = 0);
 	virtual char *GetHtmlCharset();
-	virtual bool SetHtmlCharset(char *Cs, bool Copy = true);
+	virtual bool SetHtmlCharset(const char *Cs, bool Copy = true);
 	
 	// Conversion to/from MIME
 	GStringPipe					*Raw;
@@ -284,7 +284,7 @@ protected:
 	GSemaphore SocketLock;
 	GAutoPtr<GSocketI> Socket;
 
-	bool Error(char *file, int line, char *msg, ...);
+	bool Error(const char *file, int line, const char *msg, ...);
 	bool Read();
 	bool Write(char *Buf = NULL, bool Log = false);
 	
@@ -354,13 +354,13 @@ public:
 		/// The transport layer to use
 		GSocketI *S,
 		/// The host to connect to
-		char *RemoteHost,
+		const char *RemoteHost,
 		/// The local domain
-		char *LocalDomain,
+		const char *LocalDomain,
 		/// The sink username (or NULL)
-		char *UserName,
+		const char *UserName,
 		/// The sink password (or NULL)
-		char *Password,
+		const char *Password,
 		/// The port to connect with or 0 for default (25)
 		int Port,
 		/// Options: Use any of #MAIL_SINK_STARTTLS, #MAIL_SINK_AUTH, #MAIL_SINK_USE_PLAIN, #MAIL_SINK_USE_LOGIN or'd together.
@@ -426,7 +426,7 @@ struct ImapMailFlags
 		return NewStr(s);
 	}
 
-	void Set(char *s)
+	void Set(const char *s)
 	{
 		ImapAnswered = false;
 		ImapDeleted = false;
@@ -443,7 +443,7 @@ struct ImapMailFlags
 			{
 				while (*s == '/' || *s == '\\')
 					s++;
-				char *e = s;
+				const char *e = s;
 				while (*e && isalpha(*e))
 					e++;
 
@@ -632,14 +632,14 @@ public:
 class MailSmtp : public MailSink
 {
 protected:
-	bool ReadReply(char *Str, GStringPipe *Pipe = 0, MailProtocolError *Err = 0);
-	bool WriteText(char *Str);
+	bool ReadReply(const char *Str, GStringPipe *Pipe = 0, MailProtocolError *Err = 0);
+	bool WriteText(const char *Str);
 
 public:
 	MailSmtp();
 	~MailSmtp();
 
-	bool Open(GSocketI *S, char *RemoteHost, char *LocalDomain, char *UserName, char *Password, int Port = SMTP_PORT, int Flags = 0);
+	bool Open(GSocketI *S, const char *RemoteHost, const char *LocalDomain, const char *UserName, const char *Password, int Port = SMTP_PORT, int Flags = 0);
 	bool Close();
 
 	bool SendToFrom(List<AddressDescriptor> &To, AddressDescriptor *From, MailProtocolError *Err = 0);
@@ -659,7 +659,7 @@ public:
 	MailSendFolder(char *Path);
 	~MailSendFolder();
 
-	bool Open(GSocketI *S, char *RemoteHost, char *LocalDomain, char *UserName, char *Password, int Port = 0, int Flags = 0);
+	bool Open(GSocketI *S, const char *RemoteHost, const char *LocalDomain, const char *UserName, const char *Password, int Port = 0, int Flags = 0);
 	bool Close();
 
 	GStringPipe *SendStart(List<AddressDescriptor> &To, AddressDescriptor *From, MailProtocolError *Err = 0);

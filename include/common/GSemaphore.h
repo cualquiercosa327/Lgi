@@ -53,7 +53,7 @@ public:
 	void Unlock();
 
 	char *GetName();
-	void SetName(char *s);
+	void SetName(const char *s);
 	
 	#ifdef _DEBUG
 	void SetDebug(bool b = true) { _DebugSem = b; }

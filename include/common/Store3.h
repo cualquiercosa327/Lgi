@@ -92,7 +92,7 @@ void ParseIdList(char *In, List<char> &Out);
 
 #define GDATA_STR_PROP(name, id) \
 	char *Get##name() { return Object ? Object->GetStr(id) : 0; } \
-	bool Set##name(char *val) { return Object ? Object->SetStr(id, val) : false; }
+	bool Set##name(const char *val) { return Object ? Object->SetStr(id, val) : false; }
 
 #define GDATA_DATE_PROP(name, id) \
 	GDateTime *Get##name() { return (Object ? Object->GetDate(id) : 0); } \
@@ -175,7 +175,7 @@ public:
 	virtual char *GetStr(int id) { EmptyVirtual; }
 	/// Sets a string property, it will make a copy of the string, so you
 	/// still retain ownership of the string you're passing in.
-	virtual bool SetStr(int id, char *str) { EmptyVirtual; }
+	virtual bool SetStr(int id, const char *str) { EmptyVirtual; }
 	/// Gets an integer property.
 	virtual int GetInt(int id) { EmptyVirtual; }
 	/// Sets an interger property.
@@ -228,7 +228,7 @@ public:
 	virtual GDataStoreI *GetStore() = 0;
 	/// \returns a stream to access the data stored at this node. The caller
 	/// is responsible to free the stream when finished with it.
-	virtual GAutoStreamI GetStream(char *file, int line) = 0;
+	virtual GAutoStreamI GetStream(const char *file, int line) = 0;
 	/// Sets the stream, which is used during the next call to GDataI::Save, which
 	/// also deletes the object when it's used. The caller loses ownership of the
 	/// object passed into this function.
@@ -253,7 +253,7 @@ public:
 	/// Called when the user selects the folder in the UI
 	virtual void OnSelect(bool s) {}
 	/// Called when the user selects a relevant context menu command
-	virtual void OnCommand(char *Name) {}
+	virtual void OnCommand(const char *Name) {}
 };
 
 /// Event callback interface. Calls to these methods may be in a worker

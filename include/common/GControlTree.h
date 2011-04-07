@@ -38,7 +38,7 @@ public:
 		Item(char *Txt, char *opt, GVariantType type, GArray<EnumValue> *pEnum);
 		~Item();
 
-		Item *Find(char *opt);
+		Item *Find(const char *opt);
 		bool Serialize(GDom *Store, bool Write);
 		void SetValue(GVariant &v);
 		GRect &GetRect();
@@ -52,15 +52,15 @@ public:
 protected:
 	class GControlTreePriv *d;
 
-	class Item *Resolve(bool Create, char *Path, GVariantType Type = GV_NULL, GArray<EnumValue> *Enum = 0);
+	class Item *Resolve(bool Create, const char *Path, GVariantType Type = GV_NULL, GArray<EnumValue> *Enum = 0);
 
 public:
 	GControlTree();
 	~GControlTree();
 
-	Item *Find(char *opt);
-	GTreeItem *Insert(char *DomPath, GVariantType Type, GVariant *Value = 0, GArray<EnumValue> *Enum = 0);
-	bool SetVariant(char *Name, GVariant &Value, char *Array = 0);
+	Item *Find(const char *opt);
+	GTreeItem *Insert(const char *DomPath, GVariantType Type, GVariant *Value = 0, GArray<EnumValue> *Enum = 0);
+	bool SetVariant(const char *Name, GVariant &Value, char *Array = 0);
 	bool Serialize(GDom *Store, bool Write);
 	int OnNotify(GViewI *c, int f);
 };

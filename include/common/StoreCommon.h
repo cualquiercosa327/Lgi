@@ -145,7 +145,7 @@ public:
 
 	// Impl
 	virtual bool Save() = 0;
-	virtual GFile *GotoObject(char *file, int line) = 0;
+	virtual GFile *GotoObject(const char *file, int line) = 0;
 	virtual bool EndOfObj(GFile &f) = 0;
 };
 

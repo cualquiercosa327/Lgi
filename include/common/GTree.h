@@ -102,7 +102,7 @@ public:
 	/// \brief Sets the text for the node.
 	///
 	/// This will allocate and store the string in this class.
-	bool SetText(char *s, int i=0);
+	bool SetText(const char *s, int i=0);
 	/// Returns the icon index into the parent tree's GImageList.
 	int GetImage(int Flags = 0);
 	/// Sets the icon index into the parent tree's GImageList.

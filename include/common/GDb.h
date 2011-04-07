@@ -51,7 +51,7 @@ public:
 	// Fields
 	virtual GDbField &operator [](int Index) = 0;
 	virtual GDbField &operator [](char *Name) = 0;
-	virtual GDbField *InsertField(	char *Name,
+	virtual GDbField *InsertField(	const char *Name,
 									int Type,
 									int Length = 0,
 									int Index = -1) = 0; // default: append to the end

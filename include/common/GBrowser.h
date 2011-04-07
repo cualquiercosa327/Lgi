@@ -20,7 +20,7 @@ public:
 		virtual bool OnSearch(GBrowser *br, char *txt) { return false; }
 	};
 	
-	GBrowser(char *Title, char *Uri = 0);
+	GBrowser(const char *Title, char *Uri = 0);
 	~GBrowser();
 
 	void SetEvents(GBrowserEvents *Events);

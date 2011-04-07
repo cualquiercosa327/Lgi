@@ -381,7 +381,7 @@ public:
 	virtual bool GetFormattedContent
 	(
 		/// [In] The desired mime type of the content
-		char *MimeType,
+		const char *MimeType,
 		/// [Out] The content in the specified mime type
 		GAutoString &Out,
 		/// [Out/Optional] Any attached media files that the content references

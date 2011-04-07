@@ -72,10 +72,10 @@ public:
 	bool SetData(char *Str, int Len);
 
 	// Simple Header Management
-	char *Get(char *Field, bool Short = true, char *Default = 0); // 'Short'=true returns the value with out subfields
-	bool Set(char *Field, char *Value); // 'Value' has to include any subfields.
-	char *GetSub(char *Field, char *Sub);
-	bool SetSub(char *Field, char *Sub, char *Value, char *DefaultValue = 0);
+	char *Get(const char *Field, bool Short = true, const char *Default = 0); // 'Short'=true returns the value with out subfields
+	bool Set(const char *Field, const char *Value); // 'Value' has to include any subfields.
+	char *GetSub(const char *Field, const char *Sub);
+	bool SetSub(const char *Field, const char *Sub, const char *Value, const char *DefaultValue = 0);
 
 	// Header Shortcuts (uses Get[Sub]/Set[Sub])
 	char *GetMimeType()			{ return Get("Content-Type", true, "text/plain"); }

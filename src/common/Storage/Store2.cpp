@@ -248,7 +248,7 @@ bool StorageItemImpl::EndOfObj(GFile &f)
 	return Before || After;
 }
 
-GFile *StorageItemImpl::GotoObject(char *file, int line)
+GFile *StorageItemImpl::GotoObject(const char *file, int line)
 {
 	GSubFilePtr *f = 0;
 	

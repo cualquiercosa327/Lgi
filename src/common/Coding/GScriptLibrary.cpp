@@ -647,7 +647,7 @@ public:
 		Modified.Set(d->GetLastWriteTime());
 	}
 
-	bool GetVariant(char *Var, GVariant &Value, char *Arr = 0)
+	bool GetVariant(const char *Var, GVariant &Value, char *Arr = 0)
 	{
 		if (!stricmp(Var, "Name"))
 			Value = Name;

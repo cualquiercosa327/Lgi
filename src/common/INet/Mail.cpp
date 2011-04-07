@@ -119,7 +119,7 @@ bool ValidNonWSStr(char *s)
 	return false;
 }
 
-void TokeniseStrList(char *Str, List<char> &Output, char *Delim)
+void TokeniseStrList(char *Str, List<char> &Output, const char *Delim)
 {
 	if (Str && Delim)
 	{
@@ -362,7 +362,7 @@ char *DecodeRfc2047(char *Str)
 
 #define MIME_MAX_LINE		76
 
-char *EncodeRfc2047(char *Str, char *CodePage, List<char> *CharsetPrefs, int LineLength)
+char *EncodeRfc2047(char *Str, const char *CodePage, List<char> *CharsetPrefs, int LineLength)
 {
 	if (!CodePage)
 	{
@@ -440,7 +440,7 @@ char *EncodeRfc2047(char *Str, char *CodePage, List<char> *CharsetPrefs, int Lin
 						}
 
 						char Temp[16];
-						Ch = sprintf(Temp, "=%02.2X", (uchar)*w);
+						Ch = sprintf(Temp, "=%2.2X", (uchar)*w);
 						p.Write(Temp, Ch);
 						LineLength += Ch;
 					}
@@ -988,7 +988,7 @@ bool FileDescriptor::Decode(char *ContentType,
 
 		if (Content != CONTENT_NONE);
 		{
-			char *NameKey = "name";
+			const char *NameKey = "name";
 			char *n = strnistr(ContentType, NameKey, 1000);
 			if (n)
 			{
@@ -1198,7 +1198,7 @@ void MailProtocol::Log(const char *Str, COLOUR c)
 	}
 }
 
-bool MailProtocol::Error(char *file, int line, char *msg, ...)
+bool MailProtocol::Error(const char *file, int line, const char *msg, ...)
 {
 	char s[1024];
 	va_list a;
@@ -1809,7 +1809,7 @@ bool MailSmtp::Close()
 	return false;
 }
 
-bool MailSmtp::ReadReply(char *Str, GStringPipe *Pipe, MailProtocolError *Err)
+bool MailSmtp::ReadReply(const char *Str, GStringPipe *Pipe, MailProtocolError *Err)
 {
 	bool Status = false;
 	if (Socket && Str)
@@ -3030,14 +3030,14 @@ char *MailMessage::GetBodyCharset()
 	return TextCharset;
 }
 
-bool MailMessage::SetBodyCharset(char *Cs, bool Copy)
+bool MailMessage::SetBodyCharset(const char *Cs, bool Copy)
 {
 	DeleteArray(TextCharset);
 	TextCharset = Copy ? NewStr(Cs) : Cs;
 	return true;
 }
 
-bool MailMessage::SetBody(char *Txt, int Bytes, bool Copy, char *Cs)
+bool MailMessage::SetBody(const char *Txt, int Bytes, bool Copy, char *Cs)
 {
 	if (Txt != Text)
 	{

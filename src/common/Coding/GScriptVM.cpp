@@ -1658,7 +1658,7 @@ bool GVirtualMachine::ExecuteFunction(GCompiledCode *Code, GFunctionInfo *Func, 
 }
 
 ////////////////////////////////////////////////////////////////////
-bool GTypeDef::GetVariant(char *Name, GVariant &Value, char *Arr)
+bool GTypeDef::GetVariant(const char *Name, GVariant &Value, char *Arr)
 {
 	GMember *m = Members.Find(Name);
 	if (!m || !Object)

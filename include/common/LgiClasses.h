@@ -1381,7 +1381,7 @@ public:
 		/// The data store for reading/writing
 		GDom *Store,
 		/// The field name to use for storing settings under
-		char *FieldName,
+		const char *FieldName,
 		/// TRUE if loading the settings into the window, FALSE if saving to the store.
 		bool Load
 	);
@@ -1593,7 +1593,7 @@ public:
 	~GTrayIcon();
 
 	/// Add an icon to the list
-	bool Load(TCHAR *Str);
+	bool Load(const TCHAR *Str);
 	
 	/// Is it visible?
 	bool Visible();

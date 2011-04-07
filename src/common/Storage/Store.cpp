@@ -213,7 +213,7 @@ bool StorageItemImpl::MoveToLoc(int NewLoc)
 	return Status;
 }
 
-GFile *StorageItemImpl::GotoObject(char *file, int line)
+GFile *StorageItemImpl::GotoObject(const char *file, int line)
 {
 	GSubFilePtr *f = 0;
 	

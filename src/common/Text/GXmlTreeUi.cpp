@@ -104,7 +104,7 @@ void GXmlToUi::EnableAll(GViewI *Ui, bool Enable)
 	}
 }
 
-void GXmlToUi::Map(char *Attr, int UiIdent, int Type)
+void GXmlToUi::Map(const char *Attr, int UiIdent, int Type)
 {
 	if (UiIdent > 0 &&
 		(Attr != 0 || Type == GV_DOM))
@@ -123,7 +123,7 @@ void GXmlToUi::Map(char *Attr, int UiIdent, int Type)
 	}
 }
 
-void GXmlToUi::Map(char *Attr, int UiIdent, CreateListItem Factory, char *ChildElements, void *User)
+void GXmlToUi::Map(const char *Attr, int UiIdent, CreateListItem Factory, char *ChildElements, void *User)
 {
 	if (Attr && UiIdent > 0 && Factory && ChildElements)
 	{
@@ -144,7 +144,7 @@ void GXmlToUi::Map(char *Attr, int UiIdent, CreateListItem Factory, char *ChildE
 	}
 }
 
-void GXmlToUi::Map(char *Attr, int UiIdent, CreateTreeItem Factory, char *ChildElements, void *User)
+void GXmlToUi::Map(const char *Attr, int UiIdent, CreateTreeItem Factory, char *ChildElements, void *User)
 {
 	if (Attr && UiIdent > 0 && Factory && ChildElements)
 	{

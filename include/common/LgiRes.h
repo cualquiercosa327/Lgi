@@ -74,7 +74,7 @@ class LgiClass LgiResources : public ResFactory
 	void AddLang(GLanguageId id);
 
 public:
-	GHashTbl<char*, char*> LanguageNames;
+	GHashTbl<const char*, char*> LanguageNames;
 
 	LgiResources(char *FileName = 0, bool Warn = false);
 	virtual ~LgiResources();

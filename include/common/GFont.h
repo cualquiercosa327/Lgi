@@ -246,7 +246,7 @@ protected:
 	#endif
 
 public:
-	GFontType(char *face = 0, int pointsize = 0);
+	GFontType(const char *face = 0, int pointsize = 0);
 	virtual ~GFontType();
 
 	#ifdef WIN32
@@ -259,7 +259,7 @@ public:
 	char *GetFace();
 	
 	/// Sets the type face name
-	void SetFace(char *Face);
+	void SetFace(const char *Face);
 	
 	/// Sets the point size
 	int GetPointSize();
@@ -276,7 +276,7 @@ public:
 	/// Read/Write the font def to storage
 	// bool Serialize(ObjProperties *Options, char *OptName, bool Write);
 	/// Read/Write the font def to storage
-	bool Serialize(GDom *Options, char *OptName, bool Write);
+	bool Serialize(GDom *Options, const char *OptName, bool Write);
 
 	/// Read the font from the LGI config
 	bool GetConfigFont(const char *Tag);
@@ -347,7 +347,7 @@ public:
 };
 
 /// Returns information about a charset.
-LgiFunc GCharset *LgiGetCsInfo(char *Cs);
+LgiFunc GCharset *LgiGetCsInfo(const char *Cs);
 /// Returns the start of an array of supported charsets, terminated by
 /// one with a NULL 'Charset' member. 
 LgiFunc GCharset *LgiGetCsList();

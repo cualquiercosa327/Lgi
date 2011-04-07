@@ -27,35 +27,35 @@ private:
 	bool _OnAccess(bool Start);
 
 	// Don't allow non-threadsafe access to these
-	char *GetAttr(char *Name) { return GXmlTag::GetAttr(Name); }
-	int GetAsInt(char *Name) { return GXmlTag::GetAsInt(Name); }
-	bool SetAttr(char *Name, char *Value) { return GXmlTag::SetAttr(Name, Value); }
-	bool SetAttr(char *Name, int Value) { return GXmlTag::SetAttr(Name, Value); }
-	bool DelAttr(char *Name) { return GXmlTag::DelAttr(Name); }
+	char *GetAttr(const char *Name) { return GXmlTag::GetAttr(Name); }
+	int GetAsInt(const char *Name) { return GXmlTag::GetAsInt(Name); }
+	bool SetAttr(const char *Name, char *Value) { return GXmlTag::SetAttr(Name, Value); }
+	bool SetAttr(const char *Name, int Value) { return GXmlTag::SetAttr(Name, Value); }
+	bool DelAttr(const char *Name) { return GXmlTag::DelAttr(Name); }
 	void InsertTag(GXmlTag *t) { GXmlTag::InsertTag(t); }
 	void RemoveTag() { GXmlTag::RemoveTag(); }
-	GXmlTag *GetTag(char *Name, bool Create = false) { return GXmlTag::GetTag(Name, Create); }
+	GXmlTag *GetTag(const char *Name, bool Create = false) { return GXmlTag::GetTag(Name, Create); }
 
 protected:
 	virtual void _Defaults() {}
 
 public:
-	GOptionsFile(char *FileName = 0);
-	GOptionsFile(PortableType Mode, char *BaseName = 0);
+	GOptionsFile(const char *FileName = 0);
+	GOptionsFile(PortableType Mode, const char *BaseName = 0);
 	~GOptionsFile();
 
-	void SetFile(char *f);
-	bool SetMode(PortableType Mode, char *BaseName = 0);
+	void SetFile(const char *f);
+	bool SetMode(PortableType Mode, const char *BaseName = 0);
 
 	bool IsValid();
 	char *GetFile() { return File; }
 	char *GetError() { return Error; }
 	bool Serialize(bool Write);
-	bool DeleteValue(char *Name);
+	bool DeleteValue(const char *Name);
 
-	bool CreateTag(char *Name);
-	bool DeleteTag(char *Name);
-	GXmlTag *LockTag(char *Name, char *File, int Line);
+	bool CreateTag(const char *Name);
+	bool DeleteTag(const char *Name);
+	GXmlTag *LockTag(const char *Name, const char *File, int Line);
 };
 
 #endif

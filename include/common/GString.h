@@ -46,7 +46,7 @@ LgiFunc char *strnstr
 	/// The string to search
 	char *a,
 	/// The string to find
-	char *b,
+	const char *b,
 	/// The maximum number of bytes in 'a' to seach through
 	int n
 );
@@ -62,7 +62,7 @@ LgiFunc char *strnistr
 	/// The string to search
 	char *a,
 	/// The string to find
-	char *b,
+	const char *b,
 	/// The maximum number of bytes of 'a' to search.
 	int n
 );
@@ -83,7 +83,6 @@ LgiFunc char *stristr
 
 
 // LgiFunc int stricmp(char *a, char *b);
-LgiFunc char *strnistr(char *a, char *b, int n);
 #ifndef WIN32
 LgiFunc int strnicmp(const char *a, const char *b, int i);
 #endif
