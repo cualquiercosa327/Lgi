@@ -36,7 +36,7 @@ public:
 	int Index();
 	#if defined BEOS
 	char *Name();
-	bool Name(char *n);
+	bool Name(const char *n);
 	#endif
 
 	int OnEvent(GMessage *Msg);

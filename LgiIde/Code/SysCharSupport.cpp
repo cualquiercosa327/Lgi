@@ -65,10 +65,10 @@ public:
 			GFontSystem *s = GFontSystem::Inst();
 			if (s)
 			{
-				List<char> Fonts;
+				List<const char> Fonts;
 				if (s->EnumerateFonts(Fonts))
 				{
-					for (char *f=Fonts.First(); f; f=Fonts.Next())
+					for (const char *f=Fonts.First(); f; f=Fonts.Next())
 					{
 						GFont *Fnt = new GFont;
 						if (Fnt)

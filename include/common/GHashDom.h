@@ -17,7 +17,7 @@ public:
 
 	bool GetVariant(const char *Name, GVariant &Value, char *Array = 0)
 	{
-		GVariant *v = (GVariant*)Find(Name);
+		GVariant *v = (GVariant*)Find((char*)Name);
 		if (v)
 		{
 			Value = *v;
@@ -31,7 +31,7 @@ public:
 		GVariant *v = new GVariant(Value);
 		if (v)
 		{
-			Add(Name, v);
+			Add((char*)Name, v);
 			return true;
 		}
 		return false;

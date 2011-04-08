@@ -21,7 +21,7 @@ public:
 	int OnNotify(GViewI * c, int f);
 
 	char *Name();
-	bool Name(char *s);
+	bool Name(const char *s);
 	bool Sunken();
 	void Sunken(bool i);
 };

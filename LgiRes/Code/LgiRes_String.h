@@ -56,7 +56,7 @@ protected:
 	char RefStr[16];
 	char IdStr[16];
 	char **GetIndex(int i);
-	StrLang *GetLang(char *i);
+	StrLang *GetLang(GLanguageId i);
 	GAutoString Define;		// #define used in code to reference
 	int Ref;			// globally unique
 	int Id;				// numerical value used in code to reference
@@ -84,7 +84,7 @@ public:
 	void CopyText();
 	void PasteText();
 	char *GetDefine() { return Define; }
-	void SetDefine(char *s);
+	void SetDefine(const char *s);
 
 	// Item
 	int GetCols();

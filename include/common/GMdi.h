@@ -21,7 +21,7 @@ public:
 	bool Attach(GViewI *p);
 	int OnEvent(GMessage *m);
 	char *Name();
-	bool Name(char *n);
+	bool Name(const char *n);
 };
 
 class GMdiParent : public GLayout

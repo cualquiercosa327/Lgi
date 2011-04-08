@@ -407,7 +407,7 @@ public:
 	char16 *Script;
 	GArray<StackFrame*> Stack;
 	GScriptContext *Context;
-	GHashTable Methods;
+	GHashTbl<const char*, GFunc*> Methods;
 	bool IsCompiling;
 
 	GArray<GCode> Compiled;
@@ -942,7 +942,7 @@ GScriptEngine1::GScriptEngine1(GViewI *parent, GScriptContext *context)
 	int i = 0;
 	for (GHostFunc *cmd = SystemLibrary + i; cmd->Method; cmd++)
 	{
-		d->Methods.Add(cmd->Method, (GFunc*)cmd);
+		d->Methods.Add(cmd->Method, cmd);
 	}
 
 	if (d->Context)
@@ -980,7 +980,7 @@ GStringPipe *GScriptEngine1::GetTerm()
 	return &d->Term;
 }
 
-bool GScriptEngine1::CallMethod(char *Method, GVariant *Ret, ArgumentArray &Args)
+bool GScriptEngine1::CallMethod(const char *Method, GVariant *Ret, ArgumentArray &Args)
 {
 	bool Status = false;
 

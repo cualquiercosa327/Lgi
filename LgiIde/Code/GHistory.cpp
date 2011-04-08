@@ -175,9 +175,9 @@ class GHistoryFactory : public GViewFactory
 public:
 	virtual GView *NewView
 	(
-		char *Class,
+		const char *Class,
 		GRect *Pos,
-		char *Text
+		const char *Text
 	)
 	{
 		if (stricmp(Class, "GHistory") == 0)

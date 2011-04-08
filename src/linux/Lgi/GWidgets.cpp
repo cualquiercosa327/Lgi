@@ -635,7 +635,7 @@ void GRadioButton::OnPaint(GSurface *pDC)
 
 //////////////////////////////////////////////////////////////////////////////////
 // Slider control
-GSlider::GSlider(int id, int x, int y, int cx, int cy, char *name, bool vert) :
+GSlider::GSlider(int id, int x, int y, int cx, int cy, const char *name, bool vert) :
 	ResObject(Res_Slider)
 {
 	SetId(id);

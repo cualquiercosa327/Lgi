@@ -295,7 +295,7 @@ char *InetGetSubField(const char *s, const char *Field)
 						{
 							// Quote Delimited Field
 							char d = *s++;
-							char *e = strchr(s, d);
+							char *e = strchr((char*)s, d);
 							if (e)
 							{
 								if (HasField)

@@ -147,7 +147,7 @@ public:
 
 	// Data
 	char *Name();
-	bool Name(char *s);
+	bool Name(const char *s);
 
 	// Font
 	GFont *GetFont();

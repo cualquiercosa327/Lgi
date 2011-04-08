@@ -2219,7 +2219,7 @@ ResStringGroup *ResDialog::Symbols = 0;
 int ResDialog::SymbolRefs = 0;
 bool ResDialog::CreateSymbols = true;
 
-void ResDialog::AddLanguage(char *Id)
+void ResDialog::AddLanguage(const char *Id)
 {
 	if (Symbols)
 	{
@@ -2329,12 +2329,12 @@ char *ResDialog::Name()
 	return "<no object>";
 }
 
-bool ResDialog::Name(char *n)
+bool ResDialog::Name(const char *n)
 {
 	ResDialogCtrl *Ctrl = dynamic_cast<ResDialogCtrl*>(Children.First());
 	if (Ctrl && Ctrl->Str)
 	{
-		Ctrl->Str->SetDefine((n)?n:(char*)"");
+		Ctrl->Str->SetDefine((n)?n:"");
 		return Ctrl->Str->GetDefine() != 0;
 	}
 	return false;

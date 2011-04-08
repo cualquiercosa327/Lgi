@@ -184,7 +184,7 @@ int ResString::SetId(int id)
 	return Id;
 }
 
-void ResString::SetDefine(char *s)
+void ResString::SetDefine(const char *s)
 {
 	Define.Reset(NewStr(s));
 }
@@ -209,7 +209,7 @@ ResString &ResString::operator =(ResString &s)
 	return *this;
 }
 
-char *ResString::Get(char *Lang)
+char *ResString::Get(GLanguageId Lang)
 {
 	if (!Lang)
 	{
@@ -1352,8 +1352,8 @@ bool ResStringGroup::Read(GXmlTag *t, ResFileFormat Format)
 		
 		Empty();
 
-		GHashTable L;
-		L.Add("en");
+		GHashTbl<const char*, bool> L;
+		L.Add("en", true);
 		Status = true;
 		for (GXmlTag *c = t->Children.First(); c; c = t->Children.Next())
 		{
@@ -1364,7 +1364,7 @@ bool ResStringGroup::Read(GXmlTag *t, ResFileFormat Format)
 				{
 					if (!L.Find(i->GetLang()))
 					{
-						L.Add(i->GetLang());
+						L.Add(i->GetLang(), true);
 						AppendLanguage(i->GetLang());
 					}
 				}

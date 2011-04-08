@@ -104,11 +104,11 @@ public:
 	// Window
 
 	/// Sets the HTML content of the control
-	bool Name(char *s);
+	bool Name(const char *s);
 	/// Returns the HTML content
 	char *Name();
 	/// Sets the HTML content of the control
-	bool NameW(char16 *s);
+	bool NameW(const char16 *s);
 	/// Returns the HTML content
 	char16 *NameW();
 

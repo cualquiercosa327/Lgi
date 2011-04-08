@@ -1481,7 +1481,7 @@ char *GFileSelect::Name()
 	return d->Files.First();
 }
 
-bool GFileSelect::Name(char *n)
+bool GFileSelect::Name(const char *n)
 {
 	d->Files.DeleteArrays();
 	if (n)
@@ -1517,7 +1517,7 @@ GFileType *GFileSelect::TypeAt(int n)
 	return d->Types.ItemAt(n);
 }
 
-bool GFileSelect::Type(char *Description, char *Extension, int Data)
+bool GFileSelect::Type(const char *Description, const char *Extension, int Data)
 {
 	GFileType *Type = new GFileType;
 	if (Type)
@@ -1560,7 +1560,7 @@ void GFileSelect::MultiSelect(bool Multi)
 	{										\
 		return Var;							\
 	}										\
-	void GFileSelect::Func(char *i)			\
+	void GFileSelect::Func(const char *i)	\
 	{										\
 		DeleteArray(Var);					\
 		if (i)								\

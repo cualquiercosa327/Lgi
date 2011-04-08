@@ -652,7 +652,7 @@ GRect &GWindow::GetClient(bool ClientSpace)
 	return r;
 }
 
-bool GWindow::SerializeState(GDom *Store, char *FieldName, bool Load)
+bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
 {
 	if (!Store OR !FieldName)
 		return false;

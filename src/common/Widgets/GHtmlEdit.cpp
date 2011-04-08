@@ -2682,7 +2682,7 @@ char *GHtmlEdit::Name()
 	return d->e->Name();
 }
 
-bool GHtmlEdit::Name(char *s)
+bool GHtmlEdit::Name(const char *s)
 {
 	bool r = d->e->Name(s);
 	if (r)

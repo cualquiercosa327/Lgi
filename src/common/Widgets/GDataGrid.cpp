@@ -614,7 +614,7 @@ bool GDataGrid::GetData(GVariant *Data, char *Format)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class GDataGridFactory : public GViewFactory
 {
-	GView *NewView(char *Class, GRect *Pos, char *Text)
+	GView *NewView(const char *Class, GRect *Pos, const char *Text)
 	{
 		if (Class AND
 			stricmp(Class, "GDataGrid") == 0)

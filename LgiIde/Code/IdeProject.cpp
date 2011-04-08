@@ -971,7 +971,8 @@ public:
 							
 							// Find the file.
 							char *d = strrchr(p, DIR_CHAR);
-							GArray<char*> Files, Ext;
+							GArray<char*> Files;
+							GArray<const char*> Ext;
 							Ext.Add(d ? d + 1 : p);
 							if (LgiRecursiveFileSearch(Path, &Ext, &Files))
 							{
@@ -1416,7 +1417,8 @@ public:
 
 					if (s.OpenFolder())
 					{
-						GArray<char*> Ext, Files;
+						GArray<char*> Files;
+						GArray<const char*> Ext;
 						GToken e(SourcePatterns, ";");
 						for (int i=0; i<e.Length(); i++)
 						{

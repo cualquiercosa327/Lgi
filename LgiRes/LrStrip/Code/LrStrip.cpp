@@ -35,7 +35,7 @@ class App : public GDialog
 	GList *Inc;
 
 public:
-	GHashTable Langs;
+	GHashTbl<const char*, bool> Langs;
 
 	App()
 	{
@@ -97,8 +97,8 @@ public:
 						CollectLangs(Tree);
 
 						List<GLanguage> Lst;
-						char *Key = 0;
-						for (void *p = Langs.First(&Key); p; p = Langs.Next(&Key))
+						const char *Key = 0;
+						for (bool p = Langs.First(&Key); p; p = Langs.Next(&Key))
 						{
 							Lst.Insert((GLanguage*)p);
 						}
@@ -299,7 +299,7 @@ int LgiMain(OsAppArguments &AppArgs)
 					GToken l(Langs, " ,;");
 					for (int i=0; i<l.Length(); i++)
 					{
-						w->Langs.Add(l[i]);
+						w->Langs.Add(l[i], true);
 					}
 				}
 

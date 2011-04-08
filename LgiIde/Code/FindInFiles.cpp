@@ -268,7 +268,7 @@ int FindInFilesThread::Main()
 		d->App->PostEvent(M_APPEND_TEXT, 0, 2);
 		d->App->PostEvent(M_APPEND_TEXT, (int)NewStr(Msg), 2);
 
-		GArray<char*> Ext;
+		GArray<const char*> Ext;
 		GToken e(d->Params->Ext, ";, ");
 		for (int i=0; i<e.Length(); i++)
 		{

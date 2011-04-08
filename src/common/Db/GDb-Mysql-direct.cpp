@@ -530,7 +530,7 @@ public:
 
 	GDbField &operator [](int Index);
 	GDbField &operator [](char *Name);	
-	GDbField *InsertField(	char *Name,
+	GDbField *InsertField(	const char *Name,
 							int Type,
 							int Length = 0,
 							int Index = -1);
@@ -655,10 +655,10 @@ GDbField &MysqlDirectRs::operator [](char *Name)
 	return f ? *f : Null;
 }
 
-GDbField *MysqlDirectRs::InsertField(	char *Name,
-						int Type,
-						int Length,
-						int Index)
+GDbField *MysqlDirectRs::InsertField(	const char *Name,
+										int Type,
+										int Length,
+										int Index)
 {
 	return 0;
 }
@@ -790,7 +790,7 @@ public:
 		return true;
 	}
 
-	bool Connect(char *Init)
+	bool Connect(const char *Init)
 	{
 		if (!Init)
 			return false;

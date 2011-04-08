@@ -169,7 +169,7 @@ public:
 
 	// GObj overrides
 	char *Name();
-	bool Name(char *n);
+	bool Name(const char *n);
 
 	// Factory
 	char *StringFromRef(int Ref);

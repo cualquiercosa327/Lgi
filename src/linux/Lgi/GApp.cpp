@@ -302,7 +302,7 @@ GSkinEngine *GApp::SkinEngine = 0;
 GApp *TheApp = 0;
 GMouseHook *GApp::MouseHook = 0;
 
-GApp::GApp(char *AppMime, OsAppArguments &AppArgs, GAppArguments *Args) :
+GApp::GApp(const char *AppMime, OsAppArguments &AppArgs, GAppArguments *Args) :
 	OsApplication(AppArgs.Args, AppArgs.Arg)
 {
 	TheApp = this;
@@ -626,7 +626,7 @@ char *GApp::GetArgumentAt(int n)
 	return n >= 0 AND n < d->Args.Args ? NewStr(d->Args.Arg[n]) : 0;
 }
 
-bool GApp::GetOption(char *Option, char *Dest, int DestLen)
+bool GApp::GetOption(const char *Option, char *Dest, int DestLen)
 {
 	GAutoString Buf;
 	if (GetOption(Option, Buf))
@@ -644,7 +644,7 @@ bool GApp::GetOption(char *Option, char *Dest, int DestLen)
 	return false;
 }
 
-bool GApp::GetOption(char *Option, GAutoString &Buf)
+bool GApp::GetOption(const char *Option, GAutoString &Buf)
 {
 	if (IsOk() AND Option)
 	{
@@ -739,7 +739,7 @@ void GApp::Exit(int Code)
 	}
 }
 
-GAutoString GApp::GetFileMimeType(char *File)
+GAutoString GApp::GetFileMimeType(const char *File)
 {
 	GAutoString Status;
 	char Full[300] = "";

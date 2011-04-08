@@ -124,7 +124,7 @@ GStatusPane::~GStatusPane()
 	DeleteObj(pDC)
 }
 
-bool GStatusPane::Name(char *n)
+bool GStatusPane::Name(const char *n)
 {
 	bool Status = false;
 

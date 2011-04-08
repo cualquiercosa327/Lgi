@@ -1540,7 +1540,7 @@ public:
 
 	const char *GetClass() { return "GStatusPane"; }
 	char *Name() { return GBase::Name(); }
-	bool Name(char *n);
+	bool Name(const char *n);
 	void OnPaint(GSurface *pDC);
 
 	int GetWidth();

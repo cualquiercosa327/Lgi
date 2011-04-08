@@ -242,7 +242,7 @@ public:
 			}
 			case 3:
 			{
-				return Lang;
+				return (char*)Lang;
 				break;
 			}
 		}

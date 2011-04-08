@@ -6181,7 +6181,7 @@ void GHtml2::Parse()
 	Invalidate();
 }
 
-bool GHtml2::NameW(char16 *s)
+bool GHtml2::NameW(const char16 *s)
 {
 	GAutoPtr<char, true> utf(LgiNewUtf16To8(s));
 	return Name(utf);
@@ -6193,7 +6193,7 @@ char16 *GHtml2::NameW()
 	return GBase::NameW();
 }
 
-bool GHtml2::Name(char *s)
+bool GHtml2::Name(const char *s)
 {
 	d->DocumentUid++;
 

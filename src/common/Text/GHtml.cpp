@@ -5726,7 +5726,7 @@ void GHtml::Parse()
 	Invalidate();
 }
 
-bool GHtml::NameW(char16 *s)
+bool GHtml::NameW(const char16 *s)
 {
 	GAutoPtr<char, true> utf(LgiNewUtf16To8(s));
 	return Name(utf);
@@ -5738,7 +5738,7 @@ char16 *GHtml::NameW()
 	return GBase::NameW();
 }
 
-bool GHtml::Name(char *s)
+bool GHtml::Name(const char *s)
 {
 	#if LUIS_DEBUG
 	LgiTrace("%s:%i html(%p).src(%p)='%30.30s'\n", __FILE__, __LINE__, this, Source, Source);
@@ -6908,7 +6908,7 @@ void GHtml::SetLinkDoubleClick(bool b)
 ////////////////////////////////////////////////////////////////////////
 class GHtml_Factory : public GViewFactory
 {
-	GView *NewView(char *Class, GRect *Pos, char *Text)
+	GView *NewView(const char *Class, GRect *Pos, const char *Text)
 	{
 		if (stricmp(Class, "GHtml") == 0)
 		{

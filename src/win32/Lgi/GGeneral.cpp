@@ -88,7 +88,7 @@ bool LgiGetFileMimeType(const char *File, char *Mime, int BufLen)
 
 	if (File && Mime)
 	{
-		char *Dot = strrchr(File, '.');
+		char *Dot = strrchr((char*)File, '.');
 		if (Dot)
 		{
 			GRegKey Key("HKEY_CLASSES_ROOT\\%s", Dot);
@@ -305,7 +305,7 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 		{
 			// get generic app
 			char Ext[64] = "";
-			char *EndPart = strrchr(Mime, '/');
+			char *EndPart = strrchr((char*)Mime, '/');
 			if (EndPart AND EndPart[1] == '.')
 			{
 				strsafecpy(Ext, EndPart, sizeof(Ext));

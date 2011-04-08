@@ -130,7 +130,7 @@ char *GMdiChild::Name()
 	return GView::Name();
 }
 
-bool GMdiChild::Name(char *n)
+bool GMdiChild::Name(const char *n)
 {
 	bool s = GView::Name(n);
 	Invalidate((GRect*)0, false, true);

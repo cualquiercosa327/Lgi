@@ -873,7 +873,7 @@ AppWnd::AppWnd() :
 	Fields = 0;
 	ViewMenu = 0;
 	CurLang = -1;
-	ShowLanguages.Add("en");
+	ShowLanguages.Add("en", true);
 
 	if (_Create())
 	{
@@ -884,7 +884,7 @@ AppWnd::AppWnd() :
 			GToken L(Langs.Str(), ",");
 			for (int i=0; i<L.Length(); i++)
 			{
-				ShowLanguages.Add(L[i]);
+				ShowLanguages.Add(L[i], true);
 			}
 		}
 	}
@@ -969,7 +969,7 @@ void AppWnd::ShowLang(GLanguageId Lang, bool Show)
 	if (Show)
 	{
 		OnLanguagesChange(Lang, true);
-		ShowLanguages.Add(Lang);
+		ShowLanguages.Add(Lang, true);
 	}
 	else
 	{
@@ -978,8 +978,8 @@ void AppWnd::ShowLang(GLanguageId Lang, bool Show)
 
 	// Store the setting for next time
 	GStringPipe p;
-	char *L;
-	for (void *i = ShowLanguages.First(&L); i; i = ShowLanguages.Next(&L))
+	const char *L;
+	for (bool i = ShowLanguages.First(&L); i; i = ShowLanguages.Next(&L))
 	{
 		if (p.GetSize()) p.Push(",");
 		p.Push(L);
@@ -2583,7 +2583,7 @@ bool AppWnd::LoadLgi(char *FileName)
 
 					// Scan for languages and update the view lang menu
 					Languages.Length(0);
-					GHashTable Langs;
+					GHashTbl<const char*, bool> Langs;
 					if (ViewMenu)
 					{
 						// Remove existing language menu items

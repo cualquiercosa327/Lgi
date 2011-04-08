@@ -294,7 +294,7 @@ protected:
 		return a;
 	}
 
-	Field *GetField(void *Token, char *FieldName)
+	Field *GetField(void *Token, const char *FieldName)
 	{
 		if (!Token || !FieldName) return 0;
 
@@ -353,7 +353,7 @@ public:
 		View = 0;
 	}
 
-	void Insert(void *Token, int Type, int Reserved, char *Name, char *Label, int Idx = -1)
+	void Insert(void *Token, int Type, int Reserved, const char *Name, const char *Label, int Idx = -1)
 	{
 		FieldArr *a = Get(Token, true);
 		if (!a) return;
@@ -370,7 +370,7 @@ public:
 		}
 	}
 
-	void Serialize(void *Token, char *FieldName, int &i)
+	void Serialize(void *Token, const char *FieldName, int &i)
 	{
 		Field *f = GetField(Token, FieldName);
 		if (!f) return;
@@ -396,7 +396,7 @@ public:
 		}
 	}
 
-	void Serialize(void *Token, char *FieldName, bool &b, int Default = -1)
+	void Serialize(void *Token, const char *FieldName, bool &b, int Default = -1)
 	{
 		Field *f = GetField(Token, FieldName);
 		if (!f) return;
@@ -427,7 +427,7 @@ public:
 		}
 	}
 
-	void Serialize(void *Token, char *FieldName, char *&s)
+	void Serialize(void *Token, const char *FieldName, char *&s)
 	{
 		Field *f = GetField(Token, FieldName);
 		if (!f) return;
@@ -461,7 +461,7 @@ public:
 		}
 	}
 
-	void Serialize(void *Token, char *FieldName, GAutoString &s)
+	void Serialize(void *Token, const char *FieldName, GAutoString &s)
 	{
 		Field *f = GetField(Token, FieldName);
 		if (!f) return;
@@ -491,7 +491,7 @@ public:
 		}
 	}
 
-	void Serialize(void *Token, char *FieldName, GRect &r)
+	void Serialize(void *Token, const char *FieldName, GRect &r)
 	{
 		Field *f = GetField(Token, FieldName);
 		if (!f) return;
@@ -612,7 +612,7 @@ protected:
 	// Languages
 	int				CurLang;
 	GArray<GLanguage*> Languages;
-	GHashTable		ShowLanguages;
+	GHashTbl<const char*, bool> ShowLanguages;
 
 	void SetupUi();
 	void SortDialogs();

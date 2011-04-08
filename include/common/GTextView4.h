@@ -206,9 +206,9 @@ public:
 
 	// Data
 	char *Name();
-	bool Name(char *s);
+	bool Name(const char *s);
 	char16 *NameW();
-	bool NameW(char16 *s);
+	bool NameW(const char16 *s);
 	int64 Value();
 	void Value(int64 i);
 	const char *GetMimeType() { return "text/plain"; }
