@@ -169,7 +169,7 @@ OsView DefaultOsView(GView *v)
 	return 0;
 }
 
-bool LgiGetFileMimeType(char *File, char *Mime, int BufLen)
+bool LgiGetFileMimeType(const char *File, char *Mime, int BufLen)
 {
 	GAutoString m = LgiApp->GetFileMimeType(File);
 	if (!m)
@@ -256,7 +256,7 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 	return Status;
 }
 
-bool LgiGetAppForMimeType(char *Mime, char *AppPath, int BufSize)
+bool LgiGetAppForMimeType(const char *Mime, char *AppPath, int BufSize)
 {
 	bool Status = false;
 	if (AppPath)
@@ -276,7 +276,7 @@ int LgiRand(int Limit)
 	return rand() % Limit;
 }
 
-bool LgiPlaySound(char *FileName, int ASync)
+bool LgiPlaySound(const char *FileName, int ASync)
 {
 	return LgiExecute(FileName);
 }
@@ -385,7 +385,7 @@ OSErr FinderLaunch(long nTargets, FSRef *targetList)
 bool LgiExecute(const char *File, const char *Args, const char *Dir)
 {
 	bool Status = false;
-
+	
 	if (File)
 	{
 		if (strnicmp(File, "http://", 7) == 0)
@@ -400,27 +400,58 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir)
 		{
 			FSRef r;
 			OSStatus e = FSPathMakeRef((UInt8*)File, &r, NULL);
-			if (e) printf("%s:%i - FSPathMakeRef faied with %i\n", _FL, (int)e);
+			if (e) printf("%s:%i - FSPathMakeRef failed with %i\n", _FL, (int)e);
 			else
 			{
-				// Is this an executable file or a document?
+				// Is this an app bundle?
+				bool IsAppBundle = false;
+				char *Last = strrchr(File, '/');
+				if (Last)
+				{
+					char *Dot = strrchr(Last, '.');
+					IsAppBundle = Dot && !stricmp(Dot, ".app");
+					
+					/* Ideally in OSX before 10.6 we'd convert to calling the executable in
+					 the bundle rather the 'open' the app bundle, because open doesn't 
+					 support arguments before 10.6
+					 if (ValidStr(Args))
+					 {
+					 GArray<int> Ver;
+					 LgiGetOs(Ver);
+					 if (Ver.Length() > 1)
+					 {
+					 if (Ver[0] < 10 ||
+					 Ver[1] < 6)
+					 {
+					 IsAppBundle = false;
+					 }
+					 }
+					 }
+					 */
+				}
+				
 				struct stat s;
 				int st = stat(File, &s);
-				if (st == 0 &&
-					S_ISREG(s.st_mode) &&
-					(s.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH)))
+				
+				if (IsAppBundle)
 				{
-					#if 0
 					char cmd[512];
-					snprintf(cmd, sizeof(cmd), "%s %s &", File, Args);
+					if (ValidStr((char*)Args))
+						snprintf(cmd, sizeof(cmd), "open -a \"%s\" --args %s", File, Args);
+					else
+						snprintf(cmd, sizeof(cmd), "open -a \"%s\"", File);
 					system(cmd);
-					#else
-					// Executable?
+				}
+				else if (st == 0 &&
+						 S_ISREG(s.st_mode) &&
+						 (s.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH)))
+				{
+					// This is an executable file
 					if (!fork())
 					{
 						if (Dir)
 							chdir(Dir);
-							
+						
 						GArray<const char*> a;
 						a.Add(File);
 						
@@ -436,11 +467,10 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir)
 					}
 					
 					return true;
-					#endif
 				}
 				else
 				{
-					// Document?
+					// Document
 					e = FinderLaunch(1, &r);
 					if (e) printf("%s:%i - FinderLaunch faied with %i\n", _FL, (int)e);
 					else Status = true;
@@ -492,7 +522,7 @@ char *CFStringToUtf8(CFStringRef r)
 	return Buffer;
 }
 
-bool LgiGetMimeTypeExtensions(char *Mime, GArray<char*> &Ext)
+bool LgiGetMimeTypeExtensions(const char *Mime, GArray<char*> &Ext)
 {
 	int Start = Ext.Length();
 

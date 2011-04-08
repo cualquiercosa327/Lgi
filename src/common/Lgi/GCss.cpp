@@ -908,10 +908,17 @@ bool GCss::Parse(char *&s, ParsingStyle Type)
 	{
 		// Parse the prop name out
 		SkipWhite(s);
-		char Prop[32], *p = Prop;
-		if (!*s) break;
+
+		char Prop[64], *p = Prop, *end = Prop + sizeof(Prop) - 1;
+		if (!*s)
+			break;
 		while (*s && (isalpha(*s) || strchr("-_", *s)))
-			*p++ = *s++;
+		{
+			if (p < end)
+				*p++ = *s++;
+			else
+				s++;
+		}
 		*p++ = 0;
 		SkipWhite(s);
 		if (*s != ':')
