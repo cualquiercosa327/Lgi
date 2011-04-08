@@ -289,7 +289,7 @@ class GTypeDef : public GDom
 
 	int Size;
 	GVariant Name;
-	GHashTbl<char*, GMember*> Members;
+	GHashTbl<const char*, GMember*> Members;
 
 public:
 	char *Object;

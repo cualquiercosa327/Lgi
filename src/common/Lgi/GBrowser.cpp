@@ -394,7 +394,7 @@ int GBrowserThread::Main()
 	return false;
 }
 
-GBrowser::GBrowser(char *Title, char *Uri)
+GBrowser::GBrowser(const char *Title, char *Uri)
 {
 	d = new GBrowserPriv(this);
 	d->Back = 0;

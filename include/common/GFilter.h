@@ -41,6 +41,8 @@ LgiFunc int FindHeader(int Offset, char *Str, GStream *f);
 /// GFilterFactory.
 class LgiClass GFilter : public GDom
 {
+	GArray<uint8> Buf;
+
 protected:
 	GBmpMem *GetSurface(GSurface *pDC) { return pDC->pMem; }
 	GRect *GetClip(GSurface *pDC) { return &pDC->Clip; }
@@ -48,38 +50,41 @@ protected:
 
 	Progress *Meter;
 
-	inline void Swap(void *p, int len)
+	inline void Swap(uint8 *out, const void *in, int len)
 	{
 		#ifdef __BIG_ENDIAN__
 		// Swap the bytes...
-		uint8 *a = (uint8*)p;
-		uint8 *b = ((uint8*)p) + len - 1;
-		while (a < b)
+		uint8 *o = out + len - 1;
+		const uint8 *i = in;
+		while (i < in + len)
 		{
-			uint8 t = *a;
-			*a = *b;
-			*b = t;
-			a++;
-			b--;
+			*o++ = *i++;
 		}
+		#else
+		// Copy the byte
+		memcpy(out, in, len);
 		#endif
 	}
 
 	bool Read(GStream *s, void *p, int len)
 	{
-		int r = s->Read(p, len);
+		if (Buf.Length() < len)
+			Buf.Length(len);
+
+		int r = s->Read(&Buf[0], len);
 		if (r != len)
 			return false;
 
-		Swap(p, len);
+		Swap((uint8*)p, &Buf[0], len);
 		return true;
 	}
 
-	bool Write(GStream *s, void *p, int len)
+	bool Write(GStream *s, const void *p, int len)
 	{
-		Swap(p, len);
-		int w = s->Write(p, len);
-		Swap(p, len);
+		if (Buf.Length() < len)
+			Buf.Length(len);
+		Swap(&Buf[0], p, len);
+		int w = s->Write(&Buf[0], len);
 		return w == len;
 	}
 

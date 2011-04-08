@@ -80,8 +80,8 @@ protected:
 
 	bool Write;
 	GXmlAttr *_Attr(const char *Name, bool Write);
-	bool GetVariant(char *Name, GVariant &Value, char *Array);
-	bool SetVariant(char *Name, GVariant &Value, char *Array);
+	bool GetVariant(const char *Name, GVariant &Value, char *Array);
+	bool SetVariant(const char *Name, GVariant &Value, char *Array);
 
 public:
 	/// The name of the tag/element. This can be NULL in the case

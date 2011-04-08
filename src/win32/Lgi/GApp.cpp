@@ -222,7 +222,7 @@ extern int MouseRollMsg;
 
 bool GApp::Win9x = LgiGetOs() == LGI_OS_WIN9X;
 
-GApp::GApp(char *MimeType, OsAppArguments &AppArgs, GAppArguments *ObjArgs)
+GApp::GApp(const char *MimeType, OsAppArguments &AppArgs, GAppArguments *ObjArgs)
 {
 int64 Time = LgiCurrentTime();
 #define DumpTime(str) /* \
@@ -500,9 +500,9 @@ char *GApp::GetName()
 	return 0;
 }
 
-void GApp::SetName(char *Name)
+void GApp::SetName(const char *Name)
 {
-	d->Name.Reset(Name);
+	d->Name.Reset(NewStr(Name));
 }
 
 OsThreadId GApp::GetGuiThread()
@@ -626,7 +626,7 @@ char *GApp::GetArgumentAt(int n)
 	return 0;
 }
 
-bool GApp::GetOption(char *Option, GAutoString &Buf)
+bool GApp::GetOption(const char *Option, GAutoString &Buf)
 {
 	if (!ValidStr(Option))
 	{
@@ -679,7 +679,7 @@ bool GApp::GetOption(char *Option, GAutoString &Buf)
 	return false;
 }
 
-bool GApp::GetOption(char *Option, char *Dest, int DestLen)
+bool GApp::GetOption(const char *Option, char *Dest, int DestLen)
 {
 	GAutoString Buf;
 	if (GetOption(Option, Buf))
@@ -953,7 +953,7 @@ void GApp::Exit(int Code)
 	}
 }
 
-GAutoString GApp::GetFileMimeType(char *File)
+GAutoString GApp::GetFileMimeType(const char *File)
 {
 	GAutoString r;
 	char m[128];

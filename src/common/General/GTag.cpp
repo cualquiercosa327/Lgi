@@ -171,7 +171,7 @@ GVariantType GTag::TypeOf(char *Name)
 	return GV_NULL;
 }
 
-bool GTag::GetVariant(char *Name, GVariant &Value, char *Array)
+bool GTag::GetVariant(const char *Name, GVariant &Value, char *Array)
 {
 	GNamedVariant *v = GetNamed(Name);
 	if (v)
@@ -183,7 +183,7 @@ bool GTag::GetVariant(char *Name, GVariant &Value, char *Array)
 	return false;
 }
 
-bool GTag::SetVariant(char *Name, GVariant &Value, char *Array)
+bool GTag::SetVariant(const char *Name, GVariant &Value, char *Array)
 {
 	GNamedVariant *v = GetNamed(Name);
 	if (Value.IsNull())

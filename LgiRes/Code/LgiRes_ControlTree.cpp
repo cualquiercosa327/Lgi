@@ -241,7 +241,7 @@ void WriteTree(GXmlTag *t, GTreeNode *n)
 	}
 }
 
-bool CtrlControlTree::GetVariant(char *Name, GVariant &Value, char *Array)
+bool CtrlControlTree::GetVariant(const char *Name, GVariant &Value, char *Array)
 {
 	if (!Name)
 		return false;
@@ -278,7 +278,7 @@ void ReadTree(GXmlTag *t, GTreeNode *n, CtrlControlTreePriv *d, GView *v)
 	}
 }
 
-bool CtrlControlTree::SetVariant(char *Name, GVariant &Value, char *Array)
+bool CtrlControlTree::SetVariant(const char *Name, GVariant &Value, char *Array)
 {
 	if (!Name)
 		return false;

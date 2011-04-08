@@ -309,7 +309,7 @@ void GDateDrop::OnMouseClick(GMouse &m)
 
 class GDatePopupFactory : public GViewFactory
 {
-	GView *NewView(char *Class, GRect *Pos, char *Text)
+	GView *NewView(const char *Class, GRect *Pos, const char *Text)
 	{
 		if (Class AND
 			stricmp(Class, "GDatePopup") == 0)

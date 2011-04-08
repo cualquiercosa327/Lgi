@@ -74,7 +74,7 @@ void ParseIdList(char *In, List<char> &Out);
 
 #define GDATA_STR_PROP(name, id) \
 	char *Get##name() { if (!Object) { _asm int 3 } return Object ? Object->GetStr(id) : 0; } \
-	bool Set##name(char *val) { LgiAssert(Object); return Object ? Object->SetStr(id, val) : false; }
+	bool Set##name(const char *val) { LgiAssert(Object); return Object ? Object->SetStr(id, val) : false; }
 
 #define GDATA_DATE_PROP(name, id) \
 	GDateTime *Get##name() { if (!Object) { _asm int 3 } return (Object ? Object->GetDate(id) : 0); } \

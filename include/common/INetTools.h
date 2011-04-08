@@ -38,10 +38,10 @@ LgiNetFunc char *InetGetField(const char *s);
 LgiNetFunc char *InetGetHeaderField(const char *Headers, const char *Field, int Len = -1);
 
 /// Gets a sub field of a header value
-LgiNetFunc char *InetGetSubField(const char *s, char *Field);
+LgiNetFunc char *InetGetSubField(const char *s, const char *Field);
 
 /// Removes a specific name/value from a dynamic string
-LgiNetFunc char *InetRemoveField(const char *Headers, const char *Field);
+LgiNetFunc char *InetRemoveField(char *Headers, const char *Field);
 
 /// Returns the string up to '\r\n\r\n' as a dynamic string
 LgiNetFunc char *InetGetAllHeaders(const char *s);

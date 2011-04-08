@@ -106,7 +106,7 @@ namespace Storage2
 		StorageKit *GetTree();
 
 		// Impl
-		GFile *GotoObject(char *file, int line);
+		GFile *GotoObject(const char *file, int line);
 		bool EndOfObj(GFile &f);
 		bool Save();
 		
@@ -156,7 +156,7 @@ namespace Storage2
 		GPassword Password;
 
 		class GSubFile *File;
-		class GSubFilePtr *CreateFilePtr(char *file, int line);
+		class GSubFilePtr *CreateFilePtr(const char *file, int line);
 
 		// Root stuff
 		StorageItemHeader RootHeader;

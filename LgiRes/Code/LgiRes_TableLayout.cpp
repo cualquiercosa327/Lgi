@@ -139,7 +139,7 @@ public:
 		MoveCtrls();
 	}
 
-	bool GetVariant(char *Name, GVariant &Value, char *Array)
+	bool GetVariant(const char *Name, GVariant &Value, char *Array)
 	{
 		if (stricmp(Name, "span") == 0)
 		{
@@ -167,7 +167,7 @@ public:
 		return true;
 	}
 
-	bool SetVariant(char *Name, GVariant &Value, char *Array)
+	bool SetVariant(const char *Name, GVariant &Value, char *Array)
 	{
 		if (stricmp(Name, "span") == 0)
 		{
@@ -673,7 +673,7 @@ void CtrlTable::EnumCtrls(List<ResDialogCtrl> &Ctrls)
 	}
 }
 
-bool CtrlTable::GetVariant(char *Name, GVariant &Value, char *Array)
+bool CtrlTable::GetVariant(const char *Name, GVariant &Value, char *Array)
 {
 	if (stricmp(Name, "cols") == 0)
 	{
@@ -723,7 +723,7 @@ bool CtrlTable::GetVariant(char *Name, GVariant &Value, char *Array)
 	return true;
 }
 
-bool CtrlTable::SetVariant(char *Name, GVariant &Value, char *Array)
+bool CtrlTable::SetVariant(const char *Name, GVariant &Value, char *Array)
 {
 	if (stricmp(Name, "cols") == 0)
 	{

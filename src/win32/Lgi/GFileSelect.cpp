@@ -260,7 +260,7 @@ char *GFileSelect::Name()
 	return d->Files.First();
 }
 
-bool GFileSelect::Name(char *n)
+bool GFileSelect::Name(const char *n)
 {
 	bool Status = FALSE;
 
@@ -303,7 +303,7 @@ void GFileSelect::ClearTypes()
 	d->TypeList.DeleteObjects();
 }
 
-bool GFileSelect::Type(char *Description, char *Extension, int Data)
+bool GFileSelect::Type(const char *Description, const char *Extension, int Data)
 {
 	GFileType *Type = new GFileType;
 	if (Type)
@@ -352,7 +352,7 @@ char *GFileSelect::InitialDir()
 	return d->InitDir;
 }
 
-void GFileSelect::InitialDir(char *InitDir)
+void GFileSelect::InitialDir(const char *InitDir)
 {
 	DeleteArray(d->InitDir);
 	d->InitDir = NewStr(InitDir);
@@ -363,7 +363,7 @@ char *GFileSelect::Title()
 	return d->TitleStr;
 }
 
-void GFileSelect::Title(char *Title)
+void GFileSelect::Title(const char *Title)
 {
 	DeleteArray(d->TitleStr);
 	d->TitleStr = NewStr(Title);
@@ -374,7 +374,7 @@ char *GFileSelect::DefaultExtension()
 	return d->DefExt;
 }
 
-void GFileSelect::DefaultExtension(char *DefExt)
+void GFileSelect::DefaultExtension(const char *DefExt)
 {
 	DeleteArray(d->DefExt);
 	d->DefExt = NewStr(DefExt);

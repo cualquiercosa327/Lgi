@@ -1602,7 +1602,7 @@ GCharset *GCharsetSystem::GetCsInfo(const char *Cp)
 	return 0;
 }
 
-GCharset *LgiGetCsInfo(char *Cs)
+GCharset *LgiGetCsInfo(const char *Cs)
 {
 	return CharsetSystem.GetCsInfo(Cs);
 }

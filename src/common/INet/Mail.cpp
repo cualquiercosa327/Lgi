@@ -101,7 +101,7 @@ char ConvHexToBin(char c)
 }
 
 // Is s a valid non-whitespace string?
-bool ValidNonWSStr(char *s)
+bool ValidNonWSStr(const char *s)
 {
 	if (s && *s)
 	{
@@ -1268,10 +1268,10 @@ MailSmtp::~MailSmtp()
 }
 
 bool MailSmtp::Open(GSocketI *S,
-					char *RemoteHost,
-					char *LocalDomain,
-					char *UserName,
-					char *Password,
+					const char *RemoteHost,
+					const char *LocalDomain,
+					const char *UserName,
+					const char *Password,
 					int Port,
 					int Flags)
 {
@@ -1521,7 +1521,7 @@ bool MailSmtp::Open(GSocketI *S,
 	return Status;
 }
 
-bool MailSmtp::WriteText(char *Str)
+bool MailSmtp::WriteText(const char *Str)
 {
 	// we have to convert all strings to CRLF in here
 	bool Status = false;
@@ -1529,7 +1529,7 @@ bool MailSmtp::WriteText(char *Str)
 	{
 		GBytePipe Temp;
 
-		char *Start = Str;
+		const char *Start = Str;
 		while (*Str)
 		{
 			if (*Str == '\n')
@@ -1665,7 +1665,7 @@ public:
 		return -1;
 	}
 
-	int Write(void *Ptr, int Size, int Flags)
+	int Write(const void *Ptr, int Size, int Flags)
 	{
 		int w = s->Write((char*)Ptr, Size, 0);
 
@@ -1930,7 +1930,7 @@ public:
 		return F.Read(Buffer, Size, Flags);
 	}
 
-	int Write(void *Buffer, int Size, int Flags = 0)
+	int Write(const void *Buffer, int Size, int Flags = 0)
 	{
 		return F.Write(Buffer, Size, Flags);
 	}
@@ -1963,7 +1963,7 @@ MailSendFolder::~MailSendFolder()
 	DeleteObj(d);
 }
 
-bool MailSendFolder::Open(GSocketI *S, char *RemoteHost, char *LocalDomain, char *UserName, char *Password, int Port, int Flags)
+bool MailSendFolder::Open(GSocketI *S, const char *RemoteHost, const char *LocalDomain, const char *UserName, const char *Password, int Port, int Flags)
 {
 	return DirExists(d->Path);
 }
@@ -3030,19 +3030,19 @@ char *MailMessage::GetBodyCharset()
 	return TextCharset;
 }
 
-bool MailMessage::SetBodyCharset(const char *Cs, bool Copy)
+bool MailMessage::SetBodyCharset(const char *Cs)
 {
 	DeleteArray(TextCharset);
-	TextCharset = Copy ? NewStr(Cs) : Cs;
+	TextCharset = NewStr(Cs);
 	return true;
 }
 
-bool MailMessage::SetBody(const char *Txt, int Bytes, bool Copy, char *Cs)
+bool MailMessage::SetBody(const char *Txt, int Bytes, bool Copy, const char *Cs)
 {
 	if (Txt != Text)
 	{
 		DeleteArray(Text);
-		Text = Copy ? NewStr(Txt, Bytes) : Txt;
+		Text = Copy ? NewStr(Txt, Bytes) : (char*)Txt;
 		if (Txt && !Text)
 			return false;
 	}
@@ -3065,19 +3065,19 @@ char *MailMessage::GetHtmlCharset()
 	return HtmlCharset;
 }
 
-bool MailMessage::SetHtmlCharset(char *Cs, bool Copy)
+bool MailMessage::SetHtmlCharset(const char *Cs)
 {
 	DeleteArray(HtmlCharset);
-	HtmlCharset = Copy ? NewStr(Cs) : Cs;
+	HtmlCharset = NewStr(Cs);
 	return true;
 }
 
-bool MailMessage::SetHtml(char *Txt, int Bytes, bool Copy, char *Cs)
+bool MailMessage::SetHtml(const char *Txt, int Bytes, bool Copy, const char *Cs)
 {
 	if (Txt != Html)
 	{
 		DeleteArray(Html);
-		Html = Copy ? NewStr(Txt, Bytes) : Txt;
+		Html = Copy ? NewStr(Txt, Bytes) : (char*)Txt;
 		if (Txt && !Html)
 			return false;
 	}
@@ -3361,7 +3361,7 @@ public:
 		}
 	}
 
-	int Write(void *Buffer, int Size, int Flags = 0)
+	int Write(const void *Buffer, int Size, int Flags = 0)
 	{
 		int64 w = 0;
 

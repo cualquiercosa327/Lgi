@@ -2725,7 +2725,7 @@ void GHtmlEdit::Sunken(bool i)
 /////////////////////////////////////////////////////////////////////////////////////
 class GHtmlEdit_Factory : public GViewFactory
 {
-	GView *NewView(char *Class, GRect *Pos, char *Text)
+	GView *NewView(const char *Class, GRect *Pos, const char *Text)
 	{
 		if (stricmp(Class, "GHtmlEdit") == 0)
 		{

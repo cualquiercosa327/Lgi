@@ -36,7 +36,7 @@ bool BltDcToBmp(HBITMAP hDest, int xDst, int yDst, int cx, int cy, HDC SrcDC, in
 COLOUR Map(GSurface *pDC, COLOUR c);
 
 ////////////////////////////////////////////////////////////////////////
-GImageList *LgiLoadImageList(char *File, int x, int y)
+GImageList *LgiLoadImageList(const char *File, int x, int y)
 {
 	GImageList *ImgList = 0;
 	char *Path = FileExists(File) ? NewStr(File) : LgiFindFile(File);
@@ -59,7 +59,7 @@ GImageList *LgiLoadImageList(char *File, int x, int y)
 	return ImgList;
 }
 
-GToolBar *LgiLoadToolbar(GViewI *Parent, char *File, int x, int y)
+GToolBar *LgiLoadToolbar(GViewI *Parent, const char *File, int x, int y)
 {
 	GToolBar *Toolbar = new GToolBar;
 	if (Toolbar)

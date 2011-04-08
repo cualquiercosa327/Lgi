@@ -33,8 +33,8 @@ public:
 	void Empty();
 	bool Read(GXmlTag *t);
 	void Write(GFile &f);
-	bool GetVariant(char *Name, GVariant &Value, char *Array = 0);
-	bool SetVariant(char *Name, GVariant &Value, char *Array = 0);
+	bool GetVariant(const char *Name, GVariant &Value, char *Array = 0);
+	bool SetVariant(const char *Name, GVariant &Value, char *Array = 0);
 	void SerializeUI(GView *Dlg, GMap<char*,int> &Fields, bool To);
 };
 

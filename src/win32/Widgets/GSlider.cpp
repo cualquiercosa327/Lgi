@@ -4,7 +4,7 @@
 
 //////////////////////////////////////////////////////////////////////////////////
 // Slider control
-GSlider::GSlider(int id, int x, int y, int cx, int cy, char *name, bool vert) :
+GSlider::GSlider(int id, int x, int y, int cx, int cy, const char *name, bool vert) :
 	GControl(LGI_SLIDER),
 	ResObject(Res_Slider)
 {
@@ -147,7 +147,7 @@ int GSlider::OnEvent(GMessage *Msg)
 ////////////////////////////////////////////////////////////////////////
 class GSlider_Factory : public GViewFactory
 {
-	GView *NewView(char *Class, GRect *Pos, char *Text)
+	GView *NewView(const char *Class, GRect *Pos, const char *Text)
 	{
 		if (stricmp(Class, "GSlider") == 0)
 		{

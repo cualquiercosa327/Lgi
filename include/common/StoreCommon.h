@@ -40,7 +40,7 @@ public:
 	GSubFile(GSemaphore *lock, bool Buffering = true);
 	~GSubFile();
 
-	GSubFilePtr *Create(char *file, int line);
+	GSubFilePtr *Create(const char *file, int line);
 	void Detach(GSubFilePtr *Ptr);
 	SubLock Lock(char *file, int line);
 
@@ -81,7 +81,7 @@ class GSubFilePtr : public GFile
 	bool RestoreState();
 	
 public:
-	GSubFilePtr(GSubFile *Parent, char *file, int line);
+	GSubFilePtr(GSubFile *Parent, const char *file, int line);
 	~GSubFilePtr();
 
 	/// Sets the valid section of the file.
@@ -113,7 +113,7 @@ public:
 	bool GetStatus();
 	void SetStatus(bool s);
 	int Read(void *Buffer, int Size, int Flags = 0);
-	int Write(void *Buffer, int Size, int Flags = 0);
+	int Write(const void *Buffer, int Size, int Flags = 0);
 	int ReadStr(char *Buf, int Size);
 	int WriteStr(char *Buf, int Size);
 };

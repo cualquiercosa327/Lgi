@@ -46,7 +46,7 @@ class GMime
 	void Unlock();
 	bool CreateTempData();
 	char *NewValue(char *&s, bool Alloc = true);
-	char *StartOfField(char *s, char *Feild);
+	char *StartOfField(char *s, const char *Feild);
 	char *NextField(char *s);
 	char *GetTmpPath();
 
@@ -78,16 +78,16 @@ public:
 	bool SetSub(const char *Field, const char *Sub, const char *Value, const char *DefaultValue = 0);
 
 	// Header Shortcuts (uses Get[Sub]/Set[Sub])
-	char *GetMimeType()			{ return Get("Content-Type", true, "text/plain"); }
-	bool SetMimeType(char *s)	{ return Set("Content-Type", s); }
-	char *GetEncoding()			{ return Get("Content-Transfer-Encoding"); }
-	bool SetEncoding(char *s)	{ return Set("Content-Transfer-Encoding", s); }
-	char *GetCharset()			{ return GetSub("Content-Type", "Charset"); }
-	bool SetCharset(char *s)	{ return SetSub("Content-Type", "Charset", s, DefaultCharset); }
-	char *GetBoundary()			{ return GetSub("Content-Type", "Boundary"); }
-	bool SetBoundary(char *s)	{ return SetSub("Content-Type", "Boundary", s, DefaultCharset); }
+	char *GetMimeType()				{ return Get("Content-Type", true, "text/plain"); }
+	bool SetMimeType(const char *s)	{ return Set("Content-Type", s); }
+	char *GetEncoding()				{ return Get("Content-Transfer-Encoding"); }
+	bool SetEncoding(const char *s)	{ return Set("Content-Transfer-Encoding", s); }
+	char *GetCharset()				{ return GetSub("Content-Type", "Charset"); }
+	bool SetCharset(const char *s)	{ return SetSub("Content-Type", "Charset", s, DefaultCharset); }
+	char *GetBoundary()				{ return GetSub("Content-Type", "Boundary"); }
+	bool SetBoundary(const char *s)	{ return SetSub("Content-Type", "Boundary", s, DefaultCharset); }
 	char *GetFileName();
-	bool SetFileName(char *s)	{ return SetSub("Content-Type", "Name", s, DefaultCharset); }
+	bool SetFileName(const char *s)	{ return SetSub("Content-Type", "Name", s, DefaultCharset); }
 
 	// Streaming
 	class GMimeText

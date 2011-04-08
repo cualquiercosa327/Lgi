@@ -93,7 +93,7 @@ namespace Storage1
 
 		// Impl
 		bool Save();
-		GFile *GotoObject(char *file, int line);
+		GFile *GotoObject(const char *file, int line);
 		bool EndOfObj(GFile &f);
 	};
 

@@ -20,7 +20,7 @@ BOOL CALLBACK LgiAbortProc(HDC hdc, int iError)
 	return true;
 }
 
-GPrintDC::GPrintDC(void *Handle, char *PrintJobName)
+GPrintDC::GPrintDC(void *Handle, const char *PrintJobName)
 {
 	d = new GPrintDCPrivate;
 	hDC = (HDC) Handle;

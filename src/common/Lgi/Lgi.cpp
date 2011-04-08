@@ -350,8 +350,8 @@ const char *LgiGetOsName()
 #define RecursiveFileSearch_Wildcard "*"
 #endif
 
-bool LgiRecursiveFileSearch(char *Root,
-							GArray<char*> *Ext,
+bool LgiRecursiveFileSearch(const char *Root,
+							GArray<const char*> *Ext,
 							GArray<char*> *Files,
 							uint64 *Size,
 							uint64 *Count,
@@ -403,7 +403,7 @@ bool LgiRecursiveFileSearch(char *Root,
 				{
 					for (int i=0; i<Ext->Length(); i++)
 					{
-						char *e = (*Ext)[i];
+						const char *e = (*Ext)[i];
 						char *RawFile = strrchr(Name, DIR_CHAR);
 						if (RawFile AND
 							(Match = MatchStr(e, RawFile+1)))

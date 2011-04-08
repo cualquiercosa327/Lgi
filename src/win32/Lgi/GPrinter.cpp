@@ -37,7 +37,7 @@ int GPrinter::GetPages()
 	return d->Pages;
 }
 
-GPrintDC *GPrinter::StartDC(char *PrintJobName, GView *Parent)
+GPrintDC *GPrinter::StartDC(const char *PrintJobName, GView *Parent)
 {
 	if
 	(

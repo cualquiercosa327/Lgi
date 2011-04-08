@@ -88,7 +88,7 @@ public:
 	virtual ~GDb() {}
 
 	// Attaching to data
-	virtual bool Connect(char *Init) = 0;
+	virtual bool Connect(const char *Init) = 0;
 	virtual bool Disconnect() = 0;
 
 	// Retrieving data

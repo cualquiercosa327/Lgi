@@ -435,7 +435,7 @@ GXmlTag *GXmlTag::GetTag(const char *Name, bool Create)
 	return t;
 }
 
-bool GXmlTag::GetVariant(char *Name, GVariant &Value, char *Array)
+bool GXmlTag::GetVariant(const char *Name, GVariant &Value, char *Array)
 {
 	if (Name)
 	{
@@ -504,7 +504,7 @@ bool GXmlTag::GetVariant(char *Name, GVariant &Value, char *Array)
 	return false;	
 }
 
-bool GXmlTag::SetVariant(char *Name, GVariant &Value, char *Array)
+bool GXmlTag::SetVariant(const char *Name, GVariant &Value, char *Array)
 {
 	if (Name)
 	{

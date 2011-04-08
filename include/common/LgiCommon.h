@@ -133,7 +133,7 @@ typedef bool (*RecursiveFileSearch_Callback)(void *UserData, char *Path, class G
 LgiFunc bool LgiRecursiveFileSearch
 (
 	/// Start search in this dir
-	char *Root,
+	const char *Root,
 	/// Extensions to match
 	GArray<const char*> *Ext = 0,
 	/// [optional] Output filenames

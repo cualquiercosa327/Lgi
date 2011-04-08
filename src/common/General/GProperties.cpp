@@ -148,7 +148,7 @@ bool Prop::operator ==(Prop &p)
 	return Status;
 }
 
-bool Prop::operator ==(char *n)
+bool Prop::operator ==(const char *n)
 {
 	bool Status = false;
 	if (Name AND n)
@@ -437,7 +437,7 @@ ObjProperties &ObjProperties::operator =(ObjProperties &props)
 	return *this;
 }
 
-Prop *ObjProperties::FindProp(char *Name)
+Prop *ObjProperties::FindProp(const char *Name)
 {
 	if (Name)
 	{
@@ -548,7 +548,7 @@ int ObjProperties::SizeofData()
 	return (Current) ? Current->Size : 0;
 }
 
-bool ObjProperties::Set(char *Name, int n)
+bool ObjProperties::Set(const char *Name, int n)
 {
 	Prop *c = FindProp(Name);
 	if (!c)
@@ -571,7 +571,7 @@ bool ObjProperties::Set(char *Name, int n)
 	return false;
 }
 
-bool ObjProperties::Set(char *Name, double n)
+bool ObjProperties::Set(const char *Name, double n)
 {
 	Prop *c = FindProp(Name);
 	if (!c)
@@ -594,7 +594,7 @@ bool ObjProperties::Set(char *Name, double n)
 	return false;
 }
 
-bool ObjProperties::Set(char *Name, char *n)
+bool ObjProperties::Set(const char *Name, const char *n)
 {
 	Prop *c = FindProp(Name);
 	if (!c)
@@ -630,7 +630,7 @@ bool ObjProperties::Set(char *Name, char *n)
 	return false;
 }
 
-bool ObjProperties::Set(char *Name, void *Data, int Len)
+bool ObjProperties::Set(const char *Name, void *Data, int Len)
 {
 	if (Data AND Len > 0)
 	{
@@ -695,7 +695,7 @@ bool ObjProperties::Set(Prop *p)
 	return false;
 }
 
-bool ObjProperties::Get(char *Name, int &n)
+bool ObjProperties::Get(const char *Name, int &n)
 {
 
 	Prop *c = FindProp(Name);
@@ -708,7 +708,7 @@ bool ObjProperties::Get(char *Name, int &n)
 	return false;
 }
 
-bool ObjProperties::Get(char *Name, double &n)
+bool ObjProperties::Get(const char *Name, double &n)
 {
 	Prop *c = FindProp(Name);
 	if (c AND c->Type == OBJ_FLOAT)
@@ -720,7 +720,7 @@ bool ObjProperties::Get(char *Name, double &n)
 	return false;
 }
 
-bool ObjProperties::Get(char *Name, char *&n)
+bool ObjProperties::Get(const char *Name, char *&n)
 {
 	Prop *c = FindProp(Name);
 	if (c AND c->Type == OBJ_STRING)
@@ -732,7 +732,7 @@ bool ObjProperties::Get(char *Name, char *&n)
 	return false;
 }
 
-bool ObjProperties::Get(char *Name, void *&Data, int &Len)
+bool ObjProperties::Get(const char *Name, void *&Data, int &Len)
 {
 	Prop *c = FindProp(Name);
 	if (c AND c->Type == OBJ_BINARY)

@@ -452,7 +452,7 @@ GFont *GFontSystem::GetGlyph(int u, GFont *UserFont)
 						if (*f == '@')
 						{
 							SubFonts.Delete(f);
-							DeleteObj(f);
+							DeleteObj((char*&)f);
 							f = SubFonts.Current();
 						}
 						else
@@ -487,7 +487,7 @@ GFont *GFontSystem::GetGlyph(int u, GFont *UserFont)
 
 					*n = *UserFont;
 					n->Face(s);
-					DeleteArray(s);
+					DeleteArray((char*&)s);
 					n->Create();
 					Font[d->Used++] = n;
 
@@ -514,7 +514,7 @@ GFont *GFontSystem::GetGlyph(int u, GFont *UserFont)
 				}
 				else
 				{
-					DeleteArray(s);
+					DeleteArray((char*&)s);
 				}
 			}
 		#if LGI_EXCEPTIONS

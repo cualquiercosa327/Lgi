@@ -15,7 +15,7 @@ class GControlTreePriv
 public:
 };
 
-GControlTree::Item::Item(char *Txt, char *opt, GVariantType type, GArray<GControlTree::EnumValue> *pEnum)
+GControlTree::Item::Item(char *Txt, const char *opt, GVariantType type, GArray<GControlTree::EnumValue> *pEnum)
 {
 	Opt.Reset(NewStr(opt));
 	Enum.Reset(pEnum);
@@ -43,7 +43,7 @@ void GControlTree::Item::OnVisible(bool v)
 	}
 }
 
-GControlTree::Item *GControlTree::Item::Find(char *opt)
+GControlTree::Item *GControlTree::Item::Find(const char *opt)
 {
 	if (Opt && !stricmp(Opt, opt))
 	{
@@ -325,7 +325,7 @@ GControlTree::~GControlTree()
 	DeleteObj(d);
 }
 
-GControlTree::Item *GControlTree::Find(char *opt)
+GControlTree::Item *GControlTree::Find(const char *opt)
 {
 	for (GTreeItem *i = GetChild(); i; i = i->GetNext())
 	{
@@ -360,7 +360,7 @@ bool GControlTree::Serialize(GDom *Store, bool Write)
 	return !Error;
 }
 
-GControlTree::Item *GControlTree::Resolve(bool Create, char *Path, GVariantType Type, GArray<EnumValue> *Enum)
+GControlTree::Item *GControlTree::Resolve(bool Create, const char *Path, GVariantType Type, GArray<EnumValue> *Enum)
 {
 	GToken t(Path, ".");
 	if (t.Length() > 0)
@@ -409,7 +409,7 @@ GControlTree::Item *GControlTree::Resolve(bool Create, char *Path, GVariantType 
 	return 0;
 }
 
-GTreeItem *GControlTree::Insert(char *DomPath, GVariantType Type, GVariant *Value, GArray<EnumValue> *Enum)
+GTreeItem *GControlTree::Insert(const char *DomPath, GVariantType Type, GVariant *Value, GArray<EnumValue> *Enum)
 {
 	GControlTree::Item *c = Resolve(true, DomPath, Type, Enum);
 	if (c)
@@ -461,7 +461,7 @@ void ReadTree(GXmlTag *t, GTreeNode *n, GControlTreePriv *d, GView *v)
 	}
 }
 
-bool GControlTree::SetVariant(char *Name, GVariant &Value, char *Array)
+bool GControlTree::SetVariant(const char *Name, GVariant &Value, char *Array)
 {
 	if (!Name)
 		return false;
@@ -511,7 +511,7 @@ int GControlTree::OnNotify(GViewI *c, int f)
 ///////////////////////////////////////////////////////////////////////////////
 class GControlTree_Factory : public GViewFactory
 {
-	GView *NewView(char *Class, GRect *Pos, char *Text)
+	GView *NewView(const char *Class, GRect *Pos, const char *Text)
 	{
 		if (stricmp(Class, "GControlTree") == 0)
 		{

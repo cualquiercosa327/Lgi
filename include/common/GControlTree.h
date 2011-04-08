@@ -35,7 +35,7 @@ public:
 		};
 		int Flags;
 
-		Item(char *Txt, char *opt, GVariantType type, GArray<EnumValue> *pEnum);
+		Item(char *Txt, const char *opt, GVariantType type, GArray<EnumValue> *pEnum);
 		~Item();
 
 		Item *Find(const char *opt);

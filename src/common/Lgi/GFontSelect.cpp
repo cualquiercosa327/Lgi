@@ -133,7 +133,7 @@ void GFontSelect::EnumerateFonts()
 		for (const char *n = Fonts.First(); n; n = Fonts.Next())
 		{
 			InsertFont(n);
-			DeleteArray(n);
+			DeleteArray((char*&)n);
 		}
 
 		Ctrl1->Sort(SortFunc, 0);

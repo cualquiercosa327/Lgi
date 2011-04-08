@@ -298,7 +298,7 @@ public:
 	{
 	}
 
-	bool GetVariant(char *n, GVariant &val, char *arr)
+	bool GetVariant(const char *n, GVariant &val, char *arr)
 	{
 		if (!stricmp(n, Dom_IsConnected))
 		{

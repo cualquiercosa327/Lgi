@@ -28,7 +28,7 @@ LgiExtern char WhiteSpace[];
 LgiFunc char *strnchr
 (
 	/// The string to search
-	char *s,
+	const char *s,
 	/// The character to find
 	char c,
 	/// The maximum number of bytes to search
@@ -123,7 +123,7 @@ LgiFunc char *strsafecat
 LgiFunc int htoi
 (
 	/// The string of hex characters
-	char *a
+	const char *a
 );
 /// \brief Converts a hex string into a 64bit integer.
 ///
@@ -159,45 +159,45 @@ LgiFunc bool MatchStr
 );
 
 /// Find a character in a wide string
-LgiFunc char16 *StrchrW(char16 *s, char16 c);
+LgiFunc char16 *StrchrW(const char16 *s, char16 c);
 /// Find the last instance of a character in a wide string
 LgiFunc char16 *StrrchrW(char16 *s, char16 c);
 /// Find a character in the first 'n' characters of a wide string
 LgiFunc char16 *StrnchrW(char16 *s, char16 c, int Len);
 
 /// Find a sub-string in a wide string (case sensitive)
-LgiFunc char16 *StrstrW(char16 *a, char16 *b);
+LgiFunc char16 *StrstrW(char16 *a, const char16 *b);
 /// Find a sub-string in a wide string (case insensitive)
-LgiFunc char16 *StristrW(char16 *a, char16 *b);
+LgiFunc char16 *StristrW(char16 *a, const char16 *b);
 /// Find a sub-string in the first 'n' characters of a wide string (case sensitive)
-LgiFunc char16 *StrnstrW(char16 *a, char16 *b, int n);
+LgiFunc char16 *StrnstrW(char16 *a, const char16 *b, int n);
 /// Find a sub-string in the first 'n' characters of a wide string (case insensitive)
-LgiFunc char16 *StrnistrW(char16 *a, char16 *b, int n);
+LgiFunc char16 *StrnistrW(char16 *a, const char16 *b, int n);
 
 /// Compare wide strings (case sensitive)
-LgiFunc int StrcmpW(char16 *a, char16 *b);
+LgiFunc int StrcmpW(const char16 *a, const char16 *b);
 /// Compare wide strings (case insensitive)
-LgiFunc int StricmpW(char16 *a, char16 *b);
+LgiFunc int StricmpW(const char16 *a, const char16 *b);
 /// Compare 'n' characters of 2 wide strings (case sensitive)
-LgiFunc int StrncmpW(char16 *a, char16 *b, int n);
+LgiFunc int StrncmpW(const char16 *a, const char16 *b, int n);
 /// Compare 'n' characters of 2 wide strings (case insensitive)
-LgiFunc int StrnicmpW(char16 *a, char16 *b, int n);
+LgiFunc int StrnicmpW(const char16 *a, const char16 *b, int n);
 
 /// String copy one wide string to another
-LgiFunc char16 *StrcpyW(char16 *a, char16 *b);
+LgiFunc char16 *StrcpyW(char16 *a, const char16 *b);
 /// String copy a maximum of 'n' characters of one wide string to another
-LgiFunc char16 *StrncpyW(char16 *a, char16 *b, int n);
+LgiFunc char16 *StrncpyW(char16 *a, const char16 *b, int n);
 
 /// Count the number of char16's in a wide string
 LgiFunc int StrlenW(const char16 *a);
 /// Append a wide string to another
 LgiFunc void StrcatW(char16 *a, const char16 *b);
 /// Convert a wide string to an integer
-LgiFunc int AtoiW(char16 *a);
+LgiFunc int AtoiW(const char16 *a);
 /// Convert a wide hex string to an integer
-LgiFunc int HtoiW(char16 *a);
+LgiFunc int HtoiW(const char16 *a);
 /// Convert a wide hex string to an 64bit integer
-LgiFunc int64 HtoiW64(char16 *a);
+LgiFunc int64 HtoiW64(const char16 *a);
 /// Makes a heap allocated copy of a wide string.
 LgiFunc char16 *NewStrW
 (
@@ -207,10 +207,10 @@ LgiFunc char16 *NewStrW
 	int Len = -1
 );
 /// Trim delimiters from a wide string. Returns a heap allocated string.
-LgiFunc char16 *TrimStrW(char16 *s, char16 *Delim = 0);
+LgiFunc char16 *TrimStrW(const char16 *s, const char16 *Delim = 0);
 /// Returns true if 's' points to a wide string with at least 1 non-whitespace character.
-LgiFunc bool ValidStrW(char16 *s);
+LgiFunc bool ValidStrW(const char16 *s);
 /// Does a widecard match between wide strings.
-LgiFunc bool MatchStrW(char16 *Template, char16 *Data);
+LgiFunc bool MatchStrW(const char16 *Template, const char16 *Data);
 
 #endif

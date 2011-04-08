@@ -1704,7 +1704,7 @@ bool GTypeDef::GetVariant(const char *Name, GVariant &Value, char *Arr)
 	return true;
 }
 
-bool GTypeDef::SetVariant(char *Name, GVariant &Value, char *Arr)
+bool GTypeDef::SetVariant(const char *Name, GVariant &Value, char *Arr)
 {
 	GMember *m = Members.Find(Name);
 	if (!m || !Object)

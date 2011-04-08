@@ -341,12 +341,12 @@ public:
 		return Cell.X() > 1 || Cell.Y() > 1;
 	}
 
-	bool GetVariant(char *Name, GVariant &Value, char *Array)
+	bool GetVariant(const char *Name, GVariant &Value, char *Array)
 	{
 		return false;
 	}
 
-	bool SetVariant(char *Name, GVariant &Value, char *Array)
+	bool SetVariant(const char *Name, GVariant &Value, char *Array)
 	{
 		if (stricmp(Name, "span") == 0)
 		{
@@ -1189,7 +1189,7 @@ void GTableLayout::OnPaint(GSurface *pDC)
 	#endif
 }
 
-bool GTableLayout::GetVariant(char *Name, GVariant &Value, char *Array)
+bool GTableLayout::GetVariant(const char *Name, GVariant &Value, char *Array)
 {
 	return false;
 }
@@ -1204,7 +1204,7 @@ bool ConvertNumbers(GArray<double> &a, char *s)
 	return a.Length() > 0;
 }
 
-bool GTableLayout::SetVariant(char *Name, GVariant &Value, char *Array)
+bool GTableLayout::SetVariant(const char *Name, GVariant &Value, char *Array)
 {
 	if (stricmp(Name, "cols") == 0)
 	{

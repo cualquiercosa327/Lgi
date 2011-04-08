@@ -1654,7 +1654,7 @@ int GSocks5Socket::Open(char *HostAddr, int port)
 static const char *Ws = " \t\r\n";
 #define SkipWs(s) while (*s AND strchr(Ws, *s)) s++;
 
-GUri::GUri(char *uri)
+GUri::GUri(const char *uri)
 {
 	Protocol = 0;
 	User = 0;
@@ -1726,18 +1726,18 @@ char *GUri::Get()
 	return p.NewStr();
 }
 
-bool GUri::Set(char *uri)
+bool GUri::Set(const char *uri)
 {
 	if (!uri)
 		return false;
 
 	Empty();
 
-	char *s = uri;
+	const char *s = uri;
 	SkipWs(s);
 
 	// Scan ahead and check for protocol...
-	char *p = s;
+	const char *p = s;
 	while (*s && isalpha(*s)) s++;
 	if (s[0] == ':') // && s[1] == '/' && s[2] == '/'
 	{
@@ -1809,7 +1809,7 @@ bool GUri::Set(char *uri)
 
 	if (HasPath)
 	{
-		char *Start = s;
+		const char *Start = s;
 		while (*s && *s != '#')
 			s++;
 

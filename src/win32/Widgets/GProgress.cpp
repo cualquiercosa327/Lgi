@@ -3,7 +3,7 @@
 #include <COMMCTRL.H>
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-GProgress::GProgress(int id, int x, int y, int cx, int cy, char *name) :
+GProgress::GProgress(int id, int x, int y, int cx, int cy, const char *name) :
 	GControl(LGI_PROGRESS),
 	ResObject(Res_Progress)
 {

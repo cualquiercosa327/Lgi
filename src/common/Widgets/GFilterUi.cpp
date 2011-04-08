@@ -491,7 +491,7 @@ void GFilterItem::SetNot(bool b)
 	Update();
 }
 
-void GFilterItem::SetField(char *s)
+void GFilterItem::SetField(const char *s)
 {
 	DeleteArray(d->Field);
 	d->Field = NewStr(s);

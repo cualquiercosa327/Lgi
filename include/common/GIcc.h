@@ -28,7 +28,7 @@ public:
 	bool Convert(GSurface *Dest, GSurface *Src, GIccProfile *Profile = 0);
 
 	// Dom
-	bool GetVariant(char *Name, GVariant &Value, char *Array = 0);
+	bool GetVariant(const char *Name, GVariant &Value, char *Array = 0);
 };
 
 #endif

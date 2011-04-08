@@ -212,7 +212,7 @@ public:
 		return r;
 	}
 
-	int Write(void *Buffer, int Size, int Flags = 0)
+	int Write(const void *Buffer, int Size, int Flags = 0)
 	{
 		// Remove null characters
 		char *o = (char*) Buffer;

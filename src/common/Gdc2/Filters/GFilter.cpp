@@ -75,7 +75,7 @@ public:
 	/// Writes a Windows BMP file
 	bool WriteImage(GStream *Out, GSurface *In);
 
-	bool GetVariant(char *n, GVariant &v, char *a)
+	bool GetVariant(const char *n, GVariant &v, char *a)
 	{
 		if (!stricmp(n, LGI_FILTER_TYPE))
 		{
@@ -675,7 +675,7 @@ public:
 	int GetImages() { return 1; }
 	bool ReadImage(GSurface *pDC, GStream *In);
 	bool WriteImage(GStream *Out, GSurface *pDC);
-	bool GetVariant(char *n, GVariant &v, char *a);
+	bool GetVariant(const char *n, GVariant &v, char *a);
 };
 
 class GdcIcoFactory : public GFilterFactory
@@ -696,7 +696,7 @@ GdcIco::GdcIco()
 {
 }
 
-bool GdcIco::GetVariant(char *n, GVariant &v, char *a)
+bool GdcIco::GetVariant(const char *n, GVariant &v, char *a)
 {
 	if (!stricmp(n, LGI_FILTER_TYPE))
 	{

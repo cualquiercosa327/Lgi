@@ -2206,7 +2206,7 @@ GSemaphore *StorageKitImpl::GetLock()
 	return this;
 }
 
-GSubFilePtr *StorageKitImpl::CreateFilePtr(char *file, int line)
+GSubFilePtr *StorageKitImpl::CreateFilePtr(const char *file, int line)
 {
 	return File ? File->Create(file, line) : 0;
 }

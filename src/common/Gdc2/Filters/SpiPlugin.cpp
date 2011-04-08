@@ -33,7 +33,7 @@ public:
 	int GetCapabilites() { return FILTER_CAP_READ; }
 	bool ReadImage(GSurface *pDC, GStream *In);
 	bool WriteImage(GStream *s, GSurface *pDC);
-	bool GetVariant(char *n, GVariant &v, char *a);
+	bool GetVariant(const char *n, GVariant &v, char *a);
 };
 
 // Plugin
@@ -294,7 +294,7 @@ bool GdcSpiPlugin::ReadImage(GSurface *pDC, GStream *In)
 	return Status;
 }
 
-bool GdcSpiPlugin::GetVariant(char *n, GVariant &v, char *a)
+bool GdcSpiPlugin::GetVariant(const char *n, GVariant &v, char *a)
 {
 	if (!stricmp(n, LGI_FILTER_TYPE))
 	{

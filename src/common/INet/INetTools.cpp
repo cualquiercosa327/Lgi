@@ -7,9 +7,9 @@
 #include "GString.h"
 
 // Gets a field value
-char *InetGetField(char *s)
+char *InetGetField(const char *s)
 {
-	char *e = s;
+	const char *e = s;
 
 	// Look for the end of the string
 	while (*e)
@@ -36,7 +36,7 @@ char *InetGetField(char *s)
 	char *Str = new char[Size+1];
 	if (Str)
 	{
-		char *In = s;
+		const char *In = s;
 		char *Out = Str;
 
 		while (In < e)
@@ -62,7 +62,7 @@ char *InetGetField(char *s)
 	return Str;
 }
 
-char *SeekNextLine(char *s, char *End)
+const char *SeekNextLine(const char *s, const char *End)
 {
 	if (s)
 	{
@@ -75,17 +75,17 @@ char *SeekNextLine(char *s, char *End)
 
 // Search through headers for a field
 char *InetGetHeaderField(	// Returns an allocated string or NULL on failure
-	char *Headers,			// Pointer to all the headers
-	char *Field,			// The field your after
+	const char *Headers,	// Pointer to all the headers
+	const char *Field,		// The field your after
 	int Len)				// Maximum len to run, or -1 for NULL terminated
 {
 	if (Headers AND Field)
 	{
 		// for all lines
-		char *End = Len < 0 ? 0 : Headers + Len;
+		const char *End = Len < 0 ? 0 : Headers + Len;
 		int FldLen = strlen(Field);
 		
-		for (char *s = Headers;
+		for (const char *s = Headers;
 			*s AND (!End OR s < End);
 			s = SeekNextLine(s, End))
 		{
@@ -109,17 +109,17 @@ char *InetGetHeaderField(	// Returns an allocated string or NULL on failure
 	return 0;
 }
 
-void InetTokeniseHeaders(List<GInetHeader> &Out, char *In)
+void InetTokeniseHeaders(List<GInetHeader> &Out, const char *In)
 {
 	// loop through and extract all the headers
-	char *e = 0;
-	for (char *s=In; s AND *s; s = *e == '\n' ? e + 1 : e)
+	const char *e = 0;
+	for (const char *s=In; s AND *s; s = *e == '\n' ? e + 1 : e)
 	{
 		// skip whitespace
 		while (strchr(" \t", *s)) s++;
 
 		// get end-of-line
-		char *e = strchr(s, '\n');
+		const char *e = strchr(s, '\n');
 		if (!e) e = s + strlen(s);
 		int Len = (int)e-(int)s;
 
@@ -141,7 +141,7 @@ void InetTokeniseHeaders(List<GInetHeader> &Out, char *In)
 	}
 }
 
-char *InetRemoveField(char *Headers, char *Field)
+char *InetRemoveField(char *Headers, const char *Field)
 {
 	char *Status = Headers;
 
@@ -201,12 +201,12 @@ char *InetRemoveField(char *Headers, char *Field)
 	return Status;
 }
 
-char *InetGetAllHeaders(char *s)
+char *InetGetAllHeaders(const char *s)
 {
 	char *All = 0;
 	if (s)
 	{
-		char *Start = s;
+		const char *Start = s;
 		while (s AND *s)
 		{
 			int i=0;
@@ -222,7 +222,7 @@ char *InetGetAllHeaders(char *s)
 	return All;
 }
 
-char *InetExtractBoundary(char *Field)
+char *InetExtractBoundary(const char *Field)
 {
 	if (Field)
 	{
@@ -262,7 +262,7 @@ char *InetExtractBoundary(char *Field)
 	return 0;
 }
 
-char *InetGetSubField(char *s, char *Field)
+char *InetGetSubField(const char *s, const char *Field)
 {
 	char *Status = 0;
 
@@ -283,7 +283,7 @@ char *InetGetSubField(char *s, char *Field)
 				// Parse field name
 				if (isalpha(*s))
 				{
-					char *f = s;
+					const char *f = s;
 					while (*s AND (isalpha(*s) OR *s == '-')) s++;
 					bool HasField = ((s-f) == FieldLen) AND (strnicmp(Field, f, FieldLen) == 0);
 					while (*s AND strchr(White, *s)) s++;
@@ -311,7 +311,7 @@ char *InetGetSubField(char *s, char *Field)
 						else
 						{
 							// Space Delimited Field
-							char *e = s;
+							const char *e = s;
 							while (*e AND !strchr(White, *e) AND *e != ';') e++;
 
 							if (HasField)

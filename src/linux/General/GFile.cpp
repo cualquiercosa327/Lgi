@@ -1375,7 +1375,7 @@ int GFile::Read(void *Buffer, int Size, int Flags)
 	return max(Red, 0);
 }
 
-int GFile::Write(void *Buffer, int Size, int Flags)
+int GFile::Write(const void *Buffer, int Size, int Flags)
 {
 	int Written = 0;
 

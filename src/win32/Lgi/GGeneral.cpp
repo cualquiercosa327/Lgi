@@ -49,7 +49,7 @@ void LgiSleep(DWORD i)
 	::Sleep(i);
 }
 
-bool LgiGetMimeTypeExtensions(char *Mime, GArray<char*> &Ext)
+bool LgiGetMimeTypeExtensions(const char *Mime, GArray<char*> &Ext)
 {
 	int Start = Ext.Length();
 	char *e;
@@ -82,7 +82,7 @@ bool LgiGetMimeTypeExtensions(char *Mime, GArray<char*> &Ext)
 	return Ext.Length() > Start;
 }
 
-bool LgiGetFileMimeType(char *File, char *Mime, int BufLen)
+bool LgiGetFileMimeType(const char *File, char *Mime, int BufLen)
 {
 	bool Status = false;
 
@@ -251,7 +251,7 @@ bool _GetApps_Add(GArray<GAppInfo*> &Apps, char *In)
 	return false;
 }
 
-bool LgiGetAppsForMimeType(char *Mime, GArray<GAppInfo*> &Apps, int Limit)
+bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 {
 	bool Status = false;
 
@@ -421,7 +421,7 @@ bool LgiGetAppsForMimeType(char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 	return Status;
 }
 
-bool LgiGetAppForMimeType(char *Mime, char *AppPath, int BufSize)
+bool LgiGetAppForMimeType(const char *Mime, char *AppPath, int BufSize)
 {
 	bool Status = false;
 	if (AppPath)
@@ -442,7 +442,7 @@ int LgiRand(int i)
 	return (rand() % i);
 }
 
-bool LgiPlaySound(char *FileName, int Flags)
+bool LgiPlaySound(const char *FileName, int Flags)
 {
 	bool Status = false;
 

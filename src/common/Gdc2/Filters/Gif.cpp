@@ -62,7 +62,7 @@ public:
 	bool ReadImage(GSurface *pDC, GStream *In);
 	bool WriteImage(GStream *Out, GSurface *pDC);
 
-	bool GetVariant(char *n, GVariant &v, char *a)
+	bool GetVariant(const char *n, GVariant &v, char *a)
 	{
 		if (!stricmp(n, LGI_FILTER_TYPE))
 		{

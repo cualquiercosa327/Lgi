@@ -67,7 +67,7 @@ struct Mapping
 class GXmlToUiPriv
 {
 public:
-	GHashTbl<char*,Mapping*> Maps;
+	GHashTbl<const char*,Mapping*> Maps;
 };
 
 GXmlToUi::GXmlToUi()
@@ -243,7 +243,7 @@ bool GXmlToUi::Convert(GDom *Tag, GViewI *Ui, bool ToUI)
 		if (ToUI)
 		{
 			// Xml -> UI
-			char *Attr;
+			const char *Attr;
 			for (Mapping *Map = d->Maps.First(&Attr); Map; Map = d->Maps.Next(&Attr))
 			{
 				if (Map->Hint == GV_LIST)
@@ -315,7 +315,7 @@ bool GXmlToUi::Convert(GDom *Tag, GViewI *Ui, bool ToUI)
 		else
 		{
 			// UI -> Xml
-			char *Attr;
+			const char *Attr;
 			for (Mapping *Map = d->Maps.First(&Attr); Map; Map = d->Maps.Next(&Attr))
 			{
 				GViewI *c = Ui->FindControl(Map->Id);

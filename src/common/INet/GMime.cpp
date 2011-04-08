@@ -87,7 +87,7 @@ public:
 		d = Buf;
 	}
 
-	int Write(void *p, int size, int f = 0)
+	int Write(const void *p, int size, int f = 0)
 	{
 		char *s = (char*)p;
 		char *e = s + size;
@@ -163,7 +163,7 @@ class GMimeQuotedPrintableDecode : public GCoderStream
 public:
 	GMimeQuotedPrintableDecode(GStreamI *o) : GCoderStream(o) {}
 
-	int Write(void *p, int size, int f = 0)
+	int Write(const void *p, int size, int f = 0)
 	{
 		Buf.Push((char*)p, size);
 
@@ -233,7 +233,7 @@ public:
 		}
 	}
 
-	int Write(void *p, int size, int f = 0)
+	int Write(const void *p, int size, int f = 0)
 	{
 		Buf.Write((uchar*)p, size);
 
@@ -272,7 +272,7 @@ public:
 		Lut['='] = 1;
 	}
 
-	int Write(void *p, int size, int f = 0)
+	int Write(const void *p, int size, int f = 0)
 	{
 		int Status = 0;
 
@@ -621,7 +621,7 @@ char *GMime::NewValue(char *&s, bool Alloc)
 	return Status;
 }
 
-char *GMime::StartOfField(char *s, char *Field)
+char *GMime::StartOfField(char *s, const char *Field)
 {
 	char *Status = 0;
 
@@ -681,7 +681,7 @@ char *GMime::NextField(char *s)
 	return s;
 }
 
-char *GMime::Get(char *Name, bool Short, char *Default)
+char *GMime::Get(const char *Name, bool Short, const char *Default)
 {
 	char *Status = 0;
 
@@ -717,7 +717,7 @@ char *GMime::Get(char *Name, bool Short, char *Default)
 	return Status;
 }
 
-bool GMime::Set(char *Name, char *Value)
+bool GMime::Set(const char *Name, const char *Value)
 {
 	bool Status = false;
 	
@@ -775,7 +775,7 @@ bool GMime::Set(char *Name, char *Value)
 	return Status;
 }
 
-char *GMime::GetSub(char *Field, char *Sub)
+char *GMime::GetSub(const char *Field, const char *Sub)
 {
 	char *Status = 0;
 
@@ -814,7 +814,7 @@ char *GMime::GetSub(char *Field, char *Sub)
 	return Status;
 }
 
-bool GMime::SetSub(char *Field, char *Sub, char *Value, char *DefaultValue)
+bool GMime::SetSub(const char *Field, const char *Sub, const char *Value, const char *DefaultValue)
 {
 	if (Field && Sub)
 	{

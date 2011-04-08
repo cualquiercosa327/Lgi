@@ -45,15 +45,11 @@ public:
 		ZeroObj(Value);
 	}
 
-	Prop(char *n)
+	Prop(const char *n)
 	{
 		if (n)
 		{
-			Name = new char[strlen(n)+1];
-			if (Name)
-			{
-				strcpy(Name, n);
-			}
+			Name = NewStr(n);
 		}
 		else
 		{
@@ -81,7 +77,7 @@ public:
 	}
 
 	bool operator ==(Prop &p);
-	bool operator ==(char *n);
+	bool operator ==(const char *n);
 
 	bool Serialize(GFile &f, bool Write);
 	bool SerializeText(GFile &f, bool Write);
@@ -106,7 +102,7 @@ class ObjProperties :
 	Prop *Current;
 	List<Prop> Properties;
 
-	Prop *FindProp(char *Name);
+	Prop *FindProp(const char *Name);
 
 public:
 	ObjProperties();
@@ -115,7 +111,7 @@ public:
 
 	ObjProperties &operator =(ObjProperties &props);
 
-	bool operator ==(char *n)
+	bool operator ==(const char *n)
 	{
 		if (Name())
 		{	
@@ -152,16 +148,16 @@ public:
 	void Empty();
 	int SizeofData();
 
-	bool Set(char *Name, int n);
-	bool Set(char *Name, double n);
-	bool Set(char *Name, char *n);
-	bool Set(char *Name, void *Data, int Len);
+	bool Set(const char *Name, int n);
+	bool Set(const char *Name, double n);
+	bool Set(const char *Name, const char *n);
+	bool Set(const char *Name, void *Data, int Len);
 	bool Set(Prop *p);
 
-	bool Get(char *Name, int &n);
-	bool Get(char *Name, double &n);
-	bool Get(char *Name, char *&n);
-	bool Get(char *Name, void *&Data, int &Len);
+	bool Get(const char *Name, int &n);
+	bool Get(const char *Name, double &n);
+	bool Get(const char *Name, char *&n);
+	bool Get(const char *Name, void *&Data, int &Len);
 	bool Get(Prop *&p);
 
 	bool Serialize(GFile &f, bool Write);

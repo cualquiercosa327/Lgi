@@ -21,7 +21,7 @@ public:
 	int Id;
 	#endif
 	
-	GSharedMemoryPrivate(char *name, int size)
+	GSharedMemoryPrivate(const char *name, int size)
 	{
 		Name = NewStr(name);
 		Size = size;
@@ -134,7 +134,7 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////
-GSharedMemory::GSharedMemory(char *Name, int Size)
+GSharedMemory::GSharedMemory(const char *Name, int Size)
 {
 	d = new GSharedMemoryPrivate(Name, Size);
 }

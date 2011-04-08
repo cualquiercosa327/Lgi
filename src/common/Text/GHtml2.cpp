@@ -1607,7 +1607,7 @@ void GTag::OnChange(PropType Prop)
 	}
 }
 
-void GTag::Set(char *attr, char *val)
+void GTag::Set(const char *attr, const char *val)
 {
 	char *existing = Attr.Find(attr);
 	if (existing) DeleteArray(existing);
@@ -1726,7 +1726,7 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 
 	if (Attr.Length())
 	{
-		char *a;
+		const char *a;
 		for (char *v = Attr.First(&a); v; v = Attr.Next(&a))
 		{
 			if (stricmp(a, "style"))
@@ -7527,7 +7527,7 @@ void GHtml2::SetEmoji(bool i)
 ////////////////////////////////////////////////////////////////////////
 class GHtml_Factory2 : public GViewFactory
 {
-	GView *NewView(char *Class, GRect *Pos, char *Text)
+	GView *NewView(const char *Class, GRect *Pos, const char *Text)
 	{
 		if (stricmp(Class, "GHtml2") == 0)
 		{

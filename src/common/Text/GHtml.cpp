@@ -1214,12 +1214,12 @@ GTag::~GTag()
 	DeleteObj(Cells);
 }
 
-bool GTag::GetVariant(char *Name, GVariant &Value, char *Array)
+bool GTag::GetVariant(const char *Name, GVariant &Value, char *Array)
 {
 	return false;
 }
 
-bool GTag::SetVariant(char *Name, GVariant &Value, char *Array)
+bool GTag::SetVariant(const char *Name, GVariant &Value, char *Array)
 {
 	if (!Name)
 		return false;

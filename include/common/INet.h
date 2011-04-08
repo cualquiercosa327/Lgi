@@ -301,12 +301,12 @@ public:
 	GUri
 	(
 		/// Optional URI to start parsing
-		char *uri = 0
+		const char *uri = 0
 	);
 	~GUri();
 
 	/// Parse a URI into it's sub fields...
-	bool Set(char *uri);
+	bool Set(const char *uri);
 
 	/// Re-constructs the URI
 	char *Get();

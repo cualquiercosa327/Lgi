@@ -62,7 +62,7 @@ long _lgi_play_sound(void *Ptr)
 
 ////////////////////////////////////////////////////////////////////////
 // Implementations
-bool LgiGetFileMimeType(char *File, char *Mime)
+bool LgiGetFileMimeType(const char *File, char *Mime)
 {
 	bool Status = false;
 	if (File AND Mime)
@@ -74,7 +74,7 @@ bool LgiGetFileMimeType(char *File, char *Mime)
 	return Status;
 }
 
-bool LgiGetsAppForMimeType(char *Mime, GArray<GAppInfo*> &Apps, int Limit)
+bool LgiGetsAppForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 {
 	bool Status = false;
 	if (Mime)
@@ -105,7 +105,7 @@ bool LgiGetsAppForMimeType(char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 	return Status;
 }
 
-bool LgiGetAppForMimeType(char *Mime, char *AppPath, int BufSize)
+bool LgiGetAppForMimeType(const char *Mime, char *AppPath, int BufSize)
 {
 	GArray<GAppInfo*> Apps;
 	if (AppPath AND LgiGetsAppForMimeType(Mime, Apps, 1))
@@ -118,7 +118,7 @@ bool LgiGetAppForMimeType(char *Mime, char *AppPath, int BufSize)
 	return false;
 }
 
-bool LgiGetFileMimeType(char *File, char *Mime, int MimeBufSize)
+bool LgiGetFileMimeType(const char *File, char *Mime, int MimeBufSize)
 {
 	bool Status = false;
 	

@@ -11,7 +11,7 @@
 char WhiteSpace[] = " \t\r\n";
 
 // 8 Bit
-char *strnchr(char *s, char c, int Len)
+char *strnchr(const char *s, char c, int Len)
 {
 	if (s)
 	{
@@ -19,7 +19,7 @@ char *strnchr(char *s, char c, int Len)
 		{
 			if (s[i] == c)
 			{
-				return s + i;
+				return (char*)s + i;
 			}
 		}
 	}
@@ -27,7 +27,7 @@ char *strnchr(char *s, char c, int Len)
 	return 0;
 }
 
-char *strnstr(char *a, char *b, int n)
+char *strnstr(char *a, const char *b, int n)
 {
 	if (a && b)
 	{
@@ -53,7 +53,7 @@ char *strnstr(char *a, char *b, int n)
 	return NULL;
 }
 
-char *strnistr(char *a, char *b, int n)
+char *strnistr(char *a, const char *b, int n)
 {
 	if (a && b)
 	{
@@ -373,7 +373,7 @@ bool MatchStr(const char *Template, const char *Data)
 			(*Data == 0);
 }
 
-int htoi(char *a)
+int htoi(const char *a)
 {
 	int Status = 0;
 
@@ -431,13 +431,13 @@ int64 htoi64(char *a)
 // UTF-16
 #define CompareDefault	(a && b ? *a - *b : -1)
 
-char16 *StrchrW(char16 *s, char16 c)
+char16 *StrchrW(const char16 *s, char16 c)
 {
 	if (s)
 	{
 		while (*s)
 		{
-			if (*s == c) return s;
+			if (*s == c) return (char16*) s;
 			s++;
 		}
 	}
@@ -475,7 +475,7 @@ char16 *StrrchrW(char16 *s, char16 c)
 	return Last;
 }
 
-char16 *StrstrW(char16 *a, char16 *b)
+char16 *StrstrW(char16 *a, const char16 *b)
 {
 	if (a && b)
 	{
@@ -494,7 +494,7 @@ char16 *StrstrW(char16 *a, char16 *b)
 	return 0;
 }
 
-char16 *StristrW(char16 *a, char16 *b)
+char16 *StristrW(char16 *a, const char16 *b)
 {
 	if (a && b)
 	{
@@ -513,7 +513,7 @@ char16 *StristrW(char16 *a, char16 *b)
 	return 0;
 }
 
-char16 *StrnstrW(char16 *a, char16 *b, int n)
+char16 *StrnstrW(char16 *a, const char16 *b, int n)
 {
 	if (a && b)
 	{
@@ -532,7 +532,7 @@ char16 *StrnstrW(char16 *a, char16 *b, int n)
 	return 0;
 }
 
-char16 *StrnistrW(char16 *a, char16 *b, int n)
+char16 *StrnistrW(char16 *a, const char16 *b, int n)
 {
 	if (a && b)
 	{
@@ -551,7 +551,7 @@ char16 *StrnistrW(char16 *a, char16 *b, int n)
 	return 0;
 }
 
-int StrcmpW(char16 *a, char16 *b)
+int StrcmpW(const char16 *a, const char16 *b)
 {
 	if (a && b)
 	{
@@ -570,7 +570,7 @@ int StrcmpW(char16 *a, char16 *b)
 	return -1;
 }
 
-int StricmpW(char16 *a, char16 *b)
+int StricmpW(const char16 *a, const char16 *b)
 {
 	if (a && b)
 	{
@@ -592,7 +592,7 @@ int StricmpW(char16 *a, char16 *b)
 	return -1;
 }
 
-int StrncmpW(char16 *a, char16 *b, int n)
+int StrncmpW(const char16 *a, const char16 *b, int n)
 {
 	if (a && b)
 	{
@@ -612,7 +612,7 @@ int StrncmpW(char16 *a, char16 *b, int n)
 	return -1;
 }
 
-int StrnicmpW(char16 *a, char16 *b, int n)
+int StrnicmpW(const char16 *a, const char16 *b, int n)
 {
 	if (a && b)
 	{
@@ -635,7 +635,7 @@ int StrnicmpW(char16 *a, char16 *b, int n)
 	return -1;
 }
 
-char16 *StrcpyW(char16 *a, char16 *b)
+char16 *StrcpyW(char16 *a, const char16 *b)
 {
 	if (a && b)
 	{
@@ -651,7 +651,7 @@ char16 *StrcpyW(char16 *a, char16 *b)
 	return a;
 }
 
-char16 *StrncpyW(char16 *a, char16 *b, int n)
+char16 *StrncpyW(char16 *a, const char16 *b, int n)
 {
 	if (a && b && n > 0)
 	{
@@ -700,7 +700,7 @@ int StrlenW(const char16 *a)
 	return i;
 }
 
-int AtoiW(char16 *a)
+int AtoiW(const char16 *a)
 {
 	int i = 0;
 	while (a && *a >= '0' && *a <= '9')
@@ -712,7 +712,7 @@ int AtoiW(char16 *a)
 	return i;
 }
 
-int HtoiW(char16 *a)
+int HtoiW(const char16 *a)
 {
 	int i = 0;
 	if (a)
@@ -740,7 +740,7 @@ int HtoiW(char16 *a)
 	return i;
 }
 
-char16 *TrimStrW(char16 *s, char16 *Delim)
+char16 *TrimStrW(const char16 *s, const char16 *Delim)
 {
 	if (!Delim)
 	{
@@ -769,8 +769,9 @@ char16 *TrimStrW(char16 *s, char16 *Delim)
 	return 0;
 }
 
-bool MatchStrW(char16 *a, char16 *b)
+bool MatchStrW(const char16 *a, const char16 *b)
 {
+	LgiAssert(0);
 	return 0;
 }
 
@@ -790,11 +791,11 @@ char16 *NewStrW(const char16 *Str, int l)
 	return s;
 }
 
-bool ValidStrW(char16 *s)
+bool ValidStrW(const char16 *s)
 {
 	if (s)
 	{
-		for (char16 *c=s; *c; c++)
+		for (const char16 *c=s; *c; c++)
 		{
 			if (*c != ' ' && *c != '\t') return true;
 		}

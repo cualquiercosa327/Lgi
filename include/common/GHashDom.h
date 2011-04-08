@@ -15,7 +15,7 @@ public:
 		}
 	}
 
-	bool GetVariant(char *Name, GVariant &Value, char *Array = 0)
+	bool GetVariant(const char *Name, GVariant &Value, char *Array = 0)
 	{
 		GVariant *v = (GVariant*)Find(Name);
 		if (v)
@@ -26,7 +26,7 @@ public:
 		return false;
 	}
 
-	bool SetVariant(char *Name, GVariant &Value, char *Array = 0)
+	bool SetVariant(const char *Name, GVariant &Value, char *Array = 0)
 	{
 		GVariant *v = new GVariant(Value);
 		if (v)

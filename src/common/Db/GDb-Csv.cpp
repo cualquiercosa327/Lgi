@@ -67,13 +67,13 @@ class SvRecordset : public GDbRecordset
 	SvRecord *Record();
 
 public:
-	SvRecordset(SvDb *parent, char *file);
+	SvRecordset(SvDb *parent, const char *file);
 	~SvRecordset();
 
 	char *Name();
 	GDbField &operator [](int Index);
 	GDbField &operator [](char *Name);
-	GDbField *InsertField(char *Name, int Type, int Len, int Index);
+	GDbField *InsertField(const char *Name, int Type, int Len, int Index);
 	bool DeleteField(GDbField *Fld);
 	int Fields();
 	bool End();
@@ -106,7 +106,7 @@ public:
 	}
 
 	~SvDb();
-	bool Connect(char *Init);
+	bool Connect(const char *Init);
 	bool Disconnect();
 	GDbRecordset *Open(char *Name);
 	GDbRecordset *TableAt(int i);
@@ -404,7 +404,7 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////
-SvRecordset::SvRecordset(SvDb *parent, char *file)
+SvRecordset::SvRecordset(SvDb *parent, const char *file)
 {
 	Parent = parent;
 	Cur = 0;
@@ -670,7 +670,7 @@ GDbField &SvRecordset::operator [](char *Name)
 	return Null;
 }
 
-GDbField *SvRecordset::InsertField(char *Name, int Type, int Length, int Index)
+GDbField *SvRecordset::InsertField(const char *Name, int Type, int Length, int Index)
 {
 	if (Index < 0)
 	{
@@ -839,7 +839,7 @@ SvDb::~SvDb()
 	Disconnect();
 }
 
-bool SvDb::Connect(char *Init)
+bool SvDb::Connect(const char *Init)
 {
 	Tables.Insert(new SvRecordset(this, Init));
 	return Tables.First() != 0;

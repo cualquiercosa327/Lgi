@@ -1642,7 +1642,7 @@ int GFile::GetBlockSize()
 	return BytesPerSector;
 }
 
-int GFile::Open(char *File, int Mode)
+int GFile::Open(const char *File, int Mode)
 {
 	int Status = false;
 	bool NoCache = (Mode & O_NO_CACHE) != 0;
@@ -1804,7 +1804,7 @@ int GFile::Read(void *Buffer, int Size, int Flags)
 	return Bytes;
 }
 
-int GFile::Write(void *Buffer, int Size, int Flags)
+int GFile::Write(const void *Buffer, int Size, int Flags)
 {
 	DWORD Bytes = 0;
 	if (WriteFile(d->hFile, Buffer, Size, &Bytes, NULL))

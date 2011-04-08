@@ -142,7 +142,7 @@ void GColourSelect::OnPaint(GSurface *pDC)
 
 class GColourFactory : public GViewFactory
 {
-	GView *NewView(char *Class, GRect *Pos, char *Text)
+	GView *NewView(const char *Class, GRect *Pos, const char *Text)
 	{
 		if (Class AND
 			stricmp(Class, "GColourSelect") == 0)

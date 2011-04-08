@@ -150,7 +150,7 @@ public:
 	{
 		for (Type *o=(Type*)DLinkList::First(); o; o=(Type*)DLinkList::Next())
 		{
-			DeleteArray(o);
+			delete [] (void*)o;
 		}
 		DLinkList::Empty();
 	}

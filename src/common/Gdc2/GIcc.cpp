@@ -345,7 +345,7 @@ public:
 		DeleteArray(Txt);
 	}
 
-	bool GetVariant(char *Name, GVariant &Value, char *Array)
+	bool GetVariant(const char *Name, GVariant &Value, char *Array)
 	{
 		if (!Name)
 			return false;
@@ -375,7 +375,7 @@ public:
 		Str = s;
 	}
 
-	bool GetVariant(char *Name, GVariant &Value, char *Array)
+	bool GetVariant(const char *Name, GVariant &Value, char *Array)
 	{
 		if (!Name)
 			return false;
@@ -431,7 +431,7 @@ public:
 		Dom.DeleteObjects();
 	}
 
-	bool GetVariant(char *Name, GVariant &Value, char *Array)
+	bool GetVariant(const char *Name, GVariant &Value, char *Array)
 	{
 		if (!Name)
 			return false;
@@ -463,7 +463,7 @@ class TagDom : public GDom
 public:
 	TagDom(IccTag *tag, char *header);
 	~TagDom();
-	bool GetVariant(char *Name, GVariant &Value, char *Array);
+	bool GetVariant(const char *Name, GVariant &Value, char *Array);
 };
 
 class HeaderDom : public GDom
@@ -497,7 +497,7 @@ public:
 		Dom.DeleteObjects();
 	}
 
-	bool GetVariant(char *Name, GVariant &Value, char *Array)
+	bool GetVariant(const char *Name, GVariant &Value, char *Array)
 	{
 		if (!Name)
 			return false;
@@ -530,7 +530,7 @@ public:
 		c = curve;
 	}
 
-	bool GetVariant(char *Name, GVariant &Value, char *Array)
+	bool GetVariant(const char *Name, GVariant &Value, char *Array)
 	{
 		if (!Name)
 			return false;
@@ -573,7 +573,7 @@ public:
 		Len = Swap32(len);
 	}
 
-	bool GetVariant(char *Name, GVariant &Value, char *Array)
+	bool GetVariant(const char *Name, GVariant &Value, char *Array)
 	{
 		if (!Name)
 			return false;
@@ -616,7 +616,7 @@ public:
 		DeleteArray(Txt);
 	}
 
-	bool GetVariant(char *Name, GVariant &Value, char *Array)
+	bool GetVariant(const char *Name, GVariant &Value, char *Array)
 	{
 		if (!Name)
 			return false;
@@ -762,7 +762,7 @@ TagDom::~TagDom()
 	Dom.DeleteObjects();
 }
 
-bool TagDom::GetVariant(char *Name, GVariant &Value, char *Array)
+bool TagDom::GetVariant(const char *Name, GVariant &Value, char *Array)
 {
 	if (!Name)
 		return false;
@@ -814,7 +814,7 @@ public:
 		Dom.DeleteObjects();
 	}
 
-	bool GetVariant(char *Name, GVariant &Value, char *Array)
+	bool GetVariant(const char *Name, GVariant &Value, char *Array)
 	{
 		if (!Name)
 			return false;
@@ -1157,7 +1157,7 @@ bool GIccProfile::Convert(GSurface *Dest, GSurface *Src, GIccProfile *Profile)
 	return false;
 }
 
-bool GIccProfile::GetVariant(char *Name, GVariant &Value, char *Array)
+bool GIccProfile::GetVariant(const char *Name, GVariant &Value, char *Array)
 {
 	if (!Name)
 		return false;

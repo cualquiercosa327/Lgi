@@ -255,12 +255,12 @@ public:
 	virtual char *GetBody();
 	virtual bool SetBody(const char *Txt, int Bytes = -1, bool Copy = true, const char *Cs = 0);
 	virtual char *GetBodyCharset();
-	virtual bool SetBodyCharset(const char *Cs, bool Copy = true);
+	virtual bool SetBodyCharset(const char *Cs);
 
 	virtual char *GetHtml();
 	virtual bool SetHtml(const char *Txt, int Bytes = -1, bool Copy = true, const char *Cs = 0);
 	virtual char *GetHtmlCharset();
-	virtual bool SetHtmlCharset(const char *Cs, bool Copy = true);
+	virtual bool SetHtmlCharset(const char *Cs);
 	
 	// Conversion to/from MIME
 	GStringPipe					*Raw;

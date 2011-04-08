@@ -47,7 +47,7 @@ public:
 		return GFilter::Read(s, p, len);
 	}
 
-	bool Write(void *p, int len)
+	bool Write(const void *p, int len)
 	{
 		return GFilter::Write(s, p, len);
 	}
@@ -98,7 +98,7 @@ public:
 	bool ReadImage(GSurface *pDC, GStream *In);
 	bool WriteImage(GStream *Out, GSurface *pDC);
 
-	bool GetVariant(char *n, GVariant &v, char *a)
+	bool GetVariant(const char *n, GVariant &v, char *a)
 	{
 		if (!stricmp(n, LGI_FILTER_TYPE))
 		{
@@ -466,7 +466,7 @@ public:
 		Scansize = scansize;
 	}
 
-	int Write(void *buf, int size, int flags)
+	int Write(const void *buf, int size, int flags)
 	{
 		int Status = GBytePipe::Write(buf, size, flags);
 		Size += size;

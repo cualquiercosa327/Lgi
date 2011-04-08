@@ -6,7 +6,7 @@
 /// \brief This class can limit the reading/writing to a specific sub section of a file
 /// Which should protect the application using the storage system from overwriting parts
 /// of the file is shouldn't have access to. The default region is the whole file.
-GSubFilePtr::GSubFilePtr(GSubFile *Parent, char *file, int line)
+GSubFilePtr::GSubFilePtr(GSubFile *Parent, const char *file, int line)
 {
 	File = Parent;
 	SrcFile = NewStr(file);
@@ -208,7 +208,7 @@ int GSubFilePtr::Read(void *Buffer, int Size, int Flags)
 	return Status;
 }
 
-int GSubFilePtr::Write(void *Buffer, int Size, int Flags)
+int GSubFilePtr::Write(const void *Buffer, int Size, int Flags)
 {
 	int Status = 0;
 	
@@ -279,7 +279,7 @@ GSubFile::~GSubFile()
 	#endif
 }
 
-GSubFilePtr *GSubFile::Create(char *file, int line)
+GSubFilePtr *GSubFile::Create(const char *file, int line)
 {
 	GSubFilePtr *p = 0;
 	
@@ -364,7 +364,7 @@ int GSubFile::Read(void *OutBuf, int Size, int Flags)
 	return Status;
 }
 
-int GSubFile::Write(void *InBuf, int Size, int Flags)
+int GSubFile::Write(const void *InBuf, int Size, int Flags)
 {
 	int Status = 0;
 
