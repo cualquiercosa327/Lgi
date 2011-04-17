@@ -210,3 +210,5 @@
 #if defined __SUNPRO_CC && !defined __RESTRICT
 # define _Restrict
 #endif
+
+#define _CRTRESTRICT
