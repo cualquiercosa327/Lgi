@@ -69,7 +69,7 @@ public:
 		return 0;
 	}
 	
-	int Write(void *Buffer, int Size, int Flags = 0)
+	int Write(const void *Buffer, int Size, int Flags = 0)
 	{
 		char16 *w = LgiNewUtf8To16((char*)Buffer, Size);
 		if (w)
