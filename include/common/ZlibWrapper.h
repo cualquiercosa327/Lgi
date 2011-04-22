@@ -139,7 +139,7 @@ public:
 		return z->gzread(f, Buffer, Size);
 	}
 	
-	int Write(void *Buffer, int Size, int Flags = 0)
+	int Write(const void *Buffer, int Size, int Flags = 0)
 	{
 		if (!IsOpen())
 			return -1;

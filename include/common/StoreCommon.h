@@ -47,7 +47,7 @@ public:
 	#if GSUBFILE_NOBUFFERING
 	int Open(char *Str = 0, int Int = 0);
 	int Read(void *Buffer, int Size, int Flags = 0);
-	int Write(void *Buffer, int Size, int Flags = 0);
+	int Write(const void *Buffer, int Size, int Flags = 0);
 	int64 GetPos();
 	int64 SetPos(int64 pos);
 	#endif
