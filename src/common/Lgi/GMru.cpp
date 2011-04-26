@@ -87,7 +87,7 @@ bool GMru::_SaveFile(char *FileName)
 			// extract extension
 			char Ext[64];
 			char *s = strchr(GetSelectedType()->Extension(), '.'), *d = Ext;
-			if (ValidStr(s) && !stricmp(s, ".*"))
+			if (ValidStr(s) && stricmp(s, ".*"))
 			{
 				while (*s AND *s != ';')
 				{

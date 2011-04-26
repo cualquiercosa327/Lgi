@@ -310,66 +310,58 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////
-class GMimeBuf : public GStringPipe
+GMimeBuf::GMimeBuf(GStreamI *src, GStreamEnd *end)
 {
-	int Total;
-	GStreamI *Src;
-	GStreamEnd *End;
+	Total = 0;
+	Src = src;
+	End = end;
 
-public:
-	GMimeBuf(GStreamI *src, GStreamEnd *end)
+	Src->SetPos(0);
+}
+
+int GMimeBuf::Pop(char *Str, int BufSize)
+{
+	int Ret = 0;
+
+	while (!(Ret = GStringPipe::Pop(Str, BufSize)))
 	{
-		Total = 0;
-		Src = src;
-		End = end;
-
-		Src->SetPos(0);
-	}
-
-	int Pop(char *Str, int BufSize)
-	{
-		int Ret = 0;
-
-		while (!(Ret = GStringPipe::Pop(Str, BufSize)))
+		if (Src)
 		{
-			if (Src)
+			char Buf[1024];
+			int r = Src ? Src->Read(Buf, sizeof(Buf)) : 0;
+			if (r)
 			{
-				char Buf[1024];
-				int r = Src ? Src->Read(Buf, sizeof(Buf)) : 0;
-				if (r)
+				if (End)
 				{
-					if (End)
+					int e = End->IsEnd(Buf, r);
+					if (e >= 0)
 					{
-						int e = End->IsEnd(Buf, r);
-						if (e >= 0)
-						{
-							// End of stream
-							int s = e - Total;
-							Push(Buf, s);
-							Total += s;
-							Src = 0; // no more data anyway
-						}
-						else
-						{
-							// Not the end
-							Push(Buf, r);
-							Total += r;
-						}
+						// End of stream
+						int s = e - Total;
+						Push(Buf, s);
+						Total += s;
+						Src = 0; // no more data anyway
 					}
 					else
 					{
+						// Not the end
 						Push(Buf, r);
 						Total += r;
 					}
 				}
-				else break;
+				else
+				{
+					Push(Buf, r);
+					Total += r;
+				}
 			}
 			else break;
 		}
-
-		return Ret;
+		else break;
 	}
-};
+
+	return Ret;
+}
 
 ///////////////////////////////////////////////////////////////////////
 // Mime Object
@@ -938,7 +930,7 @@ int GMime::GMimeText::GMimeDecode::Parse(GStringPipe *Source, ParentState *State
 			char Buf[1024];
 			GStringPipe HeaderBuf;
 			int r;
-			while (r = Source->Pop(Buf, sizeof(Buf)))
+			while ((r = Source->Pop(Buf, sizeof(Buf))) > 0)
 			{
 				if (!strchr(MimeEol, Buf[0]))
 				{
@@ -947,6 +939,10 @@ int GMime::GMimeText::GMimeDecode::Parse(GStringPipe *Source, ParentState *State
 				}
 				else break;
 			}
+
+			if (r < 0)
+				return 0;
+
 
 			// Not an error
 			Mime->Headers = HeaderBuf.NewStr();

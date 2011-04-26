@@ -24,6 +24,17 @@ public:
 	virtual void Empty() {} // reset to initial state
 };
 
+class GMimeBuf : public GStringPipe
+{
+	int Total;
+	GStreamI *Src;
+	GStreamEnd *End;
+
+public:
+	GMimeBuf(GStreamI *src, GStreamEnd *end);
+	int Pop(char *Str, int BufSize);
+};
+
 class GMime
 {
 	// Header info
@@ -95,9 +106,9 @@ public:
 	public:
 		class GMimeDecode : public GPullStreamer, public GMimeAction
 		{
-			int Parse(GStringPipe *Source, class ParentState *State = 0);
 		public:
 			int Pull(GStreamI *Source, GStreamEnd *End = 0);
+			int Parse(GStringPipe *Source, class ParentState *State = 0);
 			void Empty();
 		} Decode;
 
