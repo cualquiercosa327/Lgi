@@ -178,7 +178,7 @@ public:
 	/// Called when data is read
 	virtual void OnRead(char *Data, int Len) {}
 	/// Called when data is written
-	virtual void OnWrite(char *Data, int Len) {}
+	virtual void OnWrite(const char *Data, int Len) {}
 	/// Called when an error occurs
 	virtual void OnError(int ErrorCode, const char *ErrorDescription) {}
 	/// Called when some events happens

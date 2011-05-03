@@ -228,7 +228,7 @@ public:
 	void OnRead(char *Data, int Len) {}
 
 	/// Gets called when data is sent.
-	void OnWrite(char *Data, int Len) {}
+	void OnWrite(const char *Data, int Len) {}
 	
 	/// Gets called when an error occurs.
 	void OnError(int ErrorCode, const char *ErrorDescription) {}
