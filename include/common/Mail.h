@@ -894,7 +894,7 @@ public:
 	static bool Http(GSocketI *S,
 					GAutoString *OutHeaders,
 					GAutoString *OutBody,
-					GAutoString *OutMsg,
+					int *StatusCode,
 					char *InMethod,
 					char *InUri,
 					char *InHeaders,

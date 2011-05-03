@@ -190,7 +190,7 @@ int ParseImapResponse(GArray<char> &Buf, int Used, GArray<StrRange> &Ranges, int
 bool MailIMap::Http(GSocketI *S,
 					GAutoString *OutHeaders,
 					GAutoString *OutBody,
-					GAutoString *OutMsg,
+					int *StatusCode,
 					char *InMethod,
 					char *InUri,
 					char *InHeaders,
@@ -252,6 +252,32 @@ bool MailIMap::Http(GSocketI *S,
 		}
 	}
 
+	char *Rp = &Res[0];
+	char *Eoh = strnstr(Rp, "\r\n\r\n", Res.Length());
+	if (Eoh)
+	{
+		if (OutHeaders)
+			OutHeaders->Reset(NewStr(Rp, Eoh-Rp));
+		if (OutBody)
+			OutBody->Reset(NewStr(Eoh + 4, Res.Length() - (Eoh-Rp) - 4));
+		if (StatusCode)
+		{
+			*StatusCode = 0;
+
+			char *Eol = strchr(Rp, '\n');
+			if (Eol)
+			{
+				GToken t(Rp, " \t\r\n", true, Eol - Rp);
+				if (t.Length() > 2)
+				{
+					*StatusCode = atoi(t[1]);
+				}
+			}
+		}
+	}
+	else return false;
+
+	#ifndef _DEBUG
 	GFile f;
 	if (f.Open("c:\\temp\\http.html", O_WRITE))
 	{
@@ -259,6 +285,7 @@ bool MailIMap::Http(GSocketI *S,
 		f.Write(&Res[0], Res.Length());
 		f.Close();
 	}
+	#endif
 
 	return true;
 }
@@ -1331,50 +1358,67 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 						if (Ssl)
 						{
 							GStringPipe p;
-							GAutoString Hdr, Body, Err;
+							GAutoString Hdr, Body;
+							int StatusCode = 0;
 							char Url[256];
 							sprintf(Url, "http://mail.google.com/mail/b/%s/imap/", User);
-							if (Http(Ssl, &Hdr, &Body, &Err, "POST", Url, 0, 0))
+							if (Http(Ssl, &Hdr, &Body, &StatusCode, "POST", Url, 0, 0))
 							{
-								GUri u;
-								GAutoString UriUserName = u.Encode(User);
-								
-								GAutoString Nonce, Signature, Timestamp, Token;
-								p.Print("%x", LgiRand());
-								Nonce.Reset(p.NewStr());
-								p.Print("%i", time(0));
-								Timestamp.Reset(p.NewStr());
-
-								p.Print("GET https://mail.google.com/mail/b/%s/imap/?xoauth_requestor_id=%s "
-										"oauth_consumer_key=\"anonymous\", "
-										"oauth_nonce=\"%s\", "
-										"oauth_signature=\"%s\", "
-										"oauth_signature_method=\"PLAINTEXT\", "
-										"oauth_timestamp=\"%s\", "
-										"oauth_token=\"%s\", "
-										"oauth_version=\"1.0\"",
-										User,
-										UriUserName.Get(),
-										Nonce.Get(),
-										Signature.Get(),
-										Timestamp.Get(),
-										Token.Get());
-
-								GAutoString Bin(p.NewStr());
-								int BinLen = strlen(Bin);
-								int B64Len = BufferLen_BinTo64(BinLen);
-								GAutoString B64(new char[B64Len+1]);
-								int c = ConvertBinaryToBase64(B64, B64Len, (uchar*)Bin.Get(), BinLen);
-								B64[B64Len] = 0;
-
-								int AuthCmd = d->NextCmd++;
-								p.Print("A%04.4i AUTHENTICATE XOAUTH %s\r\n", AuthCmd, B64.Get());
-								GAutoString Cmd(p.NewStr());
-								int w = Socket->Write(Cmd, strlen(Cmd));
-								Log(Cmd, MAIL_SEND_COLOUR);
-								if (w > 0)
+								bool Status = true;
+								for (int i=0; i<5 && StatusCode == 302; i++)
 								{
-									LoggedIn = ReadResponse(AuthCmd);							
+									GAutoString Redirect(InetGetHeaderField(Hdr, "Location"));
+									if (Redirect)
+									{
+										Status = Http(Ssl, &Hdr, &Body, &StatusCode, "POST", Redirect, 0, 0);
+										if (Status)
+											break;
+									}
+									else break;									
+								}
+
+								if (Status)
+								{
+									GUri u;
+									GAutoString UriUserName = u.Encode(User);
+									
+									GAutoString Nonce, Signature, Timestamp, Token;
+									p.Print("%x", LgiRand());
+									Nonce.Reset(p.NewStr());
+									p.Print("%i", time(0));
+									Timestamp.Reset(p.NewStr());
+
+									p.Print("GET https://mail.google.com/mail/b/%s/imap/?xoauth_requestor_id=%s "
+											"oauth_consumer_key=\"anonymous\", "
+											"oauth_nonce=\"%s\", "
+											"oauth_signature=\"%s\", "
+											"oauth_signature_method=\"PLAINTEXT\", "
+											"oauth_timestamp=\"%s\", "
+											"oauth_token=\"%s\", "
+											"oauth_version=\"1.0\"",
+											User,
+											UriUserName.Get(),
+											Nonce.Get(),
+											Signature.Get(),
+											Timestamp.Get(),
+											Token.Get());
+
+									GAutoString Bin(p.NewStr());
+									int BinLen = strlen(Bin);
+									int B64Len = BufferLen_BinTo64(BinLen);
+									GAutoString B64(new char[B64Len+1]);
+									int c = ConvertBinaryToBase64(B64, B64Len, (uchar*)Bin.Get(), BinLen);
+									B64[B64Len] = 0;
+
+									int AuthCmd = d->NextCmd++;
+									p.Print("A%04.4i AUTHENTICATE XOAUTH %s\r\n", AuthCmd, B64.Get());
+									GAutoString Cmd(p.NewStr());
+									int w = Socket->Write(Cmd, strlen(Cmd));
+									Log(Cmd, MAIL_SEND_COLOUR);
+									if (w > 0)
+									{
+										LoggedIn = ReadResponse(AuthCmd);							
+									}
 								}
 							}
 						}
