@@ -2583,7 +2583,7 @@ bool AppWnd::LoadLgi(char *FileName)
 
 					// Scan for languages and update the view lang menu
 					Languages.Length(0);
-					GHashTbl<const char*, bool> Langs;
+					GHashTbl<const char*, GLanguage*> Langs;
 					if (ViewMenu)
 					{
 						// Remove existing language menu items
@@ -2612,7 +2612,7 @@ bool AppWnd::LoadLgi(char *FileName)
 
 						// Update languages array
 						int n = 0;
-						for (GLanguage *i = (GLanguage*) Langs.First(); i; i = (GLanguage*) Langs.Next(), n++)
+						for (GLanguage *i = Langs.First(); i; i = Langs.Next(), n++)
 						{
 							Languages.Add(i);
 							GMenuItem *Item = ViewMenu->AppendItem(i->Name, IDM_LANG_BASE + n, true);
