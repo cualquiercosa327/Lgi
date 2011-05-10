@@ -5,8 +5,8 @@ import stat
 import subprocess
 
 def System(cmd):
-	p = subprocess.Popen(cmd)
-	
+	print "Popen:", cmd
+	p = subprocess.Popen(cmd)	
 
 def RemoveFolder(path):
 	d = os.listdir(path)
@@ -66,12 +66,11 @@ if os.path.exists(f):
 	os.remove(f)
 
 print "Creating source zip file..."
-zip_file = os.path.join(out, "..", source_package_name + ".zip")
+zip_file = os.path.abspath(os.path.join(out, "..", source_package_name + ".zip"))
 os.chdir(out)
-cmd = "\"\"c:\Program Files\WinZip\WINZIP32.EXE\" -a -r \"" + zip_file + "\" *.*\""
+cmd = "\"c:\Program Files\WinZip\WINZIP32.EXE\" -a -r \"" + zip_file + "\" *.*"
 if os.path.exists(zip_file):
 	os.remove(zip_file)
 System(cmd)
 
 
-print "Building the software..."

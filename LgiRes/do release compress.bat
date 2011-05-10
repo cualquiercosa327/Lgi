@@ -9,12 +9,9 @@ copy ..\LrStrip\Release\*.exe . > nul
 copy ..\LrStrip\Code\LrStrip.lr8 . > nul
 copy ..\Code\lgires.lr8 . > nul
 copy ..\..\Release\Lgi.dll . > nul
-copy ..\..\Gel\Release\LgiSkin.dll . > nul
 
-"c:\Program Files\Upx\upx.exe" -9 lgires.exe
-"c:\Program Files\Upx\upx.exe" -9 lrstrip.exe
-"c:\Program Files\Upx\upx.exe" -9 Lgi.dll
-"c:\Program Files\Upx\upx.exe" -9 LgiSkin.dll
+"c:\Program Files\Upx\upx.exe" -9 *.exe
+"c:\Program Files\Upx\upx.exe" -9 *.dll
 
 copy ..\code\*.gif . > nul
 
@@ -24,3 +21,4 @@ cd ..
 del /q .\lgires-win32\*.*
 rmdir lgires-win32
 
+pause
