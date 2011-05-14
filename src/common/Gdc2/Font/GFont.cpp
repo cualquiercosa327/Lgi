@@ -437,10 +437,12 @@ void GFont::_OnPropChange(bool FontChange)
 		#if defined WIN32
 		if (d->hFont)
 		{
+			/*
 			if (this == SysFont)
 			{
 				LgiAssert(0);
 			}
+			*/
 
 			DeleteObject(d->hFont);
 			d->hFont = 0;

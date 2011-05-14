@@ -68,7 +68,7 @@ GWindow::GWindow(GtkWidget *w) : GView(0)
 	Menu = 0;
 	Wnd = GTK_WINDOW(w);
 	Root = 0;
-	VirtualFocusId = 0;
+	VirtualFocusId = -1;
 	_Default = 0;
 	_Window = this;
 	WndFlags |= GWND_CREATE;

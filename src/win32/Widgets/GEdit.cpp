@@ -105,14 +105,11 @@ bool GEdit::MultiLine()
 
 void GEdit::MultiLine(bool m)
 {
+	int Flags = ES_MULTILINE | ES_AUTOVSCROLL | WS_VSCROLL | ES_WANTRETURN;
 	if (m)
-	{
-		SetStyle(GetStyle() | ES_MULTILINE | ES_AUTOVSCROLL | WS_VSCROLL | ES_WANTRETURN);
-	}
+		SetStyle(GetStyle() | Flags);
 	else
-	{
-		SetStyle(GetStyle() & ~(ES_MULTILINE | ES_AUTOVSCROLL | WS_VSCROLL | ES_WANTRETURN));
-	}
+		SetStyle(GetStyle() & ~Flags);
 }
 
 bool GEdit::Password()
@@ -123,13 +120,9 @@ bool GEdit::Password()
 void GEdit::Password(bool m)
 {
 	if (m)
-	{
 		SetStyle(GetStyle() | ES_PASSWORD);
-	}
 	else
-	{
 		SetStyle(GetStyle() & ~ES_PASSWORD);
-	}
 }
 
 char *GEdit::Name()
@@ -168,10 +161,10 @@ bool GEdit::Name(const char *n)
 
 	char *Mem = 0;
 
-	if (n AND strchr(n, '\n'))
+	if (n && strchr(n, '\n'))
 	{
 		GStringPipe p(256);
-		for (char *s = (char*)n; s AND *s; )
+		for (char *s = (char*)n; s && *s; )
 		{
 			char *nl = strchr(s, '\n');
 			if (nl)
@@ -289,8 +282,8 @@ int GEdit::OnEvent(GMessage *Msg)
 		case WM_SYSKEYDOWN:
 		case WM_KEYUP:
 		{
-			if (!MultiLine() AND
-				(Msg->a == VK_UP OR Msg->a == VK_DOWN))
+			if (!MultiLine() &&
+				(Msg->a == VK_UP || Msg->a == VK_DOWN))
 			{
 				GView::OnEvent(Msg);
 				return 1;
@@ -304,16 +297,16 @@ int GEdit::OnEvent(GMessage *Msg)
 		}
 		case WM_KEYDOWN:
 		{
-			if (!MultiLine() AND
-				(Msg->a == VK_UP OR Msg->a == VK_DOWN))
+			if (!MultiLine() &&
+				(Msg->a == VK_UP || Msg->a == VK_DOWN))
 			{
 				GView::OnEvent(Msg);
 				return 1;				
 			}
 
-			if (Msg->a == VK_TAB AND MultiLine())
+			if (Msg->a == VK_TAB && MultiLine())
 			{
-				// this causes the multiline Edit control to
+				// this causes the multi-line Edit control to
 				// insert tabs into the text and not move
 				// to the next field.
 				return 0;
@@ -368,7 +361,7 @@ int GEdit::OnEvent(GMessage *Msg)
 			}
 			#endif
 
-			if ((Msg->a == VK_TAB OR Msg->a == VK_RETURN) AND
+			if ((Msg->a == VK_TAB || Msg->a == VK_RETURN) &&
 				!MultiLine())
 			{
 				// single line edit controls make "click"
@@ -420,7 +413,7 @@ int GEdit::OnEvent(GMessage *Msg)
 
 bool GEdit::OnKey(GKey &k)
 {
-	if (!k.IsChar AND
+	if (!k.IsChar &&
 		k.vkey == VK_RETURN)
 	{
 		if (k.Down())

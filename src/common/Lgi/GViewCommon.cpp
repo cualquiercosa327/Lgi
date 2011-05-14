@@ -894,6 +894,7 @@ void GView::Focus(bool i)
 	if (_View)
 	{
 		#if WIN32NATIVE
+
 		if (i)
 		{
 
@@ -903,7 +904,7 @@ void GView::Focus(bool i)
 				if (In_SetWindowPos)
 				{
 					assert(0);
-					LgiTrace("%s:%i - SetFocus %p (%-30s)\n", __FILE__, __LINE__, Handle(), Name());
+					LgiTrace("%s:%i - SetFocus %p (%-30s)\n", _FL, Handle(), Name());
 				}
 
 				SetFocus(_View);
@@ -914,12 +915,14 @@ void GView::Focus(bool i)
 			if (In_SetWindowPos)
 			{
 				assert(0);
-				LgiTrace("%s:%i - SetFocus(%p)\n", __FILE__, __LINE__, GetDesktopWindow());
+				LgiTrace("%s:%i - SetFocus(%p)\n", _FL, GetDesktopWindow());
 			}
 
 			SetFocus(GetDesktopWindow());
 		}
+
 		#elif defined __GTK_H__
+
 		if (i)
 		{
 			GWindow *Wnd = GetWindow();
@@ -937,24 +940,21 @@ void GView::Focus(bool i)
 				gtk_widget_grab_focus(_View);
 			}
 		}
-		else
-		{
-			// xcb_set_input_focus(XcbConn(), XCB_INPUT_FOCUS_PARENT, XcbScreen()->root, XCB_CURRENT_TIME);
-		}
-		// xcb_flush(XcbConn());
+
 		#elif defined MAC
+
 		GViewI *Wnd = GetWindow();
 		if (Wnd && i)
 		{
 			OSErr e = SetKeyboardFocus(Wnd->WindowHandle(), _View, 1);
 			if (e) printf("%s:%i - error setting keyboard focus (%i) to %s\n", _FL, e, GetClass());
 		}
-		else printf("%s:%i - no window?\n", __FILE__, __LINE__);
+		else printf("%s:%i - no window?\n", _FL);
+
 		#endif
 	}
 	else
 	{
-		printf("---Focus(%i) on virtual %s---\n", i, GetClass());
 		if (Wnd)
 		{
 			Wnd->VirtualFocusId = GetId();

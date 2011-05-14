@@ -1753,22 +1753,9 @@ ResObjectImpl::SStatus ResEditBox::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 
 ResObjectImpl::SStatus ResEditBox::Res_Write(GXmlTag *t)
 {
-	/*
-	int Password = false;
-	int MultiLine = false;
-	ObjProperties Props;
-	if (Factory->Res_GetProperties(Object, &Props))
-	{
-		Props.Get("Password", Password);
-		Props.Get("MultiLine", MultiLine);
-	}
-	*/
 	Factory->Res_GetProperties(Object, t);
-
 	t->Tag = NewStr(Res_EditBox);
 	WriteCommon(t);
-	// if (Password) t->SetAttr("pw", Password);
-	// if (MultiLine) t->SetAttr("multiline", MultiLine);
 
 	return SOk;
 }
