@@ -74,9 +74,15 @@ LgiExtern char Res_Custom[];
 class ResObjectImpl;
 class ResFactory;
 
+/// This interface is used by the resource sub-system to check 
+/// whether a UI element should be loaded and displayed.
 struct LgiClass ResReadCtx
 {
-	virtual bool Check(char *tags) { return true; }
+	/// Check the tags for matches...
+	/// \returns true when the element should be displayed
+	virtual bool Check(const char *tags) { return true; }
+	/// Check the tags for matches...
+	/// \returns true when the element should be displayed
 	virtual bool Check(GXmlTag *t) { return true; }
 };
 

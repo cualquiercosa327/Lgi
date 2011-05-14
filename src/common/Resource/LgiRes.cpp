@@ -457,190 +457,148 @@ char *LgiResources::GetFileName()
 
 bool LgiResources::Load(char *FileName)
 {
-	bool Status = false;
-
-	if (FileName)
-	{
-		GFile F;
-		if (F.Open(FileName, O_READ))
-		{
-			d->File.Reset(NewStr(FileName));
-			d->Format = Lr8File;
-			char *Ext = LgiGetExtension(FileName);
-			if (Ext AND stricmp(Ext, "lr") == 0)
-			{
-				d->Format = CodepageFile;
-			}
-			else if (Ext AND stricmp(Ext, "xml") == 0)
-			{
-				d->Format = XmlFile;
-			}
-
-			LgiStringRes::CurLang = LgiGetLanguageId();
-			if (d->Format != CodepageFile)
-			{
-				LgiStringRes::CodePage = 0;
-			}
-			else
-			{
-				if (LgiStringRes::CurLang)
-				{
-					LgiStringRes::CodePage = LgiStringRes::CurLang->CodePage;
-				}
-			}
-
-			GXmlTree x(0);
-			GAutoPtr<GXmlTag> Root(new GXmlTag);
-			if (x.Read(Root, &F, 0))
-			{
-				Status = true;
-
-				for (GXmlTag *t = Root->Children.First(); t; )
-				{
-					if (t->Tag)
-					{
-						if (stricmp(t->Tag, "string-group") == 0)
-						{
-							bool IsString = true;
-							char *Name = 0;
-							if (Name = t->GetAttr("Name"))
-							{
-								IsString = stricmp("_Dialog Symbols_", Name) != 0;
-							}
-
-							for (GXmlTag *c = t->Children.First(); c; c = t->Children.Next())
-							{
-								LgiStringRes *s = new LgiStringRes(this);
-								if (s AND s->Read(c, d->Format))
-								{
-									// This code saves the names of the languages if specified in the LR8 files.
-									char *Def = c->GetAttr("define");
-									if (Def && !stricmp(Def, "IDS_LANGUAGE"))
-									{
-										for (int i=0; i<c->Attr.Length(); i++)
-										{
-											GXmlAttr &a = c->Attr[i];
-											LanguageNames.Add(a.GetName(), NewStr(a.GetValue()));
-										}
-									}
-
-									// Save the string for later.
-									d->StrRef.Add(s->Ref, s);
-									if (IsString)
-										d->Strings.Add(s->Id, s);
-									else
-										d->DlgStrings.Add(s->Id, s);
-									// s->IsString = IsString;
-									d->Ok = true;
-								}
-								else
-								{
-									LgiTrace("%s:%i - string read failed\n", _FL);
-									DeleteObj(s);
-								}
-							}
-						}
-						else if (stricmp(t->Tag, "dialog") == 0)
-						{
-							LgiDialogRes *n = new LgiDialogRes(this);
-							if (n AND n->Read(t, d->Format))
-							{
-								Dialogs.Insert(n);
-								d->Ok = true;
-								t->RemoveTag();
-								t = 0;
-							}
-							else
-							{
-								LgiTrace("%s:%i - dialog read failed\n", _FL);
-								DeleteObj(n);
-							}
-						}
-						else if (stricmp(t->Tag, "menu") == 0)
-						{
-							LgiMenuRes *m = new LgiMenuRes(this);
-							if (m AND m->Read(t, d->Format))
-							{
-								Menus.Insert(m);
-								d->Ok = true;
-								t->RemoveTag();
-								t = 0;
-							}
-							else
-							{
-								LgiTrace("%s:%i - menu read failed\n", _FL);
-								DeleteObj(m);
-							}
-						}
-					}
-
-					if (t)
-						t = Root->Children.Next();
-					else
-						t = Root->Children.Current();
-				}
-			}
-			else
-			{
-				LgiTrace("%s:%i - ParseXmlFile failed\n", _FL);
-				LgiAssert(0);
-			}
-		}
-		else
-		{
-			LgiTrace("%s:%i - Couldn't open '%s'.\n", _FL, FileName);
-			LgiAssert(0);
-		}
-	}
-	else
+	if (!FileName)
 	{
 		LgiTrace("%s:%i - No filename.\n", _FL);
 		LgiAssert(0);
+		return false;
 	}
 
-	return Status;
+	GFile F;
+	if (!F.Open(FileName, O_READ))
+	{
+		LgiTrace("%s:%i - Couldn't open '%s'.\n", _FL, FileName);
+		LgiAssert(0);
+		return false;
+	}
+
+	d->File.Reset(NewStr(FileName));
+	d->Format = Lr8File;
+	char *Ext = LgiGetExtension(FileName);
+	if (Ext AND stricmp(Ext, "lr") == 0)
+	{
+		d->Format = CodepageFile;
+	}
+	else if (Ext AND stricmp(Ext, "xml") == 0)
+	{
+		d->Format = XmlFile;
+	}
+
+	LgiStringRes::CurLang = LgiGetLanguageId();
+	if (d->Format != CodepageFile)
+	{
+		LgiStringRes::CodePage = 0;
+	}
+	else if (LgiStringRes::CurLang)
+	{
+		LgiStringRes::CodePage = LgiStringRes::CurLang->CodePage;
+	}
+
+	GXmlTree x(0);
+	GAutoPtr<GXmlTag> Root(new GXmlTag);
+	if (!x.Read(Root, &F, 0))
+	{
+		LgiTrace("%s:%i - ParseXmlFile failed\n", _FL);
+		LgiAssert(0);
+		return false;
+	}
+
+	for (GXmlTag *t = Root->Children.First(); t; )
+	{
+		if (t->Tag)
+		{
+			if (stricmp(t->Tag, "string-group") == 0)
+			{
+				bool IsString = true;
+				char *Name = 0;
+				if (Name = t->GetAttr("Name"))
+				{
+					IsString = stricmp("_Dialog Symbols_", Name) != 0;
+				}
+
+				for (GXmlTag *c = t->Children.First(); c; c = t->Children.Next())
+				{
+					LgiStringRes *s = new LgiStringRes(this);
+					if (s AND s->Read(c, d->Format))
+					{
+						// This code saves the names of the languages if specified in the LR8 files.
+						char *Def = c->GetAttr("define");
+						if (Def && !stricmp(Def, "IDS_LANGUAGE"))
+						{
+							for (int i=0; i<c->Attr.Length(); i++)
+							{
+								GXmlAttr &a = c->Attr[i];
+								LanguageNames.Add(a.GetName(), NewStr(a.GetValue()));
+							}
+						}
+
+						// Save the string for later.
+						d->StrRef.Add(s->Ref, s);
+						if (IsString)
+							d->Strings.Add(s->Id, s);
+						else
+							d->DlgStrings.Add(s->Id, s);
+						// s->IsString = IsString;
+						d->Ok = true;
+					}
+					else
+					{
+						LgiTrace("%s:%i - string read failed\n", _FL);
+						DeleteObj(s);
+					}
+				}
+			}
+			else if (stricmp(t->Tag, "dialog") == 0)
+			{
+				LgiDialogRes *n = new LgiDialogRes(this);
+				if (n AND n->Read(t, d->Format))
+				{
+					Dialogs.Insert(n);
+					d->Ok = true;
+					t->RemoveTag();
+					t = 0;
+				}
+				else
+				{
+					LgiTrace("%s:%i - dialog read failed\n", _FL);
+					DeleteObj(n);
+				}
+			}
+			else if (stricmp(t->Tag, "menu") == 0)
+			{
+				LgiMenuRes *m = new LgiMenuRes(this);
+				if (m AND m->Read(t, d->Format))
+				{
+					Menus.Insert(m);
+					d->Ok = true;
+					t->RemoveTag();
+					t = 0;
+				}
+				else
+				{
+					LgiTrace("%s:%i - menu read failed\n", _FL);
+					DeleteObj(m);
+				}
+			}
+		}
+
+		if (t)
+			t = Root->Children.Next();
+		else
+			t = Root->Children.Current();
+	}
+
+	return true;
 }
 
 LgiStringRes *LgiResources::StrFromRef(int Ref)
 {
 	return d->StrRef.Find(Ref);
-
-	/*
-	for (LgiStringRes *s = Strings.First(); s; s = Strings.Next())
-	{
-		if (s->Ref == Ref)
-		{
-			return s;
-		}
-	}
-
-	return 0;
-	*/
 }
 
 char *LgiResources::StringFromId(int Id)
 {
 	LgiStringRes *NotStr = 0;
-
-	/*
-	List<LgiStringRes>::I it = Strings.Start();
-	while (it.Each())
-	{
-		LgiStringRes *s = *it;
-		if (s->Id == Id)
-		{
-			if (s->IsString)
-			{
-				return s->Str;
-			}
-			else
-			{
-				NotStr = s;
-			}
-		}
-	}
-	*/
-
 	LgiStringRes *sr;
 
 	if (sr = d->Strings.Find(Id))
@@ -654,16 +612,6 @@ char *LgiResources::StringFromId(int Id)
 
 char *LgiResources::StringFromRef(int Ref)
 {
-	/*
-	for (LgiStringRes *s = Strings.First(); s; s = Strings.Next())
-	{
-		if (s->Ref == Ref)
-		{
-			return s->Str;
-		}
-	}
-	*/
-
 	LgiStringRes *s = d->StrRef.Find(Ref);
 	return s ? s->Str : 0;
 }
@@ -722,17 +670,6 @@ ResObject *LgiResources::CreateObject(GXmlTag *t, ResObject *Parent)
 		}
 		else if (stricmp(t->Tag, Res_Tab) == 0)
 		{
-			/*
-			if (Parent)
-			{
-				// GView *p = (GView*) Parent;
-				GTabView *Ctrl = dynamic_cast<GTabView*>(Parent);
-				if (Ctrl)
-				{
-					Wnd = Ctrl->Append("<error>");
-				}
-			}
-			*/
 			Wnd = new GTabPage(0);
 		}
 		else if (stricmp(t->Tag, Res_ListView) == 0)
@@ -850,20 +787,8 @@ void LgiResources::Res_SetPos(ResObject *Obj, int x1, int y1, int x2, int y2)
 		GView *w = CastToGWnd(Obj);
 		if (w)
 		{
-			//#ifdef WIN32
-			//GCombo *Cbo = dynamic_cast<GCombo*>(w);
-			//if (Cbo)
-			//{
-			//	int y = y2-y1+1;
-			//	y = max(y, 100);
-			//	w->SetPos(GRect(x1, y1, x2, y1+y));
-			//}
-			//else
-			//#endif
-			{
-				GRect n(x1, y1, x2, y2);
-				w->SetPos(n);
-			}
+			GRect n(x1, y1, x2, y2);
+			w->SetPos(n);
 		}
 	}
 }
@@ -1173,9 +1098,7 @@ bool GLgiRes::LoadFromResource(int Resource, GViewI *Parent, GRect *Pos, GAutoSt
 	for (int i=0; i<_ResourceOwner.Length(); i++)
 	{		
 		if (_ResourceOwner[i]->LoadDialog(Resource, Parent, Pos, Name, 0, TagList))
-		{
 			return true;
-		}
 	}
 
 	return false;
@@ -1191,9 +1114,7 @@ GLanguage *LgiGetLanguageId()
 	{
 		GLanguage *i = GFindLang(Buf);
 		if (i)
-		{
 			return i;
-		}
 	}
 
 	// Check for config setting
@@ -1206,9 +1127,7 @@ GLanguage *LgiGetLanguageId()
 		{
 			GLanguage *l = GFindLang(Id);
 			if (l)
-			{
 				return l;
-			}
 		}
 	}
 
@@ -1231,18 +1150,14 @@ GLanguage *LgiGetLanguageId()
 	for (i = LgiLanguageTable; i->Id; i++)
 	{
 		if (i->Win32Id == Lang)
-		{
 			return i;
-		}
 	}
 
 	// Search for PRIMARYLANGID match
 	for (i = LgiLanguageTable; i->Id; i++)
 	{
 		if (PRIMARYLANGID(i->Win32Id) == PRIMARYLANGID(Lang))
-		{
 			return i;
-		}
 	}
 
 	#elif defined LINUX
@@ -1258,9 +1173,7 @@ GLanguage *LgiGetLanguageId()
 		{
 			GLanguage *l = GFindLang(Lang);
 			if (l)
-			{
 				return l;
-			}
 		}
 	}
 
@@ -1345,15 +1258,8 @@ bool LgiResources::LoadDialog(int Resource, GViewI *Parent, GRect *Pos, GAutoStr
 				
 				int x = Dlg->X();
 				int y = Dlg->Y();
-				/*
-				#ifdef LINUX
-				x -= 6;
-				y -= 20;
-				#else
-				*/
 				x += LgiApp->GetMetric(LGI_MET_DECOR_X) - 4;
 				y += LgiApp->GetMetric(LGI_MET_DECOR_Y) - 18;
-				// #endif
 				if (Pos)
 					Pos->ZOff(x, y);
 				else if (Parent)
@@ -1417,16 +1323,6 @@ LgiStringRes *LgiMenuRes::GetString(GXmlTag *Tag)
 			LgiStringRes *s = Strings.Find(Ref);
 			if (s)
 				return s;
-
-			/*
-			for (LgiStringRes *s = Strings.First(); s; s = Strings.Next())
-			{
-				if (s->Ref == Ref)
-				{
-					return s;
-				}
-			}
-			*/
 		}
 	}
 

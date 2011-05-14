@@ -1865,25 +1865,17 @@ ResObjectImpl::SStatus ResTabView::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 
 	for (GXmlTag *t = Tag->Children.First(); t; t = Tag->Children.Next())
 	{
-		if (t->IsTag(Res_Tab))
-		{
-			ResObjectImpl *Tab = CreateCtrl(t, Object);
-			if (Tab)
-			{
-				if (Tab->Res_Read(t, Ctx) == SOk)
-					Res_Append(Tab);
-				else
-					DeleteObj(Tab);
-			}
-			else
-			{
-				return SError;
-			}
-		}
-		else
-		{
+		if (!t->IsTag(Res_Tab))
 			return SError;
-		}
+
+		ResObjectImpl *Tab = CreateCtrl(t, Object);
+		if (!Tab)
+			return SError;
+
+		if (Tab->Res_Read(t, Ctx) == SOk)
+			Res_Append(Tab);
+		else
+			DeleteObj(Tab);
 	}
 
 	return SOk;
