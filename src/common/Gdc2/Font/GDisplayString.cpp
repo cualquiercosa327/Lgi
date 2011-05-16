@@ -209,7 +209,7 @@ void GDisplayString::Layout()
 				{
 					OsPainter dc = pDC->Handle();
 					ATSUAttributeTag        theTags[1] = {kATSUCGContextTag};
-					ByteCount               theSizes[1] = {sizeof(CGContextRef)};
+					ByteCount               theSizes[1] = {sizeof(CGContextRef), };
 					ATSUAttributeValuePtr   theValues[1] = {&dc};
 
 					e = ATSUSetLayoutControls(Hnd, 1, theTags, theSizes, theValues);

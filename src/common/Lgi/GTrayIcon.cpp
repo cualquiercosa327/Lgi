@@ -273,7 +273,7 @@ bool GTrayIcon::Load(const TCHAR *Str)
 	
 	#elif defined(__GTK_H__) || defined(MAC)
 	
-	char *File = LgiFindFile(Str);
+	GAutoString File(LgiFindFile(Str));
 	if (File)
 	{
 		GSurface *i = LoadDC(File);
@@ -284,6 +284,8 @@ bool GTrayIcon::Load(const TCHAR *Str)
 				GSurface *n = new GMemDC(i->X(), i->Y(), GdcD->GetBits());
 				if (n)
 				{
+					n->Colour(0);
+					n->Rectangle();
 					n->Blt(0, 0, i);
 					DeleteObj(i);
 					i = n;
@@ -296,8 +298,6 @@ bool GTrayIcon::Load(const TCHAR *Str)
 		{
 			printf("%s:%i - Couldn't load '%s'\n", __FILE__, __LINE__, Str);
 		}
-
-		DeleteArray(File);
 
 		return i != 0;
 	}

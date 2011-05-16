@@ -860,6 +860,26 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 							))
 							*Last = 0;
 					}
+					
+					#elif defined MAC
+
+					char *Last = strrchr(Dst, DIR_CHAR);
+					if (Last)
+					{
+						if (!stricmp(Last,
+							#ifdef _DEBUG
+							"/Debug"
+							#else
+							"/Release"
+							#endif
+							))
+							*Last = 0;
+					}
+					if (Last = strrchr(Dst, DIR_CHAR))
+					{
+						if (!stricmp(Last, "/build"))
+							*Last = 0;
+					}
 
 					#endif
 
@@ -1563,7 +1583,6 @@ char *LgiFindFile(const char *Name)
 
 		char CurWorking[MAX_PATH];
 		getcwd(CurWorking, sizeof(CurWorking));
-
 		const char *PrefPath[] =
 		{
 			".",

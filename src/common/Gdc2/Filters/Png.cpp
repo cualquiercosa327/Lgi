@@ -78,8 +78,10 @@ public:
 	LibPng() :
 		GLibrary
 		(
-			#ifdef __CYGWIN__
+			#if defined(__CYGWIN__)
 			"cygpng12"
+			#elif defined(MAC)
+			"libPng12"
 			#else
 			"libpng"
 			#endif
@@ -89,7 +91,7 @@ public:
 		{
 			if (!Load("libPng"))
 			{
-				printf("%s:%i - libpng didn't load\n", __FILE__, __LINE__);
+				LgiTrace("%s:%i - libpng didn't load\n", _FL);
 			}
 		}
 		else
@@ -345,8 +347,11 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 		Parent = (GView*)v.Value.Ptr;
 	}
 
-	if (IsLoaded() AND
-		setjmp(Here) == 0)
+	if (IsLoaded())
+		;
+	else if (setjmp(Here))
+		printf("%s:%i - setjmp failed.\n", _FL);
+	else
 	{
 		png_structp png_ptr = png_create_read_struct(	PNG_LIBPNG_VER_STRING,
 														(void*)this,
@@ -614,10 +619,6 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 		{
 			printf("%s:%i - png_create_read_struct failed.\n", __FILE__, __LINE__);
 		}
-	}
-	else
-	{
-		printf("%s:%i - setjmp failed.\n", __FILE__, __LINE__);
 	}
 
 	return Status;

@@ -946,7 +946,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 
 				// SSL
 				bool TlsError = false;
-				if (TestFlag(Flags, MAIL_SOURCE_STARTTLS))
+				if (TestFlag(Flags, MAIL_USE_STARTTLS))
 				{
 					int CapCmd = d->NextCmd++;
 					sprintf(Buf, "A%04.4i STARTTLS\r\n", CapCmd);

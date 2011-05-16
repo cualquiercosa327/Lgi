@@ -848,7 +848,6 @@
 			isa = PBXProject;
 			buildConfigurationList = 34BA94DB0B33ADB400493CD3 /* Build configuration list for PBXProject "Lgi" */;
 			compatibilityVersion = "Xcode 2.4";
-			developmentRegion = English;
 			hasScannedForEncodings = 1;
 			knownRegions = (
 				English,
