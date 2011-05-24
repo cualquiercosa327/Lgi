@@ -427,7 +427,7 @@ public:
 	virtual void SendNotify(int Data = 0) = 0;
 	virtual GViewI *GetNotify() = 0;
 	virtual void SetNotify(GViewI *n) = 0;
-	virtual bool PostEvent(int Cmd, int a = 0, int b = 0) = 0;
+	virtual bool PostEvent(int Cmd, GMessage::Param a = 0, GMessage::Param b = 0) = 0;
 
 	// Mouse
 	virtual bool SetCursor(int Cursor) = 0;

@@ -1394,7 +1394,7 @@ bool GView::InThread()
 	#endif
 }
 
-bool GView::PostEvent(int Cmd, int a, int b)
+bool GView::PostEvent(int Cmd, GMessage::Param a, GMessage::Param b)
 {
 	if (_View)
 	{

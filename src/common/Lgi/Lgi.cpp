@@ -81,7 +81,7 @@ GAutoString FSRefPath(FSRef &fs)
 }
 #endif
 
-bool LgiPostEvent(OsView Wnd, int Event, int a, int b)
+bool LgiPostEvent(OsView Wnd, int Event, GMessage::Param a, GMessage::Param b)
 {
 	#if WIN32NATIVE
 

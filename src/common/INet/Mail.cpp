@@ -547,8 +547,8 @@ bool IsValidEmail(char *email, GAutoString *out)
 	while (*e)
 	{
 		if (strchr("!#$%&\'*+-/=?^_`.{|}~", *e) ||
-			isalpha(*e) ||
-			isdigit(*e))
+			isalpha((uchar)*e) ||
+			isdigit((uchar)*e))
 		{
 			OutputChar();
 		}

@@ -30,7 +30,7 @@
 // Externs
 extern long MouseWatcher(void *Ptr);
 extern bool _lgi_check_file(char *Path);
-LgiFunc bool LgiPostEvent(OsView Wnd, int Event, int a = 0, int b = 0);
+LgiFunc bool LgiPostEvent(OsView Wnd, int Event, GMessage::Param a = 0, GMessage::Param b = 0);
 LgiFunc GViewI *GetNextTabStop(GViewI *v, bool Back);
 #if defined(MAC)
 LgiFunc void DumpHnd(HIViewRef v, int depth = 0);
@@ -740,9 +740,9 @@ public:
 		/// \sa Should be M_USER or higher for custom events.
 		int Cmd,
 		/// The first 32-bits of data. Equivilent to wParam on Win32.
-		int a = 0,
+		GMessage::Param a = 0,
 		/// The second 32-bits of data. Equivilent to lParam on Win32.
-		int b = 0
+		GMessage::Param b = 0
 	);
 
 	/// \brief Sets the utf-8 text associated with this view
@@ -1357,7 +1357,7 @@ public:
 	
 	#if defined MAC
 	
-	bool PostEvent(int Cmd, int a = 0, int b = 0);
+	bool PostEvent(int Cmd, GMessage::Param a = 0, GMessage::Param b = 0);
 	void Quit(bool DontDelete = false);
 	OSErr HandlerCallback(DragTrackingMessage *tracking, DragRef theDrag);
 	int OnCommand(int Cmd, int Event, OsView Wnd);
