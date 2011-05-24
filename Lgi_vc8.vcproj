@@ -633,6 +633,14 @@
 					RelativePath=".\include\common\GTree.h"
 					>
 				</File>
+				<Filter
+					Name="Css"
+					>
+					<File
+						RelativePath=".\src\common\Lgi\GCss.cpp"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="General"

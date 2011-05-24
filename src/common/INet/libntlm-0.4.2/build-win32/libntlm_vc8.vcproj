@@ -77,7 +77,7 @@
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug8\libntlmd.pdb"
-				ImportLibrary=".\Debug/libntlmd.lib"
+				ImportLibrary=".\$(ConfigurationName)8\libntlmd.lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -170,7 +170,7 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				ProgramDatabaseFile=".\Release8\libntlm.pdb"
-				ImportLibrary=".\Release/libntlm.lib"
+				ImportLibrary=".\$(ConfigurationName)8\libntlm.lib"
 				TargetMachine="1"
 			/>
 			<Tool
