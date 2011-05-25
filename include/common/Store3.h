@@ -125,6 +125,17 @@ enum Store3DataState
 	Store3Loaded,
 };
 
+/// Possible parts of UI
+enum Store3UiFields
+{
+	Store3UiCurrentPos,		// [Set] sets the current progress value
+	Store3UiMaxPos,			// [Set] sets the maximum progress value
+	Store3UiStatus,			// [Set] set a status/progress string
+	Store3UiError,			// [Set] set an error string
+	Store3UiInteractive,	// [Get] returns a bool if the user is expecting interaction
+	Store3UiCancel,			// [Get] returns a bool indicating if the user has cancelled the operation
+};
+
 /// This class is an interface to a collection of objects (NOT thread-safe).
 template <class T>
 class GDataIterator
@@ -409,10 +420,30 @@ public:
 		GVariant &Value
 	) = 0;
 	/// Compact the mail store
-	virtual bool Compact(GViewI *Parent, Progress *Prog, int Param = 0) = 0;
+	virtual bool Compact
+	(
+		/// The parent window of the UI
+		GViewI *Parent,
+		/// The store should pass information up to the UI via setting various parameters from Store3UiFields
+		GDataPropI *Props
+	) = 0;
 	/// Upgrades the mail store to the current version for this build. You should call this in response
 	/// to getting DsUpgradeRequired back from this->GetInt(FIELD_STATUS).
-	virtual bool Upgrade(GViewI *Parent, Progress *Prog, GAutoString *Error = 0) { return false; }
+	virtual bool Upgrade
+	(
+		/// The parent window of the UI
+		GViewI *Parent,
+		/// The store should pass information up to the UI via setting various parameters from Store3UiFields
+		GDataPropI *Props
+	) { return false; }
+	/// Set the sub-format
+	virtual bool SetFormat
+	(
+		/// The parent window of the UI
+		GViewI *Parent,
+		/// The store should pass information up to the UI via setting various parameters from Store3UiFields
+		GDataPropI *Props
+	) { return false; }
 	/// Called when event posted
 	virtual void OnEvent(void *Param) = 0;
 	/// Called when the application is not receiving messages.
