@@ -347,7 +347,7 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 		Parent = (GView*)v.Value.Ptr;
 	}
 
-	if (IsLoaded())
+	if (!IsLoaded())
 		;
 	else if (setjmp(Here))
 		printf("%s:%i - setjmp failed.\n", _FL);
@@ -364,7 +364,7 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 			{
 				png_set_read_fn(png_ptr, In, LibPngRead);
 
-				int off = (int)&png_ptr->io_ptr - (int)png_ptr;
+				int off = (char*)&png_ptr->io_ptr - (char*)png_ptr;
 				if (!png_ptr->io_ptr)
 				{
 					printf("io_ptr offset = %i\n", off);
@@ -737,7 +737,7 @@ bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 
 				info_ptr->width = pDC->X();
 				info_ptr->height = pDC->Y();
-				info_ptr->rowbytes = (int)(*pDC)[1] - (int)(*pDC)[0];
+				info_ptr->rowbytes = (char*)(*pDC)[1] - (char*)(*pDC)[0];
 				info_ptr->compression_type = PNG_COMPRESSION_TYPE_BASE;
 				info_ptr->filter_type = PNG_FILTER_TYPE_BASE;
 				info_ptr->interlace_type = PNG_INTERLACE_NONE;

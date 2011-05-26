@@ -376,7 +376,7 @@ void VIo::Fold(GStreamI &o, char *i, int pre_chars)
 		if (x >= 74)
 		{
 			// wrapping
-			o.Write(i, (int)s-(int)i);
+			o.Write(i, s-i);
 			o.Write((char*)"\r\n\t", 3);
 			x = 0;
 			i = s;
@@ -384,7 +384,7 @@ void VIo::Fold(GStreamI &o, char *i, int pre_chars)
 		else if (*s == '=' OR ((((uint8)*s) & 0x80) != 0))
 		{
 			// quoted printable
-			o.Write(i, (int)s-(int)i);
+			o.Write(i, s-i);
 			GStreamPrint(&o, "=%02.2x", (uint8)*s);
 			x += 3;
 			i = ++s;
@@ -392,14 +392,14 @@ void VIo::Fold(GStreamI &o, char *i, int pre_chars)
 		else if (*s == '\n')
 		{
 			// new line
-			o.Write(i, (int)s-(int)i);
+			o.Write(i, s-i);
 			o.Write((char*)"\\n", 2);
 			x += 2;
 			i = ++s;
 		}
 		else if (*s == '\r')
 		{
-			o.Write(i, (int)s-(int)i);
+			o.Write(i, s-i);
 			i = ++s;
 		}
 		else
@@ -453,7 +453,7 @@ char *VIo::UnMultiLine(char *In)
 			n = stristr(i, "\\n");
 			if (n)
 			{
-				p.Write(i, (int)n-(int)i);
+				p.Write(i, n-i);
 				p.Push((char*)"\n");
 				n += 2;
 			}
