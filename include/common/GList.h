@@ -403,7 +403,7 @@ public:
 	virtual void OnColumnNotify(int Col, int Data) {}
 };
 
-typedef int (*GListCompareFunc)(GListItem *a, GListItem *b, int Data);
+typedef int (*GListCompareFunc)(GListItem *a, GListItem *b, NativeInt Data);
 
 class GListItems
 {

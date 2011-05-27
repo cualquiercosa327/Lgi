@@ -219,7 +219,7 @@ bool SystemFunctions::Sprintf(GVariant *Ret, ArgumentArray &Args)
 	if (!Fmt)
 		return false;
 
-	GArray<uint32> Params;
+	GArray<UNativeInt> Params;
 	va_list a;
 
 	int i = 1;
@@ -241,7 +241,7 @@ bool SystemFunctions::Sprintf(GVariant *Ret, ArgumentArray &Args)
 			{
 				case 's':
 				{
-					Params.Add((uint32)Args[i++]->Str());
+					Params.Add((UNativeInt)Args[i++]->Str());
 					break;
 				}
 				case 'c':

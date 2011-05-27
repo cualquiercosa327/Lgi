@@ -1573,7 +1573,7 @@ int GSocks5Socket::Open(char *HostAddr, int port)
 						memcpy(b, &HostPort, 2);
 						b += 2;
 
-						GSocket::Write(Buf, (int)b - (int)Buf, 0);
+						GSocket::Write(Buf, b - Buf, 0);
 						if (GSocket::Read(Buf, 10, 0) == 10)
 						{
 							if (Buf[0] == SOCKS5_VER)

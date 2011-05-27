@@ -1764,14 +1764,14 @@ char *LgiTokStr(const char *&s)
 					e = s;
 					while (*e) e++;
 				}
-				Status = NewStr(s, (int)e-(int)s);
+				Status = NewStr(s, e - s);
 				s = *e ? e + 1 : e;
 			}
 			else
 			{
 				const char *e = s;
 				while (*e AND !strchr(Delim, *e)) e++;
-				Status = NewStr(s, (int)e-(int)s);
+				Status = NewStr(s, e - s);
 				s = e;
 			}
 		}		

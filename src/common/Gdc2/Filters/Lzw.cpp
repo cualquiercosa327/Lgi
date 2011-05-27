@@ -308,7 +308,7 @@ public:
 				*InPos++ = Datum;
 			}
 
-			int Len = (int)InPos - (int)InBuf;
+			int Len = InPos - InBuf;
 			if (Pipe)
 			{
 				Pipe->Write(InBuf, Len);

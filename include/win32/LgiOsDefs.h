@@ -32,9 +32,8 @@
 
 //////////////////////////////////////////////////////////////////
 // Typedefs
-typedef __int64				quad;
-typedef int					int32;
-typedef unsigned int		uint32;
+typedef __w64 int			NativeInt;
+typedef __w64 unsigned int	UNativeInt;
 
 typedef HWND				OsWindow;
 typedef HWND				OsView;

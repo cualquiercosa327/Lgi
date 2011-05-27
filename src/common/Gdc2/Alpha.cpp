@@ -93,7 +93,7 @@ public:
 		return 0;
 	}
 
-	int SetVar(int Var, int Value)
+	int SetVar(int Var, NativeInt Value)
 	{
 		switch (Var)
 		{
@@ -180,7 +180,7 @@ class GdcApp8Alpha : public GAlphaApp
 
 public:
 	GdcApp8Alpha();
-	int SetVar(int Var, int Value);
+	int SetVar(int Var, NativeInt Value);
 
 	void Set();
 	void VLine(int height);
@@ -276,7 +276,7 @@ GdcApp8Alpha::GdcApp8Alpha()
 	DivLut = Div255Lut;
 }
 
-int GdcApp8Alpha::SetVar(int Var, int Value)
+int GdcApp8Alpha::SetVar(int Var, NativeInt Value)
 {
 	int Status = GAlphaApp::SetVar(Var, Value);
 

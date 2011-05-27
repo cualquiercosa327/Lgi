@@ -52,7 +52,6 @@ static char WordDelim[]	=			".,<>/?[]{}()*&^%$#@!+|\'\"";
 static char16 WhiteW[] =			{' ', '\t', '\r', '\n', 0};
 
 #define SkipWhiteSpace(s)			while (*s && IsWhiteSpace(*s)) s++;
-#define SubtractPtr(a, b)			( (((int)(a))-((int)(b))) / sizeof(*a) )
 
 static char DefaultCss[] = {
 "a				{ color: blue; text-decoration: underline; }"
@@ -222,10 +221,10 @@ static char *ParseName(char *s, char **Name)
 	}
 	if (Name)
 	{
-		int Len = SubtractPtr(s, Start);
+		int Len = s - Start;
 		if (Len > 0)
 		{
-			*Name = NewStr(Start, SubtractPtr(s, Start));
+			*Name = NewStr(Start, Len);
 		}
 	}
 	return s;
@@ -241,14 +240,14 @@ static char *ParsePropValue(char *s, char *&Value)
 			char Delim = *s++;
 			char *Start = s;
 			while (*s && *s != Delim) s++;
-			Value = NewStr(Start, SubtractPtr(s, Start));
+			Value = NewStr(Start, s - Start);
 			s++;
 		}
 		else
 		{
 			char *Start = s;
 			while (*s && !IsWhiteSpace(*s) && *s != '>') s++;
-			Value = NewStr(Start, SubtractPtr(s, Start));
+			Value = NewStr(Start, s - Start);
 		}
 	}
 
@@ -2316,7 +2315,7 @@ int GTag::NearestChar(GFlowRect *Tr, int x, int y)
 			if (t >= Text() &&
 				t <= Text() + Len)
 			{
-				return SubtractPtr(t, Text()) - GetTextStart();
+				return (t - Text()) - GetTextStart();
 			}
 			else
 			{
@@ -3081,7 +3080,7 @@ char16 *GTag::CleanText(char *s, int Len, bool ConversionAllowed, bool KeepWhite
 						
 						char16 *e;
 						for (e = i; *e && *e != ';'; e++);
-						char16 *Var = NewStrW(i, SubtractPtr(e, i));
+						char16 *Var = NewStrW(i, e - i);
 						if (Var)
 						{
 							if (*Var == '#')
@@ -3208,7 +3207,7 @@ char *GTag::ParseText(char *Doc)
 
 			// Output tag
 			Html->SetCharset("iso-8859-1");
-			char16 *t = CleanText(s, (int)e-(int)s, false);
+			char16 *t = CleanText(s, e - s, false);
 			if (t)
 			{
 				Utf16.Push(t);
@@ -3251,7 +3250,7 @@ char *GTag::ParseText(char *Doc)
 			
 			// Output text
 			Html->SetCharset(OriginalCp);
-			GAutoWString t(CleanText(s, (int)e-(int)s, false));
+			GAutoWString t(CleanText(s, e - s, false));
 			if (t)
 			{
 				Utf16.Push(t);
@@ -3391,7 +3390,7 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 							char *e = s - 1;
 							while (e > Start && IsWhiteSpace(*e)) e--;
 							e++;
-							char *Code = NewStr(Start, (int)e-(int)Start);
+							char *Code = NewStr(Start, e - Start);
 							if (Code)
 							{
 								char *Result = Html->Environment->OnDynamicContent(Code);
@@ -3602,7 +3601,7 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 						char *End = stristr(s, "</style>");
 						if (End)
 						{
-							char *Css = NewStr(s, SubtractPtr(End, s));
+							char *Css = NewStr(s, End - s);
 							if (Css)
 							{
 								Html->AddCss(Css);
@@ -3815,7 +3814,7 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 		{
 			// Text child
 			char *n = NextTag(s);
-			int Len = n ? SubtractPtr(n, s) : strlen(s);
+			int Len = n ? n - s : strlen(s);
 			GAutoWString Txt(CleanText(s, Len, true, InPreTag));
 			if (Txt && *Txt)
 			{
@@ -5710,7 +5709,7 @@ void GTag::OnPaint(GSurface *pDC)
 
 					for (GFlowRect *Tr=TextPos.First(); Tr; Tr=TextPos.Next())
 					{
-						int Start = SubtractPtr(Tr->Text, Text());
+						int Start = Tr->Text - Text();
 						int Done = 0;
 						int x = Tr->x1;
 
@@ -5818,7 +5817,7 @@ void GTag::OnPaint(GSurface *pDC)
 					int Base = GetTextStart();
 					for (GFlowRect *Tr=TextPos.First(); Tr; Tr=TextPos.Next())
 					{
-						int Pos = SubtractPtr(Tr->Text, Text()) - Base;
+						int Pos = (Tr->Text - Text()) - Base;
 
 						GDisplayString ds(f, Tr->Text, Tr->Len);
 						ds.Draw(pDC, Tr->x1, Tr->y1);
@@ -6036,7 +6035,7 @@ void GHtml2::AddCss(char *Css)
 
 			char *Start = c;
 			while (*c && *c != '}') c++;
-			GAutoString Style(NewStr(Start, SubtractPtr(c, Start)));
+			GAutoString Style(NewStr(Start, c - Start));
 			for (char *Sel=Selector.First(); Sel; Sel=Selector.Next())
 			{
 				char *a = (Sel[0] == '.' && Sel[1] == '.') ? Sel + 1 : Sel;
@@ -7120,7 +7119,7 @@ void GHtml2::OnMouseClick(GMouse &m)
 													}
 													
 													*e = Delim;
-													Ex.Push(s, (int)cid-(int)s);
+													Ex.Push(s, cid - s);
 													if (File[0])
 													{
 														char *d;

@@ -132,7 +132,7 @@ LgiFunc int htoi
 LgiFunc int64 htoi64
 (
 	/// The string of hex characters
-	char *a
+	const char *a
 );
 /// Trims delimiter characters off a string.
 ///
@@ -203,8 +203,8 @@ LgiFunc char16 *NewStrW
 (
 	/// The input string
 	const char16 *s,
-	/// The maximum number of bytes in the input string to use or -1 for the whole string.
-	int Len = -1
+	/// The maximum number of characters in the input string to use or -1 for the whole string.
+	int CharLen = -1
 );
 /// Trim delimiters from a wide string. Returns a heap allocated string.
 LgiFunc char16 *TrimStrW(const char16 *s, const char16 *Delim = 0);

@@ -1107,7 +1107,7 @@ bool StorageItemImpl::DeleteChild(StorageItem *ObjVirtual)
 		LgiAssert(HeaderPtrOk);
 		if (HeaderPtrOk)
 		{
-			int Index = ((int)Obj->Header - (int)Dir) / sizeof(StorageItemHeader);
+			int Index = Obj->Header - Dir;
 
 			if (!Obj->Temp)
 			{

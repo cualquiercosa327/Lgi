@@ -322,7 +322,7 @@ public:
 	int				Height;
 	bool			Dirty;
 	char			*Cp;
-	int				Param;
+	NativeInt		Param;
 	bool			OwnerUnderline;
 
 	OsTextSize		Ascent;
@@ -657,12 +657,12 @@ type_4_cmap *GetUnicodeTable(HFONT hFont, uint16 &Length)
 }
 #endif
 
-int GFont::GetParam()
+NativeInt GFont::GetParam()
 {
 	return d->Param;
 }
 
-bool GFont::Create(const char *face, int height, int Param)
+bool GFont::Create(const char *face, int height, NativeInt Param)
 {
 	bool FaceChanging = false;
 
@@ -787,7 +787,7 @@ bool GFont::Create(const char *face, int height, int Param)
 						else
 						{
 							uint16 *End = (uint16*) (((char*)t)+Length);
-							int IdBytes = (int)End - (int)IdRangeOffset;
+							int IdBytes = End - IdRangeOffset;
 
 							for (uint u = StartCount[i]; u <= EndCount[i] AND IdRangeOffset[i] != 0xffff; u++)
 							{
@@ -1079,7 +1079,7 @@ char16 *GFont::_ToUnicode(char *In, int &Len)
 
 #if defined WIN32
 
-bool GFont::Create(GFontType *LogFont, int Param)
+bool GFont::Create(GFontType *LogFont, NativeInt Param)
 {
 	if (d->hFont)
 	{
@@ -1108,7 +1108,7 @@ bool GFont::Create(GFontType *LogFont, int Param)
 }
 #elif defined BEOS
 
-bool GFont::Create(GFontType *LogFont, int Param)
+bool GFont::Create(GFontType *LogFont, NativeInt Param)
 {
 	bool Status = false;
 
@@ -1127,7 +1127,7 @@ bool GFont::Create(GFontType *LogFont, int Param)
 }
 
 #else
-bool GFont::Create(GFontType *LogFont, int Param)
+bool GFont::Create(GFontType *LogFont, NativeInt Param)
 {
 	if (LogFont)
 	{
@@ -1808,7 +1808,7 @@ bool GFontType::GetFromRef(OsFont Handle)
 	#endif
 }
 
-GFont *GFontType::Create(int Param)
+GFont *GFontType::Create(NativeInt Param)
 {
 	GFont *New;
 	if (New = new GFont)

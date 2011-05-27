@@ -310,7 +310,7 @@ public:
 				}
 				case ICallMethod:
 				{
-					GHostFunc *Meth = *c.fn++;
+					GFunc *Meth = *c.fn++;
 					if (!Meth)
 					{
 						Log->Print("VmError:%i - No method struct.\n", c.u8 - Base);
@@ -829,7 +829,7 @@ public:
 				}
 				case ICallMethod:
 				{
-					GHostFunc *Meth = dynamic_cast<GHostFunc*>((GFunc*)*c.u32++);
+					GHostFunc *Meth = dynamic_cast<GHostFunc*>(*c.fn++);
 					if (!Meth)
 					{
 						Log->Print("VmError:%i - No method struct.\n", c.u8 - Base);

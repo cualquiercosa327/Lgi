@@ -347,7 +347,7 @@ void GDisplayString::Layout()
 				WasTab = IsTabChar(*s);
 			}
 		}
-		len = ((int)s - (int)Str) / sizeof(OsChar);
+		len = s - Str;
 
 		if (*s == '\n')
 		{
@@ -389,7 +389,7 @@ void GDisplayString::Layout()
 							n->Create();
 					}
 
-					Info[i].Len = SubtractPtr(s, Info[i].Str);
+					Info[i].Len = s - Info[i].Str;
 					if (Info[i].Len)
 					{
 						LgiAssert(i < Blocks);

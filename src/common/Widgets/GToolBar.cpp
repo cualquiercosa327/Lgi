@@ -1060,7 +1060,7 @@ void GToolButton::SendNotify(int Flags)
 	GViewI *w = (GetNotify()) ? GetNotify() : GetParent();
 	if (w)
 	{
-		w->PostEvent(M_CHANGE, (int)((GViewI*)this), Flags);
+        w->PostEvent(M_CHANGE, (GMessage::Param)this, Flags);
 	}
 }
 
@@ -1455,7 +1455,7 @@ void GToolBar::_BuildCache(GImageList *From)
 				if (pApp)
 				{
 					pApp->SetVar(GAPP_ALPHA_A, 40);
-					pApp->SetVar(GAPP_ALPHA_PAL, (int)r->Palette());
+					pApp->SetVar(GAPP_ALPHA_PAL, (NativeInt)r->Palette());
 				}
 				for (i=0; i<From->GetItems(); i++)
 				{
@@ -1535,7 +1535,7 @@ void GToolBar::_BuildCache(GImageList *From)
 				if (pApp)
 				{
 					pApp->SetVar(GAPP_ALPHA_A, 40);
-					pApp->SetVar(GAPP_ALPHA_PAL, (int)d->pDisabled->Palette());
+					pApp->SetVar(GAPP_ALPHA_PAL, (NativeInt)d->pDisabled->Palette());
 				}
 
 				for (int i=0; i<From->GetItems(); i++)
@@ -1803,7 +1803,7 @@ void GToolBar::OnButtonClick(GToolButton *Btn)
 	if (w && Btn)
 	{
 		int Id = Btn->GetId();
-		w->PostEvent(M_COMMAND, Id, (int) Handle());
+        w->PostEvent(M_COMMAND, Id, (GMessage::Param) Handle());
 	}
 }
 
@@ -1811,7 +1811,7 @@ int GToolBar::PostDescription(GView *Ctrl, const char *Text)
 {
 	if (GetParent())
 	{
-		return GetParent()->PostEvent(M_DESCRIBE, (int) Ctrl, (int) Text);
+        return GetParent()->PostEvent(M_DESCRIBE, (GMessage::Param) Ctrl, (GMessage::Param) Text);
 	}
 	return 0;
 }

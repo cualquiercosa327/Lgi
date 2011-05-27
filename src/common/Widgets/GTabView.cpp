@@ -590,11 +590,11 @@ char *_lgi_gview_cmp(GView *a, GView *b)
 	if (a AND b)
 	{
 		sprintf(Str,
-				"GView: %p,%p Hnd: %x,%x",
+				"GView: %p,%p Hnd: %p,%p",
 				dynamic_cast<GView*>(a),
 				dynamic_cast<GView*>(b),
-				(int) a->Handle(),
-				(int) b->Handle());
+				a->Handle(),
+				b->Handle());
 	}
 	else
 	{

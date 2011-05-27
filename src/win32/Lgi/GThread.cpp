@@ -3,7 +3,7 @@
 //////////////////////////////////////////////////////////////////////////////
 #include <process.h>
 
-uint WINAPI ThreadEntryPoint(int i)
+uint WINAPI ThreadEntryPoint(void *i)
 {
 #if defined(_MT) || defined(__MINGW32__)
 	GThread *Thread = (GThread*) i;

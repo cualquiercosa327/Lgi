@@ -54,7 +54,7 @@ public:
 			{
 				char *e = strchr(s, '\n');
 				if (!e) e = s + strlen(s);
-				int Len = (int)e - (int)s;
+				int Len = e - s;
 
 				GDisplayString *n = new GDisplayString(f, Len ? s : (char*)"", Len ? Len : 1);
 				if (Wrap)
@@ -88,7 +88,7 @@ public:
 						}
 
 						DeleteObj(n);
-						n = new GDisplayString(f, s, (int)e - (int)s);
+						n = new GDisplayString(f, s, e - s);
 					}
 				}
 

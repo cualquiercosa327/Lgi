@@ -294,7 +294,7 @@ bool GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 										{
 											p += Colour;
 										}
-										if ((int) p & 1) p++;
+										if ((NativeInt) p & 1) p++;
 										break;
 									}
 								}

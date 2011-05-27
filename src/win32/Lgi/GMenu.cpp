@@ -335,7 +335,7 @@ GMenuItem::GMenuItem()
 	#ifdef LGI_OWNER_DRAW_MENUS
 	Info.fMask = MIIM_DATA;
 	Info.fType = MFT_OWNERDRAW;
-	Info.dwItemData = (int)this;
+	Info.dwItemData = (ULONG_PTR)this;
 	#endif
 
 	Enabled(true);
@@ -357,7 +357,7 @@ GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, int Pos, char *Shortcut)
 	#ifdef LGI_OWNER_DRAW_MENUS
 	Info.fMask = MIIM_DATA;
 	Info.fType = MFT_OWNERDRAW;
-	Info.dwItemData = (int)this;
+	Info.dwItemData = (ULONG_PTR)this;
 	#endif
 
 	Name("<error>");
@@ -826,11 +826,11 @@ bool GMenuItem::Name(const char *Txt)
 			if (Amp)
 			{
 				// Before amp
-				d->Strs.Insert(new GDisplayString(Font, n, (int)Amp-(int)n ));
+				d->Strs.Insert(new GDisplayString(Font, n, Amp - n ));
 
 				// Amp'd letter
 				char *e = LgiSeekUtf8(++Amp, 1);
-				d->Strs.Insert(new GDisplayString(Font, Amp, (int)e-(int)Amp ));
+				d->Strs.Insert(new GDisplayString(Font, Amp, e - Amp ));
 
 				// After Amp
 				if (*e)

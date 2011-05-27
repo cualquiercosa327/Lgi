@@ -259,7 +259,7 @@ bool MailPhp::Get(GSocketI *S, char *Uri, GStream &Out, bool MailTransfer)
 		char *s = strchr(Start, '/');
 		if (s)
 		{
-			char *Base = NewStr(Start, (int)s-(int)Start);
+			char *Base = NewStr(Start, s-Start);
 
 			IHttp Http;
 			if (d->UserName AND d->UserPass)
@@ -508,7 +508,7 @@ bool MailPhp::Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks)
 				MailTransaction *t = Trans[i];
 				if (t AND t->Stream)
 				{
-					int Len = (int)e-(int)s;
+					int Len = e-s;
 					if (!strnstr(s, "Error: ", min(Len, 256)))
 					{
 						t->Stream->Write(s, Len - 2);
@@ -621,7 +621,7 @@ char *MailPhp::GetHeaders(int Message)
 						char *e = stristr(s, "\r\n.\r\n");
 						if (e)
 						{
-							m->Headers = NewStr(s, (int)e-(int)s);
+							m->Headers = NewStr(s, e-s);
 							s = e + 5;
 							while (*s == '\r' OR *s == '\n') s++;
 						}

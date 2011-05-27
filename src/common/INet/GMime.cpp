@@ -98,7 +98,7 @@ public:
 				*d++ = '\r';
 				*d++ = '\n';
 
-				int Len = (int)d-(int)Buf;
+				int Len = d-Buf;
 				if (Out->Write(Buf, Len) < Len ||
 					!*s)
 				{
@@ -125,13 +125,13 @@ public:
 				s++;
 			}
 
-			if ((int)d-(int)Buf > 73)
+			if (d-Buf > 73)
 			{
 				// time for a new line.
 				strcpy(d, "=\r\n");
 				d += 3;
 
-				int Len = (int)d-(int)Buf;
+				int Len = d-Buf;
 				if (Out->Write(Buf, Len) < Len)
 				{
 					break;
@@ -141,7 +141,7 @@ public:
 			}
 		}
 
-		return (int)s-(int)p;
+		return s-p;
 	}
 };
 
@@ -197,7 +197,7 @@ public:
 				}
 			}
 
-			int Len = (int)o-(int)Line;
+			int Len = o-Line;
 			if (Out->Write(Line, Len) < Len)
 			{
 				// Error
@@ -284,7 +284,7 @@ public:
 			while (*s && s < e && !Lut[*s]) s++;
 			char *Start = s;
 			while (*s && s < e && Lut[*s]) s++;
-			Buf.Push(Start, (int)s-(int)Start);
+			Buf.Push(Start, s-Start);
 		}
 
 		// While there is at least one run of base64 (4 bytes) convert it to text
@@ -603,7 +603,7 @@ char *GMime::NewValue(char *&s, bool Alloc)
 	{
 		if (Alloc)
 		{
-			Status = NewStr(s, (int)End-(int)s);
+			Status = NewStr(s, End-s);
 		}
 		s = End + Inc;
 	}
@@ -631,7 +631,7 @@ char *GMime::StartOfField(char *s, const char *Field)
 			{
 				char *f = s;
 				while (*s && *s != ':' && !strchr(MimeWs, *s)) s++;
-				int fLen = (int)s-(int)f;
+				int fLen = s-f;
 				if (*s++ == ':' &&
 					fLen == FieldLen &&
 					strnicmp(f, Field, FieldLen) == 0)
@@ -695,7 +695,7 @@ char *GMime::Get(const char *Name, bool Short, const char *Default)
 				{
 					char *e = NextField(s);
 					while (strchr(MimeWs, e[-1])) e--;
-					Status = NewStr(s, (int)e-(int)s);
+					Status = NewStr(s, e-s);
 				}
 			}
 		}
@@ -724,7 +724,7 @@ bool GMime::Set(const char *Name, const char *Value)
 			if (f)
 			{
 				// 'Name' exists, push out pre 'Name' header text
-				p.Push(h, (int)f-(int)Headers);
+				p.Push(h, f-Headers);
 				h = NextField(f);
 			}
 			else
@@ -788,7 +788,7 @@ char *GMime::GetSub(const char *Field, const char *Sub)
 				SkipWs(s);
 				char *Name = s;
 				while (*s && *s != '=' && !strchr(MimeWs, *s)) s++;
-				int NameLen = (int)s-(int)Name;
+				int NameLen = s-Name;
 				SkipWs(s);
 				if (*s++ == '=')
 				{
@@ -826,7 +826,7 @@ bool GMime::SetSub(const char *Field, const char *Sub, const char *Value, const 
 				// Push the field data
 				char *e = s;
 				while (*e && !strchr("; \t\r\n", *e)) e++;
-				p.Push(s, (int)e-(int)s);
+				p.Push(s, e-s);
 				SkipWs(e);
 
 				// Loop through the subfields and push all those that are not 'Sub'
@@ -836,7 +836,7 @@ bool GMime::SetSub(const char *Field, const char *Sub, const char *Value, const 
 					SkipWs(s);
 					char *e = s;
 					while (*e && *e != '=' && !strchr(MimeWs, *e)) e++;
-					char *Name = NewStr(s, (int)e-(int)s);
+					char *Name = NewStr(s, e-s);
 					if (Name)
 					{
 						s = e;

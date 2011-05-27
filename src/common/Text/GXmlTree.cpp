@@ -179,7 +179,7 @@ bool GXmlTree::EncodeEntities(GStreamI *to, char *start, int len, const char *ex
 		
 		if (*e)
 		{
-			to->Write(s, (int)e-(int)s);
+			to->Write(s, e - s);
 			
 			switch (*e)
 			{
@@ -232,7 +232,7 @@ char *GXmlTree::DecodeEntities(char *s, int len)
 		while (*e && *e != '&' && e < End) *e++;
 		if (*e)
 		{
-			p.Push(s, (int)e-(int)s);
+			p.Push(s, e - s);
 			if (e >= End ||
 				*e != '&')
 			{
@@ -901,11 +901,11 @@ void GXmlTag::ParseAttribute(GXmlTree *Tree, GXmlAlloc *Alloc, char *&t, bool &N
 					{
 						if (Tree->d->Flags & GXT_NO_ENTITIES)
 						{
-							At.Value = Alloc->Alloc(t, (int)End-(int)t);
+							At.Value = Alloc->Alloc(t, End - t);
 						}
 						else
 						{
-							GAutoString e(Tree->DecodeEntities(t, (int)End-(int)t));
+							GAutoString e(Tree->DecodeEntities(t, End - t));
 							At.Value = Alloc->Alloc(e);
 						}
 
@@ -937,7 +937,7 @@ void GXmlTag::ParseAttribute(GXmlTree *Tree, GXmlAlloc *Alloc, char *&t, bool &N
 					// Non delimited string
 					char *End = t;
 					while (*End && !strchr(White, *End) && *End != '>'  && *End != '/') *End++;
-					GAutoString e(Tree->DecodeEntities(t, (int)End-(int)t));
+					GAutoString e(Tree->DecodeEntities(t, End - t));
 					At.Value = Alloc->Alloc(e);
 					t = End;
 				}
@@ -1128,7 +1128,7 @@ ParsingStart:
 				if (Tag)
 				{	
 					Tag->Empty(false);
-					Tag->Tag = NewStr(TagName, (int)t-(int)TagName);
+					Tag->Tag = NewStr(TagName, t - TagName);
 					NoChildren = Tag->Tag ? Tag->Tag[0] == '?' : false;
 					
 					Tag->ParseAttribute(this, Alloc, t, NoChildren, InTypeDef);
@@ -1154,11 +1154,11 @@ ParsingStart:
 				{
 					if (d->Flags & GXT_NO_ENTITIES)
 					{
-						Tag->Content = NewStr(ContentStart, (int)t - (int)ContentStart);
+						Tag->Content = NewStr(ContentStart, t - ContentStart);
 					}
 					else
 					{
-						Tag->Content = DecodeEntities(ContentStart, (int)t - (int)ContentStart);
+						Tag->Content = DecodeEntities(ContentStart, t - ContentStart);
 					}
 
 					if (!TestFlag(d->Flags, GXT_KEEP_WHITESPACE) && !ValidStr(Tag->Content))

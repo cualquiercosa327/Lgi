@@ -407,7 +407,7 @@ int CALLBACK GFileSelectBrowseCallback(HWND hwnd, UINT uMsg, LPARAM lParam, LPAR
 	char *Name = (char*)lpData;
 	if (uMsg == BFFM_INITIALIZED AND Name)
 	{
-		PostMessage(hwnd, BFFM_SETSELECTION, true, (uint)Name);
+        PostMessage(hwnd, BFFM_SETSELECTION, true, (GMessage::Param)Name);
 	}
 
 	return 0;
@@ -432,7 +432,7 @@ bool GFileSelect::OpenFolder()
 		bi.lpszTitle        = "Select a Directory";
 		bi.ulFlags          = BIF_RETURNFSANCESTORS | BIF_RETURNONLYFSDIRS | BIF_EDITBOX;
 		bi.lpfn				= GFileSelectBrowseCallback;
-		bi.lParam			= (long)InitialDir();
+		bi.lParam			= (LPARAM)InitialDir();
 
 		// This next call issues the dialog box.
 		if  (pidl = ::SHBrowseForFolder(&bi))

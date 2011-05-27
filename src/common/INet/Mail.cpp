@@ -142,7 +142,7 @@ void TokeniseStrList(char *Str, List<char> &Output, const char *Delim)
 				}
 			}
 
-			int Len = (int)e - (int)s;
+			int Len = e - s;
 			if (Len > 0)
 			{
 				char *Temp = new char[Len+1];
@@ -249,7 +249,7 @@ char *DecodeRfc2047(char *Str)
 				First = strchr(CpStart, '?');
 				if (First)
 				{
-					Cp = NewStr(CpStart, (int)First-(int)CpStart);
+					Cp = NewStr(CpStart, First-CpStart);
 					Second = strchr(First+1, '?');
 					if (Second)
 					{
@@ -277,7 +277,7 @@ char *DecodeRfc2047(char *Str)
 
 				if (Type != CONTENT_NONE)
 				{
-					char *Block = NewStr(Second+1, (int)End-(int)Second-1);
+					char *Block = NewStr(Second+1, End-Second-1);
 					if (Block)
 					{
 						switch (Type)
@@ -309,7 +309,7 @@ char *DecodeRfc2047(char *Str)
 						}
 						if (c < p)
 						{
-							Temp.Write((uchar*)s, (int)p-(int)s);
+							Temp.Write((uchar*)s, p-s);
 						}
 						
 						char *Utf8 = (char*)LgiNewConvertCp("utf-8", Block, Cp);
@@ -521,7 +521,7 @@ GAutoString RemovePairs(char *Str, CharPair *Pairs)
 		}
 	}
 
-	int Len = (int)e - (int)s;
+	int Len = e - s;
 	if (Len < 0)
 		return GAutoString();
 
@@ -706,7 +706,7 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
 					c++;
 			}
 
-			Str.Add(NewStr(s, (int)c-(int)s));
+			Str.Add(NewStr(s, c-s));
 		}
 		else if (strchr("<(", *c))
 		{
@@ -723,7 +723,7 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
 				while (*End && *End != ' ')
 					End++;
 			}
-			Str.Add(NewStr(c, (int)End-(int)c));
+			Str.Add(NewStr(c, End-c));
 			c = End;
 		}
 		else
@@ -731,7 +731,7 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
 			// Some string
 			char *s = c;
 			for (; *c && !strchr("<(\"", *c); c++);
-			Str.Add(NewStr(s, (int)c-(int)s));
+			Str.Add(NewStr(s, c-s));
 			continue;
 		}
 
@@ -1440,7 +1440,7 @@ bool MailSmtp::Open(GSocketI *S,
 						a += strlen(UserName) + 1;
 						strcpy(a, Password);
 						a += strlen(Password);
-						int Len = (int)a-(int)Tmp;
+						int Len = a-(char*)Tmp;
 
 						char B64[256];
 						ZeroObj(B64);
@@ -1535,7 +1535,7 @@ bool MailSmtp::WriteText(const char *Str)
 			if (*Str == '\n')
 			{
 				// send a string
-				int Size = (int)Str-(int)Start;
+				int Size = Str-Start;
 				if (Str[-1] == '\r') Size--;
 				Temp.Write((uchar*) Start, Size);
 				Temp.Write((uchar*) "\r\n", 2);
@@ -1546,7 +1546,7 @@ bool MailSmtp::WriteText(const char *Str)
 		}
 
 		// send the final string
-		int Size = (int)Str-(int)Start;
+		int Size = Str-Start;
 		if (Str[-1] == '\r') Size--;
 		Temp.Write((uchar*) Start, Size);
 
@@ -2924,7 +2924,7 @@ bool MailPop3::ReadMultiLineReply(char *&Str)
 			if (Eol)
 			{
 				char *Ptr = Eol + 1;
-				ReadLen -= ((int)Ptr-(int)Buffer);
+				ReadLen -= Ptr-Buffer;
 				memmove(Buffer, Ptr, ReadLen);
 				Temp.Write((uchar*) Buffer, ReadLen);
 
@@ -3229,7 +3229,7 @@ int MailMessage::EncodeQuotedPrintable(GStreamI &Out, GStreamI &In)
 			}
 			s++;
 
-			if ((int)o-(int)OutBuf > 73)
+			if (o-OutBuf > 73)
 			{
 				// time for a new line.
 				strcpy(o, "=\r\n");
@@ -3492,7 +3492,7 @@ bool MailMessage::EncodeHeaders(GStreamI &Out, MailProtocol *Protocol, bool Mime
 		{
 			char *e = s;
 			while (*e && *e != '\r' && *e != '\n') e++;
-			int l = (int)e-(int)s;
+			int l = e-s;
 			if (l > 0)
 			{
 				Status &= Out.Write(s, l) > 0;

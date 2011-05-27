@@ -185,7 +185,7 @@ union GPtr
 	double *dbl;
 	float *flt;
 	GVarRef *r;
-	GHostFunc **fn;
+	GFunc **fn;
 };
 
 class SystemFunctions;

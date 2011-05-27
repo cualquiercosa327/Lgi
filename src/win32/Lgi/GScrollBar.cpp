@@ -192,7 +192,7 @@ void GScrollBar::Update()
 		}
 		else
 		{
-			PostEvent(M_SCROLL_BAR_CHANGED, 0, (int)this);
+            PostEvent(M_SCROLL_BAR_CHANGED, 0, (GMessage::Param)this);
 		}
 	}
 	else if (GetParent() AND
@@ -205,7 +205,7 @@ void GScrollBar::Update()
 		}
 		else
 		{
-			GetParent()->PostEvent(M_SCROLL_BAR_CHANGED, 0, (int)this);
+            GetParent()->PostEvent(M_SCROLL_BAR_CHANGED, 0, (GMessage::Param)this);
 		}
 	}
 }
@@ -361,7 +361,7 @@ int GScrollBar::OnEvent(GMessage *Msg)
 		}
 		case M_SCROLL_BAR_CHANGED:
 		{
-			if (MsgB(Msg) == (int)this)
+            if (MsgB(Msg) == (GMessage::Param)this)
 			{
 				Update();
 			}

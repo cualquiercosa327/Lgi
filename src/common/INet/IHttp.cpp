@@ -129,7 +129,7 @@ bool IHttp::Open(GSocketI *S, char *RemoteHost, int Port)
 			p = strchr(RemoteHost, '/');
 			if (p)
 			{
-				int Len = (int)p-(int)RemoteHost;
+				int Len = p-RemoteHost;
 				memcpy(Host, RemoteHost, Len);
 				Host[Len] = 0;
 			}
@@ -199,7 +199,7 @@ bool IHttp::GetFile(GViewI *Parent, char *File, GStream &Out, int Format, int *P
 			return false;
 		}
 
-		int HostLen = f ? (int)f-(int)h : strlen(h);
+		int HostLen = f ? f-h : strlen(h);
 		memcpy(Host, h, HostLen);
 		Host[HostLen] = 0;
 

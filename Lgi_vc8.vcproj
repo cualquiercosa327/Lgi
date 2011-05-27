@@ -59,6 +59,7 @@
 				ProgramDataBaseFileName="$(IntDir)/"
 				BrowseInformation="0"
 				SuppressStartupBanner="true"
+				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 				CompileAs="0"
 			/>
@@ -156,6 +157,7 @@
 				BrowseInformation="0"
 				WarningLevel="1"
 				SuppressStartupBanner="true"
+				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 				CompileAs="0"
 			/>

@@ -434,7 +434,7 @@ int GEdit::GetCaret()
 {
 	DWORD Start, End = 0;
 	if (_View)
-		SendMessage(_View, EM_GETSEL, (int)&Start, (int)&End);
+        SendMessage(_View, EM_GETSEL, (GMessage::Param)&Start, (GMessage::Param)&End);
 	return End;
 }
 

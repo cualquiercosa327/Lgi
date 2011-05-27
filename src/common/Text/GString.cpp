@@ -232,7 +232,7 @@ char *TrimStr(const char *s, const char *Delim)
 
 			if (*Start)
 			{
-				int Len = (uint) End - (uint) Start + 1;
+				int Len = (End - Start) + 1;
 				char *n = new char[Len+1];
 				if (n)
 				{
@@ -318,7 +318,7 @@ bool MatchStr(const char *Template, const char *Data)
 			{
 				const char *EndA;
 				for (EndA = Template; *EndA && *EndA!='?' && *EndA!='*'; EndA++);
-				int SegLen = (int)EndA-(int)Template;
+				int SegLen = EndA - Template;
 				char *Seg = NewStr(Template, SegLen);
 				if (!Seg) return false;
 
@@ -400,7 +400,7 @@ int htoi(const char *a)
 	return Status;
 }
 
-int64 htoi64(char *a)
+int64 htoi64(const char *a)
 {
 	int64 Status = 0;
 

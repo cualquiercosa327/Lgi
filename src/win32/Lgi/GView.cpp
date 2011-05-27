@@ -138,7 +138,7 @@ int _lgi_get_key_flags()
 int GetInputACP()
 {
 	char Str[16];
-	LCID Lcid = (LCID)GetKeyboardLayout(LgiGetCurrentThread()) & 0xffff;
+	LCID Lcid = (NativeInt)GetKeyboardLayout(LgiGetCurrentThread()) & 0xffff;
 	GetLocaleInfo(Lcid, LOCALE_IDEFAULTANSICODEPAGE , Str, sizeof(Str));
 	return atoi(Str);
 }
@@ -205,13 +205,13 @@ LRESULT CALLBACK GWin32Class::Redir(HWND hWnd, UINT m, WPARAM a, LPARAM b)
 		{
 			GView *View = ViewI->GetGView();
 			if (View) View->_View = hWnd;
-			SetWindowLong(hWnd, GWL_USERDATA, (int) ViewI);
+			SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) ViewI);
 			DWORD Prev = SetWindowLong(hWnd, GWL_LGI_MAGIC, LGI_GViewMagic);
 			int asd=0;
 		}
 	}
 
-	GViewI *Wnd = (GViewI*) GetWindowLong(hWnd, GWL_USERDATA);
+	GViewI *Wnd = (GViewI*) GetWindowLongPtr(hWnd, GWLP_USERDATA);
 	if (Wnd)
 	{
 		GMessage Msg(m, a, b);
@@ -243,7 +243,7 @@ LRESULT CALLBACK GWin32Class::SubClassRedir(HWND hWnd, UINT m, WPARAM a, LPARAM 
 					View->_View = hWnd;
 			}
 		}
-		SetWindowLong(hWnd, GWL_USERDATA, (int) ViewI);
+		SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) ViewI);
 		SetLastError(0);
 		SetWindowLong(hWnd, GWL_LGI_MAGIC, LGI_GViewMagic);
 		DWORD err = GetLastError();
@@ -251,7 +251,7 @@ LRESULT CALLBACK GWin32Class::SubClassRedir(HWND hWnd, UINT m, WPARAM a, LPARAM 
 
 	}
 
-	GViewI *Wnd = (GViewI*) GetWindowLong(hWnd, GWL_USERDATA);
+	GViewI *Wnd = (GViewI*) GetWindowLongPtr(hWnd, GWLP_USERDATA);
 	if (Wnd)
 	{
 		GMessage Msg(m, a, b);
@@ -472,7 +472,7 @@ GViewI *GWindowFromHandle(HWND hWnd)
 
 		if (m == LGI_GViewMagic)
 		{
-			return (GViewI*)GetWindowLong(hWnd, GWL_USERDATA);
+			return (GViewI*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
 		}
 	}
 	return 0;
@@ -1052,7 +1052,7 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 
 void
 CALLBACK
-GView::TimerProc(HWND hwnd, UINT uMsg, UINT idEvent, uint32 dwTime)
+GView::TimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, uint32 dwTime)
 {
 	GView *View = (GView*) idEvent;
 	if (View)
@@ -1067,7 +1067,7 @@ void GView::SetPulse(int Length)
 	{
 		if (Length > 0)
 		{
-			d->TimerId = SetTimer(_View, (UINT) this, Length, (TIMERPROC) TimerProc);
+			d->TimerId = SetTimer(_View, (UINT_PTR) this, Length, (TIMERPROC) TimerProc);
 		}
 		else
 		{

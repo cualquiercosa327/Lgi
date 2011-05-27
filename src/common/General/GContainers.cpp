@@ -564,7 +564,7 @@ bool DLinkList::Insert(void *p, int Index)
 	bool Status = false;
 
 	#ifdef _DEBUG
-	if ((uint)p < 100)
+	if ((NativeInt)p < 100)
 	{
 		char *s = 0;
 		*s = 0;
@@ -1353,7 +1353,7 @@ int GStringPipe::Pop(char *Str, int BufSize)
 
 			EndPop:
 			*Str = 0;
-			return (int)Str-(int)Start;
+			return Str - Start;
 		}
 	}
 

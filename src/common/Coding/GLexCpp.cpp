@@ -6,7 +6,6 @@ static char *White = " \r\t\n";
 #define iswhite(s)		(s AND strchr(White, s) != 0)
 #define isword(s)		(s AND (isdigit(s) OR isalpha(s) OR (s) == '_') )
 #define skipws(s)		while (iswhite(*s)) s++;
-#define SubPtr(a, b)	(((int)a-(int)b)/sizeof(*a))
 
 // Returns the next C++ token in 's'
 //
@@ -37,7 +36,7 @@ char16 *LexCpp(char16 *&s, bool ReturnString)
             	Nwsp = *s;
             }
         }
-        Status = ReturnString ? NewStrW(Start, SubPtr(s, Start)) : 0;
+        Status = ReturnString ? NewStrW(Start, s-Start) : 0;
     }
     else if (*s == '_' OR
         	 isalpha(*s))
@@ -61,7 +60,7 @@ char16 *LexCpp(char16 *&s, bool ReturnString)
         {
             s++;
         }
-        Status = ReturnString ? NewStrW(Start, SubPtr(s, Start)) : 0;
+        Status = ReturnString ? NewStrW(Start, s-Start) : 0;
     }
     else if (s[0] == '/' AND s[1] == '/')
     {
@@ -161,7 +160,7 @@ char16 *LexCpp(char16 *&s, bool ReturnString)
         {
             s++;
         }
-        Status = ReturnString ? NewStrW(Start, SubPtr(s, Start)) : 0;
+        Status = ReturnString ? NewStrW(Start, s-Start) : 0;
     }
     else if (*s AND strchr("-()*[]&,{};:=!<>?.\\+/%^|~", *s))
     {
@@ -189,7 +188,7 @@ char16 *LexCpp(char16 *&s, bool ReturnString)
                 s++;
             }
         }
-        Status = ReturnString ? NewStrW(Start, SubPtr(s, Start)) : 0;
+        Status = ReturnString ? NewStrW(Start, s-Start) : 0;
     }
     else
     {

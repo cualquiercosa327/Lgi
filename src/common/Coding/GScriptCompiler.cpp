@@ -993,7 +993,7 @@ public:
 					uint8 *Start = &Code->ByteCode[Len];
 					p.u8 = Start;
 					*p.u8++ = ICallMethod;
-					*p.u32++ = (int)n.ContextFunc;
+					*p.fn++ = n.ContextFunc;
 					*p.r++ = n.Reg;
 					*p.u16++ = n.Args.Length();
 					for (i=0; i<n.Args.Length(); i++)

@@ -21,7 +21,7 @@ class LgiClass GThread
 	OsThread hThread;
 
 	#if defined WIN32
-	friend uint WINAPI ThreadEntryPoint(int i);
+	friend uint WINAPI ThreadEntryPoint(void *i);
 	uint ThreadId;
 	#elif defined POSIX
 	friend void *ThreadEntryPoint(void *i);

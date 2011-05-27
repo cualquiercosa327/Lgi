@@ -142,7 +142,7 @@ bool LgiIsUtf8(const char *s, int len)
 		return true;
 
 	const char *Start = s;
-	while (*s && (len < 0 || (((int)s-(int)Start) < len) ) )
+	while (*s && (len < 0 || ((s - Start) < len) ) )
 	{
 		if (IsUtf8_1Byte(*s))
 		{
@@ -843,7 +843,7 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 					}
 					else break;
 				}
-				return (int)Out-(int)Start;
+				return (NativeInt)Out-(NativeInt)Start;
 			}
 			else if (InInfo->Type == CpWide AND OutInfo->Type == CpWindowsDb)
 			{
@@ -865,7 +865,7 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 						OutLen -= s;
 					}
 				}
-				return (int)Out-(int)Start;
+				return (NativeInt)Out-(NativeInt)Start;
 			}
 			else
 			#endif
@@ -916,7 +916,7 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 					Iconv->libiconv_close(Conv);
 
 					In = (void*)i;
-					Status = (int)o-(int)Out;
+					Status = (NativeInt)o-(NativeInt)Out;
 				}
 				else
 				{
@@ -1033,7 +1033,7 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 				}
 
 				In = (void*)In8;
-				Status = (int)Out8-(int)Out;
+				Status = (NativeInt)Out8-(NativeInt)Out;
 			}
 		}
 		else
@@ -1106,10 +1106,10 @@ void *LgiNewConvertCp(const char *OutCp, const void *In, const char *InCp, int I
 				GFontSystem *Iconv = GetIconv();
 				iconv_t Conv;
 				if (Iconv &&
-					(int)(Conv = Iconv->libiconv_open(OutInfo->GetIconvName(), InInfo->GetIconvName())) >= 0)
+					(NativeInt)(Conv = Iconv->libiconv_open(OutInfo->GetIconvName(), InInfo->GetIconvName())) >= 0)
 				{
 					char *i = (char*)In;
-					LgiAssert((int)Conv != 0xffffffff);
+					LgiAssert((NativeInt)Conv != 0xffffffff);
 
 					while (InLen)
 					{

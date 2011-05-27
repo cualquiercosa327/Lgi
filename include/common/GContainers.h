@@ -130,11 +130,11 @@ public:
 	void Sort
 	(
 		/// The callback function used to compare 2 pointers
-		int (*Compare)(Type *a, Type *b, int data),
+		int (*Compare)(Type *a, Type *b, NativeInt data),
 		/// User data that is passed into the callback
-		int Data
+		NativeInt Data
 	)
-	{ DLinkList::Sort( (int (*)(void *a, void *b, int data)) Compare, Data); }
+	{ DLinkList::Sort( (int (*)(void *a, void *b, NativeInt data)) Compare, Data); }
 	
 	/// Delete all pointers in the list as dynamically allocated objects
 	void DeleteObjects()

@@ -1397,7 +1397,7 @@ public:
 							GDisplayString Ds(f, b->fr->Text);
 							Ds.CharAt(b->fr->Len);
 						}
-						int Start = b->fr ? SubtractPtr(b->fr->Text, b->t->TextPos[b->t->PreText() ? 1 : 0]->Text) : 0;
+						int Start = b->fr ? (b->fr->Text - b->t->TextPos[b->t->PreText() ? 1 : 0]->Text) : 0;
 						NewPos = Start + Char;
 						NewCur = b->t;
 					}

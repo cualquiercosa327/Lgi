@@ -1313,8 +1313,8 @@ GDisplayString *GListItem::GetDs(int Col, int FitTo)
 		if (!f) f = SysFont;
 
 		char *Text = d->Str[Col] ? d->Str[Col] : GetText(Col);
-		LgiAssert((uint32)Text != 0xcdcdcdcd &&
-				  (uint32)Text != 0xfdfdfdfd);
+		LgiAssert((NativeInt)Text != 0xcdcdcdcd &&
+				  (NativeInt)Text != 0xfdfdfdfd);
 		d->Display[Col] = new GDisplayString(f, Text?Text:(char*)"");
 		if (d->Display[Col] && FitTo > 0)
 		{
@@ -3109,7 +3109,7 @@ void GList::ScrollToSelection()
 	}
 }
 
-void GList::Sort(GListCompareFunc Compare, int Data)
+void GList::Sort(GListCompareFunc Compare, NativeInt Data)
 {
 	if (Lock(_FL))
 	{

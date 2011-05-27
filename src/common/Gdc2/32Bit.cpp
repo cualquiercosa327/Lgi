@@ -81,7 +81,7 @@ GApplicator *GApp32::Create(int Bits, int Op)
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-#define AddPtr(p, i)		p = (ulong*) (((long)(p))+(i))
+#define AddPtr(p, i)		p = (ulong*) (((char*)(p))+(i))
 
 bool GdcApp32::SetSurface(GBmpMem *d, GPalette *p, GBmpMem *a)
 {

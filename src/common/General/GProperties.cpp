@@ -947,7 +947,7 @@ bool ObjProperties::SerializeText(GFile &f, bool Write)
 
 	if (Write)
 	{
-		Properties.Sort(Prop_Compare, (int)this);
+		Properties.Sort(Prop_Compare, (NativeInt)this);
 
 		f.SetSize(0);
 		f.Write(s, strlen(s));
@@ -1090,7 +1090,7 @@ ObjProperties *ObjTree::GetLeaf(char *Name, bool Create)
 
 			if (*End == '.')
 			{
-				int Size = (int) End - (int) Start;
+				int Size = End - Start;
 				memcpy(Token, Start, Size);
 				Token[Size] = 0;
 			}

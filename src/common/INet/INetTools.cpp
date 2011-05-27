@@ -121,13 +121,13 @@ void InetTokeniseHeaders(List<GInetHeader> &Out, const char *In)
 		// get end-of-line
 		const char *e = strchr(s, '\n');
 		if (!e) e = s + strlen(s);
-		int Len = (int)e-(int)s;
+		int Len = e - s;
 
 		// process line
 		char *eName = strnchr(s, ':', Len);
 		if (eName)
 		{
-			GInetHeader *h = new GInetHeader(NewStr(s, (int)eName-(int)s));
+			GInetHeader *h = new GInetHeader(NewStr(s, eName - s));
 			if (h)
 			{
 				// move on to text after the whitespace
@@ -157,18 +157,18 @@ char *InetRemoveField(char *Headers, const char *Field)
 			// get end-of-line
 			e = strchr(s, '\n');
 			if (!e) e = s + strlen(s);
-			int Len = (int)e-(int)s;
+			int Len = e - s;
 
 			// process line
 			char *eName = strnchr(s, ':', Len);
 			if (eName)
 			{
-				if (strnicmp(s, Field, (int)eName-(int)s) == 0)
+				if (strnicmp(s, Field, eName - s) == 0)
 				{
 					GBytePipe Out;
 
 					// found header... push headers before this one
-					Out.Write((uchar*)Headers, (int)s-(int)Headers);
+					Out.Write((uchar*)Headers, s - Headers);
 
 					// get end
 					char *End = eName;
@@ -216,7 +216,7 @@ char *InetGetAllHeaders(const char *s)
 			if (!i) break;			
 		}
 
-		All = NewStr(Start, (int)s-(int)Start);
+		All = NewStr(Start, s - Start);
 	}
 
 	return All;

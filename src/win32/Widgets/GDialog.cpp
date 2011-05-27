@@ -44,7 +44,7 @@ short *DlgStrCopy(short *A, char16 *n)
 short *DlgPadToDWord(short *A, bool Seek = false)
 {
 	char *c = (char*) A;
-	while (((int) c) & 3)
+	while (((NativeInt) c) & 3)
 	{
 		if (Seek)
 		{
@@ -92,10 +92,10 @@ LRESULT CALLBACK DlgRedir(HWND hWnd, UINT m, WPARAM a, LPARAM b)
 	{
 		GDialog *NewWnd = (GDialog*) b;
 		NewWnd->_View = hWnd;
-		SetWindowLong(hWnd, GWL_USERDATA, (int)(GViewI*)NewWnd);
+        SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)NewWnd);
 	}
 
-	GViewI *Wnd = (GViewI*) GetWindowLong(hWnd, GWL_USERDATA);
+	GViewI *Wnd = (GViewI*) GetWindowLongPtr(hWnd, GWLP_USERDATA);
 	if (Wnd)
 	{
 		GMessage Msg(m, a, b);

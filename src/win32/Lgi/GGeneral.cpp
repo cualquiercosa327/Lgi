@@ -559,7 +559,7 @@ bool LgiExecute(const char *File, const char *Arguments, const char *Dir)
 		char *d = LgiToNativeCp(Dir);
 		if (f)
 		{
-			Status = (int) ShellExecute(NULL, "open", f, a, d, 5);
+			Status = (NativeInt) ShellExecute(NULL, "open", f, a, d, 5);
 		}
 		DeleteArray(f);
 		DeleteArray(a);
@@ -573,7 +573,7 @@ bool LgiExecute(const char *File, const char *Arguments, const char *Dir)
 		if (f)
 		{
 			int64 Now = LgiCurrentTime();
-			Status = (int) ShellExecuteW(NULL, L"open", f, a, d, 5);
+			Status = (NativeInt) ShellExecuteW(NULL, L"open", f, a, d, 5);
 			#ifdef _DEBUG
 			if (LgiCurrentTime() - Now > 1000)
 				LgiTrace("ShellExecuteW took %I64i\n", LgiCurrentTime() - Now);

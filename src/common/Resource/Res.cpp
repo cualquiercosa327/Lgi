@@ -1211,7 +1211,7 @@ ResObjectImpl::ResObjectImpl(ResFactory *factory, ResObject *object)
 	Object = object;
 	Factory = factory;
 
-	LgiAssert(Object AND Object != (ResObject*)0xcdcdcdcd);
+	LgiAssert(Object AND (NativeInt)Object != 0xcdcdcdcd);
 }
 
 ResObjectImpl *ResObjectImpl::CreateCtrl(GXmlTag *Tag, ResObject *Parent)

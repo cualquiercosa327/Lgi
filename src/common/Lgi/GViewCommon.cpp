@@ -469,7 +469,7 @@ void GView::SendNotify(int Data)
 	{
 		if (LgiGetCurrentThread() != LgiApp->GetGuiThread())
 		{
-			n->PostEvent(M_CHANGE, (int)(GViewI*)this, Data);
+            n->PostEvent(M_CHANGE, (GMessage::Param)this, Data);
 		}
 		else
 		{

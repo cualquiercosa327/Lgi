@@ -262,7 +262,7 @@ class GHashTbl
 			}
 
 		// void*
-			uint Hash(void *s) { return ((uint)s)/31; }
+			uint Hash(void *s) { return ((NativeInt)s)/31; }
 			void *CopyKey(void *a) { return a; }
 			int SizeKey(void *a) { return sizeof(a); }
 			void FreeKey(void *&a) { memcpy(&a, &NullKey, sizeof(a)); }
