@@ -801,7 +801,7 @@ public:
 						}
 					}
 					
-					n->PostEvent(M_CHANGE, (int)((GView*)Bmp), 0);
+					n->PostEvent(M_CHANGE, (int)(GViewI*)Bmp, 0);
 				}
 			}
 		}

@@ -130,7 +130,7 @@ static GAutoString ParseStr(GPointer &p, bool Pad = true)
 	if (Pad)
 	{
 		// Align to 32-bit boundry
-		while ((int)p.u8 & 3)
+		while ((NativeInt)p.u8 & 3)
 			p.u8++;
 	}
 
@@ -165,7 +165,7 @@ static GAutoString ParseVer(void *Resource, char *Part)
 		DWORD dwFileDateLS = *p.u32++;
 
 		// Align to 32-bit boundry
-		while ((int)p.u8 & 3)
+		while ((NativeInt)p.u8 & 3)
 			p.u8++;
 
 		// Children
@@ -662,7 +662,7 @@ bool GApp::GetOption(const char *Option, GAutoString &Buf)
 					char16 End = (*c == '\'' OR *c == '\"') ? *c++ : ' ';
 					char16 *e = StrchrW(c, End);
 					if (!e) e = c + StrlenW(c);
-					Buf.Reset(LgiNewUtf16To8(c, (int)e-(int)c));
+					Buf.Reset(LgiNewUtf16To8(c, (NativeInt)e-(NativeInt)c));
 				}
 
 				// yeah we got the option
@@ -726,7 +726,7 @@ void GApp::OnCommandLine()
 				for (; *e AND !strchr(WhiteSpace, *e); e++);
 			}
 
-			char *Arg = NewStr(s, (int)e-(int)s);
+			char *Arg = NewStr(s, e - s);
 			if (Arg)
 			{
 				if (FileExists(Arg))

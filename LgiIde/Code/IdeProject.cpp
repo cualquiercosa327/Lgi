@@ -1873,7 +1873,7 @@ public:
 	{
 		if (Proj->GetApp())
 		{
-			Proj->GetApp()->PostEvent(M_APPEND_TEXT, (int)NewStr((char*)Buffer, Size), 0);
+			Proj->GetApp()->PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr((char*)Buffer, Size), 0);
 		}
 		return Size;
 	}
@@ -1992,7 +1992,7 @@ public:
 			Proj->GetApp()->UpdateState(-1, false);
 			if (Err)
 			{
-				Proj->GetApp()->PostEvent(M_BUILD_ERR, 0, (int)NewStr(Err));
+				Proj->GetApp()->PostEvent(M_BUILD_ERR, 0, (GMessage::Param)NewStr(Err));
 			}
 		}
 		
@@ -2305,7 +2305,7 @@ public:
 			if (Proj->GetApp())
 			{
 				Size = min(Size, Len);
-				Proj->GetApp()->PostEvent(M_APPEND_TEXT, (int)NewStr((char*)Buffer, Size), 1);
+				Proj->GetApp()->PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr((char*)Buffer, Size), 1);
 				Len -= Size;
 			}
 			return Size;

@@ -165,7 +165,6 @@ public:
 	void OnMouseExit(GMouse &m);
 
 	virtual void OnCommand();
-	virtual void SendNotify(int Flags);
 	virtual bool GetDimension(int &x, int &y) { return false; }
 };
 

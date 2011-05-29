@@ -400,7 +400,7 @@ int FtpThread::Main()
 
 			if (c->Callback)
 			{
-				d->Redir->PostEvent(M_FTP_CMD, (int)c);
+				d->Redir->PostEvent(M_FTP_CMD, (GMessage::Param)c);
 			}
 			else DeleteObj(c);
 		}

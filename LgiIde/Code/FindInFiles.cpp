@@ -228,7 +228,7 @@ void FindInFilesThread::SearchFile(char *File)
 							int64 Now = LgiCurrentTime();
 							if (Now > d->Last  + 500)
 							{
-								d->App->PostEvent(M_APPEND_TEXT, (int)d->Pipe.NewStr(), 2);
+								d->App->PostEvent(M_APPEND_TEXT, (GMessage::Param)d->Pipe.NewStr(), 2);
 							}
 						}
 						s = Eol - 1;
@@ -266,7 +266,7 @@ int FindInFilesThread::Main()
 
 		snprintf(Msg, sizeof(Msg), "Searching for '%s'...\n", d->Params->Text);
 		d->App->PostEvent(M_APPEND_TEXT, 0, 2);
-		d->App->PostEvent(M_APPEND_TEXT, (int)NewStr(Msg), 2);
+		d->App->PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr(Msg), 2);
 
 		GArray<const char*> Ext;
 		GToken e(d->Params->Ext, ";, ");
@@ -279,7 +279,7 @@ int FindInFilesThread::Main()
 		if (LgiRecursiveFileSearch(d->Params->Dir, &Ext, &Files, 0, 0, FindInFilesCallback))
 		{
 			sprintf(Msg, "in %i files...\n", Files.Length());
-			d->App->PostEvent(M_APPEND_TEXT, (int)NewStr(Msg), 2);
+			d->App->PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr(Msg), 2);
 			
 			for (int i=0; i<Files.Length(); i++)
 			{
@@ -294,16 +294,16 @@ int FindInFilesThread::Main()
 			char *Str = d->Pipe.NewStr();
 			if (Str)
 			{
-				d->App->PostEvent(M_APPEND_TEXT, (int)Str, 2);
+				d->App->PostEvent(M_APPEND_TEXT, (GMessage::Param)Str, 2);
 			}
 			
 			Files.DeleteArrays();
 
-			d->App->PostEvent(M_APPEND_TEXT, (int)NewStr("Done.\n"), 2);
+			d->App->PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr("Done.\n"), 2);
 		}
 		else
 		{
-			d->App->PostEvent(M_APPEND_TEXT, (int)NewStr("No files matched.\n"), 2);
+			d->App->PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr("No files matched.\n"), 2);
 		}
 		
 		d->App->OnFindFinished();

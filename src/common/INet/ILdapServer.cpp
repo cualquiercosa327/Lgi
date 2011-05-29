@@ -412,7 +412,7 @@ void ILdapServer::Server()
 	{
 		char s[256];
 		sprintf(s, "Couldn't bind to port %i", LDAP_PORT);
-		Parent->PostEvent(WM_ILDAP_ERROR_MSG, (int)NewStr(s));
+		Parent->PostEvent(WM_ILDAP_ERROR_MSG, (GMessage::Param)NewStr(s));
 	}
 
 }

@@ -539,7 +539,7 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 				p->Repaint = Repaint;
 				p->View = this;
 				
-				PostEvent(M_X11_INVALIDATE, (int)p, 0);
+				PostEvent(M_X11_INVALIDATE, (GMessage::Param)p, 0);
 			}
 		}
 		

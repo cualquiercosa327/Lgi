@@ -1042,7 +1042,7 @@ void GToolButton::SendNotify(int Flags)
 	GViewI *w = (GetNotify()) ? GetNotify() : GetParent();
 	if (w)
 	{
-		w->PostEvent(M_CHANGE, (int)((GViewI*)this), Flags);
+		w->PostEvent(M_CHANGE, (int)(GViewI*)this, Flags);
 	}
 }
 
@@ -1821,7 +1821,7 @@ void GToolBar::OnButtonClick(GToolButton *Btn)
 	if (w && Btn)
 	{
 		int Id = Btn->GetId();
-		w->PostEvent(M_COMMAND, Id, (int) Handle());
+		w->PostEvent(M_COMMAND, Id, (GMessage::Param) Handle());
 	}
 }
 
@@ -1829,7 +1829,7 @@ int GToolBar::PostDescription(GView *Ctrl, char *Text)
 {
 	if (GetParent())
 	{
-		return GetParent()->PostEvent(M_DESCRIBE, (int) Ctrl, (int) Text);
+		return GetParent()->PostEvent(M_DESCRIBE, (GMessage::Param) Ctrl, (GMessage::Param) Text);
 	}
 	return 0;
 }

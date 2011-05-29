@@ -63,7 +63,7 @@ int GWorkerThread::Main()
 			{
 				if (d->Notify)
 				{
-					d->Notify->PostEvent(M_GTHREADWORK_COMPELTE, (int) d->Owner, (int) w);
+					d->Notify->PostEvent(M_GTHREADWORK_COMPELTE, (GMessage::Param) d->Owner, (int) w);
 				}
 				else
 				{

@@ -49,7 +49,7 @@ public:
 				GRect r = Bmp->GetPos();
 				r.Dimension(pDC->X()+4, pDC->Y()+4);
 				Bmp->SetPos(r, true);
-                Bmp->PostEvent(M_CHANGE, (GMessage::Param)Bmp, 0);
+                Bmp->PostEvent(M_CHANGE, (GMessage::Param)(GViewI*)Bmp, 0);
 
 				DeleteObj(pDC);
 			}
