@@ -92,10 +92,19 @@ LRESULT CALLBACK DlgRedir(HWND hWnd, UINT m, WPARAM a, LPARAM b)
 	{
 		GDialog *NewWnd = (GDialog*) b;
 		NewWnd->_View = hWnd;
-        SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)NewWnd);
+		#if _MSC_VER >= 1400
+        SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)(GViewI*)NewWnd);
+		#else
+        SetWindowLong(hWnd, GWL_USERDATA, (LONG)(GViewI*)NewWnd);
+		#endif
 	}
 
-	GViewI *Wnd = (GViewI*) GetWindowLongPtr(hWnd, GWLP_USERDATA);
+	GViewI *Wnd = (GViewI*)
+		#if _MSC_VER >= 1400
+		GetWindowLongPtr(hWnd, GWLP_USERDATA);
+		#else
+		GetWindowLong(hWnd, GWL_USERDATA);
+		#endif
 	if (Wnd)
 	{
 		GMessage Msg(m, a, b);

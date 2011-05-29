@@ -32,8 +32,13 @@
 
 //////////////////////////////////////////////////////////////////
 // Typedefs
+#if _MSC_VER >= 1400
 typedef __w64 int			NativeInt;
 typedef __w64 unsigned int	UNativeInt;
+#else
+typedef int					NativeInt;
+typedef unsigned int		UNativeInt;
+#endif
 
 typedef HWND				OsWindow;
 typedef HWND				OsView;

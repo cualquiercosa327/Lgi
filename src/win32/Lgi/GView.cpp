@@ -205,13 +205,22 @@ LRESULT CALLBACK GWin32Class::Redir(HWND hWnd, UINT m, WPARAM a, LPARAM b)
 		{
 			GView *View = ViewI->GetGView();
 			if (View) View->_View = hWnd;
-			SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) ViewI);
-			DWORD Prev = SetWindowLong(hWnd, GWL_LGI_MAGIC, LGI_GViewMagic);
-			int asd=0;
+
+			#if _MSC_VER >= 1400
+			SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)ViewI);
+			#else
+			SetWindowLong(hWnd, GWL_USERDATA, (LONG)ViewI);
+			#endif
+			SetWindowLong(hWnd, GWL_LGI_MAGIC, LGI_GViewMagic);
 		}
 	}
 
-	GViewI *Wnd = (GViewI*) GetWindowLongPtr(hWnd, GWLP_USERDATA);
+	GViewI *Wnd = (GViewI*)
+		#if _MSC_VER >= 1400
+		GetWindowLongPtr(hWnd, GWLP_USERDATA);
+		#else
+		GetWindowLong(hWnd, GWL_USERDATA);
+		#endif
 	if (Wnd)
 	{
 		GMessage Msg(m, a, b);
@@ -243,7 +252,11 @@ LRESULT CALLBACK GWin32Class::SubClassRedir(HWND hWnd, UINT m, WPARAM a, LPARAM 
 					View->_View = hWnd;
 			}
 		}
+		#if _MSC_VER >= 1400
 		SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) ViewI);
+		#else
+		SetWindowLong(hWnd, GWL_USERDATA, (LONG) ViewI);
+		#endif
 		SetLastError(0);
 		SetWindowLong(hWnd, GWL_LGI_MAGIC, LGI_GViewMagic);
 		DWORD err = GetLastError();
@@ -251,7 +264,12 @@ LRESULT CALLBACK GWin32Class::SubClassRedir(HWND hWnd, UINT m, WPARAM a, LPARAM 
 
 	}
 
-	GViewI *Wnd = (GViewI*) GetWindowLongPtr(hWnd, GWLP_USERDATA);
+	GViewI *Wnd = (GViewI*)
+		#if _MSC_VER >= 1400
+		GetWindowLongPtr(hWnd, GWLP_USERDATA);
+		#else
+		GetWindowLong(hWnd, GWL_USERDATA);
+		#endif
 	if (Wnd)
 	{
 		GMessage Msg(m, a, b);
@@ -472,7 +490,12 @@ GViewI *GWindowFromHandle(HWND hWnd)
 
 		if (m == LGI_GViewMagic)
 		{
-			return (GViewI*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+			return (GViewI*)
+				#if _MSC_VER >= 1400
+				GetWindowLongPtr(hWnd, GWLP_USERDATA);
+				#else
+				GetWindowLong(hWnd, GWL_USERDATA);
+				#endif
 		}
 	}
 	return 0;
