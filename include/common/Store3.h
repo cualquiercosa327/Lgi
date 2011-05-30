@@ -134,6 +134,7 @@ enum Store3UiFields
 	Store3UiError,			// [Set] set an error string
 	Store3UiInteractive,	// [Get] returns a bool if the user is expecting interaction
 	Store3UiCancel,			// [Get] returns a bool indicating if the user has cancelled the operation
+	Store3UiNewFormat,		// [Get] returns a integer/enum describing the new format to use
 };
 
 /// This class is an interface to a collection of objects (NOT thread-safe).
