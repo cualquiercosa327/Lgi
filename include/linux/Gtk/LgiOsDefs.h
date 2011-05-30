@@ -127,15 +127,29 @@ public:
 
 // Threads
 #ifdef WIN32
+
+#if _MSC_VER >= 0x1400
+typedef __w64 int                   NativeInt;
+typedef __w64 unsigned int          UNativeInt;
+#else
+typedef int                         NativeInt;
+typedef unsigned int                UNativeInt;
+#endif
+
 typedef HANDLE  					OsThread;
 typedef DWORD						OsThreadId;
 typedef CRITICAL_SECTION			OsSemaphore;
 #define LgiGetCurrentThread()		GetCurrentThreadId()
+
 #else
+
+typedef int                         NativeInt;
+typedef unsigned int                UNativeInt;
 typedef pthread_t					OsThread;
 typedef pthread_t					OsThreadId;
 typedef pthread_mutex_t				OsSemaphore;
 #define LgiGetCurrentThread()		pthread_self()
+
 #endif
 
 // Sockets
