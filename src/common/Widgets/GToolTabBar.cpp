@@ -329,12 +329,14 @@ bool GToolTabBar::Pour(GRegion &r)
 
 int GToolTabBar::OnNotify(GViewI *Ctrl, int Flags)
 {
+	/*
 	if (Current)
 	{
 		return Current->OnNotify(Ctrl, Flags);
 	}
+	*/
 
-	return 0;
+	return GToolBar::OnNotify(Ctrl, Flags);
 }
 
 void GToolTabBar::OnCreate()
