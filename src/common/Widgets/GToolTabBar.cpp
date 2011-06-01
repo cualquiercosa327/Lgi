@@ -13,24 +13,44 @@
 #include "GToolTabBar.h"
 
 /////////////////////////////////////////////////////////////////////////
-GToolTab::GToolTab()
-	: GToolButton(16, 16)
-{
-}
-
-GToolTab::~GToolTab()
-{
-}
-
 void GToolTab::OnPaint(GSurface *pDC)
 {
-	#ifndef WIN32
-	GToolTabBar *p = dynamic_cast<GToolTabBar*>(GetParent());
-	if (p)
-	{
-		p->_PaintTab(pDC, this);
-	}
+	#if 1
+	pDC->Colour(LC_MED, 24);
+	#else
+	pDC->Colour(GColour(255, 0, 255));
 	#endif
+	pDC->Rectangle();
+}
+
+bool GToolTab::SetPos(GRect &r, bool Repaint)
+{
+	return GToolButton::SetPos(r, Repaint);
+}
+
+int64 GToolTab::Value()
+{
+	return GToolButton::Value();
+}
+
+void GToolTab::Value(int64 i)
+{
+	/*
+	if (i && GetParent())
+	{
+		GAutoPtr<GViewIterator> it(GetParent()->IterateViews());
+		for (GViewI *i = it->First(); i; i = it->Next())
+		{
+			GToolTab *tt = dynamic_cast<GToolTab*>(i);
+			if (tt && tt != this && tt->Value())
+			{
+				tt->GToolButton::Value(0);
+			}
+		}
+	}
+	*/
+	
+	GToolButton::Value(i);
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -51,55 +71,92 @@ GToolTabBar::~GToolTabBar()
 {
 }
 
+int64 GToolTabBar::Value()
+{
+	int n=0;
+	GAutoPtr<GViewIterator> it(IterateViews());
+	for (GViewI *i=it->First(); i; i=it->Next(), n++)
+	{
+		GToolTab *tt = dynamic_cast<GToolTab*>(i);
+		if (tt && tt->GetDown())
+			return n;
+	}
+
+	return -1;
+}
+
+void GToolTabBar::Value(int64 new_value)
+{
+	int n=0;
+	GAutoPtr<GViewIterator> it(IterateViews());
+	for (GViewI *i=it->First(); i; i=it->Next(), n++)
+	{
+		if (n == new_value)
+		{
+			GToolButton *b = dynamic_cast<GToolButton*>(i);
+			if (b)
+			{
+				OnChange(b);
+				break;
+			}
+		}	
+	}
+}
+
 void GToolTabBar::OnButtonClick(GToolButton *Btn)
 {
 	GToolBar::OnButtonClick(Btn);
 	OnChange(Btn);
 }
 
+bool GToolTabBar::IsOk()
+{
+	int Count[2] = {0, 0};
+	GAutoPtr<GViewIterator> it(IterateViews());
+	for (GViewI *c = it->First(); c; c = it->Next())
+	{
+		GToolTab *tt = dynamic_cast<GToolTab*>(c);
+		if (tt && tt->GetId() > 0)
+		{
+			bool Dn = tt->GetDown();
+			Count[Dn != 0]++;
+		}
+	}
+	LgiAssert(Count[1] == 0 || Count[1] == 1);
+	return Count[1] == 0 || Count[1] == 1;
+}
+
 void GToolTabBar::OnChange(GToolButton *Btn)
 {
-	// Clear out any current controls
+	// Detach the old button
 	if (Current)
 	{
-		for (GView *w = Current->Attached.First(); w; w = Current->Attached.First())
-		{
-			Current->Attached.Delete(w);
-			w->Detach();
-			delete w;
-		}
-
+		Current->Visible(false);
 		Current = 0;
 	}
 
 	// Attach new button
-	if (Btn)
+	if (Current = dynamic_cast<GToolTab*>(Btn))
 	{
-		Current = dynamic_cast<GToolTab*>(Btn);
-		if (Current AND Current->AttachControls(this))
+		Current->Value(true);
+		Current->Visible(true);
+		Current->SetPos(Client);
+
+		if (Current->First)
 		{
-			for (GViewI *w = Current->Children.First(); w; w = Current->Children.First())
-			{
-				GRect r = w->GetPos();
-				r.Offset(Client.x1, Client.y1 + 2);
-				w->SetPos(r);
-
-				w->Attach(this);
-
-				Current->Attached.Insert(dynamic_cast<GView*>(w));
-				Current->Children.Delete();
-			}
+			Current->OnSelect();
+			Current->First = false;
 		}
+
+		Current->SendNotify();
 	}
+
+	IsOk();
 }
 
 void GToolTabBar::_PaintTab(GSurface *pDC, GToolTab *Tab)
 {
-	#ifndef WIN32
-	GRect t(0, 0, Tab->X()-1, Tab->Y()-1);
-	#else
-	GRect t = Tab->GetPos();
-	#endif
+	GRect t = Tab->TabPos;
 	
 	pDC->Colour(LC_MED, 24);
 	pDC->Rectangle(&t);
@@ -148,195 +205,207 @@ void GToolTabBar::_PaintTab(GSurface *pDC, GToolTab *Tab)
 
 	// draw icon
 	int Off = Tab->GetDown() ? 2 : 1;
-	GetImageList()->Draw(pDC, t.x1 + Off, t.y1 + Off, Tab->Image(), 0);
+	if (GetImageList())
+		GetImageList()->Draw(pDC, t.x1 + Off, t.y1 + Off, Tab->Image(), 0);
 }
 
 void GToolTabBar::OnPaint(GSurface *pDC)
 {
-	if (GetImageList())
+	GRect r(0, 0, GView::X()-1, GView::Y()-1);
+	int Off = 4 + ((Border) ? 6 : 0);
+
+	if (Border)
 	{
-		GRect r(0, 0, GView::X()-1, GView::Y()-1);
-		int Off = 4 + ((Border) ? 6 : 0);
-
-		if (Border)
-		{
-			// Draw border
-			LgiThinBorder(pDC, r, RAISED);
-			pDC->Colour(LC_MED, 24);
-			pDC->Rectangle(&r);
-			r.Size(5, 5);
-		}
-		else
-		{
-			pDC->Colour(LC_MED, 24);
-			if (IsVertical())
-			{
-				pDC->Rectangle(r.x1, r.y1, r.x1 + GetBx() + Off, r.y2);
-			}
-			else
-			{
-				pDC->Rectangle(r.x1, r.y1, r.x2, r.y1 + GetBy() + Off);
-			}
-		}
-
-		// Draw rest of the box
-		if (IsVertical())
-		{
-			r.x1 = GetBx() + Off;
-		}
-		else
-		{
-			r.y1 = GetBy() + Off;
-		}
+		// Draw border
 		LgiThinBorder(pDC, r, RAISED);
 		pDC->Colour(LC_MED, 24);
 		pDC->Rectangle(&r);
-
-		// Draw tabs
-		GViewI *w;
-		for (w = Children.Last(); w; w = Children.Prev())
+		r.Size(5, 5);
+	}
+	else
+	{
+		pDC->Colour(LC_MED, 24);
+		if (IsVertical())
 		{
-			GToolTab *Tab = dynamic_cast<GToolTab*>(w);
-			if (Tab AND !Tab->GetDown())
+			pDC->Rectangle(r.x1, r.y1, r.x1 + GetBx() + Off, r.y2);
+		}
+		else
+		{
+			pDC->Rectangle(r.x1, r.y1, r.x2, r.y1 + GetBy() + Off);
+		}
+	}
+
+	// Draw rest of the box
+	if (IsVertical())
+	{
+		r.x1 = GetBx() + Off;
+	}
+	else
+	{
+		r.y1 = GetBy() + Off;
+	}
+	LgiThinBorder(pDC, r, RAISED);
+	pDC->Colour(LC_MED, 24);
+	pDC->Rectangle(&r);
+
+	// Draw tabs
+	GViewI *w;
+	GToolTab *Down = 0;
+	for (w = Children.Last(); w; w = Children.Prev())
+	{
+		GToolTab *Tab = dynamic_cast<GToolTab*>(w);
+		if (Tab)
+		{
+			if (!Tab->GetDown())
 			{
-				Tab->SetPos(Tab->GetPos());
 				_PaintTab(pDC, Tab);
 			}
+			else
+			{
+				LgiAssert(Down == NULL);
+				Down = Tab;
+			}
 		}
-		for (w = Children.Last(); w; w = Children.Prev())
+	}
+
+	if (Down)
+		_PaintTab(pDC, Down);
+
+	/*
+	pDC->Colour(GColour(0, 0, 255));
+	pDC->Box(&Client);
+	*/
+}
+
+void GToolTabBar::OnMouseClick(GMouse &m)
+{
+	if (m.Down())
+	{
+		for (GViewI *c = Children.First(); c; c = Children.Next())
 		{
-			GToolTab *Tab = dynamic_cast<GToolTab*>(w);
+			GToolTab *Tab = dynamic_cast<GToolTab*>(c);
 			if (Tab)
 			{
-				if (Tab->GetDown())
+				if (Tab->TabPos.Overlap(m.x, m.y))
 				{
-					Tab->SetPos(Tab->GetPos());
-					_PaintTab(pDC, Tab);
+					if (Current != Tab)
+					{
+						OnChange(Tab);
+						Invalidate();
+						break;
+					}
 				}
-			}	
+			}
 		}
-	}	
+	}
 }
 
 bool GToolTabBar::Pour(GRegion &r)
 {
 	bool Status = false;
 
-	if (GetImageList())
+	Tab.x1 = Tab.y1 = Tab.x2 = Tab.y2 = (Border) ? 6 : 0;
+	int x = (IsVertical()) ? Tab.y1 : Tab.x1;
+	int y = (IsVertical()) ? Tab.x1 : Tab.y1;
+	
+	for (GViewI *w = Children.First(); w; w = Children.Next())
 	{
-		Tab.x1 = Tab.y1 = Tab.x2 = Tab.y2 = (Border) ? 6 : 0;
-		int x = (IsVertical()) ? Tab.y1 : Tab.x1;
-		int y = (IsVertical()) ? Tab.x1 : Tab.y1;
-		
-		for (GViewI *w = Children.First(); w; w = Children.Next())
+		GToolTab *Btn = dynamic_cast<GToolTab*>(w);
+		if (Btn)
 		{
-			GToolButton *Btn = dynamic_cast<GToolButton*>(w);
-			if (Btn)
-			{
-				if (Btn->GetId() == IDM_SEPARATOR)
-				{
-					if (IsVertical())
-					{
-						y += 10;
-					}
-					else
-					{
-						x += 10;
-					}
-				}
-				else
-				{
-					if (Btn->GetId() == IDM_BREAK)
-					{
-						if (IsVertical())
-						{
-							x += GetBx() + 4;
-							y = Tab.y1;
-						}
-						else
-						{
-							x =  Tab.x1;
-							y += GetBy() + 4;
-						}
-					}
-
-					GRect Rgn(x, y, x + GetBx() + 4, y + GetBy() + 4);
-					Btn->SetPos(Rgn);
-					if (IsVertical())
-					{
-						y += GetBy() + 1;
-					}
-					else
-					{
-						x += GetBx() + 1;
-					}
-				}
-
-			}
-		}
-
-		if (IsVertical())
-		{
-			Tab.x2 = x + ((Border) ? 12 : 0);
-			Tab.y2 = y + 50;
-		}
-		else
-		{
-			Tab.x2 = x + 50;
-			Tab.y2 = y + ((Border) ? 12 : 0);
-		}
-
-		GRect *Best = FindLargest(r);
-		if (Best)
-		{
-			GRect p;
-			if (FitToArea)
-			{
-				p.Set(0, 0, Best->X()-1, Best->Y()-1);
-			}
-			else
+			if (Btn->GetId() == IDM_SEPARATOR)
 			{
 				if (IsVertical())
 				{
-					p.Set(0, 0, 200, Tab.Y());
+					y += 10;
 				}
 				else
 				{
-					p.Set(0, 0, Tab.X(), 200);
+					x += 10;
 				}
-			}
-
-			Client = GetClient();
-			if (IsVertical())
-			{
-				Client.x1 += GetBx() + 4;
 			}
 			else
 			{
-				Client.y1 += GetBx() + 4;
+				if (Btn->GetId() == IDM_BREAK)
+				{
+					if (IsVertical())
+					{
+						x += GetBx() + 4;
+						y = Tab.y1;
+					}
+					else
+					{
+						x =  Tab.x1;
+						y += GetBy() + 4;
+					}
+				}
+
+				GRect Rgn(x, y, x + GetBx() + 4, y + GetBy() + 4);
+				Btn->TabPos = Rgn;
+				if (IsVertical())
+				{
+					y += GetBy() + 1;
+				}
+				else
+				{
+					x += GetBx() + 1;
+				}
 			}
 
-			p.Offset(Best->x1, Best->y1);
-			p.Bound(Best);
-			SetPos(p);
-
-			Status = true;
+			Btn->Visible(Btn->Value());
 		}
 	}
 
-	return Status;
-}
-
-int GToolTabBar::OnNotify(GViewI *Ctrl, int Flags)
-{
-	/*
-	if (Current)
+	if (IsVertical())
 	{
-		return Current->OnNotify(Ctrl, Flags);
+		Tab.x2 = x + ((Border) ? 12 : 0);
+		Tab.y2 = y + 50;
 	}
-	*/
+	else
+	{
+		Tab.x2 = x + 50;
+		Tab.y2 = y + ((Border) ? 12 : 0);
+	}
 
-	return GToolBar::OnNotify(Ctrl, Flags);
+	GRect *Best = FindLargest(r);
+	if (Best)
+	{
+		GRect p;
+		if (FitToArea)
+		{
+			p.Set(0, 0, Best->X()-1, Best->Y()-1);
+		}
+		else
+		{
+			if (IsVertical())
+			{
+				p.Set(0, 0, 200, Tab.Y());
+			}
+			else
+			{
+				p.Set(0, 0, Tab.X(), 200);
+			}
+		}
+
+		Client = GetClient();
+		if (IsVertical())
+		{
+			Client.x1 += GetBx() + 4;
+		}
+		else
+		{
+			Client.y1 += GetBx() + 4;
+		}
+		Client.Size(1, 1);
+
+		p.Offset(Best->x1, Best->y1);
+		p.Bound(Best);
+		SetPos(p);
+
+		Status = true;
+	}
+
+	return Status;
 }
 
 void GToolTabBar::OnCreate()

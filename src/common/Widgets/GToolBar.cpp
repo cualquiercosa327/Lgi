@@ -1006,7 +1006,7 @@ void GToolButton::Value(int64 b)
 			{
 				// Clear any other radio buttons that are down
 				GToolButton *But;
-				GViewIterator *it = GetParent()->IterateViews();
+				GAutoPtr<GViewIterator> it(GetParent()->IterateViews());
 				if (it)
 				{
 					for (	But = dynamic_cast<GToolButton*>(it->IndexOf(this)>=0?this:0);
@@ -1022,7 +1022,8 @@ void GToolButton::Value(int64 b)
 						}
 					}
 
-					for (	But = dynamic_cast<GToolButton*>(it->IndexOf(this)>=0?this:0);
+					int Idx = it->IndexOf(this);
+					for (	But = dynamic_cast<GToolButton*>(Idx>=0?this:0);
 							But && But->GetId() >= 0;
 							But = dynamic_cast<GToolButton*>(it->Prev()))
 					{
@@ -1034,8 +1035,6 @@ void GToolButton::Value(int64 b)
 							But->Invalidate();
 						}
 					}
-
-					DeleteObj(it);
 				}
 			}
 
@@ -1371,15 +1370,6 @@ bool GToolBar::IsCustomizable()
 	return d->CustomDom != 0 && d->CustomProp;
 }
 
-/*
-void GToolBar::Customizable(ObjProperties *Store, char *Option)
-{
-	d->CustomDom = 0;
-	d->CustomProp = Option;
-	d->Customizable(this);
-}
-*/
-
 void GToolBar::Customizable(GDom *Store, const char *Option)
 {
 	d->CustomDom = Store;
@@ -1593,68 +1583,6 @@ bool GToolBar::Pour(GRegion &r)
 						Ty += Ds->Y();
 					}
 				}
-				
-				/*
-				char *Name = But->Name();
-				if (Name)
-				{
-					// Process '&'s
-					Name = NewStr(Name);
-					if (Name)
-					{
-						char *Src = Name;
-						char *Dest = Name;
-						while (*Src)
-						{
-							if (Src[0] == '&')
-							{
-								if (Src[1] == '&') *Dest++ = '&';
-								Src++;
-							}
-							else
-							{
-								*Dest++ = *Src++;
-							}
-						}
-						*Dest++ = 0;
-					}
-
-					// Work out the space required to write each word 
-					// centered on a different line
-					if (d->Font &&
-						d->Text)
-					{
-						char *n = Name;
-						while (*n)
-						{
-							char *e;
-							for (e=n; *e; e++)
-							{
-								if (*e == ' ')
-								{
-									if (e[1] && e[2] == ' ')
-									{
-										continue;
-									}
-									break;
-								}
-							}
-							int len = (int)e-(int)n;
-
-							// int _x = 0, _y = 0;
-							// d->Font->Size(&_x, &_y, n, l);
-							GDisplayString ds(d->Font, n, len);
-
-							Tx = max(Tx, ds.X());
-							Ty += ds.Y();
-
-							n = e;
-							if (*n == ' ') n++;
-						}
-					}
-					DeleteArray(Name);
-				}
-				*/
 			}
 
 			ButPos = But->GetPos();
@@ -1729,13 +1657,11 @@ bool GToolBar::Pour(GRegion &r)
 			}
 
 			But->SetPos(ButPos);
-			// printf("%s:%i - btn pour=%s\n", _FL, ButPos.GetStr());
 		}
 		else
 		{
 			GRect p(0, 0, 0, 0);
 			But->SetPos(p);
-			// printf("%s:%i - btn pour=%s\n", _FL, p.GetStr());
 		}
 		
 		But = Children.Next();
@@ -1751,7 +1677,6 @@ bool GToolBar::Pour(GRegion &r)
 			{
 				p.x2 = p.x1 + MaxDim - 1;
 				w->SetPos(p);
-				// printf("%s:%i - btn pour=%s\n", _FL, p.GetStr());
 			}
 		}
 		else
@@ -1760,7 +1685,6 @@ bool GToolBar::Pour(GRegion &r)
 			{
 				p.y2 = p.y1 + MaxDim - 1;
 				w->SetPos(p);
-				// printf("%s:%i - btn pour=%s\n", _FL, p.GetStr());
 			}
 		}
 
@@ -1814,9 +1738,7 @@ int GToolBar::OnEvent(GMessage *Msg)
 		case M_CHANGE:
 		{
 			if (GetParent())
-			{
 				return GetParent()->OnEvent(Msg);
-			}
 			break;
 		}
 	}

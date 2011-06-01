@@ -14,14 +14,24 @@
 class GToolTab : public GToolButton
 {
 	friend class GToolTabBar;
-	List<GView> Attached;
+	GRect TabPos;
+	bool First;
+
+	bool SetPos(GRect &r, bool Repaint = false);
+	void OnPaint(GSurface *pDC);
+	void OnMouseClick(GMouse &m) {}
+	void OnMouseMove(GMouse &m) {}
+	void OnMouseEnter(GMouse &m) {}
+	void OnMouseExit(GMouse &m) {}
 
 public:
-	GToolTab();
-	~GToolTab();
+	GToolTab() : GToolButton(16, 16) { First = true; }
+	~GToolTab() {}
 
-	void OnPaint(GSurface *pDC);
-	virtual bool AttachControls(class GToolTabBar *Parent) { return false; }
+	/// Override this event to attach controls to the current view.
+	virtual void OnSelect() {}
+	int64 Value();
+	void Value(int64 i);
 };
 
 class GToolTabBar : public GToolBar
@@ -40,6 +50,11 @@ public:
 	GToolTabBar();
 	~GToolTabBar();
 
+	int64 Value();
+	void Value(int64 i);
+
+	bool IsOk();
+
 	bool IsFitToArea() { return FitToArea; }
 	void IsFitToArea(bool b) { FitToArea = b; }
 	bool HasBorder() { return Border; }
@@ -50,8 +65,8 @@ public:
 	void OnButtonClick(GToolButton *Btn);
 	void OnChange(GToolButton *Btn);
 	void OnPaint(GSurface *pDC);
-	int OnNotify(GViewI *Ctrl, int Flags);
 	void OnCreate();
+	void OnMouseClick(GMouse &m);
 };
 
 #endif

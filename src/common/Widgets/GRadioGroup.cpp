@@ -310,11 +310,7 @@ void GRadioButton::Value(int64 i)
 
 		if (i)
 		{
-			GViewI *n = GetNotify() ? GetNotify() : GetParent();
-			if (n)
-			{
-				n->OnNotify(this, 0);
-			}
+			SendNotify(0);
 		}
 	}
 }
