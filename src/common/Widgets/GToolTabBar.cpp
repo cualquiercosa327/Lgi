@@ -147,8 +147,6 @@ void GToolTabBar::OnChange(GToolButton *Btn)
 			Current->OnSelect();
 			Current->First = false;
 		}
-
-		Current->SendNotify();
 	}
 
 	IsOk();
@@ -290,8 +288,7 @@ void GToolTabBar::OnMouseClick(GMouse &m)
 				{
 					if (Current != Tab)
 					{
-						OnChange(Tab);
-						Invalidate();
+						OnButtonClick(Tab);
 						break;
 					}
 				}
