@@ -27,9 +27,13 @@
 
 //////////////////////////////////////////////////////////////////
 // Typedefs
-typedef int					int32;
-typedef unsigned int		uint32;
-typedef unsigned char		uchar;
+#if __LP64__
+typedef int64				NativeInt;
+typedef uint64				UNativeInt;
+#else
+typedef int					NativeInt;
+typedef unsigned int		UNativeInt;
+#endif
 
 typedef WindowRef			OsWindow;
 typedef ControlRef			OsView;

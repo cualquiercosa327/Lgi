@@ -141,7 +141,7 @@ public:
 			}
 		}
 
-		return s-p;
+		return s - (const char*)p;
 	}
 };
 

@@ -491,6 +491,9 @@ CFStringRef Utf8ToCFString(char *s, int len)
 
 char *CFStringToUtf8(CFStringRef r)
 {
+	if (r == NULL)
+		return 0;
+
 	char *Buffer = 0;
 	CFRange g = { 0, CFStringGetLength(r) };
 	CFIndex Used;

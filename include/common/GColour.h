@@ -317,7 +317,7 @@ public:
 	{
 		COLOUR c1 = c32();
 		COLOUR c2 = Tint.c32();
-		float RatioThis = 1.0 - RatioOfTint;
+		double RatioThis = 1.0 - RatioOfTint;
 		int r = (R32(c1) * RatioThis) + (R32(c2) * RatioOfTint);
 		int g = (G32(c1) * RatioThis) + (G32(c2) * RatioOfTint);
 		int b = (B32(c1) * RatioThis) + (B32(c2) * RatioOfTint);

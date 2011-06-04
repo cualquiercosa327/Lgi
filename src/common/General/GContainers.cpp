@@ -1181,7 +1181,7 @@ int64 GBytePipe::Peek(uchar *Ptr, int Size)
 
 void *GBytePipe::New(int AddBytes)
 {
-	int Len = GetSize();
+	int64 Len = GetSize();
 	uchar *Data = Len > 0 ? new uchar[Len+AddBytes] : 0;
 	if (Data)
 	{

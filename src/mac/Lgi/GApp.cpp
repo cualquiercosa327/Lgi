@@ -963,17 +963,22 @@ GAutoString GApp::GetFileMimeType(const char *File)
 	if (Ext)
 	{
 		CFStringRef e = CFStringCreateWithCString(NULL, Ext, kCFStringEncodingUTF8);
-		CFStringRef uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, e, NULL);
-		CFStringRef mime = UTTypeCopyPreferredTagWithClass(uti, kUTTagClassMIMEType);
+		CFStringRef uti = e != NULL ? UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, e, NULL) : 0;
+		CFStringRef mime = uti != NULL ? UTTypeCopyPreferredTagWithClass(uti, kUTTagClassMIMEType) : 0;
 		
 		Ret.Reset(CFStringToUtf8(mime));
 		
-		CFRelease(uti);
-		CFRelease(mime);
-		CFRelease(e);
+		if (uti != NULL)
+			CFRelease(uti);
+		if (mime != NULL)
+			CFRelease(mime);
+		if (e != NULL)
+			CFRelease(e);
 	}
 	
-	LgiAssert(Ret);
+	if (!Ret)
+		Ret.Reset(NewStr("application/octet-stream"));
+
 	return Ret;
 }
 
