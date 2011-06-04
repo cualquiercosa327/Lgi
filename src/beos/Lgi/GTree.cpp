@@ -53,7 +53,7 @@ char *GTreeItem::GetText(int i)
 	return Str;
 }
 
-bool GTreeItem::SetText(char *s, int i)
+bool GTreeItem::SetText(const char *s, int i)
 {
 	DeleteArray(Str);
 	Str = NewStr(s);

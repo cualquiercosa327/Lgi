@@ -1339,6 +1339,8 @@ void GListItem::OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GListColumn *c)
 		else
 		{
 			COLOUR Background = Ctx.Back;
+			GViewFill *ForeFill = GetForegroundFill();
+
 			if (Parent->GetMode() == GListDetails &&
 				c->Mark() &&
 				!d->Selected)
@@ -1359,7 +1361,7 @@ void GListItem::OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GListColumn *c)
 				{
 					Ds->GetFont()->TabSize(0);
 					Ds->GetFont()->Transparent(false);
-					Ds->GetFont()->Colour(Ctx.Fore, Background);
+					Ds->GetFont()->Colour(ForeFill ? ForeFill->GetFlat().c24() : Ctx.Fore, Background);
 					Ds->Draw(pDC, Ctx.x1+1, Ctx.y1+1, &ng);
 				}
 				else
