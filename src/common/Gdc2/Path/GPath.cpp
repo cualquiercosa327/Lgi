@@ -51,7 +51,11 @@
 											_asm int 3 \
 											}
 	#else
-		#define PathAssert(b)			if (!(b)) _asm int 3
+		#ifdef _WIN64
+            #define PathAssert(b)			LgiAssert(b)
+        #else
+            #define PathAssert(b)			if (!(b)) _asm int 3
+        #endif
 	#endif
 #else
 	#define PathAssert(b)
@@ -273,13 +277,13 @@ public:
 	}
 };
 
-int VectCompareY(GVector *a, GVector *b, int Data)
+int VectCompareY(GVector *a, GVector *b, NativeInt Data)
 {
 	double d = a->Bounds.y1 - b->Bounds.y1;
 	return (d < 0) ? -1 : 1;
 }
 
-int VectCompareX(GVector *a, GVector *b, int Data)
+int VectCompareX(GVector *a, GVector *b, NativeInt Data)
 {
 	int i = Data >> SUB_SHIFT;
 	int r = Data & SUB_MASK;
@@ -2010,7 +2014,7 @@ void GSolidBrush::Rop(GRopArgs &Args)
 }
 
 ////////////////////////////////////////////////////////////////////////////
-int StopCompare(GBlendStop *a, GBlendStop *b, int Data)
+int StopCompare(GBlendStop *a, GBlendStop *b, NativeInt Data)
 {
 	return a->Pos > b->Pos ? 1 : -1;
 }

@@ -323,7 +323,7 @@ LgiTrace("%s:%i - Str='%s'\n", _FL, Str);
 				{
 					f++;
 					
-					#if WIN32
+					#ifdef _WINDOWS
 					char *Period = strrchr(f, '.');
 					if (Period)
 					{

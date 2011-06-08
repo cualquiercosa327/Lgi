@@ -7,7 +7,7 @@
 #include <ctype.h>
 #include <fcntl.h>
 
-#ifdef WIN32
+#ifdef _WINDOWS
 #include <winsock2.h>
 #include <shlobj.h>
 #endif
@@ -756,7 +756,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 			{
 				#if defined WIN32
 
-				char *f = GetWin32Folder(CSIDL_MYDOCUMENTS);
+				char *f = GetWindowsFolder(CSIDL_MYDOCUMENTS);
 				if (f)
 				{
 					strsafecpy(Dst, f, DstSize);
@@ -776,7 +776,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 			{
 				#if defined WIN32
 
-				char *f = GetWin32Folder(CSIDL_MYMUSIC);
+				char *f = GetWindowsFolder(CSIDL_MYMUSIC);
 				if (f)
 				{
 					strsafecpy(Dst, f, DstSize);
@@ -811,7 +811,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 			{
 				#if defined WIN32
 
-				char *f = GetWin32Folder(CSIDL_MYVIDEO);
+				char *f = GetWindowsFolder(CSIDL_MYVIDEO);
 				if (f)
 				{
 					strsafecpy(Dst, f, DstSize);
@@ -905,7 +905,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 							Base = FSRefPath(Ref);
 						}
 						#elif defined WIN32
-						Base.Reset(GetWin32Folder(CSIDL_APPDATA));
+						Base.Reset(GetWindowsFolder(CSIDL_APPDATA));
 						#elif defined LINUX
 						char Dot[128];
 						snprintf(Dot, sizeof(Dot), ".%s", Name);
@@ -1049,7 +1049,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 			{
 				#if defined WIN32
 
-				char *f = GetWin32Folder(CSIDL_COMMON_APPDATA);
+				char *f = GetWindowsFolder(CSIDL_COMMON_APPDATA);
 				if (f)
 				{
 					strsafecpy(Dst, f, DstSize);
@@ -1088,7 +1088,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 			case LSP_USER_APP_DATA:
 			{
 				#if defined WIN32
-				char *f = GetWin32Folder(CSIDL_APPDATA);
+				char *f = GetWindowsFolder(CSIDL_APPDATA);
 				if (f)
 				{
 					strsafecpy(Dst, f, DstSize);
@@ -1122,7 +1122,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 			case LSP_LOCAL_APP_DATA:
 			{
 				#if defined WIN32
-				char *f = GetWin32Folder(CSIDL_LOCAL_APPDATA);
+				char *f = GetWindowsFolder(CSIDL_LOCAL_APPDATA);
 				if (f)
 				{
 					strsafecpy(Dst, f, DstSize);
@@ -1134,9 +1134,9 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 			}
 			case LSP_DESKTOP:
 			{
-				#if defined WIN32
+				#if defined _WINDOWS
 
-				char *f = GetWin32Folder(CSIDL_DESKTOPDIRECTORY);
+				char *f = GetWindowsFolder(CSIDL_DESKTOPDIRECTORY);
 				if (f)
 				{
 					strsafecpy(Dst, f, DstSize);
@@ -1191,7 +1191,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 				#define CSIDL_PROFILE 0x0028
 				#endif 
 
-				char *f = GetWin32Folder(CSIDL_PROFILE);
+				char *f = GetWindowsFolder(CSIDL_PROFILE);
 				if (f)
 				{
 					strsafecpy(Dst, f, DstSize);

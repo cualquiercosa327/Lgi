@@ -709,7 +709,7 @@ void *DLinkList::Prev()
 	return 0;
 }
 
-typedef int (*BTreeCompare)(void *a, void *b, int Data);
+typedef int (*BTreeCompare)(void *a, void *b, NativeInt Data);
 typedef void **AddrVoidPtr;
 
 class BTreeNode
@@ -765,7 +765,7 @@ public:
 
 	int GetItems() { return Used; }
 
-	bool Add(void *Obj, BTreeCompare Proc, int Data)
+	bool Add(void *Obj, BTreeCompare Proc, NativeInt Data)
 	{
 		if (Used)
 		{
@@ -830,7 +830,7 @@ public:
 	}
 };
 
-void DLinkList::Sort(ListSortFunc Compare, int Data)
+void DLinkList::Sort(ListSortFunc Compare, NativeInt Data)
 {
 	if (Items > 1)
 	{

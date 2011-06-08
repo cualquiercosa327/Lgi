@@ -33,8 +33,15 @@
 //////////////////////////////////////////////////////////////////
 // Typedefs
 #if _MSC_VER >= 1400
-typedef __w64 int			NativeInt;
-typedef __w64 unsigned int	UNativeInt;
+
+#ifdef  _WIN64
+typedef __int64             NativeInt;
+typedef unsigned __int64    UNativeInt;
+#else
+typedef _W64 int			NativeInt;
+typedef _W64 unsigned int	UNativeInt;
+#endif
+
 #else
 typedef int					NativeInt;
 typedef unsigned int		UNativeInt;
@@ -275,7 +282,7 @@ LgiFunc class GViewI *GWindowFromHandle(OsView hWnd);
 LgiFunc int GetMouseWheelLines();
 LgiFunc int WinPointToHeight(int Pt);
 LgiFunc int WinHeightToPoint(int Ht);
-LgiFunc char *GetWin32Folder(int Id);
+LgiFunc char *GetWindowsFolder(int Id);
 
 /// Convert a string d'n'd format to an OS dependant integer.
 LgiFunc int FormatToInt(char *s);

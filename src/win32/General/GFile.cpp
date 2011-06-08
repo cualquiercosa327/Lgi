@@ -539,7 +539,7 @@ public:
 		{
 			_Name = NewStr("Desktop");
 			_Type = VT_DESKTOP;
-			_Path = GetWin32Folder(CSIDL_DESKTOPDIRECTORY);
+			_Path = GetWindowsFolder(CSIDL_DESKTOPDIRECTORY);
 		}
 	}
 

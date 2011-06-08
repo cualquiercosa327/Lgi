@@ -8,21 +8,21 @@
 
 #define COMBO_HEIGHT			20
 
-int IntCompare(char *a, char *b, int c)
+int IntCompare(char *a, char *b, NativeInt c)
 {
 	int A = atoi(a);
 	int B = atoi(b);
 	return A - B;
 }
 
-int DblCompare(char *a, char *b, int c)
+int DblCompare(char *a, char *b, NativeInt c)
 {
 	double A = atof(a);
 	double B = atof(b);
 	return A > B ? 1 : A < B ? -1 : 0;
 }
 
-int StringCompare(char *a, char *b, int c)
+int StringCompare(char *a, char *b, NativeInt c)
 {
 	return stricmp(a, b);
 }

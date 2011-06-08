@@ -48,7 +48,7 @@
 /// Converts radians to degrees
 #define LGI_RadToDeg(i)				((i)*180/LGI_PI)
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(_WIN64)
 /// Use intel assembly instructions, comment out for porting
 #define GDC_USE_ASM
 #endif

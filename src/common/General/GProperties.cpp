@@ -936,7 +936,7 @@ bool ObjProperties::Serialize(GFile &f, bool Write)
 	return Status;
 }
 
-int Prop_Compare(Prop *a, Prop *b, int data)
+int Prop_Compare(Prop *a, Prop *b, NativeInt data)
 {
 	return stricmp(a->Name, b->Name);
 }

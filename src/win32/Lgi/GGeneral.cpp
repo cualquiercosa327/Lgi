@@ -803,7 +803,7 @@ bool GRegKey::GetValueNames(List<char> &n)
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
-char *GetWin32Folder(int Id)
+char *GetWindowsFolder(int Id)
 {
 	GLibrary Shell("Shell32");
 	
@@ -869,7 +869,11 @@ void _lgi_assert(bool b, const char *test, const char *file, int line)
 			case 2:
 			{
 				// Bring up the debugger...
+				#ifdef _WIN64
+				assert(0);
+				#else
 				_asm int 3
+				#endif
 				break;
 			}
 			case 3:

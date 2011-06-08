@@ -117,7 +117,7 @@ void GFontSelect::InsertFont(const char *f)
 	}
 }
 
-int SortFunc(GListItem *a, GListItem *b, int Data)
+int SortFunc(GListItem *a, GListItem *b, NativeInt Data)
 {
 	char *A = a->GetText(0);
 	char *B = b->GetText(0);

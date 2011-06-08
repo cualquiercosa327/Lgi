@@ -136,7 +136,7 @@ int CALLBACK _EnumFonts(ENUMLOGFONT FAR *lpelf,
 }
 #endif
 
-int StringSort(const char *a, const char *b, int Data)
+int StringSort(const char *a, const char *b, NativeInt Data)
 {
 	if (a AND b) return stricmp(a, b);
 	return 0;

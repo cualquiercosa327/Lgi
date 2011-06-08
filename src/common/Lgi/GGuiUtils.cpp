@@ -175,7 +175,7 @@ void LgiInitColours()
 	_LgiColours[i++] = GetSysColor(COLOR_INACTIVECAPTIONTEXT); // LC_INACTIVE_TITLE_TEXT
 	_LgiColours[i++] = GetSysColor(COLOR_MENU); // LC_MENU_BACKGROUND
 	_LgiColours[i++] = GetSysColor(COLOR_MENUTEXT); // LC_MENU_TEXT
-	#elif WIN32
+	#elif defined(_WINDOWS)
 	_LgiColours[i++] = GetSysColor(COLOR_3DDKSHADOW); // LC_SHADOW
 	_LgiColours[i++] = GetSysColor(COLOR_3DSHADOW); // LC_LOW
 	_LgiColours[i++] = GetSysColor(COLOR_3DFACE); // LC_MED

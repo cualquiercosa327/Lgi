@@ -63,7 +63,7 @@ class GSymLookup
 	bool    InitOk;
 
 public:
-	typedef __w64 unsigned Addr;
+	typedef NativeInt Addr;
 
 	GSymLookup()
 	{
@@ -254,7 +254,9 @@ public:
 		if (!Ebp)
 		{
 			memset(addr, 0, sizeof(Addr) * len);
-			#ifdef _MSC_VER
+			#if defined(_WIN64)
+			LgiAssert(!"Not impl");
+			#elif defined(_MSC_VER)
 			// Microsoft C++
 			_asm {
 				mov eax, ebp

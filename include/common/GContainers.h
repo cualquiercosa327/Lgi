@@ -18,7 +18,7 @@ class DLinkList;
 class DLinkInterator;
 
 /// General linked list type class that stores void pointers.
-typedef int (*ListSortFunc)(void*, void*, int);
+typedef int (*ListSortFunc)(void*, void*, NativeInt);
 
 class LgiClass DLinkList
 {
@@ -57,7 +57,7 @@ public:
 	int IndexOf(void *p);
 	bool HasItem(void *p);
 	void *ItemAt(int i);
-	void Sort(ListSortFunc Compare, int Data);
+	void Sort(ListSortFunc Compare, NativeInt Data);
 };
 
 ///	Linked list type interator for void pointers.

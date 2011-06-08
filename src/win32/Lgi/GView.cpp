@@ -1537,7 +1537,11 @@ int GView::OnEvent(GMessage *Msg)
 			}
 			case WM_NCDESTROY:
 			{
+                #if _MSC_VER >= 1400
+                SetWindowLongPtr(_View, GWLP_USERDATA, 0);
+                #else
 				SetWindowLong(_View, GWL_USERDATA, 0);
+				#endif
 				_View = 0;
 				if (WndFlags & GWF_QUIT_WND)
 				{
