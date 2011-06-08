@@ -83,7 +83,7 @@ LgiFunc char *stristr
 
 
 // LgiFunc int stricmp(char *a, char *b);
-#ifndef _WINDOWS
+#if !defined(WIN32) && !defined(_WIN64)
 LgiFunc int strnicmp(const char *a, const char *b, int i);
 #endif
 
