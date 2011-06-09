@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
-#ifndef WIN32
+#ifndef _WINDOWS
 #include <unistd.h>
 #endif
 #include <byteswap.h>

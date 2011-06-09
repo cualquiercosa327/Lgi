@@ -1,4 +1,4 @@
-#ifdef WIN32
+#ifdef _WINDOWS
 #define _WIN32_WINNT 0x0400
 #include "windows.h"
 #endif
@@ -8,7 +8,7 @@ int GenerateRandom(uint8 *ptr, int len)
 {
 	int Status = 0;
 
-	#ifdef WIN32
+	#ifdef _WINDOWS
 
 	typedef BOOLEAN (APIENTRY *RtlGenRandom)(void*, ULONG);
 	HCRYPTPROV	phProv = 0;

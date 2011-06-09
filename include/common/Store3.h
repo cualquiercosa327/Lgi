@@ -66,7 +66,7 @@ void ParseIdList(char *In, List<char> &Out);
 #define FIELD_PROFILE_IMAP_LISTING	-101
 #define FIELD_PROFILE_IMAP_SELECT	-102
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(_WIN64)
 
 #define GDATA_INT_PROP(name, id) \
 	int Get##name() { if (!Object) { _asm int 3 } return Object ? Object->GetInt(id) : 0; } \

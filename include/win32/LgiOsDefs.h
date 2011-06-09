@@ -16,6 +16,7 @@
 #define WIN32GTK                    0
 #define WIN32NATIVE                 1
 
+
 #include <string.h>
 #include "LgiInc.h"
 #include "LgiDefs.h"
@@ -25,6 +26,8 @@
 // Includes
 #define WIN32_LEAN_AND_MEAN
 #include "winsock2.h"
+
+
 #include "windows.h"
 #include "SHELLAPI.H"
 #include "COMMDLG.H"
@@ -45,6 +48,10 @@ typedef _W64 unsigned int	UNativeInt;
 #else
 typedef int					NativeInt;
 typedef unsigned int		UNativeInt;
+#endif
+
+#ifndef _WINDOWS
+#define _WINDOWS			1
 #endif
 
 typedef HWND				OsWindow;

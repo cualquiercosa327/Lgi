@@ -14,7 +14,7 @@
 
 	// dynamically linked
 
-	#ifdef WIN32 // _MSC_VER
+	#if defined(WIN32) || defined(_WIN64)
 
 		#ifdef LGI_LIBRARY
 			
