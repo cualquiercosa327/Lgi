@@ -1,11 +1,43 @@
 #include <stdlib.h>
+#include <locale.h>
 
 #include "Lgi.h"
 #include "GToken.h"
 
+#if defined(LGI_STATIC)
+#undef HAS_ICONV
+#endif
+
+#if HAS_ICONV
+//
+// Get 'iconv.h' from http://www.gnu.org/software/libiconv
+// Current download at time of writing:
+//    http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.8.tar.gz
+//
+// Then add whatever include path to your project or development
+// settings. Otherwise you can build without extended charset
+// support by changing the HAS_ICONV define in Lgi.h to '0'
+//
+// Linux should always build with iconv, on windows you may or 
+// may not want to bother depending on what sort of app your
+// writing.
+//
+#ifdef __MINGW32__
+#include "../iconv.h"
+#else
+#include "iconv.h"
+#endif
+
+#if defined(_WINDOWS)
+typedef const char IconvChar;
+#else
+typedef char IconvChar;
+#endif
+#endif
+
 /////////////////////////////////////////////////////////////////////
 // Private growable class for binary compatability
-class GFontSystemPrivate
+class GFontSystemPrivate : public GLibrary
 {
 public:
 	bool DefaultGlyphSub;
@@ -29,6 +61,45 @@ public:
 			LgiAssert(!"pango_cairo_font_map_create_context failed.\n");
 	}
 	#endif
+
+	#if HAS_ICONV
+	#ifdef _WINDOWS
+
+	DynFunc2(iconv_t, libiconv_open, const char*, tocode, const char*, fromcode);
+	DynFunc5(	size_t,
+		libiconv,
+		iconv_t, cd,
+		IconvChar**, inbuf,
+		size_t*, inbytesleft,
+		char**, outbuf,
+		size_t*, outbytesleft);
+	DynFunc1(int, libiconv_close, iconv_t, cd);
+
+	#elif !defined(MAC)
+
+	// Use glibc I guess
+	iconv_t libiconv_open(const char *tocode, const char *fromcode)
+	{
+		return ::iconv_open(tocode, fromcode);
+	}
+
+	size_t libiconv(iconv_t cd, IconvChar** inbuf, size_t *inbytesleft, char **outbuf, size_t *outbytesleft)
+	{
+		return ::iconv(cd, inbuf, inbytesleft, outbuf, outbytesleft);
+	}
+
+	int libiconv_close(iconv_t cd)
+	{
+		return ::iconv_close(cd);
+	}
+
+	bool IsLoaded()
+	{
+		return true;
+	}
+
+	#endif
+	#endif // HAS_ICONV
 };
 
 /////////////////////////////////////////////////////////////////////
@@ -121,7 +192,7 @@ void GFontSystem::SetDefaultGlyphSub(bool i)
 		d->DefaultGlyphSub = i;
 }
 
-#ifdef WIN32
+#ifdef _WINDOWS
 int CALLBACK _EnumFonts(ENUMLOGFONT FAR *lpelf,
 						NEWTEXTMETRIC FAR *lpntm,
 						int FontType,
@@ -146,7 +217,7 @@ bool GFontSystem::EnumerateFonts(List<const char> &Fonts)
 {
 	if (!AllFonts.First())
 	{
-		#if defined WIN32
+		#if defined _WINDOWS
 
 		HDC hDC = CreateCompatibleDC(NULL);
 		if (hDC)
@@ -254,6 +325,141 @@ bool GFontSystem::EnumerateFonts(List<const char> &Fonts)
 	}
 
 	return false;
+}
+
+bool GFontSystem::HasIconv()
+{
+	if (d->IsLoaded())
+		return true;
+
+	return d->Load("iconv");
+}
+
+int GFontSystem::IconvConvert(const char *OutCs, GStreamI *Out, const char *InCs, const char *&In, int InLen)
+{
+	char Buf[2 << 10];
+	
+	if (!Out || !In)
+		return 0;
+
+#if defined(MAC)
+
+	CFStringEncoding InEnc = CharsetToEncoding(InInfo->Charset);
+	CFStringEncoding OutEnc = CharsetToEncoding(OutInfo->Charset);
+	if (InEnc != kCFStringEncodingInvalidId &&
+		OutEnc != kCFStringEncodingInvalidId)
+	{
+		CFStringRef r = CFStringCreateWithBytes(0, (const UInt8 *)In, InLen, InEnc, false);
+		if (r)
+		{
+			CFRange g = { 0, CFStringGetLength(r) };
+			CFIndex used = 0;
+			CFIndex ret;
+			while ((ret = CFStringGetBytes(r, g, OutEnc, '?', false, (UInt8*)Buf, sizeof(Buf), &used)) > 0 && g.length > 0)
+			{
+				b.Write(Buf, used);
+				g.location += ret;
+				g.length -= ret;
+			}
+
+			CFRelease(r);
+		}
+		else return 0;
+	}
+	else return 0;
+
+#elif defined(_WIN64)
+
+	// Hmmmm... what to do here?
+
+#elif HAS_ICONV
+
+	iconv_t Conv;
+	if ((NativeInt)(Conv = d->libiconv_open(OutCs, InCs)) >= 0)
+	{
+		char *i = (char*)In;
+		LgiAssert((NativeInt)Conv != 0xffffffff);
+
+		while (InLen)
+		{
+			char *o = (char*)Buf;
+			int OutLen = sizeof(Buf);
+			int OldInLen = InLen;
+			int s = d->libiconv(Conv, (IconvChar**)&i, (size_t*)&InLen, &o, (size_t*)&OutLen);
+			Out->Write((uchar*)Buf, sizeof(Buf) - OutLen);
+			if (OldInLen == InLen) break;
+		}
+
+		d->libiconv_close(Conv);
+	}
+	else
+	{
+		LgiTrace("Iconv won't load.\n");
+		return 0;
+	}
+
+#endif
+
+	return 1;
+}
+
+int GFontSystem::IconvConvert(const char *OutCs, char *Out, int OutLen, const char *InCs, const char *&In, int InLen)
+{
+	int Status = 0;
+
+#if defined(MAC)
+
+	CFStringEncoding InEnc = CharsetToEncoding(InInfo->Charset);
+	CFStringEncoding OutEnc = CharsetToEncoding(OutInfo->Charset);
+	if (InEnc != kCFStringEncodingInvalidId &&
+		OutEnc != kCFStringEncodingInvalidId)
+	{
+		CFStringRef r = CFStringCreateWithBytes(0, (const UInt8 *)In, InLen, InEnc, false);
+		if (r)
+		{
+			CFRange g = { 0, CFStringGetLength(r) };
+			CFIndex ret = CFStringGetBytes(r, g, OutEnc, '?', false, (UInt8*)Out, OutLen, 0);
+			CFRelease(r);
+			return ret;
+		}
+	}
+
+#elif HAS_ICONV
+
+	// Set locale yet?
+	static bool sl = false;
+	if (!sl)
+	{
+		sl = true;
+		setlocale(LC_ALL, "");
+	}
+
+	// Iconv conversion
+	// const char *InCs = InInfo->GetIconvName();
+	// const char *OutCs = OutInfo->GetIconvName();
+	iconv_t Conv;
+	if ((Conv = d->libiconv_open(OutCs, InCs)) >= 0)
+	{
+		int InLength = InLen;
+		char *o = Out;
+		char *i = (char*)In;
+
+		// Convert
+		char *Start = o;
+		int s = d->libiconv(Conv, (IconvChar**)&i, (size_t*)&InLen, &o, (size_t*)&OutLen);
+		d->libiconv_close(Conv);
+
+		In = (const char*)i;
+		Status = (NativeInt)o-(NativeInt)Out;
+	}
+	else
+	{
+		LgiTrace("Iconv not present/won't load.\n");
+	}
+
+#endif
+
+	return Status;
 }
 
 GFont *GFontSystem::GetBestFont(char *Str)

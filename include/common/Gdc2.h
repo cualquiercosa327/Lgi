@@ -571,7 +571,7 @@ public:
 	/// Get a parameter
 	virtual int GetVar(int Var) { return 0; }
 	/// Set a parameter
-	virtual int SetVar(int Var, int Value) { return 0; }
+	virtual int SetVar(int Var, NativeInt Value) { return 0; }
 
 	/// Sets the operator
 	void SetOp(int o) { Op = o; }

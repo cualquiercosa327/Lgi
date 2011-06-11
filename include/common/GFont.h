@@ -362,39 +362,8 @@ LgiFunc const char *LgiDetectCharset
 	List<char> *Prefs = 0
 );
 
-#if defined(LGI_STATIC)
-#undef HAS_ICONV
-#endif
-
-#if HAS_ICONV
-	//
-	// Get 'iconv.h' from http://www.gnu.org/software/libiconv
-	// Current download at time of writing:
-	//    http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.8.tar.gz
-	//
-	// Then add whatever include path to your project or development
-	// settings. Otherwise you can build without extended charset
-	// support by changing the HAS_ICONV define in Lgi.h to '0'
-	//
-	// Linux should always build with iconv, on windows you may or 
-	// may not want to bother depending on what sort of app your
-	// writing.
-	//
-	#ifdef __MINGW32__
-	#include "../iconv.h"
-	#else
-	#include "iconv.h"
-	#endif
-
-	#if defined(WIN32)
-	typedef const char IconvChar;
-	#else
-	typedef char IconvChar;
-	#endif
-#endif
-
 /// Overall font system class
-class LgiClass GFontSystem : public GLibrary
+class LgiClass GFontSystem
 {
 	friend class GApp;
 	friend class GDisplayString;
@@ -449,44 +418,12 @@ public:
 	
 	#endif
 
-	#if HAS_ICONV
-	#ifdef WIN32
-
-	DynFunc2(iconv_t, libiconv_open, const char*, tocode, const char*, fromcode);
-	DynFunc5(	size_t,
-				libiconv,
-				iconv_t, cd,
-				IconvChar**, inbuf,
-				size_t*, inbytesleft,
-				char**, outbuf,
-				size_t*, outbytesleft);
-	DynFunc1(int, libiconv_close, iconv_t, cd);
-
-	#elif !defined(MAC)
-
-	// Use glibc I guess
-	iconv_t libiconv_open(const char *tocode, const char *fromcode)
-	{
-		return ::iconv_open(tocode, fromcode);
-	}
-	
-	size_t libiconv(iconv_t cd, IconvChar** inbuf, size_t *inbytesleft, char **outbuf, size_t *outbytesleft)
-	{
-		return ::iconv(cd, inbuf, inbytesleft, outbuf, outbytesleft);
-	}
-	
-	int libiconv_close(iconv_t cd)
-	{
-		return ::iconv_close(cd);
-	}
-	
-	bool IsLoaded()
-	{
-		return true;
-	}
-
-	#endif
-	#endif // HAS_ICONV
+	/// \returns true if iconv services are available.
+	bool HasIconv();
+	/// Converts a string into a buffer using iconv
+	int IconvConvert(const char *OutCs, char *Out, int OutLen, const char *InCs, const char *&In, int InLen);
+	/// Converts a string into a stream using iconv
+	int IconvConvert(const char *OutCs, GStreamI *Out, const char *InCs, const char *&In, int InLen);
 };
 
 #ifdef LINUX

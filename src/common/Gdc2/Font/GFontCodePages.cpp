@@ -632,18 +632,9 @@ bool GCharset::IsAvailable()
 	if (Type != CpIconv)
 		return true;
 
-	#if HAS_ICONV
 	GFontSystem *FontSys = GFontSystem::Inst();
 	if (FontSys)
-	{
-		if (!FontSys->IsLoaded())
-		{
-			FontSys->Load("iconv");
-		}
-
-		return FontSys->IsLoaded();
-	}
-	#endif
+		return FontSys->HasIconv();
 
 	return false;
 }
@@ -754,22 +745,6 @@ GCharset *LgiGetCpInfo(const char *Cs)
 	return CharsetSystem.GetCsInfo(Cs);
 }
 
-#if HAS_ICONV
-
-GFontSystem *GetIconv()
-{
-	GFontSystem *Iconv = GFontSystem::Inst();
-	if (Iconv)
-	{
-		if (!Iconv->IsLoaded())
-			Iconv->Load("iconv");
-		return Iconv->IsLoaded() ? Iconv : 0;
-	}
-	return 0;
-}
-
-#endif
-
 /////////////////////////////////////////////////////////////////////////////
 // Utf-16 conversion
 int LgiByteLen(const void *p, const char *cp)
@@ -872,58 +847,9 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 			if (InInfo->Type == CpIconv OR
 				OutInfo->Type == CpIconv)
 			{
-				#if defined(MAC)
-
-				CFStringEncoding InEnc = CharsetToEncoding(InInfo->Charset);
-				CFStringEncoding OutEnc = CharsetToEncoding(OutInfo->Charset);
-				if (InEnc != kCFStringEncodingInvalidId &&
-					OutEnc != kCFStringEncodingInvalidId)
-				{
-					CFStringRef r = CFStringCreateWithBytes(0, (const UInt8 *)In, InLen, InEnc, false);
-					if (r)
-					{
-						CFRange g = { 0, CFStringGetLength(r) };
-						CFIndex ret = CFStringGetBytes(r, g, OutEnc, '?', false, (UInt8*)Out, OutLen, 0);
-						CFRelease(r);
-						return ret;
-					}
-				}
-				
-			    #elif HAS_ICONV
-
-				// Set locale yet?
-				static bool sl = false;
-				if (!sl)
-				{
-					sl = true;
-					setlocale(LC_ALL,"");
-				}
-			    
-				// Iconv conversion
-				GFontSystem *Iconv = GetIconv();
-				const char *InCs = InInfo->GetIconvName();
-				const char *OutCs = OutInfo->GetIconvName();
-				iconv_t Conv;
-				if (Iconv && ((Conv = Iconv->libiconv_open(OutCs, InCs)) >= 0))
-				{
-					int InLength = InLen;
-					char *o = (char*)Out;
-					char *i = (char*)In;
-
-					// Convert
-					char *Start = o;
-					int s = Iconv->libiconv(Conv, (IconvChar**)&i, (size_t*)&InLen, &o, (size_t*)&OutLen);
-					Iconv->libiconv_close(Conv);
-
-					In = (void*)i;
-					Status = (NativeInt)o-(NativeInt)Out;
-				}
-				else
-				{
-					LgiTrace("Iconv not present/won't load.\n");
-				}
-
-				#endif
+				GFontSystem *Fs = GFontSystem::Inst();
+				if (Fs)
+					return Fs->IconvConvert(OutInfo->GetIconvName(), (char*)Out, OutLen, InInfo->GetIconvName(), (const char*&)In, InLen);
 			}
 			else
 			{
@@ -1055,8 +981,6 @@ void *LgiNewConvertCp(const char *OutCp, const void *In, const char *InCp, int I
 		GCharset *OutInfo = LgiGetCpInfo(OutCp);
 		if (InInfo && OutInfo)
 		{
-			char Buf[2 << 10];
-
 			if (InLen < 0)
 			{
 				InLen = LgiByteLen(In, InCp);
@@ -1077,64 +1001,20 @@ void *LgiNewConvertCp(const char *OutCp, const void *In, const char *InCp, int I
 			if (InInfo->Type == CpIconv ||
 				OutInfo->Type == CpIconv)
 			{
-				#if defined(MAC)
-				
-				CFStringEncoding InEnc = CharsetToEncoding(InInfo->Charset);
-				CFStringEncoding OutEnc = CharsetToEncoding(OutInfo->Charset);
-				if (InEnc != kCFStringEncodingInvalidId &&
-					OutEnc != kCFStringEncodingInvalidId)
+				GFontSystem *Fs = GFontSystem::Inst();
+				if (Fs)
 				{
-					CFStringRef r = CFStringCreateWithBytes(0, (const UInt8 *)In, InLen, InEnc, false);
-					if (r)
+					if (!Fs->IconvConvert(OutInfo->GetIconvName(), &b, InInfo->GetIconvName(), (const char*&)In, InLen))
 					{
-						CFRange g = { 0, CFStringGetLength(r) };
-						CFIndex used = 0;
-						CFIndex ret;
-						while ((ret = CFStringGetBytes(r, g, OutEnc, '?', false, (UInt8*)Buf, sizeof(Buf), &used)) > 0 && g.length > 0)
-						{
-							b.Write(Buf, used);
-							g.location += ret;
-							g.length -= ret;
-						}
-						
-						CFRelease(r);
+						InCp = "iso-8859-1";
+						goto BufConvert;
 					}
 				}
-				
-				#elif HAS_ICONV
-				
-				GFontSystem *Iconv = GetIconv();
-				iconv_t Conv;
-				if (Iconv &&
-					(NativeInt)(Conv = Iconv->libiconv_open(OutInfo->GetIconvName(), InInfo->GetIconvName())) >= 0)
-				{
-					char *i = (char*)In;
-					LgiAssert((NativeInt)Conv != 0xffffffff);
-
-					while (InLen)
-					{
-						char *o = (char*)Buf;
-						int OutLen = sizeof(Buf);
-						int OldInLen = InLen;
-						int s = Iconv->libiconv(Conv, (IconvChar**)&i, (size_t*)&InLen, &o, (size_t*)&OutLen);
-						b.Write((uchar*)Buf, sizeof(Buf) - OutLen);
-						if (OldInLen == InLen) break;
-					}
-					
-					Iconv->libiconv_close(Conv);
-				}
-				else
-				{
-					LgiTrace("Iconv won't load.\n");
-					InCp = "iso-8859-1";
-					goto BufConvert;
-				}
-				
-				#endif
 			}
 			else
 			{
 				BufConvert:
+				char Buf[2 << 10];
 				while (InLen > 0)
 				{
 					int Bytes = LgiBufConvertCp(Buf, OutCp, sizeof(Buf), In, InCp, InLen);

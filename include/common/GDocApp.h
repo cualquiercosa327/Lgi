@@ -62,7 +62,7 @@ public:
 		/// The name of the application
 		char *appname = 0,
 		/// [Optional] The icon resource for the window.
-		char *icon = 0,
+		TCHAR *icon = 0,
 		/// Options file base name..
 		char *optsname = 0
 

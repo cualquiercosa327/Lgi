@@ -50,22 +50,26 @@ bool GLibrary::Load(const char *File)
 
 			if (LgiGetOs() == LGI_OS_WIN9X)
 			{
-				char *a = LgiToNativeCp(f);
+				GAutoString a(LgiToNativeCp(f));
 				if (a)
-				{
 					hLib = LoadLibrary(a);
-					DeleteArray(a);
-				}
 			}
 			else
 			{
-				char16 *w = LgiNewUtf8To16(f);
+				GAutoWString w(LgiNewUtf8To16(f));
 				if (w)
 				{
 					hLib = LoadLibraryW(w);
-					DeleteArray(w);
 				}
 			}
+
+			#ifdef _DEBUG
+			if (!hLib)
+			{
+				DWORD err = GetLastError();
+				int asd=0;
+			}
+			#endif
 
 			#elif defined BEOS
 

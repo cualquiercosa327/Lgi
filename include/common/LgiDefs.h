@@ -361,6 +361,12 @@ LgiFunc void							_lgi_assert(bool b, const char *test, const char *file, int l
 #define LGI_EF_MIDDLE					0x00002000
 #define LGI_EF_RIGHT					0x00004000
 
+// Emit compiler warnings
+#define __STR2__(x) #x
+#define __STR1__(x) __STR2__(x)
+#define __LOC__ __FILE__ "("__STR1__(__LINE__)") : Warning: "
+// To use just do #pragma message(__LOC__"My warning message")
+
 // Simple definition of breakable unicode characters
 #define LGI_BreakableChar(c)			(											\
 											(c) == '\n' OR							\

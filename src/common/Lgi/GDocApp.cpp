@@ -159,7 +159,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////////////////////////
 template <typename OptionsFmt>
-GDocApp<OptionsFmt>::GDocApp(char *appname, char *icon, char *optsname)
+GDocApp<OptionsFmt>::GDocApp(char *appname, TCHAR *icon, char *optsname)
 {
 	Options = 0;
 	_LangOptsName = 0;
@@ -181,10 +181,17 @@ GDocApp<OptionsFmt>::GDocApp(char *appname, char *icon, char *optsname)
 		if (c)
 		{
 			#ifdef UNICODE
-			GAutoWString wIcon(LgiNewUtf8To16(icon));
 			GPointer p;
-			p.c = icon;
-			c->Class.w.hIcon = LoadIcon(LgiProcessInst(), p.i & 0xffff0000 ? wIcon : MAKEINTRESOURCE(icon));
+			p.w = icon;
+			if (p.i < 0x10000)
+			{
+				c->Class.w.hIcon = LoadIcon(LgiProcessInst(), MAKEINTRESOURCE(icon));
+			}
+			else
+			{
+				GAutoWString wIcon(NewStrW(icon));
+				c->Class.w.hIcon = LoadIcon(LgiProcessInst(), wIcon);
+			}
 			#else
 			c->Class.a.hIcon = LoadIcon(LgiProcessInst(), ((int)icon&0xffff0000)?icon:MAKEINTRESOURCE(icon));
 			#endif

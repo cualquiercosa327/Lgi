@@ -2419,11 +2419,11 @@ bool GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &In)
 				{
 					if (v->Str())
 					{
-						ArgVal[i] = (int) v->Str();
+						ArgVal[i] = (NativeInt) v->Str();
 					}
 					else
 					{
-						ArgVal[i] = (int) v->CastString();
+						ArgVal[i] = (NativeInt) v->CastString();
 					}
 					break;
 				}
@@ -2446,7 +2446,7 @@ bool GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &In)
 			{
 				#if defined(_MSC_VER)
 				uint32 a = ArgVal.Length();
-				uint32 b = (uint32) &ArgVal[Args.Length()-1];
+				NativeInt b = (NativeInt) &ArgVal[Args.Length()-1];
 				#endif
 				uint32 r = 0;
 

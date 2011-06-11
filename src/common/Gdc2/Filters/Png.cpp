@@ -260,6 +260,7 @@ class GdcPngFactory : public GFilterFactory
 
 // Class impl
 char GdcPng::PngSig[] = { (char)137, 'P', 'N', 'G', '\r', '\n', (char)26, '\n', 0 };
+
 GdcPng::GdcPng()
 {
 	Parent = 0;
@@ -348,9 +349,13 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 	}
 
 	if (!IsLoaded())
-		;
+	{
+		Props->SetValue(LGI_FILTER_ERROR, v = "Can't load libpng");
+	}
 	else if (setjmp(Here))
-		printf("%s:%i - setjmp failed.\n", _FL);
+	{
+		Props->SetValue(LGI_FILTER_ERROR, v = "setjmp failed");
+	}
 	else
 	{
 		png_structp png_ptr = png_create_read_struct(	PNG_LIBPNG_VER_STRING,

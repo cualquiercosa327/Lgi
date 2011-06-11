@@ -1134,7 +1134,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 			}
 			case LSP_DESKTOP:
 			{
-				#if defined _WINDOWS
+				#if defined(_WINDOWS)
 
 				char *f = GetWindowsFolder(CSIDL_DESKTOPDIRECTORY);
 				if (f)

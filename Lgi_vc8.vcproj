@@ -49,7 +49,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="1"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="include\common,include\win32,..\..\..\CodeLib\libiconv\include"
+				AdditionalIncludeDirectories="include\common;include\win32;&quot;..\..\..\CodeLib\libiconv-1.9.1\include&quot;"
 				PreprocessorDefinitions="NDEBUG;WIN32;_WINDOWS;LGI_RES;LGI_LIBRARY"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -246,7 +246,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="include\common,include\win32,..\..\..\CodeLib\libiconv\include"
+				AdditionalIncludeDirectories="include\common;include\win32;&quot;..\..\..\CodeLib\libiconv-1.9.1\include&quot;"
 				PreprocessorDefinitions="LGI_LIBRARY;_DEBUG;WIN32;_WINDOWS;LGI_RES"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
