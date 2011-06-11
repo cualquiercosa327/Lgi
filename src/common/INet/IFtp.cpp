@@ -403,7 +403,7 @@ int IFtp::ReadLine(char *Msg, bool Debug)
 				{
 					// copy line into input list
 					char *New = 0;
-					d->In.Insert(New = NewStr(d->InBuf, (int)Eol-(int)d->InBuf));
+					d->In.Insert(New = NewStr(d->InBuf, Eol-d->InBuf));
 					Eol += 2;
 
 					// move data after line up to the start of the buffer
