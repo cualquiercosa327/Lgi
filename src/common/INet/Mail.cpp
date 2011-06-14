@@ -764,6 +764,25 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
 		}
 	}
 
+	if (!Addr)
+	{
+		// This code checks through the strings again for
+		// something bracketed by <> which would normally
+		// be the address, even if it's not formatted correctly
+		// Scribe uses this to store group names in the email
+		// address part of an address descriptor.
+		for (i=0; i<Str.Length(); i++)
+		{
+			char *s = Str[i];
+			if (*s == '<' && !strchr(s, '@'))
+			{
+				Addr = RemovePairs(Str[i], Pairs);
+				DeleteArray(Str[i]);
+				Str.DeleteAt(i, true);
+			}
+		}		
+	}
+
 	// Process the remaining parts into the name
 	GStringPipe n(256);
 	for (i=0; i<Str.Length(); i++)
