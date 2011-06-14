@@ -4,6 +4,7 @@
 	Version="8.00"
 	Name="libntlm"
 	ProjectGUID="{F97AAACA-BF41-46B8-B534-A1639589A1A3}"
+	RootNamespace="libntlm"
 	>
 	<Platforms>
 		<Platform
@@ -174,7 +175,7 @@
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)$(ConfigurationName)8\libntlm.pdb"
-				ImportLibrary=".\$(ConfigurationName)8\libntlmd.lib"
+				ImportLibrary="$(outdir)\libntlmd.lib"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -360,7 +361,7 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				ProgramDatabaseFile="$(PlatformName)$(ConfigurationName)8\libntlm.pdb"
-				ImportLibrary=".\$(ConfigurationName)8\libntlm.lib"
+				ImportLibrary="$(outdir)\libntlm.lib"
 				TargetMachine="17"
 			/>
 			<Tool

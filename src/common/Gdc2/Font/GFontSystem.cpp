@@ -339,9 +339,9 @@ int GFontSystem::IconvConvert(const char *OutCs, GStreamI *Out, const char *InCs
 {
 	char Buf[2 << 10];
 	
-	if (!Out || !In)
+	if (!Out || !In || !HasIconv())
 		return 0;
-
+	    
 #if defined(MAC)
 
 	CFStringEncoding InEnc = CharsetToEncoding(InInfo->Charset);
@@ -406,6 +406,9 @@ int GFontSystem::IconvConvert(const char *OutCs, GStreamI *Out, const char *InCs
 int GFontSystem::IconvConvert(const char *OutCs, char *Out, int OutLen, const char *InCs, const char *&In, int InLen)
 {
 	int Status = 0;
+
+    if (!Out || !In || !HasIconv())
+        return 0;
 
 #if defined(MAC)
 
