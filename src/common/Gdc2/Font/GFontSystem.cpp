@@ -335,6 +335,18 @@ bool GFontSystem::HasIconv()
 	return d->Load("iconv");
 }
 
+#ifdef MAC
+// This converts a normal charset to an Apple encoding ID
+static CFStringEncoding CharsetToEncoding(const char *cs)
+{
+	CFStringRef InputCs = CFStringCreateWithCString(0, cs, kCFStringEncodingUTF8);
+	CFStringEncoding enc = CFStringConvertIANACharSetNameToEncoding(InputCs);
+	CFRelease(InputCs);
+	return enc;
+}
+#endif
+
+
 int GFontSystem::IconvConvert(const char *OutCs, GStreamI *Out, const char *InCs, const char *&In, int InLen)
 {
 	char Buf[2 << 10];
@@ -344,8 +356,8 @@ int GFontSystem::IconvConvert(const char *OutCs, GStreamI *Out, const char *InCs
 	    
 #if defined(MAC)
 
-	CFStringEncoding InEnc = CharsetToEncoding(InInfo->Charset);
-	CFStringEncoding OutEnc = CharsetToEncoding(OutInfo->Charset);
+	CFStringEncoding InEnc = CharsetToEncoding(InCs);
+	CFStringEncoding OutEnc = CharsetToEncoding(OutCs);
 	if (InEnc != kCFStringEncodingInvalidId &&
 		OutEnc != kCFStringEncodingInvalidId)
 	{
@@ -357,7 +369,7 @@ int GFontSystem::IconvConvert(const char *OutCs, GStreamI *Out, const char *InCs
 			CFIndex ret;
 			while ((ret = CFStringGetBytes(r, g, OutEnc, '?', false, (UInt8*)Buf, sizeof(Buf), &used)) > 0 && g.length > 0)
 			{
-				b.Write(Buf, used);
+				Out->Write(Buf, used);
 				g.location += ret;
 				g.length -= ret;
 			}
@@ -412,8 +424,8 @@ int GFontSystem::IconvConvert(const char *OutCs, char *Out, int OutLen, const ch
 
 #if defined(MAC)
 
-	CFStringEncoding InEnc = CharsetToEncoding(InInfo->Charset);
-	CFStringEncoding OutEnc = CharsetToEncoding(OutInfo->Charset);
+	CFStringEncoding InEnc = CharsetToEncoding(InCs);
+	CFStringEncoding OutEnc = CharsetToEncoding(OutCs);
 	if (InEnc != kCFStringEncodingInvalidId &&
 		OutEnc != kCFStringEncodingInvalidId)
 	{

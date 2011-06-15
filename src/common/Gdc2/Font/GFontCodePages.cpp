@@ -6,17 +6,6 @@
 #include "GToken.h"
 #include "GUtf8.h"
 
-#ifdef MAC
-// This converts a normal charset to an Apple encoding ID
-static CFStringEncoding CharsetToEncoding(const char *cs)
-{
-	CFStringRef InputCs = CFStringCreateWithCString(0, cs, kCFStringEncodingUTF8);
-	CFStringEncoding enc = CFStringConvertIANACharSetNameToEncoding(InputCs);
-	CFRelease(InputCs);
-	return enc;
-}
-#endif
-
 typedef uint32 iso2022jp_block[16];
 iso2022jp_block *iso2022jp_map[128];
 iso2022jp_block iso2022jp_blocks[] =
