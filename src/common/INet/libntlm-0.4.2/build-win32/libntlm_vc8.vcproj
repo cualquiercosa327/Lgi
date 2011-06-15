@@ -76,12 +76,12 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="../../../../../lib/libntlmd.dll"
+				OutputFile="../../../../../lib/libntlm8d.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug8\libntlmd.pdb"
-				ImportLibrary=".\$(ConfigurationName)8\libntlmd.lib"
+				ImportLibrary="$(OutDir)\libntlm8d.lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -264,11 +264,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="../../../../../lib/libntlm.dll"
+				OutputFile="../../../../../lib/libntlm8.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				ProgramDatabaseFile=".\Release8\libntlm.pdb"
-				ImportLibrary=".\$(ConfigurationName)8\libntlm.lib"
+				ImportLibrary="$(OutDir)\libntlm8.lib"
 				TargetMachine="1"
 			/>
 			<Tool
