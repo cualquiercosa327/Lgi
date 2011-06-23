@@ -243,8 +243,8 @@ class GdcPngFactory : public GFilterFactory
 	{
 		if (Hint)
 		{
-			if (Hint[1] == 'P' AND
-				Hint[2] == 'N' AND
+			if (Hint[1] == 'P' &&
+				Hint[2] == 'N' &&
 				Hint[3] == 'G')
 				return true;
 		}
@@ -341,8 +341,8 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 	DeleteArray(PrevScanLine);
 
 	GVariant v;
-	if (Props AND
-		Props->GetValue(LGI_FILTER_PARENT_WND, v) AND
+	if (Props &&
+		Props->GetValue(LGI_FILTER_PARENT_WND, v) &&
 		v.Type == GV_GVIEW)
 	{
 		Parent = (GView*)v.Value.Ptr;
@@ -350,11 +350,13 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 
 	if (!IsLoaded())
 	{
-		Props->SetValue(LGI_FILTER_ERROR, v = "Can't load libpng");
+		if (Props)
+			Props->SetValue(LGI_FILTER_ERROR, v = "Can't load libpng");
 	}
 	else if (setjmp(Here))
 	{
-		Props->SetValue(LGI_FILTER_ERROR, v = "setjmp failed");
+		if (Props)
+			Props->SetValue(LGI_FILTER_ERROR, v = "setjmp failed");
 	}
 	else
 	{
@@ -563,7 +565,7 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 
 							if (TestFlag(info_ptr->valid, PNG_INFO_tRNS))
 							{
-								if (info_ptr->num_trans > 0 AND
+								if (info_ptr->num_trans > 0 &&
 									info_ptr->trans)
 								{
 									pDC->HasAlpha(true);
@@ -612,7 +614,7 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 			int CompressionType = 0;
 			png_charp ColProf = 0;
 			png_uint_32 ColProfLen = 0;
-			if (png_get_iCCP(png_ptr, info_ptr, &ProfName, &CompressionType, &ColProf, &ColProfLen) AND Props)
+			if (png_get_iCCP(png_ptr, info_ptr, &ProfName, &CompressionType, &ColProf, &ColProfLen) && Props)
 			{
 				v.SetBinary(ColProfLen, ColProf);
 				Props->SetValue(LGI_FILTER_COLOUR_PROF, v);
@@ -687,7 +689,7 @@ bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 
 	if (Props)
 	{
-		if (Props->GetValue(LGI_FILTER_PARENT_WND, v) AND
+		if (Props->GetValue(LGI_FILTER_PARENT_WND, v) &&
 			v.Type == GV_GVIEW)
 		{
 			Parent = (GView*)v.Value.Ptr;
@@ -702,7 +704,7 @@ bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 	}
 
 	#ifdef FILTER_UI
-	if (Parent AND Transparent.IsNull())
+	if (Parent && Transparent.IsNull())
 	{
 		// put up a dialog to ask about transparent colour
 		GTransparentDlg Dlg(Parent, &Transparent);
@@ -780,8 +782,8 @@ bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 				}
 				else
 				{
-					if (Transparent.CastInt32() AND
-						Props AND
+					if (Transparent.CastInt32() &&
+						Props &&
 						Props->GetValue(LGI_FILTER_BACKGROUND, v))
 					{
 						KeyAlpha = true;
@@ -794,7 +796,7 @@ bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 
 				if (pDC->GetBits() == 32)
 				{
-					if (!ChannelAlpha AND !KeyAlpha)
+					if (!ChannelAlpha && !KeyAlpha)
 					{
 						for (int y=0; y<pDC->Y(); y++)
 						{
@@ -812,7 +814,7 @@ bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 					}
 				}
 
-				bool ExtraAlphaChannel = ChannelAlpha OR (pDC->GetBits() > 8 ? KeyAlpha : 0);
+				bool ExtraAlphaChannel = ChannelAlpha || (pDC->GetBits() > 8 ? KeyAlpha : 0);
 
 				int TempLine = pDC->X() * ((pDC->GetBits() <= 8 ? 1 : 3) + (ExtraAlphaChannel ? 1 : 0));
 				uchar *TempBits = new uchar[pDC->Y() * TempLine];
@@ -901,8 +903,8 @@ bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 										d->r = Rc15(*s);
 										d->g = Gc15(*s);
 										d->b = Bc15(*s);
-										d->a = (d->r == Ar AND
-												d->g == Ag AND
+										d->a = (d->r == Ar &&
+												d->g == Ag &&
 												d->b == Ab) ? 0 : 0xff;
 										s++;
 										d++;
@@ -931,8 +933,8 @@ bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 										d->r = Rc16(*s);
 										d->g = Gc16(*s);
 										d->b = Bc16(*s);
-										d->a = (d->r == Ar AND
-												d->g == Ag AND
+										d->a = (d->r == Ar &&
+												d->g == Ag &&
 												d->b == Ab) ? 0 : 0xff;
 										s++;
 										d++;
@@ -972,8 +974,8 @@ bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 									d->r = s->r;
 									d->g = s->g;
 									d->b = s->b;
-									d->a = (s->r == Ar AND
-											s->g == Ag AND
+									d->a = (s->r == Ar &&
+											s->g == Ag &&
 											s->b == Ab) ? 0 : 0xff;
 									s = s->Next();
 									d++;
