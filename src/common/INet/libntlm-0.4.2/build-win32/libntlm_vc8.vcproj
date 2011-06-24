@@ -150,10 +150,10 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\Debug/libntlm.pch"
-				AssemblerListingLocation=".\Debug/"
-				ObjectFile=".\Debug/"
-				ProgramDataBaseFileName=".\Debug/"
+				PrecompiledHeaderFile="$(IntDir)\libntlm.pch"
+				AssemblerListingLocation="$(IntDir)\"
+				ObjectFile="$(IntDir)\"
+				ProgramDataBaseFileName="$(IntDir)\"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 			/>
@@ -174,8 +174,8 @@
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(PlatformName)$(ConfigurationName)8\libntlm.pdb"
-				ImportLibrary="$(outdir)\libntlmd.lib"
+				ProgramDatabaseFile="$(IntDir)\libntlm.pdb"
+				ImportLibrary="../../../../../lib/libntlm64d.lib"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -338,10 +338,10 @@
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\Release/libntlm.pch"
-				AssemblerListingLocation=".\Release/"
-				ObjectFile=".\Release/"
-				ProgramDataBaseFileName=".\Release/"
+				PrecompiledHeaderFile="$(IntDir)\libntlm.pch"
+				AssemblerListingLocation="$(IntDir)\"
+				ObjectFile="$(IntDir)\"
+				ProgramDataBaseFileName="$(IntDir)\"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -360,8 +360,8 @@
 				OutputFile="../../../../../lib/libntlm64.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				ProgramDatabaseFile="$(PlatformName)$(ConfigurationName)8\libntlm.pdb"
-				ImportLibrary="$(outdir)\libntlm.lib"
+				ProgramDatabaseFile="$(IntDir)\libntlm.pdb"
+				ImportLibrary="../../../../../lib/libntlm64.lib"
 				TargetMachine="17"
 			/>
 			<Tool
