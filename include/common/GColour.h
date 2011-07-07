@@ -318,10 +318,10 @@ public:
 		COLOUR c1 = c32();
 		COLOUR c2 = Tint.c32();
 		double RatioThis = 1.0 - RatioOfTint;
-		int r = (R32(c1) * RatioThis) + (R32(c2) * RatioOfTint);
-		int g = (G32(c1) * RatioThis) + (G32(c2) * RatioOfTint);
-		int b = (B32(c1) * RatioThis) + (B32(c2) * RatioOfTint);
-		int a = (A32(c1) * RatioThis) + (A32(c2) * RatioOfTint);
+		int r = (int) ((R32(c1) * RatioThis) + (R32(c2) * RatioOfTint));
+		int g = (int) ((G32(c1) * RatioThis) + (G32(c2) * RatioOfTint));
+		int b = (int) ((B32(c1) * RatioThis) + (B32(c2) * RatioOfTint));
+		int a = (int) ((A32(c1) * RatioThis) + (A32(c2) * RatioOfTint));
 		c32( Rgba32(r, g, b, a) );
 		return *this;
 	}

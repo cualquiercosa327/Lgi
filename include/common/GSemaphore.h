@@ -68,14 +68,14 @@ public:
 	public:
 	    Auto(GSemaphore *s, const char *file, int line)
 	    {
-	        LgiAssert(s);
+	        LgiAssert(s != NULL);
 	        Locked = (Sem = s) ? Sem->Lock(file, line) : 0;
 			LgiAssert(Locked);
 	    }
 
 	    Auto(GSemaphore *s, int timeout, const char *file, int line)
 	    {
-	        LgiAssert(s);
+	        LgiAssert(s != NULL);
 	        Locked = (Sem = s) ? Sem->LockWithTimeout(timeout, file, line) : 0;
 	    }
 	    

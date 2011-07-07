@@ -3,6 +3,10 @@
 
 #define LGI_EXCEPTIONS				0
 
+#ifdef _MSC_VER
+#pragma warning(disable:4250) // I do not care for this warning at all
+#endif
+
 #ifdef LGI_STATIC
 
 	// static linking

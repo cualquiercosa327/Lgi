@@ -32,7 +32,7 @@ public:
 	char *Alloc(const char *s, int len = -1)
 	{
 		if (!s) return 0;
-		if (len < 0) len = strlen(s);
+		if (len < 0) len = (int)strlen(s);
 		char *p = (char*) Alloc(len+1);
 		if (!p) return 0;
 		memcpy(p, s, len);
@@ -119,7 +119,7 @@ public:
 	void EmptyChildren();
 
 	/// \return true if the tag is 's'
-	bool IsTag(const char *s) { return Tag && s ? stricmp(Tag, s) == 0 : false; }
+	bool IsTag(const char *s) { return Tag && s ? _stricmp(Tag, s) == 0 : false; }
 
 	/// Get the string value of a named attribute
 	char *GetAttr(const char *Name);

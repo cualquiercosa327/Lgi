@@ -462,7 +462,7 @@ public:
 		if (Size.Type == GCss::LenInherit)
 		{
 			Size.Type = GCss::LenPt;
-			Size.Value = Default->PointSize();
+			Size.Value = (float)Default->PointSize();
 		}
 
 		GFont *f = 0;
@@ -487,7 +487,7 @@ public:
 						NearestPoint = f->PointSize();
 					else
 					{
-						int NearDiff = abs(Map[NearestPoint] - Size.Value);
+						int NearDiff = abs(Map[NearestPoint] - (int)Size.Value);
 						int CurDiff = abs(f->GetHeight() - Size.Value);
 						if (CurDiff < NearDiff)
 						{
@@ -495,7 +495,7 @@ public:
 						}
 					}
 
-					Diff = f->GetHeight() - Size.Value;
+					Diff = f->GetHeight() - (int)Size.Value;
 					if (abs(Diff) < 2)
 					{
 						return f;
@@ -515,7 +515,7 @@ public:
 				Tmp->Italic(IsItalic);
 				Tmp->Underline(IsUnderline);
 				
-				if (!Tmp->Create(Face[0], PtSize))
+				if (!Tmp->Create(Face[0], (int)PtSize))
 					break;
 				Diff = Tmp->GetHeight() - Size.Value;
 				if (Diff < 2)
@@ -618,7 +618,7 @@ public:
 		{
 			char *ff = ValidStr(Face[0]) ? Face[0] : Default->Face();
 			f->Face(ff);
-			f->PointSize(PtSize ? PtSize : Default->PointSize());
+			f->PointSize((int) (PtSize ? PtSize : Default->PointSize()));
 			f->Bold(IsBold);
 			f->Italic(IsItalic);
 			f->Underline(IsUnderline);

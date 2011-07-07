@@ -698,7 +698,7 @@ void GFilterItem::_PaintText(GSurface *pDC, COLOUR Fore, COLOUR Back)
 			d->FieldDropBtn.ZOff(IconSize-1, IconSize-1);
 			d->FieldDropBtn.Offset(d->FieldBtn.x2 + 1, d->FieldBtn.y1 + ((d->FieldBtn.Y()-d->FieldDropBtn.Y())/2));
 			d->NotBtn.ZOff(IconSize-1, IconSize-1);
-			d->NotBtn.Offset(r, IconY);
+			d->NotBtn.Offset((int)r, IconY);
 			d->OpBtn.ZOff(SIZE_OP, d->FieldBtn.Y()+1);
 			d->OpBtn.Offset(d->FieldDropBtn.x2 + 8, d->FieldBtn.y1-1);
 			d->OpDropBtn.ZOff(IconSize-1, IconSize-1);

@@ -19,14 +19,14 @@ protected:
 			if (init)
 			{
 				GToken t(init, ",");
-				for (int i=0; i<t.Length(); i++)
+				for (uint32 i=0; i<t.Length(); i++)
 					New().Reset(NewStr(t[i]));
 			}
 		}
 
 		bool Find(char *s)
 		{
-			for (int i=0; i<Length(); i++)
+			for (uint32 i=0; i<Length(); i++)
 			{
 				if (stricmp((*this)[i], s) == 0)
 					return true;

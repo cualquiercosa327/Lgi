@@ -115,7 +115,7 @@ public:
 	{
 		if (Name())
 		{	
-			return stricmp(Name(), (n) ? n : (char*)"") == 0;
+			return _stricmp(Name(), (n) ? n : (char*)"") == 0;
 		}
 		return false;
 	}

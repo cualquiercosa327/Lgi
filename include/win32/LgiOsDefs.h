@@ -79,7 +79,9 @@ public:
 
 	GMessage()
 	{
-		Msg = a = b = 0;
+		Msg = 0;
+		a = 0;
+		b = 0;
 	}
 
 	GMessage(int M, WPARAM A = 0, LPARAM B = 0)

@@ -334,8 +334,8 @@ public:
 	void Invalidate();
 
 	// Positioning
-	int RelX() { return Pos.x + MarginLeft().Value; }
-	int RelY() { return Pos.y + MarginTop().Value; }
+	int RelX() { return Pos.x + (int)MarginLeft().Value; }
+	int RelY() { return Pos.y + (int)MarginTop().Value; }
 	int AbsX();
 	int AbsY();
 	GRect GetRect(bool Client = true);

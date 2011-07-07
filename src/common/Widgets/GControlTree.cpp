@@ -163,7 +163,7 @@ void GControlTree::Item::Select(bool b)
 		{
 			LgiAssert(Ctrl == 0);
 			int FontY = SysFont->GetHeight();
-			int CtrlY = (double)FontY * 1.5;
+			int CtrlY = FontY + (FontY >> 1);
 
 			switch (Type)
 			{

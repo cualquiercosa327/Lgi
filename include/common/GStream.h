@@ -15,7 +15,7 @@
 LgiFunc int GStreamPrint(GStreamI *s, const char *fmt, ...);
 
 /// \brief Virtual base class for a data source or sink.
-class LgiClass GStream : virtual public GStreamI, public GDom
+class LgiClass GStream : virtual public GStreamI, virtual public GDom
 {
 public:
 	virtual ~GStream() {}

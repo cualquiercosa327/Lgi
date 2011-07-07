@@ -482,9 +482,9 @@ bool GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 										double Y = (double) s->y / 255;
 										double K = (double) s->k / 255;
 
-										d->r = (1.0 - min(1, C * (1.0 - K) + K)) * 255;
-										d->g = (1.0 - min(1, M * (1.0 - K) + K)) * 255;
-										d->b = (1.0 - min(1, Y * (1.0 - K) + K)) * 255;
+										d->r = (uint8) ((1.0 - min(1, C * (1.0 - K) + K)) * 255);
+										d->g = (uint8) ((1.0 - min(1, M * (1.0 - K) + K)) * 255);
+										d->b = (uint8) ((1.0 - min(1, Y * (1.0 - K) + K)) * 255);
 										d->a = 255;
 
 										d++;

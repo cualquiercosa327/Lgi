@@ -105,7 +105,7 @@ public:
 			char *n = strnchr(t, '\r', len);
 			if (n)
 			{
-				Text = NewStr(t, n-t);
+				Text = NewStr(t, (int)(n-t));
 			}
 			else
 			{
@@ -318,8 +318,8 @@ public:
 	{
 		GSemaphore::Auto l(&SocketLock, _FL);
 
-		if (Socket)
-			return Socket->Close();
+		if (Socket != NULL)
+			return Socket->Close() != 0;
 
 		return false;
 	}
@@ -447,17 +447,17 @@ struct ImapMailFlags
 				while (*e && isalpha(*e))
 					e++;
 
-				if (!strnicmp(s, "answered", e-s))
+				if (!_strnicmp(s, "answered", e-s))
 					ImapAnswered = true;
-				else if (!strnicmp(s, "deleted", e-s))
+				else if (!_strnicmp(s, "deleted", e-s))
 					ImapDeleted = true;
-				else if (!strnicmp(s, "draft", e-s))
+				else if (!_strnicmp(s, "draft", e-s))
 					ImapDraft = true;
-				else if (!strnicmp(s, "flagged", e-s))
+				else if (!_strnicmp(s, "flagged", e-s))
 					ImapFlagged = true;
-				else if (!strnicmp(s, "recent", e-s))
+				else if (!_strnicmp(s, "recent", e-s))
 					ImapRecent = true;
-				else if (!strnicmp(s, "seen", e-s))
+				else if (!_strnicmp(s, "seen", e-s))
 					ImapSeen = true;
 				
 				s = e;

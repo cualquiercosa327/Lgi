@@ -68,7 +68,7 @@ protected:
 
 	bool Read(GStream *s, void *p, int len)
 	{
-		if (Buf.Length() < len)
+		if (Buf.Length() < (uint32)len)
 			Buf.Length(len);
 
 		int r = s->Read(&Buf[0], len);
@@ -81,7 +81,7 @@ protected:
 
 	bool Write(GStream *s, const void *p, int len)
 	{
-		if (Buf.Length() < len)
+		if (Buf.Length() < (uint32)len)
 			Buf.Length(len);
 		Swap(&Buf[0], p, len);
 		int w = s->Write(&Buf[0], len);

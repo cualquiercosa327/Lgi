@@ -1697,14 +1697,14 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 						{
 							// Draw pixels..
 							int DocX = (int)(Clip.x1 - Doc.x1);
-							a.y = ((y + SUB_SHIFT - 1) >> SUB_SHIFT) + Mat.m[1] - 1;
+							a.y = ((y + SUB_SHIFT - 1) >> SUB_SHIFT) + (int)Mat.m[1] - 1;
 							a.Pixels = (*pDC)[a.y];
 							a.pDC = pDC;
 							if (a.Pixels)
 							{
 								int PixSize = a.Bits == 24 ? Pixel24::Size : a.Bits >> 3;
 								int AddX = DocX + (int)Doc.x1;
-								a.y -= Mat.m[1];
+								a.y -= (int)Mat.m[1];
 								a.Len = RopLength;
 								a.Pixels += PixSize * AddX;
 								a.Alpha = Alpha + DocX;
@@ -1719,8 +1719,8 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 			}
 			else // Not anti-aliased
 			{
-				int y1 = floor(Bounds.y1);
-				int y2 = ceil(Bounds.y2);
+				int y1 = (int)floor(Bounds.y1);
+				int y2 = (int)ceil(Bounds.y2);
 
 				// For each scan line
 				for (int y=y1; y<=y2; y++)
@@ -1779,8 +1779,8 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 					// Draw pixels..
 					for (int i=0; i<Xs-1; i+=2)
 					{
-						int c1 = x[i] + 0.5 - x1;
-						int c2 = x[i+1] + 0.5 - x1;
+						int c1 = (int)(x[i] + 0.5 - x1);
+						int c2 = (int)(x[i+1] + 0.5 - x1);
 						memset(Alpha + c1, SUB_SAMPLE*SUB_SAMPLE, c2 - c1 + 1);
 					}
 					if (Xs > 1)
@@ -1904,16 +1904,22 @@ void GPath::Stroke(GSurface *pDC, GBrush &Brush, double Width)
 
 		int Ox, Oy;
 		pDC->GetOrigin(Ox, Oy);
-		pDC->SetOrigin(-Mat.m[0], -Mat.m[1]);
+		pDC->SetOrigin((int)-Mat.m[0], (int)-Mat.m[1]);
 
 		int i;
 		GPointF *p = Point;
 		for (i=0; i<Points-1; i++)
 		{
-			pDC->Line(p[i].x, p[i].y, p[i+1].x, p[i+1].y);
+			pDC->Line(  (int)p[i].x,
+			            (int)p[i].y,
+			            (int)p[i+1].x,
+			            (int)p[i+1].y);
 		}
 		
-		pDC->Line(p[0].x, p[0].y, p[i].x, p[i].y);
+		pDC->Line((int)p[0].x,
+		          (int)p[0].y,
+		          (int)p[i].x,
+		          (int)p[i].y);
 
 		pDC->SetOrigin(Ox, Oy);
 	}

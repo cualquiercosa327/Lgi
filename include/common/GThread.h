@@ -121,7 +121,7 @@ public:
 			LgiSleep(1);
 		if (Lock(_FL))
 		{
-			for (int i=0; i<Owners.Length(); i++)
+			for (uint32 i=0; i<Owners.Length(); i++)
 				Owners[i]->Detach();
 			Unlock();
 		}

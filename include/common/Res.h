@@ -34,7 +34,7 @@ struct GLanguage
 
 	bool operator ==(GLanguageId i)
 	{
-		return i AND stricmp(Id, i) == 0;
+		return i AND _stricmp(Id, i) == 0;
 	}
 
 	bool operator !=(GLanguageId i)
