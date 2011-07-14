@@ -200,6 +200,17 @@ public:
 	virtual ~GBrush() {}
 };
 
+class GEraseBrush : public GBrush
+{
+	void Rop(GRopArgs &a);
+
+public:
+	GEraseBrush()
+	{
+		MakeAlphaLut();
+	}
+};
+
 class GSolidBrush : public GBrush
 {
 	COLOUR c32;

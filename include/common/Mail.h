@@ -753,7 +753,7 @@ public:
 class MailImapFolder
 {
 	friend class MailIMap;
-	friend class ImapThreadPrivate;
+	friend struct ImapThreadPrivate;
 
 	char Sep;
 	char *Path;

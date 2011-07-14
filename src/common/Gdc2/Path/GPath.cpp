@@ -2419,3 +2419,52 @@ void GRadialBlendBrush::Rop(GRopArgs &Args)
 		}
 	}
 }
+
+//////////////////////////////////////////////
+void GEraseBrush::Rop(GRopArgs &Args)
+{
+	uchar *DivLut = Div255Lut;
+	uchar *r = Args.Alpha;
+
+	switch (Args.Bits)
+	{
+		case 24:
+		{
+			/*
+			Pixel24 *d = (Pixel24*) Args.Pixels;
+			Pixel24 *end = (Pixel24*) ((uint8*)d + (Args.Len * Pixel24::Size));
+
+			while (d < end)
+			{
+				uchar sa = AlphaLut[*r++];
+				if (sa == 255)
+				{
+					*d = s;
+				}
+				else if (sa)
+				{
+					uchar o = 0xff - sa;
+					NonPreMulOver24(r);
+					NonPreMulOver24(g);
+					NonPreMulOver24(b);
+				}
+
+				d = d->Next();
+			}
+			*/
+			break;
+		}
+		case 32:
+		{
+			Pixel32 *d = (Pixel32*) Args.Pixels;
+			Pixel32 *end = d + Args.Len;
+
+			while (d < end)
+			{
+				d->a = DivLut[d->a * (255 - AlphaLut[*r++])];
+				d++;
+			}
+			break;
+		}
+	}
+}
