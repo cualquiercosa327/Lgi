@@ -869,7 +869,7 @@ void GXmlTag::ParseAttribute(GXmlTree *Tree, GXmlAlloc *Alloc, char *&t, bool &N
 			(
 				isalpha(*t) ||
 				isdigit(*t) ||
-				strchr("-._:", *t) != 0
+				strchr("-._:()", *t) != 0
 			)
 		)
 		{
