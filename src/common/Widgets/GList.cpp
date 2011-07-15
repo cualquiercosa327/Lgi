@@ -1555,8 +1555,11 @@ void GList::OnItemSelect(GArray<GListItem*> &It)
 				{
 					if (i->d->Selected)
 					{
+					    /*
 						i->d->Selected = false;
 						i->Update();
+						*/
+						i->Select(false);
 					}
 				}
 			}
