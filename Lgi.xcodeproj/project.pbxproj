@@ -91,6 +91,7 @@
 		345F9C2308F0F622007DAFE2 /* GView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 345F9C2208F0F622007DAFE2 /* GView.cpp */; };
 		34637EBA0F876EB1005A9B80 /* GDateTime.h in Headers */ = {isa = PBXBuildFile; fileRef = 34637EB90F876EB1005A9B80 /* GDateTime.h */; };
 		3465BDD908C5DEC100B4C217 /* GContainers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3465BDD808C5DEC100B4C217 /* GContainers.cpp */; };
+		34661C7913C7407000B4C2A7 /* GUtf8.h in Headers */ = {isa = PBXBuildFile; fileRef = 34661C7813C7407000B4C2A7 /* GUtf8.h */; };
 		34666FFF0D323C4F00E80BC9 /* GThreadCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34666FFE0D323C4F00E80BC9 /* GThreadCommon.cpp */; };
 		3476680F093F1FD400623A44 /* LgiInterfaces.h in Headers */ = {isa = PBXBuildFile; fileRef = 3476680E093F1FD400623A44 /* LgiInterfaces.h */; };
 		34766828093F207D00623A44 /* GFile.h in Headers */ = {isa = PBXBuildFile; fileRef = 34766827093F207D00623A44 /* GFile.h */; };
@@ -247,6 +248,7 @@
 		345F9C2208F0F622007DAFE2 /* GView.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GView.cpp; path = src/mac/Lgi/GView.cpp; sourceTree = "<group>"; };
 		34637EB90F876EB1005A9B80 /* GDateTime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GDateTime.h; path = include/common/GDateTime.h; sourceTree = "<group>"; };
 		3465BDD808C5DEC100B4C217 /* GContainers.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GContainers.cpp; path = src/common/General/GContainers.cpp; sourceTree = "<group>"; };
+		34661C7813C7407000B4C2A7 /* GUtf8.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GUtf8.h; path = include/common/GUtf8.h; sourceTree = "<group>"; };
 		34666FFE0D323C4F00E80BC9 /* GThreadCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GThreadCommon.cpp; path = src/common/General/GThreadCommon.cpp; sourceTree = "<group>"; };
 		3476680E093F1FD400623A44 /* LgiInterfaces.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LgiInterfaces.h; path = include/common/LgiInterfaces.h; sourceTree = "<group>"; };
 		34766827093F207D00623A44 /* GFile.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GFile.h; path = include/common/GFile.h; sourceTree = "<group>"; };
@@ -556,6 +558,7 @@
 		344B738308D8409900D49457 /* Text */ = {
 			isa = PBXGroup;
 			children = (
+				34661C7813C7407000B4C2A7 /* GUtf8.h */,
 				3413BBC11349EC6900AE15B0 /* GXmlTree.h */,
 				34B4A52F0C059A2100CDD0D1 /* GUtf8.cpp */,
 				34B9545C0939DB5A00477A2D /* GString.h */,
@@ -816,6 +819,7 @@
 				34A8A3BD1303408000CAA8DF /* GPopup.h in Headers */,
 				3413BBC21349EC6900AE15B0 /* GXmlTree.h in Headers */,
 				34BC1E1F134DC748005451EE /* Res.h in Headers */,
+				34661C7913C7407000B4C2A7 /* GUtf8.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -848,6 +852,7 @@
 			isa = PBXProject;
 			buildConfigurationList = 34BA94DB0B33ADB400493CD3 /* Build configuration list for PBXProject "Lgi" */;
 			compatibilityVersion = "Xcode 2.4";
+			developmentRegion = English;
 			hasScannedForEncodings = 1;
 			knownRegions = (
 				English,

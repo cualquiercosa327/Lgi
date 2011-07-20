@@ -888,6 +888,8 @@ void GToolButton::OnPaint(GSurface *pDC)
 			}
 
 			pDC->Colour(Grey, 24);
+			printf("BackgroundBtn=%x\n", Grey);
+			
 			pDC->Rectangle(&p);
 			pDC->ClipRgn(&p);
 
@@ -1487,9 +1489,12 @@ void GToolBar::_BuildCache(GImageList *From)
 			if (d->pColour &&
 				d->pColour->Create(From->X(), From->Y(), Bits))
 			{
-				d->pColour->Colour(LC_MED, 24);
+				GColour c(0x808080, 24);
+				d->pColour->Colour(c);
+				printf("CacheBtn=%x\n", c.c24());
 				d->pColour->Rectangle();
 
+				/*
 				if (Bits == 32)
 				{
 					d->pColour->Op(GDC_ALPHA);
@@ -1502,6 +1507,7 @@ void GToolBar::_BuildCache(GImageList *From)
 						From->Draw(d->pColour, i * From->TileX(), 0, i);
 					}
 				}
+				*/
 			}
 
 			d->pDisabled = new GMemDC;

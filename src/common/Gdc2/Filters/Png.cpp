@@ -80,8 +80,6 @@ public:
 		(
 			#if defined(__CYGWIN__)
 			"cygpng12"
-			#elif defined(MAC)
-			"libPng12"
 			#else
 			"libpng"
 			#endif
@@ -89,9 +87,16 @@ public:
 	{
 		if (!IsLoaded())
 		{
-			if (!Load("libPng"))
+			#if 1
+			if (!Load("/opt/local/lib/libpng.dylib"))
+			#endif
 			{
-				LgiTrace("%s:%i - libpng didn't load\n", _FL);
+				static bool First = true;
+				if (First)
+				{
+					LgiTrace("%s:%i - Failed to load libpng.\n", _FL);
+					First = false;
+				}
 			}
 		}
 		else
@@ -566,7 +571,7 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 							if (TestFlag(info_ptr->valid, PNG_INFO_tRNS))
 							{
 								if (info_ptr->num_trans > 0 &&
-									info_ptr->trans)
+									info_ptr->trans_alpha)
 								{
 									pDC->HasAlpha(true);
 									GSurface *Alpha = pDC->AlphaDC();
@@ -580,7 +585,7 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 											{
 												if (p[x] < info_ptr->num_trans)
 												{
-													a[x] = info_ptr->trans[p[x]];
+													a[x] = info_ptr->trans_alpha[p[x]];
 												}
 												else
 												{
@@ -878,7 +883,7 @@ bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 							
 							info_ptr->num_trans = 256;
 							info_ptr->valid |= PNG_INFO_tRNS;
-							info_ptr->trans = Trans;
+							info_ptr->trans_alpha = Trans;
 						}
 						break;
 					}

@@ -32,6 +32,7 @@ public:
 	DragTrackingHandlerUPP TrackingHandler;
 	DragReceiveHandlerUPP ReceiveHandler;
 	uint64 LastMinimize;
+	bool CloseRequestDone;
 
 	GMenu *EmptyMenu;
 
@@ -50,6 +51,7 @@ public:
 		SnapToEdge = false;
 		ZeroObj(LastKey);
 		EmptyMenu = 0;
+		CloseRequestDone = false;
 	}
 	
 	~GWindowPrivate()
@@ -140,6 +142,11 @@ GWindow::~GWindow()
 	DeleteObj(Menu);
 	DeleteObj(d);
 	DeleteObj(_Lock);
+}
+
+bool &GWindow::CloseRequestDone()
+{
+	return d->CloseRequestDone;
 }
 
 OSErr GWindowTrackingHandler(	DragTrackingMessage message,
@@ -720,8 +727,10 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 						}
 						else if (command.commandID == kHICommandClose)
 						{
-							if (v->OnRequestClose(false))
+							GWindow *w = dynamic_cast<GWindow*>(v);
+							if (w && (w->CloseRequestDone() || w->OnRequestClose(false)))
 							{
+								w->CloseRequestDone() = true;
 								DeleteObj(v);
 							}
 							result = noErr;
@@ -755,8 +764,10 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 				}
 				case kEventWindowClose:
 				{
-					if (v->OnRequestClose(false))
+					GWindow *w = dynamic_cast<GWindow*>(v);
+					if (w && (w->CloseRequestDone() || w->OnRequestClose(false)))
 					{
+						w->CloseRequestDone() = true;
 						DeleteObj(v);
 					}
 					
@@ -1439,8 +1450,9 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 		tolower(k.c16) == 'w')
 	{
 		// Close
-		if (OnRequestClose(false))
+		if (d->CloseRequestDone || OnRequestClose(false))
 		{
+			d->CloseRequestDone = true;
 			delete this;
 			return true;
 		}
@@ -1924,8 +1936,9 @@ int GWindow::OnEvent(GMessage *m)
 	{
 		case M_CLOSE:
 		{
-			if (OnRequestClose(false))
+			if (d->CloseRequestDone || OnRequestClose(false))
 			{
+				d->CloseRequestDone = true;
 				Quit();
 				return 0;
 			}

@@ -1357,6 +1357,7 @@ public:
 	
 	#if defined MAC
 	
+	bool &CloseRequestDone();
 	bool PostEvent(int Cmd, GMessage::Param a = 0, GMessage::Param b = 0);
 	void Quit(bool DontDelete = false);
 	OSErr HandlerCallback(DragTrackingMessage *tracking, DragRef theDrag);

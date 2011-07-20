@@ -309,7 +309,7 @@ bool GTrayIcon::Load(const TCHAR *Str)
 	#else
 
 	// FIXME
-	LgiAssert(0);
+	#error "Impl me"
 	
 	#endif
 
@@ -483,6 +483,8 @@ void GTrayIcon::Value(int64 v)
 				GMemDC m;
 				if (m.Create(t->X()*4, t->Y()*4, 32))
 				{
+					printf("m %i,%i, dc %i,%i\n", m.X(), m.Y(), Dc.X(), Dc.Y());
+					
 					double Sx = 0.25;
 					double Sy = 0.25;
 					for (int y=0; y<m.Y(); y++)
@@ -499,10 +501,14 @@ void GTrayIcon::Value(int64 v)
 					
 					Dc.Blt(Dc.X()-m.X()-1, Dc.Y()-m.Y()-1, &m);
 				}
+				else
+				{
+					LgiAssert(!"Failed to create memory bitmap");
+				}
+
+				CGContextFlush(c);
+				EndCGContextForApplicationDockTile(c);
 			}
-			
-			CGContextFlush(c);
-			EndCGContextForApplicationDockTile(c);
 		}
 		else
 		{

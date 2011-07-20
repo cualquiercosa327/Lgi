@@ -48,79 +48,57 @@ void OsAppArguments::Set(char *CmdLine)
 	GArray<char> Raw;
 	GArray<int> Offsets;
 
-// printf("%s:%i - SetArgs\n", _FL);
-
 	char Exe[256];
 	Offsets.Add(0);
 	if (LgiGetExeFile(Exe, sizeof(Exe)))
 	{
 		int Len = strlen(Exe);
-// printf("%s:%i - SetArgs len=%i\n", _FL, Len);
 		Raw.Length(Len + 1);
-// printf("%s:%i - SetArgs Exe='%s'\n", _FL, Exe);
 		strcpy(&Raw[0], Exe);
-// printf("%s:%i - SetArgs\n", _FL);
 	}
 	else
 	{
-// printf("%s:%i - SetArgs\n", _FL);
 		Raw.Add(0);
 	}
 
-// printf("%s:%i - SetArgs CmdLine=%p\n", _FL, CmdLine);
 	if (CmdLine)
 	{
-// printf("%s:%i - SetArgs CmdLine='%s'\n", _FL, CmdLine);
 		for (char *s = CmdLine; *s; )
 		{
-// printf("%s:%i - SetArgs s='%s' (%i)\n", _FL, s, s - CmdLine);
 			while (*s && strchr(WhiteSpace, *s)) s++;
 			char *e;
 			if (*s == '\'' || *s == '\"')
 			{
 				char delim = *s++;
-// printf("%s:%i - SetArgs delim=%c\n", _FL, delim);
 				Offsets.Add(Raw.Length());
-// printf("%s:%i - SetArgs\n", _FL);
 				e = s;
 				while (*e && *e != delim)
 				{
 					Raw.Add(*e++);
 				}
-// printf("%s:%i - SetArgs e='%s'\n", _FL, e);
 				Raw.Add(0);
 			}
 			else
 			{
-// printf("%s:%i - SetArgs\n", _FL);
 				Offsets.Add(Raw.Length());
-// printf("%s:%i - SetArgs\n", _FL);
 				for (e = s; *e && !strchr(WhiteSpace, *e); e++)
 				{
 					Raw.Add(*e);
 				}
-// printf("%s:%i - SetArgs e='%s'\n", _FL, e);
 				Raw.Add(0);
 			}
-// printf("%s:%i - SetArgs\n", _FL);
 			s = *e ? e + 1 : e;
-// printf("%s:%i - SetArgs s='%s' (%i)\n", _FL, s, s - CmdLine);
 		}
 	}
 
-// printf("%s:%i - SetArgs\n", _FL);
 	d->Str.Reset(Raw.Release());
-// printf("%s:%i - SetArgs Offsets=%i\n", _FL, Offsets.Length());
 	for (int n=0; n<Offsets.Length(); n++)
 	{
 		d->Ptr[n] = d->Str + Offsets[n];
 	}
-// printf("%s:%i - SetArgs\n", _FL);
 	
 	Args = d->Ptr.Length();
-// printf("%s:%i - SetArgs\n", _FL);
 	Arg = &d->Ptr[0];
-// printf("%s:%i - SetArgs\n", _FL);
 }
 
 OsAppArguments &OsAppArguments::operator =(OsAppArguments &a)
@@ -558,11 +536,11 @@ GApp *GApp::ObjInstance()
 
 bool GApp::IsOk()
 {
-	bool Status = 	(this != 0) AND
+	bool Status = 	(this != 0) &&
 					(d != 0)
 					/*
 					#ifdef XWIN
-					AND (XDisplay() != 0)
+					&& (XDisplay() != 0)
 					#endif
 					*/
 					;
@@ -676,54 +654,27 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 	{
 		OnCommandLine();
 		
-		#if 0
+		EventLoopTimerRef timer;
+		IdleGluePtrs Ptrs;
 		if (IdleCallback)
 		{
-			while (true)
-			{
-				OSStatus e = ReceiveNextEvent(	0,
-												NULL,
-												0.1, // kEventDurationForever,
-												true,
-												&theEvent);
-				if (e == noErr)
-				{
-					SendEventToEventTarget (theEvent, theTarget);
-					ReleaseEvent(theEvent);
-				}
-				else if (e == eventLoopQuitErr)
-				{
-					break;
-				}
-				else if (e == eventLoopTimedOutErr)
-				{
-					IdleCallback(IdleParam);
-				}
-				else
-				{
-					printf("e = %i???\n", e);
-				}
-			}
+			Ptrs.Callback = IdleCallback;
+			Ptrs.Param = IdleParam;
+			InstallEventLoopTimer(	GetCurrentEventLoop(),
+									0,
+									kEventDurationSecond / 10,
+									NewEventLoopTimerUPP(IdleGlue),
+									&Ptrs,
+									&timer);
 		}
-		else
-		#endif
+		
+		do
 		{
-			EventLoopTimerRef timer;
-			IdleGluePtrs Ptrs;
-			if (IdleCallback)
-			{
-				Ptrs.Callback = IdleCallback;
-				Ptrs.Param = IdleParam;
-				InstallEventLoopTimer(	GetCurrentEventLoop(),
-										0,
-										kEventDurationSecond / 10,
-										NewEventLoopTimerUPP(IdleGlue),
-										&Ptrs,
-										&timer);
-			}
-			
 			RunApplicationEventLoop();
 		}
+		while (AppWnd &&
+			   !AppWnd->CloseRequestDone() &&
+			   !AppWnd->OnRequestClose(false));
 	}
 	else
 	{
@@ -773,7 +724,7 @@ void GApp::OnReceiveFiles(GArray<char*> &Files)
 
 GXmlTag *GApp::GetConfig(const char *Tag)
 {
-	if (IsOk() AND !d->Config)
+	if (IsOk() && !d->Config)
 	{
 		char File[] = "lgi.conf";
 		char Path[256];
@@ -781,18 +732,6 @@ GXmlTag *GApp::GetConfig(const char *Tag)
 		{
 			if (Path[strlen(Path)-1] != DIR_CHAR) strcat(Path, DIR_STR);
 			strcat(Path, File);
-
-			/*
-			if (NOT FileExists(Path))
-			{
-				char *f = LgiFindFile(File);
-				if (f)
-				{
-					strcpy(Path, f);
-					DeleteArray(f);
-				}
-			}
-			*/
 
 			if (FileExists(Path))
 			{
@@ -815,7 +754,7 @@ GXmlTag *GApp::GetConfig(const char *Tag)
 		}
 	}
 
-	if (Tag AND d->Config)
+	if (Tag && d->Config)
 	{
 		return d->Config->GetTag(Tag);
 	}
@@ -825,7 +764,7 @@ GXmlTag *GApp::GetConfig(const char *Tag)
 
 void GApp::SetConfig(GXmlTag *Tag)
 {
-	if (IsOk() AND Tag)
+	if (IsOk() && Tag)
 	{
 		GXmlTag *Old = GetConfig(Tag->Tag);
 		if (Old)
@@ -847,7 +786,7 @@ void GApp::SetConfig(GXmlTag *Tag)
 
 char *GApp::GetArgumentAt(int n)
 {
-	return n >= 0 AND n < d->Args.Args ? d->Args.Arg[n] : 0;
+	return n >= 0 && n < d->Args.Args ? d->Args.Arg[n] : 0;
 }
 
 bool GApp::GetOption(const char *Option, char *Dest, int DestLen)
@@ -864,7 +803,7 @@ bool GApp::GetOption(const char *Option, char *Dest, int DestLen)
 
 bool GApp::GetOption(const char *Option, GAutoString &Buf)
 {
-	if (IsOk() AND Option)
+	if (IsOk() && Option)
 	{
 		int OptLen = strlen(Option);
 		for (int i=1; i<d->Args.Args; i++)
