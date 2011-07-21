@@ -888,8 +888,6 @@ void GToolButton::OnPaint(GSurface *pDC)
 			}
 
 			pDC->Colour(Grey, 24);
-			printf("BackgroundBtn=%x\n", Grey);
-			
 			pDC->Rectangle(&p);
 			pDC->ClipRgn(&p);
 

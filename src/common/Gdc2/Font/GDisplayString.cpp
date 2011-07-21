@@ -191,14 +191,16 @@ void GDisplayString::Layout()
 		OSStatus e = ATSUSetTextPointerLocation(Hnd, Str, 0, len, len);
 		if (e)
 		{
-			printf("%s:%i - ATSUSetTextPointerLocation failed with errorcode %i (%S)\n", _FL, (int)e, Str);
+			GAutoString a(LgiNewUtf16To8(Str));
+			printf("%s:%i - ATSUSetTextPointerLocation failed with errorcode %i (%s)\n", _FL, (int)e, a.Get());
 		}
 		else
 		{
 			e = ATSUSetRunStyle(Hnd, Font->Handle(), 0, len);
 			if (e)
 			{
-				printf("%s:%i - ATSUSetRunStyle failed with errorcode %i (%S)\n", _FL, (int)e, Str);
+				GAutoString a(LgiNewUtf16To8(Str));
+				printf("%s:%i - ATSUSetRunStyle failed with errorcode %i (%s)\n", _FL, (int)e, a.Get());
 			}
 			else
 			{
@@ -301,7 +303,8 @@ void GDisplayString::Layout()
 												&fDescent);
 				if (e)
 				{
-					printf("%s:%i - ATSUGetUnjustifiedBounds failed with errorcode %i (%S)\n", __FILE__, __LINE__, (int)e, Str);
+					GAutoString a(LgiNewUtf16To8(Str));
+					printf("%s:%i - ATSUGetUnjustifiedBounds failed with errorcode %i (%s)\n", __FILE__, __LINE__, (int)e, a.Get());
 				}
 				else
 				{
@@ -958,7 +961,8 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 				}
 				if (e)
 				{
-					printf("%s:%i - ATSUDrawText failed with %i, len=%i, str=%.20S\n", __FILE__, __LINE__, (int)e, len, Str);
+					GAutoString a(LgiNewUtf16To8(Str));
+					printf("%s:%i - ATSUDrawText failed with %i, len=%i, str=%.20s\n", __FILE__, __LINE__, (int)e, len, a.Get());
 				}
 				else
 				{
