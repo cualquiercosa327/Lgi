@@ -1303,6 +1303,7 @@ bool LgiResources::LoadDialog(int Resource, GViewI *Parent, GRect *Pos, GAutoStr
 				}
 
 				Status = true;
+				break;
 			}
 		}
 	}

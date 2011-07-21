@@ -82,6 +82,12 @@ public:
 			"cygpng12"
 			#else
 			"libpng"
+            #if defined(WIN64)
+            "64"
+            #endif
+			#if defined(_MSC_VER) && defined(_DEBUG)
+			"d"
+			#endif
 			#endif
 		)
 	{
@@ -199,7 +205,59 @@ public:
 				png_charp, profile,
 				png_uint_32, proflen);
 
+
+    DynFunc5(   png_uint_32,
+                png_get_tRNS,
+                png_const_structp, png_ptr,
+                png_infop, info_ptr,
+                png_bytep*, trans_alpha,
+                int*, num_trans,
+                png_color_16p*, trans_color);
+
+    DynFunc3(   png_uint_32,
+                png_get_valid,
+                png_const_structp, png_ptr,
+                png_const_infop, info_ptr,
+                png_uint_32, flag);
+
+
+    DynFunc4(   png_uint_32,
+                png_get_PLTE,
+                png_const_structp, png_ptr,
+                png_const_infop, info_ptr,
+                png_colorp*, palette,
+                int*, num_palette);
+
+    DynFunc2(   png_uint_32,
+                png_get_image_width,
+                png_const_structp, png_ptr,
+                png_const_infop, info_ptr);
+
+    DynFunc2(   png_uint_32,
+                png_get_image_height,
+                png_const_structp, png_ptr,
+                png_const_infop, info_ptr);
+
+    DynFunc2(   png_byte,
+                png_get_channels,
+                png_const_structp, png_ptr,
+                png_const_infop, info_ptr);
+
+    DynFunc2(   png_byte,
+                png_get_bit_depth,
+                png_const_structp, png_ptr,
+                png_const_infop, info_ptr);
+
+    DynFunc1(   png_voidp,
+                png_get_error_ptr,
+                png_const_structp, png_ptr);
+
+    DynFunc1(   png_voidp,
+                png_get_io_ptr,
+                png_const_structp, png_ptr);
 };
+
+static LibPng *CurrentLibPng = 0;
 
 class GdcPng : public GFilter, public LibPng
 {
@@ -280,7 +338,7 @@ GdcPng::~GdcPng()
 
 void PNGAPI LibPngError(png_structp Png, png_const_charp Msg)
 {
-	GdcPng *This = (GdcPng*)Png->error_ptr;
+	GdcPng *This = (GdcPng*)CurrentLibPng->png_get_error_ptr(Png);
 	if (This)
 	{
 		printf("Libpng Error Message='%s'\n", Msg);
@@ -303,7 +361,7 @@ void PNGAPI LibPngWarning(png_structp Png, png_const_charp Msg)
 
 void PNGAPI LibPngRead(png_structp Png, png_bytep Ptr, png_size_t Size)
 {
-	GStream *s = (GStream*)Png->io_ptr;
+	GStream *s = (GStream*)CurrentLibPng->png_get_io_ptr(Png);
 	if (s)
 	{
 		s->Read(Ptr, Size);
@@ -323,12 +381,14 @@ struct PngWriteInfo
 
 void PNGAPI LibPngWrite(png_structp Png, png_bytep Ptr, png_size_t Size)
 {
-	PngWriteInfo *i = (PngWriteInfo*)Png->io_ptr;
+	PngWriteInfo *i = (PngWriteInfo*)CurrentLibPng->png_get_io_ptr(Png);
 	if (i)
 	{
 		i->s->Write(Ptr, Size);
+		/*
 		if (i->m)
 			i->m->Value(Png->flush_rows);
+		*/
 	}
 	else
 	{
@@ -341,6 +401,7 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 {
 	bool Status = false;
 
+    CurrentLibPng = this;
 	Pos = 0;
 	pDC = pDeviceContext;
 	DeleteArray(PrevScanLine);
@@ -376,6 +437,7 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 			{
 				png_set_read_fn(png_ptr, In, LibPngRead);
 
+				#if 0 // What was this for again?
 				int off = (char*)&png_ptr->io_ptr - (char*)png_ptr;
 				if (!png_ptr->io_ptr)
 				{
@@ -383,16 +445,18 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 					LgiAssert(0);
 					return false;
 				}
+				#endif
 
 				png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_BGR, 0);
 				png_bytepp Scan0 = png_get_rows(png_ptr, info_ptr);
 				if (Scan0)
 				{
-					int FinalBits = info_ptr->bit_depth == 16 ? 8 : info_ptr->bit_depth;
-					int RequestBits = FinalBits * info_ptr->channels;
+				    int BitDepth = png_get_bit_depth(png_ptr, info_ptr);
+					int FinalBits = BitDepth == 16 ? 8 : BitDepth;
+					int RequestBits = FinalBits * png_get_channels(png_ptr, info_ptr);
 				
-					if (!pDC->Create(	info_ptr->width,
-										info_ptr->height,
+					if (!pDC->Create(	png_get_image_width(png_ptr, info_ptr),
+										png_get_image_height(png_ptr, info_ptr),
 										#ifdef MAC
 										RequestBits == 24 ? 32 :
 										#endif
@@ -400,15 +464,15 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 					{
 						printf("%s:%i - GMemDC::Create(%i, %i, %i) failed.\n",
 								_FL,
-								info_ptr->width,
-								info_ptr->height,
+								png_get_image_width(png_ptr, info_ptr),
+								png_get_image_height(png_ptr, info_ptr),
 								RequestBits);
 					}
 					else
 					{
 						// Copy in the scanlines
 						int ActualBits = pDC->GetBits();
-						int ScanLen = info_ptr->width * ActualBits / 8;
+						int ScanLen = png_get_image_width(png_ptr, info_ptr) * ActualBits / 8;
 						for (int y=0; y<pDC->Y(); y++)
 						{
 							uchar *Scan = (*pDC)[y];
@@ -439,7 +503,7 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 								{
 								    if (pDC->GetBits() == 32)
 								    {
-									    if (info_ptr->bit_depth == 16)
+									    if (png_get_bit_depth(png_ptr, info_ptr) == 16)
 									    {
 										    Pixel32 *o = (Pixel32*)Scan;
 										    Png48 *i = (Png48*)Scan0[y];
@@ -474,7 +538,7 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 								    }
 								    else if (pDC->GetBits() == 24)
 								    {
-									    if (info_ptr->bit_depth == 16)
+									    if (png_get_bit_depth(png_ptr, info_ptr) == 16)
 									    {
 										    Pixel24 *o = (Pixel24*)Scan;
 										    Png48 *i = (Png48*)Scan0[y];
@@ -510,7 +574,7 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 								}
 								case 32:
 								{
-									if (info_ptr->bit_depth == 16)
+									if (png_get_bit_depth(png_ptr, info_ptr) == 16)
 									{
 										Pixel32 *o = (Pixel32*)Scan;
 										Png64 *i = (Png64*)Scan0[y];
@@ -552,26 +616,33 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 						if (ActualBits <= 8)
 						{
 							// Copy in the palette
-							GPalette *Pal = new GPalette(0, info_ptr->num_palette);
-							if (Pal)
+							png_colorp pal;
+							int num_pal = 0;
+							if (png_get_PLTE(png_ptr, info_ptr, &pal, &num_pal) == PNG_INFO_PLTE)
 							{
-								for (int i=0; i<info_ptr->num_palette; i++)
-								{
-									GdcRGB *Rgb = (*Pal)[i];
-									if (Rgb)
-									{
-										Rgb->R = info_ptr->palette[i].red;
-										Rgb->G = info_ptr->palette[i].green;
-										Rgb->B = info_ptr->palette[i].blue;
-									}
-								}
-								pDC->Palette(Pal, true);
+							    GPalette *Pal = new GPalette(0, num_pal);
+							    if (Pal)
+							    {
+								    for (int i=0; i<num_pal; i++)
+								    {
+									    GdcRGB *Rgb = (*Pal)[i];
+									    if (Rgb)
+									    {
+										    Rgb->R = pal[i].red;
+										    Rgb->G = pal[i].green;
+										    Rgb->B = pal[i].blue;
+									    }
+								    }
+								    pDC->Palette(Pal, true);
+							    }
 							}
 
-							if (TestFlag(info_ptr->valid, PNG_INFO_tRNS))
+							if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
 							{
-								if (info_ptr->num_trans > 0 &&
-									info_ptr->trans_alpha)
+							    png_bytep trans_alpha;
+							    png_color_16p trans_color;
+							    int num_trans;
+                                if (png_get_tRNS(png_ptr, info_ptr, &trans_alpha, &num_trans, &trans_color))
 								{
 									pDC->HasAlpha(true);
 									GSurface *Alpha = pDC->AlphaDC();
@@ -583,9 +654,9 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 											uchar *p = (*pDC)[y];
 											for (int x=0; x<Alpha->X(); x++)
 											{
-												if (p[x] < info_ptr->num_trans)
+												if (p[x] < num_trans)
 												{
-													a[x] = info_ptr->trans_alpha[p[x]];
+													a[x] = trans_alpha[p[x]];
 												}
 												else
 												{
@@ -639,6 +710,8 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 {
 	bool Status = false;
+	
+	#if 0
 	GVariant Transparent;
 	bool HasTransparency = false;
 	COLOUR Back = 0;
@@ -747,7 +820,7 @@ bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 				WriteInfo.m = Meter;
 				png_set_write_fn(png_ptr, &WriteInfo, LibPngWrite, 0);
 
-				info_ptr->width = pDC->X();
+				png_set_image_width(png_ptr, info_ptr, pDC->X());
 				info_ptr->height = pDC->Y();
 				info_ptr->rowbytes = (char*)(*pDC)[1] - (char*)(*pDC)[0];
 				info_ptr->compression_type = PNG_COMPRESSION_TYPE_BASE;
@@ -1101,6 +1174,7 @@ bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 			png_destroy_write_struct(&png_ptr, &info_ptr);
 		}
 	}
+	#endif
 
 	return Status;
 }
