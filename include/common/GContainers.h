@@ -150,7 +150,11 @@ public:
 	{
 		for (Type *o=(Type*)DLinkList::First(); o; o=(Type*)DLinkList::Next())
 		{
+			#if defined(_MSC_VER) && _MSC_VER <= 1200
+			delete [] (void*)o;
+			#else
 			delete [] o;
+			#endif
 		}
 		DLinkList::Empty();
 	}

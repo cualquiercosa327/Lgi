@@ -2450,7 +2450,7 @@ bool GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &In)
 				#endif
 				uint32 r = 0;
 
-				#if defined(_MSC_VER)
+				#if defined(_MSC_VER) && !defined(WIN64)
 				_asm
 				{
 					mov ecx, a
