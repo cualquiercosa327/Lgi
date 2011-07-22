@@ -255,6 +255,26 @@ public:
     DynFunc1(   png_voidp,
                 png_get_io_ptr,
                 png_const_structp, png_ptr);
+
+    DynFunc9(   int,
+                png_set_IHDR,
+                png_structp, png_ptr,
+                png_infop, info_ptr,
+                png_uint_32, width, png_uint_32, height,
+                int, bit_depth, int, color_type,
+                int, interlace_method, int, compression_method,
+                int, filter_method);
+
+    DynFunc4(   int,
+                png_set_PLTE,
+                png_structp, png_ptr, png_infop, info_ptr,
+                png_const_colorp, palette, int, num_palette);
+
+    DynFunc5(   int,
+                png_set_tRNS,
+                png_structp, png_ptr, png_infop, info_ptr,
+                png_const_bytep, trans_alpha, int, num_trans,
+                png_const_color_16p, trans_color);
 };
 
 static LibPng *CurrentLibPng = 0;
@@ -711,7 +731,6 @@ bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 {
 	bool Status = false;
 	
-	#if 0
 	GVariant Transparent;
 	bool HasTransparency = false;
 	COLOUR Back = 0;
@@ -819,15 +838,35 @@ bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 				WriteInfo.s = Out;
 				WriteInfo.m = Meter;
 				png_set_write_fn(png_ptr, &WriteInfo, LibPngWrite, 0);
+				
+				// png_set_write_status_fn(png_ptr, write_row_callback);
 
-				png_set_image_width(png_ptr, info_ptr, pDC->X());
-				info_ptr->height = pDC->Y();
-				info_ptr->rowbytes = (char*)(*pDC)[1] - (char*)(*pDC)[0];
-				info_ptr->compression_type = PNG_COMPRESSION_TYPE_BASE;
-				info_ptr->filter_type = PNG_FILTER_TYPE_BASE;
-				info_ptr->interlace_type = PNG_INTERLACE_NONE;
-				info_ptr->pixel_depth = pDC->GetBits();
+                int ColourType;
+                if (pDC->GetBits() <= 8)
+                {
+                    if (pDC->Palette())
+                        ColourType = PNG_COLOR_TYPE_PALETTE;
+                    else
+                        ColourType = PNG_COLOR_TYPE_GRAY;
+                }
+                else if (pDC->GetBits() == 32 || pDC->AlphaDC())
+                {
+                    ColourType = PNG_COLOR_TYPE_RGB_ALPHA;
+                }
+                else
+                {
+                    ColourType = PNG_COLOR_TYPE_RGB;
+                }
 
+                png_set_IHDR(png_ptr,
+                            info_ptr,
+                            pDC->X(), pDC->Y(),
+                            pDC->GetBits(),
+                            ColourType,
+                            PNG_INTERLACE_NONE,
+                            PNG_COMPRESSION_TYPE_DEFAULT,
+                            PNG_FILTER_TYPE_DEFAULT);
+                            
 				if (ColProfile.Type == GV_BINARY)
 				{
 					png_set_iCCP(png_ptr,
@@ -904,40 +943,36 @@ bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 				{
 					case 8:
 					{
-						info_ptr->bit_depth = 8;
-						info_ptr->channels = 1;
-						info_ptr->color_type = PNG_COLOR_TYPE_PALETTE;
-
 						// Output the palette
 						GPalette *Pal = pDC->Palette();
 						if (Pal)
 						{
 							int Colours = Pal->GetSize();
-							info_ptr->palette = new png_color_struct[Colours];
-							if (info_ptr->palette)
+							GAutoPtr<png_color> PngPal(new png_color[Colours]);
+							if (PngPal)
 							{
-								info_ptr->valid |= PNG_INFO_PLTE;
-
-								for (int i=0; i<Colours; i++)
-								{
+							    for (int i=0; i<Colours; i++)
+							    {
 									GdcRGB *Rgb = (*Pal)[i];
 									if (Rgb)
 									{
-										info_ptr->palette[i].red = Rgb->R;
-										info_ptr->palette[i].green = Rgb->G;
-										info_ptr->palette[i].blue = Rgb->B;
-									}
-								}
-
-								info_ptr->num_palette = Colours;
-							}
+							            PngPal[i].red = Rgb->R;
+							            PngPal[i].green = Rgb->G;
+							            PngPal[i].blue = Rgb->B;
+							        }
+							    }
+							    
+                                png_set_PLTE(png_ptr,
+                                            info_ptr,
+                                            PngPal,
+                                            Colours);
+       						}
 						}
 						
 						// Copy the pixels
 						for (int y=0; y<pDC->Y(); y++)
 						{
 							uchar *s = (*pDC)[y];
-							// GdcRGB *rgb = Pal ? (*Pal)[0] : 0;
 							Png8 *d = (Png8*) (TempBits + (TempLine * y));
 							for (int x=0; x<pDC->X(); x++)
 							{
@@ -954,18 +989,20 @@ bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 								Trans[n] = Back == n ? 0 : 255;
 							}
 							
-							info_ptr->num_trans = 256;
-							info_ptr->valid |= PNG_INFO_tRNS;
-							info_ptr->trans_alpha = Trans;
+                            png_set_tRNS(png_ptr,
+                                        info_ptr,
+                                        Trans,
+                                        CountOf(Trans),
+                                        0);
 						}
 						break;
 					}
 					case 15:
 					case 16:
 					{
-						info_ptr->bit_depth = 8;
-						info_ptr->channels = 3 + (ExtraAlphaChannel ? 1 : 0);
-						info_ptr->color_type = PNG_COLOR_TYPE_RGB | (KeyAlpha ? PNG_COLOR_MASK_ALPHA : 0);
+						//info_ptr->bit_depth = 8;
+						//info_ptr->channels = 3 + (ExtraAlphaChannel ? 1 : 0);
+						//info_ptr->color_type = PNG_COLOR_TYPE_RGB | (KeyAlpha ? PNG_COLOR_MASK_ALPHA : 0);
 						
 						for (int y=0; y<pDC->Y(); y++)
 						{
@@ -1037,9 +1074,9 @@ bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 					}
 					case 24:
 					{
-						info_ptr->bit_depth = 8;
-						info_ptr->channels = 3 + (KeyAlpha ? 1 : 0);
-						info_ptr->color_type = PNG_COLOR_TYPE_RGB | (KeyAlpha ? PNG_COLOR_MASK_ALPHA : 0);
+						//info_ptr->bit_depth = 8;
+						//info_ptr->channels = 3 + (KeyAlpha ? 1 : 0);
+						//info_ptr->color_type = PNG_COLOR_TYPE_RGB | (KeyAlpha ? PNG_COLOR_MASK_ALPHA : 0);
 
 						for (int y=0; y<pDC->Y(); y++)
 						{
@@ -1076,17 +1113,15 @@ bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 					}
 					case 32:
 					{
-						info_ptr->bit_depth = 8;
-						info_ptr->channels = 3 + (ExtraAlphaChannel ? 1 : 0);
-						info_ptr->color_type = PNG_COLOR_TYPE_RGB | (ExtraAlphaChannel ? PNG_COLOR_MASK_ALPHA : 0);
+						//info_ptr->bit_depth = 8;
+						//info_ptr->channels = 3 + (ExtraAlphaChannel ? 1 : 0);
+						//info_ptr->color_type = PNG_COLOR_TYPE_RGB | (ExtraAlphaChannel ? PNG_COLOR_MASK_ALPHA : 0);
 
 						for (int y=0; y<pDC->Y(); y++)
 						{
 							Pixel32 *s = (Pixel32*) (*pDC)[y];
 							if (ChannelAlpha)
 							{
-								LgiAssert(info_ptr->channels == 4);
-
 								Png32 *d = (Png32*) (TempBits + (TempLine * y));
 								for (int x=0; x<pDC->X(); x++)
 								{
@@ -1100,8 +1135,6 @@ bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 							}
 							else if (KeyAlpha)
 							{
-								LgiAssert(info_ptr->channels == 4);
-
 								Png32 *d = (Png32*) (TempBits + (TempLine * y));
 								Png32 *e = d + pDC->X();
 								while (d < e)
@@ -1129,8 +1162,6 @@ bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 							}
 							else
 							{
-								LgiAssert(info_ptr->channels == 3);
-
 								Png24 *d = (Png24*) (TempBits + (TempLine * y));
 								for (int x=0; x<pDC->X(); x++)
 								{
@@ -1174,7 +1205,6 @@ bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 			png_destroy_write_struct(&png_ptr, &info_ptr);
 		}
 	}
-	#endif
 
 	return Status;
 }
