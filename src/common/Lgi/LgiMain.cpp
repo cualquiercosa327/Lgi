@@ -36,9 +36,9 @@ extern int LgiMain
 bool _BuildCheck()
 {
 	#ifdef _DEBUG
-	char *AppBuild = "Debug";
+	const char *AppBuild = "Debug";
 	#else
-	char *AppBuild = "Release";
+	const char *AppBuild = "Release";
 	#endif
 	char *LgiBuild = (char*) (LgiIsReleaseBuild() ? "Release" : "Debug");
 
