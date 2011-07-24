@@ -44,7 +44,8 @@ RSC=rc.exe
 # PROP Target_Dir ""
 F90=fl32.exe
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "LIBNTLM_EXPORTS" /YX /FD /c
-# ADD CPP /nologo /MT /GX /O2 /I ".." /I "..\build-win32" /I "..\lib" /I "..\..\..\..\..\include\common" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "LIBNTLM_EXPORTS" /D "LGI_STATIC" /YX /FD /c
+# ADD CPP /nologo /MT /GX /O2 /I ".." /I "..\build-win32" /I "..\lib" /I "..\..\..\..\..\include\common" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "LIBNTLM_EXPORTS" /D "LGI_STATIC" /FD /c
+# SUBTRACT CPP /YX
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0xc09 /d "NDEBUG"
@@ -71,7 +72,8 @@ LINK32=link.exe
 # PROP Target_Dir ""
 F90=fl32.exe
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "LIBNTLM_EXPORTS" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /Gm /GX /ZI /Od /I ".." /I "..\build-win32" /I "..\lib" /I "..\..\..\..\..\include\common" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "LIBNTLM_EXPORTS" /D "LGI_STATIC" /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /Gm /GX /Zi /Od /I ".." /I "..\build-win32" /I "..\lib" /I "..\..\..\..\..\include\common" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "LIBNTLM_EXPORTS" /D "LGI_STATIC" /FD /GZ /c
+# SUBTRACT CPP /YX
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0xc09 /d "_DEBUG"
