@@ -186,6 +186,8 @@ struct GGraphPriv
 	void DrawAxis(GSurface *pDC, GRect &r, int xaxis, GVariant &min, GVariant &max)
 	{
 		GVariant v = min;
+		bool First = true;
+		bool Loop = true;
 
 		int x = xaxis ? r.x1 : r.x2;
 		int y = xaxis ? r.y1 : r.y2;
@@ -195,10 +197,71 @@ struct GGraphPriv
 
 		SysFont->Colour(LC_TEXT, LC_WORKSPACE);
 
-		for (int i=0; i<=pixels; )
+		GArray<GVariant> Values;
+		while (Loop)
 		{
-			int dx = x + (xaxis ? i : 0);
-			int dy = y - (xaxis ? 0 : i);
+			Values.Add(v);
+			switch (v.Type)
+			{
+				case GV_DATETIME:
+				{
+					if (First)
+						v.Value.Date->SetTime("0:0:0");
+					v.Value.Date->AddDays(1);
+					Loop = *v.Value.Date < *max.Value.Date;
+					break;
+				}
+				case GV_INT64:
+				{
+					if (First)
+					{
+						int_range = max.CastInt64() - min.CastInt64();
+						int asd=0;
+					}
+
+					LgiAssert(!"Finish this.");
+					break;
+				}
+				case GV_DOUBLE:
+				{
+					if (First)
+					{
+						double dbl_range = max.CastDouble() - min.CastDouble();
+						double rng = dbl_range;
+						int p = 0;
+						while (rng > 10)
+						{
+							p++;
+							rng /= 10;
+						}
+						while (rng < 1)
+						{
+							p--;
+							rng *= 10;
+						}
+						dbl_inc = pow(10, p);
+						int d = (int)((v.CastDouble() + dbl_inc) / dbl_inc);
+						v = (double)d * dbl_inc;
+					}
+					else
+					{
+						v = v.CastDouble() + dbl_inc;
+					}
+					Loop = v.CastDouble() < max.CastDouble();
+					break;
+				}
+			}
+
+			First = false;
+		}
+		Values.Add(max);
+
+		for (int i=0; i<Values.Length(); i++)
+		{
+			v = Values[i];
+			int Offset = Map(v, pixels, min, max);
+			int dx = x + (xaxis ? Offset : 0);
+			int dy = y - (xaxis ? 0 : Offset);
 
 			char s[256];
 			switch (v.Type)
@@ -234,54 +297,6 @@ struct GGraphPriv
 				pDC->Line(dx, dy, dx, dy + 5);
 			else
 				pDC->Line(dx, dy, dx - 5, dy);
-
-			switch (v.Type)
-			{
-				case GV_DATETIME:
-				{
-					if (!i)
-						v.Value.Date->SetTime("0:0:0");
-					v.Value.Date->AddDays(1);
-					int oldi = i;
-					i = Map(v, pixels, min, max);
-					x += i - oldi;
-					break;
-				}
-				case GV_INT64:
-				{
-					if (!i)
-					{
-						int_range = max.CastInt64() - min.CastInt64();
-						int asd=0;
-					}
-
-					LgiAssert(!"Finish this.");
-					break;
-				}
-				case GV_DOUBLE:
-				{
-					if (!i)
-					{
-						double dbl_range = max.CastDouble() - min.CastDouble();
-						int p = 0;
-						while (dbl_range > 10)
-						{
-							p++;
-							dbl_range /= 10;
-						}
-						while (dbl_range < 1)
-						{
-							p--;
-							dbl_range *= 10;
-						}
-						dbl_inc = pow(10, p) / 10;
-					}
-
-					v = v.CastDouble() + dbl_inc;
-					i = Map(v, pixels, min, max);
-					break;
-				}
-			}
 		}
 	}
 };
