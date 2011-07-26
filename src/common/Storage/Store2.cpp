@@ -1255,7 +1255,7 @@ namespace Storage2
 						"\tStart: %u, Len: %u\n"
 						"\tData: %u, Len: %u\n",
 						DescribeType(Item1->Header->Type),
-						Item1->StoreLoc, sizeof(*Item1->Header),
+						Item1->StoreLoc, (unsigned)sizeof(*Item1->Header),
 						Item1->Header->DataLoc, Item1->Header->DataSize);
 			}						
 
@@ -1956,7 +1956,7 @@ bool StorageKitImpl::Compact(Progress *p, bool Interactive, StorageValidator *va
 								else
 								{
 									// read failed
-									sprintf(Msg, "Failed to read from file: %u bytes at position %u.", Chunk, Next->Start);
+									sprintf(Msg, "Failed to read from file: %u bytes at position "LGI_PrintfInt64".", Chunk, Next->Start);
 									break;
 								}
 							}

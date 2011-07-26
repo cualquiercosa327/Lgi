@@ -39,7 +39,7 @@ public:
 				pDC->Colour(p32, 32);
 				pDC->Rectangle(r.x1+1, y+1, r.x1 + 15, y+15);
 				
-				sprintf(s, "%02.2X,%02.2X,%02.2X", R32(p32), G32(p32), B32(p32));
+				sprintf(s, "%2.2X,%2.2X,%2.2X", R32(p32), G32(p32), B32(p32));
 				GDisplayString ds(SysFont, s);
 				ds.Draw(pDC, r.x1 + 20, y + 2);
 			}

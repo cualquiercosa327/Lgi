@@ -2470,7 +2470,7 @@ bool MailPop3::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *P
 						ZeroObj(Digest);
 						MDStringToDigest(Digest, Key);
 						for (int i = 0; i < 16; i++)
-							sprintf(HexDigest + (i*2), "%02.2x", Digest[i]);
+							sprintf(HexDigest + (i*2), "%2.2x", Digest[i]);
 						HexDigest[32] = 0;
 
 						sprintf(Buffer, "APOP %s %s\r\n", user, HexDigest);
@@ -3228,7 +3228,7 @@ int MailMessage::EncodeQuotedPrintable(GStreamI &Out, GStreamI &In)
 
 				if (o == OutBuf)
 				{
-					sprintf(o, "=%02.2X", (uchar)*s);
+					sprintf(o, "=%2.2X", (uchar)*s);
 					o += 3;
 				}
 				else
@@ -3239,7 +3239,7 @@ int MailMessage::EncodeQuotedPrintable(GStreamI &Out, GStreamI &In)
 			else if (*s & 0x80 || *s == '=')
 			{
 				// Require hex encoding of 8-bit chars and the equals itself.
-				sprintf(o, "=%02.2X", (uchar)*s);
+				sprintf(o, "=%2.2X", (uchar)*s);
 				o += 3;
 			}
 			else if (*s != '\r')
@@ -3485,7 +3485,7 @@ bool MailMessage::EncodeHeaders(GStreamI &Out, MailProtocol *Protocol, bool Mime
 	int TimeZone = Dt.SystemTimeZone();
 	Dt.SetNow();
 	sprintf(Buffer,
-			"Date: %s, %i %s %i %i:%02.2i:%02.2i %s%2.2d%2.2d\r\n",
+			"Date: %s, %i %s %i %i:%2.2i:%2.2i %s%2.2d%2.2d\r\n",
 			Weekday[Dt.DayOfWeek()],
 			Dt.Day(),
 			Month[Dt.Month()-1],
@@ -3533,7 +3533,7 @@ bool MailMessage::EncodeHeaders(GStreamI &Out, MailProtocol *Protocol, bool Mime
 	{
 		// X-Color (HTML Colour Ref for email marking)
 		sprintf(Buffer,
-			"X-Color: #%02.2X%02.2X%02.2X\r\n",
+			"X-Color: #%2.2X%2.2X%2.2X\r\n",
 			R24(MarkColour),
 			G24(MarkColour),
 			B24(MarkColour));
@@ -3679,7 +3679,7 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 		int Now = LgiCurrentTime();
 
 		char Separator[256];
-		sprintf(Separator, "----=_NextPart_%08.8X.%08.8X", Now, LgiGetCurrentThread());
+		sprintf(Separator, "----=_NextPart_%8.8X.%8.8X", Now, (unsigned)LgiGetCurrentThread());
 
 		sprintf(Buffer, "MIME-Version: 1.0\r\n");
 		Status &= Out.Write(Buffer, strlen(Buffer)) > 0;

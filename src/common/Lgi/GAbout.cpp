@@ -28,9 +28,9 @@ GAbout::GAbout(	GView *parent,
 	Name(n);
 
 	#ifdef _DEBUG
-	char *Build = "Debug";
+	const char *Build = "Debug";
 	#else
-	char *Build = "Release";
+	const char *Build = "Release";
 	#endif
 
 	GStringPipe p;

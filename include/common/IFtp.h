@@ -62,7 +62,7 @@ public:
 	GDateTime Date;
 
 	IFtpEntry();
-	IFtpEntry(char *Entry, char *Cs);
+	IFtpEntry(char *Entry, const char *Cs);
 	IFtpEntry(IFtpEntry *Entry);
 	virtual ~IFtpEntry();
 
@@ -77,8 +77,8 @@ public:
 	virtual ~IFileProtocol() {}
 
 	// Properties
-	virtual char *GetCharset() = 0;
-	virtual void SetCharset(char *cs) = 0;
+	virtual const char *GetCharset() = 0;
+	virtual void SetCharset(const char *cs) = 0;
 	virtual bool IsForceActive() = 0;
 	virtual void IsForceActive(bool i) = 0;
 	virtual bool IsLongList() = 0;
@@ -158,9 +158,9 @@ public:
 	virtual ~IFtp();
 
 	/// \returns the current charset
-	char *GetCharset();
+	const char *GetCharset();
 	/// Set the charset used for converting ftp listings to local utf
-	void SetCharset(char *cs);
+	void SetCharset(const char *cs);
 	/// \returns the active connections only setting.
 	bool IsForceActive() { return ForceActive; }
 	/// Set the active connections only option

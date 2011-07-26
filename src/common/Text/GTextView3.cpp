@@ -2357,12 +2357,14 @@ bool GTextView3::DoReplace()
 		d->FindReplaceParams->MatchCase = Dlg.MatchCase;
 		d->FindReplaceParams->SelectionOnly = Dlg.SelectionOnly;
 		
+		/*
 		printf("DoReplace '%S'->'%S' %i,%i,%i\n",
 			d->FindReplaceParams->LastFind,
 			d->FindReplaceParams->LastReplace,
 			d->FindReplaceParams->MatchWord,
 			d->FindReplaceParams->MatchCase,
 			d->FindReplaceParams->SelectionOnly);
+		*/
 	}
 
 	switch (Action)

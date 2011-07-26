@@ -156,7 +156,7 @@ class GHashTbl
 		return Used * 100 / Size;
 	}
 
-	bool GetEntry(Key k, int &Index, bool Debug = false)
+	bool GetEntry(const Key k, int &Index, bool Debug = false)
 	{
 		if (k != NullKey && Table)
 		{
@@ -595,7 +595,7 @@ public:
 	}
 
 	/// Returns the value at 'key'
-	Value Find(Key k)
+	Value Find(const Key k)
 	{
 		int Index = -1;
 		if (IsOk() && GetEntry(k, Index))

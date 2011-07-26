@@ -2283,7 +2283,8 @@ public:
 			}
 
 			DbgInf *Cur = new DbgInf(Cursor);
-			sprintf(m, "<%s>%.*S", Cursor->Tag?Cursor->Tag:"CONTENT", Cursor->Cursor, Cursor->Text());
+			GAutoString CursorText(LgiNewUtf16To8(Cursor->Text(), Cursor->Cursor));
+			sprintf(m, "<%s>%s", Cursor->Tag?Cursor->Tag:"CONTENT", CursorText.Get());
 			Cur->Ds.Add(ds = new DbgDs(SysFont, m, Rgb24(0, 0, 255)));
 			Cur->Ds.Add(ds = new DbgDs(SysFont, "[cursor]", Rgb24(255, 0, 0)));
 			Cur->Ds.Add(ds = new DbgDs(SysFont, Cursor->Text()+Cursor->Cursor, Rgb24(0, 0, 255)));

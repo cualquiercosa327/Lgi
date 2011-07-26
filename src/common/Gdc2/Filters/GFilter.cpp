@@ -24,7 +24,7 @@
 #include <IImgCtx.h>
 #endif
 
-int FindHeader(int Offset, char *Str, GStream *f)
+int FindHeader(int Offset, const char *Str, GStream *f)
 {
 	int i = 0;
 	

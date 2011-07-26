@@ -826,7 +826,7 @@ public:
 
 	// Commands available while connected
 	bool Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks = 0);
-	bool GetParts(int Message, GStreamI &Out, char *Parts, char **Flags = 0);
+	bool GetParts(int Message, GStreamI &Out, const char *Parts, char **Flags = 0);
 	int GetMessages();
 	bool Delete(int Message);
 	int Sizeof(int Message);
@@ -881,7 +881,7 @@ public:
 	
 	// Uid methods
 	bool CopyByUid(GArray<char*> &InUids, char *DestFolder);
-	bool SetFlagsByUid(GArray<char*> &Uids, char *Flags);
+	bool SetFlagsByUid(GArray<char*> &Uids, const char *Flags);
 
 	/// Idle processing...
 	/// \returns true if something happened
@@ -890,17 +890,17 @@ public:
 	bool FinishIdle();
 	bool Poll(int *Recent = 0, GArray<GAutoString> *New = 0);
 	bool Status(char *Path, int *Recent);
-	bool Search(bool Uids, GArray<GAutoString> &SeqNumbers, char *Filter);
+	bool Search(bool Uids, GArray<GAutoString> &SeqNumbers, const char *Filter);
 
 	// Utility
 	static bool Http(GSocketI *S,
 					GAutoString *OutHeaders,
 					GAutoString *OutBody,
 					int *StatusCode,
-					char *InMethod,
-					char *InUri,
-					char *InHeaders,
-					char *InBody);
+					const char *InMethod,
+					const char *InUri,
+					const char *InHeaders,
+					const char *InBody);
 };
 
 #endif

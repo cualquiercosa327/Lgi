@@ -27,7 +27,7 @@
 /// A comma separated list of extensions the GFilter can handle
 #define LGI_FILTER_EXTENSIONS	"Extension"
 
-LgiFunc int FindHeader(int Offset, char *Str, GStream *f);
+LgiFunc int FindHeader(int Offset, const char *Str, GStream *f);
 
 /// Filter can read an image
 #define FILTER_CAP_READ			0x0001

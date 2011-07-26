@@ -1521,7 +1521,7 @@ public:
 	bool Pour(GRegion &r);
 	void OnPaint(GSurface *pDC);
 
-	GStatusPane *AppendPane(char *Text, int Width);
+	GStatusPane *AppendPane(const char *Text, int Width);
 	bool AppendPane(GStatusPane *Pane);
 };
 

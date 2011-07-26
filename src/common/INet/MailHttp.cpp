@@ -536,7 +536,7 @@ bool MailPhp::Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks)
 				printf("%s:%i - Error: Only found %i of %i separators in %i bytes from server.\n",
 					__FILE__, __LINE__,
 					i, Trans.Length(),
-					strlen(All));
+					(int)strlen(All));
 			}
 			
 			DeleteArray(All);

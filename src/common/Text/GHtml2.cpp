@@ -1928,7 +1928,7 @@ _DumpColour(GCss::ColorDef c)
 	if (c.Type == GCss::ColorInherit)
 		strcpy(b, "Inherit");
 	else
-		sprintf(b, "%02.2x,%02.2x,%02.2x(%02.2x)", R32(c.Rgb32),G32(c.Rgb32),B32(c.Rgb32),A32(c.Rgb32));
+		sprintf(b, "%2.2x,%2.2x,%2.2x(%2.2x)", R32(c.Rgb32),G32(c.Rgb32),B32(c.Rgb32),A32(c.Rgb32));
 
 	return b;
 }
@@ -7446,7 +7446,7 @@ bool GHtml2::GetFormattedContent(char *MimeType, GAutoString &Out, GArray<GDocVi
 					!Img->Get("cid", Cid))
 				{
 					char id[256];
-					sprintf(id, "%x.%x", LgiCurrentTime(), LgiRand());
+					sprintf(id, "%x.%x", (unsigned)LgiCurrentTime(), (unsigned)LgiRand());
 					Img->Set("cid", id);
 					Img->Get("cid", Cid);
 				}

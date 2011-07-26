@@ -22,7 +22,7 @@ class SvDb;
 
 char *LgiTsvTok(char *&s)
 {
-	static char *Ws = " \r\n";
+	static const char *Ws = " \r\n";
 	while (*s && strchr(Ws, *s)) s++;
 	if (*s == '\'' || *s == '\"')
 	{
@@ -72,7 +72,7 @@ public:
 
 	char *Name();
 	GDbField &operator [](int Index);
-	GDbField &operator [](char *Name);
+	GDbField &operator [](const char *Name);
 	GDbField *InsertField(const char *Name, int Type, int Len, int Index);
 	bool DeleteField(GDbField *Fld);
 	int Fields();
@@ -655,7 +655,7 @@ GDbField &SvRecordset::operator [](int Index)
 	return Null;
 }
 
-GDbField &SvRecordset::operator [](char *Name)
+GDbField &SvRecordset::operator [](const char *Name)
 {
 	if (Name)
 	{

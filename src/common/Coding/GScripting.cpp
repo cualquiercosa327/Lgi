@@ -243,10 +243,11 @@ struct GDomAddr
 			if (i)
 				printf(".");
 				
+			GAutoString PartsName(LgiNewUtf16To8(Parts[i].Name));
 			if (Parts[i].Array)
-				printf("%S[%i]", Parts[i].Name, Parts[i].Array);
+				printf("%s[%i]", PartsName.Get(), Parts[i].Array);
 			else
-				printf("%S", Parts[i].Name);
+				printf("%s", PartsName.Get());
 		}
 		
 		if (Parts.Length() == 0)

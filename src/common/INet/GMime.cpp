@@ -112,7 +112,7 @@ public:
 					 *s == '.' ||
 					 *s == '=')
 			{
-				sprintf(d, "=%02.2X", (uchar)*s);
+				sprintf(d, "=%2.2X", (uchar)*s);
 				d += 3;
 				s++;
 			}

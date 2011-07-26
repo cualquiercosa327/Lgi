@@ -184,7 +184,7 @@ int GStreamer::GetElapsedTime()
 
 ////////////////////////////////////////////////////////////////
 // Stateful parser that matches the start of lines to the 'prefix'
-GLinePrefix::GLinePrefix(char *p, bool eol)
+GLinePrefix::GLinePrefix(const char *p, bool eol)
 {
 	Start = true;
 	At = 0;

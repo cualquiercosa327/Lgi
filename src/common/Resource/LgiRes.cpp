@@ -27,7 +27,7 @@
 
 // #include "GXml.h"
 
-#define DEBUG_RES_FILE						1
+#define DEBUG_RES_FILE						0
 #define CastToGWnd(RObj)					((RObj != 0) ? dynamic_cast<GView*>(RObj) : 0)
 
 class TagHash : public GHashTable, public ResReadCtx
@@ -263,7 +263,7 @@ public:
 
 GResourceContainer _ResourceOwner;
 
-LgiResources::LgiResources(char *FileName, bool Warn)
+LgiResources::LgiResources(const char *FileName, bool Warn)
 {
 	d = new LgiResourcesPrivate;
 	ScriptEngine = 0;
@@ -1439,7 +1439,7 @@ bool GMenu::Load(GView *w, const char *Res, const char *TagList)
 	return Status;
 }
 
-LgiResources *LgiGetResObj(bool Warn, char *filename)
+LgiResources *LgiGetResObj(bool Warn, const char *filename)
 {
 	if (_ResourceOwner.Length() == 0)
 	{

@@ -64,7 +64,7 @@ public:
 	GLinePrefix
 	(
 		/// The string to look for on the start of the line
-		char *p,
+		const char *p,
 		/// true if you want the index of the end of the line, otherwise
 		/// the index of the start of the line is returned
 		bool eol = true

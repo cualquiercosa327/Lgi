@@ -466,7 +466,7 @@ enum LgiSystemPath
 
 //
 #ifdef _DEBUG
-#define DeclDebugArgs				, char *_file, int _line
+#define DeclDebugArgs				, const char *_file, int _line
 #define PassDebugArgs				, __FILE__, __LINE__
 #else
 #define DeclDebugArgs

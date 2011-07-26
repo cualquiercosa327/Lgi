@@ -78,7 +78,7 @@ void GStatusBar::RePour()
 	}
 }
 
-GStatusPane *GStatusBar::AppendPane(char *Text, int Width)
+GStatusPane *GStatusBar::AppendPane(const char *Text, int Width)
 {
 	GStatusPane *Pane = 0;
 	if (Text)

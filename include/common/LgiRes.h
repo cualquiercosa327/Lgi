@@ -76,7 +76,7 @@ class LgiClass LgiResources : public ResFactory
 public:
 	GHashTbl<const char*, char*> LanguageNames;
 
-	LgiResources(char *FileName = 0, bool Warn = false);
+	LgiResources(const char *FileName = 0, bool Warn = false);
 	virtual ~LgiResources();
 
 	// Instantiate resources
@@ -123,4 +123,4 @@ public:
 };
 
 LgiExtern GResourceContainer _ResourceOwner;
-LgiExtern LgiResources *LgiGetResObj(bool Warn = false, char *filename = 0);
+LgiExtern LgiResources *LgiGetResObj(bool Warn = false, const char *filename = 0);

@@ -466,7 +466,7 @@ void FileTransferProgress::Value(int64 v)
 			{
 				char Str[256];
 				double Time = ((double) (High-StartPos) / Rate) - Seconds + 0.5;
-				sprintf(Str, "%i:%02.2i:%02.2i", (int)(Time/3600), ((int)(Time/60))%60, ((int)Time)%60);
+				sprintf(Str, "%i:%2.2i:%2.2i", (int)(Time/3600), ((int)(Time/60))%60, ((int)Time)%60);
 				StatusInfo[_STATUS_TIME_LEFT]->Name(Str);
 			}
 		}
@@ -475,7 +475,7 @@ void FileTransferProgress::Value(int64 v)
 			if (StatusInfo[_STATUS_POSITION])
 			{
 				char Str[256];
-				sprintf(Str, "%i K", Val>>10);
+				sprintf(Str, "%"LGI_PrintfInt64" K", Val>>10);
 				StatusInfo[_STATUS_POSITION]->Name(Str);
 			}
 		}

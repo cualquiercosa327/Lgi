@@ -47,7 +47,7 @@ public:
 ///////////////////////////////////////////////////////////////////
 int LookupMonth(char *m)
 {
-	char *Months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+	const char *Months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 	for (int i=0; i<12; i++)
 	{
 		if (m && stricmp(m, Months[i]) == 0)
@@ -147,13 +147,13 @@ IFtpEntry::IFtpEntry(IFtpEntry *Entry)
 	Group.Reset(NewStr(Entry->Group));
 }
 
-IFtpEntry::IFtpEntry(char *Entry, char *Cs)
+IFtpEntry::IFtpEntry(char *Entry, const char *Cs)
 {
 	Attributes = 0;
 	Size = 0;
 	if (Entry)
 	{
-		char *Ws = " \t";
+		const char *Ws = " \t";
 		GToken T(Entry, Ws);
 		if (T.Length() > 0)
 		{
@@ -317,12 +317,12 @@ char *IFtp::FromFtpCs(char *s)
 	return (char*) LgiNewConvertCp("utf-8", s, GetCharset());
 }
 
-char *IFtp::GetCharset()
+const char *IFtp::GetCharset()
 {
 	return d->Charset;
 }
 
-void IFtp::SetCharset(char *cs)
+void IFtp::SetCharset(const char *cs)
 {
 	DeleteArray(d->Charset);
 	d->Charset = NewStr(cs ? cs : (char*)DefaultFtpCharset);
@@ -1012,7 +1012,7 @@ bool IFtp::TransferFile(char *Local, char *Remote, int64 Size, bool Upload, bool
 											}
 											else
 											{
-												printf("%s:%i - Data->Write failed, %i of %i bytes written.\n",
+												printf("%s:%i - Data->Write failed, %i of "LGI_PrintfInt64" bytes written.\n",
 													_FL, WriteLen, Len);
 												Error = true;
 											}
@@ -1292,7 +1292,7 @@ bool IFtp::SetPerms(char *File, int Perms)
 			char *f = ToFtpCs(File);
 			if (f)
 			{
-				sprintf(d->OutBuf, "SITE CHMOD %03.3X %s\r\n", Perms, File);
+				sprintf(d->OutBuf, "SITE CHMOD %3.3X %s\r\n", Perms, File);
 				WriteLine();
 				VerifyRange(ReadLine(), 2);
 
