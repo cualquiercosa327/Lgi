@@ -289,7 +289,7 @@ LgiTrace("%s:%i - Filename='%s'\n", _FL, FileName);
 		if (FileName)
 		{
 			// We're given the file name, and we should find the path.
-			char *f = strrchr(FileName, DIR_CHAR);
+			const char *f = strrchr(FileName, DIR_CHAR);
 
 #if DEBUG_RES_FILE
 LgiTrace("%s:%i - f='%s'\n", _FL, f);
