@@ -529,7 +529,7 @@ public:
 	bool Eof() { return Cursor < 0 || Cursor >= Rows.Length(); }
 
 	GDbField &operator [](int Index);
-	GDbField &operator [](char *Name);	
+	GDbField &operator [](const char *Name);	
 	GDbField *InsertField(	const char *Name,
 							int Type,
 							int Length = 0,
@@ -649,9 +649,9 @@ GDbField &MysqlDirectRs::operator [](int Index)
 	return Null;
 }
 
-GDbField &MysqlDirectRs::operator [](char *Name)
+GDbField &MysqlDirectRs::operator [](const char *Name)
 {
-	GDbField *f = Idx.Find(Name);
+	GDbField *f = Idx.Find((char*)Name);
 	return f ? *f : Null;
 }
 

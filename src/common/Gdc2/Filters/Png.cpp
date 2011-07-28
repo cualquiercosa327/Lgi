@@ -463,6 +463,8 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 				{
 					printf("io_ptr offset = %i\n", off);
 					LgiAssert(0);
+
+					CurrentLibPng = 0;
 					return false;
 				}
 				#endif
@@ -724,6 +726,8 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 		}
 	}
 
+	CurrentLibPng = 0;
+
 	return Status;
 }
 
@@ -844,7 +848,6 @@ bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 				png_set_write_fn(png_ptr, &WriteInfo, LibPngWrite, 0);
 				
 				// png_set_write_status_fn(png_ptr, write_row_callback);
-
 
 				bool KeyAlpha = false;
 				bool ChannelAlpha = false;
@@ -1211,7 +1214,7 @@ bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 		}
 	}
 
-    CurrentLibPng = 0;
+	CurrentLibPng = 0;
 	return Status;
 }
 
