@@ -740,6 +740,8 @@ bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 	{
 		return false;
 	}
+	
+	CurrentLibPng = this;
 
 	// Work out whether the image has transparency
 	if (pDC->GetBits() == 32)
@@ -809,6 +811,8 @@ bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 		{
 			if (Props)
 				Props->SetValue("Cancel", v = 1);
+			
+			CurrentLibPng = 0;
 			return false;
 		}
 	}
@@ -841,41 +845,6 @@ bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 				
 				// png_set_write_status_fn(png_ptr, write_row_callback);
 
-                int ColourType;
-                if (pDC->GetBits() <= 8)
-                {
-                    if (pDC->Palette())
-                        ColourType = PNG_COLOR_TYPE_PALETTE;
-                    else
-                        ColourType = PNG_COLOR_TYPE_GRAY;
-                }
-                else if (pDC->GetBits() == 32 || pDC->AlphaDC())
-                {
-                    ColourType = PNG_COLOR_TYPE_RGB_ALPHA;
-                }
-                else
-                {
-                    ColourType = PNG_COLOR_TYPE_RGB;
-                }
-
-                png_set_IHDR(png_ptr,
-                            info_ptr,
-                            pDC->X(), pDC->Y(),
-                            pDC->GetBits(),
-                            ColourType,
-                            PNG_INTERLACE_NONE,
-                            PNG_COMPRESSION_TYPE_DEFAULT,
-                            PNG_FILTER_TYPE_DEFAULT);
-                            
-				if (ColProfile.Type == GV_BINARY)
-				{
-					png_set_iCCP(png_ptr,
-								info_ptr,
-								"ColourProfile",
-								NULL,
-								(char*)ColProfile.Value.Binary.Data,
-								ColProfile.Value.Binary.Length);
-				}
 
 				bool KeyAlpha = false;
 				bool ChannelAlpha = false;
@@ -932,6 +901,42 @@ bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 				}
 
 				bool ExtraAlphaChannel = ChannelAlpha || (pDC->GetBits() > 8 ? KeyAlpha : 0);
+
+                int ColourType;
+                if (pDC->GetBits() <= 8)
+                {
+                    if (pDC->Palette())
+                        ColourType = PNG_COLOR_TYPE_PALETTE;
+                    else
+                        ColourType = PNG_COLOR_TYPE_GRAY;
+                }
+                else if (ExtraAlphaChannel)
+                {
+                    ColourType = PNG_COLOR_TYPE_RGB_ALPHA;
+                }
+                else
+                {
+                    ColourType = PNG_COLOR_TYPE_RGB;
+                }
+
+                png_set_IHDR(png_ptr,
+                            info_ptr,
+                            pDC->X(), pDC->Y(),
+                            8,
+                            ColourType,
+                            PNG_INTERLACE_NONE,
+                            PNG_COMPRESSION_TYPE_DEFAULT,
+                            PNG_FILTER_TYPE_DEFAULT);
+                            
+				if (ColProfile.Type == GV_BINARY)
+				{
+					png_set_iCCP(png_ptr,
+								info_ptr,
+								"ColourProfile",
+								NULL,
+								(char*)ColProfile.Value.Binary.Data,
+								ColProfile.Value.Binary.Length);
+				}
 
 				int TempLine = pDC->X() * ((pDC->GetBits() <= 8 ? 1 : 3) + (ExtraAlphaChannel ? 1 : 0));
 				uchar *TempBits = new uchar[pDC->Y() * TempLine];
@@ -1206,6 +1211,7 @@ bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 		}
 	}
 
+    CurrentLibPng = 0;
 	return Status;
 }
 
