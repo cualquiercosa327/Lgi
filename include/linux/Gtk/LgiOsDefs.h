@@ -188,7 +188,7 @@ LgiFunc void _lgi_sleep(int i);
 #define LGI_PrintfInt64				"%Li"
 
 #ifndef SND_ASYNC
-#define SND_ASYNC					1
+#define SND_ASYNC					0x0001
 #endif
 
 #define DOUBLE_CLICK_THRESHOLD		5

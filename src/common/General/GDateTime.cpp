@@ -1407,4 +1407,205 @@ void GDateTime::AddMonths(int Months)
 	_Month = m;
 }
 
+int GDateTime::MonthFromName(const char *Name)
+{
+	if (Name)
+	{
+		const char *MonthName[] = {
+			"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+			"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+
+		for (int m=0; m<12; m++)
+		{
+			if (strnicmp(Name, MonthName[m], strlen(MonthName[m])) == 0)
+			{
+				return m + 1;
+				break;
+			}
+		}
+	}
+	
+	return -1;
+}
+
+bool GDateTime::Decode(const char *In)
+{
+	// Test data:
+	//
+	//		Tue, 6 Dec 2005 1:25:32 -0800
+
+	bool Status = false;
+	if (In)
+	{
+		// Tokenize delimited by whitespace
+		GToken T(In);
+		if (T.Length() >= 2)
+		{
+			int n = 0;
+			bool GotDate = false;
+
+			for (int i=0; i<T.Length(); i++)
+			{
+				char *s = T[i];
+				
+				if
+				(
+					*s AND
+					(
+						strchr(s+1, '.') OR
+						strchr(s+1, '-')
+					)
+				)
+				{
+					// whole date
+					GToken Date(s, ".-");
+					if (Date.Length() == 3)
+					{
+						Day(atoi(Date[0]));
+						if (isdigit(Date[1][0]))
+						{
+							Month(atoi(Date[1]));
+						}
+						else
+						{
+							int m = MonthFromName(Date[1]);
+							if (m > 0)
+							{
+								Month(m);
+							}
+						}
+
+						int Yr = atoi(Date[2]);
+						Year((Yr < 100) ? (Yr > 50) ? 1900+Yr : 2000+Yr : Yr);
+						GotDate = true;
+						Status = true;
+					}
+				}
+				else if (strchr(s, ':'))
+				{
+					// whole time
+					GToken Time(s, ":");
+					if (Time.Length() == 2 OR
+						Time.Length() == 3)
+					{
+						// Hour (24hr time)
+						Hours(atoi(Time[0]));
+
+						// Minute
+						Minutes(atoi(Time[1]));
+
+						if (Time.Length() == 3)
+						{
+							// Second
+							Seconds(atoi(Time[2]));
+						}
+						
+						Status = true;
+					}
+				}
+				else if (isalpha(*s))
+				{
+					// text
+					int m = MonthFromName(s);
+					if (m > 0)
+					{
+						Month(m);
+					}
+				}
+				else if (isdigit(*s))
+				{
+					bool All = true;
+					int Count = 0;
+					for (char *c = s; *c; c++)
+					{
+						if (!isdigit(*c))
+						{
+							All = false;
+							break;
+						}
+						Count++;
+					}
+					
+					if (Count <= 2)
+					{
+						if (Day())
+						{
+							// We already have a day... so this might be
+							// a 2 digit year...
+							Year(2000 + atoi(s));
+						}
+						else
+						{
+							// A day number (hopefully)?
+							Day(atoi(s));
+						}
+					}
+					else if (Count == 4)
+					{
+						if (!Year())
+						{
+							// A year!
+							Year(atoi(s));
+							Status = true;
+						}
+						else
+						{
+							goto DoTimeZone;
+						}
+						
+						// My one and only Y2K fix
+						// d.Year((Yr < 100) ? (Yr > 50) ? 1900+Yr : 2000+Yr : Yr);
+					}
+				}
+				else if (strchr("+-", *s))
+				{
+					// timezone
+					DoTimeZone:
+					GDateTime Now;
+					double OurTmz = (double)Now.SystemTimeZone() / 60;
+
+					if (s AND
+						strchr("-+", *s) AND
+						strlen(s) == 5)
+					{
+						#if 1
+
+						int i = atoi(s);
+						int hr = i / 100;
+						int min = i % 100;
+						SetTimeZone(hr * 60 + min, false);
+
+						#else
+
+						// adjust for timezone
+						char Buf[32];
+						memcpy(Buf, s, 3);
+						Buf[3] = 0;
+
+						double TheirTmz = atof(Buf);
+						memcpy(Buf+1, s + 3, 2);
+
+						TheirTmz += (atof(Buf) / 60);
+						if (Tz)
+						{
+							*Tz = TheirTmz;
+						}
+
+						double AdjustHours = OurTmz - TheirTmz;
+
+						AddMinutes((int) (AdjustHours * 60));
+
+						#endif
+					}
+					else
+					{
+						// assume GMT
+						AddMinutes((int) (OurTmz * 60));
+					}
+				}
+			}
+		}
+	}
+	return Status;
+}
 

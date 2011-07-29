@@ -116,6 +116,9 @@ public:
 
 	/// Returns the timezone of this current date time object in minutes (+10 = 600)
 	int GetTimeZone() { return _Tz; }
+	/// Returns the timezone in hours
+	double GetTimeZoneHours() { return (double)_Tz / 60.0; }
+
 	/// Sets the timezone of this current object.in minutes (+10 = 600)
 	void SetTimeZone
 	(
@@ -232,6 +235,13 @@ public:
 		/// [Optional In] The end of the period you want DST info for.
 		GDateTime *End = 0
 	);
+
+
+	/// Decodes an email date into the current instance
+	bool Decode(const char *In);
+
+	/// Returns a month index from a month name
+	static int MonthFromName(const char *Name);
 	
 	// File
 	int Sizeof();
