@@ -475,23 +475,20 @@ void GTrayIcon::Value(int64 v)
 			CGContextRef c = BeginCGContextForApplicationDockTile();
 			if (c)
 			{
-				CGContextTranslateCTM(c, 0, 128); 
-				CGContextScaleCTM(c, 1.0, -1.0); 
+				// CGContextTranslateCTM(c, 0, 128); 
+				// CGContextScaleCTM(c, 1.0, -1.0); 
 
 				GScreenDC Dc((GView*)0, c);
-				
 				GMemDC m;
 				if (m.Create(t->X()*4, t->Y()*4, 32))
 				{
-					printf("m %i,%i, dc %i,%i\n", m.X(), m.Y(), Dc.X(), Dc.Y());
-					
-					double Sx = 0.25;
-					double Sy = 0.25;
+					double Sx = (double) t->X() / m.X();
+					double Sy = (double) t->Y() / m.Y();
 					for (int y=0; y<m.Y(); y++)
 					{
 						int Y = (int) (y * Sy);
 						Pixel32 *s = (Pixel32*)(*t)[Y];
-						Pixel32 *d = (Pixel32*)(m)[y];
+						Pixel32 *d = (Pixel32*)(m)[m.Y()-y-1];
 						
 						for (int x=0; x<m.X(); x++)
 						{
@@ -499,7 +496,7 @@ void GTrayIcon::Value(int64 v)
 						}
 					}
 					
-					Dc.Blt(Dc.X()-m.X()-1, Dc.Y()-m.Y()-1, &m);
+					Dc.Blt(Dc.X()-m.X()-1, 0, &m);
 				}
 				else
 				{
@@ -508,6 +505,10 @@ void GTrayIcon::Value(int64 v)
 
 				CGContextFlush(c);
 				EndCGContextForApplicationDockTile(c);
+			}
+			else
+			{
+				RestoreApplicationDockTileImage();
 			}
 		}
 		else
