@@ -461,7 +461,7 @@ void GScreenDC::Rectangle(GRect *a)
 
 void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 {
-	if (Src AND d->Ctx)
+	if (Src && d->Ctx)
 	{
 		GRect b;
 		if (a)

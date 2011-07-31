@@ -104,7 +104,8 @@ void CGImg::Create(int x, int y, int Bits, int Line, uchar *data, uchar *palette
 	}
 	else
 	{
-		d->Cs = CGColorSpaceCreateWithName(kCGColorSpaceUserRGB);
+		// d->Cs = CGColorSpaceCreateWithName(kCGColorSpaceUserRGB);
+		d->Cs = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
 	}
 	
 	if (d->Cs)

@@ -229,6 +229,7 @@ OSErr GWindow::HandlerCallback(DragTrackingMessage *tracking, DragRef theDrag)
 			while (gv)
 			{
 				Target = gv->DropTargetPtr();
+				// printf("%s %p\n", gv->GetClass(), Target);
 				if (!Target)
 				{
 					GViewI *p = gv->GetParent();
@@ -423,7 +424,7 @@ OSErr GWindow::HandlerCallback(DragTrackingMessage *tracking, DragRef theDrag)
 			}
 			else
 			{
-				// printf("%s:%i - No drop target:\n", _FL);
+				printf("%s:%i - No drop target:\n", _FL);
 				
 				#if 0
 				if (gv = v->GetGView())
