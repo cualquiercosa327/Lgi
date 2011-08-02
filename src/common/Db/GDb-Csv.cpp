@@ -229,44 +229,45 @@ public:
 			}
 		}
 
-		LgiAssert(RawLen);
-
-		In += RawLen;
-		while (*In == '\r' || *In == '\n') In++;
-		Raw = NewStr(Start, RawLen);
-
-		if (Raw && SetFields(Flds))
+		if (RawLen > 0)
 		{
-			char *r = Raw;
-			for (int n=0; n<Fields && r; n++)
+			In += RawLen;
+			while (*In == '\r' || *In == '\n') In++;
+			Raw = NewStr(Start, RawLen);
+
+			if (Raw && SetFields(Flds))
 			{
-				while (*r == ' ') r++;
+				char *r = Raw;
+				for (int n=0; n<Fields && r; n++)
+				{
+					while (*r == ' ') r++;
 
-				char *e = r;
-				if (*r == '\"')
-				{
-					e = ++r;
-					while (*e && *e != '\"') e++;
-					if (*e) *e++ = 0;
-				}
-				else
-				{
-					while (*e && *e != '\n' && *e != Sep) e++;
-				}
-				Data[n] = r;
-				if (*e)
-				{
-					r = e + 1;
-					*e = 0;
+					char *e = r;
+					if (*r == '\"')
+					{
+						e = ++r;
+						while (*e && *e != '\"') e++;
+						if (*e) *e++ = 0;
+					}
+					else
+					{
+						while (*e && *e != '\n' && *e != Sep) e++;
+					}
+					Data[n] = r;
+					if (*e)
+					{
+						r = e + 1;
+						*e = 0;
 
-				}
-				else
-				{
-					break;
+					}
+					else
+					{
+						break;
+					}
 				}
 			}
+			else In = 0;
 		}
-		else In = 0;
 	}
 
 	~SvRecord()

@@ -189,6 +189,10 @@ struct GGraphPriv
 		bool First = true;
 		bool Loop = true;
 
+		if (min.Type == GV_NULL ||
+			max.Type == GV_NULL)
+			return;
+
 		int x = xaxis ? r.x1 : r.x2;
 		int y = xaxis ? r.y1 : r.y2;
 		int pixels = xaxis ? r.X() : r.Y();
@@ -203,6 +207,11 @@ struct GGraphPriv
 			Values.Add(v);
 			switch (v.Type)
 			{
+				default:
+				{
+					Loop = false;
+					break;
+				}
 				case GV_DATETIME:
 				{
 					if (First)
@@ -327,32 +336,35 @@ bool GGraph::SetDataSource(GDbRecordset *Rs)
 	d->XType = GV_NULL;
 	d->YType = GV_NULL;
 
-	for (bool b = Rs->MoveFirst(); b; b = Rs->MoveNext())
+	if (Rs->Fields() >= 2)
 	{
-		char *x = (*Rs)[d->XAxis];
-		char *y = (*Rs)[d->YAxis];
-		if (x && y)
+		for (bool b = Rs->MoveFirst(); b; b = Rs->MoveNext())
 		{
-			if (d->XType == GV_NULL)
-				d->XType = d->GuessType(x);
-			if (d->YType == GV_NULL)
-				d->YType = d->GuessType(y);
-
-			GGraphPair &p = d->Val.New();
-			if (d->Convert(p.x, d->XType, x))
+			char *x = (*Rs)[d->XAxis];
+			char *y = (*Rs)[d->YAxis];
+			if (x && y)
 			{
-				if (d->MaxX.IsNull() || d->Compare(p.x, d->MaxX) > 0)
-					d->MaxX = p.x;
-				if (d->MinX.IsNull() || d->Compare(p.x, d->MinX) < 0)
-					d->MinX = p.x;
-			}
+				if (d->XType == GV_NULL)
+					d->XType = d->GuessType(x);
+				if (d->YType == GV_NULL)
+					d->YType = d->GuessType(y);
 
-			if (d->Convert(p.y, d->YType, y))
-			{
-				if (d->MaxY.IsNull() || d->Compare(p.y, d->MaxY) > 0)
-					d->MaxY = p.y;
-				if (d->MinY.IsNull() || d->Compare(p.y, d->MinY) < 0)
-					d->MinY = p.y;
+				GGraphPair &p = d->Val.New();
+				if (d->Convert(p.x, d->XType, x))
+				{
+					if (d->MaxX.IsNull() || d->Compare(p.x, d->MaxX) > 0)
+						d->MaxX = p.x;
+					if (d->MinX.IsNull() || d->Compare(p.x, d->MinX) < 0)
+						d->MinX = p.x;
+				}
+
+				if (d->Convert(p.y, d->YType, y))
+				{
+					if (d->MaxY.IsNull() || d->Compare(p.y, d->MaxY) > 0)
+						d->MaxY = p.y;
+					if (d->MinY.IsNull() || d->Compare(p.y, d->MinY) < 0)
+						d->MinY = p.y;
+				}
 			}
 		}
 	}
