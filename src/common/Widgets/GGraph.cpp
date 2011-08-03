@@ -21,7 +21,7 @@ struct GGraphPriv
 		bool Dot = false;
 		bool Num = false;
 		bool Alpha = false;
-		bool Slash = false;
+		bool Delims = false;
 
 		while (s && *s)
 		{
@@ -29,8 +29,8 @@ struct GGraphPriv
 				Alpha = true;
 			else if (IsDigit(*s))
 				Num = true;
-			else if (*s == '/')
-				Slash = true;
+			else if (strchr("/\\-_:", *s))
+				Delims = true;
 			else if (*s == '.')
 				Dot = true;
 			s++;
@@ -40,7 +40,7 @@ struct GGraphPriv
 		{
 			if (Dot)
 				return GV_DOUBLE;
-			else if (Slash)
+			else if (Delims)
 				return GV_DATETIME;
 			
 			return GV_INT64;
@@ -210,6 +210,7 @@ struct GGraphPriv
 				default:
 				{
 					Loop = false;
+					return;
 					break;
 				}
 				case GV_DATETIME:
@@ -229,6 +230,7 @@ struct GGraphPriv
 					}
 
 					LgiAssert(!"Finish this.");
+					return;
 					break;
 				}
 				case GV_DOUBLE:
@@ -294,6 +296,9 @@ struct GGraphPriv
 					sprintf(s, "%g", v.CastDouble());
 					break;
 				}
+				default:
+					return;
+
 			}
 
 			GDisplayString d(SysFont, s);
