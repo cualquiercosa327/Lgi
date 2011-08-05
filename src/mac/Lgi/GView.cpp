@@ -1088,6 +1088,17 @@ int VirtualKeyToLgi(UInt32 Virt)
 	return 0;
 }
 
+static int GetIsChar(GKey &k, int mods)
+{
+	k.IsChar =	(mods & 0x100) == 0 &&
+	(
+		k.c16 >= ' ' ||
+		k.c16 == VK_RETURN ||
+		k.c16 == VK_TAB ||
+		k.c16 == VK_BACKSPACE
+	);
+}
+
 struct WasteOfSpace
 {
 	HIViewRef Obj;
@@ -1375,6 +1386,7 @@ CarbonControlProc
 						if (mods & 0x1000) k.Ctrl(true);
 						if (mods & 0x800) k.Alt(true);
 						if (mods & 0x100) k.System(true);
+						GetIsChar(k, mods);
 
 						// printf("RawUp key=%i sh=%i,alt=%i,ctrl=%i\n", k.c16, k.Shift(), k.Alt(), k.Ctrl());
 						
@@ -1453,13 +1465,7 @@ CarbonControlProc
 						}
 					}
 
-					k.IsChar =	(mods & 0x100) == 0 &&
-								(
-									k.c16 >= ' ' ||
-									k.c16 == VK_RETURN ||
-									k.c16 == VK_TAB ||
-									k.c16 == VK_BACKSPACE
-								);
+					GetIsChar(k, mods);
 					k.Down(true);
 					if (mods & 0x200) k.Shift(true);
 					if (mods & 0x1000) k.Ctrl(true);

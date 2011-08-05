@@ -70,7 +70,7 @@ public:
 	}
 
 	virtual ~GUiEvent() {}
-	virtual void Trace(char *Msg) {}
+	virtual void Trace(const char *Msg) {}
 
 	/// The key or mouse button was being pressed. false on the up-click.
 	bool Down()		{ return TestFlag(Flags, LGI_EF_DOWN); }
@@ -126,7 +126,7 @@ public:
 
 	GKey(int vkey, int flags);
 
-	void Trace(char *Msg)
+	void Trace(const char *Msg)
 	{
 		LgiTrace("%s GKey vkey=%i(0x%x) c16=%i(%c) IsChar=%i down=%i ctrl=%i alt=%i sh=%i sys=%i\n",
 			Msg ? Msg : (char*)"",
@@ -181,7 +181,7 @@ public:
 		x = y = 0;
 	}
 
-	void Trace(char *Msg)
+	void Trace(const char *Msg)
 	{
 		LgiTrace("%s GMouse pos=%i,%i view=%i btns=%i/%i/%i dwn=%i dbl=%i "
 				"ctrl=%i alt=%i sh=%i sys=%i\n",
