@@ -60,6 +60,7 @@ class SvRecordset : public GDbRecordset
 	SvRecord *Temp;
 	SvRecord *New;
 	bool Dirty;
+	bool HasHeaders;
 
 	void Empty();
 	void Read();
@@ -67,7 +68,7 @@ class SvRecordset : public GDbRecordset
 	SvRecord *Record();
 
 public:
-	SvRecordset(SvDb *parent, const char *file);
+	SvRecordset(SvDb *parent, const char *file, bool Headers);
 	~SvRecordset();
 
 	char *Name();
@@ -97,12 +98,14 @@ class SvDb : public GDb
 	friend class SvRecordset;
 
 	char Separator;
+	bool HasHeaders;
 	List<SvRecordset> Tables;
 
 public:
-	SvDb(char sep)
+	SvDb(char sep, bool headers)
 	{
 		Separator = sep;
+		HasHeaders = headers;
 	}
 
 	~SvDb();
@@ -405,9 +408,10 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////
-SvRecordset::SvRecordset(SvDb *parent, const char *file)
+SvRecordset::SvRecordset(SvDb *parent, const char *file, bool Headers)
 {
 	Parent = parent;
+	HasHeaders = Headers;
 	Cur = 0;
 	Temp = 0;
 	New = 0;
@@ -540,27 +544,45 @@ void SvRecordset::Read()
 			{
 				if (First)
 				{
-					// Headers...
-					if (Parent->Tsv())
+					if (HasHeaders)
 					{
-						GAutoString t;
-						char *s = Buf;
-						int n = 0;
-						while (t.Reset(LgiTsvTok(s)))
+						// Headers...
+						if (Parent->Tsv())
 						{
-							F.Insert(new SvField(this, n++, t));
+							GAutoString t;
+							char *s = Buf;
+							int n = 0;
+							while (t.Reset(LgiTsvTok(s)))
+							{
+								F.Insert(new SvField(this, n++, t));
+							}
+						}
+						else
+						{
+							GToken Flds(Buf, ",");
+							for (int n=0; n<Flds.Length(); n++)
+							{
+								GAutoString Name(TrimStr(Flds[n], " \r\t\n\""));
+								if (Name)
+								{
+									F.Insert(new SvField(this, n, Name));
+								}
+							}
 						}
 					}
 					else
 					{
-						GToken Flds(Buf, ",");
-						for (int n=0; n<Flds.Length(); n++)
+						char *t = Buf;
+						SvRecord *record;
+						R.Insert(record = new SvRecord(this, t));
+						if (!t)
+							break;
+						for (int n=0; n<record->Fields; n++)
 						{
-							GAutoString Name(TrimStr(Flds[n], " \r\t\n\""));
-							if (Name)
-							{
-								F.Insert(new SvField(this, n, Name));
-							}
+							char Name[32];
+							snprintf(Name, sizeof(Name), "Field%i", n);
+							GAutoString a(NewStr(Name));
+							F.Insert(new SvField(this, n, a));
 						}
 					}
 
@@ -842,7 +864,7 @@ SvDb::~SvDb()
 
 bool SvDb::Connect(const char *Init)
 {
-	Tables.Insert(new SvRecordset(this, Init));
+	Tables.Insert(new SvRecordset(this, Init, HasHeaders));
 	return Tables.First() != 0;
 }
 
@@ -854,7 +876,7 @@ bool SvDb::Disconnect()
 
 GDbRecordset *SvDb::Open(char *Name)
 {
-	SvRecordset *rs = new SvRecordset(this, Name);
+	SvRecordset *rs = new SvRecordset(this, Name, HasHeaders);
 	if (rs)
 	{
 		Tables.Insert(rs);
@@ -868,9 +890,9 @@ GDbRecordset *SvDb::TableAt(int i)
 }
 
 ///////////////////////////////////////////////////////////////////
-GDb *OpenCsvDatabase(char *Path)
+GDb *OpenCsvDatabase(char *Path, bool HasHeader)
 {
-	SvDb *Db = new SvDb(',');
+	SvDb *Db = new SvDb(',', HasHeader);
 	if (Db && Db->Connect(Path))
 	{
 		return Db;
@@ -879,9 +901,9 @@ GDb *OpenCsvDatabase(char *Path)
 	return 0;
 }
 
-GDb *OpenTsvDatabase(char *Path)
+GDb *OpenTsvDatabase(char *Path, bool HasHeader)
 {
-	SvDb *Db = new SvDb('\t');
+	SvDb *Db = new SvDb('\t', HasHeader);
 	if (Db && Db->Connect(Path))
 	{
 		return Db;

@@ -101,8 +101,8 @@ public:
 // Actual implementations
 extern GDb *OpenDbfDatabase(char *s);		// add 'GDb-Dbf.cpp' to your project
 extern GDb *OpenAdoDatabase(char *s);		// add 'GDb-Ado.cpp' to your project
-extern GDb *OpenCsvDatabase(char *s);		// add 'GDb-Csv.cpp' to your project
-extern GDb *OpenTsvDatabase(char *s);		// add 'GDb-Csv.cpp' to your project
+extern GDb *OpenCsvDatabase(char *s, bool HasHeader = true);		// add 'GDb-Csv.cpp' to your project
+extern GDb *OpenTsvDatabase(char *s, bool HasHeader = true);		// add 'GDb-Csv.cpp' to your project
 extern GDb *OpenMetakitDatabase(char *s);	// add 'GDb-Metakit.cpp' to your project
 extern GDb *OpenBfsDatabase(char *s);		// add 'GDb-Bfs.cpp' and 'Bfs.cpp' to your project
 extern GDb *OpenLibmysqlDatabase(char *s);	// add 'GDb-Libmysql.cpp'
