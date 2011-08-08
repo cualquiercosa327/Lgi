@@ -34,7 +34,7 @@ public:
 	void OnItemSelect(GArray<GListItem*> &Items);
 	void OnItemClick(GListItem *Item, GMouse &m);
 	void OnCreate();
-	int OnEvent(GMessage *Msg);
+	GMessage::Result OnEvent(GMessage *Msg);
 	int OnNotify(GViewI *c, int f);
 	void OnMouseWheel(double Lines);
 	void OnPaint(GSurface *pDC);

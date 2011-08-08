@@ -23,7 +23,7 @@ public:
 	/// Gets the surface being displayed
 	virtual GSurface *GetSurface();
 
-	int OnEvent(GMessage *Msg);
+	GMessage::Result OnEvent(GMessage *Msg);
 	void OnPaint(GSurface *pDC);
 	void OnMouseClick(GMouse &m);
 };

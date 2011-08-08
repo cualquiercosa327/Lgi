@@ -156,11 +156,11 @@ bool GLayout::Pour(GRegion &r)
 	return false;
 }
 
-int GLayout::OnEvent(GMessage *Msg)
+GMessage::Result GLayout::OnEvent(GMessage *Msg)
 {
 	if (VScroll) VScroll->OnEvent(Msg);
 	if (HScroll) HScroll->OnEvent(Msg);
-	int Status = GView::OnEvent(Msg);
+	GMessage::Result Status = GView::OnEvent(Msg);
 	if (MsgCode(Msg) == M_CHANGE AND
 		Status == -1 AND
 		GetParent())

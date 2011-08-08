@@ -26,7 +26,7 @@ public:
 	/// Sets the point between the limits that defines where the progress is up to
 	void Value(int64 v);
 	int64 Value();
-	int OnEvent(GMessage *Msg);
+	GMessage::Result OnEvent(GMessage *Msg);
 
 	#if WIN32NATIVE
 	bool SetForegroundFill(GViewFill *Fill);

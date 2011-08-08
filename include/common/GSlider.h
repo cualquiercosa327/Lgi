@@ -37,7 +37,7 @@ public:
 	/// Sets the limits of the slider
 	void SetLimits(int64 x, int64 y);
 
-	int OnEvent(GMessage *Msg);
+	GMessage::Result OnEvent(GMessage *Msg);
 	
 	#if defined(__GTK_H__) || defined(MAC)
 	void OnPaint(GSurface *pDC);

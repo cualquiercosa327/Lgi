@@ -485,7 +485,7 @@ public:
 	}
 };
 
-int GWindow::OnEvent(GMessage *Msg)
+GMessage::Result GWindow::OnEvent(GMessage *Msg)
 {
 	int Status = 0;
 

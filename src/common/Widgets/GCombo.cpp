@@ -188,7 +188,7 @@ int64 GCombo::Value()
 	return d->Current;
 }
 
-int GCombo::OnEvent(GMessage *Msg)
+GMessage::Result GCombo::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{

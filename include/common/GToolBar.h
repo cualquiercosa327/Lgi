@@ -292,7 +292,7 @@ public:
 	int Length() { return Children.Length(); }
 
 	// Events
-	int OnEvent(GMessage *Msg);
+	GMessage::Result OnEvent(GMessage *Msg);
 	void OnPaint(GSurface *pDC);
 	void OnMouseClick(GMouse &m);
 	void OnMouseEnter(GMouse &m);

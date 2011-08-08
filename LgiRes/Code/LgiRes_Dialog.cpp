@@ -4261,7 +4261,7 @@ void ResDialogUi::SelectTool(int i)
 	}
 }
 
-int ResDialogUi::OnEvent(GMessage *Msg)
+GMessage::Result ResDialogUi::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{

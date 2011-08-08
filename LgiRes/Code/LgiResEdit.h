@@ -582,7 +582,7 @@ public:
 	void Serialize(bool Write);
 
 	void OnSelect(FieldSource *s);
-	int OnEvent(GMessage *m);
+	GMessage::Result OnEvent(GMessage *m);
 	void OnPaint(GSurface *pDC);
 	int OnNotify(GViewI *Ctrl, int Flags);
 	void OnPosChange();
@@ -670,7 +670,7 @@ public:
 	// ---------------------------------------------------------------------
 	// Window
 	int OnNotify(GViewI *Ctrl, int Flags);
-	int OnEvent(GMessage *m);
+	GMessage::Result OnEvent(GMessage *m);
 	int OnCommand(int Cmd, int Event, OsView Handle);
 	void OnReceiveFiles(GArray<char*> &Files);
 	void OnCreate();

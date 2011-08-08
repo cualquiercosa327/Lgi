@@ -1292,7 +1292,7 @@ IdeProject *AppWnd::OpenProject(char *FileName, bool Create, bool Dep)
 	return p;
 }
 
-int AppWnd::OnEvent(GMessage *m)
+GMessage::Result AppWnd::OnEvent(GMessage *m)
 {
 	switch (MsgCode(m))
 	{

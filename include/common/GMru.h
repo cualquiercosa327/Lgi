@@ -29,7 +29,7 @@ public:
 	bool Set(GSubMenu *parent, int size = -1);
 	char *AddFile(char *FileName, bool Update = true);
 	void RemoveFile(char *FileName, bool Update = true);
-	int OnEvent(GMessage *Msg);
+	GMessage::Result OnEvent(GMessage *Msg);
 	void OnCommand(int Cmd);
 
 	// Serialization

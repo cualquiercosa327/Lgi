@@ -29,7 +29,7 @@ public:
 
 	void OnPosChange();
 	int OnNotify(GViewI *c, int f);
-	int OnEvent(GMessage *m);
+	GMessage::Result OnEvent(GMessage *m);
 };
 
 #endif

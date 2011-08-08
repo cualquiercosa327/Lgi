@@ -270,7 +270,7 @@ int GDialog::DoModeless()
 
 extern GButton *FindDefault(GView *w);
 
-int GDialog::OnEvent(GMessage *Msg)
+GMessage::Result GDialog::OnEvent(GMessage *Msg)
 {
 	if (Msg->Msg == 6)
 	{
@@ -364,7 +364,7 @@ GControl::~GControl()
 {
 }
 
-int GControl::OnEvent(GMessage *Msg)
+GMessage::Result GControl::OnEvent(GMessage *Msg)
 {
 	int Status = 0;
 

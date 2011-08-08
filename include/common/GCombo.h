@@ -103,7 +103,7 @@ public:
 	virtual void DoMenu();
 
 	// Events/Window/Implementation
-	int OnEvent(GMessage *Msg);
+	GMessage::Result OnEvent(GMessage *Msg);
 	void OnMouseClick(GMouse &m);
 	bool OnKey(GKey &k);
 	void OnFocus(bool f);

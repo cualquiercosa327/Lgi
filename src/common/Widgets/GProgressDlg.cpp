@@ -330,7 +330,7 @@ void GProgressDlg::OnCreate()
 		Push();
 }
 
-int GProgressDlg::OnEvent(GMessage *Msg)
+GMessage::Result GProgressDlg::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{

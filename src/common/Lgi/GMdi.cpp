@@ -511,7 +511,7 @@ void GMdiChild::Lower()
 	}
 }
 
-int GMdiChild::OnEvent(GMessage *m)
+GMessage::Result GMdiChild::OnEvent(GMessage *m)
 {
 	return GLayout::OnEvent(m);
 }

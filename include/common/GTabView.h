@@ -55,7 +55,7 @@ public:
 	
 	// Impl
 	bool Attach(GViewI *parent);
-	int OnEvent(GMessage *Msg);
+	GMessage::Result OnEvent(GMessage *Msg);
 	GViewI *FindControl(int Id);
 	int OnNotify(GViewI *Ctrl, int Flags);
 	void OnChildrenChanged(GViewI *Wnd, bool Attaching);
@@ -98,7 +98,7 @@ public:
 	bool Name(const char *n);
 	GTabView *GetTabControl() { return TabCtrl; }
 
-	int OnEvent(GMessage *Msg);
+	GMessage::Result OnEvent(GMessage *Msg);
 	void OnPaint(GSurface *pDC);
 	bool OnKey(GKey &k);
 	void OnFocus(bool b);

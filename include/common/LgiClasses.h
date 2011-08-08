@@ -40,7 +40,7 @@ LgiFunc void DumpHnd(HIViewRef v, int depth = 0);
 class LgiClass GTarget
 {
 public:
-	virtual int OnEvent(GMessage *Msg) { return 0; }
+	virtual GMessage::Result OnEvent(GMessage *Msg) { return 0; }
 };
 
 /// Fill colour definition
@@ -650,7 +650,7 @@ public:
 	void Unlock();
 
 	/// Called to process every message received by this window.
-	int OnEvent(GMessage *Msg);
+	GMessage::Result OnEvent(GMessage *Msg);
 
 	/// true if the view is enabled
 	bool Enabled();
@@ -1109,7 +1109,7 @@ public:
 	void SetPourLargest(bool i);
 
 	/// Handles the incoming events.
-	int OnEvent(GMessage *Msg);
+	GMessage::Result OnEvent(GMessage *Msg);
 
 	/// Lay out all the children views into the client area according to their
 	/// own internal rules. Space is given in a first come first served basis.
@@ -1301,7 +1301,7 @@ public:
 	void Raise();
 
 	void OnPosChange();
-	int OnEvent(GMessage *Msg);
+	GMessage::Result OnEvent(GMessage *Msg);
 	void OnPaint(GSurface *pDC);
 	bool HandleViewMouse(GView *v, GMouse &m);
 	bool HandleViewKey(GView *v, GKey &k);
@@ -1609,7 +1609,7 @@ public:
 	void Value(int64 v);
 
 	/// Call this in your window's OnEvent handler
-	virtual int OnEvent(GMessage *Msg);
+	virtual GMessage::Result OnEvent(GMessage *Msg);
 };
 
 //////////////////////////////////////////////////////////////////

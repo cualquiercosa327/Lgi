@@ -74,7 +74,7 @@ public:
 	#endif
 	
 	// events
-	int OnEvent(GMessage *Msg);
+	GMessage::Result OnEvent(GMessage *Msg);
 
 	/// Called when the value changes
 	virtual void OnChange(int Pos) {}

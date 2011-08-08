@@ -147,7 +147,7 @@ GSurface *GBitmap::GetSurface()
 	return pDC;
 }
 
-int GBitmap::OnEvent(GMessage *Msg)
+GMessage::Result GBitmap::OnEvent(GMessage *Msg)
 {
 	return GView::OnEvent(Msg);
 }

@@ -19,7 +19,7 @@ public:
 	GRect &GetClient(bool InClientSpace = true);
 	bool Pour();
 	bool Attach(GViewI *p);
-	int OnEvent(GMessage *m);
+	GMessage::Result OnEvent(GMessage *m);
 	char *Name();
 	bool Name(const char *n);
 };

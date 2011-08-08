@@ -1406,7 +1406,7 @@ int GTree::OnNotify(GViewI *Ctrl, int Flags)
 	return GLayout::OnNotify(Ctrl, Flags);
 }
 
-int GTree::OnEvent(GMessage *Msg)
+GMessage::Result GTree::OnEvent(GMessage *Msg)
 {
 	return GLayout::OnEvent(Msg);
 }

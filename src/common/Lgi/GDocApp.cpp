@@ -621,7 +621,7 @@ int GDocApp<OptionsFmt>::OnCommand(int Cmd, int Event, OsView Window)
 }
 
 template <typename OptionsFmt>
-int GDocApp<OptionsFmt>::OnEvent(GMessage *m)
+GMessage::Result GDocApp<OptionsFmt>::OnEvent(GMessage *m)
 {
 	GMru::OnEvent(m);
 

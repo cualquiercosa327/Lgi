@@ -265,7 +265,7 @@ public:
 	/// End a modeless window. Typically calling in the OnNotify event of the GDialog.
 	virtual void EndModeless(int Code = 0);
 
-	int OnEvent(GMessage *Msg);
+	GMessage::Result OnEvent(GMessage *Msg);
 	bool OnRequestClose(bool OsClose);
 	void OnPosChange();
 	
@@ -306,7 +306,7 @@ public:
 
 	~GControl();
 
-	int OnEvent(GMessage *Msg);
+	GMessage::Result OnEvent(GMessage *Msg);
 };
 
 //////////////////////////////////////////////////////////////////////////////////////

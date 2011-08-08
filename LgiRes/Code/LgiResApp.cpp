@@ -725,7 +725,7 @@ void FieldView::OnPosChange()
 	}
 }
 
-int FieldView::OnEvent(GMessage *m)
+GMessage::Result FieldView::OnEvent(GMessage *m)
 {
 	switch (MsgCode(m))
 	{
@@ -1156,7 +1156,7 @@ void AppWnd::SetupUi()
 	#endif
 }
 
-int AppWnd::OnEvent(GMessage *m)
+GMessage::Result AppWnd::OnEvent(GMessage *m)
 {
 	GMru::OnEvent(m);
 

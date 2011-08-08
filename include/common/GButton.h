@@ -56,7 +56,7 @@ public:
 	void Value(int64 i);
 
 	// Events
-	int OnEvent(GMessage *Msg);
+	GMessage::Result OnEvent(GMessage *Msg);
 	void OnMouseClick(GMouse &m);
 	void OnMouseEnter(GMouse &m);
 	void OnMouseExit(GMouse &m);

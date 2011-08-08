@@ -33,7 +33,7 @@ public:
 	int OnNotify(GViewI *Ctrl, int Flags);
 	void OnPaint(GSurface *pDC);
 	void OnAttach();
-	int OnEvent(GMessage *m);
+	GMessage::Result OnEvent(GMessage *m);
 
 	char *Name() { return GView::Name(); }
 	char16 *NameW() { return GView::NameW(); }
@@ -74,7 +74,7 @@ public:
 	void OnFocus(bool f);
 	void OnPaint(GSurface *pDC);
 	void OnAttach();
-	int OnEvent(GMessage *m);
+	GMessage::Result OnEvent(GMessage *m);
 };
 
 #endif

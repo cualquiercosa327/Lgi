@@ -305,7 +305,7 @@ public:
 	void OnMouseMove(GMouse &m);
 	bool OnKey(GKey &k);
 	void OnPaint(GSurface *pDC);
-	int OnEvent(GMessage *Msg);
+	GMessage::Result OnEvent(GMessage *Msg);
 	int OnNotify(GViewI *Ctrl, int Flags);
 	void OnPulse();
 	int OnHitTest(int x, int y);

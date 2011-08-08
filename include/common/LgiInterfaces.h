@@ -299,7 +299,7 @@ public:
 	virtual bool OnScriptEvent(GViewI *Ctrl) = 0;
 
 	// Events
-	virtual int OnEvent(GMessage *Msg) = 0;
+	virtual GMessage::Result OnEvent(GMessage *Msg) = 0;
 	virtual void OnMouseClick(GMouse &m) = 0;
 	virtual void OnMouseEnter(GMouse &m) = 0;
 	virtual void OnMouseExit(GMouse &m) = 0;

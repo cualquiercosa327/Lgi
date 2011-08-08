@@ -775,7 +775,7 @@ void ResMenuUi::OnCreate()
 	}
 }
 
-int ResMenuUi::OnEvent(GMessage *Msg)
+GMessage::Result ResMenuUi::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{

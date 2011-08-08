@@ -1732,7 +1732,7 @@ int GToolBar::PostDescription(GView *Ctrl, const char *Text)
 	return 0;
 }
 
-int GToolBar::OnEvent(GMessage *Msg)
+GMessage::Result GToolBar::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{

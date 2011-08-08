@@ -47,7 +47,8 @@ typedef int					OsProcessId;
 class LgiClass GMessage
 {
 public:
-	typedef int Param;
+	typedef NativeInt Param;
+	typedef NativeInt Result;
 
 	int m;
 	Param a;

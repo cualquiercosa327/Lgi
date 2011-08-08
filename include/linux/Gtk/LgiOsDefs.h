@@ -104,27 +104,6 @@ public:
 #define XcbDebug(cookie)			cookie
 #endif
 
-class LgiClass GMessage
-{
-public:
-    typedef int Param;
-	bool OwnEvent;
-	Gtk::GdkEvent *Event;
-
-	GMessage(int m, Param a = 0, Param b = 0);
-	~GMessage();
-
-	int Type();
-	Param A();
-	Param B();
-	void Set(int m, Param a, Param b);
-	bool Send(OsView Wnd);
-};
-
-#define MsgCode(Msg)				Msg->Type()
-#define MsgA(Msg)					Msg->A()
-#define MsgB(Msg)					Msg->B()
-
 // Threads
 #ifdef WIN32
 
@@ -151,6 +130,29 @@ typedef pthread_mutex_t				OsSemaphore;
 #define LgiGetCurrentThread()		pthread_self()
 
 #endif
+
+class LgiClass GMessage
+{
+public:
+    typedef NativeInt Param;
+    typedef NativeInt Result;
+
+	bool OwnEvent;
+	Gtk::GdkEvent *Event;
+
+	GMessage(int m, Param a = 0, Param b = 0);
+	~GMessage();
+
+	int Type();
+	Param A();
+	Param B();
+	void Set(int m, Param a, Param b);
+	bool Send(OsView Wnd);
+};
+
+#define MsgCode(Msg)				Msg->Type()
+#define MsgA(Msg)					Msg->A()
+#define MsgB(Msg)					Msg->B()
 
 // Sockets
 #define ValidSocket(s)				((s)>=0)

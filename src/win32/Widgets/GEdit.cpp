@@ -242,7 +242,7 @@ int64 GEdit::Value()
 
 #define EDIT_PROCESSING 1
 
-int GEdit::OnEvent(GMessage *Msg)
+GMessage::Result GEdit::OnEvent(GMessage *Msg)
 {
 	#if EDIT_PROCESSING
 	switch (Msg->Msg)

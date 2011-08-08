@@ -60,7 +60,7 @@ void GCheckBox::OnAttach()
 {
 }
 
-int GCheckBox::OnEvent(GMessage *m)
+GMessage::Result GCheckBox::OnEvent(GMessage *m)
 {
 	return GView::OnEvent(m);
 }

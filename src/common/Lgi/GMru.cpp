@@ -268,7 +268,7 @@ void GMru::OnCommand(int Cmd)
 	}
 }
 
-int GMru::OnEvent(GMessage *Msg)
+GMessage::Result GMru::OnEvent(GMessage *Msg)
 {
 	/*
 	if (d->_Parent AND

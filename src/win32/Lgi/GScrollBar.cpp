@@ -282,7 +282,7 @@ bool GScrollBar::Invalidate(GRect *r, bool Repaint, bool NonClient)
 	return false;
 }
 
-int GScrollBar::OnEvent(GMessage *Msg)
+GMessage::Result GScrollBar::OnEvent(GMessage *Msg)
 {
 	int Status = SubClass ? SubClass->CallParent(Handle(), Msg->Msg, Msg->a, Msg->b) : 0;
 

@@ -103,7 +103,7 @@ public:
 	void OnReceiveFiles(GArray<char*> &Files);
 	bool OnRequestClose(bool OsShuttingDown);
 	int OnCommand(int Cmd, int Event, OsView Window);
-	int OnEvent(GMessage *m);
+	GMessage::Result OnEvent(GMessage *m);
 };
 
 #endif

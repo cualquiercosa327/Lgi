@@ -121,7 +121,7 @@ public:
 	int OnNotify(GViewI *c, int f);
 	void OnPosChange();
 	void OnPulse();
-	int OnEvent(GMessage *Msg);
+	GMessage::Result OnEvent(GMessage *Msg);
 	const char *GetMimeType() { return "text/html"; }
 
 	// Javascript handlers

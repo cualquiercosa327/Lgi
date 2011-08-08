@@ -428,7 +428,7 @@ void GDataGrid::OnCreate()
 	SetWindow(this);
 }
 
-int GDataGrid::OnEvent(GMessage *Msg)
+GMessage::Result GDataGrid::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{

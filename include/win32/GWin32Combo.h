@@ -39,7 +39,7 @@ public:
 	bool Name(const char *n);
 	#endif
 
-	int OnEvent(GMessage *Msg);
+	GMessage::Result OnEvent(GMessage *Msg);
 	bool Delete();
 	bool Delete(int i);
 	bool Delete(char *p);

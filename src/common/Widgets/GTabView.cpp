@@ -249,7 +249,7 @@ void GTabView::Value(int64 i)
 	}
 }
 
-int GTabView::OnEvent(GMessage *Msg)
+GMessage::Result GTabView::OnEvent(GMessage *Msg)
 {
 	return GView::OnEvent(Msg);
 }
@@ -735,7 +735,7 @@ bool GTabPage::Name(const char *name)
 	return Status;
 }
 
-int GTabPage::OnEvent(GMessage *Msg)
+GMessage::Result GTabPage::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{

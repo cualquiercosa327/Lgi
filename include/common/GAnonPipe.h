@@ -19,7 +19,7 @@ public:
 
 	// Messages
 	void PostEvent(int cmd, int a = 0, int b = 0);
-	int OnEvent(GMessage *Msg);
+    GMessage::Result OnEvent(GMessage *Msg);
 	GMessage *GetMessage();
 };
 

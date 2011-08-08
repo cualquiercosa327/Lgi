@@ -70,7 +70,7 @@ public:
 	bool OnKey(GKey &k);
 	
 	#if WIN32NATIVE
-	int OnEvent(GMessage *Msg);
+	GMessage::Result OnEvent(GMessage *Msg);
 	void OnAttach();
 	char *Name();
 	bool Name(const char *s);

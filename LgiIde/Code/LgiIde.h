@@ -138,7 +138,7 @@ public:
 	void AppendOutput(char *Txt, int Channel);
 	void UpdateState(int Debugging = -1, int Building = -1);
 	void OnFindFinished();
-	int OnEvent(GMessage *m);
+	GMessage::Result OnEvent(GMessage *m);
 	void OnReceiveFiles(GArray<char*> &Files);
 	int GetBuildMode();
 	GTree *GetTree();

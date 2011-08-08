@@ -249,7 +249,7 @@ void RLogView::OnNcCalcClient(long &x1, long &y1, long &x2, long &y2)
 
 }
 
-int RLogView::OnEvent(GMessage *Msg)
+GMessage::Result RLogView::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{

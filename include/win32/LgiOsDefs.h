@@ -76,6 +76,7 @@ public:
 	LPARAM b;
 	
 	typedef LPARAM Param;
+	typedef LRESULT Result;
 
 	GMessage()
 	{

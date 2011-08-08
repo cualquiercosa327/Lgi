@@ -246,7 +246,7 @@ public:
 	void Pour();
 	void OnPosChange();
 	void OnCreate();
-	int OnEvent(GMessage *Msg);
+	GMessage::Result OnEvent(GMessage *Msg);
 
 	int CurrentTool();
 	void SelectTool(int i);

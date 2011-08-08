@@ -77,7 +77,7 @@ void GSlider::SetLimits(int64 min, int64 max)
 	}
 }
 
-int GSlider::OnEvent(GMessage *Msg)
+GMessage::Result GSlider::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{
@@ -129,7 +129,7 @@ int GSlider::OnEvent(GMessage *Msg)
 		}
 	}
 
-	int Status = GControl::OnEvent(Msg);
+	GMessage::Result Status = GControl::OnEvent(Msg);
 
 	switch (MsgCode(Msg))
 	{

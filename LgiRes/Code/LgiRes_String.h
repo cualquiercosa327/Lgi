@@ -187,7 +187,7 @@ public:
 	void Pour();
 	void OnPosChange();
 	void OnCreate();
-	int OnEvent(GMessage *Msg);
+	GMessage::Result OnEvent(GMessage *Msg);
 };
 
 class LangDlg : public GDialog

@@ -1610,7 +1610,7 @@ void ResStringUi::OnCreate()
 	}
 }
 
-int ResStringUi::OnEvent(GMessage *Msg)
+GMessage::Result ResStringUi::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{

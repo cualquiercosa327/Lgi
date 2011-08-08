@@ -50,7 +50,7 @@ public:
 	void OnPaint(GSurface *pDC);
 	void OnNcPaint(GSurface *pDC);
 	void OnNcCalcClient(long &x1, long &y1, long & x2, long &y2);
-	int OnEvent(GMessage *Msg);
+	GMessage::Result OnEvent(GMessage *Msg);
 	void OnPosChange();
 	int OnNotify(GViewI *Ctrl, int Flags);
 

@@ -5806,7 +5806,7 @@ char *GHtml::Name()
 	return Source;
 }
 
-int GHtml::OnEvent(GMessage *Msg)
+GMessage::Result GHtml::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{

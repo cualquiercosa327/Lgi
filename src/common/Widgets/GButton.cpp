@@ -138,7 +138,7 @@ void GButton::SetFont(GFont *Fnt, bool OwnIt)
 	Invalidate();
 }
 
-int GButton::OnEvent(GMessage *Msg)
+GMessage::Result GButton::OnEvent(GMessage *Msg)
 {
 	return GView::OnEvent(Msg);
 }

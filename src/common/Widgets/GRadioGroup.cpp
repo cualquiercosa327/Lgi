@@ -53,7 +53,7 @@ void GRadioGroup::OnAttach()
 {
 }
 
-int GRadioGroup::OnEvent(GMessage *m)
+GMessage::Result GRadioGroup::OnEvent(GMessage *m)
 {
 	return GView::OnEvent(m);
 }
@@ -244,7 +244,7 @@ void GRadioButton::OnAttach()
 {
 }
 
-int GRadioButton::OnEvent(GMessage *m)
+GMessage::Result GRadioButton::OnEvent(GMessage *m)
 {
 	return GView::OnEvent(m);
 }

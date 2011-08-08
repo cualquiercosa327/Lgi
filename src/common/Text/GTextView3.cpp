@@ -4454,7 +4454,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 	#endif
 }
 
-int GTextView3::OnEvent(GMessage *Msg)
+GMessage::Result GTextView3::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{

@@ -273,7 +273,7 @@ LRESULT CALLBACK GWin32Class::SubClassRedir(HWND hWnd, UINT m, WPARAM a, LPARAM 
 	if (Wnd)
 	{
 		GMessage Msg(m, a, b);
-		int Status = Wnd->OnEvent(&Msg);
+		GMessage::Result Status = Wnd->OnEvent(&Msg);
 		return Status;
 	}
 
@@ -1171,7 +1171,7 @@ bool IsKeyChar(GKey &k, int vk)
 
 #define KEY_FLAGS		(~(MK_LBUTTON | MK_MBUTTON | MK_RBUTTON))
 
-int GView::OnEvent(GMessage *Msg)
+GMessage::Result GView::OnEvent(GMessage *Msg)
 {
 	int Status = 0;
 
@@ -1204,7 +1204,7 @@ int GView::OnEvent(GMessage *Msg)
 					GViewFill *b = v->GetBackgroundFill();
 					if (b)
 					{
-						return (int)b->GetBrush();
+						return (GMessage::Result)b->GetBrush();
 					}
 				}
 
@@ -1223,7 +1223,7 @@ int GView::OnEvent(GMessage *Msg)
 			case WM_GETFONT:
 			{
 				GFont *f = GetFont();
-				return (int) (f ? f->Handle() : SysFont->Handle());
+				return (GMessage::Result) (f ? f->Handle() : SysFont->Handle());
 				break;
 			}
 			case WM_MENUCHAR:

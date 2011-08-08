@@ -64,7 +64,7 @@ void GProgress::Value(int64 v)
 	}
 }
 
-int GProgress::OnEvent(GMessage *Msg)
+GMessage::Result GProgress::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{

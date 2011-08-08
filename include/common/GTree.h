@@ -185,7 +185,7 @@ public:
 	void OnPosChange();
 	bool OnKey(GKey &k);
 	int OnNotify(GViewI *Ctrl, int Flags);
-	int OnEvent(GMessage *Msg);
+	GMessage::Result OnEvent(GMessage *Msg);
 	void OnPulse();
 
 	/// Add a item to the tree

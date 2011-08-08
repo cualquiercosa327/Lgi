@@ -557,7 +557,7 @@ void GItemEdit::Visible(bool i)
 	}
 }
 
-int GItemEdit::OnEvent(GMessage *Msg)
+GMessage::Result GItemEdit::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{
@@ -1683,7 +1683,7 @@ void GList::EmptyColumns()
 	SendNotify(GLIST_NOTIFY_COLS_CHANGE);
 }
 
-int GList::OnEvent(GMessage *Msg)
+GMessage::Result GList::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{

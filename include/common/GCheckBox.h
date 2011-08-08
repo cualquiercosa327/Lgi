@@ -67,7 +67,7 @@ public:
 	void OnFocus(bool f);
 	void OnPaint(GSurface *pDC);
 	void OnAttach();
-	int OnEvent(GMessage *Msg);
+	GMessage::Result OnEvent(GMessage *Msg);
 };
 
 #endif

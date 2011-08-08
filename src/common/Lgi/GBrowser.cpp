@@ -602,7 +602,7 @@ int GBrowser::OnNotify(GViewI *c, int f)
 	return 0;
 }
 
-int GBrowser::OnEvent(GMessage *m)
+GMessage::Result GBrowser::OnEvent(GMessage *m)
 {
 	switch (MsgCode(m))
 	{

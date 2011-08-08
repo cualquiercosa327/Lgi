@@ -188,7 +188,7 @@ public:
 		*/
 	}
 	
-	int OnEvent(GMessage *m)
+	GMessage::Result OnEvent(GMessage *m)
 	{
 		switch (MsgCode(m))
 		{
@@ -520,7 +520,7 @@ void GTrayIcon::Value(int64 v)
 	}
 }
 
-int GTrayIcon::OnEvent(GMessage *Message)
+GMessage::Result GTrayIcon::OnEvent(GMessage *Message)
 {
 	#if WIN32NATIVE
 	

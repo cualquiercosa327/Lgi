@@ -175,7 +175,7 @@ public:
 		Attach(0);
 	}
 
-	int OnEvent(GMessage *m)
+	GMessage::Result OnEvent(GMessage *m)
 	{
 		if (MsgCode(m) == M_FTP_CMD)
 		{

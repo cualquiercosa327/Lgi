@@ -175,7 +175,7 @@ public:
 	virtual bool XmlIo(class GXmlTag *Tag, bool Write) { return false; }
 
 	bool OnScriptEvent(GViewI *Ctrl) { return false; }
-	int OnEvent(GMessage *Msg) { return 0; }
+	GMessage::Result OnEvent(GMessage *Msg) { return 0; }
 	void OnMouseEnter(GMouse &m) {}
 	void OnMouseExit(GMouse &m) {}
 	void OnMouseMove(GMouse &m) {}
@@ -207,7 +207,7 @@ public:
 	void OnPaint(GSurface *pDC);
 	int OnNotify(GViewI *v, int f);
 	void Visible(bool i);
-	int OnEvent(GMessage *Msg);
+	GMessage::Result OnEvent(GMessage *Msg);
 };
 
 /// No marking
@@ -583,7 +583,7 @@ public:
 	// Events
 	
 	void OnPaint(GSurface *pDC);
-	int OnEvent(GMessage *Msg);
+	GMessage::Result OnEvent(GMessage *Msg);
 	int OnHitTest(int x, int y);
 	void OnMouseClick(GMouse &m);
 	void OnMouseMove(GMouse &m);
