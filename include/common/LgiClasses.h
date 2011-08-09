@@ -1784,7 +1784,7 @@ struct GDisplayInfo
 
 /// Returns infomation about the displays attached to the system.
 /// \returns non-zero on success.
-bool LgiGetDisplays
+LgiFunc bool LgiGetDisplays
 (
 	/// [out] The array of display info structures. The caller should free these
 	/// objects using Displays.DeleteObjects().
