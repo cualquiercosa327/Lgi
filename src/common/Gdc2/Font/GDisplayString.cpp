@@ -1053,8 +1053,11 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 						if (Info[i].Str[0] == '\t')
 						{
 							// Invisible tab... draw blank space
-							pDC->Colour(Font->Back());
-							pDC->Rectangle(&b);
+							if (!Font->Transparent())
+							{
+								pDC->Colour(Font->Back());
+								pDC->Rectangle(&b);
+							}
 						}
 						else
 						{

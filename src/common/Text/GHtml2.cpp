@@ -676,17 +676,18 @@ public:
 	int y2;						// Maximum used y position
 	int cx;						// Current insertion point
 	int my;						// How much of the area above y2 was just margin
+	int max_cx;					// Max value of cx
 
 	GFlowRegion(GHtml2 *html)
 	{
 		Html = html;
-		x1 = x2 = y1 = y2 = cx = my = 0;
+		x1 = x2 = y1 = y2 = cx = my = max_cx = 0;
 	}
 
 	GFlowRegion(GHtml2 *html, GRect r)
 	{
 		Html = html;
-		cx = x1 = r.x1;
+		max_cx = cx = x1 = r.x1;
 		y1 = y2 = r.y1;
 		x2 = r.x2;
 		my = 0;
@@ -699,7 +700,7 @@ public:
 		x2 = r.x2;
 		y1 = r.y1;
 		y2 = r.y2;
-		cx = r.cx;
+		max_cx = cx = r.cx;
 		my = r.my;
 	}
 
@@ -4995,6 +4996,8 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, char16 *Text, GC
 
 		Tag->Size.x = max(Tag->Size.x, Tr->x2);
 		Tag->Size.y = max(Tag->Size.y, Tr->y2);
+		Flow->max_cx = max(Flow->max_cx, Tr->x2);
+		LgiTrace("[%i of %i] %s %S\n", Flow->max_cx, Flow->x2, Tr->GetStr(), Tr->Text);
 
 		if (Tr->Len == 0)
 			break;
@@ -5168,11 +5171,6 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 			// Flow in the rest of the text...
 			TextPos.FlowText(this, Flow, f, Text(), GetAlign(true));
 		}
-
-		if (TagId == CONDITIONAL)
-		{
-			int asd=0;
-		}
 	}
 
 	// Flow children
@@ -5191,9 +5189,15 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 	{
 		Flow->EndBlock();
 
+		int OldFlowSize = Flow->x2 - Flow->x1 + 1;
 		Flow->Outdent(f, PaddingLeft(), PaddingTop(), PaddingRight(), PaddingBottom());
 		Flow->Outdent(f, GCss::BorderLeft(), GCss::BorderTop(), GCss::BorderRight(), GCss::BorderBottom());
 		Flow->Outdent(f, MarginLeft(), MarginTop(), MarginRight(), MarginBottom(), true);
+		int NewFlowSize = Flow->x2 - Flow->x1 + 1;
+		int Diff = NewFlowSize - OldFlowSize;
+		if (Diff)
+			Flow->max_cx += Diff;
+		
 		Flow->y1 = Flow->y2;
 		Flow->x2 = Flow->x1 + BlockFlowWidth;
 	}
@@ -5536,18 +5540,7 @@ void GTag::OnPaint(GSurface *pDC)
 			if (Image)
 			{
 				int Old = pDC->Op(GDC_ALPHA);
-
-				/*
-				printf("Img %ix%i@%i bits, Alpha=%p (pDC=%i bits, scr=%i)\n",
-					Image->X(),
-					Image->Y(),
-					Image->GetBits(),
-					Image->AlphaDC(),
-					pDC->GetBits(), pDC->IsScreen());
-				*/
-				
 				pDC->Blt(0, 0, Image);
-
 				pDC->Op(Old);
 			}
 			else if (Size.x > 1 && Size.y > 1)
@@ -5611,13 +5604,9 @@ void GTag::OnPaint(GSurface *pDC)
 				}
 
 				if (BackgroundColor().Type == ColorInherit)
-				{
 					pDC->Colour(DefaultTableBorder, 32);
-				}
 				else
-				{
 					pDC->Colour(BackgroundColor().Rgb32, 32);
-				}
 				
 				for (GRect *p=c.First(); p; p=c.Next())
 				{
@@ -6374,7 +6363,8 @@ GdcPt2 GHtml2::Layout()
 		// Flow text, width is different
 		Tag->OnFlow(&f);
 		// f.FinishLine();
-		d->Content.x = ViewWidth = Client.X();
+		ViewWidth = Client.X();;
+		d->Content.x = f.max_cx + 1;
 		d->Content.y = f.y2;
 		
 
