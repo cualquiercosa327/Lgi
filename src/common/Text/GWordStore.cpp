@@ -171,13 +171,14 @@ int GWordStore::GetItems()
 	return d->Items;
 }
 
-void GWordStore::SetItems(int i)
+bool GWordStore::SetItems(int i)
 {
 	if (i != d->Items)
 	{
 		d->Items = i;
 		d->Dirty = true;
 	}
+	return true;
 }
 
 bool GWordStore::Insert(char *Word)

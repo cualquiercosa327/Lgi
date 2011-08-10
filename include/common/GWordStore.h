@@ -15,7 +15,7 @@ public:
 	
 	// Container
 	int GetItems();
-	void SetItems(int s);
+	bool SetItems(int s);
 	bool Insert(char *Word);
 	int GetWordCount(char *Word);
 	int SetWordCount(char *Word, int Count);
