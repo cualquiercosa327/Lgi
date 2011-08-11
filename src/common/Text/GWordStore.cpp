@@ -9,11 +9,11 @@ class GWordStorePriv
 {
 public:
 	char *File;
-	GHashTable Table;
+	GHashTbl<const char*,int> Table;
 	bool Dirty;
 	int Items;
 
-	GWordStorePriv()
+	GWordStorePriv() : Table(0, false, 0, -1)
 	{
 		Dirty = false;
 		Table.IsCase(false);
@@ -27,7 +27,7 @@ public:
 	}
 };
 
-GWordStore::GWordStore(char *file)
+GWordStore::GWordStore(const char *file)
 {
 	d = new GWordStorePriv;
 	d->File = NewStr(file);
@@ -51,13 +51,13 @@ char *GWordStore::GetFile()
 	return d->File;
 }
 
-bool GWordStore::Serialize(char *FileName, bool Load)
+bool GWordStore::Serialize(const char *FileName, bool Load)
 {
 	static const char *ObjName = "GWordStore";
 	bool Status = false;
 	GFile f;
 	
-	char *Name = FileName ? FileName : d->File;
+	const char *Name = FileName ? FileName : d->File;
 	if (Load)
 	{
 		if (f.Open(Name, O_READ))
@@ -89,7 +89,7 @@ bool GWordStore::Serialize(char *FileName, bool Load)
 							if (Comma)
 							{
 								*Comma++ = 0;
-								d->Table.Add(Buf, (void*) atoi(Comma));
+								d->Table.Add(Buf, atoi(Comma));
 							}
 							else
 							{
@@ -143,8 +143,8 @@ bool GWordStore::Serialize(char *FileName, bool Load)
 			f.Print("%s v1.00 Items=%i, Words=%i\n", ObjName, d->Items, d->Table.Length());
 			
 			int i = 0;
-			char *Word;
-			for (void *Count = d->Table.First(&Word); Count; Count = d->Table.Next(&Word))
+			const char *Word;
+			for (int Count = d->Table.First(&Word); Count; Count = d->Table.Next(&Word))
 			{
 				i++;
 				f.Print("%s,%i\n", Word, (int)Count);
@@ -181,14 +181,14 @@ bool GWordStore::SetItems(int i)
 	return true;
 }
 
-bool GWordStore::Insert(char *Word)
+bool GWordStore::Insert(const char *Word)
 {
 	bool Status = false;
 	
 	if (Word)
 	{
-		int c = (int)d->Table.Find(Word);
-		Status = d->Table.Add(Word, (void*) (c + 1));
+		int c = d->Table.Find(Word);
+		Status = d->Table.Add(Word, c + 1);
 		d->Dirty = true;
 	}
 	
@@ -196,9 +196,9 @@ bool GWordStore::Insert(char *Word)
 
 }
 
-int GWordStore::GetWordCount(char *Word)
+int GWordStore::GetWordCount(const char *Word)
 {
-	return Word ? (int)d->Table.Find(Word) : 0;
+	return Word ? d->Table.Find(Word) : 0;
 }
 
 void GWordStore::Empty()
@@ -207,15 +207,15 @@ void GWordStore::Empty()
 	d->Dirty = true;
 }
 
-char *GWordStore::First()
+const char *GWordStore::First()
 {
-	char *key;
+	const char *key;
 	return d->Table.First(&key) ? key : 0;
 }
 
-char *GWordStore::Next()
+const char *GWordStore::Next()
 {
-	char *key;
+	const char *key;
 	return d->Table.Next(&key) ? key : 0;
 }
 

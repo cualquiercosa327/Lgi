@@ -24,8 +24,8 @@ public:
 	void SetFile(const char *file);
 
 	// Iterate
-	char *First();
-	char *Next();
+	const char *First();
+	const char *Next();
 	int Length();
 
 	#ifdef _DEBUG
