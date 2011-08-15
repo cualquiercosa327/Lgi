@@ -10,6 +10,7 @@
 char *InetGetField(const char *s)
 {
 	const char *e = s;
+	static const char *WhiteSpace = " \r\t\n";
 
 	// Look for the end of the string
 	while (*e)
@@ -25,11 +26,11 @@ char *InetGetField(const char *s)
 		e++;
 	}
 
-	// Trim whitespace off the end
-	while (e > s AND strchr(" \r\t\n", e[-1]))
-	{
+	// Trim whitespace off each end of the string
+	while (s < e && strchr(WhiteSpace, *s))
+		s++;
+	while (e > s && strchr(" \r\t\n", e[-1]))
 		e--;
-	}
 
 	// Calc the length
 	int Size = e - s;
