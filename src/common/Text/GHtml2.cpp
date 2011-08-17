@@ -4997,7 +4997,6 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, char16 *Text, GC
 		Tag->Size.x = max(Tag->Size.x, Tr->x2);
 		Tag->Size.y = max(Tag->Size.y, Tr->y2);
 		Flow->max_cx = max(Flow->max_cx, Tr->x2);
-		LgiTrace("[%i of %i] %s %S\n", Flow->max_cx, Flow->x2, Tr->GetStr(), Tr->Text);
 
 		if (Tr->Len == 0)
 			break;
