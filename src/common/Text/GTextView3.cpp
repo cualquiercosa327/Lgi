@@ -3229,6 +3229,21 @@ int GTextView3::GetColumn()
 	return x;
 }
 
+int GTextView3::SpaceDepth(char16 *Start, char16 *End)
+{
+	int Depth = 0;
+	while (Start < End)
+	{
+		if (*Start == '\t')
+			Depth += IndentSize - (Depth % IndentSize);
+		else if (*Start == ' ')
+			Depth ++;
+		else break;
+		Start++;
+	}
+	return Depth;
+}
+
 #ifdef MAC
 #define Modifier System
 #else
@@ -3331,7 +3346,37 @@ bool GTextView3::OnKey(GKey &k)
 						{
 							char16 In = k.GetChar();
 
-							if (In && Insert(Cursor, &In, 1))
+							if (In == '\t' &&
+								k.Shift() &&
+								Cursor > 0)
+							{
+								l = GetLine(Cursor);
+								if (Cursor > l->Start)
+								{
+									if (Text[Cursor-1] == '\t')
+									{
+										Delete(Cursor - 1, 1);
+										SetCursor(Cursor - 1, false, false);
+									}
+									else if (Text[Cursor-1] == ' ')
+									{
+										int Start = Cursor - 1;
+										while (Start >= l->Start && strchr(" \t", Text[Start-1]))
+											Start--;
+										int Depth = SpaceDepth(Text + Start, Text + Cursor);
+										int NewDepth = Depth - (Depth % IndentSize);
+										if (NewDepth == Depth && NewDepth > 0)
+											NewDepth -= IndentSize;
+										int Use = 0;
+										while (SpaceDepth(Text + Start, Text + Start + Use + 1) < NewDepth)
+											Use++;
+										Delete(Start + Use, Cursor - Start - Use);
+										SetCursor(Start + Use, false, false);
+									}
+								}
+								
+							}
+							else if (In && Insert(Cursor, &In, 1))
 							{
 								l = GetLine(Cursor);
 								int NewLen = (l) ? l->Len : 0;

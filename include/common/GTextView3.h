@@ -189,6 +189,7 @@ protected:
 	GStyle *GetNextStyle(int Where = -1);
 	GStyle *HitStyle(int i);
 	int GetColumn();
+	int SpaceDepth(char16 *Start, char16 *End);
 
 	// Overridables
 	virtual void PourText(int Start, int Length);
