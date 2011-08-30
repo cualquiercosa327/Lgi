@@ -295,6 +295,23 @@ pascal OSStatus AppProc(EventHandlerCallRef inHandlerCallRef, EventRef inEvent, 
 		{
 			switch (eventKind)
 			{
+				case kEventAppGetDockTileMenu:
+				{
+					GSubMenu s;
+					s.AppendItem("First", 1, true);
+					s.AppendItem("Second", 2, true);
+					s.AppendItem("Third", 3, true);
+					
+					MenuRef gDockMenu = s.Release();
+
+					SetEventParameter(	inEvent,
+										kEventParamMenuRef,
+										typeMenuRef,
+										sizeof(MenuRef),
+										&gDockMenu);
+					result = noErr;
+					break;
+				}
 				case kEventAppActivated:
 				case kEventAppFrontSwitched:
 				{
@@ -456,6 +473,7 @@ GApp::GApp(const char *AppMime, OsAppArguments &AppArgs, GAppArguments *ObjArgs)
 	{
 		{ kEventClassApplication, kEventAppActivated },
 		{ kEventClassApplication, kEventAppFrontSwitched },
+		{ kEventClassApplication, kEventAppGetDockTileMenu },
 	};
 
 	EventHandlerRef Handler = 0;

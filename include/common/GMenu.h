@@ -127,6 +127,14 @@ public:
 
 	/// Returns the OS handle
 	OsSubMenu Handle() { return Info; }
+
+	/// Detachs the OS handle and returns it
+	OsSubMenu Release()
+	{
+		OsSubMenu Hnd = Info;
+		Info = 0;
+		return Info;
+	}
 	
 	/// Add a new item
 	GMenuItem *AppendItem
