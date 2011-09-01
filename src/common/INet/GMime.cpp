@@ -455,7 +455,7 @@ char *GMime::GetTmpPath()
 	return 0;
 }
 
-bool GMime::SetHeaders(char *h)
+bool GMime::SetHeaders(const char *h)
 {
 	DeleteArray(Headers);
 	Headers = NewStr(h);

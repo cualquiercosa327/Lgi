@@ -75,7 +75,7 @@ public:
 	void DeleteChildren() { Children.DeleteObjects(); }
 
 	void Empty();
-	bool SetHeaders(char *h);
+	bool SetHeaders(const char *h);
 	char *GetHeaders() { return Headers; }
 	int GetLength() { return DataSize; }
 	GStreamI *GetData(bool Detach = false);
