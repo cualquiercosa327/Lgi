@@ -6,6 +6,8 @@
 #include "INetTools.h"
 #include "GString.h"
 
+#define IsAlpha(c)					(((c) >= 'a' && (c) <= 'z') || ((c) >= 'A' && (c) <= 'Z'))
+
 // Gets a field value
 char *InetGetField(const char *s)
 {
@@ -282,7 +284,7 @@ char *InetGetSubField(const char *s, const char *Field)
 				while (*s AND (strchr(White, *s) OR *s == ';')) s++;
 
 				// Parse field name
-				if (isalpha(*s))
+				if (IsAlpha(*s))
 				{
 					const char *f = s;
 					while (*s AND (isalpha(*s) OR *s == '-')) s++;
