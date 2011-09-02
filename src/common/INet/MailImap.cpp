@@ -770,19 +770,10 @@ bool MailIMap::ReadResponse(int Cmd, GStringPipe *Out, bool Plus)
 						Done = true;
 						Status = strnicmp(Dlg+6, "OK", 2) == 0;
 						if (!Status)
-						{
 							ServerMsg.Reset(NewStr(Dlg+6));
-							if (d->Logging)
-								Log(Dlg, MAIL_ERROR_COLOUR);
-						}
-						else if (d->Logging)
-							Log(Dlg, MAIL_RECEIVE_COLOUR);
-
-						Dialog.Delete(Dlg);
-						DeleteArray(Dlg);
 					}
 					
-					if (Dlg && d->Logging)
+					if (d->Logging)
 						Log(Dlg, MAIL_RECEIVE_COLOUR);
 				}
 			}
@@ -2036,10 +2027,19 @@ bool MailIMap::Append(char *Folder, ImapMailFlags *Flags, char *Msg, GAutoString
 		
 		if (WriteBuf() && Read())
 		{
-			char *Dlg = Dialog.First();
-			if (Dlg[0] == '+')
+		    bool GotPlus = false;
+			for (char *Dlg = Dialog.First(); Dlg; Dlg = Dialog.Next())
 			{
-				Dialog.Delete(Dlg);
+			    if (Dlg[0] == '+')
+			    {
+    				Dialog.Delete(Dlg);
+			        GotPlus = true;
+			        break;
+			    }
+			}
+			
+			if (GotPlus)
+			{
 				int Wrote = 0;
 				for (char *m = Msg; *m; )
 				{
@@ -2072,15 +2072,15 @@ bool MailIMap::Append(char *Folder, ImapMailFlags *Flags, char *Msg, GAutoString
 				{
 					char Tmp[16];
 					sprintf(Tmp, "A%4.4i", Cmd);
-					for (char *d = Dialog.First(); d; d = Dialog.Next())
+					for (char *Line = Dialog.First(); Line; Line = Dialog.Next())
 					{
-						GAutoString c = ImapBasicTokenize(d);
+						GAutoString c = ImapBasicTokenize(Line);
 						if (!c) break;
 						if (!strcmp(Tmp, c))
 						{
 							GAutoString a;
 
-							while ((a = ImapBasicTokenize(d)).Get())
+							while ((a = ImapBasicTokenize(Line)).Get())
 							{
 								GToken t(a, " ");
 								if (t.Length() > 2 && !stricmp(t[0], "APPENDUID"))
