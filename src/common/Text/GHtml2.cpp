@@ -3484,7 +3484,8 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 					s = ParseName(++s, &Tag);
 					if (!Tag)
 					{
-						*BackOut = true;
+					    if (BackOut)
+						    *BackOut = true;
 						return s;
 					}
 
