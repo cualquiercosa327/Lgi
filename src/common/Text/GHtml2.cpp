@@ -1593,6 +1593,7 @@ GTag::~GTag()
 	}
 
 	Tags.DeleteObjects();
+	Attr.DeleteArrays();
 
 	DeleteArray(Tag);
 	DeleteArray(HtmlId);
@@ -1613,13 +1614,7 @@ void GTag::Set(const char *attr, const char *val)
 	if (existing) DeleteArray(existing);
 
 	if (val)
-	{
 		Attr.Add(attr, NewStr(val));
-	}
-	else
-	{
-		Attr.Delete(attr);
-	}
 }
 
 bool GTag::GetVariant(const char *Name, GVariant &Value, char *Array)

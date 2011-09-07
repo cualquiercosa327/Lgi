@@ -1681,8 +1681,6 @@ public:
 /// NewView() to create your control.
 class LgiClass GViewFactory
 {
-	static List<GViewFactory> *Factories;
-
 	/** \brief Create a view by name
 
 		\code

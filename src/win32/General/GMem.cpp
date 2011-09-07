@@ -33,7 +33,7 @@
 
 struct stack_addr
 {
-	uint Ip;
+	UNativeInt Ip;
 };
 
 struct block
@@ -130,7 +130,7 @@ void *lgi_malloc(size_t size)
 						break;
 
 					if (i)
-						b->Stack[i-1].Ip = (uint) *((uint8**)frame + 1);
+						b->Stack[i-1].Ip = (UNativeInt) *((uint8**)frame + 1);
 					frame = frame->Next;
 				}
 			}
@@ -433,7 +433,7 @@ bool LgiDumpMemoryStats(char *filename)
 								PIMAGEHLP_SYMBOL pSymbol = (PIMAGEHLP_SYMBOL)symbolBuffer;
 								DWORD symDisplacement = 0;
 								IMAGEHLP_LINE Line;
-								DWORD Offset = b->Stack[i].Ip - (int)Pid;
+								DWORD Offset = b->Stack[i].Ip - (UNativeInt)Pid;
 
 								pSymbol->SizeOfStruct = sizeof(symbolBuffer);
 								pSymbol->MaxNameLength = 512;

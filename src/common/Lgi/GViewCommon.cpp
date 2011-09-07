@@ -1768,33 +1768,33 @@ void GView::_Dump(int Depth)
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-List<GViewFactory> *GViewFactory::Factories;
+struct GAllFactories : public GArray<GViewFactory*>
+{
+    ~GAllFactories()
+    {
+        DeleteObjects();
+    }
+};
+
+static GAllFactories AllFactories;
 
 GViewFactory::GViewFactory()
 {
-	if (!Factories) Factories = new List<GViewFactory>;
-	if (Factories) Factories->Insert(this);
+	AllFactories.Add(this);
 }
 
 GViewFactory::~GViewFactory()
 {
-	if (Factories)
-	{
-		Factories->Delete(this);
-		if (Factories->Length() == 0)
-		{
-			DeleteObj(Factories);
-		}
-	}
+	AllFactories.Delete(this);
 }
 
 GView *GViewFactory::Create(const char *Class, GRect *Pos, const char *Text)
 {
-	if (Factories && ValidStr(Class))
+	if (ValidStr(Class))
 	{
-		for (GViewFactory *f=Factories->First(); f; f=Factories->Next())
+		for (int i=0; i<AllFactories.Length(); i++)
 		{
-			GView *v = f->NewView(Class, Pos, Text);
+			GView *v = AllFactories[i]->NewView(Class, Pos, Text);
 			if (v)
 			{
 				return v;
