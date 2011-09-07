@@ -27,14 +27,6 @@
 
 //////////////////////////////////////////////////////////////////
 // Typedefs
-#if __LP64__
-typedef int64				NativeInt;
-typedef uint64				UNativeInt;
-#else
-typedef int					NativeInt;
-typedef unsigned int		UNativeInt;
-#endif
-
 typedef WindowRef			OsWindow;
 typedef ControlRef			OsView;
 typedef pthread_t           OsThread;

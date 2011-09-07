@@ -35,21 +35,6 @@
 
 //////////////////////////////////////////////////////////////////
 // Typedefs
-#if _MSC_VER >= 1400
-
-#ifdef  _WIN64
-typedef __int64             NativeInt;
-typedef unsigned __int64    UNativeInt;
-#else
-typedef _W64 int			NativeInt;
-typedef _W64 unsigned int	UNativeInt;
-#endif
-
-#else
-typedef int					NativeInt;
-typedef unsigned int		UNativeInt;
-#endif
-
 #ifndef _WINDOWS
 #define _WINDOWS			1
 #endif

@@ -126,6 +126,37 @@ typedef		char						TCHAR;
 #endif
 #endif
 
+#if defined(_MSC_VER)
+
+	#if _MSC_VER >= 1400
+
+		#ifdef  _WIN64
+		typedef __int64             NativeInt;
+		typedef unsigned __int64    UNativeInt;
+		#else
+		typedef _W64 int			NativeInt;
+		typedef _W64 unsigned int	UNativeInt;
+		#endif
+
+	#else
+
+		typedef int					NativeInt;
+		typedef unsigned int		UNativeInt;
+
+	#endif
+
+#else
+
+	#if __LP64__
+		typedef int64				NativeInt;
+		typedef uint64				UNativeInt;
+	#else
+		typedef int					NativeInt;
+		typedef unsigned int		UNativeInt;
+	#endif
+
+#endif
+
 /// Generic pointer to any base type. Used when addressing continuous data of
 /// different types.
 typedef union
@@ -138,6 +169,8 @@ typedef union
 	uint32 *u32;
 	int64 *s64;
 	uint64 *u64;
+	NativeInt *ni;
+	UNativeInt *uni;
 
 	char *c;
 	char16 *w;
