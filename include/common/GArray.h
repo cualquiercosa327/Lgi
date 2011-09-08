@@ -250,11 +250,29 @@ public:
 	/// Delete all the entries as if they are pointers to objects
 	void DeleteObjects()
 	{
-		for (uint i=0; i<len; i++)
+		if (len > 0)
 		{
-			DeleteObj(p[i]);
+			int InitialLen = len;
+			delete p[0];
+			if (InitialLen == len)
+			{
+				// Non self deleting
+				for (uint i=1; i<len; i++)
+				{
+					delete p[i];
+					p[i] = 0;
+				}
+				Length(0);
+			}
+			else
+			{
+				// Self deleting object...
+				while (len)
+				{
+					delete p[0];
+				}
+			}
 		}
-		Length(0);
 	}
 	
 	/// Delete all the entries as if they are pointers to arrays

@@ -15,8 +15,6 @@
 
 #include <ctype.h>
 
-static int Allocs = 0, Deletes = 0;
-
 struct Mapping
 {
 	int Id;
@@ -33,14 +31,6 @@ struct Mapping
 		ListItemFactory = 0;
 		TreeItemFactory = 0;
 		User = 0;
-		
-		Allocs++;
-	}
-
-	~Mapping()
-	{
-	    Deletes++;
-	    LgiTrace("Allocs=%i, Deletes=%i\n", Allocs, Deletes);
 	}
 
 	void LoadTree(GTreeNode *n, GXmlTag *t)
@@ -85,18 +75,14 @@ public:
 	}
 };
 
-static int GXmlToUi_Alloc = 0, GXmlToUi_Free = 0;
 GXmlToUi::GXmlToUi()
 {
 	d = new GXmlToUiPriv;
-	GXmlToUi_Alloc++;
 }
 
 GXmlToUi::~GXmlToUi()
 {
 	DeleteObj(d);
-	GXmlToUi_Free++;
-	LgiTrace("GXmlToUi_Alloc=%i, GXmlToUi_Free=%i\n", GXmlToUi_Alloc, GXmlToUi_Free);
 }
 
 void GXmlToUi::EmptyAll(GViewI *Ui)
