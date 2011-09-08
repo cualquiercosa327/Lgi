@@ -146,7 +146,7 @@ int main(int Args, char **Arg)
 
 #endif
 
-#ifdef LGI_MEM_DEBUG
+#if defined(LGI_MEM_DEBUG) && !defined(LGI_STATIC)
 
 void *operator new(unsigned int size)
 {

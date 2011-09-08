@@ -29,7 +29,11 @@
 #define MEM_STACK_SIZE				8
 #define MEM_FILL					0xcccccccc
 
+#ifndef _WIN64
 #define mem_assert(c)				if (!(c)) _asm int 3
+#else
+#define mem_assert					LgiAssert
+#endif
 
 struct stack_addr
 {
@@ -115,6 +119,7 @@ void *lgi_malloc(size_t size)
 			// Save the stack trace
 
 			void *_ebp = 0;
+			#ifndef _WIN64
 			_asm {
 				mov eax, ebp
 				mov _ebp, eax
@@ -148,6 +153,7 @@ void *lgi_malloc(size_t size)
 					b->Stack[i].Ip = (uint) *((uint8**)RegEbp + 1);
 				RegEbp = *(uint*)RegEbp;
 			}
+			#endif
 			#endif
 
 			// Add to linked list
@@ -487,12 +493,12 @@ bool LgiDumpMemoryStats(char *filename)
 	return Status;
 }
 
-void *operator new(unsigned int size)
+void *operator new(size_t size)
 {
 	return lgi_malloc(size);
 }
 
-void *operator new[](unsigned int size)
+void *operator new[](size_t size)
 {
 	return lgi_malloc(size);
 }
