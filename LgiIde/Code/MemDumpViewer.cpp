@@ -3,6 +3,7 @@
 #include "LgiIde.h"
 #include "GToken.h"
 #include "GEdit.h"
+#include "GProgressDlg.h"
 
 #define IDC_LIST 100
 
@@ -76,6 +77,39 @@ int Cmp(GListItem *A, GListItem *B, int d)
 	}
 
 	return 0;
+}
+
+char *Strnstr(char *s, const char *find, int len)
+{
+    if (!s || !find || len < 0)
+        return 0;
+
+    char *End = s + len;
+    int FindLen = strlen(find);
+    while (s < End)
+    {
+        if (*s == *find)
+        {
+            bool match = true;
+            char *to = s + FindLen;
+            if (to > End)
+                return 0;
+            
+            for (int n=1; n<FindLen; n++)
+            {
+                if (s[n] != find[n])
+                {
+                    match = false;
+                    break;
+                }
+            }
+            if (match)
+                return s;
+        }
+        s++;
+    }
+    
+    return 0;
 }
 
 class DumpView : public GWindow
@@ -168,42 +202,84 @@ public:
 
 	void Load(char *File)
 	{
-		GHashTable Except;
+		GHashTable Except(0, false);
 		Except.Add("GString.cpp");
+		Except.Add("GVariant.cpp");
 		Except.Add("GContainers.cpp");
 		Except.Add("GContainers.h");
 		Except.Add("GFile.cpp");
 		Except.Add("Mail.h");
 
-		char *Txt = ReadTextFile(File);
-		if (Txt)
+		GFile f;
+		if (!f.Open(File, O_READ))
+			LgiMsg(this, "Couldn't read '%s'", AppName, MB_OK, File);
+		else
 		{
-			GToken t(Txt, "\r\n");
-			DeleteArray(Txt);
-
+			GProgressDlg Prog(this, true);
+			GArray<char> Buf;
+			Buf.Length(1 << 20);
+			int Pos = 0, Used = 0;
+			bool First = true;
 			char s[512];
-			char *Blocks = t[0];
-			if (Blocks)
+
+			GHashTbl<char*,DumpItem*> h(0, false);
+			h.SetStringPool(true);
+
+			Prog.SetDescription("Reading memory dump...");
+			Prog.SetLimits(0, f.GetSize());
+			Prog.SetScale(1.0 / 1024.0 / 1024.0);
+			Prog.SetType("MB");
+
+			while (true)
 			{
-				char *c = strchr(Blocks, ':');
-				if (c) *c = 0;
-				sprintf(s, "%s (%s)", File, t[0]);
-				Name(s);
-
-				int Size = 0;
-				GArray<char*> Stack;
-				GHashTable h;
-				h.SetStringPool(true);
-
-				for (int i=1; i<t.Length(); i++)
+				// Consume data
+				int Len = Used - Pos;
+				char *Cur = &Buf[Pos];
+				char *End = Strnstr(Cur, "\r\n\r\n", Len);
+				if (End)
 				{
-					char *n = t[i];
-					if (*n == '\t')
+					if (First)
 					{
-						Stack.Add(n);
+						First = false;
+						GToken t(Cur, " \t\r\n", true, End-Cur);
+						char *Blocks = t[0];
+						if (Blocks)
+						{
+							char *c = strchr(Blocks, ':');
+							if (c) *c = 0;
+							sprintf(s, "%s (%s)", File, t[0]);
+							Name(s);
+						}
+						else break;
 					}
 					else
 					{
+						int Size = 0;
+						GToken Lines(Cur, "\r\n", true, End - Cur);
+						GArray<char*> Stack;
+						for (int i=0; i<Lines.Length(); i++)
+						{
+							char *n = Lines[i];
+							if (*n == '\t')
+							{
+								Stack.Add(n);
+							}
+							else
+							{
+								if (strnicmp(n, "Block ", 6) == 0)
+								{
+									char *c = strchr(n, ',');
+									if (c)
+									{
+										c++;
+										while (*c == ' ') c++;
+
+										Size = atoi(c);
+									}
+								}
+							}
+						}
+
 						if (Size && Stack.Length() > 0)
 						{
 							char *Alloc = 0;
@@ -266,29 +342,34 @@ public:
 							Stack.Length(0);
 							Size = 0;
 						}
-
-						if (strnicmp(n, "Block ", 6) == 0)
-						{
-							char *c = strchr(n, ',');
-							if (c)
-							{
-								c++;
-								while (*c == ' ') c++;
-
-								Size = atoi(c);
-							}
-						}
 					}
-				}
 
-				List<GListItem> Items;
-				for (void *p = h.First(); p; p = h.Next())
-				{
-					Items.Insert((DumpItem*)p);
+					Pos = End - &Buf[0] + 4;
 				}
-				Lst->Insert(Items);
-				Lst->Sort(Cmp, 0);
+				else
+				{
+					// Update status
+					Prog.Value(f.GetPos());
+					LgiYield();
+
+					// Read more data in?
+					memmove(&Buf[0], &Buf[Pos], Used - Pos);
+					Used -= Pos;
+					Pos = 0;
+					int r = f.Read(&Buf[Used], Buf.Length() - Used);
+					if (r <= 0)
+						break;
+					Used += r;
+				}
 			}
+
+			List<GListItem> Items;
+			for (void *p = h.First(); p; p = h.Next())
+			{
+				Items.Insert((DumpItem*)p);
+			}
+			Lst->Insert(Items);
+			Lst->Sort(Cmp, 0);
 		}
 	}
 };

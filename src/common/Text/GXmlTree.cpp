@@ -56,7 +56,7 @@ public:
 	{
 		Block *b = 0;
 
-		int BlockSize = 64 << 10;
+		int BlockSize = 32 << 10;
 		if (Mem.Length() == 0 || !Mem[Mem.Length()-1].Has(Size))
 		{
 			// New block

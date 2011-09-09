@@ -386,7 +386,7 @@ public:
 			if (e)
 			{
 				// Push text before tag
-				T.Push(t, (int)e-(int)t);
+				T.Push(t, e-t);
 				char *TagStart = e;
 				e += 2;
 				skipws(e);
@@ -394,7 +394,7 @@ public:
 				while (*e AND isalpha(*e)) e++;
 				
 				// Get tag
-				char *Tag = NewStr(Start, (int)e-(int)Start);
+				char *Tag = NewStr(Start, e-Start);
 				if (Tag)
 				{
 					// Process tag
@@ -410,7 +410,7 @@ public:
 						int i = 0;
 						for (char *p=Params->First(); p; p=Params->Next(), i++)
 						{
-							if (i) T.Push(Line, (int)TagStart-(int)Line);
+							if (i) T.Push(Line, TagStart-Line);
 							T.Push(p);
 							if (i < Params->Length()-1) T.Push("\n");
 						}
@@ -1142,7 +1142,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 						{
 							End++;
 
-							char16 *Buf = NewStrW(Start, ((int)End-(int)Start)/sizeof(*Buf));
+							char16 *Buf = NewStrW(Start, End-Start);
 							if (Buf)
 							{
 								// remove new-lines
@@ -1269,7 +1269,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 							s++;
 						}
 						
-						int TokLen = ((int)s-(int)Start)/sizeof(*s);
+						int TokLen = s - Start;
 						if (TokLen == 6 AND StrncmpW(StrExtern, Start, 6) == 0)
 						{
 							// extern "C" block
@@ -1296,7 +1296,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 									case ' ':
 									case '\t':
 									{
-										p.Push(Start, ((int)i-(int)Start)/sizeof(char16));
+										p.Push(Start, i - Start);
 										
 										defnskipws(i);
 
@@ -1311,14 +1311,14 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 										// fall thru
 									case '\r':
 									{
-										p.Push(Start, ((int)i-(int)Start)/sizeof(char16));
+										p.Push(Start, i - Start);
 										i++;
 										Start = i;
 										break;
 									}
 									case '{':
 									{
-										p.Push(Start, ((int)i-(int)Start)/sizeof(char16));
+										p.Push(Start, i - Start);
 										
 										int Depth = 1;
 										i++;
@@ -1343,7 +1343,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 									}
 									case ';':
 									{
-										p.Push(Start, ((int)i-(int)Start)/sizeof(char16));
+										p.Push(Start, i - Start);
 										s = i;
 										i = 0;
 										break;

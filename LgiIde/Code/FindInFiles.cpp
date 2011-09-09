@@ -205,7 +205,7 @@ void FindInFilesThread::SearchFile(char *File)
 					{
 						char *Eol = s + Len;
 						while (*Eol AND *Eol != '\n') Eol++;
-						int LineLen = (int)Eol - (int)LineStart;						
+						int LineLen = Eol - LineStart;						
 						
 						bool StartOk = true;
 						bool EndOk = true;
