@@ -191,7 +191,7 @@ void CtrlControlTree::OnPaint(GSurface *pDC)
 bool CtrlControlTree::GetFields(FieldTree &Fields)
 {
 	bool Status = ResDialogCtrl::GetFields(Fields);
-	if (Status)
+	if (Status && Fields.GetDeep())
 	{
 		CtNode *n = dynamic_cast<CtNode*>(Selection());
 		if (n && n->Str)
@@ -207,7 +207,7 @@ bool CtrlControlTree::GetFields(FieldTree &Fields)
 bool CtrlControlTree::Serialize(FieldTree &Fields)
 {
 	bool Status = ResDialogCtrl::Serialize(Fields);
-	if (Status)
+	if (Status && Fields.GetDeep())
 	{
 		CtNode *n = dynamic_cast<CtNode*>(Selection());
 		if (n && n->Str)

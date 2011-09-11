@@ -193,7 +193,7 @@ GDocApp<OptionsFmt>::GDocApp(char *appname, TCHAR *icon, char *optsname)
 				c->Class.w.hIcon = LoadIcon(LgiProcessInst(), wIcon);
 			}
 			#else
-			c->Class.a.hIcon = LoadIcon(LgiProcessInst(), ((int)icon&0xffff0000)?icon:MAKEINTRESOURCE(icon));
+			c->Class.a.hIcon = LoadIcon(LgiProcessInst(), ((NativeInt)icon&0xffff0000)?icon:MAKEINTRESOURCE(icon));
 			#endif
 		}
 		#else

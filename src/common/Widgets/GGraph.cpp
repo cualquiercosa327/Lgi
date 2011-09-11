@@ -250,7 +250,7 @@ struct GGraphPriv
 							p--;
 							rng *= 10;
 						}
-						dbl_inc = pow(10, p);
+						dbl_inc = pow(10.0, p);
 						int d = (int)((v.CastDouble() + dbl_inc) / dbl_inc);
 						v = (double)d * dbl_inc;
 					}

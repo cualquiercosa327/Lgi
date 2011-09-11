@@ -23,7 +23,7 @@ bool LgiIsNumber(char *p)
 	return false;
 }
 
-char *LgiSkipDelim(char *p, char *Delimiter)
+char *LgiSkipDelim(char *p, const char *Delimiter)
 {
 	while (p AND *p AND strchr(Delimiter, *p)) p++;
 	return p;

@@ -1226,8 +1226,8 @@ ResObjectImpl::SStatus ResObjectImpl::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 		return SError;
 
 	char *ObjName = Object->GetObjectName();
-	if (stricmp(ObjName, "Slider") == 0 OR
-		stricmp(Tag->Tag, ObjName) == 0)
+	if (!stricmp(ObjName, "Slider") ||
+		!stricmp(Tag->Tag, ObjName))
 	{
 		Res_SetPos(Tag);
 		Res_SetStrRef(Tag, &Ctx);
@@ -1291,27 +1291,6 @@ void ResObjectImpl::WriteStrRef(GXmlTag *t)
 
 void ResObjectImpl::WriteFlags(GXmlTag *t)
 {
-	/*
-	int Enabled = true;
-	int Visible = true;
-
-	ObjProperties Props;
-	if (Factory->Res_GetProperties(Object, &Props))
-	{
-		Props.Get("Enabled", Enabled);
-		Props.Get("Visible", Visible);
-	}
-
-	if (!Enabled)
-	{
-		t->SetAttr("enabled", Enabled);
-	}
-	if (!Visible)
-	{
-		t->SetAttr("visible", Visible);
-	}
-	*/
-
 	Factory->Res_GetProperties(Object, t);
 }
 
@@ -2007,18 +1986,8 @@ ResObjectImpl::SStatus ResCustom::Res_Write(GXmlTag *t)
 	char Tabs[256];
 	TabString(Tabs);
 
-	/*
-	char *Control = 0;
-	ObjProperties Props;
-	if (Factory->Res_GetProperties(Object, &Props))
-	{
-		Props.Get("ctrl", Control);
-	}
-	*/
-
 	t->Tag = NewStr(Res_Custom);
 	WriteCommon(t);
-	// t->SetAttr("ctrl", Control);
 	Factory->Res_GetProperties(Object, t);
 
 	return SOk;
@@ -2047,6 +2016,8 @@ ResObjectImpl::SStatus ResControlTree::Res_Write(GXmlTag *t)
 	DeleteArray(t->Tag);
 	t->Tag = NewStr(Object->GetObjectName());
 	WriteCommon(t);
+
+	LgiAssert(!t->GetAttr("id"));
 
 	GDom *d = Factory->Res_GetDom(Object);
 	if (!d)

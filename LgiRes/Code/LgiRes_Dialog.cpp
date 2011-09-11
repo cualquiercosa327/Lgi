@@ -994,7 +994,7 @@ void CtrlText::OnPaint(GSurface *pDC)
 		{
 			if ((*s == '\\' && *(s+1) == 'n') || (*s == 0))
 			{
-				GDisplayString ds(SysFont, Start, (int)s-(int)Start);
+				GDisplayString ds(SysFont, Start, s - Start);
 				ds.Draw(pDC, 0, y, &Client);
 				y += 15;
 				Start = s + 2;
@@ -2360,7 +2360,7 @@ bool ResDialog::Res_GetProperties(ResObject *Obj, GDom *Props)
 	if (Ctrl && Props)
 	{
 		int Next = -1000;
-		FieldTree t(Next);
+		FieldTree t(Next, false);
 		t.SetStore(Props);
 		t.SetMode(FieldTree::ObjToStore);
 		Ctrl->GetFields(t);
@@ -2382,7 +2382,7 @@ bool ResDialog::Res_SetProperties(ResObject *Obj, GDom *Props)
 	if (Ctrl && Props)
 	{
 		int Next = -1000;
-		FieldTree t(Next);
+		FieldTree t(Next, false);
 		t.SetStore(Props);
 		t.SetMode(FieldTree::StoreToObj);
 		Ctrl->GetFields(t);
@@ -3490,7 +3490,7 @@ void ResDialog::OnLanguageChange()
 		if (l)
 		{
 			char Str[256];
-			sprintf(Str, "Current Language: %s (Id: %i)", l->Name, l->Id);
+			sprintf(Str, "Current Language: %s (Id: %s)", l->Name, l->Id);
 			Ui->StatusInfo->Name(Str);
 		}
 	}
@@ -3699,9 +3699,6 @@ bool ResDialog::Read(GXmlTag *t, ResFileFormat Format)
 	ResDialogCtrl *Dlg = dynamic_cast<ResDialogCtrl*>(Children.First());
 	if (Dlg)
 	{
-		// Symbols->DeleteStr(Dlg->Str);
-		// Dlg->Str = 0;
-
 		// Load the resource
 		ResReadCtx Ctx;
 		Status = Res_Read(Dlg, t, Ctx);

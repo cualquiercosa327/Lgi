@@ -7,7 +7,7 @@
 LgiFunc bool LgiIsNumber(char *p);
 
 /// Skips over a set of delimiters, returning the next non-delimiter
-LgiFunc char *LgiSkipDelim(char *p, char *Delimiter = " \r\n\t");
+LgiFunc char *LgiSkipDelim(char *p, const char *Delimiter = " \r\n\t");
 
 /// A simple token parser
 class LgiClass GToken : public GArray<char*>

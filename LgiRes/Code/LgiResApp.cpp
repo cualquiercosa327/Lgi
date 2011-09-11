@@ -67,27 +67,27 @@ char *EncodeXml(char *Str, int Len)
 		GStringPipe p;
 		
 		char *s = Str;
-		for (char *e = Str; e AND *e AND (Len < 0 OR (((int)e-(int)Str) < Len)); )
+		for (char *e = Str; e AND *e AND (Len < 0 OR ((e-Str) < Len)); )
 		{
 			switch (*e)
 			{
 				case '<':
 				{
-					p.Push(s, (int)e-(int)s);
+					p.Push(s, e-s);
 					p.Push("&lt;");
 					s = ++e;
 					break;
 				}
 				case '>':
 				{
-					p.Push(s, (int)e-(int)s);
+					p.Push(s, e-s);
 					p.Push("&gt;");
 					s = ++e;
 					break;
 				}
 				case '&':
 				{
-					p.Push(s, (int)e-(int)s);
+					p.Push(s, e-s);
 					p.Push("&amp;");
 					s = ++e;
 					break;
@@ -97,7 +97,7 @@ char *EncodeXml(char *Str, int Len)
 					if (e[1] == 'n')
 					{
 						// Newline
-						p.Push(s, (int)e-(int)s);
+						p.Push(s, e-s);
 						p.Push("\n");
 						s = (e += 2);
 						break;
@@ -110,7 +110,7 @@ char *EncodeXml(char *Str, int Len)
 				case '/':
 				{
 					// Convert to entity
-					p.Push(s, (int)e-(int)s);
+					p.Push(s, e-s);
 					
 					char b[32];
 					sprintf(b, "&#%i;", *e);
@@ -142,14 +142,14 @@ char *DecodeXml(char *Str, int Len)
 		GStringPipe p;
 		
 		char *s = Str;
-		for (char *e = Str; e AND *e AND (Len < 0 OR (((int)e-(int)Str) < Len)); )
+		for (char *e = Str; e AND *e AND (Len < 0 OR ((e-Str) < Len)); )
 		{
 			switch (*e)
 			{
 				case '&':
 				{
 					// Store string up to here
-					p.Push(s, (int)e-(int)s);
+					p.Push(s, e-s);
 
 					e++;
 					if (*e == '#')
@@ -192,7 +192,7 @@ char *DecodeXml(char *Str, int Len)
 						// named entity
 						char *Name = e;
 						while (*e AND *e != ';') e++;
-						int Len = (int)e-(int)Name;
+						int Len = e - Name;
 						if (Len == 3 AND strnicmp(Name, "amp", Len) == 0)
 						{
 							p.Push("&");
@@ -222,7 +222,7 @@ char *DecodeXml(char *Str, int Len)
 				}
 				case '\n':
 				{
-					p.Push(s, (int)e-(int)s);
+					p.Push(s, e-s);
 					p.Push("\\n");
 					s = ++e;
 					break;
@@ -473,7 +473,7 @@ void ObjTreeItem::OnMouseClick(GMouse &m)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-FieldView::FieldView(AppWnd *app) : Fields(NextId)
+FieldView::FieldView(AppWnd *app) : Fields(NextId, true)
 {
 	NextId = 100;
 	App = app;
@@ -821,6 +821,7 @@ ObjContainer::ObjContainer(AppWnd *w) :
 	if (f)
 	{
 		Images = LgiLoadImageList(f, 16, 16);
+		LgiAssert(Images);
 		DeleteArray(f);
 		SetImageList(Images, false);
 	}
@@ -2537,7 +2538,7 @@ bool AppWnd::LoadLgi(char *FileName)
 			if (Root)
 			{				
 				// convert file to Xml objects
-				GXmlTree Xml(GXT_NO_ENTITIES);
+				GXmlTree Xml(0);
 				Progress.SetDescription("Lexing...");
 				if (Xml.Read(Root, &f, 0))
 				{
@@ -3117,7 +3118,7 @@ public:
 					Line++;
 				}
 
-				Name = NewStr(Start, (int)Line-(int)Start);
+				Name = NewStr(Start, Line-Start);
 				Line = LgiSkipDelim(Line);
 				Start = Line;
 				while (*Line AND !strchr(WhiteSpace, *Line))
@@ -3126,7 +3127,7 @@ public:
 				}
 				if (Start != Line)
 				{
-					Value = NewStr(Start, (int)Line-(int)Start);
+					Value = NewStr(Start, Line-Start);
 				}
 			}
 		}
@@ -3284,9 +3285,9 @@ public:
 						if (First AND Second)
 						{
 							Insert(Def);
-							Def->Name = NewStr(Str, (int)First-(int)Str);
+							Def->Name = NewStr(Str, First-Str);
 							First++;
-							Def->Value = NewStr(First, (int)Second-(int)First);
+							Def->Value = NewStr(First, Second-First);
 						}
 						else
 						{
@@ -3318,7 +3319,7 @@ void TokLine(GArray<char*> &T, char *Line)
 		}
 		
 		// Break into tokens
-		for (char *s = Line; s AND *s; )
+		for (const char *s = Line; s AND *s; )
 		{
 			while (*s AND strchr(" \t", *s)) s++;
 			char *t = LgiTokStr(s);
@@ -3578,7 +3579,7 @@ bool AppWnd::LoadWin32(char *FileName)
 								if (Next)
 								{
 									Next = LgiSkipDelim(Next);
-									char *NextTok = LgiTokStr(Next);
+									char *NextTok = LgiTokStr((const char*&)Next);
 									if (NextTok)
 									{
 										if (stricmp(NextTok, "END") != 0 AND

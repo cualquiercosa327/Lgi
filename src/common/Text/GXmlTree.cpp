@@ -206,6 +206,7 @@ bool GXmlTree::EncodeEntities(GStreamI *to, char *start, int len, const char *ex
 					char Ent[32];
 					sprintf(Ent, "&#%i;", (uchar)*e);
 					to->Write(Ent, strlen(Ent));
+					break;
 				}
 			}
 			

@@ -278,6 +278,7 @@ protected:
 	FieldMode Mode;
 	GViewI *View;
 	GDom *Store;
+	bool Deep;
 
 	GHashTbl<void*, FieldArr*> f;
 
@@ -311,11 +312,12 @@ protected:
 	}
 
 public:
-	FieldTree(int &next) : NextId(next)
+	FieldTree(int &next, bool deep) : NextId(next)
 	{
 		Mode = None;
 		View = 0;
 		Store = 0;
+		Deep = deep;
 	}
 
 	~FieldTree()
@@ -326,6 +328,11 @@ public:
 	FieldMode GetMode()
 	{
 		return Mode;
+	}
+	
+	bool GetDeep()
+	{
+		return Deep;
 	}
 
 	void SetMode(FieldMode m)

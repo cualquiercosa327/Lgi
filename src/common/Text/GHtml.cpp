@@ -1754,7 +1754,7 @@ int IsNearRect(GRect *r, int x, int y)
 		}
 	}
 
-	return sqrt( (dx * dx) + (dy * dy) );
+	return sqrt( (double) (dx * dx) + (dy * dy) );
 }
 
 int GTag::NearestChar(GFlowRect *Tr, int x, int y)
