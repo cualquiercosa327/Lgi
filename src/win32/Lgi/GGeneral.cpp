@@ -709,7 +709,10 @@ bool GRegKey::DeleteKey()
 			k = 0;
 
 			HKEY Root = GetRootKey(KeyName);
-			Status = RegDeleteKey(Root, n) == ERROR_SUCCESS;
+			int Ret = RegDeleteKey(Root, n);
+			Status = Ret == ERROR_SUCCESS;
+			if (!Status)
+			    LgiAssert(!"RegDeleteKey failed.");
 			DeleteArray(KeyName);
 		}
 	}
@@ -730,7 +733,7 @@ char *GRegKey::GetStr(char *Name)
 
 bool GRegKey::SetStr(char *Name, char *Value)
 {
-	return k AND RegSetValueEx(k, Name, 0, REG_SZ, (uchar*)Value, strlen(Value)) == ERROR_SUCCESS;
+	return k AND RegSetValueEx(k, Name, 0, REG_SZ, (uchar*)Value, Value ? strlen(Value) : 0) == ERROR_SUCCESS;
 }
 
 int GRegKey::GetInt(char *Name)

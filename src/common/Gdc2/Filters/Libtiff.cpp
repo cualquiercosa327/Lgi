@@ -374,6 +374,9 @@ bool GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 				if (a.Length(rowlen) &&
 					pDC->Create(img.width, img.height, 32))
 				{
+				    if (Meter)
+				        Meter->SetLimits(0, img.height);
+				    
 					for (int y=0; y<img.height; y++)
 					{
 						int r = Lib->TIFFReadScanline(tif, &a[0], y, 0);
@@ -398,6 +401,9 @@ bool GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 							d++;
 							s++;
 						}
+
+				        if (Meter)
+				            Meter->Value(y);
 					}
 
 					Status = true;
@@ -406,6 +412,10 @@ bool GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 			else if (pDC->Create(img.width, img.height, 32))
 			{
 				uint8 *d = (*pDC)[0];
+
+			    if (Meter)
+			        Meter->SetLimits(0, img.height);
+
 				Lib->TIFFRGBAImageGet(&img, (uint32*)d, pDC->X(), pDC->Y());
 				SwapRBandY(pDC);
 
