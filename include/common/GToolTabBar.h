@@ -23,9 +23,10 @@ class GToolTab : public GToolButton
 	void OnMouseMove(GMouse &m) {}
 	void OnMouseEnter(GMouse &m) {}
 	void OnMouseExit(GMouse &m) {}
+	void OnCreate();
 
 public:
-	GToolTab() : GToolButton(16, 16) { First = true; }
+	GToolTab();
 	~GToolTab() {}
 
 	/// Override this event to attach controls to the current view.

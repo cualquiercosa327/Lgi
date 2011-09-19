@@ -13,6 +13,14 @@
 #include "GToolTabBar.h"
 
 /////////////////////////////////////////////////////////////////////////
+GToolTab::GToolTab() : GToolButton(16, 16)
+{
+	First = true;
+	#ifdef _WINDOWS
+	SetClassW32("GToolTab");
+	#endif
+}
+
 void GToolTab::OnPaint(GSurface *pDC)
 {
 	#if 1
@@ -26,6 +34,11 @@ void GToolTab::OnPaint(GSurface *pDC)
 bool GToolTab::SetPos(GRect &r, bool Repaint)
 {
 	return GToolButton::SetPos(r, Repaint);
+}
+
+void GToolTab::OnCreate()
+{
+	AttachChildren();
 }
 
 int64 GToolTab::Value()
@@ -131,6 +144,7 @@ void GToolTabBar::OnChange(GToolButton *Btn)
 	// Detach the old button
 	if (Current)
 	{
+		Invalidate(&Current->TabPos);
 		Current->Visible(false);
 		Current = 0;
 	}
@@ -147,6 +161,8 @@ void GToolTabBar::OnChange(GToolButton *Btn)
 			Current->OnSelect();
 			Current->First = false;
 		}
+
+		Invalidate(&Current->TabPos);
 	}
 
 	IsOk();
@@ -207,9 +223,17 @@ void GToolTabBar::_PaintTab(GSurface *pDC, GToolTab *Tab)
 		GetImageList()->Draw(pDC, t.x1 + Off, t.y1 + Off, Tab->Image(), 0);
 }
 
-void GToolTabBar::OnPaint(GSurface *pDC)
+void GToolTabBar::OnPaint(GSurface *pScreen)
 {
-	GRect r(0, 0, GView::X()-1, GView::Y()-1);
+	GRect r = GetClient();
+
+	#ifdef WIN32
+	GMemDC Mem(r.X(), r.Y(), GdcD->GetBits());
+	GSurface *pDC = &Mem;
+	#else
+	GSurface *pDC = pScreen;
+	#endif
+
 	int Off = 4 + ((Border) ? 6 : 0);
 
 	if (Border)
@@ -269,10 +293,9 @@ void GToolTabBar::OnPaint(GSurface *pDC)
 	if (Down)
 		_PaintTab(pDC, Down);
 
-	/*
-	pDC->Colour(GColour(0, 0, 255));
-	pDC->Box(&Client);
-	*/
+	#ifdef WIN32
+	pScreen->Blt(0, 0, &Mem);
+	#endif
 }
 
 void GToolTabBar::OnMouseClick(GMouse &m)
@@ -413,4 +436,6 @@ void GToolTabBar::OnCreate()
 		Btn->Value(true);
 		OnChange(Btn);
 	}
+	
+	AttachChildren();
 }
