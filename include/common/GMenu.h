@@ -66,7 +66,7 @@ public:
 				ResFileFormat Format,
 				class TagHash *TagList);
 
-	virtual GMenuItem *AppendItem(const char *Str, int Id, bool Enabled, int Where = -1, char *Shortcut = 0) = 0;
+	virtual GMenuItem *AppendItem(const char *Str, int Id, bool Enabled, int Where = -1, const char *Shortcut = 0) = 0;
 	virtual GSubMenu *AppendSub(const char *Str, int Where = -1) = 0;
 	virtual GMenuItem *AppendSeparator(int Where = -1) = 0;
 };
@@ -159,7 +159,7 @@ public:
 		/// The index into the list to insert at, or -1 to insert at the end
 		int Where = -1,
 		// Shortcut if not embeded in "Str"
-		char *Shortcut = 0
+		const char *Shortcut = 0
 	);
 	
 	/// Add a submenu
@@ -286,7 +286,7 @@ public:
 	GMenuItem(BMenuItem *item);
 	GMenuItem(GSubMenu *p);
 	#else
-	GMenuItem(GMenu *m, GSubMenu *p, int Pos, char *Shortcut = 0);
+	GMenuItem(GMenu *m, GSubMenu *p, int Pos, const char *Shortcut = 0);
 	#endif
 	virtual ~GMenuItem();
 
