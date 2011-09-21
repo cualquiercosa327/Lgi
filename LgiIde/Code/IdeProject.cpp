@@ -2871,7 +2871,7 @@ char *GetQuotedStr(char *Str)
 		char *e = strchr(s, '\"');
 		if (e)
 		{
-			return NewStr(s, (int)e-(int)s);
+			return NewStr(s, e - s);
 		}
 	}
 
@@ -3385,7 +3385,7 @@ bool IdeProject::CreateMakefile()
 							if (d)
 							{
 								if (c) m.Print(" \\\n\t\t\t");
-								m.Print("%.*s.o", (int)d-(int)f, f);
+								m.Print("%.*s.o", d - f, f);
 							}
 						}
 					}

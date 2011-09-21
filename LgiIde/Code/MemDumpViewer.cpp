@@ -209,6 +209,7 @@ public:
 		Except.Add("GContainers.h");
 		Except.Add("GFile.cpp");
 		Except.Add("Mail.h");
+		Except.Add("GArray.h");
 
 		GFile f;
 		if (!f.Open(File, O_READ))

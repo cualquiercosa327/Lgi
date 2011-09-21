@@ -85,6 +85,8 @@ public:
 			Decor = DecorNone;
 			Data = 0;
 		}
+		
+		virtual ~GStyle() {}
 
 		virtual bool OnMouseClick(GMouse *m) { return false; }
 		virtual bool OnMenu(GSubMenu *m) { return false; }

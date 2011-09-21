@@ -842,7 +842,7 @@ public:
 			if (Options.GetValue(Opt, v) && v.Type == GV_BINARY)
 			{
 				char *Data = (char*)v.Value.Binary.Data;
-				for (char *s=Data; (int)s<(int)Data+v.Value.Binary.Length; s += strlen(s) + 1)
+				for (char *s=Data; (NativeInt)s<(NativeInt)Data+v.Value.Binary.Length; s += strlen(s) + 1)
 				{
 					Lst->Insert(NewStr(s));
 				}
@@ -1028,7 +1028,9 @@ void AppWnd::OnReceiveFiles(GArray<char*> &Files)
 	{
 		char *f = Files[i];
 		char *d = strrchr(f, DIR_CHAR);
-		if (d && !stricmp(d, DIR_STR "leaks.mem"))
+		
+		char *ext = LgiGetExtension(f);
+		if (ext && !stricmp(ext, "mem"))
 		{
 			NewMemDumpViewer(this, f);
 			return;
