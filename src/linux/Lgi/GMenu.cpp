@@ -45,7 +45,7 @@ GMenuItem *GSubMenu::ItemAt(int Id)
 	return Items.ItemAt(Id);
 }
 
-GMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Where, char *Shortcut)
+GMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Where, const char *Shortcut)
 {
 	GMenuItem *i = new GMenuItem;
 	if (i)
@@ -288,7 +288,7 @@ GMenuItem::GMenuItem()
 	_Check = false;
 }
 
-GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, int Pos, char *Shortcut)
+GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, int Pos, const char *Shortcut)
 {
 	Info = 0;
 	Child = 0;
