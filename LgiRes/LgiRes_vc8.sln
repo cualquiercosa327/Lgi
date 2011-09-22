@@ -2,6 +2,9 @@
 Microsoft Visual Studio Solution File, Format Version 9.00
 # Visual Studio 2005
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LgiRes_vc8", "LgiRes_vc8.vcproj", "{C73D636D-514E-4D14-9495-6DF6F19A3B49}"
+	ProjectSection(ProjectDependencies) = postProject
+		{95DF9CA4-6D37-4A85-A648-80C2712E0DA1} = {95DF9CA4-6D37-4A85-A648-80C2712E0DA1}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lgi", "..\Lgi_vc8.vcproj", "{95DF9CA4-6D37-4A85-A648-80C2712E0DA1}"
 EndProject
