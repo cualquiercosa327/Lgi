@@ -100,8 +100,21 @@ char *InetGetHeaderField(	// Returns an allocated string or NULL on failure
 				if (*s == ':')
 				{
 					s++;
-					while (*s AND strchr(" \t\r\n", *s))
-						s++;
+					while (*s)
+					{
+					    if (strchr(" \t\r", *s))
+					    {
+						    s++;
+						}
+						else if (*s == '\n')
+						{
+						    if (strchr(" \t", s[1]))
+						        s++;
+						    else
+						        break;
+						}
+						else break;						    
+					}
 					
 					return InetGetField(s);
 				}

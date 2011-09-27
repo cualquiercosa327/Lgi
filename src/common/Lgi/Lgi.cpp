@@ -851,11 +851,11 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 					char *Last = strrchr(Dst, DIR_CHAR);
 					if (Last)
 					{
-						if (!stricmp(Last,
+						if (stristr(Last,
 							#ifdef _DEBUG
-							"\\Debug"
+							"Debug"
 							#else
-							"\\Release"
+							"Release"
 							#endif
 							))
 							*Last = 0;

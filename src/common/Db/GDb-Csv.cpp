@@ -53,10 +53,10 @@ class SvRecordset : public GDbRecordset
 	
 	SvDb *Parent;
 
-	char *FileName;
+	GAutoString FileName;
 	List<SvField> F;
 	List<SvRecord> R;
-	List<SvRecord>::I *Cur;
+	GAutoPtr<List<SvRecord>::I> Cur;
 	SvRecord *Temp;
 	SvRecord *New;
 	bool Dirty;
@@ -120,7 +120,7 @@ public:
 class SvRecord
 {
 	int RawLen;
-	char *Raw;
+	GAutoString Raw;
 
 public:
 	SvRecordset *Rs;
@@ -154,7 +154,7 @@ public:
 			}
 		}
 
-		DeleteArray(Raw);
+		Raw.Reset();
 	}
 
 	bool SetFields(int i)
@@ -182,7 +182,6 @@ public:
 	{
 		Rs = rs;
 		RawLen = 0;
-		Raw = 0;
 		Fields = 0;
 		Data = 0;
 		SetFields(Rs->Fields());
@@ -192,7 +191,6 @@ public:
 	{
 		Rs = rs;
 		RawLen = 0;
-		Raw = 0;
 		Fields = 0;
 		Data = 0;
 		if (r) *this = *r;
@@ -202,7 +200,6 @@ public:
 	{
 		Rs = rs;
 		RawLen = 0;
-		Raw = 0;
 		Fields = 0;
 		Data = 0;
 
@@ -236,7 +233,7 @@ public:
 		{
 			In += RawLen;
 			while (*In == '\r' || *In == '\n') In++;
-			Raw = NewStr(Start, RawLen);
+			Raw.Reset(NewStr(Start, RawLen));
 
 			if (Raw && SetFields(Flds))
 			{
@@ -412,11 +409,10 @@ SvRecordset::SvRecordset(SvDb *parent, const char *file, bool Headers)
 {
 	Parent = parent;
 	HasHeaders = Headers;
-	Cur = 0;
 	Temp = 0;
 	New = 0;
 	Dirty = false;
-	FileName = NewStr(file);
+	FileName.Reset(NewStr(file));
 	Read();
 }
 
@@ -431,7 +427,7 @@ SvRecordset::~SvRecordset()
 		Parent->Tables.Delete(this);
 	}
 
-	DeleteArray(FileName);
+	Empty();
 }
 
 char *SvRecordset::Name()
@@ -777,7 +773,7 @@ bool SvRecordset::MoveFirst()
 
 	if (!Cur)
 	{
-		Cur = new List<SvRecord>::I(R.Start());
+		Cur.Reset(new List<SvRecord>::I(R.Start()));
 	}
 
 	if (Cur)
@@ -808,7 +804,7 @@ bool SvRecordset::MoveLast()
 
 	if (!Cur)
 	{
-		Cur = new List<SvRecord>::I(R.Start());
+		Cur.Reset(new List<SvRecord>::I(R.Start()));
 	}
 
 	if (Cur)
@@ -825,7 +821,7 @@ int SvRecordset::SeekRecord(int i)
 
 	if (!Cur)
 	{
-		Cur = new List<SvRecord>::I(R.Start());
+		Cur.Reset(new List<SvRecord>::I(R.Start()));
 	}
 
 	if (Cur && (*Cur)[i])

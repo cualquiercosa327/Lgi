@@ -36,11 +36,6 @@ bool GToolTab::SetPos(GRect &r, bool Repaint)
 	return GToolButton::SetPos(r, Repaint);
 }
 
-void GToolTab::OnCreate()
-{
-	AttachChildren();
-}
-
 int64 GToolTab::Value()
 {
 	return GToolButton::Value();
@@ -74,10 +69,6 @@ GToolTabBar::GToolTabBar()
 	Current = 0;
 	FitToArea = false;
 	Border = true;
-	
-	#ifdef BEOS
-	GetBView()->SetViewColor(216,216,216);
-	#endif	
 }
 
 GToolTabBar::~GToolTabBar()
@@ -430,12 +421,12 @@ bool GToolTabBar::Pour(GRegion &r)
 
 void GToolTabBar::OnCreate()
 {
+	AttachChildren();
+	
 	GToolButton *Btn = dynamic_cast<GToolButton*>(Children.First());
 	if (Btn)
 	{
 		Btn->Value(true);
 		OnChange(Btn);
 	}
-	
-	AttachChildren();
 }

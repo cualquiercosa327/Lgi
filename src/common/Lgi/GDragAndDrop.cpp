@@ -313,11 +313,12 @@ bool GDragDropSource::CreateFileDrop(GVariant *Var, GMouse &m, List<char> &Files
 
 			Var->SetBinary(Size, (uchar*)Dp);
 			DeleteArray((char*&)Dp);
-
-			Native.DeleteArrays();
-			NativeW.DeleteArrays();
-			return true;
 		}
+
+		Native.DeleteArrays();
+		NativeW.DeleteArrays();
+
+		return Dp != 0;
 		
 		#elif defined LINUX
 		

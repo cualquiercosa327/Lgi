@@ -489,53 +489,14 @@ void DeNullText(char *in, int &len)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-typedef char CharPair[2];
-
-GAutoString RemovePairs(char *Str, CharPair *Pairs)
-{
-	char *s = Str;
-	while (*s && strchr(WhiteSpace, *s)) s++;
-
-	if (!*s)
-		return GAutoString();
-
-	// Get the end of the string...
-	char *e = s + strlen(s);
-
-	// Seek back over any trailing whitespace
-	while (e > s && strchr(WhiteSpace, e[-1]))
-		*e--;
-
-	for (CharPair *p = Pairs; (*p)[0]; p++)
-	{
-		if ((*p)[0] == *s && (*p)[1] == e[-1])
-		{
-			s++;
-			e--;
-			if (s < e)
-			{
-				// reset search
-				p = Pairs - 1;
-			}
-			else break;
-		}
-	}
-
-	int Len = e - s;
-	if (Len < 0)
-		return GAutoString();
-
-	return GAutoString(NewStr(s, Len));
-}
-
-bool IsValidEmail(char *email, GAutoString *out)
+bool IsValidEmail(GAutoString &Email)
 {
 	// Local part
-	char *e = email;
 	char buf[321];
 	char *o = buf;
+	char *e = Email;
 
-	if (!e || *e == '.')
+	if (!Email || *e == '.')
 		return false;
 
 	#define OutputChar()	\
@@ -651,9 +612,106 @@ bool IsValidEmail(char *email, GAutoString *out)
 	// Output
 	*o = 0;
 	LgiAssert(o - buf <= sizeof(buf));
-	if (out)
-		out->Reset(NewStr(buf, o - buf));
+	if (strcmp(Email, buf))
+		Email.Reset(NewStr(buf, o - buf));
 	return true;
+}
+
+struct MailAddrPart
+{
+    GAutoString Part;
+    bool Brackets;
+    bool ValidEmail;
+    
+    typedef char CharPair[2];
+
+    GAutoString RemovePairs(char *Str, int Len, CharPair *Pairs)
+    {
+	    char *s = Str;
+	    if (Len < 0)
+	        Len = strlen(s);
+	    while (*s && strchr(WhiteSpace, *s))
+	    {
+	        s++;
+	        Len--;
+	    }
+
+	    if (!*s)
+		    return GAutoString();
+
+	    // Get the end of the string...
+	    char *e = s;
+	    if (Len < 0)
+	        e += strlen(s);
+	    else
+	        e += Len;
+
+	    // Seek back over any trailing whitespace
+	    while (e > s && strchr(WhiteSpace, e[-1]))
+		    *e--;
+
+	    for (CharPair *p = Pairs; (*p)[0]; p++)
+	    {
+		    if ((*p)[0] == *s && (*p)[1] == e[-1])
+		    {
+			    s++;
+			    e--;
+			    if (s < e)
+			    {
+				    // reset search
+				    p = Pairs - 1;
+			    }
+			    else break;
+		    }
+	    }
+
+	    Len = e - s;
+	    if (Len < 0)
+		    return GAutoString();
+
+	    return GAutoString(NewStr(s, Len));
+    }
+
+    MailAddrPart(char *s, int len)
+    {
+        ValidEmail = false;
+        Brackets = false;
+        if (s)
+        {
+	        static CharPair Pairs[] =
+	        {
+		        {'<', '>'},
+		        {'(', ')'},
+		        {'\'', '\''},
+		        {'\"', '\"'},
+		        {0, 0},
+	        };
+    	    
+		    if (len < 0)
+		        len = strlen(s);
+		    while (strchr(WhiteSpace, *s) && len > 0)
+		    {
+			    s++;
+			    len--;
+		    }
+            
+            Brackets = *s == '<';
+            Part = RemovePairs(s, len, Pairs);
+            ValidEmail = IsValidEmail(Part);
+        }
+    }
+    
+    int Score()
+    {
+        if (!Part)
+            return 0;
+        return (ValidEmail ? 1 : 0) + (Brackets ? 1 : 0);
+    }
+};
+
+int PartCmp(GAutoPtr<MailAddrPart> *a, GAutoPtr<MailAddrPart> *b)
+{
+    return (*b)->Score() - (*a)->Score();
 }
 
 void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *DefaultDomain)
@@ -661,6 +719,7 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
 	/* Testing code
 	char *Input[] =
 	{
+	    "\"Sound&Secure@speedytechnical.com\" <soundandsecure@speedytechnical.com>",
 		"\"@MM-Social Mailman List\" <social@cisra.canon.com.au>",
 		"'Matthew Allen (fret)' <fret@memecode.com>",
 		"Matthew Allen (fret) <fret@memecode.com>",
@@ -688,7 +747,7 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
 	if (!Start)
 		return;
 
-	GArray<char*> Str;
+	GArray< GAutoPtr<MailAddrPart> > Parts;
 	for (char *c = Start; *c; )
 	{
 		if (strchr(WhiteSpace, *c))
@@ -706,9 +765,9 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
 					c++;
 			}
 
-			Str.Add(NewStr(s, c-s));
+			Parts.New().Reset(new MailAddrPart(s, c - s));
 		}
-		else if (strchr("<(", *c))
+		else if (strchr("<", *c))
 		{
 			// brackets
 			char Delim = (*c == '<') ? '>' : ')';
@@ -723,15 +782,16 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
 				while (*End && *End != ' ')
 					End++;
 			}
-			Str.Add(NewStr(c, End-c));
-			c = End;
+			Parts.New().Reset(new MailAddrPart(c, End - c));
+			c = End - 1;
 		}
 		else
 		{
 			// Some string
 			char *s = c;
-			for (; *c && !strchr("<(\"", *c); c++);
-			Str.Add(NewStr(s, c-s));
+			for (; *c && !strchr("<\"", *c); c++);
+			LgiAssert(c - s > 0);
+		    Parts.New().Reset(new MailAddrPart(s, c - s));
 			continue;
 		}
 
@@ -741,29 +801,38 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
 			break;
 	}
 
-	CharPair Pairs[] =
-	{
-		{'<', '>'},
-		{'(', ')'},
-		{'\'', '\''},
-		{'\"', '\"'},
-		{0, 0},
-	};
 	
 	// Process the email address
-	int i;
-	for (i=0; i<Str.Length(); i++)
-	{
-		GAutoString Parsed, Trimmed = RemovePairs(Str[i], Pairs);
-		if (IsValidEmail(Trimmed, &Parsed))
-		{
-			Addr = Parsed;
-			DeleteArray(Str[i]);
-			Str.DeleteAt(i, true);
-			break;
-		}
+	if (!Parts.Length())
+	    return;
+
+    // Look for the highest scoring part... that'll be the email address.
+    int MaxScore = -1, i;
+	for (i=0; i<Parts.Length(); i++)
+    {
+        MailAddrPart *p = Parts[i];
+	    if
+	    (
+	        p->ValidEmail
+	        &&
+	        (
+	            MaxScore < 0
+	            ||
+	            p->Score() > Parts[MaxScore]->Score()
+	        )
+	    )
+	    {
+	        MaxScore = i;
+	    }
 	}
 
+    if (MaxScore >= 0)
+    {
+	    Addr = Parts[MaxScore]->Part;
+	    Parts.DeleteAt(MaxScore, true);
+	}
+
+    /*
 	if (!Addr)
 	{
 		// This code checks through the strings again for
@@ -771,10 +840,10 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
 		// be the address, even if it's not formatted correctly
 		// Scribe uses this to store group names in the email
 		// address part of an address descriptor.
-		for (i=0; i<Str.Length(); i++)
+		for (i=0; i<Parts.Length(); i++)
 		{
-			char *s = Str[i];
-			if (*s == '<' && !strchr(s, '@'))
+			MailAddrPart *s = Parts[i];
+			if (s->Brackets && !strchr(s, '@'))
 			{
 				Addr = RemovePairs(Str[i], Pairs);
 				DeleteArray(Str[i]);
@@ -782,20 +851,21 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
 			}
 		}		
 	}
+	*/
 
 	// Process the remaining parts into the name
 	GStringPipe n(256);
-	for (i=0; i<Str.Length(); i++)
+	for (i=0; i<Parts.Length(); i++)
 	{
-		GAutoString Name = RemovePairs(Str[i], Pairs);
+		MailAddrPart *Name = Parts[i];
 		if (Name)
 		{
 			if (n.GetSize())
 				n.Push(" ");
 
 			// De-quote the string
-			char *s = Name, *e;
-			for (e = Name; e && *e; )
+			char *s = Name->Part, *e;
+			for (e = Name->Part; e && *e; )
 			{
 				if (*e == '\\')
 				{
@@ -824,8 +894,6 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
 		}
 		*Out = 0;
 	}
-
-	Str.DeleteArrays();
 }
 
 void StrCopyToEOL(char *d, char *s)

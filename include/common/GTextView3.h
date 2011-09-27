@@ -187,7 +187,7 @@ protected:
 	int MatchText(char16 *Text, bool MatchWord, bool MatchCase, bool SelectionOnly);
 	
 	// styles
-	bool InsertStyle(GStyle *s);
+	bool InsertStyle(GAutoPtr<GStyle> s);
 	GStyle *GetNextStyle(int Where = -1);
 	GStyle *HitStyle(int i);
 	int GetColumn();

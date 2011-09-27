@@ -917,7 +917,7 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 	#endif
 }
 
-bool GTextView3::InsertStyle(GStyle *s)
+bool GTextView3::InsertStyle(GAutoPtr<GStyle> s)
 {
 	if (!s)
 		return false;
@@ -934,28 +934,27 @@ bool GTextView3::InsertStyle(GStyle *s)
 			if (s->Owner > i->Owner)
 			{
 				// Fail the insert
-				DeleteObj(s);
 				return false;
 			}
 			else
 			{
 				// Replace mode...
 				Style.Delete(i);
-				Style.Insert(s, n);
+				Style.Insert(s.Release(), n);
 				return true;
 			}
 		}
 
 		if (s->Start >= Last && s->Start < i->Start)
 		{
-			Style.Insert(s, n);
+			Style.Insert(s.Release(), n);
 			return true;
 		}
 
 		Last = i->Start;
 	}
 
-	Style.Insert(s);
+	Style.Insert(s.Release());
 	return true;
 }
 
@@ -1169,7 +1168,8 @@ void GTextView3::PourStyle(int Start, int EditSize)
 			for (int i=0; i<Links.Length(); i++)
 			{
 				GLinkInfo &Inf = Links[i];
-				GUrl *Url = new GUrl(0);
+				GUrl *Url;
+                GAutoPtr<GTextView3::GStyle> a(Url = new GUrl(0));
 				if (Url)
 				{
 					Url->View = this;
@@ -1179,7 +1179,7 @@ void GTextView3::PourStyle(int Start, int EditSize)
 					Url->Font = Underline;
 					Url->c = d->UrlColour;
 
-					InsertStyle(Url);
+					InsertStyle(a);
 				}
 			}
 		}

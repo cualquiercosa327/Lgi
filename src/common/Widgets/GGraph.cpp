@@ -15,6 +15,7 @@ struct GGraphPriv
 	GVariant MaxX, MinX;
 	GVariant MaxY, MinY;
 	GArray<GGraphPair> Val;
+	GGraph::Style Style;
 
 	GVariantType GuessType(char *s)
 	{
@@ -198,6 +199,7 @@ struct GGraphPriv
 		int pixels = xaxis ? r.X() : r.Y();
 		int64 int_range = 0;
 		double dbl_inc = 0.0;
+		int64 int64_inc = 0;
 
 		SysFont->Colour(LC_TEXT, LC_WORKSPACE);
 
@@ -225,12 +227,28 @@ struct GGraphPriv
 				{
 					if (First)
 					{
-						int_range = max.CastInt64() - min.CastInt64();
-						int asd=0;
+						int64 int64_range = max.CastInt64() - min.CastInt64();
+						int64 rng = int64_range;
+						int p = 0;
+						while (rng > 10)
+						{
+							p++;
+							rng /= 10;
+						}
+						while (rng < 1)
+						{
+							p--;
+							rng *= 10;
+						}
+						int64_inc = pow(10.0, p);
+						int64 d = (int64)((v.CastInt64() + int64_inc) / int64_inc);
+						v = d * int64_inc;
 					}
-
-					LgiAssert(!"Finish this.");
-					return;
+					else
+					{
+						v = v.CastInt64() + int64_inc;
+					}
+					Loop = v.CastInt64() < max.CastInt64();
 					break;
 				}
 				case GV_DOUBLE:
@@ -320,6 +338,7 @@ GGraph::GGraph(int Id, int XAxis, int YAxis)
 	d = new GGraphPriv;
 	d->XAxis = XAxis;
 	d->YAxis = YAxis;
+	d->Style = LineGraph;
 	SetPourLargest(true);
 }
 
@@ -333,48 +352,102 @@ bool GGraph::SetDataSource(GDbRecordset *Rs)
 	if (!Rs)
 		return false;
 
-	if (d->XAxis < 0)
-		d->XAxis = 0;
-	if (d->YAxis < 0)
-		d->YAxis = 1;
-
 	d->XType = GV_NULL;
 	d->YType = GV_NULL;
 
 	if (Rs->Fields() >= 2)
 	{
-		for (bool b = Rs->MoveFirst(); b; b = Rs->MoveNext())
+	    int Idx = 0;
+		for (bool b = Rs->MoveFirst(); b; b = Rs->MoveNext(), Idx++)
 		{
-			char *x = (*Rs)[d->XAxis];
-			char *y = (*Rs)[d->YAxis];
-			if (x && y)
+		    if (d->XAxis < 0 || d->YAxis < 0)
+		    {
+                for (int i=0; i<Rs->Fields(); i++)
+                {
+                    char *s = (*Rs)[i];
+                    GVariantType t = d->GuessType(s);
+                    if (t != GV_NULL && t != GV_STRING)
+                    {
+                        if (d->XAxis < 0)
+                        {
+                            d->XAxis = i;
+                            d->XType = t;
+                        }
+                        else if (d->YAxis < 0)
+                        {
+                            d->YAxis = i;
+                            d->YType = t;
+                        }
+                        else break;
+                    }
+                }
+            }			
+			
+			if (d->XAxis >= 0 && d->YAxis >= 0)
 			{
-				if (d->XType == GV_NULL)
-					d->XType = d->GuessType(x);
-				if (d->YType == GV_NULL)
-					d->YType = d->GuessType(y);
+			    char *x = (*Rs)[d->XAxis];
+			    char *y = (*Rs)[d->YAxis];
+			    if (x && y)
+			    {
+				    GGraphPair &p = d->Val.New();
+				    if (d->Convert(p.x, d->XType, x))
+				    {
+					    if (d->MaxX.IsNull() || d->Compare(p.x, d->MaxX) > 0)
+						    d->MaxX = p.x;
+					    if (d->MinX.IsNull() || d->Compare(p.x, d->MinX) < 0)
+						    d->MinX = p.x;
+				    }
 
-				GGraphPair &p = d->Val.New();
-				if (d->Convert(p.x, d->XType, x))
-				{
-					if (d->MaxX.IsNull() || d->Compare(p.x, d->MaxX) > 0)
-						d->MaxX = p.x;
-					if (d->MinX.IsNull() || d->Compare(p.x, d->MinX) < 0)
-						d->MinX = p.x;
-				}
-
-				if (d->Convert(p.y, d->YType, y))
-				{
-					if (d->MaxY.IsNull() || d->Compare(p.y, d->MaxY) > 0)
-						d->MaxY = p.y;
-					if (d->MinY.IsNull() || d->Compare(p.y, d->MinY) < 0)
-						d->MinY = p.y;
-				}
+				    if (d->Convert(p.y, d->YType, y))
+				    {
+					    if (d->MaxY.IsNull() || d->Compare(p.y, d->MaxY) > 0)
+						    d->MaxY = p.y;
+					    if (d->MinY.IsNull() || d->Compare(p.y, d->MinY) < 0)
+						    d->MinY = p.y;
+				    }
+			    }
 			}
 		}
 	}
 
 	return true;
+}
+
+void GGraph::SetStyle(Style s)
+{
+    d->Style = s;
+    Invalidate();
+}
+
+GGraph::Style GGraph::GetStyle()
+{
+    return d->Style;
+}
+
+static enum Msg
+{
+    IDM_LINE = 100,
+    IDM_POINT
+};
+
+void GGraph::OnMouseClick(GMouse &m)
+{
+    if (m.IsContextMenu())
+    {
+        GSubMenu s;
+        m.ToScreen();
+        s.AppendItem("Line Style", IDM_LINE);
+        s.AppendItem("Point Style", IDM_POINT);
+        switch (s.Float(this, m.x, m.y))
+        {
+            case IDM_LINE:
+                SetStyle(LineGraph);
+                break;
+            case IDM_POINT:
+                SetStyle(PointGraph);
+                break;
+        }
+    }
 }
 
 void GGraph::OnPaint(GSurface *pDC)
@@ -402,17 +475,36 @@ void GGraph::OnPaint(GSurface *pDC)
 	// Draw data
 	int cx, cy, px, py;
 	pDC->Colour(GColour(0, 0, 222));
-	for (int i=0; i<d->Val.Length(); i++)
+	
+	switch (d->Style)
 	{
-		GGraphPair &p = d->Val[i];
-		cx = x.x1 + d->Map(p.x, x.X(), d->MinX, d->MaxX);
-		cy = y.y2 - d->Map(p.y, y.Y(), d->MinY, d->MaxY);
-		if (i)
-		{
-			pDC->Line(cx, cy, px, py);
-		}
-		px = cx;
-		py = cy;
+	    case LineGraph:
+	    {
+	        for (int i=0; i<d->Val.Length(); i++)
+	        {
+		        GGraphPair &p = d->Val[i];
+		        cx = x.x1 + d->Map(p.x, x.X(), d->MinX, d->MaxX);
+		        cy = y.y2 - d->Map(p.y, y.Y(), d->MinY, d->MaxY);
+		        if (i)
+		        {
+			        pDC->Line(cx, cy, px, py);
+		        }
+		        px = cx;
+		        py = cy;
+	        }
+	        break;
+	    }
+	    case PointGraph:
+	    {
+	        for (int i=0; i<d->Val.Length(); i++)
+	        {
+		        GGraphPair &p = d->Val[i];
+		        cx = x.x1 + d->Map(p.x, x.X(), d->MinX, d->MaxX);
+		        cy = y.y2 - d->Map(p.y, y.Y(), d->MinY, d->MaxY);
+		        pDC->Set(cx, cy);
+	        }
+	        break;
+	    }
 	}
 }
 

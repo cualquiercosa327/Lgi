@@ -23,7 +23,6 @@ class GToolTab : public GToolButton
 	void OnMouseMove(GMouse &m) {}
 	void OnMouseEnter(GMouse &m) {}
 	void OnMouseExit(GMouse &m) {}
-	void OnCreate();
 
 public:
 	GToolTab();
