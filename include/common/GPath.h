@@ -132,11 +132,7 @@ public:
 
 	GRectF(GRect &r)
 	{
-		x1 = r.x1;
-		x2 = r.x2;
-		y1 = r.y1;
-		y2 = r.y2;
-		Set = true;
+		*this = r;
 	}
 
 	GRectF(double X1, double Y1, double X2, double Y2)
@@ -165,6 +161,7 @@ public:
 	void Size(double dx, double dy);
 	char *Describe();
 
+	GRectF &operator =(GRect &f);
 	GRectF &operator =(GRectF &f);
 	GRectF &operator =(GPointF &p);
 };

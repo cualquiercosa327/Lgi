@@ -470,6 +470,16 @@ void GRectF::Size(double dx, double dy)
 	y2 -= dy;
 }
 
+GRectF &GRectF::operator =(GRect &f)
+{
+	x1 = f.x1;
+	y1 = f.y1;
+	x2 = f.x2 + 1;
+	y2 = f.y2 + 1;
+	Set = true;
+	return *this;
+}
+
 GRectF &GRectF::operator =(GRectF &f)
 {
 	x1 = f.x1;
@@ -1430,6 +1440,9 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 		GRectF Doc = Bounds;
 		Doc.Offset(Mat.m[0], Mat.m[1]);
 		GRectF Page(0, 0, pDC->X(), pDC->Y());
+		GRect DcClip = pDC->ClipRgn();
+		if (DcClip.Valid())
+			Page = DcClip;
 		GRectF Clip = Doc;
 		Clip.Intersect(Page);
 		
@@ -1449,8 +1462,8 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 				#define ADD_EVENT		0x01
 				#define REMOVE_EVENT	0x02
 
-				int y1 = ToInt(Bounds.y1);
-				int y2 = ToInt(Bounds.y2);
+				int y1 = ToInt(Clip.y1);
+				int y2 = ToInt(Clip.y2);
 
 				int aax1 = x1 << SUB_SHIFT;
 
