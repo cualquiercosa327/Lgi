@@ -35,6 +35,13 @@ GVariant::GVariant(int64 i)
 	Value.Int64 = i;
 }
 
+GVariant::GVariant(uint64 i)
+{
+	Type = GV_INT64;
+	User = 0;
+	Value.Int64 = i;
+}
+
 GVariant::GVariant(double i)
 {
 	Type = GV_DOUBLE;

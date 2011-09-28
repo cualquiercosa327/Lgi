@@ -169,8 +169,10 @@ public:
 	GVariant();
 	/// Constructor for int
 	GVariant(int i);
-	/// Constructor for int
+	/// Constructor for int64
 	GVariant(int64 i);
+	/// Constructor for uint64
+	GVariant(uint64 i);
 	/// Constructor for double
 	GVariant(double i);
 	/// Constructor for string

@@ -8,6 +8,12 @@ struct GGraphPair
 	GVariant x, y;
 };
 
+struct GraphAv
+{
+    uint64 Sum;
+    uint64 Count;
+};
+
 struct GGraphPriv
 {
 	int XAxis, YAxis;
@@ -16,6 +22,16 @@ struct GGraphPriv
 	GVariant MaxY, MinY;
 	GArray<GGraphPair> Val;
 	GGraph::Style Style;
+	bool Average;
+    GArray<GraphAv> Ave;
+    int BucketSize;
+	
+	GGraphPriv()
+	{
+        Style = GGraph::PointGraph;
+	    Average = false;
+	    BucketSize = 500;
+	}
 
 	GVariantType GuessType(char *s)
 	{
@@ -336,9 +352,8 @@ struct GGraphPriv
 GGraph::GGraph(int Id, int XAxis, int YAxis)
 {
 	d = new GGraphPriv;
-	d->XAxis = XAxis;
-	d->YAxis = YAxis;
-	d->Style = LineGraph;
+    d->XAxis = XAxis;
+    d->YAxis = YAxis;
 	SetPourLargest(true);
 }
 
@@ -427,7 +442,9 @@ GGraph::Style GGraph::GetStyle()
 static enum Msg
 {
     IDM_LINE = 100,
-    IDM_POINT
+    IDM_POINT,
+    IDM_AVERAGE,
+    IDC_AVERAGE_SAVE,
 };
 
 void GGraph::OnMouseClick(GMouse &m)
@@ -436,8 +453,16 @@ void GGraph::OnMouseClick(GMouse &m)
     {
         GSubMenu s;
         m.ToScreen();
-        s.AppendItem("Line Style", IDM_LINE);
-        s.AppendItem("Point Style", IDM_POINT);
+
+        GSubMenu *style = s.AppendSub("Style");
+        style->AppendItem("Line", IDM_LINE);
+        style->AppendItem("Point", IDM_POINT);
+        
+        GSubMenu *a = s.AppendSub("Average");
+        GMenuItem *i = a->AppendItem("Show", IDM_AVERAGE);
+        i->Checked(d->Average);
+        a->AppendItem("Save", IDC_AVERAGE_SAVE);
+
         switch (s.Float(this, m.x, m.y))
         {
             case IDM_LINE:
@@ -446,6 +471,67 @@ void GGraph::OnMouseClick(GMouse &m)
             case IDM_POINT:
                 SetStyle(PointGraph);
                 break;
+            case IDM_AVERAGE:
+                d->Average = !d->Average;
+                Invalidate();
+                break;
+            case IDC_AVERAGE_SAVE:
+            {
+                if (!d->Ave.Length())
+                {
+                    LgiMsg(this, "No average calculated.", "GGraph");
+                    break;
+                }
+
+                GFileSelect s;
+                s.Parent(this);
+                s.Name("average.csv");
+                char Desktop[MAX_PATH];
+                LgiGetSystemPath(LSP_DESKTOP, Desktop, sizeof(Desktop));
+                s.InitialDir(Desktop);
+                if (!s.Save())
+                    break;
+
+                GFile o;
+                if (!o.Open(s.Name(), O_WRITE))
+                {
+                    LgiMsg(this, "Failed to open file for writing.", "GGraph");
+                    break;
+                }
+
+                o.SetSize(0);
+                switch (d->MinX.Type)
+                {
+                    case GV_INT64:
+                    {
+                        int XRange = d->MaxX.CastInt64() - d->MinX.CastInt64() + 1;
+                        for (int b=0; b<d->BucketSize; b++)
+                        {
+                            GraphAv &g = d->Ave[b];
+                            int64 x = d->MinX.CastInt64() + (((b * d->BucketSize) + (d->BucketSize >> 1)) / XRange);
+                            int64 y = (g.Count) ? g.Sum / g.Count : 0;
+                            o.Print(LGI_PrintfInt64 "," LGI_PrintfInt64 "\n", x, y);
+                        }
+                        break;
+                    }
+                    case GV_DOUBLE:
+                    {
+                        double XRange = d->MaxX.CastDouble() - d->MinX.CastDouble();
+                        for (int b=0; b<d->BucketSize; b++)
+                        {
+                            GraphAv &g = d->Ave[b];
+                            double x = d->MinX.CastDouble() + ( ((double)b+0.5) * XRange / d->BucketSize);
+                            int64 y = (g.Count) ? g.Sum / g.Count : 0;
+                            o.Print("%f," LGI_PrintfInt64 "\n", x, y);
+                        }
+                        break;
+                    }
+                    default:
+                        LgiAssert(0);
+                        break;
+                }
+                break;
+            }
         }
     }
 }
@@ -475,6 +561,17 @@ void GGraph::OnPaint(GSurface *pDC)
 	// Draw data
 	int cx, cy, px, py;
 	pDC->Colour(GColour(0, 0, 222));
+
+    if (d->Average && !d->Ave.Length())
+    {
+        for (int i=0; i<d->Val.Length(); i++)
+        {
+	        GGraphPair &p = d->Val[i];
+	        int Bucket = d->Map(p.x, d->BucketSize, d->MinX, d->MaxX);
+            d->Ave[Bucket].Sum += p.y.CastInt64();
+            d->Ave[Bucket].Count++;
+        }
+    }
 	
 	switch (d->Style)
 	{
@@ -502,6 +599,29 @@ void GGraph::OnPaint(GSurface *pDC)
 		        cx = x.x1 + d->Map(p.x, x.X(), d->MinX, d->MaxX);
 		        cy = y.y2 - d->Map(p.y, y.Y(), d->MinY, d->MaxY);
 		        pDC->Set(cx, cy);
+	        }
+	        
+	        if (d->Average)
+	        {
+	            int px = -1, py = -1;
+	            pDC->Colour(GColour(255, 0, 0));
+	            for (int b=0; b<d->BucketSize; b++)
+	            {
+	                if (d->Ave[b].Count)
+	                {
+	                    int cx = x.x1 + (((b * x.X()) + (x.X() >> 1)) / d->BucketSize);
+	                    GVariant v = d->Ave[b].Sum / d->Ave[b].Count;
+	                    int cy = y.y2 - d->Map(v, y.Y(), d->MinY, d->MaxY);
+	                    
+	                    if (py >= 0)
+	                    {
+	                        pDC->Line(cx, cy, px, py);
+	                    }	                    
+	                    
+	                    px = cx;
+	                    py = cy;
+	                }
+	            }
 	        }
 	        break;
 	    }
