@@ -12,23 +12,23 @@
 #if 0
 
 	// 8x8 sub pixel anti-aliasing (really accurate/really slow)
-	#define SUB_SAMPLE				8
-	#define SUB_SHIFT				3
-	#define SUB_MASK				7
+	#define SUB_SAMPLE			8
+	#define SUB_SHIFT			3
+	#define SUB_MASK			7
 
 #elif 1
 
 	// 4x4 sub pixel anti-aliasing (best quality/performance tradeoff)
-	#define SUB_SAMPLE				4
-	#define SUB_SHIFT				2
-	#define SUB_MASK				3
+	#define SUB_SAMPLE			4
+	#define SUB_SHIFT			2
+	#define SUB_MASK			3
 
 #elif 0
 
 	// 2x2 sub pixel anti-aliasing (fast and nasty)
-	#define SUB_SAMPLE				2
-	#define SUB_SHIFT				1
-	#define SUB_MASK				1
+	#define SUB_SAMPLE			2
+	#define SUB_SHIFT			1
+	#define SUB_MASK			1
 
 #endif
 
@@ -36,9 +36,9 @@
 #define DEBUG_DRAW_SEGMENTS		0
 #define DEBUG_ODD_EDGES			0
 
-// #define DEBUG_LOG				Log.Print
+// #define DEBUG_LOG			Log.Print
 #ifndef LGI_SKIN
-	// #define DEBUG_LOG				Log.Print
+	// #define DEBUG_LOG		Log.Print
 #endif
 #ifdef DEBUG_LOG
 	GFile Log;
@@ -1462,8 +1462,8 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 				#define ADD_EVENT		0x01
 				#define REMOVE_EVENT	0x02
 
-				int y1 = ToInt(Clip.y1);
-				int y2 = ToInt(Clip.y2);
+				int y1 = ToInt(Doc.y1);
+				int y2 = ToInt(Doc.y2);
 
 				int aax1 = x1 << SUB_SHIFT;
 

@@ -82,17 +82,17 @@ char *InetGetHeaderField(	// Returns an allocated string or NULL on failure
 	const char *Field,		// The field your after
 	int Len)				// Maximum len to run, or -1 for NULL terminated
 {
-	if (Headers AND Field)
+	if (Headers && Field)
 	{
 		// for all lines
 		const char *End = Len < 0 ? 0 : Headers + Len;
 		int FldLen = strlen(Field);
 		
 		for (const char *s = Headers;
-			*s AND (!End OR s < End);
+			*s AND (!End || s < End);
 			s = SeekNextLine(s, End))
 		{
-			if (*s != 9 AND
+			if (*s != 9 &&
 				strnicmp(s, Field, FldLen) == 0)
 			{
 				// found a match
