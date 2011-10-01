@@ -197,6 +197,11 @@ public:
 
 						Cur = End + 1;
 					}
+					else
+					{
+						Bounds.x1 = min(Bounds.x1, b->x);
+						Bounds.x2 = max(Bounds.x2, b->x);
+					}
 
 					PathAssert(a >= p);
 					a += Inc;
@@ -1711,17 +1716,24 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 							// Draw pixels..
 							int DocX = (int)(Clip.x1 - Doc.x1);
 							a.y = ((y + SUB_SHIFT - 1) >> SUB_SHIFT) + (int)Mat.m[1] - 1;
-							a.Pixels = (*pDC)[a.y];
-							a.pDC = pDC;
-							if (a.Pixels)
+							if (a.y >= floor(Clip.y1) && a.y <= ceil(Clip.y2))
 							{
-								int PixSize = a.Bits == 24 ? Pixel24::Size : a.Bits >> 3;
-								int AddX = DocX + (int)Doc.x1;
-								a.y -= (int)Mat.m[1];
-								a.Len = RopLength;
-								a.Pixels += PixSize * AddX;
-								a.Alpha = Alpha + DocX;
-								c.Rop(a);
+								a.Pixels = (*pDC)[a.y];
+								a.pDC = pDC;
+								if (a.Pixels)
+								{
+									int PixSize = a.Bits == 24 ? Pixel24::Size : a.Bits >> 3;
+									int AddX = DocX + (int)Doc.x1;
+									a.y -= (int)Mat.m[1];
+									a.Len = RopLength;
+									a.Pixels += PixSize * AddX;
+									a.Alpha = Alpha + DocX;
+									c.Rop(a);
+								}
+							}
+							else
+							{
+								int asd=0;
 							}
 						}
 					}
