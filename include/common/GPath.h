@@ -11,7 +11,7 @@ extern bool _Disable_XSort;
 extern bool _Disable_Alpha;
 extern bool _Disable_Rops;
 
-class GMatrix
+class LgiClass GMatrix
 {
 	friend class GPath;
 
@@ -36,7 +36,7 @@ enum GPathFillRule
 	FILLRULE_NONZERO
 };
 
-class GPointF
+class LgiClass GPointF
 {
 public:
 	static double Threshold;
@@ -119,7 +119,7 @@ public:
 	}
 };
 
-class GRectF
+class LgiClass GRectF
 {
 public:
 	double x1, y1, x2, y2;
@@ -166,7 +166,7 @@ public:
 	GRectF &operator =(GPointF &p);
 };
 
-class GBrush
+class LgiClass GBrush
 {
 	friend class GPath;
 
@@ -197,7 +197,7 @@ public:
 	virtual ~GBrush() {}
 };
 
-class GEraseBrush : public GBrush
+class LgiClass GEraseBrush : public GBrush
 {
 	void Rop(GRopArgs &a);
 
@@ -208,7 +208,7 @@ public:
 	}
 };
 
-class GSolidBrush : public GBrush
+class LgiClass GSolidBrush : public GBrush
 {
 	COLOUR c32;
 
@@ -241,7 +241,7 @@ struct GBlendStop
 	COLOUR c32;
 };
 
-class GBlendBrush : public GBrush
+class LgiClass GBlendBrush : public GBrush
 {
 protected:
 	int Stops;
@@ -287,7 +287,7 @@ public:
 	}
 };
 
-class GLinearBlendBrush : public GBlendBrush
+class LgiClass GLinearBlendBrush : public GBlendBrush
 {
 	bool Start(GRopArgs &Args);
 	void Rop(GRopArgs &Args);
@@ -301,7 +301,7 @@ public:
 	}
 };
 
-class GRadialBlendBrush : public GBlendBrush
+class LgiClass GRadialBlendBrush : public GBlendBrush
 {
 	void Rop(GRopArgs &Args);
 
@@ -314,7 +314,7 @@ public:
 	}
 };
 
-class GPath
+class LgiClass GPath
 {
 	// Data
 	List<GSeg> Segs;

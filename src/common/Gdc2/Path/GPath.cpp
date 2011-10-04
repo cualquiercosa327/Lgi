@@ -1731,10 +1731,6 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 									c.Rop(a);
 								}
 							}
-							else
-							{
-								int asd=0;
-							}
 						}
 					}
 				}
