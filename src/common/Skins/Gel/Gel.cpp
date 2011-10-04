@@ -148,7 +148,7 @@ class GelSkin : public GSkinEngine
 				// Edge
 				GPath e;
 				GRectF r(Client);
-				r.y2++;
+				// r.y2++;
 				e.RoundRect(r, 6);
 			
 				COLOUR EdgeColour = Default ? Rgba32(40, 40, 40, 255) : Rgba32(114, 114, 114, 255);
@@ -160,7 +160,7 @@ class GelSkin : public GSkinEngine
 				// Border
 				GPath e;
 				GRectF r(Client);
-				r.y2++;
+				// r.y2++;
 				int Resize = Default ? 2 : 1;
 				r.Size(Resize, Resize);
 				if (Down)
