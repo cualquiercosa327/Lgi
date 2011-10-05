@@ -416,6 +416,10 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 
 void GMemDC::Blt(int x, int y, GSurface *Src, GRect *a)
 {
+    LgiAssert(Src);
+    if (!Src)
+        return;
+
 	if (Src->IsScreen())
 	{
 		if (Src)

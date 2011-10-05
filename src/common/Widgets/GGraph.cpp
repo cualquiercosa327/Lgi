@@ -28,7 +28,11 @@ struct GGraphPriv
 	
 	GGraphPriv()
 	{
+	    #if 1
         Style = GGraph::PointGraph;
+        #else
+        Style = GGraph::LineGraph;
+        #endif
 	    Average = false;
 	    BucketSize = 500;
 	}
@@ -216,6 +220,7 @@ struct GGraphPriv
 		int64 int_range = 0;
 		double dbl_inc = 0.0;
 		int64 int64_inc = 0;
+		int date_inc = 1;
 
 		SysFont->Colour(LC_TEXT, LC_WORKSPACE);
 
@@ -234,8 +239,19 @@ struct GGraphPriv
 				case GV_DATETIME:
 				{
 					if (First)
+					{
+					    uint64 s, e;
+					    min.Value.Date->Get(s);
+					    max.Value.Date->Get(e);
+					    uint64 period = e - s;
+                        double days = (double)period / GDateTime::Second64Bit / 24 / 60 / 60;
+					    if (days > 7)
+					        date_inc = days / 5;
+					    else
+					        date_inc = 1;
 						v.Value.Date->SetTime("0:0:0");
-					v.Value.Date->AddDays(1);
+					}
+					v.Value.Date->AddDays(date_inc);
 					Loop = *v.Value.Date < *max.Value.Date;
 					break;
 				}
