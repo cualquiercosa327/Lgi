@@ -3,10 +3,7 @@
 #include "GDocView.h"
 #include <math.h>
 
-struct GGraphPair
-{
-	GVariant x, y;
-};
+#define SELECTION_SIZE          2
 
 struct GraphAv
 {
@@ -20,11 +17,17 @@ struct GGraphPriv
 	GVariantType XType, YType;
 	GVariant MaxX, MinX;
 	GVariant MaxY, MinY;
-	GArray<GGraphPair> Val;
+    GArray<GGraph::GGraphPair> Val;
 	GGraph::Style Style;
+	
+	// Averages
 	bool Average;
     GArray<GraphAv> Ave;
     int BucketSize;
+    
+    // Selection
+    GAutoPtr<GdcPt2> Select;
+    GArray<GGraph::GGraphPair*> Selection;
 	
 	GGraphPriv()
 	{
@@ -35,6 +38,9 @@ struct GGraphPriv
         #endif
 	    Average = false;
 	    BucketSize = 500;
+
+	    XType = GV_NULL;
+	    YType = GV_NULL;
 	}
 
 	GVariantType GuessType(char *s)
@@ -127,7 +133,7 @@ struct GGraphPriv
 			}
 			case GV_INT64:
 			{
-				double i = a.Value.Int64 - b.Value.Int64;
+				int64 i = a.Value.Int64 - b.Value.Int64;
 				if (i < 0) return -1;
 				else if (i > 0) return 1;
 				break;
@@ -193,7 +199,7 @@ struct GGraphPriv
 				double Range = Max - Min;
 				LgiAssert(Range > 0);
 
-				return (Val - Min) * (pixels - 1) / Range;
+				return (int) ((Val - Min) * (pixels - 1) / Range);
 				break;
 			}
 			default:
@@ -246,7 +252,7 @@ struct GGraphPriv
 					    uint64 period = e - s;
                         double days = (double)period / GDateTime::Second64Bit / 24 / 60 / 60;
 					    if (days > 7)
-					        date_inc = days / 5;
+					        date_inc = (int) (days / 5);
 					    else
 					        date_inc = 1;
 						v.Value.Date->SetTime("0:0:0");
@@ -272,7 +278,7 @@ struct GGraphPriv
 							p--;
 							rng *= 10;
 						}
-						int64_inc = pow(10.0, p);
+						int64_inc = (int64) pow(10.0, p);
 						int64 d = (int64)((v.CastInt64() + int64_inc) / int64_inc);
 						v = d * int64_inc;
 					}
@@ -378,13 +384,60 @@ GGraph::~GGraph()
 	DeleteObj(d);
 }
 
-bool GGraph::SetDataSource(GDbRecordset *Rs)
+bool GGraph::AddPair(char *x, char *y, void *UserData)
+{
+    if (!x || !y)
+        return false;
+
+    if (d->XType == GV_NULL)
+        d->XType = d->GuessType(x);
+    if (d->YType == GV_NULL)
+        d->YType = d->GuessType(y);
+
+    GGraphPair &p = d->Val.New();
+    p.UserData = UserData;
+    
+    if (d->Convert(p.x, d->XType, x))
+    {
+	    if (d->MaxX.IsNull() || d->Compare(p.x, d->MaxX) > 0)
+		    d->MaxX = p.x;
+	    if (d->MinX.IsNull() || d->Compare(p.x, d->MinX) < 0)
+		    d->MinX = p.x;
+    }
+    else
+    {
+        d->Val.Length(d->Val.Length()-1);
+        return false;
+    }
+
+    if (d->Convert(p.y, d->YType, y))
+    {
+	    if (d->MaxY.IsNull() || d->Compare(p.y, d->MaxY) > 0)
+		    d->MaxY = p.y;
+	    if (d->MinY.IsNull() || d->Compare(p.y, d->MinY) < 0)
+		    d->MinY = p.y;
+    }
+    else
+    {
+        d->Val.Length(d->Val.Length()-1);
+        return false;
+    }
+    
+    return true;
+}
+
+bool GGraph::SetDataSource(GDbRecordset *Rs, int XAxis, int YAxis)
 {
 	if (!Rs)
 		return false;
 
 	d->XType = GV_NULL;
 	d->YType = GV_NULL;
+
+    if (XAxis >= 0)
+        d->XAxis = XAxis;
+    if (YAxis >= 0)
+        d->YAxis = YAxis;
 
 	if (Rs->Fields() >= 2)
 	{
@@ -415,29 +468,7 @@ bool GGraph::SetDataSource(GDbRecordset *Rs)
             }			
 			
 			if (d->XAxis >= 0 && d->YAxis >= 0)
-			{
-			    char *x = (*Rs)[d->XAxis];
-			    char *y = (*Rs)[d->YAxis];
-			    if (x && y)
-			    {
-				    GGraphPair &p = d->Val.New();
-				    if (d->Convert(p.x, d->XType, x))
-				    {
-					    if (d->MaxX.IsNull() || d->Compare(p.x, d->MaxX) > 0)
-						    d->MaxX = p.x;
-					    if (d->MinX.IsNull() || d->Compare(p.x, d->MinX) < 0)
-						    d->MinX = p.x;
-				    }
-
-				    if (d->Convert(p.y, d->YType, y))
-				    {
-					    if (d->MaxY.IsNull() || d->Compare(p.y, d->MaxY) > 0)
-						    d->MaxY = p.y;
-					    if (d->MinY.IsNull() || d->Compare(p.y, d->MinY) < 0)
-						    d->MinY = p.y;
-				    }
-			    }
-			}
+			    AddPair((*Rs)[d->XAxis], (*Rs)[d->YAxis]);
 		}
 	}
 
@@ -550,6 +581,18 @@ void GGraph::OnMouseClick(GMouse &m)
             }
         }
     }
+    else if (m.Left() && m.Down())
+    {
+        d->Select.Reset(new GdcPt2);
+        d->Select->x = m.x;
+        d->Select->y = m.y;
+        Invalidate();        
+    }
+}
+
+GArray<GGraph::GGraphPair*> *GGraph::GetSelection()
+{
+    return &d->Selection;
 }
 
 void GGraph::OnPaint(GSurface *pDC)
@@ -615,6 +658,13 @@ void GGraph::OnPaint(GSurface *pDC)
 		        cx = x.x1 + d->Map(p.x, x.X(), d->MinX, d->MaxX);
 		        cy = y.y2 - d->Map(p.y, y.Y(), d->MinY, d->MaxY);
 		        pDC->Set(cx, cy);
+		        
+		        if (d->Select &&
+		            abs(d->Select->x - cx) < SELECTION_SIZE &&
+		            abs(d->Select->y - cy) < SELECTION_SIZE)
+		        {
+		            d->Selection.Add(&p);
+		        }
 	        }
 	        
 	        if (d->Average)
@@ -638,6 +688,12 @@ void GGraph::OnPaint(GSurface *pDC)
 	                    py = cy;
 	                }
 	            }
+	        }
+	        
+	        if (d->Select)
+	        {
+	            d->Select.Reset();
+	            SendNotify();
 	        }
 	        break;
 	    }

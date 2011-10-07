@@ -42,7 +42,7 @@ bool _BuildCheck()
 	#endif
 	char *LgiBuild = (char*) (LgiIsReleaseBuild() ? "Release" : "Debug");
 
-	if (stricmp(AppBuild, LgiBuild))
+	if (_stricmp(AppBuild, LgiBuild))
 	{
 		LgiTrace("Build check failed, app=%s lgi=%s\n", AppBuild, LgiBuild);
 		return LgiMsg(	NULL,

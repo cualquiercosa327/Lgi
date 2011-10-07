@@ -67,8 +67,8 @@ class GHashTbl
     template<typename T>
     struct KeyPool
     {
-	    int Size;
-	    int Used;
+	    uint32 Size;
+	    uint32 Used;
 	    char *Mem;
 
 	    KeyPool()
@@ -95,7 +95,7 @@ class GHashTbl
         
 	    char *New(char *s)
 	    {
-		    int Len = strlen(s) + 1;
+		    size_t Len = strlen(s) + 1;
 		    if (Used < Size - Len)
 		    {
 			    char *p = Mem + Used;
@@ -108,7 +108,7 @@ class GHashTbl
 
 		char *New(const char *s)
 	    {
-		    int Len = strlen(s) + 1;
+		    size_t Len = strlen(s) + 1;
 		    if (Used < Size - Len)
 		    {
 			    char *p = Mem + Used;
@@ -205,7 +205,7 @@ class GHashTbl
 					return strcmp(a, b) == 0;
 				else
 					#ifdef WIN32
-					return stricmp(a, b) == 0;
+					return _stricmp(a, b) == 0;
 					#else
 					return strcasecmp(a, b) == 0;
 					#endif
@@ -394,7 +394,7 @@ public:
 			}
 			else
 			{
-				LgiAssert(Table);
+				LgiAssert(Table != 0);
 				Table = OldTable;
 				SizeBackup = Size = OldSize;
 				return false;

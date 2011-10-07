@@ -99,7 +99,7 @@ public:
 				return false;
 			}
 
-			uint nalloc = alloc;
+			uint32 nalloc = alloc;
 			if (i < len)
 			{
 			    // Shrinking
@@ -107,8 +107,8 @@ public:
 			else
 			{
 			    // Expanding
-			    int b;
-			    for (b = 4; (1 << b) < i; b++)
+			    uint32 b;
+			    for (b = 4; ((uint32)1 << b) < i; b++)
 			        ;
 			    nalloc = 1 << b;
 			    LgiAssert(nalloc >= i);
@@ -144,8 +144,8 @@ public:
 		{
 			if (p)
 			{
-				int Length = len;
-				for (uint i=0; i<Length; i++)
+				uint32 Length = len;
+				for (uint32 i=0; i<Length; i++)
 				{
 					p[i].~Type();
 				}
@@ -163,7 +163,7 @@ public:
 		Length(a.Length());
 		if (p && a.p)
 		{
-			for (int i=0; i<len; i++)
+			for (uint32 i=0; i<len; i++)
 			{
 				p[i] = a.p[i];
 			}
