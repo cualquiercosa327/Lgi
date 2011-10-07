@@ -562,22 +562,25 @@ void GTabView::OnPaint(GSurface *pDC)
 void GTabView::OnPosChange()
 {
 	GetTabClient();
-	TabIterator it(Children);
-	GTabPage *p = it[d->Current];
-	if (p)
+	if (Children.Length())
 	{
-		p->SetPos(d->TabClient, true);
-		if (d->PourChildren)
+		TabIterator it(Children);
+		GTabPage *p = it[d->Current];
+		if (p)
 		{
-			GRect r = d->TabClient;
-			r.Offset(-r.x1, -r.y1);
-			r.Size(5, 5);
-			GRegion Rgn(r);
-
-			GAutoPtr<GViewIterator> It(p->IterateViews());
-			for (GViewI *c = It->First(); c; c = It->Next())
+			p->SetPos(d->TabClient, true);
+			if (d->PourChildren)
 			{
-				c->Pour(Rgn);
+				GRect r = d->TabClient;
+				r.Offset(-r.x1, -r.y1);
+				r.Size(5, 5);
+				GRegion Rgn(r);
+
+				GAutoPtr<GViewIterator> It(p->IterateViews());
+				for (GViewI *c = It->First(); c; c = It->Next())
+				{
+					c->Pour(Rgn);
+				}
 			}
 		}
 	}
