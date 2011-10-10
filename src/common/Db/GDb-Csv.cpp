@@ -133,7 +133,7 @@ public:
 			i < Fields)
 		{
 			char *End = Raw + RawLen;
-			if (!Raw || (Data[i] < Raw || Data[i] > End))
+			if (!Raw || (Data[i] < Raw.Get() || Data[i] > End))
 			{
 				DeleteArray(Data[i]);
 			}
@@ -147,7 +147,7 @@ public:
 			char *End = Raw + RawLen;
 			for (int i=0; i<Fields; i++)
 			{
-				if (!Raw || (Data[i] < Raw || Data[i] > End))
+				if (!Raw || (Data[i] < Raw.Get() || Data[i] > End))
 				{
 					DeleteArray(Data[i]);
 				}
