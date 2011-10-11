@@ -370,10 +370,12 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 						if (Pal)
 						{
 							// Create colour lookup table
-							int LookupSize = 32<<10;
-							uchar *Lookup = new uchar[LookupSize];
-							if (Lookup)
+							int LookupSize = 32 << 10;
+							GAutoPtr<uchar> Mem(new uchar[LookupSize]);
+							if (Mem)
 							{
+    							uchar *Lookup = Mem;
+    							
 								for (int i=0; i<LookupSize; i++)
 								{
 									int r = R15(i);

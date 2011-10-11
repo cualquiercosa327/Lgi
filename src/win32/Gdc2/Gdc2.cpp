@@ -87,6 +87,8 @@ GPalette::GPalette()
 
 GPalette::~GPalette()
 {
+    // LgiStackTrace("~Palette %p\n", this);
+
 	DeleteArray(Lut);
 	DeleteArray(Data);
 	if (hPal) DeleteObject(hPal);
@@ -1351,11 +1353,15 @@ COLOUR GdcDevice::GetColour(COLOUR Rgb24, GSurface *pDC)
 					{
 						C = 0;
 					}
-					else
+					else if (d->pSysPal)
 					{
 						(*d->pSysPal)[Current]->Set(R24(Rgb24), G24(Rgb24), B24(Rgb24));
 						C = Current++;
 						if (Current == 255) Current = 1;
+					}
+					else
+					{
+					    C = 0;
 					}
 					break;
 				}
