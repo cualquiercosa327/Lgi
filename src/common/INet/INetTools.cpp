@@ -108,8 +108,8 @@ char *InetGetHeaderField(	// Returns an allocated string or NULL on failure
 						}
 						else if (*s == '\n')
 						{
-						    if (strchr(" \t", s[1]))
-						        s++;
+						    if (strchr(" \r\n\t", s[1]))
+						        s += 2;
 						    else
 						        break;
 						}
