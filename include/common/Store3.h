@@ -125,6 +125,19 @@ enum Store3DataState
 	Store3Loaded,
 };
 
+/// Folder system type
+enum Store3SystemFolder
+{
+	Store3SystemNone,
+	Store3SystemInbox,
+	Store3SystemTrash,
+	Store3SystemOutbox,
+	Store3SystemSent,
+	Store3SystemCalendar,
+	Store3SystemContacts,
+	Store3SystemSpam,
+};
+
 /// Possible parts of UI
 enum Store3UiFields
 {
@@ -135,6 +148,13 @@ enum Store3UiFields
 	Store3UiInteractive,	// [Get] returns a bool if the user is expecting interaction
 	Store3UiCancel,			// [Get] returns a bool indicating if the user has cancelled the operation
 	Store3UiNewFormat,		// [Get] returns a integer/enum describing the new format to use
+};
+
+enum Store3IteratorState
+{
+    Unloaded,
+    Loading,
+    Loaded,
 };
 
 /// This class is an interface to a collection of objects (NOT thread-safe).
@@ -515,13 +535,6 @@ public:
 	int IndexOf(T n) { return -1; }
 };
 
-enum IteratorState
-{
-	Unloaded,
-	Loading,
-	Loaded
-};
-
 template <typename TPub, typename TPriv, typename TStore>
 class DIterator : public GDataIterator<TPub*>
 {
@@ -529,7 +542,7 @@ class DIterator : public GDataIterator<TPub*>
 
 public:
 	GArray<TPriv*> a;
-	IteratorState State;
+	Store3IteratorState State;
 
 	DIterator()
 	{
