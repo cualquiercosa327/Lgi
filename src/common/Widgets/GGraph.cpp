@@ -249,7 +249,7 @@ struct GGraphPriv
 					    uint64 s, e;
 					    min.Value.Date->Get(s);
 					    max.Value.Date->Get(e);
-					    uint64 period = e - s;
+					    int64 period = e - s;
                         double days = (double)period / GDateTime::Second64Bit / 24 / 60 / 60;
 					    if (days > 7)
 					        date_inc = (int) (days / 5);

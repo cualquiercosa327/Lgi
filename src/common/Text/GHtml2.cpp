@@ -488,7 +488,7 @@ public:
 					else
 					{
 						int NearDiff = abs(Map[NearestPoint] - (int)Size.Value);
-						int CurDiff = abs(f->GetHeight() - Size.Value);
+						int CurDiff = abs(f->GetHeight() - (int)Size.Value);
 						if (CurDiff < NearDiff)
 						{
 							NearestPoint = f->PointSize();
@@ -517,7 +517,7 @@ public:
 				
 				if (!Tmp->Create(Face[0], (int)PtSize))
 					break;
-				Diff = Tmp->GetHeight() - Size.Value;
+				Diff = Tmp->GetHeight() - (int)Size.Value;
 				if (Diff < 2)
 				{
 					Fonts.Insert(f = Tmp.Release());
@@ -816,11 +816,11 @@ public:
 			case GCss::LenInherit:
 				return X();
 			case GCss::LenPx:
-				return min(l.Value, X());
+				return min((int)l.Value, X());
 			case GCss::LenPt:
-				return l.Value * ScreenDpi / 72.0;
+				return (int) (l.Value * ScreenDpi / 72.0);
 			case GCss::LenCm:
-				return l.Value * ScreenDpi / 2.54;
+				return (int) (l.Value * ScreenDpi / 2.54);
 			case GCss::LenEm:
 			{
 				if (!f)
@@ -828,7 +828,7 @@ public:
 					LgiAssert(!"No font?");
 					f = SysFont;
 				}
-				return l.Value * f->GetHeight();
+				return (int)(l.Value * f->GetHeight());
 			}
 			case GCss::LenEx:
 			{
@@ -837,12 +837,12 @@ public:
 					LgiAssert(!"No font?");
 					f = SysFont;
 				}
-				return l.Value * f->GetHeight() / 2; // More haha, who uses 'ex' anyway?
+				return (int) (l.Value * f->GetHeight() / 2); // More haha, who uses 'ex' anyway?
 			}
 			case GCss::LenPercent:
 			{
 				int my_x = X();
-				int px = my_x * l.Value / 100.0;
+				int px = (int) (l.Value * my_x / 100.0);
 				return px;
 			}
 			case GCss::LenAuto:
@@ -864,15 +864,15 @@ public:
 			case GCss::LenAuto:
 			case GCss::LenNormal:
 			case GCss::LenPx:
-				return l.Value;
+				return (int)l.Value;
 
 			case GCss::LenPt:
 			{
-				return l.Value * ScreenDpi / 72.0;
+				return (int) (l.Value * ScreenDpi / 72.0);
 			}
 			case GCss::LenCm:
 			{
-				return l.Value * ScreenDpi / 2.54;
+				return (int) (l.Value * ScreenDpi / 2.54);
 			}
 			case GCss::LenEm:
 			{
@@ -881,7 +881,7 @@ public:
 					f = SysFont;
 					LgiAssert(!"No font");
 				}
-				return l.Value * f->GetHeight();
+				return (int) (l.Value * f->GetHeight());
 			}
 			case GCss::LenEx:
 			{
@@ -890,10 +890,10 @@ public:
 					f = SysFont;
 					LgiAssert(!"No font");
 				}
-				return l.Value * f->GetHeight() / 2; // More haha, who uses 'ex' anyway?
+				return (int) (l.Value * f->GetHeight() / 2); // More haha, who uses 'ex' anyway?
 			}
 			case GCss::LenPercent:
-				return l.Value;
+				return (int)l.Value;
 			default:
 				LgiAssert(!"Not supported.");
 		}
@@ -1052,7 +1052,7 @@ GLine::~GLine()
 
 GLine &GLine::operator =(int i)
 {
-	d = i;
+	d = (float)i;
 	return *this;
 }
 
@@ -2289,7 +2289,7 @@ static int IsNearRect(GRect *r, int x, int y)
 		}
 	}
 
-	return sqrt( (double) ( (dx * dx) + (dy * dy) ) );
+	return (int) sqrt( (double) ( (dx * dx) + (dy * dy) ) );
 }
 
 int GTag::NearestChar(GFlowRect *Tr, int x, int y)
@@ -2479,13 +2479,13 @@ void GTag::SetStyle()
 {
 	const static float FntMul[] =
 	{
-		0.6,	// size=1
-		0.89,	// size=2
-		1.0,	// size=3
-		1.2,	// size=4
-		1.5,	// size=5
-		2.0,	// size=6
-		3.0		// size=7
+		0.6f,	// size=1
+		0.89f,	// size=2
+		1.0f,	// size=3
+		1.2f,	// size=4
+		1.5f,	// size=5
+		2.0f,	// size=6
+		3.0f	// size=7
 	};
 
 	char *s = 0;
@@ -4075,10 +4075,10 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 			}
 		}
 		
-		int Add =	MarginLeft().Value +
+		int Add = (int)(MarginLeft().Value +
 					MarginRight().Value +
 					PaddingLeft().Value +
-					PaddingRight().Value;
+					PaddingRight().Value);
 		Min = max(Min, MinContent) + Add;
 		Max =	max(Max, MaxContent) + Add;
 	}
@@ -4091,7 +4091,7 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 			Len w = Width();
 			if (w.IsValid())
 			{
-				int x = w.Value;
+				int x = (int) w.Value;
 				Min = max(Min, x);
 				Max = max(Max, x);
 			}
@@ -4113,12 +4113,12 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 			{
 				if (w.IsDynamic())
 				{
-					Min = max(Min, w.Value);
-					Max = max(Max, w.Value);
+					Min = max(Min, (int)w.Value);
+					Max = max(Max, (int)w.Value);
 				}
 				else
 				{
-					Min = Max = w.Value;
+					Min = Max = (int)w.Value;
 				}
 			}
 			break;
@@ -4129,7 +4129,7 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 			if (w.IsValid() && !w.IsDynamic())
 			{
 				// Fixed width table...
-				Min = Max = w.Value;
+				Min = Max = (int)w.Value;
 				return true;
 			}
 			else
@@ -4200,7 +4200,7 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 	{
 		case TAG_TD:
 		{
-			int Add = PaddingLeft().Value + PaddingRight().Value;
+			int Add = (int) (PaddingLeft().Value + PaddingRight().Value);
 			Min += Add;
 			Max += Add;
 			break;
@@ -4265,7 +4265,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 
 		ZeroTableElements();
 		Len BdrSpacing = BorderSpacing();
-		int CellSpacing = BdrSpacing.IsValid() ? BdrSpacing.Value : 0;
+		int CellSpacing = BdrSpacing.IsValid() ? (int)BdrSpacing.Value : 0;
 		int AvailableX = f->ResolveX(Width(), Font);
 		GCss::Len Border = BorderLeft();
 		int BorderX1 = Border.IsValid() ? f->ResolveX(Border, Font) : 0;
@@ -4717,7 +4717,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 		}
 		
 		// Cell positioning
-		int Cx = BorderLeft().Value + CellSpacing, Cy = BorderTop().Value + CellSpacing;
+		int Cx = (int) (BorderLeft().Value + CellSpacing), Cy = (int) (BorderTop().Value + CellSpacing);
 		for (y=0; y<s.y; y++)
 		{
 			GTag *Prev = 0;
@@ -4767,7 +4767,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 							t->Size.y += MaxRow[y+n] + CellSpacing;
 						}
 						
-						Size.x = max(Cx + BorderRight().Value, Size.x);
+						Size.x = max(Cx + (int)BorderRight().Value, Size.x);
 					}
 					else
 					{
@@ -4807,7 +4807,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 		}
 		Pos.y = f->y1;
 
-		Size.y = Cy + BorderBottom().Value;
+		Size.y = Cy + (int)BorderBottom().Value;
 	}
 }
 
@@ -5541,7 +5541,7 @@ void GTag::OnPaint(GSurface *pDC)
 			else if (Size.x > 1 && Size.y > 1)
 			{
 				GRect b(0, 0, Size.x-1, Size.y-1);
-				COLOUR Col = GdcMixColour(LC_MED, LC_LIGHT, 0.2);
+				COLOUR Col = GdcMixColour(LC_MED, LC_LIGHT, 0.2f);
 
 				// Border
 				pDC->Colour(LC_MED, 24);
@@ -5559,7 +5559,7 @@ void GTag::OnPaint(GSurface *pDC)
 					int Cy = b.y1 + (b.Y()/2);
 					GRect c(Cx-4, Cy-4, Cx+4, Cy+4);
 					
-					pDC->Colour(GdcMixColour(Rgb24(255, 0, 0), Col, 0.3), 24);
+					pDC->Colour(GdcMixColour(Rgb24(255, 0, 0), Col, 0.3f), 24);
 					pDC->Line(c.x1, c.y1, c.x2, c.y2);
 					pDC->Line(c.x1, c.y2, c.x2, c.y1);
 					pDC->Line(c.x1, c.y1 + 1, c.x2 - 1, c.y2);
@@ -5578,7 +5578,10 @@ void GTag::OnPaint(GSurface *pDC)
 
 			if (DefaultTableBorder != GT_TRANSPARENT)
 			{
-				GRect r(BorderLeft().Value, BorderTop().Value, Size.x-BorderRight().Value-1, Size.y-BorderBottom().Value-1); 
+				GRect r((int)BorderLeft().Value,
+				        (int)BorderTop().Value,
+				        Size.x-(int)BorderRight().Value-1,
+				        Size.y-(int)BorderBottom().Value-1); 
 
 				#if 1
 				GRegion c(r);
@@ -7213,7 +7216,7 @@ void GHtml2::OnMouseWheel(double Lines)
 	GFont *f = FontCache->FontAt(0);
 	if (f && VScroll)
 	{
-		VScroll->Value(VScroll->Value() + Lines);
+		VScroll->Value(VScroll->Value() + (int)Lines);
 		Invalidate();
 	}
 }
@@ -7460,6 +7463,9 @@ bool GHtml2::GetFormattedContent(char *MimeType, GAutoString &Out, GArray<GDocVi
 	{
 		// Convert DOM tree down to text instead...
 		// FIXME
+        #ifdef _MSC_VER
+        #pragma message(__LOC__"no DOM to text support.")
+        #endif
 	}
 
 	return false;
