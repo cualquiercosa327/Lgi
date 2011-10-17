@@ -778,7 +778,7 @@ int GFileSelectDlg::OnNotify(GViewI *Ctrl, int Flags)
 				if (New[strlen(New)-1] != DIR_CHAR) strcat(New, DIR_STR);
 				strcat(New, Dlg.Str);
 
-				FileDev->CreateDirectory(New);
+				FileDev->CreateFolder(New);
 				OnFolder();
 			}
 			break;
@@ -1132,7 +1132,7 @@ void GFolderItem::OnDelete(bool Ask)
 
 		if (IsDir)
 		{
-			Status = FileDev->RemoveDirectory(Path, true);
+			Status = FileDev->RemoveFolder(Path, true);
 		}
 		else
 		{

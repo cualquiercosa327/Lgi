@@ -895,7 +895,7 @@ bool GFileSystem::Delete(char *FileName, bool ToTrash)
 	return Delete(Files, 0, ToTrash);
 }
 
-bool GFileSystem::CreateDirectory(char *PathName)
+bool GFileSystem::CreateFolder(char *PathName)
 {
 	bool Status = false;
 	if (Win9x)
@@ -913,7 +913,7 @@ bool GFileSystem::CreateDirectory(char *PathName)
 	return Status;
 }
 
-bool GFileSystem::RemoveDirectory(char *PathName, bool Recurse)
+bool GFileSystem::RemoveFolder(char *PathName, bool Recurse)
 {
 	if (Recurse)
 	{
@@ -928,7 +928,7 @@ bool GFileSystem::RemoveDirectory(char *PathName, bool Recurse)
 
 				if (Dir->IsDir())
 				{
-					RemoveDirectory(Str, Recurse);
+					RemoveFolder(Str, Recurse);
 				}
 				else
 				{

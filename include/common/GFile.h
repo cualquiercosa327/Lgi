@@ -301,10 +301,10 @@ public:
 	);
 	
 	/// Create a directory
-	bool CreateDirectory(char *PathName);
+	bool CreateFolder(char *PathName);
 	
 	/// Remove's a directory	
-	bool RemoveDirectory
+	bool RemoveFolder
 	(
 		/// The path to remove
 		char *PathName,
