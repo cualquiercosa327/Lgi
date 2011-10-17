@@ -987,12 +987,12 @@ bool GFileSystem::Delete(char *FileName, bool ToTrash)
 	return false;
 }
 
-bool GFileSystem::CreateDirectory(char *PathName)
+bool GFileSystem::CreateFolder(char *PathName)
 {
 	return mkdir(PathName, S_IRWXU | S_IXGRP | S_IXOTH) == 0;
 }
 
-bool GFileSystem::RemoveDirectory(char *PathName, bool Recurse)
+bool GFileSystem::RemoveFolder(char *PathName, bool Recurse)
 {
 	if (Recurse)
 	{
@@ -1007,7 +1007,7 @@ bool GFileSystem::RemoveDirectory(char *PathName, bool Recurse)
 
 				if (Dir->IsDir())
 				{
-					RemoveDirectory(Str, Recurse);
+					RemoveFolder(Str, Recurse);
 				}
 				else
 				{
