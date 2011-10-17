@@ -131,6 +131,8 @@ private:
 	List<char> Formats;
 
 	#if WIN32NATIVE
+	LONG Refs;
+
 	// IUnknown
 	ULONG STDMETHODCALLTYPE AddRef();
 	ULONG STDMETHODCALLTYPE Release();

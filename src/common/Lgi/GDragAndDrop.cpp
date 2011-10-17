@@ -1204,6 +1204,7 @@ GDragDropTarget::GDragDropTarget()
 	DragDropData = 0;
 	DragDropLength = 0;
 	To = 0;
+	Refs = 0;
 
 	#if WIN32NATIVE
 	DataObject = 0;
@@ -1224,12 +1225,6 @@ void GDragDropTarget::SetWindow(GView *to)
 	if (To)
 	{
 		To->DropTargetPtr() = this;
-		#if 0
-		if (RegisterDragDrop(To->Handle(), (IDropTarget*) this) == S_OK)
-		{
-			Status = true;
-		}
-		#endif
 		Status = To->DropTarget(true);
 		#ifdef MAC
 		if (To->WindowHandle())
@@ -1249,12 +1244,12 @@ void GDragDropTarget::SetWindow(GView *to)
 #if WIN32NATIVE
 ULONG STDMETHODCALLTYPE GDragDropTarget::AddRef()
 {
-	return 1;
+	return InterlockedIncrement(&Refs); 
 }
 
 ULONG STDMETHODCALLTYPE GDragDropTarget::Release()
 {
-	return 0;
+	return InterlockedDecrement(&Refs); 
 }
 
 HRESULT STDMETHODCALLTYPE GDragDropTarget::QueryInterface(REFIID iid, void **ppv)
