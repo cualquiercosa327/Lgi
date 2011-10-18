@@ -29,7 +29,7 @@ bool IsVar(char *field, char *s)
 	return stricmp(field, s) == 0;
 }
 #else
-#define IsVar(field, str) (field != 0 AND stricmp(field, str) == 0)
+#define IsVar(field, str) (field != 0 && stricmp(field, str) == 0)
 #endif
 
 char *DeEscape(char *s, bool QuotedPrintable)
@@ -62,7 +62,7 @@ char *DeEscape(char *s, bool QuotedPrintable)
 			}
 			
 		}
-		else if (QuotedPrintable AND *i == '=' AND i[1] AND i[2])
+		else if (QuotedPrintable && *i == '=' && i[1] && i[2])
 		{
 			i++;
 			char h[3] = { i[0], i[1], 0};
@@ -97,179 +97,6 @@ VIo::~VIo()
 	DeleteObj(d);
 }
 
-/*
-bool VIo::IsBeginEnd()
-{
-	if (Var.Length() == 2)
-	{
-		if (stricmp(Var[0], "begin") == 0)
-		{
-			Object.Insert(NewStr(Data));
-			return true;
-		}
-		else if (stricmp(Var[0], "end") == 0)
-		{
-			char *o=Object.Last();
-			if (o AND stricmp(o, Data) == 0)
-			{
-				Object.Delete(o);
-				DeleteArray(o);
-			}
-			return true;
-		}
-	}
-
-	return false;
-}
-
-bool VIo::IsObject(char *Obj)
-{
-	if (Obj)
-	{
-		for (char *o=Object.Last(); o; o=Object.Prev())
-		{
-			if (stricmp(Obj, o) == 0)
-			{
-				return true;
-			}
-		}
-	}
-
-	return false;
-}
-
-bool VIo::IsTyped()
-{
-	Type.Empty();
-	Value.Empty();
-	Variables.Empty();
-
-	char *Semi = Var[0] ? strchr(Var[0], ';') : 0;
-	if (Semi)
-	{
-		GToken V(Var[0], ";", false);
-		*Semi++ = 0;
-
-		if (strchr(Semi, '='))
-		{
-			for (int i=0; i<V.Length(); i++)
-			{
-				if (strnicmp(V[i], "type=", 5) == 0)
-				{
-					GToken T(V[i]+5, ",");
-					Type.AppendTokens(&T);
-				}
-				else if (strnicmp(V[i], "value=", 5) == 0)
-				{
-					GToken T(V[i]+6, ",");
-					Value.AppendTokens(&T);
-				}
-				else
-				{
-					char *v = V[i];
-					char *e = strchr(v, '=');
-					if (e)
-					{
-						*e++ = 0;
-						if (strchr("\'\"", *e))
-						{
-							char d = *e++;
-							char *End = strchr(e, d);
-							if (End) *End = 0;
-						}
-						Variables[v] = e;
-					}
-				}
-			}
-		}
-		else
-		{
-			Type.Parse(Semi, ";", false);
-		}
-
-		return true;
-	}
-
-	return false;
-}
-
-bool VIo::IsEncoded()
-{
-	if (IsType("quoted-printable"))
-	{
-		if (Data)
-		{
-			char *In = Data;
-			char *Out = In;
-			while (*In)
-			{
-				if (*In == '=' AND In[1])
-				{
-					char Hex[3] = {In[1], In[2], 0};
-					*Out++ = htoi(Hex);
-					In += 3;
-				}
-				else
-				{
-					*Out++ = *In++;
-				}
-			}
-			*Out++ = 0;
-		}
-
-		return true;
-	}
-
-	return false;
-}
-
-bool VIo::IsVar(char *a, char *b)
-{
-	if (Var[0] AND a)
-	{
-		if (stricmp(a, Var[0]) == 0)
-		{
-			if (Data AND b)
-			{
-				return stricmp(Data, b) == 0;
-			}
-			else
-			{
-				return true;
-			}
-		}
-	}
-
-	return false;
-}
-
-bool VIo::IsType(char *type)
-{
-	for (int t=0; t<Type.Length(); t++)
-	{
-		if (type AND stricmp(Type[t], type) == 0)
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
-bool VIo::IsValue(char *value)
-{
-	for (int i=0; i<Value.Length(); i++)
-	{
-		if (value AND stricmp(Value[i], value) == 0)
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-*/
-
 bool VIo::ParseDate(GDateTime &Out, char *In)
 {
 	bool Status = false;
@@ -282,7 +109,7 @@ bool VIo::ParseDate(GDateTime &Out, char *In)
 		if (v.Length() > 0)
 		{
 			char *d = v[0];
-			if (d AND strlen(d) == 8)
+			if (d && strlen(d) == 8)
 			{
 				char Year[5] = {d[0], d[1], d[2], d[3], 0};
 				char Month[3] = {d[4], d[5], 0};
@@ -294,7 +121,7 @@ bool VIo::ParseDate(GDateTime &Out, char *In)
 			}
 
 			char *t = v[1];
-			if (t AND strlen(t) >= 6)
+			if (t && strlen(t) >= 6)
 			{
 				char Hour[3] = {t[0], t[1], 0};
 				char Minute[3] = {t[2], t[3], 0};
@@ -323,7 +150,7 @@ bool VIo::ParseDuration(GDateTime &Out, int &Sign, char *In)
 			In++;
 		}
 
-		if (toupper(*In++) == 'P' AND
+		if (toupper(*In++) == 'P' &&
 			toupper(*In++) == 'T')
 		{
 			while (*In)
@@ -371,7 +198,7 @@ bool VIo::ParseDuration(GDateTime &Out, int &Sign, char *In)
 void VIo::Fold(GStreamI &o, char *i, int pre_chars)
 {
 	int x = pre_chars;
-	for (char *s=i; s AND *s;)
+	for (char *s=i; s && *s;)
 	{
 		if (x >= 74)
 		{
@@ -381,7 +208,7 @@ void VIo::Fold(GStreamI &o, char *i, int pre_chars)
 			x = 0;
 			i = s;
 		}
-		else if (*s == '=' OR ((((uint8)*s) & 0x80) != 0))
+		else if (*s == '=' || ((((uint8)*s) & 0x80) != 0))
 		{
 			// quoted printable
 			o.Write(i, s-i);
@@ -417,11 +244,11 @@ char *VIo::Unfold(char *In)
 	{
 		GStringPipe p(256);
 
-		for (char *i=In; i AND *i; i++)
+		for (char *i=In; i && *i; i++)
 		{
 			if (*i == '\n')
 			{
-				if (i[1] AND strchr(" \t", i[1]))
+				if (i[1] && strchr(" \t", i[1]))
 				{
 					i++;
 				}
@@ -448,7 +275,7 @@ char *VIo::UnMultiLine(char *In)
 	{
 		GStringPipe p;
 		char *n;
-		for (char *i=In; i AND *i; i=n)
+		for (char *i=In; i && *i; i=n)
 		{
 			n = stristr(i, "\\n");
 			if (n)
@@ -475,7 +302,7 @@ bool VCard::Import(GDataPropI *c, GStreamI *s)
 {
 	bool Status = false;
 
-	if (!c OR !s)
+	if (!c || !s)
 		return false;
 
 	char *Field = 0;
@@ -487,12 +314,12 @@ bool VCard::Import(GDataPropI *c, GStreamI *s)
 
 	while (ReadField(*s, &Field, &Types, &Data))
 	{
-		if (stricmp(Field, "begin") == 0 AND
+		if (stricmp(Field, "begin") == 0 &&
 			stricmp(Data, "vcard") == 0)
 		{
 			while (ReadField(*s, &Field, &Types, &Data))
 			{
-				if (stricmp(Field, "end") == 0 AND
+				if (stricmp(Field, "end") == 0 &&
 					stricmp(Data, "vcard") == 0)
 					goto ExitLoop;
 
@@ -683,7 +510,7 @@ bool VIo::ReadField(GStreamI &s, char **Name, TypesList *Type, char **Data)
 	if (Type) Type->Empty();
 	DeleteArray(*Data);
 
-	if (Name AND Data)
+	if (Name && Data)
 	{
 		char Temp[256];
 		GArray<char> p;
@@ -705,7 +532,7 @@ bool VIo::ReadField(GStreamI &s, char **Name, TypesList *Type, char **Data)
 			bool EatNext = false;
 			ReadNextLine:
 			r = d->Buf.Pop(Temp, sizeof(Temp));
-			while (r > 0 AND !ValidStr(Temp))
+			while (r > 0 && !ValidStr(Temp))
 			{
 				r = d->Buf.Pop(Temp, sizeof(Temp));
 			}
@@ -726,7 +553,7 @@ bool VIo::ReadField(GStreamI &s, char **Name, TypesList *Type, char **Data)
 						r = d->Buf.Peek((uchar*) &Next, 1);
 						if (r == 1)
 						{
-							if (Next == ' ' OR Next == '\t')
+							if (Next == ' ' || Next == '\t')
 							{
 								// Wrapped, do nothing
 								EatNext = true;
@@ -838,7 +665,7 @@ bool VIo::ReadField(GStreamI &s, char **Name, TypesList *Type, char **Data)
 
 void VIo::WriteField(GStreamI &s, char *Name, TypesList *Type, char *Data)
 {
-	if (Name AND Data)
+	if (Name && Data)
 	{
 		int64 Size = s.GetSize();
 
@@ -862,7 +689,7 @@ void VIo::WriteField(GStreamI &s, char *Name, TypesList *Type, char *Data)
 				HasEq = true;
 			}
 		}
-		if (Is8Bit OR HasEq)
+		if (Is8Bit || HasEq)
 		{
 			if (Is8Bit) s.Write((char*)";charset=utf-8", 14);
 			s.Write((char*)";encoding=quoted-printable", 26);
@@ -876,7 +703,7 @@ void VIo::WriteField(GStreamI &s, char *Name, TypesList *Type, char *Data)
 
 bool VCard::Export(GDataPropI *c, GStreamI *o)
 {
-	if (!c OR !o)
+	if (!c || !o)
 		return false;
 
 	bool Status = true;
@@ -945,7 +772,7 @@ bool VCard::Export(GDataPropI *c, GStreamI *o)
 	PostCode = c->GetStr(FIELD_HOME_POSTCODE);
 	State = c->GetStr(FIELD_HOME_STATE);
 	Country = c->GetStr(FIELD_HOME_COUNTRY);
-	if (Street OR Suburb OR PostCode OR State OR Country)
+	if (Street || Suburb || PostCode || State || Country)
 	{
 		snprintf(s, sizeof(s)-1,
 				";;%s;%s;%s;%s;%s",
@@ -963,7 +790,7 @@ bool VCard::Export(GDataPropI *c, GStreamI *o)
 	PostCode = c->GetStr(FIELD_WORK_POSTCODE);
 	State = c->GetStr(FIELD_WORK_STATE);
 	Country = c->GetStr(FIELD_WORK_COUNTRY);
-	if (Street OR Suburb OR PostCode OR State OR Country)
+	if (Street || Suburb || PostCode || State || Country)
 	{
 		snprintf(s, sizeof(s)-1,
 				";;%s;%s;%s;%s;%s",
@@ -1008,338 +835,158 @@ bool VCal::Import(GDataPropI *c, GStreamI *In)
 {
 	bool Status = false;
 
-	if (!c OR !In)
+	if (!c || !In)
 		return false;
-
-	#if 1
 
 	char *Field = 0;
 	TypesList Types;
 	char *Data = 0;
 	bool SetType = false;
+	bool IsEvent = false;
+	GAutoString SectionType;
 
 	while (ReadField(*In, &Field, &Types, &Data))
 	{
-		if (stricmp(Field, "begin") == 0 AND
+		if (IsCal)
+		{
+		    if (stricmp(Field, "end") == 0 &&
+			    stricmp(Data, "vcalendar") == 0)
+		    {
+		        IsCal = false;
+		        break;
+		    }
+		    
+		    if (IsEvent)
+		    {
+		        if (stricmp(Field, "end") == 0 &&
+			        stricmp(Data, SectionType) == 0)
+		        {
+		            Status = true;
+			        break;
+		        }
+				
+				if (IsVar(Field, "dtstart"))
+				{
+					GDateTime d;
+					if (ParseDate(d, Data))
+					{
+						c->SetDate(FIELD_CAL_START_UTC, &d);
+					}
+				}
+				else if (IsVar(Field, "dtend"))
+				{
+					GDateTime d;
+					if (ParseDate(d, Data))
+					{
+						c->SetDate(FIELD_CAL_END_UTC, &d);
+					}
+				}
+				else if (IsVar(Field, "summary"))
+				{
+					c->SetStr(FIELD_CAL_SUBJECT, Data);
+				}
+				else if (IsVar(Field, "description"))
+				{
+				    GAutoString Sum(UnMultiLine(Data));
+				    if (Sum)
+						c->SetStr(FIELD_CAL_NOTES, Sum);
+				}
+				else if (IsVar(Field, "location"))
+				{
+					c->SetStr(FIELD_CAL_LOCATION, Data);
+				}
+				else if (IsVar(Field, "uid"))
+				{
+					char *Uid = Data;
+					c->SetStr(FIELD_UID, Uid);
+				}
+				else if (IsVar(Field, "x-showas"))
+				{
+					char *n = Data;
+
+					if (stricmp(n, "TENTATIVE") == 0)
+					{
+						c->SetInt(FIELD_CAL_SHOW_TIME_AS, 1);
+					}
+					else if (stricmp(n, "BUSY") == 0)
+					{
+						c->SetInt(FIELD_CAL_SHOW_TIME_AS, 2);
+					}
+					else if (stricmp(n, "OUT") == 0)
+					{
+						c->SetInt(FIELD_CAL_SHOW_TIME_AS, 3);
+					}
+					else
+					{
+						c->SetInt(FIELD_CAL_SHOW_TIME_AS, 0);
+					}
+				}
+				else if (IsVar(Field, "attendee"))
+				{
+					char *e = stristr(Data, "mailto=");
+					if (e)
+					{
+						e += 7;
+
+						/*
+						char *Name = Variables["CN"];
+						char *Role = Variables["Role"];
+
+						GDataPropI *a = c->CreateAttendee();
+						if (a)
+						{
+							a->SetStr(FIELD_ATTENDEE_NAME, Name);
+							a->SetStr(FIELD_ATTENDEE_EMAIL, e);
+							if (stricmp(Role, "CHAIR") == 0)
+							{
+								a->SetStr(FIELD_ATTENDEE_ATTENDENCE, 1);
+							}
+							else if (stricmp(Role, "REQ-PARTICIPANT") == 0)
+							{
+								a->SetStr(FIELD_ATTENDEE_ATTENDENCE, 2);
+							}
+							else if (stricmp(Role, "OPT-PARTICIPANT") == 0)
+							{
+								a->SetStr(FIELD_ATTENDEE_ATTENDENCE, 3);
+							}
+						}
+						*/
+					}
+				}
+			}
+		    else if
+		    (
+		        stricmp(Field, "begin") == 0
+			    &&
+			    (
+				    stricmp(Data, "vevent") == 0
+				    ||
+				    stricmp(Data, "vtodo") == 0
+			    )
+		    )
+		    {
+		        IsEvent = true;
+		        SectionType.Reset(NewStr(Data));
+
+				int Type = stricmp(Data, "vtodo") == 0 ? 1 : 0;
+				c->SetInt(FIELD_CAL_TYPE, Type);
+		    }
+		}
+		else if (stricmp(Field, "begin") == 0 &&
 			stricmp(Data, "vcalendar") == 0)
 		{
-			while (ReadField(*In, &Field, &Types, &Data))
-			{
-				if (stricmp(Field, "end") == 0 AND
-					stricmp(Data, "vcalendar") == 0)
-					goto ExitLoop;
-				
-
-				if
-				(
-					stricmp(Field, "begin") == 0
-					AND
-					(
-						stricmp(Data, "vevent") == 0
-						OR
-						stricmp(Data, "vtodo") == 0
-					)
-				)
-				{
-					char *SectionType = NewStr(Data);
-					if (!SetType)
-					{
-						SetType = true;
-						Status = true;
-
-						int Type = stricmp(Data, "vtodo") == 0;
-						c->SetInt(FIELD_CAL_TYPE, Type);
-					}
-
-					while (ReadField(*In, &Field, &Types, &Data))
-					{
-						if (stricmp(Field, "end") == 0 AND
-							stricmp(Data, SectionType) == 0)
-							break;
-
-						if (IsVar(Field, "dtstart"))
-						{
-							GDateTime d;
-							if (ParseDate(d, Data))
-							{
-								c->SetDate(FIELD_CAL_START_UTC, &d);
-							}
-						}
-						else if (IsVar(Field, "dtend"))
-						{
-							GDateTime d;
-							if (ParseDate(d, Data))
-							{
-								c->SetDate(FIELD_CAL_END_UTC, &d);
-							}
-						}
-						else if (IsVar(Field, "summary"))
-						{
-							c->SetStr(FIELD_CAL_SUBJECT, Data);
-						}
-						else if (IsVar(Field, "description"))
-						{
-							char *Sum = UnMultiLine(Data);
-							if (Sum)
-							{
-								c->SetStr(FIELD_CAL_NOTES, Sum);
-								DeleteArray(Sum);
-							}
-						}
-						else if (IsVar(Field, "location"))
-						{
-							c->SetStr(FIELD_CAL_LOCATION, Data);
-						}
-						else if (IsVar(Field, "uid"))
-						{
-							char *Uid = Data;
-							c->SetStr(FIELD_UID, Uid);
-						}
-						else if (IsVar(Field, "x-showas"))
-						{
-							char *n = Data;
-
-							if (stricmp(n, "TENTATIVE") == 0)
-							{
-								c->SetInt(FIELD_CAL_SHOW_TIME_AS, 1);
-							}
-							else if (stricmp(n, "BUSY") == 0)
-							{
-								c->SetInt(FIELD_CAL_SHOW_TIME_AS, 2);
-							}
-							else if (stricmp(n, "OUT") == 0)
-							{
-								c->SetInt(FIELD_CAL_SHOW_TIME_AS, 3);
-							}
-							else
-							{
-								c->SetInt(FIELD_CAL_SHOW_TIME_AS, 0);
-							}
-						}
-						else if (IsVar(Field, "attendee"))
-						{
-							char *e = stristr(Data, "mailto=");
-							if (e)
-							{
-								e += 7;
-
-								/*
-								char *Name = Variables["CN"];
-								char *Role = Variables["Role"];
-
-								GDataPropI *a = c->CreateAttendee();
-								if (a)
-								{
-									a->SetStr(FIELD_ATTENDEE_NAME, Name);
-									a->SetStr(FIELD_ATTENDEE_EMAIL, e);
-									if (stricmp(Role, "CHAIR") == 0)
-									{
-										a->SetStr(FIELD_ATTENDEE_ATTENDENCE, 1);
-									}
-									else if (stricmp(Role, "REQ-PARTICIPANT") == 0)
-									{
-										a->SetStr(FIELD_ATTENDEE_ATTENDENCE, 2);
-									}
-									else if (stricmp(Role, "OPT-PARTICIPANT") == 0)
-									{
-										a->SetStr(FIELD_ATTENDEE_ATTENDENCE, 3);
-									}
-								}
-								*/
-							}
-						}
-					}
-
-					DeleteArray(SectionType);
-				}
-			}
+		    IsCal = true;
 		}
 	}
-	ExitLoop:
+
 	ClearFields();
-
-	#else
-
-	bool SetType = false;
-	char *Unfolded = 0; // fixme Unfold(Text);
-	GToken L(Unfolded, "\r\n");
-	if (L.Length() > 0)
-	{
-		for (int i=0; i<L.Length(); i++)
-		{
-			char *Line = L[i];
-			if (!Line) break;
-			char *Eol = Line+strlen(Line)-1;
-			while (Eol > Line AND strchr(" \t", *Eol)) *Eol-- = 0;
-
-			Var.Empty();
-
-			char *Colon = strchr(L[i], ':');
-			if (Colon)
-			{
-				*Colon++ = 0;
-				GToken Temp(L[i], 0);
-				Var.AppendTokens(&Temp);
-				Temp.Parse(Colon, 0);
-				Var.AppendTokens(&Temp);
-
-				if (!IsBeginEnd() AND
-					IsObject("vcalendar"))
-				{
-					Status = true;
-					IsTyped();
-					IsEncoded();
-
-					bool IsAnEvent = IsObject("vevent");
-					bool IsAToDo = IsObject("vtodo");
-					if (IsAnEvent OR IsAToDo)
-					{
-						if (!SetType)
-						{
-							SetType = true;
-
-							int Type = IsAToDo ? 1 : 0;
-							c->SetStr(FIELD_CAL_TYPE, Type);
-						}
-
-						if (IsObject("valarm"))
-						{
-							if (IsVar("trigger"))
-							{
-								if (IsValue("date-time"))
-								{
-									// don't really support this...
-								}
-								else
-								{
-									c->SetStr(FIELD_CAL_REMINDER_ACTION, true);
-									c->SetStr(FIELD_CAL_REMINDER_TIME, 0); // reasonable default
-
-									GDateTime Dt;
-									int Sign = 0;
-									if (ParseDuration(Dt, Sign, Data))
-									{
-										int d = Dt.Day() * 24 * 60;
-										int h = Dt.Hours() * 60;
-										int m = Dt.Minutes();
-										c->SetStr(FIELD_CAL_REMINDER_TIME, -(d + h + m)); 
-									}
-								}
-							}
-						}
-						else
-						{
-							if (IsVar("dtstart"))
-							{
-								GDateTime d;
-								if (ParseDate(d, Data))
-								{
-									c->SetStr(FIELD_CAL_START_UTC, d);
-								}
-							}
-							else if (IsVar("dtend"))
-							{
-								GDateTime d;
-								if (ParseDate(d, Data))
-								{
-									c->SetStr(FIELD_CAL_END_UTC, d);
-								}
-							}
-							else if (IsVar("summary"))
-							{
-								c->SetStr(FIELD_CAL_SUBJECT, Data);
-							}
-							else if (IsVar("description"))
-							{
-								char *Sum = UnMultiLine(Data);
-								if (Sum)
-								{
-									c->SetStr(FIELD_CAL_NOTES, Sum);
-									DeleteArray(Sum);
-								}
-							}
-							else if (IsVar("location"))
-							{
-								c->SetStr(FIELD_CAL_LOCATION, Data);
-							}
-							else if (IsVar("uid"))
-							{
-								char *Uid = Data;
-								if (isdigit(*Uid))
-								{
-									c->SetStr(FIELD_UID, atoi(Uid));
-								}
-								else
-								{
-									c->SetStr(FIELD_UID, Uid);
-								}
-							}
-							else if (IsVar("x-showas"))
-							{
-								if (stricmp(Data, "TENTATIVE") == 0)
-								{
-									c->SetStr(FIELD_CAL_SHOW_TIME_AS, 1);
-								}
-								else if (stricmp(Data, "BUSY") == 0)
-								{
-									c->SetStr(FIELD_CAL_SHOW_TIME_AS, 2);
-								}
-								else if (stricmp(Data, "OUT") == 0)
-								{
-									c->SetStr(FIELD_CAL_SHOW_TIME_AS, 3);
-								}
-								else
-								{
-									c->SetStr(FIELD_CAL_SHOW_TIME_AS, 0);
-								}
-							}
-							else if (IsVar("attendee"))
-							{
-								char *e = stristr(Data, "mailto=");
-								if (e)
-								{
-									e += 7;
-
-									char *Name = Variables["CN"];
-									char *Role = Variables["Role"];
-
-									GDataPropI *a = c->CreateAttendee();
-									if (a)
-									{
-										a->SetStr(FIELD_ATTENDEE_NAME, Name);
-										a->SetStr(FIELD_ATTENDEE_EMAIL, e);
-										if (stricmp(Role, "CHAIR") == 0)
-										{
-											a->SetStr(FIELD_ATTENDEE_ATTENDENCE, 1);
-										}
-										else if (stricmp(Role, "REQ-PARTICIPANT") == 0)
-										{
-											a->SetStr(FIELD_ATTENDEE_ATTENDENCE, 2);
-										}
-										else if (stricmp(Role, "OPT-PARTICIPANT") == 0)
-										{
-											a->SetStr(FIELD_ATTENDEE_ATTENDENCE, 3);
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	DeleteArray(Unfolded);
-
-	#endif
 
 	return Status;
 }
 
 bool VCal::Export(GDataPropI *c, GStreamI *o)
 {
-	if (!c OR !o)
+	if (!c || !o)
 		return false;
 
 	char s[512];

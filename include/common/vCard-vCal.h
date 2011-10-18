@@ -66,7 +66,14 @@ public:
 
 class VCal : public VIo
 {
+    bool IsCal;
+
 public:
+    VCal()
+    {
+        IsCal = false;
+    }
+
 	bool Import(GDataPropI *c, GStreamI *s);
 	bool Export(GDataPropI *c, GStreamI *s);
 };
