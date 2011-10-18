@@ -130,9 +130,11 @@ private:
 	int DragDropLength;
 	List<char> Formats;
 
-	#if WIN32NATIVE
+	#ifdef WIN32
 	LONG Refs;
+	#endif
 
+	#if WIN32NATIVE
 	// IUnknown
 	ULONG STDMETHODCALLTYPE AddRef();
 	ULONG STDMETHODCALLTYPE Release();
