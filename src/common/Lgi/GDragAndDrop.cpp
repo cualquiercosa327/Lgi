@@ -1204,9 +1204,9 @@ GDragDropTarget::GDragDropTarget()
 	DragDropData = 0;
 	DragDropLength = 0;
 	To = 0;
-	Refs = 0;
 
 	#if WIN32NATIVE
+	Refs = 0;
 	DataObject = 0;
 	#endif
 }

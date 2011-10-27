@@ -485,6 +485,9 @@ GApp::GApp(const char *AppMime, OsAppArguments &AppArgs, GAppArguments *ObjArgs)
 	{
 		LgiTrace("%s:%i - InstallEventHandler for app failed (%i)\n", __FILE__, __LINE__, e);
 	}
+	
+	// Setup event handler
+	// AEInstallEventHandler(
 }
 
 GApp::~GApp()

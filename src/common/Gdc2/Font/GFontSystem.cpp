@@ -351,7 +351,7 @@ int GFontSystem::IconvConvert(const char *OutCs, GStreamI *Out, const char *InCs
 {
 	char Buf[2 << 10];
 	
-	if (!Out || !In || !HasIconv())
+	if (!Out || !In)
 		return 0;
 	    
 #if defined(MAC)
@@ -385,6 +385,9 @@ int GFontSystem::IconvConvert(const char *OutCs, GStreamI *Out, const char *InCs
 	// Hmmmm... what to do here?
 
 #elif HAS_ICONV
+
+	if (!HasIconv())
+		return 0;
 
 	iconv_t Conv;
 	if ((NativeInt)(Conv = d->libiconv_open(OutCs, InCs)) >= 0)
