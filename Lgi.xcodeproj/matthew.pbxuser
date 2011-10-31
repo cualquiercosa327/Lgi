@@ -174,7 +174,7 @@
 					PBXFileDataSource_Warnings_ColumnID,
 				);
 			};
-			PBXPerProjectTemplateStateSaveDate = 341394548;
+			PBXPerProjectTemplateStateSaveDate = 341787252;
 			PBXPrepackagedSmartGroups_v2 = (
 				{
 					PBXTransientLocationAtTop = bottom;
@@ -351,12 +351,14 @@
 					};
 				},
 			);
-			PBXWorkspaceStateSaveDate = 341394548;
+			PBXWorkspaceStateSaveDate = 341787252;
 		};
 		perUserProjectItems = {
-			34F483791459F87D009D7462 /* PBXTextBookmark */ = 34F483791459F87D009D7462 /* PBXTextBookmark */;
-			34F483831459F8B3009D7462 /* PBXTextBookmark */ = 34F483831459F8B3009D7462 /* PBXTextBookmark */;
-			34F4839F1459FA77009D7462 /* PBXTextBookmark */ = 34F4839F1459FA77009D7462 /* PBXTextBookmark */;
+			347EC98C145F42C100E686EA /* XCBuildMessageTextBookmark */ = 347EC98C145F42C100E686EA /* XCBuildMessageTextBookmark */;
+			347EC98D145F42C100E686EA /* PBXTextBookmark */ = 347EC98D145F42C100E686EA /* PBXTextBookmark */;
+			34F483791459F87D009D7462 = 34F483791459F87D009D7462 /* PBXTextBookmark */;
+			34F483831459F8B3009D7462 = 34F483831459F8B3009D7462 /* PBXTextBookmark */;
+			34F4839F1459FA77009D7462 = 34F4839F1459FA77009D7462 /* PBXTextBookmark */;
 		};
 		sourceControlManager = 3465BDD608C5DEA700B4C217 /* Source Control */;
 		userBuildSettings = {
@@ -1120,6 +1122,25 @@
 			sepNavVisRange = "{0, 673}";
 		};
 	};
+	347EC98C145F42C100E686EA /* XCBuildMessageTextBookmark */ = {
+		isa = PBXTextBookmark;
+		comments = "'LGITHREAD_EXITED' was not declared in this scope";
+		fRef = 34D2CC8B08F116A80009968C /* GThread.cpp */;
+		fallbackIsa = XCBuildMessageTextBookmark;
+		rLen = 1;
+		rLoc = 97;
+		rType = 1;
+	};
+	347EC98D145F42C100E686EA /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34D2CC8B08F116A80009968C /* GThread.cpp */;
+		name = "GThread.cpp: 98";
+		rLen = 0;
+		rLoc = 1636;
+		rType = 0;
+		vrLen = 664;
+		vrLoc = 1029;
+	};
 	3489C3E90DD1C4DB0095F0E1 /* GMru.h */ = {
 		uiCtxt = {
 			sepNavIntBoundsRect = "{{0, 0}, {728, 588}}";
@@ -1506,9 +1527,9 @@
 	};
 	34D2CC8B08F116A80009968C /* GThread.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {810, 1414}}";
-			sepNavSelRange = "{930, 15}";
-			sepNavVisRange = "{772, 425}";
+			sepNavIntBoundsRect = "{{0, 0}, {1130, 1430}}";
+			sepNavSelRange = "{1636, 0}";
+			sepNavVisRange = "{1029, 664}";
 			sepNavVisRect = "{{0, 896}, {711, 402}}";
 			sepNavWindowFrame = "{{253, 39}, {934, 739}}";
 		};
