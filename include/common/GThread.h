@@ -5,35 +5,45 @@
 // Thread types are defined in GSemaphore.h
 #include "GSemaphore.h"
 
-enum GThreadState
-{
-	LGITHREAD_INIT = 1,
-	LGITHREAD_RUNNING = 2,
-	LGITHREAD_ASLEEP = 3,
-	LGITHREAD_EXITED = 4,
-	LGITHREAD_ERROR = 5
-};
-
 class LgiClass GThread
 {
-	GThreadState State; // LGITHREAD_???
+public:
+    enum ThreadState
+    {
+	    THREAD_INIT = 1,
+	    THREAD_RUNNING = 2,
+	    THREAD_ASLEEP = 3,
+	    THREAD_EXITED = 4,
+	    THREAD_ERROR = 5
+    };
+
+protected:
+	ThreadState State;
 	int ReturnValue;
 	OsThread hThread;
+	const char *Name;
 
 	#if defined WIN32
+
 	friend uint WINAPI ThreadEntryPoint(void *i);
 	uint ThreadId;
+    void Create(class GThread *Thread, OsThread &hThread, uint &ThreadId);
+
 	#elif defined POSIX
+
 	friend void *ThreadEntryPoint(void *i);
+
 	#else
+
 	friend int32 ThreadEntryPoint(void *i);
+
 	#endif
 
 protected:
 	bool DeleteOnExit;
 
 public:
-	GThread();
+	GThread(const char *Name = 0);
 	virtual ~GThread();
 
 	// Properties
@@ -41,7 +51,7 @@ public:
 	#ifdef WIN32
 	uint GetId() { return ThreadId; }
 	#endif
-	GThreadState GetState() { return State; } // Volitle as best... only use for 'debug'
+	ThreadState GetState() { return State; } // Volitile at best... only use for 'debug'
 	virtual int ExitCode();
 	virtual bool IsExited();
 

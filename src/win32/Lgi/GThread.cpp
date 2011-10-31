@@ -3,6 +3,26 @@
 //////////////////////////////////////////////////////////////////////////////
 #include <process.h>
 
+const DWORD MS_VC_EXCEPTION = 0x406D1388;
+
+#pragma pack(push,8)
+struct THREADNAME_INFO
+{
+    DWORD dwType; // Must be 0x1000.
+    LPCSTR szName; // Pointer to name (in user addr space).
+    DWORD dwThreadID; // Thread ID (-1=caller thread).
+    DWORD dwFlags; // Reserved for future use, must be zero.
+
+    THREADNAME_INFO()
+    {
+        dwType = 0x1000;
+        szName = 0;
+        dwThreadID = -1;
+        dwFlags = 0;
+    }
+};
+#pragma pack(pop)
+
 uint WINAPI ThreadEntryPoint(void *i)
 {
 #if defined(_MT) || defined(__MINGW32__)
@@ -13,7 +33,7 @@ uint WINAPI ThreadEntryPoint(void *i)
 		int Status = 0;
 		int Start = LgiCurrentTime();
 
-		while (Thread->State == LGITHREAD_INIT)
+        while (Thread->State == GThread::THREAD_INIT)
 		{
 			LgiSleep(5);
 			if (LgiCurrentTime() - Start > 2000)
@@ -26,8 +46,23 @@ uint WINAPI ThreadEntryPoint(void *i)
 			}
 		}
 
-		if (Thread->State == LGITHREAD_RUNNING)
+		if (Thread->State == GThread::THREAD_RUNNING)
 		{
+            // Set the name if provided...
+            if (Thread->Name)
+            {
+                THREADNAME_INFO info;
+                info.szName = Thread->Name;
+                info.dwThreadID = Thread->ThreadId;
+                __try
+                {
+                    RaiseException( MS_VC_EXCEPTION, 0, sizeof(info)/sizeof(ULONG_PTR), (ULONG_PTR*)&info );
+                }
+                __except(EXCEPTION_CONTINUE_EXECUTION)
+                {
+                }
+            }
+
 			// Ok now we're ready to go...
 			Thread->OnBeforeMain();
 			Status = Thread->ReturnValue = Thread->Main();
@@ -36,7 +71,7 @@ uint WINAPI ThreadEntryPoint(void *i)
 
 		// Shutdown...
 		ThreadError:
-		Thread->State = LGITHREAD_EXITED;
+		Thread->State = GThread::THREAD_EXITED;
 		if (Thread->DeleteOnExit)
 		{
 			DeleteObj(Thread);
@@ -48,7 +83,28 @@ uint WINAPI ThreadEntryPoint(void *i)
 	return 0;
 }
 
-void _Create(GThread *Thread, OsThread &hThread, uint &ThreadId)
+GThread::GThread(const char *name)
+{
+	State = THREAD_INIT;
+	hThread = 0;
+	ThreadId = 0;
+	ReturnValue = 0;
+	DeleteOnExit = false;
+	Name = name;
+	Create(this, hThread, ThreadId);
+}
+
+GThread::~GThread()
+{
+	LgiAssert(State == THREAD_INIT OR State == THREAD_EXITED);
+	if (hThread)
+	{
+		CloseHandle(hThread);
+		hThread = 0;
+	}
+}
+
+void GThread::Create(GThread *Thread, OsThread &hThread, uint &ThreadId)
 {
 #if defined(_MT) || defined(__MINGW32__)
 
@@ -58,7 +114,6 @@ void _Create(GThread *Thread, OsThread &hThread, uint &ThreadId)
 									(LPVOID) Thread,
 									CREATE_SUSPENDED,
 									&ThreadId);
-
 #elif defined(__CYGWIN__)
 
 	// Cygwin doesn't support stable threading
@@ -73,26 +128,6 @@ void _Create(GThread *Thread, OsThread &hThread, uint &ThreadId)
 #endif
 }
 
-GThread::GThread()
-{
-	State = LGITHREAD_INIT;
-	hThread = 0;
-	ThreadId = 0;
-	ReturnValue = 0;
-	DeleteOnExit = false;
-	_Create(this, hThread, ThreadId);
-}
-
-GThread::~GThread()
-{
-	LgiAssert(State == LGITHREAD_INIT OR State == LGITHREAD_EXITED);
-	if (hThread)
-	{
-		CloseHandle(hThread);
-		hThread = 0;
-	}
-}
-
 bool GThread::IsExited()
 {
 	bool Alive1 = ExitCode() == STILL_ACTIVE;
@@ -105,7 +140,7 @@ bool GThread::IsExited()
 	bool Alive2 = WAIT_OBJECT_0 != w;
 	if (!Alive2)
 	{
-		State = LGITHREAD_EXITED;
+		State = THREAD_EXITED;
 		return true;
 	}
 
@@ -113,7 +148,7 @@ bool GThread::IsExited()
 
 	if (!Alive1)
 	{
-		State = LGITHREAD_EXITED;
+		State = THREAD_EXITED;
 		return true;
 	}
 
@@ -122,25 +157,25 @@ bool GThread::IsExited()
 
 void GThread::Run()
 {
-	if (State == LGITHREAD_EXITED)
+	if (State == THREAD_EXITED)
 	{
-		_Create(this, hThread, ThreadId);
+		Create(this, hThread, ThreadId);
 		if (hThread != INVALID_HANDLE_VALUE)
 		{
-			State = LGITHREAD_INIT;
+			State = THREAD_INIT;
 		}
 	}
 
-	if (State == LGITHREAD_INIT)
+	if (State == THREAD_INIT)
 	{
 		DWORD Status = ResumeThread(hThread);
 		if (Status)
 		{
-			State = LGITHREAD_RUNNING;
+			State = THREAD_RUNNING;
 		}
 		else
 		{
-			State = LGITHREAD_ERROR;
+			State = THREAD_ERROR;
 		}
 	}
 }

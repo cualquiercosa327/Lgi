@@ -133,7 +133,7 @@ public:
 	OsView hMouseOver;
 	List<GPopup> Popups;
 
-	GMouseHookPrivate() : GSemaphore("MouseHookLock")
+	GMouseHookPrivate() : GSemaphore("MouseHookLock"), GThread("MouseHook")
 	{
 		Loop = false;
 		hMouseOver = 0;

@@ -616,7 +616,7 @@ public:
 	}
 };
 
-MailIMap::MailIMap()
+MailIMap::MailIMap() : GSemaphore("MailImapSem")
 {
 	d = new MailIMapPrivate;
 	Buffer[0] = 0;

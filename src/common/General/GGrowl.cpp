@@ -10,7 +10,7 @@ class GGrowlPriv : public GThread, public GSemaphore
 	GArray<GGrowl::GNotify*> Notes;
 	
 public:
-	GGrowlPriv()
+	GGrowlPriv() : GThread("GGrowl"), GSemaphore("GGrowlSem")
 	{
 		Loop = true;
 		Run();
