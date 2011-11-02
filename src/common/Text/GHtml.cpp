@@ -44,7 +44,7 @@
 static char WordDelim[]	=			".,<>/?[]{}()*&^%$#@!+|\'\"";
 static char16 WhiteW[] =			{' ', '\t', '\r', '\n', 0};
 #define SkipWhiteSpace(s)			while (*s && IsWhiteSpace(*s)) s++;
-#define SubtractPtr(a, b)			( (((int)(a))-((int)(b))) / sizeof(*a) )
+#define SubtractPtr(a, b)			( ((a)-(b)) / sizeof(*a) )
 
 //////////////////////////////////////////////////////////////////////
 GHtmlStatic *Static = 0;
@@ -3183,7 +3183,7 @@ char *GTag::ParseText(char *Doc)
 
 			// Output tag
 			Html->SetCharset("iso-8859-1");
-			char16 *t = CleanText(s, (int)e-(int)s, false);
+			char16 *t = CleanText(s, e-s, false);
 			if (t)
 			{
 				Utf16.Push(t);
@@ -3226,7 +3226,7 @@ char *GTag::ParseText(char *Doc)
 			
 			// Output text
 			Html->SetCharset(OriginalCp);
-			char16 *t = CleanText(s, (int)e-(int)s, false);
+			char16 *t = CleanText(s, e-s, false);
 			if (t)
 			{
 				Utf16.Push(t);
@@ -3334,7 +3334,7 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 							char *e = s - 1;
 							while (e > Start && IsWhiteSpace(*e)) e--;
 							e++;
-							char *Code = NewStr(Start, (int)e-(int)Start);
+							char *Code = NewStr(Start, e-Start);
 							if (Code)
 							{
 								char *Result = Html->Environment->OnDynamicContent(Code);
@@ -3630,7 +3630,7 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 						{
 							char16 *e = StrchrW(s, '\n');
 							if (!e) e = s + StrlenW(s);
-							int Chars = ((int)e - (int)s)/sizeof(char16);
+							int Chars = e - s;
 
 							GTag *c = new GTag(Html, this);
 							if (c)
@@ -6601,7 +6601,7 @@ void GHtml::OnMouseClick(GMouse &m)
 													}
 													
 													*e = Delim;
-													Ex.Push(s, (int)cid-(int)s);
+													Ex.Push(s, cid-s);
 													if (File[0])
 													{
 														char *d;

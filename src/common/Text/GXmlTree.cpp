@@ -632,7 +632,7 @@ GXmlAttr *GXmlTag::_Attr(const char *Name, bool Wr)
 	{
 		if (!isalpha(*c) &&
 			!isdigit(*c) &&
-			!strchr("-_()", *c))
+			!strchr(":-_()", *c))
 		{
 			LgiAssert(!"Invalid attribute name.");
 			return 0;

@@ -11,6 +11,7 @@
 #endif
 #include "GClipBoard.h"
 
+#define DefaultCharset              "utf-8" // historically LgiAnsiToLgiCp()
 #define SubtractPtr(a, b)			((a) - (b))
 
 #define GDCF_UTF8					-1
@@ -2036,7 +2037,7 @@ bool GTextView3::Open(const char *Name, const char *CharSet)
 				}
 				else
 				{
-					Text = (char16*)LgiNewConvertCp(LGI_WideCharset, DataStart, CharSet ? CharSet : LgiAnsiToLgiCp());
+					Text = (char16*)LgiNewConvertCp(LGI_WideCharset, DataStart, CharSet ? CharSet : DefaultCharset);
 				}
 				if (Text)
 				{
@@ -2102,30 +2103,52 @@ bool GTextView3::Save(const char *Name, const char *CharSet)
 		{
 			bool Status = false;
 			
-			char *c8 = (char*)LgiNewConvertCp(CharSet ? CharSet : LgiAnsiToLgiCp(), Text, "utf-16", Size * sizeof(char16));
+			char *c8 = (char*)LgiNewConvertCp(CharSet ? CharSet : DefaultCharset, Text, "utf-16", Size * sizeof(char16));
 			if (c8)
 			{
 				int Len = strlen(c8);
 				if (CrLf)
 				{
-					int Start = 0;
 					Status = true;
-					for (int i=0; i<=Len && Status; i++)
+
+					int BufLen = 1 << 20;
+					GAutoPtr<char> Buf(new char[BufLen]);
+					char *b = Buf;
+					char *e = Buf + BufLen;
+					char *c = c8;
+					
+					while (*c)
 					{
-						if (c8[i] == '\n' OR i >= Len)
-						{
-							Status = f.Write(c8 + Start, i - Start) == (i - Start);
-							if (i < Len)
-							{
-								Status = f.Write((char*)"\r\n", 2) == 2;
-							}
-							Start = i+1;
-						}
+					    if (b > e - 10)
+					    {
+					        int Bytes = b - Buf;
+					        if (f.Write(Buf, Bytes) != Bytes)
+					        {
+					            Status = false;
+					            break;
+					        }
+					        
+					        b = Buf;
+					    }
+					    
+					    if (*c == '\n')
+					    {
+					        *b++ = '\r';
+					        *b++ = '\n';
+					    }
+					    else
+					    {
+					        *b++ = *c;
+					    }
+					    c++;
 					}
+
+			        int Bytes = b - Buf;
+			        if (f.Write(Buf, Bytes) != Bytes)
+			            Status = false;
 				}
 				else
 				{
-					int Len = strlen(c8);
 					Status = f.Write(c8, Len) == Len;
 				}
 
