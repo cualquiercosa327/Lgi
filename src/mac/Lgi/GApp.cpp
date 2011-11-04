@@ -252,10 +252,12 @@ public:
 	GAutoString Mime;
 	GAutoString Name;
 	EventHandlerUPP AppEventUPP;
+	AEEventHandlerUPP AppleEventUPP;
 
 	GAppPrivate()
 	{
 		AppEventUPP = 0;
+		AppleEventUPP = 0;
 		FileSystem = 0;
 		GdcSystem = 0;
 		Config = 0;
@@ -277,6 +279,42 @@ public:
 		}
 	}
 };
+
+pascal OSErr AppleEventProc(const AppleEvent *theAppleEvent, AppleEvent *reply, SRefCon handlerRefcon)
+{
+	OSErr result = eventNotHandledErr;
+	GApp *App = (GApp*) handlerRefcon;
+	
+	printf("AppleEventProc called\n");
+
+	AEDescList docs;
+	if (AEGetParamDesc(theAppleEvent, keyDirectObject, typeAEList, &docs) == noErr)
+	{
+		long n = 0;
+		AECountItems(&docs, &n);
+
+		UInt8 strBuffer[256];
+		GArray<char*> Files;
+		GArray<GAutoString> Mem;
+		for (int i = 0; i < n; i++)
+		{
+			FSRef ref;
+			
+			if (AEGetNthPtr(&docs, i + 1, typeFSRef, 0, 0, &ref, sizeof(ref), 0) != noErr)
+				continue;
+				
+			if (FSRefMakePath(&ref, strBuffer, 256) == noErr)
+			{
+				Mem[i].Reset(NewStr((char*)strBuffer));
+				Files[i] = Mem[i].Get();
+			}
+		}
+
+		App->OnReceiveFiles(Files);
+	}
+	
+	return result;
+}
 
 pascal OSStatus AppProc(EventHandlerCallRef inHandlerCallRef, EventRef inEvent, void *inUserData)
 {
@@ -486,8 +524,25 @@ GApp::GApp(const char *AppMime, OsAppArguments &AppArgs, GAppArguments *ObjArgs)
 		LgiTrace("%s:%i - InstallEventHandler for app failed (%i)\n", __FILE__, __LINE__, e);
 	}
 	
-	// Setup event handler
-	// AEInstallEventHandler(
+	// Setup apple event handlers
+	d->AppleEventUPP = NewAEEventHandlerUPP(AppleEventProc);
+	/*
+	e = AEInstallEventHandler(	kCoreEventClass,
+								kAEOpenApplication,
+								d->AppleEventUPP,
+								(SRefCon)this,
+								false);
+	e = AEInstallEventHandler(	kCoreEventClass,
+								kAEReopenApplication,
+								d->AppleEventUPP,
+								(SRefCon)this,
+								false);
+								*/
+	e = AEInstallEventHandler(	kCoreEventClass,
+								kAEGetURL,
+								d->AppleEventUPP,
+								(SRefCon)this,
+								false);
 }
 
 GApp::~GApp()

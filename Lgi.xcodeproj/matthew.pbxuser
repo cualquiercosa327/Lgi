@@ -7,7 +7,7 @@
 			8DC2EF4F0486A6940098B216 /* Lgi */,
 		);
 		breakpoints = (
-			346792721399BC2400FF140B /* GApp.cpp:929 */,
+			346792721399BC2400FF140B /* GApp.cpp:984 */,
 			346792781399BCB900FF140B /* GGeneral.cpp:494 */,
 			3478603113D66955009E6968 /* GToolBar.cpp:1491 */,
 			3478603713D669D8009E6968 /* GToolBar.cpp:906 */,
@@ -83,7 +83,7 @@
 				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
 				PBXFileTableDataSourceColumnWidthsKey = (
 					20,
-					552,
+					775,
 					20,
 					93,
 					43,
@@ -473,6 +473,58 @@
 			sepNavVisRange = "{811, 1311}";
 		};
 	};
+	342DFD8E145B6F8C001EE4D4 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 342DFD8F145B6F8C001EE4D4 /* mac_support.cpp */;
+		name = "mac_support.cpp: 111";
+		rLen = 17;
+		rLoc = 3161;
+		rType = 0;
+		vrLen = 1135;
+		vrLoc = 2448;
+	};
+	342DFD8F145B6F8C001EE4D4 /* mac_support.cpp */ = {
+		isa = PBXFileReference;
+		name = mac_support.cpp;
+		path = /Users/matthew/Downloads/mac_support.cpp;
+		sourceTree = "<absolute>";
+	};
+	342DFD90145B6F8C001EE4D4 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 342DFD91145B6F8C001EE4D4 /* AppleEvents.h */;
+		name = "AppleEvents.h: 70";
+		rLen = 18;
+		rLoc = 1748;
+		rType = 0;
+		vrLen = 1564;
+		vrLoc = 891;
+	};
+	342DFD91145B6F8C001EE4D4 /* AppleEvents.h */ = {
+		isa = PBXFileReference;
+		name = AppleEvents.h;
+		path = /Developer/SDKs/MacOSX10.5.sdk/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/AE.framework/Versions/A/Headers/AppleEvents.h;
+		sourceTree = "<absolute>";
+	};
+	342DFDD114615BF4001EE4D4 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 344AF39508E0476A004ED88C /* GApp.cpp */;
+		name = "GApp.cpp: 291";
+		rLen = 14;
+		rLoc = 4952;
+		rType = 0;
+		vrLen = 897;
+		vrLoc = 4566;
+	};
+	342DFDD214615BF4001EE4D4 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 344AF39508E0476A004ED88C /* GApp.cpp */;
+		name = "GApp.cpp: 312";
+		rLen = 0;
+		rLoc = 5440;
+		rType = 0;
+		vrLen = 884;
+		vrLoc = 4709;
+	};
 	34372ACF0C46E0290090CDC9 /* GDocView.h */ = {
 		uiCtxt = {
 			sepNavIntBoundsRect = "{{0, 0}, {1052, 5083}}";
@@ -626,9 +678,9 @@
 	};
 	344AF39508E0476A004ED88C /* GApp.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {775, 12805}}";
-			sepNavSelRange = "{9259, 0}";
-			sepNavVisRange = "{8588, 783}";
+			sepNavIntBoundsRect = "{{0, 0}, {998, 13273}}";
+			sepNavSelRange = "{5440, 0}";
+			sepNavVisRange = "{4709, 884}";
 			sepNavVisRect = "{{0, 6415}, {830, 456}}";
 			sepNavWindowFrame = "{{337, 145}, {750, 558}}";
 		};
@@ -1009,7 +1061,7 @@
 			sepNavVisRect = "{{0, 1471}, {973, 237}}";
 		};
 	};
-	346792721399BC2400FF140B /* GApp.cpp:929 */ = {
+	346792721399BC2400FF140B /* GApp.cpp:984 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -1021,7 +1073,7 @@
 		functionName = "GApp::GetFileMimeType(const char *File)";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 929;
+		lineNumber = 984;
 		location = Lgi;
 		modificationTime = 335879608.070278;
 		originalNumberOfMultipleMatches = 1;
@@ -1492,9 +1544,9 @@
 	};
 	34D2CC6008F0FC7F0009968C /* GFontSystem.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {873, 9867}}";
+			sepNavIntBoundsRect = "{{0, 0}, {873, 9854}}";
 			sepNavSelRange = "{8785, 0}";
-			sepNavVisRange = "{8431, 805}";
+			sepNavVisRange = "{8428, 818}";
 			sepNavVisRect = "{{0, 2235}, {836, 500}}";
 		};
 	};
@@ -1613,36 +1665,6 @@
 			sepNavVisRange = "{3797, 1298}";
 			sepNavVisRect = "{{0, 2454}, {844, 486}}";
 		};
-	};
-	34F483791459F87D009D7462 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 344AF39508E0476A004ED88C /* GApp.cpp */;
-		name = "GApp.cpp: 490";
-		rLen = 0;
-		rLoc = 9259;
-		rType = 0;
-		vrLen = 783;
-		vrLoc = 8588;
-	};
-	34F483831459F8B3009D7462 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 34D2CC6008F0FC7F0009968C /* GFontSystem.cpp */;
-		name = "GFontSystem.cpp: 434";
-		rLen = 0;
-		rLoc = 9004;
-		rType = 0;
-		vrLen = 771;
-		vrLoc = 8462;
-	};
-	34F4839F1459FA77009D7462 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 34D2CC6008F0FC7F0009968C /* GFontSystem.cpp */;
-		name = "GFontSystem.cpp: 431";
-		rLen = 0;
-		rLoc = 8785;
-		rType = 0;
-		vrLen = 805;
-		vrLoc = 8431;
 	};
 	34F96DA90DB9B82B009C64B8 /* GDragAndDrop.h */ = {
 		uiCtxt = {
