@@ -80,6 +80,7 @@ public:
 	// Output
 	GColour _Fore;
 	GColour _Back;
+	GColour WhiteSpace;
 	int _TabSize;
 	bool _Transparent;
 	bool _SubGlyphs;
@@ -98,6 +99,7 @@ public:
 		_CodePage = NewStr("utf-8");
 		_Fore.Rgb(0, 0, 0);
 		_Back.Rgb(255, 255, 255);
+		WhiteSpace = _Fore;
 		_TabSize = 32;
 		_Transparent = false;
 		_SubGlyphs = GFontSystem::Inst()->GetDefaultGlyphSub();
@@ -166,6 +168,17 @@ void GTypeFace::Quality(int i)
 {
 	d->_Quality = i;
 	_OnPropChange(true);
+}
+
+GColour GTypeFace::WhitespaceColour()
+{
+    return d->WhiteSpace;
+}
+
+void GTypeFace::WhitespaceColour(GColour c)
+{
+	d->WhiteSpace = c;
+	_OnPropChange(false);
 }
 
 void GTypeFace::Fore(COLOUR c)

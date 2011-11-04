@@ -702,7 +702,7 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 		int WidthOfSpace = Sp.X();
 		if (WidthOfSpace < 1)
 		{
-			printf("%s:%i - WidthOfSpace test failed.\n", __FILE__, __LINE__);
+			printf("%s:%i - WidthOfSpace test failed.\n", _FL);
 			return;
 		}
 
@@ -2866,7 +2866,8 @@ int GTextView3::HitText(int x, int y)
 				int At = x - l->r.x1;
 				int Char = 0;
 				
-				GDisplayString Ds(Font, MapText(Text + l->Start, l->Len), l->Len, 0, d->Margin.x1);
+				GDisplayString Ds(Font, MapText(Text + l->Start, l->Len), l->Len, 0);
+				Ds.SetTabOrigin(d->Margin.x1);
 				Char = Ds.CharAt(At);
 
 				return l->Start + Char;
@@ -4177,24 +4178,26 @@ void GTextView3::OnPaint(GSurface *pDC)
 
 		GSurface *pOut = pDC;
 		bool DrawSel = false;
-		COLOUR Fore32 = Rgb24To32(LC_TEXT);
-		COLOUR Selected = LC_SELECTION;
+		
+		GColour Fore(LC_TEXT, 24);
+		GColour SelectedText(LC_SEL_TEXT, 24);
+		GColour SelectedBack(LC_SELECTION, 24);
 		GViewFill *BackFill = GetBackgroundFill();
-		COLOUR Back = (!ReadOnly) ? (BackFill ? BackFill->GetFlat().c24() : LC_WORKSPACE) : BackColour;
+		GColour Back(!ReadOnly ? (BackFill ? BackFill->GetFlat().c24() : LC_WORKSPACE) : BackColour, 24);
+		GColour Whitespace = Fore;
+		Whitespace.Mix(Back, 0.85);
 
 		bool HasFocus = Focus();
 		if (!HasFocus)
 		{
-			COLOUR Work = LC_WORKSPACE;
-			Selected = Rgb24(	(R24(Work)+R24(Selected))/2,
-								(G24(Work)+G24(Selected))/2,
-								(B24(Work)+B24(Selected))/2);
+			GColour Work(LC_WORKSPACE, 24);
+            SelectedBack.Mix(Work);
 		}
 
 		if (!Enabled())
 		{
-			Fore32 = Rgb24To32(LC_LOW);
-			Back = LC_MED;
+			Fore.Set(LC_LOW, 24);
+			Back.Set(LC_MED, 24);
 		}
 
 		#ifdef DOUBLE_BUFFER_PAINT
@@ -4214,11 +4217,12 @@ void GTextView3::OnPaint(GSurface *pDC)
 			int SelMax = max(SelStart, SelEnd);
 
 			// font properties
-			Font->Colour(Rgb32To24(Fore32), Back);
+			Font->Colour(Fore, Back);
+			Font->WhitespaceColour(Whitespace);
 			Font->Transparent(false);
 
 			// draw margins
-			pDC->Colour(PAINT_BORDER, 24);
+			pDC->Colour(PAINT_BORDER);
 			// top margin
 			pDC->Rectangle(0, 0, r.x2, d->Margin.y1-1);
 			// left margin
@@ -4237,7 +4241,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 				// start of visible area is in selection
 				// init to selection colour
 				DrawSel = true;
-				Font->Colour(LC_SEL_TEXT, Selected);
+				Font->Colour(SelectedText, SelectedBack);
 				NextSelection = SelMax;
 			}
 
@@ -4265,12 +4269,12 @@ void GTextView3::OnPaint(GSurface *pDC)
 				}
 				if (DrawSel)
 				{
-					Font->Colour(LC_SEL_TEXT, Selected);
+					Font->Colour(SelectedText, SelectedBack);
 				}
 				else
 				{
-					COLOUR c32 = l->c.Transparent() ? Fore32 : l->c.c32();
-					Font->Colour(Rgb32To24(c32), Back);
+					GColour c = l->c.Transparent() ? Fore : l->c;
+					Font->Colour(c, Back);
 				}
 
 				// draw text
@@ -4328,7 +4332,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 						{
 							// draw styled text
 							if (!NextStyle->c.Transparent())
-								NextStyle->Font->Colour(NextStyle->c.c24(), Back);
+								NextStyle->Font->Colour(NextStyle->c, Back);
 							NextStyle->Font->Transparent(false);
 
 							LgiAssert(l->Start + Done >= 0);
@@ -4337,10 +4341,9 @@ void GTextView3::OnPaint(GSurface *pDC)
 												MapText(Text + (l->Start + Done),
 														Block,
 														RtlTrailingSpace),
-												Block + RtlTrailingSpace,
-												0,
-												TabOri);
-												
+												Block + RtlTrailingSpace);
+							Ds.ShowVisibleTab(ShowWhiteSpace);
+							Ds.SetTabOrigin(TabOri);
 							TextX = Ds.X();
 							Ds.Draw(pOut, Tr.x1, Tr.y1, 0);
 
@@ -4351,8 +4354,8 @@ void GTextView3::OnPaint(GSurface *pDC)
 									pOut->Set(Tr.x1+i, Tr.y2-(i%2));
 							}
 
-							COLOUR c32 = l->c.Transparent() ? Fore32 : l->c.c32();
-							NextStyle->Font->Colour(Rgb32To24(c32), Back);
+							GColour c = l->c.Transparent() ? Fore : l->c;
+							NextStyle->Font->Colour(c, Back);
 						}
 					}
 					else
@@ -4364,9 +4367,9 @@ void GTextView3::OnPaint(GSurface *pDC)
 											MapText(Text + (l->Start + Done),
 													Block,
 													RtlTrailingSpace),
-											Block + RtlTrailingSpace,
-											0,
-											TabOri);
+											Block + RtlTrailingSpace);
+						Ds.ShowVisibleTab(ShowWhiteSpace);
+						Ds.SetTabOrigin(TabOri);
 						TextX = Ds.X();
 
 						Ds.Draw(pOut, Tr.x1, Tr.y1, 0);
@@ -4385,12 +4388,12 @@ void GTextView3::OnPaint(GSurface *pDC)
 						DrawSel = !DrawSel;
 						if (DrawSel)
 						{
-							Font->Colour(LC_SEL_TEXT, Selected);
+							Font->Colour(SelectedText, SelectedBack);
 						}
 						else
 						{
-							COLOUR c32 = l->c.Transparent() ? Fore32 : l->c.c32();
-							Font->Colour(Rgb32To24(c32), Back);
+							GColour c = l->c.Transparent() ? Fore : l->c;
+							Font->Colour(c, Back);
 						}
 						NextSelection = (NextSelection == SelMin) ? SelMax : -1;
 					}
@@ -4412,7 +4415,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 				else Tr.x2 = Tr.x1;
 
 				// draw any space after text
-				pOut->Colour(PAINT_AFTER_LINE, 24);
+				pOut->Colour(PAINT_AFTER_LINE);
 				pOut->Rectangle(Tr.x2, Tr.y1, r.x2, Tr.y2);
 
 				// cursor?
@@ -4426,6 +4429,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 						int At = Cursor-l->Start;
 						
 						GDisplayString Ds(Font, MapText(Text+l->Start, At), At);
+						Ds.ShowVisibleTab(ShowWhiteSpace);
 						int CursorX = Ds.X();
 						CursorPos.Offset(d->Margin.x1 + CursorX, Tr.y1);
 						
@@ -4454,7 +4458,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 							c.Offset(-d->Margin.x1, -y);
 							#endif
 
-							pOut->Colour((!ReadOnly) ? Rgb32To24(Fore32) : Rgb24(192, 192, 192), 24);
+							pOut->Colour((!ReadOnly) ? Fore : GColour(192, 192, 192));
 							pOut->Rectangle(&c);
 						}
 
@@ -4486,7 +4490,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 			{
 				// printf("White %i, k=%i Lines=%i\n", r.y2 - y, k, Line.Length());
 
-				pDC->Colour(Back, 24);
+				pDC->Colour(Back);
 				pDC->Rectangle(d->Margin.x1, y, r.x2, r.y2);
 			}
 
@@ -4497,7 +4501,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 		else
 		{
 			// default drawing: nothing
-			pDC->Colour(Back, 24);
+			pDC->Colour(Back);
 			pDC->Rectangle(&r);
 		}
 

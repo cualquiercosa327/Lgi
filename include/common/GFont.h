@@ -100,15 +100,23 @@ public:
 	void TabSize(int i);
 	/// Sets the quality resquested, use one of #DEFAULT_QUALITY, #ANTIALIASED_QUALITY or #NONANTIALIASED_QUALITY.
 	void Quality(int i);
+
 	/// Sets the foreground colour as a 24 bit RGB value
 	void Fore(COLOUR c);
 	void Fore(GColour c);
+
 	/// Sets the background colour as a 24 bit RGB value. In most systems this is not important,
 	/// but on BeOS the anti-aliasing is done from the foreground colour to the background colour
 	/// with no regards for what is underneath the rendered text, thus you need to set the back
 	/// colour correctly
 	void Back(COLOUR c);
 	void Back(GColour c);
+
+    /// Get the whitespace rendering colour
+    GColour WhitespaceColour();
+    /// Sets the rendering colour of whitespace characters when GDisplayString::ShowVisibleTab() is true.
+    void WhitespaceColour(GColour c);
+
 	/// Sets the font's weight, use one the weight defines in GFont.h, e.g. #FW_NORMAL, #FW_BOLD
 	void SetWeight(int Weight);
 	/// Set a bold font
@@ -181,7 +189,7 @@ class LgiClass GFont :
 
 	void _Measure(int &x, int &y, OsChar *Str, int Len);
 	int _CharAt(int x, OsChar *Str, int Len);
-	void _Draw(GSurface *pDC, int x, int y, OsChar *Str, int Len, GRect *r);
+	void _Draw(GSurface *pDC, int x, int y, OsChar *Str, int Len, GRect *r, GColour &fore);
 	#endif
 
 public:

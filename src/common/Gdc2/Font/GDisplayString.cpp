@@ -16,11 +16,8 @@
 #endif
 
 //////////////////////////////////////////////////////////////////////
-#define SubtractPtr(a, b)			(	(((int)(a))-((int)(b))) / sizeof(*a)	)
-#define IsTabChar(c)				(c == '\t' OR (c == 0x2192 AND ShowVisibleTab()))
-
-#define DSTR_VIS_TABS				0x01
-#define DSTR_APPEND_DOTS			0x02
+#define SubtractPtr(a, b)			(	(((NativeInt)(a))-((NativeInt)(b))) / sizeof(*a)	)
+#define IsTabChar(c)				(c == '\t' || (c == 0x2192 && VisibleTab))
 
 static OsChar GDisplayStringDots[] = {'.', '.', '.', 0};
 
@@ -43,7 +40,7 @@ public:
 	}
 };
 
-GDisplayString::GDisplayString(GFont *f, const char *s, int l, GSurface *pdc, int tabOrigin)
+GDisplayString::GDisplayString(GFont *f, const char *s, int l, GSurface *pdc)
 {
 	pDC = pdc;
 	Font = f;
@@ -58,8 +55,10 @@ GDisplayString::GDisplayString(GFont *f, const char *s, int l, GSurface *pdc, in
 	
 	Info = 0;
 	Blocks = x = y = len = 0;
-	TabOrigin = tabOrigin;
-	Flags = 0; // DSTR_VIS_TABS;
+	TabOrigin = 0;
+	LaidOut = 0;
+	AppendDots = 0;
+	VisibleTab = 0;
 	
 	#if defined MAC
 	
@@ -86,11 +85,9 @@ GDisplayString::GDisplayString(GFont *f, const char *s, int l, GSurface *pdc, in
 	}
 	
 	#endif
-		
-	Layout();
 }
 
-GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc, int tabOrigin)
+GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc)
 {
 	pDC = pdc;
 	Font = f;
@@ -104,8 +101,10 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc, 
 	
 	Info = 0;
 	Blocks = x = y = 0;
-	TabOrigin = tabOrigin;
-	Flags = 0; // DSTR_VIS_TABS;
+	TabOrigin = 0;
+	LaidOut = 0;
+	AppendDots = 0;
+	VisibleTab = 0;
 
 	#if defined MAC
 	
@@ -129,8 +128,6 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc, 
 	}
 	
 	#endif
-
-	Layout();
 }
 
 GDisplayString::~GDisplayString()
@@ -149,6 +146,11 @@ GDisplayString::~GDisplayString()
 
 void GDisplayString::Layout()
 {
+    if (LaidOut)
+        return;
+
+    LaidOut = 1;
+    
 	#if defined __GTK_H__
 	
 	if (!Hnd)
@@ -460,24 +462,35 @@ void GDisplayString::Layout()
 	#endif
 }
 
+int GDisplayString::GetTabOrigin()
+{
+    return TabOrigin;
+}
+
+void GDisplayString::SetTabOrigin(int o)
+{
+    TabOrigin = o;
+}
+
 bool GDisplayString::ShowVisibleTab()
 {
-	return TestFlag(Flags, DSTR_VIS_TABS);
+	return VisibleTab;
 }
 
 void GDisplayString::ShowVisibleTab(bool i)
 {
-	if (i)	SetFlag(Flags, DSTR_VIS_TABS);
-	else	ClearFlag(Flags, DSTR_VIS_TABS);
+	VisibleTab = i;
 }
 
 bool GDisplayString::IsTruncated()
 {
-	return TestFlag(Flags, DSTR_APPEND_DOTS);
+	return AppendDots;
 }
 
 void GDisplayString::TruncateWithDots(int Width)
 {
+    Layout();
+    
 	#if defined MAC || defined __GTK_H__
 	#else
 	
@@ -489,7 +502,7 @@ void GDisplayString::TruncateWithDots(int Width)
 			if (c > 0) c--; // fudge room for dots
 			if (c > 0) c--;
 			
-			Flags |= DSTR_APPEND_DOTS;
+			AppendDots = 1;
 			
 			if (Info)
 			{
@@ -548,11 +561,13 @@ void GDisplayString::TruncateWithDots(int Width)
 
 int GDisplayString::X()
 {
+    Layout();
 	return x;
 }
 
 int GDisplayString::Y()
 {
+    Layout();
 	return y;
 }
 
@@ -563,6 +578,8 @@ int GDisplayString::Length()
 
 void GDisplayString::Length(int New)
 {
+    Layout();
+
 	#if defined MAC || defined __GTK_H__
 
 	#else
@@ -625,6 +642,7 @@ void GDisplayString::Length(int New)
 
 void GDisplayString::Size(int *sx, int *sy)
 {
+    Layout();
 	if (sx) *sx = x;
 	if (sy) *sy = y;
 }
@@ -633,6 +651,7 @@ int GDisplayString::CharAt(int Px)
 {
 	int Status = -1;
 
+    Layout();
 	if (Px < 0)
 		return 0;
 	else if (Px >= x)
@@ -803,6 +822,8 @@ xcb_visualtype_t *get_root_visual_type(xcb_screen_t *s)
 
 void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 {
+    Layout();
+
 	#if defined __GTK_H__
 	
 	Gtk::cairo_t *cr = pDC->GetCairo();
@@ -1067,7 +1088,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 							{
 								int Dx = TabSize - ((X - Ox + TabOrigin) % TabSize);
 								GRect Char(X, b.y1, X + Dx - 1, b.y2);
-								f->_Draw(pDC, X, py, Info[i].Str, 1, &Char);
+								f->_Draw(pDC, X, py, Info[i].Str, 1, &Char, f->WhitespaceColour());
 								X += Dx;
 							}
 						}
@@ -1075,7 +1096,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 					else
 					{
 						// Draw the character(s)
-						f->_Draw(pDC, px, py, Info[i].Str, Info[i].Len, &b);
+						f->_Draw(pDC, px, py, Info[i].Str, Info[i].Len, &b, f->Fore());
 					}
 				}
 			}
@@ -1084,7 +1105,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 			px += Info[i].X;
 		}
 		
-		if (TestFlag(Flags, DSTR_APPEND_DOTS))
+		if (AppendDots)
 		{
 			int Sx, Sy;
 			Font->_Measure(Sx, Sy, GDisplayStringDots, 3);
@@ -1105,7 +1126,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 				b.y2 = py + Y() - 1;
 			}
 
-			Font->_Draw(pDC, px, py, GDisplayStringDots, 3, &b);
+			Font->_Draw(pDC, px, py, GDisplayStringDots, 3, &b, Font->Fore());
 		}
 
 		pDC->Colour(Old);

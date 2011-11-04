@@ -95,7 +95,7 @@ int GFont::_CharAt(int x, OsChar *Str, int Len)
 	return Fit;
 }
 
-void GFont::_Draw(GSurface *pDC, int x, int y, OsChar *Str, int Len, GRect *r)
+void GFont::_Draw(GSurface *pDC, int x, int y, OsChar *Str, int Len, GRect *r, GColour &fore)
 {
 	LgiAssert(Handle());
 
@@ -103,7 +103,7 @@ void GFont::_Draw(GSurface *pDC, int x, int y, OsChar *Str, int Len, GRect *r)
 	HFONT hOldFont = (HFONT) SelectObject(hDC, Handle());
 	if (hOldFont)
 	{
-		SetTextColor(hDC, Fore().c24() & 0xFFFFFF);
+		SetTextColor(hDC, fore.c24() & 0xFFFFFF);
 		SetBkColor(hDC, Back().c24() & 0xFFFFFF);
 		SetBkMode(hDC, Transparent() ? TRANSPARENT : OPAQUE);
 
@@ -137,7 +137,7 @@ void GFont::_Draw(GSurface *pDC, int x, int y, OsChar *Str, int Len, GRect *r)
 
 		if (GetOwnerUnderline())
 		{
-			pDC->Colour(Fore());
+			pDC->Colour(fore);
 			pDC->Line(x, y + GetHeight() - 1, x + Size.cx + 1, y + GetHeight() - 1);
 		}
 

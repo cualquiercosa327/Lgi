@@ -29,10 +29,15 @@ class LgiClass GDisplayString
 	GSurface *pDC;
 	OsChar *Str;
 	GFont *Font;
-	int x, y, len, TabOrigin;
-	int Blocks;
+	uint32 x, y, len;
+	uint16 TabOrigin;
+	uint16 Blocks;
 	class CharInfo *Info;
-	uint8 Flags;
+	
+	// Flags
+	uint8 LaidOut : 1;
+	uint8 AppendDots : 1;
+	uint8 VisibleTab : 1;
 	
 	#if defined MAC
 	
@@ -58,8 +63,7 @@ public:
 		const char *s,
 		/// Number of bytes in the input string or -1 for NULL terminated.
 		int l = -1,
-		GSurface *pdc = 0,
-		int tabOrigin = 0
+		GSurface *pdc = 0
 	);
 	/// Constructor
 	GDisplayString
@@ -70,11 +74,14 @@ public:
 		const char16 *s,
 		/// The number of characters in the input string (NOT the number of bytes) or -1 for NULL terminated
 		int l = -1,
-		GSurface *pdc = 0,
-		int tabOrigin = 0
+		GSurface *pdc = 0
 	);
 	virtual ~GDisplayString();
 	
+	/// \returns the tab origin
+	int GetTabOrigin();
+	/// Sets the tab origin
+	void SetTabOrigin(int o);	
 	/// Returns the ShowVisibleTab setting.
 	/// Treats Unicode-2192 (left arrow) as a tab char
 	bool ShowVisibleTab();
