@@ -106,8 +106,8 @@ struct GInfo
 {
 public:
 	HtmlTag Id;
-	char *Tag;
-	char *ReattachTo;
+	const char *Tag;
+	const char *ReattachTo;
 	int Flags;
 
 	bool NeverCloses()	{ return TestFlag(Flags, TI_NEVER_CLOSES); }
@@ -272,8 +272,8 @@ public:
 	
 	// Images
 	GAutoPtr<GSurface> Image;
-	void SetImage(char *uri, GSurface *i);
-	void LoadImage(char *Uri); // Load just this URI
+	void SetImage(const char *uri, GSurface *i);
+	void LoadImage(const char *Uri); // Load just this URI
 	void LoadImages(); // Recursive load all image URI's
 	void ImageLoaded(char *uri, GSurface *img, int &Used);
 
@@ -298,7 +298,7 @@ public:
 	void OnChange(PropType Prop);
 
 	// Attributes
-	bool Get(const char *attr, char *&val) { val = Attr.Find(attr); return val != 0; }
+	bool Get(const char *attr, const char *&val) { val = Attr.Find(attr); return val != 0; }
 	void Set(const char *attr, const char *val);
 
 	// Methods
@@ -309,18 +309,18 @@ public:
 
 	int GetTextStart();
 	char *Dump();
-	char16 *CleanText(char *s, int len, bool ConversionAllowed = true, bool KeepWhiteSpace = false);
+	char16 *CleanText(const char *s, int len, bool ConversionAllowed = true, bool KeepWhiteSpace = false);
 	char *ParseHtml(char *Doc, int Depth, bool InPreTag = false, bool *BackOut = 0);
 	char *ParseText(char *Doc);
 	void SetStyle();
-	void SetCssStyle(char *Style);
+	void SetCssStyle(const char *Style);
 	void OnFlow(GFlowRegion *Flow);
 	void OnPaintBorder(GSurface *pDC);
 	void OnPaint(GSurface *pDC);
 	void SetSize(GdcPt2 &s);
-	void SetTag(char *Tag);
+	void SetTag(const char *Tag);
 	GTagHit GetTagByPos(int x, int y);
-	GTag *GetTagByName(char *Name);
+	GTag *GetTagByName(const char *Name);
 	void CopyClipboard(GBytePipe &p);
 	GTag *IsAnchor(GAutoString *Uri);
 	bool CreateSource(GStringPipe &p, int Depth = 0, bool LastWasBlock = true);

@@ -1308,12 +1308,12 @@ bool MailProtocol::Read()
 	return Status;
 }
 
-bool MailProtocol::Write(char *Buf, bool LogWrite)
+bool MailProtocol::Write(const char *Buf, bool LogWrite)
 {
 	bool Status = false;
 	if (Socket)
 	{
-		char *p = (Buf) ? Buf : Buffer;
+		const char *p = (Buf) ? Buf : Buffer;
 		Status = Socket->Write(p, strlen(p), 0);
 		
 		if (LogWrite)
@@ -1410,7 +1410,7 @@ bool MailSmtp::Open(GSocketI *S,
 				bool Authed = false;
 				bool NoAuthTypes = false;
 				bool SupportsStartTLS = false;
-				GHashTable TheirAuthTypes;
+				GHashTbl<const char*, bool> TheirAuthTypes;
 
 				// Look through the response for the auth line
 				char *Response = Str.NewStr();
@@ -1427,7 +1427,7 @@ bool MailSmtp::Open(GSocketI *S,
 							GToken Types(AuthStr + 4, " ,;");
 							for (int a=0; a<Types.Length(); a++)
 							{
-								TheirAuthTypes.Add(Types[a]);
+								TheirAuthTypes.Add(Types[a], true);
 							}
 						}
 						if (stristr(l, "STARTTLS"))
@@ -1460,9 +1460,9 @@ bool MailSmtp::Open(GSocketI *S,
 				if (ValidStr(UserName) &&
 					ValidStr(Password))
 				{
-					GHashTable MyAuthTypes(16);
-					MyAuthTypes.Add("PLAIN");
-					MyAuthTypes.Add("LOGIN");
+					GHashTbl<const char*, bool> MyAuthTypes(16);
+					MyAuthTypes.Add("PLAIN", true);
+					MyAuthTypes.Add("LOGIN", true);
 
 					if (TheirAuthTypes.Length() == 0)
 					{
@@ -1472,20 +1472,20 @@ bool MailSmtp::Open(GSocketI *S,
 							if (TestFlag(Flags, MAIL_USE_PLAIN))
 							{
 								// Force plain type
-								TheirAuthTypes.Add("PLAIN");
+								TheirAuthTypes.Add("PLAIN", true);
 							}
 							else if (TestFlag(Flags, MAIL_USE_LOGIN))
 							{
 								// Force login type
-								TheirAuthTypes.Add("LOGIN");
+								TheirAuthTypes.Add("LOGIN", true);
 							}
 							else
 							{
 								// Oh well, we'll just try all types
-								char *a;
+								const char *a;
 								for (bool b=MyAuthTypes.First(&a); b; b=MyAuthTypes.Next(&a))
 								{
-									TheirAuthTypes.Add(a);
+									TheirAuthTypes.Add(a, true);
 								}
 							}
 						}
@@ -1553,8 +1553,8 @@ bool MailSmtp::Open(GSocketI *S,
 							strcpy(Buffer, LgiLoadString(L_ERROR_ESMTP_UNSUPPORTED_AUTHS,
 														"The server doesn't support any compatible authentication types:\n\t"));
 							
-							char *a = 0;
-							for (void *p = TheirAuthTypes.First(&a); p; p = TheirAuthTypes.Next(&a))
+							const char *a = 0;
+							for (bool p = TheirAuthTypes.First(&a); p; p = TheirAuthTypes.Next(&a))
 							{
 								int Bytes = strlen(Buffer);
 								snprintf(Buffer + Bytes, sizeof(Buffer) - Bytes, "%s ", a);
@@ -2406,7 +2406,7 @@ bool MailPop3::ReadReply()
 	return Status;
 }
 
-bool MailPop3::ListCmd(char *Cmd, GHashTable &Results)
+bool MailPop3::ListCmd(const char *Cmd, GHashTbl<const char*, bool> &Results)
 {
 	sprintf(Buffer, "%s\r\n", Cmd);
 	if (!Write(0, true))
@@ -2427,7 +2427,7 @@ bool MailPop3::ListCmd(char *Cmd, GHashTable &Results)
 	GToken t(Buffer, "\r\n");
 	for (int i=1; i<t.Length()-1; i++)
 	{
-		Results.Add(t[i]);
+		Results.Add(t[i], true);
 	}
 
 	return true;
@@ -2557,7 +2557,7 @@ bool MailPop3::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *P
 
 					if (!SecurityError && SecureAuth)
 					{
-						GHashTable AuthTypes, Capabilities;
+						GHashTbl<const char*, bool> AuthTypes, Capabilities;
 						if (ListCmd("AUTH", AuthTypes) &&
 							ListCmd("CAPA", Capabilities))
 						{
@@ -3342,7 +3342,7 @@ int MailMessage::EncodeText(GStreamI &Out, GStreamI &In)
 	int Status = 0;
 	char InBuf[4096];
 	int InLen, InUsed = 0;
-	char *Eol = "\r\n";
+	const char *Eol = "\r\n";
 
 	while ((InLen = In.Read(InBuf+InUsed, sizeof(InBuf)-InUsed)) > 0)
 	{
@@ -3547,8 +3547,8 @@ bool MailMessage::EncodeHeaders(GStreamI &Out, MailProtocol *Protocol, bool Mime
 	char Buffer[1025];
 
 	// Construct date
-	char *Weekday[7] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
-	char *Month[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+	const char *Weekday[7] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+	const char *Month[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 	GDateTime Dt;
 	int TimeZone = Dt.SystemTimeZone();
 	Dt.SetNow();
@@ -3771,7 +3771,7 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 
 				if (MultipartMixed && MultipartAlternate)
 				{
-					sprintf(AlternateBoundry, "----=_NextPart_%08.8X.%08.8X", Now++, LgiGetCurrentThread());
+					sprintf(AlternateBoundry, "----=_NextPart_%8.8X.%8.8X", (uint32)Now++, (uint32)LgiGetCurrentThread());
 					sprintf(Buffer,
 							"Content-Type: %s;\r\n\tboundary=\"%s\"\r\n",
 							StrMultipartAlternative,

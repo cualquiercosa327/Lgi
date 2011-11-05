@@ -286,7 +286,7 @@ protected:
 
 	bool Error(const char *file, int line, const char *msg, ...);
 	bool Read();
-	bool Write(char *Buf = NULL, bool Log = false);
+	bool Write(const char *Buf = NULL, bool Log = false);
 	
 	virtual void OnUserMessage(char *Str) {}
 
@@ -675,10 +675,10 @@ protected:
 	bool ReadMultiLineReply(char *&Str);
 	int GetInt();
 	bool MailIsEnd(char *Ptr, int Len);
-	bool ListCmd(char *Cmd, GHashTable &Results);
+	bool ListCmd(const char *Cmd, GHashTbl<const char *, bool> &Results);
 
-	char *End;
-	char *Marker;
+	const char *End;
+	const char *Marker;
 	int Messages;
 
 public:
@@ -774,7 +774,7 @@ public:
 	void SetPath(char *s);
 	char *GetName();
 	void SetName(char *s);
-	void operator =(GHashTbl<char*,int> &v);
+	void operator =(GHashTbl<const char*,int> &v);
 };
 
 class MailIMap : public MailSource, public GSemaphore
@@ -804,7 +804,7 @@ public:
 		int Id;
 	};
 
-	typedef bool (*FetchCallback)(class MailIMap *Imap, char *Msg, GHashTbl<char*, char*> &Parts, void *UserData);
+	typedef bool (*FetchCallback)(class MailIMap *Imap, char *Msg, GHashTbl<const char*, char*> &Parts, void *UserData);
 
 	// Object
 	MailIMap();
@@ -812,7 +812,7 @@ public:
 
 	// General
 	char GetFolderSep();
-	char *EncodePath(char *Path);
+	char *EncodePath(const char *Path);
 	char *GetCurrentPath();
 	bool GetExpungeOnExit();
 	void SetExpungeOnExit(bool b);
@@ -868,9 +868,9 @@ public:
 	);
 
 	bool GetFolders(List<MailImapFolder> &Folders);
-	bool SelectFolder(char *Path, GHashTbl<char*,int> *Values = 0);
+	bool SelectFolder(const char *Path, GHashTbl<const char*,int> *Values = 0);
 	char *GetSelectedFolder();
-	int GetMessages(char *Path);
+	int GetMessages(const char *Path);
 	bool CreateFolder(MailImapFolder *f);
 	bool DeleteFolder(char *Path);
 	bool RenameFolder(char *From, char *To);

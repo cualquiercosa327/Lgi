@@ -86,7 +86,7 @@ namespace Html2
 class GHtmlPrivate2
 {
 public:
-	GHashTable Loading;
+	GHashTbl<const char*, bool> Loading;
 	GHtmlStaticInst Inst;
 	bool CursorVis;
 	GRect CursorPos;
@@ -177,7 +177,7 @@ static GInfo TagInfo[] =
 	{TAG_UNKNOWN,		0,				0,			TI_NONE},
 };
 
-static GInfo *GetTagInfo(char *Tag)
+static GInfo *GetTagInfo(const char *Tag)
 {
 	GInfo *i;
 
@@ -254,7 +254,7 @@ static char *ParsePropValue(char *s, char *&Value)
 	return s;
 }
 
-static bool ParseColour(char *s, GCss::ColorDef &c)
+static bool ParseColour(const char *s, GCss::ColorDef &c)
 {
 	if (s)
 	{
@@ -1784,7 +1784,7 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 	return true;
 }
 
-void GTag::SetTag(char *NewTag)
+void GTag::SetTag(const char *NewTag)
 {
 	DeleteArray(Tag);
 	Tag = NewStr(NewTag);
@@ -2090,7 +2090,7 @@ GTag *GTag::IsAnchor(GAutoString *Uri)
 
 	if (a && Uri)
 	{
-		char *u = 0;
+		const char *u = 0;
 		if (a->Get("href", u))
 		{
 			GAutoWString w(CleanText(u, strlen(u)));
@@ -2199,7 +2199,7 @@ GTag *GTag::GetAnchor(char *Name)
 	if (!Name)
 		return 0;
 
-	char *n;
+	const char *n;
 	if (IsAnchor(0) && Get("name", n) && n && !stricmp(Name, n))
 	{
 		return this;
@@ -2215,7 +2215,7 @@ GTag *GTag::GetAnchor(char *Name)
 	return 0;
 }
 
-GTag *GTag::GetTagByName(char *Name)
+GTag *GTag::GetTagByName(const char *Name)
 {
 	if (Name)
 	{
@@ -2382,7 +2382,7 @@ void GTag::Find(int TagType, GArray<GTag*> &Out)
 	}
 }
 
-void GTag::SetImage(char *Uri, GSurface *Img)
+void GTag::SetImage(const char *Uri, GSurface *Img)
 {
 	if (Img)
 	{
@@ -2411,7 +2411,7 @@ void GTag::SetImage(char *Uri, GSurface *Img)
 	}
 }
 
-void GTag::LoadImage(char *Uri)
+void GTag::LoadImage(const char *Uri)
 {
 	#if 1
 	GDocumentEnv::LoadJob *j = Html->Environment->NewJob();
@@ -2435,7 +2435,7 @@ void GTag::LoadImage(char *Uri)
 
 void GTag::LoadImages()
 {
-	char *Uri = 0;
+	const char *Uri = 0;
 	if (Html->Environment &&
 		!Image &&
 		Get("src", Uri))
@@ -2451,7 +2451,7 @@ void GTag::LoadImages()
 
 void GTag::ImageLoaded(char *uri, GSurface *Img, int &Used)
 {
-	char *Uri = 0;
+	const char *Uri = 0;
 	if (!Image &&
 		Get("src", Uri))
 	{
@@ -2488,7 +2488,7 @@ void GTag::SetStyle()
 		3.0f	// size=7
 	};
 
-	char *s = 0;
+	const char *s = 0;
 	#ifdef _DEBUG
 	if (Get("debug", s))
 	{
@@ -2519,7 +2519,7 @@ void GTag::SetStyle()
 	{
 		case TAG_LINK:
 		{
-			char *Type, *Href;
+			const char *Type, *Href;
 			if (Html->Environment &&
 				Get("type", Type) &&
 				Get("href", Href))
@@ -2588,7 +2588,7 @@ void GTag::SetStyle()
 		}
 		case TAG_A:
 		{
-			char *Href;
+			const char *Href;
 			if (Get("href", Href))
 			{
 				ColorDef c;
@@ -2624,7 +2624,7 @@ void GTag::SetStyle()
 			GTag *Table = GetTable();
 			if (Table)
 			{
-				char *s = "1px";
+				const char *s = "1px";
 				Len l = Table->_CellPadding();
 				if (!l.IsValid())
 					l.Parse(s);
@@ -2678,7 +2678,7 @@ void GTag::SetStyle()
 		else if (stricmp(s, "bottom") == 0) VerticalAlign(Len(VerticalBottom));
 	}
 
-	char *Class = 0;
+	const char *Class = 0;
 	if (Get("id", s))
 	{
 		DeleteArray(HtmlId);
@@ -2729,11 +2729,11 @@ void GTag::SetStyle()
 		{
 			char *Cs = 0;
 
-			char *s;
+			const char *s;
 			if (Get("http-equiv", s) &&
 				stricmp(s, "Content-Type") == 0)
 			{
-				char *ContentType;
+				const char *ContentType;
 				if (Get("content", ContentType))
 				{
 					char *CharSet = stristr(ContentType, "charset=");
@@ -2774,7 +2774,7 @@ void GTag::SetStyle()
 				Html->SetBackColour(BackgroundColor().Rgb32);
 			}
 
-			char *Back;
+			const char *Back;
 			if (Get("background", Back) && Html->Environment)
 			{
 				LoadImage(Back);
@@ -2805,7 +2805,7 @@ void GTag::SetStyle()
 		case TAG_TABLE:
 		{
 			Len l;
-			char *s;
+			const char *s;
 			if (Get("cellspacing", s) &&
 				l.Parse(s, ParseRelaxed))
 			{
@@ -2822,7 +2822,7 @@ void GTag::SetStyle()
 			break;
 		case TAG_TD:
 		{
-			char *s;
+			const char *s;
 			if (Get("colspan", s))
 				Span.x = atoi(s);
 			else
@@ -2838,7 +2838,7 @@ void GTag::SetStyle()
 			Size.x = DefaultImgSize;
 			Size.y = DefaultImgSize;
 
-			char *Uri;
+			const char *Uri;
 			if (Html->Environment &&
 				Get("src", Uri))
 			{
@@ -2896,7 +2896,7 @@ void GTag::SetStyle()
 		}
 		case TAG_FONT:
 		{
-			char *s = 0;
+			const char *s = 0;
 			if (Get("Face", s))
 			{
 				char16 *cw = CleanText(s, strlen(s), true);
@@ -2989,7 +2989,7 @@ void GTag::SetStyle()
 	}
 }
 
-void GTag::SetCssStyle(char *Style)
+void GTag::SetCssStyle(const char *Style)
 {
 	if (Style)
 	{
@@ -3009,9 +3009,9 @@ void GTag::SetCssStyle(char *Style)
 	}
 }
 
-char16 *GTag::CleanText(char *s, int Len, bool ConversionAllowed, bool KeepWhiteSpace)
+char16 *GTag::CleanText(const char *s, int Len, bool ConversionAllowed, bool KeepWhiteSpace)
 {
-	static char *DefaultCs = "iso-8859-1";
+	static const char *DefaultCs = "iso-8859-1";
 	char16 *t = 0;
 
 	if (s && Len > 0)
@@ -3519,7 +3519,7 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 								if (Html->Environment)
 								{
 									*End = 0;
-									char *Lang = 0, *Type = 0;
+									const char *Lang = 0, *Type = 0;
 									Get("language", Lang);
 									Get("type", Type);
 									Html->Environment->OnCompileScript(s, Lang, Type);
@@ -3551,7 +3551,7 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 						}
 						case TAG_IFRAME:
 						{
-							char *Src;
+							const char *Src;
 							if (Get("src", Src))
 							{
 								GDocumentEnv::LoadJob *j = Html->Environment->NewJob();
@@ -3631,7 +3631,7 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 					if (Info->ReattachTo)
 					{
 						GToken T(Info->ReattachTo, ",");
-						char *Reattach = Info->ReattachTo;
+						const char *Reattach = Info->ReattachTo;
 						for (int i=0; i<T.Length(); i++)
 						{
 							if (Parent->Tag &&
@@ -4371,7 +4371,8 @@ void GTag::LayoutTable(GFlowRegion *f)
 								float Sub = Total - 100.0;
 								Percents[Percents.Length()-1] -= Sub;
 
-								char p[32], *s = p;
+								char p[32];
+								const char *s = p;
 								sprintf(p, "%.1f%%", Percents[Percents.Length()-1]);
 								t->Width().Parse(s);
 							}
@@ -5895,7 +5896,6 @@ GHtml2::GHtml2(int id, int x, int y, int cx, int cy, GDocumentEnv *e)
 GHtml2::~GHtml2()
 {
 	_Delete();
-	DeleteArray(Charset);
 	DeleteArray(DocCharSet);
 	DeleteObj(d);
 
@@ -6148,10 +6148,10 @@ void GHtml2::Parse()
 
 					if (Environment)
 					{
-						char *OnLoad;
+						const char *OnLoad;
 						if (Body->Get("onload", OnLoad))
 						{
-							Environment->OnExecuteScript(OnLoad);
+							Environment->OnExecuteScript((char*)OnLoad);
 						}
 					}
 				}
@@ -7159,8 +7159,7 @@ void GHtml2::OnMouseClick(GMouse &m)
 								GCharset *c = LgiGetCsList() + (Id - IDM_CHARSET_BASE);
 								if (c->Charset)
 								{
-									DeleteArray(Charset);
-									Charset = NewStr(c->Charset);
+									Charset.Reset(NewStr(c->Charset));
 									OverideDocCharset = true;
 
 									char *Src = Source;
@@ -7379,7 +7378,7 @@ GDom *ElementById(GTag *t, char *id)
 {
 	if (t && id)
 	{
-		char *i;
+		const char *i;
 		if (t->Get("id", i) && stricmp(i, id) == 0)
 			return t;
 
@@ -7429,7 +7428,7 @@ bool GHtml2::GetFormattedContent(char *MimeType, GAutoString &Out, GArray<GDocVi
 			for (int i=0; Imgs.Length(); i++)
 			{
 				GTag *Img = Imgs[i];
-				char *Cid, *Src;
+				const char *Cid, *Src;
 				if (Img->Get("src", Src) &&
 					!Img->Get("cid", Cid))
 				{

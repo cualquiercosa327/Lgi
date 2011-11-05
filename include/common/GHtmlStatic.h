@@ -14,9 +14,9 @@ public:
 	static GHtmlStatic *Inst;
 
 	int Refs;
-	GHashTbl<char16*,int>			VarMap;
-	GHashTbl<char*,GCss::PropType>	StyleMap;
-	GHashTbl<char*,int>				ColourMap;
+	GHashTbl<char16*,int>				 VarMap;
+	GHashTbl<const char*,GCss::PropType> StyleMap;
+	GHashTbl<const char*,int>			 ColourMap;
 
 	GHtmlStatic();
 	~GHtmlStatic();

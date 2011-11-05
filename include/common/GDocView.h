@@ -179,10 +179,10 @@ public:
 	/// Process dynamic content, returning a dynamically allocated string
 	/// for the result of the executed script. Dynamic content is enclosed
 	/// between &lt;? and ?&gt;.
-	virtual char *OnDynamicContent(const char *Code) { return 0; }
+	virtual char *OnDynamicContent(char *Code) { return 0; }
 
 	/// Some script was received, the owner should compile it
-	virtual bool OnCompileScript(char *Script, char *Language, char *MimeType) { return false; }
+	virtual bool OnCompileScript(char *Script, const char *Language, const char *MimeType) { return false; }
 
 	/// Some script needs to be executed, the owner should compile it
 	virtual bool OnExecuteScript(char *Script) { return false; }
@@ -214,7 +214,7 @@ GDocView : public GLayout
 
 protected:
 	GDocumentEnv *Environment;
-	char *Charset;
+	GAutoString Charset;
 
 public:
 	// Static
@@ -249,7 +249,7 @@ public:
 	#undef _TvMenuProp
 
 	char *GetCharset() { return Charset; }
-	void SetCharset(char *s) { char *cs = NewStr(s); DeleteArray(Charset); Charset = cs; }
+	void SetCharset(const char *s) { Charset.Reset(NewStr(s)); }
 	virtual const char *GetMimeType() = 0;
 
 	///////////////////////////////////////////////////////////////////////
@@ -270,7 +270,6 @@ public:
 		FixedWidthFont = false;
 		BackColour = Rgb24(255, 255, 255);
 		LoadImages = false;
-		Charset = 0;
 		OverideDocCharset = false;
 
 		Environment = 0;

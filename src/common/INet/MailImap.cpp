@@ -528,7 +528,7 @@ MailImapFolder::~MailImapFolder()
 	DeleteArray(Path);
 }
 
-void MailImapFolder::operator =(GHashTbl<char*,int> &v)
+void MailImapFolder::operator =(GHashTbl<const char*,int> &v)
 {
 	int o = v.Find("exists");
 	if (o >= 0) Exists = o;
@@ -1205,7 +1205,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 									int b = ConvertBase64ToBinary(Out, sizeof(Out), In, strlen(In));
 									Out[b] = 0;
 									
-									GHashTbl<char*, char*> Map;
+									GHashTbl<const char*, char*> Map;
 									char *s = (char*)Out;
 									while (s && *s)
 									{
@@ -1529,7 +1529,7 @@ char *MailIMap::GetSelectedFolder()
 	return d->Current;
 }
 
-bool MailIMap::SelectFolder(char *Path, GHashTbl<char*,int> *Values)
+bool MailIMap::SelectFolder(const char *Path, GHashTbl<const char*,int> *Values)
 {
 	int Status = 0;
 
@@ -1583,13 +1583,13 @@ bool MailIMap::SelectFolder(char *Path, GHashTbl<char*,int> *Values)
 	return Status;
 }
 
-int MailIMap::GetMessages(char *Path)
+int MailIMap::GetMessages(const char *Path)
 {
 	int Status = 0;
 
 	if (Socket && Lock(_FL))
 	{
-		GHashTbl<char*,int> f;
+		GHashTbl<const char*,int> f;
 		if (SelectFolder(Path, &f))
 		{
 			Status = f.Find("exists");
@@ -1739,7 +1739,7 @@ bool MailIMap::Fetch(bool ByUid, char *Seq, char *Parts, FetchCallback Callback,
 						else
 						{
 							// Process ranges into a hash table
-							GHashTbl<char*, char*> Parts;
+							GHashTbl<const char*, char*> Parts;
 							for (int i=2; i<Ranges.Length()-1; i += 2)
 							{
 								char *Name = b + Ranges[i].Start;
@@ -2349,14 +2349,14 @@ bool MailIMap::CreateFolder(MailImapFolder *f)
 	return Status;
 }
 
-char *MailIMap::EncodePath(char *Path)
+char *MailIMap::EncodePath(const char *Path)
 {
 	if (!Path)
 		return 0;
 
 	char Sep = GetFolderSep();
 	char Native[MAX_PATH], *o = Native, *e = Native + sizeof(Native) - 1;
-	for (char *i = *Path == '/' ? Path + 1 : Path; *i && o < e; i++)
+	for (const char *i = *Path == '/' ? Path + 1 : Path; *i && o < e; i++)
 	{
 		if (*i == '/')
 			*o++ = Sep;

@@ -47,7 +47,7 @@ protected:
 	int					ViewWidth;
 	GToolTip			Tip;
 	GTag				*PrevTip;
-	GHashTbl<char*,char*> CssMap;
+	GHashTbl<const char*,char*> CssMap;
 
 	// Display
 	GSurface			*MemDC;

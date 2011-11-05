@@ -278,7 +278,7 @@ public:
 		LengthType Type;
 		float Value;
 
-		Len(char *init = 0)
+		Len(const char *init = 0)
 		{
 			Type = LenInherit;
 			Value = 0.0;
@@ -292,7 +292,7 @@ public:
 			Value = 0.0;
 		}
 
-		bool Parse(char *&s, ParsingStyle Type = ParseStrict);
+		bool Parse(const char *&s, ParsingStyle Type = ParseStrict);
 		bool IsValid() { return Type != LenInherit; }
 		bool IsDynamic() { return Type == LenPercent || Type == LenInherit; }
 		bool operator !=(Len &l) { return Type != l.Type || Value != l.Value; }
@@ -317,7 +317,7 @@ public:
 			Rgb32 = init;
 		}
 
-		bool Parse(char *&s);
+		bool Parse(const char *&s);
 		bool operator !=(ColorDef &c)
 		{
 			return	Type != c.Type ||
@@ -351,7 +351,7 @@ public:
 		ColorDef Color;
 		BorderStyle Style;
 
-		BorderDef(char *init = 0)
+		BorderDef(const char *init = 0)
 		{
 			Style = BorderNone;
 			if (init)
@@ -364,7 +364,7 @@ public:
 			Style = db.Style;
 		}
 		
-		bool Parse(char *&s);
+		bool Parse(const char *&s);
 		BorderDef &operator =(const BorderDef &b)
 		{
 			Style = b.Style;
@@ -398,7 +398,7 @@ public:
 				DeleteObj(Img);
 		}
 
-		bool Parse(char *&s);
+		bool Parse(const char *&s);
 		bool operator !=(const ImageDef &i)
 		{
 			if (Type != i.Type)
@@ -430,7 +430,7 @@ public:
 		}
 		StringsDef(const StringsDef &c) { *this = c; }
 		~StringsDef() { Empty(); }
-		StringsDef &operator =(char *s) { Parse(s); return *this; }
+		StringsDef &operator =(const char *s) { Parse(s); return *this; }
 		void Empty() { DeleteArrays(); }
 
 		StringsDef &operator =(const StringsDef &s)
@@ -466,7 +466,7 @@ public:
 			return false;
 		}
 
-		bool Parse(char *&s)
+		bool Parse(const char *&s)
 		{
 			Empty();
 			
@@ -477,7 +477,7 @@ public:
 				if (*s == '\'' || *s == '\"')
 				{
 					char Delim = *s++;
-					char *Start = s;
+					const char *Start = s;
 					while (*s && *s != Delim) s++;
 					
 					if (s > Start)
@@ -493,7 +493,7 @@ public:
 				}
 				else
 				{
-					char *Start = s;
+					const char *Start = s;
 					while (*s && !strchr(Delimiters, *s)) s++;
 
 					if (s > Start)
@@ -587,7 +587,7 @@ public:
 	void Empty();
 	void DeleteProp(PropType p);
 	virtual void OnChange(PropType Prop);
-	virtual bool Parse(char *&Defs, ParsingStyle Type = ParseStrict);
+	virtual bool Parse(const char *&Defs, ParsingStyle Type = ParseStrict);
 	bool operator ==(GCss &c);
 	bool operator !=(GCss &c) { return !(*this == c); }
 	bool CopyStyle(const GCss &c);
@@ -602,10 +602,10 @@ protected:
 	static GHashTbl<const char*, PropType> Lut;
 	static const char *PropName(PropType p);
 
-	bool ParseFontStyle(PropType p, char *&s);
-	bool ParseFontVariant(PropType p, char *&s);
-	bool ParseFontWeight(PropType p, char *&s);
-	virtual bool OnUnhandledColor(ColorDef *def, char *&s) { return false; }
+	bool ParseFontStyle(PropType p, const char *&s);
+	bool ParseFontVariant(PropType p, const char *&s);
+	bool ParseFontWeight(PropType p, const char *&s);
+	virtual bool OnUnhandledColor(ColorDef *def, const char *&s) { return false; }
 };
 
 #pragma pack(pop)

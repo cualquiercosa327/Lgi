@@ -174,7 +174,7 @@
 					PBXFileDataSource_Warnings_ColumnID,
 				);
 			};
-			PBXPerProjectTemplateStateSaveDate = 341787252;
+			PBXPerProjectTemplateStateSaveDate = 342132770;
 			PBXPrepackagedSmartGroups_v2 = (
 				{
 					PBXTransientLocationAtTop = bottom;
@@ -351,14 +351,11 @@
 					};
 				},
 			);
-			PBXWorkspaceStateSaveDate = 341787252;
+			PBXWorkspaceStateSaveDate = 342132770;
 		};
 		perUserProjectItems = {
-			347EC98C145F42C100E686EA /* XCBuildMessageTextBookmark */ = 347EC98C145F42C100E686EA /* XCBuildMessageTextBookmark */;
-			347EC98D145F42C100E686EA /* PBXTextBookmark */ = 347EC98D145F42C100E686EA /* PBXTextBookmark */;
-			34F483791459F87D009D7462 = 34F483791459F87D009D7462 /* PBXTextBookmark */;
-			34F483831459F8B3009D7462 = 34F483831459F8B3009D7462 /* PBXTextBookmark */;
-			34F4839F1459FA77009D7462 = 34F4839F1459FA77009D7462 /* PBXTextBookmark */;
+			347EC9A2145F485300E686EA = 347EC9A2145F485300E686EA /* PBXTextBookmark */;
+			347EC9A3145F485300E686EA = 347EC9A3145F485300E686EA /* PBXTextBookmark */;
 		};
 		sourceControlManager = 3465BDD608C5DEA700B4C217 /* Source Control */;
 		userBuildSettings = {
@@ -472,58 +469,6 @@
 			sepNavSelRange = "{1566, 11}";
 			sepNavVisRange = "{811, 1311}";
 		};
-	};
-	342DFD8E145B6F8C001EE4D4 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 342DFD8F145B6F8C001EE4D4 /* mac_support.cpp */;
-		name = "mac_support.cpp: 111";
-		rLen = 17;
-		rLoc = 3161;
-		rType = 0;
-		vrLen = 1135;
-		vrLoc = 2448;
-	};
-	342DFD8F145B6F8C001EE4D4 /* mac_support.cpp */ = {
-		isa = PBXFileReference;
-		name = mac_support.cpp;
-		path = /Users/matthew/Downloads/mac_support.cpp;
-		sourceTree = "<absolute>";
-	};
-	342DFD90145B6F8C001EE4D4 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 342DFD91145B6F8C001EE4D4 /* AppleEvents.h */;
-		name = "AppleEvents.h: 70";
-		rLen = 18;
-		rLoc = 1748;
-		rType = 0;
-		vrLen = 1564;
-		vrLoc = 891;
-	};
-	342DFD91145B6F8C001EE4D4 /* AppleEvents.h */ = {
-		isa = PBXFileReference;
-		name = AppleEvents.h;
-		path = /Developer/SDKs/MacOSX10.5.sdk/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/AE.framework/Versions/A/Headers/AppleEvents.h;
-		sourceTree = "<absolute>";
-	};
-	342DFDD114615BF4001EE4D4 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 344AF39508E0476A004ED88C /* GApp.cpp */;
-		name = "GApp.cpp: 291";
-		rLen = 14;
-		rLoc = 4952;
-		rType = 0;
-		vrLen = 897;
-		vrLoc = 4566;
-	};
-	342DFDD214615BF4001EE4D4 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 344AF39508E0476A004ED88C /* GApp.cpp */;
-		name = "GApp.cpp: 312";
-		rLen = 0;
-		rLoc = 5440;
-		rType = 0;
-		vrLen = 884;
-		vrLoc = 4709;
 	};
 	34372ACF0C46E0290090CDC9 /* GDocView.h */ = {
 		uiCtxt = {
@@ -1174,24 +1119,23 @@
 			sepNavVisRange = "{0, 673}";
 		};
 	};
-	347EC98C145F42C100E686EA /* XCBuildMessageTextBookmark */ = {
+	347EC9A2145F485300E686EA /* PBXTextBookmark */ = {
 		isa = PBXTextBookmark;
-		comments = "'LGITHREAD_EXITED' was not declared in this scope";
+		comments = "'LGITHREAD_INIT' was not declared in this scope";
 		fRef = 34D2CC8B08F116A80009968C /* GThread.cpp */;
-		fallbackIsa = XCBuildMessageTextBookmark;
 		rLen = 1;
-		rLoc = 97;
+		rLoc = 11;
 		rType = 1;
 	};
-	347EC98D145F42C100E686EA /* PBXTextBookmark */ = {
+	347EC9A3145F485300E686EA /* PBXTextBookmark */ = {
 		isa = PBXTextBookmark;
 		fRef = 34D2CC8B08F116A80009968C /* GThread.cpp */;
-		name = "GThread.cpp: 98";
+		name = "GThread.cpp: 12";
 		rLen = 0;
-		rLoc = 1636;
+		rLoc = 246;
 		rType = 0;
-		vrLen = 664;
-		vrLoc = 1029;
+		vrLen = 867;
+		vrLoc = 0;
 	};
 	3489C3E90DD1C4DB0095F0E1 /* GMru.h */ = {
 		uiCtxt = {
@@ -1261,9 +1205,9 @@
 	};
 	34983C1808F548620054868C /* GClipBoard.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1052, 2639}}";
+			sepNavIntBoundsRect = "{{0, 0}, {929, 2886}}";
 			sepNavSelRange = "{2818, 0}";
-			sepNavVisRange = "{2041, 1537}";
+			sepNavVisRange = "{1876, 1807}";
 			sepNavVisRect = "{{0, 1668}, {879, 486}}";
 			sepNavWindowFrame = "{{84, 182}, {1043, 752}}";
 		};

@@ -52,9 +52,9 @@ const char *GCss::PropName(PropType p)
 }
 
 /////////////////////////////////////////////////////////////////////////////
-bool ParseWord(char *&s, const char *word)
+static bool ParseWord(const char *&s, const char *word)
 {
-	char *doc = s;
+	const char *doc = s;
 	while (*doc && *word)
 	{
 		if (tolower(*doc) == tolower(*word))
@@ -100,7 +100,7 @@ bool ParseProp(char *&s, char *w)
 	return true;
 }
 
-int ParseComponent(char *&s)
+static int ParseComponent(const char *&s)
 {
 	int ret = 0;
 
@@ -129,7 +129,7 @@ int ParseComponent(char *&s)
 	return ret;
 }
 
-char *ParseString(char *&s)
+static char *ParseString(const char *&s)
 {
 	char *ret = 0;
 
@@ -145,7 +145,7 @@ char *ParseString(char *&s)
 	}
 	else
 	{
-		char *e = s;
+		const char *e = s;
 		while (*e && (isalpha(*e) || isdigit(*e) || strchr("_-", *e)))
 			e++;
 
@@ -836,7 +836,7 @@ void GCss::OnChange(PropType Prop)
 {
 }
 
-bool GCss::ParseFontStyle(PropType PropId, char *&s)
+bool GCss::ParseFontStyle(PropType PropId, const char *&s)
 {
 	FontStyleType *w = (FontStyleType*)Props.Find(PropId);
 	if (!w) Props.Add(PropId, w = new FontStyleType);
@@ -855,7 +855,7 @@ bool GCss::ParseFontStyle(PropType PropId, char *&s)
 	return true;
 }
 
-bool GCss::ParseFontVariant(PropType PropId, char *&s)
+bool GCss::ParseFontVariant(PropType PropId, const char *&s)
 {
 	FontVariantType *w = (FontVariantType*)Props.Find(PropId);
 	if (!w) Props.Add(PropId, w = new FontVariantType);
@@ -872,7 +872,7 @@ bool GCss::ParseFontVariant(PropType PropId, char *&s)
 	return true;
 }
 
-bool GCss::ParseFontWeight(PropType PropId, char *&s)
+bool GCss::ParseFontWeight(PropType PropId, const char *&s)
 {
 	FontWeightType *w = (FontWeightType*)Props.Find(PropId);
 	if (!w) Props.Add(PropId, w = new FontWeightType);
@@ -900,7 +900,7 @@ bool GCss::ParseFontWeight(PropType PropId, char *&s)
 	return true;
 }
 
-bool GCss::Parse(char *&s, ParsingStyle Type)
+bool GCss::Parse(const char *&s, ParsingStyle Type)
 {
 	if (!s) return false;
 
@@ -927,7 +927,7 @@ bool GCss::Parse(char *&s, ParsingStyle Type)
 		PropType PropId = Lut.Find(Prop);
 		PropTypes PropType = (PropTypes)((int)PropId >> 8);
 		SkipWhite(s);
-		char *ValueStart = s;
+		const char *ValueStart = s;
 
 		// Do the data parsing based on type
 		switch (PropType)
@@ -1253,7 +1253,7 @@ bool GCss::Parse(char *&s, ParsingStyle Type)
 }
 
 /////////////////////////////////////////////////////////////////////////////
-bool GCss::Len::Parse(char *&s, ParsingStyle ParseType)
+bool GCss::Len::Parse(const char *&s, ParsingStyle ParseType)
 {
 	if (!s) return false;
 	
@@ -1295,7 +1295,7 @@ bool GCss::Len::Parse(char *&s, ParsingStyle ParseType)
 	return true;
 }
 
-bool GCss::ColorDef::Parse(char *&s)
+bool GCss::ColorDef::Parse(const char *&s)
 {
 	if (!s) return false;
 
@@ -1310,7 +1310,7 @@ bool GCss::ColorDef::Parse(char *&s)
 	{
 		s++;
 		int v = 0;
-		char *e = s;
+		const char *e = s;
 		while (*e && e < s + 6)
 		{
 			if (*e >= 'a' && *e <= 'f')
@@ -1449,7 +1449,7 @@ bool GCss::ColorDef::Parse(char *&s)
 	return true;
 }
 
-bool GCss::ImageDef::Parse(char *&s)
+bool GCss::ImageDef::Parse(const char *&s)
 {
 	char Path[MAX_PATH];
 	LgiGetSystemPath(LSP_APP_INSTALL, Path, sizeof(Path));
@@ -1474,7 +1474,7 @@ bool GCss::ImageDef::Parse(char *&s)
 	return Img != 0;
 }
 
-bool GCss::BorderDef::Parse(char *&s)
+bool GCss::BorderDef::Parse(const char *&s)
 {
 	if (!s)
 		return false;
