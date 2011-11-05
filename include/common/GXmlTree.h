@@ -212,7 +212,7 @@ public:
 	/// Gets the associated style file
 	char *GetStyleFile(char **StyleType = 0);
 	/// Sets the associated css file
-	void SetStyleFile(char *stylefile, char *styletype = "text/css");
+	void SetStyleFile(char *stylefile, const char *styletype = "text/css");
 
 	/// Add entities
 	GHashTbl<const char*,char16> *GetEntityTable();

@@ -407,7 +407,7 @@ bool IHttp::Get
 (
 	GViewI *Parent,
 	char *Uri,
-	char *InHeaders,
+	const char *InHeaders,
 	int *ProtocolStatus,
 	GStream *Out,
 	GStream *OutHeaders
@@ -526,7 +526,7 @@ bool IHttp::Post
 (
 	GViewI *Parent,
 	char *File,
-	char *ContentType,
+	const char *ContentType,
 	GStream *In,
 	int *ProtocolStatus,
 	GStream *Out,

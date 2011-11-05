@@ -15,7 +15,6 @@ GXmlTag *GetFormField(GXmlTag *Form, char *Field)
 {
 	if (Form && Field)
 	{
-		GXmlTag *f = 0;
 		char *Ast = strchr(Field, '*');
 		GArray<GXmlTag*> Matches;
 
@@ -114,7 +113,7 @@ GXmlTag *ExtractForms(char *Html, GStream *Log)
 										if (*c == ' ')
 										{
 											char h[6];
-											sprintf(h, "%%%02.2X", (uint8)*c);
+											sprintf(h, "%%%2.2X", (uint8)*c);
 											p.Push(h);
 										}
 										else p.Push(c, 1);
@@ -229,8 +228,6 @@ WebPage::WebPage(char *Page, GStream *Log)
 			char *e = stristr(s, "<script");
 			if (e)
 			{
-				char *de = e;
-
 				e = strchr(e + 1, '>');
 				if (e)
 				{
@@ -454,12 +451,12 @@ char *FormPost::EncodeFields(GStream *Debug, char *RealFields, bool EncodePlus)
 					{
 						if (stricmp(Value, v->Value) != 0)
 						{
-							Debug->Print("\tValues for '%s' different: '%s' = '%s'\n", v->Field, Value, v->Value);
+							Debug->Print("\tValues for '%s' different: '%s' = '%s'\n", v->Field.Get(), Value, v->Value.Get());
 						}
 					}
 					else
 					{
-						Debug->Print("\tExtra field in our list: %s = %s\n", v->Field, v->Value);
+						Debug->Print("\tExtra field in our list: %s = %s\n", v->Field.Get(), v->Value.Get());
 					}
 
 					Real.Delete(v->Field);
@@ -685,11 +682,6 @@ void HttpTools::DumpView(GViewI *v, char *p)
 			c++;
 		}
 
-		if (*c)
-		{
-			int asd=0;
-		}
-
 		v->Name(p);
 	}
 }
@@ -698,10 +690,10 @@ char *HttpTools::Fetch(char *uri, GStream *Log, GViewI *Dump, CookieJar *Cookies
 {
 	char *Page = 0;
 
-	char *DefHeaders =  "User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.0.9) Gecko/20061206 Firefox/1.5.0.9\r\n"
-						"Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5\r\n"
-						"Accept-Language: en-us,en;q=0.5\r\n"
-						"Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7\r\n";
+	const char *DefHeaders =	"User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.0.9) Gecko/20061206 Firefox/1.5.0.9\r\n"
+								"Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5\r\n"
+								"Accept-Language: en-us,en;q=0.5\r\n"
+								"Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7\r\n";
 
 	if (ValidStr(uri))
 	{
@@ -942,7 +934,7 @@ void CookieJar::Set(char *Headers)
 
 	if (Headers)
 	{
-		char *Match = "Set-Cookie";
+		const char *Match = "Set-Cookie";
 		int MatchLen = strlen(Match);
 
 		char Ws[] = " \t\r\n";

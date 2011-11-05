@@ -133,7 +133,7 @@ public:
 	{
 		OsSubMenu Hnd = Info;
 		Info = 0;
-		return Info;
+		return Hnd;
 	}
 	
 	/// Add a new item

@@ -1456,7 +1456,7 @@ char *GXmlTree::GetStyleFile(char **StyleType)
 	return d->StyleFile;
 }
 
-void GXmlTree::SetStyleFile(char *file, char *type)
+void GXmlTree::SetStyleFile(char *file, const char *type)
 {
 	DeleteArray(d->StyleFile);
 	DeleteArray(d->StyleType);

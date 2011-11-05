@@ -54,14 +54,14 @@ public:
 	// General
 	bool Get(		GViewI *Parent,
 					char *Uri,
-					char *InHeaders,
+					const char *InHeaders,
 					int *ProtocolStatus,
 					GStream *Out,
 					GStream *OutHeaders = 0);
 
 	bool Post(		GViewI *Parent,
 					char *Uri,
-					char *ContentType,
+					const char *ContentType,
 					GStream *In,
 					int *ProtocolStatus,
 					GStream *Out,
