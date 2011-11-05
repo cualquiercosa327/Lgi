@@ -602,7 +602,7 @@ public:
 	int FindEndOfBlock(int Cur);
 	GVariant *Var(char16 *name, bool create = true);
 	bool ToVar(GVariant &v, char16 *s);
-	bool Require(int &Cur, char *tok);
+	bool Require(int &Cur, const char *tok);
 	bool Type(int &Cur, class GExternType &Type);
 	bool CallExtern(int &Cur, uint32 &ReturnValue, class GExternFunc *Func);
 
@@ -1382,7 +1382,7 @@ bool GScriptEnginePrivate::ToVar(GVariant &v, char16 *s)
 	return false;
 }
 
-bool GScriptEnginePrivate::Require(int &Cur, char *tok)
+bool GScriptEnginePrivate::Require(int &Cur, const char *tok)
 {
 	if (tok AND Cur >= 0 AND Cur < Tokens.Length())
 	{

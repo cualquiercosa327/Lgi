@@ -47,7 +47,7 @@ bool GHostFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Args)
 	return (Ctx->*(Func))(Ret, Args);
 }
 
-char *InstToString(GInstruction i)
+const char *InstToString(GInstruction i)
 {
 	#undef _i
 	#define _i(name, opcode, desc) \

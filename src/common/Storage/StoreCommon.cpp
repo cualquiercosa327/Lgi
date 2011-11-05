@@ -300,7 +300,7 @@ void GSubFile::Detach(GSubFilePtr *Ptr)
 	Ptrs.Delete(Ptr);
 }
 
-GSubFile::SubLock GSubFile::Lock(char *file, int line)
+GSubFile::SubLock GSubFile::Lock(const char *file, int line)
 {
 	return SubLock(new GSemaphore::Auto(Lck, file, line));
 }

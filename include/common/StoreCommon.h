@@ -42,7 +42,7 @@ public:
 
 	GSubFilePtr *Create(const char *file, int line);
 	void Detach(GSubFilePtr *Ptr);
-	SubLock Lock(char *file, int line);
+	SubLock Lock(const char *file, int line);
 
 	#if GSUBFILE_NOBUFFERING
 	int Open(char *Str = 0, int Int = 0);

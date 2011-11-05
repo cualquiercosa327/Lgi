@@ -14,7 +14,7 @@ protected:
 	class TypesList : public GArray<GAutoString>
 	{
 	public:
-		TypesList(char *init = 0)
+		TypesList(const char *init = 0)
 		{
 			if (init)
 			{
@@ -24,7 +24,7 @@ protected:
 			}
 		}
 
-		bool Find(char *s)
+		bool Find(const char *s)
 		{
 			for (uint32 i=0; i<Length(); i++)
 			{
@@ -50,7 +50,7 @@ protected:
 	char *UnMultiLine(char *In);
 
 	bool ReadField(GStreamI &s, char **Name, TypesList *Type, char **Data);
-	void WriteField(GStreamI &s, char *Name, TypesList *Type, char *Data);
+	void WriteField(GStreamI &s, const char *Name, TypesList *Type, char *Data);
 
 public:
 	VIo();

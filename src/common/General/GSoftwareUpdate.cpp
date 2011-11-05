@@ -20,7 +20,7 @@ struct GSoftwareUpdatePriv
 	GAutoString Error;
 	GAutoString TempPath;
 
-	void SetError(int Id, char *Def = 0)
+	void SetError(int Id, const char *Def = 0)
 	{
 		Error.Reset(NewStr(LgiLoadString(Id, Def)));
 	}

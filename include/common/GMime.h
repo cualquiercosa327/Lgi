@@ -62,7 +62,7 @@ class GMime
 	char *GetTmpPath();
 
 public:
-	static char *DefaultCharset;
+	static const char *DefaultCharset;
 
 	GMime(char *TmpFileRoot = 0);
 	virtual ~GMime();

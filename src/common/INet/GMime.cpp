@@ -6,17 +6,17 @@
 #include "GToken.h"
 #include "Base64.h"
 
-static char *MimeEol				= "\r\n";
-static char *MimeWs					= " \t\r\n";
-static char *MimeStr				= "\'\"";
-static char *MimeQuotedPrintable	= "quoted-printable";
-static char *MimeBase64				= "base64";
+static const char *MimeEol				= "\r\n";
+static const char *MimeWs				= " \t\r\n";
+static const char *MimeStr				= "\'\"";
+static const char *MimeQuotedPrintable	= "quoted-printable";
+static const char *MimeBase64			= "base64";
 
 #define MimeMagic					( ('M'<<24) | ('I'<<24) | ('M'<<24) | ('E'<<24) )
 #define SkipWs(s)					while (*s && strchr(MimeWs, *s)) s++
 #define SkipNonWs(s)				while (*s && !strchr(MimeWs, *s)) s++
 
-char *GMime::DefaultCharset =		"text/plain";
+const char *GMime::DefaultCharset =		"text/plain";
 
 ///////////////////////////////////////////////////////////////////////
 enum MimeBoundary

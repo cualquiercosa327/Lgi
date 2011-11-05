@@ -96,7 +96,7 @@ extern char16 sEndSqBracket[];
 extern char16 sStartCurlyBracket[];
 extern char16 sEndCurlyBracket[];
 
-extern char *InstToString(GInstruction i);
+extern const char *InstToString(GInstruction i);
 
 /*
 	Variable Reference:

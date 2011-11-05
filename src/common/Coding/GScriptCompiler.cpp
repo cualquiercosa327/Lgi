@@ -1267,7 +1267,7 @@ public:
 	}
 
 	/// Allocate a register (must be mirrored with DeallocReg)
-	bool AllocReg(GVarRef &r, char *file, int line)
+	bool AllocReg(GVarRef &r, const char *file, int line)
 	{
 		for (int i=0; i<MAX_REGISTER; i++)
 		{
@@ -2146,7 +2146,7 @@ public:
 	bool DoStruct(int &Cur)
 	{
 		bool Status = false;
-		GHashTbl<char*, GVariantType> Types;
+		GHashTbl<const char*, GVariantType> Types;
 		Types.Add("int32", GV_INT32);
 		Types.Add("int", GV_INT32);
 		Types.Add("int64", GV_INT64);

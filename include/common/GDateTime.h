@@ -282,7 +282,7 @@ public:
 	/// The offset from UTC
 	float Offset;
 	/// The name of the zone
-	char *Text;
+	const char *Text;
 };
 
 /// A list of all known timezones.

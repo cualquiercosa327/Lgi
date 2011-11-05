@@ -29,7 +29,7 @@
 #define IDC_STORE2_KEEP					2003
 #define IDS_CANCEL						2004
 
-char *Store2_LgiLoadString(int ref)
+const char *Store2_LgiLoadString(int ref)
 {
 	switch (ref)
 	{
@@ -1182,13 +1182,13 @@ namespace Storage2
 			DeleteArray(Blocks);
 		}
 
-		char *DescribeType(int Type)
+		const char *DescribeType(int Type)
 		{
 			#define MAGIC_BASE					0xAAFF0000
 			#define MAGIC_MAX					13	// One past the end
 
 			// Real names
-			char *Storage2TypeName[] = {
+			const char *Storage2TypeName[] = {
 				"BASE",
 				"MAIL",
 				"CONTACT",
@@ -1268,11 +1268,13 @@ namespace Storage2
 						"\tStart: %u, Len: %u\n"
 						"\tData: %u, Len: %u\n",
 						DescribeType(Item2->Header->Type),
-						Item2->StoreLoc, sizeof(*Item2->Header),
-						Item2->Header->DataLoc, Item2->Header->DataSize);
+						Item2->StoreLoc,
+						sizeof(*Item2->Header),
+						Item2->Header->DataLoc,
+						Item2->Header->DataSize);
 			}						
 
-			char *DlgTitle = "Compact Error";
+			const char *DlgTitle = "Compact Error";
 			GLayout *Wnd = dynamic_cast<GLayout*>(_Ui);
 			char Msg[512], KeepItem1[32], KeepItem2[32];
 
@@ -1290,7 +1292,7 @@ namespace Storage2
 			%s\n
 			Would you like to:
 			*/
-			char *Fmt = Store2_LgiLoadString(IDS_STORE2_ERROR_COMPACT);
+			const char *Fmt = Store2_LgiLoadString(IDS_STORE2_ERROR_COMPACT);
 			sprintf(Msg,
 					Fmt,
 					(uint32)b->Start,

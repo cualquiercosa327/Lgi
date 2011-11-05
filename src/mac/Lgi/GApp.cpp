@@ -285,7 +285,7 @@ pascal OSErr AppleEventProc(const AppleEvent *theAppleEvent, AppleEvent *reply, 
 	OSErr result = eventNotHandledErr;
 	GApp *App = (GApp*) handlerRefcon;
 	
-	printf("AppleEventProc called\n");
+	LgiTrace("AppleEventProc called\n");
 
 	AEDescList docs;
 	if (AEGetParamDesc(theAppleEvent, keyDirectObject, typeAEList, &docs) == noErr)
@@ -519,10 +519,7 @@ GApp::GApp(const char *AppMime, OsAppArguments &AppArgs, GAppArguments *ObjArgs)
 						d->AppEventUPP = NewEventHandlerUPP(AppProc),
 						GetEventTypeCount(AppEvents), AppEvents,
 						(void*)this, &Handler);
-	if (e)
-	{
-		LgiTrace("%s:%i - InstallEventHandler for app failed (%i)\n", __FILE__, __LINE__, e);
-	}
+	if (e) LgiTrace("%s:%i - InstallEventHandler for app failed (%i)\n", _FL, e);
 	
 	// Setup apple event handlers
 	d->AppleEventUPP = NewAEEventHandlerUPP(AppleEventProc);
@@ -538,11 +535,13 @@ GApp::GApp(const char *AppMime, OsAppArguments &AppArgs, GAppArguments *ObjArgs)
 								(SRefCon)this,
 								false);
 								*/
-	e = AEInstallEventHandler(	kCoreEventClass,
+	e = AEInstallEventHandler(	kInternetEventClass,
 								kAEGetURL,
 								d->AppleEventUPP,
 								(SRefCon)this,
 								false);
+	if (e) LgiTrace("%s:%i - AEInstallEventHandler failed (%i)\n", _FL, e);
+	else LgiTrace("AEInstallEventHandler ok.\n");
 }
 
 GApp::~GApp()

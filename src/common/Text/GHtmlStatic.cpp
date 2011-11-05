@@ -3,7 +3,7 @@
 
 char16 GHtmlListItem[] = { 0x2022, ' ', 0 };
 
-char16 *WcharToChar16(wchar_t *i)
+char16 *WcharToChar16(const wchar_t *i)
 {
 	static char16 Buf[256];
 	char16 *o = Buf;

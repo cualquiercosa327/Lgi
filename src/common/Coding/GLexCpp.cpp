@@ -2,7 +2,7 @@
 #include <ctype.h>
 #include <string.h>
 
-static char *White = " \r\t\n";
+static const char *White = " \r\t\n";
 #define iswhite(s)		(s AND strchr(White, s) != 0)
 #define isword(s)		(s AND (isdigit(s) OR isalpha(s) OR (s) == '_') )
 #define skipws(s)		while (iswhite(*s)) s++;

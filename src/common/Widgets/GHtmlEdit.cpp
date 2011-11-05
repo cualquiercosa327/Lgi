@@ -119,7 +119,7 @@ public:
 		SetTabStop(TAB_STOP);
 	}
 
-	Btn(int cmd, bool toggle, char *Text)
+	Btn(int cmd, bool toggle, const char *Text)
 	{
 		Val = 0;
 		SetId(cmd);
@@ -710,7 +710,7 @@ public:
 		return Values.Length() > 0;
 	}
 
-	bool HasElement(char *e, GArray<GTag*> *out = 0)
+	bool HasElement(const char *e, GArray<GTag*> *out = 0)
 	{
 		bool CursorFirst = IsCursorFirst();
 
@@ -747,7 +747,7 @@ public:
 		return out ? out->Length() > 0 : false;
 	}
 
-	bool StylizeSelection(GCss &Style, GArray<GTag*> *NewTags = 0, char *NewElement = "span")
+	bool StylizeSelection(GCss &Style, GArray<GTag*> *NewTags = 0, const char *NewElement = "span")
 	{
 		if (!Cursor || !Selection)
 			return false;
@@ -2217,12 +2217,12 @@ public:
 	public:
 		COLOUR c;
 
-		DbgDs(GFont *f, char *s, COLOUR col) : GDisplayString(f, s)
+		DbgDs(GFont *f, const char *s, COLOUR col) : GDisplayString(f, s)
 		{
 			c = col;
 		}
 
-		DbgDs(GFont *f, char16 *s, COLOUR col) : GDisplayString(f, s)
+		DbgDs(GFont *f, const char16 *s, COLOUR col) : GDisplayString(f, s)
 		{
 			c = col;
 		}

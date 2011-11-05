@@ -34,7 +34,7 @@ class GVirtualMachinePriv
 public:
 	GStream *Log;
 	GScriptContext *Context;
-	GHashTbl<char*, DateTimeParts> DtParts;
+	GHashTbl<const char*, DateTimeParts> DtParts;
 
 	GVirtualMachinePriv(GScriptContext *context)
 	{

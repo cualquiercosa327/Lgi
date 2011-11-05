@@ -17,7 +17,7 @@
 #define IsType(str) (Types.Find(str) != 0)
 
 #if 1
-bool IsVar(char *field, char *s)
+bool IsVar(char *field, const char *s)
 {
 	if (!s)
 		return false;
@@ -602,7 +602,7 @@ bool VIo::ReadField(GStreamI &s, char **Name, TypesList *Type, char **Data)
 		char *f = p.Length() > 1 ? &p[0] : 0;
 		if (f)
 		{
-			GHashTable Mod(0, false);
+			GHashTbl<const char*, char*> Mod(0, false);
 			char *e = strchr(f, ':');
 			if (e)
 			{
@@ -629,7 +629,7 @@ bool VIo::ReadField(GStreamI &s, char **Name, TypesList *Type, char **Data)
 			}
 
 			bool QuotedPrintable = false;
-			char *Enc = (char*)Mod.Find("encoding");
+			char *Enc = Mod.Find("encoding");
 			if (Enc)
 			{
 				if (stricmp(Enc, "quoted-printable") == 0)
@@ -641,7 +641,7 @@ bool VIo::ReadField(GStreamI &s, char **Name, TypesList *Type, char **Data)
 
 			DeEscape(e, QuotedPrintable);
 
-			char *Charset = (char*)Mod.Find("charset");
+			char *Charset = Mod.Find("charset");
 			if (Charset)
 			{
 				*Data = (char*)LgiNewConvertCp("utf-8", e, Charset);
@@ -653,7 +653,7 @@ bool VIo::ReadField(GStreamI &s, char **Name, TypesList *Type, char **Data)
 
 			Status = *Data != 0;
 
-			for (char *m = (char*)Mod.First(); m; m = (char*)Mod.Next())
+			for (char *m = Mod.First(); m; m = Mod.Next())
 			{
 				DeleteArray(m);
 			}
@@ -663,7 +663,7 @@ bool VIo::ReadField(GStreamI &s, char **Name, TypesList *Type, char **Data)
 	return Status;
 }
 
-void VIo::WriteField(GStreamI &s, char *Name, TypesList *Type, char *Data)
+void VIo::WriteField(GStreamI &s, const char *Name, TypesList *Type, char *Data)
 {
 	if (Name && Data)
 	{
@@ -708,7 +708,7 @@ bool VCard::Export(GDataPropI *c, GStreamI *o)
 
 	bool Status = true;
 	char s[512];
-	char *Empty = "";
+	const char *Empty = "";
 
 	o->Push((char*)"begin:vcard\r\n");
 	o->Push((char*)"version:3.0\r\n");
