@@ -136,7 +136,7 @@ static char *ParseString(const char *&s)
 	if (*s == '\'' || *s == '\"')
 	{
 		char delim = *s++;
-		char *e = strchr(s, delim);
+		char *e = strchr((char*)s, delim);
 		if (!e)
 			return 0;
 
@@ -1444,7 +1444,8 @@ bool GCss::ColorDef::Parse(const char *&s)
 	NamedColour(aqua, Rgb32(0x00, 0xff, 0xff))
 	NamedColour(teal, Rgb32(0x00, 0x80, 0x80))
 	NamedColour(silver, Rgb32(0xc0, 0xc0, 0xc0))
-	else return false;
+	else
+		return false;
 
 	return true;
 }
@@ -1458,7 +1459,7 @@ bool GCss::ImageDef::Parse(const char *&s)
 	if (!strnicmp(s, "url(", 4))
 	{
 		s += 4;
-		char *e = strchr(s, ')');
+		char *e = strchr((char*)s, ')');
 		if (!e)
 			return false;
 		GAutoString v(NewStr(s, e - s));

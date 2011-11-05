@@ -302,26 +302,47 @@ GProgressDlg::GProgressDlg(GView *parent, bool wait)
 {
 	Wait = wait;
 	SetParent(parent);
-
-	GRect r(0,
-			0,
-			LgiApp->GetMetric(LGI_MET_DECOR_X) + PANE_X,
-			LgiApp->GetMetric(LGI_MET_DECOR_Y) + PANE_Y * 2);
-	r.Offset(400, 400);
-	SetPos(r);
+	Resize();
 	MoveToCenter();
-
 	Name("Progress");
 	#ifdef BEOS
 	WindowHandle()->SetFeel(B_NORMAL_WINDOW_FEEL);
 	#endif
-
 	DoModeless();
 }
 
 GProgressDlg::~GProgressDlg()
 {
 	EndModeless(true);
+}
+
+void GProgressDlg::Resize()
+{
+	GRect r, c = GetPos();
+	int DecorX = LgiApp->GetMetric(LGI_MET_DECOR_X);
+	int DecorY = LgiApp->GetMetric(LGI_MET_DECOR_Y);
+
+	int Items = max(1, Progri.Length());
+	int Width = DecorX + PANE_X;
+	int Height = DecorY + (PANE_Y * Items);
+
+	r.ZOff(Width - 1, Height - 1);
+	r.Offset(c.x1, c.y1);
+	SetPos(r);
+
+	// Layout all the panes...
+	int y = 0;
+	for (int i=0; i<Progri.Length(); i++)
+	{
+		GProgressPane *p = Progri[i];
+		if (p)
+		{
+			GRect r(0, y, PANE_X - 1, y + PANE_Y - 1);
+			p->SetPos(r);
+			p->Visible(true);
+			y = r.y2 + 1;
+		}
+	}
 }
 
 void GProgressDlg::OnCreate()
@@ -359,28 +380,7 @@ GProgressPane *GProgressDlg::Push()
 		Pane->Wait = Wait;
 		Pane->Attach(this);
 		Progri.Insert(Pane);
-
-		// Resize the window to fit the panels
-		GRect r, c = GetPos();
-		r.ZOff(DefX, DefY);
-		r.x2 += PANE_X - 1;
-		r.y2 += (PANE_Y * Progri.Length()) - 1;
-		r.Offset(c.x1, c.y1);
-		SetPos(r);
-
-		// Layout all the panes...
-		int y = 0;
-		for (int i=0; i<Progri.Length(); i++)
-		{
-			GProgressPane *p = Progri[i];
-			if (p)
-			{
-				GRect r(0, y, p->X()-1, y + p->Y()-1);
-				p->SetPos(r);
-				p->Visible(true);
-				y = r.y2 + 1;
-			}
-		}
+		Resize();
 	}
 
 	return Pane;
@@ -394,24 +394,8 @@ void GProgressDlg::Pop(GProgressPane *p)
 		Pane->Detach();
 		Progri.Delete(Pane);
 		GView::Invalidate();
-
 		DeleteObj(Pane);
-
-		int y = 0;
-		for (GProgressPane *p = Progri.First(); p; p = Progri.Next())
-		{
-			GRect r(0, y, PANE_X, y + PANE_Y);
-			p->SetPos(r);
-			y = r.y2 + 1;
-		}
-
-		// resize the window to fit the panels
-		GRect r, c = GetPos();
-		r.ZOff(DefX, DefY);
-		r.x2 += PANE_X;
-		r.y2 += PANE_Y * Progri.Length();
-		r.Offset(c.x1, c.y1);
-		SetPos(r, true);
+		Resize();
 	}
 }
 

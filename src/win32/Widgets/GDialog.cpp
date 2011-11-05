@@ -196,6 +196,8 @@ int GDialog::DoModal(OsView ParentHnd)
 	return Status;
 }
 
+static char *BaseStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
 int GDialog::DoModeless()
 {
 	int Status = -1;
@@ -206,16 +208,24 @@ int GDialog::DoModeless()
 
 	Mem = new GMem(16<<10);
 	IsModal = false;
+	GRect OldPos = GetPos();
 	if (Mem)
 	{
+		LONG DlgUnits = GetDialogBaseUnits();
+		uint16 old_baseunitX = DlgUnits & 0xffff;
+		uint16 old_baseunitY = DlgUnits >> 16;
+		GDisplayString Bs(SysFont, BaseStr);
+		int baseunitX = (Bs.X() / 26 + 1) / 2;
+		int baseunitY = Bs.Y();
+		
 		DLGTEMPLATE *Template = (DLGTEMPLATE*) Mem->Lock();
 		if (Template)
 		{
 			GRect r = Pos;
-			r.x1 = (double)r.x1 / DIALOG_X;
-			r.y1 = (double)r.y1 / DIALOG_Y;
-			r.x2 = (double)r.x2 / DIALOG_X;
-			r.y2 = (double)r.y2 / DIALOG_Y;
+			r.x1 = MulDiv(r.x1, 4, baseunitX);
+			r.y1 = MulDiv(r.y1, 8, baseunitY);
+			r.x2 = MulDiv(r.x2, 4, baseunitX);
+			r.y2 = MulDiv(r.y2, 8, baseunitY);
 
 			Template->style =	WS_VISIBLE |
 								DS_ABSALIGN |
@@ -262,6 +272,47 @@ int GDialog::DoModeless()
 										hWindow,
 										(DLGPROC) DlgRedir, 
 										(LPARAM) this);
+			
+			#if 0
+			if (_View)
+			{
+				GRect p = OldPos;
+				double Rx = 1.0;
+				double Ry = 1.0;
+				RECT Rect;
+				
+				do 
+				{
+					Rect.left = OldPos.x1 * Rx;
+					Rect.top = OldPos.y1 * Ry;
+					Rect.right = OldPos.x2 * Rx;
+					Rect.bottom = OldPos.y2 * Ry;
+
+					BOOL b = MapDialogRect(_View, &Rect);
+					if (!b)
+						break;
+
+					double rx = (double) (OldPos.x2 + 1) / Rect.right;
+					double ry = (double) (OldPos.y2 + 1) / Rect.bottom;
+					if (Rx == 1.0 && Ry == 1.0)
+					{
+						Rx = rx;
+						Ry = ry;
+					}
+					else
+					{
+						Rx *= 1.0 + ((rx - 1.0) / 2);
+						Ry *= 1.0 + ((ry - 1.0) / 2);
+					}
+				}
+				while (	Rect.left != OldPos.x1 ||
+						Rect.top != OldPos.y1 ||
+						Rect.right - 1 != OldPos.x2 ||
+						Rect.bottom - 1 != OldPos.y2);
+					   
+				int asd=0;
+			}
+			#endif
 		}
 	}
 

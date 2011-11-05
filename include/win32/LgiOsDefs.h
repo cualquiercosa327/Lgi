@@ -27,7 +27,6 @@
 #define WIN32_LEAN_AND_MEAN
 #include "winsock2.h"
 
-
 #include "windows.h"
 #include "SHELLAPI.H"
 #include "COMMDLG.H"
@@ -46,6 +45,10 @@ typedef HANDLE				OsProcess;
 typedef char16				OsChar;
 typedef HBITMAP				OsBitmap;
 typedef HDC					OsPainter;
+#if _MSC_VER <= 1200 //vc6
+typedef unsigned long		ULONG_PTR, *PULONG_PTR;
+#define sprintf_s			_snprintf
+#endif
 
 typedef BOOL (__stdcall *pSHGetSpecialFolderPathA)(HWND hwndOwner, LPSTR lpszPath, int nFolder, BOOL fCreate);
 typedef BOOL (__stdcall *pSHGetSpecialFolderPathW)(HWND hwndOwner, LPWSTR lpszPath, int nFolder, BOOL fCreate);

@@ -2995,7 +2995,7 @@ void GTag::SetCssStyle(const char *Style)
 	{
 		// Strip out comments
 		char *Comment = 0;
-		while (Comment = strstr(Style, "/*"))
+		while (Comment = strstr((char*)Style, "/*"))
 		{
 			char *End = strstr(Comment+2, "*/");
 			if (!End)
@@ -3969,16 +3969,17 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 	return 0;
 }
 
-bool GTag::OnUnhandledColor(GCss::ColorDef *def, char *&s)
+bool GTag::OnUnhandledColor(GCss::ColorDef *def, const char *&s)
 {
-	char *e = s;
+	const char *e = s;
 	while (*e && (IsText(*e) || *e == '_'))
 		e++;
 
-	char old = *e;
-	*e = 0;
-	int m = GHtmlStatic::Inst->ColourMap.Find(s);
-	*e = old;
+	char tmp[256];
+	int len = e - s;
+	memcpy(tmp, s, len);
+	tmp[len] = 0;
+	int m = GHtmlStatic::Inst->ColourMap.Find(tmp);
 	s = e;
 
 	if (m >= 0)

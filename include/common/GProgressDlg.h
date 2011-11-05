@@ -57,6 +57,8 @@ protected:
 	bool Wait;
 	List<GProgressPane> Progri;
 
+	void Resize();
+
 public:
 	/// Constructor
 	GProgressDlg
