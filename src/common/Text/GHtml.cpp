@@ -5464,7 +5464,6 @@ GHtml::GHtml(int id, int x, int y, int cx, int cy, GDocumentEnv *e)
 GHtml::~GHtml()
 {
 	_Delete();
-	DeleteArray(Charset);
 	DeleteArray(DocCharSet);
 	DeleteObj(d);
 }
@@ -6653,8 +6652,7 @@ void GHtml::OnMouseClick(GMouse &m)
 								GCharset *c = LgiGetCsList() + (Id - IDM_CHARSET_BASE);
 								if (c->Charset)
 								{
-									DeleteArray(Charset);
-									Charset = NewStr(c->Charset);
+									Charset.Reset(NewStr(c->Charset));
 									OverideDocCharset = true;
 
 									char *Src = Source;
