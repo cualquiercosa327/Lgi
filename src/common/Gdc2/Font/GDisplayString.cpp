@@ -178,9 +178,12 @@ void GDisplayString::Layout()
 	}
 
 	Gtk::pango_layout_set_text(Hnd, Str, len);
-	Gtk::pango_layout_get_size(Hnd, &x, &y);
-	x = (x + PANGO_SCALE - 1) / PANGO_SCALE;
-	y = (y + PANGO_SCALE - 1) / PANGO_SCALE;
+	
+	int px, py;
+	Gtk::pango_layout_get_size(Hnd, &px, &py);
+	
+	x = (px + PANGO_SCALE - 1) / PANGO_SCALE;
+	y = (py + PANGO_SCALE - 1) / PANGO_SCALE;
 	
 	// printf("Layout '%s' = %i,%i\n", Str, x, y);
 	
