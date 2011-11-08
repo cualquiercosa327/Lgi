@@ -1086,8 +1086,10 @@ GMessage::GMessage(int m, Param a, Param b)
 
 GMessage::~GMessage()
 {
+    /*
 	if (OwnEvent && Event)
 		gdk_event_free(Event);
+	*/
 }
 
 void GMessage::Set(int m, Param a, Param b)
@@ -1114,11 +1116,11 @@ struct GlibEventParams
 static gboolean 
 GlibPostMessage(GlibEventParams *p)
 {
-    GDK_THREADS_ENTER ();
+    GDK_THREADS_ENTER();
     gtk_propagate_event(p->w, p->e);
     gdk_event_free(p->e);
     DeleteObj(p);
-    GDK_THREADS_LEAVE ();
+    GDK_THREADS_LEAVE();
 
     return FALSE;
 }

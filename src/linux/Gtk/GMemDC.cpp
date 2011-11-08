@@ -229,9 +229,29 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 	GdkVisual *Vis = gdk_visual_get_system();
 	if (Bits == 8)
 	{
-		Vis = gdk_visual_get_best_with_depth(8);
-	    // Vis.type = GDK_VISUAL_DIRECT_COLOR;
-	    // Vis.depth = 8;
+		GdkVisual *Vis8 = gdk_visual_get_best_with_depth(8);
+		if (Vis8)
+		{
+		    Vis = Vis8;
+		}
+		else
+		{
+		    /*
+	        GList *lst = gdk_list_visuals();
+	        if (lst)
+	        {
+	            for (GList *t = lst; t; t = t->next)
+	            {
+	                GdkVisual *v = (GdkVisual*)t->data;
+	                if (v->depth == Bits)
+	                {
+	                    int asd=0;
+	                }
+	            }
+	            g_list_free(lst);
+	        }
+	        */
+	    }
 	}
 	
 	d->Img = gdk_image_new(	GDK_IMAGE_FASTEST,
@@ -240,6 +260,7 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 							y);
 	if (!d->Img)
 	{
+	    LgiAssert(!"Failed to create image.");
 		LgiTrace("%s:%i - Error: failed to create image (%i,%i,%i)\n", _FL, x, y, Bits);
 		return false;
 	}

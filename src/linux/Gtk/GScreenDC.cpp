@@ -268,14 +268,14 @@ COLOUR GScreenDC::Colour(COLOUR c, int Bits)
 {
 	COLOUR Prev = Colour();
 
-	d->Col.Set(c, Bits);
+	d->Col.Set(c, Bits ? Bits : d->Bits);
 
 	if (d->gc)
 	{
 		int r = d->Col.r();
 		int g = d->Col.g();
 		int b = d->Col.b();
-		GdkColor col = { 0, (R32(c)<<8)|R32(c), (G32(c)<<8)|G32(c), (B32(c)<<8)|B32(c) };
+		GdkColor col = { 0, (r<<8)|r, (g<<8)|g, (b<<8)|b };
 		gdk_gc_set_rgb_fg_color(d->gc, &col);
 		gdk_gc_set_rgb_bg_color(d->gc, &col);
 	}

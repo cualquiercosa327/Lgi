@@ -145,10 +145,36 @@ int GdcGif::out_line(uchar *pixels, int linewidth, int interlaced, int BitDepth)
 	static int p;
 	if (lines == 0) p = 0;
 
-	for (int x=0; x<pDC->X(); x++)
-	{	
-		pDC->Colour(*pixels++);
-		pDC->Set(x, lines);
+	switch (pDC->GetBits())
+	{
+	    case 8:
+	    {
+	        memcpy((*pDC)[lines], pixels, pDC->X());
+	        break;
+	    }
+	    case 32:
+	    {
+	        Pixel32 *s = (Pixel32*) (*pDC)[lines];
+	        Pixel32 *e = s + pDC->X();
+	        GPalette *pal = pDC->Palette();
+        	GdcRGB *p = (*pal)[0], *pix;
+        	
+	        while (s < e)
+	        {
+	            pix = p + *pixels++;
+	            s->r = pix->R;
+	            s->g = pix->G;
+	            s->b = pix->B;
+	            s->a = 255;
+	            s++;
+	        }
+	        break;
+	    }
+	    default:
+	    {
+	        LgiAssert(0);
+	        break;
+	    }
 	}
 	ProcessedScanlines++;
 
@@ -169,7 +195,7 @@ int GdcGif::out_line(uchar *pixels, int linewidth, int interlaced, int BitDepth)
 				lines += 8;
 				if (lines >= pDC->Y())
 				{
-				lines = 2;
+				    lines = 2;
 					pass++;
 				}
 				break;
