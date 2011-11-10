@@ -233,6 +233,9 @@ public:
 	
 	/// Event called to process files dropped on the application
 	virtual void OnReceiveFiles(GArray<char*> &Files) = 0;
+
+	/// Event called to process URLs given to the application
+	virtual void OnUrl(const char *Url) = 0;
 	
 	/// Exits the event loop with the code specified
 	virtual void Exit

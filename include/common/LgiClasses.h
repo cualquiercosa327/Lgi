@@ -272,6 +272,9 @@ public:
 	
 	/// Event called to process files dropped on the application
 	void OnReceiveFiles(GArray<char*> &Files);
+
+	/// Event called to process URLs given to the application
+	void OnUrl(const char *Url);
 	
 	/// Exits the event loop with the code specified
 	void Exit
@@ -1333,6 +1336,9 @@ public:
 	
 	/// Called when files are dropped on the window.
 	virtual void OnReceiveFiles(GArray<char*> &Files) {}
+	
+	/// Called when a URL is sent to the window
+	virtual void OnUrl(const char *Url) {};
 
 	#if !WIN32NATIVE
 

@@ -41,7 +41,7 @@ public:
 		DeleteArray(CurFile);
 	}
 	
-	GAutoString GetOptionsFile(char *Ext)
+	GAutoString GetOptionsFile(const char *Ext)
 	{
 		// Get options file
 		GAutoString Status;
@@ -89,7 +89,7 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// Xml Options
-	char *GetExtension(GOptionsFile *p)
+	const char *GetExtension(GOptionsFile *p)
 	{
 		return "xml";
 	}
@@ -256,7 +256,7 @@ bool GDocApp<OptionsFmt>::_DoSerialize(bool Write)
 
 	if (!d->OptionsFile)
 	{
-		char *Ext = d->GetExtension(Options);
+		const char *Ext = d->GetExtension(Options);
 		d->OptionsFile = d->GetOptionsFile(Ext);
 	}
 
@@ -382,7 +382,7 @@ bool GDocApp<OptionsFmt>::_Destroy()
 }
 
 template <typename OptionsFmt>
-bool GDocApp<OptionsFmt>::_LoadMenu(char *Resource, char *Tags)
+bool GDocApp<OptionsFmt>::_LoadMenu(const char *Resource, const char *Tags)
 {
 	if (Menu = new GMenu)
 	{

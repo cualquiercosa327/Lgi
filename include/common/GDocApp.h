@@ -36,7 +36,7 @@ private:
 
 protected:
 	/// Loads the given menu.
-	bool			_LoadMenu(char *Resource = 0, char *Tags = 0);
+	bool			_LoadMenu(const char *Resource = 0, const char *Tags = 0);
 	/// Call this to create the window, usually in the constructor of your main window class.
 	bool			_Create();
 	/// Call this to destroy the window, usually in the destuctor of your main window class.

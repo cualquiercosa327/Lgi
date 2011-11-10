@@ -280,40 +280,70 @@ public:
 	}
 };
 
-pascal OSErr AppleEventProc(const AppleEvent *theAppleEvent, AppleEvent *reply, SRefCon handlerRefcon)
+pascal OSErr AppleEventProc(const AppleEvent *ae, AppleEvent *reply, SRefCon handlerRefcon)
 {
-	OSErr result = eventNotHandledErr;
+	OSErr err = eventNotHandledErr;
 	GApp *App = (GApp*) handlerRefcon;
+
+    OSType aeID = typeWildCard;
+    OSType aeClass = typeWildCard;
 	
-	LgiTrace("AppleEventProc called\n");
+	AEGetAttributePtr(ae, keyEventClassAttr, typeType, 0, &aeClass, sizeof(aeClass), 0);
+    AEGetAttributePtr(ae, keyEventIDAttr,    typeType, 0, &aeID,    sizeof(aeID), 0);
+	
+	uint32 id = LgiSwap32(aeID), cls = LgiSwap32(aeClass);
+	LgiTrace("AppleEvent received '%4.4s':'%4.4s'\n", &cls, &id);
 
-	AEDescList docs;
-	if (AEGetParamDesc(theAppleEvent, keyDirectObject, typeAEList, &docs) == noErr)
+	if (aeClass == kInternetEventClass &&
+		aeID    == kAEGetURL)
 	{
-		long n = 0;
-		AECountItems(&docs, &n);
+		DescType type;
+		Size dataSize = 0, size = 0;
 
-		UInt8 strBuffer[256];
-		GArray<char*> Files;
-		GArray<GAutoString> Mem;
-		for (int i = 0; i < n; i++)
+		err = AESizeOfParam(ae, keyDirectObject, &type, &dataSize);
+		if (err != noErr)
+			return err;
+
+		GAutoString Url(new char[dataSize + 1]);
+
+		err = AEGetParamPtr(ae, keyDirectObject, typeChar, &type, Url, dataSize, &size);
+		if (err != noErr)
+			return err;
+
+		Url[size] = 0;
+		App->OnUrl(Url);
+	}
+	else if (aeClass == kCoreEventClass &&
+			 aeID    == kAEOpenApplication)
+	{
+		AEDescList docs;
+		if (AEGetParamDesc(ae, keyDirectObject, typeAEList, &docs) == noErr)
 		{
-			FSRef ref;
-			
-			if (AEGetNthPtr(&docs, i + 1, typeFSRef, 0, 0, &ref, sizeof(ref), 0) != noErr)
-				continue;
-				
-			if (FSRefMakePath(&ref, strBuffer, 256) == noErr)
-			{
-				Mem[i].Reset(NewStr((char*)strBuffer));
-				Files[i] = Mem[i].Get();
-			}
-		}
+			long n = 0;
+			AECountItems(&docs, &n);
 
-		App->OnReceiveFiles(Files);
+			UInt8 strBuffer[256];
+			GArray<char*> Files;
+			GArray<GAutoString> Mem;
+			for (int i = 0; i < n; i++)
+			{
+				FSRef ref;
+				
+				if (AEGetNthPtr(&docs, i + 1, typeFSRef, 0, 0, &ref, sizeof(ref), 0) != noErr)
+					continue;
+					
+				if (FSRefMakePath(&ref, strBuffer, 256) == noErr)
+				{
+					Mem[i].Reset(NewStr((char*)strBuffer));
+					Files[i] = Mem[i].Get();
+				}
+			}
+
+			App->OnReceiveFiles(Files);
+		}
 	}
 	
-	return result;
+	return err;
 }
 
 pascal OSStatus AppProc(EventHandlerCallRef inHandlerCallRef, EventRef inEvent, void *inUserData)
@@ -541,7 +571,6 @@ GApp::GApp(const char *AppMime, OsAppArguments &AppArgs, GAppArguments *ObjArgs)
 								(SRefCon)this,
 								false);
 	if (e) LgiTrace("%s:%i - AEInstallEventHandler failed (%i)\n", _FL, e);
-	else LgiTrace("AEInstallEventHandler ok.\n");
 }
 
 GApp::~GApp()
@@ -789,12 +818,16 @@ void GApp::Exit(int Code)
 	}
 }
 
+void GApp::OnUrl(const char *Url)
+{
+	if (AppWnd)
+		AppWnd->OnUrl(Url);
+}
+
 void GApp::OnReceiveFiles(GArray<char*> &Files)
 {
 	if (AppWnd)
-	{
 		AppWnd->OnReceiveFiles(Files);
-	}
 }
 
 GXmlTag *GApp::GetConfig(const char *Tag)
