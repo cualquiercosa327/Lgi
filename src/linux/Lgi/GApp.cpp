@@ -546,12 +546,16 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 	return false;
 }
 
+void GApp::OnUrl(const char *Url)
+{
+	if (AppWnd)
+		AppWnd->OnUrl(Url);
+}
+
 void GApp::OnReceiveFiles(GArray<char*> &Files)
 {
 	if (AppWnd)
-	{
 		AppWnd->OnReceiveFiles(Files);
-	}
 }
 
 void GApp::SetConfig(GXmlTag *Tag)
