@@ -380,10 +380,6 @@ int GFontSystem::IconvConvert(const char *OutCs, GStreamI *Out, const char *InCs
 	}
 	else return 0;
 
-#elif defined(_WIN64)
-
-	// Hmmmm... what to do here?
-
 #elif HAS_ICONV
 
 	if (!HasIconv())
