@@ -4660,6 +4660,7 @@ bool GTextView3::OnLayout(GViewLayoutInfo &Inf)
 ///////////////////////////////////////////////////////////////////////////////
 class GTextView3_Factory : public GViewFactory
 {
+
 	GView *NewView(const char *Class, GRect *Pos, const char *Text)
 	{
 		if (stricmp(Class, "GTextView3") == 0)
@@ -4669,5 +4670,4 @@ class GTextView3_Factory : public GViewFactory
 
 		return 0;
 	}
-
 } TextView3_Factory;

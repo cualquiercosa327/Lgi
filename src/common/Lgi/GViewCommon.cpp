@@ -1768,33 +1768,62 @@ void GView::_Dump(int Depth)
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-struct GAllFactories : public GArray<GViewFactory*>
-{
-    ~GAllFactories()
-    {
-        DeleteObjects();
-    }
-};
-
-static GAllFactories AllFactories;
+#if defined(MAC)
+static char FactoryFile[MAX_PATH];
+#elif defined(WINDOWS)
+static HANDLE FactoryEvent;
+#else
+#error "Not impl"
+#endif
+static GArray<GViewFactory*> *AllFactories;
 
 GViewFactory::GViewFactory()
 {
-	AllFactories.Add(this);
+	#if defined(MAC)
+	LgiGetExeFile(FactoryFile, sizeof(FactoryFile));
+	LgiMakePath(FactoryFile, sizeof(FactoryFile), FactoryFile, "LgiFactory");
+	if (!FileExists(FactoryFile))
+	{
+		GFile file;
+		file.Open(FactoryFile, O_WRITE);
+		AllFactories = new GArray<GViewFactory*>;
+	}
+	#elif defined(WINDOWS)
+	HANDLE h = CreateEventEx(NULL, "LgiFactoryEvent", 0, EVENT_ALL_ACCESS);
+	if (h != ERROR_ALREADY_EXISTS)
+	{
+		FactoryEvent = h;
+		AllFactories = new GArray<GViewFactory*>;
+	}
+	#else
+	#error "Not impl"
+	AllFactories = 0;
+	#endif
+
+	AllFactories->Add(this);
 }
 
 GViewFactory::~GViewFactory()
 {
-	AllFactories.Delete(this);
+	AllFactories->Delete(this);
+	if (AllFactories->Length() == 0)
+	{
+		DeleteObj(AllFactories);
+		#if defined(MAC)
+		FileDev->Delete(FactoryFile);
+		#elif defined(WINDOWS)
+		CloseHandle(FactoryEvent);
+		#endif
+	}
 }
 
 GView *GViewFactory::Create(const char *Class, GRect *Pos, const char *Text)
 {
-	if (ValidStr(Class))
+	if (ValidStr(Class) && AllFactories)
 	{
-		for (int i=0; i<AllFactories.Length(); i++)
+		for (int i=0; i<AllFactories->Length(); i++)
 		{
-			GView *v = AllFactories[i]->NewView(Class, Pos, Text);
+			GView *v = (*AllFactories)[i]->NewView(Class, Pos, Text);
 			if (v)
 			{
 				return v;
