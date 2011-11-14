@@ -4185,7 +4185,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 		GViewFill *BackFill = GetBackgroundFill();
 		GColour Back(!ReadOnly ? (BackFill ? BackFill->GetFlat().c24() : LC_WORKSPACE) : BackColour, 24);
 		GColour Whitespace = Fore;
-		Whitespace.Mix(Back, 0.85);
+		Whitespace.Mix(Back, 0.85f);
 
 		bool HasFocus = Focus();
 		if (!HasFocus)

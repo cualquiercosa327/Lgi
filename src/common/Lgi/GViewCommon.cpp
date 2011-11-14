@@ -1770,7 +1770,7 @@ void GView::_Dump(int Depth)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #if defined(MAC)
 static char FactoryFile[MAX_PATH];
-#elif defined(WINDOWS)
+#elif defined(_WINDOWS)
 static HANDLE FactoryEvent;
 #else
 #error "Not impl"
@@ -1781,16 +1781,18 @@ GViewFactory::GViewFactory()
 {
 	#if defined(MAC)
 	LgiGetExeFile(FactoryFile, sizeof(FactoryFile));
-	LgiMakePath(FactoryFile, sizeof(FactoryFile), FactoryFile, "LgiFactory");
+	sprintf(FactoryFile+strlen(FactoryFile), "/FactoryFile.%i", getpid());
 	if (!FileExists(FactoryFile))
 	{
 		GFile file;
 		file.Open(FactoryFile, O_WRITE);
 		AllFactories = new GArray<GViewFactory*>;
 	}
-	#elif defined(WINDOWS)
-	HANDLE h = CreateEventEx(NULL, "LgiFactoryEvent", 0, EVENT_ALL_ACCESS);
-	if (h != ERROR_ALREADY_EXISTS)
+	#elif defined(_WINDOWS)
+	char Name[256];
+	sprintf(Name, "LgiFactoryEvent.%i", GetCurrentProcessId());
+	HANDLE h = CreateEvent(NULL, false, false, Name);
+	if (GetLastError() != ERROR_ALREADY_EXISTS)
 	{
 		FactoryEvent = h;
 		AllFactories = new GArray<GViewFactory*>;
