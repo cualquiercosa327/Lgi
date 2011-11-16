@@ -358,9 +358,10 @@ bool GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 	t::TIFF *tif = Lib->TIFFClientOpen("", "rm", In, TRead, TWrite, TSeek, TClose, TSize, 0, 0);
 	if (tif)
 	{
-		// int Width, Height;
-		// Lib->TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &Width);
-        // Lib->TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &Height);
+		int Photometric = 0;
+		int Inkset = 0;
+		Lib->TIFFGetField(tif, TIFFTAG_PHOTOMETRIC, &Photometric);
+		Lib->TIFFGetField(tif, TIFFTAG_INKSET, &Inkset);
 
 		t::TIFFRGBAImage img;
 		if (Lib->TIFFRGBAImageBegin(&img, tif, 0, PrevError))

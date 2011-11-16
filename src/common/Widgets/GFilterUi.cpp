@@ -8,10 +8,10 @@
 #include "GToken.h"
 
 #define IconSize			15
-#define TransparentBlk		Rgba32(0, 0, 0, 0)
-#define White				Rgba32(255, 255, 255, 255)
-#define Black				Rgba32(0, 0, 0, 255)
-#define ContentColour		Rgba32(0, 0, 0, 160)
+static GColour TransparentBlk(0, 0, 0, 0);
+static GColour White(255, 255, 255);
+static GColour Black(0, 0, 0);
+static GColour ContentColour(0, 0, 0, 160);
 
 // Field size
 #define SIZE_NOT			45
@@ -40,18 +40,18 @@ enum FilterIcon
 
 #define IconAlpha	255
 
-static COLOUR IconColour[IconMax] =
+static GColour IconColour[IconMax] =
 {
-	Rgba32(192, 192, 192, IconAlpha), // new condition
-	Rgba32(118, 160, 230, IconAlpha), // new and
-	Rgba32(32, 224, 32, IconAlpha), // new or
-	Rgba32(230, 90, 65, IconAlpha), // delete
-	Rgba32(192, 192, 192, IconAlpha), // up
-	Rgba32(192, 192, 192, IconAlpha), // down
-	Rgba32(192, 192, 192, IconAlpha), // options
-	Rgba32(192, 192, 192, IconAlpha), // drop down
-	Rgba32(255, 192, 0, IconAlpha), // bool false
-	Rgba32(255, 192, 0, IconAlpha), // bool true
+	GColour(192, 192, 192, IconAlpha), // new condition
+	GColour(118, 160, 230, IconAlpha), // new and
+	GColour(32, 224, 32, IconAlpha), // new or
+	GColour(230, 90, 65, IconAlpha), // delete
+	GColour(192, 192, 192, IconAlpha), // up
+	GColour(192, 192, 192, IconAlpha), // down
+	GColour(192, 192, 192, IconAlpha), // options
+	GColour(192, 192, 192, IconAlpha), // drop down
+	GColour(255, 192, 0, IconAlpha), // bool false
+	GColour(255, 192, 0, IconAlpha), // bool true
 };
 
 static const char *IconName[IconMax];
@@ -100,16 +100,6 @@ void convert_to_nonpremul(GSurface *pDC)
 	}
 }
 
-COLOUR Mix32(COLOUR c1, COLOUR c2, double HowMuch1)
-{
-	int a = (int)(HowMuch1 * 255);
-	int oma = 255 - a;
-	int r = ((R32(c1) * a) + (R32(c2) * oma)) / 255;
-	int g = ((G32(c1) * a) + (G32(c2) * oma)) / 255;
-	int b = ((B32(c1) * a) + (B32(c2) * oma)) / 255;
-	return Rgb32(r, g, b);
-}
-
 class GFilterTree : public GTree
 {
 	friend class GFilterItem;
@@ -133,28 +123,28 @@ class GFilterViewPrivate
 {
 public:
 	GFilterView *View;
-	GFilterTree *Tree;
+	GAutoPtr<GFilterTree> Tree;
 	bool ShowLegend;
 	GRect Info;
 	GArray<GSurface*> Icons;
 	FilterUi_Menu Callback;
 	void *CallbackData;
-	GDisplayString *dsNot;
-	GDisplayString *dsAnd;
-	GDisplayString *dsOr;
-	GDisplayString *dsNew;
-	GDisplayString *dsLegend;
+	GAutoPtr<GDisplayString> dsNot;
+	GAutoPtr<GDisplayString> dsAnd;
+	GAutoPtr<GDisplayString> dsOr;
+	GAutoPtr<GDisplayString> dsNew;
+	GAutoPtr<GDisplayString> dsLegend;
 	GArray<char*> OpNames;
 
 	GFilterViewPrivate(GFilterView *v)
 	{
 		View = v;
 
-		dsNot = new GDisplayString(SysFont, (char*)LgiLoadString(L_FUI_NOT, "Not"));
-		dsNew = new GDisplayString(SysBold, (char*)LgiLoadString(L_FUI_NEW, "New"));
-		dsAnd = new GDisplayString(SysBold, (char*)LgiLoadString(L_FUI_AND, "And"));
-		dsOr  = new GDisplayString(SysBold, (char*)LgiLoadString(L_FUI_OR, "Or"));
-		dsLegend = new GDisplayString(SysBold, (char*)LgiLoadString(L_FUI_LEGEND, "Legend:"));
+		dsNot.Reset(new GDisplayString(SysFont, (char*)LgiLoadString(L_FUI_NOT, "Not")));
+		dsNew.Reset(new GDisplayString(SysBold, (char*)LgiLoadString(L_FUI_NEW, "New")));
+		dsAnd.Reset(new GDisplayString(SysBold, (char*)LgiLoadString(L_FUI_AND, "And")));
+		dsOr.Reset(new GDisplayString(SysBold, (char*)LgiLoadString(L_FUI_OR, "Or")));
+		dsLegend.Reset(new GDisplayString(SysBold, (char*)LgiLoadString(L_FUI_LEGEND, "Legend:")));
 		
 		ShowLegend = true;
 		Callback = 0;
@@ -174,17 +164,12 @@ public:
 	{
 		Icons.DeleteObjects();
 		OpNames.DeleteArrays();
-
-		DeleteObj(dsNot);
-		DeleteObj(dsAnd);
-		DeleteObj(dsOr);
-		DeleteObj(dsNew);
 	}
 
-	void Draw(GSurface *pDC, COLOUR c, FilterIcon Icon)
+	void Draw(GSurface *pDC, GColour c, FilterIcon Icon)
 	{
 		// Clear to transparent black
-		pDC->Colour(Rgba32(0, 0, 0, 0), 32);
+		pDC->Colour(TransparentBlk);
 		pDC->Rectangle();
 
 		// Draw the icon backrgound
@@ -208,10 +193,10 @@ public:
 
 			GBlendStop r[] =
 			{
-				{0.0, Mix32(c, White, 0.1)},
-				{0.3, Mix32(c, White, 0.3)},
-				{0.6, c},
-				{1.0, Mix32(c, Black, 0.8)},
+				{0.0, White.Mix(c, 0.1f).c32()},
+				{0.3, White.Mix(c, 0.3f).c32()},
+				{0.6, c.c32()},
+				{1.0, Black.Mix(c, 0.8f).c32()},
 			};
 
 			GRadialBlendBrush b(Ctr, Rim, CountOf(r), r);
@@ -225,9 +210,9 @@ public:
 			p.Circle(n/2, n/2, n/2);
 			GBlendStop Highlight[] =
 			{
-				{0.0, TransparentBlk},
-				{0.7, TransparentBlk},
-				{0.9, White},
+				{0.0, TransparentBlk.c32()},
+				{0.7, TransparentBlk.c32()},
+				{0.9, White.c32()},
 			};
 
 			GLinearBlendBrush b2(Ctr, Rim, CountOf(Highlight), Highlight);
@@ -570,20 +555,20 @@ void GFilterItem::_PaintText(GSurface *pDC, COLOUR Fore, COLOUR Back)
 	// Draw the background
 	double ox = 1, oy = 1;
 	double r = (double)(Pos->Y() - (oy * 2)) / 2;
-	COLOUR BackCol = 0;
-	COLOUR Workspace = Rgb24To32(LC_WORKSPACE);
+	GColour BackCol = TransparentBlk;
+	GColour Workspace(LC_WORKSPACE, 24);
 	switch (d->Node)
 	{
 		case LNODE_NEW:
-			BackCol = Rgb24To32(LC_HIGH);
+			BackCol.Set(LC_HIGH, 24);
 			break;
 		case LNODE_COND:
 		default:
-			BackCol = Rgb24To32(LC_MED);
+			BackCol.Set(LC_MED, 24);
 			break;
 		case LNODE_AND:
 		case LNODE_OR:
-			BackCol = Mix32(IconColour[d->Node], White, 0.3);
+			BackCol = White.Mix(IconColour[d->Node], 0.3f);
 			break;
 	}
 
@@ -750,21 +735,21 @@ void GFilterItem::_PaintText(GSurface *pDC, COLOUR Fore, COLOUR Back)
 		case LNODE_NEW:
 		{
 			SysBold->Transparent(true);
-			SysBold->Colour(Rgb24To32(LC_MED), Workspace);
+			SysBold->Colour(GColour(LC_MED, 24), Workspace);
 			d->Data->dsNew->Draw(&Buf, (int)r - 3, (int)(oy + r) - (SysBold->GetHeight() / 2));
 			break;
 		}
 		case LNODE_AND:
 		{
 			SysBold->Transparent(true);
-			SysBold->Colour(Rgb32To24(IconColour[d->Node]), Rgb32To24(BackCol));
+			SysBold->Colour(IconColour[d->Node], BackCol);
 			d->Data->dsAnd->Draw(&Buf, (int)r - 3, (int)(oy + r) - (SysBold->GetHeight() / 2));
 			break;
 		}
 		case LNODE_OR:
 		{
 			SysBold->Transparent(true);
-			SysBold->Colour(Rgb32To24(IconColour[d->Node]), Rgb32To24(BackCol));
+			SysBold->Colour(IconColour[d->Node], BackCol);
 			d->Data->dsOr->Draw(&Buf, (int)r - 3, (int)(oy + r) - (SysBold->GetHeight() / 2));
 			break;
 		}
@@ -992,34 +977,31 @@ void GFilterItem::OptionsMenu()
 	if (!Pos) return;
 	GRect Client = GetTree()->GetClient();
 
-	GSubMenu *s = new GSubMenu;
-	if (s)
+	GSubMenu s;
+	if (d->Node == LNODE_NEW)
+		s.AppendItem(LgiLoadString(L_FUI_CONDITION, "Condition"), 3, true);
+	s.AppendItem(LgiLoadString(L_FUI_AND, "And"), 1, true);
+	s.AppendItem(LgiLoadString(L_FUI_OR, "Or"), 2, true);
+
+	GRect r = d->Btns[d->Node == LNODE_NEW ? IconNewCond : IconOptions];
+	r.Offset(Pos->x1 + Client.x1, Pos->y1 + Client.y1);
+	GdcPt2 p(r.x1, r.y2+1);
+	GetTree()->PointToScreen(p);
+
+	int Cmd = s.Float(GetTree(), p.x, p.y, true);
+	switch (Cmd)
 	{
-		if (d->Node == LNODE_NEW)
-			s->AppendItem(LgiLoadString(L_FUI_CONDITION, "Condition"), 3, true);
-		s->AppendItem(LgiLoadString(L_FUI_AND, "And"), 1, true);
-		s->AppendItem(LgiLoadString(L_FUI_OR, "Or"), 2, true);
-
-		GRect r = d->Btns[d->Node == LNODE_NEW ? IconNewCond : IconOptions];
-		r.Offset(Pos->x1 + Client.x1, Pos->y1 + Client.y1);
-		GdcPt2 p(r.x1, r.y2+1);
-		GetTree()->PointToScreen(p);
-
-		int Cmd = s->Float(GetTree(), p.x, p.y, true);
-		switch (Cmd)
-		{
-			case 1:
-				d->Node = LNODE_AND;
-				break;
-			case 2:
-				d->Node = LNODE_OR;
-				break;
-			case 3:
-				d->Node = LNODE_COND;
-				break;
-		}
-		Update();
+		case 1:
+			d->Node = LNODE_AND;
+			break;
+		case 2:
+			d->Node = LNODE_OR;
+			break;
+		case 3:
+			d->Node = LNODE_COND;
+			break;
 	}
+	Update();
 }
 
 GFilterNode GFilterItem::GetNode()
@@ -1056,7 +1038,7 @@ GFilterView::GFilterView(FilterUi_Menu Callback, void *Data)
 	d = new GFilterViewPrivate(this);
 	d->Callback = Callback;
 	d->CallbackData = Data;
-	d->Tree = new GFilterTree;
+	d->Tree.Reset(new GFilterTree);
 	Sunken(true);
 
 	if (d->Callback)
@@ -1078,6 +1060,7 @@ GFilterView::GFilterView(FilterUi_Menu Callback, void *Data)
 GFilterView::~GFilterView()
 {
 	d->Tree->Empty();
+	DelView(d->Tree);
 	DeleteObj(d);
 }
 

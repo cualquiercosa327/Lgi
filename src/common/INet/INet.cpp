@@ -560,7 +560,7 @@ int GSocket::Open(const char *HostAddr, int Port)
 		d->Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 		#endif
 
-		if (d->Socket >= 0)
+		if (ValidSocket(d->Socket))
 		{
 			#if !defined(MAC) && !defined(BEOS)
 			if (d->Flags & TCP_NODELAY)

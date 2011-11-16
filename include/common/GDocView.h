@@ -179,7 +179,7 @@ public:
 	/// Process dynamic content, returning a dynamically allocated string
 	/// for the result of the executed script. Dynamic content is enclosed
 	/// between &lt;? and ?&gt;.
-	virtual char *OnDynamicContent(char *Code) { return 0; }
+	virtual char *OnDynamicContent(const char *Code) { return 0; }
 
 	/// Some script was received, the owner should compile it
 	virtual bool OnCompileScript(char *Script, const char *Language, const char *MimeType) { return false; }

@@ -5,21 +5,26 @@
 class GGrowlPriv : public GThread, public GSemaphore
 {
 	bool Loop;
+	bool Async;
 	GAutoString AppName;
 	GAutoPtr<GGrowl::GRegister> Reg;
 	GArray<GGrowl::GNotify*> Notes;
 	
 public:
-	GGrowlPriv() : GThread("GGrowl"), GSemaphore("GGrowlSem")
+	GGrowlPriv(bool async) : GThread("GGrowl"), GSemaphore("GGrowlSem")
 	{
+	    Async = async;
 		Loop = true;
-		Run();
+		
+		if (Async)
+		    Run();
 	}
 	
 	~GGrowlPriv()
 	{
 		Loop = false;
-		while (!IsExited())
+		
+		while (Async && !IsExited())
 		{
 			LgiSleep(10);
 		}
@@ -30,18 +35,124 @@ public:
 		if (!Lock(_FL))
 			return false;
 
-		Reg = p;
+		bool Status = true;
+		if (Async)
+		{
+		    Reg = p;
+		}
+		else
+		{
+		    GAutoPtr<GGrowl::GNotify> n;
+		    Status = Process(p, n);
+		}
+		
 		Unlock();
-		return true;
+		return Status;
 	}
 
-	bool Notify(GAutoPtr<GGrowl::GNotify> p)
+	bool Notify(GAutoPtr<GGrowl::GNotify> n)
 	{
 		if (!Lock(_FL))
 			return false;
 
-		Notes.Add(p.Release());
+	    bool Status = true;
+		if (Async)
+		{
+		    Notes.Add(n.Release());
+		}
+		else
+		{
+		    GAutoPtr<GGrowl::GRegister> r;
+		    Status = Process(r, n);
+		}
+		
 		Unlock();
+		return Status;
+	}
+	
+	bool Process(GAutoPtr<GGrowl::GRegister> &reg,
+			     GAutoPtr<GGrowl::GNotify> &note)
+	{
+		GAutoPtr<GSocket> Sock(new GSocket);
+		Sock->SetTimeout(5000);
+		if (!Sock->Open("localhost", 23053))
+		    return false;
+		    
+		GStringPipe p(256);
+		p.Print("GNTP/1.0 %s NONE\r\n", reg ? "REGISTER" : "NOTIFY");
+		if (reg)
+		{
+			AppName.Reset(NewStr(reg->App));
+			p.Print("Application-Name: %s\r\n", reg->App.Get());
+			if (reg->IconUrl)
+				p.Print("Application-Icon: %s\r\n", reg->IconUrl.Get());
+			p.Print("Notifications-Count: %i\r\n", reg->Types.Length());
+			
+			for (int i=0; i<reg->Types.Length(); i++)
+			{
+				GGrowl::GNotifyType &t = reg->Types[i];
+				p.Print("\r\n"
+						"Notification-Name: %s\r\n"
+						"Notification-Enabled: %s\r\n",
+						t.Name.Get(),
+						t.Enabled ? "True" : "False");
+				
+				if (t.DisplayName)
+					p.Print("Notification-Display-Name: %s\r\n", t.DisplayName.Get());
+				if (t.IconUrl)
+					p.Print("Notification-Icon: %s\r\n", t.IconUrl.Get());
+			}
+		}
+		else if (AppName)
+		{
+			p.Print("Application-Name: %s\r\n"
+					"Notification-Name: %s\r\n"
+					"Notification-Title: %s\r\n"
+					"Notification-Sticky: %s\r\n"
+					"Notification-Priority: %i\r\n",
+					AppName.Get(),
+					note->Name.Get(),
+					note->Title.Get(),
+					note->Sticky ? "True" : "False",
+					note->Priority);
+
+			if (note->Id)
+				p.Print("Notification-ID: %s\r\n", note->Id.Get());
+			if (note->Text)
+				p.Print("Notification-Text: %s\r\n", note->Text.Get());
+			if (note->IconUrl)
+				p.Print("Notification-Icon: %s\r\n", note->IconUrl.Get());
+			if (note->CoalescingID)
+				p.Print("Notification-Coalescing-ID: %s\r\n", note->CoalescingID.Get());
+			if (note->CallbackData)
+				p.Print("Notification-Callback-Context: %s\r\n"
+						"Notification-Callback-Context-Type: %s\r\n",
+						note->CallbackData.Get(),
+						note->CallbackDataType.Get());
+			if (note->CallbackTarget)
+				p.Print("Notification-Callback-Target: %s\r\n", note->CallbackTarget.Get());
+		}
+		else LgiAssert(0);
+		
+		p.Print("\r\n");
+		
+		GAutoString Cmd(p.NewStr());
+		int CmdLen = strlen(Cmd);
+		int w = Sock->Write(Cmd, CmdLen);
+		if (w == CmdLen)
+		{
+			char In[256];
+			while (Sock->IsOpen())
+			{
+				int r = Sock->Read(In, sizeof(In));
+				if (r <= 0)
+					break;
+				p.Write(In, r);
+			}
+			GAutoString Resp(p.NewStr());
+			LgiTrace("Resp=%s\n", Resp.Get());
+		}
+		
 		return true;
 	}
 	
@@ -68,85 +179,7 @@ public:
 
 			if (reg || note)
 			{
-				GAutoPtr<GSocket> Sock(new GSocket);
-				Sock->SetTimeout(5000);
-				if (Sock->Open("localhost", 23053))
-				{
-					GStringPipe p(256);
-					p.Print("GNTP/1.0 %s NONE\r\n", reg ? "REGISTER" : "NOTIFY");
-					if (reg)
-					{
-						AppName.Reset(NewStr(reg->App));
-						p.Print("Application-Name: %s\r\n", reg->App.Get());
-						if (reg->IconUrl)
-							p.Print("Application-Icon: %s\r\n", reg->IconUrl.Get());
-						p.Print("Notifications-Count: %i\r\n", reg->Types.Length());
-						
-						for (int i=0; i<reg->Types.Length(); i++)
-						{
-							GGrowl::GNotifyType &t = reg->Types[i];
-							p.Print("\r\n"
-									"Notification-Name: %s\r\n"
-									"Notification-Enabled: %s\r\n",
-									t.Name.Get(),
-									t.Enabled ? "True" : "False");
-							
-							if (t.DisplayName)
-								p.Print("Notification-Display-Name: %s\r\n", t.DisplayName.Get());
-							if (t.IconUrl)
-								p.Print("Notification-Icon: %s\r\n", t.IconUrl.Get());
-						}
-					}
-					else if (AppName)
-					{
-						p.Print("Application-Name: %s\r\n"
-								"Notification-Name: %s\r\n"
-								"Notification-Title: %s\r\n"
-								"Notification-Sticky: %s\r\n"
-								"Notification-Priority: %i\r\n",
-								AppName.Get(),
-								note->Name.Get(),
-								note->Title.Get(),
-								note->Sticky ? "True" : "False",
-								note->Priority);
-
-						if (note->Id)
-							p.Print("Notification-ID: %s\r\n", note->Id.Get());
-						if (note->Text)
-							p.Print("Notification-Text: %s\r\n", note->Text.Get());
-						if (note->IconUrl)
-							p.Print("Notification-Icon: %s\r\n", note->IconUrl.Get());
-						if (note->CoalescingID)
-							p.Print("Notification-Coalescing-ID: %s\r\n", note->CoalescingID.Get());
-						if (note->CallbackData)
-							p.Print("Notification-Callback-Context: %s\r\n"
-									"Notification-Callback-Context-Type: %s\r\n",
-									note->CallbackData.Get(),
-									note->CallbackDataType.Get());
-						if (note->CallbackTarget)
-							p.Print("Notification-Callback-Target: %s\r\n", note->CallbackTarget.Get());
-					}
-					else LgiAssert(0);
-					
-					p.Print("\r\n");
-					
-					GAutoString Cmd(p.NewStr());
-					int CmdLen = strlen(Cmd);
-					int w = Sock->Write(Cmd, CmdLen);
-					if (w == CmdLen)
-					{
-						char In[256];
-						while (Sock->IsOpen())
-						{
-							int r = Sock->Read(In, sizeof(In));
-							if (r <= 0)
-								break;
-							p.Write(In, r);
-						}
-						GAutoString Resp(p.NewStr());
-						LgiTrace("Resp=%s\n", Resp.Get());
-					}
-				}				
+			    Process(reg, note);
 			}
 			else
 			{
@@ -158,9 +191,9 @@ public:
 	}
 };
 	
-GGrowl::GGrowl()
+GGrowl::GGrowl(bool async)
 {
-	d = new GGrowlPriv;
+	d = new GGrowlPriv(async);
 }
 
 GGrowl::~GGrowl()

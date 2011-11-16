@@ -1,7 +1,7 @@
 #ifndef _GGROWL_H_
 #define _GGROWL_H_
 
-class GGrowl
+class LgiClass GGrowl
 {
 	class GGrowlPriv *d;
 	
@@ -48,7 +48,7 @@ public:
 	};
 
 
-	GGrowl();
+	GGrowl(bool async = true);
 	~GGrowl();
 
 	bool Register(GAutoPtr<GRegister> r);

@@ -312,18 +312,21 @@ public:
 		p32 = c;
 	}
 	
-	/// Mixes 'Tint' with the current colour and returns this.
-	GColour &Mix(GColour Tint, float RatioOfTint = 0.5)
+	/// Mixes 'Tint' with the current colour and returns it 
+	/// without modifying the object.
+	GColour Mix(GColour Tint, float RatioOfTint = 0.5)
 	{
 		COLOUR c1 = c32();
 		COLOUR c2 = Tint.c32();
+		
 		double RatioThis = 1.0 - RatioOfTint;
+		
 		int r = (int) ((R32(c1) * RatioThis) + (R32(c2) * RatioOfTint));
 		int g = (int) ((G32(c1) * RatioThis) + (G32(c2) * RatioOfTint));
 		int b = (int) ((B32(c1) * RatioThis) + (B32(c2) * RatioOfTint));
 		int a = (int) ((A32(c1) * RatioThis) + (A32(c2) * RatioOfTint));
-		c32( Rgba32(r, g, b, a) );
-		return *this;
+		
+		return GColour(r, g, b, a);
 	}
 };
 

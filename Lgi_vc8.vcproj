@@ -916,6 +916,18 @@
 						>
 					</File>
 				</Filter>
+				<Filter
+					Name="Growl"
+					>
+					<File
+						RelativePath=".\src\common\General\GGrowl.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\include\common\GGrowl.h"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="Text"
