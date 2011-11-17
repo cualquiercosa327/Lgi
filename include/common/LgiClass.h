@@ -214,6 +214,8 @@ public:
 	bool IsContextMenu();
 };
 
+#include "GAutoPtr.h"
+
 /// Holds information pertaining to an application
 class GAppInfo
 {

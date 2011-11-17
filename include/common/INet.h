@@ -14,6 +14,7 @@
 #include "LgiNetInc.h"
 #include "GStream.h"
 #include "LgiInterfaces.h"
+#include "GString.h"
 
 #if defined WIN32
 
