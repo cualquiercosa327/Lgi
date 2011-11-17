@@ -1557,6 +1557,11 @@ char *LgiFindFile(const char *Name)
 	{
 		char Exe[256];
 		
+		if (strlen(Name) > 200)
+		{
+			int asd=0;
+		}
+		
 		#ifndef MAC
 		LgiGetExePath(Exe, sizeof(Exe));
 		#else
@@ -1618,14 +1623,19 @@ char *LgiFindFile(const char *Name)
 			{
 				LgiMakePath(Path, sizeof(Path), *Pref, Name);
 			}
+			int PathLen = strlen(Path);
+			LgiAssert(PathLen < sizeof(Path));
 
 			if (FileExists(Path))
 				return NewStr(Path);
 
 			#ifdef WIN32
-			strcat(Path, ".lnk");
-			if (ResolveShortcut(Path, Path, sizeof(Path)))
-				return NewStr(Path);
+			if (PathLen < sizeof(Path) - 4)
+			{
+				strcat(Path, ".lnk");
+				if (ResolveShortcut(Path, Path, sizeof(Path)))
+					return NewStr(Path);
+			}
 			#endif
 		}
 
