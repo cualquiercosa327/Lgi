@@ -14,6 +14,7 @@
 #include <string.h>
 #include "GContainers.h"
 #include "LgiClass.h"
+#include "GString.h"
 
 #define OBJ_NULL		0
 #define OBJ_INT			1

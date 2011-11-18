@@ -360,6 +360,12 @@ bool GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 	{
 		int Photometric = 0;
 		int Inkset = 0;
+		int Samples = 0;
+		int BitsPerSample = 0;
+		int Planar = 0;
+		Lib->TIFFGetField(tif, TIFFTAG_PLANARCONFIG, &Planar);
+		Lib->TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &BitsPerSample);
+		Lib->TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &Samples);
 		Lib->TIFFGetField(tif, TIFFTAG_PHOTOMETRIC, &Photometric);
 		Lib->TIFFGetField(tif, TIFFTAG_INKSET, &Inkset);
 
