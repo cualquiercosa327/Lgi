@@ -1780,8 +1780,9 @@ static GArray<GViewFactory*> *AllFactories;
 GViewFactory::GViewFactory()
 {
 	#if defined(MAC)
-	LgiGetExeFile(FactoryFile, sizeof(FactoryFile));
-	sprintf(FactoryFile+strlen(FactoryFile), "/FactoryFile.%i", getpid());
+	// This is a terrible way of doing it... but I don't have a better solution ATM. :(
+	LgiGetTempPath(FactoryFile, sizeof(FactoryFile));
+	sprintf(FactoryFile+strlen(FactoryFile), "/LgiFactoryFile.%i", getpid());
 	if (!FileExists(FactoryFile))
 	{
 		GFile file;

@@ -1,13 +1,13 @@
 // !$*UTF8*$!
 {
 	0867D690FE84028FC02AAC07 /* Project object */ = {
-		activeBuildConfigurationName = Debug;
+		activeBuildConfigurationName = Release;
 		activeTarget = 8DC2EF4F0486A6940098B216 /* Lgi */;
 		addToTargets = (
 			8DC2EF4F0486A6940098B216 /* Lgi */,
 		);
 		breakpoints = (
-			346792721399BC2400FF140B /* GApp.cpp:1016 */,
+			346792721399BC2400FF140B /* GApp.cpp:1018 */,
 			346792781399BCB900FF140B /* GGeneral.cpp:494 */,
 			3478603113D66955009E6968 /* GToolBar.cpp:1491 */,
 			3478603713D669D8009E6968 /* GToolBar.cpp:906 */,
@@ -84,7 +84,7 @@
 				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
 				PBXFileTableDataSourceColumnWidthsKey = (
 					20,
-					872,
+					803,
 					20,
 					93,
 					43,
@@ -175,7 +175,7 @@
 					PBXFileDataSource_Warnings_ColumnID,
 				);
 			};
-			PBXPerProjectTemplateStateSaveDate = 342913372;
+			PBXPerProjectTemplateStateSaveDate = 343600434;
 			PBXPrepackagedSmartGroups_v2 = (
 				{
 					PBXTransientLocationAtTop = bottom;
@@ -352,14 +352,15 @@
 					};
 				},
 			);
-			PBXWorkspaceStateSaveDate = 342913372;
+			PBXWorkspaceStateSaveDate = 343600434;
 		};
 		perUserProjectItems = {
-			344C2B52146BA9F80096A3D6 /* PBXTextBookmark */ = 344C2B52146BA9F80096A3D6 /* PBXTextBookmark */;
-			344E375514707E1800A7BFFF /* PBXTextBookmark */ = 344E375514707E1800A7BFFF /* PBXTextBookmark */;
-			344E378114707F3200A7BFFF /* PBXTextBookmark */ = 344E378114707F3200A7BFFF /* PBXTextBookmark */;
-			34F836AD14707152003434FB /* PBXTextBookmark */ = 34F836AD14707152003434FB /* PBXTextBookmark */;
-			34F836AE14707152003434FB /* PBXTextBookmark */ = 34F836AE14707152003434FB /* PBXTextBookmark */;
+			342ADF88147AEE5B00D85895 /* PBXTextBookmark */ = 342ADF88147AEE5B00D85895 /* PBXTextBookmark */;
+			344C2B52146BA9F80096A3D6 = 344C2B52146BA9F80096A3D6 /* PBXTextBookmark */;
+			344E375514707E1800A7BFFF = 344E375514707E1800A7BFFF /* PBXTextBookmark */;
+			344E378114707F3200A7BFFF = 344E378114707F3200A7BFFF /* PBXTextBookmark */;
+			34F836AD14707152003434FB = 34F836AD14707152003434FB /* PBXTextBookmark */;
+			34F836AE14707152003434FB = 34F836AE14707152003434FB /* PBXTextBookmark */;
 		};
 		sourceControlManager = 3465BDD608C5DEA700B4C217 /* Source Control */;
 		userBuildSettings = {
@@ -367,9 +368,9 @@
 	};
 	340BFC14096A0E0100A11AE6 /* LgiCommon.h */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {831, 3523}}";
-			sepNavSelRange = "{1172, 14}";
-			sepNavVisRange = "{291, 1965}";
+			sepNavIntBoundsRect = "{{0, 0}, {1095, 3497}}";
+			sepNavSelRange = "{3466, 54}";
+			sepNavVisRange = "{2486, 1555}";
 			sepNavVisRect = "{{0, 1598}, {818, 446}}";
 			sepNavWindowFrame = "{{61, 220}, {750, 558}}";
 		};
@@ -451,6 +452,16 @@
 			sepNavVisRange = "{10138, 1990}";
 			sepNavWindowFrame = "{{12, 48}, {1120, 730}}";
 		};
+	};
+	342ADF88147AEE5B00D85895 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 344AF39508E0476A004ED88C /* GApp.cpp */;
+		name = "GApp.cpp: 384";
+		rLen = 0;
+		rLoc = 7091;
+		rType = 0;
+		vrLen = 1126;
+		vrLoc = 6450;
 	};
 	342CE46111FDAB57000B1F3C /* LgiRes.h */ = {
 		uiCtxt = {
@@ -627,9 +638,9 @@
 	};
 	344AF39508E0476A004ED88C /* GApp.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1095, 13754}}";
-			sepNavSelRange = "{5323, 0}";
-			sepNavVisRange = "{5354, 1098}";
+			sepNavIntBoundsRect = "{{0, 0}, {1026, 13429}}";
+			sepNavSelRange = "{7091, 0}";
+			sepNavVisRange = "{6450, 1126}";
 			sepNavVisRect = "{{0, 6415}, {830, 456}}";
 			sepNavWindowFrame = "{{337, 145}, {750, 558}}";
 		};
@@ -724,9 +735,9 @@
 	};
 	344B737A08D8401600D49457 /* Lgi.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1095, 25155}}";
-			sepNavSelRange = "{9565, 0}";
-			sepNavVisRange = "{9036, 976}";
+			sepNavIntBoundsRect = "{{0, 0}, {1095, 24700}}";
+			sepNavSelRange = "{23555, 0}";
+			sepNavVisRange = "{23039, 991}";
 			sepNavVisRect = "{{0, 6538}, {830, 456}}";
 			sepNavWindowFrame = "{{200, 82}, {902, 696}}";
 		};
@@ -782,6 +793,11 @@
 		name = AEDataModel.h;
 		path = /Developer/SDKs/MacOSX10.5.sdk/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/AE.framework/Versions/A/Headers/AEDataModel.h;
 		sourceTree = "<absolute>";
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1195, 34177}}";
+			sepNavSelRange = "{6997, 17}";
+			sepNavVisRange = "{6170, 2216}";
+		};
 	};
 	344D1B0508F4A26300228075 /* GSlider.h */ = {
 		uiCtxt = {
@@ -958,7 +974,7 @@
 		fRef = 349330490F60CE440092EAE8 /* GViewCommon.cpp */;
 		name = "GViewCommon.cpp: 1813";
 		rLen = 0;
-		rLoc = 28954;
+		rLoc = 29043;
 		rType = 0;
 		vrLen = 1091;
 		vrLoc = 27903;
@@ -968,7 +984,7 @@
 		fRef = 349330490F60CE440092EAE8 /* GViewCommon.cpp */;
 		name = "GViewCommon.cpp: 1788";
 		rLen = 0;
-		rLoc = 28438;
+		rLoc = 28527;
 		rType = 0;
 		vrLen = 1259;
 		vrLoc = 27615;
@@ -1047,7 +1063,7 @@
 			sepNavVisRect = "{{0, 1471}, {973, 237}}";
 		};
 	};
-	346792721399BC2400FF140B /* GApp.cpp:1016 */ = {
+	346792721399BC2400FF140B /* GApp.cpp:1018 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -1059,7 +1075,7 @@
 		functionName = "GApp::GetFileMimeType(const char *File)";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 1016;
+		lineNumber = 1018;
 		location = Lgi;
 		modificationTime = 342176902.056904;
 		originalNumberOfMultipleMatches = 1;
@@ -1169,9 +1185,9 @@
 	};
 	349330490F60CE440092EAE8 /* GViewCommon.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1095, 23504}}";
-			sepNavSelRange = "{28438, 0}";
-			sepNavVisRange = "{27615, 1259}";
+			sepNavIntBoundsRect = "{{0, 0}, {1026, 23465}}";
+			sepNavSelRange = "{28327, 0}";
+			sepNavVisRange = "{27615, 1318}";
 			sepNavVisRect = "{{0, 5175}, {687, 445}}";
 			sepNavWindowFrame = "{{15, 43}, {1212, 730}}";
 		};
@@ -1212,9 +1228,9 @@
 	};
 	34983C1308F5482D0054868C /* GTextView3.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1095, 60749}}";
+			sepNavIntBoundsRect = "{{0, 0}, {1026, 60632}}";
 			sepNavSelRange = "{83666, 0}";
-			sepNavVisRange = "{83109, 832}";
+			sepNavVisRange = "{82981, 854}";
 			sepNavVisRect = "{{0, 14}, {830, 456}}";
 			sepNavWindowFrame = "{{15, 101}, {873, 672}}";
 		};
@@ -1668,7 +1684,7 @@
 		rLen = 0;
 		rLoc = 83666;
 		rType = 0;
-		vrLen = 787;
+		vrLen = 726;
 		vrLoc = 83109;
 	};
 	34F96DA90DB9B82B009C64B8 /* GDragAndDrop.h */ = {

@@ -363,6 +363,7 @@ pascal OSStatus AppProc(EventHandlerCallRef inHandlerCallRef, EventRef inEvent, 
 		{
 			switch (eventKind)
 			{
+				/*
 				case kEventAppGetDockTileMenu:
 				{
 					GSubMenu s;
@@ -380,6 +381,7 @@ pascal OSStatus AppProc(EventHandlerCallRef inHandlerCallRef, EventRef inEvent, 
 					result = noErr;
 					break;
 				}
+				*/
 				case kEventAppActivated:
 				case kEventAppFrontSwitched:
 				{
