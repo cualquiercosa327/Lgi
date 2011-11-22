@@ -1813,7 +1813,7 @@ GViewFactory::~GViewFactory()
 	{
 		DeleteObj(AllFactories);
 		#if defined(MAC)
-		FileDev->Delete(FactoryFile);
+		unlink(FactoryFile);
 		#elif defined(WINDOWS)
 		CloseHandle(FactoryEvent);
 		#endif
