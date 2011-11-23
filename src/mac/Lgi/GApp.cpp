@@ -363,25 +363,23 @@ pascal OSStatus AppProc(EventHandlerCallRef inHandlerCallRef, EventRef inEvent, 
 		{
 			switch (eventKind)
 			{
-				/*
 				case kEventAppGetDockTileMenu:
 				{
-					GSubMenu s;
-					s.AppendItem("First", 1, true);
-					s.AppendItem("Second", 2, true);
-					s.AppendItem("Third", 3, true);
-					
-					MenuRef gDockMenu = s.Release();
-
-					SetEventParameter(	inEvent,
-										kEventParamMenuRef,
-										typeMenuRef,
-										sizeof(MenuRef),
-										&gDockMenu);
-					result = noErr;
+					if (a->AppWnd)
+					{
+						GSubMenu s;
+						a->AppWnd->OnTrayMenu(s);
+						MenuRef gDockMenu = s.Release();
+						CFRetain(gDockMenu);
+						SetEventParameter(	inEvent,
+											kEventParamMenuRef,
+											typeMenuRef,
+											sizeof(MenuRef),
+											&gDockMenu);
+						result = noErr;
+					}
 					break;
 				}
-				*/
 				case kEventAppActivated:
 				case kEventAppFrontSwitched:
 				{

@@ -1332,7 +1332,12 @@ public:
 	virtual void OnZoom(GWindowZoom Action) {}
 	
 	/// Called when the tray icon is clicked. (if present)
-	virtual void OnTrayClick(GMouse &m) {}
+	virtual void OnTrayClick(GMouse &m);
+
+	/// Called when the tray icon menu is about to be displayed.
+	virtual void OnTrayMenu(GSubMenu &m) {}
+	/// Called when the tray icon menu item has been selected.
+	virtual void OnTrayMenuResult(int MenuId) {}
 	
 	/// Called when files are dropped on the window.
 	virtual void OnReceiveFiles(GArray<char*> &Files) {}
