@@ -358,7 +358,24 @@ pascal OSStatus AppProc(EventHandlerCallRef inHandlerCallRef, EventRef inEvent, 
 
 	switch (eventClass)
 	{
-
+		case kEventClassCommand:
+		{
+			switch (eventKind)
+			{
+				case kEventCommandProcess:
+				{
+					HICommand command;
+					result = GetEventParameter(inEvent, kEventParamDirectObject, typeHICommand, NULL, sizeof(command), NULL, &command);
+					if (result)
+						printf("%s:%i - GetEventParameter failed with %i\n", _FL, (int)result);
+					else if (a->AppWnd)
+					{
+						a->AppWnd->OnTrayMenuResult(command.commandID);
+					}
+				}
+			}
+			break;
+		}
 		case kEventClassApplication:
 		{
 			switch (eventKind)
@@ -542,6 +559,7 @@ GApp::GApp(const char *AppMime, OsAppArguments &AppArgs, GAppArguments *ObjArgs)
 		{ kEventClassApplication, kEventAppActivated },
 		{ kEventClassApplication, kEventAppFrontSwitched },
 		{ kEventClassApplication, kEventAppGetDockTileMenu },
+		{ kEventClassCommand, kEventCommandProcess },
 	};
 
 	EventHandlerRef Handler = 0;
