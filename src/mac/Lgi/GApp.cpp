@@ -251,13 +251,10 @@ public:
 	GSymLookup SymLookup;
 	GAutoString Mime;
 	GAutoString Name;
-	EventHandlerUPP AppEventUPP;
-	AEEventHandlerUPP AppleEventUPP;
+	GAutoString UrlArg;
 
 	GAppPrivate()
 	{
-		AppEventUPP = 0;
-		AppleEventUPP = 0;
 		FileSystem = 0;
 		GdcSystem = 0;
 		Config = 0;
@@ -267,8 +264,6 @@ public:
 
 	~GAppPrivate()
 	{
-		if (AppEventUPP)
-			DisposeEventHandlerUPP(AppEventUPP);
 		DeleteObj(SkinLib);
 		
 		for (void *p = MimeToApp.First(); p; p = MimeToApp.Next())
@@ -279,72 +274,6 @@ public:
 		}
 	}
 };
-
-pascal OSErr AppleEventProc(const AppleEvent *ae, AppleEvent *reply, SRefCon handlerRefcon)
-{
-	OSErr err = eventNotHandledErr;
-	GApp *App = (GApp*) handlerRefcon;
-
-    OSType aeID = typeWildCard;
-    OSType aeClass = typeWildCard;
-	
-	AEGetAttributePtr(ae, keyEventClassAttr, typeType, 0, &aeClass, sizeof(aeClass), 0);
-    AEGetAttributePtr(ae, keyEventIDAttr,    typeType, 0, &aeID,    sizeof(aeID), 0);
-	
-	uint32 id = LgiSwap32(aeID), cls = LgiSwap32(aeClass);
-	LgiTrace("AppleEvent received '%4.4s':'%4.4s'\n", &cls, &id);
-
-	if (aeClass == kInternetEventClass &&
-		aeID    == kAEGetURL)
-	{
-		DescType type;
-		Size dataSize = 0, size = 0;
-
-		err = AESizeOfParam(ae, keyDirectObject, &type, &dataSize);
-		if (err != noErr)
-			return err;
-
-		GAutoString Url(new char[dataSize + 1]);
-
-		err = AEGetParamPtr(ae, keyDirectObject, typeChar, &type, Url, dataSize, &size);
-		if (err != noErr)
-			return err;
-
-		Url[size] = 0;
-		App->OnUrl(Url);
-	}
-	else if (aeClass == kCoreEventClass &&
-			 aeID    == kAEOpenApplication)
-	{
-		AEDescList docs;
-		if (AEGetParamDesc(ae, keyDirectObject, typeAEList, &docs) == noErr)
-		{
-			long n = 0;
-			AECountItems(&docs, &n);
-
-			UInt8 strBuffer[256];
-			GArray<char*> Files;
-			GArray<GAutoString> Mem;
-			for (int i = 0; i < n; i++)
-			{
-				FSRef ref;
-				
-				if (AEGetNthPtr(&docs, i + 1, typeFSRef, 0, 0, &ref, sizeof(ref), 0) != noErr)
-					continue;
-					
-				if (FSRefMakePath(&ref, strBuffer, 256) == noErr)
-				{
-					Mem[i].Reset(NewStr((char*)strBuffer));
-					Files[i] = Mem[i].Get();
-				}
-			}
-
-			App->OnReceiveFiles(Files);
-		}
-	}
-	
-	return err;
-}
 
 pascal OSStatus AppProc(EventHandlerCallRef inHandlerCallRef, EventRef inEvent, void *inUserData)
 {
@@ -444,6 +373,80 @@ pascal OSStatus AppProc(EventHandlerCallRef inHandlerCallRef, EventRef inEvent, 
 	return result;
 }
 
+pascal OSErr AppleEventProc(const AppleEvent *ae, AppleEvent *reply, SRefCon handlerRefcon)
+{
+	OSErr err = eventNotHandledErr;
+	GApp *App = (GApp*) handlerRefcon;
+
+	LgiTrace("AppleEvent received\n");
+
+    OSType aeID = typeWildCard;
+    OSType aeClass = typeWildCard;
+	
+	AEGetAttributePtr(ae, keyEventClassAttr, typeType, 0, &aeClass, sizeof(aeClass), 0);
+    AEGetAttributePtr(ae, keyEventIDAttr,    typeType, 0, &aeID,    sizeof(aeID), 0);
+	
+	uint32 id = LgiSwap32(aeID), cls = LgiSwap32(aeClass);
+
+	if (aeClass == kInternetEventClass &&
+		aeID    == kAEGetURL)
+	{
+		DescType type;
+		Size dataSize = 0, size = 0;
+
+		err = AESizeOfParam(ae, keyDirectObject, &type, &dataSize);
+		if (err != noErr)
+			return err;
+
+		GAutoString Url(new char[dataSize + 1]);
+
+		err = AEGetParamPtr(ae, keyDirectObject, typeChar, &type, Url, dataSize, &size);
+		if (err != noErr)
+			return err;
+
+		Url[size] = 0;
+		App->OnUrl(Url);
+	}
+	else if (aeClass == kCoreEventClass &&
+			 aeID    == kAEOpenApplication)
+	{
+		AEDescList docs;
+		err = AEGetParamDesc(ae, keyDirectObject, typeAEList, &docs);
+		LgiTrace("%s:%i - AEGetParamDesc = %i\n", _FL, err);
+		if (err == noErr)
+		{
+			long n = 0;
+			AECountItems(&docs, &n);
+			LgiTrace("%s:%i - n = %i\n", _FL, n);
+
+			UInt8 strBuffer[256];
+			GArray<char*> Files;
+			GArray<GAutoString> Mem;
+			for (int i = 0; i < n; i++)
+			{
+				FSRef ref;
+				
+				err = AEGetNthPtr(&docs, i + 1, typeFSRef, 0, 0, &ref, sizeof(ref), 0);
+				LgiTrace("%s:%i - AEGetNthPtr = %i\n", _FL, err);
+				if (err != noErr)
+					continue;
+					
+				err = FSRefMakePath(&ref, strBuffer, 256);
+				LgiTrace("%s:%i - FSRefMakePath = %i\n", _FL, err);
+				if (err == noErr)
+				{
+					Mem[i].Reset(NewStr((char*)strBuffer));
+					Files[i] = Mem[i].Get();
+				}
+			}
+
+			if (Files.Length())
+				App->OnReceiveFiles(Files);
+		}
+	}
+	
+	return err;
+}
 
 /////////////////////////////////////////////////////////////////////////////
 GSkinEngine *GApp::SkinEngine = 0;
@@ -456,6 +459,7 @@ GApp::GApp(const char *AppMime, OsAppArguments &AppArgs, GAppArguments *ObjArgs)
 	TheApp = this;
 	d = new GAppPrivate;
 	d->Mime.Reset(NewStr(AppMime));
+	AppWnd = 0;
 
 	// Catch and ignore SIGPIPE
 	signal(SIGPIPE, OnSigPipe);
@@ -475,7 +479,6 @@ GApp::GApp(const char *AppMime, OsAppArguments &AppArgs, GAppArguments *ObjArgs)
 
 	srand(LgiCurrentTime());
 	LgiInitColours();
-	AppWnd = 0;
 
 	SetAppArgs(AppArgs);
 	MouseHook = new GMouseHook;
@@ -553,42 +556,39 @@ GApp::GApp(const char *AppMime, OsAppArguments &AppArgs, GAppArguments *ObjArgs)
 		}
 	}
 	
+	OSStatus e;
+	
+	// Setup apple event handlers
+	e = AEInstallEventHandler(	kInternetEventClass,
+								kAEGetURL,
+								NewAEEventHandlerUPP(AppleEventProc),
+								(SRefCon)this,
+								false);
+	if (e) LgiTrace("%s:%i - AEInstallEventHandler = %i\n", _FL, e);
+	e = AEInstallEventHandler(	kCoreEventClass,
+								kAEOpenApplication,
+								NewAEEventHandlerUPP(AppleEventProc),
+								(SRefCon)this,
+								false);
+	LgiTrace("%s:%i - AEInstallEventHandler = %i\n", _FL, e);
+
+	#if 1
 	// Setup application handler
 	EventTypeSpec	AppEvents[] =
 	{
-		{ kEventClassApplication, kEventAppActivated },
-		{ kEventClassApplication, kEventAppFrontSwitched },
+		{ kEventClassApplication, kEventAppActivated       },
+		{ kEventClassApplication, kEventAppFrontSwitched   },
 		{ kEventClassApplication, kEventAppGetDockTileMenu },
-		{ kEventClassCommand, kEventCommandProcess },
+		{ kEventClassCommand,     kEventCommandProcess     },
 	};
 
 	EventHandlerRef Handler = 0;
-	OSStatus e =	InstallApplicationEventHandler(
-						d->AppEventUPP = NewEventHandlerUPP(AppProc),
-						GetEventTypeCount(AppEvents), AppEvents,
-						(void*)this, &Handler);
+	e =	InstallApplicationEventHandler(	NewEventHandlerUPP(AppProc),
+										GetEventTypeCount(AppEvents),
+										AppEvents,
+										(void*)this, &Handler);
 	if (e) LgiTrace("%s:%i - InstallEventHandler for app failed (%i)\n", _FL, e);
-	
-	// Setup apple event handlers
-	d->AppleEventUPP = NewAEEventHandlerUPP(AppleEventProc);
-	/*
-	e = AEInstallEventHandler(	kCoreEventClass,
-								kAEOpenApplication,
-								d->AppleEventUPP,
-								(SRefCon)this,
-								false);
-	e = AEInstallEventHandler(	kCoreEventClass,
-								kAEReopenApplication,
-								d->AppleEventUPP,
-								(SRefCon)this,
-								false);
-								*/
-	e = AEInstallEventHandler(	kInternetEventClass,
-								kAEGetURL,
-								d->AppleEventUPP,
-								(SRefCon)this,
-								false);
-	if (e) LgiTrace("%s:%i - AEInstallEventHandler failed (%i)\n", _FL, e);
+	#endif
 }
 
 GApp::~GApp()
@@ -840,6 +840,8 @@ void GApp::OnUrl(const char *Url)
 {
 	if (AppWnd)
 		AppWnd->OnUrl(Url);
+	else
+		d->UrlArg.Reset(NewStr(Url));
 }
 
 void GApp::OnReceiveFiles(GArray<char*> &Files)
