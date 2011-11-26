@@ -415,13 +415,13 @@ bool SystemFunctions::Tokenize(GVariant *Ret, ArgumentArray &Args)
 bool SystemFunctions::NewHashTable(GVariant *Ret, ArgumentArray &Args)
 {
 	bool CaseSen = Args.Length() == 1 ? Args[0]->CastInt32() != 0 : true;
-	Ret->SetHashTable(new GHashTable(0, CaseSen));
+	Ret->SetHashTable(new GHashTable(0, CaseSen), false);
 	return true;
 }
 
 bool SystemFunctions::NewList(GVariant *Ret, ArgumentArray &Args)
 {
-	Ret->SetList(new List<GVariant>);
+	Ret->SetList(0);
 	return true;
 }
 

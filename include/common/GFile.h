@@ -468,7 +468,7 @@ LgiFunc int SizeofStr(char *s);
 LgiFunc char *ReadTextFile(char *File);
 LgiFunc bool LgiTrimDir(char *Path);
 LgiFunc bool LgiIsRelativePath(const char *Path);
-LgiFunc char *LgiMakeRelativePath(char *Base, char *Path);
+LgiClass GAutoString LgiMakeRelativePath(char *Base, char *Path);
 LgiFunc bool LgiMakePath(char *Str, int StrBufLen, const char *Dir, const char *File);
 LgiFunc char *LgiGetExtension(const char *File);
 LgiFunc bool LgiIsFileNameExecutable(char *FileName);

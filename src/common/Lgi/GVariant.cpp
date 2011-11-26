@@ -528,7 +528,7 @@ bool GVariant::SetHashTable(GHashTable *Table, bool Copy)
 	Empty();
 	Type = GV_HASHTABLE;
 
-	if (Copy AND Table)
+	if (Copy && Table)
 	{
 		if (Value.Hash = new GHashTable)
 		{
@@ -682,7 +682,7 @@ void GVariant::Empty()
 
 bool GVariant::IsInt()
 {
-	return Type == GV_INT32 OR Type == GV_INT64;
+	return Type == GV_INT32 || Type == GV_INT64;
 }
 
 bool GVariant::IsBool()
@@ -710,7 +710,7 @@ bool GVariant::IsNull()
 	return Type == GV_NULL;
 }
 
-#define IsList() (Type == GV_LIST AND Value.Lst)
+#define IsList() (Type == GV_LIST && Value.Lst)
 
 GVariant &GVariant::Cast(GVariantType NewType)
 {
@@ -1067,20 +1067,20 @@ GDom *GDom::ResolveObject(const char *Var, char *Name, char *Array)
 
 	// Tokenise the string
 	GArray<char*> t;
-	for (const char *s = Var; s AND *s; )
+	for (const char *s = Var; s && *s; )
 	{
 		const char *e = s;
-		while (*e AND *e != '.')
+		while (*e && *e != '.')
 		{
 			if (*e == '[')
 			{
 				e++;
-				while (*e AND *e != ']')
+				while (*e && *e != ']')
 				{
-					if (*e == '\"' OR *e == '\'')
+					if (*e == '\"' || *e == '\'')
 					{
 						char d = *e++;
-						while (*e AND *e != d)
+						while (*e && *e != d)
 						{
 							e++;
 						}
@@ -1094,7 +1094,7 @@ GDom *GDom::ResolveObject(const char *Var, char *Name, char *Array)
 		}
 		
 		int Len = e - s;
-		if (Len < 1 OR Len > 255)
+		if (Len < 1 || Len > 255)
 		{
 			Object = 0;
 			break;
@@ -1155,7 +1155,7 @@ GDom *GDom::ResolveObject(const char *Var, char *Name, char *Array)
 			strcpy(Array, Index);
 			
 			char *e = Name + strlen(Name) - 1;
-			while (e > Name AND strchr(" \t\r\n", *e))
+			while (e > Name && strchr(" \t\r\n", *e))
 			{
 				*e-- = 0;
 			}
@@ -1171,7 +1171,7 @@ GDom *GDom::ResolveObject(const char *Var, char *Name, char *Array)
 					{
 						int N = atoi(Index);
 						GVariant *Element = v.Value.Lst->ItemAt(N);
-						if (Element AND Element->Type == GV_DOM)
+						if (Element && Element->Type == GV_DOM)
 						{
 							Object = Element->Value.Dom;
 						}
@@ -1199,7 +1199,7 @@ GDom *GDom::ResolveObject(const char *Var, char *Name, char *Array)
 			}
 			else
 			{
-				if (Object->GetVariant(Obj, v) AND
+				if (Object->GetVariant(Obj, v) &&
 					v.Type == GV_DOM)
 				{
 					Object = v.Value.Dom;

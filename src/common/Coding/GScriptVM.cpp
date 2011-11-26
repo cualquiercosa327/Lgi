@@ -7,6 +7,8 @@
 #define TIME_INSTRUCTIONS		0
 #define POST_EXECUTE_STATE		0
 
+// #define BREAK_POINT				0x00000107
+
 enum DateTimeParts
 {
 	DateNone,
@@ -578,6 +580,13 @@ public:
 			#if TIME_INSTRUCTIONS
 			uint8 TimedOpCode = *c.u8;
 			QueryPerformanceCounter(&start);
+			#endif
+			
+			#if defined(WIN32) && defined(BREAK_POINT)
+			if (c.u8 - Base == BREAK_POINT)
+			{
+				_asm int 3
+			}
 			#endif
 
 			switch (*c.u8++)

@@ -589,11 +589,11 @@ bool LgiTrimDir(char *Path)
 	return false;
 }
 
-char *LgiMakeRelativePath(char *Base, char *Path)
+GAutoString LgiMakeRelativePath(char *Base, char *Path)
 {
 	GStringPipe Status;
 
-	if (Base AND Path)
+	if (Base && Path)
 	{
 		#ifdef WIN32
 		bool SameNs = strnicmp(Base, Path, 3) == 0;
@@ -605,7 +605,7 @@ char *LgiMakeRelativePath(char *Base, char *Path)
 			GToken b(Base + 1, ":" DIR_STR);
 			GToken p(Path + 1, ":" DIR_STR);
 			int Same = 0;
-			while (b[Same] AND p[Same] AND stricmp(b[Same], p[Same]) == 0)
+			while (b[Same] && p[Same] && stricmp(b[Same], p[Same]) == 0)
 			{
 				Same++;
 			}
@@ -630,7 +630,7 @@ char *LgiMakeRelativePath(char *Base, char *Path)
 		}
 	}
 
-	return Status.NewStr();
+	return GAutoString(Status.NewStr());
 }
 
 bool LgiIsRelativePath(const char *Path)
