@@ -132,9 +132,33 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdS
 
 #else
 
+pascal OSErr TestProc(const AppleEvent *ae, AppleEvent *reply, SRefCon handlerRefcon)
+{
+	OSErr err = eventNotHandledErr;
+	LgiTrace("TestEvent called\n");
+	return err;
+}
+
 int main(int Args, char **Arg)
 {
 	int Status = 0;
+	
+	#ifdef MAC
+	LgiTrace("Args=%i\n", Args);
+	for (int i=0; i<Args; i++)
+		LgiTrace("\t[%i]='%s'\n", i, Arg[i]);
+	
+	OSStatus e;
+	
+	// Setup apple event handlers
+	e = AEInstallEventHandler(	kInternetEventClass,
+								kAEGetURL,
+								NewAEEventHandlerUPP(TestProc),
+								0,
+								false);
+	if (e) LgiTrace("%s:%i - AEInstallEventHandler = %i\n", _FL, e);
+	#endif
+	
 	if (_BuildCheck())
 	{
 		OsAppArguments AppArgs(Args, Arg);

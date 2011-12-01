@@ -486,7 +486,7 @@ GGraph::Style GGraph::GetStyle()
     return d->Style;
 }
 
-static enum Msg
+enum Msg
 {
     IDM_LINE = 100,
     IDM_POINT,

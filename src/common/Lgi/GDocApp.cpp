@@ -159,7 +159,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////////////////////////
 template <typename OptionsFmt>
-GDocApp<OptionsFmt>::GDocApp(char *appname, TCHAR *icon, char *optsname)
+GDocApp<OptionsFmt>::GDocApp(const char *appname, TCHAR *icon, char *optsname)
 {
 	Options = 0;
 	_LangOptsName = 0;

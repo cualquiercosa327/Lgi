@@ -1,0 +1,422 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 42;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		342D774A11FA4929005BADBD /* LgiMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 342D774911FA4929005BADBD /* LgiMain.cpp */; };
+		3444A35712275B75004ADADE /* Lgi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3444A35612275B75004ADADE /* Lgi.framework */; };
+		3444A35912275B7B004ADADE /* Lgi.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3444A35612275B75004ADADE /* Lgi.framework */; };
+		34F3E972148730DA009D9AC5 /* LgiRes_ControlTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34F3E966148730DA009D9AC5 /* LgiRes_ControlTree.cpp */; };
+		34F3E973148730DA009D9AC5 /* LgiRes_Dialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34F3E967148730DA009D9AC5 /* LgiRes_Dialog.cpp */; };
+		34F3E974148730DA009D9AC5 /* LgiRes_Menu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34F3E969148730DA009D9AC5 /* LgiRes_Menu.cpp */; };
+		34F3E975148730DA009D9AC5 /* LgiRes_String.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34F3E96B148730DA009D9AC5 /* LgiRes_String.cpp */; };
+		34F3E976148730DA009D9AC5 /* LgiRes_TableLayout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34F3E96D148730DA009D9AC5 /* LgiRes_TableLayout.cpp */; };
+		34F3E977148730DA009D9AC5 /* LgiResApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34F3E96E148730DA009D9AC5 /* LgiResApp.cpp */; };
+		34F3E978148730DA009D9AC5 /* Search.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34F3E970148730DA009D9AC5 /* Search.cpp */; };
+		34F3E979148730DA009D9AC5 /* ShowLanguages.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34F3E971148730DA009D9AC5 /* ShowLanguages.cpp */; };
+		34F3E97D148730F7009D9AC5 /* GAbout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34F3E97C148730F7009D9AC5 /* GAbout.cpp */; };
+		34F3EA4014873111009D9AC5 /* GDocApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34F3EA3F14873111009D9AC5 /* GDocApp.cpp */; };
+		34F3EA5814873137009D9AC5 /* lgires.lr8 in Resources */ = {isa = PBXBuildFile; fileRef = 34F3EA5714873137009D9AC5 /* lgires.lr8 */; };
+		34F3EA5E14873146009D9AC5 /* _about.gif in Resources */ = {isa = PBXBuildFile; fileRef = 34F3EA5914873146009D9AC5 /* _about.gif */; };
+		34F3EA5F14873146009D9AC5 /* _DialogIcons.gif in Resources */ = {isa = PBXBuildFile; fileRef = 34F3EA5A14873146009D9AC5 /* _DialogIcons.gif */; };
+		34F3EA6014873146009D9AC5 /* _Icons.gif in Resources */ = {isa = PBXBuildFile; fileRef = 34F3EA5B14873146009D9AC5 /* _Icons.gif */; };
+		34F3EA6114873146009D9AC5 /* _MenuIcons.gif in Resources */ = {isa = PBXBuildFile; fileRef = 34F3EA5C14873146009D9AC5 /* _MenuIcons.gif */; };
+		34F3EA6214873146009D9AC5 /* _StringIcons.gif in Resources */ = {isa = PBXBuildFile; fileRef = 34F3EA5D14873146009D9AC5 /* _StringIcons.gif */; };
+		34F3EA651487315E009D9AC5 /* Gif.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34F3EA631487315E009D9AC5 /* Gif.cpp */; };
+		34F3EA661487315E009D9AC5 /* Lzw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34F3EA641487315E009D9AC5 /* Lzw.cpp */; };
+		34F3EA77148732FA009D9AC5 /* mac-icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 34F3EA76148732FA009D9AC5 /* mac-icon.icns */; };
+		8D0C4E8D0486CD37000505A6 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0867D6AAFE840B52C02AAC07 /* InfoPlist.strings */; };
+		8D0C4E8E0486CD37000505A6 /* main.nib in Resources */ = {isa = PBXBuildFile; fileRef = 02345980000FD03B11CA0E72 /* main.nib */; };
+		8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20286C33FDCF999611CA2CEA /* Carbon.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		34EFB74D0C295A2A0053C935 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				3444A35912275B7B004ADADE /* Lgi.framework in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		0867D6ABFE840B52C02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		1870340FFE93FCAF11CA0CD7 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/main.nib; sourceTree = "<group>"; };
+		20286C33FDCF999611CA2CEA /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
+		32DBCF6D0370B57F00C91783 /* LgiRes_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LgiRes_Prefix.pch; sourceTree = "<group>"; };
+		342D774911FA4929005BADBD /* LgiMain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiMain.cpp; path = ../src/common/Lgi/LgiMain.cpp; sourceTree = SOURCE_ROOT; };
+		3444A35612275B75004ADADE /* Lgi.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Lgi.framework; path = ../build/Debug/Lgi.framework; sourceTree = SOURCE_ROOT; };
+		34F3E966148730DA009D9AC5 /* LgiRes_ControlTree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiRes_ControlTree.cpp; path = Code/LgiRes_ControlTree.cpp; sourceTree = "<group>"; };
+		34F3E967148730DA009D9AC5 /* LgiRes_Dialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiRes_Dialog.cpp; path = Code/LgiRes_Dialog.cpp; sourceTree = "<group>"; };
+		34F3E968148730DA009D9AC5 /* LgiRes_Dialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LgiRes_Dialog.h; path = Code/LgiRes_Dialog.h; sourceTree = "<group>"; };
+		34F3E969148730DA009D9AC5 /* LgiRes_Menu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiRes_Menu.cpp; path = Code/LgiRes_Menu.cpp; sourceTree = "<group>"; };
+		34F3E96A148730DA009D9AC5 /* LgiRes_Menu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LgiRes_Menu.h; path = Code/LgiRes_Menu.h; sourceTree = "<group>"; };
+		34F3E96B148730DA009D9AC5 /* LgiRes_String.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiRes_String.cpp; path = Code/LgiRes_String.cpp; sourceTree = "<group>"; };
+		34F3E96C148730DA009D9AC5 /* LgiRes_String.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LgiRes_String.h; path = Code/LgiRes_String.h; sourceTree = "<group>"; };
+		34F3E96D148730DA009D9AC5 /* LgiRes_TableLayout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiRes_TableLayout.cpp; path = Code/LgiRes_TableLayout.cpp; sourceTree = "<group>"; };
+		34F3E96E148730DA009D9AC5 /* LgiResApp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiResApp.cpp; path = Code/LgiResApp.cpp; sourceTree = "<group>"; };
+		34F3E96F148730DA009D9AC5 /* LgiResEdit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LgiResEdit.h; path = Code/LgiResEdit.h; sourceTree = "<group>"; };
+		34F3E970148730DA009D9AC5 /* Search.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Search.cpp; path = Code/Search.cpp; sourceTree = "<group>"; };
+		34F3E971148730DA009D9AC5 /* ShowLanguages.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ShowLanguages.cpp; path = Code/ShowLanguages.cpp; sourceTree = "<group>"; };
+		34F3E97C148730F7009D9AC5 /* GAbout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GAbout.cpp; path = ../src/common/Lgi/GAbout.cpp; sourceTree = SOURCE_ROOT; };
+		34F3EA3F14873111009D9AC5 /* GDocApp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GDocApp.cpp; path = ../src/common/Lgi/GDocApp.cpp; sourceTree = SOURCE_ROOT; };
+		34F3EA5714873137009D9AC5 /* lgires.lr8 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = lgires.lr8; path = Code/lgires.lr8; sourceTree = "<group>"; };
+		34F3EA5914873146009D9AC5 /* _about.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = _about.gif; path = Code/_about.gif; sourceTree = "<group>"; };
+		34F3EA5A14873146009D9AC5 /* _DialogIcons.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = _DialogIcons.gif; path = Code/_DialogIcons.gif; sourceTree = "<group>"; };
+		34F3EA5B14873146009D9AC5 /* _Icons.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = _Icons.gif; path = Code/_Icons.gif; sourceTree = "<group>"; };
+		34F3EA5C14873146009D9AC5 /* _MenuIcons.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = _MenuIcons.gif; path = Code/_MenuIcons.gif; sourceTree = "<group>"; };
+		34F3EA5D14873146009D9AC5 /* _StringIcons.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = _StringIcons.gif; path = Code/_StringIcons.gif; sourceTree = "<group>"; };
+		34F3EA631487315E009D9AC5 /* Gif.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Gif.cpp; path = ../src/common/Gdc2/Filters/Gif.cpp; sourceTree = SOURCE_ROOT; };
+		34F3EA641487315E009D9AC5 /* Lzw.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Lzw.cpp; path = ../src/common/Gdc2/Filters/Lzw.cpp; sourceTree = SOURCE_ROOT; };
+		34F3EA76148732FA009D9AC5 /* mac-icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "mac-icon.icns"; path = "Code/mac-icon.icns"; sourceTree = "<group>"; };
+		4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
+		4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
+		8D0C4E960486CD37000505A6 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		8D0C4E970486CD37000505A6 /* LgiRes.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LgiRes.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		8D0C4E910486CD37000505A6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */,
+				3444A35712275B75004ADADE /* Lgi.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		195DF8CFFE9D517E11CA2CBB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				8D0C4E970486CD37000505A6 /* LgiRes.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		20286C29FDCF999611CA2CEA /* i.Ftp */ = {
+			isa = PBXGroup;
+			children = (
+				20286C2AFDCF999611CA2CEA /* Sources */,
+				20286C2CFDCF999611CA2CEA /* Resources */,
+				20286C32FDCF999611CA2CEA /* External Frameworks and Libraries */,
+				195DF8CFFE9D517E11CA2CBB /* Products */,
+			);
+			name = i.Ftp;
+			sourceTree = "<group>";
+		};
+		20286C2AFDCF999611CA2CEA /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				34F3E966148730DA009D9AC5 /* LgiRes_ControlTree.cpp */,
+				34F3E967148730DA009D9AC5 /* LgiRes_Dialog.cpp */,
+				34F3E968148730DA009D9AC5 /* LgiRes_Dialog.h */,
+				34F3E969148730DA009D9AC5 /* LgiRes_Menu.cpp */,
+				34F3E96A148730DA009D9AC5 /* LgiRes_Menu.h */,
+				34F3E96B148730DA009D9AC5 /* LgiRes_String.cpp */,
+				34F3E96C148730DA009D9AC5 /* LgiRes_String.h */,
+				34F3E96D148730DA009D9AC5 /* LgiRes_TableLayout.cpp */,
+				34F3E96E148730DA009D9AC5 /* LgiResApp.cpp */,
+				34F3E96F148730DA009D9AC5 /* LgiResEdit.h */,
+				34F3E970148730DA009D9AC5 /* Search.cpp */,
+				34F3E971148730DA009D9AC5 /* ShowLanguages.cpp */,
+				34B7EA6B0A64B4DE00657E69 /* Lgi */,
+				32DBCF6D0370B57F00C91783 /* LgiRes_Prefix.pch */,
+			);
+			name = Sources;
+			sourceTree = "<group>";
+		};
+		20286C2CFDCF999611CA2CEA /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				34F3EA76148732FA009D9AC5 /* mac-icon.icns */,
+				34F3EA5914873146009D9AC5 /* _about.gif */,
+				34F3EA5A14873146009D9AC5 /* _DialogIcons.gif */,
+				34F3EA5B14873146009D9AC5 /* _Icons.gif */,
+				34F3EA5C14873146009D9AC5 /* _MenuIcons.gif */,
+				34F3EA5D14873146009D9AC5 /* _StringIcons.gif */,
+				34F3EA5714873137009D9AC5 /* lgires.lr8 */,
+				8D0C4E960486CD37000505A6 /* Info.plist */,
+				0867D6AAFE840B52C02AAC07 /* InfoPlist.strings */,
+				02345980000FD03B11CA0E72 /* main.nib */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		20286C32FDCF999611CA2CEA /* External Frameworks and Libraries */ = {
+			isa = PBXGroup;
+			children = (
+				3444A35612275B75004ADADE /* Lgi.framework */,
+				20286C33FDCF999611CA2CEA /* Carbon.framework */,
+				4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */,
+				4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */,
+			);
+			name = "External Frameworks and Libraries";
+			sourceTree = "<group>";
+		};
+		34B7EA6B0A64B4DE00657E69 /* Lgi */ = {
+			isa = PBXGroup;
+			children = (
+				34F3EA631487315E009D9AC5 /* Gif.cpp */,
+				34F3EA641487315E009D9AC5 /* Lzw.cpp */,
+				34F3EA3F14873111009D9AC5 /* GDocApp.cpp */,
+				34F3E97C148730F7009D9AC5 /* GAbout.cpp */,
+				342D774911FA4929005BADBD /* LgiMain.cpp */,
+			);
+			name = Lgi;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		8D0C4E890486CD37000505A6 /* LgiRes */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 34BA95030B33B2BB00493CD3 /* Build configuration list for PBXNativeTarget "LgiRes" */;
+			buildPhases = (
+				8D0C4E8C0486CD37000505A6 /* Resources */,
+				8D0C4E8F0486CD37000505A6 /* Sources */,
+				8D0C4E910486CD37000505A6 /* Frameworks */,
+				34EFB74D0C295A2A0053C935 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LgiRes;
+			productInstallPath = "$(HOME)/Applications";
+			productName = i.Ftp;
+			productReference = 8D0C4E970486CD37000505A6 /* LgiRes.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		20286C28FDCF999611CA2CEA /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = 34BA95070B33B2BB00493CD3 /* Build configuration list for PBXProject "LgiRes" */;
+			compatibilityVersion = "Xcode 2.4";
+			developmentRegion = English;
+			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
+			mainGroup = 20286C29FDCF999611CA2CEA /* i.Ftp */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				8D0C4E890486CD37000505A6 /* LgiRes */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		8D0C4E8C0486CD37000505A6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8D0C4E8D0486CD37000505A6 /* InfoPlist.strings in Resources */,
+				8D0C4E8E0486CD37000505A6 /* main.nib in Resources */,
+				34F3EA5814873137009D9AC5 /* lgires.lr8 in Resources */,
+				34F3EA5E14873146009D9AC5 /* _about.gif in Resources */,
+				34F3EA5F14873146009D9AC5 /* _DialogIcons.gif in Resources */,
+				34F3EA6014873146009D9AC5 /* _Icons.gif in Resources */,
+				34F3EA6114873146009D9AC5 /* _MenuIcons.gif in Resources */,
+				34F3EA6214873146009D9AC5 /* _StringIcons.gif in Resources */,
+				34F3EA77148732FA009D9AC5 /* mac-icon.icns in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		8D0C4E8F0486CD37000505A6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				342D774A11FA4929005BADBD /* LgiMain.cpp in Sources */,
+				34F3E972148730DA009D9AC5 /* LgiRes_ControlTree.cpp in Sources */,
+				34F3E973148730DA009D9AC5 /* LgiRes_Dialog.cpp in Sources */,
+				34F3E974148730DA009D9AC5 /* LgiRes_Menu.cpp in Sources */,
+				34F3E975148730DA009D9AC5 /* LgiRes_String.cpp in Sources */,
+				34F3E976148730DA009D9AC5 /* LgiRes_TableLayout.cpp in Sources */,
+				34F3E977148730DA009D9AC5 /* LgiResApp.cpp in Sources */,
+				34F3E978148730DA009D9AC5 /* Search.cpp in Sources */,
+				34F3E979148730DA009D9AC5 /* ShowLanguages.cpp in Sources */,
+				34F3E97D148730F7009D9AC5 /* GAbout.cpp in Sources */,
+				34F3EA4014873111009D9AC5 /* GDocApp.cpp in Sources */,
+				34F3EA651487315E009D9AC5 /* Gif.cpp in Sources */,
+				34F3EA661487315E009D9AC5 /* Lzw.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		02345980000FD03B11CA0E72 /* main.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				1870340FFE93FCAF11CA0CD7 /* English */,
+			);
+			name = main.nib;
+			sourceTree = "<group>";
+		};
+		0867D6AAFE840B52C02AAC07 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				0867D6ABFE840B52C02AAC07 /* English */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		34BA95040B33B2BB00493CD3 /* Development */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = ../build/Debug;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = LgiRes_Prefix.pch;
+				GCC_PREPROCESSOR_DEFINITIONS = MAC;
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
+				);
+				PRODUCT_NAME = LgiRes;
+				WRAPPER_EXTENSION = app;
+			};
+			name = Development;
+		};
+		34BA95050B33B2BB00493CD3 /* Deployment */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				FRAMEWORK_SEARCH_PATHS = ../build/Release;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = LgiRes_Prefix.pch;
+				GCC_PREPROCESSOR_DEFINITIONS = MAC;
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
+				);
+				PRODUCT_NAME = LgiRes;
+				WRAPPER_EXTENSION = app;
+			};
+			name = Deployment;
+		};
+		34BA95060B33B2BB00493CD3 /* Default */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					/Users/matthew/Code/Lgi/build,
+					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_1)",
+					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_2)",
+					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_3)",
+					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_4)",
+					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
+					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_2)",
+					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_3)",
+					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_4)",
+					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_5)",
+				);
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = i.Ftp_Prefix.pch;
+				GCC_PREPROCESSOR_DEFINITIONS = MAC;
+				HEADER_SEARCH_PATHS = (
+					/Users/matthew/Code/Lgi/include/mac,
+					/Users/matthew/Code/Lgi/include/common,
+				);
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_2)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
+				);
+				PRODUCT_NAME = LgiRes;
+				WRAPPER_EXTENSION = app;
+			};
+			name = Default;
+		};
+		34BA95080B33B2BB00493CD3 /* Development */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = ../build/Debug;
+				OTHER_CFLAGS = (
+					"-DMAC",
+					"-D_DEBUG",
+				);
+				USER_HEADER_SEARCH_PATHS = "../include/mac ../include/common";
+			};
+			name = Development;
+		};
+		34BA95090B33B2BB00493CD3 /* Deployment */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = ../build/Release;
+				OTHER_CFLAGS = "-DMAC";
+				USER_HEADER_SEARCH_PATHS = "../include/mac ../include/common";
+			};
+			name = Deployment;
+		};
+		34BA950A0B33B2BB00493CD3 /* Default */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				USER_HEADER_SEARCH_PATHS = "../include/mac ../include/common";
+			};
+			name = Default;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		34BA95030B33B2BB00493CD3 /* Build configuration list for PBXNativeTarget "LgiRes" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				34BA95040B33B2BB00493CD3 /* Development */,
+				34BA95050B33B2BB00493CD3 /* Deployment */,
+				34BA95060B33B2BB00493CD3 /* Default */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Default;
+		};
+		34BA95070B33B2BB00493CD3 /* Build configuration list for PBXProject "LgiRes" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				34BA95080B33B2BB00493CD3 /* Development */,
+				34BA95090B33B2BB00493CD3 /* Deployment */,
+				34BA950A0B33B2BB00493CD3 /* Default */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Default;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 20286C28FDCF999611CA2CEA /* Project object */;
+}

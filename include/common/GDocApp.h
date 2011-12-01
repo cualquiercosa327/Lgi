@@ -60,7 +60,7 @@ public:
 	GDocApp
 	(
 		/// The name of the application
-		char *appname = 0,
+		const char *appname = 0,
 		/// [Optional] The icon resource for the window.
 		TCHAR *icon = 0,
 		/// Options file base name..
