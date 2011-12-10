@@ -13,7 +13,7 @@ public:
 	~GIccProfile();
 
 	// I/O
-	bool CreateNamed(char *name);
+	bool CreateNamed(const char *name);
 	bool Open(char *file);
 	bool Open(GStream *stream);
 	bool Save(char *file);

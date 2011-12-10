@@ -4,6 +4,7 @@
 #if defined(LINUX)||defined(MAC)
 #include <dlfcn.h>
 #endif
+#include "GToken.h"
 
 GLibrary::GLibrary(const char *File)
 {
@@ -11,7 +12,7 @@ GLibrary::GLibrary(const char *File)
 	hLib = 0;
 	if (File)
 	{
-		Load(File);
+		Load(File);	
 	}
 }
 
@@ -92,9 +93,32 @@ bool GLibrary::Load(const char *File)
 				hLib = dlopen(FileName, RTLD_NOW);
 				if (!hLib)
 				{
-					char *e = dlerror();
-					if (!stristr(e, "No such file or directory"))
-						printf("GLibrary::Load(\"%s\") failed.\n\t%s\n", File, e);
+					GToken t("/opt/local/lib", ":");
+					printf("DYLD_LIBRARY_PATH=%i paths\n", t.Length());
+					for (int i=0; i<t.Length(); i++)
+					{
+						char full[MAX_PATH];
+						LgiMakePath(full, sizeof(full), t[i], f);
+						if (FileExists(full))
+						{
+							hLib = dlopen(full, RTLD_NOW);
+							printf("dlopen(%s)=%p\n", full, hLib);
+							if (hLib)
+								break;
+						}
+						else
+						{
+							printf("%s doesn't exist\n", full);
+						}
+
+					}
+
+					if (!hLib)
+					{
+						char *e = dlerror();
+						if (!stristr(e, "No such file or directory"))
+							printf("GLibrary::Load(\"%s\") failed.\n\t%s\n", File, e);
+					}
 				}
 			}
 

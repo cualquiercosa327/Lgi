@@ -284,38 +284,38 @@ class ValueDom : public GDom
 	char *Txt;
 
 public:
-	ValueDom(uint32 i, char *name)
+	ValueDom(uint32 i, const char *name)
 	{
 		char s[256];
 		uint32 is = i;
-		sprintf(s, "%s: %i (%04.4s)", name, Swap32(i), &is);
+		sprintf(s, "%s: %i (%4.4s)", name, Swap32(i), (char*)&is);
 		Txt = NewStr(s);
 	}
 
-	ValueDom(IccProfileClass i, char *name)
+	ValueDom(IccProfileClass i, const char *name)
 	{
 		char s[256];
 		uint32 is = i;
-		sprintf(s, "%s: %i (%04.4s)", name, Swap32(i), &is);
+		sprintf(s, "%s: %i (%4.4s)", name, Swap32(i), (char*)&is);
 		Txt = NewStr(s);
 	}
 
-	ValueDom(IccColourSpace i, char *name)
+	ValueDom(IccColourSpace i, const char *name)
 	{
 		char s[256];
 		uint32 is = i;
-		sprintf(s, "%s: %i (%04.4s)", name, Swap32(i), &is);
+		sprintf(s, "%s: %i (%4.4s)", name, Swap32(i), (char*)&is);
 		Txt = NewStr(s);
 	}	
 
-	ValueDom(uint16 i, char *name)
+	ValueDom(uint16 i, const char *name)
 	{
 		char s[256];
 		sprintf(s, "%s: %i", name, Swap16(i));
 		Txt = NewStr(s);
 	}
 
-	ValueDom(char *str, char *name)
+	ValueDom(const char *str, const char *name)
 	{
 		char s[256] = "(error)";
 		if (name AND str)
@@ -327,7 +327,7 @@ public:
 		Txt = NewStr(s);
 	}
 
-	ValueDom(IccDateTime &d, char *name)
+	ValueDom(IccDateTime &d, const char *name)
 	{
 		char s[256];
 		sprintf(s, "%s: %i/%i/%i %i:%i:%i", name,
@@ -395,7 +395,7 @@ public:
 			DeleteArray(u);
 
 			char s[512];
-			sprintf(s, "'%02.2s' = '%s'", &Str->Lang, u8);
+			sprintf(s, "'%2.2s' = '%s'", (char*)&Str->Lang, u8);
 			Value = "Localized Unicode";
 		}
 		else return false;
@@ -778,7 +778,7 @@ bool TagDom::GetVariant(const char *Name, GVariant &Value, char *Array)
 	else if (stricmp(Name, "Text") == 0)
 	{
 		char s[256];
-		sprintf(s, "Tag '%04.4s'", &h->Sig);
+		sprintf(s, "Tag '%4.4s'", (char*)&h->Sig);
 		Value = s;
 	}
 	else if (stricmp(Name, "Expand") == 0)
@@ -925,7 +925,7 @@ public:
 		return false;
 	}
 
-	void SetErr(char *e)
+	void SetErr(const char *e)
 	{
 		DeleteArray(Err);
 		Err = NewStr(e);
@@ -943,7 +943,7 @@ GIccProfile::~GIccProfile()
 	DeleteObj(d);
 }
 
-bool GIccProfile::CreateNamed(char *name)
+bool GIccProfile::CreateNamed(const char *name)
 {
 	if (name)
 	{

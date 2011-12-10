@@ -12,6 +12,59 @@
 #include "Lgi.h"
 #if HAS_LIBJPEG
 
+#define XMD_H
+#undef FAR
+
+//
+// 'jpeglib.h' comes from libjpeg available here:
+// http://freshmeat.net/projects/libjpeg
+//
+// If you don't want to build with JPEG support then set
+// the define HAS_LIBJPEG to '0' in Lgi.h
+//
+#include "jpeglib.h"
+#include <setjmp.h>
+
+// JPEG
+class GdcJpegPriv : public GLibrary
+{
+public:
+	GdcJpegPriv() :
+		#if defined(WIN32) && defined(_DEBUG)
+		GLibrary("libjpegd")
+		#else
+		GLibrary("libjpeg")
+		#endif
+	{
+		#if 0
+		char File[256];
+		GetModuleFileName(Handle(), File, sizeof(File));
+		LgiTrace("%s:%i - JPEG: %s\n", _FL, File);
+		#endif
+	}
+
+	DynFunc1(boolean, jpeg_finish_decompress, j_decompress_ptr, cinfo);
+	DynFunc3(JDIMENSION, jpeg_read_scanlines, j_decompress_ptr, cinfo, JSAMPARRAY, scanlines, JDIMENSION, max_lines);
+	DynFunc1(boolean, jpeg_start_decompress, j_decompress_ptr, cinfo);
+	DynFunc2(int, jpeg_read_header, j_decompress_ptr, cinfo, boolean, require_image);
+	DynFunc2(int, jpeg_stdio_src, j_decompress_ptr, cinfo, FILE*, infile);
+	DynFunc1(int, jpeg_destroy_decompress, j_decompress_ptr, cinfo);
+	DynFunc1(int, jpeg_finish_compress, j_compress_ptr, cinfo);
+	DynFunc1(int, jpeg_destroy_compress, j_compress_ptr, cinfo);
+	DynFunc3(JDIMENSION, jpeg_write_scanlines, j_compress_ptr, cinfo, JSAMPARRAY, scanlines, JDIMENSION, num_lines);
+	DynFunc2(int, jpeg_start_compress, j_compress_ptr, cinfo, boolean, write_all_tables);
+	DynFunc1(int, jpeg_set_defaults, j_compress_ptr, cinfo);
+	DynFunc1(struct jpeg_error_mgr *, jpeg_std_error, struct jpeg_error_mgr *, err);
+	DynFunc2(int, jpeg_stdio_dest, j_compress_ptr, cinfo, FILE *, outfile);
+	DynFunc3(int, jpeg_CreateCompress, j_compress_ptr, cinfo, int, version, size_t, structsize);
+	DynFunc3(int, jpeg_CreateDecompress, j_decompress_ptr, cinfo, int, version, size_t, structsize);
+	DynFunc3(int, jpeg_set_quality, j_compress_ptr, cinfo, int, quality, boolean, force_baseline);
+
+	DynFunc3(int, jpeg_save_markers, j_decompress_ptr, cinfo, int, marker_code, unsigned int, length_limit);
+
+};
+
+
 #include <stdio.h>
 #include <string.h>
 
@@ -208,7 +261,7 @@ void j_init_source(j_decompress_ptr cinfo)
 
 void j_skip_input_data(j_decompress_ptr cinfo, long num_bytes)
 {
-    JpegStream *s = (JpegStream*)cinfo->client_data;
+    // JpegStream *s = (JpegStream*)cinfo->client_data;
     
     while (num_bytes)
     {
@@ -238,11 +291,21 @@ void j_term_source(j_decompress_ptr cinfo)
     s->Buf.Length(0);
 }
 
+GdcJpeg::GdcJpeg()
+{
+	d = new GdcJpegPriv;
+}
+
+GdcJpeg::~GdcJpeg()
+{
+	DeleteObj(d);
+}
+
 bool GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 {
 	bool Status = false;
 	GVariant v;
-	if (!IsLoaded())
+	if (!d->IsLoaded())
 	{
 		if (Props)
 			Props->SetValue(LGI_FILTER_ERROR, v = "libjpeg library isn't installed or wasn't usable.");
@@ -285,7 +348,7 @@ bool GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 	*/
 	
 	ZeroObj(cinfo);
-	cinfo.err = jpeg_std_error(&jerr.pub);
+	cinfo.err = d->jpeg_std_error(&jerr.pub);
 	jerr.pub.error_exit = my_error_exit;
 	cinfo.client_data = &s;
 
@@ -295,11 +358,11 @@ bool GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 		char File[MAX_PATH];
 		GetModuleFileName(Handle(), File, sizeof(File));
 		*/
-		jpeg_destroy_decompress(&cinfo);
+		d->jpeg_destroy_decompress(&cinfo);
 		return 0;
 	}
 
-	jpeg_create_decompress(&cinfo);
+	d->jpeg_create_decompress(&cinfo);
 	jpeg_source_mgr Source;
 	ZeroObj(Source);
 	cinfo.src = &Source;
@@ -309,13 +372,13 @@ bool GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
     cinfo.src->resync_to_restart = j_resync_to_restart;
     cinfo.src->term_source = j_term_source;
 
-	jpeg_save_markers
+	d->jpeg_save_markers
 	(
 		&cinfo,
 		IJG_JPEG_ICC_MARKER,
 		IJG_JPEG_APP_ICC_PROFILE_LEN
 	);
-	jpeg_read_header(&cinfo, true);
+	d->jpeg_read_header(&cinfo, true);
 	
 	uchar *icc_data = 0;
 	uint icc_len = 0;
@@ -367,7 +430,7 @@ bool GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 		}
 
 		// setup decompress
-		jpeg_start_decompress(&cinfo);
+		d->jpeg_start_decompress(&cinfo);
 		row_stride = cinfo.output_width * cinfo.output_components;
 
 		#define Rc 0
@@ -435,7 +498,7 @@ bool GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 				uchar *Ptr = (*pDC)[cinfo.output_scanline];
 				if (Ptr)
 				{
-					if (jpeg_read_scanlines(&cinfo, &Ptr, 1))
+					if (d->jpeg_read_scanlines(&cinfo, &Ptr, 1))
 					{
 						switch (cinfo.jpeg_color_space)
 						{
@@ -580,12 +643,12 @@ bool GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 		DeleteArray(blue);
 		DeleteArray(range_table);
 
-		jpeg_finish_decompress(&cinfo);
+		d->jpeg_finish_decompress(&cinfo);
 
 		Status = true;
 	}
 
-	jpeg_destroy_decompress(&cinfo);
+	d->jpeg_destroy_decompress(&cinfo);
 
 	return Status;
 }
@@ -602,7 +665,7 @@ boolean j_empty_output_buffer(j_compress_ptr cinfo)
 {
 	JpegStream *Stream = (JpegStream*)cinfo->client_data;
 
-	int w = Stream->f->Write(&Stream->Buf[0], Stream->Buf.Length());
+	Stream->f->Write(&Stream->Buf[0], Stream->Buf.Length());
 	cinfo->dest->next_output_byte = &Stream->Buf[0];
 	cinfo->dest->free_in_buffer = Stream->Buf.Length();
 
@@ -613,21 +676,21 @@ void j_term_destination(j_compress_ptr cinfo)
 {
 	JpegStream *Stream = (JpegStream*)cinfo->client_data;
 	int Bytes = Stream->Buf.Length() - cinfo->dest->free_in_buffer;
-	int w = Stream->f->Write(&Stream->Buf[0], Bytes);
+	Stream->f->Write(&Stream->Buf[0], Bytes);
 }
 
 bool GdcJpeg::WriteImage(GStream *Out, GSurface *pDC)
 {
-	bool Status = FALSE;
+	// bool Status = FALSE;
 	GVariant v;
-	if (!IsLoaded())
+	if (!d->IsLoaded())
 	{
 		if (Props)
 			Props->SetValue(LGI_FILTER_ERROR, v = "libjpeg library isn't installed or wasn't usable.");
 		return false;
 	}
 
-	bool Ok = true;
+	// bool Ok = true;
 
 	// Setup quality setting
 	GVariant Quality;
@@ -643,13 +706,13 @@ bool GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality)
 	struct my_error_mgr jerr;
 
 	int row_stride;
-	cinfo.err = jpeg_std_error(&jerr.pub);
-	jpeg_create_compress(&cinfo);
+	cinfo.err = d->jpeg_std_error(&jerr.pub);
+	d->jpeg_create_compress(&cinfo);
 	jerr.pub.error_exit = my_error_exit;
 
 	if (setjmp(jerr.setjmp_buffer))
 	{
-		jpeg_destroy_compress(&cinfo);
+		d->jpeg_destroy_compress(&cinfo);
 		return 0;
 	}
 
@@ -703,14 +766,14 @@ bool GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality)
 		cinfo.in_color_space = JCS_RGB;
 	}
 
-	jpeg_set_defaults(&cinfo);
+	d->jpeg_set_defaults(&cinfo);
 	
 	if (Quality >= 0)
 	{
-		jpeg_set_quality(&cinfo, Quality, true);
+		d->jpeg_set_quality(&cinfo, Quality, true);
 	}
 
-	jpeg_start_compress(&cinfo, true);
+	d->jpeg_start_compress(&cinfo, true);
 
 	row_stride = pDC->X() * cinfo.input_components;
 	uchar *Buffer = new uchar[row_stride];
@@ -726,7 +789,7 @@ bool GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality)
 		// Write
 		while (cinfo.next_scanline < cinfo.image_height)
 		{
-			uchar *d = Buffer;
+			uchar *dst = Buffer;
 
 			switch (pDC->GetBits())
 			{
@@ -744,9 +807,9 @@ bool GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality)
 							for (int x=0; x<pDC->X(); x++)
 							{
 								COLOUR c = pDC->Get(x, cinfo.next_scanline);
-								*d++ = p[c].R;
-								*d++ = p[c].G;
-								*d++ = p[c].B;
+								*dst++ = p[c].R;
+								*dst++ = p[c].G;
+								*dst++ = p[c].B;
 							}
 						}
 					}
@@ -757,9 +820,9 @@ bool GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality)
 					for (int x=0; x<pDC->X(); x++)
 					{
 						COLOUR c = pDC->Get(x, cinfo.next_scanline);
-						*d++ = (R16(c) << 3) | (R16(c) >> 5);
-						*d++ = (G16(c) << 2) | (G16(c) >> 6);
-						*d++ = (B16(c) << 3) | (B16(c) >> 5);
+						*dst++ = (R16(c) << 3) | (R16(c) >> 5);
+						*dst++ = (G16(c) << 2) | (G16(c) >> 6);
+						*dst++ = (B16(c) << 3) | (B16(c) >> 5);
 					}
 					break;
 				}
@@ -768,9 +831,9 @@ bool GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality)
 					for (int x=0; x<pDC->X(); x++)
 					{
 						COLOUR c = pDC->Get(x, cinfo.next_scanline);
-						*d++ = R24(c);
-						*d++ = G24(c);
-						*d++ = B24(c);
+						*dst++ = R24(c);
+						*dst++ = G24(c);
+						*dst++ = B24(c);
 					}
 					break;
 				}
@@ -779,23 +842,23 @@ bool GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality)
 					for (int x=0; x<pDC->X(); x++)
 					{
 						COLOUR c = pDC->Get(x, cinfo.next_scanline);
-						*d++ = R32(c);
-						*d++ = G32(c);
-						*d++ = B32(c);
+						*dst++ = R32(c);
+						*dst++ = G32(c);
+						*dst++ = B32(c);
 					}
 					break;
 				}
 			}
 
-			jpeg_write_scanlines(&cinfo, &Buffer, 1);
+			d->jpeg_write_scanlines(&cinfo, &Buffer, 1);
 			if (Meter) Meter->Value(cinfo.next_scanline);
 		}
 
 		DeleteArray(Buffer);
 	}
 
-	jpeg_finish_compress(&cinfo);
-	jpeg_destroy_compress(&cinfo);
+	d->jpeg_finish_compress(&cinfo);
+	d->jpeg_destroy_compress(&cinfo);
 
 	return true;
 }

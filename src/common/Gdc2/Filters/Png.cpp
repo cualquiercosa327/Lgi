@@ -268,13 +268,13 @@ public:
     DynFunc4(   int,
                 png_set_PLTE,
                 png_structp, png_ptr, png_infop, info_ptr,
-                png_const_colorp, palette, int, num_palette);
+                png_colorp, palette, int, num_palette);
 
     DynFunc5(   int,
                 png_set_tRNS,
-                png_structp, png_ptr, png_infop, info_ptr,
-                png_const_bytep, trans_alpha, int, num_trans,
-                png_const_color_16p, trans_color);
+                png_structp, png_ptr,
+				png_infop, info_ptr, png_bytep, trans_alpha, int, num_trans,
+				png_color_16p, trans_color);
 };
 
 static LibPng *CurrentLibPng = 0;

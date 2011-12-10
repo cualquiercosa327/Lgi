@@ -62,7 +62,7 @@ public:
 		/// The name of the application
 		const char *appname = 0,
 		/// [Optional] The icon resource for the window.
-		TCHAR *icon = 0,
+		const TCHAR *icon = 0,
 		/// Options file base name..
 		char *optsname = 0
 

@@ -290,7 +290,7 @@ GMessage::Result GMru::OnEvent(GMessage *Msg)
 	return false;
 }
 
-bool GMru::Serialize(GDom *Store, char *Prefix, bool Write)
+bool GMru::Serialize(GDom *Store, const char *Prefix, bool Write)
 {
 	bool Status = false;
 	GVariant v;

@@ -27,7 +27,7 @@ public:
 	/// Sets the 'ith' radio button to on.
 	void Value(int64 i);
 	/// Adds a radio button to the group.
-	GRadioButton *Append(int x, int y, char *name);
+	GRadioButton *Append(int x, int y, const char *name);
 
 	// Impl
 	int OnNotify(GViewI *Ctrl, int Flags);

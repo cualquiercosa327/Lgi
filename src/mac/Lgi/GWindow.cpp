@@ -736,9 +736,14 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 							}
 							result = noErr;
 						}
+						else if (command.commandID == kHICommandHide)
+						{
+							
+						}
 						else
 						{
 							w->OnCommand(command.commandID, 0, 0);
+							result = noErr;
 						}
 					}
 				}

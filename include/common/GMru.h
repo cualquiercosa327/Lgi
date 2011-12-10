@@ -33,7 +33,7 @@ public:
 	void OnCommand(int Cmd);
 
 	// Serialization
-	bool Serialize(GDom *Store, char *Prefix, bool Write);
+	bool Serialize(GDom *Store, const char *Prefix, bool Write);
 	// bool Serialize(ObjProperties *Store, char *Prefix, bool Write);
 
 	// Events

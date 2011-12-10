@@ -159,6 +159,8 @@ public:
 			e = AECountItems(&r.selection, &len);
 			if (!e)
 			{
+				Files.DeleteArrays();
+
 				for (int i=0; i<len; i++)
 				{
 					FSRef fs;
@@ -188,7 +190,6 @@ public:
 						
 						if (!e)
 						{
-							Files.DeleteArrays();
 							Files.Insert(NewStr((char*)path));
 						}
 					}

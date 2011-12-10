@@ -178,7 +178,7 @@ void GRadioGroup::OnPaint(GSurface *pDC)
 	}
 }
 
-GRadioButton *GRadioGroup::Append(int x, int y, char *name)
+GRadioButton *GRadioGroup::Append(int x, int y, const char *name)
 {
 	GRadioButton *But = new GRadioButton(d->NextId++, x, y, -1, -1, name);
 	if (But)

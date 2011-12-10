@@ -378,6 +378,8 @@ pascal OSErr AppleEventProc(const AppleEvent *ae, AppleEvent *reply, SRefCon han
 	OSErr err = eventNotHandledErr;
 	GApp *App = (GApp*) handlerRefcon;
 
+	printf("********** AppleEventProc called ***************\n");
+	#if 0
 	LgiTrace("AppleEvent received\n");
 
     OSType aeID = typeWildCard;
@@ -444,6 +446,7 @@ pascal OSErr AppleEventProc(const AppleEvent *ae, AppleEvent *reply, SRefCon han
 				App->OnReceiveFiles(Files);
 		}
 	}
+	#endif
 	
 	return err;
 }
@@ -564,6 +567,8 @@ GApp::GApp(const char *AppMime, OsAppArguments &AppArgs, GAppArguments *ObjArgs)
 								NewAEEventHandlerUPP(AppleEventProc),
 								(SRefCon)this,
 								false);
+	printf("AEInstallEventHandler(kInternetEventClass, kAEGetURL, ...)=%i\n", (int)e);
+	/*
 	if (e) LgiTrace("%s:%i - AEInstallEventHandler = %i\n", _FL, e);
 	e = AEInstallEventHandler(	kCoreEventClass,
 								kAEOpenApplication,
@@ -571,6 +576,7 @@ GApp::GApp(const char *AppMime, OsAppArguments &AppArgs, GAppArguments *ObjArgs)
 								(SRefCon)this,
 								false);
 	LgiTrace("%s:%i - AEInstallEventHandler = %i\n", _FL, e);
+	*/
 
 	#if 1
 	// Setup application handler
