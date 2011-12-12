@@ -509,7 +509,7 @@ GStreamI *GMime::GetData(bool Detach)
 	return Ds;
 }
 
-bool GMime::SetData(GStreamI *d, int Pos, int Size, GSemaphore *l)
+bool GMime::SetData(bool OwnStream, GStreamI *d, int Pos, int Size, GSemaphore *l)
 {
 	if (DataStore && Lock())
 	{
@@ -519,6 +519,7 @@ bool GMime::SetData(GStreamI *d, int Pos, int Size, GSemaphore *l)
 
 	if (d)
 	{
+		OwnDataStore = OwnStream;
 		DataPos = Pos;
 		DataSize = Size >= 0 ? Size : d->GetSize();
 		DataLock = l;

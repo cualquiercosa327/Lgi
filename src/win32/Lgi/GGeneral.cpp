@@ -864,7 +864,7 @@ void _lgi_assert(bool b, const char *test, const char *file, int line)
 		GAlert a(0, "Assert Failed", Msg, "Abort", "Debug", "Ignore");
 		switch (a.DoModal())
 		{
-			default:
+			case 1:
 			{
 				exit(-1);
 				break;

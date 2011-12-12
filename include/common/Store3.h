@@ -251,7 +251,7 @@ public:
 	/// is deleted, so if it returns false, stop using the ptr you
 	/// have to it.
 	/// \returns true if successful.
-	virtual bool Save(GDataI *Parent = 0) = 0;
+	virtual Store3Status Save(GDataI *Parent = 0) = 0;
 	/// Delete the on disk representation of the object. This will cause GDataEventsI::OnDelete
 	/// to be called after which this object will be freed from heap memory automatically. So
 	/// Once you call this method assume the object pointed at is gone.

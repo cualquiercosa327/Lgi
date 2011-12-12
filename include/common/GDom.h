@@ -17,7 +17,7 @@ class LgiClass GDom : virtual public GDomI
 {
 	friend class GScriptEval;
 	friend class GScriptEnginePrivate;
-	friend class GDomRef;
+	friend struct GDomRef;
 	friend class GVirtualMachinePriv;
 
 protected:

@@ -150,7 +150,6 @@ public:
 				p.Write(In, r);
 			}
 			GAutoString Resp(p.NewStr());
-			LgiTrace("Resp=%s\n", Resp.Get());
 		}
 		
 		return true;
