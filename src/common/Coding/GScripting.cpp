@@ -604,7 +604,7 @@ public:
 	bool ToVar(GVariant &v, char16 *s);
 	bool Require(int &Cur, const char *tok);
 	bool Type(int &Cur, class GExternType &Type);
-	bool CallExtern(int &Cur, uint32 &ReturnValue, class GExternFunc *Func);
+	bool CallExtern(int &Cur, uint32 &ReturnValue, struct GExternFunc *Func);
 
 	// Dom addressing
 	bool CreateDomAddr(int &Cur, GDomAddr &Addr);

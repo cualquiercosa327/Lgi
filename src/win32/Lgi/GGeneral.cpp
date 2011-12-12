@@ -731,7 +731,7 @@ char *GRegKey::GetStr(char *Name)
 	return 0;		
 }
 
-bool GRegKey::SetStr(char *Name, char *Value)
+bool GRegKey::SetStr(char *Name, const char *Value)
 {
 	return k AND RegSetValueEx(k, Name, 0, REG_SZ, (uchar*)Value, Value ? strlen(Value) : 0) == ERROR_SUCCESS;
 }

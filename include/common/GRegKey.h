@@ -33,7 +33,7 @@ public:
 		char *Name = 0
 	);
 	/// Sets a string value
-	bool SetStr(char *Name, char *Value);
+	bool SetStr(char *Name, const char *Value);
 	/// Get an int value
 	int GetInt(char *Name = 0);
 	/// Set an int value

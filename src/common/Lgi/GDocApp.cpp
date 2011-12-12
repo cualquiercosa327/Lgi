@@ -182,7 +182,7 @@ GDocApp<OptionsFmt>::GDocApp(const char *appname, const TCHAR *icon, char *optsn
 		{
 			#ifdef UNICODE
 			GPointer p;
-			p.w = icon;
+			p.w = (TCHAR*)icon;
 			if (p.i < 0x10000)
 			{
 				c->Class.w.hIcon = LoadIcon(LgiProcessInst(), MAKEINTRESOURCE(icon));
