@@ -153,6 +153,7 @@ public:
 				c.Insert(new GVariant((ResObject*)Ctrls[i]));
 			}
 			Value.SetList(&c);
+			c.DeleteObjects();
 		}
 		else if (stricmp(Name, "align") == 0)
 		{
