@@ -2361,7 +2361,7 @@ bool GTextView3::DoReplace()
 
 	Dlg.MatchWord = d->FindReplaceParams->MatchWord;
 	Dlg.MatchCase = d->FindReplaceParams->MatchCase;
-	Dlg.SelectionOnly = d->FindReplaceParams->SelectionOnly;
+	Dlg.SelectionOnly = HasSelection();
 
 	int Action = Dlg.DoModal();
 
@@ -3429,7 +3429,12 @@ bool GTextView3::OnKey(GKey &k)
 				if (GetReadOnly())
 					break;
 
-				if (k.Down())
+				if (k.Ctrl())
+				{
+				    // Ctrl+H
+				    int asd=0;
+				}
+				else if (k.Down())
 				{
 					if (SelStart >= 0)
 					{

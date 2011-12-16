@@ -191,6 +191,7 @@ void GReplaceDlg::OnCreate()
 	if (Replace) SetCtrlName(IDC_REPLACE_WITH, Replace);
 	SetCtrlValue(IDC_MATCH_WORD, MatchWord);
 	SetCtrlValue(IDC_MATCH_CASE, MatchCase);
+	SetCtrlValue(IDC_SELECTION_ONLY, SelectionOnly);
 }
 
 int GReplaceDlg::OnNotify(GViewI *Ctrl, int Flags)
