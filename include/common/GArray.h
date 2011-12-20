@@ -83,9 +83,9 @@ public:
 	}
 	
 	/// Makes the length fixed..
-	void SetFixedLength()
+	void SetFixedLength(bool fix = true)
 	{
-		fixed = true;
+		fixed = fix;
 	}
 
 	/// Sets the length of available entries
@@ -136,6 +136,13 @@ public:
 			{
 				// zero new elements
 				memset(p + len, 0, sizeof(Type) * (nalloc - len));
+			}
+			else if (i < len)
+			{
+				for (uint32 n=i; n<len; n++)
+				{
+					p[n].~Type();
+				}
 			}
 
 			len = i;

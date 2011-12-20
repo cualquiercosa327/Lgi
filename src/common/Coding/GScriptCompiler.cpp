@@ -2476,8 +2476,8 @@ GCompiledCode *GCompiler::Compile(GScriptContext *Context, char *FileName, char 
 	}
 
 	GCompiledCode *Status = d->Code;
+	Status->SetFileName(FileName);
 	d->Code = 0;
-
 	return Status;
 }
 

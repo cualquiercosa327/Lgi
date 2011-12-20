@@ -7,7 +7,7 @@
 #define TIME_INSTRUCTIONS		0
 #define POST_EXECUTE_STATE		0
 
-// #define BREAK_POINT				0x00000107
+// #define BREAK_POINT				0xEF
 
 enum DateTimeParts
 {
@@ -505,16 +505,30 @@ public:
 		uint8 *e = c.u8 + Code->ByteCode.Length();
 
 		#if 1
-		GAutoString DataPath = Context->GetDataFolder();
-		if (!DataPath)
+		const char *SourceFileName = Code->GetFileName();
+	    char Obj[MAX_PATH];
+		if (SourceFileName)
 		{
-			char p[256];
-			if (LgiGetSystemPath(LSP_APP_INSTALL, p, sizeof(p)))
-				DataPath.Reset(NewStr(p));
+		    strsafecpy(Obj, SourceFileName, sizeof(Obj));
+		    char *Ext = LgiGetExtension(Obj);
+		    if (Ext)
+		        strcpy(Ext, "asm");
+		    else
+		        strcat(Obj, ".asm");
+		}
+		else
+		{
+		    GAutoString DataPath = Context->GetDataFolder();
+		    if (!DataPath)
+		    {
+			    char p[256];
+			    if (LgiGetSystemPath(LSP_APP_INSTALL, p, sizeof(p)))
+				    DataPath.Reset(NewStr(p));
+		    }
+    		
+		    LgiMakePath(Obj, sizeof(Obj), DataPath, "Script.asm");
 		}
 		
-		char Obj[MAX_PATH];
-		LgiMakePath(Obj, sizeof(Obj), DataPath, "Script.asm");
 		{
 			GFile f;
 			if (f.Open(Obj, O_WRITE))
@@ -559,8 +573,10 @@ public:
 			Sf.ReturnValue = Ret;
 
 			int LocalsBase = Locals.Length();
+			Locals.SetFixedLength(false);
 			Locals.Length(LocalsBase + Frame);
 			Scope[1] = &Locals[LocalsBase];
+			Locals.SetFixedLength();
 
 			if (Args)
 			{
@@ -909,7 +925,9 @@ public:
 
 					// Increase the local stack size
 					int LocalsBase = Locals.Length();
+					Locals.SetFixedLength(false);
 					Locals.Length(LocalsBase + Frame);
+					Locals.SetFixedLength();
 
 					// Put the arguments of the function call into the local array
 					GArray<GVariant*> Arg;
@@ -955,6 +973,7 @@ public:
 
 						Frames.Length(Frames.Length()-1);
 						
+    					Locals.SetFixedLength(false);
 						if (Locals.Length() >= Sf.CurrentFrameSize)
 						{
 							Locals.Length(Locals.Length() - Sf.CurrentFrameSize);
@@ -965,6 +984,7 @@ public:
 							Locals.Length(0);
 							Scope[1] = 0;
 						}
+    					Locals.SetFixedLength();
 
 						c.u8 = Base + Sf.ReturnIp;
 					}
@@ -1592,7 +1612,7 @@ public:
 				}
 				*/
 			}
-
+			
 			#if TIME_INSTRUCTIONS
 			QueryPerformanceCounter(&end);
 			int Ticks = end.QuadPart - start.QuadPart;

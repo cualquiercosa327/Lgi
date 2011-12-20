@@ -317,6 +317,7 @@ class GCompiledCode
 	GArray< GAutoRefPtr<GFunctionInfo> > Methods;
 	GHashTbl<char16*, GTypeDef*> Types;
 	GHashTbl<int, int> Debug;
+	GAutoString FileName;
 
 public:
 	GCompiledCode();
@@ -332,6 +333,10 @@ public:
 	GVariant *Set(char *Name, GVariant &v);
 	/// Gets the definition of a struct or custom type
 	GTypeDef *GetType(char16 *Name) { return Types.Find(Name); }
+    /// Sets the file name this code was compiled from
+   	void SetFileName(const char *f) { FileName.Reset(NewStr(f)); }
+    /// Gets the file name this code was compiled from
+   	const char *GetFileName() { return FileName; }
 };
 
 class GCompileTools

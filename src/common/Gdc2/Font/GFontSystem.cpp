@@ -383,7 +383,15 @@ int GFontSystem::IconvConvert(const char *OutCs, GStreamI *Out, const char *InCs
 #elif HAS_ICONV
 
 	if (!HasIconv())
+	{
+	    static bool Warn = true;
+	    if (Warn)
+	    {
+	        Warn = false;
+	        LgiAssert(!"Iconv is not available");
+	    }
 		return 0;
+	}
 
 	iconv_t Conv;
 	if ((NativeInt)(Conv = d->libiconv_open(OutCs, InCs)) >= 0)
