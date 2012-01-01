@@ -1,7 +1,7 @@
 // !$*UTF8*$!
 {
 	20286C28FDCF999611CA2CEA /* Project object */ = {
-		activeBuildConfigurationName = Development;
+		activeBuildConfigurationName = Deployment;
 		activeExecutable = 34983C3608F549B40054868C /* LgiRes */;
 		activeTarget = 8D0C4E890486CD37000505A6 /* LgiRes */;
 		addToTargets = (
@@ -165,7 +165,7 @@
 					PBXFileDataSource_Warnings_ColumnID,
 				);
 			};
-			PBXPerProjectTemplateStateSaveDate = 344403809;
+			PBXPerProjectTemplateStateSaveDate = 347072849;
 			PBXPrepackagedSmartGroups_v2 = (
 				{
 					PBXTransientLocationAtTop = bottom;
@@ -342,7 +342,7 @@
 					};
 				},
 			);
-			PBXWorkspaceStateSaveDate = 344403809;
+			PBXWorkspaceStateSaveDate = 347072849;
 		};
 		sourceControlManager = 34983C4308F549D30054868C /* Source Control */;
 		userBuildSettings = {
@@ -385,7 +385,7 @@
 		ignoreCount = 0;
 		lineNumber = 465;
 		location = Lgi;
-		modificationTime = 344404255.601022;
+		modificationTime = 344404255.6010219;
 		originalNumberOfMultipleMatches = 1;
 		state = 2;
 	};
@@ -437,6 +437,13 @@
 	34983C4408F549D30054868C /* Code sense */ = {
 		isa = PBXCodeSenseManager;
 		indexTemplatePath = "";
+	};
+	34F3E966148730DA009D9AC5 /* LgiRes_ControlTree.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {872, 3926}}";
+			sepNavSelRange = "{1281, 0}";
+			sepNavVisRange = "{998, 218}";
+		};
 	};
 	34F3EA3F14873111009D9AC5 /* GDocApp.cpp */ = {
 		uiCtxt = {

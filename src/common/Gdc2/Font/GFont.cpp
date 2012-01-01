@@ -363,7 +363,7 @@ public:
 	}
 };
 
-GFont::GFont(char *face, int point)
+GFont::GFont(const char *face, int point)
 {
 	d = new GFontPrivate;
 	if (face AND point > 0)

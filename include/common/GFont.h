@@ -197,7 +197,7 @@ public:
 	GFont
 	(
 		/// Font face name
-		char *face = 0,
+		const char *face = 0,
 		/// Point size of the font
 		int point = -1
 	);

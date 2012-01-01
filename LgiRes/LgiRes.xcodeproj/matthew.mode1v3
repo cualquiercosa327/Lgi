@@ -227,6 +227,8 @@
 			<key>Layout</key>
 			<array>
 				<dict>
+					<key>BecomeActive</key>
+					<true/>
 					<key>ContentConfiguration</key>
 					<dict>
 						<key>PBXBottomSmartGroupGIDs</key>
@@ -262,9 +264,6 @@
 							<key>PBXSmartGroupTreeModuleOutlineStateExpansionKey</key>
 							<array>
 								<string>20286C29FDCF999611CA2CEA</string>
-								<string>20286C2AFDCF999611CA2CEA</string>
-								<string>34B7EA6B0A64B4DE00657E69</string>
-								<string>20286C2CFDCF999611CA2CEA</string>
 								<string>20286C32FDCF999611CA2CEA</string>
 								<string>195DF8CFFE9D517E11CA2CBB</string>
 								<string>1C37FBAC04509CD000000102</string>
@@ -274,13 +273,11 @@
 							<key>PBXSmartGroupTreeModuleOutlineStateSelectionKey</key>
 							<array>
 								<array>
-									<integer>29</integer>
-									<integer>21</integer>
 									<integer>0</integer>
 								</array>
 							</array>
 							<key>PBXSmartGroupTreeModuleOutlineStateVisibleRectKey</key>
-							<string>{{0, 156}, {193, 609}}</string>
+							<string>{{0, 0}, {193, 609}}</string>
 						</dict>
 						<key>PBXTopSmartGroupGIDs</key>
 						<array/>
@@ -299,7 +296,7 @@
 							<real>193</real>
 						</array>
 						<key>RubberWindowFrame</key>
-						<string>69 110 969 668 0 0 1280 778 </string>
+						<string>42 110 969 668 0 0 1280 778 </string>
 					</dict>
 					<key>Module</key>
 					<string>PBXSmartGroupTreeModule</string>
@@ -315,13 +312,15 @@
 								<key>PBXProjectModuleGUID</key>
 								<string>1CE0B20306471E060097A5F4</string>
 								<key>PBXProjectModuleLabel</key>
-								<string>&lt;No Editor&gt;</string>
+								<string>LgiRes_ControlTree.cpp</string>
 								<key>PBXSplitModuleInNavigatorKey</key>
 								<dict>
 									<key>Split0</key>
 									<dict>
 										<key>PBXProjectModuleGUID</key>
 										<string>1CE0B20406471E060097A5F4</string>
+										<key>PBXProjectModuleLabel</key>
+										<string>LgiRes_ControlTree.cpp</string>
 									</dict>
 									<key>SplitCount</key>
 									<string>1</string>
@@ -334,7 +333,7 @@
 								<key>Frame</key>
 								<string>{{0, 0}, {754, 0}}</string>
 								<key>RubberWindowFrame</key>
-								<string>69 110 969 668 0 0 1280 778 </string>
+								<string>42 110 969 668 0 0 1280 778 </string>
 							</dict>
 							<key>Module</key>
 							<string>PBXNavigatorGroup</string>
@@ -354,7 +353,7 @@
 								<key>Frame</key>
 								<string>{{0, 5}, {754, 622}}</string>
 								<key>RubberWindowFrame</key>
-								<string>69 110 969 668 0 0 1280 778 </string>
+								<string>42 110 969 668 0 0 1280 778 </string>
 							</dict>
 							<key>Module</key>
 							<string>XCDetailModule</string>
@@ -378,9 +377,9 @@
 			</array>
 			<key>TableOfContents</key>
 			<array>
-				<string>34F3EA4B14873124009D9AC5</string>
+				<string>3445971214AFEA0D00596868</string>
 				<string>1CE0B1FE06471DED0097A5F4</string>
-				<string>34F3EA4C14873124009D9AC5</string>
+				<string>3445971314AFEA0D00596868</string>
 				<string>1CE0B20306471E060097A5F4</string>
 				<string>1CE0B20506471E060097A5F4</string>
 			</array>
@@ -516,15 +515,11 @@
 	<integer>5</integer>
 	<key>WindowOrderList</key>
 	<array>
-		<string>34F3EA5514873124009D9AC5</string>
-		<string>34F3EA5614873124009D9AC5</string>
-		<string>1C78EAAD065D492600B07095</string>
-		<string>1CD10A99069EF8BA00B06720</string>
 		<string>34151CC813C7E99F00AB8A31</string>
 		<string>/Users/matthew/Code/Lgi/trunk/LgiRes/LgiRes.xcodeproj</string>
 	</array>
 	<key>WindowString</key>
-	<string>69 110 969 668 0 0 1280 778 </string>
+	<string>42 110 969 668 0 0 1280 778 </string>
 	<key>WindowToolsV3</key>
 	<array>
 		<dict>
@@ -562,8 +557,6 @@
 							<string>0pt</string>
 						</dict>
 						<dict>
-							<key>BecomeActive</key>
-							<true/>
 							<key>ContentConfiguration</key>
 							<dict>
 								<key>PBXProjectModuleGUID</key>
@@ -603,7 +596,7 @@
 			<key>TableOfContents</key>
 			<array>
 				<string>34151CC813C7E99F00AB8A31</string>
-				<string>34F3E965148730B2009D9AC5</string>
+				<string>3445970F14AFE9E000596868</string>
 				<string>1CD0528F0623707200166675</string>
 				<string>XCMainBuildResultsModuleGUID</string>
 			</array>

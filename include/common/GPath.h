@@ -53,7 +53,7 @@ public:
 		y = Y;
 	}
 
-	GPointF(GPointF &p)
+	GPointF(const GPointF &p)
 	{
 		x = p.x;
 		y = p.y;
@@ -293,7 +293,7 @@ class LgiClass GLinearBlendBrush : public GBlendBrush
 	void Rop(GRopArgs &Args);
 
 public:
-	GLinearBlendBrush(GPointF &a, GPointF &b, int stops = 0, GBlendStop *stop = 0) :
+	GLinearBlendBrush(GPointF a, GPointF b, int stops = 0, GBlendStop *stop = 0) :
 		GBlendBrush(stops, stop)
 	{
 		p[0] = a;

@@ -329,42 +329,6 @@
 			};
 			name = Deployment;
 		};
-		34BA95060B33B2BB00493CD3 /* Default */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = (
-					/Users/matthew/Code/Lgi/build,
-					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_1)",
-					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_2)",
-					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_3)",
-					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_4)",
-					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
-					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_2)",
-					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_3)",
-					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_4)",
-					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_5)",
-				);
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = i.Ftp_Prefix.pch;
-				GCC_PREPROCESSOR_DEFINITIONS = MAC;
-				HEADER_SEARCH_PATHS = (
-					/Users/matthew/Code/Lgi/include/mac,
-					/Users/matthew/Code/Lgi/include/common,
-				);
-				INFOPLIST_FILE = Info.plist;
-				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_2)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
-				);
-				PRODUCT_NAME = LgiRes;
-				WRAPPER_EXTENSION = app;
-			};
-			name = Default;
-		};
 		34BA95080B33B2BB00493CD3 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -386,13 +350,6 @@
 			};
 			name = Deployment;
 		};
-		34BA950A0B33B2BB00493CD3 /* Default */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				USER_HEADER_SEARCH_PATHS = "../include/mac ../include/common";
-			};
-			name = Default;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -401,20 +358,18 @@
 			buildConfigurations = (
 				34BA95040B33B2BB00493CD3 /* Development */,
 				34BA95050B33B2BB00493CD3 /* Deployment */,
-				34BA95060B33B2BB00493CD3 /* Default */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Default;
+			defaultConfigurationName = Development;
 		};
 		34BA95070B33B2BB00493CD3 /* Build configuration list for PBXProject "LgiRes" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				34BA95080B33B2BB00493CD3 /* Development */,
 				34BA95090B33B2BB00493CD3 /* Deployment */,
-				34BA950A0B33B2BB00493CD3 /* Default */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Default;
+			defaultConfigurationName = Development;
 		};
 /* End XCConfigurationList section */
 	};
