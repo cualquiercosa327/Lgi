@@ -296,7 +296,7 @@ int GTempStream::Write(const void *Buffer, int Size, int Flags)
 		if (Tmp = new GFile)
 		{
 			int64 Len = Mem->GetSize();
-			if (!Tmp->Open(c, O_WRITE | O_READ))
+			if (!Tmp->Open(c, O_READWRITE))
 			{
 				// Fallback to keeping stuff in memory
 				DeleteObj(Tmp);

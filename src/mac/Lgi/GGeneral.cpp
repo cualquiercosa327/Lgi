@@ -12,6 +12,7 @@
 #include "GTextLabel.h"
 #include "GButton.h"
 #include <Carbon/Carbon.h>
+#include "INet.h"
 
 ////////////////////////////////////////////////////////////////
 // Local helper functions
@@ -388,7 +389,9 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir)
 	
 	if (File)
 	{
-		if (strnicmp(File, "http://", 7) == 0)
+		GUri uri(File);
+		
+		if (uri.Protocol)
 		{
 			CFStringRef s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)File, strlen(File), kCFStringEncodingUTF8, false);
 			CFURLRef u = CFURLCreateWithString(NULL, s, NULL);

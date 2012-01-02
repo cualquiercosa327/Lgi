@@ -1465,7 +1465,7 @@ int GFile::Open(const char *File, int Mode)
 	d->Name = new char[strlen(File)+1];
 	if (d->Name)
 	{
-		strsafecpy(d->Name, File, sizeof(d->Name));
+		strcpy(d->Name, File);
 	}
 	d->Status = true;
 
@@ -1530,6 +1530,14 @@ int GFile::Read(void *Buffer, int Size, int Flags)
 	if (Buffer AND Size > 0)
 	{
 		Red = read(d->hFile, Buffer, Size);
+		#ifdef _DEBUG
+		if (Red < 0)
+		{
+			int Err = errno;
+			int64 Pos = GetPos();
+			printf("Read error: %i, "LGI_PrintfInt64"\n", Err, Pos);
+		}
+		#endif
 	}
 	d->Status = Red == Size;
 
@@ -1543,6 +1551,14 @@ int GFile::Write(const void *Buffer, int Size, int Flags)
 	if (Buffer AND Size > 0)
 	{
 		Written = write(d->hFile, Buffer, Size);
+		#ifdef _DEBUG
+		if (Written < 0)
+		{
+			int Err = errno;
+			int64 Pos = GetPos();
+			printf("Write error: %i, "LGI_PrintfInt64"\n", Err, Pos);
+		}
+		#endif
 	}
 	d->Status = Written == Size;
 
