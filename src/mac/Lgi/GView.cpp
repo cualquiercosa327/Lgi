@@ -1701,6 +1701,9 @@ bool GView::_Attach(GViewI *parent)
 				
 			if (_View)
 			{
+				// Set the view position
+				SetPos(Pos);				
+				
 				// Set the view id
 				SetControlCommandID(_View, GetId());
 				GViewI *Ptr = this;

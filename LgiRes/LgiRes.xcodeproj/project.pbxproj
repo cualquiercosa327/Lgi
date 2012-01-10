@@ -337,6 +337,10 @@
 					"-DMAC",
 					"-D_DEBUG",
 				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-fvisibility=default",
+				);
 				USER_HEADER_SEARCH_PATHS = "../include/mac ../include/common";
 			};
 			name = Development;
@@ -346,6 +350,10 @@
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = ../build/Release;
 				OTHER_CFLAGS = "-DMAC";
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-fvisibility=default",
+				);
 				USER_HEADER_SEARCH_PATHS = "../include/mac ../include/common";
 			};
 			name = Deployment;

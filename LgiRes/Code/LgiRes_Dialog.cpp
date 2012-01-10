@@ -2321,7 +2321,9 @@ void ResDialog::OnShowLanguages()
 
 char *ResDialog::Name()
 {
-	ResDialogCtrl *Ctrl = dynamic_cast<ResDialogCtrl*>(Children.First());
+	GViewI *v = Children.First();
+	const char *Cls = v->GetClass();
+	ResDialogCtrl *Ctrl = dynamic_cast<ResDialogCtrl*>(v);
 	if (Ctrl && Ctrl->Str && Ctrl->Str->GetDefine())
 	{
 		return Ctrl->Str->GetDefine();
