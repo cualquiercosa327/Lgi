@@ -1746,7 +1746,8 @@ ResObjectImpl::SStatus ResGroup::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 		return SError;
 
 	Res_SetPos(Tag);
-	Res_SetStrRef(Tag, &Ctx);
+	if (!Res_SetStrRef(Tag, &Ctx))
+		return SExclude;
 
 	for (GXmlTag *t = Tag->Children.First(); t; t = t = Tag->Children.Next())
 	{
@@ -1798,13 +1799,21 @@ ResObjectImpl::SStatus ResTab::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 	for (GXmlTag *t = Tag->Children.First(); t; t = Tag->Children.Next())
 	{
 		ResObjectImpl *Ctrl = CreateCtrl(t, Object);
-		if (Ctrl AND Ctrl->Res_Read(t, Ctx))
+		if (!Ctrl)
+			return SError;
+		
+		SStatus e = Ctrl->Res_Read(t, Ctx);
+		if (e == SOk)
 		{
 			Ctrl->Res_Attach(this);
 		}
+		else if (e == SExclude)
+		{
+			DeleteObj(Ctrl);
+		}
 		else
 		{
-			return SError;
+			return e;
 		}
 	}
 
