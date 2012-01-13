@@ -87,8 +87,6 @@ GPalette::GPalette()
 
 GPalette::~GPalette()
 {
-    // LgiStackTrace("~Palette %p\n", this);
-
 	DeleteArray(Lut);
 	DeleteArray(Data);
 	if (hPal) DeleteObject(hPal);
@@ -112,6 +110,9 @@ GPalette::GPalette(uchar *pPal, int s)
 
 void GPalette::Set(GPalette *pPal)
 {
+    if (pPal == this)
+        return;
+
 	DeleteArray(Data);
 	if (hPal) DeleteObject(hPal);
 
