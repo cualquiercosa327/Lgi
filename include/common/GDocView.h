@@ -248,7 +248,7 @@ public:
 	_TvMenuProp(bool, OverideDocCharset)
 	#undef _TvMenuProp
 
-	const char *GetCharset() { return Charset ? Charset : "utf-8"; }
+	const char *GetCharset() { return Charset ? Charset.Get() : "utf-8"; }
 	void SetCharset(const char *s) { Charset.Reset(NewStr(s)); }
 	virtual const char *GetMimeType() = 0;
 

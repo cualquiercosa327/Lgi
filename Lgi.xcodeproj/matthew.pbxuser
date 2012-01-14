@@ -83,7 +83,7 @@
 				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
 				PBXFileTableDataSourceColumnWidthsKey = (
 					20,
-					567,
+					557,
 					20,
 					93,
 					43,
@@ -174,7 +174,7 @@
 					PBXFileDataSource_Warnings_ColumnID,
 				);
 			};
-			PBXPerProjectTemplateStateSaveDate = 347335209;
+			PBXPerProjectTemplateStateSaveDate = 348269642;
 			PBXPrepackagedSmartGroups_v2 = (
 				{
 					PBXTransientLocationAtTop = bottom;
@@ -351,19 +351,22 @@
 					};
 				},
 			);
-			PBXWorkspaceStateSaveDate = 347335209;
+			PBXWorkspaceStateSaveDate = 348269642;
 		};
 		perUserProjectItems = {
-			342242A214B1DB1100963421 = 342242A214B1DB1100963421 /* PBXTextBookmark */;
-			342242A314B1DB1100963421 = 342242A314B1DB1100963421 /* PBXTextBookmark */;
 			3422432914B2E2AE00963421 = 3422432914B2E2AE00963421 /* PBXTextBookmark */;
 			3422432A14B2E2AE00963421 = 3422432A14B2E2AE00963421 /* PBXTextBookmark */;
 			3422432B14B2E2AE00963421 = 3422432B14B2E2AE00963421 /* PBXTextBookmark */;
 			3422432C14B2E2AE00963421 = 3422432C14B2E2AE00963421 /* PBXTextBookmark */;
+			3424FD5014C22C91000BACF3 /* XCBuildMessageTextBookmark */ = 3424FD5014C22C91000BACF3 /* XCBuildMessageTextBookmark */;
+			3424FD5114C22C91000BACF3 /* PBXTextBookmark */ = 3424FD5114C22C91000BACF3 /* PBXTextBookmark */;
+			3424FD5514C22CA1000BACF3 /* PBXTextBookmark */ = 3424FD5514C22CA1000BACF3 /* PBXTextBookmark */;
+			3424FD5614C22CA1000BACF3 /* XCBuildMessageTextBookmark */ = 3424FD5614C22CA1000BACF3 /* XCBuildMessageTextBookmark */;
+			3424FD5714C22CA1000BACF3 /* PBXTextBookmark */ = 3424FD5714C22CA1000BACF3 /* PBXTextBookmark */;
 			344596F714AFE85200596868 = 344596F714AFE85200596868 /* PBXTextBookmark */;
-			345FCAF014B3EAD500E76D2A /* PBXTextBookmark */ = 345FCAF014B3EAD500E76D2A /* PBXTextBookmark */;
-			345FCAFC14B3EAFF00E76D2A /* PBXTextBookmark */ = 345FCAFC14B3EAFF00E76D2A /* PBXTextBookmark */;
-			345FCB0D14B3EBB700E76D2A /* PBXTextBookmark */ = 345FCB0D14B3EBB700E76D2A /* PBXTextBookmark */;
+			345FCAF014B3EAD500E76D2A = 345FCAF014B3EAD500E76D2A /* PBXTextBookmark */;
+			345FCAFC14B3EAFF00E76D2A = 345FCAFC14B3EAFF00E76D2A /* PBXTextBookmark */;
+			345FCB0D14B3EBB700E76D2A = 345FCB0D14B3EBB700E76D2A /* PBXTextBookmark */;
 		};
 		sourceControlManager = 3465BDD608C5DEA700B4C217 /* Source Control */;
 		userBookmarkGroup = 34920105147F4ECD0050CB43 /* PBXBookmarkGroup */;
@@ -435,26 +438,6 @@
 			sepNavWindowFrame = "{{232, 100}, {1002, 781}}";
 		};
 	};
-	342242A214B1DB1100963421 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 34D2CC6208F0FCA00009968C /* GFont.cpp */;
-		name = "GFont.cpp: 366";
-		rLen = 0;
-		rLoc = 5369;
-		rType = 0;
-		vrLen = 540;
-		vrLoc = 5053;
-	};
-	342242A314B1DB1100963421 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 344AF38308E045C5004ED88C /* GStream.cpp */;
-		name = "GStream.cpp: 187";
-		rLen = 0;
-		rLoc = 3189;
-		rType = 0;
-		vrLen = 603;
-		vrLoc = 2863;
-	};
 	3422432914B2E2AE00963421 /* PBXTextBookmark */ = {
 		isa = PBXTextBookmark;
 		fRef = 34B4A5060C05987F00CDD0D1 /* GMemStream.cpp */;
@@ -513,6 +496,54 @@
 		originalNumberOfMultipleMatches = 1;
 		state = 1;
 	};
+	3424FD5014C22C91000BACF3 /* XCBuildMessageTextBookmark */ = {
+		isa = PBXTextBookmark;
+		comments = "No match for ternary 'operator?:' in '(((GDocView*)this)->GDocView::Charset. GAutoPtr<X, Arr>::operator X* [with X = char, bool Arr = true]() != 0u) ? ((GDocView*)this)->GDocView::Charset : \"utf-8\"'";
+		fRef = 34372ACF0C46E0290090CDC9 /* GDocView.h */;
+		fallbackIsa = XCBuildMessageTextBookmark;
+		rLen = 1;
+		rLoc = 250;
+		rType = 1;
+	};
+	3424FD5114C22C91000BACF3 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34372ACF0C46E0290090CDC9 /* GDocView.h */;
+		name = "GDocView.h: 251";
+		rLen = 0;
+		rLoc = 6611;
+		rType = 0;
+		vrLen = 564;
+		vrLoc = 6339;
+	};
+	3424FD5514C22CA1000BACF3 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34CDDAE108C5DF5B005EAAC7 /* LgiOsClasses.h */;
+		name = "LgiOsClasses.h: 16";
+		rLen = 0;
+		rLoc = 221;
+		rType = 0;
+		vrLen = 231;
+		vrLoc = 0;
+	};
+	3424FD5614C22CA1000BACF3 /* XCBuildMessageTextBookmark */ = {
+		isa = PBXTextBookmark;
+		comments = "No match for ternary 'operator?:' in '(((GDocView*)this)->GDocView::Charset. GAutoPtr<X, Arr>::operator X* [with X = char, bool Arr = true]() != 0u) ? ((GDocView*)this)->GDocView::Charset : \"utf-8\"'";
+		fRef = 34372ACF0C46E0290090CDC9 /* GDocView.h */;
+		fallbackIsa = XCBuildMessageTextBookmark;
+		rLen = 1;
+		rLoc = 250;
+		rType = 1;
+	};
+	3424FD5714C22CA1000BACF3 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34372ACF0C46E0290090CDC9 /* GDocView.h */;
+		name = "GDocView.h: 251";
+		rLen = 0;
+		rLoc = 6553;
+		rType = 0;
+		vrLen = 1366;
+		vrLoc = 5847;
+	};
 	3427C3BD11FC02AE002AC215 /* LgiInc.h */ = {
 		uiCtxt = {
 			sepNavIntBoundsRect = "{{0, 0}, {738, 994}}";
@@ -559,9 +590,9 @@
 	};
 	34372ACF0C46E0290090CDC9 /* GDocView.h */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1052, 5083}}";
-			sepNavSelRange = "{5733, 0}";
-			sepNavVisRange = "{5386, 1020}";
+			sepNavIntBoundsRect = "{{0, 0}, {780, 5239}}";
+			sepNavSelRange = "{6553, 0}";
+			sepNavVisRange = "{5847, 1366}";
 			sepNavVisRect = "{{0, 0}, {711, 435}}";
 		};
 	};
@@ -1217,7 +1248,7 @@
 		ignoreCount = 0;
 		lineNumber = 906;
 		location = Lgi;
-		modificationTime = 347338750.728355;
+		modificationTime = 347338750.7283549;
 		originalNumberOfMultipleMatches = 1;
 		state = 2;
 	};
@@ -1543,9 +1574,9 @@
 	};
 	34CDDAE108C5DF5B005EAAC7 /* LgiOsClasses.h */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {749, 234}}";
+			sepNavIntBoundsRect = "{{0, 0}, {780, 653}}";
 			sepNavSelRange = "{221, 0}";
-			sepNavVisRange = "{86, 145}";
+			sepNavVisRange = "{0, 231}";
 			sepNavVisRect = "{{0, 0}, {802, 505}}";
 			sepNavWindowFrame = "{{222, 220}, {750, 558}}";
 		};
