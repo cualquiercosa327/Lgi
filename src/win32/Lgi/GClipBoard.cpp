@@ -57,7 +57,9 @@ bool GClipBoard::Text(char *Str, bool AutoEmpty)
 			Status = Binary(CF_TEXT, (uchar*)n, strlen(n)+1, AutoEmpty);
 			DeleteArray(n);
 		}
+		else LgiTrace("%s:%i - Conversion to native cs failed.\n", _FL);
 	}
+	else LgiTrace("%s:%i - No text.\n", _FL);
 
 	return Status;
 }
@@ -313,7 +315,7 @@ bool GClipBoard::Binary(FormatType Format, uchar *Ptr, int Len, bool AutoEmpty)
 		Empty();
 	}
 
-	if (Ptr AND Len > 0)
+	if (Ptr && Len > 0)
 	{
 		HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, Len);
 		if (hMem)
@@ -324,13 +326,17 @@ bool GClipBoard::Binary(FormatType Format, uchar *Ptr, int Len, bool AutoEmpty)
 				memcpy(Data, Ptr, Len);
 				GlobalUnlock(hMem);
 				Status = SetClipboardData(Format, hMem) != 0;
+				if (!Status)
+					LgiTrace("%s:%i - SetClipboardData failed.\n", _FL);
 			}
 			else
 			{
 				GlobalFree(hMem);
 			}
 		}
+		else LgiTrace("%s:%i - Alloc failed.\n", _FL);
 	}
+	else LgiTrace("%s:%i - No data to set.\n", _FL);
 
 	return Status;
 }
@@ -339,7 +345,7 @@ bool GClipBoard::Binary(FormatType Format, uchar **Ptr, int *Len)
 {
 	bool Status = false;
 
-	if (Ptr AND Len)
+	if (Ptr && Len)
 	{
 		HGLOBAL hMem = GetClipboardData(Format);
 		if (hMem)

@@ -1912,6 +1912,7 @@ bool GTextView3::Copy()
 		DeleteArray(Txt8);
 		DeleteArray(Txt16);
 	}
+	else LgiTrace("%s:%i - No selection.\n", _FL);
 
 	return Status;
 }
