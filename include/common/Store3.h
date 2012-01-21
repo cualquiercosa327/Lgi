@@ -66,44 +66,26 @@ void ParseIdList(char *In, List<char> &Out);
 #define FIELD_PROFILE_IMAP_LISTING	-101
 #define FIELD_PROFILE_IMAP_SELECT	-102
 
-#if defined(WIN32) && !defined(_WIN64)
-
 #define GDATA_INT_PROP(name, id) \
-	int Get##name() { if (!Object) { _asm int 3 } return Object ? Object->GetInt(id) : 0; } \
+	int Get##name() { LgiAssert(Object); return Object ? Object->GetInt(id) : 0; } \
 	bool Set##name(int val) { LgiAssert(Object); return Object ? Object->SetInt(id, val) : false; }
 
+#define GDATA_ENUM_PROP(name, id, type) \
+	type Get##name() { LgiAssert(Object); return (type) (Object ? Object->GetInt(id) : 0); } \
+	bool Set##name(type val) { LgiAssert(Object); return Object ? Object->SetInt(id, (int)val) : false; }
+
 #define GDATA_STR_PROP(name, id) \
-	char *Get##name() { if (!Object) { _asm int 3 } return Object ? Object->GetStr(id) : 0; } \
+	char *Get##name() { LgiAssert(Object); return Object ? Object->GetStr(id) : 0; } \
 	bool Set##name(const char *val) { LgiAssert(Object); return Object ? Object->SetStr(id, val) : false; }
 
 #define GDATA_DATE_PROP(name, id) \
-	GDateTime *Get##name() { if (!Object) { _asm int 3 } return (Object ? Object->GetDate(id) : 0); } \
+	GDateTime *Get##name() { LgiAssert(Object); return (Object ? Object->GetDate(id) : 0); } \
 	bool Set##name(GDateTime *val) { LgiAssert(Object); return Object ? Object->SetDate(id, val) : false; }
 
 #define GDATA_PERM_PROP(name, id) \
-	ScribePerm Get##name() { if (!Object) { _asm int 3 } return (ScribePerm) (Object ? Object->GetInt(id) : 0); } \
+	ScribePerm Get##name() { LgiAssert(Object); return (ScribePerm) (Object ? Object->GetInt(id) : 0); } \
 	bool Set##name(ScribePerm val) { LgiAssert(Object); return Object ? Object->SetInt(id, val) : false; }
 
-#else
-
-#define GDATA_INT_PROP(name, id) \
-	int Get##name() { return Object ? Object->GetInt(id) : 0; } \
-	bool Set##name(int val) { return Object ? Object->SetInt(id, val) : false; }
-
-#define GDATA_STR_PROP(name, id) \
-	char *Get##name() { return Object ? Object->GetStr(id) : 0; } \
-	bool Set##name(const char *val) { return Object ? Object->SetStr(id, val) : false; }
-
-#define GDATA_DATE_PROP(name, id) \
-	GDateTime *Get##name() { return (Object ? Object->GetDate(id) : 0); } \
-	bool Set##name(GDateTime *val) { return Object ? Object->SetDate(id, val) : false; }
-
-#define GDATA_PERM_PROP(name, id) \
-	ScribePerm Get##name() { return (ScribePerm) (Object ? Object->GetInt(id) : 0); } \
-	bool Set##name(ScribePerm val) { return Object ? Object->SetInt(id, val) : false; }
-
-
-#endif
 
 /// This defines the possible outcomes of calling a function.
 enum Store3Status
