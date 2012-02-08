@@ -667,8 +667,11 @@ class LgiClass GSurface
 	friend class GFilter;
 	friend class GView;
 	friend class GWindow;
+	friend class GVariant;
 
 	void Init();
+	
+	int             _Refs;
 
 protected:
 	int				Flags;

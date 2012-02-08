@@ -181,7 +181,7 @@ bool GVariant::operator ==(GVariant &v)
 		case GV_CUSTOM:
 			return Value.Custom == v.Value.Custom;
 		case GV_GSURFACE:
-			return Value.Surface == v.Value.Surface;
+			return Value.Surface.Ptr == v.Value.Surface.Ptr;
 		case GV_GVIEW:
 			return Value.View == v.Value.View;
 		case GV_GMOUSE:
@@ -446,7 +446,10 @@ GVariant &GVariant::operator =(GVariant const &i)
 		}
 		case GV_GSURFACE:
 		{
-			Value.Surface = i.Value.Surface;
+		    Value.Surface = i.Value.Surface;
+		    if (Value.Surface.Own &&
+		        Value.Surface.Ptr)
+		        Value.Surface.Ptr->_Refs++;
 			break;
 		}
 		default:
@@ -545,6 +548,19 @@ bool GVariant::SetHashTable(GHashTable *Table, bool Copy)
 	}
 
 	return Value.Hash != 0;
+}
+
+bool GVariant::SetSurface(class GSurface *Ptr, bool Own)
+{
+    Empty();
+    Type = GV_GSURFACE;
+    Value.Surface.Ptr = Ptr;
+    if (Value.Surface.Own = Own)
+    {
+        Value.Surface.Ptr->_Refs++;
+    }
+    
+    return true;
 }
 
 void GVariant::OwnStr(char *s)
@@ -673,6 +689,16 @@ void GVariant::Empty()
 				DeleteObj(Value.Hash);
 			}
 			break;
+		}
+		case GV_GSURFACE:
+		{
+		    if (Value.Surface.Own &&
+		        Value.Surface.Ptr)
+		    {
+		        if (--Value.Surface.Ptr->_Refs == 0)
+		            DeleteObj(Value.Surface.Ptr);
+		    }
+		    break;
 		}
 	}
 
@@ -824,7 +850,7 @@ void *GVariant::CastVoidPtr()
 		case GV_WSTRING:
 			return Value.WString;
 		case GV_GSURFACE:
-			return Value.Surface;
+			return Value.Surface.Ptr;
 		case GV_GVIEW:
 			return Value.View;
 		case GV_GMOUSE:

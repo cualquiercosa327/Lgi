@@ -1447,11 +1447,11 @@ public:
 						case GV_GSURFACE:
 						{
 							if (!stricmp(sName, "x"))
-								(*Dst) = Dom->Value.Surface->X();
+								(*Dst) = Dom->Value.Surface.Ptr->X();
 							else if (!stricmp(sName, "y"))
-								(*Dst) = Dom->Value.Surface->Y();
+								(*Dst) = Dom->Value.Surface.Ptr->Y();
 							else if (!stricmp(sName, "bits"))
-								(*Dst) = Dom->Value.Surface->GetBits();
+								(*Dst) = Dom->Value.Surface.Ptr->GetBits();
 							else
 								Dst->Empty();
 							break;

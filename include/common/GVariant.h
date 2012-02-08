@@ -154,9 +154,13 @@ public:
 			char *Name;
 		} DomRef;
 		/// Valid when Type == #GV_OPERATOR
-		GOperator Op;
+		GOperator Op;		
 		/// Valid when Type == #GV_GSURFACE
-		class GSurface *Surface;
+		struct _Surface
+		{
+		    class GSurface *Ptr;
+		    bool Own;
+		} Surface;		
 		/// Valid when Type == #GV_GVIEW
 		class GView *View;
 		/// Valid when Type == #GV_GMOUSE
@@ -229,6 +233,8 @@ public:
 	bool SetList(List<GVariant> *Lst = 0);
 	/// Sets the value to a hashtable
 	bool SetHashTable(GHashTable *Table = 0, bool Copy = true);
+    /// Set the value to a surface
+    bool SetSurface(class GSurface *Ptr, bool Own);
 
 	/// Returns the string if valid (will convert a GV_WSTRING to utf)
 	char *Str();
