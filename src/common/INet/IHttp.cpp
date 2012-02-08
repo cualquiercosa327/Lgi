@@ -180,40 +180,24 @@ bool IHttp::GetFile(GViewI *Parent, char *File, GStream &Out, int Format, int *P
 		// int ContentLength = 0;
 		// int DataToGo = 1000000000;
 
-		char FilePart[256];
-		char Host[256];
-		char *f = strchr(File + 7, '/');
-		if (f)
+		GUri u(File);
+		if (!u.Protocol)
 		{
-			strcpy(FilePart, f);
-		}
-		else
-		{
-			FilePart[0] = 0;
-		}
-		
-		char *h = (strnicmp(File, "http://", 7) == 0) ? File + 7 : File;
-		if (!h)
-		{
-			printf("%s:%i - No protocol.\n", __FILE__, __LINE__);
+			printf("%s:%i - No protocol.\n", _FL);
 			return false;
 		}
-
-		int HostLen = f ? f-h : strlen(h);
-		memcpy(Host, h, HostLen);
-		Host[HostLen] = 0;
 
 		// get part
 		if (Format & GET_TYPE_NORMAL)
 		{
-			Buf.Print("GET %s HTTP/1.0\r\n", File);
+			Buf.Print("GET %s HTTP/1.0\r\n", u.Path);
 		}
 		else
 		{
 			Buf.Print(	"GET %s HTTP/1.0\r\n"
 						"Host: %s\r\n",
-						ValidStr(FilePart) ? FilePart : (char*)"/",
-						Host);
+						ValidStr(u.Path) ? u.Path : (char*)"/",
+						u.Host);
 		}
 		if (Format & GET_NO_CACHE)
 		{
