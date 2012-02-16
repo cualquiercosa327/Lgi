@@ -721,10 +721,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\win32\Widgets\GDialog.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\win32\Widgets\GEdit.cpp"
 					>
 				</File>
@@ -1106,6 +1102,10 @@
 				>
 				<File
 					RelativePath=".\src\common\Lgi\GAlert.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\Widgets\GDialog.cpp"
 					>
 				</File>
 				<File
