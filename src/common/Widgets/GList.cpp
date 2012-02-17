@@ -1381,7 +1381,9 @@ void GListItem::OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GListColumn *c)
 					int Img = GetImage();
 					if (Img >= 0)
 					{
-						Parent->ImageList->Draw(pDC, Ctx.x1+1, Ctx.y1, Img, 0);
+					    int CenterY = Ctx.y1 + ((Ctx.Y() - Parent->ImageList->TileY()) >> 1);
+					    LgiAssert(CenterY >= 0);
+						Parent->ImageList->Draw(pDC, Ctx.x1+1, CenterY, Img, 0);
 					}
 				}
 			}

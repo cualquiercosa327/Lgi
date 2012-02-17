@@ -32,6 +32,7 @@ public:
 	int64 Value();
 	void Value(int64 i);
 	void OnPaint(GSurface *pDC);
+	bool OnLayout(GViewLayoutInfo &Inf);
 };
 
 #endif

@@ -6,12 +6,14 @@
 class GColourSelectPopup : public GPopup
 {
 	GColourSelect *Colour;
+	int Ly;
 
 public:
 	GColourSelectPopup(GColourSelect *Parent) : GPopup(Parent)
 	{
+	    Ly = SysFont->GetHeight();
 		SetParent(Colour = Parent);
-		GRect r(0, 0, 100, 16 + 4);
+		GRect r(0, 0, 120, Ly + 4);
 		SetPos(r);
 	}
 
@@ -33,15 +35,15 @@ public:
 
 			for (int i=0; i<Colour->Presets.Length(); i++)
 			{
-				int y = r.y1 + ((i+1) * 16);
+				int y = r.y1 + ((i+1) * Ly);
 				COLOUR p32 = Colour->Presets[i];
 
 				pDC->Colour(p32, 32);
-				pDC->Rectangle(r.x1+1, y+1, r.x1 + 15, y+15);
+				pDC->Rectangle(r.x1+1, y+1, r.x1+Ly-1, y+Ly-1);
 				
 				sprintf(s, "%2.2X,%2.2X,%2.2X", R32(p32), G32(p32), B32(p32));
 				GDisplayString ds(SysFont, s);
-				ds.Draw(pDC, r.x1 + 20, y + 2);
+				ds.Draw(pDC, r.x1 + Ly + 10, y + 2);
 			}
 		}
 	}
@@ -52,7 +54,7 @@ public:
 		r.Size(2, 2);
 		if (r.Overlap(m.x, m.y))
 		{
-			int i = m.y / 16;
+			int i = m.y / Ly;
 			if (i == 0)
 			{
 				Colour->Value(0);
@@ -89,7 +91,7 @@ void GColourSelect::SetColourList(GArray<COLOUR> *col32)
 
 	if (GetPopup())
 	{
-		GRect r(0, 0, 100, (max(Presets.Length()+1, 1) * 16) + 4);
+		GRect r(0, 0, 100, (max(Presets.Length()+1, 1) * SysFont->GetHeight()) + 4);
 		GetPopup()->SetPos(r);
 	}
 }
@@ -138,6 +140,13 @@ void GColourSelect::OnPaint(GSurface *pDC)
 		pDC->Line(r.x1, r.y1, r.x2, r.y2);
 		pDC->Line(r.x1, r.y2, r.x2, r.y1);
 	}
+}
+
+bool GColourSelect::OnLayout(GViewLayoutInfo &Inf)
+{
+    Inf.Width.Min = Inf.Width.Max = 80;
+    Inf.Height.Min = Inf.Height.Max = SysFont->GetHeight() + 6;
+    return true;
 }
 
 class GColourFactory : public GViewFactory

@@ -33,7 +33,15 @@ uint32 GUtf8Ptr::operator++(const int n)
 	}
 	else
 	{
-		LgiAssert(!IsUtf8_Trail(*Ptr));
+	    if (IsUtf8_Trail(*Ptr))
+	    {
+	        static bool Warn = true;
+	        if (Warn)
+	        {
+	            Warn = false;
+		        LgiAssert(!"Invalid UTF");
+		    }
+		}
 
 		Ptr++;
 	}

@@ -74,7 +74,8 @@ void DistributeUnusedSpace(	GArray<int> &Min,
 							int CellSpacing)
 {
 	// Now allocate unused space
-	int Sum = CountRange<int>(Min, 0, Min.Length()-1) + ((Min.Length() - 1) * CellSpacing);
+	int Borders = Min.Length() - 1;
+	int Sum = CountRange<int>(Min, 0, Borders) + (Borders * CellSpacing);
 	if (Sum < Total)
 	{
 		int i, Avail = Total - Sum;
@@ -755,7 +756,7 @@ public:
 			
 			if (!Izza(GButton) && !Tbl)
 			{
-				r.x2 = r.x1 + Pos.X() - 1;
+			    r.x2 = r.x1 + Inf.Width.Max - 1;
 			}
 
 			// printf("%s = %s\n", v->GetClass(), r.GetStr());

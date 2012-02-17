@@ -4,7 +4,7 @@
 #include "GTree.h"
 #include "GScrollBar.h"
 
-#define TREE_BLOCK			16
+#define TREE_BLOCK          16
 #define DRAG_THRESHOLD		4
 #define DRAG_SCROLL_EDGE	20
 #define DRAG_SCROLL_X		8
@@ -29,6 +29,7 @@ public:
 	GMemDC			*IconCache;
 	bool			InPour;
 	int64			DropSelectTime;
+    int8            IconTextGap;
 
 	// Pointers into items... be careful to clear when deleting items...
 	GTreeItem		*LastHit;
@@ -43,6 +44,7 @@ public:
 		DropTarget = 0;
 		IconCache = 0;
 		LayoutDirty = true;
+		IconTextGap = 0;
 	}
 	
 	~GTreePrivate()
@@ -464,8 +466,12 @@ void GTreeItem::_Pour(GdcPt2 *Limit, int Depth, bool Visible)
 	{
 		GdcPt2 TextSize;
 		_PourText(TextSize);
-		int IconX = (GetImage() >= 0) ? TREE_BLOCK : 0;
-		int Height = TextSize.y ? TextSize.y : TREE_BLOCK;
+		GImageList *ImgLst = Tree->GetImageList();
+		int IconX = (ImgLst && GetImage() >= 0) ? ImgLst->TileX() + Tree->d->IconTextGap : 0;
+		int IconY = (ImgLst && GetImage() >= 0) ? ImgLst->TileY() : 0;
+		int Height = max(TextSize.y, IconY);
+		if (!Height)
+		    Height = 16;
 
 		if (!d->Ds)
 		{
@@ -473,9 +479,9 @@ void GTreeItem::_Pour(GdcPt2 *Limit, int Depth, bool Visible)
 		}
 
 		d->Pos.ZOff(	(TREE_BLOCK*d->Depth) +	// trunk
-						TREE_BLOCK +				// node
-						IconX +						// icon if present
-						TextSize.x,					// text if present
+						TREE_BLOCK +			// node
+						IconX +					// icon if present
+						TextSize.x,				// text if present
 						max(Height, d->Ds->Y())-1);
 		d->Pos.Offset(0, Limit->y);
 
@@ -724,35 +730,35 @@ void GTreeItem::OnPaint(ItemPaintCtx &Ctx)
 
 	// draw icon
 	int Image = GetImage(Select());
-	if (Image >= 0 &&
-		Tree->GetImageList())
+	GImageList *Lst = Tree->GetImageList();
+	if (Image >= 0 && Lst)
 	{
-		d->Icon.ZOff(TREE_BLOCK-1, TREE_BLOCK-1);
+		d->Icon.ZOff(Lst->TileX() + Tree->d->IconTextGap - 1, d->Pos.Y() - 1);
 		d->Icon.Offset(x, d->Pos.y1);
+
+		pDC->Colour(LC_WORKSPACE, 24);
 
 		if (Tree->d->IconCache)
 		{
 			// no flicker
 			GRect From;
-			From.ZOff(TREE_BLOCK-1, TREE_BLOCK-1);
-			From.Offset(Tree->GetImageList()->TileX()*Image, 0);
+
+			From.ZOff(Lst->TileX()-1, Tree->d->IconCache->Y()-1);
+			From.Offset(Lst->TileX()*Image, 0);
+
 			pDC->Blt(d->Icon.x1, d->Icon.y1, Tree->d->IconCache, &From);
+
+			pDC->Rectangle(d->Icon.x1 + Lst->TileX(), d->Icon.y1, d->Icon.x2, d->Icon.y2);
 		}
 		else
 		{
 			// flickers...
-			pDC->Colour(LC_WORKSPACE, 24);
+			int Pos = d->Icon.y1 + ((Lst->TileY()-d->Pos.Y()) >> 1);
 			pDC->Rectangle(&d->Icon);
-			Tree->GetImageList()->Draw(pDC, d->Icon.x1, d->Icon.y1, Image);
+			Tree->GetImageList()->Draw(pDC, d->Icon.x1, Pos, Image);
 		}
 
-		if (d->Icon.y2 < d->Pos.y2)
-		{
-			pDC->Colour(LC_WORKSPACE, 24);
-			pDC->Rectangle(x, d->Icon.y2, d->Icon.x2, d->Pos.y2);
-		}
-
-		x += TREE_BLOCK;
+		x += d->Icon.X();
 	}
 
 	// text
@@ -1318,14 +1324,18 @@ void GTree::OnPaint(GSurface *pDC)
 {
 	GRect r = GetClient();
 
+	d->IconTextGap = GetFont()->GetHeight() / 6;
+
 	// icon cache
 	if (GetImageList() &&
 		!d->IconCache)
 	{
 		int Bits = GdcD->GetBits();
+		int CacheHeight = max(SysFont->GetHeight(), GetImageList()->Y());
+		
 		d->IconCache = new GMemDC;
 		if (d->IconCache &&
-			d->IconCache->Create(GetImageList()->X(), GetImageList()->Y(), Bits))
+			d->IconCache->Create(GetImageList()->X(), CacheHeight, Bits))
 		{
 			if (Bits <= 8)
 			{
@@ -1337,9 +1347,11 @@ void GTree::OnPaint(GSurface *pDC)
 			d->IconCache->Op(GDC_ALPHA);
 
 			GetImageList()->Lock();
+			int DrawY = (CacheHeight - GetImageList()->TileY()) >> 1;
+			LgiAssert(DrawY >= 0);
 			for (int i=0; i<GetImageList()->GetItems(); i++)
 			{
-				GetImageList()->Draw(d->IconCache, i * GetImageList()->TileX(), 0, i);
+				GetImageList()->Draw(d->IconCache, i * GetImageList()->TileX(), DrawY, i);
 			}
 			GetImageList()->Unlock();
 			d->IconCache->Unlock();
