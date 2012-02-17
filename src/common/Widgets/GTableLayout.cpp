@@ -17,7 +17,7 @@
 
 #define Izza(c)				dynamic_cast<c*>(v)
 #define CELL_SPACING		4
-#define DEBUG_LAYOUT		0
+#define DEBUG_LAYOUT		1
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 
@@ -538,6 +538,8 @@ public:
 	void Layout(int Width, int &Min, int &Max, CellFlag &Flags)
 	{
 		Pos.ZOff(Width-1, 0);
+		int BtnX = 0;
+		int BtnRows = -1;
 		for (int i=0; i<Children.Length(); i++)
 		{
 			GView *v = Children[i];
@@ -564,9 +566,35 @@ public:
 				{
 					Pos.y2 += 15;
 				}
-				else if (Izza(GEdit) ||
-						 Izza(GButton) ||
-						 Izza(GCombo))
+				else if (Izza(GButton))
+				{
+					int y = v->GetFont()->GetHeight() + 8;
+					if (BtnRows < 0)
+					{
+					    // Setup first row
+					    BtnRows = 1;
+    					Pos.y2 += y;
+    				}
+					
+					if (BtnX + v->X() > Width)
+					{
+					    // Wrap
+					    BtnX = v->X();
+					    BtnRows++;
+    					Pos.y2 += y + CELL_SPACING;
+					}
+					else
+					{
+					    // Don't wrap
+					    BtnX += v->X() + CELL_SPACING;
+					}
+					
+					// Set button height..
+					GRect r = v->GetPos();
+					r.y2 = r.y1 + y - 1;
+					v->SetPos(r);
+				}
+				else if (Izza(GEdit) || Izza(GCombo))
 				{
 					int y = v->GetFont()->GetHeight() + 8;
 					
@@ -707,7 +735,7 @@ public:
 				}
 			}
 		}
-
+		
 		Min = max(Min, Pos.Y());
 		Max = max(Max, Pos.Y());
 	}

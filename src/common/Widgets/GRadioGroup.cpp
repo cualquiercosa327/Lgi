@@ -49,6 +49,62 @@ GRadioGroup::~GRadioGroup()
 	DeleteObj(d);
 }
 
+bool GRadioGroup::OnLayout(GViewLayoutInfo &Inf)
+{
+    GViewIterator *it = IterateViews();
+
+    if (!Inf.Width.Max)
+    {
+        // Work out the width...
+        Inf.Width.Min = 16 + (d->Txt ? d->Txt->X() : 16);
+        
+        int MaxBtnX = 0;
+        int TotalBtnX = 0;
+
+	    for (GViewI *w = it->First(); w; w = it->Next())
+	    {
+		    GRadioButton *b = dynamic_cast<GRadioButton*>(w);
+		    if (!b) continue;
+            MaxBtnX = max(MaxBtnX, b->X());
+            TotalBtnX += b->X() + 4;
+	    }
+
+        Inf.Width.Max = max(Inf.Width.Min, TotalBtnX + 16);
+        Inf.Width.Min = max(Inf.Width.Min, MaxBtnX + 16);
+    }
+    else
+    {
+        // Working out the height...
+        Inf.Height.Min = d->Txt ? d->Txt->Y() : 16;
+        
+        #define GRID 7
+        int Cx = GRID, Cy = Inf.Height.Min;
+        int LastY = 0;
+	    for (GViewI *w = it->First(); w; w = it->Next())
+	    {
+		    GRadioButton *b = dynamic_cast<GRadioButton*>(w);
+		    if (!b) continue;
+            if (Cx + b->X() > Inf.Width.Max - GRID)
+            {
+                // Wrap
+                Cy += b->Y();
+                Cx = 0;
+            }
+            else
+            {
+                Cx += b->X() + GRID;
+            }
+            LastY = b->Y();
+	    }
+	    
+	    Inf.Height.Min += Cy + LastY;
+	    Inf.Height.Max = Inf.Height.Min;
+    }
+    
+    DeleteObj(it);
+    return true;
+}
+
 void GRadioGroup::OnAttach()
 {
 }

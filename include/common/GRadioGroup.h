@@ -34,6 +34,7 @@ public:
 	void OnPaint(GSurface *pDC);
 	void OnAttach();
 	GMessage::Result OnEvent(GMessage *m);
+	bool OnLayout(GViewLayoutInfo &Inf);
 
 	char *Name() { return GView::Name(); }
 	char16 *NameW() { return GView::NameW(); }

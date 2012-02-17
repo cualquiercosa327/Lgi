@@ -11,9 +11,48 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "Lgi.h"
-#include <COMMCTRL.H>
+#include <commctrl.h>
+
+#define USE_DIALOGBOXINDIRECTPARAM         0
+
+struct GDialogPriv
+{
+	bool IsModal, _Resizable;
+	int ModalStatus;
+
+	#if WIN32NATIVE
+    #if USE_DIALOGBOXINDIRECTPARAM
+	GMem *Mem;
+    #else
+    int ModalResult;
+	#endif
+	#elif defined BEOS
+
+	sem_id ModalSem;
+	int ModalRet;
+
+	#endif
+
+    GDialogPriv()
+    {
+        #if USE_DIALOGBOXINDIRECTPARAM
+    	Mem = 0;
+    	#else
+    	ModalResult = -1;
+    	#endif
+    	IsModal = true;
+    }
+    
+    ~GDialogPriv()
+    {
+    	#if USE_DIALOGBOXINDIRECTPARAM
+        DeleteObj(Mem);
+        #endif
+    }
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////
+#if USE_DIALOGBOXINDIRECTPARAM
 short *DlgStrCopy(short *A, char *N)
 {
 	uchar *n = (uchar*) N;
@@ -57,24 +96,26 @@ short *DlgPadToDWord(short *A, bool Seek = false)
 	}
 	return (short*) c;
 }
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 GDialog::GDialog()
 	: ResObject(Res_Dialog)
 {
+	d = new GDialogPriv;
+	_Window = this;
 	Name("Dialog");
 
-	Mem = 0;
+	#if USE_DIALOGBOXINDIRECTPARAM
 	WndFlags |= GWF_DIALOG;
 	SetExStyle(GetExStyle() | WS_EX_CONTROLPARENT);
-	IsModal = true;
+	#endif
 
-	_Window = this;
 }
 
 GDialog::~GDialog()
 {
-	DeleteObj(Mem);
+    DeleteObj(d);
 }
 
 bool GDialog::LoadFromResource(int Resource, char *TagList)
@@ -123,11 +164,14 @@ int GDialog::DoModal(OsView ParentHnd)
 {
 	int Status = -1;
 
-	IsModal = true;
-	Mem = new GMem(16<<10);
-	if (Mem)
+	d->IsModal = true;
+	
+	#if USE_DIALOGBOXINDIRECTPARAM
+	
+	d->Mem = new GMem(16<<10);
+	if (d->Mem)
 	{
-		DLGTEMPLATE *Template = (DLGTEMPLATE*) Mem->Lock();
+		DLGTEMPLATE *Template = (DLGTEMPLATE*) d->Mem->Lock();
 		if (Template)
 		{
 			GRect r = GetPos();
@@ -190,8 +234,50 @@ int GDialog::DoModal(OsView ParentHnd)
 											(LPARAM) this);
 		}
 
-		DeleteObj(Mem);
+		DeleteObj(d->Mem);
 	}
+	
+	#else
+
+    GViewI *p = GetParent();
+	if (Attach(0))
+	{
+	    AttachChildren();
+	    
+	    if (p)
+	    {
+	        GRect pp = p->GetPos();
+	        int cx = pp.x1 + (pp.X() >> 1);
+	        int cy = pp.y1 + (pp.Y() >> 1);
+	        
+	        GRect np = GetPos();
+	        np.Offset(  cx - (np.X() >> 1) - np.x1,
+	                    cy - (np.Y() >> 1) - np.y1);
+	        
+	        SetPos(np);
+	        MoveOnScreen();
+	    }
+	    
+	    Visible(true);
+	    
+	    OsView pwnd = ParentHnd ? ParentHnd : (p ? p->Handle() : NULL);
+	    if (pwnd) EnableWindow(pwnd, false);
+	    while (d->ModalResult < 0)
+	    {
+	        LgiYield();
+	        LgiSleep(1);
+	    }
+	    if (pwnd) EnableWindow(pwnd, true);
+	    
+	    Visible(false);
+	    Status = d->ModalResult;
+	}
+	else
+	{
+	    LgiAssert(!"Attach failed.");
+	}
+	
+	#endif
 
 	return Status;
 }
@@ -206,10 +292,11 @@ int GDialog::DoModeless()
 	if (_View)
 		return Status;
 
-	Mem = new GMem(16<<10);
-	IsModal = false;
+	#if USE_DIALOGBOXINDIRECTPARAM
+	d->Mem = new GMem(16<<10);
+	d->IsModal = false;
 	GRect OldPos = GetPos();
-	if (Mem)
+	if (d->Mem)
 	{
 		LONG DlgUnits = GetDialogBaseUnits();
 		uint16 old_baseunitX = DlgUnits & 0xffff;
@@ -218,7 +305,7 @@ int GDialog::DoModeless()
 		int baseunitX = (Bs.X() / 26 + 1) / 2;
 		int baseunitY = Bs.Y();
 		
-		DLGTEMPLATE *Template = (DLGTEMPLATE*) Mem->Lock();
+		DLGTEMPLATE *Template = (DLGTEMPLATE*) d->Mem->Lock();
 		if (Template)
 		{
 			GRect r = Pos;
@@ -243,7 +330,7 @@ int GDialog::DoModeless()
 			Template->cx = r.X();
 			Template->cy = r.Y();
 
-			IsModal = false;
+			d->IsModal = false;
 
 			short *A = (short*) (Template+1);
 			// menu
@@ -272,49 +359,10 @@ int GDialog::DoModeless()
 										hWindow,
 										(DLGPROC) DlgRedir, 
 										(LPARAM) this);
-			
-			#if 0
-			if (_View)
-			{
-				GRect p = OldPos;
-				double Rx = 1.0;
-				double Ry = 1.0;
-				RECT Rect;
-				
-				do 
-				{
-					Rect.left = OldPos.x1 * Rx;
-					Rect.top = OldPos.y1 * Ry;
-					Rect.right = OldPos.x2 * Rx;
-					Rect.bottom = OldPos.y2 * Ry;
-
-					BOOL b = MapDialogRect(_View, &Rect);
-					if (!b)
-						break;
-
-					double rx = (double) (OldPos.x2 + 1) / Rect.right;
-					double ry = (double) (OldPos.y2 + 1) / Rect.bottom;
-					if (Rx == 1.0 && Ry == 1.0)
-					{
-						Rx = rx;
-						Ry = ry;
-					}
-					else
-					{
-						Rx *= 1.0 + ((rx - 1.0) / 2);
-						Ry *= 1.0 + ((ry - 1.0) / 2);
-					}
-				}
-				while (	Rect.left != OldPos.x1 ||
-						Rect.top != OldPos.y1 ||
-						Rect.right - 1 != OldPos.x2 ||
-						Rect.bottom - 1 != OldPos.y2);
-					   
-				int asd=0;
-			}
-			#endif
 		}
 	}
+	#else
+	#endif
 
 	return Status;
 }
@@ -369,7 +417,7 @@ GMessage::Result GDialog::OnEvent(GMessage *Msg)
 		}
 		case WM_CLOSE:
 		{
-			if (IsModal)
+			if (d->IsModal)
 			{
 				EndModal(0);
 			}
@@ -391,7 +439,11 @@ void GDialog::OnPosChange()
 
 void GDialog::EndModal(int Code)
 {
+    #if USE_DIALOGBOXINDIRECTPARAM
 	EndDialog(Handle(), Code);
+	#else
+	d->ModalResult = max(Code, 0);
+	#endif
 }
 
 void GDialog::EndModeless(int Code)

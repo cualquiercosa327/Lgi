@@ -213,19 +213,7 @@ class LgiClass GDialog :
 	friend class GControl;
 
 private:
-	bool IsModal, _Resizable;
-	int ModalStatus;
-
-	#if WIN32NATIVE
-
-	GMem *Mem;
-
-	#elif defined BEOS
-
-	sem_id ModalSem;
-	int ModalRet;
-
-	#endif
+    struct GDialogPriv *d;
 
 protected:
 	/// Load the dialog from a resource
