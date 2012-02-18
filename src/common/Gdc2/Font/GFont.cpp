@@ -154,8 +154,11 @@ void GTypeFace::Face(const char *s)
 
 void GTypeFace::PointSize(int i)
 {
-	d->_PtSize = i;
-	_OnPropChange(true);
+	if (d->_PtSize != i)
+	{
+		d->_PtSize = i;
+		_OnPropChange(true);
+	}
 }
 
 void GTypeFace::TabSize(int i)
@@ -166,8 +169,11 @@ void GTypeFace::TabSize(int i)
 
 void GTypeFace::Quality(int i)
 {
-	d->_Quality = i;
-	_OnPropChange(true);
+	if (d->_Quality != i)
+	{
+		d->_Quality = i;
+		_OnPropChange(true);
+	}
 }
 
 GColour GTypeFace::WhitespaceColour()
@@ -207,20 +213,29 @@ void GTypeFace::Back(GColour c)
 
 void GTypeFace::SetWeight(int i)
 {
-	d->_Weight = i;
-	_OnPropChange(true);
+	if (d->_Weight != i)
+	{
+		d->_Weight = i;
+		_OnPropChange(true);
+	}
 }
 
 void GTypeFace::Italic(bool i)
 {
-	d->_Italic = i;
-	_OnPropChange(true);
+	if (d->_Italic != i)
+	{
+		d->_Italic = i;
+		_OnPropChange(true);
+	}
 }
 
 void GTypeFace::Underline(bool i)
 {
-	d->_Underline = i;
-	_OnPropChange(true);
+	if (d->_Underline != i)
+	{
+		d->_Underline = i;
+		_OnPropChange(true);
+	}
 }
 
 void GTypeFace::Transparent(bool i)
@@ -701,7 +716,7 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 		DeleteObject(d->hFont);
 		d->hFont = 0;
 	}
-
+	
 	d->Param = Param;
 	HDC hDC = (Param) ? (HDC)Param : GetDC(0);
 	int LogPixelsY = GetDeviceCaps(hDC, LOGPIXELSY);
