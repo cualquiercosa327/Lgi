@@ -240,6 +240,9 @@ int GDialog::DoModal(OsView ParentHnd)
 	#else
 
     GViewI *p = GetParent();
+    if (p && p->GetWindow() != p)
+        p = p->GetWindow();
+    
 	if (Attach(0))
 	{
 	    AttachChildren();
@@ -361,7 +364,39 @@ int GDialog::DoModeless()
 										(LPARAM) this);
 		}
 	}
+
 	#else
+
+    GViewI *p = GetParent();
+    if (p && p->GetWindow() != p)
+        p = p->GetWindow();
+    
+	if (Attach(0))
+	{
+	    AttachChildren();
+	    
+	    if (p)
+	    {
+	        GRect pp = p->GetPos();
+	        int cx = pp.x1 + (pp.X() >> 1);
+	        int cy = pp.y1 + (pp.Y() >> 1);
+	        
+	        GRect np = GetPos();
+	        np.Offset(  cx - (np.X() >> 1) - np.x1,
+	                    cy - (np.Y() >> 1) - np.y1);
+	        
+	        SetPos(np);
+	        MoveOnScreen();
+	    }
+	    
+	    Visible(true);
+        Status = true;
+	}
+	else
+	{
+	    LgiAssert(!"Attach failed.");
+	}
+
 	#endif
 
 	return Status;
