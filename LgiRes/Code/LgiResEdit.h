@@ -81,13 +81,24 @@
 #define	MainWnd						((AppWnd*)GApp::ObjInstance()->AppWnd)
 
 // App
-#define	TYPE_BITMAP					1
-#define	TYPE_ICON					2
-#define	TYPE_CURSOR					3
-#define	TYPE_DIALOG					4
-#define	TYPE_STRING					5
-#define	TYPE_MENU					6
-#define	TYPE_DIR_DISABLED			7
+enum ObjectTypes {
+    TYPE_CSS = 1,
+    TYPE_DIALOG,
+    TYPE_STRING,
+    TYPE_MENU
+};
+
+enum IconTypes {
+    ICON_FOLDER,
+    ICON_IMAGE,
+    ICON_ICON,
+    ICON_CURSOR,
+    ICON_DIALOG,
+    ICON_STRING,
+    ICON_MENU,
+    ICON_DISABLED,
+    ICON_CSS
+};
 
 #define OPT_ShowLanguages			"ShowLang"
 
@@ -212,7 +223,6 @@ public:
 
 	Resource *GetObj() { return Obj; }
 	char *GetText(int i=0);
-	int GetImage(int Flags);
 	void OnSelect();
 	void OnMouseClick(GMouse &m);
 };
@@ -221,9 +231,7 @@ class ObjContainer : public GTree
 {
 	friend class AppWnd;
 
-	ObjTreeItem *Bitmaps;
-	ObjTreeItem *Icons;
-	ObjTreeItem *Cursors;
+	ObjTreeItem *Style;
 	ObjTreeItem *Dialogs;
 	ObjTreeItem *Strings;
 	ObjTreeItem *Menus;
@@ -725,4 +733,29 @@ public:
 	~ShowLanguagesDlg();
 
 	int OnNotify(GViewI *n, int f);
+};
+
+class ResCss : public Resource, public GLayout
+{
+protected:
+	class ResCssUi *Ui;
+
+public:
+	ResCss(AppWnd *w, int type = TYPE_CSS);
+	~ResCss();
+
+	void Create(GXmlTag *load);
+	GView *Wnd() { return dynamic_cast<GView*>(this); }
+	void OnShowLanguages();
+
+	// Resource
+	GView *CreateUI();
+	void OnRightClick(GSubMenu *RClick);
+	void OnCommand(int Cmd);
+	int OnCommand(int Cmd, int Event, OsView hWnd);
+
+	// Serialize
+	bool Test(ErrorCollection *e);
+	bool Read(GXmlTag *t, ResFileFormat Format);
+	bool Write(GXmlTag *t, ResFileFormat Format);
 };

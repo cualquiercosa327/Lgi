@@ -187,6 +187,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Code\LgiRes_Css.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Code\LgiRes_Dialog.cpp"
 				>
 			</File>

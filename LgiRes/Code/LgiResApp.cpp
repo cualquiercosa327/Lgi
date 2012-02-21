@@ -36,10 +36,8 @@ char TranslationStrMagic[] = "LgiRes.String";
 #endif
 
 char *TypeNames[] = {
-	"Folder",
-	"Bitmap",
-	"Icon",
-	"Cursor",
+    "",
+	"Css",
 	"Dialog",
 	"String",
 	"Menu",
@@ -292,6 +290,20 @@ ObjTreeItem::ObjTreeItem(Resource *Object)
 	if (Obj = Object)
 	{
 		Obj->Item = this;
+		
+		if (dynamic_cast<ResFolder*>(Object))
+		    SetImage(ICON_FOLDER);
+		else
+		{
+		    int t = Object->Type();
+		    switch (t)
+		    {
+		        case TYPE_CSS: SetImage(ICON_CSS); break;
+		        case TYPE_DIALOG: SetImage(ICON_DIALOG); break;
+		        case TYPE_STRING: SetImage(ICON_STRING); break;
+		        case TYPE_MENU: SetImage(ICON_MENU); break;
+		    }
+		}
 	}
 }
 
@@ -320,31 +332,6 @@ char *ObjTreeItem::GetText(int i)
 	}
 
 	return "#NO_OBJ";
-}
-
-int ObjTreeItem::GetImage(int Flags)
-{
-	if (Obj)
-	{
-		int Type = Obj->Type();
-		if (Type > 0)
-		{
-			return Obj->Type();
-		}
-		else
-		{
-			if (Obj->Wnd()->Enabled())
-			{
-				return 0;
-			}
-			else
-			{
-				return TYPE_DIR_DISABLED;
-			}
-		}
-	}
-
-	return 0;
 }
 
 void ObjTreeItem::OnSelect()
@@ -810,12 +797,10 @@ ObjContainer::ObjContainer(AppWnd *w) :
 	Window = w;
 	Sunken(false);
 
-	Insert(Bitmaps = new ObjTreeItem( new ResFolder(Window, -TYPE_BITMAP, false)));
-	Insert(Icons =   new ObjTreeItem( new ResFolder(Window, -TYPE_ICON, false)));
-	Insert(Cursors = new ObjTreeItem( new ResFolder(Window, -TYPE_CURSOR, false)));
+	Insert(Style   = new ObjTreeItem( new ResFolder(Window, -TYPE_CSS)));
 	Insert(Dialogs = new ObjTreeItem( new ResFolder(Window, -TYPE_DIALOG)));
 	Insert(Strings = new ObjTreeItem( new ResFolder(Window, -TYPE_STRING)));
-	Insert(Menus =   new ObjTreeItem( new ResFolder(Window, -TYPE_MENU)));
+	Insert(Menus   = new ObjTreeItem( new ResFolder(Window, -TYPE_MENU)));
 
 	char *f = LgiFindFile("_icons.gif");
 	if (f)
@@ -851,9 +836,7 @@ bool ObjContainer::AppendChildren(ObjTreeItem *Res, List<Resource> &Lst)
 
 bool ObjContainer::ListObjects(List<Resource> &Lst)
 {
-	bool Status = AppendChildren(Bitmaps, Lst);
-	Status &= AppendChildren(Icons, Lst);
-	Status &= AppendChildren(Cursors, Lst);
+	bool Status = AppendChildren(Style, Lst);
 	Status &= AppendChildren(Dialogs, Lst);
 	Status &= AppendChildren(Strings, Lst);
 	Status &= AppendChildren(Menus, Lst);
@@ -1626,16 +1609,10 @@ Resource *AppWnd::NewObject(GXmlTag *load, int Type, bool Select)
 
 	switch (Type)
 	{
-		case TYPE_BITMAP:
+		case TYPE_CSS:
 		{
-			break;
-		}
-		case TYPE_ICON:
-		{
-			break;
-		}
-		case TYPE_CURSOR:
-		{
+			r = new ResCss(this);
+			Dir = Objs->Style;
 			break;
 		}
 		case TYPE_DIALOG:
@@ -1695,19 +1672,9 @@ bool AppWnd::InsertObject(int Type, Resource *r, bool Select)
 
 		switch (Type)
 		{
-			case TYPE_BITMAP:
+			case TYPE_CSS:
 			{
-				Dir = Objs->Bitmaps;
-				break;
-			}
-			case TYPE_ICON:
-			{
-				Dir = Objs->Icons;
-				break;
-			}
-			case TYPE_CURSOR:
-			{
-				Dir = Objs->Cursors;
+				Dir = Objs->Style;
 				break;
 			}
 			case TYPE_DIALOG:

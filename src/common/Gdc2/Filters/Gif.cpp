@@ -749,7 +749,7 @@ bool GdcGif::ReadImage(GSurface *pdc, GStream *in)
 bool GdcGif::WriteImage(GStream *Out, GSurface *pDC)
 {
 	GVariant Transparent;
-	COLOUR Back = 0;
+	int Back = -1;
 	GVariant v;
 
 	if (!Out || !pDC)
@@ -775,12 +775,67 @@ bool GdcGif::WriteImage(GStream *Out, GSurface *pDC)
 
 		if (Parent.Type == GV_GVIEW)
 		{
-			// put up a dialog to ask about transparent colour
-			GTransparentDlg Dlg((GView*)Parent.Value.Ptr, &Transparent);
-			if (!Dlg.DoModal())
+		    // If the source document has an alpha channel then we use 
+		    // that to create transparent pixels in the output, otherwise
+		    // we ask the user if they want the background transparent...
+		    if (pDC->AlphaDC())
+		    {
+		        Transparent = true;
+		        
+		        // However we have to pick an unused colour to set as the 
+		        // "background" pixel value
+		        bool Used[256];
+		        ZeroObj(Used);
+	            for (int y=0; y<pDC->Y(); y++)
+	            {
+	                uint8 *p = (*pDC)[y];
+	                uint8 *a = (*pDC->AlphaDC())[y];
+	                LgiAssert(p && a);
+	                if (!p || !a) break;
+	                uint8 *e = p + pDC->X();
+	                while (p < e)
+	                {
+	                    if (*a)
+	                        Used[*p] = true;
+	                    a++;
+	                    p++;
+	                }
+	            }
+	            
+	            Back = -1;
+	            for (int i=0; i<256; i++)
+	            {
+	                if (!Used[i])
+	                {
+	                    Back = i;
+	                    break;
+	                }
+	            }
+	            
+	            if (Back < 0)
+	            {
+		            if (Props)
+			            Props->SetValue(LGI_FILTER_ERROR, v = "No unused colour for transparent pixels??");
+		            return false;
+	            }
+		    }
+		    else
+		    {
+			    // put up a dialog to ask about transparent colour
+			    GTransparentDlg Dlg((GView*)Parent.Value.Ptr, &Transparent);
+			    if (!Dlg.DoModal())
+			    {
+				    Props->SetValue("Cancel", v = 1);
+				    return false;
+			    }
+			}
+			
+			if (Transparent.CastBool() && Back < 0)
 			{
-				Props->SetValue("Cancel", v = 1);
-				return false;
+			    LgiAssert(!"No background colour available??");
+	            if (Props)
+		            Props->SetValue(LGI_FILTER_ERROR, v = "Transparency requested, but no background colour set.");
+                return false;			    
 			}
 		}
 	}
@@ -802,8 +857,8 @@ bool GdcGif::WriteImage(GStream *Out, GSurface *pDC)
 
 	bool Ordered = false;
 	uint8 c =	((Pal != 0) ? 0x80 : 0) | // global colour table/transparent
-				(pDC->GetBits() - 1) | // bits per pixel
-				((Ordered) ? 0x08 : 0) | // colours are sorted
+				(pDC->GetBits() - 1)    | // bits per pixel
+				((Ordered) ? 0x08 : 0)  | // colours are sorted
 				(pDC->GetBits() - 1);
 
 	Out->Write(&c, 1);
@@ -838,24 +893,11 @@ bool GdcGif::WriteImage(GStream *Out, GSurface *pDC)
 		Out->Write(Buf, Colours * 3);
 	}
 
-	if (Transparent.CastInt32())
+	if (Transparent.CastBool())
 	{
 		// Graphic Control Extension
-		c = 0x21;
-		Out->Write(&c, 1);
-		c = 0xF9;
-		Out->Write(&c, 1);
-		c = 4;
-		Out->Write(&c, 1);
-		c = 1; // pack fields
-		Out->Write(&c, 1);
-		s = 0;
-		Write(Out, &s, sizeof(s));
-		c = Back;
-		Out->Write(&c, 1);
-		
-		c = 0; // terminator
-		Out->Write(&c, 1);
+		uchar gce[] = {0x21, 0xF9, 4, 1, 0, 0, Back, 0 };
+		Out->Write(gce, sizeof(gce));
 	}
 
 	// Image descriptor
@@ -880,14 +922,34 @@ bool GdcGif::WriteImage(GStream *Out, GSurface *pDC)
 
 	// Get input ready
 	int Len = (pDC->X() * pDC->GetBits() + 7) / 8;
+	uint8 *buf = pDC->AlphaDC() ? new uint8[Len] : 0;
 	for (int y=0; y<pDC->Y(); y++)
 	{
-		uchar *p = (*pDC)[y];
-		if (p)
+		uint8 *p = (*pDC)[y];
+		if (!p) continue;
+		
+		if (pDC->AlphaDC())
 		{
-			Pixels.Write(p, Len);
+		    // Preprocess pixels to make the alpha channel into the 
+		    // transparent colour.
+		    uint8 *a = (*pDC->AlphaDC())[y];
+		    uint8 *e = p + pDC->X();
+		    uint8 *o = buf;
+		    while (p < e)
+		    {
+		        if (*a++)
+		            *o++ = *p;
+		        else
+		            *o++ = Back;
+		        p++;
+		    }
+		    LgiAssert(o == buf + Len);
+		    p = buf;
 		}
+
+		Pixels.Write(p, Len);
 	}
+	DeleteArray(buf);
 
 	// Compress
 	Lzw Encoder;
