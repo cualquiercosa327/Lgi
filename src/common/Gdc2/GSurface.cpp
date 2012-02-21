@@ -51,7 +51,7 @@ GSurface::GSurface()
 GSurface::GSurface(GSurface *pDC)
 {
 	Init();
-	if (pDC AND Create(pDC->X(), pDC->Y(), pDC->GetBits()))
+	if (pDC && Create(pDC->X(), pDC->Y(), pDC->GetBits()))
 	{
 		Blt(0, 0, pDC);
 		if (pDC->Palette())
@@ -80,12 +80,12 @@ GSurface::~GSurface()
 	DeleteObj(pMem);
 	DeleteObj(pAlphaDC);
 
-	if (pPalette AND (Flags & GDC_OWN_PALETTE))
+	if (pPalette && (Flags & GDC_OWN_PALETTE))
 	{
 		DeleteObj(pPalette);
 	}
 
-	if (	(Flags & GDC_OWN_APPLICATOR) AND
+	if (	(Flags & GDC_OWN_APPLICATOR) &&
 		!(Flags & GDC_CACHED_APPLICATOR))
 	{
 		DeleteObj(pApp);
@@ -131,9 +131,9 @@ uchar *GSurface::operator[](int y)
 void GSurface::Set(int x, int y)
 {
 	OrgXy(x, y);
-	if (x >= Clip.x1 AND
-		y >= Clip.y1 AND
-		x <= Clip.x2 AND
+	if (x >= Clip.x1 &&
+		y >= Clip.y1 &&
+		x <= Clip.x2 &&
 		y <= Clip.y2)
 	{
 		pApp->SetPtr(x, y);
@@ -146,9 +146,9 @@ COLOUR GSurface::Get(int x, int y)
 {
 	OrgXy(x, y);
 
-	if (x >= Clip.x1 AND
-		y >= Clip.y1 AND
-		x <= Clip.x2 AND
+	if (x >= Clip.x1 &&
+		y >= Clip.y1 &&
+		x <= Clip.x2 &&
 		y <= Clip.y2)
 	{
 		pApp->SetPtr(x, y);
@@ -166,8 +166,8 @@ void GSurface::HLine(int x1, int x2, int y)
 
 	if (x1 < Clip.x1) x1 = Clip.x1;
 	if (x2 > Clip.x2) x2 = Clip.x2;
-	if (x1 <= x2 AND
-		y >= Clip.y1 AND
+	if (x1 <= x2 &&
+		y >= Clip.y1 &&
 		y <= Clip.y2)
 	{
 		pApp->SetPtr(x1, y);
@@ -202,8 +202,8 @@ void GSurface::VLine(int x, int y1, int y2)
 	if (y1 > y2) LgiSwap(y1, y2);
 	if (y1 < Clip.y1) y1 = Clip.y1;
 	if (y2 > Clip.y2) y2 = Clip.y2;
-	if (y1 <= y2 AND
-		x >= Clip.x1 AND
+	if (y1 <= y2 &&
+		x >= Clip.x1 &&
 		x <= Clip.x2)
 	{
 		pApp->SetPtr(x, y1);
@@ -551,7 +551,7 @@ void GSurface::Box(GRect *a)
 	{
 		GRect b = *a;
 		b.Normal();
-		if (b.x1 != b.x2 AND b.y1 != b.y2)
+		if (b.x1 != b.x2 && b.y1 != b.y2)
 		{
 			HLine(b.x1, b.x2 - 1, b.y1);
 			VLine(b.x2, b.y1, b.y2 - 1);
@@ -620,7 +620,7 @@ void GSurface::Ellipse(double Cx, double Cy, double a, double b)
 	long two_bSq = bSq+bSq;
 	long x=0, y=(long)b, two_xBsq = 0, two_yAsq = y * two_aSq, error = -y * aSq;
 
-	if (aSq AND bSq AND error)
+	if (aSq && bSq && error)
 	{
 		while (two_xBsq <= two_yAsq)
 		{
@@ -677,7 +677,7 @@ void GSurface::FilledEllipse(double Cx, double Cy, double a, double b)
 	long two_bSq = bSq+bSq;
 	long x=0, y=(long)b, two_xBsq = 0, two_yAsq = y * two_aSq, error = -y * aSq;
 
-	if (aSq AND bSq AND error)
+	if (aSq && bSq && error)
 	{
 		while (two_xBsq <= two_yAsq)
 		{
@@ -745,7 +745,7 @@ void GSurface::Polygon(int nPoints, GdcPt2 *aPoints)
 	GET = new EDGE*[nPoints];
 	AET = new EDGE*[nPoints];
 
-	if (ET AND GET AND AET)
+	if (ET && GET && AET)
 	{
 		for ( i = 0, nEdges = 0; i < nPoints; i++)
 		{
@@ -883,7 +883,7 @@ void GSurface::Blt(int x, int y, GSurface *Src, GRect *a)
 {
 	OrgXy(x, y);
 
-	if (Src AND Src->pMem->Base)
+	if (Src && Src->pMem->Base)
 	{
 		GRect S;
 		if (a)	S = *a;
@@ -905,7 +905,7 @@ void GSurface::Blt(int x, int y, GSurface *Src, GRect *a)
 			Re.Offset(S.x1-x, S.y1-y);
 			SClip.Bound(&Re);
 
-			if (DClip.Valid() AND SClip.Valid())
+			if (DClip.Valid() && SClip.Valid())
 			{
 				GBmpMem Bits, Alpha;
 
@@ -920,7 +920,7 @@ void GSurface::Blt(int x, int y, GSurface *Src, GRect *a)
 				Bits.Bits = Src->GetBits();
 				Bits.Flags = 0;
 
-				if (Src->pAlphaDC)
+				if (Src->pAlphaDC && !Src->DrawOnAlpha())
 				{
 					GBmpMem *ASurface = Src->pAlphaDC->pMem;
 					Alpha = Bits;
@@ -932,8 +932,8 @@ void GSurface::Blt(int x, int y, GSurface *Src, GRect *a)
 				}
 
 				pApp->SetPtr(DClip.x1, DClip.y1);
-				GPalette *SrcPal = Src->Palette();
-				pApp->Blt(&Bits, SrcPal, (Src->pAlphaDC) ? &Alpha : 0);
+				GPalette *SrcPal = Src->DrawOnAlpha() ? NULL : Src->Palette();
+				pApp->Blt(&Bits, SrcPal, Alpha.Base ? &Alpha : 0);
 				Update(GDC_BITS_CHANGE);
 
 				if (pApp->GetFlags() & GDC_UPDATED_PALETTE)
@@ -1091,7 +1091,7 @@ public:
 
 	void Pop(int &x, int &y)
 	{
-		if (Stack AND Used > 0)
+		if (Stack && Used > 0)
 		{
 			Used--;
 			x = Stack[Used].x;
@@ -1116,8 +1116,8 @@ bool FillMatch_Near(COLOUR Seed, COLOUR Pixel, COLOUR Border, int Bits)
 	int Dg = G24(s24) - G24(p24);
 	int Db = B24(s24) - B24(p24);
 
-	return	(abs(Dr) < Border) AND
-			(abs(Dg) < Border) AND
+	return	(abs(Dr) < Border) &&
+			(abs(Dg) < Border) &&
 			(abs(Db) < Border);
 }
 
@@ -1173,7 +1173,7 @@ void GSurface::FloodFill(int StartX, int StartY, int Mode, COLOUR Border, GRect 
 				// move right loop
 				COLOUR c = Get(x, y);
 
-				while (x < X() AND Proc(Seed, c, Border, Bits))
+				while (x < X() && Proc(Seed, c, Border, Bits))
 				{
 					Set(x, y);
 					Bounds.Union(x, y);
@@ -1221,13 +1221,13 @@ void GSurface::FloodFill(int StartX, int StartY, int Mode, COLOUR Border, GRect 
 				// move left loop
 				x = Ox;
 
-				Above = !((y > 0) AND (Get(x, y - 1) == Seed));
-				Below = !((y < Y() - 1) AND (Get(x, y + 1) == Seed));
+				Above = !((y > 0) && (Get(x, y - 1) == Seed));
+				Below = !((y < Y() - 1) && (Get(x, y + 1) == Seed));
 
 				x--;
 				c = Get(x, y);
 
-				while (x >= 0 AND Proc(Seed, c, Border, Bits))
+				while (x >= 0 && Proc(Seed, c, Border, Bits))
 				{
 					Set(x, y);
 					Bounds.Union(x, y);
@@ -1297,7 +1297,7 @@ bool GSurface::HasAlpha(bool b)
 			pAlphaDC = new GMemDC;
 		}
 
-		if (pAlphaDC AND pMem)
+		if (pAlphaDC && pMem)
 		{
 			if (!pAlphaDC->Create(pMem->x, pMem->y, 8))
 			{
@@ -1320,31 +1320,42 @@ bool GSurface::HasAlpha(bool b)
 bool GSurface::DrawOnAlpha(bool Draw)
 {
 	bool Prev = DrawOnAlpha();
+    bool Swap = false;
 
 	if (Draw)
 	{
-		if (!Prev AND pAlphaDC AND pMem)
+		if (!Prev && pAlphaDC && pMem)
 		{
-			GBmpMem *Temp = pMem;
-			pMem = pAlphaDC->pMem;
-			pAlphaDC->pMem = Temp;
+			Swap = true;
 			SetFlag(Flags, GDC_DRAW_ON_ALPHA);
-
 			PrevOp = Op(GDC_SET);
 		}
 	}
 	else
 	{
-		if (Prev AND pAlphaDC AND pMem)
+		if (Prev && pAlphaDC && pMem)
 		{
-			GBmpMem *Temp = pMem;
-			pMem = pAlphaDC->pMem;
-			pAlphaDC->pMem = Temp;
+		    Swap = true;
 			ClearFlag(Flags, GDC_DRAW_ON_ALPHA);
-
 			Op(PrevOp);
 		}
 	}
+
+    if (Swap)
+    {
+		GBmpMem *Temp = pMem;
+		pMem = pAlphaDC->pMem;
+		pAlphaDC->pMem = Temp;
+		
+    	#if WIN32NATIVE
+		OsBitmap hTmp = hBmp;
+		hBmp = pAlphaDC->hBmp;
+		pAlphaDC->hBmp = hTmp;
+		OsPainter hP = hDC;
+		hDC = pAlphaDC->hDC;
+		pAlphaDC->hDC = hP;
+		#endif
+    }
 
 	return Prev;
 }
@@ -1353,7 +1364,7 @@ GApplicator *GSurface::CreateApplicator(int Op, int Bits)
 {
 	GApplicator *pA = NULL;
 
-	if (!Bits AND pMem)
+	if (!Bits && pMem)
 	{
 		if (DrawOnAlpha())
 		{
@@ -1366,7 +1377,7 @@ GApplicator *GSurface::CreateApplicator(int Op, int Bits)
 	}
 	
 	pA = GApplicatorFactory::NewApp(Bits, Op);
-	if (pA AND pMem)
+	if (pA && pMem)
 	{
 		if (DrawOnAlpha())
 		{
@@ -1492,7 +1503,7 @@ int GSurface::Op(int NewOp)
 			DeleteObj(pApp);
 		}
 
-		if (NewOp < GDC_CACHE_SIZE AND !DrawOnAlpha())
+		if (NewOp < GDC_CACHE_SIZE && !DrawOnAlpha())
 		{
 			pApp = (pAppCache[NewOp]) ? pAppCache[NewOp] : pAppCache[NewOp] = CreateApplicator(NewOp);
 			Flags &= ~GDC_OWN_APPLICATOR;
@@ -1521,7 +1532,7 @@ int GSurface::Op(int NewOp)
 
 GPalette *GSurface::Palette()
 {
-	if (!pPalette AND pMem AND (pMem->Flags & GDC_ON_SCREEN))
+	if (!pPalette && pMem && (pMem->Flags & GDC_ON_SCREEN))
 	{
 		pPalette = GdcD->GetSystemPalette();
 		if (pPalette)
@@ -1535,14 +1546,14 @@ GPalette *GSurface::Palette()
 
 void GSurface::Palette(GPalette *pPal, bool bOwnIt)
 {
-	if (pPalette AND Flags & GDC_OWN_PALETTE)
+	if (pPalette && Flags & GDC_OWN_PALETTE)
 	{
 		delete pPalette;
 	}
 
 	pPalette = pPal;
 
-	if (pPal AND bOwnIt)
+	if (pPal && bOwnIt)
 	{
 		Flags |= GDC_OWN_PALETTE;
 	}

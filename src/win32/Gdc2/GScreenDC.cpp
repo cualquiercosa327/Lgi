@@ -689,7 +689,7 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 		HDC hDestDC = StartDC();
 		HDC hSrcDC = Src->StartDC();
 
-		GPalette *Pal = Src->Palette();
+		GPalette *Pal = Src->DrawOnAlpha() ? NULL : Src->Palette();
 		HPALETTE sPal = 0, dPal = 0;
 		if (Pal)
 		{

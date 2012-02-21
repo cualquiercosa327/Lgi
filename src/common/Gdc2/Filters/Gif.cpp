@@ -672,7 +672,7 @@ bool GdcGif::ReadImage(GSurface *pdc, GStream *in)
 
 										for (int x=0; x<pDC->X(); x++)
 										{
-											*A++ = *C++ == BackgroundColour ? 0x00 : 0xff;
+											A[x] = C[x] == BackgroundColour ? 0x00 : 0xff;
 										}
 									}
 								}
