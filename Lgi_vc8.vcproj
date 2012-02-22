@@ -805,6 +805,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\common\GTableLayout.h"
+					>
+				</File>
+				<File
 					RelativePath=".\src\common\Widgets\GTabView.cpp"
 					>
 				</File>

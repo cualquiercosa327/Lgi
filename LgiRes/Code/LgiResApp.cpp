@@ -348,111 +348,109 @@ void ObjTreeItem::OnMouseClick(GMouse &m)
 	if (m.IsContextMenu())
 	{
 		Tree->Select(this);
-		GSubMenu *RClick = new GSubMenu;
-		if (RClick)
-		{
-			if (Obj->Wnd()->Enabled())
-			{
-				if (Obj->Type() > 0)
-				{
-					// Resource
-					RClick->AppendItem("Delete", IDM_DELETE, !Obj->SystemObject());
-					RClick->AppendItem("Rename", IDM_RENAME, !Obj->SystemObject());
-				}
-				else
-				{
-					// Folder
-					RClick->AppendItem("New", IDM_NEW, true);
-					RClick->AppendSeparator();
-					GSubMenu *Insert = RClick->AppendSub("Import from...");
-					if (Insert)
-					{
-						Insert->AppendItem("Lgi File", IDM_IMPORT, true);
-						Insert->AppendItem("Win32 Resource Script", IDM_IMPORT_WIN32, false);
-					}
-				}
+		GSubMenu RClick;
 
-				// Custom entries
-				if (!Obj->SystemObject())
-				{
-					Obj->OnRightClick(RClick);
-				}
+		if (Obj->Wnd()->Enabled())
+		{
+			if (Obj->Type() > 0)
+			{
+				// Resource
+				RClick.AppendItem("Delete", IDM_DELETE, !Obj->SystemObject());
+				RClick.AppendItem("Rename", IDM_RENAME, !Obj->SystemObject());
 			}
 			else
 			{
-				RClick->AppendItem("Not implemented", 0, false);
+				// Folder
+				RClick.AppendItem("New", IDM_NEW, true);
+				RClick.AppendSeparator();
+				GSubMenu *Insert = RClick.AppendSub("Import from...");
+				if (Insert)
+				{
+					Insert->AppendItem("Lgi File", IDM_IMPORT, true);
+					Insert->AppendItem("Win32 Resource Script", IDM_IMPORT_WIN32, false);
+				}
 			}
 
-			if (Tree->GetMouse(m, true))
+			// Custom entries
+			if (!Obj->SystemObject())
 			{
-				int Cmd = 0;
-				switch (Cmd = RClick->Float(Tree, m.x, m.y))
+				Obj->OnRightClick(&RClick);
+			}
+		}
+		else
+		{
+			RClick.AppendItem("Not implemented", 0, false);
+		}
+
+		if (Tree->GetMouse(m, true))
+		{
+			int Cmd = 0;
+			switch (Cmd = RClick.Float(Tree, m.x, m.y))
+			{
+				case IDM_NEW:
 				{
-					case IDM_NEW:
+					Obj->App()->NewObject(0, -Obj->Type());
+					break;
+				}
+				case IDM_DELETE:
+				{
+					Obj->App()->SetDirty(true);
+					Obj->App()->DelObject(Obj);
+					break;
+				}
+				case IDM_RENAME:
+				{
+					GInput Dlg(Tree, GetText(), "Enter the name for the object", "Object Name");
+					if (Dlg.DoModal())
 					{
-						Obj->App()->NewObject(0, -Obj->Type());
-						break;
-					}
-					case IDM_DELETE:
-					{
+						Obj->Wnd()->Name(Dlg.Str);
+						Update();
 						Obj->App()->SetDirty(true);
-						Obj->App()->DelObject(Obj);
-						break;
 					}
-					case IDM_RENAME:
+					break;
+				}
+				case IDM_IMPORT:
+				{
+					GFileSelect Select;
+					Select.Parent(Obj->App());
+					Select.Type("Text", "*.txt");
+					if (Select.Open())
 					{
-						GInput Dlg(Tree, GetText(), "Enter the name for the object", "Object Name");
-						if (Dlg.DoModal())
+						GFile F;
+						if (F.Open(Select.Name(), O_READ))
 						{
-							Obj->Wnd()->Name(Dlg.Str);
-							Update();
-							Obj->App()->SetDirty(true);
-						}
-						break;
-					}
-					case IDM_IMPORT:
-					{
-						GFileSelect Select;
-						Select.Parent(Obj->App());
-						Select.Type("Text", "*.txt");
-						if (Select.Open())
-						{
-							GFile F;
-							if (F.Open(Select.Name(), O_READ))
+							Resource *Res = Obj->App()->NewObject(0, -Obj->Type());
+							if (Res)
 							{
-								Resource *Res = Obj->App()->NewObject(0, -Obj->Type());
-								if (Res)
-								{
-									// TODO
-									// Res->Read();
-								}
-							}
-							else
-							{
-								LgiMsg(Obj->App(), "Couldn't open file for reading.");
+								// TODO
+								// Res->Read();
 							}
 						}
-						break;
-					}
-					case IDM_IMPORT_WIN32:
-					{
-						/*
-						List<ResDialog> l;
-						if (ImportWin32Dialogs(l, MainWnd))
+						else
 						{
-							for (ResDialog *r = l.First(); r; r = l.Next())
-							{
-								Obj->App()->InsertObject(TYPE_DIALOG, r);
-							}
+							LgiMsg(Obj->App(), "Couldn't open file for reading.");
 						}
-						*/
-						break;
 					}
-					default:
+					break;
+				}
+				case IDM_IMPORT_WIN32:
+				{
+					/*
+					List<ResDialog> l;
+					if (ImportWin32Dialogs(l, MainWnd))
 					{
-						Obj->OnCommand(Cmd);
-						break;
+						for (ResDialog *r = l.First(); r; r = l.Next())
+						{
+							Obj->App()->InsertObject(TYPE_DIALOG, r);
+						}
 					}
+					*/
+					break;
+				}
+				default:
+				{
+					Obj->OnCommand(Cmd);
+					break;
 				}
 			}
 		}
@@ -2523,17 +2521,21 @@ bool AppWnd::LoadLgi(char *FileName)
 						}
 
 						int RType = 0;
-						if (stricmp(t->Tag, "dialog") == 0)
+						if (!stricmp(t->Tag, "dialog"))
 						{
 							RType = TYPE_DIALOG;
 						}
-						else if (stricmp(t->Tag, "string-group") == 0)
+						else if (!stricmp(t->Tag, "string-group"))
 						{
 							RType = TYPE_STRING;
 						}
-						else if (stricmp(t->Tag, "menu") == 0)
+						else if (!stricmp(t->Tag, "menu"))
 						{
 							RType = TYPE_MENU;
+						}
+						else if (!stricmp(t->Tag, "style"))
+						{
+						    RType = TYPE_CSS;
 						}
 						else
 						{

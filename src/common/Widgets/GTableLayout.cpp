@@ -17,7 +17,7 @@
 
 #define Izza(c)				dynamic_cast<c*>(v)
 #define CELL_SPACING		4
-#define DEBUG_LAYOUT		1
+#define DEBUG_LAYOUT		0
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 
@@ -318,6 +318,17 @@ public:
 	~GTableLayoutPrivate();
 	TableCell *GetCellAt(int cx, int cy);
 	void Layout(GRect &Client);
+
+    bool CollectRadioButtons(GArray<GRadioButton*> &Btns)
+    {
+        GViewIterator *it = Ctrl->IterateViews();
+        for (GViewI *i = it->First(); i; i = it->Next())
+        {
+            GRadioButton *b = dynamic_cast<GRadioButton*>(i);
+            if (b) Btns.Add(b);
+        }
+        return Btns.Length() > 0;
+    }
 };
 
 class TableCell : public GLayoutCell
@@ -335,6 +346,24 @@ public:
 		Table = t;
 		Cell.ZOff(0, 0);
 		Cell.Offset(Cx, Cy);
+	}
+	
+	bool Add(GView *v)
+	{
+	    if (Children.HasItem(v))
+	        return false;
+	    Table->AddView(v);
+	    Children.Add(v);
+	    return true;
+	}
+	
+	bool Remove(GView *v)
+	{
+	    if (!Children.HasItem(v))
+	        return false;
+	    Table->DelView(v);
+	    Children.Delete(v, true);
+	    return true;
 	}
 
 	bool IsSpanned()
@@ -1295,4 +1324,52 @@ void GTableLayout::OnChildrenChanged(GViewI *Wnd, bool Attaching)
 
 		LgiAssert(0);
 	}
+}
+
+int64 GTableLayout::Value()
+{
+    GArray<GRadioButton*> Btns;
+    if (d->CollectRadioButtons(Btns))
+    {
+        for (int i=0; i<Btns.Length(); i++)
+        {
+            if (Btns[i]->Value())
+                return i;
+        }
+    }
+    return -1;
+}
+
+void GTableLayout::Value(int64 v)
+{
+    GArray<GRadioButton*> Btns;
+    if (d->CollectRadioButtons(Btns))
+    {
+        if (v >= 0 && v < Btns.Length())
+            Btns[v]->Value(true);
+    }
+}
+
+GLayoutCell *GTableLayout::GetCell(int cx, int cy, bool create, int colspan, int rowspan)
+{
+	TableCell *c = d->GetCellAt(cx, cy);
+	if (!c && create)
+    {
+        c = new TableCell(this, cx, cy);
+        if (c)
+        {
+            if (colspan > 1)
+                c->Cell.x2 += colspan - 1;
+            if (rowspan > 1)
+                c->Cell.y2 += rowspan - 1;
+            d->Cells.Add(c);
+            
+            while (d->Cols.Length() <= c->Cell.x2)
+                d->Cols.Add(1);
+            while (d->Rows.Length() <= c->Cell.y2)
+                d->Rows.Add(1);
+        }
+    }
+    
+    return c;
 }

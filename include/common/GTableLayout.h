@@ -12,6 +12,9 @@ class GLayoutCell : public GDom
 public:
 	GLayoutCell() {}
 	virtual ~GLayoutCell() {}
+	
+	virtual bool Add(GView *v) = 0;
+	virtual bool Remove(GView *v) = 0;
 };
 
 /// A table layout control. This uses techniques similar to HTML table layout to set the position
@@ -42,6 +45,9 @@ public:
 	/// Invalidates the layout, causing the control to relay all the children
 	void InvalidateLayout();
 
+    /// Create a cell
+    GLayoutCell *GetCell(int x, int y, bool create = true, int colspan = 1, int rowspan = 1);
+
 	// Impl
 	void OnFocus(bool b);
 	void OnCreate();
@@ -50,6 +56,8 @@ public:
 	bool GetVariant(const char *Name, GVariant &Value, char *Array = 0);
 	bool SetVariant(const char *Name, GVariant &Value, char *Array = 0);
 	void OnChildrenChanged(GViewI *Wnd, bool Attaching);
+	int64 Value();
+	void Value(int64 v);
 };
 
 #endif

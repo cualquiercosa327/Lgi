@@ -737,8 +737,11 @@ public:
 
 class ResCss : public Resource, public GLayout
 {
+    friend class ResCssUi;
+    
 protected:
 	class ResCssUi *Ui;
+	GAutoString Style;
 
 public:
 	ResCss(AppWnd *w, int type = TYPE_CSS);
