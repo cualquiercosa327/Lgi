@@ -56,6 +56,24 @@ GCheckBox::~GCheckBox()
 	DeleteObj(d);
 }
 
+bool GCheckBox::OnLayout(GViewLayoutInfo &Inf)
+{
+    if (!Inf.Width.Max)
+    {
+        Inf.Width.Min =
+            Inf.Width.Max =
+            d->Txt ? 20 + d->Txt->X() : 30;
+    }
+    else if (!Inf.Height.Max)
+    {
+        Inf.Height.Min =
+            Inf.Height.Max =
+            d->Txt ? d->Txt->Y() : SysFont->GetHeight();
+    }
+    else false;
+    return true;    
+}
+
 void GCheckBox::OnAttach()
 {
 }

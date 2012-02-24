@@ -66,6 +66,7 @@ public:
 	int64 Value();
 	void Value(int64 i);
 	void SetFont(GFont *Fnt, bool OwnIt = false);
+	bool OnLayout(GViewLayoutInfo &Inf);
 
 	// Events
 	void OnMouseClick(GMouse &m);

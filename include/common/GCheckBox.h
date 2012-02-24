@@ -59,6 +59,7 @@ public:
 	bool Name(const char *n);
 	bool NameW(const char16 *n);
 	void SetFont(GFont *Fnt, bool OwnIt = false);
+    bool OnLayout(GViewLayoutInfo &Inf);
 
 	void OnMouseClick(GMouse &m);
 	void OnMouseEnter(GMouse &m);
