@@ -1032,6 +1032,8 @@ void GView::Sunken(bool i)
 	#if WIN32NATIVE
 	if (i) SetFlag(d->WndExStyle, WS_EX_CLIENTEDGE);
 	else ClearFlag(d->WndExStyle, WS_EX_CLIENTEDGE);
+	if (_View)
+	    SetWindowLong(_View, GWL_EXSTYLE, d->WndExStyle);
 	#else
 	if (i) SetFlag(GViewFlags, GWF_SUNKEN);
 	else ClearFlag(GViewFlags, GWF_SUNKEN);

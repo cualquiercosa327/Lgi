@@ -27,6 +27,8 @@ public:
 
 	void SetDate(char *d);
 	void OnMouseClick(GMouse &m);
+
+	bool OnLayout(GViewLayoutInfo &Inf);
 };
 
 /// This class is a little button to pull down a date selection control...
@@ -52,6 +54,8 @@ public:
 
 	void SetDate(char *d);
 	void OnMouseClick(GMouse &m);
+
+	bool OnLayout(GViewLayoutInfo &Inf);
 };
 
 #endif

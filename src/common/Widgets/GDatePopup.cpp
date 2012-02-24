@@ -190,6 +190,21 @@ GDatePopup::GDatePopup() : ResObject(Res_Custom), GDropDown(-1, 0, 0, 10, 10, 0)
 	SetPopup(Drop = new GDateDrop(this));
 }
 
+bool GDatePopup::OnLayout(GViewLayoutInfo &Inf)
+{
+    if (!Inf.Width.Max)
+    {
+        Inf.Width.Min = Inf.Width.Max = 20;
+    }
+    else if (!Inf.Height.Max)
+    {
+        Inf.Height.Min = Inf.Height.Max = SysFont->GetHeight() + 6;
+    }
+    else return false;
+    
+    return true;
+}
+
 void GDatePopup::SetDate(char *d)
 {
 	GViewI *n = GetNotify();
