@@ -18,17 +18,26 @@
 ///////////////////////////////////////////////////////////////////////////////////////////
 #define GreyBackground()
 
+struct GDialogPriv
+{
+	bool IsModal;
+	int ModalStatus;
+};
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 GDialog::GDialog()
 	: ResObject(Res_Dialog)
 {
+	d = new GDialogPriv;
 	Name("Dialog");
-	IsModal = false;
+	d->IsModal = false;
+	d->ModalStatus = -1;
 	_SetDynamic(false);
 }
 
 GDialog::~GDialog()
 {
+	DeleteObj(d);
 }
 
 void GDialog::OnPosChange()
@@ -51,7 +60,7 @@ bool GDialog::LoadFromResource(int Resource, char *TagList)
 
 bool GDialog::OnRequestClose(bool OsClose)
 {
-	if (IsModal)
+	if (d->IsModal)
 	{
 		EndModal(0);
 		return false;
@@ -62,14 +71,14 @@ bool GDialog::OnRequestClose(bool OsClose)
 
 int GDialog::DoModal(OsView OverideParent)
 {
-	ModalStatus = 0;
+	d->ModalStatus = 0;
 
 	if (Wnd && Attach(0))
 	{
 		GWindow *Owner = GetParent() ? GetParent()->GetWindow() : 0;
 		if (Owner) Owner->SetChildDialog(this);
 		
-		IsModal = true;
+		d->IsModal = true;
 		AttachChildren();
 		Visible(true);
 		
@@ -78,15 +87,15 @@ int GDialog::DoModal(OsView OverideParent)
 		if (Owner) Owner->SetChildDialog(0);
 	}
 
-	return ModalStatus;
+	return d->ModalStatus;
 }
 
 void GDialog::EndModal(int Code)
 {
-	if (IsModal)
+	if (d->IsModal)
 	{
-		IsModal = false;
-		ModalStatus = Code;
+		d->IsModal = false;
+		d->ModalStatus = Code;
 		
 		QuitAppModalLoopForWindow(Wnd);
 	}
@@ -98,7 +107,7 @@ void GDialog::EndModal(int Code)
 
 int GDialog::DoModeless()
 {
-	IsModal = false;
+	d->IsModal = false;
 	if (Attach(0))
 	{
 		AttachChildren();
