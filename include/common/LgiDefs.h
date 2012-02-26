@@ -411,18 +411,21 @@ LgiFunc void							_lgi_assert(bool b, const char *test, const char *file, int l
 
 // Os metrics
 
-/// Get the standard window horizontal border size
-/// \sa GApp::GetMetric()
-#define LGI_MET_DECOR_X					1
-/// Get the standard window vertical border size including caption bar.
-/// \sa GApp::GetMetric()
-#define LGI_MET_DECOR_Y					2
-/// Get the standard window vertical border size including caption bar.
-/// \sa GApp::GetMetric()
-#define LGI_MET_DECOR_CAPTION			3
-/// Get the height of a single line menu bar
-/// \sa GApp::GetMetric()
-#define LGI_MET_MENU					4
+enum LgiSystemMetric
+{
+	/// Get the standard window horizontal border size
+	/// \sa GApp::GetMetric()
+	LGI_MET_DECOR_X = 1,
+	/// Get the standard window vertical border size including caption bar.
+	/// \sa GApp::GetMetric()
+	LGI_MET_DECOR_Y,
+	/// Get the standard window vertical border size including caption bar.
+	/// \sa GApp::GetMetric()
+	LGI_MET_DECOR_CAPTION,
+	/// Get the height of a single line menu bar
+	/// \sa GApp::GetMetric()
+	LGI_MET_MENU,
+};
 
 /// \brief Types of system paths available for querying
 /// \sa LgiGetSystemPath

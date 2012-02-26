@@ -106,6 +106,7 @@ public:
 	GMessage::Result OnEvent(GMessage *Msg);
 	void OnPaint(GSurface *pDC);
 	void OnCreate();
+	void OnPosChange();
 };
 
 #endif

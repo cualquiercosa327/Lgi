@@ -329,7 +329,7 @@ public:
 	int32 GetMetric
 	(
 		/// One of #LGI_MET_DECOR_X, #LGI_MET_DECOR_Y
-		int Metric
+		LgiSystemMetric Metric
 	);
 
 	/// Get the mouse hook instance

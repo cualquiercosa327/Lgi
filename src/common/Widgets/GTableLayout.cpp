@@ -281,24 +281,17 @@ int LayoutTextCtrl(GView *v, int Offset, int Width)
 	return Ht;
 }
 
-enum CellAlign
-{
-	AlignMin,
-	AlignCenter,
-	AlignMax,
-};
-
-CellAlign ConvertAlign(char *s)
+GLayoutCell::CellAlign ConvertAlign(char *s)
 {
 	if (s)
 	{
 		if (stricmp(s, "Center") == 0)
-			return AlignCenter;
+			return GLayoutCell::AlignCenter;
 		if (stricmp(s, "Max") == 0)
-			return AlignMax;
+			return GLayoutCell::AlignMax;
 	}
 
-	return AlignMin;
+	return GLayoutCell::AlignMin;
 }
 
 class TableCell;
@@ -348,6 +341,16 @@ public:
 		Cell.Offset(Cx, Cy);
 	}
 	
+	void SetAlignX(CellAlign c)
+	{
+		AlignX = c;
+	}
+	
+	void SetAlignY(CellAlign c)
+	{
+		AlignY = c;
+	}
+
 	bool Add(GView *v)
 	{
 	    if (Children.HasItem(v))
@@ -415,11 +418,11 @@ public:
 		}
 		else if (stricmp(Name, "align") == 0)
 		{
-			AlignX = ConvertAlign(Value.Str());
+			SetAlignX(ConvertAlign(Value.Str()));
 		}
 		else if (stricmp(Name, "valign") == 0)
 		{
-			AlignY = ConvertAlign(Value.Str());
+			SetAlignY(ConvertAlign(Value.Str()));
 		}
 		else return false;
 

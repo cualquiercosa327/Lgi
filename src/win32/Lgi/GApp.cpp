@@ -768,7 +768,7 @@ void GApp::OnReceiveFiles(GArray<char*> &Files)
 		AppWnd->OnReceiveFiles(Files);
 }
 
-int32 GApp::GetMetric(int Metric)
+int32 GApp::GetMetric(LgiSystemMetric Metric)
 {
 	int32 Status = 0;
 

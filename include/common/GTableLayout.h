@@ -10,11 +10,20 @@
 class GLayoutCell : public GDom
 {
 public:
+	enum CellAlign
+	{
+		AlignMin,
+		AlignCenter,
+		AlignMax,
+	};
+
 	GLayoutCell() {}
 	virtual ~GLayoutCell() {}
 	
 	virtual bool Add(GView *v) = 0;
 	virtual bool Remove(GView *v) = 0;
+	virtual void SetAlignX(CellAlign c) = 0;
+	virtual void SetAlignY(CellAlign c) = 0;
 };
 
 /// A table layout control. This uses techniques similar to HTML table layout to set the position

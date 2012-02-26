@@ -351,6 +351,8 @@ int GFontSystem::IconvConvert(const char *OutCs, GStreamI *Out, const char *InCs
 {
 	char Buf[2 << 10];
 	
+	LgiAssert(InLen > 0);
+
 	if (!Out || !In)
 		return 0;
 	    

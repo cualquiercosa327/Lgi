@@ -27,6 +27,7 @@ public:
 	void Value(int64 v);
 	int64 Value();
 	GMessage::Result OnEvent(GMessage *Msg);
+	bool OnLayout(GViewLayoutInfo &Inf);
 
 	#if WIN32NATIVE
 	bool SetForegroundFill(GViewFill *Fill);

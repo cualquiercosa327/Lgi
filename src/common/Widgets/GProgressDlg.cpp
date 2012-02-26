@@ -14,6 +14,7 @@
 #include "GProgressDlg.h"
 #include "GTextLabel.h"
 #include "GButton.h"
+#include "GTableLayout.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////
 ProgressList::ProgressList()
@@ -107,10 +108,13 @@ Progress &Progress::operator =(Progress &p)
 #define IDC_PROGRESS			103
 #define IDC_BUTTON				104
 
+#if 1
+#define PANE_X					300
+#define PANE_Y					130
+#else
 #define PANE_X					260
 #define PANE_Y					85
-
-// #define ALT_SCALE				30000
+#endif
 
 GProgressPane::GProgressPane()
 {
@@ -121,11 +125,29 @@ GProgressPane::GProgressPane()
 	Wait = false;
 	Ref = 0;
 
-	Children.Insert(Desc	= new GText(IDC_DESCRIPTION, 6, 6, PANE_X - 14, 14, ""));
-	Children.Insert(ValText	= new GText(IDC_VALUE, 6, 22, (PANE_X - 20) / 2, 14, ""));
-	Children.Insert(Rate	= new GText(IDC_RATE, PANE_X / 2, 22, (PANE_X - 20) / 2, 14, ""));
-	Children.Insert(Bar		= new GProgress(IDC_PROGRESS, 6, 41, PANE_X - 14, 10, "Progress"));
-	Children.Insert(But		= new GButton(IDC_BUTTON, (PANE_X - 100) / 2, 59, 120, 18, "Request Abort"));
+	GTableLayout *t;
+	if (AddView(t = new GTableLayout))
+	{
+		GRect cr = GetClient();
+		cr.Size(7, 7);
+		t->SetPos(cr);
+		
+		int Row = 0;
+		GLayoutCell *c = t->GetCell(0, Row++, true, 2, 1);
+		c->Add(Desc = new GText(IDC_DESCRIPTION, 0, 0, -1, -1, "##"));
+
+		c = t->GetCell(0, Row);
+		c->Add(ValText = new GText(IDC_VALUE, 0, 0, -1, -1, "##"));
+		c = t->GetCell(1, Row++);
+		c->Add(Rate = new GText(IDC_RATE, 0, 0, -1, -1, "##"));
+
+		c = t->GetCell(0, Row++, true, 2, 1);
+		c->Add(Bar = new GProgress(IDC_PROGRESS, 0, 0, PANE_X - 14, 10, "Progress"));
+
+		c = t->GetCell(0, Row++, true, 2, 1);
+		c->SetAlignX(GLayoutCell::AlignCenter);
+		c->Add(But = new GButton(IDC_BUTTON, 0, 0, -1, -1, "Request Abort"));
+	}
 }
 
 GProgressPane::~GProgressPane()
@@ -260,7 +282,7 @@ bool GProgressPane::Pour(GRegion &r)
 	if (Best)
 	{
 		GRect r, p = GetPos();
-		r.ZOff(PANE_X, PANE_Y);
+		r.ZOff(Best->X(), PANE_Y);
 		r.Offset(Best->x1-p.x1, Best->y1-p.y1);
 		SetPos(r, true);
 		return true;
@@ -349,6 +371,22 @@ void GProgressDlg::OnCreate()
 {
 	if (Progri.Length() == 0)
 		Push();
+}
+
+void GProgressDlg::OnPosChange()
+{
+	GDialog::OnPosChange();
+	/*
+	GRect c = GetClient();
+	GViewIterator *it = IterateViews();
+	for (GViewI *v = it->First(); v; v = it->Next())
+	{
+		GRect r = v->GetPos();
+		r.x2 = c.x2;
+		v->SetPos(r);
+	}
+	DeleteObj(it);
+	*/
 }
 
 GMessage::Result GProgressDlg::OnEvent(GMessage *Msg)
