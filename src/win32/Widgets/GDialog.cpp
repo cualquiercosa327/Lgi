@@ -406,17 +406,14 @@ extern GButton *FindDefault(GView *w);
 
 GMessage::Result GDialog::OnEvent(GMessage *Msg)
 {
-	if (Msg->Msg == 6)
-	{
-		int asd=0;
-	}
-
 	switch (Msg->Msg)
 	{
+		#if USE_DIALOGBOXINDIRECTPARAM
 		case WM_INITDIALOG:
+		#else
+		case WM_CREATE:
+		#endif
 		{
-			//SetWindowLong(_View, GWL_STYLE, GetWindowLong(_View, GWL_STYLE) | WS_CLIPCHILDREN);
-
 			GRect r = Pos;
 			#ifdef SKIN_MAGIC
 			GdcPt2 Border = GetWindowBorderSize();
