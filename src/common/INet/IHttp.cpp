@@ -154,7 +154,6 @@ bool IHttp::Close()
 	if (Socket)
 	{
 		Socket->Close();
-		DeleteObj(Socket);
 	}
 	return 0;
 }

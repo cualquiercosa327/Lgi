@@ -36,7 +36,8 @@ struct GSoftwareUpdatePriv
 	public:
 		bool Status;
 
-		UpdateThread(GSoftwareUpdatePriv *priv, GSoftwareUpdate::UpdateInfo *info, bool betas)
+		UpdateThread(GSoftwareUpdatePriv *priv, GSoftwareUpdate::UpdateInfo *info, bool betas) :
+		    GThread("SoftwareUpdateThread")
 		{
 			Info = info;
 			d = priv;
@@ -55,6 +56,7 @@ struct GSoftwareUpdatePriv
 		void Cancel()
 		{
 			Http.Close();
+			Info->Cancel = true;
 		}
 
 		int Main()

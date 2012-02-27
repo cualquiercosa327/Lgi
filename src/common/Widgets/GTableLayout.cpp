@@ -17,7 +17,7 @@
 
 #define Izza(c)				dynamic_cast<c*>(v)
 #define CELL_SPACING		4
-#define DEBUG_LAYOUT		1
+#define DEBUG_LAYOUT		0
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 

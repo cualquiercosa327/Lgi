@@ -15,6 +15,12 @@ public:
 		GAutoString Build;
 		GAutoString Uri;
 		GDateTime Date;
+		bool Cancel;
+		
+		UpdateInfo()
+		{
+		    Cancel = false;
+		}
 	};
 
 	GSoftwareUpdate(char *SoftwareName, char *UpdateUri, char *OptionalTempPath = 0);
