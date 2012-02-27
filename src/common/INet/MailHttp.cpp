@@ -271,8 +271,8 @@ bool MailPhp::Get(GSocketI *S, char *Uri, GStream &Out, bool MailTransfer)
 				Http.SetProxy(d->ProxyServer, d->ProxyPort);
 			}
 			
-			MailSocket *Proxy = new MailSocket(S, MailTransfer ? Transfer : 0, this);
-			if (Http.Open(Proxy, Base))
+			GAutoPtr<GSocketI> s(new MailSocket(S, MailTransfer ? Transfer : 0, this));
+			if (Http.Open(s, Base))
 			{
 				GStringPipe Buf;
 				int Code = 0;

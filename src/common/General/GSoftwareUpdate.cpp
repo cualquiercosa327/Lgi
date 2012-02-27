@@ -75,7 +75,8 @@ struct GSoftwareUpdatePriv
 					Http.SetProxy(Proxy.Host, Proxy.Port);
 				GStringPipe RawXml;
 				int ProtocolStatus = 0;
-				if (Http.Open(new GSocket, Uri.Host, Uri.Port))
+				GAutoPtr<GSocketI> s(new GSocket);
+				if (Http.Open(s, Uri.Host, Uri.Port))
 				{
 					if (Http.GetFile(0, GetUri, RawXml, GET_TYPE_NORMAL, &ProtocolStatus))
 					{
@@ -222,7 +223,8 @@ struct GSoftwareUpdatePriv
 			if (Proxy.Host)
 				Http.SetProxy(Proxy.Host, Proxy.Port);
 
-			if (!Http.Open(new GSocket, Uri->Host, Uri->Port))
+			GAutoPtr<GSocketI> s(new GSocket);
+			if (!Http.Open(s, Uri->Host, Uri->Port))
 			{
 				Err->Reset(NewStr(LgiLoadString(L_ERROR_CONNECT_FAILED, sSocketConnectFailed)));
 			}

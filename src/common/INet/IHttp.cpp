@@ -54,7 +54,6 @@ public:
 ///////////////////////////////////////////////////////////////////
 IHttp::IHttp()
 {
-	Socket = 0;
 	Meter = 0;
 	ResumeFrom = 0;
 	Proxy = 0;
@@ -95,7 +94,7 @@ void IHttp::SetAuth(char *User, char *Pass)
 	AuthPassword = NewStr(Pass);
 }
 
-bool IHttp::Open(GSocketI *S, char *RemoteHost, int Port)
+bool IHttp::Open(GAutoPtr<GSocketI> S, char *RemoteHost, int Port)
 {
 	Close();
 	Socket = S;

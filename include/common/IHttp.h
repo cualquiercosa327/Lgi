@@ -14,7 +14,7 @@ class IHttp
 	int BufferLen;
 	char *Buffer;
 	
-	GSocketI *Socket;	// commands
+	GAutoPtr<GSocketI> Socket;	// commands
 	int ResumeFrom;
 	char *FileLocation;
 	char *Headers;
@@ -39,7 +39,7 @@ public:
 	char *GetHeaders() { return Headers; }
 	
 	// Connection
-	bool Open(GSocketI *S, char *RemoteHost, int Port = 0);
+	bool Open(GAutoPtr<GSocketI> S, char *RemoteHost, int Port = 0);
 	bool Close();
 	bool IsOpen();
 

@@ -369,7 +369,7 @@ int GBrowserThread::Main()
 				if (Proxy.Host)
 					h.SetProxy(Proxy.Host, Proxy.Port);
 
-				GSocket *Sock = new GSocket;
+				GAutoPtr<GSocketI> Sock(new GSocket);
 				if (h.Open(Sock, u.Host, u.Port))
 				{
 					SockHnd = Sock->Handle();
