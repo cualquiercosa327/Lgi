@@ -385,6 +385,8 @@ public:
 		c.y2 = AddY.y2 - ADD_BORDER;
 		DelCol.Length(0);
 		DelRow.Length(0);
+		SizeRow.Length(0);
+		SizeCol.Length(0);
 		JoinBtns.Length(0);
 
 		if (c.Valid())
@@ -1170,6 +1172,7 @@ void CtrlTable::OnMouseClick(GMouse &m)
 			else
 			{
 				bool Dirty = false;
+				bool EatClick = true;
 				int i;
 				TableCell *Over = 0;
 
@@ -1204,6 +1207,7 @@ void CtrlTable::OnMouseClick(GMouse &m)
 
 				if (!Dirty)
 				{
+					// Select a cell?
 					for (i=0; i<d->Cells.Length(); i++)
 					{
 						TableCell *c = d->Cells[i];
@@ -1213,6 +1217,7 @@ void CtrlTable::OnMouseClick(GMouse &m)
 							if (!c->Selected OR m.Ctrl())
 							{
 								Dirty = true;
+								EatClick = false;
 								c->Selected = !c->Selected;
 							}
 						}
@@ -1221,6 +1226,7 @@ void CtrlTable::OnMouseClick(GMouse &m)
 							if (c->Selected)
 							{
 								Dirty = true;
+								EatClick = false;
 								c->Selected = false;
 							}
 						}
@@ -1281,7 +1287,8 @@ void CtrlTable::OnMouseClick(GMouse &m)
 				if (Dirty)
 				{
 					Invalidate();
-					return;
+					if (EatClick)
+						return;
 				}
 			}
 		}

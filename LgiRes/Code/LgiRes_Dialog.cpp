@@ -269,10 +269,6 @@ int ResDialogCtrl::TabDepth = 0;
 ResDialogCtrl::ResDialogCtrl(ResDialog *dlg, char *CtrlTypeName, GXmlTag *load) :
 	ResObject(CtrlTypeName)
 {
-	#ifdef LINUX
-	
-	#endif
-		
 	Dlg = dlg;
 	DragCtrl = -1;
 	AcceptChildren = false;
@@ -302,6 +298,12 @@ ResDialogCtrl::ResDialogCtrl(ResDialog *dlg, char *CtrlTypeName, GXmlTag *load) 
 	{
 		// We create a symbol for this resource
 		Str = (Dlg && Dlg->Symbols) ? Dlg->Symbols->CreateStr() : 0;
+		if (Str)
+		{
+			char Def[256];
+			sprintf(Def, "IDC_%i", Str->GetRef());
+			Str->SetDefine(Def);
+		}
 	}
 	else
 	{
