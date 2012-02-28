@@ -3470,7 +3470,16 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 				if (IsEndIf)
 					return s;
 			}
-			else if (s[1] != '/')
+			else if (s[1] == '!')
+			{
+				s += 2;
+				s = strchr(s, '>');
+				if (s)
+					s++;
+				else
+					return NULL;
+			}
+			else if (IsAlpha(s[1]))
 			{
 				// Start tag
 				if (Parent && IsFirst)
@@ -3719,7 +3728,7 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 					}
 				}
 			}
-			else
+			else if (s[1] == '/')
 			{
 				// End tag
 				char *PreTag = s;
@@ -3806,10 +3815,15 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 					return PreTag;
 				}
 			}
+			else
+			{
+				goto PlainText;
+			}
 		}
 		else if (*s)
 		{
 			// Text child
+			PlainText:
 			char *n = NextTag(s);
 			int Len = n ? n - s : strlen(s);
 			GAutoWString Txt(CleanText(s, Len, true, InPreTag));
