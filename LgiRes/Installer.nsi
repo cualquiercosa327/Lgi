@@ -3,9 +3,8 @@
 !system "mkdir lgires-setup"
 !system "del .\lgires-setup\*.*"
 
-!system "copy ..\Release\Lgi.dll lgires-setup"
-!system "copy ..\Gel\Release\LgiSkin.dll lgires-setup"
-!system "copy .\Release\LgiRes.exe lgires-setup"
+!system "copy ..\lib\Lgi8.dll lgires-setup"
+!system "copy .\Win32Release\*.exe lgires-setup"
 
 !system '"c:\Program Files\Upx\upx.exe" -9 .\lgires-setup\*.exe'
 !system '"c:\Program Files\Upx\upx.exe" -9 .\lgires-setup\*.dll'
@@ -17,7 +16,7 @@ SetCompressor lzma
 Name "Memecode LgiRes"
 
 ; The file to write
-OutFile "lgires-win32-v###.exe"
+OutFile "lgires-win32-v#.#.exe"
 
 ; The default installation directory
 InstallDir $PROGRAMFILES\Memecode\LgiRes
@@ -73,8 +72,8 @@ Section "un.Program and Start Menu Items"
 
   Delete $INSTDIR\*.*
   RMDir /r $INSTDIR
-  Delete $SMPROGRAMS\i.Hex\*.*
-  RMDir /r $SMPROGRAMS\i.Hex
+  Delete $SMPROGRAMS\LgiRes\*.*
+  RMDir /r $SMPROGRAMS\LgiRes
 
   SetAutoClose true
 

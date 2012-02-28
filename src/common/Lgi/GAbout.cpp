@@ -14,7 +14,7 @@
 
 GAbout::GAbout(	GView *parent,
 				const char *AppName,
-				double Ver,
+				char *Ver,
 				const char *Text,
 				const char *AboutGraphic,
 				const char *Url,
@@ -35,7 +35,7 @@ GAbout::GAbout(	GView *parent,
 
 	GStringPipe p;
 	
-	p.Print("%s v%02.2f (%s %s)\n", AppName, Ver, LgiGetOsName(), Build);
+	p.Print("%s v%s (%s %s)\n", AppName, Ver, LgiGetOsName(), Build);
 	p.Print("Build: %s, %s\n\n", __DATE__, __TIME__);
 	if (Url) p.Print("Homepage:\n\t%s\n", Url);
 	if (Email) p.Print("Email:\n\t%s\n", Email);

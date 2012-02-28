@@ -22,7 +22,7 @@
 // Defines
 
 // version
-#define APP_VER						1.93
+#define APP_VER						"3.5.0"
 
 // window messages
 #define	IDM_NEW						110

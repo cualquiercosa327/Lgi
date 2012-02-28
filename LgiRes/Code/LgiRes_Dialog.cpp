@@ -2710,7 +2710,7 @@ void ResDialog::Copy(bool Delete)
 
 		// Read the file in and copy to the clipboard
 		GStringPipe Xml;
-		GXmlTree Tree(GXT_NO_ENTITIES);
+		GXmlTree Tree;
 		if (Tree.Write(Root, &Xml))
 		{
 			char *s = Xml.NewStr();
@@ -2802,7 +2802,7 @@ void ResDialog::Paste()
 	char *Data = 0;
 	{
 		GClipBoard Clip(Ui);
-		char16 *w = Clip.TextW();
+		GAutoWString w(Clip.TextW());
 		if (w)
 		{
 			Data = Mem = LgiNewUtf16To8(w);
@@ -2840,18 +2840,18 @@ void ResDialog::Paste()
 
 			// Parse the data
 			List<ResString> NewStrs;
-			GXmlTree Tree(GXT_NO_ENTITIES);
+			GXmlTree Tree;
 			GStringPipe p;
 			p.Push(Data);
 			
 			// Create the new controls, strings first
 			// that way we can setup the remapping properly to avoid
 			// string ref duplicates
-			GXmlTag *Root = new GXmlTag;
-			if (Tree.Read(Root, &p, 0))
+			GXmlTag Root;
+			if (Tree.Read(&Root, &p, 0))
 			{
 				GXmlTag *t;
-				for (t = Root->Children.First(); t; t = Root->Children.Next())
+				for (t = Root.Children.First(); t; t = Root.Children.Next())
 				{
 					if (stricmp(t->Tag, "string") == 0)
 					{
@@ -2891,7 +2891,7 @@ void ResDialog::Paste()
 
 				// load all the objects now
 				List<ResDialogCtrl> NewCtrls;
-				for (t = Root->Children.First(); t; t = Root->Children.Next())
+				for (t = Root.Children.First(); t; t = Root.Children.Next())
 				{
 					if (stricmp(t->Tag, "string") != 0)
 					{
