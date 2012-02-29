@@ -28,11 +28,15 @@ GMemStream::GMemStream(GStreamI *Src, int64 Start, int64 len)
 		bool Error = false;
 		if (Start >= 0)
 		{
-			Error = Src->SetPos(Start) != Start;
+			int64 Result = Src->SetPos(Start);
+			if (Result >= 0 && Result != Start)
+				Error = true;
 		}
-		if (!Error)
+		if (Error)
+			LgiAssert(!"Failed to set stream position");
+		else
 		{
-			if (Len < 0 && Src->GetSize() > 0)
+			if (len < 0 && Src->GetSize() > 0)
 			{
 				Len = Src->GetSize();
 				if (Start > 0)
@@ -44,7 +48,7 @@ GMemStream::GMemStream(GStreamI *Src, int64 Start, int64 len)
 				if (Mem = new char[Alloc = Len])
 				{
 					int r;
-					while (	Pos < Len AND
+					while (	Pos < Len &&
 							(r = Src->Read(Mem + Pos, Len - Pos)) > 0)
 					{
 						Pos += r;
@@ -78,6 +82,8 @@ GMemStream::GMemStream(void *mem, int64 len, bool copy)
 	{
 		if (Mem = new char[Alloc = Len])
 			memcpy(Mem, mem, Len);
+		else
+			LgiAssert(!"Alloc error");
 	}
 	else
 	{
@@ -111,6 +117,7 @@ int GMemStream::Open(const char *Str, int Int)
 
 		return Len > 0;
 	}
+	else LgiAssert(!"Open error");
 
 	return 0;
 }
@@ -136,7 +143,11 @@ int64 GMemStream::SetSize(int64 Size)
 			Mem = NewMem;
 			Len = Size;
 		}
-		else return -1;
+		else
+		{
+			LgiAssert(!"Alloc error");
+			return -1;
+		}
 	}
 	else
 	{
@@ -150,13 +161,13 @@ int64 GMemStream::SetSize(int64 Size)
 
 bool GMemStream::IsOk()
 {
-	return Len == 0 OR Mem != 0;
+	return Len == 0 || Mem != 0;
 }
 
 int GMemStream::Read(void *Buffer, int Size, int Flags)
 {
 	int Bytes = 0;
-	if (Buffer AND Pos >= 0 AND Pos < Len)
+	if (Buffer && Pos >= 0 && Pos < Len)
 	{
 		Bytes = min(Len - Pos, Size);
 		memcpy(Buffer, Mem + Pos, Bytes);
@@ -208,7 +219,7 @@ int GMemStream::Write(const void *Buffer, int Size, int Flags)
 				else break;
 			}
 		}
-		else if (Pos >= 0 AND Pos < Len)
+		else if (Pos >= 0 && Pos < Len)
 		{
 			// Fill fixed space...
 			Bytes = min(Len - Pos, Size);

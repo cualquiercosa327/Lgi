@@ -2033,6 +2033,7 @@ bool MailIMap::Append(char *Folder, ImapMailFlags *Flags, char *Msg, GAutoString
 			    if (Dlg[0] == '+')
 			    {
     				Dialog.Delete(Dlg);
+    				DeleteArray(Dlg);
 			        GotPlus = true;
 			        break;
 			    }

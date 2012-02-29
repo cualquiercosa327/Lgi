@@ -65,15 +65,9 @@ public:
 	#if HAS_ICONV
 	#ifdef _WINDOWS
 
-	DynFunc2(iconv_t, libiconv_open, const char*, tocode, const char*, fromcode);
-	DynFunc5(	size_t,
-		libiconv,
-		iconv_t, cd,
-		IconvChar**, inbuf,
-		size_t*, inbytesleft,
-		char**, outbuf,
-		size_t*, outbytesleft);
-	DynFunc1(int, libiconv_close, iconv_t, cd);
+	DynFunc2(iconv_t,	libiconv_open, const char*, tocode, const char*, fromcode);
+	DynFunc5(size_t,	libiconv, iconv_t, cd, IconvChar**, inbuf, size_t*, inbytesleft, char**, outbuf, size_t*, outbytesleft);
+	DynFunc1(int,		libiconv_close, iconv_t, cd);
 
 	#elif !defined(MAC)
 
@@ -332,7 +326,7 @@ bool GFontSystem::HasIconv()
 	if (d->IsLoaded())
 		return true;
 
-	return d->Load("iconv");
+	return d->Load("libiconv-2");
 }
 
 #ifdef MAC
