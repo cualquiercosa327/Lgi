@@ -141,7 +141,7 @@ public:
 				// Probably...?
 				IsHttp = true;
 				u.Protocol = NewStr("http");
-				History[CurHistory].Reset(u.Get());
+				History[CurHistory] = u.GetUri();
 				Uri = History[CurHistory];
 			}
 		}
@@ -167,7 +167,7 @@ public:
 			Html->GotoAnchor(u.Anchor);
 		}
 
-		GAutoString a(u.Get());
+		GAutoString a = u.GetUri();
 		UriEdit->Name(a);
 
 		Wnd->SetCtrlEnabled(IDC_BACK, CurHistory > 0);

@@ -28,6 +28,8 @@ public:
 		{
 			LgiSleep(10);
 		}
+		
+		Notes.DeleteObjects();
 	}
 	
 	bool Register(GAutoPtr<GGrowl::GRegister> p)

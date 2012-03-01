@@ -69,7 +69,7 @@ struct GSoftwareUpdatePriv
 				DeleteArray(Uri.Path);
 				Uri.Path = NewStr(Dir);
 
-				GAutoString GetUri(Uri.Get());
+				GAutoString GetUri = Uri.GetUri();
 				GProxyUri Proxy;
 				if (Proxy.Host)
 					Http.SetProxy(Proxy.Host, Proxy.Port);

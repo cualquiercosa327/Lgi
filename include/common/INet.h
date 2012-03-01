@@ -310,7 +310,7 @@ public:
 	bool Set(const char *uri);
 
 	/// Re-constructs the URI
-	char *Get();
+	GAutoString GetUri();
 
 	/// Empty this object...
 	void Empty();

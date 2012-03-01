@@ -1695,7 +1695,7 @@ void GUri::Empty()
 	DeleteArray(Anchor);
 }
 
-char *GUri::Get()
+GAutoString GUri::GetUri()
 {
 	GStringPipe p;
 	if (Protocol)
@@ -1723,7 +1723,9 @@ char *GUri::Get()
 	}
 	if (Anchor)
 		p.Print("#%s", Anchor);
-	return p.NewStr();
+		
+	GAutoString a(p.NewStr());
+	return a;
 }
 
 bool GUri::Set(const char *uri)

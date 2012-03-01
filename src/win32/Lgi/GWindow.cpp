@@ -848,7 +848,12 @@ bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
 					if (stricmp(Var, "State") == 0)
 						State = atoi(Value);
 					else if (stricmp(Var, "Pos") == 0)
-						Position.SetStr(Value);
+					{
+					    GRect r;
+					    r.SetStr(Value);
+					    if (r.Valid())
+						    Position = r;
+					}
 				}
 				else return false;
 			}
@@ -904,7 +909,9 @@ bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
 					}
 				}
 
-				Wp->rcNormalPosition = Pos = Position;
+				if (Position.Valid())
+				    Pos = Position;
+				Wp->rcNormalPosition = Pos;
 				#if DEBUG_WINDOW_PLACEMENT
 				LgiTrace("%s:%i - SetWindowPlacement, pos=%s, show=%i\n", __FILE__, __LINE__, Pos.GetStr(), Wp->showCmd);
 				#endif
