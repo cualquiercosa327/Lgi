@@ -1167,6 +1167,10 @@
 			Filter="h;hpp;hxx;hm;inl"
 			>
 			<File
+				RelativePath=".\include\common\GCapabilities.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\common\Lgi.h"
 				>
 			</File>

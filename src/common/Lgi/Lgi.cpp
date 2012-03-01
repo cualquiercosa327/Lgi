@@ -14,6 +14,7 @@
 
 #include "Lgi.h"
 #include "GToken.h"
+#include "GCapabilities.h"
 
 #ifdef LINUX
 #include "LgiWinManGlue.h"
@@ -1943,3 +1944,33 @@ HBRUSH GViewFill::GetBrush()
 	return hBrush;
 }
 #endif
+
+//////////////////////////////////////////////////////////////////////
+bool GCapabilityClient::NeedsCapability(char *Name)
+{
+    for (int i=0; i<Targets.Length(); i++)
+        Targets[i]->NeedsCapability(Name);
+    return Targets.Length() > 0;
+}
+
+GCapabilityClient::~GCapabilityClient()
+{
+    for (int i=0; i<Targets.Length(); i++)
+        Targets[i]->Clients.Delete(this);
+}
+
+void GCapabilityClient::Register(GCapabilityTarget *t)
+{
+    if (t)
+    {
+        Targets.Add(t);
+        t->Clients.Add(this);
+    }
+}
+
+GCapabilityTarget::~GCapabilityTarget()
+{
+    for (int i=0; i<Clients.Length(); i++)
+        Clients[i]->Targets.Delete(this);
+}
+

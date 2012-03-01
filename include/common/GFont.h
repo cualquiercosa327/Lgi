@@ -6,11 +6,9 @@
 
 #include "string.h"
 #include "GRect.h"
-// #include "GProperties.h"
 #include "LgiOsClasses.h"
-#include "GLibrary.h"
-#include "GLibraryUtils.h"
 #include "GColour.h"
+#include "GCapabilities.h"
 
 //////////////////////////////////////////////////////////////
 // Defines
@@ -371,7 +369,7 @@ LgiFunc const char *LgiDetectCharset
 );
 
 /// Overall font system class
-class LgiClass GFontSystem
+class LgiClass GFontSystem : public GCapabilityClient
 {
 	friend class GApp;
 	friend class GDisplayString;

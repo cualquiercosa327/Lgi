@@ -24,6 +24,7 @@
 //
 #include "jpeglib.h"
 #include <setjmp.h>
+#include "GLibraryUtils.h"
 
 // JPEG
 class GdcJpegPriv : public GLibrary

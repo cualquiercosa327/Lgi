@@ -3,6 +3,8 @@
 
 #include "Lgi.h"
 #include "GToken.h"
+#include "GLibrary.h"
+#include "GLibraryUtils.h"
 
 #if defined(LGI_STATIC)
 #undef HAS_ICONV
@@ -326,7 +328,20 @@ bool GFontSystem::HasIconv()
 	if (d->IsLoaded())
 		return true;
 
-	return d->Load("libiconv-2");
+	bool Status = d->Load("libiconv-2");
+	if (!Status)
+	{
+	    if (!NeedsCapability("libiconv"))
+	    {
+	        static bool Warn = true;
+	        if (Warn)
+	        {
+	            Warn = false;
+	            LgiAssert(!"Iconv is not available");
+	        }
+	    }
+	}
+	return Status;
 }
 
 #ifdef MAC
@@ -380,12 +395,6 @@ int GFontSystem::IconvConvert(const char *OutCs, GStreamI *Out, const char *InCs
 
 	if (!HasIconv())
 	{
-	    static bool Warn = true;
-	    if (Warn)
-	    {
-	        Warn = false;
-	        LgiAssert(!"Iconv is not available");
-	    }
 		return 0;
 	}
 

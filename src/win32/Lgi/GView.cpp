@@ -1090,7 +1090,7 @@ void GView::SetPulse(int Length)
 	{
 		if (Length > 0)
 		{
-			d->TimerId = SetTimer(_View, (UINT_PTR) this, Length, (TIMERPROC) TimerProc);
+            d->TimerId = SetTimer(_View, (UINT_PTR) this, Length, (TIMERPROC) TimerProc);
 		}
 		else
 		{
