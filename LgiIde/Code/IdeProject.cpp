@@ -108,13 +108,12 @@ class WebFldDlg : public GDialog
 {
 public:
 	char *Name;
-	char *Ftp;
+	GAutoString Ftp;
 	char *Www;
 
 	WebFldDlg(GViewI *p, char *name, char *ftp, char *www)
 	{
 		Name = 0;
-		Ftp = 0;
 		Www = 0;
 		SetParent(p);
 		LoadFromResource(IDD_WEB_FOLDER);
@@ -136,7 +135,6 @@ public:
 	~WebFldDlg()
 	{
 		DeleteArray(Name);
-		DeleteArray(Ftp);
 		DeleteArray(Www);
 	}
 
@@ -152,7 +150,7 @@ public:
 				u.Pass = NewStr(GetCtrlName(IDC_PASSWORD));
 				u.Path = NewStr(GetCtrlName(IDC_PATH));
 				u.Protocol = NewStr("ftp");
-				Ftp = u.Get();
+				Ftp = u.GetUri();
 				Www = NewStr(GetCtrlName(IDC_WWW));
 				Name = NewStr(GetCtrlName(IDC_NAME));
 				EndModal(1);
@@ -173,19 +171,14 @@ class FtpFile : public GListItem
 {
 	IFtpEntry *e;
 	GListItemCheckBox *v;
-	char *Uri;
+	GAutoString Uri;
 	
 public:
 	FtpFile(IFtpEntry *entry, char *uri)
 	{
-		Uri = uri;
+		Uri.Reset(NewStr(uri));
 		e = entry;
 		v = new GListItemCheckBox(this, 0);
-	}
-
-	~FtpFile()
-	{
-		DeleteArray(Uri);
 	}
 
 	char *GetText(int c)
@@ -216,9 +209,7 @@ public:
 	{
 		if (v->Value())
 		{
-			char *u = Uri;
-			Uri = 0;
-			return u;
+			return Uri.Release();
 		}
 
 		return 0;
@@ -284,7 +275,7 @@ public:
 						sprintf(path, "/%s", e->Name);
 					DeleteArray(fu.Path);
 					fu.Path = NewStr(path);
-					char *Uri = fu.Get();
+					GAutoString Uri = fu.GetUri();
 
 					Files->Insert(new FtpFile(e, Uri));
 				}

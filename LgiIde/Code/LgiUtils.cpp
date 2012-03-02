@@ -44,7 +44,7 @@ bool BuildHeaderList(char *Cpp, List<char> &Headers, List<char> &IncPaths, bool 
 				{
 					char d = (*s == '\"') ? '\"' : '>';					
 					char *e = strchr(++s, d);
-					char *Short = NewStr(s, (int)e-(int)s);
+					char *Short = NewStr(s, e-s);
 
 					if (Short)
 					{

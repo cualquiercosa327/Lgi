@@ -42,6 +42,7 @@ public:
 	bool Open(GAutoPtr<GSocketI> S, char *RemoteHost, int Port = 0);
 	bool Close();
 	bool IsOpen();
+	GSocketI *GetSocket() { return Socket; }
 
 	// File
 	bool GetFile(	GViewI *Parent,

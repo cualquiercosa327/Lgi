@@ -696,7 +696,8 @@ public:
 						DeleteArray(u.Pass);
 						u.Pass = NewStr("******");
 					}
-					return u.Get();
+					
+					return u.GetUri().Release();
 				}
 				else if (*Fn == '.')
 				{

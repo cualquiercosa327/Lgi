@@ -702,9 +702,8 @@ bool GMenuItem::ScanForAccel()
 				}
 			}
 			
-			if (Key)
+			if (Key && Menu)
 			{
-				// printf("Adding Accel: Flags=%X Key=%c (%i)\n", Flags, Key, Key);
 				Menu->Accel.Insert( new GAccelerator(Flags, Key, Id()) );
 			}
 		}

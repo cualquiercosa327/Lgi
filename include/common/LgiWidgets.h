@@ -256,6 +256,7 @@ public:
 	GMessage::Result OnEvent(GMessage *Msg);
 	bool OnRequestClose(bool OsClose);
 	void OnPosChange();
+    void Pour() {}
 	
 	#if defined(MAC)
 	void OnPaint(GSurface *pDC);
