@@ -432,6 +432,9 @@ public:
 	/// Calculates the minimum and maximum widths this cell can occupy.
 	void PreLayout(int &Min, int &Max, CellFlag &Flag)
 	{
+		int MaxBtnX = 0;
+		int TotalBtnX = 0;
+
 		for (int i=0; i<Children.Length(); i++)
 		{
 			GView *v = Children[i];
@@ -476,17 +479,17 @@ public:
 					int x = max(v->X(), ds.X() + BUTTON_OVERHEAD_X);
 					if (x > v->X())
 					{
+					    // Resize the button to show all the text on it...
 						GRect r = v->GetPos();
 						r.x2 = r.x1 + x - 1;
 						v->SetPos(r);
 					}
 
-					Min = max(Min, x);
-					Max = max(Max, x);
+                    MaxBtnX = max(MaxBtnX, x);
+                    TotalBtnX = TotalBtnX ? TotalBtnX + CELL_SPACING + x : x;
+					
 					if (Flag < SizeFixed)
 						Flag = SizeFixed;
-					// Max += x + 10;
-					// Flag = SizeGrow;
 				}
 				else if (Izza(GEdit) ||
 						 Izza(GScrollBar))
@@ -564,6 +567,12 @@ public:
 				}
 			}
 		}
+
+        if (MaxBtnX)
+        {
+			Min = max(Min, MaxBtnX);
+			Max = max(Max, TotalBtnX);
+        }
 	}
 
 	/// Calculate the height of the cell based on the given width
@@ -948,7 +957,7 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 	}
 
 	#if DEBUG_LAYOUT
-	LgiTrace("Layout %i,%i\n", Client.X(), Client.Y());
+	LgiTrace("Layout Id=%i, Size=%i,%i\n", Ctrl->GetId(), Client.X(), Client.Y());
 
 	for (i=0; i<Cols.Length(); i++)
 	{
