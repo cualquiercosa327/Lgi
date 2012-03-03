@@ -682,7 +682,7 @@ GMouseHook *GApp::GetMouseHook()
 	return MouseHook;
 }
 
-int GApp::GetMetric(int Metric)
+int GApp::GetMetric(LgiSystemMetric Metric)
 {
 	switch (Metric)
 	{

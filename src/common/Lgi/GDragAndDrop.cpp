@@ -347,7 +347,7 @@ bool GDragDropSource::CreateFileDrop(GVariant *Var, GMouse &m, List<char> &Files
 			u.Protocol = NewStr("file");
 			u.Host = NewStr("localhost");
 			u.Path = NewStr(f);
-			Var->OwnStr(u.Get());
+			Var->OwnStr(u.GetUri().Release());
 			
 			return true;
 		}

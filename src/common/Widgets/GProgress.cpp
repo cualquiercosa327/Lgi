@@ -17,6 +17,22 @@ GProgress::~GProgress()
 {
 }
 
+bool GProgress::OnLayout(GViewLayoutInfo &Inf)
+{
+	if (!Inf.Width.Max)
+	{
+		Inf.Width.Max = 10000;
+		Inf.Width.Min = 32;
+	}
+	else if (!Inf.Height.Max)
+	{
+		Inf.Height.Max =
+			Inf.Height.Min = 10;
+	}
+	else return false;
+	return true;
+}
+
 void GProgress::SetLimits(int64 l, int64 h)
 {
 	Low = l;
