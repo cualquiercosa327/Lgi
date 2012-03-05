@@ -188,7 +188,7 @@ bool IHttp::GetFile(GViewI *Parent, char *File, GStream &Out, int Format, int *P
 		// get part
 		if (Format & GET_TYPE_NORMAL)
 		{
-			Buf.Print("GET %s HTTP/1.0\r\n", u.Path);
+			Buf.Print("GET %s HTTP/1.0\r\n", File);
 		}
 		else
 		{
