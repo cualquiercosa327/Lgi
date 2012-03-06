@@ -2042,3 +2042,8 @@ void GWindow::OnTrayClick(GMouse &m)
 	}
 }
 
+bool GWindow::Obscured()
+{
+	#warning Impl me sometime.
+	return false;
+}

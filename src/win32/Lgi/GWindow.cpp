@@ -284,6 +284,36 @@ void GWindow::OnPaint(GSurface *pDC)
 	pDC->Rectangle();
 }
 
+bool GWindow::Obscured()
+{
+	RECT tRect;
+
+	bool isObscured = false;
+	if (GetWindowRect(_View, &tRect))
+	{
+		RECT nRect;
+		HWND walker = _View;
+		while (walker = ::GetNextWindow(walker, GW_HWNDPREV))
+		{
+			if (IsWindowVisible(walker))
+			{
+                if ((::GetWindowRect(walker, &nRect)))
+				{
+					RECT iRect;
+					IntersectRect(&iRect, &tRect, &nRect);
+					if (iRect.bottom || iRect.top || iRect.left || iRect.right)
+					{
+						  isObscured = true;
+						  break;
+					}
+				}
+			}
+		}
+	}
+
+	return isObscured;
+}
+
 bool GWindow::Visible()
 {
 	return GView::Visible();

@@ -1309,6 +1309,7 @@ public:
 	bool HandleViewMouse(GView *v, GMouse &m);
 	bool HandleViewKey(GView *v, GKey &k);
 	bool OnRequestClose(bool OsShuttingDown);
+	bool Obscured();
 	bool Visible();
 	void Visible(bool i);
 	GRect &GetPos();
