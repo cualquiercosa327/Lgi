@@ -16,16 +16,11 @@
 #include "GScrollBar.h"
 
 #define Izza(c)				dynamic_cast<c*>(v)
-#define CELL_SPACING		4
 #define DEBUG_LAYOUT		0
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 
-#ifdef MAC
-#define BUTTON_OVERHEAD_X	28
-#else
-#define BUTTON_OVERHEAD_X	16
-#endif
+int GTableLayout::CellSpacing = 4;
 
 enum CellFlag
 {
@@ -476,7 +471,7 @@ public:
 				else if (Izza(GButton))
 				{
 					GDisplayString ds(v->GetFont(), v->Name());
-					int x = max(v->X(), ds.X() + BUTTON_OVERHEAD_X);
+                    int x = max(v->X(), ds.X() + GButton::Overhead.x);
 					if (x > v->X())
 					{
 					    // Resize the button to show all the text on it...
@@ -486,7 +481,7 @@ public:
 					}
 
                     MaxBtnX = max(MaxBtnX, x);
-                    TotalBtnX = TotalBtnX ? TotalBtnX + CELL_SPACING + x : x;
+                    TotalBtnX = TotalBtnX ? TotalBtnX + GTableLayout::CellSpacing + x : x;
 					
 					if (Flag < SizeFixed)
 						Flag = SizeFixed;
@@ -591,7 +586,7 @@ public:
 
 				if (i)
 				{
-					Pos.y2 += CELL_SPACING;
+					Pos.y2 += GTableLayout::CellSpacing;
 				}
 
 				if (Izza(GText))
@@ -609,7 +604,7 @@ public:
 				}
 				else if (Izza(GButton))
 				{
-					int y = v->GetFont()->GetHeight() + 8;
+                    int y = v->GetFont()->GetHeight() + GButton::Overhead.y;
 					if (BtnRows < 0)
 					{
 					    // Setup first row
@@ -622,12 +617,12 @@ public:
 					    // Wrap
 					    BtnX = v->X();
 					    BtnRows++;
-    					Pos.y2 += y + CELL_SPACING;
+    					Pos.y2 += y + GTableLayout::CellSpacing;
 					}
 					else
 					{
 					    // Don't wrap
-					    BtnX += v->X() + CELL_SPACING;
+					    BtnX += v->X() + GTableLayout::CellSpacing;
 					}
 					
 					// Set button height..
@@ -831,10 +826,10 @@ public:
 			// printf("%s = %s\n", v->GetClass(), r.GetStr());
 			New[i] = r;
 			MaxY = max(MaxY, r.y2 - Pos.y1);
-			Cx += r.X() + CELL_SPACING;
+			Cx += r.X() + GTableLayout::CellSpacing;
 			if (Cx >= Pos.X())
 			{
-				int Wid = Cx - CELL_SPACING;
+				int Wid = Cx - GTableLayout::CellSpacing;
 				int OffsetX = 0;
 				if (AlignX == AlignCenter)
 				{
@@ -852,12 +847,12 @@ public:
 
 				RowStart = i + 1;
 				Cx = 0;
-				Cy = MaxY + CELL_SPACING;
+				Cy = MaxY + GTableLayout::CellSpacing;
 			}
 		}
 
 		int n;
-		int Wid = Cx - CELL_SPACING;
+		int Wid = Cx - GTableLayout::CellSpacing;
 		int OffsetX = 0;
 		if (AlignX == AlignCenter)
 		{
@@ -897,7 +892,7 @@ GTableLayoutPrivate::GTableLayoutPrivate(GTableLayout *ctrl)
 {
 	Ctrl = ctrl;
 	FirstLayout = false;
-	CellSpacing = CELL_SPACING;
+	CellSpacing = GTableLayout::CellSpacing;
 	LayoutBounds.ZOff(-1, -1);
 	LayoutMinX = LayoutMaxX = 0;
 }
@@ -1004,8 +999,8 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 	LayoutMinX = 0;
 	for (i=0; i<Cols.Length(); i++)
 	{
-		LayoutMinX += MinCol[i] + CELL_SPACING;
-		LayoutMaxX += MaxCol[i] + CELL_SPACING;
+		LayoutMinX += MinCol[i] + GTableLayout::CellSpacing;
+		LayoutMaxX += MaxCol[i] + GTableLayout::CellSpacing;
 	}
 
 	#if DEBUG_LAYOUT
@@ -1199,7 +1194,7 @@ GLayoutCell *GTableLayout::CellAt(int x, int y)
 void GTableLayout::OnPosChange()
 {
 	GRect r = GetClient();
-	r.Size(CELL_SPACING, CELL_SPACING);
+	r.Size(GTableLayout::CellSpacing, GTableLayout::CellSpacing);
 	d->Layout(r);
 }
 

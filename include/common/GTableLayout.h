@@ -39,9 +39,12 @@ class LgiClass GTableLayout :
 	class GTableLayoutPrivate *d;
 
 public:
-	const char *GetClass() { return "GTableLayout"; }
+    static int CellSpacing;
+
 	GTableLayout();
 	~GTableLayout();
+
+	const char *GetClass() { return "GTableLayout"; }
 
 	/// Return the number of cells across (columns).
 	int CellX();

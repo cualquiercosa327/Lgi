@@ -8,6 +8,19 @@
 #define DOWN_MOUSE		0x1
 #define DOWN_KEY		0x2
 
+// Size of extra pixels, beyond the size of the text itself.
+GdcPt2 GButton::Overhead =
+    GdcPt2(
+        // Extra width needed
+        #ifdef MAC
+        28,
+        #else
+        16,
+        #endif
+        // Extra height needed
+        6
+    );
+
 class GButtonPrivate
 {
 public:
@@ -54,16 +67,10 @@ GButton::GButton(int id, int x, int y, int cx, int cy, const char *name) :
 	d = new GButtonPrivate;
 	Name(name);
 	
-	#ifdef MAC
-	int Extra = 36;
-	#else
-	int Extra = 20;
-	#endif
-	
 	GRect r(x,
 			y,
-			x + (cx < 0 ? d->Txt->X() + Extra : cx),
-			y + (cy < 0 ? d->Txt->Y() + 7 : cy)
+			x + (cx < 0 ? d->Txt->X() + Overhead.x : cx),
+			y + (cy < 0 ? d->Txt->Y() + Overhead.y : cy)
 			);
 	LgiAssert(r.Valid());
 	SetPos(r);
@@ -388,4 +395,12 @@ void GButton::OnAttach()
 			GetWindow()->_Default = this;
 		}
 	}
+}
+
+void GButton::SetPreferredSize()
+{
+	GRect r = GetPos();
+	r.x2 = r.x1 + d->Txt->X() + Overhead.x - 1;
+	r.y2 = r.y1 + d->Txt->Y() + Overhead.y - 1;
+	SetPos(r);
 }

@@ -26,6 +26,10 @@ class LgiClass GButton :
 	class GButtonPrivate *d;
 
 public:
+    /// The extra pixels beyond the size of the text needed
+    /// to display the button;
+    static GdcPt2 Overhead;
+
 	/// Construct the control
 	GButton
 	(
@@ -54,6 +58,9 @@ public:
 	int64 Value();
 	/// Sets the button to down.
 	void Value(int64 i);
+
+    /// Sets the control to it's preferred size for it's text
+    void SetPreferredSize();
 
 	// Events
 	GMessage::Result OnEvent(GMessage *Msg);
