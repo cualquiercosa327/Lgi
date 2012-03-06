@@ -1411,6 +1411,8 @@ void CtrlTabs::ListChildren(List<ResDialogCtrl> &l, bool Deep)
 	int n=0;
 	for (CtrlTab *t = Tabs.First(); t; t = Tabs.Next(), n++)
 	{
+	    l.Add(t);
+	    
 		GAutoPtr<GViewIterator> It((Current == n ? (GViewI*)this : (GViewI*)t)->IterateViews());
 		for (GViewI *w = It->First(); w; w = It->Next())
 		{
