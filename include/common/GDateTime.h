@@ -81,6 +81,8 @@ public:
 
 	/// Returns true if all the components are in a valid range
 	bool IsValid();
+	/// Sets the date to an NULL state
+	void Empty();
 
 	/// Returns the day
 	int Day() { return _Day; }

@@ -113,6 +113,17 @@ GDateTime::~GDateTime()
 {
 }
 
+void GDateTime::Empty()
+{
+	_Year = 0;
+	_Month = 0;
+	_Day = 0;
+	_Minutes = 0;
+	_Hours = 0;
+	_Seconds = 0;
+	_Thousands = 0;
+}
+
 #define InRange(v, low, high) ((v) >= low && (v) <= high)
 bool GDateTime::IsValid()
 {
