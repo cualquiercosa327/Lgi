@@ -86,8 +86,8 @@ public:
 	Format GetFormat() { return FmtTiff; }
 	bool IsOk() { return Lib ? Lib->IsLoaded() : false; }
 
-	bool ReadImage(GSurface *pDC, GStream *In);
-	bool WriteImage(GStream *Out, GSurface *pDC);
+	IoStatus ReadImage(GSurface *pDC, GStream *In);
+	IoStatus WriteImage(GStream *Out, GSurface *pDC);
 
 	bool GetVariant(const char *n, GVariant &v, char *a)
 	{
@@ -339,22 +339,22 @@ struct Cmyka
 	uint8 c, m, y, k, a;
 };
 
-bool GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
+GFilter::IoStatus GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 {
 	GVariant v;
 	if (!pDC || !In)
 	{
 		Props->SetValue(LGI_FILTER_ERROR, v = "Parameter error.");
-		return false;
+		return IoError;
 	}
 
 	if (!IsOk())
 	{
 		Props->SetValue(LGI_FILTER_ERROR, v = "Can't find libtiff library.");
-		return false;
+		return IoComponentMissing;
 	}
 
-	bool Status = false;
+	IoStatus Status = IoError;
 	t::TIFF *tif = Lib->TIFFClientOpen("", "rm", In, TRead, TWrite, TSeek, TClose, TSize, 0, 0);
 	if (tif)
 	{
@@ -413,7 +413,7 @@ bool GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 				            Meter->Value(y);
 					}
 
-					Status = true;
+					Status = IoSuccess;
 				}
 			}
 			else if (pDC->Create(img.width, img.height, 32))
@@ -426,7 +426,7 @@ bool GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 				Lib->TIFFRGBAImageGet(&img, (uint32*)d, pDC->X(), pDC->Y());
 				SwapRBandY(pDC);
 
-				Status = true;
+				Status = IoSuccess;
 			}
 
 			Lib->TIFFRGBAImageEnd(&img);
@@ -446,22 +446,22 @@ bool GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 	return Status;
 }
 
-bool GdcLibTiff::WriteImage(GStream *Out, GSurface *pDC)
+GFilter::IoStatus GdcLibTiff::WriteImage(GStream *Out, GSurface *pDC)
 {
 	GVariant v;
 	if (!pDC || !Out)
 	{
 		Props->SetValue(LGI_FILTER_ERROR, v = "Parameter error.");
-		return false;
+		return IoError;
 	}
 
 	if (!IsOk())
 	{
 		Props->SetValue(LGI_FILTER_ERROR, v = "Can't find libtiff library.");
-		return false;
+		return IoUnsupportedFormat;
 	}
 
-	bool Status = false;
+	IoStatus Status = IoError;
 	t::TIFF *tif = Lib->TIFFClientOpen("", "wm", Out, TRead, TWrite, TSeek, TClose, TSize, 0, 0);
 	if (tif)
 	{
@@ -473,7 +473,7 @@ bool GdcLibTiff::WriteImage(GStream *Out, GSurface *pDC)
 		Lib->TIFFSetField(tif, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
 		Lib->TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
 
-		Status = true;
+		Status = IoSuccess;
 		SwapRB(pDC);
 
 		for (int y=0; y<pDC->Y(); y++)
@@ -481,7 +481,7 @@ bool GdcLibTiff::WriteImage(GStream *Out, GSurface *pDC)
 			uint8 *Scan = (*pDC)[y];
 			if (Lib->TIFFWriteScanline(tif, Scan, y, 0) != 1)
 			{
-				Status = false;
+				Status = IoError;
 				break;
 			}
 		}

@@ -35,14 +35,14 @@ public:
 		return true;
 	}
 
-	bool WriteImage(GStream *Out, GSurface *pDC)
+	IoStatus WriteImage(GStream *Out, GSurface *pDC)
 	{
-		return false;
+		return IoUnsupportedFormat;
 	}
 
-	bool ReadImage(GSurface *pDC, GStream *In)
+	IoStatus ReadImage(GSurface *pDC, GStream *In)
 	{
-		bool Status = false;
+		IoStatus Status = IoError;
 		
 		if (pDC && In)
 		{
@@ -78,7 +78,7 @@ public:
 				{
 					case 2:
 					{
-						Status = true;
+						Status = IoSuccess;
 						switch (Bits)
 						{
 							case 16:
@@ -112,7 +112,7 @@ public:
 							}
 							default:
 							{
-								Status = false;
+								Status = IoError;
 								break;
 							}
 						}
@@ -123,11 +123,6 @@ public:
 		}
 
 		return Status;
-	}
-
-	bool WriteImage(GSurface *pDC)
-	{
-		return false;
 	}
 };
 

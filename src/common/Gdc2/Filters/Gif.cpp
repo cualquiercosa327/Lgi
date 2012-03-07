@@ -817,7 +817,7 @@ GFilter::IoStatus GdcGif::WriteImage(GStream *Out, GSurface *pDC)
 	            {
 		            if (Props)
 			            Props->SetValue(LGI_FILTER_ERROR, v = "No unused colour for transparent pixels??");
-		            return false;
+		            return IoError;
 	            }
 		    }
 		    else
@@ -827,7 +827,7 @@ GFilter::IoStatus GdcGif::WriteImage(GStream *Out, GSurface *pDC)
 			    if (!Dlg.DoModal())
 			    {
 				    Props->SetValue("Cancel", v = 1);
-				    return false;
+				    return IoCancel;
 			    }
 			}
 			
@@ -836,7 +836,7 @@ GFilter::IoStatus GdcGif::WriteImage(GStream *Out, GSurface *pDC)
 			    LgiAssert(!"No background colour available??");
 	            if (Props)
 		            Props->SetValue(LGI_FILTER_ERROR, v = "Transparency requested, but no background colour set.");
-                return false;			    
+                return IoError;			    
 			}
 		}
 	}

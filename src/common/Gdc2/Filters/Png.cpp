@@ -822,7 +822,7 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 				Props->SetValue("Cancel", v = 1);
 			
 			CurrentLibPng = 0;
-			return false;
+			return IoCancel;
 		}
 	}
 	#endif

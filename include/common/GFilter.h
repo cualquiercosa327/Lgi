@@ -109,7 +109,8 @@ public:
 	    IoError,
 	    IoSuccess,
 	    IoComponentMissing,
-	    IoUnsupportedFormat
+	    IoUnsupportedFormat,
+	    IoCancel
 	};
 
 	GFilter()
