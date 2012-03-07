@@ -31,11 +31,13 @@ class GdcJpegPriv : public GLibrary
 {
 public:
 	GdcJpegPriv() :
+	    /*
 		#if defined(WIN32) && defined(_DEBUG)
 		GLibrary("libjpegd")
 		#else
+		*/
 		GLibrary("libjpeg")
-		#endif
+		// #endif
 	{
 		#if 0
 		char File[256];
@@ -302,20 +304,21 @@ GdcJpeg::~GdcJpeg()
 	DeleteObj(d);
 }
 
-bool GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
+GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 {
-	bool Status = false;
+	GFilter::IoStatus Status = IoError;
 	GVariant v;
+	
 	if (!d->IsLoaded())
 	{
 		if (Props)
 			Props->SetValue(LGI_FILTER_ERROR, v = "libjpeg library isn't installed or wasn't usable.");
-		return false;
+		return GFilter::IoComponentMissing;
 	}
 
 	if (!pDC || !In)
 	{
-		return false;
+		return Status;
 	}
 
     int row_stride;
@@ -360,7 +363,7 @@ bool GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 		GetModuleFileName(Handle(), File, sizeof(File));
 		*/
 		d->jpeg_destroy_decompress(&cinfo);
-		return 0;
+		return Status;
 	}
 
 	d->jpeg_create_decompress(&cinfo);
@@ -646,7 +649,7 @@ bool GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 
 		d->jpeg_finish_decompress(&cinfo);
 
-		Status = true;
+		Status = IoSuccess;
 	}
 
 	d->jpeg_destroy_decompress(&cinfo);
@@ -680,15 +683,14 @@ void j_term_destination(j_compress_ptr cinfo)
 	Stream->f->Write(&Stream->Buf[0], Bytes);
 }
 
-bool GdcJpeg::WriteImage(GStream *Out, GSurface *pDC)
+GFilter::IoStatus GdcJpeg::WriteImage(GStream *Out, GSurface *pDC)
 {
-	// bool Status = FALSE;
 	GVariant v;
 	if (!d->IsLoaded())
 	{
 		if (Props)
 			Props->SetValue(LGI_FILTER_ERROR, v = "libjpeg library isn't installed or wasn't usable.");
-		return false;
+		return GFilter::IoComponentMissing;
 	}
 
 	// bool Ok = true;
@@ -701,7 +703,7 @@ bool GdcJpeg::WriteImage(GStream *Out, GSurface *pDC)
 	return _Write(Out, pDC, Quality.CastInt32());
 }
 
-bool GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality)
+GFilter::IoStatus GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality)
 {
 	struct jpeg_compress_struct cinfo;
 	struct my_error_mgr jerr;
@@ -714,7 +716,7 @@ bool GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality)
 	if (setjmp(jerr.setjmp_buffer))
 	{
 		d->jpeg_destroy_compress(&cinfo);
-		return 0;
+		return GFilter::IoError;
 	}
 
 	JpegStream Stream;
@@ -861,7 +863,7 @@ bool GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality)
 	d->jpeg_finish_compress(&cinfo);
 	d->jpeg_destroy_compress(&cinfo);
 
-	return true;
+	return GFilter::IoSuccess;
 }
 
 #endif

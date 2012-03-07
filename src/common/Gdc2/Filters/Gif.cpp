@@ -59,8 +59,8 @@ public:
 
 	Format GetFormat() { return FmtGif; }
 	int GetCapabilites() { return FILTER_CAP_READ | FILTER_CAP_WRITE; }
-	bool ReadImage(GSurface *pDC, GStream *In);
-	bool WriteImage(GStream *Out, GSurface *pDC);
+	IoStatus ReadImage(GSurface *pDC, GStream *In);
+	IoStatus WriteImage(GStream *Out, GSurface *pDC);
 
 	bool GetVariant(const char *n, GVariant &v, char *a)
 	{
@@ -536,9 +536,9 @@ short GdcGif::decoder(int BitDepth, uchar interlaced)
 	return(ret);
 }
 
-bool GdcGif::ReadImage(GSurface *pdc, GStream *in)
+GFilter::IoStatus GdcGif::ReadImage(GSurface *pdc, GStream *in)
 {
-	bool Status = false;
+	GFilter::IoStatus Status = IoError;
 	pDC = pdc;
 	s = in;
 	ProcessedScanlines = 0;
@@ -656,7 +656,8 @@ bool GdcGif::ReadImage(GSurface *pdc, GStream *in)
 
 							// Decode image
 							decoder(bits, interlace);
-							Status = ProcessedScanlines == pDC->Y();
+							if (ProcessedScanlines == pDC->Y())
+							    Status = IoSuccess;
 							
 							if (Transparent)
 							{
@@ -746,20 +747,20 @@ bool GdcGif::ReadImage(GSurface *pdc, GStream *in)
 	return Status;
 }
 
-bool GdcGif::WriteImage(GStream *Out, GSurface *pDC)
+GFilter::IoStatus GdcGif::WriteImage(GStream *Out, GSurface *pDC)
 {
 	GVariant Transparent;
 	int Back = -1;
 	GVariant v;
 
 	if (!Out || !pDC)
-		return false;
+		return GFilter::IoError;
 
 	if (pDC->GetBits() > 8)
 	{			
 		if (Props)
 			Props->SetValue(LGI_FILTER_ERROR, v = "The GIF format only supports 1 to 8 bit graphics.");
-		return 0;
+		return GFilter::IoUnsupportedFormat;
 	}
 
 	#ifdef FILTER_UI
@@ -977,7 +978,7 @@ bool GdcGif::WriteImage(GStream *Out, GSurface *pDC)
 	c = 0x3b;
 	Out->Write(&c, 1);
 
-	return true;
+	return GFilter::IoSuccess;
 }
 
 GdcGif::GdcGif()

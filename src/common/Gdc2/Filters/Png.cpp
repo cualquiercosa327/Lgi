@@ -297,11 +297,12 @@ public:
 	GdcPng();
 	~GdcPng();
 
+    char *GetComponentName() { return "zlib,libpng"; }
 	Format GetFormat() { return FmtPng; }
 	void SetMeter(int i) { if (Meter) Meter->Value(i); }
 	int GetCapabilites() { return FILTER_CAP_READ | FILTER_CAP_WRITE; }
-	bool ReadImage(GSurface *pDC, GStream *In);
-	bool WriteImage(GStream *Out, GSurface *pDC);
+	IoStatus ReadImage(GSurface *pDC, GStream *In);
+	IoStatus WriteImage(GStream *Out, GSurface *pDC);
 
 	bool GetVariant(const char *n, GVariant &v, char *a)
 	{
@@ -417,9 +418,9 @@ void PNGAPI LibPngWrite(png_structp Png, png_bytep Ptr, png_size_t Size)
 	}
 }
 
-bool GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
+GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 {
-	bool Status = false;
+	GFilter::IoStatus Status = IoError;
 
     CurrentLibPng = this;
 	Pos = 0;
@@ -438,292 +439,294 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 	{
 		if (Props)
 			Props->SetValue(LGI_FILTER_ERROR, v = "Can't load libpng");
+        return GFilter::IoComponentMissing;
 	}
-	else if (setjmp(Here))
+
+	if (setjmp(Here))
 	{
 		if (Props)
 			Props->SetValue(LGI_FILTER_ERROR, v = "setjmp failed");
+		return Status;
+	}
+
+	png_structp png_ptr = png_create_read_struct(	PNG_LIBPNG_VER_STRING,
+													(void*)this,
+													LibPngError,
+													LibPngWarning);
+	if (!png_ptr)
+	{
+		if (Props)
+			Props->SetValue(LGI_FILTER_ERROR, v = "png_create_read_struct failed.");
 	}
 	else
 	{
-		png_structp png_ptr = png_create_read_struct(	PNG_LIBPNG_VER_STRING,
-														(void*)this,
-														LibPngError,
-														LibPngWarning);
-		if (png_ptr)
+		png_infop info_ptr = png_create_info_struct(png_ptr);
+		if (info_ptr)
 		{
-			png_infop info_ptr = png_create_info_struct(png_ptr);
-			if (info_ptr)
+			png_set_read_fn(png_ptr, In, LibPngRead);
+
+			#if 0 // What was this for again?
+			int off = (char*)&png_ptr->io_ptr - (char*)png_ptr;
+			if (!png_ptr->io_ptr)
 			{
-				png_set_read_fn(png_ptr, In, LibPngRead);
+				printf("io_ptr offset = %i\n", off);
+				LgiAssert(0);
 
-				#if 0 // What was this for again?
-				int off = (char*)&png_ptr->io_ptr - (char*)png_ptr;
-				if (!png_ptr->io_ptr)
+				CurrentLibPng = 0;
+				return false;
+			}
+			#endif
+
+			png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_BGR, 0);
+			png_bytepp Scan0 = png_get_rows(png_ptr, info_ptr);
+			if (Scan0)
+			{
+			    int BitDepth = png_get_bit_depth(png_ptr, info_ptr);
+				int FinalBits = BitDepth == 16 ? 8 : BitDepth;
+				int RequestBits = FinalBits * png_get_channels(png_ptr, info_ptr);
+			
+				if (!pDC->Create(	png_get_image_width(png_ptr, info_ptr),
+									png_get_image_height(png_ptr, info_ptr),
+									#ifdef MAC
+									RequestBits == 24 ? 32 :
+									#endif
+									max(RequestBits, 8)))
 				{
-					printf("io_ptr offset = %i\n", off);
-					LgiAssert(0);
-
-					CurrentLibPng = 0;
-					return false;
+					printf("%s:%i - GMemDC::Create(%i, %i, %i) failed.\n",
+							_FL,
+							png_get_image_width(png_ptr, info_ptr),
+							png_get_image_height(png_ptr, info_ptr),
+							RequestBits);
 				}
-				#endif
-
-				png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_BGR, 0);
-				png_bytepp Scan0 = png_get_rows(png_ptr, info_ptr);
-				if (Scan0)
+				else
 				{
-				    int BitDepth = png_get_bit_depth(png_ptr, info_ptr);
-					int FinalBits = BitDepth == 16 ? 8 : BitDepth;
-					int RequestBits = FinalBits * png_get_channels(png_ptr, info_ptr);
-				
-					if (!pDC->Create(	png_get_image_width(png_ptr, info_ptr),
-										png_get_image_height(png_ptr, info_ptr),
-										#ifdef MAC
-										RequestBits == 24 ? 32 :
-										#endif
-										max(RequestBits, 8)))
+					// Copy in the scanlines
+					int ActualBits = pDC->GetBits();
+					int ScanLen = png_get_image_width(png_ptr, info_ptr) * ActualBits / 8;
+					for (int y=0; y<pDC->Y(); y++)
 					{
-						printf("%s:%i - GMemDC::Create(%i, %i, %i) failed.\n",
-								_FL,
-								png_get_image_width(png_ptr, info_ptr),
-								png_get_image_height(png_ptr, info_ptr),
-								RequestBits);
-					}
-					else
-					{
-						// Copy in the scanlines
-						int ActualBits = pDC->GetBits();
-						int ScanLen = png_get_image_width(png_ptr, info_ptr) * ActualBits / 8;
-						for (int y=0; y<pDC->Y(); y++)
+						uchar *Scan = (*pDC)[y];
+						LgiAssert(Scan);
+
+						switch (RequestBits)
 						{
-							uchar *Scan = (*pDC)[y];
-							LgiAssert(Scan);
-
-							switch (RequestBits)
+							case 1:
 							{
-								case 1:
-								{
-									uchar *o = Scan;
-									uchar *e = Scan + pDC->X();
-									uchar *i = Scan0[y];
-									uchar Mask = 0x80;
+								uchar *o = Scan;
+								uchar *e = Scan + pDC->X();
+								uchar *i = Scan0[y];
+								uchar Mask = 0x80;
 
-									while (o < e)
+								while (o < e)
+								{
+									*o++ = (*i & Mask) ? 1 : 0;
+									Mask >>= 1;
+									if (!Mask)
 									{
-										*o++ = (*i & Mask) ? 1 : 0;
-										Mask >>= 1;
-										if (!Mask)
-										{
-											i++;
-											Mask = 0x80;
-										}
+										i++;
+										Mask = 0x80;
 									}
-									break;
 								}
-								case 24:
-								{
-								    if (pDC->GetBits() == 32)
-								    {
-									    if (png_get_bit_depth(png_ptr, info_ptr) == 16)
-									    {
-										    Pixel32 *o = (Pixel32*)Scan;
-										    Png48 *i = (Png48*)Scan0[y];
-										    Png48 *e = i + pDC->X();
-
-										    while (i < e)
-										    {
-											    o->r = i->r / 257;
-											    o->g = i->g / 257;
-											    o->b = i->b / 257;
-											    o->a = 255;
-											    o = o->Next();
-											    i++;
-										    }
-									    }
-									    else
-									    {
-										    Pixel32 *o = (Pixel32*)Scan;
-										    Png24 *i = (Png24*)Scan0[y];
-										    Png24 *e = i + pDC->X();
-
-										    while (i < e)
-										    {
-											    o->r = i->r;
-											    o->g = i->g;
-											    o->b = i->b;
-											    o->a = 255;
-											    o = o->Next();
-											    i++;
-										    }
-									    }
-								    }
-								    else if (pDC->GetBits() == 24)
-								    {
-									    if (png_get_bit_depth(png_ptr, info_ptr) == 16)
-									    {
-										    Pixel24 *o = (Pixel24*)Scan;
-										    Png48 *i = (Png48*)Scan0[y];
-										    Png48 *e = i + pDC->X();
-
-										    while (i < e)
-										    {
-											    o->r = i->r / 257;
-											    o->g = i->g / 257;
-											    o->b = i->b / 257;
-											    o = o->Next();
-											    i++;
-										    }
-									    }
-									    else
-									    {
-										    Pixel24 *o = (Pixel24*)Scan;
-										    Png24 *i = (Png24*)Scan0[y];
-										    Png24 *e = i + pDC->X();
-
-										    while (i < e)
-										    {
-											    o->r = i->r;
-											    o->g = i->g;
-											    o->b = i->b;
-											    o = o->Next();
-											    i++;
-										    }
-									    }
-									}
-									else LgiAssert(!"Not impl.");
-									break;
-								}
-								case 32:
-								{
-									if (png_get_bit_depth(png_ptr, info_ptr) == 16)
-									{
-										Pixel32 *o = (Pixel32*)Scan;
-										Png64 *i = (Png64*)Scan0[y];
-										Png64 *e = i + pDC->X();
-
-										while (i < e)
-										{
-											o->r = (uint8)(i->r / 257);
-											o->g = (uint8)(i->g / 257);
-											o->b = (uint8)(i->b / 257);
-											o->a = (uint8)(i->a / 257);
-											o = o->Next();
-											i++;
-										}
-									}
-									else
-									{
-										Pixel32 *o = (Pixel32*) Scan;
-										Png32 *i = (Png32*) Scan0[y];
-
-										for (int x=0; x<pDC->X(); x++, i++, o++)
-										{
-											o->r = i->r;
-											o->g = i->g;
-											o->b = i->b;
-											o->a = i->a;
-										}
-									}
-									break;
-								}
-								default:
-								{
-									memcpy(Scan, Scan0[y], ScanLen);
-									break;
-								}
+								break;
 							}
-						}
-
-						if (ActualBits <= 8)
-						{
-							// Copy in the palette
-							png_colorp pal;
-							int num_pal = 0;
-							if (png_get_PLTE(png_ptr, info_ptr, &pal, &num_pal) == PNG_INFO_PLTE)
+							case 24:
 							{
-							    GPalette *Pal = new GPalette(0, num_pal);
-							    if (Pal)
+							    if (pDC->GetBits() == 32)
 							    {
-								    for (int i=0; i<num_pal; i++)
+								    if (png_get_bit_depth(png_ptr, info_ptr) == 16)
 								    {
-									    GdcRGB *Rgb = (*Pal)[i];
-									    if (Rgb)
+									    Pixel32 *o = (Pixel32*)Scan;
+									    Png48 *i = (Png48*)Scan0[y];
+									    Png48 *e = i + pDC->X();
+
+									    while (i < e)
 									    {
-										    Rgb->R = pal[i].red;
-										    Rgb->G = pal[i].green;
-										    Rgb->B = pal[i].blue;
+										    o->r = i->r / 257;
+										    o->g = i->g / 257;
+										    o->b = i->b / 257;
+										    o->a = 255;
+										    o = o->Next();
+										    i++;
 									    }
 								    }
-								    pDC->Palette(Pal, true);
-							    }
-							}
+								    else
+								    {
+									    Pixel32 *o = (Pixel32*)Scan;
+									    Png24 *i = (Png24*)Scan0[y];
+									    Png24 *e = i + pDC->X();
 
-							if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
+									    while (i < e)
+									    {
+										    o->r = i->r;
+										    o->g = i->g;
+										    o->b = i->b;
+										    o->a = 255;
+										    o = o->Next();
+										    i++;
+									    }
+								    }
+							    }
+							    else if (pDC->GetBits() == 24)
+							    {
+								    if (png_get_bit_depth(png_ptr, info_ptr) == 16)
+								    {
+									    Pixel24 *o = (Pixel24*)Scan;
+									    Png48 *i = (Png48*)Scan0[y];
+									    Png48 *e = i + pDC->X();
+
+									    while (i < e)
+									    {
+										    o->r = i->r / 257;
+										    o->g = i->g / 257;
+										    o->b = i->b / 257;
+										    o = o->Next();
+										    i++;
+									    }
+								    }
+								    else
+								    {
+									    Pixel24 *o = (Pixel24*)Scan;
+									    Png24 *i = (Png24*)Scan0[y];
+									    Png24 *e = i + pDC->X();
+
+									    while (i < e)
+									    {
+										    o->r = i->r;
+										    o->g = i->g;
+										    o->b = i->b;
+										    o = o->Next();
+										    i++;
+									    }
+								    }
+								}
+								else LgiAssert(!"Not impl.");
+								break;
+							}
+							case 32:
 							{
-							    png_bytep trans_alpha;
-							    png_color_16p trans_color;
-							    int num_trans;
-                                if (png_get_tRNS(png_ptr, info_ptr, &trans_alpha, &num_trans, &trans_color))
+								if (png_get_bit_depth(png_ptr, info_ptr) == 16)
 								{
-									pDC->HasAlpha(true);
-									GSurface *Alpha = pDC->AlphaDC();
-									if (Alpha)
+									Pixel32 *o = (Pixel32*)Scan;
+									Png64 *i = (Png64*)Scan0[y];
+									Png64 *e = i + pDC->X();
+
+									while (i < e)
 									{
-										for (int y=0; y<Alpha->Y(); y++)
-										{
-											uchar *a = (*Alpha)[y];
-											uchar *p = (*pDC)[y];
-											for (int x=0; x<Alpha->X(); x++)
-											{
-												if (p[x] < num_trans)
-												{
-													a[x] = trans_alpha[p[x]];
-												}
-												else
-												{
-													a[x] = 0xff;
-												}
-											}
-										}
-									}
-									else
-									{
-										printf("%s:%i - No alpha channel.\n", __FILE__, __LINE__);
+										o->r = (uint8)(i->r / 257);
+										o->g = (uint8)(i->g / 257);
+										o->b = (uint8)(i->b / 257);
+										o->a = (uint8)(i->a / 257);
+										o = o->Next();
+										i++;
 									}
 								}
 								else
 								{
-									printf("%s:%i - Bad trans ptr.\n", __FILE__, __LINE__);
+									Pixel32 *o = (Pixel32*) Scan;
+									Png32 *i = (Png32*) Scan0[y];
+
+									for (int x=0; x<pDC->X(); x++, i++, o++)
+									{
+										o->r = i->r;
+										o->g = i->g;
+										o->b = i->b;
+										o->a = i->a;
+									}
 								}
+								break;
+							}
+							default:
+							{
+								memcpy(Scan, Scan0[y], ScanLen);
+								break;
 							}
 						}
-
-						Status = true;
 					}
-				}
-				else
-				{
-					printf("%s:%i - png_get_rows failed.\n", __FILE__, __LINE__);
+
+					if (ActualBits <= 8)
+					{
+						// Copy in the palette
+						png_colorp pal;
+						int num_pal = 0;
+						if (png_get_PLTE(png_ptr, info_ptr, &pal, &num_pal) == PNG_INFO_PLTE)
+						{
+						    GPalette *Pal = new GPalette(0, num_pal);
+						    if (Pal)
+						    {
+							    for (int i=0; i<num_pal; i++)
+							    {
+								    GdcRGB *Rgb = (*Pal)[i];
+								    if (Rgb)
+								    {
+									    Rgb->R = pal[i].red;
+									    Rgb->G = pal[i].green;
+									    Rgb->B = pal[i].blue;
+								    }
+							    }
+							    pDC->Palette(Pal, true);
+						    }
+						}
+
+						if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
+						{
+						    png_bytep trans_alpha;
+						    png_color_16p trans_color;
+						    int num_trans;
+                            if (png_get_tRNS(png_ptr, info_ptr, &trans_alpha, &num_trans, &trans_color))
+							{
+								pDC->HasAlpha(true);
+								GSurface *Alpha = pDC->AlphaDC();
+								if (Alpha)
+								{
+									for (int y=0; y<Alpha->Y(); y++)
+									{
+										uchar *a = (*Alpha)[y];
+										uchar *p = (*pDC)[y];
+										for (int x=0; x<Alpha->X(); x++)
+										{
+											if (p[x] < num_trans)
+											{
+												a[x] = trans_alpha[p[x]];
+											}
+											else
+											{
+												a[x] = 0xff;
+											}
+										}
+									}
+								}
+								else
+								{
+									printf("%s:%i - No alpha channel.\n", __FILE__, __LINE__);
+								}
+							}
+							else
+							{
+								printf("%s:%i - Bad trans ptr.\n", __FILE__, __LINE__);
+							}
+						}
+					}
+
+					Status = IoSuccess;
 				}
 			}
-
-			png_charp ProfName = 0;
-			int CompressionType = 0;
-			png_charp ColProf = 0;
-			png_uint_32 ColProfLen = 0;
-			if (png_get_iCCP(png_ptr, info_ptr, &ProfName, &CompressionType, &ColProf, &ColProfLen) && Props)
+			else
 			{
-				v.SetBinary(ColProfLen, ColProf);
-				Props->SetValue(LGI_FILTER_COLOUR_PROF, v);
+				printf("%s:%i - png_get_rows failed.\n", __FILE__, __LINE__);
 			}
+		}
 
-			png_destroy_read_struct(&png_ptr, 0, 0);
-		}
-		else
+		png_charp ProfName = 0;
+		int CompressionType = 0;
+		png_charp ColProf = 0;
+		png_uint_32 ColProfLen = 0;
+		if (png_get_iCCP(png_ptr, info_ptr, &ProfName, &CompressionType, &ColProf, &ColProfLen) && Props)
 		{
-			printf("%s:%i - png_create_read_struct failed.\n", __FILE__, __LINE__);
+			v.SetBinary(ColProfLen, ColProf);
+			Props->SetValue(LGI_FILTER_COLOUR_PROF, v);
 		}
+
+		png_destroy_read_struct(&png_ptr, 0, 0);
 	}
 
 	CurrentLibPng = 0;
@@ -731,19 +734,19 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 	return Status;
 }
 
-bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
+GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 {
-	bool Status = false;
+	GFilter::IoStatus Status = IoError;
 	
 	GVariant Transparent;
 	bool HasTransparency = false;
 	COLOUR Back = 0;
 	GVariant v;
 
-	if (!pDC || !IsLoaded())
-	{
-		return false;
-	}
+	if (!pDC)
+		return GFilter::IoError;
+    if (!IsLoaded())
+        return GFilter::IoComponentMissing;	
 	
 	CurrentLibPng = this;
 
@@ -1200,7 +1203,7 @@ bool GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 					png_set_rows(png_ptr, info_ptr, row);
 					png_write_png(png_ptr, info_ptr, PNG_TRANSFORM_BGR, 0);
 
-					Status = true;
+					Status = IoSuccess;
 
 					DeleteArray(row);
 				}

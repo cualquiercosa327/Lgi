@@ -14,6 +14,7 @@
 #include "GString.h"
 #include "GVariant.h"
 #include "GClipBoard.h"
+#include "GToken.h"
 
 #ifndef WIN32
 #define BI_RLE8       1L
@@ -70,10 +71,10 @@ public:
 	Format GetFormat() { return FmtBmp; }
 
 	/// Reads a BMP file
-	bool ReadImage(GSurface *Out, GStream *In);
+	IoStatus ReadImage(GSurface *Out, GStream *In);
 	
 	/// Writes a Windows BMP file
-	bool WriteImage(GStream *Out, GSurface *In);
+	IoStatus WriteImage(GStream *Out, GSurface *In);
 
 	bool GetVariant(const char *n, GVariant &v, char *a)
 	{
@@ -178,12 +179,12 @@ bool GdcBmp::SetSize(GStream *s, long *Info, GSurface *pDC)
 	return Status;
 }
 
-bool GdcBmp::ReadImage(GSurface *pDC, GStream *In)
+GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 {
 	if (!pDC || !In)
-		return false;
+		return GFilter::IoError;
 
-	bool Status = false;
+	GFilter::IoStatus Status = IoError;
 	ActualBits = 0;
 	ScanSize = 0;
 	
@@ -235,7 +236,7 @@ bool GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 			GBmpMem *pMem = GetSurface(pDC);
 			In->SetPos(File.OffsetToData);
 
-			Status = true;
+			Status = GFilter::IoSuccess;
 
 			if (Info.Compression == BI_RLE8)
 			{
@@ -343,8 +344,7 @@ bool GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 						{
 							for (int y=pMem->y-1; y>=0; y--)
 							{
-								Status &= In->Read(Buffer, ScanSize) == ScanSize;
-								if (Status)
+								if (In->Read(Buffer, ScanSize) == ScanSize)
 								{
 									uchar Mask = 0x80;
 									uchar *d = Buffer;
@@ -363,6 +363,7 @@ bool GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 								}
 								else
 								{
+								    Status = IoError;
 									break;
 								}
 
@@ -380,7 +381,11 @@ bool GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 						{
 							for (int y=pMem->y-1; y>=0; y--)
 							{
-								Status &= In->Read(Buffer, ScanSize) == ScanSize;
+								if (In->Read(Buffer, ScanSize) != ScanSize)
+								{
+								    Status = IoError;
+								    break;
+								}
 
 								uchar *d = Buffer;
 								for (int x=0; x<pDC->X(); x++)
@@ -436,7 +441,7 @@ bool GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 						    // LgiTrace("Read scan %i = %i @ %I64i\n", i, r, Pos);
 						    if (r != ScanSize)
 						    {
-							    Status = false;
+							    Status = IoError;
 							    break;
 							}
 							
@@ -447,7 +452,7 @@ bool GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 					}
 					default:
 					{
-						Status = false;
+						Status = IoUnsupportedFormat;
 						printf("%s:%i - Bmp had unsupported bit depth.\n", __FILE__, __LINE__);
 						break;
 					}
@@ -474,12 +479,12 @@ bool GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 	return Status;
 }
 
-bool GdcBmp::WriteImage(GStream *Out, GSurface *pDC)
+GFilter::IoStatus GdcBmp::WriteImage(GStream *Out, GSurface *pDC)
 {
-	bool Status = false;
+    GFilter::IoStatus Status = IoError;
 	
 	if (!pDC || !Out)
-		return false;
+		return GFilter::IoError;
 
 	BMP_FILE File;
 	BMP_WININFO Info;
@@ -508,7 +513,7 @@ bool GdcBmp::WriteImage(GStream *Out, GSurface *pDC)
 		!pMem->x OR
 		!pMem->y)
 	{
-		return false;
+		return GFilter::IoError;
 	}
 
 	Out->SetSize(0);
@@ -574,7 +579,7 @@ bool GdcBmp::WriteImage(GStream *Out, GSurface *pDC)
 		}
 
 		int Bytes = BMPWIDTH(pMem->x * UsedBits);
-		Status = true;
+		Status = GFilter::IoSuccess;
 		switch (UsedBits)
 		{
 			case 1:
@@ -594,7 +599,11 @@ bool GdcBmp::WriteImage(GStream *Out, GSurface *pDC)
 						}
 
 						// write the bits
-						Status &= Out->Write(Buffer, Bytes) == Bytes;
+						if (Out->Write(Buffer, Bytes) != Bytes)
+						{
+						    Status = IoError;
+						    break;
+						}
 						
 						// update status
 						if (Meter) Meter->Value(pMem->y-1-i);
@@ -620,7 +629,11 @@ bool GdcBmp::WriteImage(GStream *Out, GSurface *pDC)
 						}
 
 						// write the line
-						Status &= Out->Write(Buffer, Bytes) == Bytes;
+						if (Out->Write(Buffer, Bytes) != Bytes)
+						{
+						    Status = IoError;
+						    break;
+						}
 						
 						// update status
 						if (Meter) Meter->Value(pMem->y-1-i);
@@ -634,12 +647,10 @@ bool GdcBmp::WriteImage(GStream *Out, GSurface *pDC)
 			{
 				for (int i=pMem->y-1; i>=0; i--)
 				{
-					// int64 Pos = Out->GetPos();
 					int w = Out->Write(pMem->Base + (i * pMem->Line), Bytes);
-					// LgiTrace("Write scan %i = %i @ %I64i\n", i, w, Pos);
 					if (w != Bytes)
 					{
-						Status = false;
+						Status = IoError;
 						break;
 					}
 
@@ -673,8 +684,8 @@ public:
 	Format GetFormat() { return FmtIco; }
 	int GetCapabilites() { return FILTER_CAP_READ | FILTER_CAP_WRITE; }
 	int GetImages() { return 1; }
-	bool ReadImage(GSurface *pDC, GStream *In);
-	bool WriteImage(GStream *Out, GSurface *pDC);
+	IoStatus ReadImage(GSurface *pDC, GStream *In);
+	IoStatus WriteImage(GStream *Out, GSurface *pDC);
 	bool GetVariant(const char *n, GVariant &v, char *a);
 };
 
@@ -711,9 +722,9 @@ bool GdcIco::GetVariant(const char *n, GVariant &v, char *a)
 	return true;
 }
 
-bool GdcIco::ReadImage(GSurface *pDC, GStream *In)
+GFilter::IoStatus GdcIco::ReadImage(GSurface *pDC, GStream *In)
 {
-	bool Status = false;
+	GFilter::IoStatus Status = IoError;
 	int MyBits = 0;
 
 	int16 Reserved_1;
@@ -873,7 +884,7 @@ bool GdcIco::ReadImage(GSurface *pDC, GStream *In)
 							m >>= 1;
 							if (!m) m = 0x80;
 						}
-						Status = true;
+						Status = IoSuccess;
 						break;
 					}
 					case 4:
@@ -894,7 +905,7 @@ bool GdcIco::ReadImage(GSurface *pDC, GStream *In)
 								Dest[x] = Src[x>>1] >> 4;
 							}
 						}
-						Status = true;
+						Status = IoSuccess;
 						break;
 					}
 					case 8:
@@ -909,7 +920,7 @@ bool GdcIco::ReadImage(GSurface *pDC, GStream *In)
 							Dest[x] = Src[x];
 						}
 
-						Status = true;
+						Status = IoSuccess;
 						break;
 					}
 				}
@@ -932,12 +943,12 @@ bool GdcIco::ReadImage(GSurface *pDC, GStream *In)
 	return Status;
 }
 
-bool GdcIco::WriteImage(GStream *Out, GSurface *pDC)
+GFilter::IoStatus GdcIco::WriteImage(GStream *Out, GSurface *pDC)
 {
-	bool Status = false;
+	GFilter::IoStatus Status = IoError;
 
 	if (!pDC || pDC->GetBits() > 8 || !Out)
-		return false;
+		return GFilter::IoError;
 
 	Out->SetSize(0);
 
@@ -1050,7 +1061,7 @@ bool GdcIco::WriteImage(GStream *Out, GSurface *pDC)
 					}
 				}
 
-				Status = true;
+				Status = IoSuccess;
 				break;
 			}
 			case 8:
@@ -1060,7 +1071,7 @@ bool GdcIco::WriteImage(GStream *Out, GSurface *pDC)
 					uchar Dest = (Back == Src[x]) ? 0 : Src[x];
 					Write(Out, &Dest, sizeof(Dest));
 				}
-				Status = true;
+				Status = IoSuccess;
 				break;
 			}
 		}
@@ -1094,7 +1105,7 @@ bool GdcIco::WriteImage(GStream *Out, GSurface *pDC)
 			x++;
 		}
 
-		Status = true;
+		Status = IoSuccess;
 	}
 
 	return Status;
@@ -1687,7 +1698,14 @@ int GFilterFactory::GetItems()
 }
 
 //////////////////////////////////////////////////////////////////////////
+
+/// Legacy wrapper that calls the new method
 GSurface *LoadDC(char *Name, bool UseOSLoader)
+{
+    return GdcD->Load(Name, UseOSLoader);
+}
+
+GSurface *GdcDevice::Load(char *Name, bool UseOSLoader)
 {
 	GAutoPtr<GSurface> pDC;
 
@@ -1821,12 +1839,25 @@ GSurface *LoadDC(char *Name, bool UseOSLoader)
 		File.SetPos(0);
 
 		GAutoPtr<GFilter> Filter(GFilterFactory::New(Name, FILTER_CAP_READ, Hint));
-		if (Filter)
+		if (Filter &&
+		    pDC.Reset(new GMemDC))
 		{
-			if (pDC.Reset(new GMemDC) && !Filter->ReadImage(pDC, &File))
+            GFilter::IoStatus s = Filter->ReadImage(pDC, &File);
+            if (s != GFilter::IoSuccess)
 			{
 				pDC.Reset();
 				LgiTrace("%s:%i - Filter couldn't cope with '%s'.\n", _FL, Name);
+			}
+			if (s == GFilter::IoComponentMissing)
+			{
+			    char *c = Filter->GetComponentName();
+			    LgiAssert(c);
+			    if (c)
+			    {
+			        GToken t(c, ",");
+			        for (int i=0; i<t.Length(); i++)
+			            NeedsCapability(t[i]);
+			    }
 			}
 		}
 	}
@@ -1926,6 +1957,11 @@ GSurface *LoadDC(char *Name, bool UseOSLoader)
 }
 
 bool WriteDC(char *Name, GSurface *pDC)
+{
+    return GdcD->Save(Name, pDC);
+}
+
+bool GdcDevice::Save(char *Name, GSurface *pDC)
 {
 	bool Status = false;
 

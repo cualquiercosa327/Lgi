@@ -19,6 +19,7 @@
 #include "GMem.h"					// Platform specific
 #include "Core.h"					// Platform specific
 #include "GContainers.h"
+#include "GCapabilities.h"
 
 // Alpha Blting
 #ifdef WIN32
@@ -1296,7 +1297,7 @@ typedef int (__stdcall *MsImg32_AlphaBlend)(HDC,int,int,int,int,HDC,int,int,int,
 #endif
 
 /// Main singleton graphics device class. Holds all global data for graphics rendering.
-class LgiClass GdcDevice
+class LgiClass GdcDevice : public GCapabilityClient
 {
 	friend class GScreenDC;
 	friend class GImageList;
@@ -1341,6 +1342,40 @@ public:
 	GPalette *GetSystemPalette();
 	void SetColourPaletteType(int Type);	// Type = PALTYPE_xxx define
 	COLOUR GetColour(COLOUR Rgb24, GSurface *pDC = NULL);
+
+    // File I/O
+    
+    /// \brief Loads a image from a file
+    ///
+    /// This function uses the compiled in codecs, some of which require external
+    /// shared libraries / DLL's to function. Other just need the right source to
+    /// be compiled in.
+    ///
+    /// Lgi comes with the following image codecs:
+    /// <ul>
+    ///  <li> Windows or OS/2 Bitmap: GdcBmp (GFilter.cpp)
+    ///  <li> PCX: GdcPcx (Pcx.cpp)
+    ///  <li> GIF: GdcGif (Gif.cpp and Lzw.cpp)
+    ///  <li> JPEG: GdcJpeg (Jpeg.cpp + <a href='http://www.memecode.com/scribe/extras.php'>libjpeg</a> library)
+    ///  <li> PNG: GdcPng (Png.cpp + <a href='http://www.memecode.com/scribe/extras.php'>libpng</a> library)
+    /// </ul>
+    /// 
+    GSurface *Load
+    (
+        /// The full path of the file
+        char *FileName,
+    	/// [Optional] Enable OS based loaders
+        bool UseOSLoader = true
+    );
+    
+    /// Save an image to a file.
+    bool Save
+    (
+        /// The file to write to
+        char *Name,
+        /// The pixels to store
+        GSurface *pDC
+    );
 };
 
 /// \brief Defines a bitmap inline in C++ code.
@@ -1385,30 +1420,12 @@ LgiFunc GSurface *ConvertDC
 	int Bits
 );
 
-/// \brief Loads a image from a file
-///
-/// This function uses the compiled in codecs, some of which require external
-/// shared libraries / DLL's to function. Other just need the right source to
-/// be compiled in.
-///
-/// Lgi comes with the following image codecs:
-/// <ul>
-///  <li> Windows or OS/2 Bitmap: GdcBmp (GFilter.cpp)
-///  <li> PCX: GdcPcx (Pcx.cpp)
-///  <li> GIF: GdcGif (Gif.cpp and Lzw.cpp)
-///  <li> JPEG: GdcJpeg (Jpeg.cpp + <a href='http://www.memecode.com/scribe/extras.php'>libjpeg</a> library)
-///  <li> PNG: GdcPng (Png.cpp + <a href='http://www.memecode.com/scribe/extras.php'>libpng</a> library)
-/// </ul>
-/// 
-LgiFunc GSurface *LoadDC
-(
-	/// The full path of the file
-	char *Name,
-	/// [Optional] Enable OS based loaders
-	bool UseOSLoader = true
-);
+/// Wrapper around GdcDevice::Load
+/// \deprecated Use GdcDevice::Load directly in new code.
+LgiFunc GSurface *LoadDC(char *Name, bool UseOSLoader = true);
 
-/// Writes an image to a file
+/// Wrapper around GdcDevice::Save
+/// \deprecated Use GdcDevice::Save directly in new code.
 LgiFunc bool WriteDC(char *Name, GSurface *pDC);
 
 /// Converts a colour to a different bit depth

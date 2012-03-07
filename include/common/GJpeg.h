@@ -6,16 +6,17 @@ class GdcJpeg : public GFilter
 	friend class GJpegOptions;
 	class GdcJpegPriv *d;
 
-	bool _Write(GStream *Out, GSurface *pDC, int Quality);
+	GFilter::IoStatus _Write(GStream *Out, GSurface *pDC, int Quality);
 
 public:
 	GdcJpeg();
 	~GdcJpeg();
 
+    char *GetComponentName() { return "libjpeg"; }
 	Format GetFormat() { return FmtJpeg; }
 	int GetCapabilites() { return FILTER_CAP_READ | FILTER_CAP_WRITE; }
-	bool ReadImage(GSurface *pDC, GStream *In);
-	bool WriteImage(GStream *Out, GSurface *pDC);
+	IoStatus ReadImage(GSurface *pDC, GStream *In);
+	IoStatus WriteImage(GStream *Out, GSurface *pDC);
 
 	bool GetVariant(const char *n, GVariant &v, char *a)
 	{

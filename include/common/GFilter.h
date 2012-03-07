@@ -103,6 +103,14 @@ public:
 		FmtSpi,
 		FmtTga,
 	};
+	
+	enum IoStatus
+	{
+	    IoError,
+	    IoSuccess,
+	    IoComponentMissing,
+	    IoUnsupportedFormat
+	};
 
 	GFilter()
 	{
@@ -125,10 +133,12 @@ public:
 	virtual int GetImages() { return 1; }
 	/// Reads an image into the specified surface. Override to implement reading an image.
 	/// Also you need to return FILTER_CAP_READ from GetCapabilites if implemented.
-	virtual bool ReadImage(GSurface *Out, GStream *In) = 0;
+	virtual IoStatus ReadImage(GSurface *Out, GStream *In) = 0;
 	/// Writes an image from the specified surface. Override to implement writing an image.
 	/// Also you need to return FILTER_CAP_WRITE from GetCapabilites if implemented.
-	virtual bool WriteImage(GStream *Out, GSurface *In) = 0;
+	virtual IoStatus WriteImage(GStream *Out, GSurface *In) = 0;
+    /// Returns the name of the external component needed to read/write images.
+    virtual char *GetComponentName() { return NULL; }
 };
 
 #define GDC_RLE_COLOUR				0x0001
