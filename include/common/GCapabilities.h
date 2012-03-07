@@ -15,7 +15,7 @@ class LgiClass GCapabilityClient
 
 protected:
 	/// Call this when you need to fulfill an external dependency.
-    bool NeedsCapability(char *Name);
+    bool NeedsCapability(const char *Name);
 
 public:
     virtual ~GCapabilityClient();
@@ -33,7 +33,7 @@ public:
     virtual ~GCapabilityTarget();
     
     /// This is called to install a dependency.
-    virtual bool NeedsCapability(char *Name) = 0;
+    virtual bool NeedsCapability(const char *Name) = 0;
 };
 
 #endif

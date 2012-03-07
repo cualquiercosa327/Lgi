@@ -327,7 +327,7 @@
 										<key>_historyCapacity</key>
 										<integer>0</integer>
 										<key>bookmark</key>
-										<string>345FCBAE14B3F81300E76D2A</string>
+										<string>345FCBB114C135DF00E76D2A</string>
 										<key>history</key>
 										<array>
 											<string>345FCB8514B3F68600E76D2A</string>
@@ -531,14 +531,13 @@
 	<integer>5</integer>
 	<key>WindowOrderList</key>
 	<array>
-		<string>345FCBAD14B3F80000E76D2A</string>
 		<string>1C530D57069F1CE1000CFCEE</string>
 		<string>345FCB3314B3ED6900E76D2A</string>
 		<string>345FCB3414B3ED6900E76D2A</string>
 		<string>1C78EAAD065D492600B07095</string>
+		<string>1CD10A99069EF8BA00B06720</string>
 		<string>34151CC813C7E99F00AB8A31</string>
 		<string>/Users/matthew/Code/Lgi/trunk/LgiRes/LgiRes.xcodeproj</string>
-		<string>1CD10A99069EF8BA00B06720</string>
 	</array>
 	<key>WindowString</key>
 	<string>174 110 1053 668 0 0 1280 778 </string>
@@ -755,7 +754,7 @@
 			<key>WindowToolGUID</key>
 			<string>1CD10A99069EF8BA00B06720</string>
 			<key>WindowToolIsVisible</key>
-			<true/>
+			<false/>
 		</dict>
 		<dict>
 			<key>FirstTimeWindowDisplayed</key>
