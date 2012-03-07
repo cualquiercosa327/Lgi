@@ -85,9 +85,11 @@ public:
             #if defined(WIN64)
             "64"
             #endif
+            /*
 			#if defined(_MSC_VER) && defined(_DEBUG)
 			"d"
 			#endif
+			*/
 			#endif
 		)
 	{
@@ -297,7 +299,7 @@ public:
 	GdcPng();
 	~GdcPng();
 
-    char *GetComponentName() { return "zlib,libpng"; }
+    char *GetComponentName() { return "libpng"; }
 	Format GetFormat() { return FmtPng; }
 	void SetMeter(int i) { if (Meter) Meter->Value(i); }
 	int GetCapabilites() { return FILTER_CAP_READ | FILTER_CAP_WRITE; }

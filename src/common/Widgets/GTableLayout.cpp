@@ -24,9 +24,14 @@ int GTableLayout::CellSpacing = 4;
 
 enum CellFlag
 {
+    // A null value when the call flag is not known yet
 	SizeUnknown,
+	// The cell contains fixed size objects
 	SizeFixed,
+	// The cell contains objects that have variable size
 	SizeGrow,
+	// The cell contains objects that will use all available space
+	SizeFill,
 };
 
 const char *FlagToString(CellFlag f)
@@ -36,6 +41,7 @@ const char *FlagToString(CellFlag f)
 		case SizeUnknown: return "Unknown";
 		case SizeFixed: return "Fixed";
 		case SizeGrow: return "Grow";
+		case SizeFill: return "Fill";
 	}
 	return "error";
 }
@@ -94,7 +100,7 @@ void DistributeUnusedSpace(	GArray<int> &Min,
 					Large.Add(u);
 				}
 			}
-			else if (f == SizeGrow)
+			else if (f == SizeGrow || f == SizeFill)
 			{
 				UnderInfo &u = Large.New();
 				u.Col = i;
@@ -137,26 +143,54 @@ void DistributeSize(GArray<int> &a, GArray<CellFlag> &Flags, int Start, int Span
 	if (Cur < Size)
 	{
 		// Get list of growable cells
-		GArray<int> Pref;
+		GArray<int> Grow, Fill;
+		int ExistingGrowSize = 0;
+		int ExistingFillSize = 0;
+
 		for (int i=Start; i<Start+Span; i++)
 		{
-			if (Flags[i] != SizeFixed)
-			{
-				Pref.Add(i);
+		    switch (Flags[i])
+		    {
+		        case SizeGrow:
+			    {
+				    Grow.Add(i);
+				    ExistingGrowSize += a[i];
+				    break;
+			    }
+			    case SizeFill:
+			    {
+				    Fill.Add(i);
+				    ExistingFillSize += a[i];
+			        break;
+			    }
 			}
 		}
 
-		if (Pref.Length())
+		int AdditionalSize = Size - Cur;
+		if (Fill.Length())
 		{
-			// Distribute size amongst the cells
-			int Needs = Size - Cur;
-			int Part = Needs / Pref.Length();
-			for (int i=0; i<Pref.Length(); i++)
+			// Distribute size amongst the growable cells
+			int PerFillSize = AdditionalSize / Fill.Length();
+			if (PerFillSize <= 0)
+			    PerFillSize = 1;
+			    
+			for (int i=0; i<Fill.Length(); i++)
 			{
-				int Cell = Pref[i];
-				int Add = i < Pref.Length() - 1 ? Part : Needs;
+				int Cell = Fill[i];
+				int Add = i == Fill.Length() - 1 ? AdditionalSize : PerFillSize;
 				a[Cell] = a[Cell] + Add;
-				Needs -= Add;
+				AdditionalSize -= Add;
+			}
+		}
+		else if (Grow.Length())
+		{
+			// Distribute size amongst the growable cells
+			int AdditionalSize = Size - Cur;
+			for (int i=0; i<Grow.Length(); i++)
+			{
+				int Cell = Grow[i];
+				int Add = a[Cell] * AdditionalSize / ExistingGrowSize;
+				a[Cell] = a[Cell] + Add;
 			}
 		}
 		else
@@ -490,8 +524,8 @@ public:
 						 Izza(GScrollBar))
 				{
 					Min = max(Min, 40);
-					Max = max(Max, 1000);
-					Flag = SizeGrow;
+					// Max = max(Max, 1000);
+					Flag = SizeFill;
 				}
 				else if (Izza(GCombo))
 				{
@@ -505,7 +539,7 @@ public:
 						x = max(ds.X(), x);
 					}				
 					
-					Min = max(Min, 40);
+					Min = max(Min, x + 32);
 					Max = max(Max, x + 32);
 					Flag = SizeGrow;
 				}
@@ -533,16 +567,16 @@ public:
 						m += Lst->ColumnAt(i)->Width();
 					}
 					m = max(m, 40);
-					Min = max(Min, 60);
-					Max = max(Max, (m * 2) + 20);
-					Flag = SizeGrow;
+					Min = max(Min, 40);
+					// Max = max(Max, m + 20);
+					Flag = SizeFill;
 				}
 				else if (Izza(GTree) ||
 						 Izza(GTabView))
 				{
 					Min = max(Min, 40);
-					Max = max(Max, 3000);
-					Flag = SizeGrow;
+					// Max = max(Max, 3000);
+					Flag = SizeFill;
 				}
 				else
 				{
@@ -975,6 +1009,8 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 					int Min = 0, Max = 0;
 					CellFlag Flag = SizeUnknown;
 					c->PreLayout(Min, Max, Flag);
+					if (Max > Client.X())
+					    Max = Client.X();
 					if (Flag)
 					{
 						for (i=c->Cell.x1; i<=c->Cell.x2; i++)
