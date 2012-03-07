@@ -43,6 +43,7 @@ public:
 	~GFindDlg();
 
 	void OnCreate();
+	void OnPosChange();
 	int OnNotify(GViewI *Ctrl, int Flags);
 };
 
@@ -79,6 +80,7 @@ public:
 	~GReplaceDlg();
 
 	void OnCreate();
+	void OnPosChange();
 	int OnNotify(GViewI *Ctrl, int Flags);
 };
 

@@ -1242,8 +1242,15 @@ GRect GTableLayout::GetUsedArea()
 		OnPosChange();
 	}
 
-	TableCell *c = d->GetCellAt(d->Cols.Length()-1, d->Rows.Length()-1);
-	GRect r(0, 0, c ? c->Pos.x2 : 0, c ? c->Pos.y2 : 0);
+	GRect r;
+    for (int i=0; i<d->Cells.Length(); i++)
+    {
+        TableCell *c = d->Cells[i];
+        if (i)
+            r.Union(&c->Pos);
+        else
+            r = c->Pos;
+    }
 	return r;
 }
 
