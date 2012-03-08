@@ -354,23 +354,9 @@
 			PBXWorkspaceStateSaveDate = 352807476;
 		};
 		perUserProjectItems = {
-			3460DFB015076A3800C10D9E /* PBXBookmark */ = 3460DFB015076A3800C10D9E /* PBXBookmark */;
-			3460DFB115076A3800C10D9E /* PBXTextBookmark */ = 3460DFB115076A3800C10D9E /* PBXTextBookmark */;
-			3460DFBC15076AC800C10D9E /* PBXTextBookmark */ = 3460DFBC15076AC800C10D9E /* PBXTextBookmark */;
-			3460DFBD15076AC800C10D9E /* PBXTextBookmark */ = 3460DFBD15076AC800C10D9E /* PBXTextBookmark */;
-			3460DFBF15076AC800C10D9E /* XCBuildMessageTextBookmark */ = 3460DFBF15076AC800C10D9E /* XCBuildMessageTextBookmark */;
-			3460DFC015076AC800C10D9E /* PBXTextBookmark */ = 3460DFC015076AC800C10D9E /* PBXTextBookmark */;
 			3460DFD115076ADA00C10D9E /* PBXTextBookmark */ = 3460DFD115076ADA00C10D9E /* PBXTextBookmark */;
 			3460DFD215076ADA00C10D9E /* XCBuildMessageTextBookmark */ = 3460DFD215076ADA00C10D9E /* XCBuildMessageTextBookmark */;
-			3460DFD315076ADA00C10D9E /* PBXTextBookmark */ = 3460DFD315076ADA00C10D9E /* PBXTextBookmark */;
-			34BCC8EB15021CC20068E4F1 = 34BCC8EB15021CC20068E4F1 /* PBXTextBookmark */;
-			34BCC8EC15021CC20068E4F1 = 34BCC8EC15021CC20068E4F1 /* PBXTextBookmark */;
-			34BCC8F515021D330068E4F1 = 34BCC8F515021D330068E4F1 /* PBXTextBookmark */;
-			34BCC8F615021D330068E4F1 = 34BCC8F615021D330068E4F1 /* PBXTextBookmark */;
-			34BCC8F715021D330068E4F1 = 34BCC8F715021D330068E4F1 /* PBXTextBookmark */;
-			34E1F41214F8862300B09558 = 34E1F41214F8862300B09558 /* PBXTextBookmark */;
-			34E1F41314F8862300B09558 = 34E1F41314F8862300B09558 /* PBXTextBookmark */;
-			34E1F41414F8862300B09558 = 34E1F41414F8862300B09558 /* PBXTextBookmark */;
+			3460E186150959FA00C10D9E /* PBXTextBookmark */ = 3460E186150959FA00C10D9E /* PBXTextBookmark */;
 		};
 		sourceControlManager = 3465BDD608C5DEA700B4C217 /* Source Control */;
 		userBookmarkGroup = 34920105147F4ECD0050CB43 /* PBXBookmarkGroup */;
@@ -1001,65 +987,6 @@
 			sepNavWindowFrame = "{{56, 93}, {965, 685}}";
 		};
 	};
-	3460DFB015076A3800C10D9E /* PBXBookmark */ = {
-		isa = PBXBookmark;
-		fRef = 344B738608D840CF00D49457 /* GFile.cpp */;
-	};
-	3460DFB115076A3800C10D9E /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 344B738608D840CF00D49457 /* GFile.cpp */;
-		name = "GFile.cpp: 1534";
-		rLen = 0;
-		rLoc = 29102;
-		rType = 0;
-		vrLen = 700;
-		vrLoc = 28991;
-	};
-	3460DFBC15076AC800C10D9E /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 34D2CC6008F0FC7F0009968C /* GFontSystem.cpp */;
-		name = "GFontSystem.cpp: 334";
-		rLen = 0;
-		rLoc = 6809;
-		rType = 0;
-		vrLen = 639;
-		vrLoc = 6699;
-	};
-	3460DFBD15076AC800C10D9E /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 3460DFBE15076AC800C10D9E /* GCapabilities.h */;
-		name = "GCapabilities.h: 11";
-		rLen = 33;
-		rLoc = 267;
-		rType = 0;
-		vrLen = 773;
-		vrLoc = 151;
-	};
-	3460DFBE15076AC800C10D9E /* GCapabilities.h */ = {
-		isa = PBXFileReference;
-		name = GCapabilities.h;
-		path = /Users/matthew/Code/Lgi/trunk/include/common/GCapabilities.h;
-		sourceTree = "<absolute>";
-	};
-	3460DFBF15076AC800C10D9E /* XCBuildMessageTextBookmark */ = {
-		isa = PBXTextBookmark;
-		comments = "Prototype for 'bool GCapabilityClient::NeedsCapability(char*)' does not match any in class 'GCapabilityClient'";
-		fRef = 344B737A08D8401600D49457 /* Lgi.cpp */;
-		fallbackIsa = XCBuildMessageTextBookmark;
-		rLen = 1;
-		rLoc = 1948;
-		rType = 1;
-	};
-	3460DFC015076AC800C10D9E /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 344B737A08D8401600D49457 /* Lgi.cpp */;
-		name = "Lgi.cpp: 1975";
-		rLen = 0;
-		rLoc = 35044;
-		rType = 0;
-		vrLen = 521;
-		vrLoc = 34525;
-	};
 	3460DFD115076ADA00C10D9E /* PBXTextBookmark */ = {
 		isa = PBXTextBookmark;
 		fRef = 344B738608D840CF00D49457 /* GFile.cpp */;
@@ -1079,7 +1006,7 @@
 		rLoc = 333;
 		rType = 1;
 	};
-	3460DFD315076ADA00C10D9E /* PBXTextBookmark */ = {
+	3460E186150959FA00C10D9E /* PBXTextBookmark */ = {
 		isa = PBXTextBookmark;
 		fRef = 34D2CC6008F0FC7F0009968C /* GFontSystem.cpp */;
 		name = "GFontSystem.cpp: 334";
@@ -1529,54 +1456,6 @@
 			sepNavVisRange = "{1, 1121}";
 		};
 	};
-	34BCC8EB15021CC20068E4F1 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 34D2CCEC08F11BEF0009968C /* GWidgets.cpp */;
-		name = "GWidgets.cpp: 33";
-		rLen = 0;
-		rLoc = 697;
-		rType = 0;
-		vrLen = 1044;
-		vrLoc = 0;
-	};
-	34BCC8EC15021CC20068E4F1 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 344AF3CB08E04B63004ED88C /* GLibrary.cpp */;
-		name = "GLibrary.cpp: 121";
-		rLen = 0;
-		rLoc = 2459;
-		rType = 0;
-		vrLen = 1170;
-		vrLoc = 1518;
-	};
-	34BCC8F515021D330068E4F1 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 344AF39508E0476A004ED88C /* GApp.cpp */;
-		name = "GApp.cpp: 685";
-		rLen = 0;
-		rLoc = 13278;
-		rType = 0;
-		vrLen = 476;
-		vrLoc = 12951;
-	};
-	34BCC8F615021D330068E4F1 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		comments = "'class GUri' has no member named 'Get'";
-		fRef = 34983BE208F4A54C0054868C /* GDragAndDrop.cpp */;
-		rLen = 1;
-		rLoc = 349;
-		rType = 1;
-	};
-	34BCC8F715021D330068E4F1 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 34983BE208F4A54C0054868C /* GDragAndDrop.cpp */;
-		name = "GDragAndDrop.cpp: 350";
-		rLen = 0;
-		rLoc = 7318;
-		rType = 0;
-		vrLen = 533;
-		vrLoc = 6894;
-	};
 	34CDDAE008C5DF5B005EAAC7 /* LgiMac.h */ = {
 		uiCtxt = {
 			sepNavIntBoundsRect = "{{0, 0}, {711, 428}}";
@@ -1744,34 +1623,6 @@
 			sepNavVisRange = "{6363, 777}";
 			sepNavVisRect = "{{0, 5158}, {848, 456}}";
 		};
-	};
-	34E1F41214F8862300B09558 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 344AF3CB08E04B63004ED88C /* GLibrary.cpp */;
-		name = "GLibrary.cpp: 121";
-		rLen = 0;
-		rLoc = 2459;
-		rType = 0;
-		vrLen = 1170;
-		vrLoc = 1518;
-	};
-	34E1F41314F8862300B09558 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		comments = "'IsModal' was not declared in this scope";
-		fRef = 34D2CCEC08F11BEF0009968C /* GWidgets.cpp */;
-		rLen = 1;
-		rLoc = 34;
-		rType = 1;
-	};
-	34E1F41414F8862300B09558 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 34D2CCEC08F11BEF0009968C /* GWidgets.cpp */;
-		name = "GWidgets.cpp: 33";
-		rLen = 0;
-		rLoc = 697;
-		rType = 0;
-		vrLen = 1044;
-		vrLoc = 0;
 	};
 	34E51DAF0D2EFCCB0021AA08 /* GList.h */ = {
 		uiCtxt = {

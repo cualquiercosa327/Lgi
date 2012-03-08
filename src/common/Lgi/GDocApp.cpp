@@ -94,13 +94,13 @@ public:
 		return "xml";
 	}
 
-	bool SetOpt(GOptionsFile *p, char *opt, char *str)
+	bool SetOpt(GOptionsFile *p, const char *opt, char *str)
 	{
 		GVariant v = str;
 		return p ? p->SetValue(opt, v) : false;
 	}
 
-	bool GetOpt(GOptionsFile *p, char *opt, GVariant &v)
+	bool GetOpt(GOptionsFile *p, const char *opt, GVariant &v)
 	{
 		return p ? p->GetValue(opt, v) : false;
 	}
