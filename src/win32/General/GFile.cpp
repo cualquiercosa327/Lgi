@@ -1238,7 +1238,7 @@ bool GDirectory::ConvertToDate(char *Str, uint64 Time)
 class GDirImplPrivate
 {
 public:
-	char			BasePath[256];
+	char			BasePath[MAX_PATH];
 	GAutoString     Utf;
 	HANDLE			Handle;
 	union
@@ -1286,6 +1286,7 @@ bool GDirImpl::Path(char *s, int BufLen)
 		LgiMakePath(s, BufLen, d->BasePath, Name);
 		Status = true;
 	}
+	else LgiAssert(!"Not enough output buffer to write path.");
 
 	return Status;
 }
@@ -1354,7 +1355,7 @@ int GDirImpl::First(const char *Name, const char *Pattern)
 				}
 			}
 
-			char Str[256];
+			char Str[MAX_PATH];
 			if (Pattern)
 				LgiMakePath(Str, sizeof(Str), d->BasePath, Pattern);
 			else
