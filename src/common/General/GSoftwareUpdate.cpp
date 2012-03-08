@@ -17,6 +17,7 @@ struct GSoftwareUpdatePriv
 {
 	GAutoString Name;
 	GAutoString UpdateUri;
+	GAutoString Proxy;
 	GAutoString Error;
 	GAutoString TempPath;
 
@@ -70,9 +71,14 @@ struct GSoftwareUpdatePriv
 				Uri.Path = NewStr(Dir);
 
 				GAutoString GetUri = Uri.GetUri();
-				GProxyUri Proxy;
-				if (Proxy.Host)
-					Http.SetProxy(Proxy.Host, Proxy.Port);
+				
+				if (d->Proxy)
+				{
+				    GUri Proxy(d->Proxy);
+				    if (Proxy.Host)
+					    Http.SetProxy(Proxy.Host, Proxy.Port?Proxy.Port:HTTP_PORT);
+				}
+				
 				GStringPipe RawXml;
 				int ProtocolStatus = 0;
 				GAutoPtr<GSocketI> s(new GSocket);
@@ -200,15 +206,22 @@ struct GSoftwareUpdatePriv
 	{
 		GSoftwareUpdate::UpdateInfo *Info;
 		GUri *Uri;
+		GUri *Proxy;
 		GStream *Local;
 		GAutoString *Err;
 		int *Status;
 
 	public:
-		UpdateDownload(GSoftwareUpdate::UpdateInfo *info, GUri *uri, GStream *local, GAutoString *err, int *status)
+		UpdateDownload( GSoftwareUpdate::UpdateInfo *info,
+		                GUri *uri,
+		                GUri *proxy,		                
+		                GStream *local,
+		                GAutoString *err,
+		                int *status)
 		{
 			Info = info;
 			Uri = uri;
+			Proxy = proxy;
 			Local = local;
 			Err = err;
 			Status = status;
@@ -218,10 +231,11 @@ struct GSoftwareUpdatePriv
 
 		int Main()
 		{
-			GProxyUri Proxy;
 			IHttp Http;
-			if (Proxy.Host)
-				Http.SetProxy(Proxy.Host, Proxy.Port);
+			if (Proxy->Host)
+			{
+				Http.SetProxy(Proxy->Host, Proxy->Port?Proxy->Port:HTTP_PORT);
+			}
 
 			GAutoPtr<GSocketI> s(new GSocket);
 			if (!Http.Open(s, Uri->Host, Uri->Port))
@@ -238,11 +252,12 @@ struct GSoftwareUpdatePriv
 	};
 };
 
-GSoftwareUpdate::GSoftwareUpdate(char *SoftwareName, char *UpdateUri, char *OptionalTempPath)
+GSoftwareUpdate::GSoftwareUpdate(char *SoftwareName, char *UpdateUri, char *ProxyUri, char *OptionalTempPath)
 {
 	d = new GSoftwareUpdatePriv;
 	d->Name.Reset(NewStr(SoftwareName));
 	d->UpdateUri.Reset(NewStr(UpdateUri));
+	d->Proxy.Reset(NewStr(ProxyUri));
 	d->TempPath.Reset(NewStr(OptionalTempPath));
 }
 
@@ -314,7 +329,8 @@ bool GSoftwareUpdate::ApplyUpdate(UpdateInfo &Info, bool DownloadOnly, GViewI *W
 
 	int HttpStatus = 0;
 	int64 Size = 0;
-	GSoftwareUpdatePriv::UpdateDownload Thread(&Info, &Uri, &Local, &d->Error, &HttpStatus);
+	GUri Proxy(d->Proxy);
+	GSoftwareUpdatePriv::UpdateDownload Thread(&Info, &Uri, &Proxy, &Local, &d->Error, &HttpStatus);
 	while (!Thread.IsExited())
 	{
 		LgiYield();

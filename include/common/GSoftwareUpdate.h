@@ -14,6 +14,7 @@ public:
 		GAutoString Version;
 		GAutoString Build;
 		GAutoString Uri;
+		GAutoString Proxy;
 		GDateTime Date;
 		bool Cancel;
 		
@@ -23,7 +24,7 @@ public:
 		}
 	};
 
-	GSoftwareUpdate(char *SoftwareName, char *UpdateUri, char *OptionalTempPath = 0);
+	GSoftwareUpdate(char *SoftwareName, char *UpdateUri, char *ProxyUri, char *OptionalTempPath = 0);
 	virtual ~GSoftwareUpdate();
 
 	bool CheckForUpdate(UpdateInfo &Info, GViewI *WithUi, bool IncBetas);
