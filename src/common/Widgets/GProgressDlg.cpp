@@ -42,7 +42,6 @@ void ProgressList::Unlock()
 /////////////////////////////////////////////////////////////////////////////////////////
 Progress::Progress() : GSemaphore("ProgressObj")
 {
-	Description = 0;
 	Start = 0;
 	Val = Low = 0;
 	High = 0;
@@ -54,17 +53,12 @@ Progress::Progress() : GSemaphore("ProgressObj")
 
 Progress::Progress(char *desc, int64 l, int64 h, char *type, double scale)
 {
-	Description = NewStr(desc);
+	Description.Reset(NewStr(desc));
 	Start = 0;
 	Val = Low = l;
 	High = h;
 	Type = type;
 	Scale = scale;
-}
-
-Progress::~Progress()
-{
-	DeleteArray(Description);
 }
 
 void Progress::SetLimits(int64 l, int64 h)
@@ -81,9 +75,8 @@ void Progress::GetLimits(int64 *l, int64 *h)
 
 void Progress::SetDescription(const char *d)
 {
-	char *Desc = NewStr(d);
-	DeleteArray(Description);
-	Description = Desc;
+    if (d != Description)
+    	Description.Reset(NewStr(d));
 }
 
 Progress &Progress::operator =(Progress &p)

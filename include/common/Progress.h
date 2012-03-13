@@ -9,7 +9,7 @@
 class LgiClass Progress : public GSemaphore
 {
 protected:
-	char *Description;
+	GAutoString Description;
 	int64 Start;
 	int64 Val;
 	int64 Low, High;
@@ -22,7 +22,7 @@ public:
 	
 	Progress();
 	Progress(char *desc, int64 l, int64 h, char *type = NULL, double scale = 1.0);
-	virtual ~Progress();
+	virtual ~Progress() {}
 
 	virtual char *GetDescription() { return Description; }
 	virtual void SetDescription(const char *d = 0);

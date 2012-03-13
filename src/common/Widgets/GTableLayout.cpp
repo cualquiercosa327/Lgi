@@ -722,6 +722,7 @@ public:
 
 					Pos.y2 += Ht;
 				}
+				/*
 				else if (Grp = Izza(GRadioGroup))
 				{
 					GArray<GViewI*> Btns;
@@ -785,6 +786,7 @@ public:
 						Pos.y2 += v->Y();
 					}
 				}
+				*/
 				else
 				{
 					GViewLayoutInfo Inf;

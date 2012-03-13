@@ -13,12 +13,14 @@ class GRadioGroupPrivate
 public:
 	static int NextId;
 	int Val;
+	int MaxLayoutWidth;
 	GDisplayString *Txt;
     GHashTbl<void*,GViewLayoutInfo*> Info;
 
 	GRadioGroupPrivate()
 	{
 		Txt = 0;
+		MaxLayoutWidth = 0;
 	}
 
 	~GRadioGroupPrivate()
@@ -82,14 +84,16 @@ bool GRadioGroup::OnLayout(GViewLayoutInfo &Inf)
                 Inf.Width.Max += w->X() + RADIO_GRID;
             }
 	    }
+	    
+	    d->MaxLayoutWidth = Inf.Width.Max;
     }
     else
     {
         // Working out the height, and positioning the controls
         Inf.Height.Min = d->Txt ? d->Txt->Y() : 16;
         
-        int Width = Inf.Width.Max - RADIO_GRID;
-        int Cx = RADIO_GRID, Cy = Inf.Height.Min;
+        bool Horiz = d->MaxLayoutWidth <= Inf.Width.Max;
+        int Cx = RADIO_GRID, Cy = GetFont()->GetHeight();
         int LastY = 0;
 	    for (GViewI *w = it->First(); w; w = it->Next())
 	    {
@@ -98,57 +102,34 @@ bool GRadioGroup::OnLayout(GViewLayoutInfo &Inf)
             {
                 if (w->OnLayout(*c))
                 {
-                    if (c->Width.Min > Width - Cx)
-                    {
-                        // Min size doesn't fit...
-                        if (Cx > RADIO_GRID)
-                        {
-                            // Wrap to next line...
-                            Cy = LastY + 1;
-                            Cx = RADIO_GRID;
-                        }
-                        // else don't bother... we are at the start of the line anyway
-                    }
-                    
-                    if (c->Width.Max <= Width - Cx)
-                    {
-                        // Max size fits...
-                        GRect r(Cx, Cy, Cx + c->Width.Max - 1, Cy + c->Height.Max - 1);
-                        w->SetPos(r);
+                    GRect r(Cx, Cy, Cx + c->Width.Max - 1, Cy + c->Height.Max - 1);
+                    w->SetPos(r);
+
+                    if (Horiz)
+                        // Horizontal layout
                         Cx += r.X() + RADIO_GRID;
-                        LastY = max(LastY, r.y2);
-                    }
                     else
-                    {
-                        // Min size fits, but max doesn't... still layout control here
-                        GRect r(Cx, Cy, Width, Cy + c->Height.Max - 1);
-                        w->SetPos(r);
-                        Cx += r.X() + RADIO_GRID;
-                        LastY = max(LastY, r.y2);
-                    }
-                    
-                    if (Cx >= Width)
-                    {
-                        // Wrap
-                        Cy = LastY + 1;
-                        Cx = RADIO_GRID;
-                    }
+                        // Vertical layout
+                        Cy += r.Y() + RADIO_GRID;
+
+                    LastY = max(LastY, r.y2);
                 }
             }
             else
             {
                 // Non layout control... just use existing size
-                if (Cx + w->X() > Width && Cx > RADIO_GRID)
-                {
-                    // Wrap
-                    Cx = RADIO_GRID;
-                    Cy = LastY + 1;
-                }
-                
                 GRect r = w->GetPos();
                 r.Offset(Cx - r.x1, Cy - r.y1);
                 w->SetPos(r);
-                Cx += r.X() + RADIO_GRID;
+
+                if (Horiz)
+                    // Horizontal layout
+                    Cx += r.X() + RADIO_GRID;
+                else
+                    // Vertical layout
+                    Cy += r.Y() + RADIO_GRID;
+
+                LastY = max(LastY, r.y2);
             }
 	    }
 	    
