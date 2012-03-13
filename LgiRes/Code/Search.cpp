@@ -22,7 +22,7 @@ Search::Search(AppWnd *app)
 	if (LoadFromResource(IDD_SEARCH))
 	{
 		MoveToCenter();
-		SetCtrlValue(IDC_IN_TEXT, true);
+		// SetCtrlValue(IDC_IN_TEXT, true);
 
 		List<GLanguage> l;
 		

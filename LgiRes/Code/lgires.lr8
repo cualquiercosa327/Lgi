@@ -1,62 +1,128 @@
-<?xml version="1.0" ?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <resources Offset="1">
 	<string-group Name="_Dialog Symbols_">
 		<String Ref="1" Cid="500" Define="IDD_SEARCH" en="Search" />
-		<String Ref="2" Cid="501" Define="IDC_IN_TEXT" en="Text string:" />
-		<String Ref="3" Cid="502" Define="IDC_TEXT" />
-		<String Ref="4" Cid="503" Define="IDC_IN_LANG" en="In this language only:" />
-		<String Ref="5" Cid="504" Define="IDC_LANG" />
-		<String Ref="6" Cid="505" Define="IDC_NOT_IN_LANG" en="For missing translation in this language:" />
-		<String Ref="7" Cid="506" Define="IDC_NOT_LANG" />
-		<String Ref="8" Cid="507" Define="IDC_IN_REF" en="For this Ref number:" />
-		<String Ref="9" Cid="508" Define="IDC_REF" />
-		<String Ref="10" Cid="10" Define="IDC_IN_CTRL" en="For this CtrlId number:" />
-		<String Ref="11" Cid="11" Define="IDC_CTRL" />
-		<String Ref="12" Cid="1" Define="IDOK" en="Ok" />
-		<String Ref="13" Cid="2" Define="IDCANCEL" en="Cancel" />
+		<String Ref="2" Cid="502" Define="IDC_TEXT" />
+		<String Ref="3" Cid="21" Define="IDC_IN_DEFINES" en="Define:" />
+		<String Ref="4" Cid="504" Define="IDC_LANG" />
+		<String Ref="5" Cid="505" Define="IDC_NOT_IN_LANG" en="For missing translation in this language:" />
+		<String Ref="6" Cid="506" Define="IDC_NOT_LANG" />
+		<String Ref="7" Cid="507" Define="IDC_IN_REF" en="For this Ref number:" />
+		<String Ref="8" Cid="508" Define="IDC_REF" />
+		<String Ref="9" Cid="10" Define="IDC_IN_CTRL" en="For this CtrlId number:" />
+		<String Ref="10" Cid="11" Define="IDC_CTRL" />
+		<String Ref="11" Cid="1" Define="IDOK" en="Ok" />
+		<String Ref="12" Cid="2" Define="IDCANCEL" en="Cancel" />
+		<String Ref="13" Cid="13" Define="IDC_13" />
 		<String Ref="14" Cid="14" Define="IDD_RESULTS" en="Results" />
-		<String Ref="15" Cid="15" Define="IDC_LIST" />
-		<String Ref="16" Cid="16" Define="IDS_16" en="Object" />
-		<String Ref="17" Cid="17" Define="IDS_17" en="Text" />
-		<String Ref="18" Cid="1" Define="IDOK" en="Close" />
-		<String Ref="19" Cid="19" Define="IDS_19" en="Language" />
-		<String Ref="20" Cid="20" Define="IDS_20" en="Define" />
-		<String Ref="21" Cid="21" Define="IDC_IN_DEFINES" en="Define:" />
-		<String Ref="22" Cid="22" Define="IDC_DEFINE" />
+		<String Ref="16" Cid="15" Define="IDC_LIST" />
+		<String Ref="18" Cid="16" Define="IDS_16" en="Object" />
+		<String Ref="19" Cid="20" Define="IDS_20" en="Define" />
+		<String Ref="20" Cid="17" Define="IDS_17" en="Text" />
+		<String Ref="21" Cid="22" Define="IDC_DEFINE" />
+		<String Ref="22" Cid="503" Define="IDC_IN_LANG" en="In this language only:" />
 		<String Ref="23" Cid="23" Define="IDD_COMPARE" en="Resource File Compare" />
 		<String Ref="24" Cid="24" Define="IDC_DIFFS" />
 		<String Ref="25" Cid="25" Define="IDS_25" en="Differences" />
 		<String Ref="26" Cid="26" Define="IDS_26" en="Location" />
+		<String Ref="27" Cid="27" Define="IDC_27" />
+		<String Ref="28" Cid="501" Define="IDC_IN_TEXT" en="Text string:" />
+		<String Ref="29" Cid="1" Define="IDOK" en="Close" />
+		<String Ref="31" Cid="19" Define="IDS_19" en="Language" />
 	</string-group>
-	<Dialog pos="7,7,726,685" ref="23">
-		<ListView pos="7,7,706,650" ref="24">
+	<Dialog pos="7,7,726,687" ref="23">
+		<ListView pos="7,7,706,594" ref="24">
 			<Column ref="25" width="417" />
 			<Column ref="26" width="254" />
 		</ListView>
 	</Dialog>
-	<Dialog pos="7,7,786,558" ref="14">
-		<ListView pos="7,7,762,496" ref="15">
-			<Column ref="16" width="72" />
-			<Column ref="20" width="185" />
-			<Column ref="17" width="399" />
-			<Column ref="19" width="66" />
-		</ListView>
-		<Button pos="679,504,762,524" ref="18" />
+	<Dialog pos="7,7,744,645" ref="14">
+		<TableLayout pos="7,7,734,608" ref="13" cols="1.000" rows="0.917,0.083">
+			<tr>
+				<td>
+					<ListView pos="0,0,706,437" ref="16">
+						<Column ref="18" width="72" />
+						<Column ref="19" width="185" />
+						<Column ref="20" width="310" />
+						<Column ref="31" width="105" />
+					</ListView>
+				</td>
+			</tr>
+			<tr>
+				<td align="Max">
+					<Button pos="623,551,706,571" ref="29" />
+				</td>
+			</tr>
+		</TableLayout>
 	</Dialog>
-	<Dialog pos="7,7,459,359" ref="1">
-		<CheckBox pos="7,7,433,20" ref="2" />
-		<EditBox pos="28,28,433,48" ref="3" />
-		<CheckBox pos="7,56,433,69" ref="21" />
-		<EditBox pos="28,77,433,97" ref="22" />
-		<CheckBox pos="7,105,391,118" ref="4" />
-		<ComboBox pos="28,126,216,146" ref="5" />
-		<CheckBox pos="7,154,433,167" ref="6" />
-		<ComboBox pos="28,175,216,195" ref="7" />
-		<CheckBox pos="7,203,426,216" ref="8" />
-		<EditBox pos="28,224,216,244" ref="9" />
-		<CheckBox pos="7,252,419,265" ref="10" />
-		<EditBox pos="28,273,216,293" ref="11" />
-		<Button pos="308,294,363,314" ref="12" />
-		<Button pos="371,294,426,314" ref="13" />
+	<Dialog pos="7,7,457,470" ref="1">
+		<TableLayout pos="7,7,447,433" ref="27" cols="1.000" rows="0.077,0.077,0.077,0.077,0.077,0.077,0.077,0.077,0.077,0.077,0.077,0.077,0.077">
+			<tr>
+				<td>
+					<CheckBox pos="0,0,392,13" ref="28" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<EditBox Pos="0,31,392,51" ref="2" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<CheckBox pos="0,62,392,75" ref="3" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<EditBox Pos="0,93,392,113" ref="21" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<CheckBox pos="0,124,384,137" ref="22" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<ComboBox pos="0,155,188,175" ref="4" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<CheckBox pos="0,186,392,199" ref="5" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<ComboBox pos="0,217,188,237" ref="6" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<CheckBox pos="0,248,392,261" ref="7" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<EditBox Pos="0,279,188,299" ref="8" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<CheckBox pos="0,310,392,323" ref="9" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<EditBox Pos="0,341,188,361" ref="10" />
+				</td>
+			</tr>
+			<tr>
+				<td align="Max">
+					<Button pos="0,372,55,392" ref="11" />
+					<Button pos="63,372,118,392" ref="12" />
+				</td>
+			</tr>
+		</TableLayout>
 	</Dialog>
 </resources>

@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include "Lgi.h"
 #include <commctrl.h>
+#include "GTableLayout.h"
 
 #define USE_DIALOGBOXINDIRECTPARAM         0
 
@@ -142,7 +143,9 @@ LRESULT CALLBACK DlgRedir(HWND hWnd, UINT m, WPARAM a, LPARAM b)
 
 	GViewI *Wnd = (GViewI*)
 		#if _MSC_VER >= 1400
+		#pragma warning(disable : 4312)
 		GetWindowLongPtr(hWnd, GWLP_USERDATA);
+		#pragma warning(default : 4312)
 		#else
 		GetWindowLong(hWnd, GWL_USERDATA);
 		#endif
@@ -467,6 +470,17 @@ GMessage::Result GDialog::OnEvent(GMessage *Msg)
 
 void GDialog::OnPosChange()
 {
+    if (Children.Length() == 1)
+    {
+        List<GViewI>::I it = Children.Start();
+        GTableLayout *t = dynamic_cast<GTableLayout*>((GViewI*)it.First());
+        if (t)
+        {
+            GRect r = GetClient();
+            r.Size(GTableLayout::CellSpacing, GTableLayout::CellSpacing);
+            t->SetPos(r);
+        }
+    }
 }
 
 void GDialog::EndModal(int Code)
