@@ -257,6 +257,7 @@ public:
 	bool OnRequestClose(bool OsClose);
 	void OnPosChange();
     void Pour() {}
+	void Quit(bool DontDelete = false);
 	
 	#if defined(MAC)
 	void OnPaint(GSurface *pDC);

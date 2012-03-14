@@ -712,10 +712,10 @@ GMessage::Result GWindow::OnEvent(GMessage *Msg)
 		case WM_QUERYENDSESSION:
 	 	case WM_CLOSE:
 		{
-			bool QuitApp = false;
-			if (OnRequestClose(MsgCode(Msg) == WM_QUERYENDSESSION))
+			bool QuitApp;
+			if (QuitApp = OnRequestClose(MsgCode(Msg) == WM_QUERYENDSESSION))
 			{
-				delete this;
+				Quit();
 			}
 
 			if (MsgCode(Msg) == WM_CLOSE)
@@ -727,6 +727,23 @@ GMessage::Result GWindow::OnEvent(GMessage *Msg)
 				return QuitApp;
 			}
 			break;
+		}
+		case WM_SYSCOMMAND:
+		{
+		    if (Msg->a == SC_CLOSE)
+		    {
+    			if (OnRequestClose(false))
+    		    {
+    		        Quit();
+    		    }
+
+   		        return 0;
+		    }
+		    else
+		    {
+			    Status = GView::OnEvent(Msg);
+			}
+		    break;
 		}
 		case WM_DROPFILES:
 		{
@@ -969,11 +986,22 @@ bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
 		else if (IsIconic(Handle()))
 			State = -1;
 
-		WINDOWPLACEMENT Wp;
-		ZeroObj(Wp);
-		Wp.length = sizeof(Wp);
-		GetWindowPlacement(Handle(), &Wp);
-		GRect Position = Wp.rcNormalPosition;
+		GRect Position;
+		
+		if (Handle())
+		{
+		    WINDOWPLACEMENT Wp;
+		    ZeroObj(Wp);
+		    Wp.length = sizeof(Wp);
+		    GetWindowPlacement(Handle(), &Wp);
+		    Position = Wp.rcNormalPosition;
+		}
+		else
+		{
+		    // A reasonable fall back if we don't have a window...
+		    Position = GetPos();
+		}
+		
 		sprintf(s, "State=%i;Pos=%s", State, Position.GetStr());
 
 		GVariant v = s;

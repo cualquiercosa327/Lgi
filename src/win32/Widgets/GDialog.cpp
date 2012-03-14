@@ -434,8 +434,9 @@ GMessage::Result GDialog::OnEvent(GMessage *Msg)
 				_Default = FindControl(IDOK);
 			}
 
-			OnCreate();
+			// OnCreate();
 
+    		#if USE_DIALOGBOXINDIRECTPARAM
 			GViewI *v = LgiApp->GetFocus();
 			GWindow *w = v ? v->GetWindow() : 0;
 			if (v && (w != v) && (w == this))
@@ -448,24 +449,31 @@ GMessage::Result GDialog::OnEvent(GMessage *Msg)
 				// Set the default focus.
 				return true;
 			}
+			#endif
 			break;
 		}
+		/*
 		case WM_CLOSE:
 		{
 			if (d->IsModal)
-			{
 				EndModal(0);
-			}
 			else
-			{
 				EndModeless(0);
-			}
 			return 0;
 			break;
 		}
+		*/
 	}
 
-	return GView::OnEvent(Msg);
+    return GWindow::OnEvent(Msg);
+}
+
+void GDialog::Quit(bool DontDelete)
+{
+	if (d->IsModal)
+		EndModal(0);
+	else
+		EndModeless(0);
 }
 
 void GDialog::OnPosChange()
