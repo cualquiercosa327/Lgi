@@ -16,7 +16,7 @@
 #include "GScrollBar.h"
 
 #define Izza(c)				dynamic_cast<c*>(v)
-#define DEBUG_LAYOUT		0
+#define DEBUG_LAYOUT		1
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 
@@ -59,12 +59,15 @@ T CountRange(GArray<T> &a, int Start, int End)
 
 struct UnderInfo
 {
+    int Priority;
 	int Col;		// index of column
 	int Grow;		// in px
 };
 
 int Cmp(UnderInfo *a, UnderInfo *b)
 {
+    if (a->Priority != b->Priority)
+        return a->Priority - b->Priority;
 	return b->Grow - a->Grow;
 }
 
@@ -82,49 +85,54 @@ void DistributeUnusedSpace(	GArray<int> &Min,
 		int i, Avail = Total - Sum;
 
 		// Do growable ones first
-		GArray<UnderInfo> Small, Large;
+		GArray<UnderInfo> Unders;
+		int UnknownGrow = 0;
 		for (i=0; i<Min.Length(); i++)
 		{
 			CellFlag f = Flags[i];
-			if (Max[i] > Min[i])
+			if (/* f == SizeGrow ||*/ f == SizeFill)
 			{
-				UnderInfo u;
+				UnderInfo &u = Unders.New();
+				u.Col = i;
+				u.Grow = 0;
+				u.Priority = f == SizeGrow ? 2 : 3;
+				UnknownGrow++;
+			}
+			else if (Max[i] > Min[i])
+			{
+				UnderInfo &u = Unders.New();
 				u.Col = i;
 				u.Grow = Max[i] - Min[i];
-				if (u.Grow < Avail >> 1)
+				if (u.Grow > Avail)
 				{
-					Small.Add(u);
+				    u.Grow = 0;
+				    u.Priority = 2;
+				    UnknownGrow++;
 				}
 				else
 				{
-					Large.Add(u);
+				    u.Priority = u.Grow < Avail >> 1 ? 0 : 1;
 				}
 			}
-			else if (f == SizeGrow || f == SizeFill)
+		}
+		Unders.Sort(Cmp);
+
+        int UnknownSplit = 0;
+		for (i=0; Avail>0 && i<Unders.Length(); i++)
+		{
+		    UnderInfo &u = Unders[i];
+			if (u.Grow)
 			{
-				UnderInfo &u = Large.New();
-				u.Col = i;
-				u.Grow = Avail;
+			    Min[u.Col] += u.Grow;
+			    Avail -= u.Grow;
 			}
-		}
-		Small.Sort(Cmp);
-		Large.Sort(Cmp);
-
-		for (i=0; Avail>0 && i<Small.Length(); i++)
-		{
-			int Col = Small[i].Col;
-			Min[Col] += Small[i].Grow;
-			Avail -= Small[i].Grow;
-		}
-
-		if (Large.Length())
-		{
-			int Part = Avail / Large.Length();
-			for (i=0; Avail>0 && i<Large.Length(); i++)
+			else
 			{
-				int Col = Large[i].Col;
-				Min[Col] += Part;
-				Avail -= Part;
+			    if (!UnknownSplit)
+			        UnknownSplit = Avail / UnknownGrow;
+			    LgiAssert(UnknownSplit);
+			    Min[u.Col] += UnknownSplit;
+			    Avail -= UnknownSplit;
 			}
 		}
 	}

@@ -3,6 +3,7 @@
 #include "GPopup.h"
 #include "GList.h"
 #include "resdefs.h"
+#include "GButton.h"
 
 class GHistory;
 class GHistoryPopup : public GPopup
@@ -31,6 +32,22 @@ public:
 		ResObject(Res_Custom)
 	{
 		SetPopup(new GHistoryPopup(this));
+	}
+	
+	bool OnLayout(GViewLayoutInfo &Inf)
+	{
+	    if (!Inf.Width.Max)
+	    {
+	        Inf.Width.Min =
+	            Inf.Width.Max = SysFont->GetHeight() * 2;
+	    }
+	    else if (!Inf.Height.Max)
+	    {
+	        Inf.Height.Min =
+                Inf.Height.Max = GButton::Overhead.y + SysFont->GetHeight();
+	    }
+	    else return false;
+	    return true;
 	}
 };
 
