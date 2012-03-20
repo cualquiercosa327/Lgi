@@ -98,12 +98,12 @@ LgiStringRes::~LgiStringRes()
 
 bool LgiStringRes::Read(GXmlTag *t, ResFileFormat Format)
 {
-	if (LgiStringRes::CurLang AND
-		t AND
+	if (LgiStringRes::CurLang &&
+		t &&
 		stricmp(t->Tag, "string") == 0)
 	{
 		char *n = 0;
-		if ((n = t->GetAttr("Cid")) OR
+		if ((n = t->GetAttr("Cid")) ||
 			(n = t->GetAttr("Id")) )
 		{
 			Id = atoi(n);
@@ -137,15 +137,15 @@ bool LgiStringRes::Read(GXmlTag *t, ResFileFormat Format)
 		strcpy(Name, LgiStringRes::CurLang->Id);
 		n = 0;
 		
-		if ((n = t->GetAttr(Name)) AND
+		if ((n = t->GetAttr(Name)) &&
 			strlen(n) > 0)
 		{
 			// Language string ok
 			// Lang = LangFind(0, CurLang, 0);
 		}
-		else if (LgiStringRes::CurLang->OldId AND
-				sprintf(Name, "Text(%i)", LgiStringRes::CurLang->OldId) AND
-				(n = t->GetAttr(Name)) AND
+		else if (LgiStringRes::CurLang->OldId &&
+				sprintf(Name, "Text(%i)", LgiStringRes::CurLang->OldId) &&
+				(n = t->GetAttr(Name)) &&
 				strlen(n) > 0)
 		{
 			// Old style language string ok
@@ -177,7 +177,7 @@ bool LgiStringRes::Read(GXmlTag *t, ResFileFormat Format)
 			if (Str)
 			{
 				char *d = Str;
-				for (char *s = Str; s AND *s;)
+				for (char *s = Str; s && *s;)
 				{
 					if (*s == '\\')
 					{
@@ -211,10 +211,10 @@ bool LgiStringRes::Read(GXmlTag *t, ResFileFormat Format)
 				{
 					Res->AddLang(Name);
 				}
-				else if (	Name[0] == 'T' AND
-							Name[1] == 'e' AND 
-							Name[2] == 'x' AND 
-							Name[3] == 't' AND
+				else if (	Name[0] == 'T' &&
+							Name[1] == 'e' && 
+							Name[2] == 'x' && 
+							Name[3] == 't' &&
 							Name[4] == '(')
 				{
 					int Old = atoi(Name + 5);
@@ -249,7 +249,10 @@ public:
 	GHashTbl<int, LgiStringRes*> DlgStrings;
 
 
-	LgiResourcesPrivate()
+	LgiResourcesPrivate() :
+	    StrRef(0, true, -1, NULL),
+	    Strings(0, true, -1, NULL),
+	    DlgStrings(0, true, -1, NULL)
 	{
 		Ok = false;
 		Format = Lr8File;
@@ -475,11 +478,11 @@ bool LgiResources::Load(char *FileName)
 	d->File.Reset(NewStr(FileName));
 	d->Format = Lr8File;
 	char *Ext = LgiGetExtension(FileName);
-	if (Ext AND stricmp(Ext, "lr") == 0)
+	if (Ext && stricmp(Ext, "lr") == 0)
 	{
 		d->Format = CodepageFile;
 	}
-	else if (Ext AND stricmp(Ext, "xml") == 0)
+	else if (Ext && stricmp(Ext, "xml") == 0)
 	{
 		d->Format = XmlFile;
 	}
@@ -499,86 +502,85 @@ bool LgiResources::Load(char *FileName)
 	if (!x.Read(Root, &F, 0))
 	{
 		LgiTrace("%s:%i - ParseXmlFile failed\n", _FL);
-		LgiAssert(0);
+		// LgiAssert(0);
 		return false;
 	}
 
 	for (GXmlTag *t = Root->Children.First(); t; )
 	{
-		if (t->Tag)
+		if (t->IsTag("string-group"))
 		{
-			if (stricmp(t->Tag, "string-group") == 0)
+			bool IsString = true;
+			char *Name = 0;
+			if (Name = t->GetAttr("Name"))
 			{
-				bool IsString = true;
-				char *Name = 0;
-				if (Name = t->GetAttr("Name"))
-				{
-					IsString = stricmp("_Dialog Symbols_", Name) != 0;
-				}
+				IsString = stricmp("_Dialog Symbols_", Name) != 0;
+			}
 
-				for (GXmlTag *c = t->Children.First(); c; c = t->Children.Next())
+			for (GXmlTag *c = t->Children.First(); c; c = t->Children.Next())
+			{
+				LgiStringRes *s = new LgiStringRes(this);
+				if (s && s->Read(c, d->Format))
 				{
-					LgiStringRes *s = new LgiStringRes(this);
-					if (s AND s->Read(c, d->Format))
+					// This code saves the names of the languages if specified in the LR8 files.
+					char *Def = c->GetAttr("define");
+					if (Def && !stricmp(Def, "IDS_LANGUAGE"))
 					{
-						// This code saves the names of the languages if specified in the LR8 files.
-						char *Def = c->GetAttr("define");
-						if (Def && !stricmp(Def, "IDS_LANGUAGE"))
+						for (int i=0; i<c->Attr.Length(); i++)
 						{
-							for (int i=0; i<c->Attr.Length(); i++)
-							{
-								GXmlAttr &a = c->Attr[i];
-								LanguageNames.Add(a.GetName(), NewStr(a.GetValue()));
-							}
+							GXmlAttr &a = c->Attr[i];
+							LanguageNames.Add(a.GetName(), NewStr(a.GetValue()));
 						}
+					}
 
-						// Save the string for later.
-						d->StrRef.Add(s->Ref, s);
-						if (IsString)
-							d->Strings.Add(s->Id, s);
-						else
-							d->DlgStrings.Add(s->Id, s);
-						// s->IsString = IsString;
-						d->Ok = true;
-					}
-					else
+					// Save the string for later.
+					d->StrRef.Add(s->Ref, s);
+					if (s->Id >= 0)
 					{
-						LgiTrace("%s:%i - string read failed\n", _FL);
-						DeleteObj(s);
+					    if (IsString)
+						    d->Strings.Add(s->Id, s);
+					    else
+						    d->DlgStrings.Add(s->Id, s);
 					}
-				}
-			}
-			else if (stricmp(t->Tag, "dialog") == 0)
-			{
-				LgiDialogRes *n = new LgiDialogRes(this);
-				if (n AND n->Read(t, d->Format))
-				{
-					Dialogs.Insert(n);
 					d->Ok = true;
-					t->RemoveTag();
-					t = 0;
 				}
 				else
 				{
-					LgiTrace("%s:%i - dialog read failed\n", _FL);
-					DeleteObj(n);
+					LgiTrace("%s:%i - string read failed\n", _FL);
+					DeleteObj(s);
 				}
 			}
-			else if (stricmp(t->Tag, "menu") == 0)
+		}
+		else if (t->IsTag("dialog"))
+		{
+			LgiDialogRes *n = new LgiDialogRes(this);
+			if (n && n->Read(t, d->Format))
 			{
-				LgiMenuRes *m = new LgiMenuRes(this);
-				if (m AND m->Read(t, d->Format))
-				{
-					Menus.Insert(m);
-					d->Ok = true;
-					t->RemoveTag();
-					t = 0;
-				}
-				else
-				{
-					LgiTrace("%s:%i - menu read failed\n", _FL);
-					DeleteObj(m);
-				}
+				Dialogs.Insert(n);
+				d->Ok = true;
+				t->RemoveTag();
+				t = 0;
+			}
+			else
+			{
+				LgiTrace("%s:%i - dialog read failed\n", _FL);
+				DeleteObj(n);
+			}
+		}
+		else if (t->IsTag("menu"))
+		{
+			LgiMenuRes *m = new LgiMenuRes(this);
+			if (m && m->Read(t, d->Format))
+			{
+				Menus.Insert(m);
+				d->Ok = true;
+				t->RemoveTag();
+				t = 0;
+			}
+			else
+			{
+				LgiTrace("%s:%i - menu read failed\n", _FL);
+				DeleteObj(m);
 			}
 		}
 
@@ -631,7 +633,7 @@ char *LgiResources::StringFromRef(int Ref)
 ResObject *LgiResources::CreateObject(GXmlTag *t, ResObject *Parent)
 {
 	ResObject *Wnd = 0;
-	if (t AND t->Tag)
+	if (t && t->Tag)
 	{
 		char *Control = 0;
 		
@@ -795,7 +797,7 @@ void LgiResources::Res_SetPos(ResObject *Obj, int x1, int y1, int x2, int y2)
 
 void LgiResources::Res_SetPos(ResObject *Obj, char *s)
 {
-	if (Obj AND s)
+	if (Obj && s)
 	{
 		GToken T(s, ",");
 		if (T.Length() == 4)
@@ -814,7 +816,7 @@ bool LgiResources::Res_GetProperties(ResObject *Obj, GDom *Props)
 bool LgiResources::Res_SetProperties(ResObject *Obj, GDom *Props)
 {
 	GView *v = dynamic_cast<GView*>(Obj);
-	if (v AND Props)
+	if (v && Props)
 	{
 		GVariant i;
 		if (Props->GetValue("enabled", i))
@@ -915,7 +917,7 @@ void LgiResources::Res_Attach(ResObject *Obj, ResObject *Parent)
 		}
 		else if (p)
 		{
-			if (!p->IsAttached() OR
+			if (!p->IsAttached() ||
 				!o->Attach(p))
 			{
 				p->AddView(o);
@@ -932,7 +934,7 @@ void LgiResources::Res_Attach(ResObject *Obj, ResObject *Parent)
 bool LgiResources::Res_GetChildren(ResObject *Obj, List<ResObject> *l, bool Deep)
 {
 	GView *o = CastToGWnd(Obj);
-	if (o AND l)
+	if (o && l)
 	{
 		GAutoPtr<GViewIterator> It(o->IterateViews());
 		for (GViewI *w = It->First(); w; w = It->Next())
@@ -950,18 +952,18 @@ bool LgiResources::Res_GetChildren(ResObject *Obj, List<ResObject> *l, bool Deep
 
 void LgiResources::Res_Append(ResObject *Obj, ResObject *Parent)
 {
-	if (Obj AND Parent)
+	if (Obj && Parent)
 	{
 		GListColumn *Col = dynamic_cast<GListColumn*>(Obj);
 		GList *Lst = dynamic_cast<GList*>(Parent);
-		if (Lst AND Col)
+		if (Lst && Col)
 		{
 			Lst->AddColumn(Col);
 		}
 
 		GTabView *Tab = dynamic_cast<GTabView*>(Obj);
 		GTabPage *Page = dynamic_cast<GTabPage*>(Parent);
-		if (Tab AND Page)
+		if (Tab && Page)
 		{
 			Tab->Append(Page);
 		}
@@ -970,7 +972,7 @@ void LgiResources::Res_Append(ResObject *Obj, ResObject *Parent)
 
 bool LgiResources::Res_GetItems(ResObject *Obj, List<ResObject> *l)
 {
-	if (Obj AND l)
+	if (Obj && l)
 	{
 		GList *Lst = dynamic_cast<GList*>(Obj);
 		if (Lst)
@@ -1040,7 +1042,7 @@ bool LgiDialogRes::Read(GXmlTag *t, ResFileFormat Format)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-LgiMenuRes::LgiMenuRes(LgiResources *res)
+LgiMenuRes::LgiMenuRes(LgiResources *res) : Strings(0, true, -1, NULL)
 {
 	Res = res;
 	Tag = 0;
@@ -1055,7 +1057,7 @@ LgiMenuRes::~LgiMenuRes()
 bool LgiMenuRes::Read(GXmlTag *t, ResFileFormat Format)
 {
 	Tag = t;
-	if (t AND stricmp(t->Tag, "menu") == 0)
+	if (t && stricmp(t->Tag, "menu") == 0)
 	{
 		char *n;
 		if (n = t->GetAttr("name"))
@@ -1070,8 +1072,9 @@ bool LgiMenuRes::Read(GXmlTag *t, ResFileFormat Format)
 				for (GXmlTag *i = c->Children.First(); i; i = c->Children.Next())
 				{
 					LgiStringRes *s = new LgiStringRes(Res);
-					if (s AND s->Read(i, Format))
+					if (s && s->Read(i, Format))
 					{
+					    LgiAssert(!Strings.Find(s->Ref)); // If this fires the string has a dupe ref
 						Strings.Add(s->Ref, s);
 					}
 					else
@@ -1122,7 +1125,7 @@ GLanguage *LgiGetLanguageId()
 	if (LangConfig)
 	{
 		char *Id;
-		if ((Id = LangConfig->GetAttr("Id")) AND
+		if ((Id = LangConfig->GetAttr("Id")) &&
 			ValidStr(Id))
 		{
 			GLanguage *l = GFindLang(Id);
@@ -1168,7 +1171,7 @@ GLanguage *LgiGetLanguageId()
 		Proc_LgiWmGetLanguage GetLanguage = (Proc_LgiWmGetLanguage) WmLib->GetAddress("LgiWmGetLanguage");
 		
 		char Lang[256];
-		if (GetLanguage AND
+		if (GetLanguage &&
 			GetLanguage(Lang))
 		{
 			GLanguage *l = GFindLang(Lang);
@@ -1334,7 +1337,7 @@ bool GMenuLoader::Load(LgiMenuRes *MenuRes, GXmlTag *Tag, ResFileFormat Format, 
 {
 	bool Status = false;
 
-	if (Tag AND Tag->Tag)
+	if (Tag && Tag->Tag)
 	{
 		if (stricmp(Tag->Tag, "menu") == 0)
 		{
@@ -1351,12 +1354,12 @@ bool GMenuLoader::Load(LgiMenuRes *MenuRes, GXmlTag *Tag, ResFileFormat Format, 
 		#endif
 		{
 			Status = true;
-			for (GXmlTag *t = Tag->Children.First(); t AND Status; t = Tag->Children.Next())
+			for (GXmlTag *t = Tag->Children.First(); t && Status; t = Tag->Children.Next())
 			{
 				if (stricmp(t->Tag, "submenu") == 0)
 				{
 					LgiStringRes *Str = MenuRes->GetString(t);
-					if (Str AND Str->Str)
+					if (Str && Str->Str)
 					{
 						bool Add = !TagList || TagList->Check(Str->Tag);
 						GSubMenu *Sub = AppendSub(Str->Str);
@@ -1385,14 +1388,14 @@ bool GMenuLoader::Load(LgiMenuRes *MenuRes, GXmlTag *Tag, ResFileFormat Format, 
 				else if (stricmp(t->Tag, "menuitem") == 0)
 				{
 					char *n = 0;
-					if ((n = t->GetAttr("sep")) AND atoi(n) != 0)
+					if ((n = t->GetAttr("sep")) && atoi(n) != 0)
 					{
 						AppendSeparator();
 					}
 					else
 					{
 						LgiStringRes *Str = MenuRes->GetString(t);
-						if (Str AND Str->Str)
+						if (Str && Str->Str)
 						{
 							if (!TagList || TagList->Check(Str->Tag))
 							{

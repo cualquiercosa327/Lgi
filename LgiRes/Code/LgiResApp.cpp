@@ -1045,13 +1045,6 @@ public:
 
 void AppWnd::SetupUi()
 {
-	#if 0
-	
-	Test *t;
-	AddView(t = new Test(Rgb24(255, 255, 0), 10, 10, 99, 49));
-	
-	#else
-
 	if (_LoadMenu("IDM_MENU"))
 	{
 		if (_FileMenu)
@@ -1107,8 +1100,6 @@ void AppWnd::SetupUi()
 	}
 
 	DropTarget(true);
-	
-	#endif
 }
 
 GMessage::Result AppWnd::OnEvent(GMessage *m)

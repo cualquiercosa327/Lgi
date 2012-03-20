@@ -523,6 +523,7 @@ public:
 				return true;
 			}
 		}
+		else LgiAssert(!"Adding NULL key or value.");
 
 		return false;
 	}

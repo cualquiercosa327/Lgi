@@ -1317,6 +1317,10 @@ void CtrlTable::OnMouseClick(GMouse &m)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+enum {
+    M_FINISHED = M_USER + 1000,
+};
+
 class DlgItem : public GTreeItem
 {
 	LgiDialogRes *Dlg;
@@ -1333,70 +1337,55 @@ public:
 	}
 };
 
+static bool HasTableLayout(GXmlTag *t)
+{
+	if (t->IsTag("TableLayout"))
+		return true;
+	for (GXmlTag *c = t->Children.First(); c; c = t->Children.Next())
+	{
+		if (HasTableLayout(c))
+			return true;
+	}
+	return false;
+}
+
 class Lr8Item : public GTreeItem
 {
 	GAutoString File;
-	GTreeItem *Fake;
-	char *Base;
 	GAutoPtr<LgiResources> Res;
 
 public:
-	Lr8Item(char *base, char *file)
+	Lr8Item(GAutoPtr<LgiResources> res, char *file)
 	{
-		Base = base;
+		Res = res;
 		File.Reset(NewStr(file));
-		Insert(Fake = new GTreeItem);
-		Expanded(false);
+
+		List<LgiDialogRes>::I d = Res->GetDialogs();
+		for (LgiDialogRes *dlg = *d; dlg; dlg = *++d)
+		{
+			if (dlg->Str && HasTableLayout(dlg->Dialog))
+			{
+				Insert(new DlgItem(dlg));
+			}
+		}
 	}
 	
 	char *GetText(int i)
 	{
 		return File ? File : "#error";
 	}
-	
-	bool HasTableLayout(GXmlTag *t)
-	{
-		if (t->IsTag("TableLayout"))
-			return true;
-		for (GXmlTag *c = t->Children.First(); c; c = t->Children.Next())
-		{
-			if (HasTableLayout(c))
-				return true;
-		}
-		return false;
-	}
-
-	void OnExpand(bool b)
-	{
-		if (b && Fake)
-		{
-			DeleteObj(Fake);
-			
-			char p[MAX_PATH];
-			LgiMakePath(p, sizeof(p), Base, File);
-			if (Res.Reset(new LgiResources(p)))
-			{
-				List<LgiDialogRes>::I d = Res->GetDialogs();
-				for (LgiDialogRes *dlg = *d; dlg; dlg = *++d)
-				{
-					if (dlg->Str && HasTableLayout(dlg->Dialog))
-					{
-						Insert(new DlgItem(dlg));
-					}
-				}				
-			}
-		}
-	}
 };
 
 class Lr8Search : public GThread
 {
+    GViewI *Parent;
 	char *Base;
 	GTree *Tree;
 	
 public:
-	Lr8Search(char *base, GTree *tree)
+	Lr8Search(GViewI *parent, char *base, GTree *tree)
 	{
+	    Parent = parent;
 		Base = base;
 		Tree = tree;
 		Run();
@@ -1419,12 +1408,30 @@ public:
 		{
 			for (int i=0; i<Files.Length(); i++)
 			{
-				GAutoString r = LgiMakeRelativePath(Base, Files[i]);
-				Tree->Insert(new Lr8Item(Base, r));
+            	GAutoPtr<LgiResources> Res;
+    			if (Res.Reset(new LgiResources(Files[i])))
+    			{
+				    List<LgiDialogRes>::I d = Res->GetDialogs();
+				    bool HasTl = false;
+				    for (LgiDialogRes *dlg = *d; dlg; dlg = *++d)
+				    {
+					    if (dlg->Str && HasTableLayout(dlg->Dialog))
+					    {
+					        HasTl = true;
+					        break;
+					    }
+				    }
+				    if (HasTl)
+				    {
+			            GAutoString r = LgiMakeRelativePath(Base, Files[i]);
+			            Tree->Insert(new Lr8Item(Res, r));
+				    }
+				}
 			}
 		}
 		
 		Files.DeleteArrays();
+		Parent->PostEvent(M_FINISHED);
 		return 0;
 	}
 };
@@ -1459,7 +1466,7 @@ public:
 		LgiMakePath(e, sizeof(e), e, "../../..");
 		Base.Reset(NewStr(e));
 		
-		Worker.Reset(new Lr8Search(Base, Tree));
+		Worker.Reset(new Lr8Search(this, Base, Tree));
 	}
 	
 	~TableLayoutTest()
@@ -1478,6 +1485,17 @@ public:
 		
 		return GDialog::OnNotify(Ctrl, Flags);
 	}
+	
+    GMessage::Param OnEvent(GMessage *m)
+    {
+        if (MsgCode(m) == M_FINISHED)
+        {
+            Tree->Invalidate();
+            Msg->Name("Finished.");
+            Worker.Reset();
+        }
+        return GDialog::OnEvent(m);
+    }
 };
 
 void OpenTableLayoutTest(GViewI *p)

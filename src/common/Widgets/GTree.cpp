@@ -265,10 +265,6 @@ GTreeItem::GTreeItem()
 
 GTreeItem::~GTreeItem()
 {
-	#if 0
-	printf("%p Sel=%i %p->Sel=%i\n", this, d->Selected, Tree, Tree ? Tree->d->Selection.HasItem(this) : 0);
-	#endif
-
 	if (Tree)
 	{
 		if (Tree->d->DropTarget == this)
@@ -1486,7 +1482,6 @@ bool GTree::Delete(GTreeItem *Obj)
 
 void GTree::OnPulse()
 {
-	printf("OnPulse() %p\n", d->DropTarget);
 	if (d->DropTarget)
 	{
 		int64 p = LgiCurrentTime() - d->DropSelectTime;
@@ -1541,7 +1536,6 @@ void GTree::OnPulse()
 
 void GTree::OnDragEnter()
 {
-printf("OnDragEnter()\n");
 	InsideDragOp(true);
 	SetPulse(120);
 }

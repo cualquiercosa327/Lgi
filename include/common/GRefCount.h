@@ -5,6 +5,11 @@ class GRefCount
 {
 	int _Count;
 
+protected:
+    #ifdef _DEBUG
+    int _GetCount() { return _Count; }
+    #endif
+
 public:
 	GRefCount()
 	{

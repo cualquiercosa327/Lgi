@@ -43,13 +43,13 @@ public:
 	XmlPoolAlloc()
 	{
 		_Pools++;
-		//LgiTrace("%p::XmlPoolAlloc _Pools=%i\n", this, _Pools);
+		// LgiTrace("%p::XmlPoolAlloc _Pools=%i, Refs=%i\n", this, _Pools, _GetCount());
 	}
 
 	~XmlPoolAlloc()
 	{
 		_Pools--;
-		//LgiTrace("%p::~XmlPoolAlloc _Pools=%i\n", this, _Pools);
+		// LgiTrace("%p::~XmlPoolAlloc _Pools=%i, Refs=%i\n", this, _Pools, _GetCount());
 	}
 
 	void *Alloc(size_t Size)
@@ -298,8 +298,11 @@ char *GXmlTree::DecodeEntities(char *s, int len)
 }
 
 //////////////////////////////////////////////////////////////////////////////
+int _GXmlTagInst = 0;
+
 GXmlTag::GXmlTag(const char *tag, GXmlAlloc *alloc)
 {
+_GXmlTagInst++;
 	Tag = NewStr(tag);
 	Write = 0;
 	Parent = 0;
@@ -309,6 +312,7 @@ GXmlTag::GXmlTag(const char *tag, GXmlAlloc *alloc)
 
 GXmlTag::GXmlTag(const GXmlTag &t)
 {
+_GXmlTagInst++;
 	Allocator = t.Allocator;
 	Tag = 0;
 	Write = 0;
@@ -320,6 +324,7 @@ GXmlTag::GXmlTag(const GXmlTag &t)
 
 GXmlTag::~GXmlTag()
 {
+_GXmlTagInst--;
 	RemoveTag();
 	Empty(true);
 }
@@ -1209,11 +1214,14 @@ bool GXmlTree::Read(GXmlTag *Root, GStreamI *File, GXmlFactory *Factory)
 					{
 						bool NoChildren;
 						
-						GXmlTag *t = Parse(	First && !TestFlag(d->Flags, GXT_NO_DOM) ? Root : 0,
-											Allocator,
-											Ptr,
-											NoChildren,
-											false);						
+						GAutoPtr<GXmlTag> t
+						(
+						    Parse(  First && !TestFlag(d->Flags, GXT_NO_DOM) ? Root : 0,
+									Allocator,
+									Ptr,
+									NoChildren,
+									false)
+						);
 						
 						First = false;
 						if (t)
@@ -1278,27 +1286,37 @@ bool GXmlTree::Read(GXmlTag *Root, GStreamI *File, GXmlFactory *Factory)
 									break;
 								}
 
-								DeleteObj(t);
+								t.Reset();
 							}
 							else
 							{
-								if (t != Root)
-								{
-									Current->InsertTag(t);
-								}
-								
 								t->Write = false;
 								t->Serialize();
-								
+
+							    GXmlTag *NewTag = t;
+							    if (t != Root)
+								    Current->InsertTag(t.Release());
+							    else
+							        t.Release();
+
 								if (!TestFlag(d->Flags, GXT_NO_DOM) &&
 									!NoChildren &&
-									!d->NoChildTags.Find(t->Tag))
+									!d->NoChildTags.Find(NewTag->Tag))
 								{
-									Current = t;
+									Current = NewTag;
 								}
 							}
 						}
-						else break;
+						else
+						{
+						    LgiAssert(0);
+						    break;
+						}
+						
+						if (t)
+						{
+						    int asd=0;
+						}
 					}
 					
 					d->Factory = 0;

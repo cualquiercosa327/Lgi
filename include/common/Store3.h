@@ -349,7 +349,8 @@ public:
 
 	enum DataStoreStatus
 	{
-		DsOk = 0,
+	    DsNull,
+		DsOk,
 		DsError,
 		DsMissing,
 		DsUpgradeRequired,
