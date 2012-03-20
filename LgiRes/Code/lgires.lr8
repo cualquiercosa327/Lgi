@@ -125,4 +125,43 @@
 			</tr>
 		</TableLayout>
 	</Dialog>
+	<menu Name="IDM_MENU">
+		<string-group Name="&lt;untitled&gt;">
+			<String Ref="15" Cid="509" Define="IDM_EDIT" en="&Edit" />
+			<String Ref="17" Cid="510" Define="IDM_FIND" en="&Find" />
+			<String Ref="30" Cid="511" Define="IDM_NEXT" en="&Next" />
+			<String Ref="32" Cid="512" Define="IDM_NEW" en="&New" />
+			<String Ref="33" Cid="513" Define="IDM_NEW_CSS" en="CSS" />
+			<String Ref="34" Cid="514" Define="IDM_NEW_DIALOG" en="Dialog" />
+			<String Ref="35" Cid="515" Define="IDM_NEW_STRING_GRP" en="String Group" />
+			<String Ref="36" Cid="516" Define="IDM_NEW_MENU" en="Menu" />
+			<String Ref="37" Cid="517" Define="IDM_VIEW" en="&View" />
+			<String Ref="38" Cid="518" Define="IDM_HELP_MENU" en="&Help" />
+			<String Ref="39" Cid="519" Define="IDM_SHOW_LANG" en="Show Languages" />
+			<String Ref="40" Cid="520" Define="IDM_HELP" en="&Help" />
+			<String Ref="41" Cid="521" Define="IDM_ABOUT" en="&About" />
+			<String Ref="42" Cid="522" Define="IDM_TOOLS" en="&Tools" />
+			<String Ref="43" Cid="523" Define="IDM_TABLELAYOUT_TEST" en="Test TableLayouts" />
+		</string-group>
+		<submenu Ref="15">
+			<menuitem Ref="17" Shortcut="Ctrl+F" />
+			<menuitem Ref="30" Shortcut="F3" />
+		</submenu>
+		<submenu Ref="32">
+			<menuitem Ref="33" />
+			<menuitem Ref="34" />
+			<menuitem Ref="35" />
+			<menuitem Ref="36" />
+		</submenu>
+		<submenu Ref="37">
+			<menuitem Ref="39" Shortcut="F2" />
+		</submenu>
+		<submenu Ref="42">
+			<menuitem Ref="43" Shortcut="F5" />
+		</submenu>
+		<submenu Ref="38">
+			<menuitem Ref="40" Shortcut="F1" />
+			<menuitem Ref="41" />
+		</submenu>
+	</menu>
 </resources>

@@ -1052,7 +1052,7 @@ void AppWnd::SetupUi()
 	
 	#else
 
-	if (_LoadMenu())
+	if (_LoadMenu("IDM_MENU"))
 	{
 		if (_FileMenu)
 		{
@@ -1065,36 +1065,9 @@ void AppWnd::SetupUi()
 			_FileMenu->AppendItem("Properties", IDM_PROPERTIES, true, n++);
 		}
 
-		GSubMenu *Edit = Menu->AppendSub("&Edit");
-		if (Edit)
-		{
-			Edit->AppendItem("&Find\tCtrl+F", IDM_FIND, true);
-			Edit->AppendItem("&Next\tF3", IDM_NEXT, true);
-		}
 
-		GSubMenu *NewObj = Menu->AppendSub("&New");
-		if (NewObj)
-		{
-			NewObj->AppendItem("&Dialog", IDM_NEW_DLG, true);
-			NewObj->AppendItem("&String Group", IDM_NEW_STRGRP, true);
-			NewObj->AppendItem("&Menu", IDM_NEW_MENU, true);
-		}
-
-		ViewMenu = Menu->AppendSub("&View");
-		if (ViewMenu)
-		{
-			ViewMenu->AppendItem("Show Languages", IDM_SHOW_LANG, true);
-			ViewMenu->AppendSeparator();
-			ViewMenu->AppendItem("(none)", -1, false);
-		}
-
-		Help = Menu->AppendSub("&Help");
-		if (Help)
-		{
-			Help->AppendItem("&Help",		IDM_HELP, true);
-			Help->AppendSeparator();
-			Help->AppendItem("&About",		IDM_ABOUT, true);
-		}
+		ViewMenu = Menu->FindSubMenu(IDM_VIEW);
+		LgiAssert(ViewMenu);
 	}
 	else printf("%s:%i - _LoadMenu failed.\n", _FL);
 
@@ -1306,6 +1279,12 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Handle)
 		}
 		case IDM_NEXT:
 		{
+			LgiMsg(this, "Not implemented :(", AppName);
+			break;
+		}
+		case IDM_TABLELAYOUT_TEST:
+		{
+			OpenTableLayoutTest(this);			
 			break;
 		}
 		case IDM_HELP:
@@ -2557,7 +2536,8 @@ bool AppWnd::LoadLgi(char *FileName)
 					if (ViewMenu)
 					{
 						// Remove existing language menu items
-						while (ViewMenu->RemoveItem(2));
+						while (ViewMenu->RemoveItem(1));
+						ViewMenu->AppendSeparator();
 
 						// Enumerate all languages
 						List<Resource> res;

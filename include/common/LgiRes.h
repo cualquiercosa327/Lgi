@@ -96,6 +96,7 @@ public:
 	bool Load(char *FileName);
 	char *GetFileName();
 	GLanguageId *GetLanguages() { return Languages; }
+	List<LgiDialogRes>::I GetDialogs() { return Dialogs.Start(); }
 
 	// Factory
 	ResObject *CreateObject(GXmlTag *Tag, ResObject *Parent);

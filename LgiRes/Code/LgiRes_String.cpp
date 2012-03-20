@@ -19,6 +19,7 @@
 #include "GCombo.h"
 #include "GButton.h"
 #include "GClipBoard.h"
+#include "resdefs.h"
 
 ////////////////////////////////////////////////////////////////////////////
 LangDlg::LangDlg(GView *parent, List<GLanguage> &l, int Init)

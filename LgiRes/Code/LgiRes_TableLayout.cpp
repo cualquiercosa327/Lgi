@@ -4,6 +4,7 @@
 #include "GButton.h"
 #include "GVariant.h"
 #include "GToken.h"
+#include "GTableLayout.h"
 
 #define DRAW_CELL_INDEX			0
 #define DRAW_TABLE_SIZE			0
@@ -1315,3 +1316,172 @@ void CtrlTable::OnMouseClick(GMouse &m)
 	ResDialogCtrl::OnMouseClick(m);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////
+class DlgItem : public GTreeItem
+{
+	LgiDialogRes *Dlg;
+	
+public:
+	DlgItem(LgiDialogRes *dlg)
+	{
+		Dlg = dlg;
+	}
+	
+	char *GetText(int i)
+	{
+		return Dlg->Str->Str;
+	}
+};
+
+class Lr8Item : public GTreeItem
+{
+	GAutoString File;
+	GTreeItem *Fake;
+	char *Base;
+	GAutoPtr<LgiResources> Res;
+
+public:
+	Lr8Item(char *base, char *file)
+	{
+		Base = base;
+		File.Reset(NewStr(file));
+		Insert(Fake = new GTreeItem);
+		Expanded(false);
+	}
+	
+	char *GetText(int i)
+	{
+		return File ? File : "#error";
+	}
+	
+	bool HasTableLayout(GXmlTag *t)
+	{
+		if (t->IsTag("TableLayout"))
+			return true;
+		for (GXmlTag *c = t->Children.First(); c; c = t->Children.Next())
+		{
+			if (HasTableLayout(c))
+				return true;
+		}
+		return false;
+	}
+
+	void OnExpand(bool b)
+	{
+		if (b && Fake)
+		{
+			DeleteObj(Fake);
+			
+			char p[MAX_PATH];
+			LgiMakePath(p, sizeof(p), Base, File);
+			if (Res.Reset(new LgiResources(p)))
+			{
+				List<LgiDialogRes>::I d = Res->GetDialogs();
+				for (LgiDialogRes *dlg = *d; dlg; dlg = *++d)
+				{
+					if (dlg->Str && HasTableLayout(dlg->Dialog))
+					{
+						Insert(new DlgItem(dlg));
+					}
+				}				
+			}
+		}
+	}
+};
+
+class Lr8Search : public GThread
+{
+	char *Base;
+	GTree *Tree;
+	
+public:
+	Lr8Search(char *base, GTree *tree)
+	{
+		Base = base;
+		Tree = tree;
+		Run();
+	}
+	
+	~Lr8Search()
+	{
+		while (!IsExited())
+		{
+			LgiSleep(1);
+		}
+	}
+	
+	int Main()
+	{
+		GArray<const char*> Ext;
+		GArray<char*> Files;
+		Ext.Add("*.lr8");
+		if (LgiRecursiveFileSearch(Base, &Ext, &Files))
+		{
+			for (int i=0; i<Files.Length(); i++)
+			{
+				GAutoString r = LgiMakeRelativePath(Base, Files[i]);
+				Tree->Insert(new Lr8Item(Base, r));
+			}
+		}
+		
+		Files.DeleteArrays();
+		return 0;
+	}
+};
+
+class TableLayoutTest : public GDialog
+{
+	GTableLayout *Tbl;
+	GView *Msg;
+	GTree *Tree;
+	GAutoPtr<GThread> Worker;
+	GAutoString Base;
+	
+public:
+	TableLayoutTest(GViewI *par)
+	{
+		GRect r(0, 0, 800, 600);
+		SetPos(r);
+		SetParent(par);
+		
+		AddView(Tbl = new GTableLayout);
+		GLayoutCell *c;
+		c = Tbl->GetCell(0, 0);
+		c->Add(Msg = new GText(100, 0, 0, -1, -1, "Searching for files..."));
+		c = Tbl->GetCell(0, 1);
+		c->Add(Tree = new GTree(101, 0, 0, 100, 100));
+		c = Tbl->GetCell(0, 2);
+		c->SetAlignX(GLayoutCell::AlignMax);
+		c->Add(new GButton(IDOK, 0, 0, -1, -1, "Close"));
+
+		char e[MAX_PATH];
+		LgiGetSystemPath(LSP_APP_INSTALL, e, sizeof(e));
+		LgiMakePath(e, sizeof(e), e, "../../..");
+		Base.Reset(NewStr(e));
+		
+		Worker.Reset(new Lr8Search(Base, Tree));
+	}
+	
+	~TableLayoutTest()
+	{
+		Worker.Reset();
+	}
+	
+	int OnNotify(GViewI *Ctrl, int Flags)
+	{
+		switch (Ctrl->GetId())
+		{
+			case IDOK:
+				EndModal(1);
+				break;
+		}
+		
+		return GDialog::OnNotify(Ctrl, Flags);
+	}
+};
+
+void OpenTableLayoutTest(GViewI *p)
+{
+	TableLayoutTest Dlg(p);
+	Dlg.DoModal();
+}

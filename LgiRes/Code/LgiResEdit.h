@@ -25,18 +25,11 @@
 #define APP_VER						"3.5.0"
 
 // window messages
-#define	IDM_NEW						110
-
-#define	IDM_HELP					190
-#define	IDM_ABOUT					199
-
 #define	IDM_UNDO					201
 #define	IDM_REDO					202
 #define	IDM_CUT						203
 #define	IDM_COPY					204
 #define	IDM_PASTE					205
-#define	IDM_FIND					206
-#define IDM_NEXT					207
 
 #define	IDM_DELETE					300
 #define	IDM_RENAME					301
@@ -61,13 +54,11 @@
 #define IDM_PASTE_TEXT				320
 #define IDM_NEW_ID					321
 #define IDM_COMPARE					322
-#define IDM_SHOW_LANG				323
 #define IDM_MOVE_UP					324
 #define IDM_MOVE_DOWN				325
 
 #define	IDM_NEW_DLG					400
 #define	IDM_NEW_STRGRP				401
-#define	IDM_NEW_MENU				402
 
 #define IDM_LANG_BASE				2000
 
@@ -762,3 +753,5 @@ public:
 	bool Read(GXmlTag *t, ResFileFormat Format);
 	bool Write(GXmlTag *t, ResFileFormat Format);
 };
+
+extern void OpenTableLayoutTest(GViewI *p);

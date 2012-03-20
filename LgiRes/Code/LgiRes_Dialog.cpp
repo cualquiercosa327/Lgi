@@ -19,9 +19,9 @@
 #include "GVariant.h"
 #include "GToken.h"
 #include "GClipBoard.h"
+#include "resdefs.h"
 
 ////////////////////////////////////////////////////////////////////
-#define IDC_LIST					100
 #define IDC_UP						101
 #define IDC_DOWN					102
 
