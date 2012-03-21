@@ -14,6 +14,7 @@
 #include "Lgi.h"
 #include "GSlider.h"
 #include "GBitmap.h"
+#include "GTableLayout.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 #define GreyBackground()
@@ -40,8 +41,27 @@ GDialog::~GDialog()
 	DeleteObj(d);
 }
 
+void GDialog::Quit(bool DontDelete)
+{
+	if (d->IsModal)
+		EndModal(0);
+	else
+		EndModeless(0);
+}
+
 void GDialog::OnPosChange()
 {
+    if (Children.Length() == 1)
+    {
+        List<GViewI>::I it = Children.Start();
+        GTableLayout *t = dynamic_cast<GTableLayout*>((GViewI*)it.First());
+        if (t)
+        {
+            GRect r = GetClient();
+            r.Size(GTableLayout::CellSpacing, GTableLayout::CellSpacing);
+            t->SetPos(r);
+        }
+    }
 }
 
 bool GDialog::LoadFromResource(int Resource, char *TagList)
