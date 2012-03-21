@@ -97,11 +97,11 @@ struct Node
 	bool IsConst() { return Constant; }
 };
 
-GCompiledCode::GCompiledCode() : Globals(SCOPE_GLOBAL)
+GCompiledCode::GCompiledCode() : Globals(SCOPE_GLOBAL), Debug(0, true, -1, -1)
 {
 }
 
-GCompiledCode::GCompiledCode(GCompiledCode &copy) : Globals(SCOPE_GLOBAL)
+GCompiledCode::GCompiledCode(GCompiledCode &copy) : Globals(SCOPE_GLOBAL), Debug(0, true, -1, -1)
 {
 	*this = copy;
 }
