@@ -66,7 +66,7 @@ public:
 	List<StrLang> Items;
 	GView *UpdateWnd;
 
-	ResString(ResStringGroup *group);
+	ResString(ResStringGroup *group, int init_ref = -1);
 	~ResString();
 	ResString &operator =(ResString &s);
 	ResStringGroup *GetGroup() { return Group; }

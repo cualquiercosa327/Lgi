@@ -130,7 +130,9 @@ void DistributeUnusedSpace(	GArray<int> &Min,
 			{
 			    if (!UnknownSplit)
 			        UnknownSplit = Avail / UnknownGrow;
-			    LgiAssert(UnknownSplit);
+			    if (!UnknownSplit)
+			        UnknownSplit = Avail;
+			        
 			    Min[u.Col] += UnknownSplit;
 			    Avail -= UnknownSplit;
 			}
@@ -197,7 +199,11 @@ void DistributeSize(GArray<int> &a, GArray<CellFlag> &Flags, int Start, int Span
 			for (int i=0; i<Grow.Length(); i++)
 			{
 				int Cell = Grow[i];
-				int Add = a[Cell] * AdditionalSize / ExistingGrowSize;
+				int Add;
+				if (a[Cell] && ExistingGrowSize)
+				    Add = a[Cell] * AdditionalSize / ExistingGrowSize;
+				else
+				    Add = max(1, AdditionalSize / Grow.Length());
 				a[Cell] = a[Cell] + Add;
 			}
 		}
@@ -480,12 +486,19 @@ public:
 			if (v->OnLayout(Inf))
 			{
 				if (Inf.Width.Max < 0)
-					Flag = SizeGrow;
+				{
+				    if (Flag < SizeGrow)
+					    Flag = SizeGrow;
+				}
 				else
+				{
 					Max = max(Max, Inf.Width.Max);
+				}
 
 				if (Inf.Width.Min)
+				{
 					Min = max(Min, Inf.Width.Min);
+				}
 			}
 			else
 			{
@@ -494,7 +507,8 @@ public:
 					PreLayoutTextCtrl(v, Min, Max);
 					if (Max > Min)
 					{
-						Flag = SizeGrow;
+					    if (Flag < SizeGrow)
+						    Flag = SizeGrow;
 					}
 					else
 					{
@@ -549,7 +563,8 @@ public:
 					
 					Min = max(Min, x + 32);
 					Max = max(Max, x + 32);
-					Flag = SizeGrow;
+					if (Flag < SizeGrow)
+					    Flag = SizeGrow;
 				}
 				else if (Izza(GBitmap))
 				{
@@ -805,7 +820,7 @@ public:
 						if (Inf.Height.Max < 0)
 							Flags = SizeGrow;
 						else
-							Pos.y2 += Inf.Height.Max;
+							Pos.y2 += Inf.Height.Max - 1;
 					}
 					else
 					{
@@ -961,6 +976,15 @@ TableCell *GTableLayoutPrivate::GetCellAt(int cx, int cy)
 
 void GTableLayoutPrivate::Layout(GRect &Client)
 {
+    static bool InLayout = false;
+    if (InLayout)
+    {
+        // LgiAssert(!"In layout, no recursion should happen.");
+        return;
+    }
+        
+    InLayout = true;
+
 	#if DEBUG_PROFILE
 	int64 Start = LgiCurrentTime();
 	#endif
@@ -996,11 +1020,12 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 	}
 
 	#if DEBUG_LAYOUT
-	LgiTrace("Layout Id=%i, Size=%i,%i\n", Ctrl->GetId(), Client.X(), Client.Y());
+	GStringPipe Dbg;
+	Dbg.Print("Layout Id=%i, Size=%i,%i\n", Ctrl->GetId(), Client.X(), Client.Y());
 
 	for (i=0; i<Cols.Length(); i++)
 	{
-		LgiTrace("\tColBeforeSpan[%i]: min=%i max=%i (%s)\n", i, MinCol[i], MaxCol[i], FlagToString(ColFlags[i]));
+		Dbg.Print("\tColBeforeSpan[%i]: min=%i max=%i (%s)\n", i, MinCol[i], MaxCol[i], FlagToString(ColFlags[i]));
 	}
 	#endif
 
@@ -1052,7 +1077,7 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 	#if DEBUG_LAYOUT
 	for (i=0; i<Cols.Length(); i++)
 	{
-		LgiTrace("\tColBefore[%i]: min=%i max=%i (%s)\n", i, MinCol[i], MaxCol[i], FlagToString(ColFlags[i]));
+		Dbg.Print("\tColBefore[%i]: min=%i max=%i (%s)\n", i, MinCol[i], MaxCol[i], FlagToString(ColFlags[i]));
 	}
 	#endif
 
@@ -1062,7 +1087,7 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 	#if DEBUG_LAYOUT
 	for (i=0; i<Cols.Length(); i++)
 	{
-		LgiTrace("\tColAfter[%i]: min=%i max=%i (%s)\n", i, MinCol[i], MaxCol[i], FlagToString(ColFlags[i]));
+		Dbg.Print("\tColAfter[%i]: min=%i max=%i (%s)\n", i, MinCol[i], MaxCol[i], FlagToString(ColFlags[i]));
 	}
 	#endif
 
@@ -1136,7 +1161,7 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 	#if DEBUG_LAYOUT
 	for (i=0; i<Rows.Length(); i++)
 	{
-		LgiTrace("\tRowBefore[%i]: min=%i max=%i (%s)\n", i, MinRow[i], MaxRow[i], FlagToString(RowFlags[i]));
+		Dbg.Print("\tRowBefore[%i]: min=%i max=%i (%s)\n", i, MinRow[i], MaxRow[i], FlagToString(RowFlags[i]));
 	}
 	#endif
 
@@ -1146,12 +1171,14 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 	#if DEBUG_LAYOUT
 	for (i=0; i<Rows.Length(); i++)
 	{
-		LgiTrace("\tRowAfter[%i]: min=%i max=%i (%s)\n", i, MinRow[i], MaxRow[i], FlagToString(RowFlags[i]));
+		Dbg.Print("\tRowAfter[%i]: min=%i max=%i (%s)\n", i, MinRow[i], MaxRow[i], FlagToString(RowFlags[i]));
 	}
 	for (i=0; i<Cols.Length(); i++)
 	{
-		LgiTrace("\tFinalCol[%i]=%i\n", i, MinCol[i]);
+		Dbg.Print("\tFinalCol[%i]=%i\n", i, MinCol[i]);
 	}
+	GAutoString DbgStr(Dbg.NewStr());
+	LgiTrace("%s", DbgStr.Get());
 	#endif
 
 	// Move cells into their final positions
@@ -1193,6 +1220,8 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 	#endif
 
 	Ctrl->SendNotify(GTABLELAYOUT_LAYOUT_CHANGED);
+	
+	InLayout = false;
 }
 
 GTableLayout::GTableLayout() : ResObject(Res_Table)
@@ -1384,6 +1413,16 @@ void GTableLayout::OnChildrenChanged(GViewI *Wnd, bool Attaching)
 
 		LgiAssert(0);
 	}
+}
+
+int GTableLayout::OnNotify(GViewI *c, int f)
+{
+    if (f == GTABLELAYOUT_REFRESH)
+    {
+        OnPosChange();
+    }
+
+    return GLayout::OnNotify(c, f);
 }
 
 int64 GTableLayout::Value()

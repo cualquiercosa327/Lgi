@@ -630,6 +630,31 @@ char *LgiResources::StringFromRef(int Ref)
 #include "GScrollBar.h"
 #include "GTree.h"
 
+class GMissingCtrl : public GLayout, public ResObject
+{
+    GAutoString n;
+
+public:
+    GMissingCtrl(char *name) : ResObject(Res_Custom)
+    {
+        n.Reset(NewStr(name));
+    }    
+
+    void OnPaint(GSurface *pDC)
+    {
+        GRect c = GetClient();
+        pDC->Colour(GColour(0xcc, 0xcc, 0xcc));
+        pDC->Rectangle();
+        pDC->Colour(GColour(0xff, 0, 0));
+        pDC->Line(c.x1, c.y1, c.x2, c.y2);
+        pDC->Line(c.x2, c.y1, c.x1, c.y2);
+        GDisplayString ds(SysFont, n);
+        SysFont->Transparent(true);
+        SysFont->Fore(LC_TEXT);
+        ds.Draw(pDC, 3, 0);
+    }
+};
+
 ResObject *LgiResources::CreateObject(GXmlTag *t, ResObject *Parent)
 {
 	ResObject *Wnd = 0;
@@ -737,6 +762,10 @@ ResObject *LgiResources::CreateObject(GXmlTag *t, ResObject *Parent)
 		{
 			Control = t->GetAttr("ctrl");
 			GView *v = GViewFactory::Create(Control);
+
+			if (!v)
+			    v = new GMissingCtrl(Control);
+
 			if (v)
 			{
 				Wnd = dynamic_cast<ResObject*>(v);
@@ -747,7 +776,6 @@ ResObject *LgiResources::CreateObject(GXmlTag *t, ResObject *Parent)
 					DeleteObj(v);
 				}
 			}
-			else LgiAssert(!"No factory for control.");
 		}
 		else if (stricmp(t->Tag, Res_Table) == 0)
 		{

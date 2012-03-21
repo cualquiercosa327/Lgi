@@ -466,7 +466,7 @@ void LgiTrace(const char *Msg, ...)
 		Sem.Lock(_FL);
 		#endif
 
-		char Buffer[1025] = "";
+		char Buffer[2049] = "";
 		#ifdef LGI_TRACE_TO_FILE
 		GFile f;
 		if (LgiGetExeFile(Buffer, sizeof(Buffer)))
@@ -501,7 +501,7 @@ void LgiTrace(const char *Msg, ...)
 
 		va_list Arg;
 		va_start(Arg, Msg);
-		_vsnprintf(Buffer, sizeof(Buffer)-1, Msg, Arg);
+		int MsgLen = _vsnprintf(Buffer, sizeof(Buffer)-1, Msg, Arg);
 		va_end(Arg);
 
 		#ifdef LGI_TRACE_TO_FILE

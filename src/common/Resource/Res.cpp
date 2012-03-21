@@ -2015,8 +2015,9 @@ ResObjectImpl::SStatus ResControlTree::Res_Read(GXmlTag *t, ResReadCtx &Ctx)
 	if (!d)
 		return SError;
 
-	GVariant v = t;
-	d->SetValue("Tree", v);
+	GVariant v;
+	d->SetValue("LgiFactory", v = Factory);
+	d->SetValue("Tree", v = t);
 	return SOk;
 }
 

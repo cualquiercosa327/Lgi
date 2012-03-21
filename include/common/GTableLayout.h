@@ -5,6 +5,7 @@
 #define _GTABLE_LAYOUT_H_
 
 #define GTABLELAYOUT_LAYOUT_CHANGED			20
+#define GTABLELAYOUT_REFRESH                21
 
 /// A layout cell, not currently implemened.
 class GLayoutCell : public GDom
@@ -70,6 +71,7 @@ public:
 	void OnChildrenChanged(GViewI *Wnd, bool Attaching);
 	int64 Value();
 	void Value(int64 v);
+	int OnNotify(GViewI *c, int f);
 };
 
 #endif

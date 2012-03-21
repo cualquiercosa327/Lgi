@@ -13,6 +13,12 @@
 class GControlTreePriv
 {
 public:
+    LgiResources *Factory;
+    
+    GControlTreePriv()
+    {
+        Factory = 0;
+    }
 };
 
 GControlTree::Item::Item(char *Txt, const char *opt, GVariantType type, GArray<GControlTree::EnumValue> *pEnum)
@@ -421,14 +427,12 @@ GTreeItem *GControlTree::Insert(const char *DomPath, GVariantType Type, GVariant
 	return 0;
 }
 
-void ReadTree(GXmlTag *t, GTreeNode *n, GControlTreePriv *d, GView *v)
+void GControlTree::ReadTree(GXmlTag *t, GTreeNode *n)
 {
-	LgiResources *r = LgiGetResObj();
-
 	for (GXmlTag *c = t->Children.First(); c; c = t->Children.Next())
 	{
 		int StrRef = c->GetAsInt("ref");
-		LgiStringRes *Str = r->StrFromRef(StrRef);
+		LgiStringRes *Str = d->Factory->StrFromRef(StrRef);
 		LgiAssert(Str);
 
 		char *Type = c->GetAttr("ControlType");
@@ -455,7 +459,7 @@ void ReadTree(GXmlTag *t, GTreeNode *n, GControlTreePriv *d, GView *v)
 		{
 			ct->Flags = Flags;
 			n->Insert(ct);
-			ReadTree(c, ct, d, v);
+			ReadTree(c, ct);
 			ct->Expanded(true);
 		}
 	}
@@ -476,8 +480,16 @@ bool GControlTree::SetVariant(const char *Name, GVariant &Value, char *Array)
 		GXmlTag *x = dynamic_cast<GXmlTag*>(Value.Value.Dom);
 		if (!x)
 			LgiAssert(!"Not the right object.");
-		else
-			ReadTree(x, this, d, this);
+		else if (d->Factory)
+			ReadTree(x, this);
+	    else
+	        LgiAssert(!"No factory.");
+			
+		d->Factory = 0;
+	}
+	else if (!stricmp(Name, "LgiFactory"))
+	{
+	    d->Factory = dynamic_cast<LgiResources*>((ResFactory*)Value.CastVoidPtr());
 	}
 	else return false;
 

@@ -1321,19 +1321,44 @@ enum {
     M_FINISHED = M_USER + 1000,
 };
 
+class TableLayoutTest : public GDialog
+{
+	GTableLayout *Tbl;
+	GView *Msg;
+	GTree *Tree;
+	class DlgContainer *View;
+	GAutoPtr<GThread> Worker;
+	GAutoString Base;
+	
+public:
+	TableLayoutTest(GViewI *par);
+	~TableLayoutTest();
+	
+	void OnDialog(LgiDialogRes *Dlg);
+	int OnNotify(GViewI *Ctrl, int Flags);
+    GMessage::Param OnEvent(GMessage *m);
+};
+
 class DlgItem : public GTreeItem
 {
+    TableLayoutTest *Wnd;
 	LgiDialogRes *Dlg;
 	
 public:
-	DlgItem(LgiDialogRes *dlg)
+	DlgItem(TableLayoutTest *w, LgiDialogRes *dlg)
 	{
+	    Wnd = w;
 		Dlg = dlg;
 	}
 	
 	char *GetText(int i)
 	{
 		return Dlg->Str->Str;
+	}
+	
+	void OnSelect()
+	{
+	    Wnd->OnDialog(Dlg);
 	}
 };
 
@@ -1351,12 +1376,14 @@ static bool HasTableLayout(GXmlTag *t)
 
 class Lr8Item : public GTreeItem
 {
+    TableLayoutTest *Wnd;
 	GAutoString File;
 	GAutoPtr<LgiResources> Res;
 
 public:
-	Lr8Item(GAutoPtr<LgiResources> res, char *file)
+	Lr8Item(TableLayoutTest *w, GAutoPtr<LgiResources> res, char *file)
 	{
+	    Wnd = w;
 		Res = res;
 		File.Reset(NewStr(file));
 
@@ -1365,8 +1392,13 @@ public:
 		{
 			if (dlg->Str && HasTableLayout(dlg->Dialog))
 			{
-				Insert(new DlgItem(dlg));
+				Insert(new DlgItem(Wnd, dlg));
 			}
+		}
+		
+		if (stristr(File, "Scribe-Branches\\v2.00"))
+		{
+		    Expanded(true);
 		}
 	}
 	
@@ -1378,14 +1410,14 @@ public:
 
 class Lr8Search : public GThread
 {
-    GViewI *Parent;
+    TableLayoutTest *Wnd;
 	char *Base;
 	GTree *Tree;
 	
 public:
-	Lr8Search(GViewI *parent, char *base, GTree *tree)
+	Lr8Search(TableLayoutTest *w, char *base, GTree *tree)
 	{
-	    Parent = parent;
+	    Wnd = w;
 		Base = base;
 		Tree = tree;
 		Run();
@@ -1424,79 +1456,122 @@ public:
 				    if (HasTl)
 				    {
 			            GAutoString r = LgiMakeRelativePath(Base, Files[i]);
-			            Tree->Insert(new Lr8Item(Res, r));
+			            Tree->Insert(new Lr8Item(Wnd, Res, r));
 				    }
 				}
 			}
 		}
 		
 		Files.DeleteArrays();
-		Parent->PostEvent(M_FINISHED);
+		Wnd->PostEvent(M_FINISHED);
 		return 0;
 	}
 };
 
-class TableLayoutTest : public GDialog
+class DlgContainer : public GLayout
 {
-	GTableLayout *Tbl;
-	GView *Msg;
-	GTree *Tree;
-	GAutoPtr<GThread> Worker;
-	GAutoString Base;
-	
-public:
-	TableLayoutTest(GViewI *par)
-	{
-		GRect r(0, 0, 800, 600);
-		SetPos(r);
-		SetParent(par);
-		
-		AddView(Tbl = new GTableLayout);
-		GLayoutCell *c;
-		c = Tbl->GetCell(0, 0);
-		c->Add(Msg = new GText(100, 0, 0, -1, -1, "Searching for files..."));
-		c = Tbl->GetCell(0, 1);
-		c->Add(Tree = new GTree(101, 0, 0, 100, 100));
-		c = Tbl->GetCell(0, 2);
-		c->SetAlignX(GLayoutCell::AlignMax);
-		c->Add(new GButton(IDOK, 0, 0, -1, -1, "Close"));
+    LgiDialogRes *Dlg;
+    GRect Size;
 
-		char e[MAX_PATH];
-		LgiGetSystemPath(LSP_APP_INSTALL, e, sizeof(e));
-		LgiMakePath(e, sizeof(e), e, "../../..");
-		Base.Reset(NewStr(e));
-		
-		Worker.Reset(new Lr8Search(this, Base, Tree));
-	}
-	
-	~TableLayoutTest()
-	{
-		Worker.Reset();
-	}
-	
-	int OnNotify(GViewI *Ctrl, int Flags)
-	{
-		switch (Ctrl->GetId())
-		{
-			case IDOK:
-				EndModal(1);
-				break;
-		}
-		
-		return GDialog::OnNotify(Ctrl, Flags);
-	}
-	
-    GMessage::Param OnEvent(GMessage *m)
+public:
+    DlgContainer(int id)
     {
-        if (MsgCode(m) == M_FINISHED)
+        Dlg = 0;
+        Sunken(true);
+        SetId(id);
+        
+        Size.Set(0, 0, 100, 100);
+        SetPos(Size);
+    }
+    
+    void OnPaint(GSurface *pDC)
+    {
+        pDC->Colour(LC_WORKSPACE, 24);
+        pDC->Rectangle();
+    }
+    
+    void OnDialog(LgiDialogRes *d)
+    {
+        while (Children.First())
+            delete Children.First();
+    
+        if (Dlg = d)
         {
-            Tree->Invalidate();
-            Msg->Name("Finished.");
-            Worker.Reset();
-        }
-        return GDialog::OnEvent(m);
+            if (Dlg->GetRes()->LoadDialog(Dlg->Str->Id, this, &Size))
+            {
+                GRect r = GetPos();
+                r.Dimension(Size.X(), Size.Y());
+                SetPos(r);
+                AttachChildren();
+                
+                SendNotify(GTABLELAYOUT_REFRESH);
+            }
+        }        
     }
 };
+
+TableLayoutTest::TableLayoutTest(GViewI *par)
+{
+	GRect r(0, 0, 1000, 800);
+	SetPos(r);
+	SetParent(par);
+	
+	AddView(Tbl = new GTableLayout);
+	GLayoutCell *c;
+
+	c = Tbl->GetCell(0, 0, true, 2);
+	c->Add(Msg = new GText(100, 0, 0, -1, -1, "Searching for files..."));
+
+	c = Tbl->GetCell(0, 1);
+	c->Add(Tree = new GTree(101, 0, 0, 100, 100));
+	c = Tbl->GetCell(1, 1);
+	c->Add(View = new DlgContainer(102));
+
+	c = Tbl->GetCell(0, 2, true, 2);
+	c->SetAlignX(GLayoutCell::AlignMax);
+	c->Add(new GButton(IDOK, 0, 0, -1, -1, "Close"));
+
+	char e[MAX_PATH];
+	LgiGetSystemPath(LSP_APP_INSTALL, e, sizeof(e));
+	LgiMakePath(e, sizeof(e), e, "../../..");
+	Base.Reset(NewStr(e));
+	
+	Worker.Reset(new Lr8Search(this, Base, Tree));
+}
+
+TableLayoutTest::~TableLayoutTest()
+{
+	Worker.Reset();
+}
+
+void TableLayoutTest::OnDialog(LgiDialogRes *Dlg)
+{
+    if (View)
+        View->OnDialog(Dlg);
+}
+
+int TableLayoutTest::OnNotify(GViewI *Ctrl, int Flags)
+{
+	switch (Ctrl->GetId())
+	{
+		case IDOK:
+			EndModal(1);
+			break;
+	}
+	
+	return GDialog::OnNotify(Ctrl, Flags);
+}
+
+GMessage::Param TableLayoutTest::OnEvent(GMessage *m)
+{
+    if (MsgCode(m) == M_FINISHED)
+    {
+        Tree->Invalidate();
+        Msg->Name("Finished.");
+        Worker.Reset();
+    }
+    return GDialog::OnEvent(m);
+}
 
 void OpenTableLayoutTest(GViewI *p)
 {

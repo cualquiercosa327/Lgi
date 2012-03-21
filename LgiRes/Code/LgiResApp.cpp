@@ -1467,16 +1467,24 @@ int AppWnd::GetUniqueStrRef(int	Start)
 			List<ResString>::I it = Grp->GetStrs()->Start();
 			for (ResString *s = *it; s; s = *++it)
 			{
-				ResString *Existing = Map.Find(s->GetRef());
-				if (Existing)
-				{
-					// These get their ref's reset to a unique value as a side
-					// effect of this function...
-					Dupes.Add(s);
+			    if (s->GetRef())
+			    {
+				    ResString *Existing = Map.Find(s->GetRef());
+				    if (Existing)
+				    {
+					    // These get their ref's reset to a unique value as a side
+					    // effect of this function...
+					    Dupes.Add(s);
+				    }
+				    else
+				    {
+					    Map.Add(s->GetRef(), s);
+				    }
 				}
 				else
 				{
-					Map.Add(s->GetRef(), s);
+				    int Idx = Grp->GetStrs()->IndexOf(s);
+				    LgiAssert(!"No string ref?");
 				}
 			}			
 		}

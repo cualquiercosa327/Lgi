@@ -127,9 +127,9 @@ bool StrLang::operator !=(GLanguageId LangId)
 }
 
 ////////////////////////////////////////////////////////////////////
-ResString::ResString(ResStringGroup *grp)
+ResString::ResString(ResStringGroup *grp, int init_ref)
 {
-	Ref = 0;
+	Ref = init_ref;
 	Group = grp;
 	Id = 0;
 	Tag = 0;
@@ -174,15 +174,13 @@ ResString::~ResString()
 
 int ResString::SetRef(int r)
 {
-	Ref = r;
-	return Ref;
+	return Ref = r;
 }
 
 int ResString::SetId(int id)
 {
 	LgiAssert(id != 0);
-	Id = id;
-	return Id;
+	return Id = id;
 }
 
 void ResString::SetDefine(const char *s)
@@ -1154,10 +1152,11 @@ int ResStringGroup::OnCommand(int Cmd, int Event, OsView hWnd)
 
 ResString *ResStringGroup::CreateStr(bool User)
 {
-	ResString *s = new ResString(this);
+    int NextRef = App()->GetUniqueStrRef();
+	ResString *s = new ResString(this, NextRef);
 	if (s)
 	{
-		s->SetId(s->SetRef(App()->GetUniqueStrRef()));
+		s->SetId(s->SetRef(NextRef));
 
 		if (User)
 		{

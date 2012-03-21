@@ -267,6 +267,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\common\Widgets\GControlTree.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\common\Lgi\GDocApp.cpp"
 				>
 			</File>

@@ -20,6 +20,8 @@ public:
 
 	LgiStringRes(LgiResources *res);
 	~LgiStringRes();
+
+	LgiResources *GetRes() { return Res; }
 	bool Read(GXmlTag *Tag, ResFileFormat Format);
 };
 
@@ -35,6 +37,7 @@ public:
 	LgiDialogRes(LgiResources *res);
 	~LgiDialogRes();
 
+	LgiResources *GetRes() { return Res; }
 	bool Read(GXmlTag *Tag, ResFileFormat Format);
 	char *Name() { return (Str) ? Str->Str : 0; }
 	int Id() { return (Str) ? Str->Id : 0; }
@@ -54,6 +57,7 @@ public:
 	~LgiMenuRes();
 
 	bool Read(GXmlTag *Tag, ResFileFormat Format);
+	LgiResources *GetRes() { return Res; }
 	LgiStringRes *GetString(GXmlTag *Tag);
 };
 
