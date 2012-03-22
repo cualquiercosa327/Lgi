@@ -70,6 +70,7 @@ GWindow::GWindow() : GView(0)
 {
 	d = new GWindowPrivate;
 	Menu = 0;
+	_Dialog = NULL;
 	SetStyle(GetStyle() | WS_TILEDWINDOW | WS_CLIPCHILDREN);
 	SetStyle(GetStyle() & ~WS_CHILD);
 	SetExStyle(GetExStyle() | WS_EX_CONTROLPARENT);
@@ -153,7 +154,7 @@ GWindowZoom GWindow::GetZoom()
 
 void GWindow::SetZoom(GWindowZoom i)
 {
-	if (_View AND IsWindowVisible(_View))
+	if (_View && IsWindowVisible(_View))
 	{
 		switch (i)
 		{
@@ -174,7 +175,7 @@ void GWindow::SetZoom(GWindowZoom i)
 					Visible(true);
 				}
 
-				if (IsIconic(Handle()) OR IsZoomed(Handle()))
+				if (IsIconic(Handle()) || IsZoomed(Handle()))
 				{
 					ShowWindow(Handle(), SW_NORMAL);
 				}
@@ -184,7 +185,7 @@ void GWindow::SetZoom(GWindowZoom i)
 				RECT r;
 				GetWindowRect(Handle(), &r);
 
-				if (r.left != Pos.x1 OR
+				if (r.left != Pos.x1 ||
 					r.top != Pos.y1)
 				{
 					SetWindowPos(Handle(), 0, Pos.x1, Pos.y1, Pos.X(), Pos.Y(), SWP_NOZORDER);
@@ -264,13 +265,13 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 	{
 		p = FindControl(IDCANCEL);
 	}
-	if (p AND p->OnKey(k))
+	if (p && p->OnKey(k))
 	{
 		return true;
 	}
 
 	// Menu shortcut?
-	if (Menu AND Menu->OnKey(v, k))
+	if (Menu && Menu->OnKey(v, k))
 	{
 		return true;
 	}
@@ -409,7 +410,7 @@ void GWindow::Pour()
 		for (v = Children.First(); v; v = Children.Next())
 		{
 			GView *k = dynamic_cast<GView*>(v);
-			if (k AND k->_IsToolBar)
+			if (k && k->_IsToolBar)
 			{
 				GRect OldPos = v->GetPos();
 				Update.Union(&OldPos);
@@ -466,7 +467,7 @@ void GWindow::Pour()
 	for (v = Children.First(); v; v = Children.Next())
 	{
 		GView *k = dynamic_cast<GView*>(v);
-		if (!(k AND k->_IsToolBar))
+		if (!(k && k->_IsToolBar))
 		{
 			GRect OldPos = v->GetPos();
 			Update.Union(&OldPos);
@@ -559,54 +560,65 @@ GMessage::Result GWindow::OnEvent(GMessage *Msg)
 			bool Icon = IsIconic(Handle());
 			bool Zoom = IsZoomed(Handle());
 
-			if (!Icon AND !Zoom)
+			if (!Icon && (_Dialog || !Zoom))
 			{
 				WINDOWPOS *Info = (LPWINDOWPOS) Msg->b;
-				if (Info)
+				if (!Info)
+				    break;
+				    
+				LgiTrace("%s flags = %x\n", Name(), Info->flags);
+				if (Info->flags == SWP_NOSIZE || SWP_NOMOVE && _Dialog)
 				{
-					if (GetMinimumSize().x AND
-						GetMinimumSize().x > Info->cx)
-					{
-						Info->cx = GetMinimumSize().x;
-					}
+				    // Info->flags |= SWP_NOZORDER;
+				    Info->hwndInsertAfter = _Dialog->Handle();
+				}
 
-					if (GetMinimumSize().y AND
-						GetMinimumSize().y > Info->cy)
-					{
-						Info->cy = GetMinimumSize().y;
-					}
+				if (GetMinimumSize().x &&
+					GetMinimumSize().x > Info->cx)
+				{
+					Info->cx = GetMinimumSize().x;
+				}
 
-					RECT Rc;
-					if (d->SnapToEdge AND
-						SystemParametersInfo(SPI_GETWORKAREA, 0, &Rc, SPIF_SENDCHANGE))
+				if (GetMinimumSize().y &&
+					GetMinimumSize().y > Info->cy)
+				{
+					Info->cy = GetMinimumSize().y;
+				}
+
+				RECT Rc;
+				if (d->SnapToEdge &&
+					SystemParametersInfo(SPI_GETWORKAREA, 0, &Rc, SPIF_SENDCHANGE))
+				{
+					GRect r = Rc;
+					GRect p(Info->x,
+					        Info->y,
+					        Info->x + Info->cx - 1,
+					        Info->y + Info->cy - 1);
+					
+					if (r.Valid() && p.Valid())
 					{
-						GRect r = Rc;
-						GRect p(Info->x, Info->y, Info->x + Info->cx - 1, Info->y + Info->cy - 1);
-						if (r.Valid() AND p.Valid())
+						int Snap = 12;
+
+						if (abs(p.x1 - r.x1) <= Snap)
 						{
-							int Snap = 12;
+							// Snap left edge
+							Info->x = r.x1;
+						}
+						else if (abs(p.x2 - r.x2) <= Snap)
+						{
+							// Snap right edge
+							Info->x = r.x2 - Info->cx + 1;
+						}
 
-							if (abs(p.x1 - r.x1) <= Snap)
-							{
-								// Snap left edge
-								Info->x = r.x1;
-							}
-							else if (abs(p.x2 - r.x2) <= Snap)
-							{
-								// Snap right edge
-								Info->x = r.x2 - Info->cx + 1;
-							}
-
-							if (abs(p.y1 - r.y1) <= Snap)
-							{
-								// Snap top edge
-								Info->y = r.y1;
-							}
-							else if (abs(p.y2 - r.y2) <= Snap)
-							{
-								// Snap bottom edge
-								Info->y = r.y2 - Info->cy + 1;
-							}
+						if (abs(p.y1 - r.y1) <= Snap)
+						{
+							// Snap top edge
+							Info->y = r.y1;
+						}
+						else if (abs(p.y2 - r.y2) <= Snap)
+						{
+							// Snap bottom edge
+							Info->y = r.y2 - Info->cy + 1;
 						}
 					}
 				}
@@ -825,7 +837,7 @@ GMessage::Result GWindow::OnEvent(GMessage *Msg)
 
 GRect &GWindow::GetPos()
 {
-	if (_View AND IsZoomed(_View))
+	if (_View && IsZoomed(_View))
 	{
 		static GRect r;
 		RECT rc;
@@ -846,7 +858,7 @@ bool GWindow::RegisterHook(GView *Target, int EventType, int Priority)
 {
 	bool Status = false;
 	
-	if (Target AND EventType)
+	if (Target && EventType)
 	{
 		int i = d->GetHookIndex(Target, true);
 		if (i >= 0)
@@ -872,13 +884,13 @@ bool GWindow::UnregisterHook(GView *Target)
 
 bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
 {
-	if (!Store OR !FieldName)
+	if (!Store || !FieldName)
 		return false;
 
 	if (Load)
 	{
 		GVariant v;
-		if (Store->GetValue(FieldName, v) AND v.Str())
+		if (Store->GetValue(FieldName, v) && v.Str())
 		{
 			GRect Position(0, 0, -1, -1);
 			int State = 0;
@@ -907,13 +919,13 @@ bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
 
 			// Apply any shortcut override
 			int Show = LgiApp->GetShow();
-			if (Show == SW_SHOWMINIMIZED OR
-				Show == SW_SHOWMINNOACTIVE OR
+			if (Show == SW_SHOWMINIMIZED ||
+				Show == SW_SHOWMINNOACTIVE ||
 				Show == SW_MINIMIZE)
 			{
 				State = -1;
 			}
-			else if (Show == SW_SHOWMAXIMIZED OR
+			else if (Show == SW_SHOWMAXIMIZED ||
 					 Show == SW_MAXIMIZE)
 			{
 				State = 1;

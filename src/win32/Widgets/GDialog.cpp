@@ -110,8 +110,10 @@ GDialog::GDialog()
 	#if USE_DIALOGBOXINDIRECTPARAM
 	WndFlags |= GWF_DIALOG;
 	SetExStyle(GetExStyle() | WS_EX_CONTROLPARENT);
+	#else
+	SetStyle(GetStyle() & ~(WS_MINIMIZEBOX | WS_MAXIMIZEBOX));
+	SetStyle(GetStyle() | WS_DLGFRAME);
 	#endif
-
 }
 
 GDialog::~GDialog()
@@ -250,6 +252,10 @@ int GDialog::DoModal(OsView ParentHnd)
 	{
 	    AttachChildren();
 	    
+	    GWindow *ParentWnd = dynamic_cast<GWindow*>(p);
+	    if (ParentWnd)
+	        ParentWnd->_Dialog = this;
+
 	    if (p)
 	    {
 	        GRect pp = p->GetPos();
@@ -274,6 +280,8 @@ int GDialog::DoModal(OsView ParentHnd)
 	        LgiSleep(1);
 	    }
 	    if (pwnd) EnableWindow(pwnd, true);
+	    if (ParentWnd)
+	        ParentWnd->_Dialog = NULL;
 	    
 	    Visible(false);
 	    Status = d->ModalResult;

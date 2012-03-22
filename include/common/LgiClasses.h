@@ -1226,6 +1226,7 @@ protected:
 
 	GRect OldPos;
 	HWND LastFocus;
+	GWindow *_Dialog;
 
 	#else
 
@@ -1347,7 +1348,7 @@ public:
 	virtual void OnUrl(const char *Url) {};
 
 	#if !WIN32NATIVE
-
+	
 	bool Attach(GViewI *p);
 
 	// Props
