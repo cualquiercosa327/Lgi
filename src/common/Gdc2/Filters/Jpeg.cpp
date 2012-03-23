@@ -326,30 +326,6 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 	struct my_error_mgr jerr;
 	JpegStream s;
 	s.f = In;
-
-    /*
-	char *filename = NewStr(GetName());
-	if (filename)
-	{
-		if (IsOpen())
-		{
-			Close();
-		}
-
-		FILE *infile;
-
-		char16 *WideFile = LgiNewUtf8To16(filename);
-
-		#ifdef WIN32
-		infile = _wfopen(WideFile, L"rb");
-		#else
-		infile = fopen(filename, "rb");
-		#endif
-
-		DeleteArray(WideFile);
-		if (infile)
-		{
-	*/
 	
 	ZeroObj(cinfo);
 	cinfo.err = d->jpeg_std_error(&jerr.pub);
@@ -358,10 +334,6 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 
 	if (setjmp(jerr.setjmp_buffer))
 	{
-		/*
-		char File[MAX_PATH];
-		GetModuleFileName(Handle(), File, sizeof(File));
-		*/
 		d->jpeg_destroy_decompress(&cinfo);
 		return Status;
 	}

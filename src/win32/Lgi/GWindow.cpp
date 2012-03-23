@@ -567,7 +567,7 @@ GMessage::Result GWindow::OnEvent(GMessage *Msg)
 				    break;
 				    
 				LgiTrace("%s flags = %x\n", Name(), Info->flags);
-				if (Info->flags == SWP_NOSIZE || SWP_NOMOVE && _Dialog)
+				if (Info->flags == (SWP_NOSIZE | SWP_NOMOVE) && _Dialog)
 				{
 				    // Info->flags |= SWP_NOZORDER;
 				    Info->hwndInsertAfter = _Dialog->Handle();
