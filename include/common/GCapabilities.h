@@ -4,6 +4,8 @@
 #define _GCAPABILITIES_H
 #ifdef __cplusplus
 
+#include "GHashTable.h"
+
 class GCapabilityTarget;
 
 /// This class is a parent for objects that need external dependencies 
@@ -30,10 +32,15 @@ class LgiClass GCapabilityTarget
     GArray<GCapabilityClient*> Clients;
 
 public:
+	typedef GHashTbl<const char*, bool> CapsHash;
+
     virtual ~GCapabilityTarget();
     
     /// This is called to install a dependency.
     virtual bool NeedsCapability(const char *Name) = 0;
+    
+    /// This is called after the dependcy is installed.
+    virtual void OnInstall(CapsHash *Caps, bool Status) = 0;
 };
 
 #endif
