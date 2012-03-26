@@ -357,7 +357,7 @@ public:
 
     bool CollectRadioButtons(GArray<GRadioButton*> &Btns)
     {
-        GViewIterator *it = Ctrl->IterateViews();
+        GAutoPtr<GViewIterator> it(Ctrl->IterateViews());
         for (GViewI *i = it->First(); i; i = it->Next())
         {
             GRadioButton *b = dynamic_cast<GRadioButton*>(i);
