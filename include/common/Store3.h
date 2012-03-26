@@ -497,6 +497,7 @@ extern GDataStoreI *OpenImap
 	/// \sa #MAIL_SSL, #MAIL_SECURE_AUTH
 	int ConnectFlags,
 	GDataEventsI *Callback,
+	GCapabilityClient *caps,
 	GStream *Log,
 	int AccoundId = 0
 );

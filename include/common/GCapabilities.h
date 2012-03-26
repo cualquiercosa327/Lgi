@@ -15,13 +15,12 @@ class LgiClass GCapabilityClient
     friend class GCapabilityTarget;
     GArray<GCapabilityTarget*> Targets;
 
-protected:
-	/// Call this when you need to fulfill an external dependency.
-    bool NeedsCapability(const char *Name);
-
 public:
     virtual ~GCapabilityClient();
     
+	/// Call this when you need to fulfill an external dependency.
+    bool NeedsCapability(const char *Name);
+
     /// Call this to register a target that can install dependencies.
     void Register(GCapabilityTarget *t);
 };

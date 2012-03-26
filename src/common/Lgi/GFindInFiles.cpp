@@ -112,5 +112,13 @@ GFindInFiles::~GFindInFiles()
 
 int GFindInFiles::OnNotify(GViewI *Ctrl, int Flags)
 {
+    switch (Ctrl->GetId())
+    {
+        case IDOK:
+        case IDCANCEL:
+            EndModal(Ctrl->GetId() == IDOK);
+            break;
+    }
+    
 	return GDialog::OnNotify(Ctrl, Flags);
 }
