@@ -205,7 +205,7 @@ public:
 	bool SetValue(char *Which, GVariant &What)
 	{
 		int r = S->SetValue(Which, What);
-		if (T AND stricmp(Which, GSocket_TransferSize) == 0)
+		if (T && stricmp(Which, GSocket_TransferSize) == 0)
 		{
 			T->Range = What.CastInt32();
 		}
@@ -232,7 +232,7 @@ public:
 	int Read(void *Buffer, int Size, int Flags = 0)
 	{
 		int s = S->Read(Buffer, Size, Flags);
-		if (T AND s > 0)
+		if (T && s > 0)
 		{
 			T->Value += s;
 		}
@@ -250,7 +250,7 @@ bool MailPhp::Get(GSocketI *S, char *Uri, GStream &Out, bool MailTransfer)
 {
 	bool Status = false;
 
-	if (S AND Uri)
+	if (S && Uri)
 	{
 		char *Start = Uri;
 		if (strnicmp(Start, "http://", 7) == 0)
@@ -262,7 +262,7 @@ bool MailPhp::Get(GSocketI *S, char *Uri, GStream &Out, bool MailTransfer)
 			char *Base = NewStr(Start, s-Start);
 
 			IHttp Http;
-			if (d->UserName AND d->UserPass)
+			if (d->UserName && d->UserPass)
 			{
 				Http.SetAuth(d->UserName, d->UserPass);
 			}
@@ -307,7 +307,7 @@ int MailPhp::GetMessages()
 
 bool MailPhp::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Password, char *&Cookie, int Flags)
 {
-	if (S AND
+	if (S &&
 		RemoteHost)
 	{
 		d->HeadersRetreived = false;
@@ -404,8 +404,8 @@ bool MailPhp::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Pa
 				Log("Missing or invalid token. Is your PopOverHttp page broken?", MAIL_ERROR_COLOUR);
 			}
 
-			return	PopOverHttp AND
-					GotToken AND
+			return	PopOverHttp &&
+					GotToken &&
 					d->Messages == d->Msgs.Length();
 		}
 		else Log("No PopOverHttp index page.", MAIL_ERROR_COLOUR);
@@ -417,7 +417,7 @@ bool MailPhp::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Pa
 
 bool MailPhp::Close()
 {
-	if (d->HasDeletes AND
+	if (d->HasDeletes &&
 		d->Messages)
 	{
 		GStringPipe p;
@@ -503,10 +503,10 @@ bool MailPhp::Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks)
 
 			char *s = All;
 			int i = 0;
-			for (char *e = strstr(s, PopOverHttpSep); s AND e; i++)
+			for (char *e = strstr(s, PopOverHttpSep); s && e; i++)
 			{
 				MailTransaction *t = Trans[i];
-				if (t AND t->Stream)
+				if (t && t->Stream)
 				{
 					int Len = e-s;
 					if (!strnstr(s, "Error: ", min(Len, 256)))
@@ -611,7 +611,7 @@ char *MailPhp::GetHeaders(int Message)
 				int n = 0;
 				char *All = Text.NewStr();
 				int AllLen = strlen(All);
-				for (char *s = All; s AND *s; )
+				for (char *s = All; s && *s; )
 				{
 					Msg *m = d->Msgs[n++];
 					if (m)

@@ -149,7 +149,7 @@ bool SystemFunctions::Strchr(GVariant *Ret, ArgumentArray &Args)
 	char *ch = Args[1]->CastString();
 	// int str_len = Args.Length() > 2 ? Args[2]->CastInt32() : -1;
 	bool rev = Args.Length() >= 3 ? Args[2]->CastBool() : false;
-	if (str AND ch)
+	if (str && ch)
 	{
 		GUtf8Ptr Str(str);
 		GUtf8Ptr Ch(ch);
@@ -309,7 +309,7 @@ bool SystemFunctions::Strcmp(GVariant *Ret, ArgumentArray &Args)
 		int case_insensitive =	Args.Length() > 2 ? Args[2]->CastInt32() : true;
 		int str_len =			Args.Length() > 3 ? Args[3]->CastInt32() : -1;
 
-		if (a AND b)
+		if (a && b)
 		{
 			if (str_len > 0)
 			{
@@ -345,7 +345,7 @@ bool SystemFunctions::Substr(GVariant *Ret, ArgumentArray &Args)
 		{
 			uint32 ch;
 			int slen = strlen((char*) str);
-			while (start > 0 AND (ch = LgiUtf8To32(str, slen)) != 0)
+			while (start > 0 && (ch = LgiUtf8To32(str, slen)) != 0)
 			{
 				start--;
 			}
@@ -357,7 +357,7 @@ bool SystemFunctions::Substr(GVariant *Ret, ArgumentArray &Args)
 			else
 			{
 				uint8 *end = str;
-				while (len > 0 AND (ch = LgiUtf8To32(end, slen)) != 0)
+				while (len > 0 && (ch = LgiUtf8To32(end, slen)) != 0)
 				{
 					len--;
 				}
@@ -451,7 +451,7 @@ bool SystemFunctions::DeleteElement(GVariant *Ret, ArgumentArray &Args)
 			case GV_LIST:
 			{
 				int32 Idx = Args[1]->CastInt32();
-				if (Idx >= 0 AND Idx < Args[0]->Value.Lst->Length())
+				if (Idx >= 0 && Idx < Args[0]->Value.Lst->Length())
 				{
 					return Args[0]->Value.Lst->Delete(Idx);
 				}
@@ -465,7 +465,7 @@ bool SystemFunctions::DeleteElement(GVariant *Ret, ArgumentArray &Args)
 
 bool SystemFunctions::ReadTextFile(GVariant *Ret, ArgumentArray &Args)
 {
-	if (Args.Length() == 1 AND
+	if (Args.Length() == 1 &&
 		FileExists(Args[0]->CastString()))
 	{
 		if (Ret->Value.String = ::ReadTextFile(Args[0]->CastString()))

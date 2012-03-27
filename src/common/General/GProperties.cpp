@@ -127,15 +127,15 @@ bool Prop::Serialize(GFile &f, bool Write)
 
 int HexToDec(char c)
 {
-	if (c >= '0' AND c <= '9')
+	if (c >= '0' && c <= '9')
 	{
 		return c - '0';
 	}
-	if (c >= 'A' AND c <= 'F')
+	if (c >= 'A' && c <= 'F')
 	{
 		return c - 'A' + 10;
 	}
-	if (c >= 'a' AND c <= 'f')
+	if (c >= 'a' && c <= 'f')
 	{
 		return c - 'a' + 10;
 	}
@@ -151,7 +151,7 @@ bool Prop::operator ==(Prop &p)
 bool Prop::operator ==(const char *n)
 {
 	bool Status = false;
-	if (Name AND n)
+	if (Name && n)
 	{
 		Status = stricmp(Name, n) == 0;
 	}
@@ -182,7 +182,7 @@ bool Prop::SerializeText(GFile &f, bool Write)
 			{
 				f.Write(Str, sprintf(Str, "%s=\"", Name));
 				
-				for (char *s = Value.Cp; s AND *s; s++)
+				for (char *s = Value.Cp; s && *s; s++)
 				{
 					switch (*s)
 					{
@@ -286,7 +286,7 @@ bool Prop::SerializeText(GFile &f, bool Write)
 
 							GStringPipe p(256);
 							
-							for (char *s = Start; s AND *s AND *s != '\"'; )
+							for (char *s = Start; s && *s && *s != '\"'; )
 							{
 								if (*s == '\\')
 								{
@@ -521,8 +521,8 @@ bool ObjProperties::DeleteKey(char *Name)
 {
 	bool Status = false;
 
-	if ( (Name AND Find(Name)) OR
-		 (!Name AND Current) )
+	if ( (Name && Find(Name)) OR
+		 (!Name && Current) )
 	{
 		Status = Properties.Delete(Current);
 		DeleteObj(Current);
@@ -632,7 +632,7 @@ bool ObjProperties::Set(const char *Name, const char *n)
 
 bool ObjProperties::Set(const char *Name, void *Data, int Len)
 {
-	if (Data AND Len > 0)
+	if (Data && Len > 0)
 	{
 		Prop *c = FindProp(Name);
 		if (!c)
@@ -699,7 +699,7 @@ bool ObjProperties::Get(const char *Name, int &n)
 {
 
 	Prop *c = FindProp(Name);
-	if (c AND c->Type == OBJ_INT)
+	if (c && c->Type == OBJ_INT)
 	{
 		n = c->Value.Int;
 		return true;
@@ -711,7 +711,7 @@ bool ObjProperties::Get(const char *Name, int &n)
 bool ObjProperties::Get(const char *Name, double &n)
 {
 	Prop *c = FindProp(Name);
-	if (c AND c->Type == OBJ_FLOAT)
+	if (c && c->Type == OBJ_FLOAT)
 	{
 		n = c->Value.Dbl;
 		return true;
@@ -723,7 +723,7 @@ bool ObjProperties::Get(const char *Name, double &n)
 bool ObjProperties::Get(const char *Name, char *&n)
 {
 	Prop *c = FindProp(Name);
-	if (c AND c->Type == OBJ_STRING)
+	if (c && c->Type == OBJ_STRING)
 	{
 		n = c->Value.Cp;
 		return true;
@@ -735,7 +735,7 @@ bool ObjProperties::Get(const char *Name, char *&n)
 bool ObjProperties::Get(const char *Name, void *&Data, int &Len)
 {
 	Prop *c = FindProp(Name);
-	if (c AND c->Type == OBJ_BINARY)
+	if (c && c->Type == OBJ_BINARY)
 	{
 		Data = c->Value.Cp;
 		Len = c->Size;
@@ -833,7 +833,7 @@ bool ObjProperties::Serialize(GFile &f, bool Write)
 			Status = Leaf->Serialize(f, Write);
 		}
 
-		if (Status AND Next)
+		if (Status && Next)
 		{
 			Status = Next->Serialize(f, Write);
 		}
@@ -913,7 +913,7 @@ bool ObjProperties::Serialize(GFile &f, bool Write)
 				}
 			}
 
-			if (Status AND (Flags & PROPLST_NEXT))
+			if (Status && (Flags & PROPLST_NEXT))
 			{
 				if (!Next)
 				{
@@ -970,7 +970,7 @@ bool ObjProperties::SerializeText(GFile &f, bool Write)
 			while (!f.Eof())
 			{
 				Prop *p = new Prop;
-				if (p AND 
+				if (p && 
 					p->SerializeText(f, Write))
 				{
 					Properties.Insert(p);
@@ -1086,7 +1086,7 @@ ObjProperties *ObjTree::GetLeaf(char *Name, bool Create)
 
 		while (*Start)
 		{
-			for (End = Start; *End AND *End != '.'; End++);
+			for (End = Start; *End && *End != '.'; End++);
 
 			if (*End == '.')
 			{
@@ -1114,7 +1114,7 @@ ObjProperties *ObjTree::GetLeaf(char *Name, bool Create)
 
 			pParent = pList;
 
-			while (pList AND *pList != Token)
+			while (pList && *pList != Token)
 			{
 				if (pList->GetNext())
 				{
@@ -1134,7 +1134,7 @@ ObjProperties *ObjTree::GetLeaf(char *Name, bool Create)
 				}
 			}
 
-			if (pList AND *pList == Token)
+			if (pList && *pList == Token)
 			{
 				pp = &pList->GetLeaf();
 			}
@@ -1221,7 +1221,7 @@ bool ObjTree::Get(char *Name, int &n)
 	if (Key)
 	{
 		ObjProperties *Obj = GetLeaf(Buf);
-		if (Obj AND Obj->Find(Key))
+		if (Obj && Obj->Find(Key))
 		{
 			return Obj->Get(Key, n);
 		}
@@ -1237,7 +1237,7 @@ bool ObjTree::Get(char *Name, double &n)
 	if (Key)
 	{
 		ObjProperties *Obj = GetLeaf(Buf);
-		if (Obj AND Obj->Find(Key))
+		if (Obj && Obj->Find(Key))
 		{
 			return Obj->Get(Key, n);
 		}
@@ -1253,7 +1253,7 @@ bool ObjTree::Get(char *Name, char *&n)
 	if (Key)
 	{
 		ObjProperties *Obj = GetLeaf(Buf);
-		if (Obj AND Obj->Find(Key))
+		if (Obj && Obj->Find(Key))
 		{
 			return Obj->Get(Key, n);
 		}
@@ -1336,7 +1336,7 @@ void ObjTree::Print()
 
 bool ObjTree::Serialize(GFile &f, bool Write)
 {
-	if (!Root AND !Write)
+	if (!Root && !Write)
 	{
 		Root = new ObjProperties;
 	}
@@ -1352,7 +1352,7 @@ bool ObjTree::Serialize(GFile &f, bool Write)
 char *Trim(char *s)
 {
 	const char *Delim = "\r\n\t ";
-	while (s AND *s AND strchr(Delim, *s))
+	while (s && *s && strchr(Delim, *s))
 	{
 		s++;
 	}
@@ -1362,12 +1362,12 @@ char *Trim(char *s)
 
 bool IsAlpha(char c)
 {
-	return ((c >= 'a' AND c <= 'z') OR (c >= 'A' AND c <= 'Z'));
+	return ((c >= 'a' && c <= 'z') OR (c >= 'A' && c <= 'Z'));
 }
 
 bool IsDigit(char c)
 {
-	return (c >= '0' AND c <= '9');
+	return (c >= '0' && c <= '9');
 }
 
 bool ObjTree::SerializeObj(GFile &f, bool Write)
@@ -1401,7 +1401,7 @@ bool ObjTree::SerializeObj(GFile &f, bool Write)
 				s++;
 				if (strchr(s, ']'))
 				{
-					for (i=0; i<256 AND *s != ']'; i++)
+					for (i=0; i<256 && *s != ']'; i++)
 					{
 						Group[i] = *s++;
 					}
@@ -1463,16 +1463,16 @@ bool ObjTree::SerializeObj(GFile &f, bool Write)
 										
 										s += 2;
 										strupr(s);
-										for (;s[Len] AND strchr(NumToHex, s[Len]); Len++);
+										for (;s[Len] && strchr(NumToHex, s[Len]); Len++);
 										Len--;
 
 										if (Len > 0)
 										{
 											int Val = 0;
 											int Shift = 0;
-											for (; Len >= 0 AND Shift <= 28; Len--, Shift+=4)
+											for (; Len >= 0 && Shift <= 28; Len--, Shift+=4)
 											{
-												Val |= (((s[Len] >= '0' AND s[Len] <= '9') ? s[Len] - '0' : s[Len] - 'A' + 10)) << Shift;
+												Val |= (((s[Len] >= '0' && s[Len] <= '9') ? s[Len] - '0' : s[Len] - 'A' + 10)) << Shift;
 											}
 
 											Props->Set(Variable, Val);

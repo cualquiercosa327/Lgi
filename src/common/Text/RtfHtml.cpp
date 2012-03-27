@@ -1,8 +1,8 @@
 #include "Lgi.h"
 #include "RtfHtml.h"
 
-#define SkipWs(s) while (*s AND strchr(Ws, *s)) s++;
-#define SkipNotWs(s) while (*s AND !strchr(Ws, *s)) s++;
+#define SkipWs(s) while (*s && strchr(Ws, *s)) s++;
+#define SkipNotWs(s) while (*s && !strchr(Ws, *s)) s++;
 
 static char Ws[] = " \r\t\n";
 
@@ -20,7 +20,7 @@ void ParseRtf(GStringPipe &p, char *&s)
 {
 	List<char> Tags;
 
-	while (s AND *s)
+	while (s && *s)
 	{
 		SkipWs(s);
 
@@ -38,8 +38,8 @@ void ParseRtf(GStringPipe &p, char *&s)
 		{
 			s++;
 			char *Start = s;
-			while (*s AND (isalpha(*s) OR strchr("*\'", *s))) s++;
-			while (*s AND isdigit(*s)) s++;
+			while (*s && (isalpha(*s) OR strchr("*\'", *s))) s++;
+			while (*s && isdigit(*s)) s++;
 
 			int Len = s - Start;
 			if (Len > 1)
@@ -60,7 +60,7 @@ void ParseRtf(GStringPipe &p, char *&s)
 			SkipWs(s);
 
 			char *Start = s;
-			while (*s AND !strchr(Ws, *s) AND !strchr("\\{}\n", *s)) s++;
+			while (*s && !strchr(Ws, *s) && !strchr("\\{}\n", *s)) s++;
 			SkipWs(s);
 
 			if (HasTag(Tags, "htmlrtf") OR

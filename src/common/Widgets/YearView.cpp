@@ -105,7 +105,7 @@ int YearView::Y()
 
 bool YearView::IsMonth()
 {
-	return (Cx >= Start[Cy] AND Cx < Start[Cy] + Len[Cy]);
+	return (Cx >= Start[Cy] && Cx < Start[Cy] + Len[Cy]);
 }
 
 bool YearView::IsToday()

@@ -185,7 +185,7 @@ public:
 		int Code = 0;
 
 		Pipe = in;
-		if (Out AND Pipe)
+		if (Out && Pipe)
 		{
 			CodeSize = 9;
 			ClearCode = 256;
@@ -283,7 +283,7 @@ public:
 				}
 
 				OldCode = Code;
-				if ((Done++ & 0xffff) == 0 AND Meter)
+				if ((Done++ & 0xffff) == 0 && Meter)
 				{
 					int64 Blocks = Out->GetSize();
 					if (Block) Blocks /= Block;
@@ -302,7 +302,7 @@ public:
 	{
 		if (Final OR (InPos >= InBuf + InBufSize))
 		{
-			if (Final AND BitPos > 0)
+			if (Final && BitPos > 0)
 			{
 				// Flush any buffered bits
 				*InPos++ = Datum;
@@ -371,12 +371,12 @@ public:
 		uchar *hash_suffix = new uchar[MaxHashTable];
 		uchar *Input = new uchar[InputLen];
 
-		if (In AND
-			Out AND
-			Input AND
-			packet AND
-			hash_code AND
-			hash_prefix AND
+		if (In &&
+			Out &&
+			Input &&
+			packet &&
+			hash_code &&
+			hash_prefix &&
 			hash_suffix)
 		{
 			// Initialize GIF encoder.
@@ -416,7 +416,7 @@ public:
 				#if defined(HasLZW)
 				if (hash_code[k] > 0)
 				{
-					if ((hash_prefix[k] == WaitingCode) AND
+					if ((hash_prefix[k] == WaitingCode) &&
 						(hash_suffix[k] == index))
 					{
 						WaitingCode = hash_code[k];
@@ -440,7 +440,7 @@ public:
 							break;
 						}
 						
-						if ((hash_prefix[k] == WaitingCode) AND
+						if ((hash_prefix[k] == WaitingCode) &&
 							(hash_suffix[k] == index))
 						{
 							WaitingCode = hash_code[k];
@@ -478,7 +478,7 @@ public:
 				WaitingCode=index;
 
 				int v = (int) (p-Input);
-				if (Meter AND (v%1000 == 0))
+				if (Meter && (v%1000 == 0))
 				{
 					Meter->Value(v);
 				}

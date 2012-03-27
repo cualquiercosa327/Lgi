@@ -252,8 +252,8 @@ GFile *StorageItemImpl::GotoObject(const char *file, int line)
 {
 	GSubFilePtr *f = 0;
 	
-	if (Header AND
-		Tree AND
+	if (Header &&
+		Tree &&
 		Tree->_ValidLoc(Header->DataLoc))
 	{
 		f = Tree->CreateFilePtr(file, line);
@@ -302,7 +302,7 @@ bool StorageItemImpl::SetDirty(bool Dirty)
 	}
 	else if (Tree->IsOk())
 	{
-		if (Object AND Object->GetDirty())
+		if (Object && Object->GetDirty())
 		{
 			GSubFilePtr *Ptr = Tree->CreateFilePtr(_FL);
 			if (Ptr)
@@ -325,8 +325,8 @@ bool StorageItemImpl::SerializeHeader(GFile &f, bool Write)
 {
 	bool Status = false;
 
-	if (Tree->IsOk() AND
-		Header AND
+	if (Tree->IsOk() &&
+		Header &&
 		(!Write OR HeaderDirty))
 	{
 		if (Tree->Lock(_FL))
@@ -376,8 +376,8 @@ bool StorageItemImpl::SerializeObject(GSubFilePtr &f, bool Write)
 {
 	bool Status = false;
 
-	if (Tree->IsOk() AND
-		Header AND
+	if (Tree->IsOk() &&
+		Header &&
 		Object)
 	{
 		if (!Write OR Object->GetDirty())
@@ -430,8 +430,8 @@ bool StorageItemImpl::SerializeObject(GSubFilePtr &f, bool Write)
 					}
 
 					static bool IgnoreStorageErrors = false;
-					if (!IgnoreStorageErrors AND
-						Status AND
+					if (!IgnoreStorageErrors &&
+						Status &&
 						CurrentPos != Header->DataSize)
 					{
 						char Msg[512];
@@ -496,8 +496,8 @@ bool StorageItemImpl::Save()
 {
 	bool Status = false;
 
-	if (Tree->IsOk() AND
-		Header AND
+	if (Tree->IsOk() &&
+		Header &&
 		Object)
 	{
 		Tree->StorageObj_SetDirty(Object, true);
@@ -533,10 +533,10 @@ extern void TraceTime(char *s);
 
 StorageItem *StorageItemImpl::GetChild()
 {
-	if (Tree->IsOk() AND
-		!Child AND
-		Header AND
-		Header->DirCount > 0 AND
+	if (Tree->IsOk() &&
+		!Child &&
+		Header &&
+		Header->DirCount > 0 &&
 		Header->DirLoc > 0)
 	{
 		if (Tree->Lock(_FL))
@@ -677,7 +677,7 @@ bool StorageItemImpl::IncDirSize()
 	// load any children if not already
 	GetChild();
 
-	if (Tree->IsOk() AND
+	if (Tree->IsOk() &&
 		Header)
 	{
 		if (Tree->Lock(_FL)) // matching Unlock in DirChange
@@ -730,8 +730,8 @@ bool StorageItemImpl::DirChange()
 {
 	bool Status = false;
 
-	if (Tree->IsOk() AND
-		!Tree->ReadOnly AND
+	if (Tree->IsOk() &&
+		!Tree->ReadOnly &&
 		Header)
 	{
 		if (Dir)
@@ -794,7 +794,7 @@ StorageItem *StorageItemImpl::CreateNext(StorageObj *Obj)
 
 StorageItem *StorageItemImpl::CreateChild(StorageObj *Obj)
 {
-	if (Tree->IsOk() AND
+	if (Tree->IsOk() &&
 		Obj)
 	{
 		// insert child into directory
@@ -838,8 +838,8 @@ StorageItem *StorageItemImpl::CreateChild(StorageObj *Obj)
 StorageItem *StorageItemImpl::CreateSub(StorageObj *Obj)
 {
 	StorageItemImpl *New = 0;
-	if (Tree->IsOk() AND
-		!Tree->ReadOnly AND
+	if (Tree->IsOk() &&
+		!Tree->ReadOnly &&
 		Obj)
 	{
 		// insert child into directory
@@ -861,7 +861,7 @@ StorageItem *StorageItemImpl::CreateSub(StorageObj *Obj)
 			New->SetType(Obj->Type());
 
 			StorageItemImpl *End = Child;
-			while (End AND End->Next) End = End->Next;
+			while (End && End->Next) End = End->Next;
 			if (End)
 			{
 				End->Next = New;
@@ -894,9 +894,9 @@ bool StorageItemImpl::InsertSub(StorageItem *ObjVirtual, int At)
 {
 	StorageItemImpl *Obj = (StorageItemImpl*) ObjVirtual;
 
-	if (Obj AND
-		Obj->Temp AND	 // needs Temp pointer for type info
-		Header AND
+	if (Obj &&
+		Obj->Temp &&	 // needs Temp pointer for type info
+		Header &&
 		Tree)
 	{
 		// insert child into directory
@@ -1027,7 +1027,7 @@ bool StorageItemImpl::DeleteAllChildren()
 {
 	bool Status = false;
 
-	if (Tree->IsOk() AND
+	if (Tree->IsOk() &&
 		Header)
 	{
 		if (Tree->Lock(_FL))
@@ -1098,12 +1098,12 @@ bool StorageItemImpl::DeleteChild(StorageItem *ObjVirtual)
 	StorageItemImpl *Obj = (StorageItemImpl*) ObjVirtual;
 	bool Status = false;
 
-	if (Obj AND
-		Obj->Parent == this AND
-		Tree AND
+	if (Obj &&
+		Obj->Parent == this &&
+		Tree &&
 		Tree->Lock(_FL))
 	{
-		bool HeaderPtrOk = Obj->Header AND (Obj->Header >= Dir AND Obj->Header < Dir + Header->DirCount);
+		bool HeaderPtrOk = Obj->Header && (Obj->Header >= Dir && Obj->Header < Dir + Header->DirCount);
 		LgiAssert(HeaderPtrOk);
 		if (HeaderPtrOk)
 		{
@@ -1205,7 +1205,7 @@ namespace Storage2
 				0};
 
 			int i = Type - MAGIC_BASE;
-			if (i >= 0 AND i<MAGIC_MAX)
+			if (i >= 0 && i<MAGIC_MAX)
 			{
 				return Storage2TypeName[i];
 			}
@@ -1218,7 +1218,7 @@ namespace Storage2
 
 		void Discard(Block *Item)
 		{
-			if (Kit->IsOk() AND Item)
+			if (Kit->IsOk() && Item)
 			{
 				if (Item->Dir)
 				{
@@ -1335,7 +1335,7 @@ namespace Storage2
 		GSegmentTree Segs;
 		void AddSegs(StorageItemImpl *s)
 		{
-			if (s AND
+			if (s &&
 				(!_Ui OR !_Ui->Cancel()))
 			{
 				for (StorageItemImpl *Item = s; Item; )
@@ -1398,7 +1398,7 @@ namespace Storage2
 					{
 						_Ui->Value(_CompactPos);
 						LgiYield();
-						if (_Ui AND _Ui->Cancel())
+						if (_Ui && _Ui->Cancel())
 						{
 							break;
 						}
@@ -1420,7 +1420,7 @@ namespace Storage2
 		{
 			static int Iter = 0;
 
-			if (s AND
+			if (s &&
 				(!_Ui OR !_Ui->Cancel()))
 			{
 				for (StorageItemImpl *Item = s; Item; )
@@ -1459,7 +1459,7 @@ namespace Storage2
 					if (_Timer.DoNow())
 					{
 						LgiYield();
-						if (_Ui AND _Ui->Cancel())
+						if (_Ui && _Ui->Cancel())
 						{
 							break;
 						}
@@ -1578,7 +1578,7 @@ namespace Storage2
 				}
 
 				StorageItemImpl *Impl = Item->Object ? Item->Object : Item->Dir;
-				if (_Ui AND Impl)
+				if (_Ui && Impl)
 				{
 					_CompactPos += Impl->GetTotalSize();
 					if (_Timer.DoNow())
@@ -1641,7 +1641,7 @@ StorageKitImpl::~StorageKitImpl()
 
 bool StorageKitImpl::IsOk()
 {
-	bool Status = (this != 0) AND (File != 0);
+	bool Status = (this != 0) && (File != 0);
 	LgiAssert(Status);
 	return Status;
 }
@@ -1689,7 +1689,7 @@ uint64 StorageKitImpl::GetFileSize()
 
 StorageItem *Storage2::StorageKitImpl::CreateRoot(StorageObj *Obj)
 {
-	if (IsOk() AND
+	if (IsOk() &&
 		Lock(_FL))
 	{
 		if (Obj)
@@ -1726,7 +1726,7 @@ StorageItem *Storage2::StorageKitImpl::CreateRoot(StorageObj *Obj)
 
 StorageItem *StorageKitImpl::GetRoot()
 {
-	if (!Root AND IsOk())
+	if (!Root && IsOk())
 	{
 		if (Lock(_FL))
 		{
@@ -1755,7 +1755,7 @@ bool StorageKitImpl::SeparateItem(StorageItem *Item)
 {
 	bool Status = false;
 
-	if (!ReadOnly AND Item)
+	if (!ReadOnly && Item)
 	{
 		if (Lock(_FL))
 		{
@@ -1779,7 +1779,7 @@ bool StorageKitImpl::DeleteItem(StorageItem *Item)
 {
 	bool Status = false;
 
-	if (!ReadOnly AND Item)
+	if (!ReadOnly && Item)
 	{
 		if (Lock(_FL))
 		{
@@ -1804,7 +1804,7 @@ bool StorageKitImpl::_ValidLoc(uint64 Loc)
 {
 	if (File)
 	{
-		if (Loc >= 64 AND Loc <= File->GetSize())
+		if (Loc >= 64 && Loc <= File->GetSize())
 		{
 			return true;
 		}
@@ -1826,8 +1826,8 @@ bool StorageKitImpl::Compact(Progress *p, bool Interactive, StorageValidator *va
 	d->Validator = validator;
 	d->_Ui = p;
 	d->_CompactPos = 0;
-	if (Root AND
-		IsOk() AND
+	if (Root &&
+		IsOk() &&
 		Lock(_FL))
 	{
 		DeleteArray(d->Blocks);
@@ -2013,13 +2013,13 @@ bool StorageKitImpl::Compact(Progress *p, bool Interactive, StorageValidator *va
 						sprintf(Msg, "Compact complete, %s was recovered.", Size);
 					}
 
-					if (RemoveSpace AND
+					if (RemoveSpace &&
 						d->_Timer.DoNow())
 					{
 						RemoveSpace->Value(b->Start);
 						LgiYield();
 
-						if (p AND p->Cancel())
+						if (p && p->Cancel())
 						{
 							break;
 						}
@@ -2035,7 +2035,7 @@ bool StorageKitImpl::Compact(Progress *p, bool Interactive, StorageValidator *va
 		}
 
 		// clean up
-		if (p AND p->Cancel())
+		if (p && p->Cancel())
 		{
 			Status = true;
 		}
@@ -2065,7 +2065,7 @@ bool StorageKitImpl::_Serialize(GFile &f, bool Write)
 	bool Status = false;
 	StorageHeader Header;
 
-	if (IsOk() AND Lock(_FL))
+	if (IsOk() && Lock(_FL))
 	{
 		if (Write)
 		{
@@ -2105,7 +2105,7 @@ bool StorageKitImpl::_Serialize(GFile &f, bool Write)
 			#else
 			Status = f.Read(&Header, sizeof(Header)) == sizeof(Header);
 			#endif
-			if (Status AND f.GetPos() == sizeof(Header))
+			if (Status && f.GetPos() == sizeof(Header))
 			{
 				Status = (Header.Magic == STORAGE2_MAGIC);
 				if (Status)
@@ -2128,7 +2128,7 @@ bool StorageKitImpl::AttachItem(StorageItem *ItemVirtual, StorageItem *ToVirtual
 	StorageItemImpl *Item = (StorageItemImpl*)ItemVirtual;
 	StorageItemImpl *To = (StorageItemImpl*)ToVirtual;
 
-	if (Item AND
+	if (Item &&
 		To)
 	{
 		if (Item == To)

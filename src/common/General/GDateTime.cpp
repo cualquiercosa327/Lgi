@@ -139,7 +139,7 @@ bool GDateTime::IsValid()
 
 void GDateTime::SetTimeZone(int NewTz, bool ConvertTime)
 {
-	if (ConvertTime AND NewTz != _Tz)
+	if (ConvertTime && NewTz != _Tz)
 	{
 		AddMinutes(NewTz - _Tz);
 	}
@@ -589,7 +589,7 @@ bool GDateTime::Set(uint64 s)
 	SYSTEMTIME System;
 	Utc.dwHighDateTime = s >> 32;
 	Utc.dwLowDateTime = s & 0xffffffff;
-	if (FileTimeToLocalFileTime(&Utc, &Local) AND
+	if (FileTimeToLocalFileTime(&Utc, &Local) &&
 		FileTimeToSystemTime(&Local, &System))
 	{
 		_Year = System.wYear;
@@ -716,7 +716,7 @@ bool GDateTime::Get(uint64 &s)
 	System.wDayOfWeek = DayOfWeek();
 
 	BOOL b1, b2;
-	if ((b1 = SystemTimeToFileTime(&System, &Local)) AND
+	if ((b1 = SystemTimeToFileTime(&System, &Local)) &&
 		(b2 = LocalFileTimeToFileTime(&Local, &Utc)))
 	{
 		s = ((int64)Utc.dwHighDateTime << 32) | Utc.dwLowDateTime;
@@ -982,7 +982,7 @@ bool GDateTime::Serialize(GFile &f, bool Write)
 bool GDateTime::Serialize(ObjProperties *Props, char *Name, bool Write)
 {
 	#ifndef LGI_STATIC
-	if (Props AND Name)
+	if (Props && Name)
 	{
 		struct _Date
 		{
@@ -1014,7 +1014,7 @@ bool GDateTime::Serialize(ObjProperties *Props, char *Name, bool Write)
 			void *Ptr;
 			int Len;
 
-			if (Props->Get(Name, Ptr, Len) AND
+			if (Props->Get(Name, Ptr, Len) &&
 				sizeof(_Date) == Len)
 			{
 				_Date *d = (_Date*) Ptr;
@@ -1135,12 +1135,12 @@ bool GDateTime::operator >=(GDateTime &dt)
 
 bool GDateTime::operator ==(GDateTime &dt)
 {
-	return	_Year == dt._Year AND
-			_Month == dt._Month AND
-			_Day == dt._Day AND
-			_Hours == dt._Hours AND
-			_Minutes == dt._Minutes AND
-			_Seconds == dt._Seconds AND
+	return	_Year == dt._Year &&
+			_Month == dt._Month &&
+			_Day == dt._Day &&
+			_Hours == dt._Hours &&
+			_Minutes == dt._Minutes &&
+			_Seconds == dt._Seconds &&
 			_Thousands == dt._Thousands;
 }
 
@@ -1186,7 +1186,7 @@ GDateTime GDateTime::DiffMonths(GDateTime &dt)
 			OR
 			(
 				s._Month > dt._Month
-				AND
+				&&
 				s._Day >= dt._Day
 			)
 		)
@@ -1200,7 +1200,7 @@ GDateTime GDateTime::DiffMonths(GDateTime &dt)
 			OR
 			(
 				s._Month < dt._Month
-				AND
+				&&
 				s._Day <= dt._Day
 			)
 		)
@@ -1264,8 +1264,8 @@ GDateTime GDateTime::operator +(GDateTime &dt)
 
 bool GDateTime::IsSameDay(GDateTime &d)
 {
-	return	Day() == d.Day() AND
-			Month() == d.Month() AND
+	return	Day() == d.Day() &&
+			Month() == d.Month() &&
 			Year() == d.Year();
 }
 
@@ -1293,14 +1293,14 @@ bool GDateTime::IsLeapYear(int Year)
 
 int GDateTime::DaysInMonth()
 {
-	if (_Month == 2 AND
+	if (_Month == 2 &&
 		IsLeapYear())
 	{
 		return 29;
 	}
 
 	short DaysInMonth[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-	return _Month >= 1 AND _Month <= 12 ? DaysInMonth[_Month-1] : 0;
+	return _Month >= 1 && _Month <= 12 ? DaysInMonth[_Month-1] : 0;
 }
 
 #define MinutesInDay (60*24)
@@ -1461,7 +1461,7 @@ bool GDateTime::Decode(const char *In)
 				
 				if
 				(
-					*s AND
+					*s &&
 					(
 						strchr(s+1, '.') OR
 						strchr(s+1, '-')
@@ -1575,8 +1575,8 @@ bool GDateTime::Decode(const char *In)
 					GDateTime Now;
 					double OurTmz = (double)Now.SystemTimeZone() / 60;
 
-					if (s AND
-						strchr("-+", *s) AND
+					if (s &&
+						strchr("-+", *s) &&
 						strlen(s) == 5)
 					{
 						#if 1

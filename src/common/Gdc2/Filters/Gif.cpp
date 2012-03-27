@@ -87,10 +87,10 @@ class GdcGifFactory : public GFilterFactory
 	{
 		if (Hint)
 		{
-			if (Hint[0] == 'G' AND
-				Hint[1] == 'I' AND
-				Hint[2] == 'F' AND
-				Hint[3] == '8' AND
+			if (Hint[0] == 'G' &&
+				Hint[1] == 'I' &&
+				Hint[2] == 'F' &&
+				Hint[3] == '8' &&
 				Hint[4] == '9')
 			{
 				return true;

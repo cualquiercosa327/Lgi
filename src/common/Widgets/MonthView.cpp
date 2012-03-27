@@ -117,15 +117,15 @@ bool MonthView::IsToday()
 {
 	GDateTime Now;
 	Now.SetNow();
-	return	Now.Day() == Cell.Day() AND
-			Now.Month() == Cell.Month() AND
+	return	Now.Day() == Cell.Day() &&
+			Now.Month() == Cell.Month() &&
 			Now.Year() == Cell.Year();
 }
 
 bool MonthView::IsSelected()
 {
-	return	Cell.Day() == Cursor.Day() AND
-			Cell.Month() == Cursor.Month() AND
+	return	Cell.Day() == Cursor.Day() &&
+			Cell.Month() == Cursor.Month() &&
 			Cell.Year() == Cursor.Year();
 }
 

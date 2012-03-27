@@ -419,7 +419,7 @@ protected:
 	{
 		if (!s) return OpNull;
 
-		if (s[0] != 0 AND !s[1])
+		if (s[0] != 0 && !s[1])
 		{
 			// One character operator
 			switch (*s)
@@ -447,7 +447,7 @@ protected:
 				}
 			}
 		}
-		else if (s[0] != 0 AND s[1] == '=' AND !s[2])
+		else if (s[0] != 0 && s[1] == '=' && !s[2])
 		{
 			// 2 chars, "something" equals operator
 			switch (*s)
@@ -463,25 +463,25 @@ protected:
 				case '/': return OpDivEquals;
 			}
 		}
-		else if (s[0] == '+' AND s[1] == '+' AND !s[2])
+		else if (s[0] == '+' && s[1] == '+' && !s[2])
 		{
 			if (PrevIsOp == 0)
 				return OpPostInc;
 
 			return OpPreInc;
 		}
-		else if (s[0] == '-' AND s[1] == '-' AND !s[2])
+		else if (s[0] == '-' && s[1] == '-' && !s[2])
 		{
 			if (PrevIsOp == 0)
 				return OpPostDec;
 
 			return OpPreDec;
 		}
-		else if (s[0] == '&' AND s[1] == '&' AND !s[2])
+		else if (s[0] == '&' && s[1] == '&' && !s[2])
 		{
 			return OpAnd;
 		}
-		else if (s[0] == '|' AND s[1] == '|' AND !s[2])
+		else if (s[0] == '|' && s[1] == '|' && !s[2])
 		{
 			return OpOr;
 		}

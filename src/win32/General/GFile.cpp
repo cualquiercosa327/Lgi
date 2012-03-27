@@ -50,7 +50,7 @@ char *ReadTextFile(char *File)
 {
 	char *s = 0;
 	GFile f;
-	if (File AND f.Open(File, O_READ))
+	if (File && f.Open(File, O_READ))
 	{
 		int Len = f.GetSize();
 		s = new char[Len+1];
@@ -67,7 +67,7 @@ int64 LgiFileSize(char *FileName)
 {
 	int64 Size = 0;
 	GDirectory *Dir = FileDev->GetDir();
-	if (Dir AND
+	if (Dir &&
 		Dir->First(FileName, 0))
 	{
 		Size = Dir->GetSize();
@@ -136,7 +136,7 @@ bool DirExists(const char *Dir)
 		e = GetFileAttributesW(n);
 		DeleteArray(n);
 	}
-	return e != 0xFFFFFFFF AND TestFlag(e, FILE_ATTRIBUTE_DIRECTORY);
+	return e != 0xFFFFFFFF && TestFlag(e, FILE_ATTRIBUTE_DIRECTORY);
 }
 
 const char *GetErrorName(int e)
@@ -156,7 +156,7 @@ const char *GetErrorName(int e)
 						NULL);
 
 	s = Buf + strlen(Buf);
-	while (s > Buf AND strchr(" \t\r\n", s[-1]))
+	while (s > Buf && strchr(" \t\r\n", s[-1]))
 	{
 		s--;
 		*s = 0;
@@ -170,7 +170,7 @@ int _GetLongPathName(char *Short, char *Long, int Buf)
 	bool Status = false;
 	int Len = 0;
 
-	if (Short AND Long)
+	if (Short && Long)
 	{
 		HMODULE hDll = 0;
 
@@ -259,8 +259,8 @@ bool ResolveShortcut(char *LinkFile, char *Path, int Len)
 		Proc_CoCreateInstance pCoCreateInstance = (Proc_CoCreateInstance)GetProcAddress(hDll, "CoCreateInstance");
 		Proc_CoUninitialize pCoUninitialize = (Proc_CoUninitialize)GetProcAddress(hDll, "CoUninitialize");
 
-		if (pCoInitialize AND
-			pCoCreateInstance AND
+		if (pCoInitialize &&
+			pCoCreateInstance &&
 			pCoUninitialize)
 		{
 		*/
@@ -292,7 +292,7 @@ bool ResolveShortcut(char *LinkFile, char *Path, int Len)
 						{
 							hres = psl->GetPath(szGotPath, MAX_PATH, (WIN32_FIND_DATA *)&wfd, SLGP_SHORTPATH );
 
-							if (SUCCEEDED(hres) AND strlen(szGotPath) > 0)
+							if (SUCCEEDED(hres) && strlen(szGotPath) > 0)
 							{
 								// lstrcpy(Path, szGotPath);
 								_GetLongPathName(szGotPath, Path, Len);
@@ -477,7 +477,7 @@ public:
 			DWORD MaxPath;
 
 			int type = GetDriveType(Drive);
-			if (type != DRIVE_UNKNOWN AND
+			if (type != DRIVE_UNKNOWN &&
 				type != DRIVE_NO_ROOT_DIR)
 			{
 				char Buf[256];
@@ -488,8 +488,8 @@ public:
 					{
 						_Type = VT_REMOVABLE;
 
-						if (w > 1 AND
-							GetVolumeInformation(Drive, Buf, sizeof(Buf), 0, 0, 0, 0, 0) AND
+						if (w > 1 &&
+							GetVolumeInformation(Drive, Buf, sizeof(Buf), 0, 0, 0, 0, 0) &&
 							ValidStr(Buf))
 						{
 							Desc = Buf;
@@ -515,7 +515,7 @@ public:
 					case DRIVE_FIXED:
 					default:
 					{
-						if (GetVolumeInformation(Drive, Buf, sizeof(Buf), 0, 0, 0, 0, 0) AND
+						if (GetVolumeInformation(Drive, Buf, sizeof(Buf), 0, 0, 0, 0, 0) &&
 							ValidStr(Buf))
 						{
 							Desc = Buf;
@@ -562,7 +562,7 @@ public:
 	
 	GVolume *First()
 	{
-		if (Which < 0 AND
+		if (Which < 0 &&
 			!_Sub.Length())
 		{
 			// Get drive list
@@ -594,7 +594,7 @@ public:
 	GDirectory *GetContents()
 	{
 		GDirectory *Dir = 0;
-		if (Which >= 0 AND
+		if (Which >= 0 &&
 			_Path)
 		{
 			Dir = FileDev->GetDir();
@@ -832,7 +832,7 @@ bool GFileSystem::Delete(GArray<char*> &Files, GArray<int> *Status, bool ToTrash
 			}
 
 			Ret = e == 0;
-			if (Status AND e)
+			if (Status && e)
 			{
 				for (int i=0; i<Files.Length(); i++)
 				{
@@ -874,7 +874,7 @@ bool GFileSystem::Delete(GArray<char*> &Files, GArray<int> *Status, bool ToTrash
 				}
 			}
 
-			if (e AND Status)
+			if (e && Status)
 			{
 				(*Status)[i] = e;
 				Ret = false;
@@ -918,7 +918,7 @@ bool GFileSystem::RemoveFolder(char *PathName, bool Recurse)
 	if (Recurse)
 	{
 		GDirectory *Dir = FileDev->GetDir();
-		if (Dir AND
+		if (Dir &&
 			Dir->First(PathName))
 		{
 			do
@@ -1028,14 +1028,14 @@ bool GFileSystem::Move(char *OldName, char *NewName)
 {
 	bool Status = false;
 
-	if (OldName AND NewName)
+	if (OldName && NewName)
 	{
 		if (Win9x)
 		{
 			char *New = LgiToNativeCp(NewName);
 			char *Old = LgiToNativeCp(OldName);
 
-			if (New AND Old)
+			if (New && Old)
 				Status = ::MoveFileA(Old, New);
 
 			DeleteArray(New);
@@ -1046,7 +1046,7 @@ bool GFileSystem::Move(char *OldName, char *NewName)
 			char16 *New = LgiNewUtf8To16(NewName);
 			char16 *Old = LgiNewUtf8To16(OldName);
 
-			if (New AND Old)
+			if (New && Old)
 				Status = ::MoveFileW(Old, New);
 
 			DeleteArray(New);
@@ -1118,7 +1118,7 @@ void GetFlagsStr(char *flagstr, short flags)
 
 bool Match(char *Name, char *Mask)
 {
-	while (*Name AND *Mask)
+	while (*Name && *Mask)
 	{
 		if (*Mask == '*')
 		{
@@ -1142,9 +1142,9 @@ bool Match(char *Name, char *Mask)
 		}
 	}
 
-	while (*Mask AND ((*Mask == '*') OR (*Mask == '.'))) Mask++;
+	while (*Mask && ((*Mask == '*') OR (*Mask == '.'))) Mask++;
 
-	return (*Name == 0 AND *Mask == 0);
+	return (*Name == 0 && *Mask == 0);
 }
 
 short DaysInMonth[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
@@ -1281,7 +1281,7 @@ bool GDirImpl::Path(char *s, int BufLen)
 	if (Name) Len += strlen(Name);
 	bool Status = false;
 
-	if (Name AND (BufLen < 0 OR Len <= BufLen))
+	if (Name && (BufLen < 0 OR Len <= BufLen))
 	{
 		LgiMakePath(s, BufLen, d->BasePath, Name);
 		Status = true;
@@ -1299,8 +1299,8 @@ int GDirImpl::First(const char *Name, const char *Pattern)
 
 	if (Name)
 	{
-		if (isalpha(Name[0]) AND
-			Name[1] == ':' AND
+		if (isalpha(Name[0]) &&
+			Name[1] == ':' &&
 			strlen(Name) <= 3)
 		{
 			// raw drive
@@ -1857,7 +1857,7 @@ int GFile::SwapRead(uchar *Buf, int Size)
 	Buf = &Buf[Size-1];
 	while (Size--)
 	{
-		if (!(d->Status &= ReadFile(d->hFile, Buf--, 1, &r, NULL) != 0 AND r == 1))
+		if (!(d->Status &= ReadFile(d->hFile, Buf--, 1, &r, NULL) != 0 && r == 1))
 			break;
 		i += r;
 	}
@@ -1871,7 +1871,7 @@ int GFile::SwapWrite(uchar *Buf, int Size)
 	Buf = &Buf[Size-1];
 	while (Size--)
 	{
-		if (!(d->Status &= WriteFile(d->hFile, Buf--, 1, &w, NULL) != 0 AND w == 1))
+		if (!(d->Status &= WriteFile(d->hFile, Buf--, 1, &w, NULL) != 0 && w == 1))
 			break;
 		i += w;
 	}
@@ -1882,7 +1882,7 @@ int GFile::ReadStr(char *Buf, int Size)
 {
 	int i = 0;
 	DWORD r;
-	if (Buf AND Size > 0)
+	if (Buf && Size > 0)
 	{
 		char c;
 
@@ -1899,7 +1899,7 @@ int GFile::ReadStr(char *Buf, int Size)
 			*Buf++ = c;
 			i++;
 		
-		} while (i < Size - 1 AND c != '\n');
+		} while (i < Size - 1 && c != '\n');
 
 		*Buf = 0;
 	}

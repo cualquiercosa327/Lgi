@@ -378,7 +378,7 @@ GControlTree::Item *GControlTree::Resolve(bool Create, const char *Path, GVarian
 			for (GTreeItem *c = Cur->GetChild(); c; c = c->GetNext())
 			{
 				char *s = c->GetText();
-				if (s AND stricmp(t[i], s) == 0)
+				if (s && stricmp(t[i], s) == 0)
 				{
 					Match = c;
 					break;
@@ -391,7 +391,7 @@ GControlTree::Item *GControlTree::Resolve(bool Create, const char *Path, GVarian
 			}
 			else
 			{
-				if (Create AND i == t.Length() - 1)
+				if (Create && i == t.Length() - 1)
 				{
 					GControlTree::Item *Ci = new GControlTree::Item(t[i], Path, Type, Enum);
 					if (Ci)

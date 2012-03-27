@@ -41,7 +41,7 @@ bool GSegment::Insert(GSegment *Seg, GSegment **Conflict)
 
 GSegment *GSegment::Find(int64 Off)
 {
-	if (Off >= Start AND Off < Start + Length)
+	if (Off >= Start && Off < Start + Length)
 	{
 		return this;
 	}
@@ -125,7 +125,7 @@ bool GSegmentTree::Insert(GSegment *Seg, GSegment **Conflict)
 		{
 			GSegment *c = 0;			
 			Status = d->Root->Insert(Seg, &c);
-			if (!Status AND Conflict)
+			if (!Status && Conflict)
 			{
 				*Conflict = c;
 			}
@@ -159,7 +159,7 @@ GSegment **GSegmentTree::CreateIndex()
 {
 	GSegment **Index = 0;
 
-	if (d->Items > 0 AND d->Root)
+	if (d->Items > 0 && d->Root)
 	{
 		Index = new GSegment*[d->Items];
 		if (Index)

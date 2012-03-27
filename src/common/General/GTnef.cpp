@@ -92,8 +92,8 @@ public:
 	{
 		StreamPos = s->GetPos();
 
-		if (s->Read(&Tag, sizeof(Tag)) == sizeof(Tag) AND
-			s->Read(&Type, sizeof(Type)) == sizeof(Tag) AND
+		if (s->Read(&Tag, sizeof(Tag)) == sizeof(Tag) &&
+			s->Read(&Type, sizeof(Type)) == sizeof(Tag) &&
 			s->Read(&Size, sizeof(Size)) == sizeof(Size))
 		{
 			uint16 EffectiveType = Type;
@@ -107,7 +107,7 @@ public:
 				case atpDword:
 				{
 					uint32 d;
-					if (Size == sizeof(d) AND
+					if (Size == sizeof(d) &&
 						s->Read(&d, sizeof(d)) == sizeof(d))
 					{
 						Value = (int)d;
@@ -145,7 +145,7 @@ public:
 				case atpDate:
 				{
 					DTR d;
-					if (sizeof(d) == Size AND
+					if (sizeof(d) == Size &&
 						s->Read(&d, sizeof(d)))
 					{
 						GDateTime dt;
@@ -190,15 +190,15 @@ bool TnefReadIndex(GStreamI *Tnef, GArray<TnefFileInfo*> &Index)
 		uint16 Key;
 		TnefFileInfo *Cur = 0;
 
-		if (Tnef->Read(&Sig, sizeof(Sig)) AND
-			Tnef->Read(&Key, sizeof(Key)) AND
-			Sig == TNEF_SIGNATURE AND
+		if (Tnef->Read(&Sig, sizeof(Sig)) &&
+			Tnef->Read(&Key, sizeof(Key)) &&
+			Sig == TNEF_SIGNATURE &&
 			Key > 0)
 		{
 			uint8 b;
 			bool Done = false;
 			GArray<uint32> Tags;
-			while (!Done AND Tnef->Read(&b, sizeof(b)) == sizeof(b))
+			while (!Done && Tnef->Read(&b, sizeof(b)) == sizeof(b))
 			{
 				switch (b)
 				{
@@ -337,7 +337,7 @@ bool TnefExtract(GStreamI *Tnef, GStream *Out, TnefFileInfo *File)
 {
 	bool Status = false;
 
-	if (Tnef AND Out AND File)
+	if (Tnef && Out && File)
 	{
 		if (Tnef->SetPos(File->Start) == File->Start)
 		{

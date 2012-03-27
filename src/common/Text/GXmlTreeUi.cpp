@@ -246,7 +246,7 @@ bool GXmlToUi::Convert(GDom *Tag, GViewI *Ui, bool ToUI)
 {
 	bool Status = false;
 
-	if (Ui AND Tag)
+	if (Ui && Tag)
 	{
 		GVariant v;
 		GXmlTag *Xml = dynamic_cast<GXmlTag*>(Tag);

@@ -45,7 +45,7 @@ int MapW32FlagsToLgi(int W32Flags)
 
 int FormatToInt(char *s)
 {
-	if (s AND stricmp(s, "CF_HDROP") == 0) return CF_HDROP;
+	if (s && stricmp(s, "CF_HDROP") == 0) return CF_HDROP;
 	return RegisterClipboardFormat(s);
 }
 
@@ -129,8 +129,8 @@ HRESULT GDataObject::GetData(FORMATETC *pFormatEtc, STGMEDIUM *PMedium)
 				Source->CurrentFormat);
 	#endif
 
-	if (pFormatEtc AND
-		PMedium AND
+	if (pFormatEtc &&
+		PMedium &&
 		Source->d->CurrentFormat)
 	{
 		GVariant Data;
@@ -167,7 +167,7 @@ HRESULT GDataObject::GetData(FORMATETC *pFormatEtc, STGMEDIUM *PMedium)
 			}
 		}
 
-		if (Ptr AND Size > 0)
+		if (Ptr && Size > 0)
 		{
 			PMedium->hGlobal = GlobalAlloc(GHND, Size);
 			if (PMedium->hGlobal)
@@ -249,7 +249,7 @@ GDragDropSource::~GDragDropSource()
 
 bool GDragDropSource::CreateFileDrop(GVariant *Var, GMouse &m, List<char> &Files)
 {
-	if (Var AND Files.First())
+	if (Var && Files.First())
 	{
 		#if WIN32NATIVE
 		
@@ -372,7 +372,7 @@ bool IsDndAware(OsView w, int &Ver)
 	if ((e=XGetWindowProperty(	Dsp, w,
 								XInternAtom(Dsp, "XdndAware", false),
 								0, 100, false, XA_ATOM, &Actual, &Format,
-								&Items, &Bytes, &Prop)) == XSuccess AND
+								&Items, &Bytes, &Prop)) == XSuccess &&
 		Prop)
 	{
 		// printf("XDND version supported on %p is %i\n", w, (int)(*Prop));
@@ -422,7 +422,7 @@ OsView FindDndTarget(OsView Over, int x, int y, int &Ver)
 								&x2, &y2,
 								&Child))
 	{
-		if (w2 != Root AND
+		if (w2 != Root &&
 			IsDndAware(Dsp, w2, Ver))
 		{
 			Status = w2;
@@ -449,7 +449,7 @@ OsView FindDndTarget(OsView Over, int x, int y, int &Ver)
 /*
 void GDragDropSource::OnSelectionRequest(Display *Dsp, XEvent &Event, XWidget *W, Atom XdndSelection)
 {
-	if (Event.xselectionrequest.owner == W->handle() AND
+	if (Event.xselectionrequest.owner == W->handle() &&
 		Event.xselectionrequest.selection == XdndSelection)
 	{
 		// got it
@@ -821,7 +821,7 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 					
 					if (Over != o)
 					{
-						if (Over AND Target)
+						if (Over && Target)
 						{
 							// Send leave
 							XEvent Leave;
@@ -924,7 +924,7 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 			}
 			SourceWnd->Capture(false);
 
-			if (Over AND Target)
+			if (Over && Target)
 			{
 				// Do drop..
 				XEvent Drop;
@@ -945,7 +945,7 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 				// Wait for and handle data conversion request...
 				bool ExitOk = false;
 				int Start = LgiCurrentTime();
-				while (	!ExitOk AND
+				while (	!ExitOk &&
 						LgiCurrentTime() < Start + 2000) // Timeout after 2 sec
 				{
 					XEvent Event;
@@ -1101,7 +1101,7 @@ GDragDropSource::Next(ULONG celt, FORMATETC *rgelt, ULONG *pceltFetched)
 	#endif
 
 	List<char> Formats;
-	if (rgelt AND
+	if (rgelt &&
 		GetFormats(Formats))
 	{
 		char *i = Formats.ItemAt(Index);
@@ -1295,7 +1295,7 @@ HRESULT STDMETHODCALLTYPE GDragDropTarget::DragEnter(IDataObject *pDataObject, D
 
 	// Something from another app, enum the formats.
 	IEnumFORMATETC *FormatETC = 0;
-	if (pDataObject->EnumFormatEtc(DATADIR_GET, &FormatETC) == S_OK AND
+	if (pDataObject->EnumFormatEtc(DATADIR_GET, &FormatETC) == S_OK &&
 		FormatETC)
 	{
 		ULONG Fetched = 0;
@@ -1424,7 +1424,7 @@ bool GDragDropTarget::OnDropFileGroupDescriptor(FILEGROUPDESCRIPTOR *Data, GArra
 {
 	bool Status = false;
 
-	if (Data AND Data->cItems > 0 AND DataObject)
+	if (Data && Data->cItems > 0 && DataObject)
 	{
 		for (int i=0; i<Data->cItems; i++)
 		{

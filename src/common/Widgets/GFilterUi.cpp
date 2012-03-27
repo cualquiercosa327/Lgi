@@ -78,7 +78,7 @@ static const char **GetIconNames()
 
 void convert_to_nonpremul(GSurface *pDC)
 {
-	if (pDC AND pDC->GetBits() == 32)
+	if (pDC && pDC->GetBits() == 32)
 	{
 		for (int y=0; y<pDC->Y(); y++)
 		{
@@ -153,7 +153,7 @@ public:
 		for (int i=0; i<IconMax; i++)
 		{
 			Icons[i] = new GMemDC;
-			if (Icons[i] AND Icons[i]->Create(IconSize, IconSize, 32))
+			if (Icons[i] && Icons[i]->Create(IconSize, IconSize, 32))
 			{
 				Draw(Icons[i], IconColour[i], (FilterIcon)i);
 			}
@@ -660,7 +660,7 @@ void GFilterItem::_PaintText(GSurface *pDC, COLOUR Fore, COLOUR Back)
 				x -= 2 + IconSize;
 			}
 
-			if (d->Node == LNODE_AND OR
+			if (d->Node == LNODE_AND ||
 				d->Node == LNODE_OR)
 			{
 				// Configure
@@ -862,7 +862,7 @@ bool GFilterItem::OnKey(GKey &k)
 
 void GFilterItem::OnMouseClick(GMouse &m)
 {
-	if (m.Down() AND m.Left())
+	if (m.Down() && m.Left())
 	{
 		GRect *Pos = _GetRect(TreeItemText);
 		if (!Pos) return;
@@ -926,7 +926,7 @@ void GFilterItem::OnMouseClick(GMouse &m)
 					GTreeItem *m = this;
 					int Count = p->Items.Length();
 					int Idx = p->Items.IndexOf(m);
-					if (Idx + Delta >= 0 AND Idx + Delta < Count - 1)
+					if (Idx + Delta >= 0 && Idx + Delta < Count - 1)
 					{
 						GTreeItem *i = p->Items[Idx + Delta];
 						p->Items.Delete(m);
@@ -954,7 +954,7 @@ void GFilterItem::OnMouseClick(GMouse &m)
 			}
 			case IconDelete:
 			{
-				if (IsRoot() AND GetTree())
+				if (IsRoot() && GetTree())
 				{
 					GetTree()->Insert(new GFilterItem(d->Data));
 				}
@@ -1013,8 +1013,8 @@ void GFilterItem::SetNode(GFilterNode n)
 {
 	if (d->Node != n)
 	{
-		if (d->Node == LNODE_NEW AND
-			GetParent() AND
+		if (d->Node == LNODE_NEW &&
+			GetParent() &&
 			!IsRoot())
 		{
 			GetParent()->Insert(new GFilterItem(d->Data));
@@ -1023,7 +1023,7 @@ void GFilterItem::SetNode(GFilterNode n)
 		d->Node = n;
 		Update();
 
-		if (d->Node == LNODE_AND OR
+		if (d->Node == LNODE_AND ||
 			d->Node == LNODE_OR)
 		{
 			Insert(new GFilterItem(d->Data));

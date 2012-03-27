@@ -1082,7 +1082,7 @@ public:
 	/// Parse expression into a node tree
 	bool Expression(int &Cur, GArray<Node> &n, int Depth = 0)
 	{
-		if (Cur >= 0 AND Cur < Tokens.Length())
+		if (Cur >= 0 && Cur < Tokens.Length())
 		{
 			char16 *t;
 			bool PrevIsOp = true;
@@ -1107,7 +1107,7 @@ public:
 				{
 					break;
 				}
-				else if (Depth == 0 AND StricmpW(t, sEndSqBracket) == 0)
+				else if (Depth == 0 && StricmpW(t, sEndSqBracket) == 0)
 				{
 					break;
 				}

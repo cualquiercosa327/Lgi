@@ -405,8 +405,8 @@ LgiFunc void							_lgi_assert(bool b, const char *test, const char *file, int l
 											(c) == '\n' OR							\
 											(c) == ' ' OR							\
 											(c) == '\t' OR							\
-											( (c) >= 0x3040 AND (c) <= 0x30FF ) OR	\
-											( (c) >= 0x3300 AND (c) <= 0x9FAF )		\
+											( (c) >= 0x3040 && (c) <= 0x30FF ) OR	\
+											( (c) >= 0x3300 && (c) <= 0x9FAF )		\
 										)
 
 // Os metrics

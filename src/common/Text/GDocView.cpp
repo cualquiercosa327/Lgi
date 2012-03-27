@@ -115,12 +115,12 @@ bool LgiDetectLinks(GArray<GLinkInfo> &Links, char16 *Text, int Size)
 					// find end
 					char16 *s = Text + i;
 					char16 *e = s + 6;
-					for ( ; (SubtractPtr(e, Text) < Size) AND 
+					for ( ; (SubtractPtr(e, Text) < Size) && 
 							UrlChar(*e); e++);
 					
 					while
 					(
-						e > s AND
+						e > s &&
 						!
 						(
 							isalpha(e[-1]) OR
@@ -143,7 +143,7 @@ bool LgiDetectLinks(GArray<GLinkInfo> &Links, char16 *Text, int Size)
 				// find start
 				char16 *s = Text + (max(i, 1) - 1);
 				
-				for ( ; s > Text AND EmailChar(*s); s--)
+				for ( ; s > Text && EmailChar(*s); s--)
 					;
 
 				if (s < Text + i)
@@ -154,12 +154,12 @@ bool LgiDetectLinks(GArray<GLinkInfo> &Links, char16 *Text, int Size)
 					bool FoundDot = false;
 					char16 *Start = Text + i + 1;
 					char16 *e = Start;
-					for ( ; (SubtractPtr(e, Text) < Size) AND 
+					for ( ; (SubtractPtr(e, Text) < Size) && 
 							EmailChar(*e); e++)
 					{
 						if (*e == '.') FoundDot = true;
 					}
-					while (e > Start AND e[-1] == '.') e--;
+					while (e > Start && e[-1] == '.') e--;
 
 					if (FoundDot)
 					{
@@ -232,7 +232,7 @@ bool GDefaultDocumentEnv::OnNavigate(char *Uri)
 			OR
 			(
 				strchr(Uri, '@') != 0
-				AND
+				&&
 				strchr(Uri, '/') == 0
 			)
 		)

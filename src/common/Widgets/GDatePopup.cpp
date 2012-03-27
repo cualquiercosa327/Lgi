@@ -170,7 +170,7 @@ public:
 			}
 			case VK_RETURN:
 			{
-				if (k.Down() AND k.IsChar)
+				if (k.Down() && k.IsChar)
 				{
 					Popup->SetDate(Mv.Date(true));
 					Visible(false);
@@ -208,7 +208,7 @@ bool GDatePopup::OnLayout(GViewLayoutInfo &Inf)
 void GDatePopup::SetDate(char *d)
 {
 	GViewI *n = GetNotify();
-	if (n AND d)
+	if (n && d)
 	{
 		GDateTime New;
 		char *Old = n->Name();
@@ -248,11 +248,11 @@ void GDatePopup::OnMouseClick(GMouse &m)
 			{
 				GDateTime New;
 				char *Old = n->Name();
-				if (!ValidStr(Old) AND DateSrc)
+				if (!ValidStr(Old) && DateSrc)
 				{
 					Old = DateSrc->Name();
 				}
-				if (Old AND
+				if (Old &&
 					New.Set(Old))
 				{
 					Drop->Mv.Set(&New);
@@ -326,7 +326,7 @@ class GDatePopupFactory : public GViewFactory
 {
 	GView *NewView(const char *Class, GRect *Pos, const char *Text)
 	{
-		if (Class AND
+		if (Class &&
 			stricmp(Class, "GDatePopup") == 0)
 		{
 			return new GDatePopup;

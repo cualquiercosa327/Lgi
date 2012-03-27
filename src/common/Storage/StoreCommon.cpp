@@ -309,7 +309,7 @@ GSubFile::SubLock GSubFile::Lock(const char *file, int line)
 int GSubFile::Open(char *Str, int Int)
 {
 	int s = GFile::Open(Str, Int | (!Buffer ? O_NO_CACHE : 0));
-	if (s AND !Buffer)
+	if (s && !Buffer)
 	{
 		Block = GetBlockSize();
 		Shift = 1;
@@ -325,7 +325,7 @@ int GSubFile::Read(void *OutBuf, int Size, int Flags)
 {
 	int Status = 0;
 
-	if (!Buffer AND Buf)
+	if (!Buffer && Buf)
 	{
 		uint8 *Out = (uint8*)OutBuf;
 		int64 Blk = Pos >> Shift;
@@ -368,7 +368,7 @@ int GSubFile::Write(const void *InBuf, int Size, int Flags)
 {
 	int Status = 0;
 
-	if (!Buffer AND Buf)
+	if (!Buffer && Buf)
 	{
 		uint8 *In = (uint8*)InBuf;
 		int64 Blk = Pos >> Shift;

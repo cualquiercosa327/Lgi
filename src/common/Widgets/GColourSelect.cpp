@@ -125,7 +125,7 @@ void GColourSelect::OnPaint(GSurface *pDC)
 	r.Size(5, 5);
 	if (IsOpen()) r.Offset(1, 1);
 
-	bool HasColour = Enabled() AND c32 != 0;
+	bool HasColour = Enabled() && c32 != 0;
 	pDC->Colour(HasColour ? LC_BLACK : LC_LOW, 24);
 	pDC->Box(&r);
 
@@ -153,7 +153,7 @@ class GColourFactory : public GViewFactory
 {
 	GView *NewView(const char *Class, GRect *Pos, const char *Text)
 	{
-		if (Class AND
+		if (Class &&
 			stricmp(Class, "GColourSelect") == 0)
 		{
 			return new GColourSelect;

@@ -52,7 +52,7 @@ bool GTimePopup::OnLayout(GViewLayoutInfo &Inf)
 void GTimePopup::SetDate(char *d)
 {
 	GViewI *n = GetNotify();
-	if (n AND d)
+	if (n && d)
 	{
 		GDateTime New;
 		New.SetNow();
@@ -96,7 +96,7 @@ void GTimePopup::OnMouseClick(GMouse &m)
 			{
 				GDateTime New;
 				char *Old = n->Name();
-				if (Old AND
+				if (Old &&
 					New.Set(Old))
 				{
 					Drop->SetTime(&New);
@@ -211,9 +211,9 @@ void GTimeDrop::OnPaint(GSurface *pDC)
 
 int GTimeDrop::OnNotify(GViewI *c, int f)
 {
-	if (c->GetId() == 100 AND !Ignore)
+	if (c->GetId() == 100 && !Ignore)
 	{
-		if (f == GLIST_NOTIFY_CLICK OR f == GLIST_NOTIFY_RETURN)
+		if (f == GLIST_NOTIFY_CLICK || f == GLIST_NOTIFY_RETURN)
 		{
 			GListItem *Sel = Times->GetSelected();
 			if (Sel)
@@ -237,7 +237,7 @@ int GTimeDrop::OnNotify(GViewI *c, int f)
 
 void GTimeDrop::SetTime(GDateTime *t)
 {
-	if (t AND Times)
+	if (t && Times)
 	{
 		List<GListItem>::I All = Times->Start();
 		for (GListItem *i=*All; i; i=*++All)
@@ -250,8 +250,8 @@ void GTimeDrop::SetTime(GDateTime *t)
 
 				if (p.Hours() == t->Hours())
 				{
-					if (	(p.Minutes() < 30 AND t->Minutes() < 30) OR
-							(p.Minutes() >= 30 AND t->Minutes() >= 30) )
+					if (	(p.Minutes() < 30 && t->Minutes() < 30) ||
+							(p.Minutes() >= 30 && t->Minutes() >= 30) )
 					{
 						Ignore = true;
 						i->Select(true);
@@ -269,7 +269,7 @@ class GTimePopupFactory : public GViewFactory
 {
 	GView *NewView(const char *Class, GRect *Pos, const char *Text)
 	{
-		if (Class AND
+		if (Class &&
 			stricmp(Class, "GTimePopup") == 0)
 		{
 			return new GTimePopup;

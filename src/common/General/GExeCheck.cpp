@@ -64,7 +64,7 @@ class GExecuteCheck
 			if (File->SetPos(o) == o)
 			{
 				int64 p = GetPos();
-				return p >= 0 AND p < Len;
+				return p >= 0 && p < Len;
 			}
 		}
 
@@ -86,28 +86,28 @@ class GExecuteCheck
 		char Buf[16];
 		
 		// Check stub
-		if (SetPos(0) AND
-			Read(Buf, 2) AND
-			Buf[0] == 'M' AND
+		if (SetPos(0) &&
+			Read(Buf, 2) &&
+			Buf[0] == 'M' &&
 			Buf[1] == 'Z')
 		{
 			int NewHeaderPos;
 
 			// Move to PE header
-			if (SetPos(0x3c) AND
-				Read(&NewHeaderPos, 4) AND
+			if (SetPos(0x3c) &&
+				Read(&NewHeaderPos, 4) &&
 				SetPos(NewHeaderPos))
 			{
 				#ifdef WIN32
 				
 				// Read header
 				IMAGE_NT_HEADERS Header;
-				if (Read(&Header, sizeof(Header)) AND
+				if (Read(&Header, sizeof(Header)) &&
 					Header.Signature == IMAGE_NT_SIGNATURE)
 				{
 					// Check header members
-					if (Header.FileHeader.Machine == IMAGE_FILE_MACHINE_I386 AND
-						Header.OptionalHeader.Magic == 0x010B AND
+					if (Header.FileHeader.Machine == IMAGE_FILE_MACHINE_I386 &&
+						Header.OptionalHeader.Magic == 0x010B &&
 						Header.OptionalHeader.SizeOfCode > 0)
 					{
 						/// Looks pretty good..
@@ -151,14 +151,14 @@ class GExecuteCheck
 			printf("ShstRndx=%i\n", h.ShstRndx);
 			*/
 			
-			if (h.Magic[0] == 0x7f AND
-				h.Magic[1] == 'E' AND
-				h.Magic[2] == 'L' AND
-				h.Magic[3] == 'F' AND
-				(h.Class == 1 OR h.Class == 2) AND
-				(h.DataEnc == 1 OR h.DataEnc == 2) AND
-				h.FileVer == 1 AND
-				(h.Machine > 0 AND h.Machine <= 8) AND
+			if (h.Magic[0] == 0x7f &&
+				h.Magic[1] == 'E' &&
+				h.Magic[2] == 'L' &&
+				h.Magic[3] == 'F' &&
+				(h.Class == 1 OR h.Class == 2) &&
+				(h.DataEnc == 1 OR h.DataEnc == 2) &&
+				h.FileVer == 1 &&
+				(h.Machine > 0 && h.Machine <= 8) &&
 				h.Version == 1)
 			{
 				return true;
@@ -196,7 +196,7 @@ public:
 		OwnFile = true;
 		Start = Len = 0;
 		File = new GFile;
-		if (File AND FileName)
+		if (File && FileName)
 		{
 			if (File->Open(FileName, O_READ))
 			{
