@@ -566,7 +566,6 @@ GMessage::Result GWindow::OnEvent(GMessage *Msg)
 				if (!Info)
 				    break;
 				    
-				LgiTrace("%s flags = %x\n", Name(), Info->flags);
 				if (Info->flags == (SWP_NOSIZE | SWP_NOMOVE) && _Dialog)
 				{
 				    // Info->flags |= SWP_NOZORDER;

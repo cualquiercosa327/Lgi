@@ -65,6 +65,9 @@ public:
 			delete [] Ptr;
 		else
 			delete Ptr;
+		
+		// This is needed to be able to use GAutoPtr inside GArray's.
+		Ptr = 0;
 	}
 
 	/*
