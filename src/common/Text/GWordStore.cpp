@@ -196,7 +196,7 @@ bool GWordStore::Insert(const char *Word)
 
 }
 
-int GWordStore::GetWordCount(const char *Word)
+uint32 GWordStore::GetWordCount(const char *Word)
 {
 	return Word ? d->Table.Find(Word) : 0;
 }

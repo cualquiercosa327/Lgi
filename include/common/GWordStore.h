@@ -17,8 +17,8 @@ public:
 	int GetItems();
 	bool SetItems(int s);
 	bool Insert(const char *Word);
-	int GetWordCount(const char *Word);
-	int SetWordCount(const char *Word, int Count);
+	uint32 GetWordCount(const char *Word);
+	int SetWordCount(const char *Word, uint32 Count);
 	void Empty();
 	char *GetFile();
 	void SetFile(const char *file);
