@@ -1134,6 +1134,7 @@ ParsingStart:
 				if (Tag)
 				{	
 					Tag->Empty(false);
+					LgiAssert(Tag->Tag == NULL);
 					Tag->Tag = NewStr(TagName, t - TagName);
 					NoChildren = Tag->Tag ? Tag->Tag[0] == '?' : false;
 					

@@ -32,7 +32,7 @@ void ParseRtf(GStringPipe &p, char *&s)
 		else if (*s == '}')
 		{
 			s++;
-			return;
+			break;
 		}
 		else if (*s == '\\')
 		{
