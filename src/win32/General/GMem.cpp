@@ -370,7 +370,12 @@ bool LgiDumpMemoryStats(char *filename)
 
 			if (SymInitialize(hProcess, all, true))
 			{
-				FILE *f = fopen(filename ? filename : "stats.mem", "w");
+			    char FullPath[MAX_PATH];
+			    _getcwd(FullPath, sizeof(FullPath));
+			    strcat(FullPath, "\\");
+			    strcat(FullPath, filename ? filename : "stats.mem");
+			    
+				FILE *f = fopen(FullPath, "w");
 				if (f)
 				{
 					block *b;

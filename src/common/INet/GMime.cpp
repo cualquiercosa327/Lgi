@@ -399,7 +399,12 @@ char *GMime::GetFileName()
 	{
 		if (n = Get("Content-Location"))
 		{
-			n = TrimStr(n, "\'\"");
+			char *trim = TrimStr(n, "\'\"");
+			if (trim)
+			{
+			    DeleteArray(n);
+			    n = trim;
+			}
 		}
 	}
 	return n;
