@@ -7,7 +7,7 @@
 #define TIME_INSTRUCTIONS		0
 #define POST_EXECUTE_STATE		0
 
-// #define BREAK_POINT				0xEF
+// #define BREAK_POINT				0x000000F8
 
 enum DateTimeParts
 {
@@ -174,7 +174,7 @@ public:
 			}
 
 			int LineNum = Code->Debug.Find(c.u8 - Base);
-			if (LineNum && LineNum != OldLineNum)
+			if (LineNum >= 0 && LineNum != OldLineNum)
 			{
 				f.Print("  %i:\n", OldLineNum = LineNum);
 			}
@@ -1446,14 +1446,22 @@ public:
 						}
 						case GV_GSURFACE:
 						{
-							if (!stricmp(sName, "x"))
-								(*Dst) = Dom->Value.Surface.Ptr->X();
-							else if (!stricmp(sName, "y"))
-								(*Dst) = Dom->Value.Surface.Ptr->Y();
-							else if (!stricmp(sName, "bits"))
-								(*Dst) = Dom->Value.Surface.Ptr->GetBits();
+							if (Dom->Value.Surface.Ptr)
+							{
+								if (!stricmp(sName, "x"))
+									(*Dst) = Dom->Value.Surface.Ptr->X();
+								else if (!stricmp(sName, "y"))
+									(*Dst) = Dom->Value.Surface.Ptr->Y();
+								else if (!stricmp(sName, "bits"))
+									(*Dst) = Dom->Value.Surface.Ptr->GetBits();
+								else
+									Dst->Empty();
+							}
 							else
+							{
+								LgiAssert(!"No surface pointer.");
 								Dst->Empty();
+							}
 							break;
 						}
 						default:
