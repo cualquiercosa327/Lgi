@@ -260,11 +260,11 @@ bool GView::OnKey(GKey &k)
 
 void GView::OnAttach()
 {
-	;
-	for (List<GViewI>::I it = Children.Start(); it.In(); it++)
+	List<GViewI>::I it = Children.Start();
+	for (GViewI *v = *it; v; v = *++it)
 	{
-		if (!(*it)->GetParent())
-			(*it)->SetParent(this);
+		if (!v->GetParent())
+			v->SetParent(this);
 	}
 }
 

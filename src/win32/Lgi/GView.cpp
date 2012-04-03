@@ -725,14 +725,13 @@ bool GView::Attach(GViewI *p)
 			Status = (_View != 0);
 
 			if (d->Font)
-			{
 				SendMessage(_View, WM_SETFONT, (WPARAM) d->Font->Handle(), 0);
-			}
 
 			if (d->DropTarget)
-			{
 				RegisterDragDrop(_View, d->DropTarget);
-			}
+			
+			if (TestFlag(WndFlags, GWF_FOCUS))
+				SetFocus(_View);
 		}
 
 		OnAttach();
