@@ -1230,7 +1230,8 @@ ResObjectImpl::SStatus ResObjectImpl::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 		!stricmp(Tag->Tag, ObjName))
 	{
 		Res_SetPos(Tag);
-		Res_SetStrRef(Tag, &Ctx);
+		if (!Res_SetStrRef(Tag, &Ctx))
+			return SExclude;
 		Res_SetFlags(Tag);
 
 		return SOk;
@@ -1573,9 +1574,17 @@ ResObjectImpl::SStatus ResTableLayout::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 								for (GXmlTag *Ctrl = Td->Children.First(); Ctrl; Ctrl = Td->Children.Next())
 								{
 									ResObjectImpl *c = CreateCtrl(Ctrl, Object);
-									if (c AND c->Res_Read(Ctrl, Ctx))
+									if (c)
 									{
-										v.Value.Lst->Insert(new GVariant((void*)c->Object));
+										ResObjectImpl::SStatus Status = c->Res_Read(Ctrl, Ctx);
+										if (Status == SOk)
+										{
+											v.Value.Lst->Insert(new GVariant((void*)c->Object));
+										}
+										else
+										{
+											delete c->Object;
+										}
 									}
 								}
 							}
@@ -1722,7 +1731,8 @@ ResObjectImpl::SStatus ResEditBox::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 			Status = true;
 
 			Res_SetPos(Tag);
-			Res_SetStrRef(Tag, &Ctx);
+			if (!Res_SetStrRef(Tag, &Ctx))
+				return SExclude;
 			Factory->Res_SetProperties(Object, Tag);
 		}
 	}
@@ -1809,7 +1819,7 @@ ResObjectImpl::SStatus ResTab::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 		}
 		else if (e == SExclude)
 		{
-			DeleteObj(Ctrl);
+			delete Ctrl->Object;
 		}
 		else
 		{
@@ -1863,7 +1873,7 @@ ResObjectImpl::SStatus ResTabView::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 		if (Tab->Res_Read(t, Ctx) == SOk)
 			Res_Append(Tab);
 		else
-			DeleteObj(Tab);
+			delete Tab->Object;
 	}
 
 	return SOk;
