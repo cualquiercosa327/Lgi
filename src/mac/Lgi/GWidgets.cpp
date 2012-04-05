@@ -154,7 +154,7 @@ int GDialog::OnEvent(GMessage *Msg)
 
 void GDialog::EndModeless(int Code)
 {
-	Quit(Code);
+	GWindow::Quit(Code);
 }
 
 void GDialog::OnPaint(GSurface *pDC)
