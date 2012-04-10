@@ -1931,7 +1931,7 @@ _DumpColour(GCss::ColorDef c)
 
 void GTag::_Dump(GStringPipe &Buf, int Depth)
 {
-	char Tab[32];
+	char Tab[64];
 	char s[1024];
 	memset(Tab, '\t', Depth);
 	Tab[Depth] = 0;
@@ -1953,7 +1953,8 @@ void GTag::_Dump(GStringPipe &Buf, int Depth)
 			Utf8.Reset(NewStr(""));
 		}
 
-		sprintf(Trs+strlen(Trs), "Tr(%i,%i %ix%i '%s') ", Tr->x1, Tr->y1, Tr->X(), Tr->Y(), Utf8.Get());
+		int Len = strlen(Trs);
+		snprintf(Trs+Len, sizeof(Trs)-Len-1, "Tr(%i,%i %ix%i '%s') ", Tr->x1, Tr->y1, Tr->X(), Tr->Y(), Utf8.Get());
 	}
 	
 	char *ElementName = TagId == CONTENT ? (char*)"Content" :
@@ -1979,7 +1980,7 @@ void GTag::_Dump(GStringPipe &Buf, int Depth)
 
 	if (Tags.Length())
 	{
-		sprintf(s, "%sEnd '%s'\r\n", Tab, ElementName);
+		snprintf(s, sizeof(s)-1, "%sEnd '%s'\r\n", Tab, ElementName);
 		Buf.Push(s);
 	}
 }
@@ -2255,8 +2256,8 @@ static int IsNearRect(GRect *r, int x, int y)
 			return x - r->x2;
 	}
 
-	int dx = 0;
-	int dy = 0;
+	int64 dx = 0;
+	int64 dy = 0;
 	
 	if (x < r->x1)
 	{
@@ -4515,7 +4516,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 							if (t->MaxContent > ColMin)
 							{
 								int MaxAdd = t->MaxContent - ColMin;
-								int MaxAvail = AvailableX - TotalX;
+								int MaxAvail = AvailableX > TotalX ? AvailableX - TotalX : 0;
 								int Total = min(MaxAdd, MaxAvail);
 								
 								/*
@@ -4671,13 +4672,6 @@ void GTag::LayoutTable(GFlowRegion *f)
 				{
 					if (t->Cell.x == x && t->Cell.y == y)
 					{
-						#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
-						if (Debug)
-						{
-							int asd=0;
-						}
-						#endif
-
 						GRect Box(0, 0, -CellSpacing, 0);
 						for (int i=0; i<t->Span.x; i++)
 						{
