@@ -5914,10 +5914,10 @@ GHtml2::~GHtml2()
 	DeleteArray(DocCharSet);
 	DeleteObj(d);
 
-	if (Lock(_FL))
+	if (JobSem.Lock(_FL))
 	{
-		Jobs.DeleteObjects();
-		Unlock();
+		JobSem.Jobs.DeleteObjects();
+		JobSem.Unlock();
 	}
 }
 
@@ -6278,11 +6278,11 @@ GMessage::Result GHtml2::OnEvent(GMessage *Msg)
 		}
 		case M_JOBS_LOADED:
 		{
-			if (Lock(_FL))
+			if (JobSem.Lock(_FL))
 			{
-				for (int i=0; i<Jobs.Length(); i++)
+				for (int i=0; i<JobSem.Jobs.Length(); i++)
 				{
-					GDocumentEnv::LoadJob *j = Jobs[i];
+					GDocumentEnv::LoadJob *j = JobSem.Jobs[i];
 					GDocView *Me = this;
 					if (j->View == Me &&
 						j->UserUid == d->DocumentUid)
@@ -6301,8 +6301,8 @@ GMessage::Result GHtml2::OnEvent(GMessage *Msg)
 					}
 					// else it's from another HTML control, ignore
 				}
-				Jobs.DeleteObjects();
-				Unlock();
+				JobSem.Jobs.DeleteObjects();
+				JobSem.Unlock();
 			}
 
 			OnPosChange();
@@ -7487,10 +7487,10 @@ bool GHtml2::GetFormattedContent(char *MimeType, GAutoString &Out, GArray<GDocVi
 
 void GHtml2::OnContent(GDocumentEnv::LoadJob *Res)
 {
-	if (Lock(_FL))
+	if (JobSem.Lock(_FL))
 	{
-		Jobs.Add(Res);
-		Unlock();
+		JobSem.Jobs.Add(Res);
+		JobSem.Unlock();
 		PostEvent(M_JOBS_LOADED);
 	}
 }

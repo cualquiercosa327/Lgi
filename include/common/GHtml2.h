@@ -52,8 +52,13 @@ protected:
 	// Display
 	GSurface			*MemDC;
 
-	// Data that has to be accessed under Lock
-	GArray<GDocumentEnv::LoadJob*> Jobs;
+	// This lock is separate from the window lock to avoid deadlocks.
+	struct GJobSem : public GSemaphore
+	{
+    	// Data that has to be accessed under Lock
+	    GArray<GDocumentEnv::LoadJob*> Jobs;	    
+	    GJobSem() : GSemaphore("GJobSem") {}
+	} JobSem;
 
 	// Methods
 	void _New();
