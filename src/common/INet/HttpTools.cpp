@@ -706,12 +706,13 @@ char *HttpTools::Fetch(char *uri, GStream *Log, GViewI *Dump, CookieJar *Cookies
 		}
 
 		GUri u(uri);
-		if (h.Open(new GSocket, u.Host))
+		GAutoPtr<GSocketI> Sock(new GSocket);
+		if (h.Open(Sock, u.Host))
 		{
 			int ProtocolStatus = 0;
 			GStringPipe p, hdr;
 
-			char *Enc = u.Get();
+			GAutoString Enc = u.GetUri();
 			if (h.Get(Wnd, Enc, DefHeaders, &ProtocolStatus, &p, &hdr))
 			{
 				if (Cookies)
@@ -775,8 +776,6 @@ char *HttpTools::Fetch(char *uri, GStream *Log, GViewI *Dump, CookieJar *Cookies
 			{
 				Log->Print("Error: Failed to GET '%s' (errorcode: %i)\n", uri, ProtocolStatus);
 			}
-
-			DeleteArray(Enc);
 		}
 		else if (Log)
 		{
@@ -1096,7 +1095,8 @@ GSurface *GetHttpImage(char *Uri)
 			Http.SetProxy(p.Host, p.Port);
 
 		GUri u(Uri);
-		if (Http.Open(new GSocket, u.Host))
+		GAutoPtr<GSocketI> Sock(new GSocket);
+		if (Http.Open(Sock, u.Host))
 		{
 			GStringPipe Data;
 			int Code = 0;

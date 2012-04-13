@@ -69,6 +69,7 @@ bool LgiIsProcess(OsProcessId Pid)
 			}
 			CloseHandle(hProc);
 		}
+		else LgiTrace("%s:%i - OpenProcess failed with 0x%x\n", _FL, GetLastError());
 	
 	#elif defined(MAC)
 	

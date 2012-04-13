@@ -1912,10 +1912,14 @@ GProxyUri::GProxyUri()
 	GRegKey k("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings");
 	if (k.IsOk())
 	{
-		char *p = k.GetStr("ProxyServer");
-		if (p)
-		{
-			Set(p);
+	    int Enabled = k.GetInt("ProxyEnable");
+	    if (Enabled)
+	    {
+		    char *p = k.GetStr("ProxyServer");
+		    if (p)
+		    {
+			    Set(p);
+		    }
 		}
 	}
 

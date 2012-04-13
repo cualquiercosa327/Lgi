@@ -1310,7 +1310,7 @@ bool GXmlTree::Read(GXmlTag *Root, GStreamI *File, GXmlFactory *Factory)
 						}
 						else
 						{
-						    LgiAssert(0);
+						    // LgiAssert(0);
 						    break;
 						}
 						
