@@ -17,6 +17,18 @@ GProgress::~GProgress()
 {
 }
 
+bool GProgress::Pour(GRegion &r)
+{
+	GRect *l = FindLargest(r);
+	if (l)
+	{
+		l->y2 = l->y1 + 10;
+		SetPos(*l);
+		return true;
+	}
+	return false;
+}
+
 bool GProgress::OnLayout(GViewLayoutInfo &Inf)
 {
 	if (!Inf.Width.Max)

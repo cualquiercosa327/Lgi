@@ -1265,7 +1265,7 @@ namespace Storage2
 				sprintf(Item2Desc,
 						"Item 2:\n"
 						"\tType: %s\n"
-						"\tStart: %u, Len: %u\n"
+						"\tStart: %u, Len: %lu\n"
 						"\tData: %u, Len: %u\n",
 						DescribeType(Item2->Header->Type),
 						Item2->StoreLoc,
