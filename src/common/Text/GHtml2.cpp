@@ -4319,7 +4319,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 							
 							if (t->Width().IsValid())
 							{
-								t->MinContent = t->MaxContent = f->ResolveX(t->Width(), Font);
+								t->MinContent = t->MaxContent = f->ResolveX(t->Width(), GetFont());
 								FixedCol[x] = true;
 							}
 							else if (!t->GetWidthMetrics(t->MinContent, t->MaxContent))
