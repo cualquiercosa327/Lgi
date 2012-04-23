@@ -1379,7 +1379,10 @@ bool MailSmtp::Open(GSocketI *S,
 		}
 		if (Port == 0)
 		{
-			Port = SMTP_PORT;
+			if (Flags & MAIL_SSL)
+				Port = SMTP_SSL_PORT;
+			else
+				Port = SMTP_PORT;
 		}
 
 		char *Server = TrimStr(Str);

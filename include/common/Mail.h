@@ -361,9 +361,9 @@ public:
 		const char *UserName,
 		/// The sink password (or NULL)
 		const char *Password,
-		/// The port to connect with or 0 for default (25)
+		/// The port to connect with or 0 for default.
 		int Port,
-		/// Options: Use any of #MAIL_SINK_STARTTLS, #MAIL_SINK_AUTH, #MAIL_SINK_USE_PLAIN, #MAIL_SINK_USE_LOGIN or'd together.
+		/// Options: Use any of #MAIL_SSL, #MAIL_USE_STARTTLS, #MAIL_SECURE_AUTH, #MAIL_USE_PLAIN, #MAIL_USE_LOGIN etc or'd together.
 		int Flags
 	) = 0;
 	/// Close the connection
@@ -641,7 +641,7 @@ public:
 	MailSmtp();
 	~MailSmtp();
 
-	bool Open(GSocketI *S, const char *RemoteHost, const char *LocalDomain, const char *UserName, const char *Password, int Port = SMTP_PORT, int Flags = 0);
+	bool Open(GSocketI *S, const char *RemoteHost, const char *LocalDomain, const char *UserName, const char *Password, int Port = 0, int Flags = 0);
 	bool Close();
 
 	bool SendToFrom(List<AddressDescriptor> &To, AddressDescriptor *From, MailProtocolError *Err = 0);
