@@ -1293,7 +1293,7 @@ bool LgiResources::LoadDialog(int Resource, GViewI *Parent, GRect *Pos, GAutoStr
 				y += LgiApp->GetMetric(LGI_MET_DECOR_Y) - 18;
 				if (Pos)
 					Pos->ZOff(x, y);
-				else if (Parent)
+				else if (Parent && stricmp(Parent->GetClass(), "GTabPage"))
 				{
 					GRect r = Parent->GetPos();
 					r.Dimension(x, y);
