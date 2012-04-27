@@ -142,8 +142,8 @@ bool GTypeFace::operator ==(GTypeFace &t)
 // set
 void GTypeFace::Face(const char *s)
 {
-	if (s AND
-		s != d->_Face AND
+	if (s &&
+		s != d->_Face &&
 		stricmp(s, d->_Face?d->_Face:(char*)"") != 0)
 	{
 		DeleteArray(d->_Face);
@@ -260,7 +260,7 @@ void GTypeFace::Colour(GColour Fore, GColour Back)
 
 void GTypeFace::SubGlyphs(bool i)
 {
-	if (!i OR GFontSystem::Inst()->GetGlyphSubSupport())
+	if (!i || GFontSystem::Inst()->GetGlyphSubSupport())
 	{
 		d->_SubGlyphs = i;
 		_OnPropChange(false);
@@ -381,7 +381,7 @@ public:
 GFont::GFont(const char *face, int point)
 {
 	d = new GFontPrivate;
-	if (face AND point > 0)
+	if (face && point > 0)
 	{
 		Create(face, point);
 	}
@@ -624,7 +624,7 @@ type_4_cmap *GetUnicodeTable(HFONT hFont, uint16 &Length)
 					Sub[i].encoding_id = INT16_SWAP(Sub[i].encoding_id);
 						Sub[i].offset = INT32_SWAP(Sub[i].offset);
 
-						if (Sub[i].platform_id == MICROSOFT_PLATFORM_ID AND
+						if (Sub[i].platform_id == MICROSOFT_PLATFORM_ID &&
 							Sub[i].encoding_id == UNICODE_ENCODING_ID)
 						{
 							Offset = Sub[i].offset;
@@ -727,11 +727,15 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 			:
 			ANSI_CHARSET;
 
-	d->OwnerUnderline = Face() AND
-						stricmp(Face(), "Courier New") == 0 AND 
-						(PointSize() == 8 OR PointSize() == 9) AND
+	d->OwnerUnderline = Face() &&
+						stricmp(Face(), "Courier New") == 0 && 
+						(PointSize() == 8 || PointSize() == 9) &&
 						GTypeFace::d->_Underline;
 
+    char mm[256];
+    sprintf(mm, "CreateFont %s,%i\n", Face(), PointSize());
+    OutputDebugString(mm);
+	
 	d->hFont = ::CreateFont(Win32Height,
 							0,
 							0,
@@ -774,7 +778,7 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 
 			GArray<int> OsVer;
 			int OsType = LgiGetOs(&OsVer);
-			if (OsType == LGI_OS_WIN9X OR
+			if (OsType == LGI_OS_WIN9X ||
 				OsVer[0] < 5) // GetFontUnicodeRanges is supported on >= Win2k
 			{
 				bool HideUnihan = false;
@@ -795,8 +799,8 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 						{
 							for (uint u = StartCount[i]; u <= EndCount[i]; u++)
 							{
-								if (HideUnihan AND
-									u >= 0x3400 AND
+								if (HideUnihan &&
+									u >= 0x3400 &&
 									u <= 0x9FAF)
 								{
 									// APPROXIMATE
@@ -817,13 +821,13 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 							uint16 *End = (uint16*) (((char*)t)+Length);
 							int IdBytes = End - IdRangeOffset;
 
-							for (uint u = StartCount[i]; u <= EndCount[i] AND IdRangeOffset[i] != 0xffff; u++)
+							for (uint u = StartCount[i]; u <= EndCount[i] && IdRangeOffset[i] != 0xffff; u++)
 							{
 								uint id = *(IdRangeOffset[i]/2 + (u - StartCount[i]) + &IdRangeOffset[i]);
 								if (id)
 								{
-									if (HideUnihan AND
-										u >= 0x3400 AND
+									if (HideUnihan &&
+										u >= 0x3400 &&
 										u <= 0x9FAF)
 									{
 										// APPROXIMATE
@@ -873,7 +877,7 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 				{
 					DWORD BufSize = GetFontUnicodeRanges(hDC, 0);
 					LPGLYPHSET Set = (LPGLYPHSET) new char[BufSize];
-					if (Set AND GetFontUnicodeRanges(hDC, Set) > 0)
+					if (Set && GetFontUnicodeRanges(hDC, Set) > 0)
 					{
 						for (int i=0; i<Set->cRanges; i++)
 						{
@@ -989,7 +993,7 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 		printf("%s:%i - WARNING: you are re-creating the system font... this is bad!!!!\n", __FILE__, __LINE__);
 	}
 
-	if (Face() AND !(e = ATSUCreateStyle(&d->hFont)))
+	if (Face() && !(e = ATSUCreateStyle(&d->hFont)))
 	{
 		// Lookup ID
 		#if 1
@@ -1088,7 +1092,7 @@ char16 *GFont::_ToUnicode(char *In, int &Len)
 {
 	char16 *WStr = 0;
 	
-	if (In AND
+	if (In &&
 		Len > 0)
 	{
 		WStr = (char16*)LgiNewConvertCp(LGI_WideCharset, In, GTypeFace::d->_CodePage, Len);
@@ -1275,7 +1279,7 @@ bool GFontType::DoUI(GView *Parent)
 
 bool GFontType::GetDescription(char *Str)
 {
-	if (Str AND GetFace())
+	if (Str && GetFace())
 	{
 		sprintf(Str, "%s, %i pt", GetFace(), GetPointSize());
 		return true;
@@ -1289,7 +1293,7 @@ bool GFontType::Serialize(ObjProperties *Options, char *OptName, bool Write)
 {
 	bool Status = false;
 
-	if (Options AND OptName)
+	if (Options && OptName)
 	{
 		#if defined WIN32
 		if (Write)
@@ -1300,8 +1304,8 @@ bool GFontType::Serialize(ObjProperties *Options, char *OptName, bool Write)
 		{
 			void *Data = 0;
 			int Len = 0;
-			if (Options->Get(OptName, Data, Len) AND
-				Len == sizeof(Info) AND
+			if (Options->Get(OptName, Data, Len) &&
+				Len == sizeof(Info) &&
 				Data)
 			{
 				memcpy(&Info, Data, Len);
@@ -1318,7 +1322,7 @@ bool GFontType::Serialize(ObjProperties *Options, char *OptName, bool Write)
 		else
 		{
 			char *Temp = 0;
-			if (Options->Get(OptName, Temp) AND ValidStr(Temp))
+			if (Options->Get(OptName, Temp) && ValidStr(Temp))
 			{
 				char *OurCopy = NewStr(Temp);
 				if (OurCopy)
@@ -1347,7 +1351,7 @@ bool GFontType::Serialize(GDom *Options, const char *OptName, bool Write)
 {
 	bool Status = false;
 
-	if (Options AND OptName)
+	if (Options && OptName)
 	{
 		GVariant v;
 		#if defined WIN32
@@ -1360,7 +1364,7 @@ bool GFontType::Serialize(GDom *Options, const char *OptName, bool Write)
 		{
 			if (Options->GetValue(OptName, v))
 			{
-				if (v.Type == GV_BINARY AND
+				if (v.Type == GV_BINARY &&
 					v.Value.Binary.Length == sizeof(Info))
 				{
 					memcpy(&Info, v.Value.Binary.Data, sizeof(Info));
@@ -1377,7 +1381,7 @@ bool GFontType::Serialize(GDom *Options, const char *OptName, bool Write)
 		}
 		else
 		{
-			if (Options->GetValue(OptName, v) AND ValidStr(v.Str()))
+			if (Options->GetValue(OptName, v) && ValidStr(v.Str()))
 			{
 				char *Comma = strchr(v.Str(), ',');
 				if (Comma)
@@ -1404,7 +1408,7 @@ bool GFontType::GetConfigFont(const char *Tag)
 	{
 		// read from config file
 		char *f, *p;
-		if ((f = Font->GetAttr("Face")) AND (p = Font->GetAttr("Point")))
+		if ((f = Font->GetAttr("Face")) && (p = Font->GetAttr("Point")))
 		{
 			SetFace(f);
 			SetPointSize(atoi(p));
@@ -1739,7 +1743,7 @@ bool GFontType::GetSystemFont(const char *Which)
 			{
 				// Copy the font metrics
 				memcpy(&Info, &info.lfSmCaptionFont, sizeof(Info));
-				if (LgiGetOs() == LGI_OS_WIN9X AND stricmp(Info.lfFaceName, "ms sans serif") == 0)
+				if (LgiGetOs() == LGI_OS_WIN9X && stricmp(Info.lfFaceName, "ms sans serif") == 0)
 				{
 					strcpy(Info.lfFaceName, "Arial");
 				}

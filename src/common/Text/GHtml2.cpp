@@ -468,6 +468,7 @@ public:
 		GFont *f = 0;
 		if (Size.Type == GCss::LenPx)
 		{
+		    int RequestPx = (int)Size.Value;
 			GArray<int> Map; // map of point-sizes to heights
 			int NearestPoint = 0;
 			int Diff = 1000;
@@ -481,21 +482,29 @@ public:
 					f->Italic() == IsItalic &&
 					f->Underline() == IsUnderline)
 				{
-					Map[f->PointSize()] = f->GetHeight();
+				    int PtSize = f->PointSize();
+				    int Height = f->GetHeight();
+					Map[PtSize] = Height;
 
-					if (NearestPoint)
+					if (!NearestPoint)
 						NearestPoint = f->PointSize();
 					else
 					{
-						int NearDiff = abs(Map[NearestPoint] - (int)Size.Value);
-						int CurDiff = abs(f->GetHeight() - (int)Size.Value);
+						int NearDiff = abs(Map[NearestPoint] - RequestPx);
+						int CurDiff = abs(f->GetHeight() - RequestPx);
 						if (CurDiff < NearDiff)
 						{
 							NearestPoint = f->PointSize();
 						}
 					}
+					
+					if (RequestPx < f->GetHeight() &&
+					    f->PointSize() == MinimumPointSize)
+				    {
+				        return f;
+				    }
 
-					Diff = f->GetHeight() - (int)Size.Value;
+					Diff = f->GetHeight() - RequestPx;
 					if (abs(Diff) < 2)
 					{
 						return f;
@@ -517,7 +526,9 @@ public:
 				
 				if (!Tmp->Create(Face[0], (int)PtSize))
 					break;
-				Diff = Tmp->GetHeight() - (int)Size.Value;
+				
+				int ActualHeight = Tmp->GetHeight();
+				Diff = ActualHeight - RequestPx;
 				if (Diff < 2)
 				{
 					Fonts.Insert(f = Tmp.Release());
@@ -529,7 +540,8 @@ public:
 				{
 					if (PtSize > MinimumPointSize)
 						PtSize--;
-					else break;
+					else
+					    break;
 				}
 				else
 					PtSize++;

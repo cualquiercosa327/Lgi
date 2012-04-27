@@ -189,7 +189,7 @@ void GDisplayString::Layout()
 	
 	#elif defined MAC
 	
-	if (Hnd AND Str)
+	if (Hnd && Str)
 	{
 		len = StrlenW(Str);
 		
@@ -337,7 +337,7 @@ void GDisplayString::Layout()
 	y = Font->GetHeight();
 
 	GFontSystem *Sys = GFontSystem::Inst();
-	if (Sys AND Str)
+	if (Sys && Str)
 	{
 		GFont *f = Font;
 		OsChar *s;
@@ -345,10 +345,10 @@ void GDisplayString::Layout()
 
 		Blocks = 1;
 		bool WasTab = IsTabChar(*Str);
-		for (s=Str; *s AND *s != '\n'; NextOsChar(s))
+		for (s=Str; *s && *s != '\n'; NextOsChar(s))
 		{
 			GFont *n = GlyphSub ? Sys->GetGlyph(*s, Font) : Font;
-			if (n != f OR (IsTabChar(*s) ^ WasTab))
+			if (n != f || (IsTabChar(*s) ^ WasTab))
 			{
 				Blocks++;
 				f = n;
@@ -371,7 +371,7 @@ void GDisplayString::Layout()
 
 			WasTab = IsTabChar(*Str);
 			f = GlyphSub ? Sys->GetGlyph(*Str, Font) : Font;
-			if (f AND f != Font)
+			if (f && f != Font)
 			{
 				f->PointSize(Font->PointSize());
 				f->SetWeight(Font->GetWeight());
@@ -384,12 +384,12 @@ void GDisplayString::Layout()
 			for (s=Str; true; NextOsChar(s))
 			{
 				GFont *n = GlyphSub ? Sys->GetGlyph(*s, Font) : Font;
-				bool Change = n != f OR (IsTabChar(*s) ^ WasTab) OR !*s;
+				bool Change = n != f || (IsTabChar(*s) ^ WasTab) || !*s;
 
 				if (Change)
 				{
 					// End last segment
-					if (n AND n != Font)
+					if (n && n != Font)
 					{
 						n->PointSize(Font->PointSize());
 						n->SetWeight(Font->GetWeight());
@@ -416,12 +416,17 @@ void GDisplayString::Layout()
 						{
 							GFont *m = f;
 
-							if (f AND (f->GetHeight() > Font->GetHeight()))
+							#if 0
+							// This code is causing email to display very slowly in Scribe...
+							// I guess I should rewrite the glyph substitution code to be
+							// better away of point size differences.
+							if (f && (f->GetHeight() > Font->GetHeight()))
 							{
 								Info[i].SizeDelta = -1;
 								f->PointSize(Font->PointSize() + Info[i].SizeDelta);
 								f->Create();
 							}
+							#endif
 
 							if (!f)
 							{
@@ -436,7 +441,7 @@ void GDisplayString::Layout()
 							m->_Measure(sx, sy, Info[i].Str, Info[i].Len);
 							x += Info[i].X = sx > 0xffff ? 0xffff : sx;
 						}
-						Info[i].FontId = !f OR Font == f ? 0 : Sys->Lut[Info[i].Str[0]];
+						Info[i].FontId = !f || Font == f ? 0 : Sys->Lut[Info[i].Str[0]];
 
 						i++;
 					}
@@ -455,7 +460,7 @@ void GDisplayString::Layout()
 			}
 
 			Blocks = min(Blocks, i + 1);
-			if (Blocks > 0 AND Info[Blocks-1].Len == 0)
+			if (Blocks > 0 && Info[Blocks-1].Len == 0)
 			{
 				Blocks--;
 			}
@@ -500,7 +505,7 @@ void GDisplayString::TruncateWithDots(int Width)
 	if (Width < X() + 8)
 	{
 		int c = CharAt(Width);
-		if (c >= 0 AND c < len)
+		if (c >= 0 && c < len)
 		{
 			if (c > 0) c--; // fudge room for dots
 			if (c > 0) c--;
@@ -513,7 +518,7 @@ void GDisplayString::TruncateWithDots(int Width)
 				int Pos = 0;
 				for (int i=0; i<Blocks; i++)
 				{
-					if (c >= Pos AND
+					if (c >= Pos &&
 						c < Pos + Info[i].Len)
 					{
 						Info[i].Len = c - Pos;
@@ -596,7 +601,7 @@ void GDisplayString::Length(int New)
 		for (int i=0; i<Blocks; i++)
 		{
 			// Is the cut point in this block?
-			if (New >= CurLen AND New < CurLen + Info[i].Len )
+			if (New >= CurLen && New < CurLen + Info[i].Len )
 			{
 				// In this block
 				int Offset = New - CurLen;
@@ -673,7 +678,7 @@ int GDisplayString::CharAt(int Px)
 
 	#if defined MAC
 
-	if (Hnd AND Str)
+	if (Hnd && Str)
 	{
 		UniCharArrayOffset Off = 0, Off2 = 0;
 		Boolean IsLeading;
@@ -716,13 +721,13 @@ int GDisplayString::CharAt(int Px)
 	
 	GFontSystem *Sys = GFontSystem::Inst();
 
-	if (Info AND Font AND Sys)
+	if (Info && Font && Sys)
 	{
 		int TabSize = Font->TabSize() ? Font->TabSize() : 32;
 		int Cx = 0;
 		int Char = 0;
 
-		for (int i=0; i<Blocks AND Status < 0; i++)
+		for (int i=0; i<Blocks && Status < 0; i++)
 		{
 			if (Px < Cx)
 			{
@@ -730,7 +735,7 @@ int GDisplayString::CharAt(int Px)
 				break;
 			}
 
-			if (Px >= Cx AND Px < Cx + Info[i].X)
+			if (Px >= Cx && Px < Cx + Info[i].X)
 			{
 				// The position is in this block of characters
 				if (IsTabChar(Info[i].Str[0]))
@@ -739,7 +744,7 @@ int GDisplayString::CharAt(int Px)
 					for (int t=0; t<Info[i].Len; t++)
 					{
 						int TabX = TabSize - (Cx % TabSize);
-						if (Px >= Cx AND Px < Cx + TabX)
+						if (Px >= Cx && Px < Cx + TabX)
 						{
 							Status = Char;
 							break;
@@ -881,7 +886,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 	#elif defined MAC
 
 	int Ox = 0, Oy = 0;
-	if (pDC AND !pDC->IsScreen())
+	if (pDC && !pDC->IsScreen())
 		pDC->GetOrigin(Ox, Oy);
 
 	if (!Font->Transparent())
@@ -1017,7 +1022,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 	
 	#else
 	
-	if (Info AND pDC AND Font)
+	if (Info && pDC && Font)
 	{
 		GFontSystem *Sys = GFontSystem::Inst();
 		COLOUR Old = pDC->Colour();
@@ -1134,8 +1139,8 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 
 		pDC->Colour(Old);
 	}
-	else if (r AND
-			Font AND
+	else if (r &&
+			Font &&
 			!Font->Transparent())
 	{
 		pDC->Colour(Font->Back());

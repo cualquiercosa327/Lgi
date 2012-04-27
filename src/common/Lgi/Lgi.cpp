@@ -1758,11 +1758,11 @@ char *LgiTokStr(const char *&s)
 {
 	char *Status = 0;
 
-	if (s AND *s)
+	if (s && *s)
 	{
 		// Skip whitespace
 		static char Delim[] = ", \t\r\n";
-		while (*s AND strchr(Delim, *s)) s++;
+		while (*s && strchr(Delim, *s)) s++;
 		if (*s)
 		{
 			if (strchr("\'\"", *s))
@@ -1781,7 +1781,7 @@ char *LgiTokStr(const char *&s)
 			else
 			{
 				const char *e = s;
-				while (*e AND !strchr(Delim, *e)) e++;
+				while (*e && !strchr(Delim, *e)) e++;
 				Status = NewStr(s, e - s);
 				s = e;
 			}
