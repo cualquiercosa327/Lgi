@@ -96,7 +96,15 @@ int GDialog::DoModal(OsView OverideParent)
 	if (Wnd && Attach(0))
 	{
 		GWindow *Owner = GetParent() ? GetParent()->GetWindow() : 0;
-		if (Owner) Owner->SetChildDialog(this);
+		if (Owner)
+		{
+			GRect Pr = Owner->GetPos();
+			GRect Mr = GetPos();
+			Mr.Offset(	Pr.x1 + (Pr.X() - Mr.X()) / 2 - Mr.x1,
+						Pr.y1 + (Pr.Y() - Mr.Y()) / 2 - Mr.y1);
+			SetPos(Mr);
+			Owner->SetChildDialog(this);
+		}
 		
 		d->IsModal = true;
 		AttachChildren();

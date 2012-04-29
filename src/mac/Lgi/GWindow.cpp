@@ -174,10 +174,15 @@ OSErr GWindowReceiveHandler(    WindowRef theWindow,
 	return 0;
 }
 
+// #define DND_TRACKING_DEBUG	1
+
 OSErr GWindow::HandlerCallback(DragTrackingMessage *tracking, DragRef theDrag)
 {
 	Point Ms, Pin;
 	OSErr e = GetDragMouse(theDrag, &Ms, &Pin);
+#if DND_TRACKING_DEBUG
+printf("DragTrack GetDragMouse=%i tracking=%p (%i)\n", e, tracking, tracking ? *tracking : 0);
+#endif
 	if (e) return e;
 
 	GdcPt2 p(Ms.h, Ms.v);
@@ -216,116 +221,119 @@ OSErr GWindow::HandlerCallback(DragTrackingMessage *tracking, DragRef theDrag)
 	}
 	
 	GViewI *v = WindowFromPoint(p.x, p.y);
-	// printf("%s:%o - Dropping... %i,%i v=%p, tracking=%i, modifiers=%x\n", _FL, p.x, p.y, v, *tracking, modifiers);
+#if DND_TRACKING_DEBUG
+printf("DragTrack WindowFromPoint=%p (%s)\n", v, v ? v->GetClass() : "(none)");
+#endif
 	if (!v)
 		printf("%s:%i - no window from point: %i,%i (%i,%i).\n", _FL, p.x, p.y, (int)Ms.h, (int)Ms.v);
 	else
 	{
 		GView *gv = v->GetGView();
+#if DND_TRACKING_DEBUG
+printf("\tGView=%p\n", gv);
+#endif
 		if (gv)
 		{
-			GDragDropTarget *Target = 0;
-			
-			while (gv)
+			GDragDropTarget *Target = 0, *MatchingTarget = 0;
+			GDragDropSource *Src = 0;
+			List<char> Formats;
+
+			UInt16 Items = 0;
+			e = CountDragItems(theDrag, &Items);
+			if (e) printf("CountDragItems=%i Items=%i\n", e, Items);
+			DragItemRef ItemRef = 0;
+			e = GetDragItemReferenceNumber(theDrag, 1, &ItemRef);
+			if (e) printf("GetDragItemReferenceNumber=%i Ref=%i\n", e, (int)ItemRef);
+			UInt16 numFlavors = 0;
+			e = CountDragItemFlavors(theDrag, ItemRef, &numFlavors);
+			if (e) printf("CountDragItemFlavors=%i numFlavors=%i\n", e, numFlavors);
+			for (int f=0; f<numFlavors; f++)
 			{
-				Target = gv->DropTargetPtr();
-				// printf("%s %p\n", gv->GetClass(), Target);
-				if (!Target)
+				FlavorType Type = 0, LgiType;
+				memcpy(&LgiType, LGI_LgiDropFormat, 4);
+				
+				e = GetFlavorType(theDrag, ItemRef, 1+f, &Type);
+				if (!e)
 				{
-					GViewI *p = gv->GetParent();
-					gv = p ? p->GetGView() : 0;
-				}
-				else break;
-			}
-
-			if (Target)
-			{
-				#if 0
-				printf("Got target:\n");
-				gv = v->GetGView();
-				while (gv)
-				{
-					Target = gv->DropTargetPtr();
-					printf("\ttarget=%p class=%s name=%.20s\n", Target, gv->GetClass(), gv->Name());
-					if (!Target)
-					{
-						GViewI *p = gv->GetParent();
-						gv = p ? p->GetGView() : 0;
-					}
-					else break;
-				}
-				#endif
-
-				GDragDropSource *Src = 0;
-				List<char> Formats;
-
-				UInt16 Items = 0;
-				e = CountDragItems(theDrag, &Items);
-				if (e) printf("CountDragItems=%i Items=%i\n", e, Items);
-				DragItemRef ItemRef = 0;
-				e = GetDragItemReferenceNumber(theDrag, 1, &ItemRef);
-				if (e) printf("GetDragItemReferenceNumber=%i Ref=%i\n", e, (int)ItemRef);
-				UInt16 numFlavors = 0;
-				e = CountDragItemFlavors(theDrag, ItemRef, &numFlavors);
-				if (e) printf("CountDragItemFlavors=%i numFlavors=%i\n", e, numFlavors);
-				for (int f=0; f<numFlavors; f++)
-				{
-					FlavorType Type = 0, LgiType;
-					memcpy(&LgiType, LGI_LgiDropFormat, 4);
+					#ifndef __BIG_ENDIAN__
+					Type = LgiSwap32(Type);
+					#endif
 					
-					e = GetFlavorType(theDrag, ItemRef, 1+f, &Type);
-					if (!e)
+					if (Type == LgiType)
 					{
+						Size sz = sizeof(Src);
+						FlavorType t = Type;
 						#ifndef __BIG_ENDIAN__
-						Type = LgiSwap32(Type);
+						t = LgiSwap32(t);
 						#endif
 						
-						/*
-						char *sType = (char*) &Type;
-						char *sLgiType = (char*) &LgiType;
-						char *sTest = (char*) &Test;
-						*/
-						
-						if (Type == LgiType)
+						e = GetFlavorData(	theDrag,
+											ItemRef,
+											t,
+											&Src,
+											&sz,
+											0);
+						if (e)
 						{
-							Size sz = sizeof(Src);
-							FlavorType t = Type;
-							#ifndef __BIG_ENDIAN__
-							t = LgiSwap32(t);
-							#endif
-							
-							e = GetFlavorData(	theDrag,
-												ItemRef,
-												t,
-												&Src,
-												&sz,
-												0);
-							if (e)
-							{
-								Src = 0;
-								printf("%s:%i - GetFlavorData('%4.4s') failed with %i\n", _FL, (char*)&Type, (int)e);
-							}
-							else
-							{
-								Src->GetFormats(Formats);
-								break;
-							}
+							Src = 0;
+							printf("%s:%i - GetFlavorData('%4.4s') failed with %i\n", _FL, (char*)&Type, (int)e);
 						}
 						else
 						{
-							Formats.Insert(NewStr((char*)&Type, 4));
+							Src->GetFormats(Formats);
+							break;
 						}
 					}
 					else
 					{
-						printf("%s:%i - GetFlavorType failed with %i\n", __FILE__, __LINE__, e);
-						break;
+						Formats.Insert(NewStr((char*)&Type, 4));
 					}
 				}
+				else
+				{
+					printf("%s:%i - GetFlavorType failed with %i\n", __FILE__, __LINE__, e);
+					break;
+				}
+			}			
 
-				GdcPt2 Pt(Ms.h, Ms.v);
-				v->PointToView(Pt);
+			GdcPt2 Pt(Ms.h, Ms.v);
+			v->PointToView(Pt);
 
+			while (gv)
+			{
+				Target = gv->DropTargetPtr();
+				if (Target)
+				{
+					// See if this target is accepting the data...
+					List<char> TmpFormats;
+					for (char *s = Formats.First(); s; s = Formats.Next())
+					{
+						TmpFormats.Insert(NewStr(s));
+					}
+					
+					if (Target->WillAccept(TmpFormats, Pt, 0))
+					{
+						TmpFormats.DeleteArrays();
+						MatchingTarget = Target;
+						break;
+					}
+					else
+					{
+#if DND_TRACKING_DEBUG
+printf("\tTarget(%s) not accepting these formats.\n", gv?gv->GetClass():"(none)");
+#endif
+					}
+
+					TmpFormats.DeleteArrays();
+				}
+
+				// Walk up parent chain till we find the next target
+				GViewI *p = gv->GetParent();
+				gv = p ? p->GetGView() : 0;
+			}
+			
+			if (MatchingTarget)
+			{
 				if (tracking)
 				{
 					// printf("Tracking = %04.4s\n", tracking);
@@ -335,18 +343,18 @@ OSErr GWindow::HandlerCallback(DragTrackingMessage *tracking, DragRef theDrag)
 					}
 					else if (*tracking == kDragTrackingLeaveWindow)
 					{
-						Target->OnDragExit();
+						MatchingTarget->OnDragExit();
 						// printf("OnDragExit\n");
 					}
 					else
 					{											
 						if (*tracking == kDragTrackingEnterWindow)
 						{
-							Target->OnDragEnter();
+							MatchingTarget->OnDragEnter();
 							// printf("OnDragEnter\n");
 						}
 
-						Target->WillAccept(Formats, Pt, 0);
+						MatchingTarget->WillAccept(Formats, Pt, 0);
 						// printf("WillAccept=%i\n", Effect);
 					}
 				}
@@ -359,7 +367,7 @@ OSErr GWindow::HandlerCallback(DragTrackingMessage *tracking, DragRef theDrag)
 						printf("'%s'\n", r);
 					#endif
 					
-					int Effect = Target->WillAccept(Formats, Pt, 0);
+					int Effect = MatchingTarget->WillAccept(Formats, Pt, 0);
 					if (Effect)
 					{
 						char *Format = Formats.First();
@@ -369,7 +377,7 @@ OSErr GWindow::HandlerCallback(DragTrackingMessage *tracking, DragRef theDrag)
 							// Lgi -> Lgi drop
 							if (Src->GetData(&Data, Format))
 							{
-								Target->OnDrop(	Format,
+								MatchingTarget->OnDrop(	Format,
 												&Data,
 												Pt,
 												modifiers & 0x800 ? LGI_EF_CTRL : 0);
@@ -406,10 +414,10 @@ OSErr GWindow::HandlerCallback(DragTrackingMessage *tracking, DragRef theDrag)
 									v.SetBinary(sz, Data);
 								}
 								
-								int Effect = Target->OnDrop(Format,
-															&v,
-															Pt,
-															modifiers & 0x800 ? LGI_EF_CTRL : 0);
+								int Effect = MatchingTarget->OnDrop(Format,
+																	&v,
+																	Pt,
+																	modifiers & 0x800 ? LGI_EF_CTRL : 0);
 								if (!Effect)
 								{
 									Status = dragNotAcceptedErr;
@@ -419,35 +427,32 @@ OSErr GWindow::HandlerCallback(DragTrackingMessage *tracking, DragRef theDrag)
 						}
 					}
 
-					Target->OnDragExit();
+					MatchingTarget->OnDragExit();
 				}
 			}
-			else
+
+			#if 0
+			// When there is no drop target
+			if (gv = v->GetGView())
 			{
-				printf("%s:%i - No drop target:\n", _FL);
-				
-				#if 0
-				if (gv = v->GetGView())
+				static GView *Last = 0;
+				if (gv != Last)
 				{
-					static GView *Last = 0;
-					if (gv != Last)
+					Last = gv;
+					while (gv)
 					{
-						Last = gv;
-						while (gv)
+						Target = gv->DropTargetPtr();
+						if (!Target)
 						{
-							Target = gv->DropTargetPtr();
-							if (!Target)
-							{
-								printf("\t%p %s %.20s\n", gv, gv->GetClassName(), gv->Name());
-								GViewI *p = gv->GetParent();
-								gv = p ? p->GetGView() : 0;
-							}
-							else break;
+							printf("\t%p %s %.20s\n", gv, gv->GetClassName(), gv->Name());
+							GViewI *p = gv->GetParent();
+							gv = p ? p->GetGView() : 0;
 						}
+						else break;
 					}
 				}
-				#endif
 			}
+			#endif
 		}
 		else printf("%s:%i - No view.\n", _FL);
 	}
@@ -820,30 +825,6 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 					}
 					break;
 				}
-				/*
-				case kEventWindowShown:
-				{
-					printf("kEventWindowShown\n");
-					CGrafPtr port = GetWindowPort(v->WindowHandle());
-					CGContextRef Ctx;
-					OSStatus e = QDBeginCGContext(port, &Ctx);
-					if (e)
-					{
-						LgiTrace("%s:%i - QDBeginCGContext failed (%i)\n", __FILE__, __LINE__, e);
-					}
-					else
-					{
-						GScreenDC s(v->WindowHandle(), Ctx);
-						v->_Paint(&s);
-						CGContextSynchronize(Ctx);
-						QDEndCGContext(port, &Ctx);
-						result = noErr;
-						
-						printf("paint %s\n", v->GetClient().GetStr());
-					}
-					break;
-				}
-				*/
 				case kEventWindowBoundsChanged:
 				{
 					// kEventParamCurrentBounds
@@ -859,78 +840,6 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 					result = noErr;
 					break;
 				}
-				/*
-				case kEventWindowCursorChange:
-				{
-					Point Mouse;
-					UInt32 Modifiers;
-					Rect Client;
-					
-					GetWindowBounds(v->WindowHandle(), kWindowContentRgn, &Client);
-					GetEventParameter(inEvent, kEventParamMouseLocation, typeQDPoint, NULL, sizeof(Mouse), NULL, &Mouse);
-					GetEventParameter(inEvent, kEventParamKeyModifiers, typeUInt32, NULL, sizeof(Modifiers), NULL, &Modifiers);
-
-					if (!InRect(Client, Mouse.h, Mouse.v))
-						break;
-
-					Mouse.h -= Client.left;
-					Mouse.v -= Client.top;
-					GViewI *Over = v->WindowFromPoint(Mouse.h, Mouse.v);
-					if (Over)
-					{
-						// printf("Initial %i,%i - ", Mouse.h, Mouse.v);
-						for (GViewI *p = Over; p && p->GetParent(); p = p->GetParent())
-						{
-							GRect r = p->GetPos();
-							Mouse.h -= r.x1;
-							Mouse.v -= r.y1;
-							// printf("%i,%i - ", Mouse.h, Mouse.v);
-						}
-						// printf("\n");
-						
-						int LgiCursor = Over->OnHitTest(Mouse.h, Mouse.v);
-						ThemeCursor MacCursor = kThemeArrowCursor;
-						switch (LgiCursor)
-						{
-							case LCUR_SizeBDiag:
-							case LCUR_SizeFDiag:
-							case LCUR_SizeAll:
-							case LCUR_Blank:
-							case LCUR_SplitV:
-							case LCUR_SplitH:
-							case LCUR_Normal:
-								MacCursor = kThemeArrowCursor; break;
-							case LCUR_UpArrow:
-								MacCursor = kThemeResizeUpCursor; break;
-							case LCUR_Cross:
-								MacCursor = kThemeCrossCursor; break;
-							case LCUR_Wait:
-								MacCursor = kThemeSpinningCursor; break;
-							case LCUR_Ibeam:
-								MacCursor = kThemeIBeamCursor; break;
-							case LCUR_SizeVer:
-								MacCursor = kThemeResizeUpDownCursor; break;
-							case LCUR_SizeHor:
-								MacCursor = kThemeResizeLeftRightCursor; break;
-							case LCUR_PointingHand:
-								MacCursor = kThemePointingHandCursor; break;
-							case LCUR_Forbidden:
-								MacCursor = kThemeNotAllowedCursor; break;
-							case LCUR_DropCopy:
-								MacCursor = kThemeCopyArrowCursor; break;
-							case LCUR_DropMove:
-								MacCursor = kThemeAliasArrowCursor; break;
-						}
-						
-						static ThemeCursor PrevCursor = kThemeArrowCursor;
-						if (PrevCursor != MacCursor)
-						{
-							SetThemeCursor(PrevCursor = MacCursor);
-						}
-					}
-					break;
-				}
-				*/
 			}
 			break;
 		}
@@ -978,12 +887,10 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 
 					if (InRect(Grow, Pt.h, Pt.v))
 					{
-						// printf("In resize box\n");
 						break;				
 					}
 					if (!InRect(Client, Pt.h, Pt.v))
 					{
-						// printf("Not in client\n");
 						break;				
 					}
 					
@@ -1134,8 +1041,6 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 				OSStatus status = GetEventParameter(inEvent, kEventParamLgiEvent, typeUInt32, NULL, sizeof(UInt32), NULL, &m.m);
 				status = GetEventParameter(inEvent, kEventParamLgiA, typeUInt32, NULL, sizeof(UInt32), NULL, &m.a);
 				status = GetEventParameter(inEvent, kEventParamLgiB, typeUInt32, NULL, sizeof(UInt32), NULL, &m.b);
-				
-				// printf("Received event %x,%x,%x (%s:%i)\n", m.m, m.a, m.b, _FL);
 				
 				v->OnEvent(&m);
 				

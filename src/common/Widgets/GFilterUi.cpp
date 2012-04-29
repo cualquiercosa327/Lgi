@@ -529,7 +529,13 @@ void GFilterItem::SetValue(char *s)
 
 void GFilterItem::_PourText(GdcPt2 &Size)
 {
-	Size.y = SysFont->GetHeight() + 10;
+	Size.y = SysFont->GetHeight() +
+	#ifdef MAC
+	14; // Not sure what the deal is here... it just looks better.
+	#else
+	10;
+	#endif
+	
 	switch (d->Node)
 	{
 		case LNODE_NEW:

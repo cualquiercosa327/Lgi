@@ -84,7 +84,7 @@ public:
 
 	~Item()
 	{
-		if (Prev != 0 AND Next != 0)
+		if (Prev != 0 && Next != 0)
 		{
 			LgiAssert(List->FirstObj != this);
 			LgiAssert(List->LastObj != this);
@@ -223,7 +223,7 @@ public:
 
 	operator void*()
 	{
-		return (i AND Cur>=0 AND Cur<i->Count) ? i->Ptr[Cur] : 0;
+		return (i && Cur>=0 && Cur<i->Count) ? i->Ptr[Cur] : 0;
 	}
 	
 	ItemIter &operator =(Item *item)
@@ -284,7 +284,7 @@ public:
 			if (Cur < 0)
 			{
 				i = i->Prev;
-				if (i AND i->Count > 0)
+				if (i && i->Count > 0)
 				{
 					Cur = i->Count - 1;
 					return true;
@@ -421,7 +421,7 @@ ItemIter DLinkList::GetIndex(int Index)
 	int n = 0;
 	for (Item *i = FirstObj; i; i = i->Next)
 	{
-		if (Index >= n AND Index < n + i->Count)
+		if (Index >= n && Index < n + i->Count)
 		{
 			Iter = i;
 			Iter = Index - n;
@@ -577,7 +577,7 @@ bool DLinkList::Insert(void *p, int Index)
 
 	if (p)
 	{
-		if (Index >= 0 AND Index < Items)
+		if (Index >= 0 && Index < Items)
 		{
 			ItemIter Iter = GetIndex(Index);
 			if (Iter.i)
@@ -1199,10 +1199,10 @@ int GBytePipe::Read(void *Ptr, int Size, int Flags)
 {
 	int Status = 0;
 
-	if (Ptr AND Size > 0)
+	if (Ptr && Size > 0)
 	{
 		Block *b = 0;
-		for (b = Mem.First(); b AND Size > 0; b = Mem.Next())
+		for (b = Mem.First(); b && Size > 0; b = Mem.Next())
 		{
 			int Copy = min(Size, b->Used - b->Next);
 			if (Copy > 0)
@@ -1215,7 +1215,7 @@ int GBytePipe::Read(void *Ptr, int Size, int Flags)
 			}
 		}
 
-		for (b = Mem.First(); b AND b->Next >= b->Used; b = Mem.First())
+		for (b = Mem.First(); b && b->Next >= b->Used; b = Mem.First())
 		{
 			Mem.Delete(b);
 			free(b);
@@ -1262,7 +1262,7 @@ int GBytePipe::Write(const void *Ptr, int Size, int Flags)
 {
 	int Status = 0;
 
-	if (Ptr AND Size > 0)
+	if (Ptr && Size > 0)
 	{
 		if (PreAlloc > 0)
 		{
@@ -1328,7 +1328,7 @@ int GStringPipe::Pop(char *Str, int BufSize)
 			while (m)
 			{
 				char *MPtr = (char*)m->Ptr();
-				while (Str < End AND m->Next < m->Used)
+				while (Str < End && m->Next < m->Used)
 				{
 					*Str = MPtr[m->Next++];
 					if (*Str == '\n')
