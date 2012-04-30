@@ -691,6 +691,11 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 	UInt32 eventClass = GetEventClass( inEvent );
 	UInt32 eventKind = GetEventKind( inEvent );
 
+	#if 0
+	UInt32 ev = LgiSwap32(eventClass);
+	printf("WndProc %4.4s-%i\n", (char*)&ev, eventKind);
+	#endif
+
 	switch (eventClass)
 	{
 		case kEventClassCommand:
@@ -703,15 +708,13 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 					HICommand command;
 					GetEventParameter(inEvent, kEventParamDirectObject, typeHICommand, NULL, sizeof(command), NULL, &command);
 					if (command.commandID != kHICommandSelectWindow)
-					{
-						// char *Cmd = (char*) &command.commandID;
-						
+					{	
 						#if 1
 						uint32 c = command.commandID;
 						#ifndef __BIG_ENDIAN__
 						c = LgiSwap32(c);
 						#endif
-						// if (c != '0000')
+						if (c != '0000')
 							printf("%s:%i - Cmd='%4.4s'\n", _FL, (char*)&c);
 						#endif
 
@@ -719,17 +722,16 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 						if (ReturnFloatCommand)
 						{
 							*ReturnFloatCommand = command.commandID;
-							result = noErr;
 						}
 						else if (command.commandID == kHICommandQuit)
 						{
 							LgiCloseApp();
-							result = noErr;
 						}
 						else if (command.commandID == kHICommandMinimizeWindow ||
 								 command.commandID == kHICommandMinimizeAll)
 						{
 							w->d->LastMinimize = LgiCurrentTime();
+							CollapseWindow(w->WindowHandle(), true);
 						}
 						else if (command.commandID == kHICommandClose)
 						{
@@ -739,17 +741,28 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 								w->CloseRequestDone() = true;
 								DeleteObj(v);
 							}
-							result = noErr;
 						}
 						else if (command.commandID == kHICommandHide)
 						{
-							
+							ProcessSerialNumber PSN;
+							OSErr e;
+
+							e = MacGetCurrentProcess(&PSN);
+							if (e)
+								printf("MacGetCurrentProcess failed with %i\n", e);
+							else
+							{
+								e = ShowHideProcess(&PSN, false);
+								if (e)
+									printf("ShowHideProcess failed with %i\n", e);
+							}
 						}
 						else
 						{
 							w->OnCommand(command.commandID, 0, 0);
-							result = noErr;
 						}
+
+						result = noErr;
 					}
 				}
 			}
@@ -850,7 +863,7 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 				case kEventMouseDown:
 				{
 					GWindow *Wnd = dynamic_cast<GWindow*>(v->GetWindow());
-					if (Wnd AND !Wnd->d->ChildDlg)
+					if (Wnd && !Wnd->d->ChildDlg)
 					{
 						OsWindow Hnd = Wnd->WindowHandle();
 						if (!IsWindowActive(Hnd))
