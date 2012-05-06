@@ -799,6 +799,7 @@ char *GMime::GetSub(const char *Field, const char *Sub)
 				if (*s++ == '=')
 				{
 					bool Found = SubLen == NameLen && strnicmp(Name, Sub, NameLen) == 0;
+					SkipWs(s);
 					Status = NewValue(s, Found);
 					if (Found) break;
 				}
