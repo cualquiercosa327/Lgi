@@ -2788,7 +2788,7 @@ int GTextView3::WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState)
 		}
 		else
 		{
-			LgiTrace("Ignoring format '%s'\n", s);
+			// LgiTrace("Ignoring format '%s'\n", s);
 			Formats.Delete(s);
 			DeleteArray(s);
 			s = Formats.Current();

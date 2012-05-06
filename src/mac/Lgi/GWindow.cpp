@@ -362,7 +362,7 @@ printf("\tTarget(%s) not accepting these formats.\n", gv?gv->GetClass():"(none)"
 				{
 					GVariant Data;
 					
-					#if 0
+					#if 1
 					for (char *r=Formats.First(); r; r=Formats.Next())
 						printf("'%s'\n", r);
 					#endif
@@ -392,38 +392,83 @@ printf("\tTarget(%s) not accepting these formats.\n", gv?gv->GetClass():"(none)"
 							f = LgiSwap32(f);
 							#endif
 							
-							Size sz;
-							if (!GetFlavorDataSize(theDrag, ItemRef, f, &sz))
+							GVariant v;
+
+							for (int i=0; i<Items; i++)
 							{
-								char *Data = new char[sz+1];
-								e = GetFlavorData(	theDrag,
-													ItemRef,
-													f,
-													Data,
-													&sz,
-													0);
-								GVariant v;
-								
-								if (f == typeFileURL)
+								Size sz;
+
+								e = GetDragItemReferenceNumber(theDrag, 1+i, &ItemRef);
+								if (e)
 								{
-									Data[sz] = 0;
-									v = Data;
+									printf("%s:%i - GetDragItemReferenceNumber failed %i\n", _FL, e);
+									break;
 								}
-								else
+
+								if (!GetFlavorDataSize(theDrag, ItemRef, f, &sz))
 								{
-									v.SetBinary(sz, Data);
+									char *Data = new char[sz+1];
+									e = GetFlavorData(	theDrag,
+														ItemRef,
+														f,
+														Data,
+														&sz,
+														0);
+									
+									if (f == typeFileURL)
+									{
+										Data[sz] = 0;
+										if (Items > 1)
+										{
+											if (i == 0)
+												v.SetList();
+											v.Value.Lst->Insert(new GVariant(Data));
+										}
+										else v = Data;
+									}
+									#if 0
+									else if (f == kDragFlavorTypeHFS)
+									{
+										HFSFlavor *f = (HFSFlavor*)Data;
+										printf("HFS %i\n", (int) Items);
+										
+										FSRef Ref;
+										OSErr e = FSpMakeFSRef(&f->fileSpec, &Ref);
+										if (e)
+										{
+											printf("%s:%i - FSpMakeFSRef failed with %i\n", _FL, e);
+										}
+										else
+										{
+											UInt8 Path[MAX_PATH];
+											e = FSRefMakePath(&Ref, Path, sizeof(Path));
+											if (e)
+											{
+												printf("%s:%i - FSRefMakePath failed with %i\n", _FL, e);
+											}
+											else
+											{
+												v = (char*)Path;
+											}
+										}
+									}
+									#endif
+									else
+									{
+										v.SetBinary(sz, Data);
+									}
 								}
-								
-								int Effect = MatchingTarget->OnDrop(Format,
-																	&v,
-																	Pt,
-																	modifiers & 0x800 ? LGI_EF_CTRL : 0);
-								if (!Effect)
-								{
-									Status = dragNotAcceptedErr;
-								}
+								else LgiTrace("%s:%i - GetFlavorDataSize failed.\n", _FL);
 							}
-							else LgiTrace("%s:%i - GetFlavorDataSize failed.\n", _FL);
+
+							int Effect = MatchingTarget->OnDrop(Format,
+																&v,
+																Pt,
+																modifiers & 0x800 ? LGI_EF_CTRL : 0);
+							if (!Effect)
+							{
+								Status = dragNotAcceptedErr;
+							}
 						}
 					}
 
@@ -852,6 +897,7 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 					v->OnPosChange();
 					result = noErr;
 					break;
+					
 				}
 			}
 			break;
@@ -1768,7 +1814,7 @@ int GWindow::WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState)
 	
 	for (char *f=Formats.First(); f; )
 	{
-		if (stricmp(f, LGI_FileDropFormat) == 0)
+		if (!stricmp(f, LGI_FileDropFormat))
 		{
 			f = Formats.Next();
 			Status = DROPEFFECT_COPY;
@@ -1788,31 +1834,33 @@ int GWindow::OnDrop(char *Format, GVariant *Data, GdcPt2 Pt, int KeyState)
 {
 	int Status = DROPEFFECT_NONE;
 
-	if (Format AND Data)
+	if (Format && Data)
 	{
-		if (stricmp(Format, LGI_FileDropFormat) == 0)
+		if (!stricmp(Format, LGI_FileDropFormat))
 		{
 			GArray<char*> Files;
-
-			GToken Uri;
+			GArray< GAutoString > Uri;
 
 			if (Data->IsBinary())
 			{
-				Uri.Parse(	(char*)Data->Value.Binary.Data,
-							"\r\n,",
-							true,
-							Data->Value.Binary.Length);
+				Uri[0].Reset( NewStr((char*)Data->Value.Binary.Data, Data->Value.Binary.Length) );
 			}
 			else if (Data->Str())
 			{
-				Uri.Parse(	Data->Str(),
-							"\r\n,",
-							true);
+				Uri[0].Reset( NewStr(Data->Str()) );
+			}
+			else if (Data->Type == GV_LIST)
+			{
+				for (GVariant *v=Data->Value.Lst->First(); v; v=Data->Value.Lst->Next())
+				{
+					char *f = v->Str();
+					Uri.New().Reset(NewStr(f));
+				}
 			}
 
 			for (int i=0; i<Uri.Length(); i++)
 			{
-				char *File = Uri[i];
+				char *File = Uri[i].Get();
 				if (strnicmp(File, "file:", 5) == 0)
 					File += 5;
 				if (strnicmp(File, "//localhost", 11) == 0)
@@ -1821,8 +1869,8 @@ int GWindow::OnDrop(char *Format, GVariant *Data, GdcPt2 Pt, int KeyState)
 				char *i = File, *o = File;
 				while (*i)
 				{
-					if (i[0] == '%' AND
-						i[1] AND
+					if (i[0] == '%' &&
+						i[1] &&
 						i[2])
 					{
 						char h[3] = { i[1], i[2], 0 };
