@@ -1419,7 +1419,8 @@ int AppWnd::GetUniqueCtrlId()
 				{
 					for (ResString *s = sl->First(); s; s = sl->Next())
 					{
-						if (!t.Find(s->GetId()))
+						if (s->GetId() > 0 &&
+						    !t.Find(s->GetId()))
 						{
 							t.Add(s->GetId(), s->GetId());
 						}
