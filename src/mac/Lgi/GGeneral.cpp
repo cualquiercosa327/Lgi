@@ -403,6 +403,17 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir)
 		{
 			FSRef r;
 			OSStatus e = FSPathMakeRef((UInt8*)File, &r, NULL);
+			char Path[MAX_PATH];
+			
+			if (e)
+			{
+				// Check if this is an application
+				snprintf(Path, sizeof(Path), "/Applications/%s", File);
+				e = FSPathMakeRef((UInt8*)Path, &r, NULL);
+				if (!e)
+					File = Path;
+			}
+			
 			if (e) printf("%s:%i - FSPathMakeRef failed with %i\n", _FL, (int)e);
 			else
 			{
@@ -419,16 +430,16 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir)
 					 support arguments before 10.6
 					 if (ValidStr(Args))
 					 {
-					 GArray<int> Ver;
-					 LgiGetOs(Ver);
-					 if (Ver.Length() > 1)
-					 {
-					 if (Ver[0] < 10 ||
-					 Ver[1] < 6)
-					 {
-					 IsAppBundle = false;
-					 }
-					 }
+						 GArray<int> Ver;
+						 LgiGetOs(Ver);
+						 if (Ver.Length() > 1)
+						 {
+							 if (Ver[0] < 10 ||
+								 Ver[1] < 6)
+							 {
+								 IsAppBundle = false;
+							 }
+						 }
 					 }
 					 */
 				}
