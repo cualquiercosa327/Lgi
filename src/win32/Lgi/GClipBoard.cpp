@@ -67,15 +67,12 @@ bool GClipBoard::Text(char *Str, bool AutoEmpty)
 char *GClipBoard::Text()
 {
 	int Len = 0;
-	char *Str = NULL;
-	if (Binary(CF_TEXT, (uchar**) &Str, &Len))
+	GAutoPtr<uint8> Str;
+	if (Binary(CF_TEXT, Str, &Len))
 	{
-		char *r = LgiFromNativeCp(Str);
-		DeleteArray(Str);
-		return r;
+		return LgiFromNativeCp((char*)Str.Get());
 	}
 
-	DeleteArray(Str);
 	return 0;
 }
 
@@ -93,15 +90,12 @@ bool GClipBoard::TextW(char16 *Str, bool AutoEmpty)
 char16 *GClipBoard::TextW()
 {
 	int Len = 0;
-	char16 *Str = NULL;
-	if (Binary(CF_UNICODETEXT, (uchar**) &Str, &Len))
+	GAutoPtr<uint8> Str;
+	if (Binary(CF_UNICODETEXT, Str, &Len))
 	{
-		char16 *s = NewStrW(Str,Len/2);
-		DeleteArray(Str);
-		return s;
+		return NewStrW((char16*) Str.Get(), Len / 2);
 	}
 
-	DeleteArray(Str);
 	return 0;
 }
 
@@ -341,34 +335,32 @@ bool GClipBoard::Binary(FormatType Format, uchar *Ptr, int Len, bool AutoEmpty)
 	return Status;
 }
 
-bool GClipBoard::Binary(FormatType Format, uchar **Ptr, int *Len)
+bool GClipBoard::Binary(FormatType Format, GAutoPtr<uint8> &Ptr, int *Length)
 {
 	bool Status = false;
 
-	if (Ptr && Len)
+	HGLOBAL hMem = GetClipboardData(Format);
+	if (hMem)
 	{
-		HGLOBAL hMem = GetClipboardData(Format);
-		if (hMem)
+		int Len = GlobalSize(hMem);
+		if (Length)
+			*Length = Len;
+			
+		uchar *Data = (uchar*) GlobalLock(hMem);
+		if (Data)
 		{
-			*Len = GlobalSize(hMem);
-			uchar *Data = (uchar*) GlobalLock(hMem);
-			if (Data)
+			if (Ptr.Reset(new uchar[Len+sizeof(char16)]))
 			{
-				*Ptr = new uchar[*Len+2];
-				if (*Ptr)
-				{
-					memcpy(*Ptr, Data, *Len);
-					
-					// String termination
-					(*Ptr)[*Len] = 0;
-					(*Ptr)[*Len+1] = 0;
-
-					Status = true;
-				}
+				memcpy(Ptr, Data, Len);
+				
+				// String termination
+				memset(Ptr + Len, 0, sizeof(char16));
+				
+				Status = true;
 			}
-
-			GlobalUnlock(hMem);
 		}
+
+		GlobalUnlock(hMem);
 	}
 
 	return Status;
