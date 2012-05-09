@@ -8,8 +8,10 @@ class LgiClass GClipBoard
 	class GClipBoardPriv *d;
 	GView *Owner;
 	bool Open;
-	char *Txt;
 	GSurface *pDC;
+
+	GAutoString Txt;
+	GAutoWString wTxt;
 
 public:
 	/// On windows, this equates to a CF_TEXT, CF_BITMAP, CF_DIB type #define

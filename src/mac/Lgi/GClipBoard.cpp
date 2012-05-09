@@ -30,7 +30,6 @@ GClipBoard::GClipBoard(GView *o)
 	d = new GClipBoardPriv;
 	Owner = o;
 	Open = false;
-	Txt = 0;
 	pDC = 0;
 }
 
@@ -48,10 +47,11 @@ bool GClipBoard::Empty()
 		OSStatus e = PasteboardClear(d->Pb);
 		if (e) printf("%s:%i - PastbaordClear failed with %i\n", __FILE__, __LINE__, (int)e);
 		else Status = true;
-		
-		DeleteArray(Txt);
-		DeleteObj(pDC);
 	}
+
+	Txt.Reset();
+	wTxt.Reset();
+	DeleteObj(pDC);
 
 	return Status;
 }
@@ -65,32 +65,50 @@ bool GClipBoard::Text(char *Str, bool AutoEmpty)
 		Empty();
 	}
 	
-	if (Str AND Owner AND d->Pb)
-	{
-		Str = NewStr(Str);
-		if (Str)
-		{
-			char16 *w = LgiNewUtf8To16(Str);
-			if (w)
-			{
-				OSStatus e;
+	if (!wTxt.Reset(LgiNewUtf8To16(Str)))
+		return false;
 
-				CFDataRef Data = CFDataCreate(kCFAllocatorDefault, (UInt8*)w, StrlenW(w) * sizeof(*w));
-				if (!Data) printf("%s:%i - CFDataCreate failed\n", _FL);
+	return TextW(wTxt);
+}
+
+char *GClipBoard::Text()
+{
+	char16 *w = TextW();
+	Txt.Reset(LgiNewUtf16To8(w));
+	return Txt;
+}
+
+bool GClipBoard::TextW(char16 *Str, bool AutoEmpty)
+{
+	bool Status = false;
+
+	if (AutoEmpty)
+		Empty();
+	
+	if (Str && Owner && d->Pb)
+	{
+		if (wTxt.Get() != Str)
+			wTxt.Reset(NewStrW(Str));
+
+		if (wTxt)
+		{
+			OSStatus e;
+
+			CFDataRef Data = CFDataCreate(kCFAllocatorDefault, (UInt8*)wTxt.Get(), StrlenW(wTxt) * sizeof(*Str));
+			if (!Data) printf("%s:%i - CFDataCreate failed\n", _FL);
+			else
+			{
+				e = PasteboardClear(d->Pb);
+				if (e) printf("%s:%i - PasteboardClear failed with %i\n", _FL, (int)e);
+
+				e = PasteboardPutItemFlavor(d->Pb, (PasteboardItemID)1, CFSTR(kClipboardTextType), Data, 0);
+				if (e) printf("%s:%i - PasteboardPutItemFlavor failed with %i\n", _FL, (int)e);
 				else
 				{
-					e = PasteboardClear(d->Pb);
-					if (e) printf("%s:%i - PasteboardClear failed with %i\n", _FL, (int)e);
-
-					e = PasteboardPutItemFlavor(d->Pb, (PasteboardItemID)1, CFSTR(kClipboardTextType), Data, 0);
-					if (e) printf("%s:%i - PasteboardPutItemFlavor failed with %i\n", _FL, (int)e);
-					else
-					{
-						Status = true;
-					}
-					
-					CFRelease(Data);
+					Status = true;
 				}
+				
+				CFRelease(Data);
 			}
 		}
 	}
@@ -98,103 +116,94 @@ bool GClipBoard::Text(char *Str, bool AutoEmpty)
 	return Status;
 }
 
-char *GClipBoard::Text()
-{
-	char *Status = 0;
-	
-	DeleteArray(Txt);
-	if (d->Pb)
-	{
-		ItemCount Items;
-		OSStatus e;
-		
-		e = PasteboardGetItemCount(d->Pb, &Items);
-		if (e) printf("%s:%i - PasteboardGetItemCount failed with %i\n", __FILE__, __LINE__, (int)e);
-		else
-		{
-			for (UInt32 i=1; i<=Items; i++)
-			{
-				PasteboardItemID Id;
-				
-				e = PasteboardGetItemIdentifier(d->Pb, i, &Id);
-				if (e) printf("%s:%i - PasteboardGetItemIdentifier failed with %i\n", __FILE__, __LINE__, (int)e);
-				else
-				{
-					CFArrayRef Flavours;
-					e = PasteboardCopyItemFlavors(d->Pb, Id, &Flavours);
-					if (e) printf("%s:%i - PasteboardCopyItemFlavors failed with %i\n", __FILE__, __LINE__, (int)e);
-					else
-					{
-						int FCount = CFArrayGetCount(Flavours);
-						for (CFIndex f=0; f<FCount; f++)
-						{
-							CFStringRef Type = (CFStringRef)CFArrayGetValueAtIndex(Flavours, f);
-							if (UTTypeConformsTo(Type, CFSTR(kClipboardTextType)))
-							{
-								CFDataRef Data;
-								e = PasteboardCopyItemFlavorData(d->Pb, Id, Type, &Data);
-								if (e) printf("%s:%i - PasteboardCopyItemFlavorData failed with %i\n", __FILE__, __LINE__, (int)e);
-								else
-								{
-									int Size = CFDataGetLength(Data);
-									int Ch = Size / sizeof(char16);
-									GAutoWString w(new char16[Ch+1]);
-									if (w)
-									{
-										memcpy(w, CFDataGetBytePtr(Data), Size);
-										w[Ch] = 0;
-																				
-										// Convert '\r' to '\n', which all Lgi applications expect
-										bool HasR = false, HasN = false;
-										for (char16 *c = w; *c; c++)
-										{
-											if (*c == '\n') HasN = true;
-											else if (*c == '\r') HasR = true;
-										}
-										if (HasR && !HasN)
-										{
-											for (char16 *c = w; *c; c++)
-											{
-												if (*c == '\r')
-													*c = '\n';
-											}
-										}
-
-										Txt = Status = LgiNewUtf16To8(w);
-									}
-								}
-							}
-						}
-					}					
-				}
-			}
-		}	
-	}
-	
-	return Status;
-}
-
-bool GClipBoard::TextW(char16 *Str, bool AutoEmpty)
-{
-	bool Status = false;
-
-
-	return Status;
-}
-
 char16 *GClipBoard::TextW()
 {
-	char16 *Status = 0;
+	Txt.Reset();
+	wTxt.Reset();
+	if (!d->Pb)
+		return NULL;
 
+	ItemCount Items;
+	OSStatus e;
+	
+	e = PasteboardGetItemCount(d->Pb, &Items);
+	if (e)
+	{
+		printf("%s:%i - PasteboardGetItemCount failed with %i\n", _FL, (int)e);
+		return NULL;
+	}
 
-	return Status;
+	for (UInt32 i=1; i<=Items; i++)
+	{
+		PasteboardItemID Id;
+		
+		e = PasteboardGetItemIdentifier(d->Pb, i, &Id);
+		if (e)
+		{
+			printf("%s:%i - PasteboardGetItemIdentifier failed with %i\n", _FL, (int)e);
+			continue;
+		}
+
+		CFArrayRef Flavours;
+		e = PasteboardCopyItemFlavors(d->Pb, Id, &Flavours);
+		if (e)
+		{
+			printf("%s:%i - PasteboardCopyItemFlavors failed with %i\n", _FL, (int)e);
+			continue;
+		}
+
+		int FCount = CFArrayGetCount(Flavours);
+		for (CFIndex f=0; f<FCount; f++)
+		{
+			CFStringRef Type = (CFStringRef)CFArrayGetValueAtIndex(Flavours, f);
+			if (UTTypeConformsTo(Type, CFSTR(kClipboardTextType)))
+			{
+				CFDataRef Data;
+				e = PasteboardCopyItemFlavorData(d->Pb, Id, Type, &Data);
+				if (e)
+				{
+					printf("%s:%i - PasteboardCopyItemFlavorData failed with %i\n", _FL, (int)e);
+					continue;
+				}
+
+				int Size = CFDataGetLength(Data);
+				int Ch = Size / sizeof(char16);
+				wTxt.Reset(new char16[Ch+1]);
+				if (!wTxt)
+					continue;
+
+				memcpy(wTxt, CFDataGetBytePtr(Data), Size);
+				wTxt[Ch] = 0;
+														
+				// Convert '\r' to '\n', which all Lgi applications expect
+				bool HasR = false, HasN = false;
+				for (char16 *c = wTxt; *c; c++)
+				{
+					if (*c == '\n') HasN = true;
+					else if (*c == '\r') HasR = true;
+				}
+				if (HasR && !HasN)
+				{
+					for (char16 *c = wTxt; *c; c++)
+					{
+						if (*c == '\r')
+							*c = '\n';
+					}
+				}
+				break;
+			}
+		}					
+	}
+	
+	return wTxt;
 }
 
 bool GClipBoard::Bitmap(GSurface *pDC, bool AutoEmpty)
 {
 	bool Status = false;
-	if (pDC AND Owner)
+	if (pDC && Owner)
 	{
+		LgiAssert(!"Not impl");
 	}
 	return Status;
 }
@@ -202,6 +211,8 @@ bool GClipBoard::Bitmap(GSurface *pDC, bool AutoEmpty)
 GSurface *GClipBoard::Bitmap()
 {
 	GSurface *pDC = false;
+
+	LgiAssert(!"Not impl");
 	
 	return pDC;
 }
@@ -210,19 +221,21 @@ bool GClipBoard::Binary(FormatType Format, uchar *Ptr, int Len, bool AutoEmpty)
 {
 	bool Status = false;
 
-	if (Ptr AND Len > 0)
+	if (Ptr && Len > 0)
 	{
+		LgiAssert(!"Not impl");
 	}
 
 	return Status;
 }
 
-bool GClipBoard::Binary(FormatType Format, uchar **Ptr, int *Len)
+bool GClipBoard::Binary(FormatType Format, GAutoPtr<uint8> &Ptr, int *Len)
 {
 	bool Status = false;
 
-	if (Ptr AND Len)
+	if (Ptr && Len)
 	{
+		LgiAssert(!"Not impl");
 	}
 
 	return Status;
