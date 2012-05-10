@@ -191,9 +191,7 @@ void GCheckBox::OnMouseExit(GMouse &m)
 
 bool GCheckBox::OnKey(GKey &k)
 {
-	k.Trace("GCheckBox");
-	
-	if (k.IsChar)
+	if (!k.IsChar)
 	{
 		switch (k.vkey)
 		{
