@@ -27,6 +27,12 @@ GClipBoard::~GClipBoard()
 	DeleteObj(d);
 }
 
+GClipBoard &GClipBoard::operator =(GClipBoard &c)
+{
+    LgiAssert(0);
+    return *this;
+}
+
 bool GClipBoard::EnumFormats(GArray<FormatType> &Formats)
 {
 	UINT Idx = 0;

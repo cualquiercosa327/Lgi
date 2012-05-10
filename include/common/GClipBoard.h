@@ -22,6 +22,7 @@ public:
 	~GClipBoard();
 
 	bool IsOpen() { return Open; }
+	GClipBoard &operator =(GClipBoard &c);
 
 	/// Empties the clipboard of it's current content.
 	bool Empty();
