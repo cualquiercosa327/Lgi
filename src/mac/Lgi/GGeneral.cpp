@@ -451,7 +451,7 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir)
 				{
 					char cmd[512];
 					if (ValidStr((char*)Args))
-						snprintf(cmd, sizeof(cmd), "open -a \"%s\" --args %s", File, Args);
+						snprintf(cmd, sizeof(cmd), "open -a \"%s\" %s", File, Args);
 					else
 						snprintf(cmd, sizeof(cmd), "open -a \"%s\"", File);
 					system(cmd);
