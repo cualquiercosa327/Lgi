@@ -732,9 +732,11 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 						(PointSize() == 8 || PointSize() == 9) &&
 						GTypeFace::d->_Underline;
 
+    /*
     char mm[256];
     sprintf(mm, "CreateFont %s,%i\n", Face(), PointSize());
     OutputDebugString(mm);
+    */
 	
 	d->hFont = ::CreateFont(Win32Height,
 							0,
