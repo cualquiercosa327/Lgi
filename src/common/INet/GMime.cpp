@@ -284,7 +284,10 @@ public:
 			while (*s && s < e && !Lut[*s]) s++;
 			char *Start = s;
 			while (*s && s < e && Lut[*s]) s++;
-			Buf.Push(Start, s-Start);
+			if (s-Start > 0)
+				Buf.Push(Start, s-Start);
+			else
+				break;
 		}
 
 		// While there is at least one run of base64 (4 bytes) convert it to text

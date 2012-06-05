@@ -22,6 +22,7 @@
 #include "Lgi.h"
 #include "GDateTime.h"
 #include "GToken.h"
+#include "GDocView.h"
 
 //////////////////////////////////////////////////////////////////////////////
 uint16 GDateTime::DefaultFormat = GDTF_DEFAULT;
@@ -1444,6 +1445,7 @@ bool GDateTime::Decode(const char *In)
 	// Test data:
 	//
 	//		Tue, 6 Dec 2005 1:25:32 -0800
+	Empty();
 
 	bool Status = false;
 	if (In)
@@ -1473,7 +1475,7 @@ bool GDateTime::Decode(const char *In)
 					if (Date.Length() == 3)
 					{
 						Day(atoi(Date[0]));
-						if (isdigit(Date[1][0]))
+						if (IsDigit(Date[1][0]))
 						{
 							Month(atoi(Date[1]));
 						}
@@ -1514,7 +1516,7 @@ bool GDateTime::Decode(const char *In)
 						Status = true;
 					}
 				}
-				else if (isalpha(*s))
+				else if (IsAlpha(*s))
 				{
 					// text
 					int m = MonthFromName(s);
@@ -1523,13 +1525,13 @@ bool GDateTime::Decode(const char *In)
 						Month(m);
 					}
 				}
-				else if (isdigit(*s))
+				else if (IsDigit(*s))
 				{
 					bool All = true;
 					int Count = 0;
 					for (char *c = s; *c; c++)
 					{
-						if (!isdigit(*c))
+						if (!IsDigit(*c))
 						{
 							All = false;
 							break;
