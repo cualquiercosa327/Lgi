@@ -22,6 +22,9 @@ typedef unsigned char bool;
 /// \returns true if heap is ok.
 LgiFunc bool LgiCheckHeap();
 
+/// Turns on/off leak detection.
+LgiFunc void LgiSetLeakDetect(bool On);
+
 /// \return true if the block of memory referenced by 'p' is readable for Len bytes.
 LgiFunc bool LgiCanReadMemory
 (

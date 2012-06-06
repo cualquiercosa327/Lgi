@@ -48,11 +48,17 @@ struct block
 	uint32 PreBytes;
 };
 
+static bool DoLeakCheck = true;
 static bool MemInit = false;
 static uint BlockCount = 0;
 static block *First = 0;
 static block *Last = 0;
-CRITICAL_SECTION Lock;
+static CRITICAL_SECTION Lock;
+
+void LgiSetLeakDetect(bool On)
+{
+	DoLeakCheck = On;
+}
 
 #pragma warning(disable:4074) // warning C4074: initializers put in compiler reserved initialization area
 #pragma init_seg(compiler)
@@ -67,7 +73,7 @@ struct GLeakCheck
 	~GLeakCheck()
 	{
 		char DefName[] = "leaks.mem";
-		if (First)
+		if (First && DoLeakCheck)
 		{
 			LgiDumpMemoryStats(DefName);
 		}

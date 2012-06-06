@@ -58,6 +58,7 @@ LONG __stdcall GApp::_ExceptionFilter(LPEXCEPTION_POINTERS e, char *ProductId)
 {
 	char *Title = "Application Crash";
 
+	LgiSetLeakDetect(false);
 	SetUnhandledExceptionFilter(0); // We can't handle crashes within
 									// ourself, so let the default handler
 									// do it.
@@ -84,7 +85,7 @@ LONG __stdcall GApp::_ExceptionFilter(LPEXCEPTION_POINTERS e, char *ProductId)
 			BOOL Ret = Help.MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), File.Handle(), MiniDumpNormal, &Info, 0, 0);
 			if (Ret)
 			{
-				LgiMsg(0, "This application has crashed. A mini dump has been written to:\n%s\n", Title, MB_YESNO|MB_APPLMODAL, p);
+				LgiMsg(0, "This application has crashed. A mini dump has been written to:\n%s\n", Title, MB_OK|MB_APPLMODAL, p);
 			}
 			else
 			{
