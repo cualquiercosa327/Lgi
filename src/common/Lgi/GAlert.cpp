@@ -63,6 +63,15 @@ GAlert::GAlert(	GViewI *parent,
 	}
 }
 
+void GAlert::SetAppModal()
+{
+    #if defined(WIN32)
+    SetExStyle(GetExStyle() | WS_EX_TOPMOST);
+    #else
+    #warning "Impl me."
+    #endif
+}
+
 int GAlert::OnNotify(GViewI *Ctrl, int Flags)
 {
 	switch (Ctrl->GetId())

@@ -1660,6 +1660,7 @@ public:
 		const char *Btn3 = 0
 	);
 
+    void SetAppModal();
 	int OnNotify(GViewI *Ctrl, int Flags);
 };
 

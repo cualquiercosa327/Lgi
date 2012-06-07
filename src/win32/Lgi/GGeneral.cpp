@@ -862,6 +862,7 @@ void _lgi_assert(bool b, const char *test, const char *file, int line)
 		p.Print("Assert failed, file: %s, line: %i\n%s", file, line, test);
 		GAutoPtr<char,true> Msg(p.NewStr());
 		GAlert a(0, "Assert Failed", Msg, "Abort", "Debug", "Ignore");
+		a.SetAppModal();
 		switch (a.DoModal())
 		{
 			case 1:

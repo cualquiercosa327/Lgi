@@ -277,7 +277,7 @@ int GDialog::DoModal(OsView ParentHnd)
 	    while (d->ModalResult < 0)
 	    {
 	        LgiYield();
-	        LgiSleep(1);
+	        LgiSleep(10);
 	    }
 	    if (pwnd) EnableWindow(pwnd, true);
 	    if (ParentWnd)
