@@ -531,7 +531,11 @@ bool LgiDumpMemoryStats(char *f)
 	return false;
 }
 
-#endif
+void LgiSetLeakDetect(bool On)
+{
+}
+
+#endif // LGI_MEM_DEBUG
 
 
 /*
