@@ -74,4 +74,63 @@ public:
 	int OnNotify(GViewI *c, int f);
 };
 
+
+/// This is just a light-weight layout system for doing things manually.
+class GLayoutRect : public GRect
+{
+public:
+	GLayoutRect(GViewI *c)
+	{
+		((GRect&)*this) = c->GetClient();
+		Size(GTableLayout::CellSpacing, GTableLayout::CellSpacing);
+	}
+	
+	GLayoutRect Left(GViewI *v, int Px)
+	{
+		GLayoutRect r = *this;
+		r.x2 = r.x1 + Px - 1;
+		x1 = r.x2 + GTableLayout::CellSpacing;
+		if (v)
+			v->SetPos(r);
+		return r;
+	}
+
+	GLayoutRect Right(GViewI *v, int Px)
+	{
+		GLayoutRect r = *this;
+		r.x1 = r.x2 - Px + 1;
+		x2 = r.x1 - GTableLayout::CellSpacing;
+		if (v)
+			v->SetPos(r);
+		return r;
+	}
+
+	GLayoutRect Top(GViewI *v, int Px)
+	{
+		GLayoutRect r = *this;
+		r.y2 = r.y1 + Px - 1;
+		y1 = r.y2 + GTableLayout::CellSpacing;
+		if (v)
+			v->SetPos(r);
+		return r;
+	}
+
+	GLayoutRect Bottom(GViewI *v, int Px)
+	{
+		GLayoutRect r = *this;
+		r.y2 = r.y1 + Px - 1;
+		y1 = r.y2 + GTableLayout::CellSpacing;
+		if (v)
+			v->SetPos(r);
+		return r;
+	}
+	
+	void Remaining(GViewI *v)
+	{
+		if (v)
+			v->SetPos(*this);
+		ZOff(-1, -1);
+	}
+};
+
 #endif

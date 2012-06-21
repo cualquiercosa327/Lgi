@@ -1257,213 +1257,6 @@ void GTag::Detach()
 	}
 }
 
-GCellStore::GCellStore(GTag *Table)
-{
-	if (Table)
-	{
-		int y = 0;
-		GTag *FakeRow = 0;
-		GTag *FakeCell = 0;
-
-		GTag *r;
-		for (r=Table->Tags.First(); r; r=Table->Tags.Next())
-		{
-			if (r->TagId == TAG_TR)
-			{
-				FakeRow = 0;
-				FakeCell = 0;
-			}
-			else if (r->TagId == TAG_TBODY)
-			{
-				int Index = Table->Tags.IndexOf(r);
-				for (GTag *t = r->Tags.First(); t; t = r->Tags.Next())
-				{
-					Table->Tags.Insert(t, ++Index);
-					t->Parent = Table;
-				}
-				r->Tags.Empty();
-			}
-			else
-			{
-				if (!FakeRow)
-				{
-					if (FakeRow = new GTag(Table->Html, 0))
-					{
-						FakeRow->Tag = NewStr("tr");
-						FakeRow->TagId = TAG_TR;
-
-						int Idx = Table->Tags.IndexOf(r);
-						Table->Attach(FakeRow, Idx);
-					}
-				}
-				if (FakeRow)
-				{
-					if (r->TagId != TAG_TD && !FakeCell)
-					{
-						if (FakeCell = new GTag(Table->Html, FakeRow))
-						{
-							FakeCell->Tag = NewStr("td");
-							FakeCell->TagId = TAG_TD;
-							FakeCell->Span.x = 1;
-							FakeCell->Span.y = 1;
-						}
-					}
-
-					int Idx = Table->Tags.IndexOf(r);
-					r->Detach();
-
-					if (r->TagId == TAG_TD)
-					{
-						FakeRow->Attach(r);
-					}
-					else
-					{
-						LgiAssert(FakeCell);
-						FakeCell->Attach(r);
-					}
-					Table->Tags[Idx-1];
-				}
-			}
-		}
-
-		for (r=Table->Tags.First(); r; r=Table->Tags.Next())
-		{
-			if (r->TagId == TAG_TR)
-			{
-				int x = 0;
-				for (GTag *c=r->Tags.First(); c; c=r->Tags.Next())
-				{
-					if (c->TagId == TAG_TD)
-					{
-						while (Get(x, y))
-						{
-							x++;
-						}
-
-						c->Cell.x = x;
-						c->Cell.y = y;
-						Set(c);
-						x += c->Span.x;
-					}
-				}
-
-				y++;
-			}
-		}
-	}
-}
-
-void GCellStore::Dump()
-{
-	int Sx, Sy;
-	GetSize(Sx, Sy);
-
-	LgiTrace("Table %i x %i cells.\n", Sx, Sy);
-	for (int x=0; x<Sx; x++)
-	{
-		LgiTrace("--- %-2i--- ", x);
-	}
-	LgiTrace("\n");
-
-	for (int y=0; y<Sy; y++)
-	{
-		int x;
-		for (x=0; x<Sx; x++)
-		{
-			GTag *t = Get(x, y);
-			LgiTrace("%p  ", t);
-		}
-		LgiTrace("\n");
-
-		for (x=0; x<Sx; x++)
-		{
-			GTag *t = Get(x, y);
-			char s[256] = "";
-			if (t)
-			{
-				sprintf(s, "%i,%i-%i,%i", t->Cell.x, t->Cell.y, t->Span.x, t->Span.y);
-			}
-			LgiTrace("%-10s", s);
-		}
-		LgiTrace("\n");
-	}
-
-	LgiTrace("\n");
-}
-
-void GCellStore::GetAll(List<GTag> &All)
-{
-	List<Cell>::I i = Cells.Start();
-	for (Cell *c=*i; c; c=*++i)
-	{
-		All.Insert(c->Tag);
-	}
-}
-
-void GCellStore::GetSize(int &x, int &y)
-{
-	x = 0;
-	y = 0;
-
-	List<Cell>::I i = Cells.Start();
-	for (Cell *c=*i; c; c=*++i)
-	{
-		if (c->Tag->Cell.x == c->x &&
-			c->Tag->Cell.y == c->y)
-		{
-			x = max(x, c->x + c->Tag->Span.x);
-			y = max(y, c->y + c->Tag->Span.y);
-		}
-	}
-}
-
-GTag *GCellStore::Get(int x, int y)
-{
-	List<Cell>::I i = Cells.Start();
-	for (Cell *c=*i; c; c=*++i)
-	{
-		if (c->x == x && c->y == y)
-		{
-			return c->Tag;
-		}
-	}
-
-	return 0;
-}
-
-bool GCellStore::Set(GTag *t)
-{
-	if (t)
-	{
-		for (int y=0; y<t->Span.y; y++)
-		{
-			for (int x=0; x<t->Span.x; x++)
-			{
-				int Cx = t->Cell.x + x;
-				int Cy = t->Cell.y + y;
-
-				if (!Get(Cx, Cy))
-				{
-					Cell *c = new Cell;
-					if (c)
-					{
-						c->x = Cx;
-						c->y = Cy;
-						c->Tag = t;
-						Cells.Insert(c);
-					}
-					else return false;
-				}
-				else return false;
-			}
-		}
-
-		return true;
-	}
-
-	return false;
-}
-
 //////////////////////////////////////////////////////////////////////
 void GFlowRegion::EndBlock()
 {
@@ -7548,3 +7341,196 @@ class GHtml_Factory2 : public GViewFactory
 	}
 
 } GHtml_Factory2;
+
+//////////////////////////////////////////////////////////////////////
+GCellStore::GCellStore(GTag *Table)
+{
+	if (!Table)
+		return;
+
+	int y = 0;
+	GTag *FakeRow = 0;
+	GTag *FakeCell = 0;
+
+	GTag *r;
+	for (r=Table->Tags.First(); r; r=Table->Tags.Next())
+	{
+		if (r->TagId == TAG_TR)
+		{
+			FakeRow = 0;
+			FakeCell = 0;
+		}
+		else if (r->TagId == TAG_TBODY)
+		{
+			int Index = Table->Tags.IndexOf(r);
+			for (GTag *t = r->Tags.First(); t; t = r->Tags.Next())
+			{
+				Table->Tags.Insert(t, ++Index);
+				t->Parent = Table;
+			}
+			r->Tags.Empty();
+		}
+		else
+		{
+			if (!FakeRow)
+			{
+				if (FakeRow = new GTag(Table->Html, 0))
+				{
+					FakeRow->Tag = NewStr("tr");
+					FakeRow->TagId = TAG_TR;
+
+					int Idx = Table->Tags.IndexOf(r);
+					Table->Attach(FakeRow, Idx);
+				}
+			}
+			if (FakeRow)
+			{
+				if (r->TagId != TAG_TD && !FakeCell)
+				{
+					if (FakeCell = new GTag(Table->Html, FakeRow))
+					{
+						FakeCell->Tag = NewStr("td");
+						FakeCell->TagId = TAG_TD;
+						FakeCell->Span.x = 1;
+						FakeCell->Span.y = 1;
+					}
+				}
+
+				int Idx = Table->Tags.IndexOf(r);
+				r->Detach();
+
+				if (r->TagId == TAG_TD)
+				{
+					FakeRow->Attach(r);
+				}
+				else
+				{
+					LgiAssert(FakeCell);
+					FakeCell->Attach(r);
+				}
+				Table->Tags[Idx-1];
+			}
+		}
+	}
+
+	for (r=Table->Tags.First(); r; r=Table->Tags.Next())
+	{
+		if (r->TagId == TAG_TR)
+		{
+			int x = 0;
+			for (GTag *c=r->Tags.First(); c; c=r->Tags.Next())
+			{
+				if (c->TagId == TAG_TD)
+				{
+					while (Get(x, y))
+					{
+						x++;
+					}
+
+					c->Cell.x = x;
+					c->Cell.y = y;
+					Set(c);
+					x += c->Span.x;
+				}
+			}
+
+			y++;
+		}
+	}
+}
+
+void GCellStore::Dump()
+{
+	int Sx, Sy;
+	GetSize(Sx, Sy);
+
+	LgiTrace("Table %i x %i cells.\n", Sx, Sy);
+	for (int x=0; x<Sx; x++)
+	{
+		LgiTrace("--- %-2i--- ", x);
+	}
+	LgiTrace("\n");
+
+	for (int y=0; y<Sy; y++)
+	{
+		int x;
+		for (x=0; x<Sx; x++)
+		{
+			GTag *t = Get(x, y);
+			LgiTrace("%p ", t);
+		}
+		LgiTrace("\n");
+
+		for (x=0; x<Sx; x++)
+		{
+			GTag *t = Get(x, y);
+			char s[256] = "";
+			if (t)
+			{
+				sprintf(s, "%i,%i-%i,%i", t->Cell.x, t->Cell.y, t->Span.x, t->Span.y);
+			}
+			LgiTrace("%-10s", s);
+		}
+		LgiTrace("\n");
+	}
+
+	LgiTrace("\n");
+}
+
+void GCellStore::GetAll(List<GTag> &All)
+{
+	GHashTbl<void*, bool> Added;
+	for (int y=0; y<c.Length(); y++)
+	{
+		CellArray &a = c[y];
+		for (int x=0; x<a.Length(); x++)
+		{
+			GTag *t = a[x];
+			if (!Added.Find(t))
+			{
+				Added.Add(t, true);
+				All.Insert(t);
+			}
+		}
+	}
+}
+
+void GCellStore::GetSize(int &x, int &y)
+{
+	x = 0;
+	y = c.Length();
+
+	for (int i=0; i<c.Length(); i++)
+	{
+		x = max(x, c[i].Length());
+	}
+}
+
+GTag *GCellStore::Get(int x, int y)
+{
+	if (y >= c.Length())
+		return NULL;
+	
+	CellArray &a = c[y];
+	if (x >= a.Length())
+		return NULL;
+	
+	return a[x];
+}
+
+bool GCellStore::Set(GTag *t)
+{
+	if (!t)
+		return false;
+
+	for (int y=0; y<t->Span.y; y++)
+	{
+		for (int x=0; x<t->Span.x; x++)
+		{
+			// LgiAssert(!c[y][x]);
+			c[y][x] = t;
+		}
+	}
+
+	return true;
+}

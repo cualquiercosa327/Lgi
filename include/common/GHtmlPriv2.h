@@ -151,32 +151,6 @@ public:
 	void Set(char *s);
 };
 
-class GCellStore
-{
-	class Cell
-	{
-	public:
-		int x, y;
-		GTag *Tag;
-	};
-
-	List<Cell> Cells;
-
-public:
-	GCellStore(GTag *Table);
-	~GCellStore()
-	{
-		Cells.DeleteObjects();
-	}
-
-	void GetSize(int &x, int &y);
-	void GetAll(List<GTag> &All);
-	GTag *Get(int x, int y);
-	bool Set(GTag *t);
-	
-	void Dump();
-};
-
 class GFlowRect : public GRect
 {
 public:
@@ -209,6 +183,22 @@ public:
 
 	GRect *TopRect(GRegion *c);
 	void FlowText(GTag *Tag, GFlowRegion *c, GFont *Font, char16 *Text, GCss::LengthType Align);
+};
+
+class GCellStore
+{
+	typedef GArray<GTag*> CellArray;
+	GArray<CellArray> c;
+
+public:
+	GCellStore(GTag *Table);
+
+	void GetSize(int &x, int &y);
+	void GetAll(List<GTag> &All);
+	GTag *Get(int x, int y);
+	bool Set(GTag *t);
+	
+	void Dump();
 };
 
 class GTag : public GDom, public GCss
