@@ -7528,7 +7528,7 @@ bool GCellStore::Set(GTag *t)
 		for (int x=0; x<t->Span.x; x++)
 		{
 			// LgiAssert(!c[y][x]);
-			c[y][x] = t;
+			c[t->Cell.y + y][t->Cell.x + x] = t;
 		}
 	}
 
