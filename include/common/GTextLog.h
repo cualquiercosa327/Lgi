@@ -50,7 +50,7 @@ public:
 		        }
 		    }
 		    *o = 0;
-		    Len = o - w;
+		    Len = (int) (o - w);
 		}
 		else
 		{
@@ -94,7 +94,7 @@ public:
 		{
 		    if (Sem.Lock(_FL))
 		    {
-		        for (int i=0; i<Txt.Length(); i++)
+		        for (uint32 i=0; i<Txt.Length(); i++)
 		        {
 				    Add(Txt[i]);
 				}

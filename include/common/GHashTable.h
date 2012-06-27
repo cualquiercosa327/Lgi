@@ -68,7 +68,7 @@ class GHashTbl
     struct KeyPool
     {
 	    uint32 Size;
-	    uint32 Used;
+	    size_t Used;
 	    char *Mem;
 
 	    KeyPool()
@@ -99,7 +99,11 @@ class GHashTbl
 		    if (Used < Size - Len)
 		    {
 			    char *p = Mem + Used;
+			    #if _MSC_VER >= 1400
+			    strcpy_s(p, Len, s);
+			    #else
 			    strcpy(p, s);
+			    #endif
 			    Used += Len;
 			    return p;
 		    }
@@ -112,7 +116,11 @@ class GHashTbl
 		    if (Used < Size - Len)
 		    {
 			    char *p = Mem + Used;
+			    #if _MSC_VER >= 1400
+			    strcpy_s(p, Len, s);
+			    #else
 			    strcpy(p, s);
+			    #endif
 			    Used += Len;
 			    return p;
 		    }
@@ -222,7 +230,7 @@ class GHashTbl
 					return strcmp(a, b) == 0;
 				else
 					#ifdef WIN32
-					return stricmp(a, b) == 0;
+					return _stricmp(a, b) == 0;
 					#else
 					return strcasecmp(a, b) == 0;
 					#endif

@@ -285,7 +285,7 @@ public:
 	/// Delete all the entries as if they are pointers to arrays
 	void DeleteArrays()
 	{
-		for (int i=0; i<len; i++)
+		for (uint32 i=0; i<len; i++)
 		{
 			DeleteArray(p[i]);
 		}
