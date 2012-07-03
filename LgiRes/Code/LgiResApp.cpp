@@ -572,6 +572,8 @@ void FieldView::Serialize(bool Write)
 class TextViewEdit : public GTextView3
 {
 public:
+    bool Multiline;
+
 	TextViewEdit(	int Id,
 					int x,
 					int y,
@@ -580,6 +582,7 @@ public:
 					GFontType *FontInfo = 0) :
 		GTextView3(Id, x, y, cx, cy, FontInfo)
 	{
+	    Multiline = false;
 		#ifdef WIN32
 		SetDlgCode(DLGC_WANTARROWS | DLGC_WANTCHARS);
 		#endif
@@ -587,7 +590,7 @@ public:
 
 	bool OnKey(GKey &k)
 	{
-		if (k.c16 == '\t' OR k.c16 == VK_RETURN)
+		if (!Multiline && (k.c16 == '\t' OR k.c16 == VK_RETURN))
 		{
 			return false;
 		}
@@ -642,7 +645,7 @@ void FieldView::OnSelect(FieldSource *s)
 		{
 			GFontType Sys;
 			Sys.GetSystemFont("System");
-			int Dy = SysFont->GetHeight() + 16;
+			int Dy = SysFont->GetHeight() + 14;
 			int y = 10;
 
 			GArray<FieldTree::FieldArr*> a;
@@ -661,10 +664,12 @@ void FieldView::OnSelect(FieldSource *s)
 						case DATA_INT:
 						{
 							AddView(new GText(-1, 10, y + 4, 50, 20, c->Label));
-							GTextView3 *Tv;
-							AddView(Tv = new TextViewEdit(c->Id, 70, y, 100, Dy - 8, &Sys));
+							TextViewEdit *Tv;
+							AddView(Tv = new TextViewEdit(c->Id, 70, y, 100, c->Multiline ? SysFont->GetHeight() * 8 : Dy - 8, &Sys));
 							if (Tv)
 							{
+							    if (Tv->Multiline = c->Multiline)
+							        y += Tv->Y() + 8 - Dy;
 								Tv->SetWrapType(TEXTED_WRAP_NONE);
 								Tv->Sunken(true);
 							}
@@ -740,20 +745,6 @@ int FieldView::OnNotify(GViewI *Ctrl, int Flags)
 		{
 			return 0;
 		}
-
-		/*
-		for (DataDlgField *f = Fields.First(); f; f = Fields.Next())
-		{
-			if (Ctrl->GetId() == f->GetCtrl())
-			{
-				// write the values back
-				Serialize(true);
-				Source->OnFieldChange();
-				App->SetDirty(true);
-				break;
-			}
-		}
-		*/
 
 		GArray<FieldTree::FieldArr*> a;
 		Fields.GetAll(a);

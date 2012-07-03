@@ -552,70 +552,24 @@ bool ResString::Serialize(FieldTree &Fields)
 
 	if (Group)
 	{
-		// if (Fields.GetToUi())
+		for (int i=0; i<Group->GetLanguages(); i++)
 		{
-			for (int i=0; i<Group->GetLanguages(); i++)
+			GLanguageId Id = Group->Lang[i]->Id;
+			StrLang *s = GetLang(Id);
+			if (Fields.GetMode() == FieldTree::UiToObj && !s)
 			{
-				GLanguageId Id = Group->Lang[i]->Id;
-				StrLang *s = GetLang(Id);
-				if (Fields.GetMode() == FieldTree::UiToObj && !s)
-				{
-					s = new StrLang;
-					if (s)
-					{
-						Items.Insert(s);
-						s->SetLang(Id);
-					}
-				}
+				s = new StrLang;
 				if (s)
 				{
-					Fields.Serialize(this, Group->Lang[i]->Name, s->GetStr());
+					Items.Insert(s);
+					s->SetLang(Id);
 				}
 			}
-		}
-		/*
-		else
-		{
-			for (int i=0; i<Group->GetLanguages(); i++)
+			if (s)
 			{
-				char *n = 0;
-				if (p->Get(Group->Lang[i]->Name, n) AND
-					ValidStr(n))
-				{
-					// Add the translation
-					StrLang *s = GetLang(Group->Lang[i]->Id);
-					if (!s)
-					{
-						s = new StrLang;
-						if (s)
-						{
-							Items.Insert(s);
-							s->SetLang(Group->Lang[i]->Id);
-						}
-					}
-					if (s)
-					{
-						if (!s->GetStr() OR strcmp(s->GetStr(), n))
-						{
-							s->SetStr(n);
-						}
-					}
-				}
-				else
-				{
-					for (StrLang *s=Items.First(); s; s=Items.Next())
-					{
-						if (s->GetLang() == Group->Lang[i]->Id)
-						{
-							Items.Delete(s);
-							DeleteObj(s);
-							break;
-						}
-					}
-				}
+				Fields.Serialize(this, Group->Lang[i]->Name, s->GetStr());
 			}
 		}
-		*/
 
 		Update();
 	}

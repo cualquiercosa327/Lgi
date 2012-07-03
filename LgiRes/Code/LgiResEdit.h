@@ -259,6 +259,7 @@ public:
 		GAutoString Name;
 		int Type;
 		int Id;
+		bool Multiline;
 		void *Token;
 
 		Field(FieldTree *tree)
@@ -267,6 +268,7 @@ public:
 			Type = 0;
 			Id = 0;
 			Token = 0;
+			Multiline = false;
 		}
 	};
 
@@ -359,7 +361,7 @@ public:
 		View = 0;
 	}
 
-	void Insert(void *Token, int Type, int Reserved, const char *Name, const char *Label, int Idx = -1)
+	void Insert(void *Token, int Type, int Reserved, const char *Name, const char *Label, int Idx = -1, bool Multiline = false)
 	{
 		FieldArr *a = Get(Token, true);
 		if (!a) return;
@@ -372,6 +374,7 @@ public:
 			n->Name.Reset(NewStr(Name));
 			n->Id = NextId++;
 			n->Type = Type;
+			n->Multiline = Multiline;
 			a->Add(n);
 		}
 	}

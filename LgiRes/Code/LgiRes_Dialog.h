@@ -91,6 +91,7 @@ protected:
 	bool AcceptChildren;
 	bool Movable;
 	bool Vis;
+	GAutoString CssStyle;
 
 public:
 	ResString *Str;

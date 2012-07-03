@@ -504,12 +504,10 @@ void ResDialogCtrl::StrFromRef(int Ref)
 #define VAL_y2						"y2"
 #define VAL_Visible					"Visible"
 #define VAL_Enabled					"Enabled"
+#define VAL_Style                   "Style"
 
 bool ResDialogCtrl::GetFields(FieldTree &Fields)
 {
-	// Set Fields
-	// Fields.Insert(new DataDlgField(DATA_STR, 100, VAL_Text, "Text"));
-
 	if (Str)
 	{
 		Str->GetFields(Fields);
@@ -518,6 +516,7 @@ bool ResDialogCtrl::GetFields(FieldTree &Fields)
 	Fields.Insert(this, DATA_STR, 101, VAL_Pos, "Pos");
 	Fields.Insert(this, DATA_BOOL, 105, VAL_Visible, "Visible");
 	Fields.Insert(this, DATA_BOOL, 106, VAL_Enabled, "Enabled");
+	Fields.Insert(this, DATA_STR, 107, VAL_Style, "Style", -1, true);
 
 	return true;
 }
@@ -544,6 +543,7 @@ bool ResDialogCtrl::Serialize(FieldTree &Fields)
 	Fields.Serialize(this, VAL_Pos, r);
 	Fields.Serialize(this, VAL_Visible, Vis, true);
 	Fields.Serialize(this, VAL_Enabled, e, true);
+	Fields.Serialize(this, VAL_Style, CssStyle);
 
 	if (Fields.GetMode() == FieldTree::UiToObj ||
 		Fields.GetMode() == FieldTree::StoreToObj)

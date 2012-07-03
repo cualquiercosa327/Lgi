@@ -740,9 +740,16 @@ GFilter::IoStatus GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality)
 		cinfo.input_components = 3;
 		cinfo.in_color_space = JCS_RGB;
 	}
-
+	
 	d->jpeg_set_defaults(&cinfo);
 	
+	cinfo.comp_info[0].h_samp_factor = 2;
+	cinfo.comp_info[0].h_samp_factor = 2;
+	cinfo.comp_info[1].h_samp_factor = 1;
+	cinfo.comp_info[1].h_samp_factor = 1;
+	cinfo.comp_info[2].h_samp_factor = 1;
+	cinfo.comp_info[2].h_samp_factor = 1;
+
 	if (Quality >= 0)
 	{
 		d->jpeg_set_quality(&cinfo, Quality, true);
