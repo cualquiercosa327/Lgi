@@ -18,6 +18,7 @@
 #include "GDropFiles.h"
 #include "GdiLeak.h"
 #include "GViewPriv.h"
+#include "GCss.h"
 
 #define DEBUG_OVER				0
 #define OLD_WM_CHAR_MODE		1
@@ -46,6 +47,10 @@ GViewPrivate::GViewPrivate()
 
 GViewPrivate::~GViewPrivate()
 {
+    if (Css)
+    {
+        int asd=0;
+    }
 	if (FontOwn)
 	{
 		DeleteObj(Font);

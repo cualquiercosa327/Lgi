@@ -1,6 +1,7 @@
 #include "Lgi.h"
 #include "GProgress.h"
 #include <COMMCTRL.H>
+#include "GCss.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 GProgress::GProgress(int id, int x, int y, int cx, int cy, const char *name) :
@@ -80,8 +81,8 @@ bool GProgress::OnLayout(GViewLayoutInfo &Inf)
 {
 	if (!Inf.Width.Max)
 	{
-		Inf.Width.Max = 10000;
-		Inf.Width.Min = 64;
+	    Inf.Width.Max = 10000;
+	    Inf.Width.Min = 64;
 	}
 	else if (!Inf.Height.Max)
 	{

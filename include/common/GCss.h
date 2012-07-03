@@ -297,6 +297,7 @@ public:
 		bool IsDynamic() { return Type == LenPercent || Type == LenInherit; }
 		bool operator !=(Len &l) { return Type != l.Type || Value != l.Value; }
 		bool ToString(GStream &p);
+		int ToPx(int Box = 0, GFont *Font = 0, int Dpi = 96);
 	};
 
 	struct LgiClass ColorStop

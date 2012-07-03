@@ -91,6 +91,9 @@ public:
 	// Font
 	GFont			*Font;
 	bool			FontOwn;
+	
+	// Style
+	GAutoPtr<GCss>  Css;
 
 	// OS Specific
 	#if WIN32NATIVE

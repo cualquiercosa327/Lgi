@@ -855,6 +855,10 @@ bool LgiResources::Res_SetProperties(ResObject *Obj, GDom *Props)
 		{
 			v->Visible(i.CastInt32());
 		}
+		if (Props->GetValue("style", i))
+		{
+		    v->SetCssStyle(i.Str());
+		}
 
 		GEdit *e = dynamic_cast<GEdit*>(v);
 		if (e)

@@ -230,6 +230,34 @@ GCss::~GCss()
 	Empty();
 }
 
+int GCss::Len::ToPx(int Box, GFont *Font, int Dpi)
+{
+    switch (Type)
+    {
+        default:
+		case LenInherit:
+		case LenAuto:
+		case LenNormal:
+		case LenPx:
+		    return (int)Value;
+		
+		case LenPt:
+		    return Value * Dpi / 72;
+
+		case LenCm:
+		    return Value * Dpi / 2.54;
+		    
+		case LenEm:
+		    return Value * (Font ? Font->GetHeight() : 18);
+		    
+		case LenEx:
+		    return Value * (Font ? Font->GetAscent() : 18); // haha I don't care.
+		
+		case LenPercent:
+		    return Box * Value / 100.0;
+    }
+}
+
 bool GCss::Len::ToString(GStream &p)
 {
 	const char *Unit = 0;

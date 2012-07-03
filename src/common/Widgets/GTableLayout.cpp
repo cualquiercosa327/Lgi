@@ -14,6 +14,7 @@
 #include "GTabView.h"
 #include "GUtf8.h"
 #include "GScrollBar.h"
+#include "GCss.h"
 
 #define Izza(c)				dynamic_cast<c*>(v)
 #define DEBUG_LAYOUT		0
@@ -483,6 +484,7 @@ public:
 			GView *v = Children[i];
 
 			GViewLayoutInfo Inf;
+			GCss *Css;
 			if (v->OnLayout(Inf))
 			{
 				if (Inf.Width.Max < 0)
@@ -499,6 +501,10 @@ public:
 				{
 					Min = max(Min, Inf.Width.Min);
 				}
+			}
+			else if ((Css = v->GetCss()) && Css->Width().IsValid())
+			{
+			    Min = Max = Css->Width().ToPx(Max, v->GetFont());
 			}
 			else
 			{
@@ -546,7 +552,6 @@ public:
 						 Izza(GScrollBar))
 				{
 					Min = max(Min, 40);
-					// Max = max(Max, 1000);
 					Flag = SizeFill;
 				}
 				else if (Izza(GCombo))

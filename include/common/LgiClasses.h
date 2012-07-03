@@ -808,6 +808,11 @@ public:
 	/// Only works for top level windows.
 	void SetMinimumSize(GdcPt2 Size);	
 
+    /// Sets the style of the control
+    bool SetCssStyle(char *CssStyle);
+    /// Gets the style of the control
+    class GCss *GetCss();
+
 	/// Moves a top level window on screen.
 	void MoveOnScreen();
 	/// Moves a top level to the center of the screen

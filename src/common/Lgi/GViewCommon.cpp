@@ -5,6 +5,7 @@
 #include "GDragAndDrop.h"
 #include "GTableLayout.h"
 #include "GButton.h"
+#include "GCss.h"
 
 #if WIN32NATIVE
 #define GViewFlags d->WndStyle
@@ -1637,6 +1638,20 @@ void GView::SetMinimumSize(GdcPt2 Size)
 	{
 		SetPos(p);
 	}
+}
+
+bool GView::SetCssStyle(char *CssStyle)
+{
+    if (!d->Css.Reset(new GCss))
+        return false;
+    
+    const char *Defs = CssStyle;
+    return d->Css->Parse(Defs, GCss::ParseRelaxed);
+}
+
+GCss *GView::GetCss()
+{
+    return d->Css;
 }
 
 void GView::MoveOnScreen()
