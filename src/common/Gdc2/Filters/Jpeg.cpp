@@ -31,15 +31,9 @@ class GdcJpegPriv : public GLibrary
 {
 public:
 	GdcJpegPriv() :
-	    /*
-		#if defined(WIN32) && defined(_DEBUG)
-		GLibrary("libjpegd")
-		#else
-		*/
 		GLibrary("libjpeg")
-		// #endif
 	{
-		#if 0
+		#if 0 // def _DEBUG
 		char File[256];
 		GetModuleFileName(Handle(), File, sizeof(File));
 		LgiTrace("%s:%i - JPEG: %s\n", _FL, File);
@@ -668,14 +662,17 @@ GFilter::IoStatus GdcJpeg::WriteImage(GStream *Out, GSurface *pDC)
 	// bool Ok = true;
 
 	// Setup quality setting
-	GVariant Quality;
+	GVariant Quality, SubSample;
 	if (Props)
+	{
 		Props->GetValue(LGI_FILTER_QUALITY, Quality);
+		Props->GetValue(LGI_FILTER_SUBSAMPLE, SubSample);
+	}
 
-	return _Write(Out, pDC, Quality.CastInt32());
+	return _Write(Out, pDC, Quality.CastInt32(), (SubSampleMode)SubSample.CastInt32());
 }
 
-GFilter::IoStatus GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality)
+GFilter::IoStatus GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality, SubSampleMode SubSample)
 {
 	struct jpeg_compress_struct cinfo;
 	struct my_error_mgr jerr;
@@ -743,12 +740,30 @@ GFilter::IoStatus GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality)
 	
 	d->jpeg_set_defaults(&cinfo);
 	
-	cinfo.comp_info[0].h_samp_factor = 2;
-	cinfo.comp_info[0].h_samp_factor = 2;
-	cinfo.comp_info[1].h_samp_factor = 1;
-	cinfo.comp_info[1].h_samp_factor = 1;
-	cinfo.comp_info[2].h_samp_factor = 1;
-	cinfo.comp_info[2].h_samp_factor = 1;
+	switch (SubSample)
+	{
+	    default:
+	    case Sample_1x1_1x1_1x1:
+	        cinfo.comp_info[0].h_samp_factor = 1;
+	        cinfo.comp_info[0].h_samp_factor = 1;
+	        break;
+	    case Sample_2x2_1x1_1x1:
+	        cinfo.comp_info[0].h_samp_factor = 2;
+	        cinfo.comp_info[0].h_samp_factor = 2;
+	        break;
+	    case Sample_2x1_1x1_1x1:
+	        cinfo.comp_info[0].h_samp_factor = 2;
+	        cinfo.comp_info[0].h_samp_factor = 1;
+	        break;
+	    case Sample_1x2_1x1_1x1:
+	        cinfo.comp_info[0].h_samp_factor = 1;
+	        cinfo.comp_info[0].h_samp_factor = 2;
+	        break;
+	}
+    cinfo.comp_info[1].h_samp_factor = 1;
+    cinfo.comp_info[1].h_samp_factor = 1;
+    cinfo.comp_info[2].h_samp_factor = 1;
+    cinfo.comp_info[2].h_samp_factor = 1;
 
 	if (Quality >= 0)
 	{

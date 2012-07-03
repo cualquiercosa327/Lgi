@@ -3,10 +3,21 @@
 
 class GdcJpeg : public GFilter
 {
+public:
+    enum SubSampleMode
+    {
+        Sample_1x1_1x1_1x1,
+        Sample_2x2_1x1_1x1,
+        Sample_2x1_1x1_1x1,
+        Sample_1x2_1x1_1x1,
+    };
+
+private:
+
 	friend class GJpegOptions;
 	class GdcJpegPriv *d;
 
-	GFilter::IoStatus _Write(GStream *Out, GSurface *pDC, int Quality);
+	GFilter::IoStatus _Write(GStream *Out, GSurface *pDC, int Quality, SubSampleMode SubSample);
 
 public:
 	GdcJpeg();
