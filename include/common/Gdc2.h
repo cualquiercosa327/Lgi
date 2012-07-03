@@ -380,6 +380,23 @@ typedef uint8						ALPHA;
 
 #endif
 
+typedef union
+{
+	uint8 *u8;
+	int i;
+	
+	struct Pixel16
+	{
+	    uint16 r : 5;
+	    uint16 g : 6;
+	    uint16 b : 5;
+	} *px16;
+	
+	Pixel24 *px24;
+	Pixel32 *px32;
+
+}	GPixelPtr;
+
 /// Create a 15bit COLOUR from components
 #define Rgb15(r, g, b)				( ((r&0xF8)<<7) | ((g&0xF8)<<2) | ((b&0xF8)>>3))
 #define Rgb32To15(c32)				( ((c32&0xF8)>>3) | ((c32&0xF800)>>6) | ((c32&0xF80000)>>9) )

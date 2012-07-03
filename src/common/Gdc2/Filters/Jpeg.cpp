@@ -26,6 +26,10 @@
 #include <setjmp.h>
 #include "GLibraryUtils.h"
 
+#if 1
+
+#define JPEGLIB d->
+
 // JPEG
 class GdcJpegPriv : public GLibrary
 {
@@ -60,6 +64,18 @@ public:
 	DynFunc3(int, jpeg_save_markers, j_decompress_ptr, cinfo, int, marker_code, unsigned int, length_limit);
 
 };
+
+#else
+
+#define JPEGLIB ::
+
+class GdcJpegPriv
+{
+public:
+    bool IsLoaded() { return true; }
+};
+
+#endif
 
 
 #include <stdio.h>
@@ -322,17 +338,17 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 	s.f = In;
 	
 	ZeroObj(cinfo);
-	cinfo.err = d->jpeg_std_error(&jerr.pub);
+	cinfo.err = JPEGLIB jpeg_std_error(&jerr.pub);
 	jerr.pub.error_exit = my_error_exit;
 	cinfo.client_data = &s;
 
 	if (setjmp(jerr.setjmp_buffer))
 	{
-		d->jpeg_destroy_decompress(&cinfo);
+		JPEGLIB jpeg_destroy_decompress(&cinfo);
 		return Status;
 	}
 
-	d->jpeg_create_decompress(&cinfo);
+	JPEGLIB jpeg_create_decompress(&cinfo);
 	jpeg_source_mgr Source;
 	ZeroObj(Source);
 	cinfo.src = &Source;
@@ -342,13 +358,13 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
     cinfo.src->resync_to_restart = j_resync_to_restart;
     cinfo.src->term_source = j_term_source;
 
-	d->jpeg_save_markers
+	JPEGLIB jpeg_save_markers
 	(
 		&cinfo,
 		IJG_JPEG_ICC_MARKER,
 		IJG_JPEG_APP_ICC_PROFILE_LEN
 	);
-	d->jpeg_read_header(&cinfo, true);
+	JPEGLIB jpeg_read_header(&cinfo, true);
 	
 	uchar *icc_data = 0;
 	uint icc_len = 0;
@@ -400,7 +416,7 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 		}
 
 		// setup decompress
-		d->jpeg_start_decompress(&cinfo);
+		JPEGLIB jpeg_start_decompress(&cinfo);
 		row_stride = cinfo.output_width * cinfo.output_components;
 
 		#define Rc 0
@@ -468,7 +484,7 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 				uchar *Ptr = (*pDC)[cinfo.output_scanline];
 				if (Ptr)
 				{
-					if (d->jpeg_read_scanlines(&cinfo, &Ptr, 1))
+					if (JPEGLIB jpeg_read_scanlines(&cinfo, &Ptr, 1))
 					{
 						switch (cinfo.jpeg_color_space)
 						{
@@ -613,12 +629,12 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 		DeleteArray(blue);
 		DeleteArray(range_table);
 
-		d->jpeg_finish_decompress(&cinfo);
+		JPEGLIB jpeg_finish_decompress(&cinfo);
 
 		Status = IoSuccess;
 	}
 
-	d->jpeg_destroy_decompress(&cinfo);
+	JPEGLIB jpeg_destroy_decompress(&cinfo);
 
 	return Status;
 }
@@ -678,13 +694,13 @@ GFilter::IoStatus GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality, SubS
 	struct my_error_mgr jerr;
 
 	int row_stride;
-	cinfo.err = d->jpeg_std_error(&jerr.pub);
-	d->jpeg_create_compress(&cinfo);
+	cinfo.err = JPEGLIB jpeg_std_error(&jerr.pub);
+	JPEGLIB jpeg_create_compress(&cinfo);
 	jerr.pub.error_exit = my_error_exit;
 
 	if (setjmp(jerr.setjmp_buffer))
 	{
-		d->jpeg_destroy_compress(&cinfo);
+		JPEGLIB jpeg_destroy_compress(&cinfo);
 		return GFilter::IoError;
 	}
 
@@ -738,7 +754,7 @@ GFilter::IoStatus GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality, SubS
 		cinfo.in_color_space = JCS_RGB;
 	}
 	
-	d->jpeg_set_defaults(&cinfo);
+	JPEGLIB jpeg_set_defaults(&cinfo);
 	
 	switch (SubSample)
 	{
@@ -767,10 +783,10 @@ GFilter::IoStatus GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality, SubS
 
 	if (Quality >= 0)
 	{
-		d->jpeg_set_quality(&cinfo, Quality, true);
+		JPEGLIB jpeg_set_quality(&cinfo, Quality, true);
 	}
 
-	d->jpeg_start_compress(&cinfo, true);
+	JPEGLIB jpeg_start_compress(&cinfo, true);
 
 	row_stride = pDC->X() * cinfo.input_components;
 	uchar *Buffer = new uchar[row_stride];
@@ -801,12 +817,13 @@ GFilter::IoStatus GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality, SubS
 						GdcRGB *p = (*Pal)[0];
 						if (p)
 						{
-							for (int x=0; x<pDC->X(); x++)
+						    uint8 *c = (*pDC)[cinfo.next_scanline];
+						    uint8 *end = c + pDC->X();
+							while (c)
 							{
-								COLOUR c = pDC->Get(x, cinfo.next_scanline);
-								*dst++ = p[c].R;
-								*dst++ = p[c].G;
-								*dst++ = p[c].B;
+								*dst++ = p[*c].R;
+								*dst++ = p[*c].G;
+								*dst++ = p[*c].B;
 							}
 						}
 					}
@@ -814,48 +831,55 @@ GFilter::IoStatus GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality, SubS
 				}
 				case 16:
 				{
-					for (int x=0; x<pDC->X(); x++)
+				    uint16 *p = (uint16*)(*pDC)[cinfo.next_scanline];
+				    uint16 *end = p + pDC->X();
+					while (p < end)
 					{
-						COLOUR c = pDC->Get(x, cinfo.next_scanline);
-						*dst++ = (R16(c) << 3) | (R16(c) >> 5);
-						*dst++ = (G16(c) << 2) | (G16(c) >> 6);
-						*dst++ = (B16(c) << 3) | (B16(c) >> 5);
+						*dst++ = (R16(*p) << 3) | (R16(*p) >> 5);
+						*dst++ = (G16(*p) << 2) | (G16(*p) >> 6);
+						*dst++ = (B16(*p) << 3) | (B16(*p) >> 5);
+						p++;
 					}
 					break;
 				}
 				case 24:
 				{
-					for (int x=0; x<pDC->X(); x++)
+				    GPixelPtr p, end;
+				    p.u8 = (*pDC)[cinfo.next_scanline];
+                    end.u8 = p.u8 + (Pixel24::Size * pDC->X());
+					while (p.px24 < end.px24)
 					{
-						COLOUR c = pDC->Get(x, cinfo.next_scanline);
-						*dst++ = R24(c);
-						*dst++ = G24(c);
-						*dst++ = B24(c);
+						*dst++ = p.px24->r;
+						*dst++ = p.px24->g;
+						*dst++ = p.px24->b;
+                        p.u8 += Pixel24::Size;
 					}
 					break;
 				}
 				case 32:
 				{
-					for (int x=0; x<pDC->X(); x++)
+				    Pixel32 *p = (Pixel32*) (*pDC)[cinfo.next_scanline];
+				    Pixel32 *end = p + pDC->X();
+					while (p < end)
 					{
-						COLOUR c = pDC->Get(x, cinfo.next_scanline);
-						*dst++ = R32(c);
-						*dst++ = G32(c);
-						*dst++ = B32(c);
+						*dst++ = p->r;
+						*dst++ = p->g;
+						*dst++ = p->b;
+						p++;
 					}
 					break;
 				}
 			}
 
-			d->jpeg_write_scanlines(&cinfo, &Buffer, 1);
+			JPEGLIB jpeg_write_scanlines(&cinfo, &Buffer, 1);
 			if (Meter) Meter->Value(cinfo.next_scanline);
 		}
 
 		DeleteArray(Buffer);
 	}
 
-	d->jpeg_finish_compress(&cinfo);
-	d->jpeg_destroy_compress(&cinfo);
+	JPEGLIB jpeg_finish_compress(&cinfo);
+	JPEGLIB jpeg_destroy_compress(&cinfo);
 
 	return GFilter::IoSuccess;
 }
