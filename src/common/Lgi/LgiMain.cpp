@@ -64,12 +64,18 @@ bool _BuildCheck()
 
 #ifdef WIN32
 
+#define CONSOLE 0
+
 int
+#if CONSOLE
+main(int args, char **arg)
+#else
 WINAPI
 WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+#endif
 {
 	int Status = 0;
-	#if WIN32NATIVE
+	#if !CONSOLE && WIN32NATIVE
 	_lgi_app_instance = hInstance;
 	#endif
 	if (_BuildCheck())
@@ -78,7 +84,10 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdS
 
     	#if WIN32NATIVE
 		OsAppArguments AppArgs;
+		#if !CONSOLE
 		AppArgs.hInstance = hInstance;
+		AppArgs.nCmdShow = nCmdShow;
+		#endif
 
 		if (*CL == '\"')
 		{
@@ -90,7 +99,6 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdS
 		}
 		if (AppArgs.lpCmdLine) AppArgs.lpCmdLine++;
 
-		AppArgs.nCmdShow = nCmdShow;
 		#else
 		GArray<char*> Args;
 		char16 *Ws = L" \t\r\n";

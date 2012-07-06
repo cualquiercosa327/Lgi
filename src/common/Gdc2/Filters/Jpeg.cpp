@@ -821,9 +821,11 @@ GFilter::IoStatus GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality, SubS
 						    uint8 *end = c + pDC->X();
 							while (c)
 							{
-								*dst++ = p[*c].R;
-								*dst++ = p[*c].G;
-								*dst++ = p[*c].B;
+							    GdcRGB &rgb = p[*c];
+								dst[0] = rgb.R;
+								dst[1] = rgb.G;
+								dst[2] = rgb.B;
+								dst++;
 							}
 						}
 					}
@@ -835,9 +837,10 @@ GFilter::IoStatus GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality, SubS
 				    uint16 *end = p + pDC->X();
 					while (p < end)
 					{
-						*dst++ = (R16(*p) << 3) | (R16(*p) >> 5);
-						*dst++ = (G16(*p) << 2) | (G16(*p) >> 6);
-						*dst++ = (B16(*p) << 3) | (B16(*p) >> 5);
+						dst[0] = (R16(*p) << 3) | (R16(*p) >> 5);
+						dst[1] = (G16(*p) << 2) | (G16(*p) >> 6);
+						dst[2] = (B16(*p) << 3) | (B16(*p) >> 5);
+						dst += 3;
 						p++;
 					}
 					break;
@@ -849,9 +852,10 @@ GFilter::IoStatus GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality, SubS
                     end.u8 = p.u8 + (Pixel24::Size * pDC->X());
 					while (p.px24 < end.px24)
 					{
-						*dst++ = p.px24->r;
-						*dst++ = p.px24->g;
-						*dst++ = p.px24->b;
+						dst[0] = p.px24->r;
+						dst[1] = p.px24->g;
+						dst[2] = p.px24->b;
+						dst += 3;
                         p.u8 += Pixel24::Size;
 					}
 					break;
@@ -862,9 +866,10 @@ GFilter::IoStatus GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality, SubS
 				    Pixel32 *end = p + pDC->X();
 					while (p < end)
 					{
-						*dst++ = p->r;
-						*dst++ = p->g;
-						*dst++ = p->b;
+						dst[0] = p->r;
+						dst[1] = p->g;
+						dst[2] = p->b;
+						dst += 3;
 						p++;
 					}
 					break;
