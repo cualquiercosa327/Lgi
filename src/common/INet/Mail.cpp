@@ -1699,7 +1699,10 @@ char *CreateAddressTag(List<AddressDescriptor> &l, int Type, List<char> *Charset
 					Name = Mem = EncodeRfc2047(NewStr(Name), 0, CharsetPrefs);
 				}
 
-				sprintf(Buffer, "%s <%s>", Name, a->Addr);
+				if (strchr(Name, '\"'))
+				    sprintf(Buffer, "'%s' <%s>", Name, a->Addr);
+				else
+				    sprintf(Buffer, "\"%s\" <%s>", Name, a->Addr);
 
 				DeleteArray(Mem);
 			}
