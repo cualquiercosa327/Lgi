@@ -19,6 +19,7 @@
 #include "Base64.h"
 #include "INetTools.h"
 #include "GDateTime.h"
+#include "GDocView.h"
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // return true if there are any characters with the 0x80 bit set
@@ -508,8 +509,8 @@ bool IsValidEmail(GAutoString &Email)
 	while (*e)
 	{
 		if (strchr("!#$%&\'*+-/=?^_`.{|}~", *e) ||
-			isalpha((uchar)*e) ||
-			isdigit((uchar)*e))
+			IsAlpha((uchar)*e) ||
+			IsDigit((uchar)*e))
 		{
 			OutputChar();
 		}
@@ -556,14 +557,14 @@ bool IsValidEmail(GAutoString &Email)
 		OutputChar();
 
 		// Initial char must by a number
-		if (!isdigit(*e))
+		if (!IsDigit(*e))
 			return false;
 		
 		// Check the rest...
 		char *Start = e;
 		while (*e)
 		{
-			if (isdigit(*e) ||
+			if (IsDigit(*e) ||
 				*e == '.')
 			{
 				OutputChar();
@@ -586,14 +587,14 @@ bool IsValidEmail(GAutoString &Email)
 	else
 	{
 		// Hostname, check initial char
-		if (!isalpha(*e) && !isdigit(*e))
+		if (!IsAlpha(*e) && !IsDigit(*e))
 			return false;
 		
 		// Check the rest.
 		while (*e)
 		{
-			if (isalpha(*e) ||
-				isdigit(*e) ||
+			if (IsAlpha(*e) ||
+				IsDigit(*e) ||
 				strchr(".-", *e))
 			{
 				OutputChar();
