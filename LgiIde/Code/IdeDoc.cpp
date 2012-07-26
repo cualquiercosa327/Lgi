@@ -11,7 +11,7 @@ char *Untitled = "[untitled]";
 static char *White = " \r\t\n";
 
 #define IDC_EDIT		100
-#define isword(s)		(s AND (isdigit(s) OR isalpha(s) OR (s) == '_') )
+#define isword(s)		(s AND (isdigit(s) || isalpha(s) || (s) == '_') )
 #define iswhite(s)		(s AND strchr(White, s) != 0)
 #define skipws(s)		while (iswhite(*s)) s++;
 
@@ -570,7 +570,7 @@ bool DocEdit::OnMenu(GDocView *View, int Id)
 								for (int i = OpenBracketIndex+1; p = Tokens[i]; i++)
 								{
 									char16 Comma[] = { ',', 0 };
-									if (StricmpW(p, Comma) == 0 OR
+									if (StricmpW(p, Comma) == 0 ||
 										StricmpW(p, CloseBrac) == 0)
 									{
 										char16 *Param = Tokens[i-1];
@@ -657,7 +657,7 @@ public:
 		Doc->AddView(Edit = new DocEdit(Doc, Use));
 		Doc->AddView(Tray = new EditTray(Edit, Doc));
 
-		if (src OR file)
+		if (src || file)
 			Load();
 	}
 
@@ -1018,7 +1018,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 					(
 						(
 							LimitTo == DefnNone
-							OR
+							||
 							LimitTo == DefnDefine
 						)
 						AND
@@ -1171,7 +1171,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 									}
 									*/
 
-									if (*In == '\r' OR *In == '\n' OR *In == '\t' OR *In == ' ')
+									if (*In == '\r' || *In == '\n' || *In == '\t' || *In == ' ')
 									{
 										*Out++ = ' ';
 										skipws(In);
@@ -1236,7 +1236,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 								}
 
 								// cache f(n) def
-								if (LimitTo == DefnNone OR LimitTo == DefnFunc)
+								if (LimitTo == DefnNone || LimitTo == DefnFunc)
 								{
 									DefnInfo *Defn = new DefnInfo(DefnFunc, FileName, Buf, Line);
 									if (Defn)
@@ -1255,16 +1255,16 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 				}
 				default:
 				{
-					if (isalpha(*s) OR isdigit(*s) OR *s == '_')
+					if (isalpha(*s) || isdigit(*s) || *s == '_')
 					{
 						char16 *Start = s;
 						
 						s++;
-						while (	isalpha(*s) OR
-								isdigit(*s) OR
-								*s == '_' OR
-								*s == ':' OR
-								*s == '.' OR
+						while (	isalpha(*s) ||
+								isdigit(*s) ||
+								*s == '_' ||
+								*s == ':' ||
+								*s == '.' ||
 								*s == '~')
 						{
 							s++;
@@ -1360,7 +1360,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 							char16 *Typedef = p.NewStrW();
 							if (Typedef)
 							{
-								if (LimitTo == DefnNone OR LimitTo == DefnTypedef)
+								if (LimitTo == DefnNone || LimitTo == DefnTypedef)
 								{
 									DefnInfo *Defn = new DefnInfo(DefnTypedef, FileName, Typedef, Line);
 									if (Defn)
@@ -1378,7 +1378,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 								AND
 								StrncmpW(StrClass, Start, 5) == 0
 							)
-							OR
+							||
 							(
 								TokLen == 6
 								AND
@@ -1404,14 +1404,14 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 										{
 											break;
 										}
-										else if (StrcmpW(t, StrOpenBracket) == 0 OR
+										else if (StrcmpW(t, StrOpenBracket) == 0 ||
 											StrcmpW(t, StrColon) == 0)
 										{
 											DeleteArray(CurClassDecl);
 											CurClassDecl = Tok.Last();
 											Tok.Delete(CurClassDecl);
 											
-											if (LimitTo == DefnNone OR LimitTo == DefnClass)
+											if (LimitTo == DefnNone || LimitTo == DefnClass)
 											{
 												char16 r = *Last;
 												*Last = 0;

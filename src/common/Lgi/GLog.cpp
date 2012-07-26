@@ -105,7 +105,7 @@ int RLogView::OnNotify(GViewI *Ctrl, int Flags)
 		UpdateWindow(Handle());
 		#endif
 	}
-	else if (Ctrl->GetId() == IDC_VSCROLL OR
+	else if (Ctrl->GetId() == IDC_VSCROLL ||
 			 Ctrl->GetId() == IDC_HSCROLL)
 	{
 		Invalidate();
@@ -229,7 +229,7 @@ void RLogView::OnNcPaint(GSurface *pDC)
 	if (r.Valid())
 	{
 		pDC->Colour(LC_MED, 24);
-		if (Sunken() OR Raised())
+		if (Sunken() || Raised())
 		{
 			LgiWideBorder(pDC, r, Sunken() ? SUNKEN : RAISED);
 		}
@@ -240,7 +240,7 @@ void RLogView::OnNcCalcClient(long &x1, long &y1, long &x2, long &y2)
 {
 	int d = -2;
 
-	d += (Sunken() OR Raised()) ? 2 : 0;
+	d += (Sunken() || Raised()) ? 2 : 0;
 
 	x1 += d;
 	y1 += d;

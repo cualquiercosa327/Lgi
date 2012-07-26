@@ -265,7 +265,7 @@ void GPaneHistory::OnPaint(GSurface *pDC)
 
 	r.x1 += HISTORY_TEXT_WIDTH+1;
 
-	if (!pMemDC OR
+	if (!pMemDC ||
 		(r.X() != pMemDC->X()))
 	{
 		DeleteObj(pMemDC);
@@ -428,7 +428,7 @@ void FileTransferProgress::Value(int64 v)
 
 	Progress::Value(v);
 	
-	if (Timer.DoNow() OR Reset)
+	if (Timer.DoNow() || Reset)
 	{
 		// Tell everyone about the new value
 		if (ProgressPane) ProgressPane->Value(v);

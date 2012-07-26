@@ -27,8 +27,8 @@ bool IsGreyScale(GSurface *pDC)
 				if (p)
 				{
 					int Grey = i * 255 / Pal->GetSize();
-					if (p->R != Grey OR
-						p->G != Grey OR
+					if (p->R != Grey ||
+						p->G != Grey ||
 						p->B != Grey)
 					{
 						Status = false;
@@ -361,7 +361,7 @@ bool RotateDC(GSurface *pDC, double Angle)
 			}
 		}
 	}
-	else if (Angle == 90 OR Angle == 270)
+	else if (Angle == 90 || Angle == 270)
 	{
 		if (!pDC->Create(pOld->Y(), pOld->X(), pOld->GetBits()))
 			return false;

@@ -675,8 +675,8 @@ public:
 
 		if
 		(
-			Www OR
-			Ftp OR
+			Www ||
+			Ftp ||
 			(File AND strnicmp(File, "ftp://", 6) == 0)
 		)
 			return true;
@@ -774,7 +774,7 @@ public:
 			{
 				char *Ext = LgiGetExtension(File);
 
-				if ((Ext AND stricmp(Ext, "h") == 0) OR
+				if ((Ext AND stricmp(Ext, "h") == 0) ||
 					stristr(File, "makefile") != 0)
 				{
 					Type = NodeHeader;
@@ -785,16 +785,16 @@ public:
 					{
 						Type = NodeResources;
 					}
-					else if (stricmp(Ext, "cpp") == 0 OR
-							stricmp(Ext, "c") == 0 OR
+					else if (stricmp(Ext, "cpp") == 0 ||
+							stricmp(Ext, "c") == 0 ||
 							stricmp(Ext, "h") == 0)
 					{
 						Type = NodeSrc;
 					}
-					else if (stricmp(Ext, "php") == 0 OR
-							 stricmp(Ext, "asp") == 0 OR
-							 stricmp(Ext, "html") == 0 OR
-							 stricmp(Ext, "htm") == 0 OR
+					else if (stricmp(Ext, "php") == 0 ||
+							 stricmp(Ext, "asp") == 0 ||
+							 stricmp(Ext, "html") == 0 ||
+							 stricmp(Ext, "htm") == 0 ||
 							 stricmp(Ext, "css") == 0)
 					{
 						Type = NodeWeb;
@@ -906,7 +906,7 @@ public:
 
 		if (Ext)
 		{
-			if (stricmp(Ext, "cpp") == 0 OR
+			if (stricmp(Ext, "cpp") == 0 ||
 				stricmp(Ext, "c") == 0)
 			{
 				Type = NodeSrc;
@@ -1247,7 +1247,7 @@ public:
 			else if (k.vkey == VK_DELETE)
 			{
 				GTreeItem *s = GetNext();
-				if (s OR (s = GetParent()))
+				if (s || (s = GetParent()))
 				{
 					s->Select(true);
 				}
@@ -1272,15 +1272,15 @@ public:
 				(
 					(
 						IsWeb()
-						OR
+						||
 						Type == NodeSrc
-						OR
+						||
 						Type == NodeHeader
-						OR
+						||
 						Type == NodeResources
-						OR
+						||
 						Type == NodeGraphic
-						OR
+						||
 						Type == NodeWeb
 					)
 					AND
@@ -1322,7 +1322,7 @@ public:
 			Sub.AppendSeparator();
 			Sub.AppendItem("Browse Folder", IDM_BROWSE_FOLDER, ValidStr(File));
 			Sub.AppendItem("Open Terminal", IDM_OPEN_TERM, ValidStr(File));
-			Sub.AppendItem("Properties", IDM_PROPERTIES, IsWeb() OR ValidStr(File));
+			Sub.AppendItem("Properties", IDM_PROPERTIES, IsWeb() || ValidStr(File));
 
 			m.ToScreen();
 			GdcPt2 c = _ScrollPos();
@@ -2982,7 +2982,7 @@ bool IdeProject::BuildIncludePaths(List<char> &Paths, bool Recurse)
 			for (int i=0; i<=Inc.Length(); i++)
 			{
 				char *Full = 0, Buf[300];
-				if (!Inc[i] OR Inc[i][0] == '.')
+				if (!Inc[i] || Inc[i][0] == '.')
 				{
 					char Base[256];
 					p->GetBasePath(Base);
@@ -3035,7 +3035,7 @@ void IdeProjectPrivate::CollectAllFiles(GTreeNode *Base, List<ProjectNode> &File
 			ProjectNode *p = dynamic_cast<ProjectNode*>(i);
 			if (p)
 			{
-				if (p->GetType() == NodeSrc OR
+				if (p->GetType() == NodeSrc ||
 					p->GetType() == NodeHeader)
 				{
 					if (p->GetPlatforms() & Platform)
@@ -3303,7 +3303,7 @@ bool IdeProject::CreateMakefile()
 						{
 							for (char *Dir=n->GetFileName(); *Dir; Dir++)
 							{
-								if (*Dir == '/' OR *Dir == '\\')
+								if (*Dir == '/' || *Dir == '\\')
 								{
 									*Dir = DIR_CHAR;
 								}

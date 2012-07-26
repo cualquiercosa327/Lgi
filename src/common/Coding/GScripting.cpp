@@ -809,7 +809,7 @@ bool GDomRef::Set(GScriptEnginePrivate *Priv, GVariant &v)
 					return Var->Value.Dom->SetValue(Member, v);
 				}
 			}
-			else if (Var->Type == GV_STRING OR
+			else if (Var->Type == GV_STRING ||
 					 Var->Type == GV_NULL)
 			{
 				if (stricmp(Member, "length") == 0)
@@ -890,7 +890,7 @@ bool GDomRef::Set(GScriptEnginePrivate *Priv, GVariant &v)
 					else if (Var->Type == GV_LIST)
 					{
 						int Idx = a->CastInt32();
-						if (Idx < 0 OR Idx >= Var->Value.Lst->Length())
+						if (Idx < 0 || Idx >= Var->Value.Lst->Length())
 						{
 							// Add a new element
 							GVariant *h = new GVariant(v);
@@ -1479,7 +1479,7 @@ bool GScriptEnginePrivate::Compile_Expression(int &Cur, int Depth)
 					Cur++;
 				break;
 			}
-			else if (StricmpW(t, sComma) == 0 OR
+			else if (StricmpW(t, sComma) == 0 ||
 					 StricmpW(t, sSemiColon) == 0)
 			{
 				break;
@@ -1555,7 +1555,7 @@ bool GScriptEnginePrivate::Compile_Expression(int &Cur, int Depth)
 			}
 		}
 
-		if (Args > 1 AND (Ops == Args - 1 OR Ops == Args))
+		if (Args > 1 AND (Ops == Args - 1 || Ops == Args))
 		{
 			return true;
 		}
@@ -1610,7 +1610,7 @@ GVariant *GScriptEnginePrivate::Execute_Expression(int &Cur, GDom *Src, int Dept
 					Cur++;
 				break;
 			}
-			else if (StricmpW(t, sComma) == 0 OR
+			else if (StricmpW(t, sComma) == 0 ||
 					 StricmpW(t, sSemiColon) == 0)
 			{
 				break;
@@ -1892,7 +1892,7 @@ GVariant *GScriptEnginePrivate::Execute_Expression(int &Cur, GDom *Src, int Dept
 					if (Args[i]->Type == GV_OPERATOR)
 					{
 						int p = GetPrecedence(Args[i]->Value.Op);
-						if (LowestOp < 0 OR p < LowestPre)
+						if (LowestOp < 0 || p < LowestPre)
 						{
 							LowestPre = p;
 							LowestOp = i;
@@ -2091,7 +2091,7 @@ GVariant *GScriptEnginePrivate::Execute_Expression(int &Cur, GDom *Src, int Dept
 				}
 				else if (Type == OpInfix)
 				{
-					if (LowestOp >= (Args.Length() - 1) OR
+					if (LowestOp >= (Args.Length() - 1) ||
 						LowestOp <= 0)
 					{
 						Term.Print("%s:%i - Infix operator missing argument.\n", ErrorTitle(), Lines[StartToken]);
@@ -2110,11 +2110,11 @@ GVariant *GScriptEnginePrivate::Execute_Expression(int &Cur, GDom *Src, int Dept
 					{
 						case OpPlus:
 						{
-							if (a->Type == GV_DOUBLE OR b->Type == GV_DOUBLE)
+							if (a->Type == GV_DOUBLE || b->Type == GV_DOUBLE)
 							{
 								r = a->CastDouble() + b->CastDouble();
 							}
-							else if (a->Type == GV_STRING OR b->Type == GV_STRING)
+							else if (a->Type == GV_STRING || b->Type == GV_STRING)
 							{
 								GStringPipe p;
 								
@@ -2137,7 +2137,7 @@ GVariant *GScriptEnginePrivate::Execute_Expression(int &Cur, GDom *Src, int Dept
 						}
 						case OpMinus:
 						{
-							if (a->Type == GV_DOUBLE OR b->Type == GV_DOUBLE)
+							if (a->Type == GV_DOUBLE || b->Type == GV_DOUBLE)
 							{
 								r = a->CastDouble() - b->CastDouble();
 							}
@@ -2149,7 +2149,7 @@ GVariant *GScriptEnginePrivate::Execute_Expression(int &Cur, GDom *Src, int Dept
 						}
 						case OpMul:
 						{
-							if (a->Type == GV_DOUBLE OR b->Type == GV_DOUBLE)
+							if (a->Type == GV_DOUBLE || b->Type == GV_DOUBLE)
 							{
 								r = a->CastDouble() * b->CastDouble();
 							}
@@ -2161,7 +2161,7 @@ GVariant *GScriptEnginePrivate::Execute_Expression(int &Cur, GDom *Src, int Dept
 						}
 						case OpMod:
 						{
-							if (a->Type == GV_DOUBLE OR b->Type == GV_DOUBLE)
+							if (a->Type == GV_DOUBLE || b->Type == GV_DOUBLE)
 							{
 								r = fmod(a->CastDouble(), b->CastDouble());
 							}
@@ -2173,7 +2173,7 @@ GVariant *GScriptEnginePrivate::Execute_Expression(int &Cur, GDom *Src, int Dept
 						}
 						case OpDiv:
 						{
-							if (a->Type == GV_DOUBLE OR b->Type == GV_DOUBLE)
+							if (a->Type == GV_DOUBLE || b->Type == GV_DOUBLE)
 							{
 								double Denom = b->CastDouble();
 								if (Denom != 0.0)
@@ -2193,7 +2193,7 @@ GVariant *GScriptEnginePrivate::Execute_Expression(int &Cur, GDom *Src, int Dept
 						}
 						case OpLessThan:
 						{
-							if (a->Type == GV_DOUBLE OR b->Type == GV_DOUBLE)
+							if (a->Type == GV_DOUBLE || b->Type == GV_DOUBLE)
 							{
 								r = a->CastDouble() < b->CastDouble();
 							}
@@ -2205,7 +2205,7 @@ GVariant *GScriptEnginePrivate::Execute_Expression(int &Cur, GDom *Src, int Dept
 						}
 						case OpGreaterThan:
 						{
-							if (a->Type == GV_DOUBLE OR b->Type == GV_DOUBLE)
+							if (a->Type == GV_DOUBLE || b->Type == GV_DOUBLE)
 							{
 								r = a->CastDouble() > b->CastDouble();
 							}
@@ -2217,7 +2217,7 @@ GVariant *GScriptEnginePrivate::Execute_Expression(int &Cur, GDom *Src, int Dept
 						}
 						case OpLessThanEqual:
 						{
-							if (a->Type == GV_DOUBLE OR b->Type == GV_DOUBLE)
+							if (a->Type == GV_DOUBLE || b->Type == GV_DOUBLE)
 							{
 								r = a->CastDouble() <= b->CastDouble();
 							}
@@ -2229,7 +2229,7 @@ GVariant *GScriptEnginePrivate::Execute_Expression(int &Cur, GDom *Src, int Dept
 						}
 						case OpGreaterThanEqual:
 						{
-							if (a->Type == GV_DOUBLE OR b->Type == GV_DOUBLE)
+							if (a->Type == GV_DOUBLE || b->Type == GV_DOUBLE)
 							{
 								r = a->CastDouble() >= b->CastDouble();
 							}
@@ -2241,7 +2241,7 @@ GVariant *GScriptEnginePrivate::Execute_Expression(int &Cur, GDom *Src, int Dept
 						}
 						case OpEquals:
 						{
-							if (a->Type == GV_DOUBLE OR b->Type == GV_DOUBLE)
+							if (a->Type == GV_DOUBLE || b->Type == GV_DOUBLE)
 							{
 								r = a->CastDouble() == b->CastDouble();
 							}
@@ -2253,7 +2253,7 @@ GVariant *GScriptEnginePrivate::Execute_Expression(int &Cur, GDom *Src, int Dept
 						}
 						case OpNotEquals:
 						{
-							if (a->Type == GV_DOUBLE OR b->Type == GV_DOUBLE)
+							if (a->Type == GV_DOUBLE || b->Type == GV_DOUBLE)
 							{
 								r = a->CastDouble() != b->CastDouble();
 							}
@@ -2344,11 +2344,11 @@ bool GScriptEnginePrivate::Type(int &Cur, GExternType &Type)
 	char16 *t = Tokens[Cur];
 	if (t)
 	{
-		if (StricmpW(t, sInt) == 0 OR
-			StricmpW(t, sUInt) == 0 OR
-			StricmpW(t, sUInt) == 0 OR
-			StricmpW(t, sUInt32) == 0 OR
-			StrcmpW(t, sHWND) == 0 OR
+		if (StricmpW(t, sInt) == 0 ||
+			StricmpW(t, sUInt) == 0 ||
+			StricmpW(t, sUInt) == 0 ||
+			StricmpW(t, sUInt32) == 0 ||
+			StrcmpW(t, sHWND) == 0 ||
 			StrcmpW(t, sDWORD) == 0)
 		{
 			Type.Simple = GV_INT32;
@@ -2357,7 +2357,7 @@ bool GScriptEnginePrivate::Type(int &Cur, GExternType &Type)
 		{
 			Type.Simple = GV_INT64;
 		}
-		else if (StricmpW(t, sLPCTSTR) == 0 OR
+		else if (StricmpW(t, sLPCTSTR) == 0 ||
 				 StricmpW(t, sLPTSTR) == 0)
 		{
 			Type.Simple = GV_STRING;
@@ -2398,7 +2398,7 @@ bool GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &In)
 		int Cur = (*Idx)[i];
 		char16 *t1 = Priv->Tokens[Cur];
 		char16 *t2 = Priv->Tokens[Cur + 1];
-		GVariant *v = t1 AND isalpha(*t1) AND t2 AND (*t2 == ',' OR *t2 == ')') ? Priv->Var(t1, false) : 0;
+		GVariant *v = t1 AND isalpha(*t1) AND t2 AND (*t2 == ',' || *t2 == ')') ? Priv->Var(t1, false) : 0;
 		*/
 
 		GVariant *v = In[i];
@@ -2505,7 +2505,7 @@ bool GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &In)
 
 bool GScriptFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Values)
 {
-	if (!BodyArr OR BodyIdx < 0 OR !Priv)
+	if (!BodyArr || BodyIdx < 0 || !Priv)
 		return false;
 
 	bool Status = false;
@@ -2564,7 +2564,7 @@ void GScriptEnginePrivate::ProcessArguments(ArgumentArray &Args, ArgumentArray &
 			char16 *Tok = ThisToken();
 			char16 *Next = NextToken();
 			GVariant *v = 0;
-			if (Tok AND Next AND isalpha(*Tok) AND (*Next == ')' OR *Next == ','))
+			if (Tok AND Next AND isalpha(*Tok) AND (*Next == ')' || *Next == ','))
 			{
 				v = Var(Tok, false);
 			}
@@ -2751,7 +2751,7 @@ bool GScriptEnginePrivate::Execute_Statement(GArray<GCode> &To)
 										{
 											Ref.Var->Value.Dom->SetValue(Ref.Member, *v);
 										}
-										else if (Ref.Var->Type == GV_STRING OR
+										else if (Ref.Var->Type == GV_STRING ||
 												Ref.Var->Type == GV_NULL)
 										{
 											if (stricmp(Ref.Member, "length") == 0)
@@ -2834,7 +2834,7 @@ bool GScriptEnginePrivate::Execute_Statement(GArray<GCode> &To)
 												Ref.Var->Value.Dom->SetValue(Ref.Member, b);
 											}
 										}
-										else if (Ref.Var->Type == GV_STRING OR
+										else if (Ref.Var->Type == GV_STRING ||
 												Ref.Var->Type == GV_NULL)
 										{
 											LgiAssert(0);

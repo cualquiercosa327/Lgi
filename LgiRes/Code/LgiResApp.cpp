@@ -65,7 +65,7 @@ char *EncodeXml(char *Str, int Len)
 		GStringPipe p;
 		
 		char *s = Str;
-		for (char *e = Str; e AND *e AND (Len < 0 OR ((e-Str) < Len)); )
+		for (char *e = Str; e AND *e AND (Len < 0 || ((e-Str) < Len)); )
 		{
 			switch (*e)
 			{
@@ -140,7 +140,7 @@ char *DecodeXml(char *Str, int Len)
 		GStringPipe p;
 		
 		char *s = Str;
-		for (char *e = Str; e AND *e AND (Len < 0 OR ((e-Str) < Len)); )
+		for (char *e = Str; e AND *e AND (Len < 0 || ((e-Str) < Len)); )
 		{
 			switch (*e)
 			{
@@ -154,7 +154,7 @@ char *DecodeXml(char *Str, int Len)
 					{
 						// Numerical
 						e++;
-						if (*e == 'x' OR *e == 'X')
+						if (*e == 'x' || *e == 'X')
 						{
 							// Hex
 							e++;
@@ -590,7 +590,7 @@ public:
 
 	bool OnKey(GKey &k)
 	{
-		if (!Multiline && (k.c16 == '\t' OR k.c16 == VK_RETURN))
+		if (!Multiline && (k.c16 == '\t' || k.c16 == VK_RETURN))
 		{
 			return false;
 		}
@@ -906,7 +906,7 @@ void AppWnd::OnLanguagesChange(GLanguageId Lang, bool Add, bool Update)
 	}
 
 	// Update the menu...
-	if (ViewMenu AND (Change OR Update))
+	if (ViewMenu AND (Change || Update))
 	{
 		// Remove existing language menu items
 		while (ViewMenu->RemoveItem(2));
@@ -2213,7 +2213,7 @@ void AppWnd::ImportLang()
 												Dst AND
 												strcmp(Dst, Str) != 0
 											)
-											OR
+											||
 											(
 												(Str != 0) ^
 												(Dst != 0)
@@ -2272,7 +2272,7 @@ void AppWnd::ImportLang()
 													if (Str)
 													{
 														char *Dst = d->Get(Dlg.Lang->Id);
-														if (!Dst OR strcmp(Dst, Str))
+														if (!Dst || strcmp(Dst, Str))
 														{
 															Different++;
 														}
@@ -2376,8 +2376,8 @@ void AppWnd::Empty()
 
 bool AppWnd::OpenFile(char *FileName, bool Ro)
 {
-	if (stristr(FileName, ".lr") OR
-		stristr(FileName, ".lr8") OR
+	if (stristr(FileName, ".lr") ||
+		stristr(FileName, ".lr8") ||
 		stristr(FileName, ".xml"))
 	{
 		return LoadLgi(FileName);
@@ -2392,8 +2392,8 @@ bool AppWnd::OpenFile(char *FileName, bool Ro)
 
 bool AppWnd::SaveFile(char *FileName)
 {
-	if (stristr(FileName, ".lr") OR
-		stristr(FileName, ".lr8") OR
+	if (stristr(FileName, ".lr") ||
+		stristr(FileName, ".lr8") ||
 		stristr(FileName, ".xml"))
 	{
 		return SaveLgi(FileName);
@@ -3380,7 +3380,7 @@ bool AppWnd::LoadWin32(char *FileName)
 							if (*p != '#')
 							{
 								if (T.Length() > 1 AND
-									(stricmp(T[1], "DIALOG") == 0 OR
+									(stricmp(T[1], "DIALOG") == 0 ||
 									 stricmp(T[1], "DIALOGEX") == 0))
 								{
 									Mode = IMP_MODE_DIALOG;
@@ -3651,7 +3651,7 @@ bool AppWnd::LoadWin32(char *FileName)
 									}
 								}
 							}
-							else if (stricmp(Type, "PUSHBUTTON") == 0 OR
+							else if (stricmp(Type, "PUSHBUTTON") == 0 ||
 									 stricmp(Type, "DEFPUSHBUTTON") == 0)
 							{
 								if (T.Length() >= 7)
@@ -3703,7 +3703,7 @@ bool AppWnd::LoadWin32(char *FileName)
 
 										if (i<T.Length()-1 AND stricmp(T[i+1], "|") == 0)
 										{
-											// next token is an OR operator
+											// next token is an || operator
 											i++;
 											Done = false; // read through more styles
 										}
@@ -4275,7 +4275,7 @@ bool ResFrame::OnKey(GKey &k)
 		}
 	}
 
-	return Child->Wnd()->OnKey(k) OR Status;
+	return Child->Wnd()->OnKey(k) || Status;
 }
 
 void ResFrame::OnPaint(GSurface *pDC)

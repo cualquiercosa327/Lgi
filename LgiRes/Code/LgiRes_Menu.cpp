@@ -171,7 +171,7 @@ bool ResMenuItem::Read(GXmlTag *t, ResMenuItem *Parent)
 		bool SubMenu = stricmp(t->Tag, "submenu") == 0;
 		bool MenuItem = stricmp(t->Tag, "menuitem") == 0;
 
-		if (SubMenu OR MenuItem)
+		if (SubMenu || MenuItem)
 		{
 			// Read item
 			char *n = 0;

@@ -262,7 +262,7 @@ public:
 					s->AppendItem("Center", IDM_ALIGN_Y_CTR, AlignY != AlignCenter);
 					s->AppendItem("Bottom", IDM_ALIGN_Y_MAX, AlignY != AlignMax);
 				}
-				RClick->AppendItem("Unmerge", IDM_UNMERGE, Cell.X() > 1 OR Cell.Y() > 1);
+				RClick->AppendItem("Unmerge", IDM_UNMERGE, Cell.X() > 1 || Cell.Y() > 1);
 				RClick->AppendItem("Fix Missing Cells", IDM_FIX_TABLE, true);
 				RClick->AppendItem("Insert Row", IDM_INSERT_ROW, true);
 
@@ -1099,13 +1099,13 @@ void CtrlTable::InsertRow(int y)
 
 void CtrlTable::UnMerge(TableCell *Cell)
 {
-	if (Cell AND (Cell->Cell.X() > 1 OR Cell->Cell.Y() > 1))
+	if (Cell AND (Cell->Cell.X() > 1 || Cell->Cell.Y() > 1))
 	{
 		for (int y=Cell->Cell.x1; y<=Cell->Cell.y2; y++)
 		{
 			for (int x=Cell->Cell.x1; x<=Cell->Cell.x2; x++)
 			{
-				if (x > Cell->Cell.x1 OR
+				if (x > Cell->Cell.x1 ||
 					y > Cell->Cell.y1)
 				{
 					TableCell *n = new TableCell(this, x, y);
@@ -1215,7 +1215,7 @@ void CtrlTable::OnMouseClick(GMouse &m)
 						if (c->Pos.Overlap(m.x, m.y))
 						{
 							Over = c;
-							if (!c->Selected OR m.Ctrl())
+							if (!c->Selected || m.Ctrl())
 							{
 								Dirty = true;
 								EatClick = false;

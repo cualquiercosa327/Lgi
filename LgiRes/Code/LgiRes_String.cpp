@@ -284,7 +284,7 @@ void ResString::UnDupelicate()
 	
 	SetRef(OldStrRef);
 
-	if (Dupe OR	Ref < 0)
+	if (Dupe ||	Ref < 0)
 	{
 		// there is a duplicate string Id
 		// so assign a new Id
@@ -1354,7 +1354,7 @@ bool ResStringGroup::Write(GXmlTag *t, ResFileFormat Format)
 	for (GListItem *i = Strs.First(); i; i = Strs.Next())
 	{
 		ResString *s = dynamic_cast<ResString*>(i);
-		if (s AND (s->Define OR s->Items.Length() > 0))
+		if (s AND (s->Define || s->Items.Length() > 0))
 		{
 			GXmlTag *c = new GXmlTag;
 			if (c AND s->Write(c, Format))

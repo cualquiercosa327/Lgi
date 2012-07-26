@@ -460,7 +460,7 @@ void GMdiChild::OnMouseMove(GMouse &m)
 				SetCursor(LCUR_SizeHor);
 			}
 		}
-		else if ((Hit & DragTop) OR (Hit & DragBottom))
+		else if ((Hit & DragTop) || (Hit & DragBottom))
 		{
 			SetCursor(LCUR_SizeVer);
 		}

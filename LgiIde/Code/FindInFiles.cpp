@@ -285,7 +285,7 @@ int FindInFilesThread::Main()
 			{
 				char *f = Files[i];
 				char *Dir = strrchr(f, DIR_CHAR);
-				if (!Dir OR Dir[1] != '.')
+				if (!Dir || Dir[1] != '.')
 				{
 					SearchFile(f);
 				}

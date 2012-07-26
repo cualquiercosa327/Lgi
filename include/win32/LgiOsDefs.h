@@ -263,8 +263,8 @@ typedef SOCKET						OsSocket;
 #define DIR_STR						"\\"
 #define EOL_SEQUENCE				"\r\n"
 
-#define IsSlash(c)					(((c)=='/')OR((c)=='\\'))
-#define IsQuote(c)					(((c)=='\"')OR((c)=='\''))
+#define IsSlash(c)					(((c)=='/')||((c)=='\\'))
+#define IsQuote(c)					(((c)=='\"')||((c)=='\''))
 
 #define LGI_PATH_SEPARATOR			";"
 #define LGI_ALL_FILES				"*.*"

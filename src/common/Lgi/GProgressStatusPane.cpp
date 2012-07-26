@@ -54,7 +54,7 @@ void GProgressStatusPane::Value(int64 v)
 {
 	Progress::Value(v);
 
-	if (DoNow() OR !v)
+	if (DoNow() || !v)
 	{
 		Invalidate();
 		LgiYield();

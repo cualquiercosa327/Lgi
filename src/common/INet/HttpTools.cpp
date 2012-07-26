@@ -61,7 +61,7 @@ void StrFormEncode(GStream &p, char *s, bool InValue)
 {
 	for (char *c = s; *c; c++)
 	{
-		if (isalpha(*c) OR isdigit(*c) OR *c == '_' OR *c == '.' OR (!InValue && *c == '+') OR *c == '-' OR *c == '%')
+		if (isalpha(*c) || isdigit(*c) || *c == '_' || *c == '.' || (!InValue && *c == '+') || *c == '-' || *c == '%')
 		{
 			p.Write(c, 1);
 		}
@@ -153,7 +153,7 @@ GXmlTag *ExtractForms(char *Html, GStream *Log)
 
 											CopyAttr("name");
 
-											while (c && !c->Tag OR stricmp(c->Tag, "/select") != 0)
+											while (c && !c->Tag || stricmp(c->Tag, "/select") != 0)
 											{
 												if (c->Tag && stricmp(c->Tag, "option") == 0)
 												{
@@ -292,7 +292,7 @@ char *WebPage::GetCharSet()
 							{
 								s += 8;
 								char *e = s;
-								while (*e && (isalpha(*e) OR isdigit(*e) OR *e == '-' OR *e == '_')) e++;
+								while (*e && (isalpha(*e) || isdigit(*e) || *e == '-' || *e == '_')) e++;
 								Charset = NewStr(s, e - s);
 							}
 						}
@@ -551,7 +551,7 @@ bool FormPost::Set(char *field, char *value, GStream *Log, bool AllowCreate)
 						{
 							char *Value = o->GetAttr("Value");
 							char *Content = o->Content;
-							if (Value OR Content)
+							if (Value || Content)
 							{
 								bool Mat = !ValidStr(value);
 
@@ -908,7 +908,7 @@ char *EndCookie(char *s)
 {
 	while (*s)
 	{
-		if (*s == '\n' OR *s == '\r' OR *s == ';')
+		if (*s == '\n' || *s == '\r' || *s == ';')
 			return s;
 		s++;
 	}
@@ -969,7 +969,7 @@ void CookieJar::Set(char *Headers)
 
 						s = e + 1;
 						while (*s && strchr(" \t", *s)) s++;
-						if (*s == '\r' OR *s == '\n' OR *s == 0)
+						if (*s == '\r' || *s == '\n' || *s == 0)
 							break;
 					}
 				}
@@ -1032,7 +1032,7 @@ char *HtmlTidy(char *Html)
 				s = c;
 				while (*c && *c != '>')
 				{
-					if (*c == '\'' OR *c == '\"')
+					if (*c == '\'' || *c == '\"')
 					{
 						char delim = *c++;
 						char *end = strchr(c, delim);

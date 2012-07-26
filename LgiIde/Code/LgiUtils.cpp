@@ -5,7 +5,7 @@
 
 static char *White = " \r\t\n";
 #define iswhite(s)		(s AND strchr(White, s) != 0)
-#define isword(s)		(s AND (isdigit(s) OR isalpha(s) OR (s) == '_') )
+#define isword(s)		(s AND (isdigit(s) || isalpha(s) || (s) == '_') )
 #define skipws(s)		while (iswhite(*s)) s++;
 
 char *FindHeader(char *Short, List<char> &Paths)
@@ -40,7 +40,7 @@ bool BuildHeaderList(char *Cpp, List<char> &Headers, List<char> &IncPaths, bool 
 			{
 				char *s = c + 7;
 				skipws(s);
-				if (*s == '\"' OR *s == '<')
+				if (*s == '\"' || *s == '<')
 				{
 					char d = (*s == '\"') ? '\"' : '>';					
 					char *e = strchr(++s, d);

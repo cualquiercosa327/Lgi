@@ -39,7 +39,7 @@ char *dirchar(char *s, bool rev = false)
 		char *last = 0;
 		while (s AND *s)
 		{
-			if (*s == '/' OR *s == '\\')
+			if (*s == '/' || *s == '\\')
 				last = s;
 			s++;
 		}
@@ -49,7 +49,7 @@ char *dirchar(char *s, bool rev = false)
 	{
 		while (s AND *s)
 		{
-			if (*s == '/' OR *s == '\\')
+			if (*s == '/' || *s == '\\')
 				return s;
 			s++;
 		}
@@ -607,7 +607,7 @@ public:
 						
 						if
 						(
-							(Txt[i] == ':' OR Txt[i] == '(')
+							(Txt[i] == ':' || Txt[i] == '(')
 							AND
 							isdigit(Txt[i+1])
 						)
@@ -625,7 +625,7 @@ public:
 							
 							if
 							(
-								(Txt[i] == ':' OR Txt[i] == '(')
+								(Txt[i] == ':' || Txt[i] == '(')
 								AND
 								isdigit(Txt[i+1])
 							)
@@ -636,7 +636,7 @@ public:
 					}
 					
 					// If match found?
-					if (Txt[i] == ':' OR Txt[i] == '(')
+					if (Txt[i] == ':' || Txt[i] == '(')
 					{
 						// Scan back to the start of the filename
 						int Line = i;
@@ -1185,7 +1185,7 @@ IdeDoc *AppWnd::OpenFile(char *FileName, NodeSource *Src)
 	IdeDoc *Doc = 0;
 	
 	char *File = Src ? Src->GetFileName() : FileName;
-	if (Src OR FileExists(File))
+	if (Src || FileExists(File))
 	{
 		Doc = d->IsFileOpen(File);
 
