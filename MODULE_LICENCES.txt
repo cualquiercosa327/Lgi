@@ -32,6 +32,12 @@ include/win32/StackWalker.h
 	Source: http://www.codeproject.com/KB/threads/StackWalker.aspx
 	License: BSD
 	Inclusion: Yes
+
+include/common/LgiQuickSort.h
+	Author: Darel Rex Finley
+	Source: http://alienryderflex.com/quicksort/
+	License: Public Domain
+	Inclusion: Yes (svn from 27/7/2012)
 	
 src/win32/INet/MibAccess.*
 	Author: Stas Khirman <staskh@rocketmail.com>
