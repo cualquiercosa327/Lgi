@@ -1131,7 +1131,7 @@ bool Match(char *Name, char *Mask)
 				Name++;
 			}
 		}
-		else if (*Mask == '?' OR toupper(*Mask) == toupper(*Name))
+		else if (*Mask == '?' || toupper(*Mask) == toupper(*Name))
 		{
 			Mask++;
 			Name++;
@@ -1142,7 +1142,7 @@ bool Match(char *Name, char *Mask)
 		}
 	}
 
-	while (*Mask && ((*Mask == '*') OR (*Mask == '.'))) Mask++;
+	while (*Mask && ((*Mask == '*') || (*Mask == '.'))) Mask++;
 
 	return (*Name == 0 && *Mask == 0);
 }
@@ -1281,7 +1281,7 @@ bool GDirImpl::Path(char *s, int BufLen)
 	if (Name) Len += strlen(Name);
 	bool Status = false;
 
-	if (Name && (BufLen < 0 OR Len <= BufLen))
+	if (Name && (BufLen < 0 || Len <= BufLen))
 	{
 		LgiMakePath(s, BufLen, d->BasePath, Name);
 		Status = true;
@@ -1382,7 +1382,7 @@ int GDirImpl::First(const char *Name, const char *Pattern)
 
 			if (d->Handle != INVALID_HANDLE_VALUE)
 			{
-				while (	stricmp(GetName(), ".") == 0 OR
+				while (	stricmp(GetName(), ".") == 0 ||
 						stricmp(GetName(), "..") == 0)
 				{
 					if (!Next()) return false;

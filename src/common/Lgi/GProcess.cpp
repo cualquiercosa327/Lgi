@@ -418,7 +418,7 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 		saAttr.bInheritHandle = true;
 		saAttr.lpSecurityDescriptor = NULL;
 
-		if (!Out OR
+		if (!Out ||
 			(CreatePipe(&hChildStdoutRd, &hChildStdoutWr, &saAttr, 0) AND
 			SetStdHandle(STD_OUTPUT_HANDLE, hChildStdoutWr) AND
 			DuplicateHandle(GetCurrentProcess(), hChildStdoutRd,
@@ -430,7 +430,7 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 				CloseHandle(hChildStdoutRd);
 			}
 
-			if (!In OR
+			if (!In ||
 				(CreatePipe(&hChildStdinRd, &hChildStdinWr, &saAttr, 0) AND
 				SetStdHandle(STD_INPUT_HANDLE, hChildStdinRd) AND
 				DuplicateHandle(GetCurrentProcess(), hChildStdinWr,
@@ -448,7 +448,7 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 				if (LgiGetOs() == LGI_OS_WIN9X)
 				{
 					SiA.cb = sizeof(SiA);
-					SiA.dwFlags = In OR Out ? STARTF_USESTDHANDLES : 0;
+					SiA.dwFlags = In || Out ? STARTF_USESTDHANDLES : 0;
 					if (Out)
 					{
 						SiA.hStdOutput = hChildStdoutWr;
@@ -463,7 +463,7 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 				else
 				{
 					SiW.cb = sizeof(SiW);
-					SiW.dwFlags = In OR Out ? STARTF_USESTDHANDLES : 0;
+					SiW.dwFlags = In || Out ? STARTF_USESTDHANDLES : 0;
 					if (Out)
 					{
 						SiW.hStdOutput = hChildStdoutWr;

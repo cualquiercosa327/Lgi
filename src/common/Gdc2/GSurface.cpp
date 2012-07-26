@@ -967,7 +967,7 @@ void GSurface::Bezier(int Threshold, GdcPt2 *Pt)
 
 		Threshold = max(Threshold, 1);
 
-		if (!Old OR !New) return;
+		if (!Old || !New) return;
 		for (int n=0; n<OldPts; n++)
 		{
 			Old[n].x = Pt[n].x;
@@ -1494,7 +1494,7 @@ COLOUR GSurface::Colour(COLOUR c, int Bits)
 int GSurface::Op(int NewOp)
 {
 	int PrevOp = (pApp) ? pApp->GetOp() : GDC_SET;
-	if (!pApp OR PrevOp != NewOp)
+	if (!pApp || PrevOp != NewOp)
 	{
 		COLOUR cCurrent = (pApp) ? Colour() : 0;
 

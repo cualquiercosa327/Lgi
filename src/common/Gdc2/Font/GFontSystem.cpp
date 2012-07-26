@@ -117,8 +117,8 @@ GFontSystem::GFontSystem()
 	// Glyph sub setup
 	int Os = LgiGetOs();
 
-	d->SubSupport =	(Os == LGI_OS_LINUX) OR
-					(Os == LGI_OS_WIN9X) OR
+	d->SubSupport =	(Os == LGI_OS_LINUX) ||
+					(Os == LGI_OS_WIN9X) ||
 					(Os == LGI_OS_WINNT); //  AND Rev == 0);  // WinXP does it's own glyph substitution
 	d->DefaultGlyphSub = d->SubSupport;
 	d->CheckedConfig = false;
@@ -536,7 +536,7 @@ GFont *GFontSystem::GetBestFont(char *Str)
 					}
 				}
 
-				if (!MatchingFont OR
+				if (!MatchingFont ||
 					Chars > MatchingChars)
 				{
 					MatchingFont = h;
@@ -552,13 +552,13 @@ GFont *GFontSystem::GetBestFont(char *Str)
 
 GFont *GFontSystem::GetGlyph(int u, GFont *UserFont)
 {
-	if (u > MAX_UNICODE OR !UserFont)
+	if (u > MAX_UNICODE || !UserFont)
 	{
 		return 0;
 	}
 
 	// Check app font
-	if (!d->SubSupport OR
+	if (!d->SubSupport ||
 		(UserFont->GetGlyphMap() AND
 		_HasUnicodeGlyph(UserFont->GetGlyphMap(), u)))
 	{

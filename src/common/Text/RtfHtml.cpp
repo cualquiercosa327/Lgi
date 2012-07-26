@@ -38,7 +38,7 @@ void ParseRtf(GStringPipe &p, char *&s)
 		{
 			s++;
 			char *Start = s;
-			while (*s && (isalpha(*s) OR strchr("*\'", *s))) s++;
+			while (*s && (isalpha(*s) || strchr("*\'", *s))) s++;
 			while (*s && isdigit(*s)) s++;
 
 			int Len = s - Start;
@@ -63,7 +63,7 @@ void ParseRtf(GStringPipe &p, char *&s)
 			while (*s && !strchr(Ws, *s) && !strchr("\\{}\n", *s)) s++;
 			SkipWs(s);
 
-			if (HasTag(Tags, "htmlrtf") OR
+			if (HasTag(Tags, "htmlrtf") ||
 				HasTag(Tags, "htmltag"))
 			{
 				p.Push(Start, s - Start);

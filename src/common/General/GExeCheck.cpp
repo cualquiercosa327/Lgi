@@ -155,8 +155,8 @@ class GExecuteCheck
 				h.Magic[1] == 'E' &&
 				h.Magic[2] == 'L' &&
 				h.Magic[3] == 'F' &&
-				(h.Class == 1 OR h.Class == 2) &&
-				(h.DataEnc == 1 OR h.DataEnc == 2) &&
+				(h.Class == 1 || h.Class == 2) &&
+				(h.DataEnc == 1 || h.DataEnc == 2) &&
 				h.FileVer == 1 &&
 				(h.Machine > 0 && h.Machine <= 8) &&
 				h.Version == 1)
@@ -176,8 +176,8 @@ class GExecuteCheck
 			if (Ext)
 			{
 				#ifdef WIN32
-				if (stricmp(Ext, "vbs") == 0 OR
-					stricmp(Ext, "pif") == 0 OR
+				if (stricmp(Ext, "vbs") == 0 ||
+					stricmp(Ext, "pif") == 0 ||
 					stricmp(Ext, "bat") == 0)
 				{
 					return true;
@@ -225,8 +225,8 @@ public:
 
 	bool IsExecutable()
 	{
-		return	PeCheck() OR
-				ElfCheck() OR
+		return	PeCheck() ||
+				ElfCheck() ||
 				ScriptCheck();
 	}
 };

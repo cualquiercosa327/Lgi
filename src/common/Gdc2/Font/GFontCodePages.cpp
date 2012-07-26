@@ -608,7 +608,7 @@ GCharset::GCharset(const char *cp, const char *des, short *map, const char *alt)
 
 bool GCharset::IsUnicode()
 {
-	return (Type == CpUtf8) OR (Type == CpWide);
+	return (Type == CpUtf8) || (Type == CpWide);
 }
 
 const char *GCharset::GetIconvName()
@@ -833,7 +833,7 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 			}
 			else
 			#endif
-			if (InInfo->Type == CpIconv OR
+			if (InInfo->Type == CpIconv ||
 				OutInfo->Type == CpIconv)
 			{
 				GFontSystem *Fs = GFontSystem::Inst();
@@ -884,7 +884,7 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 						{
 							Utf32 = LgiUtf16To32((char16 *&)In8, InLen);
 
-							if (Utf32 == 0xfeff OR Utf32 == 0xfffe)
+							if (Utf32 == 0xfeff || Utf32 == 0xfffe)
 								continue;
 							break;
 						}
@@ -1290,7 +1290,7 @@ char *LgiToNativeCp(const char *In, int InLen)
 
 	#ifdef WIN32
 	GCharset *CpInfo = LgiGetCpInfo(Cp);
-	if (!CpInfo OR CpInfo->Type == CpWindowsDb)
+	if (!CpInfo || CpInfo->Type == CpWindowsDb)
 	{
 		if (In)
 		{
@@ -1330,7 +1330,7 @@ char *LgiFromNativeCp(const char *In, int InLen)
 
 	#ifdef WIN32
 	GCharset *CpInfo = LgiGetCpInfo(Cp);
-	if (!CpInfo OR CpInfo->Type == CpWindowsDb)
+	if (!CpInfo || CpInfo->Type == CpWindowsDb)
 	{
 		if (In)
 		{

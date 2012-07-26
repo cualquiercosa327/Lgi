@@ -196,7 +196,7 @@ class GHashTbl
 		else
 		{
 			// Wrapped
-			return Val <= Max OR Val >= Min;
+			return Val <= Max || Val >= Min;
 		}
 	}
 

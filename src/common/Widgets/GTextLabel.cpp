@@ -32,7 +32,7 @@ public:
 
 	uint32 PrevChar(char *s)
 	{
-		if (IsUtf8_Lead(*s) OR IsUtf8_1Byte(*s))
+		if (IsUtf8_Lead(*s) || IsUtf8_1Byte(*s))
 		{
 			s--;
 			int Len = 1;

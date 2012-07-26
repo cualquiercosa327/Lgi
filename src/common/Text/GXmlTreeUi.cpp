@@ -188,14 +188,14 @@ int GetCtrlType(GViewI *v)
 		{
 			return GV_DOM;
 		}
-		else if (dynamic_cast<GCheckBox*>(v) OR
-				dynamic_cast<GButton*>(v) OR
+		else if (dynamic_cast<GCheckBox*>(v) ||
+				dynamic_cast<GButton*>(v) ||
 				dynamic_cast<GRadioButton*>(v))
 		{
 			return GV_BOOL;
 		}
-		else if (dynamic_cast<GSlider*>(v) OR
-				dynamic_cast<GCombo*>(v) OR
+		else if (dynamic_cast<GSlider*>(v) ||
+				dynamic_cast<GCombo*>(v) ||
 				dynamic_cast<GRadioGroup*>(v))
 		{
 			return GV_INT32;
@@ -221,7 +221,7 @@ int GetDataType(char *str)
 				// The 'e' part is sometimes part of a number or
 				// ignore that too.
 			}
-			else if (!isdigit(w) OR w > 255)
+			else if (!isdigit(w) || w > 255)
 			{
 				return GV_STRING;
 			}
@@ -302,8 +302,8 @@ bool GXmlToUi::Convert(GDom *Tag, GViewI *Ui, bool ToUI)
 				{
 					int Type = Map->Hint ? Map->Hint : GetDataType(v.Str());
 
-					if (Type == GV_BOOL OR
-							Type == GV_INT32 OR
+					if (Type == GV_BOOL ||
+							Type == GV_INT32 ||
 							Type == GV_INT64)
 					{
 						Ui->SetCtrlValue(Map->Id, v.CastInt32());

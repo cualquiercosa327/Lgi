@@ -109,7 +109,7 @@ void GFont::_Draw(GSurface *pDC, int x, int y, OsChar *Str, int Len, GRect *r, G
 
 		SIZE Size;
 		if ((!Transparent() AND !r)
-			OR
+			||
 			(GetOwnerUnderline()))
 		{
 			GetTextExtentPoint32W(hDC, Str, Len, &Size);

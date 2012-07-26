@@ -639,18 +639,6 @@
 						RelativePath=".\src\common\Lgi\GMemStream.cpp"
 						>
 					</File>
-					<Filter
-						Name="Property List"
-						>
-						<File
-							RelativePath=".\src\common\General\GProperties.cpp"
-							>
-						</File>
-						<File
-							RelativePath=".\include\common\GProperties.h"
-							>
-						</File>
-					</Filter>
 				</Filter>
 				<Filter
 					Name="File"
@@ -873,26 +861,6 @@
 					>
 					<File
 						RelativePath=".\src\win32\Lgi\GClipBoard.cpp"
-						>
-					</File>
-				</Filter>
-				<Filter
-					Name="Data Dlg"
-					>
-					<File
-						RelativePath=".\src\common\Lgi\GDataDlg.cpp"
-						>
-					</File>
-					<File
-						RelativePath="..\_Common\Include\GDataDlg.h"
-						>
-					</File>
-					<File
-						RelativePath=".\src\common\General\GPassword.cpp"
-						>
-					</File>
-					<File
-						RelativePath="..\_Common\Include\GPassword.h"
 						>
 					</File>
 				</Filter>
@@ -1130,6 +1098,10 @@
 				</File>
 				<File
 					RelativePath=".\src\common\Lgi\GInput.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\common\General\GPassword.cpp"
 					>
 				</File>
 			</Filter>

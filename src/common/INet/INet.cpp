@@ -1702,7 +1702,7 @@ GAutoString GUri::GetUri()
 	{
 		p.Print("%s://", Protocol);
 	}
-	if (User OR Pass)
+	if (User || Pass)
 	{
 		const char *Empty = "";
 		p.Print("%s:%s@", User?User:Empty, Pass?Pass:Empty);

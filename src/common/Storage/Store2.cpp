@@ -327,7 +327,7 @@ bool StorageItemImpl::SerializeHeader(GFile &f, bool Write)
 
 	if (Tree->IsOk() &&
 		Header &&
-		(!Write OR HeaderDirty))
+		(!Write || HeaderDirty))
 	{
 		if (Tree->Lock(_FL))
 		{
@@ -380,7 +380,7 @@ bool StorageItemImpl::SerializeObject(GSubFilePtr &f, bool Write)
 		Header &&
 		Object)
 	{
-		if (!Write OR Object->GetDirty())
+		if (!Write || Object->GetDirty())
 		{
 			if (Write)
 			{
@@ -907,7 +907,7 @@ bool StorageItemImpl::InsertSub(StorageItem *ObjVirtual, int At)
 			Obj->Tree = Tree;
 			Obj->Next = Obj->Prev = 0;
 
-			if (At == 0 OR !Child)
+			if (At == 0 || !Child)
 			{
 				// Insert at the start
 				if (Child)
@@ -1336,7 +1336,7 @@ namespace Storage2
 		void AddSegs(StorageItemImpl *s)
 		{
 			if (s &&
-				(!_Ui OR !_Ui->Cancel()))
+				(!_Ui || !_Ui->Cancel()))
 			{
 				for (StorageItemImpl *Item = s; Item; )
 				{
@@ -1421,7 +1421,7 @@ namespace Storage2
 			static int Iter = 0;
 
 			if (s &&
-				(!_Ui OR !_Ui->Cancel()))
+				(!_Ui || !_Ui->Cancel()))
 			{
 				for (StorageItemImpl *Item = s; Item; )
 				{
@@ -1484,7 +1484,7 @@ namespace Storage2
 				for (Block *b = Blocks.First(); b; b = Blocks.Next(), Index++)
 				{
 					// check the new block doesn't overlap this block
-					if (Item->Start >= b->Start + b->Length OR
+					if (Item->Start >= b->Start + b->Length ||
 						Item->Start + Item->Length <= b->Start)
 					{
 						// object doesn't overlap
@@ -1874,7 +1874,7 @@ bool StorageKitImpl::Compact(Progress *p, bool Interactive, StorageValidator *va
 			for (Block *b = d->Blocks.First(); b; b = d->Blocks.Next())
 			{
 				Block *a = Blocks[n++];
-				if (a->Start != b->Start OR
+				if (a->Start != b->Start ||
 					a->Length != b->Length)
 				{
 					int asd=0;
@@ -1902,7 +1902,7 @@ bool StorageKitImpl::Compact(Progress *p, bool Interactive, StorageValidator *va
 		d->Blocks = (Block**)d->Segs.CreateIndex();
 	
 		char Msg[256] = "Compact cancelled.";
-		if (!p OR !p->Cancel())
+		if (!p || !p->Cancel())
 		{
 			// remove space between the objects
 			int OldSize = File->GetSize();
@@ -2140,7 +2140,7 @@ bool StorageKitImpl::AttachItem(StorageItem *ItemVirtual, StorageItem *ToVirtual
 		{
 			if (Relationship == NodeNext)
 			{
-				if (!Item->Parent OR
+				if (!Item->Parent ||
 					SeparateItem(Item))
 				{
 					int At = 0;
@@ -2161,7 +2161,7 @@ bool StorageKitImpl::AttachItem(StorageItem *ItemVirtual, StorageItem *ToVirtual
 			}
 			else if (Relationship == NodePrev)
 			{
-				if (!Item->Parent OR
+				if (!Item->Parent ||
 					SeparateItem(Item))
 				{
 					int At = 0;

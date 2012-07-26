@@ -275,7 +275,7 @@ public:
 					}
 				}
 
-				if (m.x != Old.x OR
+				if (m.x != Old.x ||
 					m.y != Old.y)
 				{
 					// Mouse moved...
@@ -325,9 +325,9 @@ public:
 					#endif
 
 					// is the mouse inside the client area?
-					bool Inside = ! (p.x < 0 OR
-										p.y < 0 OR
-										p.x >= rc.X() OR
+					bool Inside = ! (p.x < 0 ||
+										p.y < 0 ||
+										p.x >= rc.X() ||
 										p.y >= rc.Y());
 					
 					OsView hWnd = (Inside) ? hOver : 0;
@@ -952,7 +952,7 @@ void GDropDown::Activate()
 
 bool GDropDown::OnKey(GKey &k)
 {
-	if (k.IsChar AND (k.c16 == ' ' OR k.c16 == VK_RETURN))
+	if (k.IsChar AND (k.c16 == ' ' || k.c16 == VK_RETURN))
 	{
 		if (k.Down())
 		{

@@ -220,7 +220,7 @@ bool GButton::OnKey(GKey &k)
 {
 	if (
 		#ifdef WIN32
-		k.IsChar OR
+		k.IsChar ||
 		#endif
 		!Enabled())
 	{

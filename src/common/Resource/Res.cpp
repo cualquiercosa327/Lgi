@@ -1558,7 +1558,7 @@ ResObjectImpl::SStatus ResTableLayout::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 								}
 							}
 
-							if (ColSpan > 1 OR RowSpan > 1)
+							if (ColSpan > 1 || RowSpan > 1)
 							{
 								v = Span.GetStr();
 								Cell->SetValue("span", v);

@@ -128,12 +128,12 @@ bool GPanel::Pour(GRegion &r)
 		{
 			int Size = ((Open()) ? OpenSize : ClosedSize);
 			int Limit = 30;
-			if (TestFlag(Align, GV_EDGE_RIGHT) OR
+			if (TestFlag(Align, GV_EDGE_RIGHT) ||
 				TestFlag(Align, GV_EDGE_LEFT))
 			{
 				Limit = min(Size, r.X()-1);
 			}
-			else /* if (TestFlag(Align, GV_EDGE_BOTTOM) OR
+			else /* if (TestFlag(Align, GV_EDGE_BOTTOM) ||
 					 TextFlag(Align, GV_EDGE_TOP)) */
 			{
 				Limit = min(Size, r.Y()-1);

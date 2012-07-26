@@ -623,7 +623,7 @@ char *MailPhp::GetHeaders(int Message)
 						{
 							m->Headers = NewStr(s, e-s);
 							s = e + 5;
-							while (*s == '\r' OR *s == '\n') s++;
+							while (*s == '\r' || *s == '\n') s++;
 						}
 						else
 						{

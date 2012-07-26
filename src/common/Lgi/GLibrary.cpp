@@ -35,7 +35,7 @@ bool GLibrary::Load(const char *File)
 		// it for the OS your running thus removing the need for #ifdef's in your
 		// app. sweet!
 		char *Dot = strrchr(f, '.');
-		if (!Dot OR strchr(Dot, DIR_CHAR))
+		if (!Dot || strchr(Dot, DIR_CHAR))
 		{
 			sprintf(f+strlen(f), ".%s", LGI_LIBRARY_EXT);
 		}
@@ -86,7 +86,7 @@ bool GLibrary::Load(const char *File)
 			char *f = strrchr(FileName, DIR_CHAR);
 			if (f) f++;
 			else f = FileName;
-			bool IsLgi = stricmp(f, "lgilgi." LGI_LIBRARY_EXT) == 0 OR
+			bool IsLgi = stricmp(f, "lgilgi." LGI_LIBRARY_EXT) == 0 ||
 						 stricmp(f, "lgilgid." LGI_LIBRARY_EXT) == 0;			
 			if (!IsLgi) // Bad things happen when we load LGI again.
 			{

@@ -509,8 +509,8 @@ GFilter::IoStatus GdcBmp::WriteImage(GStream *Out, GSurface *pDC)
 		}
 	}
 
-	if (!pMem OR
-		!pMem->x OR
+	if (!pMem ||
+		!pMem->x ||
 		!pMem->y)
 	{
 		return GFilter::IoError;
@@ -830,7 +830,7 @@ GFilter::IoStatus GdcIco::ReadImage(GSurface *pDC, GStream *In)
 
 		if (Colours AND
 			XorBytes AND
-			(Header.Bits > MyBits OR Width > pDC->X() OR Height > pDC->Y()) AND
+			(Header.Bits > MyBits || Width > pDC->X() || Height > pDC->Y()) AND
 			pDC->Create(Width, Height, max(8, Header.Bits) ))
 		{
 			MyBits = Header.Bits;
@@ -1389,7 +1389,7 @@ bool GdcRleDC::FindScanLines()
 					x += Pixels + Skip;
 				}
 
-				if (x != X() OR Pos > Length)
+				if (x != X() || Pos > Length)
 				{
 					Error = true;
 				}

@@ -129,8 +129,8 @@ bool GStatusPane::Name(const char *n)
 	bool Status = false;
 
 	char *l = Name();
-	if (!n OR
-		!l OR
+	if (!n ||
+		!l ||
 		strcmp(l, n) != 0)
 	{
 		if (Lock(_FL))

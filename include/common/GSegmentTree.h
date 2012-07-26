@@ -31,7 +31,7 @@ public:
 
 	bool Overlap(GSegment *Seg)
 	{
-		if (Seg->Start + Seg->Length <= Start OR
+		if (Seg->Start + Seg->Length <= Start ||
 			Seg->Start >= Start + Length)
 		{
 			return false;

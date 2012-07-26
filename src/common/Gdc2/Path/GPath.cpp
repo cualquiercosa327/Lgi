@@ -1313,7 +1313,7 @@ bool GPath::Flatten()
 			}
 
 			// Do we need to start another vector?
-			if (DirChange OR Outline[NextOutline] == i OR !Next)
+			if (DirChange || Outline[NextOutline] == i || !Next)
 			{
 				// Create a new vector
 				GVector *v = new GVector;
@@ -1562,7 +1562,7 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 											#endif
 
 											CHECK_XV(n-1);
-											if (n == 0 OR a->Cx >= xv[n-1]->Cx)
+											if (n == 0 || a->Cx >= xv[n-1]->Cx)
 											{
 												// Insert at end
 												CHECK_XV(n);
@@ -1620,7 +1620,7 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 
 										PathAssert(Cx >= Bounds.x1 - GPointF::Threshold && Cx <= Bounds.x2 + GPointF::Threshold);
 
-										if (Xs == 0 OR (Xs > 0 && Cx >= x[Xs-1]))
+										if (Xs == 0 || (Xs > 0 && Cx >= x[Xs-1]))
 										{
 											// Insert at end
 											x[Xs++] = Cx;
@@ -1763,13 +1763,13 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 					int Xs = 0;
 					for (GVector *v=Active.First(); v; v=Active.Next())
 					{
-						if (y < v->y1 OR y > v->y2)
+						if (y < v->y1 || y > v->y2)
 						{
 							PathAssert(0);
 						}
 
 						double Cx = v->x[y - v->y1];
-						if (Xs == 0 OR Cx > x[Xs-1])
+						if (Xs == 0 || Cx > x[Xs-1])
 						{
 							// Insert at end
 							x[Xs++] = Cx;

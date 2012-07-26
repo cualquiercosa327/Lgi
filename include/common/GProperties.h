@@ -69,7 +69,7 @@ public:
 
 	void EmptyData()
 	{
-		if (Type == OBJ_STRING OR Type == OBJ_BINARY)
+		if (Type == OBJ_STRING || Type == OBJ_BINARY)
 		{
 			DeleteArray(Value.Cp);
 		}

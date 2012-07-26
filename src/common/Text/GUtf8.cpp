@@ -185,7 +185,7 @@ char16 *GUtf8Str::ToWide()
 
 bool GUtf8Str::Valid()
 {
-	if (!Start OR !Ptr)
+	if (!Start || !Ptr)
 		return false;
 
 	if (Ptr < Start)
@@ -199,7 +199,7 @@ bool GUtf8Str::Valid()
 
 bool GUtf8Str::IsStart()
 {
-	return !Ptr OR Ptr == Start;
+	return !Ptr || Ptr == Start;
 }
 
 bool GUtf8Str::IsEnd()
@@ -207,6 +207,6 @@ bool GUtf8Str::IsEnd()
 	if (End)
 		return Ptr >= End;
 
-	return !Ptr OR *Ptr == 0;
+	return !Ptr || *Ptr == 0;
 }
 

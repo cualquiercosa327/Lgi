@@ -1102,7 +1102,7 @@ public:
 						Cur++;
 					break;
 				}
-				else if (StricmpW(t, sComma) == 0 OR
+				else if (StricmpW(t, sComma) == 0 ||
 						 StricmpW(t, sSemiColon) == 0)
 				{
 					break;

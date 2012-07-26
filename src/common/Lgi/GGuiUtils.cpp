@@ -290,7 +290,7 @@ void LgiInitColours()
 	#endif
 
 	// Tweak
-	if (LgiGetOs() == LGI_OS_WINNT OR
+	if (LgiGetOs() == LGI_OS_WINNT ||
 		LgiGetOs() == LGI_OS_WIN9X)
 	{
 		// Win32 doesn't seem to get this right, so we just tweak it here

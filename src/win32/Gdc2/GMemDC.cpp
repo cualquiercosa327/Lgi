@@ -250,7 +250,7 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 
 	if (Bits == 15) Bits = 16;
 
-	if ((x > 0 AND y > 0) AND (Bits == 8 OR Bits == 16 OR Bits == 24 OR Bits == 32))
+	if ((x > 0 AND y > 0) AND (Bits == 8 || Bits == 16 || Bits == 24 || Bits == 32))
 	{
 		int Colours = 1 << min(Bits, 8);
 		int SizeOf = sizeof(BITMAPINFO)+(sizeof(RGBQUAD)*Colours);
@@ -264,7 +264,7 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 			d->Info->bmiHeader.biHeight = d->UpsideDown ? y : -y;
 			d->Info->bmiHeader.biPlanes = 1;
 			d->Info->bmiHeader.biBitCount = Bits;
-			d->Info->bmiHeader.biCompression = (Bits == 16 OR Bits == 32) ? BI_BITFIELDS : BI_RGB;
+			d->Info->bmiHeader.biCompression = (Bits == 16 || Bits == 32) ? BI_BITFIELDS : BI_RGB;
 			d->Info->bmiHeader.biSizeImage = LineLen * y;
 			d->Info->bmiHeader.biXPelsPerMeter = 3000;
 			d->Info->bmiHeader.biYPelsPerMeter = 3000;

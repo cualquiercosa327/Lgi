@@ -132,7 +132,7 @@ bool GClipBoard::Bitmap(GSurface *pDC, bool AutoEmpty)
 				Info->bmiHeader.biPlanes = 1;
 				Info->bmiHeader.biBitCount = pDC->GetBits();
 				
-				if (pDC->GetBits() == 16 OR
+				if (pDC->GetBits() == 16 ||
 					pDC->GetBits() == 32)
 				{
 					Info->bmiHeader.biCompression = BI_BITFIELDS;
@@ -228,7 +228,7 @@ GSurface *GClipBoard::ConvertFromPtr(void *Ptr)
 		{
 			pDC = new GMemDC;
 			if (pDC AND
-				(Info->bmiHeader.biCompression == BI_RGB OR
+				(Info->bmiHeader.biCompression == BI_RGB ||
 				Info->bmiHeader.biCompression == BI_BITFIELDS))
 			{
 				if (pDC->Create(Info->bmiHeader.biWidth,

@@ -109,7 +109,7 @@ bool LgiDetectLinks(GArray<GLinkInfo> &Links, char16 *Text, int Size)
 			case 'h':
 			case 'H':
 			{
-				if (StrnicmpW(Text+i, Http, 6) == 0 OR
+				if (StrnicmpW(Text+i, Http, 6) == 0 ||
 					StrnicmpW(Text+i, Https, 7) == 0)
 				{
 					// find end
@@ -123,8 +123,8 @@ bool LgiDetectLinks(GArray<GLinkInfo> &Links, char16 *Text, int Size)
 						e > s &&
 						!
 						(
-							isalpha(e[-1]) OR
-							isdigit(e[-1]) OR
+							IsAlpha(e[-1]) ||
+							IsDigit(e[-1]) ||
 							e[-1] == '/'
 						)
 					)
@@ -188,7 +188,7 @@ GDocumentEnv::LoadType GDefaultDocumentEnv::GetContent(LoadJob *&j)
 	LgiGetExePath(Exe, sizeof(Exe));
 
 	#ifdef WIN32
-	if (stristr(Exe, "\\Debug") OR
+	if (stristr(Exe, "\\Debug") ||
 		stristr(Exe, "\\Release"))
 	{
 		LgiTrimDir(Exe);
@@ -229,7 +229,7 @@ bool GDefaultDocumentEnv::OnNavigate(char *Uri)
 		if
 		(
 			strnicmp(Uri, "mailto:", 7) == 0
-			OR
+			||
 			(
 				strchr(Uri, '@') != 0
 				&&

@@ -593,7 +593,7 @@ void GRadioButton::OnPaint(GSurface *pDC)
 		pDC->Line(c.x1+2, c.y1+11, c.x1+3, c.y1+11);
 
 		/// Draw center
-		pDC->Colour(d->Over OR !e ? LC_MED : LC_WORKSPACE, 24);
+		pDC->Colour(d->Over || !e ? LC_MED : LC_WORKSPACE, 24);
 		pDC->Rectangle(c.x1+2, c.y1+4, c.x1+10, c.y1+8);
 		pDC->Box(c.x1+3, c.y1+3, c.x1+9, c.y1+9);
 		pDC->Box(c.x1+4, c.y1+2, c.x1+8, c.y1+10);

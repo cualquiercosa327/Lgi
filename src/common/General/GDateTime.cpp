@@ -920,14 +920,14 @@ bool GDateTime::SetTime(const char *Str)
 			s = T[T.Length()-1];
 			if (s)
 			{
-				if (strchr(s, 'p') OR strchr(s, 'P'))
+				if (strchr(s, 'p') || strchr(s, 'P'))
 				{
 					if (_Hours != 12)
 					{
 						_Hours += 12;
 					}
 				}
-				else if (strchr(s, 'a') OR strchr(s, 'A'))
+				else if (strchr(s, 'a') || strchr(s, 'A'))
 				{
 					if (_Hours == 12)
 					{
@@ -1147,12 +1147,12 @@ bool GDateTime::operator ==(GDateTime &dt)
 
 bool GDateTime::operator !=(GDateTime &dt)
 {
-	return	_Year != dt._Year OR
-			_Month != dt._Month OR
-			_Day != dt._Day OR
-			_Hours != dt._Hours OR
-			_Minutes != dt._Minutes OR
-			_Seconds != dt._Seconds OR
+	return	_Year != dt._Year ||
+			_Month != dt._Month ||
+			_Day != dt._Day ||
+			_Hours != dt._Hours ||
+			_Minutes != dt._Minutes ||
+			_Seconds != dt._Seconds ||
 			_Thousands != dt._Thousands;
 }
 
@@ -1184,7 +1184,7 @@ GDateTime GDateTime::DiffMonths(GDateTime &dt)
 		if
 		(
 			s._Month > dt._Month + 1
-			OR
+			||
 			(
 				s._Month > dt._Month
 				&&
@@ -1198,7 +1198,7 @@ GDateTime GDateTime::DiffMonths(GDateTime &dt)
 		else if
 		(
 			s._Month < dt._Month - 1
-			OR
+			||
 			(
 				s._Month < dt._Month
 				&&
@@ -1465,7 +1465,7 @@ bool GDateTime::Decode(const char *In)
 				(
 					*s &&
 					(
-						strchr(s+1, '.') OR
+						strchr(s+1, '.') ||
 						strchr(s+1, '-')
 					)
 				)
@@ -1498,7 +1498,7 @@ bool GDateTime::Decode(const char *In)
 				{
 					// whole time
 					GToken Time(s, ":");
-					if (Time.Length() == 2 OR
+					if (Time.Length() == 2 ||
 						Time.Length() == 3)
 					{
 						// Hour (24hr time)

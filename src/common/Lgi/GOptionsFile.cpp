@@ -94,7 +94,7 @@ bool GOptionsFile::Serialize(bool Write)
 		(
 			(
 				Write
-				OR
+				||
 				FileExists(File)
 			)
 			AND

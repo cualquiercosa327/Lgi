@@ -96,7 +96,7 @@ GThread::GThread(const char *name)
 
 GThread::~GThread()
 {
-	LgiAssert(State == THREAD_INIT OR State == THREAD_EXITED);
+	LgiAssert(State == THREAD_INIT || State == THREAD_EXITED);
 	if (hThread)
 	{
 		CloseHandle(hThread);

@@ -194,9 +194,9 @@ bool GRect::Overlap(GRect *b)
 {
 	if (Valid() AND
 		b->Valid() AND
-		(x1 > b->x2 OR
-		y1 > b->y2 OR
-		x2 < b->x1 OR
+		(x1 > b->x2 ||
+		y1 > b->y2 ||
+		x2 < b->x1 ||
 		y2 < b->y1))
 	{
 		return false;

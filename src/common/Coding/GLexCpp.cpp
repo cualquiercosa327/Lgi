@@ -4,7 +4,7 @@
 
 static const char *White = " \r\t\n";
 #define iswhite(s)		(s && strchr(White, s) != 0)
-#define isword(s)		(s && (isdigit(s) OR isalpha(s) OR (s) == '_') )
+#define isword(s)		(s && (isdigit(s) || isalpha(s) || (s) == '_') )
 #define skipws(s)		while (iswhite(*s)) s++;
 
 // Returns the next C++ token in 's'
@@ -38,7 +38,7 @@ char16 *LexCpp(char16 *&s, bool ReturnString)
         }
         Status = ReturnString ? NewStrW(Start, s-Start) : 0;
     }
-    else if (*s == '_' OR
+    else if (*s == '_' ||
         	 isalpha(*s))
     {
         // Identifier
@@ -49,11 +49,11 @@ char16 *LexCpp(char16 *&s, bool ReturnString)
             &&
             (
                 *s == '_'
-                OR
+                ||
                 *s == ':'
-                OR
+                ||
                 isalpha(*s)
-                OR
+                ||
                 isdigit(*s)
             )
         )
@@ -88,33 +88,33 @@ char16 *LexCpp(char16 *&s, bool ReturnString)
     else if
     (
         (s[0] == '-' && s[1] == '>')
-        OR
+        ||
         (s[0] == '|' && s[1] == '|')
-        OR
+        ||
         (s[0] == '&' && s[1] == '&')
-        OR
+        ||
         (s[0] == '+' && s[1] == '+')
-        OR
+        ||
         (s[0] == '-' && s[1] == '-')
-        OR
+        ||
         (s[0] == '/' && s[1] == '=')
-        OR
+        ||
         (s[0] == '-' && s[1] == '=')
-        OR
+        ||
         (s[0] == '*' && s[1] == '=')
-        OR
+        ||
         (s[0] == '+' && s[1] == '=')
-        OR
+        ||
         (s[0] == '^' && s[1] == '=')
-        OR
+        ||
         (s[0] == '>' && s[1] == '=')
-        OR
+        ||
         (s[0] == '<' && s[1] == '=')
-        OR
+        ||
         (s[0] == '-' && s[1] == '>')
-        OR
+        ||
         (s[0] == '=' && s[1] == '=')
-        OR
+        ||
         (s[0] == '!' && s[1] == '=')
     )
     {
@@ -145,11 +145,11 @@ char16 *LexCpp(char16 *&s, bool ReturnString)
             &&
             (
                 *s == '.'
-                OR
+                ||
                 *s == 'e'
-                OR
+                ||
                 isdigit(*s)
-				OR
+				||
 				(
 					IsHex
 					&&

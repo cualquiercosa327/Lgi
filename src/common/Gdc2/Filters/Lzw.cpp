@@ -62,10 +62,10 @@ public:
 		{
 			*Buffer++ = AppendChar[Code];
 			Code = PrefixCode[Code];
-			if (Code < 0 OR
-				Code >= NextCode OR
-				Code == 256 OR
-				Code == 257 OR
+			if (Code < 0 ||
+				Code >= NextCode ||
+				Code == 256 ||
+				Code == 257 ||
 				i++ >= 4094)
 			{
 				printf("Fatal error during code expansion.\n");
@@ -300,7 +300,7 @@ public:
 
 	void Flush(bool Final = false)
 	{
-		if (Final OR (InPos >= InBuf + InBufSize))
+		if (Final || (InPos >= InBuf + InBufSize))
 		{
 			if (Final && BitPos > 0)
 			{

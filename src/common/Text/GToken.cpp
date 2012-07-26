@@ -13,7 +13,7 @@ bool LgiIsNumber(char *p)
 	{
 		for (uint i=0; i<strlen(p); i++)
 		{
-			if ((p[i]<'0' OR p[i]>'9') AND p[i]!='-')
+			if ((p[i]<'0' || p[i]>'9') AND p[i]!='-')
 			{
 				return false;
 			}

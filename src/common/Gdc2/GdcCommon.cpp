@@ -191,7 +191,7 @@ void LgiThinBorder(GSurface *pDC, GRect &r, int Type)
 void LgiFlatBorder(GSurface *pDC, GRect &r, int Width)
 {
 	pDC->Colour(LC_MED, 24);
-	if (Width < 1 OR r.X() < (2 * Width) OR r.Y() < (2 * Width))
+	if (Width < 1 || r.X() < (2 * Width) || r.Y() < (2 * Width))
 	{
 		pDC->Rectangle(&r);
 		r.ZOff(-1, -1);
@@ -221,7 +221,7 @@ void LgiFillGradient(GSurface *pDC, GRect &r, bool Vert, GArray<GColourStop> &St
 		if (This)
 		{
 			DoStop:
-			if (!Next OR p <= This->Pos)
+			if (!Next || p <= This->Pos)
 			{
 				// Just this
 				c = This->Colour;
@@ -466,7 +466,7 @@ COLOUR CBit(int DstBits, COLOUR c, int SrcBits, GPalette *Pal)
 			case 8:
 			{
 				GdcRGB Grey, *p = 0;
-				if (!Pal OR !(p = (*Pal)[c]))
+				if (!Pal || !(p = (*Pal)[c]))
 				{
 					Grey.R = Grey.G = Grey.B = c & 0xFF;
 					p = &Grey;

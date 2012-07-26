@@ -45,7 +45,7 @@ GPrintDC *GPrinter::StartDC(const char *PrintJobName, GView *Parent)
 		AND
 		(
 			!d->Info.hDevMode
-			OR
+			||
 			!d->Info.hDevNames
 		)
 	)
@@ -65,7 +65,7 @@ GPrintDC *GPrinter::StartDC(const char *PrintJobName, GView *Parent)
 		d->Info.nMaxPage = d->Pages;
 	}
 
-	if ( // (d->Info.hDevMode AND d->Info.hDevNames) OR
+	if ( // (d->Info.hDevMode AND d->Info.hDevNames) ||
 		PrintDlg(&d->Info))
 	{
 		/*

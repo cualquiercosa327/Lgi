@@ -227,7 +227,6 @@ typedef union
 
 // Operators
 #define AND								&&
-#define OR								||
 
 // Good ol NULLy
 #ifndef NULL
@@ -240,7 +239,7 @@ typedef union
 #define CountOf(array)					(sizeof(array)/sizeof(array[0]))
 #endif
 #define StrEmpty(s)						(s)[0] = 0
-#define IsStrEmpty(s)					((NOT s) OR ((s)[0] == 0))
+#define IsStrEmpty(s)					((!s) || ((s)[0] == 0))
 
 #ifndef MEMORY_DEBUG
 
@@ -402,10 +401,10 @@ LgiFunc void							_lgi_assert(bool b, const char *test, const char *file, int l
 
 // Simple definition of breakable unicode characters
 #define LGI_BreakableChar(c)			(											\
-											(c) == '\n' OR							\
-											(c) == ' ' OR							\
-											(c) == '\t' OR							\
-											( (c) >= 0x3040 && (c) <= 0x30FF ) OR	\
+											(c) == '\n' ||							\
+											(c) == ' ' ||							\
+											(c) == '\t' ||							\
+											( (c) >= 0x3040 && (c) <= 0x30FF ) ||	\
 											( (c) >= 0x3300 && (c) <= 0x9FAF )		\
 										)
 

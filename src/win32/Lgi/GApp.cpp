@@ -362,7 +362,7 @@ DumpTime("ms hook");
 		#else
 		(
 			!ObjArgs
-			OR
+			||
 			!ObjArgs->NoSkin
 		)
 		AND
@@ -603,7 +603,7 @@ char *GApp::GetArgumentAt(int n)
 		{
 			char16 *e = 0;
 			while (*s AND strchr(WhiteSpace, *s)) s++;
-			if (*s == '\'' OR *s == '\"')
+			if (*s == '\'' || *s == '\"')
 			{
 				char16 Delim = *s++;
 				e = StrchrW(s, Delim);
@@ -639,7 +639,7 @@ bool GApp::GetOption(const char *Option, GAutoString &Buf)
 
 	while (c AND *c)
 	{
-		if (*c == '/' OR *c == '-')
+		if (*c == '/' || *c == '-')
 		{
 			c++;
 			char16 *e = c;
@@ -659,7 +659,7 @@ bool GApp::GetOption(const char *Option, GAutoString &Buf)
 					}
 
 					// write str out if they want it
-					char16 End = (*c == '\'' OR *c == '\"') ? *c++ : ' ';
+					char16 End = (*c == '\'' || *c == '\"') ? *c++ : ' ';
 					char16 *e = StrchrW(c, End);
 					if (!e) e = c + StrlenW(c);
 					Buf.Reset(LgiNewUtf16To8(c, (NativeInt)e-(NativeInt)c));

@@ -294,13 +294,13 @@ char *InetGetSubField(const char *s, const char *Field)
 			while (*s)
 			{
 				// Skip leading whitespace
-				while (*s AND (strchr(White, *s) OR *s == ';')) s++;
+				while (*s AND (strchr(White, *s) || *s == ';')) s++;
 
 				// Parse field name
 				if (IsAlpha((uint8)*s))
 				{
 					const char *f = s;
-					while (*s AND (isalpha(*s) OR *s == '-')) s++;
+					while (*s AND (isalpha(*s) || *s == '-')) s++;
 					bool HasField = ((s-f) == FieldLen) AND (strnicmp(Field, f, FieldLen) == 0);
 					while (*s AND strchr(White, *s)) s++;
 					if (*s == '=')

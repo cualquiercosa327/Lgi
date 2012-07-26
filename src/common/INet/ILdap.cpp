@@ -227,7 +227,7 @@ bool ILdap::RetreiveList(List<ILdapEntry> &Lst, char *Base, bool Recursive)
 
 						// Ldap_Trace("ldap_get_values, Type=%p, Name=%p, Email=%p, Email2=%p\n", Type, Name, Email, Email2);
 
-						if (Type AND Name AND (Email OR Email2) )
+						if (Type AND Name AND (Email || Email2) )
 						{
 							Ldap_Trace(	"real values, Type=%s, Name=%s, Email=%s, Email2=%s",
 										*Type,

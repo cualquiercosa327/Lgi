@@ -363,7 +363,7 @@ void GdcApp8Alpha::Rectangle(int x, int y)
 
 bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 {
-	if (!Src OR !Pal) return false;
+	if (!Src || !Pal) return false;
 	if (!SPal) SPal = Pal;
 	uchar *DivLut = Div255Lut;
 	uchar *Lut = 0;
@@ -379,7 +379,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 		// Per pixel source alpha
 		GdcRGB *SRgb = (*SPal)[0];
 		GdcRGB *DRgb = (*Pal)[0];
-		if (!SRgb OR !DRgb) return false;
+		if (!SRgb || !DRgb) return false;
 
 		switch (Src->Bits)
 		{
@@ -582,7 +582,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 		// Global alpha level
 		GdcRGB *SRgb = (*SPal)[0];
 		GdcRGB *DRgb = (*Pal)[0];
-		if (!SRgb OR !DRgb) return false;
+		if (!SRgb || !DRgb) return false;
 
 		switch (Src->Bits)
 		{

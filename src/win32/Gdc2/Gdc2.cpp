@@ -448,8 +448,8 @@ bool GPalette::operator ==(GPalette &p)
 
 		for (int i=0; i<GetSize(); i++)
 		{
-			if (	a->R != b->R OR
-				a->G != b->G OR
+			if (a->R != b->R ||
+				a->G != b->G ||
 				a->B != b->B)
 			{
 				return FALSE;
@@ -720,7 +720,7 @@ COLOUR GDeviceContext::Colour(COLOUR c, int Bits)
 int GDeviceContext::Op(int NewOp)
 {
 	int PrevOp = (pApp) ? pApp->GetOp() : GDC_SET;
-	if (NOT pApp OR PrevOp != NewOp)
+	if (NOT pApp || PrevOp != NewOp)
 	{
 		COLOUR cCurrent = (pApp) ? Colour() : 0;
 
@@ -996,7 +996,7 @@ bool GGlobalColour::MakeGlobalPalette()
 				if (r)
 				{
 					/*
-					if (i < 10 OR i > 246)
+					if (i < 10 || i > 246)
 					{
 						r->R = i;
 						r->G = 0;

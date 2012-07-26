@@ -275,7 +275,7 @@ void GCheckBox::OnPaint(GSurface *pDC)
 		}
 
 		LgiWideBorder(pDC, d->ValuePos, SUNKEN);
-		pDC->Colour(d->Over OR !e ? LC_MED : LC_WORKSPACE, 24);
+		pDC->Colour(d->Over || !e ? LC_MED : LC_WORKSPACE, 24);
 		pDC->Rectangle(&d->ValuePos);
 		pDC->Colour(e ? LC_TEXT : LC_LOW, 24);
 

@@ -287,7 +287,7 @@ GMessage::Result GScrollBar::OnEvent(GMessage *Msg)
 	int Status = SubClass ? SubClass->CallParent(Handle(), Msg->Msg, Msg->a, Msg->b) : 0;
 
 	if ((Msg->Msg == WM_HSCROLL AND !Vertical())
-		OR
+		||
 		(Msg->Msg == WM_VSCROLL AND Vertical()))
 	{
 		SCROLLINFO Si;

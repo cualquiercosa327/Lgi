@@ -347,7 +347,7 @@ bool Prop::SerializeText(GFile &f, bool Write)
 										{
 											int High = HexToDec(*Comma++);
 											int Low = HexToDec(*Comma++);
-											if (High < 0 OR Low < 0) return false;
+											if (High < 0 || Low < 0) return false;
 											Value.Cp[i] = (High << 4) | Low;
 										}
 
@@ -521,7 +521,7 @@ bool ObjProperties::DeleteKey(char *Name)
 {
 	bool Status = false;
 
-	if ( (Name && Find(Name)) OR
+	if ( (Name && Find(Name)) ||
 		 (!Name && Current) )
 	{
 		Status = Properties.Delete(Current);
@@ -1362,7 +1362,7 @@ char *Trim(char *s)
 
 bool IsAlpha(char c)
 {
-	return ((c >= 'a' && c <= 'z') OR (c >= 'A' && c <= 'Z'));
+	return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'));
 }
 
 bool IsDigit(char c)
@@ -1424,7 +1424,7 @@ bool ObjTree::SerializeObj(GFile &f, bool Write)
 					int VarLen = 0;
 
 					// scan past variable name
-					while (IsAlpha(*s) OR IsDigit(*s))
+					while (IsAlpha(*s) || IsDigit(*s))
 					{
 						VarLen++;
 						s++;
@@ -1444,7 +1444,7 @@ bool ObjTree::SerializeObj(GFile &f, bool Write)
 						{
 							if (IsDigit(*s))
 							{
-								// int OR double
+								// int or double
 								bool PeriodFound = strchr(s, '.') != NULL;
 
 								if (PeriodFound)

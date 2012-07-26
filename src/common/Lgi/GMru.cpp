@@ -98,7 +98,7 @@ bool GMru::_SaveFile(char *FileName)
 
 				// bung the extension from the file type if not there
 				char *Dot = strrchr(File, '.');
-				if (!Dot OR strchr(Dot, DIR_CHAR))
+				if (!Dot || strchr(Dot, DIR_CHAR))
 				{
 					strcat(File, Ext);
 				}

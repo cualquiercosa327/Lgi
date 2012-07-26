@@ -395,7 +395,7 @@ GTextView3::~GTextView3()
 
 char16 *GTextView3::MapText(char16 *Str, int Len, bool RtlTrailingSpace)
 {
-	if (ObscurePassword OR ShowWhiteSpace OR RtlTrailingSpace)
+	if (ObscurePassword || ShowWhiteSpace || RtlTrailingSpace)
 	{
 		if (Len > d->MapLen)
 		{
@@ -611,7 +611,7 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 	int Cx = 0, Cy = 0;
 	bool SimplePour = d->SimpleDelete; // One line change
 	int CurrentLine = -1;
-	if (d->SimpleDelete OR Start)
+	if (d->SimpleDelete || Start)
 	{
 		d->SimpleDelete = false;
 		if (!SimplePour &&
@@ -681,14 +681,14 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 	if (Text && Font && Mx > 0)
 	{
 		// break array, break out of loop when we hit these chars
-		#define ExitLoop(c)	(	(c) == 0 OR								\
-								(c) == '\n' OR							\
-								(c) == ' ' OR							\
+		#define ExitLoop(c)	(	(c) == 0 ||								\
+								(c) == '\n' ||							\
+								(c) == ' ' ||							\
 								(c) == '\t'								\
 							)
 
 		// extra breaking oportunities
-		#define ExtraBreak(c) (	( (c) >= 0x3040 && (c) <= 0x30FF ) OR	\
+		#define ExtraBreak(c) (	( (c) >= 0x3040 && (c) <= 0x30FF ) ||	\
 								( (c) >= 0x3300 && (c) <= 0x9FAF )		\
 							)
 
@@ -764,8 +764,8 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 					// Find the end of line
 					while (true)
 					{
-						if (e >= Size OR
-							Text[e] == '\n' OR
+						if (e >= Size ||
+							Text[e] == '\n' ||
 							(e-i) >= WrapCol)
 						{
 							break;
@@ -781,7 +781,7 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 					{
 						while (e > i)
 						{
-							if (ExitLoop(Text[e]) OR
+							if (ExitLoop(Text[e]) ||
 								ExtraBreak(Text[e]))
 							{
 								break;
@@ -796,7 +796,7 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 						// No line break at all, so seek forward instead
 						for (e=OldE; e < Size && Text[e] != '\n'; e++)
 						{
-							if (ExitLoop(Text[e]) OR
+							if (ExitLoop(Text[e]) ||
 								ExtraBreak(Text[e]))
 								break;
 						}
@@ -814,8 +814,8 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 
 					while (true)
 					{
-						if (e >= Size OR
-							ExitLoop(Text[e]) OR
+						if (e >= Size ||
+							ExitLoop(Text[e]) ||
 							ExtraBreak(Text[e]))
 						{
 							GDisplayString ds(Font, Text + i, e - i);
@@ -832,7 +832,7 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 								}
 								break;
 							}
-							else if (e >= Size OR
+							else if (e >= Size ||
 									Text[e] == '\n')							
 							{
 								Width = ds.X();
@@ -872,7 +872,7 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 	}
 
 	GTextLine *Last = Line.Length() ? Line.Last() : 0;
-	if (!Last OR
+	if (!Last ||
 		Last->Start + Last->Len < Size)
 	{
 		GTextLine *l = new GTextLine;
@@ -1003,7 +1003,7 @@ public:
 	{
 		if (View)
 		{
-			if ( (m && m->Left() && m->Double()) OR (!m) )
+			if ( (m && m->Left() && m->Double()) || (!m) )
 			{
 				char *Utf8 = LgiNewUtf16To8(View->NameW() + Start, Len * sizeof(char16));
 				if (Utf8)
@@ -1197,7 +1197,7 @@ void GTextView3::PourStyle(int Start, int EditSize)
 				case 'h':
 				case 'H':
 				{
-					if (StrnicmpW(Text+i, Http, 6) == 0 OR
+					if (StrnicmpW(Text+i, Http, 6) == 0 ||
 						StrnicmpW(Text+i, Https, 7) == 0)
 					{
 						// find end
@@ -1211,8 +1211,8 @@ void GTextView3::PourStyle(int Start, int EditSize)
 							e > s &&
 							!
 							(
-								isalpha(e[-1]) OR
-								isdigit(e[-1]) OR
+								isalpha(e[-1]) ||
+								isdigit(e[-1]) ||
 								e[-1] == '/'
 							)
 						)
@@ -1761,14 +1761,14 @@ void GTextView3::SetCursor(int i, bool Select, bool ForceFullUpdate)
 	}
 
 	// check whether we need to update the screen
-	if (ForceFullUpdate OR
-		!To OR
+	if (ForceFullUpdate ||
+		!To ||
 		!From)
 	{
 		// need full update
 		Invalidate();
 	}
-	else if (	SelStart != s OR
+	else if (	SelStart != s ||
 				SelEnd != e)
 	{
 		// Update just the selection bounds
@@ -2048,8 +2048,8 @@ bool GTextView3::Open(const char *Name, const char *CharSet)
 					Size = 0;
 					while (*In)
 					{
-						if (*In >= ' ' OR
-							*In == '\t' OR
+						if (*In >= ' ' ||
+							*In == '\t' ||
 							*In == '\n')
 						{
 							*Out++ = *In;
@@ -2968,7 +2968,7 @@ void GTextView3::OnMouseClick(GMouse &m)
 		 						Utf8,
    								Data,
    								Len
-						 ) OR
+						 ) ||
 						 Handle()->XApp()->GetSelection
 						 (
 						  Handle()->handle(),
@@ -3446,7 +3446,7 @@ bool GTextView3::OnKey(GKey &k)
 					{						
 						char Del = Cursor > 0 ? Text[Cursor-1] : 0;
 						
-						if (Del == ' ' && (!HardTabs OR IndentSize != TabSize))
+						if (Del == ' ' && (!HardTabs || IndentSize != TabSize))
 						{
 							// Delete soft tab
 							int x = GetColumn();
@@ -3455,7 +3455,7 @@ bool GTextView3::OnKey(GKey &k)
 							int i;
 							for (i=Cursor-1; i>=0; i--)
 							{
-								if (Max-- <= 0 OR Text[i] != ' ')
+								if (Max-- <= 0 || Text[i] != ' ')
 								{
 									i++;
 									break;
@@ -3594,7 +3594,7 @@ bool GTextView3::OnKey(GKey &k)
 							bool StartWhiteSpace = IsWhiteSpace(Text[n]);
 							bool LeftWhiteSpace = n > 0 && IsWhiteSpace(Text[n-1]);
 
-							if (!StartWhiteSpace OR
+							if (!StartWhiteSpace ||
 								Text[n] == '\n')
 							{
 								n--;
@@ -3608,7 +3608,7 @@ bool GTextView3::OnKey(GKey &k)
 							{
 								n--;
 							}
-							else if (!StartWhiteSpace OR !LeftWhiteSpace)
+							else if (!StartWhiteSpace || !LeftWhiteSpace)
 							{
 								if (IsDelimiter(Text[n]))
 								{
@@ -3619,7 +3619,7 @@ bool GTextView3::OnKey(GKey &k)
 									for (; n > 0; n--)
 									{
 										//IsWordBoundry(Text[n])
-										if (IsWhiteSpace(Text[n]) OR
+										if (IsWhiteSpace(Text[n]) ||
 											IsDelimiter(Text[n]))
 										{
 											break;
@@ -3681,7 +3681,7 @@ bool GTextView3::OnKey(GKey &k)
 								{
 									for (; n<Size; n++)
 									{
-										if (IsWhiteSpace(Text[n]) OR
+										if (IsWhiteSpace(Text[n]) ||
 											IsDelimiter(Text[n]))
 										{
 											break;
@@ -4329,7 +4329,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 					int TabOri = Tr.x1 - d->Margin.x1;
 
 					if (NextStyle &&							// There is a style
-						(Cur < SelMin OR Cur >= SelMax) &&		// AND we're not drawing a selection block
+						(Cur < SelMin || Cur >= SelMax) &&		// AND we're not drawing a selection block
 						Cur >= NextStyle->Start &&				// AND we're inside the styled area
 						Cur < NextStyle->Start+NextStyle->Len)
 					{

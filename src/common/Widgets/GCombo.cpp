@@ -300,7 +300,7 @@ void GCombo::DoMenu()
 						if (d->Sub == GV_INT32)
 						{
 							int ci = atoi(c);
-							if (!m OR n != ci)
+							if (!m || n != ci)
 							{
 								char Name[16];
 								sprintf(Name, "%i...", n = ci);
@@ -310,7 +310,7 @@ void GCombo::DoMenu()
 						else if (d->Sub == GV_DOUBLE)
 						{
 							double cd = atof(c);
-							if (!m OR dbl != cd)
+							if (!m || dbl != cd)
 							{
 								char Name[16];
 								sprintf(Name, "%f", dbl = cd);
@@ -322,7 +322,7 @@ void GCombo::DoMenu()
 						}
 						else
 						{
-							if (!m OR f != *c)
+							if (!m || f != *c)
 							{
 								char Name[16];
 								sprintf(Name, "%c...", f = *c);

@@ -242,7 +242,7 @@ bool TnefReadIndex(GStreamI *Tnef, GArray<TnefFileInfo*> &Index)
 						TnefAttr a;
 						if (a.Read(Tnef))
 						{
-							if (!Cur OR Tags.HasItem(a.Prop()))
+							if (!Cur || Tags.HasItem(a.Prop()))
 							{
 								Index.Add(Cur = new TnefFileInfo);
 								Tags.Length(0);
@@ -315,8 +315,8 @@ bool TnefReadIndex(GStreamI *Tnef, GArray<TnefFileInfo*> &Index)
 			for (int i=0; i<Index.Length(); i++)
 			{
 				TnefFileInfo *fi = Index[i];
-				if (!fi->Name OR
-					!fi->Size OR
+				if (!fi->Name ||
+					!fi->Size ||
 					!fi->Start)
 				{
 					DeleteObj(Index[i]);
