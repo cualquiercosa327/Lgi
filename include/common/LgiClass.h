@@ -230,4 +230,8 @@ public:
 	GAutoString Params;
 };
 
+/// Quicksort impl
+template<typename T, typename U>
+void LgiQuickSort(T *arr, int elements, void (*comp)(T*, T*, U));
+
 #endif
