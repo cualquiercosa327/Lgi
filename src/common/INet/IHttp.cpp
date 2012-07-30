@@ -118,7 +118,7 @@ bool IHttp::Open(GAutoPtr<GSocketI> S, char *RemoteHost, int Port)
 			}
 			*s++ = 0;
 
-			if (*p == ':' && isdigit(p[1]))
+			if (*p == ':' && IsDigit(p[1]))
 			{
 				Port = atoi(p + 1);
 			}

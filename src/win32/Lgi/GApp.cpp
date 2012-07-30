@@ -643,7 +643,7 @@ bool GApp::GetOption(const char *Option, GAutoString &Buf)
 		{
 			c++;
 			char16 *e = c;
-			while (*e && (IsLetter(*e)) || StrchrW(L"_-", *e))
+			while (*e && (IsAlpha(*e)) || StrchrW(L"_-", *e))
 				e++;
 
 			if (e - c == OptLen &&

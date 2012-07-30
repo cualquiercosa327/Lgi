@@ -1360,16 +1360,6 @@ char *Trim(char *s)
 	return s;
 }
 
-bool IsAlpha(char c)
-{
-	return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'));
-}
-
-bool IsDigit(char c)
-{
-	return (c >= '0' && c <= '9');
-}
-
 bool ObjTree::SerializeObj(GFile &f, bool Write)
 {
 	bool Status = false;

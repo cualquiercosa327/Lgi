@@ -196,6 +196,11 @@ typedef union
 #define hiword(a)						(a>>16)
 #define LgiSwap(a, b)					{ int n = a; a = b; b = n; }
 
+/// Returns true if 'c' is an ascii character
+#define IsAlpha(c)					    (((c) >= 'a' && (c) <= 'z') || ((c) >= 'A' && (c) <= 'Z'))
+/// Returns true if 'c' is a digit (number)
+#define IsDigit(c)					    ((c) >= '0' && (c) <= '9')
+
 // Byte swapping
 #define LgiSwap16(a)					( (((a) & 0xff00) >> 8) | \
 										  (((a) & 0x00ff) << 8) )

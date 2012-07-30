@@ -4,7 +4,7 @@
 
 static const char *White = " \r\t\n";
 #define iswhite(s)		(s && strchr(White, s) != 0)
-#define isword(s)		(s && (isdigit(s) || isalpha(s) || (s) == '_') )
+#define isword(s)		(s && (IsDigit(s) || IsAlpha(s) || (s) == '_') )
 #define skipws(s)		while (iswhite(*s)) s++;
 
 // Returns the next C++ token in 's'
@@ -39,7 +39,7 @@ char16 *LexCpp(char16 *&s, bool ReturnString)
         Status = ReturnString ? NewStrW(Start, s-Start) : 0;
     }
     else if (*s == '_' ||
-        	 isalpha(*s))
+        	 IsAlpha(*s))
     {
         // Identifier
         char16 *Start = s++;
@@ -52,9 +52,9 @@ char16 *LexCpp(char16 *&s, bool ReturnString)
                 ||
                 *s == ':'
                 ||
-                isalpha(*s)
+                IsAlpha(*s)
                 ||
-                isdigit(*s)
+                IsDigit(*s)
             )
         )
         {
@@ -122,7 +122,7 @@ char16 *LexCpp(char16 *&s, bool ReturnString)
         Status = ReturnString ? NewStrW(s, 2) : 0;
         s += 2;
     }
-    else if (isdigit(*s) || (*s == '-' && isdigit(s[1]) ) )
+    else if (IsDigit(*s) || (*s == '-' && IsDigit(s[1]) ) )
     {
         // Constant
         char16 *Start = s;
@@ -148,7 +148,7 @@ char16 *LexCpp(char16 *&s, bool ReturnString)
                 ||
                 *s == 'e'
                 ||
-                isdigit(*s)
+                IsDigit(*s)
 				||
 				(
 					IsHex

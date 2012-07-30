@@ -643,7 +643,7 @@ bool LgiIsRelativePath(const char *Path)
 		return true;
 
 	#ifdef WIN32
-	if (isalpha(Path[0]) AND Path[1] == ':') // Drive letter path
+	if (IsAlpha(Path[0]) AND Path[1] == ':') // Drive letter path
 		return false;
 	#endif
 
@@ -1455,7 +1455,7 @@ bool LgiGetExeFile(char *Dst, int DstSize)
 									int LinePid = 0;
 									for (int i=0; i<t.Length()-1; i++)
 									{
-										if (isdigit(t[i][0]))
+										if (IsDigit(t[i][0]))
 										{
 											LinePid = atoi(t[i]);
 											break;

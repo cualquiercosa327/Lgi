@@ -38,8 +38,8 @@ void ParseRtf(GStringPipe &p, char *&s)
 		{
 			s++;
 			char *Start = s;
-			while (*s && (isalpha(*s) || strchr("*\'", *s))) s++;
-			while (*s && isdigit(*s)) s++;
+			while (*s && (IsAlpha(*s) || strchr("*\'", *s))) s++;
+			while (*s && IsDigit(*s)) s++;
 
 			int Len = s - Start;
 			if (Len > 1)

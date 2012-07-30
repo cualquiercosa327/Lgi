@@ -156,7 +156,7 @@ bool VIo::ParseDuration(GDateTime &Out, int &Sign, char *In)
 			while (*In)
 			{
 				int i = atoi(In);
-				while (isdigit(*In)) In++;
+				while (IsDigit(*In)) In++;
 
 				switch (toupper(*In++))
 				{

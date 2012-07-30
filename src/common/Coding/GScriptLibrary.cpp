@@ -235,7 +235,7 @@ bool SystemFunctions::Sprintf(GVariant *Ret, ArgumentArray &Args)
 		if (f[0] == '%' && f[1] != '%')
 		{
 			char *t = f + 1;
-			while (*t && !isalpha(*t))
+			while (*t && !IsAlpha(*t))
 				t++;
 
 			if (i >= Args.Length())

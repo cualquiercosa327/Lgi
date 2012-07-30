@@ -577,7 +577,7 @@ int GSocket::Open(const char *HostAddr, int Port)
 			}
 			#endif
 
-			if (isdigit(*HostAddr) AND strchr(HostAddr, '.'))
+			if (IsDigit(*HostAddr) AND strchr(HostAddr, '.'))
 			{
 				// Ip address
 				IpAddress = inet_addr(HostAddr);
@@ -1740,7 +1740,7 @@ bool GUri::Set(const char *uri)
 
 	// Scan ahead and check for protocol...
 	const char *p = s;
-	while (*s && isalpha(*s)) s++;
+	while (*s && IsAlpha(*s)) s++;
 	if (s[0] == ':') // && s[1] == '/' && s[2] == '/'
 	{
 		Protocol = NewStr(p, s - p);

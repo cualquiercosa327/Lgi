@@ -300,7 +300,7 @@ char *InetGetSubField(const char *s, const char *Field)
 				if (IsAlpha((uint8)*s))
 				{
 					const char *f = s;
-					while (*s AND (isalpha(*s) || *s == '-')) s++;
+					while (*s AND (IsAlpha(*s) || *s == '-')) s++;
 					bool HasField = ((s-f) == FieldLen) AND (strnicmp(Field, f, FieldLen) == 0);
 					while (*s AND strchr(White, *s)) s++;
 					if (*s == '=')

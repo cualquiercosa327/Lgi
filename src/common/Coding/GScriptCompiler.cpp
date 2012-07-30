@@ -496,7 +496,7 @@ public:
 						char16 *Def = t + 1 + Len;
 						char16 *Name = LexCpp(Def);
 
-						if (isalpha(*Name))
+						if (IsAlpha(*Name))
 						{
 							Lines.Add(FileName, Line);
 							Defines.Add(Name, TrimStrW(Def, (char16*)L" \t\r\n"));
@@ -510,7 +510,7 @@ public:
 				}
 
 				char16 *DefineValue;
-				if (isalpha(*t) && (DefineValue = Defines.Find(t)))
+				if (IsAlpha(*t) && (DefineValue = Defines.Find(t)))
 				{
 					char16 *Def = DefineValue, *f;
 					while (f = LexCpp(Def))
@@ -1207,7 +1207,7 @@ public:
 								}
 							}
 						}
-						else if (isalpha(*t))
+						else if (IsAlpha(*t))
 						{
 							// Variable...
 							Node &Var = n.New();
@@ -2057,7 +2057,7 @@ public:
 			Cur++;
 			while (t = GetTok(Cur))
 			{
-				if (isalpha(*t))
+				if (IsAlpha(*t))
 				{
 					f->Params.New() = t;
 					Cur++;

@@ -351,7 +351,7 @@ char *Tok(char *&s)
 	else if (*s)
 	{
 		char *e;
-		for (e=s; *e && (isdigit(*e) || isalpha(*e) || *e == '-'); e++);
+		for (e=s; *e && (IsDigit(*e) || IsAlpha(*e) || *e == '-'); e++);
 		Ret = NewStr(s, e - s);
 		s = e;
 	}

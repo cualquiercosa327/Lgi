@@ -1211,8 +1211,8 @@ void GTextView3::PourStyle(int Start, int EditSize)
 							e > s &&
 							!
 							(
-								isalpha(e[-1]) ||
-								isdigit(e[-1]) ||
+								IsAlpha(e[-1]) ||
+								IsDigit(e[-1]) ||
 								e[-1] == '/'
 							)
 						)

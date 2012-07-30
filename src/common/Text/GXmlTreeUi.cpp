@@ -221,7 +221,7 @@ int GetDataType(char *str)
 				// The 'e' part is sometimes part of a number or
 				// ignore that too.
 			}
-			else if (!isdigit(w) || w > 255)
+			else if (!IsDigit(w) || w > 255)
 			{
 				return GV_STRING;
 			}

@@ -1299,7 +1299,7 @@ int GDirImpl::First(const char *Name, const char *Pattern)
 
 	if (Name)
 	{
-		if (isalpha(Name[0]) &&
+		if (IsAlpha(Name[0]) &&
 			Name[1] == ':' &&
 			strlen(Name) <= 3)
 		{

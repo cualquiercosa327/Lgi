@@ -29,22 +29,16 @@
 
 // Util macros
 
-/// Returns true if 'c' is an ascii character
-#define IsAlpha(c)					(((c) >= 'a' && (c) <= 'z') || ((c) >= 'A' && (c) <= 'Z'))
 /// Returns true if 'c' is whitespace
 #define IsWhiteSpace(c)				((c) < 126 && strchr(GDocView::WhiteSpace, c) != 0)
 /// Returns true if 'c' is a delimiter
 #define IsDelimiter(c)				((c) < 126 && strchr(GDocView::Delimiters, c) != 0)
-/// Returns true if 'c' is a digit (number)
-#define IsDigit(c)					((c) >= '0' && (c) <= '9')
-/// Returns true if 'c' is letter
-#define IsLetter(c)					(((c) >= 'a' && (c) <= 'z') || ((c) >= 'A' && (c) <= 'Z'))
 /// Returns true if 'c' is a letter or number
 #define IsText(c)					(IsDigit(c) || IsAlpha(c) || (c) == '_')
 /// Returns true if 'c' is word boundry
 #define IsWordBoundry(c)			(strchr(GDocView::WhiteSpace, c) || strchr(GDocView::Delimiters, c))
 /// Returns true if 'c' is alphanumeric or a digit
-#define AlphaOrDigit(c)				(IsDigit(c) || IsLetter(c))
+#define AlphaOrDigit(c)				(IsDigit(c) || IsAlpha(c))
 /// Returns true if 'c' is a valid URL character
 #define UrlChar(c)					( \
 										strchr(GDocView::UrlDelim, (c)) || \

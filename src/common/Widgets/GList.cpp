@@ -2080,9 +2080,9 @@ bool GList::OnKey(GKey &k)
 						k.IsChar
 						&&
 						(
-							isdigit(k.c16)
+							IsDigit(k.c16)
 							||
-							isalpha(k.c16)
+							IsAlpha(k.c16)
 							||
 							strchr("_.-", k.c16)
 						)

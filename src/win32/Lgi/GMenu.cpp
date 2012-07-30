@@ -687,16 +687,16 @@ bool GMenuItem::ScanForAccel()
 				{
 					Key = ' ';
 				}
-				else if (k[0] == 'F' && isdigit(k[1]))
+				else if (k[0] == 'F' && IsDigit(k[1]))
 				{
 					Key = VK_F1 + atoi(k+1) - 1;
 					Flags |= LGI_EF_IS_NOT_CHAR;
 				}
-				else if (isalpha(k[0]))
+				else if (IsAlpha(k[0]))
 				{
 					Key = toupper(k[0]);
 				}
-				else if (isdigit(k[0]))
+				else if (IsDigit(k[0]))
 				{
 					Key = k[0];
 				}

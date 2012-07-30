@@ -635,8 +635,8 @@ GXmlAttr *GXmlTag::_Attr(const char *Name, bool Wr)
 	// Validate the name...
 	for (const char *c = Name; *c; c++)
 	{
-		if (!isalpha(*c) &&
-			!isdigit(*c) &&
+		if (!IsAlpha(*c) &&
+			!IsDigit(*c) &&
 			!strchr(":-_()", *c))
 		{
 			LgiAssert(!"Invalid attribute name.");
@@ -873,8 +873,8 @@ void GXmlTag::ParseAttribute(GXmlTree *Tree, GXmlAlloc *Alloc, char *&t, bool &N
 		(
 			*t &&
 			(
-				isalpha(*t) ||
-				isdigit(*t) ||
+				IsAlpha(*t) ||
+				IsDigit(*t) ||
 				strchr("-._:()", *t) != 0
 			)
 		)
@@ -1061,7 +1061,7 @@ ParsingStart:
 		(
 			*t &&
 			(
-				isalpha(*t) ||
+				IsAlpha(*t) ||
 				*t == '!' ||
 				*t == '?' ||
 				*t == '-' ||
@@ -1070,7 +1070,7 @@ ParsingStart:
 				*t == '.' ||
 				*t == '[' ||
 				*t == ']' ||
-				(t > TagName && isdigit(*t))
+				(t > TagName && IsDigit(*t))
 			)
 		)
 		{
@@ -1357,7 +1357,7 @@ void GXmlTree::Output(GXmlTag *t, int Depth)
 	// Test to see if the tag is valid
 	if (!t->Tag ||
 		strlen(t->Tag) < 1 ||
-		isdigit(t->Tag[0]))
+		IsDigit(t->Tag[0]))
 	{
 		LgiAssert(!"Invalid element tag");
 

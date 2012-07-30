@@ -215,7 +215,7 @@ static char *ParseName(char *s, char **Name)
 {
 	SkipWhiteSpace(s);
 	char *Start = s;
-	while (*s && (IsLetter(*s) || strchr("!-:", *s) || IsDigit(*s)))
+	while (*s && (IsAlpha(*s) || strchr("!-:", *s) || IsDigit(*s)))
 	{
 		s++;
 	}
@@ -322,10 +322,10 @@ static bool ParseColour(const char *s, GCss::ColorDef &c)
 				while (Col.Length() < 3)
 				{
 					SkipWhiteSpace(s);
-					if (isdigit(*s))
+					if (IsDigit(*s))
 					{
 						Col.Add(atoi(s));
-						while (*s && isdigit(*s)) s++;
+						while (*s && IsDigit(*s)) s++;
 						SkipWhiteSpace(s);
 						if (*s == ',') s++;
 					}
@@ -341,7 +341,7 @@ static bool ParseColour(const char *s, GCss::ColorDef &c)
 				}
 			}
 		}
-		else if (isdigit(*s) || (tolower(*s) >= 'a' && tolower(*s) <= 'f'))
+		else if (IsDigit(*s) || (tolower(*s) >= 'a' && tolower(*s) <= 'f'))
 		{
 			goto ParseHexColour;
 		}
@@ -934,7 +934,7 @@ static bool ParseDistance(char *s, float &d, char *units = 0)
 	
 	char _units[128];
 	char *o = units = units ? units : _units;
-	while (*s && (isalpha(*s) || *s == '%'))
+	while (*s && (IsAlpha(*s) || *s == '%'))
 	{
 		*o++ = *s++;
 	}
@@ -1098,7 +1098,7 @@ void GLine::Set(char *s)
 			}
 			ParseColour(Buf, Colour);
 		}
-		else if (isdigit(*c))
+		else if (IsDigit(*c))
 		{
 			GLength::Set(c);
 		}
@@ -3074,7 +3074,7 @@ char *GTag::NextTag(char *s)
 		char *n = strchr(s, '<');
 		if (n)
 		{
-			if (isalpha(n[1]) || strchr("!/", n[1]) || n[1] == '?')
+			if (IsAlpha(n[1]) || strchr("!/", n[1]) || n[1] == '?')
 			{
 				return n;
 			}

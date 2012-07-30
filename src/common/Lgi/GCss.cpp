@@ -13,14 +13,12 @@
 		) \
 	)
 
+#undef IsAlpha
 #define IsAlpha(s) \
 	( \
-		(*(s)) && \
-		( \
-			(*(s) >= 'a' && *(s) <= 'z') || \
-			(*(s) >= 'A' && *(s) <= 'Z') || \
-			(*(s) > 0xa0) \
-		) \
+		((s) >= 'a' && (s) <= 'z') || \
+		((s) >= 'A' && (s) <= 'Z') || \
+		((s) > 0xa0) \
 	)
 
 #define CopyPropOnSave(Type, Id) \
@@ -68,7 +66,7 @@ static bool ParseWord(const char *&s, const char *word)
 	if (*word)
 		return false;
 
-	if (*doc && (isalpha(*doc) || isdigit(*doc)))
+	if (*doc && (IsAlpha(*doc) || IsDigit(*doc)))
 		return false;
 
 	s = doc;
@@ -109,12 +107,12 @@ static int ParseComponent(const char *&s)
 	if (!strnicmp(s, "0x", 2))
 	{
 		ret = htoi(s);
-		while (*s && (isdigit(*s) || *s == 'x' || *s == 'X')) s++;
+		while (*s && (IsDigit(*s) || *s == 'x' || *s == 'X')) s++;
 	}
 	else
 	{
 		ret = atoi(s);
-		while (*s && (isdigit(*s) || *s == '.' || *s == '-')) s++;
+		while (*s && (IsDigit(*s) || *s == '.' || *s == '-')) s++;
 
 		SkipWhite(s);
 		if (*s == '%')
@@ -146,7 +144,7 @@ static char *ParseString(const char *&s)
 	else
 	{
 		const char *e = s;
-		while (*e && (isalpha(*e) || isdigit(*e) || strchr("_-", *e)))
+		while (*e && (IsAlpha(*e) || IsDigit(*e) || strchr("_-", *e)))
 			e++;
 
 		ret = NewStr(s, e - s);
@@ -940,7 +938,7 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 		char Prop[64], *p = Prop, *end = Prop + sizeof(Prop) - 1;
 		if (!*s)
 			break;
-		while (*s && (isalpha(*s) || strchr("-_", *s)))
+		while (*s && (IsAlpha(*s) || strchr("-_", *s)))
 		{
 			if (p < end)
 				*p++ = *s++;
