@@ -263,7 +263,7 @@ bool IScp::ReadData(GSocketI *&s, IScpData *&d, int *HttpErr)
 					if (Server)
 					{
 						// HTML request
-						if (strnicmp(Headers, "GET ", 4) == 0 OR
+						if (strnicmp(Headers, "GET ", 4) == 0 ||
 							strnicmp(Headers, "PUT ", 4) == 0)
 						{
 							char *s = Headers + 4;
@@ -305,7 +305,7 @@ bool IScp::ReadData(GSocketI *&s, IScpData *&d, int *HttpErr)
 												if (!end) break;
 												*end++ = 0;
 
-												if (*eq == '-' OR isdigit(*eq))
+												if (*eq == '-' || isdigit(*eq))
 												{
 													int i=atoi(eq);
 													d->Props.Set(s, i);
@@ -347,13 +347,13 @@ bool IScp::ReadData(GSocketI *&s, IScpData *&d, int *HttpErr)
 							bool Http11 = strnicmp("http/1.1", T[0], 8) == 0;
 							bool Http10 = strnicmp("http/1.0", T[0], 8) == 0;
 
-							if (Http11 OR Http10)
+							if (Http11 || Http10)
 							{
 								char *s = strchr(T[0], ' ');
 								if (s)
 								{
 									int Http = atoi(s+1);
-									if (Http / 100 == 2) //  OR Http == 500)
+									if (Http / 100 == 2) //  || Http == 500)
 									{
 										if (!d)
 										{
@@ -378,7 +378,7 @@ bool IScp::ReadData(GSocketI *&s, IScpData *&d, int *HttpErr)
 														char *Colon = Val;
 														*Val++ = 0;
 														Val++;
-														if (*Val == '-' OR isdigit(*Val))
+														if (*Val == '-' || isdigit(*Val))
 														{
 															d->Props.Set(Var, atoi(Val));
 														}
@@ -415,7 +415,7 @@ bool IScp::ReadData(GSocketI *&s, IScpData *&d, int *HttpErr)
 							char *Connection = InetGetHeaderField(Headers, "Connection");
 							// char *ProxyConnection = InetGetHeaderField(Headers, "Proxy-Connection");
 
-							if (Http10 OR
+							if (Http10 ||
 								(Connection AND stricmp(Connection, "close") == 0))
 							{
 								s->Close();
@@ -559,7 +559,7 @@ bool IScpClient::Request(IScpData *out, IScpData *&in)
 {
 	bool Status = false;
 
-	for (int i=0; (!Loop OR *Loop) AND i<SCP_RETRIES; i++)
+	for (int i=0; (!Loop || *Loop) AND i<SCP_RETRIES; i++)
 	{
 		if (WriteData(Socket(), out))
 		{
@@ -573,7 +573,7 @@ bool IScpClient::Request(IScpData *out, IScpData *&in)
 			{
 				// printf("%s:%i - SCP read failed.\n", __FILE__, __LINE__);
 
-				if (HttpErr == 500 OR HttpErr < 0)
+				if (HttpErr == 500 || HttpErr < 0)
 				{
 					break;
 				}

@@ -17,6 +17,7 @@
 #include "GFile.h"
 #include "GProperties.h"
 #include "GString.h"
+#include "GVariant.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Prop::Serialize(GFile &f, bool Write)
@@ -378,7 +379,7 @@ bool Prop::SerializeText(GFile &f, bool Write)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // Object properties class
-ObjProperties::ObjProperties()
+ObjProperties::ObjProperties(int param1, char *param2)
 {
 	Current = 0;
 	Parent = 0;
@@ -548,6 +549,25 @@ int ObjProperties::SizeofData()
 	return (Current) ? Current->Size : 0;
 }
 
+bool ObjProperties::SetValue(const char *Name, GVariant &v)
+{
+	switch (v.Type)
+	{
+		case GV_INT32:
+		case GV_INT64:
+			Set(Name, v.CastInt32());
+			break;
+		case GV_DOUBLE:
+			Set(Name, v.CastDouble());
+			break;
+		default:
+			Set(Name, v.Str());
+			break;
+	}
+	
+	return true;
+}
+
 bool ObjProperties::Set(const char *Name, int n)
 {
 	Prop *c = FindProp(Name);
@@ -693,6 +713,29 @@ bool ObjProperties::Set(Prop *p)
 	}
 
 	return false;
+}
+
+bool ObjProperties::GetValue(const char *Name, GVariant &v)
+{
+	Prop *c = FindProp(Name);
+	if (!c)
+		return false;
+	switch (c->Type)
+	{
+		case OBJ_INT:
+			v = c->Value.Int;
+			break;
+		case OBJ_STRING:
+			v = c->Value.Cp;
+			break;
+		case OBJ_FLOAT:
+			v = c->Value.Dbl;
+			break;
+		default:
+			return false;
+	}
+	
+	return true;
 }
 
 bool ObjProperties::Get(const char *Name, int &n)

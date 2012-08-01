@@ -144,8 +144,8 @@ void ILdapServer::ProcessFilter(DecBer *Filter, int FilterType, List<GDom> *Inpu
 			char *Present = 0; // NewStr((char*)Filter->Ptr->Uchar(), Filter->Ptr->GetLen());
 			if (Filter->Str(Present))
 			{
-				if (stricmp(Present, "objectClass") == 0 OR
-					stricmp(Present, "cn") == 0 OR
+				if (stricmp(Present, "objectClass") == 0 ||
+					stricmp(Present, "cn") == 0 ||
 					stricmp(Present, "mail") == 0)
 				{
 					for (GDom *c=Input->First(); c; c=Input->Next())
@@ -181,7 +181,7 @@ void ILdapServer::OnMessage(DecBer &Buf)
 					App->Str(Name) AND
 					(Auth = App->Context(AuthType)))
 				{
-					if (ProtocolVer == 2 OR
+					if (ProtocolVer == 2 ||
 						ProtocolVer == 3)
 					{
 						EncBer *e = Encode.Sequence();

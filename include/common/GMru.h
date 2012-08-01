@@ -1,6 +1,10 @@
 #ifndef __GMRU_H
 #define __GMRU_H
 
+#ifdef HAS_PROPERTIES
+#include "GProperties.h"
+#endif
+
 // Message defines
 #define	IDM_OPEN			15000
 #define	IDM_SAVEAS			15001
@@ -34,7 +38,9 @@ public:
 
 	// Serialization
 	bool Serialize(GDom *Store, const char *Prefix, bool Write);
-	// bool Serialize(ObjProperties *Store, char *Prefix, bool Write);
+	#ifdef HAS_PROPERTIES
+	bool Serialize(ObjProperties *Store, char *Prefix, bool Write);
+	#endif
 
 	// Events
 	virtual bool OpenFile(char *FileName, bool ReadOnly) = 0;

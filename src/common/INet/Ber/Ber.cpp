@@ -164,7 +164,7 @@ DecBer::~DecBer()
 
 bool DecBer::HasData()
 {
-	return GetFunc OR Raw;
+	return GetFunc || Raw;
 }
 
 bool DecBer::Get(uchar &c)
@@ -431,7 +431,7 @@ bool DecBer::Str(char *&s)
 				}
 			}
 
-			return Size == 0 OR s != 0;
+			return Size == 0 || s != 0;
 		}
 	}
 	else

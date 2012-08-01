@@ -989,7 +989,6 @@ bool VCal::Export(GDataPropI *c, GStreamI *o)
 	if (!c || !o)
 		return false;
 
-	char s[512];
 	int Type = c->GetInt(FIELD_CAL_TYPE);
 	char *TypeStr = Type == 1 ? (char*)"VTODO" : (char*)"VEVENT";
 

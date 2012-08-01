@@ -10,7 +10,9 @@
 #include "GDocApp.h"
 #include "GToken.h"
 #include "GOptionsFile.h"
-// #include "GProperties.h"
+#ifdef HAS_PROPERTIES
+#include "GProperties.h"
+#endif
 
 //////////////////////////////////////////////////////////////////////////////////////////
 class GDocAppPrivate
@@ -62,16 +64,18 @@ public:
 			{
 				File++;
 				#ifdef WIN32
-				char *End = strchr(File, '.');
+				char *End = strrchr(File, '.');
 				if (End)
 				{
-					strcpy(End+1, Ext);
+					End++;
+					strcpy_s(End, Buf + sizeof(Buf) - End, Ext);
 				}
 				else
 				#endif
 				{
 					// unix apps have no '.' in their name
-					sprintf(File+strlen(File), ".%s", Ext);
+					size_t Len = strlen(File);
+					sprintf_s(File + Len, Buf + sizeof(Buf) - (File + Len), ".%s", Ext);
 				}
 
 				Status.Reset(LgiFindFile(File));
@@ -486,15 +490,15 @@ void GDocApp<OptionsFmt>::SetCurFile(char *f)
 	char s[256];
 	if (d->CurFile)
 	{
-		sprintf(s, "%s [%s%s]", d->AppName, d->CurFile, d->Dirty ? " changed" : "");
+		sprintf_s(s, sizeof(s), "%s [%s%s]", d->AppName, d->CurFile, d->Dirty ? " changed" : "");
 	}
 	else if (d->Dirty)
 	{
-		sprintf(s, "%s [changed]", d->AppName);
+		sprintf_s(s, sizeof(s), "%s [changed]", d->AppName);
 	}
 	else
 	{
-		strcpy(s, d->AppName);
+		strcpy_s(s, sizeof(s), d->AppName);
 	}
 
 	Name(s);
