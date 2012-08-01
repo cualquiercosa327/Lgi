@@ -28,7 +28,7 @@ protected:
 		{
 			for (uint32 i=0; i<Length(); i++)
 			{
-				if (stricmp((*this)[i], s) == 0)
+				if (_stricmp((*this)[i], s) == 0)
 					return true;
 			}
 			return false;

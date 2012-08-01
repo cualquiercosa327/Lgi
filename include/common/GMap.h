@@ -34,12 +34,12 @@ class GMap
 	// Cmp
 	int Cmp(const char *a, const char *b)
 	{
-		return CaseSen ? strcmp(a, b) : stricmp(a, b);
+		return CaseSen ? strcmp(a, b) : _stricmp(a, b);
 	}
 	
 	int Cmp(char *a, char *b)
 	{
-		return CaseSen ? strcmp(a, b) : stricmp(a, b);
+		return CaseSen ? strcmp(a, b) : _stricmp(a, b);
 	}
 	
 	int Cmp(const char16 *a, const char16 *b)

@@ -13,6 +13,7 @@
 // Includes
 #include "INet.h"
 #include "GDateTime.h"
+#include "GProperties.h"
 
 // The standard port for SCP..
 #define SCP_PORT				8010
