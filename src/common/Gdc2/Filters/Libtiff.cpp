@@ -416,17 +416,49 @@ GFilter::IoStatus GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 					Status = IoSuccess;
 				}
 			}
-			else if (pDC->Create(img.width, img.height, 32))
+			else
 			{
-				uint8 *d = (*pDC)[0];
+			    switch (Bits)
+			    {
+			        case 24:
+			        {
+			            if (pDC->Create(img.width, img.height, Bits))
+			            {
+			                if (Meter)
+			                    Meter->SetLimits(0, img.height);
 
-			    if (Meter)
-			        Meter->SetLimits(0, img.height);
+                            for (int y=0; y<img.height; y++)
+                            {
+				                uint8 *d = (*pDC)[y];
+    				            Lib->TIFFReadScanline(tif, (t::tdata_t)d, y, 0);
 
-				Lib->TIFFRGBAImageGet(&img, (uint32*)d, pDC->X(), pDC->Y());
-				SwapRBandY(pDC);
+			                    if (Meter && (y % 32) == 0)
+			                        Meter->Value(y);
+    				        }
+	    			            
+	    			        SwapRB(pDC);
 
-				Status = IoSuccess;
+				            Status = IoSuccess;
+				        }
+				        break;
+			        }
+			        default:
+			        {
+			            if (pDC->Create(img.width, img.height, 32))
+			            {
+				            uint8 *d = (*pDC)[0];
+
+			                if (Meter)
+			                    Meter->SetLimits(0, img.height);
+
+				            Lib->TIFFRGBAImageGet(&img, (uint32*)d, pDC->X(), pDC->Y());
+				            SwapRBandY(pDC);
+
+				            Status = IoSuccess;
+				        }
+				        break;
+				    }
+				}
 			}
 
 			Lib->TIFFRGBAImageEnd(&img);
@@ -465,9 +497,11 @@ GFilter::IoStatus GdcLibTiff::WriteImage(GStream *Out, GSurface *pDC)
 	t::TIFF *tif = Lib->TIFFClientOpen("", "wm", Out, TRead, TWrite, TSeek, TClose, TSize, 0, 0);
 	if (tif)
 	{
+	    int bits = pDC->GetBits();
+		
 		Lib->TIFFSetField(tif, TIFFTAG_IMAGEWIDTH, pDC->X());
 		Lib->TIFFSetField(tif, TIFFTAG_IMAGELENGTH, pDC->Y());
-		Lib->TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, pDC->GetBits() / 8);
+		Lib->TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, bits / 8);
 		Lib->TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE, 8);
 		Lib->TIFFSetField(tif, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);
 		Lib->TIFFSetField(tif, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);

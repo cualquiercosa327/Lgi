@@ -152,7 +152,7 @@ char *ParseName(char *s, char **Name)
 {
 	SkipWhiteSpace(s);
 	char *Start = s;
-	while (*s && (IsLetter(*s) || strchr("-:", *s) || IsDigit(*s))) s++;
+	while (*s && (IsAlpha(*s) || strchr("-:", *s) || IsDigit(*s))) s++;
 	if (Name)
 	{
 		int Len = SubtractPtr(s, Start);
