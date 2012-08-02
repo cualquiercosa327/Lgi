@@ -12,6 +12,7 @@
 #include "GDom.h"
 
 /// Stream printf
+LgiFunc int GStreamPrintf(GStreamI *s, int flags, const char *&fmt);
 LgiFunc int GStreamPrint(GStreamI *s, const char *fmt, ...);
 
 /// \brief Virtual base class for a data source or sink.

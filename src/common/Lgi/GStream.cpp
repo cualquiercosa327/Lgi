@@ -10,11 +10,11 @@ p_vscprintf lgi_vscprintf = 0;
 #endif
 
 //////////////////////////////////////////////////////////////////////
-int GStreamPrint(GStreamI *s, const char *Format, ...)
+int GStreamPrintf(GStreamI *Stream, int Flags, const char *&Format)
 {
 	int Chars = 0;
 
-	if (s && Format)
+	if (Stream && Format)
 	{
 		va_list Arg;
 		va_start(Arg, Format);
@@ -28,7 +28,7 @@ int GStreamPrint(GStreamI *s, const char *Format, ...)
 			if (Buffer)
 			{
 				vsprintf(Buffer, Format, Arg);
-				s->Write(Buffer, Size);
+				Stream->Write(Buffer, Size, Flags);
 			}
 		}
 
@@ -44,7 +44,7 @@ int GStreamPrint(GStreamI *s, const char *Format, ...)
 				if (Buf)
 				{
 					vsprintf(Buf, Format, Arg);
-					s->Write(Buf, Chars);
+					Stream->Write(Buf, Chars, Flags);
 				}
 			}
 		}
@@ -62,7 +62,7 @@ int GStreamPrint(GStreamI *s, const char *Format, ...)
 				int c = _vsnprintf(Buf, Size, Format, Arg);
 				if (c > 0)
 				{
-					s->Write(Buf, Chars = c);
+					Stream->Write(Buf, Chars = c, Flags);
 					break;
 				}
 			}			
@@ -75,77 +75,15 @@ int GStreamPrint(GStreamI *s, const char *Format, ...)
 	return Chars;
 }
 
-int GStream::Print(const char *Format, ...)
+int GStreamPrint(GStreamI *s, const char *fmt, ...)
 {
-	int Chars = 0;
-
-	if (Format)
-	{
-		va_list Arg;
-		va_start(Arg, Format);
-
-		#ifndef WIN32
-
-		int Size = vsnprintf(0, 0, Format, Arg);
-		char *Buffer = new char[Size+1];
-		if (Buffer)
-		{
-			vsprintf(Buffer, Format, Arg);
-		}
-
-		if (Size > 0)
-		{
-			Write(Buffer, Size);
-		}
-		DeleteArray(Buffer);
-
-		#else
-
-		if (lgi_vscprintf)
-		{
-			// WinXP and up...
-			Chars = lgi_vscprintf(Format, Arg);
-			if (Chars > 0)
-			{
-				char *Buf = new char[Chars+1];
-				if (Buf)
-				{
-					vsprintf(Buf, Format, Arg);
-					Write(Buf, Chars);
-					DeleteArray(Buf);
-				}
-			}
-		}
-		else
-		{
-			// Win2k or earlier, no _vscprintf for us...
-			// so we'll just have to bump the buffer size
-			// until it fits;
-			for (int Size = 256; Size <= (256 << 10); Size <<= 2)
-			{
-				char *Buf = new char[Size];
-				if (Buf)
-				{
-					int c = _vsnprintf(Buf, Size, Format, Arg);
-					if (c > 0)
-					{
-						Write(Buf, Chars = c);
-						DeleteArray(Buf);
-						break;
-					}
-
-					DeleteArray(Buf);
-				}
-			}			
-		}
-		#endif
-
-		va_end(Arg);
-	}
-
-	return Chars;
+    return GStreamPrintf(s, 0, fmt);
 }
 
+int GStream::Print(const char *Format, ...)
+{
+    return GStreamPrintf(this, 0, Format);
+}
 
 /////////////////////////////////////////////////////////////////
 GStreamer::GStreamer(int BufSize)
