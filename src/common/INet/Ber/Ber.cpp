@@ -148,7 +148,7 @@ DecBer::DecBer(uchar *raw, int len, bool constructed)
 	GetFunc = 0;
 }
 
-DecBer::DecBer(BerGetData Func, int Data, int len)
+DecBer::DecBer(BerGetData Func, void *Data, int len)
 {
 	Constructed = true;
 	Raw = 0;

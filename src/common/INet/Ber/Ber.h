@@ -42,7 +42,7 @@ public:
 	void Str(char *s = 0);
 };
 
-typedef bool (*BerGetData)(int This, uchar &c);
+typedef bool (*BerGetData)(void *This, uchar &c);
 
 class DecBer
 {
@@ -53,7 +53,7 @@ class DecBer
 	bool Constructed;
 
 	// Remote data
-	int This;
+	void *This;
 	BerGetData GetFunc;
 
 	// Local data
@@ -71,7 +71,7 @@ class DecBer
 	DecBer(uchar *raw, int len, bool constructed);
 
 public:
-	DecBer(BerGetData Func, int This = 0, int Len = 0);
+	DecBer(BerGetData Func, void *This = 0, int Len = 0);
 	~DecBer();
 
 	// Encoding

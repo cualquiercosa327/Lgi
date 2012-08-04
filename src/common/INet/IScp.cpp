@@ -233,7 +233,7 @@ bool IScp::ReadData(GSocketI *&s, IScpData *&d, int *HttpErr)
 			char *EndHeaders = strstr(Buf, "\r\n\r\n");
 			if (EndHeaders)
 			{
-				char *Headers = NewStr(Buf, (int)EndHeaders-(int)Buf + 2);
+				char *Headers = NewStr(Buf, EndHeaders-Buf + 2);
 				char *StrContentLen = InetGetHeaderField(Headers, "Content-Length");
 				int ContentLen = StrContentLen ? atoi(StrContentLen) : 0;
 

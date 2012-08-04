@@ -238,7 +238,7 @@ bool IDnsResolve(GArray<char*> &Results, char *Name, int Type, int Class)
 		*p++ = htons(Type);
 		*p++ = htons(Class);
 
-		int Length = (int)p - (int)&m;
+		NativeInt Length = (uchar*)p - (uchar*)&m;
 		int Bytes;
 
 		GSocket s;

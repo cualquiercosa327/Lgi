@@ -362,7 +362,7 @@ void ILdapServer::Send(EncBer &b)
 	}
 }
 
-bool PipeGetData(int This, uchar &c)
+bool PipeGetData(void *This, uchar &c)
 {
 	GBytePipe *p = (GBytePipe*)This;
 	return p->Read(&c, 1);
@@ -400,7 +400,7 @@ void ILdapServer::Server()
 				{
 					BerDump("Client -> Server", Buf);
 
-					DecBer Msg(PipeGetData, (int)&Buf);
+					DecBer Msg(PipeGetData, &Buf);
 					OnMessage(Msg);
 				}
 
@@ -566,7 +566,7 @@ int ILdapServer::TokenDump(uchar *Data, int Len, int Indent)
 		}
 	}
 
-	return ((int)Next - (int)Data) + Size;
+	return (Next - Data) + Size;
 }
 
 void ILdapServer::BerDump(char *Title, GBytePipe &Data)
