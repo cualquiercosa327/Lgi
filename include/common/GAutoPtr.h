@@ -85,7 +85,7 @@ public:
 
 	X* operator->() const
 	{
-		LgiAssert(Ptr); 
+		LgiAssert(Ptr != 0); 
 		return Ptr;
 	}
 

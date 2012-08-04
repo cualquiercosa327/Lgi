@@ -201,9 +201,9 @@ protected:
 
 	#ifdef _DEBUG
 	// debug
-	int _PourTime;
-	int _StyleTime;
-	int _PaintTime;
+	uint64 _PourTime;
+	uint64 _StyleTime;
+	uint64 _PaintTime;
 	#endif
 
 public:

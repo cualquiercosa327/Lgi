@@ -633,7 +633,7 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 		// Get the line of the change
 		GTextLine *Current = GetLine(Start, &CurrentLine);
 		
-		LgiAssert(Current);
+		LgiAssert(Current != 0);
 		LgiAssert(CurrentLine >= 0);
 		
 		if (!Current)
@@ -717,7 +717,7 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 				// Seek line/doc end
 				char16 *End;
 				for (End = Text + i; *End && *End != '\n'; *End++);
-				e = SubtractPtr(End, Text);
+				e = (int)SubtractPtr(End, Text);
 				GDisplayString ds(Font, Text + i, e - i);
 				Cx = ds.X();
 
@@ -902,7 +902,7 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 	if (GetWindow())
 	{
 		static char s[256];
-		sprintf(s, "Pour: %.2f sec", (double)_PourTime / 1000);
+		sprintf_s(s, sizeof(s), "Pour: %.2f sec", (double)_PourTime / 1000);
 		GetWindow()->PostEvent(M_TEXTVIEW_DEBUG_TEXT, (GMessage::Param)s);
 	}
 	#endif
@@ -1098,7 +1098,7 @@ GTextView3::GStyle *GTextView3::HitStyle(int i)
 void GTextView3::PourStyle(int Start, int EditSize)
 {
 	#ifdef _DEBUG
-	int StartTime = LgiCurrentTime();
+	int64 StartTime = LgiCurrentTime();
 	#endif
 
 	if (!Text || Size < 1)
@@ -1166,7 +1166,7 @@ void GTextView3::PourStyle(int Start, int EditSize)
 		GArray<GLinkInfo> Links;
 		if (LgiDetectLinks(Links, Text + Start, Length))
 		{
-			for (int i=0; i<Links.Length(); i++)
+			for (uint32 i=0; i<Links.Length(); i++)
 			{
 				GLinkInfo &Inf = Links[i];
 				GUrl *Url;
@@ -1174,7 +1174,7 @@ void GTextView3::PourStyle(int Start, int EditSize)
 				if (Url)
 				{
 					Url->View = this;
-					Url->Start = Inf.Start + Start;
+					Url->Start = (int) (Inf.Start + Start);
 					Url->Len = Inf.Len;
 					Url->Email = Inf.Email;
 					Url->Font = Underline;
@@ -1507,7 +1507,7 @@ int64 GTextView3::Value()
 void GTextView3::Value(int64 i)
 {
 	char Str[32];
-	sprintf(Str, LGI_PrintfInt64, i);
+	sprintf_s(Str, sizeof(Str), LGI_PrintfInt64, i);
 	Name(Str);
 }
 
@@ -2005,7 +2005,7 @@ bool GTextView3::Open(const char *Name, const char *CharSet)
 	if (f.Open(Name, O_READ|O_SHARE))
 	{
 		DeleteArray(Text);
-		int Bytes = f.GetSize();
+		int Bytes = (int)f.GetSize();
 		SetCursor(0, false);
 		
 		char *c8 = new char[Bytes + 4];
@@ -2061,7 +2061,7 @@ bool GTextView3::Open(const char *Name, const char *CharSet)
 						}
 						In++;
 					}
-					Size = Out - Text;
+					Size = (int) (Out - Text);
 					*Out = 0;
 
 					Alloc = Size + 1;
@@ -2107,7 +2107,7 @@ bool GTextView3::Save(const char *Name, const char *CharSet)
 			char *c8 = (char*)LgiNewConvertCp(CharSet ? CharSet : DefaultCharset, Text, "utf-16", Size * sizeof(char16));
 			if (c8)
 			{
-				int Len = strlen(c8);
+				int Len = (int)strlen(c8);
 				if (CrLf)
 				{
 					Status = true;

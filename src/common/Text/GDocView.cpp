@@ -19,7 +19,7 @@ GDocumentEnv::GDocumentEnv(GDocView *v)
 
 GDocumentEnv::~GDocumentEnv()
 {
-	for (int i=0; i<Viewers.Length(); i++)
+	for (uint32 i=0; i<Viewers.Length(); i++)
 	{
 		Viewers[i]->Environment = 0;
 	}
@@ -102,7 +102,7 @@ bool LgiDetectLinks(GArray<GLinkInfo> &Links, char16 *Text, int Size)
 	static char16 Http[] = {'h', 't', 't', 'p', ':', '/', '/', 0 };
 	static char16 Https[] = {'h', 't', 't', 'p', 's', ':', '/', '/', 0};
 
-	for (int i=0; i<Size; i++)
+	for (NativeInt i=0; i<Size; i++)
 	{
 		switch (Text[i])
 		{
@@ -132,9 +132,9 @@ bool LgiDetectLinks(GArray<GLinkInfo> &Links, char16 *Text, int Size)
 
 					GLinkInfo &Url = Links.New();
 					Url.Email = false;
-					Url.Start = SubtractPtr(s, Text);
-					Url.Len = SubtractPtr(e, s);
-					i = SubtractPtr(e, Text);
+					Url.Start = (int)SubtractPtr(s, Text);
+					Url.Len = (int)SubtractPtr(e, s);
+					i = (int)SubtractPtr(e, Text);
 				}
 				break;
 			}
@@ -165,8 +165,8 @@ bool LgiDetectLinks(GArray<GLinkInfo> &Links, char16 *Text, int Size)
 					{
 						GLinkInfo &Url = Links.New();
 						Url.Email = true;
-						Url.Start = SubtractPtr(s, Text);
-						Url.Len = SubtractPtr(e, s);
+						Url.Start = (int)SubtractPtr(s, Text);
+						Url.Len = (int)SubtractPtr(e, s);
 						i = SubtractPtr(e, Text);
 					}
 				}
@@ -228,7 +228,7 @@ bool GDefaultDocumentEnv::OnNavigate(char *Uri)
 	{
 		if
 		(
-			strnicmp(Uri, "mailto:", 7) == 0
+			_strnicmp(Uri, "mailto:", 7) == 0
 			||
 			(
 				strchr(Uri, '@') != 0
@@ -248,7 +248,7 @@ bool GDefaultDocumentEnv::OnNavigate(char *Uri)
 				if (Arg)
 				{
 					// change '%1' into the email address in question
-					a.Write(First->Params, Arg-First->Params);
+					a.Write(First->Params, (int) (Arg-First->Params));
 					a.Print("%s%s", Uri, Arg + 2);
 				}
 				else
