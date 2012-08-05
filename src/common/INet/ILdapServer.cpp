@@ -571,7 +571,7 @@ int ILdapServer::TokenDump(uchar *Data, int Len, int Indent)
 
 void ILdapServer::BerDump(char *Title, GBytePipe &Data)
 {
-	int Len = Data.GetSize();
+	int64 Len = Data.GetSize();
 	if (Len > 0)
 	{
 		Log.Print("%s (%i bytes)\r\n", Title, Len);

@@ -10,15 +10,12 @@ p_vscprintf lgi_vscprintf = 0;
 #endif
 
 //////////////////////////////////////////////////////////////////////
-int GStreamPrintf(GStreamI *Stream, int Flags, const char *&Format)
+int GStreamPrintf(GStreamI *Stream, int Flags, const char *Format, va_list &Arg)
 {
 	int Chars = 0;
 
-	if (Stream && Format)
+	if (Stream)
 	{
-		va_list Arg;
-		va_start(Arg, Format);
-
 		#ifndef WIN32
 
 		int Size = vsnprintf(0, 0, Format, Arg);
@@ -68,8 +65,6 @@ int GStreamPrintf(GStreamI *Stream, int Flags, const char *&Format)
 			}			
 		}
 		#endif
-
-		va_end(Arg);
 	}
 
 	return Chars;
@@ -77,12 +72,20 @@ int GStreamPrintf(GStreamI *Stream, int Flags, const char *&Format)
 
 int GStreamPrint(GStreamI *s, const char *fmt, ...)
 {
-    return GStreamPrintf(s, 0, fmt);
+	va_list Arg;
+	va_start(Arg, fmt);
+    int Ch = GStreamPrintf(s, 0, fmt, Arg);
+	va_end(Arg);
+	return Ch;
 }
 
 int GStream::Print(const char *Format, ...)
 {
-    return GStreamPrintf(this, 0, Format);
+	va_list Arg;
+	va_start(Arg, Format);
+    int Ch = GStreamPrintf(this, 0, Format, Arg);
+	va_end(Arg);
+	return Ch;
 }
 
 /////////////////////////////////////////////////////////////////

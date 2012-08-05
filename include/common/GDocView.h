@@ -54,8 +54,8 @@ extern char16 *ConvertToCrLf(char16 *Text);
 /// \sa LgiDetectLinks
 struct GLinkInfo
 {
-	int Start;
-	int Len;
+	NativeInt Start;
+	NativeInt Len;
 	bool Email;
 };
 

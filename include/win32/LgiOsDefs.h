@@ -252,7 +252,8 @@ typedef SOCKET						OsSocket;
 	// Generic delete selection msg
 	#define M_DELETE					(M_USER+0x100b)
 
-    #define M_LOG_TEXT                  (M_USER+0x100c)
+	// Log message back to GUI thread
+	#define M_LOG_TEXT					(M_USER+0x100c)
 
 	/// GThreadWork object completed
 	///

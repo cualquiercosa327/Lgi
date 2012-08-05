@@ -5,6 +5,7 @@
 #include "Lgi.h"
 #include "vCard-vCal.h"
 #include "GToken.h"
+#include "ScribeDefs.h"
 
 #define Push(s) Write(s, strlen(s))
 
@@ -24,9 +25,9 @@ bool IsVar(char *field, const char *s)
 
 	char *dot = strchr(field, '.');
 	if (dot)
-		return stricmp(dot + 1, s) == 0;
+		return _stricmp(dot + 1, s) == 0;
 
-	return stricmp(field, s) == 0;
+	return _stricmp(field, s) == 0;
 }
 #else
 #define IsVar(field, str) (field != 0 && stricmp(field, str) == 0)
@@ -203,7 +204,7 @@ void VIo::Fold(GStreamI &o, char *i, int pre_chars)
 		if (x >= 74)
 		{
 			// wrapping
-			o.Write(i, s-i);
+			o.Write(i, (int)(s-i));
 			o.Write((char*)"\r\n\t", 3);
 			x = 0;
 			i = s;
@@ -211,7 +212,7 @@ void VIo::Fold(GStreamI &o, char *i, int pre_chars)
 		else if (*s == '=' || ((((uint8)*s) & 0x80) != 0))
 		{
 			// quoted printable
-			o.Write(i, s-i);
+			o.Write(i, (int)(s-i));
 			GStreamPrint(&o, "=%02.2x", (uint8)*s);
 			x += 3;
 			i = ++s;
@@ -219,14 +220,14 @@ void VIo::Fold(GStreamI &o, char *i, int pre_chars)
 		else if (*s == '\n')
 		{
 			// new line
-			o.Write(i, s-i);
+			o.Write(i, (int)(s-i));
 			o.Write((char*)"\\n", 2);
 			x += 2;
 			i = ++s;
 		}
 		else if (*s == '\r')
 		{
-			o.Write(i, s-i);
+			o.Write(i, (int)(s-i));
 			i = ++s;
 		}
 		else
@@ -235,7 +236,7 @@ void VIo::Fold(GStreamI &o, char *i, int pre_chars)
 			x++;
 		}
 	}
-	o.Write(i, strlen(i));
+	o.Write(i, (int)strlen(i));
 }
 
 char *VIo::Unfold(char *In)
@@ -280,7 +281,7 @@ char *VIo::UnMultiLine(char *In)
 			n = stristr(i, "\\n");
 			if (n)
 			{
-				p.Write(i, n-i);
+				p.Write(i, (int)(n-i));
 				p.Push((char*)"\n");
 				n += 2;
 			}
@@ -314,13 +315,13 @@ bool VCard::Import(GDataPropI *c, GStreamI *s)
 
 	while (ReadField(*s, &Field, &Types, &Data))
 	{
-		if (stricmp(Field, "begin") == 0 &&
-			stricmp(Data, "vcard") == 0)
+		if (_stricmp(Field, "begin") == 0 &&
+			_stricmp(Data, "vcard") == 0)
 		{
 			while (ReadField(*s, &Field, &Types, &Data))
 			{
-				if (stricmp(Field, "end") == 0 &&
-					stricmp(Data, "vcard") == 0)
+				if (_stricmp(Field, "end") == 0 &&
+					_stricmp(Data, "vcard") == 0)
 					goto ExitLoop;
 
 				if (IsVar(Field, "n"))
@@ -360,7 +361,7 @@ bool VCard::Import(GDataPropI *c, GStreamI *s)
 				else if (IsVar(Field, "tel"))
 				{
 					GToken Phone(Data, ";", false);
-					for (int p=0; p<Phone.Length(); p++)
+					for (uint32 p=0; p<Phone.Length(); p++)
 					{
 						if (IsType("cell"))
 						{
@@ -482,7 +483,7 @@ bool VCard::Import(GDataPropI *c, GStreamI *s)
 		if (Emails.Length())
 		{
 			GStringPipe p;
-			for (int i=0; i<Emails.Length(); i++)
+			for (uint32 i=0; i<Emails.Length(); i++)
 			{
 				if (i) p.Print(",%s", Emails[i]);
 				else p.Print("%s", Emails[i]);
@@ -518,13 +519,13 @@ bool VIo::ReadField(GStreamI &s, char **Name, TypesList *Type, char **Data)
 
 		while (!Done)
 		{
-			int r = d->Buf.GetSize();
+			int64 r = d->Buf.GetSize();
 			if (r == 0)
 			{
 				r = s.Read(Temp, sizeof(Temp));
 				if (r > 0)
 				{
-					d->Buf.Write(Temp, r);
+					d->Buf.Write(Temp, (int)r);
 				}
 				else break;
 			}
@@ -570,7 +571,7 @@ bool VIo::ReadField(GStreamI &s, char **Name, TypesList *Type, char **Data)
 							r = s.Read(Temp, sizeof(Temp));
 							if (r > 0)
 							{
-								d->Buf.Write(Temp, r);
+								d->Buf.Write(Temp, (int)r);
 								goto TryPeekNext;
 							}
 							else break;
@@ -591,7 +592,7 @@ bool VIo::ReadField(GStreamI &s, char **Name, TypesList *Type, char **Data)
 				r = s.Read(Temp, sizeof(Temp));
 				if (r > 0)
 				{
-					d->Buf.Write(Temp, r);
+					d->Buf.Write(Temp, (int)r);
 				}
 				else break;
 			}
@@ -611,7 +612,7 @@ bool VIo::ReadField(GStreamI &s, char **Name, TypesList *Type, char **Data)
 				if (t.Length() > 0)
 				{
 					*Name = NewStr(t[0]);
-					for (int i=1; i<t.Length(); i++)
+					for (uint32 i=1; i<t.Length(); i++)
 					{
 						char *var = t[i];
 						char *val = strchr(var, '=');
@@ -619,7 +620,7 @@ bool VIo::ReadField(GStreamI &s, char **Name, TypesList *Type, char **Data)
 						{
 							*val++ = 0;
 
-							if (Type && !stricmp(var, "type"))
+							if (Type && !_stricmp(var, "type"))
 								Type->New().Reset(NewStr(val));
 							else
 								Mod.Add(var, NewStr(val));
@@ -632,7 +633,7 @@ bool VIo::ReadField(GStreamI &s, char **Name, TypesList *Type, char **Data)
 			char *Enc = Mod.Find("encoding");
 			if (Enc)
 			{
-				if (stricmp(Enc, "quoted-printable") == 0)
+				if (_stricmp(Enc, "quoted-printable") == 0)
 				{
 					QuotedPrintable = true;
 				}
@@ -672,7 +673,7 @@ void VIo::WriteField(GStreamI &s, const char *Name, TypesList *Type, char *Data)
 		GStreamPrint(&s, "%s", Name);
 		if (Type)
 		{
-			for (int i=0; i<Type->Length(); i++)
+			for (uint32 i=0; i<Type->Length(); i++)
 				GStreamPrint(&s, "%stype=%s", i?"":";", (*Type)[i].Get());
 		}
 		
@@ -696,7 +697,7 @@ void VIo::WriteField(GStreamI &s, const char *Name, TypesList *Type, char *Data)
 		}
 
 		s.Write((char*)":", 1);
-		Fold(s, Data, s.GetSize() - Size);
+		Fold(s, Data, (int) (s.GetSize() - Size));
 		s.Write((char*)"\r\n", 2);
 	}	
 }
@@ -710,8 +711,8 @@ bool VCard::Export(GDataPropI *c, GStreamI *o)
 	char s[512];
 	const char *Empty = "";
 
-	o->Push((char*)"begin:vcard\r\n");
-	o->Push((char*)"version:3.0\r\n");
+	o->Push("begin:vcard\r\n");
+	o->Push("version:3.0\r\n");
 
 	char *First = 0, *Last = 0, *Title = 0;
 	First = c->GetStr(FIELD_FIRST_NAME);
@@ -824,7 +825,7 @@ bool VCard::Export(GDataPropI *c, GStreamI *o)
 		WriteField(*o, "note", 0, Note);
 	}
 
-	o->Push((char*)"end:vcard\r\n");
+	o->Push("end:vcard\r\n");
 
 	return Status;
 }

@@ -102,7 +102,7 @@ bool LgiDetectLinks(GArray<GLinkInfo> &Links, char16 *Text, int Size)
 	static char16 Http[] = {'h', 't', 't', 'p', ':', '/', '/', 0 };
 	static char16 Https[] = {'h', 't', 't', 'p', 's', ':', '/', '/', 0};
 
-	for (NativeInt i=0; i<Size; i++)
+	for (int64 i=0; i<Size; i++)
 	{
 		switch (Text[i])
 		{

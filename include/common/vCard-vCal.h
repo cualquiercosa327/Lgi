@@ -1,6 +1,7 @@
 #ifndef _VCARD_VCAL_H
 #define _VCARD_VCAL_H
 
+// #include "ScribeDefs.h"
 #include "Store3.h"
 #include "GToken.h"
 
