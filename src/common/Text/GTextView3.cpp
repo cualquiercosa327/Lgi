@@ -4557,14 +4557,14 @@ GMessage::Result GTextView3::OnEvent(GMessage *Msg)
 		}
 		case WM_GETTEXT:
 		{
-			int Chars = MsgA(Msg);
+			int Chars = (int)MsgA(Msg);
 			char *Out = (char*)MsgB(Msg);
 			if (Out)
 			{
 				char *In = (char*)LgiNewConvertCp(LgiAnsiToLgiCp(), NameW(), LGI_WideCharset, Chars);
 				if (In)
 				{
-					int Len = strlen(In);
+					int Len = (int)strlen(In);
 					memcpy(Out, In, Len);
 					DeleteArray(In);
 					return Len;
@@ -4668,7 +4668,7 @@ class GTextView3_Factory : public GViewFactory
 
 	GView *NewView(const char *Class, GRect *Pos, const char *Text)
 	{
-		if (stricmp(Class, "GTextView3") == 0)
+		if (_stricmp(Class, "GTextView3") == 0)
 		{
 			return new GTextView3(-1, 0, 0, 2000, 2000);
 		}

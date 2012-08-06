@@ -1386,7 +1386,7 @@ bool MailSmtp::Open(GSocketI *S,
 				Port = SMTP_PORT;
 		}
 
-		char *Server = TrimStr(Str);
+		GAutoString Server(TrimStr(Str));
 		if (Server)
 		{
 			if (SocketLock.Lock(_FL))
@@ -1397,7 +1397,7 @@ bool MailSmtp::Open(GSocketI *S,
 
 			Socket->SetTimeout(30 * 1000);
 			if (!Socket->Open(Server, Port))
-				Error(_FL, "Failed to connect socket to %s:%i\n", Server, Port);
+				Error(_FL, "Failed to connect socket to %s:%i\n", Server.Get(), Port);
 			else
 			{
 				GStringPipe Str;
@@ -1604,8 +1604,6 @@ bool MailSmtp::Open(GSocketI *S,
 					Status = true;
 				}
 			}
-
-			DeleteArray(Server);
 		}
 	}
 
