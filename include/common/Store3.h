@@ -247,6 +247,8 @@ public:
 	/// also deletes the object when it's used. The caller loses ownership of the
 	/// object passed into this function.
 	virtual bool SetStream(GAutoStreamI stream) { return false; }
+	/// Parses the headers of the object and updates all the metadata fields
+	virtual bool ParseHeaders() { return false; }
 };
 
 /// An interface to a folder structure
