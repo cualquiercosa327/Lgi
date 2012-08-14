@@ -3747,7 +3747,7 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 	if (Mime)
 	{
 		bool MultiPart = ((Text ? 1 : 0) + (Html ? 1 : 0) + FileDesc.Length()) > 1;
-		bool MultipartAlternate = (Text != 0) && (Html != 0);
+		bool MultipartAlternate = ValidStr(Text) && ValidStr(Html);
 		bool MultipartMixed = FileDesc.Length() > 0;
 		int Now = LgiCurrentTime();
 
@@ -3765,7 +3765,7 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 			Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
 		}
 
-		if (Text != 0 || Html != 0)
+		if (ValidStr(Text) || ValidStr(Html))
 		{
 			char AlternateBoundry[128] = "";
 
@@ -3776,7 +3776,7 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 
 				if (MultipartMixed && MultipartAlternate)
 				{
-					sprintf(AlternateBoundry, "----=_NextPart_%8.8X.%8.8X", (uint32)Now++, (uint32)LgiGetCurrentThread());
+					sprintf(AlternateBoundry, "----=_NextPart_%8.8X.%8.8X", (uint32)++Now, (uint32)LgiGetCurrentThread());
 					sprintf(Buffer,
 							"Content-Type: %s;\r\n\tboundary=\"%s\"\r\n",
 							StrMultipartAlternative,
@@ -3791,7 +3791,7 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 			if (!Status)
 				LgiTrace("%s:%i - Status=%i\n", _FL, Status);
 
-			if (Text)
+			if (ValidStr(Text))
 			{
 				const char *Cs = 0;
 				char *Txt = Text, *Mem = 0;
@@ -3866,7 +3866,7 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 				Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
 			}
 
-			if (Html)
+			if (ValidStr(Html))
 			{
 				// Content type
 				sprintf(Buffer,
