@@ -418,47 +418,24 @@ GFilter::IoStatus GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 			}
 			else
 			{
-			    switch (Bits)
-			    {
-			        case 24:
-			        {
-			            if (pDC->Create(img.width, img.height, Bits))
-			            {
-			                if (Meter)
-			                    Meter->SetLimits(0, img.height);
+	            if (pDC->Create(img.width, img.height, Bits))
+	            {
+	                if (Meter)
+	                    Meter->SetLimits(0, img.height);
 
-                            for (int y=0; y<img.height; y++)
-                            {
-				                uint8 *d = (*pDC)[y];
-    				            Lib->TIFFReadScanline(tif, (t::tdata_t)d, y, 0);
+                    for (int y=0; y<img.height; y++)
+                    {
+		                uint8 *d = (*pDC)[y];
+			            Lib->TIFFReadScanline(tif, (t::tdata_t)d, y, 0);
 
-			                    if (Meter && (y % 32) == 0)
-			                        Meter->Value(y);
-    				        }
-	    			            
-	    			        SwapRB(pDC);
-
-				            Status = IoSuccess;
-				        }
-				        break;
+	                    if (Meter && (y % 32) == 0)
+	                        Meter->Value(y);
 			        }
-			        default:
-			        {
-			            if (pDC->Create(img.width, img.height, 32))
-			            {
-				            uint8 *d = (*pDC)[0];
+			            
+			        SwapRB(pDC);
 
-			                if (Meter)
-			                    Meter->SetLimits(0, img.height);
-
-				            Lib->TIFFRGBAImageGet(&img, (uint32*)d, pDC->X(), pDC->Y());
-				            SwapRBandY(pDC);
-
-				            Status = IoSuccess;
-				        }
-				        break;
-				    }
-				}
+		            Status = IoSuccess;
+		        }
 			}
 
 			Lib->TIFFRGBAImageEnd(&img);
@@ -510,6 +487,9 @@ GFilter::IoStatus GdcLibTiff::WriteImage(GStream *Out, GSurface *pDC)
 		Status = IoSuccess;
 		SwapRB(pDC);
 
+        if (Meter)
+            Meter->SetLimits(0, pDC->Y());
+
 		for (int y=0; y<pDC->Y(); y++)
 		{
 			uint8 *Scan = (*pDC)[y];
@@ -518,6 +498,9 @@ GFilter::IoStatus GdcLibTiff::WriteImage(GStream *Out, GSurface *pDC)
 				Status = IoError;
 				break;
 			}
+
+            if (Meter && (y % 32) == 0)
+                Meter->Value(y);
 		}
 
 		Lib->TIFFClose(tif);
