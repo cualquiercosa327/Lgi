@@ -566,8 +566,13 @@ bool DLinkList::Insert(void *p, int Index)
 	#ifdef _DEBUG
 	if ((NativeInt)p < 100)
 	{
-		char *s = 0;
-		*s = 0;
+		static bool First = true;
+		if (First)
+		{
+			LgiAssert(!"Null pointer insert.");
+			First = false;
+		}
+		return false;
 	}
 	#endif
 

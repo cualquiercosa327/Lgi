@@ -56,6 +56,8 @@
 #define IDM_COMPARE					322
 #define IDM_MOVE_UP					324
 #define IDM_MOVE_DOWN				325
+#define IDM_REF_EQ_ID				326
+#define IDM_ID_EQ_REF				327
 
 #define	IDM_NEW_DLG					400
 #define	IDM_NEW_STRGRP				401

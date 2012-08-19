@@ -174,13 +174,36 @@ ResString::~ResString()
 
 int ResString::SetRef(int r)
 {
-	return Ref = r;
+	LgiAssert(r != 0 && r != -1);
+
+	if (r != Ref)
+	{
+		Ref = r;
+
+		Update();
+		if (UpdateWnd)
+		{
+			UpdateWnd->Invalidate();
+		}
+	}	
+
+	return Ref;
 }
 
 int ResString::SetId(int id)
 {
 	LgiAssert(id != 0);
-	return Id = id;
+	if (Id != id)
+	{
+		Id = id;
+
+		Update();
+		if (UpdateWnd)
+		{
+			UpdateWnd->Invalidate();
+		}
+	}
+	return Id;
 }
 
 void ResString::SetDefine(const char *s)
@@ -667,6 +690,8 @@ void ResString::OnMouseClick(GMouse &m)
 			RClick->AppendItem("Paste Text", IDM_PASTE_TEXT, PasteTranslations);
 			RClick->AppendSeparator();
 			RClick->AppendItem("New Id", IDM_NEW_ID, true);
+			RClick->AppendItem("Make Ref=Id", IDM_REF_EQ_ID, true);
+			RClick->AppendItem("Make Id=Ref", IDM_ID_EQ_REF, true);
 
 			if (Parent->GetMouse(m, true))
 			{
@@ -692,6 +717,60 @@ void ResString::OnMouseClick(GMouse &m)
 						{
 							s->SetId(NewId);
 							s->Update();
+						}
+						break;
+					}
+					case IDM_REF_EQ_ID:
+					{
+						List<ResString> a;
+						if (GetList()->GetSelection(a))
+						{
+							bool Dirty = false;
+							for (ResString *s = a.First(); s; s = a.Next())
+							{
+								if (s->GetId() != s->GetRef())
+								{
+									ResString *Existing = Group->App()->GetStrFromRef(s->GetId());
+									if (!Existing)
+									{
+										s->SetRef(s->GetId());
+										Dirty = true;
+									}
+								}
+							}
+							
+							if (Dirty)
+							{
+								Group->App()->SetDirty();
+							}
+						}
+						break;
+					}
+					case IDM_ID_EQ_REF:
+					{
+						List<ResString> a;
+						if (GetList()->GetSelection(a))
+						{
+							bool Dirty = false;
+							for (ResString *s = a.First(); s; s = a.Next())
+							{
+								if (s->GetId() != s->GetRef())
+								{
+									List<ResString> Existing;
+									int CtrlId = s->GetRef();
+									Group->App()->FindStrings(Existing, 0, &CtrlId);
+									if (Existing.Length() == 0)
+									{
+										s->SetId(s->GetRef());
+										Dirty = true;
+									}
+								}
+							}
+							
+							if (Dirty)
+							{
+								Group->App()->SetDirty();
+							}
 						}
 						break;
 					}

@@ -7486,7 +7486,7 @@ void GCellStore::GetAll(List<GTag> &All)
 		for (int x=0; x<a.Length(); x++)
 		{
 			GTag *t = a[x];
-			if (!Added.Find(t))
+			if (t && !Added.Find(t))
 			{
 				Added.Add(t, true);
 				All.Insert(t);

@@ -535,7 +535,7 @@ bool LgiResources::Load(char *FileName)
 
 					// Save the string for later.
 					d->StrRef.Add(s->Ref, s);
-					if (s->Id >= 0)
+					if (s->Id != -1)
 					{
 					    if (IsString)
 						    d->Strings.Add(s->Id, s);
@@ -1265,8 +1265,11 @@ const char *LgiLoadString(int Res, const char *Default)
 		// return "@@@@";
 		s = r->StringFromId(Res);
 	}
+	
+	if (s)
+		return s;
 
-	return s ? s : Default;
+	return Default;
 }
 
 bool LgiResources::LoadDialog(int Resource, GViewI *Parent, GRect *Pos, GAutoString *Name, GEventsI *Engine, char *TagList)

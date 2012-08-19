@@ -74,7 +74,7 @@ public:
 	/// Gets the current file name.
 	char *GetCurFile();
 	/// Sets the dirty state. If the doc is clean you are not asked to save it when you close the window.
-	bool SetDirty(bool Dirty);
+	bool SetDirty(bool Dirty = true);
 	/// Gets the dirty state.
 	bool GetDirty();
 	/// Gets the options list.
