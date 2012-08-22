@@ -323,13 +323,13 @@ bool GFontSystem::EnumerateFonts(List<const char> &Fonts)
 	return false;
 }
 
-bool GFontSystem::HasIconv()
+bool GFontSystem::HasIconv(bool Quiet)
 {
 	if (d->IsLoaded())
 		return true;
 
 	bool Status = d->Load("libiconv-2");
-	if (!Status)
+	if (!Status && !Quiet)
 	{
 	    if (!NeedsCapability("libiconv"))
 	    {
@@ -431,7 +431,7 @@ int GFontSystem::IconvConvert(const char *OutCs, char *Out, int OutLen, const ch
 {
 	int Status = 0;
 
-    if (!Out || !In || !HasIconv())
+    if (!Out || !In || !HasIconv(false))
         return 0;
 
 #if defined(MAC)

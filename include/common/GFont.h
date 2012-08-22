@@ -425,7 +425,7 @@ public:
 	#endif
 
 	/// \returns true if iconv services are available.
-	bool HasIconv();
+	bool HasIconv(bool Quiet);
 	/// Converts a string into a buffer using iconv
 	int IconvConvert(const char *OutCs, char *Out, int OutLen, const char *InCs, const char *&In, int InLen);
 	/// Converts a string into a stream using iconv

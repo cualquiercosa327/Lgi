@@ -17,6 +17,7 @@
 #include "GEdit.h"
 #include "GViewPriv.h"
 #include "GUtf8.h"
+#include "GCss.h"
 
 #define ADJ_LEFT					1
 #define ADJ_RIGHT					2

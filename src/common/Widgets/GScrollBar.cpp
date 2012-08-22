@@ -514,7 +514,7 @@ void GScrollBar::Limits(int64 &Low, int64 &High)
 
 void GScrollBar::SetLimits(int64 Low, int64 High)
 {
-	if (d->Min != Low OR
+	if (d->Min != Low ||
 		d->Max != High)
 	{
 		d->Min = Low;

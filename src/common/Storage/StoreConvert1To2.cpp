@@ -237,7 +237,7 @@ bool ConvertStorage1To2(GView *Parent, char *InFile, char *OutFile)
 		GFileSelect Out;
 		Out.Parent(Parent);
 		Out.Type("Mail folders", "*.mail2");
-		if ((!OutFile OR strlen(OutFile) == 0) AND
+		if ((!OutFile || strlen(OutFile) == 0) AND
 			Out.Save())
 		{
 			if (OutFile)

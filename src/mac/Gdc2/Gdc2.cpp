@@ -363,8 +363,8 @@ bool GPalette::operator ==(GPalette &p)
 
 		for (int i=0; i<GetSize(); i++)
 		{
-			if (	a->R != b->R OR
-				a->G != b->G OR
+			if (a->R != b->R ||
+				a->G != b->G ||
 				a->B != b->B)
 			{
 				return false;

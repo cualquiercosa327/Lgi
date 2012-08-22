@@ -1153,9 +1153,9 @@ public:
 				AND
 				(
 					strcmp(De->d_name, ".") == 0
-					OR
+					||
 					strcmp(De->d_name, "..") == 0
-					OR
+					||
 					(
 						Pattern
 						AND
@@ -1188,7 +1188,7 @@ int GDirImpl::First(const char *Name, const char *Pattern)
 	if (Name)
 	{
 		strcpy(d->BasePath, Name);
-		if (!Pattern OR stricmp(Pattern, LGI_ALL_FILES) == 0)
+		if (!Pattern || stricmp(Pattern, LGI_ALL_FILES) == 0)
 		{
 			struct stat S;
 			if (lstat(Name, &S) == 0)
@@ -1438,7 +1438,7 @@ int GFile::Open(const char *File, int Mode)
 		return false;
 	}
 	
-	if (TestFlag(Mode, O_WRITE) OR
+	if (TestFlag(Mode, O_WRITE) ||
 		TestFlag(Mode, O_READWRITE))
 	{
 		Mode |= O_CREAT;

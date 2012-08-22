@@ -244,7 +244,7 @@ bool StorageItemImpl::Serialize(GFile &f, bool Write, int Flags)
 
 	if (Write)
 	{
-		if ((Flags & STORAGE_ITEM_NOSIZE) OR
+		if ((Flags & STORAGE_ITEM_NOSIZE) ||
 			SetSize(Sizeof()))
 		{
 			f.Seek(StoreLoc, SEEK_SET);
@@ -892,7 +892,7 @@ void StorageKitImpl::AddItem(StorageItemImpl *Item, List<Block> &Blocks)
 				New->Item = Item;
 				New->Size = sizeof(StorageItemHeader) + Item->StoreAllocatedSize;
 
-				if (Item->StoreAllocatedSize == 0 OR Item->StoreSize == 0)
+				if (Item->StoreAllocatedSize == 0 || Item->StoreSize == 0)
 				{
 					if (Item->Object)
 					{

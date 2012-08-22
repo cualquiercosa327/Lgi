@@ -9,7 +9,9 @@
 
 #define _GSTREAM_H_
 
+#ifndef MAC
 #include <vadefs.h>
+#endif
 #include "GDom.h"
 
 /// Stream printf

@@ -158,7 +158,7 @@ GMenuItem *GSubMenu::AppendSeparator(int Where)
 GSubMenu *GSubMenu::AppendSub(const char *Str, int Where)
 {
 	GMenuItem *i = new GMenuItem;
-	if (i)
+	if (i && Str)
 	{
 		i->Name(Str);
 		i->Parent = this;
@@ -706,12 +706,12 @@ bool GMenuItem::ScanForAccel()
 		{
 			Flags |= LGI_EF_SHIFT;
 		}
-		else if (stricmp(k, "Del") == 0 OR
+		else if (stricmp(k, "Del") == 0 ||
 				 stricmp(k, "Delete") == 0)
 		{
 			Key = VK_DELETE;
 		}
-		else if (stricmp(k, "Ins") == 0 OR
+		else if (stricmp(k, "Ins") == 0 ||
 				 stricmp(k, "Insert") == 0)
 		{
 			Key = VK_INSERT;

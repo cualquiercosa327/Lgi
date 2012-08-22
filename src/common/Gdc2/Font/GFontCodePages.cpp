@@ -623,7 +623,7 @@ bool GCharset::IsAvailable()
 
 	GFontSystem *FontSys = GFontSystem::Inst();
 	if (FontSys)
-		return FontSys->HasIconv();
+		return FontSys->HasIconv(true);
 
 	return false;
 }

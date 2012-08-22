@@ -2980,7 +2980,7 @@ char *GTag::ParseText(char *Doc)
 	Info = GetTagInfo(Tag);
 	char *OriginalCp = NewStr(Html->Charset);
 
-	Html->SetBackColour(LC_WORKSPACE);
+	Html->SetBackColour(Rgb24To32(LC_WORKSPACE));
 	
 	GStringPipe Utf16;
 	char *s = Doc;
@@ -6222,7 +6222,9 @@ void GHtml2::OnPaint(GSurface *ScreenDC)
 
 		GSurface *pDC = MemDC ? MemDC : ScreenDC;
 
-		pDC->Colour(GetBackColour(), 32);
+		COLOUR Back = GetBackColour();
+		printf("Back = %8.8X\n", Back);
+		pDC->Colour(Back, 32);
 		pDC->Rectangle();
 
 		if (Tag)

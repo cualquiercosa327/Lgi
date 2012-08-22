@@ -150,9 +150,9 @@ LgiFunc void LgiSleep(int i);
 /// The standard end of line string for Linux
 #define EOL_SEQUENCE				"\n"
 /// Tests a char for being a slash
-#define IsSlash(c)					(((c)=='/')OR((c)=='\\'))
+#define IsSlash(c)					(((c)=='/')||((c)=='\\'))
 /// Tests a char for being a quote
-#define IsQuote(c)					(((c)=='\"')OR((c)=='\''))
+#define IsQuote(c)					(((c)=='\"')||((c)=='\''))
 /// The path list separator character for Linux
 #define LGI_PATH_SEPARATOR			":"
 /// The pattern that matches all files in Linux

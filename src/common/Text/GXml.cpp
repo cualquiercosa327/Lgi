@@ -117,7 +117,7 @@ XmlTag::XmlTag(Xml *x, char *&s)
 				(*s != '>') AND
 				(!strchr(Whitespace, *s)); s++)
 		{
-			if (*s == '\"' OR *s == '\'')
+			if (*s == '\"' || *s == '\'')
 			{
 				char d = *s++;
 				while (*s AND *s != d)
@@ -150,7 +150,7 @@ XmlTag::XmlTag(Xml *x, char *&s)
 
 			while (s AND *s AND strchr(Whitespace, *s)) s++;
 			if (*s == '/') s++;
-			if (s == b OR *s == '>')
+			if (s == b || *s == '>')
 			{
 				s++;
 				break;

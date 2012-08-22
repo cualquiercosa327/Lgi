@@ -293,7 +293,7 @@ public:
 
 	Record *ItemAt(int i=-1)
 	{
-			return (i<0 OR !DRecordSetCtrls<Record, Lst>::Records)
+			return (i<0 || !DRecordSetCtrls<Record, Lst>::Records)
 			?
 			dynamic_cast<Record*>(DRecordSetCtrls<Record, Lst>::Current)
 			:

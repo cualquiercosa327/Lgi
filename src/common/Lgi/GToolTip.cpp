@@ -312,7 +312,7 @@ public:
 				t->GetMouse(m, true);
 				
 				// Check if mouse moved
-				if (m.x != Old.x OR
+				if (m.x != Old.x ||
 					m.y != Old.y)
 				{
 					// Go through all the tips and see if anything should change

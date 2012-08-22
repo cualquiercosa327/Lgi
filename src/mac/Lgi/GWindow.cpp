@@ -1568,7 +1568,7 @@ GRect &GWindow::GetClient(bool ClientSpace)
 
 bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
 {
-	if (!Store OR !FieldName)
+	if (!Store || !FieldName)
 		return false;
 
 	if (Load)
@@ -1686,7 +1686,7 @@ void GWindow::OnPosChange()
 {
 	GView::OnPosChange();
 
-	if (d->Sx != X() OR	d->Sy != Y())
+	if (d->Sx != X() ||	d->Sy != Y())
 	{
 		Pour();
 		d->Sx = X();
