@@ -393,7 +393,7 @@ int GFontSystem::IconvConvert(const char *OutCs, GStreamI *Out, const char *InCs
 
 #elif HAS_ICONV
 
-	if (!HasIconv())
+	if (!HasIconv(false))
 	{
 		return 0;
 	}
