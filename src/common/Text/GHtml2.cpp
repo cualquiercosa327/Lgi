@@ -174,6 +174,7 @@ static GInfo TagInfo[] =
 	{TAG_H6,			"h6",			0,			TI_BLOCK},
 	{TAG_IFRAME,		"iframe",		0,			TI_BLOCK},
 	{TAG_LINK,			"link",			0,			TI_NONE},
+	{TAG_BIG,			"big",			0,			TI_NONE},
 	{TAG_UNKNOWN,		0,				0,			TI_NONE},
 };
 
@@ -442,7 +443,7 @@ public:
 	{
 		if (!Style)
 			return false;
-
+		
 		GFont *Default = Owner->GetFont();
 		GCss::StringsDef Face = Style->FontFamily();
 		if (Face.Length() < 1 || !ValidStr(Face[0]))
@@ -2531,6 +2532,13 @@ void GTag::SetStyle()
 
 	switch (TagId)
 	{
+	    case TAG_BIG:
+	    {
+            GCss::Len l;
+            l.Type = SizeLarger;
+	        FontSize(l);
+	        break;
+	    }
 		case TAG_META:
 		{
 			char *Cs = 0;
@@ -2724,56 +2732,6 @@ void GTag::SetStyle()
 
 			if (Get("Size", s))
 				FontSize(Len(s));
-
-			/*
-			if (Size)
-			{
-				int Height = 0;
-				
-				if (strchr(Size, '+') || strchr(Size, '-'))
-				{
-					Height = f->PointSize() + atoi(Size);
-				}
-				else if (IsDigit(*Size))
-				{
-					if (strchr(Size, '%'))
-					{
-						int Percent = atoi(Size);
-						if (Percent)
-						{
-							Height = f->PointSize() * Percent / 100;
-						}
-					}
-					else if (stristr(Size, "pt"))
-					{
-						Height = atoi(Size);
-					}
-					else
-					{
-						int s = atoi(Size);
-						
-						if (s < 1) s = 1;
-						if (s > 7) s = 7;
-
-						int Sys = Html->DefFont()->PointSize();
-						Height = ((float)Sys) * FntMul[s-1];
-					}
-				}
-				else if (stricmp(Size, "smaller") == 0)
-				{
-					Height = f->PointSize() - 1;
-				}
-				else if (stricmp(Size, "larger") == 0)
-				{
-					Height = f->PointSize() + 1;
-				}
-
-				if (Height)
-				{
-					f->PointSize(max(Height, MinFontSize));
-				}
-			}
-			*/
 			break;
 		}
 		case TAG_STRONG:
@@ -4088,6 +4046,14 @@ void GTag::LayoutTable(GFlowRegion *f)
 		Len BdrSpacing = BorderSpacing();
 		int CellSpacing = BdrSpacing.IsValid() ? (int)BdrSpacing.Value : 0;
 		int AvailableX = f->ResolveX(Width(), Font);
+		
+		if (MaxWidth().IsValid())
+		{
+		    int m = f->ResolveX(MaxWidth(), Font);
+		    if (m < AvailableX)
+		        AvailableX = m;
+		}
+		
 		GCss::Len Border = BorderLeft();
 		int BorderX1 = Border.IsValid() ? f->ResolveX(Border, Font) : 0;
 		Border = BorderRight();
@@ -4532,7 +4498,10 @@ void GTag::LayoutTable(GFlowRegion *f)
 		}
 		
 		// Cell positioning
-		int Cx = (int) (BorderLeft().Value + CellSpacing), Cy = (int) (BorderTop().Value + CellSpacing);
+		int LeftMargin = (int) (BorderLeft().Value + CellSpacing);
+		int Cx = LeftMargin;
+		int Cy = (int) (BorderTop().Value + CellSpacing);
+		
 		for (y=0; y<s.y; y++)
 		{
 			GTag *Prev = 0;
@@ -4595,7 +4564,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 				Prev = t;
 			}
 			
-			Cx = CellSpacing;
+			Cx = LeftMargin;
 			Cy += MaxRow[y] + CellSpacing;
 		}
 
