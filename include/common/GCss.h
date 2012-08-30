@@ -286,15 +286,15 @@ public:
 				Parse(init);
 		}
 
-		Len(LengthType t)
+		Len(LengthType t, float v = 0.0)
 		{
 			Type = t;
-			Value = 0.0;
+			Value = v;
 		}
 
 		bool Parse(const char *&s, ParsingStyle Type = ParseStrict);
 		bool IsValid() { return Type != LenInherit; }
-		bool IsDynamic() { return Type == LenPercent || Type == LenInherit; }
+		bool IsDynamic() { return Type == LenPercent || Type == LenInherit || Type == SizeSmaller || Type == SizeLarger; }
 		bool operator !=(Len &l) { return Type != l.Type || Value != l.Value; }
 		bool ToString(GStream &p);
 		int ToPx(int Box = 0, GFont *Font = 0, int Dpi = 96);
@@ -594,8 +594,13 @@ public:
 	bool CopyStyle(const GCss &c);
 	GCss &operator =(const GCss &c) { CopyStyle(c); return *this; }
 	void *PropAddress(PropType p) { return Props.Find(p); }
-	bool ApplyInherit(GCss &c, GArray<PropType> *Types = 0);
 	GAutoString ToString();
+
+    // Inheritance calculation
+    typedef GArray<void*> PropArray;
+    typedef GHashTbl<int, PropArray*> PropMap;
+	bool InheritCollect(GCss &c, PropMap &Contrib);
+    bool InheritResolve(PropMap &Map);
 
 protected:
 	inline void DeleteProp(PropType p, void *Ptr);

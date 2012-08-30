@@ -31,11 +31,15 @@
 #undef CellSpacing
 #define DefaultCellSpacing			0
 #define DefaultCellPadding			3
+
 #ifdef MAC
 #define MinimumPointSize			9
+#define MinimumBodyFontSize			12
 #else
 #define MinimumPointSize			8
+#define MinimumBodyFontSize			11
 #endif
+
 #define DefaultPointSize			11
 #define DefaultBodyMargin			"5px"
 #define DefaultImgSize				17
@@ -178,6 +182,9 @@ static GInfo TagInfo[] =
 	{TAG_UNKNOWN,		0,				0,			TI_NONE},
 };
 
+static GHashTbl<const char*, GInfo*> TagMap(TAG_LAST * 3, false, NULL, NULL);
+static GInfo *UnknownTag = NULL;
+
 static GInfo *GetTagInfo(const char *Tag)
 {
 	GInfo *i;
@@ -185,20 +192,22 @@ static GInfo *GetTagInfo(const char *Tag)
 	if (!Tag)
 		return 0;
 
-	if (stricmp(Tag, "th") == 0)
-	{
-		Tag = "td";
+    if (TagMap.Length() == 0)
+    {
+	    for (i = TagInfo; i->Tag; i++)
+	    {
+	        TagMap.Add(i->Tag, i);
+
+	        if (i->Id == TAG_TD)
+	            TagMap.Add("th", i);
+	    }
+	    
+	    UnknownTag = i;
+	    LgiAssert(UnknownTag->Id == TAG_UNKNOWN);
 	}
 
-	for (i=TagInfo; i->Tag; i++)
-	{
-		if (stricmp(i->Tag, Tag) == 0)
-		{
-			break;
-		}
-	}
-
-	return i;
+	i = TagMap.Find(Tag);
+	return i ? i : UnknownTag;
 }
 
 static bool Is8Bit(char *s)
@@ -228,6 +237,7 @@ static char *ParseName(char *s, char **Name)
 			*Name = NewStr(Start, Len);
 		}
 	}
+	
 	return s;
 }
 
@@ -1815,28 +1825,37 @@ GFont *GTag::GetFont()
 {
 	if (!Font)
 	{
-		if (PropAddress(PropFontFamily) != 0 ||
-			FontSize().Type != LenInherit ||
-			FontStyle() != FontStyleInherit ||
-			FontVariant() != FontVariantInherit ||
-			FontWeight()  != FontWeightInherit ||
-			TextDecoration() != TextDecorInherit)
+		if (PropAddress(PropFontFamily) != 0                    ||
+			FontSize().Type             != LenInherit           ||
+			FontStyle()                 != FontStyleInherit     ||
+			FontVariant()               != FontVariantInherit   ||
+			FontWeight()                != FontWeightInherit    ||
+			TextDecoration()            != TextDecorInherit)
 		{
 			GCss c = *this;
 
-			GArray<PropType> Types;
-			Types.Add(PropFontFamily);
-			Types.Add(PropFontSize);
-			Types.Add(PropFontStyle);
-			Types.Add(PropFontVariant);
-			Types.Add(PropFontWeight);
-			Types.Add(PropTextDecoration);
+            GCss::PropMap Map;
+            Map.Add(PropFontFamily, new GCss::PropArray);
+			Map.Add(PropFontSize, new GCss::PropArray);
+			Map.Add(PropFontStyle, new GCss::PropArray);
+			Map.Add(PropFontVariant, new GCss::PropArray);
+			Map.Add(PropFontWeight, new GCss::PropArray);
+			Map.Add(PropTextDecoration, new GCss::PropArray);
+
+            if (Debug)
+            {
+                int asd=0;
+            }
 
 			for (GTag *t = Parent; t; t = t->Parent)
 			{
-				if (!c.ApplyInherit(*t, &Types))
+				if (!c.InheritCollect(*t, Map))
 					break;
 			}
+			
+			c.InheritResolve(Map);
+			
+			Map.DeleteObjects();
 
 			if (Font = Html->FontCache->GetFont(&c))
 				return Font;
@@ -2586,6 +2605,15 @@ void GTag::SetStyle()
 			if (BackgroundColor().Type != ColorInherit)
 			{
 				Html->SetBackColour(BackgroundColor().Rgb32);
+			}
+			
+			GFont *f = GetFont();
+			if (FontSize().Type == LenInherit)
+			{
+			    if (f)
+        		    FontSize(Len(LenPt, max(MinimumBodyFontSize, f->PointSize())) );
+        		else
+        		    FontSize(Len(LenPt, MinimumBodyFontSize));
 			}
 
 			const char *Back;
@@ -4151,6 +4179,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 							{
 								Percents[t->Cell.x] = max(w.Value, Percents[t->Cell.x]);
 							}
+							
 							float Total = Sum<float>(Percents);
 							if (Total > 100.0)
 							{
@@ -4167,7 +4196,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 							t->GetWidthMetrics(t->MinContent, t->MaxContent);
 							
 							int x = w.IsValid() ? f->ResolveX(w, Font) : 0;
-							t->MinContent = max(x, t->MinContent);
+							//t->MinContent = max(x, t->MinContent);
 							t->MaxContent = max(x, t->MaxContent);
 							
 							#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT

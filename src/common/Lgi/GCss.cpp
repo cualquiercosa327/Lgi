@@ -584,140 +584,218 @@ GAutoString GCss::ToString()
 	return GAutoString(p.NewStr());
 }
 
-bool GCss::ApplyInherit(GCss &c, GArray<PropType> *Types)
+bool GCss::InheritCollect(GCss &c, PropMap &Contrib)
 {
 	int StillInherit = 0;
 
-	if (Types)
+    int p;
+	for (PropArray *a = Contrib.First(&p); a; a = Contrib.Next(&p))
 	{
-		for (int i=0; i<Types->Length(); i++)
+		switch (p >> 8)
 		{
-			PropType p = (*Types)[i];
-			switch (p >> 8)
+			#define InheritEnum(prop, type, inherit) \
+				case prop: \
+				{ \
+					type *Mine = (type*)Props.Find(p); \
+					if (!Mine || *Mine == inherit) \
+					{ \
+						type *Theirs = (type*)c.Props.Find(p); \
+						if (Theirs) \
+						{ \
+							if (!Mine) Props.Add(p, Mine = new type); \
+							*Mine = *Theirs; \
+						} \
+						else StillInherit++; \
+					} \
+					break; \
+				}
+
+			#define InheritClass(prop, type, inherit) \
+				case prop: \
+				{ \
+					type *Mine = (type*)Props.Find(p); \
+					if (!Mine || Mine->Type == inherit) \
+					{ \
+						type *Theirs = (type*)c.Props.Find(p); \
+						if (Theirs) \
+						{ \
+							if (!Mine) Props.Add(p, Mine = new type); \
+							*Mine = *Theirs; \
+						} \
+						else StillInherit++; \
+					} \
+					break; \
+				}
+
+
+
+			case TypeEnum:
 			{
-				#define InheritEnum(prop, type, inherit) \
-					case prop: \
-					{ \
-						type *Mine = (type*)Props.Find(p); \
-						if (!Mine || *Mine == inherit) \
-						{ \
-							type *Theirs = (type*)c.Props.Find(p); \
-							if (Theirs) \
-							{ \
-								if (!Mine) Props.Add(p, Mine = new type); \
-								*Mine = *Theirs; \
-							} \
-							else StillInherit++; \
-						} \
-						break; \
-					}
-
-				#define InheritClass(prop, type, inherit) \
-					case prop: \
-					{ \
-						type *Mine = (type*)Props.Find(p); \
-						if (!Mine || Mine->Type == inherit) \
-						{ \
-							type *Theirs = (type*)c.Props.Find(p); \
-							if (Theirs) \
-							{ \
-								if (!Mine) Props.Add(p, Mine = new type); \
-								*Mine = *Theirs; \
-							} \
-							else StillInherit++; \
-						} \
-						break; \
-					}
-
-
-
-				case TypeEnum:
+				switch (p)
 				{
-					switch (p)
+					InheritEnum(PropFontStyle, FontStyleType, FontStyleInherit);
+					InheritEnum(PropFontVariant, FontVariantType, FontVariantInherit);
+					InheritEnum(PropFontWeight, FontWeightType, FontWeightInherit);
+					InheritEnum(PropTextDecoration, TextDecorType, TextDecorInherit);
+					default:
 					{
-						InheritEnum(PropFontStyle, FontStyleType, FontStyleInherit);
-						InheritEnum(PropFontVariant, FontVariantType, FontVariantInherit);
-						InheritEnum(PropFontWeight, FontWeightType, FontWeightInherit);
-						InheritEnum(PropTextDecoration, TextDecorType, TextDecorInherit);
-						default:
-						{
-							LgiAssert(!"Not impl.");
-							break;
-						}
+						LgiAssert(!"Not impl.");
+						break;
 					}
-					break;
 				}
-				case TypeLen:
+				break;
+			}
+			case TypeLen:
+			{
+				Len *Mine = (Len*)Props.Find(p);
+				if (!Mine || Mine->IsDynamic())
 				{
-					Len *Mine = (Len*)Props.Find(p);
-					if (!Mine || Mine->Type == LenInherit || Mine->Type == LenPercent)
+					Len *Cur = (Len*)c.Props.Find(p);
+					if (Cur && Cur->Type != LenInherit)
 					{
-						Len *Theirs = (Len*)c.Props.Find(p);
-						if (Theirs && Theirs->Type != LenInherit)
-						{
-							if (!Mine) Props.Add(p, Mine = new Len);
-							if (Mine->Type == LenPercent)
-							{
-								Mine->Type = Theirs->Type;
-								Mine->Value = Theirs->Value * Mine->Value / 100.0;
-							}
-							else if (Mine->Type == LenEm)
-							{
-								LgiAssert(!"Impl me.");
-							}
-							else
-							{
-								*Mine = *Theirs;
-							}
-						}
-						else StillInherit++;
+						if (!Mine) Props.Add(p, Mine = new Len);
+						*Mine = *Cur;						
+						a->Add(Cur);
 					}
-					break;
+					else StillInherit++;
 				}
-				case TypeGRect:
+				break;
+			}
+			case TypeGRect:
+			{
+				GRect *Mine = (GRect*)Props.Find(p);
+				if (!Mine || !Mine->Valid())
 				{
-					GRect *Mine = (GRect*)Props.Find(p);
-					if (!Mine || !Mine->Valid())
+					GRect *Theirs = (GRect*)c.Props.Find(p);
+					if (Theirs)
 					{
-						GRect *Theirs = (GRect*)c.Props.Find(p);
-						if (Theirs)
-						{
-							if (!Mine) Props.Add(p, Mine = new GRect);
-							*Mine = *Theirs;
-						}
-						else StillInherit++;
+						if (!Mine) Props.Add(p, Mine = new GRect);
+						*Mine = *Theirs;
 					}
-					break;
+					else StillInherit++;
 				}
-				case TypeStrings:
+				break;
+			}
+			case TypeStrings:
+			{
+				StringsDef *Mine = (StringsDef*)Props.Find(p);
+				if (!Mine || Mine->Length() == 0)
 				{
-					StringsDef *Mine = (StringsDef*)Props.Find(p);
-					if (!Mine || Mine->Length() == 0)
+					StringsDef *Theirs = (StringsDef*)c.Props.Find(p);
+					if (Theirs)
 					{
-						StringsDef *Theirs = (StringsDef*)c.Props.Find(p);
-						if (Theirs)
-						{
-							if (!Mine) Props.Add(p, Mine = new StringsDef);
-							*Mine = *Theirs;
-						}
-						else StillInherit++;
+						if (!Mine) Props.Add(p, Mine = new StringsDef);
+						*Mine = *Theirs;
 					}
-					break;
+					else StillInherit++;
 				}
-				InheritClass(TypeColor, ColorDef, ColorInherit);
-				InheritClass(TypeImage, ImageDef, ImageInherit);
-				InheritClass(TypeBorder, BorderDef, LenInherit);
-				default:
-				{
-					LgiAssert(!"Not impl.");
-					break;
-				}
+				break;
+			}
+			InheritClass(TypeColor, ColorDef, ColorInherit);
+			InheritClass(TypeImage, ImageDef, ImageInherit);
+			InheritClass(TypeBorder, BorderDef, LenInherit);
+			default:
+			{
+				LgiAssert(!"Not impl.");
+				break;
 			}
 		}
 	}
-	else LgiAssert(!"Not impl.");
 
 	return StillInherit > 0;
+}
+
+bool GCss::InheritResolve(PropMap &Contrib)
+{
+    int p;
+	for (PropArray *a = Contrib.First(&p); a; a = Contrib.Next(&p))
+	{
+	    switch (p >> 8)
+	    {
+            case TypeLen:
+            {
+				Len *Mine = (Len*)Props.Find(p);
+			    for (int i=a->Length()-1; i>=0; i--)
+			    {
+			        Len *Cur = (Len*)(*a)[i];
+			        if (Cur->IsDynamic())
+			        {
+			            switch (Cur->Type)
+			            {
+			                case SizeSmaller:
+			                {
+			                    switch (Mine->Type)
+			                    {
+			                        case LenPt:
+			                        {
+			                            Mine->Value = Mine->Value - 1;
+			                            break;
+			                        }
+			                        default:
+			                        {
+			                            LgiAssert(!"Not impl");
+			                            break;
+			                        }
+			                    }
+			                    break;
+			                }
+			                case SizeLarger:
+			                {
+			                    switch (Mine->Type)
+			                    {
+			                        case LenPt:
+			                        {
+			                            Mine->Value = Mine->Value + 1;
+			                            break;
+			                        }
+			                        default:
+			                        {
+			                            LgiAssert(!"Not impl");
+			                            break;
+			                        }
+			                    }
+			                    break;
+			                }
+			                case LenPercent:
+			                {
+			                    switch (Mine->Type)
+			                    {
+			                        case LenPt:
+			                        case LenPercent:
+			                        case LenPx:
+			                        case LenEm:
+			                        case LenEx:
+			                        case LenCm:
+			                        {
+			                            Mine->Value *= Cur->Value / 100;
+			                            break;
+			                        }
+			                        default:
+			                        {
+			                            LgiAssert(!"Not impl");
+			                            break;
+			                        }
+			                    }
+			                    break;
+			                }
+	                        default:
+	                        {
+	                            LgiAssert(!"Not impl");
+	                            break;
+	                        }
+			            }
+			        }
+			        else
+			        {
+			            *Mine = *Cur;
+			        }
+			    }
+				break;
+            }
+	    }
+	}
+	
+    return false;
 }
 
 bool GCss::CopyStyle(const GCss &c)

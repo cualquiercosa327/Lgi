@@ -13,8 +13,10 @@
 // Util macros
 #define IsWhiteSpace(c)				(strchr(GTextView::WhiteSpace, c) != 0)
 #define IsDelimiter(c)				(strchr(GTextView::Delimiters, c) != 0)
+/*
 #define IsDigit(c)					((c) >= '0' AND (c) <= '9')
 #define IsAlpha(c)					(((c) >= 'a' AND (c) <= 'z') || ((c) >= 'A' AND (c) <= 'Z'))
+*/
 #define IsText(c)					(IsDigit(c) || IsAlpha(c) || (c) == '_')
 #define IsWordBoundry(c)			(strchr(GTextView::WhiteSpace, c) || strchr(GTextView::Delimiters, c))
 #define UrlChar(c)					(strchr(GTextView::UrlDelim, (c)) || AlphaOrDigit((c)))

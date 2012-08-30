@@ -51,7 +51,8 @@ enum HtmlTag
 	TAG_HR,
 	TAG_IFRAME,
 	TAG_LINK,
-	TAG_BIG
+	TAG_BIG,
+	TAG_LAST
 };
 
 enum TagInfoFlags
