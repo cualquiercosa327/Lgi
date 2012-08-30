@@ -46,7 +46,7 @@ public:
 	{
 		Collection *Files;
 
-		FileLock(GSemaphore *s, char *file, int line) : GSemaphore::Auto(s, file, line)
+		FileLock(GSemaphore *s, const char *file, int line) : GSemaphore::Auto(s, file, line)
 		{
 			Files = 0;
 		}

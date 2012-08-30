@@ -1667,7 +1667,7 @@ static bool PopLine(GArray<char> &a, int &Used, GAutoString &Line)
 	return false;
 }
 
-bool MailIMap::Fetch(bool ByUid, char *Seq, char *Parts, FetchCallback Callback, void *UserData, GStreamI *RawCopy)
+bool MailIMap::Fetch(bool ByUid, char *Seq, const char *Parts, FetchCallback Callback, void *UserData, GStreamI *RawCopy)
 {
 	bool Status = false;
 

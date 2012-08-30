@@ -845,7 +845,7 @@ public:
 		/// The sequence number or UID
 		char *Seq,
 		/// The parts to retrieve
-		char *Parts,
+		const char *Parts,
 		/// Data is returned to the caller via this callback function
 		FetchCallback Callback,
 		/// A user defined param to pass back to the 'Callback' function.
