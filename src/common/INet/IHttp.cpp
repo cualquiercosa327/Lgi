@@ -402,7 +402,54 @@ bool IHttp::Get
 		// Generate the request string
 		GStringPipe Cmd;
 		GUri u(Uri);
+		bool IsHTTPS = u.Protocol && !stricmp(u.Protocol, "https");
 		GAutoString EncPath = u.Encode(u.Path ? u.Path : (char*)"/");
+		char s[1024];
+		GLinePrefix EndHeaders("\r\n");
+		GStringPipe Headers;
+
+		if (IsHTTPS && Proxy)
+		{
+			Cmd.Print(	"CONNECT %s:%i HTTP/1.1\r\n"
+						"Host: %s\r\n"
+						"\r\n",
+						u.Host, u.Port,
+						u.Host);
+			GAutoString c(Cmd.NewStr());
+			int cLen = strlen(c);
+			int r = Socket->Write(c, cLen);
+			if (r == cLen)
+			{
+				int Length = 0;
+				while (Out)
+				{
+					int r = Socket->Read(s, sizeof(s));
+					if (r > 0)
+					{
+						int e = EndHeaders.IsEnd(s, r);
+						if (e < 0)
+						{
+							Headers.Write(s, r);
+						}
+						else
+						{
+							e -= Length;
+							Headers.Write(s, e);
+							break;
+						}
+						
+						Length += r;
+					}
+					else break;
+				}
+				
+				GAutoString Hdr(Headers.NewStr());
+
+				GVariant v;
+				Socket->SetValue(GSocket_Protocol, v = "SSL");
+			}
+			else return false;
+		}
 
 		Cmd.Print("GET %s HTTP/1.0\r\n", (Proxy) ? Uri : EncPath.Get());
 		Cmd.Print("Host: %s\r\n", u.Host);
@@ -429,21 +476,17 @@ bool IHttp::Get
 		}
 		Cmd.Push("\r\n");
 		
-		char *c = Cmd.NewStr();
+		GAutoString c(Cmd.NewStr());
 		if (c)
 		{
 			// Write the headers...
 			int cLen = strlen(c);
 			bool WriteOk = Socket->Write(c, cLen) == cLen;
-			DeleteArray(c);
+			c.Reset();
 			if (WriteOk)
 			{
 				// Read the response
-				char s[1024];
-				GLinePrefix EndHeaders("\r\n");
-				GStringPipe Headers;
 				int Total = 0;
-
 				while (Out)
 				{
 					int r = Socket->Read(s, sizeof(s));
