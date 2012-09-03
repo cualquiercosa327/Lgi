@@ -1842,11 +1842,6 @@ GFont *GTag::GetFont()
 			Map.Add(PropFontWeight, new GCss::PropArray);
 			Map.Add(PropTextDecoration, new GCss::PropArray);
 
-            if (Debug)
-            {
-                int asd=0;
-            }
-
 			for (GTag *t = Parent; t; t = t->Parent)
 			{
 				if (!c.InheritCollect(*t, Map))
