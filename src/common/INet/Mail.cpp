@@ -127,6 +127,9 @@ void TokeniseStrList(char *Str, List<char> &Output, const char *Delim)
 		char *s = Str;
 		while (*s)
 		{
+		    while (*s && strchr(WhiteSpace, *s))
+		        s++;
+
 			char *e = s;
 			for (; *e; e++)
 			{

@@ -142,8 +142,11 @@ int GdcGif::get_byte()
 
 int GdcGif::out_line(uchar *pixels, int linewidth, int interlaced, int BitDepth)
 {
-	static int p;
-	if (lines == 0) p = 0;
+	// static int p;
+	// if (lines == 0) p = 0;
+
+    if (lines >= pDC->Y())
+        return -1;
 
 	switch (pDC->GetBits())
 	{
@@ -222,13 +225,12 @@ int GdcGif::out_line(uchar *pixels, int linewidth, int interlaced, int BitDepth)
 	if (Meter)
 	{
 		int a = Meter->Value() * 100 / pDC->Y();
-		int b = p * 100 / pDC->Y();
+		int b = lines * 100 / pDC->Y();
 		if (abs(a-b) > 5)
 		{
-			Meter->Value(p);
+			Meter->Value(lines);
 		}
 	}
-	p++;
 
 	return 0;
 }

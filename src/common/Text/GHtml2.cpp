@@ -2610,10 +2610,7 @@ void GTag::SetStyle()
 			GFont *f = GetFont();
 			if (FontSize().Type == LenInherit)
 			{
-			    if (f)
-        		    FontSize(Len(LenPt, max(MinimumBodyFontSize, f->PointSize())) );
-        		else
-        		    FontSize(Len(LenPt, MinimumBodyFontSize));
+       		    FontSize(Len(LenPt, (float)f->PointSize()));
 			}
 
 			const char *Back;
