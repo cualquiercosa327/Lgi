@@ -1735,7 +1735,7 @@ void LgiFormatSize(char *Str, uint64 Size)
 	}
 	else if (Size < 10 * K)
 	{
-		double d = (int64)Size;
+		double d = (double)(int64)Size;
 		sprintf(Str, "%.2f K", d / K);
 	}
 	else if (Size < M)
@@ -1744,12 +1744,12 @@ void LgiFormatSize(char *Str, uint64 Size)
 	}
 	else if (Size < G)
 	{
-		double d = (int64)Size;
+		double d = (double)(int64)Size;
 		sprintf(Str, "%.2f M", d / M);
 	}
 	else
 	{
-		double d = (int64)Size;
+		double d = (double)(int64)Size;
 		sprintf(Str, "%.2f G", d / G);
 	}
 }

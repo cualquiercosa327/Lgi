@@ -36,7 +36,7 @@ public:
 	List<ImgColour> Colours;
 };
 
-uint ColourDistance(ImgColour *a, ImgColour *b)
+uint32 ColourDistance(ImgColour *a, ImgColour *b)
 {
 	// calculate distance
 	int dr = a->ar - b->ar;
@@ -44,7 +44,7 @@ uint ColourDistance(ImgColour *a, ImgColour *b)
 	int db = a->ab - b->ab;
 
 	// final result
-	return sqrt((double) ((dr*dr) + (dg*dg) + (db*db)));
+	return (uint32)sqrt((double) ((dr*dr) + (dg*dg) + (db*db)));
 }
 
 bool CreatePalette(GPalette *Out, GSurface *In, int DestSize)
@@ -114,7 +114,7 @@ bool CreatePalette(GPalette *Out, GSurface *In, int DestSize)
 						// active cell
 
 						// we want about this many colours
-						int Aim = (double)Items * Scale;
+						int Aim = (int) ((double)Items * Scale);
 						if (Aim < 1) Aim = 1;			// obviously we need at least 1 colour
 														// to represent this space
 						DSize -= Aim;

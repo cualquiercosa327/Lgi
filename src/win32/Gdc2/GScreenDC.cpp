@@ -495,45 +495,75 @@ void GScreenDC::Line(int x1, int y1, int x2, int y2)
 void GScreenDC::Circle(double cx, double cy, double radius)
 {
 	HBRUSH hTemp = (HBRUSH) SelectObject(hDC, d->Null.Brush);
-	::Ellipse(hDC, cx - radius, cy - radius, cx + radius, cy + radius);
+	::Ellipse(	hDC,
+				(int)floor(cx - radius),
+				(int)floor(cy - radius),
+				(int)ceil(cx + radius),
+				(int)ceil(cy + radius));
 	SelectObject(hDC, hTemp);
 }
 
 void GScreenDC::FilledCircle(double cx, double cy, double radius)
 {
-	::Ellipse(hDC, cx - radius, cy - radius, cx + radius, cy + radius);
+	::Ellipse(	hDC,
+				(int)floor(cx - radius),
+				(int)floor(cy - radius),
+				(int)ceil(cx + radius),
+				(int)ceil(cy + radius));
 }
 
 void GScreenDC::Arc(double cx, double cy, double radius, double start, double end)
 {
-	int StartX = cx + (cos(start) * radius);
-	int StartY = cy + (sin(start) * radius);
-	int EndX = cx + (cos(end) * radius);
-	int EndY = cy + (sin(end) * radius);
+	int StartX = (int)(cx + (cos(start) * radius));
+	int StartY = (int)(cy + (int)(sin(start) * radius));
+	int EndX = (int)(cx + (int)(cos(end) * radius));
+	int EndY = (int)(cy + (int)(sin(end) * radius));
 
-	::Arc(hDC, cx - radius, cy - radius, cx + radius, cy + radius, StartX, StartY, EndX, EndY);
+	::Arc(	hDC,
+			(int)floor(cx - radius),
+			(int)floor(cy - radius),
+			(int)ceil(cx + radius),
+			(int)ceil(cy + radius),
+			StartX, StartY,
+			EndX, EndY);
 }
 
 void GScreenDC::FilledArc(double cx, double cy, double radius, double start, double end)
 {
-	int StartX = cx + (cos(start) * radius);
-	int StartY = cy + (sin(start) * radius);
-	int EndX = cx + (cos(end) * radius);
-	int EndY = cy + (sin(end) * radius);
+	int StartX = (int)(cx + (cos(start) * radius));
+	int StartY = (int)(cy + (int)(sin(start) * radius));
+	int EndX = (int)(cx + (int)(cos(end) * radius));
+	int EndY = (int)(cy + (int)(sin(end) * radius));
 
-	Pie(hDC, cx - radius, cy - radius, cx + radius, cy + radius, StartX, StartY, EndX, EndY);
+	::Pie(	hDC,
+			(int)floor(cx - radius),
+			(int)floor(cy - radius),
+			(int)ceil(cx + radius),
+			(int)ceil(cy + radius),
+			StartX, StartY,
+			EndX, EndY);
 }
 
 void GScreenDC::Ellipse(double cx, double cy, double x, double y)
 {
 	HBRUSH hTemp = (HBRUSH) SelectObject(hDC, d->Null.Brush);
-	::Ellipse(hDC, cx - x, cy - y, cx + x, cy + y);
+	::Ellipse(	hDC,
+				(int)floor(cx - x),
+				(int)floor(cy - y),
+				(int)ceil(cx + x),
+				(int)ceil(cy + y)
+				);
 	SelectObject(hDC, hTemp);
 }
 
 void GScreenDC::FilledEllipse(double cx, double cy, double x, double y)
 {
-	::Ellipse(hDC, cx - x, cy - y, cx + x, cy + y);
+	::Ellipse(	hDC,
+				(int)floor(cx - x),
+				(int)floor(cy - y),
+				(int)ceil(cx + x),
+				(int)ceil(cy + y)
+				);
 }
 
 void GScreenDC::Box(int x1, int y1, int x2, int y2)

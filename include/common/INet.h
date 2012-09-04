@@ -59,7 +59,7 @@ typedef int SOCKET;
 
 // Functions
 LgiNetFunc bool HaveNetConnection();
-LgiNetFunc bool WhatsMyIp(char *IpAddr);
+LgiNetFunc bool WhatsMyIp(GAutoString &Ip);
 
 /// Make md5 hash
 LgiNetFunc void MDStringToDigest

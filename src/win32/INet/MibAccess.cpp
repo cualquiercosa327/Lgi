@@ -131,7 +131,7 @@ BOOL MibII::GetIPAddress(UINT IpArray[], UINT &IpArraySize)
 	AsnObjectIdentifier MIB_NULL = {0,0};
 	BOOL                Exit;
 	int                 ret;
-	int                 IpCount=0;
+	UINT                IpCount=0;
 	DWORD               dtmp;
 	
 	varBindList.list = varBind;
@@ -155,7 +155,7 @@ BOOL MibII::GetIPAddress(UINT IpArray[], UINT &IpArraySize)
 				dtmp = *((DWORD *)varBind[0].value.asnValue.address.stream);
 				IpArray[IpCount] = dtmp;
 				IpCount++;
-				if(IpCount>=IpArraySize)
+				if (IpCount >= IpArraySize)
 					Exit = TRUE;
 			}
 		}
@@ -180,7 +180,7 @@ BOOL MibII::GetIPMask(UINT IpArray[],UINT &IpArraySize)
 	AsnObjectIdentifier MIB_NULL = {0,0};
 	BOOL                Exit;
 	int                 ret;
-	int                 IpCount=0;
+	UINT                IpCount=0;
 	DWORD               dtmp;
 	
 	varBindList.list = varBind;
@@ -205,7 +205,7 @@ BOOL MibII::GetIPMask(UINT IpArray[],UINT &IpArraySize)
 				dtmp = *((DWORD *)varBind[0].value.asnValue.address.stream);
 				IpArray[IpCount] = dtmp;
 				IpCount++;
-				if(IpCount>=IpArraySize)
+				if (IpCount >= IpArraySize)
 					Exit = TRUE;
 			}
 		}

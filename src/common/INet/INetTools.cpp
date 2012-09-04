@@ -35,7 +35,7 @@ char *InetGetField(const char *s)
 		e--;
 
 	// Calc the length
-	int Size = e - s;
+	size_t Size = e - s;
 	char *Str = new char[Size+1];
 	if (Str)
 	{
@@ -86,14 +86,14 @@ char *InetGetHeaderField(	// Returns an allocated string or NULL on failure
 	{
 		// for all lines
 		const char *End = Len < 0 ? 0 : Headers + Len;
-		int FldLen = strlen(Field);
+		size_t FldLen = strlen(Field);
 		
 		for (const char *s = Headers;
 			*s AND (!End || s < End);
 			s = SeekNextLine(s, End))
 		{
 			if (*s != 9 &&
-				strnicmp(s, Field, FldLen) == 0)
+				_strnicmp(s, Field, FldLen) == 0)
 			{
 				// found a match
 				s += FldLen;
@@ -137,7 +137,7 @@ void InetTokeniseHeaders(List<GInetHeader> &Out, const char *In)
 		// get end-of-line
 		const char *e = strchr(s, '\n');
 		if (!e) e = s + strlen(s);
-		int Len = e - s;
+		size_t Len = e - s;
 
 		// process line
 		char *eName = strnchr(s, ':', Len);
@@ -173,18 +173,18 @@ char *InetRemoveField(char *Headers, const char *Field)
 			// get end-of-line
 			e = strchr(s, '\n');
 			if (!e) e = s + strlen(s);
-			int Len = e - s;
+			size_t Len = e - s;
 
 			// process line
 			char *eName = strnchr(s, ':', Len);
 			if (eName)
 			{
-				if (strnicmp(s, Field, eName - s) == 0)
+				if (_strnicmp(s, Field, eName - s) == 0)
 				{
 					GBytePipe Out;
 
 					// found header... push headers before this one
-					Out.Write((uchar*)Headers, s - Headers);
+					Out.Write((uchar*)Headers, (int) (s - Headers));
 
 					// get end
 					char *End = eName;
@@ -195,15 +195,15 @@ char *InetRemoveField(char *Headers, const char *Field)
 					}
 
 					// push text after this header
-					Out.Write((uchar*)End, strlen(End));
+					Out.Write((uchar*)End, (int)strlen(End));
 
 					// replace text..
 					DeleteArray(Headers);
-					int Len = Out.GetSize();
+					int64 Len = Out.GetSize();
 					Status = new char[Len+1];
 					if (Status)
 					{
-						Out.Read((uchar*)Status, Len);
+						Out.Read((uchar*)Status, (int)Len);
 						Status[Len] = 0;
 					}
 
@@ -289,7 +289,7 @@ char *InetGetSubField(const char *s, const char *Field)
 		{
 			s++;
 
-			int FieldLen = strlen(Field);
+			size_t FieldLen = strlen(Field);
 			char White[] = " \t\r\n";
 			while (*s)
 			{
@@ -301,7 +301,7 @@ char *InetGetSubField(const char *s, const char *Field)
 				{
 					const char *f = s;
 					while (*s AND (IsAlpha(*s) || *s == '-')) s++;
-					bool HasField = ((s-f) == FieldLen) AND (strnicmp(Field, f, FieldLen) == 0);
+					bool HasField = ((s-f) == FieldLen) && (_strnicmp(Field, f, FieldLen) == 0);
 					while (*s AND strchr(White, *s)) s++;
 					if (*s == '=')
 					{

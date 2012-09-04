@@ -232,10 +232,10 @@ void LgiFillGradient(GSurface *pDC, GRect &r, bool Vert, GArray<GColourStop> &St
 				float d = Next->Pos - This->Pos;
 				float t = (Next->Pos - p) / d;
 				float n = (p - This->Pos) / d;
-				uint8 r = (R32(This->Colour) * t) + (R32(Next->Colour) * n);
-				uint8 g = (G32(This->Colour) * t) + (G32(Next->Colour) * n);
-				uint8 b = (B32(This->Colour) * t) + (B32(Next->Colour) * n);
-				uint8 a = (A32(This->Colour) * t) + (A32(Next->Colour) * n);
+				uint8 r = (uint8) ((R32(This->Colour) * t) + (R32(Next->Colour) * n));
+				uint8 g = (uint8) ((G32(This->Colour) * t) + (G32(Next->Colour) * n));
+				uint8 b = (uint8) ((B32(This->Colour) * t) + (B32(Next->Colour) * n));
+				uint8 a = (uint8) ((A32(This->Colour) * t) + (A32(Next->Colour) * n));
 				c = Rgba32(r, g, b, a);
 			}
 			else if (p >= Next->Pos)
@@ -423,10 +423,10 @@ GColour GdcMixColour(GColour c1, GColour c2, float HowMuchC1)
 {
 	float HowMuchC2 = 1.0 - HowMuchC1;
 
-	int r = (c1.r()*HowMuchC1) + (c2.r()*HowMuchC2);
-	int g = (c1.g()*HowMuchC1) + (c2.g()*HowMuchC2);
-	int b = (c1.b()*HowMuchC1) + (c2.b()*HowMuchC2);
-	int a = (c1.a()*HowMuchC1) + (c2.a()*HowMuchC2);
+	uint8 r = (uint8) ((c1.r()*HowMuchC1) + (c2.r()*HowMuchC2));
+	uint8 g = (uint8) ((c1.g()*HowMuchC1) + (c2.g()*HowMuchC2));
+	uint8 b = (uint8) ((c1.b()*HowMuchC1) + (c2.b()*HowMuchC2));
+	uint8 a = (uint8) ((c1.a()*HowMuchC1) + (c2.a()*HowMuchC2));
 	
 	return GColour(r, g, b, a);
 }
@@ -434,9 +434,9 @@ GColour GdcMixColour(GColour c1, GColour c2, float HowMuchC1)
 COLOUR GdcMixColour(COLOUR c1, COLOUR c2, float HowMuchC1)
 {
 	double HowMuchC2 = 1.0 - HowMuchC1;
-	int r = (R24(c1)*HowMuchC1) + (R24(c2)*HowMuchC2);
-	int g = (G24(c1)*HowMuchC1) + (G24(c2)*HowMuchC2);
-	int b = (B24(c1)*HowMuchC1) + (B24(c2)*HowMuchC2);
+	uint8 r = (uint8) ((R24(c1)*HowMuchC1) + (R24(c2)*HowMuchC2));
+	uint8 g = (uint8) ((G24(c1)*HowMuchC1) + (G24(c2)*HowMuchC2));
+	uint8 b = (uint8) ((B24(c1)*HowMuchC1) + (B24(c2)*HowMuchC2));
 	return Rgb24(r, g, b);
 }
 
@@ -444,11 +444,11 @@ COLOUR GdcGreyScale(COLOUR c, int Bits)
 {
 	COLOUR c24 = CBit(24, c, Bits);
 
-	int r = (R24(c24) * 76) / 255;
-	int g = (G24(c24) * 150) / 255;
-	int b = (B24(c24) * 29) / 255;
+	int r = R24(c24) * 76;
+	int g = G24(c24) * 150;
+	int b = B24(c24) * 29;
 	
-	return r + g + b;
+	return (r + g + b) >> 8;
 }
 
 COLOUR CBit(int DstBits, COLOUR c, int SrcBits, GPalette *Pal)

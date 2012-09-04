@@ -11,11 +11,11 @@
 char WhiteSpace[] = " \t\r\n";
 
 // 8 Bit
-char *strnchr(const char *s, char c, int Len)
+char *strnchr(const char *s, char c, size_t Len)
 {
 	if (s)
 	{
-		for (int i=0; i<Len; i++)
+		for (size_t i=0; i<Len; i++)
 		{
 			if (s[i] == c)
 			{
@@ -27,12 +27,13 @@ char *strnchr(const char *s, char c, int Len)
 	return 0;
 }
 
-char *strnstr(char *a, const char *b, int n)
+char *strnstr(char *a, const char *b, size_t n)
 {
 	if (a && b)
 	{
-		int SLen = strlen(b);
-		int DLen = 0;
+		size_t SLen = strlen(b);
+		size_t DLen = 0;
+		
 		while (DLen < n && a[DLen])
 		{
 		    DLen++;
@@ -57,7 +58,7 @@ char *strnistr(char *a, const char *b, int n)
 {
 	if (a && b)
 	{
-		int SLen = strlen(b);
+		size_t SLen = strlen(b);
 		while (n >= SLen)
 		{
 			int i;
@@ -221,7 +222,7 @@ char *TrimStr(const char *s, const char *Delim)
 			Start++;
 		}
 
-		int StartLen = strlen(Start);
+		size_t StartLen = strlen(Start);
 		if (StartLen > 0)
 		{
 			const char *End = Start + strlen(Start) - 1;
@@ -232,7 +233,7 @@ char *TrimStr(const char *s, const char *Delim)
 
 			if (*Start)
 			{
-				int Len = (End - Start) + 1;
+				size_t Len = (End - Start) + 1;
 				char *n = new char[Len+1];
 				if (n)
 				{
@@ -269,7 +270,7 @@ bool ValidStr(const char *s)
 	return false;
 }
 
-char *NewStr(const char *s, int Len)
+char *NewStr(const char *s, size_t Len)
 {
 	if (s)
 	{
@@ -297,7 +298,7 @@ bool MatchStr(const char *Template, const char *Data)
 		return false;
 	}
 
-	if (stricmp(Template, (char*)"*") == 0)
+	if (_stricmp(Template, (char*)"*") == 0)
 	{
 		// matches anything
 		return true;
@@ -318,14 +319,14 @@ bool MatchStr(const char *Template, const char *Data)
 			{
 				const char *EndA;
 				for (EndA = Template; *EndA && *EndA!='?' && *EndA!='*'; EndA++);
-				int SegLen = EndA - Template;
+				size_t SegLen = EndA - Template;
 				char *Seg = NewStr(Template, SegLen);
 				if (!Seg) return false;
 
 				// find end of non match
 				while (*Data)
 				{
-					if (strnicmp(Data, Seg, SegLen) == 0)
+					if (_strnicmp(Data, Seg, SegLen) == 0)
 					{
 						break;
 					}
@@ -369,7 +370,7 @@ bool MatchStr(const char *Template, const char *Data)
 		}
 	}
 
-	return	((*Template == 0) || (stricmp(Template, (char*)"*") == 0)) &&
+	return	((*Template == 0) || (_stricmp(Template, (char*)"*") == 0)) &&
 			(*Data == 0);
 }
 
@@ -872,7 +873,7 @@ char *LgiEncodeUri(const char *uri, int len)
 			if ((!end || e < end) && *e)
 			{
 				char h[4];
-				sprintf(h, "%%%2.2X", (uchar)*e);
+				sprintf_s(h, sizeof(h), "%%%2.2X", (uchar)*e);
 				p.Push(h, 3);
 				s = ++e;
 			}

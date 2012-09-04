@@ -154,13 +154,13 @@ bool GNetwork::EnumInterfaces(List<char> &Lst)
 	m.Init();
 	if (m.GetIPAddress(IPArray, Size))
 	{
-		for (int i=0; i<Size; i++)
+		for (UINT i=0; i<Size; i++)
 		{
 			if (IPArray[i])
 			{
 				char Str[256];
 				uchar *Ip = (uchar*) &IPArray[i];
-				sprintf(Str, "%i.%i.%i.%i", Ip[0], Ip[1], Ip[2], Ip[3]);
+				sprintf_s(Str, sizeof(Str), "%i.%i.%i.%i", Ip[0], Ip[1], Ip[2], Ip[3]);
 				Lst.Insert(NewStr(Str));
 
 				Status = true;
@@ -382,7 +382,7 @@ bool GSocket::IsReadable(int TimeoutMs)
 		FD_ZERO(&r);
 		FD_SET(s, &r);
 		
-		int v = select(s+1, &r, 0, 0, &t);
+		int v = select((int)s+1, &r, 0, 0, &t);
 		if (v > 0 && FD_ISSET(s, &r))
 		{
 			return true;
@@ -413,7 +413,7 @@ bool GSocket::IsWritable(int TimeoutMs)
 		fd_set set;
 		FD_ZERO(&set);
 		FD_SET(s, &set);		
-		int ret = select(s+1, 0, &set, 0, &t);
+		int ret = select((int)s+1, 0, &set, 0, &t);
 		// printf("select ret=%i isset=%i\n", ret, FD_ISSET(s, &set));
 		if (ret > 0 && FD_ISSET(s, &set))
 		{
@@ -489,7 +489,8 @@ bool GSocket::GetLocalIp(char *IpAddr)
 			return false;
 		
 		uchar *a = (uchar*)&addr.sin_addr.s_addr;
-		sprintf(	IpAddr,
+		sprintf_s(	IpAddr,
+					16,
 					"%i.%i.%i.%i",
 					a[0],
 					a[1],
@@ -511,12 +512,13 @@ bool GSocket::GetRemoteIp(char *IpAddr)
 		if (!getpeername(Handle(), (sockaddr*)&a, &addrlen))
 		{
 			uchar *addr = (uchar*)&a.sin_addr.s_addr;
-			sprintf(IpAddr,
-					"%u.%u.%u.%u",
-					addr[0],
-					addr[1],
-					addr[2],
-					addr[3]);
+			sprintf_s(	IpAddr,
+						16,
+						"%u.%u.%u.%u",
+						addr[0],
+						addr[1],
+						addr[2],
+						addr[3]);
 			return true;
 		}
 	}
@@ -544,8 +546,6 @@ int GSocket::Open(const char *HostAddr, int Port)
 
 	if (HostAddr)
 	{
-		char Buf[1024];
-
 		BytesWritten = 0;
 		BytesRead = 0;
 		
@@ -724,7 +724,7 @@ int GSocket::Open(const char *HostAddr, int Port)
 								break;
 							}
 							
-							if (IsWritable(min(Remaining, 1000)))
+							if (IsWritable((int)min(Remaining, 1000)))
 							{
 								// Should be ready to connect now...
 								#if CONNECT_LOGGING
@@ -770,7 +770,8 @@ int GSocket::Open(const char *HostAddr, int Port)
 				if (!Status)
 				{
 					char Info[256];
-					sprintf(Info,
+					sprintf_s(Info,
+							sizeof(Info),
 							"[INET] Socket Connect: %s [%i.%i.%i.%i], port: %i",
 							HostAddr,
 							(RemoteAddr.sin_addr.s_addr) & 0xFF,
@@ -919,29 +920,27 @@ void GSocket::Log(const char *Msg, int Ret, const char *Buf, int Len)
 				{
 					char s[256];
 
-					sprintf(s, "%s = %i\r\n", Msg, Ret);
-					f.Write(s, strlen(s));
+					f.Write(s, sprintf_s(s, sizeof(s), "%s = %i\r\n", Msg, Ret));
 
 					for (int i=0; i<Len;)
 					{
 						char Ascii[32], *a = Ascii;
-						sprintf(s, "%8.8X\t", i);
-						for (int n = i + 16; i<Len AND i<n; i++)
+						int Ch = sprintf_s(s, sizeof(s), "%8.8X\t", i);
+						for (int n = i + 16; i<Len && i<n; i++)
 						{
 							*a = (uchar)Buf[i];
 							if (*a < ' ') *a = '.';
 							a++;
 
-							sprintf(s+strlen(s), "%2.2X ", (uchar)Buf[i]);
+							Ch += sprintf_s(s+Ch, sizeof(s)-Ch, "%2.2X ", (uchar)Buf[i]);
 						}
 						*a++ = 0;
-						while (strlen(s) < 58)
+						while (Ch < 58)
 						{
-							strcat(s, " ");
+							Ch += sprintf_s(s+Ch, sizeof(s)-Ch, " ");
 						}
-						strcat(s, Ascii);
-						strcat(s, (char*)"\r\n");
-						f.Write(s, strlen(s));
+						Ch += sprintf_s(s+Ch, sizeof(s)-Ch, "%s\r\n", Ascii);
+						f.Write(s, Ch);
 					}
 					break;
 				}
@@ -1158,7 +1157,7 @@ int GSocket::Error(void *Param)
 	{
 		HostEnt *He = (HostEnt*)Param;
 		char s[256];
-		sprintf(s, "%s (gethostbyname returned '%s')", Error->Msg, He->h_name);
+		sprintf_s(s, sizeof(s), "%s (gethostbyname returned '%s')", Error->Msg, He->h_name);
 		OnError(d->LastError, s);
 	}
 	else
@@ -1309,7 +1308,7 @@ bool HaveNetConnection()
 		{
 			pRasEnumConnections(Con, &Bytes, &Connections);
 
-			for (int i=0; i<Connections; i++)
+			for (unsigned i=0; i<Connections; i++)
 			{
 				RASCONNSTATUS Stat;
 				char *Err = "";
@@ -1363,11 +1362,10 @@ bool HaveNetConnection()
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-bool WhatsMyIp(char *IpAddr)
+bool WhatsMyIp(GAutoString &Ip)
 {
 	bool Status = false;
 
-	strcpy(IpAddr, "(none)");
 	GNetwork Sockets;
 	if (Sockets.IsValid())
 	{
@@ -1385,13 +1383,14 @@ bool WhatsMyIp(char *IpAddr)
 			for (; e->h_addr_list[Which]; Which++);
 			Which--;
 
-			sprintf(	IpAddr,
+			char IpAddr[32];
+			sprintf_s(IpAddr,
 						"%i.%i.%i.%i",
 						(uchar)e->h_addr_list[Which][0],
 						(uchar)e->h_addr_list[Which][1],
 						(uchar)e->h_addr_list[Which][2],
 						(uchar)e->h_addr_list[Which][3]);
-			Status = true;
+			Status = Ip.Reset(NewStr(IpAddr));
 		}
 		#elif defined BEOS
 
@@ -1476,10 +1475,10 @@ int GSocks5Socket::Open(char *HostAddr, int port)
 	if (HostAddr)
 	{
 		char Msg[256];
-		sprintf(Msg, "[SOCKS5] Connecting to proxy server '%s'", HostAddr);
+		sprintf_s(Msg, sizeof(Msg), "[SOCKS5] Connecting to proxy server '%s'", HostAddr);
 		OnInformation(Msg);
 
-		Status = GSocket::Open(Proxy, Port);
+		Status = GSocket::Open(Proxy, Port) != 0;
 		if (Status)
 		{
 			char Buf[1024];
@@ -1514,17 +1513,17 @@ int GSocks5Socket::Open(char *HostAddr, int port)
 								char *b = Buf;
 								*b++ = 1; // ver of sub-negotiation ??
 								
-								int NameLen = strlen(UserName);
-								*b++ = NameLen;
-								strcpy(b, UserName);
-								b += NameLen;
+								size_t NameLen = strlen(UserName);
+								LgiAssert(NameLen < 0x80);
+								*b++ = (char)NameLen;
+								b += sprintf_s(b, NameLen+1, "%s", UserName);
 
-								int PassLen = strlen(Password);
-								*b++ = PassLen;
-								strcpy(b, Password);
-								b += PassLen;
+								size_t PassLen = strlen(Password);
+								LgiAssert(PassLen < 0x80);
+								*b++ = (char)PassLen;
+								b += sprintf_s(b, PassLen+1, "%s", Password);
 
-								GSocket::Write(Buf, 3 + NameLen + PassLen, 0);
+								GSocket::Write(Buf, (int)(3 + NameLen + PassLen));
 								if (GSocket::Read(Buf, 2, 0) == 2)
 								{
 									Authenticated = (Buf[0] == 1 AND Buf[1] == 0);
@@ -1563,8 +1562,9 @@ int GSocks5Socket::Open(char *HostAddr, int port)
 						{
 							// Domain Name
 							*b++ = SOCKS5_ADDR_DOMAIN;
-							int Len = strlen(HostAddr);
-							*b++ = Len;
+							size_t Len = strlen(HostAddr);
+							LgiAssert(Len < 0x80);
+							*b++ = (char)Len;
 							strcpy(b, HostAddr);
 							b += Len;
 						}

@@ -30,7 +30,7 @@ GInput::GInput(GViewI *parent, const char *InitStr, const char *Msg, const char 
 	
 	int ContextX = 200;
 	ContextX = max(ContextX, MsgDs.X() + 40);
-	ContextX = min(ContextX, GdcD->X() * 0.8);
+	ContextX = min(ContextX, (int)(GdcD->X() * 0.8));
 	int EditX = ContextX;
 	int CallbackX = callback ? GBUTTON_MIN_X + 20 : 0;
 	ContextX = max(ContextX, Txt->X() + CallbackX);

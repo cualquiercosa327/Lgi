@@ -240,19 +240,19 @@ int GCss::Len::ToPx(int Box, GFont *Font, int Dpi)
 		    return (int)Value;
 		
 		case LenPt:
-		    return Value * Dpi / 72;
+		    return (int) (Value * Dpi / 72.0);
 
 		case LenCm:
-		    return Value * Dpi / 2.54;
+		    return (int) (Value * Dpi / 2.54);
 		    
 		case LenEm:
-		    return Value * (Font ? Font->GetHeight() : 18);
+		    return (int) (Value * (Font ? Font->GetHeight() : 18));
 		    
 		case LenEx:
-		    return Value * (Font ? Font->GetAscent() : 18); // haha I don't care.
+		    return (int) (Value * (Font ? Font->GetAscent() : 18)); // haha I don't care.
 		
 		case LenPercent:
-		    return Box * Value / 100.0;
+		    return (int) (Box * Value / 100.0);
     }
 }
 
