@@ -72,6 +72,7 @@ class GThreadOwner;
 class GThreadTarget;
 class GThreadWorker;
 
+/// A generic threaded job parent class.
 class GThreadJob
 {
 	friend class GThreadWorker;
@@ -83,11 +84,14 @@ public:
 	virtual void Do() {}
 };
 
+/// The thread target is a virtual API to receive work units executed 
+/// in the worker thread.
 class GThreadTarget : public GSemaphore
 {
 	friend class GThreadWorker;
 
 protected:
+	/// The thread doing the work.
 	GThreadWorker *Worker;
 
 public:
@@ -98,6 +102,15 @@ public:
 
 	virtual ~GThreadTarget() {}
 	
+	virtual void SetWorker(GThreadWorker *w)
+	{
+		if (w && Lock(_FL))
+		{
+			Worker = w;
+			Unlock();
+		}
+	}
+	
 	virtual void Detach()
 	{
 		if (Lock(_FL))
@@ -107,9 +120,11 @@ public:
 		}
 	}
 	
+	/// This function gets called when the job is finished
 	virtual void OnDone(GThreadJob *j) {}
 };
 
+/// This parent class does the actual work of processing jobs.
 class GThreadWorker : public GThread, public GSemaphore
 {
 	GArray<GThreadTarget*> Owners;

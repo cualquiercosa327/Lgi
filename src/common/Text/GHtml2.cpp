@@ -2858,44 +2858,68 @@ char16 *GTag::CleanText(const char *s, int Len, bool ConversionAllowed, bool Kee
 					{
 						i++;
 						
-						char16 *e;
-						for (e = i; *e && *e != ';'; e++);
-						char16 *Var = NewStrW(i, e - i);
-						if (Var)
+						if (*i == '#')
 						{
-							if (*Var == '#')
+							// Unicode Number
+							char n[32] = "", *p = n;
+							
+							i++;
+							
+							if (*i == 'x' || *i == 'X')
 							{
-								// Unicode Number
-								char n[32] = "";
-								const void *In = Var + 1;
-								int Len = StrlenW(Var + 1) * sizeof(char16);
-								if (LgiBufConvertCp(n, "iso-8859-1", sizeof(n), In, "utf-16", Len))
+								// Hex number
+								i++;
+								while (	*i &&
+										(
+											IsDigit(*i) ||
+											(*i >= 'A' && *i <= 'F') ||
+											(*i >= 'a' && *i <= 'f')
+										) &&
+										(p - n) < 31)
 								{
-									char16 Ch = atoi(n);
-									if (Ch)
-									{
-										*o++ = Ch;
-									}
+									*p++ = *i++;
 								}
+							}
+							else
+							{
+								// Decimal number
+								while (*i && IsDigit(*i) && (p - n) < 31)
+								{
+									*p++ = *i++;
+								}
+							}
+							*p++ = 0;
+							
+							char16 Ch = atoi(n);
+							if (Ch)
+							{
+								*o++ = Ch;
+							}
+							
+							if (*i && *i != ';')
+								i--;
+						}
+						else
+						{
+							// Named Char
+							char16 *e = i;
+							while (*e && IsAlpha(*e) && *e != ';')
+							{
+								e++;
+							}
+							
+							GAutoWString Var(NewStrW(i, e-i));							
+							char16 Char = GHtmlStatic::Inst->VarMap.Find(Var);
+							if (Char)
+							{
+								*o++ = Char;
 								i = e;
 							}
 							else
 							{
-								// Named Char
-								char16 Char = GHtmlStatic::Inst->VarMap.Find(Var);
-								if (Char)
-								{
-									*o++ = Char;
-									i = e;
-								}
-								else
-								{
-									i--;
-									*o++ = *i;
-								}
+								i--;
+								*o++ = *i;
 							}
-
-							DeleteArray(Var);
 						}
 						break;
 					}

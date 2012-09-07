@@ -403,7 +403,7 @@ bool IHttp::Get
 		GStringPipe Cmd;
 		GUri u(Uri);
 		bool IsHTTPS = u.Protocol && !stricmp(u.Protocol, "https");
-		GAutoString EncPath = u.Encode(u.Path ? u.Path : (char*)"/");
+		GAutoString EncPath = u.Encode(u.Path ? u.Path : (char*)"/"), Mem;
 		char s[1024];
 		GLinePrefix EndHeaders("\r\n");
 		GStringPipe Headers;
@@ -413,7 +413,7 @@ bool IHttp::Get
 			Cmd.Print(	"CONNECT %s:%i HTTP/1.1\r\n"
 						"Host: %s\r\n"
 						"\r\n",
-						u.Host, u.Port,
+						u.Host, u.Port ? u.Port : HTTPS_PORT,
 						u.Host);
 			GAutoString c(Cmd.NewStr());
 			int cLen = strlen(c);
@@ -447,11 +447,13 @@ bool IHttp::Get
 
 				GVariant v;
 				Socket->SetValue(GSocket_Protocol, v = "SSL");
+				
+				EndHeaders.Reset();
 			}
 			else return false;
 		}
 
-		Cmd.Print("GET %s HTTP/1.0\r\n", (Proxy) ? Uri : EncPath.Get());
+		Cmd.Print("GET %s HTTP/1.1\r\n", (Proxy && !IsHTTPS) ? Uri : EncPath.Get());
 		Cmd.Print("Host: %s\r\n", u.Host);
 		if (InHeaders) Cmd.Print("%s", InHeaders);
 
@@ -472,6 +474,7 @@ bool IHttp::Get
 			{
 				// Digest authentication
 				// Not implemented yet...
+				LgiAssert(!"Not impl.");
 			}
 		}
 		Cmd.Push("\r\n");
