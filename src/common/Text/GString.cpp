@@ -11,23 +11,22 @@
 char WhiteSpace[] = " \t\r\n";
 
 // 8 Bit
-char *strnchr(const char *s, char c, size_t Len)
+char *strnchr(const char *s, char c, NativeInt Len)
 {
-	if (s)
+	if (s && Len >= 0)
 	{
 		for (size_t i=0; i<Len; i++)
 		{
 			if (s[i] == c)
-			{
 				return (char*)s + i;
-			}
 		}
 	}
+	else LgiAssert(!"Bad params");
 
 	return 0;
 }
 
-char *strnstr(char *a, const char *b, size_t n)
+char *strnstr(char *a, const char *b, NativeInt n)
 {
 	if (a && b)
 	{
@@ -270,7 +269,7 @@ bool ValidStr(const char *s)
 	return false;
 }
 
-char *NewStr(const char *s, size_t Len)
+char *NewStr(const char *s, NativeInt Len)
 {
 	if (s)
 	{

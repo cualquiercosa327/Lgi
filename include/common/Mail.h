@@ -102,6 +102,9 @@ public:
 		
 		if (t)
 		{
+			if (len < 0)
+				len = strlen(t);
+
 			char *n = strnchr(t, '\r', len);
 			if (n)
 			{

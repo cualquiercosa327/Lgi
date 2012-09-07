@@ -32,7 +32,7 @@ LgiFunc char *strnchr
 	/// The character to find
 	char c,
 	/// The maximum number of bytes to search
-	size_t Len
+	NativeInt Len
 );
 
 #ifndef MAC
@@ -48,7 +48,7 @@ LgiFunc char *strnstr
 	/// The string to find
 	const char *b,
 	/// The maximum number of bytes in 'a' to seach through
-	size_t n
+	NativeInt n
 );
 #endif
 
@@ -147,7 +147,7 @@ LgiFunc char *NewStr
 	/// The input string
 	const char *s,
 	/// The maximum number of bytes in the input string to use or -1 for the whole string.
-	size_t Len = -1
+	NativeInt Len = -1
 );
 /// Does a wildcard match.
 LgiFunc bool MatchStr
