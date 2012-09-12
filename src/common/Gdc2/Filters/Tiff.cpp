@@ -121,7 +121,7 @@ class GdcTiffFactory : public GFilterFactory
 	{
 		if (Access == FILTER_CAP_READ)
 		{
-			return (File) ? stristr(File, ".tiff") != 0 OR
+			return (File) ? stristr(File, ".tiff") != 0 ||
 							stristr(File, ".tif") != 0 : false;
 		}
 

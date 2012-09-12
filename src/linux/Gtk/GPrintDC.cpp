@@ -296,7 +296,7 @@ public:
 	void setFont(GFont *f)
 	{
 		if (File().IsOpen() AND
-			(stricmp(f->Face(), Face) != 0 OR PtSize != f->PointSize()))
+			(stricmp(f->Face(), Face) != 0 || PtSize != f->PointSize()))
 		{
 			strcpy(Face, f->Face());
 			PtSize = f->PointSize();			

@@ -52,7 +52,7 @@ public:
 					GMenuItem *Sel = s->Items[NewIdx];
 					if (Sel)
 					{
-						if (Sel->Separator() OR !Sel->Enabled())
+						if (Sel->Separator() || !Sel->Enabled())
 						{
 							Inc += Inc < 0 ? -1 : 1;
 							NewIdx = Index + Inc;
@@ -124,7 +124,7 @@ bool SubMenuImpl::OnKey(GKey &k)
 	printf("IsChar=%i c16=%i\n", k.IsChar, k.c16);
 	#endif
 	
-	if (k.IsChar OR k.Alt())
+	if (k.IsChar || k.Alt())
 	{
 		Status = true;
 		switch (k.c16)
@@ -711,7 +711,7 @@ void MenuItemImpl::OnMouseEnter(GMouse &m)
 				}
 			}
 			
-			if ((IsOnSubMenu() OR HasOpen) AND d->Item->Child)
+			if ((IsOnSubMenu() || HasOpen) AND d->Item->Child)
 			{
 				ShowSub();
 			}

@@ -475,7 +475,7 @@ bool GView::SetPos(GRect &p, bool Repaint)
 		int o = 0;
 		
 		GView *Par = d->GetParent();
-		if (Par AND (Par->Sunken() OR Par->Raised()))
+		if (Par AND (Par->Sunken() || Par->Raised()))
 		{
 			o = Par->_BorderSize;
 		}
@@ -786,7 +786,7 @@ bool GView::Attach(GViewI *parent)
 		int o = 0;
 		{
 			GView *Par = d->GetParent();
-			if (Par AND (Par->Sunken() OR Par->Raised()))
+			if (Par AND (Par->Sunken() || Par->Raised()))
 			{
 				o = Par->_BorderSize;
 			}

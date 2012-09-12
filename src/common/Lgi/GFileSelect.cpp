@@ -315,7 +315,7 @@ public:
 
 	bool OnKey(GKey &k)
 	{
-		if (k.c16 == ' ' OR k.c16 == VK_RETURN)
+		if (k.c16 == ' ' || k.c16 == VK_RETURN)
 		{
 			if (Enabled() AND Down ^ k.Down())
 			{
@@ -650,7 +650,7 @@ int GFileSelectDlg::OnNotify(GViewI *Ctrl, int Flags)
 				{
 					// allow user to insert new type by typing the pattern into the file name edit box and
 					// hitting enter
-					if (strchr(f, '?') OR strchr(f, '*'))
+					if (strchr(f, '?') || strchr(f, '*'))
 					{
 						// it's a mask, push the new type on the the type stack and
 						// refilter the content
@@ -1002,7 +1002,7 @@ void GFileSystemItem::OnPath(char *p)
 		int PathLen = strlen(Path);
 		if (Path AND
 			strnicmp(Path, p, PathLen) == 0 AND
-			(p[PathLen] == DIR_CHAR OR p[PathLen] == 0)
+			(p[PathLen] == DIR_CHAR || p[PathLen] == 0)
 			#ifdef LINUX
 			AND strcmp(Path, "/") != 0
 			#endif
@@ -1059,7 +1059,7 @@ void GFileSystemItem::OnMouseClick(GMouse &m)
 
 bool GFileSystemItem::OnKey(GKey &k)
 {
-	if ((k.c16 == ' ' OR k.c16 == VK_RETURN))
+	if ((k.c16 == ' ' || k.c16 == VK_RETURN))
 	{
 		if (k.Down() AND k.IsChar)
 		{
@@ -1126,7 +1126,7 @@ void GFolderItem::OnSelect()
 
 void GFolderItem::OnDelete(bool Ask)
 {
-	if (!Ask OR LgiMsg(Parent, "Do you want to delete '%s'?", ModuleName, MB_YESNO, Path) == IDYES)
+	if (!Ask || LgiMsg(Parent, "Do you want to delete '%s'?", ModuleName, MB_YESNO, Path) == IDYES)
 	{
 		bool Status = false;
 

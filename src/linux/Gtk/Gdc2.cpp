@@ -352,8 +352,8 @@ bool GPalette::operator ==(GPalette &p)
 
 		for (int i=0; i<GetSize(); i++)
 		{
-			if (	a->R != b->R OR
-				a->G != b->G OR
+			if (	a->R != b->R ||
+				a->G != b->G ||
 				a->B != b->B)
 			{
 				return false;
@@ -1156,7 +1156,7 @@ void GSprite::Draw(int x, int y, COLOUR Back, int Mode, GSurface *pDC)
 void GSprite::Move(int x, int y, bool WaitRetrace)
 {
 	if (	pScreen AND
-		(x != PosX OR
+		(x != PosX ||
 		y != PosY))
 	{
 		if (Visible)

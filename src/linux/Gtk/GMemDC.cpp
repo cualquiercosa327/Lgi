@@ -221,7 +221,7 @@ void GMemDC::SetOrigin(int x, int y)
 
 bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 {
-	if (x < 1 OR y < 1 OR Bits < 1) return false;
+	if (x < 1 || y < 1 || Bits < 1) return false;
 	if (Bits < 8) Bits = 8;
 
 	Empty();

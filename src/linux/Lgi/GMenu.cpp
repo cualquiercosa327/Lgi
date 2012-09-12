@@ -137,7 +137,7 @@ bool GSubMenu::OnKey(GKey &k)
 #if 0
 bool IsOverMenu(XEvent *e)
 {
-	if (e->xany.type == ButtonPress OR
+	if (e->xany.type == ButtonPress ||
 		e->xany.type == ButtonRelease)
 	{
 		QWidget *q = QWidget::Find(e->xany.window);
@@ -591,12 +591,12 @@ bool GMenuItem::ScanForAccel()
 					{
 						Flags |= LGI_EF_SHIFT;
 					}
-					else if (stricmp(k, "Del") == 0 OR
+					else if (stricmp(k, "Del") == 0 ||
 							 stricmp(k, "Delete") == 0)
 					{
 						Key = VK_DELETE;
 					}
-					else if (stricmp(k, "Ins") == 0 OR
+					else if (stricmp(k, "Ins") == 0 ||
 							 stricmp(k, "Insert") == 0)
 					{
 						Key = VK_INSERT;
@@ -916,11 +916,11 @@ bool GAccelerator::Match(GKey &k)
 {
 	int Press = (uint) k.vkey;
 	
-	if (k.vkey == VK_RSHIFT OR
-		k.vkey == VK_LSHIFT OR
-		k.vkey == VK_RCTRL OR
-		k.vkey == VK_LCTRL OR
-		k.vkey == VK_RALT OR
+	if (k.vkey == VK_RSHIFT ||
+		k.vkey == VK_LSHIFT ||
+		k.vkey == VK_RCTRL ||
+		k.vkey == VK_LCTRL ||
+		k.vkey == VK_RALT ||
 		k.vkey == VK_RALT)
 	{
 		return false;

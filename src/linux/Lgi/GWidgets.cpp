@@ -21,6 +21,20 @@ using namespace Gtk;
 ///////////////////////////////////////////////////////////////////////////////////////////
 #define GreyBackground()
 
+struct GDialogPriv
+{
+	int ModalStatus;
+	bool IsModal;
+	bool Resizable;
+	
+	GDialogPriv()
+	{
+		IsModal = true;
+		Resizable = true;
+		ModalStatus = 0;
+	}
+};
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 GDialog::GDialog()
 	: ResObject(Res_Dialog)
@@ -28,15 +42,23 @@ GDialog::GDialog()
 	, GWindow(gtk_dialog_new_with_buttons(0, 0, (GtkDialogFlags) (GTK_DIALOG_MODAL | GTK_DIALOG_NO_SEPARATOR), 0))
 	#endif
 {
+	d = new GDialogPriv();
 	Name("Dialog");
 	_View = GTK_WIDGET(Wnd);
-	IsModal = false;
-	_Resizable = false;
 	_SetDynamic(false);
 }
 
 GDialog::~GDialog()
 {
+	DeleteObj(d);
+}
+
+void GDialog::Quit(bool DontDelete)
+{
+	if (d->IsModal)
+		EndModal(0);
+	else
+		EndModeless(0);
 }
 
 void GDialog::OnPosChange()
@@ -59,7 +81,7 @@ bool GDialog::LoadFromResource(int Resource, char *TagList)
 
 bool GDialog::OnRequestClose(bool OsClose)
 {
-	if (IsModal)
+	if (d->IsModal)
 	{
 		EndModal(0);
 		return false;
@@ -90,17 +112,17 @@ public:
 
 bool GDialog::IsResizeable()
 {
-    return _Resizable;
+    return d->Resizable;
 }
 
 void GDialog::IsResizeable(bool r)
 {
-    _Resizable = r;
+	d->Resizable = r;
 }
 
 int GDialog::DoModal(OsView OverrideParent)
 {
-	ModalStatus = -1;
+	d->ModalStatus = -1;
 
 	#if defined __GTK_H__
 
@@ -133,13 +155,13 @@ int GDialog::DoModal(OsView OverrideParent)
 	
 	OnCreate();
 	AttachChildren();
-	IsModal = true;
+	d->IsModal = true;
 
 	gint r = gtk_dialog_run(GTK_DIALOG(Wnd));
 
 	#endif
 
-	return ModalStatus;
+	return d->ModalStatus;
 }
 
 void _Dump(GViewI *v, int Depth = 0)
@@ -158,10 +180,10 @@ void _Dump(GViewI *v, int Depth = 0)
 
 void GDialog::EndModal(int Code)
 {
-	if (IsModal)
+	if (d->IsModal)
 	{
-		IsModal = false;
-		ModalStatus = Code;
+		d->IsModal = false;
+		d->ModalStatus = Code;
 		gtk_dialog_response(GTK_DIALOG(Wnd), Code);
 	}
 	else
@@ -172,7 +194,7 @@ void GDialog::EndModal(int Code)
 
 int GDialog::DoModeless()
 {
-	IsModal = false;
+	d->IsModal = false;
 	if (Attach(0))
 	{
 		AttachChildren();
@@ -618,7 +640,7 @@ void GRadioButton::OnPaint(GSurface *pDC)
 	pDC->Line(c.x1+2, c.y1+11, c.x1+3, c.y1+11);
 
 	/// Draw center
-	pDC->Colour(Over OR !e ? LC_MED : LC_WORKSPACE, 24);
+	pDC->Colour(Over || !e ? LC_MED : LC_WORKSPACE, 24);
 	pDC->Rectangle(c.x1+2, c.y1+4, c.x1+10, c.y1+8);
 	pDC->Box(c.x1+3, c.y1+3, c.x1+9, c.y1+9);
 	pDC->Box(c.x1+4, c.y1+2, c.x1+8, c.y1+10);
@@ -864,7 +886,7 @@ void GBitmap::SetDC(GSurface *pNewDC)
 	
 	if (pDC)
 	{
-		int Border = (Sunken() OR Raised()) ? _BorderSize : 0;
+		int Border = (Sunken() || Raised()) ? _BorderSize : 0;
 		GRect r = GetPos();
 		r.Dimension(pDC->X() + (Border<<1), pDC->Y() + (Border<<1));
 		SetPos(r, true);

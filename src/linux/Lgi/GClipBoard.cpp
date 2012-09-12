@@ -17,7 +17,6 @@ GClipBoard::GClipBoard(GView *o)
 	d = new GClipBoardPriv;
 	Owner = o;
 	Open = false;
-	Txt = 0;
 	pDC = 0;
 	d->c = gtk_clipboard_get(gdk_atom_intern("CLIPBOARD", false));
 }
@@ -111,7 +110,7 @@ bool GClipBoard::Binary(FormatType Format, uchar *Ptr, int Len, bool AutoEmpty)
 	return Status;
 }
 
-bool GClipBoard::Binary(FormatType Format, uchar **Ptr, int *Len)
+bool GClipBoard::Binary(FormatType Format, GAutoPtr<uint8> &Ptr, int *Len)
 {
 	bool Status = false;
 
