@@ -653,6 +653,10 @@ public:
 
 				if (Izza(GText))
 				{
+					GText *Txt = dynamic_cast<GText*>(v);
+					if (Txt && Txt->GetWrap() == false)
+						Txt->SetWrap(true);
+
 					int y = LayoutTextCtrl(v, 0, Pos.X());
 					Pos.y2 += y;
 					

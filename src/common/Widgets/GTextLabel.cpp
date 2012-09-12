@@ -243,7 +243,7 @@ void GText::OnPaint(GSurface *pDC)
 	}
 
 	#if 0
-	pDC->Colour(Rgb24(0, 0, 255), 24);
+	pDC->Colour(Rgb24(255, 0, 0), 24);
 	pDC->Box(0, 0, X()-1, Y()-1);
 	#endif	
 }
