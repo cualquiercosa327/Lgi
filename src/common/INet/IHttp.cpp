@@ -490,6 +490,8 @@ bool IHttp::Get
 			{
 				// Read the response
 				int Total = 0;
+				int Used = 0;
+				
 				while (Out)
 				{
 					int r = Socket->Read(s, sizeof(s));
@@ -504,7 +506,12 @@ bool IHttp::Get
 						{
 							e -= Total;
 							Headers.Write(s, e);
-							Out->Write(s+e, r-e);
+							if (r > e)
+							{
+								// Move the tailing data down to the start of the buffer
+								memmove(s, s + e, r - e);
+								Used = r - e;
+							}
 							break;
 						}
 						Total += r;
@@ -513,13 +520,19 @@ bool IHttp::Get
 				}
 
 				// Process output
-				char *h = Headers.NewStr();
+				GAutoString h(Headers.NewStr());
 				if (h)
 				{
 					GAutoString sContentLen(InetGetHeaderField(h, "Content-Length"));
 					int64 ContentLen = sContentLen ? atoi64(sContentLen) : -1;
+					bool IsChunked = false;
 					if (ContentLen > 0)
 						Out->SetSize(ContentLen);
+					else
+					{
+						GAutoString sTransferEncoding(InetGetHeaderField(h, "Transfer-Encoding"));
+						IsChunked = sTransferEncoding && !stricmp(sTransferEncoding, "chunked");
+					}
 
 					if (strnicmp(h, "HTTP/", 5) == 0 && ProtocolStatus)
 					{
@@ -529,19 +542,111 @@ bool IHttp::Get
 					{
 						OutHeaders->Write(h, strlen(h));
 					}
-					DeleteArray(h);
-					
-					while (Socket->IsOpen())
+
+					int64 Written = 0;
+					if (IsChunked)
 					{
-						int r = Socket->Read(s, sizeof(s));
-						if (r > 0)
+						while (true)
 						{
-							Out->Write(s, r);
+							// Try and get chunk header
+							char *End = strnstr(s, "\r\n", Used);
+							if (!End)
+							{
+								int r = Socket->Read(s + Used, sizeof(s) - Used);
+								if (r < 0)
+									break;
+								
+								Used += r;
+								
+								End = strnstr(s, "\r\n", Used);
+								if (!End)
+								{
+									LgiAssert(!"No chunk header");
+									break;
+								}
+							}
+
+							// Process the chunk header							
+							End += 2;
+							int HdrLen = End - s;
+							int ChunkSize = htoi(s);
+							if (ChunkSize <= 0)
+							{
+								// End of stream.
+								Status = true;
+								break;
+							}
+							
+							int ChunkDone = 0;
+							memmove(s, End, Used - HdrLen);
+							Used -= HdrLen;
+							
+							// Loop over the body of the chunk
+							while (ChunkDone < ChunkSize)
+							{
+								int Remaining = ChunkSize - ChunkDone;
+								int Common = min(Used, Remaining);
+								if (Common > 0)
+								{
+									int w = Out->Write(s, Common);
+									if (w != Common)
+									{
+										LgiAssert(!"Write failed.");
+										break;
+									}
+									if (Used > Common)
+										memmove(s, s + Common, Used - Common);
+									ChunkDone += Common;
+									Used -= Common;
+
+									if (ChunkDone >= ChunkSize)
+										break;
+								}
+
+								int r = Socket->Read(s + Used, sizeof(s) - Used);
+								if (r < 0)
+									break;
+								
+								Used += r;
+							}
+							
+							// Loop over the CRLF postfix
+							if (Used < 2)
+							{
+								int r = Socket->Read(s + Used, sizeof(s) - Used);
+								if (r < 0)
+									break;
+								Used += r;
+							}							
+							if (Used < 2 || s[0] != '\r' || s[1] != '\n')
+							{
+								LgiAssert(!"Post fix missing.");
+								break;
+							}
+							if (Used > 2)
+								memmove(s, s + 2, Used - 2);
+							Used -= 2;							
 						}
-						else break;
 					}
-					
-					Status = true;
+					else
+					{
+						// Non chunked connection.
+						int64 Written = 0;
+						while (Socket->IsOpen())
+						{
+							int r = Socket->Read(s + Used, sizeof(s) - Used);
+							if (r < 0)
+								break;
+
+							int w = Out->Write(s, r);
+							if (w < 0)
+								break;
+							
+							Written += w;
+						}
+
+						Status = Written == ContentLen;
+					}
 				}
 			}
 		}
