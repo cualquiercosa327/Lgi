@@ -43,7 +43,7 @@ protected:
 	bool DeleteOnExit;
 
 public:
-	GThread(const char *Name = 0);
+	GThread(const char *Name);
 	virtual ~GThread();
 
 	// Properties
@@ -132,7 +132,9 @@ class GThreadWorker : public GThread, public GSemaphore
 	bool Loop;
 
 public:
-	GThreadWorker(GThreadTarget *First) : GSemaphore("GThreadWorker")
+	GThreadWorker(GThreadTarget *First, const char *ThreadName) :
+		GThread(ThreadName),
+		GSemaphore("GThreadWorker")
 	{
 		Loop = false;
 		if (First)

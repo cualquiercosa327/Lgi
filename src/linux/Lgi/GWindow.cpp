@@ -626,14 +626,7 @@ void GWindow::SetDefault(GViewI *v)
 
 bool GWindow::Name(const char *n)
 {
-	bool Status = GBase::Name(n);
-
-	if (Wnd && _View)
-	{
-		//_View->setText(n);
-	}
-
-	return Status;
+	return GBase::Name(n);
 }
 
 char *GWindow::Name()

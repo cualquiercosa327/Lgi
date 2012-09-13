@@ -32,7 +32,7 @@ class GPulseThread : public GThread
 public:
 	bool Loop;
 
-	GPulseThread(GView *view, int len)
+	GPulseThread(GView *view, int len) : GThread("GPulseThread")
 	{
 		LgiAssert(view);
 		

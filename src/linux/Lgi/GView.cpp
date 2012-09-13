@@ -322,22 +322,6 @@ bool GView::_Mouse(GMouse &m, bool Move)
 	return true;
 }
 
-/*
-void GView::OnNcPaint(GSurface *pDC, GRect &r)
-{
-	int Border = Sunken() OR Raised() ? _BorderSize : 0;
-	if (Border == 2)
-	{
-		LgiWideBorder(pDC, r, Sunken() ? SUNKEN : RAISED);
-	}
-	else if (Border == 1)
-	{
-		LgiThinBorder(pDC, r, Sunken() ? SUNKEN : RAISED);
-	}
-	// r.Offset(Border, Border);
-}
-*/
-
 GRect &GView::GetClient(bool ClientSpace)
 {
 	int Edge = (Sunken() || Raised()) ? _BorderSize : 0;
@@ -375,89 +359,10 @@ bool GView::SetCursor(int CursorId)
 	d->CursorSet = true;
 	GView *Wnd = GetWindow();
 	
-	if (Wnd AND
-		Wnd->Handle() AND
+	if (Wnd &&
+		Wnd->Handle() &&
 		Wnd->d->CursorId != CursorId)
 	{
-		/*
-		Display *Dsp = Wnd->Handle()->XDisplay();
-
-		int Items = CountOf(CursorMetrics);
-		if (CursorId > 0 AND CursorId <= Items)
-		{
-			if (Wnd->d->XCursor)
-			{
-				XUndefineCursor(Dsp, Wnd->Handle()->handle());
-				XFreeCursor(Dsp, Wnd->d->XCursor);
-				Wnd->d->XCursor = 0;
-			}
-
-			GSurface *Mem = Cursors.Create();
-			if (Mem)
-			{
-				CursorInfo *Metrics = CursorMetrics + CursorId - 1;
-				Ximg Src(Metrics->Pos.X(), Metrics->Pos.Y(), 1);
-				Ximg Mask(Metrics->Pos.X(), Metrics->Pos.Y(), 1);
-				
-				for (int y=0; y<Src.Y(); y++)
-				{
-					for (int x=0; x<Src.X(); x++)
-					{
-						COLOUR c = Mem->Get(Metrics->Pos.x1 + x, Metrics->Pos.y1 + y);
-						Src.Set(x, y, c == 1 ? 1 : 0);
-						Mask.Set(x, y, c < 2);
-					}
-				}
-				
-				Xpix PSrc(Handle()->handle(), &Src);
-				Xpix PMask(Handle()->handle(), &Mask);
-				
-				XColor Fore, Back;
-				ZeroObj(Fore);
-				ZeroObj(Back);
-				Fore.red = Fore.green = Fore.blue = 0xffff;
-				Back.red = Back.green = Back.blue = 0;
-				Wnd->d->XCursor = XCreatePixmapCursor
-				(
-					Dsp,
-					PSrc,
-					PMask,
-					&Fore,
-					&Back,
-					Metrics->HotSpot.x - Metrics->Pos.x1,
-					Metrics->HotSpot.y - Metrics->Pos.y1
-				);
-				
-				if (Wnd->d->XCursor)
-				{
-					XDefineCursor(Dsp, Wnd->Handle()->handle(), Wnd->d->XCursor);
-				}
-				
-				DeleteObj(Mem);
-			}
-			else return false;
-		}
-		else
-		{
-			if (Wnd->d->XCursor)
-			{
-				XDefineCursor(Dsp, Wnd->Handle()->handle(), 0);
-				XFlush(Dsp);
-				
-				XFreeCursor(Dsp, Wnd->d->XCursor);
-				Wnd->d->XCursor = 0;
-			}			
-		}
-		
-		Wnd->d->CursorId = CursorId;
-		Wnd->d->LastCursor = this;
-		*/
-		
-		return true;
-	}
-	else
-	{
-		// printf("%s:%i - Param error"\n", __FILE__, __LINE__);
 	}
 	
 	return false;

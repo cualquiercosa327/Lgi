@@ -217,7 +217,7 @@ struct GSoftwareUpdatePriv
 		                GUri *proxy,		                
 		                GStream *local,
 		                GAutoString *err,
-		                int *status)
+		                int *status) : GThread("UpdateDownload")
 		{
 			Info = info;
 			Uri = uri;

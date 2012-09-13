@@ -425,7 +425,7 @@ class DeleterThread : public GThread
 	char *File;
 	
 public:
-	DeleterThread(char *f)
+	DeleterThread(char *f) : GThread("DeleterThread")
 	{
 		File = NewStr(f);
 		DeleteOnExit = true;

@@ -368,7 +368,7 @@ GApp::GApp(const char *AppMime, OsAppArguments &AppArgs, GAppArguments *Args) :
 	
 	if (!GetOption("noskin"))
 	{
-		// Load library
+		#if HAS_SHARED_OBJECT_SKIN
 		char Name[64];
 		d->SkinLib = new GLibrary("liblgiskin"
 			#ifdef _DEBUG
@@ -391,10 +391,11 @@ GApp::GApp(const char *AppMime, OsAppArguments &AppArgs, GAppArguments *Args) :
 				DeleteObj(d->SkinLib);
 			}
 		}
+		#else
+		extern GSkinEngine *CreateSkinEngine(GApp *App);
+		SkinEngine = CreateSkinEngine(this);
+		#endif
 	}
-
-
-
 }
 
 GApp::~GApp()
@@ -531,10 +532,31 @@ void GApp::OnEvents()
 }
 #endif
 
+struct GtkIdle
+{
+	GAppI::OnIdleProc cb;
+	void *param;
+};
+
+Gtk::gboolean IdleWrapper(Gtk::gpointer data)
+{
+	GtkIdle *i = (GtkIdle*) data;
+	i->cb(i->param);
+	return TRUE;
+}
+
 bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 {
 	if (Loop)
 	{
+		GtkIdle idle;
+		if (IdleCallback)
+		{
+			idle.cb = IdleCallback;
+			idle.param = IdleParam;
+			Gtk::g_idle_add(IdleWrapper, &idle);
+		}
+		
 		Gtk::gtk_main();
 	}
 	else

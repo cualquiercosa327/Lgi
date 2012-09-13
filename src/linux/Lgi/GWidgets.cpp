@@ -776,7 +776,7 @@ class GBitmapThread : public ::GThread
 	GThread **Owner;
 
 public:
-	GBitmapThread(GBitmap *bmp, char *file, GThread **owner)
+	GBitmapThread(GBitmap *bmp, char *file, GThread **owner) : GThread("GBitmapThread")
 	{
 		Bmp = bmp;
 		File = NewStr(file);

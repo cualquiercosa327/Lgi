@@ -291,7 +291,7 @@ public:
 	}
 };
 
-GBrowserThread::GBrowserThread(GBrowserPriv *priv)
+GBrowserThread::GBrowserThread(GBrowserPriv *priv) : GThread("GBrowserThread")
 {
 	Loop = true;
 	d = priv;

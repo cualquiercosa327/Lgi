@@ -272,7 +272,7 @@ class NativeTipThread : public GThread
 	List<NativeTip> *Tips;
 
 public:
-	NativeTipThread(List<NativeTip> *tips)
+	NativeTipThread(List<NativeTip> *tips) : GThread("NativeTipThread")
 	{
 		Loop = true;
 		Tips = tips;

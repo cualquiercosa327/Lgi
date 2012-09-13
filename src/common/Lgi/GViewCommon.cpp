@@ -1178,9 +1178,7 @@ void GView::SetCtrlValue(int Id, int64 i)
 {
 	GViewI *w = FindControl(Id);
 	if (w)
-	{
 		w->Value(i);
-	}
 }
 
 char *GView::GetCtrlName(int Id)
@@ -1193,9 +1191,7 @@ void GView::SetCtrlName(int Id, const char *s)
 {
 	GViewI *w = FindControl(Id);
 	if (w)
-	{
 		w->Name(s);
-	}
 }
 
 bool GView::GetCtrlEnabled(int Id)
@@ -1208,9 +1204,7 @@ void GView::SetCtrlEnabled(int Id, bool Enabled)
 {
 	GViewI *w = FindControl(Id);
 	if (w)
-	{
 		w->Enabled(Enabled);
-	}
 }
 
 bool GView::GetCtrlVisible(int Id)
@@ -1406,8 +1400,6 @@ bool GView::PostEvent(int Cmd, GMessage::Param a, GMessage::Param b)
 		return PostMessage(_View, Cmd, a, b);
 		#else
 		bool Ret = LgiPostEvent(_View, Cmd, a, b);
-		// if (!Ret)
-		// LgiTrace("%s:%i - LgiPostEvent(%i,%i,%i,%i) failed.\n", _FL, _View, Cmd, a, b);
 		return Ret;
 		#endif
 	}
