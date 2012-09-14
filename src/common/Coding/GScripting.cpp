@@ -16,7 +16,7 @@ extern GHostFunc SystemLibrary[];
 
 #define ThisToken()		(Cur < Tokens.Length() ? Tokens[Cur] : 0)
 #define NextToken()		(Cur < Tokens.Length() - 1 ? Tokens[Cur + 1] : 0)
-#define IsDigit(c)		( ((c)>='0') AND ((c)<='9')  )
+// #define IsDigit(c)		( ((c)>='0') AND ((c)<='9')  )
 
 enum GStatementType
 {

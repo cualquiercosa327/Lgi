@@ -241,7 +241,7 @@ struct FtpThreadPriv : public GSemaphore, public GNetwork
 	}
 };
 
-FtpThread::FtpThread()
+FtpThread::FtpThread() : GThread("FtpThread")
 {
 	d = new FtpThreadPriv;
 	Run();

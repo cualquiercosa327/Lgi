@@ -1415,7 +1415,7 @@ class Lr8Search : public GThread
 	GTree *Tree;
 	
 public:
-	Lr8Search(TableLayoutTest *w, char *base, GTree *tree)
+	Lr8Search(TableLayoutTest *w, char *base, GTree *tree) : GThread("Lr8Search")
 	{
 	    Wnd = w;
 		Base = base;

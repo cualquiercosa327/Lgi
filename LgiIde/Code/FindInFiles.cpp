@@ -139,7 +139,7 @@ public:
 	int64 Last;
 };
 
-FindInFilesThread::FindInFilesThread(AppWnd *App, FindParams *Params)
+FindInFilesThread::FindInFilesThread(AppWnd *App, FindParams *Params) : GThread("FindInFilesThread")
 {
 	d = new FindInFilesThreadPrivate;
 	d->App = App;

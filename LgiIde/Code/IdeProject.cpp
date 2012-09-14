@@ -1839,7 +1839,7 @@ class BuildThread : public GThread, public GStream
 	char *Args;
 
 public:
-	BuildThread(IdeProject *proj, BuildThread **ptr, char *mf, char *args = 0)
+	BuildThread(IdeProject *proj, BuildThread **ptr, char *mf, char *args = 0) : GThread("BuildThread")
 	{
 		Proj = proj;
 		*(Me = ptr) = this;
@@ -2195,7 +2195,7 @@ class ExecuteThread : public GThread, public GStream
 	ExeAction Act;
 
 public:
-	ExecuteThread(IdeProject *proj, char *exe, char *args, char *path, ExeAction act)
+	ExecuteThread(IdeProject *proj, char *exe, char *args, char *path, ExeAction act) : GThread("ExecuteThread")
 	{
 		Len = 32 << 10;
 		Proj = proj;

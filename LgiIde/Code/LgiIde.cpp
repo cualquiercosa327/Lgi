@@ -1898,7 +1898,7 @@ class Worker : public GThread
 	char Ip[32];
 
 public:
-	Worker(GStream *str, int x, int y, uint8 *r)
+	Worker(GStream *str, int x, int y, uint8 *r) : GThread("Worker")
 	{
 		s = str;
 		Result = r;
@@ -1928,7 +1928,7 @@ class Owner : public GThread, public GNetwork
 	GArray<uint8> Results;
 
 public:
-	Owner(GStream *str)
+	Owner(GStream *str) : GThread("Owner")
 	{
 		s = str;
 		Results.Length(256*256);

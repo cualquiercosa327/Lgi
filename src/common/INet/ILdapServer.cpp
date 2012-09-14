@@ -4,7 +4,7 @@
 #include "ILdapServer.h"
 
 /////////////////////////////////////////////////////////////////////////////////
-ILdapServer::ILdapServer(GView *p, ILdapServerDb *db)
+ILdapServer::ILdapServer(GView *p, ILdapServerDb *db) : GThread("ILdapServer")
 {
 	Parent = p;
 	Db = db;
