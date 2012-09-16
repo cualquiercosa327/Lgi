@@ -1516,12 +1516,12 @@ int GSocks5Socket::Open(char *HostAddr, int port)
 								size_t NameLen = strlen(UserName);
 								LgiAssert(NameLen < 0x80);
 								*b++ = (char)NameLen;
-								b += sprintf_s(b, NameLen+1, "%s", UserName);
+								b += sprintf_s(b, NameLen+1, "%s", UserName.Get());
 
 								size_t PassLen = strlen(Password);
 								LgiAssert(PassLen < 0x80);
 								*b++ = (char)PassLen;
-								b += sprintf_s(b, PassLen+1, "%s", Password);
+								b += sprintf_s(b, PassLen+1, "%s", Password.Get());
 
 								GSocket::Write(Buf, (int)(3 + NameLen + PassLen));
 								if (GSocket::Read(Buf, 2, 0) == 2)

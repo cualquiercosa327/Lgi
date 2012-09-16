@@ -1418,10 +1418,6 @@ GTag::~GTag()
 
 void GTag::OnChange(PropType Prop)
 {
-	if (Prop == PropColor)
-	{
-		int sad=0;
-	}
 }
 
 void GTag::Set(const char *attr, const char *val)
@@ -3248,7 +3244,7 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 					return s;
 				}
 
-				bool IsIf = false, IsEndIf = false;
+				bool IsEndIf = false;
 				if (!stricmp(Cond, "if"))
 				{
 					if (!IsFirst)
@@ -4709,7 +4705,6 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, char16 *Text, GC
 	if (!Flow || !Text || !Font)
 		return;
 
-	int LineStart = 0;
 	char16 *Start = Text;
 	int FullLen = StrlenW(Text);
 

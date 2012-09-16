@@ -18,7 +18,7 @@
 	( \
 		((s) >= 'a' && (s) <= 'z') || \
 		((s) >= 'A' && (s) <= 'Z') || \
-		((s) > 0xa0) \
+		(((uint8)s) > 0xa0) \
 	)
 
 #define CopyPropOnSave(Type, Id) \
