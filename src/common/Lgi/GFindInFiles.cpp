@@ -85,6 +85,9 @@ public:
 
 struct GFindInFilesPriv
 {
+	GAutoString Search;
+	GDom *Store;
+
 	GFindInFilesPriv()
 	{
 	}
@@ -94,9 +97,11 @@ struct GFindInFilesPriv
 	}
 };
 	
-GFindInFiles::GFindInFiles(GViewI *Parent)
+GFindInFiles::GFindInFiles(GViewI *Parent, GAutoString Search, GDom *Store)
 {
 	d = new GFindInFilesPriv;
+	d->Search = Search;
+	d->Store = Store;
 	SetParent(Parent);
 	
 	if (LoadFromResource(IDD_FIND_IN_FILES))
