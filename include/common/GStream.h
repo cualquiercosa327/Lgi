@@ -9,7 +9,7 @@
 
 #define _GSTREAM_H_
 
-#ifndef MAC
+#ifdef _MSC_VER
 #include <vadefs.h>
 #endif
 #include "GDom.h"

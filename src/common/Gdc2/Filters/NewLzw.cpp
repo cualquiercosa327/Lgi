@@ -338,10 +338,10 @@ uchar *Lzw::decode_string(unsigned char *buffer, unsigned int code)
 	{
 		*buffer++ = d->append_character[code];
 		code = d->prefix_code[code];
-		if (code < 0 OR
-			code >= d->next_code OR
-			code == 256 OR
-			code == 257 OR
+		if (code < 0 ||
+			code >= d->next_code ||
+			code == 256 ||
+			code == 257 ||
 			i++ >= 4094)
 		{
 			_asm int 3
