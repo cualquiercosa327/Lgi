@@ -16,7 +16,7 @@ extern GHostFunc SystemLibrary[];
 
 #define ThisToken()		(Cur < Tokens.Length() ? Tokens[Cur] : 0)
 #define NextToken()		(Cur < Tokens.Length() - 1 ? Tokens[Cur + 1] : 0)
-// #define IsDigit(c)		( ((c)>='0') AND ((c)<='9')  )
+// #define IsDigit(c)		( ((c)>='0') && ((c)<='9')  )
 
 enum GStatementType
 {
@@ -215,7 +215,7 @@ struct GDomAddr
 
 	char16 *operator[](int i)
 	{
-		if (i >= 0 AND i < Parts.Length())
+		if (i >= 0 && i < Parts.Length())
 		{
 			return Parts[i].Name;
 		}
@@ -282,7 +282,7 @@ struct GDomRef
 	{
 		if (FreeVar = dr.FreeVar)
 		{
-			if (dr.Var AND (Var = new GVariant) != 0)
+			if (dr.Var && (Var = new GVariant) != 0)
 			{
 				*Var = *dr.Var;
 			}
@@ -931,7 +931,7 @@ bool GDomRef::Set(GScriptEnginePrivate *Priv, GVariant &v)
 
 
 #define CompToInt(v) \
-	(v[0] == '0' AND v[1] == 'x') ? htoi(v + 2) : atoi(v);
+	(v[0] == '0' && v[1] == 'x') ? htoi(v + 2) : atoi(v);
 
 GScriptEngine1::GScriptEngine1(GViewI *parent, GScriptContext *context)
 {
@@ -1000,7 +1000,7 @@ bool GScriptEngine1::CallMethod(const char *Method, GVariant *Ret, ArgumentArray
 bool GScriptEnginePrivate::CreateDomAddr(int &Cur, GDomAddr &Addr)
 {
 	char16 *t = ThisToken();
-	if (t AND isalpha(*t))
+	if (t && isalpha(*t))
 	{
 		Addr.Add(t);
 		Cur++;
@@ -1033,7 +1033,7 @@ bool GScriptEnginePrivate::CreateDomAddr(int &Cur, GDomAddr &Addr)
 				if (Compile_Expression(Cur))
 				{
 					t = ThisToken();
-					if (t AND StricmpW(t, sEndSqBracket) == 0)
+					if (t && StricmpW(t, sEndSqBracket) == 0)
 					{
 						Cur++;
 					}
@@ -1075,7 +1075,7 @@ bool GScriptEnginePrivate::ResolveDomAddr(GDomRef &Ref, GDomAddr &Addr, bool Cre
 		{
 			for (int i=1; i<Addr.Length() - 1; i++)
 			{
-				if (Ref.Var->Type == GV_DOM AND
+				if (Ref.Var->Type == GV_DOM &&
 					Ref.Var->Value.Dom)
 				{
 					GVariant *v = new GVariant;
@@ -1220,7 +1220,7 @@ bool GScriptEngine1::EvaluateExpression(GVariant *Result, GDom *VariableSource, 
 {
 	bool Status = false;
 
-	if (Result AND Expression)
+	if (Result && Expression)
 	{
 		ScriptTokenState State(d);
 
@@ -1303,7 +1303,7 @@ GVariant *GScriptEnginePrivate::Var(char16 *name, bool create)
 			}
 		}
 
-		if (!v AND create)
+		if (!v && create)
 		{
 			if (v = new GVariant)
 			{
@@ -1384,7 +1384,7 @@ bool GScriptEnginePrivate::ToVar(GVariant &v, char16 *s)
 
 bool GScriptEnginePrivate::Require(int &Cur, const char *tok)
 {
-	if (tok AND Cur >= 0 AND Cur < Tokens.Length())
+	if (tok && Cur >= 0 && Cur < Tokens.Length())
 	{
 		char16 *t = Tokens[Cur];
 		if (t)
@@ -1450,7 +1450,7 @@ bool GScriptEnginePrivate::Compile_MethodCall(int &Cur)
 
 bool GScriptEnginePrivate::Compile_Expression(int &Cur, int Depth)
 {
-	if (Cur >= 0 AND Cur < Tokens.Length())
+	if (Cur >= 0 && Cur < Tokens.Length())
 	{
 		int Args = 0;
 		int Ops = 0;
@@ -1484,7 +1484,7 @@ bool GScriptEnginePrivate::Compile_Expression(int &Cur, int Depth)
 			{
 				break;
 			}
-			else if (Depth == 0 AND StricmpW(t, sEndSqBracket) == 0)
+			else if (Depth == 0 && StricmpW(t, sEndSqBracket) == 0)
 			{
 				break;
 			}
@@ -1517,7 +1517,7 @@ bool GScriptEnginePrivate::Compile_Expression(int &Cur, int Depth)
 					}
 
 					char m[64], *mp = m;
-					for (char16 *c = t; *c AND mp < m + sizeof(m) - 1; c++)
+					for (char16 *c = t; *c && mp < m + sizeof(m) - 1; c++)
 					{
 						*mp++ = *c;
 					}
@@ -1555,7 +1555,7 @@ bool GScriptEnginePrivate::Compile_Expression(int &Cur, int Depth)
 			}
 		}
 
-		if (Args > 1 AND (Ops == Args - 1 || Ops == Args))
+		if (Args > 1 && (Ops == Args - 1 || Ops == Args))
 		{
 			return true;
 		}
@@ -1578,7 +1578,7 @@ GVariant *GScriptEnginePrivate::Execute_Expression(int &Cur, GDom *Src, int Dept
 	// store non-zero if we don't own the GVariant object. And thus
 	// shouldn't free the memory on exit.
 
-	if (Cur >= 0 AND Cur < Tokens.Length())
+	if (Cur >= 0 && Cur < Tokens.Length())
 	{
 		GArray<GVariant*> Args;
 		int StartToken = Cur;
@@ -1615,7 +1615,7 @@ GVariant *GScriptEnginePrivate::Execute_Expression(int &Cur, GDom *Src, int Dept
 			{
 				break;
 			}
-			else if (Depth == 0 AND StricmpW(t, sEndSqBracket) == 0)
+			else if (Depth == 0 && StricmpW(t, sEndSqBracket) == 0)
 			{
 				break;
 			}
@@ -1649,7 +1649,7 @@ GVariant *GScriptEnginePrivate::Execute_Expression(int &Cur, GDom *Src, int Dept
 
 					GFunc *Method = 0;
 					char16 *Next = NextToken();
-					if (Next AND Next[0] == '(' AND Next[1] == 0)
+					if (Next && Next[0] == '(' && Next[1] == 0)
 					{
 						char Name[256];
 						const void *In = t;
@@ -1765,7 +1765,7 @@ GVariant *GScriptEnginePrivate::Execute_Expression(int &Cur, GDom *Src, int Dept
 
 							Args.Add(v);
 						}
-						else if (Ref AND Ref->Var)
+						else if (Ref && Ref->Var)
 						{
 							if (Ref->Var->Type == GV_DOMREF)
 							{
@@ -1804,8 +1804,8 @@ GVariant *GScriptEnginePrivate::Execute_Expression(int &Cur, GDom *Src, int Dept
 											char *u = 0;
 											GVariant *k = 0;
 
-											if (a AND
-												(u = LgiNewUtf16To8(a)) != 0 AND
+											if (a &&
+												(u = LgiNewUtf16To8(a)) != 0 &&
 												(k = (GVariant*) Ref->Var->Value.Hash->Find(u)) != 0)
 											{
 												k->User = true;
@@ -1900,7 +1900,7 @@ GVariant *GScriptEnginePrivate::Execute_Expression(int &Cur, GDom *Src, int Dept
 					}
 				}
 
-				LgiAssert(LowestOp >= 0 AND LowestOp < Args.Length());
+				LgiAssert(LowestOp >= 0 && LowestOp < Args.Length());
 
 				OperatorType Type = OpType(Args[LowestOp]->Value.Op);
 				if (Type == OpPrefix)
@@ -2365,7 +2365,7 @@ bool GScriptEnginePrivate::Type(int &Cur, GExternType &Type)
 		else if (StricmpW(t, sChar) == 0)
 		{
 			t = Tokens[Cur + 1];
-			if (t AND t[0] == '*' AND !t[1])
+			if (t && t[0] == '*' && !t[1])
 			{
 				Cur++;
 				Type.Simple = GV_STRING;
@@ -2398,7 +2398,7 @@ bool GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &In)
 		int Cur = (*Idx)[i];
 		char16 *t1 = Priv->Tokens[Cur];
 		char16 *t2 = Priv->Tokens[Cur + 1];
-		GVariant *v = t1 AND isalpha(*t1) AND t2 AND (*t2 == ',' || *t2 == ')') ? Priv->Var(t1, false) : 0;
+		GVariant *v = t1 && isalpha(*t1) && t2 && (*t2 == ',' || *t2 == ')') ? Priv->Var(t1, false) : 0;
 		*/
 
 		GVariant *v = In[i];
@@ -2564,7 +2564,7 @@ void GScriptEnginePrivate::ProcessArguments(ArgumentArray &Args, ArgumentArray &
 			char16 *Tok = ThisToken();
 			char16 *Next = NextToken();
 			GVariant *v = 0;
-			if (Tok AND Next AND isalpha(*Tok) AND (*Next == ')' || *Next == ','))
+			if (Tok && Next && isalpha(*Tok) && (*Next == ')' || *Next == ','))
 			{
 				v = Var(Tok, false);
 			}
@@ -2746,7 +2746,7 @@ bool GScriptEnginePrivate::Execute_Statement(GArray<GCode> &To)
 								{
 									if (Ref.Member)
 									{
-										if (Ref.Var->Type == GV_DOM AND
+										if (Ref.Var->Type == GV_DOM &&
 											Ref.Var->Value.Dom)
 										{
 											Ref.Var->Value.Dom->SetValue(Ref.Member, *v);
@@ -2824,7 +2824,7 @@ bool GScriptEnginePrivate::Execute_Statement(GArray<GCode> &To)
 								{
 									if (Ref.Member)
 									{
-										if (Ref.Var->Type == GV_DOM AND
+										if (Ref.Var->Type == GV_DOM &&
 											Ref.Var->Value.Dom)
 										{
 											GVariant a;
@@ -2952,8 +2952,8 @@ bool GScriptEnginePrivate::Compile_Statement(GArray<GCode> &To, int &Cur)
 								}
 							}
 
-							if (Status AND
-								(t = ThisToken()) != 0 AND
+							if (Status &&
+								(t = ThisToken()) != 0 &&
 								StricmpW(t, sElse) == 0)
 							{
 								Cur++;
@@ -3121,7 +3121,7 @@ bool GScriptEnginePrivate::Compile_Statement(GArray<GCode> &To, int &Cur)
 				if (Type(Cur, Func->Return))
 				{
 					char16 *t = Tokens[Cur];
-					if (t AND isalpha(*t))
+					if (t && isalpha(*t))
 					{
 						// Store the method name
 						Func->Method = LgiNewUtf16To8(t);
@@ -3150,7 +3150,7 @@ bool GScriptEnginePrivate::Compile_Statement(GArray<GCode> &To, int &Cur)
 									}
 
 									t = Tokens[Cur];
-									if (t AND *t == ',')
+									if (t && *t == ',')
 									{
 										Cur++;
 									}
@@ -3215,7 +3215,7 @@ bool GScriptEnginePrivate::Compile_Statement(GArray<GCode> &To, int &Cur)
 			else
 			{
 				// Execute the initial statement
-				if ((Code.For.PreStatement = new GArray<GCode>) != NULL AND
+				if ((Code.For.PreStatement = new GArray<GCode>) != NULL &&
 					Compile_Statement(*Code.For.PreStatement, Cur))
 				{
 					// Store the start position of the condition tokens
@@ -3227,7 +3227,7 @@ bool GScriptEnginePrivate::Compile_Statement(GArray<GCode> &To, int &Cur)
 					if (Require(Cur, ";"))
 					{
 						// Skip over the post statement
-						if ((Code.For.PostStatement = new GArray<GCode>) != NULL AND
+						if ((Code.For.PostStatement = new GArray<GCode>) != NULL &&
 							Compile_Statement(*Code.For.PostStatement, Cur))
 						{
 							// See the start of the block...

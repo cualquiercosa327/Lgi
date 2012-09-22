@@ -318,7 +318,7 @@ public:
 	ValueDom(const char *str, const char *name)
 	{
 		char s[256] = "(error)";
-		if (name AND str)
+		if (name && str)
 			sprintf(s, "%s: %s", name, str);
 		else if (name)
 			strcpy(s, name);
@@ -673,7 +673,7 @@ public:
 				sprintf(s, "%i-%i", i, End);
 				v->Txt = NewStr(s);
 
-				for (int k=0; k<Block AND i+k<End; k++)
+				for (int k=0; k<Block && i+k<End; k++)
 				{
 					sprintf(s,
 							"%s [%.1f,%.1f,%.1f]",
@@ -785,7 +785,7 @@ bool TagDom::GetVariant(const char *Name, GVariant &Value, char *Array)
 	{
 		Value = (int)(Dom.Length() > 2);
 	}
-	else if (Txt AND stricmp(Name, "Name") == 0)
+	else if (Txt && stricmp(Name, "Name") == 0)
 	{
 		Value = Txt;
 	}
@@ -968,7 +968,7 @@ bool GIccProfile::CreateNamed(const char *name)
 bool GIccProfile::Open(char *file)
 {
 	GFile f;
-	if (file AND f.Open(file, O_READ))
+	if (file && f.Open(file, O_READ))
 	{
 		return Open(&f);
 	}
@@ -1042,7 +1042,7 @@ bool GIccProfile::Save(GStream *stream)
 {
 	if (stream)
 	{
-		if (d->Data AND d->Len > 0)
+		if (d->Data && d->Len > 0)
 		{
 			return stream->Write(d->Data, d->Len) == d->Len;
 		}
@@ -1086,9 +1086,9 @@ bool GIccProfile::Convert(GSurface *Dest, GSurface *Src, GIccProfile *Profile)
 	(
 		NOT
 		(
-			(Dest->GetBits() == 32 AND Src->GetBits() == 32)
+			(Dest->GetBits() == 32 && Src->GetBits() == 32)
 			OR
-			(Dest->GetBits() == 24 AND Src->GetBits() == 24)
+			(Dest->GetBits() == 24 && Src->GetBits() == 24)
 		)
 	)
 	{
@@ -1128,7 +1128,7 @@ bool GIccProfile::Convert(GSurface *Dest, GSurface *Src, GIccProfile *Profile)
 		{
 			uchar *sp = (*Src)[y];
 			uchar *dp = (*Dest)[y];
-			if (sp AND dp)
+			if (sp && dp)
 			{
 				if (Buf)
 				{

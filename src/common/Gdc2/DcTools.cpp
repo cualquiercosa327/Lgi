@@ -19,7 +19,7 @@ bool IsGreyScale(GSurface *pDC)
 	{
 		GPalette *Pal = pDC->Palette();
 		Status = true;
-		if (Pal AND Pal->GetSize() > 0)
+		if (Pal && Pal->GetSize() > 0)
 		{
 			for (int i=0; i<Pal->GetSize(); i++)
 			{
@@ -44,7 +44,7 @@ bool GreyScaleDC(GSurface *pDest, GSurface *pSrc)
 {
 	bool Status = false;
 
-	if (pDest AND pSrc)
+	if (pDest && pSrc)
 	{
 		switch (pSrc->GetBits())
 		{
@@ -468,7 +468,7 @@ bool FlipYDC(GSurface *pDC)
 bool RemapDC(GSurface *pDC, GPalette *DestPal)
 {
 	bool Status = false;
-	if (pDC AND pDC->GetBits() <= 8 AND DestPal)
+	if (pDC && pDC->GetBits() <= 8 && DestPal)
 	{
 		GPalette *SrcPal = pDC->Palette();
 		int Colours = (SrcPal) ? SrcPal->GetSize() : 1 << pDC->GetBits();

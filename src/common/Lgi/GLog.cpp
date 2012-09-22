@@ -120,7 +120,7 @@ void RLogView::UpdateScrollBar()
 	int Total = GetTotalItems();
 
 	SetScrollBars(false, Screen < Total);
-	if (VScroll AND Log)
+	if (VScroll && Log)
 	{
 		VScroll->SetLimits(0, Total-1);
 		VScroll->SetPage(Screen);
@@ -143,7 +143,7 @@ void RLogView::OnPaint(GSurface *pDC)
 
 	pDC->Colour(LC_MED, 24);
 
-	if (Log AND r.Valid())
+	if (Log && r.Valid())
 	{
 		SysFont->Back(LC_WORKSPACE);
 		SysFont->Transparent(false);
@@ -315,7 +315,7 @@ void GLog::Write(COLOUR c, const char *Buffer, int Len, char *Desc)
 	{
 		RLogEntry *Entry = 0;
 		Entries.Insert(Entry = new RLogEntry(Buffer, Desc, Len, c));
-		if (Entry AND FileName)
+		if (Entry && FileName)
 		{
 			GFile F;
 			if (F.Open(FileName, O_WRITE))
@@ -332,7 +332,7 @@ void GLog::Write(COLOUR c, const char *Buffer, int Len, char *Desc)
 			}
 		}
 
-		if (LogView AND LogView->Visible())
+		if (LogView && LogView->Visible())
 		{
 			LogView->OnNotify(LogView, 0);
 		}

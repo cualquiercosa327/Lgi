@@ -70,7 +70,7 @@ GPaneThrottle::GPaneThrottle(GDom *app)
 
 int GPaneThrottle::OnNotify(GViewI *Ctrl, int Flags)
 {
-	if (Ctrl AND Ctrl->GetId() == SLIDER_ID)
+	if (Ctrl && Ctrl->GetId() == SLIDER_ID)
 	{
 		Set();
 	}
@@ -173,7 +173,7 @@ void GPaneThrottle::OnMouseClick(GMouse &m)
 					sprintf(Str, "%.1f Mbps", (double)PipeSize[i] / 1024.0 / 1024.0);
 				}
 				GMenuItem *Item = RClick->AppendItem(Str, 100+i, true);
-				if (Item AND i == Pipe)
+				if (Item && i == Pipe)
 				{
 					Item->Checked(true);
 				}
@@ -350,14 +350,14 @@ void GPaneHistory::Value(int64 i)
 		Cur = i;
 
 		// draw
-		if (pMemDC AND Max > 0)
+		if (pMemDC && Max > 0)
 		{
 			pMemDC->Colour(Rgb24(0, 0, 0), 24);
 			pMemDC->Rectangle();
 			pMemDC->Colour(Rgb24(0, 255, 0), 24);
 
 			int m=0;
-			for (int x=0; x<pMemDC->X() AND x<MAX_SAMPLE; x++)
+			for (int x=0; x<pMemDC->X() && x<MAX_SAMPLE; x++)
 			{
 				m = max(Bytes[x], m);
 				int Sample = (Bytes[x] * pMemDC->Y()) / Max;
@@ -453,7 +453,7 @@ void FileTransferProgress::Value(int64 v)
 
 			double Rate = 0.0;
 			double Seconds = ((double)Now-(double)StartTime)/1000;
-			if (StatusInfo[_STATUS_RATE] AND Seconds > 0.0)
+			if (StatusInfo[_STATUS_RATE] && Seconds > 0.0)
 			{
 				char Str[256];
 				Rate = ((double)(Val-StartPos))/Seconds;
@@ -462,7 +462,7 @@ void FileTransferProgress::Value(int64 v)
 				StatusInfo[_STATUS_RATE]->Name(Str);
 			}
 
-			if (StatusInfo[_STATUS_TIME_LEFT] AND Rate > 0.0)
+			if (StatusInfo[_STATUS_TIME_LEFT] && Rate > 0.0)
 			{
 				char Str[256];
 				double Time = ((double) (High-StartPos) / Rate) - Seconds + 0.5;

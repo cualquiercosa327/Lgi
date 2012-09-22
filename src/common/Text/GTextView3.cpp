@@ -4329,8 +4329,8 @@ void GTextView3::OnPaint(GSurface *pDC)
 					int TabOri = Tr.x1 - d->Margin.x1;
 
 					if (NextStyle &&							// There is a style
-						(Cur < SelMin || Cur >= SelMax) &&		// AND we're not drawing a selection block
-						Cur >= NextStyle->Start &&				// AND we're inside the styled area
+						(Cur < SelMin || Cur >= SelMax) &&		// && we're not drawing a selection block
+						Cur >= NextStyle->Start &&				// && we're inside the styled area
 						Cur < NextStyle->Start+NextStyle->Len)
 					{
 						if (NextStyle->Font)

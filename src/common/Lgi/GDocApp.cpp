@@ -276,7 +276,7 @@ bool GDocApp<OptionsFmt>::_DoSerialize(bool Write)
 	{
 		// Save window position
 		#if defined WIN32
-		if (!IsZoomed(Handle()) AND !IsIconic(Handle()))
+		if (!IsZoomed(Handle()) && !IsIconic(Handle()))
 		#endif
 		{
 			GRect r = GetPos();
@@ -571,7 +571,7 @@ template <typename OptionsFmt>
 void GDocApp<OptionsFmt>::OnReceiveFiles(GArray<char*> &Files)
 {
 	char *f = Files.Length() ? Files[0] : 0;
-	if (f AND _OpenFile(f, false))
+	if (f && _OpenFile(f, false))
 	{
 		GMru::AddFile(f);
 	}

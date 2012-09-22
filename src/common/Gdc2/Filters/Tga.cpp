@@ -102,7 +102,7 @@ public:
 										In->Read(p, Line);
 									}
 
-									if (y % 10 == 0 AND
+									if (y % 10 == 0 &&
 										Meter)
 									{
 										Meter->Value(y);
@@ -130,7 +130,7 @@ class GdcTgaFactory : public GFilterFactory
 {
 	bool CheckFile(char *File, int Access, uchar *Hint)
 	{
-		return (Access == FILTER_CAP_READ AND File) ? stristr(File, ".tga") != 0 : false;
+		return (Access == FILTER_CAP_READ && File) ? stristr(File, ".tga") != 0 : false;
 	}
 
 	GFilter *NewObject()
