@@ -635,11 +635,11 @@ bool IHttp::Get
 						while (Socket->IsOpen())
 						{
 							int r = Socket->Read(s + Used, sizeof(s) - Used);
-							if (r < 0)
+							if (r <= 0)
 								break;
 
 							int w = Out->Write(s, r);
-							if (w < 0)
+							if (w <= 0)
 								break;
 							
 							Written += w;
