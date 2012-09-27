@@ -373,11 +373,11 @@ char *EncodeRfc2047(char *Str, const char *CodePage, List<char> *CharsetPrefs, i
 		CodePage = "utf-8";
 	}
 
+	GStringPipe p(256);
+
 	if (Str &&
 		Is8Bit(Str))
 	{
-		GStringPipe p(128);
-
 		// pick an encoding
 		bool Base64 = false;
 		const char *DestCp = "utf-8";
@@ -468,6 +468,34 @@ char *EncodeRfc2047(char *Str, const char *CodePage, List<char> *CharsetPrefs, i
 
 		DeleteArray(Str);
 		Str = p.NewStr();
+	}
+	else
+	{
+		bool RecodeNewLines = false;
+		for (char *s = Str; *s; s++)
+		{
+			if (*s == '\n' && (s == Str || s[-1] != '\r'))
+			{
+				RecodeNewLines = true;
+				break;
+			}
+		}
+		
+		if (RecodeNewLines)
+		{
+			for (char *s = Str; *s; s++)
+			{
+				if (*s == '\r')
+					;
+				else if (*s == '\n')
+					p.Write("\r\n", 2);
+				else
+					p.Write(s, 1);
+			}
+			
+			DeleteArray(Str);
+			Str = p.NewStr();
+		}
 	}
 
 	return Str;
