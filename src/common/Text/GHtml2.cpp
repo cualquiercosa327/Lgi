@@ -7037,8 +7037,7 @@ GTag *GHtml2::GetTagByPos(int x, int y, int *Index)
 
 void GHtml2::OnMouseWheel(double Lines)
 {
-	GFont *f = FontCache->FontAt(0);
-	if (f && VScroll)
+	if (VScroll)
 	{
 		VScroll->Value(VScroll->Value() + (int)Lines);
 		Invalidate();
