@@ -250,40 +250,4 @@ public:
 	}
 };
 
-/*
-class GThreadWork
-{
-public:
-	virtual ~GThreadWork() {}
-	virtual bool Do() = 0;
-	virtual void OnComplete() {}
-};
-
-class LgiClass GThreadOwner
-{
-protected:
-	class GThreadOwnerPriv *d;
-
-public:
-	GThreadOwner(GViewI *notify = 0);
-	virtual ~GThreadOwner();
-
-	void SetNotifyView(GViewI *notify);
-	void AddWork(GThreadWork *w);
-	virtual void OnComplete(GThreadWork *Result)
-	{
-		if (Result) Result->OnComplete();
-	}
-};
-
-class LgiClass GWorkerThread : public GThread, public GSemaphore
-{
-public:
-	GThreadOwnerPriv *d;
-
-	GWorkerThread(GThreadOwnerPriv *data);
-	int Main();
-};
-*/
-
 #endif

@@ -53,15 +53,13 @@ public:
 					int *Length = 0);
 
 	// General
-	bool Get(		GViewI *Parent,
-					char *Uri,
+	bool Get(		char *Uri,
 					const char *InHeaders,
 					int *ProtocolStatus,
 					GStream *Out,
 					GStream *OutHeaders = 0);
 
-	bool Post(		GViewI *Parent,
-					char *Uri,
+	bool Post(		char *Uri,
 					const char *ContentType,
 					GStream *In,
 					int *ProtocolStatus,

@@ -242,7 +242,7 @@ struct GSoftwareUpdatePriv
 			{
 				Err->Reset(NewStr(LgiLoadString(L_ERROR_CONNECT_FAILED, sSocketConnectFailed)));
 			}
-			else if (!Http.Get(0, Info->Uri, 0, Status, Local))
+			else if (!Http.Get(Info->Uri, 0, Status, Local))
 			{
 				Err->Reset(NewStr(LgiLoadString(L_ERROR_HTTP_FAILED, sHttpDownloadFailed)));
 			}
