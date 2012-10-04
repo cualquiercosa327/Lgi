@@ -56,15 +56,15 @@ public:
 	bool Get(		char *Uri,
 					const char *InHeaders,
 					int *ProtocolStatus,
-					GStream *Out,
-					GStream *OutHeaders = 0);
+					GStreamI *Out,
+					GStreamI *OutHeaders = 0);
 
 	bool Post(		char *Uri,
 					const char *ContentType,
-					GStream *In,
+					GStreamI *In,
 					int *ProtocolStatus,
-					GStream *Out,
-					GStream *OutHeaders = 0,
+					GStreamI *Out,
+					GStreamI *OutHeaders = 0,
 					char *InHeaders = 0);
 };
 

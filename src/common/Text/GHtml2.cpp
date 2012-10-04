@@ -2347,9 +2347,11 @@ void GTag::SetStyle()
 					if (j)
 					{
 						LgiAssert(Html);
+						GTag *t = this;
+						
 						j->Uri.Reset(NewStr(Href));
 						j->View = Html;
-						j->UserData = this;
+						j->UserData = t;
 						j->UserUid = Html->d->DocumentUid;
 						// j->Pref = GDocumentEnv::LoadJob::FmtFilename;
 
@@ -6080,71 +6082,64 @@ GMessage::Result GHtml2::OnEvent(GMessage *Msg)
 	{
 		case M_COPY:
 		{
-			printf("Got M_COPY\n");
 			Copy();
 			break;
 		}
 		case M_JOBS_LOADED:
 		{
+			bool Update = false;
+			
 			if (JobSem.Lock(_FL))
 			{
 				for (int i=0; i<JobSem.Jobs.Length(); i++)
 				{
 					GDocumentEnv::LoadJob *j = JobSem.Jobs[i];
 					GDocView *Me = this;
+					
 					if (j->View == Me &&
-						j->UserUid == d->DocumentUid)
+						j->UserUid == d->DocumentUid &&
+						j->UserData != NULL)
 					{
-						if (j->UserData && j->pDC)
+						Html2::GTag *r = static_cast<Html2::GTag*>(j->UserData);
+						
+						// Check the tag is still in our tree...
+						if (Tag->HasChild(r))
 						{
-							GTag *t = (GTag*)j->UserData;
-							if (Tag->HasChild(t))
+							// Process the returned data...
+							if (r->TagId == TAG_IMG && j->pDC)
 							{
-								LgiAssert(t->TagId == TAG_IMG);
-								t->SetImage(j->Uri, j->pDC.Release());
+								r->SetImage(j->Uri, j->pDC.Release());
 								ViewWidth = 0;
+								Update = true;
+							}
+							else if (r->TagId == TAG_LINK && j->Stream)
+							{
+								int64 Size = j->Stream->GetSize();
+								GAutoString Style(new char[Size+1]);
+								int rd = j->Stream->Read(Style, Size);
+								if (rd > 0)
+								{
+									Style[rd] = 0;									
+									AddCss(Style.Release());									
+									ViewWidth = 0;
+									Update = true;
+								}
 							}
 						}
-						// else LgiAssert(!"No img or ptr.");
 					}
-					// else it's from another HTML control, ignore
+					// else it's from another (historical) HTML control, ignore
 				}
 				JobSem.Jobs.DeleteObjects();
 				JobSem.Unlock();
 			}
 
-			OnPosChange();
-			Invalidate();
-			break;
-		}
-		/*
-		case M_IMAGE_LOADED:
-		{
-			char *Uri = (char*)MsgA(Msg);
-			GSurface *Img = (GSurface*)MsgB(Msg);
-
-			// LgiTrace("M_IMAGE_LOADED img=%p\n", Img);
-			if (Uri && Img && Tag)
+			if (Update)
 			{
-				int Used = 0;
-				Tag->ImageLoaded(Uri, Img, Used);
-				if (Used)
-				{
-					ViewWidth = 0;
-					OnPosChange();
-					Invalidate();
-
-					Img = 0;
-				}
+				OnPosChange();
+				Invalidate();
 			}
-
-			// LgiTrace("....img=%p\n", Img);
-
-			DeleteArray(Uri);
-			DeleteObj(Img);
 			break;
 		}
-		*/
 	}
 
 	return GDocView::OnEvent(Msg);

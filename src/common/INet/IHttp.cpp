@@ -390,8 +390,8 @@ bool IHttp::Get
 	char *Uri,
 	const char *InHeaders,
 	int *ProtocolStatus,
-	GStream *Out,
-	GStream *OutHeaders
+	GStreamI *Out,
+	GStreamI *OutHeaders
 )
 {
 	bool Status = false;
@@ -631,7 +631,23 @@ bool IHttp::Get
 					{
 						// Non chunked connection.
 						int64 Written = 0;
-						while (Socket->IsOpen())
+						if (Used > 0)
+						{
+							int w = Out->Write(s, Used);
+							if (w >= 0)
+							{
+								Written += w;
+								Used = 0;
+							}
+							else
+							{
+								Written = -1;
+							}
+						}
+						
+						while (	Written >= 0 &&
+								Written < ContentLen &&
+								Socket->IsOpen())
 						{
 							int r = Socket->Read(s + Used, sizeof(s) - Used);
 							if (r <= 0)
@@ -658,10 +674,10 @@ bool IHttp::Post
 (
 	char *File,
 	const char *ContentType,
-	GStream *In,
+	GStreamI *In,
 	int *ProtocolStatus,
-	GStream *Out,
-	GStream *OutHeaders,
+	GStreamI *Out,
+	GStreamI *OutHeaders,
 	char *InHeaders
 )
 {
