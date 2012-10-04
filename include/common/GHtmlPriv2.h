@@ -305,6 +305,7 @@ public:
 	char *ParseHtml(char *Doc, int Depth, bool InPreTag = false, bool *BackOut = 0);
 	char *ParseText(char *Doc);
 	void SetStyle();
+	void Restyle();
 	void SetCssStyle(const char *Style);
 	void OnFlow(GFlowRegion *Flow);
 	void OnPaintBorder(GSurface *pDC);

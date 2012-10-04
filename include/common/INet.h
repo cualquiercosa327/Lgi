@@ -320,7 +320,7 @@ public:
 	GAutoString Encode
 	(
 		/// The string to encode
-		char *s,
+		const char *s,
 		/// [Optional] Any extra characters you want encoded
 		char *ExtraCharsToEncode = 0
 	);

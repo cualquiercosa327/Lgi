@@ -165,7 +165,7 @@ public:
 	/// If the GetContent implementation takes ownership of the job pointer then it should set 'j' to NULL.
 	virtual LoadType GetContent(LoadJob *&j) { return LoadNotImpl; }
 	/// After the env's thread loads the resource it calls this to pass it to the doc
-	void OnDone(GThreadJob *j);
+	void OnDone(GAutoPtr<GThreadJob> j);
 	
 	/// Handle a click on URI
 	virtual bool OnNavigate(char *Uri) { return false; }

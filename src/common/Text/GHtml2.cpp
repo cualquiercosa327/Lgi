@@ -2292,6 +2292,195 @@ void GTag::ImageLoaded(char *uri, GSurface *Img, int &Used)
 	}
 }
 
+class GCssSelector
+{
+public:
+	enum PartType
+	{
+		SelType,
+		SelUniversal,
+		SelAttrib,
+		SelClass,
+		SelMedia,
+		SelID,
+		SelPseudo,
+
+		CombDesc,
+		CombChild,
+		CombAdjacent,
+	};
+	
+	struct Part
+	{
+		PartType Type;
+		GAutoString Value;		
+	};
+	
+	GArray<Part> Parts;
+
+	GCssSelector(const char *s)
+	{
+		if (s)
+			Parse(s);
+	}
+	
+	void TokString(GAutoString &a, const char *&s)
+	{
+		const char *e = s;
+		while
+		(
+			*e &&
+			(
+				IsAlpha(*e)
+				||
+				IsDigit(*e)
+				||
+				*e == '-'
+			)
+		)
+			e++;
+		
+		LgiAssert(e > s);
+		a.Reset(NewStr(s, e - s));
+		s = e;
+	}
+	
+	void Parse(const char *s)
+	{
+		if (!s)
+			return;
+			
+		const char *Start = s;
+		GArray<int> Offsets;
+		GStringPipe p;
+		while (*s)
+		{
+			SkipWhiteSpace(s);
+			if (*s == ':')
+			{
+				s++;
+				if (*s == ':')
+					s++;
+				else if (IsWhiteSpace(*s))
+					break;
+
+				Part &n = Parts.New();
+				n.Type = SelPseudo;
+				TokString(n.Value, s);
+			}
+			else if (*s == '#')
+			{
+				s++;
+
+				Part &n = Parts.New();
+				n.Type = SelID;
+				TokString(n.Value, s);
+			}
+			else if (*s == '.')
+			{
+				s++;
+
+				Part &n = Parts.New();
+				n.Type = SelClass;
+				TokString(n.Value, s);
+			}
+			else if (*s == '@')
+			{
+				s++;
+
+				Part &n = Parts.New();
+				n.Type = SelMedia;
+				TokString(n.Value, s);
+			}
+			else if (*s == '*')
+			{
+				s++;
+
+				Part &n = Parts.New();
+				n.Type = SelUniversal;
+			}
+			else if (IsAlpha(*s))
+			{
+				Part &n = Parts.New();
+				n.Type = SelType;
+				TokString(n.Value, s);
+			}
+			else if (*s == '[')
+			{
+				s++;
+
+				Part &n = Parts.New();
+				n.Type = SelAttrib;
+				
+				char *End = strchr((char*)s, ']');
+				if (!End)
+					return;
+					
+				n.Value.Reset(NewStr(s, End - s));
+				s = End + 1;
+			}
+			else
+			{
+				int asd=0;
+				s++;
+			}
+
+			const char *Last = s;
+			SkipWhiteSpace(s);
+			if (*s == '+')
+			{
+				*s++;
+				Part &n = Parts.New();
+				n.Type = CombAdjacent;
+			}
+			else if (*s == '>')
+			{
+				*s++;
+				Part &n = Parts.New();
+				n.Type = CombChild;
+			}
+			else if (s > Last && *s)
+			{
+				Part &n = Parts.New();
+				n.Type = CombDesc;
+			}
+		}
+	}
+};
+
+// After CSS has changed this function scans through the CSS and applies any rules
+// that match the current tag.
+void GTag::Restyle()
+{
+	#if 0 // The old re-style code... (it's dumb as nails)
+
+	// Class stype
+	char c[256];
+	snprintf(c, sizeof(c)-1, ".%s", Class);
+	c[sizeof(c)-1] = 0;
+	if (s = Html->CssMap.Find(c))
+	{
+		SetCssStyle(s);
+	}
+
+	snprintf(c, sizeof(c)-1, "%s.%s", Tag, Class);
+	if (s = Html->CssMap.Find(c))
+	{
+		SetCssStyle(s);
+	}
+
+	#else
+	
+	const char *Sel;
+	for (char *Style = Html->CssMap.First(&Sel); Style; Style = Html->CssMap.Next(&Sel))
+	{
+		GCssSelector s(Sel);
+		
+	}
+	
+	#endif
+}
+
 void GTag::SetStyle()
 {
 	const static float FntMul[] =
@@ -2520,23 +2709,11 @@ void GTag::SetStyle()
 			SetCssStyle(s);
 		}
 	}
-	if (Get("class", Class))
-	{
-		// Class stype
-		char c[256];
-		snprintf(c, sizeof(c)-1, ".%s", Class);
-		c[sizeof(c)-1] = 0;
-		if (s = Html->CssMap.Find(c))
-		{
-			SetCssStyle(s);
-		}
 
-		snprintf(c, sizeof(c)-1, "%s.%s", Tag, Class);
-		if (s = Html->CssMap.Find(c))
-		{
-			SetCssStyle(s);
-		}
-	}
+	Get("class", Class);
+
+	Restyle();
+
 	if (Get("style", s))
 	{
 		SetCssStyle(s);
@@ -2570,12 +2747,13 @@ void GTag::SetStyle()
 				}
 			}
 
-			if (Get("name", s) && stricmp(s, "charset") == 0)
+			if (Get("name", s) && stricmp(s, "charset") == 0 && Get("content", s))
 			{
-				if (Get("content", s))
-				{
-					Cs = NewStr(s);
-				}
+				Cs = NewStr(s);
+			}
+			else if (Get("charset", s))
+			{
+				Cs = NewStr(s);
 			}
 
 			if (Cs)

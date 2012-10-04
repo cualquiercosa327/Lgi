@@ -1825,6 +1825,10 @@ bool GUri::Set(const char *uri)
 			Path = NewStr(Start);
 		}
 		
+		#if 0
+		// This decodes the path from %## encoding to raw characters.
+		// However sometimes we need the encoded form. So instead of
+		// doing the conversion here the caller has to do it now.
 		char *i = Path, *o = Path;
 		while (*i)
 		{
@@ -1841,12 +1845,13 @@ bool GUri::Set(const char *uri)
 			i++;
 		}
 		*o = 0;
+		#endif
 	}
 
 	return Host || Path;
 }
 
-GAutoString GUri::Encode(char *s, char *ExtraCharsToEncode)
+GAutoString GUri::Encode(const char *s, char *ExtraCharsToEncode)
 {
 	GStringPipe p(256);
 	if (s)

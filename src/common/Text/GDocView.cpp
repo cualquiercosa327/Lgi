@@ -25,9 +25,9 @@ GDocumentEnv::~GDocumentEnv()
 	}
 }
 
-void GDocumentEnv::OnDone(GThreadJob *j)
+void GDocumentEnv::OnDone(GAutoPtr<GThreadJob> j)
 {
-	LoadJob *ld = dynamic_cast<LoadJob*>(j);
+	LoadJob *ld = dynamic_cast<LoadJob*>(j.Get());
 	if (ld)
 	{
 		if (Lock(_FL))
@@ -35,13 +35,12 @@ void GDocumentEnv::OnDone(GThreadJob *j)
 			if (Viewers.HasItem(ld->View))
 			{
 				ld->View->OnContent(ld);
-				j = ld = 0;
+				j.Release();
 			}
 			Unlock();
 		}
 	}
 	else LgiAssert(!"RTTI failed.");
-	DeleteObj(j);
 }
 
 //////////////////////////////////////////////////////////////////////////////////

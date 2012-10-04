@@ -121,7 +121,7 @@ public:
 	}
 	
 	/// This function gets called when the job is finished
-	virtual void OnDone(GThreadJob *j) {}
+	virtual void OnDone(GAutoPtr<GThreadJob> j) {}
 };
 
 /// This parent class does the actual work of processing jobs.
@@ -198,12 +198,12 @@ public:
 	{
 		while (Loop)
 		{
-			GThreadJob *j = 0;
+			GAutoPtr<GThreadJob> j;
 			if (Lock(_FL))
 			{
 				if (Jobs.Length())
 				{
-					j = Jobs[0];
+					j.Reset(Jobs[0]);
 					Jobs.DeleteAt(0, true);
 				}
 				Unlock();
@@ -216,7 +216,7 @@ public:
 					if (Owners.IndexOf(j->Owner) < 0)
 					{
 						// Owner is gone already... delete the job.
-						DeleteObj(j);
+						j.Reset();
 					}
 					Unlock();
 				}
