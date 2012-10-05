@@ -47,7 +47,34 @@ protected:
 	int					ViewWidth;
 	GToolTip			Tip;
 	GTag				*PrevTip;
-	GHashTbl<const char*,char*> CssMap;
+	
+	typedef GArray<GCss::Selector*> SelArray;
+	class CssMap : public GHashTbl<const char*,SelArray*>
+	{
+	public:
+		CssMap() : GHashTbl<const char*,SelArray*>(0, false) {}		
+		~CssMap() { Empty(); }
+	
+		void Empty()
+		{
+			for (SelArray *s = First(); s; s = Next())
+			{
+				s->DeleteObjects();
+				delete s;
+			}			
+		}
+		
+		SelArray *Get(const char *s)
+		{
+			SelArray *a = Find(s);
+			if (!a)
+				Add(s, a = new SelArray);
+			return a;
+		}
+	};
+	CssMap TypeMap, ClassMap, IdMap;
+	GArray<GCss::Selector*> CssOther;
+	GArray<char*> StyleStore;
 
 	// Display
 	GSurface			*MemDC;

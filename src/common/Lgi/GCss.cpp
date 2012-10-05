@@ -2,7 +2,8 @@
 #include "GCss.h"
 #include "LgiCommon.h"
 
-#define SkipWhite(s) 	while (*s && strchr(WhiteSpace, *s)) s++;
+#define IsWhite(s)		((s) && strchr(WhiteSpace, (s)) != NULL)
+#define SkipWhite(s) 	while (IsWhite(*s)) s++;
 
 #define IsNumeric(s) \
 	( \
@@ -1611,3 +1612,189 @@ bool GCss::BorderDef::Parse(const char *&s)
 
 	return true;
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////
+GCss::Selector &GCss::Selector::operator =(const GCss::Selector &s)
+{
+	Parts.Length(0);
+	for (int i=0; i<s.Parts.Length(); i++)
+	{
+		Part &n = Parts.New();
+		n = ((GCss::Selector&)s).Parts[i];
+	}
+	return *this;
+}
+
+void GCss::Selector::TokString(GAutoString &a, const char *&s)
+{
+	const char *e = s;
+	while
+	(
+		*e &&
+		(
+			IsAlpha(*e)
+			||
+			IsDigit(*e)
+			||
+			*e == '-'
+		)
+	)
+		e++;
+	
+	LgiAssert(e > s);
+	a.Reset(NewStr(s, e - s));
+	s = e;
+}
+
+const char *GCss::Selector::PartTypeToString(PartType p)
+{
+	switch (p)
+	{
+		case SelType: return "Type";
+		case SelUniversal: return "Uni";
+		case SelAttrib: return "Attrib";
+		case SelClass: return "Cls";
+		case SelMedia: return "Media";
+		case SelID: return "ID";
+		case SelPseudo: return "Pseudo";
+		case CombDesc: return "Desc";
+		case CombChild: return ">";
+		case CombAdjacent: return "+";
+	}
+	return "<error>";
+};
+
+GAutoString GCss::Selector::Print()
+{
+	GStringPipe p;
+	for (int i=0; i<Parts.Length(); i++)
+	{
+		Part &n = Parts[i];
+		p.Print("%s %s, ", PartTypeToString(n.Type), n.Value.Get());
+	}
+	return GAutoString(p.NewStr());
+}
+
+void GCss::Selector::Parse(const char *&s)
+{
+	if (!s)
+		return;
+
+	const char *Start = s, *Prev = s;
+	GArray<int> Offsets;
+	GStringPipe p;
+	while (*s)
+	{
+		SkipWhite(s);
+		if (*s == '{' ||
+			*s == ',')
+		{
+			return;
+		}
+		else if (*s == '/')
+		{
+			LgiAssert(!"Impl comment handling.");
+			return;
+		}
+		else if (*s == ':')
+		{
+			s++;
+			if (*s == ':')
+				s++;
+			else if (IsWhite(*s))
+				break;
+
+			Part &n = Parts.New();
+			n.Type = SelPseudo;
+			TokString(n.Value, s);
+		}
+		else if (*s == '#')
+		{
+			s++;
+
+			Part &n = Parts.New();
+			n.Type = SelID;
+			TokString(n.Value, s);
+		}
+		else if (*s == '.')
+		{
+			s++;
+
+			Part &n = Parts.New();
+			n.Type = SelClass;
+			TokString(n.Value, s);
+		}
+		else if (*s == '@')
+		{
+			s++;
+
+			Part &n = Parts.New();
+			n.Type = SelMedia;
+			TokString(n.Value, s);
+		}
+		else if (*s == '*')
+		{
+			s++;
+
+			Part &n = Parts.New();
+			n.Type = SelUniversal;
+		}
+		else if (IsAlpha(*s))
+		{
+			Part &n = Parts.New();
+			n.Type = SelType;
+			TokString(n.Value, s);
+		}
+		else if (*s == '[')
+		{
+			s++;
+
+			Part &n = Parts.New();
+			n.Type = SelAttrib;
+			
+			char *End = strchr((char*)s, ']');
+			if (!End)
+				return;
+				
+			n.Value.Reset(NewStr(s, End - s));
+			s = End + 1;
+		}
+		else
+		{
+			// Unexpected character
+			s++;
+		}
+
+		const char *Last = s;
+		SkipWhite(s);
+		if (*s == '+')
+		{
+			*s++;
+			Combs.Add(Parts.Length());
+			Part &n = Parts.New();
+			n.Type = CombAdjacent;
+		}
+		else if (*s == '>')
+		{
+			*s++;
+			Combs.Add(Parts.Length());
+			Part &n = Parts.New();
+			n.Type = CombChild;
+		}
+		else if (s > Last &&
+				(IsAlpha(*s) || strchr(":#", *s)))
+		{
+			Combs.Add(Parts.Length());
+			Part &n = Parts.New();
+			n.Type = CombDesc;
+		}
+		
+		if (*s && s == Prev)
+		{
+			LgiAssert(!"Parsing is stuck.");
+			return;
+		}
+		Prev = s;
+	}
+}
+

@@ -14,7 +14,7 @@
 #include "Emoji.h"
 #include "GClipBoard.h"
 
-#define DEBUG_TABLE_LAYOUT			1
+#define DEBUG_TABLE_LAYOUT			0
 #define LUIS_DEBUG					0
 #define CRASH_TRACE					0
 #ifdef MAC
@@ -179,6 +179,7 @@ static GInfo TagInfo[] =
 	{TAG_IFRAME,		"iframe",		0,			TI_BLOCK},
 	{TAG_LINK,			"link",			0,			TI_NONE},
 	{TAG_BIG,			"big",			0,			TI_NONE},
+	{TAG_INPUT,			"input",		0,			TI_NONE},
 	{TAG_UNKNOWN,		0,				0,			TI_NONE},
 };
 
@@ -1365,6 +1366,7 @@ bool GTag::Selected = false;
 
 GTag::GTag(GHtml2 *h, GTag *p) : Attr(0, false)
 {
+	Ctrl = 0;
 	TipId = 0;
 	IsBlock = false;
 	Html = h;
@@ -1378,6 +1380,7 @@ GTag::GTag(GHtml2 *h, GTag *p) : Attr(0, false)
 	Selection = -1;
 	Font = 0;
 	Tag = 0;
+	Class = 0;
 	HtmlId = 0;
 	// TableBorder = 0;
 	Cells = 0;
@@ -2292,161 +2295,124 @@ void GTag::ImageLoaded(char *uri, GSurface *Img, int &Used)
 	}
 }
 
-class GCssSelector
+/// This code matches a all the parts of a selector
+bool GTag::MatchFullSelector(GCss::Selector *Sel)
 {
-public:
-	enum PartType
-	{
-		SelType,
-		SelUniversal,
-		SelAttrib,
-		SelClass,
-		SelMedia,
-		SelID,
-		SelPseudo,
+	bool Complex = Sel->Combs.Length() > 0;
+	int CombIdx = Complex ? Sel->Combs.Length() - 1 : 0;
+	int StartIdx = (Complex) ? Sel->Combs[CombIdx] + 1 : 0;
+	
+	bool Match = MatchSimpleSelector(Sel, StartIdx);
+	if (!Match)
+		return false;
 
-		CombDesc,
-		CombChild,
-		CombAdjacent,
-	};
-	
-	struct Part
+	if (Complex)
 	{
-		PartType Type;
-		GAutoString Value;		
-	};
-	
-	GArray<Part> Parts;
-
-	GCssSelector(const char *s)
-	{
-		if (s)
-			Parse(s);
-	}
-	
-	void TokString(GAutoString &a, const char *&s)
-	{
-		const char *e = s;
-		while
-		(
-			*e &&
-			(
-				IsAlpha(*e)
-				||
-				IsDigit(*e)
-				||
-				*e == '-'
-			)
-		)
-			e++;
-		
-		LgiAssert(e > s);
-		a.Reset(NewStr(s, e - s));
-		s = e;
-	}
-	
-	void Parse(const char *s)
-	{
-		if (!s)
-			return;
-			
-		const char *Start = s;
-		GArray<int> Offsets;
-		GStringPipe p;
-		while (*s)
+		GCss::Selector::Part &p = Sel->Parts[StartIdx - 1];
+		switch (p.Type)
 		{
-			SkipWhiteSpace(s);
-			if (*s == ':')
+			case GCss::Selector::CombChild:
 			{
-				s++;
-				if (*s == ':')
-					s++;
-				else if (IsWhiteSpace(*s))
-					break;
+				break;
+			}
+			case GCss::Selector::CombAdjacent:
+			{
+				break;
+			}
+			case GCss::Selector::CombDesc:
+			{
+				// Does the parent match the previous simple selector
+				int PrevIdx = StartIdx - 1;
+				while (PrevIdx > 0 && Sel->Parts[PrevIdx-1].IsSel())
+				{
+					PrevIdx--;
+				}
+				bool ParMatch = false;
+				for (GTag *Par = Parent; !ParMatch && Par; Par = Par->Parent)
+				{
+					ParMatch = MatchSimpleSelector(Sel, PrevIdx);
+				}
+				if (!ParMatch)
+					return false;
+				break;
+			}
+			default:
+			{
+				LgiAssert(!"This must be a comb.");
+				break;
+			}
+		}
 
-				Part &n = Parts.New();
-				n.Type = SelPseudo;
-				TokString(n.Value, s);
-			}
-			else if (*s == '#')
-			{
-				s++;
+		return false;	
+	}
 
-				Part &n = Parts.New();
-				n.Type = SelID;
-				TokString(n.Value, s);
-			}
-			else if (*s == '.')
-			{
-				s++;
+	return Match;
+}
 
-				Part &n = Parts.New();
-				n.Type = SelClass;
-				TokString(n.Value, s);
-			}
-			else if (*s == '@')
+/// This code matches a simple part of a selector, i.e. no combinatorial operators involved.
+bool GTag::MatchSimpleSelector
+(
+	/// The full selector.
+	GCss::Selector *Sel,
+	/// The start index of the simple selector parts. Stop at the first comb operator or the end of the parts.
+	int PartIdx
+)
+{
+	for (int n = PartIdx; n<Sel->Parts.Length(); n++)
+	{
+		GCss::Selector::Part &p = Sel->Parts[n];
+		switch (p.Type)
+		{
+			case GCss::Selector::SelType:
 			{
-				s++;
-
-				Part &n = Parts.New();
-				n.Type = SelMedia;
-				TokString(n.Value, s);
+				if (!Tag || stricmp(Tag, p.Value))
+					return false;
+				break;
 			}
-			else if (*s == '*')
+			case GCss::Selector::SelUniversal:
 			{
-				s++;
-
-				Part &n = Parts.New();
-				n.Type = SelUniversal;
+				// Match everything
+				return true;
+				break;
 			}
-			else if (IsAlpha(*s))
-			{
-				Part &n = Parts.New();
-				n.Type = SelType;
-				TokString(n.Value, s);
-			}
-			else if (*s == '[')
-			{
-				s++;
-
-				Part &n = Parts.New();
-				n.Type = SelAttrib;
-				
-				char *End = strchr((char*)s, ']');
-				if (!End)
-					return;
-					
-				n.Value.Reset(NewStr(s, End - s));
-				s = End + 1;
-			}
-			else
+			case GCss::Selector::SelAttrib:
 			{
 				int asd=0;
-				s++;
+				break;
 			}
-
-			const char *Last = s;
-			SkipWhiteSpace(s);
-			if (*s == '+')
+			case GCss::Selector::SelClass:
 			{
-				*s++;
-				Part &n = Parts.New();
-				n.Type = CombAdjacent;
+				// Check the class matches
+				if (!Class || stricmp(Class, p.Value))
+					return false;
+				break;
 			}
-			else if (*s == '>')
+			case GCss::Selector::SelMedia:
 			{
-				*s++;
-				Part &n = Parts.New();
-				n.Type = CombChild;
+				int asd=0;
+				break;
 			}
-			else if (s > Last && *s)
+			case GCss::Selector::SelID:
 			{
-				Part &n = Parts.New();
-				n.Type = CombDesc;
+				const char *Id;
+				if (!Get("id", Id) || stricmp(Id, p.Value))
+					return false;
+				break;
+			}
+			case GCss::Selector::SelPseudo:
+			{
+				break;
+			}
+			default:
+			{
+				// Comb operator, so return the current match value
+				return true;
 			}
 		}
 	}
-};
+	
+	return true;
+}
 
 // After CSS has changed this function scans through the CSS and applies any rules
 // that match the current tag.
@@ -2471,11 +2437,15 @@ void GTag::Restyle()
 
 	#else
 	
-	const char *Sel;
-	for (char *Style = Html->CssMap.First(&Sel); Style; Style = Html->CssMap.Next(&Sel))
+	GHtml2::SelArray *s = Html->TypeMap.Find(Tag);
+	if (s)
 	{
-		GCssSelector s(Sel);
-		
+		for (int i=0; i<s->Length(); i++)
+		{
+			GCss::Selector *sel = (*s)[i];
+			if (MatchFullSelector(sel))
+				SetCssStyle(sel->Style);
+		}
 	}
 	
 	#endif
@@ -2605,10 +2575,12 @@ void GTag::SetStyle()
 				Color(c);
 				TextDecoration(TextDecorUnderline);
 
+				/* FIXME
 				if (s = Html->CssMap.Find("a"))
 					SetCssStyle(s);
 				if (s = Html->CssMap.Find("a:link"))
 					SetCssStyle(s);
+				*/
 			}
 			break;
 		}
@@ -2686,7 +2658,6 @@ void GTag::SetStyle()
 		else if (stricmp(s, "bottom") == 0) VerticalAlign(Len(VerticalBottom));
 	}
 
-	const char *Class = 0;
 	if (Get("id", s))
 	{
 		DeleteArray(HtmlId);
@@ -2694,20 +2665,25 @@ void GTag::SetStyle()
 	}
 
 	// Tag style
+	/* FIXME
 	if (s = (TagId == TAG_A) ? 0 : Html->CssMap.Find(Tag))
 	{
 		SetCssStyle(s);
 	}
+	*/
 
 	if (HtmlId)
 	{
 		char b[256];
 		snprintf(b, sizeof(b)-1, "%s#%s", Tag, HtmlId);
 		b[sizeof(b)-1] = 0;
+		
+		/* FIXME
 		if (s = Html->CssMap.Find(b))
 		{
 			SetCssStyle(s);
 		}
+		*/
 	}
 
 	Get("class", Class);
@@ -2944,6 +2920,20 @@ void GTag::SetStyle()
 		case TAG_U:
 		{
 			TextDecoration(TextDecorUnderline);
+			break;
+		}
+		case TAG_INPUT:
+		{
+			const char *Type;
+			if (Get("type", Type))
+			{
+				if (!stricmp(Type, "email") ||
+					!stricmp(Type, "text") ||
+					!stricmp(Type, "password"))
+				{
+					
+				}
+			}
 			break;
 		}
 	}
@@ -5877,8 +5867,7 @@ void GTag::OnPaint(GSurface *pDC)
 GHtml2::GHtml2(int id, int x, int y, int cx, int cy, GDocumentEnv *e)
 	:
 	GDocView(e),
-	ResObject(Res_Custom),
-	CssMap(0, false)
+	ResObject(Res_Custom)
 {
 	d = new GHtmlPrivate2;
 	SetReadOnly(true);
@@ -5934,7 +5923,8 @@ void GHtml2::_Delete()
 
 	SetBackColour(Rgb24To32(LC_WORKSPACE));
 
-	CssMap.DeleteArrays();
+	StyleStore.DeleteArrays();
+	CssOther.DeleteObjects();
 	OpenTags.Empty();
 	DeleteArray(Source);
 	DeleteObj(Tag);
@@ -5947,14 +5937,14 @@ GFont *GHtml2::DefFont()
 	return GetFont();
 }
 
-static char *SkipComment(char *c)
+static const char *SkipComment(const char *c)
 {
 	// Skip comment
 	SkipWhiteSpace(c);
 	if (c[0] == '/' &&
 		c[1] == '*')
 	{
-		char *e = strstr(c + 2, "*/");
+		char *e = strstr((char*)c + 2, "*/");
 		if (e) c = e + 2;
 		else c += 2;
 	}
@@ -5963,7 +5953,7 @@ static char *SkipComment(char *c)
 
 void GHtml2::AddCss(char *Css)
 {
-	char *c=Css;	
+	const char *c = Css;	
 	if (!Css) return;
 
 	SkipWhiteSpace(c);
@@ -5978,43 +5968,26 @@ void GHtml2::AddCss(char *Css)
 		c = SkipComment(c);
 
 		// read selector
-		List<char> Selector;
-		char *s = SkipComment(c);
-		char *e = s;
-		GStringPipe p;
-		while (*e)
+		GArray<GCss::Selector*> Selectors;
+		GCss::Selector *Cur = new GCss::Selector;
+		Cur->Parse(c);
+		Selectors.Add(Cur);
+		while (*c)
 		{
-			if (IsWhiteSpace(*e))
+			SkipWhiteSpace(c);
+			if (*c == ',')
 			{
-				e = SkipComment(e);
-				p.Push(" ");
+				c++;
+				Cur = new GCss::Selector;
+				Cur->Parse(c);
+				Selectors.Add(Cur);
 			}
-			else if (*e == '{' || *e == ',')
+			else if (*c == '/')
 			{
-				char *Raw = p.NewStr();
-				if (Raw)
-				{
-					char *End = Raw + strlen(Raw) - 1;
-					while (End > Raw && IsWhiteSpace(*End))
-						*End-- = 0;
-
-					Selector.Insert(Raw);
-				}
-				else break;
-
-				if (*e == '{')
-				{
-					c = e;
-					break;
-				}
-
-				e = SkipComment(e + 1);
+				SkipComment(c);
 			}
-			else
-			{
-				p.Push(e++, 1);
-			}
-		}
+			else break;
+		}		
 
 		SkipWhiteSpace(c);
 
@@ -6023,23 +5996,59 @@ void GHtml2::AddCss(char *Css)
 		{
 			SkipWhiteSpace(c);
 
-			char *Start = c;
+			const char *Start = c;
 			while (*c && *c != '}') c++;
-			GAutoString Style(NewStr(Start, c - Start));
-			for (char *Sel=Selector.First(); Sel; Sel=Selector.Next())
-			{
-				char *a = (Sel[0] == '.' && Sel[1] == '.') ? Sel + 1 : Sel;
-				char *e = CssMap.Find(a);
-				DeleteArray(e);
-				CssMap.Add(a, NewStr(Style));
-			}
+			char *Style = NewStr(Start, c - Start);
+			StyleStore.Add(Style);
 			c++;
-
-			Selector.DeleteArrays();
+			
+			for (int i=0; i<Selectors.Length(); i++)
+			{
+				GCss::Selector *s = Selectors[i];
+				s->Style = Style;
+				
+				int n = s->GetSimpleIndex();
+				LgiAssert(n < s->Parts.Length());
+				GCss::Selector::Part &p = s->Parts[n];
+				
+				if (p.Value)
+				{
+					switch (p.Type)
+					{
+						case GCss::Selector::SelType:
+						{
+							SelArray *a = TypeMap.Get(p.Value);
+							a->Add(s);
+							break;
+						}
+						case GCss::Selector::SelClass:
+						{
+							SelArray *a = ClassMap.Get(p.Value);
+							a->Add(s);
+							break;
+						}
+						case GCss::Selector::SelID:
+						{
+							SelArray *a = IdMap.Get(p.Value);
+							a->Add(s);
+							break;
+						}
+						default:
+						{
+							CssOther.Add(s);
+							break;
+						}
+					}
+				}
+				else
+				{
+					LgiAssert(!"No value to map on?");
+				}
+			}
 		}
 		else
 		{
-			Selector.DeleteArrays();
+			Selectors.DeleteObjects();
 			break;
 		}
 	}

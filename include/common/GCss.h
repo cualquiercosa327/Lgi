@@ -512,6 +512,68 @@ public:
 		}
 	};
 
+	/// This class parses and stores a selector. The job of matching selectors and
+	/// hashing them is still the resposibility of the calling library.
+	class LgiClass Selector
+	{
+	public:
+		enum PartType
+		{
+			SelNull,
+			
+			SelType,
+			SelUniversal,
+			SelAttrib,
+			SelClass,
+			SelMedia,
+			SelID,
+			SelPseudo,
+
+			CombDesc,
+			CombChild,
+			CombAdjacent,
+		};
+		
+		struct Part
+		{
+			PartType Type;
+			GAutoString Value;
+			
+			bool IsSel()
+			{
+				return
+					Type == SelType ||
+					Type == SelUniversal ||
+					Type == SelAttrib ||
+					Type == SelClass ||
+					Type == SelMedia ||
+					Type == SelID ||
+					Type == SelPseudo;
+			}
+
+			Part &operator =(const Part &s)
+			{
+				Type = s.Type;
+				Value.Reset(NewStr(s.Value));
+				return *this;
+			}
+		};
+		
+		GArray<Part> Parts;
+		GArray<int> Combs;
+		char *Style;
+
+		Selector() { Style = NULL; }
+		void TokString(GAutoString &a, const char *&s);
+		const char *PartTypeToString(PartType p);
+		GAutoString Print();
+		void Parse(const char *&s);
+		int GetSimpleIndex() { return Combs.Length() ? Combs[Combs.Length()-1] + 1 : 0; }
+		
+		Selector &operator =(const Selector &s);
+	};
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 	GCss();
 	GCss(const GCss &c);
 	virtual ~GCss();

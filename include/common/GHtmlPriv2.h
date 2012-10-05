@@ -52,6 +52,7 @@ enum HtmlTag
 	TAG_IFRAME,
 	TAG_LINK,
 	TAG_BIG,
+	TAG_INPUT,
 	TAG_LAST
 };
 
@@ -210,6 +211,9 @@ class GTag : public GDom, public GCss
 
 	GHashTbl<const char*, char*> Attr;
 
+	// Forms
+	GViewI *Ctrl;
+
 	// Text
 	GAutoWString Txt, PreTxt;
 
@@ -240,6 +244,7 @@ public:
 	// Object
 	HtmlTag TagId;
 	char *Tag; // My tag
+	const char *Class;
 	GAutoString Condition;
 	char *HtmlId;
 	GInfo *Info;
@@ -304,8 +309,12 @@ public:
 	char16 *CleanText(const char *s, int len, bool ConversionAllowed = true, bool KeepWhiteSpace = false);
 	char *ParseHtml(char *Doc, int Depth, bool InPreTag = false, bool *BackOut = 0);
 	char *ParseText(char *Doc);
+	
 	void SetStyle();
 	void Restyle();
+	bool MatchSimpleSelector(GCss::Selector *Sel, int PartIdx);
+	bool MatchFullSelector(GCss::Selector *Sel);
+	
 	void SetCssStyle(const char *Style);
 	void OnFlow(GFlowRegion *Flow);
 	void OnPaintBorder(GSurface *pDC);
