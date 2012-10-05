@@ -2,6 +2,7 @@
 #define _GHTML2_PRIV_H_
 
 #include "GCss.h"
+#include "GToken.h"
 
 namespace Html2
 {
@@ -244,13 +245,15 @@ public:
 	// Object
 	HtmlTag TagId;
 	char *Tag; // My tag
-	const char *Class;
+
+	GToken Class;
+	const char *HtmlId;
+
 	GAutoString Condition;
-	char *HtmlId;
 	GInfo *Info;
 	int TipId;
 	bool WasClosed;
-	bool IsBlock;
+	DisplayType Disp;
 
 	// Heirarchy
 	GHtml2 *Html;

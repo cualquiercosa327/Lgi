@@ -25,14 +25,14 @@
 #define CopyPropOnSave(Type, Id) \
 	{ \
 		Type *e = (Type*)Props.Find(Id); \
-		if (e) *e = *t; \
-		else Props.Add(Id, new Type(*t)); \
+		if (e) *e = *(t); \
+		else Props.Add(Id, new Type(*(t))); \
 	}
 #define ReleasePropOnSave(Type, Id) \
 	{ \
 		Type *e = (Type*)Props.Find(Id); \
-		if (e) *e = *t; \
-		else Props.Add(Id, t.Release()); \
+		if (e) *e = *(t); \
+		else Props.Add(Id, (t).Release()); \
 	}
 
 
@@ -301,6 +301,10 @@ bool GCss::ColorDef::ToString(GStream &p)
 {
 	switch (Type)
 	{
+		case ColorInherit:
+		{
+			break;
+		}
 		case ColorRgb:
 		{
 			p.Print("#%02.2x%02.2x%02.2x", R32(Rgb32), G32(Rgb32), B32(Rgb32));
@@ -557,8 +561,12 @@ GAutoString GCss::ToString()
 					default:
 					case BorderSolid: s = "solid"; break;
 				}
-				p.Print(" %s ", s);
-				b->Color.ToString(p);
+				p.Print(" %s", s);
+				if (b->Color.Type != ColorInherit)
+				{
+					p.Print(" ");
+					b->Color.ToString(p);
+				}
 				p.Print(";");
 				break;
 			}
@@ -1047,8 +1055,8 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 						if (!t) Props.Add(PropId, t = new DisplayType);
 						
 						if (ParseWord(s, "block")) *t = DispBlock;
-						else if (ParseWord(s, "inline")) *t = DispInline;
 						else if (ParseWord(s, "inline-block")) *t = DispInlineBlock;
+						else if (ParseWord(s, "inline")) *t = DispInline;
 						else if (ParseWord(s, "list-item")) *t = DispListItem;
 						else if (ParseWord(s, "none")) *t = DispNone;
 						else *t = DispInherit;
@@ -1237,30 +1245,100 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 			}
 			case TypeLen:
 			{
-				GAutoPtr<Len> t(new Len);
-				if (t->Parse(s, PropId == PropZIndex ? ParseRelaxed : Type))
+				GArray<Len*> Lengths;
+				SkipWhite(s);
+				while (*s && *s != ';')
 				{
-					if (PropId == PropPadding)
+					Len *t = new Len;
+					if (t->Parse(s, PropId == PropZIndex ? ParseRelaxed : Type))
 					{
-						CopyPropOnSave(Len, PropPaddingLeft);
-						CopyPropOnSave(Len, PropPaddingRight);
-						CopyPropOnSave(Len, PropPaddingTop);
-						ReleasePropOnSave(Len, PropPaddingBottom);
-					}
-					else if (PropId == PropMargin)
-					{
-						CopyPropOnSave(Len, PropMarginLeft);
-						CopyPropOnSave(Len, PropMarginRight);
-						CopyPropOnSave(Len, PropMarginTop);
-						ReleasePropOnSave(Len, PropMarginBottom);
+						Lengths.Add(t);
+						SkipWhite(s);
 					}
 					else
 					{
-						ReleasePropOnSave(Len, PropId);
+						if (Type == ParseStrict)
+							LgiAssert(!"Parsing failed.");
+						DeleteObj(t);
+						break;
 					}
 				}
-				else if (Type == ParseStrict)
-					LgiAssert(!"Parsing failed.");
+				
+				bool Mismatch = false;
+				if (PropId == PropPadding)
+				{
+					if (Lengths.Length() == 4)
+					{
+						StoreProp(PropPaddingTop, Lengths[0], true);
+						StoreProp(PropPaddingRight, Lengths[1], true);
+						StoreProp(PropPaddingBottom, Lengths[2], true);
+						StoreProp(PropPaddingLeft, Lengths[3], true);
+					}
+					else if (Lengths.Length() == 3)
+					{
+						StoreProp(PropPaddingTop, Lengths[0], true);
+						StoreProp(PropPaddingLeft, Lengths[1], false);
+						StoreProp(PropPaddingRight, Lengths[1], true);
+						StoreProp(PropPaddingBottom, Lengths[2], true);
+					}
+					else if (Lengths.Length() == 2)
+					{
+						StoreProp(PropPaddingTop, Lengths[0], false);
+						StoreProp(PropPaddingBottom, Lengths[0], true);
+						StoreProp(PropPaddingRight, Lengths[1], false);
+						StoreProp(PropPaddingLeft, Lengths[1], true);
+					}
+					else if (Lengths.Length() == 1)
+					{
+						StoreProp(PropPaddingTop, Lengths[0], false);
+						StoreProp(PropPaddingBottom, Lengths[0], false);
+						StoreProp(PropPaddingRight, Lengths[0], false);
+						StoreProp(PropPaddingLeft, Lengths[0], true);
+					}
+					else Mismatch = true;
+					if (!Mismatch)
+						Lengths.Length(0);
+				}
+				else if (PropId == PropMargin)
+				{
+					if (Lengths.Length() == 4)
+					{
+						StoreProp(PropMarginTop, Lengths[0], true);
+						StoreProp(PropMarginRight, Lengths[1], true);
+						StoreProp(PropMarginBottom, Lengths[2], true);
+						StoreProp(PropMarginLeft, Lengths[3], true);
+					}
+					else if (Lengths.Length() == 3)
+					{
+						StoreProp(PropMarginTop, Lengths[0], true);
+						StoreProp(PropMarginLeft, Lengths[1], false);
+						StoreProp(PropMarginRight, Lengths[1], true);
+						StoreProp(PropMarginBottom, Lengths[2], true);
+					}
+					else if (Lengths.Length() == 2)
+					{
+						StoreProp(PropMarginTop, Lengths[0], false);
+						StoreProp(PropMarginBottom, Lengths[0], true);
+						StoreProp(PropMarginRight, Lengths[1], false);
+						StoreProp(PropMarginLeft, Lengths[1], true);
+					}
+					else if (Lengths.Length() == 1)
+					{
+						StoreProp(PropMarginTop, Lengths[0], false);
+						StoreProp(PropMarginBottom, Lengths[0], false);
+						StoreProp(PropMarginRight, Lengths[0], false);
+						StoreProp(PropMarginLeft, Lengths[0], true);
+					}
+					else Mismatch = true;
+					if (!Mismatch)
+						Lengths.Length(0);
+				}
+				else if (Lengths.Length() > 0)
+				{
+					StoreProp(PropId, Lengths[0], true);
+					Lengths.DeleteAt(0);
+				}
+				Lengths.DeleteObjects();
 				break;
 			}
 			case TypeColor:
@@ -1641,7 +1719,11 @@ void GCss::Selector::TokString(GAutoString &a, const char *&s)
 	)
 		e++;
 	
-	LgiAssert(e > s);
+	if (e <= s)
+	{
+		LgiTrace("Stuck at '%s'\n", e);
+		LgiAssert(!"Failed to tokenise string.");
+	}
 	a.Reset(NewStr(s, e - s));
 	s = e;
 }
@@ -1719,6 +1801,8 @@ void GCss::Selector::Parse(const char *&s)
 		else if (*s == '.')
 		{
 			s++;
+			while (*s && !IsAlpha(*s))
+				s++;
 
 			Part &n = Parts.New();
 			n.Type = SelClass;

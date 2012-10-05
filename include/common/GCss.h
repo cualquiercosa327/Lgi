@@ -674,6 +674,26 @@ protected:
 	bool ParseFontVariant(PropType p, const char *&s);
 	bool ParseFontWeight(PropType p, const char *&s);
 	virtual bool OnUnhandledColor(ColorDef *def, const char *&s) { return false; }
+
+	template<typename T>
+	void StoreProp(PropType id, T *obj, bool own)
+	{
+		T *e = (T*)Props.Find(id);
+		if (e)
+		{
+			*e = *obj;
+			if (own)
+				delete obj;
+		}
+		else if (own)
+		{
+			Props.Add(id, obj);
+		}
+		else
+		{
+			Props.Add(id, new T(*obj));
+		}
+	}
 };
 
 #pragma pack(pop)

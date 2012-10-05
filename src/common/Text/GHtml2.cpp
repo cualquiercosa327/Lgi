@@ -80,6 +80,7 @@ static char DefaultCss[] = {
 "strong          { font-weight: bolder; }"
 };
 
+#define IsBlock(d)		((d) == DispBlock || (d) == DispInlineBlock)
 
 //////////////////////////////////////////////////////////////////////
 using namespace Html2;
@@ -1368,7 +1369,7 @@ GTag::GTag(GHtml2 *h, GTag *p) : Attr(0, false)
 {
 	Ctrl = 0;
 	TipId = 0;
-	IsBlock = false;
+	Disp = DispInherit;
 	Html = h;
 	Parent = p;
 	if (Parent)
@@ -1380,8 +1381,7 @@ GTag::GTag(GHtml2 *h, GTag *p) : Attr(0, false)
 	Selection = -1;
 	Font = 0;
 	Tag = 0;
-	Class = 0;
-	HtmlId = 0;
+	HtmlId = NULL;
 	// TableBorder = 0;
 	Cells = 0;
 	WasClosed = false;
@@ -1415,7 +1415,6 @@ GTag::~GTag()
 	Attr.DeleteArrays();
 
 	DeleteArray(Tag);
-	DeleteArray(HtmlId);
 	DeleteObj(Cells);
 }
 
@@ -1524,7 +1523,7 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 
 	if (Tag)
 	{
-		if (IsBlock)
+		if (IsBlock(Disp))
 		{
 			p.Print("\n%s<%s", Tabs, Tag);
 		}
@@ -1557,16 +1556,16 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 			TextToStream(p, Text());
 		}
 
-		bool Last = IsBlock;
+		bool Last = IsBlock(Disp);
 		for (GTag *c = Tags.First(); c; c = Tags.Next())
 		{
 			c->CreateSource(p, Parent ? Depth+1 : 0, Last);
-			Last = c->IsBlock;
+			Last = IsBlock(c->Disp);
 		}
 
 		if (Tag)
 		{
-			if (IsBlock)
+			if (IsBlock(Disp))
 			{
 				p.Print("\n%s</%s>\n", Tabs, Tag);
 			}
@@ -1607,7 +1606,7 @@ void GTag::SetTag(const char *NewTag)
 	if (Info = GetTagInfo(Tag))
 	{
 		TagId = Info->Id;
-		IsBlock = Info->Flags & TI_BLOCK;
+		Disp = Info->Flags & TI_BLOCK ? DispBlock : DispInline;
 		SetStyle();
 	}
 }
@@ -1990,7 +1989,7 @@ bool GTag::OnMouseClick(GMouse &m)
 
 GTag *GTag::GetBlockParent(int *Idx)
 {
-	if (IsBlock)
+	if (IsBlock(Disp))
 	{
 		if (Idx)
 			*Idx = 0;
@@ -2000,7 +1999,7 @@ GTag *GTag::GetBlockParent(int *Idx)
 
 	for (GTag *t = this; t; t = t->Parent)
 	{
-		if (t->Parent->IsBlock)
+		if (IsBlock(t->Parent->Disp))
 		{
 			if (Idx)
 			{
@@ -2308,42 +2307,51 @@ bool GTag::MatchFullSelector(GCss::Selector *Sel)
 
 	if (Complex)
 	{
-		GCss::Selector::Part &p = Sel->Parts[StartIdx - 1];
-		switch (p.Type)
+		GTag *CurrentParent = Parent;
+		
+		for (; CombIdx >= 0; CombIdx--)
 		{
-			case GCss::Selector::CombChild:
+			StartIdx = Sel->Combs[CombIdx];
+			LgiAssert(StartIdx > 0);
+
+			GCss::Selector::Part &p = Sel->Parts[StartIdx];
+			switch (p.Type)
 			{
-				break;
-			}
-			case GCss::Selector::CombAdjacent:
-			{
-				break;
-			}
-			case GCss::Selector::CombDesc:
-			{
-				// Does the parent match the previous simple selector
-				int PrevIdx = StartIdx - 1;
-				while (PrevIdx > 0 && Sel->Parts[PrevIdx-1].IsSel())
+				case GCss::Selector::CombChild:
 				{
-					PrevIdx--;
+					LgiAssert(!"Not impl.");
+					break;
 				}
-				bool ParMatch = false;
-				for (GTag *Par = Parent; !ParMatch && Par; Par = Par->Parent)
+				case GCss::Selector::CombAdjacent:
 				{
-					ParMatch = MatchSimpleSelector(Sel, PrevIdx);
-				}
-				if (!ParMatch)
+					// LgiAssert(!"Not impl.");
 					return false;
-				break;
-			}
-			default:
-			{
-				LgiAssert(!"This must be a comb.");
-				break;
+					break;
+				}
+				case GCss::Selector::CombDesc:
+				{
+					// Does the parent match the previous simple selector
+					int PrevIdx = StartIdx - 1;
+					while (PrevIdx > 0 && Sel->Parts[PrevIdx-1].IsSel())
+					{
+						PrevIdx--;
+					}
+					bool ParMatch = false;
+					for (; !ParMatch && CurrentParent; CurrentParent = CurrentParent->Parent)
+					{
+						ParMatch = CurrentParent->MatchSimpleSelector(Sel, PrevIdx);
+					}
+					if (!ParMatch)
+						return false;
+					break;
+				}
+				default:
+				{
+					LgiAssert(!"This must be a comb.");
+					break;
+				}
 			}
 		}
-
-		return false;	
 	}
 
 	return Match;
@@ -2377,19 +2385,23 @@ bool GTag::MatchSimpleSelector
 			}
 			case GCss::Selector::SelAttrib:
 			{
-				int asd=0;
+				return false;
 				break;
 			}
 			case GCss::Selector::SelClass:
 			{
 				// Check the class matches
-				if (!Class || stricmp(Class, p.Value))
-					return false;
+				bool Match = false;
+				for (int i=0; i<Class.Length(); i++)
+				{
+					if (!stricmp(Class[i], p.Value))
+						Match = true;
+				}
 				break;
 			}
 			case GCss::Selector::SelMedia:
 			{
-				int asd=0;
+				return false;
 				break;
 			}
 			case GCss::Selector::SelID:
@@ -2401,6 +2413,10 @@ bool GTag::MatchSimpleSelector
 			}
 			case GCss::Selector::SelPseudo:
 			{
+				if (TagId == TAG_A || (p.Value && *p.Value == '-'))
+					break;
+					
+				return false;
 				break;
 			}
 			default:
@@ -2436,18 +2452,45 @@ void GTag::Restyle()
 	}
 
 	#else
-	
-	GHtml2::SelArray *s = Html->TypeMap.Find(Tag);
-	if (s)
+
+	if (Debug)
 	{
+		int asd=0;
+	}
+	
+	int i;
+	GArray<GHtml2::SelArray*> Maps;
+	GHtml2::SelArray *s;
+	if (s = Html->TypeMap.Find(Tag))
+		Maps.Add(s);
+	if (HtmlId && (s = Html->IdMap.Find(HtmlId)))
+		Maps.Add(s);
+	for (i=0; i<Class.Length(); i++)
+	{
+		if (s = Html->ClassMap.Find(Class[i]))
+			Maps.Add(s);
+	}
+
+	for (i=0; i<Maps.Length(); i++)
+	{
+		GHtml2::SelArray *s = Maps[i];
 		for (int i=0; i<s->Length(); i++)
 		{
-			GCss::Selector *sel = (*s)[i];
-			if (MatchFullSelector(sel))
-				SetCssStyle(sel->Style);
+			GCss::Selector *Sel = (*s)[i];
+			if (MatchFullSelector(Sel))
+			{
+				SetCssStyle(Sel->Style);
+			}
 		}
 	}
 	
+	Disp = Display();	
+	if (Debug)
+	{
+		GAutoString a = ToString();
+		LgiTrace("%s: %s\n", Tag, a);
+		
+	}
 	#endif
 }
 
@@ -2658,11 +2701,7 @@ void GTag::SetStyle()
 		else if (stricmp(s, "bottom") == 0) VerticalAlign(Len(VerticalBottom));
 	}
 
-	if (Get("id", s))
-	{
-		DeleteArray(HtmlId);
-		HtmlId = NewStr(s);
-	}
+	Get("id", HtmlId);
 
 	// Tag style
 	/* FIXME
@@ -2686,7 +2725,10 @@ void GTag::SetStyle()
 		*/
 	}
 
-	Get("class", Class);
+	if (Get("class", s))
+	{
+		Class.Parse(s);
+	}
 
 	Restyle();
 
@@ -3432,7 +3474,7 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 					Condition.Reset(NewStr(Start, s-Start));
 					Tag = NewStr("[if]");
 					Info = GetTagInfo(Tag);
-					IsBlock = false;
+					Disp = DispInline;
 				}
 				else if (!stricmp(Cond, "endif"))
 				{
@@ -3480,14 +3522,14 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 					if (Info)
 					{
 						TagId = Info->Id;
-						IsBlock = TestFlag(Info->Flags, TI_BLOCK) || (Tag && Tag[0] == '!');
+						Disp = TestFlag(Info->Flags, TI_BLOCK) || (Tag && Tag[0] == '!') ? DispBlock : DispInline;
 						if (TagId == TAG_PRE)
 						{
 							InPreTag = true;
 						}
 					}
 
-					if (IsBlock || TagId == TAG_BR)
+					if (IsBlock(Disp) || TagId == TAG_BR)
 					{
 						SkipNonDisplay(s);
 					}
@@ -3683,7 +3725,7 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 							DeleteObj(c);
 							return s;
 						}
-						else if (c->IsBlock)
+						else if (IsBlock(c->Disp))
 						{
 							GTag *Last;
 							while (c->Tags.Length())
@@ -3770,7 +3812,7 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 						}
 						s++;
 
-						if (IsBlock || TagId == TAG_BR)
+						if (IsBlock(Disp) || TagId == TAG_BR)
 						{
 							SkipNonDisplay(s);
 						}
@@ -5093,7 +5135,7 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 	}
 
 	int OldFlowMy = Flow->my;
-	if (IsBlock)
+	if (IsBlock(Disp))
 	{
 		// This is a block level element, so end the previous non-block elements
 		Flow->EndBlock();
@@ -5174,7 +5216,7 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 	}
 
 	int OldFlowY2 = Flow->y2;
-	if (IsBlock)
+	if (IsBlock(Disp))
 	{
 		Flow->EndBlock();
 
@@ -5632,7 +5674,7 @@ void GTag::OnPaint(GSurface *pDC)
 				}
 				pDC->Colour(back, 32);
 
-				if (IsBlock)
+				if (IsBlock(Disp))
 				{
 					pDC->Rectangle(0, 0, Size.x-1, Size.y-1);
 				}
@@ -5966,6 +6008,11 @@ void GHtml2::AddCss(char *Css)
 	for (; c && *c; )
 	{
 		c = SkipComment(c);
+		SkipWhiteSpace(c);
+		if (!strnicmp(c, ".signin-box h2", strlen(".signin-box h2")))
+		{
+			int sad=0;
+		}
 
 		// read selector
 		GArray<GCss::Selector*> Selectors;
