@@ -2812,7 +2812,7 @@ void GTag::SetStyle()
 		}
 		case TAG_HEAD:
 		{
-			Display(DispNone);
+			Display(Disp = DispNone);
 			break;
 		}
 		case TAG_PRE:
@@ -6063,38 +6063,40 @@ void GHtml2::AddCss(char *Css)
 				LgiAssert(n < s->Parts.Length());
 				GCss::Selector::Part &p = s->Parts[n];
 				
-				if (p.Value)
+				switch (p.Type)
 				{
-					switch (p.Type)
+					case GCss::Selector::SelType:
 					{
-						case GCss::Selector::SelType:
+						if (p.Value)
 						{
 							SelArray *a = TypeMap.Get(p.Value);
 							a->Add(s);
-							break;
 						}
-						case GCss::Selector::SelClass:
+						break;
+					}
+					case GCss::Selector::SelClass:
+					{
+						if (p.Value)
 						{
 							SelArray *a = ClassMap.Get(p.Value);
 							a->Add(s);
-							break;
 						}
-						case GCss::Selector::SelID:
+						break;
+					}
+					case GCss::Selector::SelID:
+					{
+						if (p.Value)
 						{
 							SelArray *a = IdMap.Get(p.Value);
 							a->Add(s);
-							break;
 						}
-						default:
-						{
-							CssOther.Add(s);
-							break;
-						}
+						break;
 					}
-				}
-				else
-				{
-					LgiAssert(!"No value to map on?");
+					default:
+					{
+						CssOther.Add(s);
+						break;
+					}
 				}
 			}
 		}
