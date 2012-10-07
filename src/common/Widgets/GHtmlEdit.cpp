@@ -659,7 +659,7 @@ public:
 					t->TagId == TAG_U ||
 					t->TagId == TAG_I ||
 					t->TagId == TAG_TD ||
-					t->IsBlock)
+					t->Disp == GCss::DispBlock)
 				{
 					if (Idx)
 					{

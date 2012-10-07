@@ -80,7 +80,7 @@ static char DefaultCss[] = {
 "strong          { font-weight: bolder; }"
 };
 
-#define IsBlock(d)		((d) == DispBlock || (d) == DispInlineBlock)
+#define IsBlock(d)		((d) == DispBlock)
 
 //////////////////////////////////////////////////////////////////////
 using namespace Html2;
@@ -1369,7 +1369,7 @@ GTag::GTag(GHtml2 *h, GTag *p) : Attr(0, false)
 {
 	Ctrl = 0;
 	TipId = 0;
-	Disp = DispInherit;
+	Disp = DispInline;
 	Html = h;
 	Parent = p;
 	if (Parent)
@@ -1606,7 +1606,7 @@ void GTag::SetTag(const char *NewTag)
 	if (Info = GetTagInfo(Tag))
 	{
 		TagId = Info->Id;
-		Disp = Info->Flags & TI_BLOCK ? DispBlock : DispInline;
+		Disp = (Info->Flags & TI_BLOCK) ? DispBlock : DispInline;
 		SetStyle();
 	}
 }
@@ -2484,7 +2484,8 @@ void GTag::Restyle()
 		}
 	}
 	
-	Disp = Display();	
+	if (Display() != DispInherit)
+		Disp = Display();	
 	if (Debug)
 	{
 		GAutoString a = ToString();
@@ -5037,7 +5038,8 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, char16 *Text, GC
 
 void GTag::OnFlow(GFlowRegion *InputFlow)
 {
-	if (Display() == DispNone) return;
+	if (Disp == DispNone)
+		return;
 
 	GFlowRegion *Flow = InputFlow;
 	GFont *f = GetFont();
@@ -5441,6 +5443,9 @@ struct DrawBorder
 
 void GTag::OnPaintBorder(GSurface *pDC)
 {
+	if (Disp == DispNone)
+		return;
+
 	BorderDef b;
 	if ((b = BorderLeft()).IsValid())
 	{
