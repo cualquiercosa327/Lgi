@@ -713,7 +713,7 @@ char *HttpTools::Fetch(char *uri, GStream *Log, GViewI *Dump, CookieJar *Cookies
 			GStringPipe p, hdr;
 
 			GAutoString Enc = u.GetUri();
-			if (h.Get(Wnd, Enc, DefHeaders, &ProtocolStatus, &p, &hdr))
+			if (h.Get(Enc, DefHeaders, &ProtocolStatus, &p, &hdr))
 			{
 				if (Cookies)
 				{
@@ -1100,7 +1100,7 @@ GSurface *GetHttpImage(char *Uri)
 		{
 			GStringPipe Data;
 			int Code = 0;
-			if (Http.Get(0, Uri, 0, &Code, &Data))
+			if (Http.Get(Uri, 0, &Code, &Data))
 			{
 				if (Code == 200)
 				{
