@@ -2391,12 +2391,20 @@ bool GTag::MatchSimpleSelector
 			case GCss::Selector::SelClass:
 			{
 				// Check the class matches
+				if (Class.Length() == 0)
+					return false;
+
 				bool Match = false;
 				for (int i=0; i<Class.Length(); i++)
 				{
 					if (!stricmp(Class[i], p.Value))
+					{
 						Match = true;
+						break;
+					}
 				}
+				if (!Match)
+					return false;
 				break;
 			}
 			case GCss::Selector::SelMedia:
@@ -2434,30 +2442,6 @@ bool GTag::MatchSimpleSelector
 // that match the current tag.
 void GTag::Restyle()
 {
-	#if 0 // The old re-style code... (it's dumb as nails)
-
-	// Class stype
-	char c[256];
-	snprintf(c, sizeof(c)-1, ".%s", Class);
-	c[sizeof(c)-1] = 0;
-	if (s = Html->CssMap.Find(c))
-	{
-		SetCssStyle(s);
-	}
-
-	snprintf(c, sizeof(c)-1, "%s.%s", Tag, Class);
-	if (s = Html->CssMap.Find(c))
-	{
-		SetCssStyle(s);
-	}
-
-	#else
-
-	if (Debug)
-	{
-		int asd=0;
-	}
-	
 	int i;
 	GArray<GHtml2::SelArray*> Maps;
 	GHtml2::SelArray *s;
@@ -2486,13 +2470,6 @@ void GTag::Restyle()
 	
 	if (Display() != DispInherit)
 		Disp = Display();	
-	if (Debug)
-	{
-		GAutoString a = ToString();
-		LgiTrace("%s: %s\n", Tag, a);
-		
-	}
-	#endif
 }
 
 void GTag::SetStyle()
@@ -6014,10 +5991,6 @@ void GHtml2::AddCss(char *Css)
 	{
 		c = SkipComment(c);
 		SkipWhiteSpace(c);
-		if (!strnicmp(c, ".signin-box h2", strlen(".signin-box h2")))
-		{
-			int sad=0;
-		}
 
 		// read selector
 		GArray<GCss::Selector*> Selectors;
