@@ -502,6 +502,9 @@ enum LgiSystemPath
 	///		[Win32] ~\My Videos
 	///		[Mac] ~\Movies
 	LSP_USER_VIDEO,
+	/// This is the user's download folder
+	///		~\Downloads
+	LSP_USER_DOWNLOADS,
 };
 
 //

@@ -35,6 +35,7 @@
 #else
 #include "GSymLookup.h"
 #endif
+#include "GLibrary.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Misc stuff
@@ -365,79 +366,75 @@ bool LgiRecursiveFileSearch(const char *Root,
 	if (!Root) return 0;
 
 	// get directory enumerator
-	GDirectory *Dir = FileDev->GetDir();
-	if (Dir)
+	GDirectory Dir;
+	Status = true;
+
+	// enumerate the directory contents
+	for (bool Found = Dir.First(Root); Found; Found = Dir.Next())
 	{
-		Status = true;
+		char Name[256];
+		if (!Dir.Path(Name, sizeof(Name)))
+			continue;
 
-		// enumerate the directory contents
-		for (bool Found = Dir->First(Root); Found; Found = Dir->Next())
+		if (Callback)
 		{
-			char Name[256];
-			Dir->Path(Name, sizeof(Name));
-
-			if (Callback)
+			if (!Callback(UserData, Name, &Dir))
 			{
-				if (!Callback(UserData, Name, Dir))
-				{
-					continue;
-				}
-			}
-
-			if (Dir->IsDir())
-			{
-				// dir
-				LgiRecursiveFileSearch(	Name,
-										Ext,
-										Files,
-										Size,
-										Count,
-										Callback,
-										UserData);
-
-			}
-			else
-			{
-				// process file
-				bool Match = true; // if no Ext's then default to match
-				if (Ext)
-				{
-					for (int i=0; i<Ext->Length(); i++)
-					{
-						const char *e = (*Ext)[i];
-						char *RawFile = strrchr(Name, DIR_CHAR);
-						if (RawFile AND
-							(Match = MatchStr(e, RawFile+1)))
-						{
-							break;
-						}
-					}
-				}
-
-				if (Match)
-				{
-					// file matched... process:
-					if (Files)
-					{
-						Files->Add(NewStr(Name));
-					}
-
-					if (Size)
-					{
-						*Size += Dir->GetSize();
-					}
-
-					if (Count)
-					{
-						*Count++;
-					}
-
-					Status = true;
-				}
+				continue;
 			}
 		}
 
-		DeleteObj(Dir);
+		if (Dir.IsDir())
+		{
+			// dir
+			LgiRecursiveFileSearch(	Name,
+									Ext,
+									Files,
+									Size,
+									Count,
+									Callback,
+									UserData);
+
+		}
+		else
+		{
+			// process file
+			bool Match = true; // if no Ext's then default to match
+			if (Ext)
+			{
+				for (int i=0; i<Ext->Length(); i++)
+				{
+					const char *e = (*Ext)[i];
+					char *RawFile = strrchr(Name, DIR_CHAR);
+					if (RawFile AND
+						(Match = MatchStr(e, RawFile+1)))
+					{
+						break;
+					}
+				}
+			}
+
+			if (Match)
+			{
+				// file matched... process:
+				if (Files)
+				{
+					Files->Add(NewStr(Name));
+				}
+
+				if (Size)
+				{
+					*Size += Dir.GetSize();
+				}
+
+				if (Count)
+				{
+					*Count++;
+				}
+
+				Status = true;
+			}
+		}
 	}
 
 	return Status;
@@ -753,6 +750,75 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 		
 		switch (Which)
 		{
+			case LSP_USER_DOWNLOADS:
+			{
+				#if defined WIN32
+
+				// OMG!!!! Really?
+				
+				#ifndef REFKNOWNFOLDERID
+				typedef GUID KNOWNFOLDERID;
+				#define REFKNOWNFOLDERID const KNOWNFOLDERID &
+				GUID FOLDERID_Downloads = {0x374DE290,0x123F,0x4565,{0x91,0x64,0x39,0xC4,0x92,0x5E,0x46,0x7B}};
+				#endif
+				
+				GLibrary Shell("Shell32.dll");
+				typedef HRESULT (STDAPICALLTYPE *pSHGetKnownFolderPath)(REFKNOWNFOLDERID rfid, DWORD dwFlags, HANDLE hToken, PWSTR *ppszPath);
+				pSHGetKnownFolderPath SHGetKnownFolderPath = (pSHGetKnownFolderPath)Shell.GetAddress("SHGetKnownFolderPath");
+				if (SHGetKnownFolderPath)
+				{
+					PWSTR ptr = NULL;
+					HRESULT r = SHGetKnownFolderPath(FOLDERID_Downloads, 0, NULL, &ptr);
+					if (SUCCEEDED(r))
+					{
+						GAutoString u8(LgiNewUtf16To8(ptr));
+						if (u8)
+						{
+							strsafecpy(Dst, u8, DstSize);
+							Status = true;
+						}
+						CoTaskMemFree(ptr);
+					}
+				}
+
+				if (!Status)
+				{
+					GRegKey k("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders");
+					char *p = k.GetStr("{374DE290-123F-4565-9164-39C4925E467B}");
+					if (DirExists(p))
+					{
+						strsafecpy(Dst, p, DstSize);
+						Status = true;
+					}
+				}
+				
+				if (!Status)
+				{
+					GAutoString MyDoc(GetWindowsFolder(CSIDL_MYDOCUMENTS));
+					if (MyDoc)
+					{
+						LgiMakePath(Dst, DstSize, MyDoc, "Downloads");
+						Status = DirExists(Dst);
+					}
+				}
+
+				if (!Status)
+				{
+					GAutoString MyDoc(GetWindowsFolder(CSIDL_PROFILE));
+					if (MyDoc)
+					{
+						LgiMakePath(Dst, DstSize, MyDoc, "Downloads");
+						Status = DirExists(Dst);
+					}
+				}
+
+				#else
+
+				LgiAssert(!"Not implemented");
+
+				#endif
+				break;
+			}
 			case LSP_USER_DOCUMENTS:
 			{
 				#if defined WIN32

@@ -689,20 +689,15 @@ bool SystemFunctions::ListFiles(GVariant *Ret, ArgumentArray &Args)
 		return false;
 
 	Ret->SetList();
-	GDirectory *d = FileDev->GetDir();
-	if (d)
+	GDirectory d;
+	char *Pattern = Args.Length() > 1 ? Args[1]->CastString() : 0;
+	for (bool b=d.First(Args[0]->CastString()); b; b=d.Next())
 	{
-		char *Pattern = Args.Length() > 1 ? Args[1]->CastString() : 0;
-		for (bool b=d->First(Args[0]->CastString()); b; b=d->Next())
+		if (!Pattern || MatchStr(Pattern, d.GetName()))
 		{
-			if (!Pattern || MatchStr(Pattern, d->GetName()))
-			{
-				Ret->Value.Lst->Insert(new GVariant(new GFileListEntry(d)));
-			}
+			Ret->Value.Lst->Insert(new GVariant(new GFileListEntry(&d)));
 		}
-		DeleteObj(d);
 	}
-	else Ret->Empty();
 
 	return true;
 }

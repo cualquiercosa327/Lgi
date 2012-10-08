@@ -99,8 +99,11 @@ typedef int								OsFile;
 /// Generic directory iterator
 class LgiClass GDirectory
 {
+	struct GDirectoryPriv *d;
+
 public:
-	virtual ~GDirectory() { }
+	GDirectory();
+	virtual ~GDirectory();
 
 	/// \brief Starts the search. The entries '.' and '..' are never returned.
 	/// The default pattern returns all files.
@@ -112,15 +115,15 @@ public:
 		/// The pattern to match files against.
 		/// \sa The default LGI_ALL_FILES matchs all files.
 		const char *Pattern = LGI_ALL_FILES
-	) = 0;
+	);
 	
 	/// \brief Get the next match
 	/// \return Non zero on success
-	virtual int Next() = 0;
+	virtual int Next();
 
 	/// \brief Finish the search
 	/// \return Non zero on success
-	virtual int Close() = 0;
+	virtual int Close();
 
 	/// \brief Constructs the full path of the current directory entry
 	/// \return Non zero on success
@@ -130,48 +133,48 @@ public:
 		char *s,
 		// The size of the output buffer in bytes
 		int BufSize
-	) = 0;
+	);
 
 	/// Gets the current entries attributes (platform specific)
-	virtual long GetAttributes() = 0;
+	virtual long GetAttributes();
 	
 	/// Gets the name of the current entry. (Doesn't include the path).
-	virtual char *GetName() = 0;
+	virtual char *GetName();
 	
 	/// Gets the user id of the current entry. (Doesn't have any meaning on Win32).
 	virtual int GetUser
 	(
 		/// If true gets the group id instead of the user id.
 		bool Group
-	) = 0;
+	);
 	
 	/// Gets the entries creation time. You can convert this to an easy to read for using GDateTime.
-	virtual const uint64 GetCreationTime() = 0;
+	virtual const uint64 GetCreationTime();
 
 	/// Gets the entries last access time. You can convert this to an easy to read for using GDateTime.
-	virtual const uint64 GetLastAccessTime() = 0;
+	virtual const uint64 GetLastAccessTime();
 
 	/// Gets the entries last modified time.  You can convert this to an easy to read for using GDateTime.
-	virtual const uint64 GetLastWriteTime() = 0;
+	virtual const uint64 GetLastWriteTime();
 
 	/// Returns the size of the entry.
-	virtual const uint64 GetSize() = 0;
+	virtual const uint64 GetSize();
 
 	/// Returns true if the entry is a sub-directory.
-	virtual bool IsDir() = 0;
+	virtual bool IsDir();
 	
 	/// Returns true if the entry is read only.
-	virtual bool IsReadOnly() = 0;
+	virtual bool IsReadOnly();
 
 	/// \brief Returns true if the entry is hidden.
 	/// This is equivilant to a attribute flag on win32 and a leading '.' on unix.
-	virtual bool IsHidden() = 0;
+	virtual bool IsHidden();
 
 	/// Creates an copy of this type of GDirectory class.
-	virtual GDirectory *Clone() = 0;
+	virtual GDirectory *Clone();
 	
 	/// Gets the type code of the current entry. See the VT_?? defines for possible values.
-	virtual int GetType() = 0;
+	virtual int GetType();
 
 	/// Converts a string to the 64-bit value returned from the date functions.
 	bool ConvertToTime(char *Str, uint64 Time);
@@ -209,35 +212,7 @@ public:
 	virtual GVolume *First() = 0;
 	virtual GVolume *Next() = 0;
 	virtual GDirectory *GetContents() = 0;
-};
-
-
-/// An implementation of GDirectory for the file system
-class LgiClass GDirImpl : public GDirectory
-{
-	class GDirImplPrivate *d;
-	
-public:
-	GDirImpl();
-	~GDirImpl();
-
-	int First(const char *Path, const char *Pattern);
-	int Next();
-	int Close();
-	bool Path(char *s, int len = -1);
-	GDirectory *Clone();
-
-	long GetAttributes();
-	bool IsDir();
-	bool IsHidden();
-	bool IsReadOnly();
-	char *GetName();
-	const uint64 GetCreationTime();
-	const uint64 GetLastAccessTime();
-	const uint64 GetLastWriteTime();
-	const uint64 GetSize();
-	int GetUser(bool Group);
-	int GetType();
+	virtual void Insert(GAutoPtr<GVolume> v) = 0;
 };
 
 typedef int (*CopyFileCallback)(void *token, int64 Done, int64 Total);
@@ -269,9 +244,6 @@ public:
 	/// Gets the root volume of the system.
 	GVolume *GetRootVolume();
 	
-	/// Returns a dynamically allocated GDirectory to iterate a directory in the file system.
-	GDirectory *GetDir();
-
 	/// Copies a file
 	bool Copy
 	(

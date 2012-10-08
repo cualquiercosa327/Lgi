@@ -723,7 +723,7 @@ bool GRegKey::DeleteKey()
 char *GRegKey::GetStr(char *Name)
 {
 	DWORD Size = sizeof(s), Type;
-	if (k AND RegQueryValueEx(k, Name, 0, &Type, (uchar*)s, &Size) == ERROR_SUCCESS)
+	if (k && RegQueryValueEx(k, Name, 0, &Type, (uchar*)s, &Size) == ERROR_SUCCESS)
 	{
 		return s;
 	}
@@ -815,7 +815,7 @@ char *GetWindowsFolder(int Id)
 		char ap[MAX_PATH] = "";
 		pSHGetSpecialFolderPathA a = (pSHGetSpecialFolderPathA) Shell.GetAddress("SHGetSpecialFolderPathA");
 
-		if (a AND a(0, ap, Id, false))
+		if (a && a(0, ap, Id, false))
 		{
 			if (ValidStr(ap))
 			{
@@ -829,7 +829,7 @@ char *GetWindowsFolder(int Id)
 	{
 		char16 wp[MAX_PATH] = { 0 };
 		pSHGetSpecialFolderPathW w = (pSHGetSpecialFolderPathW) Shell.GetAddress("SHGetSpecialFolderPathW");
-		if (w AND w(0, wp, Id, false))
+		if (w && w(0, wp, Id, false))
 		{
 			if (ValidStrW(wp))
 			{
@@ -839,7 +839,7 @@ char *GetWindowsFolder(int Id)
 		else
 		{
 			DWORD e = GetLastError();
-			int asd=0;
+			LgiAssert(!"Error getting system folder.");
 		}
 	}
 

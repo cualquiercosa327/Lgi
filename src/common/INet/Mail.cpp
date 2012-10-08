@@ -2176,33 +2176,31 @@ bool MailReceiveFolder::Open(GSocketI *S, char *RemoteHost, int Port, char *User
 	// Argument check
 	if (!DirExists(d->Path))
 		return false;
-	GAutoPtr<GDirectory> Dir(FileDev->GetDir());
-	if (!Dir)
-		return false;
+	GDirectory Dir;
 
 	// Loop through files, looking for email
-	for (bool b = Dir->First(d->Path, "*.*"); b; b = Dir->Next())
+	for (bool b = Dir.First(d->Path, "*.*"); b; b = Dir.Next())
 	{
 		if
 		(
-			!Dir->IsDir()
+			!Dir.IsDir()
 			&&
 			(
-				MatchStr("*.eml", Dir->GetName())
+				MatchStr("*.eml", Dir.GetName())
 				||
-				MatchStr("*.mail", Dir->GetName())
+				MatchStr("*.mail", Dir.GetName())
 			)
 		)
 		{
-			for (bool b = Dir->First(d->Path, LGI_ALL_FILES); b; b = Dir->Next())
+			for (bool b = Dir.First(d->Path, LGI_ALL_FILES); b; b = Dir.Next())
 			{
-				if (!Dir->IsDir())
+				if (!Dir.IsDir())
 				{
-					if (MatchStr("*.eml", Dir->GetName()) ||
-						MatchStr("*.mail", Dir->GetName()))
+					if (MatchStr("*.eml", Dir.GetName()) ||
+						MatchStr("*.mail", Dir.GetName()))
 					{
 						char p[300];
-						Dir->Path(p, sizeof(p));
+						Dir.Path(p, sizeof(p));
 						d->Mail.Insert(new MailItem(p));
 					}
 				}

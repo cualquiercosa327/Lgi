@@ -12,6 +12,7 @@
 #include <winsock2.h>
 #include <shlobj.h>
 #include <fcntl.h>
+#include <Userenv.h>
 
 #include "LgiInc.h"
 #include "LgiOsDefs.h"
@@ -66,13 +67,11 @@ char *ReadTextFile(char *File)
 int64 LgiFileSize(char *FileName)
 {
 	int64 Size = 0;
-	GDirectory *Dir = FileDev->GetDir();
-	if (Dir &&
-		Dir->First(FileName, 0))
+	GDirectory Dir;
+	if (Dir.First(FileName, 0))
 	{
-		Size = Dir->GetSize();
+		Size = Dir.GetSize();
 	}
-	DeleteObj(Dir);
 	return Size;
 }
 
@@ -462,84 +461,105 @@ GVolume::~GVolume()
 ////////////////////////////////////////////////////////////////////////////////
 class GWin32Volume : public GVolume
 {
-	int Which;
+	bool IsRoot;
 	List<GVolume> _Sub;
 
 public:
-	GWin32Volume(int w)
+	GWin32Volume(LgiSystemPath Type, char *Name)
 	{
-		Which = w;
+		IsRoot = Type == LSP_HOME;
+		_Name = NewStr(Name);
+		_Type = VT_FOLDER;
 
-		if (Which >= 0)
+		int Id = 0;
+		switch (Type)
 		{
-			char Drive[] = { 'A'+w, ':', '\\', 0 };
-			char VolName[256], System[256];
-			DWORD MaxPath;
-
-			int type = GetDriveType(Drive);
-			if (type != DRIVE_UNKNOWN &&
-				type != DRIVE_NO_ROOT_DIR)
+			case LSP_HOME:
 			{
-				char Buf[256];
-				char *Desc = 0;
-				switch (type)
-				{
-					case DRIVE_REMOVABLE:
-					{
-						_Type = VT_REMOVABLE;
-
-						if (w > 1 &&
-							GetVolumeInformation(Drive, Buf, sizeof(Buf), 0, 0, 0, 0, 0) &&
-							ValidStr(Buf))
-						{
-							Desc = Buf;
-						}
-						else
-						{
-							Desc = (char*)(Which > 1 ? "Removable" : "Floppy");
-						}
-						break;
-					}
-					case DRIVE_REMOTE:
-						Desc = (char*)"Network";
-						_Type = VT_NETWORK_SHARE;
-						break;
-					case DRIVE_CDROM:
-						Desc = (char*)"Cdrom";
-						_Type = VT_CDROM;
-						break;
-					case DRIVE_RAMDISK:
-						Desc = (char*)"Ramdisk";
-						_Type = VT_RAMDISK;
-						break;
-					case DRIVE_FIXED:
-					default:
-					{
-						if (GetVolumeInformation(Drive, Buf, sizeof(Buf), 0, 0, 0, 0, 0) &&
-							ValidStr(Buf))
-						{
-							Desc = Buf;
-						}
-						else
-						{
-							Desc = "Hard Disk";
-						}
-						_Type = VT_HARDDISK;
-						break;
-					}
-				}
-
-				char s[256];
-				sprintf(s, "%s (%.2s)", Desc, Drive);
-				_Name = NewStr(s);
-				_Path = NewStr(Drive);
+				Id = CSIDL_PROFILE;
+				break;
+			}
+			case LSP_DESKTOP:
+			{
+				_Type = VT_DESKTOP;
+				Id = CSIDL_DESKTOPDIRECTORY;
+				break;
 			}
 		}
-		else
+		
+		char p[MAX_PATH];
+		if (Id)
 		{
-			_Name = NewStr("Desktop");
-			_Type = VT_DESKTOP;
-			_Path = GetWindowsFolder(CSIDL_DESKTOPDIRECTORY);
+			_Path = GetWindowsFolder(Id);
+		}
+		else if (LgiGetSystemPath(Type, p, sizeof(p)))
+		{
+			_Path = NewStr(p);
+		}
+	}
+
+	GWin32Volume(const char *Drive)
+	{
+		char VolName[256], System[256];
+		DWORD MaxPath;
+
+		IsRoot = false;
+		int type = GetDriveType(Drive);
+		if (type != DRIVE_UNKNOWN &&
+			type != DRIVE_NO_ROOT_DIR)
+		{
+			char Buf[256];
+			char *Desc = 0;
+			switch (type)
+			{
+				case DRIVE_REMOVABLE:
+				{
+					_Type = VT_REMOVABLE;
+
+					if (GetVolumeInformation(Drive, Buf, sizeof(Buf), 0, 0, 0, 0, 0) &&
+						ValidStr(Buf))
+					{
+						Desc = Buf;
+					}
+					else
+					{
+						// Desc = (char*)(Which > 1 ? "Removable" : "Floppy");
+					}
+					break;
+				}
+				case DRIVE_REMOTE:
+					Desc = (char*)"Network";
+					_Type = VT_NETWORK_SHARE;
+					break;
+				case DRIVE_CDROM:
+					Desc = (char*)"Cdrom";
+					_Type = VT_CDROM;
+					break;
+				case DRIVE_RAMDISK:
+					Desc = (char*)"Ramdisk";
+					_Type = VT_RAMDISK;
+					break;
+				case DRIVE_FIXED:
+				default:
+				{
+					if (GetVolumeInformation(Drive, Buf, sizeof(Buf), 0, 0, 0, 0, 0) &&
+						ValidStr(Buf))
+					{
+						Desc = Buf;
+					}
+					else
+					{
+						Desc = "Hard Disk";
+					}
+					_Type = VT_HARDDISK;
+					break;
+				}
+			}
+
+			char s[256];
+			sprintf(s, "%s (%.2s)", Desc, Drive);
+			_Name = NewStr(s);
+			_Path = NewStr(Drive);
 		}
 	}
 
@@ -559,27 +579,28 @@ public:
 	{
 		return Mount;
 	}
+
+	void Insert(GAutoPtr<GVolume> v)
+	{
+		_Sub.Insert(v.Release());		
+	}
 	
 	GVolume *First()
 	{
-		if (Which < 0 &&
-			!_Sub.Length())
+		if (IsRoot)
 		{
 			// Get drive list
+			IsRoot = false;
+			
 			char Str[512];
 			if (GetLogicalDriveStrings(sizeof(Str), Str) > 0)
 			{
 				for (char *d=Str; *d; d+=strlen(d)+1)
 				{
-					GWin32Volume *v = new GWin32Volume(d[0]-'A');
+					GWin32Volume *v = new GWin32Volume(d);
 					if (v)
-					{
 						_Sub.Insert(v);
-					}
 				}
-			}
-			else
-			{
 			}
 		}
 
@@ -594,11 +615,9 @@ public:
 	GDirectory *GetContents()
 	{
 		GDirectory *Dir = 0;
-		if (Which >= 0 &&
-			_Path)
+		if (_Path)
 		{
-			Dir = FileDev->GetDir();
-			if (Dir)
+			if (Dir = new GDirectory)
 			{
 				if (!Dir->First(_Path))
 				{
@@ -653,15 +672,15 @@ GVolume *GFileSystem::GetRootVolume()
 {
 	if (!Root)
 	{
-		Root = new GWin32Volume(-1);
+		Root = new GWin32Volume(LSP_HOME, "Home");
+		
+		GAutoPtr<GVolume> v(new GWin32Volume(LSP_DESKTOP, "Desktop"));
+		Root->Insert(v);
+		v.Reset(new GWin32Volume(LSP_USER_DOWNLOADS, "Downloads"));
+		Root->Insert(v);
 	}
 
 	return Root;
-}
-
-GDirectory *GFileSystem::GetDir()
-{
-	return new GDirImpl;
 }
 
 bool GFileSystem::Copy(char *From, char *To, int *ErrorCode, CopyFileCallback Callback, void *Token)
@@ -917,27 +936,26 @@ bool GFileSystem::RemoveFolder(char *PathName, bool Recurse)
 {
 	if (Recurse)
 	{
-		GDirectory *Dir = FileDev->GetDir();
-		if (Dir &&
-			Dir->First(PathName))
+		GDirectory Dir;
+		if (Dir.First(PathName))
 		{
 			do
 			{
 				char Str[256];
-				Dir->Path(Str, sizeof(Str));
-
-				if (Dir->IsDir())
+				if (Dir.Path(Str, sizeof(Str)))
 				{
-					RemoveFolder(Str, Recurse);
-				}
-				else
-				{
-					Delete(Str, false);
+					if (Dir.IsDir())
+					{
+						RemoveFolder(Str, Recurse);
+					}
+					else
+					{
+						Delete(Str, false);
+					}
 				}
 			}
-			while (Dir->Next());
+			while (Dir.Next());
 		}
-		DeleteObj(Dir);
 	}
 
 	if (!::RemoveDirectory(PathName))
@@ -1235,9 +1253,8 @@ bool GDirectory::ConvertToDate(char *Str, uint64 Time)
 /////////////////////////////////////////////////////////////////////////////////
 //////////////////////////// Directory //////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////
-class GDirImplPrivate
+struct GDirectoryPriv
 {
-public:
 	char			BasePath[MAX_PATH];
 	GAutoString     Utf;
 	HANDLE			Handle;
@@ -1247,34 +1264,34 @@ public:
 		WIN32_FIND_DATAW w;
 	} Data;
 
-	GDirImplPrivate()
+	GDirectoryPriv()
 	{
 		Handle = INVALID_HANDLE_VALUE;
 		BasePath[0] = 0;
 	}
 
-	~GDirImplPrivate()
+	~GDirectoryPriv()
 	{
 	}
 };
 
-GDirImpl::GDirImpl()
+GDirectory::GDirectory()
 {
-	d = new GDirImplPrivate;
+	d = new GDirectoryPriv;
 }
 
-GDirImpl::~GDirImpl()
+GDirectory::~GDirectory()
 {
 	Close();
 	DeleteObj(d);
 }
 
-GDirectory *GDirImpl::Clone()
+GDirectory *GDirectory::Clone()
 {
-	return new GDirImpl;
+	return new GDirectory;
 }
 
-bool GDirImpl::Path(char *s, int BufLen)
+bool GDirectory::Path(char *s, int BufLen)
 {
 	char *Name = GetName();
 	int Len = strlen(d->BasePath) + 2;
@@ -1291,7 +1308,7 @@ bool GDirImpl::Path(char *s, int BufLen)
 	return Status;
 }
 
-int GDirImpl::First(const char *Name, const char *Pattern)
+int GDirectory::First(const char *Name, const char *Pattern)
 {
 	Close();
 
@@ -1394,7 +1411,7 @@ int GDirImpl::First(const char *Name, const char *Pattern)
 	return d->Handle != INVALID_HANDLE_VALUE;
 }
 
-int GDirImpl::Next()
+int GDirectory::Next()
 {
 	int Status = false;
 	
@@ -1415,7 +1432,7 @@ int GDirImpl::Next()
 	return Status;
 }
 
-int GDirImpl::Close()
+int GDirectory::Close()
 {
 	if (d->Handle != INVALID_HANDLE_VALUE)
 	{
@@ -1428,12 +1445,12 @@ int GDirImpl::Close()
 	return true;
 }
 
-int GDirImpl::GetUser(bool Group)
+int GDirectory::GetUser(bool Group)
 {
 	return 0;
 }
 
-bool GDirImpl::IsReadOnly()
+bool GDirectory::IsReadOnly()
 {
 	if (GFileSystem::Win9x)
 	{
@@ -1445,7 +1462,7 @@ bool GDirImpl::IsReadOnly()
 	}
 }
 
-bool GDirImpl::IsDir()
+bool GDirectory::IsDir()
 {
 	if (GFileSystem::Win9x)
 	{
@@ -1457,7 +1474,7 @@ bool GDirImpl::IsDir()
 	}
 }
 
-bool GDirImpl::IsHidden()
+bool GDirectory::IsHidden()
 {
 	if (GFileSystem::Win9x)
 	{
@@ -1469,7 +1486,7 @@ bool GDirImpl::IsHidden()
 	}
 }
 
-long GDirImpl::GetAttributes()
+long GDirectory::GetAttributes()
 {
 	if (GFileSystem::Win9x)
 	{
@@ -1481,12 +1498,12 @@ long GDirImpl::GetAttributes()
 	}
 }
 
-int GDirImpl::GetType()
+int GDirectory::GetType()
 {
 	return IsDir() ? VT_FOLDER : VT_FILE;
 }
 
-char *GDirImpl::GetName()
+char *GDirectory::GetName()
 {
 	if (!d->Utf)
 	{
@@ -1503,7 +1520,7 @@ char *GDirImpl::GetName()
 	return d->Utf;
 }
 
-const uint64 GDirImpl::GetCreationTime()
+const uint64 GDirectory::GetCreationTime()
 {
 	if (GFileSystem::Win9x)
 	{
@@ -1515,7 +1532,7 @@ const uint64 GDirImpl::GetCreationTime()
 	}
 }
 
-const uint64 GDirImpl::GetLastAccessTime()
+const uint64 GDirectory::GetLastAccessTime()
 {
 	if (GFileSystem::Win9x)
 	{
@@ -1527,7 +1544,7 @@ const uint64 GDirImpl::GetLastAccessTime()
 	}
 }
 
-const uint64 GDirImpl::GetLastWriteTime()
+const uint64 GDirectory::GetLastWriteTime()
 {
 	if (GFileSystem::Win9x)
 	{
@@ -1539,7 +1556,7 @@ const uint64 GDirImpl::GetLastWriteTime()
 	}
 }
 
-const uint64 GDirImpl::GetSize()
+const uint64 GDirectory::GetSize()
 {
 	if (GFileSystem::Win9x)
 	{
