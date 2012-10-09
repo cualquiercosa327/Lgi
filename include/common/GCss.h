@@ -570,7 +570,7 @@ public:
 		void TokString(GAutoString &a, const char *&s);
 		const char *PartTypeToString(PartType p);
 		GAutoString Print();
-		void Parse(const char *&s);
+		bool Parse(const char *&s);
 		int GetSimpleIndex() { return Combs.Length() ? Combs[Combs.Length()-1] + 1 : 0; }
 		
 		Selector &operator =(const Selector &s);

@@ -1757,10 +1757,10 @@ GAutoString GCss::Selector::Print()
 	return GAutoString(p.NewStr());
 }
 
-void GCss::Selector::Parse(const char *&s)
+bool GCss::Selector::Parse(const char *&s)
 {
 	if (!s)
-		return;
+		return false;
 
 	const char *Start = s, *Prev = s;
 	GArray<int> Offsets;
@@ -1775,8 +1775,15 @@ void GCss::Selector::Parse(const char *&s)
 		}
 		else if (*s == '/')
 		{
-			LgiAssert(!"Impl comment handling.");
-			return;
+			if (s[1] != '*')
+				return false;
+			
+			s += 2;
+			char *End = strstr((char*)s, "*/");
+			if (!End)
+				return false;
+			
+			s = End + 2;
 		}
 		else if (*s == ':')
 		{
@@ -1838,7 +1845,7 @@ void GCss::Selector::Parse(const char *&s)
 			
 			char *End = strchr((char*)s, ']');
 			if (!End)
-				return;
+				return false;
 				
 			n.Value.Reset(NewStr(s, End - s));
 			s = End + 1;
@@ -1876,7 +1883,7 @@ void GCss::Selector::Parse(const char *&s)
 		if (*s && s == Prev)
 		{
 			LgiAssert(!"Parsing is stuck.");
-			return;
+			return false;
 		}
 		Prev = s;
 	}
@@ -1884,5 +1891,7 @@ void GCss::Selector::Parse(const char *&s)
 	#ifdef _DEBUG
 	Raw.Reset(NewStr(Start, s - Start));
 	#endif
+
+	return true;
 }
 

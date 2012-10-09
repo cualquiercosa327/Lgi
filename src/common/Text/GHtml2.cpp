@@ -1443,7 +1443,7 @@ bool GTag::SetVariant(const char *Name, GVariant &Value, char *Array)
 
 	Set(Name, Value.CastString());
 	Html->ViewWidth = -1;
-	SetStyle();
+	// SetStyle();
 
 	return true;
 }
@@ -2488,9 +2488,7 @@ void GTag::SetStyle()
 	const char *s = 0;
 	#ifdef _DEBUG
 	if (Get("debug", s))
-	{
 		Debug = atoi(s);
-	}
 	#endif
 
 	if (Get("Color", s))
@@ -3915,53 +3913,6 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 						break;
 				}
 
-				/*
-				if (InPreTag)
-				{
-					for (char16 *s=Txt; s && *s; )
-					{
-						char16 *e = StrchrW(s, '\n');
-						if (!e) e = s + StrlenW(s);
-						int Chars = ((int)e - (int)s)/sizeof(char16);
-
-						GTag *c = new GTag(Html, this);
-						if (c)
-						{
-							c->Text(NewStrW(s, Chars));
-							
-							if (*e == '\n')
-							{
-								GTag *c = new GTag(Html, this);
-								if (c)
-								{
-									c->Tag = NewStr("br");
-									c->Info = GetTagInfo(c->Tag);
-									if (c->Info)
-									{
-										c->TagId = c->Info->Id;
-									}
-								}
-							}
-						}
-
-						s = *e ? e + 1 : e;
-					}
-				}
-				else if (Tags.Length() == 0 &&
-						(!Info || !Info->NoText()) &&
-						!Text())
-				{
-					Text(Txt.Release());
-				}
-				else
-				{
-					GTag *c = new GTag(Html, this);
-					if (c)
-					{
-						c->Text(Txt.Release());
-					}
-				}
-				*/
 			}
 
 			s = n;
@@ -5947,6 +5898,9 @@ void GHtml2::_Delete()
 
 	SetBackColour(Rgb24To32(LC_WORKSPACE));
 
+	TypeMap.Empty();
+	ClassMap.Empty();
+	IdMap.Empty();
 	StyleStore.DeleteArrays();
 	CssOther.DeleteObjects();
 	OpenTags.Empty();
@@ -5971,6 +5925,7 @@ static const char *SkipComment(const char *c)
 		char *e = strstr((char*)c + 2, "*/");
 		if (e) c = e + 2;
 		else c += 2;
+		SkipWhiteSpace(c);
 	}
 	return c;
 }
@@ -5980,17 +5935,18 @@ void GHtml2::AddCss(char *Css)
 	const char *c = Css;	
 	if (!Css) return;
 
-	SkipWhiteSpace(c);
-	if (*c == '<')
+	c = SkipComment(c);
+	if (!strncmp(c, "<!--", 4))
 	{
-		c++;
-		while (*c && !strchr(WhiteSpace, *c)) c++;
+		c += 4;
 	}
 
 	for (; c && *c; )
 	{
 		c = SkipComment(c);
-		SkipWhiteSpace(c);
+
+		if (!strncmp(c, "-->", 3))
+			break;
 
 		// read selector
 		GArray<GCss::Selector*> Selectors;
@@ -6269,7 +6225,7 @@ bool GHtml2::Name(const char *s)
 		Parse();
 	}
 
-	Invalidate();
+	Invalidate();	
 
 	return true;
 }

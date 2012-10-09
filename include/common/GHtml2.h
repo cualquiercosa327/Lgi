@@ -61,7 +61,8 @@ protected:
 			{
 				s->DeleteObjects();
 				delete s;
-			}			
+			}	
+			GHashTbl<const char*,SelArray*>::Empty();
 		}
 		
 		SelArray *Get(const char *s)

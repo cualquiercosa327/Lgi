@@ -873,6 +873,13 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 						Status = GetMessage(&Msg, NULL, 0, 0) > 0;
 						DontWait = true;
 					}
+					
+					#if 0
+					char m[256];
+					sprintf(m, "Msg=%i hwnd=%p %i,%i\n", Msg.message, Msg.hwnd, Msg.wParam, Msg.lParam);
+					OutputDebugStringA(m);
+					#endif
+					
 					if (!Status || Msg.message == WM_QUIT)
 						break;
 
