@@ -281,6 +281,7 @@ public:
 	GdcPt2 Cell;
 	GdcPt2 Span;
 	uint16 MinContent, MaxContent;
+	GCss::LengthType XAlign;
 	GCellStore *Cells;
 	#ifdef _DEBUG
 	int Debug;

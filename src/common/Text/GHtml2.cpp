@@ -1212,7 +1212,20 @@ GCss::LengthType GTag::GetAlign(bool x)
 {
 	for (GTag *t = this; t; t = t->Parent)
 	{
-		GCss::Len l = x ? TextAlign() : VerticalAlign();
+		GCss::Len l;
+		
+		if (x)
+		{
+			if (TagId == TAG_TD && XAlign)
+				l.Type = XAlign;
+			else
+				l = TextAlign();
+		}
+		else
+		{
+			l = VerticalAlign();
+		}
+		
 		if (l.Type != LenInherit)
 		{
 			return l.Type;
@@ -1377,6 +1390,7 @@ GTag::GTag(GHtml2 *h, GTag *p) : Attr(0, false)
 		Parent->Tags.Insert(this);
 	}
 	
+	XAlign = GCss::LenInherit;
 	Cursor = -1;
 	Selection = -1;
 	Font = 0;
@@ -2820,6 +2834,13 @@ void GTag::SetStyle()
 			{
 				_CellPadding(l);
 			}
+
+			if (Get("align", s))
+			{
+				Len l;
+				if (l.Parse(s))
+					XAlign = l.Type;
+			}
 			break;
 		}
 		case TAG_TR:
@@ -2835,6 +2856,13 @@ void GTag::SetStyle()
 				Span.y = atoi(s);
 			else
 				Span.y = 1;
+			
+			if (Get("align", s))
+			{
+				Len l;
+				if (l.Parse(s))
+					XAlign = l.Type;
+			}
 			break;
 		}
 		case TAG_IMG:
@@ -4752,7 +4780,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 
 		DumpCols();
 
-		switch (GetAlign(true))
+		switch (XAlign ? XAlign : Parent->GetAlign(true))
 		{
 			case AlignCenter:
 			{
@@ -5965,7 +5993,11 @@ void GHtml2::AddCss(char *Css)
 			}
 			else if (*c == '/')
 			{
-				SkipComment(c);
+				const char *n = SkipComment(c);
+				if (n == c)
+					c++;
+				else
+					c = n;
 			}
 			else break;
 		}		

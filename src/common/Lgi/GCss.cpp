@@ -1714,7 +1714,7 @@ void GCss::Selector::TokString(GAutoString &a, const char *&s)
 			||
 			IsDigit(*e)
 			||
-			*e == '-'
+			strchr("-_", *e)
 		)
 	)
 		e++;
@@ -1789,9 +1789,14 @@ bool GCss::Selector::Parse(const char *&s)
 		{
 			s++;
 			if (*s == ':')
+			{
 				s++;
-			else if (IsWhite(*s))
+			}
+			else if (!IsAlpha(*s))
+			{
+				s++;
 				break;
+			}
 
 			Part &n = Parts.New();
 			n.Type = SelPseudo;
