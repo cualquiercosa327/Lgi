@@ -1455,10 +1455,37 @@ bool GTag::SetVariant(const char *Name, GVariant &Value, char *Array)
 	if (!Name)
 		return false;
 
-	Set(Name, Value.CastString());
-	Html->ViewWidth = -1;
-	// SetStyle();
+	if (!stricmp(Name, "innerHTML"))
+	{
+		char *Doc = Value.CastString();
+		if (Doc)
+		{
+			// Clear out existing tags..
+			Tags.DeleteObjects();
+		
+			// Create new tags...
+			bool BackOut = false;
+			
+			while (Doc && *Doc)
+			{
+				GTag *t = new GTag(Html, this);
+				if (t)
+				{
+					Doc = t->ParseHtml(Doc, 1, false, &BackOut);
+					if (!Doc)
+						break;
+				}
+				else break;
+			}
+		}
+	}
+	else
+	{
+		Set(Name, Value.CastString());
+		// SetStyle();
+	}
 
+	Html->ViewWidth = -1;
 	return true;
 }
 

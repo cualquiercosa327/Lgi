@@ -1029,6 +1029,20 @@ char *GVariant::CastString()
 
 	switch (Type)
 	{
+		case GV_LIST:
+		{
+			GStringPipe p(256);
+			List<GVariant>::I it = Value.Lst->Start();
+			bool First = true;
+			for (GVariant *v = *it; v; v = *++it)
+			{
+				p.Print("%s%s", First ? "" : ", ", v->CastString());
+				First = false;
+			}
+			OwnStr(p.NewStr());
+			return Str();
+			break;
+		}
 		case GV_DOMREF:
 		{
 			static GVariant v;
