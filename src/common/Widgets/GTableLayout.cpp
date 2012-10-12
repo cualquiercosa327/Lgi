@@ -500,10 +500,11 @@ public:
 	}
 
 	/// Calculates the minimum and maximum widths this cell can occupy.
-	void PreLayout(int &Min, int &Max, CellFlag &Flag)
+	void PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 	{
 		int MaxBtnX = 0;
 		int TotalBtnX = 0;
+		int Min = 0, Max = 0;
 
 		// Calculate CSS padding
 		#define CalcCssPadding(Prop, Axis, Edge) \
@@ -520,9 +521,16 @@ public:
 		CalcCssPadding(PaddingTop, Y, y1)
 		CalcCssPadding(PaddingBottom, Y, y2)
 
-		if (Padding.x1)
+		Len Wid = Width();
+		if (Wid.Type != LenInherit)
 		{
-			int asd=0;
+			Min = Max = Wid.ToPx(Table->X(), Table->GetFont());
+			if (Padding.x1 + Padding.x2 > Min)
+			{
+				// Remove padding as it's going to oversize the cell
+				Padding.x1 = Padding.x2 = 0;
+			}
+			return;
 		}
 
 		for (int i=0; i<Children.Length(); i++)
@@ -677,18 +685,25 @@ public:
 			Max = max(Max, TotalBtnX);
         }
 
-		Min += Padding.x1 + Padding.x2;
-		Max += Padding.x1 + Padding.x2;
+		MinX = max(MinX, Min + Padding.x1 + Padding.x2);
+		MaxX = max(MaxX, Max + Padding.x1 + Padding.x2);
 	}
 
 	/// Calculate the height of the cell based on the given width
-	void Layout(int Width, int &Min, int &Max, CellFlag &Flags)
+	void Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 	{
 		Pos.ZOff(Width-1, 0);
 		
+		Len Ht = Height();
+		if (Ht.Type != LenInherit)
+		{
+			Pos.y2 = Ht.ToPx(Table->Y(), Table->GetFont()) - 1;
+			return;
+		}
+		
 		int BtnX = 0;
 		int BtnRows = -1;
-		
+				
 		Width -= Padding.x1 + Padding.x2;
 		LgiAssert(Width >= 0);
 		
@@ -763,7 +778,7 @@ public:
 					if (Izza(GEdit) &&
 						Izza(GEdit)->MultiLine())
 					{
-						Max = max(Max, 1000);
+						MaxY = max(MaxY, 1000);
 					}
 				}
 				else if (Izza(GCheckBox) ||
@@ -782,7 +797,7 @@ public:
 						 Izza(GTabView))
 				{
 					Pos.y2 += v->GetFont()->GetHeight() + 8;
-					Max = max(Max, 1000);
+					MaxY = max(MaxY, 1000);
 				}
 				else if (Izza(GBitmap))
 				{
@@ -790,11 +805,11 @@ public:
 					GSurface *Dc = b->GetSurface();
 					if (Dc)
 					{
-						Max = max(Max, Dc->Y() + 4);
+						MaxY = max(MaxY, Dc->Y() + 4);
 					}
 					else
 					{
-						Max = max(Max, 1000);
+						MaxY = max(MaxY, 1000);
 					}
 				}
 				else if (Tbl = Izza(GTableLayout))
@@ -829,16 +844,16 @@ public:
 			}
 		}
 		
-		Min = max(Min, Pos.Y());
-		Max = max(Max, Pos.Y());
+		MinY = max(MinY, Pos.Y() + Padding.y1 + Padding.y2);
+		MaxY = max(MaxY, Pos.Y() + Padding.y1 + Padding.y2);
 	}
 
 	/// Called after the layout has been done to move the controls into place
 	void PostLayout()
 	{
-		int Cx = 0;
-		int Cy = 0;
-		int MaxY = 0;
+		int Cx = Padding.x1;
+		int Cy = Padding.y1;
+		int MaxY = Padding.y1;
 		int RowStart = 0;
 		GArray<GRect> New;
 
@@ -849,14 +864,8 @@ public:
 				continue;
 
 			GTableLayout *Tbl = Izza(GTableLayout);
-			
-			if (Padding.x1)
-			{
-				int as=0;
-			}
-
 			GRect r = v->GetPos();
-			r.Offset(Pos.x1 - r.x1 + Cx + Padding.x1, Pos.y1 - r.y1 + Cy);
+			r.Offset(Pos.x1 - r.x1 + Cx, Pos.y1 - r.y1 + Cy);
 
 			GViewLayoutInfo Inf;
 			Inf.Width.Max = Pos.X() - Padding.x1 - Padding.x2;
@@ -885,7 +894,6 @@ public:
 			    r.x2 = r.x1 + Inf.Width.Max - 1;
 			}
 
-			// printf("%s = %s\n", v->GetClass(), r.GetStr());
 			New[i] = r;
 			MaxY = max(MaxY, r.y2 - Pos.y1);
 			Cx += r.X() + GTableLayout::CellSpacing;
@@ -908,7 +916,7 @@ public:
 				}
 
 				RowStart = i + 1;
-				Cx = 0;
+				Cx = Padding.x1;
 				Cy = MaxY + GTableLayout::CellSpacing;
 			}
 		}

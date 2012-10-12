@@ -1574,7 +1574,7 @@ TableLayoutTest::TableLayoutTest(GViewI *par)
 	c->Add(View = new DlgContainer(102));
 
 	c = Tbl->GetCell(0, 2, true, 2);
-	c->SetAlignX(GLayoutCell::AlignMax);
+	c->TextAlign(GCss::AlignRight);
 	c->Add(new GButton(IDOK, 0, 0, -1, -1, "Close"));
 
 	char e[MAX_PATH];
