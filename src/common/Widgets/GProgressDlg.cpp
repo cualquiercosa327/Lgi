@@ -138,7 +138,7 @@ GProgressPane::GProgressPane()
 		c->Add(Bar = new GProgress(IDC_PROGRESS, 0, 0, PANE_X - 14, 10, "Progress"));
 
 		c = t->GetCell(0, Row++, true, 2, 1);
-		c->SetAlignX(GLayoutCell::AlignCenter);
+		c->TextAlign(GCss::Len(GCss::AlignCenter));
 		c->Add(But = new GButton(IDC_BUTTON, 0, 0, -1, -1, "Request Abort"));
 	}
 }

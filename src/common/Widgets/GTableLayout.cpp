@@ -325,17 +325,17 @@ int LayoutTextCtrl(GView *v, int Offset, int Width)
 	return Ht;
 }
 
-GLayoutCell::CellAlign ConvertAlign(char *s)
+GCss::LengthType ConvertAlign(char *s, bool x_axis)
 {
 	if (s)
 	{
 		if (stricmp(s, "Center") == 0)
-			return GLayoutCell::AlignCenter;
+			return x_axis ? GCss::AlignCenter : GCss::VerticalMiddle;
 		if (stricmp(s, "Max") == 0)
-			return GLayoutCell::AlignMax;
+			return x_axis ? GCss::AlignRight : GCss::VerticalBottom;
 	}
 
-	return GLayoutCell::AlignMin;
+	return x_axis ? GCss::AlignLeft : GCss::VerticalTop;
 }
 
 class TableCell;
@@ -374,27 +374,19 @@ public:
 	GTableLayout *Table;
 	GRect Cell;		// Cell position
 	GRect Pos;		// Pixel position
+	GRect Padding;	// Cell padding from CSS styles
 	GArray<GView*> Children;
-	CellAlign AlignX, AlignY;
 
 	TableCell(GTableLayout *t, int Cx, int Cy)
 	{
-		AlignX = AlignY = AlignMin;
+		TextAlign(AlignLeft);
+		VerticalAlign(VerticalTop);
 		Table = t;
 		Cell.ZOff(0, 0);
 		Cell.Offset(Cx, Cy);
+		Padding.ZOff(0, 0);
 	}
 	
-	void SetAlignX(CellAlign c)
-	{
-		AlignX = c;
-	}
-	
-	void SetAlignY(CellAlign c)
-	{
-		AlignY = c;
-	}
-
 	bool Add(GView *v)
 	{
 	    if (Children.HasItem(v))
@@ -422,7 +414,7 @@ public:
 	{
 		return false;
 	}
-
+	
 	bool SetVariant(const char *Name, GVariant &Value, char *Array)
 	{
 		if (stricmp(Name, "span") == 0)
@@ -462,11 +454,45 @@ public:
 		}
 		else if (stricmp(Name, "align") == 0)
 		{
-			SetAlignX(ConvertAlign(Value.Str()));
+			TextAlign
+			(
+				Len
+				(
+					ConvertAlign(Value.Str(), true)
+				)
+			);
 		}
 		else if (stricmp(Name, "valign") == 0)
 		{
-			SetAlignY(ConvertAlign(Value.Str()));
+			VerticalAlign
+			(
+				Len
+				(
+					ConvertAlign(Value.Str(), false)
+				)
+			);
+		}
+		else if (stricmp(Name, "class") == 0)
+		{
+			LgiResources *r = LgiGetResObj();
+			if (r)
+			{
+				GCss::SelArray *a = r->CssStore.ClassMap.Find(Value.Str());
+				if (a)
+				{
+					for (int i=0; i<a->Length(); i++)
+					{
+						GCss::Selector *s = (*a)[i];
+						
+						// This is not exactly a smart matching algorithm.
+						if (s && s->Parts.Length() == 1)
+						{
+							const char *style = s->Style;
+							Parse(style, ParseRelaxed);
+						}
+					}
+				}
+			}
 		}
 		else return false;
 
@@ -478,6 +504,26 @@ public:
 	{
 		int MaxBtnX = 0;
 		int TotalBtnX = 0;
+
+		// Calculate CSS padding
+		#define CalcCssPadding(Prop, Axis, Edge) \
+		{ \
+			Len l = Prop(); \
+			if (l.Type) \
+				Padding.Edge = l.ToPx(Table->Axis(), Table->GetFont()); \
+			else \
+				Padding.Edge = 0; \
+		}
+		
+		CalcCssPadding(PaddingLeft, X, x1)
+		CalcCssPadding(PaddingRight, X, x2)
+		CalcCssPadding(PaddingTop, Y, y1)
+		CalcCssPadding(PaddingBottom, Y, y2)
+
+		if (Padding.x1)
+		{
+			int asd=0;
+		}
 
 		for (int i=0; i<Children.Length(); i++)
 		{
@@ -630,14 +676,22 @@ public:
 			Min = max(Min, MaxBtnX);
 			Max = max(Max, TotalBtnX);
         }
+
+		Min += Padding.x1 + Padding.x2;
+		Max += Padding.x1 + Padding.x2;
 	}
 
 	/// Calculate the height of the cell based on the given width
 	void Layout(int Width, int &Min, int &Max, CellFlag &Flags)
 	{
 		Pos.ZOff(Width-1, 0);
+		
 		int BtnX = 0;
 		int BtnRows = -1;
+		
+		Width -= Padding.x1 + Padding.x2;
+		LgiAssert(Width >= 0);
+		
 		for (int i=0; i<Children.Length(); i++)
 		{
 			GView *v = Children[i];
@@ -754,71 +808,6 @@ public:
 
 					Pos.y2 += Ht;
 				}
-				/*
-				else if (Grp = Izza(GRadioGroup))
-				{
-					GArray<GViewI*> Btns;
-					int MaxY = 0;
-					GRect Bounds(0, 0, -1, -1);
-					bool HasOther = false;
-
-					GAutoPtr<GViewIterator> It(Grp->IterateViews());
-					for (GViewI *i=It->First(); i; i=It->Next())
-					{
-						GRadioButton *b = dynamic_cast<GRadioButton*>(i);
-						GCheckBox *c = dynamic_cast<GCheckBox*>(i);
-						GViewI *Ctrl = b ? (GViewI*)b : (GViewI*)c;
-						if (Ctrl)
-						{
-							Btns.Add(Ctrl);
-							MaxY = max(MaxY, Ctrl->GetPos().Y());
-							if (Bounds.Valid())
-								Bounds.Union(&Ctrl->GetPos());
-							else
-								Bounds = Ctrl->GetPos();
-						}
-						else HasOther = true;
-					}
-
-					if (!HasOther)
-					{
-						bool IsVert = !(Bounds.Y() < (MaxY + 5));
-						GFont *f = Grp->GetFont();
-						int Ht = (IsVert) ? (f->GetHeight() * (Btns.Length() + 1)) + 8 : (f->GetHeight() * 2) + 8;
-						GRect r = Grp->GetPos();
-						r.y2 = r.y1 + Ht - 1;
-						Grp->SetPos(r);
-						Pos.y2 += r.Y();
-
-						int x = 7;
-						int y = f->GetHeight() + 2;
-						for (int i=0; i<Btns.Length(); i++)
-						{
-							GFont *BtnFont = Btns[i]->GetFont();
-							char *Name = Btns[i]->Name();
-							GDisplayString ds(BtnFont, Name);
-							int Wid = ds.X();
-
-							r = Btns[i]->GetPos();
-							r.Offset(x - r.x1, y - r.y1);
-							r.x2 = r.x1 + 24 + Wid - 1;
-							Btns[i]->SetPos(r);
-							if (IsVert)
-							{
-								y += r.Y();
-							}
-							else
-							{
-								x += r.X() + 5;
-							}
-						}
-					}
-					else
-					{
-						Pos.y2 += v->Y();
-					}
-				}
-				*/
 				else
 				{
 					GViewLayoutInfo Inf;
@@ -827,7 +816,7 @@ public:
 					{
 						// Supports layout info
 						if (Inf.Height.Max < 0)
-							Flags = SizeGrow;
+							Flags = SizeFill;
 						else
 							Pos.y2 += Inf.Height.Max - 1;
 					}
@@ -860,13 +849,18 @@ public:
 				continue;
 
 			GTableLayout *Tbl = Izza(GTableLayout);
+			
+			if (Padding.x1)
+			{
+				int as=0;
+			}
 
 			GRect r = v->GetPos();
-			r.Offset(Pos.x1 - r.x1 + Cx, Pos.y1 - r.y1 + Cy);
+			r.Offset(Pos.x1 - r.x1 + Cx + Padding.x1, Pos.y1 - r.y1 + Cy);
 
 			GViewLayoutInfo Inf;
-			Inf.Width.Max = Pos.X();
-			Inf.Height.Max = Pos.Y();
+			Inf.Width.Max = Pos.X() - Padding.x1 - Padding.x2;
+			Inf.Height.Max = Pos.Y() - Padding.y1 - Padding.y2;
 
 			if
 			(
@@ -899,11 +893,11 @@ public:
 			{
 				int Wid = Cx - GTableLayout::CellSpacing;
 				int OffsetX = 0;
-				if (AlignX == AlignCenter)
+				if (TextAlign().Type == AlignCenter)
 				{
 					OffsetX = (Pos.X() - Wid) / 2;
 				}
-				else if (AlignX == AlignMax)
+				else if (TextAlign().Type == AlignRight)
 				{
 					OffsetX = Pos.X() - Wid;
 				}
@@ -922,11 +916,11 @@ public:
 		int n;
 		int Wid = Cx - GTableLayout::CellSpacing;
 		int OffsetX = 0;
-		if (AlignX == AlignCenter)
+		if (TextAlign().Type == AlignCenter)
 		{
 			OffsetX = (Pos.X() - Wid) / 2;
 		}
-		else if (AlignX == AlignMax)
+		else if (TextAlign().Type == AlignRight)
 		{
 			OffsetX = Pos.X() - Wid;
 		}
@@ -936,11 +930,11 @@ public:
 		}
 
 		int OffsetY = 0;
-		if (AlignY == AlignCenter)
+		if (VerticalAlign().Type == VerticalMiddle)
 		{
 			OffsetY = (Pos.Y() - MaxY) / 2;
 		}
-		else if (AlignY == AlignMax)
+		else if (VerticalAlign().Type == VerticalBottom)
 		{
 			OffsetY = Pos.Y() - MaxY;
 		}
@@ -1005,7 +999,7 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 	ColFlags.Length(Cols.Length());
 	RowFlags.Length(Rows.Length());
 
-	// Do pre-layout to determin minimum and maximum column sizes
+	// Do pre-layout to determine minimum and maximum column sizes
 	for (Cy=0; Cy<Rows.Length(); Cy++)
 	{
 		for (Cx=0; Cx<Cols.Length(); )
@@ -1205,7 +1199,7 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 					int y = CountRange<int>(MinRow, c->Cell.y1, c->Cell.y2) +
 							((c->Cell.Y() - 1) * CellSpacing);
 
-					c->Pos.y2 = c->Pos.y1 + y - 1;
+					c->Pos.y2 = c->Pos.y1 + y - 1;					
 					c->Pos.Offset(Client.x1 + Px, Client.y1 + Py);
 					c->PostLayout();
 

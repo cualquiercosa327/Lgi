@@ -47,10 +47,6 @@ GViewPrivate::GViewPrivate()
 
 GViewPrivate::~GViewPrivate()
 {
-    if (Css)
-    {
-        int asd=0;
-    }
 	if (FontOwn)
 	{
 		DeleteObj(Font);

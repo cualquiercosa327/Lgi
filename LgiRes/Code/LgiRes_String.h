@@ -19,12 +19,6 @@
 class ResStringGroup;
 class ResStringUi;
 
-#define VAL_Ref						"Ref"
-#define VAL_Id						"Id"
-#define VAL_Define					"Define"
-#define VAL_Tag						"Tag"
-#define VAL_Text					"Text"
-
 ////////////////////////////////////////////////////////////////
 class StrLang
 {

@@ -91,6 +91,7 @@ protected:
 	bool AcceptChildren;
 	bool Movable;
 	bool Vis;
+	GAutoString CssClass;
 	GAutoString CssStyle;
 
 public:
@@ -277,6 +278,9 @@ public:
 
 	DECL_DIALOG_CTRL(UI_TABLE)
 	const char *GetClass() { return "CtrlTable"; }
+
+	bool GetFields(FieldTree &Fields);
+	bool Serialize(FieldTree &Fields);
 
 	void SetAttachCell(class TableCell *c);
 	bool AttachCtrl(ResDialogCtrl *Ctrl, GRect *r = 0);

@@ -583,6 +583,11 @@ bool LgiResources::Load(char *FileName)
 				DeleteObj(m);
 			}
 		}
+		else if (t->IsTag("style"))
+		{
+			const char *c = t->Content;
+			CssStore.Parse(c);
+		}
 
 		if (t)
 			t = Root->Children.Next();

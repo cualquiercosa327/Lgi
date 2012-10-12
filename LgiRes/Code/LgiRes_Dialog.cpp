@@ -496,16 +496,6 @@ void ResDialogCtrl::StrFromRef(int Ref)
 	View()->Name(Str->Get());
 }
 
-#define VAL_Text					"Text"
-#define VAL_Pos						"Pos"
-#define VAL_x1						"x1"
-#define VAL_y1						"y1"
-#define VAL_x2						"x2"
-#define VAL_y2						"y2"
-#define VAL_Visible					"Visible"
-#define VAL_Enabled					"Enabled"
-#define VAL_Style                   "Style"
-
 bool ResDialogCtrl::GetFields(FieldTree &Fields)
 {
 	if (Str)
@@ -513,10 +503,12 @@ bool ResDialogCtrl::GetFields(FieldTree &Fields)
 		Str->GetFields(Fields);
 	}
 
-	Fields.Insert(this, DATA_STR, 101, VAL_Pos, "Pos");
-	Fields.Insert(this, DATA_BOOL, 105, VAL_Visible, "Visible");
-	Fields.Insert(this, DATA_BOOL, 106, VAL_Enabled, "Enabled");
-	Fields.Insert(this, DATA_STR, 107, VAL_Style, "Style", -1, true);
+	int Id = 101;
+	Fields.Insert(this, DATA_STR, Id++, VAL_Pos, "Pos");
+	Fields.Insert(this, DATA_BOOL, Id++, VAL_Visible, "Visible");
+	Fields.Insert(this, DATA_BOOL, Id++, VAL_Enabled, "Enabled");
+	Fields.Insert(this, DATA_STR, Id++, VAL_Class, "Class", -1);
+	Fields.Insert(this, DATA_STR, Id++, VAL_Style, "Style", -1, true);
 
 	return true;
 }
@@ -543,6 +535,7 @@ bool ResDialogCtrl::Serialize(FieldTree &Fields)
 	Fields.Serialize(this, VAL_Pos, r);
 	Fields.Serialize(this, VAL_Visible, Vis, true);
 	Fields.Serialize(this, VAL_Enabled, e, true);
+	Fields.Serialize(this, VAL_Class, CssClass);
 	Fields.Serialize(this, VAL_Style, CssStyle);
 
 	if (Fields.GetMode() == FieldTree::UiToObj ||

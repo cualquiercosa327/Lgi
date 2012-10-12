@@ -576,6 +576,61 @@ public:
 		Selector &operator =(const Selector &s);
 	};
 
+	/// This hash table stores arrays of selectors by name.
+	typedef GArray<GCss::Selector*> SelArray;
+	class SelectorMap : public GHashTbl<const char*,SelArray*>
+	{
+	public:
+		SelectorMap() : GHashTbl<const char*,SelArray*>(0, false) {}		
+		~SelectorMap() { Empty(); }
+	
+		void Empty()
+		{
+			for (SelArray *s = First(); s; s = Next())
+			{
+				s->DeleteObjects();
+				delete s;
+			}	
+			GHashTbl<const char*,SelArray*>::Empty();
+		}
+		
+		SelArray *Get(const char *s)
+		{
+			SelArray *a = Find(s);
+			if (!a)
+				Add(s, a = new SelArray);
+			return a;
+		}
+	};
+	
+	/// This class parses and stores the CSS selectors and styles.
+	struct LgiClass Store
+	{
+		SelectorMap TypeMap, ClassMap, IdMap;
+		SelArray Other;
+
+		// This stores the unparsed style strings. More than one selector
+		// may reference this memory.
+		GArray<char*> Styles;
+		
+		~Store()
+		{
+			Empty();
+		}
+
+		void Empty()
+		{
+			TypeMap.Empty();
+			ClassMap.Empty();
+			IdMap.Empty();
+			Other.DeleteObjects();
+
+			Styles.DeleteArrays();
+		}
+		
+		bool Parse(const char *&s);
+	};
+
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 	GCss();
 	GCss(const GCss &c);

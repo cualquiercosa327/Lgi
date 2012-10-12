@@ -75,6 +75,7 @@ public:
 	GArray<ResDialogCtrl*> Ctrls;
 	TableAlign AlignX;
 	TableAlign AlignY;
+	GAutoString Class; // CSS class for styling
 
 	TableCell(CtrlTable *table, int cx, int cy)
 	{
@@ -164,6 +165,10 @@ public:
 		{
 			Value = TableAlignNames[AlignY];
 		}
+		else if (stricmp(Name, "class") == 0)
+		{
+			Value = Class.Get();
+		}
 		else return false;
 
 		return true;
@@ -222,6 +227,10 @@ public:
 					}
 				}
 			}
+		}
+		else if (stricmp(Name, "class") == 0)
+		{
+			Class.Reset(Value.ReleaseStr());
 		}
 		else
 		{
@@ -333,6 +342,16 @@ public:
 
 	int DragRowSize;
 	int DragColSize;
+
+	bool GetSelected(GArray<TableCell*> &s)
+	{
+		for (int i=0; i<Cells.Length(); i++)
+		{
+			if (Cells[i]->Selected)
+				s.Add(Cells[i]);
+		}
+		return s.Length();
+	}
 
 	// Methods
 	TableCell *GetCellAt(int cx, int cy)
@@ -663,15 +682,42 @@ CtrlTable::~CtrlTable()
 	DeleteObj(d);
 }
 
+bool CtrlTable::GetFields(FieldTree &Fields)
+{
+	bool Status = ResDialogCtrl::GetFields(Fields);
+	
+	GArray<TableCell*> s;
+	if (d->GetSelected(s) == 1)
+	{
+		int Id = 150;
+		Fields.Insert(this, DATA_STR, Id++, VAL_CellClass, "Cell Class");
+	}
+	
+	return Status;
+}
+
+bool CtrlTable::Serialize(FieldTree &Fields)
+{
+	bool Status = ResDialogCtrl::Serialize(Fields);
+	
+	GArray<TableCell*> s;
+	if (d->GetSelected(s) == 1)
+	{
+		Fields.Serialize(this, VAL_CellClass, s[0]->Class);
+	}
+	
+	return Status;
+}
+
 void CtrlTable::EnumCtrls(List<ResDialogCtrl> &Ctrls)
 {
-	LgiTrace("Tbl Ref=%i\n", Str->GetRef());
+	// LgiTrace("Tbl Ref=%i\n", Str->GetRef());
 	for (int i=0; i<d->Cells.Length(); i++)
 	{
 		TableCell *c = d->Cells[i];
 		for (int n=0; n<c->Ctrls.Length(); n++)
 		{
-			LgiTrace("	Ref=%i\n", c->Ctrls[n]->Str->GetRef());
+			// LgiTrace("	Ref=%i\n", c->Ctrls[n]->Str->GetRef());
 			c->Ctrls[n]->EnumCtrls(Ctrls);
 		}
 	}

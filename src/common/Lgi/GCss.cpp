@@ -1900,3 +1900,133 @@ bool GCss::Selector::Parse(const char *&s)
 	return true;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#define SkipWhiteSpace(s)			while (*s && strchr(" \t\r\n", *s)) s++;
+static const char *SkipComment(const char *c)
+{
+	// Skip comment
+	SkipWhiteSpace(c);
+	if (c[0] == '/' &&
+		c[1] == '*')
+	{
+		char *e = strstr((char*)c + 2, "*/");
+		if (e) c = e + 2;
+		else c += 2;
+		SkipWhiteSpace(c);
+	}
+	return c;
+}
+
+bool GCss::Store::Parse(const char *&c)
+{
+	if (!c)
+		return false;
+
+	c = SkipComment(c);
+	if (!strncmp(c, "<!--", 4))
+	{
+		c += 4;
+	}
+
+	for (; c && *c; )
+	{
+		c = SkipComment(c);
+
+		if (!strncmp(c, "-->", 3))
+			break;
+
+		// read selector
+		GArray<GCss::Selector*> Selectors;
+		GCss::Selector *Cur = new GCss::Selector;
+		Cur->Parse(c);
+		Selectors.Add(Cur);
+		while (*c)
+		{
+			SkipWhiteSpace(c);
+			if (*c == ',')
+			{
+				c++;
+				Cur = new GCss::Selector;
+				Cur->Parse(c);
+				Selectors.Add(Cur);
+			}
+			else if (*c == '/')
+			{
+				const char *n = SkipComment(c);
+				if (n == c)
+					c++;
+				else
+					c = n;
+			}
+			else break;
+		}		
+
+		SkipWhiteSpace(c);
+
+		// read styles
+		if (*c++ == '{')
+		{
+			SkipWhiteSpace(c);
+
+			const char *Start = c;
+			while (*c && *c != '}') c++;
+			char *Style = NewStr(Start, c - Start);
+			Styles.Add(Style);
+			c++;
+			
+			for (int i=0; i<Selectors.Length(); i++)
+			{
+				GCss::Selector *s = Selectors[i];
+				s->Style = Style;
+				
+				int n = s->GetSimpleIndex();
+				LgiAssert(n < s->Parts.Length());
+				GCss::Selector::Part &p = s->Parts[n];
+				
+				switch (p.Type)
+				{
+					case GCss::Selector::SelType:
+					{
+						if (p.Value)
+						{
+							SelArray *a = TypeMap.Get(p.Value);
+							a->Add(s);
+						}
+						break;
+					}
+					case GCss::Selector::SelClass:
+					{
+						if (p.Value)
+						{
+							SelArray *a = ClassMap.Get(p.Value);
+							a->Add(s);
+						}
+						break;
+					}
+					case GCss::Selector::SelID:
+					{
+						if (p.Value)
+						{
+							SelArray *a = IdMap.Get(p.Value);
+							a->Add(s);
+						}
+						break;
+					}
+					default:
+					{
+						Other.Add(s);
+						break;
+					}
+				}
+			}
+		}
+		else
+		{
+			Selectors.DeleteObjects();
+			break;
+		}
+	}
+
+	return true;
+}
+

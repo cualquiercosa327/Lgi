@@ -101,6 +101,7 @@ public:
 	GAutoString OnLoadAnchor;
 	bool DecodeEmoji;
 	GAutoString EmojiImg;
+	bool IsParsing;
 	
 	// This UID is used to match data load events with their source document.
 	// Sometimes data will arrive after the document that asked for it has
@@ -110,6 +111,7 @@ public:
 
 	GHtmlPrivate2()
 	{
+		IsParsing = false;
 		DocumentUid = 0;
 		LinkDoubleClick = true;
 		WordSelectMode = false;
@@ -363,7 +365,7 @@ static bool ParseColour(const char *s, GCss::ColorDef &c)
 	return false;
 }
 
-static char *ParsePropList(char *s, GDom *Obj, bool &Closed)
+static char *ParsePropList(char *s, GTag *Obj, bool &Closed)
 {
 	while (s && *s && *s != '>')
 	{
@@ -399,8 +401,7 @@ static char *ParsePropList(char *s, GDom *Obj, bool &Closed)
 
 			if (Value && Name)
 			{
-				GVariant v;
-				Obj->SetValue(Name, v = Value);
+				Obj->Set(Name,  Value);
 			}
 
 			DeleteArray(Value);
@@ -1457,12 +1458,12 @@ bool GTag::SetVariant(const char *Name, GVariant &Value, char *Array)
 
 	if (!stricmp(Name, "innerHTML"))
 	{
+		// Clear out existing tags..
+		Tags.DeleteObjects();
+	
 		char *Doc = Value.CastString();
 		if (Doc)
 		{
-			// Clear out existing tags..
-			Tags.DeleteObjects();
-		
 			// Create new tags...
 			bool BackOut = false;
 			
@@ -1482,7 +1483,7 @@ bool GTag::SetVariant(const char *Name, GVariant &Value, char *Array)
 	else
 	{
 		Set(Name, Value.CastString());
-		// SetStyle();
+		SetStyle();
 	}
 
 	Html->ViewWidth = -1;
@@ -2484,21 +2485,21 @@ bool GTag::MatchSimpleSelector
 void GTag::Restyle()
 {
 	int i;
-	GArray<GHtml2::SelArray*> Maps;
-	GHtml2::SelArray *s;
-	if (s = Html->TypeMap.Find(Tag))
+	GArray<GCss::SelArray*> Maps;
+	GCss::SelArray *s;
+	if (s = Html->CssStore.TypeMap.Find(Tag))
 		Maps.Add(s);
-	if (HtmlId && (s = Html->IdMap.Find(HtmlId)))
+	if (HtmlId && (s = Html->CssStore.IdMap.Find(HtmlId)))
 		Maps.Add(s);
 	for (i=0; i<Class.Length(); i++)
 	{
-		if (s = Html->ClassMap.Find(Class[i]))
+		if (s = Html->CssStore.ClassMap.Find(Class[i]))
 			Maps.Add(s);
 	}
 
 	for (i=0; i<Maps.Length(); i++)
 	{
-		GHtml2::SelArray *s = Maps[i];
+		GCss::SelArray *s = Maps[i];
 		for (int i=0; i<s->Length(); i++)
 		{
 			GCss::Selector *Sel = (*s)[i];
@@ -2719,28 +2720,6 @@ void GTag::SetStyle()
 	}
 
 	Get("id", HtmlId);
-
-	// Tag style
-	/* FIXME
-	if (s = (TagId == TAG_A) ? 0 : Html->CssMap.Find(Tag))
-	{
-		SetCssStyle(s);
-	}
-	*/
-
-	if (HtmlId)
-	{
-		char b[256];
-		snprintf(b, sizeof(b)-1, "%s#%s", Tag, HtmlId);
-		b[sizeof(b)-1] = 0;
-		
-		/* FIXME
-		if (s = Html->CssMap.Find(b))
-		{
-			SetCssStyle(s);
-		}
-		*/
-	}
 
 	if (Get("class", s))
 	{
@@ -3029,6 +3008,10 @@ void GTag::SetCssStyle(const char *Style)
 
 		// Parse CSS
 		GCss::Parse(Style, GCss::ParseRelaxed);
+
+		// Update display setting cache
+		if (Display() != DispInherit)
+			Disp = Display();	
 	}
 }
 
@@ -5953,11 +5936,7 @@ void GHtml2::_Delete()
 
 	SetBackColour(Rgb24To32(LC_WORKSPACE));
 
-	TypeMap.Empty();
-	ClassMap.Empty();
-	IdMap.Empty();
-	StyleStore.DeleteArrays();
-	CssOther.DeleteObjects();
+	CssStore.Empty();
 	OpenTags.Empty();
 	DeleteArray(Source);
 	DeleteObj(Tag);
@@ -5970,132 +5949,10 @@ GFont *GHtml2::DefFont()
 	return GetFont();
 }
 
-static const char *SkipComment(const char *c)
-{
-	// Skip comment
-	SkipWhiteSpace(c);
-	if (c[0] == '/' &&
-		c[1] == '*')
-	{
-		char *e = strstr((char*)c + 2, "*/");
-		if (e) c = e + 2;
-		else c += 2;
-		SkipWhiteSpace(c);
-	}
-	return c;
-}
-
 void GHtml2::AddCss(char *Css)
 {
-	const char *c = Css;	
-	if (!Css) return;
-
-	c = SkipComment(c);
-	if (!strncmp(c, "<!--", 4))
-	{
-		c += 4;
-	}
-
-	for (; c && *c; )
-	{
-		c = SkipComment(c);
-
-		if (!strncmp(c, "-->", 3))
-			break;
-
-		// read selector
-		GArray<GCss::Selector*> Selectors;
-		GCss::Selector *Cur = new GCss::Selector;
-		Cur->Parse(c);
-		Selectors.Add(Cur);
-		while (*c)
-		{
-			SkipWhiteSpace(c);
-			if (*c == ',')
-			{
-				c++;
-				Cur = new GCss::Selector;
-				Cur->Parse(c);
-				Selectors.Add(Cur);
-			}
-			else if (*c == '/')
-			{
-				const char *n = SkipComment(c);
-				if (n == c)
-					c++;
-				else
-					c = n;
-			}
-			else break;
-		}		
-
-		SkipWhiteSpace(c);
-
-		// read styles
-		if (*c++ == '{')
-		{
-			SkipWhiteSpace(c);
-
-			const char *Start = c;
-			while (*c && *c != '}') c++;
-			char *Style = NewStr(Start, c - Start);
-			StyleStore.Add(Style);
-			c++;
-			
-			for (int i=0; i<Selectors.Length(); i++)
-			{
-				GCss::Selector *s = Selectors[i];
-				s->Style = Style;
-				
-				int n = s->GetSimpleIndex();
-				LgiAssert(n < s->Parts.Length());
-				GCss::Selector::Part &p = s->Parts[n];
-				
-				switch (p.Type)
-				{
-					case GCss::Selector::SelType:
-					{
-						if (p.Value)
-						{
-							SelArray *a = TypeMap.Get(p.Value);
-							a->Add(s);
-						}
-						break;
-					}
-					case GCss::Selector::SelClass:
-					{
-						if (p.Value)
-						{
-							SelArray *a = ClassMap.Get(p.Value);
-							a->Add(s);
-						}
-						break;
-					}
-					case GCss::Selector::SelID:
-					{
-						if (p.Value)
-						{
-							SelArray *a = IdMap.Get(p.Value);
-							a->Add(s);
-						}
-						break;
-					}
-					default:
-					{
-						CssOther.Add(s);
-						break;
-					}
-				}
-			}
-		}
-		else
-		{
-			Selectors.DeleteObjects();
-			break;
-		}
-	}
-
-CssDone:
+	const char *c = Css;
+	CssStore.Parse(c);
 	DeleteArray(Css);
 }
 
@@ -6281,7 +6138,9 @@ bool GHtml2::Name(const char *s)
 		#endif
 
 		// Parse
+		d->IsParsing = true;
 		Parse();
+		d->IsParsing = false;
 	}
 
 	Invalidate();	

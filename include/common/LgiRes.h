@@ -2,6 +2,7 @@
 // Multi-language library: LgiRes
 #include "Res.h"
 #include "GContainers.h"
+#include "GCss.h"
 
 class LgiResources;
 class LgiClass LgiStringRes
@@ -79,6 +80,7 @@ class LgiClass LgiResources : public ResFactory
 
 public:
 	GHashTbl<const char*, char*> LanguageNames;
+	GCss::Store CssStore;
 
 	LgiResources(const char *FileName = 0, bool Warn = false);
 	virtual ~LgiResources();

@@ -4,27 +4,20 @@
 #ifndef _GTABLE_LAYOUT_H_
 #define _GTABLE_LAYOUT_H_
 
+#include "GCss.h"
+
 #define GTABLELAYOUT_LAYOUT_CHANGED			20
 #define GTABLELAYOUT_REFRESH                21
 
 /// A layout cell, not currently implemened.
-class GLayoutCell : public GDom
+class GLayoutCell : public GDom, public GCss
 {
 public:
-	enum CellAlign
-	{
-		AlignMin,
-		AlignCenter,
-		AlignMax,
-	};
-
 	GLayoutCell() {}
 	virtual ~GLayoutCell() {}
 	
 	virtual bool Add(GView *v) = 0;
 	virtual bool Remove(GView *v) = 0;
-	virtual void SetAlignX(CellAlign c) = 0;
-	virtual void SetAlignY(CellAlign c) = 0;
 };
 
 /// A table layout control. This uses techniques similar to HTML table layout to set the position

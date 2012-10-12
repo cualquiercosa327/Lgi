@@ -70,6 +70,23 @@
 #define	STATUS_INFO					1
 #define	STATUS_MAX					2
 
+#define VAL_Ref						"Ref"
+#define VAL_Id						"Id"
+#define VAL_Define					"Define"
+#define VAL_Tag						"Tag"
+#define VAL_Text					"Text"
+#define VAL_CellClass				"CellClass"
+#define VAL_Text					"Text"
+#define VAL_Pos						"Pos"
+#define VAL_x1						"x1"
+#define VAL_y1						"y1"
+#define VAL_x2						"x2"
+#define VAL_y2						"y2"
+#define VAL_Visible					"Visible"
+#define VAL_Enabled					"Enabled"
+#define VAL_Class                   "Class"
+#define VAL_Style                   "Style"
+
 // Misc
 #define	MainWnd						((AppWnd*)GApp::ObjInstance()->AppWnd)
 
