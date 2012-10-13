@@ -1264,7 +1264,7 @@ bool GDom::GetValue(const char *Var, GVariant &Value)
 
 	if (Var)
 	{
-		// GSemaphore *Sem = dynamic_cast<GSemaphore*>(this);
+		// GMutex *Sem = dynamic_cast<GMutex*>(this);
 		// LgiTrace("%s:%i - Get_OnAccess(1) '%s' %i\n", _FL, Var, Sem?Sem->GetCount():-1);
 		if (_OnAccess(true))
 		{
@@ -1302,7 +1302,7 @@ bool GDom::SetValue(const char *Var, GVariant &Value)
 
 	if (Var)
 	{
-		// GSemaphore *Sem = dynamic_cast<GSemaphore*>(this);
+		// GMutex *Sem = dynamic_cast<GMutex*>(this);
 		// LgiTrace("%s:%i - Set_OnAccess(1) '%s' %i\n", _FL, Var, Sem?Sem->GetCount():-1);
 		if (_OnAccess(true))
 		{

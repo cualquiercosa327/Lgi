@@ -2,7 +2,7 @@
 
 //////////////////////////////////////////////////////////////////////////////
 /*
-class GThreadOwnerPriv : public GSemaphore
+class GThreadOwnerPriv : public GMutex
 {
 public:
 	GViewI *Notify;
@@ -19,7 +19,7 @@ public:
 
 	~GThreadOwnerPriv()
 	{
-		GSemaphore::Auto Lck(this, _FL);
+		GMutex::Auto Lck(this, _FL);
 		if (Thread && Thread->Lock(_FL))
 		{
 			Thread->d = 0;
@@ -58,7 +58,7 @@ int GWorkerThread::Main()
 		{
 			w->Do();
 
-			GSemaphore::Auto Lck(this, _FL);
+			GMutex::Auto Lck(this, _FL);
 			if (d && d->Lock(_FL))
 			{
 				if (d->Notify)
@@ -77,7 +77,7 @@ int GWorkerThread::Main()
 		else break;
 	}
 
-	GSemaphore::Auto Lck(this, _FL);
+	GMutex::Auto Lck(this, _FL);
 	if (d && d->Lock(_FL))
 	{
 		d->Thread = 0;
@@ -103,7 +103,7 @@ void GThreadOwner::AddWork(GThreadWork *w)
 	if (!w)
 		return;
 
-	GSemaphore::Auto Lck(d, _FL);
+	GMutex::Auto Lck(d, _FL);
 	d->Work.Add(w);
 	
 	if (!d->Thread)

@@ -1,9 +1,9 @@
 /// \file
-#ifndef __GSEMAPHORE_H
-#define __GSEMAPHORE_H
+#ifndef _GMUTEX_H_
+#define _GMUTEX_H_
 
-/// Thread locking
-class LgiClass GSemaphore
+/// This is a re-enterant mutex class for thread locking.
+class LgiClass GMutex
 {
 	OsThreadId _Thread;
 	OsSemaphore _Sem;
@@ -22,12 +22,12 @@ protected:
 
 public:
 	/// Constructor
-	GSemaphore
+	GMutex
 	(
 		/// Optional name for the semaphore
 		const char *name = 0
 	);
-	virtual ~GSemaphore();
+	virtual ~GMutex();
 
 	/// Lock the semaphore, waiting forever
 	///
@@ -62,18 +62,18 @@ public:
 	
 	class Auto
 	{
-	    GSemaphore *Sem;
+	    GMutex *Sem;
 	    bool Locked;
 	
 	public:
-	    Auto(GSemaphore *s, const char *file, int line)
+	    Auto(GMutex *s, const char *file, int line)
 	    {
 	        LgiAssert(s != NULL);
 	        Locked = (Sem = s) ? Sem->Lock(file, line) : 0;
 			LgiAssert(Locked);
 	    }
 
-	    Auto(GSemaphore *s, int timeout, const char *file, int line)
+	    Auto(GMutex *s, int timeout, const char *file, int line)
 	    {
 	        LgiAssert(s != NULL);
 	        Locked = (Sem = s) ? Sem->LockWithTimeout(timeout, file, line) : 0;

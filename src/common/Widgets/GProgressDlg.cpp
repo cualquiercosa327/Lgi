@@ -40,7 +40,7 @@ void ProgressList::Unlock()
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-Progress::Progress() : GSemaphore("ProgressObj")
+Progress::Progress() : GMutex("ProgressObj")
 {
 	Start = 0;
 	Val = Low = 0;

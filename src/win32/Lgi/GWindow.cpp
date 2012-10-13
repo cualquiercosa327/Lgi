@@ -88,7 +88,7 @@ GWindow::GWindow() : GView(0)
 
 	_Default = 0;
 	_Window = this;
-	_Lock = new GSemaphore("GWindow");
+	_Lock = new GMutex("GWindow");
 	_QuitOnClose = false;
 }
 

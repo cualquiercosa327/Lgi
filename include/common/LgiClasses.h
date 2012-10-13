@@ -15,7 +15,7 @@
 #include <string.h>
 #endif
 
-#include "GSemaphore.h"
+#include "GMutex.h"
 // #include "GLibrary.h"
 #include "LgiOsClasses.h"
 #include "GArray.h"
@@ -417,7 +417,7 @@ protected:
 
 	OsView				_View; // OS specific handle to view object
 	GView				*_Window;
-	GSemaphore			*_Lock;
+	GMutex			*_Lock;
 	uint16				_BorderSize;
 	uint16				_IsToolBar;
 	int					WndFlags;

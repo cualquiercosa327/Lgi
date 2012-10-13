@@ -2,8 +2,8 @@
 #define __GTHREAD_H
 
 //////////////////////////////////////////////////////////////////////////
-// Thread types are defined in GSemaphore.h
-#include "GSemaphore.h"
+// Thread types are defined in GMutex.h
+#include "GMutex.h"
 
 class LgiClass GThread
 {
@@ -86,7 +86,7 @@ public:
 
 /// The thread target is a virtual API to receive work units executed 
 /// in the worker thread.
-class GThreadTarget : public GSemaphore
+class GThreadTarget : public GMutex
 {
 	friend class GThreadWorker;
 
@@ -125,7 +125,7 @@ public:
 };
 
 /// This parent class does the actual work of processing jobs.
-class GThreadWorker : public GThread, public GSemaphore
+class GThreadWorker : public GThread, public GMutex
 {
 	GArray<GThreadTarget*> Owners;
 	GArray<GThreadJob*> Jobs;
@@ -134,7 +134,7 @@ class GThreadWorker : public GThread, public GSemaphore
 public:
 	GThreadWorker(GThreadTarget *First, const char *ThreadName) :
 		GThread(ThreadName),
-		GSemaphore("GThreadWorker")
+		GMutex("GThreadWorker")
 	{
 		Loop = false;
 		if (First)
@@ -156,7 +156,7 @@ public:
 
 	void Attach(GThreadTarget *o)
 	{
-		GSemaphore::Auto a(this, _FL);
+		GMutex::Auto a(this, _FL);
 		if (!Owners.HasItem(o))
 		{
 			LgiAssert(o->Worker == this);
@@ -171,7 +171,7 @@ public:
 
 	void Detach(GThreadTarget *o)
 	{
-		GSemaphore::Auto a(this, _FL);
+		GMutex::Auto a(this, _FL);
 		LgiAssert(Owners.HasItem(o));
 		Owners.Delete(o);
 	}

@@ -695,14 +695,14 @@
 					</File>
 				</Filter>
 				<Filter
-					Name="Semaphores"
+					Name="Mutex"
 					>
 					<File
-						RelativePath=".\src\common\Lgi\GSemaphore.cpp"
+						RelativePath=".\src\common\Lgi\GMutex.cpp"
 						>
 					</File>
 					<File
-						RelativePath=".\include\common\GSemaphore.h"
+						RelativePath=".\include\common\GMutex.h"
 						>
 					</File>
 				</Filter>

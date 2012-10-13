@@ -18,7 +18,7 @@ char *SemPrint(OsSemaphore *s)
 	return Buf;
 }
 
-GSemaphore::GSemaphore(const char *name)
+GMutex::GMutex(const char *name)
 {
 	_Thread = 0;
 	_Count = 0;
@@ -36,20 +36,20 @@ GSemaphore::GSemaphore(const char *name)
 	
 	#elif defined BEOS
 	
-	_Sem = create_sem(1, "LGI.GSemaphore");
+	_Sem = create_sem(1, "LGI.GMutex");
 
 	#elif defined POSIX
 
 	ZeroObj(_Sem);
 	if (pthread_mutex_init(&_Sem, 0))
 	{
-		LgiTrace("%s:%i - Couldn't create mutex for GSemaphore\n", __FILE__, __LINE__);
+		LgiTrace("%s:%i - Couldn't create mutex for GMutex\n", __FILE__, __LINE__);
 	}
 
 	#endif
 }
 
-GSemaphore::~GSemaphore()
+GMutex::~GMutex()
 {
 	#if defined WIN32
 
@@ -74,18 +74,18 @@ GSemaphore::~GSemaphore()
 	DeleteArray(_Name);
 }
 
-char *GSemaphore::GetName()
+char *GMutex::GetName()
 {
 	return _Name;
 }
 
-void GSemaphore::SetName(const char *s)
+void GMutex::SetName(const char *s)
 {
 	DeleteArray(_Name);
 	_Name = NewStr(s);
 }
 
-bool GSemaphore::_Lock()
+bool GMutex::_Lock()
 {
 	#if defined WIN32
 
@@ -111,7 +111,7 @@ bool GSemaphore::_Lock()
 	#endif
 }
 
-void GSemaphore::_Unlock()
+void GMutex::_Unlock()
 {
 	#if defined WIN32
 
@@ -132,7 +132,7 @@ void GSemaphore::_Unlock()
 	#endif
 }
 
-bool GSemaphore::Lock(const char *file, int line)
+bool GMutex::Lock(const char *file, int line)
 {
 	int64 Start = LgiCurrentTime();
 	bool Status = false;
@@ -174,7 +174,7 @@ bool GSemaphore::Lock(const char *file, int line)
 		int64 Now = LgiCurrentTime();
 		if (Warn && Now > Start + 5000)
 		{
-			LgiTrace("GSemaphore=%p(%s): Can't lock after %ims... LockingThread=%i ThisThread=%x Count=%x Locker=%s:%i.\n",
+			LgiTrace("GMutex=%p(%s): Can't lock after %ims... LockingThread=%i ThisThread=%x Count=%x Locker=%s:%i.\n",
 					this,
 					_Name,
 					(int)(Now - Start),
@@ -204,7 +204,7 @@ bool GSemaphore::Lock(const char *file, int line)
 	return Status;
 }
 
-bool GSemaphore::LockWithTimeout(int Timeout, const char *file, int line)
+bool GMutex::LockWithTimeout(int Timeout, const char *file, int line)
 {
 	int64 Start = LgiCurrentTime();
 	bool Status = false;
@@ -240,7 +240,7 @@ bool GSemaphore::LockWithTimeout(int Timeout, const char *file, int line)
 	return Status;
 }
 
-void GSemaphore::Unlock()
+void GMutex::Unlock()
 {
 	#ifdef _DEBUG
 	if (_DebugSem)

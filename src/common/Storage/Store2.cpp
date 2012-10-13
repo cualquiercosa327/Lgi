@@ -1596,7 +1596,7 @@ namespace Storage2
 }
 
 ///////////////////////////////////////////////////////////////////////////
-StorageKitImpl::StorageKitImpl(char *filename) : GSemaphore("StorageKitImpl2")
+StorageKitImpl::StorageKitImpl(char *filename) : GMutex("StorageKitImpl2")
 {
 	d = new StorageKitImplPrivate(this);
 	File = new GSubFile(this, false);
@@ -2203,7 +2203,7 @@ bool StorageKitImpl::AttachItem(StorageItem *ItemVirtual, StorageItem *ToVirtual
 	return Status;
 }
 
-GSemaphore *StorageKitImpl::GetLock()
+GMutex *StorageKitImpl::GetLock()
 {
 	return this;
 }

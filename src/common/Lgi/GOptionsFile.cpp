@@ -12,7 +12,7 @@ void GOptionsFile::_Init()
 	}
 }
 
-GOptionsFile::GOptionsFile(const char *FileName) : GSemaphore("GOptionsFile")
+GOptionsFile::GOptionsFile(const char *FileName) : GMutex("GOptionsFile")
 {
 	_Init();
 
@@ -22,7 +22,7 @@ GOptionsFile::GOptionsFile(const char *FileName) : GSemaphore("GOptionsFile")
 		SetMode(PortableMode);
 }
 
-GOptionsFile::GOptionsFile(PortableType Mode, const char *BaseName) : GSemaphore("GOptionsFile")
+GOptionsFile::GOptionsFile(PortableType Mode, const char *BaseName) : GMutex("GOptionsFile")
 {
 	_Init();
 

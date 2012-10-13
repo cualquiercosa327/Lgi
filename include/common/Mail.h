@@ -137,7 +137,7 @@ protected:
 	GStreamI *Embeded;
 	bool OwnEmbeded;
 	int64 Offset;
-	GSemaphore *Lock;
+	GMutex *Lock;
 
 	// Write to memory
 	uchar *Data;
@@ -150,8 +150,8 @@ public:
 	FileDescriptor();
 	~FileDescriptor();
 
-	void SetLock(GSemaphore *l);
-	GSemaphore *GetLock();
+	void SetLock(GMutex *l);
+	GMutex *GetLock();
 	void SetOwnEmbeded(bool i);
 
 	// Access functions
@@ -284,7 +284,7 @@ class MailProtocol
 {
 protected:
 	char Buffer[4<<10];
-	GSemaphore SocketLock;
+	GMutex SocketLock;
 	GAutoPtr<GSocketI> Socket;
 
 	bool Error(const char *file, int line, const char *msg, ...);
@@ -319,7 +319,7 @@ public:
 	/// Thread safe hard close (quit now)
 	bool CloseSocket()
 	{
-		GSemaphore::Auto l(&SocketLock, _FL);
+		GMutex::Auto l(&SocketLock, _FL);
 
 		if (Socket != NULL)
 			return Socket->Close() != 0;
@@ -780,7 +780,7 @@ public:
 	void operator =(GHashTbl<const char*,int> &v);
 };
 
-class MailIMap : public MailSource, public GSemaphore
+class MailIMap : public MailSource, public GMutex
 {
 protected:
 	class MailIMapPrivate *d;

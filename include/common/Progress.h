@@ -3,10 +3,10 @@
 #ifndef __PROGRESS_H
 #define __PROGRESS_H
 
-#include "GSemaphore.h"
+#include "GMutex.h"
 
 /// Generic progress class, keeps track of how far through a task you are.
-class LgiClass Progress : public GSemaphore
+class LgiClass Progress : public GMutex
 {
 protected:
 	GAutoString Description;

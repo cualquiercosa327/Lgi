@@ -5,14 +5,14 @@
 #include "GTextLabel.h"
 #include "GUtf8.h"
 
-class GTextPrivate : public GSemaphore
+class GTextPrivate : public GMutex
 {
 public:
 	int Mx, My;
 	List<GDisplayString> Strs;
 	bool Wrap;
 
-	GTextPrivate() : GSemaphore("GTextPrivate")
+	GTextPrivate() : GMutex("GTextPrivate")
 	{
 		Wrap = false;
 		Mx = My = 0;

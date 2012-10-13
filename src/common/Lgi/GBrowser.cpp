@@ -21,7 +21,7 @@ enum {
 };
 
 class GBrowserPriv;
-class GBrowserThread : public GThread, public GSemaphore
+class GBrowserThread : public GThread, public GMutex
 {
 	GBrowserPriv *d;
 	GArray<GAutoString> Work;
@@ -42,11 +42,11 @@ class GBrowserPriv : public GDocumentEnv
 public:
 	typedef GHashTbl<char*,GStream*> Collection;
 
-	struct FileLock : public GSemaphore::Auto
+	struct FileLock : public GMutex::Auto
 	{
 		Collection *Files;
 
-		FileLock(GSemaphore *s, const char *file, int line) : GSemaphore::Auto(s, file, line)
+		FileLock(GMutex *s, const char *file, int line) : GMutex::Auto(s, file, line)
 		{
 			Files = 0;
 		}

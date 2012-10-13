@@ -19,7 +19,7 @@ enum NodeRelation
 class GSubFilePtr;
 class GSubFile : public GFile
 {
-	GSemaphore *Lck;
+	GMutex *Lck;
 	GArray<GSubFilePtr*> Ptrs;
 	
 	#if GSUBFILE_NOBUFFERING
@@ -35,9 +35,9 @@ class GSubFile : public GFile
 	#endif
 	
 public:
-	typedef GAutoPtr<GSemaphore::Auto> SubLock;
+	typedef GAutoPtr<GMutex::Auto> SubLock;
 
-	GSubFile(GSemaphore *lock, bool Buffering = true);
+	GSubFile(GMutex *lock, bool Buffering = true);
 	~GSubFile();
 
 	GSubFilePtr *Create(const char *file, int line);
@@ -206,7 +206,7 @@ public:
 	virtual uint64 GetFileSize() = 0;
 	virtual bool GetPassword(GPassword *p) = 0;
 	virtual bool SetPassword(GPassword *p) = 0;
-	virtual GSemaphore *GetLock() = 0;
+	virtual GMutex *GetLock() = 0;
 	virtual char *GetFileName() = 0;
 	
 	// Heirarchy

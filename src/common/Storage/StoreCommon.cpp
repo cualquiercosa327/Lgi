@@ -246,7 +246,7 @@ int GSubFilePtr::WriteStr(char *Buf, int Size)
 }
 
 ///////////////////////////////////////////////////////////////////////
-GSubFile::GSubFile(GSemaphore *lock, bool Buffering)
+GSubFile::GSubFile(GMutex *lock, bool Buffering)
 {
 	Lck = lock;
 
@@ -302,7 +302,7 @@ void GSubFile::Detach(GSubFilePtr *Ptr)
 
 GSubFile::SubLock GSubFile::Lock(const char *file, int line)
 {
-	return SubLock(new GSemaphore::Auto(Lck, file, line));
+	return SubLock(new GMutex::Auto(Lck, file, line));
 }
 
 #if GSUBFILE_NOBUFFERING

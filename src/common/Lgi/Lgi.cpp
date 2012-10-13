@@ -459,7 +459,7 @@ void LgiTrace(const char *Msg, ...)
 	if (Msg)
 	{
 		#ifdef WIN32
-		static GSemaphore Sem;
+		static GMutex Sem;
 		Sem.Lock(_FL);
 		#endif
 

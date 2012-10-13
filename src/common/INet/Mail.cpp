@@ -1042,12 +1042,12 @@ void FileDescriptor::SetOwnEmbeded(bool i)
 	OwnEmbeded = i;
 }
 
-void FileDescriptor::SetLock(GSemaphore *l)
+void FileDescriptor::SetLock(GMutex *l)
 {
 	Lock = l;
 }
 
-GSemaphore *FileDescriptor::GetLock()
+GMutex *FileDescriptor::GetLock()
 {
 	return Lock;
 }
@@ -1361,7 +1361,7 @@ bool MailProtocol::Write(const char *Buf, bool LogWrite)
 {												\
 	if (!Arg)									\
 	{											\
-		GSemaphore::Auto Lck(&SocketLock, _FL);	\
+		GMutex::Auto Lck(&SocketLock, _FL);	\
 		Socket.Reset(0);						\
 		return false;							\
 	}											\
@@ -1371,7 +1371,7 @@ bool MailProtocol::Write(const char *Buf, bool LogWrite)
 {												\
 	if (!Arg)									\
 	{											\
-		GSemaphore::Auto Lck(&SocketLock, _FL);	\
+		GMutex::Auto Lck(&SocketLock, _FL);	\
 		Socket.Reset(0);						\
 		goto CleanUp;							\
 	}											\
@@ -1924,7 +1924,7 @@ bool MailSmtp::Close()
 		VERIFY_RET_VAL(Write(0, true));
 		VERIFY_RET_VAL(ReadReply("221"));
 		
-		GSemaphore::Auto Lock(&SocketLock, _FL);
+		GMutex::Auto Lock(&SocketLock, _FL);
 		Socket.Reset(0);
 		return true;
 	}
