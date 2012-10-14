@@ -188,7 +188,7 @@ public:
 	}
 };
 
-struct FtpThreadPriv : public GSemaphore, public GNetwork
+struct FtpThreadPriv : public GMutex, public GNetwork
 {
 	bool Loop;
 	GArray<FtpConn*> Conn;
@@ -261,7 +261,7 @@ FtpThread::~FtpThread()
 
 void FtpThread::Post(FtpCmd *Cmd)
 {
-	GSemaphore::Auto Lock(d, _FL);
+	GMutex::Auto Lock(d, _FL);
 	d->Cmds.Add(Cmd);
 }
 

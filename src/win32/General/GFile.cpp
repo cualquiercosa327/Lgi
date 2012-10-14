@@ -30,7 +30,7 @@
 #include "GLibrary.h"
 #include "GToken.h"
 #include "LgiCommon.h"
-#include "GSemaphore.h"
+#include "GMutex.h"
 #include "GString.h"
 #include "GLibrary.h"
 

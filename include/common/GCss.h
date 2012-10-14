@@ -267,12 +267,6 @@ public:
 		AttachmentFixed,
 	};
 
-	enum ImageType {
-		ImageInherit,
-		ImageOwn,
-		ImageRef,
-	};
-
 	struct LgiClass Len
 	{
 		LengthType Type;
@@ -376,10 +370,17 @@ public:
 		}
 	};
 
+	enum ImageType {
+		ImageInherit,
+		ImageUri,
+		ImageOwn,
+		ImageRef,
+	};
+
 	struct LgiClass ImageDef
 	{
 		ImageType Type;
-		GAutoString Ref;
+		GAutoString Uri;
 		GSurface *Img;
 
 		ImageDef()
@@ -390,6 +391,7 @@ public:
 
 		ImageDef(const ImageDef &o)
 		{
+			Img = NULL;
 			*this = o;
 		}
 
@@ -400,23 +402,8 @@ public:
 		}
 
 		bool Parse(const char *&s);
-		bool operator !=(const ImageDef &i)
-		{
-			if (Type != i.Type)
-				return false;
-			if (Ref && i.Ref)
-				return stricmp(Ref, i.Ref) == 0;
-			return true;
-		}
-		
-		ImageDef &operator =(const ImageDef &o)
-		{
-			Type = o.Type;
-			Ref.Reset(NewStr(o.Ref));
-			DeleteObj(Img);
-			if (o.Img) Img = new GMemDC(o.Img);
-			return *this;
-		}
+		bool operator !=(const ImageDef &i);		
+		ImageDef &operator =(const ImageDef &o);
 	};
 
 	class LgiClass StringsDef : public GArray<char*>

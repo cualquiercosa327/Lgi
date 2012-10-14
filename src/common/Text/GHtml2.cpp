@@ -2247,18 +2247,31 @@ void GTag::SetImage(const char *Uri, GSurface *Img)
 {
 	if (Img)
 	{
-		Image.Reset(Img);
-		
-		GRect r = XSubRect();
-		if (r.Valid())
+		if (TagId != TAG_IMG)
 		{
-			GAutoPtr<GSurface> t(new GMemDC(r.X(), r.Y(), Image->GetBits()));
-			if (t)
+			ImageDef *Def = (ImageDef*)GCss::Props.Find(PropBackgroundImage);
+			if (Def)
 			{
-				t->Blt(0, 0, Image, &r);
-				Image = t;
+				Def->Type = ImageOwn;
+				DeleteObj(Def->Img);
+				Def->Img = Img;
 			}
 		}
+		else
+		{
+			Image.Reset(Img);
+			
+			GRect r = XSubRect();
+			if (r.Valid())
+			{
+				GAutoPtr<GSurface> t(new GMemDC(r.X(), r.Y(), Image->GetBits()));
+				if (t)
+				{
+					t->Blt(0, 0, Image, &r);
+					Image = t;
+				}
+			}
+		}		
 
 		for (GTag *t = this; t; t = t->Parent)
 		{
@@ -2987,6 +3000,15 @@ void GTag::SetStyle()
 				}
 			}
 			break;
+		}
+	}
+	
+	if (Disp == DispBlock && Html->Environment)
+	{
+		GCss::ImageDef Img = BackgroundImage();
+		if (Img.Type == ImageUri)
+		{
+			LoadImage(Img.Uri);
 		}
 	}
 }
@@ -5631,9 +5653,23 @@ void GTag::OnPaint(GSurface *pDC)
 		{
 			ColorDef _back = BackgroundColor();
 			COLOUR fore = GetFore();
-			COLOUR back =	_back.Type == ColorInherit &&
-							Info &&
-							Info->Block() ? GetBack() : _back.Rgb32;
+			COLOUR back = (_back.Type == ColorInherit && Disp == DispBlock) ? GetBack() : _back.Rgb32;
+
+			if (Disp == DispBlock && Html->Environment)
+			{
+				GCss::ImageDef Img = BackgroundImage();
+				if (Img.Img)
+				{
+					GRect Clip(0, 0, Size.x-1, Size.y-1);
+					pDC->ClipRgn(&Clip);
+					
+					int Old = pDC->Op(GDC_ALPHA);
+					pDC->Blt(0, 0, Img.Img);
+					pDC->Op(Old);
+					
+					back = GT_TRANSPARENT;
+				}
+			}
 
 			if (back != GT_TRANSPARENT)
 			{

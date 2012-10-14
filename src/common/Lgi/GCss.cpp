@@ -531,8 +531,8 @@ GAutoString GCss::ToString()
 					case ImageOwn:
 					case ImageRef:
 					{
-						if (i->Ref)
-							p.Print("%s:url(%s);", Name, i->Ref.Get());
+						if (i->Uri)
+							p.Print("%s:url(%s);", Name, i->Uri.Get());
 						break;
 					}
 				}
@@ -1417,6 +1417,19 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 				}
 				break;
 			}
+			case TypeImage:
+			{
+				GAutoPtr<ImageDef> Img(new ImageDef);
+				if (Img->Parse(s))
+				{
+					ImageDef *i = (ImageDef*)Props.Find(PropId);
+					if (i) *i = *Img;
+					else Props.Add(PropId, Img.Release());
+				}
+				else if (Type == ParseStrict)
+					LgiAssert(!"Failed to parse Image definition");
+				break;
+			}
 			default:
 			{
 				if (Type == ParseStrict)
@@ -1635,9 +1648,6 @@ bool GCss::ColorDef::Parse(const char *&s)
 
 bool GCss::ImageDef::Parse(const char *&s)
 {
-	char Path[MAX_PATH];
-	LgiGetSystemPath(LSP_APP_INSTALL, Path, sizeof(Path));
-
 	SkipWhite(s);
 	if (!strnicmp(s, "url(", 4))
 	{
@@ -1645,17 +1655,45 @@ bool GCss::ImageDef::Parse(const char *&s)
 		char *e = strchr((char*)s, ')');
 		if (!e)
 			return false;
-		GAutoString v(NewStr(s, e - s));
-		LgiMakePath(Path, sizeof(Path), Path, v);
+		Uri.Reset(NewStr(s, e - s));
+		s = e + 1;
+		Type = ImageRef;
 	}
-	else LgiMakePath(Path, sizeof(Path), Path, s);
-
-	if (Img = LoadDC(Path))
+	else
 	{
-		Type = ImageOwn;
+		LgiAssert(!"Unknown image def type.");
+		return false;
 	}
 
-	return Img != 0;
+	return true;
+}
+
+
+bool GCss::ImageDef::operator !=(const ImageDef &i)
+{
+	if (Type != i.Type)
+		return false;
+	if (Uri && i.Uri)
+		return stricmp(Uri, i.Uri) == 0;
+	return true;
+}
+
+GCss::ImageDef &GCss::ImageDef::operator =(const ImageDef &o)
+{
+	if (Type == ImageOwn)
+		DeleteObj(Img);
+		
+	if (o.Img)
+	{
+		Img = o.Img;
+		Type = ImageRef;
+	}
+	else if (Uri.Reset(NewStr(o.Uri)))
+	{
+		Type = ImageUri;
+	}
+	
+	return *this;
 }
 
 bool GCss::BorderDef::Parse(const char *&s)
