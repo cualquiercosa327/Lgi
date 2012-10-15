@@ -87,9 +87,9 @@ public:
 
 				if (Mv.IsSelected())
 				{
-					pDC->Colour(LC_SELECTION, 24);
+					pDC->Colour(LC_FOCUS_SEL_BACK, 24);
 					pDC->Rectangle(r.x1 + Px, r.y1 + Py, r.x1 + Px + Cx - 2, r.y1 + Py + Cy - 2);
-					SysFont->Colour(LC_SEL_TEXT, LC_SELECTION);
+					SysFont->Colour(LC_FOCUS_SEL_FORE, LC_FOCUS_SEL_BACK);
 				}
 				else
 				{

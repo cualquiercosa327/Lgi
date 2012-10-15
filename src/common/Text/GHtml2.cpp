@@ -5707,7 +5707,7 @@ void GTag::OnPaint(GSurface *pDC)
 				#define FontColour(s) \
 				f->Transparent(!s); \
 				if (s) \
-					f->Colour(LC_SEL_TEXT, LC_SELECTION); \
+					f->Colour(LC_FOCUS_SEL_FORE, LC_FOCUS_SEL_BACK); \
 				else \
 					f->Colour(	fore != GT_TRANSPARENT ? Rgb32To24(fore) : Rgb32To24(DefaultTextColour), \
 								_back.Type != ColorInherit ? Rgb32To24(_back.Rgb32) : Rgb32To24(LC_WORKSPACE));

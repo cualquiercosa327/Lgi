@@ -581,7 +581,7 @@ void GFilterItem::_PaintText(GSurface *pDC, COLOUR Fore, COLOUR Back)
 	if (Select())
 	{
 		GPath p;
-		GSolidBrush b(Rgb24To32(LC_SELECTION));
+		GSolidBrush b(Rgb24To32(LC_FOCUS_SEL_BACK));
 		GRectF PosF(0, 0, Pos->X()-1, Pos->Y());
 		p.RoundRect(PosF, PosF.Y()/2);
 		p.Fill(&Buf, b);

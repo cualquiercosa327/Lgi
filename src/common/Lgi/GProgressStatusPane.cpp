@@ -41,7 +41,7 @@ void GProgressStatusPane::OnPaint(GSurface *pDC)
 		pDC->Rectangle(r.x1+x, r.y1, r.x2, r.y2);
 	}
 
-	pDC->Colour(LC_SELECTION, 24);
+	pDC->Colour(LC_FOCUS_SEL_BACK, 24);
 	pDC->Rectangle(r.x1, r.y1, r.x1+x-1, r.y2);
 }
 

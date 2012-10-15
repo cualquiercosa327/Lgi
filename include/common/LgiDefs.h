@@ -321,10 +321,10 @@ LgiFunc void							_lgi_assert(bool b, const char *test, const char *file, int l
 #define LC_WORKSPACE					LgiColour(11)
 /// Default text colour
 #define LC_TEXT							LgiColour(12)
-/// Selection colour
-#define LC_SELECTION					LgiColour(13)
-/// Selected text colour
-#define LC_SEL_TEXT						LgiColour(14)
+/// Selection background colour when in focus
+#define LC_FOCUS_SEL_BACK				LgiColour(13)
+/// Selection foreground colour when in focus
+#define LC_FOCUS_SEL_FORE				LgiColour(14)
 
 #define LC_ACTIVE_TITLE					LgiColour(15)
 #define LC_ACTIVE_TITLE_TEXT			LgiColour(16)
@@ -334,7 +334,12 @@ LgiFunc void							_lgi_assert(bool b, const char *test, const char *file, int l
 #define LC_MENU_BACKGROUND				LgiColour(19)
 #define LC_MENU_TEXT					LgiColour(20)
 
-#define LC_MAXIMUM						21
+/// Selection background colour when not in focus
+#define LC_NON_FOCUS_SEL_BACK			LgiColour(21)
+/// Selection forground colour when not in focus
+#define LC_NON_FOCUS_SEL_FORE			LgiColour(22)
+
+#define LC_MAXIMUM						23
 
 // Cursors
 

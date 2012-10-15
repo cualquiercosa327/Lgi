@@ -608,7 +608,7 @@ void GCombo::OnPaint(GSurface *pDC)
 				if (Enabled())
 				{
 					bool f = Focus();
-					SysFont->Colour(f ? LC_SEL_TEXT : LC_TEXT, f ? LC_SELECTION : LC_MED);
+					SysFont->Colour(f ? LC_FOCUS_SEL_FORE : LC_TEXT, f ? LC_FOCUS_SEL_BACK : LC_MED);
 					SysFont->Transparent(false);
 					d->Text->Draw(pDC, r.x1, r.y1, &r);
 				}
@@ -625,7 +625,7 @@ void GCombo::OnPaint(GSurface *pDC)
 			}
 			else
 			{
-				pDC->Colour(Focus() ? LC_SELECTION : LC_MED, 24);
+				pDC->Colour(Focus() ? LC_FOCUS_SEL_BACK : LC_MED, 24);
 				pDC->Rectangle(&r);
 			}
 		}

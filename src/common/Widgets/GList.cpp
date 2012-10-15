@@ -3526,7 +3526,8 @@ void GList::OnPaint(GSurface *pDC)
 		int n = FirstVisible;
 		int LastY = r.y1;
 		GViewFill *Fill;
-		COLOUR SelBack = Focus() ? LC_SELECTION : GdcMixColour(LC_WORKSPACE, LC_SELECTION);
+		COLOUR SelFore = Focus() ? LC_FOCUS_SEL_FORE : LC_NON_FOCUS_SEL_FORE;
+		COLOUR SelBack = Focus() ? LC_FOCUS_SEL_BACK : LC_NON_FOCUS_SEL_BACK;
 		int LastSelected = -1;
 
 		GItem::ItemPaintCtx Ctx;
@@ -3542,7 +3543,7 @@ void GList::OnPaint(GSurface *pDC)
 				{
 					if (LastSelected = i->Select())
 					{
-						Ctx.Fore = LC_SEL_TEXT;
+						Ctx.Fore = SelFore;
 						Ctx.Back = SelBack;
 					}
 					else

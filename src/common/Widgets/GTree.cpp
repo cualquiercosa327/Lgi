@@ -788,14 +788,15 @@ void GTreeItem::OnPaint(ItemPaintCtx &Ctx)
 			Tree->d->LineFlags[0] |= 1 << d->Depth;
 		}
 
-		COLOUR SelBack = Tree->Focus() ? LC_SELECTION : GdcMixColour(LC_WORKSPACE, LC_SELECTION);
+		COLOUR SelFore = Tree->Focus() ? LC_FOCUS_SEL_FORE : LC_NON_FOCUS_SEL_FORE;
+		COLOUR SelBack = Tree->Focus() ? LC_FOCUS_SEL_BACK : LC_NON_FOCUS_SEL_BACK;
 		for (GTreeItem *i=Items.First(); i; i=Items.Next())
 		{
 			bool IsSelected = (Tree->d->DropTarget == i) || (Tree->d->DropTarget == 0 && i->Select());
 
 			// Foreground
 			GViewFill *Fill = i->GetForegroundFill();
-			Ctx.Fore = Fill ? Fill->GetFlat().c24() : (IsSelected ? LC_SEL_TEXT : LC_TEXT);
+			Ctx.Fore = Fill ? Fill->GetFlat().c24() : (IsSelected ? SelFore : LC_TEXT);
 
 			// Background	
 			Fill = i->GetBackgroundFill();
@@ -1363,7 +1364,7 @@ void GTree::OnPaint(GSurface *pDC)
 	// selection colour
 	GItem::ItemPaintCtx Ctx;
 	Ctx.pDC = pDC;
-	COLOUR SelBack = Focus() ? LC_SELECTION : GdcMixColour(LC_WORKSPACE, LC_SELECTION);
+	COLOUR SelBack = Focus() ? LC_FOCUS_SEL_BACK : LC_NON_FOCUS_SEL_BACK;
 
 	// layout items
 	if (d->LayoutDirty)
@@ -1379,7 +1380,7 @@ void GTree::OnPaint(GSurface *pDC)
 
 		// Foreground
 		GViewFill *Fill = i->GetForegroundFill();
-		Ctx.Fore = Fill ? Fill->GetFlat().c24() : (IsSelected ? LC_SEL_TEXT : LC_TEXT);
+		Ctx.Fore = Fill ? Fill->GetFlat().c24() : (IsSelected ? LC_FOCUS_SEL_FORE : LC_TEXT);
 
 		// Background	
 		Fill = i->GetBackgroundFill();

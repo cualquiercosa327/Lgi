@@ -492,8 +492,8 @@ void GMenuItem::_Paint(GSurface *pDC, int Flags)
 	else
 	{
 		// paint a text menu item
-		COLOUR Fore = Selected ? LC_SEL_TEXT : LC_MENU_TEXT;
-		COLOUR Back = BaseMenu ? Menu->d->RootMenuBack : Selected ? LC_SELECTION : LC_MENU_BACKGROUND;
+		COLOUR Fore = Selected ? LC_FOCUS_SEL_FORE : LC_MENU_TEXT;
+		COLOUR Back = BaseMenu ? Menu->d->RootMenuBack : Selected ? LC_FOCUS_SEL_BACK : LC_MENU_BACKGROUND;
 		int x = IconX;
 		GFont *Font = Menu && Menu->GetFont() ? Menu->GetFont() : SysFont;
 		int y = (pDC->Y() - Font->GetHeight()) >> 1;

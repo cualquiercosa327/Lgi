@@ -184,14 +184,18 @@ void LgiInitColours()
 	_LgiColours[i++] = GetSysColor(COLOR_3DFACE); // LC_DIALOG
 	_LgiColours[i++] = GetSysColor(COLOR_WINDOW); // LC_WORKSPACE
 	_LgiColours[i++] = GetSysColor(COLOR_WINDOWTEXT); // LC_TEXT
-	_LgiColours[i++] = GetSysColor(COLOR_HIGHLIGHT); // LC_SELECTION
-	_LgiColours[i++] = GetSysColor(COLOR_HIGHLIGHTTEXT); // LC_SEL_TEXT
+	_LgiColours[i++] = GetSysColor(COLOR_HIGHLIGHT); // LC_FOCUS_SEL_BACK
+	_LgiColours[i++] = GetSysColor(COLOR_HIGHLIGHTTEXT); // LC_FOCUS_SEL_FORE
 	_LgiColours[i++] = GetSysColor(COLOR_ACTIVECAPTION); // LC_ACTIVE_TITLE
 	_LgiColours[i++] = GetSysColor(COLOR_CAPTIONTEXT); // LC_ACTIVE_TITLE_TEXT
 	_LgiColours[i++] = GetSysColor(COLOR_INACTIVECAPTION); // LC_INACTIVE_TITLE
 	_LgiColours[i++] = GetSysColor(COLOR_INACTIVECAPTIONTEXT); // LC_INACTIVE_TITLE_TEXT
 	_LgiColours[i++] = GetSysColor(COLOR_MENU); // LC_MENU_BACKGROUND
 	_LgiColours[i++] = GetSysColor(COLOR_MENUTEXT); // LC_MENU_TEXT
+	_LgiColours[i++] = GetSysColor(COLOR_BTNFACE); // LC_NON_FOCUS_SEL_BACK
+	_LgiColours[i++] = GetSysColor(COLOR_BTNTEXT); // LC_NON_FOCUS_SEL_FORE
+	
+	LgiAssert(i == LC_MAXIMUM);
 	#elif defined __GTK_H__
 	Gtk::GtkSettings *set = Gtk::gtk_settings_get_default();
 	if (!set)
@@ -308,8 +312,8 @@ void LgiInitColours()
 	ReadColourConfig(LC_DIALOG);
 	ReadColourConfig(LC_WORKSPACE);
 	ReadColourConfig(LC_TEXT);
-	ReadColourConfig(LC_SELECTION);
-	ReadColourConfig(LC_SEL_TEXT);
+	ReadColourConfig(LC_FOCUS_SEL_BACK);
+	ReadColourConfig(LC_FOCUS_SEL_FORE);
 	ReadColourConfig(LC_ACTIVE_TITLE);
 	ReadColourConfig(LC_ACTIVE_TITLE_TEXT);
 	ReadColourConfig(LC_INACTIVE_TITLE);
