@@ -430,7 +430,7 @@ short GdcGif::decoder(int BitDepth, uchar interlaced)
 			{
 				if ((ret = out_line(buf, linewidth, interlaced, BitDepth)) < 0)
 				{
-					DeleteObj(buf);
+					DeleteArray(buf);
 					return (ret);
 				}
 
@@ -469,7 +469,7 @@ short GdcGif::decoder(int BitDepth, uchar interlaced)
 			 */
 			while (code >= newcodes)
 			{
-				if (sp >= EndOfStack)
+				if (sp >= EndOfStack || code >= MAX_CODES + 1)
 				{
 					return -1;
 				}
@@ -515,7 +515,7 @@ short GdcGif::decoder(int BitDepth, uchar interlaced)
 				{
 					if ((ret = out_line(buf, linewidth, interlaced, BitDepth)) < 0)
 					{
-						DeleteObj(buf);
+						DeleteArray(buf);
 						return(ret);
 					}
 

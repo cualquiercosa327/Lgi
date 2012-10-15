@@ -604,7 +604,7 @@ void ResDialogCtrl::OnPaint(GSurface *pDC)
 	{
 		GRect r = DragRgn;
 		r.Normal();
-		pDC->Colour(LC_SELECTION, 24);
+		pDC->Colour(LC_FOCUS_SEL_BACK, 24);
 		pDC->Box(&r);
 	}
 }
