@@ -2563,6 +2563,16 @@ void GTag::SetStyle()
 		{
 			BackgroundColor(Def);
 		}
+		else
+		{
+			GCss::ImageDef Img;
+			
+			Img.Type = ImageUri;
+			Img.Uri.Reset(NewStr(s));
+			
+			BackgroundImage(Img);
+			BackgroundRepeat(RepeatBoth);
+		}
 	}
 
 	switch (TagId)
@@ -5478,6 +5488,51 @@ void GTag::OnPaintBorder(GSurface *pDC)
 
 }
 
+void FillRectWithImage(GSurface *pDC, GRect *r, GSurface *Image, GCss::RepeatType Repeat)
+{
+	int Px = 0, Py = 0;
+	int Old = pDC->Op(GDC_ALPHA);
+
+	switch (Repeat)
+	{
+		default:
+		case GCss::RepeatBoth:
+		{
+			for (int y=0; y<r->Y(); y += Image->Y())
+			{
+				for (int x=0; x<r->X(); x += Image->X())
+				{
+					pDC->Blt(Px + x, Py + y, Image);
+				}
+			}
+			break;
+		}
+		case GCss::RepeatX:
+		{
+			for (int x=0; x<r->X(); x += Image->X())
+			{
+				pDC->Blt(Px + x, Py, Image);
+			}
+			break;
+		}
+		case GCss::RepeatY:
+		{
+			for (int y=0; y<r->Y(); y += Image->Y())
+			{
+				pDC->Blt(Px, Py + y, Image);
+			}
+			break;
+		}
+		case GCss::RepeatNone:
+		{
+			pDC->Blt(Px, Py, Image);
+			break;
+		}
+	}
+
+	pDC->Op(Old);
+}
+
 void GTag::OnPaint(GSurface *pDC)
 {
 	if (Display() == DispNone) return;
@@ -5500,42 +5555,10 @@ void GTag::OnPaint(GSurface *pDC)
 					// pDC->Rectangle(Pos.x, Pos.y, Pos.x+Size.x, Pos.y+Size.y);
 				}
 
-				switch (BackgroundRepeat())
-				{
-					case GCss::RepeatBoth:
-					{
-						for (int y=0; y<Html->Y(); y += Image->Y())
-						{
-							for (int x=0; x<Html->X(); x += Image->X())
-							{
-								pDC->Blt(Px + x, Py + y, Image);
-							}
-						}
-						break;
-					}
-					case GCss::RepeatX:
-					{
-						for (int x=0; x<Html->X(); x += Image->X())
-						{
-							pDC->Blt(Px + x, Py, Image);
-						}
-						break;
-					}
-					case GCss::RepeatY:
-					{
-						for (int y=0; y<Html->Y(); y += Image->Y())
-						{
-							pDC->Blt(Px, Py + y, Image);
-						}
-						break;
-					}
-					case GCss::RepeatNone:
-					{
-						pDC->Blt(Px, Py, Image);
-						break;
-					}
-				}
-			}			
+				GRect r;
+				r.ZOff(Size.x-1, Size.y-1);
+				FillRectWithImage(pDC, &r, Image, BackgroundRepeat());
+			}
 			break;
 		}
 		case TAG_HEAD:
@@ -5603,6 +5626,20 @@ void GTag::OnPaint(GSurface *pDC)
 		}
 		case TAG_TABLE:
 		{
+			if (Html->Environment)
+			{
+				GCss::ImageDef Img = BackgroundImage();
+				if (Img.Type != ImageInherit)
+				{
+					GRect Clip(0, 0, Size.x-1, Size.y-1);
+					pDC->ClipRgn(&Clip);
+					
+					GRect r;
+					r.ZOff(Size.x-1, Size.y-1);
+					FillRectWithImage(pDC, &r, Img.Img, BackgroundRepeat());
+				}
+			}
+
 			OnPaintBorder(pDC);
 
 			if (DefaultTableBorder != GT_TRANSPARENT)
@@ -5663,9 +5700,9 @@ void GTag::OnPaint(GSurface *pDC)
 					GRect Clip(0, 0, Size.x-1, Size.y-1);
 					pDC->ClipRgn(&Clip);
 					
-					int Old = pDC->Op(GDC_ALPHA);
-					pDC->Blt(0, 0, Img.Img);
-					pDC->Op(Old);
+					GRect r;
+					r.ZOff(Size.x-1, Size.y-1);
+					FillRectWithImage(pDC, &r, Img.Img, BackgroundRepeat());
 					
 					back = GT_TRANSPARENT;
 				}
