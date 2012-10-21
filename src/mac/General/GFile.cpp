@@ -519,6 +519,11 @@ public:
 		return Mount;
 	}
 
+	void Insert(GAutoPtr<GVolume> v)
+	{
+		_Sub.Insert(v.Release());
+	}
+	
 	GVolume *First()
 	{
 		if (Which < 0 AND
@@ -618,7 +623,7 @@ public:
 		if (Which >= 0 AND
 			_Path)
 		{
-			Dir = FileDev->GetDir();
+			Dir = new GDirectory;
 			if (Dir)
 			{
 				if (!Dir->First(_Path))
@@ -661,48 +666,7 @@ GVolume *GFileSystem::GetRootVolume()
 
 int FloppyType(int Letter)
 {
-
-	/*
-	uchar MaxTrack;
-	uchar SecPerTrack;
-	_asm {
-		mov eax, 0800h
-		mov edx, Letter
-		int 13h
-		mov MaxTrack, ch
-		mov SecPerTrack, cl
-	}
-
-	if (MaxTrack > 39)
-	{
-		switch (SecPerTrack)
-		{
-			case 9:
-			{
-				return FLOPPY_720K;
-			}
-			case 15:
-			{
-				return FLOPPY_1_2M;
-			}
-			case 18:
-			{
-				return FLOPPY_1_4M;
-			}
-		}
-	}
-	else
-	{
-		return FLOPPY_360K;
-	}
-	*/
-
 	return 0;
-}
-
-GDirectory *GFileSystem::GetDir()
-{
-	return new GDirImpl;
 }
 
 OSType gFinderSignature = 'MACS';
@@ -996,16 +960,15 @@ bool GFileSystem::RemoveFolder(char *PathName, bool Recurse)
 {
 	if (Recurse)
 	{
-		GDirectory *Dir = FileDev->GetDir();
-		if (Dir AND
-			Dir->First(PathName))
+		GDirectory Dir;
+		if (Dir.First(PathName))
 		{
 			do
 			{
 				char Str[256];
-				Dir->Path(Str, sizeof(Str));
+				Dir.Path(Str, sizeof(Str));
 
-				if (Dir->IsDir())
+				if (Dir.IsDir())
 				{
 					RemoveFolder(Str, Recurse);
 				}
@@ -1014,9 +977,8 @@ bool GFileSystem::RemoveFolder(char *PathName, bool Recurse)
 					Delete(Str, false);
 				}
 			}
-			while (Dir->Next());
+			while (Dir.Next());
 		}
-		DeleteObj(Dir);
 	}
 
 	return rmdir(PathName) == 0;
@@ -1125,7 +1087,7 @@ bool GDirectory::ConvertToDate(char *Str, uint64 Time)
 /////////////////////////////////////////////////////////////////////////////////
 //////////////////////////// Directory //////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////
-class GDirImplPrivate
+class GDirectoryPriv
 {
 public:
 	char			BasePath[256];
@@ -1134,7 +1096,7 @@ public:
 	struct stat		Stat;
 	char			*Pattern;
 
-	GDirImplPrivate()
+	GDirectoryPriv()
 	{	
 		Dir = 0;
 		De = 0;
@@ -1142,7 +1104,7 @@ public:
 		Pattern = 0;
 	}
 	
-	~GDirImplPrivate()
+	~GDirectoryPriv()
 	{
 		DeleteArray(Pattern);
 	}
@@ -1165,23 +1127,23 @@ public:
 	}
 };
 
-GDirImpl::GDirImpl()
+GDirectory::GDirectory()
 {
-	d = new GDirImplPrivate;
+	d = new GDirectoryPriv;
 }
 
-GDirImpl::~GDirImpl()
+GDirectory::~GDirectory()
 {
 	Close();
 	DeleteObj(d);
 }
 
-GDirectory *GDirImpl::Clone()
+GDirectory *GDirectory::Clone()
 {
-	return new GDirImpl;
+	return new GDirectory;
 }
 
-int GDirImpl::First(const char *Name, const char *Pattern)
+int GDirectory::First(const char *Name, const char *Pattern)
 {
 	Close();
 
@@ -1233,7 +1195,7 @@ int GDirImpl::First(const char *Name, const char *Pattern)
 	return d->Dir != 0 AND d->De != 0;
 }
 
-int GDirImpl::Next()
+int GDirectory::Next()
 {
 	int Status = false;
 
@@ -1255,7 +1217,7 @@ int GDirImpl::Next()
 	return Status;
 }
 
-int GDirImpl::Close()
+int GDirectory::Close()
 {
 	if (d->Dir)
 	{
@@ -1267,7 +1229,7 @@ int GDirImpl::Close()
 	return true;
 }
 
-bool GDirImpl::Path(char *s, int BufLen)
+bool GDirectory::Path(char *s, int BufLen)
 {
 	if (!s)
 	{
@@ -1277,12 +1239,12 @@ bool GDirImpl::Path(char *s, int BufLen)
 	return LgiMakePath(s, BufLen, d->BasePath, GetName());
 }
 
-int GDirImpl::GetType()
+int GDirectory::GetType()
 {
 	return IsDir() ? VT_FOLDER : VT_FILE;
 }
 
-int GDirImpl::GetUser(bool Group)
+int GDirectory::GetUser(bool Group)
 {
 	if (Group)
 	{
@@ -1294,7 +1256,7 @@ int GDirImpl::GetUser(bool Group)
 	}
 }
 
-bool GDirImpl::IsReadOnly()
+bool GDirectory::IsReadOnly()
 {
 	if (getuid() == d->Stat.st_uid)
 	{
@@ -1311,43 +1273,43 @@ bool GDirImpl::IsReadOnly()
 	return !TestFlag(GetAttributes(), S_IWOTH);
 }
 
-bool GDirImpl::IsHidden()
+bool GDirectory::IsHidden()
 {
 	return GetName() AND GetName()[0] == '.';
 }
 
-bool GDirImpl::IsDir()
+bool GDirectory::IsDir()
 {
 	int a = GetAttributes();
 	return !S_ISLNK(a) AND S_ISDIR(a);
 }
 
-long GDirImpl::GetAttributes()
+long GDirectory::GetAttributes()
 {
 	return d->Stat.st_mode;
 }
 
-char *GDirImpl::GetName()
+char *GDirectory::GetName()
 {
 	return (d->De) ? d->De->d_name : 0;
 }
 
-const uint64 GDirImpl::GetCreationTime()
+const uint64 GDirectory::GetCreationTime()
 {
 	return (uint64)d->Stat.st_ctime * 1000;
 }
 
-const uint64 GDirImpl::GetLastAccessTime()
+const uint64 GDirectory::GetLastAccessTime()
 {
 	return (uint64)d->Stat.st_atime * 1000;
 }
 
-const uint64 GDirImpl::GetLastWriteTime()
+const uint64 GDirectory::GetLastWriteTime()
 {
 	return (uint64)d->Stat.st_mtime * 1000;
 }
 
-const uint64 GDirImpl::GetSize()
+const uint64 GDirectory::GetSize()
 {
 	return (uint32)d->Stat.st_size;
 }

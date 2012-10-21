@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		340BFC15096A0E0100A11AE6 /* LgiCommon.h in Headers */ = {isa = PBXBuildFile; fileRef = 340BFC14096A0E0100A11AE6 /* LgiCommon.h */; };
 		340BFC4A096A9D4600A11AE6 /* GArray.h in Headers */ = {isa = PBXBuildFile; fileRef = 340BFC49096A9D4600A11AE6 /* GArray.h */; };
-		340BFD1D096AA96800A11AE6 /* GSemaphore.h in Headers */ = {isa = PBXBuildFile; fileRef = 340BFD1C096AA96800A11AE6 /* GSemaphore.h */; };
 		340FEA9E096E375600E534D5 /* GToolBar.h in Headers */ = {isa = PBXBuildFile; fileRef = 340FEA9C096E375600E534D5 /* GToolBar.h */; };
 		340FEA9F096E375600E534D5 /* GToolTabBar.h in Headers */ = {isa = PBXBuildFile; fileRef = 340FEA9D096E375600E534D5 /* GToolTabBar.h */; };
 		3413BBC21349EC6900AE15B0 /* GXmlTree.h in Headers */ = {isa = PBXBuildFile; fileRef = 3413BBC11349EC6900AE15B0 /* GXmlTree.h */; };
@@ -147,7 +146,6 @@
 		34D2CC6108F0FC7F0009968C /* GFontSystem.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D2CC6008F0FC7F0009968C /* GFontSystem.cpp */; };
 		34D2CC6308F0FCA00009968C /* GFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D2CC6208F0FCA00009968C /* GFont.cpp */; };
 		34D2CC7308F115AD0009968C /* GFont.h in Headers */ = {isa = PBXBuildFile; fileRef = 34D2CC7208F115AD0009968C /* GFont.h */; };
-		34D2CC8508F116550009968C /* GSemaphore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D2CC8408F116550009968C /* GSemaphore.cpp */; };
 		34D2CC8C08F116A80009968C /* GThread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D2CC8B08F116A80009968C /* GThread.cpp */; };
 		34D2CCA508F117A20009968C /* GFont_A.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D2CCA308F117A20009968C /* GFont_A.cpp */; };
 		34D2CCA608F117A20009968C /* GFont_W.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D2CCA408F117A20009968C /* GFont_W.cpp */; };
@@ -155,6 +153,8 @@
 		34D2CCAC08F1183F0009968C /* GWindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D2CCAB08F1183F0009968C /* GWindow.cpp */; };
 		34D2CCED08F11BEF0009968C /* GWidgets.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D2CCEC08F11BEF0009968C /* GWidgets.cpp */; };
 		34D4D55B1250AF98000DA1FD /* GHashTable.h in Headers */ = {isa = PBXBuildFile; fileRef = 34D4D55A1250AF98000DA1FD /* GHashTable.h */; };
+		34D63E8616339DBD00D2B547 /* GMutex.h in Headers */ = {isa = PBXBuildFile; fileRef = 34D63E8516339DBD00D2B547 /* GMutex.h */; };
+		34D63E8816339DF100D2B547 /* GMutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D63E8716339DF100D2B547 /* GMutex.cpp */; };
 		34D979D11150F0E100CE462B /* GLayout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D979D01150F0E100CE462B /* GLayout.cpp */; };
 		34DA5CB70DE0DE930050C7E4 /* GScrollBar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34DA5CB60DE0DE930050C7E4 /* GScrollBar.cpp */; };
 		34E51DB00D2EFCCB0021AA08 /* GList.h in Headers */ = {isa = PBXBuildFile; fileRef = 34E51DAF0D2EFCCB0021AA08 /* GList.h */; };
@@ -168,7 +168,6 @@
 		089C1667FE841158C02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		340BFC14096A0E0100A11AE6 /* LgiCommon.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LgiCommon.h; path = include/common/LgiCommon.h; sourceTree = "<group>"; };
 		340BFC49096A9D4600A11AE6 /* GArray.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GArray.h; path = include/common/GArray.h; sourceTree = "<group>"; };
-		340BFD1C096AA96800A11AE6 /* GSemaphore.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GSemaphore.h; path = include/common/GSemaphore.h; sourceTree = "<group>"; };
 		340FEA9C096E375600E534D5 /* GToolBar.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GToolBar.h; path = include/common/GToolBar.h; sourceTree = "<group>"; };
 		340FEA9D096E375600E534D5 /* GToolTabBar.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GToolTabBar.h; path = include/common/GToolTabBar.h; sourceTree = "<group>"; };
 		3413BBC11349EC6900AE15B0 /* GXmlTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GXmlTree.h; path = include/common/GXmlTree.h; sourceTree = "<group>"; };
@@ -306,7 +305,6 @@
 		34D2CC6008F0FC7F0009968C /* GFontSystem.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GFontSystem.cpp; path = src/common/Gdc2/Font/GFontSystem.cpp; sourceTree = "<group>"; };
 		34D2CC6208F0FCA00009968C /* GFont.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GFont.cpp; path = src/common/Gdc2/Font/GFont.cpp; sourceTree = "<group>"; };
 		34D2CC7208F115AD0009968C /* GFont.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GFont.h; path = include/common/GFont.h; sourceTree = "<group>"; };
-		34D2CC8408F116550009968C /* GSemaphore.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GSemaphore.cpp; path = src/common/Lgi/GSemaphore.cpp; sourceTree = "<group>"; };
 		34D2CC8B08F116A80009968C /* GThread.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GThread.cpp; path = src/mac/Lgi/GThread.cpp; sourceTree = "<group>"; };
 		34D2CCA308F117A20009968C /* GFont_A.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GFont_A.cpp; path = src/common/Gdc2/Font/GFont_A.cpp; sourceTree = "<group>"; };
 		34D2CCA408F117A20009968C /* GFont_W.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GFont_W.cpp; path = src/common/Gdc2/Font/GFont_W.cpp; sourceTree = "<group>"; };
@@ -314,6 +312,8 @@
 		34D2CCAB08F1183F0009968C /* GWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GWindow.cpp; path = src/mac/Lgi/GWindow.cpp; sourceTree = "<group>"; };
 		34D2CCEC08F11BEF0009968C /* GWidgets.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GWidgets.cpp; path = src/mac/Lgi/GWidgets.cpp; sourceTree = "<group>"; };
 		34D4D55A1250AF98000DA1FD /* GHashTable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GHashTable.h; path = include/common/GHashTable.h; sourceTree = "<group>"; };
+		34D63E8516339DBD00D2B547 /* GMutex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GMutex.h; path = include/common/GMutex.h; sourceTree = "<group>"; };
+		34D63E8716339DF100D2B547 /* GMutex.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GMutex.cpp; path = src/common/Lgi/GMutex.cpp; sourceTree = "<group>"; };
 		34D979D01150F0E100CE462B /* GLayout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GLayout.cpp; path = src/common/Lgi/GLayout.cpp; sourceTree = "<group>"; };
 		34DA5CB60DE0DE930050C7E4 /* GScrollBar.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GScrollBar.cpp; path = src/common/Widgets/GScrollBar.cpp; sourceTree = "<group>"; };
 		34E51DAF0D2EFCCB0021AA08 /* GList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GList.h; path = include/common/GList.h; sourceTree = "<group>"; };
@@ -630,11 +630,11 @@
 		345F9C4108F0FAA9007DAFE2 /* Threads */ = {
 			isa = PBXGroup;
 			children = (
+				34D63E8716339DF100D2B547 /* GMutex.cpp */,
+				34D63E8516339DBD00D2B547 /* GMutex.h */,
 				34666FFE0D323C4F00E80BC9 /* GThreadCommon.cpp */,
 				34766831093F20EE00623A44 /* GThread.h */,
 				34D2CC8B08F116A80009968C /* GThread.cpp */,
-				340BFD1C096AA96800A11AE6 /* GSemaphore.h */,
-				34D2CC8408F116550009968C /* GSemaphore.cpp */,
 			);
 			name = Threads;
 			sourceTree = "<group>";
@@ -800,7 +800,6 @@
 				3416C27B096775AF00DD79DC /* GRect.h in Headers */,
 				340BFC15096A0E0100A11AE6 /* LgiCommon.h in Headers */,
 				340BFC4A096A9D4600A11AE6 /* GArray.h in Headers */,
-				340BFD1D096AA96800A11AE6 /* GSemaphore.h in Headers */,
 				340FEA9E096E375600E534D5 /* GToolBar.h in Headers */,
 				340FEA9F096E375600E534D5 /* GToolTabBar.h in Headers */,
 				345C1BF30B3F4AFF00E80FF1 /* LgiClass.h in Headers */,
@@ -835,6 +834,7 @@
 				34BC1E1F134DC748005451EE /* Res.h in Headers */,
 				34661C7913C7407000B4C2A7 /* GUtf8.h in Headers */,
 				34B28AF2143FA6AF0023662F /* GPath.h in Headers */,
+				34D63E8616339DBD00D2B547 /* GMutex.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -937,7 +937,6 @@
 				34D2CC4F08F0FB490009968C /* GPopup.cpp in Sources */,
 				34D2CC6108F0FC7F0009968C /* GFontSystem.cpp in Sources */,
 				34D2CC6308F0FCA00009968C /* GFont.cpp in Sources */,
-				34D2CC8508F116550009968C /* GSemaphore.cpp in Sources */,
 				34D2CC8C08F116A80009968C /* GThread.cpp in Sources */,
 				34D2CCA508F117A20009968C /* GFont_A.cpp in Sources */,
 				34D2CCA608F117A20009968C /* GFont_W.cpp in Sources */,
@@ -996,6 +995,7 @@
 				3444A36112275BDD004ADADE /* GToolBar.cpp in Sources */,
 				341BE442123ED1F1009BF203 /* sha1.c in Sources */,
 				34B28AF0143FA69B0023662F /* GPath.cpp in Sources */,
+				34D63E8816339DF100D2B547 /* GMutex.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -101,7 +101,7 @@ GWindow::GWindow() :
 	WndFlags |= GWND_CREATE;
 	GView::Visible(false);
 
-    _Lock = new GSemaphore;
+    _Lock = new GMutex;
 
 	GRect pos(0, 50, 200, 100);
 	Rect r = pos;
