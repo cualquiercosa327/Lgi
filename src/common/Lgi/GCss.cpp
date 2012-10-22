@@ -1822,6 +1822,7 @@ bool GCss::Selector::Parse(const char *&s)
 				return false;
 			
 			s = End + 2;
+			continue;
 		}
 		else if (*s == ':')
 		{
@@ -1904,6 +1905,7 @@ bool GCss::Selector::Parse(const char *&s)
 		if (*s == '+')
 		{
 			*s++;
+			LgiAssert(Parts.Length() > 0);
 			Combs.Add(Parts.Length());
 			Part &n = Parts.New();
 			n.Type = CombAdjacent;
@@ -1911,6 +1913,7 @@ bool GCss::Selector::Parse(const char *&s)
 		else if (*s == '>')
 		{
 			*s++;
+			LgiAssert(Parts.Length() > 0);
 			Combs.Add(Parts.Length());
 			Part &n = Parts.New();
 			n.Type = CombChild;
@@ -1918,6 +1921,7 @@ bool GCss::Selector::Parse(const char *&s)
 		else if (s > Last &&
 				(IsAlpha(*s) || strchr(":#", *s)))
 		{
+			LgiAssert(Parts.Length() > 0);
 			Combs.Add(Parts.Length());
 			Part &n = Parts.New();
 			n.Type = CombDesc;

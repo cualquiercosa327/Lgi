@@ -2366,9 +2366,15 @@ bool GTag::MatchFullSelector(GCss::Selector *Sel)
 		
 		for (; CombIdx >= 0; CombIdx--)
 		{
+			if (CombIdx >= Sel->Combs.Length())
+				break;
+
 			StartIdx = Sel->Combs[CombIdx];
 			LgiAssert(StartIdx > 0);
 
+			if (StartIdx >= Sel->Parts.Length())
+				break;
+			
 			GCss::Selector::Part &p = Sel->Parts[StartIdx];
 			switch (p.Type)
 			{
@@ -2403,6 +2409,7 @@ bool GTag::MatchFullSelector(GCss::Selector *Sel)
 				default:
 				{
 					LgiAssert(!"This must be a comb.");
+					return false;
 					break;
 				}
 			}
@@ -6006,6 +6013,8 @@ void GHtml2::_Delete()
 	#if LUIS_DEBUG
 	LgiTrace("%s:%i html(%p).src(%p)='%30.30s'\n", __FILE__, __LINE__, this, Source, Source);
 	#endif
+
+	LgiAssert(!d->IsParsing);
 
 	SetBackColour(Rgb24To32(LC_WORKSPACE));
 
