@@ -1970,9 +1970,6 @@ bool GTag::OnMouseClick(GMouse &m)
 	bool Processed = false;
 
 	// char msg[256];
-	// sprintf(msg, "iscontext=%i", m.IsContextMenu());
-	// m.Trace(msg);
-	
 	if (m.IsContextMenu())
 	{
 		GAutoString Uri;
@@ -2017,12 +2014,22 @@ bool GTag::OnMouseClick(GMouse &m)
 		GAutoString Uri;
 		
 		if (Html &&
-			(!Html->d->LinkDoubleClick || m.Double()) &&
-			Html->Environment &&
-			IsAnchor(&Uri))
+			Html->Environment)
 		{
-			Html->Environment->OnNavigate(Uri);
-			Processed = true;
+			const char *OnClick = NULL;
+			if (IsAnchor(&Uri))
+			{
+				if (!Html->d->LinkDoubleClick || m.Double())
+				{
+					Html->Environment->OnNavigate(Uri);
+					Processed = true;
+				}
+			}
+			else if (Get("onclick", OnClick))
+			{
+				Html->Environment->OnExecuteScript((char*)OnClick);
+				Processed = true;
+			}
 		}
 	}
 
