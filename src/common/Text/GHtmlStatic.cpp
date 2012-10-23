@@ -28,37 +28,9 @@ GHtmlStatic::GHtmlStatic() :
 	#define DefVar(s, v)				VarMap.Add(WcharToChar16(s), v)
 	DefVar(L"quot", 0x22);				// quotation mark = APL quote, U+0022 ISOnum
 	DefVar(L"amp", 0x26);				// ampersand, U+0026 ISOnum
+	DefVar(L"apos", 0x27);				// apostrophe
 	DefVar(L"lt", 0x3C);				// less-than sign, U+003C ISOnum
 	DefVar(L"gt", 0x3E);				// greater-than sign, U+003E ISOnum
-	DefVar(L"OElig", 0x0152);			// latin capital ligature OE, U+0152 ISOlat2
-	DefVar(L"oelig", 0x0153);			// latin small ligature oe, U+0153 ISOlat2
-	DefVar(L"Scaron", 0x0160);			// latin capital letter S with caron, U+0160 ISOlat2
-	DefVar(L"scaron", 0x0161);			// latin small letter s with caron, U+0161 ISOlat2
-	DefVar(L"Yuml", 0x0178);			// latin capital letter Y with diaeresis, U+0178 ISOlat2
-	DefVar(L"circ", 0x02C6);			// modifier letter circumflex accent, U+02C6 ISOpub
-	DefVar(L"tilde", 0x02DC);			// small tilde, U+02DC ISOdia
-	DefVar(L"ensp", 0x2002);			// en space, U+2002 ISOpub
-	DefVar(L"emsp", 0x2003);			// em space, U+2003 ISOpub
-	DefVar(L"thinsp", 0x2009);			// thin space, U+2009 ISOpub
-	DefVar(L"zwnj", 0x200C);			// zero width non-joiner, U+200C NEW RFC 2070
-	DefVar(L"zwj", 0x200D);				// zero width joiner, U+200D NEW RFC 2070
-	DefVar(L"lrm", 0x200E);				// left-to-right mark, U+200E NEW RFC 2070
-	DefVar(L"rlm", 0x200F);				// right-to-left mark, U+200F NEW RFC 2070
-	DefVar(L"ndash", 0x2013);			// en dash, U+2013 ISOpub
-	DefVar(L"mdash", 0x2014);			// em dash, U+2014 ISOpub
-	DefVar(L"lsquo", 0x2018);			// left single quotation mark, U+2018 ISOnum
-	DefVar(L"rsquo", 0x2019);			// right single quotation mark, U+2019 ISOnum
-	DefVar(L"sbquo", 0x201A);			// single low-9 quotation mark, U+201A NEW
-	DefVar(L"ldquo", 0x201C);			// left double quotation mark, U+201C ISOnum
-	DefVar(L"rdquo", 0x201D);			// right double quotation mark, U+201D ISOnum
-	DefVar(L"bdquo", 0x201E);			// double low-9 quotation mark, U+201E NEW
-	DefVar(L"dagger", 0x2020);			// dagger, U+2020 ISOpub
-	DefVar(L"Dagger", 0x2021);			// double dagger, U+2021 ISOpub
-	DefVar(L"permil", 0x2030);			// per mille sign, U+2030 ISOtech
-	DefVar(L"lsaquo", 0x2039);			// single left-pointing angle quotation mark, U+2039 ISO proposed
-	DefVar(L"rsaquo", 0x203A);			// single right-pointing angle quotation mark, U+203A ISO proposed
-	DefVar(L"euro", 0x20AC);			// euro sign, U+20AC NEW
-	DefVar(L"bull", 0x2022);			// Entity bull
 
 	#if ShowNbsp
 	DefVar(L"nbsp", 0x25cb);			// no-break space
@@ -161,6 +133,162 @@ GHtmlStatic::GHtmlStatic() :
 	DefVar(L"yacute", 0xFD);			// latin small letter y with acute, U+00FD ISOlat1
 	DefVar(L"thorn", 0xFE);				// latin small letter thorn with, U+00FE ISOlat1
 	DefVar(L"yuml", 0xFF);				// latin small letter y with diaeresis, U+00FF ISOlat1
+
+	DefVar(L"OElig", 0x0152);			// latin capital ligature OE, U+0152 ISOlat2
+	DefVar(L"oelig", 0x0153);			// latin small ligature oe, U+0153 ISOlat2
+	DefVar(L"Scaron", 0x0160);			// latin capital letter S with caron, U+0160 ISOlat2
+	DefVar(L"scaron", 0x0161);			// latin small letter s with caron, U+0161 ISOlat2
+	DefVar(L"Yuml", 0x0178);			// latin capital letter Y with diaeresis, U+0178 ISOlat2
+	DefVar(L"fnof", 0x0192);			// Latin small letter f with hook (= function = florin)
+	DefVar(L"circ", 0x02C6);			// modifier letter circumflex accent, U+02C6 ISOpub
+	DefVar(L"tilde", 0x02DC);			// small tilde, U+02DC ISOdia
+
+	DefVar(L"Alpha", 0x0391);			// Greek capital letter Alpha
+	DefVar(L"Beta", 0x0392);			// Greek capital letter Beta
+	DefVar(L"Gamma", 0x0393);			// Greek capital letter Gamma
+	DefVar(L"Delta", 0x0394);			// Greek capital letter Delta
+	DefVar(L"Epsilon", 0x0395);			// capital letter Epsilon
+	DefVar(L"Zeta", 0x0396);			// capital letter Zeta
+	DefVar(L"Eta", 0x0397);				// capital letter Eta
+	DefVar(L"Theta", 0x0398);			// Greek capital letter Theta
+	DefVar(L"Iota", 0x0399);			// capital letter Iota
+	DefVar(L"Kappa", 0x039A);			// capital letter Kappa
+	DefVar(L"Lambda", 0x039B);			// Greek capital letter Lambda
+	DefVar(L"Mu", 0x039C);				// capital letter Mu
+	DefVar(L"Nu", 0x039D);				// capital letter Nu
+	DefVar(L"Xi", 0x039E);				// Greek capital letter Xi
+	DefVar(L"Omicron", 0x039F);			// capital letter Omicron
+	DefVar(L"Pi", 0x03A0);				// capital letter Pi
+	DefVar(L"Rho", 0x03A1);				// capital letter Rho
+	DefVar(L"Sigma", 0x03A3);			// Greek capital letter Sigma
+	DefVar(L"Tau", 0x03A4);				// capital letter Tau
+	DefVar(L"Upsilon", 0x03A5);			// Greek capital letter Upsilon
+	DefVar(L"Phi", 0x03A6);				// Greek capital letter Phi
+	DefVar(L"Chi", 0x03A7);				// capital letter Chi
+	DefVar(L"Psi", 0x03A8);				// Greek capital letter Psi
+	DefVar(L"Omega", 0x03A9);			// Greek capital letter Omega
+	DefVar(L"alpha", 0x03B1);			// Greek small letter alpha
+	DefVar(L"beta", 0x03B2);			// Greek small letter beta
+	DefVar(L"gamma", 0x03B3);			// Greek small letter gamma
+	DefVar(L"delta", 0x03B4);			// Greek small letter delta
+	DefVar(L"epsilon", 0x03B5);			// Greek small letter epsilon
+	DefVar(L"zeta", 0x03B6);			// Greek small letter zeta
+	DefVar(L"eta", 0x03B7);				// Greek small letter eta
+	DefVar(L"theta", 0x03B8);			// Greek small letter theta
+	DefVar(L"iota", 0x03B9);			// Greek small letter iota
+	DefVar(L"kappa", 0x03BA);			// Greek small letter kappa
+	DefVar(L"lambda", 0x03BB);			// Greek small letter lambda
+	DefVar(L"mu", 0x03BC);				// Greek small letter mu
+	DefVar(L"nu", 0x03BD);				// Greek small letter nu
+	DefVar(L"xi", 0x03BE);				// Greek small letter xi
+	DefVar(L"omicron", 0x03BF);			// Greek small letter omicron
+	DefVar(L"pi", 0x03C0);				// Greek small letter pi
+	DefVar(L"rho", 0x03C1);				// Greek small letter rho
+	DefVar(L"sigmaf", 0x03C2);			// Greek small letter final sigma
+	DefVar(L"sigma", 0x03C3);			// Greek small letter sigma
+	DefVar(L"tau", 0x03C4);				// Greek small letter tau
+	DefVar(L"upsilon", 0x03C5);			// Greek small letter upsilon
+	DefVar(L"phi", 0x03C6);				// Greek small letter phi
+	DefVar(L"chi", 0x03C7);				// Greek small letter chi
+	DefVar(L"psi", 0x03C8);				// Greek small letter psi
+	DefVar(L"omega", 0x03C9);			// Greek small letter omega
+	DefVar(L"thetasym", 0x03D1);		// Greek theta symbol
+	DefVar(L"upsih", 0x03D2);			// Greek Upsilon with hook symbol
+	DefVar(L"piv", 0x03D6);				// Greek pi symbol
+
+	DefVar(L"ensp", 0x2002);			// en space, U+2002 ISOpub
+	DefVar(L"emsp", 0x2003);			// em space, U+2003 ISOpub
+	DefVar(L"thinsp", 0x2009);			// thin space, U+2009 ISOpub
+	DefVar(L"zwnj", 0x200C);			// zero width non-joiner, U+200C NEW RFC 2070
+	DefVar(L"zwj", 0x200D);				// zero width joiner, U+200D NEW RFC 2070
+	DefVar(L"lrm", 0x200E);				// left-to-right mark, U+200E NEW RFC 2070
+	DefVar(L"rlm", 0x200F);				// right-to-left mark, U+200F NEW RFC 2070
+	DefVar(L"ndash", 0x2013);			// en dash, U+2013 ISOpub
+	DefVar(L"mdash", 0x2014);			// em dash, U+2014 ISOpub
+	DefVar(L"lsquo", 0x2018);			// left single quotation mark, U+2018 ISOnum
+	DefVar(L"rsquo", 0x2019);			// right single quotation mark, U+2019 ISOnum
+	DefVar(L"sbquo", 0x201A);			// single low-9 quotation mark, U+201A NEW
+	DefVar(L"ldquo", 0x201C);			// left double quotation mark, U+201C ISOnum
+	DefVar(L"rdquo", 0x201D);			// right double quotation mark, U+201D ISOnum
+	DefVar(L"bdquo", 0x201E);			// double low-9 quotation mark, U+201E NEW
+	DefVar(L"dagger", 0x2020);			// dagger, U+2020 ISOpub
+	DefVar(L"Dagger", 0x2021);			// double dagger, U+2021 ISOpub
+	DefVar(L"bull", 0x2022);			// bullet (= black small circle)
+	DefVar(L"hellip", 0x2026);			// horizontal ellipsis (= three dot leader)
+	DefVar(L"permil", 0x2030);			// per mille sign, U+2030 ISOtech
+	DefVar(L"prime", 0x2032);			// prime (= minutes = feet)
+	DefVar(L"Prime", 0x2033);			// double prime (= seconds = inches)
+	DefVar(L"lsaquo", 0x2039);			// single left-pointing angle quotation mark, U+2039 ISO proposed
+	DefVar(L"rsaquo", 0x203A);			// single right-pointing angle quotation mark, U+203A ISO proposed
+	DefVar(L"oline", 0x203E);			// overline (= spacing overscore)
+	DefVar(L"frasl", 0x2044);			// fraction slash (= solidus)
+	DefVar(L"euro", 0x20AC);			// euro sign, U+20AC NEW
+
+	DefVar(L"image", 0x2111);			// black-letter capital I (= imaginary part)
+	DefVar(L"weierp", 0x2118);			// script capital P (= power set = Weierstrass p)
+	DefVar(L"real", 0x211C);			// black-letter capital R (= real part symbol)
+	DefVar(L"trade", 0x2122);			// trademark symbol
+	DefVar(L"alefsym", 0x2135);			// alef symbol (= first transfinite cardinal)[h]
+	DefVar(L"larr", 0x2190);			// leftwards arrow
+	DefVar(L"uarr", 0x2191);			// upwards arrow
+	DefVar(L"rarr", 0x2192);			// rightwards arrow
+	DefVar(L"darr", 0x2193);			// downwards arrow
+	DefVar(L"harr", 0x2194);			// left right arrow
+	DefVar(L"crarr", 0x21B5);			// downwards arrow with corner leftwards (= carriage return)
+	DefVar(L"lArr", 0x21D0);			// leftwards double arrow[i]
+	DefVar(L"uArr", 0x21D1);			// upwards double arrow
+	DefVar(L"rArr", 0x21D2);			// rightwards double arrow[j]
+	DefVar(L"dArr", 0x21D3);			// downwards double arrow
+	DefVar(L"hArr", 0x21D4);			// left right double arrow
+	DefVar(L"forall", 0x2200);			// for all
+	DefVar(L"part", 0x2202);			// partial differential
+	DefVar(L"exist", 0x2203);			// there exists
+	DefVar(L"empty", 0x2205);			// empty set (= null set = diameter)
+	DefVar(L"nabla", 0x2207);			// nabla (= backward difference)
+	DefVar(L"isin", 0x2208);			// element of
+	DefVar(L"notin", 0x2209);			// not an element of
+	DefVar(L"ni", 0x220B);				// contains as member
+	DefVar(L"prod", 0x220F);			// n-ary product (= product sign)[k]
+	DefVar(L"sum", 0x2211);				// n-ary summation[l]
+	DefVar(L"minus", 0x2212);			// minus sign
+	DefVar(L"lowast", 0x2217);			// asterisk operator
+	DefVar(L"radic", 0x221A);			// square root (= radical sign)
+	DefVar(L"prop", 0x221D);			// proportional to
+	DefVar(L"infin", 0x221E);			// ISOtech	infinity
+	DefVar(L"ang", 0x2220);				// ISOamso	angle
+	DefVar(L"and", 0x2227);				// logical and (= wedge)
+	DefVar(L"or", 0x2228);				// logical or (= vee)
+	DefVar(L"cap", 0x2229);				// intersection (= cap)
+	DefVar(L"cup", 0x222A);				// union (= cup)
+	DefVar(L"int", 0x222B);				// ISOtech	integral
+	DefVar(L"there4", 0x2234);			// therefore sign
+	DefVar(L"sim", 0x223C);				// tilde operator (= varies with = similar to)[m]
+	DefVar(L"cong", 0x2245);			// congruent to
+	DefVar(L"asymp", 0x2248);			// almost equal to (= asymptotic to)
+	DefVar(L"ne", 0x2260);				// not equal to
+	DefVar(L"equiv", 0x2261);			// identical to; sometimes used for 'equivalent to'
+	DefVar(L"le", 0x2264);				// less-than or equal to
+	DefVar(L"ge", 0x2265);				// greater-than or equal to
+	DefVar(L"sub", 0x2282);				// subset of
+	DefVar(L"sup", 0x2283);				// superset of[n]
+	DefVar(L"nsub", 0x2284);			// not a subset of
+	DefVar(L"sube", 0x2286);			// subset of or equal to
+	DefVar(L"supe", 0x2287);			// superset of or equal to
+	DefVar(L"oplus", 0x2295);			// circled plus (= direct sum)
+	DefVar(L"otimes", 0x2297);			// circled times (= vector product)
+	DefVar(L"perp", 0x22A5);			// up tack (= orthogonal to = perpendicular)[o]
+	DefVar(L"sdot", 0x22C5);			// dot operator[p]
+	DefVar(L"lceil", 0x2308);			// left ceiling (= APL upstile)
+	DefVar(L"rceil", 0x2309);			// right ceiling
+	DefVar(L"lfloor", 0x230A);			// left floor (= APL downstile)
+	DefVar(L"rfloor", 0x230B);			// right floor
+	DefVar(L"lang", 0x2329);			// left-pointing angle bracket (= bra)[q]
+	DefVar(L"rang", 0x232A);			// right-pointing angle bracket (= ket)[r]
+	DefVar(L"loz", 0x25CA);				// ISOpub	lozenge
+	DefVar(L"spades", 0x2660);			// black spade suit[f]
+	DefVar(L"clubs", 0x2663);			// black club suit (= shamrock)[f]
+	DefVar(L"hearts", 0x2665);			// black heart suit (= valentine)[f]
+	DefVar(L"diams", 0x2666);			// black diamond suit[f]
 
 	// Supported styles
 	#define DefStyle(s, v) StyleMap.Add((char*)#s, v)
