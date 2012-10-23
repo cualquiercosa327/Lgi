@@ -5643,7 +5643,7 @@ void GTag::OnPaint(GSurface *pDC)
 			if (Html->Environment)
 			{
 				GCss::ImageDef Img = BackgroundImage();
-				if (Img.Type != ImageInherit)
+				if (Img.Type >= ImageOwn)
 				{
 					GRect Clip(0, 0, Size.x-1, Size.y-1);
 					pDC->ClipRgn(&Clip);
