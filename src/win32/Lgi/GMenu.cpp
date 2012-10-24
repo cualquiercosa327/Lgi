@@ -700,6 +700,31 @@ bool GMenuItem::ScanForAccel()
 				{
 					Key = k[0];
 				}
+				else if (strchr(",./\\[]`;\'", k[0]))
+				{
+					if (Flags & LGI_EF_CTRL)
+					{
+						switch (k[0])
+						{
+							case ';': Key = 186; break;
+							case '=': Key = 187; break;
+							case ',': Key = 188; break;
+							case '_': Key = 189; break;
+							case '.': Key = 190; break;
+							case '/': Key = 191; break;
+							case '`': Key = 192; break;
+							case '[': Key = 219; break;
+							case '\\': Key = 220; break;
+							case ']': Key = 221; break;
+							case '\'': Key = 222; break;
+							default: LgiAssert(!"Unknown key."); break;
+						}
+					}
+					else
+					{
+						Key = k[0];
+					}
+				}
 			}
 			
 			if (Key && Menu)
