@@ -1364,6 +1364,7 @@ void GTree::OnPaint(GSurface *pDC)
 	// selection colour
 	GItem::ItemPaintCtx Ctx;
 	Ctx.pDC = pDC;
+	COLOUR SelFore = Focus() ? LC_FOCUS_SEL_FORE : LC_NON_FOCUS_SEL_FORE;
 	COLOUR SelBack = Focus() ? LC_FOCUS_SEL_BACK : LC_NON_FOCUS_SEL_BACK;
 
 	// layout items
@@ -1380,7 +1381,7 @@ void GTree::OnPaint(GSurface *pDC)
 
 		// Foreground
 		GViewFill *Fill = i->GetForegroundFill();
-		Ctx.Fore = Fill ? Fill->GetFlat().c24() : (IsSelected ? LC_FOCUS_SEL_FORE : LC_TEXT);
+		Ctx.Fore = Fill ? Fill->GetFlat().c24() : (IsSelected ? SelFore : LC_TEXT);
 
 		// Background	
 		Fill = i->GetBackgroundFill();
