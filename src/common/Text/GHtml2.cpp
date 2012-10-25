@@ -2490,7 +2490,23 @@ bool GTag::MatchSimpleSelector
 			}
 			case GCss::Selector::SelPseudo:
 			{
-				if (TagId == TAG_A || (p.Value && *p.Value == '-'))
+				const char *Href = NULL;
+				if
+				(
+					(
+						TagId == TAG_A
+						&&
+						p.Value && !stricmp(p.Value, "link")
+						&&
+						Get("href", Href)
+					)
+					||
+					(
+						p.Value
+						&&
+						*p.Value == '-'
+					)
+				)
 					break;
 					
 				return false;
@@ -2530,6 +2546,12 @@ void GTag::Restyle()
 		for (int i=0; i<s->Length(); i++)
 		{
 			GCss::Selector *Sel = (*s)[i];
+			
+			if (TagId == TAG_A)
+			{
+				int asd=0;
+			}
+			
 			if (MatchFullSelector(Sel))
 			{
 				SetCssStyle(Sel->Style);

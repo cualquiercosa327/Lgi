@@ -26,7 +26,6 @@ class GBrowserThread : public GThread, public GMutex
 	GBrowserPriv *d;
 	GArray<GAutoString> Work;
 	bool Loop;
-	OsSocket SockHnd;
 
 public:
 	GBrowserThread(GBrowserPriv *priv);
@@ -71,6 +70,7 @@ public:
 	int CurHistory;
 	bool Loading;
 	GBrowser::GBrowserEvents *Events;
+	IHttp Http;
 
 	GBrowserPriv(GBrowser *wnd)
 	{
@@ -108,14 +108,18 @@ public:
 		GUri u(Uri);
 		#ifdef WIN32
 		char *ch;
-		while (ch = strchr(u.Path, '/'))
-			*ch = '\\';
+		if (u.Path)
+		{
+			while (ch = strchr(u.Path, '/'))
+				*ch = '\\';
+		}
 		#endif
 		bool IsFile = FileExists(u.Path);
 		bool IsHttp = false;
 
 		if (IsFile)
 		{
+			DeleteArray(u.Protocol);
 			u.Protocol = NewStr("file");
 		}
 		else if (u.Set(Uri))
@@ -140,6 +144,7 @@ public:
 			{
 				// Probably...?
 				IsHttp = true;
+				DeleteArray(u.Protocol);
 				u.Protocol = NewStr("http");
 				History[CurHistory] = u.GetUri();
 				Uri = History[CurHistory];
@@ -295,7 +300,6 @@ GBrowserThread::GBrowserThread(GBrowserPriv *priv) : GThread("GBrowserThread")
 {
 	Loop = true;
 	d = priv;
-	SockHnd = INVALID_SOCKET;
 	Run();
 }
 
@@ -308,16 +312,7 @@ GBrowserThread::~GBrowserThread()
 
 void GBrowserThread::Stop()
 {
-	if (SockHnd != INVALID_SOCKET)
-	{
-		LgiTrace("CloseSock %p\n", SockHnd);
-		#ifdef WIN32
-		closesocket(SockHnd);
-		#else
-		close(SockHnd);
-		#endif
-		SockHnd = INVALID_SOCKET;
-	}
+	d->Http.Close();
 }
 
 bool GBrowserThread::Add(char *Uri)
@@ -360,22 +355,18 @@ int GBrowserThread::Main()
 			if (!u.Port)
 				u.Port = HTTP_PORT;
 
-			IHttp h;
 			int Status = 0;
 			GAutoPtr<GStream> p(new GStringPipe);
 			if (p)
 			{
 				GProxyUri Proxy;
 				if (Proxy.Host)
-					h.SetProxy(Proxy.Host, Proxy.Port);
+					d->Http.SetProxy(Proxy.Host, Proxy.Port);
 
 				GAutoPtr<GSocketI> Sock(new GSocket);
-				if (h.Open(Sock, u.Host, u.Port))
+				if (d->Http.Open(Sock, u.Host, u.Port))
 				{
-					SockHnd = Sock->Handle();
-					LgiTrace("Sock %p\n", SockHnd);
-					bool b = h.GetFile(0, Uri, *p, GET_TYPE_NORMAL|GET_NO_CACHE, &Status);
-					LgiTrace("b %i\n", b);
+					bool b = d->Http.GetFile(0, Uri, *p, GET_TYPE_NORMAL|GET_NO_CACHE, &Status);
 					GBrowserPriv::FilePtr f = d->Lock();
 					if (!b)
 					{
@@ -383,8 +374,6 @@ int GBrowserThread::Main()
 					}
 					f->Files->Add(Uri, p.Release());
 					d->Wnd->PostEvent(M_LOADED);
-					SockHnd = INVALID_SOCKET;
-					LgiTrace("Sock %p\n", SockHnd);
 				}
 			}
 		}
