@@ -1824,6 +1824,21 @@ bool GCss::Selector::Parse(const char *&s)
 			s = End + 2;
 			continue;
 		}
+		else if (*s == '<')
+		{
+			if (s[1] != '!' &&
+				s[2] != '-' &&
+				s[3] != '-')
+				return false;
+			
+			s += 4;
+			char *End = strstr((char*)s, "-->");
+			if (!End)
+				return false;
+			
+			s = End + 3;
+			continue;
+		}
 		else if (*s == ':')
 		{
 			s++;
