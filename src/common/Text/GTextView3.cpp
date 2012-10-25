@@ -2917,6 +2917,163 @@ void GTextView3::Redo()
 	UndoQue.Redo();
 }
 
+void GTextView3::DoContextMenu(GMouse &m)
+{
+	GSubMenu RClick;
+	GAutoString ClipText;
+	{
+		GClipBoard Clip(this);
+		ClipText.Reset(Clip.Text());
+	}
+
+	#if LUIS_DEBUG
+	RClick.AppendItem("Dump Layout", IDM_DUMP, true);
+	RClick.AppendSeparator();
+	#endif
+
+	GStyle *s = HitStyle(HitText(m.x, m.y));
+	if (s)
+	{
+		if (s->OnMenu(&RClick))
+		{
+			RClick.AppendSeparator();
+		}
+	}
+
+	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_CUT, "Cut"), IDM_CUT, HasSelection());
+	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_COPY, "Copy"), IDM_COPY, HasSelection());
+	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_PASTE, "Paste"), IDM_PASTE, ClipText != 0);
+	RClick.AppendSeparator();
+
+	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_UNDO, "Undo"), IDM_UNDO, UndoQue.CanUndo());
+	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_REDO, "Redo"), IDM_REDO, UndoQue.CanRedo());
+	RClick.AppendSeparator();
+
+	GMenuItem *i = RClick.AppendItem(LgiLoadString(L_TEXTCTRL_FIXED, "Fixed Width Font"), IDM_FIXED, true);
+	if (i) i->Checked(GetFixedWidthFont());
+
+	i = RClick.AppendItem(LgiLoadString(L_TEXTCTRL_AUTO_INDENT, "Auto Indent"), IDM_AUTO_INDENT, true);
+	if (i) i->Checked(AutoIndent);
+	
+	i = RClick.AppendItem(LgiLoadString(L_TEXTCTRL_SHOW_WHITESPACE, "Show Whitespace"), IDM_SHOW_WHITE, true);
+	if (i) i->Checked(ShowWhiteSpace);
+	
+	i = RClick.AppendItem(LgiLoadString(L_TEXTCTRL_HARD_TABS, "Hard Tabs"), IDM_HARD_TABS, true);
+	if (i) i->Checked(HardTabs);
+	
+	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_INDENT_SIZE, "Indent Size"), IDM_INDENT_SIZE, true);
+	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_TAB_SIZE, "Tab Size"), IDM_TAB_SIZE, true);
+
+	if (Environment)
+		Environment->AppendItems(&RClick);
+
+	int Id = 0;
+	m.ToScreen();
+	switch (Id = RClick.Float(this, m.x, m.y))
+	{
+		#if LUIS_DEBUG
+		case IDM_DUMP:
+		{
+			int n=0;
+			for (GTextLine *l=Line.First(); l; l=Line.Next(), n++)
+			{
+				LgiTrace("[%i] %i,%i (%s)\n", n, l->Start, l->Len, l->r.Describe());
+
+				char *s = LgiNewUtf16To8(Text + l->Start, l->Len * sizeof(char16));
+				if (s)
+				{
+					LgiTrace("%s\n", s);
+					DeleteArray(s);
+				}
+			}
+			break;
+		}
+		#endif
+		case IDM_FIXED:
+		{
+			SetFixedWidthFont(!GetFixedWidthFont());							
+			SendNotify(GTVN_FIXED_WIDTH_CHANGED);
+			break;
+		}
+		case IDM_CUT:
+		{
+			Cut();
+			break;
+		}
+		case IDM_COPY:
+		{
+			Copy();
+			break;
+		}
+		case IDM_PASTE:
+		{
+			Paste();
+			break;
+		}
+		case IDM_UNDO:
+		{
+			Undo();
+			break;
+		}
+		case IDM_REDO:
+		{
+			Redo();
+			break;
+		}
+		case IDM_AUTO_INDENT:
+		{
+			AutoIndent = !AutoIndent;
+			break;
+		}
+		case IDM_SHOW_WHITE:
+		{
+			ShowWhiteSpace = !ShowWhiteSpace;
+			Invalidate();
+			break;
+		}
+		case IDM_HARD_TABS:
+		{
+			HardTabs = !HardTabs;
+			break;
+		}
+		case IDM_INDENT_SIZE:
+		{
+			char s[32];
+			sprintf(s, "%i", IndentSize);
+			GInput i(this, s, "Indent Size:", "Text");
+			if (i.DoModal())
+			{
+				IndentSize = atoi(i.Str);
+			}
+			break;
+		}
+		case IDM_TAB_SIZE:
+		{
+			char s[32];
+			sprintf(s, "%i", TabSize);
+			GInput i(this, s, "Tab Size:", "Text");
+			if (i.DoModal())
+			{
+				SetTabSize(atoi(i.Str));
+			}
+			break;
+		}
+		default:
+		{
+			if (s)
+			{
+				s->OnMenuClick(Id);
+			}
+
+			if (Environment)
+			{
+				Environment->OnMenu(this, Id, 0);
+			}
+			break;
+		}
+	}
+}
+
 void GTextView3::OnMouseClick(GMouse &m)
 {
 	bool Processed = false;
@@ -2997,170 +3154,7 @@ void GTextView3::OnMouseClick(GMouse &m)
 #endif
 		else
 		{
-			GSubMenu *RClick = new GSubMenu;
-			if (RClick)
-			{
-				GAutoString ClipText;
-				{
-					GClipBoard Clip(this);
-					ClipText.Reset(Clip.Text());
-				}
-
-				#if LUIS_DEBUG
-				RClick->AppendItem("Dump Layout", IDM_DUMP, true);
-				RClick->AppendSeparator();
-				#endif
-
-				GStyle *s = HitStyle(HitText(m.x, m.y));
-				if (s)
-				{
-					if (s->OnMenu(RClick))
-					{
-						RClick->AppendSeparator();
-					}
-				}
-
-				RClick->AppendItem(LgiLoadString(L_TEXTCTRL_CUT, "Cut"), IDM_CUT, HasSelection());
-				RClick->AppendItem(LgiLoadString(L_TEXTCTRL_COPY, "Copy"), IDM_COPY, HasSelection());
-				RClick->AppendItem(LgiLoadString(L_TEXTCTRL_PASTE, "Paste"), IDM_PASTE, ClipText != 0);
-				RClick->AppendSeparator();
-
-				RClick->AppendItem(LgiLoadString(L_TEXTCTRL_UNDO, "Undo"), IDM_UNDO, UndoQue.CanUndo());
-				RClick->AppendItem(LgiLoadString(L_TEXTCTRL_REDO, "Redo"), IDM_REDO, UndoQue.CanRedo());
-				RClick->AppendSeparator();
-
-				GMenuItem *i = RClick->AppendItem(LgiLoadString(L_TEXTCTRL_FIXED, "Fixed Width Font"), IDM_FIXED, true);
-				if (i) i->Checked(GetFixedWidthFont());
-
-				i = RClick->AppendItem(LgiLoadString(L_TEXTCTRL_AUTO_INDENT, "Auto Indent"), IDM_AUTO_INDENT, true);
-				if (i) i->Checked(AutoIndent);
-				
-				i = RClick->AppendItem(LgiLoadString(L_TEXTCTRL_SHOW_WHITESPACE, "Show Whitespace"), IDM_SHOW_WHITE, true);
-				if (i) i->Checked(ShowWhiteSpace);
-				
-				i = RClick->AppendItem(LgiLoadString(L_TEXTCTRL_HARD_TABS, "Hard Tabs"), IDM_HARD_TABS, true);
-				if (i) i->Checked(HardTabs);
-				
-				RClick->AppendItem(LgiLoadString(L_TEXTCTRL_INDENT_SIZE, "Indent Size"), IDM_INDENT_SIZE, true);
-				RClick->AppendItem(LgiLoadString(L_TEXTCTRL_TAB_SIZE, "Tab Size"), IDM_TAB_SIZE, true);
-
-				if (Environment)
-				{
-					RClick->AppendSeparator();
-					Environment->AppendItems(RClick);
-				}		
-
-				if (GetMouse(m, true))
-				{
-					int Id = 0;
-					switch (Id = RClick->Float(this, m.x, m.y))
-					{
-						#if LUIS_DEBUG
-						case IDM_DUMP:
-						{
-							int n=0;
-							for (GTextLine *l=Line.First(); l; l=Line.Next(), n++)
-							{
-								LgiTrace("[%i] %i,%i (%s)\n", n, l->Start, l->Len, l->r.Describe());
-
-								char *s = LgiNewUtf16To8(Text + l->Start, l->Len * sizeof(char16));
-								if (s)
-								{
-									LgiTrace("%s\n", s);
-									DeleteArray(s);
-								}
-							}
-							break;
-						}
-						#endif
-						case IDM_FIXED:
-						{
-							SetFixedWidthFont(!GetFixedWidthFont());							
-							SendNotify(GTVN_FIXED_WIDTH_CHANGED);
-							break;
-						}
-						case IDM_CUT:
-						{
-							Cut();
-							break;
-						}
-						case IDM_COPY:
-						{
-							Copy();
-							break;
-						}
-						case IDM_PASTE:
-						{
-							Paste();
-							break;
-						}
-						case IDM_UNDO:
-						{
-							Undo();
-							break;
-						}
-						case IDM_REDO:
-						{
-							Redo();
-							break;
-						}
-						case IDM_AUTO_INDENT:
-						{
-							AutoIndent = !AutoIndent;
-							break;
-						}
-						case IDM_SHOW_WHITE:
-						{
-							ShowWhiteSpace = !ShowWhiteSpace;
-							Invalidate();
-							break;
-						}
-						case IDM_HARD_TABS:
-						{
-							HardTabs = !HardTabs;
-							break;
-						}
-						case IDM_INDENT_SIZE:
-						{
-							char s[32];
-							sprintf(s, "%i", IndentSize);
-							GInput i(this, s, "Indent Size:", "Text");
-							if (i.DoModal())
-							{
-								IndentSize = atoi(i.Str);
-							}
-							break;
-						}
-						case IDM_TAB_SIZE:
-						{
-							char s[32];
-							sprintf(s, "%i", TabSize);
-							GInput i(this, s, "Tab Size:", "Text");
-							if (i.DoModal())
-							{
-								SetTabSize(atoi(i.Str));
-							}
-							break;
-						}
-						default:
-						{
-							if (s)
-							{
-								s->OnMenuClick(Id);
-							}
-
-							if (Environment)
-							{
-								Environment->OnMenu(this, Id, 0);
-							}
-							break;
-						}
-					}
-				}
-
-				DeleteObj(RClick);
-			}
-
+			DoContextMenu(m);
 			return;
 		}
 	}
@@ -3269,12 +3263,6 @@ int GTextView3::SpaceDepth(char16 *Start, char16 *End)
 	return Depth;
 }
 
-#ifdef MAC
-#define Modifier System
-#else
-#define Modifier Ctrl
-#endif
-
 bool GTextView3::OnKey(GKey &k)
 {
 	if (k.Down())
@@ -3282,8 +3270,15 @@ bool GTextView3::OnKey(GKey &k)
 		Blink = true;
 	}
 
-    // k.Trace("TxtOnKey");
-	if (k.IsChar)
+	if (k.IsContextMenu())
+	{
+		GMouse m;
+		m.x = CursorPos.x1;
+		m.y = CursorPos.y1 + (CursorPos.Y() >> 1);
+		m.Target = this;
+		DoContextMenu(m);
+	}
+	else if (k.IsChar)
 	{
 		switch (k.c16)
 		{

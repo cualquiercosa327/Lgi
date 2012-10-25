@@ -321,6 +321,7 @@ public:
 	virtual bool Delete(int At, int Len);
 	virtual void OnEnter(GKey &k);
 	virtual void OnUrl(char *Url);
+	virtual void DoContextMenu(GMouse &m);
 };
 
 #endif
