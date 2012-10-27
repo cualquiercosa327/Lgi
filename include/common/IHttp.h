@@ -23,6 +23,12 @@ class IHttp
 	char *AuthPassword;
 
 public:
+	enum ContentEncoding
+	{
+		EncodeRaw,
+		EncodeGZip,
+	};
+
 	Progress *Meter;
 
 	IHttp();
@@ -44,19 +50,12 @@ public:
 	bool IsOpen();
 	GSocketI *GetSocket() { return Socket; }
 
-	// File
-	bool GetFile(	GViewI *Parent,
-					char *File,
-					GStream &Out,
-					int Format = GET_TYPE_NORMAL,
-					int *ProtocolStatus = 0,
-					int *Length = 0);
-
 	// General
 	bool Get(		char *Uri,
 					const char *InHeaders,
 					int *ProtocolStatus,
 					GStreamI *Out,
+					ContentEncoding *OutEncoding,
 					GStreamI *OutHeaders = 0);
 
 	bool Post(		char *Uri,

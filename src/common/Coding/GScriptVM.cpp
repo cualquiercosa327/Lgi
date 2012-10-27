@@ -941,7 +941,7 @@ public:
 					}
 
 					// Now adjust the local stack to point to the locals for the function
-					Scope[1] = &Locals[LocalsBase];
+					Scope[1] = Locals.Length() ? &Locals[LocalsBase] : NULL;
 
 					#if LOG_ASM
 					f.Print(")\n");

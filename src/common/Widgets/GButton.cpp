@@ -180,7 +180,7 @@ void GButton::OnMouseClick(GMouse &m)
 					d->Pressed == 0)
 				{
 					// This may delete ourself, so do it last.
-					SendNotify();
+					OnClick();
 				}
 			}
 		}
@@ -259,7 +259,7 @@ bool GButton::OnKey(GKey &k)
 
 				if (!k.Down() && d->Pressed == 0)
 				{
-					SendNotify(0);
+					OnClick();
 				}
 			}
 			// else printf("No change.\n");
@@ -270,6 +270,11 @@ bool GButton::OnKey(GKey &k)
 	}
 	
 	return false;
+}
+
+void GButton::OnClick()
+{
+	SendNotify();
 }
 
 void GButton::OnFocus(bool f)

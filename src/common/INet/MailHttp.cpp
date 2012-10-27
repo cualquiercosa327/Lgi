@@ -276,7 +276,8 @@ bool MailPhp::Get(GSocketI *S, char *Uri, GStream &Out, bool MailTransfer)
 			{
 				GStringPipe Buf;
 				int Code = 0;
-				if (Http.Get(Uri, 0, &Code, &Buf))
+				IHttp::ContentEncoding Enc;
+				if (Http.Get(Uri, 0, &Code, &Buf, &Enc))
 				{
 					char Start[256];
 					if (Buf.Peek((uchar*)Start, sizeof(Start)))

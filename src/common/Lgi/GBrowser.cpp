@@ -366,7 +366,8 @@ int GBrowserThread::Main()
 				GAutoPtr<GSocketI> Sock(new GSocket);
 				if (d->Http.Open(Sock, u.Host, u.Port))
 				{
-					bool b = d->Http.GetFile(0, Uri, *p, GET_TYPE_NORMAL|GET_NO_CACHE, &Status);
+					IHttp::ContentEncoding Enc;
+					bool b = d->Http.Get(Uri, "Cache-Control:no-cache", &Status, p, &Enc);
 					GBrowserPriv::FilePtr f = d->Lock();
 					if (!b)
 					{

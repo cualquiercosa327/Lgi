@@ -162,7 +162,8 @@ bool IHttp::IsOpen()
 	return Socket != 0;
 }
 
-bool IHttp::GetFile(GViewI *Parent, char *File, GStream &Out, int Format, int *ProtocolStatus, int *DataLength)
+#if 0
+bool IHttp::GetFile(char *File, GStream &Out, int Format, int *ProtocolStatus, int *DataLength)
 {
 	bool Status = false;
 	GVariant v;
@@ -384,6 +385,7 @@ bool IHttp::GetFile(GViewI *Parent, char *File, GStream &Out, int Format, int *P
 
 	return Status;
 }
+#endif
 
 bool IHttp::Get
 (
@@ -391,6 +393,7 @@ bool IHttp::Get
 	const char *InHeaders,
 	int *ProtocolStatus,
 	GStreamI *Out,
+	ContentEncoding *OutEncoding,
 	GStreamI *OutHeaders
 )
 {
@@ -531,6 +534,13 @@ bool IHttp::Get
 					{
 						GAutoString sTransferEncoding(InetGetHeaderField(h, "Transfer-Encoding"));
 						IsChunked = sTransferEncoding && !stricmp(sTransferEncoding, "chunked");
+					}
+					GAutoString sContentEncoding(InetGetHeaderField(h, "Content-Encoding"));
+					ContentEncoding Encoding = EncodeRaw;
+					if (sContentEncoding && !stricmp(sContentEncoding, "gzip"))
+					{
+						Encoding = EncodeGZip;
+						if (OutEncoding) *OutEncoding = Encoding;
 					}
 
 					if (strnicmp(h, "HTTP/", 5) == 0 && ProtocolStatus)

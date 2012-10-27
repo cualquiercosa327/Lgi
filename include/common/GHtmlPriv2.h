@@ -297,6 +297,7 @@ public:
 
 	// Events
 	void OnChange(PropType Prop);
+	bool OnClick();
 
 	// Attributes
 	bool Get(const char *attr, const char *&val) { val = Attr.Find(attr); return val != 0; }

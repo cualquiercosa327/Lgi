@@ -71,6 +71,7 @@ public:
 	void OnFocus(bool f);
 	void OnPaint(GSurface *pDC);
 	void OnAttach();
+	virtual void OnClick();
 
 	// Impl
 	char *Name() { return GView::Name(); }

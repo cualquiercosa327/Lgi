@@ -84,7 +84,8 @@ struct GSoftwareUpdatePriv
 				GAutoPtr<GSocketI> s(new GSocket);
 				if (Http.Open(s, Uri.Host, Uri.Port))
 				{
-					if (Http.GetFile(0, GetUri, RawXml, GET_TYPE_NORMAL, &ProtocolStatus))
+					IHttp::ContentEncoding Enc;
+					if (Http.Get(GetUri, NULL, &ProtocolStatus, &RawXml, &Enc))
 					{
 						GXmlTree Tree;
 						GXmlTag Root;
@@ -238,11 +239,12 @@ struct GSoftwareUpdatePriv
 			}
 
 			GAutoPtr<GSocketI> s(new GSocket);
+			IHttp::ContentEncoding Enc;
 			if (!Http.Open(s, Uri->Host, Uri->Port))
 			{
 				Err->Reset(NewStr(LgiLoadString(L_ERROR_CONNECT_FAILED, sSocketConnectFailed)));
 			}
-			else if (!Http.Get(Info->Uri, 0, Status, Local))
+			else if (!Http.Get(Info->Uri, 0, Status, Local, &Enc))
 			{
 				Err->Reset(NewStr(LgiLoadString(L_ERROR_HTTP_FAILED, sHttpDownloadFailed)));
 			}

@@ -99,6 +99,7 @@ public:
 	void SetEmoji(bool i);
 
 	// GDocView
+	bool SetVariant(const char *Name, GVariant &Value, char *Array = 0);
 	
 	/// Copy the selection to the clipboard
 	bool Copy();

@@ -13,6 +13,8 @@
 #include "GUtf8.h"
 #include "Emoji.h"
 #include "GClipBoard.h"
+#include "GButton.h"
+#include "GEdit.h"
 
 #define DEBUG_TABLE_LAYOUT			0
 #define LUIS_DEBUG					0
@@ -102,6 +104,7 @@ public:
 	bool DecodeEmoji;
 	GAutoString EmojiImg;
 	bool IsParsing;
+	int NextCtrlId;
 	
 	// This UID is used to match data load events with their source document.
 	// Sometimes data will arrive after the document that asked for it has
@@ -115,6 +118,7 @@ public:
 		DocumentUid = 0;
 		LinkDoubleClick = true;
 		WordSelectMode = false;
+		NextCtrlId = 2000;
 		CursorVis = false;
 		CursorPos.ZOff(-1, -1);
 
@@ -417,6 +421,22 @@ static char *ParsePropList(char *s, GTag *Obj, bool &Closed)
 
 //////////////////////////////////////////////////////////////////////
 namespace Html2 {
+
+class InputButton : public GButton
+{
+	GTag *Tag;
+	
+public:
+	InputButton(GTag *tag, int Id, const char *Label) : GButton(Id, 0, 0, -1, -1, Label)
+	{
+		Tag = tag;
+	}
+	
+	void OnClick()
+	{
+		Tag->OnClick();
+	}
+};
 
 class GFontCache
 {
@@ -1426,6 +1446,7 @@ GTag::~GTag()
 		Html->PrevTip = 0;
 	}
 
+	DeleteObj(Ctrl);
 	Tags.DeleteObjects();
 	Attr.DeleteArrays();
 
@@ -1435,6 +1456,17 @@ GTag::~GTag()
 
 void GTag::OnChange(PropType Prop)
 {
+}
+
+bool GTag::OnClick()
+{
+	const char *OnClick = NULL;
+	if (!Html->Environment ||
+		!Get("onclick", OnClick))
+		return false;
+
+	Html->Environment->OnExecuteScript((char*)OnClick);
+	return true;
 }
 
 void GTag::Set(const char *attr, const char *val)
@@ -2016,7 +2048,6 @@ bool GTag::OnMouseClick(GMouse &m)
 		if (Html &&
 			Html->Environment)
 		{
-			const char *OnClick = NULL;
 			if (IsAnchor(&Uri))
 			{
 				if (!Html->d->LinkDoubleClick || m.Double())
@@ -2025,10 +2056,9 @@ bool GTag::OnMouseClick(GMouse &m)
 					Processed = true;
 				}
 			}
-			else if (Get("onclick", OnClick))
+			else
 			{
-				Html->Environment->OnExecuteScript((char*)OnClick);
-				Processed = true;
+				Processed = OnClick();
 			}
 		}
 	}
@@ -3038,11 +3068,21 @@ void GTag::SetStyle()
 			const char *Type;
 			if (Get("type", Type))
 			{
+				const char *Value = NULL;
+				Get("value", Value);
+
+				DeleteObj(Ctrl);
 				if (!stricmp(Type, "email") ||
 					!stricmp(Type, "text") ||
 					!stricmp(Type, "password"))
 				{
-					
+					Ctrl = new GEdit(Html->d->NextCtrlId++, 0, 0, 60, SysFont->GetHeight() + 8, Value);
+				}
+				else if (!stricmp(Type, "button") ||
+						 !stricmp(Type, "submit"))
+				{
+					if (Value)
+						Ctrl = new InputButton(this, Html->d->NextCtrlId++, Value);
 				}
 			}
 			break;
@@ -5271,6 +5311,23 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 
 	switch (TagId)
 	{
+		case TAG_INPUT:
+		{
+			if (Ctrl)
+			{
+				GRect r = Ctrl->GetPos();
+
+				Size.x = r.X();
+				Size.y = r.Y();
+				
+				if (!Ctrl->IsAttached())
+					Ctrl->Attach(Html);
+			}
+
+			Flow->cx += Size.x;
+			Flow->y2 = max(Flow->y1 + Size.y, Flow->y2);
+			break;
+		}
 		case TAG_IMG:
 		{
 			if (Width().IsValid())
@@ -5578,6 +5635,16 @@ void GTag::OnPaint(GSurface *pDC)
 
 	switch (TagId)
 	{
+		case TAG_INPUT:
+		{
+			if (Ctrl)
+			{
+				GRect r = Ctrl->GetPos();
+				r.Offset(AbsX() - r.x1, AbsY() - r.y1);
+				Ctrl->SetPos(r);
+			}
+			break;
+		}
 		case TAG_BODY:
 		{
 			Selected = false;
@@ -5629,25 +5696,34 @@ void GTag::OnPaint(GSurface *pDC)
 			else if (Size.x > 1 && Size.y > 1)
 			{
 				GRect b(0, 0, Size.x-1, Size.y-1);
-				COLOUR Col = GdcMixColour(LC_MED, LC_LIGHT, 0.2f);
+				GColour Fill(GdcMixColour(LC_MED, LC_LIGHT, 0.2f), 24);
+				GColour Border(LC_MED, 24);
 
 				// Border
-				pDC->Colour(LC_MED, 24);
+				pDC->Colour(Border);
 				pDC->Box(&b);
 				b.Size(1, 1);
 				pDC->Box(&b);
 				b.Size(1, 1);
-				pDC->Colour(Col, 24);
+				pDC->Colour(Fill);
 				pDC->Rectangle(&b);
 
-				if (Size.x >= 16 && Size.y >= 16)
+				const char *Alt;
+				GColour Red(GdcMixColour(Rgb24(255, 0, 0), Fill.c24(), 0.3f), 24);
+				if (Get("alt", Alt) && ValidStr(Alt))
+				{
+					GDisplayString Ds(Html->GetFont(), Alt);
+					Html->GetFont()->Colour(Red, Fill);
+					Ds.Draw(pDC, 4, 4, &b);
+				}
+				else if (Size.x >= 16 && Size.y >= 16)
 				{
 					// Red 'x'
 					int Cx = b.x1 + (b.X()/2);
 					int Cy = b.y1 + (b.Y()/2);
 					GRect c(Cx-4, Cy-4, Cx+4, Cy+4);
 					
-					pDC->Colour(GdcMixColour(Rgb24(255, 0, 0), Col, 0.3f), 24);
+					pDC->Colour(Red);
 					pDC->Line(c.x1, c.y1, c.x2, c.y2);
 					pDC->Line(c.x1, c.y2, c.x2, c.y1);
 					pDC->Line(c.x1, c.y1 + 1, c.x2 - 1, c.y2);
@@ -6671,6 +6747,11 @@ void GHtml2::SetLoadImages(bool i)
 	{
 		GDocView::SetLoadImages(i);
 		SendNotify(GTVN_SHOW_IMGS_CHANGED);
+
+		if (GetLoadImages() && Tag)
+		{
+			Tag->LoadImages();
+		}
 	}
 }
 
@@ -6699,6 +6780,19 @@ char *GHtml2::GetSelection()
 	}
 
 	return s;
+}
+
+bool GHtml2::SetVariant(const char *Name, GVariant &Value, char *Array)
+{
+	if (!Name)
+		return false;
+	if (!stricmp(Name, "ShowImages"))
+	{
+		SetLoadImages(Value.CastBool());
+	}
+	else return false;
+	
+	return true;
 }
 
 bool GHtml2::Copy()
@@ -7042,10 +7136,6 @@ void GHtml2::OnMouseClick(GMouse &m)
 						case IDM_VIEW_IMAGES:
 						{
 							SetLoadImages(!GetLoadImages());
-							if (GetLoadImages() && Tag)
-							{
-								Tag->LoadImages();
-							}
 							break;
 						}
 						case IDM_DUMP:

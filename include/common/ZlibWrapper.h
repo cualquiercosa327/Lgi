@@ -2,21 +2,24 @@
 #define _ZLIB_WRAPPER_H_
 
 #include "zlib.h"
-#include "GFilterUtils.h"
+#include "GLibraryUtils.h"
 
+#ifndef COMP_FUNCTIONS
 #define COMP_FUNCTIONS 0  // set to '1' if you need detailed compression functions
+#endif
 
 class Zlib : public GLibrary
 {
 public:
 	Zlib() : GLibrary("zlib1")
 	{
-		LgiAssert(IsLoaded());
 	}
 
 	DynFunc0(const char *, zlibVersion);
 	DynFunc2(int, deflate, z_streamp, strm, int, flush);
 	DynFunc2(int, inflate, z_streamp, strm, int, flush);
+
+	DynFunc4(int, inflateInit2_, z_streamp, strm, int,  windowBits, const char *, version, int, stream_size);
 
 	#if COMP_FUNCTIONS
 	DynFunc1(int, inflateEnd, z_streamp, strm);
