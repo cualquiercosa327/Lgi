@@ -150,14 +150,16 @@ void LgiInitColours()
 	_LgiColours[i++] = Rgb24(0xbc, 0xa9, 0xd4); // LC_DIALOG
 	_LgiColours[i++] = Rgb24(0xeb, 0xe6, 0xf2); // LC_WORKSPACE
 	_LgiColours[i++] = Rgb24(0x35, 0x1f, 0x4f); // LC_TEXT
-	_LgiColours[i++] = Rgb24(0xbf, 0x67, 0x93); // LC_SELECTION
-	_LgiColours[i++] = Rgb24(0xff, 0xff, 0xff); // LC_SEL_TEXT
+	_LgiColours[i++] = Rgb24(0xbf, 0x67, 0x93); // LC_FOCUS_SEL_BACK
+	_LgiColours[i++] = Rgb24(0xff, 0xff, 0xff); // LC_FOCUS_SEL_FORE
 	_LgiColours[i++] = Rgb24(0x70, 0x3a, 0xec); // LC_ACTIVE_TITLE
 	_LgiColours[i++] = Rgb24(0xff, 0xff, 0xff); // LC_ACTIVE_TITLE_TEXT
 	_LgiColours[i++] = Rgb24(0x80, 0x80, 0x80); // LC_INACTIVE_TITLE
 	_LgiColours[i++] = Rgb24(0x40, 0x40, 0x40); // LC_INACTIVE_TITLE_TEXT
 	_LgiColours[i++] = Rgb24(0xbc, 0xa9, 0xd4); // LC_MENU_BACKGROUND
 	_LgiColours[i++] = Rgb24(0x35, 0x1f, 0x4f); // LC_MENU_TEXT
+	_LgiColours[i++] = Rgb24(0xbc, 0xa9, 0xd4); // LC_NON_FOCUS_SEL_BACK
+	_LgiColours[i++] = Rgb24(0x35, 0x1f, 0x4f); // LC_NON_FOCUS_SEL_FORE
 	#elif defined SKIN_MAGIC
 	_LgiColours[i++] = GetSysColor(COLOR_3DDKSHADOW); // LC_SHADOW
 	_LgiColours[i++] = GetSysColor(COLOR_3DSHADOW); // LC_LOW
@@ -262,7 +264,7 @@ void LgiInitColours()
 		else \
 			_LgiColours[i++] = def;
 
-	#else
+	#else // MAC
 
 	#define SetCol(def) \
 		_LgiColours[i++] = def;
@@ -283,14 +285,16 @@ void LgiInitColours()
 	SetCol(Rgb24(216, 216, 216)); // LC_DIALOG
 	SetCol(Rgb24(0xff, 0xff, 0xff)); // LC_WORKSPACE
 	SetCol(Rgb24(0, 0, 0)); // LC_TEXT
-	SetCol(Rgb24(0x4a, 0x59, 0xa5)); // LC_SELECTION
-	SetCol(Rgb24(0xff, 0xff, 0xff)); // LC_SEL_TEXT
+	SetCol(Rgb24(0x4a, 0x59, 0xa5)); // LC_FOCUS_SEL_BACK
+	SetCol(Rgb24(0xff, 0xff, 0xff)); // LC_FOCUS_SEL_FORE
 	SetCol(Rgb24(0, 0, 0x80)); // LC_ACTIVE_TITLE
 	SetCol(Rgb24(0xff, 0xff, 0xff)); // LC_ACTIVE_TITLE_TEXT
 	SetCol(Rgb24(0x80, 0x80, 0x80)); // LC_INACTIVE_TITLE
 	SetCol(Rgb24(0x40, 0x40, 0x40)); // LC_INACTIVE_TITLE_TEXT
 	SetCol(Rgb24(222, 222, 222)); // LC_MENU_BACKGROUND
 	SetCol(Rgb24(0, 0, 0)); // LC_MENU_TEXT
+	SetCol(Rgb24(222, 222, 222)); // LC_NON_FOCUS_SEL_BACK
+	SetCol(Rgb24(0, 0, 0)); // LC_NON_FOCUS_SEL_FORE
 	#endif
 
 	// Tweak
