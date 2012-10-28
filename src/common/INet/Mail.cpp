@@ -375,8 +375,10 @@ char *EncodeRfc2047(char *Str, const char *CodePage, List<char> *CharsetPrefs, i
 
 	GStringPipe p(256);
 
-	if (Str &&
-		Is8Bit(Str))
+	if (!Str)
+		return NULL;
+
+	if (Is8Bit(Str))
 	{
 		// pick an encoding
 		bool Base64 = false;
