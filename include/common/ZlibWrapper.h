@@ -11,7 +11,7 @@
 class Zlib : public GLibrary
 {
 public:
-	Zlib() : GLibrary("zlib1")
+	Zlib() : GLibrary("zlib")
 	{
 	}
 
