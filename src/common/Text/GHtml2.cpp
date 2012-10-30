@@ -3406,6 +3406,9 @@ char *GTag::NextTag(char *s)
 		char *n = strchr(s, '<');
 		if (n)
 		{
+			if (!n[1])
+				return NULL;
+
 			if (IsAlpha(n[1]) || strchr("!/", n[1]) || n[1] == '?')
 			{
 				return n;

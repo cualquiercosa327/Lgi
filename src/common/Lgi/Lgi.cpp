@@ -823,11 +823,10 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 			{
 				#if defined WIN32
 
-				char *f = GetWindowsFolder(CSIDL_MYDOCUMENTS);
+				GAutoString f(GetWindowsFolder(CSIDL_PERSONAL));
 				if (f)
 				{
 					strsafecpy(Dst, f, DstSize);
-					DeleteArray(f);
 					Status = true;
 				}
 
@@ -843,11 +842,10 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 			{
 				#if defined WIN32
 
-				char *f = GetWindowsFolder(CSIDL_MYMUSIC);
+				GAutoString f(GetWindowsFolder(CSIDL_MYMUSIC));
 				if (f)
 				{
 					strsafecpy(Dst, f, DstSize);
-					DeleteArray(f);
 					Status = true;
 				}
 				
@@ -878,11 +876,10 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 			{
 				#if defined WIN32
 
-				char *f = GetWindowsFolder(CSIDL_MYVIDEO);
+				GAutoString f(GetWindowsFolder(CSIDL_MYVIDEO));
 				if (f)
 				{
 					strsafecpy(Dst, f, DstSize);
-					DeleteArray(f);
 					Status = true;
 				}
 
@@ -1116,11 +1113,10 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 			{
 				#if defined WIN32
 
-				char *f = GetWindowsFolder(CSIDL_COMMON_APPDATA);
+				GAutoString f(GetWindowsFolder(CSIDL_COMMON_APPDATA));
 				if (f)
 				{
 					strsafecpy(Dst, f, DstSize);
-					DeleteArray(f);
 					Status = true;
 				}
 				
@@ -1155,11 +1151,10 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 			case LSP_USER_APP_DATA:
 			{
 				#if defined WIN32
-				char *f = GetWindowsFolder(CSIDL_APPDATA);
+				GAutoString f(GetWindowsFolder(CSIDL_APPDATA));
 				if (f)
 				{
 					strsafecpy(Dst, f, DstSize);
-					DeleteArray(f);
 					Status = true;
 				}
 
@@ -1189,11 +1184,10 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 			case LSP_LOCAL_APP_DATA:
 			{
 				#if defined WIN32
-				char *f = GetWindowsFolder(CSIDL_LOCAL_APPDATA);
+				GAutoString f(GetWindowsFolder(CSIDL_LOCAL_APPDATA));
 				if (f)
 				{
 					strsafecpy(Dst, f, DstSize);
-					DeleteArray(f);
 					Status = true;
 				}
 				#endif
@@ -1203,11 +1197,10 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 			{
 				#if defined(_WINDOWS)
 
-				char *f = GetWindowsFolder(CSIDL_DESKTOPDIRECTORY);
+				GAutoString f(GetWindowsFolder(CSIDL_DESKTOPDIRECTORY));
 				if (f)
 				{
 					strsafecpy(Dst, f, DstSize);
-					DeleteArray(f);
 					Status = true;
 				}
 
@@ -1258,11 +1251,10 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 				#define CSIDL_PROFILE 0x0028
 				#endif 
 
-				char *f = GetWindowsFolder(CSIDL_PROFILE);
+				GAutoString f(GetWindowsFolder(CSIDL_PROFILE));
 				if (f)
 				{
 					strsafecpy(Dst, f, DstSize);
-					DeleteArray(f);
 					Status = true;
 				}
 

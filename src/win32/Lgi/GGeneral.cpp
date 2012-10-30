@@ -829,17 +829,18 @@ char *GetWindowsFolder(int Id)
 	{
 		char16 wp[MAX_PATH] = { 0 };
 		pSHGetSpecialFolderPathW w = (pSHGetSpecialFolderPathW) Shell.GetAddress("SHGetSpecialFolderPathW");
-		if (w && w(0, wp, Id, false))
+		if (w)
 		{
-			if (ValidStrW(wp))
+			BOOL result = w(0, wp, Id, false);
+			if (result && ValidStrW(wp))
 			{
 				return LgiNewUtf16To8(wp);
 			}
-		}
-		else
-		{
-			DWORD e = GetLastError();
-			LgiAssert(!"Error getting system folder.");
+			else
+			{
+				DWORD e = GetLastError();
+				LgiAssert(!"Error getting system folder.");
+			}
 		}
 	}
 
