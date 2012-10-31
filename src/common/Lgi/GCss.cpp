@@ -489,7 +489,7 @@ GAutoString GCss::ToString()
 					}
 				}
 				
-				if (s) p.Print("%s:%s;", Name, s);
+				if (s) p.Print("%s:%s;\n", Name, s);
 				break;
 			}
 			case TypeLen:
@@ -498,14 +498,14 @@ GAutoString GCss::ToString()
 				const char *Name = PropName(Prop);
 				p.Print("%s:", Name);
 				l->ToString(p);
-				p.Print(";");
+				p.Print(";\n");
 				break;
 			}
 			case TypeGRect:
 			{
 				GRect *r = (GRect*)v;
 				const char *Name = PropName(Prop);
-				p.Print("%s:rect(%ipx,%ipx,%ipx,%ipx);", Name, r->y1, r->x2, r->y2, r->x1);
+				p.Print("%s:rect(%ipx,%ipx,%ipx,%ipx);\n", Name, r->y1, r->x2, r->y2, r->x1);
 				break;
 			}
 			case TypeColor:
@@ -514,7 +514,7 @@ GAutoString GCss::ToString()
 				const char *Name = PropName(Prop);
 				p.Print("%s:", Name);
 				c->ToString(p);
-				p.Print(";");
+				p.Print(";\n");
 				break;
 			}
 			case TypeImage:
@@ -525,14 +525,14 @@ GAutoString GCss::ToString()
 				{
 					case ImageInherit:
 					{
-						p.Print("%s:inherit;", Name);
+						p.Print("%s:inherit;\n", Name);
 						break;
 					}
 					case ImageOwn:
 					case ImageRef:
 					{
 						if (i->Uri)
-							p.Print("%s:url(%s);", Name, i->Uri.Get());
+							p.Print("%s:url(%s);\n", Name, i->Uri.Get());
 						break;
 					}
 				}
@@ -567,7 +567,7 @@ GAutoString GCss::ToString()
 					p.Print(" ");
 					b->Color.ToString(p);
 				}
-				p.Print(";");
+				p.Print(";\n");
 				break;
 			}
 			case TypeStrings:
@@ -579,7 +579,7 @@ GAutoString GCss::ToString()
 				{
 					p.Print("%s%s", i?",":"", (*s)[i]);
 				}
-				p.Print(";");
+				p.Print(";\n");
 				break;
 			}
 			default:
@@ -1649,7 +1649,15 @@ bool GCss::ColorDef::Parse(const char *&s)
 bool GCss::ImageDef::Parse(const char *&s)
 {
 	SkipWhite(s);
-	if (!strnicmp(s, "url(", 4))
+
+	if (*s == '-')
+		s++;
+
+	if (ParseWord(s, "initial"))
+	{
+		Type = ImageInherit;
+	}
+	else if (!strnicmp(s, "url(", 4))
 	{
 		s += 4;
 		char *e = strchr((char*)s, ')');
@@ -1661,7 +1669,6 @@ bool GCss::ImageDef::Parse(const char *&s)
 	}
 	else
 	{
-		LgiAssert(!"Unknown image def type.");
 		return false;
 	}
 
@@ -1934,7 +1941,7 @@ bool GCss::Selector::Parse(const char *&s)
 			n.Type = CombChild;
 		}
 		else if (s > Last &&
-				(IsAlpha(*s) || strchr(":#", *s)))
+				(IsAlpha(*s) || strchr(".:#", *s)))
 		{
 			LgiAssert(Parts.Length() > 0);
 			Combs.Add(Parts.Length());

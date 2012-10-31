@@ -185,6 +185,7 @@ class GArea : public List<GFlowRect>
 public:
 	~GArea();
 
+	GRect Bounds();
 	GRect *TopRect(GRegion *c);
 	void FlowText(GTag *Tag, GFlowRegion *c, GFont *Font, char16 *Text, GCss::LengthType Align);
 };

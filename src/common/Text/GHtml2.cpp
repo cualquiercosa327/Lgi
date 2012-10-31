@@ -2558,6 +2558,7 @@ bool GTag::MatchSimpleSelector
 void GTag::Restyle()
 {
 	int i;
+
 	GArray<GCss::SelArray*> Maps;
 	GCss::SelArray *s;
 	if (s = Html->CssStore.TypeMap.Find(Tag))
@@ -2577,11 +2578,6 @@ void GTag::Restyle()
 		{
 			GCss::Selector *Sel = (*s)[i];
 			
-			if (TagId == TAG_A)
-			{
-				int asd=0;
-			}
-			
 			if (MatchFullSelector(Sel))
 			{
 				SetCssStyle(Sel->Style);
@@ -2591,6 +2587,12 @@ void GTag::Restyle()
 	
 	if (Display() != DispInherit)
 		Disp = Display();	
+
+	if (Debug)
+	{
+		GAutoString Style = ToString();
+		LgiTrace(">>>> %s <<<<:\n%s\n\n", Tag, Style);
+	}
 }
 
 void GTag::SetStyle()
@@ -2962,9 +2964,6 @@ void GTag::SetStyle()
 		}
 		case TAG_IMG:
 		{
-			Size.x = DefaultImgSize;
-			Size.y = DefaultImgSize;
-
 			const char *Uri;
 			if (Html->Environment &&
 				Get("src", Uri))
@@ -4974,6 +4973,21 @@ GArea::~GArea()
 	DeleteObjects();
 }
 
+GRect GArea::Bounds()
+{
+	GFlowRect *r = First();
+	if (r)
+	{
+		GRect n = *r;
+		while (r = Next())
+		{
+			n.Union(r);
+		}
+		return n;
+	}
+	return GRect(0, 0, -1, -1);
+}
+
 GRect *GArea::TopRect(GRegion *c)
 {
 	GRect *Top = 0;
@@ -5123,6 +5137,7 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 	GFlowRegion Local(Html);
 	bool Restart = true;
 	int BlockFlowWidth = 0;
+	const char *ImgAltText = NULL;
 
 	Size.x = 0;
 	Size.y = 0;
@@ -5155,20 +5170,38 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 		{
 			Restart = false;
 
-			GCss::LengthType a = GetAlign(true);
 			Pos.y = Flow->y1;
-			int ImgX = Width().IsValid() ? Flow->ResolveX(Width(), GetFont()) : (Image ? Image->X() : 0);
+			
+			if (Width().IsValid())
+			{
+				Size.x = Flow->ResolveX(Width(), GetFont());
+			}
+			else if (Image)
+			{
+				Size.x = Image->X();
+			}
+			else if (Get("alt", ImgAltText) && ValidStr(ImgAltText))
+			{
+				GDisplayString a(Html->GetFont(), ImgAltText);
+				Size.x = a.X() + 4;
+			}
+			else
+			{
+				Size.x = DefaultImgSize;
+			}
+			
+			GCss::LengthType a = GetAlign(true);
 			switch (a)
 			{
 				case AlignCenter:
 				{
 					int Fx = Flow->x2 - Flow->x1;
-					Pos.x = Flow->x1 + ((Fx - ImgX) / 2);
+					Pos.x = Flow->x1 + ((Fx - Size.x) / 2);
 					break;
 				}
 				case AlignRight:
 				{
-					Pos.x = Flow->x2 - ImgX;
+					Pos.x = Flow->x2 - Size.x;
 					break;
 				}
 				default:
@@ -5214,10 +5247,18 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 	}
 
 	int OldFlowMy = Flow->my;
-	if (IsBlock(Disp))
+	if (Disp == DispBlock || Disp == DispInlineBlock)
 	{
 		// This is a block level element, so end the previous non-block elements
-		Flow->EndBlock();
+		if (Disp == DispBlock)
+		{		
+			Flow->EndBlock();
+		}
+		else
+		{
+			int asd=0;
+		}
+		
 		BlockFlowWidth = Flow->X();
 		if (TagId == TAG_P)
 		{
@@ -5231,23 +5272,42 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 		Flow->Indent(f, MarginLeft(), MarginTop(), MarginRight(), MarginBottom(), true);
 
 		// Set the width if any
-		if (TagId != TAG_TD && Width().IsValid())
-			Size.x = Flow->ResolveX(Width(), f);
+		if (Disp == DispBlock)
+		{
+			if (TagId != TAG_TD && Width().IsValid())
+				Size.x = Flow->ResolveX(Width(), f);
+			else
+				Size.x = Flow->X();
+
+			Pos.x = Flow->x1;
+		}
 		else
-			Size.x = Flow->X();
-
-		Pos.x = Flow->x1;
+		{
+			Size.x = Flow->X(); // Not correct but give maximum space
+			Pos.x = Flow->cx;
+		}
 		Pos.y = Flow->y1;
-
-		Flow->x1 -= Pos.x;
-		Flow->x2 = Flow->x1 + Size.x;
-		Flow->cx -= Pos.x;
 
 		Flow->y1 -= Pos.y;
 		Flow->y2 -= Pos.y;
 
-		Flow->Indent(f, GCss::BorderLeft(), GCss::BorderTop(), GCss::BorderRight(), GCss::BorderBottom());
-		Flow->Indent(f, PaddingLeft(), PaddingTop(), PaddingRight(), PaddingBottom());
+		if (Disp == DispBlock)
+		{
+			Flow->x1 -= Pos.x;
+			Flow->x2 = Flow->x1 + Size.x;
+			Flow->cx -= Pos.x;
+
+			Flow->Indent(f, GCss::BorderLeft(), GCss::BorderTop(), GCss::BorderRight(), GCss::BorderBottom());
+			Flow->Indent(f, PaddingLeft(), PaddingTop(), PaddingRight(), PaddingBottom());
+		}
+		else
+		{
+			Flow->x1 += Flow->ResolveX(BorderLeft(), GetFont());
+			Flow->y1 += Flow->ResolveY(BorderTop(), GetFont());
+			
+			Flow->x1 += Flow->ResolveX(PaddingLeft(), GetFont());
+			Flow->y1 += Flow->ResolveY(PaddingTop(), GetFont());
+		}
 	}
 
 	if (f)
@@ -5295,21 +5355,51 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 	}
 
 	int OldFlowY2 = Flow->y2;
-	if (IsBlock(Disp))
+	if (Disp == DispBlock || Disp == DispInlineBlock)
 	{
-		Flow->EndBlock();
+		if (Disp == DispBlock)
+		{
+			Flow->EndBlock();
+		}
+		else
+		{
+			int asd=0;
+		}
 
 		int OldFlowSize = Flow->x2 - Flow->x1 + 1;
-		Flow->Outdent(f, PaddingLeft(), PaddingTop(), PaddingRight(), PaddingBottom());
-		Flow->Outdent(f, GCss::BorderLeft(), GCss::BorderTop(), GCss::BorderRight(), GCss::BorderBottom());
-		Flow->Outdent(f, MarginLeft(), MarginTop(), MarginRight(), MarginBottom(), true);
-		int NewFlowSize = Flow->x2 - Flow->x1 + 1;
-		int Diff = NewFlowSize - OldFlowSize;
-		if (Diff)
-			Flow->max_cx += Diff;
-		
-		Flow->y1 = Flow->y2;
-		Flow->x2 = Flow->x1 + BlockFlowWidth;
+		if (Disp == DispBlock)
+		{
+			Flow->Outdent(f, PaddingLeft(), PaddingTop(), PaddingRight(), PaddingBottom());
+			Flow->Outdent(f, GCss::BorderLeft(), GCss::BorderTop(), GCss::BorderRight(), GCss::BorderBottom());
+			Flow->Outdent(f, MarginLeft(), MarginTop(), MarginRight(), MarginBottom(), true);
+
+			int NewFlowSize = Flow->x2 - Flow->x1 + 1;
+			int Diff = NewFlowSize - OldFlowSize;
+			if (Diff)
+				Flow->max_cx += Diff;
+			
+			Flow->y1 = Flow->y2;
+			Flow->x2 = Flow->x1 + BlockFlowWidth;
+		}
+		else
+		{
+			Flow->cx += Flow->ResolveX(PaddingRight(), GetFont());			
+			Flow->cx += Flow->ResolveX(BorderRight(), GetFont());			
+			Size.x = Flow->cx - Pos.x;
+			Flow->cx += Flow->ResolveX(MarginRight(), GetFont());			
+
+			Flow->y2 += Flow->ResolveX(PaddingBottom(), GetFont());			
+			Flow->y2 += Flow->ResolveX(BorderBottom(), GetFont());
+
+			if (Height().IsValid())
+			{
+				Size.y = Flow->ResolveY(Height(), GetFont());
+			}
+			else
+			{
+				Size.y = Flow->y2 - Flow->y1 + 1;
+			}
+		}
 	}
 
 	switch (TagId)
@@ -5333,20 +5423,6 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 		}
 		case TAG_IMG:
 		{
-			if (Width().IsValid())
-			{
-				int w = Flow->ResolveX(Width(), f);
-				Size.x = min(w, Flow->X());
-			}
-			else if (Image)
-			{
-				Size.x = Image->X();
-			}
-			else
-			{
-				Size.x = DefaultImgSize;
-			}
-
 			if (Height().IsValid())
 			{
 				if (Image && Height().IsDynamic())
@@ -5362,6 +5438,10 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 			else if (Image)
 			{
 				Size.y = Image->Y();
+			}
+			else if (ValidStr(ImgAltText))
+			{
+				Size.y = Html->GetFont()->GetHeight() + 4;
 			}
 			else
 			{
@@ -5537,51 +5617,71 @@ struct DrawBorder
 
 void GTag::OnPaintBorder(GSurface *pDC)
 {
-	if (Disp == DispNone)
-		return;
+	GArray<GRect> r;
 
-	BorderDef b;
-	if ((b = BorderLeft()).IsValid())
+	switch (Disp)
 	{
-		pDC->Colour(b.Color.Rgb32, 32);
-		DrawBorder db(pDC, b);
-		for (int i=0; i<b.Value; i++)
+		case DispBlock:
 		{
-			pDC->LineStyle(db.LineStyle, db.LineReset);
-			pDC->Line(i, 0, i, Size.y-1);
+			r[0].ZOff(Size.x-1, Size.y-1);
+			break;
 		}
-	}
-	if ((b = BorderTop()).IsValid())
-	{
-		pDC->Colour(b.Color.Rgb32, 32);
-		DrawBorder db(pDC, b);
-		for (int i=0; i<b.Value; i++)
+		case DispInline:
 		{
-			pDC->LineStyle(db.LineStyle, db.LineReset);
-			pDC->Line(0, i, Size.x-1, i);
-		}
-	}
-	if ((b = BorderRight()).IsValid())
-	{
-		pDC->Colour(b.Color.Rgb32, 32);
-		DrawBorder db(pDC, b);
-		for (int i=0; i<b.Value; i++)
-		{
-			pDC->LineStyle(db.LineStyle, db.LineReset);
-			pDC->Line(Size.x-i-1, 0, Size.x-i-1, Size.y-1);
-		}
-	}
-	if ((b = BorderBottom()).IsValid())
-	{
-		pDC->Colour(b.Color.Rgb32, 32);
-		DrawBorder db(pDC, b);
-		for (int i=0; i<b.Value; i++)
-		{
-			pDC->LineStyle(db.LineStyle, db.LineReset);
-			pDC->Line(0, Size.y-i-1, Size.x-1, Size.y-i-1);
+			for (GFlowRect *f=TextPos.First(); f; f=TextPos.Next())
+			{
+				r.New() = *f;
+			}
+			break;
 		}
 	}
 
+	for (int i=0; i<r.Length(); i++)
+	{
+		GRect &rc = r[i];
+		
+		BorderDef b;
+		if ((b = BorderLeft()).IsValid())
+		{
+			pDC->Colour(b.Color.Rgb32, 32);
+			DrawBorder db(pDC, b);
+			for (int i=0; i<b.Value; i++)
+			{
+				pDC->LineStyle(db.LineStyle, db.LineReset);
+				pDC->Line(rc.x1 + i, rc.y1, rc.x1 + i, rc.y2);
+			}
+		}
+		if ((b = BorderTop()).IsValid())
+		{
+			pDC->Colour(b.Color.Rgb32, 32);
+			DrawBorder db(pDC, b);
+			for (int i=0; i<b.Value; i++)
+			{
+				pDC->LineStyle(db.LineStyle, db.LineReset);
+				pDC->Line(rc.x1, rc.y1 + i, rc.x2, rc.y1 + i);
+			}
+		}
+		if ((b = BorderRight()).IsValid())
+		{
+			pDC->Colour(b.Color.Rgb32, 32);
+			DrawBorder db(pDC, b);
+			for (int i=0; i<b.Value; i++)
+			{
+				pDC->LineStyle(db.LineStyle, db.LineReset);
+				pDC->Line(rc.x2 - i, rc.y1, rc.x2 - i, rc.y2);
+			}
+		}
+		if ((b = BorderBottom()).IsValid())
+		{
+			pDC->Colour(b.Color.Rgb32, 32);
+			DrawBorder db(pDC, b);
+			for (int i=0; i<b.Value; i++)
+			{
+				pDC->LineStyle(db.LineStyle, db.LineReset);
+				pDC->Line(rc.x1, rc.y2 - i, rc.x2, rc.y2 - i);
+			}
+		}
+	}
 }
 
 void FillRectWithImage(GSurface *pDC, GRect *r, GSurface *Image, GCss::RepeatType Repeat)
@@ -5636,14 +5736,23 @@ void GTag::OnPaint(GSurface *pDC)
 	int Px, Py;
 	pDC->GetOrigin(Px, Py);
 
+	if (Debug)
+	{
+		int asd=0;
+	}
+
 	switch (TagId)
 	{
 		case TAG_INPUT:
 		{
 			if (Ctrl)
 			{
+				int Sx = 0, Sy = 0;
+				int LineY = GetFont()->GetHeight();
+				Html->GetScrollPos(Sx, Sy);
+				
 				GRect r = Ctrl->GetPos();
-				r.Offset(AbsX() - r.x1, AbsY() - r.y1);
+				r.Offset(AbsX() - r.x1 - (Sx * LineY), AbsY() - r.y1 - (Sy * LineY));
 				Ctrl->SetPos(r);
 			}
 			break;
@@ -5717,7 +5826,7 @@ void GTag::OnPaint(GSurface *pDC)
 				{
 					GDisplayString Ds(Html->GetFont(), Alt);
 					Html->GetFont()->Colour(Red, Fill);
-					Ds.Draw(pDC, 4, 4, &b);
+					Ds.Draw(pDC, 2, 2, &b);
 				}
 				else if (Size.x >= 16 && Size.y >= 16)
 				{
@@ -5833,7 +5942,7 @@ void GTag::OnPaint(GSurface *pDC)
 				}
 				pDC->Colour(back, 32);
 
-				if (IsBlock(Disp))
+				if (Disp == DispBlock || Disp == DispInlineBlock)
 				{
 					pDC->Rectangle(0, 0, Size.x-1, Size.y-1);
 				}
@@ -6505,7 +6614,6 @@ void GHtml2::OnPaint(GSurface *ScreenDC)
 		GSurface *pDC = MemDC ? MemDC : ScreenDC;
 
 		COLOUR Back = GetBackColour();
-		printf("Back = %8.8X\n", Back);
 		pDC->Colour(Back, 32);
 		pDC->Rectangle();
 
