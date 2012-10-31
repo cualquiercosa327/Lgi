@@ -2588,11 +2588,13 @@ void GTag::Restyle()
 	if (Display() != DispInherit)
 		Disp = Display();	
 
+	#ifdef _DEBUG
 	if (Debug)
 	{
 		GAutoString Style = ToString();
 		LgiTrace(">>>> %s <<<<:\n%s\n\n", Tag, Style);
 	}
+	#endif
 }
 
 void GTag::SetStyle()
@@ -5735,11 +5737,6 @@ void GTag::OnPaint(GSurface *pDC)
 
 	int Px, Py;
 	pDC->GetOrigin(Px, Py);
-
-	if (Debug)
-	{
-		int asd=0;
-	}
 
 	switch (TagId)
 	{
