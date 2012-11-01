@@ -156,6 +156,8 @@ public:
 	double Ascent();
 	/// Returns the amount of space below the baseline.
 	double Descent();
+	/// Returns the amount of normally unused space at the top of the Ascent.
+	double Leading();
 
 	/// /returns true if the font types are the same
 	bool operator ==(GTypeFace &t);
@@ -232,10 +234,6 @@ public:
 	NativeInt GetParam();
 	/// Get supported glyphs
 	uchar *GetGlyphMap();
-	/// Gets the ascent
-	double GetAscent();
-	/// Gets the descent
-	double GetDescent();
 };
 
 /// Font type information and system font query tools.

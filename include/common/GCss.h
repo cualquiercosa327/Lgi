@@ -472,9 +472,11 @@ public:
 					{
 						char *n = NewStr(Start, s-Start);
 						if (ValidStr(n))
-							Add(n);
-						else
-							LgiAssert(!"Not a valid string.");
+						{
+							if (stricmp(n, "inherit"))
+								Add(n);
+						}
+						else LgiAssert(!"Not a valid string.");
 					}
 
 					if (s) s++;
@@ -488,9 +490,11 @@ public:
 					{
 						char *n = NewStr(Start, s-Start);
 						if (ValidStr(n))
-							Add(n);
-						else
-							LgiAssert(!"Not a valid string.");
+						{
+							if (stricmp(n, "inherit"))
+								Add(n);
+						}
+						else LgiAssert(!"Not a valid string.");
 					}
 				}
 			}
@@ -521,10 +525,24 @@ public:
 			CombAdjacent,
 		};
 		
+		enum MediaType
+		{
+			MediaNull		= 0x0,
+			MediaPrint		= 0x1,
+			MediaScreen		= 0x2,
+		};
+		
 		struct Part
 		{
 			PartType Type;
 			GAutoString Value;
+			int Media;
+			
+			Part()
+			{
+				Type = SelNull;
+				Media = MediaNull;
+			}
 			
 			bool IsSel()
 			{

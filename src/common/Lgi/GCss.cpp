@@ -250,7 +250,7 @@ int GCss::Len::ToPx(int Box, GFont *Font, int Dpi)
 		    return (int) (Value * (Font ? Font->GetHeight() : 18));
 		    
 		case LenEx:
-		    return (int) (Value * (Font ? Font->GetAscent() : 18)); // haha I don't care.
+		    return (int) (Value * (Font ? Font->Ascent() : 18)); // haha I don't care.
 		
 		case LenPercent:
 		    return (int) (Box * Value / 100.0);
@@ -1880,6 +1880,11 @@ bool GCss::Selector::Parse(const char *&s)
 			Part &n = Parts.New();
 			n.Type = SelClass;
 			TokString(n.Value, s);
+			
+			if (!stricmp(n.Value, "signin-box"))
+			{
+				int asd=0;
+			}			
 		}
 		else if (*s == '@')
 		{
@@ -1887,7 +1892,35 @@ bool GCss::Selector::Parse(const char *&s)
 
 			Part &n = Parts.New();
 			n.Type = SelMedia;
-			TokString(n.Value, s);
+			n.Media = MediaNull;
+			GAutoString Str;
+			TokString(Str, s);
+			if (!Str || stricmp(Str, "media"))
+				return false;
+			
+			SkipWhite(s);
+			while (*s && !strchr(";{", *s))
+			{
+				if (*s == '(')
+				{
+					const char *e = strchr(s, ')');
+					if (e)
+					{
+						s = e + 1;
+						continue;
+					}
+				}
+				
+				TokString(Str, s);
+				SkipWhite(s);
+				
+				if (!Str)
+					break;
+				if (!stricmp(Str, "screen"))
+					n.Media |= MediaScreen;
+				else if (!stricmp(Str, "print"))
+					n.Media |= MediaPrint;
+			}
 		}
 		else if (*s == '*')
 		{
@@ -1920,6 +1953,7 @@ bool GCss::Selector::Parse(const char *&s)
 		{
 			// Unexpected character
 			s++;
+			continue;
 		}
 
 		const char *Last = s;
@@ -1986,6 +2020,7 @@ bool GCss::Store::Parse(const char *&c)
 	if (!c)
 		return false;
 
+	const char *Start = c;
 	c = SkipComment(c);
 	if (!strncmp(c, "<!--", 4))
 	{

@@ -572,19 +572,7 @@ GMessage::Result GControl::OnEvent(GMessage *Msg)
 	
 	// OS event handler
 	if (SubClass)
-	{
 		Status = SubClass->CallParent(Handle(), Msg->Msg, Msg->a, Msg->b);
-	}
-
-	// Post-OS event handler
-	switch (Msg->Msg)
-	{
-		case WM_CREATE:
-		{
-			SetFont(SysFont);
-			break;
-		}
-	}
 
 	return Status;
 }

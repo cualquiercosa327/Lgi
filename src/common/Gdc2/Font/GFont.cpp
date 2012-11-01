@@ -86,11 +86,11 @@ public:
 	bool _SubGlyphs;
 
 	// Props
-	double _Ascent, _Descent;
+	double _Ascent, _Descent, _Leading;
 
 	GTypeFacePrivate()
 	{
-		_Ascent = _Descent = 0;
+		_Ascent = _Descent = _Leading = 0.0;
 		_Face = 0;
 		_PtSize = 8;
 		_Weight = FW_NORMAL;
@@ -334,6 +334,11 @@ double GTypeFace::Descent()
 	return d->_Descent;
 }
 
+double GTypeFace::Leading()
+{
+	return d->_Leading;
+}
+
 ////////////////////////////////////////////////////////////////////
 // GFont class, the implemention
 #ifdef MAC
@@ -353,9 +358,6 @@ public:
 	NativeInt		Param;
 	bool			OwnerUnderline;
 
-	OsTextSize		Ascent;
-	OsTextSize		Descent;
-
 	// Glyph substitution
 	uchar			*GlyphMap;
 	static class GlyphCache *Cache;
@@ -366,9 +368,6 @@ public:
 		#if defined WIN32
 		OwnerUnderline = false;
 		#endif
-
-		Ascent = 0;
-		Descent = 0;
 
 		GlyphMap = 0;
 		Dirty = true;
@@ -413,16 +412,6 @@ GFont::~GFont()
 {
 	Destroy();
 	DeleteObj(d);
-}
-
-double GFont::GetAscent()
-{
-	return d->Ascent;
-}
-
-double GFont::GetDescent()
-{
-	return d->Descent;
 }
 
 bool GFont::Destroy()
@@ -756,16 +745,21 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 	if (d->hFont)
 	{
 		HFONT hFnt = (HFONT) SelectObject(hDC, d->hFont);
-		SIZE Size = {0, 0};
-		GetTextExtentPoint32(hDC, "Ag", 2, &Size);
-		d->Height = Size.cy;
 
 		TEXTMETRIC tm;
 		ZeroObj(tm);
 		if (GetTextMetrics(hDC, &tm))
 		{
+			d->Height = tm.tmHeight;
 			GTypeFace::d->_Ascent = tm.tmAscent;
 			GTypeFace::d->_Descent = tm.tmDescent;
+			GTypeFace::d->_Leading = tm.tmInternalLeading;
+		}
+		else
+		{
+			SIZE Size = {0, 0};
+			GetTextExtentPoint32(hDC, "Ag", 2, &Size);
+			d->Height = Size.cy;
 		}
 
 		int Bytes = (MAX_UNICODE + 1) >> 3;

@@ -54,6 +54,7 @@ enum HtmlTag
 	TAG_LINK,
 	TAG_BIG,
 	TAG_INPUT,
+	TAG_LABEL,
 	TAG_LAST
 };
 
@@ -215,6 +216,7 @@ class GTag : public GDom, public GCss
 
 	// Forms
 	GViewI *Ctrl;
+	int CtrlCurX;
 
 	// Text
 	GAutoWString Txt, PreTxt;
@@ -323,7 +325,7 @@ public:
 	
 	void SetCssStyle(const char *Style);
 	void OnFlow(GFlowRegion *Flow);
-	void OnPaintBorder(GSurface *pDC);
+	void OnPaintBorder(GSurface *pDC, GRect *Px = NULL);
 	void OnPaint(GSurface *pDC);
 	void SetSize(GdcPt2 &s);
 	void SetTag(const char *Tag);

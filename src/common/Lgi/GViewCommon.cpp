@@ -1263,6 +1263,8 @@ void GView::SetFont(GFont *Font, bool OwnIt)
 		}
 
 		d->FontOwn = OwnIt;
+		
+		GFont *Old = d->Font;
 		d->Font = Font;
 		#if WIN32NATIVE
 		if (_View)
