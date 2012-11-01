@@ -2604,7 +2604,7 @@ void GTag::Restyle()
 	if (Display() != DispInherit)
 		Disp = Display();	
 
-	#if 0 // def _DEBUG
+	#ifdef _DEBUG
 	if (Debug)
 	{
 		GAutoString Style = ToString();
@@ -3087,14 +3087,20 @@ void GTag::SetStyle()
 			{
 				const char *Value = NULL;
 				Get("value", Value);
+				
+				bool Password = !stricmp(Type, "password");
+				bool Email = !stricmp(Type, "email");
+				bool Text = !stricmp(Type, "text");
 
 				DeleteObj(Ctrl);
-				if (!stricmp(Type, "email") ||
-					!stricmp(Type, "text") ||
-					!stricmp(Type, "password"))
+				if (Email || Text || Password)
 				{
-					Ctrl = new GEdit(Html->d->NextCtrlId++, 0, 0, 60, SysFont->GetHeight() + 8, Value);
-					Ctrl->Sunken(false);
+					GEdit *Ed;
+					if (Ctrl = Ed = new GEdit(Html->d->NextCtrlId++, 0, 0, 60, SysFont->GetHeight() + 8, Value))
+					{
+						Ed->Sunken(false);
+						Ed->Password(Password);
+					}
 				}
 				else if (!stricmp(Type, "button") ||
 						 !stricmp(Type, "submit"))
@@ -5383,20 +5389,35 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 			// Insert the list marker
 			if (!PreText())
 			{
-				if (Parent && Parent->TagId == TAG_OL)
+				GCss::ListStyleTypes s = Parent->ListStyleType();
+				if (s == ListInherit)
 				{
-					int Index = Parent->Tags.IndexOf(this);
-					char Txt[32];
-					sprintf(Txt, "%i. ", Index + 1);
-					PreText(LgiNewUtf8To16(Txt));
+					if (Parent->TagId == TAG_OL)
+						s = ListDecimal;
+					else if (Parent->TagId == TAG_UL)
+						s = ListDisc;
 				}
-				else
+				
+				switch (s)
 				{
-					PreText(NewStrW(GHtmlListItem));
+					case ListDecimal:
+					{
+						int Index = Parent->Tags.IndexOf(this);
+						char Txt[32];
+						sprintf(Txt, "%i. ", Index + 1);
+						PreText(LgiNewUtf8To16(Txt));
+						break;
+					}
+					case ListDisc:
+					{
+						PreText(NewStrW(GHtmlListItem));
+						break;
+					}
 				}
 			}
 
-			TextPos.FlowText(this, Flow, f, PreText(), AlignLeft);
+			if (PreText())
+				TextPos.FlowText(this, Flow, f, PreText(), AlignLeft);
 		}
 
 		if (Text())

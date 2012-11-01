@@ -162,8 +162,9 @@ GCss::GCss() : Props(0, false, PropNull)
 	{
 		Lut.Add("border-collapse", PropBorderCollapse);
 		Lut.Add("letter-spacing", PropLetterSpacing);
-		Lut.Add("list-style-type", PropListStyleType);
 		Lut.Add("word-wrap", PropWordWrap);
+		Lut.Add("list-style", PropListStyle);
+		Lut.Add("list-style-type", PropListStyleType);
 		Lut.Add("text-align", PropTextAlign);
 		Lut.Add("text-decoration", PropTextDecoration);
 		Lut.Add("display", PropDisplay);
@@ -463,7 +464,7 @@ GAutoString GCss::ToString()
 						RepeatType *d = (RepeatType*)v;
 						switch (*d)
 						{
-							case RepeatInherit: s = "inherit"; break;
+							default: s = "inherit"; break;
 							case RepeatBoth: s = "repeat"; break;
 							case RepeatX: s = "repeat-x"; break;
 							case RepeatY: s = "repeat-y"; break;
@@ -476,9 +477,32 @@ GAutoString GCss::ToString()
 						AttachmentType *d = (AttachmentType*)v;
 						switch (*d)
 						{
-							case AttachmentInherit: s = "inherit"; break;
+							default: s = "inherit"; break;
 							case AttachmentScroll: s = "scroll"; break;
 							case AttachmentFixed: s = "fixed"; break;
+						}
+						break;
+					}
+					case PropListStyleType:
+					{
+						ListStyleTypes *w = (ListStyleTypes*)v;
+						switch (*w)
+						{
+							default: s = "inherit"; break;
+						    case ListNone: s = "none"; break;
+							case ListDisc: s = "disc"; break;
+							case ListCircle: s = "circle"; break;
+							case ListSquare: s = "square"; break;
+							case ListDecimal: s = "decimal"; break;
+							case ListDecimalLeadingZero: s = "decimalleadingzero"; break;
+							case ListLowerRoman: s = "lowerroman"; break;
+							case ListUpperRoman: s = "upperroman"; break;
+							case ListLowerGreek: s = "lowergreek"; break;
+							case ListUpperGreek: s = "uppergreek"; break;
+							case ListLowerAlpha: s = "loweralpha"; break;
+							case ListUpperAlpha: s = "upperalpha"; break;
+							case ListArmenian: s = "armenian"; break;
+							case ListGeorgian: s = "georgian"; break;
 						}
 						break;
 					}
@@ -1144,7 +1168,33 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 						else if (ParseWord(s, "repeat")) *w = RepeatBoth;
 						break;
 					}
+					case PropListStyle:
+					{
+						int asd=0;
+						// Fall thru
+					}
 					case PropListStyleType:
+					{
+						ListStyleTypes *w = (ListStyleTypes*)Props.Find(PropListStyleType);
+						if (!w) Props.Add(PropListStyleType, w = new ListStyleTypes);
+
+						     if (ParseWord(s, "none")) *w = ListNone;
+						else if (ParseWord(s, "disc")) *w = ListDisc;
+						else if (ParseWord(s, "circle")) *w = ListCircle;
+						else if (ParseWord(s, "square")) *w = ListSquare;
+						else if (ParseWord(s, "decimal")) *w = ListDecimal;
+						else if (ParseWord(s, "decimalleadingzero")) *w = ListDecimalLeadingZero;
+						else if (ParseWord(s, "lowerroman")) *w = ListLowerRoman;
+						else if (ParseWord(s, "upperroman")) *w = ListUpperRoman;
+						else if (ParseWord(s, "lowergreek")) *w = ListLowerGreek;
+						else if (ParseWord(s, "uppergreek")) *w = ListUpperGreek;
+						else if (ParseWord(s, "loweralpha")) *w = ListLowerAlpha;
+						else if (ParseWord(s, "upperalpha")) *w = ListUpperAlpha;
+						else if (ParseWord(s, "armenian")) *w = ListArmenian;
+						else if (ParseWord(s, "georgian")) *w = ListGeorgian;
+						else *w = ListInherit;
+						break;
+					}
 					case PropLetterSpacing:
 					{
 						// Fixme: do not care right now...

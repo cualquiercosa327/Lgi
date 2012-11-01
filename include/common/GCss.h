@@ -54,9 +54,10 @@ public:
 		PropBackgroundAttachment,	// AttachmentType
 		PropTextDecoration,			// TextDecorType
 		PropWordWrap,				// WordWraptype
-		PropListStyleType,
+		PropListStyleType,			// ListStyleTypes
 		PropLetterSpacing,
 		PropFont,
+		PropListStyle,
 		PropBorderCollapse,			// BorderCollapseType
 
 		// Length based props
@@ -204,6 +205,24 @@ public:
 		VisibilityVisible,
 		VisibilityHidden,
 		VisibilityCollapse
+	};
+	
+	enum ListStyleTypes {
+		ListInherit,
+		ListNone,
+		ListDisc,
+		ListCircle,
+		ListSquare,
+		ListDecimal,
+		ListDecimalLeadingZero,
+		ListLowerRoman,
+		ListUpperRoman,
+		ListLowerGreek,
+		ListUpperGreek,
+		ListLowerAlpha,
+		ListUpperAlpha,
+		ListArmenian,
+		ListGeorgian,
 	};
 
 	enum FontStyleType {
@@ -694,6 +713,7 @@ public:
 	Accessor(Clip, GRect, GRect(0, 0, -1, -1));
 	Accessor(XSubRect, GRect, GRect(0, 0, -1, -1));
 	Accessor(Visibility, VisibilityType, VisibilityInherit);
+	Accessor(ListStyleType, ListStyleTypes, ListInherit);
 
 	Accessor(FontFamily, StringsDef, StringsDef());
 	Accessor(FontSize, Len, Len());

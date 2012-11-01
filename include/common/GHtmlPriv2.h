@@ -318,14 +318,26 @@ public:
 	char *ParseHtml(char *Doc, int Depth, bool InPreTag = false, bool *BackOut = 0);
 	char *ParseText(char *Doc);
 	
+	/// Configures the tag's styles.
 	void SetStyle();
+	/// Called to apply CSS selectors on initialization and also when properties change at runtime.
 	void Restyle();
+	/// Match a simple CSS selector against the current object
 	bool MatchSimpleSelector(GCss::Selector *Sel, int PartIdx);
+	/// Match all the CSS selectors against the current object (calls MatchSimpleSelector one or more times)
 	bool MatchFullSelector(GCss::Selector *Sel);
 	
+	/// Takes the CSS styles, parses and stores them in the current object,
+	//// overwriting any duplicate properties.
 	void SetCssStyle(const char *Style);
+	/// Positions the tag according to the flow region passed in
 	void OnFlow(GFlowRegion *Flow);
-	void OnPaintBorder(GSurface *pDC, GRect *Px = NULL);
+	/// Paints the border of the tag
+	void OnPaintBorder(
+		/// The surface to paint on
+		GSurface *pDC,
+		/// [Optional] The size of the border painted
+		GRect *Px = NULL);
 	void OnPaint(GSurface *pDC);
 	void SetSize(GdcPt2 &s);
 	void SetTag(const char *Tag);
@@ -334,10 +346,12 @@ public:
 	void CopyClipboard(GBytePipe &p);
 	GTag *IsAnchor(GAutoString *Uri);
 	bool CreateSource(GStringPipe &p, int Depth = 0, bool LastWasBlock = true);
-	bool GetVariant(const char *Name, GVariant &Value, char *Array = 0);
-	bool SetVariant(const char *Name, GVariant &Value, char *Array = 0);
 	void Find(int TagType, GArray<GTag*> &Tags);
 	GTag *GetAnchor(char *Name);
+
+	// GDom impl
+	bool GetVariant(const char *Name, GVariant &Value, char *Array = 0);
+	bool SetVariant(const char *Name, GVariant &Value, char *Array = 0);
 
 	// Window
 	bool OnMouseClick(GMouse &m);
