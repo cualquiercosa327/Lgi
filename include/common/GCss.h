@@ -489,11 +489,11 @@ public:
 					
 					if (s > Start)
 					{
-						char *n = NewStr(Start, s-Start);
+						GAutoString n(NewStr(Start, s-Start));
 						if (ValidStr(n))
 						{
 							if (stricmp(n, "inherit"))
-								Add(n);
+								Add(n.Release());
 						}
 						else LgiAssert(!"Not a valid string.");
 					}
@@ -507,11 +507,11 @@ public:
 
 					if (s > Start)
 					{
-						char *n = NewStr(Start, s-Start);
+						GAutoString n(NewStr(Start, s-Start));
 						if (ValidStr(n))
 						{
 							if (stricmp(n, "inherit"))
-								Add(n);
+								Add(n.Release());
 						}
 						else LgiAssert(!"Not a valid string.");
 					}

@@ -54,6 +54,7 @@ enum HtmlTag
 	TAG_LINK,
 	TAG_BIG,
 	TAG_INPUT,
+	TAG_SELECT,
 	TAG_LABEL,
 	TAG_LAST
 };
@@ -216,7 +217,7 @@ class GTag : public GDom, public GCss
 
 	// Forms
 	GViewI *Ctrl;
-	int CtrlCurX;
+	GdcPt2 CtrlPos;
 
 	// Text
 	GAutoWString Txt, PreTxt;

@@ -15,6 +15,7 @@
 #include "GClipBoard.h"
 #include "GButton.h"
 #include "GEdit.h"
+#include "GCombo.h"
 
 #define DEBUG_TABLE_LAYOUT			0
 #define LUIS_DEBUG					0
@@ -186,6 +187,7 @@ static GInfo TagInfo[] =
 	{TAG_IFRAME,		"iframe",		0,			TI_BLOCK},
 	{TAG_LINK,			"link",			0,			TI_NONE},
 	{TAG_BIG,			"big",			0,			TI_NONE},
+	{TAG_SELECT,		"select",		0,			TI_NONE},
 	{TAG_INPUT,			"input",		0,			TI_NEVER_CLOSES},
 	{TAG_LABEL,			"label",		0,			TI_NONE},
 	{TAG_UNKNOWN,		0,				0,			TI_NONE},
@@ -2801,6 +2803,12 @@ void GTag::SetStyle()
 			}
 			break;
 		}
+		case TAG_OL:
+		case TAG_UL:
+		{
+			MarginLeft(Len("16px"));
+			break;
+		}
 	}
 
 	if (Get("width", s))
@@ -2927,12 +2935,6 @@ void GTag::SetStyle()
 				LgiAssert(ValidStr(Type.GetFace()));
 				FontFamily(StringsDef(Type.GetFace()));
 			}
-			break;
-		}
-		case TAG_OL:
-		case TAG_UL:
-		{
-			MarginLeft(Len("16px"));
 			break;
 		}
 		case TAG_TABLE:
@@ -3080,6 +3082,11 @@ void GTag::SetStyle()
 			TextDecoration(TextDecorUnderline);
 			break;
 		}
+		case TAG_SELECT:
+		{
+			Ctrl = new GCombo(Html->d->NextCtrlId++, 0, 0, 100, SysFont->GetHeight() + 8, NULL);
+			break;
+		}
 		case TAG_INPUT:
 		{
 			const char *Type;
@@ -3091,6 +3098,9 @@ void GTag::SetStyle()
 				bool Password = !stricmp(Type, "password");
 				bool Email = !stricmp(Type, "email");
 				bool Text = !stricmp(Type, "text");
+				bool Button = !stricmp(Type, "button");
+				bool Submit = !stricmp(Type, "submit");
+				bool Select = !stricmp(Type, "select");
 
 				DeleteObj(Ctrl);
 				if (Email || Text || Password)
@@ -3102,28 +3112,23 @@ void GTag::SetStyle()
 						Ed->Password(Password);
 					}
 				}
-				else if (!stricmp(Type, "button") ||
-						 !stricmp(Type, "submit"))
+				else if (Button || Submit)
 				{
 					if (Value)
 						Ctrl = new InputButton(this, Html->d->NextCtrlId++, Value);
-				}
-				
-				if (Ctrl)
-				{
-					Len Fs = FontSize();
-					if (Fs.IsValid())
-					{
-						GFont *f = GetFont();
-						if (f)
-							Ctrl->SetFont(f, false);
-					}
 				}
 			}
 			break;
 		}
 	}
 	
+	if (Ctrl)
+	{
+		GFont *f = GetFont();
+		if (f)
+			Ctrl->SetFont(f, false);
+	}
+
 	if (Disp == DispBlock && Html->Environment)
 	{
 		GCss::ImageDef Img = BackgroundImage();
@@ -5294,11 +5299,18 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 			BoundParents();
 			return;
 		}
+		case TAG_SELECT:
 		case TAG_INPUT:
 		{
-			CtrlCurX = Flow->cx;
+			CtrlPos.x = Flow->cx - Flow->x1;
+			CtrlPos.y = Flow->y1;
 			break;
 		}
+	}
+	
+	if (Debug)
+	{
+		int asd=0;
 	}
 	
 	int OldFlowMy = Flow->my;
@@ -5440,6 +5452,7 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 
 	switch (TagId)
 	{
+		case TAG_SELECT:
 		case TAG_INPUT:
 		{
 			if (Ctrl)
@@ -5550,7 +5563,8 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 			if (Height().IsValid())
 			{
 				Size.y = Flow->ResolveY(Height(), GetFont());
-				Flow->y2 = max(Flow->y1 + Size.y - 1, Flow->y2);
+				int MarginY2 = Flow->ResolveX(MarginBottom(), GetFont());
+				Flow->y2 = max(Flow->y1 + Size.y + MarginY2 - 1, Flow->y2);
 			}
 			else
 			{
@@ -5835,6 +5849,7 @@ void GTag::OnPaint(GSurface *pDC)
 	switch (TagId)
 	{
 		case TAG_INPUT:
+		case TAG_SELECT:
 		{
 			if (Ctrl)
 			{
@@ -5853,9 +5868,12 @@ void GTag::OnPaint(GSurface *pDC)
 					r.x2 -= Px.x2;
 					r.y2 -= Px.y2;
 				}
-				r.Offset(AbsX() - Sx + CtrlCurX, AbsY() - Sy);
+				r.Offset(Parent->AbsX() - Sx + CtrlPos.x, Parent->AbsY() - Sy + CtrlPos.y);
 				Ctrl->SetPos(r);
 			}
+			
+			if (TagId == TAG_SELECT)
+				return;
 			break;
 		}
 		case TAG_BODY:
