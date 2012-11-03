@@ -56,6 +56,7 @@ enum HtmlTag
 	TAG_INPUT,
 	TAG_SELECT,
 	TAG_LABEL,
+	TAG_FORM,
 	TAG_LAST
 };
 
@@ -210,6 +211,19 @@ public:
 
 class GTag : public GDom, public GCss
 {
+public:
+	enum HtmlControlType
+	{
+		CtrlNone,
+		CtrlPassword,
+		CtrlEmail,
+		CtrlText,
+		CtrlButton,
+		CtrlSubmit,
+		CtrlSelect,
+	};
+
+protected:
 	static bool Selected;
 	friend class HtmlEdit;
 
@@ -217,7 +231,8 @@ class GTag : public GDom, public GCss
 
 	// Forms
 	GViewI *Ctrl;
-	GdcPt2 CtrlPos;
+	GVariant CtrlValue;
+	HtmlControlType CtrlType;
 
 	// Text
 	GAutoWString Txt, PreTxt;
@@ -349,6 +364,10 @@ public:
 	bool CreateSource(GStringPipe &p, int Depth = 0, bool LastWasBlock = true);
 	void Find(int TagType, GArray<GTag*> &Tags);
 	GTag *GetAnchor(char *Name);
+
+	// Control handling
+	GTag *FindCtrlId(int Id);
+	int OnNotify(int f);
 
 	// GDom impl
 	bool GetVariant(const char *Name, GVariant &Value, char *Array = 0);

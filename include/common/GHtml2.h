@@ -145,6 +145,7 @@ public:
 
 	// Events
 	bool OnFind(class GFindReplaceCommon *Params);
+	virtual bool OnSubmitForm(GTag *Form);
 	virtual void OnCursorChanged() {}
 };
 

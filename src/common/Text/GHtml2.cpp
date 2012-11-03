@@ -190,6 +190,7 @@ static GInfo TagInfo[] =
 	{TAG_SELECT,		"select",		0,			TI_NONE},
 	{TAG_INPUT,			"input",		0,			TI_NEVER_CLOSES},
 	{TAG_LABEL,			"label",		0,			TI_NONE},
+	{TAG_FORM,			"form",			0,			TI_NONE},
 	{TAG_UNKNOWN,		0,				0,			TI_NONE},
 };
 
@@ -509,7 +510,7 @@ public:
 			GArray<int> Map; // map of point-sizes to heights
 			int NearestPoint = 0;
 			int Diff = 1000;
-			#define PxHeight(fnt) (fnt->GetHeight()) //  - (int)(fnt->Leading() + 0.5))
+			#define PxHeight(fnt) (fnt->GetHeight() - (int)(fnt->Leading() + 0.5))
 
 			// Look for cached fonts of the right size...
 			for (f=Fonts.First(); f; f=Fonts.Next())
@@ -796,21 +797,21 @@ public:
 				GCss::Len Top,
 				GCss::Len Right,
 				GCss::Len Bottom,
-				bool Margin = false)
+				bool IsMargin)
 	{
 		GFlowRegion This(*this);
 		GFlowStack &Fs = Stack.New();
 
-		Fs.LeftAbs = Left.IsValid() ? ResolveX(Left, Font) : 0;
-		Fs.RightAbs = Right.IsValid() ? ResolveX(Right, Font) : 0;
-		Fs.TopAbs = Top.IsValid() ? ResolveY(Top, Font) : 0;
+		Fs.LeftAbs = Left.IsValid() ? ResolveX(Left, Font, IsMargin) : 0;
+		Fs.RightAbs = Right.IsValid() ? ResolveX(Right, Font, IsMargin) : 0;
+		Fs.TopAbs = Top.IsValid() ? ResolveY(Top, Font, IsMargin) : 0;
 
 		x1 += Fs.LeftAbs;
 		cx += Fs.LeftAbs;
 		x2 -= Fs.RightAbs;
 		y1 += Fs.TopAbs;
 		y2 += Fs.TopAbs;
-		if (Margin)
+		if (IsMargin)
 			my += Fs.TopAbs;
 	}
 
@@ -819,7 +820,7 @@ public:
 				GCss::Len Top,
 				GCss::Len Right,
 				GCss::Len Bottom,
-				bool Margin = false)
+				bool IsMargin)
 	{
 		GFlowRegion This = *this;
 
@@ -841,14 +842,14 @@ public:
 		{
 			GFlowStack &Fs = Stack[len-1];
 
-			int BottomAbs = Bottom.IsValid() ? ResolveY(Bottom, Font) : 0;
+			int BottomAbs = Bottom.IsValid() ? ResolveY(Bottom, Font, IsMargin) : 0;
 
 			x1 -= Fs.LeftAbs;
 			cx -= Fs.LeftAbs;
 			x2 += Fs.RightAbs;
 			// y1 += Fs.BottomAbs;
 			y2 += BottomAbs;
-			if (Margin)
+			if (IsMargin)
 				my += BottomAbs;
 
 			Stack.Length(len-1);
@@ -857,12 +858,13 @@ public:
 		#endif
 	}
 
-	int ResolveX(GCss::Len l, GFont *f)
+	int ResolveX(GCss::Len l, GFont *f, bool IsMargin)
 	{
 		int ScreenDpi = 96; // Haha, where should I get this from?
 
 		switch (l.Type)
 		{
+			default:
 			case GCss::LenInherit:
 				return X();
 			case GCss::LenPx:
@@ -896,15 +898,19 @@ public:
 				return px;
 			}
 			case GCss::LenAuto:
-			case GCss::LenNormal:
-			default:
-				LgiAssert(!"Not supported.");
+			{
+				if (IsMargin)
+					return 0;
+				else
+					return X();
+				break;
+			}
 		}
 
 		return 0;
 	}
 
-	int ResolveY(GCss::Len l, GFont *f)
+	int ResolveY(GCss::Len l, GFont *f, bool IsMargin)
 	{
 		int ScreenDpi = 96; // Haha, where should I get this from?
 
@@ -1406,6 +1412,7 @@ bool GTag::Selected = false;
 GTag::GTag(GHtml2 *h, GTag *p) : Attr(0, false)
 {
 	Ctrl = 0;
+	CtrlType = CtrlNone;
 	TipId = 0;
 	Disp = DispInline;
 	Html = h;
@@ -1464,12 +1471,19 @@ void GTag::OnChange(PropType Prop)
 
 bool GTag::OnClick()
 {
-	const char *OnClick = NULL;
-	if (!Html->Environment ||
-		!Get("onclick", OnClick))
+	if (!Html->Environment)
 		return false;
 
-	Html->Environment->OnExecuteScript((char*)OnClick);
+	const char *OnClick = NULL;
+	if (Get("onclick", OnClick))
+	{
+		Html->Environment->OnExecuteScript((char*)OnClick);
+	}
+	else
+	{
+		OnNotify(0);
+	}
+
 	return true;
 }
 
@@ -2047,22 +2061,41 @@ bool GTag::OnMouseClick(GMouse &m)
 	}
 	else if (m.Down() && m.Left())
 	{
-		GAutoString Uri;
-		
-		if (Html &&
-			Html->Environment)
+		#ifdef _DEBUG
+		if (m.Ctrl())
 		{
-			if (IsAnchor(&Uri))
+			GAutoString Style = ToString();
+			LgiMsg(	Html,
+					"Tag: %s\n"
+					"Pos: %i,%i - %i,%i\n"
+					"\n"
+					"Style:\n%s",
+					Html->GetClass(),
+					MB_OK,
+					Tag,
+					Pos.x, Pos.y, Size.x, Size.y,
+					Style.Get());
+		}
+		else
+		#endif
+		{
+			GAutoString Uri;
+			
+			if (Html &&
+				Html->Environment)
 			{
-				if (!Html->d->LinkDoubleClick || m.Double())
+				if (IsAnchor(&Uri))
 				{
-					Html->Environment->OnNavigate(Uri);
-					Processed = true;
+					if (!Html->d->LinkDoubleClick || m.Double())
+					{
+						Html->Environment->OnNavigate(Uri);
+						Processed = true;
+					}
 				}
-			}
-			else
-			{
-				Processed = OnClick();
+				else
+				{
+					Processed = OnClick();
+				}
 			}
 		}
 	}
@@ -2270,6 +2303,47 @@ GTagHit GTag::GetTagByPos(int x, int y)
 	}
 
 	return r;
+}
+
+int GTag::OnNotify(int f)
+{
+	if (!Ctrl)
+		return 0;
+	
+	switch (CtrlType)
+	{
+		case CtrlSubmit:
+		{
+			GTag *Form = this;
+			while (Form && Form->TagId != TAG_FORM)
+				Form = Form->Parent;
+			if (Form)
+				Html->OnSubmitForm(Form);
+			break;
+		}
+		default:
+		{
+			CtrlValue = Ctrl->Name();
+			break;
+		}
+	}
+	
+	return 0;
+}
+
+GTag *GTag::FindCtrlId(int Id)
+{
+	if (Ctrl && Ctrl->GetId() == Id)
+		return this;
+
+	for (GTag *t=Tags.First(); t; t=Tags.Next())
+	{
+		GTag *f = t->FindCtrlId(Id);
+		if (f)
+			return f;
+	}
+	
+	return NULL;
 }
 
 void GTag::Find(int TagType, GArray<GTag*> &Out)
@@ -2606,7 +2680,7 @@ void GTag::Restyle()
 	if (Display() != DispInherit)
 		Disp = Display();	
 
-	#ifdef _DEBUG
+	#if 1 && defined(_DEBUG)
 	if (Debug)
 	{
 		GAutoString Style = ToString();
@@ -3085,34 +3159,44 @@ void GTag::SetStyle()
 		case TAG_SELECT:
 		{
 			Ctrl = new GCombo(Html->d->NextCtrlId++, 0, 0, 100, SysFont->GetHeight() + 8, NULL);
+			CtrlType = CtrlSubmit;
 			break;
 		}
 		case TAG_INPUT:
 		{
-			const char *Type;
+			const char *Type, *Value = NULL;
+			if (Get("value", Value))
+			{
+				CtrlValue = Value;
+			}
+			
 			if (Get("type", Type))
 			{
 				const char *Value = NULL;
 				Get("value", Value);
 				
-				bool Password = !stricmp(Type, "password");
-				bool Email = !stricmp(Type, "email");
-				bool Text = !stricmp(Type, "text");
-				bool Button = !stricmp(Type, "button");
-				bool Submit = !stricmp(Type, "submit");
-				bool Select = !stricmp(Type, "select");
+				if (!stricmp(Type, "password")) CtrlType = CtrlPassword;
+				else if (!stricmp(Type, "email")) CtrlType = CtrlEmail;
+				else if (!stricmp(Type, "text")) CtrlType = CtrlText;
+				else if (!stricmp(Type, "button")) CtrlType = CtrlButton;
+				else if (!stricmp(Type, "submit")) CtrlType = CtrlSubmit;
 
 				DeleteObj(Ctrl);
-				if (Email || Text || Password)
+				if (CtrlType == CtrlEmail ||
+					CtrlType == CtrlText ||
+					CtrlType == CtrlPassword)
 				{
 					GEdit *Ed;
 					if (Ctrl = Ed = new GEdit(Html->d->NextCtrlId++, 0, 0, 60, SysFont->GetHeight() + 8, Value))
 					{
 						Ed->Sunken(false);
-						Ed->Password(Password);
-					}
+						Ed->Password(CtrlType == CtrlPassword);
+						if (Value)
+							Ed->Name(Value);
+					}						
 				}
-				else if (Button || Submit)
+				else if (CtrlType == CtrlButton ||
+						 CtrlType == CtrlSubmit)
 				{
 					if (Value)
 						Ctrl = new InputButton(this, Html->d->NextCtrlId++, Value);
@@ -4415,19 +4499,19 @@ void GTag::LayoutTable(GFlowRegion *f)
 		ZeroTableElements();
 		Len BdrSpacing = BorderSpacing();
 		int CellSpacing = BdrSpacing.IsValid() ? (int)BdrSpacing.Value : 0;
-		int AvailableX = f->ResolveX(Width(), Font);
+		int AvailableX = f->ResolveX(Width(), Font, false);
 		
 		if (MaxWidth().IsValid())
 		{
-		    int m = f->ResolveX(MaxWidth(), Font);
+		    int m = f->ResolveX(MaxWidth(), Font, false);
 		    if (m < AvailableX)
 		        AvailableX = m;
 		}
 		
 		GCss::Len Border = BorderLeft();
-		int BorderX1 = Border.IsValid() ? f->ResolveX(Border, Font) : 0;
+		int BorderX1 = Border.IsValid() ? f->ResolveX(Border, Font, false) : 0;
 		Border = BorderRight();
-		int BorderX2 = Border.IsValid() ? f->ResolveX(Border, Font) : 0;
+		int BorderX2 = Border.IsValid() ? f->ResolveX(Border, Font, false) : 0;
 		#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 		if (Debug)
 			LgiTrace("AvailableX=%i, BorderX1=%i, BorderX2=%i\n", AvailableX, BorderX1, BorderX2);
@@ -4460,7 +4544,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 							
 							if (t->Width().IsValid())
 							{
-								t->MinContent = t->MaxContent = f->ResolveX(t->Width(), GetFont());
+								t->MinContent = t->MaxContent = f->ResolveX(t->Width(), GetFont(), false);
 								FixedCol[x] = true;
 							}
 							else if (!t->GetWidthMetrics(t->MinContent, t->MaxContent))
@@ -4537,7 +4621,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 
 							t->GetWidthMetrics(t->MinContent, t->MaxContent);
 							
-							int x = w.IsValid() ? f->ResolveX(w, Font) : 0;
+							int x = w.IsValid() ? f->ResolveX(w, Font, false) : 0;
 							//t->MinContent = max(x, t->MinContent);
 							t->MaxContent = max(x, t->MaxContent);
 							
@@ -4828,7 +4912,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 						if (t->Height().IsValid() &&
 							t->Height().Type != LenPercent)
 						{
-							int h = f->ResolveY(t->Height(), Font);
+							int h = f->ResolveY(t->Height(), Font, false);
 							t->Size.y = max(h, t->Size.y);
 
 							DistributeSize(MaxRow, y, t->Span.y, t->Size.y, CellSpacing);
@@ -5229,7 +5313,7 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 			
 			if (Width().IsValid())
 			{
-				Size.x = Flow->ResolveX(Width(), GetFont());
+				Size.x = Flow->ResolveX(Width(), GetFont(), false);
 			}
 			else if (Image)
 			{
@@ -5299,19 +5383,14 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 			BoundParents();
 			return;
 		}
-		case TAG_SELECT:
-		case TAG_INPUT:
-		{
-			CtrlPos.x = Flow->cx - Flow->x1;
-			CtrlPos.y = Flow->y1;
-			break;
-		}
 	}
-	
+
+	#ifdef _DEBUG	
 	if (Debug)
 	{
 		int asd=0;
 	}
+	#endif
 	
 	int OldFlowMy = Flow->my;
 	if (Disp == DispBlock || Disp == DispInlineBlock)
@@ -5342,13 +5421,13 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 		if (Disp == DispBlock)
 		{
 			if (TagId != TAG_TD && Width().IsValid())
-				Size.x = Flow->ResolveX(Width(), f);
+				Size.x = Flow->ResolveX(Width(), f, false);
 			else
 				Size.x = Flow->X();
 
 			if (MaxWidth().IsValid())
 			{
-				int Px = Flow->ResolveX(MaxWidth(), GetFont());
+				int Px = Flow->ResolveX(MaxWidth(), GetFont(), false);
 				if (Size.x > Px)
 					Size.x = Px;
 			}
@@ -5371,8 +5450,8 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 			Flow->x2 = Flow->x1 + Size.x;
 			Flow->cx -= Pos.x;
 
-			Flow->Indent(f, GCss::BorderLeft(), GCss::BorderTop(), GCss::BorderRight(), GCss::BorderBottom());
-			Flow->Indent(f, PaddingLeft(), PaddingTop(), PaddingRight(), PaddingBottom());
+			Flow->Indent(f, GCss::BorderLeft(), GCss::BorderTop(), GCss::BorderRight(), GCss::BorderBottom(), false);
+			Flow->Indent(f, PaddingLeft(), PaddingTop(), PaddingRight(), PaddingBottom(), false);
 		}
 		else
 		{
@@ -5383,11 +5462,11 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 			Flow->x2 = Size.x;
 			Flow->cx = 0;
 			
-			Flow->cx += Flow->ResolveX(BorderLeft(), GetFont());
-			Flow->y1 += Flow->ResolveY(BorderTop(), GetFont());
+			Flow->cx += Flow->ResolveX(BorderLeft(), GetFont(), false);
+			Flow->y1 += Flow->ResolveY(BorderTop(), GetFont(), false);
 			
-			Flow->cx += Flow->ResolveX(PaddingLeft(), GetFont());
-			Flow->y1 += Flow->ResolveY(PaddingTop(), GetFont());
+			Flow->cx += Flow->ResolveX(PaddingLeft(), GetFont(), false);
+			Flow->y1 += Flow->ResolveY(PaddingTop(), GetFont(), false);
 		}
 	}
 
@@ -5460,11 +5539,11 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 				GRect r = Ctrl->GetPos();
 
 				if (Width().IsValid())
-					Size.x = Flow->ResolveX(Width(), GetFont());
+					Size.x = Flow->ResolveX(Width(), GetFont(), false);
 				else
 					Size.x = r.X();
 				if (Height().IsValid())
-					Size.y = Flow->ResolveY(Height(), GetFont());
+					Size.y = Flow->ResolveY(Height(), GetFont(), false);
 				else
 					Size.y = r.Y();
 				
@@ -5483,7 +5562,7 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 				if (Image)
 					Size.y = Height().ToPx(Image->Y(), GetFont());
 				else
-					Size.y = Flow->ResolveY(Height(), f);
+					Size.y = Flow->ResolveY(Height(), f, false);
 			}
 			else if (Image)
 			{
@@ -5527,7 +5606,7 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 		GCss::Len Ht = Height();
 		if (Ht.IsValid())
 		{			
-			int HtPx = Flow->ResolveY(Ht, GetFont());
+			int HtPx = Flow->ResolveY(Ht, GetFont(), false);
 			if (HtPx > Flow->y2)
 				Flow->y2 = HtPx;
 		}
@@ -5537,10 +5616,10 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 			Flow->EndBlock();
 
 			int OldFlowSize = Flow->x2 - Flow->x1 + 1;
-			Flow->Outdent(f, PaddingLeft(), PaddingTop(), PaddingRight(), PaddingBottom());
-			Flow->Outdent(f, GCss::BorderLeft(), GCss::BorderTop(), GCss::BorderRight(), GCss::BorderBottom());
+			Flow->Outdent(f, PaddingLeft(), PaddingTop(), PaddingRight(), PaddingBottom(), false);
+			Flow->Outdent(f, GCss::BorderLeft(), GCss::BorderTop(), GCss::BorderRight(), GCss::BorderBottom(), false);
 			Flow->Outdent(f, MarginLeft(), MarginTop(), MarginRight(), MarginBottom(), true);
-
+			
 			int NewFlowSize = Flow->x2 - Flow->x1 + 1;
 			int Diff = NewFlowSize - OldFlowSize;
 			if (Diff)
@@ -5549,27 +5628,36 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 			Size.y = Flow->y2;
 			Flow->y1 = Flow->y2;
 			Flow->x2 = Flow->x1 + BlockFlowWidth;
+
+			// I dunno, there should be a better way... :-(
+			if (MarginLeft().Type == LenAuto &&
+				MarginRight().Type == LenAuto)
+			{
+				int OffX = (Flow->x2 - Flow->x1 - Size.x) >> 1;
+				if (OffX > 0)
+					Pos.x += OffX;
+			}
 		}
 		else
 		{
-			Flow->cx += Flow->ResolveX(PaddingRight(), GetFont());			
-			Flow->cx += Flow->ResolveX(BorderRight(), GetFont());			
+			Flow->cx += Flow->ResolveX(PaddingRight(), GetFont(), false);
+			Flow->cx += Flow->ResolveX(BorderRight(), GetFont(), false);
 			Size.x = Flow->cx;
-			Flow->cx += Flow->ResolveX(MarginRight(), GetFont());			
-			Flow->x1 = BlockInlineX[0];
-			Flow->cx = BlockInlineX[1] + Flow->cx;
-			Flow->x2 = BlockInlineX[2];
+			Flow->cx += Flow->ResolveX(MarginRight(), GetFont(), true);
+			Flow->x1 = BlockInlineX[0] - Pos.x;
+			Flow->cx = BlockInlineX[1] + Flow->cx - Pos.x;
+			Flow->x2 = BlockInlineX[2] - Pos.x;
 
 			if (Height().IsValid())
 			{
-				Size.y = Flow->ResolveY(Height(), GetFont());
-				int MarginY2 = Flow->ResolveX(MarginBottom(), GetFont());
+				Size.y = Flow->ResolveY(Height(), GetFont(), false);
+				int MarginY2 = Flow->ResolveX(MarginBottom(), GetFont(), true);
 				Flow->y2 = max(Flow->y1 + Size.y + MarginY2 - 1, Flow->y2);
 			}
 			else
 			{
-				Flow->y2 += Flow->ResolveX(PaddingBottom(), GetFont());			
-				Flow->y2 += Flow->ResolveX(BorderBottom(), GetFont());
+				Flow->y2 += Flow->ResolveX(PaddingBottom(), GetFont(), false);
+				Flow->y2 += Flow->ResolveX(BorderBottom(), GetFont(), false);
 				Size.y = Flow->y2 - Flow->y1 + 1;
 			}
 		}
@@ -5868,7 +5956,7 @@ void GTag::OnPaint(GSurface *pDC)
 					r.x2 -= Px.x2;
 					r.y2 -= Px.y2;
 				}
-				r.Offset(Parent->AbsX() - Sx + CtrlPos.x, Parent->AbsY() - Sy + CtrlPos.y);
+				r.Offset(AbsX() - Sx, AbsY() - Sy);
 				Ctrl->SetPos(r);
 			}
 			
@@ -6671,6 +6759,13 @@ int GHtml2::OnNotify(GViewI *c, int f)
 			Invalidate();
 			break;
 		}
+		default:
+		{
+			GTag *Ctrl = Tag ? Tag->FindCtrlId(c->GetId()) : NULL;
+			if (Ctrl)
+				return Ctrl->OnNotify(f);
+			break;
+		}
 	}
 
 	return GLayout::OnNotify(c, f);
@@ -7067,6 +7162,11 @@ void BuildTagList(GArray<GTag*> &t, GTag *Tag)
 	{
 		BuildTagList(t, c);
 	}
+}
+
+bool GHtml2::OnSubmitForm(GTag *Form)
+{
+	return false;
 }
 
 bool GHtml2::OnFind(class GFindReplaceCommon *Params)
