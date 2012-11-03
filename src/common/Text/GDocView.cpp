@@ -221,7 +221,7 @@ GDocumentEnv::LoadType GDefaultDocumentEnv::GetContent(LoadJob *&j)
 	return LoadError;
 }
 
-bool GDefaultDocumentEnv::OnNavigate(char *Uri)
+bool GDefaultDocumentEnv::OnNavigate(const char *Uri)
 {
 	if (Uri)
 	{

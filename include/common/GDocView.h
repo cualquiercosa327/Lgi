@@ -168,7 +168,9 @@ public:
 	void OnDone(GAutoPtr<GThreadJob> j);
 	
 	/// Handle a click on URI
-	virtual bool OnNavigate(char *Uri) { return false; }
+	virtual bool OnNavigate(const char *Uri) { return false; }
+	/// Handle a form post
+	virtual bool OnPostForm(const char *Uri, const char *Data) { return false; }
 
 	/// Process dynamic content, returning a dynamically allocated string
 	/// for the result of the executed script. Dynamic content is enclosed
@@ -191,7 +193,7 @@ class GDefaultDocumentEnv : public GDocumentEnv
 {
 public:
 	LoadType GetContent(LoadJob *&j);
-	bool OnNavigate(char *Uri);
+	bool OnNavigate(const char *Uri);
 };
 
 /// Find params

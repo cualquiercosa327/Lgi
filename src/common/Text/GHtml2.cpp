@@ -2331,6 +2331,31 @@ int GTag::OnNotify(int f)
 	return 0;
 }
 
+void GTag::CollectFormValues(GHashTbl<const char*,char*> &f)
+{
+	if (CtrlType != CtrlNone)
+	{
+		const char *Name;
+		if (Get("name", Name))
+		{
+			char *Existing = f.Find(Name);
+			if (Existing)
+				DeleteArray(Existing);
+
+			f.Add
+			(
+				Name,
+				NewStr(CtrlValue.Str())
+			);
+		}
+	}
+
+	for (GTag *t=Tags.First(); t; t=Tags.Next())
+	{
+		t->CollectFormValues(f);
+	}
+}
+
 GTag *GTag::FindCtrlId(int Id)
 {
 	if (Ctrl && Ctrl->GetId() == Id)
@@ -3159,7 +3184,7 @@ void GTag::SetStyle()
 		case TAG_SELECT:
 		{
 			Ctrl = new GCombo(Html->d->NextCtrlId++, 0, 0, 100, SysFont->GetHeight() + 8, NULL);
-			CtrlType = CtrlSubmit;
+			CtrlType = CtrlSelect;
 			break;
 		}
 		case TAG_INPUT:
@@ -3180,6 +3205,7 @@ void GTag::SetStyle()
 				else if (!stricmp(Type, "text")) CtrlType = CtrlText;
 				else if (!stricmp(Type, "button")) CtrlType = CtrlButton;
 				else if (!stricmp(Type, "submit")) CtrlType = CtrlSubmit;
+				else if (!stricmp(Type, "hidden")) CtrlType = CtrlHidden;
 
 				DeleteObj(Ctrl);
 				if (CtrlType == CtrlEmail ||
@@ -7164,9 +7190,80 @@ void BuildTagList(GArray<GTag*> &t, GTag *Tag)
 	}
 }
 
+static void FormEncode(GStringPipe &p, const char *c)
+{
+	const char *s = c;
+	while (*c)
+	{
+		while (*c && *c != ' ')
+			c++;
+		
+		if (c > s)
+		{
+			p.Write(s, c - s);
+			c = s;
+		}
+		if (*c == ' ')
+		{
+			p.Write("+", 1);
+			s = c;
+		}
+		else break;
+	}
+}
+
 bool GHtml2::OnSubmitForm(GTag *Form)
 {
-	return false;
+	if (!Form || !Environment)
+	{
+		LgiAssert(!"Bad param");
+		return false;
+	}
+
+	const char *Method = NULL;
+	const char *Action = NULL;
+	if (!Form->Get("method", Method) ||
+		!Form->Get("action", Action))
+	{
+		LgiAssert(!"Missing form action/method");
+		return false;
+	}
+		
+	GHashTbl<const char*,char*> f;
+	Form->CollectFormValues(f);
+	bool Status = false;
+	if (!stricmp(Method, "post"))
+	{
+		GStringPipe p(256);
+		const char *Field;
+		bool First = true;
+		for (char *Val = f.First(&Field); Val; Val = f.Next(&Field))
+		{
+			if (First)
+				First = false;
+			else
+				p.Write("&", 1);
+			
+			FormEncode(p, Field);
+			p.Write("=", 1);
+			FormEncode(p, Val);
+		}
+		
+		GAutoPtr<const char, true> Data(p.NewStr());
+		LgiMsg(this, Data, GetClass());
+		Status = Environment->OnPostForm(Action, Data);
+	}
+	else if (!stricmp(Method, "get"))
+	{
+		Status = Environment->OnNavigate(Action);
+	}
+	else
+	{
+		LgiAssert(!"Bad form method.");
+	}
+	
+	f.DeleteArrays();
+	return Status;
 }
 
 bool GHtml2::OnFind(class GFindReplaceCommon *Params)

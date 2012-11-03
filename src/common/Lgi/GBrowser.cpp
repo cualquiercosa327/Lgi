@@ -181,7 +181,7 @@ public:
 		return true;
 	}
 
-	bool OnNavigate(char *Uri)
+	bool OnNavigate(const char *Uri)
 	{
 		GUri u(Uri);
 		char Sep, Buf[MAX_PATH];

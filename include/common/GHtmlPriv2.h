@@ -221,6 +221,7 @@ public:
 		CtrlButton,
 		CtrlSubmit,
 		CtrlSelect,
+		CtrlHidden,
 	};
 
 protected:
@@ -368,6 +369,7 @@ public:
 	// Control handling
 	GTag *FindCtrlId(int Id);
 	int OnNotify(int f);
+	void CollectFormValues(GHashTbl<const char*,char*> &f);
 
 	// GDom impl
 	bool GetVariant(const char *Name, GVariant &Value, char *Array = 0);
