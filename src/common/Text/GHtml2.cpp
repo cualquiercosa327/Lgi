@@ -5411,7 +5411,7 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 		}
 	}
 
-	#ifdef _DEBUG	
+	#ifdef _DEBUG
 	if (Debug)
 	{
 		int asd=0;
