@@ -24,7 +24,7 @@ public:
 	~GBrowser();
 
 	void SetEvents(GBrowserEvents *Events);
-	bool SetUri(char *Uri = 0);
+	bool SetUri(const char *Uri = 0);
 	bool SetHtml(char *Html);
 
 	void OnPosChange();

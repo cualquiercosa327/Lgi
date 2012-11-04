@@ -108,6 +108,7 @@ public:
 
 		// Input data
 		GAutoString Uri;
+		GAutoString PostData;
 
 		// Output data
 		GAutoPtr<GStreamI> Stream;

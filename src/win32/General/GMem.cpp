@@ -137,7 +137,7 @@ void *lgi_malloc(size_t size)
 			{
 				for (int i=0; i<=MEM_STACK_SIZE; i++)
 				{
-					if (!frame || (*((unsigned*)frame) & 0x3))
+					if (!frame || (NativeInt)frame < 0x1000 || (*((unsigned*)frame) & 0x3))
 						break;
 
 					if (i)

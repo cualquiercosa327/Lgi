@@ -546,7 +546,8 @@ void GView::_Delete()
 	if (_View && IsWindow(_View))
 	{
 		WndFlags |= GWF_DESTRUCTOR;
-		DestroyWindow(_View);
+		BOOL Status = DestroyWindow(_View);
+		LgiAssert(Status);
 	}
 	
 	// NULL my handles and flags
@@ -780,7 +781,8 @@ bool GView::Detach()
 		if (_View)
 		{
 			WndFlags &= ~GWF_QUIT_WND;
-			DestroyWindow(_View);
+			BOOL Status = DestroyWindow(_View);
+			LgiAssert(Status);
 		}
 	}
 	return Status;

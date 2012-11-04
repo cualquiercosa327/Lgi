@@ -434,7 +434,7 @@ GBrowser::~GBrowser()
 	DeleteObj(d);
 }
 
-bool GBrowser::SetUri(char *Uri)
+bool GBrowser::SetUri(const char *Uri)
 {
 	if (Uri)
 	{

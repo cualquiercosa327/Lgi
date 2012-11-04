@@ -2342,11 +2342,8 @@ void GTag::CollectFormValues(GHashTbl<const char*,char*> &f)
 			if (Existing)
 				DeleteArray(Existing);
 
-			f.Add
-			(
-				Name,
-				NewStr(CtrlValue.Str())
-			);
+			if (CtrlValue.Str())
+				f.Add(Name, NewStr(CtrlValue.Str()));
 		}
 	}
 
@@ -3183,12 +3180,15 @@ void GTag::SetStyle()
 		}
 		case TAG_SELECT:
 		{
+			LgiAssert(!Ctrl);
 			Ctrl = new GCombo(Html->d->NextCtrlId++, 0, 0, 100, SysFont->GetHeight() + 8, NULL);
 			CtrlType = CtrlSelect;
 			break;
 		}
 		case TAG_INPUT:
 		{
+			LgiAssert(!Ctrl);
+
 			const char *Type, *Value = NULL;
 			if (Get("value", Value))
 			{
@@ -6409,7 +6409,8 @@ void GTag::OnPaint(GSurface *pDC)
 		}
 	}
 
-	for (GTag *t=Tags.First(); t; t=Tags.Next())
+	List<GTag>::I TagIt = Tags.Start();
+	for (GTag *t=*TagIt; t; t=*++TagIt)
 	{
 		pDC->SetOrigin(Px - t->Pos.x, Py - t->Pos.y);
 		t->OnPaint(pDC);
@@ -6472,7 +6473,7 @@ void GHtml2::_New()
 void GHtml2::_Delete()
 {
 	#if LUIS_DEBUG
-	LgiTrace("%s:%i html(%p).src(%p)='%30.30s'\n", __FILE__, __LINE__, this, Source, Source);
+	LgiTrace("%s:%i html(%p).src(%p)='%30.30s'\n", _FL, this, Source, Source);
 	#endif
 
 	LgiAssert(!d->IsParsing);
@@ -6647,6 +6648,8 @@ bool GHtml2::Name(const char *s)
 	}
 	#endif
 
+	LgiAssert(LgiApp->GetGuiThread() == LgiGetCurrentThread());
+
 	_Delete();
 	_New();
 
@@ -6809,7 +6812,7 @@ void GHtml2::OnPosChange()
 GdcPt2 GHtml2::Layout()
 {
 	GRect Client = GetClient();
-	if (ViewWidth != Client.X())
+	if (IsAttached() && ViewWidth != Client.X())
 	{
 		GRect Client = GetClient();
 		GFlowRegion f(this, Client);
@@ -7250,7 +7253,6 @@ bool GHtml2::OnSubmitForm(GTag *Form)
 		}
 		
 		GAutoPtr<const char, true> Data(p.NewStr());
-		LgiMsg(this, Data, GetClass());
 		Status = Environment->OnPostForm(Action, Data);
 	}
 	else if (!stricmp(Method, "get"))
@@ -7557,12 +7559,9 @@ void GHtml2::OnMouseClick(GMouse &m)
 								GClipBoard c(this);
 								if (Is8Bit(Source))
 								{
-									char *u8 = (char*)LgiNewConvertCp("utf-8", Source, DocCharSet ? DocCharSet : (char*)"windows-1252");
-									if (u8)
-									{
-										c.Text(u8);
-										DeleteArray(u8);
-									}
+									GAutoWString w((char16*)LgiNewConvertCp(LGI_WideCharset, Source, DocCharSet ? DocCharSet : (char*)"windows-1252"));
+									if (w)
+										c.TextW(w);
 								}
 								else
 								{
