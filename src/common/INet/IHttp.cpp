@@ -425,7 +425,7 @@ bool IHttp::Get
 				int Length = 0;
 				while (Out)
 				{
-					int r = Socket->Read(s, sizeof(s));
+					int r = Socket ? Socket->Read(s, sizeof(s)) : -1;
 					if (r > 0)
 					{
 						int e = EndHeaders.IsEnd(s, r);
@@ -448,7 +448,8 @@ bool IHttp::Get
 				GAutoString Hdr(Headers.NewStr());
 
 				GVariant v;
-				Socket->SetValue(GSocket_Protocol, v = "SSL");
+				if (Socket)
+					Socket->SetValue(GSocket_Protocol, v = "SSL");
 				
 				EndHeaders.Reset();
 			}
@@ -482,7 +483,7 @@ bool IHttp::Get
 		Cmd.Push("\r\n");
 		
 		GAutoString c(Cmd.NewStr());
-		if (c)
+		if (Socket && c)
 		{
 			// Write the headers...
 			int cLen = strlen(c);
@@ -496,7 +497,7 @@ bool IHttp::Get
 				
 				while (Out)
 				{
-					int r = Socket->Read(s, sizeof(s));
+					int r = Socket ? Socket->Read(s, sizeof(s)) : -1;
 					if (r > 0)
 					{
 						int e = EndHeaders.IsEnd(s, r);
@@ -591,7 +592,7 @@ bool IHttp::Get
 							Used -= HdrLen;
 							
 							// Loop over the body of the chunk
-							while (ChunkDone < ChunkSize)
+							while (Socket && ChunkDone < ChunkSize)
 							{
 								int Remaining = ChunkSize - ChunkDone;
 								int Common = min(Used, Remaining);
@@ -620,7 +621,7 @@ bool IHttp::Get
 							}
 							
 							// Loop over the CRLF postfix
-							if (Used < 2)
+							if (Socket && Used < 2)
 							{
 								int r = Socket->Read(s + Used, sizeof(s) - Used);
 								if (r < 0)
@@ -655,7 +656,8 @@ bool IHttp::Get
 							}
 						}
 						
-						while (	Written >= 0 &&
+						while (	Socket &&
+								Written >= 0 &&
 								Written < ContentLen &&
 								Socket->IsOpen())
 						{

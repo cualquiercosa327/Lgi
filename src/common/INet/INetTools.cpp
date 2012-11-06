@@ -129,14 +129,15 @@ void InetTokeniseHeaders(List<GInetHeader> &Out, const char *In)
 {
 	// loop through and extract all the headers
 	const char *e = 0;
-	for (const char *s=In; s AND *s; s = *e == '\n' ? e + 1 : e)
+	for (const char *s=In; s && *s; s = e)
 	{
 		// skip whitespace
 		while (strchr(" \t", *s)) s++;
 
 		// get end-of-line
-		const char *e = strchr(s, '\n');
-		if (!e) e = s + strlen(s);
+		e = strstr(s, "\r\n");
+		if (!e)
+			e = s + strlen(s);
 		size_t Len = e - s;
 
 		// process line
@@ -152,8 +153,13 @@ void InetTokeniseHeaders(List<GInetHeader> &Out, const char *In)
 
 				// extract the data itself
 				h->Str = InetGetField(s);
+				
+				Out.Insert(h);
 			}
 		}
+		
+		if (*e == '\r') e++;
+		if (*e == '\n') e++;
 	}
 }
 
