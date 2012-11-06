@@ -1957,6 +1957,7 @@ bool GCss::Selector::Parse(const char *&s)
 					if (e)
 					{
 						s = e + 1;
+						SkipWhite(s);
 						continue;
 					}
 				}
