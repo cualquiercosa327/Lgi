@@ -14,7 +14,7 @@
 bool GKey::IsContextMenu()
 {
 	#if WIN32NATIVE
-	return vkey == VK_CONTEXTKEY;
+	return !IsChar && vkey == VK_CONTEXTKEY;
 	#else
 	return false;
 	#endif
