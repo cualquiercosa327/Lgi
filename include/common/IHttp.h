@@ -51,20 +51,49 @@ public:
 	GSocketI *GetSocket() { return Socket; }
 
 	// General
+	bool Request(	const char *Type,
+					char *Uri,
+					int *ProtocolStatus,
+					const char *InHeaders,
+					GStreamI *InBody,
+					GStreamI *Out,
+					GStreamI *OutHeaders,
+					ContentEncoding *OutEncoding);
+
 	bool Get(		char *Uri,
 					const char *InHeaders,
 					int *ProtocolStatus,
 					GStreamI *Out,
 					ContentEncoding *OutEncoding,
-					GStreamI *OutHeaders = 0);
+					GStreamI *OutHeaders = 0)
+	{
+		return Request("GET",
+						Uri,
+						ProtocolStatus,
+						InHeaders,
+						NULL, // InBody
+						Out,
+						OutHeaders,
+						OutEncoding);
+	}
+	
 
 	bool Post(		char *Uri,
-					const char *ContentType,
 					GStreamI *In,
 					int *ProtocolStatus,
 					GStreamI *Out,
 					GStreamI *OutHeaders = 0,
-					char *InHeaders = 0);
+					char *InHeaders = 0)
+	{
+		return Request("POST",
+						Uri,
+						ProtocolStatus,
+						InHeaders,
+						In,
+						Out,
+						OutHeaders,
+						NULL);
+	}
 };
 
 #endif

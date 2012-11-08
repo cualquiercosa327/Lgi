@@ -143,14 +143,22 @@ public:
 
 	virtual ~GThreadWorker()
 	{
-		Loop = false;
-		while (!IsExited())
-			LgiSleep(1);
-		if (Lock(_FL))
+		Stop();
+	}
+	
+	void Stop()
+	{
+		if (Loop)
 		{
-			for (uint32 i=0; i<Owners.Length(); i++)
-				Owners[i]->Detach();
-			Unlock();
+			Loop = false;
+			while (!IsExited())
+				LgiSleep(1);
+			if (Lock(_FL))
+			{
+				for (uint32 i=0; i<Owners.Length(); i++)
+					Owners[i]->Detach();
+				Unlock();
+			}
 		}
 	}
 
@@ -245,6 +253,7 @@ public:
 		{
 			if (Worker)
 				Worker->Detach(this);
+			DeleteObj(Worker);
 			Unlock();
 		}
 	}

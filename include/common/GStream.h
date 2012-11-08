@@ -172,6 +172,7 @@ public:
 	);
 
 	~GMemStream();
+	
 	bool IsOpen() { return Mem != 0; }
 	int Close();
 	int64 GetSize() { return Len; }
@@ -187,6 +188,7 @@ public:
 	int Read(void *Buffer, int Size, int Flags = 0);
 	int Write(const void *Buffer, int Size, int Flags = 0);
 	int Write(GStream *Out, int Size);
+	char *GetBase() { return Mem; }
 	GStreamI *Clone();
 };
 

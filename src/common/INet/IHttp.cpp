@@ -387,293 +387,324 @@ bool IHttp::GetFile(char *File, GStream &Out, int Format, int *ProtocolStatus, i
 }
 #endif
 
-bool IHttp::Get
+enum HttpRequestType
+{
+	HttpNone,
+	HttpGet,
+	HttpPost
+};
+
+bool IHttp::Request
 (
+	const char *Type,
 	char *Uri,
-	const char *InHeaders,
 	int *ProtocolStatus,
+	const char *InHeaders,
+	GStreamI *InBody,
 	GStreamI *Out,
-	ContentEncoding *OutEncoding,
-	GStreamI *OutHeaders
+	GStreamI *OutHeaders,
+	ContentEncoding *OutEncoding
 )
 {
-	bool Status = false;
+	// Input validation
+	if (!Socket || !Uri || !Out || !Type)
+		return false;
 
-	if (Socket && Uri && Out)
+	HttpRequestType ReqType = HttpNone;
+	if (!stricmp(Type, "GET"))
+		ReqType = HttpGet;
+	else if (!stricmp(Type, "POST"))
+		ReqType = HttpPost;
+	else
+		return false;
+
+	// Generate the request string
+	GStringPipe Cmd;
+	GUri u(Uri);
+	bool IsHTTPS = u.Protocol && !stricmp(u.Protocol, "https");
+	GAutoString EncPath = u.Encode(u.Path ? u.Path : (char*)"/"), Mem;
+	char s[1024];
+	GLinePrefix EndHeaders("\r\n");
+	GStringPipe Headers;
+
+	if (IsHTTPS && Proxy)
 	{
-		// Generate the request string
-		GStringPipe Cmd;
-		GUri u(Uri);
-		bool IsHTTPS = u.Protocol && !stricmp(u.Protocol, "https");
-		GAutoString EncPath = u.Encode(u.Path ? u.Path : (char*)"/"), Mem;
-		char s[1024];
-		GLinePrefix EndHeaders("\r\n");
-		GStringPipe Headers;
-
-		if (IsHTTPS && Proxy)
-		{
-			Cmd.Print(	"CONNECT %s:%i HTTP/1.1\r\n"
-						"Host: %s\r\n"
-						"\r\n",
-						u.Host, u.Port ? u.Port : HTTPS_PORT,
-						u.Host);
-			GAutoString c(Cmd.NewStr());
-			int cLen = strlen(c);
-			int r = Socket->Write(c, cLen);
-			if (r == cLen)
-			{
-				int Length = 0;
-				while (Out)
-				{
-					int r = Socket ? Socket->Read(s, sizeof(s)) : -1;
-					if (r > 0)
-					{
-						int e = EndHeaders.IsEnd(s, r);
-						if (e < 0)
-						{
-							Headers.Write(s, r);
-						}
-						else
-						{
-							e -= Length;
-							Headers.Write(s, e);
-							break;
-						}
-						
-						Length += r;
-					}
-					else break;
-				}
-				
-				GAutoString Hdr(Headers.NewStr());
-
-				GVariant v;
-				if (Socket)
-					Socket->SetValue(GSocket_Protocol, v = "SSL");
-				
-				EndHeaders.Reset();
-			}
-			else return false;
-		}
-
-		Cmd.Print("GET %s HTTP/1.1\r\n", (Proxy && !IsHTTPS) ? Uri : EncPath.Get());
-		Cmd.Print("Host: %s\r\n", u.Host);
-		if (InHeaders) Cmd.Print("%s", InHeaders);
-
-		if (AuthUser && AuthPassword)
-		{
-			if (1)
-			{
-				// Basic authentication
-				char Raw[128];
-				sprintf(Raw, "%s:%s", AuthUser, AuthPassword);
-				char Base64[128];
-				ZeroObj(Base64);
-				ConvertBinaryToBase64(Base64, sizeof(Base64)-1, (uchar*)Raw, strlen(Raw));
-				
-				Cmd.Print("Authorization: Basic %s\r\n", Base64);
-			}
-			else
-			{
-				// Digest authentication
-				// Not implemented yet...
-				LgiAssert(!"Not impl.");
-			}
-		}
-		Cmd.Push("\r\n");
-		
+		Cmd.Print(	"CONNECT %s:%i HTTP/1.1\r\n"
+					"Host: %s\r\n"
+					"\r\n",
+					u.Host, u.Port ? u.Port : HTTPS_PORT,
+					u.Host);
 		GAutoString c(Cmd.NewStr());
-		if (Socket && c)
+		int cLen = strlen(c);
+		int r = Socket->Write(c, cLen);
+		if (r == cLen)
 		{
-			// Write the headers...
-			int cLen = strlen(c);
-			bool WriteOk = Socket->Write(c, cLen) == cLen;
-			c.Reset();
-			if (WriteOk)
+			int Length = 0;
+			while (Out)
 			{
-				// Read the response
-				int Total = 0;
-				int Used = 0;
-				
-				while (Out)
+				int r = Socket ? Socket->Read(s, sizeof(s)) : -1;
+				if (r > 0)
 				{
-					int r = Socket ? Socket->Read(s, sizeof(s)) : -1;
-					if (r > 0)
+					int e = EndHeaders.IsEnd(s, r);
+					if (e < 0)
 					{
-						int e = EndHeaders.IsEnd(s, r);
-						if (e < 0)
-						{
-							Headers.Write(s, r);
-						}
-						else
-						{
-							e -= Total;
-							Headers.Write(s, e);
-							if (r > e)
-							{
-								// Move the tailing data down to the start of the buffer
-								memmove(s, s + e, r - e);
-								Used = r - e;
-							}
-							break;
-						}
-						Total += r;
+						Headers.Write(s, r);
 					}
-					else break;
+					else
+					{
+						e -= Length;
+						Headers.Write(s, e);
+						break;
+					}
+					
+					Length += r;
+				}
+				else break;
+			}
+			
+			GAutoString Hdr(Headers.NewStr());
+
+			GVariant v;
+			if (Socket)
+				Socket->SetValue(GSocket_Protocol, v = "SSL");
+			
+			EndHeaders.Reset();
+		}
+		else return false;
+	}
+
+	Cmd.Print("%s %s HTTP/1.1\r\n", Type, (Proxy && !IsHTTPS) ? Uri : EncPath.Get());
+	Cmd.Print("Host: %s\r\n", u.Host);
+	if (InHeaders) Cmd.Print("%s", InHeaders);
+
+	if (AuthUser && AuthPassword)
+	{
+		if (1)
+		{
+			// Basic authentication
+			char Raw[128];
+			sprintf(Raw, "%s:%s", AuthUser, AuthPassword);
+			char Base64[128];
+			ZeroObj(Base64);
+			ConvertBinaryToBase64(Base64, sizeof(Base64)-1, (uchar*)Raw, strlen(Raw));
+			
+			Cmd.Print("Authorization: Basic %s\r\n", Base64);
+		}
+		else
+		{
+			// Digest authentication
+			// Not implemented yet...
+			LgiAssert(!"Not impl.");
+		}
+	}
+	Cmd.Push("\r\n");
+	
+	GAutoString c(Cmd.NewStr());
+	bool Status = false;
+	if (Socket && c)
+	{
+		// Write the headers...
+		int cLen = strlen(c);
+		bool WriteOk = Socket->Write(c, cLen) == cLen;
+		c.Reset();
+		if (WriteOk)
+		{
+			// Write any body...
+			if (InBody)
+			{
+				int r;
+				while ((r = InBody->Read(s, sizeof(s))) > 0)
+				{
+					int w = Socket->Write(s, r);
+					if (w < r)
+					{
+						return false;
+					}
+				}
+			}
+			
+			// Read the response
+			int Total = 0;
+			int Used = 0;
+			
+			while (Out)
+			{
+				int r = Socket ? Socket->Read(s, sizeof(s)) : -1;
+				if (r > 0)
+				{
+					int e = EndHeaders.IsEnd(s, r);
+					if (e < 0)
+					{
+						Headers.Write(s, r);
+					}
+					else
+					{
+						e -= Total;
+						Headers.Write(s, e);
+						if (r > e)
+						{
+							// Move the tailing data down to the start of the buffer
+							memmove(s, s + e, r - e);
+							Used = r - e;
+						}
+						break;
+					}
+					Total += r;
+				}
+				else break;
+			}
+
+			// Process output
+			GAutoString h(Headers.NewStr());
+			if (h)
+			{
+				GAutoString sContentLen(InetGetHeaderField(h, "Content-Length"));
+				int64 ContentLen = sContentLen ? atoi64(sContentLen) : -1;
+				bool IsChunked = false;
+				if (ContentLen > 0)
+					Out->SetSize(ContentLen);
+				else
+				{
+					GAutoString sTransferEncoding(InetGetHeaderField(h, "Transfer-Encoding"));
+					IsChunked = sTransferEncoding && !stricmp(sTransferEncoding, "chunked");
+				}
+				GAutoString sContentEncoding(InetGetHeaderField(h, "Content-Encoding"));
+				ContentEncoding Encoding = EncodeRaw;
+				if (sContentEncoding && !stricmp(sContentEncoding, "gzip"))
+				{
+					Encoding = EncodeGZip;
+					if (OutEncoding) *OutEncoding = Encoding;
 				}
 
-				// Process output
-				GAutoString h(Headers.NewStr());
-				if (h)
+				if (strnicmp(h, "HTTP/", 5) == 0 && ProtocolStatus)
 				{
-					GAutoString sContentLen(InetGetHeaderField(h, "Content-Length"));
-					int64 ContentLen = sContentLen ? atoi64(sContentLen) : -1;
-					bool IsChunked = false;
-					if (ContentLen > 0)
-						Out->SetSize(ContentLen);
-					else
-					{
-						GAutoString sTransferEncoding(InetGetHeaderField(h, "Transfer-Encoding"));
-						IsChunked = sTransferEncoding && !stricmp(sTransferEncoding, "chunked");
-					}
-					GAutoString sContentEncoding(InetGetHeaderField(h, "Content-Encoding"));
-					ContentEncoding Encoding = EncodeRaw;
-					if (sContentEncoding && !stricmp(sContentEncoding, "gzip"))
-					{
-						Encoding = EncodeGZip;
-						if (OutEncoding) *OutEncoding = Encoding;
-					}
+					*ProtocolStatus = atoi(h + 9);
+				}					
+				if (OutHeaders)
+				{
+					OutHeaders->Write(h, strlen(h));
+				}
 
-					if (strnicmp(h, "HTTP/", 5) == 0 && ProtocolStatus)
+				int64 Written = 0;
+				if (IsChunked)
+				{
+					while (true)
 					{
-						*ProtocolStatus = atoi(h + 9);
-					}					
-					if (OutHeaders)
-					{
-						OutHeaders->Write(h, strlen(h));
-					}
-
-					int64 Written = 0;
-					if (IsChunked)
-					{
-						while (true)
-						{
-							// Try and get chunk header
-							char *End = strnstr(s, "\r\n", Used);
-							if (!End)
-							{
-								int r = Socket->Read(s + Used, sizeof(s) - Used);
-								if (r < 0)
-									break;
-								
-								Used += r;
-								
-								End = strnstr(s, "\r\n", Used);
-								if (!End)
-								{
-									LgiAssert(!"No chunk header");
-									break;
-								}
-							}
-
-							// Process the chunk header							
-							End += 2;
-							int HdrLen = End - s;
-							int ChunkSize = htoi(s);
-							if (ChunkSize <= 0)
-							{
-								// End of stream.
-								Status = true;
-								break;
-							}
-							
-							int ChunkDone = 0;
-							memmove(s, End, Used - HdrLen);
-							Used -= HdrLen;
-							
-							// Loop over the body of the chunk
-							while (Socket && ChunkDone < ChunkSize)
-							{
-								int Remaining = ChunkSize - ChunkDone;
-								int Common = min(Used, Remaining);
-								if (Common > 0)
-								{
-									int w = Out->Write(s, Common);
-									if (w != Common)
-									{
-										LgiAssert(!"Write failed.");
-										break;
-									}
-									if (Used > Common)
-										memmove(s, s + Common, Used - Common);
-									ChunkDone += Common;
-									Used -= Common;
-
-									if (ChunkDone >= ChunkSize)
-										break;
-								}
-
-								int r = Socket->Read(s + Used, sizeof(s) - Used);
-								if (r < 0)
-									break;
-								
-								Used += r;
-							}
-							
-							// Loop over the CRLF postfix
-							if (Socket && Used < 2)
-							{
-								int r = Socket->Read(s + Used, sizeof(s) - Used);
-								if (r < 0)
-									break;
-								Used += r;
-							}							
-							if (Used < 2 || s[0] != '\r' || s[1] != '\n')
-							{
-								LgiAssert(!"Post fix missing.");
-								break;
-							}
-							if (Used > 2)
-								memmove(s, s + 2, Used - 2);
-							Used -= 2;							
-						}
-					}
-					else
-					{
-						// Non chunked connection.
-						int64 Written = 0;
-						if (Used > 0)
-						{
-							int w = Out->Write(s, Used);
-							if (w >= 0)
-							{
-								Written += w;
-								Used = 0;
-							}
-							else
-							{
-								Written = -1;
-							}
-						}
-						
-						while (	Socket &&
-								Written >= 0 &&
-								Written < ContentLen &&
-								Socket->IsOpen())
+						// Try and get chunk header
+						char *End = strnstr(s, "\r\n", Used);
+						if (!End)
 						{
 							int r = Socket->Read(s + Used, sizeof(s) - Used);
-							if (r <= 0)
-								break;
-
-							int w = Out->Write(s, r);
-							if (w <= 0)
+							if (r < 0)
 								break;
 							
-							Written += w;
+							Used += r;
+							
+							End = strnstr(s, "\r\n", Used);
+							if (!End)
+							{
+								LgiAssert(!"No chunk header");
+								break;
+							}
 						}
 
-						Status = Written == ContentLen;
+						// Process the chunk header							
+						End += 2;
+						int HdrLen = End - s;
+						int ChunkSize = htoi(s);
+						if (ChunkSize <= 0)
+						{
+							// End of stream.
+							Status = true;
+							break;
+						}
+						
+						int ChunkDone = 0;
+						memmove(s, End, Used - HdrLen);
+						Used -= HdrLen;
+						
+						// Loop over the body of the chunk
+						while (Socket && ChunkDone < ChunkSize)
+						{
+							int Remaining = ChunkSize - ChunkDone;
+							int Common = min(Used, Remaining);
+							if (Common > 0)
+							{
+								int w = Out->Write(s, Common);
+								if (w != Common)
+								{
+									LgiAssert(!"Write failed.");
+									break;
+								}
+								if (Used > Common)
+									memmove(s, s + Common, Used - Common);
+								ChunkDone += Common;
+								Used -= Common;
+
+								if (ChunkDone >= ChunkSize)
+									break;
+							}
+
+							int r = Socket->Read(s + Used, sizeof(s) - Used);
+							if (r < 0)
+								break;
+							
+							Used += r;
+						}
+						
+						// Loop over the CRLF postfix
+						if (Socket && Used < 2)
+						{
+							int r = Socket->Read(s + Used, sizeof(s) - Used);
+							if (r < 0)
+								break;
+							Used += r;
+						}							
+						if (Used < 2 || s[0] != '\r' || s[1] != '\n')
+						{
+							LgiAssert(!"Post fix missing.");
+							break;
+						}
+						if (Used > 2)
+							memmove(s, s + 2, Used - 2);
+						Used -= 2;							
 					}
+				}
+				else
+				{
+					// Non chunked connection.
+					int64 Written = 0;
+					if (Used > 0)
+					{
+						int w = Out->Write(s, Used);
+						if (w >= 0)
+						{
+							Written += w;
+							Used = 0;
+						}
+						else
+						{
+							Written = -1;
+						}
+					}
+					
+					while (	Socket &&
+							Written >= 0 &&
+							Written < ContentLen &&
+							Socket->IsOpen())
+					{
+						int r = Socket->Read(s + Used, sizeof(s) - Used);
+						if (r <= 0)
+							break;
+
+						int w = Out->Write(s, r);
+						if (w <= 0)
+							break;
+						
+						Written += w;
+					}
+
+					Status = Written == ContentLen;
 				}
 			}
 		}
@@ -681,6 +712,9 @@ bool IHttp::Get
 
 	return Status;
 }
+
+#if 0
+#define HTTP_POST_LOG 1
 
 bool IHttp::Post
 (
@@ -720,10 +754,18 @@ bool IHttp::Post
 		char *s = Cmd.NewStr();
 		if (s)
 		{
+#if HTTP_POST_LOG
+LgiTrace("IHTTP::Post write headers:\n%s\n\n", s);
+#endif
+
 			// Write the headers...
 			int SLen = strlen(s);
 			bool WriteOk = Socket->Write(s, SLen) == SLen;
 			DeleteArray(s);
+
+#if HTTP_POST_LOG
+LgiTrace("IHTTP::Post WriteOk=%i\n", WriteOk);
+#endif
 			if (WriteOk)
 			{
 				// Copy all the 'Content' to the socket
@@ -731,13 +773,26 @@ bool IHttp::Post
 				while (true)
 				{
 					int r = Content.Read(Buf, sizeof(Buf));
+#if HTTP_POST_LOG
+LgiTrace("IHTTP::Post Content.Read=%i\n", r);
+#endif
 					if (r > 0)
 					{
-						Socket->Write(Buf, r);
+						int w = Socket->Write(Buf, r);
+#if HTTP_POST_LOG
+LgiTrace("IHTTP::Post Socket.Write=%i\n", w);
+#endif
+						if (w <= 0)
+						{
+							break;
+						}
 					}
 					else break;
 				}
 				
+#if HTTP_POST_LOG
+LgiTrace("IHTTP::Post Starting on response\n");
+#endif
 				// Read the response
 				GLinePrefix EndHeaders("\r\n");
 				int Total = 0;
@@ -745,9 +800,15 @@ bool IHttp::Post
 				while (Out)
 				{
 					int r = Socket->Read(Buf, sizeof(Buf));
+#if HTTP_POST_LOG
+LgiTrace("IHTTP::Post Read=%i\n", r);
+#endif
 					if (r > 0)
 					{
 						int e = EndHeaders.IsEnd(Buf, r);
+#if HTTP_POST_LOG
+LgiTrace("IHTTP::Post EndHeaders=%i\n", e);
+#endif
 						if (e < 0)
 						{
 							Headers.Write(Buf, r);
@@ -766,6 +827,9 @@ bool IHttp::Post
 				
 				// Process output
 				char *h = Headers.NewStr();
+#if HTTP_POST_LOG
+LgiTrace("IHTTP::Post Headers=\n%s\n\n", h);
+#endif
 				if (h)
 				{
 					if (ProtocolStatus)
@@ -787,6 +851,9 @@ bool IHttp::Post
 					while (Socket->IsOpen())
 					{
 						int r = Socket->Read(Buf, sizeof(Buf));
+#if HTTP_POST_LOG
+LgiTrace("IHTTP::Post ResponseBody.Read=%i\n", r);
+#endif
 						if (r > 0)
 						{
 							Out->Write(Buf, r);
@@ -802,3 +869,4 @@ bool IHttp::Post
 	
 	return Status;
 }
+#endif

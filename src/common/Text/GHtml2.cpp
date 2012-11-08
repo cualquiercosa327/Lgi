@@ -2342,8 +2342,25 @@ void GTag::CollectFormValues(GHashTbl<const char*,char*> &f)
 			if (Existing)
 				DeleteArray(Existing);
 
-			if (CtrlValue.Str())
-				f.Add(Name, NewStr(CtrlValue.Str()));
+			char *Val = CtrlValue.Str();
+			if (Val)
+			{
+				GStringPipe p(256);
+				for (char *v = Val; *v; v++)
+				{
+					if (*v == ' ')
+						p.Write("+", 1);
+					else if (IsAlpha(*v) || IsDigit(*v) || *v == '_' || *v == '.')
+						p.Write(v, 1);
+					else
+						p.Print("%%%02.2X", *v);
+				}
+				f.Add(Name, p.NewStr());
+			}
+			else
+			{
+				f.Add(Name, NewStr(""));
+			}
 		}
 	}
 
@@ -2517,7 +2534,8 @@ bool GTag::MatchFullSelector(GCss::Selector *Sel)
 			{
 				case GCss::Selector::CombChild:
 				{
-					LgiAssert(!"Not impl.");
+					// LgiAssert(!"Not impl.");
+					return false;
 					break;
 				}
 				case GCss::Selector::CombAdjacent:
@@ -3190,16 +3208,15 @@ void GTag::SetStyle()
 			LgiAssert(!Ctrl);
 
 			const char *Type, *Value = NULL;
-			if (Get("value", Value))
+			Get("value", Value);
+			GAutoWString CleanValue(Value ? CleanText(Value, strlen(Value), true, true) : NULL);
+			if (CleanValue)
 			{
-				CtrlValue = Value;
+				CtrlValue = CleanValue;
 			}
 			
 			if (Get("type", Type))
 			{
-				const char *Value = NULL;
-				Get("value", Value);
-				
 				if (!stricmp(Type, "password")) CtrlType = CtrlPassword;
 				else if (!stricmp(Type, "email")) CtrlType = CtrlEmail;
 				else if (!stricmp(Type, "text")) CtrlType = CtrlText;
@@ -3213,19 +3230,21 @@ void GTag::SetStyle()
 					CtrlType == CtrlPassword)
 				{
 					GEdit *Ed;
-					if (Ctrl = Ed = new GEdit(Html->d->NextCtrlId++, 0, 0, 60, SysFont->GetHeight() + 8, Value))
+					GAutoString UtfCleanValue(LgiNewUtf16To8(CleanValue));
+					if (Ctrl = Ed = new GEdit(Html->d->NextCtrlId++, 0, 0, 60, SysFont->GetHeight() + 8, UtfCleanValue))
 					{
 						Ed->Sunken(false);
 						Ed->Password(CtrlType == CtrlPassword);
-						if (Value)
-							Ed->Name(Value);
 					}						
 				}
 				else if (CtrlType == CtrlButton ||
 						 CtrlType == CtrlSubmit)
 				{
-					if (Value)
-						Ctrl = new InputButton(this, Html->d->NextCtrlId++, Value);
+					GAutoString UtfCleanValue(LgiNewUtf16To8(CleanValue));
+					if (UtfCleanValue)
+					{
+						Ctrl = new InputButton(this, Html->d->NextCtrlId++, UtfCleanValue);
+					}
 				}
 			}
 			break;
