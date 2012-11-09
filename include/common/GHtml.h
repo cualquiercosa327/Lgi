@@ -3,9 +3,11 @@
 #ifndef _GHTML_H
 #define _GHTML_H
 
-#include "GMap.h"
 #include "GDocView.h"
 #include "GHtmlStatic.h"
+
+namespace Html1
+{
 
 class GTag;
 class GFontCache;
@@ -13,22 +15,23 @@ class GFontCache;
 /// A lightwight scripting safe HTML control. It has limited CSS support, renders
 /// most tables, even when nested. You can provide support for loading external
 /// images by implementing the GDocumentEnv::GetImageUri method of the 
-/// GDocumentEnv interface and passing it into GHtml::SetEnv.
+/// GDocumentEnv interface and passing it into GHtml2::SetEnv.
 /// All attempts to open URL's are passed into GDocumentEnv::OnNavigate method of the
 /// environment if set. Likewise any content inside active scripting tags, e.g. &lt;? ?&gt;
 /// will be striped out of the document and passed to GDocumentEnv::OnDynamicContent, which
 /// should return the relevant HTML that the script resolves to. A reasonable default
 /// implementation of the GDocumentEnv interface is the GDefaultDocumentEnv object.
 ///
-/// You can set the content of the control through the GHtml::Name method.
+/// You can set the content of the control through the GHtml2::Name method.
 ///
-/// Retreive any selected content through GHtml::GetSelection.
+/// Retreive any selected content through GHtml2::GetSelection.
 class GHtml :
 	public GDocView,
 	public ResObject
 {
 	friend class GTag;
 	friend class GFlowRegion;
+
 	class GHtmlPrivate *d;
 
 protected:	
@@ -44,16 +47,25 @@ protected:
 	int					ViewWidth;
 	GToolTip			Tip;
 	GTag				*PrevTip;
-	GMap<char*,char*>	CssMap;
-
+	GCss::Store			CssStore;
+	
 	// Display
 	GSurface			*MemDC;
+
+	// This lock is separate from the window lock to avoid deadlocks.
+	struct GJobSem : public GMutex
+	{
+    	// Data that has to be accessed under Lock
+	    GArray<GDocumentEnv::LoadJob*> Jobs;	    
+	    GJobSem() : GMutex("GJobSem") {}
+	} JobSem;
 
 	// Methods
 	void _New();
 	void _Delete();
 	GFont *DefFont();
 	GTag *GetOpenTag(char *Tag);
+	void CloseTag(GTag *t);
 	void Parse();
 	void AddCss(char *Css);
 	int ScrollY();
@@ -66,15 +78,13 @@ protected:
 	GTag *NextTag(GTag *t);
 	GTag *GetLastChild(GTag *t);
 
-	friend bool FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User);
-	bool OnFind(class GFindReplaceCommon *Params);
-
 public:
 	GHtml(int Id, int x, int y, int cx, int cy, GDocumentEnv *system = 0);
 	~GHtml();
 
 	// Html
-	const char *GetClass() { return "GHtml"; }
+	const char *GetClass() { return "GHtml2"; }
+	bool GetFormattedContent(char *MimeType, GAutoString &Out, GArray<GDocView::ContentMedia> *Media = 0);
 
 	/// Get the tag at an x,y location
 	GTag *GetTagByPos(int x, int y, int *Index);
@@ -84,8 +94,12 @@ public:
 	// Options
 	bool GetLinkDoubleClick();
 	void SetLinkDoubleClick(bool b);
+	void SetLoadImages(bool i);
+	bool GetEmoji();
+	void SetEmoji(bool i);
 
 	// GDocView
+	bool SetVariant(const char *Name, GVariant &Value, char *Array = 0);
 	
 	/// Copy the selection to the clipboard
 	bool Copy();
@@ -99,7 +113,6 @@ public:
 	char *GetSelection();
 	
 	// Prop
-	void SetLoadImages(bool i);
 
 	// Window
 
@@ -116,6 +129,7 @@ public:
 	void OnPaint(GSurface *pDC);
 	void OnMouseClick(GMouse &m);
 	void OnMouseMove(GMouse &m);
+	int OnHitTest(int x, int y);
 	void OnMouseWheel(double Lines);
 	bool OnKey(GKey &k);
 	int OnNotify(GViewI *c, int f);
@@ -123,32 +137,17 @@ public:
 	void OnPulse();
 	GMessage::Result OnEvent(GMessage *Msg);
 	const char *GetMimeType() { return "text/html"; }
+	void OnContent(GDocumentEnv::LoadJob *Res);
+	bool GotoAnchor(char *Name);
 
 	// Javascript handlers
 	GDom *getElementById(char *Id);
+
+	// Events
+	bool OnFind(class GFindReplaceCommon *Params);
+	virtual bool OnSubmitForm(GTag *Form);
+	virtual void OnCursorChanged() {}
 };
 
-/// The CSS align types
-enum CssAlign
-{
-	AlignInherit,
-	AlignLeft,
-	AlignCenter,
-	AlignRight,
-	AlignJustify,
-	AlignTop,
-	AlignMiddle,
-	AlignBottom,
-};
-
-/// Css background repeat options
-enum CssBackgroundRepeat
-{
-	BgInherit,
-	BgRepeat,
-	BgRepeatX,
-	BgRepeatY,
-	BgNoRepeat,
-};
-
+}
 #endif

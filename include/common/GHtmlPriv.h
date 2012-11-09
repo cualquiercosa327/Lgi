@@ -1,16 +1,20 @@
-#ifndef _GHTML_PRIV_H_
-#define _GHTML_PRIV_H_
+#ifndef _GHTML1_PRIV_H_
+#define _GHTML1_PRIV_H_
 
-#include "GProperties.h"
+#include "GCss.h"
+#include "GToken.h"
 
-class GTag;
+namespace Html1
+{
 
-//
-// Enums
-//
+//////////////////////////////////////////////////////////////////////////////////
+// Enums                                                                        //
+//////////////////////////////////////////////////////////////////////////////////
 enum HtmlTag
 {
 	CONTENT,
+	CONDITIONAL,
+	ROOT,
 	TAG_UNKNOWN,
 	TAG_HTML,
 	TAG_HEAD,
@@ -45,18 +49,16 @@ enum HtmlTag
 	TAG_H4,
 	TAG_H5,
 	TAG_H6,
-	TAG_HR
-};
-
-enum GLengthUnit
-{
-	LengthNull = 0,
-	LengthPixels,
-	LengthPercentage,
-	LengthPoint,
-	LengthEm,
-	LengthEx,
-	LengthRemaining
+	TAG_HR,
+	TAG_IFRAME,
+	TAG_LINK,
+	TAG_BIG,
+	TAG_INPUT,
+	TAG_SELECT,
+	TAG_LABEL,
+	TAG_FORM,
+	TAG_NOSCRIPT,
+	TAG_LAST
 };
 
 enum TagInfoFlags
@@ -68,20 +70,56 @@ enum TagInfoFlags
 	TI_TABLE		= 0x08,
 };
 
+//////////////////////////////////////////////////////////////////////////////////
+// Structs & Classes                                                            //
+//////////////////////////////////////////////////////////////////////////////////
+class GFlowRect;
+class GFlowRegion;
+
 struct GTagHit
 {
-	GTag *Hit;
-	class GFlowRect *Block;
-	int Near;
-	int Index;
+	GTag *Hit; // Tag that was hit, or nearest tag, otherwise NULL
+	int Near; // 0 if a direct hit, >0 is near miss, -1 if invalid.
+
+	GFlowRect *Block; // Text block hit
+	int Index; // If Block!=NULL then index into text, otherwise -1.
+
+	GTagHit()
+	{
+		Hit = 0;
+		Block = 0;
+		Near = -1;
+		Index = -1;
+	}
+
+	/// Return true if the current object is a closer than 'h'
+	bool operator <(GTagHit &h)
+	{
+		// We didn't hit anything, so we can't be closer
+		if (!Hit)
+			return false;
+
+		// We did hit something, and 'h' isn't an object yet
+		// or 'h' is a block hit with no text ref... in which
+		// case we are closer... because we have a text hit
+		if (!h.Hit || (Near >= 0 && h.Near < 0))
+			return true;
+
+		LgiAssert(Near >= 0);
+
+		if (Near < h.Near)
+			return true;
+
+		return false;
+	}
 };
 
 struct GInfo
 {
 public:
 	HtmlTag Id;
-	char *Tag;
-	char *ReattachTo;
+	const char *Tag;
+	const char *ReattachTo;
 	int Flags;
 
 	bool NeverCloses()	{ return TestFlag(Flags, TI_NEVER_CLOSES); }
@@ -89,17 +127,12 @@ public:
 	bool Block()		{ return TestFlag(Flags, TI_BLOCK); }
 };
 
-//
-// Classes
-//
-class GFlowRegion;
-
 class GLength
 {
 protected:
 	float d;
 	float PrevAbs;
-	GLengthUnit u;
+	GCss::LengthType u;
 
 public:
 	GLength();
@@ -110,7 +143,7 @@ public:
 	float GetPrevAbs() { return PrevAbs; }
 	operator float();
 	GLength &operator =(float val);
-	GLengthUnit GetUnits();
+	GCss::LengthType GetUnits();
 	void Set(char *s);
 	float Get(GFlowRegion *Flow, GFont *Font, bool Lock = false);
 	float GetRaw() { return d; }
@@ -121,39 +154,13 @@ class GLine : public GLength
 public:
 	int LineStyle;
 	int LineReset;
-	COLOUR Colour;
+	GCss::ColorDef Colour;
 
 	GLine();
 	~GLine();
 
 	GLine &operator =(int i);
 	void Set(char *s);
-};
-
-class GCellStore
-{
-	class Cell
-	{
-	public:
-		int x, y;
-		GTag *Tag;
-	};
-
-	List<Cell> Cells;
-
-public:
-	GCellStore(GTag *Table);
-	~GCellStore()
-	{
-		Cells.DeleteObjects();
-	}
-
-	void GetSize(int &x, int &y);
-	void GetAll(List<GTag> &All);
-	GTag *Get(int x, int y);
-	bool Set(GTag *t);
-	
-	void Dump();
 };
 
 class GFlowRect : public GRect
@@ -173,6 +180,12 @@ public:
 	~GFlowRect()
 	{
 	}
+
+	int Start();
+	bool OverlapX(int x) { return x >= x1 && x <= x2; }
+	bool OverlapY(int y) { return y >= y1 && y <= y2; }
+	bool OverlapX(GFlowRect *b) { return !(b->x2 < x1 || b->x1 > x2); }
+	bool OverlapY(GFlowRect *b) { return !(b->y2 < y1 || b->y1 > y2); }
 };
 
 class GArea : public List<GFlowRect>
@@ -180,21 +193,61 @@ class GArea : public List<GFlowRect>
 public:
 	~GArea();
 
+	GRect Bounds();
 	GRect *TopRect(GRegion *c);
-	void FlowText(GTag *Tag, GFlowRegion *c, GFont *Font, char16 *Text, CssAlign Align);
+	void FlowText(GTag *Tag, GFlowRegion *c, GFont *Font, char16 *Text, GCss::LengthType Align);
 };
 
-class GTag : public GDom, public ObjProperties
+class GCellStore
 {
+	typedef GArray<GTag*> CellArray;
+	GArray<CellArray> c;
+
+public:
+	GCellStore(GTag *Table);
+
+	void GetSize(int &x, int &y);
+	void GetAll(List<GTag> &All);
+	GTag *Get(int x, int y);
+	bool Set(GTag *t);
+	
+	void Dump();
+};
+
+class GTag : public GDom, public GCss
+{
+public:
+	enum HtmlControlType
+	{
+		CtrlNone,
+		CtrlPassword,
+		CtrlEmail,
+		CtrlText,
+		CtrlButton,
+		CtrlSubmit,
+		CtrlSelect,
+		CtrlHidden,
+	};
+
+protected:
 	static bool Selected;
 	friend class HtmlEdit;
+
+	GHashTbl<const char*, char*> Attr;
+
+	// Forms
+	GViewI *Ctrl;
+	GVariant CtrlValue;
+	HtmlControlType CtrlType;
+
+	// Text
+	GAutoWString Txt, PreTxt;
 
 	// Debug stuff
 	void _Dump(GStringPipe &Buf, int Depth);
 	void _TraceOpenTags();
 
 	// Private methods
-	GFont *GetFont();
 	GFont *NewFont();
 	int NearestChar(GFlowRect *Fr, int x, int y);
 	GTag *HasOpenTag(char *t);
@@ -207,6 +260,7 @@ class GTag : public GDom, public ObjProperties
 	GTag *GetTable();
 	char *NextTag(char *s);
 	void ZeroTableElements();
+	bool OnUnhandledColor(GCss::ColorDef *def, const char *&s);
 	
 	COLOUR _Colour(bool Fore);
 	COLOUR GetFore() { return _Colour(true); }
@@ -216,96 +270,113 @@ public:
 	// Object
 	HtmlTag TagId;
 	char *Tag; // My tag
-	char *HtmlId;
+
+	GToken Class;
+	const char *HtmlId;
+
+	GAutoString Condition;
 	GInfo *Info;
 	int TipId;
 	bool WasClosed;
-	bool IsBlock;
+	DisplayType Disp;
 
 	// Heirarchy
 	GHtml *Html;
 	GTag *Parent;
 	List<GTag> Tags;
-
-	void Attach(GTag *Child, int Idx = -1);
+	bool HasChild(GTag *c);
+	bool Attach(GTag *Child, int Idx = -1);
 	void Detach();
 	GTag *GetBlockParent(int *Idx = 0);
+	GFont *GetFont();
 
 	// Style
-	bool Visible;
-	GLength Width, Height;
 	GdcPt2 Pos;
 	GdcPt2 Size;
-	COLOUR Fore, Back, BorderColour;
-	CssBackgroundRepeat BackgroundRepeat;
 	GFont *Font;
-
-	GLine BorderLeft;
-	GLine BorderTop;
-	GLine BorderRight;
-	GLine BorderBottom;
 	
-	GLength MarginLeft;
-	GLength MarginTop;
-	GLength MarginRight;
-	GLength MarginBottom;
-	
-	GLength PaddingLeft;
-	GLength PaddingTop;
-	GLength PaddingRight;
-	GLength PaddingBottom;
-
-	CssAlign AlignX;
-	CssAlign AlignY;
-	CssAlign GetAlign(bool x);
-
 	// Images
-	GSurface *Image;
-	void SetImage(char *uri, GSurface *i);
-	void LoadImage(char *Uri);
-	void LoadImages();
+	GAutoPtr<GSurface> Image;
+	void SetImage(const char *uri, GSurface *i);
+	void LoadImage(const char *Uri); // Load just this URI
+	void LoadImages(); // Recursive load all image URI's
 	void ImageLoaded(char *uri, GSurface *img, int &Used);
 
 	// Table stuff
 	GdcPt2 Cell;
 	GdcPt2 Span;
-	uint8 CellSpacing;
-	uint8 CellPadding;
-	// uint8 TableBorder;
 	uint16 MinContent, MaxContent;
+	GCss::LengthType XAlign;
 	GCellStore *Cells;
 	#ifdef _DEBUG
-	bool Debug;
+	int Debug;
 	#endif
 
 	// Text
 	int Cursor; // index into text of the cursor
 	int Selection; // index into the text of the selection edge
-	char16 *Text, *PreText;
 	GArea TextPos;
 
 	GTag(GHtml *h, GTag *p);
 	~GTag();
 
+	// Events
+	void OnChange(PropType Prop);
+	bool OnClick();
+
+	// Attributes
+	bool Get(const char *attr, const char *&val) { val = Attr.Find(attr); return val != 0; }
+	void Set(const char *attr, const char *val);
+
 	// Methods
+	char16 *Text() { return Txt; }
+	void Text(char16 *t) { Txt.Reset(t); TextPos.Empty(); }
+	char16 *PreText() { return PreTxt; }
+	void PreText(char16 *t) { PreTxt.Reset(t); TextPos.Empty(); }
+
 	int GetTextStart();
 	char *Dump();
-	char16 *CleanText(char *s, int len, bool ConversionAllowed = true, bool KeepWhiteSpace = false);
+	char16 *CleanText(const char *s, int len, bool ConversionAllowed = true, bool KeepWhiteSpace = false);
 	char *ParseHtml(char *Doc, int Depth, bool InPreTag = false, bool *BackOut = 0);
 	char *ParseText(char *Doc);
+	
+	/// Configures the tag's styles.
 	void SetStyle();
-	void SetCssStyle(char *Style);
+	/// Called to apply CSS selectors on initialization and also when properties change at runtime.
+	void Restyle();
+	/// Match a simple CSS selector against the current object
+	bool MatchSimpleSelector(GCss::Selector *Sel, int PartIdx);
+	/// Match all the CSS selectors against the current object (calls MatchSimpleSelector one or more times)
+	bool MatchFullSelector(GCss::Selector *Sel);
+	
+	/// Takes the CSS styles, parses and stores them in the current object,
+	//// overwriting any duplicate properties.
+	void SetCssStyle(const char *Style);
+	/// Positions the tag according to the flow region passed in
 	void OnFlow(GFlowRegion *Flow);
-	void OnPaintBorder(GSurface *pDC);
+	/// Paints the border of the tag
+	void OnPaintBorder(
+		/// The surface to paint on
+		GSurface *pDC,
+		/// [Optional] The size of the border painted
+		GRect *Px = NULL);
 	void OnPaint(GSurface *pDC);
 	void SetSize(GdcPt2 &s);
-	void SetTag(char *Tag);
-	bool GetTagByPos(int x, int y, GTagHit *Hit);
-	GTag *GetTagByName(char *Name);
+	void SetTag(const char *Tag);
+	GTagHit GetTagByPos(int x, int y);
+	GTag *GetTagByName(const char *Name);
 	void CopyClipboard(GBytePipe &p);
-	GTag *IsAnchor(char **Uri);
+	GTag *IsAnchor(GAutoString *Uri);
 	bool CreateSource(GStringPipe &p, int Depth = 0, bool LastWasBlock = true);
-	void SetText(char16 *NewText);
+	void Find(int TagType, GArray<GTag*> &Tags);
+	GTag *GetAnchor(char *Name);
+
+	// Control handling
+	GTag *FindCtrlId(int Id);
+	int OnNotify(int f);
+	void CollectFormValues(GHashTbl<const char*,char*> &f);
+
+	// GDom impl
 	bool GetVariant(const char *Name, GVariant &Value, char *Array = 0);
 	bool SetVariant(const char *Name, GVariant &Value, char *Array = 0);
 
@@ -314,15 +385,18 @@ public:
 	void Invalidate();
 
 	// Positioning
-	int RelX() { return Pos.x + MarginLeft; }
-	int RelY() { return Pos.y + MarginTop; }
+	int RelX() { return Pos.x + (int)MarginLeft().Value; }
+	int RelY() { return Pos.y + (int)MarginTop().Value; }
 	int AbsX();
 	int AbsY();
 	GRect GetRect(bool Client = true);
+	GCss::LengthType GetAlign(bool x);
 
 	// Tables
 	GTag *GetTableCell(int x, int y);
 	GdcPt2 GetTableSize();
 };
+
+}
 
 #endif

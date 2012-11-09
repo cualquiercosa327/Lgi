@@ -6,13 +6,18 @@
 #include "Lgi.h"
 #include "GHtml.h"
 #include "GHtmlPriv.h"
-#include "GMap.h"
 #include "GToken.h"
 #include "GScrollBar.h"
 #include "GVariant.h"
 #include "GFindReplaceDlg.h"
+#include "GUtf8.h"
+#include "Emoji.h"
 #include "GClipBoard.h"
+#include "GButton.h"
+#include "GEdit.h"
+#include "GCombo.h"
 
+#define DEBUG_TABLE_LAYOUT			0
 #define LUIS_DEBUG					0
 #define CRASH_TRACE					0
 #ifdef MAC
@@ -24,12 +29,22 @@
 #ifndef IDC_HAND
 #define IDC_HAND					MAKEINTRESOURCE(32649)
 #endif
+#define M_JOBS_LOADED				(M_USER+4000)
 
 #undef CellSpacing
 #define DefaultCellSpacing			0
 #define DefaultCellPadding			3
+
+#ifdef MAC
+#define MinimumPointSize			9
+#define MinimumBodyFontSize			12
+#else
+#define MinimumPointSize			8
+#define MinimumBodyFontSize			11
+#endif
+
 #define DefaultPointSize			11
-#define DefaultBodyMargin			5
+#define DefaultBodyMargin			"5px"
 #define DefaultImgSize				17
 #define DefaultMissingCellColour	GT_TRANSPARENT // Rgb32(0xf0,0xf0,0xf0)
 #ifdef _DEBUG
@@ -38,35 +53,91 @@
 #define DefaultTableBorder			GT_TRANSPARENT
 #endif
 #define DefaultTextColour			Rgb32(0, 0, 0)
-#define MinFontSize					8
 #define ShowNbsp					0
 
 static char WordDelim[]	=			".,<>/?[]{}()*&^%$#@!+|\'\"";
 static char16 WhiteW[] =			{' ', '\t', '\r', '\n', 0};
+
 #define SkipWhiteSpace(s)			while (*s && IsWhiteSpace(*s)) s++;
-#define SubtractPtr(a, b)			( ((a)-(b)) / sizeof(*a) )
+
+static char DefaultCss[] = {
+"a				{ color: blue; text-decoration: underline; }"
+"body			{ margin: 8px; }"
+"strong			{ font-weight: bolder; }"
+"pre				{ font-family: monospace }"
+"h1				{ font-size: 2em; margin: .67em 0px; }"
+"h2				{ font-size: 1.5em; margin: .75em 0px; }"
+"h3				{ font-size: 1.17em; margin: .83em 0px; }"
+"h4, p,"
+"blockquote, ul,"
+"fieldset, form,"
+"ol, dl, dir,"
+"menu            { margin: 1.12em 0px; }"
+"h5              { font-size: .83em; margin: 1.5em 0px; }"
+"h6              { font-size: .75em; margin: 1.67em 0px; }"
+"strike, del		{ text-decoration: line-through; }"
+"hr              { border: 1px inset; }"
+"center          { text-align: center; }"
+"h1, h2, h3, h4,"
+"h5, h6, b,"
+"strong          { font-weight: bolder; }"
+};
+
+#define IsBlock(d)		((d) == DispBlock)
 
 //////////////////////////////////////////////////////////////////////
-GHtmlStatic *Static = 0;
+using namespace Html1;
+
+namespace Html1
+{
 
 class GHtmlPrivate
 {
 public:
-	GHashTable Loading;
+	GHashTbl<const char*, bool> Loading;
 	GHtmlStaticInst Inst;
 	bool CursorVis;
 	GRect CursorPos;
 	bool WordSelectMode;
 	GdcPt2 Content;
 	bool LinkDoubleClick;
+	GAutoString OnLoadAnchor;
+	bool DecodeEmoji;
+	GAutoString EmojiImg;
+	bool IsParsing;
+	int NextCtrlId;
+	
+	// This UID is used to match data load events with their source document.
+	// Sometimes data will arrive after the document that asked for it has
+	// already been unloaded. So by assigned each document an UID we can check
+	// the job UID against it and discard old data.
+	uint32 DocumentUid;
 
 	GHtmlPrivate()
 	{
+		IsParsing = false;
+		DocumentUid = 0;
 		LinkDoubleClick = true;
 		WordSelectMode = false;
-		Static = Inst.Static;
+		NextCtrlId = 2000;
 		CursorVis = false;
 		CursorPos.ZOff(-1, -1);
+
+		char EmojiPng[MAX_PATH];
+		#ifdef MAC
+		LgiGetExeFile(EmojiPng, sizeof(EmojiPng));
+		LgiMakePath(EmojiPng, sizeof(EmojiPng), EmojiPng, "Contents/Resources/Emoji.png");
+		#else
+		LgiGetSystemPath(LSP_APP_INSTALL, EmojiPng, sizeof(EmojiPng));
+		LgiMakePath(EmojiPng, sizeof(EmojiPng), EmojiPng, "resources/emoji.png");
+		#endif
+		if (FileExists(EmojiPng))
+		{
+			DecodeEmoji = true;
+			EmojiImg.Reset(NewStr(EmojiPng));
+		}
+		else
+			DecodeEmoji = false;
 	}
 
 	~GHtmlPrivate()
@@ -74,8 +145,10 @@ public:
 	}
 };
 
+};
+
 //////////////////////////////////////////////////////////////////////
-GInfo TagInfo[] =
+static GInfo TagInfo[] =
 {
 	{TAG_B,				"b",			0,			TI_NONE},
 	{TAG_I,				"i",			0,			TI_NONE},
@@ -111,30 +184,42 @@ GInfo TagInfo[] =
 	{TAG_H4,			"h4",			0,			TI_BLOCK},
 	{TAG_H5,			"h5",			0,			TI_BLOCK},
 	{TAG_H6,			"h6",			0,			TI_BLOCK},
+	{TAG_IFRAME,		"iframe",		0,			TI_BLOCK},
+	{TAG_LINK,			"link",			0,			TI_NONE},
+	{TAG_BIG,			"big",			0,			TI_NONE},
+	{TAG_SELECT,		"select",		0,			TI_NONE},
+	{TAG_INPUT,			"input",		0,			TI_NEVER_CLOSES},
+	{TAG_LABEL,			"label",		0,			TI_NONE},
+	{TAG_FORM,			"form",			0,			TI_NONE},
 	{TAG_UNKNOWN,		0,				0,			TI_NONE},
 };
 
-GInfo *GetTagInfo(char *Tag)
+static GHashTbl<const char*, GInfo*> TagMap(TAG_LAST * 3, false, NULL, NULL);
+static GInfo *UnknownTag = NULL;
+
+static GInfo *GetTagInfo(const char *Tag)
 {
 	GInfo *i;
 
 	if (!Tag)
 		return 0;
 
-	if (stricmp(Tag, "th") == 0)
-	{
-		Tag = "td";
+    if (TagMap.Length() == 0)
+    {
+	    for (i = TagInfo; i->Tag; i++)
+	    {
+	        TagMap.Add(i->Tag, i);
+
+	        if (i->Id == TAG_TD)
+	            TagMap.Add("th", i);
+	    }
+	    
+	    UnknownTag = i;
+	    LgiAssert(UnknownTag->Id == TAG_UNKNOWN);
 	}
 
-	for (i=TagInfo; i->Tag; i++)
-	{
-		if (stricmp(i->Tag, Tag) == 0)
-		{
-			break;
-		}
-	}
-
-	return i;
+	i = TagMap.Find(Tag);
+	return i ? i : UnknownTag;
 }
 
 static bool Is8Bit(char *s)
@@ -148,23 +233,27 @@ static bool Is8Bit(char *s)
 	return false;
 }
 
-char *ParseName(char *s, char **Name)
+static char *ParseName(char *s, char **Name)
 {
 	SkipWhiteSpace(s);
 	char *Start = s;
-	while (*s && (IsAlpha(*s) || strchr("-:", *s) || IsDigit(*s))) s++;
+	while (*s && (IsAlpha(*s) || strchr("!-:", *s) || IsDigit(*s)))
+	{
+		s++;
+	}
 	if (Name)
 	{
-		int Len = SubtractPtr(s, Start);
+		int Len = s - Start;
 		if (Len > 0)
 		{
-			*Name = NewStr(Start, SubtractPtr(s, Start));
+			*Name = NewStr(Start, Len);
 		}
 	}
+	
 	return s;
 }
 
-char *ParsePropValue(char *s, char *&Value)
+static char *ParsePropValue(char *s, char *&Value)
 {
 	Value = 0;
 	if (s)
@@ -174,25 +263,25 @@ char *ParsePropValue(char *s, char *&Value)
 			char Delim = *s++;
 			char *Start = s;
 			while (*s && *s != Delim) s++;
-			Value = NewStr(Start, SubtractPtr(s, Start));
+			Value = NewStr(Start, s - Start);
 			s++;
 		}
 		else
 		{
 			char *Start = s;
 			while (*s && !IsWhiteSpace(*s) && *s != '>') s++;
-			Value = NewStr(Start, SubtractPtr(s, Start));
+			Value = NewStr(Start, s - Start);
 		}
 	}
 
 	return s;
 }
 
-bool ParseColour(char *s, COLOUR &c)
+static bool ParseColour(const char *s, GCss::ColorDef &c)
 {
 	if (s)
 	{
-		COLOUR m;
+		int m;
 
 		if (*s == '#')
 		{
@@ -206,7 +295,9 @@ bool ParseColour(char *s, COLOUR &c)
 				int r = i >> 8;
 				int g = (i >> 4) & 0xf;
 				int b = i & 0xf;
-				c = Rgb32(r | (r<<4), g | (g << 4), b | (b << 4));
+
+				c.Type = GCss::ColorRgb;
+				c.Rgb32 = Rgb32(r | (r<<4), g | (g << 4), b | (b << 4));
 			}
 			else if (l == 4)
 			{
@@ -214,20 +305,21 @@ bool ParseColour(char *s, COLOUR &c)
 				int g = (i >> 8) & 0xf;
 				int b = (i >> 4) & 0xf;
 				int a = i & 0xf;
-				c = Rgba32
-					(
-						r | (r <<4 ),
-						g | (g << 4),
-						b | (b << 4),
-						a | (a << 4));
+				c.Type = GCss::ColorRgb;
+				c.Rgb32 = Rgba32(	r | (r <<4 ),
+									g | (g << 4),
+									b | (b << 4),
+									a | (a << 4));
 			}
 			else if (l == 6)
 			{
-				c = Rgb32(i >> 16, (i >> 8) & 0xff, i & 0xff);
+				c.Type = GCss::ColorRgb;
+				c.Rgb32 = Rgb32(i >> 16, (i >> 8) & 0xff, i & 0xff);
 			}
 			else if (l == 8)
 			{
-				c = Rgba32(i >> 24, (i >> 16) & 0xff, (i >> 8) & 0xff, i & 0xff);
+				c.Type = GCss::ColorRgb;
+				c.Rgb32 = Rgba32(i >> 24, (i >> 16) & 0xff, (i >> 8) & 0xff, i & 0xff);
 			}
 			else
 			{
@@ -238,12 +330,11 @@ bool ParseColour(char *s, COLOUR &c)
 		}
 		else if ((m = GHtmlStatic::Inst->ColourMap.Find(s)) >= 0)
 		{
-			c = Rgb24To32(m);
+			c.Type = GCss::ColorRgb;
+			c.Rgb32 = Rgb24To32(m);
 			return true;
 		}
-		else if (tolower(s[0]) == 'r' &&
-				 tolower(s[1]) == 'g' &&
-				 tolower(s[2]) == 'b')
+		else if (!strnicmp(s, "rgb", 3))
 		{
 			s += 3;
 			SkipWhiteSpace(s);
@@ -254,10 +345,10 @@ bool ParseColour(char *s, COLOUR &c)
 				while (Col.Length() < 3)
 				{
 					SkipWhiteSpace(s);
-					if (isdigit(*s))
+					if (IsDigit(*s))
 					{
 						Col.Add(atoi(s));
-						while (*s && isdigit(*s)) s++;
+						while (*s && IsDigit(*s)) s++;
 						SkipWhiteSpace(s);
 						if (*s == ',') s++;
 					}
@@ -267,13 +358,13 @@ bool ParseColour(char *s, COLOUR &c)
 				SkipWhiteSpace(s);
 				if (*s == ')' && Col.Length() == 3)
 				{
-					c = Rgb32(Col[0], Col[1], Col[2]);
+					c.Type = GCss::ColorRgb;
+					c.Rgb32 = Rgb32(Col[0], Col[1], Col[2]);
 					return true;
 				}
 			}
 		}
-		else if (isdigit(*s) ||
-				 (tolower(*s) >= 'a' && tolower(*s) <= 'f'))
+		else if (IsDigit(*s) || (tolower(*s) >= 'a' && tolower(*s) <= 'f'))
 		{
 			goto ParseHexColour;
 		}
@@ -282,7 +373,7 @@ bool ParseColour(char *s, COLOUR &c)
 	return false;
 }
 
-char *ParsePropList(char *s, ObjProperties *Obj, bool &Closed)
+static char *ParsePropList(char *s, GTag *Obj, bool &Closed)
 {
 	while (s && *s && *s != '>')
 	{
@@ -318,7 +409,7 @@ char *ParsePropList(char *s, ObjProperties *Obj, bool &Closed)
 
 			if (Value && Name)
 			{
-				Obj->Set(Name, Value);
+				Obj->Set(Name,  Value);
 			}
 
 			DeleteArray(Value);
@@ -333,13 +424,33 @@ char *ParsePropList(char *s, ObjProperties *Obj, bool &Closed)
 }
 
 //////////////////////////////////////////////////////////////////////
+namespace Html1 {
+
+class InputButton : public GButton
+{
+	GTag *Tag;
+	
+public:
+	InputButton(GTag *tag, int Id, const char *Label) : GButton(Id, 0, 0, -1, -1, Label)
+	{
+		Tag = tag;
+	}
+	
+	void OnClick()
+	{
+		Tag->OnClick();
+	}
+};
+
 class GFontCache
 {
+	GHtml *Owner;
 	List<GFont> Fonts;
 
 public:
-	GFontCache()
+	GFontCache(GHtml *owner)
 	{
+		Owner = owner;
 	}
 
 	~GFontCache()
@@ -351,66 +462,263 @@ public:
 	{
 		return Fonts.ItemAt(i);
 	}
-
-	GFont *AddFont(GFont *Font)
+	
+	GFont *FindMatch(GFont *m)
 	{
-		if (Font)
+		for (GFont *f = Fonts.First(); f; f = Fonts.Next())
 		{
-			char *Face = Font->Face();
-			bool HasFace = ValidStr(Face);
-			if (!HasFace)
+			if (*f == *m)
 			{
-				LgiAssert(0);
+				return f;
 			}
-			if (HasFace)
+		}
+		
+		return 0;
+	}
+
+	GFont *GetFont(GCss *Style)
+	{
+		if (!Style)
+			return false;
+		
+		GFont *Default = Owner->GetFont();
+		GCss::StringsDef Face = Style->FontFamily();
+		if (Face.Length() < 1 || !ValidStr(Face[0]))
+		{
+			Face.Empty();
+			Face.Add(NewStr(Default->Face()));
+		}
+		GCss::Len Size = Style->FontSize();
+		GCss::FontWeightType Weight = Style->FontWeight();
+		bool IsBold =	Weight == GCss::FontWeightBold ||
+						Weight == GCss::FontWeightBolder ||
+						Weight > GCss::FontWeight400;
+		bool IsItalic = Style->FontStyle() == GCss::FontStyleItalic;
+		bool IsUnderline = Style->TextDecoration() == GCss::TextDecorUnderline;
+		double PtSize = 0.0;
+
+		if (Size.Type == GCss::LenInherit)
+		{
+			Size.Type = GCss::LenPt;
+			Size.Value = (float)Default->PointSize();
+		}
+
+		GFont *f = 0;
+		if (Size.Type == GCss::LenPx)
+		{
+		    int RequestPx = (int)Size.Value;
+			GArray<int> Map; // map of point-sizes to heights
+			int NearestPoint = 0;
+			int Diff = 1000;
+			#define PxHeight(fnt) (fnt->GetHeight() - (int)(fnt->Leading() + 0.5))
+
+			// Look for cached fonts of the right size...
+			for (f=Fonts.First(); f; f=Fonts.Next())
 			{
-				GFont *f;
-				for (f=Fonts.First(); f; f=Fonts.Next())
+				if (f->Face() &&
+					stricmp(f->Face(), Face[0]) == 0 &&
+					f->Bold() == IsBold &&
+					f->Italic() == IsItalic &&
+					f->Underline() == IsUnderline)
 				{
-					if (stricmp(f->Face(), Font->Face()) == 0 &&
-						f->PointSize() == Font->PointSize() &&
-						f->Bold() == Font->Bold() &&
-						f->Italic() == Font->Italic() &&
-						f->Underline() == Font->Underline())
+				    int PtSize = f->PointSize();
+				    int Height = PxHeight(f);
+					Map[PtSize] = Height;
+
+					if (!NearestPoint)
+						NearestPoint = f->PointSize();
+					else
 					{
-						break;
+						int NearDiff = abs(Map[NearestPoint] - RequestPx);
+						int CurDiff = abs(f->GetHeight() - RequestPx);
+						if (CurDiff < NearDiff)
+						{
+							NearestPoint = f->PointSize();
+						}
+					}
+					
+					if (RequestPx < PxHeight(f) &&
+					    f->PointSize() == MinimumPointSize)
+				    {
+				        return f;
+				    }
+
+					Diff = PxHeight(f) - RequestPx;
+					if (abs(Diff) < 2)
+					{
+						return f;
 					}
 				}
+			}
 
-				if (f)
+			// Find the correct font size...
+			PtSize = Size.Value;
+			if (PtSize < MinimumPointSize)
+				PtSize = MinimumPointSize;
+			do
+			{
+				GAutoPtr<GFont> Tmp(new GFont);
+				
+				Tmp->Bold(IsBold);
+				Tmp->Italic(IsItalic);
+				Tmp->Underline(IsUnderline);
+				
+				if (!Tmp->Create(Face[0], (int)PtSize))
+					break;
+				
+				int ActualHeight = PxHeight(Tmp);
+				Diff = ActualHeight - RequestPx;
+				if (abs(Diff) <= 1)
 				{
-					// Cached
-					DeleteObj(Font);
-					Font = f;
+					Fonts.Insert(f = Tmp.Release());
+					LgiAssert(f->Face());
+					return f;
+				}
+
+				if (Diff > 0)
+				{
+					if (PtSize > MinimumPointSize)
+						PtSize--;
+					else
+					    break;
+				}
+				else
+					PtSize++;
+			}
+			while (PtSize > MinimumPointSize && PtSize < 100);
+		}
+		else if (Size.Type == GCss::LenPt)
+		{
+			double Pt = max(MinimumPointSize, Size.Value);
+			for (f=Fonts.First(); f; f=Fonts.Next())
+			{
+				if (f->Face() &&
+					stricmp(f->Face(), Face[0]) == 0 &&
+					f->PointSize() == Pt &&
+					f->Bold() == IsBold &&
+					f->Italic() == IsItalic &&
+					f->Underline() == IsUnderline)
+				{
+					// Return cached font
+					return f;
+				}
+			}
+
+			PtSize = Pt;
+		}
+		else if (Size.Type == GCss::LenPercent)
+		{
+			// Most of the percentages will be resolved in the "Apply" stage
+			// of the CSS calculations, any that appear here have no "font-size"
+			// in their parent tree, so we just use the default font size times
+			// the requested percent
+			PtSize = Size.Value * Default->PointSize() / 100.0;
+			if (PtSize < MinimumPointSize)
+				PtSize = MinimumPointSize;
+		}
+		else if (Size.Type == GCss::LenEm)
+		{
+			// Most of the relative sizes will be resolved in the "Apply" stage
+			// of the CSS calculations, any that appear here have no "font-size"
+			// in their parent tree, so we just use the default font size times
+			// the requested percent
+			PtSize = Size.Value * Default->PointSize();
+			if (PtSize < MinimumPointSize)
+				PtSize = MinimumPointSize;
+		}
+		else if (Size.Type == GCss::LenNormal)
+		{
+			return Fonts.First();
+		}
+		else if (Size.Type == GCss::SizeXXSmall ||
+				Size.Type == GCss::SizeXSmall ||
+				Size.Type == GCss::SizeSmall ||
+				Size.Type == GCss::SizeMedium ||
+				Size.Type == GCss::SizeLarge ||
+				Size.Type == GCss::SizeXLarge ||
+				Size.Type == GCss::SizeXXLarge)
+		{
+			double Table[] =
+			{
+				0.4, // SizeXXSmall
+				0.5, // SizeXSmall
+				0.7, // SizeSmall
+				1.0, // SizeMedium
+				1.3, // SizeLarge
+				1.7, // SizeXLarge
+				2.0, // SizeXXLarge
+			};
+
+			int Idx = Size.Type-GCss::SizeXXSmall;
+			LgiAssert(Idx >= 0 && Idx < CountOf(Table));
+			PtSize = Default->PointSize() * Table[Idx];
+			if (PtSize < MinimumPointSize)
+				PtSize = MinimumPointSize;
+		}
+		else if (Size.Type == GCss::SizeSmaller)
+		{
+			PtSize = Default->PointSize() - 1;
+		}
+		else if (Size.Type == GCss::SizeLarger)
+		{
+			PtSize = Default->PointSize() + 1;
+		}
+		else LgiAssert(!"Not impl.");
+
+		if (f = new GFont)
+		{
+			char *ff = ValidStr(Face[0]) ? Face[0] : Default->Face();
+			f->Face(ff);
+			f->PointSize((int) (PtSize ? PtSize : Default->PointSize()));
+			f->Bold(IsBold);
+			f->Italic(IsItalic);
+			f->Underline(IsUnderline);
+			
+			// printf("Add cache font %s,%i %i,%i,%i\n", f->Face(), f->PointSize(), f->Bold(), f->Italic(), f->Underline());
+			if (!f->Create((char*)0, 0))
+			{
+				// Broken font...
+				f->Face(Default->Face());
+				GFont *DefMatch = FindMatch(f);
+				// printf("Falling back to default face for '%s:%i', DefMatch=%p\n", ff, f->PointSize(), DefMatch);
+				if (DefMatch)
+				{
+					DeleteObj(f);
+					return DefMatch;
 				}
 				else
 				{
-					if (Font->Create((char*)0, 0))
+					if (!f->Create((char*)0, 0))
 					{
-						// Not already cached
-						Fonts.Insert(Font);
-					}
-					else
-					{
-						// Broken font, don't use...
-						printf("%s:%i - Attempt to add broken font to font cache.\n", __FILE__, __LINE__);
-						DeleteObj(Font);
-						Font = Fonts.First();
+						DeleteObj(f);
+						return Fonts.First();
 					}
 				}
 			}
+
+			// Not already cached
+			Fonts.Insert(f);
+			LgiAssert(f->Face());
+			return f;
 		}
 
-		return Font;
+		return 0;
 	}
 };
 
-//////////////////////////////////////////////////////////////////////
 class GFlowRegion
 {
-	List<class GFlowRect> Line;	// These pointers aren't owned by the flow region
-								// When the line is finish, all the tag regions
-								// will need to be vertically aligned
+	List<GFlowRect> Line;	// These pointers aren't owned by the flow region
+							// When the line is finish, all the tag regions
+							// will need to be vertically aligned
+
+	struct GFlowStack
+	{
+		int LeftAbs;
+		int RightAbs;
+		int TopAbs;
+	};
+	GArray<GFlowStack> Stack;
 
 public:
 	GHtml *Html;
@@ -419,17 +727,18 @@ public:
 	int y2;						// Maximum used y position
 	int cx;						// Current insertion point
 	int my;						// How much of the area above y2 was just margin
+	int max_cx;					// Max value of cx
 
 	GFlowRegion(GHtml *html)
 	{
 		Html = html;
-		x1 = x2 = y1 = y2 = cx = my = 0;
+		x1 = x2 = y1 = y2 = cx = my = max_cx = 0;
 	}
 
 	GFlowRegion(GHtml *html, GRect r)
 	{
 		Html = html;
-		cx = x1 = r.x1;
+		max_cx = cx = x1 = r.x1;
 		y1 = y2 = r.y1;
 		x2 = r.x2;
 		my = 0;
@@ -442,7 +751,7 @@ public:
 		x2 = r.x2;
 		y1 = r.y1;
 		y2 = r.y2;
-		cx = r.cx;
+		max_cx = cx = r.cx;
 		my = r.my;
 	}
 
@@ -483,27 +792,39 @@ public:
 	void Insert(GFlowRect *Tr);
 	GRect *LineBounds();
 
-	void Indent(GFont *Font, GLength &Left, GLength &Top, GLength &Right, GLength &Bottom, bool Margin = false)
+	void Indent(GFont *Font,
+				GCss::Len Left,
+				GCss::Len Top,
+				GCss::Len Right,
+				GCss::Len Bottom,
+				bool IsMargin)
 	{
 		GFlowRegion This(*this);
+		GFlowStack &Fs = Stack.New();
 
-		int LeftAbs = Left.Get(&This, Font, true);
-		int RightAbs = Right.Get(&This, Font, true);
-		int TopAbs = Top.Get(&This, Font, true);
+		Fs.LeftAbs = Left.IsValid() ? ResolveX(Left, Font, IsMargin) : 0;
+		Fs.RightAbs = Right.IsValid() ? ResolveX(Right, Font, IsMargin) : 0;
+		Fs.TopAbs = Top.IsValid() ? ResolveY(Top, Font, IsMargin) : 0;
 
-		x1 += LeftAbs;
-		cx += LeftAbs;
-		x2 -= RightAbs;
-		y1 += TopAbs;
-		y2 += TopAbs;
-		if (Margin)
-			my += TopAbs;
+		x1 += Fs.LeftAbs;
+		cx += Fs.LeftAbs;
+		x2 -= Fs.RightAbs;
+		y1 += Fs.TopAbs;
+		y2 += Fs.TopAbs;
+		if (IsMargin)
+			my += Fs.TopAbs;
 	}
 
-	void Outdent(GFont *Font, GLength &Left, GLength &Top, GLength &Right, GLength &Bottom, bool Margin = false)
+	void Outdent(GFont *Font,
+				GCss::Len Left,
+				GCss::Len Top,
+				GCss::Len Right,
+				GCss::Len Bottom,
+				bool IsMargin)
 	{
 		GFlowRegion This = *this;
 
+		#if 0
 		int LeftAbs = Left.GetPrevAbs();
 		int RightAbs = Right.GetPrevAbs();
 		int BottomAbs = Bottom.Get(&This, Font);
@@ -515,11 +836,132 @@ public:
 		y2 += BottomAbs;
 		if (Margin)
 			my += BottomAbs;
+		#else
+		int len = Stack.Length();
+		if (len > 0)
+		{
+			GFlowStack &Fs = Stack[len-1];
+
+			int BottomAbs = Bottom.IsValid() ? ResolveY(Bottom, Font, IsMargin) : 0;
+
+			x1 -= Fs.LeftAbs;
+			cx -= Fs.LeftAbs;
+			x2 += Fs.RightAbs;
+			// y1 += Fs.BottomAbs;
+			y2 += BottomAbs;
+			if (IsMargin)
+				my += BottomAbs;
+
+			Stack.Length(len-1);
+		}
+		else LgiAssert(!"Nothing to pop.");
+		#endif
+	}
+
+	int ResolveX(GCss::Len l, GFont *f, bool IsMargin)
+	{
+		int ScreenDpi = 96; // Haha, where should I get this from?
+
+		switch (l.Type)
+		{
+			default:
+			case GCss::LenInherit:
+				return X();
+			case GCss::LenPx:
+				return min((int)l.Value, X());
+			case GCss::LenPt:
+				return (int) (l.Value * ScreenDpi / 72.0);
+			case GCss::LenCm:
+				return (int) (l.Value * ScreenDpi / 2.54);
+			case GCss::LenEm:
+			{
+				if (!f)
+				{
+					LgiAssert(!"No font?");
+					f = SysFont;
+				}
+				return (int)(l.Value * f->GetHeight());
+			}
+			case GCss::LenEx:
+			{
+				if (!f)
+				{
+					LgiAssert(!"No font?");
+					f = SysFont;
+				}
+				return (int) (l.Value * f->GetHeight() / 2); // More haha, who uses 'ex' anyway?
+			}
+			case GCss::LenPercent:
+			{
+				int my_x = X();
+				int px = (int) (l.Value * my_x / 100.0);
+				return px;
+			}
+			case GCss::LenAuto:
+			{
+				if (IsMargin)
+					return 0;
+				else
+					return X();
+				break;
+			}
+		}
+
+		return 0;
+	}
+
+	int ResolveY(GCss::Len l, GFont *f, bool IsMargin)
+	{
+		int ScreenDpi = 96; // Haha, where should I get this from?
+
+		switch (l.Type)
+		{
+			case GCss::LenInherit:
+			case GCss::LenAuto:
+			case GCss::LenNormal:
+			case GCss::LenPx:
+				return (int)l.Value;
+
+			case GCss::LenPt:
+			{
+				return (int) (l.Value * ScreenDpi / 72.0);
+			}
+			case GCss::LenCm:
+			{
+				return (int) (l.Value * ScreenDpi / 2.54);
+			}
+			case GCss::LenEm:
+			{
+				if (!f)
+				{
+					f = SysFont;
+					LgiAssert(!"No font");
+				}
+				return (int) (l.Value * f->GetHeight());
+			}
+			case GCss::LenEx:
+			{
+				if (!f)
+				{
+					f = SysFont;
+					LgiAssert(!"No font");
+				}
+				return (int) (l.Value * f->GetHeight() / 2); // More haha, who uses 'ex' anyway?
+			}
+			case GCss::LenPercent:
+				return (int)l.Value;
+			default:
+				LgiAssert(!"Not supported.");
+		}
+
+		return 0;
 	}
 };
 
+};
+
 //////////////////////////////////////////////////////////////////////
-bool ParseDistance(char *s, float &d, char *units = 0)
+static bool ParseDistance(char *s, float &d, char *units = 0)
 {
 	if (!s)
 		return false;
@@ -536,7 +978,7 @@ bool ParseDistance(char *s, float &d, char *units = 0)
 	
 	char _units[128];
 	char *o = units = units ? units : _units;
-	while (*s && (isalpha(*s) || *s == '%'))
+	while (*s && (IsAlpha(*s) || *s == '%'))
 	{
 		*o++ = *s++;
 	}
@@ -549,7 +991,7 @@ GLength::GLength()
 {
 	d = 0;
 	PrevAbs = 0;
-	u = LengthNull;
+	u = GCss::LenInherit;
 }
 
 GLength::GLength(char *s)
@@ -559,12 +1001,12 @@ GLength::GLength(char *s)
 
 bool GLength::IsValid()
 {
-	return u != LengthNull;
+	return u != GCss::LenInherit;
 }
 
 bool GLength::IsDynamic()
 {
-	return u == LengthPercentage || d == 0.0;
+	return u == GCss::LenPercent || d == 0.0;
 }
 
 GLength::operator float ()
@@ -575,11 +1017,11 @@ GLength::operator float ()
 GLength &GLength::operator =(float val)
 {
 	d = val;
-	u = LengthPixels;
+	u = GCss::LenPx;
 	return *this;
 }
 
-GLengthUnit GLength::GetUnits()
+GCss::LengthType GLength::GetUnits()
 {
 	return u;
 }
@@ -595,28 +1037,28 @@ void GLength::Set(char *s)
 			{
 				if (strchr(Units, '%'))
 				{
-					u = LengthPercentage;
+					u = GCss::LenPercent;
 				}
 				else if (stristr(Units, "pt"))
 				{
-					u = LengthPoint;
+					u = GCss::LenPt;
 				}
 				else if (stristr(Units, "em"))
 				{
-					u = LengthEm;
+					u = GCss::LenEm;
 				}
 				else if (stristr(Units, "ex"))
 				{
-					u = LengthEx;
+					u = GCss::LenEx;
 				}
 				else
 				{
-					u = LengthPixels;
+					u = GCss::LenPx;
 				}
 			}
 			else
 			{
-				u = LengthPixels;
+				u = GCss::LenPx;
 			}
 		}
 	}
@@ -626,17 +1068,17 @@ float GLength::Get(GFlowRegion *Flow, GFont *Font, bool Lock)
 {
 	switch (u)
 	{
-		case LengthEm:
+		case GCss::LenEm:
 		{
 			return PrevAbs = d * (Font ? Font->GetHeight() : 14);
 			break;
 		}
-		case LengthEx:
+		case GCss::LenEx:
 		{
 			return PrevAbs = (Font ? Font->GetHeight() * d : 14) / 2;
 			break;
 		}
-		case LengthPercentage:
+		case GCss::LenPercent:
 		{
 			if (Lock || PrevAbs == 0.0)
 			{
@@ -657,7 +1099,6 @@ float GLength::Get(GFlowRegion *Flow, GFont *Font, bool Lock)
 GLine::GLine()
 {
 	LineStyle = -1;
-	Colour = GT_TRANSPARENT;
 	LineReset = 0x80000000;
 }
 
@@ -667,7 +1108,7 @@ GLine::~GLine()
 
 GLine &GLine::operator =(int i)
 {
-	d = i;
+	d = (float)i;
 	return *this;
 }
 
@@ -701,7 +1142,7 @@ void GLine::Set(char *s)
 			}
 			ParseColour(Buf, Colour);
 		}
-		else if (isdigit(*c))
+		else if (IsDigit(*c))
 		{
 			GLength::Set(c);
 		}
@@ -798,44 +1239,70 @@ GRect GTag::GetRect(bool Client)
 	return r;
 }
 
-CssAlign GTag::GetAlign(bool x)
+GCss::LengthType GTag::GetAlign(bool x)
 {
 	for (GTag *t = this; t; t = t->Parent)
 	{
+		GCss::Len l;
+		
+		if (x)
+		{
+			if (TagId == TAG_TD && XAlign)
+				l.Type = XAlign;
+			else
+				l = TextAlign();
+		}
+		else
+		{
+			l = VerticalAlign();
+		}
+		
+		if (l.Type != LenInherit)
+		{
+			return l.Type;
+		}
+
 		if (t->TagId == TAG_TABLE)
 			break;
-
-		CssAlign *Attr = x ? &t->AlignX : &t->AlignY;
-		if (*Attr != AlignInherit)
-		{
-			if (x)
-			{
-				AlignX = *Attr;
-			}
-			else
-			{
-				AlignY = *Attr;
-			}
-			return *Attr;
-		}
 	}
 	
-	return AlignInherit;
+	return LenInherit;
 }
 
 //////////////////////////////////////////////////////////////////////
-void GTag::Attach(GTag *Child, int Idx)
+bool GTag::HasChild(GTag *c)
 {
-	if (Child)
+	List<GTag>::I it = Tags.Start();
+	for (GTag *t = *it; t; t = *++it)
 	{
-		Child->Detach();
-
-		Child->Parent = this;
-		if (!Tags.HasItem(Child))
-		{
-			Tags.Insert(Child, Idx);
-		}
+		if (t == c || t->HasChild(c))
+			return true;
 	}
+	return false;
+}
+
+bool GTag::Attach(GTag *Child, int Idx)
+{
+	if (TagId == CONTENT)
+	{
+		LgiAssert(!"Can't nest content tags.");
+		return false;
+	}
+
+	if (!Child)
+	{
+		LgiAssert(!"Can't insert NULL tag.");
+		return false;
+	}
+
+	Child->Detach();
+	Child->Parent = this;
+	if (!Tags.HasItem(Child))
+	{
+		Tags.Insert(Child, Idx);
+	}
+
+	return true;
 }
 
 void GTag::Detach()
@@ -845,213 +1312,6 @@ void GTag::Detach()
 		Parent->Tags.Delete(this);
 		Parent = 0;
 	}
-}
-
-GCellStore::GCellStore(GTag *Table)
-{
-	if (Table)
-	{
-		int y = 0;
-		GTag *FakeRow = 0;
-		GTag *FakeCell = 0;
-
-		GTag *r;
-		for (r=Table->Tags.First(); r; r=Table->Tags.Next())
-		{
-			if (r->TagId == TAG_TR)
-			{
-				FakeRow = 0;
-				FakeCell = 0;
-			}
-			else if (r->TagId == TAG_TBODY)
-			{
-				int Index = Table->Tags.IndexOf(r);
-				for (GTag *t = r->Tags.First(); t; t = r->Tags.Next())
-				{
-					Table->Tags.Insert(t, ++Index);
-					t->Parent = Table;
-				}
-				r->Tags.Empty();
-			}
-			else
-			{
-				if (!FakeRow)
-				{
-					if (FakeRow = new GTag(Table->Html, 0))
-					{
-						FakeRow->Tag = NewStr("tr");
-						FakeRow->TagId = TAG_TR;
-
-						int Idx = Table->Tags.IndexOf(r);
-						Table->Attach(FakeRow, Idx);
-					}
-				}
-				if (FakeRow)
-				{
-					if (r->TagId != TAG_TD && !FakeCell)
-					{
-						if (FakeCell = new GTag(Table->Html, FakeRow))
-						{
-							FakeCell->Tag = NewStr("td");
-							FakeCell->TagId = TAG_TD;
-							FakeCell->Span.x = 1;
-							FakeCell->Span.y = 1;
-						}
-					}
-
-					int Idx = Table->Tags.IndexOf(r);
-					r->Detach();
-
-					if (r->TagId == TAG_TD)
-					{
-						FakeRow->Attach(r);
-					}
-					else
-					{
-						LgiAssert(FakeCell);
-						FakeCell->Attach(r);
-					}
-					Table->Tags[Idx-1];
-				}
-			}
-		}
-
-		for (r=Table->Tags.First(); r; r=Table->Tags.Next())
-		{
-			if (r->TagId == TAG_TR)
-			{
-				int x = 0;
-				for (GTag *c=r->Tags.First(); c; c=r->Tags.Next())
-				{
-					if (c->TagId == TAG_TD)
-					{
-						while (Get(x, y))
-						{
-							x++;
-						}
-
-						c->Cell.x = x;
-						c->Cell.y = y;
-						Set(c);
-						x += c->Span.x;
-					}
-				}
-
-				y++;
-			}
-		}
-	}
-}
-
-void GCellStore::Dump()
-{
-	int Sx, Sy;
-	GetSize(Sx, Sy);
-
-	LgiTrace("Table %i x %i cells.\n", Sx, Sy);
-	for (int x=0; x<Sx; x++)
-	{
-		LgiTrace("--- %-2i--- ", x);
-	}
-	LgiTrace("\n");
-
-	for (int y=0; y<Sy; y++)
-	{
-		int x;
-		for (x=0; x<Sx; x++)
-		{
-			GTag *t = Get(x, y);
-			LgiTrace("%p ", t);
-		}
-		LgiTrace("\n");
-
-		for (x=0; x<Sx; x++)
-		{
-			GTag *t = Get(x, y);
-			char s[256] = "";
-			if (t)
-			{
-				sprintf(s, "%i,%i-%i,%i", t->Cell.x, t->Cell.y, t->Span.x, t->Span.y);
-			}
-			LgiTrace("%-10s", s);
-		}
-		LgiTrace("\n");
-	}
-
-	LgiTrace("\n");
-}
-
-void GCellStore::GetAll(List<GTag> &All)
-{
-	List<Cell>::I i = Cells.Start();
-	for (Cell *c=*i; c; c=*++i)
-	{
-		All.Insert(c->Tag);
-	}
-}
-
-void GCellStore::GetSize(int &x, int &y)
-{
-	x = 0;
-	y = 0;
-
-	List<Cell>::I i = Cells.Start();
-	for (Cell *c=*i; c; c=*++i)
-	{
-		if (c->Tag->Cell.x == c->x &&
-			c->Tag->Cell.y == c->y)
-		{
-			x = max(x, c->x + c->Tag->Span.x);
-			y = max(y, c->y + c->Tag->Span.y);
-		}
-	}
-}
-
-GTag *GCellStore::Get(int x, int y)
-{
-	List<Cell>::I i = Cells.Start();
-	for (Cell *c=*i; c; c=*++i)
-	{
-		if (c->x == x && c->y == y)
-		{
-			return c->Tag;
-		}
-	}
-
-	return 0;
-}
-
-bool GCellStore::Set(GTag *t)
-{
-	if (t)
-	{
-		for (int y=0; y<t->Span.y; y++)
-		{
-			for (int x=0; x<t->Span.x; x++)
-			{
-				int Cx = t->Cell.x + x;
-				int Cy = t->Cell.y + y;
-
-				if (!Get(Cx, Cy))
-				{
-					Cell *c = new Cell;
-					if (c)
-					{
-						c->x = Cx;
-						c->y = Cy;
-						c->Tag = t;
-						Cells.Insert(c);
-					}
-					else return false;
-				}
-				else return false;
-			}
-		}
-
-		return true;
-	}
-
-	return false;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -1149,10 +1409,12 @@ void GFlowRegion::Insert(GFlowRect *Tr)
 //////////////////////////////////////////////////////////////////////
 bool GTag::Selected = false;
 
-GTag::GTag(GHtml *h, GTag *p)
+GTag::GTag(GHtml *h, GTag *p) : Attr(0, false)
 {
+	Ctrl = 0;
+	CtrlType = CtrlNone;
 	TipId = 0;
-	IsBlock = false;
+	Disp = DispInline;
 	Html = h;
 	Parent = p;
 	if (Parent)
@@ -1160,29 +1422,20 @@ GTag::GTag(GHtml *h, GTag *p)
 		Parent->Tags.Insert(this);
 	}
 	
-	CellSpacing = DefaultCellSpacing;
-	CellPadding = DefaultCellPadding;
-
+	XAlign = GCss::LenInherit;
 	Cursor = -1;
 	Selection = -1;
-	PreText = Text = 0;
 	Font = 0;
 	Tag = 0;
-	HtmlId = 0;
+	HtmlId = NULL;
 	// TableBorder = 0;
 	Cells = 0;
-	Image = 0;
 	WasClosed = false;
 	TagId = CONTENT;
 	Info = 0;
-	Visible = true;
-	Fore = GT_TRANSPARENT;
-	Back = GT_TRANSPARENT;
 	MinContent = 0;
 	MaxContent = 0;
-	AlignX = AlignInherit;
-	AlignY = AlignInherit;
-	BackgroundRepeat = BgRepeat;
+	Pos.x = Pos.y = 0;
 
 	#ifdef _DEBUG
 	Debug = false;
@@ -1204,14 +1457,43 @@ GTag::~GTag()
 		Html->PrevTip = 0;
 	}
 
+	DeleteObj(Ctrl);
 	Tags.DeleteObjects();
+	Attr.DeleteArrays();
 
-	DeleteObj(Image);
 	DeleteArray(Tag);
-	DeleteArray(HtmlId);
-	DeleteArray(Text);
-	DeleteArray(PreText);
 	DeleteObj(Cells);
+}
+
+void GTag::OnChange(PropType Prop)
+{
+}
+
+bool GTag::OnClick()
+{
+	if (!Html->Environment)
+		return false;
+
+	const char *OnClick = NULL;
+	if (Get("onclick", OnClick))
+	{
+		Html->Environment->OnExecuteScript((char*)OnClick);
+	}
+	else
+	{
+		OnNotify(0);
+	}
+
+	return true;
+}
+
+void GTag::Set(const char *attr, const char *val)
+{
+	char *existing = Attr.Find(attr);
+	if (existing) DeleteArray(existing);
+
+	if (val)
+		Attr.Add(attr, NewStr(val));
 }
 
 bool GTag::GetVariant(const char *Name, GVariant &Value, char *Array)
@@ -1224,44 +1506,116 @@ bool GTag::SetVariant(const char *Name, GVariant &Value, char *Array)
 	if (!Name)
 		return false;
 
-	Set(Name, Value.CastString());
-	Html->ViewWidth = -1;
-	SetStyle();
+	if (!stricmp(Name, "innerHTML"))
+	{
+		// Clear out existing tags..
+		Tags.DeleteObjects();
+	
+		char *Doc = Value.CastString();
+		if (Doc)
+		{
+			// Create new tags...
+			bool BackOut = false;
+			
+			while (Doc && *Doc)
+			{
+				GTag *t = new GTag(Html, this);
+				if (t)
+				{
+					Doc = t->ParseHtml(Doc, 1, false, &BackOut);
+					if (!Doc)
+						break;
+				}
+				else break;
+			}
+		}
+	}
+	else
+	{
+		Set(Name, Value.CastString());
+		SetStyle();
+	}
 
+	Html->ViewWidth = -1;
 	return true;
 }
 
 int GTag::GetTextStart()
 {
-	if (PreText)
+	if (PreText())
 	{
 		GFlowRect *t = TextPos[1];
-		return t ? t->Text - Text : 0;
+		if (t)
+			return t->Text - Text();
 	}
 	else
 	{
 		GFlowRect *t = TextPos[0];
-		return t ? t->Text - Text : 0;
+		if (t)
+		{
+			LgiAssert(t->Text >= Text() && t->Text <= Text()+2);
+			return t->Text - Text();
+		}
 	}
+
+	return 0;
 }
 
-void GTag::SetText(char16 *NewText)
+static bool TextToStream(GStream &Out, char16 *Text)
 {
-	TextPos.DeleteObjects();
-	DeleteArray(Text);
-	Text = NewText;
+	if (!Text)
+		return true;
+
+	uint8 Buf[256];
+	uint8 *s = Buf;
+	int Len = sizeof(Buf);
+	while (*Text)
+	{
+		#define WriteExistingContent() \
+			if (s > Buf) \
+				Out.Write(Buf, s - Buf); \
+			s = Buf; \
+			Len = sizeof(Buf); \
+			Buf[0] = 0;
+
+		if (*Text == '<' || *Text == '>')
+		{
+			WriteExistingContent();
+			Out.Print("&%ct;", *Text == '<' ? 'l' : 'g');
+		}
+		else if (*Text == 0xa0)
+		{
+			WriteExistingContent();
+			Out.Write((char*)"&nbsp;", 6);
+		}
+		else
+		{
+			LgiUtf32To8(*Text, s, Len);
+			if (Len < 16)
+			{
+				WriteExistingContent();
+			}
+		}
+
+		Text++;
+	}
+
+	if (s > Buf)
+		Out.Write(Buf, s - Buf);
+
+	return true;
 }
 
 bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 {
-	char *t8 = LgiNewUtf16To8(Text);
+	// char *t8 = LgiNewUtf16To8(Text());
 	char *Tabs = new char[Depth+1];
 	memset(Tabs, '\t', Depth);
 	Tabs[Depth] = 0;
 
 	if (Tag)
 	{
-		if (IsBlock)
+		if (IsBlock(Disp))
 		{
 			p.Print("\n%s<%s", Tabs, Tag);
 		}
@@ -1271,23 +1625,39 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 		}
 	}
 
+	if (Attr.Length())
+	{
+		const char *a;
+		for (char *v = Attr.First(&a); v; v = Attr.Next(&a))
+		{
+			if (stricmp(a, "style"))
+				p.Print(" %s=\"%s\"", a, v);
+		}
+	}
+	if (Props.Length())
+	{
+		GAutoString s = ToString();
+		p.Print(" style=\"%s\"", s.Get());
+	}
+
 	if (Tags.Length())
 	{
 		if (Tag)
 		{
-			p.Print(">%s", t8?t8:(char*)"");
+			p.Write((char*)">", 1);
+			TextToStream(p, Text());
 		}
 
-		bool Last = IsBlock;
+		bool Last = IsBlock(Disp);
 		for (GTag *c = Tags.First(); c; c = Tags.Next())
 		{
 			c->CreateSource(p, Parent ? Depth+1 : 0, Last);
-			Last = c->IsBlock;
+			Last = IsBlock(c->Disp);
 		}
 
 		if (Tag)
 		{
-			if (IsBlock)
+			if (IsBlock(Disp))
 			{
 				p.Print("\n%s</%s>\n", Tabs, Tag);
 			}
@@ -1299,27 +1669,28 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 	}
 	else if (Tag)
 	{
-		if (t8)
+		if (Text())
 		{
-			p.Print(">%s</%s>", t8, Tag);
+			p.Write((char*)">", 1);
+			TextToStream(p, Text());
+			p.Print("</%s>", Tag);
 		}
 		else
 		{
 			p.Print("/>\n");
 		}
 	}
-	else if (t8)
+	else
 	{
-		p.Print("%s", t8);
+		TextToStream(p, Text());
 	}
 
-	DeleteArray(t8);
 	DeleteArray(Tabs);
 
 	return true;
 }
 
-void GTag::SetTag(char *NewTag)
+void GTag::SetTag(const char *NewTag)
 {
 	DeleteArray(Tag);
 	Tag = NewStr(NewTag);
@@ -1327,7 +1698,7 @@ void GTag::SetTag(char *NewTag)
 	if (Info = GetTagInfo(Tag))
 	{
 		TagId = Info->Id;
-		IsBlock = Info->Flags & TI_BLOCK;
+		Disp = (Info->Flags & TI_BLOCK) ? DispBlock : DispInline;
 		SetStyle();
 	}
 }
@@ -1355,10 +1726,10 @@ COLOUR GTag::_Colour(bool f)
 {
 	for (GTag *t = this; t; t = t->Parent)
 	{
-		COLOUR *c = f ? &t->Fore : &t->Back;
-		if (*c != GT_TRANSPARENT)
+		ColorDef c = f ? t->Color() : t->BackgroundColor();
+		if (c.Type != ColorInherit)
 		{
-			return *c;
+			return c.Rgb32;
 		}
 
 		if (!f && t->TagId == TAG_TABLE)
@@ -1397,12 +1768,12 @@ void GTag::CopyClipboard(GBytePipe &p)
 	if (Min >= 0 && Max >= 0)
 	{
 		Off = Min;
-		Chars = Max - Min + 1;
+		Chars = Max - Min;
 	}
 	else if (Min >= 0)
 	{
 		Off = Min;
-		Chars = StrlenW(Text) - Min;
+		Chars = StrlenW(Text()) - Min;
 		Selected = true;
 	}
 	else if (Max >= 0)
@@ -1414,12 +1785,12 @@ void GTag::CopyClipboard(GBytePipe &p)
 	else if (Selected)
 	{
 		Off = 0;
-		Chars = StrlenW(Text);
+		Chars = StrlenW(Text());
 	}
 
 	if (Off >= 0 && Chars > 0)
 	{
-		p.Write((uchar*) (Text + Off), Chars * sizeof(char16));
+		p.Write((uchar*) (Text() + Off), Chars * sizeof(char16));
 	}
 
 	if (Selected)
@@ -1447,9 +1818,26 @@ void GTag::CopyClipboard(GBytePipe &p)
 	}
 }
 
+static
+char*
+_DumpColour(GCss::ColorDef c)
+{
+	static char Buf[4][32];
+	static int Cur = 0;
+	char *b = Buf[Cur++];
+	if (Cur == 4) Cur = 0;
+
+	if (c.Type == GCss::ColorInherit)
+		strcpy(b, "Inherit");
+	else
+		sprintf(b, "%2.2x,%2.2x,%2.2x(%2.2x)", R32(c.Rgb32),G32(c.Rgb32),B32(c.Rgb32),A32(c.Rgb32));
+
+	return b;
+}
+
 void GTag::_Dump(GStringPipe &Buf, int Depth)
 {
-	char Tab[32];
+	char Tab[64];
 	char s[1024];
 	memset(Tab, '\t', Depth);
 	Tab[Depth] = 0;
@@ -1457,8 +1845,7 @@ void GTag::_Dump(GStringPipe &Buf, int Depth)
 	char Trs[1024] = "";
 	for (GFlowRect *Tr=TextPos.First(); Tr; Tr=TextPos.Next())
 	{
-		char *Utf8 = 0;
-		Utf8 = LgiNewUtf16To8(Tr->Text, Tr->Len*sizeof(char16));
+		GAutoString Utf8(LgiNewUtf16To8(Tr->Text, Tr->Len*sizeof(char16)));
 		if (Utf8)
 		{
 			int Len = strlen(Utf8);
@@ -1467,21 +1854,28 @@ void GTag::_Dump(GStringPipe &Buf, int Depth)
 				Utf8[40] = 0;
 			}
 		}
+		else if (Tr->Text)
+		{
+			Utf8.Reset(NewStr(""));
+		}
 
-		sprintf(Trs+strlen(Trs), "Tr(%i,%i,'%s') ", Tr->x1, Tr->y1, Utf8);
-		DeleteArray(Utf8);
+		int Len = strlen(Trs);
+		snprintf(Trs+Len, sizeof(Trs)-Len-1, "Tr(%i,%i %ix%i '%s') ", Tr->x1, Tr->y1, Tr->X(), Tr->Y(), Utf8.Get());
 	}
 	
+	char *ElementName = TagId == CONTENT ? (char*)"Content" :
+				(TagId == ROOT ? (char*)"Root" : Tag);
+
 	snprintf(s, sizeof(s)-1,
-			"%sStartTag=%s%c%s (%i) Pos=%i,%i Size=%i,%i Color=%06.6X/%06.6X %s\r\n",
+			"%sStartTag=%s%c%s (%i) Pos=%i,%i Size=%i,%i Color=%s/%s %s\r\n",
 			Tab,
-			TagId == CONTENT ? "Content" : Tag,
+			ElementName,
 			HtmlId ? '#' : ' ',
 			HtmlId ? HtmlId : (char*)"",
 			WasClosed,
 			Pos.x, Pos.y,
 			Size.x, Size.y,
-			Fore, Back,
+			_DumpColour(Color()), _DumpColour(BackgroundColor()),
 			Trs);
 	Buf.Push(s);
 
@@ -1490,13 +1884,17 @@ void GTag::_Dump(GStringPipe &Buf, int Depth)
 		t->_Dump(Buf, Depth+1);
 	}
 
-	sprintf(s, "%sEnd '%s'\r\n", Tab, Tag);
-	Buf.Push(s);
+	if (Tags.Length())
+	{
+		snprintf(s, sizeof(s)-1, "%sEnd '%s'\r\n", Tab, ElementName);
+		Buf.Push(s);
+	}
 }
 
 char *GTag::Dump()
 {
 	GStringPipe Buf;
+	Buf.Print("Html pos=%s\n", Html?Html->GetPos().GetStr():0);
 	_Dump(Buf, 0);
 	return (char*)Buf.New(1);
 }
@@ -1515,25 +1913,54 @@ GFont *GTag::NewFont()
 
 GFont *GTag::GetFont()
 {
-	GFont *f = 0;
-	GTag *t = this;
-	while (!t->Font && t->Parent)
+	if (!Font)
 	{
-		t = t->Parent;
-	}
+		if (PropAddress(PropFontFamily) != 0                    ||
+			FontSize().Type             != LenInherit           ||
+			FontStyle()                 != FontStyleInherit     ||
+			FontVariant()               != FontVariantInherit   ||
+			FontWeight()                != FontWeightInherit    ||
+			TextDecoration()            != TextDecorInherit)
+		{
+			GCss c = *this;
 
-	if (t->Font)
-		f = t->Font;
-	
-	if (!f)
-		f = Html->DefFont();
+            GCss::PropMap Map;
+            Map.Add(PropFontFamily, new GCss::PropArray);
+			Map.Add(PropFontSize, new GCss::PropArray);
+			Map.Add(PropFontStyle, new GCss::PropArray);
+			Map.Add(PropFontVariant, new GCss::PropArray);
+			Map.Add(PropFontWeight, new GCss::PropArray);
+			Map.Add(PropTextDecoration, new GCss::PropArray);
 
-	if (!f || !ValidStr(f->Face()))
-	{
-		printf("%s:%i - Warning not a valid font face.\n", __FILE__, __LINE__);
+			for (GTag *t = Parent; t; t = t->Parent)
+			{
+				if (!c.InheritCollect(*t, Map))
+					break;
+			}
+			
+			c.InheritResolve(Map);
+			
+			Map.DeleteObjects();
+
+			if (Font = Html->FontCache->GetFont(&c))
+				return Font;
+		}
+		else
+		{
+			GTag *t = this;
+			while (!t->Font && t->Parent)
+			{
+				t = t->Parent;
+			}
+
+			if (t->Font)
+				return t->Font;
+		}
+		
+		Font = Html->DefFont();
 	}
 	
-	return f;
+	return Font;
 }
 
 GTag *GTag::PrevTag()
@@ -1560,7 +1987,7 @@ void GTag::Invalidate()
 	Html->Invalidate(&p);
 }
 
-GTag *GTag::IsAnchor(char **Uri)
+GTag *GTag::IsAnchor(GAutoString *Uri)
 {
 	GTag *a = 0;
 	for (GTag *t = this; t; t = t->Parent)
@@ -1574,14 +2001,13 @@ GTag *GTag::IsAnchor(char **Uri)
 
 	if (a && Uri)
 	{
-		char *u = 0;
+		const char *u = 0;
 		if (a->Get("href", u))
 		{
-			char16 *w = CleanText(u, strlen(u));
+			GAutoWString w(CleanText(u, strlen(u)));
 			if (w)
 			{
-				*Uri = LgiNewUtf16To8(w);
-				DeleteArray(w);
+				Uri->Reset(LgiNewUtf16To8(w));
 			}
 		}
 	}
@@ -1593,61 +2019,84 @@ bool GTag::OnMouseClick(GMouse &m)
 {
 	bool Processed = false;
 
+	// char msg[256];
 	if (m.IsContextMenu())
 	{
-		char *Uri = 0;
+		GAutoString Uri;
 		GTag *a = IsAnchor(&Uri);
-		if (a)
+		if (a && ValidStr(Uri))
 		{
-			if (ValidStr(Uri))
+			GSubMenu RClick;
+
+			#define IDM_COPY_LINK	100
+			if (Html->GetMouse(m, true))
 			{
-				GSubMenu RClick;
+				int Id = 0;
 
-				#define IDM_COPY_LINK	100
-				if (Html->GetMouse(m, true))
+				RClick.AppendItem(LgiLoadString(L_COPY_LINK_LOCATION, "&Copy Link Location"), IDM_COPY_LINK, Uri != 0);
+				if (Html->GetEnv())
+					Html->GetEnv()->AppendItems(&RClick);
+
+				switch (Id = RClick.Float(Html, m.x, m.y))
 				{
-					int Id = 0;
-
-					RClick.AppendItem(LgiLoadString(L_COPY_LINK_LOCATION, "&Copy Link Location"), IDM_COPY_LINK, Uri != 0);
-					if (Html->GetEnv())
-						Html->GetEnv()->AppendItems(&RClick);
-
-					switch (Id = RClick.Float(Html, m.x, m.y))
+					case IDM_COPY_LINK:
 					{
-						case IDM_COPY_LINK:
+						GClipBoard Clip(Html);
+						Clip.Text(Uri);
+						break;
+					}
+					default:
+					{
+						if (Html->GetEnv())
 						{
-							GClipBoard Clip(Html);
-							Clip.Text(Uri);
-							break;
+							Html->GetEnv()->OnMenu(Html, Id, a);
 						}
-						default:
-						{
-							if (Html->GetEnv())
-							{
-								Html->GetEnv()->OnMenu(Html, Id, a);
-							}
-							break;
-						}
+						break;
 					}
 				}
-
-				Processed = true;
 			}
-			
-			DeleteArray(Uri);
+
+			Processed = true;
 		}
 	}
 	else if (m.Down() && m.Left())
 	{
-		char *Uri = 0;
-		if (Html &&
-			(!Html->d->LinkDoubleClick || m.Double()) &&
-			Html->Environment &&
-			IsAnchor(&Uri))
+		#ifdef _DEBUG
+		if (m.Ctrl())
 		{
-			Html->Environment->OnNavigate(Uri);
-			DeleteArray(Uri);
-			Processed = true;
+			GAutoString Style = ToString();
+			LgiMsg(	Html,
+					"Tag: %s\n"
+					"Pos: %i,%i - %i,%i\n"
+					"\n"
+					"Style:\n%s",
+					Html->GetClass(),
+					MB_OK,
+					Tag,
+					Pos.x, Pos.y, Size.x, Size.y,
+					Style.Get());
+		}
+		else
+		#endif
+		{
+			GAutoString Uri;
+			
+			if (Html &&
+				Html->Environment)
+			{
+				if (IsAnchor(&Uri))
+				{
+					if (!Html->d->LinkDoubleClick || m.Double())
+					{
+						Html->Environment->OnNavigate(Uri);
+						Processed = true;
+					}
+				}
+				else
+				{
+					Processed = OnClick();
+				}
+			}
 		}
 	}
 
@@ -1656,7 +2105,7 @@ bool GTag::OnMouseClick(GMouse &m)
 
 GTag *GTag::GetBlockParent(int *Idx)
 {
-	if (IsBlock)
+	if (IsBlock(Disp))
 	{
 		if (Idx)
 			*Idx = 0;
@@ -1666,7 +2115,7 @@ GTag *GTag::GetBlockParent(int *Idx)
 
 	for (GTag *t = this; t; t = t->Parent)
 	{
-		if (t->Parent->IsBlock)
+		if (IsBlock(t->Parent->Disp))
 		{
 			if (Idx)
 			{
@@ -1680,7 +2129,28 @@ GTag *GTag::GetBlockParent(int *Idx)
 	return 0;
 }
 
-GTag *GTag::GetTagByName(char *Name)
+GTag *GTag::GetAnchor(char *Name)
+{
+	if (!Name)
+		return 0;
+
+	const char *n;
+	if (IsAnchor(0) && Get("name", n) && n && !stricmp(Name, n))
+	{
+		return this;
+	}
+
+	List<GTag>::I it = Tags.Start();
+	for (GTag *t=*it; t; t=*++it)
+	{
+		GTag *Result = t->GetAnchor(Name);
+		if (Result) return Result;
+	}
+
+	return 0;
+}
+
+GTag *GTag::GetTagByName(const char *Name)
 {
 	if (Name)
 	{
@@ -1699,7 +2169,7 @@ GTag *GTag::GetTagByName(char *Name)
 	return 0;
 }
 
-int IsNearRect(GRect *r, int x, int y)
+static int IsNearRect(GRect *r, int x, int y)
 {
 	if (r->Overlap(x, y))
 	{
@@ -1720,8 +2190,8 @@ int IsNearRect(GRect *r, int x, int y)
 			return x - r->x2;
 	}
 
-	int dx = 0;
-	int dy = 0;
+	int64 dx = 0;
+	int64 dy = 0;
 	
 	if (x < r->x1)
 	{
@@ -1754,7 +2224,7 @@ int IsNearRect(GRect *r, int x, int y)
 		}
 	}
 
-	return sqrt( (double) (dx * dx) + (dy * dy) );
+	return (int) sqrt( (double) ( (dx * dx) + (dy * dy) ) );
 }
 
 int GTag::NearestChar(GFlowRect *Tr, int x, int y)
@@ -1765,23 +2235,22 @@ int GTag::NearestChar(GFlowRect *Tr, int x, int y)
 		GDisplayString ds(f, Tr->Text, Tr->Len);
 		int c = ds.CharAt(x - Tr->x1);
 		
-		if (Tr->Text == PreText)
+		if (Tr->Text == PreText())
 		{
 			return 0;
 		}
 		else
 		{
 			char16 *t = Tr->Text + c;
-			int Len = StrlenW(Text);
-			if (t >= Text &&
-				t <= Text + Len)
+			int Len = StrlenW(Text());
+			if (t >= Text() &&
+				t <= Text() + Len)
 			{
-				return SubtractPtr(t, Text) - GetTextStart();
+				return (t - Text()) - GetTextStart();
 			}
 			else
 			{
-				printf("%s:%i - Error getting char at position.\n", _FL);
-				// LgiAssert(0);
+				LgiTrace("%s:%i - Error getting char at position.\n", _FL);
 			}
 		}
 	}
@@ -1789,70 +2258,175 @@ int GTag::NearestChar(GFlowRect *Tr, int x, int y)
 	return -1;
 }
 
-bool GTag::GetTagByPos(int x, int y, GTagHit *Hit)
+GTagHit GTag::GetTagByPos(int x, int y)
 {
-	bool Status = false;
+	GTagHit r;
 
 	for (GTag *t=Tags.First(); t; t=Tags.Next())
 	{
-		if (t->GetTagByPos(x - t->Pos.x, y - t->Pos.y, Hit) &&
-			Hit->Near == 0)
+		if (t->Pos.x >= 0 &&
+			t->Pos.y >= 0)
 		{
-			return true;
+			GTagHit hit = t->GetTagByPos(x - t->Pos.x, y - t->Pos.y);
+			if (hit < r)
+			{
+				r = hit;
+			}
 		}
 	}
 
 	if (TagId == TAG_IMG)
 	{
-		GRect r(0, 0, Size.x - 1, Size.y - 1);
-		if (r.Overlap(x, y))
+		GRect img(0, 0, Size.x - 1, Size.y - 1);
+		if (img.Overlap(x, y))
 		{
-			Hit->Hit = this;
-			Hit->Block = 0;
-			Hit->Near = 0;
-			Hit->Index = -1;
-			return true;
+			r.Hit = this;
+			r.Block = 0;
+			r.Near = 0;
 		}
 	}
-	else if (Text)
+	else if (Text())
 	{
 		for (GFlowRect *Tr=TextPos.First(); Tr; Tr=TextPos.Next())
 		{
-			int n = IsNearRect(Tr, x, y);
-
-			if (n == 0)
+			GTagHit hit;
+			hit.Hit = this;
+			hit.Block = Tr;
+			hit.Near = IsNearRect(Tr, x, y);
+			LgiAssert(hit.Near >= 0);
+			if (hit < r)
 			{
-				Hit->Hit = this;
-				Hit->Block = Tr;
-				Hit->Near = 0;
-				Hit->Index = NearestChar(Tr, x, y);
-
-				// LgiTrace("Direct Hit on '%s' @ pos %i\n", Tag, Hit->Index);
-				return true;
-			}
-			else if (!Hit->Hit || (Hit->Hit && n < Hit->Near))
-			{
-				Hit->Hit = this;
-				Hit->Block = Tr;
-				Hit->Near = n;
-				Hit->Index = NearestChar(Tr, x, y);
-
-				// LgiTrace("Near Miss on '%s' @ pos %i and %i pixels\n", Tag, Hit->Index, Hit->Near);
-
-				Status = true;
+				r = hit;
+				r.Index = NearestChar(Tr, x, y);
 			}
 		}
 	}
 
-	return Status;
+	return r;
 }
 
-void GTag::SetImage(char *Uri, GSurface *Img)
+int GTag::OnNotify(int f)
+{
+	if (!Ctrl)
+		return 0;
+	
+	switch (CtrlType)
+	{
+		case CtrlSubmit:
+		{
+			GTag *Form = this;
+			while (Form && Form->TagId != TAG_FORM)
+				Form = Form->Parent;
+			if (Form)
+				Html->OnSubmitForm(Form);
+			break;
+		}
+		default:
+		{
+			CtrlValue = Ctrl->Name();
+			break;
+		}
+	}
+	
+	return 0;
+}
+
+void GTag::CollectFormValues(GHashTbl<const char*,char*> &f)
+{
+	if (CtrlType != CtrlNone)
+	{
+		const char *Name;
+		if (Get("name", Name))
+		{
+			char *Existing = f.Find(Name);
+			if (Existing)
+				DeleteArray(Existing);
+
+			char *Val = CtrlValue.Str();
+			if (Val)
+			{
+				GStringPipe p(256);
+				for (char *v = Val; *v; v++)
+				{
+					if (*v == ' ')
+						p.Write("+", 1);
+					else if (IsAlpha(*v) || IsDigit(*v) || *v == '_' || *v == '.')
+						p.Write(v, 1);
+					else
+						p.Print("%%%02.2X", *v);
+				}
+				f.Add(Name, p.NewStr());
+			}
+			else
+			{
+				f.Add(Name, NewStr(""));
+			}
+		}
+	}
+
+	for (GTag *t=Tags.First(); t; t=Tags.Next())
+	{
+		t->CollectFormValues(f);
+	}
+}
+
+GTag *GTag::FindCtrlId(int Id)
+{
+	if (Ctrl && Ctrl->GetId() == Id)
+		return this;
+
+	for (GTag *t=Tags.First(); t; t=Tags.Next())
+	{
+		GTag *f = t->FindCtrlId(Id);
+		if (f)
+			return f;
+	}
+	
+	return NULL;
+}
+
+void GTag::Find(int TagType, GArray<GTag*> &Out)
+{
+	if (TagId == TagType)
+	{
+		Out.Add(this);
+	}
+	for (GTag *t=Tags.First(); t; t=Tags.Next())
+	{
+		t->Find(TagType, Out);
+	}
+}
+
+void GTag::SetImage(const char *Uri, GSurface *Img)
 {
 	if (Img)
 	{
-		Image = Img;
-		
+		if (TagId != TAG_IMG)
+		{
+			ImageDef *Def = (ImageDef*)GCss::Props.Find(PropBackgroundImage);
+			if (Def)
+			{
+				Def->Type = ImageOwn;
+				DeleteObj(Def->Img);
+				Def->Img = Img;
+			}
+		}
+		else
+		{
+			Image.Reset(Img);
+			
+			GRect r = XSubRect();
+			if (r.Valid())
+			{
+				GAutoPtr<GSurface> t(new GMemDC(r.X(), r.Y(), Image->GetBits()));
+				if (t)
+				{
+					t->Blt(0, 0, Image, &r);
+					Image = t;
+				}
+			}
+		}		
+
 		for (GTag *t = this; t; t = t->Parent)
 		{
 			t->MinContent = 0;
@@ -1865,14 +2439,17 @@ void GTag::SetImage(char *Uri, GSurface *Img)
 	}
 }
 
-void GTag::LoadImage(char *Uri)
+void GTag::LoadImage(const char *Uri)
 {
+	#if 1
 	GDocumentEnv::LoadJob *j = Html->Environment->NewJob();
 	if (j)
 	{
+		LgiAssert(Html);
 		j->Uri.Reset(NewStr(Uri));
 		j->View = Html;
 		j->UserData = this;
+		j->UserUid = Html->d->DocumentUid;
 
 		GDocumentEnv::LoadType Result = Html->Environment->GetContent(j);
 		if (Result == GDocumentEnv::LoadImmediate)
@@ -1881,11 +2458,12 @@ void GTag::LoadImage(char *Uri)
 		}
 		DeleteObj(j);
 	}
+	#endif
 }
 
 void GTag::LoadImages()
 {
-	char *Uri = 0;
+	const char *Uri = 0;
 	if (Html->Environment &&
 		!Image &&
 		Get("src", Uri))
@@ -1901,7 +2479,7 @@ void GTag::LoadImages()
 
 void GTag::ImageLoaded(char *uri, GSurface *Img, int &Used)
 {
-	char *Uri = 0;
+	const char *Uri = 0;
 	if (!Image &&
 		Get("src", Uri))
 	{
@@ -1925,175 +2503,485 @@ void GTag::ImageLoaded(char *uri, GSurface *Img, int &Used)
 	}
 }
 
+/// This code matches a all the parts of a selector
+bool GTag::MatchFullSelector(GCss::Selector *Sel)
+{
+	bool Complex = Sel->Combs.Length() > 0;
+	int CombIdx = Complex ? Sel->Combs.Length() - 1 : 0;
+	int StartIdx = (Complex) ? Sel->Combs[CombIdx] + 1 : 0;
+	
+	bool Match = MatchSimpleSelector(Sel, StartIdx);
+	if (!Match)
+		return false;
+
+	if (Complex)
+	{
+		GTag *CurrentParent = Parent;
+		
+		for (; CombIdx >= 0; CombIdx--)
+		{
+			if (CombIdx >= Sel->Combs.Length())
+				break;
+
+			StartIdx = Sel->Combs[CombIdx];
+			LgiAssert(StartIdx > 0);
+
+			if (StartIdx >= Sel->Parts.Length())
+				break;
+			
+			GCss::Selector::Part &p = Sel->Parts[StartIdx];
+			switch (p.Type)
+			{
+				case GCss::Selector::CombChild:
+				{
+					// LgiAssert(!"Not impl.");
+					return false;
+					break;
+				}
+				case GCss::Selector::CombAdjacent:
+				{
+					// LgiAssert(!"Not impl.");
+					return false;
+					break;
+				}
+				case GCss::Selector::CombDesc:
+				{
+					// Does the parent match the previous simple selector
+					int PrevIdx = StartIdx - 1;
+					while (PrevIdx > 0 && Sel->Parts[PrevIdx-1].IsSel())
+					{
+						PrevIdx--;
+					}
+					bool ParMatch = false;
+					for (; !ParMatch && CurrentParent; CurrentParent = CurrentParent->Parent)
+					{
+						ParMatch = CurrentParent->MatchSimpleSelector(Sel, PrevIdx);
+					}
+					if (!ParMatch)
+						return false;
+					break;
+				}
+				default:
+				{
+					LgiAssert(!"This must be a comb.");
+					return false;
+					break;
+				}
+			}
+		}
+	}
+
+	return Match;
+}
+
+/// This code matches a simple part of a selector, i.e. no combinatorial operators involved.
+bool GTag::MatchSimpleSelector
+(
+	/// The full selector.
+	GCss::Selector *Sel,
+	/// The start index of the simple selector parts. Stop at the first comb operator or the end of the parts.
+	int PartIdx
+)
+{
+	for (int n = PartIdx; n<Sel->Parts.Length(); n++)
+	{
+		GCss::Selector::Part &p = Sel->Parts[n];
+		switch (p.Type)
+		{
+			case GCss::Selector::SelType:
+			{
+				if (!Tag || stricmp(Tag, p.Value))
+					return false;
+				break;
+			}
+			case GCss::Selector::SelUniversal:
+			{
+				// Match everything
+				return true;
+				break;
+			}
+			case GCss::Selector::SelAttrib:
+			{
+				if (!p.Value)
+					return false;
+
+				char *e = strchr(p.Value, '=');
+				if (!e)
+					return false;
+
+				GAutoString Var(NewStr(p.Value, e - p.Value));
+				const char *TagVal;
+				if (!Get(Var, TagVal))
+					return false;
+
+				GAutoString Val(NewStr(e + 1));
+				if (stricmp(Val, TagVal))
+					return false;
+				break;
+			}
+			case GCss::Selector::SelClass:
+			{
+				// Check the class matches
+				if (Class.Length() == 0)
+					return false;
+
+				bool Match = false;
+				for (int i=0; i<Class.Length(); i++)
+				{
+					if (!stricmp(Class[i], p.Value))
+					{
+						Match = true;
+						break;
+					}
+				}
+				if (!Match)
+					return false;
+				break;
+			}
+			case GCss::Selector::SelMedia:
+			{
+				return false;
+				break;
+			}
+			case GCss::Selector::SelID:
+			{
+				const char *Id;
+				if (!Get("id", Id) || stricmp(Id, p.Value))
+					return false;
+				break;
+			}
+			case GCss::Selector::SelPseudo:
+			{
+				const char *Href = NULL;
+				if
+				(
+					(
+						TagId == TAG_A
+						&&
+						p.Value && !stricmp(p.Value, "link")
+						&&
+						Get("href", Href)
+					)
+					||
+					(
+						p.Value
+						&&
+						*p.Value == '-'
+					)
+				)
+					break;
+					
+				return false;
+				break;
+			}
+			default:
+			{
+				// Comb operator, so return the current match value
+				return true;
+			}
+		}
+	}
+	
+	return true;
+}
+
+// After CSS has changed this function scans through the CSS and applies any rules
+// that match the current tag.
+void GTag::Restyle()
+{
+	int i;
+
+	GArray<GCss::SelArray*> Maps;
+	GCss::SelArray *s;
+	if (s = Html->CssStore.TypeMap.Find(Tag))
+		Maps.Add(s);
+	if (HtmlId && (s = Html->CssStore.IdMap.Find(HtmlId)))
+		Maps.Add(s);
+	for (i=0; i<Class.Length(); i++)
+	{
+		if (s = Html->CssStore.ClassMap.Find(Class[i]))
+			Maps.Add(s);
+	}
+
+	for (i=0; i<Maps.Length(); i++)
+	{
+		GCss::SelArray *s = Maps[i];
+		for (int i=0; i<s->Length(); i++)
+		{
+			GCss::Selector *Sel = (*s)[i];
+			
+			if (MatchFullSelector(Sel))
+			{
+				SetCssStyle(Sel->Style);
+			}
+		}
+	}
+	
+	if (Display() != DispInherit)
+		Disp = Display();	
+
+	#if 1 && defined(_DEBUG)
+	if (Debug)
+	{
+		GAutoString Style = ToString();
+		LgiTrace(">>>> %s <<<<:\n%s\n\n", Tag, Style);
+	}
+	#endif
+}
+
 void GTag::SetStyle()
 {
 	const static float FntMul[] =
 	{
-		0.6,	// size=1
-		0.89,	// size=2
-		1.0,	// size=3
-		1.2,	// size=4
-		1.5,	// size=5
-		2.0,	// size=6
-		3.0		// size=7
+		0.6f,	// size=1
+		0.89f,	// size=2
+		1.0f,	// size=3
+		1.2f,	// size=4
+		1.5f,	// size=5
+		2.0f,	// size=6
+		3.0f	// size=7
 	};
 
-	GFont *Def = GetFont();
+	const char *s = 0;
+	#ifdef _DEBUG
+	if (Get("debug", s))
+		Debug = atoi(s);
+	#endif
 
-	char *Color = 0;
-	if (Get("Color", Color))
+	if (Get("Color", s))
 	{
-		ParseColour(Color, Fore);
+		ColorDef Def;
+		if (ParseColour(s, Def))
+		{
+			Color(Def);
+		}
 	}
 
-	char *Background = 0;
-	if (Get("Background", Background) ||
-		Get("bgcolor", Background))
+	if (Get("Background", s) ||
+		Get("bgcolor", s))
 	{
-		ParseColour(Background, Back);
+		ColorDef Def;
+		if (ParseColour(s, Def))
+		{
+			BackgroundColor(Def);
+		}
+		else
+		{
+			GCss::ImageDef Img;
+			
+			Img.Type = ImageUri;
+			Img.Uri.Reset(NewStr(s));
+			
+			BackgroundImage(Img);
+			BackgroundRepeat(RepeatBoth);
+		}
 	}
 
-	char *s;
 	switch (TagId)
 	{
+		case TAG_LINK:
+		{
+			const char *Type, *Href;
+			if (Html->Environment &&
+				Get("type", Type) &&
+				Get("href", Href))
+			{
+				if (!stricmp(Type, "text/css"))
+				{
+					GDocumentEnv::LoadJob *j = Html->Environment->NewJob();
+					if (j)
+					{
+						LgiAssert(Html);
+						GTag *t = this;
+						
+						j->Uri.Reset(NewStr(Href));
+						j->View = Html;
+						j->UserData = t;
+						j->UserUid = Html->d->DocumentUid;
+						// j->Pref = GDocumentEnv::LoadJob::FmtFilename;
+
+						GDocumentEnv::LoadType Result = Html->Environment->GetContent(j);
+						if (Result == GDocumentEnv::LoadImmediate)
+						{
+							if (j->Stream)
+							{
+								uint64 Len = j->Stream->GetSize();
+								if (Len > 0)
+								{
+									GAutoString a(new char[Len+1]);
+									int r = j->Stream->Read(a, Len);
+									a[r] = 0;
+
+									Html->AddCss(a.Release());
+								}
+							}
+							else LgiAssert(!"Not impl.");
+						}
+
+						DeleteObj(j);
+					}
+				}
+			}
+			break;
+		}
 		case TAG_BLOCKQUOTE:
 		{
-			MarginTop = 8;
-			MarginBottom = 8;
-			MarginLeft = 16;
+			MarginTop(Len("8px"));
+			MarginBottom(Len("8px"));
+			MarginLeft(Len("16px"));
 
 			if (Get("Type", s))
 			{
 				if (stricmp(s, "cite") == 0)
 				{
-					BorderLeft.Set("1px solid blue");
-					PaddingLeft.Set("0.5em");
-					Fore = Rgb32(0x80, 0x80, 0x80);
+					BorderLeft(BorderDef("1px solid blue"));
+					PaddingLeft(Len("0.5em"));
+					
+					ColorDef Def;
+					Def.Type = ColorRgb;
+					Def.Rgb32 = Rgb32(0x80, 0x80, 0x80);
+					Color(Def);
 				}
 			}
 			break;
 		}
 		case TAG_P:
 		{
-			MarginBottom.Set("1em");
+			MarginBottom(Len("1em"));
 			break;
 		}
 		case TAG_A:
 		{
-			Fore = Rgb32(0, 0, 255);
-			GFont *f = new GFont(Font ? *Font : *Def);
-			if (f)
+			const char *Href;
+			if (Get("href", Href))
 			{
-				f->Underline(true);
-				Font = Html->FontCache->AddFont(f);
+				ColorDef c;
+				c.Type = ColorRgb;
+				c.Rgb32 = Rgb32(0, 0, 255);
+				Color(c);
+				TextDecoration(TextDecorUnderline);
+
+				/* FIXME
+				if (s = Html->CssMap.Find("a"))
+					SetCssStyle(s);
+				if (s = Html->CssMap.Find("a:link"))
+					SetCssStyle(s);
+				*/
 			}
 			break;
 		}
 		case TAG_TABLE:
-		{			
-			MarginLeft = MarginTop = MarginRight = MarginBottom = CellSpacing;
-
+		{
 			if (Get("border", s))
 			{
-				int b = atoi(s);
-				BorderLeft = BorderRight = BorderTop = BorderBottom = b;
+				BorderDef b;
+				if (b.Parse(s))
+				{
+					BorderLeft(b);
+					BorderRight(b);
+					BorderTop(b);
+					BorderBottom(b);
+				}
+			}
+			break;
+		}
+		case TAG_TD:
+		{
+			GTag *Table = GetTable();
+			if (Table)
+			{
+				const char *s = "1px";
+				Len l = Table->_CellPadding();
+				if (!l.IsValid())
+					l.Parse(s);
+				PaddingLeft(l);
+				PaddingRight(l);
+				PaddingTop(l);
+				PaddingBottom(l);
 			}
 			break;
 		}
 		case TAG_BODY:
 		{
-			PaddingLeft = DefaultBodyMargin;
-			PaddingTop = DefaultBodyMargin;
-			PaddingRight = DefaultBodyMargin;
+			PaddingLeft(Len(DefaultBodyMargin));
+			PaddingTop(Len(DefaultBodyMargin));
+			PaddingRight(Len(DefaultBodyMargin));
+			
+			if (Get("text", s))
+			{
+				ColorDef c;
+				if (c.Parse(s))
+				{
+					Color(c);
+				}
+			}
+			break;
+		}
+		case TAG_OL:
+		case TAG_UL:
+		{
+			MarginLeft(Len("16px"));
 			break;
 		}
 	}
 
-	#ifdef _DEBUG
-	if (Get("debug", s))
-	{
-		Debug = atoi(s);
-	}
-	#endif
 	if (Get("width", s))
 	{
-		Width.Set(s);
+		Len l;
+		if (l.Parse(s, ParseRelaxed))
+			Width(l);
 	}
 	if (Get("height", s))
 	{
-		Height.Set(s);
+		Len l;
+		if (l.Parse(s, ParseRelaxed))
+			Height(l);
 	}
 	if (Get("align", s))
 	{
-		if (stricmp(s, "left") == 0) AlignX = AlignLeft;
-		else if (stricmp(s, "right") == 0) AlignX = AlignRight;
-		else if (stricmp(s, "center") == 0) AlignX = AlignCenter;
+		if (stricmp(s, "left") == 0) TextAlign(Len(AlignLeft));
+		else if (stricmp(s, "right") == 0) TextAlign(Len(AlignRight));
+		else if (stricmp(s, "center") == 0) TextAlign(Len(AlignCenter));
 	}
 	if (Get("valign", s))
 	{
-		if (stricmp(s, "top") == 0) AlignY = AlignTop;
-		else if (stricmp(s, "middle") == 0) AlignY = AlignMiddle;
-		else if (stricmp(s, "bottom") == 0) AlignY = AlignBottom;
+		if (stricmp(s, "top") == 0) VerticalAlign(Len(VerticalTop));
+		else if (stricmp(s, "middle") == 0) VerticalAlign(Len(VerticalMiddle));
+		else if (stricmp(s, "bottom") == 0) VerticalAlign(Len(VerticalBottom));
 	}
 
-	char *Class = 0;
-	if (Get("id", s))
+	Get("id", HtmlId);
+
+	if (Get("class", s))
 	{
-		DeleteArray(HtmlId);
-		HtmlId = NewStr(s);
+		Class.Parse(s);
 	}
 
-	// Tag style
-	char *Style = Html->CssMap[Tag];
-	if (Style)
-	{
-		SetCssStyle(Style);
-	}
-	if (HtmlId)
-	{
-		char b[256];
-		snprintf(b, sizeof(b)-1, "%s#%s", Tag, HtmlId);
-		b[sizeof(b)-1] = 0;
-		if (Style = Html->CssMap[b])
-		{
-			SetCssStyle(Style);
-		}
-	}
-	if (Get("class", Class))
-	{
-		// Class stype
-		char c[256];
-		snprintf(c, sizeof(c)-1, ".%s", Class);
-		c[sizeof(c)-1] = 0;
-		Style = Html->CssMap[c];
-		if (Style)
-		{
-			SetCssStyle(Style);
-		}
+	Restyle();
 
-		snprintf(c, sizeof(c)-1, "%s.%s", Tag, Class);
-		Style = Html->CssMap[c];
-		if (Style)
-		{
-			SetCssStyle(Style);
-		}
-	}
-	if (Get("style", Style))
+	if (Get("style", s))
 	{
-		SetCssStyle(Style);
+		SetCssStyle(s);
 	}
 
 	switch (TagId)
 	{
+	    case TAG_BIG:
+	    {
+            GCss::Len l;
+            l.Type = SizeLarger;
+	        FontSize(l);
+	        break;
+	    }
 		case TAG_META:
 		{
 			char *Cs = 0;
 
-			char *s;
+			const char *s;
 			if (Get("http-equiv", s) &&
 				stricmp(s, "Content-Type") == 0)
 			{
-				char *ContentType;
+				const char *ContentType;
 				if (Get("content", ContentType))
 				{
 					char *CharSet = stristr(ContentType, "charset=");
@@ -2104,12 +2992,13 @@ void GTag::SetStyle()
 				}
 			}
 
-			if (Get("name", s) && stricmp(s, "charset") == 0)
+			if (Get("name", s) && stricmp(s, "charset") == 0 && Get("content", s))
 			{
-				if (Get("content", s))
-				{
-					Cs = NewStr(s);
-				}
+				Cs = NewStr(s);
+			}
+			else if (Get("charset", s))
+			{
+				Cs = NewStr(s);
 			}
 
 			if (Cs)
@@ -2129,12 +3018,18 @@ void GTag::SetStyle()
 		}
 		case TAG_BODY:
 		{
-			if (Back != GT_TRANSPARENT)
+			if (BackgroundColor().Type != ColorInherit)
 			{
-				Html->SetBackColour(Back);
+				Html->SetBackColour(BackgroundColor().Rgb32);
+			}
+			
+			GFont *f = GetFont();
+			if (FontSize().Type == LenInherit)
+			{
+       		    FontSize(Len(LenPt, (float)f->PointSize()));
 			}
 
-			char *Back;
+			const char *Back;
 			if (Get("background", Back) && Html->Environment)
 			{
 				LoadImage(Back);
@@ -2143,7 +3038,7 @@ void GTag::SetStyle()
 		}
 		case TAG_HEAD:
 		{
-			Visible = false;
+			Display(Disp = DispNone);
 			break;
 		}
 		case TAG_PRE:
@@ -2151,55 +3046,59 @@ void GTag::SetStyle()
 			GFontType Type;
 			if (Type.GetSystemFont("Fixed"))
 			{
-				Font = Html->FontCache->AddFont(Type.Create());
+				LgiAssert(ValidStr(Type.GetFace()));
+				FontFamily(StringsDef(Type.GetFace()));
 			}
-			break;
-		}
-		case TAG_OL:
-		case TAG_UL:
-		{
-			MarginLeft = 16;
 			break;
 		}
 		case TAG_TABLE:
 		{
-			char *s;
-			if (Get("cellspacing", s))
+			Len l;
+			const char *s;
+			if (Get("cellspacing", s) &&
+				l.Parse(s, ParseRelaxed))
 			{
-				CellSpacing = atoi(s);
+				BorderSpacing(l);
 			}
-			if (Get("cellpadding", s))
+			if (Get("cellpadding", s) &&
+				l.Parse(s, ParseRelaxed))
 			{
-				CellPadding = atoi(s);
+				_CellPadding(l);
+			}
+
+			if (Get("align", s))
+			{
+				Len l;
+				if (l.Parse(s))
+					XAlign = l.Type;
 			}
 			break;
 		}
-		case TAG_TD:
 		case TAG_TR:
+			break;
+		case TAG_TD:
 		{
-			GTag *Table = GetTable();
-			if (Table)
+			const char *s;
+			if (Get("colspan", s))
+				Span.x = atoi(s);
+			else
+				Span.x = 1;
+			if (Get("rowspan", s))
+				Span.y = atoi(s);
+			else
+				Span.y = 1;
+			
+			if (Get("align", s))
 			{
-				CellPadding = Table->CellPadding;
-				CellSpacing = Table->CellSpacing;
-			}
-
-			if (TagId == TAG_TD)
-			{
-				char *s;
-				if (Get("colspan", s)) Span.x = atoi(s);
-				else Span.x = 1;
-				if (Get("rowspan", s)) Span.y = atoi(s);
-				else Span.y = 1;
+				Len l;
+				if (l.Parse(s))
+					XAlign = l.Type;
 			}
 			break;
 		}
 		case TAG_IMG:
 		{
-			Size.x = DefaultImgSize;
-			Size.y = DefaultImgSize;
-
-			char *Uri;
+			const char *Uri;
 			if (Html->Environment &&
 				Get("src", Uri))
 			{
@@ -2209,213 +3108,173 @@ void GTag::SetStyle()
 		}
 		case TAG_H1:
 		{
-			Font = new GFont();
-			if (Font)
-			{
-				*Font = *Def;
-				Font->PointSize((float)Html->DefFont()->PointSize() * FntMul[5]);
-				Font->Bold(true);
-				Font->Create();
-				Font = Html->FontCache->AddFont(Font);
-			}
+			char s[32];
+			sprintf(s, "%ipt", (int)((float)Html->DefFont()->PointSize() * FntMul[5]));
+			FontSize(Len(s));
+			FontWeight(FontWeightBold);
 			break;
 		}
 		case TAG_H2:
 		{
-			Font = new GFont();
-			if (Font)
-			{
-				*Font = *Def;
-				Font->PointSize((float)Html->DefFont()->PointSize() * FntMul[4]);
-				Font->Bold(true);
-				Font->Create();
-				Font = Html->FontCache->AddFont(Font);
-			}
+			char s[32];
+			sprintf(s, "%ipt", (int)((float)Html->DefFont()->PointSize() * FntMul[4]));
+			FontSize(Len(s));
+			FontWeight(FontWeightBold);
 			break;
 		}
 		case TAG_H3:
 		{
-			Font = new GFont();
-			if (Font)
-			{
-				*Font = *Def;
-				Font->PointSize((float)Html->DefFont()->PointSize() * FntMul[3]);
-				Font->Bold(true);
-				Font->Create();
-				Font = Html->FontCache->AddFont(Font);
-			}
+			char s[32];
+			sprintf(s, "%ipt", (int)((float)Html->DefFont()->PointSize() * FntMul[3]));
+			FontSize(Len(s));
+			FontWeight(FontWeightBold);
 			break;
 		}
 		case TAG_H4:
 		{
-			Font = new GFont();
-			if (Font)
-			{
-				*Font = *Def;
-				Font->PointSize((float)Html->DefFont()->PointSize() * FntMul[2]);
-				Font->Bold(true);
-				Font->Create();
-				Font = Html->FontCache->AddFont(Font);
-			}
+			char s[32];
+			sprintf(s, "%ipt", (int)((float)Html->DefFont()->PointSize() * FntMul[2]));
+			FontSize(Len(s));
+			FontWeight(FontWeightBold);
 			break;
 		}
 		case TAG_H5:
 		{
-			Font = new GFont();
-			if (Font)
-			{
-				*Font = *Def;
-				Font->PointSize((float)Html->DefFont()->PointSize() * FntMul[1]);
-				Font->Bold(true);
-				Font->Create();
-				Font = Html->FontCache->AddFont(Font);
-			}
+			char s[32];
+			sprintf(s, "%ipt", (int)((float)Html->DefFont()->PointSize() * FntMul[1]));
+			FontSize(Len(s));
+			FontWeight(FontWeightBold);
 			break;
 		}
 		case TAG_H6:
 		{
-			Font = new GFont();
-			if (Font)
-			{
-				*Font = *Def;
-				int Pt = (float)Html->DefFont()->PointSize() * FntMul[0];
-				Font->PointSize(max(Pt, 7));
-				Font->Bold(true);
-				Font->Create();
-				Font = Html->FontCache->AddFont(Font);
-			}
+			char s[32];
+			sprintf(s, "%ipt", (int)((float)Html->DefFont()->PointSize() * FntMul[0]));
+			FontSize(Len(s));
+			FontWeight(FontWeightBold);
 			break;
 		}
 		case TAG_FONT:
 		{
-			char *Face = 0;
-			char *Size = 0;
-			Get("Face", Face);
-			Get("Size", Size);
-			if (Face || Size)				
+			const char *s = 0;
+			if (Get("Face", s))
 			{
-				GFont *f = NewFont();
-				if (f)
+				char16 *cw = CleanText(s, strlen(s), true);
+				char *c8 = LgiNewUtf16To8(cw);
+				DeleteArray(cw);
+				GToken Faces(c8, ",");
+				DeleteArray(c8);
+				char *face = TrimStr(Faces[0]);
+				if (ValidStr(face))
 				{
-					if (Face)
-					{
-						char16 *cw = CleanText(Face, strlen(Face), true);
-						char *c8 = LgiNewUtf16To8(cw);
-						DeleteArray(cw);
-						GToken Faces(c8, ",");
-						DeleteArray(c8);
-						char *face = TrimStr(Faces[0]);
-						if (ValidStr(face))
-						{
-							f->Face(face);
-							DeleteArray(face);
-						}
-						else
-						{
-							LgiTrace("%s:%i - No face for font tag.\n", __FILE__, __LINE__);
-						}
-					}
-					
-					if (Size)
-					{
-						int Height = 0;
-						
-						if (strchr(Size, '+') || strchr(Size, '-'))
-						{
-							Height = f->PointSize() + atoi(Size);
-						}
-						else if (IsDigit(*Size))
-						{
-							if (strchr(Size, '%'))
-							{
-								int Percent = atoi(Size);
-								if (Percent)
-								{
-									Height = f->PointSize() * Percent / 100;
-								}
-							}
-							else if (stristr(Size, "pt"))
-							{
-								Height = atoi(Size);
-							}
-							else
-							{
-								int s = atoi(Size);
-								
-								if (s < 1) s = 1;
-								if (s > 7) s = 7;
-
-								int Sys = Html->DefFont()->PointSize();
-								Height = ((float)Sys) * FntMul[s-1];
-							}
-						}
-						else if (stricmp(Size, "smaller") == 0)
-						{
-							Height = f->PointSize() - 1;
-						}
-						else if (stricmp(Size, "larger") == 0)
-						{
-							Height = f->PointSize() + 1;
-						}
-
-						if (Height)
-						{
-							f->PointSize(max(Height, MinFontSize));
-						}
-					}
-					
-					if (!ValidStr(f->Face()))
-					{
-						f->Face(Html->DefFont()->Face());
-					}
-
-					// printf("FONT: %s,%i\n", f->Face(), f->PointSize());
-
-					Font = Html->FontCache->AddFont(f);
+					FontFamily(face);
+					DeleteArray(face);
+				}
+				else
+				{
+					LgiTrace("%s:%i - No face for font tag.\n", __FILE__, __LINE__);
 				}
 			}
+
+			if (Get("Size", s))
+				FontSize(Len(s));
 			break;
 		}
-		case TAG_STRONG:	
+		case TAG_STRONG:
 		case TAG_B:
 		{
-			Font = new GFont(Font ? *Font : *Def);
-			if (Font)
-			{
-				Font->Bold(true);
-				Font = Html->FontCache->AddFont(Font);
-			}
+			FontWeight(FontWeightBold);
 			break;
 		}
 		case TAG_I:
 		{
-			Font = new GFont(Font ? *Font : *Def);
-			if (Font)
-			{
-				Font->Italic(true);
-				Font = Html->FontCache->AddFont(Font);
-			}
+			FontStyle(FontStyleItalic);
 			break;
 		}
 		case TAG_U:
 		{
-			Font = new GFont(Font ? *Font : *Def);
-			if (Font)
+			TextDecoration(TextDecorUnderline);
+			break;
+		}
+		case TAG_SELECT:
+		{
+			LgiAssert(!Ctrl);
+			Ctrl = new GCombo(Html->d->NextCtrlId++, 0, 0, 100, SysFont->GetHeight() + 8, NULL);
+			CtrlType = CtrlSelect;
+			break;
+		}
+		case TAG_INPUT:
+		{
+			LgiAssert(!Ctrl);
+
+			const char *Type, *Value = NULL;
+			Get("value", Value);
+			GAutoWString CleanValue(Value ? CleanText(Value, strlen(Value), true, true) : NULL);
+			if (CleanValue)
 			{
-				Font->Underline(true);
-				Font = Html->FontCache->AddFont(Font);
+				CtrlValue = CleanValue;
+			}
+			
+			if (Get("type", Type))
+			{
+				if (!stricmp(Type, "password")) CtrlType = CtrlPassword;
+				else if (!stricmp(Type, "email")) CtrlType = CtrlEmail;
+				else if (!stricmp(Type, "text")) CtrlType = CtrlText;
+				else if (!stricmp(Type, "button")) CtrlType = CtrlButton;
+				else if (!stricmp(Type, "submit")) CtrlType = CtrlSubmit;
+				else if (!stricmp(Type, "hidden")) CtrlType = CtrlHidden;
+
+				DeleteObj(Ctrl);
+				if (CtrlType == CtrlEmail ||
+					CtrlType == CtrlText ||
+					CtrlType == CtrlPassword)
+				{
+					GEdit *Ed;
+					GAutoString UtfCleanValue(LgiNewUtf16To8(CleanValue));
+					if (Ctrl = Ed = new GEdit(Html->d->NextCtrlId++, 0, 0, 60, SysFont->GetHeight() + 8, UtfCleanValue))
+					{
+						Ed->Sunken(false);
+						Ed->Password(CtrlType == CtrlPassword);
+					}						
+				}
+				else if (CtrlType == CtrlButton ||
+						 CtrlType == CtrlSubmit)
+				{
+					GAutoString UtfCleanValue(LgiNewUtf16To8(CleanValue));
+					if (UtfCleanValue)
+					{
+						Ctrl = new InputButton(this, Html->d->NextCtrlId++, UtfCleanValue);
+					}
+				}
 			}
 			break;
 		}
 	}
+	
+	if (Ctrl)
+	{
+		GFont *f = GetFont();
+		if (f)
+			Ctrl->SetFont(f, false);
+	}
+
+	if (Disp == DispBlock && Html->Environment)
+	{
+		GCss::ImageDef Img = BackgroundImage();
+		if (Img.Type == ImageUri)
+		{
+			LoadImage(Img.Uri);
+		}
+	}
 }
 
-void GTag::SetCssStyle(char *Style)
+void GTag::SetCssStyle(const char *Style)
 {
 	if (Style)
 	{
+		// Strip out comments
 		char *Comment = 0;
-		while (Comment = strstr(Style, "/*"))
+		while (Comment = strstr((char*)Style, "/*"))
 		{
 			char *End = strstr(Comment+2, "*/");
 			if (!End)
@@ -2424,580 +3283,19 @@ void GTag::SetCssStyle(char *Style)
 				*c = ' ';
 		}
 
-		GToken Vars(Style, ";");
-		for (int v=0; v<Vars.Length(); v++)
-		{
-			GToken Var(Vars[v], ":");
-			if (Var.Length() == 2)
-			{
-				char *VarName = TrimStr(Var[0]);
-				if (VarName)
-				{
-					GCss::PropType Style = GHtmlStatic::Inst->StyleMap.Find(VarName);
-					DeleteArray(VarName);
-					char *Value = Var[1];
-					while (*Value && strchr(" \t", *Value)) Value++;
-					char *ValueEnd = Value + strlen(Value);
-					while (ValueEnd > Value && strchr(" \t\r\n", ValueEnd[-1]))
-					{
-						ValueEnd[-1] = 0;
-						ValueEnd--;
-					}
+		// Parse CSS
+		GCss::Parse(Style, GCss::ParseRelaxed);
 
-					switch (Style)
-					{
-						case GCss::PropTextAlign:
-						{
-							if (!stricmp(Value, "center"))
-								AlignX = AlignCenter;
-							else if (!stricmp(Value, "left"))
-								AlignX = AlignLeft;
-							else if (!stricmp(Value, "right"))
-								AlignX = AlignRight;
-							break;
-						}
-						case GCss::PropVerticalAlign:
-						{
-							if (!stricmp(Value, "top"))
-								AlignY = AlignTop;
-							else if (!stricmp(Value, "middle"))
-								AlignY = AlignMiddle;
-							else if (!stricmp(Value, "bottom"))
-								AlignY = AlignBottom;
-							break;
-						}
-						case GCss::PropMargin:
-						{
-							GToken t(Value);
-							if (t.Length() == 1)
-							{
-								MarginLeft.Set(Value);
-								MarginRight = MarginTop = MarginBottom = MarginLeft;
-							}
-							else
-							{
-								if (t[0]) MarginTop.Set(t[0]);
-								if (t[1]) MarginRight.Set(t[1]);
-								if (t[2]) MarginBottom.Set(t[2]);
-								if (t[3]) MarginLeft.Set(t[3]);
-							}
-							break;
-						}
-						case GCss::PropMarginLeft:
-						{
-							MarginLeft.Set(Value);
-							break;
-						}
-						case GCss::PropMarginRight:
-						{
-							MarginRight.Set(Value);
-							break;
-						}
-						case GCss::PropMarginTop:
-						{
-							MarginTop.Set(Value);
-							break;
-						}
-						case GCss::PropMarginBottom:
-						{
-							MarginBottom.Set(Value);
-							break;
-						}
-
-						case GCss::PropPadding:
-						{
-							GToken t(Value);
-							if (t.Length() == 1)
-							{
-								PaddingLeft.Set(Value);
-								PaddingBottom = PaddingRight = PaddingTop = PaddingLeft;
-							}
-							else
-							{
-								if (t[0]) PaddingTop.Set(t[0]);
-								if (t[1]) PaddingRight.Set(t[1]);
-								if (t[2]) PaddingBottom.Set(t[2]);
-								if (t[3]) PaddingLeft.Set(t[3]);
-							}
-							break;
-						}
-						case GCss::PropPaddingLeft:
-						{
-							PaddingLeft.Set(Value);
-							break;
-						}
-						case GCss::PropPaddingTop:
-						{
-							PaddingTop.Set(Value);
-							break;
-						}
-						case GCss::PropPaddingRight:
-						{
-							PaddingRight.Set(Value);
-							break;
-						}
-						case GCss::PropPaddingBottom:
-						{
-							PaddingBottom.Set(Value);
-							break;
-						}
-
-						case GCss::PropBorder:
-						{
-							BorderLeft.Set(Value);
-							BorderRight.Set(Value);
-							BorderTop.Set(Value);
-							BorderBottom.Set(Value);
-							break;
-						}
-						case GCss::PropBorderLeft:
-						{
-							BorderLeft.Set(Value);
-							break;
-						}
-						case GCss::PropBorderTop:
-						{
-							BorderTop.Set(Value);
-							break;
-						}
-						case GCss::PropBorderRight:
-						{
-							BorderRight.Set(Value);
-							break;
-						}
-						case GCss::PropBorderBottom:
-						{
-							BorderBottom.Set(Value);
-							break;
-						}
-
-						case GCss::PropColor:
-						{
-							if (TagId != TAG_TABLE)
-							{
-								ParseColour(Value, Fore);
-							}
-							break;
-						}
-						case GCss::PropBackground:
-						case GCss::PropBackgroundColor:
-						{
-							bool Status = ParseColour(Value, Back);
-
-							if (TagId == TAG_BODY)
-							{
-								if (Status)
-								{
-									Html->SetBackColour(Back);
-								}
-
-								if (Html->Environment)
-								{
-									LoadImage(Value);
-								}
-							}
-							break;
-						}
-						case GCss::PropBackgroundRepeat:
-						{
-							if (stricmp(Value, "repeat") == 0)
-							{
-								BackgroundRepeat = BgRepeat;
-							}
-							else if (stricmp(Value, "repeat-x") == 0)
-							{
-								BackgroundRepeat = BgRepeatX;
-							}
-							else if (stricmp(Value, "repeat-y") == 0)
-							{
-								BackgroundRepeat = BgRepeatY;
-							}
-							else if (stricmp(Value, "no-repeat") == 0)
-							{
-								BackgroundRepeat = BgNoRepeat;
-							}
-							break;
-						}
-						case GCss::PropFont:
-						{
-							GAutoPtr<GFont> f(NewFont());
-							if (f && ValidStr(Value))
-							{
-								char *FaceType = 0;
-								bool SetFace = false;
-								
-								GToken t(Value, " \t\r\n");
-								for (int i=0; i<t.Length(); i++)
-								{
-									char *p = t[i];
-									if (stricmp(p, "bold") == 0 || stricmp(p, "bolder") == 0)
-									{
-										f->Bold(true);
-									}
-									else if (stricmp(p, "italic") == 0)
-									{
-										f->Italic(true);
-									}
-									else if (stricmp(p, "oblique") == 0)
-									{
-										// Not supported
-									}
-									else if (stricmp(p, "normal") == 0)
-									{
-										f->Bold(false);
-										f->Italic(false);
-										f->Underline(false);
-									}
-									else if (stricmp(p, "small-caps") == 0)
-									{
-										// Not supported
-									}
-									else if (stricmp(p, "serif") == 0 ||
-											stricmp(p, "sans-serif") == 0 ||
-											stricmp(p, "cursive") == 0 ||
-											stricmp(p, "fantasy") == 0 ||
-											stricmp(p, "monospace") == 0)
-									{
-										FaceType = p;
-									}
-									else if (isdigit(*p))
-									{
-										// Size?
-										if (stristr(p, "pt"))
-										{
-											f->PointSize(atoi(p));
-										}
-										
-										// Bolding?
-									}
-									else if (isalpha(*p))
-									{
-										char *s = TrimStr(p, ",");
-										if (s)
-										{
-											// Face name?
-											f->Face(s);
-											SetFace = true;
-											DeleteArray(s);
-										}
-									}
-								}
-								
-								if (FaceType && !SetFace)
-								{
-									// Yes this is a hack..
-									if (stricmp(FaceType, "monospace") == 0)
-										f->Face("courier");
-									else if (stricmp(FaceType, "serif") == 0)
-										f->Face("times");
-									else if (stricmp(FaceType, "sans-serif") == 0)
-										f->Face("arial");
-								}
-
-								Font = Html->FontCache->AddFont(f.Release());
-							}
-							break;
-						}
-						case GCss::PropFontFamily:
-						{
-							GAutoPtr<GFont> f(NewFont());
-							if (f && ValidStr(Value))
-							{
-								GToken t(Value, ",");
-								for (int i=0; i<t.Length(); i++)
-								{
-									char *p = t[i];
-									if (stricmp(p, "serif") == 0 ||
-										stricmp(p, "sans-serif") == 0 ||
-										stricmp(p, "cursive") == 0 ||
-										stricmp(p, "fantasy") == 0 ||
-										stricmp(p, "monospace") == 0)
-									{
-									}
-									else
-									{
-										char *s = TrimStr(p);
-										if (s)
-										{
-											f->Face(s);
-											DeleteArray(s);
-											if (f->Create(0, -1, 0))
-												break;
-										}
-									}
-								}
-
-								Font = Html->FontCache->AddFont(f.Release());
-							}
-							break;
-						}
-						case GCss::PropFontSize:
-						{
-							GAutoPtr<GFont> f(NewFont());
-							if (f)
-							{
-								char Units[64] = "";
-								float Dist = 0;
-								
-								if (ParseDistance(Value, Dist, Units))
-								{
-									if (strchr(Units, '%'))
-									{
-									}
-									else if (stricmp(Units, "px") == 0)
-									{
-										f->PointSize(Dist * 0.8);
-									}
-									else
-									{
-										f->PointSize(Dist);
-									}
-
-									Font = Html->FontCache->AddFont(f.Release());
-								}
-							}
-							break;
-						}
-						case GCss::PropFontWeight:
-						{
-							GAutoPtr<GFont> f(NewFont());
-							if (f)
-							{
-								if (stristr(Value, "bold"))
-								{
-									f->Bold(true);
-								}
-
-								Font = Html->FontCache->AddFont(f.Release());
-							}
-							break;
-						}
-						case GCss::PropFontStyle:
-						{
-							GAutoPtr<GFont> f(NewFont());
-							if (f)
-							{
-								if (stricmp(Value, "normal") == 0)
-								{
-									f->Bold(false);
-									f->Italic(false);
-									f->Underline(false);
-								}
-								else if (stricmp(Value, "italic") == 0)
-								{
-									f->Italic(true);
-								}
-
-								Font = Html->FontCache->AddFont(f.Release());
-							}
-							break;
-						}
-						case GCss::PropWidth:
-						{
-							Width.Set(Value);
-							break;
-						}
-						case GCss::PropHeight:
-						{
-							Height.Set(Value);
-							break;
-						}
-					}
-				}
-			}
-		}
+		// Update display setting cache
+		if (Display() != DispInherit)
+			Disp = Display();	
 	}
 }
 
-char16 *GTag::CleanText(char *s, int Len, bool ConversionAllowed, bool KeepWhiteSpace)
+char16 *GTag::CleanText(const char *s, int Len, bool ConversionAllowed, bool KeepWhiteSpace)
 {
-	static char *DefaultCs = "iso-8859-1";
+	static const char *DefaultCs = "iso-8859-1";
 	char16 *t = 0;
-
-	#if 0
-
-	if (s && Len > 0)
-	{
-		bool DocAndCsTheSame = false;
-		if (Html->DocCharSet && Html->Charset)
-		{
-			DocAndCsTheSame = stricmp(Html->DocCharSet, Html->Charset) == 0;
-		}
-
-		bool Has8 = false;
-		bool Has16 = false;
-		GArray<char16> Out;
-		if (ConversionAllowed)
-		{
-			for (char *i = s; i < s + Len && *i; )
-			{
-				switch (*i)
-				{
-					case '&':
-					{
-						i++;
-						
-						char *e;
-						for (e = i; *e && *e != ';'; e++);
-						char16 *Var = LgiNewUtf8To16(i, SubtractPtr(e, i));
-						if (Var)
-						{
-							char16 Char = 0;
-							if (*Var == '#')
-							{
-								// Unicode Number
-								Char = atoi(i + 1);
-								i = e + 1;
-							}
-							else
-							{
-								// Named Char
-								Char = Static->VarMap[Var];
-								if (Char)
-								{
-									i = e + 1;
-								}
-								else
-								{
-									printf("%s:%i - Convert '%S' failed out of %i values.\n",
-										__FILE__, __LINE__, Var, Static->VarMap.Length());
-									Char = i[-1];
-								}
-							}
-
-							if (Char)
-							{
-								if (Char >= 0x80)
-									Has8 = true;
-								if (Char >= 0x100)
-									Has16 = true;
-
-								Out.Add(Char);
-							}
-
-							DeleteArray(Var);
-						}
-						break;
-					}
-					case ' ':
-					case '\t':
-					case '\n':
-					{
-						if (KeepWhiteSpace)
-						{
-							Out.Add(*i++);
-							break;
-						}
-						// else fall thru
-					}
-					case '\r':
-					{
-						// Whitespace
-						Out.Add(' ');
-						while (*i && IsWhiteSpace(*i))
-						{
-							i++;
-						}
-						break;
-					}
-					default:
-					{
-						// Normal char
-
-						/*
-						char *Start = i;
-						while (*i &&
-								*i != '&' &&
-								*i != ' ' &&
-								*i != '\t' &&
-								*i != '\r' &&
-								*i != '\n' &&
-								i < s + Len)
-						{
-							i++;
-						}
-
-						int Bytes = i - Start;
-						char16 *w = 0;
-						if (Html->DocCharSet && !Html->OverideDocCharset)
-						{
-							char *DocText = (char*)LgiNewConvertCp(Html->DocCharSet, Start, Html->Charset ? Html->Charset : (char*)"utf-8", Bytes);
-							if (DocText)
-							{
-								w = (char16*) LgiNewConvertCp(LGI_W_CHARSET, DocText, Html->DocCharSet, -1);
-								DeleteArray(DocText);
-							}
-							else goto NormalText;
-						}
-						else
-						{
-							NormalText:
-							w = (char16*) LgiNewConvertCp(LGI_W_CHARSET, Start, Html->Charset ? Html->Charset : (char*)"iso-8859-1", Bytes);
-						}
-
-						for (char16 *n = w; n && *n; n++)
-						{
-							Out.Add(*n);
-						}
-						*/
-
-						if (*i >= 0x80)
-							Has8 = true;
-
-						Out.Add(*i++);
-						break;
-					}
-				}
-			}
-		}
-
-		if (Has16)
-		{
-			t = NewStrW(&Out[0], Out.Length());
-		}
-		else
-		{
-			GArray<uchar> Out8;
-			Out8.Length(Out.Length() + 1);
-			for (int o=0; o<Out.Length(); o++)
-				Out8[o] = Out[o];
-			Out8.Add(0);
-
-			char *Start = (char*) &Out8[0];
-			int Bytes = Out8.Length();
-			if (Html->DocCharSet && !Html->OverideDocCharset && Html->Charset)
-			{
-				#if 0
-				
-				char *DocText = (char*)LgiNewConvertCp(Html->Charset, Start, Html->DocCharSet ? Html->DocCharSet : DefaultCs, Bytes);
-				if (DocText)
-				{
-					t = (char16*) LgiNewConvertCp(LGI_W_CHARSET, DocText, Html->Charset, -1);
-					DeleteArray(DocText);
-				}
-				else goto NormalText;
-
-				#else
-
-				char *DocText = (char*)LgiNewConvertCp(Html->DocCharSet, Start, Html->Charset ? Html->Charset : DefaultCs, Bytes);
-				if (DocText)
-				{
-					t = (char16*) LgiNewConvertCp(LGI_W_CHARSET, DocText, Html->DocCharSet, -1);
-					DeleteArray(DocText);
-				}
-				else goto NormalText;
-
-				#endif
-			}
-			else
-			{
-				NormalText:
-				t = (char16*) LgiNewConvertCp(LGI_W_CHARSET, Start, Html->Charset ? Html->Charset : DefaultCs, Bytes);
-			}
-		}
-	}
-
-	#else
 
 	if (s && Len > 0)
 	{
@@ -3059,41 +3357,68 @@ char16 *GTag::CleanText(char *s, int Len, bool ConversionAllowed, bool KeepWhite
 					{
 						i++;
 						
-						char16 *e;
-						for (e = i; *e && *e != ';'; e++);
-						char16 *Var = NewStrW(i, SubtractPtr(e, i));
-						if (Var)
+						if (*i == '#')
 						{
-							if (*Var == '#')
+							// Unicode Number
+							char n[32] = "", *p = n;
+							
+							i++;
+							
+							if (*i == 'x' || *i == 'X')
 							{
-								// Unicode Number
-								char n[32] = "";
-								const void *In = Var + 1;
-								int Len = StrlenW(Var + 1) * sizeof(char16);
-								if (LgiBufConvertCp(n, "iso-8859-1", sizeof(n), In, "utf-16", Len))
+								// Hex number
+								i++;
+								while (	*i &&
+										(
+											IsDigit(*i) ||
+											(*i >= 'A' && *i <= 'F') ||
+											(*i >= 'a' && *i <= 'f')
+										) &&
+										(p - n) < 31)
 								{
-									char16 Ch = atoi(n);
-									*o++ = Ch;
+									*p++ = *i++;
 								}
+							}
+							else
+							{
+								// Decimal number
+								while (*i && IsDigit(*i) && (p - n) < 31)
+								{
+									*p++ = *i++;
+								}
+							}
+							*p++ = 0;
+							
+							char16 Ch = atoi(n);
+							if (Ch)
+							{
+								*o++ = Ch;
+							}
+							
+							if (*i && *i != ';')
+								i--;
+						}
+						else
+						{
+							// Named Char
+							char16 *e = i;
+							while (*e && IsAlpha(*e) && *e != ';')
+							{
+								e++;
+							}
+							
+							GAutoWString Var(NewStrW(i, e-i));							
+							char16 Char = GHtmlStatic::Inst->VarMap.Find(Var);
+							if (Char)
+							{
+								*o++ = Char;
 								i = e;
 							}
 							else
 							{
-								// Named Char
-								char16 Char = GHtmlStatic::Inst->VarMap.Find(Var);
-								if (Char)
-								{
-									*o++ = Char;
-									i = e;
-								}
-								else
-								{
-									i--;
-									*o++ = *i;
-								}
+								i--;
+								*o++ = *i;
 							}
-
-							DeleteArray(Var);
 						}
 						break;
 					}
@@ -3136,9 +3461,7 @@ char16 *GTag::CleanText(char *s, int Len, bool ConversionAllowed, bool KeepWhite
 		}
 	}
 
-	#endif
-
-	if (t && StrlenW(t) == 0)
+	if (t && !*t)
 	{
 		DeleteArray(t);
 	}
@@ -3148,13 +3471,17 @@ char16 *GTag::CleanText(char *s, int Len, bool ConversionAllowed, bool KeepWhite
 
 char *GTag::ParseText(char *Doc)
 {
-	Back = LC_WORKSPACE;
+	ColorDef c;
+	c.Type = ColorRgb;
+	c.Rgb32 = LC_WORKSPACE;
+	BackgroundColor(c);
+	
 	TagId = TAG_BODY;
 	Tag = NewStr("body");
 	Info = GetTagInfo(Tag);
 	char *OriginalCp = NewStr(Html->Charset);
 
-	Html->SetBackColour(LC_WORKSPACE);
+	Html->SetBackColour(Rgb24To32(LC_WORKSPACE));
 	
 	GStringPipe Utf16;
 	char *s = Doc;
@@ -3183,7 +3510,7 @@ char *GTag::ParseText(char *Doc)
 
 			// Output tag
 			Html->SetCharset("iso-8859-1");
-			char16 *t = CleanText(s, e-s, false);
+			char16 *t = CleanText(s, e - s, false);
 			if (t)
 			{
 				Utf16.Push(t);
@@ -3200,8 +3527,8 @@ char *GTag::ParseText(char *Doc)
 				GTag *t = new GTag(Html, this);
 				if (t)
 				{
-					t->Fore = LC_TEXT;
-					t->Text = Line;
+					t->Color(ColorDef(LC_TEXT));
+					t->Text(Line);
 				}
 			}
 
@@ -3226,11 +3553,10 @@ char *GTag::ParseText(char *Doc)
 			
 			// Output text
 			Html->SetCharset(OriginalCp);
-			char16 *t = CleanText(s, e-s, false);
+			GAutoWString t(CleanText(s, e - s, false));
 			if (t)
 			{
 				Utf16.Push(t);
-				DeleteArray(t);
 			}			
 			s = e;
 		}
@@ -3249,7 +3575,10 @@ char *GTag::NextTag(char *s)
 		char *n = strchr(s, '<');
 		if (n)
 		{
-			if (isalpha(n[1]) || strchr("!/", n[1]) || n[1] == '?')
+			if (!n[1])
+				return NULL;
+
+			if (IsAlpha(n[1]) || strchr("!/", n[1]) || n[1] == '?')
 			{
 				return n;
 			}
@@ -3260,6 +3589,39 @@ char *GTag::NextTag(char *s)
 	}
 
 	return 0;
+}
+
+void GHtml::CloseTag(GTag *t)
+{
+	if (!t)
+		return;
+
+	OpenTags.Delete(t);
+}
+
+static void SkipNonDisplay(char *&s)
+{
+	while (*s)
+	{
+		SkipWhiteSpace(s);
+
+		if (s[0] == '<' &&
+			s[1] == '!' &&
+			s[2] == '-' &&
+			s[3] == '-')
+		{
+			s += 4;
+			char *e = strstr(s, "-->");
+			if (e)
+				s = e + 3;
+			else
+			{
+				s += strlen(s);
+				break;
+			}
+		}
+		else break;
+	}
 }
 
 char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
@@ -3334,7 +3696,7 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 							char *e = s - 1;
 							while (e > Start && IsWhiteSpace(*e)) e--;
 							e++;
-							char *Code = NewStr(Start, e-Start);
+							char *Code = NewStr(Start, e - Start);
 							if (Code)
 							{
 								char *Result = Html->Environment->OnDynamicContent(Code);
@@ -3371,37 +3733,104 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 				s = strstr(s, "-->");
 				if (s) s += 3;
 			}
-			else if (s[1] != '/')
+			else if (s[1] == '!' &&
+					s[2] == '[')
+			{
+				// Parse conditional...
+				char *StartTag = s;
+				s += 3;
+				char *Cond = 0;
+				s = ParseName(s, &Cond);
+				if (!Cond)
+				{
+					while (*s && *s != ']')
+						s++;
+					if (*s == ']') s++;
+					if (*s == '>') s++;
+					return s;
+				}
+
+				bool IsEndIf = false;
+				if (!stricmp(Cond, "if"))
+				{
+					if (!IsFirst)
+					{
+						DeleteArray(Cond);
+						s = StartTag;
+						goto DoChildTag;
+					}
+
+					TagId = CONDITIONAL;
+					SkipWhiteSpace(s);
+					char *Start = s;
+					while (*s && *s != ']')
+						s++;
+					Condition.Reset(NewStr(Start, s-Start));
+					Tag = NewStr("[if]");
+					Info = GetTagInfo(Tag);
+					Disp = DispInline;
+				}
+				else if (!stricmp(Cond, "endif"))
+				{
+					IsEndIf = true;
+				}
+				DeleteArray(Cond);
+				if (*s == ']') s++;
+				if (*s == '>') s++;
+				if (IsEndIf)
+					return s;
+			}
+			else if (s[1] == '!')
+			{
+				s += 2;
+				s = strchr(s, '>');
+				if (s)
+					s++;
+				else
+					return NULL;
+			}
+			else if (IsAlpha(s[1]))
 			{
 				// Start tag
 				if (Parent && IsFirst)
 				{
 					// My tag
 					s = ParseName(++s, &Tag);
+					if (!Tag)
+					{
+					    if (BackOut)
+						    *BackOut = true;
+						return s;
+					}
 
 					bool TagClosed = false;
 					s = ParsePropList(s, this, TagClosed);
 
-					if (Tag)
+					if (stricmp("th", Tag) == 0)
 					{
-						if (stricmp("th", Tag) == 0)
+						DeleteArray(Tag);
+						Tag = NewStr("td");
+					}
+					
+					Info = GetTagInfo(Tag);
+					if (Info)
+					{
+						TagId = Info->Id;
+						Disp = TestFlag(Info->Flags, TI_BLOCK) || (Tag && Tag[0] == '!') ? DispBlock : DispInline;
+						if (TagId == TAG_PRE)
 						{
-							DeleteArray(Tag);
-							Tag = NewStr("td");
+							InPreTag = true;
 						}
-						
-						Info = GetTagInfo(Tag);
-						if (Info)
-						{
-							TagId = Info->Id;
-							IsBlock = Info->Flags & TI_BLOCK;
-							if (TagId == TAG_PRE)
-							{
-								InPreTag = true;
-							}
-						}
-						
-						if (TagId == TAG_SCRIPT)
+					}
+
+					if (IsBlock(Disp) || TagId == TAG_BR)
+					{
+						SkipNonDisplay(s);
+					}
+
+					switch (TagId)
+					{
+						case TAG_SCRIPT:
 						{
 							char *End = stristr(s, "</script>");
 							if (End)
@@ -3409,7 +3838,7 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 								if (Html->Environment)
 								{
 									*End = 0;
-									char *Lang = 0, *Type = 0;
+									const char *Lang = 0, *Type = 0;
 									Get("language", Lang);
 									Get("type", Type);
 									Html->Environment->OnCompileScript(s, Lang, Type);
@@ -3418,122 +3847,166 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 
 								s = End;
 							}
+							break;
 						}
-
-						if (TagId == TAG_TABLE &&
-							Parent->TagId == TAG_TABLE)
+						case TAG_TABLE:
 						{
-							// Um no...
-							if (BackOut)
+							if (Parent->TagId == TAG_TABLE)
 							{
-								GTag *l = Html->OpenTags.Last();
-								if (l && l->TagId == TAG_TABLE)
+								// Um no...
+								if (BackOut)
 								{
-									Html->OpenTags.Delete(l);
+									GTag *l = Html->OpenTags.Last();
+									if (l && l->TagId == TAG_TABLE)
+									{
+										Html->CloseTag(l);
+									}
+
+									*BackOut = true;
+									return StartTag;
 								}
-
-								*BackOut = true;
-								return StartTag;
 							}
+							break;
 						}
-						
-						SetStyle();
-
-						if (TagId == TAG_STYLE)
+						case TAG_IFRAME:
 						{
-							char *End = stristr(s, "</style>");
-							if (End)
+							const char *Src;
+							if (Get("src", Src))
 							{
-								char *Css = NewStr(s, SubtractPtr(End, s));
-								if (Css)
+								GDocumentEnv::LoadJob *j = Html->Environment->NewJob();
+								if (j)
 								{
-									Html->AddCss(Css);
+									LgiAssert(Html);
+									j->Uri.Reset(NewStr(Src));
+									j->View = Html;
+									j->UserData = this;
+									j->UserUid = Html->d->DocumentUid;
+
+									GDocumentEnv::LoadType Result = Html->Environment->GetContent(j);
+									if (Result == GDocumentEnv::LoadImmediate)
+									{
+										if (j->Stream)
+										{
+											uint64 Len = j->Stream->GetSize();
+											if (Len > 0)
+											{
+												GAutoString a(new char[Len+1]);
+												int r = j->Stream->Read(a, Len);
+												a[r] = 0;
+												
+												GTag *Child = new GTag(Html, this);
+												if (Child)
+												{
+													bool BackOut = false;
+													Child->ParseHtml(a, Depth + 1, false, &BackOut);
+												}
+											}
+										}
+									}
+									DeleteObj(j);
 								}
-
-								s = End;
 							}
-							else
-							{
-								// wtf?
-							}
+							break;
 						}
+					}
+					
+					SetStyle();
 
-						/* FIXME???
-						if (TagId == TAG_P)
+					if (TagId == TAG_STYLE)
+					{
+						char *End = stristr(s, "</style>");
+						if (End)
 						{
-							GTag *p;
-							if (p = Html->GetOpenTag("p"))
+							char *Css = NewStr(s, End - s);
+							if (Css)
 							{
-								return s;
+								Html->AddCss(Css);
 							}
-						}
-						*/
 
-						if (TagClosed || Info->NeverCloses())
+							s = End;
+						}
+						else
+						{
+							// wtf?
+						}
+					}
+
+					/* FIXME???
+					if (TagId == TAG_P)
+					{
+						GTag *p;
+						if (p = Html->GetOpenTag("p"))
 						{
 							return s;
 						}
+					}
+					*/
 
-						if (Info->ReattachTo)
+					if (TagClosed || Info->NeverCloses())
+					{
+						return s;
+					}
+
+					if (Info->ReattachTo)
+					{
+						GToken T(Info->ReattachTo, ",");
+						const char *Reattach = Info->ReattachTo;
+						for (int i=0; i<T.Length(); i++)
 						{
-							GToken T(Info->ReattachTo, ",");
-							char *Reattach = Info->ReattachTo;
-							for (int i=0; i<T.Length(); i++)
+							if (Parent->Tag &&
+								stricmp(Parent->Tag, T[i]) == 0)
 							{
-								if (Parent->Tag &&
-									stricmp(Parent->Tag, T[i]) == 0)
-								{
-									Reattach = 0;
-									break;
-								}
-							}
-
-							if (Reattach)
-							{
-								if (TagId == TAG_HEAD)
-								{
-									// Ignore it..
-									return s;
-								}
-								else
-								{
-									GTag *Last = 0;
-									for (GTag *t=Html->OpenTags.Last(); t; t=Html->OpenTags.Prev())
-									{
-										if (t->Tag)
-										{
-											if (stricmp(t->Tag, Tag) == 0)
-											{
-												Html->OpenTags.Delete(t);
-												t = Html->OpenTags.Current();
-												if (!t) t = Html->OpenTags.Last();
-											}
-
-											if (t && t->Tag && stricmp(t->Tag, Reattach) == 0)
-											{
-												Last = t;
-												break;
-											}
-										}
-
-										if (!t || t->TagId == TAG_TABLE)
-											break;
-									}
-
-									if (Last)
-									{
-										Last->Attach(this);
-									}
-								}
+								Reattach = 0;
+								break;
 							}
 						}
 
-						Html->OpenTags.Insert(this);
+						if (Reattach)
+						{
+							if (TagId == TAG_HEAD)
+							{
+								// Ignore it..
+								return s;
+							}
+							else
+							{
+								GTag *Last = 0;
+								for (GTag *t=Html->OpenTags.Last(); t; t=Html->OpenTags.Prev())
+								{
+									if (t->Tag)
+									{
+										if (stricmp(t->Tag, Tag) == 0)
+										{
+											Html->CloseTag(t);
+											t = Html->OpenTags.Current();
+											if (!t) t = Html->OpenTags.Last();
+										}
+
+										if (t && t->Tag && stricmp(t->Tag, Reattach) == 0)
+										{
+											Last = t;
+											break;
+										}
+									}
+
+									if (!t || t->TagId == TAG_TABLE)
+										break;
+								}
+
+								if (Last)
+								{
+									Last->Attach(this);
+								}
+							}
+						}
 					}
+
+					Html->OpenTags.Insert(this);
 				}
 				else
 				{
 					// Child tag
+					DoChildTag:
 					GTag *c = new GTag(Html, this);
 					if (c)
 					{
@@ -3542,45 +4015,74 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 						s = c->ParseHtml(s, Depth + 1, InPreTag, &BackOut);
 						if (BackOut)
 						{
+							c->Detach();
+							DeleteObj(c);
 							return s;
+						}
+						else if (IsBlock(c->Disp))
+						{
+							GTag *Last;
+							while (c->Tags.Length())
+							{
+								Last = c->Tags.Last();
+
+								if (Last->TagId == CONTENT &&
+									!ValidStrW(Last->Text()))
+								{
+									Last->Detach();
+									DeleteObj(Last);
+								}
+								else break;
+							}
 						}
 					}
 				}
 			}
-			else
+			else if (s[1] == '/')
 			{
 				// End tag
 				char *PreTag = s;
 				s += 2;
+
+				// This code segment detects out of order HTML tags
+				// and skips them. If we didn't do this then the parser
+				// would get stuck on a Tag which has already been closed
+				// and would return to the very top of the recursion.
+				//
+				// e.g.
+				//		<font>
+				//			<b>
+				//			</font>
+				//		</b>
+				char *EndBracket = strchr(s, '>');
+				if (EndBracket)
+				{
+					char *e = EndBracket;
+					while (e > s && strchr(WhiteSpace, e[-1]))
+						e--;
+					char Prev = *e;
+					*e = 0;
+					GTag *Open = Html->GetOpenTag(s);
+					*e = Prev;
+					
+					if (Open)
+					{
+						Open->WasClosed = true;
+					}
+					else
+					{
+						s = EndBracket + 1;
+						continue;
+					}
+				}
+				else
+				{
+					s += strlen(s);
+					continue;
+				}
+
 				if (Tag)
 				{
-					// This code segment detects out of order HTML tags
-					// and skips them. If we didn't do this then the parser
-					// would get stuck on a Tag which has already been closed
-					// and would return to the very top of the recursion.
-					//
-					// e.g.
-					//		<font>
-					//			<b>
-					//			</font>
-					//		</b>
-					char *e = strchr(s, '>');
-					if (e)
-					{
-						*e = 0;
-						GTag *Open = Html->GetOpenTag(s);
-						*e = '>';
-						if (Open)
-						{
-							Open->WasClosed = true;
-						}
-						else
-						{
-							s = e + 1;
-							continue;
-						}
-					}
-
 					// Compare against our tag
 					char *t = Tag;
 					while (*s && *t && toupper(*s) == toupper(*t))
@@ -3589,87 +4091,146 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 						t++;
 					}
 
+					SkipWhiteSpace(s);
+
 					if (*s == '>')
 					{
 						GTag *t;
 						while (t = Html->OpenTags.Last())
 						{
-							Html->OpenTags.Delete(t);
+							Html->CloseTag(t);
 							if (t == this)
 							{
 								break;
 							}
 						}
 						s++;
+
+						if (IsBlock(Disp) || TagId == TAG_BR)
+						{
+							SkipNonDisplay(s);
+						}
+
 						if (Parent)
 						{
 							return s;
 						}
 					}
 				}
+				else
+					LgiAssert(!"This should not happen?");
 
 				if (Parent)
 				{
 					return PreTag;
 				}
 			}
+			else
+			{
+				goto PlainText;
+			}
 		}
 		else if (*s)
 		{
 			// Text child
+			PlainText:
 			char *n = NextTag(s);
-			int Len = n ? SubtractPtr(n, s) : strlen(s);
+			int Len = n ? n - s : strlen(s);
 			GAutoWString Txt(CleanText(s, Len, true, InPreTag));
-			if (Txt)
+			if (Txt && *Txt)
 			{
-				if (ValidStrW(Txt))
+				// This loop processes the text into lengths that need different treatment
+				enum TxtClass
 				{
-					if (InPreTag)
-					{
-						for (char16 *s=Txt; s && *s; )
-						{
-							char16 *e = StrchrW(s, '\n');
-							if (!e) e = s + StrlenW(s);
-							int Chars = e - s;
+					TxtNone,
+					TxtEmoji,
+					TxtEol,
+					TxtNull,
+				};
 
-							GTag *c = new GTag(Html, this);
-							if (c)
+				char16 *Start = Txt;
+				GTag *Child;
+				for (char16 *c = Txt; true; c++)
+				{
+					TxtClass Cls = TxtNone;
+					if (Html->d->DecodeEmoji && *c >= EMOJI_START && *c <= EMOJI_END)
+						Cls = TxtEmoji;
+					else if (InPreTag && *c == '\n')
+						Cls = TxtEol;
+					else if (!*c)
+						Cls = TxtNull;
+
+					if (Cls)
+					{
+						if (c > Start)
+						{
+							// Emit the text before the point of interest...
+							GAutoWString Cur;
+							if (Start == Txt && !*c)
 							{
-								c->Text = NewStrW(s, Chars);
-								
-								if (*e == '\n')
-								{
-									GTag *c = new GTag(Html, this);
-									if (c)
-									{
-										c->Tag = NewStr("br");
-										c->Info = GetTagInfo(c->Tag);
-										if (c->Info)
-										{
-											c->TagId = c->Info->Id;
-										}
-									}
-								}
+								// Whole string
+								Cur = Txt;
+							}
+							else
+							{
+								// Sub-string
+								Cur.Reset(NewStrW(Start, c - Start));
 							}
 
-							s = *e ? e + 1 : e;
+							if (Tags.Length() == 0 &&
+								(!Info || !Info->NoText()) &&
+								!Text())
+							{
+								Text(Cur.Release());
+							}
+							else if (Child = new GTag(Html, this))
+							{
+								Child->Text(Cur.Release());
+							}
 						}
-					}
-					else if (Tags.Length() == 0 &&
-							(!Info || !Info->NoText()) &&
-							!Text)
-					{
-						Text = Txt.Release();
-					}
-					else
-					{
-						GTag *c = new GTag(Html, this);
-						if (c)
+
+						// Now process the text of interest...
+						if (Cls == TxtEmoji)
 						{
-							c->Text = Txt.Release();
+							// Emit the emoji image
+							GTag *img = new GTag(Html, this);
+							if (img)
+							{
+								img->Tag = NewStr("img");
+								if (img->Info = GetTagInfo(img->Tag))
+									img->TagId = img->Info->Id;
+
+								GRect rc;
+								EMOJI_CH2LOC(*c, rc);
+
+								img->Set("src", Html->d->EmojiImg);
+
+								char css[256];
+								sprintf(css, "x-rect: rect(%i,%i,%i,%i);", rc.y1, rc.x2, rc.y2, rc.x1);
+								img->Set("style", css);
+								img->SetStyle();
+							}
+							Start = c + 1;
+						}
+						else if (Cls == TxtEol)
+						{
+							// Emit the <br> tag
+							GTag *br = new GTag(Html, this);
+							if (br)
+							{
+								br->Tag = NewStr("br");
+								if (br->Info = GetTagInfo(br->Tag))
+									br->TagId = br->Info->Id;
+							}
+							Start = c + 1;
 						}
 					}
+					
+					// Check for the end of string...
+					if (!*c)
+						break;
 				}
+
 			}
 
 			s = n;
@@ -3683,6 +4244,29 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 	#endif
 
 	return 0;
+}
+
+bool GTag::OnUnhandledColor(GCss::ColorDef *def, const char *&s)
+{
+	const char *e = s;
+	while (*e && (IsText(*e) || *e == '_'))
+		e++;
+
+	char tmp[256];
+	int len = e - s;
+	memcpy(tmp, s, len);
+	tmp[len] = 0;
+	int m = GHtmlStatic::Inst->ColourMap.Find(tmp);
+	s = e;
+
+	if (m >= 0)
+	{
+		def->Type = GCss::ColorRgb;
+		def->Rgb32 = Rgb24To32(m);
+		return true;
+	}
+
+	return false;
 }
 
 void GTag::ZeroTableElements()
@@ -3740,7 +4324,7 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 	bool Status = true;
 
 	// Break the text into words and measure...
-	if (Text)
+	if (Text())
 	{
 		int MinContent = 0;
 		int MaxContent = 0;
@@ -3748,7 +4332,7 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 		GFont *f = GetFont();
 		if (f)
 		{
-			for (char16 *s = Text; s && *s; )
+			for (char16 *s = Text(); s && *s; )
 			{
 				// Skip whitespace...
 				while (*s && StrchrW(WhiteW, *s)) s++;
@@ -3769,8 +4353,12 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 			}
 		}
 		
-		Min = max(Min, MinContent) + MarginLeft + MarginRight + (CellPadding << 1);
-		Max = max(Max, MaxContent) + MarginLeft + MarginRight + (CellPadding << 1);
+		int Add = (int)(MarginLeft().Value +
+					MarginRight().Value +
+					PaddingLeft().Value +
+					PaddingRight().Value);
+		Min = max(Min, MinContent) + Add;
+		Max =	max(Max, MaxContent) + Add;
 	}
 
 	// Specific tag handling?
@@ -3778,11 +4366,12 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 	{
 		case TAG_IMG:
 		{
-			if (Width.IsValid())
+			Len w = Width();
+			if (w.IsValid())
 			{
-				int w = Width;
-				Min = max(Min, w);
-				Max = max(Max, w);
+				int x = (int) w.Value;
+				Min = max(Min, x);
+				Max = max(Max, x);
 			}
 			else if (Image)
 			{
@@ -3797,33 +4386,32 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 		}
 		case TAG_TD:
 		{
-			if (Width.IsValid())
+			Len w = Width();
+			if (w.IsValid())
 			{
-				if (Width.IsDynamic())
+				if (w.IsDynamic())
 				{
-					Min = max(Min, Width);
-					Max = max(Max, Width);
+					Min = max(Min, (int)w.Value);
+					Max = max(Max, (int)w.Value);
 				}
 				else
 				{
-					int w = Width;
-					Min = Max = w;
+					Min = Max = (int)w.Value;
 				}
 			}
 			break;
 		}
 		case TAG_TABLE:
 		{
-			if (Width.IsValid() && !Width.IsDynamic())
+			Len w = Width();
+			if (w.IsValid() && !w.IsDynamic())
 			{
 				// Fixed width table...
-				int w = Width;
-				Min = Max = w;
+				Min = Max = (int)w.Value;
 				return true;
 			}
 			else
 			{
-				//int Border = CellSpacing + BorderLeft + BorderRight;
 				GdcPt2 s;
 				GCellStore c(this);
 				c.GetSize(s.x, s.y);
@@ -3832,7 +4420,7 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 				GArray<int> ColMin, ColMax;
 				for (int y=0; y<s.y; y++)
 				{
-					for (int x=0; x<s.x; x++)
+					for (int x=0; x<s.x;)
 					{
 						GTag *t = c.Get(x, y);
 						if (t)
@@ -3890,8 +4478,9 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 	{
 		case TAG_TD:
 		{
-			Min += CellPadding << 1;
-			Max += CellPadding << 1;
+			int Add = (int) (PaddingLeft().Value + PaddingRight().Value);
+			Min += Add;
+			Max += Add;
 			break;
 		}
 	}
@@ -3899,7 +4488,7 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 	return Status;
 }
 
-void DistributeSize(GArray<int> &a, int Start, int Span, int Size, int Border)
+static void DistributeSize(GArray<int> &a, int Start, int Span, int Size, int Border)
 {
 	// Calculate the current size of the cells
 	int Cur = -Border;
@@ -3932,7 +4521,6 @@ T Sum(GArray<T> &a)
 	return s;
 }
 
-#define DEBUG_LAYOUT	0
 void GTag::LayoutTable(GFlowRegion *f)
 {
 	GdcPt2 s;
@@ -3940,7 +4528,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 	if (!Cells)
 	{
 		Cells = new GCellStore(this);
-		#if DEBUG_LAYOUT
+		#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 		if (Cells && Debug)
 			Cells->Dump();
 		#endif
@@ -3954,17 +4542,24 @@ void GTag::LayoutTable(GFlowRegion *f)
 		}
 
 		ZeroTableElements();
+		Len BdrSpacing = BorderSpacing();
+		int CellSpacing = BdrSpacing.IsValid() ? (int)BdrSpacing.Value : 0;
+		int AvailableX = f->ResolveX(Width(), Font, false);
 		
-		// New table layout code
-		BorderLeft.Get(f, Font, true);
-		BorderTop.Get(f, Font, true);
-		BorderRight.Get(f, Font, true);
-		BorderBottom.Get(f, Font, true);
-
-		int AvailableX = Width.IsValid() ? Width.Get(f, Font, true) : f->X();
-		#if DEBUG_LAYOUT
+		if (MaxWidth().IsValid())
+		{
+		    int m = f->ResolveX(MaxWidth(), Font, false);
+		    if (m < AvailableX)
+		        AvailableX = m;
+		}
+		
+		GCss::Len Border = BorderLeft();
+		int BorderX1 = Border.IsValid() ? f->ResolveX(Border, Font, false) : 0;
+		Border = BorderRight();
+		int BorderX2 = Border.IsValid() ? f->ResolveX(Border, Font, false) : 0;
+		#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 		if (Debug)
-			LgiTrace("AvailableX=%i\n", AvailableX);
+			LgiTrace("AvailableX=%i, BorderX1=%i, BorderX2=%i\n", AvailableX, BorderX1, BorderX2);
 		#endif
 
 		// The col and row sizes
@@ -3982,7 +4577,8 @@ void GTag::LayoutTable(GFlowRegion *f)
 				{
 					if (t->Cell.x == x && t->Cell.y == y)
 					{
-						if (!t->Width.IsDynamic() &&
+						Len Wid = t->Width();
+						if (!t->Width().IsDynamic() &&
 							!t->MinContent &&
 							!t->MaxContent)
 						{
@@ -3991,9 +4587,9 @@ void GTag::LayoutTable(GFlowRegion *f)
 								FixedCol[x] = false;
 							}
 							
-							if (t->Width.IsValid())
+							if (t->Width().IsValid())
 							{
-								t->MinContent = t->MaxContent = t->Width.Get(f, Font, true);
+								t->MinContent = t->MaxContent = f->ResolveX(t->Width(), GetFont(), false);
 								FixedCol[x] = true;
 							}
 							else if (!t->GetWidthMetrics(t->MinContent, t->MaxContent))
@@ -4002,7 +4598,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 								t->MaxContent = 16;
 							}
 							
-							#if DEBUG_LAYOUT
+							#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 							if (Debug)
 								LgiTrace("Content[%i,%i] min=%i max=%i\n", x, y, t->MinContent, t->MaxContent);
 							#endif
@@ -4022,14 +4618,14 @@ void GTag::LayoutTable(GFlowRegion *f)
 		}
 		
 		// How much space used so far?
-		int TotalX = BorderLeft + BorderRight + CellSpacing;
+		int TotalX = BorderX1 + BorderX2 + CellSpacing;
 		int x;
 		for (x=0; x<s.x; x++)
 		{
 			TotalX += MinCol[x] + CellSpacing;
 		}
 
-		#if DEBUG_LAYOUT
+		#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 		if (Debug)
 			LgiTrace("Detect: TotalX=%i\n", TotalX);
 		#endif
@@ -4045,14 +4641,16 @@ void GTag::LayoutTable(GFlowRegion *f)
 				{
 					if (t->Cell.x == x && t->Cell.y == y)
 					{
-						if (t->Width.IsDynamic() &&
+						if (t->Width().IsDynamic() &&
 							!t->MinContent &&
 							!t->MaxContent)
-						{
-							if (t->Width.GetUnits() == LengthPercentage)
+						{	
+							Len w = t->Width();
+							if (w.Type == LenPercent)
 							{
-								Percents[t->Cell.x] = max(t->Width.GetRaw(), Percents[t->Cell.x]);
+								Percents[t->Cell.x] = max(w.Value, Percents[t->Cell.x]);
 							}
+							
 							float Total = Sum<float>(Percents);
 							if (Total > 100.0)
 							{
@@ -4061,17 +4659,18 @@ void GTag::LayoutTable(GFlowRegion *f)
 								Percents[Percents.Length()-1] -= Sub;
 
 								char p[32];
+								const char *s = p;
 								sprintf(p, "%.1f%%", Percents[Percents.Length()-1]);
-								t->Width.Set(p);
+								t->Width().Parse(s);
 							}
 
 							t->GetWidthMetrics(t->MinContent, t->MaxContent);
 							
-							int x = t->Width.Get(f, Font, true);
-							t->MinContent = max(x, t->MinContent);
+							int x = w.IsValid() ? f->ResolveX(w, Font, false) : 0;
+							//t->MinContent = max(x, t->MinContent);
 							t->MaxContent = max(x, t->MaxContent);
 							
-							#if DEBUG_LAYOUT
+							#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 							if (Debug)
 								LgiTrace("DynWidth [%i,%i] = %i->%i\n", t->Cell.x, t->Cell.y, t->MinContent, t->MaxContent);
 							#endif
@@ -4100,13 +4699,13 @@ void GTag::LayoutTable(GFlowRegion *f)
 			}
 		}
 
-		TotalX = BorderLeft + BorderRight;
+		TotalX = BorderX1 + BorderX2 + CellSpacing;
 		for (x=0; x<s.x; x++)
 		{
 			TotalX += MinCol[x] + CellSpacing;
 		}
 
-		#if DEBUG_LAYOUT
+		#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 		if (Debug)
 			LgiTrace("Dynamic: TotalX=%i\n", TotalX);
 		
@@ -4188,7 +4787,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 							if (t->MaxContent > ColMin)
 							{
 								int MaxAdd = t->MaxContent - ColMin;
-								int MaxAvail = AvailableX - TotalX;
+								int MaxAvail = AvailableX > TotalX ? AvailableX - TotalX : 0;
 								int Total = min(MaxAdd, MaxAvail);
 								
 								/*
@@ -4295,7 +4894,11 @@ void GTag::LayoutTable(GFlowRegion *f)
 				}
 			}
 			
-			if (TotalX < AvailableX && Width.IsValid())
+			#if 1
+			if (TotalX < AvailableX)
+			#else
+			if (TotalX < AvailableX && Width().IsValid())
+			#endif
 			{
 				// Force allocation of space
 
@@ -4317,7 +4920,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 		DumpCols();
 
 		// Allocate remaining space if explicit table width
-		if (Width.IsValid() &&
+		if (Width().IsValid() &&
 			TotalX < AvailableX)
 		{
 			int Add = (AvailableX - TotalX) / s.x;
@@ -4347,19 +4950,20 @@ void GTag::LayoutTable(GFlowRegion *f)
 						}
 						
 						GFlowRegion r(Html, Box);
+						int Rx = r.X();
 						t->OnFlow(&r);
-						t->Size.y += CellPadding;
+						// t->Size.y += t->PaddingBottom().Value;
 						
-						if (t->Height.IsValid() &&
-							t->Height.GetUnits() != LengthPercentage)
+						if (t->Height().IsValid() &&
+							t->Height().Type != LenPercent)
 						{
-							int h = t->Height.Get(f, Font);
+							int h = f->ResolveY(t->Height(), Font, false);
 							t->Size.y = max(h, t->Size.y);
 
 							DistributeSize(MaxRow, y, t->Span.y, t->Size.y, CellSpacing);
 						}
 
-						#if DEBUG_LAYOUT
+						#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 						if (Debug)
 							LgiTrace("[%i,%i]=%i,%i Rx=%i\n", t->Cell.x, t->Cell.y, t->Size.x, t->Size.y, Rx);
 						#endif
@@ -4381,7 +4985,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 				{
 					if (t->Cell.x == x && t->Cell.y == y)
 					{
-						if (!(t->Height.IsValid() && t->Height.GetUnits() != LengthPercentage))
+						if (!(t->Height().IsValid() && t->Height().Type != LenPercent))
 						{
 							DistributeSize(MaxRow, y, t->Span.y, t->Size.y, CellSpacing);
 						}
@@ -4394,7 +4998,10 @@ void GTag::LayoutTable(GFlowRegion *f)
 		}
 		
 		// Cell positioning
-		int Cx = BorderLeft + CellSpacing, Cy = BorderTop + CellSpacing;
+		int LeftMargin = (int) (BorderLeft().Value + CellSpacing);
+		int Cx = LeftMargin;
+		int Cy = (int) (BorderTop().Value + CellSpacing);
+		
 		for (y=0; y<s.y; y++)
 		{
 			GTag *Prev = 0;
@@ -4417,7 +5024,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 							t->Cell.y = y;
 							t->Span.x = 1;
 							t->Span.y = 1;
-							t->Back = DefaultMissingCellColour;
+							t->BackgroundColor(ColorDef(DefaultMissingCellColour));
 
 							Cells->Set(this);
 						}
@@ -4444,7 +5051,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 							t->Size.y += MaxRow[y+n] + CellSpacing;
 						}
 						
-						Size.x = max(Cx + BorderRight, Size.x);
+						Size.x = max(Cx + (int)BorderRight().Value, Size.x);
 					}
 					else
 					{
@@ -4457,11 +5064,13 @@ void GTag::LayoutTable(GFlowRegion *f)
 				Prev = t;
 			}
 			
-			Cx = CellSpacing;
+			Cx = LeftMargin;
 			Cy += MaxRow[y] + CellSpacing;
 		}
 
-		switch (GetAlign(true))
+		DumpCols();
+
+		switch (XAlign ? XAlign : Parent->GetAlign(true))
 		{
 			case AlignCenter:
 			{
@@ -4476,13 +5085,13 @@ void GTag::LayoutTable(GFlowRegion *f)
 			}
 			default:
 			{
-				Pos.x = MarginLeft.Get(f, Font) + f->x1;
+				Pos.x = f->x1;
 				break;
 			}
 		}
 		Pos.y = f->y1;
 
-		Size.y = Cy + BorderBottom;
+		Size.y = Cy + (int)BorderBottom().Value;
 	}
 }
 
@@ -4534,6 +5143,21 @@ GArea::~GArea()
 	DeleteObjects();
 }
 
+GRect GArea::Bounds()
+{
+	GFlowRect *r = First();
+	if (r)
+	{
+		GRect n = *r;
+		while (r = Next())
+		{
+			n.Union(r);
+		}
+		return n;
+	}
+	return GRect(0, 0, -1, -1);
+}
+
 GRect *GArea::TopRect(GRegion *c)
 {
 	GRect *Top = 0;
@@ -4550,11 +5174,29 @@ GRect *GArea::TopRect(GRegion *c)
 	return Top;
 }
 
-void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, char16 *Text, CssAlign Align)
+void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, char16 *Text, GCss::LengthType Align)
 {
 	if (!Flow || !Text || !Font)
 		return;
 
+	char16 *Start = Text;
+	int FullLen = StrlenW(Text);
+
+	#if 1
+	if (!Tag->Html->GetReadOnly() && !*Text)
+	{
+		GFlowRect *Tr = new GFlowRect;
+		Tr->Tag = Tag;
+		Tr->Text = Text;
+		Tr->x1 = Tr->x2 = Flow->cx;
+		Tr->y1 = Flow->y1;
+		Tr->y2 = Tr->y1 + Font->GetHeight();
+		Flow->y2 = max(Flow->y2, Tr->y2+1);
+		Insert(Tr);
+		Flow->Insert(Tr);
+		return;				
+	}
+	#endif
 
 	while (*Text)
 	{
@@ -4567,24 +5209,36 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, char16 *Text, Cs
 		Tr->x1 = Flow->cx;
 		Tr->y1 = Flow->y1;
 
-		if (Flow->x1 == Flow->cx && *Text == ' ') Text++;
+		#if 1 // I removed this at one stage but forget why.
+		
+		// Remove white space at start of line.
+		if (Flow->x1 == Flow->cx && *Text == ' ')
+		{
+			Text++;
+			if (!*Text)
+			{
+				DeleteObj(Tr);
+				break;
+			}
+		}
+		#endif
+		
 		Tr->Text = Text;
 
-		GDisplayString ds(Font, Text);
+		GDisplayString ds(Font, Text, min(1024, FullLen - (Text-Start)));
 		int Chars = ds.CharAt(Flow->X());
 		bool Wrap = false;
 		if (Text[Chars])
 		{
 			// Word wrap
+
+			// Seek back to the nearest break opportunity
 			int n = Chars;
 			while (n > 0 && !StrchrW(WhiteW, Text[n]))
-			{
 				n--;
-			}
 
 			if (n == 0)
 			{
-				// printf("x1=%i cx=%i flow->x=%i text='%.20S'\n", Flow->x1, Flow->cx, Flow->X(), Text + Tr->Len);
 				if (Flow->x1 == Flow->cx)
 				{
 					// Already started from the margin and it's too long to 
@@ -4608,6 +5262,7 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, char16 *Text, Cs
 			else
 			{
 				Tr->Len = n;
+				LgiAssert(Tr->Len > 0);
 			}
 
 			Wrap = true;
@@ -4616,6 +5271,7 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, char16 *Text, Cs
 		{
 			// Fits..
 			Tr->Len = Chars;
+			LgiAssert(Tr->Len > 0);
 		}
 
 		GDisplayString ds2(Font, Tr->Text, Tr->Len);
@@ -4639,43 +5295,15 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, char16 *Text, Cs
 		Flow->Insert(Tr);
 		
 		Text += Tr->Len;
+		if (Wrap)
+		{
+			while (*Text == ' ')
+				Text++;
+		}
 
 		Tag->Size.x = max(Tag->Size.x, Tr->x2);
 		Tag->Size.y = max(Tag->Size.y, Tr->y2);
-
-		#if 0
-		if (Wrap)
-		{
-			// New line here... process alignment.
-			switch (Align)
-			{
-				case AlignCenter:
-				{
-					GFlowRect *r = ItemAt(LineStart);
-					if (r)
-					{
-						int MinX = r->x1, MaxX = r->x2;
-						while (r = Next())
-						{
-							MinX = min(MinX, r->x1);
-							MaxX = max(MaxX, r->x2);
-						}
-
-						int Tx = MaxX - MinX;
-						int Fx = Flow->x2 - Flow->x1;
-						int Offset = (Fx - Tx) / 2;
-						for (r = ItemAt(LineStart); r; r = Next())
-						{
-							r->Offset(Offset, 0);
-						}
-					}
-					break;
-				}
-			}
-
-			LineStart = Length();
-		}
-		#endif
+		Flow->max_cx = max(Flow->max_cx, Tr->x2);
 
 		if (Tr->Len == 0)
 			break;
@@ -4684,36 +5312,80 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, char16 *Text, Cs
 
 void GTag::OnFlow(GFlowRegion *InputFlow)
 {
-	if (!Visible) return;
+	if (Disp == DispNone)
+		return;
 
 	GFlowRegion *Flow = InputFlow;
 	GFont *f = GetFont();
 	GFlowRegion Local(Html);
 	bool Restart = true;
+	int BlockFlowWidth = 0;
+	const char *ImgAltText = NULL;
+	int BlockInlineX[3];
 
 	Size.x = 0;
 	Size.y = 0;
 
 	switch (TagId)
 	{
+		case TAG_IFRAME:
+		{
+			GFlowRegion Temp = *Flow;
+			Flow->EndBlock();
+			Flow->Indent(f, MarginLeft(), MarginTop(), MarginRight(), MarginBottom(), true);
+
+			// Flow children
+			for (GTag *t=Tags.First(); t; t=Tags.Next())
+			{
+				t->OnFlow(&Temp);
+
+				if (TagId == TAG_TR)
+				{
+					Temp.x2 -= min(t->Size.x, Temp.X());
+				}
+			}
+
+			Flow->Outdent(f, MarginLeft(), MarginTop(), MarginRight(), MarginBottom(), true);
+			BoundParents();
+			return;
+			break;
+		}
 		case TAG_IMG:
 		{
 			Restart = false;
 
-			CssAlign a = GetAlign(true);
 			Pos.y = Flow->y1;
-			int ImgX = Width.IsValid() ? Width.Get(Flow, GetFont()) : (Image ? Image->X() : 0);
+			
+			if (Width().IsValid())
+			{
+				Size.x = Flow->ResolveX(Width(), GetFont(), false);
+			}
+			else if (Image)
+			{
+				Size.x = Image->X();
+			}
+			else if (Get("alt", ImgAltText) && ValidStr(ImgAltText))
+			{
+				GDisplayString a(Html->GetFont(), ImgAltText);
+				Size.x = a.X() + 4;
+			}
+			else
+			{
+				Size.x = DefaultImgSize;
+			}
+			
+			GCss::LengthType a = GetAlign(true);
 			switch (a)
 			{
 				case AlignCenter:
 				{
 					int Fx = Flow->x2 - Flow->x1;
-					Pos.x = Flow->x1 + ((Fx - ImgX) / 2);
+					Pos.x = Flow->x1 + ((Fx - Size.x) / 2);
 					break;
 				}
 				case AlignRight:
 				{
-					Pos.x = Flow->x2 - ImgX;
+					Pos.x = Flow->x2 - Size.x;
 					break;
 				}
 				default:
@@ -4743,69 +5415,104 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 		case TAG_TABLE:
 		{
 			Flow->EndBlock();
+
+			Flow->Indent(f, MarginLeft(), MarginTop(), MarginRight(), MarginBottom(), true);
+
 			LayoutTable(Flow);
+
 			Flow->y1 += Size.y;
 			Flow->y2 = Flow->y1;
 			Flow->cx = Flow->x1;
+
+			Flow->Outdent(f, MarginLeft(), MarginTop(), MarginRight(), MarginBottom(), true);
 			BoundParents();
 			return;
 		}
 	}
 
+	#ifdef _DEBUG
+	if (Debug)
+	{
+		int asd=0;
+	}
+	#endif
+	
 	int OldFlowMy = Flow->my;
-	int DWidth = 0;
-	if (IsBlock)
+	if (Disp == DispBlock || Disp == DispInlineBlock)
 	{
 		// This is a block level element, so end the previous non-block elements
-		Flow->EndBlock();
+		if (Disp == DispBlock)
+		{		
+			Flow->EndBlock();
+		}
+		else
+		{
+			int asd=0;
+		}
+		
+		BlockFlowWidth = Flow->X();
 		if (TagId == TAG_P)
 		{
-			if (!OldFlowMy && Text)
+			if (!OldFlowMy && Text())
 			{
 				Flow->FinishLine(true);
 			}
 		}
-		
-		// Set the width if any
-		if (Width.IsValid())
-		{
-			Size.x = Width.Get(Flow, f, true);
-		}
 
 		// Indent the margin...
-		Flow->Indent(Font, MarginLeft, MarginTop, MarginRight, MarginBottom, true);
+		Flow->Indent(f, MarginLeft(), MarginTop(), MarginRight(), MarginBottom(), true);
 
-		if (TagId == TAG_DIV)
+		// Set the width if any
+		if (Disp == DispBlock)
 		{
-			// What the hell does this do?
-			if (Size.x)
+			if (TagId != TAG_TD && Width().IsValid())
+				Size.x = Flow->ResolveX(Width(), f, false);
+			else
+				Size.x = Flow->X();
+
+			if (MaxWidth().IsValid())
 			{
-				DWidth = Flow->X();
-				Flow->X(Size.x);
-				DWidth -= Flow->X();
+				int Px = Flow->ResolveX(MaxWidth(), GetFont(), false);
+				if (Size.x > Px)
+					Size.x = Px;
 			}
+
+			Pos.x = Flow->x1;
 		}
-
-		Pos.x = Flow->x1;
-		Pos.y = Flow->y1;
-
-		if (TagId == TAG_TD)
+		else
 		{
-			Flow->x1 += CellPadding;
-			Flow->cx += CellPadding;
-			Flow->x2 -= CellPadding;
-			Flow->y1 += CellPadding;
+			Size.x = Flow->X(); // Not correct but give maximum space
+			Pos.x = Flow->cx;
 		}
-
-		Flow->x1 -= Pos.x;
-		Flow->x2 -= Pos.x;
-		Flow->cx -= Pos.x;
+		Pos.y = Flow->y1;
 
 		Flow->y1 -= Pos.y;
 		Flow->y2 -= Pos.y;
+			
+		if (Disp == DispBlock)
+		{
+			Flow->x1 -= Pos.x;
+			Flow->x2 = Flow->x1 + Size.x;
+			Flow->cx -= Pos.x;
 
-		Flow->Indent(f, BorderLeft, BorderTop, BorderRight, BorderBottom);
-		Flow->Indent(f, PaddingLeft, PaddingTop, PaddingRight, PaddingBottom);
+			Flow->Indent(f, GCss::BorderLeft(), GCss::BorderTop(), GCss::BorderRight(), GCss::BorderBottom(), false);
+			Flow->Indent(f, PaddingLeft(), PaddingTop(), PaddingRight(), PaddingBottom(), false);
+		}
+		else
+		{
+			BlockInlineX[0] = Flow->x1;
+			BlockInlineX[1] = Flow->cx;
+			BlockInlineX[2] = Flow->x2;
+			Flow->x1 = 0;
+			Flow->x2 = Size.x;
+			Flow->cx = 0;
+			
+			Flow->cx += Flow->ResolveX(BorderLeft(), GetFont(), false);
+			Flow->y1 += Flow->ResolveY(BorderTop(), GetFont(), false);
+			
+			Flow->cx += Flow->ResolveX(PaddingLeft(), GetFont(), false);
+			Flow->y1 += Flow->ResolveY(PaddingTop(), GetFont(), false);
+		}
 	}
 
 	if (f)
@@ -4816,28 +5523,43 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 		if (TagId == TAG_LI)
 		{
 			// Insert the list marker
-			if (!PreText)
+			if (!PreText())
 			{
-				if (Parent && Parent->TagId == TAG_OL)
+				GCss::ListStyleTypes s = Parent->ListStyleType();
+				if (s == ListInherit)
 				{
-					int Index = Parent->Tags.IndexOf(this);
-					char Txt[32];
-					sprintf(Txt, "%i. ", Index + 1);
-					PreText = LgiNewUtf8To16(Txt);
+					if (Parent->TagId == TAG_OL)
+						s = ListDecimal;
+					else if (Parent->TagId == TAG_UL)
+						s = ListDisc;
 				}
-				else
+				
+				switch (s)
 				{
-					PreText = NewStrW(GHtmlListItem);
+					case ListDecimal:
+					{
+						int Index = Parent->Tags.IndexOf(this);
+						char Txt[32];
+						sprintf(Txt, "%i. ", Index + 1);
+						PreText(LgiNewUtf8To16(Txt));
+						break;
+					}
+					case ListDisc:
+					{
+						PreText(NewStrW(GHtmlListItem));
+						break;
+					}
 				}
 			}
 
-			TextPos.FlowText(this, Flow, f, PreText, AlignLeft);
+			if (PreText())
+				TextPos.FlowText(this, Flow, f, PreText(), AlignLeft);
 		}
 
-		if (Text)
+		if (Text())
 		{
 			// Flow in the rest of the text...
-			TextPos.FlowText(this, Flow, f, Text, GetAlign(true));
+			TextPos.FlowText(this, Flow, f, Text(), GetAlign(true));
 		}
 	}
 
@@ -4852,52 +5574,48 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 		}
 	}
 
-	int OldFlowY2 = Flow->y2;
-	if (IsBlock)
-	{
-		Flow->EndBlock();
-
-		Flow->Outdent(Font, PaddingLeft, PaddingTop, PaddingRight, PaddingBottom);
-		Flow->Outdent(Font, BorderLeft, BorderTop, BorderRight, BorderBottom);
-		Flow->x2 += DWidth;
-
-		if (TagId == TAG_P)
-		{
-			Flow->Outdent(Font, MarginLeft, MarginTop, MarginRight, MarginBottom, true);
-		}
-		else
-		{
-			Flow->Outdent(Font, MarginLeft, MarginTop, MarginRight, MarginBottom, true);
-		}
-
-		Flow->y1 = Flow->y2;
-	}
-
 	switch (TagId)
 	{
-		case TAG_IMG:
+		case TAG_SELECT:
+		case TAG_INPUT:
 		{
-			if (Width.IsValid())
+			if (Ctrl)
 			{
-				int w = Width.Get(Flow, f);
-				Size.x = min(w, Flow->X());
-			}
-			else if (Image)
-			{
-				Size.x = Image->X();
-			}
-			else
-			{
-				Size.x = DefaultImgSize;
+				GRect r = Ctrl->GetPos();
+
+				if (Width().IsValid())
+					Size.x = Flow->ResolveX(Width(), GetFont(), false);
+				else
+					Size.x = r.X();
+				if (Height().IsValid())
+					Size.y = Flow->ResolveY(Height(), GetFont(), false);
+				else
+					Size.y = r.Y();
+				
+				if (!Ctrl->IsAttached())
+					Ctrl->Attach(Html);
 			}
 
-			if (Height.IsValid())
+			Flow->cx += Size.x;
+			Flow->y2 = max(Flow->y2, Flow->y1 + Size.y - 1);
+			break;
+		}
+		case TAG_IMG:
+		{
+			if (Height().IsValid())
 			{
-				Size.y = Height.Get(Flow, f);
+				if (Image)
+					Size.y = Height().ToPx(Image->Y(), GetFont());
+				else
+					Size.y = Flow->ResolveY(Height(), f, false);
 			}
 			else if (Image)
 			{
 				Size.y = Image->Y();
+			}
+			else if (ValidStr(ImgAltText))
+			{
+				Size.y = Html->GetFont()->GetHeight() + 4;
 			}
 			else
 			{
@@ -4905,31 +5623,88 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 			}
 
 			Flow->cx += Size.x;
-			Flow->y2 = max(Flow->y1 + Size.y, Flow->y2);
+			Flow->y2 = max(Flow->y2, Flow->y1 + Size.y - 1);
 			break;
 		}
 		case TAG_TR:
 		{
-			// Flow->EndBlock();
 			Flow->x2 = Flow->x1 + Local.X();
 			break;
 		}
 		case TAG_BR:
 		{
+			int OldFlowY2 = Flow->y2;
 			Flow->FinishLine();
 			Size.y = Flow->y2 - OldFlowY2;
-			break;
-		}
-		case TAG_DIV:
-		{
-			Size.y = Flow->y2;
+			Flow->y2 = max(Flow->y2, Flow->y1 + Size.y - 1);
 			break;
 		}
 		case TAG_TD:
 		{
 			Size.x = Flow->X();
-			Size.y = Flow->y1;
 			break;
+		}
+	}
+
+	if (Disp == DispBlock || Disp == DispInlineBlock)
+	{		
+		GCss::Len Ht = Height();
+		if (Ht.IsValid())
+		{			
+			int HtPx = Flow->ResolveY(Ht, GetFont(), false);
+			if (HtPx > Flow->y2)
+				Flow->y2 = HtPx;
+		}
+
+		if (Disp == DispBlock)
+		{
+			Flow->EndBlock();
+
+			int OldFlowSize = Flow->x2 - Flow->x1 + 1;
+			Flow->Outdent(f, PaddingLeft(), PaddingTop(), PaddingRight(), PaddingBottom(), false);
+			Flow->Outdent(f, GCss::BorderLeft(), GCss::BorderTop(), GCss::BorderRight(), GCss::BorderBottom(), false);
+			Flow->Outdent(f, MarginLeft(), MarginTop(), MarginRight(), MarginBottom(), true);
+			
+			int NewFlowSize = Flow->x2 - Flow->x1 + 1;
+			int Diff = NewFlowSize - OldFlowSize;
+			if (Diff)
+				Flow->max_cx += Diff;
+			
+			Size.y = Flow->y2;
+			Flow->y1 = Flow->y2;
+			Flow->x2 = Flow->x1 + BlockFlowWidth;
+
+			// I dunno, there should be a better way... :-(
+			if (MarginLeft().Type == LenAuto &&
+				MarginRight().Type == LenAuto)
+			{
+				int OffX = (Flow->x2 - Flow->x1 - Size.x) >> 1;
+				if (OffX > 0)
+					Pos.x += OffX;
+			}
+		}
+		else
+		{
+			Flow->cx += Flow->ResolveX(PaddingRight(), GetFont(), false);
+			Flow->cx += Flow->ResolveX(BorderRight(), GetFont(), false);
+			Size.x = Flow->cx;
+			Flow->cx += Flow->ResolveX(MarginRight(), GetFont(), true);
+			Flow->x1 = BlockInlineX[0] - Pos.x;
+			Flow->cx = BlockInlineX[1] + Flow->cx - Pos.x;
+			Flow->x2 = BlockInlineX[2] - Pos.x;
+
+			if (Height().IsValid())
+			{
+				Size.y = Flow->ResolveY(Height(), GetFont(), false);
+				int MarginY2 = Flow->ResolveX(MarginBottom(), GetFont(), true);
+				Flow->y2 = max(Flow->y1 + Size.y + MarginY2 - 1, Flow->y2);
+			}
+			else
+			{
+				Flow->y2 += Flow->ResolveX(PaddingBottom(), GetFont(), false);
+				Flow->y2 += Flow->ResolveX(BorderBottom(), GetFont(), false);
+				Size.y = Flow->y2 - Flow->y1 + 1;
+			}
 		}
 	}
 
@@ -4983,6 +5758,8 @@ void GTag::BoundParents()
 		{
 			if (n->Parent)
 			{
+				if (n->Parent->TagId == TAG_IFRAME)
+					break;
 				n->Parent->Size.x = max(n->Parent->Size.x, n->Pos.x + n->Size.x);
 				n->Parent->Size.y = max(n->Parent->Size.y, n->Pos.y + n->Size.y);
 			}
@@ -4990,63 +5767,248 @@ void GTag::BoundParents()
 	}
 }
 
-void GTag::OnPaintBorder(GSurface *pDC)
+struct DrawBorder
 {
-	if (BorderLeft)
+	GSurface *pDC;
+	uint32 LineStyle;
+	uint32 LineReset;
+	uint32 OldStyle;
+
+	DrawBorder(GSurface *pdc, GCss::BorderDef &d)
 	{
-		pDC->Colour(BorderLeft.Colour, 32);
-		int OldStyle = pDC->LineStyle();
-		for (int i=0; i<BorderLeft; i++)
+		LineStyle = 0xffffffff;
+		LineReset = 0x80000000;
+
+		if (d.Style == GCss::BorderDotted)
 		{
-			pDC->LineStyle(BorderLeft.LineStyle, BorderLeft.LineReset);
-			pDC->Line(i, 0, i, Size.y-1);
+			switch ((int)d.Value)
+			{
+				case 2:
+				{
+					LineStyle = 0xcccccccc;
+					break;
+				}
+				case 3:
+				{
+					LineStyle = 0xe38e38;
+					LineReset = 0x800000;
+					break;
+				}
+				case 4:
+				{
+					LineStyle = 0xf0f0f0f0;
+					break;
+				}
+				case 5:
+				{
+					LineStyle = 0xf83e0;
+					LineReset = 0x80000;
+					break;
+				}
+				case 6:
+				{
+					LineStyle = 0xfc0fc0;
+					LineReset = 0x800000;
+					break;
+				}
+				case 7:
+				{
+					LineStyle = 0xfe03f80;
+					LineReset = 0x8000000;
+					break;
+				}
+				case 8:
+				{
+					LineStyle = 0xff00ff00;
+					break;
+				}
+				case 9:
+				{
+					LineStyle = 0x3fe00;
+					LineReset = 0x20000;
+					break;
+				}
+				default:
+				{
+					LineStyle = 0xaaaaaaaa;
+					break;
+				}
+			}
 		}
-		pDC->LineStyle(OldStyle);
-	}
-	if (BorderTop)
-	{
-		pDC->Colour(BorderTop.Colour, 32);
-		int OldStyle = pDC->LineStyle();
-		for (int i=0; i<BorderTop; i++)
-		{
-			pDC->LineStyle(BorderTop.LineStyle, BorderTop.LineReset);
-			pDC->Line(0, i, Size.x-1, i);
-		}
-		pDC->LineStyle(OldStyle);
-	}
-	if (BorderRight)
-	{
-		pDC->Colour(BorderRight.Colour, 32);
-		int OldStyle = pDC->LineStyle();
-		for (int i=0; i<BorderRight; i++)
-		{
-			pDC->LineStyle(BorderRight.LineStyle, BorderRight.LineReset);
-			pDC->Line(Size.x-i-1, 0, Size.x-i-1, Size.y-1);
-		}
-		pDC->LineStyle(OldStyle);
-	}
-	if (BorderBottom)
-	{
-		pDC->Colour(BorderBottom.Colour, 32);
-		int OldStyle = pDC->LineStyle(BorderBottom.LineStyle);
-		for (int i=0; i<BorderBottom; i++)
-		{
-			pDC->LineStyle(BorderBottom.LineStyle, BorderBottom.LineReset);
-			pDC->Line(0, Size.y-i-1, Size.x-1, Size.y-i-1);
-		}
-		pDC->LineStyle(OldStyle);
+
+		pDC = pdc;
+		OldStyle = pDC->LineStyle();
 	}
 
+	~DrawBorder()
+	{
+		pDC->LineStyle(OldStyle);
+	}
+};
+
+void GTag::OnPaintBorder(GSurface *pDC, GRect *Px)
+{
+	GArray<GRect> r;
+
+	switch (Disp)
+	{
+		case DispInlineBlock:
+		case DispBlock:
+		{
+			r[0].ZOff(Size.x-1, Size.y-1);
+			break;
+		}
+		case DispInline:
+		{
+			for (GFlowRect *f=TextPos.First(); f; f=TextPos.Next())
+			{
+				r.New() = *f;
+			}
+			break;
+		}
+	}
+
+	if (Px)
+		Px->ZOff(0, 0);
+
+	for (int i=0; i<r.Length(); i++)
+	{
+		GRect &rc = r[i];
+		
+		BorderDef b;
+		if ((b = BorderLeft()).IsValid())
+		{
+			pDC->Colour(b.Color.Rgb32, 32);
+			DrawBorder db(pDC, b);
+			for (int i=0; i<b.Value; i++)
+			{
+				pDC->LineStyle(db.LineStyle, db.LineReset);
+				pDC->Line(rc.x1 + i, rc.y1, rc.x1 + i, rc.y2);
+				if (Px)
+					Px->x1++;
+			}
+		}
+		if ((b = BorderTop()).IsValid())
+		{
+			pDC->Colour(b.Color.Rgb32, 32);
+			DrawBorder db(pDC, b);
+			for (int i=0; i<b.Value; i++)
+			{
+				pDC->LineStyle(db.LineStyle, db.LineReset);
+				pDC->Line(rc.x1, rc.y1 + i, rc.x2, rc.y1 + i);
+				if (Px)
+					Px->y1++;
+			}
+		}
+		if ((b = BorderRight()).IsValid())
+		{
+			pDC->Colour(b.Color.Rgb32, 32);
+			DrawBorder db(pDC, b);
+			for (int i=0; i<b.Value; i++)
+			{
+				pDC->LineStyle(db.LineStyle, db.LineReset);
+				pDC->Line(rc.x2 - i, rc.y1, rc.x2 - i, rc.y2);
+				if (Px)
+					Px->x2++;
+			}			
+		}
+		if ((b = BorderBottom()).IsValid())
+		{
+			pDC->Colour(b.Color.Rgb32, 32);
+			DrawBorder db(pDC, b);
+			for (int i=0; i<b.Value; i++)
+			{
+				pDC->LineStyle(db.LineStyle, db.LineReset);
+				pDC->Line(rc.x1, rc.y2 - i, rc.x2, rc.y2 - i);
+				if (Px)
+					Px->y2++;
+			}
+		}
+	}
+}
+
+static void FillRectWithImage(GSurface *pDC, GRect *r, GSurface *Image, GCss::RepeatType Repeat)
+{
+	int Px = 0, Py = 0;
+	int Old = pDC->Op(GDC_ALPHA);
+
+	switch (Repeat)
+	{
+		default:
+		case GCss::RepeatBoth:
+		{
+			for (int y=0; y<r->Y(); y += Image->Y())
+			{
+				for (int x=0; x<r->X(); x += Image->X())
+				{
+					pDC->Blt(Px + x, Py + y, Image);
+				}
+			}
+			break;
+		}
+		case GCss::RepeatX:
+		{
+			for (int x=0; x<r->X(); x += Image->X())
+			{
+				pDC->Blt(Px + x, Py, Image);
+			}
+			break;
+		}
+		case GCss::RepeatY:
+		{
+			for (int y=0; y<r->Y(); y += Image->Y())
+			{
+				pDC->Blt(Px, Py + y, Image);
+			}
+			break;
+		}
+		case GCss::RepeatNone:
+		{
+			pDC->Blt(Px, Py, Image);
+			break;
+		}
+	}
+
+	pDC->Op(Old);
 }
 
 void GTag::OnPaint(GSurface *pDC)
 {
-	if (!Visible) return;
+	if (Display() == DispNone) return;
+
 	int Px, Py;
 	pDC->GetOrigin(Px, Py);
 
 	switch (TagId)
 	{
+		case TAG_INPUT:
+		case TAG_SELECT:
+		{
+			if (Ctrl)
+			{
+				int Sx = 0, Sy = 0;
+				int LineY = GetFont()->GetHeight();
+				Html->GetScrollPos(Sx, Sy);
+				Sx *= LineY;
+				Sy *= LineY;
+				
+				GRect r(0, 0, Size.x-1, Size.y-1), Px;
+				OnPaintBorder(pDC, &Px);
+				if (!dynamic_cast<GButton*>(Ctrl))
+				{
+					r.x1 += Px.x1;
+					r.y1 += Px.y1;
+					r.x2 -= Px.x2;
+					r.y2 -= Px.y2;
+				}
+				r.Offset(AbsX() - Sx, AbsY() - Sy);
+				Ctrl->SetPos(r);
+			}
+			
+			if (TagId == TAG_SELECT)
+				return;
+			break;
+		}
 		case TAG_BODY:
 		{
 			Selected = false;
@@ -5057,45 +6019,13 @@ void GTag::OnPaint(GSurface *pDC)
 				if (b != GT_TRANSPARENT)
 				{
 					pDC->Colour(b, 32);
-					pDC->Rectangle();
+					// pDC->Rectangle(Pos.x, Pos.y, Pos.x+Size.x, Pos.y+Size.y);
 				}
 
-				switch (BackgroundRepeat)
-				{
-					case BgRepeat:
-					{
-						for (int y=0; y<Html->Y(); y += Image->Y())
-						{
-							for (int x=0; x<Html->X(); x += Image->X())
-							{
-								pDC->Blt(Px + x, Py + y, Image);
-							}
-						}
-						break;
-					}
-					case BgRepeatX:
-					{
-						for (int x=0; x<Html->X(); x += Image->X())
-						{
-							pDC->Blt(Px + x, Py, Image);
-						}
-						break;
-					}
-					case BgRepeatY:
-					{
-						for (int y=0; y<Html->Y(); y += Image->Y())
-						{
-							pDC->Blt(Px, Py + y, Image);
-						}
-						break;
-					}
-					case BgNoRepeat:
-					{
-						pDC->Blt(Px, Py, Image);
-						break;
-					}
-				}
-			}			
+				GRect r;
+				r.ZOff(Size.x-1, Size.y-1);
+				FillRectWithImage(pDC, &r, Image, BackgroundRepeat());
+			}
 			break;
 		}
 		case TAG_HEAD:
@@ -5124,42 +6054,40 @@ void GTag::OnPaint(GSurface *pDC)
 			if (Image)
 			{
 				int Old = pDC->Op(GDC_ALPHA);
-
-				/*
-				printf("Img %ix%i@%i bits, Alpha=%p (pDC=%i bits, scr=%i)\n",
-					Image->X(),
-					Image->Y(),
-					Image->GetBits(),
-					Image->AlphaDC(),
-					pDC->GetBits(), pDC->IsScreen());
-				*/
-				
 				pDC->Blt(0, 0, Image);
-
 				pDC->Op(Old);
 			}
 			else if (Size.x > 1 && Size.y > 1)
 			{
 				GRect b(0, 0, Size.x-1, Size.y-1);
-				COLOUR Col = GdcMixColour(LC_MED, LC_LIGHT, 0.2);
+				GColour Fill(GdcMixColour(LC_MED, LC_LIGHT, 0.2f), 24);
+				GColour Border(LC_MED, 24);
 
 				// Border
-				pDC->Colour(LC_MED, 24);
+				pDC->Colour(Border);
 				pDC->Box(&b);
 				b.Size(1, 1);
 				pDC->Box(&b);
 				b.Size(1, 1);
-				pDC->Colour(Col, 24);
+				pDC->Colour(Fill);
 				pDC->Rectangle(&b);
 
-				if (Size.x >= 16 && Size.y >= 16)
+				const char *Alt;
+				GColour Red(GdcMixColour(Rgb24(255, 0, 0), Fill.c24(), 0.3f), 24);
+				if (Get("alt", Alt) && ValidStr(Alt))
+				{
+					GDisplayString Ds(Html->GetFont(), Alt);
+					Html->GetFont()->Colour(Red, Fill);
+					Ds.Draw(pDC, 2, 2, &b);
+				}
+				else if (Size.x >= 16 && Size.y >= 16)
 				{
 					// Red 'x'
 					int Cx = b.x1 + (b.X()/2);
 					int Cy = b.y1 + (b.Y()/2);
 					GRect c(Cx-4, Cy-4, Cx+4, Cy+4);
 					
-					pDC->Colour(GdcMixColour(Rgb24(255, 0, 0), Col, 0.3), 24);
+					pDC->Colour(Red);
 					pDC->Line(c.x1, c.y1, c.x2, c.y2);
 					pDC->Line(c.x1, c.y2, c.x2, c.y1);
 					pDC->Line(c.x1, c.y1 + 1, c.x2 - 1, c.y2);
@@ -5174,11 +6102,28 @@ void GTag::OnPaint(GSurface *pDC)
 		}
 		case TAG_TABLE:
 		{
+			if (Html->Environment)
+			{
+				GCss::ImageDef Img = BackgroundImage();
+				if (Img.Type >= ImageOwn)
+				{
+					GRect Clip(0, 0, Size.x-1, Size.y-1);
+					pDC->ClipRgn(&Clip);
+					
+					GRect r;
+					r.ZOff(Size.x-1, Size.y-1);
+					FillRectWithImage(pDC, &r, Img.Img, BackgroundRepeat());
+				}
+			}
+
 			OnPaintBorder(pDC);
 
 			if (DefaultTableBorder != GT_TRANSPARENT)
 			{
-				GRect r(BorderLeft, BorderTop, Size.x-BorderRight-1, Size.y-BorderBottom-1); 
+				GRect r((int)BorderLeft().Value,
+				        (int)BorderTop().Value,
+				        Size.x-(int)BorderRight().Value-1,
+				        Size.y-(int)BorderBottom().Value-1); 
 
 				#if 1
 				GRegion c(r);
@@ -5198,14 +6143,10 @@ void GTag::OnPaint(GSurface *pDC)
 					}
 				}
 
-				if (Back == GT_TRANSPARENT)
-				{
+				if (BackgroundColor().Type == ColorInherit)
 					pDC->Colour(DefaultTableBorder, 32);
-				}
 				else
-				{
-					pDC->Colour(Back, 32);
-				}
+					pDC->Colour(BackgroundColor().Rgb32, 32);
 				
 				for (GRect *p=c.First(); p; p=c.Next())
 				{
@@ -5223,10 +6164,25 @@ void GTag::OnPaint(GSurface *pDC)
 		}
 		default:
 		{
+			ColorDef _back = BackgroundColor();
 			COLOUR fore = GetFore();
-			COLOUR back =	Back == GT_TRANSPARENT &&
-							Info &&
-							Info->Block() ? GetBack() : Back;
+			COLOUR back = (_back.Type == ColorInherit && Disp == DispBlock) ? GetBack() : _back.Rgb32;
+
+			if (Disp == DispBlock && Html->Environment)
+			{
+				GCss::ImageDef Img = BackgroundImage();
+				if (Img.Img)
+				{
+					GRect Clip(0, 0, Size.x-1, Size.y-1);
+					pDC->ClipRgn(&Clip);
+					
+					GRect r;
+					r.ZOff(Size.x-1, Size.y-1);
+					FillRectWithImage(pDC, &r, Img.Img, BackgroundRepeat());
+					
+					back = GT_TRANSPARENT;
+				}
+			}
 
 			if (back != GT_TRANSPARENT)
 			{
@@ -5238,7 +6194,7 @@ void GTag::OnPaint(GSurface *pDC)
 				}
 				pDC->Colour(back, 32);
 
-				if (IsBlock)
+				if (Disp == DispBlock || Disp == DispInlineBlock)
 				{
 					pDC->Rectangle(0, 0, Size.x-1, Size.y-1);
 				}
@@ -5259,15 +6215,20 @@ void GTag::OnPaint(GSurface *pDC)
 			OnPaintBorder(pDC);
 
 			GFont *f = GetFont();
-			if (f && TextPos.Length() > 0)
+			if (f && TextPos.Length())
 			{
+				GCss::Len LineHt = LineHeight();
+				int LineHtPx = LineHt.ToPx(Size.y, f);
+				int FontHt = f->GetHeight();
+				int LineHtOff = LineHtPx > FontHt ? max(0, ((LineHtPx - FontHt) >> 1) - 1) : 0;
+				
 				#define FontColour(s) \
 				f->Transparent(!s); \
 				if (s) \
-					f->Colour(LC_SEL_TEXT, LC_SELECTION); \
+					f->Colour(LC_FOCUS_SEL_FORE, LC_FOCUS_SEL_BACK); \
 				else \
 					f->Colour(	fore != GT_TRANSPARENT ? Rgb32To24(fore) : Rgb32To24(DefaultTextColour), \
-								Back != GT_TRANSPARENT ? Rgb32To24(Back) : Rgb32To24(LC_WORKSPACE));
+								_back.Type != ColorInherit ? Rgb32To24(_back.Rgb32) : Rgb32To24(LC_WORKSPACE));
 
 				if (Html->HasSelection() &&
 					(Selection >= 0 || Cursor >= 0) &&
@@ -5296,9 +6257,38 @@ void GTag::OnPaint(GSurface *pDC)
 
 					for (GFlowRect *Tr=TextPos.First(); Tr; Tr=TextPos.Next())
 					{
-						int Start = SubtractPtr(Tr->Text, Text);
+						int Start = Tr->Text - Text();
 						int Done = 0;
 						int x = Tr->x1;
+
+						if (Tr->Len == 0)
+						{
+							// Is this a selection edge point?
+							if (!Selected && Min == 0)
+							{
+								Selected = !Selected;
+							}
+							else if (Selected && Max == 0)
+							{
+								Selected = !Selected;
+							}
+
+							if (Cursor >= 0)
+							{
+								// Is this the cursor, then draw it and save it's position
+								if (Cursor == Start + Done - Base)
+								{
+									Html->d->CursorPos.Set(x, Tr->y1 + LineHtOff, x + 1, Tr->y2 - LineHtOff);
+
+									if (Html->d->CursorPos.x1 > Tr->x2)
+										Html->d->CursorPos.Offset(Tr->x2 - Html->d->CursorPos.x1, 0);
+
+									CursorPos = Html->d->CursorPos;
+									Html->d->CursorPos.Offset(AbsX(), AbsY());
+								}
+							}
+							break;
+						}
 
 						while (Done < Tr->Len)
 						{
@@ -5324,7 +6314,7 @@ void GTag::OnPaint(GSurface *pDC)
 
 							// Draw the text run
 							GDisplayString ds(f, Tr->Text + Done, c);
-							ds.Draw(pDC, x, Tr->y1);
+							ds.Draw(pDC, x, Tr->y1 + LineHtOff);
 							x += ds.X();
 							Done += c;
 
@@ -5349,7 +6339,7 @@ void GTag::OnPaint(GSurface *pDC)
 								// Is this the cursor, then draw it and save it's position
 								if (Cursor == Start + Done - Base)
 								{
-									Html->d->CursorPos.Set(x, Tr->y1, x + 1, Tr->y2);
+									Html->d->CursorPos.Set(x, Tr->y1 + LineHtOff, x + 1, Tr->y2 - LineHtOff);
 
 									if (Html->d->CursorPos.x1 > Tr->x2)
 										Html->d->CursorPos.Offset(Tr->x2 - Html->d->CursorPos.x1, 0);
@@ -5375,17 +6365,17 @@ void GTag::OnPaint(GSurface *pDC)
 					int Base = GetTextStart();
 					for (GFlowRect *Tr=TextPos.First(); Tr; Tr=TextPos.Next())
 					{
-						int Pos = SubtractPtr(Tr->Text, Text) - Base;
+						int Pos = (Tr->Text - Text()) - Base;
 
 						GDisplayString ds(f, Tr->Text, Tr->Len);
-						ds.Draw(pDC, Tr->x1, Tr->y1);
+						ds.Draw(pDC, Tr->x1, Tr->y1 + LineHtOff);
 
 						if
 						(
 							(
-								Tr->Text == PreText
+								Tr->Text == PreText()
 								&&
-								!ValidStrW(Text)
+								!ValidStrW(Text())
 							)
 							||
 							(
@@ -5395,7 +6385,7 @@ void GTag::OnPaint(GSurface *pDC)
 							)
 						)
 						{
-							int Off = Tr->Text == PreText ? StrlenW(PreText) : Cursor - Pos;
+							int Off = Tr->Text == PreText() ? StrlenW(PreText()) : Cursor - Pos;
 							pDC->Colour(LC_TEXT, 24);
 							GRect c;
 							if (Off)
@@ -5424,7 +6414,13 @@ void GTag::OnPaint(GSurface *pDC)
 					for (GFlowRect *Tr=TextPos.First(); Tr; Tr=TextPos.Next())
 					{
 						GDisplayString ds(f, Tr->Text, Tr->Len);
-						ds.Draw(pDC, Tr->x1, Tr->y1);
+						ds.Draw(pDC, Tr->x1, Tr->y1 + LineHtOff);
+						
+						#if 0
+						int Y = ds.Y();
+						pDC->Colour(GColour(0, 0, 255));
+						pDC->Box(Tr->x1, Tr->y1 + LineHtOff, Tr->x2, Tr->y1 + LineHtOff + Y - 1);
+						#endif
 					}
 				}
 			}
@@ -5432,7 +6428,8 @@ void GTag::OnPaint(GSurface *pDC)
 		}
 	}
 
-	for (GTag *t=Tags.First(); t; t=Tags.Next())
+	List<GTag>::I TagIt = Tags.Start();
+	for (GTag *t=*TagIt; t; t=*++TagIt)
 	{
 		pDC->SetOrigin(Px - t->Pos.x, Py - t->Pos.y);
 		t->OnPaint(pDC);
@@ -5447,6 +6444,7 @@ GHtml::GHtml(int id, int x, int y, int cx, int cy, GDocumentEnv *e)
 	ResObject(Res_Custom)
 {
 	d = new GHtmlPrivate;
+	SetReadOnly(true);
 	ViewWidth = -1;
 	MemDC = 0;
 	SetId(id);
@@ -5466,6 +6464,12 @@ GHtml::~GHtml()
 	_Delete();
 	DeleteArray(DocCharSet);
 	DeleteObj(d);
+
+	if (JobSem.Lock(_FL))
+	{
+		JobSem.Jobs.DeleteObjects();
+		JobSem.Unlock();
+	}
 }
 
 void GHtml::_New()
@@ -5481,29 +6485,21 @@ void GHtml::_New()
 	// if (!Charset) Charset = NewStr("utf-8");
 
 	IsHtml = true;
-	FontCache = new GFontCache;
-	if (FontCache)
-	{
-		GFont *f = new GFont;
-		if (f)
-		{
-			*f = *GetFont();
-			LgiAssert(ValidStr(f->Face()));
-			FontCache->AddFont(f);
-		}
-	}
+	FontCache = new GFontCache(this);
 	SetScrollBars(false, false);
 }
 
 void GHtml::_Delete()
 {
 	#if LUIS_DEBUG
-	LgiTrace("%s:%i html(%p).src(%p)='%30.30s'\n", __FILE__, __LINE__, this, Source, Source);
+	LgiTrace("%s:%i html(%p).src(%p)='%30.30s'\n", _FL, this, Source, Source);
 	#endif
+
+	LgiAssert(!d->IsParsing);
 
 	SetBackColour(Rgb24To32(LC_WORKSPACE));
 
-	CssMap.Empty();
+	CssStore.Empty();
 	OpenTags.Empty();
 	DeleteArray(Source);
 	DeleteObj(Tag);
@@ -5513,115 +6509,13 @@ void GHtml::_Delete()
 
 GFont *GHtml::DefFont()
 {
-	return FontCache ? FontCache->FontAt(0) : 0;
-}
-
-char *White = " \t\r\n";
-#define SkipWs() while (*c && strchr(White, *c)) c++;
-
-char *SkipComment(char *c)
-{
-	// Skip comment
-	SkipWs();
-	if (c[0] == '/' &&
-		c[1] == '*')
-	{
-		char *e = strstr(c + 2, "*/");
-		if (e) c = e + 2;
-		else c += 2;
-	}
-	return c;
+	return GetFont();
 }
 
 void GHtml::AddCss(char *Css)
 {
-	char *c=Css;	
-	if (!Css) return;
-
-	SkipWs();
-	if (*c == '<')
-	{
-		c++;
-		while (*c && !strchr(White, *c)) c++;
-	}
-
-	for (; c && *c; )
-	{
-		c = SkipComment(c);
-
-		// read selector
-		List<char> Selector;
-		char *s = SkipComment(c);
-		char *e = s;
-		GStringPipe p;
-		while (*e)
-		{
-			if (IsWhiteSpace(*e))
-			{
-				e = SkipComment(e);
-				p.Push(" ");
-			}
-			else if (*e == '{' || *e == ',')
-			{
-				char *Raw = p.NewStr();
-				if (Raw)
-				{
-					char *End = Raw + strlen(Raw) - 1;
-					while (End > Raw && IsWhiteSpace(*End))
-						*End-- = 0;
-
-					Selector.Insert(Raw);
-				}
-				else break;
-
-				if (*e == '{')
-				{
-					c = e;
-					break;
-				}
-
-				e = SkipComment(e + 1);
-			}
-			else
-			{
-				p.Push(e++, 1);
-			}
-		}
-
-		SkipWs();
-
-		// read styles
-		if (*c++ == '{')
-		{
-			SkipWs();
-
-			char *Start = c;
-			while (*c && *c != '}') c++;
-			char *Style = NewStr(Start, SubtractPtr(c, Start));
-			for (char *Sel=Selector.First(); Sel; Sel=Selector.Next())
-			{
-				if (Sel[0] == '.' && Sel[1] == '.')
-				{
-					CssMap[Sel + 1] = Style;
-				}
-				else
-				{
-					CssMap[Sel] = Style;
-				}
-			}
-			c++;
-
-			DeleteArray(Style);
-			Selector.DeleteArrays();
-		}
-		else
-		{
-			Selector.DeleteArrays();
-			break;
-		}
-	}
-
-CssDone:
+	const char *c = Css;
+	CssStore.Parse(c);
 	DeleteArray(Css);
 }
 
@@ -5635,82 +6529,104 @@ void GHtml::Parse()
 	SetBackColour(Rgb24To32(LC_WORKSPACE));
 	if (Tag)
 	{
+		Tag->TagId = ROOT;
 		OpenTags.Empty();
 
 		if (IsHtml)
 		{
+			GTag *c;
+
 			Tag->ParseHtml(Source, 0);
 
 			// Add body tag if not specified...
 			GTag *Html = Tag->GetTagByName("html");
-			
 			if (!Html)
 			{
-				Html = new GTag(this, 0);
-				if (Html)
+				if (Html = new GTag(this, 0))
 				{
 					Html->SetTag("html");
-
-					Html->Tags.Insert(Tag);
-					Tag->Parent = Html;
-					Tag = Html;
+					
+					while (c = Tag->Tags.First())
+						Html->Attach(c);
+					
+					Tag->Attach(Html);
 				}
 			}
 
 			if (Html)
 			{
-				GTag *Body = 0;
-
-				for (GTag *t = Html->Tags.First(); t; t = Html->Tags.Next())
+				GTag *Body = Tag->GetTagByName("body");
+				if (!Body)
 				{
-					if (t->TagId == TAG_BODY)
+					if (Body = new GTag(this, 0))
 					{
-						Body = t;
+						Body->SetTag("body");
+						Html->Attach(Body);
 					}
 				}
 
-				if (!Body)
+				if (Body)
 				{
-					Body = new GTag(this, Html);
-					if (Body)
+					if (Body->Parent != Html)
 					{
-						Body->SetTag("body");
+						Html->Attach(Body);
+					}
 
-						if (Html->Text)
+					if (Tag->Text())
+					{
+						GTag *Content = new GTag(this, 0);
+						if (Content)
 						{
-							GTag *Content = new GTag(this, Body);
-							if (Content)
-							{
-								Content->Text = Html->Text;
-								Html->Text = 0;
-							}
+							Content->Text(NewStrW(Tag->Text()));
+							Tag->Text(0);
+							Body->Attach(Content, 0);
 						}
+					}
 
-						for (GTag *t = Html->Tags.First(); t;)
+					#if 1
+					for (GTag *t = Html->Tags.First(); t; )
+					{
+						if (t->Tag && t->Tag[0] == '!')
 						{
-							if (t->TagId != TAG_HEAD &&
+							Tag->Attach(t, 0);
+							t = Html->Tags.Current();
+						}
+						else if (t->TagId != TAG_HEAD &&
 								t != Body)
+						{
+							if (t->TagId == TAG_HTML)
 							{
-								Html->Tags.Delete(t);
-								Body->Tags.Insert(t);
-								t->Parent = Body;
+								GTag *c;
+								while (c = t->Tags.First())
+								{
+									Html->Attach(c, 0);
+								}
 
-								t = Html->Tags.Current();
+								t->Detach();
+								DeleteObj(t);
 							}
 							else
 							{
-								t = Html->Tags.Next();
+								t->Detach();
+								Body->Attach(t);
 							}
+
+							t = Html->Tags.Current();
+						}
+						else
+						{
+							t = Html->Tags.Next();
 						}
 					}
-				}
+					#endif					
 
-				if (Body && Environment)
-				{
-					char *OnLoad;
-					if (Body->Get("onload", OnLoad))
+					if (Environment)
 					{
-						Environment->OnExecuteScript(OnLoad);
+						const char *OnLoad;
+						if (Body->Get("onload", OnLoad))
+						{
+							Environment->OnExecuteScript((char*)OnLoad);
+						}
 					}
 				}
 			}
@@ -5739,18 +6655,24 @@ char16 *GHtml::NameW()
 
 bool GHtml::Name(const char *s)
 {
-	#if LUIS_DEBUG
-	LgiTrace("%s:%i html(%p).src(%p)='%30.30s'\n", __FILE__, __LINE__, this, Source, Source);
+	d->DocumentUid++;
+
+	#if 0
+	GFile Out;
+	if (s && Out.Open("~\\Desktop\\html-input.html", O_WRITE))
+	{
+		Out.SetSize(0);
+		Out.Write(s, strlen(s));
+		Out.Close();
+	}
 	#endif
+
+	LgiAssert(LgiApp->GetGuiThread() == LgiGetCurrentThread());
 
 	_Delete();
 	_New();
 
 	Source = NewStr(s);
-
-	#if LUIS_DEBUG
-	LgiTrace("%s:%i html(%p).src(%p)='%30.30s'\n", __FILE__, __LINE__, this, Source, Source);
-	#endif
 
 	if (Source)
 	{
@@ -5781,10 +6703,12 @@ bool GHtml::Name(const char *s)
 		#endif
 
 		// Parse
+		d->IsParsing = true;
 		Parse();
+		d->IsParsing = false;
 	}
 
-	Invalidate();
+	Invalidate();	
 
 	return true;
 }
@@ -5792,7 +6716,7 @@ bool GHtml::Name(const char *s)
 char *GHtml::Name()
 {
 	#if LUIS_DEBUG
-	LgiTrace("%s:%i html(%p).src(%p)='%30.30s'\n", __FILE__, __LINE__, this, Source, Source);
+	LgiTrace("%s:%i html(%p).src(%p)='%30.30s'\n", _FL, this, Source, Source);
 	#endif
 
 	if (!Source)
@@ -5814,35 +6738,61 @@ GMessage::Result GHtml::OnEvent(GMessage *Msg)
 			Copy();
 			break;
 		}
-		#ifdef M_IMAGE_LOADED
-		case M_IMAGE_LOADED:
+		case M_JOBS_LOADED:
 		{
-			char *Uri = (char*)MsgA(Msg);
-			GSurface *Img = (GSurface*)MsgB(Msg);
-
-			LgiTrace("M_IMAGE_LOADED img=%p\n", Img);
-
-			if (Uri && Img && Tag)
+			bool Update = false;
+			
+			if (JobSem.Lock(_FL))
 			{
-				int Used = 0;
-				Tag->ImageLoaded(Uri, Img, Used);
-				if (Used)
+				for (int i=0; i<JobSem.Jobs.Length(); i++)
 				{
-					ViewWidth = 0;
-					OnPosChange();
-					Invalidate();
-
-					Img = 0;
+					GDocumentEnv::LoadJob *j = JobSem.Jobs[i];
+					GDocView *Me = this;
+					
+					if (j->View == Me &&
+						j->UserUid == d->DocumentUid &&
+						j->UserData != NULL)
+					{
+						Html1::GTag *r = static_cast<Html1::GTag*>(j->UserData);
+						
+						// Check the tag is still in our tree...
+						if (Tag->HasChild(r))
+						{
+							// Process the returned data...
+							if (r->TagId == TAG_IMG && j->pDC)
+							{
+								r->SetImage(j->Uri, j->pDC.Release());
+								ViewWidth = 0;
+								Update = true;
+							}
+							else if (r->TagId == TAG_LINK && j->Stream)
+							{
+								int64 Size = j->Stream->GetSize();
+								GAutoString Style(new char[Size+1]);
+								int rd = j->Stream->Read(Style, Size);
+								if (rd > 0)
+								{
+									Style[rd] = 0;									
+									AddCss(Style.Release());									
+									ViewWidth = 0;
+									Update = true;
+								}
+							}
+						}
+					}
+					// else it's from another (historical) HTML control, ignore
 				}
+				JobSem.Jobs.DeleteObjects();
+				JobSem.Unlock();
 			}
 
-			LgiTrace("....img=%p\n", Img);
-
-			DeleteArray(Uri);
-			DeleteObj(Img);
+			if (Update)
+			{
+				OnPosChange();
+				Invalidate();
+			}
 			break;
 		}
-		#endif
 	}
 
 	return GDocView::OnEvent(Msg);
@@ -5855,6 +6805,13 @@ int GHtml::OnNotify(GViewI *c, int f)
 		case IDC_VSCROLL:
 		{
 			Invalidate();
+			break;
+		}
+		default:
+		{
+			GTag *Ctrl = Tag ? Tag->FindCtrlId(c->GetId()) : NULL;
+			if (Ctrl)
+				return Ctrl->OnNotify(f);
 			break;
 		}
 	}
@@ -5874,7 +6831,7 @@ void GHtml::OnPosChange()
 GdcPt2 GHtml::Layout()
 {
 	GRect Client = GetClient();
-	if (ViewWidth != Client.X())
+	if (IsAttached() && ViewWidth != Client.X())
 	{
 		GRect Client = GetClient();
 		GFlowRegion f(this, Client);
@@ -5882,7 +6839,8 @@ GdcPt2 GHtml::Layout()
 		// Flow text, width is different
 		Tag->OnFlow(&f);
 		// f.FinishLine();
-		d->Content.x = ViewWidth = Client.X();
+		ViewWidth = Client.X();;
+		d->Content.x = f.max_cx + 1;
 		d->Content.y = f.y2;
 		
 
@@ -5928,20 +6886,19 @@ void GHtml::OnPaint(GSurface *ScreenDC)
 
 		GSurface *pDC = MemDC ? MemDC : ScreenDC;
 
-		pDC->Colour(GetBackColour(), 32);
+		COLOUR Back = GetBackColour();
+		pDC->Colour(Back, 32);
 		pDC->Rectangle();
 
 		if (Tag)
 		{
-			//for (int r=0; r<2; r++)
-			//{
-				Layout();
-			// }
+			Layout();
 
 			if (VScroll)
 			{
 				int LineY = GetFont()->GetHeight();
-				pDC->SetOrigin(0, VScroll->Value() * LineY);
+				int Vs = VScroll->Value();
+				pDC->SetOrigin(0, Vs * LineY);
 			}
 
 			Tag->OnPaint(pDC);
@@ -5951,6 +6908,11 @@ void GHtml::OnPaint(GSurface *ScreenDC)
 		if (MemDC)
 		{
 			pDC->SetOrigin(0, 0);
+			#if 0
+			pDC->Colour(Rgb24(255, 0, 0), 24);
+			pDC->Line(0, 0, X()-1, Y()-1);
+			pDC->Line(X()-1, 0, 0, Y()-1);
+			#endif
 			ScreenDC->Blt(0, 0, MemDC);
 		}
 		#endif
@@ -5958,9 +6920,16 @@ void GHtml::OnPaint(GSurface *ScreenDC)
 	}
 	catch (...)
 	{
-		printf("GHtml paint crash\n");
+		LgiTrace("GHtml paint crash\n");
 	}
 	#endif
+
+	if (d->OnLoadAnchor && VScroll)
+	{
+		GAutoString a = d->OnLoadAnchor;
+		GotoAnchor(a);
+		LgiAssert(d->OnLoadAnchor == 0);
+	}
 }
 
 GTag *GHtml::GetOpenTag(char *Tag)
@@ -6049,15 +7018,20 @@ GTag *GHtml::PrevTag(GTag *t)
 	// Walk up the parent chain looking for a prev
 	for (GTag *p = t; p; p = p->Parent)
 	{
-		// Does this tag have a next?
+		// Does this tag have a parent?
 		if (p->Parent)
 		{
+			// Prev?
 			int Idx = p->Parent->Tags.IndexOf(p);
 			GTag *Prev = p->Parent->Tags[Idx - 1];
 			if (Prev)
 			{
 				GTag *Last = GetLastChild(Prev);
 				return Last ? Last : Prev;
+			}
+			else
+			{
+				return p->Parent;
 			}
 		}
 	}
@@ -6140,7 +7114,7 @@ bool GHtml::IsCursorFirst()
 			{
 				int CIdx = Cur->Parent ? Cur->Parent->Tags.IndexOf(Cur) : 0;
 				int SIdx = Sel->Parent ? Sel->Parent->Tags.IndexOf(Sel) : 0;
-				if (CIdx <= SIdx)
+				if (CIdx < SIdx)
 				{
 					return true;
 				}
@@ -6157,6 +7131,11 @@ void GHtml::SetLoadImages(bool i)
 	{
 		GDocView::SetLoadImages(i);
 		SendNotify(GTVN_SHOW_IMGS_CHANGED);
+
+		if (GetLoadImages() && Tag)
+		{
+			Tag->LoadImages();
+		}
 	}
 }
 
@@ -6166,16 +7145,12 @@ char *GHtml::GetSelection()
 
 	GBytePipe p;
 
-// printf("GHtml::GetSelection 0\n");
-
 	Tag->CopyClipboard(p);
-
-// printf("GHtml::GetSelection 1\n");
 
 	int Len = p.GetSize();
 	if (Len > 0)
 	{
-		char16 *t = (char16*)p.New(2);
+		char16 *t = (char16*)p.New(sizeof(char16));
 		if (t)
 		{
 			int Len = StrlenW(t);
@@ -6188,31 +7163,41 @@ char *GHtml::GetSelection()
 		}
 	}
 
-// printf("GHtml::GetSelection 2\n");
-
 	return s;
+}
+
+bool GHtml::SetVariant(const char *Name, GVariant &Value, char *Array)
+{
+	if (!Name)
+		return false;
+	if (!stricmp(Name, "ShowImages"))
+	{
+		SetLoadImages(Value.CastBool());
+	}
+	else return false;
+	
+	return true;
 }
 
 bool GHtml::Copy()
 {
-	char *s = GetSelection();
+	GAutoString s(GetSelection());
 	if (s)
 	{
 		GClipBoard c(this);
 		
-		char16 *w = LgiNewUtf8To16(s);
+		GAutoWString w(LgiNewUtf8To16(s));
 		if (w) c.TextW(w);
 		c.Text(s, w == 0);
 
-		DeleteArray(w);
-		DeleteArray(s);
 		return true;
 	}
+	else LgiTrace("%s:%i - Error: no selection\n", _FL);
 
 	return false;
 }
 
-bool FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User)
+static bool FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User)
 {
 	GHtml *h = (GHtml*)User;
 	return h->OnFind(Dlg);
@@ -6225,6 +7210,81 @@ void BuildTagList(GArray<GTag*> &t, GTag *Tag)
 	{
 		BuildTagList(t, c);
 	}
+}
+
+static void FormEncode(GStringPipe &p, const char *c)
+{
+	const char *s = c;
+	while (*c)
+	{
+		while (*c && *c != ' ')
+			c++;
+		
+		if (c > s)
+		{
+			p.Write(s, c - s);
+			c = s;
+		}
+		if (*c == ' ')
+		{
+			p.Write("+", 1);
+			s = c;
+		}
+		else break;
+	}
+}
+
+bool GHtml::OnSubmitForm(GTag *Form)
+{
+	if (!Form || !Environment)
+	{
+		LgiAssert(!"Bad param");
+		return false;
+	}
+
+	const char *Method = NULL;
+	const char *Action = NULL;
+	if (!Form->Get("method", Method) ||
+		!Form->Get("action", Action))
+	{
+		LgiAssert(!"Missing form action/method");
+		return false;
+	}
+		
+	GHashTbl<const char*,char*> f;
+	Form->CollectFormValues(f);
+	bool Status = false;
+	if (!stricmp(Method, "post"))
+	{
+		GStringPipe p(256);
+		const char *Field;
+		bool First = true;
+		for (char *Val = f.First(&Field); Val; Val = f.Next(&Field))
+		{
+			if (First)
+				First = false;
+			else
+				p.Write("&", 1);
+			
+			FormEncode(p, Field);
+			p.Write("=", 1);
+			FormEncode(p, Val);
+		}
+		
+		GAutoPtr<const char, true> Data(p.NewStr());
+		Status = Environment->OnPostForm(Action, Data);
+	}
+	else if (!stricmp(Method, "get"))
+	{
+		Status = Environment->OnNavigate(Action);
+	}
+	else
+	{
+		LgiAssert(!"Bad form method.");
+	}
+	
+	f.DeleteArrays();
+	return Status;
 }
 
 bool GHtml::OnFind(class GFindReplaceCommon *Params)
@@ -6248,14 +7308,14 @@ bool GHtml::OnFind(class GFindReplaceCommon *Params)
 			int Idx = (Start + i) % Tags.Length();
 			GTag *s = Tags[Idx];
 
-			if (s->Text)
+			if (s->Text())
 			{
 				char16 *Hit;
 				
 				if (Params->MatchCase)
-					Hit = StrstrW(s->Text, Find);
+					Hit = StrstrW(s->Text(), Find);
 				else
-					Hit = StristrW(s->Text, Find);
+					Hit = StristrW(s->Text(), Find);
 				
 				if (Hit)
 				{
@@ -6263,9 +7323,9 @@ bool GHtml::OnFind(class GFindReplaceCommon *Params)
 					UnSelectAll();
 
 					Selection = Cursor = s;
-					Cursor->Cursor = Hit - s->Text;
+					Cursor->Cursor = Hit - s->Text();
 					Selection->Selection = Cursor->Cursor + StrlenW(Find);
-					
+					OnCursorChanged();					
 					Invalidate();
 					Status = true;
 					break;
@@ -6293,7 +7353,7 @@ bool GHtml::OnKey(GKey &k)
 			case 'f':
 			case 'F':
 			{
-				if (k.Ctrl())
+				if (k.Modifier())
 				{
 					GFindDlg Dlg(this, 0, FindCallback, this);
 					Dlg.DoModal();
@@ -6307,7 +7367,8 @@ bool GHtml::OnKey(GKey &k)
 			case VK_INSERT:
 			#endif
 			{
-				if (k.Ctrl())
+				printf("Got 'c', mod=%i\n", k.Modifier());
+				if (k.Modifier())
 				{
 					Copy();
 					Status = true;
@@ -6386,7 +7447,7 @@ void GHtml::OnMouseClick(GMouse &m)
 		int Index = -1;
 
 		GTag *Over = GetTagByPos(m.x, m.y + Offset, &Index);
-		if (m.Left())
+		if (m.Left() && !m.IsContextMenu())
 		{
 			if (m.Double())
 			{
@@ -6398,12 +7459,13 @@ void GHtml::OnMouseClick(GMouse &m)
 					Selection = Cursor;
 					Selection->Selection = Cursor->Cursor;
 
-					if (Cursor->Text)
+					if (Cursor->Text())
 					{
 						int Base = Cursor->GetTextStart();
-						while (Cursor->Text[Base + Cursor->Cursor])
+						char16 *Text = Cursor->Text() + Base;
+						while (Text[Cursor->Cursor])
 						{
-							char16 c = Cursor->Text[Base + Cursor->Cursor];
+							char16 c = Text[Cursor->Cursor];
 
 							if (strchr(WordDelim, c) || StrchrW(WhiteW, c))
 								break;
@@ -6411,12 +7473,13 @@ void GHtml::OnMouseClick(GMouse &m)
 							Cursor->Cursor++;
 						}
 					}
-					if (Selection->Text)
+					if (Selection->Text())
 					{
 						int Base = Selection->GetTextStart();
+						char16 *Sel = Selection->Text() + Base;
 						while (Selection->Selection > 0)
 						{
-							char16 c = Selection->Text[Base + Selection->Selection - 1];
+							char16 c = Sel[Selection->Selection - 1];
 
 							if (strchr(WordDelim, c) || StrchrW(WhiteW, c))
 								break;
@@ -6428,7 +7491,7 @@ void GHtml::OnMouseClick(GMouse &m)
 					Invalidate();
 				}
 			}
-			else
+			else if (Over)
 			{
 				d->WordSelectMode = false;
 				UnSelectAll();
@@ -6437,6 +7500,7 @@ void GHtml::OnMouseClick(GMouse &m)
 				{
 					Selection->Selection = Cursor->Cursor = Index;
 				}
+				OnCursorChanged();
 			}
 		}
 
@@ -6487,8 +7551,8 @@ void GHtml::OnMouseClick(GMouse &m)
 
 				if (GetMouse(m, true))
 				{
-					int Id = 0;
-					switch (Id = RClick->Float(this, m.x, m.y))
+					int Id = RClick->Float(this, m.x, m.y);
+					switch (Id)
 					{
 						case IDM_COPY:
 						{
@@ -6514,12 +7578,9 @@ void GHtml::OnMouseClick(GMouse &m)
 								GClipBoard c(this);
 								if (Is8Bit(Source))
 								{
-									char *u8 = (char*)LgiNewConvertCp("utf-8", Source, DocCharSet ? DocCharSet : (char*)"windows-1252");
-									if (u8)
-									{
-										c.Text(u8);
-										DeleteArray(u8);
-									}
+									GAutoWString w((char16*)LgiNewConvertCp(LGI_WideCharset, Source, DocCharSet ? DocCharSet : (char*)"windows-1252"));
+									if (w)
+										c.TextW(w);
 								}
 								else
 								{
@@ -6531,10 +7592,6 @@ void GHtml::OnMouseClick(GMouse &m)
 						case IDM_VIEW_IMAGES:
 						{
 							SetLoadImages(!GetLoadImages());
-							if (GetLoadImages() && Tag)
-							{
-								Tag->LoadImages();
-							}
 							break;
 						}
 						case IDM_DUMP:
@@ -6593,14 +7650,29 @@ void GHtml::OnMouseClick(GMouse &m)
 												}
 												else
 												{
-													char File[256] = "";
+													char File[MAX_PATH] = "";
 													if (Environment)
 													{
-														// Environment->GetImageUri(cid, 0, File, sizeof(File));
+														GDocumentEnv::LoadJob *j = Environment->NewJob();
+														if (j)
+														{
+															j->Uri.Reset(NewStr(cid));
+															j->View = this;
+															j->Pref = GDocumentEnv::LoadJob::FmtFilename;
+															j->UserUid = d->DocumentUid;
+
+															GDocumentEnv::LoadType Result = Environment->GetContent(j);
+															if (Result == GDocumentEnv::LoadImmediate)
+															{
+																if (j->Filename)
+																	strsafecpy(File, j->Filename, sizeof(File));
+															}
+															DeleteObj(j);
+														}
 													}
 													
 													*e = Delim;
-													Ex.Push(s, cid-s);
+													Ex.Push(s, cid - s);
 													if (File[0])
 													{
 														char *d;
@@ -6692,15 +7764,8 @@ GTag *GHtml::GetTagByPos(int x, int y, int *Index)
 {
 	if (Tag)
 	{
-		GTagHit Hit;
-		Hit.Block = 0;
-		Hit.Hit = 0;
-		Hit.Index = -1;
-		Hit.Near = 0x7fffffff;
-		
-		bool Status = Tag->GetTagByPos(x, y, &Hit);
-
-		if (Status || Hit.Near < 3)
+		GTagHit Hit = Tag->GetTagByPos(x, y);
+		if (Hit.Hit && Hit.Near < 30)
 		{
 			if (Index) *Index = Hit.Index;
 			return Hit.Hit;
@@ -6712,12 +7777,16 @@ GTag *GHtml::GetTagByPos(int x, int y, int *Index)
 
 void GHtml::OnMouseWheel(double Lines)
 {
-	GFont *f = FontCache->FontAt(0);
-	if (f && VScroll)
+	if (VScroll)
 	{
-		VScroll->Value(VScroll->Value() + Lines);
+		VScroll->Value(VScroll->Value() + (int)Lines);
 		Invalidate();
 	}
+}
+
+int GHtml::OnHitTest(int x, int y)
+{
+	return -1;
 }
 
 void GHtml::OnMouseMove(GMouse &m)
@@ -6735,12 +7804,12 @@ void GHtml::OnMouseMove(GMouse &m)
 			PrevTip = 0;
 		}
 
-		char *Uri = 0;
+		GAutoString Uri;
 		if (Tag->IsAnchor(&Uri))
 		{
 			GRect c = GetClient();
 			c.Offset(-c.x1, -c.y1);
-			if (c.Overlap(m.x, m.y))
+			if (c.Overlap(m.x, m.y) && ValidStr(Uri))
 			{
 				GLayout::SetCursor(LCUR_PointingHand);
 			}
@@ -6757,8 +7826,6 @@ void GHtml::OnMouseMove(GMouse &m)
 				PrevTip = Tag;
 				PrevTip->TipId = Tip.NewTip(Uri, r);
 			}
-
-			DeleteArray(Uri);
 		}
 
 		if (Cursor && Tag->TagId != TAG_BODY && IsCapturing())
@@ -6769,7 +7836,7 @@ void GHtml::OnMouseMove(GMouse &m)
 				Selection->Selection = Cursor->Cursor;
 				Cursor = Tag;
 				Cursor->Cursor = Index;
-
+				OnCursorChanged();
 				Invalidate();
 			}
 			else if ((Cursor != Tag) ||
@@ -6783,7 +7850,7 @@ void GHtml::OnMouseMove(GMouse &m)
 				Cursor = Tag;
 				Cursor->Cursor = Index;
 
-				if (d->WordSelectMode && Cursor->Text)
+				if (d->WordSelectMode && Cursor->Text())
 				{
 					int Base = Cursor->GetTextStart();
 					if (IsCursorFirst())
@@ -6791,7 +7858,7 @@ void GHtml::OnMouseMove(GMouse &m)
 						// Extend the cursor up the document to include the whole word
 						while (Cursor->Cursor > 0)
 						{
-							char16 c = Cursor->Text[Base + Cursor->Cursor - 1];
+							char16 c = Cursor->Text()[Base + Cursor->Cursor - 1];
 
 							if (strchr(WordDelim, c) || StrchrW(WhiteW, c))
 								break;
@@ -6802,9 +7869,9 @@ void GHtml::OnMouseMove(GMouse &m)
 					else
 					{
 						// Extend the cursor down the document to include the whole word
-						while (Cursor->Text[Base + Cursor->Cursor])
+						while (Cursor->Text()[Base + Cursor->Cursor])
 						{
-							char16 c = Cursor->Text[Base + Cursor->Cursor];
+							char16 c = Cursor->Text()[Base + Cursor->Cursor];
 
 							if (strchr(WordDelim, c) || StrchrW(WhiteW, c))
 								break;
@@ -6814,6 +7881,7 @@ void GHtml::OnMouseMove(GMouse &m)
 					}
 				}
 
+				OnCursorChanged();
 				Invalidate();
 			}
 		}
@@ -6874,7 +7942,7 @@ GDom *ElementById(GTag *t, char *id)
 {
 	if (t && id)
 	{
-		char *i;
+		const char *i;
 		if (t->Get("id", i) && stricmp(i, id) == 0)
 			return t;
 
@@ -6903,6 +7971,112 @@ void GHtml::SetLinkDoubleClick(bool b)
 	d->LinkDoubleClick = b;
 }
 
+bool GHtml::GetFormattedContent(char *MimeType, GAutoString &Out, GArray<GDocView::ContentMedia> *Media)
+{
+	if (!MimeType)
+	{
+		LgiAssert(0);
+		return false;
+	}
+
+	if (stricmp(MimeType, "text/html"))
+	{
+		// We can handle this type...
+		GArray<GTag*> Imgs;
+		if (Media)
+		{
+			// Find all the image tags...
+			Tag->Find(TAG_IMG, Imgs);
+
+			// Give them CID's if they don't already have them
+			for (int i=0; Imgs.Length(); i++)
+			{
+				GTag *Img = Imgs[i];
+				const char *Cid, *Src;
+				if (Img->Get("src", Src) &&
+					!Img->Get("cid", Cid))
+				{
+					char id[256];
+					sprintf(id, "%x.%x", (unsigned)LgiCurrentTime(), (unsigned)LgiRand());
+					Img->Set("cid", id);
+					Img->Get("cid", Cid);
+				}
+
+				if (Src && Cid)
+				{
+					GFile *f = new GFile;
+					if (f)
+					{
+						if (f->Open(Src, O_READ))
+						{
+							// Add the exported image stream to the media array
+							GDocView::ContentMedia &m = Media->New();
+							m.Id.Reset(NewStr(Cid));
+							m.Stream.Reset(f);
+						}
+					}
+				}
+			}
+		}
+
+		// Export the HTML, including the CID's from the first step
+		Out.Reset(NewStr(Name()));
+	}
+	else if (stricmp(MimeType, "text/plain"))
+	{
+		// Convert DOM tree down to text instead...
+		// FIXME
+        #ifdef _MSC_VER
+        #pragma message(__LOC__"no DOM to text support.")
+        #endif
+	}
+
+	return false;
+}
+
+void GHtml::OnContent(GDocumentEnv::LoadJob *Res)
+{
+	if (JobSem.Lock(_FL))
+	{
+		JobSem.Jobs.Add(Res);
+		JobSem.Unlock();
+		PostEvent(M_JOBS_LOADED);
+	}
+}
+
+bool GHtml::GotoAnchor(char *Name)
+{
+	if (Tag)
+	{
+		GTag *a = Tag->GetAnchor(Name);
+		if (a)
+		{
+			if (VScroll)
+			{
+				int LineY = GetFont()->GetHeight();
+				int Ay = a->AbsY();
+				int Scr = Ay / LineY;
+				VScroll->Value(Scr);
+				PostEvent(M_CHANGE, (GMessage::Param)(GViewI*)VScroll);
+			}
+			else
+				d->OnLoadAnchor.Reset(NewStr(Name));
+		}
+	}
+
+	return false;
+}
+
+bool GHtml::GetEmoji()
+{
+	return d->DecodeEmoji;
+}
+
+void GHtml::SetEmoji(bool i)
+{
+	d->DecodeEmoji = i;
+}
+
 ////////////////////////////////////////////////////////////////////////
 class GHtml_Factory : public GViewFactory
 {
@@ -6917,3 +8091,196 @@ class GHtml_Factory : public GViewFactory
 	}
 
 } GHtml_Factory;
+
+//////////////////////////////////////////////////////////////////////
+GCellStore::GCellStore(GTag *Table)
+{
+	if (!Table)
+		return;
+
+	int y = 0;
+	GTag *FakeRow = 0;
+	GTag *FakeCell = 0;
+
+	GTag *r;
+	for (r=Table->Tags.First(); r; r=Table->Tags.Next())
+	{
+		if (r->TagId == TAG_TR)
+		{
+			FakeRow = 0;
+			FakeCell = 0;
+		}
+		else if (r->TagId == TAG_TBODY)
+		{
+			int Index = Table->Tags.IndexOf(r);
+			for (GTag *t = r->Tags.First(); t; t = r->Tags.Next())
+			{
+				Table->Tags.Insert(t, ++Index);
+				t->Parent = Table;
+			}
+			r->Tags.Empty();
+		}
+		else
+		{
+			if (!FakeRow)
+			{
+				if (FakeRow = new GTag(Table->Html, 0))
+				{
+					FakeRow->Tag = NewStr("tr");
+					FakeRow->TagId = TAG_TR;
+
+					int Idx = Table->Tags.IndexOf(r);
+					Table->Attach(FakeRow, Idx);
+				}
+			}
+			if (FakeRow)
+			{
+				if (r->TagId != TAG_TD && !FakeCell)
+				{
+					if (FakeCell = new GTag(Table->Html, FakeRow))
+					{
+						FakeCell->Tag = NewStr("td");
+						FakeCell->TagId = TAG_TD;
+						FakeCell->Span.x = 1;
+						FakeCell->Span.y = 1;
+					}
+				}
+
+				int Idx = Table->Tags.IndexOf(r);
+				r->Detach();
+
+				if (r->TagId == TAG_TD)
+				{
+					FakeRow->Attach(r);
+				}
+				else
+				{
+					LgiAssert(FakeCell);
+					FakeCell->Attach(r);
+				}
+				Table->Tags[Idx-1];
+			}
+		}
+	}
+
+	for (r=Table->Tags.First(); r; r=Table->Tags.Next())
+	{
+		if (r->TagId == TAG_TR)
+		{
+			int x = 0;
+			for (GTag *c=r->Tags.First(); c; c=r->Tags.Next())
+			{
+				if (c->TagId == TAG_TD)
+				{
+					while (Get(x, y))
+					{
+						x++;
+					}
+
+					c->Cell.x = x;
+					c->Cell.y = y;
+					Set(c);
+					x += c->Span.x;
+				}
+			}
+
+			y++;
+		}
+	}
+}
+
+void GCellStore::Dump()
+{
+	int Sx, Sy;
+	GetSize(Sx, Sy);
+
+	LgiTrace("Table %i x %i cells.\n", Sx, Sy);
+	for (int x=0; x<Sx; x++)
+	{
+		LgiTrace("--- %-2i--- ", x);
+	}
+	LgiTrace("\n");
+
+	for (int y=0; y<Sy; y++)
+	{
+		int x;
+		for (x=0; x<Sx; x++)
+		{
+			GTag *t = Get(x, y);
+			LgiTrace("%p ", t);
+		}
+		LgiTrace("\n");
+
+		for (x=0; x<Sx; x++)
+		{
+			GTag *t = Get(x, y);
+			char s[256] = "";
+			if (t)
+			{
+				sprintf(s, "%i,%i-%i,%i", t->Cell.x, t->Cell.y, t->Span.x, t->Span.y);
+			}
+			LgiTrace("%-10s", s);
+		}
+		LgiTrace("\n");
+	}
+
+	LgiTrace("\n");
+}
+
+void GCellStore::GetAll(List<GTag> &All)
+{
+	GHashTbl<void*, bool> Added;
+	for (int y=0; y<c.Length(); y++)
+	{
+		CellArray &a = c[y];
+		for (int x=0; x<a.Length(); x++)
+		{
+			GTag *t = a[x];
+			if (t && !Added.Find(t))
+			{
+				Added.Add(t, true);
+				All.Insert(t);
+			}
+		}
+	}
+}
+
+void GCellStore::GetSize(int &x, int &y)
+{
+	x = 0;
+	y = c.Length();
+
+	for (int i=0; i<c.Length(); i++)
+	{
+		x = max(x, c[i].Length());
+	}
+}
+
+GTag *GCellStore::Get(int x, int y)
+{
+	if (y >= c.Length())
+		return NULL;
+	
+	CellArray &a = c[y];
+	if (x >= a.Length())
+		return NULL;
+	
+	return a[x];
+}
+
+bool GCellStore::Set(GTag *t)
+{
+	if (!t)
+		return false;
+
+	for (int y=0; y<t->Span.y; y++)
+	{
+		for (int x=0; x<t->Span.x; x++)
+		{
+			// LgiAssert(!c[y][x]);
+			c[t->Cell.y + y][t->Cell.x + x] = t;
+		}
+	}
+
+	return true;
+}

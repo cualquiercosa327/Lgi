@@ -1,6 +1,6 @@
 #include "Lgi.h"
 #include "GHtmlEdit.h"
-#include "GHtmlPriv2.h"
+#include "GHtmlPriv.h"
 #include "GSkinEngine.h"
 #include "GCombo.h"
 #include "GScrollBar.h"
@@ -24,7 +24,7 @@
 
 #define SubtractPtr(a, b)			( (((int)(a))-((int)(b))) / sizeof(*a) )
 
-using namespace Html2;
+using namespace Html1;
 
 static char16 EmptyStr[] = {0};
 
@@ -311,7 +311,7 @@ struct Block : public GRect
 };
 
 #if 1
-class HtmlEdit : public GHtml2, public GDefaultDocumentEnv
+class HtmlEdit : public Html1::GHtml, public GDefaultDocumentEnv
 {
 	GTag *b;
 	GArray<Block> Blocks;
@@ -524,7 +524,7 @@ class HtmlEdit : public GHtml2, public GDefaultDocumentEnv
 	}
 
 public:
-	HtmlEdit(GHtmlEdit *edit) : GHtml2(100, 0, 0, 100, 100)
+	HtmlEdit(GHtmlEdit *edit) : GHtml(100, 0, 0, 100, 100)
 	{
 		// Construct the basics
 		SetId(IDC_HTML_EDIT);
@@ -546,7 +546,7 @@ public:
 	// Draw a red box around the cursor for debugging.
 	void OnPaint(GSurface *pDC)
 	{
-		GHtml2::OnPaint(pDC);
+		GHtml::OnPaint(pDC);
 
 		int LineY = GetFont()->GetHeight();
 		int sx, sy;
@@ -1412,7 +1412,7 @@ public:
 	{
 		Edit->SetIgnorePulse(true);
 		SetCursorVis(true);
-		GHtml2::OnMouseClick(m);
+		GHtml::OnMouseClick(m);
 
 		LgiAssert(IsOk());
 	}
@@ -2104,13 +2104,13 @@ public:
 			}
 		}
 
-		bool Status = GHtml2::OnKey(k);
+		bool Status = GHtml::OnKey(k);
 		LgiAssert(IsOk());
 		return Status;
 	}
 
-	void SetCursorVis(bool b) { GHtml2::SetCursorVis(b); }
-	bool GetCursorVis() { return GHtml2::GetCursorVis(); }
+	void SetCursorVis(bool b) { GHtml::SetCursorVis(b); }
+	bool GetCursorVis() { return GHtml::GetCursorVis(); }
 
 	struct IsOkData
 	{

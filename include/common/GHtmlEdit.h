@@ -1,7 +1,7 @@
 #ifndef _RICH_EDIT_H_
 #define _RICH_EDIT_H_
 
-#include "GHtml2.h"
+#include "GHtml.h"
 
 class GHtmlEdit : public GDocView
 {

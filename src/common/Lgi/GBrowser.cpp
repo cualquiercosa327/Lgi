@@ -1,6 +1,6 @@
 #include "Lgi.h"
 #include "GBrowser.h"
-#include "GHtml2.h"
+#include "GHtml.h"
 #include "INet.h"
 #include "IHttp.h"
 #include "GEdit.h"
@@ -58,7 +58,7 @@ private:
 
 public:
 	GBrowser *Wnd;
-	Html2::GHtml2 *Html;
+	Html1::GHtml *Html;
 	GAutoPtr<GBrowserThread> Thread;
 	GEdit *UriEdit;
 	GEdit *SearchEdit;
@@ -414,7 +414,7 @@ GBrowser::GBrowser(const char *Title, char *Uri)
 		AddView(d->UriEdit = new GEdit(IDC_URI, 0, 0, 100, 20, 0));
 		AddView(d->SearchEdit = new GEdit(IDC_SEARCH_TXT, 0, 0, 100, 20, ""));
 		AddView(d->Search = new GButton(IDC_SEARCH, 0, 0, -1, 20, "Search"));
-		AddView(d->Html = new Html2::GHtml2(IDC_HTML, 0, 0, 100, 100));
+		AddView(d->Html = new Html1::GHtml(IDC_HTML, 0, 0, 100, 100));
 
 		AttachChildren();
 		OnPosChange();
