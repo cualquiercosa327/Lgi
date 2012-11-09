@@ -57,6 +57,7 @@ enum HtmlTag
 	TAG_SELECT,
 	TAG_LABEL,
 	TAG_FORM,
+	TAG_NOSCRIPT,
 	TAG_LAST
 };
 
@@ -91,16 +92,20 @@ struct GTagHit
 		Index = -1;
 	}
 
+	/// Return true if the current object is a closer than 'h'
 	bool operator <(GTagHit &h)
 	{
+		// We didn't hit anything, so we can't be closer
 		if (!Hit)
 			return false;
 
-		if (!h.Hit)
+		// We did hit something, and 'h' isn't an object yet
+		// or 'h' is a block hit with no text ref... in which
+		// case we are closer... because we have a text hit
+		if (!h.Hit || (Near >= 0 && h.Near < 0))
 			return true;
 
-		LgiAssert(	Near >= 0 &&
-					h.Near >= 0);
+		LgiAssert(Near >= 0);
 
 		if (Near < h.Near)
 			return true;
@@ -358,7 +363,7 @@ public:
 	void OnPaint(GSurface *pDC);
 	void SetSize(GdcPt2 &s);
 	void SetTag(const char *Tag);
-	GTagHit GetTagByPos(int x, int y);
+	void GetTagByPos(GTagHit &hit, int x, int y);
 	GTag *GetTagByName(const char *Name);
 	void CopyClipboard(GBytePipe &p);
 	GTag *IsAnchor(GAutoString *Uri);

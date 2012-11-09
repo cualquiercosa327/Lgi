@@ -196,6 +196,7 @@ static GInfo TagInfo[] =
 	{TAG_INPUT,			"input",		0,			TI_NEVER_CLOSES},
 	{TAG_LABEL,			"label",		0,			TI_NONE},
 	{TAG_FORM,			"form",			0,			TI_NONE},
+	{TAG_NOSCRIPT,		"noscript",		0,			TI_NONE},
 	{TAG_UNKNOWN,		0,				0,			TI_NONE},
 };
 
@@ -759,6 +760,11 @@ public:
 		max_cx = cx = r.cx;
 		my = r.my;
 	}
+	
+	int Width()
+	{
+		return x2 - x1 + 1;
+	}
 
 	int X()
 	{
@@ -872,6 +878,7 @@ public:
 			default:
 			case GCss::LenInherit:
 				return X();
+				
 			case GCss::LenPx:
 				return min((int)l.Value, X());
 			case GCss::LenPt:
@@ -2069,17 +2076,42 @@ bool GTag::OnMouseClick(GMouse &m)
 		#ifdef _DEBUG
 		if (m.Ctrl())
 		{
+			const char *Id = NULL;
 			GAutoString Style = ToString();
-			LgiMsg(	Html,
-					"Tag: %s\n"
-					"Pos: %i,%i - %i,%i\n"
+			GStringPipe p;
+
+			p.Print("Tag: %s", Tag ? Tag : "CONTENT");
+			if (Get("id", Id))
+				p.Print("#%s", Id);
+			for (int i=0; i<Class.Length(); i++)
+				p.Print(".%s", Class[i]);
+			
+			p.Print("\n"
+					"Pos: %i,%i\n"
+					"Size: %i,%i\n"
 					"\n"
-					"Style:\n%s",
-					Html->GetClass(),
-					MB_OK,
-					Tag,
+					"Style:\n%s\n"
+					"Parents:\n",
 					Pos.x, Pos.y, Size.x, Size.y,
 					Style.Get());
+			
+			for (GTag *t = Parent; t; t = t->Parent)
+			{
+				t->Get("id", Id);
+				p.Print("\t%s", t->Tag ? t->Tag : "CONTENT");
+				if (Id) p.Print("#%s", Id);
+				for (int i=0; i<t->Class.Length(); i++)
+					p.Print(".%s", t->Class[i]);
+				p.Print(" (%i,%i)-(%i,%i)\n", t->Pos.x, t->Pos.y, t->Size.x, t->Size.y);
+			}
+			
+			GAutoString m(p.NewStr());
+			
+			LgiMsg(	Html,
+					"%s",
+					Html->GetClass(),
+					MB_OK,
+					m.Get());
 		}
 		else
 		#endif
@@ -2263,21 +2295,14 @@ int GTag::NearestChar(GFlowRect *Tr, int x, int y)
 	return -1;
 }
 
-GTagHit GTag::GetTagByPos(int x, int y)
+void GTag::GetTagByPos(GTagHit &hit, int x, int y)
 {
 	GTagHit r;
 
 	for (GTag *t=Tags.First(); t; t=Tags.Next())
 	{
-		if (t->Pos.x >= 0 &&
-			t->Pos.y >= 0)
-		{
-			GTagHit hit = t->GetTagByPos(x - t->Pos.x, y - t->Pos.y);
-			if (hit < r)
-			{
-				r = hit;
-			}
-		}
+		if (t->Pos.x >= 0 && t->Pos.y >= 0)
+			t->GetTagByPos(hit, x - t->Pos.x, y - t->Pos.y);
 	}
 
 	if (TagId == TAG_IMG)
@@ -2285,29 +2310,38 @@ GTagHit GTag::GetTagByPos(int x, int y)
 		GRect img(0, 0, Size.x - 1, Size.y - 1);
 		if (img.Overlap(x, y))
 		{
-			r.Hit = this;
-			r.Block = 0;
-			r.Near = 0;
+			hit.Hit = this;
+			hit.Block = 0;
+			hit.Near = 0;
 		}
 	}
-	else if (Text())
+	else if (x >= 0 &&
+			 x < Size.x &&
+			 y >= 0 &&
+			 y < Size.y)
 	{
-		for (GFlowRect *Tr=TextPos.First(); Tr; Tr=TextPos.Next())
+		if (!hit.Hit)
 		{
-			GTagHit hit;
 			hit.Hit = this;
-			hit.Block = Tr;
-			hit.Near = IsNearRect(Tr, x, y);
-			LgiAssert(hit.Near >= 0);
-			if (hit < r)
+		}
+
+		if (Text())
+		{
+			for (GFlowRect *Tr=TextPos.First(); Tr; Tr=TextPos.Next())
 			{
-				r = hit;
-				r.Index = NearestChar(Tr, x, y);
+				GTagHit Tmp;
+				Tmp.Hit = this;
+				Tmp.Block = Tr;
+				Tmp.Near = IsNearRect(Tr, x, y);
+				LgiAssert(Tmp.Near >= 0);
+				if (Tmp < hit)
+				{
+					hit = Tmp;
+					hit.Index = NearestChar(Tr, x, y);
+				}
 			}
 		}
 	}
-
-	return r;
 }
 
 int GTag::OnNotify(int f)
@@ -2700,13 +2734,13 @@ void GTag::Restyle()
 	GCss::SelArray *s;
 	if (s = Html->CssStore.TypeMap.Find(Tag))
 		Maps.Add(s);
-	if (HtmlId && (s = Html->CssStore.IdMap.Find(HtmlId)))
-		Maps.Add(s);
 	for (i=0; i<Class.Length(); i++)
 	{
 		if (s = Html->CssStore.ClassMap.Find(Class[i]))
 			Maps.Add(s);
 	}
+	if (HtmlId && (s = Html->CssStore.IdMap.Find(HtmlId)))
+		Maps.Add(s);
 
 	for (i=0; i<Maps.Length(); i++)
 	{
@@ -2717,6 +2751,13 @@ void GTag::Restyle()
 			
 			if (MatchFullSelector(Sel))
 			{
+				#if _DEBUG
+				if (Debug)
+				{
+					int asd = 0;
+				}
+				#endif
+				
 				SetCssStyle(Sel->Style);
 			}
 		}
@@ -2908,9 +2949,9 @@ void GTag::SetStyle()
 		}
 		case TAG_BODY:
 		{
-			PaddingLeft(Len(DefaultBodyMargin));
-			PaddingTop(Len(DefaultBodyMargin));
-			PaddingRight(Len(DefaultBodyMargin));
+			MarginLeft(Len(DefaultBodyMargin));
+			MarginTop(Len(DefaultBodyMargin));
+			MarginRight(Len(DefaultBodyMargin));
 			
 			if (Get("text", s))
 			{
@@ -2971,6 +3012,11 @@ void GTag::SetStyle()
 
 	switch (TagId)
 	{
+		case TAG_NOSCRIPT:
+		{
+			Disp = DispNone;
+			break;
+		}
 	    case TAG_BIG:
 	    {
             GCss::Len l;
@@ -4489,6 +4535,21 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 			}
 			break;
 		}
+		default:
+		{
+			if (Disp == DispInlineBlock ||
+				Disp == DispBlock)
+			{
+				Len w = Width();
+				if (w.IsValid())
+				{
+					int x = w.ToPx(0, GetFont());
+					Min = max(Min, x);
+					Max = max(Max, x);
+				}
+			}
+			break;
+		}
 	}
 
 	GTag *c;
@@ -4616,7 +4677,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 					if (t->Cell.x == x && t->Cell.y == y)
 					{
 						Len Wid = t->Width();
-						if (!t->Width().IsDynamic() &&
+						if (!Wid.IsDynamic() &&
 							!t->MinContent &&
 							!t->MaxContent)
 						{
@@ -4679,14 +4740,14 @@ void GTag::LayoutTable(GFlowRegion *f)
 				{
 					if (t->Cell.x == x && t->Cell.y == y)
 					{
-						if (t->Width().IsDynamic() &&
+						Len Wid = t->Width();
+						if (Wid.IsDynamic() &&
 							!t->MinContent &&
 							!t->MaxContent)
 						{	
-							Len w = t->Width();
-							if (w.Type == LenPercent)
+							if (Wid.Type == LenPercent)
 							{
-								Percents[t->Cell.x] = max(w.Value, Percents[t->Cell.x]);
+								Percents[t->Cell.x] = max(Wid.Value, Percents[t->Cell.x]);
 							}
 							
 							float Total = Sum<float>(Percents);
@@ -4704,7 +4765,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 
 							t->GetWidthMetrics(t->MinContent, t->MaxContent);
 							
-							int x = w.IsValid() ? f->ResolveX(w, Font, false) : 0;
+							int x = Wid.IsValid() ? f->ResolveX(Wid, Font, false) : 0;
 							//t->MinContent = max(x, t->MinContent);
 							t->MaxContent = max(x, t->MaxContent);
 							
@@ -4893,6 +4954,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 
 		DumpCols();
 
+		#if 0
 		// Allocate any unused but available space...
 		if (TotalX < AvailableX)
 		{
@@ -4956,6 +5018,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 		}
 
 		DumpCols();
+		#endif
 
 		// Allocate remaining space if explicit table width
 		if (Width().IsValid() &&
@@ -5458,8 +5521,7 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 
 			LayoutTable(Flow);
 
-			Flow->y1 += Size.y;
-			Flow->y2 = Flow->y1;
+			Flow->y2 += Size.y - 1;
 			Flow->cx = Flow->x1;
 
 			Flow->Outdent(f, MarginLeft(), MarginTop(), MarginRight(), MarginBottom(), true);
@@ -5476,16 +5538,14 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 	#endif
 	
 	int OldFlowMy = Flow->my;
+	PositionType PosType = Position();
 	if (Disp == DispBlock || Disp == DispInlineBlock)
 	{
 		// This is a block level element, so end the previous non-block elements
-		if (Disp == DispBlock)
+		if (Disp == DispBlock &&
+			PosType != PosAbsolute)
 		{		
 			Flow->EndBlock();
-		}
-		else
-		{
-			int asd=0;
 		}
 		
 		BlockFlowWidth = Flow->X();
@@ -5505,7 +5565,7 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 		{
 			if (TagId != TAG_TD && Width().IsValid())
 				Size.x = Flow->ResolveX(Width(), f, false);
-			else
+			else if (PosType != PosAbsolute)
 				Size.x = Flow->X();
 
 			if (MaxWidth().IsValid())
@@ -5515,14 +5575,16 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 					Size.x = Px;
 			}
 
-			Pos.x = Flow->x1;
+			if (PosType != PosAbsolute)
+				Pos.x = Flow->x1;
 		}
 		else
 		{
-			Size.x = Flow->X(); // Not correct but give maximum space
 			Pos.x = Flow->cx;
 		}
-		Pos.y = Flow->y1;
+
+		if (PosType != PosAbsolute)
+			Pos.y = Flow->y1;
 
 		Flow->y1 -= Pos.y;
 		Flow->y2 -= Pos.y;
@@ -5530,7 +5592,8 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 		if (Disp == DispBlock)
 		{
 			Flow->x1 -= Pos.x;
-			Flow->x2 = Flow->x1 + Size.x;
+			if (PosType != PosAbsolute)
+				Flow->x2 = Flow->x1 + Size.x;
 			Flow->cx -= Pos.x;
 
 			Flow->Indent(f, GCss::BorderLeft(), GCss::BorderTop(), GCss::BorderRight(), GCss::BorderBottom(), false);
@@ -5541,14 +5604,12 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 			BlockInlineX[0] = Flow->x1;
 			BlockInlineX[1] = Flow->cx;
 			BlockInlineX[2] = Flow->x2;
+			
+			Flow->x2 -= Flow->x1;
 			Flow->x1 = 0;
-			Flow->x2 = Size.x;
-			Flow->cx = 0;
-			
-			Flow->cx += Flow->ResolveX(BorderLeft(), GetFont(), false);
-			Flow->y1 += Flow->ResolveY(BorderTop(), GetFont(), false);
-			
-			Flow->cx += Flow->ResolveX(PaddingLeft(), GetFont(), false);
+			Flow->cx =	BorderLeft().ToPx(Flow->Width(), GetFont()) +
+						PaddingLeft().ToPx(Flow->Width(), GetFont());			
+			Flow->y1 += Flow->ResolveY(BorderTop(), GetFont(), false);		
 			Flow->y1 += Flow->ResolveY(PaddingTop(), GetFont(), false);
 		}
 	}
@@ -5604,7 +5665,17 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 	// Flow children
 	for (GTag *t=Tags.First(); t; t=Tags.Next())
 	{
-		t->OnFlow(Flow);
+		PositionType PosType = t->Position();
+		if (PosType == PosAbsolute)
+		{
+			GFlowRegion Tmp(Html);
+			Tmp.x2 = Html->X() - 1;
+			t->OnFlow(&Tmp);
+		}
+		else
+		{
+			t->OnFlow(Flow);
+		}
 
 		if (TagId == TAG_TR)
 		{
@@ -5693,11 +5764,26 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 			if (HtPx > Flow->y2)
 				Flow->y2 = HtPx;
 		}
+		
+		if (PosType == PosAbsolute)
+		{
+			GRect c = Html->GetClient();
+
+			if (Left().IsValid())
+				Pos.x = Left().ToPx(c.X(), GetFont());
+			else if (Right().IsValid())
+				Pos.x = max(c.X() - Size.x - Right().ToPx(c.X(), GetFont()), 0);
+
+			if (Top().IsValid())
+				Pos.y = Top().ToPx(c.Y(), GetFont());
+			else if (Bottom().IsValid())
+				Pos.y = max(c.Y() - Size.y - Bottom().ToPx(c.Y(), GetFont()), 0);
+		}
 
 		if (Disp == DispBlock)
 		{
 			Flow->EndBlock();
-
+			
 			int OldFlowSize = Flow->x2 - Flow->x1 + 1;
 			Flow->Outdent(f, PaddingLeft(), PaddingTop(), PaddingRight(), PaddingBottom(), false);
 			Flow->Outdent(f, GCss::BorderLeft(), GCss::BorderTop(), GCss::BorderRight(), GCss::BorderBottom(), false);
@@ -5723,10 +5809,10 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 		}
 		else
 		{
-			Flow->cx += Flow->ResolveX(PaddingRight(), GetFont(), false);
-			Flow->cx += Flow->ResolveX(BorderRight(), GetFont(), false);
-			Size.x = Flow->cx;
-			Flow->cx += Flow->ResolveX(MarginRight(), GetFont(), true);
+			Flow->cx += PaddingRight().ToPx(Flow->Width(), GetFont()) +
+						BorderRight().ToPx(Flow->Width(), GetFont());
+			Size.x = max(Size.x, Flow->cx);
+			Flow->cx += MarginRight().ToPx(Flow->Width(), GetFont());
 			Flow->x1 = BlockInlineX[0] - Pos.x;
 			Flow->cx = BlockInlineX[1] + Flow->cx - Pos.x;
 			Flow->x2 = BlockInlineX[2] - Pos.x;
@@ -5739,14 +5825,15 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 			}
 			else
 			{
-				Flow->y2 += Flow->ResolveX(PaddingBottom(), GetFont(), false);
-				Flow->y2 += Flow->ResolveX(BorderBottom(), GetFont(), false);
+				Flow->y2 += Flow->ResolveY(PaddingBottom(), GetFont(), false);
+				Flow->y2 += Flow->ResolveY(BorderBottom(), GetFont(), false);
 				Size.y = Flow->y2 - Flow->y1 + 1;
 			}
 		}
 	}
 
-	BoundParents();
+	if (PosType != PosAbsolute)
+		BoundParents();
 
 	if (Restart)
 	{
@@ -6469,7 +6556,12 @@ void GTag::OnPaint(GSurface *pDC)
 	List<GTag>::I TagIt = Tags.Start();
 	for (GTag *t=*TagIt; t; t=*++TagIt)
 	{
-		pDC->SetOrigin(Px - t->Pos.x, Py - t->Pos.y);
+		PositionType PosType = t->Position();
+		if (PosType == PosAbsolute)
+			pDC->SetOrigin(0, 0);
+		else
+			pDC->SetOrigin(Px - t->Pos.x, Py - t->Pos.y);
+
 		t->OnPaint(pDC);
 		pDC->SetOrigin(Px, Py);
 	}
@@ -7808,12 +7900,14 @@ GTag *GHtml2::GetTagByPos(int x, int y, int *Index)
 {
 	if (Tag)
 	{
-		GTagHit Hit = Tag->GetTagByPos(x, y);
-		if (Hit.Hit && Hit.Near < 30)
-		{
-			if (Index) *Index = Hit.Index;
-			return Hit.Hit;
-		}
+		GTagHit Hit;
+
+		Tag->GetTagByPos(Hit, x, y);
+
+		if (Hit.Hit && Index)
+			*Index = Hit.Near < 30 ? Hit.Index : -1;
+
+		return Hit.Hit;
 	}
 
 	return 0;

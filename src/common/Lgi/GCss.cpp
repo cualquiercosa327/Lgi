@@ -236,6 +236,8 @@ int GCss::Len::ToPx(int Box, GFont *Font, int Dpi)
     {
         default:
 		case LenInherit:
+			return 0;
+			
 		case LenAuto:
 		case LenNormal:
 		case LenPx:
