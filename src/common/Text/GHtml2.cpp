@@ -107,6 +107,10 @@ public:
 	bool IsParsing;
 	int NextCtrlId;
 	
+	// Refresh
+	int RefreshTime;
+	GAutoString RefreshUri;
+	
 	// This UID is used to match data load events with their source document.
 	// Sometimes data will arrive after the document that asked for it has
 	// already been unloaded. So by assigned each document an UID we can check
@@ -122,6 +126,7 @@ public:
 		NextCtrlId = 2000;
 		CursorVis = false;
 		CursorPos.ZOff(-1, -1);
+		RefreshTime = -1;
 
 		char EmojiPng[MAX_PATH];
 		#ifdef MAC
@@ -2975,32 +2980,65 @@ void GTag::SetStyle()
 	    }
 		case TAG_META:
 		{
-			char *Cs = 0;
-
-			const char *s;
-			if (Get("http-equiv", s) &&
-				stricmp(s, "Content-Type") == 0)
+			char *Cs = NULL;
+			const char *Http = NULL, *Name = NULL, *Content = NULL, *Charset = NULL;
+			Get("http-equiv", Http);
+			Get("name", Name);
+			Get("content", Content);
+			
+			if (Http && Content)
 			{
-				const char *ContentType;
-				if (Get("content", ContentType))
+				if (!stricmp(Http, "content-type"))
 				{
-					char *CharSet = stristr(ContentType, "charset=");
+					char *CharSet = stristr(Content, "charset=");
 					if (CharSet)
-					{
 						ParsePropValue(CharSet + 8, Cs);
+				}
+				else if (!stricmp(Http, "refresh"))
+				{
+					#define SkipWs(c) while (*c && IsWhiteSpace(*c)) c++
+					SkipWs(Content);
+
+					char *Val = strchr((char*)Content, ';');
+					if (Val)
+					{
+						*Val++ = 0;
+						SkipWs(Val);
+						
+						if (IsDigit(*Content))
+							Html->d->RefreshTime = atoi(Content);
+
+						char *Eq;							
+						if (Eq = strchr(Val, '='))
+						{
+							*Eq++ = 0;
+							SkipWs(Eq);
+
+							if (!stricmp(Val, "url"))
+							{
+								GAutoWString clean(CleanText(Eq, strlen(Eq)));
+								Html->d->RefreshUri.Reset(LgiNewUtf16To8(clean));
+							}
+						}
 					}
+					else
+					{
+						Html->d->RefreshTime = atoi(Content);
+					}
+					Html->SetPulse(1000);
 				}
 			}
-
-			if (Get("name", s) && stricmp(s, "charset") == 0 && Get("content", s))
+			
+			if (Name &&
+				Content &&
+				stricmp(Name, "charset") == 0)
 			{
 				Cs = NewStr(s);
 			}
-			else if (Get("charset", s))
+			else if (Get("charset", Charset))
 			{
-				Cs = NewStr(s);
+				Cs = NewStr(Charset);
 			}
-
 			if (Cs)
 			{
 				if (Cs &&
@@ -7268,7 +7306,13 @@ bool GHtml2::OnSubmitForm(GTag *Form)
 			
 			FormEncode(p, Field);
 			p.Write("=", 1);
-			FormEncode(p, Val);
+			
+			if (!stricmp(Field, "checkConnection"))
+				p.Print("youtube%%3A1996%%3A1");
+			else if (!stricmp(Field, "pstMsg"))
+				p.Print("1");
+			else
+				FormEncode(p, Val);
 		}
 		
 		GAutoPtr<const char, true> Data(p.NewStr());
@@ -7916,6 +7960,17 @@ void GHtml2::OnPulse()
 				Invalidate();
 			}
 		}
+	}
+	
+	if (Environment && d->RefreshTime >= 0)
+	{
+		d->RefreshTime--;
+		if (!d->RefreshTime)
+		{
+			GAutoString a = d->RefreshUri;
+			d->RefreshTime = -1;
+			Environment->OnNavigate(a);
+		}		
 	}
 }
 
