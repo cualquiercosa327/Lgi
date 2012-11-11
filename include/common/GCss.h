@@ -444,7 +444,7 @@ public:
 		{
 			Empty();
 
-			for (int i=0; i<s.Length(); i++)
+			for (unsigned i=0; i<s.Length(); i++)
 			{
 				char *str = ((StringsDef&)s)[i];
 				if (ValidStr(str))
@@ -461,12 +461,12 @@ public:
 			if (Length() != s.Length())
 				return true;
 
-			for (int i=0; i<Length(); i++)
+			for (unsigned i=0; i<Length(); i++)
 			{
 				char *a = (*this)[i];
 				char *b = s[i];
 
-				if (stricmp(a, b))
+				if (_stricmp(a, b))
 					return true;
 			}
 
@@ -492,7 +492,7 @@ public:
 						GAutoString n(NewStr(Start, s-Start));
 						if (ValidStr(n))
 						{
-							if (stricmp(n, "inherit"))
+							if (_stricmp(n, "inherit"))
 								Add(n.Release());
 						}
 						else LgiAssert(!"Not a valid string.");
@@ -510,7 +510,7 @@ public:
 						GAutoString n(NewStr(Start, s-Start));
 						if (ValidStr(n))
 						{
-							if (stricmp(n, "inherit"))
+							if (_stricmp(n, "inherit"))
 								Add(n.Release());
 						}
 						else LgiAssert(!"Not a valid string.");
