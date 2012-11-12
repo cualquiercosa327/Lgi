@@ -70,7 +70,8 @@ bool GCheckBox::OnLayout(GViewLayoutInfo &Inf)
             Inf.Height.Max =
             d->Txt ? d->Txt->Y() : SysFont->GetHeight();
     }
-    else false;
+    else
+		return false;
     return true;    
 }
 
