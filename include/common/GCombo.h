@@ -28,7 +28,7 @@ public:
 		/// The height
 		int cy,
 		/// The initial text
-		const char *name
+		const char *name = NULL
 	);
 	~GCombo();
 

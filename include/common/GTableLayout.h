@@ -53,6 +53,8 @@ public:
 
     /// Create a cell
     GLayoutCell *GetCell(int x, int y, bool create = true, int colspan = 1, int rowspan = 1);
+    /// Clear all cells;
+    void Empty(GRect *Range = NULL);
 
 	// Impl
 	void OnFocus(bool b);

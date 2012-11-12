@@ -353,8 +353,10 @@ public:
 
 	GTableLayoutPrivate(GTableLayout *ctrl);
 	~GTableLayoutPrivate();
+	
 	TableCell *GetCellAt(int cx, int cy);
-	void Layout(GRect &Client);
+	void Layout(GRect &Client);	
+	void Empty(GRect *Range = NULL);
 
     bool CollectRadioButtons(GArray<GRadioButton*> &Btns)
     {
@@ -961,7 +963,7 @@ public:
 GTableLayoutPrivate::GTableLayoutPrivate(GTableLayout *ctrl)
 {
 	Ctrl = ctrl;
-	FirstLayout = false;
+	FirstLayout = true;
 	CellSpacing = GTableLayout::CellSpacing;
 	LayoutBounds.ZOff(-1, -1);
 	LayoutMinX = LayoutMaxX = 0;
@@ -969,9 +971,44 @@ GTableLayoutPrivate::GTableLayoutPrivate(GTableLayout *ctrl)
 
 GTableLayoutPrivate::~GTableLayoutPrivate()
 {
-	Cells.DeleteObjects();
+	Empty();
 }
 
+void GTableLayoutPrivate::Empty(GRect *Range)
+{
+	if (Range)
+	{
+		// Clear a range of cells..
+		for (int i=0; i<Cells.Length(); i++)
+		{
+			TableCell *c = Cells[i];
+			if (Range->Overlap(&c->Cell))
+			{
+				c->Children.DeleteObjects();
+				Cells.DeleteAt(i--, true);
+				DeleteObj(c);
+			}
+		}
+	}
+	else
+	{
+		// Clear all the cells
+		GViewI *c;
+		GAutoPtr<GViewIterator> it(Ctrl->IterateViews());
+		while (c = it->First())
+		{
+			DeleteObj(c);
+		}
+		
+		Cells.DeleteObjects();
+		Rows.Length(0);
+		Cols.Length(0);
+	}
+
+	FirstLayout = true;
+	LayoutBounds.ZOff(-1, -1);
+	LayoutMinX = LayoutMaxX = 0;
+}
 TableCell *GTableLayoutPrivate::GetCellAt(int cx, int cy)
 {
 	for (int i=0; i<Cells.Length(); i++)
@@ -1026,7 +1063,8 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 
 				Cx += c->Cell.X();
 			}
-			else break;
+			else
+				Cx++;
 		}
 	}
 
@@ -1074,7 +1112,8 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 
 				Cx += c->Cell.X();
 			}
-			else break;
+			else
+				Cx++;
 		}
 	}
 
@@ -1121,7 +1160,8 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 
 				Cx += c->Cell.X();
 			}
-			else break;
+			else
+				Cx++;
 		}
 	}
 
@@ -1165,7 +1205,8 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 
 				Cx += c->Cell.X();
 			}
-			else break;
+			else
+				Cx++;
 		}
 	}
 
@@ -1217,7 +1258,8 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 				Px += c->Pos.X() + CellSpacing;
 				Cx += c->Cell.X();
 			}
-			else break;
+			else
+				Cx++;
 		}
 
 		Py += MinRow[Cy] + CellSpacing;
@@ -1286,9 +1328,9 @@ void GTableLayout::OnPosChange()
 
 GRect GTableLayout::GetUsedArea()
 {
-	if (!d->FirstLayout)
+	if (d->FirstLayout)
 	{
-		d->FirstLayout = true;
+		d->FirstLayout = false;
 		OnPosChange();
 	}
 
@@ -1306,15 +1348,15 @@ GRect GTableLayout::GetUsedArea()
 
 void GTableLayout::InvalidateLayout()
 {
-	d->FirstLayout = false;
+	d->FirstLayout = true;
 	Invalidate();
 }
 
 void GTableLayout::OnPaint(GSurface *pDC)
 {
-	if (!d->FirstLayout)
+	if (d->FirstLayout)
 	{
-		d->FirstLayout = true;
+		d->FirstLayout = false;
 		OnPosChange();
 	}
 
@@ -1458,6 +1500,11 @@ void GTableLayout::Value(int64 v)
         if (v >= 0 && v < Btns.Length())
             Btns[v]->Value(true);
     }
+}
+
+void GTableLayout::Empty(GRect *Range)
+{
+	d->Empty(Range);
 }
 
 GLayoutCell *GTableLayout::GetCell(int cx, int cy, bool create, int colspan, int rowspan)

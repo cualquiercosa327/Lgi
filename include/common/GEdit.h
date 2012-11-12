@@ -39,7 +39,7 @@ public:
 		/// height
 		int cy,
 		/// Initial text
-		const char *name
+		const char *name = NULL
 	);
 	~GEdit();
 
