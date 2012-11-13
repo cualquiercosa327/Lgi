@@ -132,6 +132,11 @@ public:
 	/// Deletes an attribute
 	bool DelAttr(const char *Name);
 
+	/// Replaces the content with a string
+	bool SetContent(const char *c);
+	/// Replaces the content with an integer
+	bool SetContent(int i);
+
 	/// Read/write a native C integer into an attribute
 	bool SerializeAttr(const char *Attr, int &Int);	
 	/// Read/write a native C dynamically allocated string into an attribute

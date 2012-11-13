@@ -627,6 +627,23 @@ bool GXmlTag::Dump(int Depth)
 	return true;
 }
 
+bool GXmlTag::SetContent(const char *c)
+{
+	if (c == Content)
+		return true;
+	DeleteArray(Content);
+	Content = NewStr(c);
+	return c == NULL || Content != NULL;
+}
+
+bool GXmlTag::SetContent(int i)
+{
+	DeleteArray(Content);
+	char s[32];
+	sprintf_s(s, sizeof(s), "%i", i);
+	return (Content = NewStr(s)) != NULL;
+}
+
 GXmlAttr *GXmlTag::_Attr(const char *Name, bool Wr)
 {
 	if (!Name)
