@@ -1891,12 +1891,14 @@ void GTag::_Dump(GStringPipe &Buf, int Depth)
 	}
 }
 
-char *GTag::Dump()
+GAutoWString GTag::DumpW()
 {
 	GStringPipe Buf;
 	Buf.Print("Html pos=%s\n", Html?Html->GetPos().GetStr():0);
 	_Dump(Buf, 0);
-	return (char*)Buf.New(1);
+	GAutoString a(Buf.NewStr());
+	GAutoWString w(LgiNewUtf8To16(a));
+	return w;
 }
 
 GFont *GTag::NewFont()
@@ -4136,8 +4138,8 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 			PlainText:
 			char *n = NextTag(s);
 			int Len = n ? n - s : strlen(s);
-			GAutoWString Txt(CleanText(s, Len, true, InPreTag));
-			if (Txt && *Txt)
+			GAutoWString WStr(CleanText(s, Len, true, InPreTag));
+			if (WStr && *WStr)
 			{
 				// This loop processes the text into lengths that need different treatment
 				enum TxtClass
@@ -4148,9 +4150,9 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 					TxtNull,
 				};
 
-				char16 *Start = Txt;
+				char16 *Start = WStr;
 				GTag *Child;
-				for (char16 *c = Txt; true; c++)
+				for (char16 *c = WStr; true; c++)
 				{
 					TxtClass Cls = TxtNone;
 					if (Html->d->DecodeEmoji && *c >= EMOJI_START && *c <= EMOJI_END)
@@ -4166,10 +4168,10 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 						{
 							// Emit the text before the point of interest...
 							GAutoWString Cur;
-							if (Start == Txt && !*c)
+							if (Start == WStr && !*c)
 							{
 								// Whole string
-								Cur = Txt;
+								Cur = WStr;
 							}
 							else
 							{
@@ -7598,12 +7600,11 @@ void GHtml::OnMouseClick(GMouse &m)
 						{
 							if (Tag)
 							{
-								char *s = Tag->Dump();
+								GAutoWString s = Tag->DumpW();
 								if (s)
 								{
 									GClipBoard c(this);
-									c.Text(s);
-									DeleteObj(s);
+									c.TextW(s);
 								}
 							}
 							break;

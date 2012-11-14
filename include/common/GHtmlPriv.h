@@ -335,7 +335,7 @@ public:
 	void PreText(char16 *t) { PreTxt.Reset(t); TextPos.Empty(); }
 
 	int GetTextStart();
-	char *Dump();
+	GAutoWString DumpW();
 	char16 *CleanText(const char *s, int len, bool ConversionAllowed = true, bool KeepWhiteSpace = false);
 	char *ParseHtml(char *Doc, int Depth, bool InPreTag = false, bool *BackOut = 0);
 	char *ParseText(char *Doc);
