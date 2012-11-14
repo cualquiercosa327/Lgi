@@ -43,7 +43,7 @@ LgiFunc bool LgiDumpMemoryStats(char *filename);
 #if (!defined(_MSC_VER) || _MSC_VER != 1310) && defined(WIN32) && !defined(WIN64)
 
 // Set this to '1' to switch on memory tracking, else '0'.
-#if defined(_DEBUG)
+#if 0 // defined(_DEBUG)
 
     #if defined(_MSC_VER) && _MSC_VER == 1310
     #error "Visual C++ 2003 does not support redefining new and delete."

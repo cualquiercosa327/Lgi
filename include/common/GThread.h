@@ -73,7 +73,7 @@ class GThreadTarget;
 class GThreadWorker;
 
 /// A generic threaded job parent class.
-class GThreadJob
+class LgiClass GThreadJob
 {
 	friend class GThreadWorker;
 	GThreadTarget *Owner;
@@ -86,7 +86,7 @@ public:
 
 /// The thread target is a virtual API to receive work units executed 
 /// in the worker thread.
-class GThreadTarget : public GMutex
+class LgiClass GThreadTarget : public GMutex
 {
 	friend class GThreadWorker;
 
@@ -95,168 +95,41 @@ protected:
 	GThreadWorker *Worker;
 
 public:
-	GThreadTarget()
-	{
-		Worker = 0;
-	}
-
+	GThreadTarget();
 	virtual ~GThreadTarget() {}
 	
-	virtual void SetWorker(GThreadWorker *w)
-	{
-		if (w && Lock(_FL))
-		{
-			Worker = w;
-			Unlock();
-		}
-	}
-	
-	virtual void Detach()
-	{
-		if (Lock(_FL))
-		{
-			Worker = 0;
-			Unlock();
-		}
-	}
+	virtual void SetWorker(GThreadWorker *w);
+	virtual void Detach();
 	
 	/// This function gets called when the job is finished
 	virtual void OnDone(GAutoPtr<GThreadJob> j) {}
 };
 
+#undef AddJob
+
 /// This parent class does the actual work of processing jobs.
-class GThreadWorker : public GThread, public GMutex
+class LgiClass GThreadWorker : public GThread, public GMutex
 {
 	GArray<GThreadTarget*> Owners;
 	GArray<GThreadJob*> Jobs;
 	bool Loop;
 
 public:
-	GThreadWorker(GThreadTarget *First, const char *ThreadName) :
-		GThread(ThreadName),
-		GMutex("GThreadWorker")
-	{
-		Loop = false;
-		if (First)
-			Attach(First);
-	}
-
-	virtual ~GThreadWorker()
-	{
-		Stop();
-	}
+	GThreadWorker(GThreadTarget *First, const char *ThreadName);
+	virtual ~GThreadWorker();
 	
-	void Stop()
-	{
-		if (Loop)
-		{
-			Loop = false;
-			while (!IsExited())
-				LgiSleep(1);
-			if (Lock(_FL))
-			{
-				for (uint32 i=0; i<Owners.Length(); i++)
-					Owners[i]->Detach();
-				Unlock();
-			}
-		}
-	}
-
-	void Attach(GThreadTarget *o)
-	{
-		GMutex::Auto a(this, _FL);
-		if (!Owners.HasItem(o))
-		{
-			LgiAssert(o->Worker == this);
-			Owners.Add(o);
-			if (Owners.Length() == 1)
-			{
-				Loop = true;
-				Run();
-			}
-		}
-	}
-
-	void Detach(GThreadTarget *o)
-	{
-		GMutex::Auto a(this, _FL);
-		LgiAssert(Owners.HasItem(o));
-		Owners.Delete(o);
-	}
-
-	virtual void AddJob(GThreadJob *j)
-	{
-		if (Lock(_FL))
-		{
-			Jobs.Add(j);
-
-			if (!Owners.HasItem(j->Owner))
-				Attach(j->Owner);
-
-			Unlock();
-		}
-	}
-
-	virtual void DoJob(GThreadJob *j)
-	{
-		j->Do();
-	}
-
-	int Main()
-	{
-		while (Loop)
-		{
-			GAutoPtr<GThreadJob> j;
-			if (Lock(_FL))
-			{
-				if (Jobs.Length())
-				{
-					j.Reset(Jobs[0]);
-					Jobs.DeleteAt(0, true);
-				}
-				Unlock();
-			}
-			if (j)
-			{
-				DoJob(j);
-				if (Lock(_FL))
-				{
-					if (Owners.IndexOf(j->Owner) < 0)
-					{
-						// Owner is gone already... delete the job.
-						j.Reset();
-					}
-					Unlock();
-				}
-				if (j)
-				{
-					// Pass job back to owner.
-					j->Owner->OnDone(j);
-				}
-			}
-			else LgiSleep(50);
-		}
-		return 0;
-	}
+	void Stop();
+	void Attach(GThreadTarget *o);
+	void Detach(GThreadTarget *o);
+	virtual void AddJob(GThreadJob *j);
+	virtual void DoJob(GThreadJob *j);
+	int Main();
 };
 
-class GThreadOwner : public GThreadTarget
+class LgiClass GThreadOwner : public GThreadTarget
 {
 public:
-	GThreadOwner()
-	{
-	}
-
-	virtual ~GThreadOwner()
-	{
-		if (Lock(_FL))
-		{
-			if (Worker)
-				Worker->Detach(this);
-			DeleteObj(Worker);
-			Unlock();
-		}
-	}
+	virtual ~GThreadOwner();
 };
 
 #endif
