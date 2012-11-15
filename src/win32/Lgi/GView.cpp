@@ -1262,7 +1262,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				short xPos = (short) LOWORD(Msg->b);	// horizontal position of pointer
 				short yPos = (short) HIWORD(Msg->b);	// vertical position of pointer
 				int nScrollLines = - _lgi_mouse_wheel_lines();
-				OnMouseWheel( ((int) zDelta / WHEEL_DELTA) * (int) nScrollLines );
+				OnMouseWheel( ((double)zDelta * (double)nScrollLines) / WHEEL_DELTA);
 				return 0;
 			}
 			case M_CHANGE:
