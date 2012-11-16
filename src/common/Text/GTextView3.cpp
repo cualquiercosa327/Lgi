@@ -3376,7 +3376,7 @@ bool GTextView3::OnKey(GKey &k)
 									if (Text[Cursor-1] == '\t')
 									{
 										Delete(Cursor - 1, 1);
-										SetCursor(Cursor - 1, false, false);
+										SetCursor(Cursor, false, false);
 									}
 									else if (Text[Cursor-1] == ' ')
 									{

@@ -538,7 +538,7 @@ public:
 		for (int i=0; i<Children.Length(); i++)
 		{
 			GView *v = Children[i];
-
+			
 			GViewLayoutInfo Inf;
 			GCss *Css;
 			if (v->OnLayout(Inf))
@@ -1078,7 +1078,7 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 	}
 	#endif
 
-	// Pre-layout for spanned cells
+	// Pre-layout columns for spanned cells
 	for (Cy=0; Cy<Rows.Length(); Cy++)
 	{
 		for (Cx=0; Cx<Cols.Length(); )
@@ -1092,9 +1092,19 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 				{
 					int Min = 0, Max = 0;
 					CellFlag Flag = SizeUnknown;
-					c->PreLayout(Min, Max, Flag);
+
+					if (c->Width().IsValid())
+					{
+						GCss::Len l = c->Width();
+						Min = l.ToPx(Client.X(), Ctrl->GetFont());
+					}
+					else
+					{
+						c->PreLayout(Min, Max, Flag);
+					}
+
 					if (Max > Client.X())
-					    Max = Client.X();
+						Max = Client.X();
 					if (Flag)
 					{
 						for (i=c->Cell.x1; i<=c->Cell.x2; i++)

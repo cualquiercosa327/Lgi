@@ -114,6 +114,7 @@ bool GRadioGroup::OnLayout(GViewLayoutInfo &Inf)
 
                     LastY = max(LastY, r.y2);
                 }
+                else LgiAssert(!"This shouldn't fail.");
             }
             else
             {

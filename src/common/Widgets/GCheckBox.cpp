@@ -64,14 +64,12 @@ bool GCheckBox::OnLayout(GViewLayoutInfo &Inf)
             Inf.Width.Max =
             d->Txt ? 20 + d->Txt->X() : 30;
     }
-    else if (!Inf.Height.Max)
+    else
     {
         Inf.Height.Min =
             Inf.Height.Max =
-            d->Txt ? d->Txt->Y() : SysFont->GetHeight();
+            max(Inf.Height.Max, d->Txt ? d->Txt->Y() : SysFont->GetHeight());
     }
-    else
-		return false;
     return true;    
 }
 

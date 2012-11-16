@@ -566,7 +566,7 @@ void GFilterItem::_PaintText(GSurface *pDC, COLOUR Fore, COLOUR Back)
 	switch (d->Node)
 	{
 		case LNODE_NEW:
-			BackCol.Set(LC_HIGH, 24);
+			BackCol.Rgb(0xd0, 0xd0, 0xd0);
 			break;
 		case LNODE_COND:
 		default:
@@ -741,7 +741,7 @@ void GFilterItem::_PaintText(GSurface *pDC, COLOUR Fore, COLOUR Back)
 		case LNODE_NEW:
 		{
 			SysBold->Transparent(true);
-			SysBold->Colour(GColour(LC_MED, 24), Workspace);
+			SysBold->Colour(BackCol, Workspace);
 			d->Data->dsNew->Draw(&Buf, (int)r - 3, (int)(oy + r) - (SysBold->GetHeight() / 2));
 			break;
 		}
