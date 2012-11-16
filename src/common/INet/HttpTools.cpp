@@ -770,7 +770,7 @@ char *HttpTools::Fetch(char *uri, GStream *Log, GViewI *Dump, CookieJar *Cookies
 						DeleteArray(pg);
 					}
 
-					Log->Print("Error: Error getting '%s' with HTTP error %i\n", Enc, ProtocolStatus);
+					Log->Print("Error: Error getting '%s' with HTTP error %i\n", Enc.Get(), ProtocolStatus);
 				}
 			}
 			else if (Log)

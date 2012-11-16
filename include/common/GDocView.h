@@ -205,7 +205,7 @@ class
 #ifdef MAC
 LgiClass
 #endif
-GDocView : public GLayout, public GDom
+GDocView : public GLayout, virtual public GDom
 {
 	friend class GDocumentEnv;
 

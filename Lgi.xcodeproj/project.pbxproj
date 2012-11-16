@@ -91,7 +91,6 @@
 		34637EBA0F876EB1005A9B80 /* GDateTime.h in Headers */ = {isa = PBXBuildFile; fileRef = 34637EB90F876EB1005A9B80 /* GDateTime.h */; };
 		3465BDD908C5DEC100B4C217 /* GContainers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3465BDD808C5DEC100B4C217 /* GContainers.cpp */; };
 		34661C7913C7407000B4C2A7 /* GUtf8.h in Headers */ = {isa = PBXBuildFile; fileRef = 34661C7813C7407000B4C2A7 /* GUtf8.h */; };
-		34666FFF0D323C4F00E80BC9 /* GThreadCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34666FFE0D323C4F00E80BC9 /* GThreadCommon.cpp */; };
 		3476680F093F1FD400623A44 /* LgiInterfaces.h in Headers */ = {isa = PBXBuildFile; fileRef = 3476680E093F1FD400623A44 /* LgiInterfaces.h */; };
 		34766828093F207D00623A44 /* GFile.h in Headers */ = {isa = PBXBuildFile; fileRef = 34766827093F207D00623A44 /* GFile.h */; };
 		34766832093F20EE00623A44 /* GThread.h in Headers */ = {isa = PBXBuildFile; fileRef = 34766831093F20EE00623A44 /* GThread.h */; };
@@ -152,6 +151,7 @@
 		34D2CCAA08F1181C0009968C /* GFontSelect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D2CCA908F1181C0009968C /* GFontSelect.cpp */; };
 		34D2CCAC08F1183F0009968C /* GWindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D2CCAB08F1183F0009968C /* GWindow.cpp */; };
 		34D2CCED08F11BEF0009968C /* GWidgets.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D2CCEC08F11BEF0009968C /* GWidgets.cpp */; };
+		34D44B7C1656F085000E73FF /* GThreadCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D44B7B1656F085000E73FF /* GThreadCommon.cpp */; };
 		34D4D55B1250AF98000DA1FD /* GHashTable.h in Headers */ = {isa = PBXBuildFile; fileRef = 34D4D55A1250AF98000DA1FD /* GHashTable.h */; };
 		34D63E8616339DBD00D2B547 /* GMutex.h in Headers */ = {isa = PBXBuildFile; fileRef = 34D63E8516339DBD00D2B547 /* GMutex.h */; };
 		34D63E8816339DF100D2B547 /* GMutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D63E8716339DF100D2B547 /* GMutex.cpp */; };
@@ -250,7 +250,6 @@
 		34637EB90F876EB1005A9B80 /* GDateTime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GDateTime.h; path = include/common/GDateTime.h; sourceTree = "<group>"; };
 		3465BDD808C5DEC100B4C217 /* GContainers.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GContainers.cpp; path = src/common/General/GContainers.cpp; sourceTree = "<group>"; };
 		34661C7813C7407000B4C2A7 /* GUtf8.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GUtf8.h; path = include/common/GUtf8.h; sourceTree = "<group>"; };
-		34666FFE0D323C4F00E80BC9 /* GThreadCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GThreadCommon.cpp; path = src/common/General/GThreadCommon.cpp; sourceTree = "<group>"; };
 		3476680E093F1FD400623A44 /* LgiInterfaces.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LgiInterfaces.h; path = include/common/LgiInterfaces.h; sourceTree = "<group>"; };
 		34766827093F207D00623A44 /* GFile.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GFile.h; path = include/common/GFile.h; sourceTree = "<group>"; };
 		34766831093F20EE00623A44 /* GThread.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GThread.h; path = include/common/GThread.h; sourceTree = "<group>"; };
@@ -311,6 +310,7 @@
 		34D2CCA908F1181C0009968C /* GFontSelect.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GFontSelect.cpp; path = src/common/Lgi/GFontSelect.cpp; sourceTree = "<group>"; };
 		34D2CCAB08F1183F0009968C /* GWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GWindow.cpp; path = src/mac/Lgi/GWindow.cpp; sourceTree = "<group>"; };
 		34D2CCEC08F11BEF0009968C /* GWidgets.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GWidgets.cpp; path = src/mac/Lgi/GWidgets.cpp; sourceTree = "<group>"; };
+		34D44B7B1656F085000E73FF /* GThreadCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GThreadCommon.cpp; path = src/common/Lgi/GThreadCommon.cpp; sourceTree = "<group>"; };
 		34D4D55A1250AF98000DA1FD /* GHashTable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GHashTable.h; path = include/common/GHashTable.h; sourceTree = "<group>"; };
 		34D63E8516339DBD00D2B547 /* GMutex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GMutex.h; path = include/common/GMutex.h; sourceTree = "<group>"; };
 		34D63E8716339DF100D2B547 /* GMutex.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GMutex.cpp; path = src/common/Lgi/GMutex.cpp; sourceTree = "<group>"; };
@@ -630,9 +630,9 @@
 		345F9C4108F0FAA9007DAFE2 /* Threads */ = {
 			isa = PBXGroup;
 			children = (
+				34D44B7B1656F085000E73FF /* GThreadCommon.cpp */,
 				34D63E8716339DF100D2B547 /* GMutex.cpp */,
 				34D63E8516339DBD00D2B547 /* GMutex.h */,
-				34666FFE0D323C4F00E80BC9 /* GThreadCommon.cpp */,
 				34766831093F20EE00623A44 /* GThread.h */,
 				34D2CC8B08F116A80009968C /* GThread.cpp */,
 			);
@@ -984,7 +984,6 @@
 				34B4A50B0C0598B600CDD0D1 /* GMem.cpp in Sources */,
 				34B4A5300C059A2100CDD0D1 /* GUtf8.cpp in Sources */,
 				3443CBFE0C16BA64008F7B02 /* GOptionsFile.cpp in Sources */,
-				34666FFF0D323C4F00E80BC9 /* GThreadCommon.cpp in Sources */,
 				34B5EAE40DD5B39F005A24D0 /* GFileSelect.cpp in Sources */,
 				34DA5CB70DE0DE930050C7E4 /* GScrollBar.cpp in Sources */,
 				34A3ABF70EF5AA0A009A5E95 /* GDisplayString.cpp in Sources */,
@@ -996,6 +995,7 @@
 				341BE442123ED1F1009BF203 /* sha1.c in Sources */,
 				34B28AF0143FA69B0023662F /* GPath.cpp in Sources */,
 				34D63E8816339DF100D2B547 /* GMutex.cpp in Sources */,
+				34D44B7C1656F085000E73FF /* GThreadCommon.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

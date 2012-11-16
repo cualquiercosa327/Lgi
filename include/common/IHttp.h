@@ -83,7 +83,7 @@ public:
 					int *ProtocolStatus,
 					GStreamI *Out,
 					GStreamI *OutHeaders = 0,
-					char *InHeaders = 0)
+					const char *InHeaders = 0)
 	{
 		return Request("POST",
 						Uri,

@@ -585,7 +585,6 @@ bool IHttp::Request
 					OutHeaders->Write(h, strlen(h));
 				}
 
-				int64 Written = 0;
 				if (IsChunked)
 				{
 					while (true)
