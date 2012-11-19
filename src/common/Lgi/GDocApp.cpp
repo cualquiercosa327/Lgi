@@ -168,7 +168,7 @@ GDocApp<OptionsFmt>::GDocApp(const char *appname, const TCHAR *icon, char *optsn
 	Options = 0;
 	_LangOptsName = 0;
 	d = new GDocAppPrivate(optsname);
-
+	
 	GRect r(0, 0, 800, 600);
 	SetPos(r);
 	MoveToCenter();
@@ -275,14 +275,7 @@ bool GDocApp<OptionsFmt>::_DoSerialize(bool Write)
 	if (Write)
 	{
 		// Save window position
-		#if defined WIN32
-		if (!IsZoomed(Handle()) && !IsIconic(Handle()))
-		#endif
-		{
-			GRect r = GetPos();
-			d->SetOpt(Options, "Pos", r.Describe());
-			printf("Writing pos %s\n", r.GetStr());
-		}
+		SerializeState(Options, "Pos", false);
 
 		// save misc options
 		SerializeOptions(Options, true);
@@ -314,15 +307,7 @@ bool GDocApp<OptionsFmt>::_DoSerialize(bool Write)
 		SerializeOptions(Options, false);
 
 		// window pos
-		GRect r(100, 100, 500, 400);
-		GVariant Pos;
-		if (d->GetOpt(Options, "Pos", Pos) &&
-			r.SetStr(Pos.Str()))
-		{
-			printf("Read pos %s\n", r.GetStr());
-		}
-
-		SetPos(r);
+		SerializeState(Options, "Pos", true);
 	}
 
 	return Status;

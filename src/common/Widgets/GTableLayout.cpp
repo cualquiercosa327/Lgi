@@ -865,6 +865,11 @@ public:
 			if (!v)
 				continue;
 
+				if (Izza(GCheckBox))
+				{
+					int asd=0;
+				}
+				
 			GTableLayout *Tbl = Izza(GTableLayout);
 			GRect r = v->GetPos();
 			r.Offset(Pos.x1 - r.x1 + Cx, Pos.y1 - r.y1 + Cy);
