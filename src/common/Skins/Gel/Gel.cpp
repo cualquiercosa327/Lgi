@@ -706,7 +706,7 @@ public:
 				Mem.Colour(LC_MED, 24);
 				Mem.Rectangle();
 			}
-			DrawBtn(&Mem, Ctrl->GetClient(), false, true);
+			DrawBtn(&Mem, Ctrl->GetClient(), false, State->Enabled);
 			
 			int n = 22;
 			COLOUR TextCol = GREY24;

@@ -541,6 +541,7 @@ void GCombo::OnPaint(GSurface *pDC)
 		GSkinState State;
 		State.pScreen = pDC;
 		State.Text = &d->Text;
+		State.Enabled = Enabled();
 		GApp::SkinEngine->OnPaint_GCombo(this, &State);
 	}
 	else

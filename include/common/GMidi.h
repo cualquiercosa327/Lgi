@@ -11,12 +11,14 @@
 
 class GMidi : public GMutex
 {
-	GArray<GAutoString> In, Out;
 	struct GMidiPriv *d;
 
 protected:
 	// Lock the object before accessing this
 	GArray<uint8> MidiIn;
+
+	// Arrays of device names
+	GArray<GAutoString> In, Out;
 
 public:	
 	GMidi();

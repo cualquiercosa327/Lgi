@@ -211,6 +211,7 @@ GMidi::GMidi() : GMutex("GMidi")
 
 	#elif defined(WIN32)
 
+	d = new GMidiPriv;
 	d->hIn = 0;
 	d->hOut = 0;
 
