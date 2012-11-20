@@ -258,8 +258,7 @@ void GMidi::StoreMidi(uint8 *ptr, int len)
 {
 	if (Lock(_FL))
 	{
-		for (int i=0; i<len; i++)
-			MidiIn.Add(ptr[i]);
+		MidiIn.Add(ptr, len);
 		Unlock();
 	}
 }
@@ -401,8 +400,6 @@ void GMidi::CloseMidi()
 
 void GMidi::OnMidiIn(uint8 *midi, int midi_len)
 {
-	MidiIn.Add(midi, midi_len);
-
 	#if MIDI_MIRROR_IN_TO_OUT
 	SendMidi(p, len);
 	#endif
