@@ -103,6 +103,7 @@ void CALLBACK MidiInProc(HMIDIIN hmi, UINT wMsg, MIDI_TYPE dwInstance, MIDI_TYPE
 	GMidi *a = (GMidi*)dwInstance;
 	uint8 *b = 0;
 	int len = 0;
+	uint8 buf[3];
 
 	// LgiTrace("MidiInProc wMsg=%i\n", wMsg);
 	switch (wMsg)
@@ -114,9 +115,11 @@ void CALLBACK MidiInProc(HMIDIIN hmi, UINT wMsg, MIDI_TYPE dwInstance, MIDI_TYPE
 			break;
 		case MM_MIM_DATA:
 		{
-			MIDIHDR *Hdr = (MIDIHDR*)dwParam1;
-			b = (uint8*) &dwParam1;
-
+			buf[0] = (uint8) (dwParam2 & 0xff);
+			buf[1] = (uint8) ((dwParam2 >> 8) & 0xff);
+			buf[2] = (uint8) ((dwParam2 >> 16) & 0xff);
+			b = buf;
+			
 			switch (b[0] >> 4)
 			{
 				case 0x8:
@@ -131,7 +134,7 @@ void CALLBACK MidiInProc(HMIDIIN hmi, UINT wMsg, MIDI_TYPE dwInstance, MIDI_TYPE
 					len = 2;
 					break;
 				default:
-					LgiAssert(0);
+					b = NULL;
 					break;
 			}
 			break;
