@@ -758,7 +758,7 @@ public:
 				Mem.Line(Mem.X()-n, 1, Mem.X()-n, Mem.Y()-2);
 			}
 			
-			Mem.Colour(TextCol, 24);
+			Mem.Colour(State->Enabled ? TextCol : LC_DKGREY, 24);
 			int Bx = Mem.X() < 26 ? Mem.X()/2 : Mem.X()-13, By = (Mem.Y() + 4) >> 1;
 			for (int i=0; i<5; i++)
 			{				

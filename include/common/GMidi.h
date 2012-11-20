@@ -13,6 +13,8 @@ class GMidi : public GMutex
 {
 	struct GMidiPriv *d;
 
+	void OnError(char *Func, GAutoString *Error, uint32 Code, char *File, int Line);
+
 protected:
 	// Lock the object before accessing this
 	GArray<uint8> MidiIn;
@@ -27,7 +29,7 @@ public:
 	virtual GStream *GetLog() { return NULL; }
 
 	bool IsMidiOpen();
-	void Connect(int InIdx, int OutIdx);
+	bool Connect(int InIdx, int OutIdx, GAutoString *ErrorMsg = NULL);
 	void SendMidi(uint8 *ptr, int len, bool quiet);
 	void CloseMidi();
 

@@ -104,7 +104,7 @@ void CALLBACK MidiInProc(HMIDIIN hmi, UINT wMsg, MIDI_TYPE dwInstance, MIDI_TYPE
 	uint8 *b = 0;
 	int len = 0;
 
-	LgiTrace("MidiInProc wMsg=%i\n", wMsg);
+	// LgiTrace("MidiInProc wMsg=%i\n", wMsg);
 	switch (wMsg)
 	{
 		case MM_MIM_OPEN:
@@ -142,7 +142,8 @@ void CALLBACK MidiInProc(HMIDIIN hmi, UINT wMsg, MIDI_TYPE dwInstance, MIDI_TYPE
 			b = (uint8*) Hdr->lpData;
 			len = Hdr->dwBytesRecorded;
 			
-			midiInAddBuffer(hmi, Hdr, sizeof(*Hdr));
+			if (len)
+				midiInAddBuffer(hmi, Hdr, sizeof(*Hdr));
 			break;
 		}
 		default:
@@ -241,6 +242,7 @@ GMidi::GMidi() : GMutex("GMidi")
 GMidi::~GMidi()
 {
 	CloseMidi();
+	delete d;
 }
 
 bool GMidi::IsMidiOpen()
@@ -262,112 +264,114 @@ void GMidi::StoreMidi(uint8 *ptr, int len)
 	}
 }
 
-void GMidi::Connect(int InIdx, int OutIdx)
+bool GMidi::Connect(int InIdx, int OutIdx, GAutoString *ErrorMsg)
 {
 	if (IsMidiOpen())
 	{
-		CloseMidi();
+		if (ErrorMsg)
+			ErrorMsg->Reset(NewStr("Already connected."));
+		return false;
+	}
+
+	bool Status = false;
+	
+	#ifdef MAC
+	
+	CFStringRef Name = CFSTR("AxeFoot");
+	OSStatus e = MIDIClientCreate(Name, MidiNotify, this, &Client);
+	if (e)
+	{
+	    if (GetLog())
+		    GetLog()->Print("%s:%i - MIDIClientCreate failed with %i\n", _FL, e);
 	}
 	else
 	{
-		#ifdef MAC
-		
-		CFStringRef Name = CFSTR("AxeFoot");
-		OSStatus e = MIDIClientCreate(Name, MidiNotify, this, &Client);
+		e = MIDIInputPortCreate(Client, CFSTR("AxeFootInput"), MidiRead, this, &InPort);
 		if (e)
 		{
 		    if (GetLog())
-			    GetLog()->Print("%s:%i - MIDIClientCreate failed with %i\n", _FL, e);
+			    GetLog()->Print("%s:%i - MIDIInputPortCreate failed with %i\n", _FL, e);
 		}
 		else
 		{
-			e = MIDIInputPortCreate(Client, CFSTR("AxeFootInput"), MidiRead, this, &InPort);
+			e = MIDIOutputPortCreate(Client, CFSTR("AxeFootOutput"), &OutPort);
 			if (e)
 			{
 			    if (GetLog())
-				    GetLog()->Print("%s:%i - MIDIInputPortCreate failed with %i\n", _FL, e);
+				    GetLog()->Print("%s:%i - MIDIOutputPortCreate failed with %i\n", _FL, e);
 			}
 			else
 			{
-				e = MIDIOutputPortCreate(Client, CFSTR("AxeFootOutput"), &OutPort);
+				int InIdx = In->Value();
+				int OutIdx = Out->Value();
+
+				MIDIEndpointRef Src = Srcs[InIdx];
+				Dst = Dsts[OutIdx];
+
+				e = MIDIPortConnectSource(InPort, Src, this);
 				if (e)
 				{
 				    if (GetLog())
-					    GetLog()->Print("%s:%i - MIDIOutputPortCreate failed with %i\n", _FL, e);
+					    GetLog()->Print("%s:%i - MIDIPortConnectSource failed with %i\n", _FL, e);
 				}
 				else
 				{
-					int InIdx = In->Value();
-					int OutIdx = Out->Value();
-
-					MIDIEndpointRef Src = Srcs[InIdx];
-					Dst = Dsts[OutIdx];
-
-					e = MIDIPortConnectSource(InPort, Src, this);
-					if (e)
-					{
-					    if (GetLog())
-						    GetLog()->Print("%s:%i - MIDIPortConnectSource failed with %i\n", _FL, e);
-					}
-					else
-					{
-					    if (GetLog())
-						    GetLog()->Print("Created midi client ok.\n");
-					}
+				    if (GetLog())
+					    GetLog()->Print("Created midi client ok.\n");
 				}
 			}
 		}
+	}
 
-		#elif defined(WIN32)
+	#elif defined(WIN32)
 
-		MMRESULT r = midiOutOpen(&d->hOut, OutIdx, (MIDI_TYPE)MidiOutProc, (MIDI_TYPE)this, CALLBACK_FUNCTION);
+	MMRESULT r = midiOutOpen(&d->hOut, OutIdx, (MIDI_TYPE)MidiOutProc, (MIDI_TYPE)this, CALLBACK_FUNCTION);
+	if (r != MMSYSERR_NOERROR)
+	{
+		OnError("midiOutOpen", ErrorMsg, r, _FL);
+	}
+	else
+	{
+		r = midiInOpen(&d->hIn, InIdx, (MIDI_TYPE)MidiInProc, (MIDI_TYPE)this, CALLBACK_FUNCTION);
 		if (r != MMSYSERR_NOERROR)
 		{
-		    if (GetLog())
-			    GetLog()->Print("%s:%i - midiOutOpen failed with %i\n", _FL, r);
+			OnError("midiInOpen", ErrorMsg, r, _FL);
 		}
 		else
 		{
-			r = midiInOpen(&d->hIn, InIdx, (MIDI_TYPE)MidiInProc, (MIDI_TYPE)this, CALLBACK_FUNCTION);
+			ZeroObj(d->InHdr);
+			d->InHdr.lpData = d->InBuf;
+			d->InHdr.dwBufferLength = sizeof(d->InBuf);
+
+			r = midiInPrepareHeader(d->hIn, &d->InHdr, sizeof(d->InHdr));
 			if (r != MMSYSERR_NOERROR)
 			{
-			    if (GetLog())
-				    GetLog()->Print("%s:%i - midiInOpen failed with %i\n", _FL, r);
+				OnError("midiInPrepareHeader", ErrorMsg, r, _FL);
 			}
 			else
 			{
-				ZeroObj(d->InHdr);
-				d->InHdr.lpData = d->InBuf;
-				d->InHdr.dwBufferLength = sizeof(d->InBuf);
+				r = midiInAddBuffer(d->hIn, &d->InHdr, sizeof(d->InHdr));
+				if (r != MMSYSERR_NOERROR && GetLog())
+					GetLog()->Print("%s:%i - midiInAddBuffer failed with %i\n", _FL, r);
+			}
 
-				r = midiInPrepareHeader(d->hIn, &d->InHdr, sizeof(d->InHdr));
-				if (r != MMSYSERR_NOERROR)
-				{
-				    if (GetLog())
-					    GetLog()->Print("%s:%i - midiInPrepareHeader failed with %i\n", _FL, r);
-				}
-				else
-				{
-					r = midiInAddBuffer(d->hIn, &d->InHdr, sizeof(d->InHdr));
-					if (r != MMSYSERR_NOERROR && GetLog())
-						GetLog()->Print("%s:%i - midiInAddBuffer failed with %i\n", _FL, r);
-				}
-
-				r = midiInStart(d->hIn);
-				if (r != MMSYSERR_NOERROR)
-				{
-				    if (GetLog())
-					    GetLog()->Print("%s:%i - midiInStart failed with %i\n", _FL, r);
-				}
-				else if (GetLog())
-				{					
+			r = midiInStart(d->hIn);
+			if (r != MMSYSERR_NOERROR)
+			{
+				OnError("midiInStart", ErrorMsg, r, _FL);
+			}
+			else
+			{
+				Status = true;
+				if (GetLog())
 					GetLog()->Print("Created midi connections ok.\n");
-				}
 			}
 		}
-
-		#endif
 	}
+
+	#endif
+	
+	return Status;
 }
 
 void GMidi::CloseMidi()
@@ -381,7 +385,8 @@ void GMidi::CloseMidi()
 	#elif defined(WIN32)
 	if (d->hIn)
 	{
-		// midiInReset(d->hIn);
+		midiInReset(d->hIn);
+		midiInUnprepareHeader(d->hIn, &d->InHdr, sizeof(d->InHdr));
 		midiInClose(d->hIn);
 		d->hIn = 0;
 	}
@@ -481,4 +486,14 @@ void GMidi::OnMidiOut(uint8 *p, int len)
 	#if MIDI_MIRROR_IN_TO_OUT
 	SendMidi(p, len);
 	#endif
+}
+
+void GMidi::OnError(char *Func, GAutoString *ErrorMsg, uint32 Code, char *File, int Line)
+{
+	char m[256];
+	sprintf_s(m, sizeof(m), "%s failed with %i", Func, Code);
+	if (ErrorMsg)
+		ErrorMsg->Reset(NewStr(m));
+    if (GetLog())
+	    GetLog()->Print("%s:%i - %s\n", File, Line, m);
 }
