@@ -106,6 +106,7 @@ public:
 	void Append(GViewI *Wnd);
 	bool Remove(GViewI *Wnd);
 	bool LoadFromResource(int Resource);
+	void Select();
 };
 
 #endif

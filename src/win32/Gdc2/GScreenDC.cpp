@@ -367,7 +367,41 @@ COLOUR GScreenDC::Colour(COLOUR c, int Bits)
 		LogBrush.lbColor = d->Col;
 		LogBrush.lbHatch = 0;
 		d->hBrush = (HBRUSH) SelectObject(hDC, CreateBrushIndirect(&LogBrush));
-		d->hPen = (HPEN) SelectObject(hDC, CreatePen(PS_SOLID, 1, d->Col));
+		
+		if (LineBits == 0xffffffff)
+		{
+			d->hPen = (HPEN) SelectObject(hDC, CreatePen(PS_SOLID, 1, d->Col));
+		}
+		else
+		{
+			int Type = PS_SOLID;
+			switch (LineBits)
+			{
+				case LineNone:
+					Type = PS_NULL;
+					break;
+				case LineSolid:
+					Type = PS_SOLID;
+					break;
+				case LineAlternate:
+					Type = PS_ALTERNATE;
+					break;
+				case LineDash:
+					Type = PS_DASH;
+					break;
+				case LineDot:
+					Type = PS_DOT;
+					break;
+				case LineDashDot:
+					Type = PS_DASHDOT;
+					break;
+				case LineDashDotDot:
+					Type = PS_DASHDOTDOT;
+					break;
+			}
+			LOGBRUSH br = { BS_SOLID, d->Col, HS_VERTICAL };
+			d->hPen = (HPEN) SelectObject(hDC, ExtCreatePen(PS_COSMETIC | Type, 1, &br, 0, NULL));
+		}
 	}
 
 	return Prev;
@@ -463,7 +497,7 @@ COLOUR GScreenDC::Get(int x, int y)
 
 uint GScreenDC::LineStyle(uint32 Bits, uint32 Reset)
 {
-	return LineBits;
+	return LineBits = Bits;
 }
 
 uint GScreenDC::LineStyle()
@@ -473,16 +507,26 @@ uint GScreenDC::LineStyle()
 
 void GScreenDC::HLine(int x1, int x2, int y)
 {
+	if (x1 > x2)
+	{
+		int t = x1;
+		x1 = x2;
+		x2 = t;
+	}
 	MoveToEx(hDC, x1, y, NULL);
-	LineTo(hDC, x2, y);
-	SetPixel(hDC, x2, y, d->Col);
+	LineTo(hDC, x2, y + 1);
 }
 
 void GScreenDC::VLine(int x, int y1, int y2)
 {
+	if (y1 > y2)
+	{
+		int t = y1;
+		y1 = y2;
+		y2 = t;
+	}
 	MoveToEx(hDC, x, y1, NULL);
-	LineTo(hDC, x, y2);
-	SetPixel(hDC, x, y2, d->Col);
+	LineTo(hDC, x, y2 + 1);
 }
 
 void GScreenDC::Line(int x1, int y1, int x2, int y2)

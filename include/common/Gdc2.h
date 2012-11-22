@@ -847,6 +847,18 @@ public:
 	/// Draw a line in the current colour
 	virtual void Line(int x1, int y1, int x2, int y2);
 	
+	/// Some surfaces only support specific line styles (e.g. GDI/Win)
+	enum LineStyles
+	{
+		LineNone = 0x0,
+		LineSolid = 0xffffffff,
+		LineAlternate = 0xaaaaaaaa,
+		LineDash = 0xf0f0f0f0,
+		LineDot = 0xcccccccc,
+		LineDashDot = 0xF33CCF30,
+		LineDashDotDot = 0xf0ccf0cc,
+	};
+	
 	virtual uint LineStyle(uint32 Bits, uint32 Reset = 0x80000000)
 	{
 		uint32 B = LineBits;
