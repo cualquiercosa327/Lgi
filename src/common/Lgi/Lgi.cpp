@@ -1593,7 +1593,7 @@ char *LgiGetExtension(const char *File)
 	if (File)
 	{
 		char *Dot = strrchr((char*)File, '.');
-		if (Dot AND !strchr(Dot, DIR_CHAR))
+		if (Dot && !strchr(Dot, DIR_CHAR))
 		{
 			return Dot + 1;
 		}

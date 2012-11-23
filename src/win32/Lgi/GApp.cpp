@@ -207,8 +207,6 @@ static GAutoString ParseVer(void *Resource, char *Part)
 					{
 						return sValue;
 					}
-					
-					// LgiTrace("%s.%s.%s = %s\n", fKey.Get(), tKey.Get(), sKey.Get(), sValue.Get());
 				}
 			}
 		}
@@ -705,6 +703,7 @@ void GApp::OnCommandLine()
 
 	if (ValidStr(CmdLine))
 	{
+		// LgiTrace("CmdLine='%s'\n", CmdLine);
 		GArray<char*> Files;
 		
 		char *Delim = "\'\"";
@@ -895,8 +894,7 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 					if (Now - Last > 1000)
 					{
 						LgiTrace("%s:%i - Msg Loop Blocked: %i ms (Msg: %i)\n",
-							__FILE__, __LINE__,
-							(int) (Now - Last), Msg.message);
+							_FL, (int) (Now - Last), Msg.message);
 					}
 					#endif
 				}
