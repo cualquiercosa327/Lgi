@@ -342,41 +342,43 @@ LgiFunc void							_lgi_assert(bool b, const char *test, const char *file, int l
 #define LC_MAXIMUM						23
 
 // Cursors
-
-/// Normal arrow
-#define LCUR_Normal						0
-/// Upwards arrow
-#define LCUR_UpArrow					1
-/// Crosshair
-#define LCUR_Cross						2
-/// Hourglass/watch
-#define LCUR_Wait						3
-/// Ibeam/text entry
-#define LCUR_Ibeam						4
-/// Vertical resize (|)
-#define LCUR_SizeVer					5
-/// Horizontal resize (-)
-#define LCUR_SizeHor					6
-/// Diagonal resize (/)
-#define LCUR_SizeBDiag					7
-/// Diagonal resize (\)
-#define LCUR_SizeFDiag					8
-/// All directions resize
-#define LCUR_SizeAll					9
-/// Blank/invisible cursor (don't use!)
-#define LCUR_Blank						10
-/// Vertical splitting
-#define LCUR_SplitV						11
-/// Horziontal splitting
-#define LCUR_SplitH						12
-/// A pointing hand
-#define LCUR_PointingHand				13
-/// A slashed circle
-#define LCUR_Forbidden					14
-/// Copy Drop
-#define LCUR_DropCopy					15
-/// Copy Move
-#define LCUR_DropMove					16
+enum LgiCursor
+{
+	/// Blank/invisible cursor
+	LCUR_Blank,
+	/// Normal arrow
+	LCUR_Normal,
+	/// Upwards arrow
+	LCUR_UpArrow,
+	/// Crosshair
+	LCUR_Cross,
+	/// Hourglass/watch
+	LCUR_Wait,
+	/// Ibeam/text entry
+	LCUR_Ibeam,
+	/// Vertical resize (|)
+	LCUR_SizeVer,
+	/// Horizontal resize (-)
+	LCUR_SizeHor,
+	/// Diagonal resize (/)
+	LCUR_SizeBDiag,
+	/// Diagonal resize (\)
+	LCUR_SizeFDiag,
+	/// All directions resize
+	LCUR_SizeAll,
+	/// Vertical splitting
+	LCUR_SplitV,
+	/// Horziontal splitting
+	LCUR_SplitH,
+	/// A pointing hand
+	LCUR_PointingHand,
+	/// A slashed circle
+	LCUR_Forbidden,
+	/// Copy Drop
+	LCUR_DropCopy,
+	/// Copy Move
+	LCUR_DropMove,
+};
 
 // General Event Flags
 #define LGI_EF_LCTRL					0x00000001

@@ -788,7 +788,7 @@ public:
 	(
 		/// The cursor to change to.
 		/// \sa the defines starting with LCUR_Normal from LgiDefs.h
-		int Cursor
+		LgiCursor Cursor
 	);
 
 	/// \brief Get the position of the view relitive to it's parent.

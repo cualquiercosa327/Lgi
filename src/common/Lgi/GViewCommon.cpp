@@ -1786,7 +1786,7 @@ static HANDLE FactoryEvent;
 #else
 #error "Not impl"
 #endif
-static GArray<GViewFactory*> *AllFactories;
+static GArray<GViewFactory*> *AllFactories = NULL;
 
 GViewFactory::GViewFactory()
 {
@@ -1804,30 +1804,41 @@ GViewFactory::GViewFactory()
 	char Name[256];
 	sprintf(Name, "LgiFactoryEvent.%i", GetCurrentProcessId());
 	HANDLE h = CreateEvent(NULL, false, false, Name);
-	if (GetLastError() != ERROR_ALREADY_EXISTS)
+	DWORD err = GetLastError();
+	if (err != ERROR_ALREADY_EXISTS)
 	{
 		FactoryEvent = h;
 		AllFactories = new GArray<GViewFactory*>;
+	}
+	else
+	{
+		LgiAssert(AllFactories);
 	}
 	#else
 	#error "Not impl"
 	AllFactories = 0;
 	#endif
 
-	AllFactories->Add(this);
+	if (AllFactories)
+	{
+		AllFactories->Add(this);
+	}
 }
 
 GViewFactory::~GViewFactory()
 {
-	AllFactories->Delete(this);
-	if (AllFactories->Length() == 0)
+	if (AllFactories)
 	{
-		DeleteObj(AllFactories);
-		#if defined(MAC)
-		unlink(FactoryFile);
-		#elif defined(WINDOWS)
-		CloseHandle(FactoryEvent);
-		#endif
+		AllFactories->Delete(this);
+		if (AllFactories->Length() == 0)
+		{
+			DeleteObj(AllFactories);
+			#if defined(MAC)
+			unlink(FactoryFile);
+			#elif defined(WINDOWS)
+			CloseHandle(FactoryEvent);
+			#endif
+		}
 	}
 }
 

@@ -99,11 +99,7 @@ class GHashTbl
 		    if (Used < Size - Len)
 		    {
 			    char *p = Mem + Used;
-			    #if _MSC_VER >= 1400
-			    strcpy_s(p, Len, s);
-			    #else
-			    strcpy(p, s);
-			    #endif
+			    strsafecpy(p, s, Len);
 			    Used += Len;
 			    return p;
 		    }
@@ -116,11 +112,7 @@ class GHashTbl
 		    if (Used < Size - Len)
 		    {
 			    char *p = Mem + Used;
-			    #if _MSC_VER >= 1400
-			    strcpy_s(p, Len, s);
-			    #else
-			    strcpy(p, s);
-			    #endif
+			    strsafecpy(p, s, Len);
 			    Used += Len;
 			    return p;
 		    }
@@ -128,6 +120,19 @@ class GHashTbl
 	    }
 		
 	    char16 *New(char16 *s)
+	    {
+		    int Len = StrlenW(s) + sizeof(char16);
+		    if (Used < Size - Len)
+		    {
+			    char16 *p = (char16*) (Mem + Used);
+			    StrcpyW(p, s);
+			    Used += Len;
+			    return p;
+		    }
+		    return 0;
+	    }
+
+	    char16 *New(const char16 *s)
 	    {
 		    int Len = StrlenW(s) + sizeof(char16);
 		    if (Used < Size - Len)
@@ -209,14 +214,7 @@ class GHashTbl
 			void FreeKey(char *&a) { DeleteArray(a); }
 			bool CmpKey(char *a, char *b)
 			{
-				if (Case)
-					return strcmp(a, b) == 0;
-				else
-					#ifdef WIN32
-					return _stricmp(a, b) == 0;
-					#else
-					return strcasecmp(a, b) == 0;
-					#endif
+				return strcompare(a, b, Case) == 0;
 			}
 
 		// const char
@@ -226,14 +224,7 @@ class GHashTbl
 			void FreeKey(const char *&a) { DeleteArray((char*&)a); }
 			bool CmpKey(const char *a, const char *b)
 			{
-				if (Case)
-					return strcmp(a, b) == 0;
-				else
-					#ifdef WIN32
-					return _stricmp(a, b) == 0;
-					#else
-					return strcasecmp(a, b) == 0;
-					#endif
+				return strcompare(a, b, Case) == 0;
 			}
 	
 		// char16

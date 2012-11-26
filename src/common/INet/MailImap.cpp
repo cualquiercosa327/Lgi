@@ -971,9 +971,9 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 						// put a string of auth types together
 						if (strlen(AuthTypeStr) > 0)
 						{
-							strcat(AuthTypeStr, ", ");
+							strconcat(AuthTypeStr, ", ");
 						}
-						strcat(AuthTypeStr, AuthType);
+						strconcat(AuthTypeStr, AuthType);
 					}
 
 					// Do auth

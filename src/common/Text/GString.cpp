@@ -73,6 +73,66 @@ char *strnistr(char *a, const char *b, int n)
 	return NULL;
 }
 
+#if LGI_DRMEMORY
+/// This exists to get rid of false positives when running Dr Memory.
+/// The vs2005 clib causes memory errors by accessing bytes after the NULL.
+
+char *strchar(const char *a, char ch)
+{
+	if (!a)
+		return NULL;
+	
+	while (*a)
+	{
+		if (*a == ch)
+			return (char*)a;
+		a++;
+	}
+	
+	return NULL;	
+}
+
+int strcompare(const char *a, const char *b, bool case_sensitive)
+{
+	if (!a || !b)
+		return -1;
+
+	if (case_sensitive)
+	{
+		while (*a && *b && *a == *b)
+		{
+			a++;
+			b++;
+		}
+	}
+	else
+	{
+		while (*a && *b && tolower(*a) == tolower(*b))
+		{
+			a++;
+			b++;
+		}
+	}
+	
+	return *a - *b;
+}
+
+char *strconcat(char *dst, const char *src)
+{
+	char *d = dst;
+	if (d && src)
+	{
+		while (*d)
+			d++;
+		while (*src)
+			*d++ = *src++;
+		*d++ = 0;
+	}
+	return dst;
+}
+
+#endif
+
 int strnicmp(const char *a, const char *b, int i)
 {
 	int Cmp = -1;

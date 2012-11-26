@@ -19,17 +19,17 @@ static uchar BinToBase64Lut[64];
 
 uchar Base64ToBin(char c)
 {
-	if (c >= 'A' AND c <= 'Z')
+	if (c >= 'A' && c <= 'Z')
 	{
 		return c - 'A';
 	}
 
-	if (c >= 'a' AND c <= 'z')
+	if (c >= 'a' && c <= 'z')
 	{
 		return c - 'a' + 26;
 	}
 
-	if (c >= '0' AND c <= '9')
+	if (c >= '0' && c <= '9')
 	{
 		return c - '0' + 52;
 	}
@@ -54,12 +54,12 @@ char BinToBase64(uchar c)
 		return c + 'A';
 	}
 
-	if (c >= 26 AND c <= 51)
+	if (c >= 26 && c <= 51)
 	{
 		return c - 26 + 'a';
 	}
 
-	if (c >= 52 AND c <= 61)
+	if (c >= 52 && c <= 61)
 	{
 		return c - 52 + '0';
 	}
@@ -91,11 +91,11 @@ int ConvertBase64ToBinary(uchar *Binary, int OutBuf, char *Base64, int InBuf)
 		HasBase64ToBinLut = true;
 	}
 
-	if (Binary AND OutBuf > 0 AND Base64 AND InBuf > 0)
+	if (Binary && OutBuf > 0 && Base64 && InBuf > 0)
 	{
 		int Temp[4];
 
-		while (InBuf > 3 AND OutBuf > 2)
+		while (InBuf > 3 && OutBuf > 2)
 		{
 			Temp[0] = Base64ToBinLut[Base64[0] & 0x7f];
 			Temp[1] = Base64ToBinLut[Base64[1] & 0x7f];
@@ -140,7 +140,7 @@ int ConvertBinaryToBase64(char *Base64, int OutBuf, uchar *Binary, int InBuf)
 		HasBinToBase64Lut = true;
 	}
 
-	if (Binary AND OutBuf > 0 AND Base64 AND InBuf > 0)
+	if (Binary && OutBuf > 0 && Base64 && InBuf > 0)
 	{
 		int i = InBuf / 3;
 		int o = OutBuf / 4;
@@ -160,7 +160,7 @@ int ConvertBinaryToBase64(char *Base64, int OutBuf, uchar *Binary, int InBuf)
 		InBuf -= Segments * 3;
 		OutBuf -= Segments << 2;
 
-		if (OutBuf > 3 AND InBuf > 0)
+		if (OutBuf > 3 && InBuf > 0)
 		{
 			*Base64++ = BinToBase64Lut[Binary[0] >> 2];
 			InBuf--;

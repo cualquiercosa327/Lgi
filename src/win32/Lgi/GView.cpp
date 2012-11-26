@@ -823,7 +823,7 @@ GRect &GView::GetClient(bool InClientSpace)
 	return Client;
 }
 
-bool GView::SetCursor(int Cursor)
+bool GView::SetCursor(LgiCursor Cursor)
 {
 	char *Set = 0;
 	switch (Cursor)

@@ -477,14 +477,14 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="comctl32.lib Ws2_32.lib "
-				OutputFile="$(OutDir)\Lgi8.dll"
+				OutputFile="$(OutDir)\LgiNoOpt.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(IntDir)\Lgi8.pdb"
+				ProgramDatabaseFile="$(IntDir)\LgiNoOpt.pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
-				ImportLibrary="$(OutDir)\Lgi8.lib"
+				ImportLibrary="$(OutDir)\LgiNoOpt.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -827,6 +827,10 @@
 					</File>
 					<File
 						RelativePath=".\include\common\GContainers.h"
+						>
+					</File>
+					<File
+						RelativePath=".\include\common\GHashTable.h"
 						>
 					</File>
 					<File

@@ -81,6 +81,21 @@ LgiFunc char *stristr
 	const char *b
 );
 
+#if LGI_DRMEMORY
+
+	/// String compare function
+	#define strcmp strcompare
+	LgiFunc int strcompare(const char *a, const char *b, bool case_sensitive = true);
+
+	/// Find character in string function
+	#define strchr strchar
+	LgiFunc char *strchar(const char *a, char ch);
+
+	/// Append to a string
+	#define strcat strconcat
+	LgiFunc char *strconcat(char *dst, const char *src);
+
+#endif
 
 // LgiFunc int stricmp(char *a, char *b);
 #ifndef WIN32NATIVE

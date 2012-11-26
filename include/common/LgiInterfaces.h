@@ -433,7 +433,7 @@ public:
 	virtual bool PostEvent(int Cmd, GMessage::Param a = 0, GMessage::Param b = 0) = 0;
 
 	// Mouse
-	virtual bool SetCursor(int Cursor) = 0;
+	virtual bool SetCursor(LgiCursor Cursor) = 0;
 	virtual bool Capture(bool c) = 0;
 	virtual bool IsCapturing() = 0;
 	virtual bool GetMouse(GMouse &m, bool ScreenCoords = false) = 0;

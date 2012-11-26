@@ -1183,16 +1183,16 @@ GDom *GDom::ResolveObject(const char *Var, char *Name, char *Array)
 			if (ArrEnd)
 			{
 				*ArrEnd = 0;
-				strcpy(Index, ArrStart);
+				strsafecpy(Index, ArrStart, sizeof(Index));
 			}
 		}
-		strcpy(Base, Obj);
+		strsafecpy(Base, Obj, sizeof(Base));
 
 		// Process parts
 		if (i == t.Length()-1)
 		{
-			strcpy(Name, Base);
-			strcpy(Array, Index);
+			strsafecpy(Name, Base, 256);
+			strsafecpy(Array, Index, 256);
 			
 			char *e = Name + strlen(Name) - 1;
 			while (e > Name && strchr(" \t\r\n", *e))

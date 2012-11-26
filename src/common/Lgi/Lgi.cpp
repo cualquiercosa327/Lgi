@@ -1000,7 +1000,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 				char p[MAX_PATH];
 				if (GetWindowsDirectory(p, sizeof(p)) > 0)
 				{
-					strcpy(Dst, p);
+					strsafecpy(Dst, p, DstSize);
 					Status = true;
 				}
 
@@ -1021,7 +1021,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 
 				#else
 
-				strcpy(Dst, "/boot"); // it'll do for now...
+				strsafecpy(Dst, "/boot", DstSize); // it'll do for now...
 				Status = true;
 
 				#endif
@@ -1034,19 +1034,19 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 				char p[MAX_PATH];
 				if (GetSystemDirectory(p, sizeof(p)) > 0)
 				{
-					strcpy(Dst, p);
+					strsafecpy(Dst, p, DstSize);
 					Status = true;
 				}
 
 				
 				#elif defined MAC
 				
-				strcpy(Dst, "/Library");
+				strsafecpy(Dst, "/Library", DstSize);
 				Status = true;
 
 				#else
 
-				strcpy(Dst, "/lib"); // it'll do for now...
+				strsafecpy(Dst, "/lib", DstSize); // it'll do for now...
 				Status = true;
 
 				#endif
@@ -1064,7 +1064,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 						char *utf = LgiToNativeCp(t);
 						if (utf)
 						{
-							strcpy(Dst, utf);
+							strsafecpy(Dst, utf, DstSize);
 							DeleteArray(utf);
 							Status = true;
 						}
@@ -1078,7 +1078,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 						char *utf = LgiNewUtf16To8(t);
 						if (utf)
 						{
-							strcpy(Dst, utf);
+							strsafecpy(Dst, utf, DstSize);
 							DeleteArray(utf);
 							Status = true;
 						}
@@ -1103,7 +1103,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 
 				#else
 
-				strcpy(Dst, "/tmp"); // it'll do for now...
+				strsafecpy(Dst, "/tmp", DstSize); // it'll do for now...
 				Status = true;
 
 				#endif
@@ -1137,7 +1137,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 
 				#elif defined LINUX
 
-				strcpy(Dst, "/usr");
+				strsafecpy(Dst, "/usr", DstSize);
 				Status = true;
 
 				#elif defined BEOS
@@ -1175,7 +1175,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 
 				#elif defined LINUX
 
-				strcpy(Dst, "/usr");
+				strsafecpy(Dst, "/usr", DstSize);
 				Status = true;
 
 				#endif
@@ -1263,7 +1263,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 				struct passwd *pw = getpwuid(getuid());
 				if (pw)
 				{
-					strcpy(Dst, pw->pw_dir);
+					strsafecpy(Dst, pw->pw_dir, DstSize);
 					Status = true;
 				}
 
@@ -1385,7 +1385,7 @@ bool LgiGetExeFile(char *Dst, int DstSize)
 				if (e)
 				{
 					strlwr(e);
-					strcpy(Dst, e);
+					strsafecpy(Dst, e, DstSize);
 					DeleteArray(e);
 					return true;
 				}
@@ -1408,7 +1408,7 @@ bool LgiGetExeFile(char *Dst, int DstSize)
 				char *e = LgiNewUtf16To8(Exe);
 				if (e)
 				{
-					strcpy(Dst, e);
+					strsafecpy(Dst, e, DstSize);
 					DeleteArray(e);
 					return true;
 				}
@@ -1424,7 +1424,7 @@ bool LgiGetExeFile(char *Dst, int DstSize)
 			BPath p;
 			if (e.GetPath(&p) == B_OK)
 			{
-				strcpy(Dst, p.Path());
+				strsafecpy(Dst, p.Path(), DstSize);
 				return true;
 			}
 		}
@@ -1481,7 +1481,7 @@ bool LgiGetExeFile(char *Dst, int DstSize)
 							if (e)
 							{
 								*e = 0;
-								strcpy(ExePathCache, s);
+								strsafecpy(ExePathCache, s, sizeof(ExePathCache));
 								Status = true;
 							}
 						}
@@ -1522,7 +1522,7 @@ bool LgiGetExeFile(char *Dst, int DstSize)
 
 									if (LinePid == getpid())
 									{
-										strcpy(ExePathCache, t[t.Length()-1]);
+										strsafecpy(ExePathCache, t[t.Length()-1], sizeof(ExePathCache));
 										Status = true;
 									}
 								}
@@ -1785,7 +1785,7 @@ void LgiFormatSize(char *Str, uint64 Size)
 
 	if (Size == 1)
 	{
-		strcpy(Str, "1 byte");
+		strsafecpy(Str, "1 byte", Size);
 	}
 	else if (Size < K)
 	{

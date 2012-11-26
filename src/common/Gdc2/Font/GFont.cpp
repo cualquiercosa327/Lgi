@@ -102,6 +102,7 @@ public:
 		WhiteSpace = _Fore;
 		_TabSize = 32;
 		_Transparent = false;
+		_Quality = DEFAULT_QUALITY;
 		_SubGlyphs = GFontSystem::Inst()->GetDefaultGlyphSub();
 	}
 
