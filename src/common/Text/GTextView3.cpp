@@ -3305,7 +3305,7 @@ bool GTextView3::OnKey(GKey &k)
 							if (k.c16 == 9)
 							{
 								int Min = min(SelStart, SelEnd), Max = max(SelStart, SelEnd);
-								for (int i=Min; i<=Max; i++)
+								for (int i=Min; i<Max; i++)
 								{
 									if (Text[i] == '\n')
 									{

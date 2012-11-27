@@ -115,7 +115,7 @@ LgiFunc char *strsafecpy
 	/// The string to append to 'dst'
 	const char *src,
 	/// The size in bytes of 'dst'
-	int len
+	size_t len
 );
 /// \brief Safe string append
 ///
@@ -129,7 +129,7 @@ LgiFunc char *strsafecat
 	/// The string to append to 'dst'
 	const char *src,
 	/// The size in bytes of 'dst'
-	int len
+	size_t len
 );
 /// \brief Converts a hex string into a integer.
 ///

@@ -171,7 +171,7 @@ char *stristr(const char *a, const char *b)
 	return NULL;
 }
 
-char *strsafecpy(char *dst, const char *src, int len)
+char *strsafecpy(char *dst, const char *src, size_t len)
 {
 	char *d = dst;
 
@@ -189,7 +189,7 @@ char *strsafecpy(char *dst, const char *src, int len)
 	return d;
 }
 
-char *strsafecat(char *dst, const char *src, int len)
+char *strsafecat(char *dst, const char *src, size_t len)
 {
 	char *d = dst;
 
