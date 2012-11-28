@@ -725,6 +725,9 @@ public:
 	/// free it.
 	bool SetBackgroundFill(GViewFill *Fill);
 
+	/// Draws an OS themeed border
+	void DrawThemeBorder(GSurface *pDC, GRect r);
+
 	/// \brief true if the control is currently executing in the GUI thread
 	///
 	/// Some OS functions are not thread safe, and can only be called in the GUI

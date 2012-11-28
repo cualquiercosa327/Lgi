@@ -1,6 +1,8 @@
 #ifndef _GVIEW_PRIV_
 #define _GVIEW_PRIV_
 
+#include "Uxtheme.h"
+
 #define PAINT_VIRTUAL_CHILDREN	1
 
 extern bool In_SetWindowPos;
@@ -104,6 +106,7 @@ public:
 		int				WndDlgCode;				// Win32 Dialog Code (WM_GETDLGCODE)
 		const char		*WndClass;
 		UINT			TimerId;
+		HTHEME			hTheme;
 
 	#else
 

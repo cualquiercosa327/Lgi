@@ -41,8 +41,8 @@ GSplitter::GSplitter()
 	d->PosB.ZOff(0, 0);
 	d->ViewA = 0;
 	d->ViewB = 0;
-	d->BorderA = true;
-	d->BorderB = true;
+	d->BorderA = false;
+	d->BorderB = false;
 	d->SplitFollow = false;
 	d->BarSize = SPLITER_BAR_DEFAULT;
 

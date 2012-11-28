@@ -60,7 +60,7 @@ protected:
 	#endif
 
 	/// Creates a file drop
-	bool CreateFileDrop(GVariant *Var, GMouse &m, List<char> &Files);
+	bool CreateFileDrop(GVariant *OutputData, GMouse &m, List<char> &Files);
 
 	#ifdef XWIN
 	// void OnSelectionRequest(Display *Dsp, XEvent &Event, XWidget *W, Atom XdndSelection); 

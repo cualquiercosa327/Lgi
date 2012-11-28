@@ -247,9 +247,9 @@ GDragDropSource::~GDragDropSource()
 	DeleteObj(d);
 }
 
-bool GDragDropSource::CreateFileDrop(GVariant *Var, GMouse &m, List<char> &Files)
+bool GDragDropSource::CreateFileDrop(GVariant *OutputData, GMouse &m, List<char> &Files)
 {
-	if (Var && Files.First())
+	if (OutputData && Files.First())
 	{
 		#if WIN32NATIVE
 		
@@ -311,7 +311,7 @@ bool GDragDropSource::CreateFileDrop(GVariant *Var, GMouse &m, List<char> &Files
 				*f++ = 0;
 			}
 
-			Var->SetBinary(Size, (uchar*)Dp);
+			OutputData->SetBinary(Size, (uchar*)Dp);
 			DeleteArray((char*&)Dp);
 		}
 
@@ -334,7 +334,7 @@ bool GDragDropSource::CreateFileDrop(GVariant *Var, GMouse &m, List<char> &Files
 		char *s = p.NewStr();
 		if (s)
 		{
-			Var->SetBinary(strlen(s), s);
+			OutputData->SetBinary(strlen(s), s);
 			DeleteArray(s);
 			return true;
 		}
@@ -347,7 +347,7 @@ bool GDragDropSource::CreateFileDrop(GVariant *Var, GMouse &m, List<char> &Files
 			u.Protocol = NewStr("file");
 			u.Host = NewStr("localhost");
 			u.Path = NewStr(f);
-			Var->OwnStr(u.GetUri().Release());
+			OutputData->OwnStr(u.GetUri().Release());
 			
 			return true;
 		}

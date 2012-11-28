@@ -43,10 +43,16 @@ GViewPrivate::GViewPrivate()
 	Parent = 0;
 	ParentI = 0;
 	Notify = 0;
+	hTheme = NULL;
 }
 
 GViewPrivate::~GViewPrivate()
 {
+	if (hTheme)
+	{
+		CloseThemeData(hTheme);
+		hTheme = NULL;
+	}
 	if (FontOwn)
 	{
 		DeleteObj(Font);
@@ -979,7 +985,7 @@ bool GView::SetPos(GRect &p, bool Repaint)
 			{
 				bool IsVis = IsWindowVisible(_View);
 
-				LgiTrace("%s:%i - SetWindowPos changed the focus!!!!!! Old=%p New=%p Vis=%i->%i _View=%s %s->%s\n",
+				LgiTrace("%s:%i - SetWindowPos changed the focus!!!!!! Old=%p New=%p Vis=%i->%i _View=%s %s->%s\\n",
 					_FL, hOld, hNew, WasVis, IsVis, GetClass(), OldPos.GetStr(), Pos.GetStr());
 				
 				// Oh f#$% off windows.
@@ -1119,7 +1125,7 @@ bool SysOnKey(GView *w, GMessage *m)
 				if (In_SetWindowPos)
 				{
 					assert(0);
-					LgiTrace("%s:%i - SetFocus(%p)\n", __FILE__, __LINE__, Wnd->Handle());
+					LgiTrace("%s:%i - SetFocus(%p)\\n", __FILE__, __LINE__, Wnd->Handle());
 				}
 
 				::SetFocus(Wnd->Handle());
@@ -1129,6 +1135,37 @@ bool SysOnKey(GView *w, GMessage *m)
 	}
 
 	return false;
+}
+
+#include "C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v7.0A\\Include\\vsstyle.h"
+void GView::DrawThemeBorder(GSurface *pDC, GRect r)
+{
+	if (!d->hTheme)
+	{
+		d->hTheme = OpenThemeData(_View, VSCLASS_EDIT);
+	}
+	if (d->hTheme)
+	{
+		RECT rc = r;
+		
+		int StateId;
+		if (!Enabled())
+			StateId = EBWBS_DISABLED;
+		else if (Focus())
+			StateId = EBWBS_FOCUSED;
+		else
+			StateId = EBWBS_NORMAL;
+						
+		DrawThemeEdge(	d->hTheme,
+						pDC->Handle(),
+						EP_BACKGROUNDWITHBORDER,
+						StateId,
+						&rc,
+						BDR_SUNKENINNER,
+						BF_ADJUST | BF_RECT,
+						&rc);
+		r = rc;						
+	}
 }
 
 bool IsKeyChar(GKey &k, int vk)
@@ -1577,7 +1614,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 						if (In_SetWindowPos)
 						{
 							assert(0);
-							LgiTrace("%s:%i - SetFocus(%p) (%s)\n", __FILE__, __LINE__, Handle(), GetClass());
+							LgiTrace("%s:%i - SetFocus(%p) (%s)\\n", __FILE__, __LINE__, Handle(), GetClass());
 						}
 
 						SetFocus(_View);
@@ -1606,7 +1643,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 							Info->y == -32000)
 						{
 							#if 0
-							LgiTrace("WM_WINDOWPOSCHANGED %i,%i,%i,%i (icon=%i)\n",
+							LgiTrace("WM_WINDOWPOSCHANGED %i,%i,%i,%i (icon=%i)\\n",
 								Info->x,
 								Info->y,
 								Info->cx,
@@ -1669,7 +1706,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 							_Over->OnMouseExit(m);
 
 							#if DEBUG_OVER
-							LgiTrace("LoseOver=%p '%-20s'\n", _Over, _Over->Name());
+							LgiTrace("LoseOver=%p '%-20s'\\n", _Over, _Over->Name());
 							#endif
 						}
 
@@ -1678,7 +1715,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 						if (_Over)
 						{
 							#if DEBUG_OVER
-							LgiTrace("GetOver=%p '%-20s'\n", _Over, _Over->Name());
+							LgiTrace("GetOver=%p '%-20s'\\n", _Over, _Over->Name());
 							#endif
 
 							GMouse m = lgi_adjust_click(Ms, _Over);
@@ -1725,7 +1762,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 						else
 						{
 							#if DEBUG_OVER
-							LgiTrace("LoseOver=%p '%-20s'\n", _Over, _Over->Name());
+							LgiTrace("LoseOver=%p '%-20s'\\n", _Over, _Over->Name());
 							#endif
 
 							_Over->OnMouseExit(Ms);
@@ -1761,7 +1798,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 					if (_Over)
 					{
 						#if DEBUG_OVER
-						LgiTrace("LoseOver=%p '%-20s'\n", _Over, _Over->Name());
+						LgiTrace("LoseOver=%p '%-20s'\\n", _Over, _Over->Name());
 						#endif
 
 						GMouse m = lgi_adjust_click(Ms, _Over);
@@ -1776,7 +1813,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 						_Over->OnMouseEnter(m);
 
 						#if DEBUG_OVER
-						LgiTrace("GetOver=%p '%-20s'\n", _Over, _Over->Name());
+						LgiTrace("GetOver=%p '%-20s'\\n", _Over, _Over->Name());
 						#endif
 					}
 				}
@@ -2003,7 +2040,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 					}
 
 					#if 0
-					LgiTrace("KEYDOWN 0x%x(%c) v=0x%x cas=%i:%i:%i\n",
+					LgiTrace("KEYDOWN 0x%x(%c) v=0x%x cas=%i:%i:%i\\n",
 						Key.c16, Key.c16>=' '?Key.c16:'.',
 						Msg->a,
 						Key.Ctrl(), Key.Alt(), Key.Shift());
@@ -2030,7 +2067,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 						(Key.IsChar = IsKeyChar(Key, Msg->a)) != 0)
 					{
 						#if 0
-						LgiTrace("CHAR 0x%x(%c) v=0x%x cas=%i:%i:%i\n",
+						LgiTrace("CHAR 0x%x(%c) v=0x%x cas=%i:%i:%i\\n",
 							Key.c16, Key.c16>=' '?Key.c16:'.',
 							Msg->a,
 							Key.Ctrl(), Key.Alt(), Key.Shift());
@@ -2103,6 +2140,12 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			}
 			case WM_NCPAINT:
 			{
+				#if 0
+				HDC hDC = GetWindowDC(_View);
+				GScreenDC Dc(hDC, _View, true);
+				GRect p(0, 0, Dc.X()-1, Dc.Y()-1);
+				OnNcPaint(&Dc, p);
+				#else
 				bool Thin = (Sunken() || Raised()) && (_BorderSize == 1);
 				if (Thin)
 				{
@@ -2118,6 +2161,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				{
 					goto ReturnDefaultProc;
 				}
+				#endif
 				break;
 			}
 			/*

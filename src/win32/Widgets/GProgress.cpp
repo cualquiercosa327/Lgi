@@ -15,10 +15,10 @@ GProgress::GProgress(int id, int x, int y, int cx, int cy, const char *name) :
 	SetPos(r);
 	if (name) GControl::Name(name);
 
-	SetStyle(GetStyle() | WS_CHILD | WS_TABSTOP | WS_VISIBLE | PBS_SMOOTH);
+	SetStyle(GetStyle() | WS_CHILD | WS_VISIBLE); //  | PBS_SMOOTH  | WS_TABSTOP
 	if (SubClass)
 	{
-		SubClass->SubClass(PROGRESS_CLASS);
+		SubClass->SubClass("msctls_progress32");
 	}
 }
 

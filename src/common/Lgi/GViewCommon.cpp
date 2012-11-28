@@ -375,15 +375,15 @@ void GView::OnNcPaint(GSurface *pDC, GRect &r)
 {
 	int Border = Sunken() || Raised() ? _BorderSize : 0;
 	if (
-		#if WIN32NATIVE
+		#if 0 // WIN32NATIVE
 		!_View &&
 		#endif	
 		Border == 2)
 	{
-		LgiWideBorder(pDC, r, Sunken() ? SUNKEN : RAISED);
+		DrawThemeBorder(pDC, r);
+		// LgiWideBorder(pDC, r, Sunken() ? SUNKEN : RAISED);
 	}
-	else
-	if (Border == 1)
+	else if (Border == 1)
 	{
 		LgiThinBorder(pDC, r, Sunken() ? SUNKEN : RAISED);
 	}

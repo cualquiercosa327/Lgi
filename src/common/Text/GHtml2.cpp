@@ -194,6 +194,7 @@ static GInfo TagInfo[] =
 	{TAG_BIG,			"big",			0,			TI_NONE},
 	{TAG_SELECT,		"select",		0,			TI_NONE},
 	{TAG_INPUT,			"input",		0,			TI_NEVER_CLOSES},
+	{TAG_BUTTON,		"button",		0,			TI_NEVER_CLOSES},
 	{TAG_LABEL,			"label",		0,			TI_NONE},
 	{TAG_FORM,			"form",			0,			TI_NONE},
 	{TAG_NOSCRIPT,		"noscript",		0,			TI_NONE},
@@ -5811,7 +5812,17 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 		{
 			Flow->cx += PaddingRight().ToPx(Flow->Width(), GetFont()) +
 						BorderRight().ToPx(Flow->Width(), GetFont());
+			
 			Size.x = max(Size.x, Flow->cx);
+			if (MinWidth().IsValid())
+			{
+				Len MinX = MinWidth();
+				int Px = MinX.ToPx(Flow->X(), GetFont());
+				if (Size.x < Px)
+					Size.x = Px;
+			}
+			
+			
 			Flow->cx += MarginRight().ToPx(Flow->Width(), GetFont());
 			Flow->x1 = BlockInlineX[0] - Pos.x;
 			Flow->cx = BlockInlineX[1] + Flow->cx - Pos.x;
