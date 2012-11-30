@@ -1,6 +1,16 @@
+/*
+**	FILE:			DcTools.cpp
+**	AUTHOR:			Matthew Allen
+**	DATE:			3/8/98
+**	DESCRIPTION:	Device context tools
+**
+**	Copyright (C) 1998-2001, Matthew Allen
+**		fret@memecode.com
+*/
+
 #include <math.h>
 #include "Gdc2.h"
-#include "GdcTools.h"
+#include "DcTools.h"
 
 bool IsGreyScale(GSurface *pDC)
 {
@@ -9,7 +19,7 @@ bool IsGreyScale(GSurface *pDC)
 	{
 		GPalette *Pal = pDC->Palette();
 		Status = true;
-		if (Pal AND Pal->GetSize() > 0)
+		if (Pal && Pal->GetSize() > 0)
 		{
 			for (int i=0; i<Pal->GetSize(); i++)
 			{
@@ -17,8 +27,8 @@ bool IsGreyScale(GSurface *pDC)
 				if (p)
 				{
 					int Grey = i * 255 / Pal->GetSize();
-					if (p->R != Grey OR
-						p->G != Grey OR
+					if (p->R != Grey ||
+						p->G != Grey ||
 						p->B != Grey)
 					{
 						Status = false;
@@ -30,62 +40,63 @@ bool IsGreyScale(GSurface *pDC)
 	return Status;
 }
 
-GSurface *GreyScaleDC(GSurface *pDC)
+bool GreyScaleDC(GSurface *pDest, GSurface *pSrc)
 {
-	GSurface *Status = 0;
+	bool Status = false;
 
-	if (pDC)
+	if (pDest && pSrc)
 	{
-		switch (pDC->GetBits())
+		switch (pSrc->GetBits())
 		{
 			case 8:
 			{
 				// 8 -> 8 greyscale convert
-				Status = pDC;
-
-				GPalette *Pal = pDC->Palette();
-				if (Pal)
+				if (pDest->Create(pSrc->X(), pSrc->Y(), 8))
 				{
-					// convert palette
-					uchar Map[256];
-					ZeroObj(Map);
-					for (int i=0; i<Pal->GetSize(); i++)
+					GPalette *Pal = pSrc->Palette();
+					if (Pal)
 					{
-						// Weights, r:.299, g:.587, b:.114
-						GdcRGB *n = (*Pal)[i];
-						if (n)
+						// convert palette
+						uchar Map[256];
+						ZeroObj(Map);
+						for (int i=0; i<Pal->GetSize(); i++)
 						{
-							double r = ((double) n->R * 0.299) / 255;
-							double g = ((double) n->G * 0.587) / 255;
-							double b = ((double) n->B * 0.114) / 255;
-							Map[i] = (r + g + b) * 255.0;
+							// Weights, r:.299, g:.587, b:.114
+							GdcRGB *n = (*Pal)[i];
+							if (n)
+							{
+								double r = ((double) n->R * 0.299) / 255;
+								double g = ((double) n->G * 0.587) / 255;
+								double b = ((double) n->B * 0.114) / 255;
+								Map[i] = (r + g + b) * 255.0;
 
-							n->R = n->G = n->B = i;
+								n->R = n->G = n->B = i;
+							}
 						}
-					}
 
-					Pal->Update();
+						Pal->Update();
+						pDest->Palette(Pal, true);
+						Status = true;
 
-					// convert pixels..
-					for (int y=0; y<pDC->Y(); y++)
-					{
-						uchar *Bits = (*pDC)[y];
-						for (int x=0; x<pDC->X(); x++)
+						// convert pixels..
+						for (int y=0; y<pSrc->Y(); y++)
 						{
-							Bits[x] = Map[Bits[x]];
+							uchar *s = (*pSrc)[y];
+							uchar *d = (*pDest)[y];
+							for (int x=0; x<pSrc->X(); x++)
+							{
+								d[x] = Map[s[x]];
+							}
 						}
 					}
 				}
-
 				break;
 			}
 			case 16:
 			case 24:
 			case 32:
 			{
-				Status = new GMemDC;
-				if (Status AND
-					Status->Create(pDC->X(), pDC->Y(), 8))
+				if (pDest->Create(pSrc->X(), pSrc->Y(), 8))
 				{
 					uchar RMap[256];
 					uchar GMap[256];
@@ -97,16 +108,17 @@ GSurface *GreyScaleDC(GSurface *pDC)
 						BMap[i] = i * 0.114;
 					}
 					
-					for (int y=0; y<pDC->Y(); y++)
+					int SBits = pSrc->GetBits();
+					for (int y=0; y<pSrc->Y(); y++)
 					{
-						switch (pDC->GetBits())
+						switch (SBits)
 						{
 							case 16:
 							{
-								ushort *Src = (ushort*) (*pDC)[y];
-								uchar *Dest = (*Status)[y];
+								ushort *Src = (ushort*) (*pSrc)[y];
+								uchar *Dest = (*pDest)[y];
 
-								for (int x=0; x<pDC->X(); x++)
+								for (int x=0; x<pSrc->X(); x++)
 								{
 									uchar r = R16(Src[x]) << 3;
 									uchar g = G16(Src[x]) << 2;
@@ -117,10 +129,10 @@ GSurface *GreyScaleDC(GSurface *pDC)
 							}
 							case 24:
 							{
-								uchar *Src = (*pDC)[y];
-								uchar *Dest = (*Status)[y];
+								uchar *Src = (*pSrc)[y];
+								uchar *Dest = (*pDest)[y];
 
-								for (int x=0; x<pDC->X(); x++)
+								for (int x=0; x<pSrc->X(); x++)
 								{
 									uchar *x3 = Src + ((x<<1) + x);
 									Dest[x] = RMap[ x3[2] ] + GMap[ x3[1] ] + BMap[ x3[0] ];
@@ -129,10 +141,10 @@ GSurface *GreyScaleDC(GSurface *pDC)
 							}
 							case 32:
 							{
-								ulong *Src = (ulong*) (*pDC)[y];
-								uchar *Dest = (*Status)[y];
+								ulong *Src = (ulong*) (*pSrc)[y];
+								uchar *Dest = (*pDest)[y];
 
-								for (int x=0; x<pDC->X(); x++)
+								for (int x=0; x<pSrc->X(); x++)
 								{
 									uchar r = R32(Src[x]);
 									uchar g = G32(Src[x]);
@@ -157,7 +169,8 @@ GSurface *GreyScaleDC(GSurface *pDC)
 							}
 						}
 
-						Status->Palette(Pal);
+						pDest->Palette(Pal);
+						Status = true;
 					}
 				}
 				break;
@@ -322,72 +335,87 @@ bool FlipDC(GSurface *pDC, int Dir)
 
 bool RotateDC(GSurface *pDC, double Angle)
 {
-	GSurface *pOld = new GMemDC;
-	bool Status = false;
+	if (!pDC)
+		return false;
 
-	if (pDC AND pOld AND pOld->Create(pDC->X(), pDC->Y(), pDC->GetBits()))
+	GAutoPtr<GSurface> pOld(new GMemDC(pDC));
+
+	// do the rotation
+	if (Angle == 180)
 	{
-		// copy the palette
-		// GPalette *Pal = pDC->Palette() ? new GPalette(pDC->Palette()) : 0;
+		GSurface *pOldAlpha = pOld->AlphaDC();
+		GSurface *pAlpha = pDC->AlphaDC();
 
-		// copy the bits
-		pOld->Blt(0, 0, pDC);
-
-		// do the rotation
-		if (Angle == 180)
+		for (int y=0; y<pOld->Y(); y++)
 		{
-			// int Line = (pDC->X() * pDC->GetBits() + 7) / 8;
+			for (int x=0; x<pOld->X(); x++)
+			{
+				pDC->Colour(pOld->Get(x, y));
+				pDC->Set(pOld->X()-x-1, pOld->Y()-y-1);
 
+				if (pOldAlpha && pAlpha)
+				{
+					pAlpha->Colour(pOldAlpha->Get(x, y));
+					pAlpha->Set(pOld->X()-x-1, pOld->Y()-y-1);
+				}
+			}
+		}
+	}
+	else if (Angle == 90 || Angle == 270)
+	{
+		if (!pDC->Create(pOld->Y(), pOld->X(), pOld->GetBits()))
+			return false;
+
+		GSurface *pOldAlpha = pOld->AlphaDC();
+		if (pOldAlpha)
+		{
+			pDC->HasAlpha(true);
+		}
+
+		GSurface *pAlpha = pDC->AlphaDC();
+		if (Angle == 90)
+		{
 			for (int y=0; y<pOld->Y(); y++)
 			{
 				for (int x=0; x<pOld->X(); x++)
 				{
 					pDC->Colour(pOld->Get(x, y));
-					pDC->Set(pOld->X()-x-1, pOld->Y()-y-1);
-				}
-			}
+					pDC->Set(pDC->X()-y-1, x);
 
-			Status = true;
-		}
-		else if (Angle == 90 OR Angle == 270)
-		{
-			if (pDC->Create(pOld->Y(), pOld->X(), pOld->GetBits()))
-			{
-				if (Angle == 90)
-				{
-					for (int y=0; y<pOld->Y(); y++)
+					if (pOldAlpha && pAlpha)
 					{
-						for (int x=0; x<pOld->X(); x++)
-						{
-							pDC->Colour(pOld->Get(x, y));
-							pDC->Set(pDC->X()-y-1, x);
-						}
+						pAlpha->Colour(pOldAlpha->Get(x, y));
+						pAlpha->Set(pDC->X()-y-1, x);
 					}
 				}
-				else
-				{
-					for (int y=0; y<pOld->Y(); y++)
-					{
-						for (int x=0; x<pOld->X(); x++)
-						{
-							pDC->Colour(pOld->Get(x, y));
-							pDC->Set(y, pDC->Y()-x-1);
-						}
-					}
-				}
-
-				Status = true;
 			}
 		}
 		else
 		{
-			// free angle
+			for (int y=0; y<pOld->Y(); y++)
+			{
+				int Dy = pDC->Y() - 1;
+				for (int x=0; x<pOld->X(); x++, Dy--)
+				{
+					pDC->Colour(pOld->Get(x, y));
+					pDC->Set(y, Dy);
+
+					if (pOldAlpha && pAlpha)
+					{
+						pAlpha->Colour(pOldAlpha->Get(x, y));
+						pAlpha->Set(y, Dy);
+					}
+				}
+			}
 		}
 	}
+	else
+	{
+		// free angle
+		return false;
+	}
 
-	DeleteObj(pOld);
-
-	return Status;
+	return true;
 }
 
 bool FlipXDC(GSurface *pDC)
@@ -440,7 +468,7 @@ bool FlipYDC(GSurface *pDC)
 bool RemapDC(GSurface *pDC, GPalette *DestPal)
 {
 	bool Status = false;
-	if (pDC AND pDC->GetBits() <= 8 AND DestPal)
+	if (pDC && pDC->GetBits() <= 8 && DestPal)
 	{
 		GPalette *SrcPal = pDC->Palette();
 		int Colours = (SrcPal) ? SrcPal->GetSize() : 1 << pDC->GetBits();
@@ -533,165 +561,137 @@ bool RemapDC(GSurface *pDC, GPalette *DestPal)
 	pDest->Set(Dx, Dy);
 */
 
-bool ResampleDC(GSurface *pDest, GSurface *pSrc, Progress *Prog)
+bool ResampleDC(GSurface *pDest, GSurface *pSrc, GRect *FromRgn, Progress *Prog)
 {
-	if (pDest AND pSrc)
+	if (!pDest || !pSrc)
+	    return false;
+
+    GRect Full(0, 0, pSrc->X()-1, pSrc->Y()-1), Sr;
+    if (FromRgn)
+    {
+        Sr = *FromRgn;
+        Sr.Bound(&Full);
+    }
+    else
+        Sr = Full;
+        
+	double ScaleX = (double) Sr.X() / pDest->X();
+	double ScaleY = (double) Sr.Y() / pDest->Y();
+	int Sx = ScaleX * 256;
+	int Sy = ScaleY * 256;
+	int SrcBits = pSrc->GetBits();
+	// GPalette *pPal = pSrc->Palette();
+	int OutBits = pSrc->GetBits() == 32 ? 32 : 24;
+	RgbLut<uint16> ToLinear(RgbLutLinear, RgbLutSRGB);
+	RgbLut<uint8, 1<<16> ToSRGB(RgbLutSRGB, RgbLutLinear);
+
+	if (Prog)
 	{
-		double ScaleX = (double) pSrc->X() / pDest->X();
-		double ScaleY = (double) pSrc->Y() / pDest->Y();
-		int Sx = ScaleX * 256;
-		int Sy = ScaleY * 256;
-		int SrcBits = pSrc->GetBits();
-		GPalette *pPal = pSrc->Palette();
-		int OutBits;
-		
-		switch (pSrc->GetBits())
+		Prog->SetDescription("Resampling image...");
+		Prog->SetLimits(0, pDest->Y()-1);
+	}
+	
+	Sr.x1 <<= 8;
+	Sr.y1 <<= 8;
+	Sr.x2 <<= 8;
+	Sr.y2 <<= 8;
+
+	// For each destination pixel
+	for (int Dy = 0; Dy<pDest->Y(); Dy++)
+	{
+		for (int Dx = 0; Dx<pDest->X(); Dx++)
 		{
-			case 24:
-				OutBits = pDest->GetBits() == 24 ? 0 : 24;
-				break;
-			case 32:
-				OutBits = pDest->GetBits() == 32 ? 0 : 32;
-				break;
-			case 8:
-				if (pPal)
+			uint64 Area = 0;
+			uint64 R = 0;
+			uint64 G = 0;
+			uint64 B = 0;
+			uint64 A = 0;
+			uint64 a;
+
+			int NextX = (Dx+1)*Sx+Sr.x1;
+			int NextY = (Dy+1)*Sy+Sr.y1;
+			int Nx, Ny;
+			COLOUR c;
+
+			if (pSrc->GetBits() == 32)
+			{
+				for (int y=Dy*Sy+Sr.y1; y<NextY; y=Ny)
 				{
-					OutBits = 24;
+					Ny = y + (256 - (y%256));
+
+					for (int x=Dx*Sx+Sr.x1; x<NextX; x=Nx)
+					{
+						Nx = x + (256 - (x%256));
+
+						c = pSrc->Get(x >> 8, y >> 8);
+						a = (Nx - x) * (Ny - y);
+
+						// Add the colour and area to the running total
+						R += a * ToLinear.Lut[R32(c)];
+						G += a * ToLinear.Lut[G32(c)];
+						B += a * ToLinear.Lut[B32(c)];
+						A += a * ToLinear.Lut[A32(c)];
+						Area += a;
+					}
+				}
+			}
+			else
+			{
+				for (int y=Dy*Sy+Sr.y1; y<NextY; y=Ny)
+				{
+					Ny = y + (256 - (y%256));
+
+					for (int x=Dx*Sx+Sr.x1; x<NextX; x=Nx)
+					{
+						Nx = x + (256 - (x%256));
+
+						c = CBit(24, pSrc->Get(x>>8, y>>8), SrcBits);
+						a = (Nx - x) * (Ny - y);
+
+						// Add the colour and area to the running total
+						R += a * ToLinear.Lut[R24(c)];
+						G += a * ToLinear.Lut[G24(c)];
+						B += a * ToLinear.Lut[B24(c)];
+						Area += a;
+					}
+				}
+			}
+
+			if (Area)
+			{
+				R /= Area;
+				G /= Area;
+				B /= Area;
+				if (pSrc->GetBits() == 32)
+				{
+					A /= Area;
+					c = Rgba32( ToSRGB.Lut[R],
+								ToSRGB.Lut[G],
+								ToSRGB.Lut[B],
+								ToSRGB.Lut[A]);
 				}
 				else
 				{
-					OutBits = 0;
+					c = Rgb24(	ToSRGB.Lut[R],
+								ToSRGB.Lut[G],
+								ToSRGB.Lut[B]);
 				}
-				break;
-			default:
-				OutBits = 24;
-				break;
+			}
+			else
+			{
+				c = 0;
+			}
+
+			pDest->Colour(c, OutBits);
+			pDest->Set(Dx, Dy);
 		}
 
 		if (Prog)
 		{
-			Prog->SetDescription("Resampling image...");
-			Prog->SetLimits(0, pDest->Y()-1);
+			Prog->Value(Dy);
 		}
-
-		for (int Dy = 0; Dy<pDest->Y(); Dy++)
-		{
-			for (int Dx = 0; Dx<pDest->X(); Dx++)
-			{
-				int64 Area = 0;
-				int64 R = 0;
-				int64 G = 0;
-				int64 B = 0;
-				int64 A = 0;
-
-				int NextX = (Dx+1)*Sx;
-				int NextY = (Dy+1)*Sy;
-				int Nx, Ny, a;
-				COLOUR c;
-
-				if (pSrc->GetBits() == 32)
-				{
-					for (int y=Dy*Sy; y<NextY; y=Ny)
-					{
-						Ny = y + (256 - (y%256));
-
-						for (int x=Dx*Sx; x<NextX; x=Nx)
-						{
-							Nx = x + (256 - (x%256));
-
-							c = pSrc->Get(x >> 8, y >> 8);
-							a = (Nx - x) * (Ny - y);
-
-							// Add the colour and area to the running total
-							R += a * R32(c);
-							G += a * G32(c);
-							B += a * B32(c);
-							A += a * A32(c);
-							Area += a;
-						}
-					}
-				}
-				else if (pSrc->GetBits() == 8)
-				{
-					for (int y=Dy*Sy; y<NextY; y=Ny)
-					{
-						Ny = y + (256 - (y%256));
-
-						for (int x=Dx*Sx; x<NextX; x=Nx)
-						{
-							Nx = x + (256 - (x%256));
-
-							c = pSrc->Get(x >> 8, y >> 8);
-							a = (Nx - x) * (Ny - y);
-
-							// Add the grey and area to the running total
-							G += a * c;
-							Area += a;
-						}
-					}
-				}
-				else
-				{
-					for (int y=Dy*Sy; y<NextY; y=Ny)
-					{
-						Ny = y + (256 - (y%256));
-
-						for (int x=Dx*Sx; x<NextX; x=Nx)
-						{
-							Nx = x + (256 - (x%256));
-
-							c = CBit(24, pSrc->Get(x>>8, y>>8), SrcBits);
-							a = (Nx - x) * (Ny - y);
-
-							// Add the colour and area to the running total
-							R += a * R24(c);
-							G += a * G24(c);
-							B += a * B24(c);
-							Area += a;
-						}
-					}
-				}
-
-				if (Area)
-				{
-					G /= Area;
-					if (pSrc->GetBits() == 8)
-					{
-						c = G;
-					}
-					else
-					{
-						R /= Area;
-						B /= Area;
-						if (pSrc->GetBits() == 32)
-						{
-							A /= Area;
-							c = Rgba32( ((int)R), ((int)G), ((int)B), ((int)A) );
-						}
-						else
-						{
-							c = Rgb24( ((int)R), ((int)G), ((int)B) );
-						}
-					}
-				}
-				else
-				{
-					c = 0;
-				}
-
-				pDest->Colour(c, OutBits);
-				pDest->Set(Dx, Dy);
-			}
-
-			if (Prog AND Dy % 64 == 0)
-			{
-				Prog->Value(Dy);
-			}
-		}
-
-		return true;
 	}
 
-	return false;
+	return true;
 }
 

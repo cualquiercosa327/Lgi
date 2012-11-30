@@ -16,6 +16,7 @@
 #include "GButton.h"
 #include "GEdit.h"
 #include "GCombo.h"
+#include "GdcTools.h"
 
 #define DEBUG_TABLE_LAYOUT			0
 #define LUIS_DEBUG					0
@@ -1422,6 +1423,7 @@ GTag::GTag(GHtml *h, GTag *p) : Attr(0, false)
 		Parent->Tags.Insert(this);
 	}
 	
+	ImageResized = false;
 	XAlign = GCss::LenInherit;
 	Cursor = -1;
 	Selection = -1;
@@ -6055,6 +6057,20 @@ void GTag::OnPaint(GSurface *pDC)
 			
 			if (Image)
 			{
+				if ((Width().IsValid() || Height().IsValid()) && !ImageResized)
+				{
+					if (Size.x != Image->X() ||
+						Size.y != Image->Y())
+					{
+						ImageResized = true;
+						GAutoPtr<GSurface> r(new GMemDC(Size.x, Size.y, Image->GetBits()));
+						if (r)
+						{
+							ResampleDC(r, Image);
+							Image = r;
+						}
+					}
+				}
 				int Old = pDC->Op(GDC_ALPHA);
 				pDC->Blt(0, 0, Image);
 				pDC->Op(Old);

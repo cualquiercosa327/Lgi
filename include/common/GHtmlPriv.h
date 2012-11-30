@@ -296,6 +296,7 @@ public:
 	GFont *Font;
 	
 	// Images
+	bool ImageResized;
 	GAutoPtr<GSurface> Image;
 	void SetImage(const char *uri, GSurface *i);
 	void LoadImage(const char *Uri); // Load just this URI

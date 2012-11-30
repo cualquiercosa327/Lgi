@@ -847,8 +847,7 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
         MailAddrPart *p = Parts[i];
 	    if
 	    (
-	        p->ValidEmail
-	        &&
+	        // p->ValidEmail &&
 	        (
 	            MaxScore < 0
 	            ||
