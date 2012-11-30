@@ -1673,6 +1673,12 @@ int GFile::Open(const char *File, int Mode)
 		bool SharedAccess = Mode & O_SHARE;
 		Mode &= ~O_SHARE;
 
+		if (File[0] == '/' && File[1] == '/')
+		{
+			// This hangs the process, so just bail safely.
+			return false;
+		}
+		
 		if (GFileSystem::Win9x)
 		{
 			char *n = LgiToNativeCp(File);
