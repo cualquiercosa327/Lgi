@@ -1,43 +1,85 @@
-/// \file
-/// \author Matthew Allen
-
+/// \file Graphics tools
 #ifndef _DC_TOOLS_H_
 #define _DC_TOOLS_H_
 
-/// Remap surface to new palette
+/// Various RGB colour space types
+enum RgbLutCs
+{
+	RgbLutSRGB,
+	RgbLutLinear
+};
+
+/// Build an RGB colour space conversion lookup table from 0 to max(T) 
+// and of length 'Len'
+template <typename T, int Len = 256>
+class RgbLut
+{
+public:
+	T Lut[Len];
+
+	/// Construct the LUT
+	RgbLut(RgbLutCs To, RgbLutCs From)
+	{
+		T Mul;
+		memset(&Mul, 0xff, sizeof(Mul));
+		double Div = Len - 1;
+
+		double in, out;
+		if (From == RgbLutLinear && To == RgbLutSRGB)
+		{
+			for (int i=0; i<Len; i++)
+			{
+				in = (double)i / Div;
+				if (in <= 0.0031308)
+					out = in * 12.92;
+				else
+					out = pow(in, 1.0 / 2.4) * 1.055 - 0.055;
+
+				Lut[i] = (uint16) (out * Mul + 0.0000001);
+			}
+		}
+		else if (From == RgbLutSRGB && To == RgbLutLinear)
+		{
+			for (int i=0; i<Len; i++)
+			{
+				in = (double)i / Div;
+				if (in <= 0.04045)
+					out = in / 12.92;
+				else
+					out = pow((in + 0.055) / 1.055, 2.4);
+
+				Lut[i] = (T) (out * Mul);
+			}
+		}
+	}
+};
+
+// remap dc to new palette
 extern bool RemapDC(GSurface *pDC, GPalette *DestPal);
 
-/// Flip surface on the X axis
+// flip dc
 #define		FLIP_X					1
-/// Flip surface on the Y axis
 #define		FLIP_Y					2
-/// Flip surface on an axis
-extern bool FlipDC
-(
-	/// The input surface
-	GSurface *pDC,
-	/// The axis, one of #FLIP_X or #FLIP_Y
-	int Dir
-);
 
-/// Return true if surface is greyscale
+extern bool FlipDC(GSurface *pDC, int Dir);
+
+// return true if dc is greyscale
 extern bool IsGreyScale(GSurface *pDC);
 
-/// Convert surface to greyscale
-extern GSurface *GreyScaleDC(GSurface *pDC);
+// convert dc to greyscale
+extern bool GreyScaleDC(GSurface *pDest, GSurface *pSrc);
 
-/// Invert the surface
+// invert the dc
 extern bool InvertDC(GSurface *pDC);
 
-/// Rotate the surface
+// rotate dc
 extern bool RotateDC(GSurface *pDC, double Angle);
 
-/// Flip surface on the x axis
+// flip dc
 extern bool FlipXDC(GSurface *pDC);
-/// Flip surface on the y axis
 extern bool FlipYDC(GSurface *pDC);
 
-/// Resample the surface to a new size
-extern bool ResampleDC(GSurface *pTo, GSurface *pFrom, Progress *Prog = 0);
+// resample the dc
+extern bool ResampleDC(GSurface *pTo, GSurface *pFrom, GRect *FromRgn = 0, Progress *Prog = 0);
 
 #endif

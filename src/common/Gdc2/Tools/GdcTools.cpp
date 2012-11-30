@@ -10,7 +10,7 @@
 
 #include <math.h>
 #include "Gdc2.h"
-#include "DcTools.h"
+#include "GdcTools.h"
 
 bool IsGreyScale(GSurface *pDC)
 {
@@ -40,6 +40,10 @@ bool IsGreyScale(GSurface *pDC)
 	return Status;
 }
 
+#define FP_RED_TO_GREY		19595	// 0.299 * 65536
+#define FP_GREEN_TO_GREY	38469	// 0.587 * 65536
+#define FP_BLUE_TO_GREY		7471	// 0.114 * 65536
+
 bool GreyScaleDC(GSurface *pDest, GSurface *pSrc)
 {
 	bool Status = false;
@@ -65,10 +69,10 @@ bool GreyScaleDC(GSurface *pDest, GSurface *pSrc)
 							GdcRGB *n = (*Pal)[i];
 							if (n)
 							{
-								double r = ((double) n->R * 0.299) / 255;
-								double g = ((double) n->G * 0.587) / 255;
-								double b = ((double) n->B * 0.114) / 255;
-								Map[i] = (r + g + b) * 255.0;
+								uint32 r = ((uint32) n->R << 16) * FP_RED_TO_GREY;
+								uint32 g = ((uint32) n->G << 16) * FP_GREEN_TO_GREY;
+								uint32 b = ((uint32) n->B << 16) * FP_BLUE_TO_GREY;
+								Map[i] = (r + g + b) >> 16;
 
 								n->R = n->G = n->B = i;
 							}
@@ -103,9 +107,9 @@ bool GreyScaleDC(GSurface *pDest, GSurface *pSrc)
 					uchar BMap[256];
 					for (int i=0; i<256; i++)
 					{
-						RMap[i] = i * 0.299;
-						GMap[i] = i * 0.587;
-						BMap[i] = i * 0.114;
+						RMap[i] = ((i << 16) * FP_RED_TO_GREY) >> 16;
+						GMap[i] = ((i << 16) * FP_GREEN_TO_GREY) >> 16;
+						BMap[i] = ((i << 16) * FP_BLUE_TO_GREY) >> 16;
 					}
 					
 					int SBits = pSrc->GetBits();
@@ -577,8 +581,8 @@ bool ResampleDC(GSurface *pDest, GSurface *pSrc, GRect *FromRgn, Progress *Prog)
         
 	double ScaleX = (double) Sr.X() / pDest->X();
 	double ScaleY = (double) Sr.Y() / pDest->Y();
-	int Sx = ScaleX * 256;
-	int Sy = ScaleY * 256;
+	int Sx = (int) (ScaleX * 256.0);
+	int Sy = (int) (ScaleY * 256.0);
 	int SrcBits = pSrc->GetBits();
 	// GPalette *pPal = pSrc->Palette();
 	int OutBits = pSrc->GetBits() == 32 ? 32 : 24;
