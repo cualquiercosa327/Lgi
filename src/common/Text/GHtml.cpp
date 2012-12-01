@@ -6849,7 +6849,7 @@ void GHtml::OnPosChange()
 GdcPt2 GHtml::Layout()
 {
 	GRect Client = GetClient();
-	if (IsAttached() && ViewWidth != Client.X())
+	if (ViewWidth != Client.X())
 	{
 		GRect Client = GetClient();
 		GFlowRegion f(this, Client);
