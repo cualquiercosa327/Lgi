@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <time.h>
 
+
 #include "Lgi.h"
 #include "Base64.h"
 #include "GCom.h"
@@ -1140,6 +1141,11 @@ bool SysOnKey(GView *w, GMessage *m)
 #include "C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v7.0A\\Include\\vsstyle.h"
 void GView::DrawThemeBorder(GSurface *pDC, GRect r)
 {
+	#ifdef _DEBUG
+	pDC->Colour(GColour(255, 0, 255));
+	pDC->Rectangle();
+	#endif
+
 	if (!d->hTheme)
 	{
 		d->hTheme = OpenThemeData(_View, VSCLASS_EDIT);
@@ -1155,16 +1161,22 @@ void GView::DrawThemeBorder(GSurface *pDC, GRect r)
 			StateId = EBWBS_FOCUSED;
 		else
 			StateId = EBWBS_NORMAL;
-						
-		DrawThemeEdge(	d->hTheme,
-						pDC->Handle(),
-						EP_BACKGROUNDWITHBORDER,
-						StateId,
-						&rc,
-						BDR_SUNKENINNER,
-						BF_ADJUST | BF_RECT,
-						&rc);
-		r = rc;						
+		
+		RECT clip[4];
+		clip[0] = GRect(r.x1, r.y1, r.x1 + 1, r.y2); // left
+		clip[1] = GRect(r.x1 + 2, r.y1, r.x2 - 2, r.y1 + 1); // top
+		clip[2] = GRect(r.x2 - 1, r.y1 + 2, r.x2, r.y2 - 2);  // right
+		clip[3] = GRect(r.x1 + 2, r.y2 - 1, r.x2 - 2, r.y2); // bottom
+		
+		for (int i=0; i<CountOf(clip); i++)
+		{
+			DrawThemeBackground(d->hTheme,
+								pDC->Handle(),
+								EP_BACKGROUNDWITHBORDER,
+								StateId,
+								&rc,
+								&clip[0]);
+		}
 	}
 }
 
@@ -2141,10 +2153,17 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			case WM_NCPAINT:
 			{
 				#if 0
-				HDC hDC = GetWindowDC(_View);
-				GScreenDC Dc(hDC, _View, true);
-				GRect p(0, 0, Dc.X()-1, Dc.Y()-1);
-				OnNcPaint(&Dc, p);
+				if (GetWindow() != this)
+				{
+					HDC hDC = GetWindowDC(_View);
+					GScreenDC Dc(hDC, _View, true);
+					GRect p(0, 0, Dc.X()-1, Dc.Y()-1);
+					OnNcPaint(&Dc, p);
+				}
+				else
+				{
+					goto ReturnDefaultProc;
+				}
 				#else
 				bool Thin = (Sunken() || Raised()) && (_BorderSize == 1);
 				if (Thin)
