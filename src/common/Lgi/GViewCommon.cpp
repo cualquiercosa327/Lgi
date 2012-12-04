@@ -402,6 +402,7 @@ void GView::_Paint(GSurface *pDC, int Ox, int Oy)
 		return;
 
 	#if 0
+	// This is useful for coverage checking
 	pDC->Colour(Rgb24(255, 0, 255), 24);
 	pDC->Rectangle();
 	#endif

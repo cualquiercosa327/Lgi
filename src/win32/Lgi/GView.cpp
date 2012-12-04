@@ -1141,7 +1141,7 @@ bool SysOnKey(GView *w, GMessage *m)
 #include "C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v7.0A\\Include\\vsstyle.h"
 void GView::DrawThemeBorder(GSurface *pDC, GRect r)
 {
-	#ifdef _DEBUG
+	#if 0
 	pDC->Colour(GColour(255, 0, 255));
 	pDC->Rectangle();
 	#endif
@@ -1165,18 +1165,38 @@ void GView::DrawThemeBorder(GSurface *pDC, GRect r)
 		RECT clip[4];
 		clip[0] = GRect(r.x1, r.y1, r.x1 + 1, r.y2); // left
 		clip[1] = GRect(r.x1 + 2, r.y1, r.x2 - 2, r.y1 + 1); // top
-		clip[2] = GRect(r.x2 - 1, r.y1 + 2, r.x2, r.y2 - 2);  // right
+		clip[2] = GRect(r.x2 - 1, r.y1, r.x2, r.y2);  // right
 		clip[3] = GRect(r.x1 + 2, r.y2 - 1, r.x2 - 2, r.y2); // bottom
+		
+		GColour cols[4] = 
+		{
+			GColour(255, 0, 0),
+			GColour(0, 255, 0),
+			GColour(0, 0, 255),
+			GColour(255, 255, 0)
+		};
 		
 		for (int i=0; i<CountOf(clip); i++)
 		{
+			#if 0
+			GRect tmp = clip[i];
+			pDC->Colour(cols[i]);
+			pDC->Rectangle(&tmp);
+			#else
 			DrawThemeBackground(d->hTheme,
 								pDC->Handle(),
-								EP_BACKGROUNDWITHBORDER,
+								EP_EDITBORDER_NOSCROLL,
 								StateId,
 								&rc,
-								&clip[0]);
+								&clip[i]);
+			#endif
 		}
+		
+		pDC->Colour(LC_MED, 24);
+		pDC->Set(r.x1, r.y1);
+		pDC->Set(r.x2, r.y1);
+		pDC->Set(r.x1, r.y2);
+		pDC->Set(r.x2, r.y2);
 	}
 }
 
@@ -2152,7 +2172,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			}
 			case WM_NCPAINT:
 			{
-				#if 0
+				#if 1
 				if (GetWindow() != this)
 				{
 					HDC hDC = GetWindowDC(_View);
