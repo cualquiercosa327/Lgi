@@ -180,7 +180,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib Comctl32.lib"
+				AdditionalDependencies="Ws2_32.lib Comctl32.lib  UxTheme.lib"
 				OutputFile="$(OutDir)\Lgi64.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -375,7 +375,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib Comctl32.lib"
+				AdditionalDependencies="Ws2_32.lib Comctl32.lib  UxTheme.lib"
 				ShowProgress="0"
 				OutputFile="$(OutDir)\Lgi64d.dll"
 				LinkIncremental="2"
@@ -575,7 +575,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib Comctl32.lib"
+				AdditionalDependencies="Ws2_32.lib Comctl32.lib  UxTheme.lib"
 				OutputFile="$(OutDir)\Lgi64.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"

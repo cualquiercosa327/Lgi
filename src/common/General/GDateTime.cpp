@@ -1489,7 +1489,25 @@ bool GDateTime::Decode(const char *In)
 						}
 
 						int Yr = atoi(Date[2]);
-						Year((Yr < 100) ? (Yr > 50) ? 1900+Yr : 2000+Yr : Yr);
+						if (Yr >= 100)
+						{
+							Year(Yr);
+						}
+						else
+						{
+							GDateTime Now;
+							Now.SetNow();
+							if (Yr + 2000 <= Now.Year())
+							{
+								Year(2000 + Yr);
+							}
+							else
+							{
+								Year(1900 + Yr);
+							}
+							// else ... ?
+						}
+						
 						GotDate = true;
 						Status = true;
 					}
@@ -1527,13 +1545,11 @@ bool GDateTime::Decode(const char *In)
 				}
 				else if (IsDigit(*s))
 				{
-					bool All = true;
 					int Count = 0;
 					for (char *c = s; *c; c++)
 					{
 						if (!IsDigit(*c))
 						{
-							All = false;
 							break;
 						}
 						Count++;
@@ -1545,7 +1561,17 @@ bool GDateTime::Decode(const char *In)
 						{
 							// We already have a day... so this might be
 							// a 2 digit year...
-							Year(2000 + atoi(s));
+							GDateTime Now;
+							Now.SetNow();
+							int Yr = atoi(s);
+							if (2000 + Yr <= Now.Year())
+							{
+								Year(2000 + Yr);
+							}
+							else
+							{
+								Year(1900 + Yr);
+							}
 						}
 						else
 						{
