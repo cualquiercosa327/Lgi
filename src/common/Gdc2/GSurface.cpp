@@ -883,7 +883,7 @@ void GSurface::Blt(int x, int y, GSurface *Src, GRect *a)
 {
 	OrgXy(x, y);
 
-	if (Src && Src->pMem->Base)
+	if (Src && Src->pMem && Src->pMem->Base)
 	{
 		GRect S;
 		if (a)	S = *a;

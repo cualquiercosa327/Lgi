@@ -278,9 +278,10 @@ struct Block : public GRect
 	int StartOffset()
 	{
 		int Chars = 0;
-		for (GFlowRect *r = t->PreText() ? t->TextPos[1] : t->TextPos.First();
-			r; r=t->TextPos.Next())
+		for (int i = t->PreText() ? 1 : 0; i<t->TextPos.Length(); i++)
 		{
+			GFlowRect *r = t->TextPos[i];
+			
 			if (r == fr)
 			{
 				return Chars;
@@ -295,9 +296,9 @@ struct Block : public GRect
 	int EndOffset()
 	{
 		int Chars = 0;
-		for (GFlowRect *r = t->PreText() ? t->TextPos[1] : t->TextPos.First();
-			r; r=t->TextPos.Next())
+		for (int i = t->PreText() ? 1 : 0; i<t->TextPos.Length(); i++)
 		{
+			GFlowRect *r = t->TextPos[i];
 			if (r == fr)
 			{
 				return Chars + r->Len;
@@ -321,9 +322,10 @@ class HtmlEdit : public Html1::GHtml, public GDefaultDocumentEnv
 	{
 		// Creates a block for each run of text we know about. This is then used for doing
 		// cursoring around.
-		int n = 0;
-		for (GFlowRect *Tr=t->TextPos.First(); Tr; Tr=t->TextPos.Next(), n++)
+		for (int n=0; n<t->TextPos.Length(); n++)
 		{
+			GFlowRect *Tr = t->TextPos[n];
+			
 			if (t->PreText() && !n)
 			{
 				if (!ValidStrW(t->Text()))
@@ -1136,8 +1138,10 @@ public:
 		{
 			GFlowRect *Inside = 0;
 			char16 *End = Base + StrlenW(Base);
-			for (GFlowRect *f = t->TextPos.First(); f; f = t->TextPos.Next())
+			for (int i=0; i<t->TextPos.Length(); i++)
 			{
+				GFlowRect *f = t->TextPos[i];
+				
 				if (f->Text >= Base && f->Text < End)
 				{
 					int Start = f->Text - Base;
@@ -1159,8 +1163,9 @@ public:
 				Rects.Add(Inside);
 
 				// Iterate over the current tags block of text
-				for (GFlowRect *f = t->TextPos.First(); f; f = t->TextPos.Next())
+				for (int i=0; i<t->TextPos.Length(); i++)
 				{
+					GFlowRect *f = t->TextPos[i];
 					if (f != Inside && f->OverlapY(Inside))
 					{
 						Rects.Add(f);
@@ -1173,8 +1178,10 @@ public:
 				for (b = PrevTag(t); b && Added > 0; b = PrevTag(b))
 				{
 					Added = 0;
-					for (GFlowRect *f = b->TextPos.First(); f; f = b->TextPos.Next())
+					for (int i=0; i<b->TextPos.Length(); i++)
 					{
+						GFlowRect *f = b->TextPos[i];
+						
 						if (f->OverlapY(Inside))
 						{
 							Rects.Add(f);
@@ -1188,8 +1195,9 @@ public:
 				for (b = NextTag(t); b && Added > 0; b = NextTag(b))
 				{
 					Added = 0;
-					for (GFlowRect *f = b->TextPos.First(); f; f = b->TextPos.Next())
+					for (int i=0; i<b->TextPos.Length(); i++)
 					{
+						GFlowRect *f = b->TextPos[i];
 						if (f->OverlapY(Inside))
 						{
 							Rects.Add(f);

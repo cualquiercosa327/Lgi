@@ -1845,8 +1845,10 @@ void GTag::_Dump(GStringPipe &Buf, int Depth)
 	Tab[Depth] = 0;
 
 	char Trs[1024] = "";
-	for (GFlowRect *Tr=TextPos.First(); Tr; Tr=TextPos.Next())
+	for (int i=0; i<TextPos.Length(); i++)
 	{
+		GFlowRect *Tr = TextPos[i];
+		
 		GAutoString Utf8(LgiNewUtf16To8(Tr->Text, Tr->Len*sizeof(char16)));
 		if (Utf8)
 		{
@@ -2338,8 +2340,10 @@ GTagHit GTag::GetTagByPos(int x, int y)
 	}
 	else if (Text())
 	{
-		for (GFlowRect *Tr=TextPos.First(); Tr; Tr=TextPos.Next())
+		for (int i=0; i<TextPos.Length(); i++)
 		{
+			GFlowRect *Tr = TextPos[i];
+			
 			GTagHit hit;
 			hit.Hit = this;
 			hit.Block = Tr;
@@ -5196,17 +5200,21 @@ GArea::~GArea()
 
 GRect GArea::Bounds()
 {
-	GFlowRect *r = First();
-	if (r)
+	GRect n(0, 0, -1, -1);
+
+	for (int i=0; i<Length(); i++)
 	{
-		GRect n = *r;
-		while (r = Next())
+		GFlowRect *r = (*this)[i];
+		if (r)
 		{
-			n.Union(r);
+			if (i)
+				n.Union(r);
+			else
+				n = r;
 		}
-		return n;
 	}
-	return GRect(0, 0, -1, -1);
+	
+	return n;
 }
 
 GRect *GArea::TopRect(GRegion *c)
@@ -5243,7 +5251,7 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, char16 *Text, GC
 		Tr->y1 = Flow->y1;
 		Tr->y2 = Tr->y1 + Font->GetHeight();
 		Flow->y2 = max(Flow->y2, Tr->y2+1);
-		Insert(Tr);
+		Add(Tr);
 		Flow->Insert(Tr);
 		return;				
 	}
@@ -5342,7 +5350,7 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, char16 *Text, GC
 		Tr->y2 += Tr->y1;
 		Flow->y2 = max(Flow->y2, Tr->y2 + 1);
 		
-		Insert(Tr);
+		Add(Tr);
 		Flow->Insert(Tr);
 		
 		Text += Tr->Len;
@@ -5495,10 +5503,6 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 		if (Disp == DispBlock)
 		{		
 			Flow->EndBlock();
-		}
-		else
-		{
-			int asd=0;
 		}
 		
 		BlockFlowWidth = Flow->X();
@@ -5690,11 +5694,13 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 			Flow->y2 = max(Flow->y2, Flow->y1 + Size.y - 1);
 			break;
 		}
+		/* This doesn't make sense....
 		case TAG_TD:
 		{
 			Size.x = Flow->X();
 			break;
 		}
+		*/
 	}
 
 	if (Disp == DispBlock || Disp == DispInlineBlock)
@@ -5911,9 +5917,9 @@ void GTag::OnPaintBorder(GSurface *pDC, GRect *Px)
 		}
 		case DispInline:
 		{
-			for (GFlowRect *f=TextPos.First(); f; f=TextPos.Next())
+			for (int i=0; i<TextPos.Length(); i++)
 			{
-				r.New() = *f;
+				r.New() = *(TextPos[i]);
 			}
 			break;
 		}
@@ -6029,6 +6035,13 @@ void GTag::OnPaint(GSurface *pDC)
 
 	int Px, Py;
 	pDC->GetOrigin(Px, Py);
+
+	#ifdef _DEBUG
+	if (Debug)
+	{
+		int asd=0;
+	}
+	#endif
 
 	switch (TagId)
 	{
@@ -6265,9 +6278,9 @@ void GTag::OnPaint(GSurface *pDC)
 				}
 				else
 				{
-					for (GFlowRect *Tr=TextPos.First(); Tr; Tr=TextPos.Next())
+					for (int i=0; i<TextPos.Length(); i++)
 					{
-						pDC->Rectangle(Tr);
+						pDC->Rectangle(TextPos[i]);
 					}
 				}
 
@@ -6282,10 +6295,21 @@ void GTag::OnPaint(GSurface *pDC)
 			GFont *f = GetFont();
 			if (f && TextPos.Length())
 			{
+				int LineHtOff = 0;
 				GCss::Len LineHt = LineHeight();
-				int LineHtPx = LineHt.ToPx(Size.y, f);
-				int FontHt = f->GetHeight();
-				int LineHtOff = LineHtPx > FontHt ? max(0, ((LineHtPx - FontHt) >> 1) - 1) : 0;
+				if (LineHt.IsValid())
+				{
+					Len PadTop = PaddingTop(), PadBot = PaddingBottom();
+					int AvailY = Size.y -
+								(PadTop.IsValid() ? PadTop.ToPx(Size.y, GetFont()) : 0) -
+								(PadBot.IsValid() ? PadBot.ToPx(Size.y, GetFont()) : 0);
+					int LineHtPx = LineHt.ToPx(Size.y, f);
+					int FontHt = f->GetHeight();
+					if (LineHtPx > AvailY)
+						LineHtPx = AvailY;
+						
+					LineHtOff = LineHtPx > FontHt ? max(0, ((LineHtPx - FontHt) >> 1) - 1) : 0;
+				}
 				
 				#define FontColour(s) \
 				f->Transparent(!s); \
@@ -6320,8 +6344,9 @@ void GTag::OnPaint(GSurface *pDC)
 					GRect CursorPos;
 					CursorPos.ZOff(-1, -1);
 
-					for (GFlowRect *Tr=TextPos.First(); Tr; Tr=TextPos.Next())
+					for (int i=0; i<TextPos.Length(); i++)
 					{
+						GFlowRect *Tr = TextPos[i];
 						int Start = Tr->Text - Text();
 						int Done = 0;
 						int x = Tr->x1;
@@ -6428,8 +6453,9 @@ void GTag::OnPaint(GSurface *pDC)
 					FontColour(Selected);
 
 					int Base = GetTextStart();
-					for (GFlowRect *Tr=TextPos.First(); Tr; Tr=TextPos.Next())
+					for (int i=0; i<TextPos.Length(); i++)
 					{
+						GFlowRect *Tr = TextPos[i];
 						int Pos = (Tr->Text - Text()) - Base;
 
 						GDisplayString ds(f, Tr->Text, Tr->Len);
@@ -6476,8 +6502,9 @@ void GTag::OnPaint(GSurface *pDC)
 				{
 					FontColour(Selected);
 
-					for (GFlowRect *Tr=TextPos.First(); Tr; Tr=TextPos.Next())
+					for (int i=0; i<TextPos.Length(); i++)
 					{
+						GFlowRect *Tr = TextPos[i];
 						GDisplayString ds(f, Tr->Text, Tr->Len);
 						ds.Draw(pDC, Tr->x1, Tr->y1 + LineHtOff);
 						

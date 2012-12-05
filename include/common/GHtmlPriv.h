@@ -188,11 +188,12 @@ public:
 	bool OverlapY(GFlowRect *b) { return !(b->y2 < y1 || b->y1 > y2); }
 };
 
-class GArea : public List<GFlowRect>
+class GArea : public GArray<GFlowRect*>
 {
 public:
 	~GArea();
 
+	void Empty() { DeleteObjects(); }
 	GRect Bounds();
 	GRect *TopRect(GRegion *c);
 	void FlowText(GTag *Tag, GFlowRegion *c, GFont *Font, char16 *Text, GCss::LengthType Align);

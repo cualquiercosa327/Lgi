@@ -1156,11 +1156,13 @@ void GView::DrawThemeBorder(GSurface *pDC, GRect r)
 		
 		int StateId;
 		if (!Enabled())
-			StateId = EBWBS_DISABLED;
-		else if (Focus())
-			StateId = EBWBS_FOCUSED;
+			StateId = EPSN_DISABLED;
+		else if (GetFocus() == _View)
+			StateId = EPSN_FOCUSED;
 		else
-			StateId = EBWBS_NORMAL;
+			StateId = EPSN_NORMAL;
+		
+		// LgiTrace("ThemeDraw %s: %i\n", GetClass(), StateId);
 		
 		RECT clip[4];
 		clip[0] = GRect(r.x1, r.y1, r.x1 + 1, r.y2); // left
@@ -1656,11 +1658,13 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			}
 			case WM_SETFOCUS:
 			{
+				Invalidate((GRect*)NULL, false, true);
 				OnFocus(true);
 				break;
 			}
 			case WM_KILLFOCUS:
 			{
+				Invalidate((GRect*)NULL, false, true);
 				OnFocus(false);
 				break;
 			}
