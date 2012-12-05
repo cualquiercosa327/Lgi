@@ -265,39 +265,44 @@ bool GCss::Len::ToString(GStream &p)
 	const char *Unit = 0;
 	switch (Type)
 	{
-		case LenPx: Unit = "px"; break;
-		case LenPt: Unit = "pt"; break;
-		case LenEm: Unit = "em"; break;
-		case LenEx: Unit = "ex"; break;
-		case LenPercent: Unit = "%"; break;
+		case LenPx:			Unit = "px"; break;
+		case LenPt:			Unit = "pt"; break;
+		case LenEm:			Unit = "em"; break;
+		case LenEx:			Unit = "ex"; break;
+		case LenPercent:	Unit = "%"; break;
 	}
-
 	if (Unit)
 	{
-		p.Print("%g%s", Value, Unit);
+		return p.Print("%g%s", Value, Unit) > 0;
 	}
-	else
+
+	switch (Type)
 	{
-		switch (Type)
-		{
-			case LenInherit: Unit = "Inherit"; break;
-			case LenAuto: Unit = "Auto"; break;
-			case LenNormal: Unit = "Normal"; break;
-			default: return false;
-		}
+		case LenInherit:		Unit = "Inherit"; break;
+		case LenAuto:			Unit = "Auto"; break;
+		case LenNormal:			Unit = "Normal"; break;
 
-		if (Unit)
-		{
-			p.Print("%s", Unit);
-		}
-		else
-		{
-			LgiAssert(!"Impl me.");
-			return false;
-		}
+		case AlignLeft:			Unit = "left"; break;
+		case AlignRight:		Unit = "right"; break;
+		case AlignCenter:		Unit = "center"; break;
+		case AlignJustify:		Unit = "justify"; break;
+
+		case VerticalBaseline:	Unit = "baseline"; break;
+		case VerticalSub:		Unit = "sub"; break;
+		case VerticalSuper:		Unit = "super"; break;
+		case VerticalTop:		Unit = "top"; break;
+		case VerticalTextTop:	Unit = "text-top"; break;
+		case VerticalMiddle:	Unit = "middle"; break;
+		case VerticalBottom:	Unit = "bottom"; break;
+		case VerticalTextBottom: Unit = "text-bottom"; break;
 	}
-
-	return true;
+	if (!Unit)
+	{
+		LgiAssert(!"Impl missing length enum.");
+		return false;
+	}
+	
+	return p.Print("%s", Unit) > 0;
 }
 
 bool GCss::ColorDef::ToString(GStream &p)
@@ -508,6 +513,17 @@ GAutoString GCss::ToString()
 						}
 						break;
 					}
+					case PropBorderCollapse:
+					{
+						BorderCollapseType *w = (BorderCollapseType*)v;
+						switch (*w)
+						{
+							default: s = "inherit"; break;
+							case CollapseCollapse: s = "Collapse"; break;
+							case CollapseSeparate: s = "Separate"; break;
+						}
+						break;
+					}
 					default:
 					{
 						LgiAssert(!"Impl me.");
@@ -515,14 +531,14 @@ GAutoString GCss::ToString()
 					}
 				}
 				
-				if (s) p.Print("%s:%s;\n", Name, s);
+				if (s) p.Print("%s: %s;\n", Name, s);
 				break;
 			}
 			case TypeLen:
 			{
 				Len *l = (Len*)v;
 				const char *Name = PropName(Prop);
-				p.Print("%s:", Name);
+				p.Print("%s: ", Name);
 				l->ToString(p);
 				p.Print(";\n");
 				break;
@@ -531,14 +547,14 @@ GAutoString GCss::ToString()
 			{
 				GRect *r = (GRect*)v;
 				const char *Name = PropName(Prop);
-				p.Print("%s:rect(%ipx,%ipx,%ipx,%ipx);\n", Name, r->y1, r->x2, r->y2, r->x1);
+				p.Print("%s: rect(%ipx,%ipx,%ipx,%ipx);\n", Name, r->y1, r->x2, r->y2, r->x1);
 				break;
 			}
 			case TypeColor:
 			{
 				ColorDef *c = (ColorDef*)v;
 				const char *Name = PropName(Prop);
-				p.Print("%s:", Name);
+				p.Print("%s: ", Name);
 				c->ToString(p);
 				p.Print(";\n");
 				break;
@@ -551,14 +567,14 @@ GAutoString GCss::ToString()
 				{
 					case ImageInherit:
 					{
-						p.Print("%s:inherit;\n", Name);
+						p.Print("%s: inherit;\n", Name);
 						break;
 					}
 					case ImageOwn:
 					case ImageRef:
 					{
 						if (i->Uri)
-							p.Print("%s:url(%s);\n", Name, i->Uri.Get());
+							p.Print("%s: url(%s);\n", Name, i->Uri.Get());
 						break;
 					}
 				}
@@ -600,7 +616,7 @@ GAutoString GCss::ToString()
 			{
 				StringsDef *s = (StringsDef*)v;
 				const char *Name = PropName(Prop);
-				p.Print("%s:", Name);
+				p.Print("%s: ", Name);
 				for (int i=0; i<s->Length(); i++)
 				{
 					p.Print("%s%s", i?",":"", (*s)[i]);
@@ -1524,6 +1540,16 @@ bool GCss::Len::Parse(const char *&s, ParsingStyle ParseType)
 	else if (ParseWord(s, "xx-large")) Type = SizeXXLarge;
 	else if (ParseWord(s, "smaller")) Type = SizeSmaller;
 	else if (ParseWord(s, "larger")) Type = SizeLarger;
+
+	else if (ParseWord(s, "baseline")) Type = VerticalBaseline;
+	else if (ParseWord(s, "sub")) Type = VerticalSub;
+	else if (ParseWord(s, "super")) Type = VerticalSuper;
+	else if (ParseWord(s, "top")) Type = VerticalTop;
+	else if (ParseWord(s, "text-top")) Type = VerticalTextTop;
+	else if (ParseWord(s, "middle")) Type = VerticalMiddle;
+	else if (ParseWord(s, "bottom")) Type = VerticalBottom;
+	else if (ParseWord(s, "text-bottom")) Type = VerticalTextBottom;
+
 	else if (IsNumeric(s))
 	{
 		Value = atof(s);

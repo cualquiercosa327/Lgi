@@ -2069,16 +2069,63 @@ bool GTag::OnMouseClick(GMouse &m)
 		if (m.Ctrl())
 		{
 			GAutoString Style = ToString();
+			GStringPipe p(256);
+			p.Print("Tag: %s\n", Tag ? Tag : "CONTENT");
+			if (Class.Length())
+			{
+				p.Print("Class(es): ");
+				for (int i=0; i<Class.Length(); i++)
+				{
+					p.Print("%s%s", i?", ":"", Class[i]);
+				}
+				p.Print("\n");
+			}
+			if (HtmlId)
+			{
+				p.Print("Id: %s\n", HtmlId);
+			}
+			p.Print("Pos: %i,%i   Size: %i,%i\n\n", Pos.x, Pos.y, Size.x, Size.y);
+			p.Print("Style:\n", Style.Get());
+			GToken s(Style, "\n");
+			for (int i=0; i<s.Length(); i++)
+				p.Print("    %s\n", s[i]);
+			
+			p.Print("\nParent tags:\n");
+			GDisplayString Sp(SysFont, " ");
+			for (GTag *t=Parent; t && t->Parent; t=t->Parent)
+			{
+				GStringPipe Tmp;
+				Tmp.Print("    %s", t->Tag ? t->Tag : "CONTENT");
+				if (t->HtmlId)
+				{
+					Tmp.Print("#%s", t->HtmlId);
+				}
+				for (int i=0; i<t->Class.Length(); i++)
+				{
+					Tmp.Print(".%s", t->Class[i]);
+				}
+				GAutoString Txt(Tmp.NewStr());
+				p.Print("%s", Txt.Get());
+				GDisplayString Ds(SysFont, Txt);
+				int Px = 170 - Ds.X();
+				int Chars = Px / Sp.X();
+				for (int c=0; c<Chars; c++)
+					p.Print(" ");
+
+				p.Print("(%i,%i)-(%i,%i)\n",
+					t->Pos.x,
+					t->Pos.y,
+					t->Size.x,
+					t->Size.y);
+			}
+			
+			GAutoString a(p.NewStr());
+			
 			LgiMsg(	Html,
-					"Tag: %s\n"
-					"Pos: %i,%i - %i,%i\n"
-					"\n"
-					"Style:\n%s",
+					"%s",
 					Html->GetClass(),
 					MB_OK,
-					Tag,
-					Pos.x, Pos.y, Size.x, Size.y,
-					Style.Get());
+					a.Get());
 		}
 		else
 		#endif
