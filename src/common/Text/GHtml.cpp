@@ -3823,7 +3823,8 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 					Condition.Reset(NewStr(Start, s-Start));
 					Tag = NewStr("[if]");
 					Info = GetTagInfo(Tag);
-					Disp = DispInline;
+					
+					Display(Disp = DispNone);
 				}
 				else if (!stricmp(Cond, "endif"))
 				{
@@ -5657,12 +5658,13 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 		}
 		case TAG_IMG:
 		{
-			if (Height().IsValid())
+			Len Ht = Height();
+			if (Ht.IsValid() && Ht.Type != LenAuto)
 			{
 				if (Image)
-					Size.y = Height().ToPx(Image->Y(), GetFont());
+					Size.y = Ht.ToPx(Image->Y(), GetFont());
 				else
-					Size.y = Flow->ResolveY(Height(), f, false);
+					Size.y = Flow->ResolveY(Ht, f, false);
 			}
 			else if (Image)
 			{
@@ -6297,7 +6299,7 @@ void GTag::OnPaint(GSurface *pDC)
 			{
 				int LineHtOff = 0;
 				GCss::Len LineHt = LineHeight();
-				if (LineHt.IsValid())
+				if (LineHt.IsValid() && Disp != DispInline)
 				{
 					Len PadTop = PaddingTop(), PadBot = PaddingBottom();
 					int AvailY = Size.y -
