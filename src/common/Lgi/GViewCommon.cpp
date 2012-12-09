@@ -380,8 +380,11 @@ void GView::OnNcPaint(GSurface *pDC, GRect &r)
 		#endif	
 		Border == 2)
 	{
+		#ifdef WIN32NATIVE
 		DrawThemeBorder(pDC, r);
-		// LgiWideBorder(pDC, r, Sunken() ? SUNKEN : RAISED);
+		#else
+		LgiWideBorder(pDC, r, Sunken() ? SUNKEN : RAISED);
+		#endif
 	}
 	else if (Border == 1)
 	{

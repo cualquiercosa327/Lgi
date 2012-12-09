@@ -113,6 +113,9 @@
 		34983C2908F548DF0054868C /* GTrayIcon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34983C2208F548DF0054868C /* GTrayIcon.cpp */; };
 		34983C2A08F548DF0054868C /* LgiRand.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34983C2308F548DF0054868C /* LgiRand.cpp */; };
 		34983C2E08F5492E0054868C /* GPassword.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34983C2D08F5492E0054868C /* GPassword.cpp */; };
+		34A11A7A1675347500FCC5D7 /* GThreadCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34A11A791675347500FCC5D7 /* GThreadCommon.cpp */; };
+		34A11A7C1675349900FCC5D7 /* GMutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34A11A7B1675349900FCC5D7 /* GMutex.cpp */; };
+		34A11A7E167534A500FCC5D7 /* GMutex.h in Headers */ = {isa = PBXBuildFile; fileRef = 34A11A7D167534A500FCC5D7 /* GMutex.h */; };
 		34A3ABF70EF5AA0A009A5E95 /* GDisplayString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34A3ABF60EF5AA0A009A5E95 /* GDisplayString.cpp */; };
 		34A3ABF90EF5AA1A009A5E95 /* GDisplayString.h in Headers */ = {isa = PBXBuildFile; fileRef = 34A3ABF80EF5AA1A009A5E95 /* GDisplayString.h */; };
 		34A671970F3725860073A86C /* GContainers.h in Headers */ = {isa = PBXBuildFile; fileRef = 34A671960F3725860073A86C /* GContainers.h */; };
@@ -151,10 +154,7 @@
 		34D2CCAA08F1181C0009968C /* GFontSelect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D2CCA908F1181C0009968C /* GFontSelect.cpp */; };
 		34D2CCAC08F1183F0009968C /* GWindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D2CCAB08F1183F0009968C /* GWindow.cpp */; };
 		34D2CCED08F11BEF0009968C /* GWidgets.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D2CCEC08F11BEF0009968C /* GWidgets.cpp */; };
-		34D44B7C1656F085000E73FF /* GThreadCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D44B7B1656F085000E73FF /* GThreadCommon.cpp */; };
 		34D4D55B1250AF98000DA1FD /* GHashTable.h in Headers */ = {isa = PBXBuildFile; fileRef = 34D4D55A1250AF98000DA1FD /* GHashTable.h */; };
-		34D63E8616339DBD00D2B547 /* GMutex.h in Headers */ = {isa = PBXBuildFile; fileRef = 34D63E8516339DBD00D2B547 /* GMutex.h */; };
-		34D63E8816339DF100D2B547 /* GMutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D63E8716339DF100D2B547 /* GMutex.cpp */; };
 		34D979D11150F0E100CE462B /* GLayout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D979D01150F0E100CE462B /* GLayout.cpp */; };
 		34DA5CB70DE0DE930050C7E4 /* GScrollBar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34DA5CB60DE0DE930050C7E4 /* GScrollBar.cpp */; };
 		34E51DB00D2EFCCB0021AA08 /* GList.h in Headers */ = {isa = PBXBuildFile; fileRef = 34E51DAF0D2EFCCB0021AA08 /* GList.h */; };
@@ -272,6 +272,9 @@
 		34983C2208F548DF0054868C /* GTrayIcon.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GTrayIcon.cpp; path = src/common/Lgi/GTrayIcon.cpp; sourceTree = "<group>"; };
 		34983C2308F548DF0054868C /* LgiRand.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = LgiRand.cpp; path = src/common/Lgi/LgiRand.cpp; sourceTree = "<group>"; };
 		34983C2D08F5492E0054868C /* GPassword.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GPassword.cpp; path = src/common/General/GPassword.cpp; sourceTree = "<group>"; };
+		34A11A791675347500FCC5D7 /* GThreadCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GThreadCommon.cpp; path = src/common/Lgi/GThreadCommon.cpp; sourceTree = "<group>"; };
+		34A11A7B1675349900FCC5D7 /* GMutex.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GMutex.cpp; path = src/common/Lgi/GMutex.cpp; sourceTree = "<group>"; };
+		34A11A7D167534A500FCC5D7 /* GMutex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GMutex.h; path = include/common/GMutex.h; sourceTree = "<group>"; };
 		34A3ABF60EF5AA0A009A5E95 /* GDisplayString.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GDisplayString.cpp; path = src/common/Gdc2/Font/GDisplayString.cpp; sourceTree = "<group>"; };
 		34A3ABF80EF5AA1A009A5E95 /* GDisplayString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GDisplayString.h; path = include/common/GDisplayString.h; sourceTree = "<group>"; };
 		34A671960F3725860073A86C /* GContainers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GContainers.h; path = include/common/GContainers.h; sourceTree = "<group>"; };
@@ -310,10 +313,7 @@
 		34D2CCA908F1181C0009968C /* GFontSelect.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GFontSelect.cpp; path = src/common/Lgi/GFontSelect.cpp; sourceTree = "<group>"; };
 		34D2CCAB08F1183F0009968C /* GWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GWindow.cpp; path = src/mac/Lgi/GWindow.cpp; sourceTree = "<group>"; };
 		34D2CCEC08F11BEF0009968C /* GWidgets.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GWidgets.cpp; path = src/mac/Lgi/GWidgets.cpp; sourceTree = "<group>"; };
-		34D44B7B1656F085000E73FF /* GThreadCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GThreadCommon.cpp; path = src/common/Lgi/GThreadCommon.cpp; sourceTree = "<group>"; };
 		34D4D55A1250AF98000DA1FD /* GHashTable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GHashTable.h; path = include/common/GHashTable.h; sourceTree = "<group>"; };
-		34D63E8516339DBD00D2B547 /* GMutex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GMutex.h; path = include/common/GMutex.h; sourceTree = "<group>"; };
-		34D63E8716339DF100D2B547 /* GMutex.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GMutex.cpp; path = src/common/Lgi/GMutex.cpp; sourceTree = "<group>"; };
 		34D979D01150F0E100CE462B /* GLayout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GLayout.cpp; path = src/common/Lgi/GLayout.cpp; sourceTree = "<group>"; };
 		34DA5CB60DE0DE930050C7E4 /* GScrollBar.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GScrollBar.cpp; path = src/common/Widgets/GScrollBar.cpp; sourceTree = "<group>"; };
 		34E51DAF0D2EFCCB0021AA08 /* GList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GList.h; path = include/common/GList.h; sourceTree = "<group>"; };
@@ -630,9 +630,9 @@
 		345F9C4108F0FAA9007DAFE2 /* Threads */ = {
 			isa = PBXGroup;
 			children = (
-				34D44B7B1656F085000E73FF /* GThreadCommon.cpp */,
-				34D63E8716339DF100D2B547 /* GMutex.cpp */,
-				34D63E8516339DBD00D2B547 /* GMutex.h */,
+				34A11A7D167534A500FCC5D7 /* GMutex.h */,
+				34A11A7B1675349900FCC5D7 /* GMutex.cpp */,
+				34A11A791675347500FCC5D7 /* GThreadCommon.cpp */,
 				34766831093F20EE00623A44 /* GThread.h */,
 				34D2CC8B08F116A80009968C /* GThread.cpp */,
 			);
@@ -834,7 +834,7 @@
 				34BC1E1F134DC748005451EE /* Res.h in Headers */,
 				34661C7913C7407000B4C2A7 /* GUtf8.h in Headers */,
 				34B28AF2143FA6AF0023662F /* GPath.h in Headers */,
-				34D63E8616339DBD00D2B547 /* GMutex.h in Headers */,
+				34A11A7E167534A500FCC5D7 /* GMutex.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -994,8 +994,8 @@
 				3444A36112275BDD004ADADE /* GToolBar.cpp in Sources */,
 				341BE442123ED1F1009BF203 /* sha1.c in Sources */,
 				34B28AF0143FA69B0023662F /* GPath.cpp in Sources */,
-				34D63E8816339DF100D2B547 /* GMutex.cpp in Sources */,
-				34D44B7C1656F085000E73FF /* GThreadCommon.cpp in Sources */,
+				34A11A7A1675347500FCC5D7 /* GThreadCommon.cpp in Sources */,
+				34A11A7C1675349900FCC5D7 /* GMutex.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

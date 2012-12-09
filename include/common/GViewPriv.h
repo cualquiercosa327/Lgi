@@ -1,7 +1,9 @@
 #ifndef _GVIEW_PRIV_
 #define _GVIEW_PRIV_
 
+#ifdef WIN32NATIVE
 #include "Uxtheme.h"
+#endif
 
 #define PAINT_VIRTUAL_CHILDREN	1
 

@@ -49,7 +49,7 @@ GInlineBmp Cursors =
 	300, 20, 8, CursorData
 };
 
-struct LgiCursor
+struct LgiCursorInfo
 {
 public:
 	GRect Pos;
@@ -60,13 +60,13 @@ CursorMetrics[] =
 	// up arrow
 	{ GRect(0, 0, 8, 15),			GdcPt2(4, 0) },
 	// cross hair
-	{ GRect(20, 0, 38, 18),		GdcPt2(29, 9) },
+	{ GRect(20, 0, 38, 18),			GdcPt2(29, 9) },
 	// hourglass
-	{ GRect(40, 0, 51, 15),		GdcPt2(45, 8) },
+	{ GRect(40, 0, 51, 15),			GdcPt2(45, 8) },
 	// I beam
-	{ GRect(60, 0, 66, 17),		GdcPt2(63, 8) },
+	{ GRect(60, 0, 66, 17),			GdcPt2(63, 8) },
 	// N-S arrow
-	{ GRect(80, 0, 91, 16),		GdcPt2(85, 8) },
+	{ GRect(80, 0, 91, 16),			GdcPt2(85, 8) },
 	// E-W arrow
 	{ GRect(100, 0, 116, 11),		GdcPt2(108, 5) },
 	// NW-SE arrow
