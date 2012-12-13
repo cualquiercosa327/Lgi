@@ -108,6 +108,10 @@ public:
 	bool IsParsing;
 	int NextCtrlId;
 	
+	// Find settings
+	GAutoWString FindText;
+	bool MatchCase;
+	
 	// This UID is used to match data load events with their source document.
 	// Sometimes data will arrive after the document that asked for it has
 	// already been unloaded. So by assigned each document an UID we can check
@@ -7381,23 +7385,28 @@ bool GHtml::OnSubmitForm(GTag *Form)
 	return Status;
 }
 
-bool GHtml::OnFind(class GFindReplaceCommon *Params)
+bool GHtml::OnFind(GFindReplaceCommon *Params)
 {
 	bool Status = false;
 
-	if (!Params->Find)
-		return Status;
+	if (Params)
+	{
+		if (!Params->Find)
+			return Status;
+
+		d->FindText.Reset(LgiNewUtf8To16(Params->Find));
+		d->MatchCase = Params->MatchCase;
+	}		
 
 	if (!Cursor)
 		Cursor = Tag;
 
-	char16 *Find = LgiNewUtf8To16(Params->Find);
-	if (Cursor && Find)
+	if (Cursor && d->FindText)
 	{
 		GArray<GTag*> Tags;
 		BuildTagList(Tags, Tag);
 		int Start = Tags.IndexOf(Cursor);
-		for (int i=0; i<Tags.Length(); i++)
+		for (int i=1; i<Tags.Length(); i++)
 		{
 			int Idx = (Start + i) % Tags.Length();
 			GTag *s = Tags[Idx];
@@ -7406,10 +7415,10 @@ bool GHtml::OnFind(class GFindReplaceCommon *Params)
 			{
 				char16 *Hit;
 				
-				if (Params->MatchCase)
-					Hit = StrstrW(s->Text(), Find);
+				if (d->MatchCase)
+					Hit = StrstrW(s->Text(), d->FindText);
 				else
-					Hit = StristrW(s->Text(), Find);
+					Hit = StristrW(s->Text(), d->FindText);
 				
 				if (Hit)
 				{
@@ -7418,8 +7427,18 @@ bool GHtml::OnFind(class GFindReplaceCommon *Params)
 
 					Selection = Cursor = s;
 					Cursor->Cursor = Hit - s->Text();
-					Selection->Selection = Cursor->Cursor + StrlenW(Find);
-					OnCursorChanged();					
+					Selection->Selection = Cursor->Cursor + StrlenW(d->FindText);
+					OnCursorChanged();
+					
+					if (VScroll)
+					{
+						// Scroll the tag into view...
+						int y = s->AbsY();
+						int LineY = GetFont()->GetHeight();
+						int Val = y / LineY;
+						VScroll->Value(Val);
+					}
+					
 					Invalidate();
 					Status = true;
 					break;
@@ -7427,7 +7446,6 @@ bool GHtml::OnFind(class GFindReplaceCommon *Params)
 			}
 		}
 	}
-	DeleteArray(Find);
 
 	return Status;
 }
@@ -7453,6 +7471,11 @@ bool GHtml::OnKey(GKey &k)
 					Dlg.DoModal();
 					Status = true;
 				}
+				break;
+			}
+			case VK_F3:
+			{
+				OnFind(NULL);
 				break;
 			}
 			case 'c':
