@@ -406,7 +406,7 @@ bool LgiRecursiveFileSearch(const char *Root,
 				{
 					const char *e = (*Ext)[i];
 					char *RawFile = strrchr(Name, DIR_CHAR);
-					if (RawFile AND
+					if (RawFile &&
 						(Match = MatchStr(e, RawFile+1)))
 					{
 						break;
@@ -483,7 +483,7 @@ void LgiTrace(const char *Msg, ...)
 			#endif
 			{
 				char *Dot = strrchr(Buffer, '.');
-				if (Dot AND !strchr(Dot, DIR_CHAR))
+				if (Dot && !strchr(Dot, DIR_CHAR))
 				{
 					strcpy(Dot+1, "txt");
 				}
@@ -537,7 +537,7 @@ void LgiStackTrace(const char *Msg, ...)
 		if (LgiGetExeFile(Buffer, sizeof(Buffer)))
 		{
 			char *Dot = strrchr(Buffer, '.');
-			if (Dot AND !strchr(Dot, DIR_CHAR))
+			if (Dot && !strchr(Dot, DIR_CHAR))
 			{
 				strcpy(Dot+1, "txt");
 			}
@@ -640,7 +640,7 @@ bool LgiIsRelativePath(const char *Path)
 		return true;
 
 	#ifdef WIN32
-	if (IsAlpha(Path[0]) AND Path[1] == ':') // Drive letter path
+	if (IsAlpha(Path[0]) && Path[1] == ':') // Drive letter path
 		return false;
 	#endif
 
@@ -665,7 +665,7 @@ bool LgiMakePath(char *Str, int StrSize, const char *Path, const char *File)
 		printf("%s:%i - LgiMakeFile buf size=%i?\n", _FL, StrSize);
 	}
 
-	if (Str AND Path AND File)
+	if (Str && Path && File)
 	{
 		if (Str != Path)
 		{
@@ -678,7 +678,7 @@ bool LgiMakePath(char *Str, int StrSize, const char *Path, const char *File)
 
 		int Len = strlen(Str);
 		char *End = Str + (Len ? Len - 1 : 0);
-		if (strchr(Dir, *End) AND End > Str)
+		if (strchr(Dir, *End) && End > Str)
 		{
 			*End = 0;
 		}
@@ -694,8 +694,19 @@ bool LgiMakePath(char *Str, int StrSize, const char *Path, const char *File)
 				LgiGetSystemPath(LSP_HOME, Str, StrSize);
 			else
 			{
-				EndDir();
-				strsafecat(Str, T[i], StrSize);
+				int Len = strlen(Str);
+				if (!strchr(Dir, Str[Len-1]))
+				{
+					if (Len >= StrSize - 1)
+						return false;
+					Str[Len++] = DIR_CHAR;
+				}
+				int SegLen = strlen(T[i]);
+				if (Len + SegLen + 1 > StrSize)
+				{
+					return false;
+				}				
+				strcpy(Str + Len, T[i]);
 			}
 		}
 	}
@@ -741,7 +752,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 		if (WmLib)
 		{
 			Proc_LgiWmGetPath WmGetPath = (Proc_LgiWmGetPath) WmLib->GetAddress("LgiWmGetPath");
-			if (WmGetPath AND WmGetPath(Which, Dst, DstSize))
+			if (WmGetPath && WmGetPath(Which, Dst, DstSize))
 			{
 				return true;
 			}
@@ -1310,7 +1321,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 
 									// Clear out any crap at the end...
 									char *e = KdeTrash + strlen(KdeTrash) - 1;
-									while (e > KdeTrash AND strchr(" \r\n\t/", *e))
+									while (e > KdeTrash && strchr(" \r\n\t/", *e))
 									{
 										*e-- = 0;
 									}
@@ -1505,7 +1516,7 @@ bool LgiGetExeFile(char *Dst, int DstSize)
 						if (PsOutput)
 						{
 							GToken n(PsOutput, "\r\n");
-							for (int i=0; !Status AND i<n.Length(); i++)
+							for (int i=0; !Status && i<n.Length(); i++)
 							{
 								GToken t(n[i], " \t\r\n");
 								if (t.Length() > 7)
@@ -1707,7 +1718,7 @@ char *LgiFindFile(const char *Name)
 		printf("%s:%i - Exe='%s'\n", __FILE__, __LINE__, Exe);
 		#endif
 
-		if (LgiRecursiveFileSearch(Exe, &Ext, &Files) AND
+		if (LgiRecursiveFileSearch(Exe, &Ext, &Files) &&
 			Files.Length())
 		{
 			Result = Files[0];

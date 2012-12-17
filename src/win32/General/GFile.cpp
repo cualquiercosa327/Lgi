@@ -500,7 +500,7 @@ public:
 
 	GWin32Volume(const char *Drive)
 	{
-		char VolName[256], System[256];
+		char VolName[MAX_PATH], System[MAX_PATH];
 		DWORD MaxPath;
 
 		IsRoot = false;
@@ -508,7 +508,7 @@ public:
 		if (type != DRIVE_UNKNOWN &&
 			type != DRIVE_NO_ROOT_DIR)
 		{
-			char Buf[256];
+			char Buf[MAX_PATH];
 			char *Desc = 0;
 			switch (type)
 			{
@@ -556,7 +556,7 @@ public:
 				}
 			}
 
-			char s[256];
+			char s[MAX_PATH];
 			sprintf(s, "%s (%.2s)", Desc, Drive);
 			_Name = NewStr(s);
 			_Path = NewStr(Drive);
@@ -941,7 +941,7 @@ bool GFileSystem::RemoveFolder(char *PathName, bool Recurse)
 		{
 			do
 			{
-				char Str[256];
+				char Str[MAX_PATH];
 				if (Dir.Path(Str, sizeof(Str)))
 				{
 					if (Dir.IsDir())
@@ -1336,7 +1336,7 @@ int GDirectory::First(const char *Name, const char *Pattern)
 				char *path = LgiToNativeCp(Name);
 				if (path)
 				{
-					char n[256] = "";
+					char n[MAX_PATH] = "";
 					GetFullPathName(path, sizeof(n), n, NULL);
 					DeleteArray(path);
 					
@@ -1353,7 +1353,7 @@ int GDirectory::First(const char *Name, const char *Pattern)
 				char16 *p = LgiNewUtf8To16(Name);
 				if (p)
 				{
-					char16 w[256];
+					char16 w[MAX_PATH];
 					w[0] = 0;
 					DWORD Chars = GetFullPathNameW(p, CountOf(w), w, NULL);
 					if (Chars == 0)
@@ -1374,9 +1374,16 @@ int GDirectory::First(const char *Name, const char *Pattern)
 
 			char Str[MAX_PATH];
 			if (Pattern)
-				LgiMakePath(Str, sizeof(Str), d->BasePath, Pattern);
+			{
+				if (!LgiMakePath(Str, sizeof(Str), d->BasePath, Pattern))
+				{
+					return false;
+				}
+			}
 			else
+			{
 				strsafecpy(Str, d->BasePath, sizeof(Str));
+			}
 
 			if (GFileSystem::Win9x)
 			{

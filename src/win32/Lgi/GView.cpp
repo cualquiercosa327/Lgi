@@ -1138,6 +1138,7 @@ bool SysOnKey(GView *w, GMessage *m)
 	return false;
 }
 
+#if 0
 #include "C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v7.0A\\Include\\vsstyle.h"
 void GView::DrawThemeBorder(GSurface *pDC, GRect r)
 {
@@ -1201,6 +1202,7 @@ void GView::DrawThemeBorder(GSurface *pDC, GRect r)
 		pDC->Set(r.x2, r.y2);
 	}
 }
+#endif
 
 bool IsKeyChar(GKey &k, int vk)
 {
