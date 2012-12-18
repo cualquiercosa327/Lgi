@@ -1138,7 +1138,7 @@ bool SysOnKey(GView *w, GMessage *m)
 	return false;
 }
 
-#if 0
+#if 1
 #include "C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v7.0A\\Include\\vsstyle.h"
 void GView::DrawThemeBorder(GSurface *pDC, GRect r)
 {
