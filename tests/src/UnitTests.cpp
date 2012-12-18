@@ -7,6 +7,7 @@ void UnitTests()
 
 	Tests.Add(new GAutoPtrTest);
 	Tests.Add(new GCssTest);
+	Tests.Add(new GMatrixTest);
 	Tests.Add(new GContainers);
 
 	for (int i=0; i<Tests.Length(); i++)

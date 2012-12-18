@@ -41,6 +41,17 @@ public:
 	bool Run();
 };
 
+class GMatrixTest : public UnitTest
+{
+	class GMatrixTestPriv *d;
+
+public:
+	GMatrixTest();
+	~GMatrixTest();
+
+	bool Run();
+};
+
 class GContainers : public UnitTest
 {
 	class GContainersPriv *d;

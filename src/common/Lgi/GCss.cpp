@@ -1555,7 +1555,11 @@ bool GCss::Len::Parse(const char *&s, ParsingStyle ParseType)
 		Value = atof(s);
 		while (IsNumeric(s)) s++;
 		SkipWhite(s);
-		if (*s == '%') Type = LenPercent;
+		if (*s == '%')
+		{
+			Type = LenPercent;
+			s++;
+		}
 		else if (ParseWord(s, "px")) Type = LenPx;
 		else if (ParseWord(s, "pt")) Type = LenPt;
 		else if (ParseWord(s, "em")) Type = LenEm;

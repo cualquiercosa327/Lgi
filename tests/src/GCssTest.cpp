@@ -16,9 +16,9 @@ public:
 		return false;
 	}
 
-	bool Parse(char *In)
+	bool Parse(const char *In)
 	{
-		char *Css = In;
+		const char *Css = In;
 		if (!c.Parse(Css))
 			return Error("Error: Parse error:\n%s\n", In);
 		return true;

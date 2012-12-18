@@ -2,6 +2,7 @@
 #define __GPath_h__
 
 #include <math.h>
+#include "GMatrix.h"
 
 class GSeg;
 class GVector;
@@ -10,25 +11,6 @@ extern bool _Disable_ActiveList;
 extern bool _Disable_XSort;
 extern bool _Disable_Alpha;
 extern bool _Disable_Rops;
-
-class LgiClass GMatrix
-{
-	friend class GPath;
-
-	double m[6];
-
-public:
-	GMatrix()
-	{
-		ZeroObj(m);
-	}
-
-	void Translate(double x, double y)
-	{
-		m[0] = x;
-		m[1] = y;
-	}
-};
 
 enum GPathFillRule
 {
@@ -316,13 +298,39 @@ public:
 
 class LgiClass GPath
 {
+public:
+	class Matrix : public GMatrix<double, 3, 3>
+	{
+	public:
+		Matrix()
+		{
+			SetIdentity();
+		}
+		
+		Matrix &Translate(double x, double y)
+		{
+			m[2][0] = x;
+			m[2][1] = y;
+			return *this;
+		}
+		
+		Matrix &Rotate(double angle, bool anti_clockwise = false)
+		{
+			m[0][0] = m[1][1] = cos(angle);
+			m[0][1] = (anti_clockwise ? -1 : 1) * sin(angle);
+			m[1][0] = (anti_clockwise ? 1 : -1) * sin(angle);
+			return *this;
+		}
+	};
+
+protected:
 	// Data
 	List<GSeg> Segs;
 	List<GVector> Vecs;
 	GRectF Bounds;
 	bool Aa;
 	GPathFillRule FillRule;
-	GMatrix Mat;
+	Matrix Mat;
 	
 	// Flattened representation
 	int Points;
@@ -394,7 +402,7 @@ public:
 	bool IsEmpty();
 	void Empty();
 
-	void Transform(GMatrix &m);
+	void Transform(Matrix &m);
 	void DeleteSeg(int i);
 
 	// Colouring

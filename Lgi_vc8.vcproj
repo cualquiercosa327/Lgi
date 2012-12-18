@@ -1047,6 +1047,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\common\GMatrix.h"
+					>
+				</File>
+				<File
 					RelativePath=".\src\common\Lgi\LgiRand.cpp"
 					>
 				</File>

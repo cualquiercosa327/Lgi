@@ -676,7 +676,7 @@ void GPath::GetBounds(GRectF *b)
 	}
 }
 
-void GPath::Transform(GMatrix &m)
+void GPath::Transform(Matrix &m)
 {
 	Mat = m;
 }
@@ -1443,7 +1443,7 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 		#endif
 
 		GRectF Doc = Bounds;
-		Doc.Offset(Mat.m[0], Mat.m[1]);
+		Doc.Offset(Mat[2][0], Mat[2][1]);
 		GRectF Page(0, 0, pDC->X(), pDC->Y());
 		GRect DcClip = pDC->ClipRgn();
 		if (DcClip.Valid())
@@ -1455,7 +1455,7 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 		a.Pixels = 0;
 		a.Alpha = 0;
 		a.Bits = pDC->GetBits();
-		a.x = (int)(Clip.x1 - Mat.m[0]);
+		a.x = (int)(Clip.x1 - Mat[2][0]);
 		int RopLength = (int)ceil(Clip.x2) - (int)floor(Clip.x1);
 		a.Len = RopLength;
 		a.EndOfMem = (*pDC)[pDC->Y()-1] + (pDC->X() * pDC->GetBits() / 8);
@@ -1715,7 +1715,7 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 						{
 							// Draw pixels..
 							int DocX = (int)(Clip.x1 - Doc.x1);
-							a.y = ((y + SUB_SHIFT - 1) >> SUB_SHIFT) + (int)Mat.m[1] - 1;
+							a.y = ((y + SUB_SHIFT - 1) >> SUB_SHIFT) + (int)Mat[2][1] - 1;
 							if (a.y >= floor(Clip.y1) && a.y <= ceil(Clip.y2))
 							{
 								a.Pixels = (*pDC)[a.y];
@@ -1724,7 +1724,7 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 								{
 									int PixSize = a.Bits == 24 ? Pixel24::Size : a.Bits >> 3;
 									int AddX = DocX + (int)Doc.x1;
-									a.y -= (int)Mat.m[1];
+									a.y -= (int)Mat[2][1];
 									a.Len = RopLength;
 									a.Pixels += PixSize * AddX;
 									a.Alpha = Alpha + DocX;
@@ -1925,7 +1925,7 @@ void GPath::Stroke(GSurface *pDC, GBrush &Brush, double Width)
 
 		int Ox, Oy;
 		pDC->GetOrigin(Ox, Oy);
-		pDC->SetOrigin((int)-Mat.m[0], (int)-Mat.m[1]);
+		pDC->SetOrigin((int)-Mat[2][0], (int)-Mat[2][1]);
 
 		int i;
 		GPointF *p = Point;
