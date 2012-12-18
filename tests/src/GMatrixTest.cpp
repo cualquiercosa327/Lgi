@@ -16,6 +16,7 @@ public:
 
 	bool Test1()
 	{
+		// Identity testing
 		GMatrix<double, 3, 3> m1;
 		m1.SetIdentity();
 		for (int y=0; y<m1.Y(); y++)
@@ -26,7 +27,10 @@ public:
 					return false;
 			}
 		}
+		if (!m1.IsIdentity())
+			return false;
 		
+		// Multiply test
 		GMatrix<double, 3, 2> a;
 		a.SetStr(	"1 2 3\n"
 					"4 5 6\n");
@@ -40,6 +44,18 @@ public:
 					"139 154\n");
 		if (c != r)
 			return false;
+	
+		// Inverse test
+		GMatrix<double, 3, 3> m2, m3, m4;
+		m2.SetStr(	"1	 5	 2\n"
+					"1	 1	 7\n"
+					"0	 -3	 4\n");
+		m3 = m2;
+		if (!m3.Inverse())
+			return false;
+		m4 = m2 * m3;
+		if (!m4.IsIdentity())
+			return false;	
 	
 		return true;
 	}

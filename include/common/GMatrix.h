@@ -2,6 +2,7 @@
 #define _GMATRIX_H_
 
 #define MATRIX_DOUBLE_EPSILON 1e-10
+#define Abs(x) ((x) < 0 ? -(x) : (x))
 
 template<typename T, int Xs, int Ys>
 struct GMatrix
@@ -33,10 +34,6 @@ struct GMatrix
 	GMatrix<T, C, Ys> operator *(const GMatrix<T, C, Xs> &b)
 	{
 		// a<ay, ax> * b<by, bx> where ax == by, and the output matrix is <ay, bx>
-		// Xs = 2
-		// Ys = 4
-		// Bx = 3
-		// 
 		GMatrix<T, C, Ys> r;
 		
 		for (int y=0; y<Ys; y++)
@@ -94,6 +91,21 @@ struct GMatrix
 				m[y][x] = y == x ? 1 : 0;
 			}
 		}
+	}
+	
+	bool IsIdentity()
+	{
+		for (int y=0; y<Ys; y++)
+		{
+			for (int x=0; x<Xs; x++)
+			{
+				T i = x == y ? 1 : 0;
+				if (!Equal(i, m[y][x]))
+					return false;
+			}
+		}
+		
+		return true;
 	}
 	
 	GAutoString GetStr(const char *format)
@@ -157,6 +169,97 @@ struct GMatrix
 	{
 		GAutoString a = GetStr(format);
 		LgiTrace("%s", a.Get());
+	}
+	
+	void SwapRow(int row_a, int row_b)
+	{
+		if (row_a == row_b)
+			return;
+
+		for (int i=0; i<Xs; i++)
+		{
+			T t = m[row_a][i];
+			m[row_a][i] = m[row_b][i];
+			m[row_b][i] = t;
+		}
+	}
+
+	bool Inverse()
+	{
+		int x, y, maxrow, y2;
+
+		if (Xs != Ys)
+			return false;
+
+		GMatrix<T, Xs * 2, Ys> b;
+		for (y=0; y<Ys; y++)
+		{
+			for (x=0; x<Xs; x++)
+			{
+				b.m[y][x] = m[y][x];
+				b.m[y][x + Xs] = x == y ? 1 : 0;
+			}
+		}
+		
+		int w = Xs * 2;
+		T zero = 0;
+
+		for (y=0; y<Ys; y++)
+		{
+			maxrow = y;
+			for (y2 = y+1; y2<Ys; y2++)
+			{
+				if ( Abs(b.m[y2][y]) > Abs(b.m[maxrow][y]) )
+				{
+					maxrow = y2;
+				}
+			}
+			b.SwapRow(y, maxrow);
+
+			if (Equal(zero, b.m[y][y]))
+			{
+				return false;
+			}
+
+			for (y2 = y+1; y2<Ys; y2++) // Eliminate column y
+			{
+				T c = b.m[y2][y] / b.m[y][y];
+				for (x=y; x<w; x++)
+				{
+					b.m[y2][x] -= b.m[y][x] * c;
+				}
+			}
+		}
+
+		for (y = Ys-1; y>=0; y--) // Backsubstitute
+		{
+			T c = b.m[y][y];
+
+			for (y2=0; y2<y; y2++)
+			{
+				for (x=w-1; x>=y; x--)
+				{
+					b.m[y2][x] -=  b.m[y][x] * b.m[y2][y] / c;
+				}
+			}
+			
+			b.m[y][y] /= c;
+			
+			for (x=Ys; x<w; x++) // Normalize row y
+			{
+				b.m[y][x] /= c;
+			}
+		}
+		
+		for (y=0; y<Ys; y++)
+		{
+			for (x=0; x<Xs; x++)
+			{
+				m[y][x] = b.m[y][x+Xs];
+			}
+		}
+
+		return true;
 	}
 
 	// Type specific methods. If you use more types, add methods here.
