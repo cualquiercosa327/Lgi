@@ -489,19 +489,9 @@ typedef union
 /// The value of an undefined hue
 /// \sa #Hls32
 #define HUE_UNDEFINED				1024
-/// Returns true if the hue is undefined in a HLS color
-/// \sa #Hls32
-#define HlsIsUndefined(Hls)			(H32(Hls) == HUE_UNDEFINED)
 
 // Look up tables
 #define Div255Lut					(GdcDevice::GetInst()->GetDiv255())
-
-/// Converts a rgb24 colour to a hls32
-/// \sa #Hls32
-LgiFunc COLOUR RgbToHls(COLOUR Rgb24);
-/// Converts a hls32 colour to a rgb24
-/// \sa #Hls32
-LgiFunc COLOUR HlsToRgb(COLOUR Hsl32);
 
 #ifdef WIN32
 #pragma pack(pop, before_pack)

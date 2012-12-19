@@ -81,8 +81,9 @@ class LgiClass GColour
 public:
 	enum Space
 	{
-		Col8,
-		Col32,
+		ColIdx8,
+		ColRgba32,
+		ColHls32,
 	};
 
 protected:
@@ -90,8 +91,26 @@ protected:
 	union {
 		uint8  p8;
 		uint32 p32;
+		struct
+		{
+			uint8 s;
+			uint8 l;
+			uint16 h;
+		} hls;
 	};
 	Space space;
+
+	int HlsValue(double fN1, double fN2, double fHue)
+	{
+		if (fHue > 360.0) fHue -= 360.0;
+		else if (fHue < 0.0) fHue += 360.0;
+
+		if (fHue < 60.0) return (int) ((fN1 + (fN2 - fN1) * fHue / 60.0) * 255.0 + 0.5);
+		else if (fHue < 180.0) return (int) ((fN2 * 255.0) + 0.5);
+		else if (fHue < 240.0) return (int) ((fN1 + (fN2 - fN1) * (240.0 - fHue) / 60.0) * 255.0 + 0.5);
+		
+		return (int) ((fN1 * 255.0) + 0.5);
+	}
 
 public:
 	/// Transparent
@@ -120,9 +139,9 @@ public:
 
 	bool Transparent()
 	{
-		if (space == Col32)
+		if (space == ColRgba32)
 			return A32(p32) == 0;
-		else if (space == Col8)
+		else if (space == ColIdx8)
 			return !pal || p8 < pal->GetSize();
 		return true;
 	}
@@ -142,36 +161,36 @@ public:
 			case 8:
 			{
 				p8 = c;
-				space = Col8;
+				space = ColIdx8;
 				break;
 			}
 			case 15:
 			{
-				space = Col32;
+				space = ColRgba32;
 				p32 = Rgb15To32(c);
 				break;
 			}
 			case 16:
 			{
-				space = Col32;
+				space = ColRgba32;
 				p32 = Rgb16To32(c);
 				break;
 			}
 			case 24:
 			{
-				space = Col32;
+				space = ColRgba32;
 				p32 = Rgb24To32(c);
 				break;
 			}
 			case 32:
 			{
-				space = Col32;
+				space = ColRgba32;
 				p32 = c;
 				break;
 			}
 			default:
 			{
-				space = Col32;
+				space = ColRgba32;
 				p32 = 0;
 				LgiAssert(!"Not a known colour depth.");
 			}
@@ -183,7 +202,7 @@ public:
 		switch (bits)
 		{
 			case 8:
-				if (space == Col8)
+				if (space == ColIdx8)
 					return p8;
 				LgiAssert(!"Not supported.");
 				break;
@@ -229,7 +248,7 @@ public:
 	// Sets indexed colour
 	void c8(uint8 c, GPalette *p)
 	{
-		space = Col8;
+		space = ColIdx8;
 		pal = p;
 		p8 = c;
 	}
@@ -237,11 +256,11 @@ public:
 	// Get as 24 bit colour
 	uint32 c24()
 	{
-		if (space == Col32)
+		if (space == ColRgba32)
 		{
 			return Rgb32To24(p32);
 		}
-		else if (space == Col8)
+		else if (space == ColIdx8)
 		{
 			if (pal)
 			{
@@ -260,6 +279,10 @@ public:
 			
 			return Rgb24(p8, p8, p8); // monochome
 		}
+		else if (space == ColHls32)
+		{
+			return Rgb32To24(c32());
+		}
 
 		// Black...
 		return 0;
@@ -268,7 +291,7 @@ public:
 	/// Set 24 bit colour
 	void c24(COLOUR c)
 	{
-		space = Col32;
+		space = ColRgba32;
 		p32 = Rgb24To32(c);
 		pal = 0;
 	}
@@ -276,11 +299,11 @@ public:
 	/// Get 32 bit colour
 	COLOUR c32()
 	{
-		if (space == Col32)
+		if (space == ColRgba32)
 		{
 			return p32;
 		}
-		else if (space == Col8)
+		else if (space == ColIdx8)
 		{
 			if (pal)
 			{
@@ -299,6 +322,40 @@ public:
 			
 			return Rgb32(p8, p8, p8); // monochome
 		}
+		else if (space = ColHls32)
+		{
+			// Convert from HLS back to RGB
+			if (hls.s == 0)
+			{
+				p32 = Rgb32(0, 0, 0);
+			}
+			else
+			{
+				while (hls.h >= 360)
+					hls.h -= 360;			
+				while (hls.h < 0)
+					hls.h += 360;
+			
+				double fHue = (double) hls.h, fM1, fM2;
+				double fLightness = ((double) hls.l) / 255.0;
+				double fSaturation = ((double) hls.s) / 255.0;
+			
+				if (hls.l < 128)
+					fM2 = fLightness * (1 + fSaturation);
+				else
+					fM2 = fLightness + fSaturation - (fLightness * fSaturation);
+			
+				fM1 = 2.0 * fLightness - fM2;
+
+				int R = HlsValue(fM1, fM2, fHue + 120.0);
+				int G = HlsValue(fM1, fM2, fHue);
+				int B = HlsValue(fM1, fM2, fHue - 120.0);
+				p32 = Rgb32(R, G, B);
+			}
+			pal = NULL;
+			space = ColRgba32;
+			return p32;
+		}
 
 		// Transparent?
 		return 0;
@@ -307,7 +364,7 @@ public:
 	/// Set 32 bit colour
 	void c32(COLOUR c)
 	{
-		space = Col32;
+		space = ColRgba32;
 		pal = 0;
 		p32 = c;
 	}
@@ -327,6 +384,79 @@ public:
 		int a = (int) ((A32(c1) * RatioThis) + (A32(c2) * RatioOfTint));
 		
 		return GColour(r, g, b, a);
+	}
+	
+	// Hue Lum Sat methods
+	uint32 GetH()
+	{
+		ToHLS();
+		return hls.h;
+	}
+
+	bool HueIsUndefined()
+	{
+		ToHLS();
+		return hls.h == HUE_UNDEFINED;
+	}
+
+	uint32 GetL()
+	{
+		ToHLS();
+		return hls.l;
+	}
+
+	uint32 GetS()
+	{
+		ToHLS();
+		return hls.s;
+	}
+	
+	bool ToHLS()
+	{
+		if (space == ColHls32)
+			return true;
+
+		uint32 nMax, nMin, nDelta, c = c32();
+		int R = R32(c), G = G32(c), B = B32(c);
+		double fHue;
+
+		nMax = max(R, max(G, B));
+		nMin = min(R, min(G, B));
+
+		if (nMax == nMin)
+			return false;
+
+		hls.l = (nMax + nMin) / 2;
+		if (hls.l < 128)
+			hls.s = (uchar) ((255.0 * ((double)(nMax - nMin)) / (double)(nMax + nMin)) + 0.5);
+		else
+			hls.s = (uchar) ((255.0 * ((double)(nMax - nMin)) / (double)(511 - nMax - nMin)) + 0.5);
+	
+		nDelta = nMax - nMin;
+	
+		if (R == nMax)
+			fHue = ((double) (G - B)) / (double) nDelta;
+		else if (G == nMax)
+			fHue = 2.0 + ((double) (B - R)) / (double) nDelta;
+		else
+			fHue = 4.0 + ((double) (R - G)) / (double) nDelta;
+	
+		fHue *= 60;
+		if (fHue < 0.0)
+			fHue += 360.0;
+	
+		hls.h = (uint16) (fHue + 0.5);
+		space = ColHls32;
+		pal = NULL;
+		return true;
+	}
+	
+	void SetHLS(uint16 h, uint8 l, uint8 s)
+	{
+		space = ColHls32;
+		hls.h = h;
+		hls.l = l;
+		hls.s = s;
 	}
 };
 

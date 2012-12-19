@@ -258,6 +258,8 @@ void LgiFillGradient(GSurface *pDC, GRect &r, bool Vert, GArray<GColourStop> &St
 
 //////////////////////////////////////////////////////////////////////////////////
 // Other Gdc Stuff
+
+/*
 COLOUR RgbToHls(COLOUR Rgb24)
 {
 	int nMax;
@@ -406,6 +408,7 @@ COLOUR HlsToRgb(COLOUR Hls)
 
 	return Rgb24(R, G, B);
 }
+*/
 
 GSurface *ConvertDC(GSurface *pDC, int Bits)
 {
