@@ -1139,7 +1139,8 @@ bool SysOnKey(GView *w, GMessage *m)
 }
 
 #if 1
-#include "C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v7.0A\\Include\\vsstyle.h"
+#include "vsstyle.h"
+
 void GView::DrawThemeBorder(GSurface *pDC, GRect r)
 {
 	#if 0
@@ -1201,6 +1202,11 @@ void GView::DrawThemeBorder(GSurface *pDC, GRect r)
 		pDC->Set(r.x1, r.y2);
 		pDC->Set(r.x2, r.y2);
 	}
+}
+#else
+void GView::DrawThemeBorder(GSurface *pDC, GRect r)
+{
+	LgiWideBorder(pDC, r, SUNKEN);
 }
 #endif
 
