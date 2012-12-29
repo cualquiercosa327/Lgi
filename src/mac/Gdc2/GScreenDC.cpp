@@ -90,7 +90,7 @@ GScreenDC::GScreenDC(GView *v, void *param)
 	}
 	else
 	{
-		printf("%s:%i - No context.\n", __FILE__, __LINE__);
+		printf("%s:%i - No context.\n", _FL);
 	}
 }
 

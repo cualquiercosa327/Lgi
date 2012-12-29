@@ -95,7 +95,7 @@ protected:
 		{
 			uint8 s;
 			uint8 l;
-			uint16 h;
+			int16 h;
 		} hls;
 	};
 	Space space;

@@ -2752,13 +2752,6 @@ void GTag::Restyle()
 			
 			if (MatchFullSelector(Sel))
 			{
-				#if _DEBUG
-				if (Debug)
-				{
-					int asd = 0;
-				}
-				#endif
-				
 				SetCssStyle(Sel->Style);
 			}
 		}
@@ -2771,7 +2764,7 @@ void GTag::Restyle()
 	if (Debug)
 	{
 		GAutoString Style = ToString();
-		LgiTrace(">>>> %s <<<<:\n%s\n\n", Tag, Style);
+		LgiTrace(">>>> %s <<<<:\n%s\n\n", Tag, Style.Get());
 	}
 	#endif
 }
@@ -5052,7 +5045,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 						}
 						
 						GFlowRegion r(Html, Box);
-						int Rx = r.X();
+						// int Rx = r.X();
 						t->OnFlow(&r);
 						// t->Size.y += t->PaddingBottom().Value;
 						

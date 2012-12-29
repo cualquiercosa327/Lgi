@@ -483,7 +483,7 @@ void GDocApp<OptionsFmt>::SetCurFile(char *f)
 	}
 	else
 	{
-		strcpy_s(s, sizeof(s), d->AppName);
+		strsafecpy(s, d->AppName, sizeof(s));
 	}
 
 	Name(s);
