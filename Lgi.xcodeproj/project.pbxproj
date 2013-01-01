@@ -206,7 +206,7 @@
 		344AF38308E045C5004ED88C /* GStream.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GStream.cpp; path = src/common/Lgi/GStream.cpp; sourceTree = "<group>"; };
 		344AF38608E045F2004ED88C /* GRect.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GRect.cpp; path = src/common/Gdc2/GRect.cpp; sourceTree = "<group>"; };
 		344AF38F08E04707004ED88C /* GVariant.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GVariant.cpp; path = src/common/Lgi/GVariant.cpp; sourceTree = "<group>"; };
-		344AF39508E0476A004ED88C /* GApp.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GApp.cpp; path = src/mac/Lgi/GApp.cpp; sourceTree = "<group>"; };
+		344AF39508E0476A004ED88C /* GApp.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GApp.cpp; path = src/mac/carbon/Lgi/GApp.cpp; sourceTree = "<group>"; };
 		344AF3A008E048C2004ED88C /* GProcess.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GProcess.cpp; path = src/common/Lgi/GProcess.cpp; sourceTree = "<group>"; };
 		344AF3AE08E049CA004ED88C /* GXml.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GXml.cpp; path = src/common/Text/GXml.cpp; sourceTree = "<group>"; };
 		344AF3C208E04A94004ED88C /* LgiDefs.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LgiDefs.h; path = include/common/LgiDefs.h; sourceTree = "<group>"; };
@@ -215,7 +215,7 @@
 		344AF3D608E04BE0004ED88C /* GLibrary.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GLibrary.h; path = include/common/GLibrary.h; sourceTree = "<group>"; };
 		344AF3DC08E04C75004ED88C /* GObject.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GObject.cpp; path = src/common/Lgi/GObject.cpp; sourceTree = "<group>"; };
 		344B736308D83E8300D49457 /* Lgi.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Lgi.h; path = include/common/Lgi.h; sourceTree = "<group>"; };
-		344B736B08D83F1800D49457 /* GGeneral.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GGeneral.cpp; path = src/mac/Lgi/GGeneral.cpp; sourceTree = "<group>"; };
+		344B736B08D83F1800D49457 /* GGeneral.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GGeneral.cpp; path = src/mac/carbon/Lgi/GGeneral.cpp; sourceTree = "<group>"; };
 		344B737708D83F6C00D49457 /* LgiClasses.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LgiClasses.h; path = include/common/LgiClasses.h; sourceTree = "<group>"; };
 		344B737A08D8401600D49457 /* Lgi.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Lgi.cpp; path = src/common/Lgi/Lgi.cpp; sourceTree = "<group>"; };
 		344B738008D8406900D49457 /* GdcCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GdcCommon.cpp; path = src/common/Gdc2/GdcCommon.cpp; sourceTree = "<group>"; };
@@ -246,7 +246,7 @@
 		345C1EC80B46017000E80FF1 /* LgiWidgets.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LgiWidgets.h; path = include/common/LgiWidgets.h; sourceTree = "<group>"; };
 		345ECABC0FB1A74700C8BFA8 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = /Developer/SDKs/MacOSX10.4u.sdk/System/Library/Frameworks/SystemConfiguration.framework; sourceTree = "<absolute>"; };
 		345F4B9E0F058D4F0015A7EE /* GScrollBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GScrollBar.h; path = include/common/GScrollBar.h; sourceTree = "<group>"; };
-		345F9C2208F0F622007DAFE2 /* GView.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GView.cpp; path = src/mac/Lgi/GView.cpp; sourceTree = "<group>"; };
+		345F9C2208F0F622007DAFE2 /* GView.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GView.cpp; path = src/mac/carbon/Lgi/GView.cpp; sourceTree = "<group>"; };
 		34637EB90F876EB1005A9B80 /* GDateTime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GDateTime.h; path = include/common/GDateTime.h; sourceTree = "<group>"; };
 		3465BDD808C5DEC100B4C217 /* GContainers.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GContainers.cpp; path = src/common/General/GContainers.cpp; sourceTree = "<group>"; };
 		34661C7813C7407000B4C2A7 /* GUtf8.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GUtf8.h; path = include/common/GUtf8.h; sourceTree = "<group>"; };
@@ -263,7 +263,7 @@
 		34983C1208F5482D0054868C /* GDocView.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GDocView.cpp; path = src/common/Text/GDocView.cpp; sourceTree = "<group>"; };
 		34983C1308F5482D0054868C /* GTextView3.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GTextView3.cpp; path = src/common/Text/GTextView3.cpp; sourceTree = "<group>"; };
 		34983C1608F5484C0054868C /* GToolTip.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GToolTip.cpp; path = src/common/Lgi/GToolTip.cpp; sourceTree = "<group>"; };
-		34983C1808F548620054868C /* GClipBoard.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GClipBoard.cpp; path = src/mac/Lgi/GClipBoard.cpp; sourceTree = "<group>"; };
+		34983C1808F548620054868C /* GClipBoard.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GClipBoard.cpp; path = src/mac/carbon/Lgi/GClipBoard.cpp; sourceTree = "<group>"; };
 		34983C1D08F548DF0054868C /* GAlert.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GAlert.cpp; path = src/common/Lgi/GAlert.cpp; sourceTree = "<group>"; };
 		34983C1E08F548DF0054868C /* GDataDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GDataDlg.cpp; path = src/common/Lgi/GDataDlg.cpp; sourceTree = "<group>"; };
 		34983C1F08F548DF0054868C /* GFindReplace.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GFindReplace.cpp; path = src/common/Lgi/GFindReplace.cpp; sourceTree = "<group>"; };
@@ -283,7 +283,7 @@
 		34B28AEF143FA69B0023662F /* GPath.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GPath.cpp; path = src/common/Gdc2/Path/GPath.cpp; sourceTree = "<group>"; };
 		34B28AF1143FA6AF0023662F /* GPath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GPath.h; path = include/common/GPath.h; sourceTree = "<group>"; };
 		34B423810EBE762000D370A7 /* GSymLookup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GSymLookup.h; path = include/mac/GSymLookup.h; sourceTree = "<group>"; };
-		34B4A4FE0C05962100CDD0D1 /* GPrinter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GPrinter.cpp; path = src/mac/Lgi/GPrinter.cpp; sourceTree = "<group>"; };
+		34B4A4FE0C05962100CDD0D1 /* GPrinter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GPrinter.cpp; path = src/mac/carbon/Lgi/GPrinter.cpp; sourceTree = "<group>"; };
 		34B4A5000C05966000CDD0D1 /* Base64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Base64.cpp; path = src/common/INet/Base64.cpp; sourceTree = "<group>"; };
 		34B4A5060C05987F00CDD0D1 /* GMemStream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GMemStream.cpp; path = src/common/Lgi/GMemStream.cpp; sourceTree = "<group>"; };
 		34B4A50A0C0598B600CDD0D1 /* GMem.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GMem.cpp; path = src/mac/General/GMem.cpp; sourceTree = "<group>"; };
@@ -311,7 +311,7 @@
 		34D2CCA308F117A20009968C /* GFont_A.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GFont_A.cpp; path = src/common/Gdc2/Font/GFont_A.cpp; sourceTree = "<group>"; };
 		34D2CCA408F117A20009968C /* GFont_W.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GFont_W.cpp; path = src/common/Gdc2/Font/GFont_W.cpp; sourceTree = "<group>"; };
 		34D2CCA908F1181C0009968C /* GFontSelect.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GFontSelect.cpp; path = src/common/Lgi/GFontSelect.cpp; sourceTree = "<group>"; };
-		34D2CCAB08F1183F0009968C /* GWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GWindow.cpp; path = src/mac/Lgi/GWindow.cpp; sourceTree = "<group>"; };
+		34D2CCAB08F1183F0009968C /* GWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GWindow.cpp; path = src/mac/carbon/Lgi/GWindow.cpp; sourceTree = "<group>"; };
 		34D2CCEC08F11BEF0009968C /* GWidgets.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GWidgets.cpp; path = src/mac/Lgi/GWidgets.cpp; sourceTree = "<group>"; };
 		34D4D55A1250AF98000DA1FD /* GHashTable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GHashTable.h; path = include/common/GHashTable.h; sourceTree = "<group>"; };
 		34D979D01150F0E100CE462B /* GLayout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GLayout.cpp; path = src/common/Lgi/GLayout.cpp; sourceTree = "<group>"; };
