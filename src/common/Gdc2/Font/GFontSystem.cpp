@@ -265,7 +265,7 @@ bool GFontSystem::EnumerateFonts(List<const char> &Fonts)
 			XftFontSetDestroy(Set);
 		}
 		
-		#elif defined MAC
+		#elif defined MAC && !defined COCOA
 
 		// ATSFontFilter myFontFilter;
 		ATSFontFamilyIterator myFamilyIterator;
@@ -344,7 +344,7 @@ bool GFontSystem::HasIconv(bool Quiet)
 	return Status;
 }
 
-#ifdef MAC
+#if defined MAC && !defined COCOA
 // This converts a normal charset to an Apple encoding ID
 static CFStringEncoding CharsetToEncoding(const char *cs)
 {
@@ -367,6 +367,7 @@ int GFontSystem::IconvConvert(const char *OutCs, GStreamI *Out, const char *InCs
 	    
 #if defined(MAC)
 
+	#if !defined COCOA
 	CFStringEncoding InEnc = CharsetToEncoding(InCs);
 	CFStringEncoding OutEnc = CharsetToEncoding(OutCs);
 	if (InEnc != kCFStringEncodingInvalidId &&
@@ -390,6 +391,7 @@ int GFontSystem::IconvConvert(const char *OutCs, GStreamI *Out, const char *InCs
 		else return 0;
 	}
 	else return 0;
+	#endif
 
 #elif HAS_ICONV
 
@@ -436,6 +438,7 @@ int GFontSystem::IconvConvert(const char *OutCs, char *Out, int OutLen, const ch
 
 #if defined(MAC)
 
+	#if !defined COCOA
 	CFStringEncoding InEnc = CharsetToEncoding(InCs);
 	CFStringEncoding OutEnc = CharsetToEncoding(OutCs);
 	if (InEnc != kCFStringEncodingInvalidId &&
@@ -450,6 +453,7 @@ int GFontSystem::IconvConvert(const char *OutCs, char *Out, int OutLen, const ch
 			return ret;
 		}
 	}
+	#endif
 
 #elif HAS_ICONV
 

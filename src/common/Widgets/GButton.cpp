@@ -30,7 +30,7 @@ public:
 	bool WantsDefault;
 	GDisplayString *Txt;
 	
-	#ifdef MAC
+	#if defined MAC && !defined COCOA
 	ThemeButtonDrawInfo Cur;
 	#endif
 
@@ -42,7 +42,7 @@ public:
 		Txt = 0;
 		WantsDefault = false;
 		
-		#ifdef MAC
+		#if defined MAC && !defined COCOA
 		Cur.state = kThemeStateInactive;
 		Cur.value = kThemeButtonOff;
 		Cur.adornment = kThemeAdornmentNone;
@@ -284,7 +284,7 @@ void GButton::OnFocus(bool f)
 
 void GButton::OnPaint(GSurface *pDC)
 {
-	#ifdef MAC
+	#if defined MAC && !defined COCOA
 
 	pDC->Colour(LC_MED, 24);	
 	pDC->Rectangle();

@@ -39,7 +39,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Misc stuff
-#ifdef MAC
+#if defined MAC && !defined COCOA
 bool _get_path_FSRef(FSRef &fs, GStringPipe &a)
 {
 	HFSUniStr255 Name;
@@ -125,7 +125,7 @@ bool LgiPostEvent(OsView Wnd, int Event, GMessage::Param a, GMessage::Param b)
 		return Status;
 	}
 
-	#elif defined(MAC)
+	#elif defined(MAC) && !defined COCOA
 	
 	#if 0
 	int64 Now = LgiCurrentTime();
@@ -186,10 +186,6 @@ bool LgiPostEvent(OsView Wnd, int Event, GMessage::Param a, GMessage::Param b)
 		
 		return Status;
 	}
-	
-	#else
-	
-	#error "Not Impl."
 	
 	#endif
 
@@ -283,7 +279,7 @@ int LgiGetOs
 
 	return LGI_OS_LINUX;
 
-	#elif defined MAC
+	#elif defined MAC && !defined COCOA
 
 	if (Ver)
 	{
@@ -498,7 +494,7 @@ void LgiTrace(const char *Msg, ...)
 
 		va_list Arg;
 		va_start(Arg, Msg);
-		int MsgLen = _vsnprintf(Buffer, sizeof(Buffer)-1, Msg, Arg);
+		_vsnprintf(Buffer, sizeof(Buffer)-1, Msg, Arg);
 		va_end(Arg);
 
 		#ifdef LGI_TRACE_TO_FILE
@@ -860,7 +856,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 					Status = true;
 				}
 				
-				#elif defined MAC
+				#elif defined MAC && !defined COCOA
 				
 				FSRef Ref;
 				OSErr e = FSFindFolder(kUserDomain, kMusicDocumentsFolderType, kDontCreateFolder, &Ref);
@@ -894,7 +890,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 					Status = true;
 				}
 
-				#elif defined MAC
+				#elif defined MAC && !defined COCOA
 
 				FSRef Ref;
 				OSErr e = FSFindFolder(kUserDomain, kMovieDocumentsFolderType, kDontCreateFolder, &Ref);
@@ -971,7 +967,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 					{
 						GAutoString Base;
 						
-						#if defined MAC
+						#if defined MAC && !defined COCOA
 						FSRef Ref;
 						OSErr e = FSFindFolder(kUserDomain, kDomainLibraryFolderType, kDontCreateFolder, &Ref);
 						if (e) printf("%s:%i - FSFindFolder failed e=%i\n", __FILE__, __LINE__, e);
@@ -991,7 +987,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 							Base.Reset(NewStr(pw->pw_dir));
 						}
 						#else
-							#error "Not implemented."
+						LgiAssert(0);
 						#endif
 
 						if (Base)
@@ -1015,7 +1011,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 					Status = true;
 				}
 
-				#elif defined MAC
+				#elif defined MAC && !defined COCOA
 				
 				FSRef Ref;
 				OSErr e = FSFindFolder(kOnAppropriateDisk,  kSystemFolderType, kDontCreateFolder, &Ref);
@@ -1096,7 +1092,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 					}
 				}
 
-				#elif defined MAC
+				#elif defined MAC && !defined COCOA
 				
 				FSRef Ref;
 				OSErr e = FSFindFolder(kUserDomain, kTemporaryFolderType, kCreateFolder, &Ref);
@@ -1131,7 +1127,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 					Status = true;
 				}
 				
-				#elif defined MAC
+				#elif defined MAC && !defined COCOA
 				
 				FSRef Ref;
 				OSErr e = FSFindFolder(kOnSystemDisk, kDomainLibraryFolderType, kDontCreateFolder, &Ref);
@@ -1169,7 +1165,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 					Status = true;
 				}
 
-				#elif defined MAC
+				#elif defined MAC && !defined COCOA
 				
 				FSRef Ref;
 				OSErr e = FSFindFolder(kUserDomain, kDomainLibraryFolderType, kDontCreateFolder, &Ref);
@@ -1215,7 +1211,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 					Status = true;
 				}
 
-				#elif defined MAC
+				#elif defined MAC && !defined COCOA
 				
 				FSRef Ref;
 				OSErr e = FSFindFolder(kOnAppropriateDisk, kDesktopFolderType, kDontCreateFolder, &Ref);
@@ -1350,7 +1346,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 					}
 				}
 				
-				#elif defined MAC
+				#elif defined MAC && !defined COCOA
 				
 				FSRef Ref;
 				OSErr e = FSFindFolder(kUserDomain, kTrashFolderType, kDontCreateFolder, &Ref);
@@ -1554,7 +1550,7 @@ bool LgiGetExeFile(char *Dst, int DstSize)
 		
 		return Status;
 		
-		#elif defined MAC
+		#elif defined MAC && !defined COCOA
 		
 		bool Status = false;
 		ProcessSerialNumber ps;
@@ -1626,11 +1622,6 @@ char *LgiFindFile(const char *Name)
 	if (Name)
 	{
 		char Exe[256];
-		
-		if (strlen(Name) > 200)
-		{
-			int asd=0;
-		}
 		
 		#ifndef MAC
 		LgiGetExePath(Exe, sizeof(Exe));
@@ -1763,7 +1754,7 @@ uint64 LgiCurrentTime()
 
 	return system_time() / 1000;
 
-	#elif defined MAC
+	#elif defined MAC && !defined COCOA
 	
 	UnsignedWide t;
 	Microseconds(&t);

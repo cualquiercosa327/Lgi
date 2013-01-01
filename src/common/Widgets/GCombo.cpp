@@ -41,7 +41,7 @@ public:
 	GDisplayString *Text;
 	GCombo::SelectedState SelState;
 
-	#ifdef MAC
+	#if defined MAC && !defined COCOA
 	ThemeButtonDrawInfo Cur;
 	#endif
 
@@ -55,7 +55,7 @@ public:
 		Menu = 0;
 		Text = 0;
 
-		#ifdef MAC
+		#if defined MAC && !defined COCOA
 		Cur.state = kThemeStateInactive;
 		Cur.value = kThemeButtonOff;
 		Cur.adornment = kThemeAdornmentNone;
@@ -506,7 +506,7 @@ void GCombo::OnPaint(GSurface *pDC)
 			d->Text = new GDisplayString(GetFont(), n);
 	}
 
-	#ifdef MAC
+	#if defined MAC && !defined COCOA
 
 	pDC->Colour(LC_MED, 24);	
 	pDC->Rectangle();

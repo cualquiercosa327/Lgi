@@ -342,7 +342,7 @@ double GTypeFace::Leading()
 
 ////////////////////////////////////////////////////////////////////
 // GFont class, the implemention
-#ifdef MAC
+#if defined MAC && !defined COCOA
 typedef ATSUTextMeasurement OsTextSize;
 #else
 typedef double OsTextSize;
@@ -423,12 +423,12 @@ bool GFont::Destroy()
 	{
 		#ifdef WIN32
 		DeleteObject(d->hFont);
-		#elif defined MAC
+		#elif defined MAC && !defined COCOA
 		ATSUDisposeStyle(d->hFont);
 		#elif defined LINUX
 		Gtk::pango_font_description_free(d->hFont);
 		#else
-		#error "Implement me.";
+		LgiAssert(0);
 		#endif
 		
 		d->hFont = 0;
@@ -967,7 +967,7 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 		}
 	}
 	
-	#elif defined MAC
+	#elif defined MAC && !defined COCOA
 	
 	if (d->hFont)
 	{
@@ -1561,7 +1561,7 @@ bool GFontType::GetSystemFont(const char *Which)
 			Info.PointSize(DefSize);
 			Status = true;
 		
-			#elif defined MAC
+			#elif defined MAC && !defined COCOA
 			
 			Str255 Name;
 			SInt16 Size;
@@ -1611,7 +1611,7 @@ bool GFontType::GetSystemFont(const char *Which)
 			Info.PointSize(DefSize);
 			Status = true;
 
-			#elif defined MAC
+			#elif defined MAC && !defined COCOA
 			
 			Str255 Name;
 			SInt16 Size;
@@ -1660,7 +1660,7 @@ bool GFontType::GetSystemFont(const char *Which)
 			Info.PointSize(DefSize-1);
 			Status = true;
 
-			#elif defined MAC
+			#elif defined MAC && !defined COCOA
 			
 			Str255 Name;
 			SInt16 Size;
@@ -1708,7 +1708,7 @@ bool GFontType::GetSystemFont(const char *Which)
 			Info.PointSize(DefSize);
 			Status = true;
 
-			#elif defined MAC
+			#elif defined MAC && !defined COCOA
 			
 			Str255 Name;
 			SInt16 Size;
@@ -1765,7 +1765,7 @@ bool GFontType::GetSystemFont(const char *Which)
 			Info.PointSize(DefSize-1);
 			Status = true;
 			
-			#elif defined MAC
+			#elif defined MAC && !defined COCOA
 			
 			Str255 Name;
 			SInt16 Size;

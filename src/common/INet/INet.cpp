@@ -367,8 +367,6 @@ void GSocket::SetTimeout(int ms)
 
 bool GSocket::IsReadable(int TimeoutMs)
 {
-	ulong Val = 0;
-	
 	// Assign to local var to avoid a thread changing it
 	// on us between the validity check and the select.
 	// Which is important because a socket value of -1
@@ -399,8 +397,6 @@ bool GSocket::IsReadable(int TimeoutMs)
 
 bool GSocket::IsWritable(int TimeoutMs)
 {
-	ulong Val = 0;
-	
 	// Assign to local var to avoid a thread changing it
 	// on us between the validity check and the select.
 	// Which is important because a socket value of -1
@@ -1938,20 +1934,24 @@ GProxyUri::GProxyUri()
 	
 	#elif defined MAC
 	
-	CFDictionaryRef Proxies = SCDynamicStoreCopyProxies(0);
-	if (!Proxies)
-		LgiTrace("%s:%i - SCDynamicStoreCopyProxies failed.\n", _FL);
-	else
-	{
-		int enable = CFNumberRefToInt((CFNumberRef) CFDictionaryGetValue(Proxies, kSCPropNetProxiesHTTPEnable));
-		if (enable)
-		{
-			Host = CFStringToUtf8((CFStringRef) CFDictionaryGetValue(Proxies, kSCPropNetProxiesHTTPProxy));
-			Port = CFNumberRefToInt((CFNumberRef) CFDictionaryGetValue(Proxies, kSCPropNetProxiesHTTPPort));
-		}
-		
-		CFRelease(Proxies);
-	}
+//	CFDictionaryRef Proxies = SCDynamicStoreCopyProxies(0);
+//	if (!Proxies)
+//		LgiTrace("%s:%i - SCDynamicStoreCopyProxies failed.\n", _FL);
+//	else
+//	{
+//		int enable = CFNumberRefToInt((CFNumberRef) CFDictionaryGetValue(Proxies, kSCPropNetProxiesHTTPEnable));
+//		if (enable)
+//		{
+//			#ifdef COCOA
+//			LgiAssert(!"Fixme");
+//			#else
+//			Host = CFStringToUtf8((CFStringRef) CFDictionaryGetValue(Proxies, kSCPropNetProxiesHTTPProxy));
+//			#endif
+//			Port = CFNumberRefToInt((CFNumberRef) CFDictionaryGetValue(Proxies, kSCPropNetProxiesHTTPPort));
+//		}
+//		
+//		CFRelease(Proxies);
+//	}
 
 	#else
 

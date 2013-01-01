@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#ifdef LINUX
+#if defined(LINUX) || defined(MAC)
 #include <signal.h>
 #endif
 

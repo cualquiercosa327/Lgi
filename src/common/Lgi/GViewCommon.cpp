@@ -786,7 +786,7 @@ void GView::Enabled(bool i)
 	{
 		#if WIN32NATIVE
 		EnableWindow(_View, i);
-		#elif defined MAC
+		#elif defined MAC && !defined COCOA
 		if (i)
 		{
 			OSStatus e = EnableControl(_View);
@@ -833,7 +833,7 @@ void GView::Visible(bool v)
 		else
 			Gtk::gtk_widget_hide(_View);
 
-		#elif defined MAC
+		#elif defined MAC && !defined COCOA
 		OSErr e = SetControlVisibility(_View, v, true);
 		if (e) printf("%s:%i - SetControlVisibility(%p,%i,1) failed with %i (class=%s)\n",
 						_FL, _View, v, e, GetClass());
@@ -947,7 +947,7 @@ void GView::Focus(bool i)
 			}
 		}
 
-		#elif defined MAC
+		#elif defined MAC && !defined COCOA
 
 		GViewI *Wnd = GetWindow();
 		if (Wnd && i)

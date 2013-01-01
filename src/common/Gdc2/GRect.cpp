@@ -363,6 +363,7 @@ GRegion::GRegion(GRect &r) : GRect(r)
 	}
 }
 
+#if !defined COCOA
 GRegion::GRegion(OsRect &r) : GRect(0, 0, 0, 0)
 {
 	Size = Alloc = 0;	
@@ -378,6 +379,7 @@ GRegion::GRegion(OsRect &r) : GRect(0, 0, 0, 0)
 		y2 = a[0].y2 = (int) r.bottom - CornerOffset;
 	}
 }
+#endif
 
 GRegion::~GRegion()
 {

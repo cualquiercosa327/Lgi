@@ -157,21 +157,9 @@ int GDateTime::SystemTimeZone(bool ForceUpdate)
 
 		#ifdef MAC
 
-		/*
-		struct timeval tp;
-		struct timezone tzp;
-		if (!gettimeofday(&tp, &tzp))
-		{
-			// FIXME: check this works in DST as well... e.g. tzp.tz_dsttime;
-			CurTz = -tzp.tz_minuteswest;
-		}
-		else
-		{
-			// oh great...
-			LgiAssert(0);
-			LgiTrace("%s:%i - SystemTimeZone() failed badly.\n", __FILE__, __LINE__);
-		}
-		*/
+		#ifdef COCOA
+		LgiAssert(!"Fixme");
+		#else
 		
 		CFTimeZoneRef tz = CFTimeZoneCopySystem();
 		CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
@@ -188,6 +176,8 @@ int GDateTime::SystemTimeZone(bool ForceUpdate)
 
 		CurTzOff = CFTimeZoneGetDaylightSavingTimeOffset(tz, now) / 60;
 		CFRelease(tz);
+		
+		#endif
 		
 		#else
 		

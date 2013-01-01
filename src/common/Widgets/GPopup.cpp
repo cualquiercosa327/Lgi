@@ -554,9 +554,7 @@ GPopup::~GPopup()
 	DeleteObj(d);
 }
 
-#ifdef MAC
-extern void _Dump(int idx, GViewI *root, HIViewRef v, int ox = 0, int oy = 0, int depth = 0);
-
+#if defined MAC
 bool GPopup::SetPos(GRect &p, bool Repaint)
 {
 	GdcPt2 o(0, 0);
@@ -656,7 +654,7 @@ gboolean PopupMapEvent(GtkWidget *widget, GdkEvent *e, GPopup *Wnd)
 
 bool GPopup::Attach(GViewI *p)
 {
-	#ifdef MAC
+	#if defined MAC && !defined COCOA
 	
 	if (p)
 	{
@@ -696,7 +694,7 @@ bool GPopup::Attach(GViewI *p)
 		
 		AttachChildren();
 
-		#elif 1 // defined __GTK_H__
+		#elif defined __GTK_H__
 		
 		if (!Wnd)
 		{

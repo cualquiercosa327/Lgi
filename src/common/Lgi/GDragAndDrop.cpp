@@ -22,7 +22,7 @@ class GDndSourcePriv
 {
 public:
 	GAutoString CurrentFormat;
-	#ifdef MAC
+	#if defined(MAC) && !defined(COCOA)
 	GAutoPtr<CGImg> Img;
 	#endif
 };
@@ -553,7 +553,7 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 	}
 	return DROPEFFECT_NONE;
 	
-	#elif defined MAC
+	#elif defined(MAC) && !defined(COCOA)
 	
 	DragRef Drag = 0;
 	OSErr e = NewDrag(&Drag);

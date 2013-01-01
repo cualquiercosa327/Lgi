@@ -16,7 +16,6 @@
 #endif
 
 #include "GMutex.h"
-// #include "GLibrary.h"
 #include "LgiOsClasses.h"
 #include "GArray.h"
 #include "LgiCommon.h"
@@ -32,7 +31,7 @@ extern long MouseWatcher(void *Ptr);
 extern bool _lgi_check_file(char *Path);
 LgiFunc bool LgiPostEvent(OsView Wnd, int Event, GMessage::Param a = 0, GMessage::Param b = 0);
 LgiFunc GViewI *GetNextTabStop(GViewI *v, bool Back);
-#if defined(MAC)
+#if defined(MAC) && !defined(COCOA)
 LgiFunc void DumpHnd(HIViewRef v, int depth = 0);
 #endif
 
@@ -393,10 +392,13 @@ class LgiClass GView : virtual public GViewI, virtual public GBase
 
 	#elif defined MAC
 	
+	#if defined(COCOA)
+	#else
 	friend OSStatus LgiWindowProc(EventHandlerCallRef, EventRef, void *);
 	friend OSStatus LgiRootCtrlProc(EventHandlerCallRef, EventRef, void *);
 	friend OSStatus CarbonControlProc(EventHandlerCallRef, EventRef, void *);
 	friend OSStatus GViewProc(EventHandlerCallRef, EventRef, void *);
+	#endif
 
 	#elif defined BEOS
 
@@ -502,8 +504,11 @@ protected:
 	
 	OsView _CreateCustomView();
 	bool _Attach(GViewI *parent);
+	#if defined(COCOA)
+	#else
 	virtual bool _OnGetInfo(HISize &size, HISize &line, HIRect &bounds, HIPoint &origin) { return false; }
 	virtual void _OnScroll(HIPoint &origin) {}
+	#endif
 	
 	#endif
 
@@ -1223,7 +1228,7 @@ class LgiClass GWindow :
 	friend class GButton;
 	friend class XWindow;
 	friend class GDialog;
-	#ifdef MAC
+	#if defined(MAC) && !defined(COCOA)
 	friend pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inEvent, void *inUserData);
 	#endif
 
@@ -1381,7 +1386,9 @@ public:
 	bool &CloseRequestDone();
 	bool PostEvent(int Cmd, GMessage::Param a = 0, GMessage::Param b = 0);
 	void Quit(bool DontDelete = false);
+	#ifndef COCOA
 	OSErr HandlerCallback(DragTrackingMessage *tracking, DragRef theDrag);
+	#endif
 	int OnCommand(int Cmd, int Event, OsView Wnd);
 	virtual void OnFrontSwitch(bool b);
 	

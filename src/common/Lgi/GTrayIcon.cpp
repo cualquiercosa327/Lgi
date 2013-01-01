@@ -408,7 +408,10 @@ void GTrayIcon::Visible(bool v)
 			
 			#elif defined MAC
 			
+			#ifdef COCOA
+			#else
 			RestoreApplicationDockTileImage();
+			#endif
 			d->Visible = false;
 			
 			#endif
@@ -469,6 +472,8 @@ void GTrayIcon::Value(int64 v)
 		
 		#elif defined MAC
 		
+		#ifdef COCOA
+		#else
 		GSurface *t = d->Icon[d->Val];
 		if (t)
 		{
@@ -515,6 +520,7 @@ void GTrayIcon::Value(int64 v)
 		{
 			RestoreApplicationDockTileImage();
 		}
+		#endif
 		
 		#endif
 	}

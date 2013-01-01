@@ -338,6 +338,7 @@ struct GLabelData
 	}
 };
 
+#ifndef COCOA
 void LgiLabelProc(	const Rect *r,
 					ThemeButtonKind kind,
 					const ThemeButtonDrawInfo *info,
@@ -346,6 +347,7 @@ void LgiLabelProc(	const Rect *r,
 					Boolean ColourDev);
 
 extern ThemeButtonDrawUPP LgiLabelUPP;
+#endif
 
 #endif
 

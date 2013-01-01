@@ -28,8 +28,13 @@
 	typedef os::Menu *OsSubMenu;
 	typedef os::MenuItem *OsMenuItem;
 #elif defined MAC
+	#if defined(COCOA)
+	typedef void *OsSubMenu;
+	typedef void *OsMenuItem;
+	#else
 	typedef MenuRef OsSubMenu;
 	typedef MenuItemIndex OsMenuItem;
+	#endif
 #else
 	#error "Not impl."
 #endif

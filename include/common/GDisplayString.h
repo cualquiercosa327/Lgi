@@ -41,9 +41,12 @@ class LgiClass GDisplayString
 	
 	#if defined MAC
 	
+	#ifdef COCOA
+	#else
 	ATSUTextLayout Hnd;
 	ATSUTextMeasurement fAscent;
 	ATSUTextMeasurement fDescent;
+	#endif
 	
 	#elif defined __GTK_H__
 	

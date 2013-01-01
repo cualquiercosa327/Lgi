@@ -26,7 +26,12 @@
 #elif defined MAC
 
 	#define CornerOffset 1
+	#ifdef COCOA
+	// #include <Foundation/NSGeometry.h>
+	// typedef NSRect OsRect;
+	#else
 	typedef Rect OsRect;
+	#endif
 
 #else
 
@@ -143,6 +148,7 @@ public:
 	/// Returns how near a point is to a rectangle
 	int Near(GRect &r);
 
+	#ifndef COCOA
 	/// Returns an operating system specific rectangle
 	operator OsRect()
 	{
@@ -155,17 +161,7 @@ public:
 
 		return r;
 	}
-	
-	bool operator ==(const GRect &r)
-	{
-		return	x1 == r.x1 &&
-				y1 == r.y1 &&
-				x2 == r.x2 &&
-				y2 == r.y2;
-	}
-	
-	GRect &operator =(const GRect &r);	
-	
+
 	GRect &operator =(OsRect &r)
 	{
 		x1 = (int) r.left;
@@ -182,8 +178,8 @@ public:
 		x2 = (int) r.right - CornerOffset;
 		y2 = (int) r.bottom - CornerOffset;
 	}
-	
-	#ifdef MAC
+
+	#if defined(MAC)
 	GRect &operator =(HIRect &r)
 	{
 		x1 = (int)r.origin.x;
@@ -203,6 +199,17 @@ public:
 		return r;
 	}
 	#endif
+	#endif
+	
+	bool operator ==(const GRect &r)
+	{
+		return	x1 == r.x1 &&
+				y1 == r.y1 &&
+				x2 == r.x2 &&
+				y2 == r.y2;
+	}
+	
+	GRect &operator =(const GRect &r);	
 	
 	#ifdef __GTK_H__
 	operator Gtk::GdkRectangle()
@@ -236,7 +243,9 @@ public:
 	GRegion();
 	GRegion(int X1, int Y1, int X2, int Y2);
 	GRegion(GRect &r);
+	#ifndef COCOA
 	GRegion(OsRect &r);
+	#endif
 	GRegion(GRegion &c);
 	~GRegion();
 

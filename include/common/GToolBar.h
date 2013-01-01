@@ -123,7 +123,7 @@ protected:
 	int			TipId;
 	bool		NeedsRightClick;
 
-	#ifdef MAC
+	#if defined(MAC) && !defined(COCOA)
 	HIToolbarItemRef ItemRef;
 	#endif
 
@@ -208,7 +208,7 @@ protected:
 	virtual void ContextMenu(GMouse &m);	
 	virtual int PostDescription(GView *Ctrl, const char *Text);
 	
-	#ifdef MAC
+	#if defined(MAC) && !defined(COCOA)
 	HIToolbarRef ToolbarRef;
 	#endif
 

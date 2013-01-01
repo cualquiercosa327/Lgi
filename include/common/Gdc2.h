@@ -737,7 +737,10 @@ public:
 	
 	#elif defined MAC
 	
+	#ifdef COCOA
+	#else
 	virtual CGColorSpaceRef GetColourSpace() { return 0; }
+	#endif
 	
 	#endif
 
@@ -1116,7 +1119,7 @@ public:
 	}
 };
 
-#ifdef MAC
+#if defined(MAC) && !defined(COCOA)
 class CGImg
 {
 	class CGImgPriv *d;
@@ -1178,8 +1181,10 @@ public:
 				
 		OsPainter Handle();
 		OsBitmap GetBitmap();
+		#ifndef COCOA
 		CGColorSpaceRef GetColourSpace();
 		CGImg *GetImg(GRect *Sub = 0);
+		#endif
 		GRect ClipRgn(GRect *Rgn);
 		
 		#else // GTK

@@ -60,7 +60,7 @@ GDisplayString::GDisplayString(GFont *f, const char *s, int l, GSurface *pdc)
 	AppendDots = 0;
 	VisibleTab = 0;
 	
-	#if defined MAC
+	#if defined MAC && !defined COCOA
 	
 	Hnd = 0;
 	if (Font && Str)
@@ -106,7 +106,7 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc)
 	AppendDots = 0;
 	VisibleTab = 0;
 
-	#if defined MAC
+	#if defined MAC && !defined COCOA
 	
 	Hnd = 0;
 	if (Font && Str)
@@ -132,7 +132,7 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc)
 
 GDisplayString::~GDisplayString()
 {
-	#if defined MAC
+	#if defined MAC && !defined COCOA
 	if (Hnd)
 		ATSUDisposeTextLayout(Hnd);
 	#elif defined __GTK_H__
@@ -187,7 +187,7 @@ void GDisplayString::Layout()
 	
 	// printf("Layout '%s' = %i,%i\n", Str, x, y);
 	
-	#elif defined MAC
+	#elif defined MAC && !defined COCOA
 	
 	if (Hnd && Str)
 	{
@@ -330,7 +330,7 @@ void GDisplayString::Layout()
 		ATSUSetTransientFontMatching(Hnd, true);
 	}
 	
-	#else
+	#elif defined WIN32NATIVE
 	
 	int sx, sy, i = 0;
 	if (!Font->Handle()) Font->Create();
@@ -676,7 +676,7 @@ int GDisplayString::CharAt(int Px)
 		#endif
 	}
 
-	#if defined MAC
+	#if defined MAC && !defined COCOA
 
 	if (Hnd && Str)
 	{
@@ -717,7 +717,7 @@ int GDisplayString::CharAt(int Px)
 		else Status = 0;
 	}
 	
-	#else
+	#elif defined WIN32NATIVE
 	
 	GFontSystem *Sys = GFontSystem::Inst();
 
@@ -883,7 +883,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 	LgiAssert(0);
 	return;
 
-	#elif defined MAC
+	#elif defined MAC && !defined COCOA
 
 	int Ox = 0, Oy = 0;
 	if (pDC && !pDC->IsScreen())
@@ -1020,7 +1020,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 		}
 	}
 	
-	#else
+	#elif defined WIN32NATIVE
 	
 	if (Info && pDC && Font)
 	{
