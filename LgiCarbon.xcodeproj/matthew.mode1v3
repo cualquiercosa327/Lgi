@@ -294,7 +294,7 @@
 							<real>199</real>
 						</array>
 						<key>RubberWindowFrame</key>
-						<string>14 110 1064 668 0 0 1280 778 </string>
+						<string>20 110 1064 668 0 0 1280 778 </string>
 					</dict>
 					<key>Module</key>
 					<string>PBXSmartGroupTreeModule</string>
@@ -322,7 +322,7 @@
 										<key>_historyCapacity</key>
 										<integer>0</integer>
 										<key>bookmark</key>
-										<string>347E80DC1692EEEC0091DE1C</string>
+										<string>347E80E71692F3670091DE1C</string>
 										<key>history</key>
 										<array>
 											<string>347E80BE1692EEB20091DE1C</string>
@@ -342,7 +342,7 @@
 											<string>347E80D81692EEEC0091DE1C</string>
 											<string>347E80D91692EEEC0091DE1C</string>
 											<string>347E80DA1692EEEC0091DE1C</string>
-											<string>347E80DB1692EEEC0091DE1C</string>
+											<string>347E80DC1692EEEC0091DE1C</string>
 										</array>
 									</dict>
 									<key>SplitCount</key>
@@ -354,14 +354,14 @@
 							<key>GeometryConfiguration</key>
 							<dict>
 								<key>Frame</key>
-								<string>{{0, 0}, {843, 170}}</string>
+								<string>{{0, 0}, {843, 155}}</string>
 								<key>RubberWindowFrame</key>
-								<string>14 110 1064 668 0 0 1280 778 </string>
+								<string>20 110 1064 668 0 0 1280 778 </string>
 							</dict>
 							<key>Module</key>
 							<string>PBXNavigatorGroup</string>
 							<key>Proportion</key>
-							<string>170pt</string>
+							<string>155pt</string>
 						</dict>
 						<dict>
 							<key>BecomeActive</key>
@@ -376,14 +376,14 @@
 							<key>GeometryConfiguration</key>
 							<dict>
 								<key>Frame</key>
-								<string>{{0, 175}, {843, 452}}</string>
+								<string>{{0, 160}, {843, 467}}</string>
 								<key>RubberWindowFrame</key>
-								<string>14 110 1064 668 0 0 1280 778 </string>
+								<string>20 110 1064 668 0 0 1280 778 </string>
 							</dict>
 							<key>Module</key>
 							<string>XCDetailModule</string>
 							<key>Proportion</key>
-							<string>452pt</string>
+							<string>467pt</string>
 						</dict>
 					</array>
 					<key>Proportion</key>
@@ -402,9 +402,9 @@
 			</array>
 			<key>TableOfContents</key>
 			<array>
-				<string>347E80DD1692EEEC0091DE1C</string>
+				<string>347E80E81692F3670091DE1C</string>
 				<string>1CE0B1FE06471DED0097A5F4</string>
-				<string>347E80DE1692EEEC0091DE1C</string>
+				<string>347E80E91692F3670091DE1C</string>
 				<string>1CE0B20306471E060097A5F4</string>
 				<string>1CE0B20506471E060097A5F4</string>
 			</array>
@@ -544,7 +544,7 @@
 		<string>/Users/matthew/Code/Lgi/trunk/LgiCarbon.xcodeproj</string>
 	</array>
 	<key>WindowString</key>
-	<string>14 110 1064 668 0 0 1280 778 </string>
+	<string>20 110 1064 668 0 0 1280 778 </string>
 	<key>WindowToolsV3</key>
 	<array>
 		<dict>
@@ -621,7 +621,7 @@
 			<key>TableOfContents</key>
 			<array>
 				<string>347E80B81692EE840091DE1C</string>
-				<string>347E80DF1692EEEC0091DE1C</string>
+				<string>347E80EA1692F3670091DE1C</string>
 				<string>1CD0528F0623707200166675</string>
 				<string>XCMainBuildResultsModuleGUID</string>
 			</array>
