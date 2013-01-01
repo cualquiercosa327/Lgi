@@ -282,7 +282,7 @@
 		34ADC9E00F4CC395009C6B75 /* GAutoPtr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GAutoPtr.h; path = include/common/GAutoPtr.h; sourceTree = "<group>"; };
 		34B28AEF143FA69B0023662F /* GPath.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GPath.cpp; path = src/common/Gdc2/Path/GPath.cpp; sourceTree = "<group>"; };
 		34B28AF1143FA6AF0023662F /* GPath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GPath.h; path = include/common/GPath.h; sourceTree = "<group>"; };
-		34B423810EBE762000D370A7 /* GSymLookup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GSymLookup.h; path = include/mac/GSymLookup.h; sourceTree = "<group>"; };
+		34B423810EBE762000D370A7 /* GSymLookup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GSymLookup.h; path = include/mac/carbon/GSymLookup.h; sourceTree = "<group>"; };
 		34B4A4FE0C05962100CDD0D1 /* GPrinter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GPrinter.cpp; path = src/mac/carbon/Lgi/GPrinter.cpp; sourceTree = "<group>"; };
 		34B4A5000C05966000CDD0D1 /* Base64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Base64.cpp; path = src/common/INet/Base64.cpp; sourceTree = "<group>"; };
 		34B4A5060C05987F00CDD0D1 /* GMemStream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GMemStream.cpp; path = src/common/Lgi/GMemStream.cpp; sourceTree = "<group>"; };
@@ -297,9 +297,9 @@
 		34B954860939DCDD00477A2D /* INet.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = INet.h; path = include/common/INet.h; sourceTree = SOURCE_ROOT; };
 		34B954870939DCDD00477A2D /* INetTools.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = INetTools.h; path = include/common/INetTools.h; sourceTree = SOURCE_ROOT; };
 		34BC1E1E134DC748005451EE /* Res.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Res.h; path = include/common/Res.h; sourceTree = "<group>"; };
-		34CDDAE008C5DF5B005EAAC7 /* LgiMac.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LgiMac.h; path = include/mac/LgiMac.h; sourceTree = "<group>"; };
-		34CDDAE108C5DF5B005EAAC7 /* LgiOsClasses.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LgiOsClasses.h; path = include/mac/LgiOsClasses.h; sourceTree = "<group>"; };
-		34CDDAE208C5DF5B005EAAC7 /* LgiOsDefs.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LgiOsDefs.h; path = include/mac/LgiOsDefs.h; sourceTree = "<group>"; };
+		34CDDAE008C5DF5B005EAAC7 /* LgiMac.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LgiMac.h; path = include/mac/carbon/LgiMac.h; sourceTree = "<group>"; };
+		34CDDAE108C5DF5B005EAAC7 /* LgiOsClasses.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LgiOsClasses.h; path = include/mac/carbon/LgiOsClasses.h; sourceTree = "<group>"; };
+		34CDDAE208C5DF5B005EAAC7 /* LgiOsDefs.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LgiOsDefs.h; path = include/mac/carbon/LgiOsDefs.h; sourceTree = "<group>"; };
 		34CDDAEA08C5DFB1005EAAC7 /* GString.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GString.cpp; path = src/common/Text/GString.cpp; sourceTree = "<group>"; };
 		34CDDAEC08C5DFCF005EAAC7 /* GFontCodePages.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GFontCodePages.cpp; path = src/common/Gdc2/Font/GFontCodePages.cpp; sourceTree = "<group>"; };
 		34CEBFE60DDC5EF800DE0E0B /* GCombo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GCombo.h; path = include/common/GCombo.h; sourceTree = "<group>"; };
@@ -1083,7 +1083,7 @@
 				PREBINDING = NO;
 				SDKROOT = /Developer/SDKs/MacOSX10.5.sdk;
 				STRIP_INSTALLED_PRODUCT = NO;
-				USER_HEADER_SEARCH_PATHS = "include/common include/mac include/posix";
+				USER_HEADER_SEARCH_PATHS = "include/common include/mac/carbon include/posix";
 			};
 			name = Debug;
 		};
@@ -1100,7 +1100,7 @@
 				);
 				PREBINDING = NO;
 				SDKROOT = /Developer/SDKs/MacOSX10.5.sdk;
-				USER_HEADER_SEARCH_PATHS = "include/common include/mac include/posix";
+				USER_HEADER_SEARCH_PATHS = "include/common include/mac/carbon include/posix";
 			};
 			name = Release;
 		};
