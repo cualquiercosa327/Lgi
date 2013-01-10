@@ -370,11 +370,15 @@ bool ResString::Test(ErrorCollection *e)
 
 bool ResString::Read(GXmlTag *t, ResFileFormat Format)
 {
-	if (t AND stricmp(t->Tag, "string") == 0)
+	if (t && stricmp(t->Tag, "string") == 0)
 	{
 		char *n = 0;
 
-		SetRef(t->GetAsInt("Ref"));
+		int Ref = t->GetAsInt("Ref");
+		if (!Ref)
+			return false;
+		
+		SetRef(Ref);
 		if ((n = t->GetAttr("Define")) &&
 			ValidStr(n))
 		{
@@ -384,8 +388,14 @@ bool ResString::Read(GXmlTag *t, ResFileFormat Format)
 			if ((c = t->GetAttr("Cid")) ||
 				(c = t->GetAttr("Id")))
 			{
-				int cid = atoi(c);
-				SetId(cid);
+				int Cid = atoi(c);
+				if (!Cid)
+				{
+					LgiAssert(!"No id?");
+					return false;
+				}
+
+				SetId(Cid);
 			}
 		}
 		if (n = t->GetAttr("Tag"))

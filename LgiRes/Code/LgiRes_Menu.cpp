@@ -579,13 +579,13 @@ bool ResMenu::Read(GXmlTag *t, ResFileFormat Format)
 				if (!Group->Read(c, Format))
 				{
 					Status = false;
-					LgiAssert(0);
+					LgiAssert(!"Failed to read string group");
 				}
 			}
 			else
 			{
 				Status = false;
-				LgiAssert(0);
+				LgiAssert(!"No group to read.");
 			}
 		}
 		else if (!stricmp(c->Tag, "submenu") ||
@@ -598,7 +598,7 @@ bool ResMenu::Read(GXmlTag *t, ResFileFormat Format)
 			else
 			{
 				Status = false;
-				LgiAssert(0);
+				LgiAssert(!"Failed to read menu item");
 				DeleteObj(i);
 			}
 		}

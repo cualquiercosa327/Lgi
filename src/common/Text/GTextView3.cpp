@@ -2601,8 +2601,14 @@ bool GTextView3::OnReplace(char16 *Find, char16 *Replace, bool All, bool MatchWo
 			
 			if (Loc >= 0)
 			{
+				int OldSelStart = SelStart;
+				int OldSelEnd = SelEnd;
+				
 				Delete(Loc, FindLen);
 				Insert(Loc, Replace, ReplaceLen);
+				
+				SelStart = OldSelStart;
+				SelEnd = OldSelEnd - FindLen + ReplaceLen;
 				Cursor = Loc + ReplaceLen;
 			}
 			if (!All)
@@ -2612,7 +2618,7 @@ bool GTextView3::OnReplace(char16 *Find, char16 *Replace, bool All, bool MatchWo
 			if (Loc < 0) break;
 		}
 		
-		SetCursor(OldCursor, false);
+		// SetCursor(OldCursor, false);
 	}	
 	
 	return false;
