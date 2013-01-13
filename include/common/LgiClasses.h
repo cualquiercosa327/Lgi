@@ -731,7 +731,7 @@ public:
 	bool SetBackgroundFill(GViewFill *Fill);
 
 	/// Draws an OS themeed border
-	void DrawThemeBorder(GSurface *pDC, GRect r);
+	void DrawThemeBorder(GSurface *pDC, GRect &r);
 
 	/// \brief true if the control is currently executing in the GUI thread
 	///
