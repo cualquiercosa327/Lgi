@@ -16,7 +16,7 @@ class IHttp
 	
 	GAutoPtr<GSocketI> Socket;	// commands
 	int ResumeFrom;
-	char *FileLocation;
+	GAutoString FileLocation;
 	char *Headers;
 	bool NoCache;
 	char *AuthUser;

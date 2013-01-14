@@ -218,8 +218,8 @@ GSocket::~GSocket()
 
 bool GSocket::IsOK()
 {
-	return	this != 0 AND
-			d != 0 AND
+	return	this != 0 &&
+			d != 0 &&
 			(d->Parent ? d->Parent->IsValid() : false);
 }
 
@@ -573,7 +573,7 @@ int GSocket::Open(const char *HostAddr, int Port)
 			}
 			#endif
 
-			if (IsDigit(*HostAddr) AND strchr(HostAddr, '.'))
+			if (IsDigit(*HostAddr) && strchr(HostAddr, '.'))
 			{
 				// Ip address
 				IpAddress = inet_addr(HostAddr);
@@ -646,7 +646,7 @@ int GSocket::Open(const char *HostAddr, int Port)
 				
 				if (Host)
 				{
-					if (Host->h_addr_list AND Host->h_addr_list[0])
+					if (Host->h_addr_list && Host->h_addr_list[0])
 					{
 						memcpy(&RemoteAddr.sin_addr, Host->h_addr_list[0], sizeof(in_addr) );
 					}
@@ -1144,7 +1144,7 @@ int GSocket::Error(void *Param)
 	};
 
 	ErrorMsg *Error = ErrorCodes;
-	while (Error->Code >= 0 AND Error->Code != d->LastError)
+	while (Error->Code >= 0 && Error->Code != d->LastError)
 	{
 		Error++;
 	}
@@ -1299,7 +1299,7 @@ bool HaveNetConnection()
 		RasEnumConnections_Proc pRasEnumConnections = (RasEnumConnections_Proc) GetProcAddress(hRas, "RasEnumConnectionsA"); 
 		RasGetConnectStatus_Proc pRasGetConnectStatus = (RasGetConnectStatus_Proc) GetProcAddress(hRas, "RasGetConnectStatusA"); 
 
-		if (pRasEnumConnections AND
+		if (pRasEnumConnections &&
 			pRasGetConnectStatus)
 		{
 			pRasEnumConnections(Con, &Bytes, &Connections);
@@ -1504,7 +1504,7 @@ int GSocks5Socket::Open(char *HostAddr, int port)
 						case SOCKS5_AUTH_USER_PASS:
 						{
 							OnInformation("[SOCKS5] User/Pass authentication needed.");
-							if (UserName AND Password)
+							if (UserName && Password)
 							{
 								char *b = Buf;
 								*b++ = 1; // ver of sub-negotiation ??
@@ -1522,7 +1522,7 @@ int GSocks5Socket::Open(char *HostAddr, int port)
 								GSocket::Write(Buf, (int)(3 + NameLen + PassLen));
 								if (GSocket::Read(Buf, 2, 0) == 2)
 								{
-									Authenticated = (Buf[0] == 1 AND Buf[1] == 0);
+									Authenticated = (Buf[0] == 1 && Buf[1] == 0);
 								}
 
 								if (!Authenticated)
@@ -1648,7 +1648,7 @@ int GSocks5Socket::Open(char *HostAddr, int port)
 
 /////////////////////////////////////////////////////////////////////////////////
 static const char *Ws = " \t\r\n";
-#define SkipWs(s) while (*s AND strchr(Ws, *s)) s++;
+#define SkipWs(s) while (*s && strchr(Ws, *s)) s++;
 
 GUri::GUri(const char *uri)
 {
@@ -1767,10 +1767,10 @@ bool GUri::Set(const char *uri)
 	{
 		// Scan over the host name
 		p = s;
-		while (	*s AND
-				*s > ' ' AND
-				*s < 127 AND
-				*s != '/' AND
+		while (	*s &&
+				*s > ' ' &&
+				*s < 127 &&
+				*s != '/' &&
 				*s != '\\')
 		{
 			s++;
@@ -1828,7 +1828,7 @@ bool GUri::Set(const char *uri)
 		char *i = Path, *o = Path;
 		while (*i)
 		{
-			if (*i == '%' AND i[1] AND i[2])
+			if (*i == '%' && i[1] && i[2])
 			{
 				char h[3] = {i[1], i[2], 0};
 				*o++ = htoi(h);

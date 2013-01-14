@@ -58,7 +58,6 @@ IHttp::IHttp()
 	ResumeFrom = 0;
 	Proxy = 0;
 	ProxyPort = 0;
-	FileLocation = 0;
 	Headers = 0;
 	AuthUser = 0;
 	AuthPassword = 0;
@@ -71,7 +70,6 @@ IHttp::~IHttp()
 {
 	Close();
 	DeleteArray(Proxy);
-	DeleteArray(FileLocation);
 	DeleteArray(Headers);
 	DeleteArray(Buffer);
 	DeleteArray(AuthUser);
@@ -107,39 +105,16 @@ bool IHttp::Open(GAutoPtr<GSocketI> S, char *RemoteHost, int Port)
 	
 	if (RemoteHost)
 	{
-		char Host[256];
-		char *p = stristr(RemoteHost, "://");
-		if (p)
-		{
-			char *s = Host;
-			for (p += 3; *p && *p != ':' && *p != '/'; p++)
-			{
-				*s++ = *p;
-			}
-			*s++ = 0;
-
-			if (*p == ':' && IsDigit(p[1]))
-			{
-				Port = atoi(p + 1);
-			}
-		}
+		GUri u;
+		if (stristr(RemoteHost, "://") || strchr(RemoteHost, '/'))
+			u.Set(RemoteHost);
 		else
-		{
-			p = strchr(RemoteHost, '/');
-			if (p)
-			{
-				int Len = p-RemoteHost;
-				memcpy(Host, RemoteHost, Len);
-				Host[Len] = 0;
-			}
-			else
-			{
-				strcpy(Host, RemoteHost);
-			}
-		}
+			u.Host = NewStr(RemoteHost);
+		if (!u.Port && Port)
+			u.Port = Port;
 
 		if (Socket &&
-			Socket->Open(Host, Port > 0 ? Port : 80))
+			Socket->Open(u.Host, u.Port > 0 ? u.Port : HTTP_PORT))
 		{
 			return true;
 		}
@@ -576,10 +551,18 @@ bool IHttp::Request
 					if (OutEncoding) *OutEncoding = Encoding;
 				}
 
-				if (strnicmp(h, "HTTP/", 5) == 0 && ProtocolStatus)
+				int HttpStatus = 0;
+				if (strnicmp(h, "HTTP/", 5) == 0)
 				{
-					*ProtocolStatus = atoi(h + 9);
-				}					
+					HttpStatus = atoi(h + 9);
+					if (ProtocolStatus)
+						*ProtocolStatus = HttpStatus;
+				}				
+				if (HttpStatus / 100 == 3)
+				{
+					FileLocation.Reset(InetGetHeaderField(h, "Location"));
+				}
+				
 				if (OutHeaders)
 				{
 					OutHeaders->Write(h, strlen(h));
