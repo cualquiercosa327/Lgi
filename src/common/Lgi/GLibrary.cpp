@@ -28,7 +28,7 @@ bool GLibrary::Load(const char *File)
 	if (File)
 	{
 		char f[256];
-		strcpy(f, File);
+		strsafecpy(f, File, sizeof(f));
 		
 		// check for default extension..
 		// if you specify no extension in the application this will correctly set
@@ -45,7 +45,7 @@ bool GLibrary::Load(const char *File)
 		if (FileName)
 		{
 			memset(FileName, 0, Len);
-			strcpy(FileName, f);
+			strcpy(FileName, f); // FileName is always longer then 'f'
 			
 			#if defined WIN32
 

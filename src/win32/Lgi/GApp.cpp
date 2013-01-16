@@ -529,18 +529,6 @@ GXmlTag *GApp::GetConfig(const char *Tag)
 			if (Path[strlen(Path)-1] != DIR_CHAR) strcat(Path, DIR_STR);
 			strcat(Path, File);
 
-			/*
-			if (!FileExists(Path))
-			{
-				char *f = LgiFindFile(File);
-				if (f)
-				{
-					strcpy(Path, f);
-					DeleteArray(f);
-				}
-			}
-			*/
-
 			if (FileExists(Path))
 			{
 				d->Config = new GXmlTag("Config");

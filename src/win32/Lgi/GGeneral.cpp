@@ -7,7 +7,7 @@
 
 ////////////////////////////////////////////////////////////////
 // Local helper functions
-bool _lgi_check_file(char *Path)
+bool LgiCheckFile(char *Path, int PathSize)
 {
 	if (Path)
 	{
@@ -19,23 +19,20 @@ bool _lgi_check_file(char *Path)
 		else
 		{
 			// shortcut?
-			char *e = Path + strlen(Path);
-			strcpy(e, ".lnk");
-			if (FileExists(Path))
+			char Link[MAX_PATH];
+			sprintf_s(Link, sizeof(Link), "%s.lnk", Path);
+			
+			// resolve shortcut
+			if (FileExists(Link) &&
+				ResolveShortcut(Link, Link, sizeof(Link)))
 			{
-				// resolve shortcut
-				char Link[256];
-				if (ResolveShortcut(Path, Link, sizeof(Link)))
+				// check destination of link
+				if (FileExists(Link))
 				{
-					// check destination of link
-					if (FileExists(Link))
-					{
-						strcpy(Path, Link);
-						return true;
-					}
+					strsafecpy(Path, Link, PathSize);
+					return true;
 				}
 			}
-			*e = 0;
 		}
 	}
 
@@ -218,10 +215,10 @@ bool _GetApps_Add(GArray<GAppInfo*> &Apps, char *In)
 			a->Path.Reset(p.NewStr());
 			if (a->Path)
 			{
-				char e[256];
+				char e[MAX_PATH];
 				char *d = strrchr(a->Path, DIR_CHAR);
-				if (d) strcpy(e, d + 1);
-				else strcpy(e, a->Path);
+				if (d) strsafecpy(e, d + 1, sizeof(e));
+				else strsafecpy(e, a->Path, sizeof(e));
 				d = strchr(e, '.');
 				if (d) *d = 0;
 				e[0] = toupper(e[0]);

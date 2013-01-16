@@ -140,7 +140,7 @@ void GPaneThrottle::OnPaint(GSurface *pDC)
 		}
 		else
 		{
-			strcpy(Str, "No limit");
+			strsafecpy(Str, "No limit", sizeof(Str));
 		}
 		
 		SysFont->Colour(0, LC_MED);

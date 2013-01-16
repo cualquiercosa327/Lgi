@@ -80,12 +80,9 @@ class GFileSelectPrivate
 		{
 			Info.lpstrFile[0] = 0;
 
-			char *s = LgiToNativeCp(FileStr);
+			GAutoString s(LgiToNativeCp(FileStr));
 			if (s)
-			{
-				strcpy(Info.lpstrFile, s);
-				DeleteArray(s);
-			}
+				strsafecpy(Info.lpstrFile, s, Info.nMaxFile);
 		}
 
 		Info.hwndOwner = ParentWnd ? ParentWnd->Handle() : 0;
@@ -111,14 +108,14 @@ class GFileSelectPrivate
 			MultiSelected = strlen(Info.lpstrFile) < Info.nFileOffset;
 			if (MultiSelected)
 			{
-				char s[256];
-				strcpy(s, Info.lpstrFile);
+				char s[MAX_PATH << 1];
+				strsafecpy(s, Info.lpstrFile, sizeof(s));
 				char *e = s + strlen(s);
 				if (*e != DIR_CHAR) *e++ = DIR_CHAR;
 				char *f = Info.lpstrFile + Info.nFileOffset;
 				while (*f)
 				{
-					strcpy(e, f);
+					strsafecpy(e, f, sizeof(s) - (e - s));
 					Files.Insert(LgiFromNativeCp(s));
 					f += strlen(f) + 1;
 				}

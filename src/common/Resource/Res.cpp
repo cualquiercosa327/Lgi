@@ -1378,7 +1378,7 @@ void ResObjectImpl::Res_SetPos(GXmlTag *t)
 	if (Str)
 	{
 		char s[256];
-		strcpy(s, Str);
+		strsafecpy(s, Str, sizeof(s));
 
 		int x1, y1, x2, y2;
 		char *p = ReadInt(s, x1);

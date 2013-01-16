@@ -529,7 +529,6 @@ void LgiStackTrace(const char *Msg, ...)
 		char Buffer[2049] = "";
 		#ifdef LGI_TRACE_TO_FILE
 		GFile f;
-		// strcpy(Buffer, "C:\\scribe.exe");
 		if (LgiGetExeFile(Buffer, sizeof(Buffer)))
 		{
 			char *Dot = strrchr(Buffer, '.');

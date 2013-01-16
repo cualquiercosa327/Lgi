@@ -134,7 +134,7 @@ bool LgiStringRes::Read(GXmlTag *t, ResFileFormat Format)
 
 		const char *Cp = LgiStringRes::CodePage;
 		char Name[256];
-		strcpy(Name, LgiStringRes::CurLang->Id);
+		strsafecpy(Name, LgiStringRes::CurLang->Id, sizeof(Name));
 		n = 0;
 		
 		if ((n = t->GetAttr(Name)) &&
@@ -276,7 +276,7 @@ LgiResources::LgiResources(const char *FileName, bool Warn)
 	// global pointer list
 	_ResourceOwner.Add(this);
 
-	char File[256] = "";
+	char File[MAX_PATH] = "";
 	char *FullPath = 0;
 
 #if DEBUG_RES_FILE
@@ -300,11 +300,11 @@ LgiTrace("%s:%i - f='%s'\n", _FL, f);
 
 			if (f)
 			{
-				strcpy(File, f + 1);
+				strsafecpy(File, f + 1, sizeof(File));
 			}
 			else
 			{
-				strcpy(File, FileName);
+				strsafecpy(File, FileName, sizeof(File));
 			}
 
 #if DEBUG_RES_FILE
@@ -314,7 +314,7 @@ LgiTrace("%s:%i - File='%s'\n", _FL, File);
 		else
 		{
 			// Need to look up the file associated by name with the current exe
-			char Str[256];
+			char Str[MAX_PATH];
 			if (LgiGetExeFile(Str, sizeof(Str)))
 			{
 #if DEBUG_RES_FILE
@@ -334,7 +334,7 @@ LgiTrace("%s:%i - Str='%s'\n", _FL, Str);
 					}
 					#endif
 
-					strcpy(File, f);
+					strsafecpy(File, f, sizeof(File));
 				}
 
 #if DEBUG_RES_FILE

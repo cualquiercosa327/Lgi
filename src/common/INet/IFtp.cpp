@@ -342,7 +342,7 @@ int IFtp::WriteLine(char *Msg)
 	return Status;	
 }
 
-int IFtp::ReadLine(char *Msg, bool Debug)
+int IFtp::ReadLine(char *Msg, int MsgSize)
 {
 	int Status = 0;
 	while (Socket)
@@ -366,7 +366,7 @@ int IFtp::ReadLine(char *Msg, bool Debug)
 						char *Sp = strchr(s, ' ');
 						if (Sp)
 						{
-							strcpy(Msg, Sp + 1);
+							strsafecpy(Msg, Sp + 1, MsgSize);
 						}
 					}
 				}
@@ -544,34 +544,26 @@ void IFtp::Noop()
 	}
 }
 
-bool IFtp::GetDir(char *Dir)
+bool IFtp::GetDir(GAutoString &Dir)
 {
 	bool Status = false;
 
 	try
 	{
-		if (IsOpen() &&
-			Dir)
+		if (IsOpen())
 		{
 			char Temp[256];
 
 			sprintf(d->OutBuf, "PWD\r\n");
 			WriteLine();
-			Verify(ReadLine(Temp), 257);
+			Verify(ReadLine(Temp, sizeof(Temp)), 257);
 
 			char *Start = strchr(Temp, '\"');
 			char *End = (Start) ? strchr(Start+1, '\"') : 0;
 			if (End)
 			{
-				*End = 0;
-	
-				char *u = FromFtpCs(Start+1);
-				if (u)
-				{
-					strcpy(Dir, u);
-					DeleteArray(u);
-					Status = true;
-				}
+				*End = 0;	
+				Status = Dir.Reset(FromFtpCs(Start+1));
 			}			
 		}
 	}
@@ -689,7 +681,7 @@ bool IFtp::UpDir()
 		{
 			sprintf(d->OutBuf, "CDUP\r\n");
 			WriteLine();
-			VerifyRange(ReadLine(0, true), 2);
+			VerifyRange(ReadLine(0), 2);
 
 			Status = true;
 		}
@@ -727,7 +719,7 @@ bool IFtp::ListDir(List<IFtpEntry> *Dir)
 			GBytePipe Buf;
 
 			// List command
-			strcpy(d->OutBuf, "LIST");
+			strsafecpy(d->OutBuf, "LIST", sizeof(d->OutBuf));
 			if (LongList || ShowHidden) strcat(d->OutBuf, " -");
 			if (LongList) strcat(d->OutBuf, "l");
 			if (ShowHidden) strcat(d->OutBuf, "a");
@@ -1187,7 +1179,7 @@ bool IFtp::SetupData(bool Binary)
 				WriteLine();
 
 				char Temp[256];
-				if (ReadLine(Temp)/100 == 2)
+				if (ReadLine(Temp, sizeof(Temp))/100 == 2)
 				{
 					// Ok we have PASV mode
 					// grab the IP and Port

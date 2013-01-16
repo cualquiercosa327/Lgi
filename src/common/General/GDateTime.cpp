@@ -758,7 +758,7 @@ bool GDateTime::Set(const char *Str)
 	if (Str)
 	{
 		char Local[256];
-		strcpy(Local, Str);
+		strsafecpy(Local, Str, sizeof(Local));
 		char *Sep = strchr(Local, ' ');
 		if (Sep)
 		{

@@ -99,7 +99,7 @@ public:
 	virtual void Noop() = 0;
 
 	// Directory
-	virtual bool GetDir(char *Dir) = 0;
+	virtual bool GetDir(GAutoString &Dir) = 0;
 	virtual bool SetDir(char *Dir) = 0;
 	virtual bool CreateDir(char *Dir) = 0;
 	virtual bool DeleteDir(char *Dir) = 0;
@@ -126,7 +126,7 @@ protected:
 	GAutoPtr<GSocketI> Socket;	// commands
 
 	int WriteLine(char *Msg = 0);
-	int ReadLine(char *Msg = 0, bool Debug = false);
+	int ReadLine(char *Msg = 0, int MsgSize = 0);
 	bool TransferFile(char *Local, char *Remote, int64 RemoteSize, bool Upload, bool Binary);
 
 	// Data connections
@@ -185,7 +185,7 @@ public:
 	void Noop();
 
 	/// \returns the current remote folder.
-	bool GetDir(char *Dir);
+	bool GetDir(GAutoString &Dir);
 	/// Sets the current remote folder.
 	bool SetDir(char *Dir);
 	/// Create a new sub-folder under the current remote folder.

@@ -28,7 +28,7 @@
 /////////////////////////////////////////////////////////////////////////////////////
 // Externs
 extern long MouseWatcher(void *Ptr);
-extern bool _lgi_check_file(char *Path);
+extern bool LgiCheckFile(char *Path, int PathSize);
 LgiFunc bool LgiPostEvent(OsView Wnd, int Event, GMessage::Param a = 0, GMessage::Param b = 0);
 LgiFunc GViewI *GetNextTabStop(GViewI *v, bool Back);
 #if defined(MAC) && !defined(COCOA)
