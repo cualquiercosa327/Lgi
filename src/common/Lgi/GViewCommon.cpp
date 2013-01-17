@@ -806,13 +806,17 @@ void GView::Enabled(bool i)
 bool GView::Visible()
 {
 	#if WIN32NATIVE
+
 	if (_View)
+
+	/*	This takes into account all the parent windows as well...
+		Which is kinda not what I want. I want this to reflect just
+		this window.
+		
 		return IsWindowVisible(_View);
-	/*
-	#elif defined(__GTK_H__)
-	if (_View)
-		return Gtk::gtk_widget_get_visible(_View);
 	*/
+		return (GetWindowLong(_View, GWL_STYLE) & WS_VISIBLE) != 0;	
+	
 	#endif
 
 	return TestFlag(GViewFlags, GWF_VISIBLE);

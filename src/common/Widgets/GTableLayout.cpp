@@ -342,6 +342,8 @@ class TableCell;
 
 class GTableLayoutPrivate
 {
+	bool InLayout;
+
 public:
 	GArray<double> Rows, Cols;
 	GArray<TableCell*> Cells;
@@ -539,6 +541,8 @@ public:
 			for (int i=0; i<Children.Length(); i++)
 			{
 				GView *v = Children[i];
+				if (!v->Visible())
+					continue;
 				
 				GViewLayoutInfo Inf;
 				GCss *Css;
@@ -714,136 +718,136 @@ public:
 		for (int i=0; i<Children.Length(); i++)
 		{
 			GView *v = Children[i];
-			if (v)
+			if (!v || !v->Visible())
+				continue;
+
+			GTableLayout *Tbl;
+			GRadioGroup *Grp;
+
+			if (i)
 			{
-				GTableLayout *Tbl;
-				GRadioGroup *Grp;
+				Pos.y2 += GTableLayout::CellSpacing;
+			}
 
-				if (i)
-				{
-					Pos.y2 += GTableLayout::CellSpacing;
-				}
+			if (Izza(GText))
+			{
+				GText *Txt = dynamic_cast<GText*>(v);
+				if (Txt && Txt->GetWrap() == false)
+					Txt->SetWrap(true);
 
-				if (Izza(GText))
+				int y = LayoutTextCtrl(v, 0, Pos.X());
+				Pos.y2 += y;
+				
+				GRect r = v->GetPos();
+				r.y2 = r.y1 + y - 1;
+				v->SetPos(r);
+			}
+			else if (Izza(GScrollBar))
+			{
+				Pos.y2 += 15;
+			}
+			else if (Izza(GButton))
+			{
+                int y = v->GetFont()->GetHeight() + GButton::Overhead.y;
+				if (BtnRows < 0)
 				{
-					GText *Txt = dynamic_cast<GText*>(v);
-					if (Txt && Txt->GetWrap() == false)
-						Txt->SetWrap(true);
-
-					int y = LayoutTextCtrl(v, 0, Pos.X());
-					Pos.y2 += y;
-					
-					GRect r = v->GetPos();
-					r.y2 = r.y1 + y - 1;
-					v->SetPos(r);
-				}
-				else if (Izza(GScrollBar))
-				{
-					Pos.y2 += 15;
-				}
-				else if (Izza(GButton))
-				{
-                    int y = v->GetFont()->GetHeight() + GButton::Overhead.y;
-					if (BtnRows < 0)
-					{
-					    // Setup first row
-					    BtnRows = 1;
-    					Pos.y2 += y;
-    				}
-					
-					if (BtnX + v->X() > Width)
-					{
-					    // Wrap
-					    BtnX = v->X();
-					    BtnRows++;
-    					Pos.y2 += y + GTableLayout::CellSpacing;
-					}
-					else
-					{
-					    // Don't wrap
-					    BtnX += v->X() + GTableLayout::CellSpacing;
-					}
-					
-					// Set button height..
-					GRect r = v->GetPos();
-					r.y2 = r.y1 + y - 1;
-					v->SetPos(r);
-				}
-				else if (Izza(GEdit) || Izza(GCombo))
-				{
-					int y = v->GetFont()->GetHeight() + 8;
-					
-					GRect r = v->GetPos();
-					r.y2 = r.y1 + y - 1;
-					v->SetPos(r);
-
-					Pos.y2 += y;
-
-					if (Izza(GEdit) &&
-						Izza(GEdit)->MultiLine())
-					{
-						MaxY = max(MaxY, 1000);
-					}
-				}
-				else if (Izza(GCheckBox) ||
-						 Izza(GRadioButton))
-				{
-					int y = v->GetFont()->GetHeight() + 2;
-					
-					GRect r = v->GetPos();
-					r.y2 = r.y1 + y - 1;
-					v->SetPos(r);
-
+				    // Setup first row
+				    BtnRows = 1;
 					Pos.y2 += y;
 				}
-				else if (Izza(GList) ||
-						 Izza(GTree) ||
-						 Izza(GTabView))
+				
+				if (BtnX + v->X() > Width)
 				{
-					Pos.y2 += v->GetFont()->GetHeight() + 8;
-					MaxY = max(MaxY, 1000);
-				}
-				else if (Izza(GBitmap))
-				{
-					GBitmap *b = Izza(GBitmap);
-					GSurface *Dc = b->GetSurface();
-					if (Dc)
-					{
-						MaxY = max(MaxY, Dc->Y() + 4);
-					}
-					else
-					{
-						MaxY = max(MaxY, 1000);
-					}
-				}
-				else if (Tbl = Izza(GTableLayout))
-				{
-					int Ht = min(v->Y(), Tbl->d->LayoutBounds.Y());
-
-					GRect r = v->GetPos();
-					r.x2 = r.x1 + min(Width, Tbl->d->LayoutMaxX) - 1;
-					r.y2 = r.y1 + Ht - 1;
-					v->SetPos(r);
-
-					Pos.y2 += Ht;
+				    // Wrap
+				    BtnX = v->X();
+				    BtnRows++;
+					Pos.y2 += y + GTableLayout::CellSpacing;
 				}
 				else
 				{
-					GViewLayoutInfo Inf;
-					Inf.Width.Min = Inf.Width.Max = Width;
-					if (v->OnLayout(Inf))
-					{
-						// Supports layout info
-						if (Inf.Height.Max < 0)
-							Flags = SizeFill;
-						else
-							Pos.y2 += Inf.Height.Max - 1;
-					}
+				    // Don't wrap
+				    BtnX += v->X() + GTableLayout::CellSpacing;
+				}
+				
+				// Set button height..
+				GRect r = v->GetPos();
+				r.y2 = r.y1 + y - 1;
+				v->SetPos(r);
+			}
+			else if (Izza(GEdit) || Izza(GCombo))
+			{
+				int y = v->GetFont()->GetHeight() + 8;
+				
+				GRect r = v->GetPos();
+				r.y2 = r.y1 + y - 1;
+				v->SetPos(r);
+
+				Pos.y2 += y;
+
+				if (Izza(GEdit) &&
+					Izza(GEdit)->MultiLine())
+				{
+					MaxY = max(MaxY, 1000);
+				}
+			}
+			else if (Izza(GCheckBox) ||
+					 Izza(GRadioButton))
+			{
+				int y = v->GetFont()->GetHeight() + 2;
+				
+				GRect r = v->GetPos();
+				r.y2 = r.y1 + y - 1;
+				v->SetPos(r);
+
+				Pos.y2 += y;
+			}
+			else if (Izza(GList) ||
+					 Izza(GTree) ||
+					 Izza(GTabView))
+			{
+				Pos.y2 += v->GetFont()->GetHeight() + 8;
+				MaxY = max(MaxY, 1000);
+			}
+			else if (Izza(GBitmap))
+			{
+				GBitmap *b = Izza(GBitmap);
+				GSurface *Dc = b->GetSurface();
+				if (Dc)
+				{
+					MaxY = max(MaxY, Dc->Y() + 4);
+				}
+				else
+				{
+					MaxY = max(MaxY, 1000);
+				}
+			}
+			else if (Tbl = Izza(GTableLayout))
+			{
+				int Ht = min(v->Y(), Tbl->d->LayoutBounds.Y());
+
+				GRect r = v->GetPos();
+				r.x2 = r.x1 + min(Width, Tbl->d->LayoutMaxX) - 1;
+				r.y2 = r.y1 + Ht - 1;
+				v->SetPos(r);
+
+				Pos.y2 += Ht;
+			}
+			else
+			{
+				GViewLayoutInfo Inf;
+				Inf.Width.Min = Inf.Width.Max = Width;
+				if (v->OnLayout(Inf))
+				{
+					// Supports layout info
+					if (Inf.Height.Max < 0)
+						Flags = SizeFill;
 					else
-					{
-						// Doesn't support layout info
-						Pos.y2 += v->Y();
-					}
+						Pos.y2 += Inf.Height.Max - 1;
+				}
+				else
+				{
+					// Doesn't support layout info
+					Pos.y2 += v->Y();
 				}
 			}
 		}
@@ -969,6 +973,7 @@ public:
 
 GTableLayoutPrivate::GTableLayoutPrivate(GTableLayout *ctrl)
 {
+	InLayout = false;
 	Ctrl = ctrl;
 	FirstLayout = true;
 	CellSpacing = GTableLayout::CellSpacing;
@@ -1031,10 +1036,9 @@ TableCell *GTableLayoutPrivate::GetCellAt(int cx, int cy)
 
 void GTableLayoutPrivate::Layout(GRect &Client)
 {
-    static bool InLayout = false;
     if (InLayout)
     {
-        // LgiAssert(!"In layout, no recursion should happen.");
+        LgiAssert(!"In layout, no recursion should happen.");
         return;
     }
         
