@@ -1560,13 +1560,17 @@ bool GCss::Len::Parse(const char *&s, ParsingStyle ParseType)
 			Type = LenPercent;
 			s++;
 		}
-		else if (ParseWord(s, "px")) Type = LenPx;
+		else if (ParseWord(s, "px"))Type = LenPx;
 		else if (ParseWord(s, "pt")) Type = LenPt;
 		else if (ParseWord(s, "em")) Type = LenEm;
 		else if (ParseWord(s, "ex")) Type = LenEx;
 		else if (ParseWord(s, "cm")) Type = LenCm;
-		else if (ParseType == ParseRelaxed) Type = LenPx;
-		else return false;
+		else if (IsAlpha(*s))
+			return false;
+		else if (ParseType == ParseRelaxed)
+			Type = LenPx;
+		else
+			return false;
 	}
 	else return false;
 		
