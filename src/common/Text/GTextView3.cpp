@@ -4651,15 +4651,18 @@ void GTextView3::SetMargin(GRect &m)
 
 bool GTextView3::OnLayout(GViewLayoutInfo &Inf)
 {
+	Inf.Width.Min = 32;
+	Inf.Width.Max = -1;
+
 	Inf.Height.Min = (Font ? Font->GetHeight() : 18) + 4;
 	Inf.Height.Max = -1;
+
 	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 class GTextView3_Factory : public GViewFactory
 {
-
 	GView *NewView(const char *Class, GRect *Pos, const char *Text)
 	{
 		if (_stricmp(Class, "GTextView3") == 0)

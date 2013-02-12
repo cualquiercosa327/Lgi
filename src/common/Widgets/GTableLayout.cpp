@@ -550,8 +550,8 @@ public:
 				{
 					if (Inf.Width.Max < 0)
 					{
-						if (Flag < SizeGrow)
-							Flag = SizeGrow;
+						if (Flag < SizeFill)
+							Flag = SizeFill;
 					}
 					else
 					{
@@ -904,6 +904,9 @@ public:
 			
 			if (!Izza(GButton) && !Tbl)
 			{
+				if (Inf.Width.Max < 0)
+					Inf.Width.Max = Pos.X() - Padding.x1 - Padding.x2;
+					
 			    r.x2 = r.x1 + Inf.Width.Max - 1;
 			}
 
