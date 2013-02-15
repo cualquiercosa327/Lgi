@@ -8,7 +8,7 @@ enum Controls
 	IDC_DELETE = 2000,
 	IDC_EDIT,
 };
-#define M_CLOSE_EDIT		(M_USER+2000)
+#define M_DELETE_LATER		(M_USER+2000)
 #define CELL_EDGE			2
 
 struct GDataGridPriv
@@ -16,6 +16,7 @@ struct GDataGridPriv
 	GDataGrid *This;
 	int Col;
 	GView *e;
+	GView *DeleteLater;
 	GListItem *Cur;
 	bool Dirty, PosDirty;
 	GArray<GDataGrid::GDataGridFlags> Flags;
@@ -136,6 +137,7 @@ GDataGridPriv::GDataGridPriv(GDataGrid *t)
 	Factory = 0;
 	UserData = 0;
 	SrcFmt = AcceptFmt = 0;
+	DeleteLater = NULL;
 
 	NewRecord = 0;
 	Dirty = false;
@@ -278,8 +280,11 @@ void GDataGridPriv::Create(int NewCol)
 			{
 				if (e)
 				{
+					e->Detach();
 					Invalidate();
-					DeleteObj(e);
+					DeleteLater = e;
+					e = NULL;					
+					This->PostEvent(M_DELETE_LATER);
 				}
 
 				if (Flags[Col] & GDataGrid::GDG_INTEGER)
@@ -379,7 +384,9 @@ void GDataGrid::OnItemSelect(GArray<GListItem*> &Items)
 	else if (d->e)
 	{
 		d->Cur = 0;
-		PostEvent(M_CLOSE_EDIT);
+		d->DeleteLater = d->e;
+		d->e = NULL;
+		PostEvent(M_DELETE_LATER);
 	}
 
 	GList::OnItemSelect(Items);
@@ -432,9 +439,9 @@ GMessage::Result GDataGrid::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{
-		case M_CLOSE_EDIT:
+		case M_DELETE_LATER:
 		{
-			DeleteObj(d->e);
+			DeleteObj(d->DeleteLater);
 			break;
 		}
 	}
