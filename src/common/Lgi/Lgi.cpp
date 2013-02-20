@@ -695,6 +695,7 @@ bool LgiMakePath(char *Str, int StrSize, const char *Path, const char *File)
 					if (Len >= StrSize - 1)
 						return false;
 					Str[Len++] = DIR_CHAR;
+					Str[Len] = 0;
 				}
 				int SegLen = strlen(T[i]);
 				if (Len + SegLen + 1 > StrSize)
@@ -1673,7 +1674,7 @@ char *LgiFindFile(const char *Name)
 		// Look in prefered paths first...
 		for (const char **Pref = PrefPath; *Pref; Pref++)
 		{
-			char Path[256];
+			char Path[MAX_PATH];
 			if (LgiIsRelativePath(*Pref))
 			{
 				LgiMakePath(Path, sizeof(Path), Exe, *Pref);

@@ -6,6 +6,19 @@
 #include "GToken.h"
 #include "GUtf8.h"
 
+struct UnicodeMappings
+{
+	int Unicode;
+	char Ascii;
+}
+MissingMaps[] =
+{
+	{0x2019, '\''},
+	{0x201C, '\"'},
+	{0x201D, '\"'},
+	{0, 0}
+};
+
 typedef uint32 iso2022jp_block[16];
 iso2022jp_block *iso2022jp_map[128];
 iso2022jp_block iso2022jp_blocks[] =
@@ -914,10 +927,22 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 										break;
 									}
 								}
-
+								
 								if (n >= 128)
 								{
-									*Out8++ = '?';
+									for (n=0; MissingMaps[n].Unicode; n++)
+									{
+										if (MissingMaps[n].Unicode == Utf32)
+										{
+											*Out8++ = MissingMaps[n].Ascii;
+											break;
+										}
+									}
+									
+									if (!MissingMaps[n].Unicode)
+									{
+										*Out8++ = '?';
+									}
 								}
 							}
 							else

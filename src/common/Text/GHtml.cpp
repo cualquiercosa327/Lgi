@@ -1902,7 +1902,7 @@ void GTag::_Dump(GStringPipe &Buf, int Depth)
 GAutoWString GTag::DumpW()
 {
 	GStringPipe Buf;
-	Buf.Print("Html pos=%s\n", Html?Html->GetPos().GetStr():0);
+	// Buf.Print("Html pos=%s\n", Html?Html->GetPos().GetStr():0);
 	_Dump(Buf, 0);
 	GAutoString a(Buf.NewStr());
 	GAutoWString w(LgiNewUtf8To16(a));
@@ -5416,7 +5416,7 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 		}
 		case TAG_IMG:
 		{
-			Restart = false;
+			// Restart = false;
 
 			Pos.y = Flow->y1;
 			
