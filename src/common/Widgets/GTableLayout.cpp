@@ -380,6 +380,7 @@ public:
 	GRect Pos;		// Pixel position
 	GRect Padding;	// Cell padding from CSS styles
 	GArray<GView*> Children;
+	GCss::DisplayType Disp;
 
 	TableCell(GTableLayout *t, int Cx, int Cy)
 	{
@@ -389,6 +390,7 @@ public:
 		Cell.ZOff(0, 0);
 		Cell.Offset(Cx, Cy);
 		Padding.ZOff(0, 0);
+		Disp = GCss::DispBlock;
 	}
 	
 	bool Add(GView *v)
@@ -520,6 +522,9 @@ public:
 				Padding.Edge = 0; \
 		}
 		
+		Disp = Display();
+		if (Disp == DispNone)
+			return;
 		CalcCssPadding(PaddingLeft, X, x1)
 		CalcCssPadding(PaddingRight, X, x2)
 		CalcCssPadding(PaddingTop, Y, y1)
@@ -541,7 +546,7 @@ public:
 			for (int i=0; i<Children.Length(); i++)
 			{
 				GView *v = Children[i];
-				if (!v->Visible())
+				if (!v)
 					continue;
 				
 				GViewLayoutInfo Inf;
@@ -701,6 +706,8 @@ public:
 	void Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 	{
 		Pos.ZOff(Width-1, 0);
+		if (Disp == DispNone)
+			return;
 		
 		Len Ht = Height();
 		if (Ht.Type != LenInherit)
@@ -718,7 +725,7 @@ public:
 		for (int i=0; i<Children.Length(); i++)
 		{
 			GView *v = Children[i];
-			if (!v || !v->Visible())
+			if (!v)
 				continue;
 
 			GTableLayout *Tbl;
@@ -871,10 +878,11 @@ public:
 			if (!v)
 				continue;
 
-				if (Izza(GCheckBox))
-				{
-					int asd=0;
-				}
+			if (Disp == DispNone)
+			{
+				v->Visible(false);
+				continue;
+			}
 				
 			GTableLayout *Tbl = Izza(GTableLayout);
 			GRect r = v->GetPos();
@@ -937,6 +945,11 @@ public:
 			}
 		}
 
+		if (Disp == DispNone)
+		{
+			return;
+		}
+
 		int n;
 		int Wid = Cx - GTableLayout::CellSpacing;
 		int OffsetX = 0;
@@ -970,6 +983,7 @@ public:
 
 			New[n].Offset(0, OffsetY);
 			v->SetPos(New[n]);
+			v->Visible(true);
 		}
 	}
 };
