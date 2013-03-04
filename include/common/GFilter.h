@@ -21,6 +21,7 @@
 #define LGI_FILTER_TRANSPARENT	"Transparent"
 #define LGI_FILTER_QUALITY		"Quality"
 #define LGI_FILTER_SUBSAMPLE	"SubSample"
+#define LGI_FILTER_INFO			"Info"
 
 // These must be returned by a GFilter's GetVariant method
 /// A descriptive name for a GFilter

@@ -13,7 +13,6 @@ public:
     };
 
 private:
-
 	friend class GJpegOptions;
 	class GdcJpegPriv *d;
 

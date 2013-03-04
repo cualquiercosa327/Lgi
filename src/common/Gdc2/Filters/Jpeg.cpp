@@ -219,10 +219,12 @@ bool GetIccProfile(j_decompress_ptr cinfo, uchar **icc_data, uint *icc_datalen)
 
 		index = marker_sequence[count];
 		if (!(marker_present[count]))
-			return false;
+			continue;
 		total_length += data_length[count];
 
-		assert(local_icc_data == 0);
+		if (local_icc_data != NULL)
+			break;
+
 		local_icc_data = (JOCTET *)malloc(total_length);
 		if (local_icc_data == NULL)
 			return false;
@@ -314,6 +316,31 @@ GdcJpeg::~GdcJpeg()
 	DeleteObj(d);
 }
 
+struct JpegRgb
+{
+	uchar r, g, b;
+};
+
+struct JpegXyz
+{
+	uchar x, y, z;
+};
+
+struct JpegCmyk
+{
+	uchar c, m, y, k;
+};					
+
+union JpegPointer
+{
+	uchar *u8;
+	Pixel24 *p24;
+	Pixel32 *p32;
+	JpegRgb *j24;
+	JpegXyz *x24;
+	JpegCmyk *c32;
+};
+
 GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 {
 	GFilter::IoStatus Status = IoError;
@@ -374,6 +401,15 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 		Props->SetValue(LGI_FILTER_COLOUR_PROF, v);
 		free(icc_data);
 		icc_data = 0;
+	}
+	
+	if (Props)
+	{
+		char s[256];
+		int ch = sprintf_s(s, sizeof(s), "Sub-sampling: ");
+		for (int i=0; i<cinfo.comps_in_scan; i++)
+			ch += sprintf_s(s + ch, sizeof(s) - ch, "%s%ix%i", i ? "_" : "", cinfo.comp_info[i].h_samp_factor, cinfo.comp_info[i].v_samp_factor);
+		Props->SetValue(LGI_FILTER_INFO, v = s);
 	}
 
 	int Bits = cinfo.num_components * 8;
@@ -460,24 +496,6 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 				blue[i+Bc]  = 0;
 			}
 
-			class JpegRgb
-			{
-			public:
-				uchar r, g, b;
-			};
-			
-			class JpegXyz
-			{
-			public:
-				uchar x, y, z;
-			};
-			
-			class JpegCmyk
-			{
-			public:
-				uchar c, m, y, k;
-			};					
-			
 			// loop through scanlines
 			while (cinfo.output_scanline < cinfo.output_height)
 			{
@@ -495,49 +513,31 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 							}
 							case JCS_CMYK:
 							{
-								/*
-								RGB to CMY                         
-								Cyan    = 1-Red                    
-								Magenta = 1-Green                 
-								Yellow  = 1-Blue                  
-
-								CMY to RGB                   
-								Red   = 1-Cyan
-								Green = 1-Magenta 
-								Blue  = 1-Yellow
-
-								CMY to CMYK                             
-								Black   = minimum (Cyan,Magenta,Yellow) 
-								Cyan    = (Cyan-Black)/(1-Black)                
-								Magenta = (Magenta-Black)/(1-Black)     
-								Yellow  = (Yellow-Black)/(1-Black)      
-
-								CMYK to CMY
-								Cyan    = minimum(1,Cyan*(1-Black)+Black)
-								Magenta = minimum(1,Magenta*(1-Black)+Black)
-								Yellow  = minimum(1,Yellow*(1-Black)+Black)
-								*/
-
-								if (cinfo.num_components == 4)
+								if (cinfo.num_components != 4)
 								{
-									Pixel32 *d = (Pixel32*) Ptr;
-									
-									for (int x=0; x<pDC->X(); x++)
-									{
-										JpegCmyk *s = (JpegCmyk*) d;
-										
-										double C = (double) s->c / 255;
-										double M = (double) s->m / 255;
-										double Y = (double) s->y / 255;
-										double K = (double) s->k / 255;
+									LgiAssert(!"Weird number of components for CMYK JPEG.");
+									break;
+								}
 
-										d->r = (uint8) ((1.0 - min(1, C * (1.0 - K) + K)) * 255);
-										d->g = (uint8) ((1.0 - min(1, M * (1.0 - K) + K)) * 255);
-										d->b = (uint8) ((1.0 - min(1, Y * (1.0 - K) + K)) * 255);
-										d->a = 255;
+								JpegPointer ptr;
+								ptr.u8 = Ptr;
+								LgiAssert(pDC->GetBits() == 32);
+								
+								for (int x=0; x<pDC->X(); x++)
+								{
+									double C = (double) ptr.c32->c / 255;
+									double M = (double) ptr.c32->m / 255;
+									double Y = (double) ptr.c32->y / 255;
+									double K = (double) ptr.c32->k / 255;
 
-										d++;
-									}
+									/*
+									ptr.p32->r = (uint8) ((1.0 - min(1, C * (1.0 - K) + K)) * 255);
+									ptr.p32->g = (uint8) ((1.0 - min(1, M * (1.0 - K) + K)) * 255);
+									ptr.p32->b = (uint8) ((1.0 - min(1, Y * (1.0 - K) + K)) * 255);
+									*/
+									ptr.p32->a = 255;
+
+									ptr.p32++;
 								}
 								break;
 							}
@@ -761,25 +761,25 @@ GFilter::IoStatus GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality, SubS
 	    default:
 	    case Sample_1x1_1x1_1x1:
 	        cinfo.comp_info[0].h_samp_factor = 1;
-	        cinfo.comp_info[0].h_samp_factor = 1;
+	        cinfo.comp_info[0].v_samp_factor = 1;
 	        break;
 	    case Sample_2x2_1x1_1x1:
 	        cinfo.comp_info[0].h_samp_factor = 2;
-	        cinfo.comp_info[0].h_samp_factor = 2;
+	        cinfo.comp_info[0].v_samp_factor = 2;
 	        break;
 	    case Sample_2x1_1x1_1x1:
 	        cinfo.comp_info[0].h_samp_factor = 2;
-	        cinfo.comp_info[0].h_samp_factor = 1;
+	        cinfo.comp_info[0].v_samp_factor = 1;
 	        break;
 	    case Sample_1x2_1x1_1x1:
 	        cinfo.comp_info[0].h_samp_factor = 1;
-	        cinfo.comp_info[0].h_samp_factor = 2;
+	        cinfo.comp_info[0].v_samp_factor = 2;
 	        break;
 	}
     cinfo.comp_info[1].h_samp_factor = 1;
-    cinfo.comp_info[1].h_samp_factor = 1;
+    cinfo.comp_info[1].v_samp_factor = 1;
     cinfo.comp_info[2].h_samp_factor = 1;
-    cinfo.comp_info[2].h_samp_factor = 1;
+    cinfo.comp_info[2].v_samp_factor = 1;
 
 	if (Quality >= 0)
 	{

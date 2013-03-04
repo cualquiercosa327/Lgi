@@ -5416,7 +5416,7 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 		}
 		case TAG_IMG:
 		{
-			// Restart = false;
+			Restart = false;
 
 			Pos.y = Flow->y1;
 			
