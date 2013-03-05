@@ -1641,10 +1641,19 @@ GVariant *GScriptEnginePrivate::Execute_Expression(int &Cur, GDom *Src, int Dept
 				{
 					if (PrevIsOp == 0)
 					{
-						GBase u;
-						u.NameW(t);
-						Term.Print("%s:%i - Not expecting '%s' after non-operator.\n", ErrorTitle(), Lines[StartToken], u.Name());
-						break;
+						if (*t == '-')
+						{
+							// Emit a minus operator and treat the value as a number
+							t++;
+							Args.Add(new GVariant(OpMinus));
+						}
+						else
+						{						
+							GBase u;
+							u.NameW(t);
+							Term.Print("%s:%i - Not expecting '%s' after non-operator.\n", ErrorTitle(), Lines[StartToken], u.Name());
+							break;
+						}
 					}
 
 					GFunc *Method = 0;
