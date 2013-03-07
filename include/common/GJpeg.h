@@ -16,7 +16,7 @@ private:
 	friend class GJpegOptions;
 	class GdcJpegPriv *d;
 
-	GFilter::IoStatus _Write(GStream *Out, GSurface *pDC, int Quality, SubSampleMode SubSample);
+	GFilter::IoStatus _Write(GStream *Out, GSurface *pDC, int Quality, SubSampleMode SubSample, GdcPt2 Dpi);
 
 public:
 	GdcJpeg();

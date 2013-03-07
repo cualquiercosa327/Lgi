@@ -678,17 +678,23 @@ GFilter::IoStatus GdcJpeg::WriteImage(GStream *Out, GSurface *pDC)
 	// bool Ok = true;
 
 	// Setup quality setting
-	GVariant Quality, SubSample;
+	GVariant Quality, SubSample, DpiX, DpiY;
+	GdcPt2 Dpi;
 	if (Props)
 	{
 		Props->GetValue(LGI_FILTER_QUALITY, Quality);
 		Props->GetValue(LGI_FILTER_SUBSAMPLE, SubSample);
+		Props->GetValue(LGI_FILTER_DPI_X, DpiX);
+		Props->GetValue(LGI_FILTER_DPI_Y, DpiY);
+		
+		Dpi.x = DpiX.CastInt32();
+		Dpi.y = DpiY.CastInt32();
 	}
 
-	return _Write(Out, pDC, Quality.CastInt32(), (SubSampleMode)SubSample.CastInt32());
+	return _Write(Out, pDC, Quality.CastInt32(), (SubSampleMode)SubSample.CastInt32(), Dpi);
 }
 
-GFilter::IoStatus GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality, SubSampleMode SubSample)
+GFilter::IoStatus GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality, SubSampleMode SubSample, GdcPt2 Dpi)
 {
 	struct jpeg_compress_struct cinfo;
 	struct my_error_mgr jerr;
@@ -785,6 +791,10 @@ GFilter::IoStatus GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality, SubS
 	{
 		JPEGLIB jpeg_set_quality(&cinfo, Quality, true);
 	}
+
+	cinfo.X_density = Dpi.x;
+	cinfo.Y_density = Dpi.y;
+	cinfo.density_unit = Dpi.x && Dpi.y ? 1 : 0;
 
 	JPEGLIB jpeg_start_compress(&cinfo, true);
 
