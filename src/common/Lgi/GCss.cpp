@@ -1365,7 +1365,10 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 					}
 					else Mismatch = true;
 					if (!Mismatch)
+					{
 						Lengths.Length(0);
+						OnChange(PropPadding);
+					}
 				}
 				else if (PropId == PropMargin)
 				{
@@ -1399,12 +1402,16 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 					}
 					else Mismatch = true;
 					if (!Mismatch)
+					{
 						Lengths.Length(0);
+						OnChange(PropMargin);
+					}
 				}
 				else if (Lengths.Length() > 0)
 				{
 					StoreProp(PropId, Lengths[0], true);
 					Lengths.DeleteAt(0);
+					OnChange(PropId);
 				}
 				Lengths.DeleteObjects();
 				break;
@@ -2009,7 +2016,14 @@ bool GCss::Selector::Parse(const char *&s)
 					n.Media |= MediaPrint;
 			}
 		}
-		else if (*s == '*')
+		else if
+		(
+			s[0] == '*' &&
+			(
+				IsWhite(s[1]) ||
+				s[1] == '{'
+			)
+		)
 		{
 			s++;
 

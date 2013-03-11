@@ -254,6 +254,9 @@ public:
 	int ReadUdp(void *Buffer, int Size, int Flags, uint32 *Ip = 0, uint16 *Port = 0);
 	/// Write UPD packet
 	int WriteUdp(void *Buffer, int Size, int Flags, uint32 Ip, uint16 Port);
+
+	// Impl
+	GStreamI *Clone() { return new GSocket; }
 };
 
 class LgiNetClass GSocks5Socket : public GSocket

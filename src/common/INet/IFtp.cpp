@@ -1144,8 +1144,8 @@ bool IFtp::SetupData(bool Binary)
 			{
 				GStreamI *nstream = Socket->Clone();
 				GSocket *nsock = dynamic_cast<GSocket*>(nstream);
+				LgiAssert(nsock);
 				d->Data.Reset(nsock);
-				// printf("ns=%p nsock=%p\n", nstream, nsock);
 			}
 			else
 			{
@@ -1154,7 +1154,10 @@ bool IFtp::SetupData(bool Binary)
 		}
 
 		if (!d->Data)
-			printf("%s:%i - No data socket, Socket=%p.\n", _FL, Socket.Get());
+		{
+			LgiAssert(!"No data socket");
+			LgiTrace("%s:%i - No data socket, Socket=%p.\n", _FL, Socket.Get());
+		}
 		else
 		{
 			PassiveMode = false;

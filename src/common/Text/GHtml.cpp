@@ -1473,6 +1473,14 @@ GTag::~GTag()
 
 void GTag::OnChange(PropType Prop)
 {
+	if (Prop == PropWidth)
+	{
+		Len l = Width();
+		if (l.Type == LenPx && l.Value == 0)
+		{
+			int asd=0;
+		}
+	}
 }
 
 bool GTag::OnClick()
@@ -2318,7 +2326,7 @@ int GTag::NearestChar(GFlowRect *Tr, int x, int y)
 GTagHit GTag::GetTagByPos(int x, int y)
 {
 	GTagHit r;
-
+	
 	for (GTag *t=Tags.First(); t; t=Tags.Next())
 	{
 		if (t->Pos.x >= 0 &&
@@ -2359,6 +2367,17 @@ GTagHit GTag::GetTagByPos(int x, int y)
 				r.Index = NearestChar(Tr, x, y);
 			}
 		}
+	}
+
+	if (x >= 0 &&
+		y >= 0 &&
+		x < Size.x &&
+		y < Size.y &&
+		(!r.Hit || r.Near > 0))
+	{
+		r.Hit = this;
+		r.Near = 0;
+		r.Block = NULL;
 	}
 
 	return r;
@@ -2772,6 +2791,7 @@ void GTag::Restyle()
 			if (MatchFullSelector(Sel))
 			{
 				SetCssStyle(Sel->Style);
+				int asd=0;
 			}
 		}
 	}
@@ -2984,11 +3004,33 @@ void GTag::SetStyle()
 		}
 	}
 
+	Get("id", HtmlId);
+
+	if (Get("class", s))
+	{
+		Class.Parse(s);
+	}
+
+	Restyle();
+
+	if (Get("style", s))
+	{
+		SetCssStyle(s);
+	}
+
 	if (Get("width", s))
 	{
 		Len l;
 		if (l.Parse(s, ParseRelaxed))
+		{
 			Width(l);
+			
+			Len tmp = Width();
+			if (tmp.Value == 0.0 && tmp.Type == LenPx)
+			{
+				int asd= 0;
+			}
+		}
 	}
 	if (Get("height", s))
 	{
@@ -3007,20 +3049,6 @@ void GTag::SetStyle()
 		if (stricmp(s, "top") == 0) VerticalAlign(Len(VerticalTop));
 		else if (stricmp(s, "middle") == 0) VerticalAlign(Len(VerticalMiddle));
 		else if (stricmp(s, "bottom") == 0) VerticalAlign(Len(VerticalBottom));
-	}
-
-	Get("id", HtmlId);
-
-	if (Get("class", s))
-	{
-		Class.Parse(s);
-	}
-
-	Restyle();
-
-	if (Get("style", s))
-	{
-		SetCssStyle(s);
 	}
 
 	switch (TagId)
@@ -3343,7 +3371,8 @@ void GTag::SetCssStyle(const char *Style)
 		}
 
 		// Parse CSS
-		GCss::Parse(Style, GCss::ParseRelaxed);
+		const char *Ptr = Style;
+		GCss::Parse(Ptr, GCss::ParseRelaxed);
 
 		// Update display setting cache
 		if (Display() != DispInherit)
@@ -4604,7 +4633,8 @@ void GTag::LayoutTable(GFlowRegion *f)
 		ZeroTableElements();
 		Len BdrSpacing = BorderSpacing();
 		int CellSpacing = BdrSpacing.IsValid() ? (int)BdrSpacing.Value : 0;
-		int AvailableX = f->ResolveX(Width(), Font, false);
+		GCss::Len Wid = Width();
+		int AvailableX = f->ResolveX(Wid, Font, false);
 		
 		if (MaxWidth().IsValid())
 		{
@@ -5482,6 +5512,12 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 
 			Flow->Indent(f, MarginLeft(), MarginTop(), MarginRight(), MarginBottom(), true);
 
+			#ifdef _DEBUG
+			if (Debug)
+			{
+				int asd=0;
+			}
+			#endif
 			LayoutTable(Flow);
 
 			Flow->y1 += Size.y;
@@ -7625,6 +7661,12 @@ void GHtml::OnMouseClick(GMouse &m)
 		{
 			TagProcessedClick = Over->OnMouseClick(m);
 		}
+		#ifdef _DEBUG
+		else if (m.Left() && m.Ctrl())
+		{
+			LgiMsg(this, "No tag under the cursor.", GetClass());
+		}
+		#endif
 
 		if (!TagProcessedClick &&
 			m.IsContextMenu())

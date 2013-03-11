@@ -304,6 +304,13 @@ public:
 			Type = t;
 			Value = v;
 		}
+		
+		Len &operator =(const Len &l)
+		{
+			Type = l.Type;
+			Value = l.Value;
+			return *this;
+		}
 
 		bool Parse(const char *&s, ParsingStyle Type = ParseStrict);
 		bool IsValid() { return Type != LenInherit; }
