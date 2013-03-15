@@ -7,25 +7,38 @@
 ////////////////////////////////////////////////////////////////////
 #define M_MRU_BASE				(M_USER+0x3500)
 
+struct GMruEntry
+{
+	GAutoString Display;
+	GAutoString Raw;
+	
+	GMruEntry &operator =(const GMruEntry &e)
+	{
+		Display.Reset(NewStr(e.Display));
+		Raw.Reset(NewStr(e.Raw));
+		return *this;
+	}
+};
+
 class GMruPrivate
 {
 public:
-	int _Size;
-	List<char> _Items;
-	GSubMenu *_Parent;
-	GFileType *_SelectedType;
-	GFileSelect _Select;
+	int Size;
+	GArray<GMruEntry*> Items;
+	GSubMenu *Parent;
+	GFileType *SelectedType;
+	GFileSelect Select;
 
 	GMruPrivate()	
 	{
-		_Parent = 0;
-		_Size = 10;
-		_SelectedType = 0;
+		Parent = 0;
+		Size = 10;
+		SelectedType = 0;
 	}
 
 	~GMruPrivate()	
 	{
-		_Items.DeleteArrays();
+		Items.DeleteObjects();
 	}
 };	
 
@@ -40,6 +53,34 @@ GMru::~GMru()
 	DeleteObj(d);
 }
 
+bool GMru::SerializeEntry
+(
+	/// The displayable version of the reference (this should have any passwords blanked out)
+	GAutoString *Display,
+	/// The form passed to the client software to open/save. (passwords NOT blanked)
+	GAutoString *Raw,
+	/// The form safe to write to disk, if a password is present it must be encrypted.
+	GAutoString *Stored
+)
+{
+	if (Raw && Raw->Get())
+	{
+		if (Stored)
+			Stored->Reset(NewStr(*Raw));
+		if (Display)
+			Display->Reset(NewStr(*Raw));
+	}
+	else if (Stored && Stored->Get())
+	{
+		if (Display)
+			Display->Reset(NewStr(*Stored));
+		if (Raw)
+			Raw->Reset(NewStr(*Stored));
+	}
+	
+	return true;
+}
+
 void GMru::GetFileTypes(GFileSelect *Dlg, bool Write)
 {
 	Dlg->Type("All Files", LGI_ALL_FILES);
@@ -47,12 +88,14 @@ void GMru::GetFileTypes(GFileSelect *Dlg, bool Write)
 
 char *GMru::_GetCurFile()
 {
-	return d->_Items.First();
+	if (d->Items.Length())
+		return d->Items[0]->Raw;
+	return NULL;
 }
 
 GFileType *GMru::GetSelectedType()
 {
-	return d->_SelectedType;
+	return d->SelectedType;
 }
 
 bool GMru::_OpenFile(char *File, bool ReadOnly)
@@ -89,7 +132,7 @@ bool GMru::_SaveFile(char *FileName)
 			char *s = strchr(GetSelectedType()->Extension(), '.'), *d = Ext;
 			if (ValidStr(s) && stricmp(s, ".*"))
 			{
-				while (*s AND *s != ';')
+				while (*s && *s != ';')
 				{
 					*d++ = *s++;
 				}
@@ -122,40 +165,38 @@ bool GMru::_SaveFile(char *FileName)
 
 void GMru::_Update()
 {
-	while (d->_Items.Length() > d->_Size)
+	if (d->Items.Length() > d->Size)
 	{
-		char *s = d->_Items.Last();
-		d->_Items.Delete(s);
-		DeleteArray(s);
+		d->Items.Length(d->Size);
 	}
 
-	if (d->_Parent)
+	if (d->Parent)
 	{
 		// remove existing items.
-		d->_Parent->Empty();
+		d->Parent->Empty();
 
 		// add current items
-		if (d->_Items.Length() > 0)
+		if (d->Items.Length() > 0)
 		{
-			int i = M_MRU_BASE;
-			for (char *c = d->_Items.First(); c; c = d->_Items.Next())
+			for (int i=0; i<d->Items.Length(); i++)
 			{
-				d->_Parent->AppendItem(c, i++, true);
+				GMruEntry *c = d->Items[i];
+				d->Parent->AppendItem(c->Display ? c->Display : c->Raw, M_MRU_BASE + i, true);
 			}
 		}
 		else
 		{
-			d->_Parent->AppendItem("(none)", -1, false);
+			d->Parent->AppendItem("(none)", -1, false);
 		}
 	}
 }
 
 bool GMru::Set(GSubMenu *parent, int size)
 {
-	d->_Parent = parent;
+	d->Parent = parent;
 	if (size > 0)
 	{
-		d->_Size = size;
+		d->Size = size;
 	}
 
 	_Update();
@@ -166,23 +207,33 @@ bool GMru::Set(GSubMenu *parent, int size)
 char *GMru::AddFile(char *FileName, bool Update)
 {
 	char *Status = FileName;
-	char *c = 0;
-	for (c = d->_Items.First(); c; c = d->_Items.Next())
+	GMruEntry *c = NULL;
+	for (int i=0; i<d->Items.Length(); i++)
 	{
-		if (stricmp(c, FileName) == 0)
+		GMruEntry *e = d->Items[i];
+		if (stricmp(e->Raw, FileName) == 0)
 		{
 			// exact string being added.. just move to the top
 			// no need to reallocate
-			d->_Items.Delete(c);
-			d->_Items.Insert(c, 0);
+			
+			e->Raw.Reset(NewStr(FileName)); // This fixes any changes in case...
+			
+			d->Items.DeleteAt(i, true);
+			d->Items.AddAt(0, e);
+			c = e;
 			break;
 		}
 	}
 
 	if (!c)
 	{
-		Status = NewStr(FileName);
-		d->_Items.Insert(Status, 0);
+		c = new GMruEntry;
+		c->Raw.Reset(NewStr(FileName));
+		if (SerializeEntry(&c->Display, &c->Raw, NULL))
+		{
+			d->Items.AddAt(0, c);
+		}
+		else LgiAssert(0);
 	}
 
 	if (Update)
@@ -197,12 +248,13 @@ char *GMru::AddFile(char *FileName, bool Update)
 void GMru::RemoveFile(char *FileName, bool Update)
 {
 	// remove from list if there
-	for (char *c = d->_Items.First(); c; c = d->_Items.Next())
+	for (int i=0; i<d->Items.Length(); i++)
 	{
-		if (stricmp(c, FileName) == 0)
+		GMruEntry *e = d->Items[i];
+		if (stricmp(e->Raw, FileName) == 0)
 		{
-			d->_Items.Delete(c);
-			DeleteArray(c);
+			d->Items.DeleteAt(i);
+			DeleteObj(e);
 			break;
 		}
 	}
@@ -215,35 +267,35 @@ void GMru::RemoveFile(char *FileName, bool Update)
 
 void GMru::DoFileDlg(bool Open)
 {
-	GetFileTypes(&d->_Select, false);
-	d->_Select.ShowReadOnly(Open);
-	if (Open ? d->_Select.Open() : d->_Select.Save())
+	GetFileTypes(&d->Select, false);
+	d->Select.ShowReadOnly(Open);
+	if (Open ? d->Select.Open() : d->Select.Save())
 	{
-		d->_SelectedType = d->_Select.TypeAt(d->_Select.SelectedType());
+		d->SelectedType = d->Select.TypeAt(d->Select.SelectedType());
 		if (Open)
-			_OpenFile(d->_Select.Name(), d->_Select.ReadOnly());
+			_OpenFile(d->Select.Name(), d->Select.ReadOnly());
 		else
-			_SaveFile(d->_Select.Name());
+			_SaveFile(d->Select.Name());
 	}
 }
 
 void GMru::OnCommand(int Cmd)
 {
-	GViewI *Wnd = d->_Parent->GetMenu() ? d->_Parent->GetMenu()->WindowHandle() : 0;
+	GViewI *Wnd = d->Parent->GetMenu() ? d->Parent->GetMenu()->WindowHandle() : 0;
 	if (Wnd)
 	{
-		d->_Select.Parent(Wnd);
-		d->_Select.ClearTypes();
-		d->_SelectedType = 0;
+		d->Select.Parent(Wnd);
+		d->Select.ClearTypes();
+		d->SelectedType = 0;
 		
 		if (_GetCurFile())
 		{
-			d->_Select.Name(_GetCurFile());
+			d->Select.Name(_GetCurFile());
 			
 			char Path[256];
 			strsafecpy(Path, _GetCurFile(), sizeof(Path));
 			LgiTrimDir(Path);
-			d->_Select.InitialDir(Path);
+			d->Select.InitialDir(Path);
 		}
 
 		if (Cmd == IDM_OPEN)
@@ -256,14 +308,14 @@ void GMru::OnCommand(int Cmd)
 		}
 	}
 
-	if (Cmd >= M_MRU_BASE AND
-		Cmd < M_MRU_BASE + d->_Items.Length())
+	if (Cmd >= M_MRU_BASE &&
+		Cmd < M_MRU_BASE + d->Items.Length())
 	{
 		int Index = Cmd - M_MRU_BASE;
-		char *c = d->_Items.ItemAt(Index);
+		GMruEntry *c = d->Items[Index];
 		if (c)
 		{
-			_OpenFile(c, false);
+			_OpenFile(c->Raw, false);
 		}
 	}
 }
@@ -271,7 +323,7 @@ void GMru::OnCommand(int Cmd)
 GMessage::Result GMru::OnEvent(GMessage *Msg)
 {
 	/*
-	if (d->_Parent AND
+	if (d->Parent &&
 		MsgCode(Msg) == M_COMMAND)
 	{
 		#ifdef BEOS
@@ -295,26 +347,32 @@ bool GMru::Serialize(GDom *Store, const char *Prefix, bool Write)
 	bool Status = false;
 	GVariant v;
 
-	if (Store AND Prefix)
+	if (Store && Prefix)
 	{
 		if (Write)
 		{
 			// add our keys
 			char Key[64];
 			sprintf(Key, "%s.Items", Prefix);
-			Store->SetValue(Key, v = d->_Items.Length());
+			Store->SetValue(Key, v = (int)d->Items.Length());
 
-			int i=0;
-			for (char *c=d->_Items.First(); c; c=d->_Items.Next())
+			for (int i=0; i<d->Items.Length(); i++)
 			{
-				sprintf(Key, "%s.Item%i", Prefix, i++);
-				Store->SetValue(Key, v = c);
+				GMruEntry *e = d->Items[i];
+				LgiAssert(e->Raw.Get());
+				GAutoString Stored;
+				if (SerializeEntry(NULL, &e->Raw, &Stored)) // Convert Raw -> Stored
+				{
+					sprintf(Key, "%s.Item%i", Prefix, i++);
+					Store->SetValue(Key, v = Stored.Get());
+				}
+				else LgiAssert(0);
 			}
 		}
 		else
 		{
 			// clear ourself
-			d->_Items.DeleteArrays();
+			d->Items.DeleteObjects();
 
 			// read our keys in
 			char Key[64];
@@ -329,7 +387,14 @@ bool GMru::Serialize(GDom *Store, const char *Prefix, bool Write)
 					GVariant File;
 					if (Store->GetValue(Key, File))
 					{
-						d->_Items.Insert(NewStr(File.Str()));
+						GAutoString Stored;
+						Stored.Reset(File.ReleaseStr());
+						LgiAssert(Stored);
+						GAutoPtr<GMruEntry> e(new GMruEntry);
+						if (SerializeEntry(&e->Display, &e->Raw, &Stored)) // Convert Stored -> Raw
+						{
+							d->Items.Add(e.Release());
+						}
 					}
 				}
 			}
@@ -341,70 +406,4 @@ bool GMru::Serialize(GDom *Store, const char *Prefix, bool Write)
 	return Status;
 }
 
-/*
-bool GMru::Serialize(ObjProperties *Props, char *Prefix, bool Write)
-{
-	bool Status = false;
-
-	if (Props AND Prefix)
-	{
-		if (Write)
-		{
-			// clear existing keys
-			for (bool b=Props->FirstKey(); b; b=Props->NextKey())
-			{
-				if (Props->KeyName() AND
-					strnicmp(Props->KeyName(), "Prefix", strlen(Prefix)) == 0)
-				{
-					Props->DeleteKey();
-					b = Props->KeyType();
-				}
-				else
-				{
-					b=Props->NextKey();
-				}
-			}
-
-			// add our keys
-			char Key[64];
-			sprintf(Key, "%s.Items", Prefix);
-			Props->Set(Key, d->_Items.Length());
-
-			int i=0;
-			for (char *c=d->_Items.First(); c; c=d->_Items.Next())
-			{
-				sprintf(Key, "%s.%i", Prefix, i++);
-				Props->Set(Key, c);
-			}
-		}
-		else
-		{
-			// clear ourself
-			d->_Items.DeleteArrays();
-
-			// read our keys in
-			char Key[64];
-			sprintf(Key, "%s.Items", Prefix);
-			int i = 0;
-			if (Props->Get(Key, i))
-			{
-				for (int n=0; n<i; n++)
-				{
-					sprintf(Key, "%s.%i", Prefix, n);
-
-					char *File;
-					if (Props->Get(Key, File))
-					{
-						d->_Items.Insert(NewStr(File));
-					}
-				}
-			}
-
-			_Update();
-		}
-	}
-
-	return Status;
-}
-*/
 

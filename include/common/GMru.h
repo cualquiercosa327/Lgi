@@ -25,6 +25,23 @@ protected:
 	virtual GFileType *GetSelectedType();
 	void DoFileDlg(bool Open);
 
+	/// This method converts the storage reference (which can contain user/pass credentials) 
+	/// between the display, raw and stored forms. Display and Raw are used at runtime and
+	/// the stored form is written to disk.
+	///
+	/// The implementor should fill in any NULL strings by converting from the supplied forms.
+	/// The caller must supply either the Raw or Stored form.
+	virtual bool SerializeEntry
+	(
+		/// The displayable version of the reference (this should have any passwords blanked out)
+		GAutoString *Display,
+		/// The form passed to the client software to open/save. (passwords NOT blanked)
+		GAutoString *Raw,
+		/// The form safe to write to disk, if a password is present it must be encrypted.
+		GAutoString *Stored
+	);
+
+
 public:
 	GMru();
 	virtual ~GMru();

@@ -22,7 +22,7 @@ public:
 	GAutoString		OptionsFile;
 	GAutoString		OptionsParam;
 	char			*AppName;
-	char			*CurFile;
+	GAutoString		CurFile;
 	char			*Icon;
 	bool			Dirty;
 
@@ -30,7 +30,6 @@ public:
 	{
 		OptionsParam.Reset(NewStr(param));
 		AppName = 0;
-		CurFile = 0;
 		Icon = 0;
 		Dirty = 0;
 	}
@@ -40,7 +39,6 @@ public:
 		// Release memory
 		DeleteArray(AppName);
 		DeleteArray(Icon);
-		DeleteArray(CurFile);
 	}
 	
 	GAutoString GetOptionsFile(const char *Ext)
@@ -468,25 +466,29 @@ void GDocApp<OptionsFmt>::SetCurFile(char *f)
 {
 	if (f != d->CurFile)
 	{
-		DeleteArray(d->CurFile);
-		d->CurFile = NewStr(f);
+		d->CurFile.Reset(NewStr(f));
 	}
 
-	char s[256];
-	if (d->CurFile)
+	GAutoString Display;
+	if (SerializeEntry(&Display, &d->CurFile, NULL))
 	{
-		sprintf_s(s, sizeof(s), "%s [%s%s]", d->AppName, d->CurFile, d->Dirty ? " changed" : "");
-	}
-	else if (d->Dirty)
-	{
-		sprintf_s(s, sizeof(s), "%s [changed]", d->AppName);
-	}
-	else
-	{
-		strsafecpy(s, d->AppName, sizeof(s));
-	}
+		char s[MAX_PATH + 100];
+		
+		if (Display)
+		{
+			sprintf_s(s, sizeof(s), "%s [%s%s]", d->AppName, Display, d->Dirty ? " changed" : "");
+		}
+		else if (d->Dirty)
+		{
+			sprintf_s(s, sizeof(s), "%s [changed]", d->AppName);
+		}
+		else
+		{
+			strsafecpy(s, d->AppName, sizeof(s));
+		}
 
-	Name(s);
+		Name(s);
+	}
 }
 
 template <typename OptionsFmt>
