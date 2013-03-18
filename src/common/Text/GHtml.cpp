@@ -1473,14 +1473,6 @@ GTag::~GTag()
 
 void GTag::OnChange(PropType Prop)
 {
-	if (Prop == PropWidth)
-	{
-		Len l = Width();
-		if (l.Type == LenPx && l.Value == 0)
-		{
-			int asd=0;
-		}
-	}
 }
 
 bool GTag::OnClick()
@@ -2791,7 +2783,6 @@ void GTag::Restyle()
 			if (MatchFullSelector(Sel))
 			{
 				SetCssStyle(Sel->Style);
-				int asd=0;
 			}
 		}
 	}
@@ -5512,12 +5503,6 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 
 			Flow->Indent(f, MarginLeft(), MarginTop(), MarginRight(), MarginBottom(), true);
 
-			#ifdef _DEBUG
-			if (Debug)
-			{
-				int asd=0;
-			}
-			#endif
 			LayoutTable(Flow);
 
 			Flow->y1 += Size.y;

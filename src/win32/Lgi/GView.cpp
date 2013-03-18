@@ -1143,11 +1143,6 @@ bool SysOnKey(GView *w, GMessage *m)
 
 void GView::DrawThemeBorder(GSurface *pDC, GRect &r)
 {
-	#if 0
-	pDC->Colour(GColour(255, 0, 255));
-	pDC->Rectangle();
-	#endif
-
 	if (!d->hTheme)
 	{
 		d->hTheme = OpenThemeData(_View, VSCLASS_EDIT);
