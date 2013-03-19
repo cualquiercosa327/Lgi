@@ -3718,21 +3718,20 @@ bool GTextView3::OnKey(GKey &k)
 				{
 					#ifdef MAC
 					if (k.Ctrl())
-					{
 						goto GTextView3_PageUp;
-					}
 					#endif
 					
-					// int Old = Cursor;
 					GTextLine *l = GetLine(Cursor);
 					if (l)
 					{
 						GTextLine *Prev = Line.Prev();
 						if (Prev)
 						{
-							GDisplayString ds(Font, Text + l->Start, Cursor-l->Start);
-							int ScreenX = ds.X();
-							int CharX = ds.CharAt(ScreenX);
+							GDisplayString CurLine(Font, Text + l->Start, Cursor-l->Start);
+							int ScreenX = CurLine.X();
+
+							GDisplayString PrevLine(Font, Text + Prev->Start, Prev->Len);
+							int CharX = PrevLine.CharAt(ScreenX);
 
 							SetCursor(Prev->Start + min(CharX, Prev->Len), k.Shift());
 						}
@@ -3747,21 +3746,20 @@ bool GTextView3::OnKey(GKey &k)
 				{
 					#ifdef MAC
 					if (k.Ctrl())
-					{
 						goto GTextView3_PageDown;
-					}
 					#endif
 
-					// int Old = Cursor;
 					GTextLine *l = GetLine(Cursor);
 					if (l)
 					{
 						GTextLine *Next = Line.Next();
 						if (Next)
 						{
-							GDisplayString ds(Font, Text + l->Start, Cursor-l->Start);
-							int ScreenX = ds.X();
-							int CharX = ds.CharAt(ScreenX);
+							GDisplayString CurLine(Font, Text + l->Start, Cursor-l->Start);
+							int ScreenX = CurLine.X();
+							
+							GDisplayString NextLine(Font, Text + Next->Start, Next->Len);
+							int CharX = NextLine.CharAt(ScreenX);
 
 							SetCursor(Next->Start + min(CharX, Next->Len), k.Shift());
 						}
