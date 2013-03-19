@@ -216,7 +216,11 @@ char *GMru::AddFile(char *FileName, bool Update)
 			// exact string being added.. just move to the top
 			// no need to reallocate
 			
-			e->Raw.Reset(NewStr(FileName)); // This fixes any changes in case...
+			if (strcmp(e->Raw, FileName) &&
+				strlen(e->Raw) == strlen(FileName))
+			{
+				strcpy(e->Raw, FileName); // This fixes any changes in case...
+			}
 			
 			d->Items.DeleteAt(i, true);
 			d->Items.AddAt(0, e);
@@ -352,22 +356,30 @@ bool GMru::Serialize(GDom *Store, const char *Prefix, bool Write)
 		if (Write)
 		{
 			// add our keys
+			int Idx = 0;
 			char Key[64];
-			sprintf(Key, "%s.Items", Prefix);
-			Store->SetValue(Key, v = (int)d->Items.Length());
+			GHashTbl<char*, bool> Saved(0, false);
 
 			for (int i=0; i<d->Items.Length(); i++)
 			{
 				GMruEntry *e = d->Items[i];
 				LgiAssert(e->Raw.Get());
-				GAutoString Stored;
-				if (SerializeEntry(NULL, &e->Raw, &Stored)) // Convert Raw -> Stored
+				if (!Saved.Find(e->Raw))
 				{
-					sprintf(Key, "%s.Item%i", Prefix, i++);
-					Store->SetValue(Key, v = Stored.Get());
+					Saved.Add(e->Raw, true);
+					
+					GAutoString Stored;
+					if (SerializeEntry(NULL, &e->Raw, &Stored)) // Convert Raw -> Stored
+					{
+						sprintf(Key, "%s.Item%i", Prefix, Idx++);
+						Store->SetValue(Key, v = Stored.Get());
+					}
+					else LgiAssert(0);
 				}
-				else LgiAssert(0);
 			}
+
+			sprintf(Key, "%s.Items", Prefix);
+			Store->SetValue(Key, v = (int)Idx);
 		}
 		else
 		{
