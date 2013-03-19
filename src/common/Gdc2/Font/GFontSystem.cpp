@@ -171,7 +171,7 @@ bool GFontSystem::GetDefaultGlyphSub()
 		if (FontSys)
 		{
 			char *GlyphSub;
-			if (GlyphSub = FontSys->GetAttr("glyph_sub"))
+			if ((GlyphSub = FontSys->GetAttr("glyph_sub")))
 			{
 				d->DefaultGlyphSub = atoi(GlyphSub);
 			}

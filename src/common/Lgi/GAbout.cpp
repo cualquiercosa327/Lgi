@@ -14,7 +14,7 @@
 
 GAbout::GAbout(	GView *parent,
 				const char *AppName,
-				char *Ver,
+				const char *Ver,
 				const char *Text,
 				const char *AboutGraphic,
 				const char *Url,

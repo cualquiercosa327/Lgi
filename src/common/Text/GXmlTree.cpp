@@ -230,7 +230,8 @@ char *GXmlTree::DecodeEntities(char *s, int len)
 	while (s && *s && s < End)
 	{
 		char *e = s;
-		while (*e && *e != '&' && e < End) *e++;
+		while (*e && *e != '&' && e < End)
+            e++;
 		if (*e)
 		{
 			p.Push(s, e - s);
@@ -342,7 +343,7 @@ void GXmlTag::EmptyAttributes()
 void GXmlTag::EmptyChildren()
 {
 	GXmlTag *c;
-	while (c = Children.First())
+	while ((c = Children.First()))
 	{
 		LgiAssert(c->Parent == this);
 		DeleteObj(c);
@@ -959,7 +960,8 @@ void GXmlTag::ParseAttribute(GXmlTree *Tree, GXmlAlloc *Alloc, char *&t, bool &N
 				{
 					// Non delimited string
 					char *End = t;
-					while (*End && !strchr(White, *End) && *End != '>'  && *End != '/') *End++;
+					while (*End && !strchr(White, *End) && *End != '>'  && *End != '/')
+                        End++;
 					GAutoString e(Tree->DecodeEntities(t, End - t));
 					At.Value = Alloc->Alloc(e);
 					t = End;

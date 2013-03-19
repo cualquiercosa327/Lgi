@@ -425,7 +425,7 @@ bool LgiRecursiveFileSearch(const char *Root,
 
 				if (Count)
 				{
-					*Count++;
+					Count++;
 				}
 
 				Status = true;
@@ -946,7 +946,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 							))
 							*Last = 0;
 					}
-					if (Last = strrchr(Dst, DIR_CHAR))
+					if ((Last = strrchr(Dst, DIR_CHAR)))
 					{
 						if (!stricmp(Last, "/build"))
 							*Last = 0;

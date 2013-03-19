@@ -332,7 +332,7 @@ bool FileExists(const char *FileName)
 				if (Dir)
 				{
 					dirent *De;
-					while (De = readdir(Dir))
+					while ((De = readdir(Dir)))
 					{
 						if (stricmp(De->d_name, e) == 0)
 						{
@@ -1201,7 +1201,7 @@ int GDirectory::Next()
 
 	while (d->Dir AND d->De)
 	{
-		if (d->De = readdir(d->Dir))
+		if ((d->De = readdir(d->Dir)))
 		{
 			char s[256];
 			LgiMakePath(s, sizeof(s), d->BasePath, GetName());			

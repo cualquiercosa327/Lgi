@@ -187,8 +187,6 @@ public:
 		static Type t;
 		if
 		(
-			i < 0
-			||
 			(fixed && i >= len)
 		)
 		{
@@ -318,7 +316,7 @@ public:
 		bool Ordered = false
 	)
 	{
-		if (p && Index >= 0 && Index < len)
+		if (p && Index < len)
 		{
 			// Delete the object
 			p[Index].~Type();

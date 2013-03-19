@@ -9,6 +9,8 @@
 #include "Lgi.h"
 #include "GdiLeak.h"
 
+#include <ApplicationServices/ApplicationServices.h>
+
 #define LGI_RAD					(360/(2*LGI_PI))
 
 int Pixel24::Size = 3;
@@ -698,10 +700,20 @@ public:
 		CGRect r = CGDisplayBounds(ScreenId);
 		ScrX = (int)r.size.width;
 		ScrY = (int)r.size.height;
-		ScrBits = CGDisplayBitsPerPixel(ScreenId);
-		
-		// printf("%s:%i - Screen: %ix%i @ %ibpp\n", __FILE__, __LINE__, ScrX, ScrY, ScrBits);
-
+		// ScrBits = CGDisplayBitsPerPixel(ScreenId);
+        
+        CGDisplayModeRef mode = CGDisplayCopyDisplayMode(CGMainDisplayID());
+        
+        CFStringRef pixEnc = CGDisplayModeCopyPixelEncoding(mode);
+        if(CFStringCompare(pixEnc, CFSTR(IO32BitDirectPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo)
+            ScrBits = 32;
+        else if(CFStringCompare(pixEnc, CFSTR(IO16BitDirectPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo)
+            ScrBits = 16;
+        else if(CFStringCompare(pixEnc, CFSTR(IO8BitIndexedPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo)
+            ScrBits = 8;
+        else
+            LgiAssert(0);
+        
 		// Palette information
 		GammaCorrection = 1.0;
 

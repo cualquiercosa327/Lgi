@@ -218,7 +218,7 @@ void OnCrash(int i)
 		}
 		
 		char *Eol;
-		while (Eol = strstr(Buf, "\n"))
+		while ((Eol = strstr(Buf, "\n")))
 		{
 			*Eol = 0;
 			
@@ -692,6 +692,8 @@ int GApp::GetMetric(LgiSystemMetric Metric)
 {
 	switch (Metric)
 	{
+		default:
+			break;
 		case LGI_MET_DECOR_X:
 		{
 			return 0;

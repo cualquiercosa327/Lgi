@@ -976,7 +976,8 @@ void GMenuItem::Icon(int i)
 		CGDataProviderRef Provider = CGDataProviderCreateWithData(0, Temp,  TempSize, releaseData);
 		if (Provider)
 		{
-			CGColorSpaceRef Cs = CGColorSpaceCreateWithName(kCGColorSpaceUserRGB);
+			// CGColorSpaceRef Cs = CGColorSpaceCreateWithName(kCGColorSpaceUserRGB);
+			CGColorSpaceRef Cs = CGColorSpaceCreateDeviceRGB();
 			CGImageRef Ico = CGImageCreate(	Lst->TileX(),
 											Lst->TileX(),
 											8,
@@ -1240,9 +1241,11 @@ bool GAccelerator::Match(GKey &k)
 	{
 		if
 		(
-			(TestFlag(Flags, LGI_EF_CTRL) ^ k.Ctrl() == 0) AND
-			(TestFlag(Flags, LGI_EF_ALT) ^ k.Alt() == 0) AND
-			(TestFlag(Flags, LGI_EF_SHIFT) ^ k.Shift() == 0)
+			((TestFlag(Flags, LGI_EF_CTRL) ^ k.Ctrl()) == 0)
+			&&
+			((TestFlag(Flags, LGI_EF_ALT) ^ k.Alt()) == 0)
+			&&
+			((TestFlag(Flags, LGI_EF_SHIFT) ^ k.Shift()) == 0)
 		)				
 		{
 			return true;

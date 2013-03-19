@@ -322,7 +322,7 @@ public:
 			
 			return Rgb32(p8, p8, p8); // monochome
 		}
-		else if (space = ColHls32)
+		else if ((space = ColHls32))
 		{
 			// Convert from HLS back to RGB
 			if (hls.s == 0)

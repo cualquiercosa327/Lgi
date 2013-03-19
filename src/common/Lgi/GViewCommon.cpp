@@ -668,24 +668,48 @@ GRect *GView::FindLargestEdge(GRegion &r, int Edge)
 			Best = i;
 		}
 
-		if ((Edge & GV_EDGE_TOP) && (i->y1 < Best->y1) ||
-			(Edge & GV_EDGE_RIGHT) && (i->x2 > Best->x2) ||
-			(Edge & GV_EDGE_BOTTOM) && (i->y2 > Best->y2) ||
-			(Edge & GV_EDGE_LEFT) && (i->x1 < Best->x1))
+		if
+		(
+			((Edge & GV_EDGE_TOP) && (i->y1 < Best->y1))
+			||
+			((Edge & GV_EDGE_RIGHT) && (i->x2 > Best->x2))
+			||
+			((Edge & GV_EDGE_BOTTOM) && (i->y2 > Best->y2))
+			||
+			((Edge & GV_EDGE_LEFT) && (i->x1 < Best->x1))
+		)
 		{
 			Best = i;
 		}
 
-		if (((Edge & GV_EDGE_TOP) && (i->y1 == Best->y1) ||
-			(Edge & GV_EDGE_BOTTOM) && (i->y2 == Best->y2)) &&
-			(i->X() > Best->X()))
+		if
+		(
+			(
+				((Edge & GV_EDGE_TOP) && (i->y1 == Best->y1))
+				||
+				((Edge & GV_EDGE_BOTTOM) && (i->y2 == Best->y2))
+			)
+			&&
+			(
+				i->X() > Best->X()
+			)
+		)
 		{
 			Best = i;
 		}
 
-		if (((Edge & GV_EDGE_RIGHT) && (i->x2 == Best->x2) ||
-			(Edge & GV_EDGE_LEFT) && (i->x1 == Best->x1)) &&
-			(i->Y() > Best->Y()))
+		if
+		(
+			(
+				((Edge & GV_EDGE_RIGHT) && (i->x2 == Best->x2))
+				||
+				((Edge & GV_EDGE_LEFT) && (i->x1 == Best->x1))
+			)
+			&&
+			(
+				i->Y() > Best->Y()
+			)
+		)
 		{
 			Best = i;
 		}

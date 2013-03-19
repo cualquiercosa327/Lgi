@@ -304,7 +304,7 @@ public:
 		SizeBackup = Size = size ? max(size, 16) : 512;
 		LgiAssert(Size < 30000);
 		
-		if (Table = new Entry[Size])
+		if ((Table = new Entry[Size]))
 		{
 			InitializeTable(Table, Size);
 		}

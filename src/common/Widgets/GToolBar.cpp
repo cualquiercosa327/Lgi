@@ -728,7 +728,7 @@ public:
 		}
 			
 		char *o;
-		if (o = v.Str())
+		if ((o = v.Str()))
 		{
 			GToken t(o, ",");
 			if (t.Length() >= 1)

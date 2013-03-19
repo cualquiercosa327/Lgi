@@ -509,7 +509,7 @@ GPopup::GPopup(GView *owner)
     Wnd = 0;
     #endif
 
-	if (Owner = owner)
+	if ((Owner = owner))
 	{
 		#ifndef WIN32
 		Owner->PopupChild() = this;
@@ -823,7 +823,7 @@ GDropDown::GDropDown(int Id, int x, int y, int cx, int cy, GPopup *popup)
 	SetId(Id);
 	GRect r(x, y, x+cx, y+cy);
 	SetPos(r);
-	if (Popup = popup)
+	if ((Popup = popup))
 		Popup->SetNotify(this);
 	SetTabStop(true);
 }

@@ -733,7 +733,7 @@ void StrcatW(char16 *a, const char16 *b)
 		// Seek to end of string
 		while (*a)
 		{
-			*a++;
+			a++;
 		}
 
 		// Append 'b'

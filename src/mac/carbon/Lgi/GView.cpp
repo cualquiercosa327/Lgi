@@ -285,7 +285,7 @@ void GView::_Delete()
 	Pos.ZOff(-1, -1);
 
 	GViewI *c;
-	while (c = Children.First())
+	while ((c = Children.First()))
 	{
 		if (c->GetParent() != (GViewI*)this)
 		{
@@ -1342,7 +1342,7 @@ CarbonControlProc
 					if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, (int)e);
 					
 					GKey k;
-					if (k.c16 = VirtualKeyToLgi(key))
+					if ((k.c16 = VirtualKeyToLgi(key)))
 					{
 						k.vkey = k.c16;
 						k.Down(false);
@@ -1379,7 +1379,7 @@ CarbonControlProc
 					if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, (int)e);
 					
 					GKey k;
-					if (k.c16 = VirtualKeyToLgi(key))
+					if ((k.c16 = VirtualKeyToLgi(key)))
 					{
 						k.vkey = k.c16;
 						k.Down(false);
@@ -1660,7 +1660,7 @@ OsView GView::_CreateCustomView()
 		GView *Myself = this;
 		e = SetEventParameter(Ev, GViewThisPtr, typeVoidPtr, sizeof(Myself), &Myself); 
 											
-		if (e = HIObjectCreate(kLgiGViewClassID, Ev, (HIObjectRef*)&Hnd))
+		if ((e = HIObjectCreate(kLgiGViewClassID, Ev, (HIObjectRef*)&Hnd)))
 		{
 			printf("%s:%i - HIObjectCreate failed with %i\n", _FL, (int)e);
 			Hnd = 0;
@@ -1830,7 +1830,7 @@ bool GView::Detach()
 
 	return Status;
 }
- 
+
 GViewI *GView::FindControl(OsView hCtrl)
 {
 	if (Handle() == hCtrl)
@@ -1848,6 +1848,11 @@ GViewI *GView::FindControl(OsView hCtrl)
 		}
 	}
 	return 0;
+}
+
+void GView::DrawThemeBorder(GSurface *pDC, GRect &r)
+{
+	LgiAssert(0);
 }
 
 ////////////////////////////////

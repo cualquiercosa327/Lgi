@@ -551,7 +551,7 @@ void GTreeItem::Select(bool b)
 		if (b)
 		{
 			GTreeItem *p = this;
-			while (p = p->GetParent())
+			while ((p = p->GetParent()))
 			{
 				p->Expanded(true);
 			}
@@ -1120,7 +1120,7 @@ bool GTree::OnKey(GKey &k)
 			case VK_HOME:
 			{
 				GTreeItem *i;
-				if (i = Items.First())
+				if ((i = Items.First()))
 				{
 					i->Select(true);
 					i->ScrollTo();
@@ -1131,7 +1131,7 @@ bool GTree::OnKey(GKey &k)
 			case VK_END:
 			{
 				GTreeItem *n = i, *p = 0;
-				while (n = GetAdjacent(n, true))
+				while ((n = GetAdjacent(n, true)))
 				{
 					p = n;
 				}
@@ -1456,7 +1456,7 @@ void GTree::RemoveAll()
 void GTree::Empty()
 {
 	GTreeItem *i;
-	while (i=Items.First())
+	while ((i = Items.First()))
 	{
 		Delete(i);
 	}
@@ -1469,7 +1469,7 @@ bool GTree::Delete(GTreeItem *Obj)
 	if (Obj)
 	{
 		GTreeItem *i;
-		while (i = Obj->Items.First())
+		while ((i = Obj->Items.First()))
 		{
 			Delete(i);
 		}
@@ -1610,7 +1610,9 @@ void GTree::OnItemBeginDrag(GTreeItem *Item, int Flags)
 	if (Item)
 	{
 		GMouse m;
-		ZeroObj(m);
+		m.x = m.y = 0;
+		m.Target = NULL;
+		m.ViewCoords = false;
 		m.Flags = Flags;
 		Item->OnBeginDrag(m);
 	}

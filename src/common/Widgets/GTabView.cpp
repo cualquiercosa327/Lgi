@@ -177,7 +177,7 @@ GViewI *GTabView::FindControl(int Id)
 	TabIterator it(Children);
 	for (int i=0; i<it.Length(); i++)
 	{
-		if (Ctrl = it[i]->FindControl(Id))
+		if ((Ctrl = it[i]->FindControl(Id)))
 			return Ctrl;
 	}
 
@@ -808,7 +808,7 @@ bool GTabPage::LoadFromResource(int Res)
 	if (ch)
 	{
 		GViewI *v;
-		while (v = ch->First())
+		while ((v = ch->First()))
 		{
 			v->Detach();
 			DelView(v);

@@ -863,6 +863,9 @@
 /* Begin PBXProject section */
 		0867D690FE84028FC02AAC07 /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0450;
+			};
 			buildConfigurationList = 34BA94DB0B33ADB400493CD3 /* Build configuration list for PBXProject "LgiCarbon" */;
 			compatibilityVersion = "Xcode 2.4";
 			developmentRegion = English;
@@ -1014,6 +1017,7 @@
 		34BA94D80B33ADB400493CD3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -1023,7 +1027,6 @@
 				);
 				FRAMEWORK_VERSION = A;
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -1036,7 +1039,10 @@
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "@executable_path/../Frameworks";
 				MACH_O_TYPE = mh_dylib;
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = Lgi;
+				SDKROOT = macosx10.7;
+				SYMROOT = build;
 				WRAPPER_EXTENSION = framework;
 			};
 			name = Debug;
@@ -1044,6 +1050,7 @@
 		34BA94D90B33ADB400493CD3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -1052,14 +1059,21 @@
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_1)",
 				);
 				FRAMEWORK_VERSION = A;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Lgi_Prefix.pch;
+				GCC_PREPROCESSOR_DEFINITIONS = MAC;
+				HEADER_SEARCH_PATHS = (
+					include/mac,
+					include/common,
+				);
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "@executable_path/../Frameworks";
 				MACH_O_TYPE = mh_dylib;
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = Lgi;
+				SDKROOT = macosx10.7;
+				SYMROOT = build;
 				WRAPPER_EXTENSION = framework;
 			};
 			name = Release;
@@ -1078,9 +1092,9 @@
 					"-DMAC",
 					"-DLGI_LIBRARY",
 				);
-				PREBINDING = NO;
 				SDKROOT = /Developer/SDKs/MacOSX10.5.sdk;
 				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = ./build;
 				USER_HEADER_SEARCH_PATHS = "../../../include/common ../../../include/mac/carbon ../../../include/posix";
 			};
 			name = Debug;
@@ -1096,8 +1110,8 @@
 					"-DMAC",
 					"-DLGI_LIBRARY",
 				);
-				PREBINDING = NO;
 				SDKROOT = /Developer/SDKs/MacOSX10.5.sdk;
+				SYMROOT = ./build;
 				USER_HEADER_SEARCH_PATHS = "../../../include/common ../../../include/mac/carbon ../../../include/posix";
 			};
 			name = Release;

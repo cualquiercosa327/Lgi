@@ -427,7 +427,7 @@ GVariant &GVariant::operator =(GVariant const &i)
 		}
 		case GV_HASHTABLE:
 		{
-			if (Value.Hash = new GHashTable)
+			if ((Value.Hash = new GHashTable))
 			{
 				char *k;
 				for (void *p = i.Value.Hash->First(&k); p; p = i.Value.Hash->Next(&k))
@@ -491,7 +491,7 @@ bool GVariant::SetBinary(int Len, void *Data, bool Own)
 	}
 	else
 	{
-		if (Value.Binary.Data = new uchar[Value.Binary.Length])
+		if ((Value.Binary.Data = new uchar[Value.Binary.Length]))
 		{
 			if (Data)
 				memcpy(Value.Binary.Data, Data, Value.Binary.Length);
@@ -533,7 +533,7 @@ bool GVariant::SetHashTable(GHashTable *Table, bool Copy)
 
 	if (Copy && Table)
 	{
-		if (Value.Hash = new GHashTable)
+		if ((Value.Hash = new GHashTable))
 		{
 			char *k;
 			for (void *p = Table->First(&k); p; p = Table->Next(&k))
@@ -555,7 +555,7 @@ bool GVariant::SetSurface(class GSurface *Ptr, bool Own)
     Empty();
     Type = GV_GSURFACE;
     Value.Surface.Ptr = Ptr;
-    if (Value.Surface.Own = Own)
+    if ((Value.Surface.Own = Own))
     {
         Value.Surface.Ptr->_Refs++;
     }
@@ -635,6 +635,8 @@ void GVariant::Empty()
 {
 	switch (Type)
 	{
+		default:
+			break;
 		case GV_CUSTOM:
 		{
 			Value.Custom.Data = 0;
@@ -829,6 +831,8 @@ void *GVariant::CastVoidPtr()
 {
 	switch (Type)
 	{
+		default:
+			break;
 		case GV_STRING:
 			return Value.String;
 		case GV_BINARY:
@@ -866,6 +870,8 @@ GDom *GVariant::CastDom()
 {
 	switch (Type)
 	{
+		default:
+			break;
 		case GV_DOM:
 			return Value.Dom;
 		case GV_DOMREF:
@@ -879,6 +885,8 @@ bool GVariant::CastBool()
 {
 	switch (Type)
 	{
+		default:
+			break;
 		case GV_INT32:
 			return Value.Int != 0;
 		case GV_INT64:
@@ -922,6 +930,8 @@ double GVariant::CastDouble()
 {
 	switch (Type)
 	{
+		default:
+			break;
 		case GV_BOOL:
 			return Value.Bool ? 1.0 : 0.0;
 		case GV_DOUBLE:
@@ -953,6 +963,8 @@ int32 GVariant::CastInt32()
 {
 	switch (Type)
 	{
+		default:
+			break;
 		case GV_BOOL:
 			return (int32)Value.Bool;
 		case GV_DOUBLE:
@@ -986,6 +998,8 @@ int64 GVariant::CastInt64()
 {
 	switch (Type)
 	{
+		default:
+			break;
 		case GV_BOOL:
 			return (int64)Value.Bool;
 		case GV_DOUBLE:
@@ -1029,6 +1043,8 @@ char *GVariant::CastString()
 
 	switch (Type)
 	{
+		default:
+			break;
 		case GV_LIST:
 		{
 			GStringPipe p(256);

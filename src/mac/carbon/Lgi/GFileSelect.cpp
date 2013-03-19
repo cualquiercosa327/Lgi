@@ -153,7 +153,7 @@ public:
 		NavReplyRecord r;
 		OSStatus e = NavDialogGetReply(Dlg, &r);
 		if (e) printf("%s:%i - NavDialogGetReply failed with %i\n", _FL, (int)e);
-		else if (Status = r.validRecord)
+		else if ((Status = r.validRecord))
 		{
 			long len = 0;
 			e = AECountItems(&r.selection, &len);

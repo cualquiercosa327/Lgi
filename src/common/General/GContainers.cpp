@@ -516,7 +516,7 @@ bool DLinkList::Delete(int Index)
 	if (Cur)
 	{
 		*Cur = GetIndex(Index);
-		if (Status = Cur->Delete())
+		if ((Status = (Cur->Delete())))
 		{
 			Items--;
 
@@ -543,7 +543,7 @@ bool DLinkList::Delete(void *p)
 		int b;
 		*Cur = GetPtr(p, b);
 		
-		if (Status = Cur->Delete())
+		if ((Status = Cur->Delete()))
 		{
 			Items--;
 
@@ -564,7 +564,7 @@ bool DLinkList::Insert(void *p, int Index)
 	bool Status = false;
 
 	#ifdef _DEBUG
-	if ((NativeInt)p < 100)
+	if ((UNativeInt)p < 100)
 	{
 		static bool First = true;
 		if (First)

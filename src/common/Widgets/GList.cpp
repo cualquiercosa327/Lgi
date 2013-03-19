@@ -1409,9 +1409,9 @@ void GListItem::OnPaint(GItem::ItemPaintCtx &Ctx)
 	if (!Select())
 	{
 		GViewFill *Fill;
-		if (Fill = GetForegroundFill())
+		if ((Fill = GetForegroundFill()))
 			Ctx.Fore = Fill->GetFlat().c24();
-		if (Fill = GetBackgroundFill())
+		if ((Fill = GetBackgroundFill()))
 			Ctx.Back = Fill->GetFlat().c24();
 	}
 
@@ -1655,7 +1655,7 @@ int GList::ColumnAtX(int x, GListColumn **Col, int *Offset)
 
 	int Cx = GetImageList() ? 16 : 0;
 	int c;
-	for (c=0; *Col = Columns.ItemAt(c); c++)
+	for (c=0; (*Col = Columns.ItemAt(c)); c++)
 	{
 		if (x >= Cx && x < Cx + (*Col)->Width())
 		{
@@ -2748,8 +2748,8 @@ void GList::OnMouseMove(GMouse &m)
 					Cur->OnMouseMove(m);
 					
 					if (IsCapturing() &&
-						abs(d->DragStart.x-m.x) > DRAG_THRESHOLD ||
-						abs(d->DragStart.y-m.y) > DRAG_THRESHOLD)
+						(abs(d->DragStart.x-m.x) > DRAG_THRESHOLD ||
+						abs(d->DragStart.y-m.y) > DRAG_THRESHOLD))
 					{
 						OnItemBeginDrag(Cur, m);
 						d->DragMode = DRAG_NONE;
@@ -3541,7 +3541,7 @@ void GList::OnPaint(GSurface *pDC)
 				// Setup painting colours in the context
 				if (LastSelected ^ (int)i->Select())
 				{
-					if (LastSelected = i->Select())
+					if ((LastSelected = i->Select()))
 					{
 						Ctx.Fore = SelFore;
 						Ctx.Back = SelBack;
@@ -3553,12 +3553,12 @@ void GList::OnPaint(GSurface *pDC)
 					}
 				}
 
-				if (Fill = i->GetForegroundFill())
+				if ((Fill = i->GetForegroundFill()))
 				{
 					Ctx.Fore = Fill->GetFlat().c24();
 					LastSelected = -1;
 				}
-				if (Fill = i->GetBackgroundFill())
+				if ((Fill = i->GetBackgroundFill()))
 				{
 					Ctx.Fore = Fill->GetFlat().c24();
 					LastSelected = -1;

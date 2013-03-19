@@ -470,7 +470,7 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir)
 						a.Add(File);
 						
 						char *p;
-						while (p = LgiTokStr(Args))
+						while ((p = LgiTokStr(Args)))
 						{
 							a.Add(p);
 						}
@@ -521,7 +521,7 @@ char *CFStringToUtf8(CFStringRef r)
 						0,
 						&Used))
 	{
-		if (Buffer = new char[Used+1])
+		if ((Buffer = new char[Used+1]))
 		{
 			CFStringGetBytes(r,
 							g,

@@ -993,7 +993,7 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 	if (Face() && !(e = ATSUCreateStyle(&d->hFont)))
 	{
 		// Lookup ID
-		#if 1
+		#if 0
 		if (!Face())
 		{
 			LgiAssert(!"No font face");
@@ -1031,26 +1031,6 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 			Boolean IsBold = Bold();
 			Boolean IsItalic = Italic();
 			Boolean IsUnder = Underline();
-
-			/*
-			ItemCount Instances = 0;
-			int Vars = 10;
-			GArray<ATSUFontVariationAxis> FontVariations(Vars);
-			GArray<ATSUFontVariationValue> FontVarValues(Vars);
-			
-			e = ATSUCountFontInstances(atsuFont, &Instances);
-			if (e)
-				printf("ATSUCountFontInstances failed with %i\n", e);
-			else
-			{
-				for (int i=0; i<Instances; i++)
-				{
-					ItemCount ActualVariationCount = 0;
-					OSStatus e = ATSUGetFontInstance(atsuFont, i, Vars, &FontVariations[0], &FontVarValues[0], &ActualVariationCount);
-					printf("[%i] ATSUGetFontInstance=%i ActualVariationCount=%i\n", i, e, ActualVariationCount);
-				}
-			}
-			*/
 			
 			// Set style attr
 			ATSUAttributeTag Tags[]			= {kATSUFontTag, kATSUSizeTag, kATSUQDItalicTag, kATSUQDUnderlineTag, kATSUQDBoldfaceTag};
@@ -1066,7 +1046,6 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 				d->Height = ds.Y();
 				return true;
 			}
-			// else printf("%s:%i - Error setting font attr %s, %i (e=%i)\n", _FL, Face(), PointSize(), e);
 		}
 		else
 		{

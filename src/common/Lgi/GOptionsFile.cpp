@@ -110,7 +110,7 @@ bool GOptionsFile::Serialize(bool Write)
 			else
 			{
 				Empty(true);
-				if (Status = Tree.Read(this, &f, 0))
+				if ((Status = Tree.Read(this, &f, 0)))
 				{
 					_Defaults();
 				}

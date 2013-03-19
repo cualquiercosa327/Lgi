@@ -189,7 +189,7 @@ IFtpEntry::IFtpEntry(char *Entry, const char *Cs)
 				{
 					int Day = atoi(T[SizeElement+2]);
 					int Month = LookupMonth(MonthStr);
-					int Year;
+					int Year = 0;
 
 					if (strchr(YearOrTime, ':'))
 					{
@@ -349,7 +349,7 @@ int IFtp::ReadLine(char *Msg, int MsgSize)
 	{
 		// look through the input list for result codes
 		char *s;
-		while (s = d->In.First())
+		while ((s = d->In.First()))
 		{
 			int i = 0;
 			if (isdigit(*s))

@@ -213,7 +213,7 @@ int GetDataType(char *str)
 
 		char16 w;
 		int Len = strlen(str);
-		while (w = LgiUtf8To32((uint8*&)str, Len))
+		while ((w = LgiUtf8To32((uint8*&)str, Len)))
 		{
 			if (strchr("e \t\r\n", w))
 			{

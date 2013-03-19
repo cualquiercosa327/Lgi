@@ -196,7 +196,7 @@ public:
 
 			int OldCode;
 			char *s;
-			int Char;
+			int Char = 0;
 			char Buf[4000];
 			int Done = 0;
 			int64 MeterPos = Meter ? Meter->Value() : 0;

@@ -162,6 +162,8 @@ void DistributeSize(GArray<int> &a, GArray<CellFlag> &Flags, int Start, int Span
 		{
 		    switch (Flags[i])
 		    {
+				default:
+					break;
 		        case SizeGrow:
 			    {
 				    Grow.Add(i);
@@ -626,7 +628,7 @@ public:
 						GFont *f = Cbo->GetFont();
 						int x = 0;
 						char *t;
-						for (int i=0; t = (*Cbo)[i]; i++)
+						for (int i=0; (t = (*Cbo)[i]); i++)
 						{
 							GDisplayString ds(f, t);
 							x = max(ds.X(), x);
@@ -828,7 +830,7 @@ public:
 					MaxY = max(MaxY, 1000);
 				}
 			}
-			else if (Tbl = Izza(GTableLayout))
+			else if ((Tbl = Izza(GTableLayout)))
 			{
 				int Ht = min(v->Y(), Tbl->d->LayoutBounds.Y());
 
@@ -1024,7 +1026,7 @@ void GTableLayoutPrivate::Empty(GRect *Range)
 		// Clear all the cells
 		GViewI *c;
 		GAutoPtr<GViewIterator> it(Ctrl->IterateViews());
-		while (c = it->First())
+		while ((c = it->First()))
 		{
 			DeleteObj(c);
 		}

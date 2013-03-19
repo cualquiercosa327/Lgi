@@ -173,8 +173,10 @@ void GControlTree::Item::Select(bool b)
 
 			switch (Type)
 			{
+				default:
+					break;
 				case GV_STRING:
-					if (Ctrl = new GEdit(-1, 0, 0, 200, CtrlY, 0))
+					if ((Ctrl = new GEdit(-1, 0, 0, 200, CtrlY, 0)))
 						Ctrl->Name(Value.Str());
 					if (Flags & TYPE_FILE)
 					{
@@ -182,14 +184,14 @@ void GControlTree::Item::Select(bool b)
 					}
 					break;
 				case GV_BOOL:
-					if (Ctrl = new GCheckBox(-1, 0, 0, 14, 16, 0))
+					if ((Ctrl = new GCheckBox(-1, 0, 0, 14, 16, 0)))
 						Ctrl->Value(Value.CastInt32());
 					break;
 				case GV_INT32:
 					if (Enum)
 					{
 						GCombo *Cbo;
-						if (Ctrl = Cbo = new GCombo(-1, 0, 0, 120, CtrlY, 0))
+						if ((Ctrl = (Cbo = new GCombo(-1, 0, 0, 120, CtrlY, 0))))
 						{
 							int Idx = -1;
 
@@ -207,7 +209,7 @@ void GControlTree::Item::Select(bool b)
 					}
 					else
 					{
-						if (Ctrl = new GEdit(-1, 0, 0, 60, CtrlY, 0))
+						if ((Ctrl = new GEdit(-1, 0, 0, 60, CtrlY, 0)))
 							Ctrl->Value(Value.CastInt32());
 					}
 					break;
@@ -269,6 +271,8 @@ void GControlTree::Item::OnPaint(ItemPaintCtx &Ctx)
 		GRect p = GetRect();
 		switch (Type)
 		{
+			default:
+				break;
 			case GV_INT32:
 			{
 				char s[32], *Disp = 0;

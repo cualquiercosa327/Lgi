@@ -969,6 +969,10 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 							LgiUtf32To16(Utf32, (char16*&)Out8, OutLen);
 							break;
 						}
+                        default:
+                        {
+                            break;
+                        }
 					}
 				}
 

@@ -119,7 +119,7 @@ void CGImg::Create(int x, int y, int Bits, int Line, uchar *data, uchar *palette
 				B.Y(),
 				Bits == 16 ? 5 : 8,
 				Bits,
-				Line,
+				abs(Line),
 				d->Cs,
 				Bits == 32 ? AlphaType : kCGImageAlphaNone,
 				d->Prov,
@@ -129,17 +129,24 @@ void CGImg::Create(int x, int y, int Bits, int Line, uchar *data, uchar *palette
 			);
 			if (!d->Img)
 			{
-				printf("%s:%i - CGImageCreate failed.\n", __FILE__, __LINE__);
+				printf("%s:%i - CGImageCreate(%i, %i, %i, %i, %i, ...) failed.\n",
+					_FL,
+					B.X(),
+					B.Y(),
+					Bits == 16 ? 5 : 8,
+					Bits,
+					Line
+					);
 			}
 		}
 		else
 		{
-			printf("%s:%i - CGDataProviderCreateWithData failed.\n", __FILE__, __LINE__);
+			printf("%s:%i - CGDataProviderCreateWithData failed.\n", _FL);
 		}
 	}
 	else
 	{
-		printf("%s:%i - ColourSpace creation failed.\n", __FILE__, __LINE__);
+		printf("%s:%i - ColourSpace creation failed.\n", _FL);
 	}
 }
 
@@ -292,23 +299,13 @@ bool GMemDC::Unlock()
 	return true;
 }
 
-/*
-void ReleaseData(void *info, const void *data, size_t size)
-{
-	GMemDCPrivate *d = (GMemDCPrivate*)info;
-	DeleteArray(d->Data);
-}
-*/
-
 bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 {
 	bool Status = false;
 
 	d->Empty();
 	
-	if (x > 0 AND
-		y > 0 AND
-		Bits > 0)
+	if (x > 0 && y > 0 && Bits > 0)
 	{
 		if (LineLen == 0)
 		{
@@ -316,16 +313,18 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 			LineLen = ((Bits * x + (Align - 1)) / Align) * (Align / 8);
 		}
 		
+		// printf("d->BitsMem=%p, alloc=%i\n", d->BitsMem.Get(), LineLen * y);
 		if (d->BitsMem.Reset(new uchar[LineLen * y]))
 		{
 			d->Data = d->BitsMem;
+			// printf("Alloc=%p - %p\n", d->Data, d->Data + (LineLen * y));
 			if (Bits <= 8)
 			{
 				d->Cs = CGColorSpaceCreateDeviceGray();
 			}
 			else
 			{
-				d->Cs = CGColorSpaceCreateWithName(kCGColorSpaceUserRGB);
+				d->Cs = CGColorSpaceCreateDeviceRGB(); // CGColorSpaceCreateWithName(kCGColorSpaceUserRGB);
 			}
 
 			d->Bmp = CGBitmapContextCreate
@@ -340,22 +339,19 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 				);
 			if (d->Bmp)
 			{
-				//CGContextTranslateCTM (d->Bmp, 0, y); 
-				//CGContextScaleCTM (d->Bmp, 1.0, -1.0); 
-
 				pMem = new GBmpMem;
 				if (pMem)
 				{
-					pMem->Base = d->Data; ((uchar*)d->Data) + (LineLen * (y - 1));
+					pMem->Base = ((uchar*)d->Data) + (LineLen * (y - 1));
 					pMem->x = x;
 					pMem->y = y;
-					pMem->Line = LineLen;
+					pMem->Line = -LineLen;
 					pMem->Bits = Bits;
 					pMem->Flags = GDC_ON_SCREEN;
 					
 					int NewOp = (pApp) ? Op() : GDC_SET;
 
-					if ((Flags & GDC_OWN_APPLICATOR) AND !(Flags & GDC_CACHED_APPLICATOR))
+					if ((Flags & GDC_OWN_APPLICATOR) && !(Flags & GDC_CACHED_APPLICATOR))
 					{
 						DeleteObj(pApp);
 					}
@@ -365,7 +361,7 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 						DeleteObj(pAppCache[i]);
 					}
 
-					if (NewOp < GDC_CACHE_SIZE AND !DrawOnAlpha())
+					if (NewOp < GDC_CACHE_SIZE && !DrawOnAlpha())
 					{
 						pApp = (pAppCache[NewOp]) ? pAppCache[NewOp] : pAppCache[NewOp] = CreateApplicator(NewOp);
 						Flags &= ~GDC_OWN_APPLICATOR;

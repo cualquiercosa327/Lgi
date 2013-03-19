@@ -271,7 +271,7 @@ bool Xml::ExpandXml(GStringPipe &p, char *s)
 		{
 			// seek to next tag
 			char *Start = s;
-			while (Ch = LgiUtf8To32((uint8*&)s, Len))
+			while ((Ch = LgiUtf8To32((uint8*&)s, Len)))
 			{
 				if (Ch == 0xfeff) Start += 3;
 				if (Ch == '<')

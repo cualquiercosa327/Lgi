@@ -18,7 +18,7 @@ public:
 		/// The application name
 		const char *AppName,
 		/// The version
-		char *Ver,
+		const char *Ver,
 		/// The description of the application
 		const char *Text,
 		/// The filename of a graphic to display

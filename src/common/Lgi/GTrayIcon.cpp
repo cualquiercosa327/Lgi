@@ -87,7 +87,7 @@ public:
 	
 	#ifdef MAC
 	bool Visible;
-	#endif;
+	#endif
 	
 	#endif
 
@@ -108,7 +108,7 @@ public:
 
 		#ifdef MAC
 		Visible = false;
-		#endif;
+		#endif
 		
 		#endif
 	}	

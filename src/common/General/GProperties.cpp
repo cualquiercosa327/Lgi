@@ -1348,7 +1348,7 @@ void PrintObj(ObjProperties *p, int i)
 						}
 						default:
 						{
-							sprintf(Buf+i, "<unknown key type>\n", p->KeyName(), Val->Cp);
+							sprintf(Buf+i, "<unknown key type>\n");
 							break;
 						}
 					}

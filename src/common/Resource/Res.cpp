@@ -1267,7 +1267,7 @@ void ResObjectImpl::WritePos(GXmlTag *t)
 bool ResObjectImpl::Res_SetStrRef(GXmlTag *t, ResReadCtx *Ctx)
 {
 	char *s;
-	if (s = t->GetAttr("ref"))
+	if ((s = t->GetAttr("ref")))
 	{
 		return Factory->Res_SetStrRef(Object, atoi(s), Ctx);
 	}
@@ -1497,13 +1497,13 @@ ResObjectImpl::SStatus ResTableLayout::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 		int Cx = 0, Cy = 0;
 
 		char *s;
-		if (s = Tag->GetAttr("cols"))
+		if ((s = Tag->GetAttr("cols")))
 		{
 			v = s;
 			d->SetValue("cols", v);
 			Cx = CountNumbers(s);
 		}
-		if (s = Tag->GetAttr("rows"))
+		if ((s = Tag->GetAttr("rows")))
 		{
 			v = s;
 			d->SetValue("rows", v);
@@ -1535,9 +1535,9 @@ ResObjectImpl::SStatus ResTableLayout::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 
 					int ColSpan = 1;
 					int RowSpan = 1;
-					if (s = Td->GetAttr("colspan"))
+					if ((s = Td->GetAttr("colspan")))
 						ColSpan = atoi(s);
-					if (s = Td->GetAttr("rowspan"))
+					if ((s = Td->GetAttr("rowspan")))
 						RowSpan = atoi(s);
 
 					char CellName[32];
@@ -1564,11 +1564,11 @@ ResObjectImpl::SStatus ResTableLayout::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 								Cell->SetValue("span", v);
 							}
 
-							if (s = Td->GetAttr("align"))
+							if ((s = Td->GetAttr("align")))
 								Cell->SetValue("align", v = s);
-							if (s = Td->GetAttr("valign"))
+							if ((s = Td->GetAttr("valign")))
 								Cell->SetValue("valign", v = s);
-							if (s = Td->GetAttr("class"))
+							if ((s = Td->GetAttr("class")))
 								Cell->SetValue("class", v = s);
 
 							if (v.SetList())
@@ -1914,7 +1914,7 @@ ResObjectImpl::SStatus ResColumn::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 		return SError;
 
 	char *s = 0;
-	if (s = Tag->GetAttr("width"))
+	if ((s = Tag->GetAttr("width")))
 	{
 		Res_SetPos(0, 0, atoi(s) - 1, 20);
 	}
@@ -2056,7 +2056,7 @@ ResObjectImpl::SStatus ResControlTree::Res_Write(GXmlTag *t)
 		if (n)
 		{
 			GXmlTag *c;
-			while (c = n->Children.First())
+			while ((c = n->Children.First()))
 			{
 				t->InsertTag(c);
 			}

@@ -85,7 +85,7 @@ GApplicator *GApp32::Create(int Bits, int Op)
 
 bool GdcApp32::SetSurface(GBmpMem *d, GPalette *p, GBmpMem *a)
 {
-	if (d AND MyBits(d->Bits))
+	if (d && MyBits(d->Bits))
 	{
 		Dest = d;
 		Pal = p;
@@ -98,7 +98,7 @@ bool GdcApp32::SetSurface(GBmpMem *d, GPalette *p, GBmpMem *a)
 
 void GdcApp32::SetPtr(int x, int y)
 {
-	LgiAssert(Dest AND Dest->Base);
+	LgiAssert(Dest && Dest->Base);
 	Ptr = (ulong*) (Dest->Base + ((y * Dest->Line) + (x << 2)));
 }
 
@@ -145,7 +145,7 @@ void GdcApp32Set::Rectangle(int x, int y)
 	int Line = Dest->Line;
 	COLOUR fill = c;
 
-	if (x AND y)
+	if (x && y)
 	{
 		_asm {
 			mov esi, p
@@ -165,11 +165,13 @@ void GdcApp32Set::Rectangle(int x, int y)
 #else
 	while (y--)
 	{
-		for (int n=0; n<x; n++)
+		ulong *p = Ptr;
+		ulong *e = p + x;
+		while (p < e)
 		{
-			*Ptr++ = c;
+			*p++ = c;
 		}
-		AddPtr(Ptr, Dest->Line - (x << 2));
+		AddPtr(Ptr, Dest->Line);
 	}
 #endif
 }

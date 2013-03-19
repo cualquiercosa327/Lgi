@@ -29,10 +29,10 @@ public:
 	bool EnumFormats(GArray<FormatType> &Formats);
 
 	// Text
-	bool Text(char *Str, bool AutoEmpty = true);
+	bool Text(char *Str, bool AutoEmpty = true); // ptr returned is still owned by this object
 	char *Text();
 
-	bool TextW(char16 *Str, bool AutoEmpty = true);
+	bool TextW(char16 *Str, bool AutoEmpty = true); // ptr returned is still owned by this object
 	char16 *TextW();
 
 	// Bitmap

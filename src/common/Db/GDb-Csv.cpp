@@ -634,6 +634,8 @@ void SvRecordset::Write()
 				{
 					switch (v.Type)
 					{
+						default:
+							break;
 						case GV_STRING:
 						{
 							f.Write((char*)"\"", 1);

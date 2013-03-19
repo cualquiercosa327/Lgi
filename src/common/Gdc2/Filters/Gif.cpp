@@ -706,7 +706,7 @@ GFilter::IoStatus GdcGif::ReadImage(GSurface *pdc, GStream *in)
 								Rd(PackedFields);
 								Rd(Delay);
 								Rd(BackgroundColour);
-								Transparent = PackedFields & 0x80 != 0;
+								Transparent = (PackedFields & 0x80) != 0;
 								break;
 							}
 							default:

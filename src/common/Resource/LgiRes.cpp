@@ -108,11 +108,11 @@ bool LgiStringRes::Read(GXmlTag *t, ResFileFormat Format)
 		{
 			Id = atoi(n);
 		}
-		if (n = t->GetAttr("Ref"))
+		if ((n = t->GetAttr("Ref")))
 		{
 			Ref = atoi(n);
 		}
-		if (n = t->GetAttr("Define"))
+		if ((n = t->GetAttr("Define")))
 		{
 			if (strcmp(n, "IDOK") == 0)
 			{
@@ -127,7 +127,7 @@ bool LgiStringRes::Read(GXmlTag *t, ResFileFormat Format)
 				Id = -1;
 			}
 		}
-		if (n = t->GetAttr("Tag"))
+		if ((n = t->GetAttr("Tag")))
 		{
 			Tag = NewStr(n);
 		}
@@ -512,7 +512,7 @@ bool LgiResources::Load(char *FileName)
 		{
 			bool IsString = true;
 			char *Name = 0;
-			if (Name = t->GetAttr("Name"))
+			if ((Name = t->GetAttr("Name")))
 			{
 				IsString = stricmp("_Dialog Symbols_", Name) != 0;
 			}
@@ -608,10 +608,10 @@ char *LgiResources::StringFromId(int Id)
 	LgiStringRes *NotStr = 0;
 	LgiStringRes *sr;
 
-	if (sr = d->Strings.Find(Id))
+	if ((sr = d->Strings.Find(Id)))
 		return sr->Str;
 
-	if (sr = d->DlgStrings.Find(Id))
+	if ((sr = d->DlgStrings.Find(Id)))
 		return sr->Str;
 
 	return NotStr ? NotStr->Str : 0;
@@ -693,8 +693,9 @@ ResObject *LgiResources::CreateObject(GXmlTag *t, ResObject *Parent)
 		}
 		else if (stricmp(t->Tag, Res_TabView) == 0)
 		{
-			GTabView *Tv;
-			if (Wnd = Tv = new GTabView(0, 10, 10, 100, 100, "GTabView"))
+			GTabView *Tv = new GTabView(0, 10, 10, 100, 100, "GTabView");
+			Wnd = Tv;
+			if (Tv)
 			{
 				Tv->SetPourLargest(false);
 				Tv->SetPourChildren(false);
@@ -1054,15 +1055,15 @@ LgiDialogRes::~LgiDialogRes()
 
 bool LgiDialogRes::Read(GXmlTag *t, ResFileFormat Format)
 {
-	if (Dialog = t)
+	if ((Dialog = t))
 	{
 		char *n = 0;
-		if (n = Dialog->GetAttr("ref"))
+		if ((n = Dialog->GetAttr("ref")))
 		{
 			int Ref = atoi(n);
 			Str = Res->StrFromRef(Ref);
 		}
-		if (n = Dialog->GetAttr("pos"))
+		if ((n = Dialog->GetAttr("pos")))
 		{
 			GToken T(n, ",");
 			if (T.Length() == 4)
@@ -1097,7 +1098,7 @@ bool LgiMenuRes::Read(GXmlTag *t, ResFileFormat Format)
 	if (t && stricmp(t->Tag, "menu") == 0)
 	{
 		char *n;
-		if (n = t->GetAttr("name"))
+		if ((n = t->GetAttr("name")))
 		{
 			GBase::Name(n);
 		}

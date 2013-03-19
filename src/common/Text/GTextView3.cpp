@@ -716,7 +716,7 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 			{
 				// Seek line/doc end
 				char16 *End;
-				for (End = Text + i; *End && *End != '\n'; *End++);
+				for (End = Text + i; *End && *End != '\n'; End++);
 				e = (int)SubtractPtr(End, Text);
 				GDisplayString ds(Font, Text + i, e - i);
 				Cx = ds.X();
@@ -1961,10 +1961,8 @@ bool GTextView3::Paste()
 		int Len = StrlenW(t);
 		Insert(Cursor, t, Len);
 		SetCursor(Cursor+Len, false, true); // Multiline
-
-		// clean up
-		DeleteArray(t);
 	}
+	
 	return false;
 }
 
@@ -2929,7 +2927,7 @@ void GTextView3::DoContextMenu(GMouse &m)
 	GAutoString ClipText;
 	{
 		GClipBoard Clip(this);
-		ClipText.Reset(Clip.Text());
+		ClipText.Reset(NewStr(Clip.Text()));
 	}
 
 	#if LUIS_DEBUG

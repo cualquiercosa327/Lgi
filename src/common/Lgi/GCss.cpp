@@ -270,6 +270,7 @@ bool GCss::Len::ToString(GStream &p)
 		case LenEm:			Unit = "em"; break;
 		case LenEx:			Unit = "ex"; break;
 		case LenPercent:	Unit = "%"; break;
+		default: break;
 	}
 	if (Unit)
 	{
@@ -295,6 +296,7 @@ bool GCss::Len::ToString(GStream &p)
 		case VerticalMiddle:	Unit = "middle"; break;
 		case VerticalBottom:	Unit = "bottom"; break;
 		case VerticalTextBottom: Unit = "text-bottom"; break;
+		default: break;
 	}
 	if (!Unit)
 	{
@@ -577,6 +579,8 @@ GAutoString GCss::ToString()
 							p.Print("%s: url(%s);\n", Name, i->Uri.Get());
 						break;
 					}
+					default:
+						break;
 				}
 				break;
 			}
@@ -1880,6 +1884,7 @@ const char *GCss::Selector::PartTypeToString(PartType p)
 		case CombDesc: return "Desc";
 		case CombChild: return ">";
 		case CombAdjacent: return "+";
+		default: break;
 	}
 	return "<error>";
 };
@@ -2061,7 +2066,7 @@ bool GCss::Selector::Parse(const char *&s)
 		SkipWhite(s);
 		if (*s == '+')
 		{
-			*s++;
+			s++;
 			LgiAssert(Parts.Length() > 0);
 			Combs.Add(Parts.Length());
 			Part &n = Parts.New();
@@ -2069,7 +2074,7 @@ bool GCss::Selector::Parse(const char *&s)
 		}
 		else if (*s == '>')
 		{
-			*s++;
+			s++;
 			LgiAssert(Parts.Length() > 0);
 			Combs.Add(Parts.Length());
 			Part &n = Parts.New();

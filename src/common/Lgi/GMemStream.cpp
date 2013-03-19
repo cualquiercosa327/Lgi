@@ -45,7 +45,7 @@ GMemStream::GMemStream(GStreamI *Src, int64 Start, int64 len)
 
 			if (Len >= 0)
 			{
-				if (Mem = new char[Alloc = Len])
+				if ((Mem = new char[Alloc = Len]))
 				{
 					int r;
 					while (	Pos < Len &&
@@ -78,9 +78,9 @@ GMemStream::GMemStream(void *mem, int64 len, bool copy)
 	_Init();
 
 	Len = len;
-	if (Own = copy)
+	if ((Own = copy))
 	{
-		if (Mem = new char[Alloc = Len])
+		if ((Mem = new char[(Alloc = Len)]))
 			memcpy(Mem, mem, Len);
 		else
 			LgiAssert(!"Alloc error");
@@ -304,7 +304,7 @@ int GTempStream::Write(const void *Buffer, int Size, int Flags)
 		while (FileExists(c));
 
 		LgiAssert(Tmp == 0);
-		if (Tmp = new GFile)
+		if ((Tmp = new GFile))
 		{
 			int64 Len = Mem->GetSize();
 			if (!Tmp->Open(c, O_READWRITE))

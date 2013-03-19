@@ -49,7 +49,6 @@ public:
 		Sx = Sy = -1;
 		Dynamic = true;
 		SnapToEdge = false;
-		ZeroObj(LastKey);
 		EmptyMenu = 0;
 		CloseRequestDone = false;
 	}
@@ -1046,7 +1045,7 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 					#endif
 
 					#if 1
-					if (m.Target = v->WindowFromPoint(m.x - Client.left, m.y - Client.top))
+					if ((m.Target = v->WindowFromPoint(m.x - Client.left, m.y - Client.top)))
 					{
 						m.ToView();
 
@@ -1076,7 +1075,7 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 					status = GetEventParameter(inEvent, kEventParamMouseWheelDelta, typeSInt32, NULL, sizeof(Delta), NULL, &Delta);
 					if (status) printf("error(%i) getting kEventParamMouseWheelDelta\n", (int)status);
 					
-					if (Target = v->WindowFromPoint(Pt.h - Client.left, Pt.v - Client.top))
+					if ((Target = v->WindowFromPoint(Pt.h - Client.left, Pt.v - Client.top)))
 					{
 						GView *v = Target->GetGView();
 						if (v)
@@ -1866,23 +1865,23 @@ int GWindow::OnDrop(char *Format, GVariant *Data, GdcPt2 Pt, int KeyState)
 				if (strnicmp(File, "//localhost", 11) == 0)
 					File += 11;
 				
-				char *i = File, *o = File;
-				while (*i)
+				char *in = File, *out = File;
+				while (*in)
 				{
-					if (i[0] == '%' &&
-						i[1] &&
-						i[2])
+					if (in[0] == '%' &&
+						in[1] &&
+						in[2])
 					{
-						char h[3] = { i[1], i[2], 0 };
-						*o++ = htoi(h);
+						char h[3] = { in[1], in[2], 0 };
+						*out++ = htoi(h);
 						i += 3;
 					}
 					else
 					{
-						*o++ = *i++;
+						*out++ = *in++;
 					}
 				}
-				*o++ = 0;
+				*out++ = 0;
 				
 				if (FileExists(File))
 				{
