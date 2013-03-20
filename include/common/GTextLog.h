@@ -71,16 +71,16 @@ public:
 	
 	int Write(const void *Buffer, int Size, int Flags = 0)
 	{
-		char16 *w = LgiNewUtf8To16((char*)Buffer, Size);
+		GAutoWString w(LgiNewUtf8To16((char*)Buffer, Size));
 		if (w)
 		{
 			if (InThread())
 			{
-				Add(w);
+				Add(w.Release());
 			}
-			else if (Sem.Lock(_FL))
+			else if (Sem.LockWithTimeout(200, _FL))
 			{
-			    Txt.Add(w);
+			    Txt.Add(w.Release());
 			    Sem.Unlock();
 				PostEvent(M_LOG);
 			}
