@@ -3647,6 +3647,64 @@ char *GTag::ParseText(char *Doc)
 	return 0;
 }
 
+bool GTag::ConvertToText(GStream &p, TextConvertState &State)
+{
+	int DepthInc = 0;
+
+	switch (TagId)
+	{
+		case TAG_UL:
+		case TAG_OL:
+			DepthInc = 2;
+			break;
+	}
+
+	if (ValidStrW(Txt))
+	{
+		for (int i=0; i<State.Depth; i++)
+			p.Write("  ", 2);
+		
+		if (TagId == TAG_LI)
+			p.Write("* ", 2);
+
+		GAutoString u(LgiNewUtf16To8(Txt));
+		int u_len = u ? strlen(u) : 0;
+		p.Write(u, u_len);
+		State.CharsOnLine += u_len;
+	}
+	
+	State.Depth += DepthInc;
+	
+	List<GTag>::I it = Tags.Start();
+	for (GTag *c = *it; c; c = *++it)
+	{
+		c->ConvertToText(p, State);
+	}
+
+	State.Depth -= DepthInc;
+	
+	if (IsBlock(Disp))
+	{
+		if (State.CharsOnLine)
+		{
+			p.Write("\n", 1);
+			State.CharsOnLine = 0;
+		}
+	}
+	else
+	{
+		switch (TagId)
+		{
+			case TAG_BR:
+				p.Write("\n", 1);
+				State.CharsOnLine = 0;
+				break;
+		}
+	}
+
+	return true;
+}
+
 char *GTag::NextTag(char *s)
 {
 	while (s && *s)
@@ -7259,6 +7317,7 @@ void GHtml::SetLoadImages(bool i)
 }
 
 char *GHtml::GetSelection()
+
 {
 	char *s = 0;
 
@@ -8118,11 +8177,11 @@ bool GHtml::GetFormattedContent(char *MimeType, GAutoString &Out, GArray<GDocVie
 {
 	if (!MimeType)
 	{
-		LgiAssert(0);
+		LgiAssert(!"No MIME type for getting formatted content");
 		return false;
 	}
 
-	if (stricmp(MimeType, "text/html"))
+	if (!stricmp(MimeType, "text/html"))
 	{
 		// We can handle this type...
 		GArray<GTag*> Imgs;
@@ -8165,13 +8224,16 @@ bool GHtml::GetFormattedContent(char *MimeType, GAutoString &Out, GArray<GDocVie
 		// Export the HTML, including the CID's from the first step
 		Out.Reset(NewStr(Name()));
 	}
-	else if (stricmp(MimeType, "text/plain"))
+	else if (!stricmp(MimeType, "text/plain"))
 	{
 		// Convert DOM tree down to text instead...
-		// FIXME
-        #ifdef _MSC_VER
-        #pragma message(__LOC__"no DOM to text support.")
-        #endif
+		GStringPipe p(512);
+		if (Tag)
+		{
+			GTag::TextConvertState State;
+			Tag->ConvertToText(p, State);
+		}
+		Out.Reset(p.NewStr());
 	}
 
 	return false;

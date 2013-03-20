@@ -230,6 +230,18 @@ public:
 		CtrlHidden,
 	};
 
+	struct TextConvertState
+	{
+		int Depth;
+		int CharsOnLine;
+		
+		TextConvertState()
+		{
+			Depth = 0;
+			CharsOnLine = 0;
+		}
+	};
+
 protected:
 	static bool Selected;
 	friend class HtmlEdit;
@@ -341,6 +353,7 @@ public:
 	char16 *CleanText(const char *s, int len, bool ConversionAllowed = true, bool KeepWhiteSpace = false);
 	char *ParseHtml(char *Doc, int Depth, bool InPreTag = false, bool *BackOut = 0);
 	char *ParseText(char *Doc);
+	bool ConvertToText(GStream &p, TextConvertState &State);
 	
 	/// Configures the tag's styles.
 	void SetStyle();
