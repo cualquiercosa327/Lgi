@@ -1126,7 +1126,7 @@ bool SysOnKey(GView *w, GMessage *m)
 				if (In_SetWindowPos)
 				{
 					assert(0);
-					LgiTrace("%s:%i - SetFocus(%p)\\n", __FILE__, __LINE__, Wnd->Handle());
+					LgiTrace("%s:%i - SetFocus(%p)\\n", _FL, Wnd->Handle());
 				}
 
 				::SetFocus(Wnd->Handle());
