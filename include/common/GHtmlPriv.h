@@ -3,6 +3,7 @@
 
 #include "GCss.h"
 #include "GToken.h"
+#include "GUtf8.h"
 
 namespace Html1
 {
@@ -230,15 +231,83 @@ public:
 		CtrlHidden,
 	};
 
-	struct TextConvertState
+	class TextConvertState
 	{
+		GStream *Out;
+		int PrevLineLen;
+		GArray<char> Buf;
+	
+	public:
 		int Depth;
 		int CharsOnLine;
 		
-		TextConvertState()
+		TextConvertState(GStream *o)
 		{
+			Out = o;
 			Depth = 0;
 			CharsOnLine = 0;
+			PrevLineLen = 0;
+		}
+		
+		~TextConvertState()
+		{
+			if (CharsOnLine)
+				NewLine();
+		}
+		
+		int Write(const void *Ptr, int Bytes)
+		{
+			// We should never by writing newlines into the line buffer
+			LgiAssert(!strnchr((char*)Ptr, '\n', Bytes));
+			
+			// Check if we have enough space to store the string..
+			int Total = CharsOnLine + Bytes;
+			if (Buf.Length() < Total)
+			{
+				// Extend the memory buffer
+				if (!Buf.Length(Total + 32))
+					return -1;
+			}
+			
+			// Store the string into a line buffer
+			memcpy(&Buf[CharsOnLine], Ptr, Bytes);
+			CharsOnLine += Bytes;
+
+			return Bytes;
+		}
+		
+		int GetPrev()
+		{
+			return PrevLineLen;
+		}
+		
+		void NewLine()
+		{
+			bool Valid = false;
+			const uint8 Ws[] = {' ', '\t', 0xa0, 0};
+			
+			GUtf8Ptr p(&Buf[0]);
+			uint8 *End = (uint8*) &Buf[CharsOnLine];
+			while (p.GetCurrent() < End)
+			{
+				if (!strchr((char*)Ws, p))
+				{
+					Valid = true;
+					break;
+				}
+				p++;
+			}
+			if (!Valid)
+				CharsOnLine = 0;
+
+			Buf[CharsOnLine] = 0;
+			if (CharsOnLine || PrevLineLen)
+			{
+				Out->Write(&Buf[0], CharsOnLine);
+				Out->Write("\n", 1);
+				PrevLineLen = CharsOnLine;
+				CharsOnLine = 0;
+			}
 		}
 	};
 
@@ -353,7 +422,7 @@ public:
 	char16 *CleanText(const char *s, int len, bool ConversionAllowed = true, bool KeepWhiteSpace = false);
 	char *ParseHtml(char *Doc, int Depth, bool InPreTag = false, bool *BackOut = 0);
 	char *ParseText(char *Doc);
-	bool ConvertToText(GStream &p, TextConvertState &State);
+	bool ConvertToText(TextConvertState &State);
 	
 	/// Configures the tag's styles.
 	void SetStyle();

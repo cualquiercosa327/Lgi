@@ -3647,12 +3647,17 @@ char *GTag::ParseText(char *Doc)
 	return 0;
 }
 
-bool GTag::ConvertToText(GStream &p, TextConvertState &State)
+bool GTag::ConvertToText(TextConvertState &State)
 {
+	const static char *Rule = "------------------------------------------------------";
 	int DepthInc = 0;
 
 	switch (TagId)
 	{
+		case TAG_P:
+			if (State.GetPrev())
+				State.NewLine();
+			break;
 		case TAG_UL:
 		case TAG_OL:
 			DepthInc = 2;
@@ -3662,15 +3667,14 @@ bool GTag::ConvertToText(GStream &p, TextConvertState &State)
 	if (ValidStrW(Txt))
 	{
 		for (int i=0; i<State.Depth; i++)
-			p.Write("  ", 2);
+			State.Write("  ", 2);
 		
 		if (TagId == TAG_LI)
-			p.Write("* ", 2);
+			State.Write("* ", 2);
 
 		GAutoString u(LgiNewUtf16To8(Txt));
 		int u_len = u ? strlen(u) : 0;
-		p.Write(u, u_len);
-		State.CharsOnLine += u_len;
+		State.Write(u, u_len);
 	}
 	
 	State.Depth += DepthInc;
@@ -3678,7 +3682,7 @@ bool GTag::ConvertToText(GStream &p, TextConvertState &State)
 	List<GTag>::I it = Tags.Start();
 	for (GTag *c = *it; c; c = *++it)
 	{
-		c->ConvertToText(p, State);
+		c->ConvertToText(State);
 	}
 
 	State.Depth -= DepthInc;
@@ -3686,22 +3690,50 @@ bool GTag::ConvertToText(GStream &p, TextConvertState &State)
 	if (IsBlock(Disp))
 	{
 		if (State.CharsOnLine)
-		{
-			p.Write("\n", 1);
-			State.CharsOnLine = 0;
-		}
+			State.NewLine();
 	}
 	else
 	{
 		switch (TagId)
 		{
+			case TAG_A:
+			{
+				// Emit the link to the anchor if it's different from the text of the span...
+				const char *Href;
+				if (Get("href", Href) &&
+					ValidStrW(Txt))
+				{
+					if (strnicmp(Href, "mailto:", 7) == 0)
+						Href += 7;
+						
+					int HrefLen = strlen(Href);
+					GAutoWString h(CleanText(Href, HrefLen));
+					if (h && StrcmpW(h, Txt) != 0)
+					{
+						// Href different from the text of the link
+						State.Write(" (", 2);
+						State.Write(Href, HrefLen);
+						State.Write(")", 1);
+					}
+				}
+				break;
+			}
+			case TAG_HR:
+			{
+				State.Write(Rule, strlen(Rule));
+				State.NewLine();
+				break;
+			}
 			case TAG_BR:
-				p.Write("\n", 1);
-				State.CharsOnLine = 0;
+			{
+				State.NewLine();
+				break;
+			}
+			default:
 				break;
 		}
 	}
-
+	
 	return true;
 }
 
@@ -8230,8 +8262,8 @@ bool GHtml::GetFormattedContent(char *MimeType, GAutoString &Out, GArray<GDocVie
 		GStringPipe p(512);
 		if (Tag)
 		{
-			GTag::TextConvertState State;
-			Tag->ConvertToText(p, State);
+			GTag::TextConvertState State(&p);
+			Tag->ConvertToText(State);
 		}
 		Out.Reset(p.NewStr());
 	}
