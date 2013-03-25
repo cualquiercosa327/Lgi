@@ -459,128 +459,141 @@ void SvRecordset::Read()
 	GFile f;
 	if (f.Open(FileName, O_READ|O_SHARE))
 	{
-		GStringPipe p(1024);
-		char Buf[1024];
-		int r;
-		bool First = true;
 		EncodingType Type = Unknown;
+		
+		int MaxBufSize = 5 << 20;
+		GArray<char> Buffer;
+		Buffer.Length(min(f.GetSize(), MaxBufSize));
+		char *Buf = &Buffer[0];
 
-		while ((r = f.Read(Buf, sizeof(Buf))) > 0)
+		int Used = f.Read(Buf, Buffer.Length());
+		char *Cur = Buf;
+		char *End = Buf + Used;
+
+		if (Used > 2 &&
+			Cur[0] == 0xEF &&
+			Cur[1] == 0xBB &&
+			Cur[2] == 0xBF)
 		{
-			uchar *Start = (uchar*)Buf;
-			if (First)
+			Type = Utf8;
+			Cur += 3;
+		}
+		else if (Used > 1 &&
+				 Cur[0] == 0xFE &&
+				 Cur[1] == 0xFF)
+		{
+			Type = Utf16BE;
+			Cur += 2;
+		}
+		else if (Used > 1 &&
+				 Cur[0] == 0xFF &&
+				 Cur[1] == 0xFE)
+		{
+			Type = Utf16LE;
+			Cur += 2;
+		}
+		else if (Used > 3 &&
+				 Cur[0] == 0x00 &&
+				 Cur[1] == 0x00 &&
+				 Cur[2] == 0xFE &&
+				 Cur[3] == 0xFF)
+		{
+			Type = Utf32BE;
+			Cur += 4;
+		}
+		else if (Used > 3 &&
+				 Cur[0] == 0xFF &&
+				 Cur[1] == 0xFE &&
+				 Cur[2] == 0x00 &&
+				 Cur[3] == 0x00)
+		{
+			Type = Utf32LE;
+			Cur += 4;
+		}
+
+		while (Used > 0)
+		{
+			// Find end of line...
+			char *Eol = Cur; 
+			while (Eol < End && *Eol != '\n')
+				Eol++;
+			
+			int LineLen = Eol - Cur;
+			LgiTrace("Pos=%i, Len=%i\n", Cur - Buf, LineLen);
+			
+			if (Eol >= End)
 			{
-				if (Start[0] == 0xEF &&
-					Start[1] == 0xBB &&
-					Start[2] == 0xBF)
+				// Is there any more data to read??
+				
+				// Move the existing partial line to the start of the memory buffer...
+				Used = Eol - Cur;
+				memmove(Buf, Cur, Used);
+				Cur = Buf;
+				
+				// Read in more data to try and fill the buffer
+				int Remaining = Buffer.Length() - Used;
+				LgiAssert(Remaining > 0);
+				int64 FilePos = f.GetPos();
+				int64 FileSize = f.GetSize();
+				int r = f.Read(Buf + Used, Remaining);
+				if (r <= 0)
 				{
-					Type = Utf8;
-					Start += 3;
-					r -= 3;
+					LgiAssert(FilePos == FileSize);
+					break; // End of file
 				}
-				else if (Start[0] == 0xFE &&
-						 Start[1] == 0xFF)
-				{
-					Type = Utf16BE;
-					Start += 2;
-					r -= 2;
-				}
-				else if (Start[0] == 0xFF &&
-						 Start[1] == 0xFE)
-				{
-					Type = Utf16LE;
-					Start += 2;
-					r -= 2;
-				}
-				else if (Start[0] == 0x00 &&
-						 Start[1] == 0x00 &&
-						 Start[2] == 0xFE &&
-						 Start[3] == 0xFF)
-				{
-					Type = Utf32BE;
-					Start += 4;
-					r -= 4;
-				}
-				else if (Start[0] == 0xFF &&
-						 Start[1] == 0xFE &&
-						 Start[2] == 0x00 &&
-						 Start[3] == 0x00)
-				{
-					Type = Utf32LE;
-					Start += 4;
-					r -= 4;
-				}
+				
+				Used += r;
+				End = Buf + Used;
+
+				// Find end of line again
+				char *Eol = Cur;
+				while (Eol < End && *Eol != '\n')
+					Eol++;
+				
+				if (Eol >= End)
+					break;
 			}
 
-			switch (Type)
+			SvRecord *r = new SvRecord(this, Cur);
+			if (!Cur)
 			{
-				case Utf16LE:
+				break;
+			}
+			
+			if (F.Length() == 0)
+			{
+				if (HasHeaders)
 				{
-					GAutoString Utf((char*)LgiNewConvertCp("utf-8", Start, "utf-16", r));
-					if (Utf)
+					// Headers...
+					for (int i=0; i<r->Fields; i++)
 					{
-						p.Write(Utf, strlen(Utf));
+						char *Name = r->Data[i];
+						GAutoString Field(TrimStr(Name, " \r\t\n\""));
+						if (Field)
+							F.Insert(new SvField(this, i, Field));
 					}
-					break;
+					
+					DeleteObj(r);
 				}
-				case Unknown:
-				case Utf8:
+				else
 				{
-					p.Write(Start, r);
-					break;
-				}
-				default:
-				{
-					LgiAssert(!"Not implemented.");
-					break;
+					for (int n=0; n<r->Fields; n++)
+					{
+						char Name[32];
+						snprintf(Name, sizeof(Name), "Field%i", n);
+						GAutoString a(NewStr(Name));
+						F.Insert(new SvField(this, n, a));
+					}
+					
+					R.Insert(r);
 				}
 			}
-
-			while (p.Pop(Buf, sizeof(Buf)))
+			else
 			{
-				if (First)
-				{
-					if (HasHeaders)
-					{
-						// Headers...
-						if (Parent->Tsv())
-						{
-							GAutoString t;
-							char *s = Buf;
-							int n = 0;
-							while (t.Reset(LgiTsvTok(s)))
-							{
-								F.Insert(new SvField(this, n++, t));
-							}
-						}
-						else
-						{
-							GToken Flds(Buf, ",");
-							for (int n=0; n<Flds.Length(); n++)
-							{
-								GAutoString Name(TrimStr(Flds[n], " \r\t\n\""));
-								if (Name)
-								{
-									F.Insert(new SvField(this, n, Name));
-								}
-							}
-						}
-					}
-					else
-					{
-						char *t = Buf;
-						SvRecord *record;
-						R.Insert(record = new SvRecord(this, t));
-						if (!t)
-							break;
-						for (int n=0; n<record->Fields; n++)
-						{
-							char Name[32];
-							snprintf(Name, sizeof(Name), "Field%i", n);
-							GAutoString a(NewStr(Name));
-							F.Insert(new SvField(this, n, a));
-						}
-					}
+				R.Insert(r);
+			}
+
+			/*
 
 					First = false;
 				}
@@ -594,8 +607,8 @@ void SvRecordset::Read()
 					}
 				}
 			}
+			*/
 		}
-		while (!f.Eof());
 	}
 }
 
