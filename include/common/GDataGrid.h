@@ -36,7 +36,7 @@ public:
 	void OnCreate();
 	GMessage::Result OnEvent(GMessage *Msg);
 	int OnNotify(GViewI *c, int f);
-	void OnMouseWheel(double Lines);
+	bool OnMouseWheel(double Lines);
 	void OnPaint(GSurface *pDC);
 	bool OnLayout(GViewLayoutInfo &Inf);
 	bool Remove(GListItem *Obj);

@@ -299,7 +299,7 @@ public:
 	void OnPosChange();
 	void OnCreate();
 	void OnEscape(GKey &K);
-	void OnMouseWheel(double Lines);
+	bool OnMouseWheel(double Lines);
 
 	// Window Events
 	void OnFocus(bool f);

@@ -475,10 +475,11 @@ void GDataGrid::SetColFlag(int Col, GDataGridFlags Flags, GVariant *Arg)
 		d->ColumnArgs[Col] = *Arg;
 }
 
-void GDataGrid::OnMouseWheel(double Lines)
+bool GDataGrid::OnMouseWheel(double Lines)
 {
 	GList::OnMouseWheel(Lines);
 	d->UpdatePos();
+	return true;
 }
 
 void GDataGrid::OnPaint(GSurface *pDC)

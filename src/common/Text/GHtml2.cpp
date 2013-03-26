@@ -7917,13 +7917,15 @@ GTag *GHtml2::GetTagByPos(int x, int y, int *Index)
 	return 0;
 }
 
-void GHtml2::OnMouseWheel(double Lines)
+bool GHtml2::OnMouseWheel(double Lines)
 {
 	if (VScroll)
 	{
 		VScroll->Value(VScroll->Value() + (int)Lines);
 		Invalidate();
 	}
+	
+	return true;
 }
 
 int GHtml2::OnHitTest(int x, int y)

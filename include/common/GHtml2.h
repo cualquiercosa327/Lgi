@@ -130,7 +130,7 @@ public:
 	void OnMouseClick(GMouse &m);
 	void OnMouseMove(GMouse &m);
 	int OnHitTest(int x, int y);
-	void OnMouseWheel(double Lines);
+	bool OnMouseWheel(double Lines);
 	bool OnKey(GKey &k);
 	int OnNotify(GViewI *c, int f);
 	void OnPosChange();
