@@ -107,6 +107,7 @@ public:
 	GAutoString EmojiImg;
 	bool IsParsing;
 	int NextCtrlId;
+	uint64 SetScrollTime;
 	
 	// Find settings
 	GAutoWString FindText;
@@ -125,6 +126,7 @@ public:
 		LinkDoubleClick = true;
 		WordSelectMode = false;
 		NextCtrlId = 2000;
+		SetScrollTime = 0;
 		CursorVis = false;
 		CursorPos.ZOff(-1, -1);
 
@@ -7047,24 +7049,31 @@ GdcPt2 GHtml::Layout()
 
 		// Flow text, width is different
 		Tag->OnFlow(&f);
-		// f.FinishLine();
 		ViewWidth = Client.X();;
 		d->Content.x = f.max_cx + 1;
 		d->Content.y = f.y2;
-		
 
 		// Set up scroll box
 		int Sy = f.y2 > Y();
 		int LineY = GetFont()->GetHeight();
-		
-		SetScrollBars(false, Sy);
-		if (Sy && VScroll)
+
+		uint64 Now = LgiCurrentTime();
+		if (Now - d->SetScrollTime > 100)
 		{
-			int y = Y();
-			int p = max(y / LineY, 1);
-			int fy = f.y2 / LineY;
-			VScroll->SetPage(p);
-			VScroll->SetLimits(0, fy);
+			d->SetScrollTime = Now;
+			SetScrollBars(false, Sy);
+			if (Sy && VScroll)
+			{
+				int y = Y();
+				int p = max(y / LineY, 1);
+				int fy = f.y2 / LineY;
+				VScroll->SetPage(p);
+				VScroll->SetLimits(0, fy);
+			}
+		}
+		else
+		{
+			LgiTrace("%s - Dropping SetScroll, loop detected: %i ms\n", GetClass(), (int)(Now - d->SetScrollTime));
 		}
 	}
 

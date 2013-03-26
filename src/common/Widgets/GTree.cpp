@@ -1258,12 +1258,14 @@ GTreeItem *GTree::ItemAtPoint(int x, int y)
 	return 0;
 }
 
-void GTree::OnMouseWheel(double Lines)
+bool GTree::OnMouseWheel(double Lines)
 {
 	if (VScroll)
 	{
 		VScroll->Value(VScroll->Value() + (int)Lines);
 	}
+	
+	return true;
 }
 
 void GTree::OnMouseClick(GMouse &m)

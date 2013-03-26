@@ -2836,7 +2836,7 @@ void GTextView3::OnEscape(GKey &K)
 {
 }
 
-void GTextView3::OnMouseWheel(double l)
+bool GTextView3::OnMouseWheel(double l)
 {
 	if (VScroll)
 	{
@@ -2845,6 +2845,8 @@ void GTextView3::OnMouseWheel(double l)
 		VScroll->Value(NewPos);
 		Invalidate();
 	}
+	
+	return true;
 }
 
 void GTextView3::OnFocus(bool f)

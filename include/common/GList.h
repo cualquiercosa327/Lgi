@@ -179,7 +179,7 @@ public:
 	void OnMouseEnter(GMouse &m) {}
 	void OnMouseExit(GMouse &m) {}
 	void OnMouseMove(GMouse &m) {}
-	void OnMouseWheel(double Lines) {}
+	bool OnMouseWheel(double Lines) { return false; }
 	bool OnKey(GKey &k) { return false; }
 	void OnAttach() {}
 	void OnCreate() {}
@@ -590,7 +590,7 @@ public:
 	int OnNotify(GViewI *Ctrl, int Flags);
 	void OnPosChange();
 	bool OnKey(GKey &k);
-	void OnMouseWheel(double Lines);
+	bool OnMouseWheel(double Lines);
 	void OnFocus(bool b);
 	void OnPulse();
 

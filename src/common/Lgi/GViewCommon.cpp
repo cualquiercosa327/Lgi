@@ -241,12 +241,12 @@ void GView::OnMouseMove(GMouse &m)
 	}
 }
 
-void GView::OnMouseWheel(double Lines)
+bool GView::OnMouseWheel(double Lines)
 {
 	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnMouseWheel(Lines);
-	}
+		return Script->OnMouseWheel(Lines);
+	
+	return false;
 }
 
 bool GView::OnKey(GKey &k)

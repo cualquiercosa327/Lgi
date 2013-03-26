@@ -969,7 +969,7 @@ public:
 		GMouse &m
 	);
 	/// The mouse wheel was scrolled.
-	void OnMouseWheel
+	bool OnMouseWheel
 	(
 		/// The amount scrolled
 		double Lines

@@ -1809,7 +1809,7 @@ void GList::KeyScroll(int iTo, int iFrom, bool SelectItems)
 	}
 }
 
-void GList::OnMouseWheel(double Lines)
+bool GList::OnMouseWheel(double Lines)
 {
 	if (VScroll)
 	{
@@ -1830,6 +1830,8 @@ void GList::OnMouseWheel(double Lines)
 			Invalidate(&ItemsPos);
 		}
 	}
+	
+	return true;
 }
 
 bool GList::OnKey(GKey &k)

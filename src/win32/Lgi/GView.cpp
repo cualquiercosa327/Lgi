@@ -1338,7 +1338,23 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				short xPos = (short) LOWORD(Msg->b);	// horizontal position of pointer
 				short yPos = (short) HIWORD(Msg->b);	// vertical position of pointer
 				int nScrollLines = - _lgi_mouse_wheel_lines();
-				OnMouseWheel( ((double)zDelta * (double)nScrollLines) / WHEEL_DELTA);
+				double Lines = ((double)zDelta * (double)nScrollLines) / WHEEL_DELTA;
+				
+				// Try giving the event to the current window...
+				if (!OnMouseWheel(Lines))
+				{
+					// Find the window under the cursor... and try giving it the mouse wheel event
+					POINT Point = {xPos, yPos};
+					HWND hUnder = ::WindowFromPoint(Point);
+					if (hUnder)
+					{
+						GViewI *UnderWnd = GWindowFromHandle(hUnder);
+						if (UnderWnd)
+						{
+							UnderWnd->OnMouseWheel(Lines);
+						}
+					}
+				}
 				return 0;
 			}
 			case M_CHANGE:

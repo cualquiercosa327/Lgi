@@ -307,7 +307,7 @@ public:
 	virtual void OnMouseEnter(GMouse &m) = 0;
 	virtual void OnMouseExit(GMouse &m) = 0;
 	virtual void OnMouseMove(GMouse &m) = 0;
-	virtual void OnMouseWheel(double Lines) = 0;
+	virtual bool OnMouseWheel(double Lines) = 0;
 	virtual bool OnKey(GKey &k) = 0;
 	virtual void OnAttach() = 0;
 	virtual void OnCreate() = 0;

@@ -69,7 +69,7 @@ public:
 	void OnMouseClick(GMouse &m);
 	void OnMouseMove(GMouse &m);
 	bool OnKey(GKey &k);
-	void OnMouseWheel(double Lines);
+	bool OnMouseWheel(double Lines);
 	void OnPulse();
 	#endif
 	

@@ -179,7 +179,7 @@ public:
 	// Implementation
 	void OnMouseClick(GMouse &m);
 	void OnMouseMove(GMouse &m);
-	void OnMouseWheel(double Lines);
+	bool OnMouseWheel(double Lines);
 	void OnPaint(GSurface *pDC);
 	void OnFocus(bool b);
 	void OnPosChange();
