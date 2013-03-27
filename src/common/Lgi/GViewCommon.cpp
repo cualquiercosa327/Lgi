@@ -380,6 +380,7 @@ void GView::OnNcPaint(GSurface *pDC, GRect &r)
 		#endif	
 		Border == 2)
 	{
+		/*
 		static int ThemeType = -1;
 		if (ThemeType < 0)
 		{
@@ -395,8 +396,9 @@ void GView::OnNcPaint(GSurface *pDC, GRect &r)
 			else
 				ThemeType = 0;
 		}
+		*/
 
-		if (ThemeType && d->hTheme)
+		if (d->IsThemed)
 			DrawThemeBorder(pDC, r);
 		else
 			LgiWideBorder(pDC, r, Sunken() ? SUNKEN : RAISED);

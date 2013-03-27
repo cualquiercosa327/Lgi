@@ -45,6 +45,7 @@ GViewPrivate::GViewPrivate()
 	ParentI = 0;
 	Notify = 0;
 	hTheme = NULL;
+	IsThemed = true;
 }
 
 GViewPrivate::~GViewPrivate()
@@ -1144,9 +1145,8 @@ bool SysOnKey(GView *w, GMessage *m)
 void GView::DrawThemeBorder(GSurface *pDC, GRect &r)
 {
 	if (!d->hTheme)
-	{
 		d->hTheme = OpenThemeData(_View, VSCLASS_EDIT);
-	}
+
 	if (d->hTheme)
 	{
 		RECT rc = r;
@@ -1198,6 +1198,11 @@ void GView::DrawThemeBorder(GSurface *pDC, GRect &r)
 		pDC->Set(r.x2, r.y2);
 		
 		r.Size(2, 2);
+	}
+	else
+	{
+		LgiWideBorder(pDC, r, Sunken() ? SUNKEN : RAISED);
+		d->IsThemed = false;
 	}
 }
 #else

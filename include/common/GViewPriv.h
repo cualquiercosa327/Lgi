@@ -80,6 +80,7 @@ public:
 	// General
 	int				CtrlId;
 	GDragDropTarget	*DropTarget;
+	bool			IsThemed;
 
 	// Heirarchy
 	GViewI			*ParentI;
