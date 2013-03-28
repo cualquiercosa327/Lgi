@@ -5765,7 +5765,7 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 				else
 					Size.y = r.Y();
 				
-				if (!Ctrl->IsAttached())
+				if (Html->IsAttached() && !Ctrl->IsAttached())
 					Ctrl->Attach(Html);
 			}
 
