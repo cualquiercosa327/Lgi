@@ -163,6 +163,9 @@ public:
 	/// Returns true if the entry is a sub-directory.
 	virtual bool IsDir();
 	
+	/// Returns true if the entry is a symbolic link.
+	virtual bool IsSymLink();
+	
 	/// Returns true if the entry is read only.
 	virtual bool IsReadOnly();
 

@@ -1312,6 +1312,8 @@ int GDirectory::First(const char *Name, const char *Pattern)
 {
 	Close();
 
+// LgiTrace("First '%s' '%s'\n", Name, Pattern);
+
     d->Utf.Reset();
 
 	if (Name)
@@ -1478,6 +1480,18 @@ bool GDirectory::IsDir()
 	else
 	{
 		return (d->Data.w.dwFileAttributes & FA_DIRECTORY) != 0;
+	}
+}
+
+bool GDirectory::IsSymLink()
+{
+	if (GFileSystem::Win9x)
+	{
+		return (d->Data.a.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0;
+	}
+	else
+	{
+		return (d->Data.w.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0;
 	}
 }
 
