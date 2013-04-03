@@ -2101,7 +2101,7 @@ bool GCss::Selector::Parse(const char *&s)
 	Raw.Reset(NewStr(Start, s - Start));
 	#endif
 
-	return true;
+	return Parts.Length() > 0;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2143,8 +2143,12 @@ bool GCss::Store::Parse(const char *&c)
 		// read selector
 		GArray<GCss::Selector*> Selectors;
 		GCss::Selector *Cur = new GCss::Selector;
-		Cur->Parse(c);
-		Selectors.Add(Cur);
+		
+		if (Cur->Parse(c))
+			Selectors.Add(Cur);
+		else
+			DeleteObj(Cur);
+
 		while (*c)
 		{
 			SkipWhiteSpace(c);
@@ -2152,8 +2156,10 @@ bool GCss::Store::Parse(const char *&c)
 			{
 				c++;
 				Cur = new GCss::Selector;
-				Cur->Parse(c);
-				Selectors.Add(Cur);
+				if (Cur && Cur->Parse(c))
+					Selectors.Add(Cur);
+				else
+					DeleteObj(Cur);
 			}
 			else if (*c == '/')
 			{

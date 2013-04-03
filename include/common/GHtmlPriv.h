@@ -255,11 +255,8 @@ public:
 				NewLine();
 		}
 		
-		int Write(const void *Ptr, int Bytes)
+		int _Write(const void *Ptr, int Bytes)
 		{
-			// We should never by writing newlines into the line buffer
-			LgiAssert(!strnchr((char*)Ptr, '\n', Bytes));
-			
 			// Check if we have enough space to store the string..
 			int Total = CharsOnLine + Bytes;
 			if (Buf.Length() < Total)
@@ -274,6 +271,29 @@ public:
 			CharsOnLine += Bytes;
 
 			return Bytes;
+		}
+		
+		int Write(const void *Ptr, int Bytes)
+		{
+			char *start = (char*) Ptr, *cur;
+			char *end = start + Bytes;
+			const char *eol = "\r\n";
+			while (start < end)
+			{
+				for (cur = start; *cur && cur < end && !strchr(eol, *cur); cur++)
+					;
+				
+				if (!*cur || cur >= end)
+					break;
+				
+				_Write(start, cur - start);
+				
+				start = cur;
+				while (*start && start < end && strchr(eol, *start))
+					start++;
+			}
+			
+			return _Write(start, end - start);
 		}
 		
 		int GetPrev()

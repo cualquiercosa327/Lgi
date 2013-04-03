@@ -86,6 +86,24 @@ static char DefaultCss[] = {
 
 #define IsBlock(d)		((d) == DispBlock)
 
+template<typename T>
+void RemoveChars(T *str, T *remove_list)
+{
+	T *i = str, *o = str, *c;
+	while (*i)
+	{
+		for (c = remove_list; *c; c++)
+		{
+			if (*c == *i)
+				break;
+		}
+		if (*c == 0)
+			*o++ = *i;
+		i++;
+	}
+	*o++ = NULL;
+}
+
 //////////////////////////////////////////////////////////////////////
 using namespace Html1;
 
