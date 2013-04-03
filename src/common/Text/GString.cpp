@@ -857,7 +857,11 @@ bool ValidStrW(const char16 *s)
 	{
 		for (const char16 *c=s; *c; c++)
 		{
-			if (*c != ' ' && *c != '\t') return true;
+			if (*c != ' ' &&
+				*c != '\t' &&
+				*c != 0xfeff &&
+				*c != 0xfffe)
+				return true;
 		}
 	}
 

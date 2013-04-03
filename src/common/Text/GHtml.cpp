@@ -3675,8 +3675,11 @@ bool GTag::ConvertToText(TextConvertState &State)
 			State.Write("* ", 2);
 
 		GAutoString u(LgiNewUtf16To8(Txt));
-		int u_len = u ? strlen(u) : 0;
-		State.Write(u, u_len);
+		if (u)
+		{
+			int u_len = strlen(u);
+			State.Write(u, u_len);
+		}
 	}
 	
 	State.Depth += DepthInc;
