@@ -2379,7 +2379,7 @@ GTagHit GTag::GetTagByPos(int x, int y)
 
 int GTag::OnNotify(int f)
 {
-	if (!Ctrl)
+	if (!Ctrl || !Html->InThread())
 		return 0;
 	
 	switch (CtrlType)
@@ -3278,6 +3278,9 @@ void GTag::SetStyle()
 		}
 		case TAG_SELECT:
 		{
+			if (!Html->InThread())
+				break;
+
 			LgiAssert(!Ctrl);
 			Ctrl = new GCombo(Html->d->NextCtrlId++, 0, 0, 100, SysFont->GetHeight() + 8, NULL);
 			CtrlType = CtrlSelect;
@@ -3285,6 +3288,9 @@ void GTag::SetStyle()
 		}
 		case TAG_INPUT:
 		{
+			if (!Html->InThread())
+				break;
+
 			LgiAssert(!Ctrl);
 
 			const char *Type, *Value = NULL;
@@ -5755,7 +5761,7 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 		case TAG_SELECT:
 		case TAG_INPUT:
 		{
-			if (Ctrl)
+			if (Html->InThread() && Ctrl)
 			{
 				GRect r = Ctrl->GetPos();
 
@@ -6881,7 +6887,7 @@ bool GHtml::Name(const char *s)
 	}
 	#endif
 
-	LgiAssert(LgiApp->GetGuiThread() == LgiGetCurrentThread());
+	// LgiAssert(LgiApp->GetGuiThread() == LgiGetCurrentThread());
 
 	_Delete();
 	_New();
