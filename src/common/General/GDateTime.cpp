@@ -1028,7 +1028,7 @@ bool GDateTime::Serialize(ObjProperties *Props, char *Name, bool Write)
 }
 */
 
-int GDateTime::Compare(GDateTime *d)
+int GDateTime::Compare(const GDateTime *d)
 {
 	int c = 0;
 	if (d)

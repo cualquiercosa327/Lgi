@@ -55,11 +55,11 @@ public:
 
 	void OnMouseClick(GMouse &m)
 	{
-		if (m.Down() AND m.Left())
+		if (m.Down() && m.Left())
 		{
 			GList *l = GetList();
 			List<GListItem> Sel;
-			if (l->GetSelection(Sel) AND Sel.First())
+			if (l->GetSelection(Sel) && Sel.First())
 			{
 				bool v = !Value();
 				Sel.Delete(GetItem());

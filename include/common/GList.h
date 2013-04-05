@@ -400,7 +400,7 @@ public:
 
 	// Overridable
 	virtual int Compare(GListItem *To, int Field) { return 0; }
-	virtual void OnColumnNotify(int Col, int Data) {}
+	virtual void OnColumnNotify(int Col, int Data) { Update(); }
 };
 
 typedef int (*GListCompareFunc)(GListItem *a, GListItem *b, NativeInt Data);

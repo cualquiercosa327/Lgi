@@ -1022,7 +1022,6 @@ void GListItemColumn::Value(int64 i)
 	if (i != _Value)
 	{
 		_Value = i;
-		_Item->Update();
 		_Item->OnColumnNotify(_Column, _Value);
 	}
 }

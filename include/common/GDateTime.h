@@ -257,7 +257,7 @@ public:
 	bool operator >=(GDateTime &dt);
 	bool operator ==(GDateTime &dt);
 	bool operator !=(GDateTime &dt);
-	int Compare(GDateTime *d);
+	int Compare(const GDateTime *d);
 
 	GDateTime operator -(GDateTime &dt);
 	GDateTime operator +(GDateTime &dt);
