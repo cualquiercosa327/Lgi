@@ -78,6 +78,7 @@ public:
 	OsThreadId GuiThread;
 	int LinuxWine;
 	GAutoString Name, Mime, ProductId;
+	bool ThemeAware;
 
 	// Win32
 	bool QuitReceived;
@@ -90,6 +91,7 @@ public:
 		SymLookup = 0;
 		QuitReceived = false;
 		SkinLib = 0;
+		ThemeAware = true;
 		GuiThread = LgiGetCurrentThread();
 	}
 
@@ -216,7 +218,9 @@ static GAutoString ParseVer(void *Resource, char *Part)
 }
 
 /////////////////////////////////////////////////////////////////////////////
+#include <Shlwapi.h>
 extern int MouseRollMsg;
+typedef HRESULT (CALLBACK *fDllGetVersion)(DLLVERSIONINFO *);
 
 bool GApp::Win9x = LgiGetOs() == LGI_OS_WIN9X;
 
@@ -281,7 +285,21 @@ DumpTime("exception handler");
 	OleInitialize(NULL);
 	CoInitialize(NULL);
 	InitCommonControls();
-
+	
+	{
+		GLibrary ComCtl32("ComCtl32.dll");
+		DLLVERSIONINFO info;
+		ZeroObj(info);
+		info.cbSize = sizeof(info);
+		fDllGetVersion DllGetVersion = (fDllGetVersion)ComCtl32.GetAddress("DllGetVersion");
+		if (DllGetVersion)
+		{
+			HRESULT ret = DllGetVersion(&info);
+			d->ThemeAware = info.dwMajorVersion >= 6;
+			LgiTrace("ComCtl32.dll v%i.%i found (ret=%x)\n", info.dwMajorVersion, info.dwMinorVersion, ret);
+		}
+	}
+		
 DumpTime("init common ctrls");
 
 	// Setup LGI Sub-systems
@@ -363,7 +381,7 @@ DumpTime("ms hook");
 			||
 			!ObjArgs->NoSkin
 		)
-		AND
+		&&
 		!GetOption("noskin")
 		#endif
 	)
@@ -421,12 +439,6 @@ DumpTime("skin");
 
 GApp::~GApp()
 {
-	#ifdef SKIN_MAGIC
-	
-	ExitSkinMagicLib();
-	
-	#endif
-
 	DeleteObj(AppWnd);
 	DeleteObj(SystemNormal);
 	DeleteObj(SystemBold);
@@ -450,9 +462,9 @@ GApp::~GApp()
 
 bool GApp::IsOk()
 {
-	bool Status =	(this != 0) AND
-					(d != 0) AND
-					(d->FileSystem != 0) AND
+	bool Status =	(this != 0) &&
+					(d != 0) &&
+					(d->FileSystem != 0) &&
 					(d->GdcSystem != 0);
 	LgiAssert(Status);
 	return Status;
@@ -520,7 +532,7 @@ OsAppArguments *GApp::GetAppArgs()
 
 GXmlTag *GApp::GetConfig(const char *Tag)
 {
-	if (IsOk() AND !d->Config)
+	if (IsOk() && !d->Config)
 	{
 		const char File[] = "lgi.conf";
 		char Path[256];
@@ -550,7 +562,7 @@ GXmlTag *GApp::GetConfig(const char *Tag)
 		}
 	}
 
-	if (Tag AND d->Config)
+	if (Tag && d->Config)
 	{
 		return d->Config->GetTag(Tag);
 	}
@@ -560,7 +572,7 @@ GXmlTag *GApp::GetConfig(const char *Tag)
 
 void GApp::SetConfig(GXmlTag *Tag)
 {
-	if (IsOk() AND Tag)
+	if (IsOk() && Tag)
 	{
 		GXmlTag *Old = GetConfig(Tag->Tag);
 		if (Old)
@@ -588,7 +600,7 @@ char *GApp::GetArgumentAt(int n)
 		for (int i=0; i<=n; i++)
 		{
 			char16 *e = 0;
-			while (*s AND strchr(WhiteSpace, *s)) s++;
+			while (*s && strchr(WhiteSpace, *s)) s++;
 			if (*s == '\'' || *s == '\"')
 			{
 				char16 Delim = *s++;
@@ -596,7 +608,7 @@ char *GApp::GetArgumentAt(int n)
 			}
 			else
 			{
-				for (e = s; *e AND !strchr(WhiteSpace, *e); e++)
+				for (e = s; *e && !strchr(WhiteSpace, *e); e++)
 					;
 			}
 
@@ -623,7 +635,7 @@ bool GApp::GetOption(const char *Option, GAutoString &Buf)
 	char16 *Opt = LgiNewUtf8To16(Option);
 	int OptLen = StrlenW(Opt);
 
-	while (c AND *c)
+	while (c && *c)
 	{
 		if (*c == '/' || *c == '-')
 		{
@@ -639,7 +651,7 @@ bool GApp::GetOption(const char *Option, GAutoString &Buf)
 				if (*c)
 				{
 					// skip leading whitespace
-					while (*c AND strchr(WhiteSpace, *c))
+					while (*c && strchr(WhiteSpace, *c))
 					{
 						c++;
 					}
@@ -699,7 +711,7 @@ void GApp::OnCommandLine()
 		for (s = CmdLine; *s; )
 		{
 			// skip ws
-			while (*s AND strchr(WhiteSpace, *s)) s++;
+			while (*s && strchr(WhiteSpace, *s)) s++;
 
 			// read to end of token
 			char *e = s;
@@ -707,10 +719,13 @@ void GApp::OnCommandLine()
 			{
 				char Delim = *s++;
 				e = strchr(s, Delim);
+				if (!e)
+					e = s + strlen(s);
 			}
 			else
 			{
-				for (; *e AND !strchr(WhiteSpace, *e); e++);
+				for (; *e && !strchr(WhiteSpace, *e); e++)
+					;
 			}
 
 			char *Arg = NewStr(s, e - s);
@@ -782,6 +797,11 @@ int32 GApp::GetMetric(LgiSystemMetric Metric)
 			Status = GetSystemMetrics(SM_CYMENU);
 			break;
 		}
+		case LGI_MET_THEME_AWARE:
+		{
+			Status = d->ThemeAware;
+			break;
+		}
 	}
 
 	return Status;
@@ -800,7 +820,7 @@ GViewI *GApp::GetFocus()
 
 HINSTANCE GApp::GetInstance()
 {
-	if (this AND IsOk())
+	if (this && IsOk())
 	{
 		return d->Args.hInstance;
 	}

@@ -15,7 +15,7 @@ GProgress::GProgress(int id, int x, int y, int cx, int cy, const char *name) :
 	SetPos(r);
 	if (name) GControl::Name(name);
 
-	SetStyle(GetStyle() | WS_CHILD | WS_VISIBLE); //  | PBS_SMOOTH  | WS_TABSTOP
+	SetStyle(GetStyle() | WS_CHILD | WS_VISIBLE | PBS_SMOOTH);
 	if (SubClass)
 	{
 		SubClass->SubClass("msctls_progress32");
@@ -58,9 +58,6 @@ void GProgress::Value(int64 v)
 	Val = v;
 	if (Handle())
 	{
-		// DWORD low = SendMessage(Handle(), PBM_GETRANGE, true, 0);
-		// DWORD high = SendMessage(Handle(), PBM_GETRANGE, false, 0);
-
 		PostMessage(Handle(), PBM_SETPOS, (WPARAM) (Val>>Shift), 0);
 	}
 }
@@ -148,3 +145,4 @@ bool GProgress::SetBackgroundFill(GViewFill *Fill)
 
 	return GView::SetForegroundFill(Fill);
 }
+

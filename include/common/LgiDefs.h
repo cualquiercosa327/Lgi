@@ -436,6 +436,8 @@ enum LgiSystemMetric
 	/// Get the height of a single line menu bar
 	/// \sa GApp::GetMetric()
 	LGI_MET_MENU,
+	/// This is non-zero if the system is theme aware
+	LGI_MET_THEME_AWARE
 };
 
 /// \brief Types of system paths available for querying
