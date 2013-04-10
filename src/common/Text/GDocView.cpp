@@ -178,43 +178,48 @@ bool LgiDetectLinks(GArray<GLinkInfo> &Links, char16 *Text, int Size)
 }
 
 //////////////////////////////////////////////////////////////////////////////////
+#include "INet.h"
 GDocumentEnv::LoadType GDefaultDocumentEnv::GetContent(LoadJob *&j)
 {
 	if (!j || !ValidStr(j->Uri))
 		return LoadError;
 
-	char Exe[256];
-	LgiGetExePath(Exe, sizeof(Exe));
-
-	#ifdef WIN32
-	if (stristr(Exe, "\\Debug") ||
-		stristr(Exe, "\\Release"))
+	GUri u(j->Uri);
+	if (u.Protocol && !stricmp(u.Protocol, "file"))
 	{
-		LgiTrimDir(Exe);
-	}
-	#endif
+		char Exe[256];
+		LgiGetExePath(Exe, sizeof(Exe));
 
-	char File[MAX_PATH];
-	LgiMakePath(File, sizeof(File), Exe, j->Uri);
-
-	if (!FileExists(File))
-	{
-		GAutoString f(LgiFindFile(j->Uri));
-		if (f)
-			strsafecpy(File, f, sizeof(File));
-	}
-	
-	if (FileExists(File))
-	{
-		if (j->Pref == GDocumentEnv::LoadJob::FmtFilename)
+		#ifdef WIN32
+		if (stristr(Exe, "\\Debug") ||
+			stristr(Exe, "\\Release"))
 		{
-			j->Filename.Reset(NewStr(File));
-			return LoadImmediate;
+			LgiTrimDir(Exe);
 		}
-		else
+		#endif
+
+		char File[MAX_PATH];
+		LgiMakePath(File, sizeof(File), Exe, j->Uri);
+
+		if (!FileExists(File))
 		{
-			j->pDC.Reset(LoadDC(File));
-			return LoadImmediate;
+			GAutoString f(LgiFindFile(j->Uri));
+			if (f)
+				strsafecpy(File, f, sizeof(File));
+		}
+		
+		if (FileExists(File))
+		{
+			if (j->Pref == GDocumentEnv::LoadJob::FmtFilename)
+			{
+				j->Filename.Reset(NewStr(File));
+				return LoadImmediate;
+			}
+			else
+			{
+				j->pDC.Reset(LoadDC(File));
+				return LoadImmediate;
+			}
 		}
 	}
 

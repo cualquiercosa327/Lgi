@@ -4578,6 +4578,7 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 			}
 			else
 			{
+				Size.x = Size.y = DefaultImgSize;
 				Min = max(Min, Size.x);
 				Max = max(Max, Size.x);
 			}
@@ -4787,15 +4788,18 @@ void GTag::LayoutTable(GFlowRegion *f)
 								FixedCol[x] = false;
 							}
 							
-							if (t->Width().IsValid())
-							{
-								t->MinContent = t->MaxContent = f->ResolveX(t->Width(), GetFont(), false);
-								FixedCol[x] = true;
-							}
-							else if (!t->GetWidthMetrics(t->MinContent, t->MaxContent))
+							if (!t->GetWidthMetrics(t->MinContent, t->MaxContent))
 							{
 								t->MinContent = 16;
 								t->MaxContent = 16;
+							}
+							
+							if (t->Width().IsValid())
+							{
+								int RequestedWidth = f->ResolveX(t->Width(), GetFont(), false);
+								t->MinContent = max(t->MinContent, RequestedWidth);
+								t->MaxContent = max(t->MaxContent, RequestedWidth);
+								FixedCol[x] = true;
 							}
 							
 							#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
@@ -5530,6 +5534,13 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 	Size.x = 0;
 	Size.y = 0;
 
+	#ifdef _DEBUG
+	if (Debug)
+	{
+		int asd=0;
+	}
+	#endif
+	
 	switch (TagId)
 	{
 		case TAG_IFRAME:
@@ -5556,46 +5567,49 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 		}
 		case TAG_IMG:
 		{
-			Restart = false;
+			if (Disp == DispInline)
+			{
+				Restart = false;
 
-			Pos.y = Flow->y1;
-			
-			if (Width().IsValid())
-			{
-				Size.x = Flow->ResolveX(Width(), GetFont(), false);
-			}
-			else if (Image)
-			{
-				Size.x = Image->X();
-			}
-			else if (Get("alt", ImgAltText) && ValidStr(ImgAltText))
-			{
-				GDisplayString a(Html->GetFont(), ImgAltText);
-				Size.x = a.X() + 4;
-			}
-			else
-			{
-				Size.x = DefaultImgSize;
-			}
-			
-			GCss::LengthType a = GetAlign(true);
-			switch (a)
-			{
-				case AlignCenter:
+				Pos.y = Flow->y1;
+				
+				if (Width().IsValid())
 				{
-					int Fx = Flow->x2 - Flow->x1;
-					Pos.x = Flow->x1 + ((Fx - Size.x) / 2);
-					break;
+					Size.x = Flow->ResolveX(Width(), GetFont(), false);
 				}
-				case AlignRight:
+				else if (Image)
 				{
-					Pos.x = Flow->x2 - Size.x;
-					break;
+					Size.x = Image->X();
 				}
-				default:
+				else if (Get("alt", ImgAltText) && ValidStr(ImgAltText))
 				{
-					Pos.x = Flow->cx;
-					break;
+					GDisplayString a(Html->GetFont(), ImgAltText);
+					Size.x = a.X() + 4;
+				}
+				else
+				{
+					Size.x = DefaultImgSize;
+				}
+				
+				GCss::LengthType a = GetAlign(true);
+				switch (a)
+				{
+					case AlignCenter:
+					{
+						int Fx = Flow->x2 - Flow->x1;
+						Pos.x = Flow->x1 + ((Fx - Size.x) / 2);
+						break;
+					}
+					case AlignRight:
+					{
+						Pos.x = Flow->x2 - Size.x;
+						break;
+					}
+					default:
+					{
+						Pos.x = Flow->cx;
+						break;
+					}
 				}
 			}
 			break;
@@ -5634,13 +5648,6 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 		}
 	}
 
-	#ifdef _DEBUG
-	if (Debug)
-	{
-		int asd=0;
-	}
-	#endif
-	
 	int OldFlowMy = Flow->my;
 	if (Disp == DispBlock || Disp == DispInlineBlock)
 	{
@@ -5774,81 +5781,6 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 		}
 	}
 
-	switch (TagId)
-	{
-		case TAG_SELECT:
-		case TAG_INPUT:
-		{
-			if (Html->InThread() && Ctrl)
-			{
-				GRect r = Ctrl->GetPos();
-
-				if (Width().IsValid())
-					Size.x = Flow->ResolveX(Width(), GetFont(), false);
-				else
-					Size.x = r.X();
-				if (Height().IsValid())
-					Size.y = Flow->ResolveY(Height(), GetFont(), false);
-				else
-					Size.y = r.Y();
-				
-				if (Html->IsAttached() && !Ctrl->IsAttached())
-					Ctrl->Attach(Html);
-			}
-
-			Flow->cx += Size.x;
-			Flow->y2 = max(Flow->y2, Flow->y1 + Size.y - 1);
-			break;
-		}
-		case TAG_IMG:
-		{
-			Len Ht = Height();
-			if (Ht.IsValid() && Ht.Type != LenAuto)
-			{
-				if (Image)
-					Size.y = Ht.ToPx(Image->Y(), GetFont());
-				else
-					Size.y = Flow->ResolveY(Ht, f, false);
-			}
-			else if (Image)
-			{
-				Size.y = Image->Y();
-			}
-			else if (ValidStr(ImgAltText))
-			{
-				Size.y = Html->GetFont()->GetHeight() + 4;
-			}
-			else
-			{
-				Size.y = DefaultImgSize;
-			}
-
-			Flow->cx += Size.x;
-			Flow->y2 = max(Flow->y2, Flow->y1 + Size.y - 1);
-			break;
-		}
-		case TAG_TR:
-		{
-			Flow->x2 = Flow->x1 + Local.X();
-			break;
-		}
-		case TAG_BR:
-		{
-			int OldFlowY2 = Flow->y2;
-			Flow->FinishLine();
-			Size.y = Flow->y2 - OldFlowY2;
-			Flow->y2 = max(Flow->y2, Flow->y1 + Size.y - 1);
-			break;
-		}
-		/* This doesn't make sense....
-		case TAG_TD:
-		{
-			Size.x = Flow->X();
-			break;
-		}
-		*/
-	}
-
 	if (Disp == DispBlock || Disp == DispInlineBlock)
 	{		
 		GCss::Len Ht = Height();
@@ -5908,6 +5840,83 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 				Flow->y2 += Flow->ResolveX(BorderBottom(), GetFont(), false);
 				Size.y = Flow->y2 - Flow->y1 + 1;
 			}
+		}
+	}
+	else
+	{
+		switch (TagId)
+		{
+			case TAG_SELECT:
+			case TAG_INPUT:
+			{
+				if (Html->InThread() && Ctrl)
+				{
+					GRect r = Ctrl->GetPos();
+
+					if (Width().IsValid())
+						Size.x = Flow->ResolveX(Width(), GetFont(), false);
+					else
+						Size.x = r.X();
+					if (Height().IsValid())
+						Size.y = Flow->ResolveY(Height(), GetFont(), false);
+					else
+						Size.y = r.Y();
+					
+					if (Html->IsAttached() && !Ctrl->IsAttached())
+						Ctrl->Attach(Html);
+				}
+
+				Flow->cx += Size.x;
+				Flow->y2 = max(Flow->y2, Flow->y1 + Size.y - 1);
+				break;
+			}
+			case TAG_IMG:
+			{
+				Len Ht = Height();
+				if (Ht.IsValid() && Ht.Type != LenAuto)
+				{
+					if (Image)
+						Size.y = Ht.ToPx(Image->Y(), GetFont());
+					else
+						Size.y = Flow->ResolveY(Ht, f, false);
+				}
+				else if (Image)
+				{
+					Size.y = Image->Y();
+				}
+				else if (ValidStr(ImgAltText))
+				{
+					Size.y = Html->GetFont()->GetHeight() + 4;
+				}
+				else
+				{
+					Size.y = DefaultImgSize;
+				}
+
+				Flow->cx += Size.x;
+				Flow->y2 = max(Flow->y2, Flow->y1 + Size.y - 1);
+				break;
+			}
+			case TAG_TR:
+			{
+				Flow->x2 = Flow->x1 + Local.X();
+				break;
+			}
+			case TAG_BR:
+			{
+				int OldFlowY2 = Flow->y2;
+				Flow->FinishLine();
+				Size.y = Flow->y2 - OldFlowY2;
+				Flow->y2 = max(Flow->y2, Flow->y1 + Size.y - 1);
+				break;
+			}
+			/* This doesn't make sense....
+			case TAG_TD:
+			{
+				Size.x = Flow->X();
+				break;
+			}
+			*/
 		}
 	}
 
@@ -6665,6 +6674,20 @@ void GTag::OnPaint(GSurface *pDC)
 			break;
 		}
 	}
+	
+	#if DEBUG_TABLE_LAYOUT && 0
+	if (TagId == TAG_TD)
+	{
+		GTag *Tbl = this;
+		while (Tbl->TagId != TAG_TABLE && Tbl->Parent)
+			Tbl = Tbl->Parent;
+		if (Tbl && Tbl->TagId == TAG_TABLE && Tbl->Debug)
+		{
+			pDC->Colour(GColour(255, 0, 0));
+			pDC->Box(0, 0, Size.x-1, Size.y-1);
+		}
+	}
+	#endif
 
 	List<GTag>::I TagIt = Tags.Start();
 	for (GTag *t=*TagIt; t; t=*++TagIt)
@@ -8482,7 +8505,7 @@ void GCellStore::Dump()
 		for (x=0; x<Sx; x++)
 		{
 			GTag *t = Get(x, y);
-			LgiTrace("%p ", t);
+			LgiTrace("%-10p", t);
 		}
 		LgiTrace("\n");
 
@@ -8491,9 +8514,7 @@ void GCellStore::Dump()
 			GTag *t = Get(x, y);
 			char s[256] = "";
 			if (t)
-			{
 				sprintf(s, "%i,%i-%i,%i", t->Cell.x, t->Cell.y, t->Span.x, t->Span.y);
-			}
 			LgiTrace("%-10s", s);
 		}
 		LgiTrace("\n");
