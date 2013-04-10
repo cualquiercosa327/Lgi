@@ -87,7 +87,7 @@ public:
 	bool GetFormattedContent(char *MimeType, GAutoString &Out, GArray<GDocView::ContentMedia> *Media = 0);
 
 	/// Get the tag at an x,y location
-	GTag *GetTagByPos(int x, int y, int *Index);
+	GTag *GetTagByPos(int x, int y, int *Index, GdcPt2 *LocalCoords = NULL);
 	/// Layout content and return size.
 	GdcPt2 Layout();
 

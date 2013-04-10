@@ -219,6 +219,7 @@ static GAutoString ParseVer(void *Resource, char *Part)
 
 /////////////////////////////////////////////////////////////////////////////
 #include <Shlwapi.h>
+#include <uxtheme.h>
 extern int MouseRollMsg;
 typedef HRESULT (CALLBACK *fDllGetVersion)(DLLVERSIONINFO *);
 
@@ -287,6 +288,7 @@ DumpTime("exception handler");
 	InitCommonControls();
 	
 	{
+		/*
 		GLibrary ComCtl32("ComCtl32.dll");
 		DLLVERSIONINFO info;
 		ZeroObj(info);
@@ -297,6 +299,23 @@ DumpTime("exception handler");
 			HRESULT ret = DllGetVersion(&info);
 			d->ThemeAware = info.dwMajorVersion >= 6;
 			LgiTrace("ComCtl32.dll v%i.%i found (ret=%x)\n", info.dwMajorVersion, info.dwMinorVersion, ret);
+			)
+		*/
+			
+		GArray<int> Ver;
+		LgiGetOs(&Ver);
+		if (Ver.Length() > 1)
+		{
+			// LgiTrace("Windows v%i.%i\n", Ver[0], Ver[1]);
+			if (Ver[0] < 6)
+			{
+				d->ThemeAware = false;
+			}
+		}
+		
+		if (!d->ThemeAware)
+		{
+			SetThemeAppProperties(0);
 		}
 	}
 		

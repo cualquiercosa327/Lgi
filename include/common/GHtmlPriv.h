@@ -81,6 +81,7 @@ struct GTagHit
 {
 	GTag *Hit; // Tag that was hit, or nearest tag, otherwise NULL
 	int Near; // 0 if a direct hit, >0 is near miss, -1 if invalid.
+	GdcPt2 LocalCoods;
 
 	GFlowRect *Block; // Text block hit
 	int Index; // If Block!=NULL then index into text, otherwise -1.
@@ -91,6 +92,7 @@ struct GTagHit
 		Block = 0;
 		Near = -1;
 		Index = -1;
+		LocalCoods.x = LocalCoods.y = -1;
 	}
 
 	/// Return true if the current object is a closer than 'h'
@@ -197,7 +199,7 @@ public:
 	void Empty() { DeleteObjects(); }
 	GRect Bounds();
 	GRect *TopRect(GRegion *c);
-	void FlowText(GTag *Tag, GFlowRegion *c, GFont *Font, char16 *Text, GCss::LengthType Align);
+	void FlowText(GTag *Tag, GFlowRegion *c, GFont *Font, int LineHeight, char16 *Text, GCss::LengthType Align);
 };
 
 class GCellStore
@@ -396,6 +398,7 @@ public:
 	GdcPt2 Pos;
 	GdcPt2 Size;
 	GFont *Font;
+	int LineHeightCache;
 	
 	// Images
 	bool ImageResized;

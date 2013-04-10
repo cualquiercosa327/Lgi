@@ -2968,13 +2968,13 @@ void GTag::SetStyle()
 	if (Get("width", s))
 	{
 		Len l;
-		if (l.Parse(s, ParseRelaxed))
+		if (l.Parse(s, PropWidth, ParseRelaxed))
 			Width(l);
 	}
 	if (Get("height", s))
 	{
 		Len l;
-		if (l.Parse(s, ParseRelaxed))
+		if (l.Parse(s, PropHeight, ParseRelaxed))
 			Height(l);
 	}
 	if (Get("align", s))
@@ -3134,12 +3134,12 @@ void GTag::SetStyle()
 			Len l;
 			const char *s;
 			if (Get("cellspacing", s) &&
-				l.Parse(s, ParseRelaxed))
+				l.Parse(s, PropBorderSpacing, ParseRelaxed))
 			{
 				BorderSpacing(l);
 			}
 			if (Get("cellpadding", s) &&
-				l.Parse(s, ParseRelaxed))
+				l.Parse(s, Prop_CellPadding, ParseRelaxed))
 			{
 				_CellPadding(l);
 			}

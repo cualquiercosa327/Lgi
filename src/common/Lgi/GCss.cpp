@@ -1286,7 +1286,7 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 							{
 								// Point size...?
 								GAutoPtr<Len> Pt(new Len);
-								if (Pt->Parse(s, Type))
+								if (Pt->Parse(s, ApplySize ? PropFontSize : PropLineHeight, Type))
 								{
 									if (ApplySize)
 										FontSize(*Pt);
@@ -1322,7 +1322,7 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 				while (*s && *s != ';')
 				{
 					Len *t = new Len;
-					if (t->Parse(s, PropId == PropZIndex ? ParseRelaxed : Type))
+					if (t->Parse(s, PropId, PropId == PropZIndex ? ParseRelaxed : Type))
 					{
 						Lengths.Add(t);
 						SkipWhite(s);
@@ -1528,7 +1528,7 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 }
 
 /////////////////////////////////////////////////////////////////////////////
-bool GCss::Len::Parse(const char *&s, ParsingStyle ParseType)
+bool GCss::Len::Parse(const char *&s, PropType Prop, ParsingStyle ParseType)
 {
 	if (!s) return false;
 	
@@ -1579,7 +1579,17 @@ bool GCss::Len::Parse(const char *&s, ParsingStyle ParseType)
 		else if (IsAlpha(*s))
 			return false;
 		else if (ParseType == ParseRelaxed)
-			Type = LenPx;
+		{
+			if (Prop == PropLineHeight)
+			{
+				Type = LenPercent;
+				Value *= 100;
+			}
+			else
+			{
+				Type = LenPx;
+			}
+		}
 		else
 			return false;
 	}
@@ -1687,10 +1697,10 @@ bool GCss::ColorDef::Parse(const char *&s)
 		else if (!stricmp(GradientType, "linear"))
 		{
 			Len StartX, StartY, EndX, EndY;
-			if (!StartX.Parse(s) || !StartY.Parse(s))
+			if (!StartX.Parse(s, PropNull) || !StartY.Parse(s, PropNull))
 				return false;
 			ParseExpect(s, ',');
-			if (!EndX.Parse(s) || !EndY.Parse(s))
+			if (!EndX.Parse(s, PropNull) || !EndY.Parse(s, PropNull))
 				return false;
 			ParseExpect(s, ',');
 			SkipWhite(s);
@@ -1805,7 +1815,7 @@ bool GCss::BorderDef::Parse(const char *&s)
 	if (!s)
 		return false;
 
-	if (!Len::Parse(s, ParseRelaxed))
+	if (!Len::Parse(s, PropBorder, ParseRelaxed))
 		return false;
 
 	SkipWhite(s);

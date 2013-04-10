@@ -1452,6 +1452,7 @@ GTag::GTag(GHtml *h, GTag *p) : Attr(0, false)
 	Cursor = -1;
 	Selection = -1;
 	Font = 0;
+	LineHeightCache = -1;
 	Tag = 0;
 	HtmlId = NULL;
 	// TableBorder = 0;
@@ -2377,19 +2378,27 @@ GTagHit GTag::GetTagByPos(int x, int y)
 			{
 				r = hit;
 				r.Index = NearestChar(Tr, x, y);
+				
+				if (hit.Near == 0)
+				{
+					r.LocalCoods.x = x - Pos.x;
+					r.LocalCoods.y = y - Pos.y;
+				}
 			}
 		}
 	}
-
-	if (x >= 0 &&
+	else if (x >= 0 &&
 		y >= 0 &&
 		x < Size.x &&
 		y < Size.y &&
 		(!r.Hit || r.Near > 0))
 	{
+		// Direct hit
 		r.Hit = this;
 		r.Near = 0;
 		r.Block = NULL;
+		r.LocalCoods.x = x - Pos.x;
+		r.LocalCoods.y = y - Pos.y;
 	}
 
 	return r;
@@ -2983,7 +2992,7 @@ void GTag::SetStyle()
 				const char *s = "1px";
 				Len l = Table->_CellPadding();
 				if (!l.IsValid())
-					l.Parse(s);
+					l.Parse(s, PropPadding);
 				PaddingLeft(l);
 				PaddingRight(l);
 				PaddingTop(l);
@@ -3032,7 +3041,7 @@ void GTag::SetStyle()
 	if (Get("width", s))
 	{
 		Len l;
-		if (l.Parse(s, ParseRelaxed))
+		if (l.Parse(s, PropWidth, ParseRelaxed))
 		{
 			Width(l);
 			
@@ -3046,7 +3055,7 @@ void GTag::SetStyle()
 	if (Get("height", s))
 	{
 		Len l;
-		if (l.Parse(s, ParseRelaxed))
+		if (l.Parse(s, PropHeight, ParseRelaxed))
 			Height(l);
 	}
 	if (Get("align", s))
@@ -3154,12 +3163,12 @@ void GTag::SetStyle()
 			Len l;
 			const char *s;
 			if (Get("cellspacing", s) &&
-				l.Parse(s, ParseRelaxed))
+				l.Parse(s, PropBorderSpacing, ParseRelaxed))
 			{
 				BorderSpacing(l);
 			}
 			if (Get("cellpadding", s) &&
-				l.Parse(s, ParseRelaxed))
+				l.Parse(s, Prop_CellPadding, ParseRelaxed))
 			{
 				_CellPadding(l);
 			}
@@ -5382,7 +5391,7 @@ GRect *GArea::TopRect(GRegion *c)
 	return Top;
 }
 
-void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, char16 *Text, GCss::LengthType Align)
+void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, int LineHeight, char16 *Text, GCss::LengthType Align)
 {
 	if (!Flow || !Text || !Font)
 		return;
@@ -5405,7 +5414,7 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, char16 *Text, GC
 		return;				
 	}
 	#endif
-
+	
 	while (*Text)
 	{
 		GFlowRect *Tr = new GFlowRect;
@@ -5484,7 +5493,7 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, char16 *Text, GC
 
 		GDisplayString ds2(Font, Tr->Text, Tr->Len);
 		Tr->x2 = ds2.X();
-		Tr->y2 = ds2.Y();
+		Tr->y2 = LineHeight; // ds2.Y();
 		if (Wrap)
 		{
 			Flow->cx = Flow->x1;
@@ -5760,13 +5769,33 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 			}
 
 			if (PreText())
-				TextPos.FlowText(this, Flow, f, PreText(), AlignLeft);
+				TextPos.FlowText(this, Flow, f, f->GetHeight(), PreText(), AlignLeft);
 		}
 
 		if (Text())
 		{
+			// Setup the line height cache
+			if (LineHeightCache < 0)
+			{
+				GCss::PropMap Map;
+				GCss Final;
+				Map.Add(PropLineHeight, new GCss::PropArray);
+				for (GTag *t = this; t; t = t->Parent)
+				{
+					if (!Final.InheritCollect(*t, Map))
+						break;
+				}	
+				Final.InheritResolve(Map);
+				Map.DeleteObjects();
+				GCss::Len CssLineHeight = Final.LineHeight();    
+				Font = GetFont();
+				LineHeightCache = CssLineHeight.IsValid() ?
+								 CssLineHeight.ToPx(Font->GetHeight(), Font) :
+								 Font->GetHeight();
+			}
+
 			// Flow in the rest of the text...
-			TextPos.FlowText(this, Flow, f, Text(), GetAlign(true));
+			TextPos.FlowText(this, Flow, f, LineHeightCache, Text(), GetAlign(true));
 		}
 	}
 
@@ -6451,19 +6480,17 @@ void GTag::OnPaint(GSurface *pDC)
 			if (f && TextPos.Length())
 			{
 				int LineHtOff = 0;
-				GCss::Len LineHt = LineHeight();
-				if (LineHt.IsValid() && Disp != DispInline)
+				if (LineHeightCache)
 				{
 					Len PadTop = PaddingTop(), PadBot = PaddingBottom();
 					int AvailY = Size.y -
 								(PadTop.IsValid() ? PadTop.ToPx(Size.y, GetFont()) : 0) -
 								(PadBot.IsValid() ? PadBot.ToPx(Size.y, GetFont()) : 0);
-					int LineHtPx = LineHt.ToPx(Size.y, f);
 					int FontHt = f->GetHeight();
-					if (LineHtPx > AvailY)
-						LineHtPx = AvailY;
+					if (LineHeightCache > AvailY)
+						LineHeightCache = AvailY;
 						
-					LineHtOff = LineHtPx > FontHt ? max(0, ((LineHtPx - FontHt) >> 1) - 1) : 0;
+					LineHtOff = LineHeightCache > FontHt ? max(0, ((LineHeightCache - FontHt) >> 1) - 1) : 0;
 				}
 				
 				#define FontColour(s) \
@@ -8053,7 +8080,7 @@ void GHtml::OnMouseClick(GMouse &m)
 	}
 }
 
-GTag *GHtml::GetTagByPos(int x, int y, int *Index)
+GTag *GHtml::GetTagByPos(int x, int y, int *Index, GdcPt2 *LocalCoords)
 {
 	if (Tag)
 	{
@@ -8061,6 +8088,7 @@ GTag *GHtml::GetTagByPos(int x, int y, int *Index)
 		if (Hit.Hit && Hit.Near < 30)
 		{
 			if (Index) *Index = Hit.Index;
+			if (LocalCoords) *LocalCoords = Hit.LocalCoods;
 			return Hit.Hit;
 		}
 	}
@@ -8088,7 +8116,8 @@ void GHtml::OnMouseMove(GMouse &m)
 {
 	int Offset = ScrollY();
 	int Index = -1;
-	GTag *Tag = GetTagByPos(m.x, m.y + Offset, &Index);
+	GdcPt2 LocalCoords;
+	GTag *Tag = GetTagByPos(m.x, m.y + Offset, &Index, &LocalCoords);
 	if (Tag)
 	{
 		if (PrevTip &&
@@ -8100,7 +8129,9 @@ void GHtml::OnMouseMove(GMouse &m)
 		}
 
 		GAutoString Uri;
-		if (Tag->IsAnchor(&Uri))
+		if (LocalCoords.x >= 0 &&
+			LocalCoords.y >= 0 &&
+			Tag->IsAnchor(&Uri))
 		{
 			GRect c = GetClient();
 			c.Offset(-c.x1, -c.y1);

@@ -296,7 +296,7 @@ public:
 			Type = LenInherit;
 			Value = 0.0;
 			if (init)
-				Parse(init);
+				Parse(init, PropNull);
 		}
 
 		Len(LengthType t, float v = 0.0)
@@ -312,7 +312,7 @@ public:
 			return *this;
 		}
 
-		bool Parse(const char *&s, ParsingStyle Type = ParseStrict);
+		bool Parse(const char *&s, PropType Prop = PropNull, ParsingStyle Type = ParseStrict);
 		bool IsValid() { return Type != LenInherit; }
 		bool IsDynamic() { return Type == LenPercent || Type == LenInherit || Type == SizeSmaller || Type == SizeLarger; }
 		bool operator !=(Len &l) { return Type != l.Type || Value != l.Value; }
@@ -751,8 +751,27 @@ public:
     // Inheritance calculation
     typedef GArray<void*> PropArray;
     typedef GHashTbl<int, PropArray*> PropMap;
+	
+	/// Copies valid properties from the node 'c' into the property collection 'Contrib'.
+	/// Usually called for each node up the parent chain until the function returns false;
 	bool InheritCollect(GCss &c, PropMap &Contrib);
+	/// After calling InheritCollect on all the parent nodes, this method works out the final
+	/// value of each property. e.g. multiplying percentages together etc.
     bool InheritResolve(PropMap &Map);
+    /* Code sample:
+    GCss::PropMap Map;
+    Map.Add(PropFontFamily, new GCss::PropArray);
+	Map.Add(PropFontSize, new GCss::PropArray);
+	Map.Add(PropFontStyle, new GCss::PropArray);
+	for (GTag *t = Parent; t; t = t->Parent)
+	{
+		if (!c.InheritCollect(*t, Map))
+			break;
+	}	
+	GCss c; // Container for final values
+	c.InheritResolve(Map);	
+	Map.DeleteObjects();
+	*/
 
 protected:
 	inline void DeleteProp(PropType p, void *Ptr);
