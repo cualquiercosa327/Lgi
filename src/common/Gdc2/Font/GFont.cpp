@@ -956,9 +956,9 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 			printf("pango_font_get_metrics failed.\n");
 		else
 		{
-			d->Ascent = (double)Gtk::pango_font_metrics_get_ascent(m) / PANGO_SCALE;
-			d->Descent = (double)Gtk::pango_font_metrics_get_descent(m) / PANGO_SCALE;
-			d->Height = ceil(d->Ascent + d->Descent);
+			GTypeFace::d->_Ascent = (double)Gtk::pango_font_metrics_get_ascent(m) / PANGO_SCALE;
+			GTypeFace::d->_Descent = (double)Gtk::pango_font_metrics_get_descent(m) / PANGO_SCALE;
+			d->Height = ceil(GTypeFace::d->_Ascent + GTypeFace::d->_Descent);
 			Gtk::pango_font_metrics_unref(m);
 
 			//printf("GFont::Create %s,%i (%f,%f)\n", Face(), PointSize(), d->Ascent, d->Descent);

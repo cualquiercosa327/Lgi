@@ -354,7 +354,7 @@ void GView::Quit(bool DontDelete)
 	}
 }
 
-bool GView::SetCursor(int CursorId)
+bool GView::SetCursor(LgiCursor CursorId)
 {
 	d->CursorSet = true;
 	GView *Wnd = GetWindow();

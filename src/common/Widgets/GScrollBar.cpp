@@ -480,8 +480,9 @@ bool GScrollBar::OnKey(GKey &k)
 	return false;
 }
 
-void GScrollBar::OnMouseWheel(double Lines)
+bool GScrollBar::OnMouseWheel(double Lines)
 {
+	return false;
 }
 
 bool GScrollBar::Vertical()

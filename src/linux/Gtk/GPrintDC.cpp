@@ -300,7 +300,7 @@ public:
 		{
 			strcpy(Face, f->Face());
 			PtSize = f->PointSize();			
-			Ascent = f->GetAscent();
+			Ascent = f->Ascent();
 
 			char *FontFace = Face;
 			for (PsFontMapping *m = PsFontMap; m->NativeFont; m++)

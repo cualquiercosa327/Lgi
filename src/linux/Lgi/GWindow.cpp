@@ -74,7 +74,7 @@ GWindow::GWindow(GtkWidget *w) : GView(0)
 	WndFlags |= GWND_CREATE;
 	ClearFlag(WndFlags, GWF_VISIBLE);
 
-    _Lock = new GSemaphore;
+    _Lock = new ::GMutex;
 }
 
 GWindow::~GWindow()

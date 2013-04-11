@@ -4079,7 +4079,9 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 						case TAG_IFRAME:
 						{
 							const char *Src;
-							if (Get("src", Src))
+							if (Get("src", Src) &&
+								Html &&
+								Html->Environment)
 							{
 								GDocumentEnv::LoadJob *j = Html->Environment->NewJob();
 								if (j)
@@ -5788,10 +5790,15 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 				Final.InheritResolve(Map);
 				Map.DeleteObjects();
 				GCss::Len CssLineHeight = Final.LineHeight();    
-				Font = GetFont();
-				LineHeightCache = CssLineHeight.IsValid() ?
-								 CssLineHeight.ToPx(Font->GetHeight(), Font) :
-								 Font->GetHeight();
+				if (Font = GetFont())
+				{
+					LineHeightCache = CssLineHeight.IsValid() && CssLineHeight.Type != GCss::LenNormal ?
+									 CssLineHeight.ToPx(Font->GetHeight(), Font) :
+									 Font->GetHeight();
+					LgiAssert(LineHeightCache > 0);
+					if (LineHeightCache <= 0)
+						LineHeightCache = Font->GetHeight();
+				}
 			}
 
 			// Flow in the rest of the text...

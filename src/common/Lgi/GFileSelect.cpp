@@ -281,7 +281,7 @@ public:
 	{
 		if (Enabled())
 		{
-			bool Trigger = Down AND !m.Down();
+			bool Trigger = Down && !m.Down();
 
 			Capture(Down = m.Down());
 			if (Down) Focus(true);
@@ -317,7 +317,7 @@ public:
 	{
 		if (k.c16 == ' ' || k.c16 == VK_RETURN)
 		{
-			if (Enabled() AND Down ^ k.Down())
+			if (Enabled() && Down ^ k.Down())
 			{
 				Down = k.Down();
 				Invalidate();
@@ -659,7 +659,7 @@ int GFileSelectDlg::OnNotify(GViewI *Ctrl, int Flags)
 						int n = 0;
 						for (GFileType *t = d->Types.First(); t; t = d->Types.Next(), n++)
 						{
-							if (t->Extension() AND
+							if (t->Extension() &&
 								stricmp(t->Extension(), f) == 0)
 							{
 								TypeIndex = n;
@@ -740,7 +740,7 @@ int GFileSelectDlg::OnNotify(GViewI *Ctrl, int Flags)
 				// change extension of current file
 				GFileType *Type = d->Types.ItemAt(d->CurrentType);
 				char *File = FileNameEdit->Name();
-				if (Type AND File)
+				if (Type && File)
 				{
 					char *Ext = strchr(File, '.');
 					if (Ext)
@@ -805,9 +805,9 @@ int GFileSelectDlg::OnNotify(GViewI *Ctrl, int Flags)
 				else
 				{
 					List<GListItem> Sel;
-					if (d->Type != TypeSaveFile AND
-						FileLst AND
-						FileLst->GetSelection(Sel) AND
+					if (d->Type != TypeSaveFile &&
+						FileLst &&
+						FileLst->GetSelection(Sel) &&
 						Sel.Length() > 1)
 					{
 						for (GListItem *i=Sel.First(); i; i=Sel.Next())
@@ -890,7 +890,7 @@ public:
 
 	void Visible(bool i)
 	{
-		if (i AND Root)
+		if (i && Root)
 		{
 			Root->OnPath(Dlg->GetCtrlName(IDC_PATH));
 		}
@@ -972,8 +972,8 @@ void GFileSystemItem::OnPath(char *p)
 	{
 		case FSI_DESKTOP:
 		{
-			if (p AND
-				Path AND
+			if (p &&
+				Path &&
 				stricmp(Path, p) == 0)
 			{
 				Select(true);
@@ -1000,17 +1000,17 @@ void GFileSystemItem::OnPath(char *p)
 	if (p)
 	{
 		int PathLen = strlen(Path);
-		if (Path AND
-			strnicmp(Path, p, PathLen) == 0 AND
+		if (Path &&
+			strnicmp(Path, p, PathLen) == 0 &&
 			(p[PathLen] == DIR_CHAR || p[PathLen] == 0)
 			#ifdef LINUX
-			AND strcmp(Path, "/") != 0
+			&& strcmp(Path, "/") != 0
 			#endif
 			)
 		{
 			GTreeItem *Item = this;
 
-			if (GetImage() != FSI_DESKTOP AND
+			if (GetImage() != FSI_DESKTOP &&
 				strlen(p) > 3)
 			{
 				char *Start = p + strlen(Path);
@@ -1051,7 +1051,7 @@ void GFileSystemItem::OnPath(char *p)
 
 void GFileSystemItem::OnMouseClick(GMouse &m)
 {
-	if (m.Left() AND m.Down())
+	if (m.Left() && m.Down())
 	{
 		Popup->OnActivate(this);
 	}
@@ -1061,7 +1061,7 @@ bool GFileSystemItem::OnKey(GKey &k)
 {
 	if ((k.c16 == ' ' || k.c16 == VK_RETURN))
 	{
-		if (k.Down() AND k.IsChar)
+		if (k.Down() && k.IsChar)
 		{
 			Popup->OnActivate(this);
 		}
@@ -1118,7 +1118,7 @@ int GFolderItem::GetImage(int Flags)
 
 void GFolderItem::OnSelect()
 {
-	if (!IsDir AND File)
+	if (!IsDir && File)
 	{
 		Dlg->OnFile(Select() ? File : 0);
 	}
@@ -1250,14 +1250,14 @@ void GFolderItem::OnMouseClick(GMouse &m)
 
 int GFolderItemCompare(GFolderItem *a, GFolderItem *b, int Data)
 {
-	if (a AND b)
+	if (a && b)
 	{
 		if (a->IsDir ^ b->IsDir)
 		{
 			if (a->IsDir) return -1;
 			else return 1;
 		}
-		else if (a->File AND b->File)
+		else if (a->File && b->File)
 		{
 			return stricmp(a->File, b->File);
 		}
@@ -1385,74 +1385,69 @@ void GFolderList::OnFolder()
 {
 	Empty();
 
-	GDirectory *Dir = FileDev->GetDir();
-	if (Dir)
+	GDirectory Dir;
+	List<GFolderItem> New;
+
+	// Get current type
+	GFileType *Type = Dlg->d->Types.ItemAt(Dlg->d->CurrentType);
+	List<char> Ext;
+	if (Type)
 	{
-		List<GFolderItem> New;
-
-		// Get current type
-		GFileType *Type = Dlg->d->Types.ItemAt(Dlg->d->CurrentType);
-		List<char> Ext;
-		if (Type)
+		GToken T(Type->Extension(), ";");
+		for (int i=0; i<T.Length(); i++)
 		{
-			GToken T(Type->Extension(), ";");
-			for (int i=0; i<T.Length(); i++)
-			{
-				Ext.Insert(NewStr(T[i]));
-			}
+			Ext.Insert(NewStr(T[i]));
 		}
+	}
 
-		// Get items
-		bool ShowHiddenFiles = Dlg->ShowHidden->Value();
-		for (bool Found = Dir->First(Dlg->Ctrl2->Name()); Found; Found = Dir->Next())
+	// Get items
+	bool ShowHiddenFiles = Dlg->ShowHidden->Value();
+	for (bool Found = Dir.First(Dlg->Ctrl2->Name()); Found; Found = Dir.Next())
+	{
+		char Name[256];
+		Dir.Path(Name, sizeof(Name));
+
+		bool Match = true;
+		if (!ShowHiddenFiles && Dir.IsHidden())
 		{
-			char Name[256];
-			Dir->Path(Name, sizeof(Name));
-
-			bool Match = true;
-			if (!ShowHiddenFiles AND Dir->IsHidden())
+			Match = false;
+		}
+		else if (!Dir.IsDir() &&
+				Ext.Length() > 0)
+		{
+			Match = false;
+			for (char *e=Ext.First(); e && !Match; e=Ext.Next())
 			{
-				Match = false;
-			}
-			else if (!Dir->IsDir() AND
-					Ext.Length() > 0)
-			{
-				Match = false;
-				for (char *e=Ext.First(); e AND !Match; e=Ext.Next())
+				if (e[0] == '*' && e[1] == '.')
 				{
-					if (e[0] == '*' AND e[1] == '.')
+					char *Ext = LgiGetExtension(Name);
+					if (Ext)
 					{
-						char *Ext = LgiGetExtension(Name);
-						if (Ext)
-						{
-							Match = stricmp(Ext, e + 2) == 0;
-						}
+						Match = stricmp(Ext, e + 2) == 0;
 					}
-					else
+				}
+				else
+				{
+					bool m = MatchStr(e, Name);
+					if (m)
 					{
-						bool m = MatchStr(e, Name);
-						if (m)
-						{
-							Match = true;
-						}
+						Match = true;
 					}
 				}
 			}
-
-			if (Match)
-			{
-				New.Insert(new GFolderItem(Dlg, Name, Dir));
-			}
 		}
 
-		// Sort items...
-		New.Sort(GFolderItemCompare, 0);
-
-		// Display items...
-		Insert((List<GListItem>&) New);
-
-		DeleteObj(Dir);
+		if (Match)
+		{
+			New.Insert(new GFolderItem(Dlg, Name, &Dir));
+		}
 	}
+
+	// Sort items...
+	New.Sort(GFolderItemCompare, 0);
+
+	// Display items...
+	Insert((List<GListItem>&) New);
 }
 
 //////////////////////////////////////////////////////////////////////////

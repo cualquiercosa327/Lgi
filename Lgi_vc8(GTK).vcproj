@@ -289,18 +289,6 @@
 					</File>
 				</Filter>
 				<Filter
-					Name="Semaphores"
-					>
-					<File
-						RelativePath=".\src\common\Lgi\GSemaphore.cpp"
-						>
-					</File>
-					<File
-						RelativePath=".\include\common\GSemaphore.h"
-						>
-					</File>
-				</Filter>
-				<Filter
 					Name="Drag and Drop"
 					>
 					<File
@@ -356,6 +344,10 @@
 					Name="Threads"
 					>
 					<File
+						RelativePath=".\src\common\Lgi\GMutex.cpp"
+						>
+					</File>
+					<File
 						RelativePath=".\src\win32\Lgi\GThread.cpp"
 						>
 					</File>
@@ -364,7 +356,7 @@
 						>
 					</File>
 					<File
-						RelativePath=".\src\common\General\GThreadCommon.cpp"
+						RelativePath=".\src\common\Lgi\GThreadCommon.cpp"
 						>
 					</File>
 				</Filter>
@@ -794,7 +786,7 @@
 						>
 					</File>
 					<File
-						RelativePath=".\src\common\Gdc2\GColourReduce.cpp"
+						RelativePath=".\src\common\Gdc2\Tools\GColourReduce.cpp"
 						>
 					</File>
 					<File

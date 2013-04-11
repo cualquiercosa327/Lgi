@@ -10,6 +10,7 @@
 #ifdef _WINDOWS
 #include <winsock2.h>
 #include <shlobj.h>
+#include "GRegKey.h"
 #endif
 
 #include "Lgi.h"

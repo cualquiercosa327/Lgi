@@ -126,7 +126,7 @@ uint32 LgiGetViewPid(OsView View)
 	return LgiProcessId();
 }
 
-class GMouseHookPrivate : public GMutex, public ::GThread
+class GMouseHookPrivate : public ::GMutex, public ::GThread
 {
 public:
 	bool Loop;
