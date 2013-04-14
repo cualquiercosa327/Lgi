@@ -1273,15 +1273,21 @@ bool GDirectory::IsReadOnly()
 	return !TestFlag(GetAttributes(), S_IWOTH);
 }
 
+bool GDirectory::IsSymLink()
+{
+	int a = GetAttributes();
+	return S_ISLNK(a);
+}
+
 bool GDirectory::IsHidden()
 {
-	return GetName() AND GetName()[0] == '.';
+	return GetName() && GetName()[0] == '.';
 }
 
 bool GDirectory::IsDir()
 {
 	int a = GetAttributes();
-	return !S_ISLNK(a) AND S_ISDIR(a);
+	return !S_ISLNK(a) && S_ISDIR(a);
 }
 
 long GDirectory::GetAttributes()

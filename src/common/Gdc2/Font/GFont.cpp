@@ -993,7 +993,7 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 	if (Face() && !(e = ATSUCreateStyle(&d->hFont)))
 	{
 		// Lookup ID
-		#if 0
+		#if 1
 		if (!Face())
 		{
 			LgiAssert(!"No font face");
@@ -1013,7 +1013,7 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 		
 		ATSFontRef atsFont = ATSFontFindFromName(fontName, kATSOptionFlagsDefault);
 		CFRelease(fontName);
-		ATSUFontID font = FMGetFontFromATSFontRef(atsFont);
+		ATSUFontID font = (ATSUFontID)atsFont; // FMGetFontFromATSFontRef
 		#else
 		ATSUFontID font = 0;
 		e = ATSUFindFontFromName(Face(),
@@ -1818,8 +1818,8 @@ bool GFontType::GetFromRef(OsFont Handle)
 
 GFont *GFontType::Create(NativeInt Param)
 {
-	GFont *New;
-	if (New = new GFont)
+	GFont *New = new GFont;
+	if (New)
 	{
 		if (!New->Create(this, Param))
 		{
