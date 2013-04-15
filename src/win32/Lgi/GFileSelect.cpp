@@ -391,7 +391,10 @@ bool GFileSelect::Open()
 	{
 		OPENFILENAMEW	Info;
 		d->BeforeDlg(Info);
-		d->AfterDlg(Info, Status = GetOpenFileNameW(&Info));
+		Status = GetOpenFileNameW(&Info);
+		if (!Status)
+			LgiTrace("GetOpenFileName failed with 0x%x\n", GetLastError());
+		d->AfterDlg(Info, Status);
 	}
 
 	return Status AND Length() > 0;

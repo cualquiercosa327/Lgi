@@ -294,12 +294,14 @@ void GMru::OnCommand(int Cmd)
 		
 		if (_GetCurFile())
 		{
-			d->Select.Name(_GetCurFile());
+			if (FileExists(_GetCurFile()))
+				d->Select.Name(_GetCurFile());
 			
 			char Path[256];
 			strsafecpy(Path, _GetCurFile(), sizeof(Path));
 			LgiTrimDir(Path);
-			d->Select.InitialDir(Path);
+			if (DirExists(Path))
+				d->Select.InitialDir(Path);
 		}
 
 		if (Cmd == IDM_OPEN)
