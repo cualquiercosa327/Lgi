@@ -458,6 +458,23 @@ public:
 		hls.l = l;
 		hls.s = s;
 	}
+	
+	int GetGray(int BitDepth = 8)
+	{
+		if (BitDepth == 8)
+		{
+			int R = r() * 77;
+			int G = g() * 151;
+			int B = b() * 28;
+			return (R + G + B) >> 8;
+		}
+		
+		double Scale = 1 << BitDepth;
+		int R = (int) ((double) r() * (0.3 * Scale) + 0.5);
+		int G = (int) ((double) g() * (0.59 * Scale) + 0.5);
+		int B = (int) ((double) b() * (0.11 * Scale) + 0.5);
+		return (R + G + B) >> BitDepth;
+	}
 };
 
 #endif

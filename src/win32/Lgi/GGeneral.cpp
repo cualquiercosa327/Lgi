@@ -551,34 +551,28 @@ bool LgiExecute(const char *File, const char *Arguments, const char *Dir)
 
 	if (LgiGetOs() == LGI_OS_WIN9X)
 	{
-		char *f = LgiToNativeCp(File);
-		char *a = LgiToNativeCp(Arguments);
-		char *d = LgiToNativeCp(Dir);
+		GAutoString f(LgiToNativeCp(File));
+		GAutoString a(LgiToNativeCp(Arguments));
+		GAutoString d(LgiToNativeCp(Dir));
 		if (f)
-		{
 			Status = (NativeInt) ShellExecute(NULL, "open", f, a, d, 5);
-		}
-		DeleteArray(f);
-		DeleteArray(a);
-		DeleteArray(d);
 	}
 	else
 	{
-		char16 *f = LgiNewUtf8To16(File);
-		char16 *a = LgiNewUtf8To16(Arguments);
-		char16 *d = LgiNewUtf8To16(Dir);
+		GAutoWString f(LgiNewUtf8To16(File));
+		GAutoWString a(LgiNewUtf8To16(Arguments));
+		GAutoWString d(LgiNewUtf8To16(Dir));
 		if (f)
 		{
 			int64 Now = LgiCurrentTime();
 			Status = (NativeInt) ShellExecuteW(NULL, L"open", f, a, d, 5);
 			#ifdef _DEBUG
+			if (Status <= 32)
+				LgiTrace("ShellExecuteW failed with %i (LastErr=0x%x)\n", Status, GetLastError());
 			if (LgiCurrentTime() - Now > 1000)
 				LgiTrace("ShellExecuteW took %I64i\n", LgiCurrentTime() - Now);
 			#endif
 		}
-		DeleteArray(f);
-		DeleteArray(a);
-		DeleteArray(d);
 	}
 	
 	return Status > 32;

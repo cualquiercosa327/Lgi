@@ -1417,11 +1417,12 @@ void GListItem::OnPaint(GItem::ItemPaintCtx &Ctx)
 	// Icon?
 	if (Parent->IconCol)
 	{
-		GRect cr(x, Ctx.y1, x + Parent->IconCol->Width()-1, Ctx.y2);
+		GItem::ItemPaintCtx IcoCtx = Ctx;
+		IcoCtx.Set(x, Ctx.y1, x + Parent->IconCol->Width()-1, Ctx.y2);
 
 		// draw icon
-		OnPaintColumn(Ctx, -1, Parent->IconCol);
-		x = cr.x2 + 1;
+		OnPaintColumn(IcoCtx, -1, Parent->IconCol);
+		x = IcoCtx.x2 + 1;
 	}
 	
 	// draw columns
