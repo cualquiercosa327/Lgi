@@ -132,6 +132,35 @@ public:
 	}
 };
 
+class GDataGridCombo : public GCombo
+{
+	GDataGridPriv *d;
+
+public:
+	GDataGridCombo(GDataGridPriv *priv, int id, GRect &rc) : GCombo(id, rc.x1, rc.y1, rc.X(), rc.Y(), 0)
+	{
+		d = priv;
+	}
+	
+	bool OnKey(GKey &k)
+	{
+		if (!k.IsChar && k.Down())
+		{
+			if (k.c16 == VK_LEFT)
+			{
+				d->MoveCell(-1);
+			}
+			else if (k.c16 == VK_RIGHT)
+			{
+				d->MoveCell(1);
+			}
+		}
+		
+		return GCombo::OnKey(k);
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 GDataGridPriv::GDataGridPriv(GDataGrid *t)
 {
 	Factory = 0;
@@ -289,7 +318,7 @@ void GDataGridPriv::Create(int NewCol)
 
 				if (Flags[Col] & GDataGrid::GDG_INTEGER)
 				{
-					if (e = Combo = new GCombo(IDC_EDIT, rc.x1, rc.y1, rc.X(), rc.Y(), 0))
+					if (e = Combo = new GDataGridCombo(this, IDC_EDIT, rc))
 					{
 						GVariant &e = ColumnArgs[Col];
 						if (e.Type == GV_LIST)
