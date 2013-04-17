@@ -27,7 +27,7 @@ bool GMouse::IsContextMenu()
 		return true;
 	
 	#ifdef MAC
-	if (Left() AND Ctrl())
+	if (Left() && Ctrl())
 		return true;
 	#endif
 	
@@ -54,7 +54,7 @@ bool GMouse::ToScreen()
 
 bool GMouse::ToView()
 {
-	if (!ViewCoords AND Target)
+	if (!ViewCoords && Target)
 	{
 		GdcPt2 p(x, y);
 		Target->PointToView(p);
@@ -82,15 +82,15 @@ uint32 _LgiColours[LC_MAXIMUM];
 /*
 int _hex_to_int(char h)
 {
-	if (h >= '0' AND h <= '9')
+	if (h >= '0' && h <= '9')
 	{
 		return h - '0';
 	}
-	else if (h >= 'A' AND h <= 'F')
+	else if (h >= 'A' && h <= 'F')
 	{
 		return h - 'A' + 10;
 	}
-	else if (h >= 'a' AND h <= 'f')
+	else if (h >= 'a' && h <= 'f')
 	{
 		return h - 'a' + 10;
 	}
@@ -142,6 +142,7 @@ void LgiInitColours()
 
 	// Variable colours
 	#if defined _XP_CTRLS
+
 	_LgiColours[i++] = Rgb24(0x42, 0x27, 0x63); // LC_SHADOW
 	_LgiColours[i++] = Rgb24(0x7a, 0x54, 0xa9); // LC_LOW
 	_LgiColours[i++] = Rgb24(0xbc, 0xa9, 0xd4); // LC_MED
@@ -160,24 +161,10 @@ void LgiInitColours()
 	_LgiColours[i++] = Rgb24(0x35, 0x1f, 0x4f); // LC_MENU_TEXT
 	_LgiColours[i++] = Rgb24(0xbc, 0xa9, 0xd4); // LC_NON_FOCUS_SEL_BACK
 	_LgiColours[i++] = Rgb24(0x35, 0x1f, 0x4f); // LC_NON_FOCUS_SEL_FORE
-	#elif defined SKIN_MAGIC
-	_LgiColours[i++] = GetSysColor(COLOR_3DDKSHADOW); // LC_SHADOW
-	_LgiColours[i++] = GetSysColor(COLOR_3DSHADOW); // LC_LOW
-	_LgiColours[i++] = Rgb24(0xf0, 0xf1, 0xf8); // LC_MED
-	_LgiColours[i++] = GetSysColor(COLOR_3DLIGHT); // LC_HIGH, 
-	_LgiColours[i++] = GetSysColor(COLOR_3DHIGHLIGHT); // LC_LIGHT
-	_LgiColours[i++] = GetSysColor(COLOR_3DFACE); // LC_DIALOG
-	_LgiColours[i++] = Rgb24(0xc7, 0xc9, 0xd7); // LC_WORKSPACE
-	_LgiColours[i++] = GetSysColor(COLOR_WINDOWTEXT); // LC_TEXT
-	_LgiColours[i++] = GetSysColor(COLOR_HIGHLIGHT); // LC_SELECTION
-	_LgiColours[i++] = GetSysColor(COLOR_HIGHLIGHTTEXT); // LC_SEL_TEXT
-	_LgiColours[i++] = GetSysColor(COLOR_ACTIVECAPTION); // LC_ACTIVE_TITLE
-	_LgiColours[i++] = GetSysColor(COLOR_CAPTIONTEXT); // LC_ACTIVE_TITLE_TEXT
-	_LgiColours[i++] = GetSysColor(COLOR_INACTIVECAPTION); // LC_INACTIVE_TITLE
-	_LgiColours[i++] = GetSysColor(COLOR_INACTIVECAPTIONTEXT); // LC_INACTIVE_TITLE_TEXT
-	_LgiColours[i++] = GetSysColor(COLOR_MENU); // LC_MENU_BACKGROUND
-	_LgiColours[i++] = GetSysColor(COLOR_MENUTEXT); // LC_MENU_TEXT
+	LgiAssert(i == LC_MAXIMUM);
+	
 	#elif defined(_WINDOWS)
+
 	_LgiColours[i++] = GetSysColor(COLOR_3DDKSHADOW); // LC_SHADOW
 	_LgiColours[i++] = GetSysColor(COLOR_3DSHADOW); // LC_LOW
 	_LgiColours[i++] = GetSysColor(COLOR_3DFACE); // LC_MED
@@ -196,13 +183,14 @@ void LgiInitColours()
 	_LgiColours[i++] = GetSysColor(COLOR_MENUTEXT); // LC_MENU_TEXT
 	_LgiColours[i++] = GetSysColor(COLOR_BTNFACE); // LC_NON_FOCUS_SEL_BACK
 	_LgiColours[i++] = GetSysColor(COLOR_BTNTEXT); // LC_NON_FOCUS_SEL_FORE
-	
 	LgiAssert(i == LC_MAXIMUM);
+
 	#elif defined __GTK_H__
+
 	Gtk::GtkSettings *set = Gtk::gtk_settings_get_default();
 	if (!set)
 	{
-		printf("%s:%i - gtk_settings_get_for_screen failed.\n", __FILE__, __LINE__);
+		printf("%s:%i - gtk_settings_get_for_screen failed.\n", _FL);
 		return;
 	}
 	
@@ -210,7 +198,8 @@ void LgiInitColours()
 	Gtk::gchararray Value = 0;
 	Gtk::g_object_get(G_OBJECT(set), PropName, &Value, 0);	
 	GToken Lines(Value, "\n");
-	GHashTbl<char*, COLOUR> Colours;
+	GHashTbl<char*, int> Colours(0, false, NULL, -1);
+	printf("Gtk sys colours: %s\n", Value);
 	for (int i=0; i<Lines.Length(); i++)
 	{
 		char *var = Lines[i];
@@ -218,6 +207,8 @@ void LgiInitColours()
 		if (col)
 		{
 			*col = 0;
+			
+			printf("ParseSysColour %s = %s\n", var, col);
 
 			char *val = col + 1;
 			if (*val == ' ') val++;
@@ -229,23 +220,31 @@ void LgiInitColours()
 			Colours.Add(var, c24);
 		}
 	}
+	#define LookupColour(name, default) ((Colours.Find(name) >= 0) ? Colours.Find(name) : default)
 
-	_LgiColours[i++] = GdcMixColour(Colours.Find("bg_color"), Rgb24(0, 0, 0), 0.25); // LC_SHADOW
-	_LgiColours[i++] = GdcMixColour(Colours.Find("bg_color"), Rgb24(0, 0, 0), 0.5); // LC_LOW
-	_LgiColours[i++] = Colours.Find("bg_color"); // LC_MED
-	_LgiColours[i++] = GdcMixColour(Colours.Find("bg_color"), Rgb24(255, 255, 255), 0.5); // LC_HIGH
-	_LgiColours[i++] = GdcMixColour(Colours.Find("bg_color"), Rgb24(255, 255, 255), 0.25); // LC_LIGHT
-	_LgiColours[i++] = Colours.Find("bg_color"); // LC_DIALOG
-	_LgiColours[i++] = Colours.Find("base_color"); // LC_WORKSPACE
-	_LgiColours[i++] = Colours.Find("text_color"); // LC_TEXT
-	_LgiColours[i++] = Colours.Find("selected_bg_color"); // LC_SELECTION
-	_LgiColours[i++] = Colours.Find("selected_fg_color"); // LC_SEL_TEXT
+	COLOUR Med = LookupColour("bg_color", Rgb24(0xe8, 0xe8, 0xe8));
+	COLOUR White = Rgb24(255, 255, 255);
+	COLOUR Black = Rgb24(0, 0, 0);
+	COLOUR Sel = Rgb24(0x33, 0x99, 0xff);
+	_LgiColours[i++] = GdcMixColour(Med, Black, 0.25); // LC_SHADOW
+	_LgiColours[i++] = GdcMixColour(Med, Black, 0.5); // LC_LOW
+	_LgiColours[i++] = Med; // LC_MED
+	_LgiColours[i++] = GdcMixColour(Med, White, 0.5); // LC_HIGH
+	_LgiColours[i++] = GdcMixColour(Med, White, 0.25); // LC_LIGHT
+	_LgiColours[i++] = Med; // LC_DIALOG
+	_LgiColours[i++] = LookupColour("base_color", White); // LC_WORKSPACE
+	_LgiColours[i++] = LookupColour("text_color", Black); // LC_TEXT
+	_LgiColours[i++] = LookupColour("selected_bg_color", Sel); // LC_FOCUS_SEL_BACK
+	_LgiColours[i++] = LookupColour("selected_fg_color", White); // LC_FOCUS_SEL_FORE
 	_LgiColours[i++] = Rgb24(0x70, 0x3a, 0xec); // LC_ACTIVE_TITLE
 	_LgiColours[i++] = Rgb24(0xff, 0xff, 0xff); // LC_ACTIVE_TITLE_TEXT
 	_LgiColours[i++] = Rgb24(0x80, 0x80, 0x80); // LC_INACTIVE_TITLE
 	_LgiColours[i++] = Rgb24(0x40, 0x40, 0x40); // LC_INACTIVE_TITLE_TEXT
-	_LgiColours[i++] = Colours.Find("bg_color"); // LC_MENU_BACKGROUND
-	_LgiColours[i++] = Colours.Find("text_color"); // LC_MENU_TEXT
+	_LgiColours[i++] = LookupColour("bg_color", White); // LC_MENU_BACKGROUND
+	_LgiColours[i++] = LookupColour("text_color", Black); // LC_MENU_TEXT
+	_LgiColours[i++] = LookupColour("selected_bg_color", Sel); // LC_NON_FOCUS_SEL_BACK
+	_LgiColours[i++] = LookupColour("selected_fg_color", White); // LC_NON_FOCUS_SEL_FORE
+	LgiAssert(i == LC_MAXIMUM);
 
 	#else // defaults for non-windows, plain greys
 
@@ -259,7 +258,7 @@ void LgiInitColours()
 	}
 
 	#define SetCol(def) \
-		if (WmGetColour AND WmGetColour(i, &c)) \
+		if (WmGetColour && WmGetColour(i, &c)) \
 			_LgiColours[i++] = Rgb24(c.r, c.g, c.b); \
 		else \
 			_LgiColours[i++] = def;
@@ -335,7 +334,7 @@ COLOUR LgiColour
 	int i
 )
 {
-	if (GApp::SkinEngine AND
+	if (GApp::SkinEngine &&
 		TestFlag(GApp::SkinEngine->GetFeatures(), GSKIN_COLOUR))
 	{
 		return GApp::SkinEngine->GetColour(i);
@@ -496,7 +495,7 @@ void GetChildrenList(GViewI *w, List<GViewI> &l)
 			{
 				#if WIN32NATIVE
 				int Style = GetWindowLong(v->Handle(), GWL_STYLE);
-				if (TestFlag(Style, WS_VISIBLE) AND
+				if (TestFlag(Style, WS_VISIBLE) &&
 					!TestFlag(Style, WS_DISABLED))
 				{
 					if (TestFlag(Style, WS_TABSTOP))
