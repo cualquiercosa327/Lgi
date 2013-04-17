@@ -368,33 +368,8 @@ GApp::GApp(const char *AppMime, OsAppArguments &AppArgs, GAppArguments *Args) :
 	
 	if (!GetOption("noskin"))
 	{
-		#if HAS_SHARED_OBJECT_SKIN
-		char Name[64];
-		d->SkinLib = new GLibrary("liblgiskin"
-			#ifdef _DEBUG
-			"d"
-			#endif
-			);
-		if (d->SkinLib)
-		{
-			if (d->SkinLib->IsLoaded())
-			{
-				Proc_CreateSkinEngine CreateSkinEngine =
-					(Proc_CreateSkinEngine)d->SkinLib->GetAddress(LgiSkinEntryPoint);
-				if (CreateSkinEngine)
-				{
-					SkinEngine = CreateSkinEngine(this);
-				}
-			}
-			else
-			{
-				DeleteObj(d->SkinLib);
-			}
-		}
-		#else
 		extern GSkinEngine *CreateSkinEngine(GApp *App);
 		SkinEngine = CreateSkinEngine(this);
-		#endif
 	}
 }
 
@@ -1006,7 +981,7 @@ bool GApp::GetAppsForMimeType(char *Mime, GArray<GAppInfo*> &Apps)
 #ifdef LINUX
 GLibrary *GApp::GetWindowManagerLib()
 {
-	if (!d->WmLib)
+	if (this != NULL && !d->WmLib)
 	{
 		char Lib[32];
 		WindowManager Wm = LgiGetWindowManager();

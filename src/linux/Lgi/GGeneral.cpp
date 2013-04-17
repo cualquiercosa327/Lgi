@@ -69,7 +69,7 @@ void _lgi_sleep(int i)
 	}
 }
 
-void _lgi_assert(bool b, char *test, char *file, int line)
+void _lgi_assert(bool b, const char *test, const char *file, int line)
 {
 	static bool Asserting = false;
 
@@ -119,7 +119,7 @@ bool LgiGetMimeTypeExtensions(char *Mime, GArray<char*> &Ext)
 	return Ext.Length() > Start;
 }
 
-bool LgiGetFileMimeType(char *File, char *Mime, int BufLen)
+bool LgiGetFileMimeType(const char *File, char *Mime, int BufLen)
 {
 	GAutoString s = LgiApp->GetFileMimeType(File);
 	if (!s || !Mime)
@@ -263,7 +263,7 @@ bool _GetSystemFont(char *FontType, char *Font, int FontBufSize, int &PointSize)
 	return Status;
 }
 
-bool LgiGetAppsForMimeType(char *Mime, GArray<GAppInfo*> &Apps, int Limit)
+bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 {
 	bool Status = false;
 
@@ -292,7 +292,7 @@ bool LgiGetAppsForMimeType(char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 	return Status;
 }
 
-bool LgiGetAppForMimeType(char *Mime, char *AppPath, int BufSize)
+bool LgiGetAppForMimeType(const char *Mime, char *AppPath, int BufSize)
 {
 	bool Status = false;
 	if (AppPath)
@@ -317,7 +317,7 @@ bool LgiPlaySound(char *FileName, int ASync)
 	return LgiExecute(FileName);
 }
 
-bool LgiExecute(char *File, char *Args, char *Dir)
+bool LgiExecute(const char *File, const char *Args, const char *Dir)
 {
 	if (File)
 	{

@@ -264,7 +264,7 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 		LgiTrace("%s:%i - Error: failed to create image (%i,%i,%i)\n", _FL, x, y, Bits);
 		return false;
 	}
-	
+
 	if (!pMem)
 		pMem = new GBmpMem;
 	if (!pMem)
@@ -276,6 +276,14 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 	pMem->Line = d->Img->bpl;
 	pMem->Flags = 0;
 	pMem->Base = (uchar*)d->Img->mem;
+
+	printf("GMemDC::Create(%i,%i,%i) gdk_image_new(vis=%i,%i,%i,%i) img(%i,%i,%p)\n",
+		x, y, Bits,
+		Vis->depth, Vis->byte_order, Vis->colormap_size, Vis->bits_per_rgb,
+		d->Img->bits_per_pixel,
+		d->Img->bpl,
+		d->Img->mem);
+	
 
 	#if 0
 	printf("Created gdk image %ix%i @ %i bpp line=%i (%i) ptr=%p Vis=%p\n",

@@ -118,7 +118,7 @@ int LgiMsg(GViewI *Parent, const char *Str, const char *Title, int Type, ...)
 			Res = Dlg->Go();
 		}
 		
-		if (Res >= 0 AND
+		if (Res >= 0 &&
 			(Type == MB_YESNO OR Type == MB_YESNOCANCEL))
 		{
 			if (Res == 0)
@@ -161,11 +161,14 @@ int LgiMsg(GViewI *Parent, const char *Str, const char *Title, int Type, ...)
 	
 	#else // Lgi only controls (used for Linux + Mac)
 
-	if (Str AND LgiApp)
+	if (Str && LgiApp)
 	{
 		va_list Arg;
 		va_start(Arg, Type);
 		int Size = vsnprintf(0, 0, Str, Arg);
+		va_end(Arg);
+
+		va_start(Arg, Type);
 		char *Buffer = new char[Size+1];
 		if (Buffer)
 		{

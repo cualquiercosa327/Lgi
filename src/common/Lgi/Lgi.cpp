@@ -745,7 +745,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 	{
 		#ifdef LINUX
 		// Ask our window manager add-on if it knows the path
-		GLibrary *WmLib = LgiApp->GetWindowManagerLib();
+		GLibrary *WmLib = LgiApp ? LgiApp->GetWindowManagerLib() : NULL;
 		if (WmLib)
 		{
 			Proc_LgiWmGetPath WmGetPath = (Proc_LgiWmGetPath) WmLib->GetAddress("LgiWmGetPath");

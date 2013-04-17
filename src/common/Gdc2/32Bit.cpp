@@ -17,7 +17,7 @@
 /// 32 bit rgb applicators
 class LgiClass GdcApp32 : public GApplicator {
 protected:
-	ulong *Ptr;
+	uint32 *Ptr;
 
 public:
 	bool SetSurface(GBmpMem *d, GPalette *p, GBmpMem *a);
@@ -81,7 +81,7 @@ GApplicator *GApp32::Create(int Bits, int Op)
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-#define AddPtr(p, i)		p = (ulong*) (((char*)(p))+(i))
+#define AddPtr(p, i)		p = (uint32*) (((char*)(p))+(i))
 
 bool GdcApp32::SetSurface(GBmpMem *d, GPalette *p, GBmpMem *a)
 {
@@ -89,7 +89,7 @@ bool GdcApp32::SetSurface(GBmpMem *d, GPalette *p, GBmpMem *a)
 	{
 		Dest = d;
 		Pal = p;
-		Ptr = (ulong*) d->Base;
+		Ptr = (uint32*) d->Base;
 		Alpha = 0;
 		return true;
 	}
@@ -99,7 +99,7 @@ bool GdcApp32::SetSurface(GBmpMem *d, GPalette *p, GBmpMem *a)
 void GdcApp32::SetPtr(int x, int y)
 {
 	LgiAssert(Dest && Dest->Base);
-	Ptr = (ulong*) (Dest->Base + ((y * Dest->Line) + (x << 2)));
+	Ptr = (uint32*) (Dest->Base + ((y * Dest->Line) + (x << 2)));
 }
 
 void GdcApp32::IncX()
@@ -141,7 +141,7 @@ void GdcApp32Set::Rectangle(int x, int y)
 {
 #if defined(GDC_USE_ASM) && defined(_MSC_VER)
 
-	ulong *p = Ptr;
+	uint32 *p = Ptr;
 	int Line = Dest->Line;
 	COLOUR fill = c;
 
@@ -165,8 +165,8 @@ void GdcApp32Set::Rectangle(int x, int y)
 #else
 	while (y--)
 	{
-		ulong *p = Ptr;
-		ulong *e = p + x;
+		uint32 *p = Ptr;
+		uint32 *e = p + x;
 		while (p < e)
 		{
 			*p++ = c;
@@ -212,7 +212,7 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 						{
 							uchar *S = Src->Base + (y * Src->Line);
 							uchar *A = SrcAlpha->Base + (y * SrcAlpha->Line);
-							ulong *D = (ulong*)Ptr;
+							uint32 *D = (uint32*)Ptr;
 
 							for (int x=0; x<Src->x; x++)
 							{
@@ -306,7 +306,7 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 					}
 
 					s = (ushort*) NextS;
-					Ptr = (ulong*) NextD;
+					Ptr = (uint32*) NextD;
 				}
 				break;
 			}

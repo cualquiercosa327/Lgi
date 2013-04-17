@@ -140,12 +140,14 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdS
 
 #else
 
+#ifdef MAC
 pascal OSErr TestProc(const AppleEvent *ae, AppleEvent *reply, SRefCon handlerRefcon)
 {
 	OSErr err = eventNotHandledErr;
 	LgiTrace("TestEvent called\n");
 	return err;
 }
+#endif
 
 int main(int Args, char **Arg)
 {

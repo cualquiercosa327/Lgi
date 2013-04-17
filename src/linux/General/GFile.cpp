@@ -330,7 +330,7 @@ int64 LgiFileSize(char *FileName)
 	return 0;
 }
 
-bool DirExists(char *FileName)
+bool DirExists(const char *FileName)
 {
 	bool Status = false;
 	
@@ -348,7 +348,7 @@ bool DirExists(char *FileName)
 	return Status;
 }
 
-bool FileExists(char *FileName)
+bool FileExists(const char *FileName)
 {
 	bool Status = false;
 	
@@ -1187,6 +1187,12 @@ bool GDirectory::IsDir()
 {
 	int a = GetAttributes();
 	return !S_ISLNK(a) && S_ISDIR(a);
+}
+
+bool GDirectory::IsSymLink()
+{
+	int a = GetAttributes();
+	return S_ISLNK(a);
 }
 
 long GDirectory::GetAttributes()

@@ -33,6 +33,12 @@
 
 #if HAS_LIBPNG_ZLIB
 
+#if PNG_LIBPNG_VER_MAJOR < 1 || PNG_LIBPNG_VER_MINOR < 5
+
+#warning "No PNG support, library too old."
+
+#else
+
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -206,7 +212,6 @@ public:
 				int, compression_type,
 				png_charp, profile,
 				png_uint_32, proflen);
-
 
     DynFunc5(   png_uint_32,
                 png_get_tRNS,
@@ -1223,4 +1228,5 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 	return Status;
 }
 
-#endif
+#endif // PNG version check
+#endif // HAS_LIBPNG_ZLIB

@@ -61,6 +61,7 @@ Depends =	GDateTime.o \
 			GMemStream.o \
 			GStream.o \
 			GThread.o \
+			GThreadCommon.o \
 			GVariant.o \
 			GGuiUtils.o \
 			GObject.o \
@@ -75,6 +76,8 @@ Depends =	GDateTime.o \
 			GFileSelect.o \
 			GColourReduce.o \
 			Gdc2.o \
+			GPath.o \
+			GdcCommon.o \
 			GDisplayString.o \
 			GFont.o \
 			GFont_A.o \
@@ -130,7 +133,8 @@ Depends =	GDateTime.o \
 			INet.o \
 			INetTools.o \
 			md5.o \
-			LgiWidget.o
+			LgiWidget.o \
+			Gel.o
 
 # Target
 TargetFile = lib$(Target)$(Tag).so
@@ -155,6 +159,10 @@ clean :
 GDateTime.o : ./src/common/General/GDateTime.cpp ./include/common/Lgi.h \
 	./include/common/GDateTime.h \
 	./include/common/GToken.h
+	@echo $(<F) [$(Gui)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+Gel.o : ./src/common/Skins/Gel/Gel.cpp ./include/common/Lgi.h
 	@echo $(<F) [$(Gui)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -318,6 +326,10 @@ GThread.o : ./src/linux/Lgi/GThread.cpp ./include/common/Lgi.h
 	@echo $(<F) [$(Gui)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
+GThreadCommon.o : ./src/common/Lgi/GThreadCommon.cpp ./include/common/Lgi.h
+	@echo $(<F) [$(Gui)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
 GVariant.o : ./src/common/Lgi/GVariant.cpp ./include/common/Lgi.h \
 	./include/common/GVariant.h \
 	./include/common/GToken.h
@@ -412,6 +424,14 @@ GColourReduce.o : ./src/common/Gdc2/Tools/GColourReduce.cpp ./include/common/Gdc
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 Gdc2.o : ./src/linux/Gtk/Gdc2.cpp ./include/common/Lgi.h
+	@echo $(<F) [$(Gui)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GPath.o : ./src/common/Gdc2/Path/GPath.cpp ./include/common/Lgi.h
+	@echo $(<F) [$(Gui)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GdcCommon.o : ./src/common/Gdc2/GdcCommon.cpp ./include/common/Lgi.h
 	@echo $(<F) [$(Gui)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
