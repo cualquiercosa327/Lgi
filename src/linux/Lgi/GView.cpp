@@ -31,6 +31,10 @@ struct X11_INVALIDATE_PARAMS
 	bool Repaint;
 };
 
+#if (GTK_MAJOR_VERSION == 2 && GTK_MINOR_VERSION <= 12)
+#define gtk_widget_get_window(widget) ((widget)->window)
+#endif
+
 struct CursorInfo
 {
 public:
@@ -493,7 +497,7 @@ void GView::SetPulse(int Length)
 	}
 }
 
-int GView::OnEvent(GMessage *Msg)
+GMessage::Param GView::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{

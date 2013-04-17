@@ -272,7 +272,7 @@ ErrorCodes[] =
 	{"NONE", 0, "No error"},
 };
 
-char *GetErrorName(int e)
+const char *GetErrorName(int e)
 {
 	for (ErrorCodeType *c=ErrorCodes; c->Code; c++)
 	{
@@ -305,7 +305,7 @@ char *ReadTextFile(char *File)
 {
 	char *s = 0;
 	GFile f;
-	if (File AND f.Open(File, O_READ))
+	if (File && f.Open(File, O_READ))
 	{
 		int Len = f.GetSize();
 		s = new char[Len+1];
@@ -321,7 +321,7 @@ char *ReadTextFile(char *File)
 int64 LgiFileSize(char *FileName)
 {
 	struct stat64 s;
-	if (FileName AND
+	if (FileName &&
 		stat64(FileName, &s) == 0)
 	{
 		return s.st_size;
@@ -558,10 +558,14 @@ public:
 		return Mount;
 	}
 
+	void Insert(GAutoPtr<GVolume> v)
+	{
+		LgiAssert(0);
+	}
+
 	GVolume *First()
 	{
-		if (Which < 0 AND
-			!_Sub.Length())
+		if (Which < 0 && !_Sub.Length())
 		{
 			// Get various shortcuts to points of interest
 			GLinuxVolume *v = new GLinuxVolume(0);
@@ -608,9 +612,9 @@ public:
 						if (M.Length() > 2)
 						{
 							char *Mount = M[1];
-							if (Mount AND
-								strnicmp(M[0], "/dev/", 5) == 0 AND
-								strlen(M[1]) > 1 AND
+							if (Mount &&
+								strnicmp(M[0], "/dev/", 5) == 0 &&
+								strlen(M[1]) > 1 &&
 								stricmp(M[2], "swap") != 0)
 							{
 								v = new GLinuxVolume(0);
@@ -652,10 +656,10 @@ public:
 	GDirectory *GetContents()
 	{
 		GDirectory *Dir = 0;
-		if (Which >= 0 AND
+		if (Which >= 0 &&
 			_Path)
 		{
-			Dir = FileDev->GetDir();
+			Dir = new GDirectory;
 			if (Dir)
 			{
 				if (!Dir->First(_Path))
@@ -735,11 +739,6 @@ int FloppyType(int Letter)
 	*/
 
 	return 0;
-}
-
-GDirectory *GFileSystem::GetDir()
-{
-	return new GDirImpl;
 }
 
 bool GFileSystem::Copy(char *From, char *To, int *Status, CopyFileCallback Callback, void *Token)
@@ -856,18 +855,17 @@ bool GFileSystem::Delete(char *FileName, bool ToTrash)
 	return false;
 }
 
-bool GFileSystem::CreateDirectory(char *PathName)
+bool GFileSystem::CreateFolder(char *PathName)
 {
 	return mkdir(PathName, S_IRWXU | S_IXGRP | S_IXOTH) == 0;
 }
 
-bool GFileSystem::RemoveDirectory(char *PathName, bool Recurse)
+bool GFileSystem::RemoveFolder(char *PathName, bool Recurse)
 {
 	if (Recurse)
 	{
-		GDirectory *Dir = FileDev->GetDir();
-		if (Dir AND
-			Dir->First(PathName))
+		GDirectory *Dir = new GDirectory;
+		if (Dir && Dir->First(PathName))
 		{
 			do
 			{
@@ -876,7 +874,7 @@ bool GFileSystem::RemoveDirectory(char *PathName, bool Recurse)
 
 				if (Dir->IsDir())
 				{
-					RemoveDirectory(Str, Recurse);
+					RemoveFolder(Str, Recurse);
 				}
 				else
 				{
@@ -921,7 +919,7 @@ bool Match(char *Name, char *Mask)
 	strupr(Name);
 	strupr(Mask);
 
-	while (*Name AND *Mask)
+	while (*Name && *Mask)
 	{
 		if (*Mask == '*')
 		{
@@ -934,7 +932,7 @@ bool Match(char *Name, char *Mask)
 				Name++;
 			}
 		}
-		else if (*Mask == '?' OR *Mask == *Name)
+		else if (*Mask == '?' || *Mask == *Name)
 		{
 			Mask++;
 			Name++;
@@ -945,9 +943,9 @@ bool Match(char *Name, char *Mask)
 		}
 	}
 
-	while (*Mask AND ((*Mask == '*') OR (*Mask == '.'))) Mask++;
+	while (*Mask && ((*Mask == '*') || (*Mask == '.'))) Mask++;
 
-	return (*Name == 0 AND *Mask == 0);
+	return (*Name == 0 && *Mask == 0);
 }
 */
 
@@ -994,16 +992,16 @@ bool GDirectory::ConvertToDate(char *Str, uint64 Time)
 /////////////////////////////////////////////////////////////////////////////////
 //////////////////////////// Directory //////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////
-class GDirImplPrivate
+class GDirectoryPriv
 {
 public:
-	char			BasePath[256];
+	char			BasePath[MAX_PATH];
 	DIR				*Dir;
 	struct dirent	*De;
 	struct stat		Stat;
 	char			*Pattern;
 
-	GDirImplPrivate()
+	GDirectoryPriv()
 	{	
 		Dir = 0;
 		De = 0;
@@ -1011,7 +1009,7 @@ public:
 		Pattern = 0;
 	}
 	
-	~GDirImplPrivate()
+	~GDirectoryPriv()
 	{
 		DeleteArray(Pattern);
 	}
@@ -1019,45 +1017,45 @@ public:
 	bool Ignore()
 	{
 		return	De
-				AND
+				&&
 				(
 					strcmp(De->d_name, ".") == 0
-					OR
+					||
 					strcmp(De->d_name, "..") == 0
-					OR
+					||
 					(
 						Pattern
-						AND
+						&&
 						!MatchStr(Pattern, De->d_name)
 					)
 				);
 	}
 };
 
-GDirImpl::GDirImpl()
+GDirectory::GDirectory()
 {
-	d = new GDirImplPrivate;
+	d = new GDirectoryPriv;
 }
 
-GDirImpl::~GDirImpl()
+GDirectory::~GDirectory()
 {
 	Close();
 	DeleteObj(d);
 }
 
-GDirectory *GDirImpl::Clone()
+GDirectory *GDirectory::Clone()
 {
-	return new GDirImpl;
+	return new GDirectory;
 }
 
-int GDirImpl::First(char *Name, char *Pattern)
+int GDirectory::First(const char *Name, const char *Pattern)
 {
 	Close();
 
 	if (Name)
 	{
 		strcpy(d->BasePath, Name);
-		if (!Pattern OR stricmp(Pattern, LGI_ALL_FILES) == 0)
+		if (!Pattern || stricmp(Pattern, LGI_ALL_FILES) == 0)
 		{
 			struct stat S;
 			if (lstat(Name, &S) == 0)
@@ -1099,14 +1097,14 @@ int GDirImpl::First(char *Name, char *Pattern)
 		}
 	}
 
-	return d->Dir != 0 AND d->De != 0;
+	return d->Dir != 0 && d->De != 0;
 }
 
-int GDirImpl::Next()
+int GDirectory::Next()
 {
 	int Status = false;
 
-	while (d->Dir AND d->De)
+	while (d->Dir && d->De)
 	{
 		if (d->De = readdir(d->Dir))
 		{
@@ -1124,7 +1122,7 @@ int GDirImpl::Next()
 	return Status;
 }
 
-int GDirImpl::Close()
+int GDirectory::Close()
 {
 	if (d->Dir)
 	{
@@ -1136,7 +1134,7 @@ int GDirImpl::Close()
 	return true;
 }
 
-bool GDirImpl::Path(char *s, int BufLen)
+bool GDirectory::Path(char *s, int BufLen)
 {
 	if (!s)
 	{
@@ -1146,12 +1144,12 @@ bool GDirImpl::Path(char *s, int BufLen)
 	return LgiMakePath(s, BufLen, d->BasePath, GetName());
 }
 
-int GDirImpl::GetType()
+int GDirectory::GetType()
 {
 	return IsDir() ? VT_FOLDER : VT_FILE;
 }
 
-int GDirImpl::GetUser(bool Group)
+int GDirectory::GetUser(bool Group)
 {
 	if (Group)
 	{
@@ -1163,7 +1161,7 @@ int GDirImpl::GetUser(bool Group)
 	}
 }
 
-bool GDirImpl::IsReadOnly()
+bool GDirectory::IsReadOnly()
 {
 	if (getuid() == d->Stat.st_uid)
 	{
@@ -1180,43 +1178,43 @@ bool GDirImpl::IsReadOnly()
 	return !TestFlag(GetAttributes(), S_IWOTH);
 }
 
-bool GDirImpl::IsHidden()
+bool GDirectory::IsHidden()
 {
-	return GetName() AND GetName()[0] == '.';
+	return GetName() && GetName()[0] == '.';
 }
 
-bool GDirImpl::IsDir()
+bool GDirectory::IsDir()
 {
 	int a = GetAttributes();
-	return !S_ISLNK(a) AND S_ISDIR(a);
+	return !S_ISLNK(a) && S_ISDIR(a);
 }
 
-long GDirImpl::GetAttributes()
+long GDirectory::GetAttributes()
 {
 	return d->Stat.st_mode;
 }
 
-char *GDirImpl::GetName()
+char *GDirectory::GetName()
 {
 	return (d->De) ? d->De->d_name : 0;
 }
 
-const uint64 GDirImpl::GetCreationTime()
+const uint64 GDirectory::GetCreationTime()
 {
 	return d->Stat.st_ctime;
 }
 
-const uint64 GDirImpl::GetLastAccessTime()
+const uint64 GDirectory::GetLastAccessTime()
 {
 	return d->Stat.st_atime;
 }
 
-const uint64 GDirImpl::GetLastWriteTime()
+const uint64 GDirectory::GetLastWriteTime()
 {
 	return d->Stat.st_mtime;
 }
 
-const uint64 GDirImpl::GetSize()
+const uint64 GDirectory::GetSize()
 {
 	return (uint32)d->Stat.st_size;
 }
@@ -1257,7 +1255,7 @@ GFile::GFile()
 
 GFile::~GFile()
 {
-	if (d AND ValidHandle(d->hFile))
+	if (d && ValidHandle(d->hFile))
 	{
 		Close();
 	}
@@ -1279,13 +1277,13 @@ bool GFile::IsOpen()
 	return ValidHandle(d->hFile);
 }
 
-int GFile::Open(char *File, int Mode)
+int GFile::Open(const char *File, int Mode)
 {
 	int Status = false;
 
 	if (File)
 	{
-		if (TestFlag(Mode, O_WRITE) OR
+		if (TestFlag(Mode, O_WRITE) ||
 			TestFlag(Mode, O_READWRITE))
 		{
 			Mode |= O_CREAT;
@@ -1366,7 +1364,7 @@ int GFile::Read(void *Buffer, int Size, int Flags)
 {
 	int Red = 0;
 
-	if (Buffer AND Size > 0)
+	if (Buffer && Size > 0)
 	{
 		Red = read(d->hFile, Buffer, Size);
 	}
@@ -1379,7 +1377,7 @@ int GFile::Write(const void *Buffer, int Size, int Flags)
 {
 	int Written = 0;
 
-	if (Buffer AND Size > 0)
+	if (Buffer && Size > 0)
 	{
 		Written = write(d->hFile, Buffer, Size);
 	}
@@ -1515,7 +1513,7 @@ int GFile::ReadStr(char *Buf, int Size)
 {
 	int i = 0;
 	int r = 0;
-	if (Buf AND Size > 0)
+	if (Buf && Size > 0)
 	{
 		char c;
 
@@ -1532,7 +1530,7 @@ int GFile::ReadStr(char *Buf, int Size)
 			*Buf++ = c;
 			i++;
 
-		} while (i < Size - 1 AND c != '\n');
+		} while (i < Size - 1 && c != '\n');
 
 		*Buf = 0;
 	}

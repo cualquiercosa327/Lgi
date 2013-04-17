@@ -57,7 +57,7 @@ Depends =	GDateTime.o \
 			GProcess.o \
 			LgiRes.o \
 			Res.o \
-			GSemaphore.o \
+			GMutex.o \
 			GMemStream.o \
 			GStream.o \
 			GThread.o \
@@ -74,7 +74,6 @@ Depends =	GDateTime.o \
 			GInput.o \
 			GFileSelect.o \
 			GColourReduce.o \
-			GFuncs.o \
 			Gdc2.o \
 			GDisplayString.o \
 			GFont.o \
@@ -128,10 +127,6 @@ Depends =	GDateTime.o \
 			GTextLabel.o \
 			GToolBar.o \
 			GTree.o \
-			Smbdes.o \
-			Smbencrypt.o \
-			Smbmd4.o \
-			Smbutil.o \
 			INet.o \
 			INetTools.o \
 			md5.o \
@@ -246,7 +241,7 @@ GWindow.o : ./src/linux/Lgi/GWindow.cpp ./include/common/Lgi.h \
 GMem.o : ./src/linux/General/GMem.cpp ./include/common/LgiDefs.h \
 	./include/linux/Gtk/LgiOsDefs.h \
 	./include/common/GMem.h \
-	./include/common/GSemaphore.h
+	./include/common/GMutex.h
 	@echo $(<F) [$(Gui)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -305,7 +300,7 @@ Res.o : ./src/common/Resource/Res.cpp ./include/common/Lgi.h \
 	@echo $(<F) [$(Gui)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GSemaphore.o : ./src/common/Lgi/GSemaphore.cpp ./include/common/Lgi.h
+GMutex.o : ./src/common/Lgi/GMutex.cpp ./include/common/Lgi.h
 	@echo $(<F) [$(Gui)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -412,11 +407,7 @@ GFileSelect.o : ./src/common/Lgi/GFileSelect.cpp ./include/common/Lgi.h \
 	@echo $(<F) [$(Gui)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GColourReduce.o : ./src/common/Gdc2/GColourReduce.cpp ./include/common/Gdc2.h
-	@echo $(<F) [$(Gui)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-GFuncs.o : ./src/common/Gdc2/GFuncs.cpp ./include/common/Lgi.h
+GColourReduce.o : ./src/common/Gdc2/Tools/GColourReduce.cpp ./include/common/Gdc2.h
 	@echo $(<F) [$(Gui)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -726,22 +717,6 @@ GTree.o : ./src/common/Widgets/GTree.cpp ./include/common/Lgi.h \
 	@echo $(<F) [$(Gui)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-Smbdes.o : ./src/common/INet/AuthNtlm/Smbdes.cpp 
-	@echo $(<F) [$(Gui)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-Smbencrypt.o : ./src/common/INet/AuthNtlm/Smbencrypt.cpp 
-	@echo $(<F) [$(Gui)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-Smbmd4.o : ./src/common/INet/AuthNtlm/Smbmd4.cpp 
-	@echo $(<F) [$(Gui)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-Smbutil.o : ./src/common/INet/AuthNtlm/Smbutil.cpp 
-	@echo $(<F) [$(Gui)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
 INet.o : ./src/common/INet/INet.cpp ./include/common/GFile.h \
 	./include/common/INet.h \
 	./include/common/GToken.h \
@@ -864,13 +839,13 @@ GMenu.h : ./include/common/GMenuImpl.h \
 	./include/common/GXmlTree.h \
 	./include/common/Res.h
 
-Progress.h : ./include/common/GSemaphore.h
+Progress.h : ./include/common/GMutex.h
 
 GDataDlg.h : ./include/common/GProperties.h \
 	./include/common/GScrollBar.h \
 	./include/common/GTextLabel.h
 
-LgiClasses.h : ./include/common/GSemaphore.h \
+LgiClasses.h : ./include/common/GMutex.h \
 	./include/common/GLibrary.h \
 	./include/linux/Gtk/LgiOsClasses.h \
 	./include/common/GArray.h \
@@ -889,7 +864,7 @@ LgiClasses.h : ./include/common/GSemaphore.h \
 	./include/common/GInput.h \
 	./include/common/GPrinter.h
 
-GThread.h : ./include/common/GSemaphore.h
+GThread.h : ./include/common/GMutex.h
 
 md5.h : ./include/common/LgiInc.h
 
@@ -925,7 +900,7 @@ LgiCommon.h : ./include/common/GArray.h \
 
 GOptionsFile.h : ./include/common/GVariant.h \
 	./include/common/GXmlTree.h \
-	./include/common/GSemaphore.h
+	./include/common/GMutex.h
 
 Res.h : ./include/common/GXmlTree.h \
 	./include/common/GProperties.h

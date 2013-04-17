@@ -238,7 +238,7 @@ GRect &GLayout::GetClient(bool ClientSpace)
 	return r;
 }
 
-int GLayout::OnEvent(GMessage *Msg)
+GMessage::Param GLayout::OnEvent(GMessage *Msg)
 {
 	if (VScroll) VScroll->OnEvent(Msg);
 	if (HScroll) HScroll->OnEvent(Msg);

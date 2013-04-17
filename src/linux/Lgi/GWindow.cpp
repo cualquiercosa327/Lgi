@@ -992,7 +992,7 @@ int GWindow::OnDrop(char *Format, ::GVariant *Data, GdcPt2 Pt, int KeyState)
 	return Status;
 }
 
-int GWindow::OnEvent(GMessage *m)
+GMessage::Param GWindow::OnEvent(GMessage *m)
 {
 	switch (MsgCode(m))
 	{

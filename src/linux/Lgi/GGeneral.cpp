@@ -73,7 +73,7 @@ void _lgi_assert(bool b, char *test, char *file, int line)
 {
 	static bool Asserting = false;
 
-	if (!b AND !Asserting)
+	if (!b && !Asserting)
 	{
 		Asserting = true;
 
@@ -164,10 +164,10 @@ bool _GetIniField(char *Grp, char *Field, char *In, char *Out, int OutSize)
 
 					// Seek e through any whitespace between the equals and the
 					// field name
-					while (e > Line AND strchr(" \t", *e)) e--;
+					while (e > Line && strchr(" \t", *e)) e--;
 					
 					// Seek v through any whitespace after the equals
-					while (*v AND strchr(" \t", *v)) v++;
+					while (*v && strchr(" \t", *v)) v++;
 					
 					// Calculate the length of the field
 					int flen = (int)e-(int)Line;
@@ -175,8 +175,8 @@ bool _GetIniField(char *Grp, char *Field, char *In, char *Out, int OutSize)
 					// Check the current field against the input field
 					if (strnicmp(Field, Line, flen) == 0)
 					{
-						while (	*v AND
-								strchr("\r\n", *v) == 0 AND
+						while (	*v &&
+								strchr("\r\n", *v) == 0 &&
 								OutSize > 1) // leave space for NULL
 						{
 							*Out++ = *v++;
@@ -324,7 +324,7 @@ bool LgiExecute(char *File, char *Args, char *Dir)
 		bool IsUrl = false;
 
 		char App[400] = "";
-		if (strnicmp(File, "http://", 7) == 0 OR
+		if (strnicmp(File, "http://", 7) == 0 ||
 			strnicmp(File, "https://", 8) == 0)
 		{
 			IsUrl = true;
@@ -347,7 +347,7 @@ bool LgiExecute(char *File, char *Args, char *Dir)
 				// look in the path
 				InPath = true;
 				GToken p(getenv("PATH"), LGI_PATH_SEPARATOR);
-				for (int i=0; i<p.Length() AND !Ok; i++)
+				for (int i=0; i<p.Length() && !Ok; i++)
 				{
 					LgiMakePath(Path, sizeof(Path), p[i], File);
 					Ok = stat(Path, &f) == 0;
@@ -378,7 +378,7 @@ bool LgiExecute(char *File, char *Args, char *Dir)
 					{
 						printf("LgiGetFileMimeType(%s)=%s\n", File, Mime);
 						
-						if (stricmp(Mime, "application/x-executable") == 0 OR
+						if (stricmp(Mime, "application/x-executable") == 0 ||
 							stricmp(Mime, "application/x-shellscript") == 0)
 						{
 							TreatAsExe:
@@ -417,7 +417,7 @@ bool LgiExecute(char *File, char *Args, char *Dir)
 			char EscFile[512], *o = EscFile;
 			for (char i=0; File[i]; i++)
 			{
-				if (File[i] == ' ' OR File[i] == '&')
+				if (File[i] == ' ' || File[i] == '&')
 				{
 					*o++ = '\\';
 				}
@@ -494,50 +494,46 @@ WindowManager LgiGetWindowManager()
 
 	if (Status == WM_Unknown)
 	{
-		GDirectory *d = FileDev->GetDir();
-		if (d)
+		GDirectory d;
+
+		for (bool b=d.First("/proc"); b && Status == WM_Unknown; b=d.Next())
 		{
-			for (bool b=d->First("/proc"); b AND Status == WM_Unknown; b=d->Next())
+			if (d.IsDir() && isdigit(d.GetName()[0]))
 			{
-				if (d->IsDir() AND isdigit(d->GetName()[0]))
+				char Path[256];
+				d.Path(Path, sizeof(Path));
+				LgiMakePath(Path, sizeof(Path), Path, "status");
+				
+				GFile s;
+				if (s.Open(Path, O_READ))
 				{
-					char Path[256];
-					d->Path(Path, sizeof(Path));
-					LgiMakePath(Path, sizeof(Path), Path, "status");
+					char Buf[256];
+					Buf[sizeof(Buf)-1] = 0;
+					s.Read(Buf, sizeof(Buf)-1);
 					
-					GFile s;
-					if (s.Open(Path, O_READ))
+					char *n = strchr(Buf, '\n');
+					if (n)
 					{
-						char Buf[256];
-						Buf[sizeof(Buf)-1] = 0;
-						s.Read(Buf, sizeof(Buf)-1);
+						*n = 0;
 						
-						char *n = strchr(Buf, '\n');
-						if (n)
+						// printf("Buf=%s\n", Buf);
+						
+						if (stristr(Buf, "gnome-settings") != 0 ||
+							stristr(Buf, "gnome-session") != 0 ||
+							stristr(Buf, "gnome-panel") != 0)
 						{
-							*n = 0;
-							
-							// printf("Buf=%s\n", Buf);
-							
-							if (stristr(Buf, "gnome-settings") != 0 OR
-								stristr(Buf, "gnome-session") != 0 OR
-								stristr(Buf, "gnome-panel") != 0)
-							{
-								Status = WM_Gnome;
-							}
-							else if (stristr(Buf, "startkde") != 0 OR
-									 stristr(Buf, "kdesktop") != 0)
-							{
-								Status = WM_Kde;
-							}
+							Status = WM_Gnome;
+						}
+						else if (stristr(Buf, "startkde") != 0 ||
+								 stristr(Buf, "kdesktop") != 0)
+						{
+							Status = WM_Kde;
 						}
 					}
-					else printf("%s:%i - error\n", __FILE__, __LINE__);
 				}
+				else printf("%s:%i - error\n", __FILE__, __LINE__);
 			}
-			
-			DeleteObj(d);
-		}
+		}	
 	}
 	
 	return Status;

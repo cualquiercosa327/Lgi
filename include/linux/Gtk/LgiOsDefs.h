@@ -538,12 +538,13 @@ typedef enum {
 /////////////////////////////////////////////////////////////////////////////////////
 // Externs
 #ifndef WIN32 // __CYGWIN__
-LgiFunc char *strnistr(char *a, char *b, int n);
-LgiFunc int strnicmp(char *a, char *b, int i);
+// LgiFunc char *strnistr(char *a, char *b, int n);
+LgiFunc int _strnicmp(char *a, char *b, int i);
 LgiFunc char *strupr(char *a);
 LgiFunc char *strlwr(char *a);
-LgiFunc int stricmp(char *a, char *b);
-LgiFunc int stricmp(char *a, char *b);
+LgiFunc int stricmp(const char *a, const char *b);
+LgiFunc int _stricmp(const char *a, const char *b);
+#define sprintf_s snprintf
 #else
 LgiFunc class GViewI *GWindowFromHandle(OsView hWnd);
 LgiFunc int GetMouseWheelLines();

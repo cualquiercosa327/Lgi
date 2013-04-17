@@ -60,7 +60,11 @@ GtkWidget *lgi_widget_new(GViewI *target, int w, int h, bool pour_largest)
 
         if (target->GetTabStop())
         {
+			#if (GTK_MAJOR_VERSION == 2 && GTK_MINOR_VERSION < 18)
+			GTK_OBJECT_FLAGS(GTK_WIDGET(p)) |= GTK_CAN_FOCUS;
+			#else			
             gtk_widget_set_can_focus(GTK_WIDGET(p), TRUE);
+			#endif
         }
 
 		#if 1
@@ -473,7 +477,14 @@ lgi_widget_setchildpos(GtkWidget *parent, GtkWidget *child, int x, int y)
 				    a.width = child_wid->w;
 				    a.height = child_wid->h;
     				gtk_widget_size_allocate(c.w, &a);
-            		gdk_window_invalidate_rect(gtk_widget_get_window(c.w), &a, FALSE);
+
+            		gdk_window_invalidate_rect(
+												#if (GTK_MAJOR_VERSION == 2 && GTK_MINOR_VERSION < 14)
+            									c.w->window
+            									#else
+            									gtk_widget_get_window(c.w)
+							            		#endif
+            									, &a, FALSE);
 				}
 				return;
 			}

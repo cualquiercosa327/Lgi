@@ -143,7 +143,12 @@ int GDialog::DoModal(OsView OverrideParent)
 	    gtk_window_set_resizable(Wnd, FALSE);
 	}
 	
-	GtkWidget *content_area = gtk_dialog_get_content_area(GTK_DIALOG(Wnd));
+	GtkWidget *content_area = 	
+	#if (GTK_MAJOR_VERSION == 2 && GTK_MINOR_VERSION < 14)
+		GTK_DIALOG(Wnd)->vbox;
+	#else
+		gtk_dialog_get_content_area(GTK_DIALOG(Wnd));
+	#endif
 	if (content_area)
 	{
 		if (Root = lgi_widget_new(this, Pos.X(), Pos.Y(), true))
@@ -205,7 +210,7 @@ int GDialog::DoModeless()
 
 extern GButton *FindDefault(GView *w);
 
-int GDialog::OnEvent(GMessage *Msg)
+GMessage::Param GDialog::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{
@@ -229,7 +234,7 @@ GControl::~GControl()
 {
 }
 
-int GControl::OnEvent(GMessage *Msg)
+GMessage::Param GControl::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{
@@ -710,7 +715,7 @@ void GSlider::SetLimits(int64 min, int64 max)
 	Max = max;
 }
 
-int GSlider::OnEvent(GMessage *Msg)
+GMessage::Param GSlider::OnEvent(GMessage *Msg)
 {
 	return 0;
 }
@@ -900,7 +905,7 @@ GSurface *GBitmap::GetSurface()
 	return pDC;
 }
 
-int GBitmap::OnEvent(GMessage *Msg)
+GMessage::Param GBitmap::OnEvent(GMessage *Msg)
 {
 	return GView::OnEvent(Msg);
 }

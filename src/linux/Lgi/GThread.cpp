@@ -9,7 +9,7 @@ void *ThreadEntryPoint(void *i)
 		GThread *Thread = (GThread*) i;
 
 		// Make sure we have finished executing the setup
-		while (Thread->State == LGITHREAD_INIT)
+		while (Thread->State == GThread::THREAD_INIT)
 		{
 			LgiSleep(5);
 		}
@@ -22,7 +22,7 @@ void *ThreadEntryPoint(void *i)
 		Thread->OnAfterMain();
 
 		// mark thread over...
-		Thread->State = LGITHREAD_EXITED;
+		Thread->State = GThread::THREAD_EXITED;
 
 		if (Thread->DeleteOnExit)
 		{
@@ -34,9 +34,9 @@ void *ThreadEntryPoint(void *i)
 	return 0;
 }
 
-GThread::GThread()
+GThread::GThread(const char *Name)
 {
-	State = LGITHREAD_ASLEEP;
+	State = GThread::THREAD_ASLEEP;
 	ReturnValue = -1;
 	hThread = 0;
 	DeleteOnExit = false;
@@ -57,21 +57,21 @@ int GThread::ExitCode()
 
 bool GThread::IsExited()
 {
-	return State == LGITHREAD_EXITED;
+	return State == GThread::THREAD_EXITED;
 }
 
 void GThread::Run()
 {
 	if (!hThread)
 	{
-		State = LGITHREAD_INIT;
+		State = GThread::THREAD_INIT;
 
 		static int Creates = 0;
 		int e;
 		if (!(e = pthread_create(&hThread, NULL, ThreadEntryPoint, (void*)this)))
 		{
 			Creates++;
-			State = LGITHREAD_RUNNING;
+			State = GThread::THREAD_RUNNING;
 		}
 		else
 		{
@@ -85,7 +85,7 @@ void GThread::Run()
 			}
 			printf("%s,%i - pthread_create failed with the error %i (%s) (After %i creates)\n", __FILE__, __LINE__, e, Err, Creates);
 			
-			State = LGITHREAD_EXITED;
+			State = GThread::THREAD_EXITED;
 		}
 	}
 }
@@ -95,7 +95,7 @@ void GThread::Terminate()
 	if (hThread AND
 		pthread_cancel(hThread) == 0)
 	{
-		State = LGITHREAD_EXITED;
+		State = GThread::THREAD_EXITED;
 	}
 }
 

@@ -1175,14 +1175,14 @@ int GMessage::Type()
 	return 0;
 }
 
-int GMessage::A()
+GMessage::Param GMessage::A()
 {
 	if (Event && Event->type == Gtk::GDK_CLIENT_EVENT)
 		return Event->client.data.l[1];
 	return 0;
 }
 
-int GMessage::B()
+GMessage::Param GMessage::B()
 {
 	if (Event && Event->type == Gtk::GDK_CLIENT_EVENT)
 		return Event->client.data.l[2];

@@ -611,6 +611,7 @@ int GSocket::Open(const char *HostAddr, int Port)
 					
 					HostEnt *Result = 0;
 					int Err = 0;
+					char Buf[512];
 					if (gethostbyname_r(HostAddr, Host, Buf, sizeof(Buf), &Result, &Err))
 					{
 						char *ErrStr = GetErrorName(Err);

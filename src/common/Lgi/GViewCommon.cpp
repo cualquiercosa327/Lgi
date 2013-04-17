@@ -1197,7 +1197,13 @@ void GView::SetTabStop(bool b)
 	#endif
 	#ifdef __GTK_H__
 	if (_View)
+	{
+		#if (GTK_MAJOR_VERSION == 2 && GTK_MINOR_VERSION <= 10)
+		LgiTrace("Error: no api to set tab stop.\n");
+		#else
         gtk_widget_set_can_focus(_View, b);
+		#endif
+    }
 	#endif
 }
 
@@ -1812,7 +1818,7 @@ void GView::_Dump(int Depth)
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-#if defined(MAC)
+#if defined(MAC) || defined(LINUX)
 static char FactoryFile[MAX_PATH];
 #elif defined(_WINDOWS)
 static HANDLE FactoryEvent;
@@ -1823,7 +1829,7 @@ static GArray<GViewFactory*> *AllFactories = NULL;
 
 GViewFactory::GViewFactory()
 {
-	#if defined(MAC)
+	#if defined(MAC) || defined(LINUX)
 	// This is a terrible way of doing it... but I don't have a better solution ATM. :(
 	LgiGetTempPath(FactoryFile, sizeof(FactoryFile));
 	sprintf(FactoryFile+strlen(FactoryFile), "/LgiFactoryFile.%i", getpid());
@@ -1866,7 +1872,7 @@ GViewFactory::~GViewFactory()
 		if (AllFactories->Length() == 0)
 		{
 			DeleteObj(AllFactories);
-			#if defined(MAC)
+			#if defined(MAC) || defined(LINUX)
 			unlink(FactoryFile);
 			#elif defined(WINDOWS)
 			CloseHandle(FactoryEvent);
