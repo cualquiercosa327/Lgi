@@ -11,6 +11,8 @@
 #include <winsock2.h>
 #include <shlobj.h>
 #include "GRegKey.h"
+#else
+#include <unistd.h>
 #endif
 
 #include "Lgi.h"

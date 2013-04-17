@@ -1,5 +1,9 @@
 /// \file
 /// \author Matthew Allen <fret@memecode.com>
+#ifdef LINUX
+#include <unistd.h>
+#endif
+
 #include "Lgi.h"
 #include "GViewPriv.h"
 #include "GDragAndDrop.h"

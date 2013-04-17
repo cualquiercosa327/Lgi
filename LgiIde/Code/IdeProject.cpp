@@ -270,9 +270,9 @@ public:
 					GUri fu(Cmd->Uri);
 					char path[256];
 					if (Base->Path)
-						sprintf(path, "%s/%s", Base->Path, e->Name);
+						sprintf(path, "%s/%s", Base->Path, e->Name.Get());
 					else
-						sprintf(path, "/%s", e->Name);
+						sprintf(path, "/%s", e->Name.Get());
 					DeleteArray(fu.Path);
 					fu.Path = NewStr(path);
 					GAutoString Uri = fu.GetUri();

@@ -19,6 +19,7 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <dirent.h>
+#include <unistd.h>
 
 #include "LgiDefs.h"
 #include "GFile.h"

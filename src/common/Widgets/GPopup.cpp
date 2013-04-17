@@ -258,7 +258,7 @@ public:
 										break;
 									}
 									
-									GMenuItem *it = Sub->GetSub()->GetParent();
+									::GMenuItem *it = Sub->GetSub()->GetParent();
 									GSubMenu *mn = it ? it->GetParent() : 0;
 									MenuClickImpl *impl = mn ? mn->Handle() : 0;
 									v = impl ? impl->View() : 0;

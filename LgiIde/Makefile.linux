@@ -60,7 +60,7 @@ Depends =	FtpThread.o \
 # Executable target
 $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	@echo Linking $(Target) [$(Gui)/$(Build)]...
-	$(CC) -rdynamic -Wl,-soname,$(TargetFile),-export-dynamic,-R. -f -o \
+	$(CC) -rdynamic -Wl,-soname,$(TargetFile),-export-dynamic,-R. -o \
 		$(Target) $(addprefix $(BuildDir)/,$(Depends)) $(Libs)
 	@echo Done.
 

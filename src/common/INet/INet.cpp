@@ -10,6 +10,7 @@
 
 #ifdef LINUX
 #include <netinet/tcp.h>
+#include <unistd.h>
 #endif
 #include <ctype.h>
 

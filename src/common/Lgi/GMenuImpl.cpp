@@ -425,7 +425,7 @@ MenuImpl::~MenuImpl()
 
 bool MenuImpl::HasSubOpen()
 {
-	for (GMenuItem *i = d->Menu->Items.First(); i; i = d->Menu->Items.Next())
+	for (::GMenuItem *i = d->Menu->Items.First(); i; i = d->Menu->Items.Next())
 	{
 		GSubMenu *s = i->Sub();
 		if (s &&
@@ -459,7 +459,7 @@ bool MenuImpl::Pour(GRegion &r)
 	int y = 1;
 	int Ly = SysFont->GetHeight() + 4;
 	
-	for (GMenuItem *i=d->Menu->Items.First(); i; i=d->Menu->Items.Next())
+	for (::GMenuItem *i=d->Menu->Items.First(); i; i=d->Menu->Items.Next())
 	{
 		GdcPt2 Size;
 		i->_Measure(Size);
@@ -507,7 +507,7 @@ bool MenuImpl::Pour(GRegion &r)
 class MenuItemImplPrivate
 {
 public:
-	GMenuItem *Item;
+	::GMenuItem *Item;
 	bool Clicked;
 	
 	MenuItemImplPrivate()
@@ -517,7 +517,7 @@ public:
 	}
 };
 
-MenuItemImpl::MenuItemImpl(GMenuItem *Item)
+MenuItemImpl::MenuItemImpl(::GMenuItem *Item)
 {
 	d = new MenuItemImplPrivate;
 	d->Item = Item;
@@ -535,7 +535,7 @@ MenuItemImpl::~MenuItemImpl()
 	DeleteObj(d);
 }
 
-GMenuItem *MenuItemImpl::Item()
+::GMenuItem *MenuItemImpl::Item()
 {
 	return d->Item;
 }
@@ -551,14 +551,15 @@ void MenuItemImpl::OnPaint(GSurface *pDC)
 
 bool MenuItemImpl::IsOnSubMenu()
 {
-	return !dynamic_cast<GMenu*>(d->Item->GetParent());
+	typedef ::GMenu LgiMenu;
+	return !dynamic_cast<LgiMenu*>(d->Item->GetParent());
 }
 
 void MenuItemImpl::Activate()
 {
 	HideSub(true);
 
-	GMenu *Menu = d->Item->Menu;
+	::GMenu *Menu = d->Item->Menu;
 	if (Menu && Menu->Info)
 	{
 		GWindow *w = Menu->Info->View()->GetWindow();

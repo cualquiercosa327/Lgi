@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #ifndef WIN32
 #include <sys/wait.h>
+#include <unistd.h>
 #endif
 #include <ctype.h>
 

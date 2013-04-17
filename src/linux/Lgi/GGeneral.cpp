@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <unistd.h>
 
 #define _POSIX_TIMERS
 #include <time.h>

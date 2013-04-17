@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #if defined(LINUX) || defined(MAC)
 #include <signal.h>
+#include <unistd.h>
 #endif
 
 #include "Lgi.h"

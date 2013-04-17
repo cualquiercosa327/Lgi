@@ -33,12 +33,6 @@
 
 #if HAS_LIBPNG_ZLIB
 
-#if PNG_LIBPNG_VER_MAJOR < 1 || PNG_LIBPNG_VER_MINOR < 5
-
-#warning "No PNG support, library too old."
-
-#else
-
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -215,7 +209,7 @@ public:
 
     DynFunc5(   png_uint_32,
                 png_get_tRNS,
-                png_const_structp, png_ptr,
+                png_structp, png_ptr,
                 png_infop, info_ptr,
                 png_bytep*, trans_alpha,
                 int*, num_trans,
@@ -223,45 +217,45 @@ public:
 
     DynFunc3(   png_uint_32,
                 png_get_valid,
-                png_const_structp, png_ptr,
-                png_const_infop, info_ptr,
+                png_structp, png_ptr,
+                png_infop, info_ptr,
                 png_uint_32, flag);
 
 
     DynFunc4(   png_uint_32,
                 png_get_PLTE,
-                png_const_structp, png_ptr,
-                png_const_infop, info_ptr,
+                png_structp, png_ptr,
+                png_infop, info_ptr,
                 png_colorp*, palette,
                 int*, num_palette);
 
     DynFunc2(   png_uint_32,
                 png_get_image_width,
-                png_const_structp, png_ptr,
-                png_const_infop, info_ptr);
+                png_structp, png_ptr,
+                png_infop, info_ptr);
 
     DynFunc2(   png_uint_32,
                 png_get_image_height,
-                png_const_structp, png_ptr,
-                png_const_infop, info_ptr);
+                png_structp, png_ptr,
+                png_infop, info_ptr);
 
     DynFunc2(   png_byte,
                 png_get_channels,
-                png_const_structp, png_ptr,
-                png_const_infop, info_ptr);
+                png_structp, png_ptr,
+                png_infop, info_ptr);
 
     DynFunc2(   png_byte,
                 png_get_bit_depth,
-                png_const_structp, png_ptr,
-                png_const_infop, info_ptr);
+                png_structp, png_ptr,
+                png_infop, info_ptr);
 
     DynFunc1(   png_voidp,
                 png_get_error_ptr,
-                png_const_structp, png_ptr);
+                png_structp, png_ptr);
 
     DynFunc1(   png_voidp,
                 png_get_io_ptr,
-                png_const_structp, png_ptr);
+                png_structp, png_ptr);
 
     DynFunc9(   int,
                 png_set_IHDR,
@@ -1228,5 +1222,4 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 	return Status;
 }
 
-#endif // PNG version check
 #endif // HAS_LIBPNG_ZLIB
