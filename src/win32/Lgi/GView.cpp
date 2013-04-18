@@ -679,7 +679,6 @@ bool GView::Attach(GViewI *p)
 	if (ClsName)
 	{
 		// Real window with HWND
-		uint Style = GetStyle();
 		bool Enab = Enabled();
 
         // Check the class is created
@@ -690,11 +689,23 @@ bool GView::Attach(GViewI *p)
             return false;
 
 		LgiAssert(!Parent || Parent->Handle() != 0);
+
+		DWORD Style	  = GetStyle();
+		DWORD ExStyle = GetExStyle()
+						&
+						~(
+							WS_EX_CONTROLPARENT
+							|
+							WS_EX_CLIENTEDGE
+							|
+							WS_EX_WINDOWEDGE
+						);
+							
 		if (IsWin9x)
 		{
 			char *Text = LgiToNativeCp(GBase::Name());
 
-			_View = CreateWindowEx(	GetExStyle() & ~WS_EX_CONTROLPARENT,
+			_View = CreateWindowExA(ExStyle,
 									Cls->Name(),
 									Text,
 									Style,
@@ -711,7 +722,7 @@ bool GView::Attach(GViewI *p)
 		{
 			char16 *Text = GBase::NameW();
 
-			_View = CreateWindowExW(GetExStyle() & ~WS_EX_CONTROLPARENT,
+			_View = CreateWindowExW(ExStyle,
 									Cls->NameW(),
 									Text,
 									Style,
@@ -2218,31 +2229,51 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			}
 			case WM_NCCALCSIZE:
 			{
-				bool Thin = (Sunken() || Raised()) && _BorderSize == 1;
+				GMessage::Param Status = 0;
+				int Edge = (Sunken() || Raised()) ? _BorderSize : 0;
+				RECT *rc = NULL;
 				if (Msg->a)
 				{
-					if (Thin)
-					{
-						NCCALCSIZE_PARAMS *p = (NCCALCSIZE_PARAMS*) Msg->b;
-						p->rgrc[0].left++;
-						p->rgrc[0].top++;
-						p->rgrc[0].right--;
-						p->rgrc[0].bottom--;
-						return 0;
-					}
+					NCCALCSIZE_PARAMS *p = (NCCALCSIZE_PARAMS*) Msg->b;
+					rc = p->rgrc;
 				}
 				else
 				{
-					if (Thin)
-					{
-						RECT *r = (RECT*)Msg->b;
-						r->left++;
-						r->top++;
-						r->right--;
-						r->bottom--;						
-						return 0;
-					}
+					rc = (RECT*)Msg->b;
 				}
+				
+				if (!(WndFlags & GWF_DIALOG))
+				{
+					RECT old = *rc;
+					Status = DefWindowProcW(_View, Msg->Msg, Msg->a, Msg->b);
+					if
+					(
+						Edge &&
+						(
+							old.left != rc->left ||
+							old.top != rc->top ||
+							old.right != rc->right ||
+							old.bottom != rc->bottom
+						)
+					)
+					{
+						int asd=0;
+					}					
+				}
+
+				if (Edge && rc)
+				{
+					rc->left += Edge;
+					rc->top += Edge;
+					rc->right -= Edge;
+					rc->bottom -= Edge;
+					return 0;
+				}
+				
+				if (!(WndFlags & GWF_DIALOG))
+					return Status;
+				else
+					break;
 
 				// Fall through
 			}
