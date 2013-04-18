@@ -453,7 +453,8 @@ bool GWin32Class::SubClass(char *Parent)
 
 LRESULT CALLBACK GWin32Class::CallParent(HWND hWnd, UINT m, WPARAM a, LPARAM b)
 {
-	if (!ParentProc) return 0;
+	if (!ParentProc)
+		return 0;
 
 	if (IsWindowUnicode(hWnd))
 	{

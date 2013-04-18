@@ -16,12 +16,10 @@ class GEditPrivate
 {
 public:
 	bool IgnoreNotify;
-	DWORD ParentProc;
 
 	GEditPrivate()
 	{
 		IgnoreNotify = true;
-		ParentProc = 0;
 	}
 
 	~GEditPrivate()
@@ -46,6 +44,9 @@ GEdit::GEdit(int id, int x, int y, int cx, int cy, const char *name) :
 	SetPos(r);
 	SetStyle(WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL | WS_TABSTOP);
 	SetFont(SysFont);
+
+	if (SubClass)
+		SubClass->SubClass("EDIT");
 }
 
 GEdit::~GEdit()
@@ -335,8 +336,7 @@ GMessage::Result GEdit::OnEvent(GMessage *Msg)
 	}
 	#endif
 
-	int Status = 	
-	GControl::OnEvent(Msg);
+	int Status = GControl::OnEvent(Msg);
 
 	#if EDIT_PROCESSING
 	switch (MsgCode(Msg))
