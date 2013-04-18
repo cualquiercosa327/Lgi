@@ -416,7 +416,7 @@ MenuImpl::~MenuImpl()
 		if (par)
 		{
 			bool b = GTK_IS_CONTAINER(par);
-			printf("is container = %i\n", b);
+			printf("%p is container = %i (view=%p)\n", par, b, _View);
 		}
 	}
 

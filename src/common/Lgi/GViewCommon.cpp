@@ -1809,7 +1809,7 @@ void GView::_Dump(int Depth)
 	memset(Sp, ' ', Depth << 2);
 	Sp[Depth<<2] = 0;
 	char s[256];
-	sprintf(s, "%s%p::%s %s (%p:%p)\n", Sp, this, GetClass(), GetPos().GetStr(), d->Parent, d->ParentI);
+	sprintf(s, "%s%p::%s %s (_View=%p)\n", Sp, this, GetClass(), GetPos().GetStr(), _View);
 	LgiTrace(s);
 	List<GViewI>::I i = Children.Start();
 	for (GViewI *c = *i; c; c = *++i)

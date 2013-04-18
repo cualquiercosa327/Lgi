@@ -152,6 +152,7 @@ GWindowCallback(GtkWidget   *widget,
 	{
 		case GDK_DELETE:
 		{
+			This->_Dump();
 			return !This->OnRequestClose(false);
 		}
 		case GDK_DESTROY:
@@ -222,6 +223,7 @@ bool GWindow::Attach(GViewI *p)
         {
             gtk_container_add(GTK_CONTAINER(Wnd), Root);
             gtk_widget_show(Root);
+            printf("Root window for %p is %p\n", _View, Root);
         }
 		
 		OnCreate();
