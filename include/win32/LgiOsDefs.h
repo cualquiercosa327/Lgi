@@ -189,6 +189,7 @@ typedef SOCKET						OsSocket;
 #define GWF_DIALOG					0x00000040
 #define GWF_DESTRUCTOR				0x00000080
 #define GWF_QUIT_WND				0x00000100
+#define GWF_SYS_BORDER				0x00000200 // ask the system to draw the border
 
 // Widgets
 #define DialogToPixelX(i)			(((i)*Bx)/4)

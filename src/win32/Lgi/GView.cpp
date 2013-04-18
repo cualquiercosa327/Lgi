@@ -691,15 +691,9 @@ bool GView::Attach(GViewI *p)
 		LgiAssert(!Parent || Parent->Handle() != 0);
 
 		DWORD Style	  = GetStyle();
-		DWORD ExStyle = GetExStyle()
-						&
-						~(
-							WS_EX_CONTROLPARENT
-							|
-							WS_EX_CLIENTEDGE
-							|
-							WS_EX_WINDOWEDGE
-						);
+		DWORD ExStyle = GetExStyle() & ~WS_EX_CONTROLPARENT;
+		if (!TestFlag(WndFlags, GWF_SYS_BORDER))
+			ExStyle &= ~(WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE);
 							
 		if (IsWin9x)
 		{
@@ -2216,7 +2210,8 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			}
 			case WM_NCPAINT:
 			{
-				if (GetWindow() != this)
+				if (GetWindow() != this &&
+					!TestFlag(WndFlags, GWF_SYS_BORDER))
 				{
 					HDC hDC = GetWindowDC(_View);
 					GScreenDC Dc(hDC, _View, true);
@@ -2244,24 +2239,10 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				
 				if (!(WndFlags & GWF_DIALOG))
 				{
-					RECT old = *rc;
 					Status = DefWindowProcW(_View, Msg->Msg, Msg->a, Msg->b);
-					if
-					(
-						Edge &&
-						(
-							old.left != rc->left ||
-							old.top != rc->top ||
-							old.right != rc->right ||
-							old.bottom != rc->bottom
-						)
-					)
-					{
-						int asd=0;
-					}					
 				}
 
-				if (Edge && rc)
+				if (Edge && rc && !TestFlag(WndFlags, GWF_SYS_BORDER))
 				{
 					rc->left += Edge;
 					rc->top += Edge;
@@ -2270,12 +2251,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 					return 0;
 				}
 				
-				if (!(WndFlags & GWF_DIALOG))
-					return Status;
-				else
-					break;
-
-				// Fall through
+				return Status;
 			}
 			default:
 			{
