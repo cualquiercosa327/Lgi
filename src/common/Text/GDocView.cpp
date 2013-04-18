@@ -187,37 +187,25 @@ GDocumentEnv::LoadType GDefaultDocumentEnv::GetContent(LoadJob *&j)
 	GUri u(j->Uri);
 	if (u.Protocol && !stricmp(u.Protocol, "file"))
 	{
-		char Exe[256];
-		LgiGetExePath(Exe, sizeof(Exe));
-
-		#ifdef WIN32
-		if (stristr(Exe, "\\Debug") ||
-			stristr(Exe, "\\Release"))
+		char p[MAX_PATH];
+		LgiGetSystemPath(LSP_APP_INSTALL, p, sizeof(p));
+		LgiMakePath(p, sizeof(p), p, u.Path);
+		if (!FileExists(p))
 		{
-			LgiTrimDir(Exe);
-		}
-		#endif
-
-		char File[MAX_PATH];
-		LgiMakePath(File, sizeof(File), Exe, j->Uri);
-
-		if (!FileExists(File))
-		{
-			GAutoString f(LgiFindFile(j->Uri));
+			GAutoString f(LgiFindFile(u.Path));
 			if (f)
-				strsafecpy(File, f, sizeof(File));
-		}
-		
-		if (FileExists(File))
+				strsafecpy(p, f, sizeof(p));
+		}		
+		if (FileExists(p))
 		{
 			if (j->Pref == GDocumentEnv::LoadJob::FmtFilename)
 			{
-				j->Filename.Reset(NewStr(File));
+				j->Filename.Reset(NewStr(p));
 				return LoadImmediate;
 			}
 			else
 			{
-				j->pDC.Reset(LoadDC(File));
+				j->pDC.Reset(LoadDC(p));
 				return LoadImmediate;
 			}
 		}
