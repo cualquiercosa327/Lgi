@@ -31,11 +31,7 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 GEdit::GEdit(int id, int x, int y, int cx, int cy, const char *name) :
-	#ifdef SKIN_MAGIC
-	GControl("EDIT"),
-	#else
 	GControl(LGI_EDITBOX),
-	#endif
 	ResObject(Res_EditBox)
 {
 	d = new GEditPrivate;
@@ -50,29 +46,11 @@ GEdit::GEdit(int id, int x, int y, int cx, int cy, const char *name) :
 	SetPos(r);
 	SetStyle(WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL | WS_TABSTOP);
 	SetFont(SysFont);
-
-	#ifndef SKIN_MAGIC
-	if (SubClass)
-	{
-		SubClass->SubClass("EDIT");
-	}
-	#endif
 }
 
 GEdit::~GEdit()
 {
 	DeleteObj(d);
-}
-
-void GEdit::OnAttach()
-{
-	#ifdef SKIN_MAGIC
-
-	d->ParentProc = GetWindowLong(Handle(), GWL_WNDPROC);
-	SetWindowLong(Handle(), GWL_WNDPROC, (DWORD)GWin32Class::Redir);
-	SetWindowLong(Handle(), GWL_USERDATA, (DWORD)(GViewI*)this);
-
-	#endif
 }
 
 void GEdit::Select(int Start, int Len)
@@ -265,16 +243,6 @@ GMessage::Result GEdit::OnEvent(GMessage *Msg)
 		{
 			int Code = 0;
 
-			/*
-			#ifdef SKIN_MAGIC
-			Code = CallWindowProc((WNDPROC)d->ParentProc, Handle(), MsgCode(Msg), MsgA(Msg), MsgB(Msg)) | DLGC_WANTTAB;
-			#else
-			Code = SubClass->CallParent(Handle(), Msg->Msg, Msg->a, Msg->b) | DLGC_WANTTAB;
-			#endif
-
-			LgiTrace("Edit WM_GETDLGCODE = %x\n", Code);
-			*/
-
 			Code = DLGC_WANTALLKEYS;
 			return Code;
 		}
@@ -354,13 +322,6 @@ GMessage::Result GEdit::OnEvent(GMessage *Msg)
 		}
 		case WM_CHAR:
 		{
-			#ifdef SKIN_MAGIC
-			if (Msg->a == VK_RETURN)
-			{
-				GView::OnEvent(Msg);
-			}
-			#endif
-
 			if ((Msg->a == VK_TAB || Msg->a == VK_RETURN) &&
 				!MultiLine())
 			{
@@ -375,11 +336,7 @@ GMessage::Result GEdit::OnEvent(GMessage *Msg)
 	#endif
 
 	int Status = 	
-	#ifdef SKIN_MAGIC
-	CallWindowProc((WNDPROC)d->ParentProc, Handle(), MsgCode(Msg), MsgA(Msg), MsgB(Msg));
-	#else
 	GControl::OnEvent(Msg);
-	#endif
 
 	#if EDIT_PROCESSING
 	switch (MsgCode(Msg))

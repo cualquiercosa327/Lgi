@@ -691,10 +691,6 @@ GMessage::Result GWindow::OnEvent(GMessage *Msg)
 		}
 		case WM_CREATE:
 		{
-			#ifdef SKIN_MAGIC
-			SetWindowSkin(Handle(), "MainFrame");
-			#endif
-			
 			Pour();
 			OnCreate();
 

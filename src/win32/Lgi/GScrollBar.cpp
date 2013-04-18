@@ -114,9 +114,7 @@ void GScrollBar::SetParentFlag(bool Set)
 {
 	int Flag = (Vertical()) ? WS_VSCROLL : WS_HSCROLL;
 
-	if (d->Type != SB_CTL AND
-		!Handle() AND
-		GetParent())
+	if (d->Type != SB_CTL && !Handle() && GetParent())
 	{
 		if (GetParent()->IsAttached())
 		{
@@ -167,7 +165,7 @@ GViewI *GScrollBar::GetMyView()
 	{
 		return this;
 	}
-	else if (GetParent() AND
+	else if (GetParent() &&
 			 GetParent()->Handle())
 	{
 		return GetParent();
@@ -185,7 +183,7 @@ void GScrollBar::Update()
 			SetScrollInfo(Handle(), SB_CTL, &d->Info, true);
 
 			bool En = Enabled();
-			if (En AND d->Info.nMax < d->Info.nMin)
+			if (En && d->Info.nMax < d->Info.nMin)
 				En = false;
 
 			EnableScrollBar(Handle(), SB_CTL, (En) ? ESB_ENABLE_BOTH : ESB_DISABLE_BOTH);
@@ -195,7 +193,7 @@ void GScrollBar::Update()
             PostEvent(M_SCROLL_BAR_CHANGED, 0, (GMessage::Param)this);
 		}
 	}
-	else if (GetParent() AND
+	else if (GetParent() &&
 			 GetParent()->Handle())
 	{
 		if (GetParent()->InThread())
@@ -286,9 +284,9 @@ GMessage::Result GScrollBar::OnEvent(GMessage *Msg)
 {
 	int Status = SubClass ? SubClass->CallParent(Handle(), Msg->Msg, Msg->a, Msg->b) : 0;
 
-	if ((Msg->Msg == WM_HSCROLL AND !Vertical())
+	if ((Msg->Msg == WM_HSCROLL && !Vertical())
 		||
-		(Msg->Msg == WM_VSCROLL AND Vertical()))
+		(Msg->Msg == WM_VSCROLL && Vertical()))
 	{
 		SCROLLINFO Si;
 		ZeroObj(Si);
@@ -296,7 +294,7 @@ GMessage::Result GScrollBar::OnEvent(GMessage *Msg)
 		Si.fMask = SIF_ALL;
 
 		GViewI *Hnd = GetMyView();
-		if (Hnd AND
+		if (Hnd &&
 			GetScrollInfo(Hnd->Handle(), d->Type, &Si))
 		{
 			int ScrollCode = (int) LOWORD(Msg->a);

@@ -1371,6 +1371,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				}
 				break;
 			}
+			#if 0 // Depreciated
 			case WM_NOTIFY:
 			{
 				LPNMHDR Hdr = (LPNMHDR) Msg->b;
@@ -1598,6 +1599,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				}
 				break;
 			}
+			#endif
 			case M_COMMAND:
 			{
 				GViewI *Ci = FindControl((HWND) Msg->b);
@@ -2202,7 +2204,6 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			}
 			case WM_NCPAINT:
 			{
-				#if 1
 				if (GetWindow() != this)
 				{
 					HDC hDC = GetWindowDC(_View);
@@ -2210,39 +2211,10 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 					GRect p(0, 0, Dc.X()-1, Dc.Y()-1);
 					OnNcPaint(&Dc, p);
 				}
-				else
-				{
-					goto ReturnDefaultProc;
-				}
-				#else
-				bool Thin = (Sunken() || Raised()) && (_BorderSize == 1);
-				if (Thin)
-				{
-					HDC hDC = GetWindowDC(_View);
-					GScreenDC Dc(hDC, _View, true);
-					GRect p(0, 0, Dc.X()-1, Dc.Y()-1);
-					if (p.Valid())
-					{
-						LgiThinBorder(&Dc, p, Sunken()?SUNKEN:RAISED);
-					}
-				}
-				else
-				{
-					goto ReturnDefaultProc;
-				}
-				#endif
+
+				goto ReturnDefaultProc;
 				break;
 			}
-			/*
-			case M_GTHREADWORK_COMPELTE:
-			{
-				GThreadOwner *Owner = (GThreadOwner *) Msg->a;
-				GThreadWork *WorkUnit = (GThreadWork *) Msg->b;
-				Owner->OnComplete(WorkUnit);
-				DeleteObj(WorkUnit);
-				break;
-			}
-			*/
 			case WM_NCCALCSIZE:
 			{
 				bool Thin = (Sunken() || Raised()) && _BorderSize == 1;

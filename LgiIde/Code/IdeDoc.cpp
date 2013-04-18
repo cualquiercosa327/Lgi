@@ -11,8 +11,8 @@ char *Untitled = "[untitled]";
 static char *White = " \r\t\n";
 
 #define IDC_EDIT		100
-#define isword(s)		(s AND (isdigit(s) || isalpha(s) || (s) == '_') )
-#define iswhite(s)		(s AND strchr(White, s) != 0)
+#define isword(s)		(s && (isdigit(s) || isalpha(s) || (s) == '_') )
+#define iswhite(s)		(s && strchr(White, s) != 0)
 #define skipws(s)		while (iswhite(*s)) s++;
 
 GAutoPtr<GDocFindReplaceParams> GlobalFindReplace;
@@ -116,7 +116,7 @@ public:
 
 void EditTray::OnMouseClick(GMouse &m)
 {
-	if (m.Left() AND m.Down())
+	if (m.Left() && m.Down())
 	{
 		if (HeaderBtn.Overlap(m.x, m.y))
 		{
@@ -268,7 +268,7 @@ void EditTray::OnMouseClick(GMouse &m)
 							if (Def)
 							{
 								// Open the selected symbol
-								if (Doc->GetProject() AND
+								if (Doc->GetProject() &&
 									Doc->GetProject()->GetApp())
 								{
 									AppWnd *App = Doc->GetProject()->GetApp();
@@ -320,10 +320,6 @@ class DocEdit : public GTextView3, public GDocumentEnv
 public:
 	DocEdit(IdeDoc *d, GFontType *f) : GTextView3(IDC_EDIT, 0, 0, 100, 100, f)
 	{
-		#if 0
-		_View->_dump();
-		#endif
-		
 		Doc = d;
 		if (!GlobalFindReplace)
 		{
@@ -391,21 +387,21 @@ public:
 				e += 2;
 				skipws(e);
 				char *Start = e;
-				while (*e AND isalpha(*e)) e++;
+				while (*e && isalpha(*e)) e++;
 				
 				// Get tag
 				char *Tag = NewStr(Start, e-Start);
 				if (Tag)
 				{
 					// Process tag
-					if (Name AND stricmp(Tag, "name") == 0)
+					if (Name && stricmp(Tag, "name") == 0)
 					{
 						T.Push(Name);
 					}
-					else if (Params AND stricmp(Tag, "params") == 0)
+					else if (Params && stricmp(Tag, "params") == 0)
 					{
 						char *Line = TagStart;
-						while (Line > Template AND Line[-1] != '\n') Line--;
+						while (Line > Template && Line[-1] != '\n') Line--;
 						
 						int i = 0;
 						for (char *p=Params->First(); p; p=Params->Next(), i++)
@@ -462,7 +458,7 @@ public:
 			}
 			else
 			{
-				while (*s <= 256 AND Lut[*s]) s++;
+				while (*s <= 256 && Lut[*s]) s++;
 				if (*s == '#')
 				{
 					l->c.Rgb(0, 0, 222);
@@ -993,10 +989,10 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 		bool FnEmit = false;	// don't emit functions between a f(n) and the next '{'
 								// they are only parent class initializers
 
-		while (s AND *s)
+		while (s && *s)
 		{
 			// skip ws
-			while (*s AND strchr(" \t\r", *s)) s++;
+			while (*s && strchr(" \t\r", *s)) s++;
 
 			// tackle decl
 			switch (*s)
@@ -1021,7 +1017,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 							||
 							LimitTo == DefnDefine
 						)
-						AND
+						&&
 						StrncmpW(StrDefine, s, 6) == 0
 					)
 					{
@@ -1104,7 +1100,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 					if (*s == '/')
 					{
 						// one line comment
-						while (*s AND *s != '\n') s++;
+						while (*s && *s != '\n') s++;
 						LastDecl = s;
 					}
 					else if (*s == '*')
@@ -1113,7 +1109,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 						s++;
 						while (*s)
 						{
-							if (s[0] == '*' AND s[1] == '/')
+							if (s[0] == '*' && s[1] == '/')
 							{
 								s += 2;
 								break;
@@ -1129,7 +1125,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 				case '(':
 				{
 					s++;
-					if (Depth == CaptureLevel AND !FnEmit AND LastDecl)
+					if (Depth == CaptureLevel && !FnEmit && LastDecl)
 					{
 						// function?
 						
@@ -1177,7 +1173,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 										skipws(In);
 										In--;
 									}
-									else if (In[0] == '/' AND In[1] == '/')
+									else if (In[0] == '/' && In[1] == '/')
 									{
 										In = StrchrW(In, '\n');
 										if (!In) break;
@@ -1202,7 +1198,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 										while
 										(
 											b > Str
-											AND
+											&&
 											strchr(" \t\r\n", b[-1])																									
 										)
 										{
@@ -1213,11 +1209,11 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 										while
 										(
 											b > Str
-											AND
+											&&
 											b[-1] != '*'
-											AND
+											&&
 											b[-1] != '&'
-											AND
+											&&
 											!strchr(" \t\r\n", b[-1])																									
 										)
 										{
@@ -1271,11 +1267,11 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 						}
 						
 						int TokLen = s - Start;
-						if (TokLen == 6 AND StrncmpW(StrExtern, Start, 6) == 0)
+						if (TokLen == 6 && StrncmpW(StrExtern, Start, 6) == 0)
 						{
 							// extern "C" block
 							char16 *t = LexCpp(s); // "C"
-							if (t AND StrcmpW(t, StrC) == 0)
+							if (t && StrcmpW(t, StrC) == 0)
 							{
 								defnskipws(s);
 								if (*s == '{')
@@ -1285,12 +1281,12 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 							}
 							DeleteArray(t);
 						}
-						else if (TokLen == 7 AND StrncmpW(StrTypedef, Start, 7) == 0)
+						else if (TokLen == 7 && StrncmpW(StrTypedef, Start, 7) == 0)
 						{
 							// Typedef
 							GStringPipe p;
 							char16 *i;
-							for (i = Start; i AND *i;)
+							for (i = Start; i && *i;)
 							{
 								switch (*i)
 								{
@@ -1323,7 +1319,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 										
 										int Depth = 1;
 										i++;
-										while (*i AND Depth > 0)
+										while (*i && Depth > 0)
 										{
 											switch (*i)
 											{
@@ -1375,13 +1371,13 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 						(
 							(
 								TokLen == 5
-								AND
+								&&
 								StrncmpW(StrClass, Start, 5) == 0
 							)
 							||
 							(
 								TokLen == 6
-								AND
+								&&
 								StrncmpW(StrStruct, Start, 6) == 0
 							)
 						)
@@ -1395,7 +1391,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 								char16 *n = Start + 5, *t;
 								List<char16> Tok;
 								
-								while (n AND *n)
+								while (n && *n)
 								{
 									char16 *Last = n;
 									if (t = LexCpp(n))
@@ -1474,15 +1470,15 @@ bool MatchSymbol(DefnInfo *Def, char16 *Symbol)
 	int Len = StrlenW(Symbol);
 	char16 *Match = StristrW(Start, Symbol);
 
-	if (Match) // AND Match + Len <= End)
+	if (Match) // && Match + Len <= End)
 	{
-		if (Match > Start AND isword(Match[-1]))
+		if (Match > Start && isword(Match[-1]))
 		{
 			return false;
 		}
 		
 		char16 *e = Match + Len;
-		if (*e AND isword(*e))
+		if (*e && isword(*e))
 		{
 			return false;
 		}
@@ -1495,11 +1491,11 @@ bool MatchSymbol(DefnInfo *Def, char16 *Symbol)
 
 bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 {
-	if (Symbol AND Source)
+	if (Symbol && Source)
 	{
 		List<char> Paths;
 		List<char> Headers;
-		if (BuildIncludePaths(Paths) AND
+		if (BuildIncludePaths(Paths) &&
 			BuildHeaderList(Source, Headers, Paths))
 		{
 			List<DefnInfo> Defns;

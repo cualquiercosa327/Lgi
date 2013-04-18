@@ -553,10 +553,6 @@ protected:
 	List<GViewI>	Children;
 
 public:
-	/// Script handler to receive UI events.
-	GEventsI *Script;
-	bool OnScriptEvent(GViewI *Ctrl) { return false; }
-
 	/// \brief Creates a view/window.
 	///
 	/// On non-Win32 platforms the default argument is the class that redirects the
@@ -629,6 +625,10 @@ public:
 	///
 	/// This doesn't attach the window so that it will display. You should use GView::Attach for that.
 	virtual void SetParent(GViewI *p);
+
+	/// Script handler to receive UI events.
+	GEventsI *Script;
+	bool OnScriptEvent(GViewI *Ctrl) { return false; }
 
 	/// Sends a notification to the notify target or the parent chain
 	void SendNotify(int Data = 0);

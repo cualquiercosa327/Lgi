@@ -426,12 +426,6 @@ GMessage::Result GDialog::OnEvent(GMessage *Msg)
 		#endif
 		{
 			GRect r = Pos;
-			#ifdef SKIN_MAGIC
-			GdcPt2 Border = GetWindowBorderSize();
-			r.x2 += Border.x - LgiApp->GetMetric(LGI_MET_DECOR_X);
-			r.y2 += Border.y - LgiApp->GetMetric(LGI_MET_DECOR_Y);
-			#endif
-
 			Pos.ZOff(-1, -1);
 			SetPos(r);	// resets the dialog to the correct
 						// size when large fonts are used

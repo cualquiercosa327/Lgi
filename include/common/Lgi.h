@@ -238,8 +238,5 @@
 #include "LgiClasses.h" 					// Xp
 #include "LgiCommon.h"						// Xp
 
-#ifdef SKIN_MAGIC
-#include "SkinMagicLib.h"
-#endif
 
 #endif

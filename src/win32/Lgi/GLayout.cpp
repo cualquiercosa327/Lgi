@@ -119,13 +119,6 @@ bool GLayout::SetScrollBars(bool x, bool y)
 			}
 		}
 
-		#ifdef SKIN_MAGIC
-		if (VScroll OR HScroll)
-		{
-			EnableWindowScrollbarSkin(Handle(), SB_BOTH);
-		}
-		#endif
-
 		_SettingScrollBars = false;
 	}
 

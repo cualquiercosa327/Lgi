@@ -71,7 +71,6 @@ public:
 	
 	#if WIN32NATIVE
 	GMessage::Result OnEvent(GMessage *Msg);
-	void OnAttach();
 	char *Name();
 	bool Name(const char *s);
 	char16 *NameW();
