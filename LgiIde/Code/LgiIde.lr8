@@ -1,83 +1,81 @@
-<?xml version="1.0" ?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <resources Offset="1">
 	<string-group Name="_Dialog Symbols_">
 		<String Ref="1" Cid="545" Define="IDD_PROJECT_SETTINGS" en="Project Settings" />
-		<String Ref="2" Cid="546" Define="IDC_MAKEFILE" />
-		<String Ref="3" Cid="547" Define="IDC_SET_MAKEFILE" en="..." />
-		<String Ref="4" Cid="14" Define="IDC_EXE" />
-		<String Ref="5" Cid="-1" Define="IDC_STATIC" en="Target Type:" />
-		<String Ref="6" Cid="-1" Define="IDC_STATIC" en="Editor settings specific to this project" />
-		<String Ref="7" Cid="-1" Define="IDC_STATIC" en="Include Paths:" />
-		<String Ref="8" Cid="500" Define="IDC_TAB_SIZE" />
-		<String Ref="9" Cid="550" Define="IDC_USE_TABS" en="Use hard tabs" />
-		<String Ref="10" Cid="549" Define="IDC_INDENT_SIZE" />
+		<String Ref="2" Cid="547" Define="IDC_SET_MAKEFILE" en="..." />
+		<String Ref="3" Cid="-1" Define="IDC_STATIC" en="Executable:" />
+		<String Ref="4" Cid="15" Define="IDC_SET_EXE" en="..." />
+		<String Ref="5" Cid="52" Define="IDC_TARGET" />
+		<String Ref="6" Cid="6" Define="IDC_COMMENTS_TABLE" />
+		<String Ref="7" Cid="548" Define="IDC_INCLUDE" />
+		<String Ref="8" Cid="549" Define="IDC_INDENT_SIZE" />
+		<String Ref="9" Cid="501" Define="IDC_SHOW_WHITESPACE" en="Show whitespace" />
+		<String Ref="10" Cid="550" Define="IDC_USE_TABS" en="Use hard tabs" />
 		<String Ref="11" Cid="1" Define="IDOK" en="Ok" />
 		<String Ref="12" Cid="2" Define="IDCANCEL" en="Cancel" />
-		<String Ref="13" Cid="15" Define="IDC_SET_EXE" en="..." />
-		<String Ref="14" Cid="17" Define="IDC_ARGS" />
-		<String Ref="15" Cid="32" Define="IDC_SET_ARGS" en="..." />
-		<String Ref="16" Cid="-1" Define="IDC_STATIC" en="Makefile:" />
-		<String Ref="17" Cid="-1" Define="IDC_STATIC" en="Executable:" />
-		<String Ref="18" Cid="548" Define="IDC_INCLUDE" />
+		<String Ref="13" Cid="-1" Define="IDC_STATIC" en="Arguments:" />
+		<String Ref="14" Cid="32" Define="IDC_SET_ARGS" en="..." />
+		<String Ref="15" Cid="-1" Define="IDC_STATIC" en="Defined symbols:" />
+		<String Ref="16" Cid="546" Define="IDC_MAKEFILE" />
+		<String Ref="17" Cid="14" Define="IDC_EXE" />
+		<String Ref="18" Cid="18" Define="IDC_ADD_INC" en="+" />
 		<String Ref="19" Cid="19" Define="IDD_FIND_IN_FILES" en="Find In Files" />
-		<String Ref="20" Cid="-1" Define="IDC_STATIC" en="Look for:" />
-		<String Ref="21" Cid="21" Define="IDC_LOOK_FOR" />
-		<String Ref="22" Cid="-1" Define="IDC_STATIC" en="In file types:" />
-		<String Ref="23" Cid="23" Define="IDC_FILE_TYPES" />
-		<String Ref="24" Cid="-1" Define="IDC_STATIC" en="Directory:" />
-		<String Ref="25" Cid="25" Define="IDC_DIR" />
-		<String Ref="26" Cid="26" Define="IDC_SET_DIR" en="..." />
-		<String Ref="27" Cid="1" Define="IDOK" en="Find" />
-		<String Ref="28" Cid="2" Define="IDCANCEL" en="Cancel" />
+		<String Ref="20" Cid="21" Define="IDC_LOOK_FOR" />
+		<String Ref="21" Cid="-1" Define="IDC_STATIC" en="In file types:" />
+		<String Ref="22" Cid="23" Define="IDC_FILE_TYPES" />
+		<String Ref="23" Cid="69" Define="IDC_FOLDER_HISTORY" />
+		<String Ref="25" Cid="26" Define="IDC_SET_DIR" en="..." />
+		<String Ref="26" Cid="31" Define="IDC_SUB_DIRS" en="Search sub directories" />
+		<String Ref="27" Cid="25" Define="IDC_DIR" />
+		<String Ref="28" Cid="1" Define="IDOK" en="Find" />
 		<String Ref="29" Cid="29" Define="IDC_WHOLE_WORD" en="Match whole word" />
-		<String Ref="30" Cid="30" Define="IDC_CASE" en="Match case" />
-		<String Ref="31" Cid="31" Define="IDC_SUB_DIRS" en="Search sub directories" />
-		<String Ref="32" Cid="-1" Define="IDC_STATIC" en="Arguments:" />
+		<String Ref="31" Cid="30" Define="IDC_CASE" en="Match case" />
+		<String Ref="32" Cid="17" Define="IDC_ARGS" />
 		<String Ref="33" Cid="551" Define="IDD_FILE_PROPS" en="Properties" />
 		<String Ref="34" Cid="34" Define="IDC_COPY_PATH" en="Copy Path" />
 		<String Ref="35" Cid="1" Define="IDOK" en="Ok" />
 		<String Ref="36" Cid="36" Define="IDC_MSG" en="..." />
 		<String Ref="37" Cid="37" Define="IDC_TYPE" />
 		<String Ref="38" Cid="-1" Define="IDC_STATIC" en="File type:" />
-		<String Ref="39" Cid="-1" Define="IDC_STATIC" en="Syntax:\t&lt;%name%&gt; - name of the file or function.\n\t\t&lt;%params%&gt; - list of function parameters." />
-		<String Ref="40" Cid="52" Define="IDC_TARGET" />
-		<String Ref="41" Cid="40" Define="IDC_FILE_COMMENT" />
-		<String Ref="42" Cid="-1" Define="IDC_STATIC" en="File comment:" />
+		<String Ref="39" Cid="-1" Define="IDC_STATIC" en="File comment:" />
+		<String Ref="40" Cid="-1" Define="IDC_STATIC" en="Target Name:" />
+		<String Ref="41" Cid="-1" Define="IDC_STATIC" en="Function comment:" />
+		<String Ref="42" Cid="40" Define="IDC_FILE_COMMENT" />
 		<String Ref="43" Cid="-1" Define="IDC_STATIC" />
 		<String Ref="44" Cid="44" Define="IDS_44" en="General" />
 		<String Ref="45" Cid="45" Define="IDS_45" en="Editor" />
 		<String Ref="46" Cid="46" Define="IDS_46" en="Comments" />
-		<String Ref="47" Cid="501" Define="IDC_SHOW_WHITESPACE" en="Show whitespace" />
-		<String Ref="48" Cid="-1" Define="IDC_STATIC" en="Tab Size:" />
-		<String Ref="49" Cid="-1" Define="IDC_STATIC" en="Indent Size:" />
-		<String Ref="50" Cid="-1" Define="IDC_STATIC" en="Target Name:" />
-		<String Ref="51" Cid="50" Define="IDC_TARGET_NAME" />
-		<String Ref="52" Cid="-1" Define="IDC_STATIC" en="Library Paths:" />
-		<String Ref="53" Cid="-1" Define="IDC_STATIC" en="Function comment:" />
-		<String Ref="54" Cid="42" Define="IDC_FUNCTION_COMMENT" />
+		<String Ref="47" Cid="-1" Define="IDC_STATIC" en="Syntax:\t&lt;%name%&gt; - name of the file or function.\n\t\t&lt;%params%&gt; - list of function parameters." />
+		<String Ref="48" Cid="-1" Define="IDC_STATIC" en="Indent Size:" />
+		<String Ref="49" Cid="500" Define="IDC_TAB_SIZE" />
+		<String Ref="50" Cid="50" Define="IDC_TARGET_NAME" />
+		<String Ref="51" Cid="51" Define="IDC_EDITOR_TABLE" />
+		<String Ref="52" Cid="59" Define="IDC_LIB_PATHS" />
+		<String Ref="53" Cid="42" Define="IDC_FUNCTION_COMMENT" />
+		<String Ref="54" Cid="54" Define="IDC_OTHER_RULES_TABLE" />
 		<String Ref="55" Cid="55" Define="IDS_55" en="Target" />
 		<String Ref="56" Cid="56" Define="IDS_56" en="Includes" />
 		<String Ref="57" Cid="57" Define="IDS_57" en="Libraries" />
-		<String Ref="58" Cid="18" Define="IDC_ADD_INC" en="+" />
-		<String Ref="59" Cid="59" Define="IDC_LIB_PATHS" />
-		<String Ref="60" Cid="60" Define="IDC_ADD_LIB_PATH" en="+" />
-		<String Ref="61" Cid="-1" Define="IDC_STATIC" en="Libraries:" />
-		<String Ref="62" Cid="62" Define="IDC_LIBS" />
+		<String Ref="58" Cid="58" Define="IDC_LIBRARIES_TABLE" />
+		<String Ref="59" Cid="60" Define="IDC_ADD_LIB_PATH" en="+" />
+		<String Ref="60" Cid="-1" Define="IDC_STATIC" en="Libraries:" />
+		<String Ref="61" Cid="62" Define="IDC_LIBS" />
+		<String Ref="62" Cid="556" Define="IDC_TARGET_TABLE" />
 		<String Ref="63" Cid="63" Define="IDD_OPTIONS" en="Options" />
-		<String Ref="64" Cid="-1" Define="IDC_STATIC" en="Editor font:" />
-		<String Ref="65" Cid="65" Define="IDC_FONT" />
-		<String Ref="66" Cid="66" Define="IDC_SET_FONT" en="..." />
-		<String Ref="67" Cid="1" Define="IDOK" en="Ok" />
-		<String Ref="68" Cid="2" Define="IDCANCEL" en="Cancel" />
-		<String Ref="69" Cid="69" Define="IDC_FOLDER_HISTORY" />
-		<String Ref="70" Cid="70" Define="IDC_TYPE_HISTORY" />
-		<String Ref="71" Cid="-1" Define="IDC_STATIC" en="Defined symbols:" />
-		<String Ref="72" Cid="72" Define="IDC_DEFS" />
+		<String Ref="64" Cid="64" Define="IDC_64" />
+		<String Ref="65" Cid="-1" Define="IDC_STATIC" en="Editor font:" />
+		<String Ref="66" Cid="65" Define="IDC_FONT" />
+		<String Ref="67" Cid="66" Define="IDC_SET_FONT" en="..." />
+		<String Ref="68" Cid="1" Define="IDOK" en="Ok" />
+		<String Ref="69" Cid="70" Define="IDC_TYPE_HISTORY" />
+		<String Ref="70" Cid="-1" Define="IDC_STATIC" en="Directory:" />
+		<String Ref="71" Cid="72" Define="IDC_DEFS" />
+		<String Ref="72" Cid="-1" Define="IDC_STATIC" en="Compiler / Build System:" />
 		<String Ref="73" Cid="73" Define="IDS_73" en="Makefile" />
-		<String Ref="74" Cid="-1" Define="IDC_STATIC" en="Other makefile rules:" />
-		<String Ref="75" Cid="75" Define="IDC_RULES" />
-		<String Ref="76" Cid="-1" Define="IDC_STATIC" en="Compiler / Build System:" />
-		<String Ref="77" Cid="77" Define="IDC_COMPILER" />
+		<String Ref="74" Cid="75" Define="IDC_RULES" />
+		<String Ref="75" Cid="558" Define="IDC_75" />
+		<String Ref="76" Cid="77" Define="IDC_COMPILER" />
+		<String Ref="77" Cid="557" Define="IDC_INCLUDES_TABLE" />
 		<String Ref="78" Cid="544" Define="IDC_PLATFORMS" en="Platforms:" />
 		<String Ref="79" Cid="79" Define="IDC_WIN32" en="Windows" />
 		<String Ref="80" Cid="80" Define="IDC_LINUX" en="Linux" />
@@ -122,7 +120,21 @@
 		<String Ref="119" Cid="1" Define="IDOK" en="Ok" />
 		<String Ref="120" Cid="2" Define="IDCANCEL" en="Cancel" />
 		<String Ref="121" Cid="121" Define="IDS_121" en="Add" />
+		<String Ref="122" Cid="-1" Define="IDC_STATIC" en="Look for:" />
+		<String Ref="176" Cid="2" Define="IDCANCEL" en="Cancel" />
+		<String Ref="177" Cid="2" Define="IDCANCEL" en="Cancel" />
+		<String Ref="184" Cid="184" Define="IDC_GENERAL_TABLE" />
+		<String Ref="185" Cid="-1" Define="IDC_STATIC" en="Makefile:" />
+		<String Ref="186" Cid="-1" Define="IDC_STATIC" en="Include Paths:" />
+		<String Ref="187" Cid="-1" Define="IDC_STATIC" en="Library Paths:" />
+		<String Ref="188" Cid="-1" Define="IDC_STATIC" en="Target Type:" />
+		<String Ref="189" Cid="-1" Define="IDC_STATIC" en="Editor settings specific to this project:" />
+		<String Ref="190" Cid="-1" Define="IDC_STATIC" en="Tab Size:" />
+		<String Ref="191" Cid="-1" Define="IDC_STATIC" en="Other makefile rules:" />
 	</string-group>
+	<style name="General">.fixed {
+	width: 18px;
+}</style>
 	<Dialog pos="7,7,503,424" ref="112">
 		<ListView pos="7,7,482,272" ref="113">
 			<Column ref="121" width="50" />
@@ -137,7 +149,7 @@
 		<Button pos="413,364,482,384" ref="120" />
 	</Dialog>
 	<Dialog pos="7,7,553,426" ref="82">
-		<EditBox pos="7,21,160,41" ref="83" />
+		<EditBox Pos="7,21,160,41" ref="83" />
 		<StaticText pos="7,7,104,20" ref="84" />
 		<Button pos="168,21,230,41" ref="85" />
 		<ListView pos="7,63,265,384" ref="89">
@@ -146,7 +158,7 @@
 		</ListView>
 		<StaticText pos="7,49,223,62" ref="94" />
 		<StaticText pos="273,49,475,62" ref="95" />
-		<EditBox pos="273,21,531,41" ref="96" />
+		<EditBox Pos="273,21,531,41" ref="96" />
 		<StaticText pos="273,7,384,20" ref="88" />
 		<ListView pos="273,63,531,384" ref="86">
 			<Column ref="87" width="125" />
@@ -165,86 +177,270 @@
 		<StaticText pos="14,7,279,76" ref="36" />
 		<StaticText pos="14,98,76,111" ref="38" />
 	</Dialog>
-	<Dialog pos="7,7,382,206" ref="19">
-		<EditBox pos="98,7,356,27" ref="21" />
-		<EditBox pos="98,35,342,55" ref="23" />
-		<Custom pos="343,35,356,55" ref="70" ctrl="GHistory" />
-		<EditBox pos="98,63,321,83" ref="25" />
-		<Button pos="322,63,342,83" ref="26" />
-		<Custom pos="343,63,356,83" ref="69" ctrl="GHistory" />
-		<CheckBox pos="14,98,146,111" ref="29" />
-		<CheckBox pos="14,119,111,132" ref="30" />
-		<CheckBox pos="168,98,328,111" ref="31" />
-		<Button pos="210,147,279,167" ref="27" />
-		<Button pos="287,147,356,167" ref="28" />
-		<StaticText pos="14,14,90,27" ref="20" />
-		<StaticText pos="14,42,90,55" ref="22" />
-		<StaticText pos="14,70,90,83" ref="24" />
+	<Dialog pos="7,7,436,206" ref="19">
+		<TableLayout pos="7,7,419,167" ref="64" cols="0.334,0.295,0.218,0.153" rows="0.200,0.200,0.200,0.200,0.200">
+			<tr>
+				<td>
+					<StaticText pos="0,0,76,13" ref="122" />
+				</td>
+				<td colspan="3">
+					<EditBox Pos="140,7,377,27" ref="20" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<StaticText pos="0,29,76,42" ref="21" />
+				</td>
+				<td colspan="2">
+					<EditBox Pos="140,36,321,56" ref="22" />
+				</td>
+				<td class="fixed">
+					<Custom pos="371,36,384,56" ref="69" Ctrl="GHistory" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<StaticText pos="0,58,76,71" ref="70" />
+				</td>
+				<td>
+					<EditBox Pos="147,65,237,85" ref="27" />
+				</td>
+				<td>
+					<Button pos="265,65,285,85" ref="25" />
+				</td>
+				<td class="fixed">
+					<Custom pos="371,65,384,85" ref="23" Ctrl="GHistory" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<CheckBox pos="0,101,98,114" ref="29" />
+				</td>
+				<td colspan="3">
+					<CheckBox pos="208,101,306,114" ref="26" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<CheckBox pos="0,116,97,129" ref="31" />
+				</td>
+				<td colspan="3" align="Max">
+					<Button pos="245,126,314,146" ref="28" />
+					<Button pos="322,126,391,146" ref="177" />
+				</td>
+			</tr>
+		</TableLayout>
 	</Dialog>
-	<Dialog pos="7,7,339,92" ref="63">
-		<StaticText pos="14,14,90,27" ref="64" />
-		<EditBox pos="105,7,286,27" ref="65" />
-		<Button pos="294,7,314,27" ref="66" />
-		<Button pos="168,35,237,55" ref="67" />
-		<Button pos="245,35,314,55" ref="68" />
+	<Dialog pos="7,7,418,126" ref="63">
+		<TableLayout pos="7,7,391,90" ref="75" cols="0.333,0.333,0.333" rows="0.500,0.500">
+			<tr>
+				<td>
+					<StaticText pos="0,0,76,13" ref="65" />
+				</td>
+				<td>
+					<EditBox Pos="124,0,237,20" ref="66" />
+				</td>
+				<td>
+					<Button pos="301,7,321,27" ref="67" />
+				</td>
+			</tr>
+			<tr>
+				<td colspan="3" align="Max">
+					<Button pos="196,42,265,62" ref="68" />
+					<Button pos="280,42,349,62" ref="176" />
+				</td>
+			</tr>
+		</TableLayout>
 	</Dialog>
 	<Dialog pos="7,7,602,483" ref="1">
 		<Button pos="462,427,517,447" ref="11" />
 		<Button pos="525,427,580,447" ref="12" />
 		<TabView pos="7,7,580,419" ref="43">
 			<Tab ref="44">
-				<EditBox pos="147,35,489,55" ref="2" />
-				<Button pos="497,35,517,55" ref="3" />
-				<EditBox pos="147,63,489,83" ref="4" />
-				<Button pos="497,63,517,83" ref="13" />
-				<EditBox pos="147,91,489,111" ref="14" />
-				<Button pos="497,91,517,111" ref="15" />
-				<StaticText pos="21,42,132,55" ref="16" />
-				<StaticText pos="21,70,132,83" ref="17" />
-				<StaticText pos="21,98,125,111" ref="32" />
-				<StaticText pos="21,147,132,160" ref="71" />
-				<EditBox pos="147,140,517,160" ref="72" />
-				<StaticText pos="21,175,139,188" ref="76" />
-				<ComboBox pos="147,168,517,188" ref="77" />
+				<TableLayout pos="7,28,559,398" ref="184" cols="0.333,0.555,0.112" rows="0.200,0.200,0.200,0.200,0.200">
+					<tr>
+						<td>
+							<StaticText pos="0,0,111,13" ref="185" />
+						</td>
+						<td>
+							<EditBox Pos="191,0,352,20" ref="16" />
+						</td>
+						<td>
+							<Button pos="479,0,499,20" ref="2" />
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<StaticText pos="0,71,111,84" ref="3" />
+						</td>
+						<td>
+							<EditBox Pos="191,74,352,94" ref="17" />
+						</td>
+						<td>
+							<Button pos="479,71,499,91" ref="4" />
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<StaticText pos="0,142,104,155" ref="13" />
+						</td>
+						<td>
+							<EditBox Pos="205,148,366,168" ref="32" />
+						</td>
+						<td>
+							<Button pos="479,142,499,162" ref="14" />
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<StaticText pos="0,213,111,226" ref="15" />
+						</td>
+						<td colspan="2">
+							<EditBox Pos="198,215,480,235" ref="71" />
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<StaticText pos="0,284,118,297" ref="72" />
+						</td>
+						<td colspan="2">
+							<ComboBox pos="180,284,520,304" ref="76" />
+						</td>
+					</tr>
+				</TableLayout>
 			</Tab>
 			<Tab ref="56">
-				<StaticText pos="21,42,132,55" ref="7" />
-				<EditBox pos="147,35,489,209" ref="18" multiline="1" />
-				<Button pos="497,35,517,55" ref="58" />
+				<TableLayout pos="7,28,559,398" ref="77" cols="0.333,0.570,0.097" rows="1.000">
+					<tr>
+						<td>
+							<StaticText pos="0,0,111,13" ref="186" />
+						</td>
+						<td>
+							<EditBox Pos="205,21,407,104" MultiLine="1" ref="7" />
+						</td>
+						<td>
+							<Button pos="487,0,507,20" ref="18" />
+						</td>
+					</tr>
+				</TableLayout>
 			</Tab>
 			<Tab ref="57">
-				<StaticText pos="21,42,125,55" ref="52" />
-				<EditBox pos="147,35,489,209" ref="59" multiline="1" />
-				<Button pos="497,35,517,55" ref="60" />
-				<StaticText pos="21,217,132,230" ref="61" />
-				<EditBox pos="147,217,489,398" ref="62" multiline="1" />
+				<TableLayout pos="7,28,559,398" ref="58" cols="0.333,0.333,0.333" rows="0.500,0.500">
+					<tr>
+						<td>
+							<StaticText pos="0,0,104,13" ref="187" />
+						</td>
+						<td>
+							<EditBox Pos="180,0,353,34" MultiLine="1" ref="52" />
+						</td>
+						<td>
+							<Button pos="360,0,380,20" ref="59" />
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<StaticText pos="0,179,111,192" ref="60" />
+						</td>
+						<td>
+							<EditBox Pos="180,179,353,206" MultiLine="1" ref="61" />
+						</td>
+						<td />
+					</tr>
+				</TableLayout>
 			</Tab>
 			<Tab ref="55">
-				<StaticText pos="21,42,139,55" ref="5" />
-				<ComboBox pos="147,35,279,55" ref="40" />
-				<StaticText pos="21,70,132,83" ref="50" />
-				<EditBox pos="147,63,489,83" ref="51" />
+				<TableLayout pos="7,28,559,391" ref="62" cols="0.500,0.500" rows="0.500,0.500">
+					<tr>
+						<td>
+							<StaticText pos="0,0,118,13" ref="188" />
+						</td>
+						<td>
+							<ComboBox pos="270,0,402,20" ref="5" />
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<StaticText pos="0,176,111,189" ref="40" />
+						</td>
+						<td>
+							<EditBox Pos="270,176,514,196" ref="50" />
+						</td>
+					</tr>
+				</TableLayout>
 			</Tab>
 			<Tab ref="45">
-				<Group pos="21,35,433,118" ref="6">
-					<EditBox pos="126,21,230,41" ref="8" />
-					<CheckBox pos="259,28,363,41" ref="9" />
-					<EditBox pos="126,49,230,69" ref="10" />
-					<CheckBox pos="259,56,398,69" ref="47" />
-					<StaticText pos="21,28,83,41" ref="48" />
-					<StaticText pos="21,56,97,69" ref="49" />
-				</Group>
+				<TableLayout pos="7,28,461,279" ref="51" cols="0.333,0.333,0.333" rows="0.333,0.333,0.333">
+					<tr>
+						<td colspan="3">
+							<StaticText pos="28,21,230,48" ref="189" />
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<StaticText pos="0,80,62,93" ref="190" />
+						</td>
+						<td>
+							<EditBox Pos="147,80,251,100" ref="49" />
+						</td>
+						<td>
+							<CheckBox pos="294,80,398,93" ref="10" />
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<StaticText pos="0,160,76,173" ref="48" />
+						</td>
+						<td>
+							<EditBox Pos="147,160,251,180" ref="8" />
+						</td>
+						<td>
+							<CheckBox pos="294,160,433,173" ref="9" />
+						</td>
+					</tr>
+				</TableLayout>
 			</Tab>
 			<Tab ref="46">
-				<StaticText pos="21,35,384,69" ref="39" />
-				<EditBox pos="21,91,440,230" ref="41" multiline="1" />
-				<StaticText pos="21,77,139,90" ref="42" />
-				<StaticText pos="21,238,230,251" ref="53" />
-				<EditBox pos="21,252,440,398" ref="54" multiline="1" />
+				<TableLayout pos="7,28,559,398" ref="6" cols="1.000" rows="0.200,0.200,0.200,0.200,0.200">
+					<tr>
+						<td>
+							<StaticText pos="0,0,363,34" ref="47" />
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<StaticText pos="0,71,118,84" ref="39" />
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<EditBox Pos="0,142,419,169" MultiLine="1" ref="42" />
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<StaticText pos="0,213,209,226" ref="41" />
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<EditBox Pos="0,284,419,311" MultiLine="1" ref="53" />
+						</td>
+					</tr>
+				</TableLayout>
 			</Tab>
 			<Tab ref="73">
-				<StaticText pos="21,42,167,55" ref="74" />
-				<EditBox pos="21,63,559,398" ref="75" multiline="1" />
+				<TableLayout pos="7,28,566,405" ref="54" cols="1.000" rows="0.500,0.500">
+					<tr>
+						<td>
+							<StaticText pos="0,0,146,13" ref="191" />
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<EditBox Pos="0,183,357,224" MultiLine="1" ref="74" />
+						</td>
+					</tr>
+				</TableLayout>
 			</Tab>
 		</TabView>
 	</Dialog>
@@ -255,7 +451,7 @@
 					<StaticText pos="0,0,76,13" ref="97" />
 				</td>
 				<td>
-					<EditBox pos="231,0,328,20" ref="111" />
+					<EditBox Pos="231,0,328,20" ref="111" />
 				</td>
 			</tr>
 			<tr>
@@ -263,7 +459,7 @@
 					<StaticText pos="0,25,83,38" ref="100" />
 				</td>
 				<td>
-					<EditBox pos="231,25,342,45" ref="101" />
+					<EditBox Pos="231,25,342,45" ref="101" />
 				</td>
 			</tr>
 			<tr>
@@ -271,7 +467,7 @@
 					<StaticText pos="0,50,62,63" ref="102" />
 				</td>
 				<td>
-					<EditBox pos="231,50,342,70" ref="104" />
+					<EditBox Pos="231,50,342,70" ref="104" />
 				</td>
 			</tr>
 			<tr>
@@ -279,7 +475,7 @@
 					<StaticText pos="0,75,90,95" ref="103" />
 				</td>
 				<td>
-					<EditBox pos="231,75,342,95" ref="105" pw="1" />
+					<EditBox Pos="231,75,342,95" Pw="1" ref="105" />
 				</td>
 			</tr>
 			<tr>
@@ -287,7 +483,7 @@
 					<StaticText pos="0,101,111,114" ref="93" />
 				</td>
 				<td>
-					<EditBox pos="231,101,342,121" ref="110" />
+					<EditBox Pos="231,101,342,121" ref="110" />
 				</td>
 			</tr>
 			<tr>
@@ -295,7 +491,7 @@
 					<StaticText pos="0,126,76,139" ref="106" />
 				</td>
 				<td>
-					<EditBox pos="231,126,342,146" ref="107" />
+					<EditBox Pos="231,126,342,146" ref="107" />
 				</td>
 			</tr>
 			<tr>
@@ -310,140 +506,131 @@
 	</Dialog>
 	<menu Name="IDM_MENU">
 		<string-group Name="&lt;untitled&gt;">
-			<String Ref="26" Cid="0" Define="" />
-			<String Ref="28" Cid="0" Define="" />
-			<String Ref="8" Cid="0" Define="" />
-			<String Ref="12" Cid="0" Define="" />
-			<String Ref="37" Cid="0" Define="" />
-			<String Ref="39" Cid="0" Define="" />
-			<String Ref="44" Cid="0" Define="" />
-			<String Ref="46" Cid="0" Define="" />
-			<String Ref="53" Cid="0" Define="" />
-			<String Ref="2" Cid="0" Define="" en="&File" />
-			<String Ref="6" Cid="504" Define="IDM_NEW" en="&New\tCtrl+N" />
-			<String Ref="4" Cid="502" Define="IDM_OPEN" en="&Open\tCtrl+O" />
-			<String Ref="5" Cid="503" Define="IDM_SAVE_ALL" en="&Save All\tCtrl+S" />
-			<String Ref="23" Cid="535" Define="IDM_SAVEAS" en="Save &As" />
-			<String Ref="24" Cid="505" Define="IDM_CLOSE" en="&Close" />
-			<String Ref="25" Cid="506" Define="IDM_CLOSE_ALL" en="Close All" />
-			<String Ref="27" Cid="507" Define="IDM_OPTIONS" en="&Options" />
-			<String Ref="29" Cid="508" Define="IDM_RECENT_FILES" en="Recent Files..." />
-			<String Ref="51" Cid="0" Define="" en="(none)" />
-			<String Ref="30" Cid="509" Define="IDM_RECENT_PROJECTS" en="Recent Projects..." />
-			<String Ref="52" Cid="0" Define="" en="(none)" />
-			<String Ref="31" Cid="510" Define="IDM_EXIT" en="E&xit" />
-			<String Ref="3" Cid="0" Define="" en="&Edit" />
-			<String Ref="32" Cid="511" Define="IDM_UNDO" en="&Undo\tCtrl+Z" />
-			<String Ref="7" Cid="512" Define="IDM_REDO" en="&Redo\tShift+Ctrl+Z" />
-			<String Ref="9" Cid="513" Define="IDM_CUT" en="Cu&t\tCtrl+X" />
-			<String Ref="10" Cid="514" Define="IDM_COPY" en="&Copy\tCtrl+C" />
-			<String Ref="11" Cid="515" Define="IDM_PASTE" en="&Paste\tCtrl+P" />
-			<String Ref="13" Cid="516" Define="IDM_GOTO" en="&Goto\tCtrl+G" />
-			<String Ref="14" Cid="517" Define="IDM_FIND" en="&Find\tCtrl+F" />
-			<String Ref="15" Cid="518" Define="IDM_FIND_NEXT" en="Find Next\tF3" />
-			<String Ref="16" Cid="519" Define="IDM_REPLACE" en="R&eplace\tCtrl+H" />
-			<String Ref="33" Cid="539" Define="IDM_FIND_IN_FILES" en="Find In Files\tCtrl+Shift+F" />
-			<String Ref="17" Cid="0" Define="" en="&Project" />
-			<String Ref="34" Cid="520" Define="IDM_NEW_PROJECT" en="&New" />
-			<String Ref="35" Cid="521" Define="IDM_OPEN_PROJECT" en="&Open" />
-			<String Ref="36" Cid="522" Define="IDM_IMPORT_DSP" en="&Import Win32 DSP" />
-			<String Ref="38" Cid="523" Define="IDM_PROJECT_SETTINGS" en="&Settings" />
-			<String Ref="57" Cid="540" Define="IDM_CREATE_MAKEFILE" en="Create Makefile" />
-			<String Ref="58" Cid="0" Define="" en="Build Mode" />
-			<String Ref="59" Cid="528" Define="IDM_DEBUG_MODE" en="Debug" />
-			<String Ref="60" Cid="541" Define="IDM_RELEASE_MODE" en="Release" />
-			<String Ref="55" Cid="537" Define="IDM_COMPILE" en="Compile" />
-			<String Ref="40" Cid="524" Define="IDM_CLEAN" en="&Clean" />
-			<String Ref="41" Cid="525" Define="IDM_BUILD" en="&Build\tF7" />
-			<String Ref="42" Cid="526" Define="IDM_BUILD_ALL" en="Build &All" />
-			<String Ref="56" Cid="538" Define="IDM_STOP_BUILD" en="Stop Build" />
-			<String Ref="43" Cid="527" Define="IDM_NEXT_MSG" en="Next Message\tF4" />
-			<String Ref="18" Cid="542" Define="IDM_DEBUG" en="&Debug\tF5" />
-			<String Ref="19" Cid="529" Define="IDM_EXECUTE" en="&Run\tCtrl+F5" />
-			<String Ref="61" Cid="543" Define="IDM_VALGRIND" en="&Valgrind\tCtrl+Shift+V" />
-			<String Ref="20" Cid="0" Define="" en="&Tools" />
-			<String Ref="45" Cid="530" Define="IDM_DEPENDS" en="Show Target &Dependencies" />
-			<String Ref="47" Cid="531" Define="IDM_TAB_TO_SP" en="Tabs -&gt; Spaces" />
-			<String Ref="48" Cid="532" Define="IDM_SP_TO_TAB" en="Spaces -&gt; Tabs" />
-			<String Ref="63" Cid="552" Define="IDM_LOAD_MEMDUMP" en="Load Memory Dump" />
-			<String Ref="64" Cid="553" Define="IDM_SYS_CHAR_SUPPORT" en="System Character Support" />
-			<String Ref="49" Cid="536" Define="IDM_WINDOW_LST" en="&Windows" />
-			<String Ref="54" Cid="0" Define="" en="(none)" />
-			<String Ref="21" Cid="0" Define="" en="&Help" />
-			<String Ref="22" Cid="533" Define="IDM_ABOUT" en="&About" />
-			<String Ref="50" Cid="534" Define="IDM_HELP" en="&Help" />
+			<String Ref="175" en="&File" />
+			<String Ref="174" Cid="504" Define="IDM_NEW" en="&New\tCtrl+N" />
+			<String Ref="173" Cid="502" Define="IDM_OPEN" en="&Open\tCtrl+O" />
+			<String Ref="172" Cid="503" Define="IDM_SAVE_ALL" en="&Save All\tCtrl+S" />
+			<String Ref="171" Cid="535" Define="IDM_SAVEAS" en="Save &As" />
+			<String Ref="170" Cid="505" Define="IDM_CLOSE" en="&Close" />
+			<String Ref="169" Cid="506" Define="IDM_CLOSE_ALL" en="Close All" />
+			<String Ref="168" Cid="507" Define="IDM_OPTIONS" en="&Options" />
+			<String Ref="167" Cid="508" Define="IDM_RECENT_FILES" en="Recent Files..." />
+			<String Ref="166" en="(none)" />
+			<String Ref="165" Cid="509" Define="IDM_RECENT_PROJECTS" en="Recent Projects..." />
+			<String Ref="164" en="(none)" />
+			<String Ref="163" Cid="510" Define="IDM_EXIT" en="E&xit" />
+			<String Ref="162" en="&Edit" />
+			<String Ref="161" Cid="511" Define="IDM_UNDO" en="&Undo\tCtrl+Z" />
+			<String Ref="160" Cid="512" Define="IDM_REDO" en="&Redo\tShift+Ctrl+Z" />
+			<String Ref="159" Cid="513" Define="IDM_CUT" en="Cu&t\tCtrl+X" />
+			<String Ref="158" Cid="514" Define="IDM_COPY" en="&Copy\tCtrl+C" />
+			<String Ref="157" Cid="515" Define="IDM_PASTE" en="&Paste\tCtrl+P" />
+			<String Ref="156" Cid="516" Define="IDM_GOTO" en="&Goto\tCtrl+G" />
+			<String Ref="155" Cid="517" Define="IDM_FIND" en="&Find\tCtrl+F" />
+			<String Ref="154" Cid="518" Define="IDM_FIND_NEXT" en="Find Next\tF3" />
+			<String Ref="153" Cid="519" Define="IDM_REPLACE" en="R&eplace\tCtrl+H" />
+			<String Ref="152" Cid="539" Define="IDM_FIND_IN_FILES" en="Find In Files\tCtrl+Shift+F" />
+			<String Ref="151" en="&Project" />
+			<String Ref="150" Cid="520" Define="IDM_NEW_PROJECT" en="&New" />
+			<String Ref="149" Cid="521" Define="IDM_OPEN_PROJECT" en="&Open" />
+			<String Ref="148" Cid="522" Define="IDM_IMPORT_DSP" en="&Import Win32 DSP" />
+			<String Ref="147" Cid="523" Define="IDM_PROJECT_SETTINGS" en="&Settings" />
+			<String Ref="146" Cid="540" Define="IDM_CREATE_MAKEFILE" en="Create Makefile" />
+			<String Ref="145" en="Build Mode" />
+			<String Ref="144" Cid="528" Define="IDM_DEBUG_MODE" en="Debug" />
+			<String Ref="143" Cid="541" Define="IDM_RELEASE_MODE" en="Release" />
+			<String Ref="142" Cid="537" Define="IDM_COMPILE" en="Compile" />
+			<String Ref="141" Cid="524" Define="IDM_CLEAN" en="&Clean" />
+			<String Ref="140" Cid="525" Define="IDM_BUILD" en="&Build\tF7" />
+			<String Ref="139" Cid="526" Define="IDM_BUILD_ALL" en="Build &All" />
+			<String Ref="138" Cid="538" Define="IDM_STOP_BUILD" en="Stop Build" />
+			<String Ref="137" Cid="527" Define="IDM_NEXT_MSG" en="Next Message\tF4" />
+			<String Ref="136" Cid="542" Define="IDM_DEBUG" en="&Debug\tF5" />
+			<String Ref="135" Cid="529" Define="IDM_EXECUTE" en="&Run\tCtrl+F5" />
+			<String Ref="134" Cid="543" Define="IDM_VALGRIND" en="&Valgrind\tCtrl+Shift+V" />
+			<String Ref="133" en="&Tools" />
+			<String Ref="132" Cid="530" Define="IDM_DEPENDS" en="Show Target &Dependencies" />
+			<String Ref="131" Cid="531" Define="IDM_TAB_TO_SP" en="Tabs -&gt; Spaces" />
+			<String Ref="130" Cid="532" Define="IDM_SP_TO_TAB" en="Spaces -&gt; Tabs" />
+			<String Ref="129" Cid="552" Define="IDM_LOAD_MEMDUMP" en="Load Memory Dump" />
+			<String Ref="128" Cid="553" Define="IDM_SYS_CHAR_SUPPORT" en="System Character Support" />
+			<String Ref="127" Cid="536" Define="IDM_WINDOW_LST" en="&Windows" />
+			<String Ref="126" en="(none)" />
+			<String Ref="125" en="&Help" />
+			<String Ref="124" Cid="533" Define="IDM_ABOUT" en="&About" />
+			<String Ref="123" Cid="534" Define="IDM_HELP" en="&Help" />
 		</string-group>
-		<submenu Ref="2">
-			<menuitem Ref="6" />
-			<menuitem Ref="4" />
-			<menuitem Ref="5" />
-			<menuitem Ref="23" />
-			<menuitem Ref="24" />
-			<menuitem Ref="25" />
+		<submenu Ref="175">
+			<menuitem Ref="174" />
+			<menuitem Ref="173" />
+			<menuitem Ref="172" />
+			<menuitem Ref="171" />
+			<menuitem Ref="170" />
+			<menuitem Ref="169" />
 			<menuitem Sep="1" />
-			<menuitem Ref="27" />
+			<menuitem Ref="168" />
 			<menuitem Sep="1" />
-			<submenu Ref="29">
-				<menuitem Enabled="0" Ref="51" />
+			<submenu Ref="167">
+				<menuitem Enabled="0" Ref="166" />
 			</submenu>
-			<submenu Ref="30">
-				<menuitem Ref="52" />
-			</submenu>
-			<menuitem Sep="1" />
-			<menuitem Ref="31" />
-		</submenu>
-		<submenu Ref="3">
-			<menuitem Ref="32" />
-			<menuitem Ref="7" />
-			<menuitem Sep="1" />
-			<menuitem Ref="9" />
-			<menuitem Ref="10" />
-			<menuitem Ref="11" />
-			<menuitem Sep="1" />
-			<menuitem Ref="13" />
-			<menuitem Ref="14" />
-			<menuitem Ref="15" />
-			<menuitem Ref="16" />
-			<menuitem Ref="33" />
-		</submenu>
-		<submenu Ref="17">
-			<menuitem Ref="34" />
-			<menuitem Ref="35" />
-			<menuitem Ref="36" />
-			<menuitem Sep="1" />
-			<menuitem Ref="38" />
-			<menuitem Ref="57" />
-			<submenu Ref="58">
-				<menuitem Ref="59" />
-				<menuitem Ref="60" />
+			<submenu Ref="165">
+				<menuitem Ref="164" />
 			</submenu>
 			<menuitem Sep="1" />
-			<menuitem Ref="55" />
-			<menuitem Ref="40" />
-			<menuitem Ref="41" />
-			<menuitem Ref="42" />
-			<menuitem Ref="56" />
-			<menuitem Ref="43" />
-			<menuitem Sep="1" />
-			<menuitem Ref="18" />
-			<menuitem Ref="19" />
-			<menuitem Ref="61" />
+			<menuitem Ref="163" />
 		</submenu>
-		<submenu Ref="20">
-			<menuitem Ref="45" />
+		<submenu Ref="162">
+			<menuitem Ref="161" />
+			<menuitem Ref="160" />
 			<menuitem Sep="1" />
-			<menuitem Ref="47" />
-			<menuitem Ref="48" />
+			<menuitem Ref="159" />
+			<menuitem Ref="158" />
+			<menuitem Ref="157" />
 			<menuitem Sep="1" />
-			<menuitem Ref="63" />
-			<menuitem Ref="64" />
+			<menuitem Ref="156" />
+			<menuitem Ref="155" />
+			<menuitem Ref="154" />
+			<menuitem Ref="153" />
+			<menuitem Ref="152" />
 		</submenu>
-		<submenu Ref="49">
-			<menuitem Enabled="0" Ref="54" />
+		<submenu Ref="151">
+			<menuitem Ref="150" />
+			<menuitem Ref="149" />
+			<menuitem Ref="148" />
+			<menuitem Sep="1" />
+			<menuitem Ref="147" />
+			<menuitem Ref="146" />
+			<submenu Ref="145">
+				<menuitem Ref="144" />
+				<menuitem Ref="143" />
+			</submenu>
+			<menuitem Sep="1" />
+			<menuitem Ref="142" />
+			<menuitem Ref="141" />
+			<menuitem Ref="140" />
+			<menuitem Ref="139" />
+			<menuitem Ref="138" />
+			<menuitem Ref="137" />
+			<menuitem Sep="1" />
+			<menuitem Ref="136" />
+			<menuitem Ref="135" />
+			<menuitem Ref="134" />
 		</submenu>
-		<submenu Ref="21">
-			<menuitem Ref="22" />
-			<menuitem Ref="50" />
+		<submenu Ref="133">
+			<menuitem Ref="132" />
+			<menuitem Sep="1" />
+			<menuitem Ref="131" />
+			<menuitem Ref="130" />
+			<menuitem Sep="1" />
+			<menuitem Ref="129" />
+			<menuitem Ref="128" />
+		</submenu>
+		<submenu Ref="127">
+			<menuitem Enabled="0" Ref="126" />
+		</submenu>
+		<submenu Ref="125">
+			<menuitem Ref="124" />
+			<menuitem Ref="123" />
 		</submenu>
 	</menu>
 </resources>

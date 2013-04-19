@@ -207,6 +207,7 @@ GDocApp<OptionsFmt>::GDocApp(const char *appname, const TCHAR *icon, char *optsn
 template <typename OptionsFmt>
 GDocApp<OptionsFmt>::~GDocApp()
 {
+	LgiStackTrace("GDocApp::~GDocApp\n");
 	DeleteObj(d);
 	DeleteObj(Options);
 }
@@ -511,6 +512,7 @@ bool GDocApp<OptionsFmt>::SetDirty(bool Dirty)
 		}
 		else
 		{
+			LgiStackTrace("GDocApp::SetDirty\n");
 			// Clearing dirty
 			int Result = LgiMsg(this,
 								LgiLoadString(L_DOCAPP_SAVE_CHANGE, "Do you want to save your changes?"),
@@ -616,6 +618,7 @@ GMessage::Result GDocApp<OptionsFmt>::OnEvent(GMessage *m)
 {
 	GMru::OnEvent(m);
 
+	/*
 	switch (MsgCode(m))
 	{
 		#ifdef WIN32
@@ -629,6 +632,7 @@ GMessage::Result GDocApp<OptionsFmt>::OnEvent(GMessage *m)
 		}
 		#endif
 	}
+	*/
 
 	return GWindow::OnEvent(m);
 }

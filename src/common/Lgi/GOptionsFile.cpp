@@ -39,6 +39,9 @@ bool GOptionsFile::SetMode(PortableType Mode, const char *BaseName)
 	if (!LgiGetSystemPath(Mode == DesktopMode ? LSP_APP_ROOT : LSP_APP_INSTALL, FullPath, sizeof(FullPath)))
 		return false;
 
+	if (!DirExists(FullPath))
+		FileDev->CreateFolder(FullPath);
+
 	LgiMakePath(FullPath, sizeof(FullPath), FullPath, BaseName ? BaseName : (char*)"Options");
 	if (!LgiGetExtension(FullPath))
 		strsafecat(FullPath, ".xml", sizeof(FullPath));

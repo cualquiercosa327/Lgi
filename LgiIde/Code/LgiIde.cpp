@@ -458,6 +458,42 @@ public:
 	List<char> RecentProjects;
 	GSubMenu *RecentProjectsMenu;
 
+	// Object
+	AppWndPrivate(AppWnd *a) : Options(GOptionsFile::DesktopMode, AppName)
+	{
+		WindowsMenu = 0;
+		App = a;
+		Sp = 0;
+		Tree = 0;
+		Finder = 0;
+		Output = 0;
+		Debugging = false;
+		Building = false;
+		RecentFilesMenu = 0;
+		RecentProjectsMenu = 0;
+		Icons = LgiLoadImageList("icons.png", 16, 16);
+
+		Options.Serialize(false);
+		App->SerializeState(&Options, "WndPos", true);
+
+		SerializeStringList("RecentFiles", &RecentFiles, false);
+		SerializeStringList("RecentProjects", &RecentProjects, false);
+	}
+	
+	~AppWndPrivate()
+	{
+		App->SerializeState(&Options, "WndPos", false);
+		SerializeStringList("RecentFiles", &RecentFiles, true);
+		SerializeStringList("RecentProjects", &RecentProjects, true);
+		Options.Serialize(true);
+		
+		RecentFiles.DeleteArrays();
+		RecentProjects.DeleteArrays();
+		Docs.DeleteObjects();
+		Projects.DeleteObjects();
+		DeleteObj(Icons);
+	}
+
 	void ViewMsg(char *File, int Line, char *Context)
 	{
 		char *Full = 0;
@@ -849,60 +885,15 @@ public:
 			}
 		}
 	}
-
-	// Object
-	AppWndPrivate(AppWnd *a)
-	{
-		WindowsMenu = 0;
-		App = a;
-		Sp = 0;
-		Tree = 0;
-		Finder = 0;
-		Output = 0;
-		Debugging = false;
-		Building = false;
-		RecentFilesMenu = 0;
-		RecentProjectsMenu = 0;
-		Icons = LgiLoadImageList("icons.png", 16, 16);
-
-		GVariant s;
-		if (Options.GetValue("WndPos", s))
-		{
-			GRect p;
-			if (p.SetStr(s.Str()) && p.x1 >= 0 && p.y1 >= 0)
-			{
-				App->SetPos(p);
-			}
-		}
-
-		SerializeStringList("RecentFiles", &RecentFiles, false);
-		SerializeStringList("RecentProjects", &RecentProjects, false);
-	}
-	
-	~AppWndPrivate()
-	{
-		GVariant v;
-		Options.SetValue("WndPos", v = App->GetPos().Describe());
-		if (Sp)
-			Options.SetValue("SplitPos", v = (int)Sp->Value());
-		
-		SerializeStringList("RecentFiles", &RecentFiles, true);
-		SerializeStringList("RecentProjects", &RecentProjects, true);
-		
-		RecentFiles.DeleteArrays();
-		RecentProjects.DeleteArrays();
-		Docs.DeleteObjects();
-		Projects.DeleteObjects();
-		DeleteObj(Icons);
-	}
 };
 
 AppWnd::AppWnd()
 {
 	GRect r(0, 0, 1000, 900);
 	SetPos(r);
-	d = new AppWndPrivate(this);
 	MoveToCenter();
+
+	d = new AppWndPrivate(this);
 	Name(AppName);
 	SetQuitOnClose(true);
 
@@ -1014,6 +1005,12 @@ AppWnd::AppWnd()
 
 AppWnd::~AppWnd()
 {
+	if (d->Sp)
+	{
+		GVariant v = d->Sp->Value();
+		d->Options.SetValue("SplitPos", v);
+	}
+
 	ShutdownFtpThread();
 
 	CloseAll();
