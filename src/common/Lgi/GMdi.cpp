@@ -471,7 +471,9 @@ void GMdiChild::OnMouseMove(GMouse &m)
 	}
 }
 
+#if defined __GTK_H__
 using namespace Gtk;
+#endif
 
 void GMdiChild::Raise()
 {
