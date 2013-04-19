@@ -889,6 +889,10 @@ public:
 
 AppWnd::AppWnd()
 {
+	#ifdef __GTK_H__
+	LgiGetResObj(true, AppName);
+	#endif
+
 	GRect r(0, 0, 1000, 900);
 	SetPos(r);
 	MoveToCenter();
@@ -897,7 +901,7 @@ AppWnd::AppWnd()
 	Name(AppName);
 	SetQuitOnClose(true);
 
-	#ifdef WIN32
+	#if WIN32NATIVE
 	CreateClassW32(AppName, LoadIcon(LgiProcessInst(), MAKEINTRESOURCE(IDI_APP)));
 	#endif
 	if (Attach(0))
@@ -906,19 +910,22 @@ AppWnd::AppWnd()
 		if (Menu)
 		{
 			Menu->Attach(this);
-			Menu->Load(this, "IDM_MENU");
-
-			d->RecentFilesMenu = Menu->FindSubMenu(IDM_RECENT_FILES);
-			d->RecentProjectsMenu = Menu->FindSubMenu(IDM_RECENT_PROJECTS);
-			d->WindowsMenu = Menu->FindSubMenu(IDM_WINDOW_LST);
-
-			GMenuItem *Debug = GetMenu()->FindItem(IDM_DEBUG_MODE);
-			if (Debug)
+			bool Loaded = Menu->Load(this, "IDM_MENU");
+			LgiAssert(Loaded);
+			if (Loaded)
 			{
-				Debug->Checked(true);
+				d->RecentFilesMenu = Menu->FindSubMenu(IDM_RECENT_FILES);
+				d->RecentProjectsMenu = Menu->FindSubMenu(IDM_RECENT_PROJECTS);
+				d->WindowsMenu = Menu->FindSubMenu(IDM_WINDOW_LST);
+
+				GMenuItem *Debug = GetMenu()->FindItem(IDM_DEBUG_MODE);
+				if (Debug)
+				{
+					Debug->Checked(true);
+				}
+				
+				d->UpdateMenus();
 			}
-			
-			d->UpdateMenus();
 		}
 
 		GToolBar *Tools = LgiLoadToolbar(this, "cmds.png", 16, 16);

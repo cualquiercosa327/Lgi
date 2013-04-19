@@ -370,9 +370,9 @@ void GSplitter::OnPaint(GSurface *pDC)
 			#ifdef WIN32
 			if (!d->ViewA->Handle())
 			{
-				pDC->SetOrigin(d->PosA.x1, d->PosA.y1);
+				pDC->SetClient(&d->PosA);
 				d->ViewA->OnPaint(pDC);
-				pDC->SetOrigin(0, 0);
+				pDC->SetClient(NULL);
 			}
 			else
 			#endif
@@ -404,9 +404,9 @@ void GSplitter::OnPaint(GSurface *pDC)
 			#ifdef WIN32
 			if (!d->ViewB->Handle())
 			{
-				pDC->SetOrigin(d->PosB.x1, d->PosB.y1);
+				pDC->SetClient(&d->PosB);
 				d->ViewB->OnPaint(pDC);
-				pDC->SetOrigin(0, 0);
+				pDC->SetClient(NULL);
 			}
 			else
 			#endif

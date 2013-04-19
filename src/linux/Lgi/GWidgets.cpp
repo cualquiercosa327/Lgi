@@ -14,6 +14,7 @@
 #include "Lgi.h"
 #include "GSlider.h"
 #include "GBitmap.h"
+#include "GTableLayout.h"
 
 using namespace Gtk;
 #include "LgiWidget.h"
@@ -63,6 +64,17 @@ void GDialog::Quit(bool DontDelete)
 
 void GDialog::OnPosChange()
 {
+    if (Children.Length() == 1)
+    {
+        List<GViewI>::I it = Children.Start();
+        GTableLayout *t = dynamic_cast<GTableLayout*>((GViewI*)it.First());
+        if (t)
+        {
+            GRect r = GetClient();
+            r.Size(GTableLayout::CellSpacing, GTableLayout::CellSpacing);
+            t->SetPos(r);
+        }
+    }
 }
 
 bool GDialog::LoadFromResource(int Resource, char *TagList)
@@ -120,6 +132,43 @@ void GDialog::IsResizeable(bool r)
 	d->Resizable = r;
 }
 
+static
+gboolean
+GDialogCallback(GtkWidget   *widget,
+				GdkEvent    *event,
+				GDialog     *This)
+{
+	if (!event)
+	{
+		printf("%s:%i - No event %i\n", _FL);
+		return FALSE;
+	}
+
+	switch (event->type)
+	{
+		case GDK_DESTROY:
+		{
+			delete This;
+			return TRUE;
+		}
+		case GDK_CONFIGURE:
+		{
+			GdkEventConfigure *c = (GdkEventConfigure*)event;
+			This->Pos.Set(c->x, c->y, c->x+c->width-1, c->y+c->height-1);
+			This->OnPosChange();
+			return FALSE;
+			break;
+		}
+		default:
+		{
+			printf("%s:%i - Unknown event %i\n", _FL, event->type);
+			break;
+		}
+	}
+	
+	return TRUE;
+}
+
 int GDialog::DoModal(OsView OverrideParent)
 {
 	d->ModalStatus = -1;
@@ -161,6 +210,15 @@ int GDialog::DoModal(OsView OverrideParent)
 	OnCreate();
 	AttachChildren();
 	d->IsModal = true;
+
+	g_signal_connect(	G_OBJECT(Wnd),
+						"destroy",
+						G_CALLBACK(GDialogCallback),
+						this);
+	g_signal_connect(	G_OBJECT(Wnd),
+						"configure-event",
+						G_CALLBACK(GDialogCallback),
+						this);
 
 	gint r = gtk_dialog_run(GTK_DIALOG(Wnd));
 

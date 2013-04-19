@@ -434,6 +434,7 @@ protected:
     friend Gtk::gboolean lgi_widget_motion(Gtk::GtkWidget *widget, Gtk::GdkEventMotion *ev);
 	friend Gtk::gboolean GViewCallback(Gtk::GtkWidget *widget, Gtk::GdkEvent  *event, GView *view);
 	friend Gtk::gboolean GWindowCallback(Gtk::GtkWidget *widget, Gtk::GdkEvent *event, GWindow *wnd);
+	friend Gtk::gboolean GDialogCallback(Gtk::GtkWidget *widget, Gtk::GdkEvent *event, GDialog *dlg);
 
 public:
 	enum MappingState

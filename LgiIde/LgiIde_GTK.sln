@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LgiIde_GTK", "LgiIde_GTK.vcproj", "{878531DE-07F7-44DF-815C-7A42560B082A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{95DF9CA4-6D37-4A85-A648-80C2712E0DA1} = {95DF9CA4-6D37-4A85-A648-80C2712E0DA1}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lgi Gtk", "..\Lgi_vc8(GTK).vcproj", "{95DF9CA4-6D37-4A85-A648-80C2712E0DA1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{878531DE-07F7-44DF-815C-7A42560B082A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{878531DE-07F7-44DF-815C-7A42560B082A}.Debug|Win32.Build.0 = Debug|Win32
+		{878531DE-07F7-44DF-815C-7A42560B082A}.Release|Win32.ActiveCfg = Release|Win32
+		{878531DE-07F7-44DF-815C-7A42560B082A}.Release|Win32.Build.0 = Release|Win32
+		{95DF9CA4-6D37-4A85-A648-80C2712E0DA1}.Debug|Win32.ActiveCfg = Debug|Win32
+		{95DF9CA4-6D37-4A85-A648-80C2712E0DA1}.Debug|Win32.Build.0 = Debug|Win32
+		{95DF9CA4-6D37-4A85-A648-80C2712E0DA1}.Release|Win32.ActiveCfg = Release|Win32
+		{95DF9CA4-6D37-4A85-A648-80C2712E0DA1}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

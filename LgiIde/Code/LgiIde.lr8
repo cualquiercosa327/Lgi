@@ -24,19 +24,20 @@
 		<String Ref="21" Cid="-1" Define="IDC_STATIC" en="In file types:" />
 		<String Ref="22" Cid="23" Define="IDC_FILE_TYPES" />
 		<String Ref="23" Cid="69" Define="IDC_FOLDER_HISTORY" />
+		<String Ref="24" Cid="24" Define="IDC_24" />
 		<String Ref="25" Cid="26" Define="IDC_SET_DIR" en="..." />
 		<String Ref="26" Cid="31" Define="IDC_SUB_DIRS" en="Search sub directories" />
 		<String Ref="27" Cid="25" Define="IDC_DIR" />
 		<String Ref="28" Cid="1" Define="IDOK" en="Find" />
 		<String Ref="29" Cid="29" Define="IDC_WHOLE_WORD" en="Match whole word" />
+		<String Ref="30" Cid="36" Define="IDC_MSG" en="..." />
 		<String Ref="31" Cid="30" Define="IDC_CASE" en="Match case" />
 		<String Ref="32" Cid="17" Define="IDC_ARGS" />
 		<String Ref="33" Cid="551" Define="IDD_FILE_PROPS" en="Properties" />
-		<String Ref="34" Cid="34" Define="IDC_COPY_PATH" en="Copy Path" />
-		<String Ref="35" Cid="1" Define="IDOK" en="Ok" />
-		<String Ref="36" Cid="36" Define="IDC_MSG" en="..." />
-		<String Ref="37" Cid="37" Define="IDC_TYPE" />
-		<String Ref="38" Cid="-1" Define="IDC_STATIC" en="File type:" />
+		<String Ref="35" Cid="34" Define="IDC_COPY_PATH" en="Copy Path" />
+		<String Ref="36" Cid="-1" Define="IDC_STATIC" en="File type:" />
+		<String Ref="37" Cid="544" Define="IDC_PLATFORMS" en="Platforms:" />
+		<String Ref="38" Cid="37" Define="IDC_TYPE" />
 		<String Ref="39" Cid="-1" Define="IDC_STATIC" en="File comment:" />
 		<String Ref="40" Cid="-1" Define="IDC_STATIC" en="Target Name:" />
 		<String Ref="41" Cid="-1" Define="IDC_STATIC" en="Function comment:" />
@@ -76,10 +77,9 @@
 		<String Ref="75" Cid="558" Define="IDC_75" />
 		<String Ref="76" Cid="77" Define="IDC_COMPILER" />
 		<String Ref="77" Cid="557" Define="IDC_INCLUDES_TABLE" />
-		<String Ref="78" Cid="544" Define="IDC_PLATFORMS" en="Platforms:" />
-		<String Ref="79" Cid="79" Define="IDC_WIN32" en="Windows" />
-		<String Ref="80" Cid="80" Define="IDC_LINUX" en="Linux" />
-		<String Ref="81" Cid="81" Define="IDC_MAC" en="Mac OS X" />
+		<String Ref="78" Cid="79" Define="IDC_WIN32" en="Windows" />
+		<String Ref="79" Cid="80" Define="IDC_LINUX" en="Linux" />
+		<String Ref="80" Cid="81" Define="IDC_MAC" en="Mac OS X" />
 		<String Ref="82" Cid="82" Define="IDD_CHAR" en="Character Search" />
 		<String Ref="83" Cid="83" Define="IDC_CHAR" />
 		<String Ref="84" Cid="-1" Define="IDC_STATIC" en="Character:" />
@@ -123,6 +123,7 @@
 		<String Ref="122" Cid="-1" Define="IDC_STATIC" en="Look for:" />
 		<String Ref="176" Cid="2" Define="IDCANCEL" en="Cancel" />
 		<String Ref="177" Cid="2" Define="IDCANCEL" en="Cancel" />
+		<String Ref="178" Cid="1" Define="IDOK" en="Ok" />
 		<String Ref="184" Cid="184" Define="IDC_GENERAL_TABLE" />
 		<String Ref="185" Cid="-1" Define="IDC_STATIC" en="Makefile:" />
 		<String Ref="186" Cid="-1" Define="IDC_STATIC" en="Include Paths:" />
@@ -165,17 +166,37 @@
 			<Column ref="92" width="111" />
 		</ListView>
 	</Dialog>
-	<Dialog pos="7,7,306,261" ref="33">
-		<ComboBox pos="98,91,286,111" ref="37" />
-		<Group pos="14,119,286,195" ref="78">
-			<CheckBox pos="84,14,265,27" ref="79" />
-			<CheckBox pos="84,35,223,48" ref="80" />
-			<CheckBox pos="84,56,265,69" ref="81" />
-		</Group>
-		<Button pos="147,203,223,223" ref="34" />
-		<Button pos="231,203,286,223" ref="35" />
-		<StaticText pos="14,7,279,76" ref="36" />
-		<StaticText pos="14,98,76,111" ref="38" />
+	<Dialog pos="7,7,405,357" ref="33">
+		<TableLayout pos="7,7,384,321" ref="24" cols="0.500,0.500" rows="0.250,0.103,0.397,0.250">
+			<tr>
+				<td colspan="2">
+					<StaticText pos="0,0,265,69" ref="30" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<StaticText pos="0,75,62,88" ref="36" />
+				</td>
+				<td>
+					<ComboBox pos="183,75,364,95" ref="38" />
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2">
+					<Group pos="14,114,286,190" ref="37">
+						<CheckBox pos="84,14,265,27" ref="78" />
+						<CheckBox pos="84,35,223,48" ref="79" />
+						<CheckBox pos="84,56,265,69" ref="80" />
+					</Group>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" align="Max">
+					<Button pos="203,245,279,265" ref="35" />
+					<Button pos="309,240,364,260" ref="178" />
+				</td>
+			</tr>
+		</TableLayout>
 	</Dialog>
 	<Dialog pos="7,7,436,206" ref="19">
 		<TableLayout pos="7,7,419,167" ref="64" cols="0.334,0.295,0.218,0.153" rows="0.200,0.200,0.200,0.200,0.200">

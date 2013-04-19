@@ -1139,10 +1139,10 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 					{
 						for (i=c->Cell.x1; i<=c->Cell.x2; i++)
 						{
+							if (ColFlags[i] == Flag)
+								break;
 							if (!ColFlags[i])
-							{
 								ColFlags[i] = Flag;
-							}
 						}
 					}
 

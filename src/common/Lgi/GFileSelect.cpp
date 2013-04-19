@@ -21,6 +21,7 @@
 #include "GCheckBox.h"
 #include "GCombo.h"
 #include "GTree.h"
+#include "GTableLayout.h"
 
 #define FSI_FILE			0
 #define FSI_DIRECTORY		1
@@ -230,6 +231,13 @@ public:
 	GFolderDrop(GFileSelectDlg *dlg, int Id, int x, int y, int cx, int cy);
 
 	void OnFolder();
+
+	bool OnLayout(GViewLayoutInfo &Inf)
+	{
+		Inf.Width.Min = 
+			Inf.Width.Max = 18;
+		return true;
+	}
 };
 
 class GIconButton : public GLayout
@@ -334,6 +342,15 @@ public:
 		
 		return false;
 	}
+	
+	bool OnLayout(GViewLayoutInfo &Inf)
+	{
+		Inf.Width.Min = Inf.Width.Max = Icons->TileX() + 4;
+		Inf.Width.Max += 4;
+		Inf.Height.Min = Inf.Height.Max = Icons->TileY() + 4;
+		Inf.Height.Max += 4;
+		return true;
+	}
 };
 
 class GFolderList : public GList, public GFolderView
@@ -366,6 +383,8 @@ class GFileSelectDlg :
 public:
 	GFileSelectPrivate *d;
 
+	GTableLayout *Tbl;
+
 	GText *Ctrl1;
 	GEdit *Ctrl2;
 	GFolderDrop *Ctrl3;
@@ -389,7 +408,6 @@ public:
 	void SetFolder(char *f);
 	void OnFolder();
 	void OnFile(char *f);
-	void OnPosChange();
 };
 
 GFileSelectDlg::GFileSelectDlg(GFileSelectPrivate *select)
@@ -415,26 +433,88 @@ GFileSelectDlg::GFileSelectDlg(GFileSelectPrivate *select)
 	OldPos.Set(0, 0, 475, 350 + LgiApp->GetMetric(LGI_MET_DECOR_Y) );
 	SetPos(OldPos);
 
+	#if 1
+	
+	int x = 0, y = 0;
+	AddView(Tbl = new GTableLayout);
+
+	// Top Row
+	GLayoutCell *c = Tbl->GetCell(x++, y);
+	c->Add(Ctrl1 = new GText(IDC_STATIC, 0, 0, -1, -1, "Look in:"));
+	c->VerticalAlign(GCss::Len(GCss::VerticalMiddle));
+	c = Tbl->GetCell(x++, y);
+	c->Add(Ctrl2 = new GEdit(IDC_PATH, 0, 0, 245, 21, ""));
+	c = Tbl->GetCell(x++, y);
+	c->Add(Ctrl3 = new GFolderDrop(this, IDC_DROP, 336, 7, 16, 21));
+	c = Tbl->GetCell(x++, y);
+	c->Add(BackBtn = new GIconButton(IDC_BACK, 378, 7, 27, 21, d->Icons, FSI_BACK));
+	c = Tbl->GetCell(x++, y);
+	c->Add(UpBtn = new GIconButton(IDC_UP, 406, 7, 27, 21, d->Icons, FSI_UPDIR));
+	c = Tbl->GetCell(x++, y);
+	c->Add(NewDirBtn = new GIconButton(IDC_NEW, 434, 7, 27, 21, d->Icons, FSI_NEWDIR));
+
+	// 2nd row
+	x = 0; y++;
+	c = Tbl->GetCell(x, y, true, 6, 1);
+	c->Add(FileLst = new GFolderList(this, IDC_VIEW, 14, 35, 448, 226));
+	
+	// 3rd row
+	x = 0; y++;
+	c = Tbl->GetCell(x++, y);
+	c->Add(Ctrl8 = new GText(IDC_STATIC, 14, 275, -1, -1, "File name:"));
+	c = Tbl->GetCell(x, y, true, 2);
+	x += 2;
+	c->Add(FileNameEdit = new GEdit(IDC_FILE, 100, 268, 266, 21, ""));
+	c = Tbl->GetCell(x, y, true, 3);
+	c->Add(SaveBtn = new GButton(IDOK, 392, 268, 70, 21, "Ok"));
+
+	// 4th row
+	x = 0; y++;
+	c = Tbl->GetCell(x++, y);
+	c->Add(Ctrl9 = new GText(IDC_STATIC, 14, 303, -1, -1, "Files of type:"));
+	c = Tbl->GetCell(x, y, true, 2);
+	x += 2;
+	c->Add(FileTypeCbo = new GCombo(IDC_TYPE, 100, 296, 266, 21, ""));
+	c = Tbl->GetCell(x++, y, true, 3);
+	c->Add(CancelBtn = new GButton(IDCANCEL, 392, 296, 70, 21, "Cancel"));
+
+	// 5th row
+	x = 0; y++;
+	c = Tbl->GetCell(x++, y, true, 6);
+	c->Add(ShowHidden = new GCheckBox(IDC_SHOWHIDDEN, 14, 326, -1, -1, "Show hidden files."));
+	
+	#else
+
 	Children.Insert(Ctrl1 = new GText(IDC_STATIC, 14, 14, -1, -1, "Look in:"));
 	Children.Insert(Ctrl2 = new GEdit(IDC_PATH, 91, 7, 245, 21, ""));
 	Children.Insert(Ctrl3 = new GFolderDrop(this, IDC_DROP, 336, 7, 16, 21));
 	Children.Insert(BackBtn = new GIconButton(IDC_BACK, 378, 7, 27, 21, d->Icons, FSI_BACK));
 	Children.Insert(UpBtn = new GIconButton(IDC_UP, 406, 7, 27, 21, d->Icons, FSI_UPDIR));
 	Children.Insert(NewDirBtn = new GIconButton(IDC_NEW, 434, 7, 27, 21, d->Icons, FSI_NEWDIR));
+
 	Children.Insert(FileLst = new GFolderList(this, IDC_VIEW, 14, 35, 448, 226));
+
 	Children.Insert(Ctrl8 = new GText(IDC_STATIC, 14, 275, -1, -1, "File name:"));
-	Children.Insert(Ctrl9 = new GText(IDC_STATIC, 14, 303, -1, -1, "Files of type:"));
 	Children.Insert(FileNameEdit = new GEdit(IDC_FILE, 100, 268, 266, 21, ""));
-	Children.Insert(FileTypeCbo = new GCombo(IDC_TYPE, 100, 296, 266, 21, ""));
-	Children.Insert(ShowHidden = new GCheckBox(IDC_SHOWHIDDEN, 14, 326, -1, -1, "Show hidden files."));
 	Children.Insert(SaveBtn = new GButton(IDOK, 392, 268, 70, 21, "Ok"));
+
+	Children.Insert(Ctrl9 = new GText(IDC_STATIC, 14, 303, -1, -1, "Files of type:"));
+	Children.Insert(FileTypeCbo = new GCombo(IDC_TYPE, 100, 296, 266, 21, ""));
 	Children.Insert(CancelBtn = new GButton(IDCANCEL, 392, 296, 70, 21, "Cancel"));
 
+	Children.Insert(ShowHidden = new GCheckBox(IDC_SHOWHIDDEN, 14, 326, -1, -1, "Show hidden files."));
+	
+	#endif
+
 	// Init
-	BackBtn->Enabled(false);
-	SaveBtn->Enabled(false);
-	FileLst->MultiSelect(d->MultiSelect);
-	ShowHidden->Value(d->InitShowHiddenFiles);
+	if (BackBtn)
+		BackBtn->Enabled(false);
+	if (SaveBtn)
+		SaveBtn->Enabled(false);
+	if (FileLst)
+		FileLst->MultiSelect(d->MultiSelect);
+	if (ShowHidden)
+		ShowHidden->Value(d->InitShowHiddenFiles);
 
 	// Load types
 	if (!d->Types.First())
@@ -451,7 +531,8 @@ GFileSelectDlg::GFileSelectDlg(GFileSelectPrivate *select)
 	{
 		char s[256];
 		sprintf(s, "%s (%s)", t->Description(), t->Extension());
-		FileTypeCbo->Insert(s);
+		if (FileTypeCbo)
+			FileTypeCbo->Insert(s);
 	}
 	d->CurrentType = 0;
 
@@ -489,7 +570,7 @@ GFileSelectDlg::GFileSelectDlg(GFileSelectPrivate *select)
 
 GFileSelectDlg::~GFileSelectDlg()
 {
-	d->InitShowHiddenFiles = ShowHidden->Value();
+	d->InitShowHiddenFiles = ShowHidden ? ShowHidden->Value() : false;
 	d->InitSize = GetPos();
 
 	char *CurPath = GetCtrlName(IDC_PATH);
@@ -498,58 +579,6 @@ GFileSelectDlg::~GFileSelectDlg()
 		DeleteArray(d->InitPath);
 		d->InitPath = NewStr(CurPath);
 	}
-}
-
-void GFileSelectDlg::OnPosChange()
-{
-	GRect NewPos = GetPos();
-	if (!NewPos.Valid()) return;	
-	
-	if (NewPos.X() < MinSize.X())
-	{
-		NewPos.x2 += MinSize.X() - NewPos.X();
-	}
-	if (NewPos.Y() < MinSize.Y())
-	{
-		NewPos.y2 += MinSize.Y() - NewPos.Y();
-	}
-	
-	int Dx = NewPos.X() - OldPos.X();
-	int Dy = NewPos.Y() - OldPos.Y();
-	GRect r;
-
-	#define MoveRel(Ctrl, x, y) \
-		if (Ctrl) \
-		{ \
-			r = Ctrl->GetPos(); \
-			r.Offset(x, y); \
-			Ctrl->SetPos(r); \
-		}
-	#define MoveSizeRel(Ctrl, x, y, cx, cy) \
-		if (Ctrl) \
-		{ \
-			r = Ctrl->GetPos(); \
-			r.Offset(x, y); \
-			r.x2 += cx; \
-			r.y2 += cy; \
-			Ctrl->SetPos(r); \
-		}
-		
-	MoveSizeRel(Ctrl2, 0, 0, Dx, 0);
-	MoveRel(Ctrl3, Dx, 0);
-	MoveRel(BackBtn, Dx, 0);
-	MoveRel(UpBtn, Dx, 0);
-	MoveRel(NewDirBtn, Dx, 0);
-	MoveRel(SaveBtn, Dx, Dy);
-	MoveRel(CancelBtn, Dx, Dy);
-	MoveRel(ShowHidden, 0, Dy);
-	MoveSizeRel(FileNameEdit, 0, Dy, Dx, 0);
-	MoveSizeRel(FileTypeCbo, 0, Dy, Dx, 0);
-	MoveRel(Ctrl8, 0, Dy);
-	MoveRel(Ctrl9, 0, Dy);
-	MoveSizeRel(FileLst, 0, 0, Dx, Dy);
-	
-	OldPos = NewPos;
 }
 
 void GFileSelectDlg::OnFile(char *f)
@@ -575,11 +604,13 @@ void GFileSelectDlg::SetFolder(char *f)
 
 void GFileSelectDlg::OnFolder()
 {
-	Ctrl3->OnFolder();
-	FileLst->OnFolder();
+	if (Ctrl3)
+		Ctrl3->OnFolder();
+	if (FileLst)
+		FileLst->OnFolder();
 
 	char *CurPath = GetCtrlName(IDC_PATH);
-	if (CurPath)
+	if (CurPath && UpBtn)
 	{
 		UpBtn->Enabled(strlen(CurPath)>3);
 	}
@@ -1401,7 +1432,7 @@ void GFolderList::OnFolder()
 	}
 
 	// Get items
-	bool ShowHiddenFiles = Dlg->ShowHidden->Value();
+	bool ShowHiddenFiles = Dlg->ShowHidden ? Dlg->ShowHidden->Value() : false;
 	for (bool Found = Dir.First(Dlg->Ctrl2->Name()); Found; Found = Dir.Next())
 	{
 		char Name[256];
@@ -1574,7 +1605,8 @@ bool GFileSelect::Open()
 
 	d->Type = TypeOpenFile;
 	Dlg.Name("Open");
-	Dlg.SaveBtn->Name("Open");
+	if (Dlg.SaveBtn)
+		Dlg.SaveBtn->Name("Open");
 
 	return Dlg.DoModal() == IDOK;
 }

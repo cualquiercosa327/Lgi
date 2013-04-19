@@ -169,6 +169,17 @@ GDialog::~GDialog()
 
 void GDialog::OnPosChange()
 {
+    if (Children.Length() == 1)
+    {
+        List<GViewI>::I it = Children.Start();
+        GTableLayout *t = dynamic_cast<GTableLayout*>((GViewI*)it.First());
+        if (t)
+        {
+            GRect r = GetClient();
+            r.Size(GTableLayout::CellSpacing, GTableLayout::CellSpacing);
+            t->SetPos(r);
+        }
+    }
 }
 
 bool GDialog::LoadFromResource(int Resource)

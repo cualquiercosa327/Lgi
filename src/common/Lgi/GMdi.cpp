@@ -96,7 +96,7 @@ GMdiChild::GMdiChild()
 	GdcPt2 m(100, d->Fy + 8);
 	SetMinimumSize(m);
 
-	#ifdef WIN32
+	#if WIN32NATIVE
 	SetStyle(GetStyle() | WS_CLIPSIBLINGS);
 	#endif
 }
@@ -471,15 +471,20 @@ void GMdiChild::OnMouseMove(GMouse &m)
 	}
 }
 
+using namespace Gtk;
+
 void GMdiChild::Raise()
 {
 	GViewI *p = GetParent();
 	if (p)
 	{
-		#if defined LINUX
-		// uint32_t v = XCB_STACK_MODE_ABOVE;
-		// XcbCheck(xcb_configure_window_checked(XcbConn(), Handle(), XCB_CONFIG_WINDOW_STACK_MODE, &v));
-		#elif defined WIN32
+		#if defined __GTK_H__
+		GdkWindow *wnd = GDK_WINDOW(Handle());
+		if (wnd)
+			gdk_window_raise(wnd);
+		else
+			LgiAssert(0);
+		#elif WIN32NATIVE
 		SetWindowPos(Handle(), HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 		#else
 		#error "Impl me."
@@ -496,10 +501,13 @@ void GMdiChild::Lower()
 	GViewI *p = GetParent();
 	if (p)
 	{
-		#if defined LINUX
-		// uint32_t v = XCB_STACK_MODE_BELOW;
-		// XcbCheck(xcb_configure_window_checked(XcbConn(), Handle(), XCB_CONFIG_WINDOW_STACK_MODE, &v));
-		#elif defined WIN32
+		#if defined __GTK_H__
+		GdkWindow *wnd = GDK_WINDOW(Handle());
+		if (wnd)
+			gdk_window_lower(wnd);
+		else
+			LgiAssert(0);
+		#elif WIN32NATIVE
 		SetWindowPos(Handle(), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 		#else
 		#error "Impl me."

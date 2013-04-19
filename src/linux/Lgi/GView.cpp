@@ -681,7 +681,7 @@ bool GView::GetMouse(GMouse &m, bool ScreenCoords)
 
 bool GView::IsAttached()
 {
-	return	_View && _View->window;
+	return	_View && _View->parent;
 }
 
 bool GView::Attach(GViewI *parent)
