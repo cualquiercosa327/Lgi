@@ -182,8 +182,7 @@ public:
 				Icons = new GImageList(16, 16, pDC);
 				if (Icons)
 				{
-					printf("0,0 = %x\n", Icons->Get(0, 0));
-					#ifdef WIN32
+					#if WIN32NATIVE
 					Icons->Create(pDC->X(), pDC->Y(), pDC->GetBits());
 					#endif
 				}
