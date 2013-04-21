@@ -641,13 +641,14 @@ GRect &GWindow::GetClient(bool ClientSpace)
 	static GRect r;
 	
 	r = GView::GetClient(ClientSpace);
+	/*
 	if (Menu &&
-		Menu->Handle() &&
-		Menu->Handle()->View())
+		Menu->Handle())
 	{
-		GRect p = Menu->Handle()->View()->GetPos();
+		GRect p = Menu->GetPos();
 		r.y1 = p.y2 + 1;
 	}
+	*/
 	
 	return r;
 }
@@ -796,6 +797,7 @@ void GWindow::Pour()
 	GRegion Client(GetClient());
 	GViewI *MenuView = 0;
 
+	/*
 	if (Menu &&
 		Menu->Handle() &&
 		Menu->Handle()->View())
@@ -811,6 +813,7 @@ void GWindow::Pour()
 	{
 		printf("%s:%i - Menu has no view!\n", __FILE__, __LINE__);
 	}
+	*/
 	
 	GRegion Update(Client);
 	bool HasTools = false;

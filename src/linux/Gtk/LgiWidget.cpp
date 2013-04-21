@@ -53,7 +53,6 @@ GtkWidget *lgi_widget_new(GViewI *target, int w, int h, bool pour_largest)
 	LgiWidget *p = LGI_WIDGET(gtk_type_new(lgi_widget_get_type()));
 	if (p)
 	{
-		printf("GTK_IS_CONTAINER(%p)=%i\n", p, GTK_IS_CONTAINER(p));
 		p->target = target;
 		p->w = w;
 		p->h = h;

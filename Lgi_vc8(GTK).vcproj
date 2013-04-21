@@ -308,15 +308,11 @@
 					Name="Menus"
 					>
 					<File
-						RelativePath=".\src\linux\Lgi\GMenu.cpp"
-						>
-					</File>
-					<File
 						RelativePath=".\include\common\GMenu.h"
 						>
 					</File>
 					<File
-						RelativePath=".\src\common\Lgi\GMenuImpl.cpp"
+						RelativePath=".\src\linux\Lgi\GMenuGtk.cpp"
 						>
 					</File>
 				</Filter>

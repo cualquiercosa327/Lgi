@@ -1,15 +1,20 @@
 /** \file
 	\author Matthew Allen
  */
-
+ 
 #ifndef __GMENU_H
 #define __GMENU_H
 
 // Os specific declarations
 #if defined __GTK_H__
-	#include <GMenuImpl.h>
-	typedef MenuClickImpl *OsSubMenu;
-	typedef MenuItemImpl *OsMenuItem;
+	#if 0
+		#include <GMenuImpl.h>
+		typedef MenuClickImpl *OsSubMenu;
+		typedef MenuItemImpl *OsMenuItem;
+	#else
+		typedef Gtk::GtkMenuShell *OsSubMenu;
+		typedef Gtk::GtkMenuItem *OsMenuItem;
+	#endif
 #elif defined WIN32
 	typedef HMENU OsSubMenu;
 	typedef MENUITEMINFO OsMenuItem;
@@ -97,7 +102,6 @@ class LgiClass GSubMenu :
 	#if WIN32NATIVE
 
 	HWND TrackHandle;
-	// bool Load(HMENU hmenu);
 
 	#elif defined BEOS
 

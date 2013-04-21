@@ -57,6 +57,16 @@ GMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Where
 		i->Enabled(Enabled);
 		i->ScanForAccel();
 
+		if (Info && i->Info)
+		{
+			Gtk::gtk_menu_shell_append(Info, i->Info);
+			Gtk::gtk_widget_show(i->Info);
+		}
+		else
+		{
+			LgiTrace("%s:%i Error: gtk_menu_shell_append(%p,%p) failed\n", _FL, Info, i->Info);
+			LgiAssert(0);
+		}
 		Items.Insert(i, Where);
 
 		return i;

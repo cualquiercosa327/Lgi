@@ -81,6 +81,13 @@ typedef Gtk::GdkGC						*OsPainter;
 typedef Gtk::PangoFontDescription       *OsFont;
 typedef void							*OsBitmap;
 
+// Because of namespace issues you can't use the built in GTK casting macros.
+// So this is basically the same thing:
+// e.g.
+//		Gtk::GtkContainer *c = GtkCast(widget, gtk_container, GtkContainer);
+//
+#define GtkCast(obj, gtype, ctype)		((Gtk::ctype*)g_type_check_instance_cast( (Gtk::GTypeInstance*)obj, Gtk::gtype##_get_type() ))
+
 class OsApplication
 {
 	class OsApplicationPriv *d;

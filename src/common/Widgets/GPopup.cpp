@@ -2,9 +2,6 @@
 #include "Lgi.h"
 #include "GPopup.h"
 #include "GSkinEngine.h"
-#ifdef LINUX
-#include "GMenuImpl.h"
-#endif
 
 #define POPUP_DELETE		1
 #define POPUP_VISIBLE		2
@@ -247,6 +244,7 @@ public:
 								}
 							}
 							#elif defined LINUX
+							/*
 							for (GViewI *v = Over; v; )
 							{
 								SubMenuImpl *Sub = dynamic_cast<SubMenuImpl*>(v);
@@ -265,6 +263,7 @@ public:
 								}
 								else v = 0;
 							}
+							*/
 							#endif
 
 							if (Close)

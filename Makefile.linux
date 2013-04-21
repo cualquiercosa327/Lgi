@@ -52,8 +52,7 @@ Depends =	GDateTime.o \
 			GMem.o \
 			GProperties.o \
 			GContainers.o \
-			GMenu.o \
-			GMenuImpl.o \
+			GMenuGtk.o \
 			GProcess.o \
 			LgiRes.o \
 			Res.o \
@@ -265,13 +264,8 @@ GContainers.o : ./src/common/General/GContainers.cpp ./include/common/GMem.h \
 	@echo $(<F) [$(Gui)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GMenu.o : ./src/linux/Lgi/GMenu.cpp ./include/common/Lgi.h \
+GMenuGtk.o : ./src/linux/Lgi/GMenuGtk.cpp ./include/common/Lgi.h \
 	./include/common/GToken.h
-	@echo $(<F) [$(Gui)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-GMenuImpl.o : ./src/common/Lgi/GMenuImpl.cpp ./include/common/Lgi.h \
-	./include/common/GMenu.h
 	@echo $(<F) [$(Gui)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 

@@ -1279,6 +1279,7 @@ protected:
 public:
 	#ifdef __GTK_H__
 	GWindow(Gtk::GtkWidget *w = 0);
+	Gtk::GtkWidget *GetRoot() { return Root; }
 	#else
 	GWindow();
 	#endif
