@@ -305,6 +305,8 @@ public:
 	bool Remove();
 	/// Returns the parent sub menu
 	GSubMenu *GetParent();
+	/// Returns the parent sub menu
+	GMenu *GetMenu() { return Menu; }
 	/// Scans the text of the item for a keyboard shortcut
 	bool ScanForAccel();
 	/// Returns the OS handle for the menuitem

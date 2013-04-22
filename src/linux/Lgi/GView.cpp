@@ -503,7 +503,8 @@ void GView::SetPulse(int Length)
 
 GMessage::Param GView::OnEvent(GMessage *Msg)
 {
-	switch (MsgCode(Msg))
+	int Id;
+	switch (Id = Msg->Type())
 	{
 		#if 0 // def M_GTHREADWORK_COMPELTE
 		case M_GTHREADWORK_COMPELTE:
@@ -546,6 +547,7 @@ GMessage::Param GView::OnEvent(GMessage *Msg)
 		}
 		default:
 		{
+			int asd=0;
 			break;
 		}
 	}

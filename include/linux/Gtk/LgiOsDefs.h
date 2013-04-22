@@ -254,7 +254,7 @@ LgiFunc void _lgi_sleep(int i);
 #define IsQuote(c)					(((c)=='\"')OR((c)=='\''))
 
 /// Base point for system messages.
-#define M_SYSTEM					(1000)
+#define M_SYSTEM					0x03f0
 /// Message that indicates the user is trying to close a top level window.
 #define M_CLOSE						(M_SYSTEM+1)
 /// Implemented to handle invalide requests in the GUI thread.
@@ -263,7 +263,7 @@ LgiFunc void _lgi_sleep(int i);
 #define M_X11_REPARENT				(M_SYSTEM+4)
 
 /// Minimum value for application defined message ID's
-#define M_USER						(M_SYSTEM+1000)
+#define M_USER						0x0400
 
 /// \brief Mouse enter event
 ///

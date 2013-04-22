@@ -1256,8 +1256,9 @@ protected:
 	friend class GView;
 
 	#elif defined __GTK_H__
-	
-	Gtk::GtkWidget *Root;
+
+	friend class GMenu;	
+	Gtk::GtkWidget *Root, *VBox, *MenuBar;
 	void _Paint(GSurface *pDC = 0, int Ox = 0, int Oy = 0);
 	
 	#endif
@@ -1279,7 +1280,6 @@ protected:
 public:
 	#ifdef __GTK_H__
 	GWindow(Gtk::GtkWidget *w = 0);
-	Gtk::GtkWidget *GetRoot() { return Root; }
 	#else
 	GWindow();
 	#endif

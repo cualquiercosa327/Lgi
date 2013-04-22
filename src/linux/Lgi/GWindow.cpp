@@ -65,9 +65,11 @@ GWindow::GWindow(GtkWidget *w) : GView(0)
 {
 	d = new GWindowPrivate;
 	_QuitOnClose = false;
-	Menu = 0;
+	Menu = NULL;
 	Wnd = GTK_WINDOW(w);
-	Root = 0;
+	Root = NULL;
+	MenuBar = NULL;
+	VBox = NULL;
 	VirtualFocusId = -1;
 	_Default = 0;
 	_Window = this;

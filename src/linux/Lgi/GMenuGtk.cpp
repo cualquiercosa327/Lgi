@@ -59,7 +59,10 @@ GMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Where
 		Gtk::GtkWidget *item = GtkCast(i->Handle(), gtk_widget, GtkWidget);
 		LgiAssert(item);
 		if (item)
+		{
 			Gtk::gtk_menu_shell_append(Info, item);
+			Gtk::gtk_widget_show(item);
+		}
 
 		return i;
 	}
@@ -78,6 +81,14 @@ GMenuItem *GSubMenu::AppendSeparator(int Where)
 
 		Items.Insert(i, Where);
 
+		Gtk::GtkWidget *item = GtkCast(i->Handle(), gtk_widget, GtkWidget);
+		LgiAssert(item);
+		if (item)
+		{
+			Gtk::gtk_menu_shell_append(Info, item);
+			Gtk::gtk_widget_show(item);
+		}
+		
 		return i;
 	}
 
@@ -86,11 +97,9 @@ GMenuItem *GSubMenu::AppendSeparator(int Where)
 
 GSubMenu *GSubMenu::AppendSub(const char *Str, int Where)
 {
-	GMenuItem *i = new GMenuItem;
+	GMenuItem *i = new GMenuItem(Menu, this, Where < 0 ? Items.Length() : Where, NULL);
 	if (i)
 	{
-		i->Parent = this;
-		i->Menu = Menu;
 		i->Id(-1);
 		i->Name(Str);
 		Items.Insert(i, Where);
@@ -99,8 +108,9 @@ GSubMenu *GSubMenu::AppendSub(const char *Str, int Where)
 		LgiAssert(item);
 		if (item)
 		{
-			print("AppendSub item:%p/%s connect to %p/%s\n", i->Handle(), Str, Handle(), Name());
+			printf("AppendSub item:%p/%s connect to %p/%s\n", i->Handle(), Str, Handle(), Name());
 			Gtk::gtk_menu_shell_append(Info, item);
+			Gtk::gtk_widget_show(item);
 		}
 
 		i->Child = new GSubMenu(Str);
@@ -113,7 +123,10 @@ GSubMenu *GSubMenu::AppendSub(const char *Str, int Where)
 			Gtk::GtkWidget *sub = GtkCast(i->Child->Handle(), gtk_widget, GtkWidget);
 			LgiAssert(sub);
 			if (i->Handle() && sub)
+			{
 				Gtk::gtk_menu_item_set_submenu(i->Handle(), sub);
+				Gtk::gtk_widget_show(sub);
+			}
 			else
 				LgiTrace("%s:%i Error: gtk_menu_item_set_submenu(%p,%p) failed\n", _FL, i->Handle(), sub);
 		}
@@ -215,9 +228,29 @@ GMenuItem *GSubMenu::FindItem(int Id)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
+static void MenuItemCallback(GMenuItem *Item)
+{
+	if (!Item->Sub())
+	{
+		GMenu *m = Item->GetMenu();
+		if (m)
+		{
+			GViewI *w = m->WindowHandle();
+			if (w)
+			{
+				#ifdef WIN32
+				w->PostEvent(M_COMMAND, Item->Id());
+				#else
+				w->OnCommand(Item->Id(), 0, NULL);
+				#endif
+			}
+		}
+	}
+}
+
 GMenuItem::GMenuItem()
 {
-	Info = GtkCast(Gtk::gtk_menu_item_new(), gtk_menu_item, GtkMenuItem);
+	Info = GtkCast(Gtk::gtk_separator_menu_item_new(), gtk_menu_item, GtkMenuItem);
 	Child = NULL;
 	Menu = NULL;
 	Parent = NULL;
@@ -233,6 +266,12 @@ GMenuItem::GMenuItem()
 GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, int Pos, const char *Shortcut)
 {
 	Info = GtkCast(Gtk::gtk_menu_item_new(), gtk_menu_item, GtkMenuItem);
+	Gtk::gulong ret = Gtk::g_signal_connect_data(Info,
+												"activate",
+												(Gtk::GCallback) MenuItemCallback,
+												this,
+												NULL,
+												Gtk::G_CONNECT_SWAPPED);
 	Child = NULL;
 	Menu = m;
 	Parent = p;
@@ -637,7 +676,19 @@ void GMenuItem::Checked(bool c)
 bool GMenuItem::Name(const char *n)
 {
 	bool Status = GBase::Name(n);	
-	gtk_menu_item_set_label(Info, n);	
+	
+	char buf[256], *out = buf;
+	const char *in = n;
+	while (in && *in && out < buf + sizeof(buf) - 1)
+	{
+		if (*in != '&' || in[1] == '&')
+			*out++ = *in;
+		in++;
+	}
+	*out++ = 0;	
+	
+	LgiAssert(Info);
+	gtk_menu_item_set_label(Info, buf);
 	return Status;
 }
 
@@ -766,22 +817,46 @@ GFont *GMenu::GetFont()
 
 bool GMenu::Attach(GViewI *p)
 {
-	GWindow *Wnd = dynamic_cast<GWindow*>(p);
-	Window = p->GetWindow();
-	if (!Window || !Wnd || !Wnd->GetRoot())
-		return false;
-
-	Gtk::GtkContainer *c = GtkCast(Wnd->GetRoot(), gtk_container, GtkContainer);
-	Gtk::GtkWidget *w = GtkCast(Info, gtk_widget, GtkWidget);
-	if (!c || !w)
+	if (!p)
 	{
-		LgiTrace("%s:%i Error: gtk_container_add(%p,%p) failed.\n", _FL, c, w);
 		LgiAssert(0);
 		return false;
 	}
+		
+	GWindow *Wnd = p->GetWindow();
+	if (!Wnd)
+	{
+		LgiAssert(0);
+		return false;
+	}
+		
+	Window = Wnd;
+	Gtk::GtkWidget *Root = NULL;
+	if (Wnd->VBox)
+	{
+		LgiAssert(!"Already has a menu");
+		return false;
+	}
 
-	Gtk::gtk_container_add(c, w);
-	Gtk::gtk_widget_show(w);
+	
+	Gtk::GtkWidget *menubar = GtkCast(Info, gtk_widget, GtkWidget);
+
+	Wnd->VBox = Gtk::gtk_vbox_new(false, 0);
+
+	Gtk::GtkBox *vbox = GtkCast(Wnd->VBox, gtk_box, GtkBox);
+	Gtk::GtkContainer *wndcontainer = GtkCast(Wnd->Wnd, gtk_container, GtkContainer);
+
+	Gtk::g_object_ref(Wnd->Root);
+	Gtk::gtk_container_remove(wndcontainer, Wnd->Root);
+
+	Gtk::gtk_container_add(wndcontainer, Wnd->VBox);
+
+	Gtk::gtk_box_pack_start(vbox, menubar, false, false, 0);
+	Gtk::gtk_box_pack_end(vbox, Wnd->Root, true, true, 0);
+	Gtk::g_object_unref(Wnd->Root);
+
+	Gtk::gtk_widget_show_all(GtkCast(Wnd->Wnd, gtk_widget, GtkWidget));
+	
 	return true;
 }
 
