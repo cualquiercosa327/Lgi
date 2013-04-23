@@ -1202,10 +1202,10 @@ void GView::SetTabStop(bool b)
 	#ifdef __GTK_H__
 	if (_View)
 	{
-		#if (GTK_MAJOR_VERSION == 2 && GTK_MINOR_VERSION <= 10)
-		LgiTrace("Error: no api to set tab stop.\n");
-		#else
+		#if GtkVer(2, 18)
         gtk_widget_set_can_focus(_View, b);
+		#else
+		LgiTrace("Error: no api to set tab stop.\n");
 		#endif
     }
 	#endif

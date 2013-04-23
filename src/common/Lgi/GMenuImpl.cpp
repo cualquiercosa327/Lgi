@@ -408,6 +408,7 @@ MenuImpl::MenuImpl(GMenu *Menu)
 }
 
 using namespace Gtk;
+
 MenuImpl::~MenuImpl()
 {
 	if (_View)
@@ -415,7 +416,8 @@ MenuImpl::~MenuImpl()
 		GtkWidget *par = gtk_widget_get_parent(_View);
 		if (par)
 		{
-			bool b = GTK_IS_CONTAINER(par);
+			bool b = g_type_check_instance_is_a ((GTypeInstance*) par, GTK_TYPE_CONTAINER);
+			
 			printf("%p is container = %i (view=%p)\n", par, b, _View);
 		}
 	}

@@ -810,10 +810,10 @@ bool GPopup::Visible()
     if (Wnd)
     {
 		GView::Visible(
-						#if (GTK_MAJOR_VERSION == 2 && GTK_MINOR_VERSION < 18)
-						(GTK_OBJECT_FLAGS (Wnd) & GTK_VISIBLE) != 0
-						#else
+						#if GtkVer(2, 18)
 						gtk_widget_get_visible(Wnd)
+						#else
+						(GTK_OBJECT_FLAGS (Wnd) & GTK_VISIBLE) != 0
 						#endif
 						);
     }

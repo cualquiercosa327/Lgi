@@ -113,7 +113,6 @@ GSubMenu *GSubMenu::AppendSub(const char *Str, int Where)
 		LgiAssert(item);
 		if (item)
 		{
-			printf("AppendSub item:%p/%s connect to %p/%s\n", i->Handle(), Str, Handle(), Name());
 			Gtk::gtk_menu_shell_append(Info, item);
 			Gtk::gtk_widget_show(item);
 		}
@@ -233,6 +232,27 @@ GMenuItem *GSubMenu::FindItem(int Id)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
+static GAutoString MenuItemParse(const char *s)
+{
+	char buf[256], *out = buf;
+	const char *in = s;
+	while (in && *in && out < buf + sizeof(buf) - 1)
+	{
+		if (*in != '&' || in[1] == '&')
+			*out++ = *in;
+		in++;
+	}
+	*out++ = 0;
+	
+	char *tab = strrchr(buf, '\t');
+	if (tab)
+	{
+		*tab++ = 0;
+	}
+	
+	return GAutoString(NewStr(buf));
+}
+
 static void MenuItemCallback(GMenuItem *Item)
 {
 	if (!Item->Sub())
@@ -268,7 +288,9 @@ GMenuItem::GMenuItem()
 
 GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, const char *txt, int Pos, const char *Shortcut)
 {
-	Info = GtkCast(Gtk::gtk_menu_item_new_with_label(txt), gtk_menu_item, GtkMenuItem);
+	GAutoString Txt = MenuItemParse(txt);
+
+	Info = GtkCast(Gtk::gtk_menu_item_new_with_label(Txt), gtk_menu_item, GtkMenuItem);
 	Gtk::gulong ret = Gtk::g_signal_connect_data(Info,
 												"activate",
 												(Gtk::GCallback) MenuItemCallback,
@@ -285,6 +307,8 @@ GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, const char *txt, int Pos, const char
 	_Id = 0;
 	_Enabled = true;
 	_Check = false;
+
+	ScanForAccel();
 }
 
 GMenuItem::~GMenuItem()
@@ -690,25 +714,16 @@ bool GMenuItem::Name(const char *n)
 {
 	bool Status = GBase::Name(n);	
 	
-	char buf[256], *out = buf;
-	const char *in = n;
-	while (in && *in && out < buf + sizeof(buf) - 1)
-	{
-		if (*in != '&' || in[1] == '&')
-			*out++ = *in;
-		in++;
-	}
-	*out++ = 0;
-	
-	char *tab = strrchr(buf, '\t');
-	if (tab)
-	{
-		ScanForAccel();
-		*tab++ = 0;
-	}
-	
+	#if GtkVer(2, 16)
 	LgiAssert(Info);
-	gtk_menu_item_set_label(Info, buf);
+	GAutoString Txt = MenuItemParse(n);
+	ScanForAccel();
+	gtk_menu_item_set_label(Info, Txt);
+	#else
+	LgiTrace("Warning: can't set label after creation.");
+	Status = false;
+	#endif
+	
 	return Status;
 }
 

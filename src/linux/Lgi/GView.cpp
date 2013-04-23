@@ -31,7 +31,7 @@ struct X11_INVALIDATE_PARAMS
 	bool Repaint;
 };
 
-#if (GTK_MAJOR_VERSION == 2 && GTK_MINOR_VERSION <= 12)
+#if !GtkVer(2, 12)
 #define gtk_widget_get_window(widget) ((widget)->window)
 #endif
 

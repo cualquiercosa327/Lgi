@@ -193,10 +193,10 @@ int GDialog::DoModal(OsView OverrideParent)
 	}
 	
 	GtkWidget *content_area = 	
-	#if (GTK_MAJOR_VERSION == 2 && GTK_MINOR_VERSION < 14)
-		GTK_DIALOG(Wnd)->vbox;
-	#else
+	#if GtkVer(2, 14)
 		gtk_dialog_get_content_area(GTK_DIALOG(Wnd));
+	#else
+		GTK_DIALOG(Wnd)->vbox;
 	#endif
 	if (content_area)
 	{
