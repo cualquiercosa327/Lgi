@@ -586,7 +586,7 @@
 			<menuitem Ref="173" />
 			<menuitem Ref="172" />
 			<menuitem Ref="171" />
-			<menuitem Ref="170" />
+			<menuitem Ref="170" Shortcut="Ctrl+W" />
 			<menuitem Ref="169" />
 			<menuitem Sep="1" />
 			<menuitem Ref="168" />
