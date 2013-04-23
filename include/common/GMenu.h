@@ -295,7 +295,7 @@ public:
 	GMenuItem(BMenuItem *item);
 	GMenuItem(GSubMenu *p);
 	#else
-	GMenuItem(GMenu *m, GSubMenu *p, int Pos, const char *Shortcut = 0);
+	GMenuItem(GMenu *m, GSubMenu *p, const char *txt, int Pos, const char *Shortcut = 0);
 	#endif
 	virtual ~GMenuItem();
 

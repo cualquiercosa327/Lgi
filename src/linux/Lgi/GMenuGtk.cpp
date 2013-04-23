@@ -53,11 +53,10 @@ GMenuItem *GSubMenu::ItemAt(int Id)
 
 GMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Where, const char *Shortcut)
 {
-	GMenuItem *i = new GMenuItem(Menu, this, Where < 0 ? Items.Length() : Where, Shortcut);
+	GMenuItem *i = new GMenuItem(Menu, this, Str, Where < 0 ? Items.Length() : Where, Shortcut);
 	if (i)
 	{
 		i->Id(Id);
-		i->Name(Str);
 		i->Enabled(Enabled);
 		i->ScanForAccel();
 
@@ -104,11 +103,10 @@ GMenuItem *GSubMenu::AppendSeparator(int Where)
 
 GSubMenu *GSubMenu::AppendSub(const char *Str, int Where)
 {
-	GMenuItem *i = new GMenuItem(Menu, this, Where < 0 ? Items.Length() : Where, NULL);
+	GMenuItem *i = new GMenuItem(Menu, this, Str, Where < 0 ? Items.Length() : Where, NULL);
 	if (i)
 	{
 		i->Id(-1);
-		i->Name(Str);
 		Items.Insert(i, Where);
 
 		Gtk::GtkWidget *item = GtkCast(i->Handle(), gtk_widget, GtkWidget);
@@ -268,9 +266,9 @@ GMenuItem::GMenuItem()
 	_Check = false;
 }
 
-GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, int Pos, const char *Shortcut)
+GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, const char *txt, int Pos, const char *Shortcut)
 {
-	Info = GtkCast(Gtk::gtk_menu_item_new(), gtk_menu_item, GtkMenuItem);
+	Info = GtkCast(Gtk::gtk_menu_item_new_with_label(txt), gtk_menu_item, GtkMenuItem);
 	Gtk::gulong ret = Gtk::g_signal_connect_data(Info,
 												"activate",
 												(Gtk::GCallback) MenuItemCallback,
