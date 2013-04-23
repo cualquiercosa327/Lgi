@@ -125,7 +125,7 @@
 				<Node File="./src/common/Lgi/GFileSelect.cpp" Type="2" Platforms="6" />
 			</Node>
 		</Node>
-		<Node Name="Gdc2" Type="1" Platforms="7" Open="1">
+		<Node Name="Gdc2" Type="1" Platforms="7" Open="0">
 			<Node Name="_Core" Type="1" Platforms="7" Open="0">
 				<Node File=".\src\common\Gdc2\GColourReduce.cpp" Type="2" Platforms="7" />
 				<Node File=".\include\common\Gdc2.h" Type="3" Platforms="7" />
@@ -291,5 +291,8 @@
 	</Node>
 	<Node Name="Distrib" Type="1" Platforms="7" Open="0">
 		<Node File="./Distro.make" Type="3" Platforms="2" />
+	</Node>
+	<Node Name="Headers" Type="1" Platforms="7" Open="1">
+		<Node File=".\include\linux\Gtk\LgiOsDefs.h" Type="3" Platforms="7" />
 	</Node>
 </Project>
