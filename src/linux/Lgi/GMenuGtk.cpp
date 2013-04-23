@@ -30,8 +30,15 @@ GSubMenu::GSubMenu(const char *name, bool Popup)
 
 GSubMenu::~GSubMenu()
 {
-	Items.DeleteObjects();
-	DeleteObj(Info);
+	while (Items.Length())
+	{
+		GMenuItem *i = Items.First();
+		LgiAssert(i->Parent == this);
+		DeleteObj(i);
+	}
+	
+	if (Info)
+		g_object_unref(Info);
 }
 
 int GSubMenu::Length()
@@ -238,13 +245,11 @@ static void MenuItemCallback(GMenuItem *Item)
 			GViewI *w = m->WindowHandle();
 			if (w)
 			{
-				#ifdef WIN32
 				w->PostEvent(M_COMMAND, Item->Id());
-				#else
-				w->OnCommand(Item->Id(), 0, NULL);
-				#endif
 			}
+			else LgiAssert(!"No window for menu to send to");
 		}
+		else LgiAssert(!"Menuitem not attached to menu");
 	}
 }
 
@@ -286,6 +291,8 @@ GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, int Pos, const char *Shortcut)
 
 GMenuItem::~GMenuItem()
 {
+	if (Info)
+		Remove();
 	DeleteObj(Child);
 }
 
@@ -646,13 +653,21 @@ GSubMenu *GMenuItem::GetParent()
 
 bool GMenuItem::Remove()
 {
-	if (Parent)
+	if (!Parent)
 	{
-		Parent->Items.Delete(this);
-		return true;
+		LgiAssert(!"No parent to remove menu item from");
+		return false;
 	}
 
-	return false;
+	if (Info)
+	{
+		Gtk::GtkContainer *c = GtkCast(Parent->Info, gtk_container, GtkContainer);
+		Gtk::GtkWidget *w = GtkCast(Info, gtk_widget, GtkWidget);
+		Gtk::gtk_container_remove(c, w);
+	}
+
+	Parent->Items.Delete(this);
+	return true;
 }
 
 void GMenuItem::Id(int i)
@@ -685,7 +700,14 @@ bool GMenuItem::Name(const char *n)
 			*out++ = *in;
 		in++;
 	}
-	*out++ = 0;	
+	*out++ = 0;
+	
+	char *tab = strrchr(buf, '\t');
+	if (tab)
+	{
+		ScanForAccel();
+		*tab++ = 0;
+	}
 	
 	LgiAssert(Info);
 	gtk_menu_item_set_label(Info, buf);
@@ -695,6 +717,11 @@ bool GMenuItem::Name(const char *n)
 void GMenuItem::Enabled(bool e)
 {
 	_Enabled = e;
+	
+	if (Info)
+	{
+		Gtk::gtk_widget_set_sensitive(GtkCast(Info, gtk_widget, GtkWidget), e);
+ 	}
 }
 
 void GMenuItem::Focus(bool f)
