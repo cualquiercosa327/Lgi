@@ -891,6 +891,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\common\Widgets\GBox.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\include\common\GBox.h"
+					>
+				</File>
+				<File
 					RelativePath=".\src\common\Widgets\GButton.cpp"
 					>
 				</File>

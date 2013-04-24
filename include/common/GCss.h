@@ -709,6 +709,7 @@ public:
 	Accessor(PaddingBottom, Len, Len());
 	Accessor(PaddingLeft, Len, Len());
 
+	Accessor(Border, BorderDef, BorderDef());
 	Accessor(BorderTop, BorderDef, BorderDef());
 	Accessor(BorderRight, BorderDef, BorderDef());
 	Accessor(BorderBottom, BorderDef, BorderDef());
