@@ -138,6 +138,21 @@ void GWindow::_OnViewDelete()
 	}
 }
 
+void GWindow::OnGtkDelete()
+{
+	// Delete everything we own...
+	DeleteObj(Menu);
+	while (Children.Length())
+	{
+		GViewI *c = Children.First();
+		c->Detach();
+	}
+	
+	// These will be destroyed by GTK after returning from GWindowCallback
+	Wnd = NULL;
+	_View = NULL;
+}
+
 static
 gboolean
 GWindowCallback(GtkWidget   *widget,
@@ -155,7 +170,10 @@ GWindowCallback(GtkWidget   *widget,
 		case GDK_DELETE:
 		{
 			This->_Dump();
-			return !This->OnRequestClose(false);
+			bool Close = This->OnRequestClose(false);
+			if (Close)
+				This->OnGtkDelete();
+			return !Close;
 		}
 		case GDK_DESTROY:
 		{

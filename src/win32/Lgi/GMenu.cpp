@@ -110,16 +110,14 @@ GSubMenu::~GSubMenu()
 
 GMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Where, const char *Shortcut)
 {
-	GMenuItem *Item = new GMenuItem(Menu, this, Str, Items.Length(), Shortcut);
+	int Pos = Where < 0 ? Items.Length() : min(Where, Items.Length());
+	GMenuItem *Item = new GMenuItem(Menu, this, Str, Pos, Shortcut);
 	if (Item)
 	{
 		Item->Id(Id);
 		Item->Enabled(Enabled);
-
 		Items.Insert(Item, Where);
 		Item->ScanForAccel();
-
-		Item->Insert(Items.IndexOf(Item));
 	}
 
 	if (Menu)
@@ -136,11 +134,11 @@ GMenuItem *GSubMenu::AppendSeparator(int Where)
 	if (Item)
 	{
 		Item->Menu = Menu;
-		Item->Parent = this;
-		Item->Separator(true);
 		Items.Insert(Item, Where);
-
-		Item->Insert(Items.IndexOf(Item));
+		Item->Position = Items.IndexOf(Item);
+		Item->Separator(true);
+		Item->Parent = this;
+		Item->Insert(Item->Position);
 	}
 
 	if (Menu)
@@ -153,14 +151,14 @@ GMenuItem *GSubMenu::AppendSeparator(int Where)
 
 GSubMenu *GSubMenu::AppendSub(const char *Str, int Where)
 {
-	GMenuItem *Item = new GMenuItem(Menu, this, Str, Items.Length());
+	int Pos = Where < 0 ? Items.Length() : min(Where, Items.Length());
+	GMenuItem *Item = new GMenuItem(Menu, this, Str, Pos);
 	GSubMenu *Sub = new GSubMenu;
 
 	if (Item && Sub)
 	{
 		Item->Sub(Sub);
 		Items.Insert(Item, Where);
-		Item->Insert(Items.IndexOf(Item));
 	}
 	else
 	{
@@ -347,7 +345,7 @@ GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, const char *Txt, int Pos, const char
 	d->Shortcut.Reset(NewStr(Shortcut));
 	Position = Pos;
 	Menu = m;
-	Parent = p;
+	Parent = NULL;
 	Child = 0;
 	_Icon = -1;
 
@@ -368,6 +366,9 @@ GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, const char *Txt, int Pos, const char
 	Id(0);
 	Enabled(true);
 	Name(Txt);
+
+	Parent = p;
+	Insert(Position);
 }
 
 GMenuItem::~GMenuItem()
@@ -945,6 +946,7 @@ bool GMenuItem::Insert(int Pos)
 
 	if (Parent)
 	{
+		LgiAssert(Position >= 0);
 		Position = Pos;
 		Status = InsertMenuItem(Parent->Handle(),
 								Position,

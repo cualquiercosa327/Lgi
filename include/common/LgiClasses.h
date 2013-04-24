@@ -1258,8 +1258,10 @@ protected:
 	#elif defined __GTK_H__
 
 	friend class GMenu;	
+	friend Gtk::gboolean GWindowCallback(Gtk::GtkWidget *widget, Gtk::GdkEvent *event, GWindow *This);
 	Gtk::GtkWidget *Root, *VBox, *MenuBar;
 	void _Paint(GSurface *pDC = 0, int Ox = 0, int Oy = 0);
+	void OnGtkDelete();
 	
 	#endif
 

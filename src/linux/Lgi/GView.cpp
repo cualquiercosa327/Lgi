@@ -754,8 +754,6 @@ bool GView::Attach(GViewI *parent)
 
 bool GView::Detach()
 {
-	bool Status = false;
-
 	// Detach view
 	GViewI *Par = GetParent();
 	if (Par)
@@ -768,18 +766,33 @@ bool GView::Detach()
 	d->Parent = 0;
 	d->ParentI = 0;
 
+	{
+		GAutoPtr<GViewIterator> i(IterateViews());
+		int Count = i->Length();
+		if (Count)
+		{
+			int Detached = 0;
+			GViewI *c;
+			while (c = i->First())
+			{
+				c->Detach();
+				Detached++;
+			}
+			LgiAssert(Count == Detached);
+		}
+	}
+
 	if (_View)
 	{
 	    #ifdef LINUX
 		LgiApp->UnregisterHandle(this);
 		#endif
+		LgiAssert(_View->object.parent_instance.g_type_instance.g_class);
 		gtk_widget_destroy(_View);
 		_View = 0;
 	}
 
-	Status = true;
-
-	return Status;
+	return true;
 }
 
 GViewI *GView::FindControl(OsView hCtrl)

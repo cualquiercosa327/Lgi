@@ -38,7 +38,14 @@ GSubMenu::~GSubMenu()
 	}
 	
 	if (Info)
-		g_object_unref(Info);
+	{
+		// bool IsMenu = Menu == this;
+		LgiAssert(Info->container.widget.object.parent_instance.g_type_instance.g_class);
+		Gtk::GtkWidget *w = GtkCast(Info, gtk_widget, GtkWidget);
+		// LgiTrace("%p::~GSubMenu w=%p name=%s IsMenu=%i\n", this, w, Name(), IsMenu);
+		Gtk::gtk_widget_destroy(w);
+		Info = NULL;
+	}
 }
 
 int GSubMenu::Length()
@@ -103,6 +110,7 @@ GMenuItem *GSubMenu::AppendSeparator(int Where)
 
 GSubMenu *GSubMenu::AppendSub(const char *Str, int Where)
 {
+	GBase::Name(Str);
 	GMenuItem *i = new GMenuItem(Menu, this, Str, Where < 0 ? Items.Length() : Where, NULL);
 	if (i)
 	{
@@ -289,7 +297,7 @@ GMenuItem::GMenuItem()
 GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, const char *txt, int Pos, const char *Shortcut)
 {
 	GAutoString Txt = MenuItemParse(txt);
-
+	GBase::Name(txt);
 	Info = GtkCast(Gtk::gtk_menu_item_new_with_label(Txt), gtk_menu_item, GtkMenuItem);
 	Gtk::gulong ret = Gtk::g_signal_connect_data(Info,
 												"activate",
@@ -683,9 +691,16 @@ bool GMenuItem::Remove()
 
 	if (Info)
 	{
-		Gtk::GtkContainer *c = GtkCast(Parent->Info, gtk_container, GtkContainer);
+		if (Child)
+		{
+			DeleteObj(Child);
+		}
+
+		LgiAssert(Info->item.bin.container.widget.object.parent_instance.g_type_instance.g_class);
 		Gtk::GtkWidget *w = GtkCast(Info, gtk_widget, GtkWidget);
-		Gtk::gtk_container_remove(c, w);
+		// LgiTrace("%p::~GMenuItem w=%p name=%s\n", this, w, Name());
+		Gtk::gtk_widget_destroy(w);
+		Info = NULL;
 	}
 
 	Parent->Items.Delete(this);
@@ -813,6 +828,7 @@ GMenu::GMenu() : GSubMenu("", false)
 	Menu = this;
 	d = NULL;
 	Info = GtkCast(Gtk::gtk_menu_bar_new(), gtk_menu_shell, GtkMenuShell);
+	int asd=0;
 }
 
 GMenu::~GMenu()
