@@ -157,8 +157,8 @@ GSubMenu *GSubMenu::AppendSub(const char *Str, int Where)
 
 	if (Item && Sub)
 	{
-		Item->Sub(Sub);
 		Items.Insert(Item, Where);
+		Item->Sub(Sub);
 	}
 	else
 	{
@@ -315,10 +315,10 @@ public:
 GMenuItem::GMenuItem()
 {
 	d = new GMenuItemPrivate;
-	Menu = 0;
-	Parent = 0;
+	Menu = NULL;
+	Parent = NULL;
 	Child = 0;
-	Position = 0;
+	Position = -1;
 	_Icon = -1;
 
 	ZeroObj(Info);
@@ -344,6 +344,7 @@ GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, const char *Txt, int Pos, const char
 	d = new GMenuItemPrivate;
 	d->Shortcut.Reset(NewStr(Shortcut));
 	Position = Pos;
+	Parent = NULL;
 	Menu = m;
 	Parent = NULL;
 	Child = 0;
@@ -362,7 +363,6 @@ GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, const char *Txt, int Pos, const char
 	#endif
 	#endif
 
-	Name("<error>");
 	Id(0);
 	Enabled(true);
 	Name(Txt);
@@ -764,6 +764,7 @@ bool GMenuItem::Update()
 	if (Parent && Parent->Handle())
 	{
 		Status = SetMenuItemInfo(Parent->Handle(), Position, true, &Info);
+		LgiAssert(Status);
 	}
 
 	return Status;
@@ -944,7 +945,7 @@ bool GMenuItem::Insert(int Pos)
 {
 	bool Status = false;
 
-	if (Parent)
+	if (Parent && Parent->Handle())
 	{
 		LgiAssert(Position >= 0);
 		Position = Pos;
@@ -952,6 +953,7 @@ bool GMenuItem::Insert(int Pos)
 								Position,
 								true,
 								&Info);
+		LgiAssert(Status);
 	}
 
 	return Status;
