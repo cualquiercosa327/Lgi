@@ -88,7 +88,7 @@ typedef void							*OsBitmap;
 //
 #define GtkCast(obj, gtype, ctype)		((Gtk::ctype*)g_type_check_instance_cast( (Gtk::GTypeInstance*)obj, Gtk::gtype##_get_type() ))
 
-#define GtkVer(major, minor)			( (major > GTK_MAJOR_VERSION) || (major == GTK_MAJOR_VERSION && minor >= GTK_MINOR_VERSION) )
+#define GtkVer(major, minor)			( (GTK_MAJOR_VERSION > major) || (GTK_MAJOR_VERSION == major && GTK_MINOR_VERSION >= minor) )
 
 class OsApplication
 {

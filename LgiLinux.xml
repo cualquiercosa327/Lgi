@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<Project TabSize="4" IndentSize="4" UseTabs="1" ShowWhitespace="0" Makefile="./Makefile.linux" IncludePaths=".\include\common&#10;.\include\linux\Xcb&#10;\usr\include\xcb&#10;" BuildType="0" TargetType="1" TargetName="lgi" Compiler="0" Defs="LGI_LIBRARY" Libs="xcb&#10;xcb-keysyms&#10;pango-1.0&#10;pangocairo-1.0">
+<Project TabSize="4" IndentSize="4" UseTabs="1" ShowWhitespace="0" Makefile="./Makefile.linux" IncludePaths=".\include\common&#10;.\include\linux\Gtk&#10;" BuildType="0" TargetType="1" TargetName="lgi" Compiler="0" Defs="LGI_LIBRARY" Libs="xcb&#10;xcb-keysyms&#10;pango-1.0&#10;pangocairo-1.0">
 	<Node Name="Source Files" Type="1" Platforms="7" Open="1">
 		<Node Name="Core" Type="1" Platforms="7" Open="1">
 			<Node Name="DateTime" Type="1" Platforms="7" Open="0">
@@ -26,7 +26,7 @@
 				<Node File="./include/common/GLibrary.h" Type="3" Platforms="7" />
 			</Node>
 			<Node Name="Linux" Type="1" Platforms="7" Open="1">
-				<Node Name="Headers" Type="1" Platforms="7" Open="1">
+				<Node Name="Headers" Type="1" Platforms="7" Open="0">
 					<Node File=".\include\linux\X\LgiOsClasses.h" Type="3" Platforms="7" />
 					<Node File=".\include\linux\Xcb\LgiOsDefs.h" Type="3" Platforms="7" />
 				</Node>
@@ -55,14 +55,14 @@
 				<Node File="./include/common/GMem.h" Type="3" Platforms="7" />
 			</Node>
 			<Node Name="Menus" Type="1" Platforms="7" Open="0">
-				<Node Name="Linux" Type="1" Platforms="7" Open="0">
-					<Node File="./src/linux/Lgi/GMenu.cpp" Type="2" Platforms="2" />
-					<Node File="./src/common/Lgi/GMenuImpl.cpp" Type="2" Platforms="2" />
+				<Node Name="Linux" Type="1" Platforms="7" Open="1">
+					<Node File=".\src\linux\Lgi\GMenu.cpp" Type="2" Platforms="2" />
+					<Node File=".\src\linux\Lgi\GMenuGtk.cpp" Type="2" Platforms="7" />
 				</Node>
 				<Node Name="Win32" Type="1" Platforms="7" Open="0">
 					<Node File="./src/win32/Lgi/GMenu.cpp" Type="2" Platforms="1" />
 				</Node>
-				<Node File="./include/common/GMenu.h" Type="3" Platforms="7" />
+				<Node File=".\include\common\GMenu.h" Type="3" Platforms="7" />
 			</Node>
 			<Node Name="Process" Type="1" Platforms="7" Open="0">
 				<Node File="./src/common/Lgi/GProcess.cpp" Type="2" Platforms="7" />
@@ -181,7 +181,7 @@
 				<Node File="./include/common/GdiLeak.h" Type="3" Platforms="7" />
 			</Node>
 		</Node>
-		<Node Name="General" Type="1" Platforms="7" Open="0">
+		<Node Name="General" Type="1" Platforms="7" Open="1">
 			<Node Name="Clipboard" Type="1" Platforms="7" Open="0">
 				<Node Name="Win32" Type="1" Platforms="7" Open="0">
 					<Node File="./src/win32/Lgi/GClipBoard.cpp" Type="2" Platforms="1" />
@@ -200,17 +200,17 @@
 				<Node File="./src/common/Lgi/GMru.cpp" Type="2" Platforms="7" />
 				<Node File="./include/common/GMru.h" Type="3" Platforms="7" />
 			</Node>
-			<Node File="./src/common/INet/Base64.cpp" Type="2" Platforms="7" />
-			<Node File="./src/common/Lgi/GOptionsFile.cpp" Type="2" Platforms="7" />
-			<Node File="./src/common/Lgi/LgiRand.cpp" Type="2" Platforms="7" />
+			<Node File=".\src\common\INet\Base64.cpp" Type="2" Platforms="7" />
+			<Node File=".\src\common\Lgi\GOptionsFile.cpp" Type="2" Platforms="7" />
+			<Node File=".\src\common\Lgi\LgiRand.cpp" Type="2" Platforms="7" />
 		</Node>
-		<Node Name="Text" Type="1" Platforms="7" Open="0">
-			<Node File="./src/common/Text/GString.cpp" Type="2" Platforms="7" />
-			<Node File="./include/common/GString.h" Type="3" Platforms="7" />
-			<Node File="./src/common/Text/GToken.cpp" Type="2" Platforms="7" />
-			<Node File="./src/common/Text/GUtf8.cpp" Type="2" Platforms="7" />
-			<Node File="./src/common/Text/GXmlTree.cpp" Type="2" Platforms="7" />
-			<Node File="./include/common/GXmlTree.h" Type="3" Platforms="7" />
+		<Node Name="Text" Type="1" Platforms="7" Open="1">
+			<Node File=".\src\common\Text\GString.cpp" Type="2" Platforms="7" />
+			<Node File=".\include\common\GString.h" Type="3" Platforms="7" />
+			<Node File=".\src\common\Text\GToken.cpp" Type="2" Platforms="7" />
+			<Node File=".\src\common\Text\GUtf8.cpp" Type="2" Platforms="7" />
+			<Node File=".\src\common\Text\GXmlTree.cpp" Type="2" Platforms="7" />
+			<Node File=".\include\common\GXmlTree.h" Type="3" Platforms="7" />
 		</Node>
 		<Node Name="Widgets" Type="1" Platforms="7" Open="0">
 			<Node Name="Css" Type="1" Platforms="7" Open="0">
@@ -276,10 +276,10 @@
 				<Node File="./src/common/INet/AuthNtlm/Smbmd4.cpp" Type="2" Platforms="7" />
 				<Node File="./src/common/INet/AuthNtlm/Smbutil.cpp" Type="2" Platforms="7" />
 			</Node>
-			<Node File="./src/common/INet/INet.cpp" Type="2" Platforms="7" />
-			<Node File="./src/common/INet/INetTools.cpp" Type="2" Platforms="7" />
-			<Node File="./src/common/General/md5.c" Type="2" Platforms="7" />
-			<Node File="./src/win32/INet/MibAccess.cpp" Type="2" Platforms="1" />
+			<Node File=".\src\common\INet\INet.cpp" Type="2" Platforms="7" />
+			<Node File=".\src\common\INet\INetTools.cpp" Type="2" Platforms="7" />
+			<Node File=".\src\common\General\md5.c" Type="2" Platforms="7" />
+			<Node File=".\src\win32\INet\MibAccess.cpp" Type="2" Platforms="1" />
 		</Node>
 		<Node Name="Header" Type="1" Platforms="7" Open="0">
 			<Node File="./include/common/INet.h" Type="3" Platforms="7" />
@@ -290,7 +290,7 @@
 		</Node>
 	</Node>
 	<Node Name="Distrib" Type="1" Platforms="7" Open="0">
-		<Node File="./Distro.make" Type="3" Platforms="2" />
+		<Node File=".\Distro.make" Type="3" Platforms="2" />
 	</Node>
 	<Node Name="Headers" Type="1" Platforms="7" Open="1">
 		<Node File=".\include\linux\Gtk\LgiOsDefs.h" Type="3" Platforms="7" />

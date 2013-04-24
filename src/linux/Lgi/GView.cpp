@@ -31,7 +31,9 @@ struct X11_INVALIDATE_PARAMS
 	bool Repaint;
 };
 
-#if !GtkVer(2, 12)
+#if GtkVer(2, 14)
+#error asd
+#else
 #define gtk_widget_get_window(widget) ((widget)->window)
 #endif
 
