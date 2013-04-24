@@ -32,7 +32,6 @@ struct X11_INVALIDATE_PARAMS
 };
 
 #if GtkVer(2, 14)
-#error asd
 #else
 #define gtk_widget_get_window(widget) ((widget)->window)
 #endif
