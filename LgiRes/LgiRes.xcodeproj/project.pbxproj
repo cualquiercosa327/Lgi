@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3408B1E21729F11300397078 /* LgiRes_Css.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3408B1E11729F11300397078 /* LgiRes_Css.cpp */; };
 		342D774A11FA4929005BADBD /* LgiMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 342D774911FA4929005BADBD /* LgiMain.cpp */; };
 		3444A35712275B75004ADADE /* Lgi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3444A35612275B75004ADADE /* Lgi.framework */; };
 		3444A35912275B7B004ADADE /* Lgi.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3444A35612275B75004ADADE /* Lgi.framework */; };
@@ -52,8 +53,9 @@
 		1870340FFE93FCAF11CA0CD7 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/main.nib; sourceTree = "<group>"; };
 		20286C33FDCF999611CA2CEA /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		32DBCF6D0370B57F00C91783 /* LgiRes_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LgiRes_Prefix.pch; sourceTree = "<group>"; };
+		3408B1E11729F11300397078 /* LgiRes_Css.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiRes_Css.cpp; path = Code/LgiRes_Css.cpp; sourceTree = "<group>"; };
 		342D774911FA4929005BADBD /* LgiMain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiMain.cpp; path = ../src/common/Lgi/LgiMain.cpp; sourceTree = SOURCE_ROOT; };
-		3444A35612275B75004ADADE /* Lgi.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Lgi.framework; path = ../build/Debug/Lgi.framework; sourceTree = SOURCE_ROOT; };
+		3444A35612275B75004ADADE /* Lgi.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Lgi.framework; path = ../src/mac/carbon/build/Debug/Lgi.framework; sourceTree = SOURCE_ROOT; };
 		34F3E966148730DA009D9AC5 /* LgiRes_ControlTree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiRes_ControlTree.cpp; path = Code/LgiRes_ControlTree.cpp; sourceTree = "<group>"; };
 		34F3E967148730DA009D9AC5 /* LgiRes_Dialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiRes_Dialog.cpp; path = Code/LgiRes_Dialog.cpp; sourceTree = "<group>"; };
 		34F3E968148730DA009D9AC5 /* LgiRes_Dialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LgiRes_Dialog.h; path = Code/LgiRes_Dialog.h; sourceTree = "<group>"; };
@@ -118,6 +120,7 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				3408B1E11729F11300397078 /* LgiRes_Css.cpp */,
 				34F3E966148730DA009D9AC5 /* LgiRes_ControlTree.cpp */,
 				34F3E967148730DA009D9AC5 /* LgiRes_Dialog.cpp */,
 				34F3E968148730DA009D9AC5 /* LgiRes_Dialog.h */,
@@ -259,6 +262,7 @@
 				34F3EA4014873111009D9AC5 /* GDocApp.cpp in Sources */,
 				34F3EA651487315E009D9AC5 /* Gif.cpp in Sources */,
 				34F3EA661487315E009D9AC5 /* Lzw.cpp in Sources */,
+				3408B1E21729F11300397078 /* LgiRes_Css.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -288,7 +292,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = ../build/Debug;
+				FRAMEWORK_SEARCH_PATHS = ../src/mac/carbon/build/Debug;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -332,7 +336,7 @@
 		34BA95080B33B2BB00493CD3 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = ../build/Debug;
+				FRAMEWORK_SEARCH_PATHS = ../src/mac/carbon/build/Debug;
 				OTHER_CFLAGS = (
 					"-DMAC",
 					"-D_DEBUG",
@@ -341,20 +345,20 @@
 					"$(OTHER_CFLAGS)",
 					"-fvisibility=default",
 				);
-				USER_HEADER_SEARCH_PATHS = "../include/mac ../include/common";
+				USER_HEADER_SEARCH_PATHS = "../include/mac/carbon ../include/common";
 			};
 			name = Development;
 		};
 		34BA95090B33B2BB00493CD3 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = ../build/Release;
+				FRAMEWORK_SEARCH_PATHS = ../src/mac/carbon/build/Release;
 				OTHER_CFLAGS = "-DMAC";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-fvisibility=default",
 				);
-				USER_HEADER_SEARCH_PATHS = "../include/mac ../include/common";
+				USER_HEADER_SEARCH_PATHS = "../include/mac/carbon ../include/common";
 			};
 			name = Deployment;
 		};

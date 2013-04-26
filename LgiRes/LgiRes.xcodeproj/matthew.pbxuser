@@ -155,7 +155,7 @@
 				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
 				PBXFileTableDataSourceColumnWidthsKey = (
 					20,
-					538,
+					528,
 					60,
 					20,
 					79,
@@ -172,7 +172,7 @@
 					PBXFileDataSource_Warnings_ColumnID,
 				);
 			};
-			PBXPerProjectTemplateStateSaveDate = 347335753;
+			PBXPerProjectTemplateStateSaveDate = 388623235;
 			PBXPrepackagedSmartGroups_v2 = (
 				{
 					PBXTransientLocationAtTop = bottom;
@@ -349,16 +349,32 @@
 					};
 				},
 			);
-			PBXWorkspaceStateSaveDate = 347335753;
+			PBXWorkspaceStateSaveDate = 388623235;
 		};
 		perUserProjectItems = {
-			345FCB8514B3F68600E76D2A /* PBXTextBookmark */ = 345FCB8514B3F68600E76D2A /* PBXTextBookmark */;
-			345FCB9414B3F6DA00E76D2A /* PBXTextBookmark */ = 345FCB9414B3F6DA00E76D2A /* PBXTextBookmark */;
-			345FCBA814B3F80000E76D2A /* PBXTextBookmark */ = 345FCBA814B3F80000E76D2A /* PBXTextBookmark */;
-			345FCBA914B3F80000E76D2A /* PBXTextBookmark */ = 345FCBA914B3F80000E76D2A /* PBXTextBookmark */;
-			345FCBAA14B3F80000E76D2A /* PBXTextBookmark */ = 345FCBAA14B3F80000E76D2A /* PBXTextBookmark */;
-			345FCBAB14B3F80000E76D2A /* PBXTextBookmark */ = 345FCBAB14B3F80000E76D2A /* PBXTextBookmark */;
-			345FCBB114C135DF00E76D2A /* PBXTextBookmark */ = 345FCBB114C135DF00E76D2A /* PBXTextBookmark */;
+			3408B1AE1729EB9F00397078 /* XCBuildMessageTextBookmark */ = 3408B1AE1729EB9F00397078 /* XCBuildMessageTextBookmark */;
+			3408B1B01729EB9F00397078 /* PBXTextBookmark */ = 3408B1B01729EB9F00397078 /* PBXTextBookmark */;
+			3408B1CB1729EC3800397078 /* PBXTextBookmark */ = 3408B1CB1729EC3800397078 /* PBXTextBookmark */;
+			3408B1CC1729EC3800397078 /* PBXTextBookmark */ = 3408B1CC1729EC3800397078 /* PBXTextBookmark */;
+			3408B1CD1729EC3800397078 /* PBXTextBookmark */ = 3408B1CD1729EC3800397078 /* PBXTextBookmark */;
+			3408B1CE1729EC3800397078 /* XCBuildMessageTextBookmark */ = 3408B1CE1729EC3800397078 /* XCBuildMessageTextBookmark */;
+			3408B1CF1729EC3800397078 /* PBXTextBookmark */ = 3408B1CF1729EC3800397078 /* PBXTextBookmark */;
+			3408B1D41729EC7500397078 /* PBXTextBookmark */ = 3408B1D41729EC7500397078 /* PBXTextBookmark */;
+			3408B1D51729EC7500397078 /* PBXTextBookmark */ = 3408B1D51729EC7500397078 /* PBXTextBookmark */;
+			3408B1D71729ED7000397078 /* PBXTextBookmark */ = 3408B1D71729ED7000397078 /* PBXTextBookmark */;
+			3408B1D81729ED7000397078 /* PBXTextBookmark */ = 3408B1D81729ED7000397078 /* PBXTextBookmark */;
+			3408B1D91729ED7000397078 /* XCBuildMessageTextBookmark */ = 3408B1D91729ED7000397078 /* XCBuildMessageTextBookmark */;
+			3408B1DA1729ED7000397078 /* PBXTextBookmark */ = 3408B1DA1729ED7000397078 /* PBXTextBookmark */;
+			3408B1DF1729F10200397078 /* PBXTextBookmark */ = 3408B1DF1729F10200397078 /* PBXTextBookmark */;
+			3408B1EA1729F17600397078 /* PBXTextBookmark */ = 3408B1EA1729F17600397078 /* PBXTextBookmark */;
+			3408B1F41729F18000397078 /* PBXTextBookmark */ = 3408B1F41729F18000397078 /* PBXTextBookmark */;
+			345FCB8514B3F68600E76D2A = 345FCB8514B3F68600E76D2A /* PBXTextBookmark */;
+			345FCB9414B3F6DA00E76D2A = 345FCB9414B3F6DA00E76D2A /* PBXTextBookmark */;
+			345FCBA814B3F80000E76D2A = 345FCBA814B3F80000E76D2A /* PBXTextBookmark */;
+			345FCBA914B3F80000E76D2A = 345FCBA914B3F80000E76D2A /* PBXTextBookmark */;
+			345FCBAA14B3F80000E76D2A = 345FCBAA14B3F80000E76D2A /* PBXTextBookmark */;
+			345FCBAB14B3F80000E76D2A = 345FCBAB14B3F80000E76D2A /* PBXTextBookmark */;
+			345FCBB114C135DF00E76D2A = 345FCBB114C135DF00E76D2A /* PBXTextBookmark */;
 		};
 		sourceControlManager = 34983C4308F549D30054868C /* Source Control */;
 		userBuildSettings = {
@@ -372,6 +388,182 @@
 			sepNavVisRect = "{{0, 0}, {711, 428}}";
 			sepNavWindowFrame = "{{38, 418}, {750, 558}}";
 		};
+	};
+	3408B1AE1729EB9F00397078 /* XCBuildMessageTextBookmark */ = {
+		isa = PBXTextBookmark;
+		comments = "LgiOsDefs.h: No such file or directory";
+		fRef = 3408B1AF1729EB9F00397078 /* Lgi.h */;
+		fallbackIsa = XCBuildMessageTextBookmark;
+		rLen = 1;
+		rLoc = 226;
+		rType = 1;
+	};
+	3408B1AF1729EB9F00397078 /* Lgi.h */ = {
+		isa = PBXFileReference;
+		lastKnownFileType = sourcecode.c.h;
+		name = Lgi.h;
+		path = /Users/matthew/Code/Lgi/trunk/LgiRes/../include/common/Lgi.h;
+		sourceTree = "<absolute>";
+	};
+	3408B1B01729EB9F00397078 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 3408B1B11729EB9F00397078 /* Lgi.h */;
+		name = "Lgi.h: 227";
+		rLen = 0;
+		rLoc = 7129;
+		rType = 0;
+		vrLen = 437;
+		vrLoc = 7129;
+	};
+	3408B1B11729EB9F00397078 /* Lgi.h */ = {
+		isa = PBXFileReference;
+		lastKnownFileType = sourcecode.c.h;
+		name = Lgi.h;
+		path = /Users/matthew/Code/Lgi/trunk/LgiRes/../include/common/Lgi.h;
+		sourceTree = "<absolute>";
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {894, 3068}}";
+			sepNavSelRange = "{6335, 0}";
+			sepNavVisRange = "{6288, 1321}";
+		};
+	};
+	3408B1CB1729EC3800397078 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 3408B1B11729EB9F00397078 /* Lgi.h */;
+		name = "Lgi.h: 227";
+		rLen = 0;
+		rLoc = 7129;
+		rType = 0;
+		vrLen = 437;
+		vrLoc = 7129;
+	};
+	3408B1CC1729EC3800397078 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34F3E966148730DA009D9AC5 /* LgiRes_ControlTree.cpp */;
+		name = "LgiRes_ControlTree.cpp: 68";
+		rLen = 1;
+		rLoc = 1257;
+		rType = 0;
+		vrLen = 287;
+		vrLoc = 771;
+	};
+	3408B1CD1729EC3800397078 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34F3EA3F14873111009D9AC5 /* GDocApp.cpp */;
+		name = "GDocApp.cpp: 480";
+		rLen = 0;
+		rLoc = 8874;
+		rType = 0;
+		vrLen = 293;
+		vrLoc = 8708;
+	};
+	3408B1CE1729EC3800397078 /* XCBuildMessageTextBookmark */ = {
+		isa = PBXTextBookmark;
+		comments = "No match for ternary 'operator?:' in '(((Lr8Item*)this)->Lr8Item::File. GAutoPtr<X, Arr>::operator X* [with X = char, bool Arr = true]() != 0u) ? ((Lr8Item*)this)->Lr8Item::File : \"#error\"'";
+		fRef = 34F3E96D148730DA009D9AC5 /* LgiRes_TableLayout.cpp */;
+		fallbackIsa = XCBuildMessageTextBookmark;
+		rLen = 1;
+		rLoc = 1452;
+		rType = 1;
+	};
+	3408B1CF1729EC3800397078 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34F3E96D148730DA009D9AC5 /* LgiRes_TableLayout.cpp */;
+		name = "LgiRes_TableLayout.cpp: 1453";
+		rLen = 0;
+		rLoc = 28192;
+		rType = 0;
+		vrLen = 170;
+		vrLoc = 28043;
+	};
+	3408B1D41729EC7500397078 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34F3E966148730DA009D9AC5 /* LgiRes_ControlTree.cpp */;
+		name = "LgiRes_ControlTree.cpp: 68";
+		rLen = 1;
+		rLoc = 1257;
+		rType = 0;
+		vrLen = 287;
+		vrLoc = 771;
+	};
+	3408B1D51729EC7500397078 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34F3E966148730DA009D9AC5 /* LgiRes_ControlTree.cpp */;
+		name = "LgiRes_ControlTree.cpp: 68";
+		rLen = 1;
+		rLoc = 1257;
+		rType = 0;
+		vrLen = 281;
+		vrLoc = 777;
+	};
+	3408B1D71729ED7000397078 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34F3E96B148730DA009D9AC5 /* LgiRes_String.cpp */;
+		name = "LgiRes_String.cpp: 1491";
+		rLen = 0;
+		rLoc = 25851;
+		rType = 0;
+		vrLen = 803;
+		vrLoc = 25423;
+	};
+	3408B1D81729ED7000397078 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 3408B1B11729EB9F00397078 /* Lgi.h */;
+		name = "Lgi.h: 204";
+		rLen = 0;
+		rLoc = 6335;
+		rType = 0;
+		vrLen = 1321;
+		vrLoc = 6288;
+	};
+	3408B1D91729ED7000397078 /* XCBuildMessageTextBookmark */ = {
+		isa = PBXTextBookmark;
+		comments = "Deprecated conversion from string constant to 'char*'";
+		fRef = 34F3E966148730DA009D9AC5 /* LgiRes_ControlTree.cpp */;
+		fallbackIsa = XCBuildMessageTextBookmark;
+		rLen = 1;
+		rLoc = 66;
+		rType = 1;
+	};
+	3408B1DA1729ED7000397078 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34F3E966148730DA009D9AC5 /* LgiRes_ControlTree.cpp */;
+		name = "LgiRes_ControlTree.cpp: 67";
+		rLen = 0;
+		rLoc = 1231;
+		rType = 0;
+		vrLen = 881;
+		vrLoc = 851;
+	};
+	3408B1DF1729F10200397078 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34F3E966148730DA009D9AC5 /* LgiRes_ControlTree.cpp */;
+		name = "LgiRes_ControlTree.cpp: 68";
+		rLen = 1;
+		rLoc = 1257;
+		rType = 0;
+		vrLen = 281;
+		vrLoc = 777;
+	};
+	3408B1EA1729F17600397078 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34F3E966148730DA009D9AC5 /* LgiRes_ControlTree.cpp */;
+		name = "LgiRes_ControlTree.cpp: 68";
+		rLen = 1;
+		rLoc = 1257;
+		rType = 0;
+		vrLen = 281;
+		vrLoc = 777;
+	};
+	3408B1F41729F18000397078 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 34F3E966148730DA009D9AC5 /* LgiRes_ControlTree.cpp */;
+		name = "LgiRes_ControlTree.cpp: 67";
+		rLen = 0;
+		rLoc = 1241;
+		rType = 0;
+		vrLen = 820;
+		vrLoc = 702;
 	};
 	342D774911FA4929005BADBD /* LgiMain.cpp */ = {
 		uiCtxt = {
@@ -401,7 +593,7 @@
 		ignoreCount = 0;
 		lineNumber = 465;
 		location = Lgi;
-		modificationTime = 347338750.738201;
+		modificationTime = 388624672.065408;
 		originalNumberOfMultipleMatches = 1;
 		state = 2;
 	};
@@ -421,11 +613,6 @@
 		name = GView.cpp;
 		path = /Users/matthew/Code/Lgi/trunk/src/mac/Lgi/GView.cpp;
 		sourceTree = "<absolute>";
-		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {777, 25246}}";
-			sepNavSelRange = "{11681, 85}";
-			sepNavVisRange = "{11316, 660}";
-		};
 	};
 	345FCB8A14B3F68600E76D2A /* GLayout.cpp */ = {
 		isa = PBXFileReference;
@@ -433,11 +620,6 @@
 		name = GLayout.cpp;
 		path = /Users/matthew/Code/Lgi/trunk/src/common/Lgi/GLayout.cpp;
 		sourceTree = "<absolute>";
-		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {777, 3575}}";
-			sepNavSelRange = "{1082, 0}";
-			sepNavVisRange = "{1004, 603}";
-		};
 	};
 	345FCB8D14B3F68600E76D2A /* GSplitter.cpp */ = {
 		isa = PBXFileReference;
@@ -445,11 +627,6 @@
 		name = GSplitter.cpp;
 		path = /Users/matthew/Code/Lgi/trunk/src/common/Widgets/GSplitter.cpp;
 		sourceTree = "<absolute>";
-		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {777, 7124}}";
-			sepNavSelRange = "{2733, 0}";
-			sepNavVisRange = "{2480, 496}";
-		};
 	};
 	345FCB9414B3F6DA00E76D2A /* PBXTextBookmark */ = {
 		isa = PBXTextBookmark;
@@ -463,6 +640,7 @@
 	};
 	345FCB9514B3F6DA00E76D2A /* GViewCommon.cpp */ = {
 		isa = PBXFileReference;
+		lastKnownFileType = sourcecode.cpp.cpp;
 		name = GViewCommon.cpp;
 		path = /Users/matthew/Code/Lgi/trunk/src/common/Lgi/GViewCommon.cpp;
 		sourceTree = "<absolute>";
@@ -516,14 +694,10 @@
 	};
 	345FCBB214C135DF00E76D2A /* GView.cpp */ = {
 		isa = PBXFileReference;
+		lastKnownFileType = sourcecode.cpp.cpp;
 		name = GView.cpp;
 		path = /Users/matthew/Code/Lgi/trunk/src/mac/Lgi/GView.cpp;
 		sourceTree = "<absolute>";
-		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {777, 25246}}";
-			sepNavSelRange = "{11681, 85}";
-			sepNavVisRange = "{11316, 665}";
-		};
 	};
 	34983C3608F549B40054868C /* LgiRes */ = {
 		isa = PBXExecutable;
@@ -576,9 +750,9 @@
 	};
 	34F3E966148730DA009D9AC5 /* LgiRes_ControlTree.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {872, 3926}}";
-			sepNavSelRange = "{1281, 0}";
-			sepNavVisRange = "{998, 218}";
+			sepNavIntBoundsRect = "{{0, 0}, {777, 3900}}";
+			sepNavSelRange = "{1241, 0}";
+			sepNavVisRange = "{702, 820}";
 		};
 	};
 	34F3E967148730DA009D9AC5 /* LgiRes_Dialog.cpp */ = {
@@ -597,9 +771,16 @@
 	};
 	34F3E96B148730DA009D9AC5 /* LgiRes_String.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {777, 21385}}";
+			sepNavIntBoundsRect = "{{0, 0}, {777, 22087}}";
 			sepNavSelRange = "{25851, 0}";
-			sepNavVisRange = "{25521, 681}";
+			sepNavVisRange = "{25423, 803}";
+		};
+	};
+	34F3E96D148730DA009D9AC5 /* LgiRes_TableLayout.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {872, 21697}}";
+			sepNavSelRange = "{28192, 0}";
+			sepNavVisRange = "{28043, 170}";
 		};
 	};
 	34F3E96E148730DA009D9AC5 /* LgiResApp.cpp */ = {
@@ -618,9 +799,9 @@
 	};
 	34F3EA3F14873111009D9AC5 /* GDocApp.cpp */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {872, 8385}}";
-			sepNavSelRange = "{7673, 0}";
-			sepNavVisRange = "{7451, 455}";
+			sepNavIntBoundsRect = "{{0, 0}, {872, 8229}}";
+			sepNavSelRange = "{8874, 0}";
+			sepNavVisRange = "{8708, 293}";
 		};
 	};
 	8D0C4E890486CD37000505A6 /* LgiRes */ = {

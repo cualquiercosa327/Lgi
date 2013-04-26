@@ -2823,7 +2823,7 @@ void GTag::Restyle()
 	if (Debug)
 	{
 		GAutoString Style = ToString();
-		LgiTrace(">>>> %s <<<<:\n%s\n\n", Tag, Style);
+		LgiTrace(">>>> %s <<<<:\n%s\n\n", Tag, Style.Get());
 	}
 	#endif
 }

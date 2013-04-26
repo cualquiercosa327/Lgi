@@ -2,6 +2,7 @@
 // \author Matthew Allen (fret@memecode.com)
 #include "Lgi.h"
 #include "GEdit.h"
+#include "GClipBoard.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Edit
@@ -18,111 +19,6 @@ public:
 
 static _OsFontType SysFontType;
 
-/*
-class _OsTextView : public GTextView3
-{
-	GEdit *Edit;
-	bool Multiline;
-	bool Password;
-
-	bool SetScrollBars(bool x, bool y)
-	{
-		if (Multiline)
-		{
-			return GTextView3::SetScrollBars(x, y);
-		}
-
-		return false;
-	}
-
-public:
-	_OsTextView(GEdit *e, GFontType *type) :
-		GTextView3(-1, 0, 0, 100, 100, type)
-	{
-		Edit = e;
-		Multiline = false;
-		Password = false;
-		SetUrlDetect(false);
-		SetWrapType(TEXTED_WRAP_NONE);
-
-		GRect m = GetMargin();
-		m.y1 = 0;
-		SetMargin(m);
-		Sunken(false);
-		Raised(false);
-		_BorderSize = 0;
-	}
-
-	bool GetMultiLine()
-	{
-		return Multiline;
-	}
-	
-	void SetMultiLine(bool m)
-	{
-		Multiline = m;
-		CanScrollX = !m;
-	}
-
-	bool DoGoto()
-	{
-		return Multiline ? GTextView3::DoGoto() : false;
-	}
-
-	bool DoFind()
-	{
-		return Multiline ? GTextView3::DoFind() : false;
-	}
-	
-	bool DoFindNext()
-	{
-		return Multiline ? GTextView3::DoFindNext() : false;
-	}
-
-	bool DoReplace()
-	{
-		return Multiline ? GTextView3::DoReplace() : false;
-	}
-
-	void SetPassword(bool p)
-	{
-		Password = p;
-		SetObscurePassword(p);
-	}
-
-	bool OnKey(GKey &k)
-	{
-		if (Edit->OnKey(k))
-			return true;
-
-		if (!Multiline &&
-			(k.vkey == VK_TAB || k.c16 == '\t' || k.c16 == '\r'))
-		{
-			if (k.c16 == '\r')
-			{
-				GTextView3::OnKey(k);
-			}
-			
-			return false;
-		}
-
-		bool Status = GTextView3::OnKey(k);
-		return Status;
-	}
-
-	void OnEnter(GKey &k)
-	{
-		if (Multiline)
-		{
-			GTextView3::OnEnter(k);
-		}
-		else
-		{
-			Edit->SendNotify(VK_RETURN);
-		}
-	}
-};
-*/
 
 class GEditPrivate
 {
@@ -130,7 +26,6 @@ public:
 	bool FocusOnCreate;
 	bool Multiline;
 	bool Password;
-	// class _OsTextView *Edit;
 	
 	GEditPrivate()
 	{
@@ -268,3 +163,48 @@ void GEdit::OnEnter(GKey &k)
 		SendNotify(VK_RETURN);
 	}
 }
+
+bool GEdit::Paste()
+{
+	GClipBoard Clip(this);
+
+	GAutoWString t(Clip.TextW());
+	if (!t) // ala Win9x
+	{
+		GAutoString s(Clip.Text());
+		if (s)
+			t.Reset(LgiNewUtf8To16(s));
+	}
+
+	if (!t)
+		return false;
+
+	if (SelStart >= 0)
+	{
+		DeleteSelection();
+	}
+
+	// remove '\r's
+	char16 *in = t, *out = t;
+	for (; *in; in++)
+	{
+		if (*in == '\n')
+		{
+			if (d->Multiline)
+				*out++ = *in;
+		}
+		else if (*in != '\r')
+		{
+			*out++ = *in;
+		}
+	}
+	*out++ = 0;
+
+	// insert text
+	int Len = StrlenW(t);
+	Insert(Cursor, t, Len);
+	SetCursor(Cursor+Len, false, true); // Multiline
+	
+	return true;
+}
+

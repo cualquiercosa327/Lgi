@@ -477,7 +477,7 @@ void GDocApp<OptionsFmt>::SetCurFile(char *f)
 		
 		if (Display)
 		{
-			sprintf_s(s, sizeof(s), "%s [%s%s]", d->AppName, Display, d->Dirty ? " changed" : "");
+			sprintf_s(s, sizeof(s), "%s [%s%s]", d->AppName, Display.Get(), d->Dirty ? " changed" : "");
 		}
 		else if (d->Dirty)
 		{

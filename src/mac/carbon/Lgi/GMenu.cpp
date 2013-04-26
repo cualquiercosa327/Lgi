@@ -89,17 +89,13 @@ GMenuItem *GSubMenu::ItemAt(int Id)
 
 GMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Where, const char *Shortcut)
 {
-	GMenuItem *i = new GMenuItem(Menu, this, Where, Shortcut);
+	GMenuItem *i = new GMenuItem(Menu, this, Str, Where, Shortcut);
 	if (i)
 	{
 		if (Info)
 		{
 			Items.Insert(i, Where);
 			
-			i->Name(Str);
-			i->Parent = this;
-			i->Menu = Menu;
-
 			Str = i->Name();
 			CFStringRef s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)Str, strlen(Str), kCFStringEncodingUTF8, false);
 			OSStatus e = AppendMenuItemTextWithCFString(Info, s, 0, 0, &i->Info);
@@ -376,26 +372,27 @@ public:
 GMenuItem::GMenuItem()
 {
 	d = new GMenuItemPrivate();
-	Menu = 0;
-	Info = 0;
-	Child = 0;
-	Parent = 0;
+	Menu = NULL;
+	Info = NULL;
+	Child = NULL;
+	Parent = NULL;
 	_Icon = -1;
 	_Id = 0;
 	_Check = false;
 }
 
-GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, int Pos, const char *Shortcut)
+GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, const char *Str, int Pos, const char *Shortcut)
 {
 	d = new GMenuItemPrivate();
 	Menu = m;
 	Parent = p;
-	Info = 0;
-	Child = 0;
+	Info = NULL;
+	Child = NULL;
 	_Icon = -1;
 	_Id = 0;
 	_Check = false;
 	d->Shortcut.Reset(NewStr(Shortcut));
+	Name(Str);
 }
 
 GMenuItem::~GMenuItem()

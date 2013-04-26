@@ -76,6 +76,7 @@ public:
 	char16 *NameW();
 	bool NameW(const char16 *s);
 	#else
+	bool Paste();
 	void OnEnter(GKey &k);
 	void SendNotify(int Data);
 	bool OnLayout(GViewLayoutInfo &Inf) { return false; }

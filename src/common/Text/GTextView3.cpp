@@ -1921,49 +1921,39 @@ bool GTextView3::Paste()
 {
 	GClipBoard Clip(this);
 
-	char16 *t = Clip.TextW();
-
+	GAutoWString t(Clip.TextW());
 	if (!t) // ala Win9x
 	{
-		char *s = Clip.Text();
+		GAutoString s(Clip.Text());
 		if (s)
-		{
-			t = LgiNewUtf8To16(s);
-			DeleteArray(s);
-		}
+			t.Reset(LgiNewUtf8To16(s));
 	}
 
-	if (t)
+	if (!t)
+		return false;
+
+	if (SelStart >= 0)
 	{
-		if (SelStart >= 0)
-		{
-			DeleteSelection();
-		}
-
-		// remove '\r's
-		bool Multiline = false;
-		char16 *s = t, *d = t;
-		for (; *s; s++)
-		{
-			if (*s == '\n')
-			{
-				Multiline = true;
-			}
-
-			if (*s != '\r')
-			{
-				*d++ = *s;
-			}
-		}
-		*d++ = 0;
-
-		// insert text
-		int Len = StrlenW(t);
-		Insert(Cursor, t, Len);
-		SetCursor(Cursor+Len, false, true); // Multiline
+		DeleteSelection();
 	}
+
+	// remove '\r's
+	char16 *s = t, *d = t;
+	for (; *s; s++)
+	{
+		if (*s != '\r')
+		{
+			*d++ = *s;
+		}
+	}
+	*d++ = 0;
+
+	// insert text
+	int Len = StrlenW(t);
+	Insert(Cursor, t, Len);
+	SetCursor(Cursor+Len, false, true); // Multiline
 	
-	return false;
+	return true;
 }
 
 bool GTextView3::ClearDirty(bool Ask, char *FileName)

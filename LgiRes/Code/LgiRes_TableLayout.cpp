@@ -58,7 +58,7 @@ enum TableAlign
 	AlignMax = 2
 };
 
-char *TableAlignNames[] =
+const char *TableAlignNames[] =
 {
 	"Min",
 	"Center",
@@ -1450,7 +1450,7 @@ public:
 	
 	char *GetText(int i)
 	{
-		return File ? File : "#error";
+		return File ? File : (char*)"#error";
 	}
 };
 
