@@ -388,8 +388,8 @@ bool SystemFunctions::Tokenize(GVariant *Ret, ArgumentArray &Args)
 
 	Ret->SetList();
 
-	uint32 i;
-	while (i = s)
+	uint32 i = s;
+	while (i)
 	{
 		if (i == d)
 		{
@@ -439,6 +439,7 @@ bool SystemFunctions::DeleteElement(GVariant *Ret, ArgumentArray &Args)
 	{
 		switch (Args[0]->Type)
 		{
+			default: break;
 			case GV_HASHTABLE:
 			{
 				char *Key = Args[1]->CastString();
@@ -468,7 +469,7 @@ bool SystemFunctions::ReadTextFile(GVariant *Ret, ArgumentArray &Args)
 	if (Args.Length() == 1 &&
 		FileExists(Args[0]->CastString()))
 	{
-		if (Ret->Value.String = ::ReadTextFile(Args[0]->CastString()))
+		if ((Ret->Value.String = ::ReadTextFile(Args[0]->CastString())))
 		{
 			Ret->Type = GV_STRING;
 			return true;
@@ -492,6 +493,7 @@ bool SystemFunctions::WriteTextFile(GVariant *Ret, ArgumentArray &Args)
 			{
 				switch (v->Type)
 				{
+					default: break;
 					case GV_STRING:
 					{
 						int Len = strlen(v->Value.String);
@@ -517,6 +519,7 @@ GView *SystemFunctions::CastGView(GVariant &v)
 {
 	switch (v.Type)
 	{
+		default: break;
 		case GV_DOM:
 			return dynamic_cast<GView*>(v.Value.Dom);
 		case GV_GVIEW:

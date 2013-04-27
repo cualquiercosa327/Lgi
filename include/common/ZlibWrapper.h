@@ -47,25 +47,25 @@ public:
 	DynFunc4(int, uncompress,Bytef *,dest,   uLongf *,destLen, const Bytef *,source, uLong, sourceLen);
 	#endif
 	
-	DynFunc2(gzFile, gzopen ,const char *,path, const char *,mode);
-	DynFunc2(gzFile, gzdopen ,int, fd, const char *,mode);
-	DynFunc3(int, gzsetparams,gzFile, file, int, level, int, strategy);
-	DynFunc3(int, gzread ,gzFile, file, voidp, buf, unsigned, len);
-	DynFunc3(int, gzwrite,gzFile, file, voidpc, buf, unsigned, len);
-	//DynFunc1(intVA,  gzprintf,gzFile, file, const char *,format, ...);
-	DynFunc2(int, gzputs,gzFile, file, const char *,s);
-	DynFunc3(char *, gzgets,gzFile, file, char *,buf, int, len);
-	DynFunc2(int, gzputc,gzFile, file, int, c);
-	DynFunc1(int, gzgetc,gzFile, file);
-	DynFunc2(int, gzungetc,int, c, gzFile, file);
-	DynFunc2(int, gzflush,gzFile, file, int, flush);
-	DynFunc3(z_off_t, gzseek,gzFile, file, z_off_t, offset, int, whence);
-	DynFunc1(int, gzrewind,gzFile, file);
-	DynFunc1(z_off_t, gztell,gzFile, file);
-	DynFunc1(int, gzeof,gzFile, file);
-	DynFunc1(int, gzdirect,gzFile, file);
-	DynFunc1(int, gzclose,gzFile, file);
-	DynFunc2(const char *, gzerror,gzFile, file, int *,errnum);
+	DynFunc2(gzFile, gzopen, const char *,path, const char *,mode);
+	DynFunc2(gzFile, gzdopen, int, fd, const char *, mode);
+	DynFunc3(int, gzsetparams, gzFile, file, int, level, int, strategy);
+	DynFunc3(int, gzread , gzFile, file, voidp, buf, unsigned, len);
+	DynFunc3(int, gzwrite, gzFile, file, voidpc, buf, unsigned, len);
+	// DynFunc1(intVA,  gzprintf,gzFile, file, const char *,format, ...);
+	DynFunc2(int, gzputs, gzFile, file, const char *,s);
+	DynFunc3(char *, gzgets, gzFile, file, char *,buf, int, len);
+	DynFunc2(int, gzputc, gzFile, file, int, c);
+	// DynFunc1(int, gzgetc, gzFile, file);
+	DynFunc2(int, gzungetc, int, c, gzFile, file);
+	DynFunc2(int, gzflush, gzFile, file, int, flush);
+	DynFunc3(z_off_t, gzseek, gzFile, file, z_off_t, offset, int, whence);
+	DynFunc1(int, gzrewind, gzFile, file);
+	DynFunc1(z_off_t, gztell, gzFile, file);
+	DynFunc1(int, gzeof, gzFile, file);
+	DynFunc1(int, gzdirect, gzFile, file);
+	DynFunc1(int, gzclose, gzFile, file);
+	DynFunc2(const char *, gzerror, gzFile, file, int *,errnum);
 	DynFunc1(int, gzclearerr,gzFile, file);
 };
 

@@ -65,7 +65,7 @@ const char *TableAlignNames[] =
 	"Max"
 };
 
-class TableCell : public GDom
+class ResTableCell : public GDom
 {
 public:
 	CtrlTable *Table;
@@ -77,7 +77,7 @@ public:
 	TableAlign AlignY;
 	GAutoString Class; // CSS class for styling
 
-	TableCell(CtrlTable *table, int cx, int cy)
+	ResTableCell(CtrlTable *table, int cx, int cy)
 	{
 		AlignX = AlignY = AlignMin;
 		Table = table;
@@ -87,7 +87,7 @@ public:
 		Pos.ZOff(-1, -1);
 	}
 
-	~TableCell()
+	ResTableCell()
 	{
 		Ctrls.DeleteObjects();
 	}
@@ -316,7 +316,7 @@ public:
 class CellJoin : public GRect
 {
 public:
-	TableCell *a, *b;
+	ResTableCell *a, *b;
 };
 
 class CtrlTablePrivate
@@ -325,8 +325,8 @@ public:
 	// The cell container
 	CtrlTable *Table;
 	int CellX, CellY;
-	GArray<TableCell*> Cells;
-	TableCell *AttachTo;
+	GArray<ResTableCell*> Cells;
+	ResTableCell *AttachTo;
 
 	// Column + Row sizes
 	GArray<double> ColSize;
@@ -343,7 +343,7 @@ public:
 	int DragRowSize;
 	int DragColSize;
 
-	bool GetSelected(GArray<TableCell*> &s)
+	bool GetSelected(GArray<ResTableCell*> &s)
 	{
 		for (int i=0; i<Cells.Length(); i++)
 		{
@@ -354,7 +354,7 @@ public:
 	}
 
 	// Methods
-	TableCell *GetCellAt(int cx, int cy)
+	ResTableCell *GetCellAt(int cx, int cy)
 	{
 		for (int i=0; i<Cells.Length(); i++)
 		{
@@ -372,10 +372,10 @@ public:
 		Table = t;
 		CellX = CellY = 2;
 		AttachTo = 0;
-		Cells[0] = new TableCell(t, 0, 0);
-		Cells[1] = new TableCell(t, 1, 0);
-		Cells[2] = new TableCell(t, 0, 1);
-		Cells[3] = new TableCell(t, 1, 1);
+		Cells[0] = new ResTableCell(t, 0, 0);
+		Cells[1] = new ResTableCell(t, 1, 0);
+		Cells[2] = new ResTableCell(t, 0, 1);
+		Cells[3] = new ResTableCell(t, 1, 1);
 		ColSize[0] = 0.5;
 		ColSize[1] = 0.5;
 		RowSize[0] = 0.5;
@@ -451,7 +451,7 @@ public:
 				{
 					int Px = XPair[x].Pos;
 
-					TableCell *Cell = GetCellAt(x, y);
+					ResTableCell *Cell = GetCellAt(x, y);
 					if (Cell)
 					{
 						if (Cell->Cell.x1 == x AND
@@ -472,7 +472,7 @@ public:
 							if (Cell->Selected)
 							{
 								// Add cell joining goobers...
-								TableCell *c = GetCellAt(x + Cell->Cell.X(), y);
+								ResTableCell *c = GetCellAt(x + Cell->Cell.X(), y);
 								if (c AND c->Selected)
 								{
 									CellJoin *j = &JoinBtns[JoinBtns.Length()];
@@ -555,7 +555,7 @@ public:
 		// Delete column 'x'
 		for (int y=0; y<CellY; )
 		{
-			TableCell *c = GetCellAt(x, y);
+			ResTableCell *c = GetCellAt(x, y);
 			if (c)
 			{
 				y = c->Cell.y2 + 1;
@@ -586,7 +586,7 @@ public:
 		{
 			for (int y=0; y<CellY; y++)
 			{
-				TableCell *c = GetCellAt(x, y);
+				ResTableCell *c = GetCellAt(x, y);
 				if (c)
 				{
 					if (c->Cell.x1 == x AND
@@ -609,7 +609,7 @@ public:
 		// Delete row 'y'
 		for (x=0; x<CellX; )
 		{
-			TableCell *c = GetCellAt(x, y);
+			ResTableCell *c = GetCellAt(x, y);
 			if (c)
 			{
 				x = c->Cell.x2 + 1;
@@ -641,7 +641,7 @@ public:
 		{
 			for (int x=0; x<CellX; x++)
 			{
-				TableCell *c = GetCellAt(x, y);
+				ResTableCell *c = GetCellAt(x, y);
 				if (c)
 				{
 					if (c->Cell.x1 == x AND
@@ -656,7 +656,7 @@ public:
 		return Status;
 	}
 
-	TableCell *GetCell(ResDialogCtrl *Ctrl)
+	ResTableCell *GetCell(ResDialogCtrl *Ctrl)
 	{
 		for (int i=0; i<Cells.Length(); i++)
 		{
@@ -686,7 +686,7 @@ bool CtrlTable::GetFields(FieldTree &Fields)
 {
 	bool Status = ResDialogCtrl::GetFields(Fields);
 	
-	GArray<TableCell*> s;
+	GArray<ResTableCell*> s;
 	if (d->GetSelected(s) == 1)
 	{
 		int Id = 150;
@@ -700,7 +700,7 @@ bool CtrlTable::Serialize(FieldTree &Fields)
 {
 	bool Status = ResDialogCtrl::Serialize(Fields);
 	
-	GArray<TableCell*> s;
+	GArray<ResTableCell*> s;
 	if (d->GetSelected(s) == 1)
 	{
 		Fields.Serialize(this, VAL_CellClass, s[0]->Class);
@@ -714,7 +714,7 @@ void CtrlTable::EnumCtrls(List<ResDialogCtrl> &Ctrls)
 	// LgiTrace("Tbl Ref=%i\n", Str->GetRef());
 	for (int i=0; i<d->Cells.Length(); i++)
 	{
-		TableCell *c = d->Cells[i];
+		ResTableCell *c = d->Cells[i];
 		for (int n=0; n<c->Ctrls.Length(); n++)
 		{
 			// LgiTrace("	Ref=%i\n", c->Ctrls[n]->Str->GetRef());
@@ -814,7 +814,7 @@ bool CtrlTable::SetVariant(const char *Name, GVariant &Value, char *Array)
 			{
 				int Cx = atoi(t[0]);
 				int Cy = atoi(t[1]);
-				TableCell *c = new TableCell(this, Cx, Cy);
+				ResTableCell *c = new ResTableCell(this, Cx, Cy);
 				if (c)
 				{
 					d->Cells.Add(c);
@@ -849,7 +849,7 @@ GRect *CtrlTable::GetPasteArea()
 
 GRect *CtrlTable::GetChildArea(ResDialogCtrl *Ctrl)
 {
-	TableCell *c = d->GetCell(Ctrl);
+	ResTableCell *c = d->GetCell(Ctrl);
 	if (c)
 	{
 		return &c->Pos;
@@ -864,7 +864,7 @@ void CtrlTable::OnChildrenChanged(GViewI *Wnd, bool Attaching)
 		ResDialogCtrl *Rc = dynamic_cast<ResDialogCtrl*>(Wnd);
 		if (Rc)
 		{
-			TableCell *c = d->GetCell(Rc);
+			ResTableCell *c = d->GetCell(Rc);
 			if (c)
 			{
 				c->Ctrls.Delete(Rc);
@@ -873,7 +873,7 @@ void CtrlTable::OnChildrenChanged(GViewI *Wnd, bool Attaching)
 	}
 }
 
-void CtrlTable::SetAttachCell(TableCell *c)
+void CtrlTable::SetAttachCell(ResTableCell *c)
 {
 	d->AttachTo = c;
 }
@@ -916,7 +916,7 @@ bool CtrlTable::AttachCtrl(ResDialogCtrl *Ctrl, GRect *r)
 	{
 		for (int i=0; i<d->Cells.Length(); i++)
 		{
-			TableCell *c = d->Cells[i];
+			ResTableCell *c = d->Cells[i];
 			if (c)
 			{
 				if (c->Pos.Overlap(r->x1, r->y1))
@@ -945,23 +945,27 @@ void CtrlTable::Layout()
 void CtrlTable::OnPaint(GSurface *pDC)
 {
 	int i;
-	COLOUR Blue = Rgb24(0, 30, 222);
+	GColour Blue(0, 30, 222);
 	Client.Set(0, 0, X()-1, Y()-1);
 
 	d->Layout(GetClient());
-	pDC->Colour(Blue, 24);
+	pDC->Colour(Blue);
 	for (i=0; i<d->Cells.Length(); i++)
 	{
-		TableCell *c = d->Cells[i];
+		ResTableCell *c = d->Cells[i];
 		if (c)
 		{
 			pDC->Box(&c->Pos);
 			if (c->Selected)
 			{
 				int Op = pDC->Op(GDC_ALPHA);
-				pDC->Applicator()->SetVar(GAPP_ALPHA_A, 0x20);
+				if (pDC->Applicator())
+					pDC->Applicator()->SetVar(GAPP_ALPHA_A, 0x20);
+				else
+					pDC->Colour(GColour(Blue.r(), Blue.g(), Blue.b(), 0x20));
 				pDC->Rectangle(c->Pos.x1 + 1, c->Pos.y1 + 1, c->Pos.x2 - 1, c->Pos.y2 - 1);
 				pDC->Op(Op);
+				pDC->Colour(Blue);
 			}
 
 			#if DRAW_CELL_INDEX
@@ -1055,14 +1059,14 @@ void CtrlTable::Fix()
 	{
 		for (int x=0; x<d->CellX; )
 		{
-			TableCell *c = d->GetCellAt(x, y);
+			ResTableCell *c = d->GetCellAt(x, y);
 			if (c)
 			{
 				x += c->Cell.X();
 			}
 			else
 			{
-				c = new TableCell(this, x, y);
+				c = new ResTableCell(this, x, y);
 				if (c)
 				{
 					d->Cells.Add(c);
@@ -1114,7 +1118,7 @@ void CtrlTable::InsertRow(int y)
 	int i;
 	for (i=0; i<d->Cells.Length(); i++)
 	{
-		TableCell *c = d->Cells[i];
+		ResTableCell *c = d->Cells[i];
 		if (c)
 		{
 			if (c->Cell.y1 >= y)
@@ -1127,7 +1131,7 @@ void CtrlTable::InsertRow(int y)
 	// Add new row of 1x1 cells
 	for (i=0; i<d->CellX; i++)
 	{
-		d->Cells.Add(new TableCell(this, i, y));
+		d->Cells.Add(new ResTableCell(this, i, y));
 	}
 	d->CellY++;
 
@@ -1143,7 +1147,7 @@ void CtrlTable::InsertRow(int y)
 	Invalidate();
 }
 
-void CtrlTable::UnMerge(TableCell *Cell)
+void CtrlTable::UnMerge(ResTableCell *Cell)
 {
 	if (Cell AND (Cell->Cell.X() > 1 || Cell->Cell.Y() > 1))
 	{
@@ -1154,7 +1158,7 @@ void CtrlTable::UnMerge(TableCell *Cell)
 				if (x > Cell->Cell.x1 ||
 					y > Cell->Cell.y1)
 				{
-					TableCell *n = new TableCell(this, x, y);
+					ResTableCell *n = new ResTableCell(this, x, y);
 					if (n)
 					{
 						d->Cells.Add(n);
@@ -1181,7 +1185,7 @@ void CtrlTable::OnMouseClick(GMouse &m)
 				int i;
 				for (i=0; i<d->CellY; i++)
 				{
-					d->Cells.Add(new TableCell(this, d->CellX, i));
+					d->Cells.Add(new ResTableCell(this, d->CellX, i));
 				}
 				d->CellX++;
 
@@ -1200,7 +1204,7 @@ void CtrlTable::OnMouseClick(GMouse &m)
 				int i;
 				for (i=0; i<d->CellX; i++)
 				{
-					d->Cells.Add(new TableCell(this, i, d->CellY));
+					d->Cells.Add(new ResTableCell(this, i, d->CellY));
 				}
 				d->CellY++;
 
@@ -1221,7 +1225,7 @@ void CtrlTable::OnMouseClick(GMouse &m)
 				bool Dirty = false;
 				bool EatClick = true;
 				int i;
-				TableCell *Over = 0;
+				ResTableCell *Over = 0;
 
 				// Look at cell joins
 				for (i=0; i<d->JoinBtns.Length(); i++)
@@ -1238,7 +1242,7 @@ void CtrlTable::OnMouseClick(GMouse &m)
 						{
 							for (int x=u.x1; x<=u.x2; x++)
 							{
-								TableCell *c = d->GetCellAt(x, y);
+								ResTableCell *c = d->GetCellAt(x, y);
 								if (c)
 								{
 									d->Cells.Delete(c);
@@ -1257,7 +1261,7 @@ void CtrlTable::OnMouseClick(GMouse &m)
 					// Select a cell?
 					for (i=0; i<d->Cells.Length(); i++)
 					{
-						TableCell *c = d->Cells[i];
+						ResTableCell *c = d->Cells[i];
 						if (c->Pos.Overlap(m.x, m.y))
 						{
 							Over = c;
@@ -1285,7 +1289,7 @@ void CtrlTable::OnMouseClick(GMouse &m)
 				{
 					if (d->DelCol[x].Overlap(m.x, m.y))
 					{
-						if (Dirty = d->DeleteCol(x))
+						if ((Dirty = d->DeleteCol(x)))
 						{
 							break;
 						}
@@ -1296,7 +1300,7 @@ void CtrlTable::OnMouseClick(GMouse &m)
 				{
 					if (d->DelRow[y].Overlap(m.x, m.y))
 					{
-						if (Dirty = d->DeleteRow(y))
+						if ((Dirty = d->DeleteRow(y)))
 						{
 							break;
 						}
@@ -1308,7 +1312,7 @@ void CtrlTable::OnMouseClick(GMouse &m)
 				{
 					for (int i=0; i<d->SizeRow.Length(); i++)
 					{
-						if (Dirty = d->SizeRow[i].Overlap(m.x, m.y))
+						if ((Dirty = d->SizeRow[i].Overlap(m.x, m.y)))
 						{
 							d->DragRowSize = i;
 							Capture(true);
@@ -1322,7 +1326,7 @@ void CtrlTable::OnMouseClick(GMouse &m)
 				{
 					for (int i=0; i<d->SizeCol.Length(); i++)
 					{
-						if (Dirty = d->SizeCol[i].Overlap(m.x, m.y))
+						if ((Dirty = d->SizeCol[i].Overlap(m.x, m.y)))
 						{
 							d->DragColSize = i;
 							Capture(true);
@@ -1343,7 +1347,7 @@ void CtrlTable::OnMouseClick(GMouse &m)
 		{
 			for (int i=0; i<d->Cells.Length(); i++)
 			{
-				TableCell *c = d->Cells[i];
+				ResTableCell *c = d->Cells[i];
 				if (c->Pos.Overlap(m.x, m.y))
 				{
 					c->OnMouseClick(m);
@@ -1541,7 +1545,7 @@ public:
         while (Children.First())
             delete Children.First();
     
-        if (Dlg = d)
+        if ((Dlg = d))
         {
             if (Dlg->GetRes()->LoadDialog(Dlg->Str->Id, this, &Size))
             {

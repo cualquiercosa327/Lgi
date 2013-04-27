@@ -1,5 +1,18 @@
 #include "Lgi.h"
 #include "GTableLayout.h"
+
+enum CellFlag
+{
+    // A null value when the call flag is not known yet
+	SizeUnknown,
+	// The cell contains fixed size objects
+	SizeFixed,
+	// The cell contains objects that have variable size
+	SizeGrow,
+	// The cell contains objects that will use all available space
+	SizeFill,
+};
+
 #include "GToken.h"
 #include "GVariant.h"
 #include "GTextLabel.h"
@@ -22,18 +35,6 @@
 #define DEBUG_DRAW_CELLS	0
 
 int GTableLayout::CellSpacing = 4;
-
-enum CellFlag
-{
-    // A null value when the call flag is not known yet
-	SizeUnknown,
-	// The cell contains fixed size objects
-	SizeFixed,
-	// The cell contains objects that have variable size
-	SizeGrow,
-	// The cell contains objects that will use all available space
-	SizeFill,
-};
 
 const char *FlagToString(CellFlag f)
 {
@@ -340,7 +341,30 @@ GCss::LengthType ConvertAlign(char *s, bool x_axis)
 	return x_axis ? GCss::AlignLeft : GCss::VerticalTop;
 }
 
-class TableCell;
+class TableCell : public GLayoutCell
+{
+public:
+	GTableLayout *Table;
+	GRect Cell;		// Cell position
+	GRect Pos;		// Pixel position
+	GRect Padding;	// Cell padding from CSS styles
+	GArray<GView*> Children;
+	GCss::DisplayType Disp;
+
+	TableCell(GTableLayout *t, int Cx, int Cy);
+	bool Add(GView *v);	
+	bool Remove(GView *v);
+
+	bool IsSpanned();
+	bool GetVariant(const char *Name, GVariant &Value, char *Array);
+	bool SetVariant(const char *Name, GVariant &Value, char *Array);
+	/// Calculates the minimum and maximum widths this cell can occupy.
+	void PreLayout(int &MinX, int &MaxX, CellFlag &Flag);
+	/// Calculate the height of the cell based on the given width
+	void Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags);
+	/// Called after the layout has been done to move the controls into place
+	void PostLayout();
+};
 
 class GTableLayoutPrivate
 {
@@ -374,622 +398,613 @@ public:
     }
 };
 
-class TableCell : public GLayoutCell
+///////////////////////////////////////////////////////////////////////////////////////////
+TableCell::TableCell(GTableLayout *t, int Cx, int Cy)
 {
-public:
-	GTableLayout *Table;
-	GRect Cell;		// Cell position
-	GRect Pos;		// Pixel position
-	GRect Padding;	// Cell padding from CSS styles
-	GArray<GView*> Children;
-	GCss::DisplayType Disp;
+	TextAlign(AlignLeft);
+	VerticalAlign(VerticalTop);
+	Table = t;
+	Cell.ZOff(0, 0);
+	Cell.Offset(Cx, Cy);
+	Padding.ZOff(0, 0);
+	Disp = GCss::DispBlock;
+}
 
-	TableCell(GTableLayout *t, int Cx, int Cy)
-	{
-		TextAlign(AlignLeft);
-		VerticalAlign(VerticalTop);
-		Table = t;
-		Cell.ZOff(0, 0);
-		Cell.Offset(Cx, Cy);
-		Padding.ZOff(0, 0);
-		Disp = GCss::DispBlock;
-	}
-	
-	bool Add(GView *v)
-	{
-	    if (Children.HasItem(v))
-	        return false;
-	    Table->AddView(v);
-	    Children.Add(v);
-	    return true;
-	}
-	
-	bool Remove(GView *v)
-	{
-	    if (!Children.HasItem(v))
-	        return false;
-	    Table->DelView(v);
-	    Children.Delete(v, true);
-	    return true;
-	}
-
-	bool IsSpanned()
-	{
-		return Cell.X() > 1 || Cell.Y() > 1;
-	}
-
-	bool GetVariant(const char *Name, GVariant &Value, char *Array)
-	{
+bool TableCell::Add(GView *v)
+{
+	if (Children.HasItem(v))
 		return false;
-	}
-	
-	bool SetVariant(const char *Name, GVariant &Value, char *Array)
-	{
-		if (stricmp(Name, "span") == 0)
-		{
-			GRect r;
-			if (r.SetStr(Value.Str()))
-			{
-				Cell = r;
-			}
-			else return false;
-		}
-		else if (stricmp(Name, "children") == 0)
-		{
-			for (GVariant *v = Value.Value.Lst->First(); v; v = Value.Value.Lst->Next())
-			{
-				if (v->Type == GV_VOID_PTR)
-				{
-					ResObject *o = (ResObject*)v->Value.Ptr;
-					if (o)
-					{
-						GView *gv = dynamic_cast<GView*>(o);
-						if (gv)
-						{
-							Children.Add(gv);
-							Table->Children.Insert(gv);
-							gv->SetParent(Table);
+	Table->AddView(v);
+	Children.Add(v);
+	return true;
+}
 
-							GText *t = dynamic_cast<GText*>(gv);
-							if (t)
-							{
-								t->SetWrap(true);
-							}
-						}
-					}
-				}
-			}
-		}
-		else if (stricmp(Name, "align") == 0)
+bool TableCell::Remove(GView *v)
+{
+	if (!Children.HasItem(v))
+		return false;
+	Table->DelView(v);
+	Children.Delete(v, true);
+	return true;
+}
+
+bool TableCell::IsSpanned()
+{
+	return Cell.X() > 1 || Cell.Y() > 1;
+}
+
+bool TableCell::GetVariant(const char *Name, GVariant &Value, char *Array)
+{
+	return false;
+}
+
+bool TableCell::SetVariant(const char *Name, GVariant &Value, char *Array)
+{
+	if (stricmp(Name, "span") == 0)
+	{
+		GRect r;
+		if (r.SetStr(Value.Str()))
 		{
-			TextAlign
-			(
-				Len
-				(
-					ConvertAlign(Value.Str(), true)
-				)
-			);
-		}
-		else if (stricmp(Name, "valign") == 0)
-		{
-			VerticalAlign
-			(
-				Len
-				(
-					ConvertAlign(Value.Str(), false)
-				)
-			);
-		}
-		else if (stricmp(Name, "class") == 0)
-		{
-			LgiResources *r = LgiGetResObj();
-			if (r)
-			{
-				GCss::SelArray *a = r->CssStore.ClassMap.Find(Value.Str());
-				if (a)
-				{
-					for (int i=0; i<a->Length(); i++)
-					{
-						GCss::Selector *s = (*a)[i];
-						
-						// This is not exactly a smart matching algorithm.
-						if (s && s->Parts.Length() == 1)
-						{
-							const char *style = s->Style;
-							Parse(style, ParseRelaxed);
-						}
-					}
-				}
-			}
+			Cell = r;
 		}
 		else return false;
-
-		return true;
 	}
-
-	/// Calculates the minimum and maximum widths this cell can occupy.
-	void PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
+	else if (stricmp(Name, "children") == 0)
 	{
-		int MaxBtnX = 0;
-		int TotalBtnX = 0;
-		int Min = 0, Max = 0;
-
-		// Calculate CSS padding
-		#define CalcCssPadding(Prop, Axis, Edge) \
-		{ \
-			Len l = Prop(); \
-			if (l.Type) \
-				Padding.Edge = l.ToPx(Table->Axis(), Table->GetFont()); \
-			else \
-				Padding.Edge = 0; \
-		}
-		
-		Disp = Display();
-		if (Disp == DispNone)
-			return;
-		CalcCssPadding(PaddingLeft, X, x1)
-		CalcCssPadding(PaddingRight, X, x2)
-		CalcCssPadding(PaddingTop, Y, y1)
-		CalcCssPadding(PaddingBottom, Y, y2)
-
-		Len Wid = Width();
-		if (Wid.Type != LenInherit)
+		for (GVariant *v = Value.Value.Lst->First(); v; v = Value.Value.Lst->Next())
 		{
-			Min = Max = Wid.ToPx(Table->X(), Table->GetFont());
-			Flag = SizeFixed;
-			if (Padding.x1 + Padding.x2 > Min)
+			if (v->Type == GV_VOID_PTR)
 			{
-				// Remove padding as it's going to oversize the cell
-				Padding.x1 = Padding.x2 = 0;
-			}
-		}
-		else
-		{
-			for (int i=0; i<Children.Length(); i++)
-			{
-				GView *v = Children[i];
-				if (!v)
-					continue;
-				
-				GViewLayoutInfo Inf;
-				GCss *Css;
-				if (v->OnLayout(Inf))
+				ResObject *o = (ResObject*)v->Value.Ptr;
+				if (o)
 				{
-					if (Inf.Width.Max < 0)
+					GView *gv = dynamic_cast<GView*>(o);
+					if (gv)
 					{
-						if (Flag < SizeFill)
-							Flag = SizeFill;
-					}
-					else
-					{
-						Max = max(Max, Inf.Width.Max);
-					}
+						Children.Add(gv);
+						Table->Children.Insert(gv);
+						gv->SetParent(Table);
 
-					if (Inf.Width.Min)
-					{
-						Min = max(Min, Inf.Width.Min);
-					}
-				}
-				else if ((Css = v->GetCss()) && Css->Width().IsValid())
-				{
-					Min = Max = Css->Width().ToPx(Max, v->GetFont());
-				}
-				else
-				{
-					if (Izza(GText))
-					{
-						PreLayoutTextCtrl(v, Min, Max);
-						if (Max > Min)
+						GText *t = dynamic_cast<GText*>(gv);
+						if (t)
 						{
-							if (Flag < SizeGrow)
-								Flag = SizeGrow;
-						}
-						else
-						{
-							if (Flag < SizeFixed)
-								Flag = SizeFixed;
-						}
-					}
-					else if (Izza(GCheckBox) ||
-							 Izza(GRadioButton))
-					{
-						int cmin = 0, cmax = 0;
-						PreLayoutTextCtrl(v, cmin, cmax);
-						Min = max(Min, cmin + 16);
-						Max = max(Max, cmax + 16);
-					}
-					else if (Izza(GButton))
-					{
-						GDisplayString ds(v->GetFont(), v->Name());
-						int x = max(v->X(), ds.X() + GButton::Overhead.x);
-						if (x > v->X())
-						{
-							// Resize the button to show all the text on it...
-							GRect r = v->GetPos();
-							r.x2 = r.x1 + x - 1;
-							v->SetPos(r);
-						}
-
-						MaxBtnX = max(MaxBtnX, x);
-						TotalBtnX = TotalBtnX ? TotalBtnX + GTableLayout::CellSpacing + x : x;
-						
-						if (Flag < SizeFixed)
-							Flag = SizeFixed;
-					}
-					else if (Izza(GEdit) ||
-							 Izza(GScrollBar))
-					{
-						Min = max(Min, 40);
-						Flag = SizeFill;
-					}
-					else if (Izza(GCombo))
-					{
-						GCombo *Cbo = Izza(GCombo);
-						GFont *f = Cbo->GetFont();
-						int x = 0;
-						char *t;
-						for (int i=0; (t = (*Cbo)[i]); i++)
-						{
-							GDisplayString ds(f, t);
-							x = max(ds.X(), x);
-						}				
-						
-						Min = max(Min, x + 32);
-						Max = max(Max, x + 32);
-						if (Flag < SizeGrow)
-							Flag = SizeGrow;
-					}
-					else if (Izza(GBitmap))
-					{
-						GBitmap *b = Izza(GBitmap);
-						GSurface *Dc = b->GetSurface();
-						if (Dc)
-						{
-							Min = max(Min, Dc->X() + 4);
-							Max = max(Max, Dc->X() + 4);
-						}
-						else
-						{
-							Min = max(Min, 3000);
-							Max = max(Max, 3000);
-						}
-					}
-					else if (Izza(GList))
-					{
-						GList *Lst = Izza(GList);
-						int m = 0;
-						for (int i=0; i<Lst->GetColumns(); i++)
-						{
-							m += Lst->ColumnAt(i)->Width();
-						}
-						m = max(m, 40);
-						Min = max(Min, 40);
-						// Max = max(Max, m + 20);
-						Flag = SizeFill;
-					}
-					else if (Izza(GTree) ||
-							 Izza(GTabView))
-					{
-						Min = max(Min, 40);
-						// Max = max(Max, 3000);
-						Flag = SizeFill;
-					}
-					else
-					{
-						GTableLayout *Tbl = Izza(GTableLayout);
-						if (Tbl)
-						{
-							GRect r(0, 0, 10000, 10000);
-							Tbl->d->Layout(r);
-							Min = max(Min, Tbl->d->LayoutMinX);
-							Max = max(Max, Tbl->d->LayoutMaxX);
-						}
-						else
-						{
-							Min = max(Min, v->X());
-							Max = max(Max, v->X());
+							t->SetWrap(true);
 						}
 					}
 				}
 			}
 		}
-
-        if (MaxBtnX)
-        {
-			Min = max(Min, MaxBtnX);
-			Max = max(Max, TotalBtnX);
-        }
-
-		MinX = max(MinX, Min + Padding.x1 + Padding.x2);
-		MaxX = max(MaxX, Max + Padding.x1 + Padding.x2);
 	}
-
-	/// Calculate the height of the cell based on the given width
-	void Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
+	else if (stricmp(Name, "align") == 0)
 	{
-		Pos.ZOff(Width-1, 0);
-		if (Disp == DispNone)
-			return;
-		
-		Len Ht = Height();
-		if (Ht.Type != LenInherit)
+		TextAlign
+		(
+			Len
+			(
+				ConvertAlign(Value.Str(), true)
+			)
+		);
+	}
+	else if (stricmp(Name, "valign") == 0)
+	{
+		VerticalAlign
+		(
+			Len
+			(
+				ConvertAlign(Value.Str(), false)
+			)
+		);
+	}
+	else if (stricmp(Name, "class") == 0)
+	{
+		LgiResources *r = LgiGetResObj();
+		if (r)
 		{
-			Pos.y2 = Ht.ToPx(Table->Y(), Table->GetFont()) - 1;
-			return;
+			GCss::SelArray *a = r->CssStore.ClassMap.Find(Value.Str());
+			if (a)
+			{
+				for (int i=0; i<a->Length(); i++)
+				{
+					GCss::Selector *s = (*a)[i];
+					
+					// This is not exactly a smart matching algorithm.
+					if (s && s->Parts.Length() == 1)
+					{
+						const char *style = s->Style;
+						Parse(style, ParseRelaxed);
+					}
+				}
+			}
 		}
-		
-		int BtnX = 0;
-		int BtnRows = -1;
-				
-		Width -= Padding.x1 + Padding.x2;
-		LgiAssert(Width >= 0);
-		
+	}
+	else return false;
+
+	return true;
+}
+
+/// Calculates the minimum and maximum widths this cell can occupy.
+void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
+{
+	int MaxBtnX = 0;
+	int TotalBtnX = 0;
+	int Min = 0, Max = 0;
+
+	// Calculate CSS padding
+	#define CalcCssPadding(Prop, Axis, Edge) \
+	{ \
+		Len l = Prop(); \
+		if (l.Type) \
+			Padding.Edge = l.ToPx(Table->Axis(), Table->GetFont()); \
+		else \
+			Padding.Edge = 0; \
+	}
+	
+	Disp = Display();
+	if (Disp == DispNone)
+		return;
+	CalcCssPadding(PaddingLeft, X, x1)
+	CalcCssPadding(PaddingRight, X, x2)
+	CalcCssPadding(PaddingTop, Y, y1)
+	CalcCssPadding(PaddingBottom, Y, y2)
+
+	Len Wid = Width();
+	if (Wid.Type != LenInherit)
+	{
+		Min = Max = Wid.ToPx(Table->X(), Table->GetFont());
+		Flag = SizeFixed;
+		if (Padding.x1 + Padding.x2 > Min)
+		{
+			// Remove padding as it's going to oversize the cell
+			Padding.x1 = Padding.x2 = 0;
+		}
+	}
+	else
+	{
 		for (int i=0; i<Children.Length(); i++)
 		{
 			GView *v = Children[i];
 			if (!v)
 				continue;
-
-			GTableLayout *Tbl;
-			GRadioGroup *Grp;
-
-			if (i)
+			
+			GViewLayoutInfo Inf;
+			GCss *Css;
+			if (v->OnLayout(Inf))
 			{
-				Pos.y2 += GTableLayout::CellSpacing;
-			}
-
-			if (Izza(GText))
-			{
-				GText *Txt = dynamic_cast<GText*>(v);
-				if (Txt && Txt->GetWrap() == false)
-					Txt->SetWrap(true);
-
-				int y = LayoutTextCtrl(v, 0, Pos.X());
-				Pos.y2 += y;
-				
-				GRect r = v->GetPos();
-				r.y2 = r.y1 + y - 1;
-				v->SetPos(r);
-			}
-			else if (Izza(GScrollBar))
-			{
-				Pos.y2 += 15;
-			}
-			else if (Izza(GButton))
-			{
-                int y = v->GetFont()->GetHeight() + GButton::Overhead.y;
-				if (BtnRows < 0)
+				if (Inf.Width.Max < 0)
 				{
-				    // Setup first row
-				    BtnRows = 1;
-					Pos.y2 += y;
-				}
-				
-				if (BtnX + v->X() > Width)
-				{
-				    // Wrap
-				    BtnX = v->X();
-				    BtnRows++;
-					Pos.y2 += y + GTableLayout::CellSpacing;
+					if (Flag < SizeFill)
+						Flag = SizeFill;
 				}
 				else
 				{
-				    // Don't wrap
-				    BtnX += v->X() + GTableLayout::CellSpacing;
+					Max = max(Max, Inf.Width.Max);
 				}
-				
-				// Set button height..
-				GRect r = v->GetPos();
-				r.y2 = r.y1 + y - 1;
-				v->SetPos(r);
-			}
-			else if (Izza(GEdit) || Izza(GCombo))
-			{
-				int y = v->GetFont()->GetHeight() + 8;
-				
-				GRect r = v->GetPos();
-				r.y2 = r.y1 + y - 1;
-				v->SetPos(r);
 
-				Pos.y2 += y;
-
-				if (Izza(GEdit) &&
-					Izza(GEdit)->MultiLine())
+				if (Inf.Width.Min)
 				{
-					MaxY = max(MaxY, 1000);
+					Min = max(Min, Inf.Width.Min);
 				}
 			}
-			else if (Izza(GCheckBox) ||
-					 Izza(GRadioButton))
+			else if ((Css = v->GetCss()) && Css->Width().IsValid())
 			{
-				int y = v->GetFont()->GetHeight() + 2;
-				
-				GRect r = v->GetPos();
-				r.y2 = r.y1 + y - 1;
-				v->SetPos(r);
-
-				Pos.y2 += y;
-			}
-			else if (Izza(GList) ||
-					 Izza(GTree) ||
-					 Izza(GTabView))
-			{
-				Pos.y2 += v->GetFont()->GetHeight() + 8;
-				MaxY = max(MaxY, 1000);
-			}
-			else if (Izza(GBitmap))
-			{
-				GBitmap *b = Izza(GBitmap);
-				GSurface *Dc = b->GetSurface();
-				if (Dc)
-				{
-					MaxY = max(MaxY, Dc->Y() + 4);
-				}
-				else
-				{
-					MaxY = max(MaxY, 1000);
-				}
-			}
-			else if ((Tbl = Izza(GTableLayout)))
-			{
-				int Ht = min(v->Y(), Tbl->d->LayoutBounds.Y());
-
-				GRect r = v->GetPos();
-				r.x2 = r.x1 + min(Width, Tbl->d->LayoutMaxX) - 1;
-				r.y2 = r.y1 + Ht - 1;
-				v->SetPos(r);
-
-				Pos.y2 += Ht;
+				Min = Max = Css->Width().ToPx(Max, v->GetFont());
 			}
 			else
 			{
-				GViewLayoutInfo Inf;
-				Inf.Width.Min = Inf.Width.Max = Width;
-				if (v->OnLayout(Inf))
+				if (Izza(GText))
 				{
-					// Supports layout info
-					if (Inf.Height.Max < 0)
-						Flags = SizeFill;
+					PreLayoutTextCtrl(v, Min, Max);
+					if (Max > Min)
+					{
+						if (Flag < SizeGrow)
+							Flag = SizeGrow;
+					}
 					else
-						Pos.y2 += Inf.Height.Max - 1;
+					{
+						if (Flag < SizeFixed)
+							Flag = SizeFixed;
+					}
+				}
+				else if (Izza(GCheckBox) ||
+						 Izza(GRadioButton))
+				{
+					int cmin = 0, cmax = 0;
+					PreLayoutTextCtrl(v, cmin, cmax);
+					Min = max(Min, cmin + 16);
+					Max = max(Max, cmax + 16);
+				}
+				else if (Izza(GButton))
+				{
+					GDisplayString ds(v->GetFont(), v->Name());
+					int x = max(v->X(), ds.X() + GButton::Overhead.x);
+					if (x > v->X())
+					{
+						// Resize the button to show all the text on it...
+						GRect r = v->GetPos();
+						r.x2 = r.x1 + x - 1;
+						v->SetPos(r);
+					}
+
+					MaxBtnX = max(MaxBtnX, x);
+					TotalBtnX = TotalBtnX ? TotalBtnX + GTableLayout::CellSpacing + x : x;
+					
+					if (Flag < SizeFixed)
+						Flag = SizeFixed;
+				}
+				else if (Izza(GEdit) ||
+						 Izza(GScrollBar))
+				{
+					Min = max(Min, 40);
+					Flag = SizeFill;
+				}
+				else if (Izza(GCombo))
+				{
+					GCombo *Cbo = Izza(GCombo);
+					GFont *f = Cbo->GetFont();
+					int x = 0;
+					char *t;
+					for (int i=0; (t = (*Cbo)[i]); i++)
+					{
+						GDisplayString ds(f, t);
+						x = max(ds.X(), x);
+					}				
+					
+					Min = max(Min, x + 32);
+					Max = max(Max, x + 32);
+					if (Flag < SizeGrow)
+						Flag = SizeGrow;
+				}
+				else if (Izza(GBitmap))
+				{
+					GBitmap *b = Izza(GBitmap);
+					GSurface *Dc = b->GetSurface();
+					if (Dc)
+					{
+						Min = max(Min, Dc->X() + 4);
+						Max = max(Max, Dc->X() + 4);
+					}
+					else
+					{
+						Min = max(Min, 3000);
+						Max = max(Max, 3000);
+					}
+				}
+				else if (Izza(GList))
+				{
+					GList *Lst = Izza(GList);
+					int m = 0;
+					for (int i=0; i<Lst->GetColumns(); i++)
+					{
+						m += Lst->ColumnAt(i)->Width();
+					}
+					m = max(m, 40);
+					Min = max(Min, 40);
+					// Max = max(Max, m + 20);
+					Flag = SizeFill;
+				}
+				else if (Izza(GTree) ||
+						 Izza(GTabView))
+				{
+					Min = max(Min, 40);
+					// Max = max(Max, 3000);
+					Flag = SizeFill;
 				}
 				else
 				{
-					// Doesn't support layout info
-					Pos.y2 += v->Y();
+					GTableLayout *Tbl = Izza(GTableLayout);
+					if (Tbl)
+					{
+						GRect r(0, 0, 10000, 10000);
+						Tbl->d->Layout(r);
+						Min = max(Min, Tbl->d->LayoutMinX);
+						Max = max(Max, Tbl->d->LayoutMaxX);
+					}
+					else
+					{
+						Min = max(Min, v->X());
+						Max = max(Max, v->X());
+					}
 				}
 			}
 		}
-		
-		MinY = max(MinY, Pos.Y() + Padding.y1 + Padding.y2);
-		MaxY = max(MaxY, Pos.Y() + Padding.y1 + Padding.y2);
 	}
 
-	/// Called after the layout has been done to move the controls into place
-	void PostLayout()
+	if (MaxBtnX)
 	{
-		int Cx = Padding.x1;
-		int Cy = Padding.y1;
-		int MaxY = Padding.y1;
-		int RowStart = 0;
-		GArray<GRect> New;
+		Min = max(Min, MaxBtnX);
+		Max = max(Max, TotalBtnX);
+	}
 
-		for (int i=0; i<Children.Length(); i++)
+	MinX = max(MinX, Min + Padding.x1 + Padding.x2);
+	MaxX = max(MaxX, Max + Padding.x1 + Padding.x2);
+}
+
+/// Calculate the height of the cell based on the given width
+void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
+{
+	Pos.ZOff(Width-1, 0);
+	if (Disp == DispNone)
+		return;
+	
+	Len Ht = Height();
+	if (Ht.Type != LenInherit)
+	{
+		Pos.y2 = Ht.ToPx(Table->Y(), Table->GetFont()) - 1;
+		return;
+	}
+	
+	int BtnX = 0;
+	int BtnRows = -1;
+			
+	Width -= Padding.x1 + Padding.x2;
+	LgiAssert(Width >= 0);
+	
+	for (int i=0; i<Children.Length(); i++)
+	{
+		GView *v = Children[i];
+		if (!v)
+			continue;
+
+		GTableLayout *Tbl;
+		GRadioGroup *Grp;
+
+		if (i)
 		{
-			GView *v = Children[i];
-			if (!v)
-				continue;
+			Pos.y2 += GTableLayout::CellSpacing;
+		}
 
-			if (Disp == DispNone)
-			{
-				v->Visible(false);
-				continue;
-			}
-				
-			GTableLayout *Tbl = Izza(GTableLayout);
+		if (Izza(GText))
+		{
+			GText *Txt = dynamic_cast<GText*>(v);
+			if (Txt && Txt->GetWrap() == false)
+				Txt->SetWrap(true);
+
+			int y = LayoutTextCtrl(v, 0, Pos.X());
+			Pos.y2 += y;
+			
 			GRect r = v->GetPos();
-			r.Offset(Pos.x1 - r.x1 + Cx, Pos.y1 - r.y1 + Cy);
-
-			GViewLayoutInfo Inf;
-			Inf.Width.Max = Pos.X() - Padding.x1 - Padding.x2;
-			Inf.Height.Max = Pos.Y() - Padding.y1 - Padding.y2;
-
-			if
-			(
-				Izza(GList) ||
-				Izza(GTree) ||
-				Izza(GTabView) ||
-				(Izza(GEdit) && Izza(GEdit)->MultiLine())
-			)
+			r.y2 = r.y1 + y - 1;
+			v->SetPos(r);
+		}
+		else if (Izza(GScrollBar))
+		{
+			Pos.y2 += 15;
+		}
+		else if (Izza(GButton))
+		{
+			int y = v->GetFont()->GetHeight() + GButton::Overhead.y;
+			if (BtnRows < 0)
 			{
-				r.y2 = Pos.y2;
-			}
-			else if (v->OnLayout(Inf))
-			{
-				if (Inf.Height.Max < 0)
-					r.y2 = Pos.y2;
-				else
-					r.y2 = r.y1 + Inf.Height.Max - 1;
+				// Setup first row
+				BtnRows = 1;
+				Pos.y2 += y;
 			}
 			
-			if (!Izza(GButton) && !Tbl)
+			if (BtnX + v->X() > Width)
 			{
-				if (Inf.Width.Max < 0)
-					Inf.Width.Max = Pos.X() - Padding.x1 - Padding.x2;
-					
-			    r.x2 = r.x1 + Inf.Width.Max - 1;
+				// Wrap
+				BtnX = v->X();
+				BtnRows++;
+				Pos.y2 += y + GTableLayout::CellSpacing;
 			}
-
-			New[i] = r;
-			MaxY = max(MaxY, r.y2 - Pos.y1);
-			Cx += r.X() + GTableLayout::CellSpacing;
-			if (Cx >= Pos.X())
+			else
 			{
-				int Wid = Cx - GTableLayout::CellSpacing;
-				int OffsetX = 0;
-				if (TextAlign().Type == AlignCenter)
-				{
-					OffsetX = (Pos.X() - Wid) / 2;
-				}
-				else if (TextAlign().Type == AlignRight)
-				{
-					OffsetX = Pos.X() - Wid;
-				}
+				// Don't wrap
+				BtnX += v->X() + GTableLayout::CellSpacing;
+			}
+			
+			// Set button height..
+			GRect r = v->GetPos();
+			r.y2 = r.y1 + y - 1;
+			v->SetPos(r);
+		}
+		else if (Izza(GEdit) || Izza(GCombo))
+		{
+			int y = v->GetFont()->GetHeight() + 8;
+			
+			GRect r = v->GetPos();
+			r.y2 = r.y1 + y - 1;
+			v->SetPos(r);
 
-				for (int n=RowStart; n<=i; n++)
-				{
-					New[n].Offset(OffsetX, 0);
-				}
+			Pos.y2 += y;
 
-				RowStart = i + 1;
-				Cx = Padding.x1;
-				Cy = MaxY + GTableLayout::CellSpacing;
+			if (Izza(GEdit) &&
+				Izza(GEdit)->MultiLine())
+			{
+				MaxY = max(MaxY, 1000);
 			}
 		}
+		else if (Izza(GCheckBox) ||
+				 Izza(GRadioButton))
+		{
+			int y = v->GetFont()->GetHeight() + 2;
+			
+			GRect r = v->GetPos();
+			r.y2 = r.y1 + y - 1;
+			v->SetPos(r);
+
+			Pos.y2 += y;
+		}
+		else if (Izza(GList) ||
+				 Izza(GTree) ||
+				 Izza(GTabView))
+		{
+			Pos.y2 += v->GetFont()->GetHeight() + 8;
+			MaxY = max(MaxY, 1000);
+		}
+		else if (Izza(GBitmap))
+		{
+			GBitmap *b = Izza(GBitmap);
+			GSurface *Dc = b->GetSurface();
+			if (Dc)
+			{
+				MaxY = max(MaxY, Dc->Y() + 4);
+			}
+			else
+			{
+				MaxY = max(MaxY, 1000);
+			}
+		}
+		else if ((Tbl = Izza(GTableLayout)))
+		{
+			int Ht = min(v->Y(), Tbl->d->LayoutBounds.Y());
+
+			GRect r = v->GetPos();
+			r.x2 = r.x1 + min(Width, Tbl->d->LayoutMaxX) - 1;
+			r.y2 = r.y1 + Ht - 1;
+			v->SetPos(r);
+
+			Pos.y2 += Ht;
+		}
+		else
+		{
+			GViewLayoutInfo Inf;
+			Inf.Width.Min = Inf.Width.Max = Width;
+			if (v->OnLayout(Inf))
+			{
+				// Supports layout info
+				if (Inf.Height.Max < 0)
+					Flags = SizeFill;
+				else
+					Pos.y2 += Inf.Height.Max - 1;
+			}
+			else
+			{
+				// Doesn't support layout info
+				Pos.y2 += v->Y();
+			}
+		}
+	}
+	
+	MinY = max(MinY, Pos.Y() + Padding.y1 + Padding.y2);
+	MaxY = max(MaxY, Pos.Y() + Padding.y1 + Padding.y2);
+}
+
+/// Called after the layout has been done to move the controls into place
+void TableCell::PostLayout()
+{
+	int Cx = Padding.x1;
+	int Cy = Padding.y1;
+	int MaxY = Padding.y1;
+	int RowStart = 0;
+	GArray<GRect> New;
+
+	for (int i=0; i<Children.Length(); i++)
+	{
+		GView *v = Children[i];
+		if (!v)
+			continue;
 
 		if (Disp == DispNone)
 		{
-			return;
+			v->Visible(false);
+			continue;
+		}
+			
+		GTableLayout *Tbl = Izza(GTableLayout);
+		GRect r = v->GetPos();
+		r.Offset(Pos.x1 - r.x1 + Cx, Pos.y1 - r.y1 + Cy);
+
+		GViewLayoutInfo Inf;
+		Inf.Width.Max = Pos.X() - Padding.x1 - Padding.x2;
+		Inf.Height.Max = Pos.Y() - Padding.y1 - Padding.y2;
+
+		if
+		(
+			Izza(GList) ||
+			Izza(GTree) ||
+			Izza(GTabView) ||
+			(Izza(GEdit) && Izza(GEdit)->MultiLine())
+		)
+		{
+			r.y2 = Pos.y2;
+		}
+		else if (v->OnLayout(Inf))
+		{
+			if (Inf.Height.Max < 0)
+				r.y2 = Pos.y2;
+			else
+				r.y2 = r.y1 + Inf.Height.Max - 1;
+		}
+		
+		if (!Izza(GButton) && !Tbl)
+		{
+			if (Inf.Width.Max < 0)
+				Inf.Width.Max = Pos.X() - Padding.x1 - Padding.x2;
+				
+			r.x2 = r.x1 + Inf.Width.Max - 1;
 		}
 
-		int n;
-		int Wid = Cx - GTableLayout::CellSpacing;
-		int OffsetX = 0;
-		if (TextAlign().Type == AlignCenter)
+		New[i] = r;
+		MaxY = max(MaxY, r.y2 - Pos.y1);
+		Cx += r.X() + GTableLayout::CellSpacing;
+		if (Cx >= Pos.X())
 		{
-			OffsetX = (Pos.X() - Wid) / 2;
-		}
-		else if (TextAlign().Type == AlignRight)
-		{
-			OffsetX = Pos.X() - Wid;
-		}
-		for (n=RowStart; n<Children.Length(); n++)
-		{
-			New[n].Offset(OffsetX, 0);
-		}
+			int Wid = Cx - GTableLayout::CellSpacing;
+			int OffsetX = 0;
+			if (TextAlign().Type == AlignCenter)
+			{
+				OffsetX = (Pos.X() - Wid) / 2;
+			}
+			else if (TextAlign().Type == AlignRight)
+			{
+				OffsetX = Pos.X() - Wid;
+			}
 
-		int OffsetY = 0;
-		if (VerticalAlign().Type == VerticalMiddle)
-		{
-			OffsetY = (Pos.Y() - MaxY) / 2;
-		}
-		else if (VerticalAlign().Type == VerticalBottom)
-		{
-			OffsetY = Pos.Y() - MaxY;
-		}
-		for (n=0; n<Children.Length(); n++)
-		{
-			GView *v = Children[n];
-			if (!v)
-				break;
+			for (int n=RowStart; n<=i; n++)
+			{
+				New[n].Offset(OffsetX, 0);
+			}
 
-			New[n].Offset(0, OffsetY);
-			v->SetPos(New[n]);
-			v->Visible(true);
+			RowStart = i + 1;
+			Cx = Padding.x1;
+			Cy = MaxY + GTableLayout::CellSpacing;
 		}
 	}
-};
 
+	if (Disp == DispNone)
+	{
+		return;
+	}
+
+	int n;
+	int Wid = Cx - GTableLayout::CellSpacing;
+	int OffsetX = 0;
+	if (TextAlign().Type == AlignCenter)
+	{
+		OffsetX = (Pos.X() - Wid) / 2;
+	}
+	else if (TextAlign().Type == AlignRight)
+	{
+		OffsetX = Pos.X() - Wid;
+	}
+	for (n=RowStart; n<Children.Length(); n++)
+	{
+		New[n].Offset(OffsetX, 0);
+	}
+
+	int OffsetY = 0;
+	if (VerticalAlign().Type == VerticalMiddle)
+	{
+		OffsetY = (Pos.Y() - MaxY) / 2;
+	}
+	else if (VerticalAlign().Type == VerticalBottom)
+	{
+		OffsetY = Pos.Y() - MaxY;
+	}
+	for (n=0; n<Children.Length(); n++)
+	{
+		GView *v = Children[n];
+		if (!v)
+			break;
+
+		New[n].Offset(0, OffsetY);
+		v->SetPos(New[n]);
+		v->Visible(true);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////
 GTableLayoutPrivate::GTableLayoutPrivate(GTableLayout *ctrl)
 {
 	InLayout = false;

@@ -282,13 +282,13 @@ public:
 	bool GetFields(FieldTree &Fields);
 	bool Serialize(FieldTree &Fields);
 
-	void SetAttachCell(class TableCell *c);
+	void SetAttachCell(class ResTableCell *c);
 	bool AttachCtrl(ResDialogCtrl *Ctrl, GRect *r = 0);
 	void OnChildrenChanged(GViewI *Wnd, bool Attaching);
 	GRect *GetPasteArea();
 	GRect *GetChildArea(ResDialogCtrl *Ctrl);
 	void Layout();
-	void UnMerge(class TableCell *Cell);
+	void UnMerge(class ResTableCell *Cell);
 	void Fix();
 	void InsertRow(int y);
 	void EnumCtrls(List<ResDialogCtrl> &Ctrls);

@@ -32,7 +32,7 @@ public:
 	GLanguageId GetLang();
 	void SetLang(GLanguageId i);
 	char *&GetStr();
-	void SetStr(char *s);
+	void SetStr(const char *s);
 	bool IsEnglish();
 
 	bool operator ==(GLanguageId LangId);
@@ -72,7 +72,7 @@ public:
 	int SetId(int id);
 	int NewId(); // Creates a new Id based on #define
 	char *Get(GLanguageId Lang = 0);
-	void Set(char *s, GLanguageId Lang = 0);
+	void Set(const char *s, GLanguageId Lang = 0);
 	void UnDupelicate();
 	int Compare(ResString *r, int Column);
 	void CopyText();

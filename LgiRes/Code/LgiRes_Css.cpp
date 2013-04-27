@@ -24,19 +24,19 @@ public:
         int y = 0;
         GLayoutCell *c;
         
-        if (c = GetCell(0, y++))
+        if ((c = GetCell(0, y++)))
             c->Add(new GText(IDC_STATIC, 0, 0, -1, -1, "Name:"));
 
-        if (c = GetCell(0, y++))
+        if ((c = GetCell(0, y++)))
         {
             c->Add(Name = new GEdit(IDC_NAME, 0, 0, 80, 20, 0));
             Name->Name(Css->Name());
         }
 
-        if (c = GetCell(0, y++))
+        if ((c = GetCell(0, y++)))
             c->Add(new GText(IDC_STATIC, 0, 0, -1, -1, "Style:"));
 
-        if (c = GetCell(0, y++))
+        if ((c = GetCell(0, y++)))
         {
             c->Add(Style = new GTextView3(IDC_STYLE, 0, 0, 80, 20, 0));
             Style->Name(Css->Style);

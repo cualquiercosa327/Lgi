@@ -64,10 +64,10 @@ public:
 			SetForegroundFill(0);
 
 		if (!Str)
-			return "(no string)";
+			return (char*)"(no string)";
 
 		if (!Str->Get())
-			return "(empty string)";
+			return (char*)"(empty string)";
 
 		return Str->Get();
 	}
@@ -86,7 +86,7 @@ public:
 			m.ToScreen();
 
 			int Cmd;
-			if (Cmd = s.Float(GetTree(), m.x, m.y))
+			if ((Cmd = s.Float(GetTree(), m.x, m.y)))
 			{
 				d->DiscardClick = true;
 

@@ -118,7 +118,7 @@ char *ResMenuItem::GetText(int i)
 {
 	if (Sep)
 	{
-		return "--------------";
+		return (char*)"--------------";
 	}
 
 	ResString *Str = GetStr();
@@ -565,7 +565,7 @@ bool ResMenu::Read(GXmlTag *t, ResFileFormat Format)
 	bool Status = true;
 
 	char *p = 0;
-	if (p = t->GetAttr("Name"))
+	if ((p = t->GetAttr("Name")))
 	{
 		Name(p);
 	}

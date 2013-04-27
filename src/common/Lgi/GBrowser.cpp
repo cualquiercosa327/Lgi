@@ -213,7 +213,7 @@ public:
 					;
 				else if (!stricmp(t[i], ".."))
 				{
-					if (End = strrchr(Buf, Sep))
+					if ((End = strrchr(Buf, Sep)))
 						*End = 0;
 				}
 				else if (t[i][0] == '#')
@@ -612,7 +612,7 @@ GMessage::Result GBrowser::OnEvent(GMessage *m)
 		}
 		case M_BUSY:
 		{
-			if (d->Loading = MsgA(m))
+			if ((d->Loading = MsgA(m)))
 				SetCtrlName(IDC_REFRESH_STOP, "Stop");
 			else
 				SetCtrlName(IDC_REFRESH_STOP, "Refresh");

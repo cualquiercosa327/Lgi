@@ -276,7 +276,7 @@ bool InvertDC(GSurface *pDC)
 							*d++ = 255 - *d;
 							*d++ = 255 - *d;
 							*d++ = 255 - *d;
-							*d++; // leave alpha channel alone
+							d++; // leave alpha channel alone
 						}
 					}
 				}

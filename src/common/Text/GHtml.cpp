@@ -690,7 +690,7 @@ public:
 		}
 		else LgiAssert(!"Not impl.");
 
-		if (f = new GFont)
+		if ((f = new GFont))
 		{
 			char *ff = ValidStr(Face[0]) ? Face[0] : Default->Face();
 			f->Face(ff);
@@ -1093,6 +1093,7 @@ float GLength::Get(GFlowRegion *Flow, GFont *Font, bool Lock)
 {
 	switch (u)
 	{
+		default: break;
 		case GCss::LenEm:
 		{
 			return PrevAbs = d * (Font ? Font->GetHeight() : 14);
@@ -1397,7 +1398,7 @@ GRect *GFlowRegion::LineBounds()
 		b.Offset(Ox, Oy);
 
 		// int Ox = 0, Oy = 0;
-		while (r = Line.Next())
+		while ((r = Line.Next()))
 		{
 			GRect c = *r;
 			Ox = r->Tag->AbsX();
@@ -1722,7 +1723,7 @@ void GTag::SetTag(const char *NewTag)
 	DeleteArray(Tag);
 	Tag = NewStr(NewTag);
 
-	if (Info = GetTagInfo(Tag))
+	if ((Info = GetTagInfo(Tag)))
 	{
 		TagId = Info->Id;
 		Disp = (Info->Flags & TI_BLOCK) ? DispBlock : DispInline;
@@ -1824,6 +1825,7 @@ void GTag::CopyClipboard(GBytePipe &p)
 	{
 		switch (TagId)
 		{
+			default: break;
 			case TAG_BR:
 			{
 				char16 NL[] = {'\n', 0};
@@ -1973,7 +1975,7 @@ GFont *GTag::GetFont()
 			
 			Map.DeleteObjects();
 
-			if (Font = Html->FontCache->GetFont(&c))
+			if ((Font = Html->FontCache->GetFont(&c)))
 				return Font;
 		}
 		else
@@ -2792,13 +2794,13 @@ void GTag::Restyle()
 
 	GArray<GCss::SelArray*> Maps;
 	GCss::SelArray *s;
-	if (s = Html->CssStore.TypeMap.Find(Tag))
+	if ((s = Html->CssStore.TypeMap.Find(Tag)))
 		Maps.Add(s);
 	if (HtmlId && (s = Html->CssStore.IdMap.Find(HtmlId)))
 		Maps.Add(s);
 	for (i=0; i<Class.Length(); i++)
 	{
-		if (s = Html->CssStore.ClassMap.Find(Class[i]))
+		if ((s = Html->CssStore.ClassMap.Find(Class[i])))
 			Maps.Add(s);
 	}
 
@@ -2878,6 +2880,7 @@ void GTag::SetStyle()
 
 	switch (TagId)
 	{
+		default: break;
 		case TAG_LINK:
 		{
 			const char *Type, *Href;
@@ -3073,6 +3076,7 @@ void GTag::SetStyle()
 
 	switch (TagId)
 	{
+		default: break;
 	    case TAG_BIG:
 	    {
             GCss::Len l;
@@ -3344,7 +3348,8 @@ void GTag::SetStyle()
 				{
 					GEdit *Ed;
 					GAutoString UtfCleanValue(LgiNewUtf16To8(CleanValue));
-					if (Ctrl = Ed = new GEdit(Html->d->NextCtrlId++, 0, 0, 60, SysFont->GetHeight() + 8, UtfCleanValue))
+					Ctrl = Ed = new GEdit(Html->d->NextCtrlId++, 0, 0, 60, SysFont->GetHeight() + 8, UtfCleanValue);
+					if (Ctrl)
 					{
 						Ed->Sunken(false);
 						Ed->Password(CtrlType == CtrlPassword);
@@ -3387,7 +3392,7 @@ void GTag::SetCssStyle(const char *Style)
 	{
 		// Strip out comments
 		char *Comment = 0;
-		while (Comment = strstr((char*)Style, "/*"))
+		while ((Comment = strstr((char*)Style, "/*")))
 		{
 			char *End = strstr(Comment+2, "*/");
 			if (!End)
@@ -3689,6 +3694,7 @@ bool GTag::ConvertToText(TextConvertState &State)
 
 	switch (TagId)
 	{
+		default: break;
 		case TAG_P:
 			if (State.GetPrev())
 				State.NewLine();
@@ -4038,6 +4044,7 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 
 					switch (TagId)
 					{
+						default: break;
 						case TAG_SCRIPT:
 						{
 							char *End = stristr(s, "</script>");
@@ -4306,7 +4313,7 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 					if (*s == '>')
 					{
 						GTag *t;
-						while (t = Html->OpenTags.Last())
+						while ((t = Html->OpenTags.Last()))
 						{
 							Html->CloseTag(t);
 							if (t == this)
@@ -4393,7 +4400,7 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 							{
 								Text(Cur.Release());
 							}
-							else if (Child = new GTag(Html, this))
+							else if ((Child = new GTag(Html, this)))
 							{
 								Child->Text(Cur.Release());
 							}
@@ -4407,7 +4414,7 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 							if (img)
 							{
 								img->Tag = NewStr("img");
-								if (img->Info = GetTagInfo(img->Tag))
+								if ((img->Info = GetTagInfo(img->Tag)))
 									img->TagId = img->Info->Id;
 
 								GRect rc;
@@ -4429,7 +4436,7 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 							if (br)
 							{
 								br->Tag = NewStr("br");
-								if (br->Info = GetTagInfo(br->Tag))
+								if ((br->Info = GetTagInfo(br->Tag)))
 									br->TagId = br->Info->Id;
 							}
 							Start = c + 1;
@@ -4574,6 +4581,7 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 	// Specific tag handling?
 	switch (TagId)
 	{
+		default: break;
 		case TAG_IMG:
 		{
 			Len w = Width();
@@ -4665,7 +4673,7 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 	}
 
 	GTag *c;
-	if (c = Tags.First())
+	if ((c = Tags.First()))
 	{
 		uint16 Width = 0;
 		for (; c; c = Tags.Next())
@@ -4687,6 +4695,7 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 
 	switch (TagId)
 	{
+		default: break;
 		case TAG_TD:
 		{
 			int Add = (int) (PaddingLeft().Value + PaddingRight().Value);
@@ -5318,7 +5327,7 @@ GRect GTag::ChildBounds()
 	if (t)
 	{
 		b = t->GetRect();
-		while (t = Tags.Next())
+		while ((t = Tags.Next()))
 		{
 			GRect c = t->GetRect();
 			b.Union(&c);
@@ -5554,6 +5563,7 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 	
 	switch (TagId)
 	{
+		default: break;
 		case TAG_IFRAME:
 		{
 			GFlowRegion Temp = *Flow;
@@ -5754,6 +5764,7 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 				
 				switch (s)
 				{
+					default: break;
 					case ListDecimal:
 					{
 						int Index = Parent->Tags.IndexOf(this);
@@ -5790,7 +5801,7 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 				Final.InheritResolve(Map);
 				Map.DeleteObjects();
 				GCss::Len CssLineHeight = Final.LineHeight();    
-				if (Font = GetFont())
+				if ((Font = GetFont()))
 				{
 					LineHeightCache = CssLineHeight.IsValid() && CssLineHeight.Type != GCss::LenNormal ?
 									 CssLineHeight.ToPx(Font->GetHeight(), Font) :
@@ -5882,6 +5893,7 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 	{
 		switch (TagId)
 		{
+			default: break;
 			case TAG_SELECT:
 			case TAG_INPUT:
 			{
@@ -6100,6 +6112,7 @@ void GTag::OnPaintBorder(GSurface *pDC, GRect *Px)
 
 	switch (Disp)
 	{
+		default: break;
 		case DispInlineBlock:
 		case DispBlock:
 		{
@@ -6837,11 +6850,11 @@ void GHtml::Parse()
 			GTag *Html = Tag->GetTagByName("html");
 			if (!Html)
 			{
-				if (Html = new GTag(this, 0))
+				if ((Html = new GTag(this, 0)))
 				{
 					Html->SetTag("html");
 					
-					while (c = Tag->Tags.First())
+					while ((c = Tag->Tags.First()))
 						Html->Attach(c);
 					
 					Tag->Attach(Html);
@@ -6853,7 +6866,7 @@ void GHtml::Parse()
 				GTag *Body = Tag->GetTagByName("body");
 				if (!Body)
 				{
-					if (Body = new GTag(this, 0))
+					if ((Body = new GTag(this, 0)))
 					{
 						Body->SetTag("body");
 						Html->Attach(Body);
@@ -6892,7 +6905,7 @@ void GHtml::Parse()
 							if (t->TagId == TAG_HTML)
 							{
 								GTag *c;
-								while (c = t->Tags.First())
+								while ((c = t->Tags.First()))
 								{
 									Html->Attach(c, 0);
 								}
@@ -6975,7 +6988,7 @@ bool GHtml::Name(const char *s)
 
 		// Detect HTML
 		char *s = Source;
-		while (s = strchr(s, '<'))
+		while ((s = strchr(s, '<')))
 		{
 			char *t = 0;
 			s = ParseName(++s, &t);
@@ -8003,7 +8016,7 @@ void GHtml::OnMouseClick(GMouse &m)
 													if (File[0])
 													{
 														char *d;
-														while (d = strchr(File, '\\'))
+														while ((d = strchr(File, '\\')))
 														{
 															*d = '/';
 														}
@@ -8460,7 +8473,7 @@ GCellStore::GCellStore(GTag *Table)
 		{
 			if (!FakeRow)
 			{
-				if (FakeRow = new GTag(Table->Html, 0))
+				if ((FakeRow = new GTag(Table->Html, 0)))
 				{
 					FakeRow->Tag = NewStr("tr");
 					FakeRow->TagId = TAG_TR;
@@ -8473,7 +8486,7 @@ GCellStore::GCellStore(GTag *Table)
 			{
 				if (r->TagId != TAG_TD && !FakeCell)
 				{
-					if (FakeCell = new GTag(Table->Html, FakeRow))
+					if ((FakeCell = new GTag(Table->Html, FakeRow)))
 					{
 						FakeCell->Tag = NewStr("td");
 						FakeCell->TagId = TAG_TD;

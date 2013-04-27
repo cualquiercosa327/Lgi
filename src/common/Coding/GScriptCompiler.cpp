@@ -454,7 +454,7 @@ public:
 		{
 			int Line = 1;
 			char16 *s = w, *t, *prev = w;
-			while (t = LexCpp(s))
+			while ((t = LexCpp(s)))
 			{
 				while (prev < s)
 				{
@@ -477,7 +477,7 @@ public:
 							char *IncCode = 0;
 							v.OwnStr(File);
 
-							if (IncCode = Ctx->GetIncludeFile(v.Str()))
+							if ((IncCode = Ctx->GetIncludeFile(v.Str())))
 							{
 								Lex(IncCode, v.Str());
 							}
@@ -513,7 +513,7 @@ public:
 				if (IsAlpha(*t) && (DefineValue = Defines.Find(t)))
 				{
 					char16 *Def = DefineValue, *f;
-					while (f = LexCpp(Def))
+					while ((f = LexCpp(Def)))
 					{
 						Tokens.Add(f);
 						Lines.Add(FileName, Line);
@@ -614,7 +614,7 @@ public:
 
 		GVariant &v = Code->Globals[r.Index];
 		v.Type = GV_STRING;
-		if (v.Value.String = NewStr(s, len))
+		if ((v.Value.String = NewStr(s, len)))
 		{
 			UnEscape<char>(v.Value.String);
 		}
@@ -648,7 +648,7 @@ public:
 
 		GVariant &v = Code->Globals[r.Index];
 		v.Type = GV_STRING;
-		if (v.Value.String = utf)
+		if ((v.Value.String = utf))
 		{
 			UnEscape<char>(v.Value.String);
 		}
@@ -1086,7 +1086,7 @@ public:
 		{
 			char16 *t;
 			bool PrevIsOp = true;
-			while (t = Tokens[Cur])
+			while ((t = Tokens[Cur]))
 			{
 				if (StricmpW(t, sStartRdBracket) == 0)
 				{
@@ -1137,7 +1137,7 @@ public:
 							// Now parse arguments
 							
 							// Get the start bracket
-							if (t = GetTok(Cur))
+							if ((t = GetTok(Cur)))
 							{
 								if (StricmpW(t, sStartRdBracket) == 0)
 									Cur++;
@@ -1146,7 +1146,7 @@ public:
 							else return OnError(Cur, "No token.");
 							
 							// Parse the args as expressions
-							while (t = GetTok(Cur))
+							while ((t = GetTok(Cur)))
 							{
 								if (StricmpW(t, sComma) == 0)
 								{
@@ -1165,12 +1165,14 @@ public:
 						}
 						else if
 						(
-							sf = Code->GetMethod
 							(
-								m.Str(),
-								(Next = GetTok(Cur+1)) != 0
-								&&
-								StricmpW(Next, sStartRdBracket) == 0
+								sf = Code->GetMethod
+								(
+									m.Str(),
+									(Next = GetTok(Cur+1)) != 0
+									&&
+									StricmpW(Next, sStartRdBracket) == 0
+								)
 							)
 						)
 						{
@@ -1181,7 +1183,7 @@ public:
 							// Now parse arguments
 							
 							// Get the start bracket
-							if (t = GetTok(Cur))
+							if ((t = GetTok(Cur)))
 							{
 								if (StricmpW(t, sStartRdBracket) == 0)
 									Cur++;
@@ -1190,7 +1192,7 @@ public:
 							else return OnError(Cur, "No token.");
 							
 							// Parse the args as expressions
-							while (t = GetTok(Cur))
+							while ((t = GetTok(Cur)))
 							{
 								if (StricmpW(t, sComma) == 0)
 								{
@@ -1213,7 +1215,7 @@ public:
 							Node &Var = n.New();
 							Var.SetVar(t, Cur);
 
-							while (t = GetTok(Cur+1))
+							while ((t = GetTok(Cur+1)))
 							{
 								// Get the last variable part...
 								Node::VariablePart &vp = Var.Variable[Var.Variable.Length()-1];
@@ -1672,7 +1674,7 @@ public:
 				{
 					// Statement block
 					Cur++;
-					while (t = GetTok(Cur))
+					while ((t = GetTok(Cur)))
 					{
 						if (!StricmpW(t, sSemiColon))
 						{
@@ -1725,7 +1727,7 @@ public:
 						{
 							// 'Else' Statement block
 							Cur++;
-							while (t = GetTok(Cur))
+							while ((t = GetTok(Cur)))
 							{
 								if (!StricmpW(t, sSemiColon))
 								{
@@ -1839,7 +1841,7 @@ public:
 			if (StricmpW(t, sStartCurlyBracket) == 0)
 			{
 				// Block
-				while (t = GetTok(Cur))
+				while ((t = GetTok(Cur)))
 				{
 					if (!StricmpW(t, sSemiColon))
 					{
@@ -1966,7 +1968,7 @@ public:
 			if ((t = GetTok(Cur)) && StricmpW(t, sStartCurlyBracket) == 0)
 			{
 				Cur++;
-				while (t = GetTok(Cur))
+				while ((t = GetTok(Cur)))
 				{
 					if (!StricmpW(t, sSemiColon))
 					{
@@ -2055,7 +2057,7 @@ public:
 
 			// Parse parameters
 			Cur++;
-			while (t = GetTok(Cur))
+			while ((t = GetTok(Cur)))
 			{
 				if (IsAlpha(*t))
 				{
@@ -2094,10 +2096,10 @@ public:
 
 			// Parse contents of function body
 			Cur++;
-			while (t = GetTok(Cur))
+			while ((t = GetTok(Cur)))
 			{
 				// Return statement?
-				if (LastInstIsReturn = (!StricmpW(t, sReturn)))
+				if ((LastInstIsReturn = (!StricmpW(t, sReturn))))
 				{
 					Cur++;
 					if (!DoReturn(Cur))
@@ -2179,7 +2181,7 @@ public:
 		Cur++;
 
 		// Parse members
-		while (t = GetTok(Cur))
+		while ((t = GetTok(Cur)))
 		{
 			// End of type def?
 			if (!StricmpW(t, sEndCurlyBracket))
@@ -2255,7 +2257,7 @@ public:
 			Mem->Array = Array;
 			Mem->Type = Type;
 			Mem->Nest = NestedType;
-			if (Mem->Pointer = Pointer)
+			if ((Mem->Pointer = Pointer))
 			{
 				Mem->Size = sizeof(void*);
 			}
@@ -2444,7 +2446,7 @@ GCompiledCode *GCompiler::Compile(GScriptContext *Context, char *FileName, char 
 
 	GStringPipe p;
 	d->Log = Log ? Log : &p;
-	if (d->Ctx = Context)
+	if ((d->Ctx = Context))
 	{
 		GHostFunc *Cmd = d->Ctx->GetCommands();
 		while (Cmd && Cmd->Func && Cmd->Method)

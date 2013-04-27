@@ -1402,6 +1402,7 @@ public:
 							DateTimeParts p = DtParts.Find(sName);
 							switch (p)
 							{
+								default: break;
 								case DateYear:
 									(*Dst) = Dom->Value.Date->Year();
 									break;
@@ -1536,6 +1537,7 @@ public:
 							DateTimeParts p = DtParts.Find(sName);
 							switch (p)
 							{
+								default: break;
 								case DateYear:
 									Dom->Value.Date->Year(Value->CastInt32());
 									break;

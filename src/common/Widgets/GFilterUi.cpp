@@ -236,6 +236,7 @@ public:
 		// Draw the icon content
 		switch (Icon)
 		{
+			default: break;
 			case IconNewCond:
 			case IconBoolTrue:
 			{
@@ -358,6 +359,7 @@ public:
 			// Make new icons transparent
 			switch (Icon)
 			{
+				default: break;
 				case IconNewCond:
 				case IconNewAnd:
 				case IconNewOr:
@@ -681,6 +683,7 @@ void GFilterItem::_PaintText(GSurface *pDC, COLOUR Fore, COLOUR Back)
 
 	switch (d->Node)
 	{
+		default: break;
 		case LNODE_COND:
 		{
 			// Layout stuff

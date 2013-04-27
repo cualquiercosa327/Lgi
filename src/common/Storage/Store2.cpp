@@ -1352,10 +1352,6 @@ namespace Storage2
 								New->Object = 0;
 								New->Start = Item->Header->DirLoc;
 
-								if (Item->Header->DirAlloc < 0)
-								{
-									Item->Header->DirAlloc = 0;
-								}
 								New->Length = Item->Header->DirAlloc * sizeof(StorageItemHeader);
 
 								GSegment *Conflict = 0;
@@ -1375,10 +1371,6 @@ namespace Storage2
 								New->Object = Item;
 								New->Start = Item->Header->DataLoc;
 								
-								if (Item->Header->DataSize < 0)
-								{
-									Item->Header->DataSize = 0;
-								}
 								New->Length = Item->Header->DataSize;
 
 								GSegment *Conflict = 0;

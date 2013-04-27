@@ -64,6 +64,7 @@ bool CanHaveText(HtmlTag TagId)
 {
 	switch (TagId)
 	{
+		default: break;
 		case TAG_TABLE:
 		case TAG_TR:
 		case TAG_BR:
@@ -1067,7 +1068,9 @@ public:
 		if (!Cursor)
 		{
 			GTag *t = Tag ? Tag->GetTagByName("html") : 0;
-			if (t = t ? t->GetTagByName("body") : 0)
+			if (t)
+				t = t->GetTagByName("body");
+			if (t)
 			{
 				for (GTag *c = t->Tags.First(); c; c = t->Tags.Next())
 				{
@@ -1499,7 +1502,7 @@ public:
 		if (t)
 		{
 			GTag *c;
-			while (c = t->Tags.First())
+			while ((c = t->Tags.First()))
 			{
 				if (!DeleteTag(c, Others))
 				{
@@ -1585,7 +1588,7 @@ public:
 					// Scan through to the end marker					
 					GTag *n = First;
 					GArray<GTag*> PostDelete;
-					while (n = NextTag(n))
+					while ((n = NextTag(n)))
 					{
 						if (n == Last)
 						{
@@ -1637,7 +1640,7 @@ public:
 				if (End && !Backwards)
 				{
 					GTag *n = t;
-					while (n = NextTag(n))
+					while ((n = NextTag(n)))
 					{
 						if (n->TagId == TAG_BR)
 						{
@@ -1696,7 +1699,7 @@ public:
 								n->Detach();
 								DeleteObj(n);
 
-								if (n = PrevTag(n))
+								if ((n = PrevTag(n)))
 								{
 									Cursor->Cursor = -1;
 									Cursor = n;
@@ -1742,7 +1745,7 @@ public:
 					if (!ValidStrW(t->Text()))
 					{
 						t->Cursor = -1;
-						while (Cursor = (Backwards ? PrevTag(Cursor) : NextTag(Cursor)))
+						while ((Cursor = (Backwards ? PrevTag(Cursor) : NextTag(Cursor))))
 						{
 							if (Cursor->Text())
 								break;
@@ -1822,12 +1825,12 @@ public:
 						}
 						t->Cursor = -1;
 
-						if (n = new GTag(t->Html, 0))
+						if ((n = new GTag(t->Html, 0)))
 						{
 							n->SetTag("br");
 							Insert->Attach(n, Idx);
 						}
-						if (n = new GTag(t->Html, 0))
+						if ((n = new GTag(t->Html, 0)))
 						{
 							n->TagId = CONTENT;
 							n->Text(NewStrW(EmptyStr));
@@ -1840,12 +1843,12 @@ public:
 				else
 				{
 					GTag *c;
-					if (c = new GTag(this, 0))
+					if ((c = new GTag(this, 0)))
 					{
 						c->SetTag("br");
 						Insert->Attach(c, Idx++);
 
-						if (c = new GTag(this, 0))
+						if ((c = new GTag(this, 0)))
 						{
 							c->TagId = CONTENT;
 							char16 Empty[] = {0};
@@ -1894,7 +1897,7 @@ public:
 			for (GTag *t = MinTag; t; t = NextTag(t))
 			{
 				char16 *s;
-				if (s = t->Text())
+				if ((s = t->Text()))
 				{
 					int Start = t->GetTextStart();
 					if (t == MinTag)
@@ -1914,6 +1917,7 @@ public:
 				{
 					switch (t->TagId)
 					{
+						default: break;
 						case TAG_P:
 						case TAG_BR:
 						{
@@ -2653,7 +2657,7 @@ void GHtmlEdit::OnPosChange()
 				x += p.X();
 				if (dynamic_cast<GCombo*>(c))
 					x += 8;
-				else if (btn = dynamic_cast<Btn*>(c))
+				else if ((btn = dynamic_cast<Btn*>(c)))
 					x += btn->SpaceAfter;
 			}
 		}

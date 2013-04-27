@@ -454,7 +454,7 @@ char *EncodeImapString(char *s)
 			// Encoded
 			GArray<uint16> Str;
 			Str[0] = c;
-			while (c = LgiUtf8To32((uint8*&)s, Len))
+			while ((c = LgiUtf8To32((uint8*&)s, Len)))
 			{
 				if ((c >= ' ' && c < 0x80) ||
 					c == '\n' ||
@@ -1310,7 +1310,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 									MDStringToDigest(md5, Buf);
 									Hex(Buf, (uchar*)md5, sizeof(md5));
 									p.Print(",response=%s", Buf);
-									if (s = p.NewStr())
+									if ((s = p.NewStr()))
 									{
 										int Chars = ConvertBinaryToBase64(Buf, sizeof(Buf) - 4, (uchar*)s, strlen(s));
 										LgiAssert(Chars < sizeof(Buf));
@@ -1715,7 +1715,7 @@ bool MailIMap::Fetch(bool ByUid, char *Seq, const char *Parts, FetchCallback Cal
 
 					// See if we can parse out a single response
 					GArray<StrRange> Ranges;
-					while (MsgSize = ParseImapResponse(Buf, Used, Ranges, 2))
+					while ((MsgSize = ParseImapResponse(Buf, Used, Ranges, 2)))
 					{
 						char *b = &Buf[0];
 						LgiAssert(Ranges.Length() >= 2);
@@ -1983,7 +1983,7 @@ bool MailIMap::Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks
 		for (int i=0; i<Trans.Length(); i++)
 		{
 			char *Flags = 0;
-			if (Trans[i]->Status = GetParts(Trans[i]->Index, *Trans[i]->Stream, "FLAGS RFC822.HEADER BODY[TEXT]", &Flags))
+			if ((Trans[i]->Status = GetParts(Trans[i]->Index, *Trans[i]->Stream, "FLAGS RFC822.HEADER BODY[TEXT]", &Flags)))
 			{
 				Trans[i]->Imap.Set(Flags);
 				DeleteArray(Flags);
@@ -2069,7 +2069,7 @@ bool MailIMap::Append(char *Folder, ImapMailFlags *Flags, char *Msg, GAutoString
 
 				// Read response..
 				ClearDialog();
-				if (Status = ReadResponse(Cmd))
+				if ((Status = ReadResponse(Cmd)))
 				{
 					char Tmp[16];
 					sprintf(Tmp, "A%4.4i", Cmd);
@@ -2262,7 +2262,7 @@ bool MailIMap::GetFolders(List<MailImapFolder> &Folders)
 				{
 					GArray<GAutoString> t;
 					char *s;
-					while (s = LgiTokStr((const char*&)d))
+					while ((s = LgiTokStr((const char*&)d)))
 					{
 						t[t.Length()].Reset(s);
 					}
@@ -2644,7 +2644,7 @@ bool MailIMap::Poll(int *Recent, GArray<GAutoString> *New)
 		if (WriteBuf())
 		{
 			ClearDialog();
-			if (Status = ReadResponse(Cmd))
+			if ((Status = ReadResponse(Cmd)))
 			{
 				int LocalRecent;
 				if (!Recent)
@@ -2699,7 +2699,7 @@ bool MailIMap::OnIdle(int Timeout, GArray<Untagged> &Resp)
 		}
 
 		char *Dlg;
-		while (Dlg = Dialog.First())
+		while ((Dlg = Dialog.First()))
 		{
 			Dialog.Delete(Dlg);
 			Log(Dlg, MAIL_RECEIVE_COLOUR);

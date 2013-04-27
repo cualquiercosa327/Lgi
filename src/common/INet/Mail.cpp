@@ -682,7 +682,7 @@ struct MailAddrPart
 
 	    // Seek back over any trailing whitespace
 	    while (e > s && strchr(WhiteSpace, e[-1]))
-		    *e--;
+		    e--;
 
 	    for (CharPair *p = Pairs; (*p)[0]; p++)
 	    {
@@ -793,7 +793,7 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
 			// string delim
 			char End = *c++;
 			char *s = c;
-			for (c; *c && *c != End; c++)
+			for (; *c && *c != End; c++)
 			{
 				if (*c == '\\')
 					c++;

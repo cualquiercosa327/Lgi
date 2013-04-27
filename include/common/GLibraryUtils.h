@@ -18,7 +18,7 @@
 #define DynFunc0(ret, func)								\
 	ret func()											\
 	{													\
-		typedef ret (CALL_TYPE *p_##func)();						\
+		typedef ret (CALL_TYPE *p_##func)();			\
 		p_##func p = (p_##func) GetAddress(#func);		\
 		if (p)											\
 		{												\
@@ -31,7 +31,7 @@
 #define DynFunc1(ret, func, argtype, argname)			\
 	ret func(argtype argname)							\
 	{													\
-		typedef ret (CALL_TYPE *p_##func)(argtype);				\
+		typedef ret (CALL_TYPE *p_##func)(argtype);		\
 		p_##func p = (p_##func) GetAddress(#func);		\
 		if (p)											\
 		{												\
@@ -61,7 +61,7 @@
 			 argtype2 argname2,							\
 			 argtype3 argname3)							\
 	{													\
-		typedef ret (CALL_TYPE *p_##func)(argtype1,				\
+		typedef ret (CALL_TYPE *p_##func)(argtype1,		\
 								argtype2,				\
 								argtype3);				\
 		p_##func p = (p_##func) GetAddress(#func);		\

@@ -1921,14 +1921,18 @@ bool GTextView3::Paste()
 {
 	GClipBoard Clip(this);
 
-	GAutoWString t(Clip.TextW());
+	GAutoWString Mem;
+	char16 *t = Clip.TextW();
 	if (!t) // ala Win9x
 	{
-		GAutoString s(Clip.Text());
+		char *s = Clip.Text();
 		if (s)
-			t.Reset(LgiNewUtf8To16(s));
+		{
+			Mem.Reset(LgiNewUtf8To16(s));
+			t = Mem;
+		}
 	}
-
+	
 	if (!t)
 		return false;
 

@@ -30,7 +30,7 @@ class LgiObjectName
 {
 public:
 	int Type;
-	char *ObjectName;
+	const char *ObjectName;
 	char *ResourceName;
 	bool ToolbarBtn;
 }
@@ -99,7 +99,7 @@ public:
 				break;
 			}
 		}
-		return "";
+		return (char*)"";
 	}
 };
 
@@ -472,7 +472,7 @@ void ResDialogCtrl::StrFromRef(int Ref)
 	{
 		LgiTrace("%s:%i - String with ref '%i' missing.\n", _FL, Ref);
 		LgiAssert(0);
-		if (Str = Dlg->App()->GetDialogSymbols()->CreateStr())
+		if ((Str = Dlg->App()->GetDialogSymbols()->CreateStr()))
 		{
 			Str->SetRef(Ref);
 		}
@@ -1499,11 +1499,11 @@ void CtrlTabs::ToTab()
 		GAutoPtr<GViewIterator> CurIt(Cur->IterateViews());
 		GAutoPtr<GViewIterator> ThisIt(IterateViews());
 		GViewI *v;
-		while (v = CurIt->First())
+		while ((v = CurIt->First()))
 		{
 			Cur->DelView(v);
 		}
-		while (v = ThisIt->First())
+		while ((v = ThisIt->First()))
 		{
 			DelView(v);
 			Cur->AddView(v);
@@ -1520,11 +1520,11 @@ void CtrlTabs::FromTab()
 		GAutoPtr<GViewIterator> CurIt(Cur->IterateViews());
 		GAutoPtr<GViewIterator> ThisIt(IterateViews());
 		GViewI *v;
-		while (v = ThisIt->First())
+		while ((v = ThisIt->First()))
 		{
 			DelView(v);
 		}
-		while (v = CurIt->First())
+		while ((v = CurIt->First()))
 		{
 			Cur->DelView(v);
 			AddView(v);
@@ -1935,7 +1935,7 @@ void CtrlList::OnPaint(GSurface *pDC)
 			SysFont->Back(LC_MED);
 			SysFont->Transparent(false);
 
-			char *Str = c->Str->Get();
+			const char *Str = c->Str->Get();
 			if (!Str) Str = "";
 			GDisplayString ds(SysFont, Str);
 			ds.Draw(pDC, r.x1 + 2, r.y1 + ((r.Y()-ds.Y())/2) - 1, &r);
@@ -2324,7 +2324,7 @@ char *ResDialog::Name()
 	{
 		return Ctrl->Str->GetDefine();
 	}
-	return "<no object>";
+	return (char*)"<no object>";
 }
 
 bool ResDialog::Name(const char *n)
@@ -2751,7 +2751,7 @@ public:
 void RemapAllRefs(GXmlTag *t, List<StringId> &Strs)
 {
 	char *RefStr;
-	if (RefStr = t->GetAttr("Ref"))
+	if ((RefStr = t->GetAttr("Ref")))
 	{
 		int r = atoi(RefStr);
 
@@ -2912,7 +2912,7 @@ void ResDialog::Paste()
 				if (c)
 				{
 					GRect All = c->View()->GetPos();
-					while (c = NewCtrls.Next())
+					while ((c = NewCtrls.Next()))
 					{
 						All.Union(&c->View()->GetPos());
 					}
@@ -3781,14 +3781,14 @@ void ResDialog::OnRightClick(GSubMenu *RClick)
 	}
 }
 
-char *TypeOfRes(ResDialogCtrl *Ctrl)
+const char *TypeOfRes(ResDialogCtrl *Ctrl)
 {
 
 	// the default
 	return "GWindow";
 }
 
-char *TextOfCtrl(ResDialogCtrl *Ctrl)
+const char *TextOfCtrl(ResDialogCtrl *Ctrl)
 {
 	static char Buf[256];
 
@@ -3839,7 +3839,7 @@ void OutputCtrl(GStringPipe &Def,
 				int &Index)
 {
 	char Str[256];
-	char *Type = "GView";
+	const char *Type = "GView";
 
 	for (LgiObjectName *on=NameMap; on->Type; on++)
 	{

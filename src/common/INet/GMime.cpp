@@ -400,7 +400,8 @@ char *GMime::GetFileName()
 		n = GetSub("Content-Disposition", "Filename");
 	if (!n)
 	{
-		if (n = Get("Content-Location"))
+		n = Get("Content-Location");
+		if (n)
 		{
 			char *trim = TrimStr(n, "\'\"");
 			if (trim)
@@ -495,7 +496,7 @@ bool GMime::CreateTempData()
 	DataPos = 0;
 	DataSize = 0;
 	OwnDataStore = true;
-	if (DataStore = new GTempStream(GetTmpPath(), 4 << 20))
+	if ((DataStore = new GTempStream(GetTmpPath(), 4 << 20)))
 	{
 		Status = true;
 	}
@@ -985,7 +986,7 @@ int GMime::GMimeText::GMimeDecode::Parse(GStringPipe *Source, ParentState *State
 				int Written = 0;
 
 				Status = true;
-				while (Len = Source->Pop(Buf, sizeof(Buf)))
+				while ((Len = Source->Pop(Buf, sizeof(Buf))))
 				{
 					// Check for boundary
 					MimeBoundary Type = MimeData;

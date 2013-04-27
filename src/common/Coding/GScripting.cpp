@@ -89,6 +89,8 @@ struct GCode
 	{
 		switch (Type)
 		{
+			default:
+				break;
 			case GS_IF:
 			{
 				DeleteObj(If.Blocks);
@@ -124,6 +126,7 @@ public:
 	{
 		switch (Simple)
 		{
+			default: break;
 			case GV_INT32:
 				return sizeof(int32);
 			case GV_INT64:
@@ -280,7 +283,7 @@ struct GDomRef
 
 	GDomRef(GDomRef &dr)
 	{
-		if (FreeVar = dr.FreeVar)
+		if ((FreeVar = dr.FreeVar))
 		{
 			if (dr.Var && (Var = new GVariant) != 0)
 			{
@@ -318,7 +321,7 @@ bool InsertUtfCharacter(GVariant *Var, GVariant &v, int Idx)
 			if (i++ == Idx)
 				break;
 		}
-		while (ch = LgiUtf8To32(Str, Len));
+		while ((ch = LgiUtf8To32(Str, Len)));
 
 		if (ch)
 		{
@@ -543,7 +546,7 @@ public:
 		{
 			int Line = 1;
 			char16 *s = w, *t, *prev = w;
-			while (t = LexCpp(s))
+			while ((t = LexCpp(s)))
 			{
 				while (prev < s)
 				{
@@ -739,7 +742,7 @@ bool GDomRef::Get(GScriptEnginePrivate *Priv, GVariant &v)
 							int Len = strlen((char*) Str);
 							int i = 0;
 							uint32 ch;
-							while (ch = LgiUtf8To32(Str, Len))
+							while ((ch = LgiUtf8To32(Str, Len)))
 							{
 								if (i++ == Idx)
 								{
@@ -817,7 +820,7 @@ bool GDomRef::Set(GScriptEnginePrivate *Priv, GVariant &v)
 					Var->Empty();
 					int Len = v.CastInt32();
 					Var->Type = GV_STRING;
-					if (Var->Value.String = new char[Len+1])
+					if ((Var->Value.String = new char[Len+1]))
 					{
 						memset(Var->Value.String, ' ', Len);
 						Var->Value.String[Len] = 0;
@@ -1006,7 +1009,7 @@ bool GScriptEnginePrivate::CreateDomAddr(int &Cur, GDomAddr &Addr)
 		Cur++;
 
 		// Build DOM address
-		while (t = ThisToken())
+		while ((t = ThisToken()))
 		{
 			if (StricmpW(t, sPeriod) == 0)
 			{
@@ -1062,7 +1065,7 @@ bool GScriptEnginePrivate::ResolveDomAddr(GDomRef &Ref, GDomAddr &Addr, bool Cre
 {
 	if (Addr.Length() == 1)
 	{
-		if (Ref.Var = Var(Addr[0], Create))
+		if ((Ref.Var = Var(Addr[0], Create)))
 		{
 			Ref.Array = Addr.Parts[0].Array;
 		}
@@ -1297,7 +1300,7 @@ GVariant *GScriptEnginePrivate::Var(char16 *name, bool create)
 		for (int i=Stack.Length()-1; i>=0; i--)
 		{
 			StackFrame *sf = Stack[i];
-			if (v = (GVariant*) sf->Find(b))
+			if ((v = (GVariant*) sf->Find(b)))
 			{
 				break;
 			}
@@ -1305,7 +1308,7 @@ GVariant *GScriptEnginePrivate::Var(char16 *name, bool create)
 
 		if (!v && create)
 		{
-			if (v = new GVariant)
+			if ((v = new GVariant))
 			{
 				Stack[Stack.Length()-1]->Add(b, v);
 			}
@@ -1418,7 +1421,7 @@ bool GScriptEnginePrivate::Compile_MethodCall(int &Cur)
 			return false;
 		}
 
-		while (t = ThisToken())
+		while ((t = ThisToken()))
 		{
 			if (*t == ')')
 			{
@@ -1458,7 +1461,7 @@ bool GScriptEnginePrivate::Compile_Expression(int &Cur, int Depth)
 		int PrevIsOp = -1;
 
 		char16 *t;
-		while (t = Tokens[Cur])
+		while ((t = Tokens[Cur]))
 		{
 			if (StricmpW(t, sStartRdBracket) == 0)
 			{
@@ -1585,7 +1588,7 @@ GVariant *GScriptEnginePrivate::Execute_Expression(int &Cur, GDom *Src, int Dept
 		int PrevIsOp = -1;
 
 		char16 *t;
-		while (t = Tokens[Cur])
+		while ((t = Tokens[Cur]))
 		{
 			if (StricmpW(t, sStartRdBracket) == 0)
 			{
@@ -1674,7 +1677,7 @@ GVariant *GScriptEnginePrivate::Execute_Expression(int &Cur, GDom *Src, int Dept
 
 							// Collect arguments
 							Cur += 2;
-							while (t = ThisToken())
+							while ((t = ThisToken()))
 							{
 								if (*t == ')')
 								{
@@ -1737,7 +1740,7 @@ GVariant *GScriptEnginePrivate::Execute_Expression(int &Cur, GDom *Src, int Dept
 								char *utf = LgiNewUtf16To8(&a[0]);
 
 								// Ask the variable source to get the value
-								if (v = new GVariant)
+								if ((v = new GVariant))
 									Src->GetValue(utf, *v);
 
 								// Clean up...
@@ -1755,14 +1758,14 @@ GVariant *GScriptEnginePrivate::Execute_Expression(int &Cur, GDom *Src, int Dept
 									// Variable name...
 									LgiAssert(Ref->Array == 0);
 									DeleteObj(Ref);
-									if (v = new GVariant)
+									if ((v = new GVariant))
 										ToVar(*v, t);
 								}
 							}
 						}
 						else
 						{
-							if (v = new GVariant)
+							if ((v = new GVariant))
 								ToVar(*v, t);
 						}
 
@@ -2534,7 +2537,7 @@ bool GScriptFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Values
 		// Set copies of all the arguments as local variables
 		for (int i=0; i<Args.Length(); i++)
 		{
-			if (n = new GVariant)
+			if ((n = new GVariant))
 			{
 				*n = *(Values[i]);
 				sf->Add(Args[i], (void*)n);
@@ -2944,7 +2947,7 @@ bool GScriptEnginePrivate::Compile_Statement(GArray<GCode> &To, int &Cur)
 						}
 						else
 						{
-							while (t = ThisToken())
+							while ((t = ThisToken()))
 							{
 								if (StricmpW(t, sEndCurlyBracket) == 0)
 								{
@@ -2991,7 +2994,7 @@ bool GScriptEnginePrivate::Compile_Statement(GArray<GCode> &To, int &Cur)
 										GCode::GConditionBlock &b = Code.If.Blocks->New();
 										b.Condition = 0;
 
-										while (t = ThisToken())
+										while ((t = ThisToken()))
 										{
 											if (StricmpW(t, sEndCurlyBracket) == 0)
 											{
@@ -3024,7 +3027,7 @@ bool GScriptEnginePrivate::Compile_Statement(GArray<GCode> &To, int &Cur)
 			GCode &Code = To[To.Length()];
 			Code.Type = GS_FUNCTION_DEFN;
 			Code.Start = Cur - 1;
-			if (t = ThisToken())
+			if ((t = ThisToken()))
 			{
 				GScriptFunc *Func = 0;
 				if (!isalpha(*t))
@@ -3048,7 +3051,7 @@ bool GScriptEnginePrivate::Compile_Statement(GArray<GCode> &To, int &Cur)
 					}
 
 					// Read any arguments
-					while (t = ThisToken())
+					while ((t = ThisToken()))
 					{
 						if (isalpha(*t))
 						{
@@ -3243,7 +3246,7 @@ bool GScriptEnginePrivate::Compile_Statement(GArray<GCode> &To, int &Cur)
 							if (Require(Cur, "{"))
 							{
 								// Execute content
-								while (t = Tokens[Cur])
+								while ((t = Tokens[Cur]))
 								{
 									if (StricmpW(t, sEndCurlyBracket) == 0)
 									{

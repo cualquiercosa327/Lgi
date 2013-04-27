@@ -730,38 +730,41 @@ bool VCard::Export(GDataPropI *c, GStreamI *o)
 
 	#define OutputTypedField(Field, Name, Type)		\
 		{ char *str = 0;								\
-		if (str = c->GetStr(Name))					\
+		if ((str = c->GetStr(Name)))					\
 		{											\
 			WriteField(*o, Field, Type, str);			\
 		} }
 
 	#define OutputField(Field, Name)				\
 		{ char *str = 0;								\
-		if (str = c->GetStr(Name))					\
+		if ((str = c->GetStr(Name)))					\
 		{											\
 			WriteField(*o, Field, 0, str);				\
 		} }
 
-	OutputTypedField("tel", FIELD_WORK_PHONE, &TypesList("Work"));
-	OutputTypedField("tel", FIELD_WORK_MOBILE, &TypesList("Work,Cell"));
-	OutputTypedField("tel", FIELD_WORK_FAX, &TypesList("Work,Fax"));
-	OutputTypedField("tel", FIELD_HOME_PHONE, &TypesList("Home"));
-	OutputTypedField("tel", FIELD_HOME_MOBILE, &TypesList("Home,Cell"));
-	OutputTypedField("tel", FIELD_HOME_FAX, &TypesList("Home,Fax"));
+	TypesList Work("Work"), WorkCell("Work,Cell"), WorkFax("Work,Fax");
+	TypesList Home("Home"), HomeCell("Home,Cell"), HomeFax("Home,Fax");
+	TypesList InetPref("internet,pref"), Inet("internet");
+	OutputTypedField("tel", FIELD_WORK_PHONE, &Work);
+	OutputTypedField("tel", FIELD_WORK_MOBILE, &WorkCell);
+	OutputTypedField("tel", FIELD_WORK_FAX, &WorkFax);
+	OutputTypedField("tel", FIELD_HOME_PHONE, &Home);
+	OutputTypedField("tel", FIELD_HOME_MOBILE, &HomeCell);
+	OutputTypedField("tel", FIELD_HOME_FAX, &HomeFax);
 	OutputField("org", FIELD_COMPANY);
-	OutputTypedField("email", FIELD_EMAIL, &TypesList("internet,pref"));
+	OutputTypedField("email", FIELD_EMAIL, &InetPref);
 	char *Alt;
-	if (Alt = c->GetStr(FIELD_ALT_EMAIL))
+	if ((Alt = c->GetStr(FIELD_ALT_EMAIL)))
 	{
 		GToken t(Alt, ",");
 		for (int i=0; i<t.Length(); i++)
 		{
-			WriteField(*o, "email", &TypesList("internet"), t[i]);
+			WriteField(*o, "email", &Inet, t[i]);
 		}
 	}
 
 	char * Uid;
-	if (Uid = c->GetStr(FIELD_UID))
+	if ((Uid = c->GetStr(FIELD_UID)))
 	{
 		GStreamPrint(o, "UID:%s\r\n", Uid);
 	}
@@ -773,6 +776,7 @@ bool VCard::Export(GDataPropI *c, GStreamI *o)
 	PostCode = c->GetStr(FIELD_HOME_POSTCODE);
 	State = c->GetStr(FIELD_HOME_STATE);
 	Country = c->GetStr(FIELD_HOME_COUNTRY);
+
 	if (Street || Suburb || PostCode || State || Country)
 	{
 		snprintf(s, sizeof(s)-1,
@@ -782,7 +786,8 @@ bool VCard::Export(GDataPropI *c, GStreamI *o)
 				State?State:Empty,
 				PostCode?PostCode:Empty,
 				Country?Country:Empty);
-		WriteField(*o, "adr", &TypesList("home"), s);
+		
+		WriteField(*o, "adr", &Home, s);
 	}
 
 	Street = Suburb = PostCode = State = Country = 0;
@@ -800,27 +805,28 @@ bool VCard::Export(GDataPropI *c, GStreamI *o)
 				State?State:Empty,
 				PostCode?PostCode:Empty,
 				Country?Country:Empty);
-		WriteField(*o, "adr", &TypesList("work"), s);
+		
+		WriteField(*o, "adr", &Work, s);
 	}
 
 	// OutputField("X-Perm", FIELD_PERMISSIONS);
 
 	char *Url;
-	if (Url = c->GetStr(FIELD_HOME_WEBPAGE))
+	if ((Url = c->GetStr(FIELD_HOME_WEBPAGE)))
 	{
-		WriteField(*o, "url", &TypesList("home"), Url);
+		WriteField(*o, "url", &Home, Url);
 	}
-	if (Url = c->GetStr(FIELD_WORK_WEBPAGE))
+	if ((Url = c->GetStr(FIELD_WORK_WEBPAGE)))
 	{
-		WriteField(*o, "url", &TypesList("work"), Url);
+		WriteField(*o, "url", &Work, Url);
 	}
 	char *Nick;
-	if (Nick = c->GetStr(FIELD_NICK))
+	if ((Nick = c->GetStr(FIELD_NICK)))
 	{
 		WriteField(*o, "nickname", 0, Nick);
 	}
 	char *Note;
-	if (Note = c->GetStr(FIELD_NOTE))
+	if ((Note = c->GetStr(FIELD_NOTE)))
 	{
 		WriteField(*o, "note", 0, Note);
 	}
@@ -1003,7 +1009,7 @@ bool VCal::Export(GDataPropI *c, GStreamI *o)
 		#define OutputStr(Field, Name)						\
 		{													\
 			char *_s = 0;									\
-			if (_s = c->GetStr(Field))						\
+			if ((_s = c->GetStr(Field)))					\
 			{												\
 				WriteField(*o, Name, 0, _s);				\
 			}												\
@@ -1014,7 +1020,7 @@ bool VCal::Export(GDataPropI *c, GStreamI *o)
 		OutputStr(FIELD_CAL_NOTES, "DESCRIPTION");
 
 		int ShowAs;
-		if (ShowAs = c->GetInt(FIELD_CAL_SHOW_TIME_AS))
+		if ((ShowAs = c->GetInt(FIELD_CAL_SHOW_TIME_AS)))
 		{
 			switch (ShowAs)
 			{
@@ -1043,20 +1049,20 @@ bool VCal::Export(GDataPropI *c, GStreamI *o)
 		}
 
 		char *Uid;
-		if (Uid = c->GetStr(FIELD_UID))
+		if ((Uid = c->GetStr(FIELD_UID)))
 		{
 			GStreamPrint(o, "UID:%s\r\n", Uid);
 		}
 
 		GDateTime *Dt;
-		if (Dt = c->GetDate(FIELD_CAL_START_UTC))
+		if ((Dt = c->GetDate(FIELD_CAL_START_UTC)))
 		{
 			Dt->ToUtc();
 			GStreamPrint(o, "DTSTART:%04.4i%02.2i%02.2iT%02.2i%02.2i%02.2i\r\n",
 					Dt->Year(), Dt->Month(), Dt->Day(),
 					Dt->Hours(), Dt->Minutes(), Dt->Seconds());
 		}
-		if (Dt = c->GetDate(FIELD_CAL_END_UTC))
+		if ((Dt = c->GetDate(FIELD_CAL_END_UTC)))
 		{
 			Dt->ToUtc();
 			GStreamPrint(o, "DTEND:%04.4i%02.2i%02.2iT%02.2i%02.2i%02.2i\r\n",

@@ -99,13 +99,13 @@ struct GSoftwareUpdatePriv
 									atoi(StatusCode->Content) > 0)
 								{
 									GXmlTag *t;
-									if (t = Root.GetTag("version"))
+									if ((t = Root.GetTag("version")))
 										Info->Version.Reset(NewStr(t->Content));
-									if (t = Root.GetTag("revision"))
+									if ((t = Root.GetTag("revision")))
 										Info->Build.Reset(NewStr(t->Content));
-									if (t = Root.GetTag("uri"))
+									if ((t = Root.GetTag("uri")))
 										Info->Uri.Reset(NewStr(t->Content));
-									if (t = Root.GetTag("date"))
+									if ((t = Root.GetTag("date")))
 									{
 										Info->Date.SetFormat(GDTF_YEAR_MONTH_DAY);
 										Info->Date.Set(t->Content);

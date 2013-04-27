@@ -207,7 +207,6 @@ GDocApp<OptionsFmt>::GDocApp(const char *appname, const TCHAR *icon, char *optsn
 template <typename OptionsFmt>
 GDocApp<OptionsFmt>::~GDocApp()
 {
-	LgiStackTrace("GDocApp::~GDocApp\n");
 	DeleteObj(d);
 	DeleteObj(Options);
 }
@@ -372,7 +371,7 @@ bool GDocApp<OptionsFmt>::_Destroy()
 template <typename OptionsFmt>
 bool GDocApp<OptionsFmt>::_LoadMenu(const char *Resource, const char *Tags)
 {
-	if (Menu = new GMenu)
+	if ((Menu = new GMenu))
 	{
 		Menu->Attach(this);
 

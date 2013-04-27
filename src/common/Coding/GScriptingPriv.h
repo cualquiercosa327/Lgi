@@ -356,9 +356,10 @@ protected:
 			case OpPostInc:
 			case OpPostDec:
 				return OpPostfix;
+			
+			default:
+				return OpInfix;
 		}
-
-		return OpInfix;
 	}
 
 	int GetPrecedence(GOperator o)
@@ -409,9 +410,12 @@ protected:
 			case OpPostInc:
 			case OpPostDec:
 				return 2;
+			
+			default:
+				LgiAssert(!"Really?");
+				break;
 		}
 
-		LgiAssert(!"Really?");
 		return -1;
 	}
 

@@ -167,7 +167,7 @@ public:
 	operator V()
 	{
 		Mapping *m;
-		if (m = Get(NewName))
+		if ((m = Get(NewName)))
 		{
 			return m->Value;
 		}

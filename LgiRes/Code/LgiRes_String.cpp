@@ -104,7 +104,7 @@ char *&StrLang::GetStr()
 	return Str;
 }
 
-void StrLang::SetStr(char *s)
+void StrLang::SetStr(const char *s)
 {
 	char *n = NewStr(s);
 	DeleteArray(Str);
@@ -256,7 +256,7 @@ char *ResString::Get(GLanguageId Lang)
 	return 0;
 }
 
-void ResString::Set(char *p, GLanguageId Lang)
+void ResString::Set(const char *p, GLanguageId Lang)
 {
 	if (!Lang)
 	{
@@ -398,7 +398,7 @@ bool ResString::Read(GXmlTag *t, ResFileFormat Format)
 				SetId(Cid);
 			}
 		}
-		if (n = t->GetAttr("Tag"))
+		if ((n = t->GetAttr("Tag")))
 		{
 			DeleteArray(Tag);
 			Tag = NewStr(n);
@@ -898,7 +898,7 @@ ResStringGroup::ResStringGroup(AppWnd *w, int type) :
 ResStringGroup::~ResStringGroup()
 {
 	ResString *s;
-	while (s = Strs.First())
+	while ((s = Strs.First()))
 	{
 		DeleteObj(s);
 	}
@@ -928,7 +928,7 @@ int ResStringGroup::GetLangIdx(GLanguageId Id)
 
 int ResString::Compare(ResString *r, int Column)
 {
-	static char *Empty = "";
+	static const char *Empty = "";
 	bool Mod = (Column < 0) ? -1 : 1;
 	Column = abs(Column) - 1;
 
@@ -959,7 +959,7 @@ int ResString::Compare(ResString *r, int Column)
 					GLanguageId Lang = Group->Visible[Column - 3]->Id;
 					char *a = Get(Lang);
 					char *b = r->Get(Lang);
-					char *Empty = "";
+					const char *Empty = "";
 					return stricmp(a?a:Empty, b?b:Empty) * Mod;
 				}
 				break;
@@ -1377,7 +1377,7 @@ bool ResStringGroup::Read(GXmlTag *t, ResFileFormat Format)
 	bool Status = false;
 
 	char *p = 0;
-	if (p = t->GetAttr("Name"))
+	if ((p = t->GetAttr("Name")))
 	{
 		if (Format == XmlFile)
 		{

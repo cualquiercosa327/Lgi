@@ -222,9 +222,9 @@ public:
 		{
 			case 0:
 			{
-				if (Menu) return "MenuItem";
-				else if (Dialog) return "Control";
-				return "String";
+				if (Menu) return (char*)"MenuItem";
+				else if (Dialog) return (char*)"Control";
+				return (char*)"String";
 				break;
 			}
 			case 1:
@@ -281,7 +281,7 @@ public:
 			{
 				return true;
 			}
-			*s++;
+			s++;
 		}
 
 		return false;
