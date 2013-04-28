@@ -1722,7 +1722,7 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 								a.pDC = pDC;
 								if (a.Pixels)
 								{
-									int PixSize = a.Bits == 24 ? Pixel24::Size : a.Bits >> 3;
+									int PixSize = a.Bits == 24 ? 3 : a.Bits >> 3;
 									int AddX = DocX + (int)Doc.x1;
 									a.y -= (int)Mat[2][1];
 									a.Len = RopLength;
@@ -1976,9 +1976,9 @@ void GSolidBrush::Rop(GRopArgs &Args)
 	{
 		case 24:
 		{
-			Pixel24 *d = (Pixel24*) Args.Pixels;
-			Pixel24 *end = (Pixel24*) ((uint8*)d + (Args.Len * Pixel24::Size));
-			Pixel24 s;
+			GRgb24 *d = (GRgb24*) Args.Pixels;
+			GRgb24 *end = (GRgb24*) ((uint8*)d + (Args.Len * 3));
+			GRgb24 s;
 
 			s.r = R32(c32);
 			s.g = G32(c32);
@@ -1999,15 +1999,15 @@ void GSolidBrush::Rop(GRopArgs &Args)
 					NonPreMulOver24(b);
 				}
 
-				d = d->Next();
+				d++;
 			}
 			break;
 		}
 		case 32:
 		{
-			Pixel32 *d = (Pixel32*) Args.Pixels;
-			Pixel32 *end = d + Args.Len;
-			Pixel32 s;
+			GRgba32 *d = (GRgba32*) Args.Pixels;
+			GRgba32 *end = d + Args.Len;
+			GRgba32 s;
 
 			s.r = R32(c32);
 			s.g = G32(c32);
@@ -2150,9 +2150,9 @@ void GLinearBlendBrush::Rop(GRopArgs &Args)
 	{
 		case 24:
 		{
-			Pixel24 *d = (Pixel24*) Args.Pixels;
-			Pixel24 *e = (Pixel24*) ((char*)d + (Args.Len * Pixel24::Size));
-			Pixel24 s;
+			GRgb24 *d = (GRgb24*) Args.Pixels;
+			GRgb24 *e = (GRgb24*) ((char*)d + (Args.Len * 3));
+			GRgb24 s;
 
 			while (d < e)
 			{
@@ -2185,7 +2185,7 @@ void GLinearBlendBrush::Rop(GRopArgs &Args)
 					}
 				}
 
-				d = d->Next();
+				d++;
 				Alpha++;
 				Pos += Inc;
 			}
@@ -2193,9 +2193,9 @@ void GLinearBlendBrush::Rop(GRopArgs &Args)
 		}
 		case 32:
 		{
-			Pixel32 *d = (Pixel32*) Args.Pixels;
-			Pixel32 *End = d + Args.Len;
-			Pixel32 s;
+			GRgba32 *d = (GRgba32*) Args.Pixels;
+			GRgba32 *End = d + Args.Len;
+			GRgba32 s;
 
 			while (d < End)
 			{
@@ -2268,9 +2268,9 @@ void GRadialBlendBrush::Rop(GRopArgs &Args)
 			int Ci = 0;
 			COLOUR c32;
 			uchar sa;
-			Pixel24 *d = (Pixel24*) Args.Pixels;
-			Pixel24 *End = (Pixel24*) (((char*)d) + (Args.Len * Pixel24::Size));
-			Pixel24 s;
+			GRgb24 *d = (GRgb24*) Args.Pixels;
+			GRgb24 *End = (GRgb24*) (((char*)d) + (Args.Len * 3));
+			GRgb24 s;
 
 			if (Radius < 0.0000000001)
 			{
@@ -2300,7 +2300,7 @@ void GRadialBlendBrush::Rop(GRopArgs &Args)
 						}
 					}
 					
-					d = d->Next();
+					d++;
 				}
 			}
 			else
@@ -2344,19 +2344,19 @@ void GRadialBlendBrush::Rop(GRopArgs &Args)
 					x++;
 					dxsq += xd;
 					xd += 2;
-					d = d->Next();
+					d++;
 				}
 			}
 			break;
 		}
 		case 32:
 		{
-			Pixel32 *d = (Pixel32*) Args.Pixels;
+			GRgba32 *d = (GRgba32*) Args.Pixels;
 			int Ci = 0;
 			COLOUR c;
 			uchar sa;
-			Pixel32 *End = d + Args.Len;
-			Pixel32 s;
+			GRgba32 *End = d + Args.Len;
+			GRgba32 s;
 
 			if (Radius < 0.0000000001)
 			{
@@ -2452,8 +2452,8 @@ void GEraseBrush::Rop(GRopArgs &Args)
 		case 24:
 		{
 			/*
-			Pixel24 *d = (Pixel24*) Args.Pixels;
-			Pixel24 *end = (Pixel24*) ((uint8*)d + (Args.Len * Pixel24::Size));
+			GRgb24 *d = (GRgb24*) Args.Pixels;
+			GRgb24 *end = (GRgb24*) ((uint8*)d + (Args.Len * 3));
 
 			while (d < end)
 			{
@@ -2470,15 +2470,15 @@ void GEraseBrush::Rop(GRopArgs &Args)
 					NonPreMulOver24(b);
 				}
 
-				d = d->Next();
+				d++;
 			}
 			*/
 			break;
 		}
 		case 32:
 		{
-			Pixel32 *d = (Pixel32*) Args.Pixels;
-			Pixel32 *end = d + Args.Len;
+			GRgba32 *d = (GRgba32*) Args.Pixels;
+			GRgba32 *end = d + Args.Len;
 
 			while (d < end)
 			{

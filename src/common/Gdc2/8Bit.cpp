@@ -316,13 +316,13 @@ void ConvertLine16(uchar *Out, uchar *in, int len)
 
 void ConvertLine24(uchar *out, uchar *in, int len)
 {
-	Pixel24 *i = (Pixel24*)in;
+	GRgb24 *i = (GRgb24*)in;
 	while (len--)
 	{
 		*out++ = i->b;
 		*out++ = i->g;
 		*out++ = i->r;
-		i = i->Next();
+		i++;
 	}
 }
 
@@ -418,11 +418,11 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 										}
 										case 24:
 										{
-											Pixel24 *s = (Pixel24*) (Src->Base + (y * Src->Line));
+											GRgb24 *s = (GRgb24*) (Src->Base + (y * Src->Line));
 											for (int x=0; x<Src->x; x++)
 											{
 												*d++ = Lookup[Rgb15(s->r, s->g, s->b)];
-												s = s->Next();
+												s++;
 											}
 											break;
 										}

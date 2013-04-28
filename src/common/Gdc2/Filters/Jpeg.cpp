@@ -334,8 +334,8 @@ struct JpegCmyk
 union JpegPointer
 {
 	uchar *u8;
-	Pixel24 *p24;
-	Pixel32 *p32;
+	GRgb24 *p24;
+	GRgba32 *p32;
 	JpegRgb *j24;
 	JpegXyz *x24;
 	JpegCmyk *c32;
@@ -548,9 +548,9 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 								{
 									JpegXyz *s = (JpegXyz*) Ptr;
 									#ifdef MAC
-									Pixel32 *d = (Pixel32*) Ptr;
+									GRgba32 *d = (GRgba32*) Ptr;
 									#else
-									Pixel24 *d = (Pixel24*) Ptr;
+									GRgb24 *d = (GRgb24*) Ptr;
 									#endif
 									
 									for (int n=pDC->X()-1; n>=0; n--)
@@ -571,7 +571,7 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 										#ifdef MAC
 										d->a = 255;
 										#endif
-										d = d->Next();
+										d++;
 										s++;
 									}
 								}
@@ -583,18 +583,14 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 								if (cinfo.num_components == 3)
 								{
 									#ifdef MAC
-									Pixel32 *d = (Pixel32*) Ptr;
+									GRgba32 *d = (GRgba32*) Ptr;
 									#else
-									Pixel24 *d = (Pixel24*) Ptr;
+									GRgb24 *d = (GRgb24*) Ptr;
 									#endif
 									JpegRgb *e = (JpegRgb*) Ptr;
 									JpegRgb *s = e;
 									
-									#ifdef MAC
-									d += pDC->X()-1;
-									#else
-									((char*&)d) += Pixel24::Size * (pDC->X()-1);
-									#endif
+									d += pDC->X() - 1;
 									s += pDC->X() - 1;
 									
 									while (s >= e)
@@ -606,10 +602,8 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 										d->b = t.b;
 										#ifdef MAC
 										d->a = 255;
-										d--;
-										#else
-										((uchar*&)d) -= Pixel24::Size;
 										#endif
+										d--;
 										
 									}
 								}
@@ -859,21 +853,21 @@ GFilter::IoStatus GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality, SubS
 				{
 				    GPixelPtr p, end;
 				    p.u8 = (*pDC)[cinfo.next_scanline];
-                    end.u8 = p.u8 + (Pixel24::Size * pDC->X());
-					while (p.px24 < end.px24)
+                    end.rgb24 = p.rgb24 + pDC->X();
+					while (p.rgb24 < end.rgb24)
 					{
-						dst[0] = p.px24->r;
-						dst[1] = p.px24->g;
-						dst[2] = p.px24->b;
+						dst[0] = p.rgb24->r;
+						dst[1] = p.rgb24->g;
+						dst[2] = p.rgb24->b;
 						dst += 3;
-                        p.u8 += Pixel24::Size;
+                        p.rgb24++;
 					}
 					break;
 				}
 				case 32:
 				{
-				    Pixel32 *p = (Pixel32*) (*pDC)[cinfo.next_scanline];
-				    Pixel32 *end = p + pDC->X();
+				    GRgba32 *p = (GRgba32*) (*pDC)[cinfo.next_scanline];
+				    GRgba32 *end = p + pDC->X();
 					while (p < end)
 					{
 						dst[0] = p->r;

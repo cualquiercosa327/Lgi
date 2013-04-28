@@ -842,7 +842,7 @@ public:
 	// The surface is owned by this GSurface and will be free'd when deleted.
 	// virtual Gtk::cairo_surface_t *GetSurface(bool Render) { return 0; }
 	
-	/// Returns the cairo drawing context, creating one if required.
+Ge	/// Returns the cairo drawing context, creating one if required.
 	/// The context is owned by this GSurface and will be free'd when deleted.
 	virtual Gtk::cairo_t *GetCairo() { return Cairo; }
 

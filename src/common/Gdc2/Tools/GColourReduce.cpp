@@ -199,19 +199,19 @@ bool CreatePalette(GPalette *Out, GSurface *In, int DestSize)
 	{
 		bool fuzzy = ColUsed > DestSize;
 
-		switch (In->GetBits())
+		switch (In->GetColourSpace())
 		{
-			case 24:
+			case CsRgb24:
 			{
 				GPixelPtr in, end;
-				in.px24 = (Pixel24*) (*In)[y];
-				end.u8 = in.u8 + (Pixel24::Size * In->X());
+				in.u8 = (*In)[y];
+				end.rgb24 = in.rgb24 + In->X();
 				
-				while (in.u8 < end.u8)
+				while (in.rgb24 < end.rgb24)
 				{
-					int hash =	(((int)in.px24->r & 0xfc) << 10) |
-								(((int)in.px24->g & 0xfc) << 4) |
-								(((int)in.px24->b & 0xfc) >> 2);
+					int hash =	(((int)in.rgb24->r & 0xfc) << 10) |
+								(((int)in.rgb24->g & 0xfc) << 4) |
+								(((int)in.rgb24->b & 0xfc) >> 2);
 					
 					int h;
 					for (h = 0; h < TABLE_SIZE; h++)
@@ -221,16 +221,16 @@ bool CreatePalette(GPalette *Out, GSurface *In, int DestSize)
 						if (col->count == 0)
 						{
 							// Create entry for this RGB
-							col->c[0] = in.px24->r;
-							col->c[1] = in.px24->g;
-							col->c[2] = in.px24->b;
+							col->c[0] = in.rgb24->r;
+							col->c[1] = in.rgb24->g;
+							col->c[2] = in.rgb24->b;
 							col->count++;
 							ColUsed++;
 							break;
 						}
 						else
 						{
-							int dist = ColourDistance(col, in.px24);
+							int dist = ColourDistance(col, in.rgb24);
 							if (dist == 0 || (fuzzy && dist < 3))
 							{
 								// Reuse the existing entry
@@ -242,21 +242,21 @@ bool CreatePalette(GPalette *Out, GSurface *In, int DestSize)
 					
 					LgiAssert(h < TABLE_SIZE);
 					
-					in.u8 += Pixel24::Size;
+					in.rgb24++;
 				}
 				break;
 			}
-			case 32:
+			case CsRgba32:
 			{
 				GPixelPtr in, end;
-				in.px32 = (Pixel32*) (*In)[y];
-				end.px32 = in.px32 + In->X();
+				in.u8 = (*In)[y];
+				end.rgba32 = in.rgba32 + In->X();
 				
-				while (in.px32 < end.px32)
+				while (in.rgba32 < end.rgba32)
 				{
-					int hash =	(((int)in.px32->r & 0xfc) << 10) |
-								(((int)in.px32->g & 0xfc) << 4) |
-								(((int)in.px32->b & 0xfc) >> 2);
+					int hash =	(((int)in.rgba32->r & 0xfc) << 10) |
+								(((int)in.rgba32->g & 0xfc) << 4) |
+								(((int)in.rgba32->b & 0xfc) >> 2);
 					
 					int h;
 					for (h = 0; h < TABLE_SIZE; h++)
@@ -266,16 +266,16 @@ bool CreatePalette(GPalette *Out, GSurface *In, int DestSize)
 						if (col->count == 0)
 						{
 							// Create entry for this RGB
-							col->c[0] = in.px32->r;
-							col->c[1] = in.px32->g;
-							col->c[2] = in.px32->b;
+							col->c[0] = in.rgba32->r;
+							col->c[1] = in.rgba32->g;
+							col->c[2] = in.rgba32->b;
 							col->count++;
 							ColUsed++;
 							break;
 						}
 						else
 						{
-							int dist = ColourDistance(col, in.px32);
+							int dist = ColourDistance(col, in.rgba32);
 							if (dist == 0 || (fuzzy && dist < 3))
 							{
 								// Reuse the existing entry
@@ -286,7 +286,7 @@ bool CreatePalette(GPalette *Out, GSurface *In, int DestSize)
 					}
 					LgiAssert(h < TABLE_SIZE);
 					
-					in.px32++;
+					in.rgba32++;
 				}
 				break;
 			}

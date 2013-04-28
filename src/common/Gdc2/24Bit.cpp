@@ -102,12 +102,12 @@ bool GdcApp24::SetSurface(GBmpMem *d, GPalette *p, GBmpMem *a)
 void GdcApp24::SetPtr(int x, int y)
 {
 	LgiAssert(Dest && Dest->Base);
-	Ptr.u8 = ((uint8*)Dest->Base + (y * Dest->Line) + (x * Pixel24::Size));
+	Ptr.u8 = ((uint8*)Dest->Base + (y * Dest->Line) + (x * 3));
 }
 
 void GdcApp24::IncX()
 {
-	((char*&)Ptr) += Pixel24::Size;
+	((char*&)Ptr) += 3;
 }
 
 void GdcApp24::IncY()
@@ -117,21 +117,21 @@ void GdcApp24::IncY()
 
 void GdcApp24::IncPtr(int X, int Y)
 {
-	((char*&)Ptr) += (Y * Dest->Line) + (X * Pixel24::Size);
+	((char*&)Ptr) += (Y * Dest->Line) + (X * 3);
 }
 
 COLOUR GdcApp24::Get()
 {
-	return Rgb24(Ptr.px24->r, Ptr.px24->g, Ptr.px24->b);
+	return Rgb24(Ptr.rgb24->r, Ptr.rgb24->g, Ptr.rgb24->b);
 }
 
 // 24 bit set sub functions
 void GdcApp24Set::Set()
 {
 	GetRGB(c);
-	Ptr.px24->r = R;
-	Ptr.px24->g = G;
-	Ptr.px24->b = B;
+	Ptr.rgb24->r = R;
+	Ptr.rgb24->g = G;
+	Ptr.rgb24->b = B;
 }
 
 void GdcApp24Set::VLine(int height)
@@ -139,9 +139,9 @@ void GdcApp24Set::VLine(int height)
 	GetRGB(c);
 	while (height--)
 	{
-		Ptr.px24->r = R;
-		Ptr.px24->g = G;
-		Ptr.px24->b = B;
+		Ptr.rgb24->r = R;
+		Ptr.rgb24->g = G;
+		Ptr.rgb24->b = B;
 		((char*&)Ptr) += Dest->Line;
 	}
 }
@@ -151,14 +151,14 @@ void GdcApp24Set::Rectangle(int x, int y)
 	GetRGB(c);
 	while (y--)
 	{
-		Pixel24 *p = Ptr.px24;
-		Pixel24 *e = (Pixel24*) (Ptr.u8 + (x * Pixel24::Size));
+		GRgb24 *p = Ptr.rgb24;
+		GRgb24 *e = Ptr.rgb24 + x;
 		while (p < e)
 		{
 			p->r = R;
 			p->g = G;
 			p->b = B;
-			p = p->Next();
+			p++;
 		}
 		((char*&)Ptr) += Dest->Line;
 	}
@@ -174,7 +174,7 @@ bool GdcApp24Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 			{
 				if (SPal)
 				{
-					Pixel24 c[256];
+					GRgb24 c[256];
 
 					for (int i=0; i<256; i++)
 					{
@@ -195,7 +195,7 @@ bool GdcApp24Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 
 					for (int y=0; y<Src->y; y++)
 					{
-						Pixel24 *d = Ptr.px24;
+						GRgb24 *d = Ptr.rgb24;
 						uchar *s = Src->Base + (y * Src->Line);
 						uchar *e = s + Src->x;
 
@@ -205,7 +205,7 @@ bool GdcApp24Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 							d->g = c[*s].g;
 							d->b = c[*s].b;
 							s++;
-							d = d->Next();
+							d++;
 						}
 
 						((char*&)Ptr) += Dest->Line;
@@ -215,7 +215,7 @@ bool GdcApp24Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				{
 					for (int y=0; y<Src->y; y++)
 					{
-						Pixel24 *d = Ptr.px24;
+						GRgb24 *d = Ptr.rgb24;
 						uchar *s = Src->Base + (y * Src->Line);
 						uchar *e = s + Src->x;
 
@@ -224,7 +224,7 @@ bool GdcApp24Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 							d->r = *s;
 							d->g = *s;
 							d->b = *s++;
-							d = d->Next();
+							d++;
 						}
 
 						((char*&)Ptr) += Dest->Line;
@@ -238,7 +238,7 @@ bool GdcApp24Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				{
 					ushort *s = (ushort*) (Src->Base + (Src->Line * y));
 					ushort *e = s + Src->x;
-					Pixel24 *d = Ptr.px24;
+					GRgb24 *d = Ptr.rgb24;
 
 					while (s < e)
 					{
@@ -247,7 +247,7 @@ bool GdcApp24Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 						d->b = Bc15(*s);
 
 						s++;
-						d = d->Next();
+						d++;
 					}
 
 					((char*&)Ptr) += Dest->Line;
@@ -260,7 +260,7 @@ bool GdcApp24Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				{
 					ushort *s = (ushort*) (Src->Base + (Src->Line * y));
 					ushort *e = s + Src->x;
-					Pixel24 *d = Ptr.px24;
+					GRgb24 *d = Ptr.rgb24;
 
 					while (s < e)
 					{
@@ -269,7 +269,7 @@ bool GdcApp24Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 						d->r = ((*s & 0xF800) >> 8) | ((*s & 0xE000) >> 13);
 
 						s++;
-						d = d->Next();
+						d++;
 					}
 
 					((char*&)Ptr) += Dest->Line;
@@ -281,7 +281,7 @@ bool GdcApp24Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				uchar *s = Src->Base;
 				for (int y=0; y<Src->y; y++)
 				{
-					MemCpy(Ptr.u8, s, Src->x * Pixel24::Size);
+					MemCpy(Ptr.u8, s, Src->x * 3);
 					s += Src->Line;
 					Ptr.u8 += Dest->Line;
 				}
@@ -291,9 +291,9 @@ bool GdcApp24Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 			{
 				for (int y=0; y<Src->y; y++)
 				{
-					Pixel24 *d = (Pixel24*) Ptr.px24;
-					Pixel32 *s = (Pixel32*) (Src->Base + (y * Src->Line));
-					Pixel32 *e = s + Src->x;
+					GRgb24 *d = (GRgb24*) Ptr.rgb24;
+					GRgba32 *s = (GRgba32*) (Src->Base + (y * Src->Line));
+					GRgba32 *e = s + Src->x;
 
 					while (s < e)
 					{
@@ -301,7 +301,7 @@ bool GdcApp24Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 						d->g = s->g;
 						d->b = s->b;
 						s++;
-						d = d->Next();
+						d++;
 					}
 
 					((char*&)Ptr) += Dest->Line;
@@ -317,9 +317,9 @@ bool GdcApp24Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 void GdcApp24Or::Set()
 {
 	GetRGB(c);
-	Ptr.px24->b |= B;
-	Ptr.px24->g |= G;
-	Ptr.px24->r |= R;
+	Ptr.rgb24->b |= B;
+	Ptr.rgb24->g |= G;
+	Ptr.rgb24->r |= R;
 }
 
 void GdcApp24Or::VLine(int height)
@@ -327,9 +327,9 @@ void GdcApp24Or::VLine(int height)
 	GetRGB(c);
 	while (height--)
 	{
-		Ptr.px24->b |= B;
-		Ptr.px24->g |= G;
-		Ptr.px24->r |= R;
+		Ptr.rgb24->b |= B;
+		Ptr.rgb24->g |= G;
+		Ptr.rgb24->r |= R;
 		((char*&)Ptr) += Dest->Line;
 	}
 }
@@ -341,12 +341,12 @@ void GdcApp24Or::Rectangle(int x, int y)
 	{
 		for (int n=0; n<x; n++)
 		{
-			Ptr.px24->b |= B;
-			Ptr.px24->g |= G;
-			Ptr.px24->r |= R;
-			Ptr.u8 += Pixel24::Size;
+			Ptr.rgb24->b |= B;
+			Ptr.rgb24->g |= G;
+			Ptr.rgb24->r |= R;
+			Ptr.u8 += 3;
 		}
-		Ptr.u8 += Dest->Line - (x * Pixel24::Size);
+		Ptr.u8 += Dest->Line - (x * 3);
 	}
 }
 
@@ -361,7 +361,7 @@ bool GdcApp24Or::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				uchar *s = Src->Base;
 				for (int y=0; y<Src->y; y++)
 				{
-					MemOr(Ptr.px24, s, Src->x * Pixel24::Size);
+					MemOr(Ptr.rgb24, s, Src->x * 3);
 					s += Src->Line;
 					Ptr.u8 += Dest->Line;
 				}
@@ -376,9 +376,9 @@ bool GdcApp24Or::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 void GdcApp24And::Set()
 {
 	GetRGB(c);
-	Ptr.px24->b &= B;
-	Ptr.px24->g &= G;
-	Ptr.px24->r &= R;
+	Ptr.rgb24->b &= B;
+	Ptr.rgb24->g &= G;
+	Ptr.rgb24->r &= R;
 }
 
 void GdcApp24And::VLine(int height)
@@ -386,9 +386,9 @@ void GdcApp24And::VLine(int height)
 	GetRGB(c);
 	while (height--)
 	{
-		Ptr.px24->b &= B;
-		Ptr.px24->g &= G;
-		Ptr.px24->r &= R;
+		Ptr.rgb24->b &= B;
+		Ptr.rgb24->g &= G;
+		Ptr.rgb24->r &= R;
 		Ptr.u8 += Dest->Line;
 	}
 }
@@ -400,12 +400,12 @@ void GdcApp24And::Rectangle(int x, int y)
 	{
 		for (int n=0; n<x; n++)
 		{
-			Ptr.px24->b &= B;
-			Ptr.px24->g &= G;
-			Ptr.px24->b &= R;
-			Ptr.u8 += Pixel24::Size;
+			Ptr.rgb24->b &= B;
+			Ptr.rgb24->g &= G;
+			Ptr.rgb24->b &= R;
+			Ptr.u8 += 3;
 		}
-		Ptr.u8 += Dest->Line - (x * Pixel24::Size);
+		Ptr.u8 += Dest->Line - (x * 3);
 	}
 }
 
@@ -416,7 +416,7 @@ bool GdcApp24And::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 		uchar *s = Src->Base;
 		for (int y=0; y<Src->y; y++)
 		{
-			MemAnd(Ptr.u8, s, Src->x * Pixel24::Size);
+			MemAnd(Ptr.u8, s, Src->x * 3);
 			s += Src->Line;
 			Ptr.u8 += Dest->Line;
 		}
@@ -428,9 +428,9 @@ bool GdcApp24And::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 void GdcApp24Xor::Set()
 {
 	GetRGB(c);
-	Ptr.px24->b ^= B;
-	Ptr.px24->g ^= G;
-	Ptr.px24->r ^= R;
+	Ptr.rgb24->b ^= B;
+	Ptr.rgb24->g ^= G;
+	Ptr.rgb24->r ^= R;
 }
 
 void GdcApp24Xor::VLine(int height)
@@ -438,9 +438,9 @@ void GdcApp24Xor::VLine(int height)
 	GetRGB(c);
 	while (height--)
 	{
-		Ptr.px24->b ^= B;
-		Ptr.px24->g ^= G;
-		Ptr.px24->r ^= R;
+		Ptr.rgb24->b ^= B;
+		Ptr.rgb24->g ^= G;
+		Ptr.rgb24->r ^= R;
 		Ptr.u8 += Dest->Line;
 	}
 }
@@ -452,12 +452,12 @@ void GdcApp24Xor::Rectangle(int x, int y)
 	{
 		for (int n=0; n<x; n++)
 		{
-			Ptr.px24->b ^= B;
-			Ptr.px24->g ^= G;
-			Ptr.px24->r ^= R;
-			Ptr.u8 += Pixel24::Size;
+			Ptr.rgb24->b ^= B;
+			Ptr.rgb24->g ^= G;
+			Ptr.rgb24->r ^= R;
+			Ptr.u8 += 3;
 		}
-		((char*&)Ptr) += Dest->Line - (x * Pixel24::Size);
+		((char*&)Ptr) += Dest->Line - (x * 3);
 	}
 }
 
@@ -468,7 +468,7 @@ bool GdcApp24Xor::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 		uchar *s = Src->Base;
 		for (int y=0; y<Src->y; y++)
 		{
-			MemXor(Ptr.u8, s, Src->x * Pixel24::Size);
+			MemXor(Ptr.u8, s, Src->x * 3);
 			s += Src->Line;
 			Ptr.u8 += Dest->Line;
 		}

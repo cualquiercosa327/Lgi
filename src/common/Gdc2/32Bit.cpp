@@ -186,7 +186,7 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 			{
 				if (SPal)
 				{
-					Pixel32 c[256];
+					GRgba32 c[256];
 					for (int i=0; i<256; i++)
 					{
 						GdcRGB *p = (*SPal)[i];
@@ -234,8 +234,8 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 						for (int y=0; y<Src->y; y++)
 						{
 							uchar *s = (uchar*) (Src->Base + (Src->Line * y));
-							Pixel32 *d = (Pixel32*) Ptr;
-							Pixel32 *e = d + Src->x;
+							GRgba32 *d = (GRgba32*) Ptr;
+							GRgba32 *e = d + Src->x;
 							
 							while (d < e)
 							{
@@ -251,8 +251,8 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 					for (int y=0; y<Src->y; y++)
 					{
 						uchar *s = (uchar*) (Src->Base + (Src->Line * y));
-						Pixel32 *d = (Pixel32*) Ptr;
-						Pixel32 *e = d + Src->x;
+						GRgba32 *d = (GRgba32*) Ptr;
+						GRgba32 *e = d + Src->x;
 
 						while (d < e)
 						{
@@ -273,8 +273,8 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				for (int y=0; y<Src->y; y++)
 				{
 					ushort *s = (ushort*) (Src->Base + (Src->Line * y));
-					Pixel32 *d = (Pixel32*) Ptr;
-					Pixel32 *e = d + Src->x;
+					GRgba32 *d = (GRgba32*) Ptr;
+					GRgba32 *e = d + Src->x;
 					
 					while (d < e)
 					{
@@ -314,9 +314,9 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 			{
 				for (int y=0; y<Src->y; y++)
 				{
-					Pixel24 *s = (Pixel24*) ((char*)Src->Base + (y * Src->Line));
-					Pixel32 *d = (Pixel32*) Ptr;
-					Pixel32 *e = d + Src->x;
+					GRgb24 *s = (GRgb24*) ((char*)Src->Base + (y * Src->Line));
+					GRgba32 *d = (GRgba32*) Ptr;
+					GRgba32 *e = d + Src->x;
 					
 					while (d < e)
 					{
@@ -325,7 +325,7 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 						d->b = s->b;
 						d->a = 255;
 						d++;
-						s = s->Next();
+						s++;
 					}
 
 					((char*&)Ptr) += Dest->Line;

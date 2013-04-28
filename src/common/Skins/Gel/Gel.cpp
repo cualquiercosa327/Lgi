@@ -57,7 +57,7 @@ class GelSkin : public GSkinEngine
 
 	COLOUR LgiLighten(COLOUR c32, int Amount)
 	{
-		Pixel32 *p = (Pixel32*)&c32;
+		GRgba32 *p = (GRgba32*)&c32;
 		p->r += ((255 - p->r) * Amount) >> 8;
 		p->g += ((255 - p->g) * Amount) >> 8;
 		p->b += ((255 - p->b) * Amount) >> 8;
@@ -66,7 +66,7 @@ class GelSkin : public GSkinEngine
 
 	COLOUR LgiDarken(COLOUR c32, int Amount)
 	{
-		Pixel32 *p = (Pixel32*)&c32;
+		GRgba32 *p = (GRgba32*)&c32;
 		p->r = (p->r * Amount) >> 8;
 		p->g = (p->g * Amount) >> 8;
 		p->b = (p->b * Amount) >> 8;

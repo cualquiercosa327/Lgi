@@ -782,6 +782,7 @@ bool GCss::InheritResolve(PropMap &Contrib)
 			                    switch (Mine->Type)
 			                    {
 			                        case LenPt:
+			                        case LenPx:
 			                        {
 			                            Mine->Value = Mine->Value - 1;
 			                            break;
@@ -799,6 +800,7 @@ bool GCss::InheritResolve(PropMap &Contrib)
 			                    switch (Mine->Type)
 			                    {
 			                        case LenPt:
+			                        case LenPx:
 			                        {
 			                            Mine->Value = Mine->Value + 1;
 			                            break;

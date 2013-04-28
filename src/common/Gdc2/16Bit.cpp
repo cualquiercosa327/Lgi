@@ -274,14 +274,14 @@ bool GdcApp16Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 			{
 				for (int y=0; y<Src->y; y++)
 				{
-					Pixel24 *s = (Pixel24*) ((char*)Src->Base + (y * Src->Line));
+					GRgb24 *s = (GRgb24*) ((char*)Src->Base + (y * Src->Line));
 					ushort *d = (ushort*) Ptr;
 					ushort *e = d + Src->x;
 
 					while (d < e)
 					{
 						*d++ = Rgb16(s->r, s->g, s->b);
-						s = s->Next();
+						s++;
 					}
 
 					((char*&)Ptr) += Dest->Line;

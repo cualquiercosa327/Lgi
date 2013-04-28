@@ -157,8 +157,8 @@ int GdcGif::out_line(uchar *pixels, int linewidth, int interlaced, int BitDepth)
 	    }
 	    case 32:
 	    {
-	        Pixel32 *s = (Pixel32*) (*pDC)[lines];
-	        Pixel32 *e = s + pDC->X();
+	        GRgba32 *s = (GRgba32*) (*pDC)[lines];
+	        GRgba32 *e = s + pDC->X();
 	        GPalette *pal = pDC->Palette();
         	GdcRGB *p = (*pal)[0], *pix;
         	

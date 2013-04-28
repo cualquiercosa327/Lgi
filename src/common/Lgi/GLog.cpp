@@ -57,9 +57,10 @@ RLogView::RLogView(GLog *log)
 		VScroll->SetLimits(0, -1);
 	}
 
-	
-	#ifdef BEOS
+	#if defined(BEOS)
 	Handle()->SetViewColor(B_TRANSPARENT_COLOR);
+	#elif defined(WIN32)
+	WndFlags |= GWF_SYS_BORDER;
 	#endif
 }
 

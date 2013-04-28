@@ -23,10 +23,6 @@
 
 #define LGI_RAD					(360/(2*LGI_PI))
 
-/****************************** Globals *************************************************************************************/
-int Pixel24::Size = 3;
-int Pixel32::Size = 4;
-
 /****************************** Helper Functions ****************************************************************************/
 void LgiDrawIcon(GSurface *pDC, int Dx, int Dy, HICON ico)
 {
@@ -47,7 +43,7 @@ void LgiDrawIcon(GSurface *pDC, int Dx, int Dy, HICON ico)
 	int y;
 	for (y=0; !HasAlpha && y<bm.bmHeight; y++)
 	{
-		Pixel32 *c = (Pixel32*) &bits[y * bm.bmWidthBytes];
+		GRgba32 *c = (GRgba32*) &bits[y * bm.bmWidthBytes];
 		for (int x=0; x<bm.bmWidth; x++)
 		{
 			if (c[x].a > 0)

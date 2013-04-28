@@ -161,19 +161,37 @@ void GFontSelect::UpdatePreview()
 			GDisplayString ds(&f, "AaBbCcDdEeFf");
 			ds.Draw(Dc, 5, 5);
 
-			if (Dc->GetBits() == 32)
+			// Hack the alpha channel back to "FF"
+			// On win32 the font draws in "00000000" instead of "ff000000"
+			switch (Dc->GetColourSpace())
 			{
-				// Hack the alpha channel back to "FF"
-				// On win32 the font draws in "00000000" instead of "ff000000"
-				for (int y=0; y<Dc->Y(); y++)
+				case CsRgba32:
 				{
-					Pixel32 *p = (Pixel32*) (*Dc)[y];
-					Pixel32 *e = p + Dc->X();
-					while (p < e)
+					for (int y=0; y<Dc->Y(); y++)
 					{
-						p->a = 255;
-						p++;
+						GRgba32 *p = (GRgba32*) (*Dc)[y];
+						GRgba32 *e = p + Dc->X();
+						while (p < e)
+						{
+							p->a = 255;
+							p++;
+						}
 					}
+					break;
+				}
+				case CsArgb32:
+				{
+					for (int y=0; y<Dc->Y(); y++)
+					{
+						GArgb32 *p = (GArgb32*) (*Dc)[y];
+						GArgb32 *e = p + Dc->X();
+						while (p < e)
+						{
+							p->a = 255;
+							p++;
+						}
+					}
+					break;
 				}
 			}
 

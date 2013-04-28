@@ -536,7 +536,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 							    {
 								    if (png_get_bit_depth(png_ptr, info_ptr) == 16)
 								    {
-									    Pixel32 *o = (Pixel32*)Scan;
+									    GRgba32 *o = (GRgba32*)Scan;
 									    Png48 *i = (Png48*)Scan0[y];
 									    Png48 *e = i + pDC->X();
 
@@ -546,13 +546,13 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 										    o->g = i->g / 257;
 										    o->b = i->b / 257;
 										    o->a = 255;
-										    o = o->Next();
+										    o++;
 										    i++;
 									    }
 								    }
 								    else
 								    {
-									    Pixel32 *o = (Pixel32*)Scan;
+									    GRgba32 *o = (GRgba32*)Scan;
 									    Png24 *i = (Png24*)Scan0[y];
 									    Png24 *e = i + pDC->X();
 
@@ -562,7 +562,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 										    o->g = i->g;
 										    o->b = i->b;
 										    o->a = 255;
-										    o = o->Next();
+										    o++;
 										    i++;
 									    }
 								    }
@@ -571,7 +571,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 							    {
 								    if (png_get_bit_depth(png_ptr, info_ptr) == 16)
 								    {
-									    Pixel24 *o = (Pixel24*)Scan;
+									    GRgb24 *o = (GRgb24*)Scan;
 									    Png48 *i = (Png48*)Scan0[y];
 									    Png48 *e = i + pDC->X();
 
@@ -580,13 +580,13 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 										    o->r = i->r / 257;
 										    o->g = i->g / 257;
 										    o->b = i->b / 257;
-										    o = o->Next();
+										    o++;
 										    i++;
 									    }
 								    }
 								    else
 								    {
-									    Pixel24 *o = (Pixel24*)Scan;
+									    GRgb24 *o = (GRgb24*)Scan;
 									    Png24 *i = (Png24*)Scan0[y];
 									    Png24 *e = i + pDC->X();
 
@@ -595,7 +595,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 										    o->r = i->r;
 										    o->g = i->g;
 										    o->b = i->b;
-										    o = o->Next();
+										    o++;
 										    i++;
 									    }
 								    }
@@ -607,7 +607,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 							{
 								if (png_get_bit_depth(png_ptr, info_ptr) == 16)
 								{
-									Pixel32 *o = (Pixel32*)Scan;
+									GRgba32 *o = (GRgba32*)Scan;
 									Png64 *i = (Png64*)Scan0[y];
 									Png64 *e = i + pDC->X();
 
@@ -617,13 +617,13 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 										o->g = (uint8)(i->g / 257);
 										o->b = (uint8)(i->b / 257);
 										o->a = (uint8)(i->a / 257);
-										o = o->Next();
+										o++;
 										i++;
 									}
 								}
 								else
 								{
-									Pixel32 *o = (Pixel32*) Scan;
+									GRgba32 *o = (GRgba32*) Scan;
 									Png32 *i = (Png32*) Scan0[y];
 
 									for (int x=0; x<pDC->X(); x++, i++, o++)
@@ -757,9 +757,9 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 		// Check alpha channel
 		for (int y=0; y<pDC->Y() && !HasTransparency; y++)
 		{
-			Pixel32 *p = (Pixel32*)(*pDC)[y];
+			GRgba32 *p = (GRgba32*)(*pDC)[y];
 			if (!p) break;
-			Pixel32 *e = p + pDC->X();
+			GRgba32 *e = p + pDC->X();
 			while (p < e)
 			{
 				if (p->a < 255)
@@ -893,7 +893,7 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 					{
 						for (int y=0; y<pDC->Y(); y++)
 						{
-							Pixel32 *s = (Pixel32*) (*pDC)[y];
+							GRgba32 *s = (GRgba32*) (*pDC)[y];
 							for (int x=0; x<pDC->X(); x++)
 							{
 								if (s[x].a < 0xff)
@@ -1092,7 +1092,7 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 
 						for (int y=0; y<pDC->Y(); y++)
 						{
-							Pixel24 *s = (Pixel24*) (*pDC)[y];
+							GRgb24 *s = (GRgb24*) (*pDC)[y];
 							if (KeyAlpha)
 							{
 								Png32 *d = (Png32*) (TempBits + (TempLine * y));
@@ -1104,7 +1104,7 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 									d->a = (s->r == Ar &&
 											s->g == Ag &&
 											s->b == Ab) ? 0 : 0xff;
-									s = s->Next();
+									s++;
 									d++;
 								}
 							}
@@ -1116,7 +1116,7 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 									d->r = s->r;
 									d->g = s->g;
 									d->b = s->b;
-									s = s->Next();
+									s++;
 									d++;
 								}
 							}
@@ -1131,7 +1131,7 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 
 						for (int y=0; y<pDC->Y(); y++)
 						{
-							Pixel32 *s = (Pixel32*) (*pDC)[y];
+							GRgba32 *s = (GRgba32*) (*pDC)[y];
 							if (ChannelAlpha)
 							{
 								Png32 *d = (Png32*) (TempBits + (TempLine * y));

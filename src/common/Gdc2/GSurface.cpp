@@ -909,7 +909,7 @@ void GSurface::Blt(int x, int y, GSurface *Src, GRect *a)
 			{
 				GBmpMem Bits, Alpha;
 
-				int PixelBytes = Src->pMem->Bits == 24 ? Pixel24::Size : Src->pMem->Bits >> 3;
+				int PixelBytes = Src->pMem->Bits >> 3;
 				
 				Bits.Base =	Src->pMem->Base +
 						(SClip.y1 * Src->pMem->Line) +

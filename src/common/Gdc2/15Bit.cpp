@@ -282,7 +282,7 @@ bool GdcApp15Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 					while (d < e)
 					{
 						*d++ = Rgb15(s->r, s->g, s->b);
-						s = s->Next();
+						s++;
 					}
 
 					Ptr += Dest->Line;
