@@ -275,7 +275,7 @@ bool GdcApp15Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 			{
 				for (int y=0; y<Src->y; y++)
 				{
-					Pixel24 *s = (Pixel24*) (Src->Base + (y * Src->Line));
+					GRgb24 *s = (GRgb24*) (Src->Base + (y * Src->Line));
 					ushort *d = (ushort*) Ptr;
 					ushort *e = d + Src->x;
 

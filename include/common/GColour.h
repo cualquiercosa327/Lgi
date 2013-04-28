@@ -78,27 +78,15 @@ public:
 /// A colour definition
 class LgiClass GColour
 {
-public:
-	enum Space
-	{
-		ColIdx8,
-		ColRgba32,
-		ColHls32,
-	};
-
 protected:
 	class GPalette *pal;
 	union {
-		uint8  p8;
-		uint32 p32;
-		struct
-		{
-			uint8 s;
-			uint8 l;
-			int16 h;
-		} hls;
+		uint32 flat;
+		uint8  index;
+		GRgba32 rgb;
+		GHls32 hls;
 	};
-	Space space;
+	GColourSpace space;
 
 	int HlsValue(double fN1, double fN2, double fHue)
 	{
@@ -139,11 +127,11 @@ public:
 
 	bool Transparent()
 	{
-		if (space == ColRgba32)
-			return A32(p32) == 0;
-		else if (space == ColIdx8)
-			return !pal || p8 < pal->GetSize();
-		return true;
+		if (space == CsRgba32)
+			return rgb.a == 0;
+		else if (space == CsIndex8)
+			return !pal || index >= pal->GetSize();
+		return false;
 	}
 
 	/// Sets the colour to a rgb(a) value
@@ -160,38 +148,50 @@ public:
 		{
 			case 8:
 			{
-				p8 = c;
-				space = ColIdx8;
+				index = c;
+				space = CsIndex8;
 				break;
 			}
 			case 15:
 			{
-				space = ColRgba32;
-				p32 = Rgb15To32(c);
+				space = CsRgba32;
+				rgb.r = R15(c);
+				rgb.g = G15(c);
+				rgb.b = B15(c);
+				rgb.a = 255;
 				break;
 			}
 			case 16:
 			{
-				space = ColRgba32;
-				p32 = Rgb16To32(c);
+				space = CsRgba32;
+				rgb.r = R16(c);
+				rgb.g = G16(c);
+				rgb.b = B16(c);
+				rgb.a = 255;
 				break;
 			}
 			case 24:
 			{
-				space = ColRgba32;
-				p32 = Rgb24To32(c);
+				space = CsRgba32;
+				rgb.r = R24(c);
+				rgb.g = G24(c);
+				rgb.b = B24(c);
+				rgb.a = 255;
 				break;
 			}
 			case 32:
 			{
-				space = ColRgba32;
-				p32 = c;
+				space = CsRgba32;
+				rgb.r = R32(c);
+				rgb.g = G32(c);
+				rgb.b = B32(c);
+				rgb.a = A32(c);
 				break;
 			}
 			default:
 			{
-				space = ColRgba32;
-				p32 = 0;
+				space = CsRgba32;
+				flat = 0;
 				LgiAssert(!"Not a known colour depth.");
 			}
 		}
@@ -202,8 +202,8 @@ public:
 		switch (bits)
 		{
 			case 8:
-				if (space == ColIdx8)
-					return p8;
+				if (space == CsIndex8)
+					return index;
 				LgiAssert(!"Not supported.");
 				break;
 			case 24:
@@ -242,32 +242,32 @@ public:
 	// Gets the indexed colour
 	uint8 c8()
 	{
-		return p8;
+		return index;
 	}
 
 	// Sets indexed colour
 	void c8(uint8 c, GPalette *p)
 	{
-		space = ColIdx8;
+		space = CsIndex8;
 		pal = p;
-		p8 = c;
+		index = c;
 	}
 
 	// Get as 24 bit colour
 	uint32 c24()
 	{
-		if (space == ColRgba32)
+		if (space == CsRgba32)
 		{
-			return Rgb32To24(p32);
+			return Rgb24(rgb.a, rgb.g, rgb.b);
 		}
-		else if (space == ColIdx8)
+		else if (space == CsIndex8)
 		{
 			if (pal)
 			{
 				// colour palette lookup
-				if (p8 < pal->GetSize())
+				if (index < pal->GetSize())
 				{
-					GdcRGB *c = (*pal)[p8];
+					GdcRGB *c = (*pal)[index];
 					if (c)
 					{
 						return Rgb24(c->R, c->G, c->B);
@@ -277,9 +277,9 @@ public:
 				return 0;
 			}
 			
-			return Rgb24(p8, p8, p8); // monochome
+			return Rgb24(index, index, index); // monochome
 		}
-		else if (space == ColHls32)
+		else if (space == CsHls32)
 		{
 			return Rgb32To24(c32());
 		}
@@ -291,26 +291,28 @@ public:
 	/// Set 24 bit colour
 	void c24(COLOUR c)
 	{
-		space = ColRgba32;
-		p32 = Rgb24To32(c);
-		pal = 0;
+		space = CsRgba32;
+		rgb.r = R24(c);
+		rgb.g = G24(c);
+		rgb.b = B24(c);
+		pal = NULL;
 	}
 
 	/// Get 32 bit colour
 	COLOUR c32()
 	{
-		if (space == ColRgba32)
+		if (space == CsRgba32)
 		{
-			return p32;
+			return Rgba32(rgb.r, rgb.g, rgb.b, rgb.a);
 		}
-		else if (space == ColIdx8)
+		else if (space == CsIndex8)
 		{
 			if (pal)
 			{
 				// colour palette lookup
-				if (p8 < pal->GetSize())
+				if (index < pal->GetSize())
 				{
-					GdcRGB *c = (*pal)[p8];
+					GdcRGB *c = (*pal)[index];
 					if (c)
 					{
 						return Rgb32(c->R, c->G, c->B);
@@ -320,14 +322,17 @@ public:
 				return 0;
 			}
 			
-			return Rgb32(p8, p8, p8); // monochome
+			return Rgb32(index, index, index); // monochome
 		}
-		else if ((space = ColHls32))
+		else if ((space = CsHls32))
 		{
 			// Convert from HLS back to RGB
 			if (hls.s == 0)
 			{
-				p32 = Rgb32(0, 0, 0);
+				rgb.r = 0;
+				rgb.g = 0;
+				rgb.b = 0;
+				rgb.a = 255;
 			}
 			else
 			{
@@ -347,14 +352,15 @@ public:
 			
 				fM1 = 2.0 * fLightness - fM2;
 
-				int R = HlsValue(fM1, fM2, fHue + 120.0);
-				int G = HlsValue(fM1, fM2, fHue);
-				int B = HlsValue(fM1, fM2, fHue - 120.0);
-				p32 = Rgb32(R, G, B);
+				rgb.r = HlsValue(fM1, fM2, fHue + 120.0);
+				rgb.g = HlsValue(fM1, fM2, fHue);
+				rgb.b = HlsValue(fM1, fM2, fHue - 120.0);
+				rgb.a = 255;
 			}
+
 			pal = NULL;
-			space = ColRgba32;
-			return p32;
+			space = CsRgba32;
+			return Rgba32(rgb.r, rgb.g, rgb.b, rgb.a);
 		}
 
 		// Transparent?
@@ -364,9 +370,12 @@ public:
 	/// Set 32 bit colour
 	void c32(COLOUR c)
 	{
-		space = ColRgba32;
-		pal = 0;
-		p32 = c;
+		space = CsRgba32;
+		pal = NULL;
+		rgb.r = R32(c);
+		rgb.g = G32(c);
+		rgb.b = B32(c);
+		rgb.a = A32(c);
 	}
 	
 	/// Mixes 'Tint' with the current colour and returns it 
@@ -413,7 +422,7 @@ public:
 	
 	bool ToHLS()
 	{
-		if (space == ColHls32)
+		if (space == CsHls32)
 			return true;
 
 		uint32 nMax, nMin, nDelta, c = c32();
@@ -446,14 +455,14 @@ public:
 			fHue += 360.0;
 	
 		hls.h = (uint16) (fHue + 0.5);
-		space = ColHls32;
+		space = CsHls32;
 		pal = NULL;
 		return true;
 	}
 	
 	void SetHLS(uint16 h, uint8 l, uint8 s)
 	{
-		space = ColHls32;
+		space = CsHls32;
 		hls.h = h;
 		hls.l = l;
 		hls.s = s;

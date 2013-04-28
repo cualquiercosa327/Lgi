@@ -78,25 +78,35 @@ static const char **GetIconNames()
 
 void convert_to_nonpremul(GSurface *pDC)
 {
-	if (pDC && pDC->GetBits() == 32)
+	if (!pDC)
+		return;
+		
+	switch (pDC->GetColourSpace())
 	{
-		for (int y=0; y<pDC->Y(); y++)
+		case CsRgba32:
 		{
-			Pixel32 *p = (Pixel32*) (*pDC)[y];
-			Pixel32 *e = p + pDC->X();
-
-			while (p < e)
+			for (int y=0; y<pDC->Y(); y++)
 			{
-				if (p->a > 0 && p->a < 255)
-				{
-					p->r = (int) p->r * 255 / p->a;
-					p->g = (int) p->g * 255 / p->a;
-					p->b = (int) p->b * 255 / p->a;
-				}
+				GRgba32 *p = (GRgba32*) (*pDC)[y];
+				GRgba32 *e = p + pDC->X();
 
-				p++;
+				while (p < e)
+				{
+					if (p->a > 0 && p->a < 255)
+					{
+						p->r = (int) p->r * 255 / p->a;
+						p->g = (int) p->g * 255 / p->a;
+						p->b = (int) p->b * 255 / p->a;
+					}
+
+					p++;
+				}
 			}
+			break;
 		}
+		default:
+			LgiAssert(0);
+			break;
 	}
 }
 
@@ -364,16 +374,33 @@ public:
 				case IconNewAnd:
 				case IconNewOr:
 				{
-					for (int y=0; y<pDC->Y(); y++)
+					if (pDC->GetColourSpace() == CsRgba32)
 					{
-						Pixel32 *p = (Pixel32*) (*pDC)[y];
-						Pixel32 *e = p + pDC->X();
-						while (p < e)
+						for (int y=0; y<pDC->Y(); y++)
 						{
-							p->a = p->a / 2;
-							p++;
+							GRgba32 *p = (GRgba32*) (*pDC)[y];
+							GRgba32 *e = p + pDC->X();
+							while (p < e)
+							{
+								p->a = p->a / 2;
+								p++;
+							}
 						}
 					}
+					else if (pDC->GetColourSpace() == CsArgb32)
+					{
+						for (int y=0; y<pDC->Y(); y++)
+						{
+							GArgb32 *p = (GArgb32*) (*pDC)[y];
+							GArgb32 *e = p + pDC->X();
+							while (p < e)
+							{
+								p->a = p->a / 2;
+								p++;
+							}
+						}
+					}
+					else LgiAssert(0);
 					break;
 				}
 			}

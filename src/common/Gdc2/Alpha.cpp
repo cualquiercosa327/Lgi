@@ -24,7 +24,8 @@ protected:
 	uchar *Ptr;
 	uchar *APtr;
 
-	void CreatePaletteLut(Pixel24 *c, GPalette *Pal, int Scale = 255)
+	template<typename T>
+	void CreatePaletteLut(T *c, GPalette *Pal, int Scale = 255)
 	{
 		if (Scale < 255)
 		{

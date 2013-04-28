@@ -168,7 +168,134 @@
 #define BMPWIDTH(bits)				((((bits)+31)/32)*4)
 
 
-//				Typedefs
+/// Colour component type
+enum GComponentType
+{
+	CtIndex,
+	CtRed,
+	CtGreen,
+	CtBlue,
+	CtAlpha,
+	CtPad,
+	CtHue,
+	CtSaturation,
+	CtLuminance,
+	CtCyan,
+	CtMagenta,
+	CtYellow,
+	CtBlack
+};
+
+// Component construction: 4bits type, 4bits size. 8 bits per component.
+#define GDC_COLOUR_SPACE_1(type, size) \
+	((type << 4) | (size - 1))
+#define GDC_COLOUR_SPACE_3(t1, s1, t2, s2, t3, s3) \
+	( \
+		((t1 << 20) | ((s1-1) << 16)) | \
+		((t2 << 12) | ((s2-1) << 8)) | \
+		((t3 << 4) | ((s3-1) << 0)) \
+	)
+#define GDC_COLOUR_SPACE_4(t1, s1, t2, s2, t3, s3, t4, s4) \
+	( \
+		((t1 << 28) | ((s1-1) << 24)) | \
+		((t2 << 20) | ((s2-1) << 16)) | \
+		((t3 << 12) | ((s3-1) << 8)) | \
+		((t4 << 4) | ((s4-1) << 0)) \
+	)
+
+/// Defines a specific colour space
+enum GColourSpace
+{
+	CsIndex8 = GDC_COLOUR_SPACE_1(CtIndex, 8),
+	CsRgb15 = GDC_COLOUR_SPACE_3(CtRed, 5, CtGreen, 5, CtBlue, 5),
+	CsRgb16 = GDC_COLOUR_SPACE_3(CtRed, 5, CtGreen, 6, CtBlue, 5),
+	CsRgb24 = GDC_COLOUR_SPACE_3(CtRed, 8, CtGreen, 8, CtBlue, 8),
+	CsBgr24 = GDC_COLOUR_SPACE_3(CtBlue, 8, CtGreen, 8, CtRed, 8),
+	CsRgba32 = GDC_COLOUR_SPACE_4(CtRed, 8, CtGreen, 8, CtBlue, 8, CtAlpha, 8),
+	CsArgb32 = GDC_COLOUR_SPACE_4(CtAlpha, 8, CtRed, 8, CtGreen, 8, CtBlue, 8),
+	CsRgbx32 = GDC_COLOUR_SPACE_4(CtRed, 8, CtGreen, 8, CtBlue, 8, CtPad, 8),
+	CsXrgb32 = GDC_COLOUR_SPACE_4(CtPad, 8, CtRed, 8, CtGreen, 8, CtBlue, 8),
+	CsHls32 = GDC_COLOUR_SPACE_4(CtHue, 0 /*16*/, CtRed, 8, CtGreen, 8, CtBlue, 8),
+	CsCmyk32 = GDC_COLOUR_SPACE_4(CtCyan, 8, CtMagenta, 8, CtYellow, 8, CtBlack, 8),
+};
+
+#ifdef WIN32
+#pragma pack(push, before_pack)
+#pragma pack(1)
+#endif
+
+struct GRgb15 {
+	uint16 pad : 1;
+	uint16 r : 5;
+	uint16 g : 5;
+	uint16 b : 5;
+};
+
+struct GRgb16 {
+	uint16 r : 5;
+	uint16 g : 6;
+	uint16 b : 5;
+};
+
+struct GRgb24 {
+	uint8 r, g, b;
+};
+
+struct GBgr24 {
+	uint8 b, g, r;
+};
+
+struct GRgba32 {
+	uint8 r, g, b, a;
+};
+
+struct GArgb32 {
+	uint8 a, r, g, b;
+};
+
+struct GHls32 {
+	uint16 h;
+	uint8 l, s;
+};
+
+struct GCmyk32 {
+	uint32 c, m, k, y;
+};
+
+typedef union
+{
+	uint8 *u8;
+	uint16 *u16;
+	uint32 *u32;
+	int i;
+	
+	GRgb15  *rgb15;
+	GRgb16  *rgb16;
+	GRgb24  *rgb24;
+	GBgr24  *bgr24;
+	GRgba32 *rgba32;
+	GArgb32 *argb32;
+	GHls32  *hls32;
+	GCmyk32 *cmyk32;
+
+}	GPixelPtr;
+
+union GColourSpaceBits
+{
+	uint32 All;
+	struct {
+		uint32 Type1 : 4;
+		uint32 Size1 : 4;
+		uint32 Type2 : 4;
+		uint32 Size2 : 4;
+		uint32 Type3 : 4;
+		uint32 Size3 : 4;
+		uint32 Type4 : 4;
+		uint32 Size4 : 4;
+	} Bits;
+};
+
+LgiFunc int GColourSpaceToBits(uint32 ColourSpace);
 
 /** \brief 32bit colour of varing bit depth. If no associated depth is given, 32 bits is assumed.
 
@@ -197,11 +324,10 @@ typedef uint8						ALPHA;
 // RGB colour space
 #define BitWidth(bits, cropbits)	( (((bits)+(cropbits)-1)/(cropbits)) * 4 )
 
-#ifdef WIN32
-#pragma pack(push, before_pack)
-#pragma pack(1)
-#endif
 
+
+
+/*
 #if defined WIN32
 
 	#ifndef __BIG_ENDIAN__
@@ -379,25 +505,17 @@ typedef uint8						ALPHA;
 	};
 
 #endif
+*/
 
-typedef union
-{
-	uint8 *u8;
-	uint16 *u16;
-	uint32 *u32;
-	int i;
-	
-	struct Pixel16
-	{
-	    uint16 r : 5;
-	    uint16 g : 6;
-	    uint16 b : 5;
-	} *px16;
-	
-	Pixel24 *px24;
-	Pixel32 *px32;
+#define C24R					2
+#define C24G					1
+#define C24B					0
 
-}	GPixelPtr;
+#define C32A					3
+#define C32R					2
+#define C32G					1
+#define C32B					0
+
 
 /// Create a 15bit COLOUR from components
 #define Rgb15(r, g, b)				( ((r&0xF8)<<7) | ((g&0xF8)<<2) | ((b&0xF8)>>3))
@@ -687,6 +805,7 @@ protected:
 	int				Flags;
 	int				PrevOp;
 	GRect			Clip;
+	GColourSpace	ColourSpace;
 	GBmpMem			*pMem;
 	GSurface		*pAlphaDC;
 	GPalette		*pPalette;
@@ -739,7 +858,7 @@ public:
 	
 	#ifdef COCOA
 	#else
-	virtual CGColorSpaceRef GetColourSpace() { return 0; }
+	virtual CGColorSpaceRef GetColourSpaceRef() { return 0; }
 	#endif
 	
 	#endif
@@ -811,8 +930,9 @@ public:
 	virtual int DpiY() { return 100; }
 	/// Gets the bits per pixel
 	virtual int GetBits() { return (pMem) ? pMem->Bits : 0; }
-	/// Gets the bytes per pixels
-	virtual int PixelSize() { return GetBits() == 24 ? Pixel24::Size : GetBits() >> 3; }
+	/// Gets the colour space of the pixels
+	virtual GColourSpace GetColourSpace() { return ColourSpace; }
+	/// Gets any flags associated with the surface
 	virtual int GetFlags() { return Flags; }
 	/// Returns true if the surface is on the screen
 	virtual class GScreenDC *IsScreen() { return 0; }
@@ -1182,7 +1302,7 @@ public:
 		OsPainter Handle();
 		OsBitmap GetBitmap();
 		#ifndef COCOA
-		CGColorSpaceRef GetColourSpace();
+		CGColorSpaceRef GetColourSpaceRef();
 		CGImg *GetImg(GRect *Sub = 0);
 		#endif
 		GRect ClipRgn(GRect *Rgn);

@@ -313,18 +313,16 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 			LineLen = ((Bits * x + (Align - 1)) / Align) * (Align / 8);
 		}
 		
-		// printf("d->BitsMem=%p, alloc=%i\n", d->BitsMem.Get(), LineLen * y);
 		if (d->BitsMem.Reset(new uchar[LineLen * y]))
 		{
 			d->Data = d->BitsMem;
-			// printf("Alloc=%p - %p\n", d->Data, d->Data + (LineLen * y));
 			if (Bits <= 8)
 			{
 				d->Cs = CGColorSpaceCreateDeviceGray();
 			}
 			else
 			{
-				d->Cs = CGColorSpaceCreateDeviceRGB(); // CGColorSpaceCreateWithName(kCGColorSpaceUserRGB);
+				d->Cs = CGColorSpaceCreateDeviceRGB();
 			}
 
 			d->Bmp = CGBitmapContextCreate
@@ -339,6 +337,26 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 				);
 			if (d->Bmp)
 			{
+				#if 0
+				enum CGImageAlphaInfo {
+					kCGImageAlphaNone,               /* For example, RGB. */
+					kCGImageAlphaPremultipliedLast,  /* For example, premultiplied RGBA */
+					kCGImageAlphaPremultipliedFirst, /* For example, premultiplied ARGB */
+					kCGImageAlphaLast,               /* For example, non-premultiplied RGBA */
+					kCGImageAlphaFirst,              /* For example, non-premultiplied ARGB */
+					kCGImageAlphaNoneSkipLast,       /* For example, RBGX. */
+					kCGImageAlphaNoneSkipFirst,      /* For example, XRGB. */
+					kCGImageAlphaOnly                /* No color data, alpha data only */
+				};
+				typedef enum CGImageAlphaInfo CGImageAlphaInfo;
+
+				enum {
+					kCGBitmapAlphaInfoMask = 0x1F,
+					kCGBitmapFloatComponents = (1 << 8),
+				#endif
+				CGBitmapInfo bmi = CGBitmapContextGetBitmapInfo(d->Bmp);
+				CGImageAlphaInfo al = (CGImageAlphaInfo) (bmi & kCGBitmapAlphaInfoMask);
+				
 				pMem = new GBmpMem;
 				if (pMem)
 				{
@@ -379,21 +397,15 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 					Status = true;
 				}
 			}
-			else
-			{
-				printf("%s:%i - CGBitmapContextCreate(%i,%i,%i[,%i]) failed, Cs=%p.\n", __FILE__, __LINE__, x, y, Bits, LineLen, d->Cs);
-			}
+			else LgiTrace("%s:%i - CGBitmapContextCreate(%i,%i,%i[,%i]) failed, Cs=%p.\n", _FL, x, y, Bits, LineLen, d->Cs);
 		}
-		else
-		{
-			printf("%s:%i - Failed to allocate bitmap data.\n", __FILE__, __LINE__);
-		}
+		else LgiTrace("%s:%i - Failed to allocate bitmap data.\n", _FL);
 	}
 	
 	return Status;
 }
 
-CGColorSpaceRef GMemDC::GetColourSpace()
+CGColorSpaceRef GMemDC::GetColourSpaceRef()
 {
 	return d->Cs;
 }
