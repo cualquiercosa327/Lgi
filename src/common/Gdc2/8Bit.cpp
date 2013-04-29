@@ -92,7 +92,7 @@ GApplicator *GApp8::Create(int Bits, int Op)
 //////////////////////////////////////////////////////////////////////////////////////////
 bool GdcApp8::SetSurface(GBmpMem *d, GPalette *p, GBmpMem *a)
 {
-	if (d AND d->Bits == 8)
+	if (d && d->Cs == CsIndex8)
 	{
 		Dest = d;
 		Pal = p;
@@ -106,7 +106,7 @@ bool GdcApp8::SetSurface(GBmpMem *d, GPalette *p, GBmpMem *a)
 
 void GdcApp8::SetPtr(int x, int y)
 {
-	LgiAssert(Dest AND Dest->Base);
+	LgiAssert(Dest && Dest->Base);
 	Ptr = Dest->Base + ((y * Dest->Line) + x);
 	if (Alpha)
 		APtr = Alpha->Base + ((y * Alpha->Line) + x);
@@ -344,9 +344,14 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 	Dest->Flags &= ~GDC_UPDATED_PALETTE;
 	if (Src)
 	{
-		switch (Src->Bits)
+		switch (Src->Cs)
 		{
-			case 8:
+			default:
+			{
+				LgiAssert(!"Not impl.");
+				break;
+			}
+			case CsIndex8:
 			{
 				uchar *s = Src->Base;
 				for (int y=0; y<Src->y; y++)
@@ -357,10 +362,10 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 15:
-			case 16:
-			case 24:
-			case 32:
+			case CsRgb15:
+			case CsRgb16:
+			case CsBgr24:
+			case CsArgb32:
 			{
 				switch (GdcD->GetOption(GDC_REDUCE_TYPE))
 				{
@@ -395,9 +400,14 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 									uchar *d = Ptr;
 									Ptr += Dest->Line;
 
-									switch (Src->Bits)
+									switch (Src->Cs)
 									{
-										case 15:
+										default:
+										{
+											LgiAssert(!"Not impl.");
+											break;
+										}
+										case CsRgb15:
 										{
 											ushort *s = (ushort*) (Src->Base + (y * Src->Line));
 											for (int x=0; x<Src->x; x++)
@@ -406,7 +416,7 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 											}
 											break;
 										}
-										case 16:
+										case CsRgb16:
 										{
 											ushort *s = (ushort*) (Src->Base + (y * Src->Line));
 											for (int x=0; x<Src->x; x++)
@@ -416,9 +426,9 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 											}
 											break;
 										}
-										case 24:
+										case CsBgr24:
 										{
-											GRgb24 *s = (GRgb24*) (Src->Base + (y * Src->Line));
+											GBgr24 *s = (GBgr24*) (Src->Base + (y * Src->Line));
 											for (int x=0; x<Src->x; x++)
 											{
 												*d++ = Lookup[Rgb15(s->r, s->g, s->b)];
@@ -426,7 +436,7 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 											}
 											break;
 										}
-										case 32:
+										case CsArgb32:
 										{
 											ulong *s = (ulong*) (Src->Base + (y * Src->Line));
 											for (int x=0; x<Src->x; x++)
@@ -450,9 +460,14 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 							int ym = y % 8;
 							Ptr += Dest->Line;
 
-							switch (Src->Bits)
+							switch (Src->Cs)
 							{
-								case 15:
+								default:
+								{
+									LgiAssert(!"Not impl.");
+									break;
+								}
+								case CsRgb15:
 								{
 									ushort *S = (ushort*) (Src->Base + (y * Src->Line));
 									for (int x=0; x<Src->x; x++)
@@ -469,7 +484,7 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 									}
 									break;
 								}
-								case 16:
+								case CsRgb16:
 								{
 									ushort *S = (ushort*) (Src->Base + (y * Src->Line));
 									for (int x=0; x<Src->x; x++)
@@ -486,7 +501,7 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 									}
 									break;
 								}
-								case 24:
+								case CsBgr24:
 								{
 									uchar *S = Src->Base + (y * Src->Line);
 									for (int x=0; x<Src->x; x++)
@@ -502,7 +517,7 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 									}
 									break;
 								}
-								case 32:
+								case CsArgb32:
 								{
 									ulong *S = (ulong*) (Src->Base + (y * Src->Line));
 									for (int x=0; x<Src->x; x++)
@@ -531,31 +546,32 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 
 						if (!Pal) break;
 						ConvertLineFunc Konvertor = 0;
-						switch (Src->Bits)
+						switch (Src->Cs)
 						{
-							case 15:
+							default:
+							{
+								LgiAssert(!"Not impl.");
+								return false;
+							}
+							case CsRgb15:
 							{
 								Konvertor = ConvertLine15;
 								break;
 							}
-							case 16:
+							case CsRgb16:
 							{
 								Konvertor = ConvertLine16;
 								break;
 							}
-							case 24:
+							case CsBgr24:
 							{
 								Konvertor = ConvertLine24;
 								break;
 							}
-							case 32:
+							case CsArgb32:
 							{
 								Konvertor = ConvertLine32;
 								break;
-							}
-							default:
-							{
-								return false;
 							}
 						}
 
@@ -706,9 +722,14 @@ bool GdcApp8Or::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 {
 	if (Src)
 	{
-		switch (Src->Bits)
+		switch (Src->Cs)
 		{
-			case 8:
+			default:
+			{
+				LgiAssert(!"Not impl.");
+				break;
+			}
+			case CsIndex8:
 			{
 				uchar *s = Src->Base;
 				for (int y=0; y<Src->y; y++)
@@ -750,7 +771,7 @@ void GdcApp8And::Rectangle(int x, int y)
 
 bool GdcApp8And::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 {
-	if (Src AND Src->Bits == Dest->Bits)
+	if (Src && Src->Cs == Dest->Cs)
 	{
 		uchar *s = Src->Base;
 		for (int y=0; y<Src->y; y++)
@@ -789,7 +810,7 @@ void GdcApp8Xor::Rectangle(int x, int y)
 
 bool GdcApp8Xor::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 {
-	if (Src AND Src->Bits == Dest->Bits)
+	if (Src && Src->Cs == Dest->Cs)
 	{
 		uchar *s = Src->Base;
 		for (int y=0; y<Src->y; y++)

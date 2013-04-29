@@ -102,11 +102,13 @@ GPalette *GScreenPrivate::LastRealized = 0;
 GScreenDC::GScreenDC()
 {
 	d = new GScreenPrivate;
+	ColourSpace = CsNone;
 }
 
 GScreenDC::GScreenDC(GViewI *view)
 {
 	d = new GScreenPrivate;
+	ColourSpace = GdcD->GetColourSpace();
 
 	d->hWnd = view->Handle();
 	d->End = true;
@@ -120,6 +122,7 @@ GScreenDC::GScreenDC(GViewI *view)
 GScreenDC::GScreenDC(HWND hWindow)
 {
 	d = new GScreenPrivate;
+	ColourSpace = GdcD->GetColourSpace();
 
 	d->hWnd = hWindow;
 	d->End = true;
@@ -133,6 +136,7 @@ GScreenDC::GScreenDC(HWND hWindow)
 GScreenDC::GScreenDC(HDC hdc, HWND hwnd, bool Release)
 {
 	d = new GScreenPrivate;
+	ColourSpace = GdcD->GetColourSpace();
 
 	LgiAssert(hdc);
 	d->hWnd = hwnd;
@@ -149,6 +153,7 @@ GScreenDC::GScreenDC(HDC hdc, HWND hwnd, bool Release)
 GScreenDC::GScreenDC(HBITMAP hbmp, int Sx, int Sy)
 {
 	d = new GScreenPrivate;
+	ColourSpace = GdcD->GetColourSpace();
 
 	Create(CreateCompatibleDC(0));
 	hBmp = hbmp;
@@ -362,15 +367,16 @@ COLOUR GScreenDC::Colour(COLOUR c, int Bits)
 			d->Col = d->Gc->GetColour(d->Col);
 		}
 
+		uint32 WinCol = RGB( R24(d->Col), G24(d->Col), B24(d->Col) );
 		LOGBRUSH LogBrush;
 		LogBrush.lbStyle = BS_SOLID;
-		LogBrush.lbColor = d->Col;
+		LogBrush.lbColor = WinCol;
 		LogBrush.lbHatch = 0;
 		d->hBrush = (HBRUSH) SelectObject(hDC, CreateBrushIndirect(&LogBrush));
 		
 		if (LineBits == 0xffffffff)
 		{
-			d->hPen = (HPEN) SelectObject(hDC, CreatePen(PS_SOLID, 1, d->Col));
+			d->hPen = (HPEN) SelectObject(hDC, CreatePen(PS_SOLID, 1, WinCol));
 		}
 		else
 		{
@@ -399,7 +405,7 @@ COLOUR GScreenDC::Colour(COLOUR c, int Bits)
 					Type = PS_DASHDOTDOT;
 					break;
 			}
-			LOGBRUSH br = { BS_SOLID, d->Col, HS_VERTICAL };
+			LOGBRUSH br = { BS_SOLID, WinCol, HS_VERTICAL };
 			d->hPen = (HPEN) SelectObject(hDC, ExtCreatePen(PS_COSMETIC | Type, 1, &br, 0, NULL));
 		}
 	}
@@ -487,7 +493,8 @@ int GScreenDC::GetBits()
 
 void GScreenDC::Set(int x, int y)
 {
-	SetPixel(hDC, x, y, d->Col);
+	uint32 WinCol = RGB( R24(d->Col), G24(d->Col), B24(d->Col) );
+	SetPixel(hDC, x, y, WinCol);
 }
 
 COLOUR GScreenDC::Get(int x, int y)
@@ -533,7 +540,8 @@ void GScreenDC::Line(int x1, int y1, int x2, int y2)
 {
 	MoveToEx(hDC, x1, y1, NULL);
 	LineTo(hDC, x2, y2);
-	SetPixel(hDC, x2, y2, d->Col);
+	uint32 WinCol = RGB( R24(d->Col), G24(d->Col), B24(d->Col) );
+	SetPixel(hDC, x2, y2, WinCol);
 }
 
 void GScreenDC::Circle(double cx, double cy, double radius)

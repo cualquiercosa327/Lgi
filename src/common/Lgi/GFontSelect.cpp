@@ -193,6 +193,9 @@ void GFontSelect::UpdatePreview()
 					}
 					break;
 				}
+				default:
+					LgiAssert(0);
+					break;
 			}
 
 			Ctrl9->SetDC(Dc);

@@ -12,8 +12,6 @@
 
 #include "Gdc2.h"
 
-#define MyBits(b)	((b)==32)
-
 /// 32 bit rgb applicators
 class LgiClass GdcApp32 : public GApplicator {
 protected:
@@ -62,7 +60,7 @@ public:
 
 GApplicator *GApp32::Create(int Bits, int Op)
 {
-	if (MyBits(Bits))
+	if (Bits == 32)
 	{
 		switch (Op)
 		{
@@ -85,7 +83,7 @@ GApplicator *GApp32::Create(int Bits, int Op)
 
 bool GdcApp32::SetSurface(GBmpMem *d, GPalette *p, GBmpMem *a)
 {
-	if (d && MyBits(d->Bits))
+	if (d && d->Cs == CsBgra32)
 	{
 		Dest = d;
 		Pal = p;
@@ -93,6 +91,8 @@ bool GdcApp32::SetSurface(GBmpMem *d, GPalette *p, GBmpMem *a)
 		Alpha = 0;
 		return true;
 	}
+	else LgiAssert(0);
+	
 	return false;
 }
 
@@ -143,7 +143,7 @@ void GdcApp32Set::Rectangle(int x, int y)
 
 	uint32 *p = Ptr;
 	int Line = Dest->Line;
-	COLOUR fill = c;
+	COLOUR fill = c; // System24BitPixel
 
 	if (x && y)
 	{
@@ -180,13 +180,18 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 {
 	if (Src)
 	{
-		switch (Src->Bits)
+		switch (Src->Cs)
 		{
-			case 8:
+			default:
+			{
+				LgiAssert(!"Not impl.");
+				break;
+			}
+			case CsIndex8:
 			{
 				if (SPal)
 				{
-					GRgba32 c[256];
+					System32BitPixel c[256];
 					for (int i=0; i<256; i++)
 					{
 						GdcRGB *p = (*SPal)[i];
@@ -234,8 +239,8 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 						for (int y=0; y<Src->y; y++)
 						{
 							uchar *s = (uchar*) (Src->Base + (Src->Line * y));
-							GRgba32 *d = (GRgba32*) Ptr;
-							GRgba32 *e = d + Src->x;
+							System32BitPixel *d = (System32BitPixel*) Ptr;
+							System32BitPixel *e = d + Src->x;
 							
 							while (d < e)
 							{
@@ -251,8 +256,8 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 					for (int y=0; y<Src->y; y++)
 					{
 						uchar *s = (uchar*) (Src->Base + (Src->Line * y));
-						GRgba32 *d = (GRgba32*) Ptr;
-						GRgba32 *e = d + Src->x;
+						System32BitPixel *d = (System32BitPixel*) Ptr;
+						System32BitPixel *e = d + Src->x;
 
 						while (d < e)
 						{
@@ -268,13 +273,13 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 15:
+			case CsRgb15:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
 					ushort *s = (ushort*) (Src->Base + (Src->Line * y));
-					GRgba32 *d = (GRgba32*) Ptr;
-					GRgba32 *e = d + Src->x;
+					System32BitPixel *d = (System32BitPixel*) Ptr;
+					System32BitPixel *e = d + Src->x;
 					
 					while (d < e)
 					{
@@ -289,7 +294,7 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 16:
+			case CsRgb16:
 			{
 				COLOUR c;
 				ushort *s = (ushort*) Src->Base;
@@ -310,13 +315,13 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 24:
+			case CsBgr24:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
-					GRgb24 *s = (GRgb24*) ((char*)Src->Base + (y * Src->Line));
-					GRgba32 *d = (GRgba32*) Ptr;
-					GRgba32 *e = d + Src->x;
+					GBgr24 *s = (GBgr24*) ((char*)Src->Base + (y * Src->Line));
+					System32BitPixel *d = (System32BitPixel*) Ptr;
+					System32BitPixel *e = d + Src->x;
 					
 					while (d < e)
 					{
@@ -332,7 +337,7 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 32:
+			case System32BitColourSpace:
 			{
 				uchar *s = Src->Base;
 				for (int y=0; y<Src->y; y++)
@@ -376,9 +381,9 @@ bool GdcApp32Or::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 {
 	if (Src)
 	{
-		switch (Src->Bits)
+		switch (Src->Cs)
 		{
-			case 32:
+			case System32BitColourSpace:
 			{
 				uchar *s = Src->Base;
 				for (int y=0; y<Src->y; y++)
@@ -420,7 +425,7 @@ void GdcApp32And::Rectangle(int x, int y)
 
 bool GdcApp32And::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 {
-	if (Src AND Src->Bits == Dest->Bits)
+	if (Src && Src->Cs == Dest->Cs)
 	{
 		uchar *s = Src->Base;
 		for (int y=0; y<Src->y; y++)
@@ -461,7 +466,7 @@ void GdcApp32Xor::Rectangle(int x, int y)
 
 bool GdcApp32Xor::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 {
-	if (Src AND Src->Bits == Dest->Bits)
+	if (Src && Src->Cs == Dest->Cs)
 	{
 		uchar *s = Src->Base;
 		for (int y=0; y<Src->y; y++)

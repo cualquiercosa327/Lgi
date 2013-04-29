@@ -115,7 +115,7 @@ public:
 
 	bool SetSurface(GBmpMem *d, GPalette *p, GBmpMem *a)
 	{
-		if (d AND d->Bits == Bits)
+		if (d && d->GetBits() == Bits)
 		{
 			Dest = d;
 			Pal = p;
@@ -162,13 +162,13 @@ public:
 		switch (Bytes)
 		{
 			case 1:
-				return *((uchar*)Ptr);
+				return *((uint8*)Ptr);
 			case 2:
-				return *((ushort*)Ptr);
+				return *((uint16*)Ptr);
 			case 3:
 				return Rgb24(Ptr[2], Ptr[1], Ptr[0]);
 			case 4:
-				return *((ulong*)Ptr);
+				return *((uint32*)Ptr);
 		}
 		return 0;
 	}
@@ -383,9 +383,14 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 		GdcRGB *DRgb = (*Pal)[0];
 		if (!SRgb || !DRgb) return false;
 
-		switch (Src->Bits)
+		switch (Src->Cs)
 		{
-			case 8:
+			default:
+			{
+				LgiAssert(!"Not impl.");
+				break;
+			}
+			case CsIndex8:
 			{
 				GRgb24 sc[256];
 				CreatePaletteLut(sc, SPal);
@@ -427,7 +432,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 15:
+			case CsRgb15:
 			{
 				GRgb24 dc[256];
 				CreatePaletteLut(dc, Pal);
@@ -465,7 +470,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 16:
+			case CsRgb16:
 			{
 				GRgb24 dc[256];
 				CreatePaletteLut(dc, Pal);
@@ -503,15 +508,15 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 24:
+			case CsBgr24:
 			{
-				GRgb24 dc[256];
+				GBgr24 dc[256];
 				CreatePaletteLut(dc, Pal, 255);
 				if (!Lut) Lut = Pal->MakeLut(15);
 
 				for (int y=0; y<Src->y; y++)
 				{
-					GRgb24 *s = (GRgb24*) (Src->Base + (y * Src->Line));
+					GBgr24 *s = (GBgr24*) (Src->Base + (y * Src->Line));
 					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
 					uchar *d = Ptr;
 
@@ -525,7 +530,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 						else if (a)
 						{
 							uchar o = 255 - a;
-							GRgb24 *dst = dc + *d;
+							GBgr24 *dst = dc + *d;
 							int r = DivLut[(dst->r * o) + (s->r * a)];
 							int g = DivLut[(dst->g * o) + (s->g * a)];
 							int b = DivLut[(dst->b * o) + (s->b * a)];
@@ -540,7 +545,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 32:
+			case System32BitColourSpace:
 			{
 				GRgb24 dc[256];
 				CreatePaletteLut(dc, Pal, 255);
@@ -548,7 +553,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 
 				for (int y=0; y<Src->y; y++)
 				{
-					GRgba32 *s = (GRgba32*) (Src->Base + (y * Src->Line));
+					System32BitPixel *s = (System32BitPixel*) (Src->Base + (y * Src->Line));
 					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
 					uchar *d = Ptr;
 
@@ -586,9 +591,14 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 		GdcRGB *DRgb = (*Pal)[0];
 		if (!SRgb || !DRgb) return false;
 
-		switch (Src->Bits)
+		switch (Src->Cs)
 		{
-			case 8:
+			default:
+			{
+				LgiAssert(!"Not impl.");
+				break;
+			}
+			case CsIndex8:
 			{
 				if (alpha == 255)
 				{
@@ -632,7 +642,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 15:
+			case CsRgb15:
 			{
 				GRgb24 dc[256];
 				CreatePaletteLut(dc, Pal, oma);
@@ -659,7 +669,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 16:
+			case CsRgb16:
 			{
 				GRgb24 dc[256];
 				CreatePaletteLut(dc, Pal, oma);
@@ -684,22 +694,22 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 24:
+			case CsBgr24:
 			{
-				GRgb24 dc[256];
+				GBgr24 dc[256];
 				CreatePaletteLut(dc, Pal, oma);
 
 				if (!Lut) Lut = Pal->MakeLut(15);
 
 				for (int y=0; y<Src->y; y++)
 				{
-					GRgb24 *s = (GRgb24*) (Src->Base + (y * Src->Line));
+					GBgr24 *s = (GBgr24*) (Src->Base + (y * Src->Line));
 					uchar *d = Ptr;
 					uchar *e = Ptr + Src->x;
 
 					while (d < e)
 					{
-						GRgb24 *dst = dc + *d;
+						GBgr24 *dst = dc + *d;
 						int r = dst->r + DivLut[s->r * alpha];
 						int g = dst->g + DivLut[s->g * alpha];
 						int b = dst->b + DivLut[s->b * alpha];
@@ -712,7 +722,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 32:
+			case System32BitColourSpace:
 			{
 				GRgb24 dc[256];
 				CreatePaletteLut(dc, Pal);
@@ -720,7 +730,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 
 				for (int y=0; y<Src->y; y++)
 				{
-					GRgba32 *s = (GRgba32*) (Src->Base + (y * Src->Line));
+					System32BitPixel *s = (System32BitPixel*) (Src->Base + (y * Src->Line));
 					uchar *d = Ptr;
 					uchar *end = d + Src->x;
 
@@ -811,9 +821,14 @@ bool GdcApp15Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 			lookup[i] = (i * (int)alpha) / 255;
 		}
 
-		switch (Src->Bits)
+		switch (Src->Cs)
 		{
-			case 8:
+			default:
+			{
+				LgiAssert(!"Not impl.");
+				break;
+			}
+			case CsIndex8:
 			{
 				GRgb24 c[256];
 				CreatePaletteLut(c, SPal, 255);
@@ -850,7 +865,7 @@ bool GdcApp15Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 15:
+			case CsRgb15:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
@@ -886,7 +901,7 @@ bool GdcApp15Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 16:
+			case CsRgb16:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
@@ -918,11 +933,11 @@ bool GdcApp15Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 24:
+			case CsBgr24:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
-					GRgb24 *s = (GRgb24*) (Src->Base + (y * Src->Line));
+					GBgr24 *s = (GBgr24*) (Src->Base + (y * Src->Line));
 					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
 					ushort *d = (ushort*) Ptr;
 					ushort *e = d + Src->x;
@@ -951,11 +966,11 @@ bool GdcApp15Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 32:
+			case System32BitColourSpace:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
-					GRgba32 *s = (GRgba32*) (Src->Base + (y * Src->Line));
+					System32BitPixel *s = (System32BitPixel*) (Src->Base + (y * Src->Line));
 					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
 					ushort *d = (ushort*) Ptr;
 					ushort *e = d + Src->x;
@@ -988,9 +1003,14 @@ bool GdcApp15Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 	}
 	else
 	{
-		switch (Src->Bits)
+		switch (Src->Cs)
 		{
-			case 8:
+			default:
+			{
+				LgiAssert(!"Not impl.");
+				break;
+			}
+			case CsIndex8:
 			{
 				GRgb24 c[256];
 				if (alpha) CreatePaletteLut(c, SPal, alpha);
@@ -1031,7 +1051,7 @@ bool GdcApp15Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 
 				break;
 			}
-			case 15:
+			case CsRgb15:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
@@ -1068,7 +1088,7 @@ bool GdcApp15Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 16:
+			case CsRgb16:
 			{
 				// this code combines the colour bitmap with the destination
 				// bitmap using the given alpha value
@@ -1088,11 +1108,11 @@ bool GdcApp15Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 24:
+			case CsBgr24:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
-					GRgb24 *s = (GRgb24*) (Src->Base + (y * Src->Line));
+					GBgr24 *s = (GBgr24*) (Src->Base + (y * Src->Line));
 					ushort *d = (ushort*) Ptr;
 					ushort *e = d + Src->x;
 
@@ -1113,11 +1133,11 @@ bool GdcApp15Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 32:
+			case System32BitColourSpace:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
-					GRgba32 *s = (GRgba32*) (Src->Base + (y * Src->Line));
+					System32BitPixel *s = (System32BitPixel*) (Src->Base + (y * Src->Line));
 					ushort *d = (ushort*) Ptr;
 					ushort *e = d + Src->x;
 
@@ -1203,9 +1223,14 @@ bool GdcApp16Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 
 	if (SrcAlpha)
 	{
-		switch (Src->Bits)
+		switch (Src->Cs)
 		{
-			case 8:
+			default:
+			{
+				LgiAssert(!"Not impl.");
+				break;
+			}
+			case CsIndex8:
 			{
 				GRgb24 c[256];
 				CreatePaletteLut(c, SPal, 255);
@@ -1244,7 +1269,7 @@ bool GdcApp16Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 15:
+			case CsRgb15:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
@@ -1277,7 +1302,7 @@ bool GdcApp16Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 16:
+			case CsRgb16:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
@@ -1309,12 +1334,12 @@ bool GdcApp16Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 24:
+			case CsBgr24:
 			#ifndef LINUX
 			{
 				for (int y=0; y<Src->y; y++)
 				{
-					GRgb24 *s = (GRgb24*) (Src->Base + (y * Src->Line));
+					GBgr24 *s = (GBgr24*) (Src->Base + (y * Src->Line));
 					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
 					ushort *d = (ushort*) Ptr;
 					ushort *end = d + Src->x;
@@ -1344,11 +1369,11 @@ bool GdcApp16Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				break;
 			}
 			#endif
-			case 32:
+			case System32BitColourSpace:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
-					GRgba32 *s = (GRgba32*) (Src->Base + (y * Src->Line));
+					System32BitPixel *s = (System32BitPixel*) (Src->Base + (y * Src->Line));
 					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
 					ushort *d = (ushort*) Ptr;
 					ushort *end = d + Src->x;
@@ -1381,9 +1406,14 @@ bool GdcApp16Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 	}
 	else
 	{
-		switch (Src->Bits)
+		switch (Src->Cs)
 		{
-			case 8:
+			default:
+			{
+				LgiAssert(!"Not impl.");
+				break;
+			}
+			case CsIndex8:
 			{
 				// this code uses the input bitmap as a mask to say where
 				// to draw the current colour at the given alpha value
@@ -1409,7 +1439,7 @@ bool GdcApp16Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 
 				break;
 			}
-			case 15:
+			case CsRgb15:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
@@ -1434,7 +1464,7 @@ bool GdcApp16Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 16:
+			case CsRgb16:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
@@ -1452,11 +1482,11 @@ bool GdcApp16Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 24:
+			case CsBgr24:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
-					GRgb24 *s = (GRgb24*) (Src->Base + (y * Src->Line));
+					GBgr24 *s = (GBgr24*) (Src->Base + (y * Src->Line));
 					ushort *d = (ushort*) Ptr;
 					ushort *e = d + Src->x;
 
@@ -1472,11 +1502,11 @@ bool GdcApp16Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 32:
+			case System32BitColourSpace:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
-					GRgba32 *s = (GRgba32*) (Src->Base + (y * Src->Line));
+					System32BitPixel *s = (System32BitPixel*) (Src->Base + (y * Src->Line));
 					ushort *d = (ushort*) Ptr;
 					ushort *end = d + Src->x;
 
@@ -1588,9 +1618,14 @@ bool GdcApp24Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 
 	if (SrcAlpha)
 	{
-		switch (Src->Bits)
+		switch (Src->Cs)
 		{
-			case 8:
+			default:
+			{
+				LgiAssert(!"Not impl.");
+				break;
+			}
+			case CsIndex8:
 			{
 				GRgb24 c[256];
 				CreatePaletteLut(c, SPal, 255);
@@ -1628,7 +1663,7 @@ bool GdcApp24Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 15:
+			case CsRgb15:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
@@ -1663,7 +1698,7 @@ bool GdcApp24Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 16:
+			case CsRgb16:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
@@ -1698,7 +1733,7 @@ bool GdcApp24Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 24:
+			case CsBgr24:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
@@ -1732,12 +1767,12 @@ bool GdcApp24Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 32:
+			case System32BitColourSpace:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
-					GRgba32 *s = (GRgba32*) (Src->Base + (y * Src->Line));
-					GRgba32 *e = s + Src->x;
+					System32BitPixel *s = (System32BitPixel*) (Src->Base + (y * Src->Line));
+					System32BitPixel *e = s + Src->x;
 					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
 					GRgb24 *d = (GRgb24*) Ptr;
 
@@ -1770,9 +1805,14 @@ bool GdcApp24Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 	}
 	else
 	{
-		switch (Src->Bits)
+		switch (Src->Cs)
 		{
-			case 8:
+			default:
+			{
+				LgiAssert(!"Not impl.");
+				break;
+			}
+			case CsIndex8:
 			{
 				GRgb24 c[256];
 				CreatePaletteLut(c, SPal, alpha);
@@ -1796,7 +1836,7 @@ bool GdcApp24Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 15:
+			case CsRgb15:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
@@ -1818,7 +1858,7 @@ bool GdcApp24Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 16:
+			case CsRgb16:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
@@ -1854,16 +1894,16 @@ bool GdcApp24Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 24:
+			case CsBgr24:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
-					GRgb24 *s = (GRgb24*) (Src->Base + (y * Src->Line));
-					GRgb24 *d = (GRgb24*) Ptr;
+					GBgr24 *s = (GBgr24*) (Src->Base + (y * Src->Line));
+					GBgr24 *d = (GBgr24*) Ptr;
 
 					if (alpha == 255)
 					{
-						memcpy(d, s, Src->x * sizeof(GRgb24));
+						memcpy(d, s, Src->x * 3);
 					}
 					else if (alpha)
 					{
@@ -1882,11 +1922,11 @@ bool GdcApp24Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 32:
+			case System32BitColourSpace:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
-					GRgba32 *s = (GRgba32*) (Src->Base + (y * Src->Line));
+					System32BitPixel *s = (System32BitPixel*) (Src->Base + (y * Src->Line));
 					GRgb24 *d = (GRgb24*) Ptr;
 
 					if (alpha == 255)
@@ -1956,7 +1996,7 @@ bool GdcApp24Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 
 void GdcApp32Alpha::Set()
 {
-	GRgba32 *p = (GRgba32*) Ptr;
+	System32BitPixel *p = (System32BitPixel*) Ptr;
 	Setup32();
 	Comp32();
 }
@@ -1967,7 +2007,7 @@ void GdcApp32Alpha::VLine(int height)
 
 	while (height--)
 	{
-		GRgba32 *p = (GRgba32*) Ptr;
+		System32BitPixel *p = (System32BitPixel*) Ptr;
 		Comp32();
 		Ptr = (((uchar*) Ptr) + Dest->Line);
 	}
@@ -1979,7 +2019,7 @@ void GdcApp32Alpha::Rectangle(int x, int y)
 
 	while (y--)
 	{
-		GRgba32 *p = (GRgba32*) Ptr;
+		System32BitPixel *p = (System32BitPixel*) Ptr;
 		for (int n=0; n<x; n++, p++)
 		{
 			Comp32();
@@ -2001,9 +2041,14 @@ bool GdcApp32Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 
 	if (SrcAlpha)
 	{
-		switch (Src->Bits)
+		switch (Src->Cs)
 		{
-			case 8:
+			default:
+			{
+				LgiAssert(!"Not impl.");
+				break;
+			}
+			case CsIndex8:
 			{
 				GRgb24 c[256];
 				CreatePaletteLut(c, SPal);
@@ -2013,7 +2058,7 @@ bool GdcApp32Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 					uchar *s = (uchar*) (Src->Base + (y * Src->Line));
 					uchar *sa = (uchar*) (SrcAlpha->Base + (y * SrcAlpha->Line));
 					GRgb24 *sc;
-					GRgba32 *d = (GRgba32*) Ptr;
+					System32BitPixel *d = (System32BitPixel*) Ptr;
 					uchar a, o;
 
 					for (int x=0; x<Src->x; x++)
@@ -2045,13 +2090,13 @@ bool GdcApp32Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 15:
+			case CsRgb15:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
 					ushort *s = (ushort*) (Src->Base + (y * Src->Line));
 					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
-					GRgba32 *d = (GRgba32*) Ptr;
+					System32BitPixel *d = (System32BitPixel*) Ptr;
 
 					for (int x=0; x<Src->x; x++)
 					{
@@ -2078,13 +2123,13 @@ bool GdcApp32Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 16:
+			case CsRgb16:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
 					ushort *s = (ushort*) (Src->Base + (y * Src->Line));
 					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
-					GRgba32 *d = (GRgba32*) Ptr;
+					System32BitPixel *d = (System32BitPixel*) Ptr;
 
 					for (int x=0; x<Src->x; x++)
 					{
@@ -2111,13 +2156,13 @@ bool GdcApp32Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 24:
+			case System24BitColourSpace:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
 					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
-					GRgba32 *d = (GRgba32*) Ptr;
-					GRgb24 *s = (GRgb24*) (Src->Base + (y * Src->Line));
+					System32BitPixel *d = (System32BitPixel*) Ptr;
+					System24BitPixel *s = (System24BitPixel*) (Src->Base + (y * Src->Line));
 
 					for (int x=0; x<Src->x; x++)
 					{
@@ -2144,12 +2189,12 @@ bool GdcApp32Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 32:
+			case System32BitColourSpace:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
-					GRgba32 *d = (GRgba32*) Ptr;
-					GRgba32 *s = (GRgba32*) (Src->Base + (y * Src->Line));
+					System32BitPixel *d = (System32BitPixel*) Ptr;
+					System32BitPixel *s = (System32BitPixel*) (Src->Base + (y * Src->Line));
 					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
 
 					for (int x=0; x<Src->x; x++)
@@ -2183,9 +2228,14 @@ bool GdcApp32Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 	}
 	else
 	{
-		switch (Src->Bits)
+		switch (Src->Cs)
 		{
-			case 8:
+			default:
+			{
+				LgiAssert(!"Not impl.");
+				break;
+			}
+			case CsIndex8:
 			{
 				GRgb24 c[256];
 				CreatePaletteLut(c, SPal, alpha);
@@ -2194,7 +2244,7 @@ bool GdcApp32Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				{
 					uchar *s = (uchar*) (Src->Base + (y * Src->Line));
 					GRgb24 *sc;
-					GRgba32 *d = (GRgba32*) Ptr;
+					System32BitPixel *d = (System32BitPixel*) Ptr;
 
 					if (alpha == 255)
 					{
@@ -2229,13 +2279,13 @@ bool GdcApp32Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 15:
+			case CsRgb15:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
 					ushort *s = (ushort*) (Src->Base + (y * Src->Line));
 					ushort *e = s + Src->x;
-					GRgba32 *d = (GRgba32*) Ptr;
+					System32BitPixel *d = (System32BitPixel*) Ptr;
 
 					while (s < e)
 					{
@@ -2251,12 +2301,12 @@ bool GdcApp32Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 16:
+			case CsRgb16:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
 					ushort *s = (ushort*) (Src->Base + (y * Src->Line));
-					GRgba32 *d = (GRgba32*) Ptr;
+					System32BitPixel *d = (System32BitPixel*) Ptr;
 
 					if (alpha == 255)
 					{
@@ -2289,12 +2339,12 @@ bool GdcApp32Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 24:
+			case System24BitColourSpace:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
-					GRgb24 *s = (GRgb24*) (Src->Base + (y * Src->Line));
-					GRgba32 *d = (GRgba32*) Ptr;
+					System24BitPixel *s = (System24BitPixel*) (Src->Base + (y * Src->Line));
+					System32BitPixel *d = (System32BitPixel*) Ptr;
 
 					if (alpha == 255)
 					{
@@ -2327,12 +2377,12 @@ bool GdcApp32Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 32:
+			case System32BitColourSpace:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
-					GRgba32 *s = (GRgba32*) (Src->Base + (y * Src->Line));
-					GRgba32 *d = (GRgba32*) Ptr;
+					System32BitPixel *s = (System32BitPixel*) (Src->Base + (y * Src->Line));
+					System32BitPixel *d = (System32BitPixel*) Ptr;
 
 					if (alpha == 255)
 					{
@@ -2382,6 +2432,6 @@ bool GdcApp32Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 		}
 	}
 
-	return false;
+	return true;
 }
 

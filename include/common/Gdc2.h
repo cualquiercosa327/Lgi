@@ -171,6 +171,7 @@
 /// Colour component type
 enum GComponentType
 {
+	CtNone,
 	CtIndex,
 	CtRed,
 	CtGreen,
@@ -188,30 +189,32 @@ enum GComponentType
 
 // Component construction: 4bits type, 4bits size. 8 bits per component.
 #define GDC_COLOUR_SPACE_1(type, size) \
-	((type << 4) | (size - 1))
+	((type << 4) | (size))
 #define GDC_COLOUR_SPACE_3(t1, s1, t2, s2, t3, s3) \
 	( \
-		((t1 << 20) | ((s1-1) << 16)) | \
-		((t2 << 12) | ((s2-1) << 8)) | \
-		((t3 << 4) | ((s3-1) << 0)) \
+		((t1 << 20) | (s1 << 16)) | \
+		((t2 << 12) | (s2 << 8)) | \
+		((t3 << 4) | (s3 << 0)) \
 	)
 #define GDC_COLOUR_SPACE_4(t1, s1, t2, s2, t3, s3, t4, s4) \
 	( \
-		((t1 << 28) | ((s1-1) << 24)) | \
-		((t2 << 20) | ((s2-1) << 16)) | \
-		((t3 << 12) | ((s3-1) << 8)) | \
-		((t4 << 4) | ((s4-1) << 0)) \
+		((t1 << 28) | (s1 << 24)) | \
+		((t2 << 20) | (s2 << 16)) | \
+		((t3 << 12) | (s3 << 8)) | \
+		((t4 << 4) | (s4 << 0)) \
 	)
 
 /// Defines a specific colour space
 enum GColourSpace
 {
+	CsNone = 0,
 	CsIndex8 = GDC_COLOUR_SPACE_1(CtIndex, 8),
 	CsRgb15 = GDC_COLOUR_SPACE_3(CtRed, 5, CtGreen, 5, CtBlue, 5),
 	CsRgb16 = GDC_COLOUR_SPACE_3(CtRed, 5, CtGreen, 6, CtBlue, 5),
 	CsRgb24 = GDC_COLOUR_SPACE_3(CtRed, 8, CtGreen, 8, CtBlue, 8),
 	CsBgr24 = GDC_COLOUR_SPACE_3(CtBlue, 8, CtGreen, 8, CtRed, 8),
 	CsRgba32 = GDC_COLOUR_SPACE_4(CtRed, 8, CtGreen, 8, CtBlue, 8, CtAlpha, 8),
+	CsBgra32 = GDC_COLOUR_SPACE_4(CtBlue, 8, CtGreen, 8, CtRed, 8, CtAlpha, 8),
 	CsArgb32 = GDC_COLOUR_SPACE_4(CtAlpha, 8, CtRed, 8, CtGreen, 8, CtBlue, 8),
 	CsRgbx32 = GDC_COLOUR_SPACE_4(CtRed, 8, CtGreen, 8, CtBlue, 8, CtPad, 8),
 	CsXrgb32 = GDC_COLOUR_SPACE_4(CtPad, 8, CtRed, 8, CtGreen, 8, CtBlue, 8),
@@ -247,6 +250,10 @@ struct GBgr24 {
 
 struct GRgba32 {
 	uint8 r, g, b, a;
+};
+
+struct GBgra32 {
+	uint8 b, g, r, a;
 };
 
 struct GArgb32 {
@@ -295,7 +302,31 @@ union GColourSpaceBits
 	} Bits;
 };
 
-LgiFunc int GColourSpaceToBits(uint32 ColourSpace);
+LgiFunc int GColourSpaceToBits(GColourSpace ColourSpace);
+LgiFunc GColourSpace GBitsToColourSpace(int Bits);
+
+#if defined(WIN32)
+
+	#define System24BitColourSpace CsBgr24
+	typedef GBgr24 System24BitPixel;
+
+	#define System32BitColourSpace CsBgra32
+	typedef GBgra32 System32BitPixel;
+
+#elif defined(MAC)
+
+	#define System24BitColourSpace CsRgb24
+	typedef GRgb24 System24BitPixel;
+
+	#define System32BitColourSpace CsRgba32
+	typedef GRgba32 System32BitPixel;
+
+#else
+
+	#error "Impl me"
+
+#endif
+
 
 /** \brief 32bit colour of varing bit depth. If no associated depth is given, 32 bits is assumed.
 
@@ -662,11 +693,17 @@ class LgiClass GBmpMem
 {
 public:
 	uchar *Base;
-	int x, y, Bits, Line;
+	int x, y, Line;
+	GColourSpace Cs;
 	int Flags;
 
 	GBmpMem();
 	~GBmpMem();
+	
+	int GetBits()
+	{
+		return GColourSpaceToBits(Cs);
+	}
 };
 
 
@@ -692,7 +729,7 @@ protected:
 public:
 	COLOUR c;				// main colour
 
-	GApplicator() { c = 0; }
+	GApplicator() { c = 0; Dest = NULL; Alpha = NULL; Pal = NULL; }
 	GApplicator(COLOUR Colour) { c = Colour; }
 	virtual ~GApplicator() { }
 
@@ -706,7 +743,7 @@ public:
 	/// Gets the operator
 	int GetOp() { return Op; }
 	/// Gets the bit depth
-	int GetBits() { return (Dest) ? Dest->Bits : 0; }
+	int GetBits() { return (Dest) ? GColourSpaceToBits(Dest->Cs) : 0; }
 	/// Gets the flags in operation
 	int GetFlags() { return (Dest) ? Dest->Flags : 0; }
 	/// Gets the palette
@@ -929,7 +966,7 @@ Ge	/// Returns the cairo drawing context, creating one if required.
 	/// Returns the vertical resolution of the device
 	virtual int DpiY() { return 100; }
 	/// Gets the bits per pixel
-	virtual int GetBits() { return (pMem) ? pMem->Bits : 0; }
+	virtual int GetBits() { return (pMem) ? GColourSpaceToBits(pMem->Cs) : 0; }
 	/// Gets the colour space of the pixels
 	virtual GColourSpace GetColourSpace() { return ColourSpace; }
 	/// Gets any flags associated with the surface
@@ -1460,6 +1497,8 @@ public:
 	~GdcDevice();
 	static GdcDevice *GetInst() { return pInstance; }
 
+	/// Returns the colour space of the screen
+	GColourSpace GetColourSpace();
 	/// Returns the current screen bit depth
 	int GetBits();
 	/// Returns the current screen width

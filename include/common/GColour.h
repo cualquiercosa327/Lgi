@@ -83,7 +83,7 @@ protected:
 	union {
 		uint32 flat;
 		uint8  index;
-		GRgba32 rgb;
+		System32BitPixel rgb;
 		GHls32 hls;
 	};
 	GColourSpace space;
@@ -127,7 +127,7 @@ public:
 
 	bool Transparent()
 	{
-		if (space == CsRgba32)
+		if (space == System32BitColourSpace)
 			return rgb.a == 0;
 		else if (space == CsIndex8)
 			return !pal || index >= pal->GetSize();
@@ -154,7 +154,7 @@ public:
 			}
 			case 15:
 			{
-				space = CsRgba32;
+				space = System32BitColourSpace;
 				rgb.r = R15(c);
 				rgb.g = G15(c);
 				rgb.b = B15(c);
@@ -163,7 +163,7 @@ public:
 			}
 			case 16:
 			{
-				space = CsRgba32;
+				space = System32BitColourSpace;
 				rgb.r = R16(c);
 				rgb.g = G16(c);
 				rgb.b = B16(c);
@@ -172,7 +172,7 @@ public:
 			}
 			case 24:
 			{
-				space = CsRgba32;
+				space = System32BitColourSpace;
 				rgb.r = R24(c);
 				rgb.g = G24(c);
 				rgb.b = B24(c);
@@ -181,7 +181,7 @@ public:
 			}
 			case 32:
 			{
-				space = CsRgba32;
+				space = System32BitColourSpace;
 				rgb.r = R32(c);
 				rgb.g = G32(c);
 				rgb.b = B32(c);
@@ -190,7 +190,7 @@ public:
 			}
 			default:
 			{
-				space = CsRgba32;
+				space = System32BitColourSpace;
 				flat = 0;
 				LgiAssert(!"Not a known colour depth.");
 			}
@@ -256,7 +256,7 @@ public:
 	// Get as 24 bit colour
 	uint32 c24()
 	{
-		if (space == CsRgba32)
+		if (space == System32BitColourSpace)
 		{
 			return Rgb24(rgb.a, rgb.g, rgb.b);
 		}
@@ -291,7 +291,7 @@ public:
 	/// Set 24 bit colour
 	void c24(COLOUR c)
 	{
-		space = CsRgba32;
+		space = System32BitColourSpace;
 		rgb.r = R24(c);
 		rgb.g = G24(c);
 		rgb.b = B24(c);
@@ -301,7 +301,7 @@ public:
 	/// Get 32 bit colour
 	COLOUR c32()
 	{
-		if (space == CsRgba32)
+		if (space == System32BitColourSpace)
 		{
 			return Rgba32(rgb.r, rgb.g, rgb.b, rgb.a);
 		}
@@ -359,7 +359,7 @@ public:
 			}
 
 			pal = NULL;
-			space = CsRgba32;
+			space = System32BitColourSpace;
 			return Rgba32(rgb.r, rgb.g, rgb.b, rgb.a);
 		}
 
@@ -370,7 +370,7 @@ public:
 	/// Set 32 bit colour
 	void c32(COLOUR c)
 	{
-		space = CsRgba32;
+		space = System32BitColourSpace;
 		pal = NULL;
 		rgb.r = R32(c);
 		rgb.g = G32(c);
@@ -483,6 +483,36 @@ public:
 		int G = (int) ((double) g() * (0.59 * Scale) + 0.5);
 		int B = (int) ((double) b() * (0.11 * Scale) + 0.5);
 		return (R + G + B) >> BitDepth;
+	}
+
+	uint32 GetNative()
+	{
+		#ifdef WIN32
+		if (space == CsIndex8)
+		{
+			if (pal && index < pal->GetSize())
+			{
+				GdcRGB *c = (*pal)[index];
+				if (c)
+				{
+					return RGB(c->R, c->G, c->B);
+				}
+			}
+			
+			return RGB(index, index, index);
+		}
+		else if (space == System32BitColourSpace)
+		{
+			return RGB(rgb.r, rgb.g, rgb.b);
+		}
+		else
+		{
+			LgiAssert(0);
+		}
+		#else
+		LgiAssert(0);
+		#endif		
+		return c32();
 	}
 };
 

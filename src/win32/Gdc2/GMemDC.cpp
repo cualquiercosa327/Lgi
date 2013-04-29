@@ -42,6 +42,7 @@ public:
 GMemDC::GMemDC(int x, int y, int bits)
 {
 	d = new GMemDCPrivate;
+	ColourSpace = CsNone;
 	hBmp = 0;
 	hDC = 0;
 	pMem = 0;
@@ -55,6 +56,7 @@ GMemDC::GMemDC(int x, int y, int bits)
 GMemDC::GMemDC(GSurface *pDC)
 {
 	d = new GMemDCPrivate;
+	ColourSpace = CsNone;
 	hBmp = 0;
 	hDC = 0;
 	pMem = 0;
@@ -271,19 +273,46 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 			d->Info->bmiHeader.biClrUsed = 0;
 			d->Info->bmiHeader.biClrImportant = 0;
 
-			if (Bits == 16)
+			switch (Bits)
 			{
-				int *BitFeilds = (int*) d->Info->bmiColors;
-				BitFeilds[0] = 0xF800;
-				BitFeilds[1] = 0x07E0;
-				BitFeilds[2] = 0x001F;
-			}
-			else if (Bits == 32)
-			{
-				int *BitFeilds = (int*) d->Info->bmiColors;
-				BitFeilds[0] = 0x00FF0000;
-				BitFeilds[1] = 0x0000FF00;
-				BitFeilds[2] = 0x000000FF;
+				case 8:
+				{
+					ColourSpace = CsIndex8;
+					break;
+				}
+				case 15:
+				{
+					ColourSpace = CsRgb15;
+					break;
+				}
+				case 16:
+				{
+					int *BitFeilds = (int*) d->Info->bmiColors;
+					BitFeilds[0] = 0xF800;
+					BitFeilds[1] = 0x07E0;
+					BitFeilds[2] = 0x001F;
+					ColourSpace = CsRgb16;
+					break;
+				}
+				case 24:
+				{
+					ColourSpace = CsBgr24;
+					break;
+				}
+				case 32:
+				{
+					int *BitFeilds = (int*) d->Info->bmiColors;
+					BitFeilds[0] = 0x00FF0000;
+					BitFeilds[1] = 0x0000FF00;
+					BitFeilds[2] = 0x000000FF;
+					ColourSpace = CsBgra32;
+					break;
+				}
+				default:
+				{
+					LgiAssert(!"Unknown colour space.");
+					break;
+				}
 			}
 
 			HDC hDC = GetDC(NULL);
@@ -319,7 +348,7 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 						}
 						pMem->x = x;
 						pMem->y = y;
-						pMem->Bits = Bits;
+						pMem->Cs = ColourSpace;
 						pMem->Line = d->UpsideDown ? -LineLen : LineLen;
 						pMem->Flags = 0;
 
@@ -467,30 +496,7 @@ void GMemDC::Blt(int x, int y, GSurface *Src, GRect *a)
 			HDC hDestDC = StartDC();
 			HDC hSrcDC = Src->StartDC();
 
-			/*
-			GPalette *Pal = Src->Palette();
-			HPALETTE hSPal = 0;
-			HPALETTE hDPal = 0;
-			if (Pal)
-			{
-				PALETTEENTRY Entries[256];
-				
-				GetPaletteEntries(Pal->Handle(), 0, 256, Entries);
-				
-				hDPal = SelectPalette(hDestDC, Pal->Handle(), FALSE);
-				hSPal = SelectPalette(hSrcDC, Pal->Handle(), FALSE);
-			}
-			*/
-
 			BitBlt(hDestDC, x, y, b.X(), b.Y(), hSrcDC, b.x1, b.y1, RowOp);
-
-			/*
-			if (Pal)
-			{
-				hDPal = SelectPalette(hDestDC, hDPal, FALSE);
-				hSPal = SelectPalette(hSrcDC, hSPal, FALSE);
-			}
-			*/
 			
 			Src->EndDC();
 			EndDC();

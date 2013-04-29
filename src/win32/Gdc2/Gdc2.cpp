@@ -43,7 +43,7 @@ void LgiDrawIcon(GSurface *pDC, int Dx, int Dy, HICON ico)
 	int y;
 	for (y=0; !HasAlpha && y<bm.bmHeight; y++)
 	{
-		GRgba32 *c = (GRgba32*) &bits[y * bm.bmWidthBytes];
+		GArgb32 *c = (GArgb32*) &bits[y * bm.bmWidthBytes];
 		for (int x=0; x<bm.bmWidth; x++)
 		{
 			if (c[x].a > 0)
@@ -471,6 +471,7 @@ GBmpMem::GBmpMem()
 {
 	Base = 0;
 	Flags = 0;
+	Cs = CsNone;
 }
 
 GBmpMem::~GBmpMem()
@@ -1063,6 +1064,7 @@ public:
 	int ScrX;
 	int ScrY;
 	int ScrBits;
+	GColourSpace ColourSpace;
 
 	// Palette
 	double GammaCorrection;
@@ -1103,6 +1105,28 @@ public:
 		ScrX = GetSystemMetrics(SM_CXSCREEN);
 		ScrY = GetSystemMetrics(SM_CYSCREEN);
 		ScrBits = GetDeviceCaps(hScreenDC, BITSPIXEL);
+		switch (ScrBits)
+		{
+			case 8:
+				ColourSpace = CsIndex8;
+				break;
+			case 15:
+				ColourSpace = CsRgb15;
+				break;
+			case 16:
+				ColourSpace = CsRgb16;
+				break;
+			case 24:
+				ColourSpace = CsBgr24;
+				break;
+			case 32:
+				ColourSpace = CsArgb32;
+				break;
+			default:
+				LgiAssert(!"Unknown colour space.");
+				ColourSpace = CsNone;
+				break;
+		}
 
 		int Colours = 1 << ScrBits;
 		pSysPal = (ScrBits <= 8) ? new GPalette(0, Colours) : 0;
@@ -1163,6 +1187,49 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
+int GColourSpaceToBits(GColourSpace ColourSpace)
+{
+	uint32 c = ColourSpace;
+	int bits = 0;
+	while (c)
+	{
+		if (c & 0xf0)
+		{
+			int n = c & 0xf;
+			bits += n ? n : 16;
+		}
+		c >>= 8;
+	}
+	return bits;
+}
+
+GColourSpace GBitsToColourSpace(int Bits)
+{
+	switch (Bits)
+	{
+		case 8:
+			return CsIndex8;
+		case 15:
+			return CsRgb15;
+		case 16:
+			return CsRgb16;
+		case 24:
+			#ifdef WIN32
+			return CsBgr24;
+			#else
+			return CsRgb24;
+			#endif
+		case 32:
+			return CsArgb32;
+		default:
+			LgiAssert(!"Unknown colour space.");
+			break;
+	}
+	
+	return CsNone;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
 GdcDevice *GdcDevice::pInstance = 0;
 
 GdcDevice::GdcDevice()
@@ -1213,6 +1280,11 @@ uchar *GdcDevice::GetDiv255()
 GGlobalColour *GdcDevice::GetGlobalColour()
 {
 	return d->GlobalColour;
+}
+
+GColourSpace GdcDevice::GetColourSpace()
+{
+	return d->ColourSpace;
 }
 
 int GdcDevice::GetBits()

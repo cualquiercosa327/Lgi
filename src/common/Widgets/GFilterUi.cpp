@@ -83,12 +83,12 @@ void convert_to_nonpremul(GSurface *pDC)
 		
 	switch (pDC->GetColourSpace())
 	{
-		case CsRgba32:
+		case CsArgb32:
 		{
 			for (int y=0; y<pDC->Y(); y++)
 			{
-				GRgba32 *p = (GRgba32*) (*pDC)[y];
-				GRgba32 *e = p + pDC->X();
+				GArgb32 *p = (GArgb32*) (*pDC)[y];
+				GArgb32 *e = p + pDC->X();
 
 				while (p < e)
 				{

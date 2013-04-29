@@ -148,17 +148,17 @@ int GdcGif::out_line(uchar *pixels, int linewidth, int interlaced, int BitDepth)
     if (lines >= pDC->Y())
         return -1;
 
-	switch (pDC->GetBits())
+	switch (pDC->GetColourSpace())
 	{
-	    case 8:
+	    case CsIndex8:
 	    {
 	        memcpy((*pDC)[lines], pixels, pDC->X());
 	        break;
 	    }
-	    case 32:
+	    case CsArgb32:
 	    {
-	        GRgba32 *s = (GRgba32*) (*pDC)[lines];
-	        GRgba32 *e = s + pDC->X();
+	        GArgb32 *s = (GArgb32*) (*pDC)[lines];
+	        GArgb32 *e = s + pDC->X();
 	        GPalette *pal = pDC->Palette();
         	GdcRGB *p = (*pal)[0], *pix;
         	
@@ -175,7 +175,7 @@ int GdcGif::out_line(uchar *pixels, int linewidth, int interlaced, int BitDepth)
 	    }
 	    default:
 	    {
-	        LgiAssert(0);
+	        LgiAssert(!"Unsupported colour space");
 	        break;
 	    }
 	}

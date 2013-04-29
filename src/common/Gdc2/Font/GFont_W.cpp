@@ -103,8 +103,8 @@ void GFont::_Draw(GSurface *pDC, int x, int y, OsChar *Str, int Len, GRect *r, G
 	HFONT hOldFont = (HFONT) SelectObject(hDC, Handle());
 	if (hOldFont)
 	{
-		SetTextColor(hDC, fore.c24() & 0xFFFFFF);
-		SetBkColor(hDC, Back().c24() & 0xFFFFFF);
+		SetTextColor(hDC, fore.GetNative());
+		SetBkColor(hDC, Back().GetNative());
 		SetBkMode(hDC, Transparent() ? TRANSPARENT : OPAQUE);
 
 		SIZE Size;

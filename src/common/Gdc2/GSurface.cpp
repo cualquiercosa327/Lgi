@@ -909,7 +909,7 @@ void GSurface::Blt(int x, int y, GSurface *Src, GRect *a)
 			{
 				GBmpMem Bits, Alpha;
 
-				int PixelBytes = Src->pMem->Bits >> 3;
+				int PixelBytes = GColourSpaceToBits(Src->pMem->Cs) >> 3;
 				
 				Bits.Base =	Src->pMem->Base +
 						(SClip.y1 * Src->pMem->Line) +
@@ -917,14 +917,14 @@ void GSurface::Blt(int x, int y, GSurface *Src, GRect *a)
 				Bits.x = min(SClip.X(), DClip.X());
 				Bits.y = min(SClip.Y(), DClip.Y());
 				Bits.Line = Src->pMem->Line;
-				Bits.Bits = Src->GetBits();
+				Bits.Cs = Src->GetColourSpace();
 				Bits.Flags = 0;
 
 				if (Src->pAlphaDC && !Src->DrawOnAlpha())
 				{
 					GBmpMem *ASurface = Src->pAlphaDC->pMem;
 					Alpha = Bits;
-					Alpha.Bits = 8;
+					Alpha.Cs = CsIndex8;
 					Alpha.Line = ASurface->Line;
 					Alpha.Base =	ASurface->Base +
 							(SClip.y1 * ASurface->Line) +
@@ -1372,7 +1372,7 @@ GApplicator *GSurface::CreateApplicator(int Op, int Bits)
 		}
 		else
 		{
-			Bits = pMem->Bits;
+			Bits = GColourSpaceToBits(pMem->Cs);
 		}
 	}
 	

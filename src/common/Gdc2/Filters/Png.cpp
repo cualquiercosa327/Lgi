@@ -536,7 +536,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 							    {
 								    if (png_get_bit_depth(png_ptr, info_ptr) == 16)
 								    {
-									    GRgba32 *o = (GRgba32*)Scan;
+									    GArgb32 *o = (GArgb32*)Scan;
 									    Png48 *i = (Png48*)Scan0[y];
 									    Png48 *e = i + pDC->X();
 
@@ -552,7 +552,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 								    }
 								    else
 								    {
-									    GRgba32 *o = (GRgba32*)Scan;
+									    GArgb32 *o = (GArgb32*)Scan;
 									    Png24 *i = (Png24*)Scan0[y];
 									    Png24 *e = i + pDC->X();
 
@@ -607,7 +607,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 							{
 								if (png_get_bit_depth(png_ptr, info_ptr) == 16)
 								{
-									GRgba32 *o = (GRgba32*)Scan;
+									GArgb32 *o = (GArgb32*)Scan;
 									Png64 *i = (Png64*)Scan0[y];
 									Png64 *e = i + pDC->X();
 
@@ -623,7 +623,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 								}
 								else
 								{
-									GRgba32 *o = (GRgba32*) Scan;
+									GArgb32 *o = (GArgb32*) Scan;
 									Png32 *i = (Png32*) Scan0[y];
 
 									for (int x=0; x<pDC->X(); x++, i++, o++)
@@ -757,9 +757,9 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 		// Check alpha channel
 		for (int y=0; y<pDC->Y() && !HasTransparency; y++)
 		{
-			GRgba32 *p = (GRgba32*)(*pDC)[y];
+			GArgb32 *p = (GArgb32*)(*pDC)[y];
 			if (!p) break;
-			GRgba32 *e = p + pDC->X();
+			GArgb32 *e = p + pDC->X();
 			while (p < e)
 			{
 				if (p->a < 255)
@@ -893,7 +893,7 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 					{
 						for (int y=0; y<pDC->Y(); y++)
 						{
-							GRgba32 *s = (GRgba32*) (*pDC)[y];
+							GArgb32 *s = (GArgb32*) (*pDC)[y];
 							for (int x=0; x<pDC->X(); x++)
 							{
 								if (s[x].a < 0xff)
@@ -1131,7 +1131,7 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 
 						for (int y=0; y<pDC->Y(); y++)
 						{
-							GRgba32 *s = (GRgba32*) (*pDC)[y];
+							GArgb32 *s = (GArgb32*) (*pDC)[y];
 							if (ChannelAlpha)
 							{
 								Png32 *d = (Png32*) (TempBits + (TempLine * y));

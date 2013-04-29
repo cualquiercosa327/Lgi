@@ -489,12 +489,11 @@ GFilter::IoStatus GdcBmp::WriteImage(GStream *Out, GSurface *pDC)
 	BMP_FILE File;
 	BMP_WININFO Info;
 	GBmpMem *pMem = GetSurface(pDC);
-	int Colours = (pMem->Bits <= 8) ? 1 << pMem->Bits : 0;
-	int UsedBits = pMem->Bits;
+	int Colours = (pMem->Cs == CsIndex8) ? 1 << 8 : 0;
+	int UsedBits = GColourSpaceToBits(pMem->Cs);
 
 	GPalette *Palette = pDC->Palette();
-	if (pMem->Bits <= 8 AND
-		Palette)
+	if (pMem->Cs == CsIndex8 && Palette)
 	{
 		int Size = Palette->GetSize();
 		int Bits = 8;
@@ -539,7 +538,7 @@ GFilter::IoStatus GdcBmp::WriteImage(GStream *Out, GSurface *pDC)
 	if (Out->Write(&File, sizeof(File)) &&
 		Out->Write(&Info, sizeof(Info)))
 	{
-		if (pMem->Bits <= 8)
+		if (pMem->Cs == CsIndex8)
 		{
 			int Done = 0;
 
@@ -1129,7 +1128,7 @@ GdcRleDC::GdcRleDC()
 		pMem->Base = 0;
 		pMem->x = 0;
 		pMem->y = 0;
-		pMem->Bits = 0;
+		pMem->Cs = CsNone;
 		pMem->Line = 0;
 		pMem->Flags = 0;
 	}
@@ -1158,7 +1157,7 @@ bool GdcRleDC::Create(int x, int y, int bits, int LineLen)
 	return Status;
 }
 
-bool GdcRleDC::CreateInfo(int x, int y, int bits)
+bool GdcRleDC::CreateInfo(int x, int y, GColourSpace cs)
 {
 	bool Status = false;
 
@@ -1168,14 +1167,14 @@ bool GdcRleDC::CreateInfo(int x, int y, int bits)
 	{
 		pMem->x = x;
 		pMem->y = y;
-		pMem->Bits = bits;
+		pMem->Cs = cs;
 		pMem->Base = 0;
 		pMem->Line = 0;
 		pMem->Flags = 0;
 
 		Flags |= GDC_RLE_READONLY;
 
-		if (bits == 8)
+		if (cs == CsIndex8)
 		{
 			Flags |= GDC_RLE_MONO;
 		}
@@ -1567,7 +1566,7 @@ bool GdcRleDC::Read(GFile &F)
 		F >> bits;
 		F >> Monochrome;
 		Mono(Monochrome);
-		CreateInfo(x, y, bits);
+		CreateInfo(x, y, GBitsToColourSpace(bits));
 		F.Read(Data, Len);
 		return !F.GetStatus();
 	}

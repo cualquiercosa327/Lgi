@@ -87,7 +87,7 @@ GApplicator *GApp15::Create(int Bits, int Op)
 
 bool GdcApp15::SetSurface(GBmpMem *d, GPalette *p, GBmpMem *a)
 {
-	if (d AND d->Bits == 15)
+	if (d AND d->Cs == CsRgb15)
 	{
 		Dest = d;
 		Pal = p;
@@ -201,9 +201,14 @@ bool GdcApp15Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				Dest->x, Dest->y, Dest->Bits);
 		*/
 		
-		switch (Src->Bits)
+		switch (Src->Cs)
 		{
-			case 8:
+			default:
+			{
+				LgiAssert(!"Not impl.");
+				break;
+			}
+			case CsIndex8:
 			{
 				ushort c[256];
 				if (SPal)
@@ -236,7 +241,7 @@ bool GdcApp15Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 15:
+			case CsRgb15:
 			{
 				uchar *s = Src->Base;
 				for (int y=0; y<Src->y; y++)
@@ -247,7 +252,7 @@ bool GdcApp15Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 16:
+			case CsRgb16:
 			{
 				ushort *s = (ushort*) Src->Base;
 				ushort *d = (ushort*) Ptr;
@@ -271,11 +276,11 @@ bool GdcApp15Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				Ptr = (uchar*) d;
 				break;
 			}
-			case 24:
+			case CsBgr24:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
-					GRgb24 *s = (GRgb24*) (Src->Base + (y * Src->Line));
+					GBgr24 *s = (GBgr24*) (Src->Base + (y * Src->Line));
 					ushort *d = (ushort*) Ptr;
 					ushort *e = d + Src->x;
 
@@ -289,7 +294,7 @@ bool GdcApp15Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case 32:
+			case CsArgb32:
 			{
 				ulong *s = (ulong*) Src->Base;
 				ushort *d = (ushort*) Ptr;
@@ -344,7 +349,7 @@ void GdcApp15Or::Rectangle(int x, int y)
 
 bool GdcApp15Or::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 {
-	if (Src AND Src->Bits == Dest->Bits)
+	if (Src AND Src->Cs == Dest->Cs)
 	{
 		uchar *s = Src->Base;
 		for (int y=0; y<Src->y; y++)
@@ -383,7 +388,7 @@ void GdcApp15And::Rectangle(int x, int y)
 
 bool GdcApp15And::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 {
-	if (Src AND Src->Bits == Dest->Bits)
+	if (Src AND Src->Cs == Dest->Cs)
 	{
 		uchar *s = Src->Base;
 		for (int y=0; y<Src->y; y++)
@@ -422,7 +427,7 @@ void GdcApp15Xor::Rectangle(int x, int y)
 
 bool GdcApp15Xor::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 {
-	if (Src AND Src->Bits == Dest->Bits)
+	if (Src AND Src->Cs == Dest->Cs)
 	{
 		uchar *s = Src->Base;
 		for (int y=0; y<Src->y; y++)

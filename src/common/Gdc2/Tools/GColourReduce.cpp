@@ -246,7 +246,7 @@ bool CreatePalette(GPalette *Out, GSurface *In, int DestSize)
 				}
 				break;
 			}
-			case CsRgba32:
+			case CsArgb32:
 			{
 				GPixelPtr in, end;
 				in.u8 = (*In)[y];

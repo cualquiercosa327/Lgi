@@ -218,11 +218,11 @@ GImageList::GImageList(int x, int y, GSurface *pDC)
 			int SrcBits = pDC->GetBits();
 			if (SrcBits < 32)
 			{
-				GRgba32 k;
+				GArgb32 k;
 				for (int y=0; y<Y(); y++)
 				{
-					GRgba32 *p = (GRgba32*) (*this)[y];
-					GRgba32 *e = p + X();
+					GArgb32 *p = (GArgb32*) (*this)[y];
+					GArgb32 *e = p + X();
 					if (!y) k = *p;
 
 					while (p < e)
@@ -378,8 +378,8 @@ GImageList::GImageList(int x, int y, GSurface *pDC)
 		
 		for (int y=0; y<Y(); y++)
 		{
-			GRgba32 *p = (GRgba32*) ((*this)[y]);
-			GRgba32 *e = p + X();
+			GArgb32 *p = (GArgb32*) ((*this)[y]);
+			GArgb32 *e = p + X();
 			while (p < e)
 			{
 				if (p->r == kr &&

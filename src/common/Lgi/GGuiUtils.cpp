@@ -128,6 +128,13 @@ COLOUR ColTo24(Gtk::GdkColor &c)
 }
 #endif
 
+#if defined(_WINDOWS)
+static uint32 ConvertWinColour(uint32 c)
+{
+	return Rgb24(GetRValue(c), GetGValue(c), GetBValue(c));
+}
+#endif
+
 void LgiInitColours()
 {
 	int i = 0;
@@ -225,24 +232,24 @@ void LgiInitColours()
 
 	#elif defined(_WINDOWS)
 
-	_LgiColours[i++] = GetSysColor(COLOR_3DDKSHADOW); // LC_SHADOW
-	_LgiColours[i++] = GetSysColor(COLOR_3DSHADOW); // LC_LOW
-	_LgiColours[i++] = GetSysColor(COLOR_3DFACE); // LC_MED
-	_LgiColours[i++] = GetSysColor(COLOR_3DLIGHT); // LC_HIGH, 
-	_LgiColours[i++] = GetSysColor(COLOR_3DHIGHLIGHT); // LC_LIGHT
-	_LgiColours[i++] = GetSysColor(COLOR_3DFACE); // LC_DIALOG
-	_LgiColours[i++] = GetSysColor(COLOR_WINDOW); // LC_WORKSPACE
-	_LgiColours[i++] = GetSysColor(COLOR_WINDOWTEXT); // LC_TEXT
-	_LgiColours[i++] = GetSysColor(COLOR_HIGHLIGHT); // LC_FOCUS_SEL_BACK
-	_LgiColours[i++] = GetSysColor(COLOR_HIGHLIGHTTEXT); // LC_FOCUS_SEL_FORE
-	_LgiColours[i++] = GetSysColor(COLOR_ACTIVECAPTION); // LC_ACTIVE_TITLE
-	_LgiColours[i++] = GetSysColor(COLOR_CAPTIONTEXT); // LC_ACTIVE_TITLE_TEXT
-	_LgiColours[i++] = GetSysColor(COLOR_INACTIVECAPTION); // LC_INACTIVE_TITLE
-	_LgiColours[i++] = GetSysColor(COLOR_INACTIVECAPTIONTEXT); // LC_INACTIVE_TITLE_TEXT
-	_LgiColours[i++] = GetSysColor(COLOR_MENU); // LC_MENU_BACKGROUND
-	_LgiColours[i++] = GetSysColor(COLOR_MENUTEXT); // LC_MENU_TEXT
-	_LgiColours[i++] = GetSysColor(COLOR_BTNFACE); // LC_NON_FOCUS_SEL_BACK
-	_LgiColours[i++] = GetSysColor(COLOR_BTNTEXT); // LC_NON_FOCUS_SEL_FORE
+	_LgiColours[i++] = ConvertWinColour(GetSysColor(COLOR_3DDKSHADOW)); // LC_SHADOW
+	_LgiColours[i++] = ConvertWinColour(GetSysColor(COLOR_3DSHADOW)); // LC_LOW
+	_LgiColours[i++] = ConvertWinColour(GetSysColor(COLOR_3DFACE)); // LC_MED
+	_LgiColours[i++] = ConvertWinColour(GetSysColor(COLOR_3DLIGHT)); // LC_HIGH, 
+	_LgiColours[i++] = ConvertWinColour(GetSysColor(COLOR_3DHIGHLIGHT)); // LC_LIGHT
+	_LgiColours[i++] = ConvertWinColour(GetSysColor(COLOR_3DFACE)); // LC_DIALOG
+	_LgiColours[i++] = ConvertWinColour(GetSysColor(COLOR_WINDOW)); // LC_WORKSPACE
+	_LgiColours[i++] = ConvertWinColour(GetSysColor(COLOR_WINDOWTEXT)); // LC_TEXT
+	_LgiColours[i++] = ConvertWinColour(GetSysColor(COLOR_HIGHLIGHT)); // LC_FOCUS_SEL_BACK
+	_LgiColours[i++] = ConvertWinColour(GetSysColor(COLOR_HIGHLIGHTTEXT)); // LC_FOCUS_SEL_FORE
+	_LgiColours[i++] = ConvertWinColour(GetSysColor(COLOR_ACTIVECAPTION)); // LC_ACTIVE_TITLE
+	_LgiColours[i++] = ConvertWinColour(GetSysColor(COLOR_CAPTIONTEXT)); // LC_ACTIVE_TITLE_TEXT
+	_LgiColours[i++] = ConvertWinColour(GetSysColor(COLOR_INACTIVECAPTION)); // LC_INACTIVE_TITLE
+	_LgiColours[i++] = ConvertWinColour(GetSysColor(COLOR_INACTIVECAPTIONTEXT)); // LC_INACTIVE_TITLE_TEXT
+	_LgiColours[i++] = ConvertWinColour(GetSysColor(COLOR_MENU)); // LC_MENU_BACKGROUND
+	_LgiColours[i++] = ConvertWinColour(GetSysColor(COLOR_MENUTEXT)); // LC_MENU_TEXT
+	_LgiColours[i++] = ConvertWinColour(GetSysColor(COLOR_BTNFACE)); // LC_NON_FOCUS_SEL_BACK
+	_LgiColours[i++] = ConvertWinColour(GetSysColor(COLOR_BTNTEXT)); // LC_NON_FOCUS_SEL_FORE
 	LgiAssert(i == LC_MAXIMUM);
 
 	#else // defaults for non-windows, plain greys

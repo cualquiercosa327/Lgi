@@ -334,8 +334,8 @@ struct JpegCmyk
 union JpegPointer
 {
 	uchar *u8;
-	GRgb24 *p24;
-	GRgba32 *p32;
+	GBgr24 *p24;
+	GArgb32 *p32;
 	JpegRgb *j24;
 	JpegXyz *x24;
 	JpegCmyk *c32;
@@ -548,7 +548,7 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 								{
 									JpegXyz *s = (JpegXyz*) Ptr;
 									#ifdef MAC
-									GRgba32 *d = (GRgba32*) Ptr;
+									GArgb32 *d = (GArgb32*) Ptr;
 									#else
 									GRgb24 *d = (GRgb24*) Ptr;
 									#endif
@@ -583,9 +583,9 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 								if (cinfo.num_components == 3)
 								{
 									#ifdef MAC
-									GRgba32 *d = (GRgba32*) Ptr;
+									GArgb32 *d = (GArgb32*) Ptr;
 									#else
-									GRgb24 *d = (GRgb24*) Ptr;
+									GBgr24 *d = (GBgr24*) Ptr;
 									#endif
 									JpegRgb *e = (JpegRgb*) Ptr;
 									JpegRgb *s = e;
@@ -866,8 +866,8 @@ GFilter::IoStatus GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality, SubS
 				}
 				case 32:
 				{
-				    GRgba32 *p = (GRgba32*) (*pDC)[cinfo.next_scanline];
-				    GRgba32 *end = p + pDC->X();
+				    GArgb32 *p = (GArgb32*) (*pDC)[cinfo.next_scanline];
+				    GArgb32 *end = p + pDC->X();
 					while (p < end)
 					{
 						dst[0] = p->r;
