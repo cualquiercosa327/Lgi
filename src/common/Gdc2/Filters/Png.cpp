@@ -291,7 +291,7 @@ public:
 	GdcPng();
 	~GdcPng();
 
-    char *GetComponentName() { return "libpng"; }
+    const char *GetComponentName() { return "libpng"; }
 	Format GetFormat() { return FmtPng; }
 	void SetMeter(int i) { if (Meter) Meter->Value(i); }
 	int GetCapabilites() { return FILTER_CAP_READ | FILTER_CAP_WRITE; }
@@ -478,7 +478,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 			    int BitDepth = png_get_bit_depth(png_ptr, info_ptr);
 				int FinalBits = BitDepth == 16 ? 8 : BitDepth;
 				int RequestBits = FinalBits * png_get_channels(png_ptr, info_ptr);
-				png_byte Interlaced = png_get_interlace_type(png_ptr, info_ptr);
+				// png_byte Interlaced = png_get_interlace_type(png_ptr, info_ptr);
 				
 				if (!pDC->Create(	png_get_image_width(png_ptr, info_ptr),
 									png_get_image_height(png_ptr, info_ptr),
@@ -937,7 +937,7 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 				{
 					png_set_iCCP(png_ptr,
 								info_ptr,
-								"ColourProfile",
+								(char*)"ColourProfile",
 								NULL,
 								(char*)ColProfile.Value.Binary.Data,
 								ColProfile.Value.Binary.Length);

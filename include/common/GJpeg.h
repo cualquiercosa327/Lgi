@@ -22,7 +22,7 @@ public:
 	GdcJpeg();
 	~GdcJpeg();
 
-    char *GetComponentName() { return "libjpeg"; }
+    const char *GetComponentName() { return "libjpeg"; }
 	Format GetFormat() { return FmtJpeg; }
 	int GetCapabilites() { return FILTER_CAP_READ | FILTER_CAP_WRITE; }
 	IoStatus ReadImage(GSurface *pDC, GStream *In);

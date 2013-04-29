@@ -944,7 +944,7 @@ void GMenuItem::Icon(int i)
 
 		int Bpp = Lst->GetBits() / 8;
 		int Off = _Icon * Lst->TileX() * Bpp;
-		int Line = Lst->X() * Bpp;
+		int Line = (*Lst)[1] - (*Lst)[0];
 		uchar *Base = (*Lst)[0];
 		if (!Base)
 			return;
@@ -957,7 +957,7 @@ void GMenuItem::Icon(int i)
 		uchar *d = Temp;
 		for (int y=0; y<Lst->TileY(); y++)
 		{
-			uchar *s = Base + Off + (Line * y);
+			uchar *s = Base + Off + (Line * (Lst->TileY() - y - 1));
 			uchar *e = s + (Lst->TileX() * Bpp);
 			while (s < e)
 			{
@@ -970,7 +970,7 @@ void GMenuItem::Icon(int i)
 			}
 		}
 		
-		CGDataProviderRef Provider = CGDataProviderCreateWithData(0, Temp,  TempSize, releaseData);
+		CGDataProviderRef Provider = CGDataProviderCreateWithData(0, Temp, TempSize, releaseData);
 		if (Provider)
 		{
 			// CGColorSpaceRef Cs = CGColorSpaceCreateWithName(kCGColorSpaceUserRGB);
@@ -993,8 +993,8 @@ void GMenuItem::Icon(int i)
 			}
 			else printf("%s:%i - CGImageCreate failed.\n", __FILE__, __LINE__);
 			
-			CGColorSpaceRelease(Cs);
-			CGDataProviderRelease(Provider);
+			// CGColorSpaceRelease(Cs);
+			// CGDataProviderRelease(Provider);
 		}
 	}
 	else

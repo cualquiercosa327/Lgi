@@ -705,7 +705,6 @@ public:
 	int64 Sizeof()
 	{
 		int64 Sz = sizeof(*this);
-		char s[64];
 
 		Sz += Sz * sizeof(Entry);
 

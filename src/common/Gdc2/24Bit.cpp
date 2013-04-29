@@ -363,6 +363,8 @@ bool GdcApp24Or::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 	{
 		switch (Src->Cs)
 		{
+			default:
+				break;
 			case System24BitColourSpace:
 			{
 				uchar *s = Src->Base;

@@ -321,8 +321,7 @@ int IFD::ArrayValue(int i)
 	else
 	{
 		printf("%s:%i - IFD::ArrayValue(%i) error, Count=%i p=%p\n",
-			__FILE__, __LINE__,
-			i, Count, p);
+			_FL, i, (int)Count, p);
 	}
 	
 	return 0;

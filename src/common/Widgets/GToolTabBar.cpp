@@ -141,7 +141,7 @@ void GToolTabBar::OnChange(GToolButton *Btn)
 	}
 
 	// Attach new button
-	if (Current = dynamic_cast<GToolTab*>(Btn))
+	if ((Current = dynamic_cast<GToolTab*>(Btn)))
 	{
 		Current->Value(true);
 		Current->Visible(true);

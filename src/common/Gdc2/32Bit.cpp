@@ -16,7 +16,11 @@
 class LgiClass GdcApp32 : public GApplicator
 {
 protected:
-	uint32 *Ptr;
+	union {
+		uint8 *u8;
+		uint32 *u32;
+		System32BitPixel *p;
+	} Ptr;
 
 public:
 	bool SetSurface(GBmpMem *d, GPalette *p, GBmpMem *a);
@@ -88,11 +92,11 @@ GApplicator *GApp32::Create(GColourSpace Cs, int Op)
 
 bool GdcApp32::SetSurface(GBmpMem *d, GPalette *p, GBmpMem *a)
 {
-	if (d && d->Cs == CsBgra32)
+	if (d && d->Cs == System32BitColourSpace)
 	{
 		Dest = d;
 		Pal = p;
-		Ptr = (uint32*) d->Base;
+		Ptr.u8 = d->Base;
 		Alpha = 0;
 		return true;
 	}
@@ -104,41 +108,41 @@ bool GdcApp32::SetSurface(GBmpMem *d, GPalette *p, GBmpMem *a)
 void GdcApp32::SetPtr(int x, int y)
 {
 	LgiAssert(Dest && Dest->Base);
-	Ptr = (uint32*) (Dest->Base + ((y * Dest->Line) + (x << 2)));
+	Ptr.u8 = (Dest->Base + ((y * Dest->Line) + (x << 2)));
 }
 
 void GdcApp32::IncX()
 {
-	Ptr++;
+	Ptr.p++;
 }
 
 void GdcApp32::IncY()
 {
-	AddPtr(Ptr, Dest->Line);
+	Ptr.u8 += Dest->Line;
 }
 
 void GdcApp32::IncPtr(int X, int Y)
 {
-	AddPtr(Ptr, (Y * Dest->Line) + (X << 2));
+	Ptr.u8 += (Y * Dest->Line) + (X << 2);
 }
 
 COLOUR GdcApp32::Get()
 {
-	return *Ptr;
+	return Rgba32(Ptr.p->r, Ptr.p->g, Ptr.p->b, Ptr.p->a);
 }
 
 // 32 bit set sub functions
 void GdcApp32Set::Set()
 {
-	*Ptr = c;
+	*Ptr.u32 = c;
 }
 
 void GdcApp32Set::VLine(int height)
 {
 	while (height--)
 	{
-		*Ptr = c;
-		AddPtr(Ptr, Dest->Line);
+		*Ptr.u32 = c;
+		Ptr.u8 += Dest->Line;
 	}
 }
 
@@ -170,13 +174,13 @@ void GdcApp32Set::Rectangle(int x, int y)
 #else
 	while (y--)
 	{
-		uint32 *p = Ptr;
+		uint32 *p = Ptr.u32;
 		uint32 *e = p + x;
 		while (p < e)
 		{
 			*p++ = c;
 		}
-		AddPtr(Ptr, Dest->Line);
+		Ptr.u8 += Dest->Line;
 	}
 #endif
 }
@@ -244,7 +248,7 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 						for (int y=0; y<Src->y; y++)
 						{
 							uchar *s = (uchar*) (Src->Base + (Src->Line * y));
-							System32BitPixel *d = (System32BitPixel*) Ptr;
+							System32BitPixel *d = Ptr.p;
 							System32BitPixel *e = d + Src->x;
 							
 							while (d < e)
@@ -252,7 +256,7 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 								*d++ = c[*s++];
 							}
 
-							((uchar*&)Ptr) += Dest->Line;
+							Ptr.u8 += Dest->Line;
 						}
 					}
 				}
@@ -261,7 +265,7 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 					for (int y=0; y<Src->y; y++)
 					{
 						uchar *s = (uchar*) (Src->Base + (Src->Line * y));
-						System32BitPixel *d = (System32BitPixel*) Ptr;
+						System32BitPixel *d = Ptr.p;
 						System32BitPixel *e = d + Src->x;
 
 						while (d < e)
@@ -273,7 +277,7 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 							d++;
 						}
 
-						((uchar*&)Ptr) += Dest->Line;
+						Ptr.u8 += Dest->Line;
 					}
 				}
 				break;
@@ -283,7 +287,7 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				for (int y=0; y<Src->y; y++)
 				{
 					ushort *s = (ushort*) (Src->Base + (Src->Line * y));
-					System32BitPixel *d = (System32BitPixel*) Ptr;
+					System32BitPixel *d = Ptr.p;
 					System32BitPixel *e = d + Src->x;
 					
 					while (d < e)
@@ -295,28 +299,28 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 						d++;
 					}
 					
-					((uchar*&)Ptr) += Dest->Line;
+					Ptr.u8 += Dest->Line;
 				}
 				break;
 			}
 			case CsRgb16:
 			{
-				COLOUR c;
-				ushort *s = (ushort*) Src->Base;
-
 				for (int y=0; y<Src->y; y++)
 				{
-					uchar *NextS = ((uchar*) s) + Src->Line;
-					uchar *NextD = ((uchar*) Ptr) + Dest->Line;
+					ushort *s = (ushort*) (Src->Base + (Src->Line * y));
+					System32BitPixel *d = Ptr.p;
+					System32BitPixel *e = d + Src->x;
 					
-					for (int x=0; x<Src->x; x++)
+					while (d < e)
 					{
-						c = *s++;
-						*Ptr++ = Rgb16To32(c);
+						d->r = Rc16(*s);
+						d->g = Gc16(*s);
+						d->b = Bc16(*s);
+						s++;
+						d++;
 					}
-
-					s = (ushort*) NextS;
-					Ptr = (uint32*) NextD;
+					
+					Ptr.u8 += Dest->Line;
 				}
 				break;
 			}
@@ -325,7 +329,7 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				for (int y=0; y<Src->y; y++)
 				{
 					GBgr24 *s = (GBgr24*) ((char*)Src->Base + (y * Src->Line));
-					System32BitPixel *d = (System32BitPixel*) Ptr;
+					System32BitPixel *d = Ptr.p;
 					System32BitPixel *e = d + Src->x;
 					
 					while (d < e)
@@ -338,7 +342,7 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 						s++;
 					}
 
-					((char*&)Ptr) += Dest->Line;
+					Ptr.u8 += Dest->Line;
 				}
 				break;
 			}
@@ -347,9 +351,9 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				uchar *s = Src->Base;
 				for (int y=0; y<Src->y; y++)
 				{
-					MemCpy(Ptr, s, Src->x << 2);
+					MemCpy(Ptr.p, s, Src->x << 2);
 					s += Src->Line;
-					AddPtr(Ptr, Dest->Line);
+					Ptr.u8 += Dest->Line;
 				}
 				break;
 			}
@@ -361,15 +365,15 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 // 32 bit or sub functions
 void GdcApp32Or::Set()
 {
-	*Ptr |= c;
+	*Ptr.u32 |= c;
 }
 
 void GdcApp32Or::VLine(int height)
 {
 	while (height--)
 	{
-		*Ptr |= c;
-		AddPtr(Ptr, Dest->Line);
+		*Ptr.u32 |= c;
+		Ptr.u8 += Dest->Line;
 	}
 }
 
@@ -377,8 +381,9 @@ void GdcApp32Or::Rectangle(int x, int y)
 {
 	while (y--)
 	{
-		for (int n=0; n<x; n++) *Ptr++ |= c;
-		AddPtr(Ptr, Dest->Line - (x << 2));
+		for (int n=0; n<x; n++)
+			*Ptr.u32++ |= c;
+		Ptr.u8 += Dest->Line - (x << 2);
 	}
 }
 
@@ -388,14 +393,17 @@ bool GdcApp32Or::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 	{
 		switch (Src->Cs)
 		{
+			default:
+				LgiAssert(0);
+				break;
 			case System32BitColourSpace:
 			{
 				uchar *s = Src->Base;
 				for (int y=0; y<Src->y; y++)
 				{
-					MemOr(Ptr, s, Src->x << 2);
+					MemOr(Ptr.u8, s, Src->x << 2);
 					s += Src->Line;
-					AddPtr(Ptr, Dest->Line);
+					Ptr.u8 += Dest->Line;
 				}
 				break;
 			}
@@ -407,15 +415,15 @@ bool GdcApp32Or::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 // 32 bit AND sub functions
 void GdcApp32And::Set()
 {
-	*Ptr &= c;
+	*Ptr.u32 &= c;
 }
 
 void GdcApp32And::VLine(int height)
 {
 	while (height--)
 	{
-		*Ptr &= c;
-		AddPtr(Ptr, Dest->Line);
+		*Ptr.u32 &= c;
+		Ptr.u8 += Dest->Line;
 	}
 }
 
@@ -423,8 +431,9 @@ void GdcApp32And::Rectangle(int x, int y)
 {
 	while (y--)
 	{
-		for (int n=0; n<x; n++) *Ptr++ &= c;
-		AddPtr(Ptr, Dest->Line - (x << 2));
+		for (int n=0; n<x; n++)
+			*Ptr.u32++ &= c;
+		Ptr.u8 += Dest->Line - (x << 2);
 	}
 }
 
@@ -435,9 +444,9 @@ bool GdcApp32And::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 		uchar *s = Src->Base;
 		for (int y=0; y<Src->y; y++)
 		{
-			MemAnd(Ptr, s, Src->x << 2);
+			MemAnd(Ptr.u8, s, Src->x << 2);
 			s += Src->Line;
-			AddPtr(Ptr, Dest->Line);
+			Ptr.u8 += Dest->Line;
 		}
 	}
 	return true;
@@ -446,15 +455,15 @@ bool GdcApp32And::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 // 32 bit XOR sub functions
 void GdcApp32Xor::Set()
 {
-	*Ptr ^= c;
+	*Ptr.u32 ^= c;
 }
 
 void GdcApp32Xor::VLine(int height)
 {
 	while (height--)
 	{
-		*Ptr ^= c;
-		AddPtr(Ptr, Dest->Line);
+		*Ptr.u32 ^= c;
+		Ptr.u8 += Dest->Line;
 	}
 }
 
@@ -462,10 +471,9 @@ void GdcApp32Xor::Rectangle(int x, int y)
 {
 	while (y--)
 	{
-		uint32 *p = (uint32*)Ptr;
 		for (int n=0; n<x; n++)
-			*p++ ^= c;
-		AddPtr(Ptr, Dest->Line);
+			*Ptr.u32++ ^= c;
+		Ptr.u8 += Dest->Line;
 	}
 }
 
@@ -476,9 +484,9 @@ bool GdcApp32Xor::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 		uchar *s = Src->Base;
 		for (int y=0; y<Src->y; y++)
 		{
-			MemXor(Ptr, s, Src->x << 2);
+			MemXor(Ptr.u8, s, Src->x << 2);
 			s += Src->Line;
-			AddPtr(Ptr, Dest->Line);
+			Ptr.u8 += Dest->Line;
 		}
 	}
 	return true;

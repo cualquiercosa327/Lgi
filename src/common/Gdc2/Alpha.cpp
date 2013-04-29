@@ -253,6 +253,9 @@ GApplicator *GAlphaFactory::Create(GColourSpace Cs, int Op)
 	{
 		switch (Cs)
 		{
+			default:
+				LgiAssert(0);
+				break;
 			case CsIndex8:
 				return new GdcApp8Alpha;
 			case CsRgb15:

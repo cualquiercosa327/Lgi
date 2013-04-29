@@ -378,8 +378,8 @@ GImageList::GImageList(int x, int y, GSurface *pDC)
 		
 		for (int y=0; y<Y(); y++)
 		{
-			GArgb32 *p = (GArgb32*) ((*this)[y]);
-			GArgb32 *e = p + X();
+			System32BitPixel *p = (System32BitPixel*) ((*this)[y]);
+			System32BitPixel *e = p + X();
 			while (p < e)
 			{
 				if (p->r == kr &&

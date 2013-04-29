@@ -1849,7 +1849,7 @@ GSurface *GdcDevice::Load(char *Name, bool UseOSLoader)
 			}
 			if (s == GFilter::IoComponentMissing)
 			{
-			    char *c = Filter->GetComponentName();
+			    const char *c = Filter->GetComponentName();
 			    LgiAssert(c);
 			    if (c)
 			    {

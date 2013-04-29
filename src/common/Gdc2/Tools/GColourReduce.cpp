@@ -157,14 +157,14 @@ struct Box
 int HueSort(GColour *a, GColour *b)
 {
 	GColour A = *a;
-	GColour B = *b;
+	// GColour B = *b;
 	return A.GetH() - b->GetH();
 }
 
 int LumaSort(GColour *a, GColour *b)
 {
 	GColour A = *a;
-	GColour B = *b;
+	// GColour B = *b;
 	return A.GetL() - b->GetL();
 }
 
@@ -471,6 +471,9 @@ bool GReduceBitDepth(GSurface *pDC, int Bits, GPalette *Pal, GReduceOptions *Red
 				// currently has no palette
 				switch (Reduce->PalType)
 				{
+					default:
+						LgiAssert(0);
+						break;
 					case CR_PAL_CUBE:
 					{
 						// RGB cube palette
@@ -498,6 +501,9 @@ bool GReduceBitDepth(GSurface *pDC, int Bits, GPalette *Pal, GReduceOptions *Red
 			int ReduceType = REDUCE_NEAREST;
 			switch (Reduce->MatchType)
 			{
+				default:
+					LgiAssert(0);
+					break;
 				case CR_MATCH_HALFTONE:
 				{
 					Pal->CreateCube();

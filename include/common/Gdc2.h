@@ -208,17 +208,28 @@ enum GComponentType
 enum GColourSpace
 {
 	CsNone = 0,
+
 	CsIndex8 = GDC_COLOUR_SPACE_1(CtIndex, 8),
+	CsAlpha8 = GDC_COLOUR_SPACE_1(CtAlpha, 8),
+
 	CsRgb15 = GDC_COLOUR_SPACE_3(CtRed, 5, CtGreen, 5, CtBlue, 5),
 	CsRgb16 = GDC_COLOUR_SPACE_3(CtRed, 5, CtGreen, 6, CtBlue, 5),
+
 	CsRgb24 = GDC_COLOUR_SPACE_3(CtRed, 8, CtGreen, 8, CtBlue, 8),
 	CsBgr24 = GDC_COLOUR_SPACE_3(CtBlue, 8, CtGreen, 8, CtRed, 8),
+
 	CsRgba32 = GDC_COLOUR_SPACE_4(CtRed, 8, CtGreen, 8, CtBlue, 8, CtAlpha, 8),
 	CsBgra32 = GDC_COLOUR_SPACE_4(CtBlue, 8, CtGreen, 8, CtRed, 8, CtAlpha, 8),
 	CsArgb32 = GDC_COLOUR_SPACE_4(CtAlpha, 8, CtRed, 8, CtGreen, 8, CtBlue, 8),
+	CsAbgr32 = GDC_COLOUR_SPACE_4(CtAlpha, 8, CtBlue, 8, CtGreen, 8, CtRed, 8),
+
 	CsRgbx32 = GDC_COLOUR_SPACE_4(CtRed, 8, CtGreen, 8, CtBlue, 8, CtPad, 8),
+	CsBgrx32 = GDC_COLOUR_SPACE_4(CtBlue, 8, CtGreen, 8, CtRed, 8, CtPad, 8),
 	CsXrgb32 = GDC_COLOUR_SPACE_4(CtPad, 8, CtRed, 8, CtGreen, 8, CtBlue, 8),
+	CsXbgr32 = GDC_COLOUR_SPACE_4(CtPad, 8, CtBlue, 8, CtGreen, 8, CtRed, 8),
+
 	CsHls32 = GDC_COLOUR_SPACE_4(CtHue, 0 /*16*/, CtRed, 8, CtGreen, 8, CtBlue, 8),
+
 	CsCmyk32 = GDC_COLOUR_SPACE_4(CtCyan, 8, CtMagenta, 8, CtYellow, 8, CtBlack, 8),
 };
 
@@ -730,7 +741,12 @@ protected:
 	int Op;
 
 public:
-	COLOUR c;				// main colour
+	union
+	{
+		COLOUR c;				// main colour
+		System24BitPixel p24;
+		System32BitPixel p32;
+	};
 
 	GApplicator() { c = 0; Dest = NULL; Alpha = NULL; Pal = NULL; }
 	GApplicator(COLOUR Colour) { c = Colour; }
@@ -740,6 +756,8 @@ public:
 	virtual int GetVar(int Var) { return 0; }
 	/// Set a parameter
 	virtual int SetVar(int Var, NativeInt Value) { return 0; }
+
+	GColourSpace GetColourSpace() { return Dest ? Dest->Cs : CsNone; }
 
 	/// Sets the operator
 	void SetOp(int o) { Op = o; }
@@ -882,7 +900,7 @@ public:
 	// The surface is owned by this GSurface and will be free'd when deleted.
 	// virtual Gtk::cairo_surface_t *GetSurface(bool Render) { return 0; }
 	
-Ge	/// Returns the cairo drawing context, creating one if required.
+	/// Returns the cairo drawing context, creating one if required.
 	/// The context is owned by this GSurface and will be free'd when deleted.
 	virtual Gtk::cairo_t *GetCairo() { return Cairo; }
 

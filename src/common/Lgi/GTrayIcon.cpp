@@ -492,8 +492,8 @@ void GTrayIcon::Value(int64 v)
 					for (int y=0; y<m.Y(); y++)
 					{
 						int Y = (int) (y * Sy);
-						Pixel32 *s = (Pixel32*)(*t)[Y];
-						Pixel32 *d = (Pixel32*)(m)[m.Y()-y-1];
+						System32BitPixel *s = (System32BitPixel*)(*t)[Y];
+						System32BitPixel *d = (System32BitPixel*)(m)[m.Y()-y-1];
 						
 						for (int x=0; x<m.X(); x++)
 						{

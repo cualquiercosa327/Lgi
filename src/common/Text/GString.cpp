@@ -10,6 +10,39 @@
 
 char WhiteSpace[] = " \t\r\n";
 
+#if defined(MAC)
+char *strncpy_s(char *dest, size_t dest_size, const char *src, size_t src_size)
+{
+	if (dest && src)
+	{
+		char *end = dest + dest_size - 1;
+		while (dest < end && *src && src_size-- > 0)
+		{
+			*dest++ = *src++;
+		}
+		*dest++ = 0;
+	}
+	
+	return dest;
+}
+
+char *strcpy_s(char *dest, size_t dest_size, const char *src)
+{
+	if (dest && src)
+	{
+		char *end = dest + dest_size - 1;
+		while (dest < end && *src)
+		{
+			*dest++ = *src++;
+		}
+		*dest++ = 0;
+	}
+	
+	return dest;
+}
+
+#endif
+
 // 8 Bit
 char *strnchr(const char *s, char c, NativeInt Len)
 {

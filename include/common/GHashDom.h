@@ -35,7 +35,7 @@ public:
 		    *v = Value;
 		    return true;
 		}
-		else if (v = new GVariant(Value))
+		else if ((v = new GVariant(Value)))
 		{
 			Add(Name, v);
 			return true;

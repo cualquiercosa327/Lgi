@@ -104,7 +104,6 @@ void CGImg::Create(int x, int y, int Bits, int Line, uchar *data, uchar *palette
 	}
 	else
 	{
-		// d->Cs = CGColorSpaceCreateWithName(kCGColorSpaceUserRGB);
 		d->Cs = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
 	}
 	
@@ -271,7 +270,7 @@ CGImg *GMemDC::GetImg(GRect *Sub)
 				(
 					pMem->x,
 					pMem->y,
-					pMem->Bits,
+					pMem->GetBits(),
 					pMem->Line,
 					d->Data,
 					rgb,
@@ -337,25 +336,7 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 				);
 			if (d->Bmp)
 			{
-				#if 0
-				enum CGImageAlphaInfo {
-					kCGImageAlphaNone,               /* For example, RGB. */
-					kCGImageAlphaPremultipliedLast,  /* For example, premultiplied RGBA */
-					kCGImageAlphaPremultipliedFirst, /* For example, premultiplied ARGB */
-					kCGImageAlphaLast,               /* For example, non-premultiplied RGBA */
-					kCGImageAlphaFirst,              /* For example, non-premultiplied ARGB */
-					kCGImageAlphaNoneSkipLast,       /* For example, RBGX. */
-					kCGImageAlphaNoneSkipFirst,      /* For example, XRGB. */
-					kCGImageAlphaOnly                /* No color data, alpha data only */
-				};
-				typedef enum CGImageAlphaInfo CGImageAlphaInfo;
-
-				enum {
-					kCGBitmapAlphaInfoMask = 0x1F,
-					kCGBitmapFloatComponents = (1 << 8),
-				#endif
-				CGBitmapInfo bmi = CGBitmapContextGetBitmapInfo(d->Bmp);
-				CGImageAlphaInfo al = (CGImageAlphaInfo) (bmi & kCGBitmapAlphaInfoMask);
+				CGImageAlphaInfo ai = CGBitmapContextGetAlphaInfo(d->Bmp);
 				
 				pMem = new GBmpMem;
 				if (pMem)
@@ -364,8 +345,43 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 					pMem->x = x;
 					pMem->y = y;
 					pMem->Line = -LineLen;
-					pMem->Bits = Bits;
+					switch (CGBitmapContextGetBitsPerPixel(d->Bmp))
+					{
+						case 8:
+							pMem->Cs = ai == kCGImageAlphaOnly ? CsAlpha8 : CsIndex8;
+							break;
+						case 24:
+						case 32:
+							switch (ai)
+							{
+								case kCGImageAlphaNone:
+									pMem->Cs = CsRgb24;
+									break;
+								case kCGImageAlphaLast:               /* For example, non-premultiplied RGBA */
+								case kCGImageAlphaPremultipliedLast:  /* For example, premultiplied RGBA */
+									pMem->Cs = CsRgba32;
+									break;
+								case kCGImageAlphaFirst:              /* For example, non-premultiplied ARGB */
+								case kCGImageAlphaPremultipliedFirst: /* For example, premultiplied ARGB */
+									pMem->Cs = CsArgb32;
+									break;
+								case kCGImageAlphaNoneSkipLast:       /* For example, RGBX. */
+									pMem->Cs = CsRgbx32;
+									break;
+								case kCGImageAlphaNoneSkipFirst:      /* For example, XRGB. */
+									pMem->Cs = CsXrgb32;
+									break;
+								default:
+									LgiAssert(0);
+									break;
+							}
+							break;
+						default:
+							LgiAssert(0);
+							break;
+					}
 					pMem->Flags = GDC_ON_SCREEN;
+					ColourSpace = pMem->Cs;
 					
 					int NewOp = (pApp) ? Op() : GDC_SET;
 

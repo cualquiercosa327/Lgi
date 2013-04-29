@@ -1387,7 +1387,8 @@ GApplicator *GSurface::CreateApplicator(int Op, GColourSpace Cs)
 	}
 	else
 	{
-		printf("Error: GDeviceContext::CreateApplicator(%i, %x) failed.\n", Op, Cs);
+		LgiTrace("Error: GDeviceContext::CreateApplicator(%i, %x) failed.\n", Op, Cs);
+		LgiAssert(!"No applicator");
 	}
 
 	return pA;
@@ -1465,26 +1466,43 @@ GColour GSurface::Colour(GColour c)
 {
 	LgiAssert(pApp);
 	GColour cPrev(pApp->c, GetBits());
-	pApp->c = CBit(GetBits(), c.c32(), 32);
+	
+	uint32 c32 = c.c32();
+	switch (pApp->GetColourSpace())
+	{
+		case System32BitColourSpace:
+			pApp->p32.r = R32(c32);
+			pApp->p32.g = G32(c32);
+			pApp->p32.b = B32(c32);
+			pApp->p32.a = A32(c32);
+			break;
+		case System24BitColourSpace:
+			pApp->p24.r = R32(c32);
+			pApp->p24.g = G32(c32);
+			pApp->p24.b = B32(c32);
+			break;
+		default:
+			LgiAssert(0);
+			break;
+	}
+
 	return cPrev;
 }
 
 COLOUR GSurface::Colour(COLOUR c, int Bits)
 {
-	LgiAssert(pApp);
-
-	COLOUR cPrev = pApp->c;
-
-	if (Bits)
+	GColour n(c, Bits ? Bits : GetBits());
+	GColour Prev = Colour(n);
+	switch (GetBits())
 	{
-		pApp->c = CBit(GetBits(), c, Bits, pPalette);
+		case 8:
+			return Prev.c8();
+		case 24:
+			return Prev.c24();
+		case 32:
+			return Prev.c32();
 	}
-	else
-	{
-		pApp->c = c;
-	}
-
-	return cPrev;
+	return Prev.c32();
 }
 
 int GSurface::Op(int NewOp)

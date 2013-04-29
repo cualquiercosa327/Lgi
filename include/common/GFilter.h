@@ -143,7 +143,7 @@ public:
 	/// Also you need to return FILTER_CAP_WRITE from GetCapabilites if implemented.
 	virtual IoStatus WriteImage(GStream *Out, GSurface *In) = 0;
     /// Returns the name of the external component needed to read/write images.
-    virtual char *GetComponentName() { return NULL; }
+    virtual const char *GetComponentName() { return NULL; }
 };
 
 #define GDC_RLE_COLOUR				0x0001

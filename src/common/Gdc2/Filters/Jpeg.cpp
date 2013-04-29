@@ -506,6 +506,8 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 					{
 						switch (cinfo.jpeg_color_space)
 						{
+							default:
+								break;
 							case JCS_GRAYSCALE:
 							{
 								// do nothing
@@ -525,12 +527,12 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 								
 								for (int x=0; x<pDC->X(); x++)
 								{
+									/*
 									double C = (double) ptr.c32->c / 255;
 									double M = (double) ptr.c32->m / 255;
 									double Y = (double) ptr.c32->y / 255;
 									double K = (double) ptr.c32->k / 255;
 
-									/*
 									ptr.p32->r = (uint8) ((1.0 - min(1, C * (1.0 - K) + K)) * 255);
 									ptr.p32->g = (uint8) ((1.0 - min(1, M * (1.0 - K) + K)) * 255);
 									ptr.p32->b = (uint8) ((1.0 - min(1, Y * (1.0 - K) + K)) * 255);
@@ -823,9 +825,9 @@ GFilter::IoStatus GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality, SubS
 						{
 						    uint8 *c = (*pDC)[cinfo.next_scanline];
 						    uint8 *end = c + pDC->X();
-							while (c)
+							while (c < end)
 							{
-							    GdcRGB &rgb = p[*c];
+							    GdcRGB &rgb = p[*c++];
 								dst[0] = rgb.R;
 								dst[1] = rgb.G;
 								dst[2] = rgb.B;

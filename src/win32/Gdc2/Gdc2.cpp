@@ -1214,13 +1214,9 @@ GColourSpace GBitsToColourSpace(int Bits)
 		case 16:
 			return CsRgb16;
 		case 24:
-			#ifdef WIN32
 			return CsBgr24;
-			#else
-			return CsRgb24;
-			#endif
 		case 32:
-			return CsArgb32;
+			return CsBgra32;
 		default:
 			LgiAssert(!"Unknown colour space.");
 			break;
