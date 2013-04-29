@@ -162,14 +162,15 @@ struct GVarRef
 		if (Index < 0)
 			return "NoRef";
 
-		static char Buf[4][16];
+		#define GETSTR_BUF_SIZE 16
+		static char Buf[4][GETSTR_BUF_SIZE];
 		static int Cur = 0;
 		static char Names[] = {'R', 'L', 'G'};
 		char *b = Buf[Cur++];
 		if (Cur >= 4) Cur = 0;
 
 		LgiAssert(Scope <= SCOPE_GLOBAL);
-		sprintf(b, "%c%i", Names[Scope], Index);
+		sprintf_s(b, GETSTR_BUF_SIZE, "%c%i", Names[Scope], Index);
 		return b;		
 	}
 };
@@ -254,7 +255,7 @@ struct GFunctionInfo : public GRefCount
 		StartAddr = f.StartAddr;
 		FrameSize = f.FrameSize;
 		Name = f.Name;
-		for (int i=0; i<f.Params.Length(); i++)
+		for (unsigned i=0; i<f.Params.Length(); i++)
 		{
 			Params[i] = f.Params[i];
 		}

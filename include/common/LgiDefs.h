@@ -516,6 +516,18 @@ enum LgiSystemPath
 	LSP_USER_DOWNLOADS,
 };
 
+// Deprecated method defines
+#ifdef __GNUC__
+#define DEPRECATED_PRE
+#define DEPRECATED_POST	__attribute__ ((deprecated))
+#elif defined(_MSC_VER)
+#define DEPRECATED_PRE	__declspec(deprecated)
+#define DEPRECATED_POST 
+#else
+#pragma message("WARNING: You need to implement DEPRECATED for this compiler")
+#define DEPRECATED_PRE
+#define DEPRECATED_POST
+#endif
 //
 #ifdef _DEBUG
 #define DeclDebugArgs				, const char *_file, int _line

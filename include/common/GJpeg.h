@@ -30,11 +30,11 @@ public:
 
 	bool GetVariant(const char *n, GVariant &v, char *a)
 	{
-		if (!stricmp(n, LGI_FILTER_TYPE))
+		if (!_stricmp(n, LGI_FILTER_TYPE))
 		{
 			v = "Jpeg";
 		}
-		else if (!stricmp(n, LGI_FILTER_EXTENSIONS))
+		else if (!_stricmp(n, LGI_FILTER_EXTENSIONS))
 		{
 			v = "JPG,JPEG";
 		}

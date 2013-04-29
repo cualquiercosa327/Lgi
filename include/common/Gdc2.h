@@ -305,6 +305,9 @@ union GColourSpaceBits
 LgiFunc int GColourSpaceToBits(GColourSpace ColourSpace);
 LgiFunc GColourSpace GBitsToColourSpace(int Bits);
 
+// These definitions are provide as a conveniance when converting old code to the
+// GColourSpace system. However you should not use them for new code, as some systems
+// can have different colour spaces depending on OS version or hardware configuration.
 #if defined(WIN32)
 
 	#define System24BitColourSpace CsBgr24
@@ -743,7 +746,7 @@ public:
 	/// Gets the operator
 	int GetOp() { return Op; }
 	/// Gets the bit depth
-	int GetBits() { return (Dest) ? GColourSpaceToBits(Dest->Cs) : 0; }
+	DEPRECATED_PRE int GetBits() DEPRECATED_POST { return (Dest) ? GColourSpaceToBits(Dest->Cs) : 0; }
 	/// Gets the flags in operation
 	int GetFlags() { return (Dest) ? Dest->Flags : 0; }
 	/// Gets the palette

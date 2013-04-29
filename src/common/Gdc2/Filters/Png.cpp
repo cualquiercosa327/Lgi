@@ -44,30 +44,18 @@
 #include "GVariant.h"
 
 // Pixel formats
-typedef uchar Png8;
+typedef uint8 Png8;
+typedef GRgb24 Png24;
+typedef GRgba32 Png32;
 
-class Png24
+struct Png48
 {
-public:
-	uchar b, g, r;
+	uint16 r, g, b;
 };
 
-class Png32
+struct Png64
 {
-public:
-	uchar b, g, r, a;
-};
-
-class Png48
-{
-public:
-	uint16 b, g, r;
-};
-
-class Png64
-{
-public:
-	uint64 b, g, r, a;
+	uint64 r, g, b, a;
 };
 
 
@@ -276,6 +264,11 @@ public:
                 png_structp, png_ptr,
 				png_infop, info_ptr, png_bytep, trans_alpha, int, num_trans,
 				png_color_16p, trans_color);
+				
+	DynFunc2(   png_byte,
+				png_get_interlace_type,
+				png_const_structp, png_ptr,
+				png_const_infop, info_ptr);
 };
 
 static LibPng *CurrentLibPng = 0;
@@ -478,14 +471,15 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 			}
 			#endif
 
-			png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_BGR, 0);
+			png_read_png(png_ptr, info_ptr, 0, 0);
 			png_bytepp Scan0 = png_get_rows(png_ptr, info_ptr);
 			if (Scan0)
 			{
 			    int BitDepth = png_get_bit_depth(png_ptr, info_ptr);
 				int FinalBits = BitDepth == 16 ? 8 : BitDepth;
 				int RequestBits = FinalBits * png_get_channels(png_ptr, info_ptr);
-			
+				png_byte Interlaced = png_get_interlace_type(png_ptr, info_ptr);
+				
 				if (!pDC->Create(	png_get_image_width(png_ptr, info_ptr),
 									png_get_image_height(png_ptr, info_ptr),
 									max(RequestBits, 8)))
@@ -1206,7 +1200,7 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 					}
 					
 					png_set_rows(png_ptr, info_ptr, row);
-					png_write_png(png_ptr, info_ptr, PNG_TRANSFORM_BGR, 0);
+					png_write_png(png_ptr, info_ptr, 0, 0);
 
 					Status = IoSuccess;
 
