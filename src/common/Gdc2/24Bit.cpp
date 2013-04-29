@@ -66,9 +66,9 @@ public:
 	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha);
 };
 
-GApplicator *GApp24::Create(int Bits, int Op)
+GApplicator *GApp24::Create(GColourSpace Cs, int Op)
 {
-	if (Bits == 24)
+	if (Cs == System24BitColourSpace)
 	{
 		switch (Op)
 		{

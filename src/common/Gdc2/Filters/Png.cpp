@@ -488,9 +488,6 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 			
 				if (!pDC->Create(	png_get_image_width(png_ptr, info_ptr),
 									png_get_image_height(png_ptr, info_ptr),
-									#ifdef MAC
-									RequestBits == 24 ? 32 :
-									#endif
 									max(RequestBits, 8)))
 				{
 					printf("%s:%i - GMemDC::Create(%i, %i, %i) failed.\n",
@@ -532,82 +529,89 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 							}
 							case 24:
 							{
-							    if (pDC->GetBits() == 32)
+							    switch (pDC->GetColourSpace())
 							    {
-								    if (png_get_bit_depth(png_ptr, info_ptr) == 16)
-								    {
-									    GArgb32 *o = (GArgb32*)Scan;
-									    Png48 *i = (Png48*)Scan0[y];
-									    Png48 *e = i + pDC->X();
+									case System32BitColourSpace:
+									{
+										if (png_get_bit_depth(png_ptr, info_ptr) == 16)
+										{
+											System32BitPixel *o = (System32BitPixel*)Scan;
+											Png48 *i = (Png48*)Scan0[y];
+											Png48 *e = i + pDC->X();
 
-									    while (i < e)
-									    {
-										    o->r = i->r / 257;
-										    o->g = i->g / 257;
-										    o->b = i->b / 257;
-										    o->a = 255;
-										    o++;
-										    i++;
-									    }
-								    }
-								    else
-								    {
-									    GArgb32 *o = (GArgb32*)Scan;
-									    Png24 *i = (Png24*)Scan0[y];
-									    Png24 *e = i + pDC->X();
+											while (i < e)
+											{
+												o->r = i->r / 257;
+												o->g = i->g / 257;
+												o->b = i->b / 257;
+												o->a = 255;
+												o++;
+												i++;
+											}
+										}
+										else
+										{
+											System32BitPixel *o = (System32BitPixel*)Scan;
+											Png24 *i = (Png24*)Scan0[y];
+											Png24 *e = i + pDC->X();
 
-									    while (i < e)
-									    {
-										    o->r = i->r;
-										    o->g = i->g;
-										    o->b = i->b;
-										    o->a = 255;
-										    o++;
-										    i++;
-									    }
-								    }
-							    }
-							    else if (pDC->GetBits() == 24)
-							    {
-								    if (png_get_bit_depth(png_ptr, info_ptr) == 16)
-								    {
-									    GRgb24 *o = (GRgb24*)Scan;
-									    Png48 *i = (Png48*)Scan0[y];
-									    Png48 *e = i + pDC->X();
+											while (i < e)
+											{
+												o->r = i->r;
+												o->g = i->g;
+												o->b = i->b;
+												o->a = 255;
+												o++;
+												i++;
+											}
+										}
+										break;
+									}
+									case System24BitColourSpace:
+									{
+										if (png_get_bit_depth(png_ptr, info_ptr) == 16)
+										{
+											System24BitPixel *o = (System24BitPixel*)Scan;
+											Png48 *i = (Png48*)Scan0[y];
+											Png48 *e = i + pDC->X();
 
-									    while (i < e)
-									    {
-										    o->r = i->r / 257;
-										    o->g = i->g / 257;
-										    o->b = i->b / 257;
-										    o++;
-										    i++;
-									    }
-								    }
-								    else
-								    {
-									    GRgb24 *o = (GRgb24*)Scan;
-									    Png24 *i = (Png24*)Scan0[y];
-									    Png24 *e = i + pDC->X();
+											while (i < e)
+											{
+												o->r = i->r / 257;
+												o->g = i->g / 257;
+												o->b = i->b / 257;
+												o++;
+												i++;
+											}
+										}
+										else
+										{
+											System24BitPixel *o = (System24BitPixel*)Scan;
+											Png24 *i = (Png24*)Scan0[y];
+											Png24 *e = i + pDC->X();
 
-									    while (i < e)
-									    {
-										    o->r = i->r;
-										    o->g = i->g;
-										    o->b = i->b;
-										    o++;
-										    i++;
-									    }
-								    }
+											while (i < e)
+											{
+												o->r = i->r;
+												o->g = i->g;
+												o->b = i->b;
+												o++;
+												i++;
+											}
+										}
+										break;
+									}
+									default:
+										LgiAssert(!"Not impl.");
+										break;
 								}
-								else LgiAssert(!"Not impl.");
 								break;
 							}
 							case 32:
 							{
 								if (png_get_bit_depth(png_ptr, info_ptr) == 16)
 								{
-									GArgb32 *o = (GArgb32*)Scan;
+									System32BitPixel *o = (System32BitPixel*)Scan;
 									Png64 *i = (Png64*)Scan0[y];
 									Png64 *e = i + pDC->X();
 
@@ -623,7 +627,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 								}
 								else
 								{
-									GArgb32 *o = (GArgb32*) Scan;
+									System32BitPixel *o = (System32BitPixel*) Scan;
 									Png32 *i = (Png32*) Scan0[y];
 
 									for (int x=0; x<pDC->X(); x++, i++, o++)
@@ -757,9 +761,9 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 		// Check alpha channel
 		for (int y=0; y<pDC->Y() && !HasTransparency; y++)
 		{
-			GArgb32 *p = (GArgb32*)(*pDC)[y];
+			System32BitPixel *p = (System32BitPixel*)(*pDC)[y];
 			if (!p) break;
-			GArgb32 *e = p + pDC->X();
+			System32BitPixel *e = p + pDC->X();
 			while (p < e)
 			{
 				if (p->a < 255)
@@ -893,7 +897,7 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 					{
 						for (int y=0; y<pDC->Y(); y++)
 						{
-							GArgb32 *s = (GArgb32*) (*pDC)[y];
+							System32BitPixel *s = (System32BitPixel*) (*pDC)[y];
 							for (int x=0; x<pDC->X(); x++)
 							{
 								if (s[x].a < 0xff)
@@ -1092,7 +1096,7 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 
 						for (int y=0; y<pDC->Y(); y++)
 						{
-							GRgb24 *s = (GRgb24*) (*pDC)[y];
+							System24BitPixel *s = (System24BitPixel*) (*pDC)[y];
 							if (KeyAlpha)
 							{
 								Png32 *d = (Png32*) (TempBits + (TempLine * y));
@@ -1131,7 +1135,7 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 
 						for (int y=0; y<pDC->Y(); y++)
 						{
-							GArgb32 *s = (GArgb32*) (*pDC)[y];
+							System32BitPixel *s = (System32BitPixel*) (*pDC)[y];
 							if (ChannelAlpha)
 							{
 								Png32 *d = (Png32*) (TempBits + (TempLine * y));

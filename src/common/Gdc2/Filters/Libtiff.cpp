@@ -200,13 +200,13 @@ void SwapRBandY(GSurface *pDC)
 {
 	for (int y1=0, y2 = pDC->Y()-1; y1<=y2; y1++, y2--)
 	{
-		switch (pDC->GetBits())
+		switch (pDC->GetColourSpace())
 		{
-			case 24:
+			case System24BitColourSpace:
 			{
-				Pixel24 *s1 = (Pixel24*)(*pDC)[y1];
-				Pixel24 *s2 = (Pixel24*)(*pDC)[y2];
-				Pixel24 *e1 = (Pixel24*) ((*pDC)[y1] + (pDC->X() * s1->Size));
+				System24BitPixel *s1 = (System24BitPixel*)(*pDC)[y1];
+				System24BitPixel *s2 = (System24BitPixel*)(*pDC)[y2];
+				System24BitPixel *e1 = (System24BitPixel*) ((*pDC)[y1] + (pDC->X() * sizeof(System24BitPixel)));
 
 				if (y1 == y2)
 				{
@@ -221,7 +221,7 @@ void SwapRBandY(GSurface *pDC)
 				}
 				else
 				{
-					Pixel24 t;
+					System24BitPixel t;
 					while (s1 < e1)
 					{
 						t = *s1;
@@ -240,11 +240,11 @@ void SwapRBandY(GSurface *pDC)
 				}
 				break;
 			}
-			case 32:
+			case System32BitColourSpace:
 			{
-				Pixel32 *s1 = (Pixel32*)(*pDC)[y1];
-				Pixel32 *s2 = (Pixel32*)(*pDC)[y2];
-				Pixel32 *e1 = s1 + pDC->X();
+				System32BitPixel *s1 = (System32BitPixel*)(*pDC)[y1];
+				System32BitPixel *s2 = (System32BitPixel*)(*pDC)[y2];
+				System32BitPixel *e1 = s1 + pDC->X();
 
 				if (y1 == y2)
 				{
@@ -259,7 +259,7 @@ void SwapRBandY(GSurface *pDC)
 				}
 				else
 				{
-					Pixel32 t;
+					System32BitPixel t;
 					while (s1 < e1)
 					{
 						t = *s1;
@@ -293,12 +293,12 @@ void SwapRB(GSurface *pDC)
 {
 	for (int y1=0; y1<pDC->Y(); y1++)
 	{
-		switch (pDC->GetBits())
+		switch (pDC->GetColourSpace())
 		{
-			case 24:
+			case System24BitColourSpace:
 			{
-				Pixel24 *s1 = (Pixel24*)(*pDC)[y1];
-				Pixel24 *e1 = (Pixel24*) ((*pDC)[y1] + (pDC->X() * s1->Size));
+				System24BitPixel *s1 = (System24BitPixel*)(*pDC)[y1];
+				System24BitPixel *e1 = (System24BitPixel*) ((*pDC)[y1] + (pDC->X() * sizeof(System24BitPixel)));
 
 				uint8 t;
 				while (s1 < e1)
@@ -310,10 +310,10 @@ void SwapRB(GSurface *pDC)
 				}
 				break;
 			}
-			case 32:
+			case System32BitColourSpace:
 			{
-				Pixel32 *s1 = (Pixel32*)(*pDC)[y1];
-				Pixel32 *e1 = s1 + pDC->X();
+				System32BitPixel *s1 = (System32BitPixel*)(*pDC)[y1];
+				System32BitPixel *e1 = s1 + pDC->X();
 
 				uint8 t;
 				while (s1 < e1)
@@ -390,8 +390,8 @@ GFilter::IoStatus GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 						if (r != 1)
 							break;
 
-						Pixel32 *d = (Pixel32*) (*pDC)[y];
-						Pixel32 *e = d + img.width;
+						System32BitPixel *d = (System32BitPixel*) (*pDC)[y];
+						System32BitPixel *e = d + img.width;
 						Cmyka *s = (Cmyka*) &a[0];
 						while (d < e)
 						{

@@ -780,44 +780,44 @@ public:
 	virtual ~GApplicatorFactory();
 
 	/// Find the application factory and create the appropriate object.
-	static GApplicator *NewApp(int Bits, int Op);
-	virtual GApplicator *Create(int Bits, int Op) { return NULL; }
+	static GApplicator *NewApp(GColourSpace Cs, int Op);
+	virtual GApplicator *Create(GColourSpace Cs, int Op) = 0;
 };
 
 class LgiClass GApp15 : public GApplicatorFactory
 {
 public:
-	GApplicator *Create(int Bits, int Op);
+	GApplicator *Create(GColourSpace Cs, int Op);
 };
 
 class LgiClass GApp16 : public GApplicatorFactory
 {
 public:
-	GApplicator *Create(int Bits, int Op);
+	GApplicator *Create(GColourSpace Cs, int Op);
 };
 
 class LgiClass GApp24 : public GApplicatorFactory
 {
 public:
-	GApplicator *Create(int Bits, int Op);
+	GApplicator *Create(GColourSpace Cs, int Op);
 };
 
 class LgiClass GApp32 : public GApplicatorFactory
 {
 public:
-	GApplicator *Create(int Bits, int Op);
+	GApplicator *Create(GColourSpace Cs, int Op);
 };
 
 class LgiClass GApp8 : public GApplicatorFactory
 {
 public:
-	GApplicator *Create(int Bits, int Op);
+	GApplicator *Create(GColourSpace Cs, int Op);
 };
 
 class GAlphaFactory : public GApplicatorFactory
 {
 public:
-	GApplicator *Create(int Bits, int Op);
+	GApplicator *Create(GColourSpace Cs, int Op);
 };
 
 #define OrgX(x)			x -= OriginX
@@ -851,7 +851,7 @@ protected:
 	int				OriginX, OriginY;
 
 	// Protected functions
-	GApplicator		*CreateApplicator(int Op = GDC_SET, int Bits = 0);
+	GApplicator		*CreateApplicator(int Op, GColourSpace Cs = CsNone);
 	uint32		LineBits;
 	uint32		LineMask;
 	uint32		LineReset;

@@ -70,9 +70,9 @@ public:
 	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha);
 };
 
-GApplicator *GApp8::Create(int Bits, int Op)
+GApplicator *GApp8::Create(GColourSpace Cs, int Op)
 {
-	if (Bits == 8)
+	if (Cs == CsIndex8)
 	{
 		switch (Op)
 		{

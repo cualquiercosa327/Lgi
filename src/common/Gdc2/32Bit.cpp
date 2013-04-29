@@ -13,7 +13,8 @@
 #include "Gdc2.h"
 
 /// 32 bit rgb applicators
-class LgiClass GdcApp32 : public GApplicator {
+class LgiClass GdcApp32 : public GApplicator
+{
 protected:
 	uint32 *Ptr;
 
@@ -26,41 +27,45 @@ public:
 	COLOUR Get();
 };
 
-class LgiClass GdcApp32Set : public GdcApp32 {
-public:
-	void Set();
-	void VLine(int height);
-	void Rectangle(int x, int y);
-	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha);
-};
-
-class LgiClass GdcApp32And : public GdcApp32 {
-public:
-	void Set();
-	void VLine(int height);
-	void Rectangle(int x, int y);
-	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha);
-};
-
-class LgiClass GdcApp32Or : public GdcApp32 {
-public:
-	void Set();
-	void VLine(int height);
-	void Rectangle(int x, int y);
-	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha);
-};
-
-class LgiClass GdcApp32Xor : public GdcApp32 {
-public:
-	void Set();
-	void VLine(int height);
-	void Rectangle(int x, int y);
-	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha);
-};
-
-GApplicator *GApp32::Create(int Bits, int Op)
+class LgiClass GdcApp32Set : public GdcApp32
 {
-	if (Bits == 32)
+public:
+	void Set();
+	void VLine(int height);
+	void Rectangle(int x, int y);
+	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha);
+};
+
+class LgiClass GdcApp32And : public GdcApp32
+{
+public:
+	void Set();
+	void VLine(int height);
+	void Rectangle(int x, int y);
+	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha);
+};
+
+class LgiClass GdcApp32Or : public GdcApp32
+{
+public:
+	void Set();
+	void VLine(int height);
+	void Rectangle(int x, int y);
+	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha);
+};
+
+class LgiClass GdcApp32Xor : public GdcApp32
+{
+public:
+	void Set();
+	void VLine(int height);
+	void Rectangle(int x, int y);
+	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha);
+};
+
+GApplicator *GApp32::Create(GColourSpace Cs, int Op)
+{
+	if (Cs == System32BitColourSpace)
 	{
 		switch (Op)
 		{
@@ -74,7 +79,7 @@ GApplicator *GApp32::Create(int Bits, int Op)
 				return new GdcApp32Xor;
 		}
 	}
-	return 0;
+	return NULL;
 }
 
 

@@ -397,7 +397,7 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 		{
 			if (KeepData)
 			{
-				GApplicator *MyApp = CreateApplicator(GDC_SET, Bits);
+				GApplicator *MyApp = CreateApplicator(GDC_SET);
 				if (MyApp)
 				{
 					GBmpMem Temp = *pOldMem;

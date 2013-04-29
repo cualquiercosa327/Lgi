@@ -1360,23 +1360,19 @@ bool GSurface::DrawOnAlpha(bool Draw)
 	return Prev;
 }
 
-GApplicator *GSurface::CreateApplicator(int Op, int Bits)
+GApplicator *GSurface::CreateApplicator(int Op, GColourSpace Cs)
 {
 	GApplicator *pA = NULL;
 
-	if (!Bits && pMem)
+	if (!Cs && pMem)
 	{
 		if (DrawOnAlpha())
-		{
-			Bits = 8;
-		}
+			Cs = CsIndex8;
 		else
-		{
-			Bits = GColourSpaceToBits(pMem->Cs);
-		}
+			Cs = pMem->Cs;
 	}
 	
-	pA = GApplicatorFactory::NewApp(Bits, Op);
+	pA = GApplicatorFactory::NewApp(Cs, Op);
 	if (pA && pMem)
 	{
 		if (DrawOnAlpha())
@@ -1391,7 +1387,7 @@ GApplicator *GSurface::CreateApplicator(int Op, int Bits)
 	}
 	else
 	{
-		printf("Error: GDeviceContext::CreateApplicator(%i,%i) failed.\n", Op, Bits);
+		printf("Error: GDeviceContext::CreateApplicator(%i, %x) failed.\n", Op, Cs);
 	}
 
 	return pA;
@@ -1505,13 +1501,13 @@ int GSurface::Op(int NewOp)
 
 		if (NewOp < GDC_CACHE_SIZE && !DrawOnAlpha())
 		{
-			pApp = (pAppCache[NewOp]) ? pAppCache[NewOp] : pAppCache[NewOp] = CreateApplicator(NewOp);
+			pApp = (pAppCache[NewOp]) ? pAppCache[NewOp] : pAppCache[NewOp] = CreateApplicator(NewOp, GetColourSpace());
 			Flags &= ~GDC_OWN_APPLICATOR;
 			Flags |= GDC_CACHED_APPLICATOR;
 		}
 		else
 		{
-			pApp = CreateApplicator(NewOp);
+			pApp = CreateApplicator(NewOp, GetColourSpace());
 			Flags &= ~GDC_CACHED_APPLICATOR;
 			Flags |= GDC_OWN_APPLICATOR;
 		}

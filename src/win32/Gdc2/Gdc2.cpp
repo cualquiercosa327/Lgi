@@ -1505,12 +1505,12 @@ GApplicatorFactory::~GApplicatorFactory()
 	}
 }
 
-GApplicator *GApplicatorFactory::NewApp(int Bits, int Op)
+GApplicator *GApplicatorFactory::NewApp(GColourSpace Cs, int Op)
 {
 	LgiAssert(_Factories >= 0 AND _Factories < CountOf(_Factory));
 	for (int i=0; i<_Factories; i++)
 	{
-		GApplicator *a = _Factory[i]->Create(Bits, Op);
+		GApplicator *a = _Factory[i]->Create(Cs, Op);
 		if (a) return a;
 	}
 

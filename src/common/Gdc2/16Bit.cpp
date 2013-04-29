@@ -67,9 +67,9 @@ public:
 	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha);
 };
 
-GApplicator *GApp16::Create(int Bits, int Op)
+GApplicator *GApp16::Create(GColourSpace Cs, int Op)
 {
-	if (Bits == 16)
+	if (Cs == CsRgb16)
 	{
 		switch (Op)
 		{

@@ -247,21 +247,21 @@ public:
 	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha);
 };
 
-GApplicator *GAlphaFactory::Create(int Bits, int Op)
+GApplicator *GAlphaFactory::Create(GColourSpace Cs, int Op)
 {
 	if (Op == GDC_ALPHA)
 	{
-		switch (Bits)
+		switch (Cs)
 		{
-			case 8:
+			case CsIndex8:
 				return new GdcApp8Alpha;
-			case 15:
+			case CsRgb15:
 				return new GdcApp15Alpha;
-			case 16:
+			case CsRgb16:
 				return new GdcApp16Alpha;
-			case 24:
+			case System24BitColourSpace:
 				return new GdcApp24Alpha;
-			case 32:
+			case System32BitColourSpace:
 				return new GdcApp32Alpha;
 		}
 	}

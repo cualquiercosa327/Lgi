@@ -792,9 +792,9 @@ GFilter::IoStatus GdcTiff::ProcessRead(GSurface *pDC)
 						// Upconvert Rgb24 to Rgb32
 						for (int y=0; y<Cy; y++)
 						{
-							Pixel32 *d = (Pixel32*)(*pDC)[y];
-							Pixel24 *s = (Pixel24*)(*pDC)[y];
-							Pixel32 *e = d;
+							System32BitPixel *d = (System32BitPixel*)(*pDC)[y];
+							System24BitPixel *s = (System24BitPixel*)(*pDC)[y];
+							System32BitPixel *e = d;
 							d += pDC->X() - 1;
 							s += pDC->X() - 1;
 							while (d >= e)
@@ -823,11 +823,11 @@ GFilter::IoStatus GdcTiff::ProcessRead(GSurface *pDC)
 							// swap R and B
 							for (int y=0; y<Cy; y++)
 							{
-								Pixel24 *e = (Pixel24*) (*pDC)[y];
-								Pixel24 *d = e;
+								System24BitPixel *e = (System24BitPixel*) (*pDC)[y];
+								System24BitPixel *d = e;
 								Tiff24 *s = (Tiff24*) (*pDC)[y];
 								
-								((uchar*&)d) += Pixel24::Size * (pDC->X()-1);
+								d += pDC->X() - 1;
 								s += pDC->X() - 1;
 								
 								while (d >= e)
@@ -839,7 +839,7 @@ GFilter::IoStatus GdcTiff::ProcessRead(GSurface *pDC)
 									d->b = t.b;
 									
 									s--;
-									((uchar*&)d) -= Pixel24::Size;
+									d--;
 								}
 							}
 						}
@@ -854,11 +854,11 @@ GFilter::IoStatus GdcTiff::ProcessRead(GSurface *pDC)
 							// swap R and B
 							for (int y=0; y<Cy; y++)
 							{
-								Pixel32 *e = (Pixel32*) (*pDC)[y];
-								Pixel32 *d = e;
+								System32BitPixel *e = (System32BitPixel*) (*pDC)[y];
+								System32BitPixel *d = e;
 								Tiff32 *s = (Tiff32*) (*pDC)[y];
 								
-								((uchar*&)d) += Pixel32::Size * (pDC->X()-1);
+								d += pDC->X() - 1;
 								s += pDC->X() - 1;
 								
 								while (d >= e)
@@ -870,7 +870,7 @@ GFilter::IoStatus GdcTiff::ProcessRead(GSurface *pDC)
 									d->b = t.b;
 									
 									s--;
-									((uchar*&)d) -= Pixel32::Size;
+									d--;
 								}
 							}
 						}
@@ -889,8 +889,8 @@ GFilter::IoStatus GdcTiff::ProcessRead(GSurface *pDC)
 						uchar *Div = Div255Lut;
 						for (int y=0; y<Cy; y++)
 						{
-							Pixel32 *d = (Pixel32*) (*pDC)[y];
-							Pixel32 *e = d + pDC->X();
+							System32BitPixel *d = (System32BitPixel*) (*pDC)[y];
+							System32BitPixel *e = d + pDC->X();
 							TiffCmyk *s = (TiffCmyk*) (*pDC)[y];
 							
 							while (d < e)
