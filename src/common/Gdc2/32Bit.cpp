@@ -150,7 +150,7 @@ void GdcApp32Set::Rectangle(int x, int y)
 {
 #if defined(GDC_USE_ASM) && defined(_MSC_VER)
 
-	uint32 *p = Ptr;
+	uint32 *p = Ptr.u32;
 	int Line = Dest->Line;
 	COLOUR fill = c; // System24BitPixel
 
