@@ -270,12 +270,31 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 	if (!pMem)
 		return false;
 
+	switch (d->Img->bits_per_pixel)
+	{
+		case 8:
+			ColourSpace = CsIndex8;
+			break;
+		case 15:
+			ColourSpace = CsRgb15;
+			break;
+		case 16:
+			ColourSpace = CsRgb16;
+			break;
+		case 24:
+			ColourSpace = System24BitColourSpace;
+			break;
+		case 32:
+			ColourSpace = System32BitColourSpace;
+			break;
+	}
+
 	pMem->x = x;
 	pMem->y = y;
-	pMem->Bits = d->Img->bits_per_pixel;
 	pMem->Line = d->Img->bpl;
 	pMem->Flags = 0;
 	pMem->Base = (uchar*)d->Img->mem;
+	pMem->Cs = ColourSpace;
 
 	#if 0
 	printf("GMemDC::Create(%i,%i,%i) gdk_image_new(vis=%i,%i,%i,%i) img(%i,%i,%p)\n",
@@ -318,7 +337,7 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 	}
 	else
 	{
-		pApp = CreateApplicator(NewOp, pMem->Bits);
+		pApp = CreateApplicator(NewOp, pMem->Cs);
 		Flags &= ~GDC_CACHED_APPLICATOR;
 		Flags |= GDC_OWN_APPLICATOR;
 	}

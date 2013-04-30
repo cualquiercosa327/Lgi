@@ -10,9 +10,6 @@
 #define LGI_PI				3.141592654
 #define LGI_RAD				(360/(2*LGI_PI))
 
-int Pixel24::Size = 3;
-int Pixel32::Size = 4;
-
 /****************************** Classes *************************************************************************************/
 GPalette::GPalette()
 {
@@ -506,7 +503,6 @@ public:
 		}
 		#else
 		printf("%s:%i - FIXME, get the size of 24bit pixel here.\n", _FL);
-		Pixel24::Size = 4;
 		#endif
 		
 		// printf("Pixel24Size=%i\n", Pixel24Size);
@@ -545,6 +541,46 @@ public:
 	}
 };
 
+///////////////////////////////////////////////////////////////////////////////////////////////
+int GColourSpaceToBits(GColourSpace ColourSpace)
+{
+	uint32 c = ColourSpace;
+	int bits = 0;
+	while (c)
+	{
+		if (c & 0xf0)
+		{
+			int n = c & 0xf;
+			bits += n ? n : 16;
+		}
+		c >>= 8;
+	}
+	return bits;
+}
+
+GColourSpace GBitsToColourSpace(int Bits)
+{
+	switch (Bits)
+	{
+		case 8:
+			return CsIndex8;
+		case 15:
+			return CsRgb15;
+		case 16:
+			return CsRgb16;
+		case 24:
+			return CsBgr24;
+		case 32:
+			return CsBgra32;
+		default:
+			LgiAssert(!"Unknown colour space.");
+			break;
+	}
+	
+	return CsNone;
+}
+
+//////////////////////////////////////////////////////////////
 GdcDevice *GdcDevice::pInstance = 0;
 GdcDevice::GdcDevice()
 {
@@ -1287,12 +1323,12 @@ GApplicatorFactory::~GApplicatorFactory()
 	}
 }
 
-GApplicator *GApplicatorFactory::NewApp(int Bits, int Op)
+GApplicator *GApplicatorFactory::NewApp(GColourSpace Cs, int Op)
 {
-	LgiAssert(_Factories >= 0 AND _Factories < CountOf(_Factory));
+	LgiAssert(_Factories >= 0 && _Factories < CountOf(_Factory));
 	for (int i=0; i<_Factories; i++)
 	{
-		GApplicator *a = _Factory[i]->Create(Bits, Op);
+		GApplicator *a = _Factory[i]->Create(Cs, Op);
 		if (a) return a;
 	}
 
@@ -1420,9 +1456,9 @@ GSurface *GInlineBmp::Create()
 				}
 				case 24:
 				{
-					Pixel32 *out = (Pixel32*)(*pDC)[y];
-					Pixel32 *end = out + X;
-					Pixel24 *in = (Pixel24*)addr;
+					System32BitPixel *out = (System32BitPixel*)(*pDC)[y];
+					System32BitPixel *end = out + X;
+					System24BitPixel *in = (System24BitPixel*)addr;
 					while (out < end)
 					{
 						out->r = in->r;
@@ -1430,7 +1466,7 @@ GSurface *GInlineBmp::Create()
 						out->b = in->b;
 						out->a = 255;
 						out++;
-						in = in->Next();
+						in++;
 					}
 					break;
 				}

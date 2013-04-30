@@ -10,9 +10,6 @@
 #define LGI_PI				3.141592654
 #define LGI_RAD				(360/(2*LGI_PI))
 
-int Pixel24::Size = 3;
-int Pixel32::Size = 4;
-
 COLOUR RgbToHls(COLOUR Rgb24)
 {
 	int nMax;

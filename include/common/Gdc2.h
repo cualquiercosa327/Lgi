@@ -319,7 +319,7 @@ LgiFunc GColourSpace GBitsToColourSpace(int Bits);
 // These definitions are provide as a conveniance when converting old code to the
 // GColourSpace system. However you should not use them for new code, as some systems
 // can have different colour spaces depending on OS version or hardware configuration.
-#if defined(WIN32)
+#if defined(WIN32) || defined(LINUX)
 
 	#define System24BitColourSpace CsBgr24
 	typedef GBgr24 System24BitPixel;

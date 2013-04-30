@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project TabSize="4" IndentSize="4" UseTabs="1" ShowWhitespace="0" Makefile="./Makefile.linux" IncludePaths=".\include\common&#10;.\include\linux\Gtk&#10;" BuildType="0" TargetType="1" TargetName="lgi" Compiler="0" Defs="LGI_LIBRARY" Libs="xcb&#10;xcb-keysyms&#10;pango-1.0&#10;pangocairo-1.0">
 	<Node Name="Source Files" Type="1" Platforms="7" Open="1">
-		<Node Name="Core" Type="1" Platforms="7" Open="1">
+		<Node Name="Core" Type="1" Platforms="7" Open="0">
 			<Node Name="DateTime" Type="1" Platforms="7" Open="0">
 				<Node File="./src/common/General/GDateTime.cpp" Type="2" Platforms="7" />
 				<Node File="./include/common/GDateTime.h" Type="3" Platforms="7" />
@@ -25,7 +25,7 @@
 				<Node File="./src/common/Lgi/GLibrary.cpp" Type="2" Platforms="7" />
 				<Node File="./include/common/GLibrary.h" Type="3" Platforms="7" />
 			</Node>
-			<Node Name="Linux" Type="1" Platforms="7" Open="1">
+			<Node Name="Linux" Type="1" Platforms="7" Open="0">
 				<Node Name="Headers" Type="1" Platforms="7" Open="0">
 					<Node File=".\include\linux\X\LgiOsClasses.h" Type="3" Platforms="7" />
 					<Node File=".\include\linux\Xcb\LgiOsDefs.h" Type="3" Platforms="7" />
@@ -131,11 +131,11 @@
 				<Node File=".\include\common\Gdc2.h" Type="3" Platforms="7" />
 				<Node File=".\include\common\GFilter.h" Type="3" Platforms="7" />
 				<Node File=".\src\common\Gdc2\GFuncs.cpp" Type="2" Platforms="7" />
-				<Node Name="Linux" Type="1" Platforms="7" Open="0">
-					<Node File="./src/linux/Xcb/Gdc2.cpp" Type="2" Platforms="7" />
+				<Node Name="Linux" Type="1" Platforms="7" Open="1">
+					<Node File=".\src\linux\Gtk\Gdc2.cpp" Type="2" Platforms="7" />
 				</Node>
-				<Node Name="Win32" Type="1" Platforms="7" Open="0">
-					<Node File="./src/win32/Gdc2/Gdc2.cpp" Type="2" Platforms="1" />
+				<Node Name="Win32" Type="1" Platforms="7" Open="1">
+					<Node File=".\src\win32\Gdc2\Gdc2.cpp" Type="2" Platforms="1" />
 				</Node>
 			</Node>
 			<Node Name="Font" Type="1" Platforms="7" Open="0">
@@ -169,10 +169,9 @@
 					<Node File=".\src\win32\Gdc2\GMemDC.cpp" Type="2" Platforms="1" />
 				</Node>
 				<Node Name="Linux" Type="1" Platforms="7" Open="1">
-					<Node File="\usr\include\cairo\cairo-xcb-xrender.h" Type="3" Platforms="7" />
-					<Node File=".\src\linux\Xcb\GMemDC.cpp" Type="2" Platforms="7" />
-					<Node File=".\src\linux\Xcb\GPrintDC.cpp" Type="2" Platforms="7" />
-					<Node File=".\src\linux\Xcb\GScreenDC.cpp" Type="2" Platforms="7" />
+					<Node File=".\src\linux\Gtk\GMemDC.cpp" Type="2" Platforms="7" />
+					<Node File=".\src\linux\Gtk\GPrintDC.cpp" Type="2" Platforms="7" />
+					<Node File=".\src\linux\Gtk\GScreenDC.cpp" Type="2" Platforms="7" />
 				</Node>
 				<Node File=".\src\common\Gdc2\GSurface.cpp" Type="2" Platforms="7" />
 			</Node>
@@ -181,7 +180,7 @@
 				<Node File="./include/common/GdiLeak.h" Type="3" Platforms="7" />
 			</Node>
 		</Node>
-		<Node Name="General" Type="1" Platforms="7" Open="1">
+		<Node Name="General" Type="1" Platforms="7" Open="0">
 			<Node Name="Clipboard" Type="1" Platforms="7" Open="0">
 				<Node Name="Win32" Type="1" Platforms="7" Open="0">
 					<Node File="./src/win32/Lgi/GClipBoard.cpp" Type="2" Platforms="1" />
@@ -204,7 +203,7 @@
 			<Node File=".\src\common\Lgi\GOptionsFile.cpp" Type="2" Platforms="7" />
 			<Node File=".\src\common\Lgi\LgiRand.cpp" Type="2" Platforms="7" />
 		</Node>
-		<Node Name="Text" Type="1" Platforms="7" Open="1">
+		<Node Name="Text" Type="1" Platforms="7" Open="0">
 			<Node File=".\src\common\Text\GString.cpp" Type="2" Platforms="7" />
 			<Node File=".\include\common\GString.h" Type="3" Platforms="7" />
 			<Node File=".\src\common\Text\GToken.cpp" Type="2" Platforms="7" />
@@ -212,7 +211,7 @@
 			<Node File=".\src\common\Text\GXmlTree.cpp" Type="2" Platforms="7" />
 			<Node File=".\include\common\GXmlTree.h" Type="3" Platforms="7" />
 		</Node>
-		<Node Name="Widgets" Type="1" Platforms="7" Open="0">
+		<Node Name="Widgets" Type="1" Platforms="7" Open="1">
 			<Node Name="Css" Type="1" Platforms="7" Open="0">
 				<Node File="./src/common/Lgi/GCss.cpp" Type="2" Platforms="7" />
 				<Node File="./include/common/GCss.h" Type="3" Platforms="7" />
@@ -235,37 +234,37 @@
 				<Node File="./src/win32/Widgets/GProgress.cpp" Type="2" Platforms="1" />
 				<Node File="./src/win32/Lgi/GScrollBar.cpp" Type="2" Platforms="1" />
 			</Node>
-			<Node File="./src/common/Widgets/GButton.cpp" Type="2" Platforms="7" />
-			<Node File="./include/common/GButton.h" Type="3" Platforms="7" />
-			<Node File="./src/common/Widgets/GCheckBox.cpp" Type="2" Platforms="7" />
-			<Node File="./include/common/GCheckBox.h" Type="3" Platforms="7" />
-			<Node File="./src/common/Widgets/GCombo.cpp" Type="2" Platforms="7" />
-			<Node File="./include/common/GCombo.h" Type="3" Platforms="7" />
-			<Node File="./include/common/GEdit.h" Type="3" Platforms="7" />
-			<Node File="./src/common/Widgets/GList.cpp" Type="2" Platforms="7" />
-			<Node File="./include/common/GList.h" Type="3" Platforms="7" />
-			<Node File="./include/common/GListItemCheckBox.h" Type="3" Platforms="7" />
-			<Node File="./include/common/GListItemRadioBtn.h" Type="3" Platforms="7" />
-			<Node File="./src/common/Widgets/GPanel.cpp" Type="2" Platforms="7" />
-			<Node File="./src/common/Widgets/GPopup.cpp" Type="2" Platforms="7" />
-			<Node File="./include/common/GPopup.h" Type="3" Platforms="7" />
-			<Node File="./include/common/GProgress.h" Type="3" Platforms="7" />
-			<Node File="./src/common/Widgets/GProgressDlg.cpp" Type="2" Platforms="7" />
-			<Node File="./src/common/Widgets/GRadioGroup.cpp" Type="2" Platforms="7" />
-			<Node File="./include/common/GRadioGroup.h" Type="3" Platforms="7" />
-			<Node File="./include/common/GScrollBar.h" Type="3" Platforms="7" />
-			<Node File="./src/common/Widgets/GSplitter.cpp" Type="2" Platforms="7" />
-			<Node File="./src/common/Widgets/GStatusBar.cpp" Type="2" Platforms="7" />
-			<Node File="./src/common/Widgets/GTableLayout.cpp" Type="2" Platforms="7" />
-			<Node File="./include/common/GTableLayout.h" Type="3" Platforms="7" />
-			<Node File="./src/common/Widgets/GTabView.cpp" Type="2" Platforms="7" />
-			<Node File="./include/common/GTabView.h" Type="3" Platforms="7" />
-			<Node File="./src/common/Widgets/GTextLabel.cpp" Type="2" Platforms="7" />
-			<Node File="./include/common/GTextLabel.h" Type="3" Platforms="7" />
-			<Node File="./src/common/Widgets/GToolBar.cpp" Type="2" Platforms="7" />
-			<Node File="./include/common/GToolBar.h" Type="3" Platforms="7" />
-			<Node File="./src/common/Widgets/GTree.cpp" Type="2" Platforms="7" />
-			<Node File="./include/common/GTree.h" Type="3" Platforms="7" />
+			<Node File=".\src\common\Widgets\GButton.cpp" Type="2" Platforms="7" />
+			<Node File=".\include\common\GButton.h" Type="3" Platforms="7" />
+			<Node File=".\src\common\Widgets\GCheckBox.cpp" Type="2" Platforms="7" />
+			<Node File=".\include\common\GCheckBox.h" Type="3" Platforms="7" />
+			<Node File=".\src\common\Widgets\GCombo.cpp" Type="2" Platforms="7" />
+			<Node File=".\include\common\GCombo.h" Type="3" Platforms="7" />
+			<Node File=".\include\common\GEdit.h" Type="3" Platforms="7" />
+			<Node File=".\src\common\Widgets\GList.cpp" Type="2" Platforms="7" />
+			<Node File=".\include\common\GList.h" Type="3" Platforms="7" />
+			<Node File=".\include\common\GListItemCheckBox.h" Type="3" Platforms="7" />
+			<Node File=".\include\common\GListItemRadioBtn.h" Type="3" Platforms="7" />
+			<Node File=".\src\common\Widgets\GPanel.cpp" Type="2" Platforms="7" />
+			<Node File=".\src\common\Widgets\GPopup.cpp" Type="2" Platforms="7" />
+			<Node File=".\include\common\GPopup.h" Type="3" Platforms="7" />
+			<Node File=".\include\common\GProgress.h" Type="3" Platforms="7" />
+			<Node File=".\src\common\Widgets\GProgressDlg.cpp" Type="2" Platforms="7" />
+			<Node File=".\src\common\Widgets\GRadioGroup.cpp" Type="2" Platforms="7" />
+			<Node File=".\include\common\GRadioGroup.h" Type="3" Platforms="7" />
+			<Node File=".\include\common\GScrollBar.h" Type="3" Platforms="7" />
+			<Node File=".\src\common\Widgets\GSplitter.cpp" Type="2" Platforms="7" />
+			<Node File=".\src\common\Widgets\GStatusBar.cpp" Type="2" Platforms="7" />
+			<Node File=".\src\common\Widgets\GTableLayout.cpp" Type="2" Platforms="7" />
+			<Node File=".\include\common\GTableLayout.h" Type="3" Platforms="7" />
+			<Node File=".\src\common\Widgets\GTabView.cpp" Type="2" Platforms="7" />
+			<Node File=".\include\common\GTabView.h" Type="3" Platforms="7" />
+			<Node File=".\src\common\Widgets\GTextLabel.cpp" Type="2" Platforms="7" />
+			<Node File=".\include\common\GTextLabel.h" Type="3" Platforms="7" />
+			<Node File=".\src\common\Widgets\GToolBar.cpp" Type="2" Platforms="7" />
+			<Node File=".\include\common\GToolBar.h" Type="3" Platforms="7" />
+			<Node File=".\src\common\Widgets\GTree.cpp" Type="2" Platforms="7" />
+			<Node File=".\include\common\GTree.h" Type="3" Platforms="7" />
 		</Node>
 	</Node>
 	<Node Name="LgiNet" Type="1" Platforms="7" Open="0">

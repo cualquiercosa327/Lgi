@@ -265,10 +265,12 @@ public:
 				png_infop, info_ptr, png_bytep, trans_alpha, int, num_trans,
 				png_color_16p, trans_color);
 				
+	/*
 	DynFunc2(   png_byte,
 				png_get_interlace_type,
 				png_const_structp, png_ptr,
 				png_const_infop, info_ptr);
+	*/
 };
 
 static LibPng *CurrentLibPng = 0;

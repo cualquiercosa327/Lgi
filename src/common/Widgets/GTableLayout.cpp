@@ -800,7 +800,8 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 		}
 		else if (Izza(GEdit) || Izza(GCombo))
 		{
-			int y = v->GetFont()->GetHeight() + 8;
+			GFont *f = v->GetFont();
+			int y = (f ? f : SysFont)->GetHeight() + 8;
 			
 			GRect r = v->GetPos();
 			r.y2 = r.y1 + y - 1;
