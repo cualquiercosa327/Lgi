@@ -258,7 +258,7 @@ public:
 	{
 		if (space == System32BitColourSpace)
 		{
-			return Rgb24(rgb.a, rgb.g, rgb.b);
+			return Rgb24(rgb.r, rgb.g, rgb.b);
 		}
 		else if (space == CsIndex8)
 		{
@@ -295,6 +295,7 @@ public:
 		rgb.r = R24(c);
 		rgb.g = G24(c);
 		rgb.b = B24(c);
+		rgb.a = 255;
 		pal = NULL;
 	}
 

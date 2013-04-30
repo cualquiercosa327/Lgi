@@ -1976,9 +1976,9 @@ void GSolidBrush::Rop(GRopArgs &Args)
 	{
 		case 24:
 		{
-			GRgb24 *d = (GRgb24*) Args.Pixels;
-			GRgb24 *end = (GRgb24*) ((uint8*)d + (Args.Len * 3));
-			GRgb24 s;
+			System24BitPixel *d = (System24BitPixel*) Args.Pixels;
+			System24BitPixel *end = (System24BitPixel*) ((uint8*)d + (Args.Len * 3));
+			System24BitPixel s;
 
 			s.r = R32(c32);
 			s.g = G32(c32);
@@ -2005,9 +2005,9 @@ void GSolidBrush::Rop(GRopArgs &Args)
 		}
 		case 32:
 		{
-			GArgb32 *d = (GArgb32*) Args.Pixels;
-			GArgb32 *end = d + Args.Len;
-			GArgb32 s;
+			System32BitPixel *d = (System32BitPixel*) Args.Pixels;
+			System32BitPixel *end = d + Args.Len;
+			System32BitPixel s;
 
 			s.r = R32(c32);
 			s.g = G32(c32);
@@ -2150,9 +2150,9 @@ void GLinearBlendBrush::Rop(GRopArgs &Args)
 	{
 		case 24:
 		{
-			GRgb24 *d = (GRgb24*) Args.Pixels;
-			GRgb24 *e = (GRgb24*) ((char*)d + (Args.Len * 3));
-			GRgb24 s;
+			System24BitPixel *d = (System24BitPixel*) Args.Pixels;
+			System24BitPixel *e = (System24BitPixel*) ((char*)d + (Args.Len * 3));
+			System24BitPixel s;
 
 			while (d < e)
 			{
@@ -2193,9 +2193,9 @@ void GLinearBlendBrush::Rop(GRopArgs &Args)
 		}
 		case 32:
 		{
-			GArgb32 *d = (GArgb32*) Args.Pixels;
-			GArgb32 *End = d + Args.Len;
-			GArgb32 s;
+			System32BitPixel *d = (System32BitPixel*) Args.Pixels;
+			System32BitPixel *End = d + Args.Len;
+			System32BitPixel s;
 
 			while (d < End)
 			{
@@ -2268,9 +2268,9 @@ void GRadialBlendBrush::Rop(GRopArgs &Args)
 			int Ci = 0;
 			COLOUR c32;
 			uchar sa;
-			GRgb24 *d = (GRgb24*) Args.Pixels;
-			GRgb24 *End = (GRgb24*) (((char*)d) + (Args.Len * 3));
-			GRgb24 s;
+			System24BitPixel *d = (System24BitPixel*) Args.Pixels;
+			System24BitPixel *End = (System24BitPixel*) (((char*)d) + (Args.Len * 3));
+			System24BitPixel s;
 
 			if (Radius < 0.0000000001)
 			{
@@ -2351,12 +2351,12 @@ void GRadialBlendBrush::Rop(GRopArgs &Args)
 		}
 		case 32:
 		{
-			GArgb32 *d = (GArgb32*) Args.Pixels;
+			System32BitPixel *d = (System32BitPixel*) Args.Pixels;
 			int Ci = 0;
 			COLOUR c;
 			uchar sa;
-			GArgb32 *End = d + Args.Len;
-			GArgb32 s;
+			System32BitPixel *End = d + Args.Len;
+			System32BitPixel s;
 
 			if (Radius < 0.0000000001)
 			{
@@ -2452,8 +2452,8 @@ void GEraseBrush::Rop(GRopArgs &Args)
 		case 24:
 		{
 			/*
-			GRgb24 *d = (GRgb24*) Args.Pixels;
-			GRgb24 *end = (GRgb24*) ((uint8*)d + (Args.Len * 3));
+			System24BitPixel *d = (System24BitPixel*) Args.Pixels;
+			System24BitPixel *end = (System24BitPixel*) ((uint8*)d + (Args.Len * 3));
 
 			while (d < end)
 			{
@@ -2477,8 +2477,8 @@ void GEraseBrush::Rop(GRopArgs &Args)
 		}
 		case 32:
 		{
-			GArgb32 *d = (GArgb32*) Args.Pixels;
-			GArgb32 *end = d + Args.Len;
+			System32BitPixel *d = (System32BitPixel*) Args.Pixels;
+			System32BitPixel *end = d + Args.Len;
 
 			while (d < end)
 			{

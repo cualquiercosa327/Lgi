@@ -768,16 +768,20 @@ bool GView::Detach()
 	d->ParentI = 0;
 
 	{
-		GAutoPtr<GViewIterator> i(IterateViews());
-		int Count = i->Length();
+		int Count = Children.Length();
 		if (Count)
 		{
 			int Detached = 0;
-			GViewI *c;
-			while (c = i->First())
+			GViewI *c, *prev = NULL;
+			while (c = Children.First())
 			{
-				c->Detach();
+				LgiAssert(!prev || c != prev);
+				if (c->GetParent())
+					c->Detach();
+				else
+					Children.Delete(c);
 				Detached++;
+				prev = c;
 			}
 			LgiAssert(Count == Detached);
 		}
