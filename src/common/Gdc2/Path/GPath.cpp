@@ -1454,7 +1454,8 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 		GBrush::GRopArgs a;
 		a.Pixels = 0;
 		a.Alpha = 0;
-		a.Bits = pDC->GetBits();
+		a.Cs = pDC->GetColourSpace();
+		a.BytesPerPixel = pDC->GetBits() >> 3;
 		a.x = (int)(Clip.x1 - Mat[2][0]);
 		int RopLength = (int)ceil(Clip.x2) - (int)floor(Clip.x1);
 		a.Len = RopLength;
@@ -1722,11 +1723,10 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 								a.pDC = pDC;
 								if (a.Pixels)
 								{
-									int PixSize = a.Bits == 24 ? 3 : a.Bits >> 3;
 									int AddX = DocX + (int)Doc.x1;
 									a.y -= (int)Mat[2][1];
 									a.Len = RopLength;
-									a.Pixels += PixSize * AddX;
+									a.Pixels += a.BytesPerPixel * AddX;
 									a.Alpha = Alpha + DocX;
 									c.Rop(a);
 								}
@@ -1810,7 +1810,7 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 						a.Pixels = (*pDC)[a.y];
 						if (a.Pixels)
 						{
-							a.Pixels += (a.Bits >> 3) * a.x;
+							a.Pixels += a.BytesPerPixel * a.x;
 							a.Alpha = Alpha + a.x - x1;
 							c.Rop(a);
 						}
@@ -1957,86 +1957,28 @@ void GBrush::MakeAlphaLut()
 
 ///////////////////////////////////////////////////////////////////
 // Compositing
-
-// In premultiplied:
-//		Dca' = Sca + Dca.(1 - Sa)
-// -or-
-// In non-premultiplied:
-//		Dc' = (Sc.Sa + Dc.Da.(1 - Sa))/Da'
-#define NonPreMulOver32(c)	d->c = ((s.c * sa) + (DivLut[d->c * da] * o)) / d->a
-#define NonPreMulOver24(c)	d->c = ((s.c * sa) + (DivLut[d->c * 255] * o)) / 255
-#define NonPreMulAlpha		d->a = (d->a + sa) - DivLut[d->a * sa]
-
 void GSolidBrush::Rop(GRopArgs &Args)
 {
-	uchar *DivLut = Div255Lut;
-
-	uchar *r = Args.Alpha;
-	switch (Args.Bits)
+	switch (Args.Cs)
 	{
-		case 24:
-		{
-			System24BitPixel *d = (System24BitPixel*) Args.Pixels;
-			System24BitPixel *end = (System24BitPixel*) ((uint8*)d + (Args.Len * 3));
-			System24BitPixel s;
+		default:
+			LgiAssert(!"Impl me");
+			break;
 
-			s.r = R32(c32);
-			s.g = G32(c32);
-			s.b = B32(c32);
+		#define SolidCase(cs, bits) \
+			case Cs##cs: SolidRop##bits((G##cs*)Args.Pixels, Args.Len, Args.Alpha, c32); break;
+
+		SolidCase(Rgb24, 24);
+		SolidCase(Bgr24, 24);
+		SolidCase(Xrgb32, 24);
+		SolidCase(Xbgr32, 24);
+		SolidCase(Rgbx32, 24);
+		SolidCase(Bgrx32, 24);
 			
-			while (d < end)
-			{
-				uchar sa = AlphaLut[*r++];
-				if (sa == 255)
-				{
-					*d = s;
-				}
-				else if (sa)
-				{
-					uchar o = 0xff - sa;
-					NonPreMulOver24(r);
-					NonPreMulOver24(g);
-					NonPreMulOver24(b);
-				}
-
-				d++;
-			}
-			break;
-		}
-		case 32:
-		{
-			System32BitPixel *d = (System32BitPixel*) Args.Pixels;
-			System32BitPixel *end = d + Args.Len;
-			System32BitPixel s;
-
-			s.r = R32(c32);
-			s.g = G32(c32);
-			s.b = B32(c32);
-			s.a = A32(c32);
-
-			while (d < end)
-			{
-				uchar sa = DivLut[s.a * AlphaLut[*r++]];
-				if (sa == 255)
-				{
-					*d = s;
-				}
-				else if (sa)
-				{
-					// d->c = ((s.c * sa) + (DivLut[d->c * da] * o)) / d->a
-
-					int o = 0xff - sa;
-					int da = d->a;
-					NonPreMulAlpha;
-					NonPreMulOver32(r);
-					NonPreMulOver32(g);
-					NonPreMulOver32(b);
-				}
-
-				d++;
-			}
-			break;
-		}
+		SolidCase(Rgba32, 32);
+		SolidCase(Argb32, 32);
+		SolidCase(Bgra32, 32);
+		SolidCase(Abgr32, 32);
 	}
 }
 
@@ -2138,105 +2080,26 @@ void GLinearBlendBrush::Rop(GRopArgs &Args)
 {
 	PathAssert(GdcD);
 
-	uchar *DivLut = Div255Lut;
-	uchar *Alpha = Args.Alpha;
-
-	double DPos = Base + (Args.x * IncX) + (Args.y * IncY);
-	double Scale = (double)0x10000;
-	int Pos = (int) (DPos * Scale);
-	int Inc = (int) (IncX * Scale);
-
-	switch (Args.Bits)
+	switch (Args.Cs)
 	{
-		case 24:
-		{
-			System24BitPixel *d = (System24BitPixel*) Args.Pixels;
-			System24BitPixel *e = (System24BitPixel*) ((char*)d + (Args.Len * 3));
-			System24BitPixel s;
-
-			while (d < e)
-			{
-				if (*Alpha)
-				{
-					// work out colour
-					COLOUR c32;
-					int Ci = ((Pos << 8) - Pos) >> 16;
-					if (Ci < 0) c32 = Lut[0];
-					else if (Ci > 255) c32 = Lut[255];
-					else c32 = Lut[Ci];
-
-					s.r = R32(c32);
-					s.g = G32(c32);
-					s.b = B32(c32);
-
-					// assign pixel
-					uchar sa = DivLut[AlphaLut[*Alpha] * A32(c32)];
-					if (sa == 0xff)
-					{
-						*d = s;
-					}
-					else if (sa)
-					{
-						uchar o = 0xff - sa;
-
-						NonPreMulOver24(r);
-						NonPreMulOver24(g);
-						NonPreMulOver24(b);
-					}
-				}
-
-				d++;
-				Alpha++;
-				Pos += Inc;
-			}
+		default:
+			LgiAssert(!"Impl me");
 			break;
-		}
-		case 32:
-		{
-			System32BitPixel *d = (System32BitPixel*) Args.Pixels;
-			System32BitPixel *End = d + Args.Len;
-			System32BitPixel s;
 
-			while (d < End)
-			{
-				if (*Alpha)
-				{
-					// work out colour
-					COLOUR c;
-					int Ci = ((Pos << 8) - Pos) >> 16;
-					if (Ci < 0) c = Lut[0];
-					else if (Ci > 255) c = Lut[255];
-					else c = Lut[Ci];
+		#define LinearCase(cs, bits) \
+			case Cs##cs: Linear##bits((G##cs*)Args.Pixels, Args); break;
 
-					s.r = R32(c);
-					s.g = G32(c);
-					s.b = B32(c);
-					s.a = A32(c);
-
-					// assign pixel
-					uchar sa = DivLut[AlphaLut[*Alpha] * A32(c)];
-					if (sa == 0xff)
-					{
-						*d = s;
-					}
-					else if (sa)
-					{
-						uchar o = 0xff - sa;
-						int da = d->a;
-
-						NonPreMulAlpha;
-						NonPreMulOver32(r);
-						NonPreMulOver32(g);
-						NonPreMulOver32(b);
-					}
-				}
-
-				d++;
-				Alpha++;
-				Pos += Inc;
-			}
-			break;
-		}
+		LinearCase(Rgb24, 24);
+		LinearCase(Bgr24, 24);
+		LinearCase(Xrgb32, 24);
+		LinearCase(Xbgr32, 24);
+		LinearCase(Rgbx32, 24);
+		LinearCase(Bgrx32, 24);
+			
+		LinearCase(Rgba32, 32);
+		LinearCase(Argb32, 32);
+		LinearCase(Bgra32, 32);
+		LinearCase(Abgr32, 32);
 	}
 }
 
@@ -2247,197 +2110,27 @@ void GLinearBlendBrush::Rop(GRopArgs &Args)
 ////////////////////////////////////////////////////////////////////////////
 void GRadialBlendBrush::Rop(GRopArgs &Args)
 {
-	uchar *DivLut = Div255Lut;
-	uchar *Alpha = Args.Alpha;
-
-	double dx = p[1].x - p[0].x;
-	double dy = p[1].y - p[0].y;
-	double Radius = sqrt((dx*dx)+(dy*dy)) / 255; // scaled by 255 to index into the Lut
-
-	int dysq = (int) (Args.y - p[0].y);
-	dysq *= dysq;
-
-	int x = (int) (Args.x - p[0].x);
-	int dxsq = x * x;	// forward difference the (x * x) calculation
-	int xd = 2 * x + 1;	// to remove a MUL from the inner loop
-
-	switch (Args.Bits)
+	switch (Args.Cs)
 	{
-		case 24:
-		{
-			int Ci = 0;
-			COLOUR c32;
-			uchar sa;
-			System24BitPixel *d = (System24BitPixel*) Args.Pixels;
-			System24BitPixel *End = (System24BitPixel*) (((char*)d) + (Args.Len * 3));
-			System24BitPixel s;
-
-			if (Radius < 0.0000000001)
-			{
-				// No blend... just the end colour
-				c32 = Lut[255];
-				s.r = R32(c32);
-				s.g = G32(c32);
-				s.b = B32(c32);
-
-				for (; d<End; Alpha++)
-				{
-					if (*Alpha)
-					{
-						// composite the pixel
-						sa = DivLut[AlphaLut[*Alpha] * A32(c32)];
-						if (sa == 0xff)
-						{
-							*d = s;
-						}
-						else if (sa)
-						{
-							uchar o = 0xff - sa;
-
-							NonPreMulOver24(r);
-							NonPreMulOver24(g);
-							NonPreMulOver24(b);
-						}
-					}
-					
-					d++;
-				}
-			}
-			else
-			{
-				// Radial blend
-				for (; d<End; Alpha++)
-				{
-					if (*Alpha)
-					{
-						// work out colour
-						
-						// sqrt??? gee can we get rid of this?
-						Ci = (int) (sqrt((double) (dxsq+dysq)) / Radius);
-
-						// clamp colour to the ends of the Lut
-						if (Ci < 0) c32 = Lut[0];
-						else if (Ci > 255) c32 = Lut[255];
-						else c32 = Lut[Ci];
-
-						s.r = R32(c32);
-						s.g = G32(c32);
-						s.b = B32(c32);
-
-						// composite the pixel
-						sa = DivLut[AlphaLut[*Alpha] * A32(c32)];
-						if (sa == 0xff)
-						{
-							*d = s;
-						}
-						else if (sa)
-						{
-							uchar o = 0xff - sa;
-
-							NonPreMulOver24(r);
-							NonPreMulOver24(g);
-							NonPreMulOver24(b);
-						}
-					}
-
-					// apply forward difference to the x values
-					x++;
-					dxsq += xd;
-					xd += 2;
-					d++;
-				}
-			}
+		default:
+			LgiAssert(!"Impl me");
 			break;
-		}
-		case 32:
-		{
-			System32BitPixel *d = (System32BitPixel*) Args.Pixels;
-			int Ci = 0;
-			COLOUR c;
-			uchar sa;
-			System32BitPixel *End = d + Args.Len;
-			System32BitPixel s;
 
-			if (Radius < 0.0000000001)
-			{
-				// No blend... just the end colour
-				c = Lut[255];
-				s.r = R32(c);
-				s.g = G32(c);
-				s.b = B32(c);
-				s.a = A32(c);
+		#define RadialCase(cs, bits) \
+			case Cs##cs: Radial##bits((G##cs*)Args.Pixels, Args); break;
 
-				for (; d<End; d++, Alpha++)
-				{
-					if (*Alpha)
-					{
-						// composite the pixel
-						sa = DivLut[AlphaLut[*Alpha] * A32(c)];
-						if (sa == 0xff)
-						{
-							*d = s;
-						}
-						else if (sa)
-						{
-							uchar o = 0xff - sa;
-							int da = d->a;
+		RadialCase(Rgb24, 24);
+		RadialCase(Bgr24, 24);
+		RadialCase(Xrgb32, 24);
+		RadialCase(Xbgr32, 24);
+		RadialCase(Rgbx32, 24);
+		RadialCase(Bgrx32, 24);
+			
+		RadialCase(Rgba32, 32);
+		RadialCase(Argb32, 32);
+		RadialCase(Bgra32, 32);
+		RadialCase(Abgr32, 32);
 
-							NonPreMulAlpha;
-							NonPreMulOver32(r);
-							NonPreMulOver32(g);
-							NonPreMulOver32(b);
-						}
-					}
-				}
-			}
-			else
-			{
-				// Radial blend
-				for (; d<End; d++, Alpha++)
-				{
-					if (*Alpha)
-					{
-						// work out colour
-						
-						// sqrt??? gee can we get rid of this?
-						Ci = (int) (sqrt((double) (dxsq+dysq)) / Radius);
-
-						// clamp colour to the ends of the Lut
-						if (Ci < 0) c = Lut[0];
-						else if (Ci > 255) c = Lut[255];
-						else c = Lut[Ci];
-
-						s.r = R32(c);
-						s.g = G32(c);
-						s.b = B32(c);
-						s.a = A32(c);
-
-						// composite the pixel
-						sa = DivLut[AlphaLut[*Alpha] * A32(c)];
-						if (sa == 0xff)
-						{
-							*d = s;
-						}
-						else if (sa)
-						{
-							uchar o = 0xff - sa;
-							int da = d->a;
-
-							NonPreMulAlpha;
-							NonPreMulOver32(r);
-							NonPreMulOver32(g);
-							NonPreMulOver32(b);
-						}
-					}
-
-					// apply forward difference to the x values
-					x++;
-					dxsq += xd;
-					xd += 2;
-				}
-			}
-			break;
-		}
 	}
 }
 
@@ -2447,35 +2140,16 @@ void GEraseBrush::Rop(GRopArgs &Args)
 	uchar *DivLut = Div255Lut;
 	uchar *r = Args.Alpha;
 
-	switch (Args.Bits)
+	switch (Args.Cs)
 	{
-		case 24:
+		default:
+			LgiAssert(!"Impl me");
+			break;
+		case System24BitColourSpace:
 		{
-			/*
-			System24BitPixel *d = (System24BitPixel*) Args.Pixels;
-			System24BitPixel *end = (System24BitPixel*) ((uint8*)d + (Args.Len * 3));
-
-			while (d < end)
-			{
-				uchar sa = AlphaLut[*r++];
-				if (sa == 255)
-				{
-					*d = s;
-				}
-				else if (sa)
-				{
-					uchar o = 0xff - sa;
-					NonPreMulOver24(r);
-					NonPreMulOver24(g);
-					NonPreMulOver24(b);
-				}
-
-				d++;
-			}
-			*/
 			break;
 		}
-		case 32:
+		case System32BitColourSpace:
 		{
 			System32BitPixel *d = (System32BitPixel*) Args.Pixels;
 			System32BitPixel *end = d + Args.Len;

@@ -219,6 +219,78 @@ void GMemDC::SetOrigin(int x, int y)
 	Translate();
 }
 
+GColourSpace GdkVisualToColourSpace(Gtk::GdkVisual *v, int output_bits)
+{
+	uint32 c = CsNone;
+	if (v)
+	{
+		switch (v->type)
+		{
+			default:
+			{
+				LgiAssert(!"impl me");
+				switch (v->depth)
+				{
+					case 8:
+						c = CsIndex8;
+						break;
+					case 15:
+						c = CsRgb15;
+						break;
+					case 16:
+						c = CsRgb16;
+						break;
+					case 24:
+						c = System24BitColourSpace;
+						break;
+					case 32:
+						c = System32BitColourSpace;
+						break;
+				}
+				break;
+			}
+			case GDK_VISUAL_PSEUDO_COLOR:
+			case GDK_VISUAL_STATIC_COLOR:
+			{
+				LgiAssert(v->depth <= 16);
+				c = (CtIndex << 4) | (v->depth != 16 ? v->depth : 0);
+				break;
+			}
+			case GDK_VISUAL_TRUE_COLOR:
+			case GDK_VISUAL_DIRECT_COLOR:
+			{
+				c |= ((CtRed   << 4) | v->red_prec  ) << (v->red_shift);
+				c |= ((CtGreen << 4) | v->green_prec) << (v->green_shift);
+				c |= ((CtBlue  << 4) | v->blue_prec ) << (v->blue_shift);
+				
+				int bits = GColourSpaceToBits((GColourSpace) c);
+				if (bits != output_bits)
+				{
+					int remaining_bits = output_bits - bits;
+					LgiAssert(remaining_bits <= 16);
+					if (remaining_bits <= 16)
+					{
+						c |=
+							(
+								(
+									(CtAlpha << 4)
+									|
+									(remaining_bits < 16 ? remaining_bits : 0)
+								)
+							)
+							<<
+							24;
+					}
+				}
+				break;
+			}
+		}
+	}
+	
+	GColourSpace Cs = (GColourSpace) LgiSwap32(c);
+	return Cs;
+}
+
 bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 {
 	if (x < 1 || y < 1 || Bits < 1) return false;
@@ -270,31 +342,12 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 	if (!pMem)
 		return false;
 
-	switch (d->Img->bits_per_pixel)
-	{
-		case 8:
-			ColourSpace = CsIndex8;
-			break;
-		case 15:
-			ColourSpace = CsRgb15;
-			break;
-		case 16:
-			ColourSpace = CsRgb16;
-			break;
-		case 24:
-			ColourSpace = System24BitColourSpace;
-			break;
-		case 32:
-			ColourSpace = System32BitColourSpace;
-			break;
-	}
-
 	pMem->x = x;
 	pMem->y = y;
 	pMem->Line = d->Img->bpl;
 	pMem->Flags = 0;
 	pMem->Base = (uchar*)d->Img->mem;
-	pMem->Cs = ColourSpace;
+	pMem->Cs = ColourSpace = GdkVisualToColourSpace(d->Img->visual, d->Img->bits_per_pixel);
 
 	#if 0
 	printf("GMemDC::Create(%i,%i,%i) gdk_image_new(vis=%i,%i,%i,%i) img(%i,%i,%p)\n",

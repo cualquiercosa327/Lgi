@@ -209,27 +209,32 @@ enum GColourSpace
 {
 	CsNone = 0,
 
+	// uint8 types
 	CsIndex8 = GDC_COLOUR_SPACE_1(CtIndex, 8),
 	CsAlpha8 = GDC_COLOUR_SPACE_1(CtAlpha, 8),
 
+	// uint16 types
 	CsRgb15 = GDC_COLOUR_SPACE_3(CtRed, 5, CtGreen, 5, CtBlue, 5),
 	CsRgb16 = GDC_COLOUR_SPACE_3(CtRed, 5, CtGreen, 6, CtBlue, 5),
 
+	// 24 bit types
 	CsRgb24 = GDC_COLOUR_SPACE_3(CtRed, 8, CtGreen, 8, CtBlue, 8),
 	CsBgr24 = GDC_COLOUR_SPACE_3(CtBlue, 8, CtGreen, 8, CtRed, 8),
 
-	CsRgba32 = GDC_COLOUR_SPACE_4(CtRed, 8, CtGreen, 8, CtBlue, 8, CtAlpha, 8),
-	CsBgra32 = GDC_COLOUR_SPACE_4(CtBlue, 8, CtGreen, 8, CtRed, 8, CtAlpha, 8),
-	CsArgb32 = GDC_COLOUR_SPACE_4(CtAlpha, 8, CtRed, 8, CtGreen, 8, CtBlue, 8),
-	CsAbgr32 = GDC_COLOUR_SPACE_4(CtAlpha, 8, CtBlue, 8, CtGreen, 8, CtRed, 8),
-
+	// 24 bits with padding
 	CsRgbx32 = GDC_COLOUR_SPACE_4(CtRed, 8, CtGreen, 8, CtBlue, 8, CtPad, 8),
 	CsBgrx32 = GDC_COLOUR_SPACE_4(CtBlue, 8, CtGreen, 8, CtRed, 8, CtPad, 8),
 	CsXrgb32 = GDC_COLOUR_SPACE_4(CtPad, 8, CtRed, 8, CtGreen, 8, CtBlue, 8),
 	CsXbgr32 = GDC_COLOUR_SPACE_4(CtPad, 8, CtBlue, 8, CtGreen, 8, CtRed, 8),
 
-	CsHls32 = GDC_COLOUR_SPACE_4(CtHue, 0 /*16*/, CtRed, 8, CtGreen, 8, CtBlue, 8),
+	// 32 bit types
+	CsRgba32 = GDC_COLOUR_SPACE_4(CtRed, 8, CtGreen, 8, CtBlue, 8, CtAlpha, 8),
+	CsBgra32 = GDC_COLOUR_SPACE_4(CtBlue, 8, CtGreen, 8, CtRed, 8, CtAlpha, 8),
+	CsArgb32 = GDC_COLOUR_SPACE_4(CtAlpha, 8, CtRed, 8, CtGreen, 8, CtBlue, 8),
+	CsAbgr32 = GDC_COLOUR_SPACE_4(CtAlpha, 8, CtBlue, 8, CtGreen, 8, CtRed, 8),
 
+	// other colour spaces
+	CsHls32 = GDC_COLOUR_SPACE_4(CtHue, 0 /*16*/, CtRed, 8, CtGreen, 8, CtBlue, 8),
 	CsCmyk32 = GDC_COLOUR_SPACE_4(CtCyan, 8, CtMagenta, 8, CtYellow, 8, CtBlack, 8),
 };
 
@@ -269,6 +274,26 @@ struct GBgra32 {
 
 struct GArgb32 {
 	uint8 a, r, g, b;
+};
+
+struct GAbgr32 {
+	uint8 a, b, g, r;
+};
+
+struct GXrgb32 {
+	uint8 pad, r, g, b;
+};
+
+struct GRgbx32 {
+	uint8 r, g, b, pad;
+};
+
+struct GXbgr32 {
+	uint8 pad, b, g, r;
+};
+
+struct GBgrx32 {
+	uint8 b, g, r, pad;
 };
 
 struct GHls32 {

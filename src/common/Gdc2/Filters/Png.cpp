@@ -414,6 +414,129 @@ void PNGAPI LibPngWrite(png_structp Png, png_bytep Ptr, png_size_t Size)
 	}
 }
 
+template<typename Out, typename In>
+void Read24(Out *o, In *i, int Len)
+{
+	if (sizeof(i->r) == 2)
+	{
+		In *e = i + Len;
+		while (i < e)
+		{
+			o->r = i->r / 257;
+			o->g = i->g / 257;
+			o->b = i->b / 257;
+			o++;
+			i++;
+		}
+	}
+	else
+	{
+		In *e = i + Len;
+
+		while (i < e)
+		{
+			o->r = i->r;
+			o->g = i->g;
+			o->b = i->b;
+			o++;
+			i++;
+		}
+	}
+}
+
+template<typename Out, typename In>
+void Read32(Out *o, In *i, int Len)
+{
+	if (sizeof(i->r) == 2)
+	{
+		In *e = i + Len;
+		while (i < e)
+		{
+			o->r = i->r / 257;
+			o->g = i->g / 257;
+			o->b = i->b / 257;
+			o->a = 255;
+			o++;
+			i++;
+		}
+	}
+	else
+	{
+		In *e = i + Len;
+
+		while (i < e)
+		{
+			o->r = i->r;
+			o->g = i->g;
+			o->b = i->b;
+			o->a = 255;
+			o++;
+			i++;
+		}
+	}
+}
+
+template<typename Out, typename In>
+void ReadAlpha24(Out *o, In *i, int Len)
+{
+	if (sizeof(i->r) == 2)
+	{
+		In *e = i + Len;
+		while (i < e)
+		{
+			o->r = i->r / 257;
+			o->g = i->g / 257;
+			o->b = i->b / 257;
+			o++;
+			i++;
+		}
+	}
+	else
+	{
+		In *e = i + Len;
+
+		while (i < e)
+		{
+			o->r = i->r;
+			o->g = i->g;
+			o->b = i->b;
+			o++;
+			i++;
+		}
+	}
+}
+template<typename Out, typename In>
+void ReadAlpha32(Out *o, In *i, int Len)
+{
+	if (sizeof(i->r) == 2)
+	{
+		In *e = i + Len;
+		while (i < e)
+		{
+			o->r = i->r / 257;
+			o->g = i->g / 257;
+			o->b = i->b / 257;
+			o->a = i->a / 257;
+			o++;
+			i++;
+		}
+	}
+	else
+	{
+		In *e = i + Len;
+
+		while (i < e)
+		{
+			o->r = i->r;
+			o->g = i->g;
+			o->b = i->b;
+			o->a = i->a;
+			o++;
+			i++;
+		}
+	}
+}
+
 GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 {
 	GFilter::IoStatus Status = IoError;
@@ -502,6 +625,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 						uchar *Scan = (*pDC)[y];
 						LgiAssert(Scan);
 
+						GColourSpace OutCs = pDC->GetColourSpace();
 						switch (RequestBits)
 						{
 							case 1:
@@ -527,76 +651,26 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 							{
 							    switch (pDC->GetColourSpace())
 							    {
-									case System32BitColourSpace:
-									{
-										if (png_get_bit_depth(png_ptr, info_ptr) == 16)
-										{
-											System32BitPixel *o = (System32BitPixel*)Scan;
-											Png48 *i = (Png48*)Scan0[y];
-											Png48 *e = i + pDC->X();
-
-											while (i < e)
-											{
-												o->r = i->r / 257;
-												o->g = i->g / 257;
-												o->b = i->b / 257;
-												o->a = 255;
-												o++;
-												i++;
-											}
+									#define Read24Case(name, bits) \
+										case Cs##name: \
+										{ \
+											if (png_get_bit_depth(png_ptr, info_ptr) == 16) \
+												Read##bits((G##name*)Scan, (Png48*)Scan0[y], pDC->X()); \
+											else \
+												Read##bits((G##name*)Scan, (Png24*)Scan0[y], pDC->X()); \
+											break; \
 										}
-										else
-										{
-											System32BitPixel *o = (System32BitPixel*)Scan;
-											Png24 *i = (Png24*)Scan0[y];
-											Png24 *e = i + pDC->X();
+									Read24Case(Rgb24, 24);
+									Read24Case(Bgr24, 24);
+									Read24Case(Xrgb32, 24);
+									Read24Case(Rgbx32, 24);
+									Read24Case(Xbgr32, 24);
+									Read24Case(Bgrx32, 24);
 
-											while (i < e)
-											{
-												o->r = i->r;
-												o->g = i->g;
-												o->b = i->b;
-												o->a = 255;
-												o++;
-												i++;
-											}
-										}
-										break;
-									}
-									case System24BitColourSpace:
-									{
-										if (png_get_bit_depth(png_ptr, info_ptr) == 16)
-										{
-											System24BitPixel *o = (System24BitPixel*)Scan;
-											Png48 *i = (Png48*)Scan0[y];
-											Png48 *e = i + pDC->X();
-
-											while (i < e)
-											{
-												o->r = i->r / 257;
-												o->g = i->g / 257;
-												o->b = i->b / 257;
-												o++;
-												i++;
-											}
-										}
-										else
-										{
-											System24BitPixel *o = (System24BitPixel*)Scan;
-											Png24 *i = (Png24*)Scan0[y];
-											Png24 *e = i + pDC->X();
-
-											while (i < e)
-											{
-												o->r = i->r;
-												o->g = i->g;
-												o->b = i->b;
-												o++;
-												i++;
-											}
-										}
-										break;
-									}
+									Read24Case(Rgba32, 32);
+									Read24Case(Bgra32, 32);
+									Read24Case(Argb32, 32);
+									Read24Case(Abgr32, 32);
 									default:
 										LgiAssert(!"Not impl.");
 										break;
@@ -605,34 +679,31 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 							}
 							case 32:
 							{
-								if (png_get_bit_depth(png_ptr, info_ptr) == 16)
-								{
-									System32BitPixel *o = (System32BitPixel*)Scan;
-									Png64 *i = (Png64*)Scan0[y];
-									Png64 *e = i + pDC->X();
+							    switch (pDC->GetColourSpace())
+							    {
+									#define Read32Case(name, bits) \
+										case Cs##name: \
+										{ \
+											if (png_get_bit_depth(png_ptr, info_ptr) == 16) \
+												ReadAlpha##bits((G##name*)Scan, (Png64*)Scan0[y], pDC->X()); \
+											else \
+												ReadAlpha##bits((G##name*)Scan, (Png32*)Scan0[y], pDC->X()); \
+											break; \
+										}
+									Read32Case(Rgb24, 24);
+									Read32Case(Bgr24, 24);
+									Read32Case(Xrgb32, 24);
+									Read32Case(Rgbx32, 24);
+									Read32Case(Xbgr32, 24);
+									Read32Case(Bgrx32, 24);
 
-									while (i < e)
-									{
-										o->r = (uint8)(i->r / 257);
-										o->g = (uint8)(i->g / 257);
-										o->b = (uint8)(i->b / 257);
-										o->a = (uint8)(i->a / 257);
-										o++;
-										i++;
-									}
-								}
-								else
-								{
-									System32BitPixel *o = (System32BitPixel*) Scan;
-									Png32 *i = (Png32*) Scan0[y];
-
-									for (int x=0; x<pDC->X(); x++, i++, o++)
-									{
-										o->r = i->r;
-										o->g = i->g;
-										o->b = i->b;
-										o->a = i->a;
-									}
+									Read32Case(Rgba32, 32);
+									Read32Case(Bgra32, 32);
+									Read32Case(Argb32, 32);
+									Read32Case(Abgr32, 32);
+									default:
+										LgiAssert(!"Not impl.");
+										break;
 								}
 								break;
 							}

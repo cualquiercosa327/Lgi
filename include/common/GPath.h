@@ -161,9 +161,11 @@ protected:
 		uchar *Pixels;
 		uchar *EndOfMem;
 		uchar *Alpha;
-		int Bits;
 		int Len;
 		int x, y;
+
+		GColourSpace Cs;
+		int BytesPerPixel;
 
 		GSurface *pDC;
 	};
@@ -190,6 +192,15 @@ public:
 	}
 };
 
+// In premultiplied:
+//		Dca' = Sca + Dca.(1 - Sa)
+// -or-
+// In non-premultiplied:
+//		Dc' = (Sc.Sa + Dc.Da.(1 - Sa))/Da'
+#define NonPreMulOver32(c)	d->c = ((s.c * sa) + (DivLut[d->c * da] * o)) / d->a
+#define NonPreMulOver24(c)	d->c = ((s.c * sa) + (DivLut[d->c * 255] * o)) / 255
+#define NonPreMulAlpha		d->a = (d->a + sa) - DivLut[d->a * sa]
+
 class LgiClass GSolidBrush : public GBrush
 {
 	COLOUR c32;
@@ -214,6 +225,69 @@ public:
 	{
 		c32 = Rgba32(r, g, b, a);
 		MakeAlphaLut();
+	}
+
+	template<typename T>
+	void SolidRop24(T *d, int Len, uint8 *Alpha, COLOUR c32)
+	{
+		uchar *DivLut = Div255Lut;
+		T *end = d + Len;
+		T s;
+
+		s.r = R32(c32);
+		s.g = G32(c32);
+		s.b = B32(c32);
+		
+		while (d < end)
+		{
+			uchar sa = AlphaLut[*Alpha++];
+			if (sa == 255)
+			{
+				*d = s;
+			}
+			else if (sa)
+			{
+				uchar o = 0xff - sa;
+				NonPreMulOver24(r);
+				NonPreMulOver24(g);
+				NonPreMulOver24(b);
+			}
+
+			d++;
+		}
+	}
+
+	template<typename T>
+	void SolidRop32(T *d, int Len, uint8 *Alpha, COLOUR c32)
+	{
+		uchar *DivLut = Div255Lut;
+		T *end = d + Len;
+		T s;
+
+		s.r = R32(c32);
+		s.g = G32(c32);
+		s.b = B32(c32);
+		s.a = A32(c32);
+
+		while (d < end)
+		{
+			uchar sa = DivLut[s.a * AlphaLut[*Alpha++]];
+			if (sa == 255)
+			{
+				*d = s;
+			}
+			else if (sa)
+			{
+				int o = 0xff - sa;
+				int da = d->a;
+				NonPreMulAlpha;
+				NonPreMulOver32(r);
+				NonPreMulOver32(g);
+				NonPreMulOver32(b);
+			}
+
+			d++;
+		}
 	}
 };
 
@@ -281,6 +355,111 @@ public:
 		p[0] = a;
 		p[1] = b;
 	}
+
+	template<typename T>
+	void Linear24(T *d, GRopArgs &Args)
+	{
+		uchar *DivLut = Div255Lut;
+		uchar *Alpha = Args.Alpha;
+
+		double DPos = Base + (Args.x * IncX) + (Args.y * IncY);
+		double Scale = (double)0x10000;
+		int Pos = (int) (DPos * Scale);
+		int Inc = (int) (IncX * Scale);
+		
+		T *e = d + Args.Len;
+		T s;
+
+		while (d < e)
+		{
+			if (*Alpha)
+			{
+				// work out colour
+				COLOUR c32;
+				int Ci = ((Pos << 8) - Pos) >> 16;
+				if (Ci < 0) c32 = Lut[0];
+				else if (Ci > 255) c32 = Lut[255];
+				else c32 = Lut[Ci];
+
+				s.r = R32(c32);
+				s.g = G32(c32);
+				s.b = B32(c32);
+
+				// assign pixel
+				uchar sa = DivLut[AlphaLut[*Alpha] * A32(c32)];
+				if (sa == 0xff)
+				{
+					*d = s;
+				}
+				else if (sa)
+				{
+					uchar o = 0xff - sa;
+
+					NonPreMulOver24(r);
+					NonPreMulOver24(g);
+					NonPreMulOver24(b);
+				}
+			}
+
+			d++;
+			Alpha++;
+			Pos += Inc;
+		}
+	}
+
+	template<typename T>
+	void Linear32(T *d, GRopArgs &Args)
+	{
+		uchar *DivLut = Div255Lut;
+		uchar *Alpha = Args.Alpha;
+
+		double DPos = Base + (Args.x * IncX) + (Args.y * IncY);
+		double Scale = (double)0x10000;
+		int Pos = (int) (DPos * Scale);
+		int Inc = (int) (IncX * Scale);
+
+		T *End = d + Args.Len;
+		T s;
+
+		while (d < End)
+		{
+			if (*Alpha)
+			{
+				// work out colour
+				COLOUR c;
+				int Ci = ((Pos << 8) - Pos) >> 16;
+				if (Ci < 0) c = Lut[0];
+				else if (Ci > 255) c = Lut[255];
+				else c = Lut[Ci];
+
+				s.r = R32(c);
+				s.g = G32(c);
+				s.b = B32(c);
+				s.a = A32(c);
+
+				// assign pixel
+				uchar sa = DivLut[AlphaLut[*Alpha] * A32(c)];
+				if (sa == 0xff)
+				{
+					*d = s;
+				}
+				else if (sa)
+				{
+					uchar o = 0xff - sa;
+					int da = d->a;
+
+					NonPreMulAlpha;
+					NonPreMulOver32(r);
+					NonPreMulOver32(g);
+					NonPreMulOver32(b);
+				}
+			}
+
+			d++;
+			Alpha++;
+			Pos += Inc;
+		}
+	}
 };
 
 class LgiClass GRadialBlendBrush : public GBlendBrush
@@ -293,6 +472,209 @@ public:
 	{
 		p[0] = center;
 		p[1] = rim;
+	}
+
+	template<typename T>
+	void Radial24(T *d, GRopArgs &Args)
+	{
+		uchar *DivLut = Div255Lut;
+		uchar *Alpha = Args.Alpha;
+
+		double dx = p[1].x - p[0].x;
+		double dy = p[1].y - p[0].y;
+		double Radius = sqrt((dx*dx)+(dy*dy)) / 255; // scaled by 255 to index into the Lut
+
+		int dysq = (int) (Args.y - p[0].y);
+		dysq *= dysq;
+
+		int x = (int) (Args.x - p[0].x);
+		int dxsq = x * x;	// forward difference the (x * x) calculation
+		int xd = 2 * x + 1;	// to remove a MUL from the inner loop
+
+		int Ci = 0;
+		COLOUR c32;
+		uchar sa;
+		T *End = (T*) d + Args.Len;
+		T s;
+
+		if (Radius < 0.0000000001)
+		{
+			// No blend... just the end colour
+			c32 = Lut[255];
+			s.r = R32(c32);
+			s.g = G32(c32);
+			s.b = B32(c32);
+
+			for (; d<End; Alpha++)
+			{
+				if (*Alpha)
+				{
+					// composite the pixel
+					sa = DivLut[AlphaLut[*Alpha] * A32(c32)];
+					if (sa == 0xff)
+					{
+						*d = s;
+					}
+					else if (sa)
+					{
+						uchar o = 0xff - sa;
+
+						NonPreMulOver24(r);
+						NonPreMulOver24(g);
+						NonPreMulOver24(b);
+					}
+				}
+				
+				d++;
+			}
+		}
+		else
+		{
+			// Radial blend
+			for (; d<End; Alpha++)
+			{
+				if (*Alpha)
+				{
+					// work out colour
+					
+					// sqrt??? gee can we get rid of this?
+					Ci = (int) (sqrt((double) (dxsq+dysq)) / Radius);
+
+					// clamp colour to the ends of the Lut
+					if (Ci < 0) c32 = Lut[0];
+					else if (Ci > 255) c32 = Lut[255];
+					else c32 = Lut[Ci];
+
+					s.r = R32(c32);
+					s.g = G32(c32);
+					s.b = B32(c32);
+
+					// composite the pixel
+					sa = DivLut[AlphaLut[*Alpha] * A32(c32)];
+					if (sa == 0xff)
+					{
+						*d = s;
+					}
+					else if (sa)
+					{
+						uchar o = 0xff - sa;
+
+						NonPreMulOver24(r);
+						NonPreMulOver24(g);
+						NonPreMulOver24(b);
+					}
+				}
+
+				// apply forward difference to the x values
+				x++;
+				dxsq += xd;
+				xd += 2;
+				d++;
+			}
+		}
+	}
+
+	template<typename T>
+	void Radial32(T *d, GRopArgs &Args)
+	{
+		uchar *DivLut = Div255Lut;
+		uchar *Alpha = Args.Alpha;
+
+		double dx = p[1].x - p[0].x;
+		double dy = p[1].y - p[0].y;
+		double Radius = sqrt((dx*dx)+(dy*dy)) / 255; // scaled by 255 to index into the Lut
+
+		int dysq = (int) (Args.y - p[0].y);
+		dysq *= dysq;
+
+		int x = (int) (Args.x - p[0].x);
+		int dxsq = x * x;	// forward difference the (x * x) calculation
+		int xd = 2 * x + 1;	// to remove a MUL from the inner loop
+
+		int Ci = 0;
+		COLOUR c;
+		uchar sa;
+		T *End = d + Args.Len;
+		T s;
+
+		if (Radius < 0.0000000001)
+		{
+			// No blend... just the end colour
+			c = Lut[255];
+			s.r = R32(c);
+			s.g = G32(c);
+			s.b = B32(c);
+			s.a = A32(c);
+
+			for (; d<End; d++, Alpha++)
+			{
+				if (*Alpha)
+				{
+					// composite the pixel
+					sa = DivLut[AlphaLut[*Alpha] * A32(c)];
+					if (sa == 0xff)
+					{
+						*d = s;
+					}
+					else if (sa)
+					{
+						uchar o = 0xff - sa;
+						int da = d->a;
+
+						NonPreMulAlpha;
+						NonPreMulOver32(r);
+						NonPreMulOver32(g);
+						NonPreMulOver32(b);
+					}
+				}
+			}
+		}
+		else
+		{
+			// Radial blend
+			for (; d<End; d++, Alpha++)
+			{
+				if (*Alpha)
+				{
+					// work out colour
+					
+					// sqrt??? gee can we get rid of this?
+					Ci = (int) (sqrt((double) (dxsq+dysq)) / Radius);
+
+					// clamp colour to the ends of the Lut
+					if (Ci < 0) c = Lut[0];
+					else if (Ci > 255) c = Lut[255];
+					else c = Lut[Ci];
+
+					s.r = R32(c);
+					s.g = G32(c);
+					s.b = B32(c);
+					s.a = A32(c);
+
+					// composite the pixel
+					sa = DivLut[AlphaLut[*Alpha] * A32(c)];
+					if (sa == 0xff)
+					{
+						*d = s;
+					}
+					else if (sa)
+					{
+						uchar o = 0xff - sa;
+						int da = d->a;
+
+						NonPreMulAlpha;
+						NonPreMulOver32(r);
+						NonPreMulOver32(g);
+						NonPreMulOver32(b);
+					}
+				}
+
+				// apply forward difference to the x values
+				x++;
+				dxsq += xd;
+				xd += 2;
+			}
+		}
 	}
 };
 

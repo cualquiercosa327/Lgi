@@ -12,6 +12,11 @@
 
 #include "Gdc2.h"
 
+#undef NonPreMulOver32
+#undef NonPreMulAlpha
+#define NonPreMulOver32(c)	d->c = ((s->c * sa) + (DivLut[d->c * da] * o)) / d->a
+#define NonPreMulAlpha		d->a = (d->a + sa) - DivLut[d->a * sa]
+
 /// 32 bit rgb applicators
 class LgiClass GdcApp32 : public GApplicator
 {
@@ -67,6 +72,288 @@ public:
 	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha);
 };
 
+/////////////////////////////////////////////////////////////////////////////////////////
+template<typename Pixel, GColourSpace ColourSpace>
+class App32 : public GApplicator
+{
+	union
+	{
+		uint8 *u8;
+		Pixel *p;
+	};
+	
+	int ConstAlpha;
+	GPalette *PalAlpha;
+
+public:
+	App32()
+	{
+		p = NULL;
+		ConstAlpha = 255;
+		PalAlpha = NULL;
+	}
+
+	int GetVar(int Var) { LgiAssert(0); return 0; }
+	int SetVar(int Var, NativeInt Value)
+	{
+		switch (Var)
+		{
+			case GAPP_ALPHA_A:
+			{
+				ConstAlpha = Value;
+				break;
+			}
+			case GAPP_ALPHA_PAL:
+			{
+				PalAlpha = (GPalette*)Value;
+				break;
+			}
+		}
+		return 0;
+	}
+
+	bool SetSurface(GBmpMem *d, GPalette *pal = NULL, GBmpMem *a = NULL)
+	{
+		if (d && d->Cs == ColourSpace)
+		{
+			Dest = d;
+			Pal = pal;
+			p = (Pixel*) d->Base;
+			Alpha = 0;
+			return true;
+		}
+		return false;
+	}
+
+	void SetPtr(int x, int y)
+	{
+		p = (Pixel*) (Dest->Base + (y * Dest->Line) + (x * sizeof(Pixel)));
+	}
+	
+	void IncX()
+	{
+		p++;
+	}
+	
+	void IncY()
+	{
+		u8 += Dest->Line;
+	}
+	
+	void IncPtr(int X, int Y)
+	{
+		p += X;
+		u8 += Y * Dest->Line;
+	}
+	
+	void Set()
+	{
+		p->r = p24.r;
+		p->g = p24.g;
+		p->b = p24.b;
+	}
+	
+	COLOUR Get()
+	{
+		return Rgb24(p->r, p->g, p->b);
+	}
+	
+	void VLine(int height)
+	{
+		Pixel cp;
+		cp.r = p24.r;
+		cp.g = p24.g;
+		cp.b = p24.b;
+		
+		while (height-- > 0)
+		{
+			*p = cp;
+			u8 += Dest->Line;
+		}
+	}
+	
+	void Rectangle(int x, int y)
+	{
+		Pixel cp;
+		cp.r = p24.r;
+		cp.g = p24.g;
+		cp.b = p24.b;
+		
+		while (y-- > 0)
+		{
+			Pixel *i = p, *e = i + x;
+			while (i < e)
+			{
+				*i++ = cp;
+			}
+			u8 += Dest->Line;
+		}
+	}
+	
+	template<typename T>
+	bool CopyBlt24(GBmpMem *Src)
+	{
+		for (int y=0; y<Src->y; y++)
+		{
+			Pixel *d = p;
+			T *s = (T*) (Src->Base + (y * Src->Line));
+			T *e = s + Src->x;
+
+			while (s < e)
+			{
+				d->r = s->r;
+				d->g = s->g;
+				d->b = s->b;
+				d->a = 255;
+				s++;
+				d++;
+			}
+
+			u8 += Dest->Line;
+		}
+		
+		return true;
+	}
+
+	template<typename T>
+	bool CopyBlt32(GBmpMem *Src)
+	{
+		for (int y=0; y<Src->y; y++)
+		{
+			Pixel *d = p;
+			T *s = (T*) (Src->Base + (y * Src->Line));
+			T *e = s + Src->x;
+
+			while (s < e)
+			{
+				d->r = s->r;
+				d->g = s->g;
+				d->b = s->b;
+				d->a = s->a;
+				s++;
+				d++;
+			}
+
+			u8 += Dest->Line;
+		}
+		
+		return true;
+	}
+	
+	template<typename T>
+	bool AlphaBlt(GBmpMem *Src, GBmpMem *SrcAlpha)
+	{
+		uchar *DivLut = Div255Lut;
+
+		for (int y=0; y<Src->y; y++)
+		{
+			Pixel *d = p;
+			T *s = (T*) (Src->Base + (y * Src->Line));
+			T *e = s + Src->x;
+			uint8 *a = Src->Base + (y * SrcAlpha->Line);
+
+			while (s < e)
+			{
+				uint8 sa = *a++;
+				if (sa == 255)
+				{
+					d->r = s->r;
+					d->g = s->g;
+					d->b = s->b;
+					d->a = 255;
+				}
+				else if (sa > 0)
+				{
+					uint8 o = 255 - sa;
+					int da = d->a;
+
+					NonPreMulAlpha;
+					NonPreMulOver32(r);
+					NonPreMulOver32(g);
+					NonPreMulOver32(b);
+				}
+				
+				s++;
+				d++;
+			}
+
+			u8 += Dest->Line;
+		}
+		
+		return true;
+	}
+	
+	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha = NULL)
+	{
+		if (!Src)
+			return false;
+		
+		if (!SrcAlpha)
+		{
+			if (Dest->Cs == Src->Cs)
+			{
+				uchar *s = Src->Base;
+				for (int y=0; y<Src->y; y++)
+				{
+					MemCpy(p, s, Src->x * 3);
+					s += Src->Line;
+					u8 += Dest->Line;
+				}
+			}
+			else
+			{
+				switch (Src->Cs)
+				{
+					#define CopyCase(name, bits) \
+						case Cs##name: return CopyBlt##bits<G##name>(Src);
+
+					CopyCase(Rgb24, 24);
+					CopyCase(Bgr24, 24);
+					CopyCase(Xrgb32, 24);
+					CopyCase(Xbgr32, 24);
+					CopyCase(Rgbx32, 24);
+					CopyCase(Bgrx32, 24);
+
+					CopyCase(Argb32, 32);
+					CopyCase(Abgr32, 32);
+					CopyCase(Rgba32, 32);
+					CopyCase(Bgra32, 32);
+					default:
+						LgiAssert(!"Impl me.");
+						break;
+				}
+			}
+		}
+		else
+		{
+			switch (Src->Cs)
+			{
+				#define AlphaCase(name) \
+					case Cs##name: return AlphaBlt<G##name>(Src, SrcAlpha);
+
+				AlphaCase(Rgb24);
+				AlphaCase(Bgr24);
+				AlphaCase(Xrgb32);
+				AlphaCase(Xbgr32);
+				AlphaCase(Rgbx32);
+				AlphaCase(Bgrx32);
+
+				AlphaCase(Argb32);
+				AlphaCase(Abgr32);
+				AlphaCase(Rgba32);
+				AlphaCase(Bgra32);
+
+				default:
+					LgiAssert(!"Impl me.");
+					break;
+			}
+		}
+		
+		return false;
+	}
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////
 GApplicator *GApp32::Create(GColourSpace Cs, int Op)
 {
 	if (Cs == System32BitColourSpace)
@@ -83,6 +370,20 @@ GApplicator *GApp32::Create(GColourSpace Cs, int Op)
 				return new GdcApp32Xor;
 		}
 	}
+	else
+	{
+		switch (Cs)
+		{
+			#define AppCase(name) \
+				case Cs##name: return new App32<G##name, Cs##name>();
+			
+			AppCase(Rgba32);
+			AppCase(Bgra32);
+			AppCase(Argb32);
+			AppCase(Abgr32);
+		}
+	}
+	
 	return NULL;
 }
 
