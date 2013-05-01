@@ -159,6 +159,12 @@ GDialogCallback(GtkWidget   *widget,
 			return FALSE;
 			break;
 		}
+		case GDK_CLIENT_EVENT:
+		{
+			GMessage m(event);
+			This->OnEvent(&m);
+			break;
+		}
 		default:
 		{
 			printf("%s:%i - Unknown event %i\n", _FL, event->type);
@@ -217,6 +223,10 @@ int GDialog::DoModal(OsView OverrideParent)
 						this);
 	g_signal_connect(	G_OBJECT(Wnd),
 						"configure-event",
+						G_CALLBACK(GDialogCallback),
+						this);
+	g_signal_connect(	G_OBJECT(Wnd),
+						"client-event",
 						G_CALLBACK(GDialogCallback),
 						this);
 

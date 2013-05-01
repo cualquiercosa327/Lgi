@@ -187,6 +187,12 @@ GWindowCallback(GtkWidget   *widget,
 			return FALSE;
 			break;
 		}
+		case GDK_CLIENT_EVENT:
+		{
+			GMessage m(event);
+			This->OnEvent(&m);
+			break;
+		}
 		default:
 		{
 			printf("%s:%i - Unknown event %i\n", _FL, event->type);

@@ -140,6 +140,7 @@ public:
 	Gtk::GdkEvent *Event;
 
 	GMessage(int m, Param a = 0, Param b = 0);
+	GMessage(Gtk::GdkEvent *e);
 	~GMessage();
 
 	int Type();

@@ -155,10 +155,10 @@ int GdcGif::out_line(uchar *pixels, int linewidth, int interlaced, int BitDepth)
 	        memcpy((*pDC)[lines], pixels, pDC->X());
 	        break;
 	    }
-	    case CsArgb32:
+	    case System32BitColourSpace:
 	    {
-	        GArgb32 *s = (GArgb32*) (*pDC)[lines];
-	        GArgb32 *e = s + pDC->X();
+	        System32BitPixel *s = (System32BitPixel*) (*pDC)[lines];
+	        System32BitPixel *e = s + pDC->X();
 	        GPalette *pal = pDC->Palette();
         	GdcRGB *p = (*pal)[0], *pix;
         	
