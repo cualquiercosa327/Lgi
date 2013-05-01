@@ -499,38 +499,50 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 	GBlitRegions br(this, x, y, Src, a);
 	if (!br.Valid())
 	{
-		/*
-		printf("%s:%i - Invalid clip region:\n"
-				"\tDst=%i,%i @ %i,%i Src=%i,%i @ %s\n",
-				_FL,
-				X(), Y(),
-				x, y,
-				Src->X(), Src->Y(),
-				a ? a->GetStr() : 0);
-		br.Dump();
-		*/
 		return;
 	}
 
 	GMemDC *Mem;
-	
-	/*
-	if (Src->GetBits() != GetBits())
-	{
-		// Do on the fly depth conversion...
-		GMemDC Tmp(br.SrcClip.X(), br.SrcClip.Y(), GetBits());
-		Tmp.Blt(0, 0, Src, &br.SrcClip);
-		Blt(x, y, &Tmp);
-	}
-	else */
 	if (Mem = dynamic_cast<GMemDC*>(Src))
 	{
-		gdk_draw_image( d->d,
-		                d->gc,
-                        Mem->GetImage(),
-                        br.SrcClip.x1, br.SrcClip.y1,
-                        x-OriginX, y-OriginY,
-                        br.SrcClip.X(), br.SrcClip.Y());
+		switch (Mem->GetColourSpace())
+		{
+			case CsRgba32:
+			case CsBgra32:
+			case CsArgb32:
+			case CsAbgr32:
+			{
+				cairo_surface_t *src = Mem->GetSurface(br.SrcClip);
+				if (src)
+				{
+					int px = x - OriginX;
+					int py = y - OriginY;
+					
+					cairo_t *dest = gdk_cairo_create(d->d);
+					cairo_set_source_surface(dest, src, px, py);
+					// cairo_set_source_rgb(dest, 1, 0, 0);
+					cairo_rectangle(dest,
+									px, py,
+									br.DstClip.X(),
+									br.DstClip.Y());
+					cairo_fill(dest);
+					cairo_destroy(dest);
+					cairo_surface_destroy(src);
+					break;
+				}
+				// else fall through
+			}
+			default:
+			{
+				gdk_draw_image( d->d,
+								d->gc,
+								Mem->GetImage(),
+								br.SrcClip.x1, br.SrcClip.y1,
+								x-OriginX, y-OriginY,
+								br.SrcClip.X(), br.SrcClip.Y());
+				break;
+			}
+		}
 	}
 }
 

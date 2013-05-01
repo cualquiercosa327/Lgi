@@ -1485,7 +1485,7 @@ void GToolBar::_BuildCache(GImageList *From)
 			// True colour screen
 			d->pColour = new GMemDC;
 			if (d->pColour &&
-				d->pColour->Create(From->X(), From->Y(), Bits))
+				d->pColour->Create(From->X(), From->Y(), 32))
 			{
 				GColour c(LC_MED, 24);
 				d->pColour->Colour(c);

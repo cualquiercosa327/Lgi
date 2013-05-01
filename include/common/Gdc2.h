@@ -1395,6 +1395,7 @@ public:
 		Gtk::GdkImage *GetImage();
 		GdcPt2 GetSize();
 		Gtk::cairo_t *GetCairo();
+		Gtk::cairo_surface_t *GetSurface(GRect &r);
 
 		#endif
 		

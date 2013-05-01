@@ -72,6 +72,27 @@ GMemDC::~GMemDC()
 	DeleteObj(d);
 }
 
+cairo_surface_t *GMemDC::GetSurface(GRect &r)
+{
+	cairo_format_t fmt = CAIRO_FORMAT_ARGB32;
+	switch (d->Img->depth)
+	{
+		case 8: fmt = CAIRO_FORMAT_A8; break;
+		case 24: fmt = CAIRO_FORMAT_RGB24; break;
+		case 32: fmt = CAIRO_FORMAT_ARGB32; break;
+		default:
+			LgiAssert(!"Not a bit depth that cairo supports");
+			return NULL;
+	}
+
+	int pixel_bytes = GColourSpaceToBits(ColourSpace) >> 3;
+	return cairo_image_surface_create_for_data(	((uchar*)d->Img->mem) + (r.y1 * d->Img->bpl) + (r.x1 * pixel_bytes),
+												fmt,
+												r.X(),
+												r.Y(),
+												d->Img->bpl);
+}
+
 cairo_t *GMemDC::GetCairo()
 {
 	if (!Cairo)
