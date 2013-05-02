@@ -15,6 +15,7 @@
 #include "GDragAndDrop.h"
 #include "GEdit.h"
 #include "GViewPriv.h"
+#include "GPopup.h"
 
 using namespace Gtk;
 #include "LgiWidget.h"
@@ -356,10 +357,7 @@ void GView::Quit(bool DontDelete)
 	}
 	else
 	{
-		Detach();
-		#ifdef LINUX
-		LgiApp->DeleteMeLater(this);
-		#endif
+		delete this;
 	}
 }
 
@@ -394,8 +392,13 @@ bool GView::SetPos(GRect &p, bool Repaint)
 			o = Par->_BorderSize;
 		}
 		
-		// gtk_widget_set_size_request(_View, Pos.X(), Pos.Y());
-		if (gtk_widget_get_parent(_View))
+		GPopup *p = dynamic_cast<GPopup*>(this);
+		if (p)
+		{
+			gtk_window_move(GTK_WINDOW(_View), Pos.x1, Pos.y1);
+			gtk_window_resize(GTK_WINDOW(_View), Pos.X(), Pos.Y());
+		}
+		else if (gtk_widget_get_parent(_View))
 		{   
 		    lgi_widget_setsize(_View, Pos.X(), Pos.Y());
 			lgi_widget_setchildpos(	gtk_widget_get_parent(_View),

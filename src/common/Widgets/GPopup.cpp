@@ -653,30 +653,32 @@ gboolean PopupMapEvent(GtkWidget *widget, GdkEvent *e, GPopup *Wnd)
 
 bool GPopup::Attach(GViewI *p)
 {
-	#if defined MAC && !defined COCOA
+	#if defined MAC
 	
-	if (p)
-	{
-		GWindow *w = p->GetWindow();
-		if (w)
+		#if !defined COCOA
+		if (p)
 		{
-			if (GView::Attach(w))
+			GWindow *w = p->GetWindow();
+			if (w)
 			{
-				HIViewRef p = HIViewGetSuperview(_View);
-				HIViewRef f = HIViewGetFirstSubview(p);
-				if (f != _View)
+				if (GView::Attach(w))
 				{
-					HIViewSetZOrder(_View, kHIViewZOrderAbove, 	f);
+					HIViewRef p = HIViewGetSuperview(_View);
+					HIViewRef f = HIViewGetFirstSubview(p);
+					if (f != _View)
+					{
+						HIViewSetZOrder(_View, kHIViewZOrderAbove, 	f);
+					}
+					
+					AttachChildren();
+					return true;
 				}
-				
-				AttachChildren();
-				return true;
+				else printf("%s:%i - error\n", _FL);
 			}
 			else printf("%s:%i - error\n", _FL);
 		}
 		else printf("%s:%i - error\n", _FL);
-	}
-	else printf("%s:%i - error\n", _FL);
+		#endif
 	
 	return false;
 	
@@ -697,6 +699,7 @@ bool GPopup::Attach(GViewI *p)
 		
 		if (!Wnd)
 		{
+		    
 		    Wnd = gtk_window_new(GTK_WINDOW_POPUP);
 		    // Wnd = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 		    gtk_window_set_decorated(GTK_WINDOW(Wnd), FALSE);
@@ -713,11 +716,10 @@ bool GPopup::Attach(GViewI *p)
                             this);
 		}
 
-		if (Wnd)
+		if (Wnd && Pos.Valid())
 		{
-		    // LgiTrace("Attaching Popup at %s\n", Pos.GetStr());
+			gtk_window_set_default_size(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
 			gtk_window_move(GTK_WINDOW(Wnd), Pos.x1, Pos.y1);
-		    gtk_window_set_default_size(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
 		}
 
         if (!_View)
@@ -760,7 +762,11 @@ void GPopup::Visible(bool i)
     if (Wnd)
     {
 	    if (i)
+	    {
 	        gtk_widget_show_all(Wnd);
+			gtk_window_move(GTK_WINDOW(Wnd), Pos.x1, Pos.y1);
+			gtk_window_resize(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
+	    }
 	    else
 	    {
 	        gtk_grab_remove(Wnd);

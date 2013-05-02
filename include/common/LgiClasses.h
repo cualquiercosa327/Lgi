@@ -1091,7 +1091,7 @@ protected:
 		bool y
 	);
 	
-	#ifndef WIN32
+	#if defined(XPLATFORM_GLAYOUT)
 	void AttachScrollBars();
 	#endif
 	#if defined(MAC) && !XPLATFORM_GLAYOUT
@@ -1133,7 +1133,7 @@ public:
 	bool Pour(GRegion &r);
 
 	// Impl
-	#if !defined WIN32
+	#if defined(__GTK_H__) || defined(MAC)
 
 	bool Attach(GViewI *p);
 	bool Detach();

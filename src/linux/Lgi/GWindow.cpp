@@ -171,7 +171,10 @@ GWindowCallback(GtkWidget   *widget,
 		{
 			bool Close = This->OnRequestClose(false);
 			if (Close)
+			{
 				This->OnGtkDelete();
+				delete This;
+			}
 			return !Close;
 		}
 		case GDK_DESTROY:

@@ -555,7 +555,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\win32\Lgi\GLayout.cpp"
+					RelativePath=".\src\linux\Lgi\GLayout.cpp"
 					>
 				</File>
 				<File

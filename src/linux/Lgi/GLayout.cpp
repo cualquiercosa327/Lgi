@@ -171,9 +171,9 @@ int GLayout::OnNotify(GViewI *c, int f)
 
 void GLayout::OnPosChange()
 {
-	int Edge = (Sunken() || Raised()) ? _BorderSize : 0;
 	GRect r = GView::GetClient();
-	r.Offset(Edge, Edge);
+	// int Edge = (Sunken() || Raised()) ? _BorderSize : 0;
+	// r.Offset(Edge, Edge);
 	GRect v(r.x2-SCROLL_BAR_SIZE+1, r.y1, r.x2, r.y2);
 	GRect h(r.x1, r.y2-SCROLL_BAR_SIZE+1, r.x2, r.y2);
 	

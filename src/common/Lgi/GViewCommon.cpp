@@ -972,11 +972,26 @@ void GView::Focus(bool i)
 			}
 			else
 			{
-				#if 0
-				printf("xcb_set_input_focus to %s/%p mapstate=%i Par=%i\n",
-					GetClass(), this, GetMapState(), Wnd ? Wnd->GetMapState() : -1);
-				#endif
+				// gdk_pointer_ungrab(GDK_CURRENT_TIME);
+				// gdk_keyboard_ungrab(GDK_CURRENT_TIME);
+				// gtk_grab_remove(menu);
+				Gtk::GdkWindow *w = GetWindow()->WindowHandle()->bin.container.widget.window;
+				if (w)
+				{
+					Gtk::gdk_display_keyboard_ungrab
+					(
+						Gtk::gdk_window_get_display
+						(
+							GetWindow()->WindowHandle()->bin.container.widget.window
+						),
+						GDK_CURRENT_TIME
+					);
+				}
+				
+				bool can = Gtk::gtk_widget_get_can_focus(_View);
+				LgiAssert(can);
 				gtk_widget_grab_focus(_View);
+				LgiTrace("Setting focus to %s\n", GetClass());
 			}
 		}
 
