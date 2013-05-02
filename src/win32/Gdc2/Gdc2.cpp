@@ -1187,45 +1187,6 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-int GColourSpaceToBits(GColourSpace ColourSpace)
-{
-	uint32 c = ColourSpace;
-	int bits = 0;
-	while (c)
-	{
-		if (c & 0xf0)
-		{
-			int n = c & 0xf;
-			bits += n ? n : 16;
-		}
-		c >>= 8;
-	}
-	return bits;
-}
-
-GColourSpace GBitsToColourSpace(int Bits)
-{
-	switch (Bits)
-	{
-		case 8:
-			return CsIndex8;
-		case 15:
-			return CsRgb15;
-		case 16:
-			return CsRgb16;
-		case 24:
-			return CsBgr24;
-		case 32:
-			return CsBgra32;
-		default:
-			LgiAssert(!"Unknown colour space.");
-			break;
-	}
-	
-	return CsNone;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////
 GdcDevice *GdcDevice::pInstance = 0;
 
 GdcDevice::GdcDevice()

@@ -398,6 +398,7 @@ public:
 	int ScrX;
 	int ScrY;
 	int ScrBits;
+	GColourSpace ScrColourSpace;
 
 	// Palette
 	double GammaCorrection;
@@ -411,15 +412,7 @@ public:
 	// Options
 	int OptVal[GDC_MAX_OPTION];
 
-	// Alpha
-	#if defined WIN32
-	GLibrary MsImg;
-	#endif
-
 	GdcDevicePrivate(GdcDevice *d)
-	#ifdef WIN32
-	 : MsImg("msimg32")
-	#endif
 	{
 		Device = d;
 		GlobalColour = 0;
@@ -430,43 +423,6 @@ public:
 		// Palette information
 		GammaCorrection = 1.0;
 
-		#if WIN32NATIVE
-		// Get mode stuff
-		HWND hDesktop = GetDesktopWindow();
-		HDC hScreenDC = GetDC(hDesktop);
-
-		ScrX = GetSystemMetrics(SM_CXSCREEN);
-		ScrY = GetSystemMetrics(SM_CYSCREEN);
-		ScrBits = GetDeviceCaps(hScreenDC, BITSPIXEL);
-
-		int Colours = 1 << ScrBits;
-		pSysPal = (ScrBits <= 8) ? new GPalette(0, Colours) : 0;
-		if (pSysPal)
-		{
-			GdcRGB *p = (*pSysPal)[0];
-			if (p)
-			{
-				PALETTEENTRY pal[256];
-				GetSystemPaletteEntries(hScreenDC, 0, Colours, pal);
-				for (int i=0; i<Colours; i++)
-				{
-					p[i].R = pal[i].peRed;
-					p[i].G = pal[i].peGreen;
-					p[i].B = pal[i].peBlue;
-				}
-			}
-		}
-
-		ReleaseDC(hDesktop, hScreenDC);
-
-		// Options
-		// OptVal[GDC_REDUCE_TYPE] = REDUCE_ERROR_DIFFUSION;
-		// OptVal[GDC_REDUCE_TYPE] = REDUCE_HALFTONE;
-		OptVal[GDC_REDUCE_TYPE] = REDUCE_NEAREST;
-		OptVal[GDC_HALFTONE_BASE_INDEX] = 0;
-		
-		#elif defined __GTK_H__
-		
 		// Get mode stuff
 		Gtk::GdkDisplay *Dsp = Gtk::gdk_display_get_default();
 		Gtk::gint Screens = Gtk::gdk_display_get_n_screens(Dsp);
@@ -479,35 +435,20 @@ public:
 		        ScrY = Gtk::gdk_screen_get_height(Scr);
 		        Gtk::GdkVisual *Vis = Gtk::gdk_screen_get_system_visual(Scr);
 		        if (Vis)
+		        {
 		            ScrBits = Vis->depth;
+		            ScrColourSpace = GdkVisualToColourSpace(Vis, Vis->depth);
+		        }
 		    }
         }
 		
-		printf("Screen: %i x %i @ %i bpp\n", ScrX, ScrY, ScrBits);
-
-		int Colours = 1 << ScrBits;
-		pSysPal = (ScrBits <= 8) ? new GPalette(0, Colours) : 0;
-		if (pSysPal)
-		{
-		}
+		printf("Screen: %i x %i @ %i bpp (%s)\n", ScrX, ScrY, ScrBits, GColourSpaceToString(ScrColourSpace));
 
 		// Work out the size of a 24bit pixel
 		char *Data =(char*) malloc(4);
 		
-		#if 0
-		XImage *Img = XCreateImage(XDisplay(), DefaultVisual(XDisplay(), 0), 24, ZPixmap, 0, Data, 1, 1, 32, 4);
-		if (Img)
-		{
-			Pixel24::Size = Img->bits_per_pixel >> 3;
-			XDestroyImage(Img);
-		}
-		#else
-		printf("%s:%i - FIXME, get the size of 24bit pixel here.\n", _FL);
-		#endif
-		
 		// printf("Pixel24Size=%i\n", Pixel24Size);
 		OptVal[GDC_PROMOTE_ON_LOAD] = ScrBits;
-		#endif
 
 		// Calcuate lookups
 		CharSquareData = new ulong[255+255+1];
@@ -540,45 +481,6 @@ public:
 		DeleteArray(Div255);
 	}
 };
-
-///////////////////////////////////////////////////////////////////////////////////////////////
-int GColourSpaceToBits(GColourSpace ColourSpace)
-{
-	uint32 c = ColourSpace;
-	int bits = 0;
-	while (c)
-	{
-		if (c & 0xf0)
-		{
-			int n = c & 0xf;
-			bits += n ? n : 16;
-		}
-		c >>= 8;
-	}
-	return bits;
-}
-
-GColourSpace GBitsToColourSpace(int Bits)
-{
-	switch (Bits)
-	{
-		case 8:
-			return CsIndex8;
-		case 15:
-			return CsRgb15;
-		case 16:
-			return CsRgb16;
-		case 24:
-			return CsBgr24;
-		case 32:
-			return CsBgra32;
-		default:
-			LgiAssert(!"Unknown colour space.");
-			break;
-	}
-	
-	return CsNone;
-}
 
 //////////////////////////////////////////////////////////////
 GdcDevice *GdcDevice::pInstance = 0;
@@ -633,6 +535,11 @@ uchar *GdcDevice::GetDiv255()
 GGlobalColour *GdcDevice::GetGlobalColour()
 {
 	return d->GlobalColour;
+}
+
+GColourSpace GdcDevice::GetColourSpace()
+{
+	return d->ScrColourSpace;
 }
 
 int GdcDevice::GetBits()
@@ -1486,5 +1393,69 @@ GSurface *GInlineBmp::Create()
 	}
 
 	return pDC;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+GColourSpace GdkVisualToColourSpace(Gtk::GdkVisual *v, int output_bits)
+{
+	uint32 c = CsNone;
+	if (v)
+	{
+		switch (v->type)
+		{
+			default:
+			{
+				LgiAssert(!"impl me");
+				c = GBitsToColourSpace(v->depth);
+				break;
+			}
+			case Gtk::GDK_VISUAL_PSEUDO_COLOR:
+			case Gtk::GDK_VISUAL_STATIC_COLOR:
+			{
+				LgiAssert(v->depth <= 16);
+				c = (CtIndex << 4) | (v->depth != 16 ? v->depth : 0);
+				break;
+			}
+			case Gtk::GDK_VISUAL_TRUE_COLOR:
+			case Gtk::GDK_VISUAL_DIRECT_COLOR:
+			{
+				c |= ((CtRed   << 4) | v->red_prec  ) << (v->red_shift);
+				c |= ((CtGreen << 4) | v->green_prec) << (v->green_shift);
+				c |= ((CtBlue  << 4) | v->blue_prec ) << (v->blue_shift);
+				
+				int bits = GColourSpaceToBits((GColourSpace) c);
+				if (bits != output_bits)
+				{
+					int remaining_bits = output_bits - bits;
+					LgiAssert(remaining_bits <= 16);
+					if (remaining_bits <= 16)
+					{
+						c |=
+							(
+								(
+									(CtAlpha << 4)
+									|
+									(remaining_bits < 16 ? remaining_bits : 0)
+								)
+							)
+							<<
+							24;
+					}
+				}
+				break;
+			}
+		}
+	}
+	
+	GColourSpace Cs;
+	if (v->byte_order == Gtk::GDK_LSB_FIRST)
+	{
+		c = LgiSwap32(c);
+		while (!(c & 0xff))
+			c >>= 8;
+	}
+
+	Cs = (GColourSpace)c;
+	return Cs;
 }
 

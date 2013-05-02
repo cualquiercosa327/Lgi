@@ -634,3 +634,100 @@ COLOUR CBit(int DstBits, COLOUR c, int SrcBits, GPalette *Pal)
 	return c;
 }
 
+/////////////////////////////////////////////////////////////////////////////
+const char *GColourSpaceToString(GColourSpace cs)
+{
+	#define CS_STR_BUF 4
+	static int Cur = 0;
+	static char Buf[CS_STR_BUF][16];
+	static const char *CompTypes[] =
+	{
+		"N", // None
+		"I", // Index
+		"R", // Red
+		"G", // Green
+		"B", // Blue
+		"A", // Alpha
+		"X", // Pad
+		"H", // Hue
+		"S", // Sat
+		"L", // Lum
+		"C", // Cyan
+		"M", // Magenta
+		"Y", // Yellow
+		"B", // Black
+		"?",
+		"?",
+	};
+
+	char *start = Buf[Cur++], *s = start;
+	int total = 0;
+	bool first = true;
+	if (Cur >= CS_STR_BUF)
+		Cur = 0;
+	
+	*s++ = 'C';
+	*s++ = 's';
+	for (int i=3; i>=0; i--)
+	{
+		int c = (((uint32)cs) >> (i << 3)) & 0xff;
+		if (c)
+		{
+			GComponentType type = (GComponentType)(c >> 4);
+			int size = c & 0xf;
+			if (first)
+			{
+				*s++ = CompTypes[type][0];
+				first = false;
+			}
+			else
+			{
+				*s++ = tolower(CompTypes[type][0]);
+			}
+			
+			total += size ? size : 16;
+		}
+	}
+
+	s += sprintf_s(s, 4, "%i", total);	
+	return start;
+}
+
+int GColourSpaceToBits(GColourSpace ColourSpace)
+{
+	uint32 c = ColourSpace;
+	int bits = 0;
+	while (c)
+	{
+		if (c & 0xf0)
+		{
+			int n = c & 0xf;
+			bits += n ? n : 16;
+		}
+		c >>= 8;
+	}
+	return bits;
+}
+
+GColourSpace GBitsToColourSpace(int Bits)
+{
+	switch (Bits)
+	{
+		case 8:
+			return CsIndex8;
+		case 15:
+			return CsRgb15;
+		case 16:
+			return CsRgb16;
+		case 24:
+			return System24BitColourSpace;
+		case 32:
+			return System32BitColourSpace;
+		default:
+			LgiAssert(!"Unknown colour space.");
+			break;
+	}
+	
+	return CsNone;
+}
+

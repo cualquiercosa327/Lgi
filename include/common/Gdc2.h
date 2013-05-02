@@ -338,10 +338,22 @@ union GColourSpaceBits
 	} Bits;
 };
 
+/// Converts a colour space into a string for debugging/reporting.
+LgiFunc const char *GColourSpaceToString(GColourSpace cs);
+
+/// Works out how many bits required for a pixel in a particular colour space.
 LgiFunc int GColourSpaceToBits(GColourSpace ColourSpace);
+
+/// Converts a bit-depth into the default colour space for that depth. Used mostly
+/// in interfacing old bit-depth based code to newer colour space code.
 LgiFunc GColourSpace GBitsToColourSpace(int Bits);
 
-// These definitions are provide as a conveniance when converting old code to the
+#ifdef __GTK_H__
+/// Converts a GTK visual to a Lgi colour space.
+LgiFunc GColourSpace GdkVisualToColourSpace(Gtk::GdkVisual *v, int output_bits);
+#endif
+
+// These definitions are provide as a convenience when converting old code to the
 // GColourSpace system. However you should not use them for new code, as some systems
 // can have different colour spaces depending on OS version or hardware configuration.
 #if defined(WIN32) || defined(LINUX)
@@ -393,189 +405,6 @@ typedef uint8						ALPHA;
 // colour conversion defines
 // RGB colour space
 #define BitWidth(bits, cropbits)	( (((bits)+(cropbits)-1)/(cropbits)) * 4 )
-
-
-
-
-/*
-#if defined WIN32
-
-	#ifndef __BIG_ENDIAN__
-	#define C24R					0
-	#define C24G					1
-	#define C24B					2
-	#else
-	#define C24R					2
-	#define C24G					1
-	#define C24B					0
-	#endif
-
-	class LgiClass Pixel24
-	{
-	public:
-		static int Size;
-	
-		uchar b, g, r;
-		
-		Pixel24 *Next() { return this + 1; }
-	};
-
-	#ifndef __BIG_ENDIAN__
-	#define C32B					0
-	#define C32G					1
-	#define C32R					2
-	#define C32A					3
-	#else
-	#define C32B					3
-	#define C32G					2
-	#define C32R					1
-	#define C32A					0
-	#endif
-
-	class LgiClass Pixel32
-	{
-	public:
-		static int Size;
-
-		uchar b, g, r, a;
-		
-		Pixel32 *Next() { return this + 1; }
-	};
-
-#elif defined LINUX
-
-	#ifndef __BIG_ENDIAN__
-	#define C24B					0
-	#define C24G					1
-	#define C24R					2
-	#else
-	#define C24B					2
-	#define C24G					1
-	#define C24R					0
-	#endif
-
-	class LgiClass Pixel24
-	{
-	public:
-		static int Size;
-
-		uchar b, g, r;
-
-		Pixel24 *Next() { return (Pixel24*) ((char*)this + Size); }
-	};
-
-	#ifndef __BIG_ENDIAN__
-	#define C32B					0
-	#define C32G					1
-	#define C32R					2
-	#define C32A					3
-	#else
-	#define C32B					3
-	#define C32G					2
-	#define C32R					1
-	#define C32A					0
-	#endif
-
-	class LgiClass Pixel32
-	{
-	public:
-		static int Size;
-
-		uchar b, g, r, a;
-
-		Pixel32 *Next() { return this + 1; }
-	};
-
-#elif defined BEOS
-
-	#ifndef __BIG_ENDIAN__
-	#define C24B					0
-	#define C24G					1
-	#define C24R					2
-	#else
-	#define C24B					2
-	#define C24G					1
-	#define C24R					0
-	#endif
-
-	class LgiClass Pixel24
-	{
-	public:
-		static int Size;
-
-		uchar b, g, r;
-
-		Pixel24 *Next() { return this + 1; }
-	};
-
-	#ifndef __BIG_ENDIAN__
-	#define C32B					0
-	#define C32G					1
-	#define C32R					2
-	#define C32A					3
-	#else
-	#define C32B					3
-	#define C32G					2
-	#define C32R					1
-	#define C32A					0
-	#endif
-
-	class LgiClass Pixel32
-	{
-	public:
-		static int Size;
-
-		uchar b, g, r, a;
-
-		Pixel32 *Next() { return this + 1; }
-	};
-
-#elif defined MAC
-
-	#ifdef __BIG_ENDIAN__
-	#define C24B					2
-	#define C24G					1
-	#define C24R					0
-	#else
-	#define C24B					0
-	#define C24G					1
-	#define C24R					2
-	#endif
-
-	class LgiClass Pixel24
-	{
-	public:
-		static int Size;
-
-		uchar r, g, b;
-
-		Pixel24 *Next() { return this + 1; }
-	};
-
-	
-	#ifdef __BIG_ENDIAN__
-	#define C32A					0
-	#define C32B					1
-	#define C32G					2
-	#define C32R					3
-	#else
-	#define C32A					3
-	#define C32B					2
-	#define C32G					1
-	#define C32R					0
-	#endif
-
-	class LgiClass Pixel32
-	{
-	public:
-		static int Size;
-		uchar r, g, b, a;
-
-		Pixel32 *Next() { return this + 1; }
-	};
-
-#endif
-*/
 
 #define C24R					2
 #define C24G					1
