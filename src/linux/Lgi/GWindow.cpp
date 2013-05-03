@@ -190,6 +190,22 @@ GWindowCallback(GtkWidget   *widget,
 			return FALSE;
 			break;
 		}
+		case GDK_FOCUS_CHANGE:
+		{
+			char buf[1024];
+			int ch = 0;
+			::GArray<GViewI*> a;
+			for (GViewI *i = This; i; i = i->GetParent())
+			{
+				a.Add(i);
+			}
+			for (int n=a.Length()-1; n>=0; n--)
+			{
+				ch += sprintf_s(buf + ch, sizeof(buf) - ch, "> %s \"%-.8s\" ", a[n]->GetClass(), a[n]->Name());
+			}
+			LgiTrace("%s : gwnd_focus=%i\n", buf, event->focus_change.in);
+			break;
+		}
 		case GDK_CLIENT_EVENT:
 		{
 			GMessage m(event);
@@ -237,6 +253,14 @@ bool GWindow::Attach(GViewI *p)
 							this);
 		g_signal_connect(	G_OBJECT(Wnd),
 							"button-press-event",
+							G_CALLBACK(GWindowCallback),
+							this);
+		g_signal_connect(	G_OBJECT(Wnd),
+							"focus-in-event",
+							G_CALLBACK(GWindowCallback),
+							this);
+		g_signal_connect(	G_OBJECT(Wnd),
+							"focus-out-event",
 							G_CALLBACK(GWindowCallback),
 							this);
 		g_signal_connect(	G_OBJECT(Wnd),

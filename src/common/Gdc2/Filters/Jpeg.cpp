@@ -341,6 +341,119 @@ union JpegPointer
 	JpegCmyk *c32;
 };
 
+template<typename T>
+void Convert24(T *d, int width)
+{
+	JpegRgb *e = (JpegRgb*) d;
+	JpegRgb *s = e;
+	
+	d += width - 1;
+	s += width - 1;
+	
+	while (s >= e)
+	{
+		JpegRgb t = *s--;
+		
+		d->r = t.r;
+		d->g = t.g;
+		d->b = t.b;
+		d--;
+	}
+}
+
+template<typename T>
+void Convert32(T *d, int width)
+{
+	JpegRgb *e = (JpegRgb*) d;
+	JpegRgb *s = e;
+	
+	d += width - 1;
+	s += width - 1;
+	
+	while (s >= e)
+	{
+		JpegRgb t = *s--;
+		
+		d->r = t.r;
+		d->g = t.g;
+		d->b = t.b;
+		d->a = 255;
+		d--;
+	}
+}
+
+#define Rc 0
+#define Gc (MaxRGB+1)
+#define Bc (MaxRGB+1)*2
+#define DownShift(x) ((int) ((x)+(1L << 15)) >> 16)
+#define UpShifted(x) ((int) ((x)*(1L << 16)+0.5))
+#define MaxRGB                          255
+
+template<typename T>
+void Ycc24(	T *d,
+			int width,
+			long *red,
+			long *green,
+			long *blue,
+			uchar *range_table)
+{
+	JpegXyz *s = (JpegXyz*) d;
+	T *e = d;
+	uchar *range_limit = range_table + (MaxRGB + 1);
+	
+	d += width - 1;
+	s += width - 1;
+
+	while (d >= e)
+	{
+		/*	Y =	 0.299  * R	+ 0.587 * G	+ 0.114 * B 
+			Cb = -0.169 * R	- 0.331 * G	+ 0.500 * B 
+			Cr = 0.500  * R	- 0.419 * G	- 0.081 * B */		
+		int x = s->x;
+		int y = s->y;
+		int z = s->z;
+		
+		d->r = range_limit[DownShift(red[x+Rc] + green[y+Rc] + blue[z+Rc])];
+		d->g = range_limit[DownShift(red[x+Gc] + green[y+Gc] + blue[z+Gc])];
+		d->b = range_limit[DownShift(red[x+Bc] + green[y+Bc] + blue[z+Bc])];
+		d--;
+		s--;
+	}
+}
+
+template<typename T>
+void Ycc32(	T *d,
+			int width,
+			long *red,
+			long *green,
+			long *blue,
+			uchar *range_table)
+{
+	JpegXyz *s = (JpegXyz*) d;
+	T *e = d;
+	uchar *range_limit = range_table + (MaxRGB + 1);
+	
+	d += width - 1;
+	s += width - 1;
+
+	while (d >= e)
+	{
+		/*	Y =	 0.299  * R	+ 0.587 * G	+ 0.114 * B 
+			Cb = -0.169 * R	- 0.331 * G	+ 0.500 * B 
+			Cr = 0.500  * R	- 0.419 * G	- 0.081 * B */		
+		int x = s->x;
+		int y = s->y;
+		int z = s->z;
+		
+		d->r = range_limit[DownShift(red[x+Rc] + green[y+Rc] + blue[z+Rc])];
+		d->g = range_limit[DownShift(red[x+Gc] + green[y+Gc] + blue[z+Gc])];
+		d->b = range_limit[DownShift(red[x+Bc] + green[y+Bc] + blue[z+Bc])];
+		d->a = 255;
+		d--;
+		s--;
+	}
+}
+
 GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 {
 	GFilter::IoStatus Status = IoError;
@@ -455,13 +568,6 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 		JPEGLIB jpeg_start_decompress(&cinfo);
 		row_stride = cinfo.output_width * cinfo.output_components;
 
-		#define Rc 0
-		#define Gc (MaxRGB+1)
-		#define Bc (MaxRGB+1)*2
-		#define DownShift(x) ((int) ((x)+(1L << 15)) >> 16)
-		#define UpShifted(x) ((int) ((x)*(1L << 16)+0.5))
-		#define MaxRGB                          255
-
 		long  *red   = new long[3*(MaxRGB+1)];
 		long  *green = new long[3*(MaxRGB+1)];
 		long  *blue  = new long[3*(MaxRGB+1)];
@@ -548,33 +654,22 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 							{
 								if (cinfo.num_components == 3)
 								{
-									JpegXyz *s = (JpegXyz*) Ptr;
-									#ifdef MAC
-									GArgb32 *d = (GArgb32*) Ptr;
-									#else
-									GRgb24 *d = (GRgb24*) Ptr;
-									#endif
-									
-									for (int n=pDC->X()-1; n>=0; n--)
+									switch (pDC->GetColourSpace())
 									{
-										/*
-										Y =	0.299 * R	+ 0.587 * G	+ 0.114 * B 
-										Cb =	-0.169 * R	- 0.331 * G	+ 0.500 * B 
-										Cr =	0.500 * R	- 0.419 * G	- 0.081 * B
-										*/
+										#define YccCase(name, bits) \
+											case Cs##name: Ycc##bits((G##name*)Ptr, pDC->X(), red, green, blue, range_table);
 										
-										int x = s->x;
-										int y = s->y;
-										int z = s->z;
-										
-										d->r = range_limit[DownShift(red[x+Rc] + green[y+Rc] + blue[z+Rc])];
-										d->g = range_limit[DownShift(red[x+Gc] + green[y+Gc] + blue[z+Gc])];
-										d->b = range_limit[DownShift(red[x+Bc] + green[y+Bc] + blue[z+Bc])];
-										#ifdef MAC
-										d->a = 255;
-										#endif
-										d++;
-										s++;
+										YccCase(Rgb24, 24);
+										YccCase(Bgr24, 24);
+										YccCase(Xrgb32, 24);
+										YccCase(Xbgr32, 24);
+										YccCase(Rgbx32, 24);
+										YccCase(Bgrx32, 24);
+
+										YccCase(Argb32, 32);
+										YccCase(Abgr32, 32);
+										YccCase(Rgba32, 32);
+										YccCase(Bgra32, 32);
 									}
 								}
 								break;
@@ -584,29 +679,22 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 							{
 								if (cinfo.num_components == 3)
 								{
-									#ifdef MAC
-									GArgb32 *d = (GArgb32*) Ptr;
-									#else
-									GBgr24 *d = (GBgr24*) Ptr;
-									#endif
-									JpegRgb *e = (JpegRgb*) Ptr;
-									JpegRgb *s = e;
-									
-									d += pDC->X() - 1;
-									s += pDC->X() - 1;
-									
-									while (s >= e)
+									switch (pDC->GetColourSpace())
 									{
-										JpegRgb t = *s--;
+										#define JpegCase(name, bits) \
+											case Cs##name: Convert##bits((G##name*)Ptr, pDC->X());
 										
-										d->r = t.r;
-										d->g = t.g;
-										d->b = t.b;
-										#ifdef MAC
-										d->a = 255;
-										#endif
-										d--;
-										
+										JpegCase(Rgb24, 24);
+										JpegCase(Bgr24, 24);
+										JpegCase(Xrgb32, 24);
+										JpegCase(Xbgr32, 24);
+										JpegCase(Rgbx32, 24);
+										JpegCase(Bgrx32, 24);
+
+										JpegCase(Argb32, 32);
+										JpegCase(Abgr32, 32);
+										JpegCase(Rgba32, 32);
+										JpegCase(Bgra32, 32);
 									}
 								}
 								break;

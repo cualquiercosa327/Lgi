@@ -988,10 +988,10 @@ void GView::Focus(bool i)
 					);
 				}
 				
-				bool can = Gtk::gtk_widget_get_can_focus(_View);
-				LgiAssert(can);
+				// bool can = Gtk::gtk_widget_get_can_focus(_View);
+				// LgiAssert(can);
 				gtk_widget_grab_focus(_View);
-				LgiTrace("Setting focus to %s\n", GetClass());
+				// LgiTrace("Setting focus to %s\n", GetClass());
 			}
 		}
 

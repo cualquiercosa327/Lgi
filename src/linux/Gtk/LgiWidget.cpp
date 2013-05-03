@@ -67,26 +67,7 @@ GtkWidget *lgi_widget_new(GViewI *target, int w, int h, bool pour_largest)
 			#endif
         }
 
-		#if 1
 		gtk_widget_add_events(GTK_WIDGET(p), GDK_ALL_EVENTS_MASK);
-		#else
-   		gtk_widget_add_events(  GTK_WIDGET(p),
-   		                        GDK_BUTTON_PRESS_MASK |
-   		                        GDK_BUTTON_RELEASE_MASK |
-   		                        GDK_ENTER_NOTIFY_MASK |
-                                GDK_LEAVE_NOTIFY_MASK |
-								// GDK_POINTER_MOTION_HINT_MASK |
-                                GDK_POINTER_MOTION_MASK |
-                                GDK_BUTTON_MOTION_MASK |
-                                GDK_BUTTON1_MOTION_MASK |
-                                GDK_BUTTON2_MOTION_MASK |
-                                GDK_BUTTON3_MOTION_MASK |
-                                GDK_EXPOSURE_MASK |
-                                GDK_FOCUS_CHANGE_MASK |
-                                GDK_STRUCTURE_MASK |
-                                GDK_KEY_PRESS_MASK |
-                                GDK_KEY_RELEASE_MASK);
-		#endif
 	}	
 	return GTK_WIDGET(p);
 }
@@ -221,7 +202,24 @@ static gboolean lgi_widget_focus_event(GtkWidget *wid, GdkEventFocus *e)
 	LgiWidget *p = LGI_WIDGET(wid);
     GView *v = dynamic_cast<GView*>(p->target);
     if (v)
+    {
+		char buf[1024];
+		int ch = 0;
+		::GArray<GViewI*> a;
+		for (GViewI *i = v; i; i = i->GetParent())
+		{
+			a.Add(i);
+		}
+		for (int n=a.Length()-1; n>=0; n--)
+		{
+			ch += sprintf_s(buf + ch, sizeof(buf) - ch, "> %s \"%-.8s\" ", a[n]->GetClass(), a[n]->Name());
+		}
+		LgiTrace("%s : focus=%i\n", buf, e->in);
+		
         v->OnFocus(e->in);
+    }
+    else LgiAssert(0);
+    
 	return TRUE;
 }
 

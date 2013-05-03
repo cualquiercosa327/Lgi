@@ -642,6 +642,22 @@ gboolean PopupButtonEvent(GtkWidget *widget, GdkEventButton *e, GPopup *popup)
     return TRUE;            
 }
 
+gboolean PopupFocusEvent(GtkWidget *widget, GdkEventButton *e, GPopup *popup)
+{
+    LgiTrace("PopupButtonPress cur_grab=%p\n", gtk_grab_get_current());
+    gtk_grab_remove(widget);
+    
+    GtkWindow *WidgetParent = (GtkWindow*)gtk_widget_get_parent_window(widget);
+    GtkWindow *PopupParent = (GtkWindow*)gtk_widget_get_parent_window(popup->Handle());
+    bool Over = WidgetParent == PopupParent;
+    if (!Over)
+    {
+        popup->Visible(false);
+    }
+    
+    return TRUE;            
+}
+
 gboolean PopupMapEvent(GtkWidget *widget, GdkEvent *e, GPopup *Wnd)
 {
 	printf("Adding grab for popup...\n");
@@ -713,6 +729,14 @@ bool GPopup::Attach(GViewI *p)
             g_signal_connect (G_OBJECT(Wnd),
                             "map-event",
                             G_CALLBACK(PopupMapEvent),
+                            this);
+            g_signal_connect (G_OBJECT(Wnd),
+                            "focus-in-event",
+                            G_CALLBACK(PopupFocusEvent),
+                            this);
+            g_signal_connect (G_OBJECT(Wnd),
+                            "focus-out-event",
+                            G_CALLBACK(PopupFocusEvent),
                             this);
 		}
 
