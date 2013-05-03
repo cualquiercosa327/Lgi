@@ -1106,7 +1106,7 @@ bool FileDescriptor::Decode(char *ContentType,
 			Content = CONTENT_QUOTED_PRINTABLE;
 		}
 
-		if (Content != CONTENT_NONE);
+		if (Content != CONTENT_NONE)
 		{
 			const char *NameKey = "name";
 			char *n = strnistr(ContentType, NameKey, 1000);
@@ -1364,7 +1364,7 @@ bool MailProtocol::Write(const char *Buf, bool LogWrite)
 	{											\
 		GMutex::Auto Lck(&SocketLock, _FL);	\
 		Socket.Reset(0);						\
-		return false;							\
+		return NULL;							\
 	}											\
 }
 

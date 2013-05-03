@@ -381,6 +381,7 @@ GApplicator *GApp32::Create(GColourSpace Cs, int Op)
 			AppCase(Bgra32);
 			AppCase(Argb32);
 			AppCase(Abgr32);
+            default: break;
 		}
 	}
 	

@@ -120,12 +120,14 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				3408B1E11729F11300397078 /* LgiRes_Css.cpp */,
+				34B7EA6B0A64B4DE00657E69 /* Lgi */,
 				34F3E966148730DA009D9AC5 /* LgiRes_ControlTree.cpp */,
+				3408B1E11729F11300397078 /* LgiRes_Css.cpp */,
 				34F3E967148730DA009D9AC5 /* LgiRes_Dialog.cpp */,
 				34F3E968148730DA009D9AC5 /* LgiRes_Dialog.h */,
 				34F3E969148730DA009D9AC5 /* LgiRes_Menu.cpp */,
 				34F3E96A148730DA009D9AC5 /* LgiRes_Menu.h */,
+				32DBCF6D0370B57F00C91783 /* LgiRes_Prefix.pch */,
 				34F3E96B148730DA009D9AC5 /* LgiRes_String.cpp */,
 				34F3E96C148730DA009D9AC5 /* LgiRes_String.h */,
 				34F3E96D148730DA009D9AC5 /* LgiRes_TableLayout.cpp */,
@@ -133,8 +135,6 @@
 				34F3E96F148730DA009D9AC5 /* LgiResEdit.h */,
 				34F3E970148730DA009D9AC5 /* Search.cpp */,
 				34F3E971148730DA009D9AC5 /* ShowLanguages.cpp */,
-				34B7EA6B0A64B4DE00657E69 /* Lgi */,
-				32DBCF6D0370B57F00C91783 /* LgiRes_Prefix.pch */,
 			);
 			name = Sources;
 			sourceTree = "<group>";
@@ -349,7 +349,7 @@
 					"$(OTHER_CFLAGS)",
 					"-fvisibility=default",
 				);
-				SDKROOT = macosx10.7;
+				SDKROOT = macosx;
 				USER_HEADER_SEARCH_PATHS = "../include/mac/carbon ../include/common";
 				VALID_ARCHS = i386;
 			};
@@ -364,7 +364,7 @@
 					"$(OTHER_CFLAGS)",
 					"-fvisibility=default",
 				);
-				SDKROOT = macosx10.7;
+				SDKROOT = macosx;
 				USER_HEADER_SEARCH_PATHS = "../include/mac/carbon ../include/common";
 				VALID_ARCHS = i386;
 			};

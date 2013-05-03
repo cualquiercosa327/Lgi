@@ -2473,7 +2473,7 @@ GCompiledCode *GCompiler::Compile(GScriptContext *Context, char *FileName, char 
 				DeleteObj(d->Code);
 			}
 			else d->Code = 0;
-			return false;
+			return NULL;
 		}
 	}
 

@@ -95,6 +95,7 @@
 		34766832093F20EE00623A44 /* GThread.h in Headers */ = {isa = PBXBuildFile; fileRef = 34766831093F20EE00623A44 /* GThread.h */; };
 		347677640FE5BB2800E2E445 /* md5.c in Sources */ = {isa = PBXBuildFile; fileRef = 347677630FE5BB2800E2E445 /* md5.c */; };
 		3478B20A12E6F87200936EFA /* GEdit.h in Headers */ = {isa = PBXBuildFile; fileRef = 3478B20912E6F87200936EFA /* GEdit.h */; };
+		347CB600172A97D600AC3EA6 /* GTableLayout.h in Headers */ = {isa = PBXBuildFile; fileRef = 347CB5FF172A97D600AC3EA6 /* GTableLayout.h */; };
 		3489C3EA0DD1C4DB0095F0E1 /* GMru.h in Headers */ = {isa = PBXBuildFile; fileRef = 3489C3E90DD1C4DB0095F0E1 /* GMru.h */; };
 		3493304A0F60CE440092EAE8 /* GViewCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349330490F60CE440092EAE8 /* GViewCommon.cpp */; };
 		3493304C0F60CE690092EAE8 /* GViewPriv.h in Headers */ = {isa = PBXBuildFile; fileRef = 3493304B0F60CE690092EAE8 /* GViewPriv.h */; };
@@ -254,6 +255,7 @@
 		34766831093F20EE00623A44 /* GThread.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GThread.h; path = ../../../include/common/GThread.h; sourceTree = "<group>"; };
 		347677630FE5BB2800E2E445 /* md5.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = md5.c; path = ../../common/Hash/md5/md5.c; sourceTree = "<group>"; };
 		3478B20912E6F87200936EFA /* GEdit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GEdit.h; path = ../../../include/common/GEdit.h; sourceTree = "<group>"; };
+		347CB5FF172A97D600AC3EA6 /* GTableLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GTableLayout.h; path = ../../../include/common/GTableLayout.h; sourceTree = SOURCE_ROOT; };
 		3489C3E90DD1C4DB0095F0E1 /* GMru.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GMru.h; path = ../../../include/common/GMru.h; sourceTree = "<group>"; };
 		349330490F60CE440092EAE8 /* GViewCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GViewCommon.cpp; path = ../../common/Lgi/GViewCommon.cpp; sourceTree = "<group>"; };
 		3493304B0F60CE690092EAE8 /* GViewPriv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GViewPriv.h; path = ../../../include/common/GViewPriv.h; sourceTree = "<group>"; };
@@ -697,42 +699,43 @@
 			isa = PBXGroup;
 			children = (
 				3429212A1087D55900578ECC /* Css */,
-				34DA5C2C0DE0339E0050C7E4 /* Mac Native */,
 				344D1B1608F4A36300228075 /* GBitmap.cpp */,
 				344D1B1708F4A36300228075 /* GButton.cpp */,
 				344D1B1808F4A36300228075 /* GCheckBox.cpp */,
 				344D1B1908F4A36300228075 /* GCombo.cpp */,
+				34CEBFE60DDC5EF800DE0E0B /* GCombo.h */,
 				34983C1208F5482D0054868C /* GDocView.cpp */,
+				34372ACF0C46E0290090CDC9 /* GDocView.h */,
 				344D1B1A08F4A36300228075 /* GEdit.cpp */,
+				3478B20912E6F87200936EFA /* GEdit.h */,
 				34D979D01150F0E100CE462B /* GLayout.cpp */,
 				344D1B1B08F4A36300228075 /* GList.cpp */,
+				34E51DAF0D2EFCCB0021AA08 /* GList.h */,
 				344D1B1C08F4A36300228075 /* GPanel.cpp */,
 				34D2CC4E08F0FB490009968C /* GPopup.cpp */,
+				34A8A3BC1303408000CAA8DF /* GPopup.h */,
 				344D1B1D08F4A36300228075 /* GProgress.cpp */,
 				344D1B1E08F4A36300228075 /* GProgressDlg.cpp */,
 				344D1B1408F4A33400228075 /* GRadioGroup.cpp */,
 				34DA5CB60DE0DE930050C7E4 /* GScrollBar.cpp */,
+				345F4B9E0F058D4F0015A7EE /* GScrollBar.h */,
+				344D1B0508F4A26300228075 /* GSlider.h */,
 				344D1B1F08F4A36300228075 /* GSplitter.cpp */,
 				344D1B2008F4A36300228075 /* GStatusBar.cpp */,
 				344D1B2108F4A36300228075 /* GTableLayout.cpp */,
+				347CB5FF172A97D600AC3EA6 /* GTableLayout.h */,
 				344D1B2208F4A36300228075 /* GTabView.cpp */,
 				344D1B2308F4A36300228075 /* GTextLabel.cpp */,
 				34983C1308F5482D0054868C /* GTextView3.cpp */,
+				34463F2411FBE25E009BB91F /* GTextView3.h */,
 				3444A36012275BDD004ADADE /* GToolBar.cpp */,
+				340FEA9D096E375600E534D5 /* GToolTabBar.h */,
 				34983C1608F5484C0054868C /* GToolTip.cpp */,
 				344D1B2508F4A36300228075 /* GTree.cpp */,
-				34D2CCEC08F11BEF0009968C /* GWidgets.cpp */,
-				34CEBFE60DDC5EF800DE0E0B /* GCombo.h */,
-				34372ACF0C46E0290090CDC9 /* GDocView.h */,
-				3478B20912E6F87200936EFA /* GEdit.h */,
-				34E51DAF0D2EFCCB0021AA08 /* GList.h */,
-				34A8A3BC1303408000CAA8DF /* GPopup.h */,
-				345F4B9E0F058D4F0015A7EE /* GScrollBar.h */,
-				344D1B0508F4A26300228075 /* GSlider.h */,
-				34463F2411FBE25E009BB91F /* GTextView3.h */,
-				340FEA9D096E375600E534D5 /* GToolTabBar.h */,
 				34F2E6590E1849D300E8DA6A /* GTree.h */,
+				34D2CCEC08F11BEF0009968C /* GWidgets.cpp */,
 				345C1EC80B46017000E80FF1 /* LgiWidgets.h */,
+				34DA5C2C0DE0339E0050C7E4 /* Mac Native */,
 			);
 			name = Widgets;
 			sourceTree = "<group>";
@@ -833,6 +836,7 @@
 				34661C7913C7407000B4C2A7 /* GUtf8.h in Headers */,
 				34B28AF2143FA6AF0023662F /* GPath.h in Headers */,
 				34A11A7E167534A500FCC5D7 /* GMutex.h in Headers */,
+				347CB600172A97D600AC3EA6 /* GTableLayout.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

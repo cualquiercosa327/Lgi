@@ -504,7 +504,7 @@ public:
 	GFont *GetFont(GCss *Style)
 	{
 		if (!Style)
-			return false;
+			return NULL;
 		
 		GFont *Default = Owner->GetFont();
 		GCss::StringsDef Face = Style->FontFamily();

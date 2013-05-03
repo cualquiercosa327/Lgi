@@ -348,6 +348,7 @@ GApplicator *GApp24::Create(GColourSpace Cs, int Op)
 			Case24(Rgbx32);
 			Case24(Xbgr32);
 			Case24(Bgrx32);
+            default: break;
 		}
 	}
 	return 0;

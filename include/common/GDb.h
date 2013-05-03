@@ -94,7 +94,7 @@ public:
 	// Retrieving data
 	virtual GDbRecordset *Open(char *Name) = 0;
 	virtual bool Execute(char *Name) { return false; }
-	virtual GDbRecordset *TableAt(int i) { return false; }
+	virtual GDbRecordset *TableAt(int i) { return NULL; }
 	virtual const char *GetErrorMsg() { return 0; }
 };
 
