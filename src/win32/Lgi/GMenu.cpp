@@ -181,23 +181,24 @@ void GSubMenu::Empty()
 
 bool GSubMenu::RemoveItem(int i)
 {
-	bool Status = false;
 	GMenuItem *Item = Items[i];
-	if (Item)
-	{
-		Status = Item->Remove();
+	if (Item && Item->Remove())
+    {
 		DeleteObj(Item);
+        return true;
 	}
 	return Status;
 }
 
 bool GSubMenu::RemoveItem(GMenuItem *Item)
 {
-	if (Item && Items.HasItem(Item))
-	{
-		return Item->Remove();
-	}
-
+	if (Item &&
+        Items.HasItem(Item) &&
+        Item->Remove())
+    {
+        DeleteObj(Item);
+        return true;
+	}    
 	return false;
 }
 

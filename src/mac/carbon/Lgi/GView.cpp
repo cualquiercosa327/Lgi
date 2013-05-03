@@ -1764,7 +1764,9 @@ bool GView::_Attach(GViewI *parent)
 	else
 	{
 		// Virtual attach
+        /*
 		printf("Warning: Virtual Attach %s->%s\n", d->Parent ? d->Parent->GetClass() : 0, GetClass());
+        */
 		Status = true;
 	}
 

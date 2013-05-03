@@ -24,6 +24,7 @@ GSubMenu::GSubMenu(const char *name, bool Popup)
 	Menu = 0;
 	Parent = 0;
 	Info = 0;
+    GBase::Name(name);
 
 	OSStatus e = CreateNewMenu(	NextId++, // MenuId
 								0, // MenuAttributes
@@ -217,16 +218,24 @@ void GSubMenu::Empty()
 
 bool GSubMenu::RemoveItem(int i)
 {
-	return RemoveItem(Items.ItemAt(i));
+	GMenuItem *Item = Items[i];
+	if (Item && Item->Remove())
+	{
+		DeleteObj(Item);
+        return true;
+	}
+	return false;
 }
 
 bool GSubMenu::RemoveItem(GMenuItem *Item)
 {
-	if (Item AND Items.HasItem(Item))
-	{
-		return Item->Remove();
-	}
-
+	if (Item &&
+        Items.HasItem(Item) &&
+        Item->Remove())
+    {
+        DeleteObj(Item);
+        return true;
+	}    
 	return false;
 }
 
@@ -384,6 +393,7 @@ GMenuItem::GMenuItem()
 GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, const char *Str, int Pos, const char *Shortcut)
 {
 	d = new GMenuItemPrivate();
+    GBase::Name(Str);
 	Menu = m;
 	Parent = p;
 	Info = NULL;
@@ -827,10 +837,28 @@ bool GMenuItem::Remove()
 {
 	if (Parent)
 	{
-		if (Parent->Info AND Info)
+		if (Parent->Info && Info)
+        {
+            int Index = Parent->Items.IndexOf(this);
+            LgiAssert(Index + 1 == Info);
+            
 			DeleteMenuItem(Parent->Info, Info);
-		
-		Parent->Items.Delete(this);
+
+            Parent->Items.Delete(this);
+
+            // Re-index all the following items
+            GMenuItem *mi;
+            for (int i = Index; (mi = Parent->Items.ItemAt(i)); i++)
+            {
+                mi->Info = i + 1;
+            }
+            
+            Info = 0;
+        }
+        else
+        {
+            Parent->Items.Delete(this);
+        }
 		return true;
 	}
 
