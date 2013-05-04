@@ -316,29 +316,11 @@ GdcJpeg::~GdcJpeg()
 	DeleteObj(d);
 }
 
-struct JpegRgb
-{
-	uchar r, g, b;
-};
-
+typedef GRgb24 JpegRgb;
+typedef GCmyk32 JpegCmyk;
 struct JpegXyz
 {
-	uchar x, y, z;
-};
-
-struct JpegCmyk
-{
-	uchar c, m, y, k;
-};					
-
-union JpegPointer
-{
-	uchar *u8;
-	GBgr24 *p24;
-	GArgb32 *p32;
-	JpegRgb *j24;
-	JpegXyz *x24;
-	JpegCmyk *c32;
+	uint8 x, y, z;
 };
 
 template<typename T>
@@ -627,7 +609,7 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 									break;
 								}
 
-								JpegPointer ptr;
+								GPixelPtr ptr;
 								ptr.u8 = Ptr;
 								LgiAssert(pDC->GetBits() == 32);
 								
@@ -642,10 +624,10 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 									ptr.p32->r = (uint8) ((1.0 - min(1, C * (1.0 - K) + K)) * 255);
 									ptr.p32->g = (uint8) ((1.0 - min(1, M * (1.0 - K) + K)) * 255);
 									ptr.p32->b = (uint8) ((1.0 - min(1, Y * (1.0 - K) + K)) * 255);
-									*/
 									ptr.p32->a = 255;
 
 									ptr.p32++;
+									*/
 								}
 								break;
 							}
@@ -657,7 +639,7 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 									switch (pDC->GetColourSpace())
 									{
 										#define YccCase(name, bits) \
-											case Cs##name: Ycc##bits((G##name*)Ptr, pDC->X(), red, green, blue, range_table);
+											case Cs##name: Ycc##bits((G##name*)Ptr, pDC->X(), red, green, blue, range_table); break;
 										
 										YccCase(Rgb24, 24);
 										YccCase(Bgr24, 24);
@@ -674,15 +656,16 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 								}
 								break;
 							}
-							case JCS_YCbCr:
 							case JCS_RGB:
+							case JCS_YCbCr:
 							{
 								if (cinfo.num_components == 3)
 								{
+									int Width = pDC->X();
 									switch (pDC->GetColourSpace())
 									{
 										#define JpegCase(name, bits) \
-											case Cs##name: Convert##bits((G##name*)Ptr, pDC->X());
+											case Cs##name: Convert##bits((G##name*)Ptr, Width); break;
 										
 										JpegCase(Rgb24, 24);
 										JpegCase(Bgr24, 24);

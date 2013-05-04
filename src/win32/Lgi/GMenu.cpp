@@ -187,7 +187,7 @@ bool GSubMenu::RemoveItem(int i)
 		DeleteObj(Item);
         return true;
 	}
-	return Status;
+	return false;
 }
 
 bool GSubMenu::RemoveItem(GMenuItem *Item)
