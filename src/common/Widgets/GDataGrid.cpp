@@ -75,7 +75,7 @@ public:
 						if (Idx >= 0)
 						{
 							s->Select(false);
-							if (s = d->This->ItemAt(Idx + 1))
+							if ((s = d->This->ItemAt(Idx + 1)))
 								s->Select(true);
 
 						}
@@ -318,7 +318,8 @@ void GDataGridPriv::Create(int NewCol)
 
 				if (Flags[Col] & GDataGrid::GDG_INTEGER)
 				{
-					if (e = Combo = new GDataGridCombo(this, IDC_EDIT, rc))
+                    e = Combo = new GDataGridCombo(this, IDC_EDIT, rc);
+					if (e)
 					{
 						GVariant &e = ColumnArgs[Col];
 						if (e.Type == GV_LIST)
@@ -342,7 +343,8 @@ void GDataGridPriv::Create(int NewCol)
 					rc.y2 -= 1;
 
 					// Create edit control with the correct info for the cell
-					if (e = Edit = new GDataGridEdit(this, IDC_EDIT, rc.x1, rc.y1, rc.X(), rc.Y(), CurText))
+                    e = Edit = new GDataGridEdit(this, IDC_EDIT, rc.x1, rc.y1, rc.X(), rc.Y(), CurText);
+					if (e)
 					{
 						e->Sunken(false);
 					}
