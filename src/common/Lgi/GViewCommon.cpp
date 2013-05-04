@@ -880,55 +880,47 @@ void GView::Visible(bool v)
 
 bool GView::Focus()
 {
-	if (GetWindow() &&
-		GetWindow()->VirtualFocusId >= 0)
-	{
-		return GetWindow()->VirtualFocusId == GetId();
-	}
-
+	bool Has = false;
+    
     #if defined(__GTK_H__)
-    if (_View)
-    {
-        bool Has = gtk_widget_is_focus(_View);
-		if (Has)
-			SetFlag(WndFlags, GWF_FOCUS);
-		else
-			ClearFlag(WndFlags, GWF_FOCUS);
-    }
+	GWindow *w = GetWindow();
+	if (w)
+	{
+		bool Active = w->IsActive();
+		if (Active)
+			Has = w->GetFocus() == static_cast<GViewI*>(this);
+		LgiTrace("%s::Focus()=%i (Active=%i)\n", GetClass(), Has, Active);
+	}
+	else
+	{
+		LgiTrace("%s::Focus() no window\n", GetClass());
+	}	
 	#elif WIN32NATIVE
 	if (_View)
 	{
 		HWND hFocus = GetFocus();
-		
-		bool Has = hFocus == _View;
-		
-		if (Has)
-			SetFlag(WndFlags, GWF_FOCUS);
-		else
-			ClearFlag(WndFlags, GWF_FOCUS);
-		
-		return Has;
+		Has = hFocus == _View;
 	}
 	#endif
 
-	return TestFlag(WndFlags, GWF_FOCUS);
+	if (Has)
+		SetFlag(WndFlags, GWF_FOCUS);
+	else
+		ClearFlag(WndFlags, GWF_FOCUS);
+	
+	return Has;
 }
 
 void GView::Focus(bool i)
 {
-	GWindow *Wnd = GetWindow();
-	if (Wnd && Wnd->VirtualFocusId >= 0)
-	{
-		GViewI *PrevFocus = Wnd->FindControl(Wnd->VirtualFocusId);
-		Wnd->VirtualFocusId = -1;
-		if (PrevFocus)
-			PrevFocus->Invalidate();
-	}
-
 	if (i)
 		SetFlag(WndFlags, GWF_FOCUS);
 	else
 		ClearFlag(WndFlags, GWF_FOCUS);
+
+	GWindow *Wnd = GetWindow();
+	if (Wnd)
+		Wnd->SetFocus(this);
 
 	if (_View)
 	{
@@ -962,39 +954,6 @@ void GView::Focus(bool i)
 
 		#elif defined __GTK_H__
 
-		if (i)
-		{
-			GWindow *Wnd = GetWindow();
-			if (Wnd && Wnd->GetMapState() == 0)
-			{
-				printf("Wnd now responsible for first focus...\n");
-				Wnd->SetFirstFocus(_View);
-			}
-			else
-			{
-				// gdk_pointer_ungrab(GDK_CURRENT_TIME);
-				// gdk_keyboard_ungrab(GDK_CURRENT_TIME);
-				// gtk_grab_remove(menu);
-				Gtk::GdkWindow *w = GetWindow()->WindowHandle()->bin.container.widget.window;
-				if (w)
-				{
-					Gtk::gdk_display_keyboard_ungrab
-					(
-						Gtk::gdk_window_get_display
-						(
-							GetWindow()->WindowHandle()->bin.container.widget.window
-						),
-						GDK_CURRENT_TIME
-					);
-				}
-				
-				// bool can = Gtk::gtk_widget_get_can_focus(_View);
-				// LgiAssert(can);
-				gtk_widget_grab_focus(_View);
-				// LgiTrace("Setting focus to %s\n", GetClass());
-			}
-		}
-
 		#elif defined MAC && !defined COCOA
 
 		GViewI *Wnd = GetWindow();
@@ -1006,15 +965,6 @@ void GView::Focus(bool i)
 		else printf("%s:%i - no window?\n", _FL);
 
 		#endif
-	}
-	else
-	{
-		if (Wnd)
-		{
-			Wnd->VirtualFocusId = GetId();
-		}
-
-		Invalidate();
 	}
 }
 

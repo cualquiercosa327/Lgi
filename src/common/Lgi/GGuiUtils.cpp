@@ -226,7 +226,7 @@ void LgiInitColours()
 	_LgiColours[i++] = Rgb24(0x40, 0x40, 0x40); // LC_INACTIVE_TITLE_TEXT
 	_LgiColours[i++] = LookupColour("bg_color", White); // LC_MENU_BACKGROUND
 	_LgiColours[i++] = LookupColour("text_color", Black); // LC_MENU_TEXT
-	_LgiColours[i++] = LookupColour("selected_bg_color", Sel); // LC_NON_FOCUS_SEL_BACK
+	_LgiColours[i++] = GdcMixColour(LookupColour("selected_bg_color", Sel), _LgiColours[11]); // LC_NON_FOCUS_SEL_BACK
 	_LgiColours[i++] = LookupColour("selected_fg_color", White); // LC_NON_FOCUS_SEL_FORE
 	LgiAssert(i == LC_MAXIMUM);
 

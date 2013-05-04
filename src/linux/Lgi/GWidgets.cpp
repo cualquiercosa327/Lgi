@@ -206,10 +206,10 @@ int GDialog::DoModal(OsView OverrideParent)
 	#endif
 	if (content_area)
 	{
-		if (Root = lgi_widget_new(this, Pos.X(), Pos.Y(), true))
+		if (_Root = lgi_widget_new(this, Pos.X(), Pos.Y(), true))
 		{
-			gtk_container_add(GTK_CONTAINER(content_area), Root);
-			gtk_widget_show(Root);
+			gtk_container_add(GTK_CONTAINER(content_area), _Root);
+			gtk_widget_show(_Root);
 		}
 	}
 	

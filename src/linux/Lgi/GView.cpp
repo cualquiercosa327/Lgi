@@ -140,11 +140,26 @@ GViewPrivate::~GViewPrivate()
 	LgiAssert(Pulse == 0);
 }
 
+void GView::_Focus(bool f)
+{
+	if (f)
+		SetFlag(WndFlags, GWF_FOCUS);
+	else
+		ClearFlag(WndFlags, GWF_FOCUS);
+
+	OnFocus(f);	
+	Invalidate();
+}
+
 void GView::_Delete()
 {
 	// Remove static references to myself
 	if (_Over == this) _Over = 0;
 	if (_Capturing == this) _Capturing = 0;
+	
+	GWindow *Wnd = GetWindow();
+	if (Wnd && Wnd->GetFocus() == static_cast<GViewI*>(this))
+		Wnd->SetFocus(NULL);
 
 	if (LgiApp AND LgiApp->AppWnd == this)
 	{
@@ -717,7 +732,7 @@ bool GView::Attach(GViewI *parent)
 
 			GWindow *w;
 			if (w = dynamic_cast<GWindow*>(parent))
-				p = w->Root;
+				p = w->_Root;
 			
 			if (p && gtk_widget_get_parent(_View) != p)
 			{
@@ -820,22 +835,6 @@ GViewI *GView::FindControl(OsView hCtrl)
 		}
 	}
 	return 0;
-}
-
-void GView::SetIgnoreInput(bool ignore)
-{
-}
-
-GView::MappingState GView::GetMapState()
-{
-	return d->MapState;
-}
-
-void GView::OnMap(bool m)
-{
-	d->MapState = m ? Mapped : Unmapped;
-	if (m)
-		OnAttach();
 }
 
 ///////////////////////////////////////////////////////////////////

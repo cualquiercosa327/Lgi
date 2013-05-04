@@ -7170,7 +7170,7 @@ GdcPt2 GHtml::Layout()
 		}
 		else
 		{
-			LgiTrace("%s - Dropping SetScroll, loop detected: %i ms\n", GetClass(), (int)(Now - d->SetScrollTime));
+			// LgiTrace("%s - Dropping SetScroll, loop detected: %i ms\n", GetClass(), (int)(Now - d->SetScrollTime));
 		}
 	}
 

@@ -123,7 +123,6 @@ public:
 		bool			TabStop;
 
 		#if defined __GTK_H__
-		GView::MappingState MapState;
 		#elif defined(MAC) && !defined(COCOA)
 		static HIObjectClassRef BaseClass;
 		#endif

@@ -382,9 +382,17 @@ class LgiClass GView : virtual public GViewI, virtual public GBase
 	friend		class GPopup;
 
 	friend		bool SysOnKey(GView *w, GMessage *m);
-	// friend		GViewI *GetNextTabStop(GViewI *Wnd, bool Back);
 
-	#if defined WIN32
+	#if defined(__GTK_H__)
+
+	friend Gtk::gboolean lgi_widget_expose(Gtk::GtkWidget *widget, Gtk::GdkEventExpose *e);
+    friend Gtk::gboolean lgi_widget_click(Gtk::GtkWidget *widget, Gtk::GdkEventButton *ev);
+    friend Gtk::gboolean lgi_widget_motion(Gtk::GtkWidget *widget, Gtk::GdkEventMotion *ev);
+	friend Gtk::gboolean GViewCallback(Gtk::GtkWidget *widget, Gtk::GdkEvent  *event, GView *view);
+	friend Gtk::gboolean GWindowCallback(Gtk::GtkWidget *widget, Gtk::GdkEvent *event, GWindow *wnd);
+	friend Gtk::gboolean GDialogCallback(Gtk::GtkWidget *widget, Gtk::GdkEvent *event, GDialog *dlg);
+
+	#elif defined WIN32
 
 	friend		class GWin32Class;
 	friend		LRESULT CALLBACK DlgRedir(OsView hWnd, UINT m, WPARAM a, LPARAM b);
@@ -419,7 +427,7 @@ protected:
 
 	OsView				_View; // OS specific handle to view object
 	GView				*_Window;
-	GMutex			*_Lock;
+	GMutex				*_Lock;
 	uint16				_BorderSize;
 	uint16				_IsToolBar;
 	int					WndFlags;
@@ -427,43 +435,7 @@ protected:
 	static GViewI		*_Capturing;
 	static GViewI		*_Over;
 	
-	#if defined __GTK_H__
-	
-	friend Gtk::gboolean lgi_widget_expose(Gtk::GtkWidget *widget, Gtk::GdkEventExpose *e);
-    friend Gtk::gboolean lgi_widget_click(Gtk::GtkWidget *widget, Gtk::GdkEventButton *ev);
-    friend Gtk::gboolean lgi_widget_motion(Gtk::GtkWidget *widget, Gtk::GdkEventMotion *ev);
-	friend Gtk::gboolean GViewCallback(Gtk::GtkWidget *widget, Gtk::GdkEvent  *event, GView *view);
-	friend Gtk::gboolean GWindowCallback(Gtk::GtkWidget *widget, Gtk::GdkEvent *event, GWindow *wnd);
-	friend Gtk::gboolean GDialogCallback(Gtk::GtkWidget *widget, Gtk::GdkEvent *event, GDialog *dlg);
-
-public:
-	enum MappingState
-	{
-		Unmapped,
-		Mapping,
-		Mapped,
-		Unmapping,
-	};
-	
-	MappingState GetMapState();
-	virtual void OnMap(bool m);
-
-	char *GetMapStateName()
-	{
-		switch (GetMapState())
-		{
-			case Unmapped: return "Unmapped";
-			case Mapping: return "Mapping";
-			case Mapped: return "Mapped";
-			case Unmapping: return "Unmapping";
-		}
-		return "Error";
-	}
-	
-	void SetIgnoreInput(bool ignore);
-
-protected:
-	#elif defined WIN32
+	#if defined WIN32
 
 	uint32 GetStyle();
 	void SetStyle(uint32 i);
@@ -542,6 +514,7 @@ protected:
 
 	GView *&PopupChild();
 	virtual bool	_Mouse(GMouse &m, bool Move);
+	void			_Focus(bool f);
 
 	#endif
 
@@ -1239,7 +1212,6 @@ protected:
 	#if WIN32NATIVE
 
 	GRect OldPos;
-	HWND LastFocus;
 	GWindow *_Dialog;
 
 	#else
@@ -1259,10 +1231,11 @@ protected:
 
 	friend class GMenu;	
 	friend Gtk::gboolean GWindowCallback(Gtk::GtkWidget *widget, Gtk::GdkEvent *event, GWindow *This);
-	Gtk::GtkWidget *Root, *VBox, *MenuBar;
+	
+	Gtk::GtkWidget *_Root, *_VBox, *_MenuBar;
 	void _Paint(GSurface *pDC = 0, int Ox = 0, int Oy = 0);
 	void OnGtkDelete();
-	
+
 	#endif
 
 	/// The default button
@@ -1270,9 +1243,6 @@ protected:
 
 	/// The menu on the window
 	GMenu *Menu;
-
-	/// Focus when in virtual control
-	int VirtualFocusId;
 
 	class GWindowPrivate *d;
 
@@ -1330,7 +1300,12 @@ public:
 	bool Obscured();
 	bool Visible();
 	void Visible(bool i);
+	bool IsActive();
 	GRect &GetPos();
+
+	// Focus setting
+	GViewI *GetFocus();
+	void SetFocus(GViewI *ctrl);
 	
 	/// Registers a watcher to receive OnView... messages before they
 	/// are passed through to the intended recipient.
@@ -1398,7 +1373,6 @@ public:
 	
 	#elif defined __GTK_H__
 	
-	void SetFirstFocus(OsView Hnd);
 	void OnMap(bool m);
 	
 	#endif

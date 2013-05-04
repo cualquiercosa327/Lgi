@@ -25,11 +25,18 @@ public:
 	GKey LastKey;
 	::GArray<HookInfo> Hooks;
 	bool SnapToEdge;
+	
+	// Focus stuff
 	OsView FirstFocus;
+	GViewI *Focus;
+	bool Active;
 
 	GWindowPrivate()
 	{
-		FirstFocus = false;
+		FirstFocus = NULL;
+		Focus = NULL;
+		Active = false;
+		
 		Sx = Sy = 0;
 		Dynamic = true;
 		SnapToEdge = false;
@@ -67,10 +74,9 @@ GWindow::GWindow(GtkWidget *w) : GView(0)
 	_QuitOnClose = false;
 	Menu = NULL;
 	Wnd = GTK_WINDOW(w);
-	Root = NULL;
-	MenuBar = NULL;
-	VBox = NULL;
-	VirtualFocusId = -1;
+	_Root = NULL;
+	_MenuBar = NULL;
+	_VBox = NULL;
 	_Default = 0;
 	_Window = this;
 	WndFlags |= GWND_CREATE;
@@ -86,10 +92,9 @@ GWindow::~GWindow()
 		LgiApp->AppWnd = 0;
 	}
 
-    if (Root)
+    if (_Root)
     {
-        // gtk_widget_destroy(Root);
-        Root = 0;
+        _Root = NULL;
     }
 
 	DeleteObj(Menu);
@@ -107,6 +112,11 @@ void GWindow::SetSnapToEdge(bool s)
 	d->SnapToEdge = s;
 }
 
+bool GWindow::IsActive()
+{
+	return d->Active;
+}
+
 bool GWindow::Visible()
 {
 	return GView::Visible();
@@ -115,9 +125,9 @@ bool GWindow::Visible()
 void GWindow::Visible(bool i)
 {
 	if (i)
-		Gtk::gtk_widget_show(GTK_WIDGET(Wnd));
+		gtk_widget_show(GTK_WIDGET(Wnd));
 	else
-		Gtk::gtk_widget_hide(GTK_WIDGET(Wnd));
+		gtk_widget_hide(GTK_WIDGET(Wnd));
 }
 
 bool GWindow::Obscured()
@@ -204,6 +214,8 @@ GWindowCallback(GtkWidget   *widget,
 				ch += sprintf_s(buf + ch, sizeof(buf) - ch, "> %s \"%-.8s\" ", a[n]->GetClass(), a[n]->Name());
 			}
 			LgiTrace("%s : gwnd_focus=%i\n", buf, event->focus_change.in);
+			
+			This->d->Active = event->focus_change.in;
 			break;
 		}
 		case GDK_CLIENT_EVENT:
@@ -271,11 +283,11 @@ bool GWindow::Attach(GViewI *p)
 		gtk_window_set_default_size(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
 		gtk_widget_add_events(GTK_WIDGET(Wnd), GDK_ALL_EVENTS_MASK);
 		
-        if (Root = lgi_widget_new(this, Pos.X(), Pos.Y(), true))
+        if (_Root = lgi_widget_new(this, Pos.X(), Pos.Y(), true))
         {
-            gtk_container_add(GTK_CONTAINER(Wnd), Root);
-            gtk_widget_show(Root);
-            printf("Root window for %p is %p\n", _View, Root);
+            gtk_container_add(GTK_CONTAINER(Wnd), _Root);
+            gtk_widget_show(_Root);
+            printf("Root window for %p is %p\n", _View, _Root);
         }
 		
 		OnCreate();
@@ -825,12 +837,6 @@ void GWindow::OnPosChange()
 
 	if (d->Sx != X() ||	d->Sy != Y())
 	{
-	    if (Root)
-	    {
-	        // GRect c = GetClient();
-	        // lgi_widget_setsize(Root, c.X(), c.Y());
-	    }
-	    
 		Pour();
 		d->Sx = X();
 		d->Sy = Y();
@@ -1095,13 +1101,50 @@ bool GWindow::UnregisterHook(GView *Target)
 	return false;
 }
 
-void GWindow::SetDragHandlers(bool On)
+GViewI *GWindow::GetFocus()
 {
+	return d->Focus;
 }
 
-void GWindow::SetFirstFocus(OsView Hnd)
+void GWindow::SetFocus(GViewI *ctrl)
 {
-	d->FirstFocus = Hnd;
+	if (d->Focus == ctrl)
+		return;
+
+	if (d->Focus)
+	{
+		GView *gv = d->Focus->GetGView();
+		if (gv)
+		{
+			gv->_Focus(false);
+		}
+		else if (IsActive())
+		{
+			d->Focus->OnFocus(false);
+			d->Focus->Invalidate();
+		}
+	}
+	d->Focus = ctrl;
+	if (d->Focus)
+	{
+		if (d->Focus->Handle())
+			gtk_widget_grab_focus(d->Focus->Handle());
+
+		GView *gv = d->Focus->GetGView();
+		if (gv)
+		{
+			gv->_Focus(true);
+		}
+		else if (IsActive())
+		{			
+			d->Focus->OnFocus(true);
+			d->Focus->Invalidate();
+		}
+	}
+}
+
+void GWindow::SetDragHandlers(bool On)
+{
 }
 
 void GWindow::OnMap(bool m)

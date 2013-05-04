@@ -888,7 +888,7 @@ bool GMenu::Attach(GViewI *p)
 		
 	Window = Wnd;
 	Gtk::GtkWidget *Root = NULL;
-	if (Wnd->VBox)
+	if (Wnd->_VBox)
 	{
 		LgiAssert(!"Already has a menu");
 		return false;
@@ -897,19 +897,19 @@ bool GMenu::Attach(GViewI *p)
 	
 	Gtk::GtkWidget *menubar = GtkCast(Info, gtk_widget, GtkWidget);
 
-	Wnd->VBox = Gtk::gtk_vbox_new(false, 0);
+	Wnd->_VBox = Gtk::gtk_vbox_new(false, 0);
 
-	Gtk::GtkBox *vbox = GtkCast(Wnd->VBox, gtk_box, GtkBox);
+	Gtk::GtkBox *vbox = GtkCast(Wnd->_VBox, gtk_box, GtkBox);
 	Gtk::GtkContainer *wndcontainer = GtkCast(Wnd->Wnd, gtk_container, GtkContainer);
 
-	Gtk::g_object_ref(Wnd->Root);
-	Gtk::gtk_container_remove(wndcontainer, Wnd->Root);
+	Gtk::g_object_ref(Wnd->_Root);
+	Gtk::gtk_container_remove(wndcontainer, Wnd->_Root);
 
-	Gtk::gtk_container_add(wndcontainer, Wnd->VBox);
+	Gtk::gtk_container_add(wndcontainer, Wnd->_VBox);
 
 	Gtk::gtk_box_pack_start(vbox, menubar, false, false, 0);
-	Gtk::gtk_box_pack_end(vbox, Wnd->Root, true, true, 0);
-	Gtk::g_object_unref(Wnd->Root);
+	Gtk::gtk_box_pack_end(vbox, Wnd->_Root, true, true, 0);
+	Gtk::g_object_unref(Wnd->_Root);
 
 	Gtk::gtk_widget_show_all(GtkCast(Wnd->Wnd, gtk_widget, GtkWidget));
 	

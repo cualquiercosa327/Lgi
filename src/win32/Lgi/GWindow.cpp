@@ -30,8 +30,12 @@ public:
 	bool InCreate;
 	WINDOWPLACEMENT *Wp;
 
+	// Focus stuff
+	GViewI *Focus;
+
 	GWindowPrivate()
 	{
+		Focus = NULL;
 		InCreate = true;
 		Show = GZoomNormal;
 		SnapToEdge = false;
@@ -81,9 +85,6 @@ GWindow::GWindow() : GView(0)
 		c->Register();
 	}	
 	
-	LastFocus = 0;
-	VirtualFocusId = -1;
-
 	Visible(false);
 
 	_Default = 0;
@@ -102,6 +103,19 @@ GWindow::~GWindow()
 
 	DeleteObj(_Lock);
 	DeleteObj(d);
+}
+
+GViewI *GWindow::GetFocus()
+{
+	return d->Focus;
+}
+
+void GWindow::SetFocus(GViewI *ctrl)
+{
+	if (d->Focus == ctrl)
+		return;
+
+	d->Focus = ctrl;
 }
 
 bool GWindow::GetSnapToEdge()
@@ -132,7 +146,7 @@ void GWindow::Raise()
 			assert(0);
 			LgiTrace("%s:%i - SetFocus(%p)\n", __FILE__, __LINE__, _View);
 		}
-		SetFocus(_View);
+		::SetFocus(_View);
 
 		AttachThreadInput(dwThisThreadId, dwFGThreadId, false);
 	}
@@ -248,9 +262,8 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 		}
 	}
 
-	// Give the key to the window...
-	GViewI *Focus = VirtualFocusId >= 0 ? FindControl(VirtualFocusId) : v;
-	if (Focus && Focus->OnKey(k))
+	// Give the key to the focused window...
+	if (d->Focus && d->Focus->OnKey(k))
 	{
 		return true;
 	}
@@ -662,6 +675,7 @@ GMessage::Result GWindow::OnEvent(GMessage *Msg)
 			// control when you Alt-Tab in and out of a top level window
 			if (LOWORD(Msg->a) != WA_INACTIVE)
 			{
+				/*
 				// gaining focus
 				if (LastFocus)
 				{
@@ -673,7 +687,22 @@ GMessage::Result GWindow::OnEvent(GMessage *Msg)
 					SetFocus(LastFocus);
 					LastFocus = 0;
 				}
+				
+				if (d->Focus && d->Focus->Handle())
+				{
+					if (In_SetWindowPos)
+					{
+						assert(0);
+						LgiTrace("%s:%i - %s->SetFocus()\n", __FILE__, __LINE__, GetClass());
+					}
+					else
+					{					
+						::SetFocus(d->Focus->Handle());
+					}
+				}
+				*/
 			}
+			/*
 			else
 			{
 				// losing focus
@@ -687,6 +716,7 @@ GMessage::Result GWindow::OnEvent(GMessage *Msg)
 					}
 				}
 			}
+			*/
 			break;
 		}
 		case WM_CREATE:
