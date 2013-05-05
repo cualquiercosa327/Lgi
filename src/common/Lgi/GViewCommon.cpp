@@ -881,9 +881,9 @@ void GView::Visible(bool v)
 bool GView::Focus()
 {
 	bool Has = false;
-    
-    #if defined(__GTK_H__)
 	GWindow *w = GetWindow();
+   
+	#if defined(__GTK_H__)
 	if (w)
 	{
 		bool Active = w->IsActive();
@@ -895,13 +895,23 @@ bool GView::Focus()
 	{
 		LgiTrace("%s::Focus() no window\n", GetClass());
 	}	
-	#elif WIN32NATIVE
+	#elif defined(WIN32NATIVE)
 	if (_View)
 	{
 		HWND hFocus = GetFocus();
 		Has = hFocus == _View;
 	}
-	#endif
+	#elif defined(MAC)
+	if (w)
+	{
+		ControlRef Cur;
+		OSErr e = GetKeyboardFocus(w->WindowHandle(), &Cur);
+		if (e)
+			LgiTrace("%s:%i - GetKeyboardFocus failed with %i\n", _FL, e);
+		else
+			Has = (Cur == _View);
+	}
+  	#endif
 
 	if (Has)
 		SetFlag(WndFlags, GWF_FOCUS);
@@ -926,43 +936,45 @@ void GView::Focus(bool i)
 	{
 		#if WIN32NATIVE
 
-		if (i)
-		{
+			if (i)
+			{
 
-			HWND hCur = GetFocus();
-			if (hCur != _View)
+				HWND hCur = GetFocus();
+				if (hCur != _View)
+				{
+					if (In_SetWindowPos)
+					{
+						assert(0);
+						LgiTrace("%s:%i - SetFocus %p (%-30s)\n", _FL, Handle(), Name());
+					}
+
+					SetFocus(_View);
+				}
+			}
+			else
 			{
 				if (In_SetWindowPos)
 				{
 					assert(0);
-					LgiTrace("%s:%i - SetFocus %p (%-30s)\n", _FL, Handle(), Name());
+					LgiTrace("%s:%i - SetFocus(%p)\n", _FL, GetDesktopWindow());
 				}
 
-				SetFocus(_View);
+				SetFocus(GetDesktopWindow());
 			}
-		}
-		else
-		{
-			if (In_SetWindowPos)
-			{
-				assert(0);
-				LgiTrace("%s:%i - SetFocus(%p)\n", _FL, GetDesktopWindow());
-			}
-
-			SetFocus(GetDesktopWindow());
-		}
 
 		#elif defined __GTK_H__
 
-		#elif defined MAC && !defined COCOA
+		#elif defined MAC
 
-		GViewI *Wnd = GetWindow();
-		if (Wnd && i)
-		{
-			OSErr e = SetKeyboardFocus(Wnd->WindowHandle(), _View, 1);
-			if (e) printf("%s:%i - error setting keyboard focus (%i) to %s\n", _FL, e, GetClass());
-		}
-		else printf("%s:%i - no window?\n", _FL);
+			#if !defined COCOA
+				GViewI *Wnd = GetWindow();
+				if (Wnd && i)
+				{
+					OSErr e = SetKeyboardFocus(Wnd->WindowHandle(), _View, 1);
+					if (e) printf("%s:%i - error setting keyboard focus (%i) to %s\n", _FL, e, GetClass());
+				}
+				else printf("%s:%i - no window?\n", _FL);
+			#endif
 
 		#endif
 	}

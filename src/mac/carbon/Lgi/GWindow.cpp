@@ -35,9 +35,12 @@ public:
 	bool CloseRequestDone;
 
 	GMenu *EmptyMenu;
+	
+	GViewI *Focus;
 
 	GWindowPrivate(GWindow *wnd)
 	{
+		Focus = NULL;
 		InitVisible = false;
 		LastMinimize = 0;
 		Wnd = wnd;
@@ -94,7 +97,6 @@ GWindow::GWindow() :
 	_QuitOnClose = false;
 	Wnd = 0;
 	Menu = 0;
-	VirtualFocusId = -1;
 	_Default = 0;
 	_Window = this;
 	WndFlags |= GWND_CREATE;
@@ -146,6 +148,35 @@ GWindow::~GWindow()
 bool &GWindow::CloseRequestDone()
 {
 	return d->CloseRequestDone;
+}
+
+GViewI *GWindow::GetFocus()
+{
+	return d->Focus;
+}
+
+void GWindow::SetFocus(GViewI *ctrl)
+{
+	if (d->Focus == ctrl)
+		return;
+
+	if (d->Focus)
+	{
+		GView *v = d->Focus->GetGView();
+		if (v)
+			v->WndFlags &= ~GWF_FOCUS;
+		d->Focus->OnFocus(false);
+	}
+	
+	d->Focus = ctrl;
+
+	if (d->Focus)
+	{
+		GView *v = d->Focus->GetGView();
+		if (v)
+			v->WndFlags |= GWF_FOCUS;
+		d->Focus->OnFocus(true);
+	}
 }
 
 OSErr GWindowTrackingHandler(	DragTrackingMessage message,

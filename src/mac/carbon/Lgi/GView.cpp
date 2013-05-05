@@ -276,6 +276,10 @@ void GView::_Delete()
 	if (_Over == this) _Over = 0;
 	if (_Capturing == this) _Capturing = 0;
 
+	GWindow *w = GetWindow();
+	if (w && w->GetFocus() == this)
+		w->SetFocus(NULL);
+
 	if (LgiApp && LgiApp->AppWnd == this)
 	{
 		LgiApp->AppWnd = 0;
@@ -1806,6 +1810,11 @@ bool GView::Detach()
 	// Detach view
 	if (d->Parent)
 	{
+		GWindow *wnd = GetWindow();
+		if (wnd && wnd->GetFocus() == this)
+			wnd->SetFocus(NULL);
+		_Window = NULL;
+		
 		// Remove the view from the parent
 		DetachChildren(_View);
 		HIViewRemoveFromSuperview(_View);
