@@ -520,46 +520,19 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 						}
 						c[i].a = 0xff;
 					}
-
-					/*
-					if (SrcAlpha)
+					
+					for (int y=0; y<Src->y; y++)
 					{
-						for (int y=0; y<Src->y; y++)
+						uchar *s = (uchar*) (Src->Base + (Src->Line * y));
+						System32BitPixel *d = Ptr.p;
+						System32BitPixel *e = d + Src->x;
+						
+						while (d < e)
 						{
-							uchar *S = Src->Base + (y * Src->Line);
-							uchar *A = SrcAlpha->Base + (y * SrcAlpha->Line);
-							uint32 *D = (uint32*)Ptr;
-
-							for (int x=0; x<Src->x; x++)
-							{
-								if (*A == 0)
-								{
-								}
-								else
-								{
-									*D = Rgb32(
-								}
-							}
-
-							Ptr += Dest->Line;
+							*d++ = c[*s++];
 						}
-					}
-					else
-					*/
-					{
-						for (int y=0; y<Src->y; y++)
-						{
-							uchar *s = (uchar*) (Src->Base + (Src->Line * y));
-							System32BitPixel *d = Ptr.p;
-							System32BitPixel *e = d + Src->x;
-							
-							while (d < e)
-							{
-								*d++ = c[*s++];
-							}
 
-							Ptr.u8 += Dest->Line;
-						}
+						Ptr.u8 += Dest->Line;
 					}
 				}
 				else

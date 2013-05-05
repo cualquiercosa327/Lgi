@@ -122,6 +122,32 @@ public:
 	}
 };
 
+template<typename T>
+static void ProcessAlpha32(GSurface *pDC)
+{
+	T k;
+	for (int y=0; y<pDC->Y(); y++)
+	{
+		T *p = (T*) (*pDC)[y];
+		T *e = p + pDC->X();
+		if (!y) k = *p;
+
+		while (p < e)
+		{
+			if (p->r == k.r &&
+				p->g == k.g &&
+				p->b == k.b)
+			{
+				p->r = 0;
+				p->g = 0;
+				p->b = 0;
+				p->a = 0;
+			}
+			p++;
+		}
+	}
+}
+
 GImageList::GImageList(int x, int y, GSurface *pDC)
 {
 	d = new GImageListPriv;
@@ -218,26 +244,15 @@ GImageList::GImageList(int x, int y, GSurface *pDC)
 			int SrcBits = pDC->GetBits();
 			if (SrcBits < 32)
 			{
-				GArgb32 k;
-				for (int y=0; y<Y(); y++)
+				switch (GetColourSpace())
 				{
-					GArgb32 *p = (GArgb32*) (*this)[y];
-					GArgb32 *e = p + X();
-					if (!y) k = *p;
-
-					while (p < e)
-					{
-						if (p->r == k.r &&
-							p->g == k.g &&
-							p->b == k.b)
-						{
-							p->r = 0;
-							p->g = 0;
-							p->b = 0;
-							p->a = 0;
-						}
-						p++;
-					}
+					#define ImgListCase(name) \
+						case Cs##name: ProcessAlpha32<G##name>(this); break
+					
+					ImgListCase(Rgba32);
+					ImgListCase(Bgra32);
+					ImgListCase(Argb32);
+					ImgListCase(Abgr32);
 				}
 			}
 		}
