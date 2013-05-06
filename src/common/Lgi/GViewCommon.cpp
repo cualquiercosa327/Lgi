@@ -117,6 +117,8 @@ GView::~GView()
 {
 	_Delete();
 	DeleteObj(d);
+	
+	LgiTrace("%p::~%s\n", this, GetClass());
 }
 
 #ifdef _DEBUG
@@ -929,7 +931,7 @@ void GView::Focus(bool i)
 		ClearFlag(WndFlags, GWF_FOCUS);
 
 	GWindow *Wnd = GetWindow();
-	if (Wnd)
+	if (Wnd && i)
 		Wnd->SetFocus(this);
 
 	if (_View)

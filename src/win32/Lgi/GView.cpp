@@ -514,6 +514,15 @@ GViewI *GWindowFromHandle(HWND hWnd)
 //////////////////////////////////////////////////////////////////////////////
 void GView::_Delete()
 {
+	GWindow *Wnd = GetWindow();
+	if (Wnd)
+	{
+		GViewI *This = this;
+		GViewI *Foc = Wnd->GetFocus();
+		if (Foc == This)
+			Wnd->SetFocus(NULL, true);
+	}
+
 	if (_View && d->DropTarget)
 	{
 		RevokeDragDrop(_View);

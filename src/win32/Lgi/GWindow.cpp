@@ -110,12 +110,12 @@ GViewI *GWindow::GetFocus()
 	return d->Focus;
 }
 
-void GWindow::SetFocus(GViewI *ctrl)
+void GWindow::SetFocus(GViewI *ctrl, bool deleting)
 {
 	if (d->Focus == ctrl)
 		return;
 
-	if (d->Focus)
+	if (d->Focus && !deleting)
 	{
 		GView *v = d->Focus->GetGView();
 		if (v)
@@ -128,11 +128,21 @@ void GWindow::SetFocus(GViewI *ctrl)
 
 	if (d->Focus)
 	{
+		LgiTrace("%p SetFocus %p %s\n", this, d->Focus, d->Focus->GetClass());
+		if (stricmp(d->Focus->GetClass(), "GView") == 0)
+		{
+			int asd=0;
+		}
+		
 		GView *v = d->Focus->GetGView();
 		if (v)
 			v->WndFlags |= GWF_FOCUS;
 		d->Focus->OnFocus(true);
 		d->Focus->Invalidate();
+	}
+	else
+	{
+		LgiTrace("%p SetFocus NULL\n", this);
 	}
 }
 

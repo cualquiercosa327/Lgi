@@ -1305,7 +1305,7 @@ public:
 
 	// Focus setting
 	GViewI *GetFocus();
-	void SetFocus(GViewI *ctrl);
+	void SetFocus(GViewI *ctrl, bool deleting = false);
 	
 	/// Registers a watcher to receive OnView... messages before they
 	/// are passed through to the intended recipient.
