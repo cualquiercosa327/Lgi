@@ -129,6 +129,17 @@ public:
 	}
 };
 
+template<typename T>
+void HalveAlpha(T *p, int width)
+{
+	T *e = p + width;
+	while (p < e)
+	{
+		p->a >>= 1;
+		p++;
+	}
+}
+
 class GFilterViewPrivate
 {
 public:
@@ -374,33 +385,22 @@ public:
 				case IconNewAnd:
 				case IconNewOr:
 				{
-					if (pDC->GetColourSpace() == CsRgba32)
+					for (int y=0; y<pDC->Y(); y++)
 					{
-						for (int y=0; y<pDC->Y(); y++)
+						switch (pDC->GetColourSpace())
 						{
-							GRgba32 *p = (GRgba32*) (*pDC)[y];
-							GRgba32 *e = p + pDC->X();
-							while (p < e)
-							{
-								p->a = p->a / 2;
-								p++;
-							}
+							#define HalveAlphaCase(name) \
+								case Cs##name: HalveAlpha((G##name*)(*pDC)[y], pDC->X()); break
+							
+							HalveAlphaCase(Rgba32);
+							HalveAlphaCase(Bgra32);
+							HalveAlphaCase(Argb32);
+							HalveAlphaCase(Abgr32);
+							default:
+								LgiAssert(pDC->GetBits() < 32);
+								break;
 						}
 					}
-					else if (pDC->GetColourSpace() == CsArgb32)
-					{
-						for (int y=0; y<pDC->Y(); y++)
-						{
-							GArgb32 *p = (GArgb32*) (*pDC)[y];
-							GArgb32 *e = p + pDC->X();
-							while (p < e)
-							{
-								p->a = p->a / 2;
-								p++;
-							}
-						}
-					}
-					else LgiAssert(0);
 					break;
 				}
 			}
