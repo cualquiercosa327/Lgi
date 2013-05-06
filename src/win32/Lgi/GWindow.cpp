@@ -115,7 +115,25 @@ void GWindow::SetFocus(GViewI *ctrl)
 	if (d->Focus == ctrl)
 		return;
 
+	if (d->Focus)
+	{
+		GView *v = d->Focus->GetGView();
+		if (v)
+			v->WndFlags &= ~GWF_FOCUS;
+		d->Focus->OnFocus(false);
+		d->Focus->Invalidate();
+	}
+	
 	d->Focus = ctrl;
+
+	if (d->Focus)
+	{
+		GView *v = d->Focus->GetGView();
+		if (v)
+			v->WndFlags |= GWF_FOCUS;
+		d->Focus->OnFocus(true);
+		d->Focus->Invalidate();
+	}
 }
 
 bool GWindow::GetSnapToEdge()

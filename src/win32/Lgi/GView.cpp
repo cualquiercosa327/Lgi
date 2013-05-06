@@ -1692,6 +1692,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			}
 			case WM_SETFOCUS:
 			{
+				// LgiTrace("%s.WM_SETFOCUS\n", GetClass());
 				GWindow *w = GetWindow();
 				if (w)
 				{
@@ -1707,6 +1708,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			}
 			case WM_KILLFOCUS:
 			{
+				// LgiTrace("%s.WM_KILLFOCUS\n", GetClass());
 				GWindow *w = GetWindow();
 				if (w)
 				{
@@ -1715,7 +1717,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				}
 				else
 				{
-					LgiAssert(!"Should this ever actually happen?");				
+					// This can happen when the GWindow is being destroyed
 					Invalidate((GRect*)NULL, false, true);
 					OnFocus(false);
 				}
