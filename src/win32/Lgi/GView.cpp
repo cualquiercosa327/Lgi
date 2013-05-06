@@ -1692,14 +1692,33 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			}
 			case WM_SETFOCUS:
 			{
-				Invalidate((GRect*)NULL, false, true);
-				OnFocus(true);
+				GWindow *w = GetWindow();
+				if (w)
+				{
+					w->SetFocus(this);
+				}
+				else
+				{
+					LgiAssert(!"Should this ever actually happen?");				
+					OnFocus(true);
+					Invalidate((GRect*)NULL, false, true);
+				}
 				break;
 			}
 			case WM_KILLFOCUS:
 			{
-				Invalidate((GRect*)NULL, false, true);
-				OnFocus(false);
+				GWindow *w = GetWindow();
+				if (w)
+				{
+					if (w->GetFocus() == this)
+						w->SetFocus(NULL);
+				}
+				else
+				{
+					LgiAssert(!"Should this ever actually happen?");				
+					Invalidate((GRect*)NULL, false, true);
+					OnFocus(false);
+				}
 				break;
 			}
 			case WM_WINDOWPOSCHANGED:
