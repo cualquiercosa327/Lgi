@@ -484,7 +484,7 @@ bool GdcApp24Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 							d++;
 						}
 
-						((char*&)Ptr) += Dest->Line;
+						((uint8*&)Ptr) += Dest->Line;
 					}
 				}
 				else
@@ -503,7 +503,7 @@ bool GdcApp24Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 							d++;
 						}
 
-						((char*&)Ptr) += Dest->Line;
+						((uint8*&)Ptr) += Dest->Line;
 					}
 				}
 				break;
@@ -526,7 +526,7 @@ bool GdcApp24Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 						d++;
 					}
 
-					((char*&)Ptr) += Dest->Line;
+					((uint8*&)Ptr) += Dest->Line;
 				}
 				break;
 			}
@@ -548,7 +548,7 @@ bool GdcApp24Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 						d++;
 					}
 
-					((char*&)Ptr) += Dest->Line;
+					((uint8*&)Ptr) += Dest->Line;
 				}
 				break;
 			}
@@ -559,7 +559,7 @@ bool GdcApp24Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				{
 					MemCpy(Ptr, s, Src->x * 3);
 					s += Src->Line;
-					((uint*&)Ptr) += Dest->Line;
+					((uint8*&)Ptr) += Dest->Line;
 				}
 				break;
 			}
@@ -580,7 +580,7 @@ bool GdcApp24Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 						d++;
 					}
 
-					((char*&)Ptr) += Dest->Line;
+					((uint8*&)Ptr) += Dest->Line;
 				}
 				break;
 			}
