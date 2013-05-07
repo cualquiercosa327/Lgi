@@ -1470,6 +1470,15 @@ GColour GSurface::Colour(GColour c)
 	uint32 c32 = c.c32();
 	switch (GColourSpaceToBits(pApp->GetColourSpace()))
 	{
+		case 8:
+			pApp->c = c.c8();
+			break;
+		case 15:
+			pApp->c = Rgb32To15(c32);
+			break;
+		case 16:
+			pApp->c = Rgb32To16(c32);
+			break;
 		case 32:
 			pApp->p32.r = R32(c32);
 			pApp->p32.g = G32(c32);

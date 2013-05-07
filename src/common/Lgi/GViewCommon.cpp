@@ -117,8 +117,6 @@ GView::~GView()
 {
 	_Delete();
 	DeleteObj(d);
-	
-	LgiTrace("%p::~%s\n", this, GetClass());
 }
 
 #ifdef _DEBUG

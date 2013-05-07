@@ -305,24 +305,6 @@ struct GCmyk32 {
 	uint32 c, m, k, y;
 };
 
-typedef union
-{
-	uint8 *u8;
-	uint16 *u16;
-	uint32 *u32;
-	int i;
-	
-	GRgb15  *rgb15;
-	GRgb16  *rgb16;
-	GRgb24  *rgb24;
-	GBgr24  *bgr24;
-	GRgba32 *rgba32;
-	GArgb32 *argb32;
-	GHls32  *hls32;
-	GCmyk32 *cmyk32;
-
-}	GPixelPtr;
-
 union GColourSpaceBits
 {
 	uint32 All;
@@ -377,6 +359,28 @@ LgiFunc GColourSpace GdkVisualToColourSpace(Gtk::GdkVisual *v, int output_bits);
 	#error "Impl me"
 
 #endif
+
+typedef union
+{
+	uint8 *u8;
+	uint16 *u16;
+	uint32 *u32;
+	int i;
+	
+	GRgb15  *rgb15;
+	GRgb16  *rgb16;
+	GRgb24  *rgb24;
+	GBgr24  *bgr24;
+	GRgba32 *rgba32;
+	GArgb32 *argb32;
+	GHls32  *hls32;
+	GCmyk32 *cmyk32;
+	
+	System24BitPixel *s24;
+	System32BitPixel *s32;
+
+}	GPixelPtr;
+
 
 
 /** \brief 32bit colour of varing bit depth. If no associated depth is given, 32 bits is assumed.
