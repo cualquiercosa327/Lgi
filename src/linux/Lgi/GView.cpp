@@ -115,9 +115,6 @@ GView *GViewPrivate::LastCursor = 0;
 
 GViewPrivate::GViewPrivate()
 {
-    #if defined LINUX
-	MapState = GView::Unmapped;
-	#endif
 	CursorId = 0;
 	Parent = 0;
 	ParentI = 0;
@@ -129,10 +126,6 @@ GViewPrivate::GViewPrivate()
 	Popup = 0;
 	TabStop = 0;
 	Pulse = 0;
-	
-	#if defined XWIN
-	// XCursor = 0;
-	#endif
 }
 
 GViewPrivate::~GViewPrivate()

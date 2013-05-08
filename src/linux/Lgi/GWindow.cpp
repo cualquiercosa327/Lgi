@@ -1106,7 +1106,7 @@ GViewI *GWindow::GetFocus()
 	return d->Focus;
 }
 
-void GWindow::SetFocus(GViewI *ctrl)
+void GWindow::SetFocus(GViewI *ctrl, bool ondelete)
 {
 	if (d->Focus == ctrl)
 		return;

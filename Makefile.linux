@@ -133,7 +133,8 @@ Depends =	GDateTime.o \
 			INetTools.o \
 			md5.o \
 			LgiWidget.o \
-			Gel.o
+			Gel.o \
+			GThreadEvent.o
 
 # Target
 TargetFile = lib$(Target)$(Tag).so
@@ -320,6 +321,11 @@ GThread.o : ./src/linux/Lgi/GThread.cpp ./include/common/Lgi.h
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GThreadCommon.o : ./src/common/Lgi/GThreadCommon.cpp ./include/common/Lgi.h
+	@echo $(<F) [$(Gui)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GThreadEvent.o : ./src/common/Lgi/GThreadEvent.cpp ./include/common/Lgi.h \
+	./include/common/GThreadEvent.h
 	@echo $(<F) [$(Gui)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
