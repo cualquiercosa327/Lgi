@@ -2824,6 +2824,9 @@ void GTextView3::OnCreate()
 {
 	SetWindow(this);
 	DropTarget(true);
+
+	if (Focus())
+		SetPulse(500);
 }
 
 void GTextView3::OnEscape(GKey &K)
@@ -2846,7 +2849,6 @@ bool GTextView3::OnMouseWheel(double l)
 void GTextView3::OnFocus(bool f)
 {
 	Invalidate();
-	
 	SetPulse(f ? 500 : -1);
 }
 

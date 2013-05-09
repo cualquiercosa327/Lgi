@@ -110,39 +110,159 @@ GViewI *GWindow::GetFocus()
 	return d->Focus;
 }
 
-void GWindow::SetFocus(GViewI *ctrl, bool deleting)
+#define DEBUG_SETFOCUS 0
+
+void GWindow::SetFocus(GViewI *ctrl, FocusType type)
 {
-	if (d->Focus == ctrl)
-		return;
-
-	if (d->Focus && !deleting)
+	const char *TypeName = NULL;
+	switch (type)
 	{
-		GView *v = d->Focus->GetGView();
-		if (v)
-			v->WndFlags &= ~GWF_FOCUS;
-		d->Focus->OnFocus(false);
-		d->Focus->Invalidate();
+		case GainFocus: TypeName = "Gain"; break;
+		case LoseFocus: TypeName = "Lose"; break;
+		case ViewDelete: TypeName = "Delete"; break;
 	}
-	
-	d->Focus = ctrl;
 
-	if (d->Focus)
+	switch (type)
 	{
-		LgiTrace("%p SetFocus %p %s\n", this, d->Focus, d->Focus->GetClass());
-		if (stricmp(d->Focus->GetClass(), "GView") == 0)
+		case GainFocus:
 		{
-			int asd=0;
+			GViewI *This = this;
+			if (ctrl == This && d->Focus)
+			{
+				// The main GWindow is getting focus.
+				// Check if we can re-focus the previous child focus...
+				GView *v = d->Focus->GetGView();
+				if (v)
+				{
+					if (!(v->WndFlags & GWF_FOCUS))
+					{
+						// Yes, the child view doesn't think it has focus...
+						// So re-focus it...
+						if (v->Handle())
+						{
+							// Non-virtual window...
+							::SetFocus(v->Handle());
+						}
+
+						v->WndFlags |= GWF_FOCUS;
+						v->OnFocus(true);
+						v->Invalidate();
+
+						#if DEBUG_SETFOCUS
+						LgiTrace("GWindow::SetFocus(%p.%s, %s) refocusing: %p(%s)\n",
+							ctrl,
+							ctrl ? ctrl->GetClass() : NULL,
+							TypeName,
+							d->Focus,
+							d->Focus ? d->Focus->GetClass() : NULL);
+						#endif
+						return;
+					}
+				}
+			}
+			
+			// Check if the control already has focus
+			if (d->Focus == ctrl)
+				return;
+					
+			if (d->Focus)
+			{
+				GView *v = d->Focus->GetGView();
+				if (v) v->WndFlags &= ~GWF_FOCUS;
+				d->Focus->OnFocus(false);
+				d->Focus->Invalidate();
+
+				#if DEBUG_SETFOCUS
+				LgiTrace(".....defocus: %p(%s)\n",
+					d->Focus,
+					d->Focus ? d->Focus->GetClass() : NULL);
+				#endif
+			}
+			
+			d->Focus = ctrl;
+
+			if (d->Focus)
+			{
+				GView *v = d->Focus->GetGView();
+				if (v) v->WndFlags |= GWF_FOCUS;
+				d->Focus->OnFocus(true);
+				d->Focus->Invalidate();
+
+				#if DEBUG_SETFOCUS
+				LgiTrace("GWindow::SetFocus(%p.%s, %s) focus: %p(%s)\n",
+					ctrl,
+					ctrl ? ctrl->GetClass() : NULL,
+					TypeName,
+					d->Focus,
+					d->Focus ? d->Focus->GetClass() : NULL);
+				#endif
+			}
+			break;
 		}
-		
-		GView *v = d->Focus->GetGView();
-		if (v)
-			v->WndFlags |= GWF_FOCUS;
-		d->Focus->OnFocus(true);
-		d->Focus->Invalidate();
-	}
-	else
-	{
-		LgiTrace("%p SetFocus NULL\n", this);
+		case LoseFocus:
+		{
+			if (ctrl == d->Focus)
+			{
+				GView *v = d->Focus->GetGView();
+				if (v)
+				{
+					if (v->WndFlags & GWF_FOCUS)
+					{
+						// View thinks it has focus
+						v->WndFlags &= ~GWF_FOCUS;
+						d->Focus->OnFocus(false);
+						// keep d->Focus pointer, as we want to be able to re-focus the child
+						// view when we get focus again
+
+						#if DEBUG_SETFOCUS
+						LgiTrace("GWindow::SetFocus(%p.%s, %s) keep_focus: %p(%s)\n",
+							ctrl,
+							ctrl ? ctrl->GetClass() : NULL,
+							TypeName,
+							d->Focus,
+							d->Focus ? d->Focus->GetClass() : NULL);
+						#endif
+					}
+					// else view doesn't think it has focus anyway...
+				}
+				else
+				{
+					// Non GView handler	
+					d->Focus->OnFocus(false);
+					d->Focus->Invalidate();
+					d->Focus = NULL;
+				}
+			}
+			else
+			{
+				/*
+				LgiTrace("GWindow::SetFocus(%p.%s, %s) error on losefocus: %p(%s)\n",
+					ctrl,
+					ctrl ? ctrl->GetClass() : NULL,
+					TypeName,
+					d->Focus,
+					d->Focus ? d->Focus->GetClass() : NULL);
+				*/
+			}
+			break;
+		}
+		case ViewDelete:
+		{
+			if (ctrl == d->Focus)
+			{
+				#if DEBUG_SETFOCUS
+				LgiTrace("GWindow::SetFocus(%p.%s, %s) delete_focus: %p(%s)\n",
+					ctrl,
+					ctrl ? ctrl->GetClass() : NULL,
+					TypeName,
+					d->Focus,
+					d->Focus ? d->Focus->GetClass() : NULL);
+				#endif
+
+				d->Focus = NULL;
+			}
+			break;
+		}
 	}
 }
 

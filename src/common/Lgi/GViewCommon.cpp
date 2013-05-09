@@ -929,8 +929,8 @@ void GView::Focus(bool i)
 		ClearFlag(WndFlags, GWF_FOCUS);
 
 	GWindow *Wnd = GetWindow();
-	if (Wnd && i)
-		Wnd->SetFocus(this);
+	if (Wnd)
+		Wnd->SetFocus(this, i ? GWindow::GainFocus : GWindow::LoseFocus);
 
 	if (_View)
 	{

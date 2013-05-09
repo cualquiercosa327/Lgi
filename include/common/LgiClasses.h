@@ -1305,7 +1305,13 @@ public:
 
 	// Focus setting
 	GViewI *GetFocus();
-	void SetFocus(GViewI *ctrl, bool deleting = false);
+	enum FocusType
+	{
+		GainFocus,
+		LoseFocus,
+		ViewDelete
+	};
+	void SetFocus(GViewI *ctrl, FocusType type);
 	
 	/// Registers a watcher to receive OnView... messages before they
 	/// are passed through to the intended recipient.

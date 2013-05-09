@@ -575,10 +575,7 @@ void GView::_Delete()
 	GWindow *Wnd = GetWindow();
 	if (Wnd)
 	{
-		GViewI *This = this;
-		GViewI *Foc = Wnd->GetFocus();
-		if (Foc == This)
-			Wnd->SetFocus(NULL, true);
+		Wnd->SetFocus(this, GWindow::ViewDelete);
 	}
 
 	// this should only exist in an ex-GWindow, due to the way
@@ -1681,9 +1678,9 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			case WM_CREATE:
 			{
 				SetId(d->CtrlId);
-				OnCreate();
 
-				if (TestFlag(WndFlags, GWF_FOCUS))
+				GWindow *w = GetWindow();
+				if (w && w->GetFocus() == this)
 				{
 					HWND hCur = GetFocus();
 					if (hCur != _View)
@@ -1697,15 +1694,17 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 						SetFocus(_View);
 					}
 				}
+
+				OnCreate();
 				break;
 			}
 			case WM_SETFOCUS:
 			{
-				// LgiTrace("%s.WM_SETFOCUS\n", GetClass());
 				GWindow *w = GetWindow();
+				// LgiTrace("%s.WM_SETFOCUS, w=%p\n", GetClass(), w);
 				if (w)
 				{
-					w->SetFocus(this);
+					w->SetFocus(this, GWindow::GainFocus);
 				}
 				else
 				{
@@ -1721,8 +1720,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				GWindow *w = GetWindow();
 				if (w)
 				{
-					if (w->GetFocus() == this)
-						w->SetFocus(NULL);
+					w->SetFocus(this, GWindow::LoseFocus);
 				}
 				else
 				{
