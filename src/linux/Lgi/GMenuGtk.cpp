@@ -151,7 +151,12 @@ GSubMenu *GSubMenu::AppendSub(const char *Str, int Where)
 
 void GSubMenu::Empty()
 {
-	Items.DeleteObjects();
+	GMenuItem *i;
+	while (i = Items.First())
+	{
+		RemoveItem(i);
+		DeleteObj(i);
+	}
 }
 
 bool GSubMenu::RemoveItem(int i)

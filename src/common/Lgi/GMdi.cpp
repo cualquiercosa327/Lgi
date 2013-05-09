@@ -392,9 +392,11 @@ void GMdiChild::OnMouseMove(GMouse &m)
 		}
 		else
 		{
-			GetMouse(m, true);
+			// GetMouse(m, true);
 			GdcPt2 n(m.x, m.y);
-			GetParent()->PointToView(n);
+			n.x += GetPos().x1;
+			n.y += GetPos().y1;
+			// GetParent()->PointToView(n);
 				
 			if (d->Drag == DragMove)
 			{
@@ -481,7 +483,8 @@ void GMdiChild::Raise()
 	if (p)
 	{
 		#if defined __GTK_H__
-		GdkWindow *wnd = GDK_WINDOW(Handle());
+		GtkWidget *wid = Handle();
+		GdkWindow *wnd = wid ? GDK_WINDOW(wid->window) : NULL;
 		if (wnd)
 			gdk_window_raise(wnd);
 		else
@@ -504,7 +507,8 @@ void GMdiChild::Lower()
 	if (p)
 	{
 		#if defined __GTK_H__
-		GdkWindow *wnd = GDK_WINDOW(Handle());
+		GtkWidget *wid = Handle();
+		GdkWindow *wnd = wid ? GDK_WINDOW(wid->window) : NULL;
 		if (wnd)
 			gdk_window_lower(wnd);
 		else

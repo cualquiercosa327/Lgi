@@ -641,38 +641,30 @@ void GView::PointToView(GdcPt2 &p)
 
 bool GView::GetMouse(GMouse &m, bool ScreenCoords)
 {
-	if (_View || !GetParent())
+	if (_View)
 	{
 		#if defined __GTK_H__
 		
-		/*
-		xcb_query_pointer_reply_t *r;
-		xcb_query_pointer_cookie_t c = xcb_query_pointer(XcbConn(), _View ? _View : XcbScreen()->root);
-		if (r = xcb_query_pointer_reply(XcbConn(), c, 0))
+		gint x = 0, y = 0;
+		GdkModifierType mask;
+		GdkDisplay *disp = gdk_display_get_default();
+		GdkScreen *screen = NULL;
+		gdk_display_get_pointer(disp,
+								&screen,
+								&x, &y,
+								&mask);
+		if (!ScreenCoords)
 		{
-			if (ScreenCoords)
-			{
-				m.x = r->root_x;
-				m.y = r->root_y;
-			}
-			else
-			{
-				m.x = r->win_x;
-				m.y = r->win_y;
-			}
-			
-			m.Down(	TestFlag(r->mask, XCB_BUTTON_MASK_1) ||
-					TestFlag(r->mask, XCB_BUTTON_MASK_2) ||
-					TestFlag(r->mask, XCB_BUTTON_MASK_3));
-			m.Left(TestFlag(r->mask, XCB_BUTTON_MASK_1));
-			m.Middle(TestFlag(r->mask, XCB_BUTTON_MASK_2));
-			m.Right(TestFlag(r->mask, XCB_BUTTON_MASK_3));
-			
-			free(r);
-			return true;
+			GdcPt2 p(x, y);
+			PointToView(p);
+			m.x = x;
+			m.y = y;
 		}
-		// else printf("%s:%i - xcb_query_pointer(%x) failed\n", _FL, _View);
-		*/
+		else
+		{
+			m.x = x;
+			m.y = y;
+		}
 		
 		#endif
 	}

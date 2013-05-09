@@ -715,6 +715,9 @@ public:
 	{
 		static char *None = "(none)";
 
+		if (!App->GetMenu())
+			return; // This happens in GTK during window destruction
+
 		if (RecentFilesMenu)
 		{
 			RecentFilesMenu->Empty();
