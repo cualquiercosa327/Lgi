@@ -1106,39 +1106,56 @@ GViewI *GWindow::GetFocus()
 	return d->Focus;
 }
 
-void GWindow::SetFocus(GViewI *ctrl, bool ondelete)
+void GWindow::SetFocus(GViewI *ctrl, FocusType type)
 {
-	if (d->Focus == ctrl)
-		return;
-
-	if (d->Focus)
+	switch (type)
 	{
-		GView *gv = d->Focus->GetGView();
-		if (gv)
+		case GainFocus:
 		{
-			gv->_Focus(false);
-		}
-		else if (IsActive())
-		{
-			d->Focus->OnFocus(false);
-			d->Focus->Invalidate();
-		}
-	}
-	d->Focus = ctrl;
-	if (d->Focus)
-	{
-		if (d->Focus->Handle())
-			gtk_widget_grab_focus(d->Focus->Handle());
+			if (d->Focus == ctrl)
+				return;
 
-		GView *gv = d->Focus->GetGView();
-		if (gv)
-		{
-			gv->_Focus(true);
+			if (d->Focus)
+			{
+				GView *gv = d->Focus->GetGView();
+				if (gv)
+				{
+					gv->_Focus(false);
+				}
+				else if (IsActive())
+				{
+					d->Focus->OnFocus(false);
+					d->Focus->Invalidate();
+				}
+			}
+			d->Focus = ctrl;
+			if (d->Focus)
+			{
+				if (d->Focus->Handle())
+					gtk_widget_grab_focus(d->Focus->Handle());
+
+				GView *gv = d->Focus->GetGView();
+				if (gv)
+				{
+					gv->_Focus(true);
+				}
+				else if (IsActive())
+				{			
+					d->Focus->OnFocus(true);
+					d->Focus->Invalidate();
+				}
+			}
+			break;
 		}
-		else if (IsActive())
-		{			
-			d->Focus->OnFocus(true);
-			d->Focus->Invalidate();
+		case LoseFocus:
+		{
+			break;
+		}
+		case ViewDelete:
+		{
+			if (ctrl == d->Focus)
+				d->Focus = NULL;
+			break;
 		}
 	}
 }

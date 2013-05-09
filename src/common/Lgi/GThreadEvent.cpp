@@ -1,6 +1,10 @@
 #include "Lgi.h"
 #include "GThreadEvent.h"
 
+#if defined(LINUX)
+#include <errno.h>
+#endif
+
 #define DEBUG_THREADING	0
 
 GThreadEvent::GThreadEvent(const char *name)
@@ -55,7 +59,7 @@ bool GThreadEvent::Signal()
 		LgiAssert(!"No event handle");
 	#elif defined(MAC)
 	#elif defined(LINUX)
-    pthread_mutex_lock(&hMutex);
+    pthread_mutex_lock(&Mutex);
     pthread_cond_signal(&Cond);    /* signal SendThread */
     pthread_mutex_unlock(&Mutex);
 	#endif
@@ -83,7 +87,7 @@ GThreadEvent::WaitStatus GThreadEvent::Wait(int32 Timeout)
 	int result;
 	if (Timeout < 0)
 	{
-		result = pthread_cond_wait(&Event, &Mutex);
+		result = pthread_cond_wait(&Cond, &Mutex);
 	}
 	else
 	{

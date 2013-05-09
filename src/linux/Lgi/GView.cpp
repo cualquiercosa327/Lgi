@@ -152,7 +152,7 @@ void GView::_Delete()
 	
 	GWindow *Wnd = GetWindow();
 	if (Wnd && Wnd->GetFocus() == static_cast<GViewI*>(this))
-		Wnd->SetFocus(NULL);
+		Wnd->SetFocus(this, GWindow::ViewDelete);
 
 	if (LgiApp AND LgiApp->AppWnd == this)
 	{
