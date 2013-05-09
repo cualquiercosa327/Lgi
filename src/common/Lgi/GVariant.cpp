@@ -51,16 +51,16 @@ GVariant::GVariant(double i)
 
 GVariant::GVariant(const char *s)
 {
-	Type = GV_STRING;
 	User = 0;
 	Value.String = NewStr(s);
+	Type = Value.String ? GV_STRING : GV_NULL;
 }
 
 GVariant::GVariant(const char16 *s)
 {
-	Type = GV_WSTRING;
-	User = 0;
 	Value.WString = NewStrW(s);
+	User = 0;
+	Type = Value.WString ? GV_WSTRING : GV_NULL;
 }
 
 GVariant::GVariant(void *p)
