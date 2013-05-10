@@ -889,12 +889,7 @@ bool GView::Focus()
 		bool Active = w->IsActive();
 		if (Active)
 			Has = w->GetFocus() == static_cast<GViewI*>(this);
-		LgiTrace("%s::Focus()=%i (Active=%i)\n", GetClass(), Has, Active);
 	}
-	else
-	{
-		LgiTrace("%s::Focus() no window\n", GetClass());
-	}	
 	#elif defined(WIN32NATIVE)
 	if (_View)
 	{

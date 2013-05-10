@@ -202,6 +202,7 @@ GWindowCallback(GtkWidget   *widget,
 		}
 		case GDK_FOCUS_CHANGE:
 		{
+			/*
 			char buf[1024];
 			int ch = 0;
 			::GArray<GViewI*> a;
@@ -214,6 +215,7 @@ GWindowCallback(GtkWidget   *widget,
 				ch += sprintf_s(buf + ch, sizeof(buf) - ch, "> %s \"%-.8s\" ", a[n]->GetClass(), a[n]->Name());
 			}
 			LgiTrace("%s : gwnd_focus=%i\n", buf, event->focus_change.in);
+			*/
 			
 			This->d->Active = event->focus_change.in;
 			break;

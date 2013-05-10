@@ -644,6 +644,7 @@ gboolean PopupButtonEvent(GtkWidget *widget, GdkEventButton *e, GPopup *popup)
 
 gboolean PopupFocusEvent(GtkWidget *widget, GdkEvent *event, GPopup *popup)
 {
+	/*
 	char buf[1024];
 	int ch = 0;
 	::GArray<GViewI*> a;
@@ -656,6 +657,7 @@ gboolean PopupFocusEvent(GtkWidget *widget, GdkEvent *event, GPopup *popup)
 		ch += sprintf_s(buf + ch, sizeof(buf) - ch, "> %s \"%-.8s\" ", a[n]->GetClass(), a[n]->Name());
 	}
 	LgiTrace("%s : gwnd_focus=%i\n", buf, event->focus_change.in);
+	*/
     
     popup->OnFocus(event->focus_change.in);
     return TRUE;            
