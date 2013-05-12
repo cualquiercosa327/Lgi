@@ -65,6 +65,18 @@ void GBox::SetVertical(bool v)
 	}
 }
 
+GBox::Spacer *GBox::GetSpacer(int idx)
+{
+	while (d->Spacers.Length() < Children.Length() - 1)
+	{
+		Spacer &s = d->Spacers.New();
+		s.SizePx = DEFAULT_SPACER_PX;
+		s.Colour.c24(DEFAULT_SPACER_COLOUR24);
+	}
+	
+	return idx >= 0 && idx < d->Spacers.Length() ? &d->Spacers[idx] : NULL;
+}
+
 void GBox::OnCreate()
 {
 	AttachChildren();
@@ -99,12 +111,7 @@ void GBox::OnPosChange()
 {
 	GCssTools tools(GetCss(), GetFont());
 	GRect content = tools.ApplyMargin(GetClient());
-	while (d->Spacers.Length() < Children.Length() - 1)
-	{
-		Spacer &s = d->Spacers.New();
-		s.SizePx = DEFAULT_SPACER_PX;
-		s.Colour.c24(DEFAULT_SPACER_COLOUR24);
-	}
+	GetSpacer(0);
 	
 	GAutoPtr<GViewIterator> views(IterateViews());
 	int Cur = 0, Idx = 0;
@@ -133,13 +140,14 @@ void GBox::OnPosChange()
 		if (d->Vertical)
 		{
 			viewPos.y1 = Cur;
-			viewPos.y2 = Cur + size_px;
+			viewPos.y2 = Cur + size_px - 1;
 		}
 		else
 		{
 			viewPos.x1 = Cur;
-			viewPos.x2 = Cur + size_px;
+			viewPos.x2 = Cur + size_px - 1;
 		}
+		// LgiTrace("[%i]=%s\n", Idx, viewPos.GetStr());
 		c->SetPos(viewPos);
 		Cur += size_px;
 		
@@ -158,6 +166,7 @@ void GBox::OnPosChange()
 				s.Pos.x1 = Cur;
 				s.Pos.x2 = Cur + s.SizePx - 1;
 			}
+			// LgiTrace("...%s\n", s.Pos.GetStr());
 			Cur += s.SizePx;
 		}
 	}

@@ -22,7 +22,7 @@ public:
 
 	bool IsVertical();
 	void SetVertical(bool v);
-	Spacer &GetSpacer(int i);
+	Spacer *GetSpacer(int i);
 	
 	void OnCreate();
 	void OnPaint(GSurface *pDC);
