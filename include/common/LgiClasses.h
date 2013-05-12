@@ -793,7 +793,7 @@ public:
     /// Sets the style of the control
     bool SetCssStyle(char *CssStyle);
     /// Gets the style of the control
-    class GCss *GetCss();
+    class GCss *GetCss(bool Create = false);
 
 	/// Moves a top level window on screen.
 	void MoveOnScreen();

@@ -1053,6 +1053,18 @@
 						RelativePath=".\src\common\Lgi\GCss.cpp"
 						>
 					</File>
+					<File
+						RelativePath=".\include\common\GCss.h"
+						>
+					</File>
+					<File
+						RelativePath=".\src\common\Lgi\GCssTools.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\include\common\GCssTools.h"
+						>
+					</File>
 				</Filter>
 			</Filter>
 			<Filter

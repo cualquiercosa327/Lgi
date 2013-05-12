@@ -338,6 +338,7 @@ public:
 			Rgb32 = init;
 		}
 
+		bool IsValid() { return Type != ColorInherit; }
 		bool Parse(const char *&s);
 		bool operator !=(ColorDef &c)
 		{
@@ -699,11 +700,13 @@ public:
 	Accessor(Bottom, Len, Len());
 	Accessor(Left, Len, Len());
 
+	Accessor(Margin, Len, Len());
 	Accessor(MarginTop, Len, Len());
 	Accessor(MarginRight, Len, Len());
 	Accessor(MarginBottom, Len, Len());
 	Accessor(MarginLeft, Len, Len());
 
+	Accessor(Padding, Len, Len());
 	Accessor(PaddingTop, Len, Len());
 	Accessor(PaddingRight, Len, Len());
 	Accessor(PaddingBottom, Len, Len());

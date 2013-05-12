@@ -402,6 +402,7 @@ public:
 	virtual bool SetForegroundFill(GViewFill *Fill) = 0;
 	virtual GViewFill *GetBackgroundFill() = 0;
 	virtual bool SetBackgroundFill(GViewFill *Fill) = 0;
+    virtual class GCss *GetCss(bool Create = false) = 0;
 
 	virtual bool Name(const char *n) = 0;
 	virtual bool NameW(const char16 *n) = 0;

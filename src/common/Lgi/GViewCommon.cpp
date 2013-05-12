@@ -1658,8 +1658,11 @@ bool GView::SetCssStyle(char *CssStyle)
     return d->Css->Parse(Defs, GCss::ParseRelaxed);
 }
 
-GCss *GView::GetCss()
+GCss *GView::GetCss(bool Create)
 {
+    if (Create && !d->Css)
+        d->Css.Reset(new GCss);
+
     return d->Css;
 }
 
