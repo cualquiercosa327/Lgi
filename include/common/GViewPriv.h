@@ -114,10 +114,6 @@ public:
 	#else
 
 		// Cursor
-		int				CursorId;
-		static bool		CursorSet;
-		static GView	*LastCursor;
-
 		GPulseThread	*Pulse;
 		GView			*Popup;
 		bool			TabStop;

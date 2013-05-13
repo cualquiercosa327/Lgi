@@ -350,6 +350,12 @@ enum LgiCursor
 	LCUR_Normal,
 	/// Upwards arrow
 	LCUR_UpArrow,
+	/// Downwards arrow
+	LCUR_DownArrow,
+	/// Left arrow
+	LCUR_LeftArrow,
+	/// Right arrow
+	LCUR_RightArrow,
 	/// Crosshair
 	LCUR_Cross,
 	/// Hourglass/watch

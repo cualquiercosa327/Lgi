@@ -110,12 +110,8 @@ bool LgiIsKeyDown(int Key)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-bool GViewPrivate::CursorSet = false;
-GView *GViewPrivate::LastCursor = 0;
-
 GViewPrivate::GViewPrivate()
 {
-	CursorId = 0;
 	Parent = 0;
 	ParentI = 0;
 	Notify = 0;
@@ -202,6 +198,100 @@ GView *&GView::PopupChild()
 	return d->Popup;
 }
 
+static LgiCursor CurrectCursor = LCUR_Normal;
+void LgiToGtkCursor(OsView v, LgiCursor c)
+{
+	if (!v)
+		return;
+		
+	GdkCursorType type = GDK_ARROW;
+	switch (c)
+	{
+		// No cursor
+		case LCUR_Blank:
+			type = GDK_BLANK_CURSOR;
+			break;
+		/// Normal arrow
+		case LCUR_Normal:
+			type = GDK_ARROW;
+			break;
+		/// Upwards arrow
+		case LCUR_UpArrow:
+			type = GDK_SB_UP_ARROW;
+			break;
+		/// Downwards arrow
+		case LCUR_DownArrow:
+			type = GDK_SB_DOWN_ARROW;
+			break;
+		/// Left arrow
+		case LCUR_LeftArrow:
+			type = GDK_SB_LEFT_ARROW;
+			break;
+		/// Right arrow
+		case LCUR_RightArrow:
+			type = GDK_SB_RIGHT_ARROW;
+			break;
+		/// Crosshair
+		case LCUR_Cross:
+			type = GDK_CROSSHAIR;
+			break;
+		/// Hourglass/watch
+		case LCUR_Wait:
+			type = GDK_WATCH;
+			break;
+		/// Ibeam/text entry
+		case LCUR_Ibeam:
+			type = GDK_XTERM;
+			break;
+		/// Vertical resize (|)
+		case LCUR_SizeVer:
+			type = GDK_DOUBLE_ARROW;
+			break;
+		/// Horizontal resize (-)
+		case LCUR_SizeHor:
+			type = GDK_LEFT_SIDE;
+			break;
+		/// Diagonal resize (/)
+		case LCUR_SizeBDiag:
+			type = GDK_BOTTOM_LEFT_CORNER;
+			break;
+		/// Diagonal resize (\)
+		case LCUR_SizeFDiag:
+			type = GDK_BOTTOM_RIGHT_CORNER;
+			break;
+		/// All directions resize
+		case LCUR_SizeAll:
+			type = GDK_FLEUR;
+			break;
+		/// A pointing hand
+		case LCUR_PointingHand:
+			type = GDK_HAND2;
+			break;
+		/// A slashed circle
+		case LCUR_Forbidden:
+			type = GDK_X_CURSOR;
+			break;
+
+		case LCUR_SplitV:
+		case LCUR_SplitH:
+		case LCUR_DropCopy:
+		case LCUR_DropMove:
+			LgiAssert(0);
+			break;
+	}
+	
+	if (type == GDK_ARROW)
+	{
+		gdk_window_set_cursor(v->window, NULL);
+	}
+	else
+	{
+		GdkCursor *cursor = gdk_cursor_new_for_display(gdk_display_get_default(), type);
+		if (cursor)
+			gdk_window_set_cursor(v->window, cursor);
+	}
+}
+
 bool GView::_Mouse(GMouse &m, bool Move)
 {
 	#if 0
@@ -249,14 +339,9 @@ bool GView::_Mouse(GMouse &m, bool Move)
 	{
 		if (Move)
 		{
-			GViewI *c = _Capturing;
-			d->CursorSet = false;
-			c->OnMouseMove(lgi_adjust_click(m, c));
-			
-			if (!d->CursorSet)
-			{
-				c->SetCursor(LCUR_Normal);
-			}
+			GMouse Local = lgi_adjust_click(m, _Capturing);
+			_Capturing->OnMouseMove(Local);
+			LgiToGtkCursor(_Capturing->Handle(), _Capturing->GetCursor(Local.x, Local.y));
 		}
 		else
 		{
@@ -267,56 +352,30 @@ bool GView::_Mouse(GMouse &m, bool Move)
 	{
 		if (Move)
 		{
-			/*
-			if (d->LastCursor AND
-				d->LastCursor != this)
-			{
-				printf("XUndefineCursor on old view.\n");
-				XUndefineCursor(Handle()->XDisplay(), d->LastCursor->Handle()->handle());
-				d->LastCursor = 0;
-			}
-			*/
-			
 			bool Change = false;
 			GViewI *o = WindowFromPoint(m.x, m.y);
 			if (_Over != o)
 			{
 				if (_Over)
-				{
 					_Over->OnMouseExit(lgi_adjust_click(m, _Over));
-				}
-
-				// printf("Over change %s -> %s\n", _Over?_Over->GetClass():0, o?o->GetClass():0);
 				_Over = o;
-
 				if (_Over)
-				{
 					_Over->OnMouseEnter(lgi_adjust_click(m, _Over));
-				}
 			}
 		}
 			
 		GView *Target = dynamic_cast<GView*>(_Over ? _Over : this);
 
 		GRect Client = Target->GView::GetClient(false);
-		/*
-		if (Target->Raised() || Target->Sunken())
-		{
-			Client.Offset(Target->_BorderSize, Target->_BorderSize);
-		}
-		*/
 		
 		m = lgi_adjust_click(m, Target, !Move);
 		if (!Client.Valid() || Client.Overlap(m.x, m.y))
 		{
+			LgiToGtkCursor(Target->Handle(), Target->GetCursor(m.x, m.y));
+
 			if (Move)
 			{
-				d->CursorSet = false;
 				Target->OnMouseMove(m);
-				if (!d->CursorSet)
-				{
-					Target->SetCursor(LCUR_Normal);
-				}
 			}
 			else
 			{
@@ -367,20 +426,6 @@ void GView::Quit(bool DontDelete)
 	{
 		delete this;
 	}
-}
-
-bool GView::SetCursor(LgiCursor CursorId)
-{
-	d->CursorSet = true;
-	GView *Wnd = GetWindow();
-	
-	if (Wnd &&
-		Wnd->Handle() &&
-		Wnd->d->CursorId != CursorId)
-	{
-	}
-	
-	return false;
 }
 
 bool GView::SetPos(GRect &p, bool Repaint)
@@ -820,6 +865,11 @@ GViewI *GView::FindControl(OsView hCtrl)
 		}
 	}
 	return 0;
+}
+
+LgiCursor GView::GetCursor(int x, int y)
+{
+	return LCUR_Normal;
 }
 
 ///////////////////////////////////////////////////////////////////
