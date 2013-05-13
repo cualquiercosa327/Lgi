@@ -1,3 +1,4 @@
+
 /*hdr
 **      FILE:           GList.cpp
 **      AUTHOR:         Matthew Allen
@@ -2774,15 +2775,6 @@ void GList::OnMouseMove(GMouse &m)
 			}
 			default:
 			{
-				#ifndef WIN32
-				GListColumn *Resize, *Over;
-				HitColumn(m.x, m.y, Resize, Over);
-				if (Resize)
-				{
-					SetCursor(LCUR_SizeHor);
-				}
-				#endif
-				
 				List<GListItem> s;
 				if (GetSelection(s))
 				{

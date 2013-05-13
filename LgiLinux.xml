@@ -84,7 +84,7 @@
 				<Node File="./src/common/Lgi/GStream.cpp" Type="2" Platforms="7" />
 				<Node File="./include/common/GStream.h" Type="3" Platforms="7" />
 			</Node>
-			<Node Name="Threads" Type="1" Platforms="7" Open="1">
+			<Node Name="Threads" Type="1" Platforms="7" Open="0">
 				<Node Name="Linux" Type="1" Platforms="7" Open="0">
 					<Node File=".\src\linux\Lgi\GThread.cpp" Type="2" Platforms="2" />
 				</Node>
@@ -128,18 +128,19 @@
 				<Node File="./src/common/Lgi/GFileSelect.cpp" Type="2" Platforms="6" />
 			</Node>
 		</Node>
-		<Node Name="Gdc2" Type="1" Platforms="7" Open="0">
-			<Node Name="_Core" Type="1" Platforms="7" Open="0">
-				<Node File=".\src\common\Gdc2\GColourReduce.cpp" Type="2" Platforms="7" />
-				<Node File=".\include\common\Gdc2.h" Type="3" Platforms="7" />
-				<Node File=".\include\common\GFilter.h" Type="3" Platforms="7" />
-				<Node File=".\src\common\Gdc2\GFuncs.cpp" Type="2" Platforms="7" />
+		<Node Name="Gdc2" Type="1" Platforms="7" Open="1">
+			<Node Name="_Core" Type="1" Platforms="7" Open="1">
 				<Node Name="Linux" Type="1" Platforms="7" Open="1">
 					<Node File=".\src\linux\Gtk\Gdc2.cpp" Type="2" Platforms="7" />
 				</Node>
 				<Node Name="Win32" Type="1" Platforms="7" Open="1">
 					<Node File=".\src\win32\Gdc2\Gdc2.cpp" Type="2" Platforms="1" />
 				</Node>
+				<Node File=".\src\common\Gdc2\GColourReduce.cpp" Type="2" Platforms="7" />
+				<Node File=".\include\common\Gdc2.h" Type="3" Platforms="7" />
+				<Node File=".\src\common\Gdc2\GdcCommon.cpp" Type="2" Platforms="7" />
+				<Node File=".\include\common\GFilter.h" Type="3" Platforms="7" />
+				<Node File=".\src\common\Gdc2\GFuncs.cpp" Type="2" Platforms="7" />
 			</Node>
 			<Node Name="Font" Type="1" Platforms="7" Open="0">
 				<Node File="./src/common/Gdc2/Font/GDisplayString.cpp" Type="2" Platforms="7" />

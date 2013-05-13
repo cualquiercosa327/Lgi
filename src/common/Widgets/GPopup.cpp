@@ -140,7 +140,7 @@ public:
 		// XWidget::DestroyNotifyHandlers[0] = XWinDestroyHandler;
 		#endif
 		
-		#ifdef MAC
+		#if defined(MAC) || defined(LINUX)
 		LgiTrace("Mouse hook thread not running! (FIXME)\n");
 		#else
 		Loop = true;
@@ -403,28 +403,6 @@ public:
 		return 0;
 	}
 };
-
-#ifdef XWIN
-/*
-void XWinDestroyHandler(XWidget *w)
-{
-	if (HookPrivate AND w)
-	{
-		if (HookPrivate->Lock(_FL))
-		{
-			if (HookPrivate->hMouseOver == w->handle())
-			{
-				HookPrivate->hMouseOver = 0;
-			}
-			
-			HookPrivate->Unlock();
-		}
-		else LgiTrace("%s:%i - error\n", __FILE__, __LINE__);
-	}
-	else LgiTrace("%s:%i - error\n", __FILE__, __LINE__);
-}
-*/
-#endif
 
 GMouseHook::GMouseHook()
 {

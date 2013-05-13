@@ -25,6 +25,8 @@ using namespace Gtk;
 #define ADJ_UP						3
 #define ADJ_DOWN					4
 
+#define ThreadCheck()				LgiAssert(InThread())
+
 struct X11_INVALIDATE_PARAMS
 {
 	GView *View;
@@ -131,6 +133,8 @@ GViewPrivate::~GViewPrivate()
 
 void GView::_Focus(bool f)
 {
+	ThreadCheck();
+	
 	if (f)
 		SetFlag(WndFlags, GWF_FOCUS);
 	else
@@ -142,6 +146,8 @@ void GView::_Focus(bool f)
 
 void GView::_Delete()
 {
+	ThreadCheck();
+
 	// Remove static references to myself
 	if (_Over == this) _Over = 0;
 	if (_Capturing == this) _Capturing = 0;
@@ -294,6 +300,8 @@ void LgiToGtkCursor(OsView v, LgiCursor c)
 
 bool GView::_Mouse(GMouse &m, bool Move)
 {
+	ThreadCheck();
+	
 	#if 0
 	if (!Move)
 	{
@@ -401,6 +409,8 @@ bool GView::_Mouse(GMouse &m, bool Move)
 
 GRect &GView::GetClient(bool ClientSpace)
 {
+	ThreadCheck();
+	
 	int Edge = (Sunken() || Raised()) ? _BorderSize : 0;
 
 	static GRect c;
@@ -418,6 +428,8 @@ GRect &GView::GetClient(bool ClientSpace)
 
 void GView::Quit(bool DontDelete)
 {
+	ThreadCheck();
+	
 	if (DontDelete)
 	{
 		Visible(false);
@@ -430,6 +442,8 @@ void GView::Quit(bool DontDelete)
 
 bool GView::SetPos(GRect &p, bool Repaint)
 {
+	ThreadCheck();
+	
 	if (p == Pos)
 		return true;
 
@@ -546,6 +560,8 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 
 void GView::SetPulse(int Length)
 {
+	ThreadCheck();
+	
 	if (d->Pulse)
 	{
 		d->Pulse->Delete();
@@ -560,6 +576,8 @@ void GView::SetPulse(int Length)
 
 GMessage::Param GView::OnEvent(GMessage *Msg)
 {
+	ThreadCheck();
+	
 	int Id;
 	switch (Id = Msg->Type())
 	{
@@ -614,6 +632,8 @@ GMessage::Param GView::OnEvent(GMessage *Msg)
 
 void GView::PointToScreen(GdcPt2 &p)
 {
+	ThreadCheck();
+	
 	GViewI *c = this;
 
 	// Find real parent
@@ -640,6 +660,8 @@ void GView::PointToScreen(GdcPt2 &p)
 
 void GView::PointToView(GdcPt2 &p)
 {
+	ThreadCheck();
+	
 	if (_View)
 	{
 	    gint x, y;
@@ -686,6 +708,8 @@ void GView::PointToView(GdcPt2 &p)
 
 bool GView::GetMouse(GMouse &m, bool ScreenCoords)
 {
+	ThreadCheck();
+	
 	if (_View)
 	{
 		#if defined __GTK_H__
@@ -732,11 +756,15 @@ bool GView::GetMouse(GMouse &m, bool ScreenCoords)
 
 bool GView::IsAttached()
 {
+	ThreadCheck();
+	
 	return	_View && _View->parent;
 }
 
 bool GView::Attach(GViewI *parent)
 {
+	ThreadCheck();
+	
 	bool Status = false;
 
 	SetParent(parent);
@@ -803,6 +831,8 @@ bool GView::Attach(GViewI *parent)
 
 bool GView::Detach()
 {
+	ThreadCheck();
+	
 	// Detach view
 	GViewI *Par = GetParent();
 	if (Par)
@@ -850,6 +880,8 @@ bool GView::Detach()
 
 GViewI *GView::FindControl(OsView hCtrl)
 {
+	ThreadCheck();
+	
 	if (Handle() == hCtrl)
 	{
 		return this;

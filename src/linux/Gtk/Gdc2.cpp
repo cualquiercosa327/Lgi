@@ -1399,8 +1399,10 @@ GSurface *GInlineBmp::Create()
 GColourSpace GdkVisualToColourSpace(Gtk::GdkVisual *v, int output_bits)
 {
 	uint32 c = CsNone;
+
 	if (v)
 	{
+		// printf("GdkVisualToColourSpace, Type: %i\n", v->type);
 		switch (v->type)
 		{
 			default:
@@ -1422,8 +1424,18 @@ GColourSpace GdkVisualToColourSpace(Gtk::GdkVisual *v, int output_bits)
 				c |= ((CtRed   << 4) | v->red_prec  ) << (v->red_shift);
 				c |= ((CtGreen << 4) | v->green_prec) << (v->green_shift);
 				c |= ((CtBlue  << 4) | v->blue_prec ) << (v->blue_shift);
-				
+
 				int bits = GColourSpaceToBits((GColourSpace) c);
+
+				/*
+				printf("GdkVisualToColourSpace, rgb: %i/%i, %i/%i, %i/%i  bits: %i  output_bits: %i\n",
+					v->red_prec, v->red_shift,
+					v->green_prec, v->green_shift,
+					v->blue_prec, v->blue_shift,
+					bits, output_bits
+					);
+				*/
+				
 				if (bits != output_bits)
 				{
 					int remaining_bits = output_bits - bits;

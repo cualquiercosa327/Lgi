@@ -29,6 +29,7 @@ void GSurface::Init()
 	Clip.ZOff(0, 0);
 	pPalette = NULL;
 	pApp = NULL;
+	ColourSpace = CsNone;
 
 	for (int i=0; i<GDC_CACHE_SIZE; i++)
 	{

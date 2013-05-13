@@ -299,12 +299,13 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 	pMem->Cs = ColourSpace = GdkVisualToColourSpace(d->Img->visual, d->Img->bits_per_pixel);
 
 	#if 0
-	printf("GMemDC::Create(%i,%i,%i) gdk_image_new(vis=%i,%i,%i,%i) img(%i,%i,%p)\n",
+	printf("GMemDC::Create(%i,%i,%i) gdk_image_new(vis=%i,%i,%i,%i) img(%i,%i,%p) cs=%x\n",
 		x, y, Bits,
 		Vis->depth, Vis->byte_order, Vis->colormap_size, Vis->bits_per_rgb,
 		d->Img->bits_per_pixel,
 		d->Img->bpl,
-		d->Img->mem);
+		d->Img->mem,
+		ColourSpace);
 	#endif
 
 	#if 0

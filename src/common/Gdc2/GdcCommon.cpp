@@ -668,9 +668,11 @@ const char *GColourSpaceToString(GColourSpace cs)
 	
 	*s++ = 'C';
 	*s++ = 's';
+// printf("Converting Cs to String: 0x%x\n", cs);
 	for (int i=3; i>=0; i--)
 	{
 		int c = (((uint32)cs) >> (i << 3)) & 0xff;
+// printf("    c[%i] = 0x%x\n", i, c);
 		if (c)
 		{
 			GComponentType type = (GComponentType)(c >> 4);

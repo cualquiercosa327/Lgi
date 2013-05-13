@@ -69,6 +69,7 @@ GScreenDC::GScreenDC(OsView View)
 	        if (v)
 	        {
 	            d->Bits = v->depth;
+		        ColourSpace = GdkVisualToColourSpace(v, v->depth);
 	        }
 	    }
 	}	
@@ -105,6 +106,7 @@ GScreenDC::GScreenDC(GView *view, void *param)
 	        if (v)
 	        {
 	            d->Bits = v->depth;
+		        ColourSpace = GdkVisualToColourSpace(v, v->depth);
 	        }
 	    }
     }
@@ -505,6 +507,10 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 	GMemDC *Mem;
 	if (Mem = dynamic_cast<GMemDC*>(Src))
 	{
+		printf("Doing Mem(%s)->Screen(%s) Blt\n",
+			GColourSpaceToString(Mem->GetColourSpace()),
+			GColourSpaceToString(GetColourSpace()));
+			
 		switch (Mem->GetColourSpace())
 		{
 			case CsRgba32:

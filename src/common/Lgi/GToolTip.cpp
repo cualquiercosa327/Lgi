@@ -277,7 +277,9 @@ public:
 		Loop = true;
 		Tips = tips;
 		
-		#ifndef BEOS // FIXME
+		#if defined(BEOS) || defined(LINUX)
+		printf("Warning: No NativeTipThread support.\n");
+		#else
 		Run();
 		#endif
 	}
