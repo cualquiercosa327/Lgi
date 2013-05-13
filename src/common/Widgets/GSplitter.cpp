@@ -504,11 +504,14 @@ void GSplitter::OnMouseMove(GMouse &m)
 			Invalidate((GRect*)0, true);
 		}
 	}
+}
 
-	if (OverSplit(m.x, m.y))
-		SetCursor((d->Vertical) ? LCUR_SizeHor : LCUR_SizeVer);
-	else
-		SetCursor(LCUR_Normal);
+LgiCursor GSplitter::GetCursor(int x, int y)
+{
+	if (OverSplit(x, y))
+		return (d->Vertical) ? LCUR_SizeHor : LCUR_SizeVer;
+	
+	return LCUR_Normal;
 }
 
 int GSplitter::OnHitTest(int x, int y)

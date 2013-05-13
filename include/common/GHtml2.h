@@ -129,7 +129,7 @@ public:
 	void OnPaint(GSurface *pDC);
 	void OnMouseClick(GMouse &m);
 	void OnMouseMove(GMouse &m);
-	int OnHitTest(int x, int y);
+	LgiCursor GetCursor(int x, int y);
 	bool OnMouseWheel(double Lines);
 	bool OnKey(GKey &k);
 	int OnNotify(GViewI *c, int f);

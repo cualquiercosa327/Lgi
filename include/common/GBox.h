@@ -20,6 +20,8 @@ public:
 	GBox(int Id = -1);
 	~GBox();
 
+	const char *GetClass() { return "GBox"; }
+
 	bool IsVertical();
 	void SetVertical(bool v);
 	Spacer *GetSpacer(int i);
@@ -28,8 +30,10 @@ public:
 	void OnPaint(GSurface *pDC);
 	void OnPosChange();
 	void OnMouseClick(GMouse &m);
+	bool OnViewMouse(GView *v, GMouse &m);
 	void OnMouseMove(GMouse &m);
 	bool Pour(GRegion &r);
+	LgiCursor GetCursor(int x, int y);
 
 	bool Serialize(GDom *Dom, const char *OptName, bool Write);	
 	bool SetSize(int ViewIndex, GCss::Len Size);

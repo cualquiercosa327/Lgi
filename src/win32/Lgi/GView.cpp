@@ -843,7 +843,12 @@ GRect &GView::GetClient(bool InClientSpace)
 	return Client;
 }
 
-bool GView::SetCursor(LgiCursor Cursor)
+LgiCursor GView::GetCursor(int x, int y)
+{
+	return LCUR_Normal;
+}
+
+bool LgiToWindowsCursor(LgiCursor Cursor)
 {
 	char *Set = 0;
 	switch (Cursor)
@@ -902,7 +907,7 @@ bool GView::SetCursor(LgiCursor Cursor)
 			break;
 	}
 
-	::SetCursor(LoadCursor(0, MAKEINTRESOURCE(Set?Set:IDC_ARROW)));
+	SetCursor(LoadCursor(0, MAKEINTRESOURCE(Set?Set:IDC_ARROW)));
 
 	return true;
 }
@@ -1884,11 +1889,16 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				SetKeyFlag(Ms.Flags, VK_MENU, MK_ALT);
 				Ms.Down((Msg->a & (MK_LBUTTON|MK_MBUTTON|MK_RBUTTON)) != 0);
 
-				int Hit = OnHitTest(Ms.x, Ms.y);
-				if (Hit < 0)
+				int CurX = Ms.x, CurY = Ms.y;
+				LgiCursor Cursor = LCUR_Normal;
+				for (GViewI *c = this; Cursor == LCUR_Normal && c->GetParent(); c = c->GetParent())
 				{
-					SetCursor(LCUR_Normal);
+					GRect CPos = c->GetPos();
+					Cursor = c->GetCursor(CurX, CurY);
+					CurX += CPos.x1;
+					CurY += CPos.y1;
 				}
+				LgiToWindowsCursor(Cursor);
 
 				GViewI *MouseOver = WindowFromPoint(Ms.x, Ms.y);
 				if (_Over != MouseOver)

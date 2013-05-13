@@ -584,7 +584,8 @@ public:
 	
 	void OnPaint(GSurface *pDC);
 	GMessage::Result OnEvent(GMessage *Msg);
-	int OnHitTest(int x, int y);
+	// int OnHitTest(int x, int y);
+	LgiCursor GetCursor(int x, int y);
 	void OnMouseClick(GMouse &m);
 	void OnMouseMove(GMouse &m);
 	int OnNotify(GViewI *Ctrl, int Flags);

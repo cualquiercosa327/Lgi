@@ -7928,9 +7928,26 @@ bool GHtml2::OnMouseWheel(double Lines)
 	return true;
 }
 
-int GHtml2::OnHitTest(int x, int y)
+LgiCursor GHtml2::GetCursor(int x, int y)
 {
-	return -1;
+	int Offset = ScrollY();
+	int Index = -1;
+	GTag *Tag = GetTagByPos(x, y + Offset, &Index);
+	if (Tag)
+	{
+		GAutoString Uri;
+		if (Tag->IsAnchor(&Uri))
+		{
+			GRect c = GetClient();
+			c.Offset(-c.x1, -c.y1);
+			if (c.Overlap(x, y) && ValidStr(Uri))
+			{
+				return LCUR_PointingHand;
+			}
+		}
+	}
+	
+	return LCUR_Normal;
 }
 
 void GHtml2::OnMouseMove(GMouse &m)
@@ -7951,12 +7968,14 @@ void GHtml2::OnMouseMove(GMouse &m)
 		GAutoString Uri;
 		if (Tag->IsAnchor(&Uri))
 		{
+			/*
 			GRect c = GetClient();
 			c.Offset(-c.x1, -c.y1);
 			if (c.Overlap(m.x, m.y) && ValidStr(Uri))
 			{
 				GLayout::SetCursor(LCUR_PointingHand);
 			}
+			*/
 
 			if (Uri)
 			{

@@ -365,6 +365,23 @@ GMessage::Result GScrollBar::OnEvent(GMessage *Msg)
 			}
 			break;
 		}
+		/*
+		case WM_MOUSEMOVE:
+		{
+			int CurX = (Msg->b&0xFFFF), CurY = (Msg->b>>16);
+			LgiCursor Cursor = LCUR_Normal;
+			for (GViewI *c = this; Cursor == LCUR_Normal && c->GetParent(); c = c->GetParent())
+			{
+				GRect CPos = c->GetPos();
+				Cursor = c->GetCursor(CurX, CurY);
+				LgiTrace("Scrollbar MouseMOve %s = %i, pos=%i, %i\n", c->GetClass(), Cursor, CurX, CurY);
+				CurX += CPos.x1;
+				CurY += CPos.y1;
+			}
+			LgiToWindowsCursor(Cursor);
+			break;
+		}
+		*/
 	}
 
 	return Status;

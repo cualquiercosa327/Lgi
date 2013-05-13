@@ -2194,6 +2194,17 @@ int GList::HitColumn(int x, int y, GListColumn *&Resize, GListColumn *&Over)
 	return Index;
 }
 
+LgiCursor GList::GetCursor(int x, int y)
+{
+	GListColumn *Resize, *Over;
+	HitColumn(x, y, Resize, Over);
+	if (Resize)
+		return LCUR_SizeHor;
+	
+	return LCUR_Normal;
+}
+
+/*
 int GList::OnHitTest(int x, int y)
 {
 	GListColumn *Resize, *Over;
@@ -2206,6 +2217,7 @@ int GList::OnHitTest(int x, int y)
 
 	return -1;
 }
+*/
 
 void GList::OnMouseClick(GMouse &m)
 {

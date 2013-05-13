@@ -5,6 +5,7 @@
 #define DEFAULT_SPACER_PX			5
 #define DEFAULT_SPACER_COLOUR24		LC_MED
 #define DEFAULT_MINIMUM_SIZE_PX		5
+#define ACTIVE_SPACER_SIZE_PX		9
 
 struct GBoxPriv
 {
@@ -25,12 +26,24 @@ public:
 		return Vertical ? r.Y() : r.X();
 	}
 
-	GBox::Spacer *HitTest(GMouse &m)
+	GBox::Spacer *HitTest(int x, int y)
 	{
 		for (int i=0; i<Spacers.Length(); i++)
 		{
 			GBox::Spacer &s = Spacers[i];
-			if (s.Pos.Overlap(m.x, m.y))
+			GRect Pos = s.Pos;
+			if (Vertical)
+			{
+				while (Pos.Y() < ACTIVE_SPACER_SIZE_PX)
+					Pos.Size(0, -1);
+			}
+			else
+			{
+				while (Pos.X() < ACTIVE_SPACER_SIZE_PX)
+					Pos.Size(-1, 0);
+			}
+				
+			if (Pos.Overlap(x, y))
 			{
 				return &s;
 			}
@@ -48,6 +61,10 @@ GBox::GBox(int Id)
 
 GBox::~GBox()
 {
+	GWindow *Wnd = GetWindow();
+	if (Wnd)
+		Wnd->UnregisterHook(this);
+
 	DeleteObj(d);
 }
 
@@ -81,6 +98,45 @@ void GBox::OnCreate()
 {
 	AttachChildren();
 	OnPosChange();
+	
+	GWindow *Wnd = GetWindow();
+	if (Wnd)
+		Wnd->RegisterHook(this, GMouseEvents);
+}
+
+bool GBox::OnViewMouse(GView *v, GMouse &m)
+{
+	// This hook allows the GBox to catch clicks nearby the splits even if the splits are too small
+	// to grab normally. Consider the case of a split that is 1px wide. The active region needs to
+	// be a little larger than that, however a normal click would go through to the child windows
+	// on either side of the split rather than to the GBox.
+	if (m.Down())
+	{
+		// Convert click to the local coordinates of this view
+		GMouse Local = m;
+		while (v && v != (GView*)this && v->GetParent())
+		{
+			GRect p = v->GetPos();
+			Local.x += p.x1;
+			Local.y += p.y1;
+			GViewI *vi = v->GetParent();
+			v = vi ? vi->GetGView() : NULL;
+		}
+		
+		if (v == (GView*)this)
+		{
+			// Is the click over our spacers?
+			Spacer *s = d->HitTest(Local.x, Local.y);
+			if (s)
+			{
+				// Pass the click to ourselves and prevent the normal view from getting it.
+				OnMouseClick(Local);
+				return false;
+			}
+		}
+	}
+	
+	return true;
 }
 
 bool GBox::Pour(GRegion &r)
@@ -149,6 +205,11 @@ void GBox::OnPosChange()
 		}
 		// LgiTrace("[%i]=%s\n", Idx, viewPos.GetStr());
 		c->SetPos(viewPos);
+		#ifdef WIN32
+		// This forces the update, otherwise the child's display lags till the
+		// mouse is released *rolls eyes*
+		c->Invalidate((GRect*)NULL, true);
+		#endif
 		Cur += size_px;
 		
 		// Allocate area for spacer
@@ -176,7 +237,7 @@ void GBox::OnMouseClick(GMouse &m)
 {
 	if (m.Down())
 	{
-		d->Dragging = d->HitTest(m);
+		d->Dragging = d->HitTest(m.x, m.y);
 		if (d->Dragging)
 		{
 			d->DragOffset.x = m.x - d->Dragging->Pos.x1;
@@ -276,12 +337,15 @@ void GBox::OnMouseMove(GMouse &m)
 			}
 		}
 	}
+}
 
-	Spacer *Over = d->HitTest(m);
+LgiCursor GBox::GetCursor(int x, int y)
+{
+	Spacer *Over = d->HitTest(x, y);
 	if (Over)
-		SetCursor((d->Vertical) ? LCUR_SizeVer : LCUR_SizeHor);
+		return (d->Vertical) ? LCUR_SizeVer : LCUR_SizeHor;
 	else
-		SetCursor(LCUR_Normal);
+		return LCUR_Normal;
 }
 
 bool GBox::Serialize(GDom *Dom, const char *OptName, bool Write)

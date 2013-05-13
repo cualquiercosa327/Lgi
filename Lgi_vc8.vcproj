@@ -899,14 +899,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\common\Widgets\GBox.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\include\common\GBox.h"
-					>
-				</File>
-				<File
 					RelativePath=".\src\common\Widgets\GButton.cpp"
 					>
 				</File>
@@ -1011,14 +1003,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\common\Widgets\GTableLayout.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\include\common\GTableLayout.h"
-					>
-				</File>
-				<File
 					RelativePath=".\src\common\Widgets\GTabView.cpp"
 					>
 				</File>
@@ -1063,6 +1047,26 @@
 					</File>
 					<File
 						RelativePath=".\include\common\GCssTools.h"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="Layout"
+					>
+					<File
+						RelativePath=".\src\common\Widgets\GBox.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\include\common\GBox.h"
+						>
+					</File>
+					<File
+						RelativePath=".\src\common\Widgets\GTableLayout.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\include\common\GTableLayout.h"
 						>
 					</File>
 				</Filter>

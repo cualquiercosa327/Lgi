@@ -761,7 +761,11 @@ public:
 	/// The GView object assumes the pointer will be valid at all times.
 	virtual void SetFont(GFont *Fnt, bool OwnIt = false);
 
+	/// Returns the cursor that should be displayed for the given location
+	/// \returns a cursor type. i.e. LCUR_Normal from LgiDefs.h
+	LgiCursor GetCursor(int x, int y);
 	
+	/*
 	/// \brief Sets the mouse cursor to display when the mouse is over this control.
 	///
 	/// This currently only works on Win32, as I can't get the X11 cursor functions to
@@ -772,6 +776,7 @@ public:
 		/// \sa the defines starting with LCUR_Normal from LgiDefs.h
 		LgiCursor Cursor
 	);
+	*/
 
 	/// \brief Get the position of the view relitive to it's parent.
 	virtual GRect &GetPos() { return Pos; }
@@ -1512,6 +1517,7 @@ public:
 	void OnMouseExit(GMouse &m);
 	int OnHitTest(int x, int y);
 	void OnChildrenChanged(GViewI *Wnd, bool Attaching);
+	LgiCursor GetCursor(int x, int y);
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

@@ -290,6 +290,6 @@ LgiFunc char *GetWindowsFolder(int Id);
 LgiFunc int FormatToInt(char *s);
 /// Convert a Os dependant integer d'n'd format to a string.
 LgiFunc char *FormatToStr(int f);
-
+extern bool LgiToWindowsCursor(LgiCursor Cursor);
 
 #endif
