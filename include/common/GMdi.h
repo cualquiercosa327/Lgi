@@ -14,6 +14,7 @@ public:
 	void OnPaint(GSurface *pDC);	
 	void OnMouseClick(GMouse &m);
 	void OnMouseMove(GMouse &m);
+	LgiCursor GetCursor(int x, int y);
 	void Raise();
 	void Lower();
 	GRect &GetClient(bool InClientSpace = true);

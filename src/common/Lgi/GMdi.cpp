@@ -38,23 +38,23 @@ public:
 		System.ZOff(-1, -1);
 	}
 
-	GMdiDrag HitTest(GMouse &m)
+	GMdiDrag HitTest(int x, int y)
 	{
 		GMdiDrag Hit = DragNone;
 		
-		if (Child->WindowFromPoint(m.x, m.y) == Child)
+		if (Child->WindowFromPoint(x, y) == Child)
 		{
-			if (!Child->GetClient().Overlap(m.x, m.y))
+			if (!Child->GetClient().Overlap(x, y))
 			{
-				if (System.Overlap(m.x, m.y))
+				if (System.Overlap(x, y))
 				{
 					Hit = DragSystem;
 				}
-				else if (Close.Overlap(m.x, m.y))
+				else if (Close.Overlap(x, y))
 				{
 					Hit = DragClose;
 				}
-				else if (Title.Overlap(m.x, m.y))
+				else if (Title.Overlap(x, y))
 				{
 					Hit = DragMove;
 				}
@@ -62,19 +62,19 @@ public:
 				{
 					GRect c = Child->GLayout::GetClient();
 					int Corner = 24;
-					if (m.x < c.x1 + Corner)
+					if (x < c.x1 + Corner)
 					{
 						(int&)Hit |= DragLeft;
 					}
-					if (m.x > c.x2 - Corner)
+					if (x > c.x2 - Corner)
 					{
 						(int&)Hit |= DragRight;
 					}
-					if (m.y < c.y1 + Corner)
+					if (y < c.y1 + Corner)
 					{
 						(int&)Hit |= DragTop;
 					}
-					if (m.y > c.y2 - Corner)
+					if (y > c.y2 - Corner)
 					{
 						(int&)Hit |= DragBottom;
 					}
@@ -277,7 +277,7 @@ void GMdiChild::OnMouseClick(GMouse &m)
 			d->Drag = DragNone;
 			d->Ox = d->Oy = -1;
 			
-			d->Drag = d->HitTest(m);
+			d->Drag = d->HitTest(m.x, m.y);
 			if (d->Drag)
 			{
 				Capture(true);
@@ -374,6 +374,47 @@ void GMdiChild::OnMouseClick(GMouse &m)
 	}
 }
 
+LgiCursor GMdiChild::GetCursor(int x, int y)
+{
+	GMdiDrag Hit = d->HitTest(x, y);
+	if (Hit & DragLeft)
+	{
+		if (Hit & DragTop)
+		{
+			return LCUR_SizeFDiag;
+		}
+		else if (Hit & DragBottom)
+		{
+			return LCUR_SizeBDiag;
+		}
+		else
+		{
+			return LCUR_SizeHor;
+		}
+	}
+	else if (Hit & DragRight)
+	{
+		if (Hit & DragTop)
+		{
+			return LCUR_SizeBDiag;
+		}
+		else if (Hit & DragBottom)
+		{
+			return LCUR_SizeFDiag;
+		}
+		else
+		{
+			return LCUR_SizeHor;
+		}
+	}
+	else if ((Hit & DragTop) || (Hit & DragBottom))
+	{
+		return LCUR_SizeVer;
+	}
+	
+	return LCUR_Normal;
+}
+
 void GMdiChild::OnMouseMove(GMouse &m)
 {
 	if (IsCapturing())
@@ -428,48 +469,6 @@ void GMdiChild::OnMouseMove(GMouse &m)
 		}
 
 		SetPos(p);
-	}
-	else
-	{
-		GMdiDrag Hit = d->HitTest(m);
-		if (Hit & DragLeft)
-		{
-			if (Hit & DragTop)
-			{
-				SetCursor(LCUR_SizeFDiag);
-			}
-			else if (Hit & DragBottom)
-			{
-				SetCursor(LCUR_SizeBDiag);
-			}
-			else
-			{
-				SetCursor(LCUR_SizeHor);
-			}
-		}
-		else if (Hit & DragRight)
-		{
-			if (Hit & DragTop)
-			{
-				SetCursor(LCUR_SizeBDiag);
-			}
-			else if (Hit & DragBottom)
-			{
-				SetCursor(LCUR_SizeFDiag);
-			}
-			else
-			{
-				SetCursor(LCUR_SizeHor);
-			}
-		}
-		else if ((Hit & DragTop) || (Hit & DragBottom))
-		{
-			SetCursor(LCUR_SizeVer);
-		}
-		else
-		{
-			SetCursor(LCUR_Normal);
-		}
 	}
 }
 
