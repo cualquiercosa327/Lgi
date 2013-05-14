@@ -231,16 +231,6 @@ public:
 	void TextLabels(bool i);
 	/// Returns true if the the customizable menu is on [default: off]
 	bool IsCustomizable();
-	/*
-	/// Switch for the customization menu.
-	void Customizable
-	(
-		/// Set this to the properties store to switch on the right click menu, or NULL to switch it off.
-		ObjProperties *PropStore = 0,
-		/// This is the property that the toolbar stores state under. It should be unique for every toolbar.
-		char *Option = 0
-	);
-	*/
 	/// Switch for the customization menu.
 	void Customizable
 	(

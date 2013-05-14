@@ -14,6 +14,8 @@
 #include "GToken.h"
 #include "GVariant.h"
 
+#define ToolBarHilightColour LC_HIGH
+
 #ifdef WIN32
 
 HPALETTE GetSystemPalette();
@@ -896,43 +898,55 @@ void GToolButton::OnPaint(GSurface *pDC)
 		if (GetId() >= 0)
 		{
 			// Draw border
+			COLOUR Background = e && Over ? ToolBarHilightColour : LC_MED;
 			if (Down)
 			{
+				// Sunken if the button is pressed
 				LgiThinBorder(pDC, p, SUNKEN);
-				pDC->Colour(Over ? LC_LIGHT : LC_MED, 24);
-				pDC->Box(&p);
-			}
-			else if (e && Over)
-			{
-				pDC->Colour(LC_LIGHT, 24);
-				pDC->Box(&p);
-				p.Size(1, 1);
+				pDC->Colour(Background, 24);
 				pDC->Box(&p);
 			}
 			else
 			{
-				pDC->Colour(LC_MED, 24);
+				pDC->Colour(Background, 24);
 				pDC->Box(&p);
 				p.Size(1, 1);
-				pDC->Box(&p);
 			}
 
-			// pDC->ClipRgn(&p);
+			GRect IconPos(0, 0, Par->d->ImgList->TileX()-1, Par->d->ImgList->TileY()-1);
+			GRegion Unpainted(p);
+			
+			// Center the icon
+			if (IconPos.X() < p.X() - 1)
+				IconPos.Offset((p.X() - IconPos.X()) >> 1, 0);
+			// Offset it if the button is pressed
+			if (Down)
+				IconPos.Offset(1, 1);
 
+			// Draw any icon.
 			if (ImgIndex >= 0)
 			{
 				// Draw cached
-				Par->_DrawFromCache(pDC, p.x1+Down, p.y1+Down, ImgIndex, Over, !e);
+				Par->_DrawFromCache(pDC, IconPos.x1, IconPos.y1, ImgIndex, Over, !e);
+				Unpainted.Subtract(&IconPos);
+
+				// Fill in the rest of the area
+				pDC->Colour(Background, 24);
+				for (GRect *r = Unpainted.First(); r; r = Unpainted.Next())
+				{
+					pDC->Rectangle(r);
+				}
 			}
 			else
 			{
 				// Draw a red cross indicating no icons.
+				pDC->Colour(LC_MED, 24);
+				pDC->Rectangle(&p);
 				pDC->Colour(Rgb24(255, 0, 0), 24);
 				pDC->Line(p.x1, p.y1, p.x2, p.y2);
 				pDC->Line(p.x2, p.y1, p.x1, p.y2);
 			}
-
-			// pDC->ClipRgn(0);
+			
 
 			// Text
 			if (Par->d->Text &&
@@ -1431,7 +1445,7 @@ void GToolBar::_BuildCache(GImageList *From)
 
 	d->IconCache->Colour(LC_MED, 24);
 	d->IconCache->Rectangle();
-	d->IconCache->Colour(LC_HIGH, 24);
+	d->IconCache->Colour(ToolBarHilightColour, 24);
 	d->IconCache->Rectangle(0, IconHilight * From->Y(), d->IconCache->X()-1, (IconHilight + 1) * From->Y() - 1);
 
 	d->IconCache->Op(GDC_ALPHA);
