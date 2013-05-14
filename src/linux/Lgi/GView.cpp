@@ -1,3 +1,4 @@
+
 /*hdr
 **      FILE:           GView.cpp
 **      AUTHOR:         Matthew Allen
@@ -218,9 +219,11 @@ void LgiToGtkCursor(OsView v, LgiCursor c)
 	switch (c)
 	{
 		// No cursor
+		#ifdef GDK_BLANK_CURSOR
 		case LCUR_Blank:
 			type = GDK_BLANK_CURSOR;
 			break;
+		#endif
 		/// Normal arrow
 		case LCUR_Normal:
 			type = GDK_ARROW;
@@ -282,12 +285,18 @@ void LgiToGtkCursor(OsView v, LgiCursor c)
 			type = GDK_X_CURSOR;
 			break;
 
+		default:
+			type = GDK_ARROW;
+			break;
+
+		/*			
 		case LCUR_SplitV:
 		case LCUR_SplitH:
 		case LCUR_DropCopy:
 		case LCUR_DropMove:
 			LgiAssert(0);
 			break;
+		*/
 	}
 	
 	if (type == GDK_ARROW)
