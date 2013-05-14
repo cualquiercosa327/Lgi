@@ -43,7 +43,7 @@ void LgiDrawIcon(GSurface *pDC, int Dx, int Dy, HICON ico)
 	int y;
 	for (y=0; !HasAlpha && y<bm.bmHeight; y++)
 	{
-		GArgb32 *c = (GArgb32*) &bits[y * bm.bmWidthBytes];
+		System32BitPixel *c = (System32BitPixel*) &bits[y * bm.bmWidthBytes];
 		for (int x=0; x<bm.bmWidth; x++)
 		{
 			if (c[x].a > 0)

@@ -798,10 +798,15 @@ GFilter::IoStatus GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality, SubS
 			for (int i=0; i<Pal->GetSize(); i++)
 			{
 				GdcRGB *p = (*Pal)[i];
-				if (	p &&
-					   (p->R != i ||
-					p->G != i ||
-					p->B != i))
+				if
+				(
+					p &&
+					(
+						p->R != i ||
+						p->G != i ||
+						p->B != i
+					)
+				)
 				{
 					GreyScale = FALSE;
 					break;
@@ -881,9 +886,9 @@ GFilter::IoStatus GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality, SubS
 		{
 			uchar *dst = Buffer;
 
-			switch (pDC->GetBits())
+			switch (pDC->GetColourSpace())
 			{
-				case 8:
+				case CsIndex8:
 				{
 					if (GreyScale)
 					{
@@ -902,13 +907,13 @@ GFilter::IoStatus GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality, SubS
 								dst[0] = rgb.R;
 								dst[1] = rgb.G;
 								dst[2] = rgb.B;
-								dst++;
+								dst += 3;
 							}
 						}
 					}
 					break;
 				}
-				case 16:
+				case CsRgb16:
 				{
 				    uint16 *p = (uint16*)(*pDC)[cinfo.next_scanline];
 				    uint16 *end = p + pDC->X();
@@ -922,35 +927,36 @@ GFilter::IoStatus GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality, SubS
 					}
 					break;
 				}
-				case 24:
+				case System24BitColourSpace:
 				{
-				    GPixelPtr p, end;
-				    p.u8 = (*pDC)[cinfo.next_scanline];
-                    end.rgb24 = p.rgb24 + pDC->X();
-					while (p.rgb24 < end.rgb24)
+				    System24BitPixel *p, *end;
+				    p = (System24BitPixel*) (*pDC)[cinfo.next_scanline];
+                    end = p + pDC->X();
+					while (p < end)
 					{
-						dst[0] = p.rgb24->r;
-						dst[1] = p.rgb24->g;
-						dst[2] = p.rgb24->b;
-						dst += 3;
-                        p.rgb24++;
+						*dst++ = p->r;
+						*dst++ = p->g;
+						*dst++ = p->b;
+                        p++;
 					}
 					break;
 				}
-				case 32:
+				case System32BitColourSpace:
 				{
-				    GArgb32 *p = (GArgb32*) (*pDC)[cinfo.next_scanline];
-				    GArgb32 *end = p + pDC->X();
+				    System32BitPixel *p = (System32BitPixel*) (*pDC)[cinfo.next_scanline];
+				    System32BitPixel *end = p + pDC->X();
 					while (p < end)
 					{
-						dst[0] = p->r;
-						dst[1] = p->g;
-						dst[2] = p->b;
-						dst += 3;
+						*dst++ = p->r;
+						*dst++ = p->g;
+						*dst++ = p->b;
 						p++;
 					}
 					break;
 				}
+				default:
+					LgiAssert(0);
+					break;
 			}
 
 			JPEGLIB jpeg_write_scanlines(&cinfo, &Buffer, 1);

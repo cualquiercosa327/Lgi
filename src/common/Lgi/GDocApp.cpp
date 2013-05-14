@@ -500,7 +500,7 @@ char *GDocApp<OptionsFmt>::GetCurFile()
 template <typename OptionsFmt>
 bool GDocApp<OptionsFmt>::SetDirty(bool Dirty)
 {
-	if (d->Dirty ^ Dirty)
+	if (IsAttached() && (d->Dirty ^ Dirty))
 	{
 		// Changing...
 		if (Dirty)
@@ -511,7 +511,6 @@ bool GDocApp<OptionsFmt>::SetDirty(bool Dirty)
 		}
 		else
 		{
-			LgiStackTrace("GDocApp::SetDirty\n");
 			// Clearing dirty
 			int Result = LgiMsg(this,
 								LgiLoadString(L_DOCAPP_SAVE_CHANGE, "Do you want to save your changes?"),
