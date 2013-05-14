@@ -569,7 +569,8 @@ void GMenuItem::_Paint(GSurface *pDC, int Flags)
 				_Icon >= 0)
 		{
 			// it's an icon!
-			ImgLst->Draw(pDC, 0, 0, _Icon);
+			GColour Bk(Back, 24);
+			ImgLst->Draw(pDC, 0, 0, _Icon, Bk);
 		}
 
 		// Sub menu arrow

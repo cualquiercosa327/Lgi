@@ -819,9 +819,10 @@ void GListColumn::OnPaint_Content(GSurface *pDC, GRect &r, bool FillBackground)
 		}
 		else if (d->cImage >= 0 && d->Parent)
 		{
+			GColour Background(LC_MED, 24);
 			if (FillBackground)
 			{
-				pDC->Colour(LC_MED, 24);
+				pDC->Colour(Background);
 				pDC->Rectangle(&r);
 			}
 			
@@ -840,7 +841,8 @@ void GListColumn::OnPaint_Content(GSurface *pDC, GRect &r, bool FillBackground)
 				d->Parent->ImageList->Draw(pDC,
 											x + Off,
 											y + Off,
-											d->cImage, 0);
+											d->cImage,
+											Background);
 			}
 
 			if (d->cMark)
@@ -1383,7 +1385,9 @@ void GListItem::OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GListColumn *c)
 					{
 					    int CenterY = Ctx.y1 + ((Ctx.Y() - Parent->ImageList->TileY()) >> 1);
 					    LgiAssert(CenterY >= 0);
-						Parent->ImageList->Draw(pDC, Ctx.x1+1, CenterY, Img, 0);
+					    
+					    GColour Bk(Background, 24);
+						Parent->ImageList->Draw(pDC, Ctx.x1+1, CenterY, Img, Bk);
 					}
 				}
 			}

@@ -259,10 +259,11 @@ public:
 
 	void OnPaint(GSurface *pDC)
 	{
-		GRect c=GetClient();
+		GRect c = GetClient();
+		GColour Background(LC_MED, 24);
 		c.Offset(-c.x1, -c.y1);
 		LgiWideBorder(pDC, c, Down ? SUNKEN : RAISED);
-		pDC->Colour(LC_MED, 24);
+		pDC->Colour(Background);
 		pDC->Rectangle(&c);
 		
 		int x = (c.X()-Icons->TileX()) / 2;
@@ -276,7 +277,7 @@ public:
 			#endif
 		}
 
-		Icons->Draw(pDC, c.x1+x+Down, c.y1+y+Down, Icon, Enabled() ? 0 : IMGLST_DISABLED);
+		Icons->Draw(pDC, c.x1+x+Down, c.y1+y+Down, Icon, Background, Enabled() ? 0 : IMGLST_DISABLED);
 	}
 
 	void OnFocus(bool f)

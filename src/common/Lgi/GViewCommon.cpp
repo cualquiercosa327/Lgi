@@ -450,6 +450,9 @@ void GView::_Paint(GSurface *pDC, int Ox, int Oy)
 			w->Visible())
 		{
 			GRect p = w->GetPos();
+			#ifdef __GTK_H__
+			p.Offset(_BorderSize, _BorderSize);
+			#endif
 			p.Offset(Ox, Oy);
 			pDC->SetClient(&p);
 			w->_Paint(pDC, p.x1, p.y1);

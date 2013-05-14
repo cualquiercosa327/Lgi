@@ -315,11 +315,11 @@ bool GView::_Mouse(GMouse &m, bool Move)
 {
 	ThreadCheck();
 	
-	#if 0
+	#if 1
 	if (!Move)
 	{
 		m.Trace("_Mouse");
-		GArray<GViewI*> _m;
+		::GArray<GViewI*> _m;
 		for (GViewI *i=this; i; i=i->GetParent())
 		{
 			_m.Add(i);
@@ -330,7 +330,7 @@ bool GView::_Mouse(GMouse &m, bool Move)
 			char s[256];
 			ZeroObj(s);
 			memset(s, ' ', (n+1)*2);
-			printf("%s%s %s\n", s, i->GetClass(), i->GetPos().GetStr());
+			LgiTrace("%s%s %s\n", s, i->GetClass(), i->GetPos().GetStr());
 		}
 	}
 	#endif
@@ -422,8 +422,6 @@ bool GView::_Mouse(GMouse &m, bool Move)
 
 GRect &GView::GetClient(bool ClientSpace)
 {
-	ThreadCheck();
-	
 	int Edge = (Sunken() || Raised()) ? _BorderSize : 0;
 
 	static GRect c;
@@ -498,7 +496,11 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 	{
 		if (InThread())
 		{
-			GRect Client = GView::GetPos(); //  : GView::GetClient(false);
+			GRect Client;
+			if (Frame)
+				Client.ZOff(Pos.X()-1, Pos.Y()-1);
+			else
+				Client = GView::GetClient(false);
 
 			static bool Repainting = false;
 			

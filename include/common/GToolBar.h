@@ -59,6 +59,8 @@ public:
 		int y,
 		/// A 0 based index into the list to draw
 		int Image,
+		/// The background colour if not alpha compositing is available
+		GColour Background,
 		/// Drawing options
 		/// \sa The defines starting at IMGLST_SELECTED in GToolBar.h
 		int Flags = 0

@@ -732,7 +732,8 @@ void GTreeItem::OnPaint(ItemPaintCtx &Ctx)
 		d->Icon.ZOff(Lst->TileX() + Tree->d->IconTextGap - 1, d->Pos.Y() - 1);
 		d->Icon.Offset(x, d->Pos.y1);
 
-		pDC->Colour(LC_WORKSPACE, 24);
+		GColour Background(LC_WORKSPACE, 24);
+		pDC->Colour(Background);
 
 		if (Tree->d->IconCache)
 		{
@@ -751,7 +752,7 @@ void GTreeItem::OnPaint(ItemPaintCtx &Ctx)
 			// flickers...
 			int Pos = d->Icon.y1 + ((Lst->TileY()-d->Pos.Y()) >> 1);
 			pDC->Rectangle(&d->Icon);
-			Tree->GetImageList()->Draw(pDC, d->Icon.x1, Pos, Image);
+			Tree->GetImageList()->Draw(pDC, d->Icon.x1, Pos, Image, Background);
 		}
 
 		x += d->Icon.X();
@@ -1341,7 +1342,8 @@ void GTree::OnPaint(GSurface *pDC)
 				d->IconCache->Palette(new GPalette(GdcD->GetGlobalColour()->GetPalette()));
 			}
 
-			d->IconCache->Colour(LC_WORKSPACE, 24);
+			GColour Background(LC_WORKSPACE, 24);
+			d->IconCache->Colour(Background);
 			d->IconCache->Rectangle();
 			d->IconCache->Op(GDC_ALPHA);
 
@@ -1350,7 +1352,7 @@ void GTree::OnPaint(GSurface *pDC)
 			LgiAssert(DrawY >= 0);
 			for (int i=0; i<GetImageList()->GetItems(); i++)
 			{
-				GetImageList()->Draw(d->IconCache, i * GetImageList()->TileX(), DrawY, i);
+				GetImageList()->Draw(d->IconCache, i * GetImageList()->TileX(), DrawY, i, Background);
 			}
 			GetImageList()->Unlock();
 			d->IconCache->Unlock();

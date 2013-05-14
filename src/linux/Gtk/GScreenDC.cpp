@@ -128,44 +128,10 @@ Gtk::cairo_t *GScreenDC::GetCairo()
 	return Cairo;
 }
 
-/*
-Gtk::cairo_surface_t *GScreenDC::GetSurface(bool Render)
-{
-	if (!Surface)
-	{
-		if (Render)
-		{
-			Pango::xcb_render_pictforminfo_t format;
-			
-			Surface = Pango::cairo_xcb_surface_create_with_xrender_format(XcbConn(),
-				      								GetDrawable(),
-				      								XcbScreen(),
-				      								&format,
-				      								d->x,
-				      								d->y);
-			if (!Surface)
-				printf("%s:%i - cairo_xcb_surface_create_with_xrender_format failed.\n", _FL);
-		}
-		else
-		{
-			Surface = Pango::cairo_xcb_surface_create(XcbConn(),
-													GetDrawable(),
-													get_root_visual_type(XcbScreen()),
-													d->x,
-													d->y);
-			if (!Surface)
-				printf("%s:%i - cairo_xcb_surface_create failed.\n", _FL);
-		}
-	}
-	
-	return Surface;
-}
-*/
-
 bool GScreenDC::SupportsAlphaCompositing()
 {
-	// We can blend RGBA into memory buffers, mostly because the code is in Lgi not GTK.
-	return true;
+	// GTK/X11 doesn't seem to support alpha compositing.
+	return false;
 }
 
 GdcPt2 GScreenDC::GetSize()

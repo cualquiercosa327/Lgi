@@ -203,6 +203,7 @@ static gboolean lgi_widget_focus_event(GtkWidget *wid, GdkEventFocus *e)
     GView *v = dynamic_cast<GView*>(p->target);
     if (v)
     {
+		/*
 		char buf[1024];
 		int ch = 0;
 		::GArray<GViewI*> a;
@@ -215,6 +216,7 @@ static gboolean lgi_widget_focus_event(GtkWidget *wid, GdkEventFocus *e)
 			ch += sprintf_s(buf + ch, sizeof(buf) - ch, "> %s \"%-.8s\" ", a[n]->GetClass(), a[n]->Name());
 		}
 		LgiTrace("%s : focus=%i\n", buf, e->in);
+		*/
 		
         v->OnFocus(e->in);
     }

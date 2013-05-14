@@ -434,7 +434,7 @@ GImageList::~GImageList()
 	DeleteObj(d);
 }
 
-void GImageList::Draw(GSurface *pDest, int Dx, int Dy, int Image, int Flags)
+void GImageList::Draw(GSurface *pDest, int Dx, int Dy, int Image, GColour Background, int Flags)
 {
 	if (pDest)
 	{
@@ -540,22 +540,22 @@ void GImageList::Draw(GSurface *pDest, int Dx, int Dy, int Image, int Flags)
 				}
 				else
 
-				#elif defined LINUX
+				#elif defined __GTK_H__
 
-				/*
-				GMemDC Buf(r.X(), r.Y(), GdcD->GetBits());
-				GSurface *Screen = pDest;
-				GRect Src;
-				Src.ZOff(r.X()-1, r.Y()-1);
-				Src.Offset(Dx, Dy);
-				Buf.Blt(0, 0, Screen, &Src);
-				int ScrX = Dx;
-				int ScrY = Dy;
-				pDest = &Buf;
-				Dx = Dy = 0;
-				*/
+				if (pDest->SupportsAlphaCompositing())
+				{
+					pDest->Blt(Dx, Dy, this, &r);
+				}
+				else
+				{
+					GMemDC Buf(d->Sx, d->Sy, 32);
+					Buf.Colour(Background);
+					Buf.Rectangle();
+					Buf.Op(GDC_ALPHA);
+					Buf.Blt(0, 0, this, &r);					
+					pDest->Blt(Dx, Dy, &Buf);
+				}
 
-				pDest->Blt(Dx, Dy, this, &r);
 				return;
 				
 				#elif defined MAC
@@ -1443,9 +1443,10 @@ void GToolBar::_BuildCache(GImageList *From)
 		return;
 	}
 
-	d->IconCache->Colour(LC_MED, 24);
+	GColour Background(LC_MED, 24), HilightColour(ToolBarHilightColour, 24);
+	d->IconCache->Colour(Background);
 	d->IconCache->Rectangle();
-	d->IconCache->Colour(ToolBarHilightColour, 24);
+	d->IconCache->Colour(HilightColour);
 	d->IconCache->Rectangle(0, IconHilight * From->Y(), d->IconCache->X()-1, (IconHilight + 1) * From->Y() - 1);
 
 	d->IconCache->Op(GDC_ALPHA);
@@ -1454,12 +1455,12 @@ void GToolBar::_BuildCache(GImageList *From)
 	{
 		if (pApp)
 			pApp->SetVar(GAPP_ALPHA_A, 255);
-		From->Draw(d->IconCache, i * From->TileX(), 0, i);
-		From->Draw(d->IconCache, i * From->TileX(), From->TileY(), i);
+		From->Draw(d->IconCache, i * From->TileX(), 0, i, Background);
+		From->Draw(d->IconCache, i * From->TileX(), From->TileY(), i, HilightColour);
 
 		if (pApp)
 			pApp->SetVar(GAPP_ALPHA_A, 40);
-		From->Draw(d->IconCache, i * From->TileX(), From->TileY() * 2, i);
+		From->Draw(d->IconCache, i * From->TileX(), From->TileY() * 2, i, Background);
 	}
 
 
