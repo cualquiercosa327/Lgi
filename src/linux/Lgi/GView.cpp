@@ -489,7 +489,7 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 	{
 		if (InThread())
 		{
-			GRect Client = Frame ? GView::GetPos() : GView::GetClient(false);
+			GRect Client = GView::GetPos(); //  : GView::GetClient(false);
 
 			static bool Repainting = false;
 			
@@ -549,7 +549,8 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 
 		while (p && !p->IsAttached())
 		{
-			Up.Offset(p->GetPos().x1, p->GetPos().y1);
+			GRect pos = p->GetPos();
+			Up.Offset(pos.x1, pos.y1);
 			p = p->GetParent();
 		}
 

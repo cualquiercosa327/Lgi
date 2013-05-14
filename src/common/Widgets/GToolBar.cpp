@@ -899,18 +899,22 @@ void GToolButton::OnPaint(GSurface *pDC)
 			if (Down)
 			{
 				LgiThinBorder(pDC, p, SUNKEN);
+				pDC->Colour(Over ? LC_LIGHT : LC_MED, 24);
+				pDC->Box(&p);
 			}
 			else if (e && Over)
 			{
-				pDC->Colour(GColour(0, 0, 255));
+				pDC->Colour(LC_LIGHT, 24);
 				pDC->Box(&p);
 				p.Size(1, 1);
+				pDC->Box(&p);
 			}
 			else
 			{
-				pDC->Colour(GColour(0, 255, 0));
+				pDC->Colour(LC_MED, 24);
 				pDC->Box(&p);
 				p.Size(1, 1);
+				pDC->Box(&p);
 			}
 
 			// pDC->ClipRgn(&p);
@@ -1255,12 +1259,9 @@ GToolBar::GToolBar()
 GToolBar::~GToolBar()
 {
 	DeleteObj(d->Tip);
-	_BuildCache(0);
 
 	if (d->OwnImgList)
-	{
 		DeleteObj(d->ImgList);
-	}
 
 	DeleteObj(d->Font);
 	DeleteObj(d);
@@ -1433,11 +1434,18 @@ void GToolBar::_BuildCache(GImageList *From)
 	d->IconCache->Colour(LC_HIGH, 24);
 	d->IconCache->Rectangle(0, IconHilight * From->Y(), d->IconCache->X()-1, (IconHilight + 1) * From->Y() - 1);
 
+	d->IconCache->Op(GDC_ALPHA);
+	GApplicator *pApp = d->IconCache->Applicator();
 	for (int i=0; i<From->GetItems(); i++)
 	{
+		if (pApp)
+			pApp->SetVar(GAPP_ALPHA_A, 255);
 		From->Draw(d->IconCache, i * From->TileX(), 0, i);
 		From->Draw(d->IconCache, i * From->TileX(), From->TileY(), i);
-		From->Draw(d->IconCache, i * From->TileX(), From->TileY() * 2, i, IMGLST_DISABLED);
+
+		if (pApp)
+			pApp->SetVar(GAPP_ALPHA_A, 40);
+		From->Draw(d->IconCache, i * From->TileX(), From->TileY() * 2, i);
 	}
 
 
@@ -1576,7 +1584,7 @@ void GToolBar::_DrawFromCache(GSurface *pDC, int x, int y, int Index, bool Hilig
 			d->ImgList->TileX() * Index,
 			d->ImgList->TileY() *
 			(
-				(Hilight ? 1 : 0)
+				(Hilight && !Disabled ? 1 : 0)
 				+
 				(Disabled ? 2 : 0)
 			)
@@ -1602,7 +1610,7 @@ bool GToolBar::Pour(GRegion &r)
 	{
 		if (But->Visible())
 		{
-			int Tx = 0, Ty = 2;
+			int Tx = 0, Ty = 0;
 
 			if (d->Text)
 			{
