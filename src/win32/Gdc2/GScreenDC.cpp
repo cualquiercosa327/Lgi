@@ -491,6 +491,12 @@ int GScreenDC::GetBits()
 	return GetDeviceCaps(hDC, BITSPIXEL) * GetDeviceCaps(hDC, PLANES);
 }
 
+bool GScreenDC::SupportsAlphaCompositing()
+{
+	// Windows does support blending screen content with bitmaps that have alpha
+	return true;
+}
+
 void GScreenDC::Set(int x, int y)
 {
 	uint32 WinCol = RGB( R24(d->Col), G24(d->Col), B24(d->Col) );

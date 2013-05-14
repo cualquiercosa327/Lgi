@@ -128,3 +128,5 @@
 #define IDC_TARGET_TABLE						556
 #define IDC_INCLUDES_TABLE						557
 #define IDC_75									558
+#define IDM_FIND_SYMBOL							559
+#define IDM_FIND_REFERENCES						560

@@ -124,6 +124,12 @@ cairo_t *GMemDC::GetCairo()
 	return Cairo;
 }
 
+bool GMemDC::SupportsAlphaCompositing()
+{
+	// We can blend RGBA into memory buffers, mostly because the code is in Lgi not GTK.
+	return true;
+}
+
 GdkImage *GMemDC::GetImage()
 {
     return d->Img;

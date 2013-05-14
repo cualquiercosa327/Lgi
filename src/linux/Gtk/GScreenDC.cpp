@@ -162,6 +162,12 @@ Gtk::cairo_surface_t *GScreenDC::GetSurface(bool Render)
 }
 */
 
+bool GScreenDC::SupportsAlphaCompositing()
+{
+	// We can blend RGBA into memory buffers, mostly because the code is in Lgi not GTK.
+	return true;
+}
+
 GdcPt2 GScreenDC::GetSize()
 {
 	return GdcPt2(d->x, d->y);
@@ -507,12 +513,15 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 	GMemDC *Mem;
 	if (Mem = dynamic_cast<GMemDC*>(Src))
 	{
+		/*
 		printf("Doing Mem(%s)->Screen(%s) Blt\n",
 			GColourSpaceToString(Mem->GetColourSpace()),
 			GColourSpaceToString(GetColourSpace()));
+		*/
 			
 		switch (Mem->GetColourSpace())
 		{
+			/* This doesn't work anyway :-(
 			case CsRgba32:
 			case CsBgra32:
 			case CsArgb32:
@@ -538,6 +547,7 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 				}
 				// else fall through
 			}
+			*/
 			default:
 			{
 				gdk_draw_image( d->d,

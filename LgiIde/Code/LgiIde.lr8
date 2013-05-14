@@ -528,9 +528,9 @@
 	<menu Name="IDM_MENU">
 		<string-group Name="&lt;untitled&gt;">
 			<String Ref="175" en="&File" />
-			<String Ref="174" Cid="504" Define="IDM_NEW" en="&New\tCtrl+N" />
-			<String Ref="173" Cid="502" Define="IDM_OPEN" en="&Open\tCtrl+O" />
-			<String Ref="172" Cid="503" Define="IDM_SAVE_ALL" en="&Save All\tCtrl+S" />
+			<String Ref="174" Cid="504" Define="IDM_NEW" en="&New" />
+			<String Ref="173" Cid="502" Define="IDM_OPEN" en="&Open" />
+			<String Ref="172" Cid="503" Define="IDM_SAVE_ALL" en="&Save All" />
 			<String Ref="171" Cid="535" Define="IDM_SAVEAS" en="Save &As" />
 			<String Ref="170" Cid="505" Define="IDM_CLOSE" en="&Close" />
 			<String Ref="169" Cid="506" Define="IDM_CLOSE_ALL" en="Close All" />
@@ -541,16 +541,16 @@
 			<String Ref="164" en="(none)" />
 			<String Ref="163" Cid="510" Define="IDM_EXIT" en="E&xit" />
 			<String Ref="162" en="&Edit" />
-			<String Ref="161" Cid="511" Define="IDM_UNDO" en="&Undo\tCtrl+Z" />
-			<String Ref="160" Cid="512" Define="IDM_REDO" en="&Redo\tShift+Ctrl+Z" />
-			<String Ref="159" Cid="513" Define="IDM_CUT" en="Cu&t\tCtrl+X" />
-			<String Ref="158" Cid="514" Define="IDM_COPY" en="&Copy\tCtrl+C" />
-			<String Ref="157" Cid="515" Define="IDM_PASTE" en="&Paste\tCtrl+P" />
-			<String Ref="156" Cid="516" Define="IDM_GOTO" en="&Goto\tCtrl+G" />
-			<String Ref="155" Cid="517" Define="IDM_FIND" en="&Find\tCtrl+F" />
-			<String Ref="154" Cid="518" Define="IDM_FIND_NEXT" en="Find Next\tF3" />
-			<String Ref="153" Cid="519" Define="IDM_REPLACE" en="R&eplace\tCtrl+H" />
-			<String Ref="152" Cid="539" Define="IDM_FIND_IN_FILES" en="Find In Files\tCtrl+Shift+F" />
+			<String Ref="161" Cid="511" Define="IDM_UNDO" en="&Undo" />
+			<String Ref="160" Cid="512" Define="IDM_REDO" en="&Redo" />
+			<String Ref="159" Cid="513" Define="IDM_CUT" en="Cu&t" />
+			<String Ref="158" Cid="514" Define="IDM_COPY" en="&Copy" />
+			<String Ref="157" Cid="515" Define="IDM_PASTE" en="&Paste" />
+			<String Ref="156" Cid="516" Define="IDM_GOTO" en="&Goto Line" />
+			<String Ref="155" Cid="517" Define="IDM_FIND" en="&Find" />
+			<String Ref="154" Cid="518" Define="IDM_FIND_NEXT" en="Find Next" />
+			<String Ref="153" Cid="519" Define="IDM_REPLACE" en="R&eplace" />
+			<String Ref="152" Cid="539" Define="IDM_FIND_IN_FILES" en="Find In Files" />
 			<String Ref="151" en="&Project" />
 			<String Ref="150" Cid="520" Define="IDM_NEW_PROJECT" en="&New" />
 			<String Ref="149" Cid="521" Define="IDM_OPEN_PROJECT" en="&Open" />
@@ -562,13 +562,13 @@
 			<String Ref="143" Cid="541" Define="IDM_RELEASE_MODE" en="Release" />
 			<String Ref="142" Cid="537" Define="IDM_COMPILE" en="Compile" />
 			<String Ref="141" Cid="524" Define="IDM_CLEAN" en="&Clean" />
-			<String Ref="140" Cid="525" Define="IDM_BUILD" en="&Build\tF7" />
+			<String Ref="140" Cid="525" Define="IDM_BUILD" en="&Build" />
 			<String Ref="139" Cid="526" Define="IDM_BUILD_ALL" en="Build &All" />
 			<String Ref="138" Cid="538" Define="IDM_STOP_BUILD" en="Stop Build" />
-			<String Ref="137" Cid="527" Define="IDM_NEXT_MSG" en="Next Message\tF4" />
-			<String Ref="136" Cid="542" Define="IDM_DEBUG" en="&Debug\tF5" />
-			<String Ref="135" Cid="529" Define="IDM_EXECUTE" en="&Run\tCtrl+F5" />
-			<String Ref="134" Cid="543" Define="IDM_VALGRIND" en="&Valgrind\tCtrl+Shift+V" />
+			<String Ref="137" Cid="527" Define="IDM_NEXT_MSG" en="Next Message" />
+			<String Ref="136" Cid="542" Define="IDM_DEBUG" en="&Debug" />
+			<String Ref="135" Cid="529" Define="IDM_EXECUTE" en="&Run" />
+			<String Ref="134" Cid="543" Define="IDM_VALGRIND" en="&Valgrind" />
 			<String Ref="133" en="&Tools" />
 			<String Ref="132" Cid="530" Define="IDM_DEPENDS" en="Show Target &Dependencies" />
 			<String Ref="131" Cid="531" Define="IDM_TAB_TO_SP" en="Tabs -&gt; Spaces" />
@@ -580,11 +580,13 @@
 			<String Ref="125" en="&Help" />
 			<String Ref="124" Cid="533" Define="IDM_ABOUT" en="&About" />
 			<String Ref="123" Cid="534" Define="IDM_HELP" en="&Help" />
+			<String Ref="34" Cid="559" Define="IDM_FIND_SYMBOL" en="Find Symbol" />
+			<String Ref="81" Cid="560" Define="IDM_FIND_REFERENCES" en="Find References" />
 		</string-group>
 		<submenu Ref="175">
-			<menuitem Ref="174" />
-			<menuitem Ref="173" />
-			<menuitem Ref="172" />
+			<menuitem Ref="174" Shortcut="Ctrl+N" />
+			<menuitem Ref="173" Shortcut="Ctrl+O" />
+			<menuitem Ref="172" Shortcut="Ctrl+S" />
 			<menuitem Ref="171" />
 			<menuitem Ref="170" Shortcut="Ctrl+W" />
 			<menuitem Ref="169" />
@@ -601,18 +603,20 @@
 			<menuitem Ref="163" />
 		</submenu>
 		<submenu Ref="162">
-			<menuitem Ref="161" />
-			<menuitem Ref="160" />
+			<menuitem Ref="161" Shortcut="Ctrl+Z" />
+			<menuitem Ref="160" Shortcut="Shift+Ctrl+Z" />
 			<menuitem Sep="1" />
-			<menuitem Ref="159" />
-			<menuitem Ref="158" />
-			<menuitem Ref="157" />
+			<menuitem Ref="159" Shortcut="Ctrl+X" />
+			<menuitem Ref="158" Shortcut="Ctrl+C" />
+			<menuitem Ref="157" Shortcut="Ctrl+V" />
 			<menuitem Sep="1" />
-			<menuitem Ref="156" />
-			<menuitem Ref="155" />
-			<menuitem Ref="154" />
-			<menuitem Ref="153" />
-			<menuitem Ref="152" />
+			<menuitem Ref="156" Shortcut="Ctrl+G" />
+			<menuitem Ref="155" Shortcut="Ctrl+F" />
+			<menuitem Ref="154" Shortcut="F3" />
+			<menuitem Ref="153" Shortcut="Ctrl+H" />
+			<menuitem Ref="152" Shortcut="Ctrl+Shift+F" />
+			<menuitem Ref="34" Shortcut="Shift+Alt+S" />
+			<menuitem Ref="81" Shortcut="Shift+Alt+F" />
 		</submenu>
 		<submenu Ref="151">
 			<menuitem Ref="150" />
@@ -628,14 +632,14 @@
 			<menuitem Sep="1" />
 			<menuitem Ref="142" />
 			<menuitem Ref="141" />
-			<menuitem Ref="140" />
+			<menuitem Ref="140" Shortcut="F7" />
 			<menuitem Ref="139" />
 			<menuitem Ref="138" />
-			<menuitem Ref="137" />
+			<menuitem Ref="137" Shortcut="F4" />
 			<menuitem Sep="1" />
-			<menuitem Ref="136" />
-			<menuitem Ref="135" />
-			<menuitem Ref="134" />
+			<menuitem Ref="136" Shortcut="F5" />
+			<menuitem Ref="135" Shortcut="Ctrl+F5" />
+			<menuitem Ref="134" Shortcut="Ctrl+Shift+V" />
 		</submenu>
 		<submenu Ref="133">
 			<menuitem Ref="132" />
@@ -651,7 +655,7 @@
 		</submenu>
 		<submenu Ref="125">
 			<menuitem Ref="124" />
-			<menuitem Ref="123" />
+			<menuitem Ref="123" Shortcut="F1" />
 		</submenu>
 	</menu>
 </resources>

@@ -854,6 +854,8 @@ public:
 	virtual class GScreenDC *IsScreen() { return 0; }
 	/// Returns true if the surface is for printing
 	virtual bool IsPrint() { return false; }
+	/// Returns true if this surface supports alpha compositing when using Blt
+	virtual bool SupportsAlphaCompositing() { return false; }
 	/// Returns a pointer to the start of a scanline, or NULL if not available
 	virtual uchar *operator[](int y);
 
@@ -1049,6 +1051,7 @@ public:
 
 	int GetBits();
 	GScreenDC *IsScreen() { return this; }
+	bool SupportsAlphaCompositing();
 	uchar *operator[](int y) { return NULL; }
 
 	// Primitives
@@ -1246,7 +1249,8 @@ public:
 	
 	void SetOrigin(int x, int y);
 	void Empty();
-
+	bool SupportsAlphaCompositing();
+	
 	bool Create(int x, int y, int Bits, int LineLen = 0, bool KeepData = false);
 	void Blt(int x, int y, GSurface *Src, GRect *a = NULL);
 	void StretchBlt(GRect *d, GSurface *Src, GRect *s = NULL);

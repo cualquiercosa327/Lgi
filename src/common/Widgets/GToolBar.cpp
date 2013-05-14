@@ -33,6 +33,13 @@ bool BltDcToBmp(HBITMAP hDest, int xDst, int yDst, int cx, int cy, HDC SrcDC, in
 #include <Bitmap.h>
 #endif
 
+enum IconCacheType
+{
+	IconNormal,
+	IconHilight,
+	IconDisabled
+};
+
 COLOUR Map(GSurface *pDC, COLOUR c);
 
 ////////////////////////////////////////////////////////////////////////
@@ -685,8 +692,7 @@ public:
 	const char *CustomProp;
 
 	// bitmap cache
-	GMemDC *pColour;
-	GMemDC *pDisabled;
+	GAutoPtr<GMemDC> IconCache;
 
 	GToolBarPrivate()
 	{
@@ -880,18 +886,15 @@ void GToolButton::OnPaint(GSurface *pDC)
 	if (Par)
 	{
 		GRect p = GetClient();
+		
+		#ifdef _DEBUG
+		pDC->Colour(GColour(255, 0, 255));
+		pDC->Rectangle();
+		#endif
 
 		// Draw Background
-		COLOUR Grey = (e && Over) ? LC_HIGH : LC_MED;
-
-		int BaseX = (X() - (2*BORDER_BUTTON) - Par->d->Bx) / 2;
-		int Off = BORDER_BUTTON + ((Down) ? 1 : 0);
-
 		if (GetId() >= 0)
 		{
-			// Button
-			int Flags = IMGLST_GDC;
-
 			// Draw border
 			if (Down)
 			{
@@ -899,28 +902,23 @@ void GToolButton::OnPaint(GSurface *pDC)
 			}
 			else if (e && Over)
 			{
-				LgiThinBorder(pDC, p, RAISED);
+				pDC->Colour(GColour(0, 0, 255));
+				pDC->Box(&p);
+				p.Size(1, 1);
+			}
+			else
+			{
+				pDC->Colour(GColour(0, 255, 0));
+				pDC->Box(&p);
+				p.Size(1, 1);
 			}
 
-			pDC->Colour(Grey, 24);
-			pDC->Rectangle(&p);
-			pDC->ClipRgn(&p);
+			// pDC->ClipRgn(&p);
 
-			if (Par->d->ImgList)
+			if (ImgIndex >= 0)
 			{
-				if (ImgIndex >= 0)
-				{
-					if (e && Over)
-					{
-						// Draw transparent
-						Par->d->ImgList->Draw(pDC, BaseX+Off, Off, ImgIndex, Flags);
-					}
-					else
-					{
-						// Draw cached
-						Par->_DrawFromCache(pDC, BaseX+Off, Off, ImgIndex, !e);
-					}
-				}
+				// Draw cached
+				Par->_DrawFromCache(pDC, p.x1+Down, p.y1+Down, ImgIndex, Over, !e);
 			}
 			else
 			{
@@ -930,7 +928,7 @@ void GToolButton::OnPaint(GSurface *pDC)
 				pDC->Line(p.x2, p.y1, p.x1, p.y2);
 			}
 
-			pDC->ClipRgn(0);
+			// pDC->ClipRgn(0);
 
 			// Text
 			if (Par->d->Text &&
@@ -944,7 +942,7 @@ void GToolButton::OnPaint(GSurface *pDC)
 				if (Text.Length())
 				{
 					// Write each word centered on a different line
-					int Ty = Off + Par->d->By + 2;
+					int Ty = Down + Par->d->By + 2;
 					COLOUR a = e ? LC_TEXT : LC_LOW;
 					COLOUR b = LC_MED;
 
@@ -952,7 +950,7 @@ void GToolButton::OnPaint(GSurface *pDC)
 					for (int i=0; i<Text.Length(); i++)
 					{
 						GDisplayString *Ds = Text[i];
-						Ds->Draw(pDC, Off + ((X()-Ds->X())/2), Ty);
+						Ds->Draw(pDC, Down + ((X()-Ds->X())/2), Ty);
 						Ty += Ds->Y();
 					}
 				}
@@ -963,7 +961,7 @@ void GToolButton::OnPaint(GSurface *pDC)
 			// Separator
 			int Px = X()-1;
 			int Py = Y()-1;
-			pDC->Colour(Grey, 24);
+			pDC->Colour(LC_MED, 24);
 			pDC->Rectangle();
 
 			if (X() > Y())
@@ -1248,8 +1246,6 @@ GToolBar::GToolBar()
 	d->LastIndex = 0;
 	d->OwnImgList = false;
 	d->ImgList = 0;
-	d->pColour = 0;
-	d->pDisabled = 0;
 
 	#if defined BEOS
 	Handle()->SetViewColor(B_TRANSPARENT_COLOR);
@@ -1419,148 +1415,174 @@ GFont *GToolBar::GetFont()
 
 void GToolBar::_BuildCache(GImageList *From)
 {
-	DeleteObj(d->pColour);
-	DeleteObj(d->pDisabled);
-
-	if (From)
+	if (!From)
 	{
-		int Bits = From->GetBits();
+		LgiAssert(0);
+		return;
+	}
 
-		if (Bits == 8)
+	d->IconCache.Reset(new GMemDC);
+	if (!d->IconCache->Create(From->X(), From->Y() * 3, 32))
+	{
+		LgiAssert(!"Can't create bitmap.");
+		return;
+	}
+
+	d->IconCache->Colour(LC_MED, 24);
+	d->IconCache->Rectangle();
+	d->IconCache->Colour(LC_HIGH, 24);
+	d->IconCache->Rectangle(0, IconHilight * From->Y(), d->IconCache->X()-1, (IconHilight + 1) * From->Y() - 1);
+
+	for (int i=0; i<From->GetItems(); i++)
+	{
+		From->Draw(d->IconCache, i * From->TileX(), 0, i);
+		From->Draw(d->IconCache, i * From->TileX(), From->TileY(), i);
+		From->Draw(d->IconCache, i * From->TileX(), From->TileY() * 2, i, IMGLST_DISABLED);
+	}
+
+
+	/*
+	if (Bits == 8)
+	{
+		// Generate global palette for the full colour and
+		// alpha blended versions of the icons by colour reducing
+		// them both on the same DC.
+		GSurface *r = new GMemDC(From->X(), From->Y() * 2, 24);
+		if (r)
 		{
-			// Generate global palette for the full colour and
-			// alpha blended versions of the icons by colour reducing
-			// them both on the same DC.
-			GSurface *r = new GMemDC(From->X(), From->Y() * 2, 24);
-			if (r)
+			// Background
+			r->Colour(LC_MED, 24);
+			r->Rectangle();
+
+			// Draw the full colour icons
+			int i;
+			for (i=0; i<From->GetItems(); i++)
 			{
-				// Background
-				r->Colour(LC_MED, 24);
-				r->Rectangle();
-
-				// Draw the full colour icons
-				int i;
-				for (i=0; i<From->GetItems(); i++)
-				{
-					From->Draw(r, i * From->TileX(), 0, i);
-				}
-
-				// Draw the alpha blended icons
-				r->Op(GDC_ALPHA);
-				GApplicator *pApp = r->Applicator();
-				if (pApp)
-				{
-					pApp->SetVar(GAPP_ALPHA_A, 40);
-					pApp->SetVar(GAPP_ALPHA_PAL, (NativeInt)r->Palette());
-				}
-				for (i=0; i<From->GetItems(); i++)
-				{
-					From->Draw(r, i * From->TileX(), From->TileY(), i);
-				}
-
-				// Put the full colour icons in their DC
-				d->pColour = new GMemDC;
-				if (d->pColour &&
-					d->pColour->Create(From->X(), From->Y(), Bits))
-				{
-					d->pColour->Palette(new GPalette(GdcD->GetGlobalColour()->GetPalette()));
-
-					int OldType = GdcD->GetOption(GDC_REDUCE_TYPE);
-					GdcD->SetOption(GDC_REDUCE_TYPE, REDUCE_ERROR_DIFFUSION);
-					d->pColour->Blt(0, 0, r);
-					GdcD->SetOption(GDC_REDUCE_TYPE, OldType);
-				}
-
-				// Put the alpha blended icons in their DC
-				//
-				// Because the colour and alpha icons have the same palette
-				// they should appear fine together on the screen, as the 2
-				// palettes are the same.
-				d->pDisabled = new GMemDC;
-				if (d->pDisabled &&
-					d->pDisabled->Create(From->X(), From->Y(), Bits))
-				{
-					d->pDisabled->Palette(new GPalette(GdcD->GetGlobalColour()->GetPalette()));
-
-					GRect t(0, From->Y(), From->X()-1, (From->Y() * 2)-1);
-
-					int OldType = GdcD->GetOption(GDC_REDUCE_TYPE);
-					GdcD->SetOption(GDC_REDUCE_TYPE, REDUCE_ERROR_DIFFUSION);
-					d->pDisabled->Blt(0, 0, r, &t);
-					GdcD->SetOption(GDC_REDUCE_TYPE, OldType);
-				}
-
-				DeleteObj(r);
+				From->Draw(r, i * From->TileX(), 0, i);
 			}
-		}
-		else
-		{
-			From->Lock();
-			
-			// True colour screen
+
+			// Draw the alpha blended icons
+			r->Op(GDC_ALPHA);
+			GApplicator *pApp = r->Applicator();
+			if (pApp)
+			{
+				pApp->SetVar(GAPP_ALPHA_A, 40);
+				pApp->SetVar(GAPP_ALPHA_PAL, (NativeInt)r->Palette());
+			}
+			for (i=0; i<From->GetItems(); i++)
+			{
+				From->Draw(r, i * From->TileX(), From->TileY(), i);
+			}
+
+			// Put the full colour icons in their DC
 			d->pColour = new GMemDC;
 			if (d->pColour &&
-				d->pColour->Create(From->X(), From->Y(), 32))
+				d->pColour->Create(From->X(), From->Y(), Bits))
 			{
-				GColour c(LC_MED, 24);
-				d->pColour->Colour(c);
-				d->pColour->Rectangle();
+				d->pColour->Palette(new GPalette(GdcD->GetGlobalColour()->GetPalette()));
 
-				if (Bits == 32)
-				{
-					d->pColour->Op(GDC_ALPHA);
-					d->pColour->Blt(0, 0, From);
-				}
-				else
-				{
-					for (int i=0; i<From->GetItems(); i++)
-					{
-						From->Draw(d->pColour, i * From->TileX(), 0, i);
-					}
-				}
+				int OldType = GdcD->GetOption(GDC_REDUCE_TYPE);
+				GdcD->SetOption(GDC_REDUCE_TYPE, REDUCE_ERROR_DIFFUSION);
+				d->pColour->Blt(0, 0, r);
+				GdcD->SetOption(GDC_REDUCE_TYPE, OldType);
 			}
 
+			// Put the alpha blended icons in their DC
+			//
+			// Because the colour and alpha icons have the same palette
+			// they should appear fine together on the screen, as the 2
+			// palettes are the same.
 			d->pDisabled = new GMemDC;
 			if (d->pDisabled &&
-				d->pDisabled->Create(From->X(), From->Y(), Bits == 8 ? 24 : Bits))
+				d->pDisabled->Create(From->X(), From->Y(), Bits))
 			{
-				d->pDisabled->Colour(LC_MED, 24);
-				d->pDisabled->Rectangle();
+				d->pDisabled->Palette(new GPalette(GdcD->GetGlobalColour()->GetPalette()));
 
-				d->pDisabled->Op(GDC_ALPHA);
-				GApplicator *pApp = d->pDisabled->Applicator();
-				if (pApp)
-				{
-					pApp->SetVar(GAPP_ALPHA_A, 40);
-					pApp->SetVar(GAPP_ALPHA_PAL, (NativeInt)d->pDisabled->Palette());
-				}
+				GRect t(0, From->Y(), From->X()-1, (From->Y() * 2)-1);
 
-				for (int i=0; i<From->GetItems(); i++)
-				{
-					From->Draw(d->pDisabled, i * From->TileX(), 0, i, IMGLST_GDC);
-				}
+				int OldType = GdcD->GetOption(GDC_REDUCE_TYPE);
+				GdcD->SetOption(GDC_REDUCE_TYPE, REDUCE_ERROR_DIFFUSION);
+				d->pDisabled->Blt(0, 0, r, &t);
+				GdcD->SetOption(GDC_REDUCE_TYPE, OldType);
 			}
 
-			From->Unlock();
-			d->pColour->Unlock();
-			d->pDisabled->Unlock();
+			DeleteObj(r);
 		}
 	}
+	else
+	{
+		From->Lock();
+		
+		// True colour screen
+		d->pColour = new GMemDC;
+		if (d->pColour &&
+			d->pColour->Create(From->X(), From->Y(), 32))
+		{
+			GColour c(LC_MED, 24);
+			d->pColour->Colour(c);
+			d->pColour->Rectangle();
+
+			if (Bits == 32)
+			{
+				d->pColour->Op(GDC_ALPHA);
+				d->pColour->Blt(0, 0, From);
+			}
+			else
+			{
+				for (int i=0; i<From->GetItems(); i++)
+				{
+					From->Draw(d->pColour, i * From->TileX(), 0, i);
+				}
+			}
+		}
+
+		d->pDisabled = new GMemDC;
+		if (d->pDisabled &&
+			d->pDisabled->Create(From->X(), From->Y(), Bits == 8 ? 24 : Bits))
+		{
+			d->pDisabled->Colour(LC_MED, 24);
+			d->pDisabled->Rectangle();
+
+			d->pDisabled->Op(GDC_ALPHA);
+			GApplicator *pApp = d->pDisabled->Applicator();
+			if (pApp)
+			{
+				pApp->SetVar(GAPP_ALPHA_A, 40);
+				pApp->SetVar(GAPP_ALPHA_PAL, (NativeInt)d->pDisabled->Palette());
+			}
+
+			for (int i=0; i<From->GetItems(); i++)
+			{
+				From->Draw(d->pDisabled, i * From->TileX(), 0, i, IMGLST_GDC);
+			}
+		}
+
+		From->Unlock();
+		d->pColour->Unlock();
+		d->pDisabled->Unlock();
+	}
+	*/
 }
 
-void GToolBar::_DrawFromCache(GSurface *pDC, int x, int y, int Index, bool Disabled)
+void GToolBar::_DrawFromCache(GSurface *pDC, int x, int y, int Index, bool Hilight, bool Disabled)
 {
-	if (pDC &&
-		d->pDisabled &&
-		d->pColour &&
-		d->ImgList)
+	if (pDC && d->IconCache)
 	{
 		GRect s;
 		
 		s.ZOff(d->ImgList->TileX()-1, d->ImgList->TileY()-1);
-		s.Offset(d->ImgList->TileX()*Index, 0);
+		s.Offset
+		(
+			d->ImgList->TileX() * Index,
+			d->ImgList->TileY() *
+			(
+				(Hilight ? 1 : 0)
+				+
+				(Disabled ? 2 : 0)
+			)
+		);
 
-		pDC->Blt(x, y, Disabled ? d->pDisabled : d->pColour, &s);
+		pDC->Blt(x, y, d->IconCache, &s);
 	}
 }
 

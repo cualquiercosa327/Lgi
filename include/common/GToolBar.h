@@ -200,7 +200,7 @@ protected:
 
 	// Local
 	void _BuildCache(GImageList *From);
-	void _DrawFromCache(GSurface *pDC, int x, int y, int Index, bool Disabled);
+	void _DrawFromCache(GSurface *pDC, int x, int y, int Index, bool Hilight, bool Disabled);
 	int GetBx();
 	int GetBy();
 

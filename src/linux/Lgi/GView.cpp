@@ -25,7 +25,11 @@ using namespace Gtk;
 #define ADJ_UP						3
 #define ADJ_DOWN					4
 
+#ifdef LINUX
 #define ThreadCheck()				LgiAssert(InThread())
+#else
+#define ThreadCheck()
+#endif
 
 struct X11_INVALIDATE_PARAMS
 {

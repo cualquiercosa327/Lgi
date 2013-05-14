@@ -236,6 +236,11 @@ GRect GMemDC::ClipRgn(GRect *Rgn)
 	return Prev;
 }
 
+bool GMemDC::SupportsAlphaCompositing()
+{
+	return true;
+}
+
 bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 {
 	bool Status = FALSE;
