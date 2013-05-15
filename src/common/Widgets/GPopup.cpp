@@ -476,6 +476,10 @@ class GPopupPrivate
 public:
 };
 
+#ifdef __GTK_H__
+::GArray<GPopup*> GPopup::CurrentPopups;
+#endif
+
 GPopup::GPopup(GView *owner)
 {
 	d = new GPopupPrivate;
@@ -483,7 +487,8 @@ GPopup::GPopup(GView *owner)
 	Cancelled = false;
 
     #ifdef __GTK_H__
-    Wnd = 0;
+    Wnd = NULL;
+    CurrentPopups.Add(this);
     #endif
 
 	if ((Owner = owner))
@@ -501,6 +506,9 @@ GPopup::GPopup(GView *owner)
 
 GPopup::~GPopup()
 {
+    #ifdef __GTK_H__
+	CurrentPopups.Delete(this);
+	#endif
 	SendNotify(POPUP_DELETE);
 
 	if (Owner)
@@ -622,7 +630,6 @@ gboolean PopupButtonEvent(GtkWidget *widget, GdkEventButton *e, GPopup *popup)
 
 gboolean PopupFocusEvent(GtkWidget *widget, GdkEvent *event, GPopup *popup)
 {
-	/*
 	char buf[1024];
 	int ch = 0;
 	::GArray<GViewI*> a;
@@ -635,7 +642,6 @@ gboolean PopupFocusEvent(GtkWidget *widget, GdkEvent *event, GPopup *popup)
 		ch += sprintf_s(buf + ch, sizeof(buf) - ch, "> %s \"%-.8s\" ", a[n]->GetClass(), a[n]->Name());
 	}
 	LgiTrace("%s : gwnd_focus=%i\n", buf, event->focus_change.in);
-	*/
     
     popup->OnFocus(event->focus_change.in);
     return TRUE;            
@@ -702,11 +708,13 @@ bool GPopup::Attach(GViewI *p)
 			{
 				gtk_window_set_transient_for(GTK_WINDOW(Wnd), GTK_WINDOW(toplevel));
 			}
-
+			
+			/*
             g_signal_connect (G_OBJECT(Wnd),
                             "button-press-event",
                             G_CALLBACK(PopupButtonEvent),
                             this);
+                            
             g_signal_connect (G_OBJECT(Wnd),
                             "focus-in-event",
                             G_CALLBACK(PopupFocusEvent),
@@ -715,6 +723,7 @@ bool GPopup::Attach(GViewI *p)
                             "focus-out-event",
                             G_CALLBACK(PopupFocusEvent),
                             this);
+            */
 		}
 
 		if (Wnd && Pos.Valid())

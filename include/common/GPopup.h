@@ -17,8 +17,8 @@ class LgiClass GPopup :
 
     #ifdef __GTK_H__
     Gtk::GtkWidget *Wnd;
+    static GArray<GPopup*> CurrentPopups;
     #endif
-
 
 protected:
 	class GPopupPrivate *d;

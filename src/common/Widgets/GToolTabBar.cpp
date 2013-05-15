@@ -162,8 +162,8 @@ void GToolTabBar::OnChange(GToolButton *Btn)
 void GToolTabBar::_PaintTab(GSurface *pDC, GToolTab *Tab)
 {
 	GRect t = Tab->TabPos;
-	
-	pDC->Colour(LC_MED, 24);
+	GColour Background(LC_MED, 24);
+	pDC->Colour(Background);
 	pDC->Rectangle(&t);
 	
 	if (!Tab->GetDown())
@@ -211,7 +211,7 @@ void GToolTabBar::_PaintTab(GSurface *pDC, GToolTab *Tab)
 	// draw icon
 	int Off = Tab->GetDown() ? 2 : 1;
 	if (GetImageList())
-		GetImageList()->Draw(pDC, t.x1 + Off, t.y1 + Off, Tab->Image(), 0);
+		GetImageList()->Draw(pDC, t.x1 + Off, t.y1 + Off, Tab->Image(), Background);
 }
 
 void GToolTabBar::OnPaint(GSurface *pScreen)
@@ -363,7 +363,7 @@ bool GToolTabBar::Pour(GRegion &r)
 				}
 			}
 
-			Btn->Visible(Btn->Value());
+			Btn->Visible(Btn->Value() != 0);
 		}
 	}
 

@@ -470,19 +470,26 @@ bool GView::SetPos(GRect &p, bool Repaint)
 			o = Par->_BorderSize;
 		}
 		
-		GPopup *p = dynamic_cast<GPopup*>(this);
-		if (p)
+		GtkWidget *GtkPar;
+		if (GTK_IS_WINDOW(_View))
 		{
 			gtk_window_move(GTK_WINDOW(_View), Pos.x1, Pos.y1);
 			gtk_window_resize(GTK_WINDOW(_View), Pos.X(), Pos.Y());
 		}
-		else if (gtk_widget_get_parent(_View))
-		{   
-		    lgi_widget_setsize(_View, Pos.X(), Pos.Y());
-			lgi_widget_setchildpos(	gtk_widget_get_parent(_View),
-									_View,
-									Pos.x1 + o,
-									Pos.y1 + o);
+		else if (GtkPar = gtk_widget_get_parent(_View))
+		{
+			if (LGI_IS_WIDGET(GtkPar))
+			{
+				lgi_widget_setsize(_View, Pos.X(), Pos.Y());
+				lgi_widget_setchildpos(	GtkPar,
+										_View,
+										Pos.x1 + o,
+										Pos.y1 + o);
+			}
+			else
+			{
+				LgiTrace("%s:%i - Error: Can't set object position, parent is: %s\n", _FL, G_OBJECT_TYPE_NAME(GtkPar));
+			}
 		}
 	}
 

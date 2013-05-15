@@ -551,6 +551,7 @@ GMessage::Result GItemEdit::OnEvent(GMessage *Msg)
 	{
 		case M_LOSING_FOCUS:
 		{
+			// One of us has to retain focus... don't care which control.
 			if (Focus() || d->Edit->Focus())
 				break;
 			// else fall thru to end the popup

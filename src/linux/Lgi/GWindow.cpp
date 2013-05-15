@@ -289,7 +289,6 @@ bool GWindow::Attach(GViewI *p)
         {
             gtk_container_add(GTK_CONTAINER(Wnd), _Root);
             gtk_widget_show(_Root);
-            printf("Root window for %p is %p\n", _View, _Root);
         }
 		
 		OnCreate();
@@ -323,6 +322,28 @@ bool GWindow::OnRequestClose(bool OsShuttingDown)
 
 bool GWindow::HandleViewMouse(GView *v, GMouse &m)
 {
+	#ifdef __GTK_H__
+	if (m.Down())
+	{
+		bool InPopup = false;
+		for (GViewI *p = v; p; p = p->GetParent())
+		{
+			if (dynamic_cast<GPopup*>(p))
+			{
+				InPopup = true;
+				break;
+			}
+		}
+		if (!InPopup && GPopup::CurrentPopups.Length())
+		{
+			for (int i=0; i<GPopup::CurrentPopups.Length(); i++)
+			{
+				GPopup::CurrentPopups[i]->Visible(false);
+			}
+		}
+	}
+	#endif
+
 	for (int i=0; i<d->Hooks.Length(); i++)
 	{
 		if (d->Hooks[i].Flags & GMouseEvents)
