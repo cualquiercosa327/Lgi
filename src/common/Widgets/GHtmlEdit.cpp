@@ -188,7 +188,8 @@ public:
 		}
 		
 		GMemDC Mem(X(), Y(), 32);
-		Mem.Colour(LC_MED, 24);
+		GColour MemBackground(LC_MED, 24);
+		Mem.Colour(MemBackground);
 		Mem.Rectangle();
 
 		GSkinEngine *s = LgiApp->SkinEngine;
@@ -229,7 +230,7 @@ public:
 				// Left end
 				r.Offset(2, 0);
 			}
-			Img->Draw(&Mem, r.x1, r.y1, Icon);
+			Img->Draw(&Mem, r.x1, r.y1, Icon, MemBackground);
 		}
 
 		pDC->Blt(0, 0, &Mem);

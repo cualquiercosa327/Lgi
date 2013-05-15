@@ -375,7 +375,8 @@ void GDragColumn::OnPaint(GSurface *pScreen)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-#define M_END_POPUP (M_USER+0x656)
+#define M_END_POPUP			(M_USER+0x1500)
+#define M_LOSING_FOCUS		(M_USER+0x1501)
 
 class GItemEditBox : public GEdit
 {
@@ -398,23 +399,9 @@ public:
 
 	void OnFocus(bool f)
 	{
-		printf("GItemEditBox::OnFocus(%i)\n", f);
-		if (!f)
+		if (!f && GetParent())
 		{
-			#if WIN32NATIVE
-			HWND pop = GetLastActivePopup(Handle());
-			HWND par = GetParent()->Handle();
-			if (pop &&
-				pop != Handle() &&
-				par != pop &&
-				IsWindow(pop) &&
-				IsWindowVisible(pop))
-			{
-				return;
-			}
-			#endif
-
-			GetParent()->Visible(false);
+			GetParent()->PostEvent(M_LOSING_FOCUS);
 		}
 		
 		GEdit::OnFocus(f);
@@ -474,7 +461,7 @@ GItemEdit::GItemEdit(GView *parent, GItem *item, int index, int SelStart, int Se
 	r.y2 += 2;
 	SetPos(r);
 
-	if (Attach(GetParent()))
+	if (Attach(parent))
 	{
 		d->Edit = new GItemEditBox(this, r.X(), r.Y(), d->Item->GetText(d->Index));
 		if (d->Edit)
@@ -562,6 +549,12 @@ GMessage::Result GItemEdit::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{
+		case M_LOSING_FOCUS:
+		{
+			if (Focus() || d->Edit->Focus())
+				break;
+			// else fall thru to end the popup
+		}
 		case M_END_POPUP:
 		{
 			Quit();

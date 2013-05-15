@@ -110,7 +110,27 @@ GViewI *GWindow::GetFocus()
 	return d->Focus;
 }
 
-#define DEBUG_SETFOCUS 0
+#define DEBUG_SETFOCUS 1
+
+static GAutoString DescribeView(GViewI *v)
+{
+	if (!v)
+		return GAutoString(NewStr("NULL"));
+
+	char s[512];
+	int ch = 0;
+	::GArray<GViewI*> p;
+	for (GViewI *i = v; i; i = i->GetParent())
+	{
+		p.Add(i);
+	}
+	for (int n=min(3, p.Length()-1); n>=0; n--)
+	{
+		v = p[n];
+		ch += sprintf_s(s + ch, sizeof(s) - ch, ">%s", v->GetClass());
+	}
+	return GAutoString(NewStr(s));
+}
 
 void GWindow::SetFocus(GViewI *ctrl, FocusType type)
 {
@@ -149,12 +169,12 @@ void GWindow::SetFocus(GViewI *ctrl, FocusType type)
 						v->Invalidate();
 
 						#if DEBUG_SETFOCUS
-						LgiTrace("GWindow::SetFocus(%p.%s, %s) refocusing: %p(%s)\n",
-							ctrl,
-							ctrl ? ctrl->GetClass() : NULL,
+						GAutoString _set = DescribeView(ctrl);
+						GAutoString _foc = DescribeView(d->Focus);
+						LgiTrace("GWindow::SetFocus(%s, %s) refocusing: %s\n",
+							_set.Get(),
 							TypeName,
-							d->Focus,
-							d->Focus ? d->Focus->GetClass() : NULL);
+							_foc.Get());
 						#endif
 						return;
 					}
@@ -173,9 +193,9 @@ void GWindow::SetFocus(GViewI *ctrl, FocusType type)
 				d->Focus->Invalidate();
 
 				#if DEBUG_SETFOCUS
-				LgiTrace(".....defocus: %p(%s)\n",
-					d->Focus,
-					d->Focus ? d->Focus->GetClass() : NULL);
+				GAutoString _foc = DescribeView(d->Focus);
+				LgiTrace(".....defocus: %s\n",
+					_foc.Get());
 				#endif
 			}
 			
@@ -189,12 +209,10 @@ void GWindow::SetFocus(GViewI *ctrl, FocusType type)
 				d->Focus->Invalidate();
 
 				#if DEBUG_SETFOCUS
-				LgiTrace("GWindow::SetFocus(%p.%s, %s) focus: %p(%s)\n",
-					ctrl,
-					ctrl ? ctrl->GetClass() : NULL,
-					TypeName,
-					d->Focus,
-					d->Focus ? d->Focus->GetClass() : NULL);
+				GAutoString _set = DescribeView(d->Focus);
+				LgiTrace("GWindow::SetFocus(%s, %s) focusing\n",
+					_set.Get(),
+					TypeName);
 				#endif
 			}
 			break;
@@ -215,12 +233,12 @@ void GWindow::SetFocus(GViewI *ctrl, FocusType type)
 						// view when we get focus again
 
 						#if DEBUG_SETFOCUS
-						LgiTrace("GWindow::SetFocus(%p.%s, %s) keep_focus: %p(%s)\n",
-							ctrl,
-							ctrl ? ctrl->GetClass() : NULL,
+						GAutoString _ctrl = DescribeView(ctrl);
+						GAutoString _foc = DescribeView(d->Focus);
+						LgiTrace("GWindow::SetFocus(%s, %s) keep_focus: %s\n",
+							_ctrl.Get(),
 							TypeName,
-							d->Focus,
-							d->Focus ? d->Focus->GetClass() : NULL);
+							_foc.Get());
 						#endif
 					}
 					// else view doesn't think it has focus anyway...
