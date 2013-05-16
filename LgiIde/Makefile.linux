@@ -54,7 +54,8 @@ Depends =	FtpThread.o \
 			GMdi.o \
 			GTextView3.o \
 			LgiMain.o \
-			Png.o
+			Png.o \
+			FindSymbol.o
 
 # Target
 # Executable target
@@ -109,6 +110,13 @@ FindInFiles.o : ./Code/FindInFiles.cpp ../include/common/Lgi.h \
 	../include/common/GProcess.h \
 	../include/common/GDocView.h \
 	../include/common/GToken.h
+	@echo $(<F) [$(Gui)]
+	$(CC) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+FindSymbol.o : ./Code/FindSymbol.cpp ../include/common/Lgi.h \
+	./Code/LgiIde.h \
+	../include/common/GProcess.h \
+	./Code/FindSymbol.h
 	@echo $(<F) [$(Gui)]
 	$(CC) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 

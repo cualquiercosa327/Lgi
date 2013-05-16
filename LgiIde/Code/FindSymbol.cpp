@@ -120,7 +120,7 @@ public:
 			return 0;
 
 		char msg[MAX_PATH];
-		sprintf_s(msg, sizeof(msg), "Generating index: %s", d->CTagsIndexFile);
+		sprintf_s(msg, sizeof(msg), "Generating index: %s", d->CTagsIndexFile.Get());
 		Msg(msg);
 
 		if (d->Lock(_FL))
@@ -139,7 +139,7 @@ public:
 		}		
 		
 		char args[MAX_PATH];
-		sprintf_s(args, sizeof(args), "--excmd=number -f \"%s\" -L \"%s\"", d->CTagsIndexFile, tmp);
+		sprintf_s(args, sizeof(args), "--excmd=number -f \"%s\" -L \"%s\"", d->CTagsIndexFile.Get(), tmp);
 		GProcess proc;
 		bool b = proc.Run(d->CTagsExe, args, NULL, true);
 		// FileDev->Delete(tmp);
@@ -307,7 +307,7 @@ void FindSymbolDlg::OnPulse()
 				
 				GListItem *i = new GListItem;
 				char str[MAX_PATH];
-				sprintf_s(str, sizeof(str), "%s:%i", r.File, r.Line);
+				sprintf_s(str, sizeof(str), "%s:%i", r.File.Get(), r.Line);
 				i->SetText(r.Symbol, 0);
 				i->SetText(str, 1);
 				d->Lst->Insert(i);
