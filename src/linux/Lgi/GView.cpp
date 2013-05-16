@@ -687,20 +687,23 @@ void GView::PointToView(GdcPt2 &p)
 	
 	if (_View)
 	{
-	    gint x, y;
-	    if (gtk_widget_translate_coordinates(   _View,
-	                                            GTK_WIDGET(GetWindow()->Handle()),
-	                                            p.x, p.y,
-	                                            &x, &y))
-	    {
-			p.x += x;
-			p.y += y;
-			
-			gtk_window_get_position (WindowHandle(), &x, &y);
-
-			p.x += x;
-			p.y += y;
+		gint x = 0, y = 0;
+		gdk_window_get_origin(GetWindow()->Handle()->window, &x, &y);
+		p.x -= x;
+		p.y -= y;
+		
+		GViewI *w = GetWindow();
+		for (GViewI *i = this; i && i != w; i = i->GetParent())
+		{
+			GRect pos = i->GetPos();
+			const char *cls = i->GetClass();
+			p.x -= pos.x1;
+			p.y -= pos.y1;
 		}
+		
+		GRect cli = GetClient(false);
+		p.x -= cli.x1;
+		p.y -= cli.y1;
 	}
 	else if (GetParent())
 	{
@@ -722,10 +725,7 @@ void GView::PointToView(GdcPt2 &p)
 			p.x -= Sx;
 			p.y -= Sy;
 		}
-		else
-		{
-			printf("%s:%i - No Real view.\n", __FILE__, __LINE__);
-		}
+		else LgiTrace("%s:%i - No Real view for %s\n", _FL, GetClass());
 	}
 }
 
@@ -739,18 +739,18 @@ bool GView::GetMouse(GMouse &m, bool ScreenCoords)
 		
 		gint x = 0, y = 0;
 		GdkModifierType mask;
-		GdkDisplay *disp = gdk_display_get_default();
-		GdkScreen *screen = NULL;
-		gdk_display_get_pointer(disp,
-								&screen,
+		GdkScreen *wnd_scr = gtk_window_get_screen(GTK_WINDOW(WindowHandle()));
+		GdkDisplay *wnd_dsp = wnd_scr ? gdk_screen_get_display(wnd_scr) : NULL;
+		gdk_display_get_pointer(wnd_dsp,
+								&wnd_scr,
 								&x, &y,
 								&mask);
 		if (!ScreenCoords)
 		{
 			GdcPt2 p(x, y);
 			PointToView(p);
-			m.x = x;
-			m.y = y;
+			m.x = p.x;
+			m.y = p.y;
 		}
 		else
 		{

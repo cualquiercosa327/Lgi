@@ -2611,7 +2611,8 @@ void GList::OnPulse()
 						int n = Min;
 						for (GListItem *i = Items[Min]; i && n <= Max; i=Items.Next(), n++)
 						{
-							i->Select(true);
+							if (!i->Select())
+								i->Select(true);
 						}
 
 						if (Over)
