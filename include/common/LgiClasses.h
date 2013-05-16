@@ -391,6 +391,7 @@ class LgiClass GView : virtual public GViewI, virtual public GBase
 	friend Gtk::gboolean GViewCallback(Gtk::GtkWidget *widget, Gtk::GdkEvent  *event, GView *view);
 	friend Gtk::gboolean GWindowCallback(Gtk::GtkWidget *widget, Gtk::GdkEvent *event, GWindow *wnd);
 	friend Gtk::gboolean GDialogCallback(Gtk::GtkWidget *widget, Gtk::GdkEvent *event, GDialog *dlg);
+	friend Gtk::gboolean PopupEvent(Gtk::GtkWidget *widget, Gtk::GdkEvent *event, class GPopup *This);
 
 	#elif defined WIN32
 

@@ -315,7 +315,7 @@ bool GView::_Mouse(GMouse &m, bool Move)
 {
 	ThreadCheck();
 	
-	#if 1
+	#if 0
 	if (!Move)
 	{
 		m.Trace("_Mouse");

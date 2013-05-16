@@ -561,90 +561,62 @@ GRect &GPopup::GetPos()
 #endif
 
 #ifdef __GTK_H__
-static
-gboolean
-GPopupFocusOut( GtkWidget       *widget,
-				GdkEventFocus   *ev,
-				GPopup          *This)
+gboolean PopupEvent(GtkWidget *widget, GdkEvent *event, GPopup *This)
 {
-    This->Visible(false);
-	return FALSE;
-}
-
-static
-gboolean
-GPopupExpose(	GtkWidget		*widget,
-				GdkEventExpose	*ev,
-				GtkWidget		*top)
-{
-	if (gtk_window_get_resizable(GTK_WINDOW(top)))
+	switch (event->type)
 	{
-		gtk_window_resize(GTK_WINDOW(top), widget->allocation.width, widget->allocation.height);
-		gtk_window_set_resizable(GTK_WINDOW(top), FALSE);
+		case GDK_DELETE:
+		{
+			// delete This;
+			break;
+		}
+		case GDK_DESTROY:
+		{
+			LgiTrace("PopupEvent.Destroy\n");
+			delete This;
+			return TRUE;
+		}
+		case GDK_CONFIGURE:
+		{
+			GdkEventConfigure *c = (GdkEventConfigure*)event;
+			This->Pos.Set(c->x, c->y, c->x+c->width-1, c->y+c->height-1);
+			This->OnPosChange();
+			
+			LgiTrace("PopupEvent.Config\n");
+			return FALSE;
+			break;
+		}
+		case GDK_FOCUS_CHANGE:
+		{
+			LgiTrace("PopupEvent.Focus(%i)\n", event->focus_change.in);
+			This->OnFocus(event->focus_change.in);
+			break;
+		}
+		case GDK_CLIENT_EVENT:
+		{
+			GMessage m(event);
+			LgiTrace("PopupEvent.Client\n");
+			This->OnEvent(&m);
+			break;
+		}
+		case GDK_BUTTON_PRESS:
+		{
+			LgiTrace("PopupEvent.Button\n");
+			break;
+		}
+		case GDK_EXPOSE:
+		{
+			GScreenDC s(This->Handle());
+			This->OnPaint(&s);
+			break;
+		}
+		default:
+		{
+			LgiTrace("Unhandled PopupEvent type %i\n", event->type);
+			break;
+		}
 	}
-	return FALSE;
-}
-
-static void
-PopupPos(GtkMenu *menu, gint *x, gint *y, gboolean *push_in, GdcPt2 *user_data)
-{
-    *x = user_data->x;
-    *y = user_data->y;    
-}
-
-void PopupDetach(GtkWidget *attach_widget, GtkMenu *menu)
-{
-    LgiTrace("PopupDetach\n");
-}
-
-void PopupCancel(GtkMenuShell *menushell, gpointer user_data)
-{
-    LgiTrace("PopupCancel\n");
-}
-
-void PopupSelect(GtkMenuShell *menushell, gpointer user_data)
-{
-    LgiTrace("PopupSelect\n");
-}
-
-void PopupGrabBroken(GtkWidget *widget, GdkEventGrabBroken *ev, GPopup *popup)
-{
-    popup->Visible(false);
-}
-
-gboolean PopupButtonEvent(GtkWidget *widget, GdkEventButton *e, GPopup *popup)
-{
-    LgiTrace("PopupButtonPress cur_grab=%p\n", gtk_grab_get_current());
-    gtk_grab_remove(widget);
-    
-    GtkWindow *WidgetParent = (GtkWindow*)gtk_widget_get_parent_window(widget);
-    GtkWindow *PopupParent = (GtkWindow*)gtk_widget_get_parent_window(popup->Handle());
-    bool Over = WidgetParent == PopupParent;
-    if (!Over)
-    {
-        popup->Visible(false);
-    }
-    
-    return TRUE;            
-}
-
-gboolean PopupFocusEvent(GtkWidget *widget, GdkEvent *event, GPopup *popup)
-{
-	char buf[1024];
-	int ch = 0;
-	::GArray<GViewI*> a;
-	for (GViewI *i = popup; i; i = i->GetParent())
-	{
-		a.Add(i);
-	}
-	for (int n=a.Length()-1; n>=0; n--)
-	{
-		ch += sprintf_s(buf + ch, sizeof(buf) - ch, "> %s \"%-.8s\" ", a[n]->GetClass(), a[n]->Name());
-	}
-	LgiTrace("%s : gwnd_focus=%i\n", buf, event->focus_change.in);
-    
-    popup->OnFocus(event->focus_change.in);
-    return TRUE;            
+    return TRUE;
 }
 
 #endif
@@ -697,33 +669,55 @@ bool GPopup::Attach(GViewI *p)
 		
 		if (!Wnd)
 		{
-		    Wnd = gtk_window_new(GTK_WINDOW_POPUP);
-		    // gtk_window_set_decorated(GTK_WINDOW(Wnd), FALSE);
-		    gtk_window_set_type_hint(GTK_WINDOW(Wnd), GDK_WINDOW_TYPE_HINT_COMBO);
+		    // Wnd = gtk_window_new(GTK_WINDOW_POPUP);
+		    Wnd = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+		    gtk_window_set_decorated(GTK_WINDOW(Wnd), FALSE);
+		    // gtk_window_set_type_hint(GTK_WINDOW(Wnd), GDK_WINDOW_TYPE_HINT_COMBO);
     		gtk_widget_add_events(Wnd, GDK_ALL_EVENTS_MASK);
 
+			#if 1
 			GViewI *p = GetParent();
 			GtkWidget *toplevel = gtk_widget_get_toplevel(p->Handle());
 			if (GTK_IS_WINDOW(toplevel))
 			{
 				gtk_window_set_transient_for(GTK_WINDOW(Wnd), GTK_WINDOW(toplevel));
 			}
-			
-			/*
-            g_signal_connect (G_OBJECT(Wnd),
-                            "button-press-event",
-                            G_CALLBACK(PopupButtonEvent),
-                            this);
-                            
-            g_signal_connect (G_OBJECT(Wnd),
-                            "focus-in-event",
-                            G_CALLBACK(PopupFocusEvent),
-                            this);
-            g_signal_connect (G_OBJECT(Wnd),
-                            "focus-out-event",
-                            G_CALLBACK(PopupFocusEvent),
-                            this);
-            */
+			#endif
+
+            #if 1
+            g_signal_connect(	G_OBJECT(Wnd),
+								"button-press-event",
+								G_CALLBACK(PopupEvent),
+								this);
+            g_signal_connect(	G_OBJECT(Wnd),
+								"focus-in-event",
+								G_CALLBACK(PopupEvent),
+								this);
+            g_signal_connect(	G_OBJECT(Wnd),
+								"focus-out-event",
+								G_CALLBACK(PopupEvent),
+								this);
+			g_signal_connect(	G_OBJECT(Wnd),
+								"delete_event",
+								G_CALLBACK(PopupEvent),
+								this);
+			g_signal_connect(	G_OBJECT(Wnd),
+								"destroy",
+								G_CALLBACK(PopupEvent),
+								this);
+			g_signal_connect(	G_OBJECT(Wnd),
+								"configure-event",
+								G_CALLBACK(PopupEvent),
+								this);
+			g_signal_connect(	G_OBJECT(Wnd),
+								"button-press-event",
+								G_CALLBACK(PopupEvent),
+								this);
+			g_signal_connect(	G_OBJECT(Wnd),
+								"client-event",
+								G_CALLBACK(PopupEvent),
+								this);
+			#endif
 		}
 
 		if (Wnd && Pos.Valid())
@@ -732,23 +726,22 @@ bool GPopup::Attach(GViewI *p)
 			gtk_window_move(GTK_WINDOW(Wnd), Pos.x1, Pos.y1);
 		}
 
+		#if 1
         if (!_View)
         {
-		    _View = lgi_widget_new(this, Pos.X(), Pos.Y(), false);
+		    _View = lgi_widget_new(this, Pos.X(), Pos.Y(), true);
 		    gtk_container_add(GTK_CONTAINER(Wnd), _View);
-		}		
+		}
+		#endif
+
 		#endif
 
 		if (!_Window)
 		{
 			if (Owner)
-			{
 				_Window = Owner->GetWindow();
-			}
 			else
-			{
 				_Window = p->GetWindow();
-			}
 		}
 	}
 	else LgiTrace("%s:%i - Error, no parent.\n", _FL);
@@ -769,29 +762,28 @@ void GPopup::Visible(bool i)
 		    return;
 	}
 	
+	GView::Visible(i);
     if (Wnd)
     {
 	    if (i)
 	    {
 	        gtk_widget_show_all(Wnd);
 			gtk_window_move(GTK_WINDOW(Wnd), Pos.x1, Pos.y1);
-			gtk_window_resize(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
+			// gtk_window_resize(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
 	    }
 	    else
 	    {
-	        gtk_grab_remove(Wnd);
 	        gtk_widget_hide(Wnd);
-	        // gdk_pointer_ungrab(GDK_CURRENT_TIME);
 	    }
-
-		GView::Visible(i);
 	}
 	#else
 	if (!Handle() && i)
 		GView::Attach(0);
 	AttachChildren();
 	GView::Visible(i);
-	#endif	
+	#endif
+	
+	#if 1
 	if (i)
 	{
 		Start = LgiCurrentTime();
@@ -818,6 +810,7 @@ void GPopup::Visible(bool i)
 
 		SendNotify(POPUP_HIDE);
 	}
+	#endif
 }
 
 bool GPopup::Visible()

@@ -40,7 +40,10 @@ struct GDialogPriv
 GDialog::GDialog()
 	: ResObject(Res_Dialog)
 	#ifdef __GTK_H__
-	, GWindow(gtk_dialog_new_with_buttons(0, 0, (GtkDialogFlags) (GTK_DIALOG_MODAL | GTK_DIALOG_NO_SEPARATOR), 0))
+	, GWindow(
+		// gtk_dialog_new_with_buttons(0, 0, (GtkDialogFlags) (GTK_DIALOG_MODAL | GTK_DIALOG_NO_SEPARATOR), 0)
+		 gtk_dialog_new()
+		)
 	#endif
 {
 	d = new GDialogPriv();
@@ -179,8 +182,6 @@ int GDialog::DoModal(OsView OverrideParent)
 {
 	d->ModalStatus = -1;
 
-	#if defined __GTK_H__
-
 	if (GetParent())
 		gtk_window_set_transient_for(GTK_WINDOW(Wnd), GetParent()->WindowHandle());
 
@@ -206,10 +207,29 @@ int GDialog::DoModal(OsView OverrideParent)
 	#endif
 	if (content_area)
 	{
+		GtkContainer *container = GTK_CONTAINER(content_area);
+		GtkHButtonBox *btns = NULL;
+		
+		Gtk::GList *list = gtk_container_get_children(container);
+		for (Gtk::GList *i = list; i != NULL; i = i->next)
+		{
+			const gchar *type = G_OBJECT_TYPE_NAME(i->data);
+			GtkWidget *w = GTK_WIDGET(i->data);
+			if (!btns)
+				btns = GTK_HBUTTON_BOX(i->data);
+		}		
+		g_list_free(list);
+    
+		// Add our own root control to contain LGI widgets
 		if (_Root = lgi_widget_new(this, Pos.X(), Pos.Y(), true))
 		{
-			gtk_container_add(GTK_CONTAINER(content_area), _Root);
+			gtk_container_add(container, _Root);
 			gtk_widget_show(_Root);
+			if (btns)
+			{
+				// Hide the btns container, as Lgi won't use it.
+				gtk_widget_hide(GTK_WIDGET(btns));
+			}
 		}
 	}
 	
@@ -230,10 +250,9 @@ int GDialog::DoModal(OsView OverrideParent)
 						G_CALLBACK(GDialogCallback),
 						this);
 
-	gint r = gtk_dialog_run(GTK_DIALOG(Wnd));
-
-	#endif
-
+	// gint r = gtk_dialog_run(GTK_DIALOG(Wnd));
+	gtk_widget_show(GTK_WIDGET(Wnd));
+	gtk_main();
 	return d->ModalStatus;
 }
 
@@ -257,7 +276,8 @@ void GDialog::EndModal(int Code)
 	{
 		d->IsModal = false;
 		d->ModalStatus = Code;
-		gtk_dialog_response(GTK_DIALOG(Wnd), Code);
+		// gtk_dialog_response(GTK_DIALOG(Wnd), Code);
+		gtk_main_quit();
 	}
 	else
 	{

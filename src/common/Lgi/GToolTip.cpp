@@ -277,7 +277,7 @@ public:
 		Loop = true;
 		Tips = tips;
 		
-		#if defined(BEOS) || defined(LINUX)
+		#if defined(BEOS) || defined(__GTK_H__)
 		printf("Warning: No NativeTipThread support.\n");
 		#else
 		Run();

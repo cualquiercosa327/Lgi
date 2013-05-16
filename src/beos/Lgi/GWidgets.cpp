@@ -237,7 +237,7 @@ status_t WaitForDelete(sem_id blocker, BWindow *Wnd)
 
 int GDialog::DoModal(OsView ParentHnd)
 {
-	printf("DoModal() Me=%i Count=%i Thread=%i\n", LgiGetCurrentThread(), Wnd->CountLocks(), Wnd->LockingThread());
+	// LgiTrace("DoModal() Me=%i Count=%i Thread=%i\n", LgiGetCurrentThread(), Wnd->CountLocks(), Wnd->LockingThread());
 
 	IsModal = true;
 	ModalRet = 0;

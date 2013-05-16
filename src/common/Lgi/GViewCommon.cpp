@@ -762,6 +762,7 @@ bool GView::HandleCapture(GView *Wnd, bool c)
 
 			Status = true;
 			_Capturing = Wnd;
+			LgiTrace("Capturing on %p\n", _View);
 		}
 		else
 		{
@@ -774,6 +775,7 @@ bool GView::HandleCapture(GView *Wnd, bool c)
 				#elif defined MAC
 				#endif
 
+				LgiTrace("Uncapture on %p\n", _Capturing);
 				_Capturing = 0;
 			}
 		}
