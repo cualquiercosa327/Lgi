@@ -110,7 +110,7 @@
 		<String Ref="109" Cid="2" Define="IDCANCEL" en="Cancel" />
 		<String Ref="110" Cid="97" Define="IDC_PATH" />
 		<String Ref="111" Cid="111" Define="IDC_NAME" />
-		<String Ref="112" Cid="112" Define="IDC_FTP_FILE" en="Add FTP File" />
+		<String Ref="112" Cid="112" Define="IDD_FTP_FILE" en="Add FTP File" />
 		<String Ref="113" Cid="113" Define="IDC_FILES" />
 		<String Ref="114" Cid="114" Define="IDS_114" en="Name" />
 		<String Ref="115" Cid="115" Define="IDS_115" en="Size" />
@@ -124,6 +124,11 @@
 		<String Ref="176" Cid="2" Define="IDCANCEL" en="Cancel" />
 		<String Ref="177" Cid="2" Define="IDCANCEL" en="Cancel" />
 		<String Ref="178" Cid="1" Define="IDOK" en="Ok" />
+		<String Ref="179" Cid="179" Define="IDD_FIND_SYMBOL" en="Find Symbol" />
+		<String Ref="180" Cid="180" Define="IDC_TABLE" />
+		<String Ref="181" Cid="181" Define="IDC_RESULTS" />
+		<String Ref="182" Cid="182" Define="IDC_182" en="Symbol" />
+		<String Ref="183" Cid="183" Define="IDC_183" en="Definition" />
 		<String Ref="184" Cid="184" Define="IDC_GENERAL_TABLE" />
 		<String Ref="185" Cid="-1" Define="IDC_STATIC" en="Makefile:" />
 		<String Ref="186" Cid="-1" Define="IDC_STATIC" en="Include Paths:" />
@@ -132,10 +137,43 @@
 		<String Ref="189" Cid="-1" Define="IDC_STATIC" en="Editor settings specific to this project:" />
 		<String Ref="190" Cid="-1" Define="IDC_STATIC" en="Tab Size:" />
 		<String Ref="191" Cid="-1" Define="IDC_STATIC" en="Other makefile rules:" />
+		<String Ref="192" Cid="192" Define="IDC_STR" />
+		<String Ref="193" Cid="1" Define="IDOK" en="Search" />
+		<String Ref="194" Cid="2" Define="IDCANCEL" en="Cancel" />
+		<String Ref="195" Cid="195" Define="IDC_SHOW_CURRENT_ONLY" en="Show only symbols in current project" />
 	</string-group>
 	<style name="General">.fixed {
 	width: 18px;
 }</style>
+	<Dialog pos="7,7,680,502" ref="179">
+		<TableLayout pos="7,7,657,454" ref="180" cols="0.333,0.333,0.333" rows="0.333,0.333,0.333">
+			<tr>
+				<td colspan="3">
+					<ListView pos="7,7,454,104" ref="181">
+						<Column ref="182" width="199" />
+						<Column ref="183" width="208" />
+					</ListView>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2">
+					<EditBox Pos="21,164,265,191" ref="192" />
+				</td>
+				<td>
+					<Button pos="473,178,528,198" ref="193" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<CheckBox pos="14,328,139,341" ref="195" />
+				</td>
+				<td />
+				<td>
+					<Button pos="452,321,514,341" ref="194" />
+				</td>
+			</tr>
+		</TableLayout>
+	</Dialog>
 	<Dialog pos="7,7,503,424" ref="112">
 		<ListView pos="7,7,482,272" ref="113">
 			<Column ref="121" width="50" />

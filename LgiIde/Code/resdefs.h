@@ -60,7 +60,7 @@
 #define IDC_PASSWORD							105
 #define IDC_WWW									107
 #define IDC_NAME								111
-#define IDC_FTP_FILE							112
+#define IDD_FTP_FILE							112
 #define IDC_FILES								113
 #define IDS_114									114
 #define IDS_115									115
@@ -68,7 +68,14 @@
 #define IDC_LOG									117
 #define IDS_118									118
 #define IDS_121									121
+#define IDD_FIND_SYMBOL							179
+#define IDC_TABLE								180
+#define IDC_RESULTS								181
+#define IDC_182									182
+#define IDC_183									183
 #define IDC_GENERAL_TABLE						184
+#define IDC_STR									192
+#define IDC_SHOW_CURRENT_ONLY					195
 #define IDC_TAB_SIZE							500
 #define IDC_SHOW_WHITESPACE						501
 #define IDM_OPEN								502

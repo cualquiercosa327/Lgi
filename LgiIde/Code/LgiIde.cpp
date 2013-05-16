@@ -14,6 +14,7 @@
 #include "GTabView.h"
 #include "FtpThread.h"
 #include "GClipBoard.h"
+#include "FindSymbol.h"
 
 #define IDM_SAVE				102
 #define IDM_BREAKPOINT			313
@@ -1562,6 +1563,58 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			}
 			break;
 		}
+		case IDM_FIND_IN_FILES:
+		{
+			if (d->Finder)
+			{
+				d->Finder->Stop();
+			}
+			else
+			{
+				FindInFiles Dlg(this);
+
+				GViewI *Focus = LgiApp->GetFocus();
+				if (Focus)
+				{
+					GTextView3 *Edit = dynamic_cast<GTextView3*>(Focus);
+					if (Edit AND Edit->HasSelection())
+					{
+						Dlg.Params->Text = Edit->GetSelection();
+					}
+				}
+				
+				IdeProject *p = RootProject();
+				if (p)
+				{
+					char Path[256];
+					if (p->GetBasePath(Path))
+					{
+						DeleteArray(Dlg.Params->Dir);
+						Dlg.Params->Dir = NewStr(Path);
+					}
+				}
+
+				if (Dlg.DoModal())
+				{
+					d->Finder = new FindInFilesThread(this, Dlg.Params);
+					Dlg.Params = 0;
+				}
+			}
+			break;
+		}
+		case IDM_FIND_SYMBOL:
+		{
+			FindSymbolDlg SymDlg(this);
+			if (SymDlg.DoModal())
+			{
+				
+			}
+			break;
+		}
+		case IDM_FIND_REFERENCES:
+		{
+			break;
+		}
 		
 		//
 		// Project
@@ -1763,45 +1816,6 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		case IDM_SYS_CHAR_SUPPORT:
 		{
 			new SysCharSupport(this);
-			break;
-		}
-		case IDM_FIND_IN_FILES:
-		{
-			if (d->Finder)
-			{
-				d->Finder->Stop();
-			}
-			else
-			{
-				FindInFiles Dlg(this);
-
-				GViewI *Focus = LgiApp->GetFocus();
-				if (Focus)
-				{
-					GTextView3 *Edit = dynamic_cast<GTextView3*>(Focus);
-					if (Edit AND Edit->HasSelection())
-					{
-						Dlg.Params->Text = Edit->GetSelection();
-					}
-				}
-				
-				IdeProject *p = RootProject();
-				if (p)
-				{
-					char Path[256];
-					if (p->GetBasePath(Path))
-					{
-						DeleteArray(Dlg.Params->Dir);
-						Dlg.Params->Dir = NewStr(Path);
-					}
-				}
-
-				if (Dlg.DoModal())
-				{
-					d->Finder = new FindInFilesThread(this, Dlg.Params);
-					Dlg.Params = 0;
-				}
-			}
 			break;
 		}
 		default:

@@ -232,7 +232,7 @@ public:
 		Base = new GUri(ftp);
 		Thread = 0;
 		Files = Log = 0;
-		if (LoadFromResource(IDC_FTP_FILE))
+		if (LoadFromResource(IDD_FTP_FILE))
 		{
 			MoveToCenter();
 			if (GetViewById(IDC_FILES, Files) &&
@@ -1072,7 +1072,7 @@ public:
 	{
 		char *FullPath = 0;
 		
-		if (File AND *File == '.')
+		if (File && *File == '.')
 		{
 			// Relitive path
 			char Path[256];
@@ -1374,7 +1374,7 @@ public:
 								if (New)
 								{
 									char Rel[256];
-									if (Project->RelitivePath(Rel, s[i]))
+									if (Project->RelativePath(Rel, s[i]))
 									{
 										New->SetFileName(Rel);
 									}
@@ -1459,7 +1459,7 @@ public:
 									if (New)
 									{
 										char Rel[256];
-										if (Project->RelitivePath(Rel, f))
+										if (Project->RelativePath(Rel, f))
 										{
 											New->SetFileName(Rel);
 										}
@@ -2029,7 +2029,7 @@ void IdeCommon::CollectAllSubProjects(List<IdeProject> &c)
 {
 	ForAllProjectNodes(p)
 	{
-		if (p->GetType() == NodeDependancy AND
+		if (p->GetType() == NodeDependancy &&
 			p->GetDep())
 		{
 			c.Insert(p->GetDep());
@@ -2039,13 +2039,34 @@ void IdeCommon::CollectAllSubProjects(List<IdeProject> &c)
 	}
 }
 
+void IdeCommon::CollectAllSource(GArray<char*> &c)
+{
+	ForAllProjectNodes(p)
+	{
+		switch (p->GetType())
+		{
+			case NodeSrc:
+			case NodeHeader:
+			{
+				char *path = p->GetFullPath();
+				if (path)
+					c.Add(path);
+			}
+			default:
+				break;
+		}
+		
+		p->CollectAllSource(c);
+	}
+}
+
 bool IdeProject::GetChildProjects(List<IdeProject> &c)
 {
 	CollectAllSubProjects(c);
 	return c.First() != 0;
 }
 
-bool IdeProject::RelitivePath(char *Out, char *In)
+bool IdeProject::RelativePath(char *Out, char *In)
 {
 	if (Out AND In)
 	{
@@ -2608,7 +2629,7 @@ public:
 				if (s.Open())
 				{
 					char Rel[256];
-					if (Project->RelitivePath(Rel, s.Name()))
+					if (Project->RelativePath(Rel, s.Name()))
 					{
 						SetCtrlName(IDC_MAKEFILE, Rel);
 					}
@@ -2627,7 +2648,7 @@ public:
 				if (s.Open())
 				{
 					char Rel[256];
-					if (Project->RelitivePath(Rel, s.Name()))
+					if (Project->RelativePath(Rel, s.Name()))
 					{
 						SetCtrlName(IDC_EXE, Rel);
 					}
@@ -2669,7 +2690,7 @@ public:
 					{
 						char *Insert = 0;
 						char Out[256];
-						if (Project->RelitivePath(Out, s.Name()))
+						if (Project->RelativePath(Out, s.Name()))
 						{
 							Insert = Out;
 						}
@@ -2937,7 +2958,7 @@ void IdeProject::ImportDsp(char *File)
 							
 							// Make relitive path
 							char Rel[256];
-							if (RelitivePath(Rel, Abs))
+							if (RelativePath(Rel, Abs))
 							{
 								New->SetFileName(Rel);
 							}
@@ -3315,7 +3336,7 @@ bool IdeProject::CreateMakefile()
 							LgiTrimDir(Path);
 						
 							char Rel[256];
-							if (!RelitivePath(Rel, Path))
+							if (!RelativePath(Rel, Path))
 							{
 								strcpy(Rel, Path);
 							}
@@ -3401,7 +3422,7 @@ bool IdeProject::CreateMakefile()
 									d->GetBasePath(p))
 								{
 									char Rel[256];
-									if (!RelitivePath(Rel, p))
+									if (!RelativePath(Rel, p))
 									{
 										strsafecpy(Rel, p, sizeof(Rel));
 									}
@@ -3549,7 +3570,7 @@ bool IdeProject::CreateMakefile()
 								if (Dot) *Dot = 0;
 
 								char Rel[256];
-								if (!RelitivePath(Rel, Src))
+								if (!RelativePath(Rel, Src))
 								{
 						 			strcpy(Rel, Src);
 								}
@@ -3567,7 +3588,7 @@ bool IdeProject::CreateMakefile()
 										{
 											if (n) m.Print(" \\\n\t");
 											
-											if (!RelitivePath(Rel, i))
+											if (!RelativePath(Rel, i))
 											{
 						 						strcpy(Rel, i);
 											}
@@ -3632,7 +3653,7 @@ bool IdeProject::CreateMakefile()
 											if (n) m.Print(" \\\n\t");
 											
 											char Rel[256];
-											if (!RelitivePath(Rel, i))
+											if (!RelativePath(Rel, i))
 											{
 						 						strcpy(Rel, i);
 											}

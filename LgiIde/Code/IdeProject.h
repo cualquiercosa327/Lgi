@@ -29,6 +29,7 @@ public:
 	~IdeCommon();
 	
 	void CollectAllSubProjects(List<IdeProject> &c);
+	void CollectAllSource(GArray<char*> &c);
 	void SortChildren();
 	void InsertTag(GXmlTag *t);
 	void RemoveTag();
@@ -65,7 +66,7 @@ public:
 	bool GetBasePath(char *Path);
 	bool GetMakefile(char *Path, int Len);
 	bool GetExePath(char *Path, int Len);
-	bool RelitivePath(char *Out, char *In);
+	bool RelativePath(char *Out, char *In);
 	bool Serialize();
 	void Build(bool All);
 	void Clean();
