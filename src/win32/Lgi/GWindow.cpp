@@ -110,7 +110,7 @@ GViewI *GWindow::GetFocus()
 	return d->Focus;
 }
 
-#define DEBUG_SETFOCUS 1
+#define DEBUG_SETFOCUS 0
 
 static GAutoString DescribeView(GViewI *v)
 {

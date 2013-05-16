@@ -6891,7 +6891,7 @@ void GHtml::Parse()
 						}
 					}
 
-					#if 1
+					#if 0 // Enabling this breaks the test file 'gw2.html'.
 					for (GTag *t = Html->Tags.First(); t; )
 					{
 						if (t->Tag && t->Tag[0] == '!')

@@ -189,7 +189,7 @@ void GBox::OnPosChange()
 		if (Idx < Children.Length() - 1)
 			size_px = size.ToPx(d->GetBox(content), GetFont());
 		else
-			size_px = d->GetBox(content);
+			size_px = d->GetBox(content) - Cur;
 		
 		// Allocate space for view
 		GRect viewPos = content;
@@ -333,7 +333,7 @@ void GBox::OnMouseMove(GMouse &m)
 				}
 				
 				OnPosChange();
-				Invalidate();
+				Invalidate((GRect*)NULL, true);
 			}
 		}
 	}
