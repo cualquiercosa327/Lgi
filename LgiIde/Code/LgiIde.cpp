@@ -562,12 +562,7 @@ public:
 		
 		if (Full)
 		{
-			IdeDoc *Doc = App->OpenFile(Full);
-			if (Doc)
-			{
-				Doc->GetEdit()->GotoLine(Line);
-			}
-			
+			IdeDoc *Doc = App->GotoReference(Full, Line);			
 			DeleteArray(Full);
 		}
 	}
@@ -1153,6 +1148,16 @@ IdeDoc *AppWnd::NewDocWnd(char *FileName, NodeSource *Src)
 	return Doc;
 }
 
+IdeDoc *AppWnd::GotoReference(char *File, int Line)
+{
+	IdeDoc *Doc = OpenFile(File);
+	if (Doc)
+	{
+		Doc->GetEdit()->GotoLine(Line);
+	}
+	return Doc;			
+}
+
 IdeDoc *AppWnd::FindOpenFile(char *FileName)
 {
 	List<IdeDoc>::I it = d->Docs.Start();
@@ -1407,7 +1412,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		}
 		case IDM_ABOUT:
 		{
-			LgiMsg(this, "Lgi Intergrated Development Environment", AppName);
+			LgiMsg(this, "LGI Integrated Development Environment", AppName);
 			break;
 		}
 		case IDM_NEW:
@@ -1605,14 +1610,15 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		case IDM_FIND_SYMBOL:
 		{
 			FindSymbolDlg SymDlg(this);
-			if (SymDlg.DoModal())
+			if (SymDlg.DoModal() && SymDlg.File)
 			{
-				
+				GotoReference(SymDlg.File, SymDlg.Line);
 			}
 			break;
 		}
 		case IDM_FIND_REFERENCES:
 		{
+			LgiMsg(this, "Not implemented yet.", AppName);
 			break;
 		}
 		

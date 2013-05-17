@@ -1045,7 +1045,7 @@ void GWindow::OnPosChange()
 	Pour();
 }
 
-bool GWindow::RegisterHook(GView *Target, int EventType, int Priority)
+bool GWindow::RegisterHook(GView *Target, GWindowHookType EventType, int Priority)
 {
 	bool Status = false;
 	

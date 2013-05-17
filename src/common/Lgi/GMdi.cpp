@@ -563,7 +563,7 @@ bool GMdiParent::Attach(GViewI *p)
 	if (s)
 	{
 		AttachChildren();
-		GetWindow()->RegisterHook(this, GMouseEvents | GKeyEvents);
+		GetWindow()->RegisterHook(this, GKeyAndMouseEvents);
 	}
 	return s;
 }

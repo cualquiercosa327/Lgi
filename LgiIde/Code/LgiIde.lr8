@@ -141,52 +141,15 @@
 		<String Ref="193" Cid="1" Define="IDOK" en="Search" />
 		<String Ref="194" Cid="2" Define="IDCANCEL" en="Cancel" />
 		<String Ref="195" Cid="195" Define="IDC_SHOW_CURRENT_ONLY" en="Show only symbols in current project" />
+		<String Ref="196" Cid="117" Define="IDC_LOG" />
 	</string-group>
 	<style name="General">.fixed {
 	width: 18px;
+}
+
+.log_height {
+	height: 3em;
 }</style>
-	<Dialog pos="7,7,680,502" ref="179">
-		<TableLayout pos="7,7,657,454" ref="180" cols="0.333,0.333,0.333" rows="0.333,0.333,0.333">
-			<tr>
-				<td colspan="3">
-					<ListView pos="7,7,454,104" ref="181">
-						<Column ref="182" width="199" />
-						<Column ref="183" width="208" />
-					</ListView>
-				</td>
-			</tr>
-			<tr>
-				<td colspan="2">
-					<EditBox Pos="21,164,265,191" ref="192" />
-				</td>
-				<td>
-					<Button pos="473,178,528,198" ref="193" />
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<CheckBox pos="14,328,139,341" ref="195" />
-				</td>
-				<td />
-				<td>
-					<Button pos="452,321,514,341" ref="194" />
-				</td>
-			</tr>
-		</TableLayout>
-	</Dialog>
-	<Dialog pos="7,7,503,424" ref="112">
-		<ListView pos="7,7,482,272" ref="113">
-			<Column ref="121" width="50" />
-			<Column ref="114" width="192" />
-			<Column ref="115" width="89" />
-			<Column ref="116" width="107" />
-		</ListView>
-		<ListView pos="7,280,482,356" ref="117">
-			<Column ref="118" width="464" />
-		</ListView>
-		<Button pos="336,364,405,384" ref="119" />
-		<Button pos="413,364,482,384" ref="120" />
-	</Dialog>
 	<Dialog pos="7,7,553,426" ref="82">
 		<EditBox Pos="7,21,160,41" ref="83" />
 		<StaticText pos="7,7,104,20" ref="84" />
@@ -289,6 +252,53 @@
 				</td>
 			</tr>
 		</TableLayout>
+	</Dialog>
+	<Dialog pos="7,7,680,502" ref="179">
+		<TableLayout pos="7,7,657,454" ref="180" cols="0.333,0.333,0.333" rows="0.250,0.250,0.250,0.250">
+			<tr>
+				<td colspan="3">
+					<ListView pos="7,7,454,104" ref="181">
+						<Column ref="182" width="199" />
+						<Column ref="183" width="208" />
+					</ListView>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2">
+					<EditBox Pos="21,127,265,154" ref="192" />
+				</td>
+				<td>
+					<Button pos="473,141,528,161" ref="193" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<CheckBox pos="14,254,139,267" ref="195" />
+				</td>
+				<td />
+				<td>
+					<Button pos="452,247,514,267" ref="194" />
+				</td>
+			</tr>
+			<tr>
+				<td colspan="3" class="log_height">
+					<StaticText pos="7,336,622,419" ref="196" />
+				</td>
+			</tr>
+		</TableLayout>
+	</Dialog>
+	<Dialog pos="7,7,503,424" ref="112">
+		<ListView pos="7,7,482,272" ref="113">
+			<Column ref="121" width="50" />
+			<Column ref="114" width="192" />
+			<Column ref="115" width="89" />
+			<Column ref="116" width="107" />
+		</ListView>
+		<ListView pos="7,280,482,356" ref="117">
+			<Column ref="118" width="464" />
+		</ListView>
+		<Button pos="336,364,405,384" ref="119" />
+		<Button pos="413,364,482,384" ref="120" />
 	</Dialog>
 	<Dialog pos="7,7,418,126" ref="63">
 		<TableLayout pos="7,7,391,90" ref="75" cols="0.333,0.333,0.333" rows="0.500,0.500">

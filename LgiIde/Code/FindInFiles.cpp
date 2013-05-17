@@ -34,7 +34,7 @@ FindInFiles::~FindInFiles()
 
 void SerializeHistory(GHistory *h, char *opt, GOptionsFile *p, bool Write)
 {
-	if (h AND p)
+	if (h && p)
 	{
 		GVariant v;
 		if (Write)
@@ -164,7 +164,7 @@ void FindInFilesThread::Stop()
 
 void FindInFilesThread::SearchFile(char *File)
 {
-	if (File AND ValidStr(d->Params->Text))
+	if (File && ValidStr(d->Params->Text))
 	{
 		char *Doc = ReadTextFile(File);
 		if (Doc)
@@ -173,7 +173,7 @@ void FindInFilesThread::SearchFile(char *File)
 			
 			char *LineStart = 0;
 			int Line = 0;
-			for (char *s = Doc; *s AND d->Loop; s++)
+			for (char *s = Doc; *s && d->Loop; s++)
 			{
 				if (*s == '\n')
 				{
@@ -204,7 +204,7 @@ void FindInFilesThread::SearchFile(char *File)
 					if (Match)
 					{
 						char *Eol = s + Len;
-						while (*Eol AND *Eol != '\n') Eol++;
+						while (*Eol && *Eol != '\n') Eol++;
 						int LineLen = Eol - LineStart;						
 						
 						bool StartOk = true;
@@ -219,7 +219,7 @@ void FindInFilesThread::SearchFile(char *File)
 							EndOk = IsWordBoundry(s[Len]);
 						}
 						
-						if (StartOk AND EndOk)
+						if (StartOk && EndOk)
 						{
 							static char Buf[1024];
 							int Chars = snprintf(Buf, sizeof(Buf), "%s:%i:%.*s\n", File, Line + 1, LineLen, LineStart);
@@ -250,7 +250,7 @@ bool FindInFilesCallback(void *UserData, char *Path, GDirectory *Dir)
 	if (Dir->IsDir())
 	{
 		char *p = Dir->GetName();
-		if (p AND stricmp(p, ".svn") == 0) return false;
+		if (p && stricmp(p, ".svn") == 0) return false;
 	}
 	
 	return true;
@@ -258,8 +258,8 @@ bool FindInFilesCallback(void *UserData, char *Path, GDirectory *Dir)
 
 int FindInFilesThread::Main()
 {
-	if (d->App AND
-		d->Params AND
+	if (d->App &&
+		d->Params &&
 		ValidStr(d->Params->Text))
 	{
 		char Msg[256];

@@ -7,6 +7,8 @@
 #include "GThreadEvent.h"
 #include "GList.h"
 #include "GProcess.h"
+#include "GToken.h"
+
 #include "resdefs.h"
 
 const char *CTagsExeName = "ctags"
@@ -24,7 +26,7 @@ struct FindSymbolPriv : public GMutex
 	GAutoString CTagsExe;
 	GAutoString CTagsIndexFile;
 	GAutoString SearchStr;
-	GAutoString ThreadMsg;
+	GArray<char*> ThreadMsg;
 
 	bool RunSearch;
 	GThreadEvent Sync;
@@ -89,7 +91,7 @@ public:
 	{
 		if (d->Lock(_FL))
 		{
-			d->ThreadMsg.Reset(NewStr(s));
+			d->ThreadMsg.Add(NewStr(s));
 			d->Unlock();
 		}
 	}
@@ -115,9 +117,20 @@ public:
 		// Create index...
 		char tmp[MAX_PATH];
 		if (!LgiGetSystemPath(LSP_TEMP, tmp, sizeof(tmp)))
+		{
+			Msg("Error getting temp folder.");
 			return 0;
+		}
 		if (!LgiMakePath(tmp, sizeof(tmp), tmp, "lgiide_ctags_filelist.txt"))
+		{
+			Msg("Error making temp path.");
 			return 0;
+		}
+		if (!d->CTagsIndexFile)
+		{
+			Msg("Error: no index file.");
+			return 0;
+		}
 
 		char msg[MAX_PATH];
 		sprintf_s(msg, sizeof(msg), "Generating index: %s", d->CTagsIndexFile.Get());
@@ -292,12 +305,24 @@ void FindSymbolDlg::OnPulse()
 {
 	if (d->Lst && d->Lock(_FL))
 	{
-		if (d->ThreadMsg)
+		if (d->ThreadMsg.Length())
 		{
-			GListItem *i = new GListItem;
-			i->SetText(d->ThreadMsg);
-			d->Lst->Insert(i);
-			d->ThreadMsg.Reset();
+			GArray<char*> Lines;
+			GToken t(GetCtrlName(IDC_LOG), "\n");
+			int i;
+			for (i=0; i<t.Length(); i++)
+				Lines.Add(t[i]);
+			for (i=0; i<d->ThreadMsg.Length(); i++)
+				Lines.Add(d->ThreadMsg[i]);
+
+			GStringPipe p;
+			int Start = max(0, (int)Lines.Length()-3);
+			for (i=Start; i<Lines.Length(); i++)
+				p.Print("%s\n", Lines[i]);
+			d->ThreadMsg.DeleteArrays();
+
+			GAutoString a(p.NewStr());
+			SetCtrlName(IDC_LOG, a);
 		}
 		if (d->Results.Length())
 		{
@@ -322,6 +347,39 @@ void FindSymbolDlg::OnPulse()
 void FindSymbolDlg::OnCreate()
 {
 	SetPulse(500);
+	RegisterHook(this, GKeyEvents);
+}
+
+bool FindSymbolDlg::OnViewKey(GView *v, GKey &k)
+{
+	switch (k.vkey)
+	{
+		case VK_UP:
+		{
+			if (d->Lst && k.Down())
+			{
+				int64 i = d->Lst->Value();
+				if (i > 0)
+					d->Lst->Value(i - 1);
+			}
+			return true;
+			break;
+		}
+		case VK_DOWN:
+		{
+			if (d->Lst && k.Down())
+			{
+				int64 i = d->Lst->Value();
+				int64 len = d->Lst->Length();
+				if (i < len - 1)
+					d->Lst->Value(i + 1);
+			}
+			return true;
+			break;
+		}
+	}
+	
+	return false;
 }
 
 int FindSymbolDlg::OnNotify(GViewI *v, int f)
@@ -330,25 +388,50 @@ int FindSymbolDlg::OnNotify(GViewI *v, int f)
 	{
 		case IDC_STR:
 		{
-			d->RunSearch = false;
-			d->Lst->Empty();
-			
-			char *Str = v->Name();
-			if (Str && strlen(Str) > 1)
+			if (f != VK_RETURN)
 			{
-				if (d->Lock(_FL))
+				d->RunSearch = false;
+				d->Lst->Empty();
+				
+				char *Str = v->Name();
+				if (Str && strlen(Str) > 1)
 				{
-					d->SearchStr.Reset(NewStr(Str));
-					d->Unlock();
-					d->Sync.Signal();
+					if (d->Lock(_FL))
+					{
+						d->SearchStr.Reset(NewStr(Str));
+						d->Unlock();
+						d->Sync.Signal();
+					}
 				}
 			}
 			break;
 		}
 		case IDOK:
+		{
+			if (d->Lst)
+			{
+				GListItem *i = d->Lst->GetSelected();
+				if (i)
+				{
+					char *r = i->GetText(1);
+					if (r)
+					{
+						char *colon = strrchr(r, ':');
+						if (colon)
+						{
+							File.Reset(NewStr(r, colon - r));
+							Line = atoi(++colon);
+						}
+					}
+				}
+			}
+			
+			EndModal(true);
+			break;
+		}
 		case IDCANCEL:
 		{
-			EndModal(v->GetId() == IDOK);
+			EndModal(false);
 			break;
 		}
 	}

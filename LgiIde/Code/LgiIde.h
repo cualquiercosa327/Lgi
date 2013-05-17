@@ -145,6 +145,7 @@ public:
 	GOptionsFile *GetOptions();
 	GList *GetFtpLog();
 	IdeDoc *FindOpenFile(char *FileName);
+	IdeDoc *GotoReference(char *File, int Line);
 };
 
 #include "IdeDoc.h"

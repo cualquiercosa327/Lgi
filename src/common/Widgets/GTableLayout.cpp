@@ -729,7 +729,9 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 	Len Ht = Height();
 	if (Ht.Type != LenInherit)
 	{
-		Pos.y2 = Ht.ToPx(Table->Y(), Table->GetFont()) - 1;
+		Pos.y2 = MinY = MaxY = Ht.ToPx(Table->Y(), Table->GetFont()) - 1;
+		if (Flags < SizeFixed)
+			Flags = SizeFixed;
 		return;
 	}
 	
@@ -1090,7 +1092,7 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 	ColFlags.Length(Cols.Length());
 	RowFlags.Length(Rows.Length());
 
-	// Do pre-layout to determine minimum and maximum column sizes
+	// Do pre-layout to determine minimum and maximum column widths
 	for (Cy=0; Cy<Rows.Length(); Cy++)
 	{
 		for (Cx=0; Cx<Cols.Length(); )
@@ -1124,7 +1126,7 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 	}
 	#endif
 
-	// Pre-layout columns for spanned cells
+	// Pre-layout column width for spanned cells
 	for (Cy=0; Cy<Rows.Length(); Cy++)
 	{
 		for (Cx=0; Cx<Cols.Length(); )
@@ -1197,7 +1199,7 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 	}
 	#endif
 
-	// Do row height layout
+	// Do row height layout for single cells
 	GArray<int> MinRow, MaxRow;
 	for (Cy=0; Cy<Rows.Length(); Cy++)
 	{
@@ -1221,6 +1223,7 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 		}
 	}
 
+	// Row height for spanned cells
 	for (Cy=0; Cy<Rows.Length(); Cy++)
 	{
 		for (Cx=0; Cx<Cols.Length(); )

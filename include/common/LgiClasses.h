@@ -1191,10 +1191,15 @@ enum GWindowZoom
 	GZoomMax
 };
 
-/// \sa GWindow::RegisterHook()
-#define GMouseEvents				0x01
-/// \sa GWindow::RegisterHook()
-#define GKeyEvents					0x02
+enum GWindowHookType
+{
+	/// \sa GWindow::RegisterHook()
+	GMouseEvents = 1,
+	/// \sa GWindow::RegisterHook()
+	GKeyEvents = 2,
+	/// \sa GWindow::RegisterHook()
+	GKeyAndMouseEvents = GMouseEvents | GKeyEvents,
+};
 
 /// A top level window.
 class LgiClass GWindow :
@@ -1326,7 +1331,7 @@ public:
 		/// The target view.
 		GView *Target,
 		/// Combination of #GMouseEvents and #GKeyEvents OR'd together.
-		int EventType,
+		GWindowHookType EventType,
 		/// Not implemented
 		int Priority = 0
 	);
