@@ -21,6 +21,8 @@ struct FindSymbolPriv : public GMutex
 {
 	FindSymbolDlg *Dlg;
 	GList *Lst;
+	
+	// All the input files from the projects that are open
 	GArray<char*> Files;
 
 	GAutoString CTagsExe;
@@ -28,7 +30,6 @@ struct FindSymbolPriv : public GMutex
 	GAutoString SearchStr;
 	GArray<char*> ThreadMsg;
 
-	bool RunSearch;
 	GThreadEvent Sync;
 	GAutoPtr<class FindSymbolThread> Thread;
 
@@ -38,11 +39,14 @@ struct FindSymbolPriv : public GMutex
 		int Line;
 	};
 	GArray<Result> Results;
+	bool NoResults;
 	
 	FindSymbolPriv(FindSymbolDlg *dlg) : GMutex("FindSymbolLock")
 	{
 		Dlg = dlg;
 		Lst = 0;
+		NoResults = false;
+		
 		CTagsExe.Reset(LgiFindFile(CTagsExeName));
 		if (!CTagsExe)
 		{
@@ -71,8 +75,17 @@ class FindSymbolThread : public GThread
 	};
 
 public:
+	enum ThreadState
+	{
+		Initializing,
+		Waiting,
+		Working,
+		ExitSearch,
+	} State;
+
 	FindSymbolThread(FindSymbolPriv *priv) : GThread("FindSymbolThread")
 	{
+		State = Initializing;
 		d = priv;
 		Loop = true;
 		Run();
@@ -81,7 +94,7 @@ public:
 	~FindSymbolThread()
 	{
 		Loop = false;
-		d->RunSearch = false;
+		State = ExitSearch;
 		d->Sync.Signal();
 		while (!IsExited())
 			LgiSleep(1);
@@ -98,7 +111,7 @@ public:
 	
 	void MatchesToResults(GArray<Symbol*> &Matches)
 	{
-		if (d->RunSearch && d->Lock(_FL))
+		if (State == Working && d->Lock(_FL))
 		{
 			for (int i=0; i<Matches.Length(); i++)
 			{
@@ -208,13 +221,14 @@ public:
 		Msg("Ready.");
 		while (Loop)
 		{
+			State = Waiting;
 			if (d->Sync.Wait())
 			{
 				if (!Loop)
 					break;
 				
 				// Find stuff...
-				d->RunSearch = true;
+				State = Working;
 				GAutoString SearchStr;
 				if (d->Lock(_FL))
 				{
@@ -224,22 +238,27 @@ public:
 				
 				Symbol *s = &Syms[0];
 				GArray<Symbol*> Matches;
-				for (int i=0; d->RunSearch && i<Syms.Length(); i++)
+				for (int i=0; State == Working && i<Syms.Length(); i++)
 				{
 					if (stristr(s[i].Sym, SearchStr))
 					{
 						Matches.Add(s + i);
-						
-						if (Matches.Length() > 10)
-						{
-							MatchesToResults(Matches);
-						}
 					}
 				}
-				MatchesToResults(Matches);
+				if (Matches.Length())
+					MatchesToResults(Matches);
+				else
+					d->NoResults = true;
 			}
 		}
 		return 0;
+	}
+
+	void Stop()
+	{
+		State = ExitSearch;
+		while (State == ExitSearch)
+			LgiSleep(1);
 	}
 };
 
@@ -324,22 +343,51 @@ void FindSymbolDlg::OnPulse()
 			GAutoString a(p.NewStr());
 			SetCtrlName(IDC_LOG, a);
 		}
-		if (d->Results.Length())
+
+		if (d->NoResults)
 		{
+			d->NoResults = false;
+			d->Lst->Empty();
+		}
+		else if (d->Results.Length())
+		{
+			// All the d->Results have to be inserted if they don't exist
+			// All the existing items have to be removed if they aren't in d->Results.
+			GHashTbl<char*, GListItem*> Previous;
+
+			// Setup previous hash table to track stuff from the last search. This
+			// is used to clear old results that are no longer relevant.
+			List<GListItem> All;
+			d->Lst->GetAll(All);
+			Previous.Empty();
+			for (GListItem *i=All.First(); i; i=All.Next())
+				Previous.Add(i->GetText(1), i);
+
 			for (int n=0; n<d->Results.Length(); n++)
 			{
 				FindSymbolPriv::Result &r = d->Results[n];
-				
-				GListItem *i = new GListItem;
 				char str[MAX_PATH];
 				sprintf_s(str, sizeof(str), "%s:%i", r.File.Get(), r.Line);
-				i->SetText(r.Symbol, 0);
-				i->SetText(str, 1);
-				d->Lst->Insert(i);
+				if (!Previous.Find(str))
+				{
+					GListItem *i = new GListItem;
+					i->SetText(r.Symbol, 0);
+					i->SetText(str, 1);
+					d->Lst->Insert(i);
+				}
 			}
 			d->Results.Length(0);
+
+			// Thread has finished searching and there are previous entries to remove.
+			for (GListItem *i = Previous.First(); i; i = Previous.Next())
+			{
+				d->Lst->Delete(i);
+			}
+			
+			d->Lst->Sort(AlphaCmp, 0);
 			d->Lst->ResizeColumnsToContent();
 		}
+
 		d->Unlock();
 	}
 }
@@ -375,12 +423,14 @@ int FindSymbolDlg::OnNotify(GViewI *v, int f)
 		{
 			if (f != VK_RETURN)
 			{
-				d->RunSearch = false;
-				d->Lst->Empty();
-				
 				char *Str = v->Name();
 				if (Str && strlen(Str) > 1)
 				{
+					// Ask the thread to stop any search
+					if (d->Thread->State != FindSymbolThread::Working)
+						d->Thread->State = FindSymbolThread::ExitSearch;
+					
+					// Setup new search string
 					if (d->Lock(_FL))
 					{
 						d->SearchStr.Reset(NewStr(Str));
