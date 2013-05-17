@@ -355,26 +355,11 @@ bool FindSymbolDlg::OnViewKey(GView *v, GKey &k)
 	switch (k.vkey)
 	{
 		case VK_UP:
-		{
-			if (d->Lst && k.Down())
-			{
-				int64 i = d->Lst->Value();
-				if (i > 0)
-					d->Lst->Value(i - 1);
-			}
-			return true;
-			break;
-		}
 		case VK_DOWN:
+		case VK_PAGEDOWN:
+		case VK_PAGEUP:
 		{
-			if (d->Lst && k.Down())
-			{
-				int64 i = d->Lst->Value();
-				int64 len = d->Lst->Length();
-				if (i < len - 1)
-					d->Lst->Value(i + 1);
-			}
-			return true;
+			return d->Lst->OnKey(k);
 			break;
 		}
 	}

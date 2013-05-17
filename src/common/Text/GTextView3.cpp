@@ -2241,7 +2241,7 @@ bool GTextView3::DoCase(bool Upper)
 
 void GTextView3::GotoLine(int i)
 {
-	GTextLine *l = Line.ItemAt(i);
+	GTextLine *l = Line.ItemAt(i - 1);
 	if (l)
 	{
 		d->CenterCursor = true;
@@ -2256,7 +2256,7 @@ bool GTextView3::DoGoto()
 	if (Dlg.DoModal() == IDOK &&
 		Dlg.Str)
 	{
-		GotoLine(atoi(Dlg.Str) - 1);
+		GotoLine(atoi(Dlg.Str));
 	}
 
 	return true;
