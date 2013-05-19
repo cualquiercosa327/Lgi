@@ -261,11 +261,11 @@ public:
 
 	void OnCmdComplete(FtpCmd *Cmd)
 	{
-		if (Cmd AND Base)
+		if (Cmd && Base)
 		{
 			for (IFtpEntry *e=Cmd->Dir.First(); e; e=Cmd->Dir.Next())
 			{
-				if (e->Name AND !e->IsDir())
+				if (e->Name && !e->IsDir())
 				{
 					GUri fu(Cmd->Uri);
 					char path[256];
@@ -536,7 +536,7 @@ class ProjectNode : public IdeCommon, public GDragDropSource, public FtpCallback
 			Doc = Project->GetApp()->OpenFile(LocalCache, this);
 			if (Doc)
 			{
-				if (Doc AND Doc->GetEdit())
+				if (Doc && Doc->GetEdit())
 				{
 					Doc->SetProject(Project);	
 					Doc->GetEdit()->SetIndentSize(Project->d->Settings.IndentSize);
@@ -558,7 +558,7 @@ class ProjectNode : public IdeCommon, public GDragDropSource, public FtpCallback
 		if (!Cmd)
 			return;
 
-		if (Cmd->Status AND Cmd->File)
+		if (Cmd->Status && Cmd->File)
 		{
 			if (Cmd->Cmd == FtpRead)
 			{
@@ -677,7 +677,7 @@ public:
 		(
 			Www ||
 			Ftp ||
-			(File AND strnicmp(File, "ftp://", 6) == 0)
+			(File && strnicmp(File, "ftp://", 6) == 0)
 		)
 			return true;
 
@@ -730,7 +730,7 @@ public:
 
 	bool GetData(GVariant *Data, char *Format)
 	{
-		if (Format AND stricmp(Format, NODE_DROP_FORMAT) == 0)
+		if (Format && stricmp(Format, NODE_DROP_FORMAT) == 0)
 		{
 			void *t = this;
 			Data->SetBinary(sizeof(this), (void*) &t);
@@ -762,7 +762,7 @@ public:
 			char *FullPath = GetFullPath();
 			if (FullPath)
 			{
-				if (LgiGetFileMimeType(FullPath, MimeType, sizeof(MimeType)) AND
+				if (LgiGetFileMimeType(FullPath, MimeType, sizeof(MimeType)) &&
 					strnicmp(MimeType, "image/", 6) == 0)
 				{
 					Type = NodeGraphic;
@@ -774,7 +774,7 @@ public:
 			{
 				char *Ext = LgiGetExtension(File);
 
-				if ((Ext AND stricmp(Ext, "h") == 0) ||
+				if ((Ext && stricmp(Ext, "h") == 0) ||
 					stristr(File, "makefile") != 0)
 				{
 					Type = NodeHeader;
@@ -1185,7 +1185,7 @@ public:
 							if (!Doc)
 							{
 								Doc = Project->GetApp()->NewDocWnd(0, this);
-								if (Doc AND Doc->GetEdit())
+								if (Doc && Doc->GetEdit())
 								{
 									if (Doc->GetEdit()->Open(FullPath))
 									{
@@ -1237,7 +1237,7 @@ public:
 	
 	bool OnKey(GKey &k)
 	{
-		if (k.Down() AND !k.IsChar)
+		if (k.Down() && !k.IsChar)
 		{
 			if (k.vkey == VK_RETURN)
 			{
@@ -1264,34 +1264,7 @@ public:
 	{
 		GTreeItem::OnMouseClick(m);
 		
-		if (m.Left())
-		{
-			if (m.Double())
-			{
-				if
-				(
-					(
-						IsWeb()
-						||
-						Type == NodeSrc
-						||
-						Type == NodeHeader
-						||
-						Type == NodeResources
-						||
-						Type == NodeGraphic
-						||
-						Type == NodeWeb
-					)
-					AND
-					ValidStr(File)
-				)
-				{
-					Open();
-				}
-			}
-		}
-		else if (m.Right())
+		if (m.IsContextMenu())
 		{
 			GSubMenu Sub;
 
@@ -1322,7 +1295,7 @@ public:
 			Sub.AppendSeparator();
 			Sub.AppendItem("Browse Folder", IDM_BROWSE_FOLDER, ValidStr(File));
 			Sub.AppendItem("Open Terminal", IDM_OPEN_TERM, ValidStr(File));
-			Sub.AppendItem("Properties", IDM_PROPERTIES, IsWeb() || ValidStr(File));
+			Sub.AppendItem("Properties", IDM_PROPERTIES, true);
 
 			m.ToScreen();
 			GdcPt2 c = _ScrollPos();
@@ -1427,14 +1400,14 @@ public:
 								
 								// Find sub nodes, and drill into directory heirarchy,
 								// creating the nodes if needed.
-								for (int i=0; Insert AND i<p.Length()-1; i++)
+								for (int i=0; Insert && i<p.Length()-1; i++)
 								{
 									// Find existing node...
 									bool Found = false;
 									for (ProjectNode *c=Insert->ChildNode(); c; c=c->NextNode())
 									{
-										if (c->GetType() == NodeDir AND
-											c->GetName() AND
+										if (c->GetType() == NodeDir &&
+											c->GetName() &&
 											stricmp(c->GetName(), p[i]) == 0)
 										{
 											Insert = c;
@@ -1609,9 +1582,14 @@ public:
 					else if (Type == NodeDir)
 					{
 					}
+					else if (Type == NodeDependancy)
+					{
+						GAutoString Path(GetFullPath());
+						LgiMsg(Tree, "Path: %s", AppName, MB_OK, Path.Get());
+					}
 					else
 					{
-						char *Path = GetFullPath();
+						GAutoString Path(GetFullPath());
 						if (Path)
 						{
 							char Size[32];
@@ -1640,12 +1618,37 @@ public:
 								Platforms = Dlg.Platforms;
 								Project->SetDirty();
 							}									
-							DeleteArray(Path);
-							
 							Update();
 						}
 					}
 					break;
+				}
+			}
+		}
+		else if (m.Left())
+		{
+			if (m.Double())
+			{
+				if
+				(
+					(
+						IsWeb()
+						||
+						Type == NodeSrc
+						||
+						Type == NodeHeader
+						||
+						Type == NodeResources
+						||
+						Type == NodeGraphic
+						||
+						Type == NodeWeb
+					)
+					&&
+					ValidStr(File)
+				)
+				{
+					Open();
 				}
 			}
 		}
@@ -1736,7 +1739,7 @@ int NodeSort(GTreeItem *a, GTreeItem *b, int d)
 {
 	ProjectNode *A = dynamic_cast<ProjectNode*>(a);
 	ProjectNode *B = dynamic_cast<ProjectNode*>(b);
-	if (A AND B)
+	if (A && B)
 	{
 		if
 		(
@@ -1751,7 +1754,7 @@ int NodeSort(GTreeItem *a, GTreeItem *b, int d)
 		{
 			char *Sa = a->GetText(0);
 			char *Sb = b->GetText(0);
-			if (Sa AND Sb)
+			if (Sa && Sb)
 			{
 				return stricmp(Sa, Sb);
 			}
@@ -1810,7 +1813,7 @@ IdeCommon *IdeCommon::GetSubFolder(IdeProject *Project, char *Name, bool Create)
 		{
 			if (c->GetType() == NodeDir)
 			{
-				if (c->GetName() AND stricmp(c->GetName(), Name) == 0)
+				if (c->GetName() && stricmp(c->GetName(), Name) == 0)
 				{
 					return c;
 				}
@@ -2068,7 +2071,7 @@ bool IdeProject::GetChildProjects(List<IdeProject> &c)
 
 bool IdeProject::RelativePath(char *Out, char *In)
 {
-	if (Out AND In)
+	if (Out && In)
 	{
 		char Base[256];
 		if (GetBasePath(Base))
@@ -2182,7 +2185,7 @@ bool IdeProject::GetMakefile(char *Path, int Len)
 
 void IdeProject::Clean()
 {
-	if (!d->Build AND
+	if (!d->Build &&
 		d->Settings.MakeFile)
 	{
 		char m[256];
@@ -2196,7 +2199,7 @@ void IdeProject::Clean()
 char *QuoteStr(char *s)
 {
 	GStringPipe p(256);
-	while (s AND *s)
+	while (s && *s)
 	{
 		if (*s == ' ')
 		{
@@ -2281,7 +2284,7 @@ public:
 							break;
 					}
 					
-					if (Term AND WorkDir AND Execute)
+					if (Term && WorkDir && Execute)
 					{					
 						char *e = QuoteStr(Proj->GetExecutable());
 						char *p = QuoteStr(Path);
@@ -2330,7 +2333,7 @@ public:
 void IdeProject::Execute(ExeAction Act)
 {
 	char b[256];
-	if (d->Settings.Exe AND
+	if (d->Settings.Exe &&
 		GetBasePath(b))
 	{
 		char e[256];
@@ -2385,7 +2388,7 @@ bool IdeProject::Serialize()
 
 bool IdeProject::GetBasePath(char *Path)
 {
-	if (Path AND d->FileName)
+	if (Path && d->FileName)
 	{
 		strcpy(Path, d->FileName);
 		char *e = strrchr(Path, DIR_CHAR);
@@ -2759,82 +2762,87 @@ public:
 
 void IdeProject::OnMouseClick(GMouse &m)
 {
-	if (m.Right() AND m.Down())
+	if (m.IsContextMenu())
 	{
-		GSubMenu *Sub = new GSubMenu;
-		if (Sub)
-		{
-			Sub->AppendItem("New Folder", IDM_NEW_FOLDER, true);
-			Sub->AppendItem("New Web Folder", IDM_WEB_FOLDER, true);
-			Sub->AppendSeparator();
-			Sub->AppendItem("Settings", IDM_SETTINGS, true);
-			Sub->AppendItem("Insert Dependancy", IDM_INSERT_DEP, true);
+		GSubMenu Sub;
+		Sub.AppendItem("New Folder", IDM_NEW_FOLDER, true);
+		Sub.AppendItem("New Web Folder", IDM_WEB_FOLDER, true);
+		Sub.AppendSeparator();
+		Sub.AppendItem("Settings", IDM_SETTINGS, true);
+		Sub.AppendItem("Insert Dependancy", IDM_INSERT_DEP, true);
+		Sub.AppendItem("Properties", IDM_PROPERTIES, true);
 
-			m.ToScreen();
-			GdcPt2 c = _ScrollPos();
-			m.x -= c.x;
-			m.y -= c.y;
-			switch (Sub->Float(Tree, m.x, m.y))
+		m.ToScreen();
+		GdcPt2 c = _ScrollPos();
+		m.x -= c.x;
+		m.y -= c.y;
+		switch (Sub.Float(Tree, m.x, m.y))
+		{
+			case IDM_NEW_FOLDER:
 			{
-				case IDM_NEW_FOLDER:
+				GInput Name(Tree, "", "Name:", AppName);
+				if (Name.DoModal())
 				{
-					GInput Name(Tree, "", "Name:", AppName);
-					if (Name.DoModal())
-					{
-						GetSubFolder(this, Name.Str, true);
-					}
-					break;
+					GetSubFolder(this, Name.Str, true);
 				}
-				case IDM_WEB_FOLDER:
+				break;
+			}
+			case IDM_WEB_FOLDER:
+			{
+				WebFldDlg Dlg(Tree, 0, 0, 0);
+				if (Dlg.DoModal())
 				{
-					WebFldDlg Dlg(Tree, 0, 0, 0);
-					if (Dlg.DoModal())
+					if (Dlg.Ftp && Dlg.Www)
 					{
-						if (Dlg.Ftp AND Dlg.Www)
+						IdeCommon *f = GetSubFolder(this, Dlg.Name, true);
+						if (f)
 						{
-							IdeCommon *f = GetSubFolder(this, Dlg.Name, true);
-							if (f)
-							{
-								f->SetAttr(OPT_Ftp, Dlg.Ftp);
-								f->SetAttr(OPT_Www, Dlg.Www);
-							}
+							f->SetAttr(OPT_Ftp, Dlg.Ftp);
+							f->SetAttr(OPT_Www, Dlg.Www);
 						}
 					}
-					break;
 				}
-				case IDM_SETTINGS:
+				break;
+			}
+			case IDM_SETTINGS:
+			{
+				SettingsDlg Dlg(Tree,
+								this,
+								d->Settings);
+				if (Dlg.DoModal())
 				{
-					SettingsDlg Dlg(Tree,
-									this,
-									d->Settings);
-					if (Dlg.DoModal())
+					d->Settings = Dlg.Settings;
+					SetDirty();
+				}
+				break;
+			}
+			case IDM_INSERT_DEP:
+			{
+				GFileSelect s;
+				s.Parent(Tree);
+				s.Type("Project", "*.xml");
+				if (s.Open())
+				{
+					ProjectNode *New = new ProjectNode(this);
+					if (New)
 					{
-						d->Settings = Dlg.Settings;
+						char Base[MAX_PATH];
+						strsafecpy(Base, d->FileName, sizeof(Base));
+						LgiTrimDir(Base);
+						GAutoString Rel = LgiMakeRelativePath(Base, s.Name());
+						New->SetFileName(Rel ? Rel : s.Name());
+						New->SetType(NodeDependancy);
+						InsertTag(New);
 						SetDirty();
 					}
-					break;
 				}
-				case IDM_INSERT_DEP:
-				{
-					GFileSelect s;
-					s.Parent(Tree);
-					s.Type("Project", "*.xml");
-					if (s.Open())
-					{
-						ProjectNode *New = new ProjectNode(this);
-						if (New)
-						{
-							New->SetFileName(s.Name());
-							New->SetType(NodeDependancy);
-							InsertTag(New);
-							SetDirty();
-						}
-					}
-					break;
-				}
+				break;
 			}
-
-			DeleteObj(Sub);
+			case IDM_PROPERTIES:
+			{
+				LgiMsg(Tree, "Path: %s", AppName, MB_OK, d->FileName);
+				break;
+			}
 		}
 	}
 }
@@ -2866,7 +2874,7 @@ bool IdeProject::InProject(char *FullPath, bool Open, IdeDoc **Doc)
 		}
 	}
 	
-	if (n AND Doc)
+	if (n && Doc)
 	{
 		*Doc = n->Open();
 	}
@@ -2892,7 +2900,7 @@ char *GetQuotedStr(char *Str)
 
 void IdeProject::ImportDsp(char *File)
 {
-	if (File AND FileExists(File))
+	if (File && FileExists(File))
 	{
 		char Base[256];
 		strcpy(Base, File);
@@ -2936,7 +2944,7 @@ void IdeProject::ImportDsp(char *File)
 				{
 					IsSource = false;
 				}
-				else if (Current AND IsSource AND strncmp(L, "SOURCE=", 7) == 0)
+				else if (Current && IsSource && strncmp(L, "SOURCE=", 7) == 0)
 				{
 					ProjectNode *New = new ProjectNode(this);
 					if (New)
@@ -3046,7 +3054,7 @@ void IdeProjectPrivate::CollectAllFiles(GTreeNode *Base, List<ProjectNode> &File
 		IdeProject *Proj = dynamic_cast<IdeProject*>(i);
 		if (Proj)
 		{
-			if (Proj->GetParentProject() AND !SubProjects)
+			if (Proj->GetParentProject() && !SubProjects)
 			{
 				continue;
 			}
@@ -3091,7 +3099,7 @@ bool IdeProject::GetTargetName(char *Target, int BufSize)
 			s = Target;
 			for (char *i = Target; *i; i++)
 			{
-				if (*i != '.' AND *i != ' ')
+				if (*i != '.' && *i != ' ')
 				{
 					*s++ = *i;
 				}
@@ -3320,7 +3328,7 @@ bool IdeProject::CreateMakefile()
 					if (n->GetFileName())
 					{
 						char *e = LgiGetExtension(n->GetFileName());
-						if (e AND stricmp(e, "h") == 0)
+						if (e && stricmp(e, "h") == 0)
 						{
 							for (char *Dir=n->GetFileName(); *Dir; Dir++)
 							{
@@ -3418,7 +3426,7 @@ bool IdeProject::CreateMakefile()
 							for (d=Deps.First(); d; d=Deps.Next())
 							{
 								char t[256], p[256];
-								if (d->GetTargetFile(t, sizeof(t)) AND
+								if (d->GetTargetFile(t, sizeof(t)) &&
 									d->GetBasePath(p))
 								{
 									char Rel[256];
@@ -3737,7 +3745,7 @@ int IdeTree::WillAccept(List<char> &Formats, GdcPt2 p, int KeyState)
 		{
 			IdeCommon *Src = dynamic_cast<IdeCommon*>(Selection());
 			IdeCommon *Dst = dynamic_cast<IdeCommon*>(Hit);
-			if (Src AND Dst)
+			if (Src && Dst)
 			{
 				// Check this folder is not a child of the src
 				for (IdeCommon *n=Dst; n; n=dynamic_cast<IdeCommon*>(n->GetParent()))
@@ -3762,18 +3770,18 @@ int IdeTree::OnDrop(char *Format, GVariant *Data, GdcPt2 Pt, int KeyState)
 {
 	SelectDropTarget(0);
 
-	if (Hit AND
-		Data AND
-		Format AND
-		stricmp(Format, NODE_DROP_FORMAT) == 0 AND
-		Data->Type == GV_BINARY AND
+	if (Hit &&
+		Data &&
+		Format &&
+		stricmp(Format, NODE_DROP_FORMAT) == 0 &&
+		Data->Type == GV_BINARY &&
 		Data->Value.Binary.Length == sizeof(ProjectNode*))
 	{
 		ProjectNode *Src = ((ProjectNode**)Data->Value.Binary.Data)[0];
 		if (Src)
 		{
 			ProjectNode *Folder = dynamic_cast<ProjectNode*>(Hit);
-			while (Folder AND Folder->GetType() > NodeDir)
+			while (Folder && Folder->GetType() > NodeDir)
 			{
 				Folder = dynamic_cast<ProjectNode*>(Folder->GetParent());
 			}
