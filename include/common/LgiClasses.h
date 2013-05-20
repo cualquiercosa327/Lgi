@@ -1193,6 +1193,7 @@ enum GWindowZoom
 
 enum GWindowHookType
 {
+	GNoEvents = 0,
 	/// \sa GWindow::RegisterHook()
 	GMouseEvents = 1,
 	/// \sa GWindow::RegisterHook()

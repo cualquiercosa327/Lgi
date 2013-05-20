@@ -264,6 +264,9 @@ private:
 	bool			Insert(int Pos);
 	bool			Update();
 	#endif
+	#ifdef __GTK_H__
+	GAutoString		ShortCut;
+	#endif
 
 protected:
 	GMenu			*Menu;
@@ -298,6 +301,8 @@ public:
 	GMenuItem(GMenu *m, GSubMenu *p, const char *txt, int Pos, const char *Shortcut = 0);
 	#endif
 	virtual ~GMenuItem();
+
+	GMenuItem &operator =(const GMenuItem &m) { LgiAssert(!"This shouldn't be used anywhere"); return *this; }
 
 	/// Creates a sub menu off the item
 	GSubMenu *Create();
@@ -426,6 +431,9 @@ class LgiClass GMenu :
 protected:
 	/// List of keyboard shortcuts in the menu items attached
 	List<GAccelerator> Accel;
+	#ifdef __GTK_H__
+	Gtk::GtkAccelGroup *AccelGrp;
+	#endif
 
 public:
 	/// Constructor

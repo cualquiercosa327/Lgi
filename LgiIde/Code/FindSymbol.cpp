@@ -303,6 +303,7 @@ FindSymbolDlg::FindSymbolDlg(AppWnd *app)
 		
 		if (GetViewById(IDC_RESULTS, d->Lst))
 		{
+			d->Lst->MultiSelect(false);
 			if (!d->CTagsExe)
 			{
 				GListItem *i = new GListItem;
@@ -351,37 +352,49 @@ void FindSymbolDlg::OnPulse()
 		}
 		else if (d->Results.Length())
 		{
-			// All the d->Results have to be inserted if they don't exist
-			// All the existing items have to be removed if they aren't in d->Results.
-			GHashTbl<char*, GListItem*> Previous;
+			// Three types of items:
+			// 1) New results that need to go in the list.
+			// 2) Duplicates of existing results.
+			// 3) Old results that are no longer relevant.
+			GHashTbl<char*, GListItem*> Old;
 
 			// Setup previous hash table to track stuff from the last search. This
 			// is used to clear old results that are no longer relevant.
 			List<GListItem> All;
 			d->Lst->GetAll(All);
-			Previous.Empty();
-			for (GListItem *i=All.First(); i; i=All.Next())
-				Previous.Add(i->GetText(1), i);
+			GListItem *i;
+			for (i=All.First(); i; i=All.Next())
+			{
+				i->_UserInt = false;
+				Old.Add(i->GetText(1), i);
+			}
 
 			for (int n=0; n<d->Results.Length(); n++)
 			{
 				FindSymbolPriv::Result &r = d->Results[n];
 				char str[MAX_PATH];
-				sprintf_s(str, sizeof(str), "%s:%i", r.File.Get(), r.Line);
-				if (!Previous.Find(str))
+				sprintf_s(str, sizeof(str), "%s:%i", r.File.Get(), r.Line);				
+				i = Old.Find(str);
+				if (!i)
 				{
-					GListItem *i = new GListItem;
+					i = new GListItem;
 					i->SetText(r.Symbol, 0);
 					i->SetText(str, 1);
 					d->Lst->Insert(i);
+				}
+				if (i)
+				{
+					i->_UserInt = true;
 				}
 			}
 			d->Results.Length(0);
 
 			// Thread has finished searching and there are previous entries to remove.
-			for (GListItem *i = Previous.First(); i; i = Previous.Next())
+			d->Lst->GetAll(All);
+			for (i=All.First(); i; i=All.Next())
 			{
-				d->Lst->Delete(i);
+				if (!i->_UserInt)
+					d->Lst->Delete(i);
 			}
 			
 			d->Lst->Sort(AlphaCmp, 0);

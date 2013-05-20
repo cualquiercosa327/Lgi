@@ -131,7 +131,7 @@ bool GSubMenu::RemoveItem(int i)
 
 bool GSubMenu::RemoveItem(GMenuItem *Item)
 {
-	if (Item AND Items.HasItem(Item))
+	if (Item && Items.HasItem(Item))
 	{
 		return Item->Remove();
 	}
@@ -320,7 +320,7 @@ GMenuItem::~GMenuItem()
 // the default painting behaviour if desired.
 void GMenuItem::_Measure(GdcPt2 &Size)
 {
-	GFont *Font = Menu AND Menu->GetFont() ? Menu->GetFont() : SysFont;
+	GFont *Font = Menu && Menu->GetFont() ? Menu->GetFont() : SysFont;
 	bool BaseMenu = Parent == Menu; // true if attached to a windows menu
 									// else is a submenu
 	int Ht = Font->GetHeight();
@@ -396,7 +396,7 @@ void GMenuItem::_PaintText(GSurface *pDC, int x, int y, int Width)
 		int CharY = Font->GetHeight();
 
 		char *e = 0;
-		for (char *s=n; s AND *s; s = *e ? e : 0)
+		for (char *s=n; s && *s; s = *e ? e : 0)
 		{
 			switch (*s)
 			{
@@ -530,10 +530,10 @@ void GMenuItem::_Paint(GSurface *pDC, int Flags)
 			_PaintText(pDC, x, y, r.X());
 		}
 
-		GImageList *ImgLst = (Menu AND Menu->GetImageList()) ? Menu->GetImageList() : Parent ? Parent->GetImageList() : 0;
+		GImageList *ImgLst = (Menu && Menu->GetImageList()) ? Menu->GetImageList() : Parent ? Parent->GetImageList() : 0;
 
 		// Draw icon/check mark
-		if (Checked AND IconX > 0)
+		if (Checked && IconX > 0)
 		{
 			// it's a check!
 			int x = 4;
@@ -549,7 +549,7 @@ void GMenuItem::_Paint(GSurface *pDC, int Flags)
 			pDC->Line(x, y, x+2, y+2);
 			pDC->Line(x+2, y+2, x+6, y-2);
 		}
-		else if (ImgLst AND
+		else if (ImgLst &&
 				_Icon >= 0)
 		{
 			// it's an icon!
@@ -557,7 +557,7 @@ void GMenuItem::_Paint(GSurface *pDC, int Flags)
 		}
 
 		// Sub menu arrow
-		if (Child AND !dynamic_cast<GMenu*>(Parent))
+		if (Child && !dynamic_cast<GMenu*>(Parent))
 		{
 			pDC->Colour(LC_TEXT, 24);
 
@@ -574,90 +574,100 @@ void GMenuItem::_Paint(GSurface *pDC, int Flags)
 
 bool GMenuItem::ScanForAccel()
 {
-	char *n = GBase::Name();
-	if (n AND Menu)
+	if (!Menu)
+		return false;
+
+	const char *Sc = ShortCut;
+	if (!Sc)
 	{
-		char *Tab = strchr(n, '\t');
-		if (Tab)
+		char *n = GBase::Name();
+		if (n)
 		{
-			GToken Keys(++Tab, "+-");
-			if (Keys.Length() > 0)
+			char *Tab = strchr(n, '\t');
+			if (Tab)
+				Sc = Tab + 1;
+		}
+	}
+
+	if (Sc)	
+	{
+		GToken Keys(Sc, "+-");
+		if (Keys.Length() > 0)
+		{
+			int Flags = 0;
+			char16 Key = 0;
+			
+			for (int i=0; i<Keys.Length(); i++)
 			{
-				int Flags = 0;
-				char16 Key = 0;
-				
-				for (int i=0; i<Keys.Length(); i++)
+				char *k = Keys[i];
+				if (stricmp(k, "Ctrl") == 0)
 				{
-					char *k = Keys[i];
-					if (stricmp(k, "Ctrl") == 0)
-					{
-						Flags |= LGI_EF_CTRL;
-					}
-					else if (stricmp(k, "Alt") == 0)
-					{
-						Flags |= LGI_EF_ALT;
-					}
-					else if (stricmp(k, "Shift") == 0)
-					{
-						Flags |= LGI_EF_SHIFT;
-					}
-					else if (stricmp(k, "Del") == 0 ||
-							 stricmp(k, "Delete") == 0)
-					{
-						Key = VK_DELETE;
-					}
-					else if (stricmp(k, "Ins") == 0 ||
-							 stricmp(k, "Insert") == 0)
-					{
-						Key = VK_INSERT;
-					}
-					else if (stricmp(k, "Home") == 0)
-					{
-						Key = VK_HOME;
-					}
-					else if (stricmp(k, "End") == 0)
-					{
-						Key = VK_END;
-					}
-					else if (stricmp(k, "PageUp") == 0)
-					{
-						Key = VK_PAGEUP;
-					}
-					else if (stricmp(k, "PageDown") == 0)
-					{
-						Key = VK_PAGEDOWN;
-					}
-					else if (stricmp(k, "Backspace") == 0)
-					{
-						Key = VK_BACKSPACE;
-					}
-					else if (stricmp(k, "Space") == 0)
-					{
-						Key = ' ';
-					}
-					else if (k[0] == 'F' AND isdigit(k[1]))
-					{
-						Key = VK_F1 + atoi(k+1) - 1;
-					}
-					else if (isalpha(k[0]))
-					{
-						Key = toupper(k[0]);
-					}
-					else if (isdigit(k[0]))
-					{
-						Key = k[0];
-					}
+					Flags |= LGI_EF_CTRL;
 				}
-				
-				if (Key)
+				else if (stricmp(k, "Alt") == 0)
 				{
-					// printf("\tFlags=%x Key=%c(%i)\n", Flags, Key, Key);
-					Menu->Accel.Insert( new GAccelerator(Flags, Key, Id()) );
+					Flags |= LGI_EF_ALT;
 				}
-				else
+				else if (stricmp(k, "Shift") == 0)
 				{
-					printf("Accel scan failed, str='%s'\n", Tab);
+					Flags |= LGI_EF_SHIFT;
 				}
+				else if (stricmp(k, "Del") == 0 ||
+						 stricmp(k, "Delete") == 0)
+				{
+					Key = VK_DELETE;
+				}
+				else if (stricmp(k, "Ins") == 0 ||
+						 stricmp(k, "Insert") == 0)
+				{
+					Key = VK_INSERT;
+				}
+				else if (stricmp(k, "Home") == 0)
+				{
+					Key = VK_HOME;
+				}
+				else if (stricmp(k, "End") == 0)
+				{
+					Key = VK_END;
+				}
+				else if (stricmp(k, "PageUp") == 0)
+				{
+					Key = VK_PAGEUP;
+				}
+				else if (stricmp(k, "PageDown") == 0)
+				{
+					Key = VK_PAGEDOWN;
+				}
+				else if (stricmp(k, "Backspace") == 0)
+				{
+					Key = VK_BACKSPACE;
+				}
+				else if (stricmp(k, "Space") == 0)
+				{
+					Key = ' ';
+				}
+				else if (k[0] == 'F' && isdigit(k[1]))
+				{
+					Key = VK_F1 + atoi(k+1) - 1;
+				}
+				else if (isalpha(k[0]))
+				{
+					Key = toupper(k[0]);
+				}
+				else if (isdigit(k[0]))
+				{
+					Key = k[0];
+				}
+			}
+			
+			if (Key)
+			{
+				// printf("\tFlags=%x Key=%c(%i)\n", Flags, Key, Key);
+				Menu->Accel.Insert( new GAccelerator(Flags, Key, Id()) );
+			}
+			else
+			{
+				printf("Accel scan failed, str='%s'\n", Tab);
 			}
 		}
 	}
@@ -829,7 +839,7 @@ bool GMenu::Attach(GViewI *p)
 	{
 		Window = p;
 		Info = new MenuImpl(this);
-		if (Info AND
+		if (Info &&
 			Info->View())
 		{
 			Status = Info->View()->Attach(p);
@@ -879,7 +889,7 @@ bool GMenu::OnKey(GView *v, GKey &k)
 						if (ValidStr(n))
 						{
 							char *Amp = strchr(n, '&');
-							while (Amp AND Amp[1] == '&')
+							while (Amp && Amp[1] == '&')
 							{
 								Amp = strchr(Amp + 2, '&');
 							}
@@ -955,8 +965,8 @@ bool GAccelerator::Match(GKey &k)
 	{
 		if
 		(
-			(TestFlag(Flags, LGI_EF_CTRL) ^ k.Ctrl() == 0) AND
-			(TestFlag(Flags, LGI_EF_ALT) ^ k.Alt() == 0) AND
+			(TestFlag(Flags, LGI_EF_CTRL) ^ k.Ctrl() == 0) &&
+			(TestFlag(Flags, LGI_EF_ALT) ^ k.Alt() == 0) &&
 			(TestFlag(Flags, LGI_EF_SHIFT) ^ k.Shift() == 0)
 		)				
 		{

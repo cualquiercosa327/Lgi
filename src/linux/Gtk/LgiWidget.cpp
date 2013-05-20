@@ -100,7 +100,7 @@ static gboolean lgi_widget_click(GtkWidget *widget, GdkEventButton *ev)
                     ev->type == GDK_2BUTTON_PRESS ||
                     ev->type == GDK_3BUTTON_PRESS;
 
-    LgiTrace("click %i,%i,%i,%i,%i,%i,%s,%i,%i\n", ev->axes, ev->button, ev->device, ev->send_event, ev->state, ev->time, BtnDown?"down":"up", ev->x, ev->y);
+    // LgiTrace("click %i,%i,%i,%i,%i,%i,%s,%i,%i\n", ev->axes, ev->button, ev->device, ev->send_event, ev->state, ev->time, BtnDown?"down":"up", ev->x, ev->y);
 
 	LgiWidget *p = LGI_WIDGET(widget);
     GView *v = dynamic_cast<GView*>(p->target);

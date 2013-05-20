@@ -166,7 +166,7 @@ bool GSubMenu::RemoveItem(int i)
 
 bool GSubMenu::RemoveItem(GMenuItem *Item)
 {
-	if (Item AND Items.HasItem(Item))
+	if (Item && Items.HasItem(Item))
 	{
 		return Item->Remove();
 	}
@@ -299,7 +299,7 @@ GMenuItem::GMenuItem()
 	_Check = false;
 }
 
-GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, const char *txt, int Pos, const char *Shortcut)
+GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, const char *txt, int Pos, const char *shortcut)
 {
 	GAutoString Txt = MenuItemParse(txt);
 	GBase::Name(txt);
@@ -321,6 +321,7 @@ GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, const char *txt, int Pos, const char
 	_Enabled = true;
 	_Check = false;
 
+	ShortCut.Reset(NewStr(shortcut));
 	ScanForAccel();
 }
 
@@ -340,7 +341,7 @@ GMenuItem::~GMenuItem()
 // the default painting behaviour if desired.
 void GMenuItem::_Measure(GdcPt2 &Size)
 {
-	GFont *Font = Menu AND Menu->GetFont() ? Menu->GetFont() : SysFont;
+	GFont *Font = Menu && Menu->GetFont() ? Menu->GetFont() : SysFont;
 	bool BaseMenu = Parent == Menu; // true if attached to a windows menu
 									// else is a submenu
 	int Ht = Font->GetHeight();
@@ -416,7 +417,7 @@ void GMenuItem::_PaintText(GSurface *pDC, int x, int y, int Width)
 		int CharY = Font->GetHeight();
 
 		char *e = 0;
-		for (char *s=n; s AND *s; s = *e ? e : 0)
+		for (char *s=n; s && *s; s = *e ? e : 0)
 		{
 			switch (*s)
 			{
@@ -546,10 +547,10 @@ void GMenuItem::_Paint(GSurface *pDC, int Flags)
 			_PaintText(pDC, x, y, r.X());
 		}
 
-		GImageList *ImgLst = (Menu AND Menu->GetImageList()) ? Menu->GetImageList() : Parent ? Parent->GetImageList() : 0;
+		GImageList *ImgLst = (Menu && Menu->GetImageList()) ? Menu->GetImageList() : Parent ? Parent->GetImageList() : 0;
 
 		// Draw icon/check mark
-		if (Checked AND IconX > 0)
+		if (Checked && IconX > 0)
 		{
 			// it's a check!
 			int x = 4;
@@ -565,7 +566,7 @@ void GMenuItem::_Paint(GSurface *pDC, int Flags)
 			pDC->Line(x, y, x+2, y+2);
 			pDC->Line(x+2, y+2, x+6, y-2);
 		}
-		else if (ImgLst AND
+		else if (ImgLst &&
 				_Icon >= 0)
 		{
 			// it's an icon!
@@ -574,7 +575,7 @@ void GMenuItem::_Paint(GSurface *pDC, int Flags)
 		}
 
 		// Sub menu arrow
-		if (Child AND !dynamic_cast<GMenu*>(Parent))
+		if (Child && !dynamic_cast<GMenu*>(Parent))
 		{
 			pDC->Colour(LC_TEXT, 24);
 
@@ -589,92 +590,155 @@ void GMenuItem::_Paint(GSurface *pDC, int Flags)
 	}
 }
 
+#include <gdk\gdkkeysyms-compat.h>
+Gtk::gint LgiKeyToGtkKey(int Key)
+{
+	LgiAssert(GDK_a == 'a');
+	LgiAssert(GDK_A == 'A');
+	
+	if (Key >= 'a' && Key <= 'z')
+		return Key;
+	if (Key >= 'A' && Key <= 'Z')
+		return Key;
+	
+	switch (Key)
+	{
+		case VK_DELETE:
+			return GDK_Delete;
+		case VK_INSERT:
+			return GDK_Insert;
+		case VK_HOME:
+			return GDK_Home;
+		case VK_END:
+			return GDK_End;
+		case VK_PAGEUP:
+			return GDK_Page_Up;
+		case VK_PAGEDOWN:
+			return GDK_Page_Down;
+		case VK_BACKSPACE:
+			return GDK_BackSpace;
+		case ' ':
+			return GDK_space;
+		default:
+			LgiAssert(!"Impl me.");
+			break;
+	}
+	
+	return 0;
+}
+
 bool GMenuItem::ScanForAccel()
 {
-	char *n = GBase::Name();
-	if (n AND Menu)
+	if (!Menu)
+		return false;
+
+	const char *Sc = ShortCut;
+	if (!Sc)
 	{
-		char *Tab = strchr(n, '\t');
-		if (Tab)
+		char *n = GBase::Name();
+		if (n)
 		{
-			GToken Keys(++Tab, "+-");
-			if (Keys.Length() > 0)
+			char *Tab = strchr(n, '\t');
+			if (Tab)
+				Sc = Tab + 1;
+		}
+	}
+
+	if (Sc)	
+	{
+		GToken Keys(Sc, "+-");
+		if (Keys.Length() > 0)
+		{
+			int Flags = 0;
+			char16 Key = 0;
+			
+			for (int i=0; i<Keys.Length(); i++)
 			{
-				int Flags = 0;
-				char16 Key = 0;
-				
-				for (int i=0; i<Keys.Length(); i++)
+				char *k = Keys[i];
+				if (stricmp(k, "Ctrl") == 0)
 				{
-					char *k = Keys[i];
-					if (stricmp(k, "Ctrl") == 0)
-					{
-						Flags |= LGI_EF_CTRL;
-					}
-					else if (stricmp(k, "Alt") == 0)
-					{
-						Flags |= LGI_EF_ALT;
-					}
-					else if (stricmp(k, "Shift") == 0)
-					{
-						Flags |= LGI_EF_SHIFT;
-					}
-					else if (stricmp(k, "Del") == 0 ||
-							 stricmp(k, "Delete") == 0)
-					{
-						Key = VK_DELETE;
-					}
-					else if (stricmp(k, "Ins") == 0 ||
-							 stricmp(k, "Insert") == 0)
-					{
-						Key = VK_INSERT;
-					}
-					else if (stricmp(k, "Home") == 0)
-					{
-						Key = VK_HOME;
-					}
-					else if (stricmp(k, "End") == 0)
-					{
-						Key = VK_END;
-					}
-					else if (stricmp(k, "PageUp") == 0)
-					{
-						Key = VK_PAGEUP;
-					}
-					else if (stricmp(k, "PageDown") == 0)
-					{
-						Key = VK_PAGEDOWN;
-					}
-					else if (stricmp(k, "Backspace") == 0)
-					{
-						Key = VK_BACKSPACE;
-					}
-					else if (stricmp(k, "Space") == 0)
-					{
-						Key = ' ';
-					}
-					else if (k[0] == 'F' AND isdigit(k[1]))
-					{
-						Key = VK_F1 + atoi(k+1) - 1;
-					}
-					else if (isalpha(k[0]))
-					{
-						Key = toupper(k[0]);
-					}
-					else if (isdigit(k[0]))
-					{
-						Key = k[0];
-					}
+					Flags |= LGI_EF_CTRL;
+				}
+				else if (stricmp(k, "Alt") == 0)
+				{
+					Flags |= LGI_EF_ALT;
+				}
+				else if (stricmp(k, "Shift") == 0)
+				{
+					Flags |= LGI_EF_SHIFT;
+				}
+				else if (stricmp(k, "Del") == 0 ||
+						 stricmp(k, "Delete") == 0)
+				{
+					Key = VK_DELETE;
+				}
+				else if (stricmp(k, "Ins") == 0 ||
+						 stricmp(k, "Insert") == 0)
+				{
+					Key = VK_INSERT;
+				}
+				else if (stricmp(k, "Home") == 0)
+				{
+					Key = VK_HOME;
+				}
+				else if (stricmp(k, "End") == 0)
+				{
+					Key = VK_END;
+				}
+				else if (stricmp(k, "PageUp") == 0)
+				{
+					Key = VK_PAGEUP;
+				}
+				else if (stricmp(k, "PageDown") == 0)
+				{
+					Key = VK_PAGEDOWN;
+				}
+				else if (stricmp(k, "Backspace") == 0)
+				{
+					Key = VK_BACKSPACE;
+				}
+				else if (stricmp(k, "Space") == 0)
+				{
+					Key = ' ';
+				}
+				else if (k[0] == 'F' && isdigit(k[1]))
+				{
+					Key = VK_F1 + atoi(k+1) - 1;
+				}
+				else if (isalpha(k[0]))
+				{
+					Key = toupper(k[0]);
+				}
+				else if (isdigit(k[0]))
+				{
+					Key = k[0];
+				}
+			}
+			
+			if (Key)
+			{
+				Gtk::gint GtkKey = LgiKeyToGtkKey(Key);
+				if (GtkKey)
+				{
+					gtk_widget_add_accelerator(	GtkCast(Info, gtk_widget, GtkWidget),
+												"activate",
+												Menu->AccelGrp,
+												LgiKeyToGtkKey(Key),
+												(Gtk::GdkModifierType)
+												(
+													(TestFlag(Flags, LGI_EF_CTRL)  ? Gtk::GDK_CONTROL_MASK : 0) |
+													(TestFlag(Flags, LGI_EF_SHIFT) ? Gtk::GDK_SHIFT_MASK : 0) |
+													(TestFlag(Flags, LGI_EF_ALT)   ? Gtk::GDK_MOD1_MASK : 0)
+												),
+												Gtk::GTK_ACCEL_VISIBLE
+											);
 				}
 				
-				if (Key)
-				{
-					// printf("\tFlags=%x Key=%c(%i)\n", Flags, Key, Key);
-					Menu->Accel.Insert( new GAccelerator(Flags, Key, Id()) );
-				}
-				else
-				{
-					printf("Accel scan failed, str='%s'\n", Tab);
-				}
+				Menu->Accel.Insert( new GAccelerator(Flags, Key, Id()) );
+			}
+			else
+			{
+				printf("Accel scan failed, str='%s'\n", Sc);
 			}
 		}
 	}
@@ -833,8 +897,8 @@ GMenu::GMenu() : GSubMenu("", false)
 {
 	Menu = this;
 	d = NULL;
+	AccelGrp = Gtk::gtk_accel_group_new();
 	Info = GtkCast(Gtk::gtk_menu_bar_new(), gtk_menu_shell, GtkMenuShell);
-	int asd=0;
 }
 
 GMenu::~GMenu()
@@ -908,16 +972,18 @@ bool GMenu::Attach(GViewI *p)
 	Gtk::GtkBox *vbox = GtkCast(Wnd->_VBox, gtk_box, GtkBox);
 	Gtk::GtkContainer *wndcontainer = GtkCast(Wnd->Wnd, gtk_container, GtkContainer);
 
-	Gtk::g_object_ref(Wnd->_Root);
-	Gtk::gtk_container_remove(wndcontainer, Wnd->_Root);
+	g_object_ref(Wnd->_Root);
+	gtk_container_remove(wndcontainer, Wnd->_Root);
 
-	Gtk::gtk_container_add(wndcontainer, Wnd->_VBox);
+	gtk_container_add(wndcontainer, Wnd->_VBox);
 
-	Gtk::gtk_box_pack_start(vbox, menubar, false, false, 0);
-	Gtk::gtk_box_pack_end(vbox, Wnd->_Root, true, true, 0);
-	Gtk::g_object_unref(Wnd->_Root);
+	gtk_box_pack_start(vbox, menubar, false, false, 0);
+	gtk_box_pack_end(vbox, Wnd->_Root, true, true, 0);
+	g_object_unref(Wnd->_Root);
 
-	Gtk::gtk_widget_show_all(GtkCast(Wnd->Wnd, gtk_widget, GtkWidget));
+	gtk_widget_show_all(GtkCast(Wnd->Wnd, gtk_widget, GtkWidget));
+	
+	gtk_window_add_accel_group(Wnd->Wnd, AccelGrp);
 	
 	return true;
 }
@@ -962,7 +1028,7 @@ bool GMenu::OnKey(GView *v, GKey &k)
 						if (ValidStr(n))
 						{
 							char *Amp = strchr(n, '&');
-							while (Amp AND Amp[1] == '&')
+							while (Amp && Amp[1] == '&')
 							{
 								Amp = strchr(Amp + 2, '&');
 							}
@@ -1038,8 +1104,8 @@ bool GAccelerator::Match(GKey &k)
 	{
 		if
 		(
-			(TestFlag(Flags, LGI_EF_CTRL) ^ k.Ctrl() == 0) AND
-			(TestFlag(Flags, LGI_EF_ALT) ^ k.Alt() == 0) AND
+			(TestFlag(Flags, LGI_EF_CTRL) ^ k.Ctrl() == 0) &&
+			(TestFlag(Flags, LGI_EF_ALT) ^ k.Alt() == 0) &&
 			(TestFlag(Flags, LGI_EF_SHIFT) ^ k.Shift() == 0)
 		)				
 		{

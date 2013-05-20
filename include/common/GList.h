@@ -337,7 +337,10 @@ protected:
 
 public:
 	// Application defined, defaults to 0
-	void *_UserData;
+	union {
+		void *_UserPtr;
+		NativeInt _UserInt;
+	};
 
 	// Object
 	GListItem();

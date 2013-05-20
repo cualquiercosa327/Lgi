@@ -13,7 +13,7 @@ using namespace Gtk;
 class HookInfo
 {
 public:
-	int Flags;
+	GWindowHookType Flags;
 	GView *Target;
 };
 
@@ -56,7 +56,7 @@ public:
 			if (n)
 			{
 				n->Target = Target;
-				n->Flags = 0;
+				n->Flags = GNoEvents;
 				return Hooks.Length() - 1;
 			}
 		}
@@ -1096,7 +1096,7 @@ GMessage::Param GWindow::OnEvent(GMessage *m)
 	return GView::OnEvent(m);
 }
 
-bool GWindow::RegisterHook(GView *Target, int EventType, int Priority)
+bool GWindow::RegisterHook(GView *Target, GWindowHookType EventType, int Priority)
 {
 	bool Status = false;
 	

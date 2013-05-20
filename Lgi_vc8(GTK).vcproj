@@ -355,6 +355,14 @@
 						RelativePath=".\src\common\Lgi\GThreadCommon.cpp"
 						>
 					</File>
+					<File
+						RelativePath=".\src\common\Lgi\GThreadEvent.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\include\common\GThreadEvent.h"
+						>
+					</File>
 				</Filter>
 				<Filter
 					Name="Variant"
