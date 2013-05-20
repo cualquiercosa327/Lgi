@@ -470,7 +470,7 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 	}
 		
 	// memory -> screen blt
-	GBlitRegions br(this, x, y, Src, a);
+	GBlitRegions br(this, x-OriginX, y-OriginY, Src, a);
 	if (!br.Valid())
 	{
 		return;

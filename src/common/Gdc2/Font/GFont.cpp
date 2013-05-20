@@ -1497,7 +1497,6 @@ bool GFontType::GetSystemFont(const char *Which)
 			{
 				float Px = Gtk::pango_font_description_get_size(s->font_desc) / PANGO_SCALE;
 				float Dpi = 96.0; // FIXME: some reasonable default
-				// Pt = Dpi / 72
 				DefSize = (Px * 72.0) / Dpi;
 			}
 			else

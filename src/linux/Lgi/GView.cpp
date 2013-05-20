@@ -264,7 +264,7 @@ void LgiToGtkCursor(OsView v, LgiCursor c)
 			break;
 		/// Horizontal resize (-)
 		case LCUR_SizeHor:
-			type = GDK_LEFT_SIDE;
+			type = GDK_SB_H_DOUBLE_ARROW;
 			break;
 		/// Diagonal resize (/)
 		case LCUR_SizeBDiag:
