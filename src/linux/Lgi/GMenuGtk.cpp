@@ -21,6 +21,7 @@ GSubMenu::GSubMenu(const char *name, bool Popup)
 	Menu = NULL;
 	Parent = NULL;
 	Info = NULL;
+	_ContextMenuId = NULL;
 	
 	if (name)
 	{
@@ -174,11 +175,24 @@ bool GSubMenu::RemoveItem(GMenuItem *Item)
 	return false;
 }
 
-bool GSubMenu::OnKey(GKey &k)
+void GetGSubMenuPosition(Gtk::GtkMenu *menu, Gtk::gint *x, Gtk::gint *y, Gtk::gboolean *push_in, Gtk::gpointer user_data)
 {
-	return false;
+	GdcPt2 *pt = (GdcPt2*) user_data;
+	*x = pt->x;
+	*y = pt->y;
+	*push_in = true;
 }
 
+bool GSubMenu::IsContext(GMenuItem *Item)
+{
+	if (!_ContextMenuId)
+		return false;
+	
+	*_ContextMenuId = Item->Id();
+	Gtk::gtk_main_quit();
+	return true;
+}
+                                                         
 int GSubMenu::Float(GView *From, int x, int y, bool Left)
 {
 	static int Depth = 0;
@@ -193,8 +207,24 @@ int GSubMenu::Float(GView *From, int x, int y, bool Left)
 		printf("%s:%i - No menu handle\n", _FL);
 		return -1;
 	}
+	
+	if (From->IsCapturing())
+		From->Capture(false);
 
-	return 0;
+	Gtk::gtk_widget_show_all(GtkCast(Info, gtk_widget, GtkWidget));
+
+	int MenuId = 0;
+	_ContextMenuId = &MenuId;
+
+	GdcPt2 Pos(x, y);
+	Gtk::gtk_menu_popup(GtkCast(Info, gtk_menu, GtkMenu),
+						NULL, NULL, NULL, NULL,
+						Left ? 1 : 3,
+						Gtk::gtk_get_current_event_time());
+	Gtk::gtk_main();
+
+	_ContextMenuId = NULL;
+	return MenuId;
 }
 
 GSubMenu *GSubMenu::FindSubMenu(int Id)
@@ -270,17 +300,21 @@ static void MenuItemCallback(GMenuItem *Item)
 {
 	if (!Item->Sub())
 	{
-		GMenu *m = Item->GetMenu();
-		if (m)
+		GSubMenu *Parent = Item->GetParent();
+		if (!Parent || !Parent->IsContext(Item))
 		{
-			GViewI *w = m->WindowHandle();
-			if (w)
+			GMenu *m = Item->GetMenu();
+			if (m)
 			{
-				w->PostEvent(M_COMMAND, Item->Id());
+				GViewI *w = m->WindowHandle();
+				if (w)
+				{
+					w->PostEvent(M_COMMAND, Item->Id());
+				}
+				else LgiAssert(!"No window for menu to send to");
 			}
-			else LgiAssert(!"No window for menu to send to");
+			else LgiAssert(!"Menuitem not attached to menu");
 		}
-		else LgiAssert(!"Menuitem not attached to menu");
 	}
 }
 

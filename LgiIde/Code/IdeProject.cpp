@@ -936,11 +936,7 @@ public:
 		{
 			if (!Write)
 			{
-				Dep = Project->GetApp()->OpenProject(File, false, true);
-				if (Dep)
-				{
-					Dep->SetParentProject(Project);
-				}
+				Dep = Project->GetApp()->OpenProject(File, Project, false, true);
 			}
 		}
 		else
@@ -956,7 +952,7 @@ public:
 					if (!FileExists(p))
 					{
 						char Path[256];
-						if (Project->GetBasePath(Path))
+						if (Project->GetBasePath(Path, sizeof(Path)))
 						{
 							LgiTrimDir(Path);
 							
@@ -1072,11 +1068,11 @@ public:
 	{
 		char *FullPath = 0;
 		
-		if (File && *File == '.')
+		if (LgiIsRelativePath(File))
 		{
-			// Relitive path
+			// Relative path
 			char Path[256];
-			if (Project->GetBasePath(Path))
+			if (Project->GetBasePath(Path, sizeof(Path)))
 			{
 				LgiMakePath(Path, sizeof(Path), Path, File);
 				FullPath = NewStr(Path);
@@ -1332,7 +1328,7 @@ public:
 					s.MultiSelect(true);
 
 					char Dir[256];
-					if (Project->GetBasePath(Dir))
+					if (Project->GetBasePath(Dir, sizeof(Dir)))
 					{
 						s.InitialDir(Dir);
 					}
@@ -1374,7 +1370,7 @@ public:
 					s.Parent(Tree);
 
 					char Dir[256];
-					if (Project->GetBasePath(Dir))
+					if (Project->GetBasePath(Dir, sizeof(Dir)))
 					{
 						s.InitialDir(Dir);
 					}
@@ -1670,7 +1666,7 @@ public:
 				if (File[0] == '.')
 				{
 					char d[256];
-					if (Project->GetBasePath(d))
+					if (Project->GetBasePath(d, sizeof(d)))
 					{
 						char f[256];
 						LgiMakePath(f, sizeof(f), d, File);
@@ -1704,7 +1700,7 @@ public:
 					if (File[0] == '.')
 					{
 						char d[256];
-						if (Project->GetBasePath(d))
+						if (Project->GetBasePath(d, sizeof(d)))
 						{
 							char f[256];
 							LgiMakePath(f, sizeof(f), d, File);
@@ -2074,7 +2070,7 @@ bool IdeProject::RelativePath(char *Out, char *In)
 	if (Out && In)
 	{
 		char Base[256];
-		if (GetBasePath(Base))
+		if (GetBasePath(Base, sizeof(Base)))
 		{
 			// printf(	"XmlBase='%s'\n     In='%s'\n", Base, In);
 			
@@ -2144,7 +2140,7 @@ bool IdeProject::GetExePath(char *Path, int Len)
 		if (d->Settings.Exe[0] == '.')
 		{
 			char b[256];
-			if (GetBasePath(b))
+			if (GetBasePath(b, sizeof(b)))
 			{
 				LgiMakePath(Path, Len, b, d->Settings.Exe);
 			}
@@ -2167,7 +2163,7 @@ bool IdeProject::GetMakefile(char *Path, int Len)
 		if (d->Settings.MakeFile[0] == '.')
 		{
 			char b[256];
-			if (GetBasePath(b))
+			if (GetBasePath(b, sizeof(b)))
 			{
 				LgiMakePath(Path, Len, b, d->Settings.MakeFile);
 			}
@@ -2334,7 +2330,7 @@ void IdeProject::Execute(ExeAction Act)
 {
 	char b[256];
 	if (d->Settings.Exe &&
-		GetBasePath(b))
+		GetBasePath(b, sizeof(b)))
 	{
 		char e[256];
 		if (GetExePath(e, sizeof(e)))
@@ -2386,17 +2382,42 @@ bool IdeProject::Serialize()
 	return true;
 }
 
-bool IdeProject::GetBasePath(char *Path)
+bool IdeProject::GetBasePath(char *Path, int Len)
 {
-	if (Path && d->FileName)
+	if (!Path || !d->FileName)
 	{
-		strcpy(Path, d->FileName);
-		char *e = strrchr(Path, DIR_CHAR);
-		if (e) *e = 0;
-		return true;
+		LgiAssert(!"Invalid argument.");
+		return false;
+	}
+
+	GArray<char*> sections;
+	IdeProject *proj = this;
+	while (	proj &&
+			proj->GetFileName() &&
+			LgiIsRelativePath(proj->GetFileName()))
+	{
+		sections.AddAt(0, proj->GetFileName());
+		proj = proj->GetParentProject();
+	}
+
+	if (!proj)
+	{
+		LgiAssert(!"Always need to have a project to belong to.");
+		return false; // No absolute path in the parent projects?
+	}
+
+	char p[MAX_PATH];
+	strsafecpy(p, proj->GetFileName(), sizeof(p));
+	LgiTrimDir(p);	
+	for (int i=0; i<sections.Length(); i++)
+	{
+		LgiMakePath(p, sizeof(p), p, sections[i]);
+		LgiTrimDir(p);	
 	}
 	
-	return false;
+	strsafecpy(Path, p, Len);
+	
+	return true;
 }
 
 AppWnd *IdeProject::GetApp()
@@ -2840,7 +2861,26 @@ void IdeProject::OnMouseClick(GMouse &m)
 			}
 			case IDM_PROPERTIES:
 			{
-				LgiMsg(Tree, "Path: %s", AppName, MB_OK, d->FileName);
+				GArray<char*> sections;
+				IdeProject *proj = this;
+				while (	proj &&
+						proj->GetFileName() &&
+						LgiIsRelativePath(proj->GetFileName()))
+				{
+					sections.AddAt(0, proj->GetFileName());
+					proj = proj->GetParentProject();
+				}
+				if (proj)
+				{
+					char p[MAX_PATH];
+					strsafecpy(p, proj->GetFileName(), sizeof(p));
+					for (int i=0; i<sections.Length(); i++)
+					{
+						LgiMakePath(p, sizeof(p), p, sections[i]);
+					}
+				
+					LgiMsg(Tree, "Path: %s", AppName, MB_OK, p);
+				}
 				break;
 			}
 		}
@@ -3014,7 +3054,7 @@ bool IdeProject::BuildIncludePaths(List<char> &Paths, bool Recurse)
 				if (!Inc[i] || Inc[i][0] == '.')
 				{
 					char Base[256];
-					p->GetBasePath(Base);
+					p->GetBasePath(Base, sizeof(Base));
 					if (Inc[i])
 						LgiMakePath(Buf, sizeof(Buf), Base, Inc[i]);
 					else
@@ -3277,7 +3317,7 @@ bool IdeProject::CreateMakefile()
 					{
 						m.Print(" \\\n			-l%s$(Tag)", ToUnixPath(t));
 
-						if (d->GetBasePath(t))
+						if (d->GetBasePath(t, sizeof(t)))
 						{
 							m.Print(" \\\n			-L%s/$(BuildDir)", ToUnixPath(t));
 						}
@@ -3427,7 +3467,7 @@ bool IdeProject::CreateMakefile()
 							{
 								char t[256], p[256];
 								if (d->GetTargetFile(t, sizeof(t)) &&
-									d->GetBasePath(p))
+									d->GetBasePath(p, sizeof(p)))
 								{
 									char Rel[256];
 									if (!RelativePath(Rel, p))

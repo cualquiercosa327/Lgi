@@ -154,8 +154,10 @@ void GView::_Delete()
 	ThreadCheck();
 
 	// Remove static references to myself
-	if (_Over == this) _Over = 0;
-	if (_Capturing == this) _Capturing = 0;
+	if (_Over == this)
+		_Over = 0;
+	if (_Capturing == this)
+		_Capturing = 0;
 	
 	GWindow *Wnd = GetWindow();
 	if (Wnd && Wnd->GetFocus() == static_cast<GViewI*>(this))

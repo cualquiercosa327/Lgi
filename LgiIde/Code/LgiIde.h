@@ -126,7 +126,7 @@ public:
 	void CloseAll();
 	IdeDoc *OpenFile(char *FileName, NodeSource *Src = 0);
 	IdeDoc *NewDocWnd(char *FileName, NodeSource *Src);
-	IdeProject *OpenProject(char *FileName, bool Create = false, bool Dep = false);
+	IdeProject *OpenProject(char *FileName, IdeProject *ParentProj, bool Create = false, bool Dep = false);
 	IdeProject *RootProject();
 	int OnCommand(int Cmd, int Event, OsView Wnd);
 	void OnDocDestroy(IdeDoc *Doc);

@@ -38,7 +38,7 @@ char *dirchar(char *s, bool rev = false)
 	if (rev)
 	{
 		char *last = 0;
-		while (s AND *s)
+		while (s && *s)
 		{
 			if (*s == '/' || *s == '\\')
 				last = s;
@@ -48,7 +48,7 @@ char *dirchar(char *s, bool rev = false)
 	}
 	else
 	{
-		while (s AND *s)
+		while (s && *s)
 		{
 			if (*s == '/' || *s == '\\')
 				return s;
@@ -143,7 +143,7 @@ public:
 
 	void OnExpand(bool b)
 	{
-		if (b AND !Loaded)
+		if (b && !Loaded)
 		{
 			Loaded = true;
 			DeleteObj(Fake);
@@ -163,7 +163,7 @@ public:
 					for (int i=0; i<t.Length(); i++)
 					{
 						char *SharedLib = stristr(t[i], "Shared library:");
-						if (SharedLib AND
+						if (SharedLib &&
 							(SharedLib = strchr(SharedLib, '[')) != 0)
 						{
 							char *e = strchr(++SharedLib, ']');
@@ -392,7 +392,7 @@ int DocSorter(IdeDoc *a, IdeDoc *b, int d)
 {
 	char *A = a->GetFileName();
 	char *B = b->GetFileName();
-	if (A AND B)
+	if (A && B)
 	{
 		char *Af = strrchr(A, DIR_CHAR);
 		char *Bf = strrchr(B, DIR_CHAR);
@@ -503,7 +503,7 @@ public:
 		if (Context)
 		{
 			char *Dir = strrchr(Context, DIR_CHAR);
-			for (IdeProject *p=Projects.First(); p AND !ContextPath; p=Projects.Next())
+			for (IdeProject *p=Projects.First(); p && !ContextPath; p=Projects.Next())
 			{
 				ContextPath = p->FindFullPath(Dir?Dir+1:Context);
 			}
@@ -531,7 +531,7 @@ public:
 			for (IdeProject *p=*Projs; p; p=*++Projs)
 			{
 				char Path[300];
-				if (p->GetBasePath(Path))
+				if (p->GetBasePath(Path, sizeof(Path)))
 				{
 					LgiMakePath(Path, sizeof(Path), Path, File);
 					if (FileExists(Path))
@@ -546,7 +546,7 @@ public:
 		if (!Full)
 		{
 			char *Dir = dirchar(File, true);
-			for (IdeProject *p=Projects.First(); p AND !Full; p=Projects.Next())
+			for (IdeProject *p=Projects.First(); p && !Full; p=Projects.Next())
 			{
 				Full = p->FindFullPath(Dir?Dir+1:File);
 			}
@@ -582,7 +582,7 @@ public:
 				while (Txt[i])
 				{
 					// Skip whitespace
-					while (Txt[i] AND strchr(" \t\r\n", Txt[i])) i++;
+					while (Txt[i] && strchr(" \t\r\n", Txt[i])) i++;
 					
 					// Check for 'from'
 					if (StrncmpW(FromMsg, Txt + i, 5) == 0)
@@ -592,9 +592,9 @@ public:
 
 						// Skip to end of doc or line
 						char16 *Colon = 0;
-						while (Txt[i] AND Txt[i] != '\n')
+						while (Txt[i] && Txt[i] != '\n')
 						{
-							if (Txt[i] == ':' AND Txt[i+1] != '\n')
+							if (Txt[i] == ':' && Txt[i+1] != '\n')
 							{
 								Colon = Txt + i;
 							}
@@ -618,7 +618,7 @@ public:
 		
 	void NextMsg()
 	{
-		if (Output AND
+		if (Output &&
 			Output->Tab)
 		{
 			int Current = Output->Tab->Value();
@@ -640,7 +640,7 @@ public:
 						if
 						(
 							(Txt[i] == ':' || Txt[i] == '(')
-							AND
+							&&
 							isdigit(Txt[i+1])
 						)
 						{
@@ -658,7 +658,7 @@ public:
 							if
 							(
 								(Txt[i] == ':' || Txt[i] == '(')
-								AND
+								&&
 								isdigit(Txt[i+1])
 							)
 							{
@@ -672,7 +672,7 @@ public:
 					{
 						// Scan back to the start of the filename
 						int Line = i;
-						while (Line > 0 AND Txt[Line-1] != '\n')
+						while (Line > 0 && Txt[Line-1] != '\n')
 						{
 							Line--;
 						}
@@ -844,7 +844,7 @@ public:
 		{
 			for (IdeProject *p = Projects.First(); p; p = Projects.Next())
 			{
-				if (p->GetFileName() AND stricmp(p->GetFileName(), File) == 0)
+				if (p->GetFileName() && stricmp(p->GetFileName(), File) == 0)
 				{
 					return p;
 				}
@@ -1066,8 +1066,8 @@ void AppWnd::UpdateState(int Debugging, int Building)
 
 void AppWnd::AppendOutput(char *Txt, int Channel)
 {
-	if (d->Output AND
-		Channel < CountOf(d->Output->Txt) AND
+	if (d->Output &&
+		Channel < CountOf(d->Output->Txt) &&
 		d->Output->Txt[Channel])
 	{
 		if (Txt)
@@ -1170,7 +1170,7 @@ IdeDoc *AppWnd::FindOpenFile(char *FileName)
 			if (p)
 			{
 				char Path[256];
-				if (p->GetBasePath(Path))
+				if (p->GetBasePath(Path, sizeof(Path)))
 				{
 					if (*f == '.')
 						LgiMakePath(Path, sizeof(Path), Path, f);
@@ -1212,7 +1212,7 @@ IdeDoc *AppWnd::OpenFile(char *FileName, NodeSource *Src)
 			{
 				DoingProjectFind = true;
 				List<IdeProject>::I Proj = d->Projects.Start();
-				for (IdeProject *p=*Proj; p AND !Doc; p=*++Proj)
+				for (IdeProject *p=*Proj; p && !Doc; p=*++Proj)
 				{
 					p->InProject(File, true, &Doc);				
 				}
@@ -1265,15 +1265,17 @@ IdeProject *AppWnd::RootProject()
 	return Root;
 }
 
-IdeProject *AppWnd::OpenProject(char *FileName, bool Create, bool Dep)
+IdeProject *AppWnd::OpenProject(char *FileName, IdeProject *ParentProj, bool Create, bool Dep)
 {
 	IdeProject *p = 0;
 	
-	if (FileName AND !d->IsProjectOpen(FileName))
+	if (FileName && !d->IsProjectOpen(FileName))
 	{
 		d->Projects.Insert(p = new IdeProject(this));
 		if (p)
 		{
+			p->SetParentProject(ParentProj);
+			
 			if (p->OpenFile(FileName))
 			{
 				d->OnFile(FileName, true);
@@ -1582,7 +1584,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 				if (Focus)
 				{
 					GTextView3 *Edit = dynamic_cast<GTextView3*>(Focus);
-					if (Edit AND Edit->HasSelection())
+					if (Edit && Edit->HasSelection())
 					{
 						Dlg.Params->Text = Edit->GetSelection();
 					}
@@ -1592,7 +1594,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 				if (p)
 				{
 					char Path[256];
-					if (p->GetBasePath(Path))
+					if (p->GetBasePath(Path, sizeof(Path)))
 					{
 						DeleteArray(Dlg.Params->Dir);
 						Dlg.Params->Dir = NewStr(Path);
@@ -1645,7 +1647,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			if (s.Open())
 			{
 				CloseAll();
-				OpenProject(s.Name(), Cmd == IDM_NEW_PROJECT);
+				OpenProject(s.Name(), NULL, Cmd == IDM_NEW_PROJECT);
 				if (d->Tree)
 				{
 					d->Tree->Focus(true);
@@ -1737,7 +1739,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		{
 			GMenuItem *Debug = GetMenu()->FindItem(IDM_DEBUG_MODE);
 			GMenuItem *Release = GetMenu()->FindItem(IDM_RELEASE_MODE);
-			if (Debug AND Release)
+			if (Debug && Release)
 			{
 				Debug->Checked(true);
 				Release->Checked(false);
@@ -1748,7 +1750,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		{
 			GMenuItem *Debug = GetMenu()->FindItem(IDM_DEBUG_MODE);
 			GMenuItem *Release = GetMenu()->FindItem(IDM_RELEASE_MODE);
-			if (Debug AND Release)
+			if (Debug && Release)
 			{
 				Debug->Checked(false);
 				Release->Checked(true);
@@ -1844,7 +1846,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			if (p)
 			{
 				CloseAll();
-				OpenProject(p, false);
+				OpenProject(p, NULL, false);
 				if (d->Tree)
 				{
 					d->Tree->Focus(true);
@@ -1877,7 +1879,7 @@ IdeDoc *AppWnd::TopDoc()
 IdeDoc *AppWnd::FocusDoc()
 {
 	IdeDoc *Doc = TopDoc();
-	if (Doc AND Doc->GetEdit())
+	if (Doc && Doc->GetEdit())
 	{
 		if (Doc->GetEdit()->Focus())
 		{
@@ -1905,7 +1907,7 @@ void AppWnd::OnDocDestroy(IdeDoc *Doc)
 int AppWnd::GetBuildMode()
 {
 	GMenuItem *Release = GetMenu()->FindItem(IDM_RELEASE_MODE);
-	if (Release AND Release->Checked())
+	if (Release && Release->Checked())
 	{
 		return BUILD_TYPE_RELEASE;
 	}

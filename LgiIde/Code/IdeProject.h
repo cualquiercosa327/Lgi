@@ -63,7 +63,7 @@ public:
 	void OnMouseClick(GMouse &m);
 	AppWnd *GetApp();
 	void ImportDsp(char *File);
-	bool GetBasePath(char *Path);
+	bool GetBasePath(char *Path, int Len);
 	bool GetMakefile(char *Path, int Len);
 	bool GetExePath(char *Path, int Len);
 	bool RelativePath(char *Out, char *In);

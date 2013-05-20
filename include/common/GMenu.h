@@ -98,19 +98,17 @@ class LgiClass GSubMenu :
 	#if !WIN32NATIVE
 	OsSubMenu Info;
 	#endif
-	
-	#if WIN32NATIVE
 
+	#if defined(__GTK_H__)
+	friend void MenuItemCallback(class GMenuItem *Item);
+	int *_ContextMenuId;
+	bool IsContext(GMenuItem *Item);
+	#elif defined(WIN32NATIVE)
 	HWND TrackHandle;
-
-	#elif defined BEOS
-
+	#elif defined(BEOS)
 	void _CopyMenu(BMenu *To, GSubMenu *From);
-	
 	#else
-	
 	bool OnKey(GKey &k);
-
 	#endif
 
 protected:
