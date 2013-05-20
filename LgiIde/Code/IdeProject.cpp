@@ -1596,7 +1596,7 @@ public:
 							int64 FSize = LgiFileSize(Path);
 							LgiFormatSize(Size, FSize);
 							char Msg[512];
-							sprintf(Msg, "Source Code:\n\n\t%s\n\nSize: %s (%i bytes)", Path, Size, (int32)FSize);
+							sprintf(Msg, "Source Code:\n\n\t%s\n\nSize: %s (%i bytes)", Path.Get(), Size, (int32)FSize);
 						
 							FileProps Dlg(Tree, Msg, Type, Platforms);
 							switch (Dlg.DoModal())

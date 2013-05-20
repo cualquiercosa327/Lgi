@@ -590,8 +590,9 @@ void GMenuItem::_Paint(GSurface *pDC, int Flags)
 	}
 }
 
-#include <gdk\gdkkeysyms-compat.h>
-Gtk::gint LgiKeyToGtkKey(int Key)
+#include <gdk/gdkkeysyms-compat.h>
+
+Gtk::gint LgiKeyToGtkKey(int Key, const char *ShortCut)
 {
 	LgiAssert(GDK_a == 'a');
 	LgiAssert(GDK_A == 'A');
@@ -617,10 +618,34 @@ Gtk::gint LgiKeyToGtkKey(int Key)
 			return GDK_Page_Down;
 		case VK_BACKSPACE:
 			return GDK_BackSpace;
+		case VK_F1:
+			return GDK_F1;
+		case VK_F2:
+			return GDK_F2;
+		case VK_F3:
+			return GDK_F3;
+		case VK_F4:
+			return GDK_F4;
+		case VK_F5:
+			return GDK_F5;
+		case VK_F6:
+			return GDK_F6;
+		case VK_F7:
+			return GDK_F7;
+		case VK_F8:
+			return GDK_F8;
+		case VK_F9:
+			return GDK_F9;
+		case VK_F10:
+			return GDK_F10;
+		case VK_F11:
+			return GDK_F11;
+		case VK_F12:
+			return GDK_F12;
 		case ' ':
 			return GDK_space;
 		default:
-			LgiAssert(!"Impl me.");
+			LgiTrace("Unhandled menu accelerator: 0x%x (%s)\n", Key, ShortCut);
 			break;
 	}
 	
@@ -717,13 +742,13 @@ bool GMenuItem::ScanForAccel()
 			
 			if (Key)
 			{
-				Gtk::gint GtkKey = LgiKeyToGtkKey(Key);
+				Gtk::gint GtkKey = LgiKeyToGtkKey(Key, Sc);
 				if (GtkKey)
 				{
 					gtk_widget_add_accelerator(	GtkCast(Info, gtk_widget, GtkWidget),
 												"activate",
 												Menu->AccelGrp,
-												LgiKeyToGtkKey(Key),
+												GtkKey,
 												(Gtk::GdkModifierType)
 												(
 													(TestFlag(Flags, LGI_EF_CTRL)  ? Gtk::GDK_CONTROL_MASK : 0) |
