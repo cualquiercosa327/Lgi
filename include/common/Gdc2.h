@@ -346,17 +346,13 @@ LgiFunc GColourSpace GdkVisualToColourSpace(Gtk::GdkVisual *v, int output_bits);
 	#define System32BitColourSpace CsBgra32
 	typedef GBgra32 System32BitPixel;
 
-#elif defined(MAC)
+#else
 
 	#define System24BitColourSpace CsRgb24
 	typedef GRgb24 System24BitPixel;
 
 	#define System32BitColourSpace CsRgba32
 	typedef GRgba32 System32BitPixel;
-
-#else
-
-	#error "Impl me"
 
 #endif
 
@@ -622,7 +618,7 @@ public:
 	/// Gets the operator
 	int GetOp() { return Op; }
 	/// Gets the bit depth
-	DEPRECATED_PRE int GetBits() DEPRECATED_POST { return (Dest) ? GColourSpaceToBits(Dest->Cs) : 0; }
+	int GetBits() { return (Dest) ? GColourSpaceToBits(Dest->Cs) : 0; }
 	/// Gets the flags in operation
 	int GetFlags() { return (Dest) ? Dest->Flags : 0; }
 	/// Gets the palette
@@ -1002,7 +998,7 @@ public:
 		GScreenDC(GWindow *wnd, void *Param = 0);
 		GRect GetPos();
 		
-		#else // GTK
+		#elif defined(__GTK_H__)
 		
 		/// Constructs a server size pixmap
 		GScreenDC(int x, int y, int bits);		
@@ -1015,6 +1011,10 @@ public:
 		Gtk::cairo_t *GetCairo();
 		// Gtk::cairo_surface_t *GetSurface(bool Render);
 		GdcPt2 GetSize();
+		
+		#elif defined(BEOS)
+		
+		GScreenDC(BView *view);
 		
 		#endif
 
@@ -1226,12 +1226,16 @@ public:
 		#endif
 		GRect ClipRgn(GRect *Rgn);
 		
-		#else // GTK
+		#elif defined(__GTK_H__)
 
 		Gtk::GdkImage *GetImage();
 		GdcPt2 GetSize();
 		Gtk::cairo_t *GetCairo();
 		Gtk::cairo_surface_t *GetSurface(GRect &r);
+
+		#elif defined(BEOS)
+
+		
 
 		#endif
 		

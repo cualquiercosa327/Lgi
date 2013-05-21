@@ -94,7 +94,7 @@ bool LgiGetsAppForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 					GAppInfo *i = new GAppInfo;
 					if (i)
 					{
-						i->Path = NewStr((char*) p.Path());
+						i->Path.Reset(NewStr((char*) p.Path()));
 						Apps[0] = i;
 						Status = true;
 					}
@@ -185,8 +185,8 @@ bool LgiExecute(char *File, char *Args, char *Dir)
 		{
 			status_t s = B_ERROR;
 			
-			if (stricmp(f, "/BeOS") == 0 OR
-				stricmp(f, "/") == 0 OR
+			if (stricmp(f, "/BeOS") == 0 ||
+				stricmp(f, "/") == 0 ||
 				Entry.IsDirectory())
 			{
 				char *DirMimeType = "application/x-vnd.Be-directory";
@@ -201,7 +201,7 @@ bool LgiExecute(char *File, char *Args, char *Dir)
 				s = Roster.Launch(&Ref);
 			}
 			
-			return s == B_OK OR s == B_ALREADY_RUNNING;
+			return s == B_OK || s == B_ALREADY_RUNNING;
 		}
 		else
 		{
@@ -215,7 +215,7 @@ bool LgiExecute(char *File, char *Args, char *Dir)
 					*/
 					char *Arg[1] = {File};
 					status_t s = Roster.Launch(&Ref, 1, Arg);
-					return s == B_OK OR s == B_ALREADY_RUNNING;
+					return s == B_OK || s == B_ALREADY_RUNNING;
 				}
 			}
 		}

@@ -9,7 +9,7 @@ GPrinter::~GPrinter()
 {
 }
 
-GPrintDC *GPrinter::StartDC(char *PrintJobName, GView *Parent)
+GPrintDC *GPrinter::StartDC(const char *PrintJobName, GView *Parent)
 {
 	return NULL;
 }

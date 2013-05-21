@@ -127,12 +127,12 @@ public:
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 extern uint32 _lgi_mouse_keys();
 
-class GMouseDoEnterExit : public GThread, public GSemaphore
+class GMouseDoEnterExit : public GThread, public GMutex
 {
 	GView *Over;
 
 public:
-	GMouseDoEnterExit()
+	GMouseDoEnterExit() : GThread("GMouseDoEnterExit")
 	{
 		Over = 0;
 		
@@ -146,7 +146,7 @@ public:
 		// Run forever
 		while (true)
 		{
-			if (Lock())
+			if (Lock(_FL))
 			{
 				uint32 But;
 				BPoint Pos;
@@ -205,7 +205,7 @@ public:
 	
 	void SetMouseOver(GView *over)
 	{
-		GSemaphore::Auto Lck(this, _FL);
+		GMutex::Auto Lck(this, _FL);
 		if (Over != over)
 		{
 			SendEvent(LGI_MOUSE_EXIT);
@@ -218,7 +218,7 @@ public:
 	{
 		if (View == Over)
 		{
-			if (Lock())
+			if (Lock(_FL))
 			{
 				Over = 0;
 				Unlock();
@@ -279,7 +279,7 @@ void BViewRedir::Pulse()
 void BViewRedir::MessageReceived(BMessage *message)
 {
 	BView::MessageReceived(message);
-	Wnd->OnEvent(message);
+	Wnd->OnEvent((GMessage*) message); // Haha, this is so bad... oh well.
 }
 
 void BViewRedir::MakeFocus(bool f = true)
@@ -426,7 +426,7 @@ uint32 _lgi_mouse_keys()
 
 void _lgi_assert(bool b, char *test, char *file, int line)
 {
-	if (NOT b)
+	if (!b)
 	{
 		/*
 		LgiMsg(	0,
@@ -448,7 +448,7 @@ GView *_lgi_search_children(GView *v, int &x, int &y)
 		x < r.x2 &&
 		y < r.y2)
 	{
-		Iterator<GViewI> It(&v->Children);
+		List<GViewI>::I It = v->Children.Start();
 		for (GViewI *i=It.First(); i; i=It.Next())
 		{
 			GRect p = i->GetPos();
@@ -480,9 +480,7 @@ BMessage NewMsg(int m, int a, int b)
 ////////////////////////////////////////////////////////////////////////////
 GMessage CreateMsg(int m, int a, int b)
 {
-	GMessage Msg(m);
-	Msg.AddInt32("a", a);
-	Msg.AddInt32("b", b);
+	GMessage Msg(m, a, b);
 	return Msg;
 }
 
@@ -516,10 +514,10 @@ bool LgiIsKeyDown(int Key)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class GViewIter : public GViewIterator
 {
-	Iterator<GViewI> i;
+	List<GViewI>::I i;
 
 public:
-	GViewIter(GView *v) : i(&v->Children)
+	GViewIter(GView *v) : i(v->Children.Start())
 	{
 	}
 
@@ -665,7 +663,7 @@ GView::~GView()
 		if (ParentView)
 		{
 			bool Lock = ParentView->LockLooper();
-			if (NOT ParentView->RemoveChild(_View))
+			if (!ParentView->RemoveChild(_View))
 			{
 				printf("%s:%i - RemoveChild failed.\n", __FILE__, __LINE__);
 			}
@@ -698,7 +696,7 @@ GViewIterator *GView::IterateViews()
 
 bool GView::AddView(GViewI *v, int Where)
 {
-	LgiAssert(NOT Children.HasItem(v));
+	LgiAssert(!Children.HasItem(v));
 	return Children.Insert(v, Where);
 }
 
@@ -787,7 +785,7 @@ GRect JoinAdjacent(GRect &a, GRect &b, int Adj)
 	return t;
 }
 
-void GView::_Paint(GSurface *pDC)
+void GView::_Paint(GSurface *pDC, int Ox, int Oy)
 {
 	GRect r(0, 0, Pos.X()-1, Pos.Y()-1);
 
@@ -822,7 +820,7 @@ void GView::_Paint(GSurface *pDC)
 	Iterator<GViewI> ChildList(&Children); // just in case the children access the child list
 	for (GViewI *w = ChildList.First(); w; w = ChildList.Next())
 	{
-		if (NOT w->Handle() && w->Visible())
+		if (!w->Handle() && w->Visible())
 		{
 			GRect r = w->GetPos();
 			GRect c(0, 0, r.X()-1, r.Y()-1);
@@ -871,12 +869,12 @@ GView *&GView::PopupChild()
 	return d->Popup;
 }
 
-void GView::_Mouse(GMouse &m, bool Move)
+bool GView::_Mouse(GMouse &m, bool Move)
 {
 	/* FIXME
 	if (GetWindow())
 	{
-		if (NOT GetWindow()->OnViewMouse(this, m))
+		if (!GetWindow()->OnViewMouse(this, m))
 		{
 			return;
 		}
@@ -900,7 +898,7 @@ void GView::_Mouse(GMouse &m, bool Move)
 			bool Change = false;
 			GViewI *o = WindowFromPoint(m.x, m.y);
 
-			if (o && NOT o->Handle())
+			if (o && !o->Handle())
 			{
 				printf("Over virtual\n");
 			}
@@ -928,7 +926,7 @@ void GView::_Mouse(GMouse &m, bool Move)
 			Client.Offset(Target->_BorderSize, Target->_BorderSize);
 		}
 		m = _lgi_adjust_click_for_window(m, Target);
-		if (NOT Client.Valid() || Client.Overlap(m.x, m.y))
+		if (!Client.Valid() || Client.Overlap(m.x, m.y))
 		{
 			if (Move)
 			{
@@ -941,9 +939,11 @@ void GView::_Mouse(GMouse &m, bool Move)
 		}
 	}
 	*/
+	
+	return false;
 }
 
-bool GView::Lock(int Timeout)
+bool GView::Lock(const char *file, int line, int Timeout)
 {
 	if (Handle()->Window())
 	{
@@ -1101,7 +1101,7 @@ GRect *GView::FindLargestEdge(GRegion &r, int Edge)
 
 	for (GRect *i = r.First(); i; i = r.Next())
 	{
-		if (NOT Best)
+		if (!Best)
 		{
 			Best = i;
 		}
@@ -1153,7 +1153,7 @@ char *GView::GetCtrlName(int Id)
 	return (w) ? w->Name() : 0;
 }
 
-void GView::SetCtrlName(int Id, char *s)
+void GView::SetCtrlName(int Id, const char *s)
 {
 	GViewI *w = FindControl(Id);
 	if (w)
@@ -1207,7 +1207,7 @@ void GView::Sunken(bool i)
 	if (i)
 	{
 		SetFlag(WndFlags, GWF_SUNKEN);
-		if (NOT _BorderSize)
+		if (!_BorderSize)
 		{
 			_BorderSize = 2;
 		}
@@ -1240,7 +1240,7 @@ void GView::Raised(bool i)
 	if (i)
 	{
 		SetFlag(WndFlags, GWF_RAISED);
-		if (NOT _BorderSize)
+		if (!_BorderSize)
 		{
 			_BorderSize = 2;
 		}
@@ -1323,9 +1323,9 @@ bool GView::IsOver(GMouse &m)
 			(m.y < Pos.Y());
 }
 
-GViewI *GView::WindowFromPoint(int x, int y)
+GViewI *GView::WindowFromPoint(int x, int y, bool debug)
 {
-	Iterator<GViewI> n(&Children);
+	List<GViewI>::I n = Children.Start();
 	for (GViewI *c = n.First(); c; c = n.Next())
 	{
 		GRect r = c->GetPos();
@@ -1488,7 +1488,7 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool NonClient)
 			Up.Set(0, 0, Pos.X()-1, Pos.Y()-1);
 		}
 
-		while (p && NOT p->Handle())
+		while (p && !p->Handle())
 		{
 			Up.Offset(p->Pos.x1, p->Pos.y1);
 			p = p->d->GetParent();
@@ -1569,11 +1569,11 @@ void GView::SendNotify(int Data)
 	}
 }
 
-bool GView::PostEvent(int Cmd, int a, int b)
+bool GView::PostEvent(int Cmd, GMessage::Param a, GMessage::Param b)
 {
 	bool Status = false;
 
-	if (Lock())
+	if (Lock(_FL))
 	{
 		BMessage *Msg = new BMessage(Cmd);
 		if (Msg)
@@ -1590,7 +1590,7 @@ bool GView::PostEvent(int Cmd, int a, int b)
 	return Status;
 }
 
-int GView::OnEvent(BMessage *Msg)
+GMessage::Result GView::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{
@@ -1711,9 +1711,9 @@ int GView::OnNotify(GViewI *Ctrl, int Flags)
 	return 0;
 }
 
-bool GView::Name(char *n)
+bool GView::Name(const char *n)
 {
-	bool Status = GObject::Name(n);
+	bool Status = GBase::Name(n);
 	
 	/*
 	if (_View)
@@ -1729,18 +1729,18 @@ bool GView::Name(char *n)
 
 char *GView::Name()
 {
-	return GObject::Name();
+	return GBase::Name();
 }
 
-bool GView::NameW(char16 *n)
+bool GView::NameW(const char16 *n)
 {
-	bool Status = GObject::NameW(n);
+	bool Status = GBase::NameW(n);
 
 	/*
 	if (_View)
 	{
 		bool Lock = _View->LockLooper();
-		_View->SetName(GObject::Name());
+		_View->SetName(GBase::Name());
 		if (Lock) _View->UnlockLooper();
 	}
 	*/
@@ -1750,7 +1750,7 @@ bool GView::NameW(char16 *n)
 
 char16 *GView::NameW()
 {
-	return GObject::NameW();
+	return GBase::NameW();
 }
 
 bool GView::Enabled()
@@ -1981,7 +1981,7 @@ extern bool _setup_mouse_thread(GView::OsMouseInfo *&i, OsThread &t);
 void GView::Sys_MouseDown(BPoint Point)
 {
 /*
-	if (NOT _CaptureThread)
+	if (!_CaptureThread)
 	{
 		if (_setup_mouse_thread(_MouseInfo, _CaptureThread))
 		{
@@ -2125,7 +2125,7 @@ long _lgi_mouse_thread(GView::OsMouseInfo *Info)
 bool _setup_mouse_thread(GView::OsMouseInfo *&i, OsThread &t)
 {
 	/*
-	if (NOT i)
+	if (!i)
 	{
 		i = new GView::OsMouseInfo;
 		if (i)
@@ -2138,7 +2138,7 @@ bool _setup_mouse_thread(GView::OsMouseInfo *&i, OsThread &t)
 		}
 	}
 
-	if (NOT t)
+	if (!t)
 	{
 		t = spawn_thread(_lgi_mouse_thread, "_lgi_mouse_thread", B_NORMAL_PRIORITY, i);
 	}
@@ -2203,8 +2203,8 @@ bool GView::Capture(bool c)
 			// Has thread already
 			_MouseInfo->Capture = c;
 
-			if (NOT c &&
-				NOT _MouseInfo->MouseClick)
+			if (!c &&
+				!_MouseInfo->MouseClick)
 			{
 				kill_thread(_CaptureThread);
 				DeleteObj(_MouseInfo);
@@ -2213,7 +2213,7 @@ bool GView::Capture(bool c)
 			
 		}
 
-		if (NOT HadThread && _CaptureThread)
+		if (!HadThread && _CaptureThread)
 		{
 			resume_thread(_CaptureThread);
 		}
@@ -2243,7 +2243,7 @@ bool GView::WindowVirtualOffset(GdcPt2 *Offset)
 		{
 			GRect r = Wnd->GetPos();
 			GViewI *Parent = Wnd->GetParent();
-			if (NOT Wnd->Handle())
+			if (!Wnd->Handle())
 			{
 				Offset->x += r.x1;
 				Offset->y += r.y1;
@@ -2292,12 +2292,13 @@ void GView::OnMouseMove(GMouse &m)
 	}
 }
 
-void GView::OnMouseWheel(double Lines)
+bool GView::OnMouseWheel(double Lines)
 {
 	if (Script && Script->OnScriptEvent(this))
 	{
 		Script->OnMouseWheel(Lines);
 	}
+	return false;
 }
 
 bool GView::OnKey(GKey &k)
@@ -2482,7 +2483,7 @@ bool GView::Attach(GViewI *Wnd)
 	{
 		_Window = d->GetParent()->_Window;
 	
-		if (NOT d->GetParent()->_View)
+		if (!d->GetParent()->_View)
 		{
 			printf("%s:%i - can't attach to parent that isn't attached...\n", __FILE__, __LINE__);
 			DeleteObj(_View);
@@ -2520,12 +2521,12 @@ bool GView::Attach(GViewI *Wnd)
 				
 				_View->MoveTo(Pos.x1 + Ox, Pos.y1 + Oy);
 				_View->ResizeTo(Pos.X()-1, Pos.Y()-1);
-				if (NOT GView::Visible() &&
-					NOT _View->IsHidden())
+				if (!GView::Visible() &&
+					!_View->IsHidden())
 				{
 					_View->Hide();
 				}
-				if (NOT Enabled())
+				if (!Enabled())
 				{
 					Enabled(false);
 				}
@@ -2538,7 +2539,7 @@ bool GView::Attach(GViewI *Wnd)
 			}
 		}
 
-		if (NOT d->GetParent()->Children.HasItem(this))
+		if (!d->GetParent()->Children.HasItem(this))
 		{
 			// we aren't already a member of the parents children
 			// list so add ourselves in.
@@ -2581,8 +2582,8 @@ GViewI *GView::FindControl(OsView hCtrl)
 		return this;
 	}
 
-	Iterator<GViewI> List(&Children);
-	for (GViewI *c = List.First(); c; c = List.Next())
+	List<GViewI>::I Lst = Children.Start();
+	for (GViewI *c = Lst.First(); c; c = Lst.Next())
 	{
 		GViewI *Ctrl = c->FindControl(hCtrl);
 		if (Ctrl)
@@ -2600,8 +2601,8 @@ GViewI *GView::FindControl(int Id)
 		return this;
 	}
 
-	Iterator<GViewI> List(&Children);
-	for (GViewI *c = List.First(); c; c = List.Next())
+	List<GViewI>::I Lst = Children.Start();
+	for (GViewI *c = Lst.First(); c; c = Lst.Next())
 	{
 		GViewI *Ctrl = c->FindControl(Id);
 		if (Ctrl)
@@ -2728,7 +2729,7 @@ void GView::SetTabStop(bool b)
 {
 }
 
-bool GView::SetCursor(int i)
+LgiCursor GView::GetCursor(int x, int y)
 {
 	/*
 	if (_View && _View->LockLooper())
@@ -2813,11 +2814,11 @@ bool LgiMountVolume(char *Name)
 }
 
 //////////////////////////////////////////////////////////////////////////
-List<GViewFactory> *GViewFactory::Factories;
+static List<GViewFactory> *Factories;
 
 GViewFactory::GViewFactory()
 {
-	if (NOT Factories) Factories = new List<GViewFactory>;
+	if (!Factories) Factories = new List<GViewFactory>;
 	if (Factories) Factories->Insert(this);
 }
 
@@ -2833,7 +2834,7 @@ GViewFactory::~GViewFactory()
 	}
 }
 
-GView *GViewFactory::Create(char *Class, GRect *Pos, char *Text)
+GView *GViewFactory::Create(const char *Class, GRect *Pos, const char *Text)
 {
 	if (Factories && ValidStr(Class))
 	{

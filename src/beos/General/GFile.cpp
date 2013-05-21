@@ -193,7 +193,7 @@ GVolume::~GVolume()
 
 class BeOSVol : public GVolume
 {
-	List<BeOSVol> c;
+	List<GVolume> c;
 
 public:
 	BeOSVol(BVolume *Vol = 0)
@@ -237,6 +237,8 @@ public:
 	{
 		c.DeleteObjects();
 	}
+	
+	
 
 	bool IsMounted()
 	{
@@ -260,19 +262,20 @@ public:
 	
 	GDirectory *GetContents()
 	{
-		GDirectory *Dir = 0;
+		GDirectory *Dir = new GDirectory;
 		if (_Path)
 		{
-			Dir = FileDev->GetDir();
-			if (Dir)
+			if (!Dir->First(_Path))
 			{
-				if (NOT Dir->First(_Path))
-				{
-					DeleteObj(Dir);
-				}
+				DeleteObj(Dir);
 			}
 		}
 		return Dir;
+	}
+	
+	void Insert(GAutoPtr<GVolume> v)
+	{
+		c.Insert(v.Release());
 	}
 };
 
@@ -314,7 +317,7 @@ GFileSystem::~GFileSystem()
 
 GVolume *GFileSystem::GetRootVolume()
 {
-	if (NOT d->RootVol)
+	if (!d->RootVol)
 	{
 		d->RootVol = new BeOSVol;
 	}
@@ -322,12 +325,7 @@ GVolume *GFileSystem::GetRootVolume()
 	return d->RootVol;
 }
 
-GDirectory *GFileSystem::GetDir()
-{
-	return new GDirImpl;
-}
-
-bool GFileSystem::DeleteFile(char *FileName, bool ToTrash)
+bool GFileSystem::Delete(char *FileName, bool ToTrash)
 {
 	if (FileName)
 	{
@@ -359,19 +357,20 @@ bool GFileSystem::GetCurrentDirectory(char *PathName, int Length)
 	return false;
 }
 
-bool GFileSystem::MoveFile(char *OldName, char *NewName)
+bool GFileSystem::Move(char *OldName, char *NewName)
 {
+	LgiAssert(!"Not impl.");
 	return false;
 }
 
-bool GFileSystem::CreateDirectory(char *PathName)
+bool GFileSystem::CreateFolder(char *PathName)
 {
 	BDirectory Old;
 	status_t Status = Old.CreateDirectory(PathName, &Old);
-	return (Status == B_OK) OR (Status == B_FILE_EXISTS);
+	return (Status == B_OK) || (Status == B_FILE_EXISTS);
 }
 
-bool GFileSystem::RemoveDirectory(char *PathName, bool Recurse)
+bool GFileSystem::RemoveFolder(char *PathName, bool Recurse)
 {
 	bool Status = FALSE;
 	BEntry Entry(PathName);
@@ -428,7 +427,7 @@ bool Match(char *Name, char *Mask)
 				Name++;
 			}
 		}
-		else if (*Mask == '?' OR *Mask == *Name)
+		else if (*Mask == '?' || *Mask == *Name)
 		{
 			Mask++;
 			Name++;
@@ -439,7 +438,7 @@ bool Match(char *Name, char *Mask)
 		}
 	}
 
-	while (*Mask AND ((*Mask == '*') OR (*Mask == '.'))) Mask++;
+	while (*Mask AND ((*Mask == '*') || (*Mask == '.'))) Mask++;
 
 	return (*Name == 0 AND *Mask == 0);
 }
@@ -520,7 +519,7 @@ bool GDirectory::ConvertToDate(char *Str, uint64 Time)
 /////////////////////////////////////////////////////////////////////////////////
 //////////////////////////// Directory //////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////
-class GDirImplPrivate
+class GDirectoryPriv
 {
 public:
 	char *BasePath;
@@ -528,59 +527,59 @@ public:
 	BEntry Entry;								
 	struct stat Stat;
 
-	GDirImplPrivate()
+	GDirectoryPriv()
 	{
 		Dir = 0;
 		BasePath = 0;
 	}
 	
-	~GDirImplPrivate()
+	~GDirectoryPriv()
 	{
 		DeleteArray(BasePath);
 		DeleteObj(Dir);
 	}
 };
 
-GDirImpl::GDirImpl()
+GDirectory::GDirectory()
 {
-	d = new GDirImplPrivate;
+	d = new GDirectoryPriv;
 }
 
-GDirImpl::~GDirImpl()
+GDirectory::~GDirectory()
 {
 	DeleteObj(d);
 }
 
-bool GDirImpl::IsReadOnly()
+bool GDirectory::IsReadOnly()
 {
 	return (GetAttributes() & S_IWUSR) == 0;
 }
 
-GDirectory *GDirImpl::Clone()
+GDirectory *GDirectory::Clone()
 {
-	return new GDirImpl;
+	return new GDirectory;
 }
 
-int GDirImpl::GetUser(bool Group)
+int GDirectory::GetUser(bool Group)
 {
 	return 0;
 }
 
-int GDirImpl::GetType()
+int GDirectory::GetType()
 {
 	return IsDir() ? VT_FOLDER : VT_FILE;
 }
 
-bool GDirImpl::Path(char *s, int BufLen)
+bool GDirectory::Path(char *s, int BufLen)
 {
-	if (NOT s)
+	if (!s)
 	{
 		return false;
 	}
 	
 	if (BufLen > 0)
 	{
-		if (NOT GetName() OR
+		if (!GetName() ||
 			(strlen(d->BasePath) + strlen(GetName()) + 2 > BufLen) )
 		{
 			return false;
@@ -591,7 +590,7 @@ bool GDirImpl::Path(char *s, int BufLen)
 	return true;
 }
 
-int GDirImpl::First(char *Path, char *Pattern)
+int GDirectory::First(const char *Path, const char *Pattern)
 {
 	bool Status = false;
 	if (Path AND Pattern)
@@ -599,7 +598,7 @@ int GDirImpl::First(char *Path, char *Pattern)
 		DeleteArray(d->BasePath);
 		d->BasePath = NewStr(Path);
 		
-		if (NOT d->Dir)
+		if (!d->Dir)
 		{
 			d->Dir = new BDirectory(Path);
 		}
@@ -619,7 +618,7 @@ int GDirImpl::First(char *Path, char *Pattern)
 	return Status;
 }
 
-int GDirImpl::Next()
+int GDirectory::Next()
 {
 	bool Status = false;
 	if (d->Dir)
@@ -633,23 +632,23 @@ int GDirImpl::Next()
 	return Status;
 }
 
-int GDirImpl::Close()
+int GDirectory::Close()
 {
 	DeleteObj(d->Dir);
 	return true;
 }
 
-bool GDirImpl::IsDir()
+bool GDirectory::IsDir()
 {
 	return d->Entry.IsDirectory();
 }
 
-bool GDirImpl::IsHidden()
+bool GDirectory::IsHidden()
 {
 	return false;
 }
 
-long GDirImpl::GetAttributes()
+long GDirectory::GetAttributes()
 {
 	if (d->Dir)
 	{
@@ -658,7 +657,7 @@ long GDirImpl::GetAttributes()
 	return 0;
 }
 
-char *GDirImpl::GetName()
+char *GDirectory::GetName()
 {
 	static char Name[MAX_PATH];
 	Name[0] = 0;
@@ -671,7 +670,7 @@ char *GDirImpl::GetName()
 	return Name;
 }
 
-const uint64 GDirImpl::GetCreationTime()
+const uint64 GDirectory::GetCreationTime()
 {
 	time_t t;
 	if (d->Entry.GetCreationTime(&t) == B_OK)
@@ -682,7 +681,7 @@ const uint64 GDirImpl::GetCreationTime()
 	return 0;
 }
 
-const uint64 GDirImpl::GetLastAccessTime()
+const uint64 GDirectory::GetLastAccessTime()
 {
 	time_t t;
 	if (d->Entry.GetAccessTime(&t) == B_OK)
@@ -693,7 +692,7 @@ const uint64 GDirImpl::GetLastAccessTime()
 	return 0;
 }
 
-const uint64 GDirImpl::GetLastWriteTime()
+const uint64 GDirectory::GetLastWriteTime()
 {
 	time_t t;
 	if (d->Entry.GetModificationTime(&t) == B_OK)
@@ -704,7 +703,7 @@ const uint64 GDirImpl::GetLastWriteTime()
 	return 0;
 }
 
-const uint64 GDirImpl::GetSize()
+const uint64 GDirectory::GetSize()
 {
 	if (d->Dir)
 	{
@@ -769,7 +768,7 @@ int GFile::GetOpenMode()
 	return d->Mode;
 }
 
-int GFile::Open(char *File, int Mode)
+int GFile::Open(const char *File, int Mode)
 {
 	int Status = false;
 
@@ -777,7 +776,7 @@ int GFile::Open(char *File, int Mode)
 	{
 		int Other = 0;
 		
-		if (Mode == O_WRITE OR Mode == O_READWRITE)
+		if (Mode == O_WRITE || Mode == O_READWRITE)
 		{
 			Other |= B_CREATE_FILE;
 		}
@@ -953,7 +952,7 @@ int GFile::WriteStr(char *Buf, int Size)
 	{
 		i += d->Write((uchar*) Buf, 1);
 		Buf++;
-		if (NOT *Buf OR *Buf == '\n') break;
+		if (!*Buf || *Buf == '\n') break;
 	}
 
 	return i;
@@ -1023,7 +1022,7 @@ VDirView::~VDirView()
 
 bool VDirView::Read(char *Dir)
 {
-	if (NOT Dir) Dir = ".";
+	if (!Dir) Dir = ".";
 	DeleteObj(Root);
 
 	Items = 0;
@@ -1037,7 +1036,7 @@ bool VDirView::Read(char *Dir)
 		Current = new Node("..", FA_DIRECTORY, 0);
 		if (Current)
 		{
-			if (NOT Root)
+			if (!Root)
 			{
 				Root = Current;
 			}
@@ -1052,14 +1051,14 @@ bool VDirView::Read(char *Dir)
 	}
 
 	bool Done = First("*.*", 0x10, 0x1F);
-	while (NOT Done)
+	while (!Done)
 	{
 		if (strcmp(GetName(), ".") AND strcmp(GetName(), ".."))
 		{
 			Current = new Node(GetName(), GetAttributes(), GetSize());
 			if (Current)
 			{
-				if (NOT Root)
+				if (!Root)
 				{
 					Root = Current;
 				}
@@ -1076,12 +1075,12 @@ bool VDirView::Read(char *Dir)
 	}
 
 	Done = First("*.*", 0x0, 0x2F);
-	while (NOT Done)
+	while (!Done)
 	{
 		Current = new Node(GetName(), GetAttributes(), GetSize());
 		if (Current)
 		{
-			if (NOT Root)
+			if (!Root)
 			{
 				Root = Current;
 			}
@@ -1141,7 +1140,7 @@ VDirView::Node **VDirView::Node::Traverse(VDirView::Node **ppNode, int Dir)
 	}
 	else
 	{
-		if (NOT (GetAttributes() & FA_DIRECTORY))
+		if (!(GetAttributes() & FA_DIRECTORY))
 		{
 			*ppNode++ = this;
 		}
@@ -1219,7 +1218,8 @@ int NodeInfo::operator ^(NodeInfo &N)
 }
 */
 
-char *GetErrorName(int e)
+const char *GetErrorName(int e)
 {
+	LgiAssert(!"Not impl.");
 	return 0;
 }

@@ -415,6 +415,8 @@ class LgiClass GView : virtual public GViewI, virtual public GBase
 	friend		class _OsEditFrame;
 	friend		class BViewRedir;
 	friend		long _lgi_pulse_thread(void *ptr);
+	friend 		GView *_lgi_search_children(GView *v, int &x, int &y);
+
 
 	#endif
 

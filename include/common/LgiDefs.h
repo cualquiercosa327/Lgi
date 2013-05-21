@@ -24,8 +24,6 @@ typedef		unsigned long				ulong;
 	typedef		char						int8;
 	/// 8-bit unsigned int type (size safe, garenteed to be 8 bits)
 	typedef		unsigned char				uint8;
-#else
-#include "be_prim.h"
 #endif
 
 /// 16-bit signed int type (size safe, garenteed to be 16 bits)

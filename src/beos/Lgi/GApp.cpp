@@ -38,7 +38,7 @@ GApp *GApp::ObjInstance()
 	return TheApp;
 }
 
-GApp::GApp(char *Mime, OsAppArguments &OsArgs, GAppArguments *AppArgs) : BApplication(Mime)
+GApp::GApp(const char *Mime, OsAppArguments &OsArgs, GAppArguments *AppArgs) : BApplication(Mime)
 {
 	// Sanity Checks
 	LgiAssert(sizeof(int8) == 1);
@@ -91,13 +91,13 @@ GApp::GApp(char *Mime, OsAppArguments &OsArgs, GAppArguments *AppArgs) : BApplic
 		}
 	}
 
-	if (NOT SystemNormal)
+	if (!SystemNormal)
 	{
 		LgiMsg(0, "Error: Couldn't create system font.", "Lgi Error: GApp::GApp", MB_OK);
 		LgiExitApp();
 	}
 
-	if (NOT GetOption("noskin"))
+	if (!GetOption("noskin"))
 	{
 		// Load library
 		#if defined(_DEBUG)
@@ -114,7 +114,7 @@ GApp::GApp(char *Mime, OsAppArguments &OsArgs, GAppArguments *AppArgs) : BApplic
 				if (CreateSkinEngine)
 				{
 					SkinEngine = CreateSkinEngine(this);
-					if (NOT SkinEngine)
+					if (!SkinEngine)
 					{
 						printf("%s:%i - CreateSkinEngine returned NULL.\n", __FILE__, __LINE__);
 					}
@@ -180,12 +180,12 @@ GViewI *GApp::GetFocus()
 	return 0;
 }
 
-int32 GApp::GetMetric(int Which)
+int32 GApp::GetMetric(LgiSystemMetric Which)
 {
 	return 0;
 }
 
-bool GApp::Run(bool Loop)
+bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 {
 	if (Loop)
 	{
@@ -250,7 +250,7 @@ void GApp::SetConfig(GXmlTag *Tag)
 			DeleteObj(Old);
 		}
 
-		if (NOT d->Config)
+		if (!d->Config)
 		{
 			GetConfig(0);
 		}
@@ -261,9 +261,9 @@ void GApp::SetConfig(GXmlTag *Tag)
 	}
 }
 
-GXmlTag *GApp::GetConfig(char *Tag)
+GXmlTag *GApp::GetConfig(const char *Tag)
 {
-	if (IsOk() AND NOT d->Config)
+	if (IsOk() AND !d->Config)
 	{
 		char File[] = "lgi.conf";
 		char Path[256];
@@ -273,7 +273,7 @@ GXmlTag *GApp::GetConfig(char *Tag)
 			strcat(Path, File);
 
 			/*
-			if (NOT FileExists(Path))
+			if (!FileExists(Path))
 			{
 				char *f = LgiFindFile(File);
 				if (f)
@@ -299,7 +299,7 @@ GXmlTag *GApp::GetConfig(char *Tag)
 			}
 		}
 
-		if (NOT d->Config)
+		if (!d->Config)
 		{
 			d->Config = new GXmlTag("Options");
 		}
@@ -313,7 +313,7 @@ GXmlTag *GApp::GetConfig(char *Tag)
 	return 0;
 }
 
-bool GApp::GetOption(char *Option, char *Dest, int DestLen)
+bool GApp::GetOption(const char *Option, char *Dest, int DestLen)
 {
 	if (Option)
 	{
@@ -322,14 +322,14 @@ bool GApp::GetOption(char *Option, char *Dest, int DestLen)
 		for (int i=1; i<d->Args.Args; i++)
 		{
 			char *c = d->Args.Arg[i];
-			if (*c == '/' OR *c == '\\' OR *c == '-')
+			if (*c == '/' || *c == '\\' || *c == '-')
 			{
 				c++;
 				if (strncmp(c, Option, OptLen) == 0)
 				{
 					c += OptLen;
 					
-					if (NOT *c AND i < d->Args.Args - 1)
+					if (!*c AND i < d->Args.Args - 1)
 					{
 						c = d->Args.Arg[++i];
 					}
@@ -379,11 +379,11 @@ void GApp::OnCommandLine()
 		char *e = s;
 		if (strchr(Delim, *s))
 		{
-			for (e = ++s; *e AND NOT strchr(Delim, *e); e++);
+			for (e = ++s; *e AND !strchr(Delim, *e); e++);
 		}
 		else
 		{
-			for (; *e AND NOT strchr(WhiteSpace, *e); e++);
+			for (; *e AND !strchr(WhiteSpace, *e); e++);
 		}
 
 		char *Arg = NewStr(s, (int)e-(int)s);
@@ -424,7 +424,7 @@ OsAppArguments *GApp::GetAppArgs()
 	return &d->Args;
 }
 
-bool GApp::GetOption(char *Option, GArray<char> &Buf)
+bool GApp::GetOption(const char *Option, GAutoString &Buf)
 {
 	if (IsOk() AND Option)
 	{
@@ -458,9 +458,7 @@ bool GApp::GetOption(char *Option, GArray<char> &Buf)
 								int Len = (int)End-(int)Arg;
 								if (Len > 0)
 								{
-									Buf.Length(Len + 1);
-									memcpy(&Buf[0], Arg, Len);
-									Buf[Len] = 0;
+									Buf.Reset(NewStr(Arg, End - Arg));
 								}
 								else return false;
 							}
@@ -468,8 +466,7 @@ bool GApp::GetOption(char *Option, GArray<char> &Buf)
 						}
 						else
 						{
-							Buf.Length(strlen(Arg)+1);
-							strcpy(&Buf[0], Arg);
+							Buf.Reset(NewStr(Arg));
 						}
 					}
 
@@ -502,10 +499,10 @@ void GApp::Exit(int Code)
 	}
 }
 
-bool GApp::GetFileMimeType(char *File, char *Mime, int BufLen)
+GAutoString GApp::GetFileMimeType(const char *File)
 {
 	LgiAssert(0);
-	return false;
+	return GAutoString();
 }
 
 GMouseHook *GApp::MouseHook = 0;

@@ -21,7 +21,6 @@ typedef BWindow						*OsWindow;
 typedef BView						*OsView;
 typedef BBitmap						*OsBitmap;
 typedef thread_id					OsThread;
-typedef BMessage					GMessage;
 typedef team_id						OsProcess;
 typedef char						OsChar;
 typedef BView						*OsPainter;
@@ -37,6 +36,20 @@ public:
 	{
 		Args = 0;
 		Arg = 0;
+	}
+};
+
+class LgiClass GMessage : public BMessage
+{
+public:
+	typedef unsigned int Param;
+	typedef unsigned int Result;
+	
+	GMessage() {}
+	GMessage(int m, Param a, Param b)
+	{
+		AddInt32("a", a);
+		AddInt32("b", b);
 	}
 };
 
@@ -68,7 +81,7 @@ extern void _lgi_yield();
 #define LgiYield()				_lgi_yield()
 
 // Network
-#include "NetworkKit.h"
+// #include "NetworkKit.h"
 #define ValidSocket(s)			((s)>=0)
 #define INVALID_SOCKET			-1
 typedef int OsSocket;
@@ -78,6 +91,7 @@ typedef int OsSocket;
 #define DOUBLE_CLICK_THRESHOLD	5
 #define LGI_FileDropFormat		"Something?"
 #define LGI_WideCharset			"utf-8"
+#define LGI_LIBRARY_EXT			"so"
 
 #define IDOK					1
 #define IDCANCEL				2
@@ -111,6 +125,7 @@ typedef int OsSocket;
 #define GWF_DIALOG				0x00000200
 #define GWF_DESTRUCTOR			0x00000400
 #define GWF_QUIT_WND			0x00000800
+#define GWF_DISABLED			0x00001000
 
 // Edge types
 #define SUNKEN					1
