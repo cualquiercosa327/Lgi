@@ -79,22 +79,26 @@ class GFlowRegion;
 
 struct GTagHit
 {
-	GTag *Hit; // Tag that was hit, or nearest tag, otherwise NULL
-	int Near; // 0 if a direct hit, >0 is near miss, -1 if invalid.
-	GdcPt2 LocalCoods;
+	GTag *Direct;		// Tag directly under cursor
+	GTag *NearestText;	// Nearest tag with text
+	int Near;			// How close in px was the position to NearestText.
+						// 0 if a direct hit, >0 is near miss, -1 if invalid.
+	GdcPt2 LocalCoords;	// The position in local co-ords of the tag
 
-	GFlowRect *Block; // Text block hit
+	GFlowRect *Block;	// Text block hit
 	int Index; // If Block!=NULL then index into text, otherwise -1.
 
 	GTagHit()
 	{
-		Hit = 0;
+		Direct = NULL;
+		NearestText = NULL;
 		Block = 0;
 		Near = -1;
 		Index = -1;
-		LocalCoods.x = LocalCoods.y = -1;
+		LocalCoords.x = LocalCoords.y = -1;
 	}
 
+	/*
 	/// Return true if the current object is a closer than 'h'
 	bool operator <(GTagHit &h)
 	{
@@ -115,6 +119,7 @@ struct GTagHit
 
 		return false;
 	}
+	*/
 };
 
 struct GInfo
@@ -334,7 +339,6 @@ public:
 	};
 
 protected:
-	static bool Selected;
 	friend class HtmlEdit;
 
 	GHashTbl<const char*, char*> Attr;
@@ -467,12 +471,12 @@ public:
 		GSurface *pDC,
 		/// [Optional] The size of the border painted
 		GRect *Px = NULL);
-	void OnPaint(GSurface *pDC);
+	void OnPaint(GSurface *pDC, bool &InSelection);
 	void SetSize(GdcPt2 &s);
 	void SetTag(const char *Tag);
-	GTagHit GetTagByPos(int x, int y);
+	void GetTagByPos(GTagHit &TagHit, int x, int y, bool DebugLog = false);
 	GTag *GetTagByName(const char *Name);
-	void CopyClipboard(GBytePipe &p);
+	void CopyClipboard(GBytePipe &p, bool &InSelection);
 	GTag *IsAnchor(GAutoString *Uri);
 	bool CreateSource(GStringPipe &p, int Depth = 0, bool LastWasBlock = true);
 	void Find(int TagType, GArray<GTag*> &Tags);

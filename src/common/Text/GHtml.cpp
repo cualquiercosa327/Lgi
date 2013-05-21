@@ -1433,8 +1433,6 @@ void GFlowRegion::Insert(GFlowRect *Tr)
 }
 
 //////////////////////////////////////////////////////////////////////
-bool GTag::Selected = false;
-
 GTag::GTag(GHtml *h, GTag *p) : Attr(0, false)
 {
 	Ctrl = 0;
@@ -1767,22 +1765,22 @@ COLOUR GTag::_Colour(bool f)
 	return GT_TRANSPARENT;
 }
 
-void GTag::CopyClipboard(GBytePipe &p)
+void GTag::CopyClipboard(GBytePipe &p, bool &InSelection)
 {
-	if (!Parent)
-	{
-		Selected = false;
-	}
-
 	int Min = -1;
 	int Max = -1;
 
+	if (Cursor >= 0 || Selection >= 0)
+	{
+		int asd=0;
+	}
+	
 	if (Cursor >= 0 && Selection >= 0)
 	{
 		Min = min(Cursor, Selection);
 		Max = max(Cursor, Selection);
 	}
-	else if (Selected)
+	else if (InSelection)
 	{
 		Max = max(Cursor, Selection);
 	}
@@ -1802,15 +1800,15 @@ void GTag::CopyClipboard(GBytePipe &p)
 	{
 		Off = Min;
 		Chars = StrlenW(Text()) - Min;
-		Selected = true;
+		InSelection = true;
 	}
 	else if (Max >= 0)
 	{
 		Off = 0;
 		Chars = Max;
-		Selected = false;
+		InSelection = false;
 	}
-	else if (Selected)
+	else if (InSelection)
 	{
 		Off = 0;
 		Chars = StrlenW(Text());
@@ -1821,7 +1819,7 @@ void GTag::CopyClipboard(GBytePipe &p)
 		p.Write((uchar*) (Text() + Off), Chars * sizeof(char16));
 	}
 
-	if (Selected)
+	if (InSelection)
 	{
 		switch (TagId)
 		{
@@ -1843,7 +1841,7 @@ void GTag::CopyClipboard(GBytePipe &p)
 
 	for (GTag *c = Tags.First(); c; c = Tags.Next())
 	{
-		c->CopyClipboard(p);
+		c->CopyClipboard(p, InSelection);
 	}
 }
 
@@ -2338,72 +2336,75 @@ int GTag::NearestChar(GFlowRect *Tr, int x, int y)
 	return -1;
 }
 
-GTagHit GTag::GetTagByPos(int x, int y)
+void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, bool DebugLog)
 {
-	GTagHit r;
-	
-	for (GTag *t=Tags.First(); t; t=Tags.Next())
-	{
-		if (t->Pos.x >= 0 &&
-			t->Pos.y >= 0)
-		{
-			GTagHit hit = t->GetTagByPos(x - t->Pos.x, y - t->Pos.y);
-			if (hit < r)
-			{
-				r = hit;
-			}
-		}
-	}
-
 	if (TagId == TAG_IMG)
 	{
 		GRect img(0, 0, Size.x - 1, Size.y - 1);
 		if (img.Overlap(x, y))
 		{
-			r.Hit = this;
-			r.Block = 0;
-			r.Near = 0;
+			TagHit.Direct = this;
+			TagHit.Block = 0;
+			TagHit.Near = 0;
 		}
 	}
-	else if (Text())
+	else if (Tag && Text())
 	{
 		for (int i=0; i<TextPos.Length(); i++)
 		{
 			GFlowRect *Tr = TextPos[i];
 			
-			GTagHit hit;
-			hit.Hit = this;
-			hit.Block = Tr;
-			hit.Near = IsNearRect(Tr, x, y);
-			LgiAssert(hit.Near >= 0);
-			if (hit < r)
+			int Near = IsNearRect(Tr, x, y);
+			if (Near >= 0 && Near < 100)
 			{
-				r = hit;
-				r.Index = NearestChar(Tr, x, y);
-				
-				if (hit.Near == 0)
+				if (!TagHit.NearestText ||
+					Near < TagHit.Near)
 				{
-					r.LocalCoods.x = x - Pos.x;
-					r.LocalCoods.y = y - Pos.y;
+					TagHit.NearestText = this;
+					TagHit.Block = Tr;
+					TagHit.Near = Near;
+					TagHit.Index = NearestChar(Tr, x, y);
+					
+					if (DebugLog)
+						LgiTrace("GetTagByPos HitText %s, idx=%i, near=%i\n", Tag, TagHit.Index, TagHit.Near);
+
+					if (!TagHit.Near)
+					{
+						TagHit.Direct = this;
+						TagHit.LocalCoords.x = x - Pos.x;
+						TagHit.LocalCoords.y = y - Pos.y;
+					}
 				}
 			}
 		}
 	}
-	else if (x >= 0 &&
+	else if
+	(
+		Tag &&
+		x >= 0 &&
 		y >= 0 &&
 		x < Size.x &&
 		y < Size.y &&
-		(!r.Hit || r.Near > 0))
+		!TagHit.Direct
+	)
 	{
 		// Direct hit
-		r.Hit = this;
-		r.Near = 0;
-		r.Block = NULL;
-		r.LocalCoods.x = x - Pos.x;
-		r.LocalCoods.y = y - Pos.y;
+		TagHit.Direct = this;
+		TagHit.LocalCoords.x = x - Pos.x;
+		TagHit.LocalCoords.y = y - Pos.y;
+
+		if (DebugLog)
+			LgiTrace("GetTagByPos DirectHit %s, idx=%i, near=%i\n", Tag, TagHit.Index, TagHit.Near);
 	}
 
-	return r;
+	for (GTag *t=Tags.First(); t; t=Tags.Next())
+	{
+		if (t->Pos.x >= 0 &&
+			t->Pos.y >= 0)
+		{
+			t->GetTagByPos(TagHit, x - t->Pos.x, y - t->Pos.y, DebugLog);
+		}
+	}
 }
 
 int GTag::OnNotify(int f)
@@ -6233,7 +6234,7 @@ static void FillRectWithImage(GSurface *pDC, GRect *r, GSurface *Image, GCss::Re
 	pDC->Op(Old);
 }
 
-void GTag::OnPaint(GSurface *pDC)
+void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 {
 	if (Display() == DispNone) return;
 
@@ -6279,8 +6280,6 @@ void GTag::OnPaint(GSurface *pDC)
 		}
 		case TAG_BODY:
 		{
-			Selected = false;
-			
 			if (Image)
 			{
 				COLOUR b = GetBack();
@@ -6534,7 +6533,7 @@ void GTag::OnPaint(GSurface *pDC)
 						Min = min(Cursor, Selection) + Base;
 						Max = max(Cursor, Selection) + Base;
 					}
-					else if (Selected)
+					else if (InSelection)
 					{
 						Max = max(Cursor, Selection) + Base;
 					}
@@ -6556,13 +6555,13 @@ void GTag::OnPaint(GSurface *pDC)
 						if (Tr->Len == 0)
 						{
 							// Is this a selection edge point?
-							if (!Selected && Min == 0)
+							if (!InSelection && Min == 0)
 							{
-								Selected = !Selected;
+								InSelection = !InSelection;
 							}
-							else if (Selected && Max == 0)
+							else if (InSelection && Max == 0)
 							{
-								Selected = !Selected;
+								InSelection = !InSelection;
 							}
 
 							if (Cursor >= 0)
@@ -6586,21 +6585,21 @@ void GTag::OnPaint(GSurface *pDC)
 						{
 							int c = Tr->Len - Done;
 
-							FontColour(Selected);
+							FontColour(InSelection);
 
 							// Is this a selection edge point?
-							if (		!Selected &&
+							if (		!InSelection &&
 										Min - Start >= Done &&
 										Min - Start < Done + Tr->Len)
 							{
-								Selected = !Selected;
+								InSelection = !InSelection;
 								c = Min - Start - Done;
 							}
-							else if (	Selected &&
+							else if (	InSelection &&
 										Max - Start >= Done &&
 										Max - Start <= Tr->Len)
 							{
-								Selected = !Selected;
+								InSelection = !InSelection;
 								c = Max - Start - Done;
 							}
 
@@ -6614,15 +6613,15 @@ void GTag::OnPaint(GSurface *pDC)
 							if (Tr->Len == Done)
 							{
 								// Is it also a selection edge?
-								if (		!Selected &&
+								if (		!InSelection &&
 											Min - Start == Done)
 								{
-									Selected = !Selected;
+									InSelection = !InSelection;
 								}
-								else if (	Selected &&
+								else if (	InSelection &&
 											Max - Start == Done)
 								{
-									Selected = !Selected;
+									InSelection = !InSelection;
 								}
 							}
 
@@ -6652,7 +6651,7 @@ void GTag::OnPaint(GSurface *pDC)
 				}
 				else if (Cursor >= 0)
 				{
-					FontColour(Selected);
+					FontColour(InSelection);
 
 					int Base = GetTextStart();
 					for (int i=0; i<TextPos.Length(); i++)
@@ -6702,7 +6701,7 @@ void GTag::OnPaint(GSurface *pDC)
 				}
 				else
 				{
-					FontColour(Selected);
+					FontColour(InSelection);
 
 					for (int i=0; i<TextPos.Length(); i++)
 					{
@@ -6740,7 +6739,7 @@ void GTag::OnPaint(GSurface *pDC)
 	for (GTag *t=*TagIt; t; t=*++TagIt)
 	{
 		pDC->SetOrigin(Px - t->Pos.x, Py - t->Pos.y);
-		t->OnPaint(pDC);
+		t->OnPaint(pDC, InSelection);
 		pDC->SetOrigin(Px, Py);
 	}
 }
@@ -7216,7 +7215,8 @@ void GHtml::OnPaint(GSurface *ScreenDC)
 				pDC->SetOrigin(0, Vs * LineY);
 			}
 
-			Tag->OnPaint(pDC);
+			bool InSelection = false;
+			Tag->OnPaint(pDC, InSelection);
 		}
 
 		#if GHTML_USE_DOUBLE_BUFFER
@@ -7461,7 +7461,8 @@ char *GHtml::GetSelection()
 
 	GBytePipe p;
 
-	Tag->CopyClipboard(p);
+	bool InSelection = false;
+	Tag->CopyClipboard(p, InSelection);
 
 	int Len = p.GetSize();
 	if (Len > 0)
@@ -8100,20 +8101,30 @@ void GHtml::OnMouseClick(GMouse &m)
 	}
 }
 
-GTag *GHtml::GetTagByPos(int x, int y, int *Index, GdcPt2 *LocalCoords)
+GTag *GHtml::GetTagByPos(int x, int y, int *Index, GdcPt2 *LocalCoords, bool DebugLog)
 {
+	GTag *Status = NULL;
+
 	if (Tag)
 	{
-		GTagHit Hit = Tag->GetTagByPos(x, y);
-		if (Hit.Hit && Hit.Near < 30)
+		if (DebugLog)
+			LgiTrace("GetTagByPos starting...\n");
+
+		GTagHit Hit;
+		Tag->GetTagByPos(Hit, x, y, DebugLog);
+
+		if (DebugLog)
+			LgiTrace("GetTagByPos Hit=%s, %i, %i...\n\n", Hit.Direct ? Hit.Direct->Tag : 0, Hit.Index, Hit.Near);
+		
+		Status = Hit.Direct ? Hit.Direct : Hit.NearestText;
+		if (Hit.NearestText && Hit.Near < 30)
 		{
 			if (Index) *Index = Hit.Index;
-			if (LocalCoords) *LocalCoords = Hit.LocalCoods;
-			return Hit.Hit;
+			if (LocalCoords) *LocalCoords = Hit.LocalCoords;
 		}
 	}
 
-	return 0;
+	return Status;
 }
 
 bool GHtml::OnMouseWheel(double Lines)
@@ -8154,104 +8165,109 @@ LgiCursor GHtml::GetCursor(int x, int y)
 
 void GHtml::OnMouseMove(GMouse &m)
 {
+	if (!Tag)
+		return;
+
 	int Offset = ScrollY();
-	int Index = -1;
-	GdcPt2 LocalCoords;
-	GTag *Tag = GetTagByPos(m.x, m.y + Offset, &Index, &LocalCoords);
-	if (Tag)
+	GTagHit Hit;
+	Tag->GetTagByPos(Hit, m.x, m.y + Offset, IsCapturing());
+	if (!Hit.Direct && !Hit.NearestText)
+		return;
+		
+	if (PrevTip &&
+		PrevTip != Tag)
+	{			
+		Tip.DeleteTip(PrevTip->TipId);
+		PrevTip->TipId = 0;
+		PrevTip = 0;
+	}
+
+	GAutoString Uri;
+	if (Hit.LocalCoords.x >= 0 &&
+		Hit.LocalCoords.y >= 0 &&
+		Tag->IsAnchor(&Uri))
 	{
-		if (PrevTip &&
-			PrevTip != Tag)
-		{			
-			Tip.DeleteTip(PrevTip->TipId);
-			PrevTip->TipId = 0;
-			PrevTip = 0;
-		}
-
-		GAutoString Uri;
-		if (LocalCoords.x >= 0 &&
-			LocalCoords.y >= 0 &&
-			Tag->IsAnchor(&Uri))
+		/*
+		GRect c = GetClient();
+		c.Offset(-c.x1, -c.y1);
+		if (c.Overlap(m.x, m.y) && ValidStr(Uri))
 		{
-			/*
-			GRect c = GetClient();
-			c.Offset(-c.x1, -c.y1);
-			if (c.Overlap(m.x, m.y) && ValidStr(Uri))
-			{
-				GLayout::SetCursor(LCUR_PointingHand);
-			}
-			*/
-
-			if (Uri)
-			{
-				if (!Tip.GetParent())
-				{
-					Tip.Attach(this);
-				}
-
-				GRect r = Tag->GetRect(false);
-				r.Offset(0, -Offset);
-				PrevTip = Tag;
-				PrevTip->TipId = Tip.NewTip(Uri, r);
-			}
+			GLayout::SetCursor(LCUR_PointingHand);
 		}
+		*/
 
-		if (Cursor && Tag->TagId != TAG_BODY && IsCapturing())
+		if (Uri)
 		{
-			if (!Selection)
+			if (!Tip.GetParent())
 			{
-				Selection = Cursor;
-				Selection->Selection = Cursor->Cursor;
-				Cursor = Tag;
-				Cursor->Cursor = Index;
-				OnCursorChanged();
-				Invalidate();
+				Tip.Attach(this);
 			}
-			else if ((Cursor != Tag) ||
-					 (Cursor->Selection != Index))
+
+			GRect r = Tag->GetRect(false);
+			r.Offset(0, -Offset);
+			PrevTip = Tag;
+			PrevTip->TipId = Tip.NewTip(Uri, r);
+		}
+	}
+
+	if (IsCapturing() &&
+		Cursor &&
+		Hit.NearestText &&
+		Hit.NearestText->TagId != TAG_BODY)
+	{
+		if (!Selection)
+		{
+			Selection = Cursor;
+			Selection->Selection = Cursor->Cursor;
+			Cursor = Hit.NearestText;
+			Cursor->Cursor = Hit.Index;
+			OnCursorChanged();
+			Invalidate();
+		}
+		else if ((Cursor != Hit.NearestText) ||
+				 (Cursor->Selection != Hit.Index))
+		{
+			if (Cursor)
 			{
-				if (Cursor)
+				Cursor->Cursor = -1;
+			}
+
+			Cursor = Hit.NearestText;
+			Cursor->Cursor = Hit.Index;
+
+			if (d->WordSelectMode && Cursor->Text())
+			{
+				int Base = Cursor->GetTextStart();
+				if (IsCursorFirst())
 				{
-					Cursor->Cursor = -1;
-				}
-
-				Cursor = Tag;
-				Cursor->Cursor = Index;
-
-				if (d->WordSelectMode && Cursor->Text())
-				{
-					int Base = Cursor->GetTextStart();
-					if (IsCursorFirst())
+					// Extend the cursor up the document to include the whole word
+					while (Cursor->Cursor > 0)
 					{
-						// Extend the cursor up the document to include the whole word
-						while (Cursor->Cursor > 0)
-						{
-							char16 c = Cursor->Text()[Base + Cursor->Cursor - 1];
+						char16 c = Cursor->Text()[Base + Cursor->Cursor - 1];
 
-							if (strchr(WordDelim, c) || StrchrW(WhiteW, c))
-								break;
+						if (strchr(WordDelim, c) || StrchrW(WhiteW, c))
+							break;
 
-							Cursor->Cursor--;
-						}
-					}
-					else
-					{
-						// Extend the cursor down the document to include the whole word
-						while (Cursor->Text()[Base + Cursor->Cursor])
-						{
-							char16 c = Cursor->Text()[Base + Cursor->Cursor];
-
-							if (strchr(WordDelim, c) || StrchrW(WhiteW, c))
-								break;
-
-							Cursor->Cursor++;
-						}
+						Cursor->Cursor--;
 					}
 				}
+				else
+				{
+					// Extend the cursor down the document to include the whole word
+					while (Cursor->Text()[Base + Cursor->Cursor])
+					{
+						char16 c = Cursor->Text()[Base + Cursor->Cursor];
 
-				OnCursorChanged();
-				Invalidate();
+						if (strchr(WordDelim, c) || StrchrW(WhiteW, c))
+							break;
+
+						Cursor->Cursor++;
+					}
+				}
 			}
+
+			OnCursorChanged();
+			Invalidate();
 		}
 	}
 }
