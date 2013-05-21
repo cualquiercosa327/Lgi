@@ -147,6 +147,9 @@ void GView::_Focus(bool f)
 
 	OnFocus(f);	
 	Invalidate();
+
+	if (_View)
+		gtk_widget_grab_focus(_View);
 }
 
 void GView::_Delete()
@@ -301,6 +304,7 @@ void LgiToGtkCursor(OsView v, LgiCursor c)
 		*/
 	}
 	
+	LgiAssert(v->window);
 	if (type == GDK_ARROW)
 	{
 		gdk_window_set_cursor(v->window, NULL);
@@ -351,20 +355,22 @@ bool GView::_Mouse(GMouse &m, bool Move)
 		return false;
 	}
 
-	if (0)
+	#if 0
 	{
 		char msg[256];
 		sprintf(msg, "_mouse cap=%p move=%i", _Capturing, Move);
 		m.Trace(msg);
 	}
+	#endif
 
+	GViewI *cap = _Capturing;
 	if (_Capturing)
 	{
 		if (Move)
 		{
 			GMouse Local = lgi_adjust_click(m, _Capturing);
-			_Capturing->OnMouseMove(Local);
 			LgiToGtkCursor(_Capturing->Handle(), _Capturing->GetCursor(Local.x, Local.y));
+			_Capturing->OnMouseMove(Local); // This can set _Capturing to NULL
 		}
 		else
 		{
@@ -834,11 +840,10 @@ bool GView::Attach(GViewI *parent)
 			DropTarget(true);
 		}
 		
-		if (Focus())
+		if (TestFlag(WndFlags, GWF_FOCUS))
 		{
-			ClearFlag(WndFlags, GWF_FOCUS);
-			Focus(true);
-			// printf("%s:%i - Setting initial focus to %s\n", _FL, GetClass());
+			// LgiTrace("OnCreate Focus %s\n", GetClass());
+			gtk_widget_grab_focus(_View);
 		}
 
 		OnCreate();

@@ -459,18 +459,25 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 {
 	if (!Src)
 	{
-		printf("%s:%i - No source.\n", _FL);
+		LgiTrace("%s:%i - No source.\n", _FL);
 		return;
 	}
 	
 	if (Src->IsScreen())
 	{
-		printf("%s:%i - Can't do screen->screen blt.\n", _FL);
+		LgiTrace("%s:%i - Can't do screen->screen blt.\n", _FL);
 		return;
 	}
 		
 	// memory -> screen blt
-	GBlitRegions br(this, x-OriginX, y-OriginY, Src, a);
+	GRect RealClient = d->Client;
+	int Dx, Dy;
+	Dx = x - OriginX;
+	Dy = y - OriginY;
+	d->Client.ZOff(-1, -1); // Clear this so the blit rgn calculation uses the
+							// full context size rather than just the client.
+	GBlitRegions br(this, Dx, Dy, Src, a);
+	d->Client = RealClient;
 	if (!br.Valid())
 	{
 		return;
@@ -479,52 +486,12 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 	GMemDC *Mem;
 	if (Mem = dynamic_cast<GMemDC*>(Src))
 	{
-		/*
-		printf("Doing Mem(%s)->Screen(%s) Blt\n",
-			GColourSpaceToString(Mem->GetColourSpace()),
-			GColourSpaceToString(GetColourSpace()));
-		*/
-			
-		switch (Mem->GetColourSpace())
-		{
-			/* This doesn't work anyway :-(
-			case CsRgba32:
-			case CsBgra32:
-			case CsArgb32:
-			case CsAbgr32:
-			{
-				cairo_surface_t *src = Mem->GetSurface(br.SrcClip);
-				if (src)
-				{
-					int px = x - OriginX;
-					int py = y - OriginY;
-					
-					cairo_t *dest = gdk_cairo_create(d->d);
-					cairo_set_source_surface(dest, src, px, py);
-					// cairo_set_source_rgb(dest, 1, 0, 0);
-					cairo_rectangle(dest,
-									px, py,
-									br.DstClip.X(),
-									br.DstClip.Y());
-					cairo_fill(dest);
-					cairo_destroy(dest);
-					cairo_surface_destroy(src);
-					break;
-				}
-				// else fall through
-			}
-			*/
-			default:
-			{
-				gdk_draw_image( d->d,
-								d->gc,
-								Mem->GetImage(),
-								br.SrcClip.x1, br.SrcClip.y1,
-								x-OriginX, y-OriginY,
-								br.SrcClip.X(), br.SrcClip.Y());
-				break;
-			}
-		}
+		gdk_draw_image( d->d,
+						d->gc,
+						Mem->GetImage(),
+						br.SrcClip.x1, br.SrcClip.y1,
+						Dx, Dy,
+						br.SrcClip.X(), br.SrcClip.Y());
 	}
 }
 

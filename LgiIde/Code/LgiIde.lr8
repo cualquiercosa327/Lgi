@@ -630,6 +630,8 @@
 			<String Ref="123" Cid="534" Define="IDM_HELP" en="&Help" />
 			<String Ref="34" Cid="559" Define="IDM_FIND_SYMBOL" en="Find Symbol" />
 			<String Ref="81" Cid="560" Define="IDM_FIND_REFERENCES" en="Find References" />
+			<String Ref="197" Cid="561" Define="IDM_MENU_561" />
+			<String Ref="198" Cid="562" Define="IDM_GOTO_SYMBOL" en="Goto Symbol" />
 		</string-group>
 		<submenu Ref="175">
 			<menuitem Ref="174" Shortcut="Ctrl+N" />
@@ -663,6 +665,8 @@
 			<menuitem Ref="154" Shortcut="F3" />
 			<menuitem Ref="153" Shortcut="Ctrl+H" />
 			<menuitem Ref="152" Shortcut="Ctrl+Shift+F" />
+			<menuitem Sep="1" />
+			<menuitem Ref="198" Shortcut="Alt+G" />
 			<menuitem Ref="34" Shortcut="Shift+Alt+S" />
 			<menuitem Ref="81" Shortcut="Shift+Alt+F" />
 		</submenu>

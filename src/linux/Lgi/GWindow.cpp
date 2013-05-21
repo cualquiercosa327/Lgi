@@ -9,6 +9,8 @@
 using namespace Gtk;
 #include "LgiWidget.h"
 
+#define DEBUG_SETFOCUS		0
+
 ///////////////////////////////////////////////////////////////////////
 class HookInfo
 {
@@ -1129,14 +1131,52 @@ GViewI *GWindow::GetFocus()
 	return d->Focus;
 }
 
+#if DEBUG_SETFOCUS
+static GAutoString DescribeView(GViewI *v)
+{
+	if (!v)
+		return GAutoString(NewStr("NULL"));
+
+	char s[512];
+	int ch = 0;
+	::GArray<GViewI*> p;
+	for (GViewI *i = v; i; i = i->GetParent())
+	{
+		p.Add(i);
+	}
+	for (int n=min(3, p.Length()-1); n>=0; n--)
+	{
+		v = p[n];
+		ch += sprintf_s(s + ch, sizeof(s) - ch, ">%s", v->GetClass());
+	}
+	return GAutoString(NewStr(s));
+}
+#endif
+
 void GWindow::SetFocus(GViewI *ctrl, FocusType type)
 {
+	#if DEBUG_SETFOCUS
+	const char *TypeName = NULL;
+	switch (type)
+	{
+		case GainFocus: TypeName = "Gain"; break;
+		case LoseFocus: TypeName = "Lose"; break;
+		case ViewDelete: TypeName = "Delete"; break;
+	}
+	#endif
+
 	switch (type)
 	{
 		case GainFocus:
 		{
 			if (d->Focus == ctrl)
+			{
+				#if DEBUG_SETFOCUS
+				GAutoString _ctrl = DescribeView(ctrl);
+				LgiTrace("SetFocus(%s, %s) already has focus.\n", _ctrl.Get(), TypeName);
+				#endif
 				return;
+			}
 
 			if (d->Focus)
 			{
@@ -1150,13 +1190,17 @@ void GWindow::SetFocus(GViewI *ctrl, FocusType type)
 					d->Focus->OnFocus(false);
 					d->Focus->Invalidate();
 				}
+
+				#if DEBUG_SETFOCUS
+				GAutoString _foc = DescribeView(d->Focus);
+				LgiTrace(".....defocus: %s\n", _foc.Get());
+				#endif
 			}
+
 			d->Focus = ctrl;
+
 			if (d->Focus)
 			{
-				if (d->Focus->Handle())
-					gtk_widget_grab_focus(d->Focus->Handle());
-
 				GView *gv = d->Focus->GetGView();
 				if (gv)
 				{
@@ -1167,17 +1211,41 @@ void GWindow::SetFocus(GViewI *ctrl, FocusType type)
 					d->Focus->OnFocus(true);
 					d->Focus->Invalidate();
 				}
+
+				#if DEBUG_SETFOCUS
+				GAutoString _set = DescribeView(d->Focus);
+				LgiTrace("GWindow::SetFocus(%s, %s) focusing %p\n",
+					_set.Get(),
+					TypeName,
+					d->Focus->Handle());
+				#endif
 			}
 			break;
 		}
 		case LoseFocus:
 		{
+			#if DEBUG_SETFOCUS
+			GAutoString _Ctrl = DescribeView(d->Focus);
+			GAutoString _Focus = DescribeView(d->Focus);
+			LgiTrace("GWindow::SetFocus(%s, %s) d->Focus=%s\n",
+				_Ctrl.Get(),
+				TypeName,
+				_Focus.Get());
+			#endif
 			break;
 		}
 		case ViewDelete:
 		{
 			if (ctrl == d->Focus)
+			{
+				#if DEBUG_SETFOCUS
+				GAutoString _Ctrl = DescribeView(d->Focus);
+				LgiTrace("GWindow::SetFocus(%s, %s) on delete\n",
+					_Ctrl.Get(),
+					TypeName);
+				#endif
 				d->Focus = NULL;
+			}
 			break;
 		}
 	}

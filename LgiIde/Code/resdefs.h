@@ -137,3 +137,5 @@
 #define IDC_75									558
 #define IDM_FIND_SYMBOL							559
 #define IDM_FIND_REFERENCES						560
+#define IDM_MENU_561							561
+#define IDM_GOTO_SYMBOL							562
