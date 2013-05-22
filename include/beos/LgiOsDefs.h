@@ -256,5 +256,6 @@ extern GMessage CreateMsg(int m, int a, int b);
 extern int stricmp(char *a, char *b);
 #define sprintf_s				snprintf
 #define stricmp					strcasecmp
+#define _stricmp				strcasecmp
 
 #endif
