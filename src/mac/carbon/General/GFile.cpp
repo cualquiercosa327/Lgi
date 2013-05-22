@@ -378,7 +378,7 @@ bool ResolveShortcut(char *LinkFile, char *Path, int Len)
 
 void WriteStr(GFile &f, char *s)
 {
-	ulong Len = (s) ? strlen(s) : 0;
+	uint32 Len = (s) ? strlen(s) : 0;
 	f << Len;
 	if (Len > 0)
 	{
@@ -430,7 +430,7 @@ char *ReadStr(GFile &f DeclDebugArgs)
 
 int SizeofStr(char *s)
 {
-	return sizeof(ulong) + ((s) ? strlen(s) : 0);
+	return sizeof(uint32) + ((s) ? strlen(s) : 0);
 }
 
 bool LgiGetDriveInfo

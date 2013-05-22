@@ -47,7 +47,7 @@
 #define FLOPPY_3_5				(FLOPPY_720K | FLOPPY_1_4M)
 
 /****************************** Helper Functions ****************************************************************************/
-char *ReadTextFile(char *File)
+char *ReadTextFile(const char *File)
 {
 	char *s = 0;
 	GFile f;
@@ -64,7 +64,7 @@ char *ReadTextFile(char *File)
 	return s;
 }
 
-int64 LgiFileSize(char *FileName)
+int64 LgiFileSize(const char *FileName)
 {
 	int64 Size = 0;
 	GDirectory Dir;
@@ -243,7 +243,7 @@ int _GetLongPathName(char *Short, char *Long, int Buf)
 	return Len;
 }
 
-bool ResolveShortcut(char *LinkFile, char *Path, int Len) 
+bool ResolveShortcut(const char *LinkFile, char *Path, int Len) 
 {
 	bool Status = false;
 	/*
@@ -318,7 +318,7 @@ bool ResolveShortcut(char *LinkFile, char *Path, int Len)
 	return Status;
 }
 
-void WriteStr(GFile &f, char *s)
+void WriteStr(GFile &f, const char *s)
 {
 	uint32 Len = (s) ? strlen(s) : 0;
 	f << Len;

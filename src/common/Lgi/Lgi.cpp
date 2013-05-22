@@ -585,7 +585,7 @@ bool LgiTrimDir(char *Path)
 	return false;
 }
 
-GAutoString LgiMakeRelativePath(char *Base, char *Path)
+GAutoString LgiMakeRelativePath(const char *Base, const char *Path)
 {
 	GStringPipe Status;
 
@@ -1598,7 +1598,7 @@ bool LgiGetExePath(char *Dst, int DstSize)
 	return LgiGetSystemPath(LSP_EXE, Dst, DstSize);
 }
 
-char *LgiGetExtension(const char *File)
+char *LgiGetExtension(char *File)
 {
 	if (File)
 	{

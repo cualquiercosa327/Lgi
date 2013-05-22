@@ -38,14 +38,6 @@
 extern void GetFlagsStr(char *flagstr, short flags);
 extern int LeapYear(int year);
 
-char *LgiGetExtension(char *File)
-{
-	char *last = File ? strrchr(File, '.') : NULL;
-	if (!strchr(last, DIR_CHAR))
-		return last + 1;
-	return NULL;
-}
-
 int SizeofStr(const char *s)
 {
 	return sizeof(uint32) + ((s) ? strlen(s) : 0);

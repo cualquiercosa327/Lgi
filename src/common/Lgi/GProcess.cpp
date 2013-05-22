@@ -357,7 +357,7 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 
 	#ifdef WIN32
 	char _exe[256];
-	if (!LgiGetExtension(Exe))
+	if (!LgiGetExtension((char*)Exe))
 	{
 		sprintf(_exe, "%s.exe", Exe);
 		Exe = _exe;
