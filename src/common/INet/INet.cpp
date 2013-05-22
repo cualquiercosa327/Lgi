@@ -66,7 +66,10 @@
 	
 #elif defined BEOS
 
+	#include <sys/time.h>
 	#include <stdio.h>
+	#include <errno.h>
+	#include <UrlContext.h>
 	#include <NetEndpoint.h>
 	#include <NetworkKit.h>
 
@@ -74,7 +77,8 @@
 	#define MSG_NOSIGNAL 0
 
 	typedef struct hostent HostEnt;
-	typedef int socklen_t;
+	// typedef int socklen_t;
+	#define OsAddr				s_addr
 
 #endif
 
@@ -1417,13 +1421,14 @@ bool WhatsMyIp(GAutoString &Ip)
 			return false;
 		
 		uchar *a = (uchar*)&addr.sin_addr.s_addr;
+		char IpAddr[32];
 		sprintf(	IpAddr,
 					"%i.%i.%i.%i",
 					a[0],
 					a[1],
 					a[2],
 					a[3]);
-	
+		Ip.Reset(NewStr(IpAddr));
 		Status = true;
 		
 		#endif

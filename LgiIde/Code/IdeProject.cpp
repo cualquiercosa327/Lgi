@@ -3339,6 +3339,8 @@ bool IdeProject::CreateMakefile()
 				PLATFORM_LINUX
 				#elif defined MAC
 				PLATFORM_MAC
+				#elif defined BEOS
+				PLATFORM_BEOS
 				#else
 				#error "Not impl"
 				#endif

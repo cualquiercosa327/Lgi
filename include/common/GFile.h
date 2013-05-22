@@ -433,21 +433,21 @@ public:
 };
 
 // Functions
-LgiFunc int64 LgiFileSize(char *FileName);
+LgiFunc int64 LgiFileSize(const char *FileName);
 LgiFunc bool FileExists(const char *File);
 LgiFunc bool DirExists(const char *Dir);
-LgiFunc bool ResolveShortcut(char *LinkFile, char *Path, int Len);
-LgiFunc void WriteStr(GFile &f, char *s);
+LgiFunc bool ResolveShortcut(const char *LinkFile, char *Path, int Len);
+LgiFunc void WriteStr(GFile &f, const char *s);
 LgiFunc char *ReadStr(GFile &f DeclDebugArgs);
-LgiFunc int SizeofStr(char *s);
-LgiFunc char *ReadTextFile(char *File);
+LgiFunc int SizeofStr(const char *s);
+LgiFunc char *ReadTextFile(const char *File);
 LgiFunc bool LgiTrimDir(char *Path);
 LgiFunc bool LgiIsRelativePath(const char *Path);
-LgiClass GAutoString LgiMakeRelativePath(char *Base, char *Path);
+LgiClass GAutoString LgiMakeRelativePath(const char *Base, const char *Path);
 LgiFunc bool LgiMakePath(char *Str, int StrBufLen, const char *Dir, const char *File);
-LgiFunc char *LgiGetExtension(const char *File);
-LgiFunc bool LgiIsFileNameExecutable(char *FileName);
-LgiFunc bool LgiIsFileExecutable(char *FileName, GStreamI *f, int64 Start, int64 Len);
+LgiFunc char *LgiGetExtension(char *File);
+LgiFunc bool LgiIsFileNameExecutable(const char *FileName);
+LgiFunc bool LgiIsFileExecutable(const char *FileName, GStreamI *f, int64 Start, int64 Len);
 LgiFunc const char *GetErrorName(int e);
 
 /// Get information about the disk that a file resides on.

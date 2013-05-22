@@ -12,7 +12,7 @@ public:
 	GLibrary *SkinLib;
 	GdcDevice *GdcSystem;
 
-	GAppPrivate()
+	GAppPrivate() : Args(0, 0)
 	{
 		FileSystem = 0;
 		GdcSystem = 0;

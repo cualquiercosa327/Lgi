@@ -179,6 +179,7 @@ COLOUR GdcMixColour(COLOUR c1, COLOUR c2, double HowMuchC1)
 	return Rgb24(r, g, b);
 }
 
+/*
 COLOUR CBit(int DstBits, COLOUR c, int SrcBits, GPalette *Pal)
 {
 	if (SrcBits == DstBits)
@@ -354,6 +355,7 @@ COLOUR CBit(int DstBits, COLOUR c, int SrcBits, GPalette *Pal)
 
 	return c;
 }
+*/
 
 void TrimWhite(char *s)
 {
@@ -730,6 +732,7 @@ GBmpMem::~GBmpMem()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+#if 0
 GSurface::GSurface()
 {
 	OriginX = OriginY = 0;
@@ -1017,6 +1020,7 @@ void GSurface::Palette(GPalette *pPal, bool bOwnIt)
 		pApp->SetSurface(pMem, pPalette, (pAlphaDC) ? pAlphaDC->pMem : 0);
 	}
 }
+#endif
 
 #include "GraphicsCard.h"
 extern GLibrary *_LgiStartIconv();

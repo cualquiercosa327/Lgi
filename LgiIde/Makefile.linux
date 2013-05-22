@@ -26,15 +26,12 @@ else
 endif
 
 # Libraries
-Libs = 		-static-libgcc \
-			`pkg-config --libs gtk+-2.0` \
-			-L../$(BuildDir) \
+Libs = 		-L../$(BuildDir) \
 			-llgi$(Tag)
 
 # Includes
-Inc =		`pkg-config --cflags gtk+-2.0` \
-			-I../include/common \
-			-I../include/linux/Gtk \
+Inc =		-I../include/common \
+			-I../include/beos \
 			-I./Code
 
 # Dependencies

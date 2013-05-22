@@ -32,10 +32,10 @@ public:
 	int Args;
 	char **Arg;
 
-	OsAppArguments()
+	OsAppArguments(int args, char **arg)
 	{
-		Args = 0;
-		Arg = 0;
+		Args = args;
+		Arg = arg;
 	}
 };
 
@@ -254,5 +254,7 @@ extern GMessage CreateMsg(int m, int a, int b);
 #define LGI_NODRAW_VIEW_FLAGS	(B_POINTER_EVENTS | B_NAVIGABLE | B_FRAME_EVENTS)
 
 extern int stricmp(char *a, char *b);
+#define sprintf_s				snprintf
+#define stricmp					strcasecmp
 
 #endif

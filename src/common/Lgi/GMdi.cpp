@@ -108,9 +108,9 @@ GMdiChild::~GMdiChild()
 
 bool GMdiChild::Attach(GViewI *p)
 {
-	#ifdef BEOS
+	#if 0 // def BEOS
 	bool s = true;
-	GFlags::Visible(true);
+	GView::Visible(true);
 	if (!p->Children.HasItem(this))
 	{
 		p->Children.Insert(this);
@@ -490,6 +490,8 @@ void GMdiChild::Raise()
 			LgiAssert(0);
 		#elif WIN32NATIVE
 		SetWindowPos(Handle(), HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+		#elif BEOS
+		LgiAssert(!"Impl me.");
 		#else
 		#error "Impl me."
 		#endif
@@ -514,6 +516,8 @@ void GMdiChild::Lower()
 			LgiAssert(0);
 		#elif WIN32NATIVE
 		SetWindowPos(Handle(), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+		#elif BEOS
+		LgiAssert(!"Impl me.");
 		#else
 		#error "Impl me."
 		#endif

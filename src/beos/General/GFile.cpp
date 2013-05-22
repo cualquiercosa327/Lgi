@@ -38,14 +38,22 @@
 extern void GetFlagsStr(char *flagstr, short flags);
 extern int LeapYear(int year);
 
-int SizeofStr(char *s)
+char *LgiGetExtension(char *File)
 {
-	return sizeof(ulong) + ((s) ? strlen(s) : 0);
+	char *last = File ? strrchr(File, '.') : NULL;
+	if (!strchr(last, DIR_CHAR))
+		return last + 1;
+	return NULL;
 }
 
-void WriteStr(GFile &f, char *s)
+int SizeofStr(const char *s)
 {
-	ulong Len = (s) ? strlen(s) : 0;
+	return sizeof(uint32) + ((s) ? strlen(s) : 0);
+}
+
+void WriteStr(GFile &f, const char *s)
+{
+	uint32 Len = (s) ? strlen(s) : 0;
 	f << Len;
 	if (Len > 0)
 	{
@@ -55,7 +63,7 @@ void WriteStr(GFile &f, char *s)
 
 char *ReadStr(GFile &f)
 {
-	ulong Len;
+	uint32 Len;
 	f >> Len;
 	char *s = 0;
 
@@ -76,7 +84,7 @@ char *ReadStr(GFile &f)
 	return s;
 }
 
-bool ResolveShortcut(char *LinkFile, char *Path, int Length) 
+bool ResolveShortcut(const char *LinkFile, char *Path, int Length) 
 {
 	bool Status = FALSE;
 
@@ -96,7 +104,7 @@ bool ResolveShortcut(char *LinkFile, char *Path, int Length)
 	return Status;
 }
 
-int64 LgiFileSize(char *FileName)
+int64 LgiFileSize(const char *FileName)
 {
 	BEntry e(FileName);
 	off_t s = 0;
@@ -104,13 +112,13 @@ int64 LgiFileSize(char *FileName)
 	return s;
 }
 
-bool FileExists(char *FileName)
+bool FileExists(const char *FileName)
 {
 	BEntry e(FileName);
 	return e.Exists();
 }
 
-bool DirExists(char *Dir)
+bool DirExists(const char *Dir)
 {
 	BEntry e(Dir);
 	return e.Exists();
@@ -142,7 +150,7 @@ bool TrimDir(char *Path)
 	return false;
 }
 
-char *ReadTextFile(char *File)
+char *ReadTextFile(const char *File)
 {
 	if (File)
 	{
@@ -457,39 +465,6 @@ int LeapYear(int year)
 	
 	return 1;
 }
-
-/////////////////////////////////////////////////////////////////////////////////
-/*
-bool GDirImpl::ConvertToTime(char *Str, quad Time)
-{
-	if (Str)
-	{
-		time_t time = Time;
-		struct tm *t = localtime(&time);
-		if (t)
-		{
-			strftime(Str, 256, "%H:%I:%S %p", t);
-			return true;
-		}
-	}
-	return false;
-}
-
-bool GDirImpl::ConvertToDate(char *Str, quad Time)
-{
-	if (Str)
-	{
-		time_t time = Time;
-		struct tm *t = localtime(&time);
-		if (t)
-		{
-			strftime(Str, 256, "%d/%m/%Y", t);
-			return true;
-		}
-	}
-	return false;
-}
-*/
 
 /////////////////////////////////////////////////////////////////////////////////
 bool GDirectory::ConvertToTime(char *Str, uint64 Time)

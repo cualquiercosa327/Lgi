@@ -200,8 +200,8 @@ md5_process(md5_state_t *pms, const md5_byte_t *data /*[64]*/)
     /* Let [abcd k s i] denote the operation
        a = b + ((a + F(b,c,d) + X[k] + T[i]) <<< s). */
 #define F(x, y, z) (((x) & (y)) | (~(x) & (z)))
-#define SET(a, b, c, d, k, s, Ti)\
-  t = a + F(b,c,d) + X[k] + Ti;\
+#define SET(a, b, c, d, k, s, Ti) \
+  t = a + F(b,c,d) + X[k] + Ti; \
   a = ROTATE_LEFT(t, s) + b
     /* Do the following 16 operations. */
     SET(a, b, c, d,  0,  7,  T1);

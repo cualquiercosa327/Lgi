@@ -17,6 +17,35 @@ const char *CTagsExeName = "ctags"
 	#endif
 	;
 
+class FindSymbolThread : public GThread
+{
+	bool Loop;
+	FindSymbolPriv *d;
+
+	struct Symbol
+	{
+		const char *Sym;
+		const char *File;
+		int Line;
+	};
+
+public:
+	enum ThreadState
+	{
+		Initializing,
+		Waiting,
+		Working,
+		ExitSearch,
+	} State;
+
+	FindSymbolThread(FindSymbolPriv *priv);
+	~FindSymbolThread();
+	void Msg(const char *s);
+	void MatchesToResults(GArray<Symbol*> &Matches);
+	int Main();
+	void Stop();
+};
+
 struct FindSymbolPriv : public GMutex
 {
 	FindSymbolDlg *Dlg;
@@ -31,7 +60,7 @@ struct FindSymbolPriv : public GMutex
 	GArray<char*> ThreadMsg;
 
 	GThreadEvent Sync;
-	GAutoPtr<class FindSymbolThread> Thread;
+	GAutoPtr<FindSymbolThread> Thread;
 
 	struct Result
 	{
@@ -62,205 +91,183 @@ struct FindSymbolPriv : public GMutex
 	}
 };
 
-class FindSymbolThread : public GThread
+FindSymbolThread::FindSymbolThread(FindSymbolPriv *priv) : GThread("FindSymbolThread")
 {
-	bool Loop;
-	FindSymbolPriv *d;
+	State = Initializing;
+	d = priv;
+	Loop = true;
+	Run();
+}
 
-	struct Symbol
-	{
-		const char *Sym;
-		const char *File;
-		int Line;
-	};
+FindSymbolThread::~FindSymbolThread()
+{
+	Loop = false;
+	State = ExitSearch;
+	d->Sync.Signal();
+	while (!IsExited())
+		LgiSleep(1);
+}
 
-public:
-	enum ThreadState
+void FindSymbolThread::Msg(const char *s)
+{
+	if (d->Lock(_FL))
 	{
-		Initializing,
-		Waiting,
-		Working,
-		ExitSearch,
-	} State;
-
-	FindSymbolThread(FindSymbolPriv *priv) : GThread("FindSymbolThread")
-	{
-		State = Initializing;
-		d = priv;
-		Loop = true;
-		Run();
+		d->ThreadMsg.Add(NewStr(s));
+		d->Unlock();
 	}
-	
-	~FindSymbolThread()
-	{
-		Loop = false;
-		State = ExitSearch;
-		d->Sync.Signal();
-		while (!IsExited())
-			LgiSleep(1);
-	}
-	
-	void Msg(const char *s)
-	{
-		if (d->Lock(_FL))
-		{
-			d->ThreadMsg.Add(NewStr(s));
-			d->Unlock();
-		}
-	}
-	
-	void MatchesToResults(GArray<Symbol*> &Matches)
-	{
-		if (State == Working && d->Lock(_FL))
-		{
-			for (int i=0; i<Matches.Length(); i++)
-			{
-				FindSymbolPriv::Result &r = d->Results.New();
-				r.Symbol.Reset(NewStr(Matches[i]->Sym));
-				r.File.Reset(NewStr(Matches[i]->File));
-				r.Line = Matches[i]->Line;
-			}
-			d->Unlock();
-			Matches.Length(0);
-		}
-	}
-	
-	int Main()
-	{
-		// Create index...
-		char tmp[MAX_PATH];
-		if (!LgiGetSystemPath(LSP_TEMP, tmp, sizeof(tmp)))
-		{
-			Msg("Error getting temp folder.");
-			return 0;
-		}
-		if (!LgiMakePath(tmp, sizeof(tmp), tmp, "lgiide_ctags_filelist.txt"))
-		{
-			Msg("Error making temp path.");
-			return 0;
-		}
-		if (!d->CTagsIndexFile)
-		{
-			Msg("Error: no index file.");
-			return 0;
-		}
+}
 
-		char msg[MAX_PATH];
-		sprintf_s(msg, sizeof(msg), "Generating index: %s", d->CTagsIndexFile.Get());
-		Msg(msg);
+void FindSymbolThread::MatchesToResults(GArray<Symbol*> &Matches)
+{
+	if (State == Working && d->Lock(_FL))
+	{
+		for (int i=0; i<Matches.Length(); i++)
+		{
+			FindSymbolPriv::Result &r = d->Results.New();
+			r.Symbol.Reset(NewStr(Matches[i]->Sym));
+			r.File.Reset(NewStr(Matches[i]->File));
+			r.Line = Matches[i]->Line;
+		}
+		d->Unlock();
+		Matches.Length(0);
+	}
+}
 
-		if (d->Lock(_FL))
-		{
-			GFile tmpfile;
-			if (tmpfile.Open(tmp, O_WRITE))
-			{
-				tmpfile.SetSize(0);
-				for (int i=0; i<d->Files.Length(); i++)
-				{
-					char *file = d->Files[i];
-					tmpfile.Print("%s\n", file);
-				}
-			}
-			d->Unlock();
-		}		
-		
-		char args[MAX_PATH];
-		sprintf_s(args, sizeof(args), "--excmd=number -f \"%s\" -L \"%s\"", d->CTagsIndexFile.Get(), tmp);
-		GProcess proc;
-		bool b = proc.Run(d->CTagsExe, args, NULL, true);
-		// FileDev->Delete(tmp);
-		
-		// Read in the tags file...
-		Msg("Reading tags file...");
-		GAutoString data;
-		char *end = NULL;
-		
-		GFile in;
-		if (in.Open(d->CTagsIndexFile, O_READ))
-		{
-			int64 sz = in.GetSize();
-			data.Reset(new char[sz+1]);
-			int r = in.Read(data, sz);
-			if (r < 0)
-				return 0;
-			end = data + r;
-			*end = 0;
-			in.Close();
-		}
-
-		// Parse		
-		GArray<Symbol> Syms;
-		if (data)
-		{
-			for (char *b = data; *b; )
-			{
-				LgiAssert(b < end);
-				
-				Symbol &s = Syms.New();
-				s.Sym = b;
-				while (*b && *b != '\t') b++;
-				if (*b != '\t')
-					break;
-				*b++ = 0;
-				
-				s.File = b;
-				while (*b && *b != '\t' && *b != '\n') b++;
-				if (*b != '\t')
-					break;
-				*b++ = 0;
-				
-				s.Line = atoi(b);
-				while (*b && *b != '\n') b++;
-				if (*b != '\n')
-					break;
-				b++;
-			}
-		}
-	
-		// Start waiting for search terms
-		Msg("Ready.");
-		while (Loop)
-		{
-			State = Waiting;
-			if (d->Sync.Wait())
-			{
-				if (!Loop)
-					break;
-				
-				// Find stuff...
-				State = Working;
-				GAutoString SearchStr;
-				if (d->Lock(_FL))
-				{
-					SearchStr = d->SearchStr;
-					d->Unlock();
-				}
-				
-				Symbol *s = &Syms[0];
-				GArray<Symbol*> Matches;
-				for (int i=0; State == Working && i<Syms.Length(); i++)
-				{
-					if (stristr(s[i].Sym, SearchStr))
-					{
-						Matches.Add(s + i);
-					}
-				}
-				if (Matches.Length())
-					MatchesToResults(Matches);
-				else
-					d->NoResults = true;
-			}
-		}
+int FindSymbolThread::Main()
+{
+	// Create index...
+	char tmp[MAX_PATH];
+	if (!LgiGetSystemPath(LSP_TEMP, tmp, sizeof(tmp)))
+	{
+		Msg("Error getting temp folder.");
+		return 0;
+	}
+	if (!LgiMakePath(tmp, sizeof(tmp), tmp, "lgiide_ctags_filelist.txt"))
+	{
+		Msg("Error making temp path.");
+		return 0;
+	}
+	if (!d->CTagsIndexFile)
+	{
+		Msg("Error: no index file.");
 		return 0;
 	}
 
-	void Stop()
+	char msg[MAX_PATH];
+	sprintf_s(msg, sizeof(msg), "Generating index: %s", d->CTagsIndexFile.Get());
+	Msg(msg);
+
+	if (d->Lock(_FL))
 	{
-		State = ExitSearch;
-		while (State == ExitSearch)
-			LgiSleep(1);
+		GFile tmpfile;
+		if (tmpfile.Open(tmp, O_WRITE))
+		{
+			tmpfile.SetSize(0);
+			for (int i=0; i<d->Files.Length(); i++)
+			{
+				char *file = d->Files[i];
+				tmpfile.Print("%s\n", file);
+			}
+		}
+		d->Unlock();
+	}		
+	
+	char args[MAX_PATH];
+	sprintf_s(args, sizeof(args), "--excmd=number -f \"%s\" -L \"%s\"", d->CTagsIndexFile.Get(), tmp);
+	GProcess proc;
+	bool b = proc.Run(d->CTagsExe, args, NULL, true);
+	// FileDev->Delete(tmp);
+	
+	// Read in the tags file...
+	Msg("Reading tags file...");
+	GAutoString data;
+	char *end = NULL;
+	
+	GFile in;
+	if (in.Open(d->CTagsIndexFile, O_READ))
+	{
+		int64 sz = in.GetSize();
+		data.Reset(new char[sz+1]);
+		int r = in.Read(data, sz);
+		if (r < 0)
+			return 0;
+		end = data + r;
+		*end = 0;
+		in.Close();
 	}
-};
+
+	// Parse		
+	GArray<Symbol> Syms;
+	if (data)
+	{
+		for (char *b = data; *b; )
+		{
+			LgiAssert(b < end);
+			
+			Symbol &s = Syms.New();
+			s.Sym = b;
+			while (*b && *b != '\t') b++;
+			if (*b != '\t')
+				break;
+			*b++ = 0;
+			
+			s.File = b;
+			while (*b && *b != '\t' && *b != '\n') b++;
+			if (*b != '\t')
+				break;
+			*b++ = 0;
+			
+			s.Line = atoi(b);
+			while (*b && *b != '\n') b++;
+			if (*b != '\n')
+				break;
+			b++;
+		}
+	}
+
+	// Start waiting for search terms
+	Msg("Ready.");
+	while (Loop)
+	{
+		State = Waiting;
+		if (d->Sync.Wait())
+		{
+			if (!Loop)
+				break;
+			
+			// Find stuff...
+			State = Working;
+			GAutoString SearchStr;
+			if (d->Lock(_FL))
+			{
+				SearchStr = d->SearchStr;
+				d->Unlock();
+			}
+			
+			Symbol *s = &Syms[0];
+			GArray<Symbol*> Matches;
+			for (int i=0; State == Working && i<Syms.Length(); i++)
+			{
+				if (stristr(s[i].Sym, SearchStr))
+				{
+					Matches.Add(s + i);
+				}
+			}
+			if (Matches.Length())
+				MatchesToResults(Matches);
+			else
+				d->NoResults = true;
+		}
+	}
+	return 0;
+}
+
+void FindSymbolThread::Stop()
+{
+	State = ExitSearch;
+	while (State == ExitSearch)
+		LgiSleep(1);
+}
 
 int AlphaCmp(GListItem *a, GListItem *b, NativeInt d)
 {

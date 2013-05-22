@@ -27,7 +27,7 @@ else
 endif
 
 # Libraries
-Libs = 		-static-libgcc
+Libs = 		
 			
 
 # Includes
@@ -130,7 +130,6 @@ Depends =	GDateTime.o \
 			INet.o \
 			INetTools.o \
 			md5.o \
-			LgiWidget.o \
 			Gel.o \
 			GThreadEvent.o
 
