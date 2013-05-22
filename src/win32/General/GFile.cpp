@@ -372,9 +372,9 @@ char *ReadStr(GFile &f DeclDebugArgs)
 	return s;
 }
 
-int SizeofStr(char *s)
+int SizeofStr(const char *s)
 {
-	return sizeof(ulong) + ((s) ? strlen(s) : 0);
+	return sizeof(uint32) + ((s) ? strlen(s) : 0);
 }
 
 bool LgiGetDriveInfo
@@ -1084,7 +1084,7 @@ bool GFileSystem::GetVolumeInfomation(char Drive, VolumeInfo *pInfo)
 	if (pInfo)
 	{
 		char Name[] = "A:\\";
-		ulong Serial;
+		uint32 Serial;
 
 		Name[0] = Drive + 'A';
 
