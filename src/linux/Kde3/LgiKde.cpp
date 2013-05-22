@@ -63,7 +63,7 @@ bool LgiWmMimeToApps(char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 			App->Name = QStrToUtf8(service->name());
 			if (App->Icon = QStrToUtf8(service->icon()))
 			{
-				if (NOT strchr(App->Icon, '.'))
+				if (!strchr(App->Icon, '.'))
 				{
 					DeleteArray(App->Icon);
 				}
@@ -142,7 +142,7 @@ bool LgiWmGetLanguage(char *Lang)
 
 bool LgiWmGetColour(int Which, WmColour *Colour)
 {
-	if (NOT Colour)
+	if (!Colour)
 		return false;
 
 	QColor c;
@@ -225,7 +225,7 @@ bool LgiWmGetColour(int Which, WmColour *Colour)
 
 bool LgiWmGetPath(int Which, char *Buf, int BufLen)
 {
-	if (NOT Buf OR BufLen < 2)
+	if (!Buf OR BufLen < 2)
 		return false;
 	
 	QString p;

@@ -111,7 +111,7 @@ void QMenuItem::showPopup()
 
 void QMenuItem::mousePressEvent(XlibEvent *e)
 {
-	if (NOT Item->Separator AND
+	if (!Item->Separator AND
 		isEnabled())
 	{
 		if (Item->Sub)
@@ -135,7 +135,7 @@ void QMenuItem::mouseReleaseEvent(XlibEvent *e)
 		GRect r(0, 0, width(), height());
 		
 		if (Cursor == this AND
-			NOT Item->Sub AND
+			!Item->Sub AND
 			r.Overlap(e->x(), e->y()) )
 		{
 			if (Item->Parent)

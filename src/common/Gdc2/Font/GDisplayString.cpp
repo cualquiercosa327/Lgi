@@ -254,7 +254,7 @@ void GDisplayString::Layout()
 					fAscent = Font->d->fAscent;
 					fDescent = Font->d->fDescent;
 					
-					if (NOT x)
+					if (!x)
 					{
 						char16 sp[2] = {' ', 0};
 						if (StricmpW(Str, sp) == 0)

@@ -274,7 +274,7 @@ public:
 
 	void Flush(bool Final = false)
 	{
-		if (Final OR (InPos >= InBuf + InBufSize))
+		if (Final || (InPos >= InBuf + InBufSize))
 		{
 			int Len = (int)InPos - (int)InBuf;
 			if (Pipe)

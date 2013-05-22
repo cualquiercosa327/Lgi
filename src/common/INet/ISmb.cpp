@@ -283,9 +283,9 @@ bool ISmb::GetFile(char *File, GBytePipe &Out)
 		int Length = Socket->Read(Buffer, sizeof(Buffer), 0);
 		while (	Length > 0 AND
 				DataToGo > 0 AND
-				(NOT Meter OR NOT Meter->Cancel()))
+				(!Meter || !Meter->Cancel()))
 		{
-			if (NOT ContentLength)
+			if (!ContentLength)
 			{
 				// search through data for feilds and blank line
 				int Used = (int)(Cur-Line); // buffer bytes used

@@ -19,7 +19,7 @@ static LgiKey MISC_keymap[256];
 /* Get the translated SDL virtual keysym */
 LgiKey X11_TranslateKeycode(Display *display, KeyCode kc)
 {
-	if (NOT KeymapsInit)
+	if (!KeymapsInit)
 	{
 		KeymapsInit = true;
 		memset(MISC_keymap, 0, sizeof(MISC_keymap));
@@ -397,7 +397,7 @@ bool XlibEvent::doubleclick()
 // Keyboard
 char16 XlibEvent::unicode(XIC Ic)
 {
-	if (NOT Unicode AND
+	if (!Unicode AND
 		(Event->type == KeyPress OR Event->type == KeyRelease))
 	{
 		Scancode = Event->xkey.keycode;
@@ -554,9 +554,9 @@ bool XlibEvent::ischar()
 			Unicode == 8
 		)
 		AND
-		NOT TestFlag(button(), XWidget::AltButton)
+		!TestFlag(button(), XWidget::AltButton)
 		AND
-		NOT TestFlag(button(), XWidget::ControlButton);
+		!TestFlag(button(), XWidget::ControlButton);
 }
 
 int XlibEvent::state()

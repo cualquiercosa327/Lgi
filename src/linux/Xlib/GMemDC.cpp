@@ -379,7 +379,7 @@ GMemDC::~GMemDC()
 
 XPainter *GMemDC::Handle()
 {
-	if (NOT d->p)
+	if (!d->p)
 	{
 		d->p = new ImagePainter(this);
 	}
@@ -545,7 +545,7 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 	if (d->Bmp AND
 		d->Bmp->create(x, y, Bits))
 	{
-		if (NOT pMem) pMem = new GBmpMem;
+		if (!pMem) pMem = new GBmpMem;
 		if (pMem)
 		{
 			pMem->Base = d->Bmp->scanLine(0);
@@ -557,8 +557,8 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 
 			int NewOp = (pApp) ? Op() : GDC_SET;
 
-			if (	(Flags & GDC_OWN_APPLICATOR) AND
-				NOT (Flags & GDC_CACHED_APPLICATOR))
+			if ( (Flags & GDC_OWN_APPLICATOR) AND
+				!(Flags & GDC_CACHED_APPLICATOR))
 			{
 				DeleteObj(pApp);
 			}
@@ -568,7 +568,7 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 				DeleteObj(pAppCache[i]);
 			}
 
-			if (NewOp < GDC_CACHE_SIZE AND NOT DrawOnAlpha())
+			if (NewOp < GDC_CACHE_SIZE AND !DrawOnAlpha())
 			{
 				pApp = (pAppCache[NewOp]) ? pAppCache[NewOp] : pAppCache[NewOp] = CreateApplicator(NewOp);
 				Flags &= ~GDC_OWN_APPLICATOR;
@@ -581,7 +581,7 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 				Flags |= GDC_OWN_APPLICATOR;
 			}
 
-			if (NOT pApp)
+			if (!pApp)
 			{
 				printf("GMemDC::Create(%i,%i,%i,%i,%i) No Applicator.\n", x, y, Bits, LineLen, KeepData);
 				LgiAssert(0);
@@ -689,7 +689,7 @@ void GMemDC::Blt(int x, int y, GSurface *Src, GRect *a)
 				}
 			}
 			
-			if (NOT Status)
+			if (!Status)
 			{
 				Colour(Rgb24(255, 0, 255), 24);
 				Rectangle();
@@ -712,7 +712,7 @@ void GMemDC::Blt(int x, int y, GSurface *Src, GRect *a)
 					{
 						// Pixmap -> Memory
 						GRect All;
-						if (NOT a)
+						if (!a)
 						{
 							All.ZOff(Src->X()-1, Src->Y()-1);
 							a = &All;

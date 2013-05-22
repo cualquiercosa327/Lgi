@@ -183,7 +183,7 @@ Font XFont::GetFont()
 
 XftFont *XFont::GetTtf()
 {
-	if (NOT Data->ttf)
+	if (!Data->ttf)
 	{
 		Data->Update();
 	}

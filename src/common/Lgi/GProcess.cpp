@@ -769,7 +769,7 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 			if (In AND In->GetSize() > 0)
 			{
 				/*
-				while (NOT TestFlag(hndstate(Read.Read), POLLOUT))
+				while (!TestFlag(hndstate(Read.Read), POLLOUT))
 				{
 					LgiSleep(IO_WAIT);
 				}

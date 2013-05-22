@@ -78,7 +78,7 @@ public:
 
 	void Measure()
 	{
-		if (NOT Sx OR NOT Sy)
+		if (!Sx OR !Sy)
 		{
 			if (Source)
 			{

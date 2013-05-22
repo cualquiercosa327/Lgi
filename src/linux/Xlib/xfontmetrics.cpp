@@ -161,7 +161,7 @@ uchar *XFontMetrics::GetCoverage(uchar *Map, int Max)
 	if (Font)
 	{
 		int Bytes = (Max + 1) >> 3;
-		if (NOT Map)
+		if (!Map)
 		{
 			Map = new uchar[Bytes];
 		}

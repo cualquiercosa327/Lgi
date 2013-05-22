@@ -199,7 +199,7 @@ GDbfRecord::~GDbfRecord()
 
 char *GDbfRecord::GetData()
 {
-	if (NOT Data AND
+	if (!Data AND
 		Recordset AND
 		Recordset->IsOpen())
 	{

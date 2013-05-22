@@ -61,7 +61,7 @@ void QPopup::show(bool Raise)
 	Popup->Cancelled = false;
 	
 	/*
-	if (NOT QWidget::QApp()->Popups.HasItem(this))
+	if (!QWidget::QApp()->Popups.HasItem(this))
 	{
 		QWidget::QApp()->Popups.Insert(this);
 	}
@@ -100,7 +100,7 @@ void QPopup::hide()
 	{
 		// We can't keep the focus when we hide ourselves.
 		QMainWindow *Top = GetWindow();
-		if (NOT Top OR parentWidget()->IsPopup())
+		if (!Top OR parentWidget()->IsPopup())
 		{
 			parentWidget()->setFocus();
 		}
@@ -114,8 +114,8 @@ void QPopup::hide()
 void QPopup::mousePressEvent(XlibEvent *e)
 {
 	QWidget *w = QWidget::Find(e->GetEvent()->xbutton.window);
-	if (NOT w OR
-		NOT w->IsPopup())
+	if (!w OR
+		!w->IsPopup())
 	{
 		printf("Popup cancelled.\n");
 		Popup->Cancelled = true;

@@ -208,7 +208,7 @@ int MysqlRs::Fields()
 
 bool MysqlRs::End()
 {
-	return Cursor < 0 OR Cursor >= Rows;
+	return Cursor < 0 || Cursor >= Rows;
 }
 
 bool MysqlRs::AddNew()

@@ -170,7 +170,7 @@ bool QPopupMenu::keyPressEvent(XlibEvent *e)
 int QPopupMenu::popup(QWidget *parent, int Sx, int Sy)
 {
 // printf("QPopupMenu::popup this=%p vis=%i\n", this, isVisible());
-	if (NOT isVisible())
+	if (!isVisible())
 	{
 		int Ly = SysFont->Y("A") + 4;
 		int Col = (GdcD->Y() - 32) / Ly;
@@ -196,7 +196,7 @@ int QPopupMenu::popup(QWidget *parent, int Sx, int Sy)
 				i->setGeometry(ColX + 2, 2 + y, x, Ht);
 				OsPoint p(ColX + 2, 2 + y);
 
-				if (NOT i->parentWidget())
+				if (!i->parentWidget())
 				{
 					i->reparent(this, p, true);
 				}
@@ -312,7 +312,7 @@ void QPopupMenu::OnMenuClick(QMenuItem *Item)
 void QPopupMenu::OnMenuEnter(QMenuItem *Item)
 {
 	if (Item->sub() AND
-		NOT Item->sub()->isVisible())
+		!Item->sub()->isVisible())
 	{
 		Item->showPopup();
 	}

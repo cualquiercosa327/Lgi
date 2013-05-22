@@ -57,7 +57,7 @@ bool GTag::IsNumber(char *s)
 {
 	for (; s AND *s; s++)
 	{
-		if (NOT isdigit(*s) OR strchr("e.-", *s))
+		if (!isdigit(*s) || strchr("e.-", *s))
 		{
 			return false;
 		}
@@ -233,14 +233,14 @@ void GTag::SerializeUI(GView *Dlg, GMap<char*,int> &Fields, bool To)
 			GCombo *Cbo = dynamic_cast<GCombo*>(View);
 			GCheckBox *Chk = dynamic_cast<GCheckBox*>(View);
 			GRadioGroup *Grp = dynamic_cast<GRadioGroup*>(View);
-			bool IsIntOnly = Cbo OR Chk OR Grp;
+			bool IsIntOnly = Cbo || Chk || Grp;
 
 			if (To) // Mem -> UI
 			{
 				GVariant Value;
 				if (GetVariant(Opt, Value))
 				{
-					if (Value.IsInt() OR IsIntOnly)
+					if (Value.IsInt() || IsIntOnly)
 					{
 						if (Value.Str())
 						{

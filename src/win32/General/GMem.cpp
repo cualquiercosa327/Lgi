@@ -764,7 +764,7 @@ void *_vmem_alloc(size_t Size, char *file, int line)
 		_max_used = max(_used, _max_used);
 
 		// insert into the list
-		if (NOT _First)
+		if (!_First)
 		{
 			_First = _Last = p;
 			p->Prev = p->Next = 0;
@@ -797,7 +797,7 @@ void _vmem_free(void *ptr)
 		if (p->Magic == _VMEM_MAGIC)
 		{
 			// Check fill
-			if (NOT p->CheckFill())
+			if (!p->CheckFill())
 			{
 				_asm int 3
 			}
@@ -823,7 +823,7 @@ void _vmem_free(void *ptr)
 			}
 			else
 			{
-				if (NOT p->Next OR NOT p->Prev) _asm int 3
+				if (!p->Next OR !p->Prev) _asm int 3
 
 				p->Next->Prev = p->Prev;
 				p->Prev->Next = p->Next;
@@ -863,7 +863,7 @@ bool LgiCheckHeap()
 			char c = i->File[0];
 
 			if (i->Magic != _VMEM_MAGIC OR
-				NOT i->CheckFill())
+				!i->CheckFill())
 			{
 				_asm int 3
 			}

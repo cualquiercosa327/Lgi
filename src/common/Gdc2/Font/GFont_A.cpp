@@ -50,7 +50,7 @@ void GFont::Text(	GSurface *pDC,
 			GDisplayString Ds(this, Str, Len, TabOrigin);
 			Ds.Draw(pDC, x, y, r);
 		}
-		else if (r AND NOT Transparent())
+		else if (r AND !Transparent())
 		{
 			pDC->Colour(Back(), 24);
 			pDC->Rectangle(r);
@@ -79,7 +79,7 @@ void GFont::Size(int *x, int *y, char *Str, int Len, int Flags)
 
 int GFont::CharAt(int x, char *Str, int Len, int TabOffset)
 {
-	if (NOT Str OR x <= 0)
+	if (!Str || x <= 0)
 	{
 		return 0;
 	}

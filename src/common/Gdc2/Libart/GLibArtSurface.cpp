@@ -137,7 +137,7 @@ void GLibArtPath::_Add(ArtPathcode code, double x, double y)
 	int i = Points++;
 	if (i >= Max)
 	{
-		if (NOT Max) Max = 8;
+		if (!Max) Max = 8;
 		else Max <<= 1;
 		Path = art_renew(Path, ArtVpath, Max);
 	}

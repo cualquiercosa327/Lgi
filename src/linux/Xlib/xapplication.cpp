@@ -101,14 +101,14 @@ XApplication::XApplication(int args, char **arg) : GSemaphore("XApplication")
 {
 	d = new XApplicationPrivate;
 	_App = this;
-	if (NOT XInitThreads())
+	if (!XInitThreads())
 	{
 		printf("Error: This application requires a thread aware version of Xlib.\n");
 		return;
 	}
 	
 	Dsp = XOpenDisplay(0);
-	if (NOT Dsp)
+	if (!Dsp)
 	{
 		printf("Error: This application requires XWindows.\n");
 		return;
@@ -147,7 +147,7 @@ XApplication::XApplication(int args, char **arg) : GSemaphore("XApplication")
 	// Setup input method
 	char ClassName[256] = "LgiApp";
 	d->InputMethod = XOpenIM(Dsp, NULL, ClassName, ClassName);
-	if (NOT d->InputMethod)
+	if (!d->InputMethod)
 	{
 		printf("%s:%i - XOpenIM failed.\n", __FILE__, __LINE__);
 	}
@@ -290,7 +290,7 @@ void XApplication::SetClipImage(XWidget *w, GSurface *pDC)
 		{
 			GMemDC *pSrc = dynamic_cast<GMemDC*>(pDC);
 			GMemDC *pMem = 0;
-			if (NOT pSrc OR pDC->GetBits() != GdcD->GetBits())
+			if (!pSrc OR pDC->GetBits() != GdcD->GetBits())
 			{
 				pMem = new GMemDC(pDC->X(), pDC->Y(), GdcD->GetBits());
 				if (pMem)
@@ -319,7 +319,7 @@ void XApplication::SetClipImage(XWidget *w, GSurface *pDC)
 
 XWidget *XApplication::desktop()
 {
-	if (NOT Desktop)
+	if (!Desktop)
 	{
 		Desktop = new DesktopWidget;
 	}
@@ -586,7 +586,7 @@ void XApplication::onEvent(XEvent &Event)
 			case ButtonPress:
 			{
 				GetIngoreState(Current);
-				if (NOT Ignore)
+				if (!Ignore)
 				{
 					if (Event.xbutton.button < 4)
 					{
@@ -634,7 +634,7 @@ void XApplication::onEvent(XEvent &Event)
 			case ButtonRelease:
 			{
 				GetIngoreState(Current);
-				if (NOT Ignore)
+				if (!Ignore)
 				{
 					if (Event.xbutton.button < 4)
 					{
@@ -650,7 +650,7 @@ void XApplication::onEvent(XEvent &Event)
 			case MotionNotify:
 			{
 				GetIngoreState(Current);
-				if (NOT Ignore)
+				if (!Ignore)
 				{
 					// Clear old MotionNotify's still in the que
 					while (XCheckTypedWindowEvent(Dsp, Event.xmotion.window, MotionNotify, &Event))
@@ -692,7 +692,7 @@ void XApplication::onEvent(XEvent &Event)
 			case EnterNotify:
 			{
 				GetIngoreState(Current);
-				if (NOT Ignore)
+				if (!Ignore)
 				{
 					Current->enterEvent(&q);
 				}
@@ -701,7 +701,7 @@ void XApplication::onEvent(XEvent &Event)
 			case LeaveNotify:
 			{
 				GetIngoreState(Current);
-				if (NOT Ignore)
+				if (!Ignore)
 				{
 					Current->leaveEvent(&q);
 				}
@@ -712,7 +712,7 @@ void XApplication::onEvent(XEvent &Event)
 				if (Event.xfocus.mode == NotifyNormal)
 				{
 					d->FocusWindow = Current;
-					if (NOT d->Focus OR
+					if (!d->Focus OR
 						d->Focus->GetWindow() != Current)
 					{
 						// No focus...
@@ -859,7 +859,7 @@ void XApplication::onEvent(XEvent &Event)
 
 						GDragDropTarget *Dst = 0;
 						GViewI *At = View ? View->WindowFromPoint(p.x, p.y) : 0;
-						while (At AND NOT (Dst = dynamic_cast<GDragDropTarget*>(At)))
+						while (At AND !(Dst = dynamic_cast<GDragDropTarget*>(At)))
 						{
 							At = At->GetParent();
 						}
@@ -986,7 +986,7 @@ void XApplication::onEvent(XEvent &Event)
 							printf("XDND: Target didn't select a drop type.\n");
 						}
 
-						if (NOT SelectionSink)
+						if (!SelectionSink)
 						{
 							DndTarget->OnDragExit();
 							DndTarget = 0;
@@ -1039,15 +1039,15 @@ void XApplication::onEvent(XEvent &Event)
 			case KeyPress:
 			{
 				GetIngoreState(Current);
-				if (NOT Ignore)
+				if (!Ignore)
 				{
 					XWidget *Receiver = GetKeyTarget();
-					if (NOT Receiver) Receiver = Current;
+					if (!Receiver) Receiver = Current;
 
 					if (Receiver)
 					{
 						bool p = Receiver->keyPressEvent(&q);
-						if (q.unicode(Receiver->GetInputContext()) == 9 AND NOT p)
+						if (q.unicode(Receiver->GetInputContext()) == 9 AND !p)
 						{
 							OnTabKey(Receiver, ((q.state() & 1) == 0) ? 1 : -1);
 						}
@@ -1062,10 +1062,10 @@ void XApplication::onEvent(XEvent &Event)
 			case KeyRelease:
 			{
 				GetIngoreState(Current);
-				if (NOT Ignore)
+				if (!Ignore)
 				{
 					XWidget *Receiver = GetKeyTarget();
-					if (NOT Receiver) Receiver = Current;
+					if (!Receiver) Receiver = Current;
 					if (Receiver)
 					{
 						Receiver->keyReleaseEvent(&q);

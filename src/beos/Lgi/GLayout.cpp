@@ -174,7 +174,7 @@ bool GLayout::SetScrollBars(bool x, bool y)
 void GLayout::OnPosChange()
 {
 	GRect r = GView::GetClient(); // (0, 0, X()-1, Y()-1);
-	// int Border = (Sunken() OR Raised()) ? _BorderSize : 0;
+	// int Border = (Sunken() || Raised()) ? _BorderSize : 0;
 	// r.Size(Border, Border);
 	
 	GRect v(r.x2-B_V_SCROLL_BAR_WIDTH+1, r.y1, r.x2, r.y2);

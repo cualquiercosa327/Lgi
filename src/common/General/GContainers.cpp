@@ -379,7 +379,7 @@ bool DLinkList::IsValid()
 				}
 
 				#if 0
-				if (NOT LgiCanReadMemory(i->Ptr[n]))
+				if (!LgiCanReadMemory(i->Ptr[n]))
 				{
 					InvalidListError();
 				}

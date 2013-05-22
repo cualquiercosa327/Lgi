@@ -153,7 +153,7 @@ public:
 		int Blocks = F.GetSize() >> NODE_SHIFT;
 		for (int i=0; i<Blocks; i++)
 		{
-			if (NOT GetBit(i))
+			if (!GetBit(i))
 			{
 				BNode *New = new BNode(this);
 				if (New)
@@ -214,7 +214,7 @@ bool BNode::Read(int64 Off, bool Create)
 	if (Tree->F.SetPos(Off) == Off)
 	{
 		bool Ok = Tree->F.Read(&H, sizeof(H)) == sizeof(H);
-		if (NOT Ok AND Create)
+		if (!Ok AND Create)
 		{
 			H.Magic = NODE_MAGIC;
 			H.LeftBlock = 0;
@@ -289,7 +289,7 @@ bool BNode::Write()
 
 uint8 *BNode::GetData()
 {
-	if (NOT D)
+	if (!D)
 	{
 		int64 Off = Offset + sizeof(H);
 		if (Tree->F.SetPos(Off) == Off)

@@ -88,7 +88,7 @@ MInfo *_GetInfo(char *f, int l)
 	{
 		i++;
 	}
-	if (NOT _Table[i].Line)
+	if (!_Table[i].Line)
 	{
 		if (_UsedEntries > (MTable_Size >> 1))
 		{

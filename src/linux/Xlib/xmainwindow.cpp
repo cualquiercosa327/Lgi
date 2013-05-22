@@ -134,7 +134,7 @@ void XMainWindow::Modal(XMainWindow *Owner)
 /*
 XMenuBar *XMainWindow::menuBar()
 {
-	if (NOT d->Menu)
+	if (!d->Menu)
 	{
 		d->Menu = new XMenuBar;
 		if (d->Menu)
@@ -154,7 +154,7 @@ void XMainWindow::DefaultFocus()
 {
 	XWidget *f = GetLastFocus();
 	
-	if (NOT f)
+	if (!f)
 	{
 		XList<XWidget> Stops;
 		_AddStop(this, Stops);

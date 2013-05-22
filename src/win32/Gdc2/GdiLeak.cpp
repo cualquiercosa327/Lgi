@@ -79,7 +79,7 @@ static void DeleteHandle(char *f, int l, uint32 hnd, HndType t)
 	int i;
 	HndInfo *h = 0;
 	
-	if (NOT &Handles[0])
+	if (!&Handles[0])
 		return;
 
 	for (i=0; i<Handles.Length(); i++)

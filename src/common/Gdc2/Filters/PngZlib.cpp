@@ -285,7 +285,7 @@ bool GdcPng::ProcessData()
 			}
    		}
 
-		if (NOT PrevScanLine)
+		if (!PrevScanLine)
 		{
 			PrevScanLine = new uchar[Line];
 		}
@@ -311,7 +311,7 @@ bool GdcPng::ProcessData()
 						pDC->Set(x, Pos);
 
 						Mask >>= 1;
-						if (NOT Mask)
+						if (!Mask)
 						{
 							Data++;
 							Mask = 0x80;
@@ -385,7 +385,7 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext)
 
 		SetSwap(TRUE);
 
-		while (NOT Eof() AND NOT Done AND NOT Error)
+		while (!Eof() AND !Done AND !Error)
 		{
 			int Type;
 			int Length;
@@ -467,11 +467,11 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext)
 									Stream.avail_out = OutSize;
 
 									Err = inflate(&Stream, Z_SYNC_FLUSH);
-									if (Err == Z_OK OR Err == Z_STREAM_END)
+									if (Err == Z_OK || Err == Z_STREAM_END)
 									{
 										TotalOutput += (int) Stream.next_out - (int) OutBuf;
 										DataPipe.Push(OutBuf, (int) Stream.next_out - (int) OutBuf);
-										Error = NOT ProcessData();
+										Error = !ProcessData();
 									}
 								}
 							}
@@ -483,11 +483,11 @@ bool GdcPng::ReadImage(GSurface *pDeviceContext)
 
 						/*
 						Err = inflate(&Stream, Z_SYNC_FLUSH);
-						if (Err == Z_OK OR Err == Z_STREAM_END)
+						if (Err == Z_OK || Err == Z_STREAM_END)
 						{
 							TotalOutput += (int) Stream.next_out - (int) OutBuf;
 							DataPipe.Push(OutBuf, (int) Stream.next_out - (int) OutBuf);
-							Error = NOT ProcessData();
+							Error = !ProcessData();
 						}
 						*/
 
@@ -669,7 +669,7 @@ bool GdcPng::WriteImage(GSurface *pDC)
 								{
 									*d |= (pDC->Get(x, y)) ? Mask : 0;
 									Mask >>= 1;
-									if (NOT Mask)
+									if (!Mask)
 									{
 										Mask = 0x80;
 										d++;
@@ -754,7 +754,7 @@ bool GdcPng::WriteImage(GSurface *pDC)
 					int TotalInput = DataPipe.Sizeof();
 
 					bool Done = FALSE;
-					while (NOT Done)
+					while (!Done)
 					{
 						if (Stream.avail_in == 0)
 						{
@@ -804,7 +804,7 @@ bool GdcPng::WriteImage(GSurface *pDC)
 						WriteObject(IDAT, OutBuf, CompLen);
 					}
 
-					Status = NOT Error;
+					Status = !Error;
 				}
 				else
 				{

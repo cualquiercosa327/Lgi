@@ -34,8 +34,8 @@
 #define IsWhite(c)					(strchr(WhiteSpace, c) != 0)
 #define IsDelimiter(c)				(strchr(Delimiters, c) != 0)
 #define IsDigit(c)					((c) >= '0' AND (c) <= '9')
-#define IsAlpha(c)					(((c) >= 'a' AND (c) <= 'z') OR ((c) >= 'A' AND (c) <= 'Z'))
-#define IsText(c)					(IsDigit(c) OR IsAlpha(c) OR (c) == '_')
+#define IsAlpha(c)					(((c) >= 'a' AND (c) <= 'z') || ((c) >= 'A' AND (c) <= 'Z'))
+#define IsText(c)					(IsDigit(c) || IsAlpha(c) || (c) == '_')
 
 extern char Delimiters[];
 extern int StrLen(char *c);
@@ -102,32 +102,32 @@ public:
 
 	bool operator !=(GCursor &c)
 	{
-		return	(x != c.x) OR
-				(y != c.y) OR
+		return	(x != c.x) ||
+				(y != c.y) ||
 				(Parent != c.Parent);
 	}
 
 	bool operator <(GCursor &c)
 	{
-		return	(y < c.y) OR
+		return	(y < c.y) ||
 				((y == c.y) AND (x < c.x));
 	}
 
 	bool operator <=(GCursor &c)
 	{
-		return	(y < c.y) OR
+		return	(y < c.y) ||
 				((y == c.y) AND (x <= c.x));
 	}
 
 	bool operator >(GCursor &c)
 	{
-		return	(y > c.y) OR
+		return	(y > c.y) ||
 				((y == c.y) AND (x > c.x));
 	}
 
 	bool operator >=(GCursor &c)
 	{
-		return	(y > c.y) OR
+		return	(y > c.y) ||
 				((y == c.y) AND (x >= c.x));
 	}
 	

@@ -512,7 +512,7 @@ GDeviceContext::~GDeviceContext()
 	}
 
 	if (	(Flags & GDC_OWN_APPLICATOR) AND
-		NOT (Flags & GDC_CACHED_APPLICATOR))
+		!(Flags & GDC_CACHED_APPLICATOR))
 	{
 		DeleteObj(pApp);
 	}
@@ -529,14 +529,14 @@ bool GDeviceContext::IsAlpha(bool b)
 
 	if (b)
 	{
-		if (NOT pAlphaDC)
+		if (!pAlphaDC)
 		{
 			pAlphaDC = new GMemDC;
 		}
 
 		if (pAlphaDC AND pMem)
 		{
-			if (NOT pAlphaDC->Create(pMem->x, pMem->y, 8))
+			if (!pAlphaDC->Create(pMem->x, pMem->y, 8))
 			{
 				DeleteObj(pAlphaDC);
 			}
@@ -560,7 +560,7 @@ bool GDeviceContext::DrawOnAlpha(bool Draw)
 
 	if (Draw)
 	{
-		if (NOT Prev AND pAlphaDC AND pMem)
+		if (!Prev AND pAlphaDC AND pMem)
 		{
 			GBmpMem *Temp = pMem;
 			pMem = pAlphaDC->pMem;
@@ -598,7 +598,7 @@ GApplicator *GDeviceContext::CreateApplicator(int Op, int Bits)
 {
 	GApplicator *pA = NULL;
 
-	if (NOT Bits AND pMem)
+	if (!Bits AND pMem)
 	{
 		if (DrawOnAlpha())
 		{
@@ -611,7 +611,7 @@ GApplicator *GDeviceContext::CreateApplicator(int Op, int Bits)
 	}
 
 	pA = GApplicatorFactory::NewApp(Bits, Op);
-	if (NOT pA)
+	if (!pA)
 	{
 		LgiTrace("%s:%i - Failed to create application (op=%i)\n", Op);
 		LgiAssert(0);
@@ -717,7 +717,7 @@ COLOUR GDeviceContext::Colour(COLOUR c, int Bits)
 int GDeviceContext::Op(int NewOp)
 {
 	int PrevOp = (pApp) ? pApp->GetOp() : GDC_SET;
-	if (NOT pApp || PrevOp != NewOp)
+	if (!pApp || PrevOp != NewOp)
 	{
 		COLOUR cCurrent = (pApp) ? Colour() : 0;
 
@@ -726,7 +726,7 @@ int GDeviceContext::Op(int NewOp)
 			DeleteObj(pApp);
 		}
 
-		if (NewOp < GDC_CACHE_SIZE AND NOT DrawOnAlpha())
+		if (NewOp < GDC_CACHE_SIZE AND !DrawOnAlpha())
 		{
 			pApp = (pAppCache[NewOp]) ? pAppCache[NewOp] : pAppCache[NewOp] = CreateApplicator(NewOp);
 			Flags &= ~GDC_OWN_APPLICATOR;
@@ -760,7 +760,7 @@ int GDeviceContext::Op(int NewOp)
 
 GPalette *GDeviceContext::Palette()
 {
-	if (NOT pPalette AND pMem AND (pMem->Flags & GDC_ON_SCREEN))
+	if (!pPalette AND pMem AND (pMem->Flags & GDC_ON_SCREEN))
 	{
 		pPalette = GdcD->GetSystemPalette();
 		if (pPalette)

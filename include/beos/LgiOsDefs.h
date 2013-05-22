@@ -145,8 +145,8 @@ typedef int OsSocket;
 #define EOL_SEQUENCE			"\n"
 #define LGI_PATH_SEPARATOR		":"
 
-#define IsSlash(c)				(((c)=='/')OR((c)=='\\'))
-#define IsQuote(c)				(((c)=='\"')OR((c)=='\''))
+#define IsSlash(c)				(((c)=='/')||((c)=='\\'))
+#define IsQuote(c)				(((c)=='\"')||((c)=='\''))
 
 #define LGI_ALL_FILES			"*"
 

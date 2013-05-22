@@ -242,7 +242,7 @@ void GTextView2::SetFont(GFont *f, bool OwnIt)
 {
 	if (f)
 	{
-		if (NOT Font)
+		if (!Font)
 		{
 			Font = new GFont(*f);
 		}
@@ -557,7 +557,7 @@ public:
 	{
 		if (View)
 		{
-			if ( (m AND m->Left() AND m->Double()) OR (NOT m) )
+			if ( (m AND m->Left() AND m->Double()) OR (!m) )
 			{
 				char *Url = NewStr(View->Name() + Start, Len);
 				if (Url)
@@ -1042,8 +1042,8 @@ void GTextView2::SetCursor(int i, bool Select, bool ForceFullUpdate)
 		if (ForceFullUpdate OR
 			SelStart != s OR
 			SelEnd != e OR
-			NOT To OR
-			NOT From)
+			!To OR
+			!From)
 		{
 			// need full update
 			Invalidate();
@@ -1184,7 +1184,7 @@ bool GTextView2::Paste()
 		t = (char*)LgiNewConvertCp("utf-8", Unicode, "ucs-2");
 	}
 
-	if (NOT t)
+	if (!t)
 	{
 		t = Clip.Text();
 	}
@@ -1233,7 +1233,7 @@ bool GTextView2::ClearDirty(bool Ask, char *FileName)
 		{
 			GFileSelect Select;
 			Select.Parent(this);
-			if (NOT FileName AND
+			if (!FileName AND
 				Select.Save())
 			{
 				FileName = Select.Name();
@@ -1729,7 +1729,7 @@ void GTextView2::OnMouseClick(GMouse &m)
 				}
 			}
 
-			if (NOT Processed AND m.Double())
+			if (!Processed AND m.Double())
 			{
 				SelectWord(Cursor);
 			}
@@ -1787,7 +1787,7 @@ void GTextView2::OnMouseClick(GMouse &m)
 						}
 						case IDM_AUTO_INDENT:
 						{
-							AutoIndent = NOT AutoIndent;
+							AutoIndent = !AutoIndent;
 							break;
 						}
 						default:
@@ -1808,7 +1808,7 @@ void GTextView2::OnMouseClick(GMouse &m)
 		}
 	}
 
-	if (NOT Processed)
+	if (!Processed)
 	{
 		Capture(m.Down());
 	}
@@ -1841,7 +1841,7 @@ void GTextView2::OnMouseMove(GMouse &m)
 	{
 		GTextStyle *s = HitStyle(Hit);
 		char *c = (s) ? s->GetCursor() : 0;
-		if (NOT c) c = IDC_IBEAM;
+		if (!c) c = IDC_IBEAM;
 		::SetCursor(LoadCursor(0, MAKEINTRESOURCE(c)));
 	}
 	#endif
@@ -1934,7 +1934,7 @@ void GTextView2::OnKey(GKey &k)
 				case VK_LEFT:
 				{
 					if (SelStart >= 0 AND
-						NOT k.Shift())
+						!k.Shift())
 					{
 						SetCursor(min(SelStart, SelEnd), false);
 					}
@@ -1948,14 +1948,14 @@ void GTextView2::OnKey(GKey &k)
 							bool StartWhiteSpace = IsWhiteSpace(Text[n]);
 							bool LeftWhiteSpace = n > 0 AND IsWhiteSpace(Text[n-1]);
 
-							if (NOT StartWhiteSpace OR
+							if (!StartWhiteSpace OR
 								Text[n] == '\n') n--;
 							for (; n > 0 AND strchr(" \t", Text[n]); n--);
 							if (Text[n] == '\n')
 							{
 								n--;
 							}
-							else if (NOT StartWhiteSpace OR NOT LeftWhiteSpace)
+							else if (!StartWhiteSpace OR !LeftWhiteSpace)
 							{
 								if (IsDelimiter(Text[n]))
 								{
@@ -1989,7 +1989,7 @@ void GTextView2::OnKey(GKey &k)
 				case VK_RIGHT:
 				{
 					if (SelStart >= 0 AND
-						NOT k.Shift())
+						!k.Shift())
 					{
 						SetCursor(max(SelStart, SelEnd), false);
 					}
@@ -2190,7 +2190,7 @@ void GTextView2::OnKey(GKey &k)
 				}
 				default:
 				{
-					if (k.Ctrl() AND NOT k.Alt())
+					if (k.Ctrl() AND !k.Alt())
 					{
 						switch (k.c)
 						{
@@ -2331,7 +2331,7 @@ void GTextView2::OnPaint(GSurface *pDC)
 	COLOUR Fore = LC_TEXT;
 	COLOUR Back = (AcceptEdit) ? LC_WORKSPACE  : BackColour;
 	COLOUR Selected = LC_SELECTION;
-	if (NOT Focus())
+	if (!Focus())
 	{
 		COLOUR Work = LC_WORKSPACE;
 		Selected = Rgb24(	(R24(Work)+R24(Selected))/2,
@@ -2339,7 +2339,7 @@ void GTextView2::OnPaint(GSurface *pDC)
 							(B24(Work)+B24(Selected))/2);
 	}
 
-	if (NOT Enabled())
+	if (!Enabled())
 	{
 		Fore = LC_LOW;
 		Back = LC_MED;
@@ -2407,7 +2407,7 @@ void GTextView2::OnPaint(GSurface *pDC)
 			if (NextSelection == l->Start)
 			{
 				// selection change
-				DrawSel = NOT DrawSel;
+				DrawSel = !DrawSel;
 				if (DrawSel)
 				{
 					Font->Colour(LC_SEL_TEXT, Selected);
@@ -2512,7 +2512,7 @@ void GTextView2::OnPaint(GSurface *pDC)
 				if (NextSelection == Cur+Block)
 				{
 					// selection change
-					DrawSel = NOT DrawSel;
+					DrawSel = !DrawSel;
 					if (DrawSel)
 					{
 						Font->Colour(LC_SEL_TEXT, Selected);
@@ -2644,7 +2644,7 @@ void GTextView2::OnPulse()
 {
 	if (AcceptEdit)
 	{
-		Blink = NOT Blink;
+		Blink = !Blink;
 		Invalidate(&CursorPos);
 	}
 }
@@ -2654,7 +2654,7 @@ void GTextView2::OnUrl(char *Url)
 	if (Url)
 	{
 		if (strnicmp(Url, "mailto:", 7) == 0 OR
-			(strchr(Url, '@') AND NOT strchr(Url, '/')))
+			(strchr(Url, '@') AND !strchr(Url, '/')))
 		{
 			// email
 			char EmailApp[256];

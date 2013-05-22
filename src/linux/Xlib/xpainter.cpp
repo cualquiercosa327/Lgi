@@ -111,7 +111,7 @@ public:
 	Pixmap GetBuf(int x, int y, int Colour, GC *pGc, XftDraw **pDraw)
 	{
 		int Depth = DefaultDepth(XDisplay(), 0);
-		if (NOT Buf OR x > BufX OR y > BufY)
+		if (!Buf OR x > BufX OR y > BufY)
 		{
 			// Recreate
 			FreeBuf();
@@ -194,7 +194,7 @@ bool XPainter::IsOk()
 	bool Status =	this != 0 AND
 					d != 0 AND
 					d->Widget != 0;
-	if (NOT Status)
+	if (!Status)
 	{
 		#ifdef _DEBUG
 		LgiTrace("XPainter::IsOk() failed. this=%p d=%p d->W=%p\n",
@@ -223,7 +223,7 @@ bool XPainter::Begin(XWidget *w)
 								d->Widget->handle(),
 								TheVisual,
 								TheCmap);
-		if (NOT d->Draw)
+		if (!d->Draw)
 		{
 			printf("XPainter::begin, XftDrawCreate failed..\n");
 		}
@@ -325,7 +325,7 @@ void XPainter::PopClip()
 	if (IsOk() AND d->Gc)
 	{
 		XClip *l = d->Clip.Last();
-		if (l AND NOT l->System)
+		if (l AND !l->System)
 		{
 			d->Clip.Delete(l);
 			DeleteObj(l);
@@ -344,7 +344,7 @@ void XPainter::EmptyClip()
 	if (IsOk() AND d->Gc)
 	{
 		XClip *l = d->Clip.Last();
-		while (l AND NOT l->System)
+		while (l AND !l->System)
 		{
 			d->Clip.Delete(l);
 			DeleteObj(l);
@@ -435,7 +435,7 @@ void XPainter::setFont(XFont &f)
 	{
 		d->Font = f.GetTtf();
 		d->Underline = f.GetUnderline();
-		if (NOT d->Font AND f.GetFont())
+		if (!d->Font AND f.GetFont())
 		{
 			XGCValues v;
 			v.font = f.GetFont();
@@ -585,7 +585,7 @@ void XPainter::drawText(int x, int y, char16 *text, int len, int *backColour, GR
 		{
 			GRect Clip = *clip;
 			Clip.Offset(d->Ox, d->Oy);
-			if (NOT Exposed->Overlap(&Clip))
+			if (!Exposed->Overlap(&Clip))
 			{
 				return;
 			}
@@ -593,7 +593,7 @@ void XPainter::drawText(int x, int y, char16 *text, int len, int *backColour, GR
 		
 		if (d->Draw AND d->Font)
 		{
-			if (NOT d->ForeCol)
+			if (!d->ForeCol)
 			{
 				d->ForeCol = new XftColor;
 				if (d->ForeCol)
@@ -607,7 +607,7 @@ void XPainter::drawText(int x, int y, char16 *text, int len, int *backColour, GR
 					c.blue = B24(c24) * 257;
 					c.alpha = 65535;
 					
-					if (NOT XftColorAllocValue(XDisplay(), TheVisual, TheCmap, &c, d->ForeCol))
+					if (!XftColorAllocValue(XDisplay(), TheVisual, TheCmap, &c, d->ForeCol))
 					{
 						printf("Allocing colour failed: %i,%i,%i...\n", c.red, c.green, c.blue);
 						DeleteObj(d->ForeCol);
@@ -677,7 +677,7 @@ void XPainter::drawText(int x, int y, char16 *text, int len, int *backColour, GR
 					}
 				}
 				
-				if (NOT Done)
+				if (!Done)
 				{
 					// Old straight to screen code
 					

@@ -159,7 +159,7 @@ public:
 				GToken t(Grammar, "\n", false);
 				for (int i=0; i<t.Length(); )
 				{
-					if (NOT t[i] OR t[i][0] == '#')
+					if (!t[i] || t[i][0] == '#')
 					{
 						// Comment
 						i++;
@@ -228,7 +228,7 @@ ParseRule::ParseRule(char *s)
 				LinkToRule = NewStr(s, (int)e-(int)s);
 			}
 		}
-		else if (isalpha(*s) AND NOT ParseRule::Keywords.Find(s))
+		else if (isalpha(*s) AND !ParseRule::Keywords.Find(s))
 		{
 			LinkToRule = NewStr(s);
 		}
@@ -262,7 +262,7 @@ ParseRule::ParseRule(GToken &t, int &i)
 			{
 				if (iswhite(*s))
 				{
-					if (NOT Cond[c])
+					if (!Cond[c])
 					{
 						Cond[c] = new RuleArr;
 					}
@@ -327,7 +327,7 @@ bool ParseRule::Eval(ParseContext &c, int d)
 				t++;
 				p++;
 			}
-			if (NOT *t AND NOT *p)
+			if (!*t AND !*p)
 			{
 				printf("Match const '%s'\n", Const);
 				c.Next();
@@ -337,11 +337,11 @@ bool ParseRule::Eval(ParseContext &c, int d)
 		
 		return false;
 	}
-	else if (LinkToRule AND NOT Rule)
+	else if (LinkToRule AND !Rule)
 	{
 		// Resolve the Name if we can
 		Rule = (ParseRule*) Rules.Find(LinkToRule);
-		if (NOT Rule)
+		if (!Rule)
 		{
 			printf("The rule '%s' is not in the grammar.\n", LinkToRule);
 			LgiAssert(0);
@@ -367,7 +367,7 @@ bool ParseRule::Eval(ParseContext &c, int d)
 				while (s)
 				{
 					i = c.Cur;
-					if (NOT Rule->Eval(c, d + 1))
+					if (!Rule->Eval(c, d + 1))
 					{
 						c.Cur = i;
 						break;
@@ -392,7 +392,7 @@ bool ParseRule::Eval(ParseContext &c, int d)
 		// Test the conditions...
 		int i = c.Cur;
 		bool Status = false;
-		for (int o=0; o<Cond.Length() AND NOT Status; o++)
+		for (int o=0; o<Cond.Length() AND !Status; o++)
 		{
 			if (Type == DebugRule)
 			{
@@ -486,7 +486,7 @@ bool Identifier::Eval(ParseContext &c, int d)
 			DeleteArray(w);
 		}
 		
-		if (*s == '_' OR isalpha(*s))
+		if (*s == '_' || isalpha(*s))
 		{
 			printf("Identifier found '%S'\n", s);
 			c.Next();
@@ -509,7 +509,7 @@ bool IntegerConst::Eval(ParseContext &c, int d)
 	{
 		for (char16 *s=Str; *s; s++)
 		{
-			if (NOT isdigit(*s))
+			if (!isdigit(*s))
 				return false;
 		}
 		

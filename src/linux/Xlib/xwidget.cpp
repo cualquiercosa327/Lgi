@@ -195,7 +195,7 @@ public:
 	{
 		for (XWidgetPrivate *p=this; p; p=p->Parent ? p->Parent->d : 0)
 		{
-			if (NOT p->Map == Mapped AND NOT p->Map == Mapping) return false;
+			if (!p->Map == Mapped AND !p->Map == Mapping) return false;
 		}
 		
 		return true;
@@ -309,8 +309,8 @@ public:
 
 	OsPoint *GetDecorationSize()
 	{
-		if (NOT Parent AND
-			NOT DecorationSize)
+		if (!Parent AND
+			!DecorationSize)
 		{
 			Window Root = 0, Wind = 0, Parent = 0, *Child = 0;
 			int tx = 0, ty = 0;
@@ -496,7 +496,7 @@ int XWidget::DebugLog(char *file, int line, char *msg, ...)
 
 XIC XWidget::GetInputContext()
 {
-	if (NOT d->InputContext)
+	if (!d->InputContext)
 	{
 		char *ClassName = "LgiApp";
 		
@@ -580,7 +580,7 @@ bool XWidget::IsMouseOver(XlibEvent *e)
 
 void XWidget::_SetDeleteMe()
 {
-	if (NOT XApp()->Delete.HasItem(this))
+	if (!XApp()->Delete.HasItem(this))
 	{
 		XApp()->Delete.Insert(this);
 	}
@@ -682,7 +682,7 @@ void XWidget::_resize(XConfigureEvent *e, XlibEvent *q)
 		d->PosDirty, d->MapName());
 
 
-	if (NOT d->Parent)
+	if (!d->Parent)
 	{
 		// OsPoint *DecSize = d->GetDecorationSize();
 
@@ -1030,13 +1030,13 @@ bool XWidget::isVisible()
 
 void XWidget::show(bool Raise)
 {
-	if (d->Win AND NOT d->WaitForMapped(200))
+	if (d->Win AND !d->WaitForMapped(200))
 	{
 		int e;
 		
 		DebugLog(_FL, "show\n");
 		
-		if (NOT parentWidget())
+		if (!parentWidget())
 		{
 			XSizeHints *s = XAllocSizeHints();
 			if (s)
@@ -1162,7 +1162,7 @@ bool XWidget::reparent(XWidget *parent, OsPoint &p, bool showNow)
 {
 	Window ParWin = parent ? parent->d->Win : RootWindow(XDisplay(), 0);
 
-	if (NOT ParWin)
+	if (!ParWin)
 	{
 		printf("Error: XWidget::reparent(%p, [%i,%i], %i)\n", parent, p.x, p.y, showNow);
 		printf("\tParent->Win=%i\n", parent ? parent->d->Win : 0);
@@ -1203,7 +1203,7 @@ bool XWidget::reparent(XWidget *parent, OsPoint &p, bool showNow)
 				}
 			}
 			
-			if (NOT Has)
+			if (!Has)
 			{
 				d->Parent->d->Children.Insert(this);
 			}
@@ -1377,7 +1377,7 @@ LgiTrace("XView<q>::OnKey ch=%i(%c) char=%i down=%i ctrl=%i alt=%i shift=%i\n",
 			Status = w->HandleViewKey(v, k);
 			
 			k.IsChar = e->ischar();
-			if (NOT k.IsChar AND k.c16 >= VK_KP0 AND k.c16 <= VK_KP_EQUALS)
+			if (!k.IsChar AND k.c16 >= VK_KP0 AND k.c16 <= VK_KP_EQUALS)
 			{
 				// Generate char version of keystroke
 				switch (k.c16)

@@ -1069,13 +1069,13 @@ bool GIccProfile::Convert(COLOUR *Out32, COLOUR In32, GIccProfile *Profile)
 bool GIccProfile::Convert(GSurface *Dest, GSurface *Src, GIccProfile *Profile)
 {
 	#if USE_LCMS
-	if (!Dest OR !Src OR !Profile)
+	if (!Dest || !Src || !Profile)
 	{
 		d->SetErr("Invalid parameter(s).");
 		return false;
 	}
 
-	if (Dest->X() != Src->X() OR
+	if (Dest->X() != Src->X() ||
 		Dest->Y() != Src->Y())
 	{
 		d->SetErr("Source and Dest images are different sizes.");
@@ -1084,10 +1084,10 @@ bool GIccProfile::Convert(GSurface *Dest, GSurface *Src, GIccProfile *Profile)
 
 	if
 	(
-		NOT
+		!
 		(
 			(Dest->GetBits() == 32 && Src->GetBits() == 32)
-			OR
+			||
 			(Dest->GetBits() == 24 && Src->GetBits() == 24)
 		)
 	)

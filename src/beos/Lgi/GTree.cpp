@@ -162,7 +162,7 @@ void GTreeItem::DrawItem(BView *owner, BRect frame, bool complete)
 	}
 
 	char *Text = GetText(0);
-	if (NOT Text)
+	if (!Text)
 	{
 		Text = Str;
 	}

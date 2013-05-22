@@ -903,7 +903,7 @@ bool GFileSystem::Delete(GArray<char*> &Files, GArray<int> *Status, bool ToTrash
 			{
 				char *f = strrchr(Files[i], DIR_CHAR);
 				LgiMakePath(p, sizeof(p), p, f?f+1:Files[i]);
-				if (NOT MoveFile(Files[i], p))
+				if (!MoveFile(Files[i], p))
 				{
 					if (Status)
 					{

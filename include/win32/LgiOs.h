@@ -21,8 +21,8 @@
 #define DIR_CHAR					'\\'
 #define DIR_STR						"\\"
 
-#define IsSlash(c)					(((c)=='/')OR((c)=='\\'))
-#define IsQuote(c)					(((c)=='\"')OR((c)=='\''))
+#define IsSlash(c)					(((c)=='/')||((c)=='\\'))
+#define IsQuote(c)					(((c)=='\"')||((c)=='\''))
 
 // Win32 Memory Handler
 class LgiClass GMem

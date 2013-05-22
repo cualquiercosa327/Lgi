@@ -321,7 +321,7 @@ bool GWindow::HandleViewMouse(GView *v, GMouse &m)
 		if (Popup = dynamic_cast<GPopup*>(p))
 		{
 			Status = v->OnKey(k);
-			if (NOT Status)
+			if (!Status)
 			{
 				if (k.c16 == VK_ESCAPE)
 				{

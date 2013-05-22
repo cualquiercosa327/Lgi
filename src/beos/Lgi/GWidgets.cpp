@@ -120,14 +120,14 @@ public:
 		Notify->GetMouse(m);
 		m.Flags |= LGI_WATCHER_MSG;
 	
-		while (m.Left() OR m.Right())
+		while (m.Left() || m.Right())
 		{
 			LgiSleep(TimeOut);
 
 			GMouse Ms;
 			Notify->GetMouse(Ms);
 		
-			if (Ms.x != m.x OR
+			if (Ms.x != m.x ||
 				Ms.y != m.y)
 			{
 				if (Notify->Handle()->LockLooper())
@@ -239,7 +239,7 @@ int GDialog::DoModal(OsView ParentHnd)
 	ModalRet = 0;
 	ModalSem = create_sem(0, "ModalSem");
 	
-	if (NOT _Default)
+	if (!_Default)
 	{
 		GViewI *c = FindControl(IDOK);
 		GButton *Def = c ? dynamic_cast<GButton*>(c) : 0;

@@ -30,20 +30,20 @@ public:
 			char *Out = Buf;
 			for (char *In = str; 1; In++)
 			{
-				if (NOT *In OR *In == '\n')
+				if (!*In OR *In == '\n')
 				{
 					*Out++ = 0;
 
 					if (Buf[0] AND
-						NOT stristr(Buf, "adding:") AND
-						NOT stristr(Buf, "deflated"))
+						!stristr(Buf, "adding:") AND
+						!stristr(Buf, "deflated"))
 					{
 						Log->Log(Buf, stristr(Buf, "zip error") ? Rgb24(128, 0, 0) : Rgb24(0x80, 0x80, 0x80));
 					}
 
 					Out = Buf;
 
-					if (NOT *In) break;
+					if (!*In) break;
 				}
 				else if (*In == '\t')
 				{
@@ -78,10 +78,10 @@ public:
 	GZipLibPrivate() : GLibrary("Zip32")
 	{
 		#ifdef _DEBUG
-		if (NOT IsLoaded())
+		if (!IsLoaded())
 		{
 			// try some other paths...
-			if (NOT Load("\\CodeLib\\Zip23\\windll\\Debug\\Zip32"))
+			if (!Load("\\CodeLib\\Zip23\\windll\\Debug\\Zip32"))
 			{
 				Load("..\\Zip\\Zip32");
 			}
@@ -152,7 +152,7 @@ public:
 				Cmd.lpszZipFN = ZipFile;
 				Cmd.FNV = Ext;
 
-				Status = NOT ZpArchive(Cmd);
+				Status = !ZpArchive(Cmd);
 			}
 		}
 

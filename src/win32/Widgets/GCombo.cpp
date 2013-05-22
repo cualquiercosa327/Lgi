@@ -242,7 +242,7 @@ int GCombo::OnEvent(GMessage *Msg)
 	{
 		case WM_PAINT:
 		{
-			if (NOT d->Init)
+			if (!d->Init)
 			{
 				d->Init = true;
 				int n = 0;

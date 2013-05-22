@@ -245,7 +245,7 @@ public:
 		if (Fld)
 		{
 			_variant_t v = Fld->GetValue();
-			if (v.vt == VT_BSTR OR
+			if (v.vt == VT_BSTR ||
 				v.vt == (VT_BSTR | VT_BYREF))
 			{
 				_bstr_t bstr((v.vt & VT_BYREF) ? *v.pbstrVal : v.bstrVal, false);
@@ -586,7 +586,7 @@ public:
 GDb *OpenAdoDatabase(char *Name)
 {
 	GAdoDb *Db = new GAdoDb;
-	if (Db AND NOT Db->Connect(Name))
+	if (Db AND !Db->Connect(Name))
 	{
 		DeleteObj(Db);
 	}

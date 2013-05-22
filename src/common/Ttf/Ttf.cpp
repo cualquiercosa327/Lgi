@@ -259,7 +259,7 @@ void GFont::TextW(GSurface *pDC, int x, int y, ushort *Str, int Len, GRect *r)
 		{
 			if (TabSize)
 			{
-				if (NOT TabbedTextOutW(hDC,
+				if (!TabbedTextOutW(hDC,
 										x, y,
 										Str,
 										Len,
@@ -396,7 +396,7 @@ bool TtfFileHeader::Read(GFile &F)
 	F >> SearchRange;
 	F >> EntrySelector;
 	F >> RangeShift;
-	return NOT F.GetStatus();
+	return !F.GetStatus();
 }
 
 bool TtfFileHeader::Write(GFile &F)
@@ -406,7 +406,7 @@ bool TtfFileHeader::Write(GFile &F)
 	F << SearchRange;
 	F << EntrySelector;
 	F << RangeShift;
-	return NOT F.GetStatus();
+	return !F.GetStatus();
 }
 
 void TtfFileHeader::Dump()
@@ -425,7 +425,7 @@ bool TtfTable::Read(GFile &F)
 	F >> CheckSum;
 	F >> Offset;
 	F >> Length;
-	return NOT F.GetStatus();
+	return !F.GetStatus();
 }
 
 bool TtfTable::Write(GFile &F)
@@ -434,7 +434,7 @@ bool TtfTable::Write(GFile &F)
 	F << CheckSum;
 	F << Offset;
 	F << Length;
-	return NOT F.GetStatus();
+	return !F.GetStatus();
 }
 
 void TtfTable::Dump()
@@ -475,7 +475,7 @@ bool TtfHeader::Read(GFile &F)
 	F >> IndexToLocFormat;
 	F >> GlyphDataFormat;
 
-	return NOT F.GetStatus();
+	return !F.GetStatus();
 }
 
 bool TtfHeader::Write(GFile &F)
@@ -500,7 +500,7 @@ bool TtfHeader::Write(GFile &F)
 	F << IndexToLocFormat;
 	F << GlyphDataFormat;
 
-	return NOT F.GetStatus();
+	return !F.GetStatus();
 }
 
 void TtfHeader::Dump()
@@ -529,7 +529,7 @@ void TtfHeader::Dump()
 		printf("   BOLD\n");
 	if (MacStyle & 0x02)
 		printf("   ITALIC\n");
-	if (NOT (MacStyle & 0x03))
+	if (!(MacStyle & 0x03))
 		printf("   none\n");
 	printf("LowestRecPPEM: %i\n", LowestRecPPEM);
 
@@ -572,7 +572,7 @@ bool TtfMaxProfile::Read(GFile &F)
 	F >> MaxComponentElements;
 	F >> MaxComponentDepth;
 
-	return NOT F.GetStatus();
+	return !F.GetStatus();
 }
 
 bool TtfMaxProfile::Write(GFile &F)
@@ -593,7 +593,7 @@ bool TtfMaxProfile::Write(GFile &F)
 	F << MaxComponentElements;
 	F << MaxComponentDepth;
 
-	return NOT F.GetStatus();
+	return !F.GetStatus();
 }
 
 void TtfMaxProfile::Dump()
@@ -691,7 +691,7 @@ bool TtfLocation::Read(GFile &F)
 			}
 		}
 
-		Status = NOT F.GetStatus();
+		Status = !F.GetStatus();
 	}
 	
 	return Status;
@@ -722,7 +722,7 @@ bool TtfLocation::Write(GFile &F)
 			}
 		}
 
-		Status = NOT F.GetStatus();
+		Status = !F.GetStatus();
 	}
 	
 	return Status;
@@ -843,7 +843,7 @@ bool TtfGlyph::Read(GFile &F)
 						CurX -= n;
 					}
 				}
-				else if (NOT (Flags[i] & XSame))
+				else if (!(Flags[i] & XSame))
 				{
 					short n;
 					F >> n;
@@ -874,7 +874,7 @@ bool TtfGlyph::Read(GFile &F)
 						CurY -= n;
 					}
 				}
-				else if (NOT (Flags[i] & YSame))
+				else if (!(Flags[i] & YSame))
 				{
 					short n;
 					F >> n;
@@ -886,7 +886,7 @@ bool TtfGlyph::Read(GFile &F)
 		}
 	}
 
-	return NOT F.GetStatus();
+	return !F.GetStatus();
 }
 
 bool TtfGlyph::Write(GFile &F)
@@ -1149,7 +1149,7 @@ void TtfContour::Bezier(CPt *p, double Threshold)
 		CPt *Old = BufA;
 		CPt *New = BufB;
 
-		if (NOT Old OR NOT New) return;
+		if (!Old OR !New) return;
 		for (int n=0; n<OldPts; n++)
 		{
 			Old[n].x = p[n].x;
@@ -1522,12 +1522,12 @@ bool TtfGlyph::Rasterize(GSurface *pDC, GRect *pDest, double xppem, double yppem
 								Len++;
 							}
 
-							if (NOT Len)
+							if (!Len)
 							{
 								int x = (int) L->Data[i];
-								if (	NOT pDC->Get(	pDest->x1 + x,
+								if (	!pDC->Get(	pDest->x1 + x,
 											pDest->y1 + y) AND
-									NOT pDC->Get(	pDest->x1 + x + 1,
+									!pDC->Get(	pDest->x1 + x + 1,
 											pDest->y1 + y))
 								{
 									pDC->Set(	pDest->x1 + x,
@@ -1545,8 +1545,8 @@ bool TtfGlyph::Rasterize(GSurface *pDC, GRect *pDest, double xppem, double yppem
 						{
 							int BaseY = (int) L->Data[i];
 							if (	(Up(L->Data[i]) > L->Data[i+1]) AND
-								NOT pDC->Get(pDest->x1 + x, pDest->y1 + BaseY) AND
-								NOT pDC->Get(pDest->x1 + x, pDest->y1 + (BaseY + 1)))
+								!pDC->Get(pDest->x1 + x, pDest->y1 + BaseY) AND
+								!pDC->Get(pDest->x1 + x, pDest->y1 + (BaseY + 1)))
 							{
 								pDC->Set(	pDest->x1 + x,
 										pDest->y1 + BaseY);
@@ -1625,7 +1625,7 @@ bool TtfCMapTable::Read(GFile &F)
 	F >> PlatformID;
 	F >> EncodingID;
 	F >> Offset;
-	return NOT F.GetStatus();
+	return !F.GetStatus();
 }
 
 bool TtfCMapTable::Write(GFile &F)
@@ -1633,7 +1633,7 @@ bool TtfCMapTable::Write(GFile &F)
 	F << PlatformID;
 	F << EncodingID;
 	F << Offset;
-	return NOT F.GetStatus();
+	return !F.GetStatus();
 }
 
 void TtfCMapTable::Dump()
@@ -1672,7 +1672,7 @@ bool TtfCMapByteEnc::Read(GFile &F)
 	F >> Length;
 	F >> Version;
 	F.Read(Map, sizeof(Map));
-	return NOT F.GetStatus();
+	return !F.GetStatus();
 }
 
 bool TtfCMapByteEnc::Write(GFile &F)
@@ -1681,7 +1681,7 @@ bool TtfCMapByteEnc::Write(GFile &F)
 	F << Length;
 	F << Version;
 	F.Write(Map, sizeof(Map));
-	return NOT F.GetStatus();
+	return !F.GetStatus();
 }
 
 void TtfCMapByteEnc::Dump()
@@ -1756,7 +1756,7 @@ bool TtfCMapSegDelta::Read(GFile &F)
 	// end of the IdRangeOffset array
 	IdRangeOffset = ReadUShortArray(F, SegCount + IdCount);
 	
-	return	(NOT F.GetStatus()) AND
+	return	(!F.GetStatus()) AND
 			EndCount AND
 			StartCount AND
 			IdDelta AND
@@ -1831,7 +1831,7 @@ bool TtfCMap::Read(GFile &F)
 				case 0:
 				{
 					Table[i].Map = new TtfCMapByteEnc;
-					if (NOT Fravorite)
+					if (!Fravorite)
 					{
 						Fravorite = Table[i].Map;
 					}
@@ -1956,7 +1956,7 @@ bool TtfRaster::Rasterize(double xPPEm, double yPPEm, int OverSample)
 	TtfMaxProfile *Profile = (TtfMaxProfile*) FindTag("maxp");
 	TtfHeader *Header = (TtfHeader*) FindTag("head");
 
-	if (NOT Glyph OR NOT Profile OR NOT Header OR OverSample < 1) return FALSE;
+	if (!Glyph OR !Profile OR !Header OR OverSample < 1) return FALSE;
 
 	XPixelsPerEm = xPPEm;
 	YPixelsPerEm = yPPEm;
@@ -2022,7 +2022,7 @@ bool TtfRaster::Rasterize(double xPPEm, double yPPEm, int OverSample)
 					}
 					*/
 
-					if (NOT Status)
+					if (!Status)
 					{
 						// printf("Glyph[%i] failed\n", i);
 						Status = TRUE;
@@ -2152,7 +2152,7 @@ TtfRaster *GdcTtf::FindRaster(int Point, int XDpi, int YDpi)
 
 TtfTable *GdcTtf::FindTag(char *t)
 {
-	if (NOT TableList) return NULL;
+	if (!TableList) return NULL;
 
 	for (int i=0; i<Tables; i++)
 	{
@@ -2355,7 +2355,7 @@ void GdcTtf::Size(int *x, int *y, char *Str, int Len, int Flags)
 	int CurX = 0;
 	int CurY = 0;
 
-	if (NOT Glyph) return;
+	if (!Glyph) return;
 	TtfRaster *Raster = FindRaster(Point, 96);
 	if (Ptr AND Raster)
 	{
@@ -2370,7 +2370,7 @@ void GdcTtf::Size(int *x, int *y, char *Str, int Len, int Flags)
 			int Index = Map[*Ptr];
 			TtfGlyph *g = Glyph[Index];
 
-			if (NOT g)
+			if (!g)
 			{
 				g = Glyph[0];
 			}
@@ -2557,12 +2557,12 @@ void GdcTtf::Text(GSurface *pDC, int x, int y, char *Str, int Len)
 		char *Ptr = Str;
 
 		if (Len < 0) Len = strlen(Str);
-		if (NOT Glyph OR NOT pDC) return;
+		if (!Glyph OR !pDC) return;
 		
 		TtfRaster *Raster = FindRaster(Point, 96);
 		if (Ptr AND Raster)
 		{
-			if (NOT Trans)
+			if (!Trans)
 			{
 				int Sx, Sy;
 				Size(&Sx, &Sy, Str);
@@ -2588,7 +2588,7 @@ void GdcTtf::Text(GSurface *pDC, int x, int y, char *Str, int Len)
 					int Index = Map[*Ptr];
 					TtfGlyph *g = Glyph[Index];
 
-					if (NOT g)
+					if (!g)
 					{
 						g = Glyph[0];
 					}

@@ -675,7 +675,7 @@ int MysqlDirectRs::Fields()
 
 bool MysqlDirectRs::End()
 {
-	return Cursor < 0 OR Cursor >= Rows.Length();
+	return Cursor < 0 || Cursor >= Rows.Length();
 }
 
 bool MysqlDirectRs::AddNew()

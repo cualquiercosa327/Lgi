@@ -69,7 +69,7 @@ GPrintDC *GPrinter::StartDC(const char *PrintJobName, GView *Parent)
 		PrintDlg(&d->Info))
 	{
 		/*
-		if (NOT d->Info.hDC)
+		if (!d->Info.hDC)
 		{
 			GMem DevMode(d->Info.hDevMode);
 			GMem DevNames(d->Info.hDevNames);

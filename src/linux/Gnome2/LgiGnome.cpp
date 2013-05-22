@@ -243,13 +243,13 @@ bool LgiWmGetLanguage(char *Lang)
 
 bool LgiWmGetColour(int Which, Lgi::WmColour *Colour)
 {
-	if (NOT Colour)
+	if (!Colour)
 		return false;
 
 	#if 0 // USE_GNOME
 
 	GtkSettings *s = gtk_settings_get_default();
-	if (NOT s)
+	if (!s)
 	{
 		printf("%s:%i - gtk_settings_get_for_screen failed.\n", __FILE__, __LINE__);
 		return false;
@@ -366,7 +366,7 @@ bool LgiWmGetColour(int Which, Lgi::WmColour *Colour)
 
 bool LgiWmGetPath(int Which, char *Buf, int BufLen)
 {
-	if (NOT Buf OR BufLen < 2)
+	if (!Buf OR BufLen < 2)
 		return false;
 	
 	#if USE_GNOME

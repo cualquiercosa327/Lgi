@@ -133,8 +133,8 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 
 			int NewOp = (pApp) ? Op() : GDC_SET;
 
-			if (	(Flags & GDC_OWN_APPLICATOR) AND
-				NOT (Flags & GDC_CACHED_APPLICATOR))
+			if ( (Flags & GDC_OWN_APPLICATOR) AND
+				!(Flags & GDC_CACHED_APPLICATOR))
 			{
 				DeleteObj(pApp);
 			}

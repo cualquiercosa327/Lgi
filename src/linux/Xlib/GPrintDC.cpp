@@ -13,7 +13,7 @@ class GCups : public GLibrary
 public:
 	GCups() : GLibrary("libcups")
 	{
-		if (NOT IsLoaded())
+		if (!IsLoaded())
 		{
 			printf("%s,%i - CUPS (Common Unix Printing System) not found.\n", __FILE__, __LINE__);
 		}
@@ -481,7 +481,7 @@ GPrintDC::~GPrintDC()
 		d->Ps.Close();
 		
 		/*
-		if (NOT Job)
+		if (!Job)
 		{
 			int Err = d->cupsLastError();
   			printf("Cups Error: %x\n", (int)Err);
@@ -513,7 +513,7 @@ double GPrintDC::Yc(int y)
 
 XPainter *GPrintDC::Handle()
 {
-	if (NOT d->p)
+	if (!d->p)
 	{
 		d->p = new PrintPainter(this);
 	}
@@ -555,7 +555,7 @@ bool GPrintDC::StartPage()
 	
 	if (d->IsOk())
 	{
-		if (NOT d->Ps.IsOpen())
+		if (!d->Ps.IsOpen())
 		{
 			d->StartPs();
 		}

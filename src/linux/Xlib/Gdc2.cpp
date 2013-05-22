@@ -202,7 +202,7 @@ COLOUR CBit(int DstBits, COLOUR c, int SrcBits, GPalette *Pal)
 			case 8:
 			{
 				GdcRGB Grey, *p = 0;
-				if (NOT Pal OR NOT (p = (*Pal)[c]))
+				if (!Pal OR !(p = (*Pal)[c]))
 				{
 					Grey.R = Grey.G = Grey.B = c & 0xFF;
 					p = &Grey;
@@ -654,7 +654,7 @@ bool GPalette::Load(GFile &F)
 		// read decimal length
 		F.ReadStr(Buf, sizeof(Buf));
 		SetSize(atoi(Buf));
-		for (int i=0; i<GetSize() AND NOT F.Eof(); i++)
+		for (int i=0; i<GetSize() AND !F.Eof(); i++)
 		{
 			F.ReadStr(Buf, sizeof(Buf));
 			GdcRGB *p = (*this)[i];
@@ -736,7 +736,7 @@ bool GPalette::operator ==(GPalette &p)
 
 bool GPalette::operator !=(GPalette &p)
 {
-	return NOT ((*this) == p);
+	return !((*this) == p);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -783,8 +783,8 @@ GDeviceContext::~GDeviceContext()
 		DeleteObj(pPalette);
 	}
 
-	if (	(Flags & GDC_OWN_APPLICATOR) AND
-		NOT (Flags & GDC_CACHED_APPLICATOR))
+	if ( (Flags & GDC_OWN_APPLICATOR) AND
+		!(Flags & GDC_CACHED_APPLICATOR))
 	{
 		DeleteObj(pApp);
 	}
@@ -801,14 +801,14 @@ bool GDeviceContext::IsAlpha(bool b)
 
 	if (b)
 	{
-		if (NOT pAlphaDC)
+		if (!pAlphaDC)
 		{
 			pAlphaDC = new GMemDC;
 		}
 
 		if (pAlphaDC AND pMem)
 		{
-			if (NOT pAlphaDC->Create(pMem->x, pMem->y, 8))
+			if (!pAlphaDC->Create(pMem->x, pMem->y, 8))
 			{
 				DeleteObj(pAlphaDC);
 			}
@@ -832,7 +832,7 @@ bool GDeviceContext::DrawOnAlpha(bool Draw)
 
 	if (Draw)
 	{
-		if (NOT Prev AND pAlphaDC AND pMem)
+		if (!Prev AND pAlphaDC AND pMem)
 		{
 			GBmpMem *Temp = pMem;
 			pMem = pAlphaDC->pMem;
@@ -862,7 +862,7 @@ GApplicator *GDeviceContext::CreateApplicator(int Op, int Bits)
 {
 	GApplicator *pA = NULL;
 
-	if (NOT Bits AND pMem)
+	if (!Bits AND pMem)
 	{
 		if (DrawOnAlpha())
 		{
@@ -979,7 +979,7 @@ COLOUR GDeviceContext::Colour(COLOUR c, int Bits)
 int GDeviceContext::Op(int NewOp)
 {
 	int PrevOp = (pApp) ? pApp->GetOp() : GDC_SET;
-	if (NOT pApp OR PrevOp != NewOp)
+	if (!pApp OR PrevOp != NewOp)
 	{
 		COLOUR cCurrent = (pApp) ? Colour() : 0;
 
@@ -988,7 +988,7 @@ int GDeviceContext::Op(int NewOp)
 			DeleteObj(pApp);
 		}
 
-		if (NewOp < GDC_CACHE_SIZE AND NOT DrawOnAlpha())
+		if (NewOp < GDC_CACHE_SIZE AND !DrawOnAlpha())
 		{
 			pApp = (pAppCache[NewOp]) ? pAppCache[NewOp] : pAppCache[NewOp] = CreateApplicator(NewOp);
 			Flags &= ~GDC_OWN_APPLICATOR;
@@ -1017,7 +1017,7 @@ int GDeviceContext::Op(int NewOp)
 
 GPalette *GDeviceContext::Palette()
 {
-	if (NOT pPalette AND pMem AND (pMem->Flags & GDC_ON_SCREEN))
+	if (!pPalette AND pMem AND (pMem->Flags & GDC_ON_SCREEN))
 	{
 		pPalette = GdcD->GetSystemPalette();
 		if (pPalette)
@@ -1496,7 +1496,7 @@ bool GSprite::Create(GSurface *pScr, int x, int y, int SrcBitDepth, uchar *Colou
 			}
 		}
 
-		if (NOT Status)
+		if (!Status)
 		{
 			Delete();
 		}
@@ -1526,7 +1526,7 @@ bool GSprite::Create(GSurface *pScr, GSprite *pSpr)
 			Status = true;
 		}
 
-		if (NOT Status)
+		if (!Status)
 		{
 			Delete();
 		}
@@ -1632,7 +1632,7 @@ bool GSprite::CreateKey(GSurface *pScr, int x, int y, int Bits, uchar *Colour, i
 			}
 		}
 
-		if (NOT Status)
+		if (!Status)
 		{
 			Delete();
 		}
@@ -1704,7 +1704,7 @@ void GSprite::SetVisible(bool v)
 	{
 		if (Visible)
 		{
-			if (NOT v)
+			if (!v)
 			{
 				// Hide
 				int Op = pScreen->Op(GDC_SET);
@@ -1763,7 +1763,7 @@ void GSprite::Draw(int x, int y, COLOUR Back, int Mode, GSurface *pDC)
 {
 	if (pScreen)
 	{
-		if (NOT pDC)
+		if (!pDC)
 		{
 			pDC = pScreen;
 		}
@@ -1980,7 +1980,7 @@ public:
 		
 		for (int i=0; i<256; i++)
 		{
-			if (NOT c[i].Used)
+			if (!c[i].Used)
 			{
 				f++;
 			}

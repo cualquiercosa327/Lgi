@@ -558,7 +558,7 @@ bool TextDocument::Save(char *FileName)
 					}
 				}
 
-				Status = NOT F.GetStatus();
+				Status = !F.GetStatus();
 			}
 			else
 			{
@@ -734,7 +734,7 @@ bool TextDocument::Insert(GCursor *At, char *Text, int Len)
 			int Offset = (At) ? At->Offset + At->x : 0;
 
 			// save undo info
-			if (NOT IgnoreUndo)
+			if (!IgnoreUndo)
 			{
 				TruncateQueue();
 
@@ -778,7 +778,7 @@ bool TextDocument::Delete(GCursor *From, int Len, char *Buffer)
 		if (Len > 0)
 		{
 			char *c = Data + Offset;
-			if (NOT IgnoreUndo)
+			if (!IgnoreUndo)
 			{
 				TruncateQueue();
 
@@ -950,7 +950,7 @@ int TextView::ProcessKey(GKey &K)
 {
 	Flags &= ~(TVF_GOTO_START | TVF_GOTO_END | TVF_EAT_MOVE);
 
-	if (NOT K.IsChar)
+	if (!K.IsChar)
 	{
 		if (K.Shift())
 		{
@@ -997,7 +997,7 @@ int TextView::ProcessKey(GKey &K)
 							OnDeleteSelection(FALSE);
 							UpdateHiddenCheck();
 						}
-						else if (User.Y() > 0 OR User.X() > 0)
+						else if (User.Y() > 0 || User.X() > 0)
 						{
 							Flags &= ~(TVF_SHIFT);
 							OnMoveCursor(-1, 0);
@@ -1049,7 +1049,7 @@ int TextView::ProcessKey(GKey &K)
 						else
 						{
 							// IsText(*c)
-							while (	NOT strchr(WhiteSpace, *c) AND
+							while (	!strchr(WhiteSpace, *c) AND
 									OnMoveCursor(Inc, 0))
 							{
 								c = User;
@@ -1058,7 +1058,7 @@ int TextView::ProcessKey(GKey &K)
 
 						if (bLeft)
 						{
-							if (User.Y() > 0 OR User.X() > 0)
+							if (User.Y() > 0 || User.X() > 0)
 							{
 								OnMoveCursor(-Inc, 0);
 							}
@@ -1142,7 +1142,7 @@ int TextView::ProcessKey(GKey &K)
 							OnDeleteSelection(FALSE);
 							UpdateHiddenCheck();
 						}
-						else if (	User.Y() < Doc.GetLines() OR
+						else if (	User.Y() < Doc.GetLines() ||
 									User.X() < User.LineLength())
 						{
 							OnDeleteText(&User, 1, FALSE);
@@ -1174,7 +1174,7 @@ int TextView::ProcessKey(GKey &K)
 		// IsChar
 		#define EXTENDED (1<<24)
 
-		// if (	NOT (K.Data & EXTENDED))
+		// if (	!(K.Data & EXTENDED))
 		{
 			bool InsertChar = K.c >= ' '; //  AND K.c < 128
 
@@ -1184,11 +1184,11 @@ int TextView::ProcessKey(GKey &K)
 				{
 					if (Flags & TVF_SHIFT)
 					{
-						InsertChar = NOT OnMultiLineTab(false);
+						InsertChar = !OnMultiLineTab(false);
 					}
 					else
 					{
-						InsertChar = NOT OnMultiLineTab(true);
+						InsertChar = !OnMultiLineTab(true);
 					}
 				}
 				else
@@ -1311,8 +1311,8 @@ bool TextView::UpdateHiddenCheck()
 bool TextView::OnMoveCursor(int Dx, int Dy, bool NoSelect)
 {
 	bool Status = FALSE;
-	bool StartSelect = (Flags & TVF_SHIFT) AND NOT (Flags & TVF_SELECTION);
-	bool EndSelect = NOT (Flags & TVF_SHIFT) AND (Flags & TVF_SELECTION);
+	bool StartSelect = (Flags & TVF_SHIFT) AND !(Flags & TVF_SELECTION);
+	bool EndSelect = !(Flags & TVF_SHIFT) AND (Flags & TVF_SELECTION);
 	GCursor Old = User;
 
 	if (EndSelect)
@@ -1356,10 +1356,10 @@ bool TextView::OnMoveCursor(int Dx, int Dy, bool NoSelect)
 		User.MoveX(Dx);
 	}
 
-	if (Old != User OR EndSelect)
+	if (Old != User || EndSelect)
 	{
 		AfterMove:
-		if (NOT NoSelect)
+		if (!NoSelect)
 		{
 			if (StartSelect)
 			{

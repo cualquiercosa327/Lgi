@@ -222,7 +222,7 @@ bool GdcSpiPlugin::ReadImage(GSurface *pDC, GStream *In)
 					char *Bits = (char*) BmpMem.Lock();
 					if (Info AND
 						Bits AND
-						(Info->bmiHeader.biCompression == BI_RGB OR Info->bmiHeader.biCompression == BI_BITFIELDS))
+						(Info->bmiHeader.biCompression == BI_RGB || Info->bmiHeader.biCompression == BI_BITFIELDS))
 					{
 						if (pDC->Create(Info->bmiHeader.biWidth, Info->bmiHeader.biHeight, max(Info->bmiHeader.biPlanes * Info->bmiHeader.biBitCount, 8)))
 						{

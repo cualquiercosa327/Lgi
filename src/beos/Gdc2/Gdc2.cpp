@@ -711,7 +711,7 @@ bool GPalette::operator ==(GPalette &p)
 
 bool GPalette::operator !=(GPalette &p)
 {
-	return NOT ((*this) == p);
+	return !((*this) == p);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -758,8 +758,8 @@ GSurface::~GSurface()
 		DeleteObj(pPalette);
 	}
 
-	if (	(Flags & GDC_OWN_APPLICATOR) AND
-		NOT (Flags & GDC_CACHED_APPLICATOR))
+	if ( (Flags & GDC_OWN_APPLICATOR) AND
+		!(Flags & GDC_CACHED_APPLICATOR))
 	{
 		DeleteObj(pApp);
 	}

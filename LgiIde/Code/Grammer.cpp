@@ -1,7 +1,7 @@
 bool identifier(ParseContext &c)
 {
 	char16 *t = c.t();
-	if (*t == '_' OR isalpha(*t))
+	if (*t == '_' || isalpha(*t))
 	{
 		c.Next();
 		return true;
@@ -32,7 +32,7 @@ bool is(ParseContext &c, char *v)
 		if (*t != *v) return false;
 	}
 	
-	if (NOT *t AND NOT *v)
+	if (!*t AND !*v)
 	{
 		c.Next();
 		return true;
@@ -82,15 +82,15 @@ bool unary_operator(ParseContext &c)
 	if
 	(
 		is(c, "*")
-		OR
+		||
 		is(c, "&")
-		OR
+		||
 		is(c, "+")
-		OR
+		||
 		is(c, "-")
-		OR
+		||
 		is(c, "!")
-		OR
+		||
 		is(c, "~")
 	)
 	{
@@ -228,25 +228,25 @@ bool assignment_expression(ParseContext &c)
 bool assignment_operator(ParseContext &c)
 {
     return	is(c, "=")
-			OR
+			||
 			is(c, "*=")
-			OR
+			||
 			is(c, "/=")
-			OR
+			||
 			is(c, "%=")
-			OR
+			||
 			is(c, "+=")
-			OR
+			||
 			is(c, "-=")
-			OR
+			||
 			is(c, "<<=")
-			OR
+			||
 			is(c, ">>=")
-			OR
+			||
 			is(c, "&=")
-			OR
+			||
 			is(c, "^=")
-			OR
+			||
 			is(c, "|=");
 }
 
