@@ -2,6 +2,7 @@
 #define _LGI_CLASS_H_
 
 #include "LgiInc.h"
+#include "LgiDefs.h"
 
 // Virtual input classes
 class GKey;

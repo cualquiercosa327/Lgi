@@ -753,7 +753,7 @@ GVariant &GVariant::Cast(GVariantType NewType)
 			}
 			case GV_INT32:
 			{
-				*this = CastInt32();
+				*this = (int)CastInt32();
 				break;
 			}
 			case GV_INT64:

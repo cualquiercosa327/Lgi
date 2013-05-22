@@ -50,7 +50,7 @@ Depends =	GDateTime.o \
 			GMem.o \
 			GProperties.o \
 			GContainers.o \
-			GMenuGtk.o \
+			GMenu.o \
 			GProcess.o \
 			LgiRes.o \
 			Res.o \
@@ -254,7 +254,7 @@ GContainers.o : ./src/common/General/GContainers.cpp ./include/common/GMem.h \
 	@echo $(<F) [$(Gui)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GMenuGtk.o : ./src/beos/Lgi/GMenuGtk.cpp ./include/common/Lgi.h \
+GMenu.o : ./src/beos/Lgi/GMenu.cpp ./include/common/Lgi.h \
 	./include/common/GToken.h
 	@echo $(<F) [$(Gui)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -408,7 +408,7 @@ GColourReduce.o : ./src/common/Gdc2/Tools/GColourReduce.cpp ./include/common/Gdc
 	@echo $(<F) [$(Gui)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-Gdc2.o : ./src/beos/Gdc2.cpp ./include/common/Lgi.h
+Gdc2.o : ./src/beos/Gdc2/Gdc2.cpp ./include/common/Lgi.h
 	@echo $(<F) [$(Gui)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -492,17 +492,17 @@ GRect.o : ./src/common/Gdc2/GRect.cpp ./include/common/Gdc2.h \
 	@echo $(<F) [$(Gui)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GMemDC.o : ./src/beos/GMemDC.cpp ./include/common/Gdc2.h \
+GMemDC.o : ./src/beos/Gdc2/GMemDC.cpp ./include/common/Gdc2.h \
 	./include/common/GString.h
 	@echo $(<F) [$(Gui)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GPrintDC.o : ./src/beos/GPrintDC.cpp ./include/common/Lgi.h \
+GPrintDC.o : ./src/beos/Gdc2/GPrintDC.cpp ./include/common/Lgi.h \
 	./include/common/GLibraryUtils.h
 	@echo $(<F) [$(Gui)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GScreenDC.o : ./src/beos/GScreenDC.cpp ./include/common/Lgi.h
+GScreenDC.o : ./src/beos/Gdc2/GScreenDC.cpp ./include/common/Lgi.h
 	@echo $(<F) [$(Gui)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 

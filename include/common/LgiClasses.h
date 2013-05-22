@@ -1114,7 +1114,7 @@ public:
 	bool Pour(GRegion &r);
 
 	// Impl
-	#if defined(__GTK_H__) || defined(MAC)
+	#if defined(__GTK_H__) || defined(MAC) || defined(BEOS)
 
 	bool Attach(GViewI *p);
 	bool Detach();

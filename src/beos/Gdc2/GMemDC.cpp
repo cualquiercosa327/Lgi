@@ -62,16 +62,6 @@ GMemDC::~GMemDC()
 	DeleteObj(d);
 }
 
-OsBitmap GMemDC::GetBitmap()
-{
-	return d->Bmp;
-}
-
-OsPainter GMemDC::Handle()
-{
-	return d->View;
-}
-
 void GMemDC::SetOrigin(int x, int y)
 {
 	GSurface::SetOrigin(x, y);
@@ -134,7 +124,7 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 			pMem->Base = (uchar*) d->Bmp->Bits();
 			pMem->x = x;
 			pMem->y = y;
-			pMem->Bits = Bits;
+			pMem->Cs = GBitToColourSpace(Bits);
 			pMem->Line = d->Bmp->BytesPerRow();
 			pMem->Flags = 0;
 			
@@ -154,7 +144,7 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 				DeleteObj(pAppCache[i]);
 			}
 
-			if (NewOp < GDC_CACHE_SIZE AND NOT DrawOnAlpha())
+			if (NewOp < GDC_CACHE_SIZE AND !DrawOnAlpha())
 			{
 				pApp = (pAppCache[NewOp]) ? pAppCache[NewOp] : pAppCache[NewOp] = CreateApplicator(NewOp);
 				Flags &= ~GDC_OWN_APPLICATOR;
@@ -167,7 +157,7 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 				Flags |= GDC_OWN_APPLICATOR;
 			}
 			
-			if (NOT pApp)
+			if (!pApp)
 			{
 				LgiMsg(0, "Couldn't create applicator (%ix%i,%i bits)\n", "Error", MB_OK, x, y, Bits);
 				LgiAssert(0);

@@ -9,15 +9,15 @@ int32 ThreadEntryPoint(void *i)
 		Thread->OnBeforeMain();
 		Thread->ReturnValue = Thread->Main();
 		Thread->OnAfterMain();
-		Thread->State = LGITHREAD_EXITED;
+		Thread->State = GThread::THREAD_EXITED;
 		return Thread->ReturnValue;
 	}
 	return 0;
 }
 
-GThread::GThread()
+GThread::GThread(const char *Name)
 {
-	State = LGITHREAD_ASLEEP;
+	State = THREAD_ASLEEP;
 	ReturnValue = -1;
 	hThread = spawn_thread(	ThreadEntryPoint,
 							"Lgi.GThread", 
@@ -27,7 +27,7 @@ GThread::GThread()
 
 GThread::~GThread()
 {
-	if (NOT IsExited())
+	if (!IsExited())
 	{
 		Terminate();
 	}
@@ -46,20 +46,20 @@ bool GThread::IsExited()
 		return false;
 	}
 
-	return State == LGITHREAD_EXITED;
+	return State == THREAD_EXITED;
 }
 
 void GThread::Run()
 {
 	resume_thread(hThread);
-	State = LGITHREAD_RUNNING;
+	State = THREAD_RUNNING;
 }
 
 void GThread::Terminate()
 {
 	if (kill_thread(hThread) == B_OK)
 	{
-		State = LGITHREAD_EXITED;
+		State = THREAD_EXITED;
 	}
 }
 

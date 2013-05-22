@@ -14,6 +14,7 @@
 
 #include "Lgi.h"
 #include "GButton.h"
+#include "GTableLayout.h"
 
 #define TICKS_PER_SECOND					1000000
 #define DOUBLE_CLICK_TIMEOUT				(TICKS_PER_SECOND/3)
@@ -149,7 +150,6 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////
 GDialog::GDialog() : ResObject(Res_Dialog)
 {
-	ModalSem = 0;
 	Name("Dialog");
 
 	if (Wnd)
@@ -182,11 +182,11 @@ void GDialog::OnPosChange()
     }
 }
 
-bool GDialog::LoadFromResource(int Resource)
+bool GDialog::LoadFromResource(int Resource, char *Param)
 {
-	char n[256];
+	GAutoString n;
 	GRect p;
-	bool Status = GLgiRes::LoadFromResource(Resource, Children, &p, n);
+	bool Status = GLgiRes::LoadFromResource(Resource, this, &p, &n);
 	if (Status)
 	{
 		Name(n);
@@ -197,13 +197,8 @@ bool GDialog::LoadFromResource(int Resource)
 
 bool GDialog::OnRequestClose(bool OsClose)
 {
-	if (IsModal)
-	{
-		EndModal(0);
-		return false;
-	}
-
-	return true;
+	EndModal(0);
+	return false;
 }
 
 status_t WaitForDelete(sem_id blocker, BWindow *Wnd)
@@ -217,7 +212,7 @@ status_t WaitForDelete(sem_id blocker, BWindow *Wnd)
 	{
 		if (Wnd)
 		{
-			if (NOT Warned AND Wnd->IsLocked())
+			if (!Warned AND Wnd->IsLocked())
 			{
 				printf("%p Locked! Count=%i Thread=%i Req=%i\n",
 					Wnd, Wnd->CountLocks(), Wnd->LockingThread(),
@@ -239,6 +234,7 @@ int GDialog::DoModal(OsView ParentHnd)
 {
 	// LgiTrace("DoModal() Me=%i Count=%i Thread=%i\n", LgiGetCurrentThread(), Wnd->CountLocks(), Wnd->LockingThread());
 
+	/*
 	IsModal = true;
 	ModalRet = 0;
 	ModalSem = create_sem(0, "ModalSem");
@@ -290,6 +286,9 @@ int GDialog::DoModal(OsView ParentHnd)
 	}	
 	
 	return ModalRet;
+	*/
+	
+	return 0;
 }
 
 int GDialog::DoModeless()
@@ -299,7 +298,7 @@ int GDialog::DoModeless()
 		// Setup the BWindow
 		Wnd->ResizeTo(Pos.X(), Pos.Y());
 		Wnd->MoveTo(Pos.x1, Pos.y1);
-		Wnd->SetTitle(GObject::Name());
+		Wnd->SetTitle(GBase::Name());
 
 		// Add BView here to move the "OnCreate" call to the correct place
 		BRect r = Wnd->Bounds();
@@ -318,7 +317,7 @@ int GDialog::DoModeless()
 	return false;
 }
 
-int GDialog::OnEvent(BMessage *Msg)
+GMessage::Result GDialog::OnEvent(GMessage *Msg)
 {
 	int Status = 0;
 
@@ -329,8 +328,8 @@ int GDialog::OnEvent(BMessage *Msg)
 
 void GDialog::EndModal(int Code)
 {
-	ModalRet = Code;
-	delete_sem(ModalSem); // causes DoModal to unblock
+	// ModalRet = Code;
+	// delete_sem(ModalSem); // causes DoModal to unblock
 }
 
 void GDialog::EndModeless(int Code)
@@ -358,11 +357,12 @@ GControl::~GControl()
 {
 }
 
-int GControl::OnEvent(BMessage *Msg)
+GMessage::Result GControl::OnEvent(GMessage *Msg)
 {
 	return 0;
 }
 
+/*
 GdcPt2 GControl::SizeOfStr(char *Str)
 {
 	GdcPt2 Pt(0, 0);
@@ -380,6 +380,7 @@ GdcPt2 GControl::SizeOfStr(char *Str)
 
 	return Pt;
 }
+*/
 
 void GControl::MouseClickEvent(bool Down)
 {
@@ -1178,7 +1179,7 @@ int GRadioButton::OnEvent(BMessage *Msg)
 // Slider control
 #include "GSlider.h"
 
-GSlider::GSlider(int id, int x, int y, int cx, int cy, char *name, bool vert) :
+GSlider::GSlider(int id, int x, int y, int cx, int cy, const char *name, bool vert) :
 	GControl(new BViewRedir(this)),
 	ResObject(Res_Slider)
 {
@@ -1233,7 +1234,7 @@ void GSlider::SetLimits(int64 min, int64 max)
 	if (Val > Max) Val = Max;
 }
 
-int GSlider::OnEvent(BMessage *Msg)
+GMessage::Result GSlider::OnEvent(GMessage *Msg)
 {
 	return GView::OnEvent(Msg);
 }
@@ -1356,7 +1357,7 @@ GBitmap::~GBitmap()
 	DeleteObj(pDC);
 }
 
-int GBitmap::OnEvent(BMessage *Msg)
+GMessage::Result GBitmap::OnEvent(GMessage *Msg)
 {
 	return 0;
 }
@@ -1379,7 +1380,7 @@ void GBitmap::OnPaint(GSurface *pScreen)
 
 void GBitmap::OnMouseClick(GMouse &m)
 {
-	if (NOT m.Down() AND GetParent())
+	if (!m.Down() AND GetParent())
 	{
 		GDialog *p = dynamic_cast<GDialog*>(GetParent());
 		p->OnNotify(this, 0);

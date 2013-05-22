@@ -91,7 +91,7 @@ status_t LgiMenuItem::Invoke(BMessage *message)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-GSubMenu::GSubMenu(char *name, bool Popup)
+GSubMenu::GSubMenu(const char *name, bool Popup)
 {
 	if (name)
 	{
@@ -113,7 +113,7 @@ GSubMenu::~GSubMenu()
 	DeleteObj(Info);
 }
 
-GMenuItem *GSubMenu::AppendItem(char *Str, int Id, bool Enabled, int Where)
+GMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Where, const char *ShortCut)
 {
 	GMenuItem *i = new GMenuItem;
 	if (Info AND i)
@@ -154,7 +154,7 @@ GMenuItem *GSubMenu::AppendSeparator(int Where)
 	return i;
 }
 
-GSubMenu *GSubMenu::AppendSub(char *Str, int Where)
+GSubMenu *GSubMenu::AppendSub(const char *Str, int Where)
 {
 	GSubMenu *Sub = 0;
 	GMenuItem *i = new GMenuItem(Sub = new GSubMenu(Str));
@@ -431,7 +431,8 @@ void GMenuItem::_Paint(GSurface *pDC, int Flags)
 		if (Parent AND
 			Parent->GetImageList())
 		{
-			Parent->GetImageList()->Draw(pDC, -16, 0, _Icon);
+			GColour Back(LC_MED, 24);
+			Parent->GetImageList()->Draw(pDC, -16, 0, _Icon, Back);
 		}
 	}
 }
@@ -512,7 +513,7 @@ bool GMenuItem::Checked()
 	return (Info) ? Info->IsMarked() : false;
 }
 
-bool GMenuItem::Name(char *n)
+bool GMenuItem::Name(const char *n)
 {
 	bool Status = false;
 	char *p = (n) ? NewStrLessAnd(n) : NewStr("");
@@ -534,7 +535,7 @@ bool GMenuItem::Name(char *n)
 			}
 		}
 
-		Status = GObject::Name(p);
+		Status = GBase::Name(p);
 		if (Info) Info->SetLabel(p);
 		DeleteArray(p);
 	}
@@ -633,7 +634,7 @@ GRect GMenu::GetPos()
 
 GFont *GMenu::GetFont()
 {
-	if (NOT _Font)
+	if (!_Font)
 	{
 		GFontType Type;
 		if (Type.GetSystemFont("Menu"))

@@ -19,8 +19,6 @@
 ///////////////////////////////////////////////////////////////////////
 #define RAD					(360/(2*LGI_PI))
 
-int Pixel24::Size = 3;
-
 ///////////////////////////////////////////////////////////////////////
 COLOUR RgbToHls(COLOUR Rgb24)
 {
@@ -196,7 +194,7 @@ COLOUR CBit(int DstBits, COLOUR c, int SrcBits, GPalette *Pal)
 			case 8:
 			{
 				GdcRGB Grey, *p = 0;
-				if (NOT Pal OR NOT (p = (*Pal)[c]))
+				if (!Pal || !(p = (*Pal)[c]))
 				{
 					Grey.R = Grey.G = Grey.B = c & 0xFF;
 					p = &Grey;
@@ -633,7 +631,7 @@ bool GPalette::Load(GFile &F)
 		// read decimal length
 		F.ReadStr(Buf, sizeof(Buf));
 		SetSize(atoi(Buf));
-		for (int i=0; i<GetSize() AND NOT F.Eof(); i++)
+		for (int i=0; i<GetSize() AND !F.Eof(); i++)
 		{
 			F.ReadStr(Buf, sizeof(Buf));
 			GdcRGB *p = (*this)[i];
@@ -694,8 +692,8 @@ bool GPalette::operator ==(GPalette &p)
 
 		for (int i=0; i<GetSize(); i++)
 		{
-			if (	a->R != b->R OR
-				a->G != b->G OR
+			if (a->R != b->R ||
+				a->G != b->G ||
 				a->B != b->B)
 			{
 				return FALSE;
@@ -732,7 +730,7 @@ GBmpMem::~GBmpMem()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-GDeviceContext::GDeviceContext()
+GSurface::GSurface()
 {
 	OriginX = OriginY = 0;
 	pMem = NULL;
@@ -748,7 +746,7 @@ GDeviceContext::GDeviceContext()
 	}
 }
 
-GDeviceContext::~GDeviceContext()
+GSurface::~GSurface()
 {
 	DrawOnAlpha(FALSE);
 
@@ -772,20 +770,20 @@ GDeviceContext::~GDeviceContext()
 	}
 }
 
-bool GDeviceContext::IsAlpha(bool b)
+bool GSurface::HasAlpha(bool b)
 {
 	DrawOnAlpha(FALSE);
 
 	if (b)
 	{
-		if (NOT pAlphaDC)
+		if (!pAlphaDC)
 		{
 			pAlphaDC = new GMemDC;
 		}
 
 		if (pAlphaDC AND pMem)
 		{
-			if (NOT pAlphaDC->Create(pMem->x, pMem->y, 8))
+			if (!pAlphaDC->Create(pMem->x, pMem->y, 8))
 			{
 				DeleteObj(pAlphaDC);
 			}
@@ -800,16 +798,17 @@ bool GDeviceContext::IsAlpha(bool b)
 		DeleteObj(pAlphaDC);
 	}
 
+	#undef IsAlpha
 	return (b == IsAlpha());
 }
 
-bool GDeviceContext::DrawOnAlpha(bool Draw)
+bool GSurface::DrawOnAlpha(bool Draw)
 {
 	bool Prev = DrawOnAlpha();
 
 	if (Draw)
 	{
-		if (NOT Prev AND pAlphaDC AND pMem)
+		if (!Prev AND pAlphaDC AND pMem)
 		{
 			GBmpMem *Temp = pMem;
 			pMem = pAlphaDC->pMem;
@@ -835,23 +834,23 @@ bool GDeviceContext::DrawOnAlpha(bool Draw)
 	return Prev;
 }
 
-GApplicator *GDeviceContext::CreateApplicator(int Op, int Bits)
+GApplicator *GSurface::CreateApplicator(int Op, GColourSpace Cs)
 {
 	GApplicator *pA = NULL;
 
-	if (NOT Bits AND pMem)
+	if (!Cs AND pMem)
 	{
 		if (DrawOnAlpha())
 		{
-			Bits = 8;
+			Cs = CsAlpha8;
 		}
 		else
 		{
-			Bits = pMem->Bits;
+			Cs = pMem->Cs;
 		}
 	}
 
-	pA = GApplicatorFactory::NewApp(Bits, Op);
+	pA = GApplicatorFactory::NewApp(Cs, Op);
 	if (pA AND pMem)
 	{
 		if (DrawOnAlpha())
@@ -868,7 +867,7 @@ GApplicator *GDeviceContext::CreateApplicator(int Op, int Bits)
 	return pA;
 }
 
-bool GDeviceContext::Applicator(GApplicator *pApplicator)
+bool GSurface::Applicator(GApplicator *pApplicator)
 {
 	bool Status = FALSE;
 
@@ -899,12 +898,12 @@ bool GDeviceContext::Applicator(GApplicator *pApplicator)
 	return Status;
 }
 
-GApplicator *GDeviceContext::Applicator()
+GApplicator *GSurface::Applicator()
 {
 	return pApp;
 }
 
-GRect GDeviceContext::ClipRgn(GRect *Rgn)
+GRect GSurface::ClipRgn(GRect *Rgn)
 {
 	GRect Old = Clip;
 	
@@ -926,12 +925,12 @@ GRect GDeviceContext::ClipRgn(GRect *Rgn)
 	return Old;
 }
 
-GRect GDeviceContext::ClipRgn()
+GRect GSurface::ClipRgn()
 {
 	return Clip;
 }
 
-COLOUR GDeviceContext::Colour(COLOUR c, int Bits)
+COLOUR GSurface::Colour(COLOUR c, int Bits)
 {
 	if (pApp)
 	{
@@ -946,7 +945,7 @@ COLOUR GDeviceContext::Colour(COLOUR c, int Bits)
 	return 0;
 }
 
-int GDeviceContext::Op(int NewOp)
+int GSurface::Op(int NewOp)
 {
 	int PrevOp = (pApp) ? pApp->GetOp() : GDC_SET;
 	COLOUR cCurrent = (pApp) ? Colour() : 0;
@@ -956,7 +955,7 @@ int GDeviceContext::Op(int NewOp)
 		DeleteObj(pApp);
 	}
 
-	if (NewOp < GDC_CACHE_SIZE AND NOT DrawOnAlpha())
+	if (NewOp < GDC_CACHE_SIZE AND !DrawOnAlpha())
 	{
 		pApp = (pAppCache[NewOp]) ? pAppCache[NewOp] : pAppCache[NewOp] = CreateApplicator(NewOp);
 		Flags &= ~GDC_OWN_APPLICATOR;
@@ -981,9 +980,9 @@ int GDeviceContext::Op(int NewOp)
 	return PrevOp;
 }
 
-GPalette *GDeviceContext::Palette()
+GPalette *GSurface::Palette()
 {
-	if (NOT pPalette AND pMem AND (pMem->Flags & GDC_ON_SCREEN))
+	if (!pPalette AND pMem AND (pMem->Flags & GDC_ON_SCREEN))
 	{
 		pPalette = GdcD->GetSystemPalette();
 		if (pPalette)
@@ -995,7 +994,7 @@ GPalette *GDeviceContext::Palette()
 	return pPalette;
 }
 
-void GDeviceContext::Palette(GPalette *pPal, bool bOwnIt)
+void GSurface::Palette(GPalette *pPal, bool bOwnIt)
 {
 	if (pPalette AND Flags & GDC_OWN_PALETTE)
 	{
@@ -1169,11 +1168,6 @@ uchar *GdcDevice::GetDiv255()
 	return d->Div255;
 }
 
-GLibrary *GdcDevice::GetIconv()
-{
-	return d->IConv;
-}
-
 int GdcDevice::GetOption(int Opt)
 {
 	if (Opt >= 0 AND Opt < GDC_MAX_OPTION)
@@ -1246,7 +1240,7 @@ void GdcDevice::SetColourPaletteType(int Type)
 {
 }
 
-COLOUR GdcDevice::GetColour(COLOUR Rgb24, GDeviceContext *pDC)
+COLOUR GdcDevice::GetColour(COLOUR Rgb24, GSurface *pDC)
 {
 	int Bits = (pDC) ? pDC->GetBits() : GetBits();
 	COLOUR C;
@@ -1345,7 +1339,7 @@ public:
 		
 		for (int i=0; i<256; i++)
 		{
-			if (NOT c[i].Used)
+			if (!c[i].Used)
 			{
 				f++;
 			}
@@ -1409,479 +1403,6 @@ bool GGlobalColour::RemapBitmap(GSurface *pDC)
 	return false;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-GSprite::GSprite()
-{
-	Sx = Sy = Bits = 0;
-	PosX = PosY = 0;
-	HotX = HotY = 0;
-	Visible = FALSE;
-	pScreen = pBack = pMask = pColour = pTemp = 0;
-}
-
-GSprite::~GSprite()
-{
-	Delete();
-}
-
-void GSprite::SetXY(int x, int y)
-{
-	PosX = x;
-	PosY = y;
-}
-
-bool GSprite::Create(GSurface *pScr, int x, int y, int SrcBitDepth, uchar *Colour, uchar *Mask)
-{
-	bool Status = FALSE;
-
-	pScreen = pScr;
-	if (pScreen AND Colour AND Mask)
-	{
-		Delete();
-
-		if (SetSize(x, y, pScreen->GetBits()))
-		{
-			COLOUR cBlack = 0;
-			COLOUR cWhite = 0xFFFFFFFF;
-
-			switch (SrcBitDepth)
-			{
-				case 1:
-				{
-					int Scan = (Sx + 7) / 8;
-
-					for (int y=0; y<Sy; y++)
-					{
-						uchar *c = Colour + (y * Scan);
-						uchar *m = Mask + (y * Scan);
-
-						for (int x=0; x<Sx; x++)
-						{
-							int Div = x >> 3;
-							int Mod = x & 0x7;
-
-							pColour->Colour((c[Div] & (0x80 >> Mod)) ? cWhite : cBlack);
-							pColour->Set(x, y);
-
-							pMask->Colour((m[Div] & (0x80 >> Mod)) ? cWhite : cBlack);
-							pMask->Set(x, y);
-						}
-					}
-
-					Status = TRUE;
-					break;
-				}
-			}
-		}
-
-		if (NOT Status)
-		{
-			Delete();
-		}
-	}
-
-	return Status;
-}
-
-bool GSprite::Create(GSurface *pScr, GSprite *pSpr)
-{
-	bool Status = FALSE;
-
-	pScreen = pSpr->pScreen;
-	if (pScreen)
-	{
-		Delete();
-
-		if (SetSize(pSpr->X(), pSpr->Y(), pSpr->GetBits()))
-		{
-			HotX = pSpr->GetHotX();
-			HotY = pSpr->GetHotY();
-
-			pBack->Blt(0, 0, pSpr->pBack, NULL);
-			pMask->Blt(0, 0, pSpr->pMask, NULL);
-			pColour->Blt(0, 0, pSpr->pColour, NULL);
-
-			Status = TRUE;
-		}
-
-		if (NOT Status)
-		{
-			Delete();
-		}
-	}
-
-	return Status;
-}
-
-bool GSprite::CreateKey(GSurface *pScr, int x, int y, int Bits, uchar *Colour, int Key)
-{
-	bool Status = FALSE;
-
-	pScreen = pScr;
-	if (pScreen AND Colour)
-	{
-		Delete();
-
-		if (SetSize(x, y, Bits))
-		{
-			COLOUR cBlack = 0;
-			COLOUR cWhite = 0xFFFFFFFF;
-
-			switch (Bits)
-			{
-				case 8:
-				{
-					for (int y=0; y<Sy; y++)
-					{
-						uchar *c = Colour + (y * Sx);
-
-						for (int x=0; x<Sx; x++, c++)
-						{
-							pColour->Colour(*c);
-							pColour->Set(x, y);
-
-							pMask->Colour((*c != Key) ? cWhite : cBlack);
-							pMask->Set(x, y);
-						}
-					}
-
-					Status = TRUE;
-					break;
-				}
-				case 16:
-				case 15:
-				{
-					for (int y=0; y<Sy; y++)
-					{
-						ushort *c = ((ushort*) Colour) + (y * Sx);
-
-						for (int x=0; x<Sx; x++, c++)
-						{
-							pColour->Colour(*c);
-							pColour->Set(x, y);
-
-							pMask->Colour((*c != Key) ? cWhite : cBlack);
-							pMask->Set(x, y);
-						}
-					}
-
-					Status = TRUE;
-					break;
-				}
-				case 24:
-				{
-					for (int y=0; y<Sy; y++)
-					{
-						uchar *c = Colour + (y * Sx * 3);
-
-						for (int x=0; x<Sx; x++, c+=3)
-						{
-							COLOUR p = Rgb24(c[2], c[1], c[0]);
-							pColour->Colour(p);
-							pColour->Set(x, y);
-
-							pMask->Colour((p != Key) ? cWhite : cBlack);
-							pMask->Set(x, y);
-						}
-					}
-
-					Status = TRUE;
-					break;
-				}
-				case 32:
-				{
-					for (int y=0; y<Sy; y++)
-					{
-						ulong *c = ((ulong*) Colour) + (y * Sx);
-
-						for (int x=0; x<Sx; x++, c++)
-						{
-							pColour->Colour(*c);
-							pColour->Set(x, y);
-
-							pMask->Colour((*c != Key) ? cWhite : cBlack);
-							pMask->Set(x, y);
-						}
-					}
-
-					Status = TRUE;
-					break;
-				}
-			}
-		}
-
-		if (NOT Status)
-		{
-			Delete();
-		}
-	}
-
-	return Status;
-}
-
-bool GSprite::SetSize(int x, int y, int BitSize, GSurface *pScr)
-{
-	bool Status = FALSE;
-	if (pScr)
-	{
-		pScreen = pScr;
-	}
-
-	if (pScreen)
-	{
-		Sx = x;
-		Sy = y;
-		Bits = BitSize;
-		HotX = 0;
-		HotY = 0;
-		DrawMode = 0;
-
-		pBack = new GMemDC;
-		pMask = new GMemDC;
-		pColour = new GMemDC;
-		pTemp = new GMemDC;
-
-		if (pBack AND pMask AND pColour AND pTemp)
-		{
-			if (	pBack->Create(x, y, Bits) AND
-				pMask->Create(x, y, Bits) AND
-				pColour->Create(x, y, Bits) AND
-				pTemp->Create(x<<1, y<<1, Bits))
-			{
-				if (pScreen->GetBits() == 8)
-				{
-					pTemp->Palette(new GPalette(pScreen->Palette()));
-				}
-
-				Status = TRUE;
-			}
-		}
-	}
-
-	return Status;
-};
-
-void GSprite::Delete()
-{
-	SetVisible(FALSE);
-	DeleteObj(pBack);
-	DeleteObj(pMask);
-	DeleteObj(pColour);
-	DeleteObj(pTemp);
-}
-
-void GSprite::SetHotPoint(int x, int y)
-{
-	HotX = x;
-	HotY = y;
-}
-
-void GSprite::SetVisible(bool v)
-{
-	if (pScreen)
-	{
-		if (Visible)
-		{
-			if (NOT v)
-			{
-				// Hide
-				int Op = pScreen->Op(GDC_SET);
-				pScreen->Blt(PosX-HotX, PosY-HotY, pBack, NULL);
-				pScreen->Op(Op);
-				Visible = FALSE;
-			}
-		}
-		else
-		{
-			if (v)
-			{
-				// Show
-				GRect s, n;
-
-				s.ZOff(Sx-1, Sy-1);
-				n = s;
-				s.Offset(PosX-HotX, PosY-HotY);
-				pBack->Blt(0, 0, pScreen, &s);
-				
-				pTemp->Op(GDC_SET);
-				pTemp->Blt(0, 0, pBack);
-
-				if (DrawMode == 3)
-				{
-					int Op = pTemp->Op(GDC_ALPHA);
-					pTemp->Blt(0, 0, pColour, NULL);
-					pTemp->Op(Op);
-				}
-				else
-				{
-					int OldOp = pTemp->Op(GDC_AND);
-					pTemp->Blt(0, 0, pMask, NULL);
-					if (DrawMode == 1)
-					{
-						pTemp->Op(GDC_OR);
-					}
-					else
-					{
-						pTemp->Op(GDC_XOR);
-					}
-					pTemp->Blt(0, 0, pColour, NULL);
-					pTemp->Op(OldOp);
-				}
-
-				int OldOp = pScreen->Op(GDC_SET);
-				pScreen->Blt(PosX-HotX, PosY-HotY, pTemp, &n);
-				pScreen->Op(OldOp);
-				Visible = TRUE;
-			}
-		}
-	}
-}
-
-void GSprite::Draw(int x, int y, COLOUR Back, int Mode, GSurface *pDC)
-{
-	if (pScreen)
-	{
-		if (NOT pDC)
-		{
-			pDC = pScreen;
-		}
-
-		if (Mode == 3)
-		{
-			pDC->Blt(x-HotX, y-HotY, pColour, NULL);
-		}
-		else if (Mode == 2)
-		{
-			int Op = pScreen->Op(GDC_AND);
-			pDC->Blt(x-HotX, y-HotY, pMask, NULL);
-			pDC->Op(GDC_OR);
-			pDC->Blt(x-HotX, y-HotY, pColour, NULL);
-			pDC->Op(Op);
-		}
-		else
-		{
-			pBack->Colour(Back);
-			pBack->Rectangle(0, 0, pBack->X(), pBack->Y());
-			
-			if (Mode == 0)
-			{
-				pBack->Op(GDC_AND);
-				pBack->Blt(0, 0, pColour, NULL);
-				pBack->Op(GDC_XOR);
-				pBack->Blt(0, 0, pMask, NULL);
-			}
-			else if (Mode == 1)
-			{
-				pBack->Op(GDC_AND);
-				pBack->Blt(0, 0, pMask, NULL);
-				pBack->Op(GDC_OR);
-				pBack->Blt(0, 0, pColour, NULL);
-			}
-
-			pDC->Blt(x-HotX, y-HotY, pBack, NULL);
-		}
-	}
-}
-
-void GSprite::Move(int x, int y, bool WaitRetrace)
-{
-	if (pScreen AND
-		(x != PosX OR
-		y != PosY))
-	{
-		if (Visible)
-		{
-			GRect New, Old;
-			
-			New.ZOff(Sx-1, Sy-1);
-			Old = New;
-			New.Offset(x - HotX, y - HotY);
-			Old.Offset(PosX - HotX, PosY - HotY);
-			
-			if (New.Overlap(&Old))
-			{
-				GRect Both;
-				
-				Both.Union(&Old, &New);
-				
-				if (pTemp)
-				{
-					// Get working area of screen
-					pTemp->Blt(0, 0, pScreen, &Both);
-
-					// Restore the back of the sprite
-					pTemp->Blt(Old.x1-Both.x1, Old.y1-Both.y1, pBack, NULL);
-
-					// Update any dependent graphics
-					DrawOnMove(pTemp, x, y, HotX-Both.x1, HotX-Both.y1);
-
-					// Get the new background
-					GRect Bk = New;
-					Bk.Offset(-Both.x1, -Both.y1);
-					pBack->Blt(0, 0, pTemp, &Bk);
-		
-					// Paint the new sprite
-					int NewX = New.x1 - Both.x1;
-					int NewY = New.y1 - Both.y1;
-
-					if (DrawMode == 3)
-					{
-						int Op = pTemp->Op(GDC_ALPHA);
-						pTemp->Blt(NewX, NewY, pColour, NULL);
-						pTemp->Op(Op);
-					}
-					else
-					{
-						int OldOp = pTemp->Op(GDC_AND);
-						pTemp->Blt(NewX, NewY, pMask, NULL);
-
-						if (DrawMode == 1)
-						{
-							pTemp->Op(GDC_OR);
-						}
-						else
-						{
-							pTemp->Op(GDC_XOR);
-						}
-
-						pTemp->Blt(NewX, NewY, pColour, NULL);
-						pTemp->Op(OldOp);
-					}
-		
-					// Update all under sprite info on screen
-					DrawOnMove(pScreen, x, y, 0, 0);
-
-					// Put it all back on the screen
-					GRect b = Both;
-					b.Offset(-b.x1, -b.y1);
-
-					int OldOp = pScreen->Op(GDC_SET);
-					pScreen->Blt(Both.x1, Both.y1, pTemp, &b);
-					pScreen->Op(OldOp);
-
-					PosX = x;
-					PosY = y;
-				}
-			}
-			else
-			{
-				SetVisible(FALSE);
-			
-				DrawOnMove(pScreen, x, y, 0, 0);
-				PosX = x;
-				PosY = y;
-			
-				SetVisible(TRUE);
-			}
-		}
-		else
-		{
-			PosX = x;
-			PosY = y;
-		}
-	}
-}
-
 //////////////////////////////////////////////////////////////////////////////////////////////
 static int _Factories;
 static GApplicatorFactory *_Factory[16];
@@ -1916,12 +1437,12 @@ GApplicatorFactory::~GApplicatorFactory()
 	}
 }
 
-GApplicator *GApplicatorFactory::NewApp(int Bits, int Op)
+GApplicator *GApplicatorFactory::NewApp(GColourSpace Cs, int Op)
 {
 	LgiAssert(_Factories >= 0 AND _Factories < CountOf(_Factory));
 	for (int i=0; i<_Factories; i++)
 	{
-		GApplicator *a = _Factory[i]->Create(Bits, Op);
+		GApplicator *a = _Factory[i]->Create(Cs, Op);
 		if (a) return a;
 	}
 

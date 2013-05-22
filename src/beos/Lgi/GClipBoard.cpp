@@ -1,5 +1,6 @@
 // BeOS Clipboard Implementation
 #include "Lgi.h"
+#include "GClipBoard.h"
 #include "Clipboard.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -119,24 +120,16 @@ GSurface *GClipBoard::Bitmap()
 	return 0;
 }
 
-bool GClipBoard::Binary(int Format, uchar *Ptr, int Len, bool AutoEmpty)
+bool GClipBoard::Binary(FormatType Format, uint8 *Ptr, int Len, bool AutoEmpty)
 {
 	bool Status = false;
-
-	if (Ptr AND Len > 0)
-	{
-	}
 
 	return Status;
 }
 
-bool GClipBoard::Binary(int Format, uchar **Ptr, int *Len)
+bool GClipBoard::Binary(FormatType Format, GAutoPtr<uint8> &Ptr, int *Len)
 {
 	bool Status = false;
-
-	if (Ptr AND Len)
-	{
-	}
 
 	return Status;
 }

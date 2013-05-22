@@ -191,7 +191,7 @@ bool GWindow::Visible()
 	{
 		if (Wnd->Lock())
 		{
-			Status = NOT Wnd->IsHidden();
+			Status = !Wnd->IsHidden();
 			Wnd->Unlock();
 		}
 	}
@@ -211,7 +211,7 @@ void GWindow::Visible(bool v)
 					// Add BView here, to make sure "OnCreate" is called at the end
 					// of a GWindow constructor not at the beginning, where it's not
 					// useful.
-					if (NOT Handle()->Parent())
+					if (!Handle()->Parent())
 					{
 						// Set pos
 						BRect r = Wnd->Bounds();
@@ -228,7 +228,7 @@ void GWindow::Visible(bool v)
 			}
 			else
 			{
-				if (NOT Wnd->IsHidden())
+				if (!Wnd->IsHidden())
 				{
 					Wnd->Hide();
 				}
@@ -243,9 +243,9 @@ void GWindow::Visible(bool v)
 	}
 }
 
-bool GWindow::Name(char *n)
+bool GWindow::Name(const char *n)
 {
-	bool Status = GObject::Name(n);
+	bool Status = GBase::Name(n);
 	if (Wnd)
 	{
 		bool Lock = Wnd->Lock();
@@ -257,7 +257,7 @@ bool GWindow::Name(char *n)
 
 char *GWindow::Name()
 {
-	return GObject::Name();
+	return GBase::Name();
 }
 
 GRect &GWindow::GetPos()
@@ -295,7 +295,7 @@ bool GWindow::SetPos(GRect &p, bool Repaint)
 		Wnd->MoveTo(p.x1, p.y1);
 		Wnd->ResizeTo(p.X(), p.Y());
 		
-		if (NOT Handle()->Parent())
+		if (!Handle()->Parent())
 		{
 			// Our view is not attached yet, so move it ourself
 			BRect r = Wnd->Bounds();
@@ -349,7 +349,7 @@ void GWindow::Pour()
 		SafeToLock = true;
 	}
 	
-	if (NOT SafeToLock)
+	if (!SafeToLock)
 	{
 		printf("%s:%i - Not safe to lock for ::Pour.\n", __FILE__, __LINE__);
 		return;
@@ -377,7 +377,7 @@ void GWindow::Pour()
 
 		if (w->Pour(Client))
 		{
-			if (NOT w->Visible())
+			if (!w->Visible())
 			{
 				w->Visible(true);
 			}
@@ -398,7 +398,7 @@ void GWindow::Pour()
 	if (Lock) Wnd->Unlock();
 }
 
-int GWindow::OnEvent(GMessage *Msg)
+GMessage::Result GWindow::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{
@@ -535,7 +535,7 @@ bool GWindow::HandleViewMouse(GView *v, GMouse &m)
 	{
 		if (d->Hooks[i].Flags & GMouseEvents)
 		{
-			if (NOT d->Hooks[i].Target->OnViewMouse(v, m))
+			if (!d->Hooks[i].Target->OnViewMouse(v, m))
 			{
 				return false;
 			}
@@ -565,7 +565,7 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 	{
 		if (d->Hooks[i].Flags & GKeyEvents)
 		{
-			if (NOT d->Hooks[i].Target->OnViewKey(v, k))
+			if (!d->Hooks[i].Target->OnViewKey(v, k))
 			{
 				return false;
 			}
@@ -575,7 +575,7 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 	return true;
 }
 
-bool GWindow::RegisterHook(GView *Target, int EventType, int Priority)
+bool GWindow::RegisterHook(GView *Target, GWindowHookType EventType, int Priority)
 {
 	bool Status = false;
 	

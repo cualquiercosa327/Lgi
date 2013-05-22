@@ -13,8 +13,7 @@
 #endif
 
 #if !defined(MAKELONG)
-#define MAKELONG(low, high) \
-	( ((low) & 0xffff) | ((high) << 16) )
+#define MAKELONG(low, high) ( ((low) & 0xffff) | ((high) << 16) )
 #endif
 
 #if defined(__GTK_H__)

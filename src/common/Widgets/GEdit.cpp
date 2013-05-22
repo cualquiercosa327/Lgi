@@ -137,8 +137,17 @@ void GEdit::Password(bool m)
 
 bool GEdit::OnKey(GKey &k)
 {
-	if (!d->Multiline &&
-		(k.vkey == VK_TAB || k.c16 == '\t' || k.c16 == '\r'))
+	if
+	(
+		!d->Multiline &&
+		(
+			#ifdef VK_TAB
+			k.vkey == VK_TAB ||
+			#endif
+			k.c16 == '\t' ||
+			k.c16 == '\r'
+		)
+	)
 	{
 		if (k.c16 == '\r')
 		{

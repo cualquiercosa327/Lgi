@@ -5,6 +5,7 @@
 #define IsWhite(s)		((s) && strchr(WhiteSpace, (s)) != NULL)
 #define SkipWhite(s) 	while (IsWhite(*s)) s++;
 
+#undef IsNumeric
 #define IsNumeric(s) \
 	( \
 		(*(s)) && \

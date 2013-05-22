@@ -92,6 +92,7 @@ typedef int OsSocket;
 #define LGI_FileDropFormat		"Something?"
 #define LGI_WideCharset			"utf-8"
 #define LGI_LIBRARY_EXT			"so"
+#define LGI_PrintfInt64			"%ll"
 
 #define IDOK					1
 #define IDCANCEL				2
@@ -206,6 +207,7 @@ typedef int OsSocket;
 #define VK_HOME					B_HOME
 #define VK_END					B_END
 #define VK_INSERT				B_INSERT
+#define VK_TAB					B_TAB
 
 // GKey flags
 #define LGI_VKEY_CTRL			B_CONTROL_KEY	// 0x0004

@@ -31,7 +31,7 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-GScreenDC::GScreenDC(OsView view, void *param)
+GScreenDC::GScreenDC(BView *view)
 {
 	LgiAssert(view);
 
@@ -83,11 +83,6 @@ void GScreenDC::SetClient(GRect *r)
 OsView GScreenDC::Handle()
 {
 	return d->View;
-}
-
-bool GScreenDC::IsScreen()
-{
-	return true;
 }
 
 GPalette *GScreenDC::Palette()

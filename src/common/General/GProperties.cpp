@@ -555,7 +555,7 @@ bool ObjProperties::SetValue(const char *Name, GVariant &v)
 	{
 		case GV_INT32:
 		case GV_INT64:
-			Set(Name, v.CastInt32());
+			Set(Name, (int)v.CastInt32());
 			break;
 		case GV_DOUBLE:
 			Set(Name, v.CastDouble());

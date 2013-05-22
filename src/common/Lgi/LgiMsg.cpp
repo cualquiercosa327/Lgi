@@ -119,7 +119,7 @@ int LgiMsg(GViewI *Parent, const char *Str, const char *Title, int Type, ...)
 		}
 		
 		if (Res >= 0 &&
-			(Type == MB_YESNO OR Type == MB_YESNOCANCEL))
+			(Type == MB_YESNO || Type == MB_YESNOCANCEL))
 		{
 			if (Res == 0)
 				return IDYES;

@@ -86,6 +86,7 @@ void GLayout::SetScrollPos(int x, int y)
 	}
 }
 
+/*
 bool GLayout::Attach(GViewI *p)
 {
 	bool Status = GView::Attach(p);
@@ -117,15 +118,16 @@ bool GLayout::Attach(GViewI *p)
 	
 	return Status;
 }
+*/
 
 bool GLayout::SetScrollBars(bool x, bool y)
 {
-	if (( (HScroll!=0) ^ x ) OR
+	if (( (HScroll!=0) ^ x ) ||
 		( (VScroll!=0) ^ y ))
 	{
 		if (x)
 		{
-			if (NOT HScroll)
+			if (!HScroll)
 			{
 				HScroll = new GScrollBar(IDC_HSCROLL, 0, 0, 100, 10, "GLayout->HScroll");
 				if (HScroll)
@@ -144,7 +146,7 @@ bool GLayout::SetScrollBars(bool x, bool y)
 		}
 		if (y)
 		{
-			if (NOT VScroll)
+			if (!VScroll)
 			{
 				VScroll = new GScrollBar(IDC_VSCROLL, 0, 0, 10, 100, "GLayout->VScroll");
 				if (VScroll)
@@ -220,7 +222,7 @@ int GLayout::OnNotify(GViewI *v, int f)
 	return GView::OnNotify(v, f);
 }
 
-int GLayout::OnEvent(BMessage *Msg)
+GMessage::Result GLayout::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{

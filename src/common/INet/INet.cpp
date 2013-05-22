@@ -68,6 +68,7 @@
 
 	#include <stdio.h>
 	#include <NetEndpoint.h>
+	#include <NetworkKit.h>
 
 	#define SOCKET_ERROR -1
 	#define MSG_NOSIGNAL 0
@@ -1957,7 +1958,7 @@ GProxyUri::GProxyUri()
 
 	#else
 
-	#error "Impl me."
+	#warning "Impl getting OS proxy here."
 
 	#endif
 }

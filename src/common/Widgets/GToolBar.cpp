@@ -528,9 +528,9 @@ void GImageList::Draw(GSurface *pDest, int Dx, int Dy, int Image, GColour Backgr
 
 					if (owner && Bmp)
 					{
-						int x = Image * Sx;
-						BRect S(x, 0, x+Sx-1, Sy-1);
-						BRect D(Dx, Dy, Dx+(Sx-1), Dy+(Sx-1));
+						int x = Image * d->Sx;
+						BRect S(x, 0, x+d->Sx-1, d->Sy-1);
+						BRect D(Dx, Dy, Dx+(d->Sx-1), Dy+(d->Sx-1));
 
 						drawing_mode Mode = owner->DrawingMode();
 						owner->SetDrawingMode(B_OP_OVER);

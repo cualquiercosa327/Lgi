@@ -309,7 +309,7 @@ bool GTrayIcon::Load(const TCHAR *Str)
 	#else
 
 	// FIXME
-	#error "Impl me"
+	#warning "Impl GTrayIcon::Load for this OS"
 	
 	#endif
 

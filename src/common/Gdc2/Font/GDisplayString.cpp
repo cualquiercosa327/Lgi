@@ -499,8 +499,7 @@ void GDisplayString::TruncateWithDots(int Width)
 {
     Layout();
     
-	#if defined MAC || defined __GTK_H__
-	#else
+	#if defined WIN32NATIVE
 	
 	if (Width < X() + 8)
 	{
@@ -588,9 +587,7 @@ void GDisplayString::Length(int New)
 {
     Layout();
 
-	#if defined MAC || defined __GTK_H__
-
-	#else
+	#if defined WIN32NATIVE
 	
 	if (New < len)
 	{
