@@ -848,11 +848,7 @@ void _lgi_assert(bool b, const char *test, const char *file, int line)
 		if (Asserting)
 		{
 			// Woah boy...
-			#ifdef _WIN64
 			assert(0);
-			#else
-			_asm int 3
-			#endif
 		}
 		else
 		{
