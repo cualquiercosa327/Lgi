@@ -520,35 +520,36 @@ GFont *GTextView3::GetFont()
 
 void GTextView3::SetFont(GFont *f, bool OwnIt)
 {
-	if (f)
+	if (!f)
+		return;
+	
+	printf("GTextView3::SetFont\n");
+	if (OwnIt)
 	{
-		if (OwnIt)
-		{
-			DeleteObj(Font);
-			Font = f;
-		}
-		else if (!Font)
-		{
-			Font = new GFont(*f);
-		}
-		else
-		{
-			*Font = *f;
-		}
-
-		if (Font)
-		{
-			if (!Underline)
-				Underline = new GFont;
-			*Underline = *Font;
-			Underline->Underline(true);
-			
-			if (!d->UrlColour.Transparent())
-				Underline->Fore(d->UrlColour.c24());
-		}
-
-		OnFontChange();
+		DeleteObj(Font);
+		Font = f;
 	}
+	else if (!Font)
+	{
+		Font = new GFont(*f);
+	}
+	else
+	{
+		*Font = *f;
+	}
+
+	if (Font)
+	{
+		if (!Underline)
+			Underline = new GFont;
+		*Underline = *Font;
+		Underline->Underline(true);
+		
+		if (!d->UrlColour.Transparent())
+			Underline->Fore(d->UrlColour.c24());
+	}
+
+	OnFontChange();
 }
 
 void GTextView3::OnFontChange()
@@ -557,8 +558,11 @@ void GTextView3::OnFontChange()
 	{
 		// get line height
 		// int OldLineY = LineY;
+		if (!Font->Handle())
+			Font->Create();
 		LineY = Font->GetHeight();
 		if (LineY < 1) LineY = 1;
+		printf("LineY=%i\n", LineY);
 
 		// get tab size
 		char Spaces[32];
@@ -3410,7 +3414,7 @@ bool GTextView3::OnKey(GKey &k)
 				}
 				break;
 			}
-			case '\r':
+			case VK_RETURN:
 			{
 				if (GetReadOnly())
 					break;
@@ -3422,7 +3426,7 @@ bool GTextView3::OnKey(GKey &k)
 				return true;
 				break;
 			}
-			case '\b':
+			case VK_BACKSPACE:
 			{
 				if (GetReadOnly())
 					break;

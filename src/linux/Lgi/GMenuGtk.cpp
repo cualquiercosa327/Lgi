@@ -624,12 +624,16 @@ void GMenuItem::_Paint(GSurface *pDC, int Flags)
 	}
 }
 
+#if GtkVer(2, 24)
 #include <gdk/gdkkeysyms-compat.h>
+#endif
 
 Gtk::gint LgiKeyToGtkKey(int Key, const char *ShortCut)
 {
+	#ifdef GDK_a
 	LgiAssert(GDK_a == 'a');
 	LgiAssert(GDK_A == 'A');
+	#endif
 	
 	if (Key >= 'a' && Key <= 'z')
 		return Key;
@@ -638,46 +642,79 @@ Gtk::gint LgiKeyToGtkKey(int Key, const char *ShortCut)
 	
 	switch (Key)
 	{
-		case VK_DELETE:
-			return GDK_Delete;
-		case VK_INSERT:
-			return GDK_Insert;
-		case VK_HOME:
-			return GDK_Home;
-		case VK_END:
-			return GDK_End;
-		case VK_PAGEUP:
-			return GDK_Page_Up;
-		case VK_PAGEDOWN:
-			return GDK_Page_Down;
-		case VK_BACKSPACE:
-			return GDK_BackSpace;
-		case VK_F1:
-			return GDK_F1;
-		case VK_F2:
-			return GDK_F2;
+		#ifdef GDK_Delete
+		case VK_DELETE: return GDK_Delete;
+		#endif
+		#ifdef GDK_Insert
+		case VK_INSERT: return GDK_Insert;
+		#endif
+		#ifdef GDK_Home
+		case VK_HOME: return GDK_Home;
+		#endif
+		#ifdef GDK_End
+		case VK_END: return GDK_End;
+		#endif
+		#ifdef GDK_Page_Up
+		case VK_PAGEUP: return GDK_Page_Up;
+		#endif
+		#ifdef GDK_Page_Down
+		case VK_PAGEDOWN: return GDK_Page_Down;
+		#endif
+		#ifdef GDK_BackSpace
+		case VK_BACKSPACE: return GDK_BackSpace;
+		#endif
+		#ifdef GDK_F1
+		case VK_F1: return GDK_F1;
+		#endif
+		#ifdef GDK_F2
+		case VK_F2: return GDK_F2;
+		#endif
+		#ifdef GDK_F3
 		case VK_F3:
 			return GDK_F3;
+		#endif
+		#ifdef GDK_F4
 		case VK_F4:
 			return GDK_F4;
+		#endif
+		#ifdef GDK_F5
 		case VK_F5:
 			return GDK_F5;
+		#endif
+		#ifdef GDK_F6
 		case VK_F6:
 			return GDK_F6;
+		#endif
+		#ifdef GDK_F7
 		case VK_F7:
 			return GDK_F7;
+		#endif
+		#ifdef GDK_F8
 		case VK_F8:
 			return GDK_F8;
+		#endif
+		#ifdef GDK_F9
 		case VK_F9:
 			return GDK_F9;
+		#endif
+		#ifdef GDK_F10
 		case VK_F10:
 			return GDK_F10;
+		#endif
+		#ifdef GDK_F11
 		case VK_F11:
 			return GDK_F11;
+		#endif
+		#ifdef GDK_F12
 		case VK_F12:
 			return GDK_F12;
+		#endif
 		case ' ':
+			#ifdef GDK_space
 			return GDK_space;
+			#else
+			return ' ';
+			#endif
 		default:
 			LgiTrace("Unhandled menu accelerator: 0x%x (%s)\n", Key, ShortCut);
 			break;

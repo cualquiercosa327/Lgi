@@ -52,7 +52,6 @@ Depends =	FtpThread.o \
 			SpaceTabConv.o \
 			GDocView.o \
 			GMdi.o \
-			GTextView3.o \
 			LgiMain.o \
 			Png.o \
 			FindSymbol.o

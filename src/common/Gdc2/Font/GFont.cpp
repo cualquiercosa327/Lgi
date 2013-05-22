@@ -1,3 +1,4 @@
+
 /*hdr
 **	FILE:			GFont.cpp
 **	AUTHOR:			Matthew Allen
@@ -959,10 +960,19 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 			GTypeFace::d->_Ascent = (double)Gtk::pango_font_metrics_get_ascent(m) / PANGO_SCALE;
 			GTypeFace::d->_Descent = (double)Gtk::pango_font_metrics_get_descent(m) / PANGO_SCALE;
 			d->Height = ceil(GTypeFace::d->_Ascent + GTypeFace::d->_Descent);
+
+			printf("GFont::Create %s,%f (%i,%i,%i) (%.1f,%.1f,%i)\n",
+				Gtk::pango_font_description_get_family(d->hFont),
+				(double)Gtk::pango_font_description_get_size(d->hFont) / PANGO_SCALE,
+				Gtk::pango_font_metrics_get_ascent(m),
+				Gtk::pango_font_metrics_get_descent(m),
+				PANGO_SCALE,
+				GTypeFace::d->_Ascent,
+				GTypeFace::d->_Descent,
+				d->Height);
+
 			Gtk::pango_font_metrics_unref(m);
-
-			//printf("GFont::Create %s,%i (%f,%f)\n", Face(), PointSize(), d->Ascent, d->Descent);
-
+			
 			return true;
 		}
 	}

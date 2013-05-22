@@ -29,6 +29,10 @@
 		<Node File=".\Code\MemDumpViewer.cpp" Type="2" Platforms="7" />
 		<Node File=".\Code\SpaceTabConv.cpp" Type="2" Platforms="7" />
 		<Node File=".\Code\SpaceTabConv.h" Type="3" Platforms="7" />
+		<Node Name="Search" Type="1" Platforms="7" Open="0">
+			<Node File=".\Code\FindInFiles.cpp" Type="2" Platforms="7" />
+			<Node File=".\Code\FindInFiles.h" Type="3" Platforms="7" />
+		</Node>
 	</Node>
 	<Node Name="Lgi" Type="1" Platforms="7" Open="1">
 		<Node File="..\src\common\Text\GDocView.cpp" Type="2" Platforms="7" />
