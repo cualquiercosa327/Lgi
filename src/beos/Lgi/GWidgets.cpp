@@ -167,6 +167,10 @@ GDialog::~GDialog()
 	SetParent(0);
 }
 
+void GDialog::Quit(bool DontDelete)
+{
+}
+
 void GDialog::OnPosChange()
 {
     if (Children.Length() == 1)

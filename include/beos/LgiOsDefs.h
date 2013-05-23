@@ -77,8 +77,7 @@ extern void _lgi_assert(bool b, char *test, char *file, int line);
 #endif
 
 #define LgiSleep(i)				snooze(i*1000)
-extern void _lgi_yield();
-#define LgiYield()				_lgi_yield()
+#define LgiYield()				LgiApp->Run(false)
 
 // Network
 // #include "NetworkKit.h"
@@ -257,5 +256,7 @@ extern int stricmp(char *a, char *b);
 #define sprintf_s				snprintf
 #define stricmp					strcasecmp
 #define _stricmp				strcasecmp
+#define _strnicmp				strncasecmp
+#define atoi64					atoll
 
 #endif

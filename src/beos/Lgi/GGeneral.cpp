@@ -273,3 +273,10 @@ void _lgi_assert(bool b, const char *test, const char *file, int line)
 	}
 }
 
+bool LgiGetAppsForMimeType(const char *Mime,
+							GArray<GAppInfo*> &Apps,
+							int Limit = -1)
+{
+	LgiAssert(!"Impl me.");
+	return false;
+}

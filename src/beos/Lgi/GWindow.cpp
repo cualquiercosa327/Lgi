@@ -603,4 +603,11 @@ bool GWindow::UnregisterHook(GView *Target)
 	return false;
 }
 
+bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
+{
+	return false;
+}
 
+void GWindow::OnTrayClick(GMouse &m)
+{
+}

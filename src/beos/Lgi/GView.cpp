@@ -73,6 +73,74 @@ CursorMetrics[] =
 	{ GRect(176, 0, 189, 13),		GdcPt2(180, 0) },
 };
 
+
+class GViewPrivate
+{
+public:
+	GViewI			*Notify;
+	GViewI			*ParentI;
+	GView			*ParentV;
+	GView			*Popup;
+	GViewFill		*Background;
+	int				CtrlId;
+	GDragDropTarget	*DropTarget;
+	GFont			*Fnt;
+	bool			FntOwn;
+	
+	GViewPrivate()
+	{
+		Popup = 0;
+		ParentI = 0;
+		ParentV = 0;
+		Notify = 0;
+		CtrlId = -1;
+		DropTarget = 0;
+		Fnt = 0;
+		FntOwn = 0;
+		Background = 0;
+	}
+	
+	~GViewPrivate()
+	{
+		/*
+		DeleteObj(Background);
+		DeleteObj(Popup);
+		*/
+	}
+
+	GView *GetParent()
+	{
+		if (ParentV)
+			return ParentV;
+		
+		if (ParentI)
+			return ParentI->GetGView();
+
+		return 0;
+	}
+};
+
+GMessage CreateMsg(int m, int a, int b)
+{
+	GMessage Msg(m, a, b);
+	return Msg;
+}
+
+int MsgA(GMessage *m)
+{
+	int32 i=0;
+	if (m) m->FindInt32("a", &i);
+	return i;
+}
+
+int MsgB(GMessage *m)
+{
+	int32 i=0;
+	if (m) m->FindInt32("b", &i);
+	return i;
+}
+
+
 #if 0
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 int LastX = -DOUBLE_CLICK_THRESHOLD, LastY = -DOUBLE_CLICK_THRESHOLD;
@@ -479,27 +547,6 @@ BMessage NewMsg(int m, int a, int b)
 }
 
 ////////////////////////////////////////////////////////////////////////////
-GMessage CreateMsg(int m, int a, int b)
-{
-	GMessage Msg(m, a, b);
-	return Msg;
-}
-
-int MsgA(GMessage *m)
-{
-	int32 i=0;
-	if (m) m->FindInt32("a", &i);
-	return i;
-}
-
-int MsgB(GMessage *m)
-{
-	int32 i=0;
-	if (m) m->FindInt32("b", &i);
-	return i;
-}
-
-////////////////////////////////////////////////////////////////////////////
 bool LgiIsKeyDown(int Key)
 {
 	key_info KeyInfo;
@@ -559,52 +606,6 @@ public:
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class GViewPrivate
-{
-public:
-	GViewI			*Notify;
-	GViewI			*ParentI;
-	GView			*ParentV;
-	GView			*Popup;
-	GViewFill		*Background;
-	int				CtrlId;
-	GDragDropTarget	*DropTarget;
-	GFont			*Fnt;
-	bool			FntOwn;
-	
-	GViewPrivate()
-	{
-		Popup = 0;
-		ParentI = 0;
-		ParentV = 0;
-		Notify = 0;
-		CtrlId = -1;
-		DropTarget = 0;
-		Fnt = 0;
-		FntOwn = 0;
-		Background = 0;
-	}
-	
-	~GViewPrivate()
-	{
-		/*
-		DeleteObj(Background);
-		DeleteObj(Popup);
-		*/
-	}
-
-	GView *GetParent()
-	{
-		if (ParentV)
-			return ParentV;
-		
-		if (ParentI)
-			return ParentI->GetGView();
-
-		return 0;
-	}
-};
-
 /*
 GView::GView(BView *view)
 {
@@ -867,80 +868,6 @@ GMouse &_lgi_adjust_click_for_window(GMouse &Info, GViewI *Wnd)
 GView *&GView::PopupChild()
 {
 	return d->Popup;
-}
-
-bool GView::_Mouse(GMouse &m, bool Move)
-{
-	/* FIXME
-	if (GetWindow())
-	{
-		if (!GetWindow()->OnViewMouse(this, m))
-		{
-			return;
-		}
-	}
-
-	if (_Capturing)
-	{
-		if (Move)
-		{
-			_Capturing->OnMouseMove(_lgi_adjust_click_for_window(m, _Capturing));
-		}
-		else
-		{
-			_Capturing->OnMouseClick(_lgi_adjust_click_for_window(m, _Capturing));
-		}
-	}
-	else
-	{
-		if (Move)
-		{
-			bool Change = false;
-			GViewI *o = WindowFromPoint(m.x, m.y);
-
-			if (o && !o->Handle())
-			{
-				printf("Over virtual\n");
-			}
-
-			if (_Over != o)
-			{
-				if (_Over)
-				{
-					_Over->OnMouseExit(_lgi_adjust_click_for_window(m, _Over));
-				}
-
-				_Over = o;
-
-				if (_Over)
-				{
-					_Over->OnMouseEnter(_lgi_adjust_click_for_window(m, _Over));
-				}
-			}
-		}
-			
-		GView *Target = dynamic_cast<GView*>(_Over ? _Over : this);
-		GRect Client = Target->GView::GetClient();
-		if (Target->Raised() || Target->Sunken())
-		{
-			Client.Offset(Target->_BorderSize, Target->_BorderSize);
-		}
-		m = _lgi_adjust_click_for_window(m, Target);
-		if (!Client.Valid() || Client.Overlap(m.x, m.y))
-		{
-			if (Move)
-			{
-				Target->OnMouseMove(m);
-			}
-			else
-			{
-				Target->OnMouseClick(m);
-			}
-		}
-	}
-	*/
-	
-	return false;
 }
 
 /*
@@ -1252,23 +1179,6 @@ void GView::Raised(bool i)
 	Invalidate();
 }
 
-void GView::Quit(bool DontDelete)
-{
-	if (dynamic_cast<GWindow*>(this))
-	{
-		BWindow *Wnd = WindowHandle();
-		if (Wnd)
-		{
-			BMessenger m(0, Wnd);
-			m.SendMessage(new BMessage(B_QUIT_REQUESTED));
-		}
-	}
-	else if (_View)
-	{
-		delete this;
-	}
-}
-
 bool GView::AttachChildren()
 {
 	bool Status = true;
@@ -1279,27 +1189,6 @@ bool GView::AttachChildren()
 	}
 
 	return Status;
-}
-
-GRect &GView::GetClient(bool ClientSpace)
-{
-	static GRect Client;
-
-	Client.ZOff(Pos.X()-1, Pos.Y()-1);
-	if (Sunken() || Raised())
-	{
-		if (ClientSpace)
-		{
-			Client.x2 -= _BorderSize << 1;
-			Client.y2 -= _BorderSize << 1;
-		}
-		else
-		{
-			Client.Size(_BorderSize, _BorderSize);
-		}
-	}
-	
-	return Client;
 }
 
 GFont *GView::GetFont()
@@ -1353,44 +1242,6 @@ void GView::OnPosChange()
 	}
 }
 
-bool GView::SetPos(GRect &p, bool Repaint)
-{
-	Pos = p;
-
-	if (_View)
-	{
-		bool Lock = _View->LockLooper();
-
-		int Ox = 0, Oy = 0;
-		if (d->GetParent())
-		{
-			if (d->GetParent()->Sunken() || d->GetParent()->Raised())
-			{
-				Ox = d->GetParent()->_BorderSize;
-				Oy = d->GetParent()->_BorderSize;
-			}
-		}
-
-		_View->MoveTo(p.x1 + Ox, p.y1 + Oy);
-		_View->ResizeTo(p.X()-1, p.Y()-1);		
-		if (Repaint)
-		{
-			Invalidate();
-		}
-		
-		if (Lock )
-		{
-			_View->UnlockLooper();
-		}
-		else
-		{
-			OnPosChange();
-		}
-	}
-	
-	return TRUE;
-}
-
 bool GView::Invalidate(GRegion *r, bool Repaint, bool NonClient)
 {
 	if (r)
@@ -1402,104 +1253,6 @@ bool GView::Invalidate(GRegion *r, bool Repaint, bool NonClient)
 		}
 		
 		return true;
-	}
-	
-	return false;
-}
-
-bool GView::Invalidate(GRect *r, bool Repaint, bool NonClient)
-{
-	return false;
-	
-	if (_View)
-	{
-		if (_View->Window() &&
-			_View->LockLooperWithTimeout(50 * 1000) == B_OK)
-		{
-			BWindow *Wnd = _View->Window();
-			thread_id MyThread = find_thread(0);
-			thread_id WndThread = Wnd ? Wnd->Thread() : 0;
-			if (MyThread == WndThread)
-			{
-				if (r)
-				{
-					if (NonClient)
-					{
-						BRect Rc = *r;
-						_View->Draw(Rc);
-					}
-					else
-					{
-						GRect c = GetClient(false);
-						GRect a = *r;
-						a.Offset(c.x1, c.y1);
-						a.Bound(&c);
-						BRect Rc = a;
-						_View->Draw(Rc);
-					}
-				}
-				else
-				{
-					// _View->Invalidate(_View->Bounds());
-					// _View->Draw(_View->Bounds());
-				}
-
-				if (Repaint)
-				{
-					Wnd->UpdateIfNeeded();
-				}
-			}
-			else
-			{
-				/*
-				// out of thread
-				if (r)
-				{
-					BRect Rc = *r;
-					BRegion *Rgn = new BRegion(Rc);
-					_View->ConstrainClippingRegion(Rgn);
-					_View->Draw(Rc);
-					_View->ConstrainClippingRegion(NULL);
-				}
-				else
-				{
-					BRect Rc = _View->Frame();
-					_View->Draw(Rc);
-				}
-				*/
-			}
-			
-			_View->UnlockLooper();
-		}
-		else
-		{
-			// printf("******** Invalidate couldn't lock ********\n");
-		}
-	}
-	else
-	{
-		GRect Up;
-		GView *p = this;
-
-		if (r)
-		{
-			Up = *r;
-		}
-		else
-		{
-			Up.Set(0, 0, Pos.X()-1, Pos.Y()-1);
-		}
-
-		while (p && !p->Handle())
-		{
-			Up.Offset(p->Pos.x1, p->Pos.y1);
-			p = p->d->GetParent();
-		}
-
-		if (p && p->Handle())
-		{
-			return p->Invalidate(&Up, Repaint);
-		}
 	}
 	
 	return false;
@@ -1528,33 +1281,6 @@ long _lgi_pulse_thread(void *ptr)
 	}
 	
 	return 0;
-}
-
-void GView::SetPulse(int Length)
-{
-	/*
-	if (_View->LockLooper())
-	{
-		if (_PulseThread)
-		{
-			kill_thread(_PulseThread);
-			_PulseThread = 0;
-		}
-	
-		_PulseRate = Length;
-		
-		if (Length > 0)
-		{
-			_PulseThread = spawn_thread(_lgi_pulse_thread, "_lgi_pulse_thread", B_LOW_PRIORITY, this);
-			if (_PulseThread > 0)
-			{
-				resume_thread(_PulseThread);
-			}
-		}
-		
-		_View->UnlockLooper();
-	}
-	*/
 }
 
 bool GView::InThread()
@@ -1590,115 +1316,6 @@ bool GView::PostEvent(int Cmd, GMessage::Param a, GMessage::Param b)
 	}
 	
 	return Status;
-}
-
-GMessage::Result GView::OnEvent(GMessage *Msg)
-{
-	switch (MsgCode(Msg))
-	{
-		// These are internal messages sent to a View to get it to
-		// handle it's mouse click in thread.
-		case LGI_MOUSE_CLICK:
-		case LGI_MOUSE_MOVE:
-		case LGI_MOUSE_ENTER:
-		case LGI_MOUSE_EXIT:
-		{
-			BPoint p;
-			GMouse m;
-			if (Msg->FindPoint("pos", &p) == B_OK &&
-				Msg->FindInt32("flags", (int32*)&m.Flags) == B_OK)
-			{
-				m.x = p.x - _BorderSize;
-				m.y = p.y - _BorderSize;
-				
-				switch (MsgCode(Msg))
-				{
-					case LGI_MOUSE_CLICK:
-						OnMouseClick(m); break;
-					case LGI_MOUSE_MOVE:
-						OnMouseMove(m); break;
-					case LGI_MOUSE_ENTER:
-						OnMouseEnter(m); break;
-					case LGI_MOUSE_EXIT:
-						OnMouseExit(m); break;
-				}
-			}
-			break;
-		}
-		case B_SIMPLE_DATA:
-		{
-			if (GetParent())
-			{
-				GetParent()->OnEvent(Msg);
-			}
-			break;
-		}
-		case B_MOUSE_WHEEL_CHANGED:
-		{
-			float Wheel = 0.0;
-			if (Msg->FindFloat("be:wheel_delta_y", &Wheel) == B_OK)
-			{
-				OnMouseWheel(Wheel * 3.0);
-			}
-			break;
-		}
-		case M_PULSE:
-		{
-			OnPulse();
-			break;
-		}
-		case M_DRAG_DROP:
-		{
-			GDragDropSource *Source = 0;
-			if (Msg->FindPointer("GDragDropSource", (void**) &Source) == B_OK)
-			{
-				GMouse m;
-				GetMouse(m);
-			
-				GView *TargetView = _lgi_search_children(this, m.x, m.y);
-				GDragDropTarget *Target = dynamic_cast<GDragDropTarget*>(TargetView);
-				if (Target)
-				{
-					GdcPt2 MousePt(m.x, m.y);
-					List<char> Formats;
-					if (Target->WillAccept(Formats, MousePt, 0) != DROPEFFECT_NONE)
-					{
-						GVariant Data;
-						if (Source->GetData(&Data, Formats.First()))
-						{
-							Target->OnDrop(Formats.First(), &Data, MousePt, 0);
-						}
-					}
-				}
-			}
-			break;
-		}
-		case M_CHANGE:
-		{
-			GViewI *Ctrl = dynamic_cast<GViewI*>((GViewI*) MsgA(Msg));
-			if (Ctrl)
-			{
-				OnNotify(Ctrl, MsgB(Msg));
-			}
-			break;
-		}
-		case M_COMMAND:
-		{
-			int32 a=MsgA(Msg);
-			return OnCommand(a&0xFFFF, a>>16, (OsView) MsgB(Msg));
-		}
-		default:
-		{
-			BMessage *Msg = WindowHandle()->CurrentMessage();
-			if (Msg && Msg->WasDropped())
-			{
-				Msg->PrintToStream();
-			}
-			break;
-		}
-	}
-
-	return 0;
 }
 
 int GView::OnNotify(GViewI *Ctrl, int Flags)
@@ -1833,48 +1450,6 @@ void GView::Focus(bool f)
 		_View->UnlockLooper();
 	}
 	*/
-}
-
-bool GView::GetMouse(GMouse &m, bool ScreenCoords)
-{
-	/*
-	if (Handle()->LockLooper())
-	{
-		// get mouse state
-		BPoint Cursor;
-		uint32 Buttons;
-		
-		Handle()->GetMouse(&Cursor, &Buttons);
-		if (ScreenCoords)
-		{
-			Handle()->ConvertToScreen(&Cursor);
-		}
-		
-		// position
-		m.x = Cursor.x;
-		m.y = Cursor.y;
-
-		// buttons
-		m.Flags =	(TestFlag(Buttons, B_PRIMARY_MOUSE_BUTTON) ? MK_LEFT : 0) |
-					(TestFlag(Buttons, B_TERTIARY_MOUSE_BUTTON) ? MK_MIDDLE : 0) |
-					(TestFlag(Buttons, B_SECONDARY_MOUSE_BUTTON) ? MK_RIGHT : 0);
-
-		// key states
-		key_info KeyInfo;
-		if (get_key_info(&KeyInfo) == B_OK)
-		{
-			m.Flags |=	(TestFlag(KeyInfo.modifiers, B_CONTROL_KEY) ? MK_CTRL : 0) |
-						(TestFlag(KeyInfo.modifiers, B_MENU_KEY) ? MK_ALT : 0) |
-						(TestFlag(KeyInfo.modifiers, B_SHIFT_KEY) ? MK_SHIFT : 0);
-		}
-		
-		Handle()->UnlockLooper();
-		
-		return true;
-	};
-	*/
-
-	return false;
 }
 
 int LastFunctionKey = 0;
@@ -2419,20 +1994,6 @@ bool GView::DropTarget(bool b)
 	return false;
 }
 
-bool GView::IsAttached()
-{
-	BWindow *BWin = 0;
-	BView *BPar = 0;
-	
-	if (_View)
-	{
-		BPar = _View->Parent();
-		BWin = _View->Window();
-	}
-
-	return	_View && BPar;
-}
-
 void GView::SetParent(GViewI *p)
 {
 	d->ParentI = p;
@@ -2554,67 +2115,6 @@ bool GView::Attach(GViewI *Wnd)
 	return Status;
 }
 
-bool GView::Detach()
-{
-	bool Status = false;
-	if (d->GetParent())
-	{
-		BView *Par = d->GetParent()->_View;
-		if (Par)
-		{
-			bool Lock = Par->LockLooper();
-			Par->RemoveChild(_View);
-			if (Lock) Par->UnlockLooper();
-		}
-		
-		d->GetParent()->Children.Delete(this);
-		d->GetParent()->OnChildrenChanged(this, false);
-
-		d->ParentI = 0;
-		d->ParentV = 0;
-		Status = true;
-	}
-	return Status;
-}
-
-GViewI *GView::FindControl(OsView hCtrl)
-{
-	if (Handle() == hCtrl)
-	{
-		return this;
-	}
-
-	List<GViewI>::I Lst = Children.Start();
-	for (GViewI *c = Lst.First(); c; c = Lst.Next())
-	{
-		GViewI *Ctrl = c->FindControl(hCtrl);
-		if (Ctrl)
-		{
-			return Ctrl;
-		}
-	}
-	return 0;
-}
-
-GViewI *GView::FindControl(int Id)
-{
-	if (GetId() == Id)
-	{
-		return this;
-	}
-
-	List<GViewI>::I Lst = Children.Start();
-	for (GViewI *c = Lst.First(); c; c = Lst.Next())
-	{
-		GViewI *Ctrl = c->FindControl(Id);
-		if (Ctrl)
-		{
-			return Ctrl;
-		}
-	}
-	return 0;
-}
-
 #define MIN_WINDOW_X		4
 #define MIN_WINDOW_Y		24
 
@@ -2682,44 +2182,6 @@ GdcPt2 &GView::GetWindowBorderSize()
 	}
 
 	return s;
-}
-
-void GView::PointToScreen(GdcPt2 &p)
-{
-	if (_View)
-	{
-		bool Lock = _View->LockLooper();
-		
-		BPoint b(p.x, p.y);
-		b = _View->ConvertToScreen(b);
-		p.x = b.x;
-		p.y = b.y;
-		
-		if (Lock) _View->UnlockLooper();		
-	}
-	else
-	{
-		printf("%s:%i - No view.\n", __FILE__, __LINE__);
-	}
-}
-
-void GView::PointToView(GdcPt2 &p)
-{
-	if (_View)
-	{
-		bool Lock = _View->LockLooper();
-
-		BPoint b(p.x, p.y);
-		b = _View->ConvertFromScreen(b);
-		p.x = b.x;
-		p.y = b.y;
-
-		if (Lock) _View->UnlockLooper();		
-	}
-	else
-	{
-		printf("%s:%i - No view.\n", __FILE__, __LINE__);
-	}
 }
 
 bool GView::GetTabStop()
@@ -2871,3 +2333,530 @@ uint32 CursorData[] = {
 };
 
 #endif
+
+
+bool GView::Detach()
+{
+	bool Status = false;
+	if (d->GetParent())
+	{
+		BView *Par = d->GetParent()->_View;
+		if (Par)
+		{
+			bool Lock = Par->LockLooper();
+			Par->RemoveChild(_View);
+			if (Lock) Par->UnlockLooper();
+		}
+		
+		d->GetParent()->Children.Delete(this);
+		d->GetParent()->OnChildrenChanged(this, false);
+
+		d->ParentI = 0;
+		d->ParentV = 0;
+		Status = true;
+	}
+	return Status;
+}
+
+bool GView::IsAttached()
+{
+	BWindow *BWin = 0;
+	BView *BPar = 0;
+	
+	if (_View)
+	{
+		BPar = _View->Parent();
+		BWin = _View->Window();
+	}
+
+	return	_View && BPar;
+}
+
+void GView::Quit(bool DontDelete)
+{
+	if (dynamic_cast<GWindow*>(this))
+	{
+		BWindow *Wnd = WindowHandle();
+		if (Wnd)
+		{
+			BMessenger m(0, Wnd);
+			m.SendMessage(new BMessage(B_QUIT_REQUESTED));
+		}
+	}
+	else if (_View)
+	{
+		delete this;
+	}
+}
+
+LgiCursor GView::GetCursor(int x, int y)
+{
+	return LCUR_Normal;
+}
+
+bool GView::GetMouse(GMouse &m, bool ScreenCoords)
+{
+	/*
+	if (Handle()->LockLooper())
+	{
+		// get mouse state
+		BPoint Cursor;
+		uint32 Buttons;
+		
+		Handle()->GetMouse(&Cursor, &Buttons);
+		if (ScreenCoords)
+		{
+			Handle()->ConvertToScreen(&Cursor);
+		}
+		
+		// position
+		m.x = Cursor.x;
+		m.y = Cursor.y;
+
+		// buttons
+		m.Flags =	(TestFlag(Buttons, B_PRIMARY_MOUSE_BUTTON) ? MK_LEFT : 0) |
+					(TestFlag(Buttons, B_TERTIARY_MOUSE_BUTTON) ? MK_MIDDLE : 0) |
+					(TestFlag(Buttons, B_SECONDARY_MOUSE_BUTTON) ? MK_RIGHT : 0);
+
+		// key states
+		key_info KeyInfo;
+		if (get_key_info(&KeyInfo) == B_OK)
+		{
+			m.Flags |=	(TestFlag(KeyInfo.modifiers, B_CONTROL_KEY) ? MK_CTRL : 0) |
+						(TestFlag(KeyInfo.modifiers, B_MENU_KEY) ? MK_ALT : 0) |
+						(TestFlag(KeyInfo.modifiers, B_SHIFT_KEY) ? MK_SHIFT : 0);
+		}
+		
+		Handle()->UnlockLooper();
+		
+		return true;
+	};
+	*/
+
+	return false;
+}
+
+bool GView::SetPos(GRect &p, bool Repaint)
+{
+	Pos = p;
+
+	if (_View)
+	{
+		bool Lock = _View->LockLooper();
+
+		int Ox = 0, Oy = 0;
+		if (d->GetParent())
+		{
+			if (d->GetParent()->Sunken() || d->GetParent()->Raised())
+			{
+				Ox = d->GetParent()->_BorderSize;
+				Oy = d->GetParent()->_BorderSize;
+			}
+		}
+
+		_View->MoveTo(p.x1 + Ox, p.y1 + Oy);
+		_View->ResizeTo(p.X()-1, p.Y()-1);		
+		if (Repaint)
+		{
+			Invalidate();
+		}
+		
+		if (Lock )
+		{
+			_View->UnlockLooper();
+		}
+		else
+		{
+			OnPosChange();
+		}
+	}
+	
+	return TRUE;
+}
+
+GViewI *GView::FindControl(OsView hCtrl)
+{
+	if (Handle() == hCtrl)
+	{
+		return this;
+	}
+
+	List<GViewI>::I Lst = Children.Start();
+	for (GViewI *c = Lst.First(); c; c = Lst.Next())
+	{
+		GViewI *Ctrl = c->FindControl(hCtrl);
+		if (Ctrl)
+		{
+			return Ctrl;
+		}
+	}
+	return 0;
+}
+
+void GView::PointToScreen(GdcPt2 &p)
+{
+	if (_View)
+	{
+		bool Lock = _View->LockLooper();
+		
+		BPoint b(p.x, p.y);
+		b = _View->ConvertToScreen(b);
+		p.x = b.x;
+		p.y = b.y;
+		
+		if (Lock) _View->UnlockLooper();		
+	}
+	else
+	{
+		printf("%s:%i - No view.\n", __FILE__, __LINE__);
+	}
+}
+
+void GView::PointToView(GdcPt2 &p)
+{
+	if (_View)
+	{
+		bool Lock = _View->LockLooper();
+
+		BPoint b(p.x, p.y);
+		b = _View->ConvertFromScreen(b);
+		p.x = b.x;
+		p.y = b.y;
+
+		if (Lock) _View->UnlockLooper();		
+	}
+	else
+	{
+		printf("%s:%i - No view.\n", __FILE__, __LINE__);
+	}
+}
+
+bool GView::Invalidate(GRect *r, bool Repaint, bool NonClient)
+{
+	return false;
+	
+	if (_View)
+	{
+		if (_View->Window() &&
+			_View->LockLooperWithTimeout(50 * 1000) == B_OK)
+		{
+			BWindow *Wnd = _View->Window();
+			thread_id MyThread = find_thread(0);
+			thread_id WndThread = Wnd ? Wnd->Thread() : 0;
+			if (MyThread == WndThread)
+			{
+				if (r)
+				{
+					if (NonClient)
+					{
+						BRect Rc = *r;
+						_View->Draw(Rc);
+					}
+					else
+					{
+						GRect c = GetClient(false);
+						GRect a = *r;
+						a.Offset(c.x1, c.y1);
+						a.Bound(&c);
+						BRect Rc = a;
+						_View->Draw(Rc);
+					}
+				}
+				else
+				{
+					// _View->Invalidate(_View->Bounds());
+					// _View->Draw(_View->Bounds());
+				}
+
+				if (Repaint)
+				{
+					Wnd->UpdateIfNeeded();
+				}
+			}
+			else
+			{
+				/*
+				// out of thread
+				if (r)
+				{
+					BRect Rc = *r;
+					BRegion *Rgn = new BRegion(Rc);
+					_View->ConstrainClippingRegion(Rgn);
+					_View->Draw(Rc);
+					_View->ConstrainClippingRegion(NULL);
+				}
+				else
+				{
+					BRect Rc = _View->Frame();
+					_View->Draw(Rc);
+				}
+				*/
+			}
+			
+			_View->UnlockLooper();
+		}
+		else
+		{
+			// printf("******** Invalidate couldn't lock ********\n");
+		}
+	}
+	else
+	{
+		GRect Up;
+		GView *p = this;
+
+		if (r)
+		{
+			Up = *r;
+		}
+		else
+		{
+			Up.Set(0, 0, Pos.X()-1, Pos.Y()-1);
+		}
+
+		while (p && !p->Handle())
+		{
+			Up.Offset(p->Pos.x1, p->Pos.y1);
+			p = p->d->GetParent();
+		}
+
+		if (p && p->Handle())
+		{
+			return p->Invalidate(&Up, Repaint);
+		}
+	}
+	
+	return false;
+}
+
+bool GView::_Mouse(GMouse &m, bool Move)
+{
+	/* FIXME
+	if (GetWindow())
+	{
+		if (!GetWindow()->OnViewMouse(this, m))
+		{
+			return;
+		}
+	}
+
+	if (_Capturing)
+	{
+		if (Move)
+		{
+			_Capturing->OnMouseMove(_lgi_adjust_click_for_window(m, _Capturing));
+		}
+		else
+		{
+			_Capturing->OnMouseClick(_lgi_adjust_click_for_window(m, _Capturing));
+		}
+	}
+	else
+	{
+		if (Move)
+		{
+			bool Change = false;
+			GViewI *o = WindowFromPoint(m.x, m.y);
+
+			if (o && !o->Handle())
+			{
+				printf("Over virtual\n");
+			}
+
+			if (_Over != o)
+			{
+				if (_Over)
+				{
+					_Over->OnMouseExit(_lgi_adjust_click_for_window(m, _Over));
+				}
+
+				_Over = o;
+
+				if (_Over)
+				{
+					_Over->OnMouseEnter(_lgi_adjust_click_for_window(m, _Over));
+				}
+			}
+		}
+			
+		GView *Target = dynamic_cast<GView*>(_Over ? _Over : this);
+		GRect Client = Target->GView::GetClient();
+		if (Target->Raised() || Target->Sunken())
+		{
+			Client.Offset(Target->_BorderSize, Target->_BorderSize);
+		}
+		m = _lgi_adjust_click_for_window(m, Target);
+		if (!Client.Valid() || Client.Overlap(m.x, m.y))
+		{
+			if (Move)
+			{
+				Target->OnMouseMove(m);
+			}
+			else
+			{
+				Target->OnMouseClick(m);
+			}
+		}
+	}
+	*/
+	
+	return false;
+}
+
+void GView::SetPulse(int Length)
+{
+	/*
+	if (_View->LockLooper())
+	{
+		if (_PulseThread)
+		{
+			kill_thread(_PulseThread);
+			_PulseThread = 0;
+		}
+	
+		_PulseRate = Length;
+		
+		if (Length > 0)
+		{
+			_PulseThread = spawn_thread(_lgi_pulse_thread, "_lgi_pulse_thread", B_LOW_PRIORITY, this);
+			if (_PulseThread > 0)
+			{
+				resume_thread(_PulseThread);
+			}
+		}
+		
+		_View->UnlockLooper();
+	}
+	*/
+}
+
+GMessage::Result GView::OnEvent(GMessage *Msg)
+{
+	switch (MsgCode(Msg))
+	{
+		// These are internal messages sent to a View to get it to
+		// handle it's mouse click in thread.
+		case LGI_MOUSE_CLICK:
+		case LGI_MOUSE_MOVE:
+		case LGI_MOUSE_ENTER:
+		case LGI_MOUSE_EXIT:
+		{
+			BPoint p;
+			GMouse m;
+			if (Msg->FindPoint("pos", &p) == B_OK &&
+				Msg->FindInt32("flags", (int32*)&m.Flags) == B_OK)
+			{
+				m.x = p.x - _BorderSize;
+				m.y = p.y - _BorderSize;
+				
+				switch (MsgCode(Msg))
+				{
+					case LGI_MOUSE_CLICK:
+						OnMouseClick(m); break;
+					case LGI_MOUSE_MOVE:
+						OnMouseMove(m); break;
+					case LGI_MOUSE_ENTER:
+						OnMouseEnter(m); break;
+					case LGI_MOUSE_EXIT:
+						OnMouseExit(m); break;
+				}
+			}
+			break;
+		}
+		case B_SIMPLE_DATA:
+		{
+			if (GetParent())
+			{
+				GetParent()->OnEvent(Msg);
+			}
+			break;
+		}
+		case B_MOUSE_WHEEL_CHANGED:
+		{
+			float Wheel = 0.0;
+			if (Msg->FindFloat("be:wheel_delta_y", &Wheel) == B_OK)
+			{
+				OnMouseWheel(Wheel * 3.0);
+			}
+			break;
+		}
+		case M_PULSE:
+		{
+			OnPulse();
+			break;
+		}
+		case M_DRAG_DROP:
+		{
+			GDragDropSource *Source = 0;
+			if (Msg->FindPointer("GDragDropSource", (void**) &Source) == B_OK)
+			{
+				GMouse m;
+				GetMouse(m);
+			
+				GView *TargetView = _lgi_search_children(this, m.x, m.y);
+				GDragDropTarget *Target = dynamic_cast<GDragDropTarget*>(TargetView);
+				if (Target)
+				{
+					GdcPt2 MousePt(m.x, m.y);
+					List<char> Formats;
+					if (Target->WillAccept(Formats, MousePt, 0) != DROPEFFECT_NONE)
+					{
+						GVariant Data;
+						if (Source->GetData(&Data, Formats.First()))
+						{
+							Target->OnDrop(Formats.First(), &Data, MousePt, 0);
+						}
+					}
+				}
+			}
+			break;
+		}
+		case M_CHANGE:
+		{
+			GViewI *Ctrl = dynamic_cast<GViewI*>((GViewI*) MsgA(Msg));
+			if (Ctrl)
+			{
+				OnNotify(Ctrl, MsgB(Msg));
+			}
+			break;
+		}
+		case M_COMMAND:
+		{
+			int32 a=MsgA(Msg);
+			return OnCommand(a&0xFFFF, a>>16, (OsView) MsgB(Msg));
+		}
+		default:
+		{
+			BMessage *Msg = WindowHandle()->CurrentMessage();
+			if (Msg && Msg->WasDropped())
+			{
+				Msg->PrintToStream();
+			}
+			break;
+		}
+	}
+
+	return 0;
+}
+
+GRect &GView::GetClient(bool ClientSpace)
+{
+	static GRect Client;
+
+	Client.ZOff(Pos.X()-1, Pos.Y()-1);
+	if (Sunken() || Raised())
+	{
+		if (ClientSpace)
+		{
+			Client.x2 -= _BorderSize << 1;
+			Client.y2 -= _BorderSize << 1;
+		}
+		else
+		{
+			Client.Size(_BorderSize, _BorderSize);
+		}
+	}
+	
+	return Client;
+}
+

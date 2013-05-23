@@ -86,7 +86,6 @@ void GLayout::SetScrollPos(int x, int y)
 	}
 }
 
-/*
 bool GLayout::Attach(GViewI *p)
 {
 	bool Status = GView::Attach(p);
@@ -118,7 +117,11 @@ bool GLayout::Attach(GViewI *p)
 	
 	return Status;
 }
-*/
+
+bool GLayout::Detach()
+{
+	return GView::Detach();
+}
 
 bool GLayout::SetScrollBars(bool x, bool y)
 {
