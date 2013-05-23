@@ -2348,7 +2348,7 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, bool DebugLog)
 			TagHit.Near = 0;
 		}
 	}
-	else if (Tag && Text())
+	else if (Text())
 	{
 		for (int i=0; i<TextPos.Length(); i++)
 		{
@@ -2384,8 +2384,7 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, bool DebugLog)
 		x >= 0 &&
 		y >= 0 &&
 		x < Size.x &&
-		y < Size.y &&
-		!TagHit.Direct
+		y < Size.y
 	)
 	{
 		// Direct hit
@@ -7780,9 +7779,11 @@ void GHtml::OnMouseClick(GMouse &m)
 
 		int Offset = ScrollY();
 		bool TagProcessedClick = false;
-		int Index = -1;
 
-		GTag *Over = GetTagByPos(m.x, m.y + Offset, &Index);
+		GTagHit Hit;
+		if (Tag)
+			Tag->GetTagByPos(Hit, m.x, m.y + Offset);
+		
 		if (m.Left() && !m.IsContextMenu())
 		{
 			if (m.Double())
@@ -7827,22 +7828,29 @@ void GHtml::OnMouseClick(GMouse &m)
 					Invalidate();
 				}
 			}
-			else if (Over)
+			else if (Hit.Direct || Hit.NearestText)
 			{
 				d->WordSelectMode = false;
 				UnSelectAll();
-				Selection = Cursor = Over;
-				if (Cursor)
+				
+				if (Hit.NearestText)
 				{
-					Selection->Selection = Cursor->Cursor = Index;
+					Cursor = Hit.NearestText;
+					Cursor->Cursor = Hit.Index;
 				}
+				else
+				{
+					Cursor = Hit.Direct;
+					Cursor->Cursor = 0;
+				}
+				
 				OnCursorChanged();
 			}
 		}
 
-		if (Over)
+		if (Hit.Direct)
 		{
-			TagProcessedClick = Over->OnMouseClick(m);
+			TagProcessedClick = Hit.Direct->OnMouseClick(m);
 		}
 		#ifdef _DEBUG
 		else if (m.Left() && m.Ctrl())
@@ -8170,7 +8178,7 @@ void GHtml::OnMouseMove(GMouse &m)
 
 	int Offset = ScrollY();
 	GTagHit Hit;
-	Tag->GetTagByPos(Hit, m.x, m.y + Offset, IsCapturing());
+	Tag->GetTagByPos(Hit, m.x, m.y + Offset);
 	if (!Hit.Direct && !Hit.NearestText)
 		return;
 		
