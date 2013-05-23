@@ -1771,9 +1771,10 @@ GVariant *GScriptEnginePrivate::Execute_Expression(int &Cur, GDom *Src, int Dept
 
 						if (v)
 						{
-							LgiAssert(v->Type != GV_NULL);
 							if (v->Type == GV_NULL)
+							{
 								return NULL;
+							}
 
 							Args.Add(v);
 						}
