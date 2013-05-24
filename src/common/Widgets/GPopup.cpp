@@ -107,9 +107,9 @@ bool IsWindow(OsView v)
 	return true;
 }
 
-#else
+#elif defined BEOS
 
-bool IsWindow(OsView Wnd)
+static bool IsWindow(OsView Wnd)
 {
 	return true;
 }
