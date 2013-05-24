@@ -1043,7 +1043,6 @@ public:
 	// Data
 	ulong *CharSquareData;
 	uchar *Div255;
-	class GLibrary *Iconv;
 
 	// Options
 	int OptVal[GDC_MAX_OPTION];
@@ -1135,7 +1134,6 @@ public:
 	{
 		DeleteObj(GlobalColour);
 		DeleteArray(CharSquareData);
-		DeleteObj(Iconv);
 		DeleteArray(Div255);
 	}
 };

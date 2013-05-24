@@ -877,8 +877,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 	#elif defined(BEOS)
 
 	// FIXME
-	LgiAssert(0);
-	return;
+	printf("Fixme: GDisplayString::Draw\n");
 
 	#elif defined MAC && !defined COCOA
 

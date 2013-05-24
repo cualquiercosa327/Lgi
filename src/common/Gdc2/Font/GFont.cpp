@@ -428,6 +428,8 @@ bool GFont::Destroy()
 		ATSUDisposeStyle(d->hFont);
 		#elif defined LINUX
 		Gtk::pango_font_description_free(d->hFont);
+		#elif defined BEOS
+		DeleteObj(d->hFont);
 		#else
 		LgiAssert(0);
 		#endif
@@ -912,6 +914,7 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 
 	if (Face())
 	{
+		d->hFont = new BFont;
 		d->hFont->SetSize(PointSize());
 	
 		int f = 0;

@@ -616,9 +616,12 @@ GTabPage::GTabPage(const char *name) : ResObject(Res_Tab)
 	TabPos.ZOff(-1, -1);
 
 	#if defined BEOS
-	Handle()->SetViewColor(216, 216, 216);
-	Handle()->SetResizingMode(B_FOLLOW_ALL_SIDES);
-	Handle()->SetFlags(Handle()->Flags() & ~B_NAVIGABLE);
+	if (Handle())
+	{
+		Handle()->SetViewColor(216, 216, 216);
+		Handle()->SetResizingMode(B_FOLLOW_ALL_SIDES);
+		Handle()->SetFlags(Handle()->Flags() & ~B_NAVIGABLE);
+	}
 	#elif WIN32NATIVE
 	SetStyle(GetStyle() | WS_CLIPCHILDREN);
 	CreateClassW32(GetClass(), 0, CS_HREDRAW | CS_VREDRAW);

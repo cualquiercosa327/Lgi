@@ -86,7 +86,7 @@ typedef		unsigned long long			uint64;
 ///		<li> MatchStrW()
 /// </ul>
 
-	#ifdef __MINGW32__
+	#if defined(__MINGW32__) || defined(BEOS)
 	
 		typedef		wchar_t						char16;
 		

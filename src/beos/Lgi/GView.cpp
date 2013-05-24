@@ -2476,6 +2476,8 @@ bool GView::Attach(GViewI *Wnd)
 	if (d->GetParent())
 	{
 		_Window = d->GetParent()->_Window;
+		if (!_View)
+			_View = new BViewRedir(this);
 	
 		if (!d->GetParent()->_View)
 		{
