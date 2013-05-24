@@ -133,4 +133,3 @@ bool GClipBoard::Binary(FormatType Format, GAutoPtr<uint8> &Ptr, int *Len)
 
 	return Status;
 }
-

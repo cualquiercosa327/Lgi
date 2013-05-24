@@ -17,6 +17,7 @@
 
 #include "Lgi.h"
 #include "GDragAndDrop.h"
+#include "GViewPriv.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 // CursorData is a bitmap in an array of uint32's. This is generated from a graphics file:
@@ -31,7 +32,21 @@
 // This saves a lot of time finding and loading an external resouce, and even having to
 // bundle extra files with your application. Which have a tendancy to get lost along the
 // way etc.
-extern uint32 CursorData[];
+uint32 CursorData[] = {
+0x02020202, 0x02020200, 0x02020202, 0x02020202, 0x02020202, 0x00020202, 0x02020202, 0x02020202, 0x00000000, 0x00000000, 0x00000000, 0x02020202, 0x02000000, 0x02000000, 0x02020202, 0x02020202, 0x02020202, 0x02000002, 0x02020202, 0x02020202, 0x02020202, 0x02020002, 0x02000202, 0x02020202, 0x02020202, 0x00000000, 0x00000000, 0x02020200, 0x00000000, 0x00000000, 0x02020200, 0x02020202, 0x02020202, 0x00020202, 0x02020202, 0x02020202, 0x02020202, 0x00000202, 0x02020000, 0x02020202, 0x02020202, 0x00020202, 0x02020202, 0x02020202, 0x02020202, 0x02000002, 0x02020202, 0x02020202, 0x00020202, 0x02020001, 0x02020202, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x01010100, 0x01010101, 0x00010101, 0x02020202, 0x00010100, 0x02000101, 0x02020202, 0x02020202, 0x02020202, 0x00010100, 0x02020202, 
+0x02020202, 0x02020202, 0x02020000, 0x00000202, 0x02020202, 0x02020202, 0x01010002, 0x01010101, 0x02020200, 0x01010100, 0x00010101, 0x02020202, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x01000202, 0x02020001, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x00010100, 0x02020202, 0x02020202, 0x00020202, 0x02020001, 0x02020202, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x01000100, 0x01000100, 0x00010100, 0x02020202, 0x01000002, 0x02020000, 0x02020202, 0x02020202, 0x00020202, 0x01010101, 0x02020200, 0x02020202, 0x00020202, 0x02020001, 0x01000202, 0x02020200, 0x02020202, 0x01000202, 0x01010101, 0x02020200, 0x01010100, 0x02000101, 0x02020202, 0x02020202, 0x02020202, 0x01010002, 0x02020001, 0x02020202, 0x02020202, 0x01000202, 
+0x02020001, 0x02020202, 0x02020202, 0x01010002, 0x02020001, 0x02020202, 0x02020202, 0x00010100, 0x02020202, 0x02020202, 0x01000202, 0x02000101, 0x02020202, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x00010002, 0x01010001, 0x02000101, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x01000202, 0x01010101, 0x02020001, 0x02020202, 0x01000202, 0x02020001, 0x01000202, 0x02020001, 0x02020202, 0x00020202, 0x01010101, 0x02020200, 0x01010100, 0x02020001, 0x02020202, 0x02020202, 0x02020202, 0x01000000, 0x02000000, 0x02020202, 0x02020202, 0x01000200, 0x00020001, 0x02020202, 0x02020202, 0x01010100, 0x02000101, 0x02020202, 0x02020202, 0x00010100, 0x02020202, 0x02020202, 0x01000202, 0x02000101, 0x02020202, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x01000202, 
+0x01010100, 0x02020001, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x01010002, 0x01010101, 0x02000101, 0x02020202, 0x01010002, 0x00000001, 0x01000000, 0x02000101, 0x02020200, 0x01000202, 0x01010101, 0x02020200, 0x01010100, 0x02000101, 0x02020202, 0x02020200, 0x00020202, 0x01000202, 0x00020200, 0x02020202, 0x00020202, 0x01000200, 0x00020001, 0x02020200, 0x00020202, 0x01000000, 0x00000000, 0x02020202, 0x02020202, 0x00010100, 0x02020000, 0x02020202, 0x01010002, 0x00010101, 0x02020202, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x00020202, 0x01010101, 0x02020200, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x00000000, 0x00010100, 0x00000000, 0x02020202, 0x01010100, 0x01010101, 0x01010101, 0x00010101, 0x02020000, 0x01010002, 0x01010001, 0x02020200, 
+0x00010100, 0x00010101, 0x00020202, 0x02020200, 0x00000202, 0x01000202, 0x00020200, 0x02020200, 0x01000202, 0x01000200, 0x00020001, 0x02020001, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x01010100, 0x00000101, 0x02020200, 0x01010002, 0x00010101, 0x02020202, 0x02020202, 0x00000002, 0x01000000, 0x00000000, 0x02020000, 0x02020202, 0x00010100, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x02020202, 0x00010100, 0x02020202, 0x02020202, 0x01010100, 0x01010101, 0x01010101, 0x00010101, 0x02000100, 0x01010100, 0x01000200, 0x02020200, 0x02000100, 0x01010100, 0x01000200, 0x02020200, 0x00010002, 0x01000000, 0x00000000, 0x02020001, 0x01010002, 0x01000000, 0x00000001, 0x02000101, 0x00000000, 0x01000000, 0x00000000, 0x02000000, 0x02000002, 0x01010100, 0x01010101, 
+0x02020001, 0x01010100, 0x01010101, 0x02020200, 0x02020202, 0x01010100, 0x01010101, 0x01010101, 0x02000101, 0x02020202, 0x00010100, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x02020202, 0x00010100, 0x02020202, 0x02020202, 0x01010002, 0x00000001, 0x01000000, 0x02000101, 0x00010100, 0x00010101, 0x00020202, 0x02020200, 0x02020000, 0x01010002, 0x01010001, 0x02020200, 0x01010100, 0x01010101, 0x01010101, 0x02000101, 0x01010100, 0x01010101, 0x01010101, 0x00010101, 0x01010100, 0x01010101, 0x01010101, 0x02000101, 0x00010100, 0x01010100, 0x01010101, 0x02020001, 0x01010100, 0x01010101, 0x02020200, 0x02020202, 0x00000002, 0x01000000, 0x00000000, 0x02020000, 0x02020202, 0x00010100, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x02020202, 0x00010100, 
+0x02020202, 0x02020202, 0x01000202, 0x02020001, 0x01000202, 0x02020001, 0x01010100, 0x02000101, 0x02020202, 0x02020200, 0x02020200, 0x01000202, 0x01010101, 0x02020200, 0x00010002, 0x01000000, 0x00000000, 0x02020001, 0x01010002, 0x01000000, 0x00000001, 0x02000101, 0x01010100, 0x01010101, 0x01010101, 0x02000101, 0x01010100, 0x01010101, 0x01010101, 0x02020001, 0x00000000, 0x00000001, 0x02020200, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x00010100, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x02020202, 0x00010100, 0x02020202, 0x02020202, 0x00020202, 0x02020001, 0x01000202, 0x02020200, 0x01010100, 0x02020001, 0x02020202, 0x02020202, 0x02020202, 0x00020202, 0x01010101, 0x02020200, 0x00000202, 0x01000202, 0x00020200, 0x02020200, 0x01000202, 
+0x01000200, 0x00020001, 0x02020001, 0x00000000, 0x01000000, 0x00000000, 0x02000000, 0x01010002, 0x01010101, 0x01010101, 0x02020001, 0x00020202, 0x02020001, 0x02020202, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x00020202, 0x01010101, 0x02020200, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x00000000, 0x00010100, 0x00000000, 0x02020202, 0x02020202, 0x02020000, 0x00000202, 0x02020202, 0x01010100, 0x02000101, 0x02020202, 0x02020202, 0x02020202, 0x01000202, 0x01010101, 0x02020200, 0x00020202, 0x01000202, 0x00020200, 0x02020202, 0x00020202, 0x01000200, 0x00020001, 0x02020200, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x01000202, 0x01010101, 0x01010101, 0x02020001, 0x00020202, 0x02020001, 0x02020202, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 
+0x01000202, 0x00010100, 0x02020001, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x01010002, 0x01010101, 0x02000101, 0x02020202, 0x02020202, 0x02020002, 0x02000202, 0x02020202, 0x01010100, 0x00010101, 0x02020202, 0x02020202, 0x02020202, 0x01010002, 0x01010101, 0x02020200, 0x02020202, 0x01000000, 0x02000000, 0x02020202, 0x02020202, 0x01000200, 0x00020001, 0x02020202, 0x00020202, 0x01000000, 0x00000000, 0x02020202, 0x00020202, 0x01010101, 0x01010101, 0x02020001, 0x00020202, 0x02020001, 0x02020202, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x00010002, 0x00010100, 0x02000100, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x01000202, 0x01010101, 0x02020001, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x00000000, 0x00000000, 0x02020200, 
+0x02020202, 0x02020202, 0x00000000, 0x00000000, 0x02020200, 0x02020202, 0x01010002, 0x02020001, 0x02020202, 0x02020202, 0x01000202, 0x02020001, 0x02020202, 0x02020202, 0x01010100, 0x02000101, 0x02020202, 0x02020202, 0x01010100, 0x01010101, 0x02020200, 0x00020202, 0x02020001, 0x02020202, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x01000100, 0x01010101, 0x00010001, 0x02020202, 0x01000002, 0x02020000, 0x02020202, 0x02020202, 0x00020202, 0x01010101, 0x02020200, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x01000202, 0x02020001, 0x02020202, 0x02020202, 0x01010002, 0x02020001, 0x02020202, 0x02020202, 0x00000002, 
+0x00000000, 0x02020202, 0x00020202, 0x02020001, 0x02020202, 0x02020202, 0x02020202, 0x00020202, 0x02020202, 0x02020202, 0x01010100, 0x01010101, 0x00010101, 0x02020202, 0x00010100, 0x02000101, 0x02020202, 0x02020202, 0x02020202, 0x00010100, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x00020202, 0x02020202, 0x02020202, 0x02020202, 0x00000202, 0x02020000, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x00020202, 0x02020000, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x00000000, 0x00000000, 0x00000000, 0x02020202, 0x02000000, 0x02000000, 0x02020202, 0x02020202, 0x02020202, 
+0x02000002, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x00020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 
+};
+
 GInlineBmp Cursors =
 {
 	192, 16, 8, CursorData
@@ -74,6 +89,7 @@ CursorMetrics[] =
 };
 
 
+/*
 class GViewPrivate
 {
 public:
@@ -86,39 +102,26 @@ public:
 	GDragDropTarget	*DropTarget;
 	GFont			*Fnt;
 	bool			FntOwn;
+*/
 	
-	GViewPrivate()
-	{
-		Popup = 0;
-		ParentI = 0;
-		ParentV = 0;
-		Notify = 0;
-		CtrlId = -1;
-		DropTarget = 0;
-		Fnt = 0;
-		FntOwn = 0;
-		Background = 0;
-	}
-	
-	~GViewPrivate()
-	{
-		/*
-		DeleteObj(Background);
-		DeleteObj(Popup);
-		*/
-	}
+GViewPrivate::GViewPrivate()
+{
+	CtrlId = -1;
+	DropTarget = NULL;
+	IsThemed = false;
+	ParentI = NULL;
+	Parent = NULL;
+	Notify = NULL;
+	MinimumSize.x = MinimumSize.y = 0;
+	Font = NULL;
+	FontOwn = false;
+}
 
-	GView *GetParent()
-	{
-		if (ParentV)
-			return ParentV;
-		
-		if (ParentI)
-			return ParentI->GetGView();
-
-		return 0;
-	}
-};
+GViewPrivate::~GViewPrivate()
+{
+	if (FontOwn)
+		DeleteObj(Font);
+}
 
 GMessage CreateMsg(int m, int a, int b)
 {
@@ -298,173 +301,6 @@ public:
 } EnterExitThread;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-BViewRedir::BViewRedir(GView *wnd, uint32 Resize) :
-	BView(	BRect(0, 0, 100, 100),
-			"BViewRedir",
-			Resize,
-			B_POINTER_EVENTS | B_WILL_DRAW | B_NAVIGABLE | B_FRAME_EVENTS | B_FULL_UPDATE_ON_RESIZE)
-{
-	Wnd = wnd;
-	WndBtn = 0;
-	SetViewColor(B_TRANSPARENT_COLOR);
-}
-
-BViewRedir::~BViewRedir()
-{
-}
-
-void BViewRedir::AttachedToWindow()
-{
-	BView::AttachedToWindow();
-	Wnd->OnCreate();
-}
-
-void BViewRedir::DetachedFromWindow()
-{
-	BView::DetachedFromWindow();
-	Wnd->OnDestroy();
-}
-
-void BViewRedir::Draw(BRect UpdateRect)
-{
-	GScreenDC DC(this);
-	Wnd->_Paint(&DC);
-	// Window()->Sync();
-}
-
-void BViewRedir::FrameResized(float width, float height)
-{
-	BView::FrameResized(width, height);
-	// Invalidate();
-	Wnd->OnPosChange();
-}
-
-void BViewRedir::Pulse()
-{
-	BView::Pulse();
-	Wnd->OnPulse();
-}
-
-void BViewRedir::MessageReceived(BMessage *message)
-{
-	BView::MessageReceived(message);
-	Wnd->OnEvent((GMessage*) message); // Haha, this is so bad... oh well.
-}
-
-void BViewRedir::MakeFocus(bool f = true)
-{
-	BView::MakeFocus(f);
-	Wnd->OnFocus(f);
-}
-
-void BViewRedir::KeyDown(const char *bytes, int32 numBytes)
-{
-	BView::KeyDown(bytes, numBytes);
-	Wnd->Sys_KeyDown(bytes, numBytes);
-}
-
-void BViewRedir::KeyUp(const char *bytes, int32 numBytes)
-{
-	BView::KeyUp(bytes, numBytes);
-	Wnd->Sys_KeyUp(bytes, numBytes);
-}
-
-void BViewRedir::MouseDown(BPoint point)
-{
-	BView::MouseDown(point);
-
-	/*
-	BPoint u;
-	GetMouse(&u, &WndBtn);
-
-	GMouse m;
-	m.x = point.x;
-	m.y = point.y;
-	if (WndBtn == B_PRIMARY_MOUSE_BUTTON) m.Left(true);
-	else if (WndBtn == B_SECONDARY_MOUSE_BUTTON) m.Right(true);
-	else if (WndBtn == B_TERTIARY_MOUSE_BUTTON) m.Middle(true);
-	m.Down(true);
-	
-	int32 Clicks = 0;
-	if (Window()->CurrentMessage()->FindInt32("clicks", &Clicks) == B_OK)
-	{
-		if (Clicks > 1)
-		{
-			m.Double(true);
-		}
-	}
-	else
-	{
-		Window()->CurrentMessage()->PrintToStream();
-	}
-	
-	Wnd->_Mouse(m, false);
-	*/
-}
-
-void BViewRedir::MouseUp(BPoint point)
-{
-	BView::MouseUp(point);
-
-	/*
-	BPoint u;
-	uint32 Btns;
-	GetMouse(&u, &Btns);
-	int b = Btns ^ WndBtn; // what bits have changed since the down click?
-
-	GMouse m;
-	m.Target = Wnd;
-	m.x = point.x;
-	m.y = point.y;
-	if (b == B_PRIMARY_MOUSE_BUTTON) m.Left(true);
-	else if (b == B_SECONDARY_MOUSE_BUTTON) m.Right(true);
-	else if (b == B_TERTIARY_MOUSE_BUTTON) m.Middle(true);
-	m.Down(false);
-	
-	Wnd->_Mouse(m, false);
-	WndBtn = Btns;
-	*/
-}
-
-void BViewRedir::MouseMoved(BPoint point, uint32 transit, const BMessage *message)
-{
-	BView::MouseMoved(point, transit, message);
-
-	/*
-	int32 Btns = 0;
-	if (message)
-		message->FindInt32("buttons", &Btns);
-	else
-		Window()->CurrentMessage()->FindInt32("buttons", &Btns);
-
-	EnterExitThread.SetMouseOver(Wnd);
-
-	GMouse m;
-	m.x = point.x;
-	m.y = point.y;
-	if (Btns == B_PRIMARY_MOUSE_BUTTON) m.Left(true);
-	else if (Btns == B_SECONDARY_MOUSE_BUTTON) m.Right(true);
-	else if (Btns == B_TERTIARY_MOUSE_BUTTON) m.Middle(true);
-	m.Down(false);
-	
-	
-	Wnd->_Mouse(m, true);
-	*/
-}
-
-bool BViewRedir::QuitRequested()
-{
-	/*
-	GWindow *App = dynamic_cast<GWindow*>(Wnd);
-	if (App)
-	{
-		return App->QuitRequested();
-	}
-	*/
-	return true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
 void _lgi_yield()
 {
 	/*
@@ -507,35 +343,6 @@ void _lgi_assert(bool b, char *test, char *file, int line)
 		*/
 		exit(-1);					
 	}
-}
-
-GView *_lgi_search_children(GView *v, int &x, int &y)
-{
-	GRect r = v->GetPos();
-	if (x >= r.x1 &&
-		y >= r.y1 &&
-		x < r.x2 &&
-		y < r.y2)
-	{
-		List<GViewI>::I It = v->Children.Start();
-		for (GViewI *i=It.First(); i; i=It.Next())
-		{
-			GRect p = i->GetPos();
-			int Cx = x-p.x1;
-			int Cy = y-p.y1;
-			GView *Child = _lgi_search_children(v, Cx, Cy);
-			if (Child)
-			{
-				x = Cx;
-				y = Cy;
-				return Child;
-			}
-		}
-		
-		return v;
-	}
-
-	return 0;
 }
 
 BMessage NewMsg(int m, int a, int b)
@@ -863,11 +670,6 @@ GMouse &_lgi_adjust_click_for_window(GMouse &Info, GViewI *Wnd)
 	}
 	
 	return Temp;
-}
-
-GView *&GView::PopupChild()
-{
-	return d->Popup;
 }
 
 /*
@@ -1452,107 +1254,6 @@ void GView::Focus(bool f)
 	*/
 }
 
-int LastFunctionKey = 0;
-void GView::Sys_KeyDown(const char *bytes, int32 numBytes)
-{
-	key_info Info;
-	get_key_info(&Info);
-
-	for (int i=0; i<numBytes; i++)
-	{
-		GKey k;
-		
-		if (bytes[i] == B_FUNCTION_KEY)
-		{
-			k.c16 = 0;
-			BMessage *msg = WindowHandle()->CurrentMessage(); 
-			if (msg)
-			{ 
-				int32 key; 
-				msg->FindInt32("key", &key); 
-				switch (key)
-				{ 
-					case B_F1_KEY: 
-						k.c16 = VK_F1;
-						break;
-					case B_F2_KEY: 
-						k.c16 = VK_F2;
-						break;
-					case B_F3_KEY: 
-						k.c16 = VK_F3;
-						break;
-					case B_F4_KEY: 
-						k.c16 = VK_F4;
-						break;
-					case B_F5_KEY: 
-						k.c16 = VK_F5;
-						break;
-					case B_F6_KEY: 
-						k.c16 = VK_F6;
-						break;
-					case B_F7_KEY: 
-						k.c16 = VK_F7;
-						break;
-					case B_F8_KEY: 
-						k.c16 = VK_F8;
-						break;
-					case B_F9_KEY: 
-						k.c16 = VK_F9;
-						break;
-					case B_F10_KEY: 
-						k.c16 = VK_F10;
-						break;
-					case B_F11_KEY: 
-						k.c16 = VK_F11;
-						break;
-					case B_F12_KEY: 
-						k.c16 = VK_F12;
-						break;
-					default:
-						k.c16 = key;
-						break;
-				}
-			}
-
-			k.IsChar = false;
-			LastFunctionKey = k.c16;
-		}
-		else
-		{
-			k.c16 = bytes[i];
-			k.IsChar = ((k.c16 < 127) && (k.c16 >= ' ')) ||
-						(k.c16 == 9) ||
-						(k.c16 == 8) ||
-						(k.c16 == 10);
-		}
-		
-		k.Flags = modifiers();
-		k.Data = 0;
-		k.Down(true);
-		
-		OnKey(k);
-	}
-}
-
-void GView::Sys_KeyUp(const char *bytes, int32 numBytes)
-{
-	key_info Info;
-	get_key_info(&Info);
-
-	for (int i=0; i<numBytes; i++)
-	{
-		GKey k;
-		
-		k.c16 = bytes[i];
-		k.Flags = modifiers();
-		k.Data = 0;
-		k.Down(false);
-		k.IsChar = 0;
-		
-		OnKey(k);
-	}
-}
-
 extern bool _setup_mouse_thread(GView::OsMouseInfo *&i, OsThread &t);
 
 void GView::Sys_MouseDown(BPoint Point)
@@ -2037,84 +1738,6 @@ int GView::GetId()
 	return d->CtrlId;
 }
 
-bool GView::Attach(GViewI *Wnd)
-{
-	bool Status = false;
-	
-	SetParent(Wnd);
-	if (d->GetParent())
-	{
-		_Window = d->GetParent()->_Window;
-	
-		if (!d->GetParent()->_View)
-		{
-			printf("%s:%i - can't attach to parent that isn't attached...\n", __FILE__, __LINE__);
-			DeleteObj(_View);
-			return false;
-		}
-		else
-		{
-			BView *ParentSysView = _View->Parent();
-			if (ParentSysView != d->GetParent()->_View)
-			{
-				if (ParentSysView)
-				{
-					// detach from the previous BView
-					if (ParentSysView->LockLooper())
-					{
-						ParentSysView->RemoveChild(_View);
-						ParentSysView->UnlockLooper();
-					}
-					else
-					{
-						printf("%s:%i - Can't remove from parent view.\n", __FILE__, __LINE__);
-						return false;
-					}
-				}
-	
-				int Ox = 0, Oy = 0;
-				if (d->GetParent())
-				{
-					if (d->GetParent()->Sunken() || d->GetParent()->Raised())
-					{
-						Ox = d->GetParent()->_BorderSize;
-						Oy = d->GetParent()->_BorderSize;
-					}
-				}
-				
-				_View->MoveTo(Pos.x1 + Ox, Pos.y1 + Oy);
-				_View->ResizeTo(Pos.X()-1, Pos.Y()-1);
-				if (!GView::Visible() &&
-					!_View->IsHidden())
-				{
-					_View->Hide();
-				}
-				if (!Enabled())
-				{
-					Enabled(false);
-				}
-				
-				// attach to the new BView
-				BView *Par = d->GetParent()->_View;
-				bool Lock = Par->LockLooper();
-				Par->AddChild(_View);
-				if (Lock) Par->UnlockLooper();
-			}
-		}
-
-		if (!d->GetParent()->Children.HasItem(this))
-		{
-			// we aren't already a member of the parents children
-			// list so add ourselves in.
-			d->GetParent()->Children.Insert(this);
-			d->GetParent()->OnChildrenChanged(this, true);
-		}
-
-		Status = true;
-	}
-	return Status;
-}
-
 #define MIN_WINDOW_X		4
 #define MIN_WINDOW_Y		24
 
@@ -2317,21 +1940,6 @@ GView *GViewFactory::Create(const char *Class, GRect *Pos, const char *Text)
 
 
 ////////////////////////////////////////////////////////////////
-uint32 CursorData[] = {
-0x02020202, 0x02020200, 0x02020202, 0x02020202, 0x02020202, 0x00020202, 0x02020202, 0x02020202, 0x00000000, 0x00000000, 0x00000000, 0x02020202, 0x02000000, 0x02000000, 0x02020202, 0x02020202, 0x02020202, 0x02000002, 0x02020202, 0x02020202, 0x02020202, 0x02020002, 0x02000202, 0x02020202, 0x02020202, 0x00000000, 0x00000000, 0x02020200, 0x00000000, 0x00000000, 0x02020200, 0x02020202, 0x02020202, 0x00020202, 0x02020202, 0x02020202, 0x02020202, 0x00000202, 0x02020000, 0x02020202, 0x02020202, 0x00020202, 0x02020202, 0x02020202, 0x02020202, 0x02000002, 0x02020202, 0x02020202, 0x00020202, 0x02020001, 0x02020202, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x01010100, 0x01010101, 0x00010101, 0x02020202, 0x00010100, 0x02000101, 0x02020202, 0x02020202, 0x02020202, 0x00010100, 0x02020202, 
-0x02020202, 0x02020202, 0x02020000, 0x00000202, 0x02020202, 0x02020202, 0x01010002, 0x01010101, 0x02020200, 0x01010100, 0x00010101, 0x02020202, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x01000202, 0x02020001, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x00010100, 0x02020202, 0x02020202, 0x00020202, 0x02020001, 0x02020202, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x01000100, 0x01000100, 0x00010100, 0x02020202, 0x01000002, 0x02020000, 0x02020202, 0x02020202, 0x00020202, 0x01010101, 0x02020200, 0x02020202, 0x00020202, 0x02020001, 0x01000202, 0x02020200, 0x02020202, 0x01000202, 0x01010101, 0x02020200, 0x01010100, 0x02000101, 0x02020202, 0x02020202, 0x02020202, 0x01010002, 0x02020001, 0x02020202, 0x02020202, 0x01000202, 
-0x02020001, 0x02020202, 0x02020202, 0x01010002, 0x02020001, 0x02020202, 0x02020202, 0x00010100, 0x02020202, 0x02020202, 0x01000202, 0x02000101, 0x02020202, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x00010002, 0x01010001, 0x02000101, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x01000202, 0x01010101, 0x02020001, 0x02020202, 0x01000202, 0x02020001, 0x01000202, 0x02020001, 0x02020202, 0x00020202, 0x01010101, 0x02020200, 0x01010100, 0x02020001, 0x02020202, 0x02020202, 0x02020202, 0x01000000, 0x02000000, 0x02020202, 0x02020202, 0x01000200, 0x00020001, 0x02020202, 0x02020202, 0x01010100, 0x02000101, 0x02020202, 0x02020202, 0x00010100, 0x02020202, 0x02020202, 0x01000202, 0x02000101, 0x02020202, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x01000202, 
-0x01010100, 0x02020001, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x01010002, 0x01010101, 0x02000101, 0x02020202, 0x01010002, 0x00000001, 0x01000000, 0x02000101, 0x02020200, 0x01000202, 0x01010101, 0x02020200, 0x01010100, 0x02000101, 0x02020202, 0x02020200, 0x00020202, 0x01000202, 0x00020200, 0x02020202, 0x00020202, 0x01000200, 0x00020001, 0x02020200, 0x00020202, 0x01000000, 0x00000000, 0x02020202, 0x02020202, 0x00010100, 0x02020000, 0x02020202, 0x01010002, 0x00010101, 0x02020202, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x00020202, 0x01010101, 0x02020200, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x00000000, 0x00010100, 0x00000000, 0x02020202, 0x01010100, 0x01010101, 0x01010101, 0x00010101, 0x02020000, 0x01010002, 0x01010001, 0x02020200, 
-0x00010100, 0x00010101, 0x00020202, 0x02020200, 0x00000202, 0x01000202, 0x00020200, 0x02020200, 0x01000202, 0x01000200, 0x00020001, 0x02020001, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x01010100, 0x00000101, 0x02020200, 0x01010002, 0x00010101, 0x02020202, 0x02020202, 0x00000002, 0x01000000, 0x00000000, 0x02020000, 0x02020202, 0x00010100, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x02020202, 0x00010100, 0x02020202, 0x02020202, 0x01010100, 0x01010101, 0x01010101, 0x00010101, 0x02000100, 0x01010100, 0x01000200, 0x02020200, 0x02000100, 0x01010100, 0x01000200, 0x02020200, 0x00010002, 0x01000000, 0x00000000, 0x02020001, 0x01010002, 0x01000000, 0x00000001, 0x02000101, 0x00000000, 0x01000000, 0x00000000, 0x02000000, 0x02000002, 0x01010100, 0x01010101, 
-0x02020001, 0x01010100, 0x01010101, 0x02020200, 0x02020202, 0x01010100, 0x01010101, 0x01010101, 0x02000101, 0x02020202, 0x00010100, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x02020202, 0x00010100, 0x02020202, 0x02020202, 0x01010002, 0x00000001, 0x01000000, 0x02000101, 0x00010100, 0x00010101, 0x00020202, 0x02020200, 0x02020000, 0x01010002, 0x01010001, 0x02020200, 0x01010100, 0x01010101, 0x01010101, 0x02000101, 0x01010100, 0x01010101, 0x01010101, 0x00010101, 0x01010100, 0x01010101, 0x01010101, 0x02000101, 0x00010100, 0x01010100, 0x01010101, 0x02020001, 0x01010100, 0x01010101, 0x02020200, 0x02020202, 0x00000002, 0x01000000, 0x00000000, 0x02020000, 0x02020202, 0x00010100, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x02020202, 0x00010100, 
-0x02020202, 0x02020202, 0x01000202, 0x02020001, 0x01000202, 0x02020001, 0x01010100, 0x02000101, 0x02020202, 0x02020200, 0x02020200, 0x01000202, 0x01010101, 0x02020200, 0x00010002, 0x01000000, 0x00000000, 0x02020001, 0x01010002, 0x01000000, 0x00000001, 0x02000101, 0x01010100, 0x01010101, 0x01010101, 0x02000101, 0x01010100, 0x01010101, 0x01010101, 0x02020001, 0x00000000, 0x00000001, 0x02020200, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x00010100, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x02020202, 0x00010100, 0x02020202, 0x02020202, 0x00020202, 0x02020001, 0x01000202, 0x02020200, 0x01010100, 0x02020001, 0x02020202, 0x02020202, 0x02020202, 0x00020202, 0x01010101, 0x02020200, 0x00000202, 0x01000202, 0x00020200, 0x02020200, 0x01000202, 
-0x01000200, 0x00020001, 0x02020001, 0x00000000, 0x01000000, 0x00000000, 0x02000000, 0x01010002, 0x01010101, 0x01010101, 0x02020001, 0x00020202, 0x02020001, 0x02020202, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x00020202, 0x01010101, 0x02020200, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x00000000, 0x00010100, 0x00000000, 0x02020202, 0x02020202, 0x02020000, 0x00000202, 0x02020202, 0x01010100, 0x02000101, 0x02020202, 0x02020202, 0x02020202, 0x01000202, 0x01010101, 0x02020200, 0x00020202, 0x01000202, 0x00020200, 0x02020202, 0x00020202, 0x01000200, 0x00020001, 0x02020200, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x01000202, 0x01010101, 0x01010101, 0x02020001, 0x00020202, 0x02020001, 0x02020202, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 
-0x01000202, 0x00010100, 0x02020001, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x01010002, 0x01010101, 0x02000101, 0x02020202, 0x02020202, 0x02020002, 0x02000202, 0x02020202, 0x01010100, 0x00010101, 0x02020202, 0x02020202, 0x02020202, 0x01010002, 0x01010101, 0x02020200, 0x02020202, 0x01000000, 0x02000000, 0x02020202, 0x02020202, 0x01000200, 0x00020001, 0x02020202, 0x00020202, 0x01000000, 0x00000000, 0x02020202, 0x00020202, 0x01010101, 0x01010101, 0x02020001, 0x00020202, 0x02020001, 0x02020202, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x00010002, 0x00010100, 0x02000100, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x01000202, 0x01010101, 0x02020001, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x00000000, 0x00000000, 0x02020200, 
-0x02020202, 0x02020202, 0x00000000, 0x00000000, 0x02020200, 0x02020202, 0x01010002, 0x02020001, 0x02020202, 0x02020202, 0x01000202, 0x02020001, 0x02020202, 0x02020202, 0x01010100, 0x02000101, 0x02020202, 0x02020202, 0x01010100, 0x01010101, 0x02020200, 0x00020202, 0x02020001, 0x02020202, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x01000100, 0x01010101, 0x00010001, 0x02020202, 0x01000002, 0x02020000, 0x02020202, 0x02020202, 0x00020202, 0x01010101, 0x02020200, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x01000202, 0x02020001, 0x02020202, 0x02020202, 0x01010002, 0x02020001, 0x02020202, 0x02020202, 0x00000002, 
-0x00000000, 0x02020202, 0x00020202, 0x02020001, 0x02020202, 0x02020202, 0x02020202, 0x00020202, 0x02020202, 0x02020202, 0x01010100, 0x01010101, 0x00010101, 0x02020202, 0x00010100, 0x02000101, 0x02020202, 0x02020202, 0x02020202, 0x00010100, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x00020202, 0x02020202, 0x02020202, 0x02020202, 0x00000202, 0x02020000, 0x02020202, 0x02020202, 0x01000202, 0x02020200, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x00020202, 0x02020000, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x00000000, 0x00000000, 0x00000000, 0x02020202, 0x02000000, 0x02000000, 0x02020202, 0x02020202, 0x02020202, 
-0x02000002, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x00020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 0x02020202, 
-};
-
 #endif
 
 
@@ -2351,8 +1959,8 @@ bool GView::Detach()
 		d->GetParent()->Children.Delete(this);
 		d->GetParent()->OnChildrenChanged(this, false);
 
-		d->ParentI = 0;
-		d->ParentV = 0;
+		d->ParentI = NULL;
+		d->Parent = NULL;
 		Status = true;
 	}
 	return Status;
@@ -2858,5 +2466,421 @@ GRect &GView::GetClient(bool ClientSpace)
 	}
 	
 	return Client;
+}
+
+bool GView::Attach(GViewI *Wnd)
+{
+	bool Status = false;
+	
+	SetParent(Wnd);
+	if (d->GetParent())
+	{
+		_Window = d->GetParent()->_Window;
+	
+		if (!d->GetParent()->_View)
+		{
+			printf("%s:%i - can't attach to parent that isn't attached...\n", __FILE__, __LINE__);
+			DeleteObj(_View);
+			return false;
+		}
+		else
+		{
+			BView *ParentSysView = _View->Parent();
+			if (ParentSysView != d->GetParent()->_View)
+			{
+				if (ParentSysView)
+				{
+					// detach from the previous BView
+					if (ParentSysView->LockLooper())
+					{
+						ParentSysView->RemoveChild(_View);
+						ParentSysView->UnlockLooper();
+					}
+					else
+					{
+						printf("%s:%i - Can't remove from parent view.\n", __FILE__, __LINE__);
+						return false;
+					}
+				}
+	
+				int Ox = 0, Oy = 0;
+				if (d->GetParent())
+				{
+					if (d->GetParent()->Sunken() || d->GetParent()->Raised())
+					{
+						Ox = d->GetParent()->_BorderSize;
+						Oy = d->GetParent()->_BorderSize;
+					}
+				}
+				
+				_View->MoveTo(Pos.x1 + Ox, Pos.y1 + Oy);
+				_View->ResizeTo(Pos.X()-1, Pos.Y()-1);
+				if (!GView::Visible() &&
+					!_View->IsHidden())
+				{
+					_View->Hide();
+				}
+				if (!Enabled())
+				{
+					Enabled(false);
+				}
+				
+				// attach to the new BView
+				BView *Par = d->GetParent()->_View;
+				bool Lock = Par->LockLooper();
+				Par->AddChild(_View);
+				if (Lock) Par->UnlockLooper();
+			}
+		}
+
+		if (!d->GetParent()->Children.HasItem(this))
+		{
+			// we aren't already a member of the parents children
+			// list so add ourselves in.
+			d->GetParent()->Children.Insert(this);
+			d->GetParent()->OnChildrenChanged(this, true);
+		}
+
+		Status = true;
+	}
+	return Status;
+}
+
+GView *_lgi_search_children(GView *v, int &x, int &y)
+{
+	GRect r = v->GetPos();
+	if (x >= r.x1 &&
+		y >= r.y1 &&
+		x < r.x2 &&
+		y < r.y2)
+	{
+		List<GViewI>::I It = v->Children.Start();
+		for (GViewI *i=It.First(); i; i=It.Next())
+		{
+			GRect p = i->GetPos();
+			int Cx = x-p.x1;
+			int Cy = y-p.y1;
+			GView *Child = _lgi_search_children(v, Cx, Cy);
+			if (Child)
+			{
+				x = Cx;
+				y = Cy;
+				return Child;
+			}
+		}
+		
+		return v;
+	}
+
+	return 0;
+}
+
+void GView::_Delete()
+{
+	if (_Over == this) _Over = 0;
+	if (_Capturing == this) _Capturing = 0;
+
+	if (LgiApp && LgiApp->AppWnd == this)
+	{
+		LgiApp->AppWnd = 0;
+	}
+
+	SetPulse();
+	Pos.ZOff(-1, -1);
+
+	GViewI *c;
+	while ((c = Children.First()))
+	{
+		if (c->GetParent() != (GViewI*)this)
+		{
+			printf("Error: ~GView, child not attached correctly: %p(%s) Parent: %p(%s)\n",
+				c, c->Name(),
+				c->GetParent(), c->GetParent() ? c->GetParent()->Name() : "");
+			Children.Delete(c);
+		}
+
+		DeleteObj(c);
+	}
+
+	GWindow *w = GetWindow();
+	if (w)
+		w->SetFocus(this, GWindow::ViewDelete);
+
+	Detach();	
+	DeleteObj(_View);
+}
+
+GView *&GView::PopupChild()
+{
+	return d->Popup;
+}
+
+static int LastFunctionKey = 0;
+
+void GView::Sys_KeyDown(const char *bytes, int32 numBytes)
+{
+	key_info Info;
+	get_key_info(&Info);
+
+	for (int i=0; i<numBytes; i++)
+	{
+		GKey k;
+		
+		if (bytes[i] == B_FUNCTION_KEY)
+		{
+			k.c16 = 0;
+			BMessage *msg = WindowHandle()->CurrentMessage(); 
+			if (msg)
+			{ 
+				int32 key; 
+				msg->FindInt32("key", &key); 
+				switch (key)
+				{ 
+					case B_F1_KEY: 
+						k.c16 = VK_F1;
+						break;
+					case B_F2_KEY: 
+						k.c16 = VK_F2;
+						break;
+					case B_F3_KEY: 
+						k.c16 = VK_F3;
+						break;
+					case B_F4_KEY: 
+						k.c16 = VK_F4;
+						break;
+					case B_F5_KEY: 
+						k.c16 = VK_F5;
+						break;
+					case B_F6_KEY: 
+						k.c16 = VK_F6;
+						break;
+					case B_F7_KEY: 
+						k.c16 = VK_F7;
+						break;
+					case B_F8_KEY: 
+						k.c16 = VK_F8;
+						break;
+					case B_F9_KEY: 
+						k.c16 = VK_F9;
+						break;
+					case B_F10_KEY: 
+						k.c16 = VK_F10;
+						break;
+					case B_F11_KEY: 
+						k.c16 = VK_F11;
+						break;
+					case B_F12_KEY: 
+						k.c16 = VK_F12;
+						break;
+					default:
+						k.c16 = key;
+						break;
+				}
+			}
+
+			k.IsChar = false;
+			LastFunctionKey = k.c16;
+		}
+		else
+		{
+			k.c16 = bytes[i];
+			k.IsChar = ((k.c16 < 127) && (k.c16 >= ' ')) ||
+						(k.c16 == 9) ||
+						(k.c16 == 8) ||
+						(k.c16 == 10);
+		}
+		
+		k.Flags = modifiers();
+		k.Data = 0;
+		k.Down(true);
+		
+		OnKey(k);
+	}
+}
+
+void GView::Sys_KeyUp(const char *bytes, int32 numBytes)
+{
+	key_info Info;
+	get_key_info(&Info);
+
+	for (int i=0; i<numBytes; i++)
+	{
+		GKey k;
+		
+		k.c16 = bytes[i];
+		k.Flags = modifiers();
+		k.Data = 0;
+		k.Down(false);
+		k.IsChar = 0;
+		
+		OnKey(k);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+BViewRedir::BViewRedir(GView *wnd, uint32 Resize) :
+	BView(	BRect(0, 0, 100, 100),
+			"BViewRedir",
+			Resize,
+			B_POINTER_EVENTS | B_WILL_DRAW | B_NAVIGABLE | B_FRAME_EVENTS | B_FULL_UPDATE_ON_RESIZE)
+{
+	Wnd = wnd;
+	WndBtn = 0;
+	SetViewColor(B_TRANSPARENT_COLOR);
+}
+
+BViewRedir::~BViewRedir()
+{
+}
+
+void BViewRedir::AttachedToWindow()
+{
+	BView::AttachedToWindow();
+	Wnd->OnCreate();
+}
+
+void BViewRedir::DetachedFromWindow()
+{
+	BView::DetachedFromWindow();
+	Wnd->OnDestroy();
+}
+
+void BViewRedir::Draw(BRect UpdateRect)
+{
+	GScreenDC DC(this);
+	Wnd->_Paint(&DC);
+	// Window()->Sync();
+}
+
+void BViewRedir::FrameResized(float width, float height)
+{
+	BView::FrameResized(width, height);
+	// Invalidate();
+	Wnd->OnPosChange();
+}
+
+void BViewRedir::Pulse()
+{
+	BView::Pulse();
+	Wnd->OnPulse();
+}
+
+void BViewRedir::MessageReceived(BMessage *message)
+{
+	BView::MessageReceived(message);
+	Wnd->OnEvent((GMessage*) message); // Haha, this is so bad... oh well.
+}
+
+void BViewRedir::MakeFocus(bool f = true)
+{
+	BView::MakeFocus(f);
+	Wnd->OnFocus(f);
+}
+
+void BViewRedir::KeyDown(const char *bytes, int32 numBytes)
+{
+	BView::KeyDown(bytes, numBytes);
+	Wnd->Sys_KeyDown(bytes, numBytes);
+}
+
+void BViewRedir::KeyUp(const char *bytes, int32 numBytes)
+{
+	BView::KeyUp(bytes, numBytes);
+	Wnd->Sys_KeyUp(bytes, numBytes);
+}
+
+void BViewRedir::MouseDown(BPoint point)
+{
+	BView::MouseDown(point);
+
+	/*
+	BPoint u;
+	GetMouse(&u, &WndBtn);
+
+	GMouse m;
+	m.x = point.x;
+	m.y = point.y;
+	if (WndBtn == B_PRIMARY_MOUSE_BUTTON) m.Left(true);
+	else if (WndBtn == B_SECONDARY_MOUSE_BUTTON) m.Right(true);
+	else if (WndBtn == B_TERTIARY_MOUSE_BUTTON) m.Middle(true);
+	m.Down(true);
+	
+	int32 Clicks = 0;
+	if (Window()->CurrentMessage()->FindInt32("clicks", &Clicks) == B_OK)
+	{
+		if (Clicks > 1)
+		{
+			m.Double(true);
+		}
+	}
+	else
+	{
+		Window()->CurrentMessage()->PrintToStream();
+	}
+	
+	Wnd->_Mouse(m, false);
+	*/
+}
+
+void BViewRedir::MouseUp(BPoint point)
+{
+	BView::MouseUp(point);
+
+	/*
+	BPoint u;
+	uint32 Btns;
+	GetMouse(&u, &Btns);
+	int b = Btns ^ WndBtn; // what bits have changed since the down click?
+
+	GMouse m;
+	m.Target = Wnd;
+	m.x = point.x;
+	m.y = point.y;
+	if (b == B_PRIMARY_MOUSE_BUTTON) m.Left(true);
+	else if (b == B_SECONDARY_MOUSE_BUTTON) m.Right(true);
+	else if (b == B_TERTIARY_MOUSE_BUTTON) m.Middle(true);
+	m.Down(false);
+	
+	Wnd->_Mouse(m, false);
+	WndBtn = Btns;
+	*/
+}
+
+void BViewRedir::MouseMoved(BPoint point, uint32 transit, const BMessage *message)
+{
+	BView::MouseMoved(point, transit, message);
+
+	/*
+	int32 Btns = 0;
+	if (message)
+		message->FindInt32("buttons", &Btns);
+	else
+		Window()->CurrentMessage()->FindInt32("buttons", &Btns);
+
+	EnterExitThread.SetMouseOver(Wnd);
+
+	GMouse m;
+	m.x = point.x;
+	m.y = point.y;
+	if (Btns == B_PRIMARY_MOUSE_BUTTON) m.Left(true);
+	else if (Btns == B_SECONDARY_MOUSE_BUTTON) m.Right(true);
+	else if (Btns == B_TERTIARY_MOUSE_BUTTON) m.Middle(true);
+	m.Down(false);
+	
+	
+	Wnd->_Mouse(m, true);
+	*/
+}
+
+bool BViewRedir::QuitRequested()
+{
+	/*
+	GWindow *App = dynamic_cast<GWindow*>(Wnd);
+	if (App)
+	{
+		return App->QuitRequested();
+	}
+	*/
+	return true;
 }
 

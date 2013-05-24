@@ -733,3 +733,18 @@ GColourSpace GBitsToColourSpace(int Bits)
 	return CsNone;
 }
 
+////////////////////////////////////////////////////////////////////////
+GSurface *GInlineBmp::Create()
+{
+	GSurface *pDC = new GMemDC;
+	if (pDC->Create(X, Y, Bits))
+	{
+		int Line = X * Bits / 8;
+		for (int y=0; y<Y; y++)
+		{
+			memcpy((*pDC)[y], ((uchar*)Data) + (y * Line), Line);
+		}
+	}
+
+	return pDC;
+}

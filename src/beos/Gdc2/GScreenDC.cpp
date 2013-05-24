@@ -10,7 +10,7 @@
 
 #include <stdio.h>
 #include <math.h>
-#include "Gdc2.h"
+#include "Lgi.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 class GScreenPrivate
@@ -31,6 +31,14 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
+GScreenDC::GScreenDC(GView *view, void *Param)
+{
+	LgiAssert(view);
+
+	d = new GScreenPrivate;
+	d->View = view->Handle();
+}
+
 GScreenDC::GScreenDC(BView *view)
 {
 	LgiAssert(view);
@@ -170,11 +178,28 @@ GRect GScreenDC::ClipRgn(GRect *Rgn)
 	}
 }
 
+bool GScreenDC::SupportsAlphaCompositing()
+{
+	return true; // Not sure yet...
+}
+
 COLOUR GScreenDC::Colour()
 {
 	rgb_color Rgb = d->View->HighColor();
 	return CBit(GetBits(), Rgb24(Rgb.red, Rgb.green, Rgb.blue), 24);
 }
+
+GColour GScreenDC::Colour(GColour c)
+{
+	rgb_color Rgb = d->View->HighColor();
+	GColour Prev(Rgb.red, Rgb.green, Rgb.blue);
+	Rgb.red = c.r();
+	Rgb.green = c.g();
+	Rgb.blue = c.b();
+	d->View->SetHighColor(Rgb);
+	return Prev;
+}
+
 
 COLOUR GScreenDC::Colour(COLOUR c, int Bits)
 {

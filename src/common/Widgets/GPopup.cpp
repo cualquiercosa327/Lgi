@@ -107,6 +107,13 @@ bool IsWindow(OsView v)
 	return true;
 }
 
+#else
+
+bool IsWindow(OsView Wnd)
+{
+	return true;
+}
+
 #endif
 
 uint32 LgiGetViewPid(OsView View)

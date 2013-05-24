@@ -143,6 +143,20 @@ GApp::~GApp()
 	DeleteObj(d);
 }
 
+GSymLookup *GApp::GetSymLookup()
+{
+	return NULL;
+}
+
+char *GApp::GetName()
+{
+	return NULL;
+}
+
+void GApp::OnUrl(const char *Url)
+{
+}
+
 OsThreadId GApp::GetGuiThread()
 {
 	return 0;

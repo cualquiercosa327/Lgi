@@ -1023,13 +1023,11 @@ void GSurface::Palette(GPalette *pPal, bool bOwnIt)
 #endif
 
 #include "GraphicsCard.h"
-extern GLibrary *_LgiStartIconv();
 
 class GdcDevicePrivate
 {
 public:
 	GdcDevice *Device;
-	GLibrary *IConv;
 
 	// Current mode info
 	int ScrX;
@@ -1053,13 +1051,8 @@ public:
 	GdcDevicePrivate(GdcDevice *d)
 	{
 		Device = d;
-		IConv = _LgiStartIconv();
 		GlobalColour = 0;
 		ZeroObj(OptVal);
-
-		// Iconv startup
-		extern GLibrary *_LgiStartIconv();
-		Iconv = _LgiStartIconv();
 
 		// Palette information
 		GammaCorrection = 1.0;
@@ -1140,7 +1133,6 @@ public:
 
 	~GdcDevicePrivate()
 	{
-		DeleteObj(IConv);
 		DeleteObj(GlobalColour);
 		DeleteArray(CharSquareData);
 		DeleteObj(Iconv);

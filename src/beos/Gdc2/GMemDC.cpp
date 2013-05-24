@@ -62,6 +62,15 @@ GMemDC::~GMemDC()
 	DeleteObj(d);
 }
 
+void GMemDC::SetClient(GRect *c)
+{
+}
+
+bool GMemDC::SupportsAlphaCompositing()
+{
+	return true;
+}
+
 void GMemDC::SetOrigin(int x, int y)
 {
 	GSurface::SetOrigin(x, y);
@@ -124,7 +133,7 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 			pMem->Base = (uchar*) d->Bmp->Bits();
 			pMem->x = x;
 			pMem->y = y;
-			pMem->Cs = GBitToColourSpace(Bits);
+			pMem->Cs = GBitsToColourSpace(Bits);
 			pMem->Line = d->Bmp->BytesPerRow();
 			pMem->Flags = 0;
 			

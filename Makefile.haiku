@@ -27,7 +27,10 @@ else
 endif
 
 # Libraries
-Libs = 		
+Libs = 		-lnetwork \
+			-lbe \
+			-lgame \
+			-ltextencoding
 			
 
 # Includes
@@ -73,8 +76,8 @@ Depends =	GDateTime.o \
 			GFileSelect.o \
 			GColourReduce.o \
 			Gdc2.o \
-			GPath.o \
 			GdcCommon.o \
+			GPath.o \
 			GDisplayString.o \
 			GFont.o \
 			GFont_A.o \
@@ -136,7 +139,7 @@ Depends =	GDateTime.o \
 # Target
 TargetFile = lib$(Target)$(Tag).so
 $(TargetFile) : outputfolder $(Depends)
-	@echo Linking $(TargetFile) [$(Gui)/$(Build)]...
+	@echo Linking $(TargetFile) [$(Build)]...
 	$(CC)$s -shared \
 		-o $(BuildDir)/$(TargetFile) \
 		$(addprefix $(BuildDir)/,$(Depends)) \

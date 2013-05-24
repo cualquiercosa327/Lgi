@@ -611,3 +611,12 @@ bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
 void GWindow::OnTrayClick(GMouse &m)
 {
 }
+
+GViewI *GWindow::GetFocus()
+{
+	return NULL;
+}
+
+void GWindow::SetFocus(GViewI *ctrl, FocusType type)
+{
+}

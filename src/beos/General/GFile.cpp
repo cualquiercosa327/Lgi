@@ -605,6 +605,11 @@ int GDirectory::Close()
 	return true;
 }
 
+bool GDirectory::IsSymLink()
+{
+	return d->Entry.IsSymLink();
+}
+
 bool GDirectory::IsDir()
 {
 	return d->Entry.IsDirectory();
