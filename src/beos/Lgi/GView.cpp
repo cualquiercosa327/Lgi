@@ -2724,7 +2724,7 @@ BViewRedir::BViewRedir(GView *wnd, uint32 Resize) :
 	BView(	BRect(0, 0, 100, 100),
 			"BViewRedir",
 			Resize,
-			B_POINTER_EVENTS | B_WILL_DRAW | B_NAVIGABLE | B_FRAME_EVENTS | B_FULL_UPDATE_ON_RESIZE)
+			B_WILL_DRAW | B_NAVIGABLE | B_FRAME_EVENTS | B_FULL_UPDATE_ON_RESIZE)
 {
 	Wnd = wnd;
 	WndBtn = 0;
@@ -2751,13 +2751,11 @@ void BViewRedir::Draw(BRect UpdateRect)
 {
 	GScreenDC DC(this);
 	Wnd->_Paint(&DC);
-	// Window()->Sync();
 }
 
 void BViewRedir::FrameResized(float width, float height)
 {
 	BView::FrameResized(width, height);
-	// Invalidate();
 	Wnd->OnPosChange();
 }
 
@@ -2795,7 +2793,6 @@ void BViewRedir::MouseDown(BPoint point)
 {
 	BView::MouseDown(point);
 
-	/*
 	BPoint u;
 	GetMouse(&u, &WndBtn);
 
@@ -2821,14 +2818,12 @@ void BViewRedir::MouseDown(BPoint point)
 	}
 	
 	Wnd->_Mouse(m, false);
-	*/
 }
 
 void BViewRedir::MouseUp(BPoint point)
 {
 	BView::MouseUp(point);
 
-	/*
 	BPoint u;
 	uint32 Btns;
 	GetMouse(&u, &Btns);
@@ -2845,21 +2840,19 @@ void BViewRedir::MouseUp(BPoint point)
 	
 	Wnd->_Mouse(m, false);
 	WndBtn = Btns;
-	*/
 }
 
 void BViewRedir::MouseMoved(BPoint point, uint32 transit, const BMessage *message)
 {
 	BView::MouseMoved(point, transit, message);
 
-	/*
 	int32 Btns = 0;
 	if (message)
 		message->FindInt32("buttons", &Btns);
 	else
 		Window()->CurrentMessage()->FindInt32("buttons", &Btns);
 
-	EnterExitThread.SetMouseOver(Wnd);
+	//EnterExitThread.SetMouseOver(Wnd);
 
 	GMouse m;
 	m.x = point.x;
@@ -2871,18 +2864,11 @@ void BViewRedir::MouseMoved(BPoint point, uint32 transit, const BMessage *messag
 	
 	
 	Wnd->_Mouse(m, true);
-	*/
 }
 
 bool BViewRedir::QuitRequested()
 {
-	/*
 	GWindow *App = dynamic_cast<GWindow*>(Wnd);
-	if (App)
-	{
-		return App->QuitRequested();
-	}
-	*/
-	return true;
+	return (App) ? App->QuitRequested() : true;
 }
 

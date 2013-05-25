@@ -467,6 +467,25 @@ void GDisplayString::Layout()
 		}
 	}
 	
+	#elif defined BEOS
+	
+	if (Font && Font->Handle())
+	{
+		const char *Strs[] = { Str };
+		BRect Rc;
+		escapement_delta Delta;
+		Font->Handle()->GetBoundingBoxesForStrings(Strs, 1, B_SCREEN_METRIC, &Delta, &Rc);
+		x = Rc.IntegerWidth();
+		y = Rc.IntegerHeight();
+		Blocks = 1;
+		Info = new CharInfo[Blocks];
+		Info[0].Str = Str;
+		Info[0].Len = strlen(Str);
+		Info[0].X = x;
+		Info[0].FontId = -1;
+		Info[0].SizeDelta = 0;
+	}
+	
 	#endif
 }
 
@@ -877,7 +896,17 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 	#elif defined(BEOS)
 
 	// FIXME
-	printf("Fixme: GDisplayString::Draw\n");
+	if (pDC && Font)
+	{
+		BView *Hnd = pDC->Handle();
+		if (Hnd)
+		{
+			Hnd->SetFont(Font->Handle());
+			Hnd->DrawString(Str, -1, BPoint(px, py));
+		}
+		else printf("%s:%i - Error: no BView to draw on.", _FL);
+	}
+	else printf("%s:%i - Error: no DC or Font.\n", _FL);
 
 	#elif defined MAC && !defined COCOA
 

@@ -73,17 +73,12 @@ public:
             #if defined(WIN64)
             "64"
             #endif
-            /*
-			#if defined(_MSC_VER) && defined(_DEBUG)
-			"d"
-			#endif
-			*/
 			#endif
 		)
 	{
 		if (!IsLoaded())
 		{
-			#if 1
+			#ifdef LINUX
 			if (!Load("/opt/local/lib/libpng.dylib"))
 			#endif
 			{

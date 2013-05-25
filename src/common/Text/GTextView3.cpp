@@ -562,7 +562,6 @@ void GTextView3::OnFontChange()
 			Font->Create();
 		LineY = Font->GetHeight();
 		if (LineY < 1) LineY = 1;
-		printf("LineY=%i\n", LineY);
 
 		// get tab size
 		char Spaces[32];

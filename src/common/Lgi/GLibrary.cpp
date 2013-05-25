@@ -75,11 +75,34 @@ bool GLibrary::Load(const char *File)
 			#elif defined BEOS
 
 			hLib = load_add_on(FileName);
+			printf("load_add_on(%s)=%i\n", FileName, hLib);
 			if (hLib < 0)
 			{
-				printf("%s:%i - Failed to load '%s'\n", __FILE__, __LINE__, FileName);
-				hLib = 0;
+				char p[MAX_PATH];
+				if (LgiMakePath(p, sizeof(p), "/boot/system/lib", FileName))
+				{
+					if (FileExists(p))
+					{
+						char *dot = strrchr(p, '.');
+						if (dot) *dot = 0;
+						hLib = load_add_on(FileName);
+						printf("...load_add_on(%s)=%i\n", p, hLib);
+					}
+				}
 			}
+			
+			if (hLib < 0)
+			{
+				// printf("%s:%i - Failed to load '%s'\n", _FL, FileName);
+				return false;
+			}
+			
+			#if 1
+			image_info info;
+			status_t st = get_image_info(hLib, &info);
+			printf("Loaded '%s'\n", info.name);
+			#endif
+			return true;
 
 			#elif defined(LINUX) || defined(MAC)
 			
