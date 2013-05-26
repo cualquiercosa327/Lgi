@@ -737,29 +737,19 @@ GColourSpace GBitsToColourSpace(int Bits)
 GSurface *GInlineBmp::Create()
 {
 	GSurface *pDC = new GMemDC;
-	if
-	(
-		pDC->Create
-		(
-			X,
-			Y,
-			#ifdef MAC
-			32
-			#else
-			Bits
-			#endif
-		)
-	)
+	if (pDC->Create(X, Y, 32))
 	{
 		int Line = X * Bits / 8;
 		for (int y=0; y<Y; y++)
 		{
-			#ifdef MAC
+			void *addr = ((uchar*)Data) + (y * Line);
+
 			switch (Bits)
 			{
+				#if defined(MAC)
 				case 16:
 				{
-					uint32 *s = (uint32*) ( ((uchar*)Data) + (y * Line) );
+					uint32 *s = (uint32*)addr;
 					System32BitPixel *d = (System32BitPixel*) (*pDC)[y];
 					System32BitPixel *e = d + X;
 					while (d < e)
@@ -788,17 +778,51 @@ GSurface *GInlineBmp::Create()
 					}
 					break;
 				}
+				#else
+				case 16:
+				{
+					uint32 *out = (uint32*)(*pDC)[y];
+					uint16 *in = (uint16*)addr;
+					uint16 *end = in + X;
+					while (in < end)
+					{
+						*out = Rgb16To32(*in);						
+						in++;
+						out++;
+					}
+					break;
+				}
+				#endif
+				case 24:
+				{
+					System32BitPixel *out = (System32BitPixel*)(*pDC)[y];
+					System32BitPixel *end = out + X;
+					System24BitPixel *in = (System24BitPixel*)addr;
+					while (out < end)
+					{
+						out->r = in->r;
+						out->g = in->g;
+						out->b = in->b;
+						out->a = 255;
+						out++;
+						in++;
+					}
+					break;
+				}
 				case 32:
 				{
-					memcpy((*pDC)[y], ((uchar*)Data) + (y * Line), Line);
+					memcpy((*pDC)[y], addr, Line);
+					break;
+				}
+				default:
+				{
+					LgiAssert(!"Not a valid bit depth.");
 					break;
 				}
 			}
-			#else
-			memcpy((*pDC)[y], ((uchar*)Data) + (y * Line), Line);
-			#endif
 		}
 	}
 
 	return pDC;
 }
+

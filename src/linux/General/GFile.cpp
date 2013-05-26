@@ -1,3 +1,4 @@
+
 /*hdr
 **	FILE:			File.cpp
 **	AUTHOR:			Matthew Allen
@@ -302,7 +303,7 @@ char *GetErrorDesc(int e)
 }
 
 /****************************** Helper Functions **************************/
-char *ReadTextFile(char *File)
+char *ReadTextFile(const char *File)
 {
 	char *s = 0;
 	GFile f;
@@ -319,7 +320,7 @@ char *ReadTextFile(char *File)
 	return s;
 }
 
-int64 LgiFileSize(char *FileName)
+int64 LgiFileSize(const char *FileName)
 {
 	struct stat64 s;
 	if (FileName &&
@@ -331,7 +332,7 @@ int64 LgiFileSize(char *FileName)
 	return 0;
 }
 
-bool DirExists(const char *FileName)
+bool DirExists(const char *FileName, char *CorrectCase)
 {
 	bool Status = false;
 	
@@ -349,7 +350,7 @@ bool DirExists(const char *FileName)
 	return Status;
 }
 
-bool FileExists(const char *FileName)
+bool FileExists(const char *FileName, char *CorrectCase)
 {
 	bool Status = false;
 	
@@ -413,7 +414,7 @@ bool FileExists(const char *FileName)
 	return Status;
 }
 
-bool ResolveShortcut(char *LinkFile, char *Path, int Len)
+bool ResolveShortcut(const char *LinkFile, char *Path, int Len)
 {
 	bool Status = false;
 

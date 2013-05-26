@@ -1,3 +1,4 @@
+
 /// \file
 /// \author Matthew Allen, fret@memecode.com
 #include <stdio.h>
@@ -1334,65 +1335,6 @@ COLOUR GGlobalColour::GetColour(COLOUR c24)
 bool GGlobalColour::RemapBitmap(GSurface *pDC)
 {
 	return false;
-}
-
-////////////////////////////////////////////////////////////////////////
-GSurface *GInlineBmp::Create()
-{
-	GSurface *pDC = new GMemDC;
-	if (pDC->Create(X, Y, 32))
-	{
-		int Line = X * Bits / 8;
-		for (int y=0; y<Y; y++)
-		{
-			void *addr = ((uchar*)Data) + (y * Line);
-			switch (Bits)
-			{
-				case 16:
-				{
-					uint32 *out = (uint32*)(*pDC)[y];
-					uint16 *in = (uint16*)addr;
-					uint16 *end = in + X;
-					while (in < end)
-					{
-						*out = Rgb16To32(*in);						
-						in++;
-						out++;
-					}
-					break;
-				}
-				case 24:
-				{
-					System32BitPixel *out = (System32BitPixel*)(*pDC)[y];
-					System32BitPixel *end = out + X;
-					System24BitPixel *in = (System24BitPixel*)addr;
-					while (out < end)
-					{
-						out->r = in->r;
-						out->g = in->g;
-						out->b = in->b;
-						out->a = 255;
-						out++;
-						in++;
-					}
-					break;
-				}
-				case 32:
-				{
-					for (int y=0; y<Y; y++)
-						memcpy((*pDC)[y], addr, Line);
-					break;
-				}
-				default:
-				{
-					LgiAssert(!"Not a valid bit depth.");
-					break;
-				}
-			}
-		}
-	}
-
-	return pDC;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
