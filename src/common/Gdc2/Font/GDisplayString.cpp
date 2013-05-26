@@ -859,12 +859,12 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 
 	int Ox = 0, Oy = 0;
 	pDC->GetOrigin(Ox, Oy);
-	COLOUR b = Font->Back().c24();
+	GColour b = Font->Back();
 	
 	Gtk::cairo_set_source_rgb(cr,
-								(double)R24(b)/255.0,
-								(double)G24(b)/255.0,
-								(double)B24(b)/255.0);
+								(double)b.r()/255.0,
+								(double)b.g()/255.0,
+								(double)b.b()/255.0);
 
 	if (!Font->Transparent() && r)
 	{
@@ -883,11 +883,11 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 	}
 	if (Hnd)
 	{
-	    COLOUR f = Font->Fore().c24();
+	    GColour f = Font->Fore();
 	    Gtk::cairo_set_source_rgb(cr,
-								    (double)R24(f)/255.0,
-								    (double)G24(f)/255.0,
-								    (double)B24(f)/255.0);
+								    (double)f.r()/255.0,
+								    (double)f.g()/255.0,
+								    (double)f.b()/255.0);
 	    Gtk::pango_cairo_show_layout(cr, Hnd);
 	}
 	

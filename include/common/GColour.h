@@ -192,6 +192,7 @@ public:
 			{
 				space = System32BitColourSpace;
 				flat = 0;
+				LgiTrace("Error: Unable to set colour %x, %i\n", c, bits);
 				LgiAssert(!"Not a known colour depth.");
 			}
 		}

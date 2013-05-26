@@ -183,24 +183,24 @@ void LgiInitColours()
 	Gtk::g_object_get(set, PropName, &Value, 0);	
 	GToken Lines(Value, "\n");
 	GHashTbl<char*, int> Colours(0, false, NULL, -1);
-	printf("Gtk sys colours: %s\n", Value);
 	for (int i=0; i<Lines.Length(); i++)
 	{
 		char *var = Lines[i];
 		char *col = strchr(var, ':');
 		if (col)
 		{
-			*col = 0;
+			*col++ = 0;
 			
-			printf("ParseSysColour %s = %s\n", var, col);
-
-			char *val = col + 1;
+			char *val = col;
 			if (*val == ' ') val++;
 			if (*val == '#') val++;
 			uint64 c = htoi64(val);
+			// printf("%s -> %llX\n", val, c);
 			COLOUR c24 = ((c >> 8) & 0xff) |
 						((c >> 16) & 0xff00) |
 						((c >> 24) & 0xff0000);
+
+			printf("ParseSysColour %s = %x\n", var, c24);
 			Colours.Add(var, c24);
 		}
 	}
@@ -220,10 +220,10 @@ void LgiInitColours()
 	_LgiColours[i++] = LookupColour("text_color", Black); // LC_TEXT
 	_LgiColours[i++] = LookupColour("selected_bg_color", Sel); // LC_FOCUS_SEL_BACK
 	_LgiColours[i++] = LookupColour("selected_fg_color", White); // LC_FOCUS_SEL_FORE
-	_LgiColours[i++] = Rgb24(0x70, 0x3a, 0xec); // LC_ACTIVE_TITLE
-	_LgiColours[i++] = Rgb24(0xff, 0xff, 0xff); // LC_ACTIVE_TITLE_TEXT
-	_LgiColours[i++] = Rgb24(0x80, 0x80, 0x80); // LC_INACTIVE_TITLE
-	_LgiColours[i++] = Rgb24(0x40, 0x40, 0x40); // LC_INACTIVE_TITLE_TEXT
+	_LgiColours[i++] = LookupColour("selected_bg_color", Sel); // LC_ACTIVE_TITLE
+	_LgiColours[i++] = LookupColour("selected_fg_color", White); // LC_ACTIVE_TITLE_TEXT
+	_LgiColours[i++] = Rgb24(0xc0, 0xc0, 0xc0); // LC_INACTIVE_TITLE
+	_LgiColours[i++] = Rgb24(0x80, 0x80, 0x80); // LC_INACTIVE_TITLE_TEXT
 	_LgiColours[i++] = LookupColour("bg_color", White); // LC_MENU_BACKGROUND
 	_LgiColours[i++] = LookupColour("text_color", Black); // LC_MENU_TEXT
 	_LgiColours[i++] = GdcMixColour(LookupColour("selected_bg_color", Sel), _LgiColours[11]); // LC_NON_FOCUS_SEL_BACK

@@ -1449,8 +1449,6 @@ void GToolBar::_BuildCache(GImageList *From)
 			pApp->SetVar(GAPP_ALPHA_A, 40);
 		From->Draw(d->IconCache, i * From->TileX(), From->TileY() * 2, i, Background);
 	}
-	
-	WriteDC("/Users/matthew/Code/test.png", d->IconCache);
 }
 
 void GToolBar::_DrawFromCache(GSurface *pDC, int x, int y, int Index, bool Hilight, bool Disabled)
@@ -1458,7 +1456,6 @@ void GToolBar::_DrawFromCache(GSurface *pDC, int x, int y, int Index, bool Hilig
 	if (pDC && d->IconCache)
 	{
 		GRect s;
-		
 		int YOffset =	(Hilight && !Disabled ? 1 : 0)
 						+
 						(Disabled ? 2 : 0);
@@ -1470,7 +1467,7 @@ void GToolBar::_DrawFromCache(GSurface *pDC, int x, int y, int Index, bool Hilig
 			d->ImgList->TileY() * YOffset
 		);
 
-		printf("DrawFromCache %i, hi=%i, dis=%i, off=%i, s=%s\n", Index, Hilight, Disabled, YOffset, s.GetStr());
+		// printf("DrawFromCache %i, hi=%i, dis=%i, off=%i, s=%s\n", Index, Hilight, Disabled, YOffset, s.GetStr());
 		pDC->Blt(x, y, d->IconCache, &s);
 	}
 }

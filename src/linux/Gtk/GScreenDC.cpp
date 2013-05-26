@@ -240,21 +240,8 @@ COLOUR GScreenDC::Colour()
 
 COLOUR GScreenDC::Colour(COLOUR c, int Bits)
 {
-	COLOUR Prev = Colour();
-
-	d->Col.Set(c, Bits ? Bits : d->Bits);
-
-	if (d->gc)
-	{
-		int r = d->Col.r();
-		int g = d->Col.g();
-		int b = d->Col.b();
-		GdkColor col = { 0, (r<<8)|r, (g<<8)|g, (b<<8)|b };
-		gdk_gc_set_rgb_fg_color(d->gc, &col);
-		gdk_gc_set_rgb_bg_color(d->gc, &col);
-	}
-
-	return Prev;
+	GColour col(c, Bits ? Bits : GetBits());
+	return Colour(col).Get(GetBits());
 }
 
 GColour GScreenDC::Colour(GColour c)
@@ -263,10 +250,21 @@ GColour GScreenDC::Colour(GColour c)
 	d->Col = c;
 	if (d->gc)
 	{
-		int r = c.r();
-		int g = c.g();
-		int b = c.b();
-		GdkColor col = { 0, (r<<8)|r, (g<<8)|g, (b<<8)|b };
+		GdkColor col;
+		
+		col.pixel = 0;
+		
+		col.red = c.r();
+		col.red |= col.red << 8;
+		
+		col.green = c.g();
+		col.green |= col.green << 8;
+
+		col.blue = c.b();
+		col.blue |= col.blue << 8;
+		
+		// printf("Setting Col %x, %x, %x\n", col.red, col.green, col.blue);
+		
 		gdk_gc_set_rgb_fg_color(d->gc, &col);
 		gdk_gc_set_rgb_bg_color(d->gc, &col);
 	}
