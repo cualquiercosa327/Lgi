@@ -77,7 +77,7 @@ int64 LgiFileSize(const char *FileName)
 
 typedef wchar_t char16;
 
-bool FileExists(const char *Name)
+bool FileExists(const char *Name, char *CorrectCase)
 {
 	bool Status = false;
 	if (Name)
@@ -120,7 +120,7 @@ bool FileExists(const char *Name)
 	return false;
 }
 
-bool DirExists(const char *Dir)
+bool DirExists(const char *Dir, char *CorrectCase)
 {
 	DWORD e = 0;
 	if (GFileSystem::Win9x)
