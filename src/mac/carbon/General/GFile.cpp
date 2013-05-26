@@ -258,7 +258,7 @@ const char *GetErrorDesc(int e)
 }
 
 /****************************** Helper Functions **************************/
-char *ReadTextFile(char *File)
+char *ReadTextFile(const char *File)
 {
 	char *s = 0;
 	GFile f;
@@ -275,7 +275,7 @@ char *ReadTextFile(char *File)
 	return s;
 }
 
-int64 LgiFileSize(char *FileName)
+int64 LgiFileSize(const char *FileName)
 {
 	struct stat64 s;
 	if (FileName AND
@@ -287,7 +287,7 @@ int64 LgiFileSize(char *FileName)
 	return 0;
 }
 
-bool DirExists(const char *FileName)
+bool DirExists(const char *FileName, char *CorrectCase)
 {
 	bool Status = false;
 	
@@ -305,7 +305,7 @@ bool DirExists(const char *FileName)
 	return Status;
 }
 
-bool FileExists(const char *FileName)
+bool FileExists(const char *FileName, char *CorrectCase)
 {
 	bool Status = false;
 	
@@ -369,14 +369,16 @@ bool FileExists(const char *FileName)
 	return Status;
 }
 
-bool ResolveShortcut(char *LinkFile, char *Path, int Len)
+bool ResolveShortcut(const char *LinkFile, char *Path, int Len)
 {
 	bool Status = false;
+
+	LgiAssert(0);
 
 	return Status;
 }
 
-void WriteStr(GFile &f, char *s)
+void WriteStr(GFile &f, const char *s)
 {
 	uint32 Len = (s) ? strlen(s) : 0;
 	f << Len;
@@ -428,7 +430,7 @@ char *ReadStr(GFile &f DeclDebugArgs)
 	return s;
 }
 
-int SizeofStr(char *s)
+int SizeofStr(const char *s)
 {
 	return sizeof(uint32) + ((s) ? strlen(s) : 0);
 }

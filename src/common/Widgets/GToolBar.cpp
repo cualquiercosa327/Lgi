@@ -358,26 +358,6 @@ GImageList::GImageList(int x, int y, GSurface *pDC)
 
 		GetBounds();
 
-		#if 0
-		IsAlpha(true);
-		GSurface *Alpha = AlphaDC();
-		if (Alpha)
-		{
-			COLOUR Key = Get(0, 0);
-			for (int y=0; y<Y(); y++)
-			{
-				uchar *a = (*Alpha)[y];
-				LgiAssert(a);
-				for (int x=0; x<X(); x++)
-				{
-					COLOUR c = Get(x, y);
-					*a++ = c == Key ? 0 : 0xff;
-				}
-			}
-			
-			Unlock();
-		}
-		#elif 1
 		COLOUR Key = Get(0, 0);
 		for (int y=0; y<Y(); y++)
 		{
@@ -391,7 +371,6 @@ GImageList::GImageList(int x, int y, GSurface *pDC)
 				p++;
 			}
 		}
-		#endif
 		
 		#elif defined(MAC)
 		
@@ -926,25 +905,33 @@ void GToolButton::OnPaint(GSurface *pDC)
 			// Draw any icon.
 			if (ImgIndex >= 0)
 			{
-				// Draw cached
-				Par->_DrawFromCache(pDC, IconPos.x1, IconPos.y1, ImgIndex, Over, !e);
-				Unpainted.Subtract(&IconPos);
-
-				// Fill in the rest of the area
-				pDC->Colour(Background, 24);
-				for (GRect *r = Unpainted.First(); r; r = Unpainted.Next())
+				if (Par->d->ImgList)
 				{
-					pDC->Rectangle(r);
+					// Draw cached
+					Par->_DrawFromCache(pDC, IconPos.x1, IconPos.y1, ImgIndex, Over, !e);
+					Unpainted.Subtract(&IconPos);
+
+					// Fill in the rest of the area
+					pDC->Colour(Background, 24);
+					for (GRect *r = Unpainted.First(); r; r = Unpainted.Next())
+					{
+						pDC->Rectangle(r);
+					}
+				}
+				else
+				{
+					// Draw a red cross indicating no icons.
+					pDC->Colour(LC_MED, 24);
+					pDC->Rectangle(&p);
+					pDC->Colour(Rgb24(255, 0, 0), 24);
+					pDC->Line(p.x1, p.y1, p.x2, p.y2);
+					pDC->Line(p.x2, p.y1, p.x1, p.y2);
 				}
 			}
 			else
 			{
-				// Draw a red cross indicating no icons.
 				pDC->Colour(LC_MED, 24);
 				pDC->Rectangle(&p);
-				pDC->Colour(Rgb24(255, 0, 0), 24);
-				pDC->Line(p.x1, p.y1, p.x2, p.y2);
-				pDC->Line(p.x2, p.y1, p.x1, p.y2);
 			}
 			
 
@@ -1462,129 +1449,8 @@ void GToolBar::_BuildCache(GImageList *From)
 			pApp->SetVar(GAPP_ALPHA_A, 40);
 		From->Draw(d->IconCache, i * From->TileX(), From->TileY() * 2, i, Background);
 	}
-
-
-	/*
-	if (Bits == 8)
-	{
-		// Generate global palette for the full colour and
-		// alpha blended versions of the icons by colour reducing
-		// them both on the same DC.
-		GSurface *r = new GMemDC(From->X(), From->Y() * 2, 24);
-		if (r)
-		{
-			// Background
-			r->Colour(LC_MED, 24);
-			r->Rectangle();
-
-			// Draw the full colour icons
-			int i;
-			for (i=0; i<From->GetItems(); i++)
-			{
-				From->Draw(r, i * From->TileX(), 0, i);
-			}
-
-			// Draw the alpha blended icons
-			r->Op(GDC_ALPHA);
-			GApplicator *pApp = r->Applicator();
-			if (pApp)
-			{
-				pApp->SetVar(GAPP_ALPHA_A, 40);
-				pApp->SetVar(GAPP_ALPHA_PAL, (NativeInt)r->Palette());
-			}
-			for (i=0; i<From->GetItems(); i++)
-			{
-				From->Draw(r, i * From->TileX(), From->TileY(), i);
-			}
-
-			// Put the full colour icons in their DC
-			d->pColour = new GMemDC;
-			if (d->pColour &&
-				d->pColour->Create(From->X(), From->Y(), Bits))
-			{
-				d->pColour->Palette(new GPalette(GdcD->GetGlobalColour()->GetPalette()));
-
-				int OldType = GdcD->GetOption(GDC_REDUCE_TYPE);
-				GdcD->SetOption(GDC_REDUCE_TYPE, REDUCE_ERROR_DIFFUSION);
-				d->pColour->Blt(0, 0, r);
-				GdcD->SetOption(GDC_REDUCE_TYPE, OldType);
-			}
-
-			// Put the alpha blended icons in their DC
-			//
-			// Because the colour and alpha icons have the same palette
-			// they should appear fine together on the screen, as the 2
-			// palettes are the same.
-			d->pDisabled = new GMemDC;
-			if (d->pDisabled &&
-				d->pDisabled->Create(From->X(), From->Y(), Bits))
-			{
-				d->pDisabled->Palette(new GPalette(GdcD->GetGlobalColour()->GetPalette()));
-
-				GRect t(0, From->Y(), From->X()-1, (From->Y() * 2)-1);
-
-				int OldType = GdcD->GetOption(GDC_REDUCE_TYPE);
-				GdcD->SetOption(GDC_REDUCE_TYPE, REDUCE_ERROR_DIFFUSION);
-				d->pDisabled->Blt(0, 0, r, &t);
-				GdcD->SetOption(GDC_REDUCE_TYPE, OldType);
-			}
-
-			DeleteObj(r);
-		}
-	}
-	else
-	{
-		From->Lock();
-		
-		// True colour screen
-		d->pColour = new GMemDC;
-		if (d->pColour &&
-			d->pColour->Create(From->X(), From->Y(), 32))
-		{
-			GColour c(LC_MED, 24);
-			d->pColour->Colour(c);
-			d->pColour->Rectangle();
-
-			if (Bits == 32)
-			{
-				d->pColour->Op(GDC_ALPHA);
-				d->pColour->Blt(0, 0, From);
-			}
-			else
-			{
-				for (int i=0; i<From->GetItems(); i++)
-				{
-					From->Draw(d->pColour, i * From->TileX(), 0, i);
-				}
-			}
-		}
-
-		d->pDisabled = new GMemDC;
-		if (d->pDisabled &&
-			d->pDisabled->Create(From->X(), From->Y(), Bits == 8 ? 24 : Bits))
-		{
-			d->pDisabled->Colour(LC_MED, 24);
-			d->pDisabled->Rectangle();
-
-			d->pDisabled->Op(GDC_ALPHA);
-			GApplicator *pApp = d->pDisabled->Applicator();
-			if (pApp)
-			{
-				pApp->SetVar(GAPP_ALPHA_A, 40);
-				pApp->SetVar(GAPP_ALPHA_PAL, (NativeInt)d->pDisabled->Palette());
-			}
-
-			for (int i=0; i<From->GetItems(); i++)
-			{
-				From->Draw(d->pDisabled, i * From->TileX(), 0, i, IMGLST_GDC);
-			}
-		}
-
-		From->Unlock();
-		d->pColour->Unlock();
-		d->pDisabled->Unlock();
-	}
-	*/
+	
+	WriteDC("/Users/matthew/Code/test.png", d->IconCache);
 }
 
 void GToolBar::_DrawFromCache(GSurface *pDC, int x, int y, int Index, bool Hilight, bool Disabled)
@@ -1593,18 +1459,18 @@ void GToolBar::_DrawFromCache(GSurface *pDC, int x, int y, int Index, bool Hilig
 	{
 		GRect s;
 		
+		int YOffset =	(Hilight && !Disabled ? 1 : 0)
+						+
+						(Disabled ? 2 : 0);
+		
 		s.ZOff(d->ImgList->TileX()-1, d->ImgList->TileY()-1);
 		s.Offset
 		(
 			d->ImgList->TileX() * Index,
-			d->ImgList->TileY() *
-			(
-				(Hilight && !Disabled ? 1 : 0)
-				+
-				(Disabled ? 2 : 0)
-			)
+			d->ImgList->TileY() * YOffset
 		);
 
+		printf("DrawFromCache %i, hi=%i, dis=%i, off=%i, s=%s\n", Index, Hilight, Disabled, YOffset, s.GetStr());
 		pDC->Blt(x, y, d->IconCache, &s);
 	}
 }

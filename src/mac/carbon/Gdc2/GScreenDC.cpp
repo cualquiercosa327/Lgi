@@ -99,6 +99,11 @@ GScreenDC::~GScreenDC()
 	DeleteObj(d);
 }
 
+bool GScreenDC::SupportsAlphaCompositing()
+{
+	return true;
+}
+
 GView *GScreenDC::GetView()
 {
 	return d->View;

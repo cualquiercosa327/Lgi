@@ -1040,7 +1040,7 @@ GAutoString GApp::GetFileMimeType(const char *File)
 		}		
 	}
 	
-	char *Ext = LgiGetExtension(File);
+	char *Ext = LgiGetExtension((char*)File);
 	if (Ext)
 	{
 		CFStringRef e = CFStringCreateWithCString(NULL, Ext, kCFStringEncodingUTF8);

@@ -1027,6 +1027,7 @@ GApplicator *GApplicatorFactory::NewApp(GColourSpace Cs, int Op)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
+/*
 GSurface *GInlineBmp::Create()
 {
 	GSurface *pDC = new GMemDC;
@@ -1090,3 +1091,4 @@ GSurface *GInlineBmp::Create()
 
 	return pDC;
 }
+*/

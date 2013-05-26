@@ -519,7 +519,7 @@ GFilter::IoStatus GdcBmp::WriteImage(GStream *Out, GSurface *pDC)
 
 	File.Type = BMP_ID;
 	File.OffsetToData = sizeof(BMP_FILE) + sizeof(BMP_WININFO) + (Colours * 4);
-	File.Size = File.OffsetToData + (pMem->Line * pMem->y);
+	File.Size = File.OffsetToData + (abs(pMem->Line) * pMem->y);
 	File.Reserved1 = 0;
 	File.Reserved2 = 0;
 
@@ -1974,6 +1974,10 @@ bool GdcDevice::Save(char *Name, GSurface *pDC)
 			{
 				Status = F->WriteImage(&File, pDC);
 			}
+		}
+		else
+		{
+			LgiTrace("No filter to write '%s'\n", Name);
 		}
 	}
 

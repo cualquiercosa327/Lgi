@@ -26,6 +26,7 @@
 		342D78F111FAD1AF005BADBD /* GStream.h in Headers */ = {isa = PBXBuildFile; fileRef = 342D78F011FAD1AF005BADBD /* GStream.h */; };
 		34372AD00C46E0290090CDC9 /* GDocView.h in Headers */ = {isa = PBXBuildFile; fileRef = 34372ACF0C46E0290090CDC9 /* GDocView.h */; };
 		343BF8420B58A110008AFE75 /* GMenu.h in Headers */ = {isa = PBXBuildFile; fileRef = 343BF8410B58A110008AFE75 /* GMenu.h */; };
+		343E950D1751C6090085611D /* GThreadEvent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 343E950C1751C6090085611D /* GThreadEvent.cpp */; };
 		3443CBFE0C16BA64008F7B02 /* GOptionsFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3443CBFD0C16BA64008F7B02 /* GOptionsFile.cpp */; };
 		3444A36112275BDD004ADADE /* GToolBar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3444A36012275BDD004ADADE /* GToolBar.cpp */; };
 		34463F2511FBE25E009BB91F /* GTextView3.h in Headers */ = {isa = PBXBuildFile; fileRef = 34463F2411FBE25E009BB91F /* GTextView3.h */; };
@@ -185,6 +186,7 @@
 		342D78F011FAD1AF005BADBD /* GStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GStream.h; path = ../../../include/common/GStream.h; sourceTree = "<group>"; };
 		34372ACF0C46E0290090CDC9 /* GDocView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GDocView.h; path = ../../../include/common/GDocView.h; sourceTree = "<group>"; };
 		343BF8410B58A110008AFE75 /* GMenu.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GMenu.h; path = ../../../include/common/GMenu.h; sourceTree = "<group>"; };
+		343E950C1751C6090085611D /* GThreadEvent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GThreadEvent.cpp; path = ../../common/Lgi/GThreadEvent.cpp; sourceTree = "<group>"; };
 		3443CBFD0C16BA64008F7B02 /* GOptionsFile.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GOptionsFile.cpp; path = ../../common/Lgi/GOptionsFile.cpp; sourceTree = "<group>"; };
 		3444A36012275BDD004ADADE /* GToolBar.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GToolBar.cpp; path = ../../common/Widgets/GToolBar.cpp; sourceTree = "<group>"; };
 		34463F2411FBE25E009BB91F /* GTextView3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GTextView3.h; path = ../../../include/common/GTextView3.h; sourceTree = "<group>"; };
@@ -630,6 +632,7 @@
 		345F9C4108F0FAA9007DAFE2 /* Threads */ = {
 			isa = PBXGroup;
 			children = (
+				343E950C1751C6090085611D /* GThreadEvent.cpp */,
 				34A11A7D167534A500FCC5D7 /* GMutex.h */,
 				34A11A7B1675349900FCC5D7 /* GMutex.cpp */,
 				34A11A791675347500FCC5D7 /* GThreadCommon.cpp */,
@@ -1001,6 +1004,7 @@
 				34B28AF0143FA69B0023662F /* GPath.cpp in Sources */,
 				34A11A7A1675347500FCC5D7 /* GThreadCommon.cpp in Sources */,
 				34A11A7C1675349900FCC5D7 /* GMutex.cpp in Sources */,
+				343E950D1751C6090085611D /* GThreadEvent.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

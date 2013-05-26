@@ -239,6 +239,11 @@ GMemDC::~GMemDC()
 	DeleteObj(d);
 }
 
+bool GMemDC::SupportsAlphaCompositing()
+{
+	return true;
+}
+
 GRect GMemDC::ClipRgn(GRect *Rgn)
 {
 	GRect Old = Clip;

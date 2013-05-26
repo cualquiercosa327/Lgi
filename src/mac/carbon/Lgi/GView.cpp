@@ -217,14 +217,14 @@ GViewProc
 
 #define GViewSubClassName			CFSTR("com.memecode.lgiview")
 
-bool GViewPrivate::CursorSet = false;
+// bool GViewPrivate::CursorSet = false;
 HIObjectClassRef GViewPrivate::BaseClass = 0;
-GView *GViewPrivate::LastCursor = 0;
+// GView *GViewPrivate::LastCursor = 0;
 
 GViewPrivate::GViewPrivate()
 {
 	TabStop = false;
-	CursorId = 0;
+	// CursorId = 0;
 	Parent = 0;
 	ParentI = 0;
 	Notify = 0;
@@ -278,7 +278,7 @@ void GView::_Delete()
 
 	GWindow *w = GetWindow();
 	if (w && w->GetFocus() == this)
-		w->SetFocus(NULL);
+		w->SetFocus(this, GWindow::ViewDelete);
 
 	if (LgiApp && LgiApp->AppWnd == this)
 	{
@@ -396,6 +396,51 @@ void _Dump2(GViewI *root, HIViewRef v, int depth)
 	}
 }
 
+LgiCursor GView::GetCursor(int x, int y)
+{
+	return LCUR_Normal;
+}
+
+static bool SetCarbonCursor(LgiCursor CursorId)
+{
+	ThemeCursor MacCursor = kThemeArrowCursor;
+	switch (CursorId)
+	{
+		default:
+		case LCUR_SizeBDiag:
+		case LCUR_SizeFDiag:
+		case LCUR_SizeAll:
+		case LCUR_Blank:
+		case LCUR_SplitV:
+		case LCUR_SplitH:
+		case LCUR_Normal:
+			MacCursor = kThemeArrowCursor; break;
+		case LCUR_UpArrow:
+			MacCursor = kThemeResizeUpCursor; break;
+		case LCUR_Cross:
+			MacCursor = kThemeCrossCursor; break;
+		case LCUR_Wait:
+			MacCursor = kThemeSpinningCursor; break;
+		case LCUR_Ibeam:
+			MacCursor = kThemeIBeamCursor; break;
+		case LCUR_SizeVer:
+			MacCursor = kThemeResizeUpDownCursor; break;
+		case LCUR_SizeHor:
+			MacCursor = kThemeResizeLeftRightCursor; break;
+		case LCUR_PointingHand:
+			MacCursor = kThemePointingHandCursor; break;
+		case LCUR_Forbidden:
+			MacCursor = kThemeNotAllowedCursor; break;
+		case LCUR_DropCopy:
+			MacCursor = kThemeCopyArrowCursor; break;
+		case LCUR_DropMove:
+			MacCursor = kThemeAliasArrowCursor; break;
+	}
+	
+	SetThemeCursor(MacCursor);
+	return true;
+}
+
 bool GView::_Mouse(GMouse &m, bool Move)
 {
 	#if 0
@@ -405,7 +450,7 @@ bool GView::_Mouse(GMouse &m, bool Move)
 		if (First)
 		{
 			First = false;
-			//_DumpHeirarchy(GetWindow());			
+			//_DumpHeirarchy(GetWindow());
 			//_Dump(0, GetWindow(), HIViewGetRoot(GetWindow()->WindowHandle()));
 		}
 		
@@ -430,14 +475,8 @@ bool GView::_Mouse(GMouse &m, bool Move)
 		if (Move)
 		{
 			GViewI *c = _Capturing;
-			d->CursorSet = false;
-			
+			SetCarbonCursor(c->GetCursor(m.x, m.y));
 			c->OnMouseMove(m);
-			
-			if (!d->CursorSet)
-			{
-				c->SetCursor(LCUR_Normal);
-			}
 		}
 		else
 		{
@@ -472,12 +511,8 @@ bool GView::_Mouse(GMouse &m, bool Move)
 		{
 			if (Move)
 			{
-				d->CursorSet = false;
+				SetCarbonCursor(Target->GetCursor(m.x, m.y));
 				Target->OnMouseMove(m);
-				if (!d->CursorSet)
-				{
-					Target->SetCursor(LCUR_Normal);
-				}
 			}
 			else
 			{
@@ -525,54 +560,6 @@ void GView::Quit(bool DontDelete)
 		Detach();
 		delete this;
 	}
-}
-
-bool GView::SetCursor(LgiCursor CursorId)
-{
-	GView *Wnd = GetWindow();
-	Wnd->d->CursorSet = true;
-	if (Wnd && Wnd->d->CursorId != CursorId)
-	{
-		Wnd->d->CursorId = CursorId;
-		
-		ThemeCursor MacCursor = kThemeArrowCursor;
-		switch (CursorId)
-		{
-			case LCUR_SizeBDiag:
-			case LCUR_SizeFDiag:
-			case LCUR_SizeAll:
-			case LCUR_Blank:
-			case LCUR_SplitV:
-			case LCUR_SplitH:
-			case LCUR_Normal:
-				MacCursor = kThemeArrowCursor; break;
-			case LCUR_UpArrow:
-				MacCursor = kThemeResizeUpCursor; break;
-			case LCUR_Cross:
-				MacCursor = kThemeCrossCursor; break;
-			case LCUR_Wait:
-				MacCursor = kThemeSpinningCursor; break;
-			case LCUR_Ibeam:
-				MacCursor = kThemeIBeamCursor; break;
-			case LCUR_SizeVer:
-				MacCursor = kThemeResizeUpDownCursor; break;
-			case LCUR_SizeHor:
-				MacCursor = kThemeResizeLeftRightCursor; break;
-			case LCUR_PointingHand:
-				MacCursor = kThemePointingHandCursor; break;
-			case LCUR_Forbidden:
-				MacCursor = kThemeNotAllowedCursor; break;
-			case LCUR_DropCopy:
-				MacCursor = kThemeCopyArrowCursor; break;
-			case LCUR_DropMove:
-				MacCursor = kThemeAliasArrowCursor; break;
-		}
-		
-		SetThemeCursor(MacCursor);
-		return true;
-	}
-	
-	return false;
 }
 
 bool GView::SetPos(GRect &p, bool Repaint)
@@ -1812,7 +1799,7 @@ bool GView::Detach()
 	{
 		GWindow *wnd = GetWindow();
 		if (wnd && wnd->GetFocus() == this)
-			wnd->SetFocus(NULL);
+			wnd->SetFocus(this, GWindow::ViewDelete);
 		_Window = NULL;
 		
 		// Remove the view from the parent

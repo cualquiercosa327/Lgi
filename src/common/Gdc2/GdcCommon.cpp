@@ -737,12 +737,66 @@ GColourSpace GBitsToColourSpace(int Bits)
 GSurface *GInlineBmp::Create()
 {
 	GSurface *pDC = new GMemDC;
-	if (pDC->Create(X, Y, Bits))
+	if
+	(
+		pDC->Create
+		(
+			X,
+			Y,
+			#ifdef MAC
+			32
+			#else
+			Bits
+			#endif
+		)
+	)
 	{
 		int Line = X * Bits / 8;
 		for (int y=0; y<Y; y++)
 		{
+			#ifdef MAC
+			switch (Bits)
+			{
+				case 16:
+				{
+					uint32 *s = (uint32*) ( ((uchar*)Data) + (y * Line) );
+					System32BitPixel *d = (System32BitPixel*) (*pDC)[y];
+					System32BitPixel *e = d + X;
+					while (d < e)
+					{
+						uint32 n = LgiSwap32(*s);
+						s++;
+						
+						uint16 a = n >> 16;
+						a = LgiSwap16(a);
+						d->r = Rc16(a);
+						d->g = Gc16(a);
+						d->b = Bc16(a);
+						d->a = 255;
+						d++;
+						
+						if (d >= e)
+							break;
+
+						uint16 b = n & 0xffff;
+						b = LgiSwap16(b);
+						d->r = Rc16(b);
+						d->g = Gc16(b);
+						d->b = Bc16(b);
+						d->a = 255;
+						d++;
+					}
+					break;
+				}
+				case 32:
+				{
+					memcpy((*pDC)[y], ((uchar*)Data) + (y * Line), Line);
+					break;
+				}
+			}
+			#else
 			memcpy((*pDC)[y], ((uchar*)Data) + (y * Line), Line);
+			#endif
 		}
 	}
 

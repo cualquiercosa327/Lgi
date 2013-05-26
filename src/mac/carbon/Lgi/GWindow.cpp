@@ -155,27 +155,120 @@ GViewI *GWindow::GetFocus()
 	return d->Focus;
 }
 
-void GWindow::SetFocus(GViewI *ctrl)
+void GWindow::SetFocus(GViewI *ctrl, FocusType type)
 {
-	if (d->Focus == ctrl)
-		return;
-
-	if (d->Focus)
+	const char *TypeName = NULL;
+	switch (type)
 	{
-		GView *v = d->Focus->GetGView();
-		if (v)
-			v->WndFlags &= ~GWF_FOCUS;
-		d->Focus->OnFocus(false);
+		case GainFocus: TypeName = "Gain"; break;
+		case LoseFocus: TypeName = "Lose"; break;
+		case ViewDelete: TypeName = "Delete"; break;
 	}
-	
-	d->Focus = ctrl;
 
-	if (d->Focus)
+	switch (type)
 	{
-		GView *v = d->Focus->GetGView();
-		if (v)
-			v->WndFlags |= GWF_FOCUS;
-		d->Focus->OnFocus(true);
+		case GainFocus:
+		{
+			// Check if the control already has focus
+			if (d->Focus == ctrl)
+				return;
+					
+			if (d->Focus)
+			{
+				GView *v = d->Focus->GetGView();
+				if (v) v->WndFlags &= ~GWF_FOCUS;
+				d->Focus->OnFocus(false);
+				d->Focus->Invalidate();
+
+				#if DEBUG_SETFOCUS
+				GAutoString _foc = DescribeView(d->Focus);
+				LgiTrace(".....defocus: %s\n",
+					_foc.Get());
+				#endif
+			}
+			
+			d->Focus = ctrl;
+
+			if (d->Focus)
+			{
+				GView *v = d->Focus->GetGView();
+				if (v) v->WndFlags |= GWF_FOCUS;
+				d->Focus->OnFocus(true);
+				d->Focus->Invalidate();
+
+				#if DEBUG_SETFOCUS
+				GAutoString _set = DescribeView(d->Focus);
+				LgiTrace("GWindow::SetFocus(%s, %s) focusing\n",
+					_set.Get(),
+					TypeName);
+				#endif
+			}
+			break;
+		}
+		case LoseFocus:
+		{
+			if (ctrl == d->Focus)
+			{
+				GView *v = d->Focus->GetGView();
+				if (v)
+				{
+					if (v->WndFlags & GWF_FOCUS)
+					{
+						// View thinks it has focus
+						v->WndFlags &= ~GWF_FOCUS;
+						d->Focus->OnFocus(false);
+						// keep d->Focus pointer, as we want to be able to re-focus the child
+						// view when we get focus again
+
+						#if DEBUG_SETFOCUS
+						GAutoString _ctrl = DescribeView(ctrl);
+						GAutoString _foc = DescribeView(d->Focus);
+						LgiTrace("GWindow::SetFocus(%s, %s) keep_focus: %s\n",
+							_ctrl.Get(),
+							TypeName,
+							_foc.Get());
+						#endif
+					}
+					// else view doesn't think it has focus anyway...
+				}
+				else
+				{
+					// Non GView handler	
+					d->Focus->OnFocus(false);
+					d->Focus->Invalidate();
+					d->Focus = NULL;
+				}
+			}
+			else
+			{
+				/*
+				LgiTrace("GWindow::SetFocus(%p.%s, %s) error on losefocus: %p(%s)\n",
+					ctrl,
+					ctrl ? ctrl->GetClass() : NULL,
+					TypeName,
+					d->Focus,
+					d->Focus ? d->Focus->GetClass() : NULL);
+				*/
+			}
+			break;
+		}
+		case ViewDelete:
+		{
+			if (ctrl == d->Focus)
+			{
+				#if DEBUG_SETFOCUS
+				LgiTrace("GWindow::SetFocus(%p.%s, %s) delete_focus: %p(%s)\n",
+					ctrl,
+					ctrl ? ctrl->GetClass() : NULL,
+					TypeName,
+					d->Focus,
+					d->Focus ? d->Focus->GetClass() : NULL);
+				#endif
+
+				d->Focus = NULL;
+			}
+			break;
+		}
 	}
 }
 
@@ -1951,7 +2044,7 @@ int GWindow::OnEvent(GMessage *m)
 	return GView::OnEvent(m);
 }
 
-bool GWindow::RegisterHook(GView *Target, int EventType, int Priority)
+bool GWindow::RegisterHook(GView *Target, GWindowHookType EventType, int Priority)
 {
 	bool Status = false;
 	

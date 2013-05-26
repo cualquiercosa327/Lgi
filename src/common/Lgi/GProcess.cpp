@@ -367,7 +367,7 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 	GNativeString NExe;
 	if (Exe)
 	{
-		if (FileExists(Exe))
+		if (FileExists((char*)Exe))
 		{
 			NExe = Exe;
 		}

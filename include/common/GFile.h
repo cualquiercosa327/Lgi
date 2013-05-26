@@ -434,8 +434,13 @@ public:
 
 // Functions
 LgiFunc int64 LgiFileSize(const char *FileName);
-LgiFunc bool FileExists(const char *File);
-LgiFunc bool DirExists(const char *Dir);
+
+/// This function checks for the existance of a file.
+LgiFunc bool FileExists(const char *File, char *CorrectCase = NULL);
+
+/// This function checks for the existance of a directory.
+LgiFunc bool DirExists(const char *Dir, char *CorrectCase = NULL);
+
 LgiFunc bool ResolveShortcut(const char *LinkFile, char *Path, int Len);
 LgiFunc void WriteStr(GFile &f, const char *s);
 LgiFunc char *ReadStr(GFile &f DeclDebugArgs);
