@@ -2348,7 +2348,7 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, bool DebugLog)
 			TagHit.Near = 0;
 		}
 	}
-	else if (Text())
+	else if (TextPos.Length())
 	{
 		for (int i=0; i<TextPos.Length(); i++)
 		{
@@ -7782,7 +7782,10 @@ void GHtml::OnMouseClick(GMouse &m)
 
 		GTagHit Hit;
 		if (Tag)
+		{
 			Tag->GetTagByPos(Hit, m.x, m.y + Offset);
+			Hit.Dump("MouseClick");
+		}
 		
 		if (m.Left() && !m.IsContextMenu())
 		{
@@ -7792,7 +7795,7 @@ void GHtml::OnMouseClick(GMouse &m)
 
 				if (Cursor)
 				{
-					// Extend the selection out to the current word's boundries.
+					// Extend the selection out to the current word's boundaries.
 					Selection = Cursor;
 					Selection->Selection = Cursor->Cursor;
 
@@ -7832,6 +7835,12 @@ void GHtml::OnMouseClick(GMouse &m)
 			{
 				d->WordSelectMode = false;
 				UnSelectAll();
+
+				if (Selection)
+				{
+					Selection->Selection = -1;
+					Selection = NULL;
+				}
 				
 				if (Hit.NearestText)
 				{
@@ -8179,12 +8188,17 @@ void GHtml::OnMouseMove(GMouse &m)
 	int Offset = ScrollY();
 	GTagHit Hit;
 	Tag->GetTagByPos(Hit, m.x, m.y + Offset);
+	if (IsCapturing())
+	{
+		Hit.Dump("    MouseMove");
+	}
+
 	if (!Hit.Direct && !Hit.NearestText)
 		return;
 		
 	if (PrevTip &&
 		PrevTip != Tag)
-	{			
+	{
 		Tip.DeleteTip(PrevTip->TipId);
 		PrevTip->TipId = 0;
 		PrevTip = 0;
@@ -8193,17 +8207,8 @@ void GHtml::OnMouseMove(GMouse &m)
 	GAutoString Uri;
 	if (Hit.LocalCoords.x >= 0 &&
 		Hit.LocalCoords.y >= 0 &&
-		Tag->IsAnchor(&Uri))
+		Hit.Direct->IsAnchor(&Uri))
 	{
-		/*
-		GRect c = GetClient();
-		c.Offset(-c.x1, -c.y1);
-		if (c.Overlap(m.x, m.y) && ValidStr(Uri))
-		{
-			GLayout::SetCursor(LCUR_PointingHand);
-		}
-		*/
-
 		if (Uri)
 		{
 			if (!Tip.GetParent())
@@ -8220,8 +8225,7 @@ void GHtml::OnMouseMove(GMouse &m)
 
 	if (IsCapturing() &&
 		Cursor &&
-		Hit.NearestText &&
-		Hit.NearestText->TagId != TAG_BODY)
+		Hit.NearestText)
 	{
 		if (!Selection)
 		{
@@ -8233,8 +8237,9 @@ void GHtml::OnMouseMove(GMouse &m)
 			Invalidate();
 		}
 		else if ((Cursor != Hit.NearestText) ||
-				 (Cursor->Selection != Hit.Index))
+				 (Cursor->Cursor != Hit.Index))
 		{
+			// Move the cursor to track the mouse
 			if (Cursor)
 			{
 				Cursor->Cursor = -1;
@@ -8676,4 +8681,32 @@ bool GCellStore::Set(GTag *t)
 	}
 
 	return true;
+}
+
+void GTagHit::Dump(const char *Desc)
+{
+	GArray<GTag*> d, n;
+	GTag *t = Direct;
+	int i;
+	for (i=0; i<3 && t; t = t->Parent, i++)
+	{
+		d.AddAt(0, t);
+	}
+	t = NearestText;
+	for (i=0; i<3 && t; t = t->Parent, i++)
+	{
+		n.AddAt(0, t);
+	}
+	
+	LgiTrace("Hit: %s Direct: ", Desc);
+	for (i=0; i<d.Length(); i++)
+		LgiTrace(">%s", d[i]->Tag ? d[i]->Tag : "CONTENT");
+	LgiTrace(" Nearest: ");
+	for (i=0; i<n.Length(); i++)
+		LgiTrace(">%s", n[i]->Tag ? n[i]->Tag : "CONTENT");
+	LgiTrace(" Local: %ix%i Index: %i Block: %s '%.10S'\n",
+		LocalCoords.x, LocalCoords.y,
+		Index,
+		Block ? Block->GetStr() : NULL,
+		Block ? Block->Text + Index : NULL);
 }

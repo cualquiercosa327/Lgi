@@ -127,7 +127,7 @@
 				<Node File="./src/common/Lgi/GFileSelect.cpp" Type="2" Platforms="6" />
 			</Node>
 		</Node>
-		<Node Name="Gdc2" Type="1" Platforms="7" Open="0">
+		<Node Name="Gdc2" Type="1" Platforms="7" Open="1">
 			<Node Name="_Core" Type="1" Platforms="7" Open="0">
 				<Node Name="Linux" Type="1" Platforms="7" Open="1">
 					<Node File=".\src\linux\Gtk\Gdc2.cpp" Type="2" Platforms="7" />

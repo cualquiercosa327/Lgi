@@ -97,29 +97,8 @@ struct GTagHit
 		Index = -1;
 		LocalCoords.x = LocalCoords.y = -1;
 	}
-
-	/*
-	/// Return true if the current object is a closer than 'h'
-	bool operator <(GTagHit &h)
-	{
-		// We didn't hit anything, so we can't be closer
-		if (!Hit)
-			return false;
-
-		// We did hit something, and 'h' isn't an object yet
-		// or 'h' is a block hit with no text ref... in which
-		// case we are closer... because we have a text hit
-		if (!h.Hit || (Near >= 0 && h.Near < 0))
-			return true;
-
-		LgiAssert(Near >= 0);
-
-		if (Near < h.Near)
-			return true;
-
-		return false;
-	}
-	*/
+	
+	void Dump(const char *Desc);
 };
 
 struct GInfo
