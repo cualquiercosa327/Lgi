@@ -449,6 +449,7 @@ public:
 	bool Debugging;
 	bool Building;
 	GSubMenu *WindowsMenu;
+	FindSymbolSystem FindSym;
 	
 	// Find in files
 	FindInFilesThread *Finder;
@@ -460,7 +461,9 @@ public:
 	GSubMenu *RecentProjectsMenu;
 
 	// Object
-	AppWndPrivate(AppWnd *a) : Options(GOptionsFile::DesktopMode, AppName)
+	AppWndPrivate(AppWnd *a) :
+		Options(GOptionsFile::DesktopMode, AppName),
+		FindSym(a)
 	{
 		WindowsMenu = 0;
 		App = a;
@@ -1303,6 +1306,7 @@ IdeProject *AppWnd::OpenProject(char *FileName, IdeProject *ParentProj, bool Cre
 			}
 
 			GetTree()->Focus(true);
+			d->FindSym.OnProject();
 		}
 	}
 
@@ -1611,10 +1615,10 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		}
 		case IDM_FIND_SYMBOL:
 		{
-			FindSymbolDlg SymDlg(this);
-			if (SymDlg.DoModal() && SymDlg.File)
+			FindSymResult r = d->FindSym.OpenSearchDlg(this);
+			if (r.File)
 			{
-				GotoReference(SymDlg.File, SymDlg.Line);
+				GotoReference(r.File, r.Line);
 			}
 			break;
 		}
@@ -1918,6 +1922,12 @@ int AppWnd::GetBuildMode()
 GList *AppWnd::GetFtpLog()
 {
 	return d->Output->FtpLog;
+}
+
+bool AppWnd::FindSymbol(const char *Sym, GArray<FindSymResult> &Results)
+{
+	d->FindSym.Search(Sym, Results);
+	return Results.Length() > 0;
 }
 
 class Worker : public GThread

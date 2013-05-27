@@ -71,6 +71,8 @@ public:
 	IdeDoc(class AppWnd *a, NodeSource *src, char *file);
 	~IdeDoc();
 
+	AppWnd *GetApp();
+
 	void SetProject(IdeProject *p);	
 	IdeProject *GetProject();
 	char *GetFileName();

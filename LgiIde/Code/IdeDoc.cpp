@@ -231,29 +231,34 @@ void EditTray::OnMouseClick(GMouse &m)
 		}
 		else if (SymBtn.Overlap(m.x, m.y))
 		{
-			char *s = Ctrl->GetSelection();
+			GAutoString s(Ctrl->GetSelection());
 			if (s)
 			{
-				char16 *sw = LgiNewUtf8To16(s);
-				DeleteArray(s);
+				GAutoWString sw(LgiNewUtf8To16(s));
 				if (sw)
 				{
+					/*
 					List<DefnInfo> Matches;
 					Doc->FindDefn(sw, Ctrl->NameW(), Matches);
+					*/
+					GArray<FindSymResult> Matches;
+					Doc->GetApp()->FindSymbol(s, Matches);
 
 					GSubMenu *s = new GSubMenu;
 					if (s)
 					{
 						// Construct the menu
 						int n=1;
-						for (DefnInfo *Def = Matches.First(); Def; Def = Matches.Next())
+						// for (DefnInfo *Def = Matches.First(); Def; Def = Matches.Next())
+						for (int i=0; i<Matches.Length(); i++)
 						{
+							FindSymResult &Res = Matches[i];
 							char m[512];
-							char *d = strrchr(Def->File, DIR_CHAR);
-							sprintf(m, "%s (%s:%i)", Def->Name, d ? d + 1 : Def->File, Def->Line);
+							char *d = strrchr(Res.File, DIR_CHAR);
+							sprintf(m, "%s (%s:%i)", Res.Symbol.Get(), d ? d + 1 : Res.File.Get(), Res.Line);
 							s->AppendItem(m, n++, true);
 						}
-						if (!Matches.First())
+						if (!Matches.Length())
 						{
 							s->AppendItem("(none)", 0, false);
 						}
@@ -264,37 +269,33 @@ void EditTray::OnMouseClick(GMouse &m)
 						int Goto = s->Float(this, p.x, p.y, true);
 						if (Goto)
 						{
-							DefnInfo *Def = Matches[Goto-1];
-							if (Def)
+							FindSymResult &Def = Matches[Goto-1];
 							{
 								// Open the selected symbol
 								if (Doc->GetProject() &&
 									Doc->GetProject()->GetApp())
 								{
 									AppWnd *App = Doc->GetProject()->GetApp();
-									IdeDoc *Doc = App->OpenFile(Def->File);
+									IdeDoc *Doc = App->OpenFile(Def.File);
 
 									if (Doc)
 									{
-										Doc->GetEdit()->GotoLine(Def->Line);
+										Doc->GetEdit()->GotoLine(Def.Line);
 									}
 									else
 									{
-										printf("%s:%i - Couldn't open doc '%s'\n", __FILE__, __LINE__, Def->File);
+										printf("%s:%i - Couldn't open doc '%s'\n", _FL, Def.File.Get());
 									}
 								}
 								else
 								{
-									printf("%s:%i - No project / app ptr.\n", __FILE__, __LINE__);
+									printf("%s:%i - No project / app ptr.\n", _FL);
 								}
 							}
 						}
 						
 						DeleteObj(s);
 					}
-					
-					Matches.DeleteObjects();
-					DeleteArray(sw);
 				}
 			}
 			else
@@ -794,6 +795,11 @@ IdeDoc::~IdeDoc()
 {
 	d->App->OnDocDestroy(this);
 	DeleteObj(d);
+}
+
+AppWnd *IdeDoc::GetApp()
+{
+	return d->App;
 }
 
 bool IdeDoc::IsFile(char *File)

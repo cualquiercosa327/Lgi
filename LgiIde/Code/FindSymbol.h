@@ -1,22 +1,37 @@
 #ifndef _FIND_SYMBOL_H_
 #define _FIND_SYMBOL_H_
 
-class FindSymbolDlg : public GDialog
+struct FindSymResult
 {
-	AppWnd *App;
-	struct FindSymbolPriv *d;
+	GAutoString Symbol, File;
+	int Line;
+	
+	FindSymResult(const char *f = NULL, int line = 0)
+	{
+		File.Reset(NewStr(f));
+		Line = line;
+	}
+	
+	FindSymResult &operator =(const FindSymResult &c)
+	{
+		Symbol.Reset(NewStr(c.Symbol));
+		File.Reset(NewStr(c.File));
+		Line = c.Line;
+		return *this;
+	}
+};
+
+class FindSymbolSystem
+{
+	struct FindSymbolSystemPriv *d;
 
 public:
-	GAutoString File;
-	int Line;
-
-	FindSymbolDlg(AppWnd *app);
-	~FindSymbolDlg();
+	FindSymbolSystem(class AppWnd *app);
+	~FindSymbolSystem();
 	
-	int OnNotify(GViewI *v, int f);
-	void OnPulse();
-	void OnCreate();
-	bool OnViewKey(GView *v, GKey &k);
+	void OnProject();
+	FindSymResult OpenSearchDlg(GViewI *Parent);
+	void Search(const char *SearchStr, GArray<FindSymResult> &Results);
 };
 
 #endif

@@ -15,6 +15,7 @@
 #include "resdefs.h"
 #include "GDocView.h"
 #include "GOptionsFile.h"
+#include "FindSymbol.h"
 
 #define LgiIdeVer				0.0
 
@@ -147,6 +148,7 @@ public:
 	GList *GetFtpLog();
 	IdeDoc *FindOpenFile(char *FileName);
 	IdeDoc *GotoReference(char *File, int Line);
+	bool FindSymbol(const char *Syn, GArray<FindSymResult> &Results);
 };
 
 #include "IdeDoc.h"

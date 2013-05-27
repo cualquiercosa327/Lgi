@@ -17,17 +17,49 @@ const char *CTagsExeName = "ctags"
 	#endif
 	;
 
+class FindSymbolDlg : public GDialog
+{
+	AppWnd *App;
+	FindSymbolSystemPriv *d;
+
+public:
+	FindSymResult Result;
+
+	FindSymbolDlg(FindSymbolSystemPriv *priv, GViewI *parent);
+	~FindSymbolDlg();
+	
+	int OnNotify(GViewI *v, int f);
+	void OnPulse();
+	void OnCreate();
+	bool OnViewKey(GView *v, GKey &k);
+};
+
+struct SearchRequest
+{
+	GAutoString Str;
+	bool NoResults, Finished;
+	GArray<FindSymResult> Results;
+	
+	SearchRequest()
+	{
+		NoResults = false;
+		Finished = false;
+	}
+};
+
 class FindSymbolThread : public GThread
 {
-	bool Loop;
-	FindSymbolPriv *d;
-
 	struct Symbol
 	{
 		const char *Sym;
 		const char *File;
 		int Line;
 	};
+
+	bool Loop;
+	FindSymbolSystemPriv *d;
+	GAutoString data;
+	GArray<Symbol> Syms;
 
 public:
 	enum ThreadState
@@ -38,17 +70,19 @@ public:
 		ExitSearch,
 	} State;
 
-	FindSymbolThread(FindSymbolPriv *priv);
+	FindSymbolThread(FindSymbolSystemPriv *priv);
 	~FindSymbolThread();
+
+	void UpdateTags();
 	void Msg(const char *s);
-	void MatchesToResults(GArray<Symbol*> &Matches);
+	void MatchesToResults(struct SearchRequest *Req, GArray<Symbol*> &Matches);
 	int Main();
 	void Stop();
 };
 
-struct FindSymbolPriv : public GMutex
+struct FindSymbolSystemPriv : public GMutex
 {
-	FindSymbolDlg *Dlg;
+	AppWnd *App;
 	GList *Lst;
 	
 	// All the input files from the projects that are open
@@ -56,25 +90,20 @@ struct FindSymbolPriv : public GMutex
 
 	GAutoString CTagsExe;
 	GAutoString CTagsIndexFile;
-	GAutoString SearchStr;
 	GArray<char*> ThreadMsg;
+
+	bool TagsDirty;
 
 	GThreadEvent Sync;
 	GAutoPtr<FindSymbolThread> Thread;
 
-	struct Result
-	{
-		GAutoString Symbol, File;
-		int Line;
-	};
-	GArray<Result> Results;
-	bool NoResults;
+	GArray<SearchRequest*> Requests, Done;
 	
-	FindSymbolPriv(FindSymbolDlg *dlg) : GMutex("FindSymbolLock")
+	FindSymbolSystemPriv() : GMutex("FindSymbolLock")
 	{
-		Dlg = dlg;
-		Lst = 0;
-		NoResults = false;
+		App = NULL;
+		Lst = NULL;
+		TagsDirty = false;
 		
 		CTagsExe.Reset(LgiFindFile(CTagsExeName));
 		if (!CTagsExe)
@@ -91,7 +120,7 @@ struct FindSymbolPriv : public GMutex
 	}
 };
 
-FindSymbolThread::FindSymbolThread(FindSymbolPriv *priv) : GThread("FindSymbolThread")
+FindSymbolThread::FindSymbolThread(FindSymbolSystemPriv *priv) : GThread("FindSymbolThread")
 {
 	State = Initializing;
 	d = priv;
@@ -117,13 +146,15 @@ void FindSymbolThread::Msg(const char *s)
 	}
 }
 
-void FindSymbolThread::MatchesToResults(GArray<Symbol*> &Matches)
+void FindSymbolThread::MatchesToResults(SearchRequest *Req, GArray<Symbol*> &Matches)
 {
-	if (State == Working && d->Lock(_FL))
+	if (State == Working &&
+		Req &&
+		d->Lock(_FL))
 	{
 		for (int i=0; i<Matches.Length(); i++)
 		{
-			FindSymbolPriv::Result &r = d->Results.New();
+			FindSymResult &r = Req->Results.New();
 			r.Symbol.Reset(NewStr(Matches[i]->Sym));
 			r.File.Reset(NewStr(Matches[i]->File));
 			r.Line = Matches[i]->Line;
@@ -133,24 +164,24 @@ void FindSymbolThread::MatchesToResults(GArray<Symbol*> &Matches)
 	}
 }
 
-int FindSymbolThread::Main()
+void FindSymbolThread::UpdateTags()
 {
 	// Create index...
 	char tmp[MAX_PATH];
 	if (!LgiGetSystemPath(LSP_TEMP, tmp, sizeof(tmp)))
 	{
 		Msg("Error getting temp folder.");
-		return 0;
+		return;
 	}
 	if (!LgiMakePath(tmp, sizeof(tmp), tmp, "lgiide_ctags_filelist.txt"))
 	{
 		Msg("Error making temp path.");
-		return 0;
+		return;
 	}
 	if (!d->CTagsIndexFile)
 	{
 		Msg("Error: no index file.");
-		return 0;
+		return;
 	}
 
 	char msg[MAX_PATH];
@@ -180,7 +211,6 @@ int FindSymbolThread::Main()
 	
 	// Read in the tags file...
 	Msg("Reading tags file...");
-	GAutoString data;
 	char *end = NULL;
 	
 	GFile in;
@@ -190,14 +220,14 @@ int FindSymbolThread::Main()
 		data.Reset(new char[sz+1]);
 		int r = in.Read(data, sz);
 		if (r < 0)
-			return 0;
+			return;
 		end = data + r;
 		*end = 0;
 		in.Close();
 	}
 
-	// Parse		
-	GArray<Symbol> Syms;
+	// Parse
+	Syms.Length(0);
 	if (data)
 	{
 		for (char *b = data; *b; )
@@ -224,7 +254,10 @@ int FindSymbolThread::Main()
 			b++;
 		}
 	}
+}
 
+int FindSymbolThread::Main()
+{
 	// Start waiting for search terms
 	Msg("Ready.");
 	while (Loop)
@@ -235,28 +268,48 @@ int FindSymbolThread::Main()
 			if (!Loop)
 				break;
 			
-			// Find stuff...
 			State = Working;
-			GAutoString SearchStr;
+			if (d->TagsDirty)
+			{
+				Msg("Updating tags...");
+				UpdateTags();
+				d->TagsDirty = false;
+			}
+
+			SearchRequest *Req = NULL;
 			if (d->Lock(_FL))
 			{
-				SearchStr = d->SearchStr;
+				if (d->Requests.Length())
+				{
+					Req = d->Requests[0];
+					d->Requests.DeleteAt(0, true);
+				}
 				d->Unlock();
 			}
-			
-			Symbol *s = &Syms[0];
-			GArray<Symbol*> Matches;
-			for (int i=0; State == Working && i<Syms.Length(); i++)
-			{
-				if (stristr(s[i].Sym, SearchStr))
+			if (Req)
+			{			
+				Symbol *s = &Syms[0];
+				GArray<Symbol*> Matches;
+				for (int i=0; State == Working && i<Syms.Length(); i++)
 				{
-					Matches.Add(s + i);
+					if (stristr(s[i].Sym, Req->Str))
+					{
+						Matches.Add(s + i);
+					}
 				}
+				if (Matches.Length())
+					MatchesToResults(Req, Matches);
+				else
+					Req->NoResults = true;
+				
+				if (d->Lock(_FL))
+				{
+					d->Done.Add(Req);
+					Req->Finished = true;
+					d->Unlock();
+				}
+				else delete Req;
 			}
-			if (Matches.Length())
-				MatchesToResults(Matches);
-			else
-				d->NoResults = true;
 		}
 	}
 	return 0;
@@ -274,36 +327,14 @@ int AlphaCmp(GListItem *a, GListItem *b, NativeInt d)
 	return stricmp(a->GetText(0), b->GetText(0));
 }
 
-FindSymbolDlg::FindSymbolDlg(AppWnd *app)
+FindSymbolDlg::FindSymbolDlg(FindSymbolSystemPriv *priv, GViewI *parent)
 {
-	d = new FindSymbolPriv(this);
-	SetParent(App = app);
+	d = priv;
+	SetParent(parent);
 	if (LoadFromResource(IDD_FIND_SYMBOL))
 	{
 		MoveToCenter();
 
-		List<IdeProject> Projects;
-		IdeProject *p = App->RootProject();
-		if (p)
-		{
-			char *ProjFile = p->GetFileName();
-			if (ProjFile)
-			{
-				char p[MAX_PATH];
-				if (LgiMakePath(p, sizeof(p), ProjFile, "../ctags.index"))
-				{
-					d->CTagsIndexFile.Reset(NewStr(p));
-				}
-			}
-			
-			Projects.Add(p);
-			p->GetChildProjects(Projects);
-		}
-		for (p = Projects.First(); p; p = Projects.Next())
-		{
-			p->CollectAllSource(d->Files);
-		}
-		
 		GViewI *f;
 		if (GetViewById(IDC_STR, f))
 			f->Focus(true);
@@ -318,14 +349,12 @@ FindSymbolDlg::FindSymbolDlg(AppWnd *app)
 				d->Lst->Insert(i);
 			}
 		}
-		
-		d->Thread.Reset(new FindSymbolThread(d));
 	}
 }
 
 FindSymbolDlg::~FindSymbolDlg()
 {
-	delete d;
+	d->Lst = NULL;
 }
 
 void FindSymbolDlg::OnPulse()
@@ -352,63 +381,74 @@ void FindSymbolDlg::OnPulse()
 			SetCtrlName(IDC_LOG, a);
 		}
 
-		if (d->NoResults)
+		SearchRequest *Req = NULL;
+		if (d->Done.Length())
 		{
-			d->NoResults = false;
-			d->Lst->Empty();
+			Req = d->Done[d->Done.Length()-1];
+			d->Done.DeleteAt(d->Done.Length()-1);
+			d->Done.DeleteObjects();
 		}
-		else if (d->Results.Length())
-		{
-			// Three types of items:
-			// 1) New results that need to go in the list.
-			// 2) Duplicates of existing results.
-			// 3) Old results that are no longer relevant.
-			GHashTbl<char*, GListItem*> Old;
-
-			// Setup previous hash table to track stuff from the last search. This
-			// is used to clear old results that are no longer relevant.
-			List<GListItem> All;
-			d->Lst->GetAll(All);
-			GListItem *i;
-			for (i=All.First(); i; i=All.Next())
-			{
-				i->_UserInt = false;
-				Old.Add(i->GetText(1), i);
-			}
-
-			for (int n=0; n<d->Results.Length(); n++)
-			{
-				FindSymbolPriv::Result &r = d->Results[n];
-				char str[MAX_PATH];
-				sprintf_s(str, sizeof(str), "%s:%i", r.File.Get(), r.Line);				
-				i = Old.Find(str);
-				if (!i)
-				{
-					i = new GListItem;
-					i->SetText(r.Symbol, 0);
-					i->SetText(str, 1);
-					d->Lst->Insert(i);
-				}
-				if (i)
-				{
-					i->_UserInt = true;
-				}
-			}
-			d->Results.Length(0);
-
-			// Thread has finished searching and there are previous entries to remove.
-			d->Lst->GetAll(All);
-			for (i=All.First(); i; i=All.Next())
-			{
-				if (!i->_UserInt)
-					d->Lst->Delete(i);
-			}
-			
-			d->Lst->Sort(AlphaCmp, 0);
-			d->Lst->ResizeColumnsToContent();
-		}
-
 		d->Unlock();
+		if (Req)
+		{
+			if (Req->NoResults)
+			{
+				d->Lst->Empty();
+			}
+			else if (Req->Results.Length())
+			{
+				// Three types of items:
+				// 1) New results that need to go in the list.
+				// 2) Duplicates of existing results.
+				// 3) Old results that are no longer relevant.
+				GHashTbl<char*, GListItem*> Old;
+
+				// Setup previous hash table to track stuff from the last search. This
+				// is used to clear old results that are no longer relevant.
+				List<GListItem> All;
+				d->Lst->GetAll(All);
+				GListItem *i;
+				for (i=All.First(); i; i=All.Next())
+				{
+					i->_UserInt = false;
+					Old.Add(i->GetText(1), i);
+				}
+
+				for (int n=0; n<Req->Results.Length(); n++)
+				{
+					FindSymResult &r = Req->Results[n];
+					char str[MAX_PATH];
+					sprintf_s(str, sizeof(str), "%s:%i", r.File.Get(), r.Line);				
+					i = Old.Find(str);
+					if (!i)
+					{
+						i = new GListItem;
+						i->SetText(r.Symbol, 0);
+						i->SetText(str, 1);
+						d->Lst->Insert(i);
+					}
+					if (i)
+					{
+						i->_UserInt = true;
+					}
+				}
+				Req->Results.Length(0);
+
+				// Thread has finished searching and there are previous entries to remove.
+				d->Lst->GetAll(All);
+				for (i=All.First(); i; i=All.Next())
+				{
+					if (!i->_UserInt)
+						d->Lst->Delete(i);
+				}
+				
+				d->Lst->Sort(AlphaCmp, 0);
+				d->Lst->ResizeColumnsToContent();
+				if (!d->Lst->GetSelected())
+					d->Lst->Value(0);
+				delete Req;
+			}
+		}
 	}
 }
 
@@ -453,7 +493,9 @@ int FindSymbolDlg::OnNotify(GViewI *v, int f)
 					// Setup new search string
 					if (d->Lock(_FL))
 					{
-						d->SearchStr.Reset(NewStr(Str));
+						SearchRequest *Req = new SearchRequest;
+						Req->Str.Reset(NewStr(Str));
+						d->Requests.Add(Req);
 						d->Unlock();
 						d->Sync.Signal();
 					}
@@ -474,8 +516,8 @@ int FindSymbolDlg::OnNotify(GViewI *v, int f)
 						char *colon = strrchr(r, ':');
 						if (colon)
 						{
-							File.Reset(NewStr(r, colon - r));
-							Line = atoi(++colon);
+							Result.File.Reset(NewStr(r, colon - r));
+							Result.Line = atoi(++colon);
 						}
 					}
 				}
@@ -492,4 +534,97 @@ int FindSymbolDlg::OnNotify(GViewI *v, int f)
 	}
 	
 	return GDialog::OnNotify(v, f);
+}
+
+///////////////////////////////////////////////////////////////////////////
+FindSymbolSystem::FindSymbolSystem(AppWnd *app)
+{
+	d = new FindSymbolSystemPriv;
+	d->App = app;
+}
+
+FindSymbolSystem::~FindSymbolSystem()
+{
+	delete d;
+}
+
+void FindSymbolSystem::OnProject()
+{
+	List<IdeProject> Projects;
+	IdeProject *p = d->App->RootProject();
+	if (p)
+	{
+		char *ProjFile = p->GetFileName();
+		if (ProjFile)
+		{
+			char p[MAX_PATH];
+			if (LgiMakePath(p, sizeof(p), ProjFile, "../ctags.index"))
+			{
+				d->CTagsIndexFile.Reset(NewStr(p));
+			}
+		}
+		
+		Projects.Add(p);
+		p->GetChildProjects(Projects);
+	}
+	for (p = Projects.First(); p; p = Projects.Next())
+	{
+		p->CollectAllSource(d->Files);
+	}
+
+	d->TagsDirty = true;
+	if (!d->Thread)
+	{
+		d->Thread.Reset(new FindSymbolThread(d));
+		d->Sync.Signal();
+	}
+}
+
+FindSymResult FindSymbolSystem::OpenSearchDlg(GViewI *Parent)
+{
+	FindSymbolDlg Dlg(d, Parent);
+	Dlg.DoModal();
+	return Dlg.Result;	
+}
+
+void FindSymbolSystem::Search(const char *SearchStr, GArray<FindSymResult> &Results)
+{
+	if (d->Lock(_FL))
+	{
+		LgiAssert(d->Lst == NULL);
+		
+		// Create and add request
+		SearchRequest *Req = new SearchRequest;
+		Req->Str.Reset(NewStr(SearchStr));
+		d->Requests.Add(Req);
+		d->Unlock();
+		d->Sync.Signal();
+		
+		// Wait for it to complete...
+		uint64 Start = LgiCurrentTime();
+		while (LgiCurrentTime() - Start < 3000)
+		{
+			LgiYield();
+			LgiSleep(1);
+			
+			if (d->Lock(_FL))
+			{
+				if (d->Done.HasItem(Req))
+					Start = 0;
+				d->Unlock();
+			}
+		}
+		
+		if (d->Lock(_FL))
+		{
+			if (d->Done.HasItem(Req))
+			{
+				Results = Req->Results;
+				d->Done.Delete(Req);
+				delete Req;
+			}
+			
+			d->Unlock();
+		}
+	}
 }
