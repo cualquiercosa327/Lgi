@@ -6,6 +6,11 @@ struct FindSymResult
 	GAutoString Symbol, File;
 	int Line;
 	
+	FindSymResult(const FindSymResult &c)
+	{
+		*this = c;
+	}
+	
 	FindSymResult(const char *f = NULL, int line = 0)
 	{
 		File.Reset(NewStr(f));
