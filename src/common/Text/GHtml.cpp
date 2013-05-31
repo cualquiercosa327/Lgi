@@ -59,7 +59,6 @@
 static char WordDelim[]	=			".,<>/?[]{}()*&^%$#@!+|\'\"";
 static char16 WhiteW[] =			{' ', '\t', '\r', '\n', 0};
 
-#define SkipWhiteSpace(s)			while (*s && IsWhiteSpace(*s)) s++;
 
 static char DefaultCss[] = {
 "a				{ color: blue; text-decoration: underline; }"
@@ -173,78 +172,13 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////
-static GInfo TagInfo[] =
+static GHashTbl<const char*, GHtmlElemInfo*> TagMap(TAG_LAST * 3, false, NULL, NULL);
+
+static GHtmlElemInfo *GetTagInfo(const char *Tag)
 {
-	{TAG_B,				"b",			0,			TI_NONE},
-	{TAG_I,				"i",			0,			TI_NONE},
-	{TAG_U,				"u",			0,			TI_NONE},
-	{TAG_P,				"p",			0,			TI_BLOCK},
-	{TAG_BR,			"br",			0,			TI_NEVER_CLOSES},
-	{TAG_HR,			"hr",			0,			TI_BLOCK | TI_NEVER_CLOSES},
-	{TAG_OL,			"ol",			0,			TI_BLOCK},
-	{TAG_UL,			"ul",			0,			TI_BLOCK},
-	{TAG_LI,			"li",			"ul",		TI_BLOCK},
-	{TAG_FONT,			"font",			0,			TI_NONE},
-	{TAG_A,				"a",			0,			TI_NONE},
-	{TAG_TABLE,			"table",		0,			TI_BLOCK | TI_NO_TEXT | TI_TABLE},
-	{TAG_TR,			"tr",			"table",	TI_BLOCK | TI_NO_TEXT | TI_TABLE},
-	{TAG_TD,			"td",			"tr",		TI_BLOCK | TI_TABLE},
-	{TAG_HEAD,			"head",			"html",		TI_NONE},
-	{TAG_BODY,			"body",			0,			TI_BLOCK | TI_NO_TEXT},
-	{TAG_IMG,			"img",			0,			TI_NEVER_CLOSES},
-	{TAG_HTML,			"html",			0,			TI_BLOCK | TI_NO_TEXT},
-	{TAG_DIV,			"div",			0,			TI_BLOCK},
-	{TAG_SPAN,			"span",			0,			TI_NONE},
-	{TAG_CENTER,		"center",		0,			TI_NONE},
-	{TAG_META,			"meta",			0,			TI_NONE},
-	{TAG_TBODY,			"tbody",		0,			TI_NONE},
-	{TAG_STYLE,			"style",		0,			TI_NONE},
-	{TAG_SCRIPT,		"script",		0,			TI_NONE},
-	{TAG_STRONG,		"strong",		0,			TI_NONE},
-	{TAG_BLOCKQUOTE,	"blockquote",	0,			TI_BLOCK},
-	{TAG_PRE,			"pre",			0,			TI_BLOCK},
-	{TAG_H1,			"h1",			0,			TI_BLOCK},
-	{TAG_H2,			"h2",			0,			TI_BLOCK},
-	{TAG_H3,			"h3",			0,			TI_BLOCK},
-	{TAG_H4,			"h4",			0,			TI_BLOCK},
-	{TAG_H5,			"h5",			0,			TI_BLOCK},
-	{TAG_H6,			"h6",			0,			TI_BLOCK},
-	{TAG_IFRAME,		"iframe",		0,			TI_BLOCK},
-	{TAG_LINK,			"link",			0,			TI_NONE},
-	{TAG_BIG,			"big",			0,			TI_NONE},
-	{TAG_SELECT,		"select",		0,			TI_NONE},
-	{TAG_INPUT,			"input",		0,			TI_NEVER_CLOSES},
-	{TAG_LABEL,			"label",		0,			TI_NONE},
-	{TAG_FORM,			"form",			0,			TI_NONE},
-	{TAG_UNKNOWN,		0,				0,			TI_NONE},
-};
-
-static GHashTbl<const char*, GInfo*> TagMap(TAG_LAST * 3, false, NULL, NULL);
-static GInfo *UnknownTag = NULL;
-
-static GInfo *GetTagInfo(const char *Tag)
-{
-	GInfo *i;
-
-	if (!Tag)
-		return 0;
-
-    if (TagMap.Length() == 0)
-    {
-	    for (i = TagInfo; i->Tag; i++)
-	    {
-	        TagMap.Add(i->Tag, i);
-
-	        if (i->Id == TAG_TD)
-	            TagMap.Add("th", i);
-	    }
-	    
-	    UnknownTag = i;
-	    LgiAssert(UnknownTag->Id == TAG_UNKNOWN);
-	}
-
-	i = TagMap.Find(Tag);
-	return i ? i : UnknownTag;
+	static GHtmlElemInfo Unknown = {TAG_UNKNOWN, 0, 0, GHtmlElemInfo::TI_NONE};
+	GHtmlElemInfo *i = GHtmlStatic::Inst->TagMap.Find(Tag);
+	return i ? i : &Unknown;
 }
 
 static bool Is8Bit(char *s)
@@ -256,26 +190,6 @@ static bool Is8Bit(char *s)
 		s++;
 	}
 	return false;
-}
-
-static char *ParseName(char *s, char **Name)
-{
-	SkipWhiteSpace(s);
-	char *Start = s;
-	while (*s && (IsAlpha(*s) || strchr("!-:", *s) || IsDigit(*s)))
-	{
-		s++;
-	}
-	if (Name)
-	{
-		int Len = s - Start;
-		if (Len > 0)
-		{
-			*Name = NewStr(Start, Len);
-		}
-	}
-	
-	return s;
 }
 
 static char *ParsePropValue(char *s, char *&Value)
@@ -396,56 +310,6 @@ static bool ParseColour(const char *s, GCss::ColorDef &c)
 	}
 
 	return false;
-}
-
-static char *ParsePropList(char *s, GTag *Obj, bool &Closed)
-{
-	while (s && *s && *s != '>')
-	{
-		while (*s && IsWhiteSpace(*s)) s++;
-		if (*s == '>') break;
-
-		// get name
-		char *Name = 0;
-		char *n = ParseName(s, &Name);		
-		if (*n == '/')
-		{
-			Closed = true;
-		}		
-		if (n == s)
-		{
-			s = ++n;
-		}
-		else
-		{
-			s = n;
-		}
-
-		while (*s && IsWhiteSpace(*s)) s++;
-
-		if (*s == '=')
-		{
-			// get value
-			s++;
-			while (*s && IsWhiteSpace(*s)) s++;
-
-			char *Value = 0;
-			s = ParsePropValue(s, Value);
-
-			if (Value && Name)
-			{
-				Obj->Set(Name,  Value);
-			}
-
-			DeleteArray(Value);
-		}
-
-		DeleteArray(Name);
-	}
-
-	if (*s == '>') s++;
-
-	return s;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -1433,7 +1297,9 @@ void GFlowRegion::Insert(GFlowRect *Tr)
 }
 
 //////////////////////////////////////////////////////////////////////
-GTag::GTag(GHtml *h, GTag *p) : Attr(0, false)
+GTag::GTag(GHtml *h, GTag *p) :
+	GHtmlElement(p),
+	GHtmlParser(h), Attr(0, false)
 {
 	Ctrl = 0;
 	CtrlType = CtrlNone;
@@ -1724,7 +1590,7 @@ void GTag::SetTag(const char *NewTag)
 	if ((Info = GetTagInfo(Tag)))
 	{
 		TagId = Info->Id;
-		Disp = (Info->Flags & TI_BLOCK) ? DispBlock : DispInline;
+		Disp = (Info->Flags & GHtmlElemInfo::TI_BLOCK) ? GCss::DispBlock : GCss::DispInline;
 		SetStyle();
 	}
 }
@@ -3812,31 +3678,6 @@ void GHtml::CloseTag(GTag *t)
 	OpenTags.Delete(t);
 }
 
-static void SkipNonDisplay(char *&s)
-{
-	while (*s)
-	{
-		SkipWhiteSpace(s);
-
-		if (s[0] == '<' &&
-			s[1] == '!' &&
-			s[2] == '-' &&
-			s[3] == '-')
-		{
-			s += 4;
-			char *e = strstr(s, "-->");
-			if (e)
-				s = e + 3;
-			else
-			{
-				s += strlen(s);
-				break;
-			}
-		}
-		else break;
-	}
-}
-
 char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 {
 	#if CRASH_TRACE
@@ -4027,10 +3868,11 @@ char *GTag::ParseHtml(char *Doc, int Depth, bool InPreTag, bool *BackOut)
 					}
 					
 					Info = GetTagInfo(Tag);
+					LgiAssert(Info);
 					if (Info)
 					{
 						TagId = Info->Id;
-						Disp = TestFlag(Info->Flags, TI_BLOCK) || (Tag && Tag[0] == '!') ? DispBlock : DispInline;
+						Disp = TestFlag(Info->Flags, GHtmlElemInfo::TI_BLOCK) || (Tag && Tag[0] == '!') ? DispBlock : DispInline;
 						if (TagId == TAG_PRE)
 						{
 							InPreTag = true;
@@ -6747,7 +6589,8 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 GHtml::GHtml(int id, int x, int y, int cx, int cy, GDocumentEnv *e)
 	:
 	GDocView(e),
-	ResObject(Res_Custom)
+	ResObject(Res_Custom),
+	GHtmlParser(this)
 {
 	d = new GHtmlPrivate;
 	SetReadOnly(true);

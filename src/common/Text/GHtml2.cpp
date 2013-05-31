@@ -260,30 +260,6 @@ static char *ParseName(char *s, char **Name)
 	return s;
 }
 
-static char *ParsePropValue(char *s, char *&Value)
-{
-	Value = 0;
-	if (s)
-	{
-		if (strchr("\"\'", *s))
-		{
-			char Delim = *s++;
-			char *Start = s;
-			while (*s && *s != Delim) s++;
-			Value = NewStr(Start, s - Start);
-			s++;
-		}
-		else
-		{
-			char *Start = s;
-			while (*s && !IsWhiteSpace(*s) && *s != '>') s++;
-			Value = NewStr(Start, s - Start);
-		}
-	}
-
-	return s;
-}
-
 static bool ParseColour(const char *s, GCss::ColorDef &c)
 {
 	if (s)

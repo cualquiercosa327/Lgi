@@ -1,5 +1,51 @@
 #include "Lgi.h"
-#include "GHtml.h"
+#include "GHtmlStatic.h"
+#include "GDocView.h"
+
+static GHtmlElemInfo TagInfo[] =
+{
+	{TAG_B,				"b",			0,			GHtmlElemInfo::TI_NONE},
+	{TAG_I,				"i",			0,			GHtmlElemInfo::TI_NONE},
+	{TAG_U,				"u",			0,			GHtmlElemInfo::TI_NONE},
+	{TAG_P,				"p",			0,			GHtmlElemInfo::TI_BLOCK},
+	{TAG_BR,			"br",			0,			GHtmlElemInfo::TI_NEVER_CLOSES},
+	{TAG_HR,			"hr",			0,			GHtmlElemInfo::TI_BLOCK | GHtmlElemInfo::TI_NEVER_CLOSES},
+	{TAG_OL,			"ol",			0,			GHtmlElemInfo::TI_BLOCK},
+	{TAG_UL,			"ul",			0,			GHtmlElemInfo::TI_BLOCK},
+	{TAG_LI,			"li",			"ul",		GHtmlElemInfo::TI_BLOCK},
+	{TAG_FONT,			"font",			0,			GHtmlElemInfo::TI_NONE},
+	{TAG_A,				"a",			0,			GHtmlElemInfo::TI_NONE},
+	{TAG_TABLE,			"table",		0,			GHtmlElemInfo::TI_BLOCK | GHtmlElemInfo::TI_NO_TEXT | GHtmlElemInfo::TI_TABLE},
+	{TAG_TR,			"tr",			"table",	GHtmlElemInfo::TI_BLOCK | GHtmlElemInfo::TI_NO_TEXT | GHtmlElemInfo::TI_TABLE},
+	{TAG_TD,			"td",			"tr",		GHtmlElemInfo::TI_BLOCK | GHtmlElemInfo::TI_TABLE},
+	{TAG_HEAD,			"head",			"html",		GHtmlElemInfo::TI_NONE},
+	{TAG_BODY,			"body",			0,			GHtmlElemInfo::TI_BLOCK | GHtmlElemInfo::TI_NO_TEXT},
+	{TAG_IMG,			"img",			0,			GHtmlElemInfo::TI_NEVER_CLOSES},
+	{TAG_HTML,			"html",			0,			GHtmlElemInfo::TI_BLOCK | GHtmlElemInfo::TI_NO_TEXT},
+	{TAG_DIV,			"div",			0,			GHtmlElemInfo::TI_BLOCK},
+	{TAG_SPAN,			"span",			0,			GHtmlElemInfo::TI_NONE},
+	{TAG_CENTER,		"center",		0,			GHtmlElemInfo::TI_NONE},
+	{TAG_META,			"meta",			0,			GHtmlElemInfo::TI_NONE},
+	{TAG_TBODY,			"tbody",		0,			GHtmlElemInfo::TI_NONE},
+	{TAG_STYLE,			"style",		0,			GHtmlElemInfo::TI_NONE},
+	{TAG_SCRIPT,		"script",		0,			GHtmlElemInfo::TI_NONE},
+	{TAG_STRONG,		"strong",		0,			GHtmlElemInfo::TI_NONE},
+	{TAG_BLOCKQUOTE,	"blockquote",	0,			GHtmlElemInfo::TI_BLOCK},
+	{TAG_PRE,			"pre",			0,			GHtmlElemInfo::TI_BLOCK},
+	{TAG_H1,			"h1",			0,			GHtmlElemInfo::TI_BLOCK},
+	{TAG_H2,			"h2",			0,			GHtmlElemInfo::TI_BLOCK},
+	{TAG_H3,			"h3",			0,			GHtmlElemInfo::TI_BLOCK},
+	{TAG_H4,			"h4",			0,			GHtmlElemInfo::TI_BLOCK},
+	{TAG_H5,			"h5",			0,			GHtmlElemInfo::TI_BLOCK},
+	{TAG_H6,			"h6",			0,			GHtmlElemInfo::TI_BLOCK},
+	{TAG_IFRAME,		"iframe",		0,			GHtmlElemInfo::TI_BLOCK},
+	{TAG_LINK,			"link",			0,			GHtmlElemInfo::TI_NONE},
+	{TAG_BIG,			"big",			0,			GHtmlElemInfo::TI_NONE},
+	{TAG_SELECT,		"select",		0,			GHtmlElemInfo::TI_NONE},
+	{TAG_INPUT,			"input",		0,			GHtmlElemInfo::TI_NEVER_CLOSES},
+	{TAG_LABEL,			"label",		0,			GHtmlElemInfo::TI_NONE},
+	{TAG_FORM,			"form",			0,			GHtmlElemInfo::TI_NONE},
+};
 
 char16 GHtmlListItem[] = { 0x2022, ' ', 0 };
 
@@ -20,7 +66,8 @@ GHtmlStatic *GHtmlStatic::Inst = 0;
 GHtmlStatic::GHtmlStatic() :
 	VarMap(8, true),
 	StyleMap(8, false),
-	ColourMap(8, false, 0, -1)
+	ColourMap(8, false, 0, -1),
+	TagMap(CountOf(TagInfo) * 3, false, NULL, NULL)
 {
 	Refs = 0;
 
@@ -489,9 +536,15 @@ GHtmlStatic::GHtmlStatic() :
 	DefColour(Yellow, Rgb24(0xFF, 0xFF, 0x00));
 	DefColour(YellowGreen, Rgb24(0x9A, 0xCD, 0x32));
 
+	// Tag info hash
+	for (GHtmlElemInfo *t = TagInfo; t->Tag; t++)
+	{
+		TagMap.Add(t->Tag, t);
+	}
 }
 
 GHtmlStatic::~GHtmlStatic()
 {
 }
 
+/////////////////////////////////////////////////////////////////////////////

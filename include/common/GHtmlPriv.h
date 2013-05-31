@@ -4,72 +4,10 @@
 #include "GCss.h"
 #include "GToken.h"
 #include "GUtf8.h"
+#include "GHtmlParser.h"
 
 namespace Html1
 {
-
-//////////////////////////////////////////////////////////////////////////////////
-// Enums                                                                        //
-//////////////////////////////////////////////////////////////////////////////////
-enum HtmlTag
-{
-	CONTENT,
-	CONDITIONAL,
-	ROOT,
-	TAG_UNKNOWN,
-	TAG_HTML,
-	TAG_HEAD,
-	TAG_BODY,
-	TAG_B,
-	TAG_I,
-	TAG_U,
-	TAG_P,
-	TAG_BR,
-	TAG_UL,
-	TAG_OL,
-	TAG_LI,
-	TAG_FONT,
-	TAG_A,
-	TAG_TABLE,
-		TAG_TR,
-		TAG_TD,
-	TAG_IMG,
-	TAG_DIV,
-	TAG_SPAN,
-	TAG_CENTER,
-	TAG_META,
-	TAG_TBODY,
-	TAG_STYLE,
-	TAG_SCRIPT,
-	TAG_STRONG,
-	TAG_BLOCKQUOTE,
-	TAG_PRE,
-	TAG_H1,
-	TAG_H2,
-	TAG_H3,
-	TAG_H4,
-	TAG_H5,
-	TAG_H6,
-	TAG_HR,
-	TAG_IFRAME,
-	TAG_LINK,
-	TAG_BIG,
-	TAG_INPUT,
-	TAG_SELECT,
-	TAG_LABEL,
-	TAG_FORM,
-	TAG_NOSCRIPT,
-	TAG_LAST
-};
-
-enum TagInfoFlags
-{
-	TI_NONE			= 0x00,
-	TI_NEVER_CLOSES	= 0x01,
-	TI_NO_TEXT		= 0x02,
-	TI_BLOCK		= 0x04,
-	TI_TABLE		= 0x08,
-};
 
 //////////////////////////////////////////////////////////////////////////////////
 // Structs & Classes                                                            //
@@ -99,19 +37,6 @@ struct GTagHit
 	}
 	
 	void Dump(const char *Desc);
-};
-
-struct GInfo
-{
-public:
-	HtmlTag Id;
-	const char *Tag;
-	const char *ReattachTo;
-	int Flags;
-
-	bool NeverCloses()	{ return TestFlag(Flags, TI_NEVER_CLOSES); }
-	bool NoText()		{ return TestFlag(Flags, TI_NO_TEXT); }
-	bool Block()		{ return TestFlag(Flags, TI_BLOCK); }
 };
 
 class GLength
@@ -202,7 +127,7 @@ public:
 	void Dump();
 };
 
-class GTag : public GDom, public GCss
+class GTag : public GHtmlElement, public GHtmlParser
 {
 public:
 	enum HtmlControlType
@@ -362,7 +287,6 @@ public:
 	const char *HtmlId;
 
 	GAutoString Condition;
-	GInfo *Info;
 	int TipId;
 	bool WasClosed;
 	DisplayType Disp;

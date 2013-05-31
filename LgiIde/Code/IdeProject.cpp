@@ -2028,10 +2028,10 @@ void IdeCommon::CollectAllSubProjects(List<IdeProject> &c)
 {
 	ForAllProjectNodes(p)
 	{
-		if (p->GetType() == NodeDependancy &&
-			p->GetDep())
+		if (p->GetType() == NodeDependancy)
 		{
-			c.Insert(p->GetDep());
+			if (p->GetDep())
+				c.Insert(p->GetDep());
 		}
 		
 		p->CollectAllSubProjects(c);

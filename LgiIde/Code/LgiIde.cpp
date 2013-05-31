@@ -1306,7 +1306,8 @@ IdeProject *AppWnd::OpenProject(char *FileName, IdeProject *ParentProj, bool Cre
 			}
 
 			GetTree()->Focus(true);
-			d->FindSym.OnProject();
+			if (!ParentProj)
+				d->FindSym.OnProject();
 		}
 	}
 

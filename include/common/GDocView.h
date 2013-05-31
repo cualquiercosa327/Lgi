@@ -363,6 +363,8 @@ public:
 	virtual void OnEnter(GKey &k) {}
 	/// Called when the user clicks a URL
 	virtual void OnUrl(char *Url) {}
+	/// Called to add styling to the document
+	virtual void OnAddStyle(const char *MimeType, const char *Styles) {}
 
 	///////////////////////////////////////////////////////////////////////
 

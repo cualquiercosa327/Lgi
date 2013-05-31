@@ -5,6 +5,7 @@
 
 #include "GDocView.h"
 #include "GHtmlStatic.h"
+#include "GHtmlParser.h"
 
 namespace Html1
 {
@@ -27,7 +28,8 @@ class GFontCache;
 /// Retreive any selected content through GHtml2::GetSelection.
 class GHtml :
 	public GDocView,
-	public ResObject
+	public ResObject,
+	public GHtmlParser
 {
 	friend class GTag;
 	friend class GFlowRegion;

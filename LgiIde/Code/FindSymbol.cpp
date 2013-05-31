@@ -16,6 +16,7 @@ const char *CTagsExeName = "ctags"
 	".exe"
 	#endif
 	;
+#define TEMP_FILE_NAME		"lgiide_ctags_filelist.txt"
 
 class FindSymbolDlg : public GDialog
 {
@@ -173,7 +174,7 @@ void FindSymbolThread::UpdateTags()
 		Msg("Error getting temp folder.");
 		return;
 	}
-	if (!LgiMakePath(tmp, sizeof(tmp), tmp, "lgiide_ctags_filelist.txt"))
+	if (!LgiMakePath(tmp, sizeof(tmp), tmp, TEMP_FILE_NAME))
 	{
 		Msg("Error making temp path.");
 		return;
