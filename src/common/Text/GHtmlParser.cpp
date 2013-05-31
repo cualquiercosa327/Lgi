@@ -273,7 +273,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 									char *p = Result;
 									do
 									{
-										GHtmlElement *c = new GHtmlElement(Elem);
+										GHtmlElement *c = CreateElement(Elem);
 										if (c)
 										{
 											p = ParseHtml(c, p, Depth + 1, InPreTag);
@@ -478,7 +478,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 												int r = j->Stream->Read(a, Len);
 												a[r] = 0;
 												
-												GHtmlElement *Child = new GHtmlElement(Elem);
+												GHtmlElement *Child = CreateElement(Elem);
 												if (Child)
 												{
 													bool BackOut = false;
@@ -494,7 +494,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 						}
 					}
 					
-					// SetStyle();
+					Elem->SetStyle();
 
 					if (Elem->TagId == TAG_STYLE)
 					{
@@ -594,7 +594,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 				{
 					// Child tag
 					DoChildTag:
-					GHtmlElement *c = new GHtmlElement(Elem);
+					GHtmlElement *c = CreateElement(Elem);
 					if (c)
 					{
 						bool BackOut = false;
@@ -774,7 +774,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 							{
 								Elem->Text = Cur;
 							}
-							else if ((Child = new GHtmlElement(Elem)))
+							else if ((Child = CreateElement(Elem)))
 							{
 								Child->Text = Cur;
 							}
@@ -785,7 +785,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 						if (Cls == TxtEmoji)
 						{
 							// Emit the emoji image
-							GHtmlElement *img = new GHtmlElement(Elem);
+							GHtmlElement *img = CreateElement(Elem);
 							if (img)
 							{
 								img->Tag.Reset(NewStr("img"));
@@ -809,7 +809,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 						if (Cls == TxtEol)
 						{
 							// Emit the <br> tag
-							GHtmlElement *br = new GHtmlElement(Elem);
+							GHtmlElement *br = CreateElement(Elem);
 							if (br)
 							{
 								br->Tag.Reset(NewStr("br"));
@@ -1017,3 +1017,23 @@ char16 *GHtmlParser::CleanText(const char *s, int Len, bool ConversionAllowed, b
 	return t;
 }
 
+void GHtmlParser::_TraceOpenTags()
+{
+	GStringPipe p;
+	for (GHtmlElement *t=OpenTags.First(); t; t=OpenTags.Next())
+	{
+		p.Print(", %s", t->Tag);
+		
+		GVariant Id;
+		if (t->GetValue("id", Id))
+		{
+			p.Print("#%s", Id.Str());
+		}
+	}
+	char *s = p.NewStr();
+	if (s)
+	{
+		LgiTrace("Open tags = '%s'\n", s + 2);
+		DeleteArray(s);
+	}
+}

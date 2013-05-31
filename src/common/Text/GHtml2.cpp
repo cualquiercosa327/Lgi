@@ -153,54 +153,6 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////
-static GInfo TagInfo[] =
-{
-	{TAG_B,				"b",			0,			TI_NONE},
-	{TAG_I,				"i",			0,			TI_NONE},
-	{TAG_U,				"u",			0,			TI_NONE},
-	{TAG_P,				"p",			0,			TI_BLOCK},
-	{TAG_BR,			"br",			0,			TI_NEVER_CLOSES},
-	{TAG_HR,			"hr",			0,			TI_BLOCK | TI_NEVER_CLOSES},
-	{TAG_OL,			"ol",			0,			TI_BLOCK},
-	{TAG_UL,			"ul",			0,			TI_BLOCK},
-	{TAG_LI,			"li",			"ul",		TI_BLOCK},
-	{TAG_FONT,			"font",			0,			TI_NONE},
-	{TAG_A,				"a",			0,			TI_NONE},
-	{TAG_TABLE,			"table",		0,			TI_BLOCK | TI_NO_TEXT | TI_TABLE},
-	{TAG_TR,			"tr",			"table",	TI_BLOCK | TI_NO_TEXT | TI_TABLE},
-	{TAG_TD,			"td",			"tr",		TI_BLOCK | TI_TABLE},
-	{TAG_HEAD,			"head",			"html",		TI_NONE},
-	{TAG_BODY,			"body",			0,			TI_BLOCK | TI_NO_TEXT},
-	{TAG_IMG,			"img",			0,			TI_NEVER_CLOSES},
-	{TAG_HTML,			"html",			0,			TI_BLOCK | TI_NO_TEXT},
-	{TAG_DIV,			"div",			0,			TI_BLOCK},
-	{TAG_SPAN,			"span",			0,			TI_NONE},
-	{TAG_CENTER,		"center",		0,			TI_NONE},
-	{TAG_META,			"meta",			0,			TI_NONE},
-	{TAG_TBODY,			"tbody",		0,			TI_NONE},
-	{TAG_STYLE,			"style",		0,			TI_NONE},
-	{TAG_SCRIPT,		"script",		0,			TI_NONE},
-	{TAG_STRONG,		"strong",		0,			TI_NONE},
-	{TAG_BLOCKQUOTE,	"blockquote",	0,			TI_BLOCK},
-	{TAG_PRE,			"pre",			0,			TI_BLOCK},
-	{TAG_H1,			"h1",			0,			TI_BLOCK},
-	{TAG_H2,			"h2",			0,			TI_BLOCK},
-	{TAG_H3,			"h3",			0,			TI_BLOCK},
-	{TAG_H4,			"h4",			0,			TI_BLOCK},
-	{TAG_H5,			"h5",			0,			TI_BLOCK},
-	{TAG_H6,			"h6",			0,			TI_BLOCK},
-	{TAG_IFRAME,		"iframe",		0,			TI_BLOCK},
-	{TAG_LINK,			"link",			0,			TI_NONE},
-	{TAG_BIG,			"big",			0,			TI_NONE},
-	{TAG_SELECT,		"select",		0,			TI_NONE},
-	{TAG_INPUT,			"input",		0,			TI_NEVER_CLOSES},
-	{TAG_BUTTON,		"button",		0,			TI_NEVER_CLOSES},
-	{TAG_LABEL,			"label",		0,			TI_NONE},
-	{TAG_FORM,			"form",			0,			TI_NONE},
-	{TAG_NOSCRIPT,		"noscript",		0,			TI_NONE},
-	{TAG_UNKNOWN,		0,				0,			TI_NONE},
-};
-
 static GHashTbl<const char*, GInfo*> TagMap(TAG_LAST * 3, false, NULL, NULL);
 static GInfo *UnknownTag = NULL;
 

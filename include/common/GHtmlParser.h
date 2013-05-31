@@ -22,9 +22,10 @@ protected:
 	char *ParseName(char *s, char **Name);
 	char *ParsePropList(char *s, GHtmlElement *Obj, bool &Closed);
 	void SkipNonDisplay(char *&s);
-	GHtmlElement *GetOpenTag(const char *Tag);
 	char *NextTag(char *s);
 	char16 *CleanText(const char *s, int Len, bool ConversionAllowed, bool KeepWhiteSpace);
+	GHtmlElement *GetOpenTag(const char *Tag);
+	void _TraceOpenTags();
 
 public:
 	GHtmlParser(GDocView *view)
@@ -32,8 +33,9 @@ public:
 		View = view;
 	}
 
-	char *ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPreTag, bool *BackOut = NULL);	
+	char *ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPreTag = false, bool *BackOut = NULL);	
 	GHtmlElemInfo *GetTagInfo(const char *Tag);
+	virtual GHtmlElement *CreateElement(GHtmlElement *Parent) = 0;
 };
 
 #endif // _GHTMLPARSER_H_

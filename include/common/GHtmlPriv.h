@@ -127,7 +127,7 @@ public:
 	void Dump();
 };
 
-class GTag : public GHtmlElement, public GHtmlParser
+class GTag : public GHtmlElement
 {
 public:
 	enum HtmlControlType
@@ -330,7 +330,7 @@ public:
 	int Selection; // index into the text of the selection edge
 	GArea TextPos;
 
-	GTag(GHtml *h, GTag *p);
+	GTag(GHtml *h, GHtmlElement *p);
 	~GTag();
 
 	// Events
@@ -350,7 +350,6 @@ public:
 	int GetTextStart();
 	GAutoWString DumpW();
 	char16 *CleanText(const char *s, int len, bool ConversionAllowed = true, bool KeepWhiteSpace = false);
-	char *ParseHtml(char *Doc, int Depth, bool InPreTag = false, bool *BackOut = 0);
 	char *ParseText(char *Doc);
 	bool ConvertToText(TextConvertState &State);
 	

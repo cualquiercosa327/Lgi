@@ -188,6 +188,8 @@ public:
 			Parent = NULL;
 		}
 	}
+
+	virtual void SetStyle() {}
 };
 
 #endif

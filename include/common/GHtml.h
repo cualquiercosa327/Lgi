@@ -42,7 +42,6 @@ protected:
 	GTag				*Tag;				// Tree root
 	GTag				*Cursor;			// Cursor location..
 	GTag				*Selection;			// Edge of selection or NULL
-	List<GTag>			OpenTags;
 	char				*Source;
 	char				*DocCharSet;
 	char				IsHtml;
@@ -66,7 +65,6 @@ protected:
 	void _New();
 	void _Delete();
 	GFont *DefFont();
-	GTag *GetOpenTag(char *Tag);
 	void CloseTag(GTag *t);
 	void Parse();
 	void AddCss(char *Css);
@@ -144,6 +142,7 @@ public:
 	const char *GetMimeType() { return "text/html"; }
 	void OnContent(GDocumentEnv::LoadJob *Res);
 	bool GotoAnchor(char *Name);
+	GHtmlElement *CreateElement(GHtmlElement *Parent);
 
 	// Javascript handlers
 	GDom *getElementById(char *Id);
