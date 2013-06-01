@@ -18,7 +18,7 @@
 #include "GCombo.h"
 #include "GdcTools.h"
 
-#define DEBUG_TABLE_LAYOUT			0
+#define DEBUG_TABLE_LAYOUT			1
 #define LUIS_DEBUG					0
 #define CRASH_TRACE					0
 #ifdef MAC
@@ -130,16 +130,9 @@ public:
 	GAutoWString FindText;
 	bool MatchCase;
 	
-	// This UID is used to match data load events with their source document.
-	// Sometimes data will arrive after the document that asked for it has
-	// already been unloaded. So by assigned each document an UID we can check
-	// the job UID against it and discard old data.
-	uint32 DocumentUid;
-
-	GHtmlPrivate()
+	GHtmlPrivate() : Loading(0, false)
 	{
 		IsParsing = false;
-		DocumentUid = 0;
 		LinkDoubleClick = true;
 		WordSelectMode = false;
 		NextCtrlId = 2000;
@@ -170,147 +163,6 @@ public:
 };
 
 };
-
-//////////////////////////////////////////////////////////////////////
-static GHashTbl<const char*, GHtmlElemInfo*> TagMap(TAG_LAST * 3, false, NULL, NULL);
-
-static GHtmlElemInfo *GetTagInfo(const char *Tag)
-{
-	static GHtmlElemInfo Unknown = {TAG_UNKNOWN, 0, 0, GHtmlElemInfo::TI_NONE};
-	GHtmlElemInfo *i = GHtmlStatic::Inst->TagMap.Find(Tag);
-	return i ? i : &Unknown;
-}
-
-static bool Is8Bit(char *s)
-{
-	while (*s)
-	{
-		if (((uchar)*s) & 0x80)
-			return true;
-		s++;
-	}
-	return false;
-}
-
-static char *ParsePropValue(char *s, char *&Value)
-{
-	Value = 0;
-	if (s)
-	{
-		if (strchr("\"\'", *s))
-		{
-			char Delim = *s++;
-			char *Start = s;
-			while (*s && *s != Delim) s++;
-			Value = NewStr(Start, s - Start);
-			s++;
-		}
-		else
-		{
-			char *Start = s;
-			while (*s && !IsWhiteSpace(*s) && *s != '>') s++;
-			Value = NewStr(Start, s - Start);
-		}
-	}
-
-	return s;
-}
-
-static bool ParseColour(const char *s, GCss::ColorDef &c)
-{
-	if (s)
-	{
-		int m;
-
-		if (*s == '#')
-		{
-			s++;
-
-			ParseHexColour:
-			int i = htoi(s);
-			int l = strlen(s);
-			if (l == 3)
-			{
-				int r = i >> 8;
-				int g = (i >> 4) & 0xf;
-				int b = i & 0xf;
-
-				c.Type = GCss::ColorRgb;
-				c.Rgb32 = Rgb32(r | (r<<4), g | (g << 4), b | (b << 4));
-			}
-			else if (l == 4)
-			{
-				int r = (i >> 12) & 0xf;
-				int g = (i >> 8) & 0xf;
-				int b = (i >> 4) & 0xf;
-				int a = i & 0xf;
-				c.Type = GCss::ColorRgb;
-				c.Rgb32 = Rgba32(	r | (r <<4 ),
-									g | (g << 4),
-									b | (b << 4),
-									a | (a << 4));
-			}
-			else if (l == 6)
-			{
-				c.Type = GCss::ColorRgb;
-				c.Rgb32 = Rgb32(i >> 16, (i >> 8) & 0xff, i & 0xff);
-			}
-			else if (l == 8)
-			{
-				c.Type = GCss::ColorRgb;
-				c.Rgb32 = Rgba32(i >> 24, (i >> 16) & 0xff, (i >> 8) & 0xff, i & 0xff);
-			}
-			else
-			{
-				return false;
-			}
-			
-			return true;
-		}
-		else if ((m = GHtmlStatic::Inst->ColourMap.Find(s)) >= 0)
-		{
-			c.Type = GCss::ColorRgb;
-			c.Rgb32 = Rgb24To32(m);
-			return true;
-		}
-		else if (!strnicmp(s, "rgb", 3))
-		{
-			s += 3;
-			SkipWhiteSpace(s);
-			if (*s == '(')
-			{
-				s++;
-				GArray<uint8> Col;
-				while (Col.Length() < 3)
-				{
-					SkipWhiteSpace(s);
-					if (IsDigit(*s))
-					{
-						Col.Add(atoi(s));
-						while (*s && IsDigit(*s)) s++;
-						SkipWhiteSpace(s);
-						if (*s == ',') s++;
-					}
-					else break;
-				}
-
-				SkipWhiteSpace(s);
-				if (*s == ')' && Col.Length() == 3)
-				{
-					c.Type = GCss::ColorRgb;
-					c.Rgb32 = Rgb32(Col[0], Col[1], Col[2]);
-					return true;
-				}
-			}
-		}
-		else if (IsDigit(*s) || (tolower(*s) >= 'a' && tolower(*s) <= 'f'))
-		{
-			goto ParseHexColour;
-		}
-	}
-
-	return false;
-}
 
 //////////////////////////////////////////////////////////////////////
 namespace Html1 {
@@ -1019,7 +871,7 @@ void GLine::Set(char *s)
 			GHtmlStatic::Inst->ColourMap.Find(c)
 		)
 		{
-			ParseColour(c, Colour);
+			GHtmlParser::ParseColour(c, Colour);
 		}
 		else if (strnicmp(c, "rgb(", 4) == 0)
 		{
@@ -1030,7 +882,7 @@ void GLine::Set(char *s)
 			{
 				strcat(Buf, c);
 			}
-			ParseColour(Buf, Colour);
+			GHtmlParser::ParseColour(Buf, Colour);
 		}
 		else if (IsDigit(*c))
 		{
@@ -1121,7 +973,7 @@ GRect GTag::GetRect(bool Client)
 	GRect r(Pos.x, Pos.y, Pos.x + Size.x - 1, Pos.y + Size.y - 1);
 	if (!Client)
 	{
-		for (GTag *p = Parent; p; p=p->Parent)
+		for (GTag *p = ToTag(Parent); p; p=ToTag(p->Parent))
 		{
 			r.Offset(p->Pos.x, p->Pos.y);
 		}
@@ -1131,7 +983,7 @@ GRect GTag::GetRect(bool Client)
 
 GCss::LengthType GTag::GetAlign(bool x)
 {
-	for (GTag *t = this; t; t = t->Parent)
+	for (GTag *t = this; t; t = ToTag(t->Parent))
 	{
 		GCss::Len l;
 		
@@ -1157,51 +1009,6 @@ GCss::LengthType GTag::GetAlign(bool x)
 	}
 	
 	return LenInherit;
-}
-
-//////////////////////////////////////////////////////////////////////
-bool GTag::HasChild(GTag *c)
-{
-	List<GTag>::I it = Tags.Start();
-	for (GTag *t = *it; t; t = *++it)
-	{
-		if (t == c || t->HasChild(c))
-			return true;
-	}
-	return false;
-}
-
-bool GTag::Attach(GTag *Child, int Idx)
-{
-	if (TagId == CONTENT)
-	{
-		LgiAssert(!"Can't nest content tags.");
-		return false;
-	}
-
-	if (!Child)
-	{
-		LgiAssert(!"Can't insert NULL tag.");
-		return false;
-	}
-
-	Child->Detach();
-	Child->Parent = this;
-	if (!Tags.HasItem(Child))
-	{
-		Tags.Insert(Child, Idx);
-	}
-
-	return true;
-}
-
-void GTag::Detach()
-{
-	if (Parent)
-	{
-		Parent->Tags.Delete(this);
-		Parent = 0;
-	}
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -1298,18 +1105,17 @@ void GFlowRegion::Insert(GFlowRect *Tr)
 
 //////////////////////////////////////////////////////////////////////
 GTag::GTag(GHtml *h, GHtmlElement *p) :
-	GHtmlElement(p)
+	GHtmlElement(p),
+	Attr(8, false, NULL, NULL)
 {
 	Ctrl = 0;
 	CtrlType = CtrlNone;
 	TipId = 0;
-	Disp = DispInline;
+	Display(DispInline);
 	Html = h;
-	Parent = dynamic_cast<GTag*>(p);
+	Parent = ToTag(p);
 	if (Parent)
-	{
-		Parent->Tags.Insert(this);
-	}
+		Parent->Children.Add(this);
 	
 	ImageResized = false;
 	XAlign = GCss::LenInherit;
@@ -1317,11 +1123,9 @@ GTag::GTag(GHtml *h, GHtmlElement *p) :
 	Selection = -1;
 	Font = 0;
 	LineHeightCache = -1;
-	Tag = 0;
 	HtmlId = NULL;
 	// TableBorder = 0;
 	Cells = 0;
-	WasClosed = false;
 	TagId = CONTENT;
 	Info = 0;
 	MinContent = 0;
@@ -1349,10 +1153,8 @@ GTag::~GTag()
 	}
 
 	DeleteObj(Ctrl);
-	Tags.DeleteObjects();
 	Attr.DeleteArrays();
 
-	DeleteArray(Tag);
 	DeleteObj(Cells);
 }
 
@@ -1400,7 +1202,7 @@ bool GTag::SetVariant(const char *Name, GVariant &Value, char *Array)
 	if (!stricmp(Name, "innerHTML"))
 	{
 		// Clear out existing tags..
-		Tags.DeleteObjects();
+		Children.DeleteObjects();
 	
 		char *Doc = Value.CastString();
 		if (Doc)
@@ -1506,7 +1308,7 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 
 	if (Tag)
 	{
-		if (IsBlock(Disp))
+		if (IsBlock(Display()))
 		{
 			p.Print("\n%s<%s", Tabs, Tag);
 		}
@@ -1531,7 +1333,7 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 		p.Print(" style=\"%s\"", s.Get());
 	}
 
-	if (Tags.Length())
+	if (Children.Length())
 	{
 		if (Tag)
 		{
@@ -1539,16 +1341,17 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 			TextToStream(p, Text());
 		}
 
-		bool Last = IsBlock(Disp);
-		for (GTag *c = Tags.First(); c; c = Tags.Next())
+		bool Last = IsBlock(Display());
+		for (int i=0; i<Children.Length(); i++)
 		{
+			GTag *c = ToTag(Children[i]);
 			c->CreateSource(p, Parent ? Depth+1 : 0, Last);
-			Last = IsBlock(c->Disp);
+			Last = IsBlock(c->Display());
 		}
 
 		if (Tag)
 		{
-			if (IsBlock(Disp))
+			if (IsBlock(Display()))
 			{
 				p.Print("\n%s</%s>\n", Tabs, Tag);
 			}
@@ -1583,20 +1386,19 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 
 void GTag::SetTag(const char *NewTag)
 {
-	DeleteArray(Tag);
-	Tag = NewStr(NewTag);
+	Tag.Reset(NewStr(NewTag));
 
-	if ((Info = GetTagInfo(Tag)))
+	if ((Info = Html->GetTagInfo(Tag)))
 	{
 		TagId = Info->Id;
-		Disp = (Info->Flags & GHtmlElemInfo::TI_BLOCK) ? GCss::DispBlock : GCss::DispInline;
+		Display(Info->Flags & GHtmlElemInfo::TI_BLOCK ? GCss::DispBlock : GCss::DispInline);
 		SetStyle();
 	}
 }
 
 COLOUR GTag::_Colour(bool f)
 {
-	for (GTag *t = this; t; t = t->Parent)
+	for (GTag *t = this; t; t = ToTag(t->Parent))
 	{
 		ColorDef c = f ? t->Color() : t->BackgroundColor();
 		if (c.Type != ColorInherit)
@@ -1685,8 +1487,9 @@ void GTag::CopyClipboard(GBytePipe &p, bool &InSelection)
 		}
 	}
 
-	for (GTag *c = Tags.First(); c; c = Tags.Next())
+	for (int i=0; i<Children.Length(); i++)
 	{
+		GTag *c = ToTag(Children[i]);
 		c->CopyClipboard(p, InSelection);
 	}
 }
@@ -1749,17 +1552,18 @@ void GTag::_Dump(GStringPipe &Buf, int Depth)
 			HtmlId ? HtmlId : (char*)"",
 			WasClosed,
 			Pos.x, Pos.y,
-			Size.x, Size.y,
+			0, 0, // Size.x, Size.y,
 			_DumpColour(Color()), _DumpColour(BackgroundColor()),
 			Trs);
 	Buf.Push(s);
 
-	for (GTag *t=Tags.First(); t; t=Tags.Next())
+	for (int i=0; i<Children.Length(); i++)
 	{
+		GTag *t = ToTag(Children[i]);
 		t->_Dump(Buf, Depth+1);
 	}
 
-	if (Tags.Length())
+	if (Children.Length())
 	{
 		snprintf(s, sizeof(s)-1, "%sEnd '%s'\r\n", Tab, ElementName);
 		Buf.Push(s);
@@ -1809,7 +1613,7 @@ GFont *GTag::GetFont()
 			Map.Add(PropFontWeight, new GCss::PropArray);
 			Map.Add(PropTextDecoration, new GCss::PropArray);
 
-			for (GTag *t = Parent; t; t = t->Parent)
+			for (GTag *t = ToTag(Parent); t; t = ToTag(t->Parent))
 			{
 				if (!c.InheritCollect(*t, Map))
 					break;
@@ -1827,7 +1631,7 @@ GFont *GTag::GetFont()
 			GTag *t = this;
 			while (!t->Font && t->Parent)
 			{
-				t = t->Parent;
+				t = ToTag(t->Parent);
 			}
 
 			if (t->Font)
@@ -1844,10 +1648,10 @@ GTag *GTag::PrevTag()
 {
 	if (Parent)
 	{
-		int i = Parent->Tags.IndexOf(this);
+		int i = Parent->Children.IndexOf(this);
 		if (i >= 0)
 		{
-			return Parent->Tags.ItemAt(i-1);
+			return ToTag(Parent->Children[i - 1]);
 		}
 	}
 
@@ -1857,7 +1661,7 @@ GTag *GTag::PrevTag()
 void GTag::Invalidate()
 {
 	GRect p = GetRect();
-	for (GTag *t=Parent; t; t=t->Parent)
+	for (GTag *t=ToTag(Parent); t; t=ToTag(t->Parent))
 	{
 		p.Offset(t->Pos.x, t->Pos.y);
 	}
@@ -1867,7 +1671,7 @@ void GTag::Invalidate()
 GTag *GTag::IsAnchor(GAutoString *Uri)
 {
 	GTag *a = 0;
-	for (GTag *t = this; t; t = t->Parent)
+	for (GTag *t = this; t; t = ToTag(t->Parent))
 	{
 		if (t->TagId == TAG_A)
 		{
@@ -1965,7 +1769,7 @@ bool GTag::OnMouseClick(GMouse &m)
 			
 			p.Print("\nParent tags:\n");
 			GDisplayString Sp(SysFont, " ");
-			for (GTag *t=Parent; t && t->Parent; t=t->Parent)
+			for (GTag *t=ToTag(Parent); t && t->Parent; t=ToTag(t->Parent))
 			{
 				GStringPipe Tmp;
 				Tmp.Print("    %s", t->Tag ? t->Tag : "CONTENT");
@@ -2029,7 +1833,7 @@ bool GTag::OnMouseClick(GMouse &m)
 
 GTag *GTag::GetBlockParent(int *Idx)
 {
-	if (IsBlock(Disp))
+	if (IsBlock(Display()))
 	{
 		if (Idx)
 			*Idx = 0;
@@ -2037,16 +1841,16 @@ GTag *GTag::GetBlockParent(int *Idx)
 		return this;
 	}
 
-	for (GTag *t = this; t; t = t->Parent)
+	for (GTag *t = this; t; t = ToTag(t->Parent))
 	{
-		if (IsBlock(t->Parent->Disp))
+		if (IsBlock(t->Parent->Display()))
 		{
 			if (Idx)
 			{
-				*Idx = t->Parent->Tags.IndexOf(t);
+				*Idx = t->Parent->Children.IndexOf(t);
 			}
 
-			return t->Parent;
+			return ToTag(t->Parent);
 		}
 	}
 
@@ -2064,9 +1868,9 @@ GTag *GTag::GetAnchor(char *Name)
 		return this;
 	}
 
-	List<GTag>::I it = Tags.Start();
-	for (GTag *t=*it; t; t=*++it)
+	for (int i=0; i<Children.Length(); i++)
 	{
+		GTag *t = ToTag(Children[i]);
 		GTag *Result = t->GetAnchor(Name);
 		if (Result) return Result;
 	}
@@ -2083,8 +1887,9 @@ GTag *GTag::GetTagByName(const char *Name)
 			return this;
 		}
 
-		for (GTag *t=Tags.First(); t; t=Tags.Next())
+		for (int i=0; i<Children.Length(); i++)
 		{
+			GTag *t = ToTag(Children[i]);
 			GTag *Result = t->GetTagByName(Name);
 			if (Result) return Result;
 		}
@@ -2242,8 +2047,9 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, bool DebugLog)
 			LgiTrace("GetTagByPos DirectHit %s, idx=%i, near=%i\n", Tag, TagHit.Index, TagHit.Near);
 	}
 
-	for (GTag *t=Tags.First(); t; t=Tags.Next())
+	for (int i=0; i<Children.Length(); i++)
 	{
+		GTag *t = ToTag(Children[i]);
 		if (t->Pos.x >= 0 &&
 			t->Pos.y >= 0)
 		{
@@ -2263,7 +2069,7 @@ int GTag::OnNotify(int f)
 		{
 			GTag *Form = this;
 			while (Form && Form->TagId != TAG_FORM)
-				Form = Form->Parent;
+				Form = ToTag(Form->Parent);
 			if (Form)
 				Html->OnSubmitForm(Form);
 			break;
@@ -2311,8 +2117,9 @@ void GTag::CollectFormValues(GHashTbl<const char*,char*> &f)
 		}
 	}
 
-	for (GTag *t=Tags.First(); t; t=Tags.Next())
+	for (int i=0; i<Children.Length(); i++)
 	{
+		GTag *t = ToTag(Children[i]);
 		t->CollectFormValues(f);
 	}
 }
@@ -2322,8 +2129,9 @@ GTag *GTag::FindCtrlId(int Id)
 	if (Ctrl && Ctrl->GetId() == Id)
 		return this;
 
-	for (GTag *t=Tags.First(); t; t=Tags.Next())
+	for (int i=0; i<Children.Length(); i++)
 	{
+		GTag *t = ToTag(Children[i]);
 		GTag *f = t->FindCtrlId(Id);
 		if (f)
 			return f;
@@ -2338,8 +2146,9 @@ void GTag::Find(int TagType, GArray<GTag*> &Out)
 	{
 		Out.Add(this);
 	}
-	for (GTag *t=Tags.First(); t; t=Tags.Next())
+	for (int i=0; i<Children.Length(); i++)
 	{
+		GTag *t = ToTag(Children[i]);
 		t->Find(TagType, Out);
 	}
 }
@@ -2374,8 +2183,9 @@ void GTag::SetImage(const char *Uri, GSurface *Img)
 			}
 		}		
 
-		for (GTag *t = this; t; t = t->Parent)
+		for (int i=0; i<Children.Length(); i++)
 		{
+			GTag *t = ToTag(Children[i]);
 			t->MinContent = 0;
 			t->MaxContent = 0;
 		}
@@ -2396,7 +2206,7 @@ void GTag::LoadImage(const char *Uri)
 		j->Uri.Reset(NewStr(Uri));
 		j->View = Html;
 		j->UserData = this;
-		j->UserUid = Html->d->DocumentUid;
+		j->UserUid = Html->GetDocumentUid();
 
 		GDocumentEnv::LoadType Result = Html->Environment->GetContent(j);
 		if (Result == GDocumentEnv::LoadImmediate)
@@ -2418,8 +2228,9 @@ void GTag::LoadImages()
 		LoadImage(Uri);
 	}
 
-	for (GTag *t=Tags.First(); t; t=Tags.Next())
+	for (int i=0; i<Children.Length(); i++)
 	{
+		GTag *t = ToTag(Children[i]);
 		t->LoadImages();
 	}
 }
@@ -2444,8 +2255,9 @@ void GTag::ImageLoaded(char *uri, GSurface *Img, int &Used)
 		}
 	}
 
-	for (GTag *t=Tags.First(); t; t=Tags.Next())
+	for (int i=0; i<Children.Length(); i++)
 	{
+		GTag *t = ToTag(Children[i]);
 		t->ImageLoaded(uri, Img, Used);
 	}
 }
@@ -2463,7 +2275,7 @@ bool GTag::MatchFullSelector(GCss::Selector *Sel)
 
 	if (Complex)
 	{
-		GTag *CurrentParent = Parent;
+		GTag *CurrentParent = ToTag(Parent);
 		
 		for (; CombIdx >= 0; CombIdx--)
 		{
@@ -2500,7 +2312,7 @@ bool GTag::MatchFullSelector(GCss::Selector *Sel)
 						PrevIdx--;
 					}
 					bool ParMatch = false;
-					for (; !ParMatch && CurrentParent; CurrentParent = CurrentParent->Parent)
+					for (; !ParMatch && CurrentParent; CurrentParent = ToTag(CurrentParent->Parent))
 					{
 						ParMatch = CurrentParent->MatchSimpleSelector(Sel, PrevIdx);
 					}
@@ -2664,8 +2476,10 @@ void GTag::Restyle()
 		}
 	}
 	
+	/*
 	if (Display() != DispInherit)
-		Disp = Display();	
+		Disp = Display();
+	*/
 
 	#if 1 && defined(_DEBUG)
 	if (Debug)
@@ -2692,13 +2506,18 @@ void GTag::SetStyle()
 	const char *s = 0;
 	#ifdef _DEBUG
 	if (Get("debug", s))
-		Debug = atoi(s);
+	{
+		if (Debug = atoi(s))
+		{
+			int asd=0;
+		}
+	}
 	#endif
 
 	if (Get("Color", s))
 	{
 		ColorDef Def;
-		if (ParseColour(s, Def))
+		if (GHtmlParser::ParseColour(s, Def))
 		{
 			Color(Def);
 		}
@@ -2708,7 +2527,7 @@ void GTag::SetStyle()
 		Get("bgcolor", s))
 	{
 		ColorDef Def;
-		if (ParseColour(s, Def))
+		if (GHtmlParser::ParseColour(s, Def))
 		{
 			BackgroundColor(Def);
 		}
@@ -2745,7 +2564,7 @@ void GTag::SetStyle()
 						j->Uri.Reset(NewStr(Href));
 						j->View = Html;
 						j->UserData = t;
-						j->UserUid = Html->d->DocumentUid;
+						j->UserUid = Html->GetDocumentUid();
 						// j->Pref = GDocumentEnv::LoadJob::FmtFilename;
 
 						GDocumentEnv::LoadType Result = Html->Environment->GetContent(j);
@@ -2944,7 +2763,7 @@ void GTag::SetStyle()
 					char *CharSet = stristr(ContentType, "charset=");
 					if (CharSet)
 					{
-						ParsePropValue(CharSet + 8, Cs);
+						Html->ParsePropValue(CharSet + 8, Cs);
 					}
 				}
 			}
@@ -2995,7 +2814,7 @@ void GTag::SetStyle()
 		}
 		case TAG_HEAD:
 		{
-			Display(Disp = DispNone);
+			Display(DispNone);
 			break;
 		}
 		case TAG_PRE:
@@ -3222,7 +3041,7 @@ void GTag::SetStyle()
 			Ctrl->SetFont(f, false);
 	}
 
-	if (Disp == DispBlock && Html->Environment)
+	if (Display() == DispBlock && Html->Environment)
 	{
 		GCss::ImageDef Img = BackgroundImage();
 		if (Img.Type == ImageUri)
@@ -3252,8 +3071,10 @@ void GTag::SetCssStyle(const char *Style)
 		GCss::Parse(Ptr, GCss::ParseRelaxed);
 
 		// Update display setting cache
+		/*
 		if (Display() != DispInherit)
-			Disp = Display();	
+			Disp = Display();
+		*/
 	}
 }
 
@@ -3442,8 +3263,8 @@ char *GTag::ParseText(char *Doc)
 	BackgroundColor(c);
 	
 	TagId = TAG_BODY;
-	Tag = NewStr("body");
-	Info = GetTagInfo(Tag);
+	Tag.Reset(NewStr("body"));
+	Info = Html->GetTagInfo(Tag);
 	char *OriginalCp = NewStr(Html->Charset);
 
 	Html->SetBackColour(Rgb24To32(LC_WORKSPACE));
@@ -3504,8 +3325,8 @@ char *GTag::ParseText(char *Doc)
 				if (t)
 				{
 					t->TagId = TAG_BR;
-					t->Tag = NewStr("br");
-					t->Info = GetTagInfo(t->Tag);
+					t->Tag.Reset(NewStr("br"));
+					t->Info = Html->GetTagInfo(t->Tag);
 				}
 			}
 			else break;
@@ -3569,15 +3390,15 @@ bool GTag::ConvertToText(TextConvertState &State)
 	
 	State.Depth += DepthInc;
 	
-	List<GTag>::I it = Tags.Start();
-	for (GTag *c = *it; c; c = *++it)
+	for (int i=0; i<Children.Length(); i++)
 	{
+		GTag *c = ToTag(Children[i]);
 		c->ConvertToText(State);
 	}
 
 	State.Depth -= DepthInc;
 	
-	if (IsBlock(Disp))
+	if (IsBlock(Display()))
 	{
 		if (State.CharsOnLine)
 			State.NewLine();
@@ -3692,8 +3513,9 @@ void GTag::ZeroTableElements()
 		MinContent = 0;
 		MaxContent = 0;
 
-		for (GTag *t = Tags.First(); t; t = Tags.Next())
+		for (int i=0; i<Children.Length(); i++)
 		{
+			GTag *t = ToTag(Children[i]);
 			t->ZeroTableElements();
 		}
 	}
@@ -3718,7 +3540,7 @@ GTag *GTag::GetTableCell(int x, int y)
 			!t->Cells &&
 			t->Parent)
 	{
-		t = t->Parent;
+		t = ToTag(t->Parent);
 	}
 	
 	if (t && t->Cells)
@@ -3867,24 +3689,23 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 		}
 	}
 
-	GTag *c;
-	if ((c = Tags.First()))
+	for (int i = 0; i < Children.Length(); i++)
 	{
+		GTag *c = ToTag(Children[i]);
 		uint16 Width = 0;
-		for (; c; c = Tags.Next())
+
+		uint16 x = 0;
+		Status &= c->GetWidthMetrics(Min, x);
+		if (c->TagId == TAG_BR)
 		{
-			uint16 x = 0;
-			Status &= c->GetWidthMetrics(Min, x);
-			if (c->TagId == TAG_BR)
-			{
-				Max = max(Max, Width);
-				Width = 0;
-			}
-			else
-			{
-				Width += x;
-			}
+			Max = max(Max, Width);
+			Width = 0;
 		}
+		else
+		{
+			Width += x;
+		}
+
 		Max = max(Max, Width);
 	}
 
@@ -4430,15 +4251,15 @@ void GTag::LayoutTable(GFlowRegion *f)
 				if (!t && Prev)
 				{
 					// Add missing cell
-					GTag *Row = Prev->Parent;
+					GTag *Row = ToTag(Prev->Parent);
 					if (Row && Row->TagId == TAG_TR)
 					{
 						t = new GTag(Html, Row);
 						if (t)
 						{
 							t->TagId = TAG_TD;
-							t->Tag = NewStr("td");
-							t->Info = GetTagInfo("td");
+							t->Tag.Reset(NewStr("td"));
+							t->Info = Html->GetTagInfo(t->Tag);
 							t->Cell.x = x;
 							t->Cell.y = y;
 							t->Span.x = 1;
@@ -4489,7 +4310,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 
 		DumpCols();
 
-		switch (XAlign ? XAlign : Parent->GetAlign(true))
+		switch (XAlign ? XAlign : ToTag(Parent)->GetAlign(true))
 		{
 			case AlignCenter:
 			{
@@ -4518,14 +4339,17 @@ GRect GTag::ChildBounds()
 {
 	GRect b(0, 0, -1, -1);
 
-	GTag *t = Tags.First();
-	if (t)
+	for (int i=0; i<Children.Length(); i++)
 	{
-		b = t->GetRect();
-		while ((t = Tags.Next()))
+		GTag *t = ToTag(Children[i]);
+		if (i)
 		{
 			GRect c = t->GetRect();
 			b.Union(&c);
+		}
+		else
+		{
+			b = t->GetRect();
 		}
 	}
 
@@ -4535,7 +4359,7 @@ GRect GTag::ChildBounds()
 int GTag::AbsX()
 {
 	int a = 0;
-	for (GTag *t=this; t; t=t->Parent)
+	for (GTag *t=this; t; t=ToTag(t->Parent))
 	{
 		a += t->Pos.x;
 	}
@@ -4545,7 +4369,7 @@ int GTag::AbsX()
 int GTag::AbsY()
 {
 	int a = 0;
-	for (GTag *t=this; t; t=t->Parent)
+	for (GTag *t=this; t; t=ToTag(t->Parent))
 	{
 		a += t->Pos.y;
 	}
@@ -4735,6 +4559,7 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, int LineHeight, 
 
 void GTag::OnFlow(GFlowRegion *InputFlow)
 {
+	DisplayType Disp = Display();
 	if (Disp == DispNone)
 		return;
 
@@ -4766,8 +4591,9 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 			Flow->Indent(f, MarginLeft(), MarginTop(), MarginRight(), MarginBottom(), true);
 
 			// Flow children
-			for (GTag *t=Tags.First(); t; t=Tags.Next())
+			for (int i=0; i<Children.Length(); i++)
 			{
+				GTag *t = ToTag(Children[i]);
 				t->OnFlow(&Temp);
 
 				if (TagId == TAG_TR)
@@ -4962,7 +4788,7 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 					default: break;
 					case ListDecimal:
 					{
-						int Index = Parent->Tags.IndexOf(this);
+						int Index = Parent->Children.IndexOf(this);
 						char Txt[32];
 						sprintf(Txt, "%i. ", Index + 1);
 						PreText(LgiNewUtf8To16(Txt));
@@ -4988,7 +4814,7 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 				GCss::PropMap Map;
 				GCss Final;
 				Map.Add(PropLineHeight, new GCss::PropArray);
-				for (GTag *t = this; t; t = t->Parent)
+				for (GTag *t = this; t; t = ToTag(t->Parent))
 				{
 					if (!Final.InheritCollect(*t, Map))
 						break;
@@ -5013,8 +4839,9 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 	}
 
 	// Flow children
-	for (GTag *t=Tags.First(); t; t=Tags.Next())
+	for (int i=0; i<Children.Length(); i++)
 	{
+		GTag *t = ToTag(Children[i]);
 		t->OnFlow(Flow);
 
 		if (TagId == TAG_TR)
@@ -5023,7 +4850,7 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 		}
 	}
 
-	if (Disp == DispBlock || Disp == DispInlineBlock)
+	if (Display() == DispBlock || Disp == DispInlineBlock)
 	{		
 		GCss::Len Ht = Height();
 		if (Ht.IsValid())
@@ -5201,7 +5028,8 @@ bool GTag::PeekTag(char *s, char *tag)
 GTag *GTag::GetTable()
 {
 	GTag *t = 0;
-	for (t=Parent; t && t->TagId != TAG_TABLE; t = t->Parent);
+	for (t=ToTag(Parent); t && t->TagId != TAG_TABLE; t = ToTag(t->Parent))
+		;
 	return t;
 }
 
@@ -5209,14 +5037,16 @@ void GTag::BoundParents()
 {
 	if (Parent)
 	{
-		for (GTag *n=this; n; n=n->Parent)
+		for (GTag *n=this; n; n=ToTag(n->Parent))
 		{
 			if (n->Parent)
 			{
 				if (n->Parent->TagId == TAG_IFRAME)
 					break;
-				n->Parent->Size.x = max(n->Parent->Size.x, n->Pos.x + n->Size.x);
-				n->Parent->Size.y = max(n->Parent->Size.y, n->Pos.y + n->Size.y);
+				
+				GTag *np = ToTag(n->Parent);
+				np->Size.x = max(np->Size.x, n->Pos.x + n->Size.x);
+				np->Size.y = max(np->Size.y, n->Pos.y + n->Size.y);
 			}
 		}
 	}
@@ -5305,7 +5135,7 @@ void GTag::OnPaintBorder(GSurface *pDC, GRect *Px)
 {
 	GArray<GRect> r;
 
-	switch (Disp)
+	switch (Display())
 	{
 		default: break;
 		case DispInlineBlock:
@@ -5610,7 +5440,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 					for (GTag *t=AllTd.First(); t; t=AllTd.Next())
 					{
 						r.Set(0, 0, t->Size.x-1, t->Size.y-1);
-						for (; t && t!=this; t=t->Parent)
+						for (; t && t!=this; t=ToTag(t->Parent))
 						{
 							r.Offset(t->Pos.x, t->Pos.y);
 						}
@@ -5641,9 +5471,9 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 		{
 			ColorDef _back = BackgroundColor();
 			COLOUR fore = GetFore();
-			COLOUR back = (_back.Type == ColorInherit && Disp == DispBlock) ? GetBack() : _back.Rgb32;
+			COLOUR back = (_back.Type == ColorInherit && Display() == DispBlock) ? GetBack() : _back.Rgb32;
 
-			if (Disp == DispBlock && Html->Environment)
+			if (Display() == DispBlock && Html->Environment)
 			{
 				GCss::ImageDef Img = BackgroundImage();
 				if (Img.Img)
@@ -5669,7 +5499,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 				}
 				pDC->Colour(back, 32);
 
-				if (Disp == DispBlock || Disp == DispInlineBlock)
+				if (Display() == DispBlock || Display() == DispInlineBlock)
 				{
 					pDC->Rectangle(0, 0, Size.x-1, Size.y-1);
 				}
@@ -5929,9 +5759,9 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 	}
 	#endif
 
-	List<GTag>::I TagIt = Tags.Start();
-	for (GTag *t=*TagIt; t; t=*++TagIt)
+	for (int i=0; i<Children.Length(); i++)
 	{
+		GTag *t = ToTag(Children[i]);
 		pDC->SetOrigin(Px - t->Pos.x, Py - t->Pos.y);
 		t->OnPaint(pDC, InSelection);
 		pDC->SetOrigin(Px, Py);
@@ -5943,8 +5773,9 @@ GHtml::GHtml(int id, int x, int y, int cx, int cy, GDocumentEnv *e)
 	:
 	GDocView(e),
 	ResObject(Res_Custom),
-	GHtmlParser(this)
+	GHtmlParser(NULL)
 {
+	View = this;
 	d = new GHtmlPrivate;
 	SetReadOnly(true);
 	ViewWidth = -1;
@@ -6048,8 +5879,11 @@ void GHtml::Parse()
 				{
 					Html->SetTag("html");
 					
-					while ((c = Tag->Tags.First()))
+					while (Tag->Children.Length())
+					{
+						GTag *c = ToTag(Tag->Children[0]);
 						Html->Attach(c);
+					}
 					
 					Tag->Attach(Html);
 				}
@@ -6157,7 +5991,7 @@ char16 *GHtml::NameW()
 
 bool GHtml::Name(const char *s)
 {
-	d->DocumentUid++;
+	SetDocumentUid(GetDocumentUid()+1);
 
 	#if 0
 	GFile Out;
@@ -6252,7 +6086,7 @@ GMessage::Result GHtml::OnEvent(GMessage *Msg)
 					GDocView *Me = this;
 					
 					if (j->View == Me &&
-						j->UserUid == d->DocumentUid &&
+						j->UserUid == GetDocumentUid() &&
 						j->UserData != NULL)
 					{
 						Html1::GTag *r = static_cast<Html1::GTag*>(j->UserData);
@@ -6479,11 +6313,11 @@ void GHtml::SelectAll()
 
 GTag *GHtml::GetLastChild(GTag *t)
 {
-	if (t)
+	if (t && t->Children.Length())
 	{
-		for (GTag *i = t->Tags.Last(); i; )
+		for (GTag *i = ToTag(t->Children.Last()); i; )
 		{
-			GTag *c = i->Tags.Last();
+			GTag *c = ToTag(i->Children.Last());
 			if (c)
 				i = c;
 			else
@@ -6500,14 +6334,15 @@ GTag *GHtml::PrevTag(GTag *t)
 	// listed via recursion using "in order".
 
 	// Walk up the parent chain looking for a prev
-	for (GTag *p = t; p; p = p->Parent)
+	for (GTag *p = t; p; p = ToTag(p->Parent))
 	{
 		// Does this tag have a parent?
 		if (p->Parent)
 		{
 			// Prev?
-			int Idx = p->Parent->Tags.IndexOf(p);
-			GTag *Prev = p->Parent->Tags[Idx - 1];
+			GTag *pp = ToTag(p->Parent);
+			int Idx = pp->Children.IndexOf(p);
+			GTag *Prev = ToTag(pp->Children[Idx - 1]);
 			if (Prev)
 			{
 				GTag *Last = GetLastChild(Prev);
@@ -6515,7 +6350,7 @@ GTag *GHtml::PrevTag(GTag *t)
 			}
 			else
 			{
-				return p->Parent;
+				return ToTag(p->Parent);
 			}
 		}
 	}
@@ -6529,20 +6364,21 @@ GTag *GHtml::NextTag(GTag *t)
 	// listed via recursion using "in order".
 
 	// Does this have a child tag?
-	if (t->Tags.First())
+	if (t->Children.First())
 	{
-		return t->Tags.First();
+		return ToTag(t->Children.First());
 	}
 	else
 	{
 		// Walk up the parent chain
-		for (GTag *p = t; p; p = p->Parent)
+		for (GTag *p = t; p; p = ToTag(p->Parent))
 		{
 			// Does this tag have a next?
 			if (p->Parent)
 			{
-				int Idx = p->Parent->Tags.IndexOf(p);
-				GTag *Next = p->Parent->Tags[Idx + 1];
+				GTag *pp = ToTag(p->Parent);
+				int Idx = pp->Children.IndexOf(p);
+				GTag *Next = ToTag(pp->Children[Idx + 1]);
 				if (Next)
 				{
 					return Next;
@@ -6558,7 +6394,7 @@ int GHtml::GetTagDepth(GTag *Tag)
 {
 	// Returns the depth of the tag in the tree.
 	int n = 0;
-	for (GTag *t = Tag; t; t = t->Parent)
+	for (GTag *t = Tag; t; t = ToTag(t->Parent))
 	{
 		n++;
 	}
@@ -6586,18 +6422,18 @@ bool GHtml::IsCursorFirst()
 			GTag *Sel = Selection;
 			while (Sel && SDepth > CDepth)
 			{
-				Sel = Sel->Parent;
+				Sel = ToTag(Sel->Parent);
 				SDepth--;
 			}
 			while (Cur && CDepth > SDepth)
 			{
-				Cur = Cur->Parent;
+				Cur = ToTag(Cur->Parent);
 				CDepth--;
 			}
 			if (Cur && Sel)
 			{
-				int CIdx = Cur->Parent ? Cur->Parent->Tags.IndexOf(Cur) : 0;
-				int SIdx = Sel->Parent ? Sel->Parent->Tags.IndexOf(Sel) : 0;
+				int CIdx = Cur->Parent ? Cur->Parent->Children.IndexOf(Cur) : 0;
+				int SIdx = Sel->Parent ? Sel->Parent->Children.IndexOf(Sel) : 0;
 				if (CIdx < SIdx)
 				{
 					return true;
@@ -6692,8 +6528,9 @@ static bool FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User)
 void BuildTagList(GArray<GTag*> &t, GTag *Tag)
 {
 	t.Add(Tag);
-	for (GTag *c = Tag->Tags.First(); c; c = Tag->Tags.Next())
+	for (int i=0; i<Tag->Children.Length(); i++)
 	{
+		GTag *c = ToTag(Tag->Children[i]);
 		BuildTagList(t, c);
 	}
 }
@@ -6737,7 +6574,7 @@ bool GHtml::OnSubmitForm(GTag *Form)
 		return false;
 	}
 		
-	GHashTbl<const char*,char*> f;
+	GHashTbl<const char*,char*> f(0, false);
 	Form->CollectFormValues(f);
 	bool Status = false;
 	if (!stricmp(Method, "post"))
@@ -7187,7 +7024,7 @@ void GHtml::OnMouseClick(GMouse &m)
 															j->Uri.Reset(NewStr(cid));
 															j->View = this;
 															j->Pref = GDocumentEnv::LoadJob::FmtFilename;
-															j->UserUid = d->DocumentUid;
+															j->UserUid = GetDocumentUid();
 
 															GDocumentEnv::LoadType Result = Environment->GetContent(j);
 															if (Result == GDocumentEnv::LoadImmediate)
@@ -7301,7 +7138,7 @@ GTag *GHtml::GetTagByPos(int x, int y, int *Index, GdcPt2 *LocalCoords, bool Deb
 		Tag->GetTagByPos(Hit, x, y, DebugLog);
 
 		if (DebugLog)
-			LgiTrace("GetTagByPos Hit=%s, %i, %i...\n\n", Hit.Direct ? Hit.Direct->Tag : 0, Hit.Index, Hit.Near);
+			LgiTrace("GetTagByPos Hit=%s, %i, %i...\n\n", Hit.Direct ? Hit.Direct->Tag.Get() : 0, Hit.Index, Hit.Near);
 		
 		Status = Hit.Direct ? Hit.Direct : Hit.NearestText;
 		if (Hit.NearestText && Hit.Near < 30)
@@ -7513,8 +7350,9 @@ GDom *ElementById(GTag *t, char *id)
 		if (t->Get("id", i) && stricmp(i, id) == 0)
 			return t;
 
-		for (GTag *c = t->Tags.First(); c; c = t->Tags.Next())
+		for (int i=0; i<t->Children.Length(); i++)
 		{
+			GTag *c = ToTag(t->Children[i]);
 			GDom *n = ElementById(c, id);
 			if (n) return n;
 		}
@@ -7678,8 +7516,9 @@ GCellStore::GCellStore(GTag *Table)
 	GTag *FakeCell = 0;
 
 	GTag *r;
-	for (r=Table->Tags.First(); r; r=Table->Tags.Next())
+	for (int i=0; i<Table->Children.Length(); i++)
 	{
+		r = ToTag(Table->Children[i]);
 		if (r->TagId == TAG_TR)
 		{
 			FakeRow = 0;
@@ -7687,13 +7526,14 @@ GCellStore::GCellStore(GTag *Table)
 		}
 		else if (r->TagId == TAG_TBODY)
 		{
-			int Index = Table->Tags.IndexOf(r);
-			for (GTag *t = r->Tags.First(); t; t = r->Tags.Next())
+			int Index = Table->Children.IndexOf(r);
+			for (int n=0; n<r->Children.Length(); n++)
 			{
-				Table->Tags.Insert(t, ++Index);
+				GTag *t = ToTag(r->Children[n]);
+				Table->Children.AddAt(++Index, t);
 				t->Parent = Table;
 			}
-			r->Tags.Empty();
+			r->Children.Length(0);
 		}
 		else
 		{
@@ -7701,10 +7541,10 @@ GCellStore::GCellStore(GTag *Table)
 			{
 				if ((FakeRow = new GTag(Table->Html, 0)))
 				{
-					FakeRow->Tag = NewStr("tr");
+					FakeRow->Tag.Reset(NewStr("tr"));
 					FakeRow->TagId = TAG_TR;
 
-					int Idx = Table->Tags.IndexOf(r);
+					int Idx = Table->Children.IndexOf(r);
 					Table->Attach(FakeRow, Idx);
 				}
 			}
@@ -7714,14 +7554,14 @@ GCellStore::GCellStore(GTag *Table)
 				{
 					if ((FakeCell = new GTag(Table->Html, FakeRow)))
 					{
-						FakeCell->Tag = NewStr("td");
+						FakeCell->Tag.Reset(NewStr("td"));
 						FakeCell->TagId = TAG_TD;
 						FakeCell->Span.x = 1;
 						FakeCell->Span.y = 1;
 					}
 				}
 
-				int Idx = Table->Tags.IndexOf(r);
+				int Idx = Table->Children.IndexOf(r);
 				r->Detach();
 
 				if (r->TagId == TAG_TD)
@@ -7733,18 +7573,20 @@ GCellStore::GCellStore(GTag *Table)
 					LgiAssert(FakeCell);
 					FakeCell->Attach(r);
 				}
-				Table->Tags[Idx-1];
+				i = Idx - 1;
 			}
 		}
 	}
 
-	for (r=Table->Tags.First(); r; r=Table->Tags.Next())
+	for (int n=0; n<Table->Children.Length(); n++)
 	{
+		GTag *r = ToTag(Table->Children[n]);
 		if (r->TagId == TAG_TR)
 		{
 			int x = 0;
-			for (GTag *c=r->Tags.First(); c; c=r->Tags.Next())
+			for (int i=0; i<r->Children.Length(); i++) // GTag *c=r->Tags.First(); c; c=r->Tags.Next())
 			{
+				GTag *c = ToTag(r->Children[i]);
 				if (c->TagId == TAG_TD)
 				{
 					while (Get(x, y))
@@ -7863,12 +7705,12 @@ void GTagHit::Dump(const char *Desc)
 	GArray<GTag*> d, n;
 	GTag *t = Direct;
 	int i;
-	for (i=0; i<3 && t; t = t->Parent, i++)
+	for (i=0; i<3 && t; t = ToTag(t->Parent), i++)
 	{
 		d.AddAt(0, t);
 	}
 	t = NearestText;
-	for (i=0; i<3 && t; t = t->Parent, i++)
+	for (i=0; i<3 && t; t = ToTag(t->Parent), i++)
 	{
 		n.AddAt(0, t);
 	}

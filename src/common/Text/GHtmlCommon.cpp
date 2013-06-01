@@ -1,5 +1,5 @@
 #include "Lgi.h"
-#include "GHtmlStatic.h"
+#include "GHtmlCommon.h"
 #include "GDocView.h"
 
 static GHtmlElemInfo TagInfo[] =
@@ -70,6 +70,7 @@ GHtmlStatic::GHtmlStatic() :
 	TagMap(CountOf(TagInfo) * 3, false, NULL, NULL)
 {
 	Refs = 0;
+	UnknownElement = NULL;
 
 	// Character entities
 	#define DefVar(s, v)				VarMap.Add(WcharToChar16(s), v)
@@ -541,10 +542,68 @@ GHtmlStatic::GHtmlStatic() :
 	{
 		TagMap.Add(t->Tag, t);
 	}
+	UnknownElement = TagInfo + CountOf(TagInfo) - 1;
 }
 
 GHtmlStatic::~GHtmlStatic()
 {
 }
 
+GHtmlElemInfo *GHtmlStatic::GetTagInfo(const char *Tag)
+{
+	GHtmlElemInfo *i = TagMap.Find(Tag);
+	return i ? i : UnknownElement;
+}
+
 /////////////////////////////////////////////////////////////////////////////
+GHtmlElement::GHtmlElement(GHtmlElement *parent)
+{
+	TagId = CONTENT;
+	Parent = parent;
+	Info = NULL;
+	WasClosed = false;
+}
+
+GHtmlElement::~GHtmlElement()
+{
+	Children.DeleteObjects();
+}
+
+bool GHtmlElement::Attach(GHtmlElement *Child, int Idx)
+{
+	if (TagId == CONTENT)
+	{
+		LgiAssert(!"Can't nest content tags.");
+		return false;
+	}
+
+	if (!Child)
+	{
+		LgiAssert(!"Can't insert NULL tag.");
+		return false;
+	}
+
+	Child->Detach();
+	Child->Parent = this;
+	if (!Children.HasItem(Child))
+	{
+		Children.AddAt(Idx, Child);
+	}
+
+	return true;
+}
+
+void GHtmlElement::Detach()
+{
+	if (Parent)
+	{
+		Parent->Children.Delete(this);
+		Parent = NULL;
+	}
+}
+
+bool GHtmlElement::HasChild(GHtmlElement *c)
+{
+	return Children.IndexOf(c) >= 0;
+}
+

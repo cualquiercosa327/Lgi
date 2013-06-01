@@ -243,6 +243,12 @@ public:
 	_TvMenuProp(COLOUR, BackColour)
 	_TvMenuProp(bool, LoadImages)
 	_TvMenuProp(bool, OverideDocCharset)
+
+	// This UID is used to match data load events with their source document.
+	// Sometimes data will arrive after the document that asked for it has
+	// already been unloaded. So by assigned each document an UID we can check
+	// the job UID against it and discard old data.
+	_TvMenuProp(int, DocumentUid)
 	#undef _TvMenuProp
 
 	const char *GetCharset() { return Charset ? Charset.Get() : "utf-8"; }

@@ -177,6 +177,18 @@ public:
 		}
 		return *this;
 	}
+
+	Type &First()
+	{
+		LgiAssert(len > 0);
+		return p[0];
+	}
+
+	Type &Last()
+	{
+		LgiAssert(len > 0);
+		return p[len-1];
+	}
 	
 	/// \brief Returns a reference a given entry.
 	///

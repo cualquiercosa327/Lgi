@@ -15,6 +15,8 @@ namespace Html1
 class GFlowRect;
 class GFlowRegion;
 
+#define ToTag(t)					dynamic_cast<GTag*>(t)
+
 struct GTagHit
 {
 	GTag *Direct;		// Tag directly under cursor
@@ -253,7 +255,7 @@ protected:
 	HtmlControlType CtrlType;
 
 	// Text
-	GAutoWString Txt, PreTxt;
+	GAutoWString PreTxt;
 
 	// Debug stuff
 	void _Dump(GStringPipe &Buf, int Depth);
@@ -280,24 +282,15 @@ protected:
 
 public:
 	// Object
-	HtmlTag TagId;
-	char *Tag; // My tag
-
 	GToken Class;
 	const char *HtmlId;
 
 	GAutoString Condition;
 	int TipId;
-	bool WasClosed;
-	DisplayType Disp;
+	// DisplayType Disp;
 
 	// Heirarchy
 	GHtml *Html;
-	GTag *Parent;
-	List<GTag> Tags;
-	bool HasChild(GTag *c);
-	bool Attach(GTag *Child, int Idx = -1);
-	void Detach();
 	GTag *GetBlockParent(int *Idx = 0);
 	GFont *GetFont();
 

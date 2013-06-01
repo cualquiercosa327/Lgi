@@ -1,7 +1,7 @@
 #include "Lgi.h"
 #include "GDocView.h"
 #include "GToken.h"
-#include "GHtmlStatic.h"
+#include "GHtmlCommon.h"
 #include "GHtmlParser.h"
 
 #define IsBlock(d)		((d) == GCss::DispBlock)
@@ -165,16 +165,16 @@ char *GHtmlParser::ParsePropList(char *s, GHtmlElement *Obj, bool &Closed)
 			char *Value = 0;
 			s = ParsePropValue(s, Value);
 
-			if (Value && Name)
+			if (Name && Value)
 			{
-				GVariant v;
-				v.OwnStr(Value);
-				Obj->SetValue(Name,  v);
+				if (!stricmp(Name, "color"))
+				{
+					int asd=0;
+				}
+				Obj->Set(Name, Value);
 			}
-			else
-			{
-				DeleteArray(Value);
-			}
+
+			DeleteArray(Value);
 		}
 
 		DeleteArray(Name);
@@ -187,9 +187,7 @@ char *GHtmlParser::ParsePropList(char *s, GHtmlElement *Obj, bool &Closed)
 
 GHtmlElemInfo *GHtmlParser::GetTagInfo(const char *Tag)
 {
-	static GHtmlElemInfo Unknown = {TAG_UNKNOWN, 0, 0, GHtmlElemInfo::TI_NONE};
-	GHtmlElemInfo *i = GHtmlStatic::Inst->TagMap.Find(Tag);
-	return i ? i : &Unknown;
+	return GHtmlStatic::Inst->GetTagInfo(Tag);
 }
 
 char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPreTag, bool *BackOut)
@@ -464,7 +462,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 									j->Uri.Reset(Src.ReleaseStr());
 									j->View = View;
 									j->UserData = this;
-									// j->UserUid = Html->d->DocumentUid;
+									j->UserUid = View ? View->GetDocumentUid() : 0;
 
 									GDocumentEnv::LoadType Result = View->GetEnv()->GetContent(j);
 									if (Result == GDocumentEnv::LoadImmediate)
@@ -608,13 +606,12 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 						}
 						else if (IsBlock(c->Display()))
 						{
-							GHtmlElement *Last;
 							while (c->Children.Length())
 							{
-								Last = c->Children[c->Children.Length()-1];
+								GHtmlElement *Last = c->Children.Last();
 
 								if (Last->TagId == CONTENT &&
-									!ValidStrW(Last->Text))
+									!ValidStrW(Last->Txt))
 								{
 									Last->Detach();
 									DeleteObj(Last);
@@ -770,13 +767,13 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 
 							if (Elem->Children.Length() == 0 &&
 								(!Elem->Info || !Elem->Info->NoText()) &&
-								!Elem->Text)
+								!Elem->Txt)
 							{
-								Elem->Text = Cur;
+								Elem->Txt = Cur;
 							}
 							else if ((Child = CreateElement(Elem)))
 							{
-								Child->Text = Cur;
+								Child->Txt = Cur;
 							}
 						}
 
@@ -1036,4 +1033,111 @@ void GHtmlParser::_TraceOpenTags()
 		LgiTrace("Open tags = '%s'\n", s + 2);
 		DeleteArray(s);
 	}
+}
+
+bool GHtmlParser::ParseColour(const char *s, GCss::ColorDef &c)
+{
+	if (s)
+	{
+		int m;
+
+		if (*s == '#')
+		{
+			s++;
+
+			ParseHexColour:
+			int i = htoi(s);
+			int l = strlen(s);
+			if (l == 3)
+			{
+				int r = i >> 8;
+				int g = (i >> 4) & 0xf;
+				int b = i & 0xf;
+
+				c.Type = GCss::ColorRgb;
+				c.Rgb32 = Rgb32(r | (r<<4), g | (g << 4), b | (b << 4));
+			}
+			else if (l == 4)
+			{
+				int r = (i >> 12) & 0xf;
+				int g = (i >> 8) & 0xf;
+				int b = (i >> 4) & 0xf;
+				int a = i & 0xf;
+				c.Type = GCss::ColorRgb;
+				c.Rgb32 = Rgba32(	r | (r <<4 ),
+									g | (g << 4),
+									b | (b << 4),
+									a | (a << 4));
+			}
+			else if (l == 6)
+			{
+				c.Type = GCss::ColorRgb;
+				c.Rgb32 = Rgb32(i >> 16, (i >> 8) & 0xff, i & 0xff);
+			}
+			else if (l == 8)
+			{
+				c.Type = GCss::ColorRgb;
+				c.Rgb32 = Rgba32(i >> 24, (i >> 16) & 0xff, (i >> 8) & 0xff, i & 0xff);
+			}
+			else
+			{
+				return false;
+			}
+			
+			return true;
+		}
+		else if ((m = GHtmlStatic::Inst->ColourMap.Find(s)) >= 0)
+		{
+			c.Type = GCss::ColorRgb;
+			c.Rgb32 = Rgb24To32(m);
+			return true;
+		}
+		else if (!strnicmp(s, "rgb", 3))
+		{
+			s += 3;
+			SkipWhiteSpace(s);
+			if (*s == '(')
+			{
+				s++;
+				GArray<uint8> Col;
+				while (Col.Length() < 3)
+				{
+					SkipWhiteSpace(s);
+					if (IsDigit(*s))
+					{
+						Col.Add(atoi(s));
+						while (*s && IsDigit(*s)) s++;
+						SkipWhiteSpace(s);
+						if (*s == ',') s++;
+					}
+					else break;
+				}
+
+				SkipWhiteSpace(s);
+				if (*s == ')' && Col.Length() == 3)
+				{
+					c.Type = GCss::ColorRgb;
+					c.Rgb32 = Rgb32(Col[0], Col[1], Col[2]);
+					return true;
+				}
+			}
+		}
+		else if (IsDigit(*s) || (tolower(*s) >= 'a' && tolower(*s) <= 'f'))
+		{
+			goto ParseHexColour;
+		}
+	}
+
+	return false;
+}
+
+bool GHtmlParser::Is8Bit(char *s)
+{
+	while (*s)
+	{
+		if (((uchar)*s) & 0x80)
+			return true;
+		s++;
+	}
+	return false;
 }

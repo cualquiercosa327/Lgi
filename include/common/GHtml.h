@@ -4,7 +4,7 @@
 #define _GHTML_H
 
 #include "GDocView.h"
-#include "GHtmlStatic.h"
+#include "GHtmlCommon.h"
 #include "GHtmlParser.h"
 
 namespace Html1

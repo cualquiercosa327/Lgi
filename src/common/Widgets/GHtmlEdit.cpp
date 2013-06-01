@@ -353,8 +353,9 @@ class HtmlEdit : public Html1::GHtml, public GDefaultDocumentEnv
 		}
 
 		// Run through children
-		for (GTag *c = t->Tags.First(); c; c = t->Tags.Next())
+		for (int i=0; i<t->Children.Length(); i++)
 		{
+			GTag *c = ToTag(t->Children[i]);
 			BlockTag(c);
 		}
 	}
@@ -602,8 +603,9 @@ public:
 
 			// Look through direct children and remove unneccessary complexity
 			GArray<GTag*> t;
-			for (GTag *c = Tag->Tags.First(); c; c = Tag->Tags.Next())
+			for (int i=0; i<Tag->Children.Length(); i++)
 			{
+				GTag *c = ToTag(Tag->Children[i]);
 				t.Add(c);
 			}
 			
@@ -657,17 +659,17 @@ public:
 		if (Cur)
 		{
 			GTag *Prev = 0;
-			for (GTag *t = Cur; t; t = t->Parent)
+			for (GTag *t = Cur; t; t = ToTag(t->Parent))
 			{
 				if (t->TagId == TAG_B ||
 					t->TagId == TAG_U ||
 					t->TagId == TAG_I ||
 					t->TagId == TAG_TD ||
-					t->Disp == GCss::DispBlock)
+					t->Display() == GCss::DispBlock)
 				{
 					if (Idx)
 					{
-						*Idx = Prev ? t->Tags.IndexOf(Prev) : 0;
+						*Idx = Prev ? t->Children.IndexOf(Prev) : 0;
 					}
 
 					return t;
@@ -783,7 +785,7 @@ public:
 		if (MinTag == MaxTag)
 		{
 			// Single tag change
-			int Idx = MinTag->Parent->Tags.IndexOf(MinTag);
+			int Idx = MinTag->Parent->Children.IndexOf(MinTag);
 			int Start = MinTag->GetTextStart();
 			int Len = StrlenW(MinTag->Text());
 
@@ -957,7 +959,7 @@ public:
 					
 					// Turn anchor back into a text node...
 					t->Set("href", 0);
-					DeleteArray(t->Tag);
+					t->Tag.Reset();
 					t->TagId = CONTENT;
 					t->Empty();
 					t->Font = 0;
@@ -1073,8 +1075,9 @@ public:
 				t = t->GetTagByName("body");
 			if (t)
 			{
-				for (GTag *c = t->Tags.First(); c; c = t->Tags.Next())
+				for (int i=0; i<t->Children.Length(); i++)
 				{
+					GTag *c = ToTag(t->Children[i]);
 					if (CanHaveText(c->TagId))
 					{
 						Cursor = c;
@@ -1503,7 +1506,8 @@ public:
 		if (t)
 		{
 			GTag *c;
-			while ((c = t->Tags.First()))
+			while (	t->Children.Length() &&
+					(c = ToTag(t->Children.First())))
 			{
 				if (!DeleteTag(c, Others))
 				{
@@ -1514,7 +1518,7 @@ public:
 			t->Text(0);
 			if (t->Parent)
 			{
-				t->Parent->Tags.Delete(t);
+				t->Parent->Children.Delete(t);
 			}
 			if (Others) Others->Delete(t);
 			DeleteObj(t);
@@ -1609,11 +1613,11 @@ public:
 					}
 
 					// Don't delete a parent item of the selection or cursor...
-					for (n = Cursor; n; n = n->Parent)
+					for (n = Cursor; n; n = ToTag(n->Parent))
 					{
 						PostDelete.Delete(n);
 					}
-					for (n = Selection; n; n = n->Parent)
+					for (n = Selection; n; n = ToTag(n->Parent))
 					{
 						PostDelete.Delete(n);
 					}
@@ -1804,8 +1808,8 @@ public:
 			
 			if (t->Text())
 			{
-				GTag *Insert = t->TagId == CONTENT ? t->Parent : t;
-				int Idx = t->TagId == CONTENT && t->Parent ? t->Parent->Tags.IndexOf(t) + 1 : 0;
+				GTag *Insert = t->TagId == CONTENT ? ToTag(t->Parent) : t;
+				int Idx = t->TagId == CONTENT && t->Parent ? t->Parent->Children.IndexOf(t) + 1 : 0;
 				int Base = t->GetTextStart();
 				int Chars = StrlenW(t->Text());
 				int After = Chars - Base - t->Cursor;
@@ -2142,7 +2146,7 @@ public:
 		if (!t)
 			return false;
 
-		if (t->Parent && !t->Parent->Tags.HasItem(t))
+		if (t->Parent && !t->Parent->Children.HasItem(t))
 		{
 			LgiAssert(!"Tag heirarchy error.");
 			return false;
@@ -2198,8 +2202,9 @@ public:
 			return false;
 		}
 
-		for (GTag *c=t->Tags.First(); c; c=t->Tags.Next())
+		for (int i=0; i<t->Children.Length(); i++)
 		{
+			GTag *c = ToTag(t->Children[i]);
 			if (!CheckTree(c, Ok))
 				return false;
 		}
@@ -2249,7 +2254,7 @@ public:
 		DbgInf(GTag *t = 0)
 		{
 			Depth = 0;
-			while (t && (t = t->Parent))
+			while (t && (t = ToTag(t->Parent)))
 			{
 				Depth++;
 			}
@@ -2434,8 +2439,8 @@ public:
 
 		if (t->TagId == TAG_BR)
 		{			
-			int Idx = t->Parent->Tags.IndexOf(t);
-			GTag *Prev = Idx > 0 ? t->Parent->Tags[Idx-1] : 0;
+			int Idx = t->Parent->Children.IndexOf(t);
+			GTag *Prev = Idx > 0 ? ToTag(t->Parent->Children[Idx-1]) : NULL;
 			if (!Prev || !Prev->Text())
 			{
 				// Insert empty content tag to allow use to insert text at this point
@@ -2449,9 +2454,9 @@ public:
 			}
 		}
 
-		List<GTag>::I it = t->Tags.Start();
-		for (GTag *c = *it; c; c = *++it)
+		for (int i=0; i<t->Children.Length(); i++)
 		{
+			GTag *c = ToTag(t->Children[i]);
 			PrepareForEdit(c);
 		}
 	}

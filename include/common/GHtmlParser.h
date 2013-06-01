@@ -35,6 +35,12 @@ public:
 
 	char *ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPreTag = false, bool *BackOut = NULL);	
 	GHtmlElemInfo *GetTagInfo(const char *Tag);
+	
+	// Tool methods
+	static bool ParseColour(const char *s, GCss::ColorDef &c);
+	static bool Is8Bit(char *s);
+	
+	// Virtual callbacks
 	virtual GHtmlElement *CreateElement(GHtmlElement *Parent) = 0;
 };
 

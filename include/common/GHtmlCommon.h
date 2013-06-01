@@ -86,6 +86,8 @@ public:
 class GHtmlStatic
 {
 	friend class GHtmlStaticInst;
+	GHtmlElemInfo *UnknownElement;
+	GHashTbl<const char*,GHtmlElemInfo*> TagMap;
 
 public:
 	static GHtmlStatic *Inst;
@@ -94,10 +96,11 @@ public:
 	GHashTbl<char16*,int>				 VarMap;
 	GHashTbl<const char*,GCss::PropType> StyleMap;
 	GHashTbl<const char*,int>			 ColourMap;
-	GHashTbl<const char*,GHtmlElemInfo*> TagMap;
 
 	GHtmlStatic();
 	~GHtmlStatic();
+
+	GHtmlElemInfo *GetTagInfo(const char *Tag);
 };
 
 /// Static data setup/pulldown
@@ -136,10 +139,12 @@ public:
 class GHtmlElement : public GDom, public GCss
 {
 	friend class GHtmlParser;
+
+protected:
+	GAutoWString Txt;
 	uint8 WasClosed : 1;
 
 public:
-	GAutoWString Text;
 	HtmlTag TagId;
 	GAutoString Tag;
 	GHtmlElemInfo *Info;
@@ -148,47 +153,16 @@ public:
 	GHtmlElement *Parent;
 	GArray<GHtmlElement*> Children;
 	
-	GHtmlElement(GHtmlElement *parent)
-	{
-		TagId = CONTENT;
-		Parent = parent;
-		Info = NULL;
-		WasClosed = false;
-	}
+	GHtmlElement(GHtmlElement *parent);
+	~GHtmlElement();
+	
+	// Heirarchy
+	bool Attach(GHtmlElement *Child, int Idx = -1);
+	void Detach();
+	bool HasChild(GHtmlElement *Child);
 
-	bool Attach(GHtmlElement *Child, int Idx = -1)
-	{
-		if (TagId == CONTENT)
-		{
-			LgiAssert(!"Can't nest content tags.");
-			return false;
-		}
-
-		if (!Child)
-		{
-			LgiAssert(!"Can't insert NULL tag.");
-			return false;
-		}
-
-		Child->Detach();
-		Child->Parent = this;
-		if (!Children.HasItem(Child))
-		{
-			Children.AddAt(Idx, Child);
-		}
-
-		return true;
-	}
-
-	void GHtmlElement::Detach()
-	{
-		if (Parent)
-		{
-			Parent->Children.Delete(this);
-			Parent = NULL;
-		}
-	}
-
+	// Virtuals
+	virtual void Set(const char *attr, const char *val) {}
 	virtual void SetStyle() {}
 };
 
