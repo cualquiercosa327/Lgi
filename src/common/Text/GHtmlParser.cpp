@@ -501,7 +501,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 						{
 							if (View)
 							{
-								char *Css = NewStr(s, End - s);
+								GAutoString Css(NewStr(s, End - s));
 								if (Css)
 								{
 									View->OnAddStyle("text/css", Css);

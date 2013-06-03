@@ -67,7 +67,7 @@ protected:
 	GFont *DefFont();
 	void CloseTag(GTag *t);
 	void Parse();
-	void AddCss(char *Css);
+	void OnAddStyle(const char *MimeType, const char *Styles);
 	int ScrollY();
 	void SetCursorVis(bool b);
 	bool GetCursorVis();

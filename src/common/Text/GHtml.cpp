@@ -2579,7 +2579,7 @@ void GTag::SetStyle()
 									int r = j->Stream->Read(a, Len);
 									a[r] = 0;
 
-									Html->AddCss(a.Release());
+									Html->OnAddStyle("text/css", a);
 								}
 							}
 							else LgiAssert(!"Not impl.");
@@ -5845,11 +5845,13 @@ GFont *GHtml::DefFont()
 	return GetFont();
 }
 
-void GHtml::AddCss(char *Css)
+void GHtml::OnAddStyle(const char *MimeType, const char *Styles)
 {
-	const char *c = Css;
-	CssStore.Parse(c);
-	DeleteArray(Css);
+	if (Styles)
+	{
+		const char *c = Styles;
+		CssStore.Parse(c);
+	}
 }
 
 void GHtml::Parse()
@@ -6109,7 +6111,7 @@ GMessage::Result GHtml::OnEvent(GMessage *Msg)
 								if (rd > 0)
 								{
 									Style[rd] = 0;									
-									AddCss(Style.Release());									
+									OnAddStyle("text/css", Style);									
 									ViewWidth = 0;
 									Update = true;
 								}
