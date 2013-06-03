@@ -1336,13 +1336,17 @@ CarbonControlProc
 					if ((k.c16 = VirtualKeyToLgi(key)))
 					{
 						k.vkey = k.c16;
-						k.Down(false);
+						k.Down(true);
 						if (mods & 0x200) k.Shift(true);
 						if (mods & 0x1000) k.Ctrl(true);
 						if (mods & 0x800) k.Alt(true);
 						if (mods & 0x100) k.System(true);
 
-						if (k.c16 == VK_APPS && v->Focus())
+						if
+						(
+							k.c16 == VK_APPS ||
+							k.c16 == VK_DELETE
+						)
 						{
 							// printf("RawDown key=%i sh=%i,alt=%i,ctrl=%i v=%p\n", k.c16, k.Shift(), k.Alt(), k.Ctrl(), v->Handle());
 

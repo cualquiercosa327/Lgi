@@ -6793,7 +6793,7 @@ void GHtml::OnMouseClick(GMouse &m)
 		if (Tag)
 		{
 			Tag->GetTagByPos(Hit, m.x, m.y + Offset);
-			Hit.Dump("MouseClick");
+			// Hit.Dump("MouseClick");
 		}
 		
 		if (m.Left() && !m.IsContextMenu())
@@ -7197,10 +7197,12 @@ void GHtml::OnMouseMove(GMouse &m)
 	int Offset = ScrollY();
 	GTagHit Hit;
 	Tag->GetTagByPos(Hit, m.x, m.y + Offset);
+	/*
 	if (IsCapturing())
 	{
 		Hit.Dump("    MouseMove");
 	}
+	*/
 
 	if (!Hit.Direct && !Hit.NearestText)
 		return;
