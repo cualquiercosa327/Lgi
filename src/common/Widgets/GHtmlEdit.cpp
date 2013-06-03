@@ -930,7 +930,7 @@ public:
 
 			if (DoUpdate)
 			{
-				DeleteArray(Source);
+				Source.Reset();
 				Update(true);
 				OnDocumentChange();
 			}
@@ -966,7 +966,7 @@ public:
 					t->SetStyle();
 				}
 
-				DeleteArray(Source);
+				Source.Reset();
 				Update(true);
 				OnDocumentChange();
 			}
@@ -996,7 +996,7 @@ public:
 
 			if (DoUpdate)
 			{
-				DeleteArray(Source);
+				Source.Reset();
 				Update(true);
 				OnDocumentChange();
 			}
@@ -1025,7 +1025,7 @@ public:
 
 			if (DoUpdate)
 			{
-				DeleteArray(Source);
+				Source.Reset();
 				Update(true);
 				OnDocumentChange();
 			}
@@ -1054,7 +1054,7 @@ public:
 
 			if (DoUpdate)
 			{
-				DeleteArray(Source);
+				Source.Reset();
 				Update(true);
 				OnDocumentChange();
 			}
@@ -1442,7 +1442,7 @@ public:
 		GTag *t = GetCur();
 		if (t)
 		{
-			DeleteArray(Source);
+			Source.Reset();
 
 			if (Selection)
 				Delete();
@@ -1536,7 +1536,7 @@ public:
 		GTag *t = GetCur();
 		if (t)
 		{
-			DeleteArray(Source);
+			Source.Reset();
 
 			if (Selection)
 			{
@@ -1799,7 +1799,7 @@ public:
 		GTag *t = GetCur();
 		if (t)
 		{
-			DeleteArray(Source);
+			Source.Reset();
 
 			if (Selection)
 			{

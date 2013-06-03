@@ -1215,7 +1215,7 @@ bool GTag::SetVariant(const char *Name, GVariant &Value, char *Array)
 				GTag *t = new GTag(Html, this);
 				if (t)
 				{
-					Doc = Html->ParseHtml(this, Doc, 1, false, &BackOut);
+					Doc = Html->ParseHtml(t, Doc, 1, false, &BackOut);
 					if (!Doc)
 						break;
 				}
@@ -5813,7 +5813,6 @@ void GHtml::_New()
 
 	d->Content.x = d->Content.y = 0;
 	Tag = 0;
-	Source = 0;
 	DeleteArray(DocCharSet);
 	// if (!Charset) Charset = NewStr("utf-8");
 
@@ -5834,7 +5833,7 @@ void GHtml::_Delete()
 
 	CssStore.Empty();
 	OpenTags.Empty();
-	DeleteArray(Source);
+	Source.Reset();
 	DeleteObj(Tag);
 	DeleteObj(FontCache);
 	DeleteObj(MemDC);
@@ -5854,7 +5853,7 @@ void GHtml::OnAddStyle(const char *MimeType, const char *Styles)
 	}
 }
 
-void GHtml::Parse()
+void GHtml::ParseDocument(const char *Doc)
 {
 	if (!Tag)
 	{
@@ -5871,7 +5870,7 @@ void GHtml::Parse()
 		{
 			GTag *c;
 
-			ParseHtml(Tag, Source, 0);
+			Parse(Tag, Doc);
 
 			// Add body tag if not specified...
 			GTag *Html = Tag->GetTagByName("html");
@@ -6010,41 +6009,36 @@ bool GHtml::Name(const char *s)
 	_Delete();
 	_New();
 
-	Source = NewStr(s);
+	IsHtml = false;
 
-	if (Source)
+	// Detect HTML
+	const char *c = s;
+	while ((c = strchr(c, '<')))
 	{
-		IsHtml = false;
-
-		// Detect HTML
-		char *s = Source;
-		while ((s = strchr(s, '<')))
+		char *t = 0;
+		c = ParseName((char*) ++c, &t);
+		if (t && GetTagInfo(t))
 		{
-			char *t = 0;
-			s = ParseName(++s, &t);
-			if (t && GetTagInfo(t))
-			{
-				DeleteArray(t);
-				IsHtml = true;
-				break;
-			}
 			DeleteArray(t);
+			IsHtml = true;
+			break;
 		}
-
-		#if 0
-		GFile f;
-		f.Open("c:\\temp\\broken.html", O_WRITE);
-		{
-			f.Write(Source, strlen(Source));
-			f.Close();
-		}
-		#endif
-
-		// Parse
-		d->IsParsing = true;
-		Parse();
-		d->IsParsing = false;
+		DeleteArray(t);
 	}
+
+	#if 0
+	GFile f;
+	f.Open("c:\\temp\\broken.html", O_WRITE);
+	{
+		f.Write(Source, strlen(Source));
+		f.Close();
+	}
+	#endif
+
+	// Parse
+	d->IsParsing = true;
+	ParseDocument(s);
+	d->IsParsing = false;
 
 	Invalidate();	
 
@@ -6061,7 +6055,7 @@ char *GHtml::Name()
 	{
 		GStringPipe s(1024);
 		Tag->CreateSource(s);
-		Source = s.NewStr();
+		Source.Reset(s.NewStr());
 	}
 
 	return Source;
@@ -6934,7 +6928,7 @@ void GHtml::OnMouseClick(GMouse &m)
 							{
 								DeleteObj(Tag);
 								IsHtml = !IsHtml;
-								Parse();
+								ParseDocument(Source);
 							}
 							LgiCheckHeap();
 							break;
@@ -7094,12 +7088,11 @@ void GHtml::OnMouseClick(GMouse &m)
 									Charset.Reset(NewStr(c->Charset));
 									OverideDocCharset = true;
 
-									char *Src = Source;
-									Source = 0;
+									char *Src = Source.Release();
 									_Delete();
 									_New();
-									Source = Src;
-									Parse();
+									Source.Reset(Src);
+									ParseDocument(Source);
 
 									Invalidate();
 

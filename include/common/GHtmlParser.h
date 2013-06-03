@@ -3,8 +3,12 @@
 
 class GHtmlParser
 {
+	GStringPipe SourceData;
+	const char *CurrentSrc;
+
 protected:
 	GDocView *View;
+	GAutoString Source;
 	List<GHtmlElement> OpenTags;
 	GAutoString DocCharSet;
 	bool DocAndCsTheSame;
@@ -17,15 +21,9 @@ protected:
 		OpenTags.Delete(t);
 	}
 
-	char *ParsePropValue(char *s, char *&Value);
-	char *ParseName(char *s, GAutoString &Name);
-	char *ParseName(char *s, char **Name);
-	char *ParsePropList(char *s, GHtmlElement *Obj, bool &Closed);
-	void SkipNonDisplay(char *&s);
-	char *NextTag(char *s);
-	char16 *CleanText(const char *s, int Len, bool ConversionAllowed, bool KeepWhiteSpace);
 	GHtmlElement *GetOpenTag(const char *Tag);
 	void _TraceOpenTags();
+	char *ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPreTag = false, bool *BackOut = NULL);	
 
 public:
 	GHtmlParser(GDocView *view)
@@ -33,12 +31,20 @@ public:
 		View = view;
 	}
 
-	char *ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPreTag = false, bool *BackOut = NULL);	
-	GHtmlElemInfo *GetTagInfo(const char *Tag);
+	// Main entry point
+	bool Parse(GHtmlElement *Root, const char *Doc);
 	
 	// Tool methods
+	GHtmlElemInfo *GetTagInfo(const char *Tag);
 	static bool ParseColour(const char *s, GCss::ColorDef &c);
 	static bool Is8Bit(char *s);
+	char *ParsePropValue(char *s, char *&Value);
+	char *ParseName(char *s, GAutoString &Name);
+	char *ParseName(char *s, char **Name);
+	char *ParsePropList(char *s, GHtmlElement *Obj, bool &Closed);
+	void SkipNonDisplay(char *&s);
+	char *NextTag(char *s);
+	char16 *CleanText(const char *s, int Len, bool ConversionAllowed, bool KeepWhiteSpace);
 	
 	// Virtual callbacks
 	virtual GHtmlElement *CreateElement(GHtmlElement *Parent) = 0;

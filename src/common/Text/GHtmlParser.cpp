@@ -190,6 +190,18 @@ GHtmlElemInfo *GHtmlParser::GetTagInfo(const char *Tag)
 	return GHtmlStatic::Inst->GetTagInfo(Tag);
 }
 
+bool GHtmlParser::Parse(GHtmlElement *Root, const char *Doc)
+{
+	SourceData.Empty();
+	CurrentSrc = Doc;
+	char *Cur = ParseHtml(Root, (char*)Doc, 0);
+	if (Cur > CurrentSrc)
+		SourceData.Write(CurrentSrc, Cur - CurrentSrc);
+	
+	Source.Reset(SourceData.NewStr());
+	return true;
+}
+
 char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPreTag, bool *BackOut)
 {
 	#if CRASH_TRACE
@@ -212,6 +224,14 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 			if (s[1] == '?')
 			{
 				// Dynamic content
+				
+				// Write out the document before the dynamic section
+				if (s > CurrentSrc)
+				{
+					SourceData.Write(CurrentSrc, s - CurrentSrc);
+				}
+				
+				// Process dynamic section
 				s += 2;
 				while (*s && IsWhiteSpace(*s)) s++;
 
@@ -262,12 +282,16 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 							char *e = s - 1;
 							while (e > Start && IsWhiteSpace(*e)) e--;
 							e++;
-							char *Code = NewStr(Start, e - Start);
+							GAutoString Code(NewStr(Start, e - Start));
 							if (Code)
 							{
-								char *Result = View->GetEnv()->OnDynamicContent(Code);
+								GAutoString Result(View->GetEnv()->OnDynamicContent(Code));
 								if (Result)
 								{
+									// Save the dynamic code to the source pipe
+									SourceData.Write(Result, strlen(Result));
+									
+									// Create some new elements based on the dynamically generated string
 									char *p = Result;
 									do
 									{
@@ -279,17 +303,16 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 										else break;
 									}
 									while (ValidStr(p));
-
-									DeleteArray(Result);
 								}
-
-								DeleteArray(Code);
 							}
 
 							s += 2;
 						}
 					}
 				}
+				
+				// Move current position to after the dynamic section
+				CurrentSrc = s;
 			}
 			else if (s[1] == '!' &&
 					s[2] == '-' &&

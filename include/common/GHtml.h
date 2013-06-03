@@ -42,7 +42,6 @@ protected:
 	GTag				*Tag;				// Tree root
 	GTag				*Cursor;			// Cursor location..
 	GTag				*Selection;			// Edge of selection or NULL
-	char				*Source;
 	char				*DocCharSet;
 	char				IsHtml;
 	int					ViewWidth;
@@ -66,7 +65,7 @@ protected:
 	void _Delete();
 	GFont *DefFont();
 	void CloseTag(GTag *t);
-	void Parse();
+	void ParseDocument(const char *Doc);
 	void OnAddStyle(const char *MimeType, const char *Styles);
 	int ScrollY();
 	void SetCursorVis(bool b);
