@@ -2287,7 +2287,7 @@ public:
 			for (cy = y, t = PrevTag(Cursor); t && cy > 0; t = PrevTag(t))
 			{
 				DbgInf *Line = new DbgInf(t);
-				sprintf(m, "<%s>", t->Tag?t->Tag:"CONTENT");
+				sprintf(m, "<%s>", t->Tag?t->Tag.Get():"CONTENT");
 				Line->Ds.Add(ds = new DbgDs(SysFont, m, LC_TEXT));
 
 				char16 *Txt = t->Text();
@@ -2302,7 +2302,7 @@ public:
 
 			DbgInf *Cur = new DbgInf(Cursor);
 			GAutoString CursorText(LgiNewUtf16To8(Cursor->Text(), Cursor->Cursor));
-			sprintf(m, "<%s>%s", Cursor->Tag?Cursor->Tag:"CONTENT", CursorText.Get());
+			sprintf(m, "<%s>%s", Cursor->Tag?Cursor->Tag.Get():"CONTENT", CursorText.Get());
 			Cur->Ds.Add(ds = new DbgDs(SysFont, m, Rgb24(0, 0, 255)));
 			Cur->Ds.Add(ds = new DbgDs(SysFont, "[cursor]", Rgb24(255, 0, 0)));
 			Cur->Ds.Add(ds = new DbgDs(SysFont, Cursor->Text()+Cursor->Cursor, Rgb24(0, 0, 255)));
@@ -2313,7 +2313,7 @@ public:
 			for (cy = y, t = NextTag(Cursor); t && cy < pDC->Y(); t = NextTag(t))
 			{
 				DbgInf *Line = new DbgInf(t);
-				sprintf(m, "<%s>", t->Tag?t->Tag:"CONTENT");
+				sprintf(m, "<%s>", t->Tag?t->Tag.Get():"CONTENT");
 				Line->Ds.Add(ds = new DbgDs(SysFont, m, LC_TEXT));
 
 				char16 *Txt = t->Text();

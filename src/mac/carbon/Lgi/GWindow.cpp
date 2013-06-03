@@ -925,6 +925,11 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 									printf("ShowHideProcess failed with %i\n", e);
 							}
 						}
+						else if (command.commandID == kHICommandRotateWindowsForward ||
+								 command.commandID == kHICommandRotateFloatingWindowsBackward)
+						{
+							return eventNotHandledErr;
+						}
 						else
 						{
 							w->OnCommand(command.commandID, 0, 0);

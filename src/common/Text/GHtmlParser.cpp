@@ -1019,7 +1019,7 @@ void GHtmlParser::_TraceOpenTags()
 	GStringPipe p;
 	for (GHtmlElement *t=OpenTags.First(); t; t=OpenTags.Next())
 	{
-		p.Print(", %s", t->Tag);
+		p.Print(", %s", t->Tag.Get());
 		
 		GVariant Id;
 		if (t->GetValue("id", Id))

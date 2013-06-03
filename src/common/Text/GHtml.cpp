@@ -1310,11 +1310,11 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 	{
 		if (IsBlock(Display()))
 		{
-			p.Print("\n%s<%s", Tabs, Tag);
+			p.Print("\n%s<%s", Tabs, Tag.Get());
 		}
 		else
 		{
-			p.Print("<%s", Tag);
+			p.Print("<%s", Tag.Get());
 		}
 	}
 
@@ -1353,11 +1353,11 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 		{
 			if (IsBlock(Display()))
 			{
-				p.Print("\n%s</%s>\n", Tabs, Tag);
+				p.Print("\n%s</%s>\n", Tabs, Tag.Get());
 			}
 			else
 			{
-				p.Print("</%s>", Tag);
+				p.Print("</%s>", Tag.Get());
 			}
 		}
 	}
@@ -1367,7 +1367,7 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 		{
 			p.Write((char*)">", 1);
 			TextToStream(p, Text());
-			p.Print("</%s>", Tag);
+			p.Print("</%s>", Tag.Get());
 		}
 		else
 		{
@@ -1747,7 +1747,7 @@ bool GTag::OnMouseClick(GMouse &m)
 		{
 			GAutoString Style = ToString();
 			GStringPipe p(256);
-			p.Print("Tag: %s\n", Tag ? Tag : "CONTENT");
+			p.Print("Tag: %s\n", Tag ? Tag.Get() : "CONTENT");
 			if (Class.Length())
 			{
 				p.Print("Class(es): ");
@@ -1772,7 +1772,7 @@ bool GTag::OnMouseClick(GMouse &m)
 			for (GTag *t=ToTag(Parent); t && t->Parent; t=ToTag(t->Parent))
 			{
 				GStringPipe Tmp;
-				Tmp.Print("    %s", t->Tag ? t->Tag : "CONTENT");
+				Tmp.Print("    %s", t->Tag ? t->Tag.Get() : "CONTENT");
 				if (t->HtmlId)
 				{
 					Tmp.Print("#%s", t->HtmlId);
@@ -2017,7 +2017,7 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, bool DebugLog)
 					TagHit.Index = NearestChar(Tr, x, y);
 					
 					if (DebugLog)
-						LgiTrace("GetTagByPos HitText %s, idx=%i, near=%i\n", Tag, TagHit.Index, TagHit.Near);
+						LgiTrace("GetTagByPos HitText %s, idx=%i, near=%i\n", Tag.Get(), TagHit.Index, TagHit.Near);
 
 					if (!TagHit.Near)
 					{
@@ -2044,7 +2044,7 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, bool DebugLog)
 		TagHit.LocalCoords.y = y - Pos.y;
 
 		if (DebugLog)
-			LgiTrace("GetTagByPos DirectHit %s, idx=%i, near=%i\n", Tag, TagHit.Index, TagHit.Near);
+			LgiTrace("GetTagByPos DirectHit %s, idx=%i, near=%i\n", Tag.Get(), TagHit.Index, TagHit.Near);
 	}
 
 	for (int i=0; i<Children.Length(); i++)
@@ -2485,7 +2485,7 @@ void GTag::Restyle()
 	if (Debug)
 	{
 		GAutoString Style = ToString();
-		LgiTrace(">>>> %s <<<<:\n%s\n\n", Tag, Style.Get());
+		LgiTrace(">>>> %s <<<<:\n%s\n\n", Tag.Get(), Style.Get());
 	}
 	#endif
 }
@@ -2507,7 +2507,7 @@ void GTag::SetStyle()
 	#ifdef _DEBUG
 	if (Get("debug", s))
 	{
-		if (Debug = atoi(s))
+		if ((Debug = atoi(s)))
 		{
 			int asd=0;
 		}
@@ -7717,10 +7717,10 @@ void GTagHit::Dump(const char *Desc)
 	
 	LgiTrace("Hit: %s Direct: ", Desc);
 	for (i=0; i<d.Length(); i++)
-		LgiTrace(">%s", d[i]->Tag ? d[i]->Tag : "CONTENT");
+		LgiTrace(">%s", d[i]->Tag ? d[i]->Tag.Get() : "CONTENT");
 	LgiTrace(" Nearest: ");
 	for (i=0; i<n.Length(); i++)
-		LgiTrace(">%s", n[i]->Tag ? n[i]->Tag : "CONTENT");
+		LgiTrace(">%s", n[i]->Tag ? n[i]->Tag.Get() : "CONTENT");
 	LgiTrace(" Local: %ix%i Index: %i Block: %s '%.10S'\n",
 		LocalCoords.x, LocalCoords.y,
 		Index,

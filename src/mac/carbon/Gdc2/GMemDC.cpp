@@ -346,10 +346,15 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 				pMem = new GBmpMem;
 				if (pMem)
 				{
+					#if 1
+					pMem->Base = (uchar*)d->Data;
+					pMem->Line = LineLen;
+					#else
 					pMem->Base = ((uchar*)d->Data) + (LineLen * (y - 1));
+					pMem->Line = -LineLen;
+					#endif
 					pMem->x = x;
 					pMem->y = y;
-					pMem->Line = -LineLen;
 					switch (CGBitmapContextGetBitsPerPixel(d->Bmp))
 					{
 						case 8:
