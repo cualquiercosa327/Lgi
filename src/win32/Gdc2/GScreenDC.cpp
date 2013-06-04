@@ -527,7 +527,7 @@ void GScreenDC::HLine(int x1, int x2, int y)
 		x2 = t;
 	}
 	MoveToEx(hDC, x1, y, NULL);
-	LineTo(hDC, x2, y + 1);
+	LineTo(hDC, x2 + 1, y);
 }
 
 void GScreenDC::VLine(int x, int y1, int y2)

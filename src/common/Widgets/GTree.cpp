@@ -30,6 +30,10 @@ public:
 	bool			InPour;
 	int64			DropSelectTime;
     int8            IconTextGap;
+    
+    // Visual style
+	GTree::ThumbStyle Btns;
+	bool			JoiningLines;
 
 	// Pointers into items... be careful to clear when deleting items...
 	GTreeItem		*LastHit;
@@ -45,6 +49,9 @@ public:
 		IconCache = 0;
 		LayoutDirty = true;
 		IconTextGap = 0;
+		
+		Btns = GTree::TreeTriangle;
+		JoiningLines = false;
 	}
 	
 	~GTreePrivate()
@@ -653,61 +660,108 @@ void GTreeItem::OnPaint(ItemPaintCtx &Ctx)
 	int x = 0;
 	COLOUR Lines = LC_MED;
 	pDC->Colour(Lines, 24);
-	for (int i=0; i<d->Depth; i++)
+	if (Tree->d->JoiningLines)
 	{
-		if (Tree->d->LineFlags[0] & (1 << i))
+		for (int i=0; i<d->Depth; i++)
 		{
-			pDC->Line(x + 8, d->Pos.y1, x + 8, d->Pos.y2);
+			if (Tree->d->LineFlags[0] & (1 << i))
+			{
+				pDC->Line(x + 8, d->Pos.y1, x + 8, d->Pos.y2);
+			}
+			x += TREE_BLOCK;
 		}
-		x += TREE_BLOCK;
+	}
+	else
+	{
+		x += TREE_BLOCK * d->Depth;
 	}
 
 	// draw node
 	int cy = d->Pos.y1 + (d->Pos.Y() >> 1);
 	if (Items.Length() > 0)
 	{
-		// plus/minus symbol
 		d->Thumb.ZOff(8, 8);
 		d->Thumb.Offset(x + 4, cy - 4);
 
-		pDC->Colour(LC_LOW, 24);
-		pDC->Box(&d->Thumb);
-		pDC->Colour(LC_WHITE, 24);
-		pDC->Rectangle(d->Thumb.x1+1, d->Thumb.y1+1, d->Thumb.x2-1, d->Thumb.y2-1);
-		pDC->Colour(LC_SHADOW, 24);
-		pDC->Line(	d->Thumb.x1+2,
-					d->Thumb.y1+4,
-					d->Thumb.x1+6,
-					d->Thumb.y1+4);
+		switch (Tree->d->Btns)
+		{
+			case GTree::TreePlus:
+			{
+				// plus/minus symbol
+				pDC->Colour(LC_LOW, 24);
+				pDC->Box(&d->Thumb);
+				pDC->Colour(LC_WHITE, 24);
+				pDC->Rectangle(d->Thumb.x1+1, d->Thumb.y1+1, d->Thumb.x2-1, d->Thumb.y2-1);
+				pDC->Colour(LC_SHADOW, 24);
+				pDC->Line(	d->Thumb.x1+2,
+							d->Thumb.y1+4,
+							d->Thumb.x1+6,
+							d->Thumb.y1+4);
+
+				if (!d->Open)
+				{
+					// not open, so draw the cross bar making the '-' into a '+'
+					pDC->Colour(LC_SHADOW, 24);
+					pDC->Line(	d->Thumb.x1+4,
+								d->Thumb.y1+2,
+								d->Thumb.x1+4,
+								d->Thumb.y1+6);
+				}
+				break;
+			}
+			case GTree::TreeTriangle:
+			{
+				// Triangle style expander
+				pDC->Colour(LC_LOW, 24);
+
+				int Off = 2;
+				if (d->Open)
+				{
+					for (int y=0; y<d->Thumb.Y(); y++)
+					{
+						int x1 = d->Thumb.x1 + y;
+						int x2 = d->Thumb.x2 - y;
+						if (x2 < x1)
+							break;
+						pDC->HLine(x1, x2, d->Thumb.y1 + y + Off);
+					}
+				}
+				else
+				{
+					for (int x=0; x<d->Thumb.X(); x++)
+					{
+						int y1 = d->Thumb.y1 + x;
+						int y2 = d->Thumb.y2 - x;
+						if (y2 < y1)
+							break;
+						pDC->VLine(d->Thumb.x1 + x + Off, y1, y2);
+					}
+				}
+				break;
+			}
+		}
 
 		pDC->Colour(Lines, 24);
 
-		if (Parent || IndexOf() > 0)
+		if (Tree->d->JoiningLines)
 		{
-			// draw line to item above
-			pDC->Line(x + 8, d->Pos.y1, x + 8, d->Thumb.y1-1);
-		}
+			if (Parent || IndexOf() > 0)
+			{
+				// draw line to item above
+				pDC->Line(x + 8, d->Pos.y1, x + 8, d->Thumb.y1-1);
+			}
 
-		// draw line to leaf beside
-		pDC->Line(d->Thumb.x2+1, cy, x + (TREE_BLOCK-1), cy);
+			// draw line to leaf beside
+			pDC->Line(d->Thumb.x2+1, cy, x + (TREE_BLOCK-1), cy);
 
-		if (!d->Last)
-		{
-			// draw line to item below
-			pDC->Line(x + 8, d->Thumb.y2+1, x + 8, d->Pos.y2);
-		}
-
-		if (!d->Open)
-		{
-			// not open, so draw the cross bar making the '-' into a '+'
-			pDC->Colour(LC_SHADOW, 24);
-			pDC->Line(	d->Thumb.x1+4,
-						d->Thumb.y1+2,
-						d->Thumb.x1+4,
-						d->Thumb.y1+6);
+			if (!d->Last)
+			{
+				// draw line to item below
+				pDC->Line(x + 8, d->Thumb.y2+1, x + 8, d->Pos.y2);
+			}
 		}
 	}
-	else
+	else if (Tree->d->JoiningLines)
 	{
 		// leaf node
 		pDC->Colour(LC_MED, 24);
@@ -1647,4 +1701,11 @@ static void GTreeItemUpdateAll(GTreeNode *n)
 void GTree::UpdateAllItems()
 {
 	GTreeItemUpdateAll(this);
+}
+
+void GTree::SetVisualStyle(ThumbStyle Btns, bool JoiningLines)
+{
+	d->Btns = Btns;
+	d->JoiningLines = JoiningLines;
+	Invalidate();
 }

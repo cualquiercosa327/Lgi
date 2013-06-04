@@ -213,6 +213,14 @@ public:
 	void RemoveAll();
 	/// Call 'Update' on all tree items
 	void UpdateAllItems();
+	
+	// Visual style
+	enum ThumbStyle
+	{
+		TreePlus,
+		TreeTriangle
+	};
+	void SetVisualStyle(ThumbStyle Btns, bool JoiningLines);
 };
 
 #endif
