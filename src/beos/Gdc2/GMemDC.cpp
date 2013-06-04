@@ -133,7 +133,7 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 			pMem->Base = (uchar*) d->Bmp->Bits();
 			pMem->x = x;
 			pMem->y = y;
-			pMem->Cs = GBitsToColourSpace(Bits);
+			ColourSpace = pMem->Cs = GBitsToColourSpace(Bits);
 			pMem->Line = d->Bmp->BytesPerRow();
 			pMem->Flags = 0;
 			

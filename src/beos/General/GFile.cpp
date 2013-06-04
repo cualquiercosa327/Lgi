@@ -104,13 +104,13 @@ int64 LgiFileSize(const char *FileName)
 	return s;
 }
 
-bool FileExists(const char *FileName)
+bool FileExists(const char *FileName, char *CorrectCase)
 {
 	BEntry e(FileName);
 	return e.Exists();
 }
 
-bool DirExists(const char *Dir)
+bool DirExists(const char *Dir, char *CorrectCase)
 {
 	BEntry e(Dir);
 	return e.Exists();

@@ -777,9 +777,6 @@ GToolButton::GToolButton(int Bx, int By)
 	TipId = -1;
 
 	_BorderSize = 0;
-	#ifdef BEOS
-	Handle()->SetViewColor(B_TRANSPARENT_COLOR);
-	#endif
 }
 
 GToolButton::~GToolButton()

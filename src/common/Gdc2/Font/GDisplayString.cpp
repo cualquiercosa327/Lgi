@@ -477,14 +477,43 @@ void GDisplayString::Layout()
 		Font->Handle()->GetBoundingBoxesForStrings(Strs, 1, B_SCREEN_METRIC, &Delta, &Rc);
 		x = Rc.IntegerWidth();
 		y = Rc.IntegerHeight();
-		Blocks = 1;
-		Info = new CharInfo[Blocks];
-		Info[0].Str = Str;
-		Info[0].Len = strlen(Str);
-		Info[0].X = x;
-		Info[0].FontId = -1;
-		Info[0].SizeDelta = 0;
+		if (Rc.IntegerWidth() < 0)
+		{
+			font_height Ht;
+			Font->Handle()->GetHeight(&Ht);
+			x = 0;
+			y = ceil(Ht.ascent + Ht.descent);
+			
+			int Len = strlen(Str);
+			float *esc = new float[Len];
+
+			Font->Handle()->GetEscapements(Str, Len, esc);
+			for (int i=0; i<Len; i++)
+			{
+				x += ceil(esc[i] * y);
+				/*
+				printf("Glyph[%i/%c] = %f, %f, %f\n", i, Str[i],
+					(double)g[i].space, (double)g[i].nonspace,
+					(double)esc[i]);
+				*/
+			}
+
+			delete [] esc;
+		}
+		else
+		{
+			Blocks = 1;
+			Info = new CharInfo[Blocks];
+			Info[0].Str = Str;
+			Info[0].Len = strlen(Str);
+			Info[0].X = x;
+			Info[0].FontId = -1;
+			Info[0].SizeDelta = 0;
+		}
+
+		// printf("Layout '%s' = %i,%i\n", Str, x, y);
 	}
+	else printf("%s:%i - No font or handle.\n", _FL);
 	
 	#endif
 }
@@ -818,32 +847,6 @@ CharAtError:
 	return Status;
 }
 
-#ifdef __GTK_H__
-/*
-xcb_visualtype_t *get_root_visual_type(xcb_screen_t *s)
-{
-    xcb_visualtype_t *visual_type = NULL;
-    xcb_depth_iterator_t depth_iter;
-
-    depth_iter = xcb_screen_allowed_depths_iterator(s);
-
-    for(;depth_iter.rem;xcb_depth_next(&depth_iter)) {
-        xcb_visualtype_iterator_t visual_iter;
-
-        visual_iter = xcb_depth_visuals_iterator(depth_iter.data);
-        for(;visual_iter.rem;xcb_visualtype_next(&visual_iter)) {
-            if(s->root_visual == visual_iter.data->visual_id) {
-                visual_type = visual_iter.data;
-                break;
-            }
-        }
-    }
-
-    return visual_type;
-}
-*/
-#endif
-
 void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 {
     Layout();
@@ -901,8 +904,30 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 		BView *Hnd = pDC->Handle();
 		if (Hnd)
 		{
+			/*
+			BPoint o = Hnd->Origin();
+			int Ox = 0, Oy = 0;
+			pDC->GetOrigin(Ox, Oy);
+			*/
+			
+			GColour c = Font->Fore();
+			rgb_color Fg;
+			Fg.red = c.r();
+			Fg.green = c.g();
+			Fg.blue = c.b();
+			Hnd->SetHighColor(Fg);
+
+			c = Font->Back();
+			rgb_color Bk;
+			Bk.red = c.r();
+			Bk.green = c.g();
+			Bk.blue = c.b();
+			Hnd->SetLowColor(Bk);			
+			
+			int Len = strlen(Str);
 			Hnd->SetFont(Font->Handle());
-			Hnd->DrawString(Str, -1, BPoint(px, py));
+			Hnd->DrawString(Str, Len, BPoint(px, py + Font->Ascent()));
+			printf("Drawing String '%s' %i at %i,%i\n", Str, Len, px, py);
 		}
 		else printf("%s:%i - Error: no BView to draw on.", _FL);
 	}

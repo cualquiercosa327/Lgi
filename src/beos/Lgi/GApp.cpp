@@ -97,6 +97,7 @@ GApp::GApp(const char *Mime, OsAppArguments &OsArgs, GAppArguments *AppArgs) : B
 		LgiExitApp();
 	}
 
+	#if 0
 	if (!GetOption("noskin"))
 	{
 		// Load library
@@ -135,6 +136,7 @@ GApp::GApp(const char *Mime, OsAppArguments &OsArgs, GAppArguments *AppArgs) : B
 			printf("%s:%i - Can't find skin library.\n", __FILE__, __LINE__);
 		}
 	}
+	#endif
 }
 
 GApp::~GApp()

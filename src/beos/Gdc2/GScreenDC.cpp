@@ -59,12 +59,11 @@ int GScreenDC::GetFlags()
 
 void GScreenDC::SetClient(GRect *r)
 {
-	/* FIXME
 	// Unset previous client
 	if (d->Client.Valid())
 	{
 		d->View->SetOrigin(0, 0);
-		d->View->ConstrainClippingRegion(0);
+		d->View->ConstrainClippingRegion(NULL);
 	}
 	
 	if (r)
@@ -85,7 +84,6 @@ void GScreenDC::SetClient(GRect *r)
 		d->View->ConstrainClippingRegion(&r);
 		d->View->SetOrigin(d->Client.x1, d->Client.y1);
 	}
-	*/
 }
 
 OsView GScreenDC::Handle()
@@ -126,41 +124,8 @@ void GScreenDC::SetOrigin(int x, int y)
 
 GRect GScreenDC::ClipRgn()
 {
-	/*
-	if (d->View->LockLooper())
-	{
-		BRegion r;
-		d->View->GetClippingRegion(&r);
-		BRect rc = r.Frame();
-		d->View->UnlockLooper();
-		return GRect(rc);
-	}
-	
-	GRect r(0, 0, -1, -1);
-	return r;
-	*/
-	
 	return d->Clip;
 }
-
-/*
-void GScreenDC::_SetClient(GRect *c)
-{
-	d->ClientClip = c != 0;
-	if (c)
-	{
-		d->_Client = *c;
-
-		BRegion br;
-		br.Set(d->_Client);
-		d->View->ConstrainClippingRegion(&br);
-	}
-	else
-	{
-		d->View->ConstrainClippingRegion(0);
-	}
-}
-*/
 
 GRect GScreenDC::ClipRgn(GRect *Rgn)
 {
@@ -395,7 +360,6 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 		}
 		else
 		{
-			/* FIXME
 			// memory to screen Blt
 			GMemDC *Dc = dynamic_cast<GMemDC*>(Src);
 			BBitmap *Bmp = Dc ? Dc->GetBitmap() : 0;
@@ -417,7 +381,6 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 				
 				d->View->DrawBitmap(Bmp, S, D);
 			}
-			*/
 		}
 	}
 }

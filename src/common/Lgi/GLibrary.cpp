@@ -72,8 +72,10 @@ bool GLibrary::Load(const char *File)
 			}
 			#endif
 
+			/*
 			#elif defined BEOS
 
+			dlopen(FileName);
 			hLib = load_add_on(FileName);
 			printf("load_add_on(%s)=%i\n", FileName, hLib);
 			if (hLib < 0)
@@ -103,8 +105,9 @@ bool GLibrary::Load(const char *File)
 			printf("Loaded '%s'\n", info.name);
 			#endif
 			return true;
+			*/
 
-			#elif defined(LINUX) || defined(MAC)
+			#elif defined(LINUX) || defined(MAC) || defined(BEOS)
 			
 			char *f = strrchr(FileName, DIR_CHAR);
 			if (f) f++;
@@ -113,7 +116,11 @@ bool GLibrary::Load(const char *File)
 						 stricmp(f, "lgilgid." LGI_LIBRARY_EXT) == 0;			
 			if (!IsLgi) // Bad things happen when we load LGI again.
 			{
+				#ifdef BEOS
+				hLib = dlopen(FileName);
+				#else
 				hLib = dlopen(FileName, RTLD_NOW);
+				#endif
 				if (!hLib)
 				{
 					GToken t("/opt/local/lib", ":");
@@ -124,7 +131,11 @@ bool GLibrary::Load(const char *File)
 						LgiMakePath(full, sizeof(full), t[i], f);
 						if (FileExists(full))
 						{
+							#ifdef BEOS
+							hLib = dlopen(full);
+							#else
 							hLib = dlopen(full, RTLD_NOW);
+							#endif
 							printf("dlopen(%s)=%p\n", full, hLib);
 							if (hLib)
 								break;
@@ -162,9 +173,11 @@ bool GLibrary::Unload()
 	{
 		#if defined WIN32
 		FreeLibrary(hLib);
+		/*
 		#elif defined BEOS
 		unload_add_on(hLib);
-		#elif defined(LINUX)||defined(MAC)
+		*/
+		#elif defined(LINUX) || defined(MAC) || defined(BEOS)
 		dlclose(hLib);
 		#else
 		LgiAssert(0);
@@ -185,9 +198,11 @@ void *GLibrary::GetAddress(const char *Resource)
 	{
 		#if defined WIN32
 		p = (void*) GetProcAddress(hLib, Resource);
+		/*
 		#elif defined BEOS
 		get_image_symbol(hLib, Resource, B_SYMBOL_TYPE_TEXT, (void**) &p);
-		#elif defined(LINUX)||defined(MAC)
+		*/
+		#elif defined(LINUX) || defined(MAC) || defined(BEOS)
 		p = dlsym(hLib, Resource);
 		#else
 		LgiAssert(0);

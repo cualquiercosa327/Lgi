@@ -928,7 +928,9 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 	
 		font_height h;
 		d->hFont->GetHeight(&h);
-		d->Height = h.ascent + h.descent + h.leading + 0.9999;
+		GTypeFace::d->_Ascent = h.ascent;
+		GTypeFace::d->_Descent = h.descent;
+		d->Height = ceil(h.ascent + h.descent);
 	}
 	
 	return true;

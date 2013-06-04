@@ -697,6 +697,9 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 									Read32Case(Argb32, 32);
 									Read32Case(Abgr32, 32);
 									default:
+										LgiTrace("%s:%i - Unsupported colour space: 0x%x (%s)\n",
+												pDC->GetColourSpace(),
+												GColourSpaceToString(pDC->GetColourSpace()));
 										LgiAssert(!"Not impl.");
 										break;
 								}
