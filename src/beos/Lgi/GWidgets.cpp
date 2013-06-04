@@ -148,14 +148,29 @@ public:
 */
 
 ///////////////////////////////////////////////////////////////////////////////////////////
+struct GDialogPriv
+{
+	bool IsModal;
+	int ModalRet;
+	sem_id ModalSem;
+	
+	GDialogPriv()
+	{
+		IsModal = true;
+		ModalRet = 0;
+		ModalSem = B_BAD_VALUE;
+	}
+};
+
 GDialog::GDialog() : ResObject(Res_Dialog)
 {
+	d = new GDialogPriv;
 	Name("Dialog");
 
 	if (Wnd)
 	{
-		Wnd->SetFlags(B_NOT_RESIZABLE);
 		/*
+		Wnd->SetFlags(B_NOT_RESIZABLE);
 		Wnd->SetType(B_MODAL_WINDOW);
 		Wnd->SetLook(B_TITLED_WINDOW_LOOK);
 		*/
@@ -165,10 +180,19 @@ GDialog::GDialog() : ResObject(Res_Dialog)
 GDialog::~GDialog()
 {
 	SetParent(0);
+	DeleteObj(d);
 }
 
 void GDialog::Quit(bool DontDelete)
 {
+	if (d->IsModal)
+	{
+		EndModal(0);
+	}
+	else
+	{
+		EndModeless();
+	}	
 }
 
 void GDialog::OnPosChange()
@@ -184,6 +208,8 @@ void GDialog::OnPosChange()
             t->SetPos(r);
         }
     }
+    
+    GWindow::OnPosChange();
 }
 
 bool GDialog::LoadFromResource(int Resource, char *Param)
@@ -201,7 +227,12 @@ bool GDialog::LoadFromResource(int Resource, char *Param)
 
 bool GDialog::OnRequestClose(bool OsClose)
 {
-	EndModal(0);
+	printf("GDialog::OnRequestClose(%i) modal=%i\n", OsClose, d->IsModal);
+	if (d->IsModal)
+		EndModal(0);
+	else
+		EndModeless();
+		
 	return false;
 }
 
@@ -238,10 +269,9 @@ int GDialog::DoModal(OsView ParentHnd)
 {
 	// LgiTrace("DoModal() Me=%i Count=%i Thread=%i\n", LgiGetCurrentThread(), Wnd->CountLocks(), Wnd->LockingThread());
 
-	/*
-	IsModal = true;
-	ModalRet = 0;
-	ModalSem = create_sem(0, "ModalSem");
+	d->IsModal = true;
+	d->ModalRet = 0;
+	d->ModalSem = create_sem(0, "ModalSem");
 	
 	if (!_Default)
 	{
@@ -266,7 +296,7 @@ int GDialog::DoModal(OsView ParentHnd)
 		// Setup the BWindow
 		Wnd->ResizeTo(Pos.X(), Pos.Y());
 		Wnd->MoveTo(Pos.x1, Pos.y1);
-		Wnd->SetTitle(GObject::Name());
+		Wnd->SetTitle(GBase::Name());
 
 		// Add BView here to move the "OnCreate" call to the correct place
 		BRect r = Wnd->Bounds();
@@ -278,21 +308,14 @@ int GDialog::DoModal(OsView ParentHnd)
 		Wnd->Show();
 		Wnd->Unlock();
 
-		// MFC NOTE: WaitForDelete is different from CWnd::RunModalLoop
-		// because it doesn't process messages.
-		WaitForDelete(ModalSem, GetParent()?GetParent()->WindowHandle():0);
-		
-		delete_sem(ModalSem);
+		WaitForDelete(d->ModalSem, GetParent()?GetParent()->WindowHandle():0);
 	}
 	else
 	{
 		printf("%s:%i - DoModal Wnd->Lock() failed.\n", __FILE__, __LINE__);
 	}	
 	
-	return ModalRet;
-	*/
-	
-	return 0;
+	return d->ModalRet;
 }
 
 int GDialog::DoModeless()
@@ -323,17 +346,13 @@ int GDialog::DoModeless()
 
 GMessage::Result GDialog::OnEvent(GMessage *Msg)
 {
-	int Status = 0;
-
-	// printf("GDialog::OnEvent(%i)\n", Msg->what);
-
-	return Status;
+	return GWindow::OnEvent(Msg);
 }
 
 void GDialog::EndModal(int Code)
 {
-	// ModalRet = Code;
-	// delete_sem(ModalSem); // causes DoModal to unblock
+	d->ModalRet = Code;
+	delete_sem(d->ModalSem); // causes DoModal to unblock
 }
 
 void GDialog::EndModeless(int Code)

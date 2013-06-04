@@ -46,7 +46,7 @@ bool GMouse::ToScreen()
 	}
 	else
 	{
-		printf("%s:%i - Error: Target=%p ViewCoords=%i\n", __FILE__, __LINE__, Target, ViewCoords);
+		printf("%s:%i - Error: Target=%p ViewCoords=%i\n", _FL, Target, ViewCoords);
 	}
 	
 	return false;

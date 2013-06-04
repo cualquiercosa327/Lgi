@@ -179,7 +179,7 @@ GViewI *GApp::GetFocus()
 	for (int i=0; i<CountWindows(); i++)
 	{
 		BWindow *w = WindowAt(i);
-		if (w AND w->IsActive())
+		if (w && w->IsActive())
 		{
 			BView *f = w->CurrentFocus();
 			if (f)

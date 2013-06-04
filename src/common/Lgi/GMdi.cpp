@@ -491,7 +491,7 @@ void GMdiChild::Raise()
 		#elif WIN32NATIVE
 		SetWindowPos(Handle(), HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 		#elif BEOS
-		LgiAssert(!"Impl me.");
+		// What to do here?
 		#else
 		#error "Impl me."
 		#endif
@@ -517,7 +517,7 @@ void GMdiChild::Lower()
 		#elif WIN32NATIVE
 		SetWindowPos(Handle(), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 		#elif BEOS
-		LgiAssert(!"Impl me.");
+		// What to do here?
 		#else
 		#error "Impl me."
 		#endif

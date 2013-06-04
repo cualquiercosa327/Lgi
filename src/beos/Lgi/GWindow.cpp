@@ -48,15 +48,18 @@ void GWnd::FrameMoved(BPoint origin)
 		Notify->Pos.Offset(	-Notify->Pos.x1 + origin.x,
 							-Notify->Pos.y1 + origin.y);
 	}
+	else printf("%s:%i - Error: no notify.\n", _FL);
 }
 
 void GWnd::FrameResized(float width, float height)
 {
+	printf("FrameResize event %f, %f\n", width, height);
 	if (Notify)
 	{
 		Notify->Pos.Dimension(width, height);
 		Notify->OnPosChange();
 	}
+	else printf("%s:%i - Error: no notify.\n", _FL);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

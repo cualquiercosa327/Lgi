@@ -2169,76 +2169,77 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool NonClient)
 	return false;
 }
 
+static void SetBeosCursor(LgiCursor c)
+{
+}
+
 bool GView::_Mouse(GMouse &m, bool Move)
 {
-	if (GetWindow())
-	{
-		if (!GetWindow()->OnViewMouse(this, m))
-		{
-			return;
-		}
-	}
+	GWindow *Wnd = GetWindow();
 
 	if (_Capturing)
 	{
+		if (_Capturing != m.Target)
+		{
+			m.ToScreen();
+			m.Target = _Capturing;
+			m.ToView();
+		}
+		
 		if (Move)
 		{
-			_Capturing->OnMouseMove(_lgi_adjust_click_for_window(m, _Capturing));
+			GViewI *c = _Capturing;
+			SetBeosCursor(c->GetCursor(m.x, m.y));
+			c->OnMouseMove(m);
 		}
 		else
 		{
-			_Capturing->OnMouseClick(_lgi_adjust_click_for_window(m, _Capturing));
+			if (!Wnd || Wnd->HandleViewMouse(dynamic_cast<GView*>(m.Target), m))
+			{
+				m.Target->OnMouseClick(m);
+			}
 		}
 	}
 	else
 	{
-		if (Move)
+		if (_Over != this)
 		{
-			bool Change = false;
-			GViewI *o = WindowFromPoint(m.x, m.y);
-
-			if (o && !o->Handle())
+			if (_Over)
 			{
-				printf("Over virtual\n");
+				_Over->OnMouseExit(m);
 			}
 
-			if (_Over != o)
+			_Over = this;
+
+			if (_Over)
 			{
-				if (_Over)
-				{
-					_Over->OnMouseExit(_lgi_adjust_click_for_window(m, _Over));
-				}
-
-				_Over = o;
-
-				if (_Over)
-				{
-					_Over->OnMouseEnter(_lgi_adjust_click_for_window(m, _Over));
-				}
+				_Over->OnMouseEnter(m);
 			}
 		}
 			
 		GView *Target = dynamic_cast<GView*>(_Over ? _Over : this);
-		GRect Client = Target->GView::GetClient();
-		if (Target->Raised() || Target->Sunken())
-		{
-			Client.Offset(Target->_BorderSize, Target->_BorderSize);
-		}
-		m = _lgi_adjust_click_for_window(m, Target);
+		GLayout *Lo = dynamic_cast<GLayout*>(Target);
+		GRect Client = Lo ? Lo->GetClient(false) : Target->GView::GetClient(false);
+
 		if (!Client.Valid() || Client.Overlap(m.x, m.y))
 		{
 			if (Move)
 			{
+				SetBeosCursor(Target->GetCursor(m.x, m.y));
 				Target->OnMouseMove(m);
 			}
 			else
 			{
-				Target->OnMouseClick(m);
+				if (!Wnd || Wnd->HandleViewMouse(Target, m))
+				{
+					Target->OnMouseClick(m);
+				}
 			}
 		}
+		else return false;
 	}
 	
-	return false;
+	return true;
 }
 
 void GView::SetPulse(int Length)
@@ -2365,10 +2366,14 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 		}
 		default:
 		{
-			BMessage *Msg = WindowHandle()->CurrentMessage();
-			if (Msg && Msg->WasDropped())
+			OsWindow h = WindowHandle();
+			if (h)
 			{
-				Msg->PrintToStream();
+				BMessage *Msg = WindowHandle()->CurrentMessage();
+				if (Msg && Msg->WasDropped())
+				{
+					Msg->PrintToStream();
+				}
 			}
 			break;
 		}
@@ -2733,6 +2738,7 @@ void BViewRedir::MouseDown(BPoint point)
 	else if (WndBtn == B_SECONDARY_MOUSE_BUTTON) m.Right(true);
 	else if (WndBtn == B_TERTIARY_MOUSE_BUTTON) m.Middle(true);
 	m.Down(true);
+	m.Target = Wnd;
 	
 	int32 Clicks = 0;
 	if (Window()->CurrentMessage()->FindInt32("clicks", &Clicks) == B_OK)
@@ -2768,6 +2774,7 @@ void BViewRedir::MouseUp(BPoint point)
 	else if (b == B_SECONDARY_MOUSE_BUTTON) m.Right(true);
 	else if (b == B_TERTIARY_MOUSE_BUTTON) m.Middle(true);
 	m.Down(false);
+	m.Target = Wnd;
 	
 	Wnd->_Mouse(m, false);
 	WndBtn = Btns;
@@ -2792,7 +2799,7 @@ void BViewRedir::MouseMoved(BPoint point, uint32 transit, const BMessage *messag
 	else if (Btns == B_SECONDARY_MOUSE_BUTTON) m.Right(true);
 	else if (Btns == B_TERTIARY_MOUSE_BUTTON) m.Middle(true);
 	m.Down(false);
-	
+	m.Target = Wnd;
 	
 	Wnd->_Mouse(m, true);
 }
