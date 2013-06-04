@@ -407,7 +407,10 @@ void GView::_Paint(GSurface *pDC, int Ox, int Oy)
 		pDC = Local;
 	}
 	if (!pDC)
+	{
+		printf("%s:%i - No context to draw in.\n", _FL);
 		return;
+	}
 
 	#if 0
 	// This is useful for coverage checking

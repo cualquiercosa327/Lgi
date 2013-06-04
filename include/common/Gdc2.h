@@ -1235,7 +1235,7 @@ public:
 
 		#elif defined(BEOS)
 
-		
+		OsBitmap GetBitmap();
 
 		#endif
 		

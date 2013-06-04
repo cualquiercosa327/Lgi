@@ -62,6 +62,11 @@ GMemDC::~GMemDC()
 	DeleteObj(d);
 }
 
+OsBitmap GMemDC::GetBitmap()
+{
+	return d->Bmp;
+}
+
 void GMemDC::SetClient(GRect *c)
 {
 }

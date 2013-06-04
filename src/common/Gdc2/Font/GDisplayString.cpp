@@ -927,7 +927,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 			int Len = strlen(Str);
 			Hnd->SetFont(Font->Handle());
 			Hnd->DrawString(Str, Len, BPoint(px, py + Font->Ascent()));
-			printf("Drawing String '%s' %i at %i,%i\n", Str, Len, px, py);
+			// printf("Drawing String '%s' %i at %i,%i\n", Str, Len, px, py);
 		}
 		else printf("%s:%i - Error: no BView to draw on.", _FL);
 	}

@@ -218,6 +218,7 @@ GRect &GLayout::GetClient(bool ClientSpace)
 
 void GLayout::OnNcPaint(GSurface *pDC, GRect &r)
 {
+	GView::OnNcPaint(pDC, r);
 }
 
 int GLayout::OnNotify(GViewI *v, int f)

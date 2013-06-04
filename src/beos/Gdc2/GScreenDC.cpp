@@ -357,6 +357,7 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 		if (Src->IsScreen())
 		{
 			// screen to screen Blt
+			printf("%s:%i - Error: can't do screen to screen blt.\n", _FL);
 		}
 		else
 		{
@@ -380,7 +381,9 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 				BRect D(x, y, x+S.Width(), y+S.Height());
 				
 				d->View->DrawBitmap(Bmp, S, D);
+				// printf("DrawBitmap %i,%i - %i,%i\n", (int)S.left, (int)S.top, (int)D.left, (int)D.top);
 			}
+			else printf("%s:%i - Error: No bitmap to blt\n", _FL);
 		}
 	}
 }

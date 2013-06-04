@@ -593,66 +593,6 @@ GRect JoinAdjacent(GRect &a, GRect &b, int Adj)
 	return t;
 }
 
-void GView::_Paint(GSurface *pDC, int Ox, int Oy)
-{
-	GRect r(0, 0, Pos.X()-1, Pos.Y()-1);
-
-	/*
-	bool HasEdge = (Sunken() || Raised()) && _BorderSize;
-	if (HasEdge)
-	{
-		if (_BorderSize == 2)
-		{
-			LgiWideBorder(pDC, r, Sunken() ? SUNKEN : RAISED);
-		}
-		else if (_BorderSize == 1)
-		{
-			LgiThinBorder(pDC, r, Sunken() ? SUNKEN : RAISED);
-		}
-
-		GRect c(0, 0, r.X()-1, r.Y()-1);
-		pDC->ClipRgn(&c);
-		pDC->SetOrigin(-r.x1, -r.y1);
-	}
-	*/
-	
-	// Paint client
-	OnPaint(pDC);
-
-	#if 0	
-	// Paint any virtual children
-	int x, y;
-	pDC->GetOrigin(x, y);
-	GRect Clip = pDC->ClipRgn();
-
-	Iterator<GViewI> ChildList(&Children); // just in case the children access the child list
-	for (GViewI *w = ChildList.First(); w; w = ChildList.Next())
-	{
-		if (!w->Handle() && w->Visible())
-		{
-			GRect r = w->GetPos();
-			GRect c(0, 0, r.X()-1, r.Y()-1);
-
-			// c.Offset(r.x1-x, r.y1-y);
-			// c.Intersection(&Clip);
-			
-			pDC->SetOrigin(x - r.x1, y - r.y1);
-			pDC->ClipRgn(&c);
-			GView *wv = w->GetGView();
-			if (wv) wv->_Paint(pDC);
-			pDC->SetOrigin(x, y);
-		}
-	}
-	#endif
-
-	/*
-	// Clean up
-	if (HasEdge)
-	{
-		pDC->ClipRgn(0);
-	}
-	*/
-}
 
 GMouse &_lgi_adjust_click_for_window(GMouse &Info, GViewI *Wnd)
 {
@@ -1662,14 +1602,6 @@ void GView::OnNcPaint(GSurface *pDC, GRect &r)
 	// r.Offset(Border, Border);
 }
 
-void GView::OnPaint(GSurface *pDC)
-{
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnPaint(pDC);
-	}
-}
-
 int GView::OnCommand(int Cmd, int Event, OsView Wnd)
 {
 	if (Script && Script->OnScriptEvent(this))
@@ -2239,7 +2171,6 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool NonClient)
 
 bool GView::_Mouse(GMouse &m, bool Move)
 {
-	/* FIXME
 	if (GetWindow())
 	{
 		if (!GetWindow()->OnViewMouse(this, m))
@@ -2306,7 +2237,6 @@ bool GView::_Mouse(GMouse &m, bool Move)
 			}
 		}
 	}
-	*/
 	
 	return false;
 }
@@ -2817,6 +2747,7 @@ void BViewRedir::MouseDown(BPoint point)
 		Window()->CurrentMessage()->PrintToStream();
 	}
 	
+	m.Trace("MouseDown");
 	Wnd->_Mouse(m, false);
 }
 
