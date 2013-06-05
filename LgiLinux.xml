@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project TabSize="4" IndentSize="4" UseTabs="1" ShowWhitespace="0" Makefile="./Makefile.linux" IncludePaths="./include/common&#10;./include/linux/Gtk&#10;" BuildType="0" TargetType="1" TargetName="lgi" Compiler="0" Defs="LGI_LIBRARY" Libs="xcb&#10;xcb-keysyms&#10;pango-1.0&#10;pangocairo-1.0">
-	<Node Name="Source Files" Type="1" Platforms="7" Open="1">
+	<Node Name="Source Files" Type="1" Platforms="7" Open="0">
 		<Node Name="Core" Type="1" Platforms="7" Open="1">
 			<Node Name="DateTime" Type="1" Platforms="7" Open="0">
 				<Node File="./src/common/General/GDateTime.cpp" Type="2" Platforms="7" />

@@ -4,6 +4,7 @@
 #include "GXmlTree.h"
 #include "GDragAndDrop.h"
 #include "GTree.h"
+#include "GOptionsFile.h"
 
 #define NODE_DROP_FORMAT			"Ide.ProjectNode"
 
@@ -37,20 +38,68 @@ public:
 	IdeCommon *GetSubFolder(IdeProject *Project, char *Name, bool Create = false);
 };
 
+enum ProjSetting
+{
+	ProjNone,
+	ProjMakefile,
+	ProjExe,
+	ProjArgs,
+	ProjDefines,
+	ProjCompiler,
+	ProjIncludePaths,
+	ProjLibraries,
+	ProjLibraryPaths,
+	ProjTargetType,
+	ProjTargetName,
+	ProjEditorTabSize,
+	ProjEditorIndentSize,
+	ProjEditorShowWhiteSpace,
+	ProjEditorUseHardTabs,
+	ProjCommentFile,
+	ProjCommentFunction,
+	ProjMakefileRules
+};
+
+class IdeProjectSettings
+{
+	struct IdeProjectSettingsPriv *d;
+
+public:
+	IdeProjectSettings(GOptionsFile *Opts);
+	~IdeProjectSettings();
+
+	void InitAllSettings(bool ClearCurrent = false);
+
+	// Configuration
+	const char *GetCurrentConfig();
+	bool SetCurrentConfig(const char *Config);
+	bool AddConfig(const char *Config);
+	bool DeleteConfig(const char *Config);
+	
+	// UI
+	void Edit(GViewI *parent);
+
+	// Accessors
+	const char *GetStr(ProjSetting Setting, const char *Default = NULL);
+	int GetInt(ProjSetting Setting, int Default = NULL);
+	bool Set(ProjSetting Setting, const char *Value);
+	bool Set(ProjSetting Setting, int Value);
+};
+
 class IdeProject : public GXmlFactory, public IdeCommon
 {
 	friend class ProjectNode;
 	class IdeProjectPrivate *d;
 
 public:
-	IdeProject(AppWnd *App);
+	IdeProject(class AppWnd *App);
 	~IdeProject();
 
 	bool IsWeb() { return false; }
 	char *GetFileName();
-	char *GetExecutable();
-	char *GetExeArgs();
-	char *GetIncludePaths();
+	const char *GetExecutable();
+	const char *GetExeArgs();
+	const char *GetIncludePaths();
 	void CreateProject();
 	bool OpenFile(char *FileName);
 	bool SaveFile(char *FileName = 0);
@@ -75,14 +124,15 @@ public:
 	bool GetChildProjects(List<IdeProject> &c);
 	void SetParentProject(IdeProject *p);
 	char *FindFullPath(char *File);
-	bool InProject(char *FullPath, bool Open, IdeDoc **Doc = 0);
-	char *GetFileComment();
-	char *GetFunctionComment();
+	bool InProject(char *FullPath, bool Open, class IdeDoc **Doc = 0);
+	const char *GetFileComment();
+	const char *GetFunctionComment();
 	bool CreateMakefile();
 	bool GetTargetName(char *Buf, int BufSize);
 	bool GetTargetFile(char *Buf, int BufSize);
 	bool BuildIncludePaths(List<char> &Paths, bool Recurse);
-	class ProjectSettings *GetSettings();
+	
+	IdeProjectSettings *GetSettings();
 };
 
 class IdeTree : public GTree, public GDragDropTarget

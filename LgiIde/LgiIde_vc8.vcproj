@@ -203,6 +203,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Code\IdeProjectSettings.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Code\LgiIde.cpp"
 				>
 			</File>

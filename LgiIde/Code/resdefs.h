@@ -76,6 +76,10 @@
 #define IDC_GENERAL_TABLE						184
 #define IDC_STR									192
 #define IDC_SHOW_CURRENT_ONLY					195
+#define IDD_PROJECT_SETTINGS2					199
+#define IDC_SEARCH								202
+#define IDC_CLEAR_SEARCH						203
+#define IDC_SUB_TABLE							206
 #define IDC_TAB_SIZE							500
 #define IDC_SHOW_WHITESPACE						501
 #define IDM_OPEN								502
@@ -139,3 +143,5 @@
 #define IDM_FIND_REFERENCES						560
 #define IDM_MENU_561							561
 #define IDM_GOTO_SYMBOL							562
+#define IDC_SETTINGS							563
+#define IDC_DETAIL								564

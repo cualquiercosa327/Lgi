@@ -67,7 +67,7 @@ class Dependency : public GTreeItem
 	GTreeItem *Fake;
 
 public:
-	Dependency(char *file)
+	Dependency(const char *file)
 	{
 		File = NewStr(file);
 		char *d = strrchr(File, DIR_CHAR);
@@ -195,7 +195,7 @@ class Depends : public GDialog
 	Dependency *Root;
 
 public:
-	Depends(GView *Parent, char *File)
+	Depends(GView *Parent, const char *File)
 	{
 		Root = 0;
 		SetParent(Parent);
@@ -1771,7 +1771,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			IdeProject *p = RootProject();
 			if (p)
 			{
-				char *Exe = p->GetExecutable();
+				const char *Exe = p->GetExecutable();
 				if (FileExists(Exe))
 				{
 					Depends Dlg(this, Exe);

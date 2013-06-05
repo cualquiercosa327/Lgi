@@ -142,6 +142,16 @@
 		<String Ref="194" Cid="2" Define="IDCANCEL" en="Cancel" />
 		<String Ref="195" Cid="195" Define="IDC_SHOW_CURRENT_ONLY" en="Show only symbols in current project" />
 		<String Ref="196" Cid="117" Define="IDC_LOG" />
+		<String Ref="199" Cid="199" Define="IDD_PROJECT_SETTINGS2" en="Project Settings" />
+		<String Ref="201" Cid="202" Define="IDC_SEARCH" />
+		<String Ref="202" Cid="203" Define="IDC_CLEAR_SEARCH" en="X" />
+		<String Ref="204" Cid="563" Define="IDC_SETTINGS" />
+		<String Ref="205" Cid="1" Define="IDOK" en="Ok" />
+		<String Ref="206" Cid="206" Define="IDC_SUB_TABLE" />
+		<String Ref="207" Cid="564" Define="IDC_DETAIL" />
+		<String Ref="208" Cid="180" Define="IDC_TABLE" />
+		<String Ref="209" Cid="-1" Define="IDC_STATIC" en="Search for setting:" />
+		<String Ref="210" Cid="2" Define="IDCANCEL" en="Cancel" />
 	</string-group>
 	<style name="General">.fixed {
 	width: 18px;
@@ -512,6 +522,41 @@
 				</TableLayout>
 			</Tab>
 		</TabView>
+	</Dialog>
+	<Dialog pos="7,7,646,570" ref="199">
+		<TableLayout pos="7,7,636,538" ref="208" cols="0.500,0.500" rows="0.333,0.333,0.333">
+			<tr>
+				<td colspan="2">
+					<TableLayout pos="21,21,461,97" ref="206" cols="0.333,0.333,0.333" rows="1.000">
+						<tr>
+							<td valign="Center">
+								<StaticText pos="0,0,129,20" ref="209" />
+							</td>
+							<td>
+								<EditBox Pos="143,0,272,20" ref="201" />
+							</td>
+							<td valign="Center">
+								<Button pos="286,0,306,20" ref="202" />
+							</td>
+						</tr>
+					</TableLayout>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<TreeView pos="21,187,209,270" ref="204" />
+				</td>
+				<td>
+					<Custom pos="350,194,510,284" ref="207" Ctrl="GSettingDetail" />
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" align="Max">
+					<Button pos="322,388,356,408" ref="205" />
+					<Button pos="385,388,447,408" ref="210" />
+				</td>
+			</tr>
+		</TableLayout>
 	</Dialog>
 	<Dialog pos="7,7,504,246" ref="98">
 		<TableLayout pos="7,14,482,202" ref="99" cols="0.500,0.500" rows="0.143,0.143,0.143,0.143,0.143,0.143,0.143">

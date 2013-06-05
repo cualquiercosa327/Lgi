@@ -373,13 +373,13 @@ public:
 	
 	bool OnMenu(GDocView *View, int Id);
 	
-	char *TemplateMerge(char *Template, char *Name, List<char> *Params)
+	char *TemplateMerge(const char *Template, char *Name, List<char> *Params)
 	{
 		// Parse template and insert into doc
 		GStringPipe T;
-		for (char *t = Template; *t; )
+		for (const char *t = Template; *t; )
 		{
-			char *e = strstr(t, "<%");
+			char *e = strstr((char*) t, "<%");
 			if (e)
 			{
 				// Push text before tag
@@ -504,7 +504,7 @@ bool DocEdit::OnMenu(GDocView *View, int Id)
 		{
 			case IDM_FILE_COMMENT:
 			{
-				char *Template = Doc->GetProject()->GetFileComment();
+				const char *Template = Doc->GetProject()->GetFileComment();
 				if (Template)
 				{
 					char *File = strrchr(Doc->GetFileName(), DIR_CHAR);
@@ -528,7 +528,7 @@ bool DocEdit::OnMenu(GDocView *View, int Id)
 			}
 			case IDM_FUNC_COMMENT:
 			{
-				char *Template = Doc->GetProject()->GetFunctionComment();
+				const char *Template = Doc->GetProject()->GetFunctionComment();
 				if (ValidStr(Template))
 				{
 					char16 *n = NameW();

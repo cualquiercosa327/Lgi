@@ -1,5 +1,6 @@
 #include "Lgi.h"
 #include "GTableLayout.h"
+#include "GCssTools.h"
 
 enum CellFlag
 {
@@ -30,7 +31,7 @@ enum CellFlag
 #include "GCss.h"
 
 #define Izza(c)				dynamic_cast<c*>(v)
-#define DEBUG_LAYOUT		0
+#define DEBUG_LAYOUT		1
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 
@@ -383,6 +384,7 @@ public:
 	~GTableLayoutPrivate();
 	
 	TableCell *GetCellAt(int cx, int cy);
+	void PreLayout(GRect &Client, int &MinX, int &MaxX, CellFlag &Flag);
 	void Layout(GRect &Client);	
 	void Empty(GRect *Range = NULL);
 
@@ -694,10 +696,15 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 					GTableLayout *Tbl = Izza(GTableLayout);
 					if (Tbl)
 					{
+						#if 0						
 						GRect r(0, 0, 10000, 10000);
 						Tbl->d->Layout(r);
 						Min = max(Min, Tbl->d->LayoutMinX);
 						Max = max(Max, Tbl->d->LayoutMaxX);
+						#else
+						GRect Client = Table->GetClient();
+						Tbl->d->PreLayout(Client, Min, Max, Flag);
+						#endif
 					}
 					else
 					{
@@ -850,9 +857,13 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 		}
 		else if ((Tbl = Izza(GTableLayout)))
 		{
+			GRect r;
+			r.ZOff(Width-1, Table->Y()-1);
+			Tbl->d->Layout(r);
+
 			int Ht = min(v->Y(), Tbl->d->LayoutBounds.Y());
 
-			GRect r = v->GetPos();
+			r = v->GetPos();
 			r.x2 = r.x1 + min(Width, Tbl->d->LayoutMaxX) - 1;
 			r.y2 = r.y1 + Ht - 1;
 			v->SetPos(r);
@@ -1058,6 +1069,7 @@ void GTableLayoutPrivate::Empty(GRect *Range)
 	LayoutBounds.ZOff(-1, -1);
 	LayoutMinX = LayoutMaxX = 0;
 }
+
 TableCell *GTableLayoutPrivate::GetCellAt(int cx, int cy)
 {
 	for (int i=0; i<Cells.Length(); i++)
@@ -1069,6 +1081,99 @@ TableCell *GTableLayoutPrivate::GetCellAt(int cx, int cy)
 	}
 
 	return 0;
+}
+
+void GTableLayoutPrivate::PreLayout(GRect &Client, int &MinX, int &MaxX, CellFlag &Flag)
+{
+	// This only gets called when you nest GTableLayout controls. It's 
+	// responsible for doing pre layout stuff for an entire control of cells.
+	int Cx, Cy, i;
+	GArray<int> MinCol, MaxCol;
+	GArray<CellFlag> ColFlags;
+	
+	// Do pre-layout to determine minimum and maximum column widths
+	for (Cy=0; Cy<Rows.Length(); Cy++)
+	{
+		for (Cx=0; Cx<Cols.Length(); )
+		{
+			TableCell *c = GetCellAt(Cx, Cy);
+			if (c)
+			{
+				// Non-spanned cells
+				if (c->Cell.x1 == Cx &&
+					c->Cell.y1 == Cy &&
+					c->Cell.X() == 1 &&
+					c->Cell.Y() == 1)
+				{
+					c->PreLayout(MinCol[Cx], MaxCol[Cx], ColFlags[Cx]);
+				}
+
+				Cx += c->Cell.X();
+			}
+			else
+				Cx++;
+		}
+	}
+
+	// Pre-layout column width for spanned cells
+	for (Cy=0; Cy<Rows.Length(); Cy++)
+	{
+		for (Cx=0; Cx<Cols.Length(); )
+		{
+			TableCell *c = GetCellAt(Cx, Cy);
+			if (c)
+			{
+				if (c->Cell.x1 == Cx &&
+					c->Cell.y1 == Cy &&
+					(c->Cell.X() > 1 || c->Cell.Y() > 1))
+				{
+					int Min = 0, Max = 0;
+					CellFlag Flag = SizeUnknown;
+
+					if (c->Width().IsValid())
+					{
+						GCss::Len l = c->Width();
+						Min = l.ToPx(Client.X(), Ctrl->GetFont());
+					}
+					else
+					{
+						c->PreLayout(Min, Max, Flag);
+					}
+
+					if (Max > Client.X())
+						Max = Client.X();
+					if (Flag)
+					{
+						for (i=c->Cell.x1; i<=c->Cell.x2; i++)
+						{
+							if (ColFlags[i] == Flag)
+								break;
+							if (!ColFlags[i])
+								ColFlags[i] = Flag;
+						}
+					}
+
+					DistributeSize(MinCol, ColFlags, c->Cell.x1, c->Cell.X(), Min, CellSpacing);
+					DistributeSize(MaxCol, ColFlags, c->Cell.x1, c->Cell.X(), Max, CellSpacing);
+				}
+
+				Cx += c->Cell.X();
+			}
+			else
+				Cx++;
+		}
+	}
+	
+	// Collect together our sizes
+	int x = CountRange<int>(MinCol, 0, MinCol.Length()-1);
+	MinX = max(MinX, x);
+	x = CountRange<int>(MaxCol, 0, MinCol.Length()-1);
+	MaxX = max(MaxX, x);
+	
+	for (i=0; i<ColFlags.Length(); i++)
+	{
+		Flag = max(Flag, ColFlags[i]);
+	}
 }
 
 void GTableLayoutPrivate::Layout(GRect &Client)
@@ -1381,7 +1486,11 @@ GLayoutCell *GTableLayout::CellAt(int x, int y)
 void GTableLayout::OnPosChange()
 {
 	GRect r = GetClient();
-	r.Size(GTableLayout::CellSpacing, GTableLayout::CellSpacing);
+	if (GetCss())
+	{
+		GCssTools t(GetCss(), GetFont());
+		t.ApplyPadding(r);
+	}
 	d->Layout(r);
 }
 

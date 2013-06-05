@@ -82,25 +82,26 @@ char *ToUnixPath(char *s)
 	return s;
 }
 
-char *ToNativePath(char *s)
+GAutoString ToNativePath(const char *s)
 {
-	if (s)
+	GAutoString a(NewStr(s));
+	if (a)
 	{
-		if (!strnicmp(s, "ftp://", 6))
-			return s;
-
-		for (char *c = s; *c; c++)
+		if (strnicmp(a, "ftp://", 6))
 		{
-			#ifdef WIN32
-			if (*c == '/')
-				*c = '\\';
-			#else
-			if (*c == '\\')
-				*c = '/';
-			#endif
+			for (char *c = a; *c; c++)
+			{
+				#ifdef WIN32
+				if (*c == '/')
+					*c = '\\';
+				#else
+				if (*c == '\\')
+					*c = '/';
+				#endif
+			}
 		}
 	}
-	return s;
+	return a;
 }
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -391,6 +392,7 @@ public:
 //////////////////////////////////////////////////////////////////////////////////
 class ProjectNode;
 
+/*
 class ProjectSettings
 {
 public:
@@ -473,6 +475,7 @@ public:
 		return *this;
 	}
 };
+*/
 
 class IdeProjectPrivate
 {
@@ -482,9 +485,9 @@ public:
 	char *FileName;
 	class BuildThread *Build;
 	IdeProject *ParentProject;
-	ProjectSettings Settings;
+	IdeProjectSettings Settings;
 
-	IdeProjectPrivate(AppWnd *a)
+	IdeProjectPrivate(AppWnd *a) : Settings(a->GetOptions())
 	{
 		App = a;
 		Dirty = false;
@@ -538,11 +541,12 @@ class ProjectNode : public IdeCommon, public GDragDropSource, public FtpCallback
 			{
 				if (Doc && Doc->GetEdit())
 				{
-					Doc->SetProject(Project);	
-					Doc->GetEdit()->SetIndentSize(Project->d->Settings.IndentSize);
-					Doc->GetEdit()->SetTabSize(Project->d->Settings.TabSize);
-					Doc->GetEdit()->SetHardTabs(Project->d->Settings.UseTabs);
-					Doc->GetEdit()->SetShowWhiteSpace(Project->d->Settings.ShowWhitespace);
+					Doc->SetProject(Project);
+					
+					Doc->GetEdit()->SetIndentSize(Project->d->Settings.GetInt(ProjEditorIndentSize));
+					Doc->GetEdit()->SetTabSize(Project->d->Settings.GetInt(ProjEditorTabSize));
+					Doc->GetEdit()->SetHardTabs(Project->d->Settings.GetInt(ProjEditorUseHardTabs));
+					Doc->GetEdit()->SetShowWhiteSpace(Project->d->Settings.GetInt(ProjEditorShowWhiteSpace));
 					Doc->GetEdit()->Invalidate();
 				}
 			}
@@ -1186,10 +1190,12 @@ public:
 									if (Doc->GetEdit()->Open(FullPath))
 									{
 										Doc->SetProject(Project);
-										Doc->GetEdit()->SetIndentSize(Project->d->Settings.IndentSize);
-										Doc->GetEdit()->SetTabSize(Project->d->Settings.TabSize);
-										Doc->GetEdit()->SetHardTabs(Project->d->Settings.UseTabs);
-										Doc->GetEdit()->SetShowWhiteSpace(Project->d->Settings.ShowWhitespace);
+
+										Doc->GetEdit()->SetIndentSize(Project->d->Settings.GetInt(ProjEditorIndentSize));
+										Doc->GetEdit()->SetTabSize(Project->d->Settings.GetInt(ProjEditorTabSize));
+										Doc->GetEdit()->SetHardTabs(Project->d->Settings.GetInt(ProjEditorUseHardTabs));
+										Doc->GetEdit()->SetShowWhiteSpace(Project->d->Settings.GetInt(ProjEditorShowWhiteSpace));
+
 										Doc->GetEdit()->Invalidate();
 									}
 									else
@@ -1873,7 +1879,7 @@ public:
 		char Exe[256] = "";
 		GToken p(getenv("PATH"), LGI_PATH_SEPARATOR);
 		
-		switch (Proj->GetSettings()->Compiler)
+		switch (Proj->GetSettings()->GetInt(ProjCompiler))
 		{
 			case 0:
 			{
@@ -1924,7 +1930,7 @@ public:
 		{
 			bool Status = false;
 
-			switch (Proj->GetSettings()->Compiler)
+			switch (Proj->GetSettings()->GetInt(ProjCompiler))
 			{
 				case 1:
 				{
@@ -2004,14 +2010,14 @@ IdeProject::~IdeProject()
 	DeleteObj(d);
 }
 
-char *IdeProject::GetFileComment()
+const char *IdeProject::GetFileComment()
 {
-	return d->Settings.CommentFile;
+	return d->Settings.GetStr(ProjCommentFile);
 }
 
-char *IdeProject::GetFunctionComment()
+const char *IdeProject::GetFunctionComment()
 {
-	return d->Settings.CommentFunc;
+	return d->Settings.GetStr(ProjCommentFunction);
 }
 
 IdeProject *IdeProject::GetParentProject()
@@ -2135,20 +2141,21 @@ bool IdeProject::RelativePath(char *Out, char *In)
 
 bool IdeProject::GetExePath(char *Path, int Len)
 {
-	if (d->Settings.Exe)
+	const char *PExe = d->Settings.GetStr(ProjExe);
+	if (PExe)
 	{
-		if (d->Settings.Exe[0] == '.')
+		if (PExe[0] == '.')
 		{
 			char b[256];
 			if (GetBasePath(b, sizeof(b)))
 			{
-				LgiMakePath(Path, Len, b, d->Settings.Exe);
+				LgiMakePath(Path, Len, b, PExe);
 			}
 			else return false;
 		}
 		else
 		{
-			strsafecpy(Path, d->Settings.Exe, Len);
+			strsafecpy(Path, PExe, Len);
 		}
 		
 		return true;
@@ -2158,20 +2165,21 @@ bool IdeProject::GetExePath(char *Path, int Len)
 
 bool IdeProject::GetMakefile(char *Path, int Len)
 {
-	if (d->Settings.MakeFile)
+	const char *PMakefile = d->Settings.GetStr(ProjMakefile);
+	if (PMakefile)
 	{
-		if (d->Settings.MakeFile[0] == '.')
+		if (LgiIsRelativePath(PMakefile))
 		{
 			char b[256];
 			if (GetBasePath(b, sizeof(b)))
 			{
-				LgiMakePath(Path, Len, b, d->Settings.MakeFile);
+				LgiMakePath(Path, Len, b, PMakefile);
 			}
 			else return false;
 		}
 		else
 		{
-			strsafecpy(Path, d->Settings.MakeFile, Len);
+			strsafecpy(Path, PMakefile, Len);
 		}
 		
 		return true;
@@ -2182,7 +2190,7 @@ bool IdeProject::GetMakefile(char *Path, int Len)
 void IdeProject::Clean()
 {
 	if (!d->Build &&
-		d->Settings.MakeFile)
+		d->Settings.GetStr(ProjMakefile))
 	{
 		char m[256];
 		if (GetMakefile(m, sizeof(m)))
@@ -2215,7 +2223,7 @@ class ExecuteThread : public GThread, public GStream
 	ExeAction Act;
 
 public:
-	ExecuteThread(IdeProject *proj, char *exe, char *args, char *path, ExeAction act) : GThread("ExecuteThread")
+	ExecuteThread(IdeProject *proj, const char *exe, const char *args, char *path, ExeAction act) : GThread("ExecuteThread")
 	{
 		Len = 32 << 10;
 		Proj = proj;
@@ -2329,7 +2337,7 @@ public:
 void IdeProject::Execute(ExeAction Act)
 {
 	char b[256];
-	if (d->Settings.Exe &&
+	if (d->Settings.GetStr(ProjExe) &&
 		GetBasePath(b, sizeof(b)))
 	{
 		char e[256];
@@ -2337,7 +2345,7 @@ void IdeProject::Execute(ExeAction Act)
 		{
 			if (FileExists(e))
 			{
-				new ExecuteThread(this, e, d->Settings.ExeArgs, b, Act);
+				new ExecuteThread(this, e, d->Settings.GetStr(ProjArgs), b, Act);
 			}
 			else
 			{
@@ -2361,6 +2369,7 @@ void IdeProject::Build(bool All)
 
 bool IdeProject::Serialize()
 {
+	/*
 	SerializeAttr("Makefile", d->Settings.MakeFile);
 	SerializeAttr("Exe", d->Settings.Exe);
 	SerializeAttr("Args", d->Settings.ExeArgs);
@@ -2378,6 +2387,7 @@ bool IdeProject::Serialize()
 	SerializeAttr("UseTabs", d->Settings.UseTabs);
 	SerializeAttr("ShowWhitespace", d->Settings.ShowWhitespace);
 	SerializeAttr("Compiler", d->Settings.Compiler);
+	*/
 	
 	return true;
 }
@@ -2425,19 +2435,19 @@ AppWnd *IdeProject::GetApp()
 	return d->App;
 }
 
-char *IdeProject::GetIncludePaths()
+const char *IdeProject::GetIncludePaths()
 {
-	return d->Settings.IncludePaths;
+	return d->Settings.GetStr(ProjIncludePaths);
 }
 
-char *IdeProject::GetExeArgs()
+const char *IdeProject::GetExeArgs()
 {
-	return d->Settings.ExeArgs;
+	return d->Settings.GetStr(ProjArgs);
 }
 
-char *IdeProject::GetExecutable()
+const char *IdeProject::GetExecutable()
 {
-	return d->Settings.Exe;
+	return d->Settings.GetStr(ProjExe);
 }
 
 char *IdeProject::GetFileName()
@@ -2585,12 +2595,13 @@ GXmlTag *IdeProject::Create(char *Tag)
 	return new ProjectNode(this);
 }
 
+/*
 class SettingsDlg : public GDialog
 {
 	IdeProject *Project;
 	
 public:
-	ProjectSettings Settings;
+	IdeProjectSettings Settings;
 
 	SettingsDlg(GView *p,
 				IdeProject *project,
@@ -2780,6 +2791,7 @@ public:
 		return 0;
 	}
 };
+*/
 
 void IdeProject::OnMouseClick(GMouse &m)
 {
@@ -2827,6 +2839,8 @@ void IdeProject::OnMouseClick(GMouse &m)
 			}
 			case IDM_SETTINGS:
 			{
+				d->Settings.Edit(Tree);
+				/*
 				SettingsDlg Dlg(Tree,
 								this,
 								d->Settings);
@@ -2835,6 +2849,7 @@ void IdeProject::OnMouseClick(GMouse &m)
 					d->Settings = Dlg.Settings;
 					SetDirty();
 				}
+				*/
 				break;
 			}
 			case IDM_INSERT_DEP:
@@ -3028,7 +3043,7 @@ void IdeProject::ImportDsp(char *File)
 	}
 }
 
-ProjectSettings *IdeProject::GetSettings()
+IdeProjectSettings *IdeProject::GetSettings()
 {
 	return &d->Settings;
 }
@@ -3044,10 +3059,10 @@ bool IdeProject::BuildIncludePaths(List<char> &Paths, bool Recurse)
 	
 	for (IdeProject *p=Projects.First(); p; p=Projects.Next())
 	{
-		char *IncludePaths = p->GetIncludePaths();
+		GAutoString IncludePaths = ToNativePath(p->GetIncludePaths());
 		if (IncludePaths)
 		{
-			GToken Inc(ToNativePath(IncludePaths), (char*)",;\r\n");
+			GToken Inc(IncludePaths, (char*)",;\r\n");
 			for (int i=0; i<=Inc.Length(); i++)
 			{
 				char *Full = 0, Buf[300];
@@ -3121,10 +3136,10 @@ void IdeProjectPrivate::CollectAllFiles(GTreeNode *Base, List<ProjectNode> &File
 
 bool IdeProject::GetTargetName(char *Target, int BufSize)
 {
-	if (ValidStr(d->Settings.TargetName))
+	if (ValidStr(d->Settings.GetStr(ProjTargetName)))
 	{
 		// Take target name from the settings
-		strsafecpy(Target, d->Settings.TargetName, BufSize);
+		strsafecpy(Target, d->Settings.GetStr(ProjTargetName), BufSize);
 	}
 	else
 	{
@@ -3158,7 +3173,7 @@ bool IdeProject::GetTargetFile(char *Buf, int BufSize)
 	char t[256];
 	if (GetTargetName(t, sizeof(t)))
 	{
-		switch (d->Settings.TargetType)
+		switch (d->Settings.GetInt(ProjTargetType))
 		{
 			// Executable
 			case TARGET_TYPE_EXE:
@@ -3257,9 +3272,9 @@ bool IdeProject::CreateMakefile()
 					"Defs = -DLINUX -D_REENTRANT -D$(Gui)WIN");
 			#endif
 			
-			if (d->Settings.DefineSym)
+			if (d->Settings.GetStr(ProjDefines))
 			{
-				GToken Defs(d->Settings.DefineSym, " ;,");
+				GToken Defs(d->Settings.GetStr(ProjDefines), " ;,");
 				for (int i=0; i<Defs.Length(); i++)
 				{
 					m.Print(" -D%s", Defs[i]);
@@ -3289,18 +3304,18 @@ bool IdeProject::CreateMakefile()
 					#endif
 					);
 
-			if (ValidStr(d->Settings.LibPaths))
+			if (ValidStr(d->Settings.GetStr(ProjLibraryPaths)))
 			{
-				GToken LibPaths(d->Settings.LibPaths, " \r\n");
+				GToken LibPaths(d->Settings.GetStr(ProjLibraryPaths), " \r\n");
 				for (int i=0; i<LibPaths.Length(); i++)
 				{
 					m.Print(" \\\n			-L%s", ToUnixPath(LibPaths[i]));
 				}
 			}
 
-			if (ValidStr(d->Settings.Libs))
+			if (ValidStr(d->Settings.GetStr(ProjLibraries)))
 			{
-				GToken Libs(d->Settings.Libs, " \r\n");
+				GToken Libs(d->Settings.GetStr(ProjLibraries), " \r\n");
 				for (int i=0; i<Libs.Length(); i++)
 				{
 					m.Print(" \\\n			-l%s", ToUnixPath(Libs[i]));
@@ -3351,10 +3366,10 @@ bool IdeProject::CreateMakefile()
 
 				// Do include paths
 				GHashTable Inc;
-				if (ValidStr(d->Settings.IncludePaths))
+				if (ValidStr(d->Settings.GetStr(ProjIncludePaths)))
 				{
 					// Add settings include paths.
-					GToken Paths(d->Settings.IncludePaths, "\r\n");
+					GToken Paths(d->Settings.GetStr(ProjIncludePaths), "\r\n");
 					for (int i=0; i<Paths.Length(); i++)
 					{
 						if (!Inc.Find(Paths[i]))
@@ -3440,10 +3455,10 @@ bool IdeProject::CreateMakefile()
 					{
 						if (n->GetType() == NodeSrc)
 						{
-							char *f = ToNativePath(n->GetFileName());
+							GAutoString f = ToNativePath(n->GetFileName());
 							char *d = f ? strrchr(f, DIR_CHAR) : 0;
-							f = d ? d + 1 : f;
-							d = f ? strrchr(f, '.') : 0;
+							char *file = d ? d + 1 : f;
+							d = file ? strrchr(file, '.') : 0;
 							if (d)
 							{
 								if (c) m.Print(" \\\n\t\t\t");
@@ -3455,7 +3470,7 @@ bool IdeProject::CreateMakefile()
 
 					// Write out the target stuff
 					m.Print("# Target\n");
-					switch (d->Settings.TargetType)
+					switch (d->Settings.GetInt(ProjTargetType))
 					{
 						// Executable
 						case TARGET_TYPE_EXE:
@@ -3732,9 +3747,9 @@ bool IdeProject::CreateMakefile()
 					m.Print("\n\n");
 					
 					
-					if (ValidStr(d->Settings.MakefileRules))
+					if (ValidStr(d->Settings.GetStr(ProjMakefileRules)))
 					{
-						m.Print("\n%s\n", d->Settings.MakefileRules);
+						m.Print("\n%s\n", d->Settings.GetStr(ProjMakefileRules));
 					}					
 				}
 			}
