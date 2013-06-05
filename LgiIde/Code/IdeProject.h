@@ -60,12 +60,12 @@ enum ProjSetting
 	ProjMakefileRules
 };
 
-class IdeProjectSettings
+class IdeProjectSettings : public GXmlTag
 {
 	struct IdeProjectSettingsPriv *d;
 
 public:
-	IdeProjectSettings(GOptionsFile *Opts);
+	IdeProjectSettings();
 	~IdeProjectSettings();
 
 	void InitAllSettings(bool ClearCurrent = false);

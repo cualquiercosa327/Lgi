@@ -1,6 +1,9 @@
 #include "Lgi.h"
 #include "IdeProject.h"
+#include "GTableLayout.h"
 #include "resdefs.h"
+#include "GTextLabel.h"
+#include "GEdit.h"
 
 struct SettingInfo
 {
@@ -62,15 +65,15 @@ struct IdeProjectSettingsPriv
 	char PathBuf[256];
 
 public:
-	GOptionsFile *Opts;
 	GHashTbl<int, SettingInfo*> Map;
-
+	IdeProjectSettings *Parent;
 	GAutoString CurConfig;
 	GArray<char*> Configs;
 	
-	IdeProjectSettingsPriv()
+	IdeProjectSettingsPriv(IdeProjectSettings *parent)
 	{
-		Opts = NULL;
+		Parent = parent;
+		
 		for (SettingInfo *i = AllSettings; i->Setting; i++)
 		{
 			Map.Add(i->Setting, i);
@@ -91,26 +94,54 @@ public:
 		return -1;
 	}
 
-	char *BuildPath(ProjSetting s, bool PlatformSpecific)
+	char *BuildPath(ProjSetting s, bool PlatformSpecific, int Config = -1)
 	{
 		SettingInfo *i = Map.Find(s);
 		LgiAssert(i);
+		char *Cfg = Config < 0 ? CurConfig : Configs[Config];
 		sprintf_s(	PathBuf, sizeof(PathBuf),
 					"%s.%s.%s.%s",
 					i->Category,
 					i->Name,
 					PlatformSpecific ? sCurrentPlatform : sAllPlatforms,
-					CurConfig.Get());
+					Cfg);
 		return PathBuf;
 	}
 };
 
 class GSettingDetail : public GLayout, public ResObject
 {
+	GTableLayout *Tbl;
+	IdeProjectSettingsPriv *d;
+	SettingInfo *Setting;
+	bool PlatformSpecific;
+	
+	struct CtrlInfo
+	{
+		GText *Text;
+		GEdit *Edit;
+		
+		CtrlInfo()
+		{
+			Text = 0;
+			Edit = 0;
+		}
+	};
+	
+	GArray<CtrlInfo> Ctrls;
+
 public:
 	GSettingDetail() : ResObject(Res_Custom)
 	{
-		Sunken(true);
+		PlatformSpecific = false;
+		d = NULL;
+		Setting = NULL;
+		AddView(Tbl = new GTableLayout);
+	}
+	
+	void OnCreate()
+	{
+		AttachChildren();
 	}
 	
 	void OnPaint(GSurface *pDC)
@@ -126,6 +157,71 @@ public:
 		Inf.Height.Min = -1;
 		Inf.Height.Max = -1;
 		return true;
+	}
+	
+	void SetPriv(IdeProjectSettingsPriv *priv)
+	{
+		d = priv;
+	}
+	
+	void SetSetting(SettingInfo *setting, bool plat_spec)
+	{
+		if (Setting)
+		{
+			// Save previous values
+			for (int i=0; i<Ctrls.Length(); i++)
+			{
+				char *Path = Ctrls[i].Text->Name();
+				if (Ctrls[i].Edit)
+				{
+					char *Val = Ctrls[i].Edit->Name();
+					if (Path && Val)
+					{
+						GXmlTag *t = d->Parent->GetTag(Path, true);
+						if (t)
+						{
+							t->SetContent(Val);
+						}
+					}
+				}
+			}
+		}	
+	
+		Tbl->Empty();
+		Ctrls.Length(0);
+		Setting = setting;
+		PlatformSpecific = plat_spec;
+		
+		if (Setting)
+		{
+			GLayoutCell *c;
+			
+			for (int i=0; i<d->Configs.Length(); i++)
+			{
+				char *Path;
+				int CellY = i * 2;
+				c = Tbl->GetCell(0, CellY);
+				c->Add(Ctrls[i].Text = new GText(50 + i, 0, 0, -1, -1, Path = d->BuildPath(Setting->Setting, PlatformSpecific, i)));
+				c = Tbl->GetCell(0, CellY + 1);
+				c->Add(Ctrls[i].Edit = new GEdit(100 + i, 0, 0, 60, 20));
+				Ctrls[i].Edit->MultiLine(true);
+
+				GXmlTag *t = d->Parent->GetTag(Path);
+				if (t && t->Content)
+				{
+					Ctrls[i].Edit->Name(t->Content);
+				}
+			}
+			
+			Tbl->InvalidateLayout();
+			Tbl->AttachChildren();
+			Tbl->SetPos(GetClient());
+		}
+	}
+	
+	void OnPosChange()
+	{
+		Tbl->SetPos(GetClient());
 	}
 };
 
@@ -144,15 +240,36 @@ class GSettingDetailFactory : public GViewFactory
 	}
 } SettingDetailFactory;
 
+class ProjectSettingsDlg;
+class SettingItem : public GTreeItem
+{
+	ProjectSettingsDlg *Dlg;
+	
+public:
+	SettingInfo *Setting;
+	bool PlatformSpecific;
+
+	SettingItem(SettingInfo *setting, bool plat_spec, ProjectSettingsDlg *dlg)
+	{
+		Setting = setting;
+		Dlg = dlg;
+		PlatformSpecific = plat_spec;
+	}
+	
+	void Select(bool b);
+};
+
 class ProjectSettingsDlg : public GDialog
 {
 	IdeProjectSettingsPriv *d;
 	GTree *Tree;
+	GSettingDetail *Detail;
 
 public:
 	ProjectSettingsDlg(GViewI *parent, IdeProjectSettingsPriv *priv)
 	{
 		Tree = NULL;
+		Detail = NULL;
 		d = priv;
 		SetParent(parent);
 		if (LoadFromResource(IDD_PROJECT_SETTINGS2))
@@ -178,14 +295,19 @@ public:
 					SectionItem->Insert(Item);
 					SectionItem->Expanded(true);
 
-					GTreeItem *All = new GTreeItem();
+					SettingItem *All = new SettingItem(i, false, this);
 					All->SetText(sAllPlatforms);
 					Item->Insert(All);
 
-					GTreeItem *Platform = new GTreeItem();
+					SettingItem *Platform = new SettingItem(i, true, this);
 					Platform->SetText(sCurrentPlatform);
 					Item->Insert(Platform);
 				}
+			}
+			
+			if (GetViewById(IDC_DETAIL, Detail))
+			{
+				Detail->SetPriv(d);
 			}
 		}
 	}
@@ -195,6 +317,7 @@ public:
 		switch (Ctrl->GetId())
 		{
 			case IDOK:
+				Detail->SetSetting(NULL, false);
 				EndModal(1);
 				break;
 			case IDCANCEL:
@@ -204,12 +327,24 @@ public:
 		
 		return GDialog::OnNotify(Ctrl, Flags);
 	}
+	
+	void OnSelect(SettingItem *si)
+	{
+		Detail->SetSetting(si->Setting, si->PlatformSpecific);
+	}
 };
 
-IdeProjectSettings::IdeProjectSettings(GOptionsFile *Opts)
+void SettingItem::Select(bool b)
 {
-	d = new IdeProjectSettingsPriv;
-	d->Opts = Opts;
+	GTreeItem::Select(b);
+	if (b)
+		Dlg->OnSelect(this);
+}
+
+IdeProjectSettings::IdeProjectSettings() :
+	GXmlTag(TagSettings)
+{
+	d = new IdeProjectSettingsPriv(this);
 	InitAllSettings();
 }
 
@@ -256,6 +391,17 @@ bool IdeProjectSettings::DeleteConfig(const char *Config)
 
 void IdeProjectSettings::InitAllSettings(bool ClearCurrent)
 {
+	for (SettingInfo *i = AllSettings; i->Setting; i++)
+	{
+		for (int Cfg = 0; Cfg < d->Configs.Length(); Cfg++)
+		{
+			char *p = d->BuildPath(i->Setting, false, Cfg);
+			CreateTag(p);
+			
+			p = d->BuildPath(i->Setting, true, Cfg);
+			CreateTag(p);
+		}
+	}
 }
 
 void IdeProjectSettings::Edit(GViewI *parent)
@@ -271,13 +417,12 @@ const char *IdeProjectSettings::GetStr(ProjSetting Setting, const char *Default)
 {
 	const char *Status = Default;
 	char *path = d->BuildPath(Setting, true);
-	GXmlTag *t = d->Opts->LockTag(path, _FL);
+	GXmlTag *t = GetTag(path, true);
 	if (t)
 	{
 		GXmlTag *c = t->GetTag(path, true);
 		if (c)
 			Status = c->Content;
-		d->Opts->Unlock();
 	}
 	
 	return Status;
@@ -287,15 +432,13 @@ int IdeProjectSettings::GetInt(ProjSetting Setting, int Default)
 {
 	int Status = Default;
 	char *path = d->BuildPath(Setting, true);
-	GXmlTag *t = d->Opts->LockTag(path, _FL);
+	GXmlTag *t = GetTag(path, true);
 	if (t)
 	{
 		GXmlTag *c = t->GetTag(path, true);
 		if (c && c->Content)
 			Status = atoi(c->Content);
-		d->Opts->Unlock();
 	}
-	
 	return Status;
 }
 
@@ -303,7 +446,7 @@ bool IdeProjectSettings::Set(ProjSetting Setting, const char *Value)
 {
 	bool Status = false;
 	char *path = d->BuildPath(Setting, true);
-	GXmlTag *t = d->Opts->LockTag(path, _FL);
+	GXmlTag *t = GetTag(path, true);
 	if (t)
 	{
 		GXmlTag *c = t->GetTag(path, true);
@@ -312,8 +455,6 @@ bool IdeProjectSettings::Set(ProjSetting Setting, const char *Value)
 			DeleteArray(c->Content);
 			c->Content = NewStr(Value);
 		}
-		
-		d->Opts->Unlock();
 	}
 	return Status;
 }
@@ -322,7 +463,7 @@ bool IdeProjectSettings::Set(ProjSetting Setting, int Value)
 {
 	bool Status = false;
 	char *path = d->BuildPath(Setting, true);
-	GXmlTag *t = d->Opts->LockTag(path, _FL);
+	GXmlTag *t = GetTag(path, true);
 	if (t)
 	{
 		GXmlTag *c = t->GetTag(path, true);
@@ -333,8 +474,6 @@ bool IdeProjectSettings::Set(ProjSetting Setting, int Value)
 			sprintf_s(s, sizeof(s), "%i", Value);
 			c->Content = NewStr(s);
 		}
-		
-		d->Opts->Unlock();
 	}
 	return Status;
 }

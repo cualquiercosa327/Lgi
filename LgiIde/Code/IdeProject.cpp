@@ -487,7 +487,7 @@ public:
 	IdeProject *ParentProject;
 	IdeProjectSettings Settings;
 
-	IdeProjectPrivate(AppWnd *a) : Settings(a->GetOptions())
+	IdeProjectPrivate(AppWnd *a)
 	{
 		App = a;
 		Dirty = false;

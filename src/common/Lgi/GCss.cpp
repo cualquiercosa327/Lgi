@@ -1365,10 +1365,7 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 					}
 					else if (Lengths.Length() == 1)
 					{
-						StoreProp(PropPaddingTop, Lengths[0], false);
-						StoreProp(PropPaddingBottom, Lengths[0], false);
-						StoreProp(PropPaddingRight, Lengths[0], false);
-						StoreProp(PropPaddingLeft, Lengths[0], true);
+						StoreProp(PropPadding, Lengths[0], false);
 					}
 					else Mismatch = true;
 					if (!Mismatch)

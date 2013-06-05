@@ -159,6 +159,10 @@
 
 .log_height {
 	height: 3em;
+}
+
+.settings_tree {
+	width: 30%;
 }</style>
 	<Dialog pos="7,7,553,426" ref="82">
 		<EditBox Pos="7,21,160,41" ref="83" />
@@ -530,20 +534,20 @@
 					<TableLayout pos="21,21,461,97" ref="206" cols="0.333,0.333,0.333" rows="1.000">
 						<tr>
 							<td valign="Center">
-								<StaticText pos="0,0,129,20" ref="209" />
+								<StaticText pos="7,14,136,34" ref="209" />
 							</td>
 							<td>
-								<EditBox Pos="143,0,272,20" ref="201" />
+								<EditBox Pos="142,14,271,34" ref="201" />
 							</td>
-							<td valign="Center">
-								<Button pos="286,0,306,20" ref="202" />
+							<td>
+								<Button pos="315,14,335,34" ref="202" Enabled="0" />
 							</td>
 						</tr>
 					</TableLayout>
 				</td>
 			</tr>
 			<tr>
-				<td>
+				<td class="settings_tree">
 					<TreeView pos="21,187,209,270" ref="204" />
 				</td>
 				<td>

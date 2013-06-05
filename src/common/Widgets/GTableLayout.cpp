@@ -31,7 +31,7 @@ enum CellFlag
 #include "GCss.h"
 
 #define Izza(c)				dynamic_cast<c*>(v)
-#define DEBUG_LAYOUT		1
+#define DEBUG_LAYOUT		0
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 
@@ -380,24 +380,29 @@ public:
 	int LayoutMinX, LayoutMaxX;
 	GTableLayout *Ctrl;
 
+	// Object
 	GTableLayoutPrivate(GTableLayout *ctrl);
 	~GTableLayoutPrivate();
 	
+	// Utils
 	TableCell *GetCellAt(int cx, int cy);
-	void PreLayout(GRect &Client, int &MinX, int &MaxX, CellFlag &Flag);
-	void Layout(GRect &Client);	
 	void Empty(GRect *Range = NULL);
+    bool CollectRadioButtons(GArray<GRadioButton*> &Btns);
 
-    bool CollectRadioButtons(GArray<GRadioButton*> &Btns)
-    {
-        GAutoPtr<GViewIterator> it(Ctrl->IterateViews());
-        for (GViewI *i = it->First(); i; i = it->Next())
-        {
-            GRadioButton *b = dynamic_cast<GRadioButton*>(i);
-            if (b) Btns.Add(b);
-        }
-        return Btns.Length() > 0;
-    }
+	// Layout temporary values
+	GStringPipe Dbg;
+	GArray<int> MinCol, MaxCol;
+	GArray<int> MinRow, MaxRow;
+	GArray<CellFlag> ColFlags, RowFlags;
+
+	// Layout staged methods, call in order to complete the layout
+	void LayoutHorizontal(GRect &Client, int *MinX = NULL, int *MaxX = NULL, CellFlag *Flag = NULL);
+	void LayoutVertical(GRect &Client, int *MinY = NULL, int *MaxY = NULL, CellFlag *Flag = NULL);
+	void LayoutPost(GRect &Client);
+	
+	// This does the whole layout, basically calling all the stages for you
+	void Layout(GRect &Client);	
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -696,15 +701,8 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 					GTableLayout *Tbl = Izza(GTableLayout);
 					if (Tbl)
 					{
-						#if 0						
-						GRect r(0, 0, 10000, 10000);
-						Tbl->d->Layout(r);
-						Min = max(Min, Tbl->d->LayoutMinX);
-						Max = max(Max, Tbl->d->LayoutMaxX);
-						#else
-						GRect Client = Table->GetClient();
-						Tbl->d->PreLayout(Client, Min, Max, Flag);
-						#endif
+						Tbl->d->LayoutHorizontal(Table->GetClient(), &Min, &Max, &Flag);
+						// LgiTrace("    TblHorz = %i, %i, %s\n", Min, Max, FlagToString(Flag));
 					}
 					else
 					{
@@ -859,16 +857,10 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 		{
 			GRect r;
 			r.ZOff(Width-1, Table->Y()-1);
-			Tbl->d->Layout(r);
-
-			int Ht = min(v->Y(), Tbl->d->LayoutBounds.Y());
-
-			r = v->GetPos();
-			r.x2 = r.x1 + min(Width, Tbl->d->LayoutMaxX) - 1;
-			r.y2 = r.y1 + Ht - 1;
-			v->SetPos(r);
-
-			Pos.y2 += Ht;
+			Tbl->d->LayoutVertical(r, &MinY, &MaxY, &Flags);
+			Pos.y2 += MinY;
+			
+			// LgiTrace("    TblVert = %i, %i, %s\n", MinY, MaxY, FlagToString(Flags));
 		}
 		else
 		{
@@ -923,7 +915,12 @@ void TableCell::PostLayout()
 		Inf.Width.Max = Pos.X() - Padding.x1 - Padding.x2;
 		Inf.Height.Max = Pos.Y() - Padding.y1 - Padding.y2;
 
-		if
+		if (Tbl)
+		{
+			r.Dimension(Pos.X(), Pos.Y());
+			// LgiTrace("    TblPost %s\n", r.GetStr());
+		}
+		else if
 		(
 			Izza(GList) ||
 			Izza(GTree) ||
@@ -940,7 +937,7 @@ void TableCell::PostLayout()
 			else
 				r.y2 = r.y1 + Inf.Height.Max - 1;
 		}
-		
+
 		if (!Izza(GButton) && !Tbl)
 		{
 			if (Inf.Width.Max < 0)
@@ -1013,7 +1010,7 @@ void TableCell::PostLayout()
 			break;
 
 		New[n].Offset(0, OffsetY);
-		v->SetPos(New[n]);
+		v->SetPos(New[n]);		
 		v->Visible(true);
 	}
 }
@@ -1032,6 +1029,17 @@ GTableLayoutPrivate::GTableLayoutPrivate(GTableLayout *ctrl)
 GTableLayoutPrivate::~GTableLayoutPrivate()
 {
 	Empty();
+}
+
+bool GTableLayoutPrivate::CollectRadioButtons(GArray<GRadioButton*> &Btns)
+{
+    GAutoPtr<GViewIterator> it(Ctrl->IterateViews());
+    for (GViewI *i = it->First(); i; i = it->Next())
+    {
+        GRadioButton *b = dynamic_cast<GRadioButton*>(i);
+        if (b) Btns.Add(b);
+    }
+    return Btns.Length() > 0;
 }
 
 void GTableLayoutPrivate::Empty(GRect *Range)
@@ -1083,120 +1091,20 @@ TableCell *GTableLayoutPrivate::GetCellAt(int cx, int cy)
 	return 0;
 }
 
-void GTableLayoutPrivate::PreLayout(GRect &Client, int &MinX, int &MaxX, CellFlag &Flag)
+void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, CellFlag *Flag)
 {
 	// This only gets called when you nest GTableLayout controls. It's 
 	// responsible for doing pre layout stuff for an entire control of cells.
 	int Cx, Cy, i;
-	GArray<int> MinCol, MaxCol;
-	GArray<CellFlag> ColFlags;
-	
-	// Do pre-layout to determine minimum and maximum column widths
-	for (Cy=0; Cy<Rows.Length(); Cy++)
-	{
-		for (Cx=0; Cx<Cols.Length(); )
-		{
-			TableCell *c = GetCellAt(Cx, Cy);
-			if (c)
-			{
-				// Non-spanned cells
-				if (c->Cell.x1 == Cx &&
-					c->Cell.y1 == Cy &&
-					c->Cell.X() == 1 &&
-					c->Cell.Y() == 1)
-				{
-					c->PreLayout(MinCol[Cx], MaxCol[Cx], ColFlags[Cx]);
-				}
 
-				Cx += c->Cell.X();
-			}
-			else
-				Cx++;
-		}
-	}
-
-	// Pre-layout column width for spanned cells
-	for (Cy=0; Cy<Rows.Length(); Cy++)
-	{
-		for (Cx=0; Cx<Cols.Length(); )
-		{
-			TableCell *c = GetCellAt(Cx, Cy);
-			if (c)
-			{
-				if (c->Cell.x1 == Cx &&
-					c->Cell.y1 == Cy &&
-					(c->Cell.X() > 1 || c->Cell.Y() > 1))
-				{
-					int Min = 0, Max = 0;
-					CellFlag Flag = SizeUnknown;
-
-					if (c->Width().IsValid())
-					{
-						GCss::Len l = c->Width();
-						Min = l.ToPx(Client.X(), Ctrl->GetFont());
-					}
-					else
-					{
-						c->PreLayout(Min, Max, Flag);
-					}
-
-					if (Max > Client.X())
-						Max = Client.X();
-					if (Flag)
-					{
-						for (i=c->Cell.x1; i<=c->Cell.x2; i++)
-						{
-							if (ColFlags[i] == Flag)
-								break;
-							if (!ColFlags[i])
-								ColFlags[i] = Flag;
-						}
-					}
-
-					DistributeSize(MinCol, ColFlags, c->Cell.x1, c->Cell.X(), Min, CellSpacing);
-					DistributeSize(MaxCol, ColFlags, c->Cell.x1, c->Cell.X(), Max, CellSpacing);
-				}
-
-				Cx += c->Cell.X();
-			}
-			else
-				Cx++;
-		}
-	}
-	
-	// Collect together our sizes
-	int x = CountRange<int>(MinCol, 0, MinCol.Length()-1);
-	MinX = max(MinX, x);
-	x = CountRange<int>(MaxCol, 0, MinCol.Length()-1);
-	MaxX = max(MaxX, x);
-	
-	for (i=0; i<ColFlags.Length(); i++)
-	{
-		Flag = max(Flag, ColFlags[i]);
-	}
-}
-
-void GTableLayoutPrivate::Layout(GRect &Client)
-{
-    if (InLayout)
-    {
-        LgiAssert(!"In layout, no recursion should happen.");
-        return;
-    }
-        
-    InLayout = true;
-
-	#if DEBUG_PROFILE
-	int64 Start = LgiCurrentTime();
-	#endif
-
-	int Px = 0, Py = 0, Cx, Cy, i;
-	GArray<int> MinCol, MaxCol;
-	GArray<CellFlag> ColFlags, RowFlags;
-
+	// Zero everything to start with
+	MinCol.Length(0);
+	MaxCol.Length(0);
+	MinRow.Length(0);
+	MaxRow.Length(0);
 	ColFlags.Length(Cols.Length());
 	RowFlags.Length(Rows.Length());
-
+		
 	// Do pre-layout to determine minimum and maximum column widths
 	for (Cy=0; Cy<Rows.Length(); Cy++)
 	{
@@ -1222,7 +1130,6 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 	}
 
 	#if DEBUG_LAYOUT
-	GStringPipe Dbg;
 	Dbg.Print("Layout Id=%i, Size=%i,%i\n", Ctrl->GetId(), Client.X(), Client.Y());
 
 	for (i=0; i<Cols.Length(); i++)
@@ -1303,9 +1210,32 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 		Dbg.Print("\tColAfter[%i]: min=%i max=%i (%s)\n", i, MinCol[i], MaxCol[i], FlagToString(ColFlags[i]));
 	}
 	#endif
+	
+	// Collect together our sizes
+	if (MinX)
+	{
+		int x = CountRange<int>(MinCol, 0, MinCol.Length()-1);
+		*MinX = max(*MinX, x);
+	}
+	if (MaxX)
+	{
+		int x = CountRange<int>(MaxCol, 0, MinCol.Length()-1);
+		*MaxX = max(*MaxX, x);
+	}
+	if (Flag)
+	{	
+		for (i=0; i<ColFlags.Length(); i++)
+		{
+			*Flag = max(*Flag, ColFlags[i]);
+		}
+	}
+}
+
+void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, CellFlag *Flag)
+{
+	int Cx, Cy, i;
 
 	// Do row height layout for single cells
-	GArray<int> MinRow, MaxRow;
 	for (Cy=0; Cy<Rows.Length(); Cy++)
 	{
 		for (Cx=0; Cx<Cols.Length(); )
@@ -1397,6 +1327,30 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 	LgiTrace("%s", DbgStr.Get());
 	#endif
 
+	// Collect together our sizes
+	if (MinY)
+	{
+		int y = CountRange<int>(MinRow, 0, MinRow.Length()-1);
+		*MinY = max(*MinY, y);
+	}
+	if (MaxY)
+	{
+		int y = CountRange<int>(MaxRow, 0, MinRow.Length()-1);
+		*MaxY = max(*MaxY, y);
+	}
+	if (Flag)
+	{	
+		for (i=0; i<RowFlags.Length(); i++)
+		{
+			*Flag = max(*Flag, RowFlags[i]);
+		}
+	}
+}
+
+void GTableLayoutPrivate::LayoutPost(GRect &Client)
+{
+	int Px = 0, Py = 0, Cx, Cy, i;
+
 	// Move cells into their final positions
 	for (Cy=0; Cy<Rows.Length(); Cy++)
 	{
@@ -1431,12 +1385,30 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 	}
 
 	LayoutBounds.ZOff(Px-1, Py-1);
+}
 
+void GTableLayoutPrivate::Layout(GRect &Client)
+{
+    if (InLayout)
+    {    
+        LgiAssert(!"In layout, no recursion should happen.");
+        return;
+    }    
+        
+    InLayout = true;
+
+	#if DEBUG_PROFILE
+	int64 Start = LgiCurrentTime();
+	#endif
+
+	LayoutHorizontal(Client);
+	LayoutVertical(Client);
+	LayoutPost(Client);
+
+	Ctrl->SendNotify(GTABLELAYOUT_LAYOUT_CHANGED);
 	#if DEBUG_PROFILE
 	LgiTrace("GTableLayout::Layout = %i ms\n", (int)(LgiCurrentTime()-Start));
 	#endif
-
-	Ctrl->SendNotify(GTABLELAYOUT_LAYOUT_CHANGED);
 	
 	InLayout = false;
 }
@@ -1489,7 +1461,7 @@ void GTableLayout::OnPosChange()
 	if (GetCss())
 	{
 		GCssTools t(GetCss(), GetFont());
-		t.ApplyPadding(r);
+		r = t.ApplyPadding(r);
 	}
 	d->Layout(r);
 }
