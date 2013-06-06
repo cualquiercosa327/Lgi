@@ -570,6 +570,7 @@ void IdeProjectSettings::InitAllSettings(bool ClearCurrent)
 			{
 				char s[64];
 				sprintf_s(s, sizeof(s), "Makefile.%s", LgiGetOsName());
+				strlwr(s + 1);
 				Default = s;
 				break;
 			}

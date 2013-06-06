@@ -45,51 +45,29 @@
 		<Node File="./Code/resource.h" Type="3" Platforms="7" />
 		<Node File=".\Code\Script1.rc" Type="5" Platforms="7" />
 	</Node>
-	<Settings Type="0" Platforms="15">
+	<Node File="U:\Code\Lgi\trunk\Lgi.xml" Type="4" Platforms="15" />
+	<Settings>
 		<General>
 			<Makefile>
-				<Windows>Makefile.win</Windows>
+				<Windows>Makefile.win32</Windows>
 			</Makefile>
 			<Executable>
-				<Windows>
-					<Debug>LgiIde.exe</Debug>
-					<Release>LgiIde.exe</Release>
-				</Windows>
+				<Windows />
 			</Executable>
 			<Arguments>
 				<All />
 			</Arguments>
 			<Defines>
-				<All>
-					<Debug>_DEBUG</Debug>
-					<Release>NDEBUG</Release>
-				</All>
-				<Windows>
-					<Debug>WIN32;_WINDOWS</Debug>
-					<Release>WIN32;_WINDOWS</Release>
-				</Windows>
+				<All />
 			</Defines>
-			<Compiler>
-				<Windows>MingW</Windows>
-			</Compiler>
+			<Compiler />
 		</General>
 		<Build>
 			<IncludePaths>
-				<All>
-					<Debug>..\include\common</Debug>
-					<Release>..\include\common</Release>
-				</All>
-				<Windows>
-					<Debug>..\include\win32</Debug>
-					<Release>..\include\win32</Release>
-				</Windows>
+				<All />
 			</IncludePaths>
 			<Libraries>
 				<All />
-				<Windows>
-					<Debug>imm32.lib</Debug>
-					<Release>imm32.lib</Release>
-				</Windows>
 			</Libraries>
 			<LibraryPaths>
 				<All />
@@ -98,25 +76,14 @@
 				<All>Executable</All>
 			</TargetType>
 			<TargetName>
-				<Windows>
-					<Debug>LgiIde.exe</Debug>
-					<Release>LgiIde.exe</Release>
-				</Windows>
+				<Windows />
 			</TargetName>
 		</Build>
 		<Editor>
-			<TabSize>
-				<All>4</All>
-			</TabSize>
-			<IndentSize>
-				<All>4</All>
-			</IndentSize>
-			<ShowWhiteSpace>
-				<All>0</All>
-			</ShowWhiteSpace>
-			<UseHardTabs>
-				<All>1</All>
-			</UseHardTabs>
+			<TabSize />
+			<IndentSize />
+			<ShowWhiteSpace />
+			<UseHardTabs />
 			<CommentFile />
 			<CommentFunction />
 		</Editor>
