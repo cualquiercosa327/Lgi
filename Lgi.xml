@@ -7,7 +7,7 @@
 				<Node File="./include/common/GDateTime.h" Type="3" Platforms="7" />
 			</Node>
 			<Node Name="Drag and Drop" Type="1" Platforms="7" Open="0">
-				<Node File="./include/win32/GCom.h" Type="3" Platforms="7" />
+				<Node File=".\include\common\GCom.h" Type="3" Platforms="7" />
 				<Node File="./src/common/Lgi/GDragAndDrop.cpp" Type="2" Platforms="7" />
 				<Node File="./include/common/GDragAndDrop.h" Type="3" Platforms="7" />
 			</Node>
@@ -27,8 +27,8 @@
 			</Node>
 			<Node Name="Linux" Type="1" Platforms="7" Open="1">
 				<Node Name="Headers" Type="1" Platforms="7" Open="0">
-					<Node File=".\include\linux\X\LgiOsClasses.h" Type="3" Platforms="7" />
-					<Node File=".\include\linux\Xcb\LgiOsDefs.h" Type="3" Platforms="7" />
+					<Node File=".\include\linux\Gtk\LgiOsClasses.h" Type="3" Platforms="7" />
+					<Node File=".\include\linux\Gtk\LgiOsDefs.h" Type="3" Platforms="7" />
 				</Node>
 				<Node File=".\src\linux\Lgi\GApp.cpp" Type="2" Platforms="2" />
 				<Node File=".\src\linux\Lgi\GGeneral.cpp" Type="2" Platforms="2" />
@@ -74,8 +74,8 @@
 				<Node File="./include/common/Res.h" Type="3" Platforms="7" />
 			</Node>
 			<Node Name="Semaphores" Type="1" Platforms="7" Open="0">
-				<Node File="./src/common/Lgi/GSemaphore.cpp" Type="2" Platforms="7" />
-				<Node File="./include/common/GSemaphore.h" Type="3" Platforms="7" />
+				<Node File=".\src\common\Lgi\GMutex.cpp" Type="2" Platforms="7" />
+				<Node File=".\include\common\GMutex.h" Type="3" Platforms="7" />
 			</Node>
 			<Node Name="Stream" Type="1" Platforms="7" Open="0">
 				<Node File="./include/common/GDom.h" Type="3" Platforms="7" />
@@ -136,11 +136,11 @@
 					<Node File=".\src\win32\Gdc2\Gdc2.cpp" Type="2" Platforms="1" />
 				</Node>
 				<Node File=".\include\common\GColour.h" Type="3" Platforms="15" />
-				<Node File=".\src\common\Gdc2\GColourReduce.cpp" Type="2" Platforms="7" />
+				<Node File=".\src\common\Gdc2\Tools\GColourReduce.cpp" Type="2" Platforms="7" />
 				<Node File=".\include\common\Gdc2.h" Type="3" Platforms="7" />
 				<Node File=".\src\common\Gdc2\GdcCommon.cpp" Type="2" Platforms="7" />
 				<Node File=".\include\common\GFilter.h" Type="3" Platforms="7" />
-				<Node File=".\src\common\Gdc2\GFuncs.cpp" Type="2" Platforms="7" />
+				<Node File=".\src\common\Gdc2\Tools\GdcTools.cpp" Type="2" Platforms="7" />
 			</Node>
 			<Node Name="Font" Type="1" Platforms="7" Open="1">
 				<Node File=".\src\common\Gdc2\Font\GDisplayString.cpp" Type="2" Platforms="7" />
@@ -197,7 +197,7 @@
 				<Node File="./src/common/Lgi/GDataDlg.cpp" Type="2" Platforms="7" />
 				<Node File="./include/common/GDataDlg.h" Type="3" Platforms="7" />
 				<Node File="./src/common/General/GPassword.cpp" Type="2" Platforms="7" />
-				<Node File="/home/matthew/Code/Lgi/include/common/GPassword.h" Type="3" Platforms="7" />
+				<Node File=".\include\common\GPassword.h" Type="3" Platforms="7" />
 			</Node>
 			<Node Name="Mru" Type="1" Platforms="7" Open="0">
 				<Node File="./src/common/Lgi/GMru.cpp" Type="2" Platforms="7" />
@@ -271,17 +271,11 @@
 			<Node File=".\include\common\GTree.h" Type="3" Platforms="7" />
 		</Node>
 	</Node>
-	<Node Name="LgiNet" Type="1" Platforms="7" Open="0">
+	<Node Name="LgiNet" Type="1" Platforms="7" Open="1">
 		<Node Name="Source" Type="1" Platforms="7" Open="1">
-			<Node Name="NtlmAuth" Type="1" Platforms="7" Open="0">
-				<Node File="./src/common/INet/AuthNtlm/Smbdes.cpp" Type="2" Platforms="7" />
-				<Node File="./src/common/INet/AuthNtlm/Smbencrypt.cpp" Type="2" Platforms="7" />
-				<Node File="./src/common/INet/AuthNtlm/Smbmd4.cpp" Type="2" Platforms="7" />
-				<Node File="./src/common/INet/AuthNtlm/Smbutil.cpp" Type="2" Platforms="7" />
-			</Node>
 			<Node File=".\src\common\INet\INet.cpp" Type="2" Platforms="7" />
 			<Node File=".\src\common\INet\INetTools.cpp" Type="2" Platforms="7" />
-			<Node File=".\src\common\General\md5.c" Type="2" Platforms="7" />
+			<Node File=".\src\common\Hash\md5\md5.c" Type="2" Platforms="7" />
 			<Node File=".\src\win32\INet\MibAccess.cpp" Type="2" Platforms="1" />
 		</Node>
 		<Node Name="Header" Type="1" Platforms="7" Open="0">
@@ -289,11 +283,8 @@
 			<Node File="./include/common/INetTools.h" Type="3" Platforms="7" />
 		</Node>
 		<Node Name="Mime Message" Type="1" Platforms="7" Open="0">
-			<Node File="/home/matthew/Code/Lgi/include/common/GMime.h" Type="3" Platforms="7" />
+			<Node File=".\include\common\GMime.h" Type="3" Platforms="7" />
 		</Node>
-	</Node>
-	<Node Name="Distrib" Type="1" Platforms="7" Open="0">
-		<Node File=".\Distro.make" Type="3" Platforms="2" />
 	</Node>
 	<Node Name="Headers" Type="1" Platforms="7" Open="1">
 		<Node File=".\include\linux\Gtk\LgiOsDefs.h" Type="3" Platforms="7" />
@@ -314,6 +305,7 @@
 					<Debug>include/win32</Debug>
 					<Release>include/win32</Release>
 				</All>
+				<Windows />
 			</Defines>
 			<Compiler>
 				<Windows>MingW</Windows>
@@ -325,12 +317,15 @@
 					<Debug>include/common</Debug>
 					<Release>include/common</Release>
 				</All>
+				<Windows />
 			</IncludePaths>
 			<Libraries>
 				<All />
+				<Windows />
 			</Libraries>
 			<LibraryPaths>
 				<All />
+				<Windows />
 			</LibraryPaths>
 			<TargetType>
 				<All>DynamicLibrary</All>

@@ -45,7 +45,7 @@
 		<Node File="./Code/resource.h" Type="3" Platforms="7" />
 		<Node File=".\Code\Script1.rc" Type="5" Platforms="7" />
 	</Node>
-	<Node File="U:\Code\Lgi\trunk\Lgi.xml" Type="4" Platforms="15" />
+	<Node File="..\Lgi.xml" Type="4" Platforms="15" />
 	<Settings>
 		<General>
 			<Makefile>

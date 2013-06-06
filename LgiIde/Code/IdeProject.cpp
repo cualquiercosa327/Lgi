@@ -526,7 +526,6 @@ NodeView::~NodeView()
 
 class ProjectNode : public IdeCommon, public GDragDropSource, public FtpCallback, public NodeSource
 {
-	IdeProject *Project;
 	NodeType Type;
 	int Platforms;
 	char *File;
@@ -583,10 +582,9 @@ class ProjectNode : public IdeCommon, public GDragDropSource, public FtpCallback
 	}
 
 public:
-	ProjectNode(IdeProject *p)
+	ProjectNode(IdeProject *p) : IdeCommon(p)
 	{
 		Platforms = PLATFORM_ALL;
-		Project = p;
 		Type = NodeNone;
 		File = 0;
 		Name = 0;
@@ -663,9 +661,8 @@ public:
 		}
 		else
 		{
-			char *f = GetFullPath();
+			GAutoString f = GetFullPath();
 			Status = Edit->Save(f);
-			DeleteArray(f);
 
 			if (Callback)
 				Callback->OnSaveComplete(Status);
@@ -759,14 +756,22 @@ public:
 
 	void SetFileName(char *f)
 	{
+		char Rel[MAX_PATH];
 		DeleteArray(File);
-		File = NewStr(f);
+		if (Project->RelativePath(Rel, f))
+		{
+			File = NewStr(Rel);
+		}
+		else
+		{
+			File = NewStr(f);
+		}
 
 		if (File)
 		{
 			char MimeType[256];
 			
-			char *FullPath = GetFullPath();
+			GAutoString FullPath = GetFullPath();
 			if (FullPath)
 			{
 				if (LgiGetFileMimeType(FullPath, MimeType, sizeof(MimeType)) &&
@@ -774,7 +779,6 @@ public:
 				{
 					Type = NodeGraphic;
 				}
-				DeleteArray(FullPath);
 			}
 			
 			if (!Type)
@@ -943,7 +947,8 @@ public:
 		{
 			if (!Write)
 			{
-				Dep = Project->GetApp()->OpenProject(File, Project, false, true);
+				GAutoString Full = GetFullPath();				
+				Dep = Project->GetApp()->OpenProject(Full, Project, false, true);
 			}
 		}
 		else
@@ -951,18 +956,29 @@ public:
 			if (!Write)
 			{
 				// Check that file exists.
-				char *p = GetFullPath();
-				DeleteArray(p);
-
+				GAutoString p = GetFullPath();
 				if (p)
 				{
-					if (!FileExists(p))
+					if (FileExists(p))
 					{
-						char Path[256];
-						if (Project->GetBasePath(Path, sizeof(Path)))
+						if (!LgiIsRelativePath(File))
 						{
-							LgiTrimDir(Path);
-							
+							// Try and fix up any non-relative paths that have crept in...
+							char Rel[MAX_PATH];
+							if (Project->RelativePath(Rel, File))
+							{
+								DeleteArray(File);
+								File = NewStr(Rel);
+								Project->SetDirty();
+							}
+						}
+					}
+					else
+					{
+						// File doesn't exist... has it moved???
+						GAutoString Path = Project->GetBasePath();
+						if (Path)
+						{
 							// Find the file.
 							char *d = strrchr(p, DIR_CHAR);
 							GArray<char*> Files;
@@ -1062,8 +1078,6 @@ public:
 							printf("%s:%i - Project::GetBasePath failed.\n", __FILE__, __LINE__);
 						}
 					}
-					
-					DeleteArray(p);
 				}
 			}
 		}
@@ -1071,24 +1085,25 @@ public:
 		return true;
 	}
 	
-	char *GetFullPath()
+	GAutoString GetFullPath()
 	{
-		char *FullPath = 0;
+		GAutoString FullPath;
 		
 		if (LgiIsRelativePath(File))
 		{
 			// Relative path
-			char Path[256];
-			if (Project->GetBasePath(Path, sizeof(Path)))
+			GAutoString Path = Project->GetBasePath();
+			if (Path)
 			{
-				LgiMakePath(Path, sizeof(Path), Path, File);
-				FullPath = NewStr(Path);
+				char p[MAX_PATH];
+				LgiMakePath(p, sizeof(p), Path, File);
+				FullPath.Reset(NewStr(p));
 			}
 		}
 		else
 		{
 			// Absolute path
-			FullPath = NewStr(File);
+			FullPath.Reset(NewStr(File));
 		}
 		
 		return FullPath;
@@ -1143,7 +1158,7 @@ public:
 					}
 					case NodeResources:
 					{
-						char *FullPath = GetFullPath();
+						GAutoString FullPath = GetFullPath();
 						if (FullPath)
 						{
 							char Exe[256];
@@ -1168,7 +1183,7 @@ public:
 					}
 					case NodeGraphic:
 					{
-						char *FullPath = GetFullPath();
+						GAutoString FullPath = GetFullPath();
 						if (FullPath)
 						{
 							LgiExecute(FullPath);
@@ -1181,7 +1196,7 @@ public:
 					}
 					default:
 					{
-						char *FullPath = GetFullPath();
+						GAutoString FullPath = GetFullPath();
 						if (FullPath)
 						{
 							Doc = Project->GetApp()->FindOpenFile(FullPath);
@@ -1203,7 +1218,7 @@ public:
 									}
 									else
 									{
-										LgiMsg(Tree, "Couldn't open file '%s'", AppName, MB_OK, FullPath);
+										LgiMsg(Tree, "Couldn't open file '%s'", AppName, MB_OK, FullPath.Get());
 									}
 								}
 							}
@@ -1336,8 +1351,8 @@ public:
 					s.Type("All Files", LGI_ALL_FILES);
 					s.MultiSelect(true);
 
-					char Dir[256];
-					if (Project->GetBasePath(Dir, sizeof(Dir)))
+					GAutoString Dir = Project->GetBasePath();
+					if (Dir)
 					{
 						s.InitialDir(Dir);
 					}
@@ -1351,15 +1366,7 @@ public:
 								ProjectNode *New = new ProjectNode(Project);
 								if (New)
 								{
-									char Rel[256];
-									if (Project->RelativePath(Rel, s[i]))
-									{
-										New->SetFileName(Rel);
-									}
-									else
-									{
-										New->SetFileName(s[i]);
-									}
+									New->SetFileName(s[i]);
 									InsertTag(New);
 									SortChildren();
 									Project->SetDirty();
@@ -1378,8 +1385,8 @@ public:
 					GFileSelect s;
 					s.Parent(Tree);
 
-					char Dir[256];
-					if (Project->GetBasePath(Dir, sizeof(Dir)))
+					GAutoString Dir = Project->GetBasePath();
+					if (Dir)
 					{
 						s.InitialDir(Dir);
 					}
@@ -1436,15 +1443,7 @@ public:
 									ProjectNode *New = new ProjectNode(Project);
 									if (New)
 									{
-										char Rel[256];
-										if (Project->RelativePath(Rel, f))
-										{
-											New->SetFileName(Rel);
-										}
-										else
-										{
-											New->SetFileName(f);
-										}
+										New->SetFileName(f);
 										Insert->InsertTag(New);
 										Insert->SortChildren();
 										Project->SetDirty();
@@ -1491,12 +1490,11 @@ public:
 				}
 				case IDM_BROWSE_FOLDER:
 				{
-					char *Path = GetFullPath();
+					GAutoString Path = GetFullPath();
 					if (Path)
 					{
 						LgiTrimDir(Path);
 						LgiExecute(Path);
-						DeleteArray(Path);
 					}
 					break;
 				}
@@ -1507,7 +1505,7 @@ public:
 					}
 					else
 					{
-						char *Path = GetFullPath();
+						GAutoString Path = GetFullPath();
 						if (Path)
 						{
 							LgiTrimDir(Path);
@@ -1553,8 +1551,6 @@ public:
 							LgiExecute("cmd", 0, Path);
 							
 							#endif
-							
-							DeleteArray(Path);
 						}
 					}
 					break;
@@ -1589,12 +1585,12 @@ public:
 					}
 					else if (Type == NodeDependancy)
 					{
-						GAutoString Path(GetFullPath());
+						GAutoString Path = GetFullPath();
 						LgiMsg(Tree, "Path: %s", AppName, MB_OK, Path.Get());
 					}
 					else
 					{
-						GAutoString Path(GetFullPath());
+						GAutoString Path = GetFullPath();
 						if (Path)
 						{
 							char Size[32];
@@ -1674,11 +1670,11 @@ public:
 				// Match full path
 				if (File[0] == '.')
 				{
-					char d[256];
-					if (Project->GetBasePath(d, sizeof(d)))
+					GAutoString Base = Project->GetBasePath();
+					if (Base)
 					{
-						char f[256];
-						LgiMakePath(f, sizeof(f), d, File);
+						char f[MAX_PATH];
+						LgiMakePath(f, sizeof(f), Base, File);
 						
 						Match = stricmp(f, In) == 0;
 					}
@@ -1708,11 +1704,11 @@ public:
 				{
 					if (File[0] == '.')
 					{
-						char d[256];
-						if (Project->GetBasePath(d, sizeof(d)))
+						GAutoString Base = Project->GetBasePath();
+						if (Base)
 						{
 							char f[256];
-							LgiMakePath(f, sizeof(f), d, File);
+							LgiMakePath(f, sizeof(f), Base, File);
 							*Full = NewStr(f);
 						}
 					}
@@ -1776,9 +1772,71 @@ int XmlSort(GXmlTag *a, GXmlTag *b, int d)
 	return NodeSort(A, B, d);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+IdeCommon::IdeCommon(IdeProject *p)
+{
+	Project = p;
+}
+
 IdeCommon::~IdeCommon()
 {
 	Remove();
+}
+
+void IdeCommon::OnOpen(GXmlTag *Src)
+{
+	Copy(*Src);
+	Write = false;
+	Serialize();
+	
+	List<GXmlTag>::I it = Src->Children.Start();
+	for (GXmlTag *c = *it; c; c = *++it)
+	{
+		if (c->IsTag("Node"))
+		{
+			ProjectNode *pn = new ProjectNode(Project);
+			if (pn)
+			{
+				pn->OnOpen(c);
+				InsertTag(pn);
+			}
+		}
+	}
+}
+
+void IdeCommon::CollectAllSubProjects(List<IdeProject> &c)
+{
+	ForAllProjectNodes(p)
+	{
+		if (p->GetType() == NodeDependancy)
+		{
+			if (p->GetDep())
+				c.Insert(p->GetDep());
+		}
+		
+		p->CollectAllSubProjects(c);
+	}
+}
+
+void IdeCommon::CollectAllSource(GArray<char*> &c)
+{
+	ForAllProjectNodes(p)
+	{
+		switch (p->GetType())
+		{
+			case NodeSrc:
+			case NodeHeader:
+			{
+				GAutoString path = p->GetFullPath();
+				if (path)
+					c.Add(path);
+			}
+			default:
+				break;
+		}
+		
+		p->CollectAllSource(c);
+	}
 }
 
 void IdeCommon::SortChildren()
@@ -1838,7 +1896,7 @@ IdeCommon *IdeCommon::GetSubFolder(IdeProject *Project, char *Name, bool Create)
 	return 0;
 }
 
-//////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 class BuildThread : public GThread, public GStream
 {
 	IdeProject *Proj;
@@ -1985,7 +2043,7 @@ public:
 		else
 		{
 			Err = "Couldn't find 'make'";
-			LgiTrace("%s,%i - %s.\n", __FILE__, __LINE__, Err);
+			LgiTrace("%s,%i - %s.\n", _FL, Err);
 		}
 	
 		if (Proj->GetApp())
@@ -2003,8 +2061,9 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////////////
-IdeProject::IdeProject(AppWnd *App)
+IdeProject::IdeProject(AppWnd *App) : IdeCommon(NULL)
 {
+	Project = this;
 	d = new IdeProjectPrivate(App, this);
 	Tag = NewStr("Project");
 }
@@ -2035,41 +2094,6 @@ void IdeProject::SetParentProject(IdeProject *p)
 	d->ParentProject = p;
 }
 
-void IdeCommon::CollectAllSubProjects(List<IdeProject> &c)
-{
-	ForAllProjectNodes(p)
-	{
-		if (p->GetType() == NodeDependancy)
-		{
-			if (p->GetDep())
-				c.Insert(p->GetDep());
-		}
-		
-		p->CollectAllSubProjects(c);
-	}
-}
-
-void IdeCommon::CollectAllSource(GArray<char*> &c)
-{
-	ForAllProjectNodes(p)
-	{
-		switch (p->GetType())
-		{
-			case NodeSrc:
-			case NodeHeader:
-			{
-				char *path = p->GetFullPath();
-				if (path)
-					c.Add(path);
-			}
-			default:
-				break;
-		}
-		
-		p->CollectAllSource(c);
-	}
-}
-
 bool IdeProject::GetChildProjects(List<IdeProject> &c)
 {
 	CollectAllSubProjects(c);
@@ -2080,8 +2104,8 @@ bool IdeProject::RelativePath(char *Out, char *In)
 {
 	if (Out && In)
 	{
-		char Base[256];
-		if (GetBasePath(Base, sizeof(Base)))
+		GAutoString Base = GetBasePath();
+		if (Base)
 		{
 			// printf(	"XmlBase='%s'\n     In='%s'\n", Base, In);
 			
@@ -2151,10 +2175,10 @@ bool IdeProject::GetExePath(char *Path, int Len)
 	{
 		if (PExe[0] == '.')
 		{
-			char b[256];
-			if (GetBasePath(b, sizeof(b)))
+			GAutoString Base = GetBasePath();
+			if (Base)
 			{
-				LgiMakePath(Path, Len, b, PExe);
+				LgiMakePath(Path, Len, Base, PExe);
 			}
 			else return false;
 		}
@@ -2175,10 +2199,10 @@ bool IdeProject::GetMakefile(char *Path, int Len)
 	{
 		if (LgiIsRelativePath(PMakefile))
 		{
-			char b[256];
-			if (GetBasePath(b, sizeof(b)))
+			GAutoString Base = GetBasePath();
+			if (Base)
 			{
-				LgiMakePath(Path, Len, b, PMakefile);
+				LgiMakePath(Path, Len, Base, PMakefile);
 			}
 			else return false;
 		}
@@ -2341,16 +2365,16 @@ public:
 
 void IdeProject::Execute(ExeAction Act)
 {
-	char b[256];
+	GAutoString Base = GetBasePath();
 	if (d->Settings.GetStr(ProjExe) &&
-		GetBasePath(b, sizeof(b)))
+		Base)
 	{
 		char e[256];
 		if (GetExePath(e, sizeof(e)))
 		{
 			if (FileExists(e))
 			{
-				new ExecuteThread(this, e, d->Settings.GetStr(ProjArgs), b, Act);
+				new ExecuteThread(this, e, d->Settings.GetStr(ProjArgs), Base, Act);
 			}
 			else
 			{
@@ -2377,44 +2401,6 @@ bool IdeProject::Serialize()
 	return true;
 }
 
-bool IdeProject::GetBasePath(char *Path, int Len)
-{
-	if (!Path || !d->FileName)
-	{
-		LgiAssert(!"Invalid argument.");
-		return false;
-	}
-
-	GArray<char*> sections;
-	IdeProject *proj = this;
-	while (	proj &&
-			proj->GetFileName() &&
-			LgiIsRelativePath(proj->GetFileName()))
-	{
-		sections.AddAt(0, proj->GetFileName());
-		proj = proj->GetParentProject();
-	}
-
-	if (!proj)
-	{
-		LgiAssert(!"Always need to have a project to belong to.");
-		return false; // No absolute path in the parent projects?
-	}
-
-	char p[MAX_PATH];
-	strsafecpy(p, proj->GetFileName(), sizeof(p));
-	LgiTrimDir(p);	
-	for (int i=0; i<sections.Length(); i++)
-	{
-		LgiMakePath(p, sizeof(p), p, sections[i]);
-		LgiTrimDir(p);	
-	}
-	
-	strsafecpy(Path, p, Len);
-	
-	return true;
-}
-
 AppWnd *IdeProject::GetApp()
 {
 	return d->App;
@@ -2438,6 +2424,53 @@ const char *IdeProject::GetExecutable()
 char *IdeProject::GetFileName()
 {
 	return d->FileName;
+}
+
+GAutoString IdeProject::GetFullPath()
+{
+	GAutoString Status;
+	if (!d->FileName)
+	{
+		LgiAssert(!"No path.");
+		return Status;
+	}
+
+	GArray<char*> sections;
+	IdeProject *proj = this;
+	while (	proj &&
+			proj->GetFileName() &&
+			LgiIsRelativePath(proj->GetFileName()))
+	{
+		sections.AddAt(0, proj->GetFileName());
+		proj = proj->GetParentProject();
+	}
+
+	if (!proj)
+	{
+		LgiAssert(!"All projects have a relative path?");
+		return Status; // No absolute path in the parent projects?
+	}
+
+	char p[MAX_PATH];
+	strsafecpy(p, proj->GetFileName(), sizeof(p)); // Copy the base path
+	if (sections.Length() > 0)
+		LgiTrimDir(p); // Trim off the filename
+	for (int i=0; i<sections.Length(); i++) // For each relative section
+	{
+		LgiMakePath(p, sizeof(p), p, sections[i]); // Append relative path
+		if (i < sections.Length() - 1)
+			LgiTrimDir(p); // Trim filename off
+	}
+	
+	Status.Reset(NewStr(p));
+	return Status;
+}
+
+GAutoString IdeProject::GetBasePath()
+{
+	GAutoString a = GetFullPath();
+	LgiTrimDir(a);
+	return a;
 }
 
 void IdeProject::CreateProject()
@@ -2478,12 +2511,14 @@ bool IdeProject::OpenFile(char *FileName)
 		if (f.Open(d->FileName, O_READWRITE))
 		{
 			GXmlTree x;
-			if (Status = x.Read(this, &f, this))
+			GXmlTag r;
+			if (Status = x.Read(&r, &f))
 			{
+				OnOpen(&r);
 				d->App->GetTree()->Insert(this);
 				Expanded(true);
 				
-				d->Settings.Serialize(this, false /* read */);
+				d->Settings.Serialize(&r, false /* read */);
 			}
 			else
 			{
@@ -2497,12 +2532,12 @@ bool IdeProject::OpenFile(char *FileName)
 
 bool IdeProject::SaveFile(char *FileName)
 {
-	char *File = FileName ? FileName : d->FileName;
-	if (ValidStr(File))
+	GAutoString Full = GetFullPath();
+	if (ValidStr(Full))
 	{
 		GFile f;
 		
-		if (f.Open(File, O_WRITE))
+		if (f.Open(Full, O_WRITE))
 		{
 			GXmlTree x;
 
@@ -2649,11 +2684,7 @@ void IdeProject::OnMouseClick(GMouse &m)
 					ProjectNode *New = new ProjectNode(this);
 					if (New)
 					{
-						char Base[MAX_PATH];
-						strsafecpy(Base, d->FileName, sizeof(Base));
-						LgiTrimDir(Base);
-						GAutoString Rel = LgiMakeRelativePath(Base, s.Name());
-						New->SetFileName(Rel ? Rel : s.Name());
+						New->SetFileName(s.Name());
 						New->SetType(NodeDependancy);
 						InsertTag(New);
 						SetDirty();
@@ -2807,15 +2838,7 @@ void IdeProject::ImportDsp(char *File)
 							LgiMakePath(Abs, sizeof(Abs), Base, ToUnixPath(Src));
 							
 							// Make relitive path
-							char Rel[256];
-							if (RelativePath(Rel, Abs))
-							{
-								New->SetFileName(Rel);
-							}
-							else
-							{
-								New->SetFileName(Src);
-							}
+							New->SetFileName(Src);
 							DeleteArray(Src);
 						}
 
@@ -2855,8 +2878,7 @@ bool IdeProject::BuildIncludePaths(List<char> &Paths, bool Recurse)
 				char *Full = 0, Buf[300];
 				if (!Inc[i] || Inc[i][0] == '.')
 				{
-					char Base[256];
-					p->GetBasePath(Base, sizeof(Base));
+					GAutoString Base = p->GetBasePath();
 					if (Inc[i])
 						LgiMakePath(Buf, sizeof(Buf), Base, Inc[i]);
 					else
@@ -3114,9 +3136,10 @@ bool IdeProject::CreateMakefile()
 					{
 						m.Print(" \\\n			-l%s$(Tag)", ToUnixPath(t));
 
-						if (d->GetBasePath(t, sizeof(t)))
+						GAutoString Base = d->GetBasePath();
+						if (Base)
 						{
-							m.Print(" \\\n			-L%s/$(BuildDir)", ToUnixPath(t));
+							m.Print(" \\\n			-L%s/$(BuildDir)", ToUnixPath(Base));
 						}
 					}
 				}
@@ -3264,14 +3287,15 @@ bool IdeProject::CreateMakefile()
 							IdeProject *d;
 							for (d=Deps.First(); d; d=Deps.Next())
 							{
-								char t[256], p[256];
+								char t[MAX_PATH];
+								GAutoString Base = GetBasePath();
 								if (d->GetTargetFile(t, sizeof(t)) &&
-									d->GetBasePath(p, sizeof(p)))
+									Base)
 								{
-									char Rel[256];
-									if (!RelativePath(Rel, p))
+									char Rel[MAX_PATH] = "";
+									if (!RelativePath(Rel, Base))
 									{
-										strsafecpy(Rel, p, sizeof(Rel));
+										strsafecpy(Rel, Base, sizeof(Rel));
 									}
 									ToUnixPath(Rel);
 
@@ -3402,7 +3426,7 @@ bool IdeProject::CreateMakefile()
 					{
 						if (n->GetType() == NodeSrc)
 						{
-							char *Src = n->GetFullPath();
+							GAutoString Src = n->GetFullPath();
 							if (Src)
 							{
 								char Part[256];
@@ -3461,8 +3485,6 @@ bool IdeProject::CreateMakefile()
 										"	$(%s) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)\n"
 										"\n",
 										Compiler);
-
-								DeleteArray(Src);
 							}
 						}
 					}

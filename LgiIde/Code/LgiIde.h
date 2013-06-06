@@ -86,7 +86,7 @@ public:
 	}
 	virtual ~NodeSource();
 
-	virtual char *GetFullPath() = 0;
+	virtual GAutoString GetFullPath() = 0;
 	virtual bool IsWeb() = 0;
 	virtual char *GetFileName() = 0;
 	virtual char *GetLocalCache() = 0;

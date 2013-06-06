@@ -533,10 +533,11 @@ public:
 			List<IdeProject>::I Projs = Projects.Start();
 			for (IdeProject *p=*Projs; p; p=*++Projs)
 			{
-				char Path[300];
-				if (p->GetBasePath(Path, sizeof(Path)))
+				GAutoString Base = p->GetBasePath();
+				if (Base)
 				{
-					LgiMakePath(Path, sizeof(Path), Path, File);
+					char Path[MAX_PATH];
+					LgiMakePath(Path, sizeof(Path), Base, File);
 					if (FileExists(Path))
 					{
 						Full = NewStr(Path);
@@ -1014,6 +1015,8 @@ AppWnd::AppWnd()
 
 AppWnd::~AppWnd()
 {
+	SaveAll();
+	
 	if (d->Sp)
 	{
 		GVariant v = d->Sp->Value();
@@ -1172,11 +1175,12 @@ IdeDoc *AppWnd::FindOpenFile(char *FileName)
 			IdeProject *p = i->GetProject();
 			if (p)
 			{
-				char Path[256];
-				if (p->GetBasePath(Path, sizeof(Path)))
+				GAutoString Base = p->GetBasePath();
+				if (Base)
 				{
+					char Path[MAX_PATH];
 					if (*f == '.')
-						LgiMakePath(Path, sizeof(Path), Path, f);
+						LgiMakePath(Path, sizeof(Path), Base, f);
 					else
 						strsafecpy(Path, f, sizeof(Path));
 
@@ -1598,11 +1602,11 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 				IdeProject *p = RootProject();
 				if (p)
 				{
-					char Path[256];
-					if (p->GetBasePath(Path, sizeof(Path)))
+					GAutoString Base = p->GetBasePath();
+					if (Base)
 					{
 						DeleteArray(Dlg.Params->Dir);
-						Dlg.Params->Dir = NewStr(Path);
+						Dlg.Params->Dir = NewStr(Base);
 					}
 				}
 

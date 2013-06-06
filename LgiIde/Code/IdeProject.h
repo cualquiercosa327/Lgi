@@ -22,9 +22,14 @@ class IdeCommon : public GTreeItem, public GXmlTag
 {
 	friend class IdeProject;
 
+protected:
+	IdeProject *Project;
+
 public:
+	IdeCommon(IdeProject *p);
 	~IdeCommon();
-	
+
+	void OnOpen(GXmlTag *Src);	
 	void CollectAllSubProjects(List<IdeProject> &c);
 	void CollectAllSource(GArray<char*> &c);
 	void SortChildren();
@@ -95,7 +100,11 @@ public:
 	~IdeProject();
 
 	bool IsWeb() { return false; }
-	char *GetFileName();
+
+	char *GetFileName(); // Can be a relative path
+	GAutoString GetFullPath(); // Always a complete path
+	GAutoString GetBasePath(); // A non-relative path to the folder containing the project
+
 	const char *GetExecutable();
 	const char *GetExeArgs();
 	const char *GetIncludePaths();
@@ -111,7 +120,6 @@ public:
 	void OnMouseClick(GMouse &m);
 	AppWnd *GetApp();
 	void ImportDsp(char *File);
-	bool GetBasePath(char *Path, int Len);
 	bool GetMakefile(char *Path, int Len);
 	bool GetExePath(char *Path, int Len);
 	bool RelativePath(char *Out, char *In);

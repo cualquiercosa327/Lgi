@@ -75,7 +75,7 @@ static const char **GetEnumValues(ProjSetting s)
 #define SF_MULTILINE			0x01	// String setting is multiple lines, otherwise it's single line
 #define SF_CROSSPLATFORM		0x02	// Just has a "all" platforms setting (no platform specific)
 #define SF_PLATFORM_SPECIFC		0x04	// Just has a platform specific setting (no all)
-#define SF_CONFIG_SPECIFIC		0x08	// Can have a different setting in different config
+#define SF_CONFIG_SPECIFIC		0x08	// Can have a different setting in different configs
 #define SF_ENUM					0x10	// Integer is actually an enum index, not a straigh number
 
 #define IDC_TEXT_BASE			100
@@ -195,7 +195,7 @@ public:
 							"%s.%s.%s",
 							i->Category,
 							i->Name,
-							i->Flag.PlatformSpecific && PlatformSpecific ? sCurrentPlatform : sAllPlatforms);
+							PlatformSpecific ? sCurrentPlatform : sAllPlatforms);
 
 		if (i->Flag.ConfigSpecific)
 		{
@@ -688,11 +688,17 @@ bool IdeProjectSettings::Edit(GViewI *parent)
 bool IdeProjectSettings::Serialize(GXmlTag *Parent, bool Write)
 {
 	if (!Parent)
+	{
+		LgiAssert(!"No parent tag?");
 		return false;
+	}
 
 	GXmlTag *t = Parent->GetTag(TagSettings, Write);
 	if (!t)
+	{
+		LgiAssert(!"Can't find settings tags?");
 		return false;
+	}
 
 	if (Write)
 	{

@@ -698,7 +698,8 @@ public:
 				}
 				else if (*Fn == '.')
 				{
-					return nSrc->GetFullPath();
+					GAutoString a = nSrc->GetFullPath();
+					return a.Release();
 				}
 			}
 
@@ -712,7 +713,7 @@ public:
 	{
 		if (nSrc)
 		{
-			char *f = nSrc->GetFullPath();
+			GAutoString f = nSrc->GetFullPath();
 			return f ? stricmp(File, f) == 0 : false;
 		}
 		else if (FileName)
