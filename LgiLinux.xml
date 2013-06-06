@@ -298,4 +298,68 @@
 	<Node Name="Headers" Type="1" Platforms="7" Open="1">
 		<Node File=".\include\linux\Gtk\LgiOsDefs.h" Type="3" Platforms="7" />
 	</Node>
+	<Settings>
+		<General>
+			<Makefile>
+				<Windows>Makefile.Win32</Windows>
+			</Makefile>
+			<Executable>
+				<Windows />
+			</Executable>
+			<Arguments>
+				<All />
+			</Arguments>
+			<Defines>
+				<All>
+					<Debug>include/win32</Debug>
+					<Release>include/win32</Release>
+				</All>
+			</Defines>
+			<Compiler>
+				<Windows>MingW</Windows>
+			</Compiler>
+		</General>
+		<Build>
+			<IncludePaths>
+				<All>
+					<Debug>include/common</Debug>
+					<Release>include/common</Release>
+				</All>
+			</IncludePaths>
+			<Libraries>
+				<All />
+			</Libraries>
+			<LibraryPaths>
+				<All />
+			</LibraryPaths>
+			<TargetType>
+				<All>DynamicLibrary</All>
+			</TargetType>
+			<TargetName>
+				<Windows>
+					<Debug>liblgid.dll</Debug>
+					<Release>liblgi.dll</Release>
+				</Windows>
+			</TargetName>
+		</Build>
+		<Editor>
+			<TabSize>
+				<All>4</All>
+			</TabSize>
+			<IndentSize>
+				<All>4</All>
+			</IndentSize>
+			<ShowWhiteSpace>
+				<All>0</All>
+			</ShowWhiteSpace>
+			<UseHardTabs>
+				<All>1</All>
+			</UseHardTabs>
+			<CommentFile />
+			<CommentFunction />
+		</Editor>
+		<Advanced>
+			<OtherMakefileRules />
+		</Advanced>
+	</Settings>
 </Project>

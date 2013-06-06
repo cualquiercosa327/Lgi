@@ -147,4 +147,6 @@ public:
 	int OnDrop(char *Format, GVariant *Data, GdcPt2 Pt, int KeyState);
 };
 
+extern const char TagSettings[];
+
 #endif

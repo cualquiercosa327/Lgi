@@ -2374,26 +2374,6 @@ void IdeProject::Build(bool All)
 
 bool IdeProject::Serialize()
 {
-	/*
-	SerializeAttr("Makefile", d->Settings.MakeFile);
-	SerializeAttr("Exe", d->Settings.Exe);
-	SerializeAttr("Args", d->Settings.ExeArgs);
-	SerializeAttr("Defs", d->Settings.DefineSym);
-	SerializeAttr("TargetType", d->Settings.TargetType);
-	SerializeAttr("TargetName", d->Settings.TargetName);
-	SerializeAttr("IncludePaths", d->Settings.IncludePaths);
-	SerializeAttr("LibPaths", d->Settings.LibPaths);
-	SerializeAttr("Libs", d->Settings.Libs);
-	SerializeAttr("FileComment", d->Settings.CommentFile);
-	SerializeAttr("FuncComment", d->Settings.CommentFunc);
-	SerializeAttr("MakefileRules", d->Settings.MakefileRules);
-	SerializeAttr("TabSize", d->Settings.TabSize);
-	SerializeAttr("IndentSize", d->Settings.IndentSize);
-	SerializeAttr("UseTabs", d->Settings.UseTabs);
-	SerializeAttr("ShowWhitespace", d->Settings.ShowWhitespace);
-	SerializeAttr("Compiler", d->Settings.Compiler);
-	*/
-	
 	return true;
 }
 
@@ -2601,6 +2581,9 @@ void IdeProject::Empty()
 
 GXmlTag *IdeProject::Create(char *Tag)
 {
+	if (!stricmp(Tag, TagSettings))
+		return false;
+
 	return new ProjectNode(this);
 }
 

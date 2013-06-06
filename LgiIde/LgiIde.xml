@@ -45,7 +45,6 @@
 		<Node File="./Code/resource.h" Type="3" Platforms="7" />
 		<Node File=".\Code\Script1.rc" Type="5" Platforms="7" />
 	</Node>
-	<Node File="..\LgiLinux.xml" Type="4" Platforms="15" />
 	<Settings Type="0" Platforms="15">
 		<General>
 			<Makefile>
@@ -94,7 +93,6 @@
 			</Libraries>
 			<LibraryPaths>
 				<All />
-				<Windows />
 			</LibraryPaths>
 			<TargetType>
 				<All>Executable</All>
