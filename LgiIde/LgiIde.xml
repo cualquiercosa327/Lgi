@@ -46,4 +46,84 @@
 		<Node File=".\Code\Script1.rc" Type="5" Platforms="7" />
 	</Node>
 	<Node File="..\LgiLinux.xml" Type="4" Platforms="15" />
+	<Settings Type="0" Platforms="15">
+		<General>
+			<Makefile>
+				<Windows>Makefile.win</Windows>
+			</Makefile>
+			<Executable>
+				<Windows>
+					<Debug>LgiIde.exe</Debug>
+					<Release>LgiIde.exe</Release>
+				</Windows>
+			</Executable>
+			<Arguments>
+				<All />
+			</Arguments>
+			<Defines>
+				<All>
+					<Debug>_DEBUG</Debug>
+					<Release>NDEBUG</Release>
+				</All>
+				<Windows>
+					<Debug>WIN32;_WINDOWS</Debug>
+					<Release>WIN32;_WINDOWS</Release>
+				</Windows>
+			</Defines>
+			<Compiler>
+				<Windows>MingW</Windows>
+			</Compiler>
+		</General>
+		<Build>
+			<IncludePaths>
+				<All>
+					<Debug>..\include\common</Debug>
+					<Release>..\include\common</Release>
+				</All>
+				<Windows>
+					<Debug>..\include\win32</Debug>
+					<Release>..\include\win32</Release>
+				</Windows>
+			</IncludePaths>
+			<Libraries>
+				<All />
+				<Windows>
+					<Debug>imm32.lib</Debug>
+					<Release>imm32.lib</Release>
+				</Windows>
+			</Libraries>
+			<LibraryPaths>
+				<All />
+				<Windows />
+			</LibraryPaths>
+			<TargetType>
+				<All>Executable</All>
+			</TargetType>
+			<TargetName>
+				<Windows>
+					<Debug>LgiIde.exe</Debug>
+					<Release>LgiIde.exe</Release>
+				</Windows>
+			</TargetName>
+		</Build>
+		<Editor>
+			<TabSize>
+				<All>4</All>
+			</TabSize>
+			<IndentSize>
+				<All>4</All>
+			</IndentSize>
+			<ShowWhiteSpace>
+				<All>0</All>
+			</ShowWhiteSpace>
+			<UseHardTabs>
+				<All>1</All>
+			</UseHardTabs>
+			<CommentFile />
+			<CommentFunction />
+		</Editor>
+		<Advanced>
+			<OtherMakefileRules />
+		</Advanced>
+	</Settings>
 </Project>

@@ -8,10 +8,6 @@
 
 #define NODE_DROP_FORMAT			"Ide.ProjectNode"
 
-#define TARGET_TYPE_EXE				0
-#define TARGET_TYPE_SHARED_LIB		1
-#define TARGET_TYPE_STATIC_LIB		2
-
 #define OPT_Ftp						"ftp"
 #define OPT_Www						"www"
 
@@ -60,12 +56,12 @@ enum ProjSetting
 	ProjMakefileRules
 };
 
-class IdeProjectSettings : public GXmlTag
+class IdeProjectSettings
 {
 	struct IdeProjectSettingsPriv *d;
 
 public:
-	IdeProjectSettings();
+	IdeProjectSettings(IdeProject *Proj);
 	~IdeProjectSettings();
 
 	void InitAllSettings(bool ClearCurrent = false);
@@ -77,7 +73,10 @@ public:
 	bool DeleteConfig(const char *Config);
 	
 	// UI
-	void Edit(GViewI *parent);
+	bool Edit(GViewI *parent);
+
+	// Serialization
+	bool Serialize(GXmlTag *Parent, bool Write);
 
 	// Accessors
 	const char *GetStr(ProjSetting Setting, const char *Default = NULL);

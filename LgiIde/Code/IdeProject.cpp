@@ -481,13 +481,16 @@ class IdeProjectPrivate
 {
 public:
 	AppWnd *App;
+	IdeProject *Project;
 	bool Dirty;
 	char *FileName;
 	class BuildThread *Build;
 	IdeProject *ParentProject;
 	IdeProjectSettings Settings;
 
-	IdeProjectPrivate(AppWnd *a)
+	IdeProjectPrivate(AppWnd *a, IdeProject *project) :
+		Project(project),
+		Settings(project)
 	{
 		App = a;
 		Dirty = false;
@@ -1879,41 +1882,43 @@ public:
 		char Exe[256] = "";
 		GToken p(getenv("PATH"), LGI_PATH_SEPARATOR);
 		
-		switch (Proj->GetSettings()->GetInt(ProjCompiler))
+		const char *Compiler = Proj->GetSettings()->GetStr(ProjCompiler);
+		if (!Compiler)
 		{
-			case 0:
+			LgiAssert(!"No compiler setting.");
+			return NULL;
+		}
+		
+		if (!stricmp(Compiler, "VisualStudio"))
+		{
+			for (int i=0; i<p.Length(); i++)
 			{
-				for (int i=0; i<p.Length(); i++)
+				char Path[256];
+				LgiMakePath(Path, sizeof(Path), p[i], "msdev.exe");
+				if (FileExists(Path))
 				{
-					LgiMakePath
-					(
-						Exe,
-						sizeof(Exe),
-						p[i],
-						"make"
-						#ifdef WIN32
-						".exe"
-						#endif
-					);
-					if (FileExists(Exe))
-					{
-						return NewStr(Exe);
-					}
+					return NewStr(Path);
 				}
-				break;
 			}
-			case 1:
+		}
+		else
+		{
+			for (int i=0; i<p.Length(); i++)
 			{
-				for (int i=0; i<p.Length(); i++)
+				LgiMakePath
+				(
+					Exe,
+					sizeof(Exe),
+					p[i],
+					"make"
+					#ifdef WIN32
+					".exe"
+					#endif
+				);
+				if (FileExists(Exe))
 				{
-					char Path[256];
-					LgiMakePath(Path, sizeof(Path), p[i], "msdev.exe");
-					if (FileExists(Path))
-					{
-						return NewStr(Path);
-					}
+					return NewStr(Exe);
 				}
-				break;
 			}
 		}
 		
@@ -2000,7 +2005,7 @@ public:
 //////////////////////////////////////////////////////////////////////////////////
 IdeProject::IdeProject(AppWnd *App)
 {
-	d = new IdeProjectPrivate(App);
+	d = new IdeProjectPrivate(App, this);
 	Tag = NewStr("Project");
 }
 
@@ -2497,6 +2502,8 @@ bool IdeProject::OpenFile(char *FileName)
 			{
 				d->App->GetTree()->Insert(this);
 				Expanded(true);
+				
+				d->Settings.Serialize(this, false /* read */);
 			}
 			else
 			{
@@ -2518,6 +2525,8 @@ bool IdeProject::SaveFile(char *FileName)
 		if (f.Open(File, O_WRITE))
 		{
 			GXmlTree x;
+
+			d->Settings.Serialize(this, true /* write */);
 			if (x.Write(this, &f))
 			{
 				d->Dirty = false;
@@ -2595,204 +2604,6 @@ GXmlTag *IdeProject::Create(char *Tag)
 	return new ProjectNode(this);
 }
 
-/*
-class SettingsDlg : public GDialog
-{
-	IdeProject *Project;
-	
-public:
-	IdeProjectSettings Settings;
-
-	SettingsDlg(GView *p,
-				IdeProject *project,
-				ProjectSettings &s)
-	{
-		Settings = s;
-		Project = project;
-		SetParent(p);
-		if (LoadFromResource(IDD_PROJECT_SETTINGS))
-		{
-			GCombo *c;
-			if (GetViewById(IDC_TARGET, c))
-			{
-				c->Insert("Executable");
-				c->Insert("Shared Library");
-				c->Insert("Static Library");
-			}
-			if (GetViewById(IDC_COMPILER, c))
-			{
-				c->Insert("GCC");
-				c->Insert("MSVC");
-			}
-
-			SetCtrlName(IDC_MAKEFILE, Settings.MakeFile);
-			SetCtrlName(IDC_EXE, Settings.Exe);
-			SetCtrlName(IDC_ARGS, Settings.ExeArgs);
-			SetCtrlName(IDC_DEFS, Settings.DefineSym);
-			SetCtrlValue(IDC_COMPILER, Settings.Compiler);
-			SetCtrlValue(IDC_TARGET, Settings.TargetType);
-			SetCtrlName(IDC_TARGET_NAME, Settings.TargetName);
-			SetCtrlName(IDC_INCLUDE, Settings.IncludePaths);
-			SetCtrlName(IDC_LIB_PATHS, Settings.LibPaths);
-			SetCtrlName(IDC_LIBS, Settings.Libs);
-			SetCtrlName(IDC_FILE_COMMENT, Settings.CommentFile);
-			SetCtrlName(IDC_RULES, Settings.MakefileRules);
-			SetCtrlName(IDC_FUNCTION_COMMENT, Settings.CommentFunc);
-			SetCtrlValue(IDC_TAB_SIZE, Settings.TabSize);
-			SetCtrlValue(IDC_INDENT_SIZE, Settings.IndentSize);
-			SetCtrlValue(IDC_USE_TABS, Settings.UseTabs);
-			SetCtrlValue(IDC_SHOW_WHITESPACE, Settings.ShowWhitespace);
-			
-			MoveToCenter();
-		}
-	}
-	
-	int OnNotify(GViewI *c, int f)
-	{
-		switch (c->GetId())
-		{
-			case IDC_SET_MAKEFILE:
-			{
-				GFileSelect s;
-				s.Parent(this);
-				#ifdef WIN32
-				s.Type("Developer Studio Projects", "*.dsp");
-				#else
-				s.Type("Makefiles", "*makefile");
-				#endif
-				s.Type("All Files", LGI_ALL_FILES);
-				if (s.Open())
-				{
-					char Rel[256];
-					if (Project->RelativePath(Rel, s.Name()))
-					{
-						SetCtrlName(IDC_MAKEFILE, Rel);
-					}
-					else
-					{
-						SetCtrlName(IDC_MAKEFILE, s.Name());
-					}
-				}
-				break;
-			}
-			case IDC_SET_EXE:
-			{
-				GFileSelect s;
-				s.Parent(this);
-				s.Type("All Files", LGI_ALL_FILES);
-				if (s.Open())
-				{
-					char Rel[256];
-					if (Project->RelativePath(Rel, s.Name()))
-					{
-						SetCtrlName(IDC_EXE, Rel);
-					}
-					else
-					{
-						SetCtrlName(IDC_EXE, s.Name());
-					}
-				}
-				break;
-			}
-			case IDC_SET_ARGS:
-			{
-				GFileSelect s;
-				s.Parent(this);
-				s.Type("All Files", LGI_ALL_FILES);
-				if (s.Open())
-				{
-					SetCtrlName(IDC_ARGS, s.Name());
-				}
-				break;
-			}
-			case IDC_ADD_INC:
-			{
-				GFileSelect s;
-				s.Parent(this);
-				if (s.OpenFolder())
-				{
-					GToken Inc(GetCtrlName(IDC_INCLUDE), ",;\r\n");
-					bool Has = false;
-					for (int i=0; i<Inc.Length(); i++)
-					{
-						if (stricmp(Inc[i], s.Name()) == 0)
-						{
-							Has = true;
-							break;
-						}
-					}
-					if (!Has)
-					{
-						char *Insert = 0;
-						char Out[256];
-						if (Project->RelativePath(Out, s.Name()))
-						{
-							Insert = Out;
-						}
-						else
-						{
-							Insert = s.Name();
-						}
-						
-						GStringPipe Buf;
-						for (int i=0; i<Inc.Length(); i++)
-						{
-							Buf.Print("%s\n", Inc[i]);
-						}
-						Buf.Print("%s\n", Insert);
-						
-						char *Paths = Buf.NewStr();
-						if (Paths)
-						{
-							SetCtrlName(IDC_INCLUDE, Paths);
-							DeleteArray(Paths);
-						}
-					}									
-				}
-				break;
-			}
-			case IDOK:
-			{
-				#define SetStr(s, c) \
-				{ \
-					DeleteArray(s); \
-					char *i = GetCtrlName(c); \
-					if (ValidStr(i)) \
-						s = NewStr(i); \
-				}
-
-				SetStr(Settings.MakeFile, IDC_MAKEFILE);
-				SetStr(Settings.Exe,IDC_EXE);
-				SetStr(Settings.ExeArgs, IDC_ARGS);
-				SetStr(Settings.DefineSym, IDC_DEFS);
-				Settings.TargetType = GetCtrlValue(IDC_TARGET);
-				SetStr(Settings.TargetName, IDC_TARGET_NAME);
-				SetStr(Settings.IncludePaths, IDC_INCLUDE);
-				SetStr(Settings.LibPaths, IDC_LIB_PATHS);
-				SetStr(Settings.Libs, IDC_LIBS);
-				SetStr(Settings.MakefileRules, IDC_RULES);
-				SetStr(Settings.CommentFile, IDC_FILE_COMMENT);
-				SetStr(Settings.CommentFunc, IDC_FUNCTION_COMMENT);
-				Settings.TabSize = GetCtrlValue(IDC_TAB_SIZE);
-				Settings.IndentSize = GetCtrlValue(IDC_INDENT_SIZE);
-				Settings.UseTabs = GetCtrlValue(IDC_USE_TABS);
-				Settings.ShowWhitespace = GetCtrlValue(IDC_SHOW_WHITESPACE);
-				Settings.Compiler = GetCtrlValue(IDC_COMPILER);
-				
-				// fall thru
-			}
-			case IDCANCEL:
-			{
-				EndModal(c->GetId() == IDOK);
-				break;
-			}
-		}
-		
-		return 0;
-	}
-};
-*/
-
 void IdeProject::OnMouseClick(GMouse &m)
 {
 	if (m.IsContextMenu())
@@ -2839,17 +2650,10 @@ void IdeProject::OnMouseClick(GMouse &m)
 			}
 			case IDM_SETTINGS:
 			{
-				d->Settings.Edit(Tree);
-				/*
-				SettingsDlg Dlg(Tree,
-								this,
-								d->Settings);
-				if (Dlg.DoModal())
+				if (d->Settings.Edit(Tree))
 				{
-					d->Settings = Dlg.Settings;
 					SetDirty();
 				}
-				*/
 				break;
 			}
 			case IDM_INSERT_DEP:
@@ -3173,28 +2977,23 @@ bool IdeProject::GetTargetFile(char *Buf, int BufSize)
 	char t[256];
 	if (GetTargetName(t, sizeof(t)))
 	{
-		switch (d->Settings.GetInt(ProjTargetType))
+		const char *TargetType = d->Settings.GetStr(ProjTargetType);
+		if (TargetType)
 		{
-			// Executable
-			case TARGET_TYPE_EXE:
+			if (!stricmp(TargetType, "Executable"))
 			{
 				strsafecpy(Buf, t, BufSize);
 				Status = true;
-				break;
 			}
-			// Shared library
-			case TARGET_TYPE_SHARED_LIB:
+			else if (!stricmp(TargetType, "DynamicLibrary"))
 			{
 				snprintf(Buf, BufSize, "lib%s.%s", t, LGI_LIBRARY_EXT);
 				Status = true;
-				break;
 			}
-			// Static library
-			case TARGET_TYPE_STATIC_LIB:
+			else if (!stricmp(TargetType, "StaticLibrary"))
 			{
 				snprintf(Buf, BufSize, "lib%s.%s", t, LGI_STATIC_LIBRARY_EXT);
 				Status = true;
-				break;
 			}
 		}
 	}
@@ -3470,11 +3269,11 @@ bool IdeProject::CreateMakefile()
 
 					// Write out the target stuff
 					m.Print("# Target\n");
-					switch (d->Settings.GetInt(ProjTargetType))
+					const char *TargetType = d->Settings.GetStr(ProjTargetType);
+					if (TargetType)
 					{
-						// Executable
-						case TARGET_TYPE_EXE:
-						{							
+						if (!stricmp(TargetType, "Executable"))
+						{
 							m.Print("# Executable target\n"
 									"$(Target) :");
 									
@@ -3559,10 +3358,9 @@ bool IdeProject::CreateMakefile()
 									""
 									#endif
 									);
-							break;
 						}
 						// Shared library
-						case TARGET_TYPE_SHARED_LIB:
+						else if (!stricmp(TargetType, "DynamicLibrary"))
 						{
 							m.Print("TargetFile = lib$(Target)$(Tag).%s\n"
 									"$(TargetFile) : outputfolder $(Depends)\n"
@@ -3589,10 +3387,9 @@ bool IdeProject::CreateMakefile()
 									"	@echo Cleaned $(BuildDir)\n"
 									"\n",
 									LGI_LIBRARY_EXT);
-							break;
 						}
 						// Static library
-						case TARGET_TYPE_STATIC_LIB:
+						else if (!stricmp(TargetType, "StaticLibrary"))
 						{
 							m.Print("TargetFile = lib$(Target)$(Tag).%s\n"
 									"$(TargetFile) : outputfolder $(Depends)\n"
@@ -3613,7 +3410,6 @@ bool IdeProject::CreateMakefile()
 									"	@echo Cleaned $(BuildDir)\n"
 									"\n",
 									LGI_STATIC_LIBRARY_EXT);
-							break;
 						}
 					}
 
