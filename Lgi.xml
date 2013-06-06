@@ -272,7 +272,7 @@
 		</Node>
 	</Node>
 	<Node Name="LgiNet" Type="1" Platforms="7" Open="1">
-		<Node Name="Source" Type="1" Platforms="7" Open="1">
+		<Node Name="Source" Type="1" Platforms="7" Open="0">
 			<Node File=".\src\common\INet\INet.cpp" Type="2" Platforms="7" />
 			<Node File=".\src\common\INet\INetTools.cpp" Type="2" Platforms="7" />
 			<Node File=".\src\common\Hash\md5\md5.c" Type="2" Platforms="7" />
@@ -292,7 +292,7 @@
 	<Settings>
 		<General>
 			<Makefile>
-				<Windows>Makefile.Win32</Windows>
+				<Windows>.\Makefile.win32</Windows>
 			</Makefile>
 			<Executable>
 				<Windows />
@@ -302,8 +302,8 @@
 			</Arguments>
 			<Defines>
 				<All>
-					<Debug>include/win32</Debug>
-					<Release>include/win32</Release>
+					<Debug>LGI_LIBRARY</Debug>
+					<Release>LGI_LIBRARY</Release>
 				</All>
 				<Windows />
 			</Defines>
@@ -317,11 +317,17 @@
 					<Debug>include/common</Debug>
 					<Release>include/common</Release>
 				</All>
-				<Windows />
+				<Windows>
+					<Debug>include/win32</Debug>
+					<Release>include/win32</Release>
+				</Windows>
 			</IncludePaths>
 			<Libraries>
 				<All />
-				<Windows />
+				<Windows>
+					<Debug>imm32.lib</Debug>
+					<Release>imm32.lib</Release>
+				</Windows>
 			</Libraries>
 			<LibraryPaths>
 				<All />

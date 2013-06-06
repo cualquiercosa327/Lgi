@@ -120,7 +120,7 @@ public:
 	void OnMouseClick(GMouse &m);
 	AppWnd *GetApp();
 	void ImportDsp(char *File);
-	bool GetMakefile(char *Path, int Len);
+	GAutoString GetMakefile();
 	bool GetExePath(char *Path, int Len);
 	bool RelativePath(char *Out, char *In);
 	bool Serialize();

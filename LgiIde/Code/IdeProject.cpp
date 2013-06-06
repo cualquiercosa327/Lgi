@@ -2192,8 +2192,9 @@ bool IdeProject::GetExePath(char *Path, int Len)
 	else return false;
 }
 
-bool IdeProject::GetMakefile(char *Path, int Len)
+GAutoString IdeProject::GetMakefile()
 {
+	GAutoString Path;
 	const char *PMakefile = d->Settings.GetStr(ProjMakefile);
 	if (PMakefile)
 	{
@@ -2202,18 +2203,18 @@ bool IdeProject::GetMakefile(char *Path, int Len)
 			GAutoString Base = GetBasePath();
 			if (Base)
 			{
-				LgiMakePath(Path, Len, Base, PMakefile);
+				char p[MAX_PATH];
+				LgiMakePath(p, sizeof(p), Base, PMakefile);
+				Path.Reset(NewStr(p));
 			}
-			else return false;
 		}
 		else
 		{
-			strsafecpy(Path, PMakefile, Len);
+			Path.Reset(NewStr(PMakefile));
 		}
-		
-		return true;
 	}
-	else return false;
+	
+	return Path;
 }
 
 void IdeProject::Clean()
@@ -2221,8 +2222,8 @@ void IdeProject::Clean()
 	if (!d->Build &&
 		d->Settings.GetStr(ProjMakefile))
 	{
-		char m[256];
-		if (GetMakefile(m, sizeof(m)))
+		GAutoString m = GetMakefile();
+		if (m)
 		{		
 			new BuildThread(this, &d->Build, m, "clean");
 		}
@@ -2388,8 +2389,8 @@ void IdeProject::Build(bool All)
 {
 	if (!d->Build)
 	{
-		char m[256];
-		if (GetMakefile(m, sizeof(m)))
+		GAutoString m = GetMakefile();
+		if (m)
 		{		
 			new BuildThread(this, &d->Build, m);
 		}
@@ -3020,14 +3021,10 @@ bool IdeProject::CreateMakefile()
 	#endif
 
 	char Buf[256];
-	char MakeFile[256];
-	if (GetMakefile(Buf, sizeof(Buf)))
+	GAutoString MakeFile = GetMakefile();
+	if (!MakeFile)
 	{
-		strsafecpy(MakeFile, Buf, sizeof(MakeFile));
-	}
-	else
-	{
-		LgiMakePath(MakeFile, sizeof(MakeFile), MakeFile, "../Makefile");
+		MakeFile.Reset(NewStr("../Makefile"));
 	}
 	
 	GFile m;
@@ -3318,8 +3315,8 @@ bool IdeProject::CreateMakefile()
 												Buf,
 												Rel);
 
-									d->GetMakefile(Buf, sizeof(Buf));
-									char *DepMakefile = strrchr(Buf, DIR_CHAR);
+									GAutoString Mk = d->GetMakefile();
+									char *DepMakefile = strrchr(Mk, DIR_CHAR);
 									if (DepMakefile)
 									{
 										Rules.Print(" -f %s", DepMakefile + 1);

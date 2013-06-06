@@ -155,6 +155,8 @@ public:
 	GAutoString CurConfig;
 	GArray<char*> Configs;
 	
+	GAutoString StrBuf; // Temporary storage for generated settings
+	
 	IdeProjectSettingsPriv(IdeProjectSettings *parent) :
 		Active(TagSettings)
 	{
@@ -330,27 +332,37 @@ public:
 				
 				char *Path = Ctrls[i].Text->Name();
 				if (!Path)
+				{
+					LgiAssert(0);
 					continue;
+				}
 
 				GXmlTag *t = d->Editing.GetTag(Path, true);
 				if (!t)
+				{
+					LgiAssert(0);
 					continue;
+				}
 
 				if (Ctrls[i].Edit)
 				{
 					char *Val = Ctrls[i].Edit->Name();
+					LgiTrace("Saving edit setting '%s': '%s'\n", Path, Val);
 					t->SetContent(Val);
 				}
 				else if (Ctrls[i].Chk)
 				{
 					int64 Val = Ctrls[i].Chk->Value();
+					LgiTrace("Saving bool setting '%s': "LGI_PrintfInt64"\n", Path, Val);
 					t->SetContent((int)Val);
 				}
 				else if (Ctrls[i].Cbo)
 				{
 					char *Val = Ctrls[i].Cbo->Name();
+					LgiTrace("Saving enum setting '%s': '%s'\n", Path, Val);
 					t->SetContent(Val);
 				}
+				else LgiAssert(0);
 			}
 		}	
 	
@@ -720,6 +732,10 @@ bool IdeProjectSettings::Serialize(GXmlTag *Parent, bool Write)
 const char *IdeProjectSettings::GetStr(ProjSetting Setting, const char *Default)
 {
 	const char *Status = Default;
+
+	SettingInfo *i = d->Map.Find(Setting);
+	LgiAssert(i);
+
 	char *path = d->BuildPath(Setting, true);
 	GXmlTag *t = d->Active.GetTag(path);
 	if (t)
