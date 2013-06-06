@@ -4,14 +4,7 @@
 #include "resdefs.h"
 #include "GTextLabel.h"
 #include "GEdit.h"
-
-struct SettingInfo
-{
-	ProjSetting Setting;
-	int Type;
-	const char *Name;
-	const char *Category;
-};
+#include "GCheckBox.h"
 
 const char TagSettings[] = "Settings";
 const char TagConfigs[] = "Configurations";
@@ -37,27 +30,53 @@ const char sCurrentPlatform[] =
 	#endif
 	;
 
+#define SF_MULTILINE			0x1 // String setting is multiple lines, otherwise it's single line
+#define SF_CROSSPLATFORM		0x2	// Just has a "all" platforms setting (no platform specific)
+#define SF_PLATFORM_SPECIFC		0x4 // Just has a platform specific setting (no all)
+#define SF_CONFIG_SPECIFIC		0x8 // Can have a different setting in different config
+
+#define IDC_TEXT_BASE			100
+#define IDC_EDIT_BASE			200
+#define IDC_CHECKBOX_BASE		300
+
+struct SettingInfo
+{
+	ProjSetting Setting;
+	int Type;
+	const char *Name;
+	const char *Category;
+	union {
+		uint32 Flags;
+		struct BitFlags
+		{
+			uint32 MultiLine : 1;
+			uint32 CrossPlatform : 1;
+			uint32 PlatformSpecific : 1;
+			uint32 ConfigSpecific : 1;
+		} Flag;
+	};
+};
 
 SettingInfo AllSettings[] =
 {
-	{ProjMakefile,				GV_STRING,		"Makefile",			sGeneral},
-	{ProjExe,					GV_STRING,		"Executable",		sGeneral},
-	{ProjArgs,					GV_STRING,		"Arguments",		sGeneral},
-	{ProjDefines,				GV_STRING,		"Defines",			sGeneral},
-	{ProjCompiler,				GV_INT32,		"Compiler",			sGeneral},
-	{ProjIncludePaths,			GV_STRING,		"IncludePaths",		sBuild},
-	{ProjLibraries,				GV_STRING,		"Libraries",		sBuild},
-	{ProjLibraryPaths,			GV_STRING,		"LibraryPaths",		sBuild},
-	{ProjTargetType,			GV_INT32,		"TargetType",		sBuild},
-	{ProjTargetName,			GV_STRING,		"TargetName",		sBuild},
-	{ProjEditorTabSize,			GV_INT32,		"TabSize",			sEditor},
-	{ProjEditorIndentSize,		GV_INT32,		"IndentSize",		sEditor},
-	{ProjEditorShowWhiteSpace,	GV_BOOL,		"ShowWhiteSpace",	sEditor},
-	{ProjEditorUseHardTabs,		GV_BOOL,		"UseHardTabs",		sEditor},
-	{ProjCommentFile,			GV_STRING,		"CommentFile",		sEditor},
-	{ProjCommentFunction,		GV_STRING,		"CommentFunction",	sEditor},
-	{ProjMakefileRules,			GV_STRING,		"OtherMakefileRules", sAdvanced},
-	{ProjNone,					GV_NULL,		NULL,				NULL},
+	{ProjMakefile,				GV_STRING,		"Makefile",			sGeneral,	SF_PLATFORM_SPECIFC},
+	{ProjExe,					GV_STRING,		"Executable",		sGeneral,	SF_PLATFORM_SPECIFC|SF_CONFIG_SPECIFIC},
+	{ProjArgs,					GV_STRING,		"Arguments",		sGeneral,	SF_CROSSPLATFORM|SF_CONFIG_SPECIFIC},
+	{ProjDefines,				GV_STRING,		"Defines",			sGeneral,	SF_MULTILINE|SF_CONFIG_SPECIFIC},
+	{ProjCompiler,				GV_INT32,		"Compiler",			sGeneral,	SF_PLATFORM_SPECIFC},
+	{ProjIncludePaths,			GV_STRING,		"IncludePaths",		sBuild,		SF_MULTILINE|SF_CONFIG_SPECIFIC},
+	{ProjLibraries,				GV_STRING,		"Libraries",		sBuild,		SF_MULTILINE|SF_CONFIG_SPECIFIC},
+	{ProjLibraryPaths,			GV_STRING,		"LibraryPaths",		sBuild,		SF_MULTILINE|SF_CONFIG_SPECIFIC},
+	{ProjTargetType,			GV_INT32,		"TargetType",		sBuild,		SF_CROSSPLATFORM},
+	{ProjTargetName,			GV_STRING,		"TargetName",		sBuild,		SF_PLATFORM_SPECIFC|SF_CONFIG_SPECIFIC},
+	{ProjEditorTabSize,			GV_INT32,		"TabSize",			sEditor,	SF_CROSSPLATFORM},
+	{ProjEditorIndentSize,		GV_INT32,		"IndentSize",		sEditor,	SF_CROSSPLATFORM},
+	{ProjEditorShowWhiteSpace,	GV_BOOL,		"ShowWhiteSpace",	sEditor,	SF_CROSSPLATFORM},
+	{ProjEditorUseHardTabs,		GV_BOOL,		"UseHardTabs",		sEditor,	SF_CROSSPLATFORM},
+	{ProjCommentFile,			GV_STRING,		"CommentFile",		sEditor,	SF_MULTILINE|SF_CROSSPLATFORM},
+	{ProjCommentFunction,		GV_STRING,		"CommentFunction",	sEditor,	SF_MULTILINE|SF_CROSSPLATFORM},
+	{ProjMakefileRules,			GV_STRING,		"OtherMakefileRules", sAdvanced, SF_MULTILINE},
+	{ProjNone,					GV_NULL,		NULL,				NULL,		0},
 };
 
 struct IdeProjectSettingsPriv
@@ -98,13 +117,19 @@ public:
 	{
 		SettingInfo *i = Map.Find(s);
 		LgiAssert(i);
-		char *Cfg = Config < 0 ? CurConfig : Configs[Config];
-		sprintf_s(	PathBuf, sizeof(PathBuf),
-					"%s.%s.%s.%s",
-					i->Category,
-					i->Name,
-					PlatformSpecific ? sCurrentPlatform : sAllPlatforms,
-					Cfg);
+		int Ch = sprintf_s(	PathBuf, sizeof(PathBuf),
+							"%s.%s.%s",
+							i->Category,
+							i->Name,
+							PlatformSpecific ? sCurrentPlatform : sAllPlatforms);
+
+		if (Config >= 0)
+		{
+			sprintf_s(	PathBuf+Ch, sizeof(PathBuf)-Ch,
+						".%s",
+						Configs[Config]);
+		}
+		
 		return PathBuf;
 	}
 };
@@ -120,11 +145,13 @@ class GSettingDetail : public GLayout, public ResObject
 	{
 		GText *Text;
 		GEdit *Edit;
+		GCheckBox *Chk;
 		
 		CtrlInfo()
 		{
-			Text = 0;
-			Edit = 0;
+			Text = NULL;
+			Edit = NULL;
+			Chk = NULL;
 		}
 	};
 	
@@ -164,6 +191,38 @@ public:
 		d = priv;
 	}
 	
+	void AddLine(int i, int Config)
+	{
+		char *Path;
+		int CellY = i * 2;
+		GLayoutCell *c = Tbl->GetCell(0, CellY);
+		c->Add(Ctrls[i].Text = new GText(IDC_TEXT_BASE + i, 0, 0, -1, -1, Path = d->BuildPath(Setting->Setting, PlatformSpecific, Config)));
+		c = Tbl->GetCell(0, CellY + 1);
+		
+		GXmlTag *t = d->Parent->GetTag(Path);
+		if (Setting->Type == GV_STRING)
+		{
+			c->Add(Ctrls[i].Edit = new GEdit(IDC_EDIT_BASE + i, 0, 0, 60, 20));
+			Ctrls[i].Edit->MultiLine(Setting->Flag.MultiLine);
+			if (t && t->Content)
+				Ctrls[i].Edit->Name(t->Content);
+		}
+		else if (Setting->Type == GV_INT32)
+		{
+			c->Add(Ctrls[i].Edit = new GEdit(IDC_EDIT_BASE + i, 0, 0, 60, 20));
+			Ctrls[i].Edit->MultiLine(Setting->Flag.MultiLine);
+			if (t)
+				Ctrls[i].Edit->Value(t->Content ? atoi(t->Content) : 0);
+		}
+		else if (Setting->Type == GV_BOOL)
+		{
+			c->Add(Ctrls[i].Chk  = new GCheckBox(IDC_CHECKBOX_BASE + i, 0, 0, -1, -1, NULL));
+			if (t && t->Content)
+				Ctrls[i].Chk->Value(atoi(t->Content));
+		}
+		else LgiAssert(!"Unknown type?");
+	}
+	
 	void SetSetting(SettingInfo *setting, bool plat_spec)
 	{
 		if (Setting)
@@ -171,18 +230,26 @@ public:
 			// Save previous values
 			for (int i=0; i<Ctrls.Length(); i++)
 			{
+				if (!Ctrls[i].Text)
+					continue;
+				
 				char *Path = Ctrls[i].Text->Name();
+				if (!Path)
+					continue;
+
+				GXmlTag *t = d->Parent->GetTag(Path, true);
+				if (!t)
+					continue;
+
 				if (Ctrls[i].Edit)
 				{
 					char *Val = Ctrls[i].Edit->Name();
-					if (Path && Val)
-					{
-						GXmlTag *t = d->Parent->GetTag(Path, true);
-						if (t)
-						{
-							t->SetContent(Val);
-						}
-					}
+					t->SetContent(Val);
+				}
+				else if (Ctrls[i].Chk)
+				{
+					int64 Val = Ctrls[i].Chk->Value();
+					t->SetContent((int)Val);
 				}
 			}
 		}	
@@ -196,21 +263,16 @@ public:
 		{
 			GLayoutCell *c;
 			
-			for (int i=0; i<d->Configs.Length(); i++)
+			if (Setting->Flag.ConfigSpecific)
 			{
-				char *Path;
-				int CellY = i * 2;
-				c = Tbl->GetCell(0, CellY);
-				c->Add(Ctrls[i].Text = new GText(50 + i, 0, 0, -1, -1, Path = d->BuildPath(Setting->Setting, PlatformSpecific, i)));
-				c = Tbl->GetCell(0, CellY + 1);
-				c->Add(Ctrls[i].Edit = new GEdit(100 + i, 0, 0, 60, 20));
-				Ctrls[i].Edit->MultiLine(true);
-
-				GXmlTag *t = d->Parent->GetTag(Path);
-				if (t && t->Content)
+				for (int i=0; i<d->Configs.Length(); i++)
 				{
-					Ctrls[i].Edit->Name(t->Content);
+					AddLine(i, i);
 				}
+			}
+			else
+			{
+				AddLine(0, -1);
 			}
 			
 			Tbl->InvalidateLayout();
@@ -295,13 +357,19 @@ public:
 					SectionItem->Insert(Item);
 					SectionItem->Expanded(true);
 
-					SettingItem *All = new SettingItem(i, false, this);
-					All->SetText(sAllPlatforms);
-					Item->Insert(All);
+					if (!i->Flag.PlatformSpecific)
+					{
+						SettingItem *All = new SettingItem(i, false, this);
+						All->SetText(sAllPlatforms);
+						Item->Insert(All);
+					}
 
-					SettingItem *Platform = new SettingItem(i, true, this);
-					Platform->SetText(sCurrentPlatform);
-					Item->Insert(Platform);
+					if (!i->Flag.CrossPlatform)
+					{
+						SettingItem *Platform = new SettingItem(i, true, this);
+						Platform->SetText(sCurrentPlatform);
+						Item->Insert(Platform);
+					}
 				}
 			}
 			
@@ -393,12 +461,28 @@ void IdeProjectSettings::InitAllSettings(bool ClearCurrent)
 {
 	for (SettingInfo *i = AllSettings; i->Setting; i++)
 	{
-		for (int Cfg = 0; Cfg < d->Configs.Length(); Cfg++)
+		if (i->Flag.ConfigSpecific)
 		{
-			char *p = d->BuildPath(i->Setting, false, Cfg);
-			CreateTag(p);
-			
-			p = d->BuildPath(i->Setting, true, Cfg);
+			for (int Cfg = 0; Cfg < d->Configs.Length(); Cfg++)
+			{
+				char *p;
+				
+				if (!i->Flag.PlatformSpecific)
+				{
+					p = d->BuildPath(i->Setting, false, Cfg);
+					CreateTag(p);
+				}
+				
+				if (!i->Flag.CrossPlatform)
+				{
+					p = d->BuildPath(i->Setting, true, Cfg);
+					CreateTag(p);
+				}
+			}
+		}
+		else
+		{
+			char *p = d->BuildPath(i->Setting, false, -1);
 			CreateTag(p);
 		}
 	}
