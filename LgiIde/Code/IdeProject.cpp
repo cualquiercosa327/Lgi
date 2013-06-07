@@ -504,7 +504,7 @@ public:
 		DeleteArray(FileName);
 	}
 
-	void CollectAllFiles(GTreeNode *Base, List<ProjectNode> &Files, bool SubProjects, int Platform);
+	void CollectAllFiles(GTreeNode *Base, GArray<ProjectNode*> &Files, bool SubProjects, int Platform);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -1901,29 +1901,26 @@ class BuildThread : public GThread, public GStream
 {
 	IdeProject *Proj;
 	BuildThread **Me;
-	char *Makefile;
-	char *Args;
+	GAutoString Makefile;
+	GAutoString Args;
+	GAutoString Compiler;
 
 public:
 	BuildThread(IdeProject *proj, BuildThread **ptr, char *mf, char *args = 0) : GThread("BuildThread")
 	{
 		Proj = proj;
 		*(Me = ptr) = this;
-		Makefile = NewStr(mf);
 		DeleteOnExit = true;
-		Args = NewStr(args);
+
+		Makefile.Reset(NewStr(mf));
+		Args.Reset(NewStr(args));
+		Compiler.Reset(NewStr(Proj->GetSettings()->GetStr(ProjCompiler)));
 		
 		if (Proj->GetApp())
 		{
 			Proj->GetApp()->PostEvent(M_APPEND_TEXT, 0, 0);
 		}
 		Run();
-	}
-	
-	~BuildThread()
-	{
-		DeleteArray(Makefile);
-		DeleteArray(Args);
 	}
 	
 	int Write(const void *Buffer, int Size, int Flags = 0)
@@ -1940,13 +1937,6 @@ public:
 		char Exe[256] = "";
 		GToken p(getenv("PATH"), LGI_PATH_SEPARATOR);
 		
-		const char *Compiler = Proj->GetSettings()->GetStr(ProjCompiler);
-		if (!Compiler)
-		{
-			LgiAssert(!"No compiler setting.");
-			return NULL;
-		}
-		
 		if (!stricmp(Compiler, "VisualStudio"))
 		{
 			for (int i=0; i<p.Length(); i++)
@@ -1961,21 +1951,34 @@ public:
 		}
 		else
 		{
-			for (int i=0; i<p.Length(); i++)
+			if (!stricmp(Compiler, "mingw"))
 			{
-				LgiMakePath
-				(
-					Exe,
-					sizeof(Exe),
-					p[i],
-					"make"
-					#ifdef WIN32
-					".exe"
-					#endif
-				);
-				if (FileExists(Exe))
+				// Have a look in the default spot first...
+				char *Def = "C:\\MinGW\\msys\\1.0\\bin\\make.exe";
+				if (FileExists(Def))
 				{
-					return NewStr(Exe);
+					return NewStr(Def);
+				}				
+			}
+			
+			if (!FileExists(Exe))
+			{
+				for (int i=0; i<p.Length(); i++)
+				{
+					LgiMakePath
+					(
+						Exe,
+						sizeof(Exe),
+						p[i],
+						"make"
+						#ifdef WIN32
+						".exe"
+						#endif
+					);
+					if (FileExists(Exe))
+					{
+						return NewStr(Exe);
+					}
 				}
 			}
 		}
@@ -1993,44 +1996,39 @@ public:
 		{
 			bool Status = false;
 
-			switch (Proj->GetSettings()->GetInt(ProjCompiler))
+			if (!stricmp(Compiler, "VisualStudio"))
 			{
-				case 1:
+				char a[256];
+				sprintf(a, "\"%s\" /make \"All - Win32 Debug\"", Makefile);
+				Status = Make.Run(Exe, a, 0, true, 0, this);
+			}
+			else
+			{
+				char *MakePath = NewStr(Makefile);
+				if (MakePath)
 				{
-					char a[256];
-					sprintf(a, "\"%s\" /make \"All - Win32 Debug\"", Makefile);
-					Status = Make.Run(Exe, a, 0, true, 0, this);
-					break;
-				}
-				case 0:
-				{
-					char *MakePath = NewStr(Makefile);
-					if (MakePath)
+					GStringPipe a;
+					char *d = MakePath + strlen(MakePath);
+					while (d > MakePath && *d != '/' && *d != '\\')
+						d--;
+					if (d > MakePath)
 					{
-						GStringPipe a;
-						char *d = MakePath + strlen(MakePath);
-						while (d > MakePath && *d != '/' && *d != '\\')
-							d--;
-						if (d > MakePath)
-						{
-							*d++ = 0;
-							a.Print("-C \"%s\" -f \"%s\"", MakePath, d);
-						}
-						else
-						{
-							a.Print("-f \"%s\"", MakePath);
-						}
-
-						if (Args)
-							a.Print(" %s", Args);
-						char *Temp = a.NewStr();
-
-						Status = Make.Run(Exe, Temp, 0, true, 0, this);
-
-						DeleteArray(Temp);
-						DeleteArray(MakePath);
+						*d++ = 0;
+						a.Print("-C \"%s\" -f \"%s\"", MakePath, d);
 					}
-					break;
+					else
+					{
+						a.Print("-f \"%s\"", MakePath);
+					}
+
+					if (Args)
+						a.Print(" %s", Args);
+					char *Temp = a.NewStr();
+
+					Status = Make.Run(Exe, Temp, 0, true, 0, this);
+
+					DeleteArray(Temp);
+					DeleteArray(MakePath);
 				}
 			}
 
@@ -2859,7 +2857,7 @@ IdeProjectSettings *IdeProject::GetSettings()
 	return &d->Settings;
 }
 
-bool IdeProject::BuildIncludePaths(List<char> &Paths, bool Recurse)
+bool IdeProject::BuildIncludePaths(GArray<char*> &Paths, bool Recurse)
 {
 	List<IdeProject> Projects;
 	if (Recurse)
@@ -2874,16 +2872,23 @@ bool IdeProject::BuildIncludePaths(List<char> &Paths, bool Recurse)
 		if (IncludePaths)
 		{
 			GToken Inc(IncludePaths, (char*)",;\r\n");
-			for (int i=0; i<=Inc.Length(); i++)
+			for (int i=0; i<Inc.Length(); i++)
 			{
-				char *Full = 0, Buf[300];
-				if (!Inc[i] || Inc[i][0] == '.')
+				char *Path = Inc[i];
+				char *Full = 0, Buf[MAX_PATH];
+				if
+				(
+					*Path != '/'
+					&&
+					!(
+						IsAlpha(*Path)
+						&&
+						Path[1] == ':'
+					)
+				)
 				{
 					GAutoString Base = p->GetBasePath();
-					if (Inc[i])
-						LgiMakePath(Buf, sizeof(Buf), Base, Inc[i]);
-					else
-						strsafecpy(Buf, Base, sizeof(Buf));
+					LgiMakePath(Buf, sizeof(Buf), Base, Path);
 					Full = Buf;
 				}
 				else
@@ -2892,9 +2897,9 @@ bool IdeProject::BuildIncludePaths(List<char> &Paths, bool Recurse)
 				}
 				
 				bool Has = false;
-				for (char *s = Paths.First(); s; s = Paths.Next())
+				for (int n=0; n<Paths.Length(); n++)
 				{
-					if (stricmp(s, Full) == 0)
+					if (stricmp(Paths[n], Full) == 0)
 					{
 						Has = true;
 						break;
@@ -2903,7 +2908,7 @@ bool IdeProject::BuildIncludePaths(List<char> &Paths, bool Recurse)
 				
 				if (!Has)
 				{
-					Paths.Insert(NewStr(Full));
+					Paths.Add(NewStr(Full));
 				}
 			}
 		}
@@ -2912,7 +2917,7 @@ bool IdeProject::BuildIncludePaths(List<char> &Paths, bool Recurse)
 	return true;
 }
 
-void IdeProjectPrivate::CollectAllFiles(GTreeNode *Base, List<ProjectNode> &Files, bool SubProjects, int Platform)
+void IdeProjectPrivate::CollectAllFiles(GTreeNode *Base, GArray<ProjectNode*> &Files, bool SubProjects, int Platform)
 {
 	for (GTreeItem *i = Base->GetChild(); i; i = i->GetNext())
 	{
@@ -2934,7 +2939,7 @@ void IdeProjectPrivate::CollectAllFiles(GTreeNode *Base, List<ProjectNode> &File
 				{
 					if (p->GetPlatforms() & Platform)
 					{
-						Files.Insert(p);
+						Files.Add(p);
 					}
 				}
 			}
@@ -3050,7 +3055,7 @@ bool IdeProject::GetAllDependencies(GArray<char*> &Files)
 	CollectAllSource(Src);
 	
 	// Get all include paths
-	List<char> IncPaths;
+	GArray<char*> IncPaths;
 	BuildIncludePaths(IncPaths, false);
 	
 	// Add all source to dependencies
@@ -3103,19 +3108,20 @@ bool IdeProject::GetAllDependencies(GArray<char*> &Files)
 	return true;
 }
 
-bool IdeProject::GetDependencies(const char *SourceFile, List<char> &IncPaths, GArray<char*> &Files)
+bool IdeProject::GetDependencies(const char *SourceFile, GArray<char*> &IncPaths, GArray<char*> &Files)
 {
 	GAutoString c8(ReadTextFile(SourceFile));
 	if (!c8)
 		return false;
 
-	List<char> Headers;
+	GArray<char*> Headers;
 	if (!BuildHeaderList(c8, Headers, IncPaths, false))
 		return false;
 
-	int n=0;
-	for (char *i=Headers.First(); i; i=Headers.Next(), n++)
+	
+	for (int n=0; n<Headers.Length(); n++)
 	{
+		char *i = Headers[n];
 		char p[MAX_PATH];
 		if (!RelativePath(p, i))
 		{
@@ -3174,11 +3180,11 @@ bool IdeProject::CreateMakefile()
 					BuildModeName);
 			
 			#ifdef WIN32
-			char *ExtraLinkFlags = " -mno-cygwin";
+			char *ExtraLinkFlags = "";
 			char *ExeFlags = " -mwindows";
 			m.Print("BuildDir = $(Build)\n"
 					"\n"
-					"Flags = -fPIC -w -fno-inline -mno-cygwin -fpermissive\n"
+					"Flags = -fPIC -w -fno-inline -fpermissive\n"
 					"Defs = -DWIN32 -D_REENTRANT");
 			#else
 			char *ExtraLinkFlags = "";
@@ -3261,10 +3267,10 @@ bool IdeProject::CreateMakefile()
 			m.Print("\n\n");
 			
 			// Collect all files that require building
-			List<ProjectNode> Files;
+			GArray<ProjectNode*> Files;
 			d->CollectAllFiles
 			(
-				d->App->GetTree(),
+				this,
 				Files,
 				false,
 				#if defined WIN32
@@ -3291,16 +3297,19 @@ bool IdeProject::CreateMakefile()
 					GToken Paths(d->Settings.GetStr(ProjIncludePaths), "\r\n");
 					for (int i=0; i<Paths.Length(); i++)
 					{
-						if (!Inc.Find(Paths[i]))
+						char *p = Paths[i];
+						if (!Inc.Find(p))
 						{
-							Inc.Add(Paths[i]);
+							Inc.Add(p);
 						}
 					}
 				}
 				
 				// Add paths of headers
-				for (n=Files.First(); n; n=Files.Next())
+				for (int i=0; i<Files.Length(); i++)
 				{
+					ProjectNode *n = Files[i];
+					
 					if (n->GetFileName())
 					{
 						char *e = LgiGetExtension(n->GetFileName());
@@ -3354,15 +3363,16 @@ bool IdeProject::CreateMakefile()
 				
 				m.Print("\n\n");
 				
-				List<char> IncPaths;
-				if (BuildIncludePaths(IncPaths, true))
+				GArray<char*> IncPaths;
+				if (BuildIncludePaths(IncPaths, false))
 				{
 					// Do dependencies
 					m.Print("# Dependencies\n"
 							"Depends =\t");
-					int c = 0;
-					for (n=Files.First(); n; n=Files.Next(), c++)
+					
+					for (int c = 0; c < Files.Length(); c++)
 					{
+						ProjectNode *n = Files[c];
 						if (n->GetType() == NodeSrc)
 						{
 							GAutoString f = ToNativePath(n->GetFileName());
@@ -3389,17 +3399,22 @@ bool IdeProject::CreateMakefile()
 									"$(Target) :");
 									
 							GStringPipe Rules;
-							IdeProject *d;
-							for (d=Deps.First(); d; d=Deps.Next())
+							IdeProject *Dep;
+							for (Dep=Deps.First(); Dep; Dep=Deps.Next())
 							{
-								char t[MAX_PATH];
+								// Get dependency to create it's own makefile...
+								Dep->CreateMakefile();
+							
+								// Build a rule to make the dependency if any of the source changes...
+								char t[MAX_PATH] = "";
+								GAutoString DepBase = Dep->GetBasePath();
 								GAutoString Base = GetBasePath();
-								if (d->GetTargetFile(t, sizeof(t)) && Base)
+								if (DepBase && Base && Dep->GetTargetFile(t, sizeof(t)))
 								{
 									char Rel[MAX_PATH] = "";
-									if (!RelativePath(Rel, Base))
+									if (!RelativePath(Rel, DepBase))
 									{
-										strsafecpy(Rel, Base, sizeof(Rel));
+										strsafecpy(Rel, DepBase, sizeof(Rel));
 									}
 									ToUnixPath(Rel);
 
@@ -3407,7 +3422,7 @@ bool IdeProject::CreateMakefile()
 									m.Print(" %s", Buf);
 									
 									GArray<char*> AllDeps;
-									d->GetAllDependencies(AllDeps);
+									Dep->GetAllDependencies(AllDeps);
 									LgiAssert(AllDeps.Length() > 0);
 									AllDeps.Sort(StrSort);
 
@@ -3429,7 +3444,7 @@ bool IdeProject::CreateMakefile()
 												"\t$(MAKE) -C %s",
 												Rel);
 
-									GAutoString Mk = d->GetMakefile();
+									GAutoString Mk = Dep->GetMakefile();
 									char *DepMakefile = strrchr(Mk, DIR_CHAR);
 									if (DepMakefile)
 									{
@@ -3529,8 +3544,9 @@ bool IdeProject::CreateMakefile()
 
 					// Create dependency tree, starting with all the source files.
 					GHashTable Deps;
-					for (n=Files.First(); n; n=Files.Next())
+					for (int idx=0; idx<Files.Length(); idx++)
 					{
+						ProjectNode *n = Files[idx];
 						if (n->GetType() == NodeSrc)
 						{
 							GAutoString Src = n->GetFullPath();
@@ -3594,16 +3610,17 @@ bool IdeProject::CreateMakefile()
 								char *c8 = ReadTextFile(Src);
 								if (c8)
 								{
-									List<char> Headers;
+									GArray<char*> Headers;
 									if (BuildHeaderList(c8, Headers, IncPaths, false))
 									{
 										char *d = strrchr(Src, DIR_CHAR);
 										d = d ? d + 1 : Src;
 										m.Print("%s : ", d);
 
-										int n=0;
-										for (char *i=Headers.First(); i; i=Headers.Next(), n++)
+										for (int n=0; n<Headers.Length(); n++)
 										{
+											char *i = Headers[n];
+											
 											if (n) m.Print(" \\\n\t");
 											
 											char Rel[256];

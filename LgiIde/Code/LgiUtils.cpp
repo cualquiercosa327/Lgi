@@ -8,14 +8,16 @@ static char *White = " \r\t\n";
 #define isword(s)		(s AND (isdigit(s) || isalpha(s) || (s) == '_') )
 #define skipws(s)		while (iswhite(*s)) s++;
 
-char *FindHeader(char *Short, List<char> &Paths)
+char *FindHeader(char *Short, GArray<char*> &Paths)
 {
 	char *Status = 0;
 	
 	// Search through the paths
-	for (char *Path=Paths.First(); Path; Path=Paths.Next())
+	for (int i=0; i<Paths.Length(); i++)
 	{
-		char f[300];
+		char *Path = Paths[i];
+		
+		char f[MAX_PATH];
 		LgiMakePath(f, sizeof(f), Path, Short);
 		if (FileExists(f))
 		{
@@ -26,7 +28,7 @@ char *FindHeader(char *Short, List<char> &Paths)
 	return Status;
 }
 
-bool BuildHeaderList(char *Cpp, List<char> &Headers, List<char> &IncPaths, bool Recurse)
+bool BuildHeaderList(char *Cpp, GArray<char*> &Headers, GArray<char*> &IncPaths, bool Recurse)
 {
 	char Include[] = {'i', 'n', 'c', 'l', 'u', 'd', 'e', 0 };
 	
@@ -52,8 +54,9 @@ bool BuildHeaderList(char *Cpp, List<char> &Headers, List<char> &IncPaths, bool 
 						if (File)
 						{
 							bool Has = false;
-							for (char *s=Headers.First(); s; s=Headers.Next())
+							for (int i=0; i<Headers.Length(); i++)
 							{
+								char *s = Headers[i];
 								if (stricmp(s, File) == 0)
 								{
 									Has = true;
@@ -66,7 +69,7 @@ bool BuildHeaderList(char *Cpp, List<char> &Headers, List<char> &IncPaths, bool 
 							}
 							else
 							{
-								Headers.Insert(File);
+								Headers.Add(File);
 								
 								if (Recurse)
 								{

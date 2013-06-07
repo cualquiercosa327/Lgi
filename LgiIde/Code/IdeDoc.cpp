@@ -17,11 +17,11 @@ static char *White = " \r\t\n";
 
 GAutoPtr<GDocFindReplaceParams> GlobalFindReplace;
 
-int FileNameSorter(char *a, char *b, int d)
+int FileNameSorter(char **a, char **b)
 {
-	char *A = strrchr(a, DIR_CHAR);
-	char *B = strrchr(b, DIR_CHAR);
-	return stricmp(A?A:a, B?B:b);
+	char *A = strrchr(*a, DIR_CHAR);
+	char *B = strrchr(*b, DIR_CHAR);
+	return stricmp(A?A:*a, B?B:*b);
 }
 
 class EditTray : public GLayout
@@ -121,22 +121,23 @@ void EditTray::OnMouseClick(GMouse &m)
 		if (HeaderBtn.Overlap(m.x, m.y))
 		{
 			// Header list button
-			List<char> Paths;
+			GArray<char*> Paths;
 			if (Doc->BuildIncludePaths(Paths))
 			{
-				List<char> Headers;
+				GArray<char*> Headers;
 				if (Doc->BuildHeaderList(Ctrl->NameW(), Headers, Paths))
 				{
 					// Sort them..
-					Headers.Sort(FileNameSorter, 0);
+					Headers.Sort(FileNameSorter);
 					
 					GSubMenu *s = new GSubMenu;
 					if (s)
 					{
 						// Construct the menu
 						int n=1;
-						for (char *h=Headers.First(); h; h=Headers.Next())
+						for (int i=0; i<Headers.Length(); i++)
 						{
+							char *h = Headers[i];
 							char *f = strrchr(h, DIR_CHAR);
 							s->AppendItem(f ? f + 1 : h, n++, true);
 						}
@@ -948,7 +949,7 @@ GTextView3 *IdeDoc::GetEdit()
 	return d->Edit;
 }
 
-bool IdeDoc::BuildIncludePaths(List<char> &Paths)
+bool IdeDoc::BuildIncludePaths(GArray<char*> &Paths)
 {
 	if (GetProject())
 	{
@@ -958,7 +959,7 @@ bool IdeDoc::BuildIncludePaths(List<char> &Paths)
 	return false;
 }
 
-bool IdeDoc::BuildHeaderList(char16 *Cpp, List<char> &Headers, List<char> &IncPaths)
+bool IdeDoc::BuildHeaderList(char16 *Cpp, GArray<char*> &Headers, GArray<char*> &IncPaths)
 {
 	bool Status = false;
 	char *c8 = LgiNewUtf16To8(Cpp);
@@ -1500,15 +1501,16 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 {
 	if (Symbol && Source)
 	{
-		List<char> Paths;
-		List<char> Headers;
+		GArray<char*> Paths;
+		GArray<char*> Headers;
 		if (BuildIncludePaths(Paths) &&
 			BuildHeaderList(Source, Headers, Paths))
 		{
 			List<DefnInfo> Defns;
 
-			for (char *h=Headers.First(); h; h=Headers.Next())
+			for (int i=0; i<Headers.Length(); i++)
 			{
+				char *h = Headers[i];
 				char *c8 = ReadTextFile(h);
 				if (c8)
 				{

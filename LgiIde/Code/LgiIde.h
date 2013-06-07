@@ -68,8 +68,8 @@ class IdeDoc;
 class IdeProject;
 
 extern char AppName[];
-extern char *FindHeader(char *Short, List<char> &Paths);
-extern bool BuildHeaderList(char *Cpp, List<char> &Headers, List<char> &IncPaths, bool Recurse);
+extern char *FindHeader(char *Short, GArray<char*> &Paths);
+extern bool BuildHeaderList(char *Cpp, GArray<char*> &Headers, GArray<char*> &IncPaths, bool Recurse);
 
 class NodeView;
 class NodeSource

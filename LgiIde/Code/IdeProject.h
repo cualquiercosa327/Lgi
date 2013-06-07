@@ -125,7 +125,7 @@ public:
 	bool CreateMakefile();
 	bool GetTargetName(char *Buf, int BufSize);
 	bool GetTargetFile(char *Buf, int BufSize);
-	bool BuildIncludePaths(List<char> &Paths, bool Recurse);
+	bool BuildIncludePaths(GArray<char*> &Paths, bool Recurse);
 
 	// Project heirarchy
 	IdeProject *GetParentProject();
@@ -143,7 +143,7 @@ public:
 
 	// Dependency calculation
 	bool GetAllDependencies(GArray<char*> &Files);
-	bool GetDependencies(const char *SourceFile, List<char> &IncPaths, GArray<char*> &Files);
+	bool GetDependencies(const char *SourceFile, GArray<char*> &IncPaths, GArray<char*> &Files);
 	
 	// Settings
 	IdeProjectSettings *GetSettings();

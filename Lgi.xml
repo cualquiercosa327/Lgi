@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<Project TabSize="4" IndentSize="4" UseTabs="1" ShowWhitespace="0" Makefile="./Makefile.linux" IncludePaths="./include/common&#10;./include/linux/Gtk&#10;" BuildType="0" TargetType="1" TargetName="lgi" Compiler="0" Defs="LGI_LIBRARY" Libs="xcb&#10;xcb-keysyms&#10;pango-1.0&#10;pangocairo-1.0">
-	<Node Name="Source Files" Type="1" Platforms="7" Open="0">
-		<Node Name="Core" Type="1" Platforms="7" Open="1">
+<Project>
+	<Node Name="Source Files" Type="1" Platforms="7" Open="1">
+		<Node Name="Core" Type="1" Platforms="7" Open="0">
 			<Node Name="DateTime" Type="1" Platforms="7" Open="0">
 				<Node File="./src/common/General/GDateTime.cpp" Type="2" Platforms="7" />
-				<Node File="./include/common/GDateTime.h" Type="3" Platforms="7" />
+				<Node File=".\include\common\GDateTime.h" Type="3" Platforms="7" />
 			</Node>
 			<Node Name="Drag and Drop" Type="1" Platforms="7" Open="0">
 				<Node File=".\include\common\GCom.h" Type="3" Platforms="7" />
 				<Node File="./src/common/Lgi/GDragAndDrop.cpp" Type="2" Platforms="7" />
-				<Node File="./include/common/GDragAndDrop.h" Type="3" Platforms="7" />
+				<Node File=".\include\common\GDragAndDrop.h" Type="3" Platforms="7" />
 			</Node>
 			<Node Name="File" Type="1" Platforms="7" Open="0">
 				<Node Name="Linux" Type="1" Platforms="7" Open="0">
@@ -19,16 +19,16 @@
 					<Node File="./src/win32/General/GFile.cpp" Type="2" Platforms="1" />
 				</Node>
 				<Node File="./src/common/General/GExeCheck.cpp" Type="2" Platforms="7" />
-				<Node File="./include/common/GFile.h" Type="3" Platforms="7" />
+				<Node File=".\include\common\GFile.h" Type="3" Platforms="7" />
 			</Node>
 			<Node Name="Libraries" Type="1" Platforms="7" Open="0">
 				<Node File="./src/common/Lgi/GLibrary.cpp" Type="2" Platforms="7" />
-				<Node File="./include/common/GLibrary.h" Type="3" Platforms="7" />
+				<Node File=".\include\common\GLibrary.h" Type="3" Platforms="7" />
 			</Node>
 			<Node Name="Linux" Type="1" Platforms="7" Open="1">
-				<Node Name="Headers" Type="1" Platforms="7" Open="0">
-					<Node File=".\include\linux\Gtk\LgiOsClasses.h" Type="3" Platforms="7" />
-					<Node File=".\include\linux\Gtk\LgiOsDefs.h" Type="3" Platforms="7" />
+				<Node Name="Headers" Type="1" Platforms="7" Open="1">
+					<Node File=".\include\linux\Gtk\LgiOsClasses.h" Type="3" Platforms="2" />
+					<Node File=".\include\linux\Gtk\LgiOsDefs.h" Type="3" Platforms="2" />
 				</Node>
 				<Node File=".\src\linux\Lgi\GApp.cpp" Type="2" Platforms="2" />
 				<Node File=".\src\linux\Lgi\GGeneral.cpp" Type="2" Platforms="2" />
@@ -43,16 +43,16 @@
 				</Node>
 				<Node Name="Property List" Type="1" Platforms="7" Open="0">
 					<Node File="./src/common/General/GProperties.cpp" Type="2" Platforms="7" />
-					<Node File="./include/common/GProperties.h" Type="3" Platforms="7" />
+					<Node File=".\include\common\GProperties.h" Type="3" Platforms="7" />
 				</Node>
 				<Node Name="Win32" Type="1" Platforms="7" Open="0">
 					<Node File="./src/win32/General/GMem.cpp" Type="2" Platforms="1" />
 				</Node>
-				<Node File="./include/common/GArray.h" Type="3" Platforms="7" />
+				<Node File=".\include\common\GArray.h" Type="3" Platforms="7" />
 				<Node File="./src/common/General/GContainers.cpp" Type="2" Platforms="7" />
-				<Node File="./include/common/GContainers.h" Type="3" Platforms="7" />
-				<Node File="./include/common/GHashTable.h" Type="3" Platforms="7" />
-				<Node File="./include/common/GMem.h" Type="3" Platforms="7" />
+				<Node File=".\include\common\GContainers.h" Type="3" Platforms="7" />
+				<Node File=".\include\common\GHashTable.h" Type="3" Platforms="7" />
+				<Node File=".\include\common\GMem.h" Type="3" Platforms="7" />
 			</Node>
 			<Node Name="Menus" Type="1" Platforms="7" Open="0">
 				<Node Name="Linux" Type="1" Platforms="7" Open="1">
@@ -61,27 +61,27 @@
 				<Node Name="Win32" Type="1" Platforms="7" Open="0">
 					<Node File="./src/win32/Lgi/GMenu.cpp" Type="2" Platforms="1" />
 				</Node>
-				<Node File="./include/common/GMenu.h" Type="3" Platforms="7" />
+				<Node File=".\include\common\GMenu.h" Type="3" Platforms="7" />
 			</Node>
 			<Node Name="Process" Type="1" Platforms="7" Open="0">
 				<Node File="./src/common/Lgi/GProcess.cpp" Type="2" Platforms="7" />
-				<Node File="./include/common/GProcess.h" Type="3" Platforms="7" />
+				<Node File=".\include\common\GProcess.h" Type="3" Platforms="7" />
 			</Node>
 			<Node Name="Resources" Type="1" Platforms="7" Open="0">
 				<Node File="./src/common/Resource/LgiRes.cpp" Type="2" Platforms="7" />
-				<Node File="./include/common/LgiRes.h" Type="3" Platforms="7" />
+				<Node File=".\include\common\LgiRes.h" Type="3" Platforms="7" />
 				<Node File="./src/common/Resource/Res.cpp" Type="2" Platforms="7" />
-				<Node File="./include/common/Res.h" Type="3" Platforms="7" />
+				<Node File=".\include\common\Res.h" Type="3" Platforms="7" />
 			</Node>
 			<Node Name="Semaphores" Type="1" Platforms="7" Open="0">
 				<Node File=".\src\common\Lgi\GMutex.cpp" Type="2" Platforms="7" />
 				<Node File=".\include\common\GMutex.h" Type="3" Platforms="7" />
 			</Node>
 			<Node Name="Stream" Type="1" Platforms="7" Open="0">
-				<Node File="./include/common/GDom.h" Type="3" Platforms="7" />
+				<Node File=".\include\common\GDom.h" Type="3" Platforms="7" />
 				<Node File="./src/common/Lgi/GMemStream.cpp" Type="2" Platforms="7" />
 				<Node File="./src/common/Lgi/GStream.cpp" Type="2" Platforms="7" />
-				<Node File="./include/common/GStream.h" Type="3" Platforms="7" />
+				<Node File=".\include\common\GStream.h" Type="3" Platforms="7" />
 			</Node>
 			<Node Name="Threads" Type="1" Platforms="7" Open="0">
 				<Node Name="Linux" Type="1" Platforms="7" Open="0">
@@ -97,7 +97,7 @@
 			</Node>
 			<Node Name="Variant" Type="1" Platforms="7" Open="0">
 				<Node File="./src/common/Lgi/GVariant.cpp" Type="2" Platforms="7" />
-				<Node File="./include/common/GVariant.h" Type="3" Platforms="7" />
+				<Node File=".\include\common\GVariant.h" Type="3" Platforms="7" />
 			</Node>
 			<Node Name="Win32" Type="1" Platforms="7" Open="0">
 				<Node File="./src/win32/Lgi/GView.cpp" Type="2" Platforms="1" />
@@ -116,7 +116,7 @@
 		</Node>
 		<Node Name="Dialogs" Type="1" Platforms="7" Open="0">
 			<Node File="./src/common/Lgi/GAlert.cpp" Type="2" Platforms="7" />
-			<Node File="./include/common/GFileSelect.h" Type="3" Platforms="7" />
+			<Node File=".\include\common\GFileSelect.h" Type="3" Platforms="7" />
 			<Node File="./src/common/Lgi/GFindReplace.cpp" Type="2" Platforms="7" />
 			<Node File="./src/common/Lgi/GFontSelect.cpp" Type="2" Platforms="7" />
 			<Node File="./src/common/Lgi/GInput.cpp" Type="2" Platforms="7" />
@@ -130,7 +130,7 @@
 		<Node Name="Gdc2" Type="1" Platforms="7" Open="0">
 			<Node Name="_Core" Type="1" Platforms="7" Open="0">
 				<Node Name="Linux" Type="1" Platforms="7" Open="0">
-					<Node File=".\src\linux\Gtk\Gdc2.cpp" Type="2" Platforms="7" />
+					<Node File=".\src\linux\Gtk\Gdc2.cpp" Type="2" Platforms="2" />
 				</Node>
 				<Node Name="Win32" Type="1" Platforms="7" Open="0">
 					<Node File=".\src\win32\Gdc2\Gdc2.cpp" Type="2" Platforms="1" />
@@ -142,7 +142,7 @@
 				<Node File=".\include\common\GFilter.h" Type="3" Platforms="7" />
 				<Node File=".\src\common\Gdc2\Tools\GdcTools.cpp" Type="2" Platforms="7" />
 			</Node>
-			<Node Name="Font" Type="1" Platforms="7" Open="1">
+			<Node Name="Font" Type="1" Platforms="7" Open="0">
 				<Node File=".\src\common\Gdc2\Font\GDisplayString.cpp" Type="2" Platforms="7" />
 				<Node File=".\src\common\Gdc2\Font\GFont.cpp" Type="2" Platforms="7" />
 				<Node File=".\include\common\GFont.h" Type="3" Platforms="7" />
@@ -164,24 +164,24 @@
 			</Node>
 			<Node Name="Rect/Region" Type="1" Platforms="7" Open="0">
 				<Node File="./src/common/Gdc2/GRect.cpp" Type="2" Platforms="7" />
-				<Node File="./include/common/GRect.h" Type="3" Platforms="7" />
+				<Node File=".\include\common\GRect.h" Type="3" Platforms="7" />
 			</Node>
-			<Node Name="Surfaces" Type="1" Platforms="7" Open="0">
+			<Node Name="Surfaces" Type="1" Platforms="7" Open="1">
 				<Node Name="Win32" Type="1" Platforms="7" Open="0">
 					<Node File=".\src\win32\Gdc2\GScreenDC.cpp" Type="2" Platforms="1" />
 					<Node File=".\src\win32\Gdc2\GPrintDC.cpp" Type="2" Platforms="1" />
 					<Node File=".\src\win32\Gdc2\GMemDC.cpp" Type="2" Platforms="1" />
 				</Node>
 				<Node Name="Linux" Type="1" Platforms="7" Open="0">
-					<Node File=".\src\linux\Gtk\GMemDC.cpp" Type="2" Platforms="7" />
-					<Node File=".\src\linux\Gtk\GPrintDC.cpp" Type="2" Platforms="7" />
-					<Node File=".\src\linux\Gtk\GScreenDC.cpp" Type="2" Platforms="7" />
+					<Node File=".\src\linux\Gtk\GMemDC.cpp" Type="2" Platforms="2" />
+					<Node File=".\src\linux\Gtk\GPrintDC.cpp" Type="2" Platforms="2" />
+					<Node File=".\src\linux\Gtk\GScreenDC.cpp" Type="2" Platforms="2" />
 				</Node>
 				<Node File=".\src\common\Gdc2\GSurface.cpp" Type="2" Platforms="7" />
 			</Node>
 			<Node Name="Gdi Leak" Type="1" Platforms="7" Open="0">
 				<Node File="./src/win32/Gdc2/GdiLeak.cpp" Type="2" Platforms="1" />
-				<Node File="./include/common/GdiLeak.h" Type="3" Platforms="7" />
+				<Node File=".\include\common\GdiLeak.h" Type="3" Platforms="7" />
 			</Node>
 		</Node>
 		<Node Name="General" Type="1" Platforms="7" Open="0">
@@ -195,13 +195,13 @@
 			</Node>
 			<Node Name="Data Dlg" Type="1" Platforms="7" Open="0">
 				<Node File="./src/common/Lgi/GDataDlg.cpp" Type="2" Platforms="7" />
-				<Node File="./include/common/GDataDlg.h" Type="3" Platforms="7" />
+				<Node File=".\include\common\GDataDlg.h" Type="3" Platforms="7" />
 				<Node File="./src/common/General/GPassword.cpp" Type="2" Platforms="7" />
 				<Node File=".\include\common\GPassword.h" Type="3" Platforms="7" />
 			</Node>
 			<Node Name="Mru" Type="1" Platforms="7" Open="0">
 				<Node File="./src/common/Lgi/GMru.cpp" Type="2" Platforms="7" />
-				<Node File="./include/common/GMru.h" Type="3" Platforms="7" />
+				<Node File=".\include\common\GMru.h" Type="3" Platforms="7" />
 			</Node>
 			<Node File=".\src\common\INet\Base64.cpp" Type="2" Platforms="7" />
 			<Node File=".\src\common\Lgi\GOptionsFile.cpp" Type="2" Platforms="7" />
@@ -215,10 +215,10 @@
 			<Node File=".\src\common\Text\GXmlTree.cpp" Type="2" Platforms="7" />
 			<Node File=".\include\common\GXmlTree.h" Type="3" Platforms="7" />
 		</Node>
-		<Node Name="Widgets" Type="1" Platforms="7" Open="1">
+		<Node Name="Widgets" Type="1" Platforms="7" Open="0">
 			<Node Name="Css" Type="1" Platforms="7" Open="0">
 				<Node File="./src/common/Lgi/GCss.cpp" Type="2" Platforms="7" />
-				<Node File="./include/common/GCss.h" Type="3" Platforms="7" />
+				<Node File=".\include\common\GCss.h" Type="3" Platforms="7" />
 			</Node>
 			<Node Name="Linux" Type="1" Platforms="7" Open="0">
 				<Node File="./src/common/Text/GDocView.cpp" Type="2" Platforms="6" />
@@ -279,33 +279,26 @@
 			<Node File=".\src\win32\INet\MibAccess.cpp" Type="2" Platforms="1" />
 		</Node>
 		<Node Name="Header" Type="1" Platforms="7" Open="0">
-			<Node File="./include/common/INet.h" Type="3" Platforms="7" />
-			<Node File="./include/common/INetTools.h" Type="3" Platforms="7" />
+			<Node File=".\include\common\INet.h" Type="3" Platforms="7" />
+			<Node File=".\include\common\INetTools.h" Type="3" Platforms="7" />
 		</Node>
 		<Node Name="Mime Message" Type="1" Platforms="7" Open="0">
 			<Node File=".\include\common\GMime.h" Type="3" Platforms="7" />
 		</Node>
 	</Node>
 	<Node Name="Headers" Type="1" Platforms="7" Open="1">
-		<Node File=".\include\linux\Gtk\LgiOsDefs.h" Type="3" Platforms="7" />
+		<Node File=".\include\linux\Gtk\LgiOsDefs.h" Type="3" Platforms="2" />
 	</Node>
 	<Settings>
 		<General>
 			<Makefile>
 				<Windows>.\Makefile.win32</Windows>
 			</Makefile>
-			<Executable>
-				<Windows />
-			</Executable>
-			<Arguments>
-				<All />
-			</Arguments>
 			<Defines>
 				<All>
 					<Debug>LGI_LIBRARY</Debug>
 					<Release>LGI_LIBRARY</Release>
 				</All>
-				<Windows />
 			</Defines>
 			<Compiler>
 				<Windows>MingW</Windows>
@@ -323,16 +316,11 @@
 				</Windows>
 			</IncludePaths>
 			<Libraries>
-				<All />
 				<Windows>
 					<Debug>imm32.lib</Debug>
 					<Release>imm32.lib</Release>
 				</Windows>
 			</Libraries>
-			<LibraryPaths>
-				<All />
-				<Windows />
-			</LibraryPaths>
 			<TargetType>
 				<All>DynamicLibrary</All>
 			</TargetType>
@@ -356,11 +344,6 @@
 			<UseHardTabs>
 				<All>1</All>
 			</UseHardTabs>
-			<CommentFile />
-			<CommentFunction />
 		</Editor>
-		<Advanced>
-			<OtherMakefileRules />
-		</Advanced>
 	</Settings>
 </Project>
