@@ -3096,13 +3096,6 @@ bool IdeProject::CreateMakefile()
 			// Collect all dependencies, output their lib names and paths
 			m.Print("# Libraries\n"
 					"Libs ="
-					#ifndef WIN32
-					" \\\n"
-					"			-static-libgcc \\\n"
-					"			-lgcc \\\n"
-					"			-lpthread \\\n"
-					"			-lstdc++"
-					#endif
 					);
 
 			const char *ProjLibPaths = d->Settings.GetStr(ProjLibraryPaths);
@@ -3133,7 +3126,13 @@ bool IdeProject::CreateMakefile()
 					char t[256];
 					if (d->GetTargetName(t, sizeof(t)))
 					{
-						m.Print(" \\\n			-l%s$(Tag)", ToUnixPath(t));
+						if (!strnicmp(t, "lib", 3))
+							memmove(t, t + 3, strlen(t + 3) + 1);
+						char *dot = strrchr(t, '.');
+						if (dot)
+							*dot = 0;
+														
+						m.Print(" \\\n			-l%s", ToUnixPath(t));
 
 						GAutoString Base = d->GetBasePath();
 						if (Base)
@@ -3222,17 +3221,8 @@ bool IdeProject::CreateMakefile()
 				}
 
 				// Output include paths
-				#if defined LINUX
-				m.Print("# Includes\n"
-						"Inc =		-I/usr/include/xcb\\\n"
-						"			-I/usr/include/glib-2.0\\\n"
-						"			-I/usr/lib/glib-2.0/include\\\n"
-						"			-I/usr/include/cairo\\\n"
-						"			-I/usr/include/pango-1.0");
-				#else
 				m.Print("# Includes\n"
 						"Inc =");
-				#endif
 						
 				List<char> Incs;
 				char *i;
@@ -3266,7 +3256,7 @@ bool IdeProject::CreateMakefile()
 							if (d)
 							{
 								if (c) m.Print(" \\\n\t\t\t");
-								m.Print("%.*s.o", d - f, f);
+								m.Print("%.*s.o", d - file, file);
 							}
 						}
 					}

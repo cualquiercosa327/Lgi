@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project TabSize="4" IndentSize="4" UseTabs="1" Makefile="./Makefile.linux" Exe="./lgiide" ShowWhitespace="0" IncludePaths=".\Code&#10;..\include\common&#10;..\include\linux\X&#10;" BuildType="0" TargetType="0" TargetName="lgiide" Compiler="0">
-	<Node Name="Source Files" Type="1" Platforms="7" Open="0">
-		<Node Name="Ftp" Type="1" Platforms="7" Open="0">
+	<Node Name="Source Files" Type="1" Platforms="7" Open="1">
+		<Node Name="Ftp" Type="1" Platforms="7" Open="1">
 			<Node File=".\Code\FtpThread.cpp" Type="2" Platforms="7" />
 			<Node File=".\Code\FtpThread.h" Type="3" Platforms="7" />
 			<Node File="..\src\common\INet\IFtp.cpp" Type="2" Platforms="7" />
@@ -34,7 +34,7 @@
 			<Node File=".\Code\FindInFiles.h" Type="3" Platforms="7" />
 		</Node>
 	</Node>
-	<Node Name="Lgi" Type="1" Platforms="7" Open="0">
+	<Node Name="Lgi" Type="1" Platforms="7" Open="1">
 		<Node File="..\src\common\Text\GDocView.cpp" Type="2" Platforms="7" />
 		<Node File="..\src\common\Lgi\GMdi.cpp" Type="2" Platforms="7" />
 		<Node File="..\src\common\Text\GTextView3.cpp" Type="2" Platforms="7" />
@@ -42,7 +42,7 @@
 		<Node File="..\src\common\Gdc2\Filters\Png.cpp" Type="2" Platforms="7" />
 	</Node>
 	<Node Name="Resources" Type="1" Platforms="7" Open="0">
-		<Node File="./Code/resource.h" Type="3" Platforms="7" />
+		<Node File=".\Code\resource.h" Type="3" Platforms="7" />
 		<Node File=".\Code\Script1.rc" Type="5" Platforms="7" />
 	</Node>
 	<Node File="..\Lgi.xml" Type="4" Platforms="15" />
