@@ -775,16 +775,27 @@ const char *IdeProjectSettings::GetStr(ProjSetting Setting, const char *Default)
 int IdeProjectSettings::GetInt(ProjSetting Setting, int Default)
 {
 	int Status = Default;
-	char *path = d->BuildPath(Setting, true);
-	GXmlTag *t = d->Active.GetTag(path);
-	if (t)
-	{
-		if (t->Content)
-			LgiAssert(*t->Content == '-' || IsDigit(*t->Content));
 
-		Status = t->Content ? atoi(t->Content) : 0;
+	SettingInfo *s = d->Map.Find(Setting);
+	LgiAssert(s);
+	
+	if (!s->Flag.PlatformSpecific)
+	{
+		GXmlTag *t = d->Active.GetTag(d->BuildPath(Setting, false));
+		if (t)
+		{
+			Status = t->Content ? atoi(t->Content) : 0;
+		}
 	}
-	else LgiTrace("%s:%i - Warning: missing setting tag '%s'\n", _FL, path);
+	else if (!s->Flag.CrossPlatform)
+	{
+		GXmlTag *t = d->Active.GetTag(d->BuildPath(Setting, true));
+		if (t)
+		{
+			Status = t->Content ? atoi(t->Content) : 0;
+		}
+	}
+	else LgiAssert(0);
 
 	return Status;
 }
