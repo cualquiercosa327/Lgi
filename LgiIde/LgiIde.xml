@@ -7,13 +7,13 @@
 			<Node File="..\src\common\INet\IFtp.cpp" Type="2" Platforms="7" />
 			<Node File="..\include\common\IFtp.h" Type="3" Platforms="7" />
 		</Node>
-		<Node Name="Search" Type="1" Platforms="7" Open="1">
+		<Node Name="Search" Type="1" Platforms="7" Open="0">
 			<Node File=".\Code\FindInFiles.cpp" Type="2" Platforms="7" />
 			<Node File=".\Code\FindInFiles.h" Type="3" Platforms="7" />
 			<Node File=".\Code\FindSymbol.cpp" Type="2" Platforms="7" />
 			<Node File=".\Code\FindSymbol.h" Type="3" Platforms="7" />
 		</Node>
-		<Node Name="Source Code" Type="1" Platforms="7" Open="1">
+		<Node Name="Source Code" Type="1" Platforms="7" Open="0">
 			<Node File=".\Code\SysCharSupport.cpp" Type="2" Platforms="7" />
 			<Node File="..\src\common\Coding\GLexCpp.cpp" Type="2" Platforms="7" />
 		</Node>

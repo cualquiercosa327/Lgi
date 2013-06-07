@@ -32,7 +32,7 @@ bool BuildHeaderList(char *Cpp, GArray<char*> &Headers, GArray<char*> &IncPaths,
 {
 	char Include[] = {'i', 'n', 'c', 'l', 'u', 'd', 'e', 0 };
 	
-	for (char *c = Cpp; c AND *c; )
+	for (char *c = Cpp; c && *c; )
 	{
 		skipws(c);
 		if (*c == '#')
@@ -46,11 +46,12 @@ bool BuildHeaderList(char *Cpp, GArray<char*> &Headers, GArray<char*> &IncPaths,
 				{
 					char d = (*s == '\"') ? '\"' : '>';					
 					char *e = strchr(++s, d);
-					char *Short = NewStr(s, e-s);
+					char *Short = NewStr(s, e - s);
 
 					if (Short)
 					{
 						char *File = FindHeader(Short, IncPaths);
+printf("Found hdr '%s' -> '%s'\n", Short, File);
 						if (File)
 						{
 							bool Has = false;
@@ -93,8 +94,10 @@ bool BuildHeaderList(char *Cpp, GArray<char*> &Headers, GArray<char*> &IncPaths,
 			}
 		}
 		
-		while (*c AND *c != '\n') c++;
-		if (*c == '\n') c++;
+		while (*c && *c != '\n')
+			c++;
+		if (*c == '\n')
+			c++;
 	}
 	
 	return Headers.Length() > 0;

@@ -3626,7 +3626,10 @@ bool IdeProject::CreateMakefile()
 								Done = false;
 								Processed.Add(Src);
 								
-								char *c8 = ReadTextFile(Src);
+								char Full[MAX_PATH];
+								LgiMakePath(Full, sizeof(Full), Base, Src);
+								
+								char *c8 = ReadTextFile(Full);
 								if (c8)
 								{
 									GArray<char*> Headers;

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project>
 	<Node Name="Source Files" Type="1" Platforms="7" Open="1">
-		<Node Name="Core" Type="1" Platforms="7" Open="0">
+		<Node Name="Core" Type="1" Platforms="7" Open="1">
 			<Node Name="DateTime" Type="1" Platforms="7" Open="0">
 				<Node File="./src/common/General/GDateTime.cpp" Type="2" Platforms="7" />
 				<Node File=".\include\common\GDateTime.h" Type="3" Platforms="7" />
