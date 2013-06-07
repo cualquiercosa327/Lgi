@@ -3049,6 +3049,7 @@ struct Dependency
 bool IdeProject::GetAllDependencies(GArray<char*> &Files)
 {
 	GHashTbl<char*, Dependency*> Deps;
+	GAutoString Base = GetBasePath();
 	
 	// Build list of all the source files...
 	GArray<char*> Src;
@@ -3082,15 +3083,28 @@ bool IdeProject::GetAllDependencies(GArray<char*> &Files)
 		for (int i=0; i<Unscanned.Length(); i++)
 		{
 			// Then scan source for includes...
+			Dependency *d = Unscanned[i];
+			d->Scanned = true;
+			
+			char *Src = d->File;
+			char Full[MAX_PATH];
+			if (LgiIsRelativePath(d->File))
+			{
+			    LgiMakePath(Full, sizeof(Full), Base, d->File);
+			    Src = Full;
+			}
+			
 			GArray<char*> SrcDeps;
-			if (GetDependencies(Unscanned[i]->File, IncPaths, SrcDeps))
+			if (GetDependencies(Src, IncPaths, SrcDeps))
 			{
 				for (int n=0; n<SrcDeps.Length(); n++)
 				{
 					// Add include to dependencies...
 					char *File = SrcDeps[n];
 					if (!Deps.Find(File))
+					{
 						Deps.Add(File, new Dependency(File));
+					}
 				}
 				SrcDeps.DeleteArrays();
 			}
@@ -3113,6 +3127,7 @@ bool IdeProject::GetDependencies(const char *SourceFile, GArray<char*> &IncPaths
     if (!FileExists(SourceFile))
     {
         LgiTrace("%s:%i - can't read '%s'\n", _FL, SourceFile);
+        return false;
     }
 
 	GAutoString c8(ReadTextFile(SourceFile));
