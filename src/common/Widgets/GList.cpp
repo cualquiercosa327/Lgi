@@ -2908,52 +2908,9 @@ bool GList::GetUpdateRegion(GListItem *i, GRegion &r)
 
 bool GList::Insert(GListItem *i, int Index, bool Update)
 {
-	#if 1
 	List<GListItem> l;
 	l.Insert(i);
 	return Insert(l, Index, Update);
-	#else
-	bool Status = false;
-	if (i && Lock(_FL))
-	{
-		// Insert
-		if (i->Parent != this)
-		{
-			bool First = Items.Length() == 0;
-			
-			i->Parent = this;
-			i->Select(false);
-			Items.Insert(i, Index);
-			i->OnInsert();
-
-			if (First)
-			{
-				Keyboard = 0;
-				i->Select(true);
-			}
-			
-			if (Update)
-			{
-				// Update screen
-				Pour();
-				GRegion Up;
-				if (GetUpdateRegion(i, Up))
-				{
-					Up.y2 = Y();
-					Invalidate(&Up);
-				}
-
-				// Notify
-				SendNotify(GLIST_NOTIFY_INSERT);
-			}
-		}
-
-		Status = true;
-
-		Unlock();
-	}
-	return Status;
-	#endif
 }
 
 bool GList::Insert(List<GListItem> &l, int Index, bool Update)
@@ -2984,6 +2941,10 @@ bool GList::Insert(List<GListItem> &l, int Index, bool Update)
 			}
 		}
 
+		Status = true;
+
+		Unlock();
+
 		if (Update)
 		{
 			// Update screen
@@ -2993,10 +2954,6 @@ bool GList::Insert(List<GListItem> &l, int Index, bool Update)
 			// Notify
 			SendNotify(GLIST_NOTIFY_INSERT);
 		}
-
-		Status = true;
-
-		Unlock();
 	}
 
 	return Status;

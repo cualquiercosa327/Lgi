@@ -11,14 +11,14 @@
 				<Node File="./src/common/Lgi/GDragAndDrop.cpp" Type="2" Platforms="7" />
 				<Node File=".\include\common\GDragAndDrop.h" Type="3" Platforms="7" />
 			</Node>
-			<Node Name="File" Type="1" Platforms="7" Open="0">
-				<Node Name="Linux" Type="1" Platforms="7" Open="0">
-					<Node File="./src/linux/General/GFile.cpp" Type="2" Platforms="2" />
+			<Node Name="File" Type="1" Platforms="7" Open="1">
+				<Node Name="Linux" Type="1" Platforms="7" Open="1">
+					<Node File=".\src\linux\General\GFile.cpp" Type="2" Platforms="2" />
 				</Node>
 				<Node Name="Win32" Type="1" Platforms="7" Open="0">
 					<Node File="./src/win32/General/GFile.cpp" Type="2" Platforms="1" />
 				</Node>
-				<Node File="./src/common/General/GExeCheck.cpp" Type="2" Platforms="7" />
+				<Node File=".\src\common\General\GExeCheck.cpp" Type="2" Platforms="7" />
 				<Node File=".\include\common\GFile.h" Type="3" Platforms="7" />
 			</Node>
 			<Node Name="Libraries" Type="1" Platforms="7" Open="0">
@@ -299,10 +299,17 @@
 					<Debug>LGI_LIBRARY</Debug>
 					<Release>LGI_LIBRARY</Release>
 				</All>
+				<Windows />
 			</Defines>
 			<Compiler>
 				<Windows>MingW</Windows>
 			</Compiler>
+			<Executable>
+				<Windows />
+			</Executable>
+			<Arguments>
+				<All />
+			</Arguments>
 		</General>
 		<Build>
 			<IncludePaths>
@@ -320,6 +327,7 @@
 					<Debug>imm32.lib</Debug>
 					<Release>imm32.lib</Release>
 				</Windows>
+				<All />
 			</Libraries>
 			<TargetType>
 				<All>DynamicLibrary</All>
@@ -330,6 +338,10 @@
 					<Release>liblgi.dll</Release>
 				</Windows>
 			</TargetName>
+			<LibraryPaths>
+				<All />
+				<Windows />
+			</LibraryPaths>
 		</Build>
 		<Editor>
 			<TabSize>
@@ -344,6 +356,11 @@
 			<UseHardTabs>
 				<All>1</All>
 			</UseHardTabs>
+			<CommentFile />
+			<CommentFunction />
 		</Editor>
+		<Advanced>
+			<OtherMakefileRules />
+		</Advanced>
 	</Settings>
 </Project>

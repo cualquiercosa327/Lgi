@@ -188,6 +188,7 @@ bool GView::Lock(const char *file, int line, int TimeOut)
 		GetWindow();
 
 	_InLock++;
+	// LgiTrace("%s::%p Lock._InLock=%i %s:%i\n", GetClass(), this, _InLock, file, line);
 	if (_Window && _Window->_Lock)
 	{
 		if (TimeOut < 0)
@@ -211,6 +212,7 @@ void GView::Unlock()
 		_Window->_Lock->Unlock();
 	}
 	_InLock--;
+	// LgiTrace("%s::%p Unlock._InLock=%i\n", GetClass(), this, _InLock);
 }
 
 void GView::OnMouseClick(GMouse &m)

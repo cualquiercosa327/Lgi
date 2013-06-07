@@ -54,7 +54,8 @@ Depends =	FtpThread.o \
 			GMdi.o \
 			LgiMain.o \
 			Png.o \
-			FindSymbol.o
+			FindSymbol.o \
+			IdeProjectSettings.o
 
 # Target
 # Executable target
@@ -116,6 +117,11 @@ FindSymbol.o : ./Code/FindSymbol.cpp ../include/common/Lgi.h \
 	./Code/LgiIde.h \
 	../include/common/GProcess.h \
 	./Code/FindSymbol.h
+	@echo $(<F) [$(Gui)]
+	$(CC) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+IdeProjectSettings.o : ./Code/IdeProjectSettings.cpp ../include/common/Lgi.h \
+	./Code/LgiIde.h
 	@echo $(<F) [$(Gui)]
 	$(CC) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 

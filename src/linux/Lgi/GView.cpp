@@ -524,17 +524,21 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 			if (!Repainting)
 			{
 				Repainting = true;
-				if (r)
+				GdkWindow *hnd = gtk_widget_get_window(_View);
+				if (hnd)
 				{
-					GRect cr = *r;
-					cr.Offset(Client.x1, Client.y1);
-					Gtk::GdkRectangle r = cr;
-            		gdk_window_invalidate_rect(gtk_widget_get_window(_View), &r, FALSE);
-				}
-				else
-				{
-					Gtk::GdkRectangle r = {0, 0, Pos.X(), Pos.Y()};
-            		gdk_window_invalidate_rect(gtk_widget_get_window(_View), &r, FALSE);
+					if (r)
+					{
+						GRect cr = *r;
+						cr.Offset(Client.x1, Client.y1);
+						Gtk::GdkRectangle r = cr;
+	            		gdk_window_invalidate_rect(hnd, &r, FALSE);
+					}
+					else
+					{
+						Gtk::GdkRectangle r = {0, 0, Pos.X(), Pos.Y()};
+	            		gdk_window_invalidate_rect(hnd, &r, FALSE);
+					}
 				}
 				Repainting = false;
 			}

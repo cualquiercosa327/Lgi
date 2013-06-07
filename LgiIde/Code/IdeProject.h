@@ -18,6 +18,7 @@ enum ExeAction
 	ExeValgrind
 };
 
+class IdeProject;
 class IdeCommon : public GTreeItem, public GXmlTag
 {
 	friend class IdeProject;

@@ -23,6 +23,7 @@
 		<Node File=".\Code\IdeDoc.h" Type="3" Platforms="7" />
 		<Node File=".\Code\IdeProject.cpp" Type="2" Platforms="7" />
 		<Node File=".\Code\IdeProject.h" Type="3" Platforms="7" />
+		<Node File=".\Code\IdeProjectSettings.cpp" Type="2" Platforms="15" />
 		<Node File=".\Code\LgiIde.cpp" Type="2" Platforms="7" />
 		<Node File=".\Code\LgiIde.h" Type="3" Platforms="7" />
 		<Node File=".\Code\LgiUtils.cpp" Type="2" Platforms="7" />

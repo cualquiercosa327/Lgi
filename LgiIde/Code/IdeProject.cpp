@@ -1037,7 +1037,7 @@ public:
 												"\t%s\n"
 												"\n"
 												"doesn't exist.",
-												p);
+												p.Get());
 									char *Msg = Buf.NewStr();
 									if (Msg)
 									{
@@ -2022,7 +2022,7 @@ public:
 					}
 
 					if (Args)
-						a.Print(" %s", Args);
+						a.Print(" %s", Args.Get());
 					char *Temp = a.NewStr();
 
 					Status = Make.Run(Exe, Temp, 0, true, 0, this);
@@ -3110,6 +3110,11 @@ bool IdeProject::GetAllDependencies(GArray<char*> &Files)
 
 bool IdeProject::GetDependencies(const char *SourceFile, GArray<char*> &IncPaths, GArray<char*> &Files)
 {
+    if (!FileExists(SourceFile))
+    {
+        LgiTrace("%s:%i - can't read '%s'\n", _FL, SourceFile);
+    }
+
 	GAutoString c8(ReadTextFile(SourceFile));
 	if (!c8)
 		return false;
@@ -3117,7 +3122,6 @@ bool IdeProject::GetDependencies(const char *SourceFile, GArray<char*> &IncPaths
 	GArray<char*> Headers;
 	if (!BuildHeaderList(c8, Headers, IncPaths, false))
 		return false;
-
 	
 	for (int n=0; n<Headers.Length(); n++)
 	{
