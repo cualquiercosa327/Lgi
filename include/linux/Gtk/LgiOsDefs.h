@@ -382,7 +382,7 @@ typedef enum {
 	VK_UNKNOWN		= 0,
 	VK_FIRST		= 0,
 	VK_BACKSPACE	= 0xff08,
-	VK_TAB			= 0xff09,
+	VK_TAB			= 0x09,
 	VK_CLEAR		= 12,
 	VK_RETURN		= 0xff0d,
 	VK_PAUSE		= 19,

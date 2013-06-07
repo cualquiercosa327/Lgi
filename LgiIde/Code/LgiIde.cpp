@@ -1554,7 +1554,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		}
 		case IDM_CUT:
 		{
-			GViewI *v = LgiApp->GetFocus();
+			GViewI *v = GetFocus();
 			if (v)
 			{
 				v->PostEvent(M_CUT);
@@ -1563,7 +1563,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		}
 		case IDM_COPY:
 		{
-			GViewI *v = LgiApp->GetFocus();
+			GViewI *v = GetFocus();
 			if (v)
 			{
 				v->PostEvent(M_COPY);
@@ -1572,7 +1572,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		}
 		case IDM_PASTE:
 		{
-			GViewI *v = LgiApp->GetFocus();
+			GViewI *v = GetFocus();
 			if (v)
 			{
 				v->PostEvent(M_PASTE);
@@ -1589,7 +1589,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			{
 				FindInFiles Dlg(this);
 
-				GViewI *Focus = LgiApp->GetFocus();
+				GViewI *Focus = GetFocus();
 				if (Focus)
 				{
 					GTextView3 *Edit = dynamic_cast<GTextView3*>(Focus);

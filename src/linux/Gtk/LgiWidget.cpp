@@ -243,7 +243,7 @@ void BuildTabStops(GViewI *v, ::GArray<GViewI*> &a)
 
 static gboolean lgi_widget_key_event(GtkWidget *wid, GdkEventKey *e)
 {
-    #if 1
+    #if 0
     // This is useful for debugging...
     if (e->keyval == GDK_Shift_L ||
         e->keyval == GDK_Shift_R ||
@@ -258,7 +258,9 @@ static gboolean lgi_widget_key_event(GtkWidget *wid, GdkEventKey *e)
 
 	LgiWidget *p = LGI_WIDGET(wid);
     GView *v = dynamic_cast<GView*>(p->target);
-    if (v)
+    if (!v)
+    	printf("%s:%i - No target??\n", _FL);
+    else
     {
         GKey k;
         k.Down(e->type == GDK_KEY_PRESS);
@@ -271,7 +273,7 @@ static gboolean lgi_widget_key_event(GtkWidget *wid, GdkEventKey *e)
         switch (k.c16)
         {
             case GDK_ISO_Left_Tab:
-            case GDK_Tab:       k.vkey = VK_TAB; k.IsChar = true; break;
+            case GDK_Tab:       k.vkey = VK_TAB; k.IsChar = true; k.c16 = k.vkey = '\t'; break;
             case GDK_Return:    k.vkey = VK_RETURN; k.IsChar = true; break;
             case GDK_BackSpace: k.vkey = VK_BACKSPACE; k.IsChar = !k.Ctrl() && !k.Alt(); break;
             case GDK_Left:      k.vkey = VK_LEFT; break;
@@ -280,13 +282,15 @@ static gboolean lgi_widget_key_event(GtkWidget *wid, GdkEventKey *e)
             case GDK_Down:      k.vkey = VK_DOWN; break;
             case GDK_Home:      k.vkey = VK_HOME; break;
             case GDK_End:       k.vkey = VK_END; break;
-        }        
+        }
+        
+        k.Trace("lgi_widget_key_event");
 
         GWindow *w = v->GetWindow();
         if (w)
         {
             if (!w->HandleViewKey(v, k) &&
-                (k.vkey == GDK_Tab || k.vkey == GDK_ISO_Left_Tab)&&
+                (k.vkey == GDK_Tab || k.vkey == GDK_ISO_Left_Tab) &&
                 k.Down())
             {
                 // Do tab between controls
@@ -306,12 +310,10 @@ static gboolean lgi_widget_key_event(GtkWidget *wid, GdkEventKey *e)
                 }
             }
         }
-        else
-            v->OnKey(k);
-        
-        
+        else v->OnKey(k);
     }
-    return TRUE;
+    
+    return true;
 }
 
 static void

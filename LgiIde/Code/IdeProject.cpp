@@ -3615,6 +3615,7 @@ bool IdeProject::CreateMakefile()
 					// Do remaining include file dependencies
 					bool Done = false;
 					GHashTable Processed;
+					GAutoString Base = GetBasePath();
 					while (!Done)
 					{
 						Done = true;
@@ -3627,7 +3628,10 @@ bool IdeProject::CreateMakefile()
 								Processed.Add(Src);
 								
 								char Full[MAX_PATH];
-								LgiMakePath(Full, sizeof(Full), Base, Src);
+								if (LgiIsRelativePath(Src))
+									LgiMakePath(Full, sizeof(Full), Base, Src);
+								else
+									strsafecpy(Full, Src, sizeof(Full));
 								
 								char *c8 = ReadTextFile(Full);
 								if (c8)

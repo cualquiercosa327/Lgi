@@ -18,7 +18,8 @@ GClipBoard::GClipBoard(GView *o)
 	Owner = o;
 	Open = false;
 	pDC = 0;
-	d->c = gtk_clipboard_get(gdk_atom_intern("CLIPBOARD", false));
+	d->c = gtk_clipboard_get(GDK_NONE); // gdk_atom_intern("CLIPBOARD", false)
+	printf("d->c = %i\n", d->c);
 }
 
 GClipBoard::~GClipBoard()
@@ -32,6 +33,7 @@ bool GClipBoard::Empty()
     if (d->c)
     {
         gtk_clipboard_clear(d->c);
+        printf("gtk_clipboard_clear(%i)\n", d->c);
         return true;
     }
 
@@ -50,6 +52,7 @@ bool GClipBoard::Text(char *Str, bool AutoEmpty)
 	if (Str && d->c)
 	{
 		gtk_clipboard_set_text(d->c, Str, strlen(Str));
+        printf("gtk_clipboard_set_text(%i,%s,%i)\n", d->c, Str, strlen(Str));
 		Status = true;
 	}
 
@@ -63,6 +66,7 @@ char *GClipBoard::Text()
     if (d->c)
     {
         gchar *txt = gtk_clipboard_wait_for_text(d->c);
+        printf("gtk_clipboard_wait_for_text(%i)='%s'\n", d->c, txt);
         if (txt)
         {
             t = NewStr(txt);
