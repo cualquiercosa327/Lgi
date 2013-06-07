@@ -996,7 +996,7 @@ public:
 												"doesn't exist. Is this the right file:\n"
 												"\n"
 												"\t%s",
-												p,
+												p.Get(),
 												Files[0]);
 									char *Msg = Buf.NewStr();
 									if (Msg)
@@ -1999,7 +1999,7 @@ public:
 			if (!stricmp(Compiler, "VisualStudio"))
 			{
 				char a[256];
-				sprintf(a, "\"%s\" /make \"All - Win32 Debug\"", Makefile);
+				sprintf(a, "\"%s\" /make \"All - Win32 Debug\"", Makefile.Get());
 				Status = Make.Run(Exe, a, 0, true, 0, this);
 			}
 			else
