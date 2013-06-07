@@ -3105,18 +3105,20 @@ bool IdeProject::CreateMakefile()
 					#endif
 					);
 
-			if (ValidStr(d->Settings.GetStr(ProjLibraryPaths)))
+			const char *ProjLibPaths = d->Settings.GetStr(ProjLibraryPaths);
+			if (ValidStr(ProjLibPaths))
 			{
-				GToken LibPaths(d->Settings.GetStr(ProjLibraryPaths), " \r\n");
+				GToken LibPaths(ProjLibPaths, " \r\n");
 				for (int i=0; i<LibPaths.Length(); i++)
 				{
 					m.Print(" \\\n			-L%s", ToUnixPath(LibPaths[i]));
 				}
 			}
 
-			if (ValidStr(d->Settings.GetStr(ProjLibraries)))
+			const char *ProjLibs = d->Settings.GetStr(ProjLibraries);
+			if (ValidStr(ProjLibs))
 			{
-				GToken Libs(d->Settings.GetStr(ProjLibraries), " \r\n");
+				GToken Libs(ProjLibs, " \r\n");
 				for (int i=0; i<Libs.Length(); i++)
 				{
 					m.Print(" \\\n			-l%s", ToUnixPath(Libs[i]));

@@ -731,20 +731,45 @@ bool IdeProjectSettings::Serialize(GXmlTag *Parent, bool Write)
 
 const char *IdeProjectSettings::GetStr(ProjSetting Setting, const char *Default)
 {
-	const char *Status = Default;
-
-	SettingInfo *i = d->Map.Find(Setting);
-	LgiAssert(i);
-
-	char *path = d->BuildPath(Setting, true);
-	GXmlTag *t = d->Active.GetTag(path);
-	if (t)
+	SettingInfo *s = d->Map.Find(Setting);
+	LgiAssert(s);
+	GArray<char*> Strs;
+	int Bytes = 0;
+	if (!s->Flag.PlatformSpecific)
 	{
-		Status = t->Content;
+		GXmlTag *t = d->Active.GetTag(d->BuildPath(Setting, false));
+		if (t && t->Content)
+		{
+			Strs.Add(t->Content);
+			Bytes += strlen(t->Content) + 1;
+		}
 	}
-	else LgiTrace("%s:%i - Warning: missing setting tag '%s'\n", _FL, path);
+	if (!s->Flag.CrossPlatform)
+	{
+		GXmlTag *t = d->Active.GetTag(d->BuildPath(Setting, true));
+		if (t && t->Content)
+		{
+			Strs.Add(t->Content);
+			Bytes += strlen(t->Content) + 1;
+		}
+	}
+	if (Strs.Length() == 0)
+		return Default;
 	
-	return Status;
+	if (Strs.Length() == 1)
+		return Strs[0];
+
+	if (!d->StrBuf.Reset(new char[Bytes]))
+		return Default;
+
+	char *c = d->StrBuf;
+	int ch = 0;
+	for (int i=0; i<Strs.Length(); i++)
+	{
+		ch += sprintf_s(d->StrBuf + ch, Bytes - ch, "%s%s", Strs[i], i<Strs.Length()-1 ? "\n" : "");
+	}
+	
+	return d->StrBuf;
 }
 
 int IdeProjectSettings::GetInt(ProjSetting Setting, int Default)
