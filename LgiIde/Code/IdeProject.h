@@ -105,31 +105,19 @@ public:
 	GAutoString GetFullPath(); // Always a complete path
 	GAutoString GetBasePath(); // A non-relative path to the folder containing the project
 
+	AppWnd *GetApp();
 	const char *GetExecutable();
 	const char *GetExeArgs();
 	const char *GetIncludePaths();
-	void CreateProject();
-	bool OpenFile(char *FileName);
-	bool SaveFile(char *FileName = 0);
-	void SetClean();
-	void SetDirty();
-	char *GetText(int Col);
-	int GetImage(int Flags);
+
 	GXmlTag *Create(char *Tag);
 	void Empty();
-	void OnMouseClick(GMouse &m);
-	AppWnd *GetApp();
-	void ImportDsp(char *File);
 	GAutoString GetMakefile();
 	bool GetExePath(char *Path, int Len);
 	bool RelativePath(char *Out, char *In);
-	bool Serialize();
 	void Build(bool All);
 	void Clean();
 	void Execute(ExeAction Act = ExeRun);
-	IdeProject *GetParentProject();
-	bool GetChildProjects(List<IdeProject> &c);
-	void SetParentProject(IdeProject *p);
 	char *FindFullPath(char *File);
 	bool InProject(char *FullPath, bool Open, class IdeDoc **Doc = 0);
 	const char *GetFileComment();
@@ -138,8 +126,32 @@ public:
 	bool GetTargetName(char *Buf, int BufSize);
 	bool GetTargetFile(char *Buf, int BufSize);
 	bool BuildIncludePaths(List<char> &Paths, bool Recurse);
+
+	// Project heirarchy
+	IdeProject *GetParentProject();
+	bool GetChildProjects(List<IdeProject> &c);
+	void SetParentProject(IdeProject *p);
+
+	// File
+	void CreateProject();
+	bool OpenFile(char *FileName);
+	bool SaveFile(char *FileName = 0);
+	void SetClean();
+	void SetDirty();
+	bool Serialize();
+	void ImportDsp(char *File);
+
+	// Dependency calculation
+	bool GetAllDependencies(GArray<char*> &Files);
+	bool GetDependencies(const char *SourceFile, List<char> &IncPaths, GArray<char*> &Files);
 	
+	// Settings
 	IdeProjectSettings *GetSettings();
+
+	// Impl
+	char *GetText(int Col);
+	int GetImage(int Flags);
+	void OnMouseClick(GMouse &m);
 };
 
 class IdeTree : public GTree, public GDragDropTarget

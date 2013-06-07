@@ -1829,7 +1829,7 @@ void IdeCommon::CollectAllSource(GArray<char*> &c)
 			{
 				GAutoString path = p->GetFullPath();
 				if (path)
-					c.Add(path);
+					c.Add(path.Release());
 			}
 			default:
 				break;
@@ -2980,7 +2980,7 @@ bool IdeProject::GetTargetName(char *Target, int BufSize)
 bool IdeProject::GetTargetFile(char *Buf, int BufSize)
 {
 	bool Status = false;
-	char t[256];
+	char t[MAX_PATH];
 	if (GetTargetName(t, sizeof(t)))
 	{
 		const char *TargetType = d->Settings.GetStr(ProjTargetType);
@@ -2993,7 +2993,20 @@ bool IdeProject::GetTargetFile(char *Buf, int BufSize)
 			}
 			else if (!stricmp(TargetType, "DynamicLibrary"))
 			{
-				snprintf(Buf, BufSize, "lib%s.%s", t, LGI_LIBRARY_EXT);
+				#ifndef WIN32
+				if (strnicmp(t, "lib", 3))
+				{
+					// Add lib prefix
+					memmove(t+3, t, strlen(t)+1);
+					memcpy(t, "lib", 3);
+				}
+				#endif
+				char *ext = LgiGetExtension(t);
+				if (!ext)
+					sprintf(t + strlen(t), ".%s", LGI_LIBRARY_EXT);
+				else if (stricmp(ext, LGI_LIBRARY_EXT))
+					strcpy(ext, LGI_LIBRARY_EXT);
+				strsafecpy(Buf, t, BufSize);
 				Status = true;
 			}
 			else if (!stricmp(TargetType, "StaticLibrary"))
@@ -3010,6 +3023,110 @@ bool IdeProject::GetTargetFile(char *Buf, int BufSize)
 int StrCmp(char *a, char *b, int d)
 {
 	return stricmp(a, b);
+}
+
+int StrSort(char **a, char **b)
+{
+	return stricmp(*a, *b);
+}
+
+struct Dependency
+{
+	bool Scanned;
+	GAutoString File;
+	
+	Dependency(const char *f)
+	{
+		File.Reset(NewStr(f));
+	}
+};
+
+bool IdeProject::GetAllDependencies(GArray<char*> &Files)
+{
+	GHashTbl<char*, Dependency*> Deps;
+	
+	// Build list of all the source files...
+	GArray<char*> Src;
+	CollectAllSource(Src);
+	
+	// Get all include paths
+	List<char> IncPaths;
+	BuildIncludePaths(IncPaths, false);
+	
+	// Add all source to dependencies
+	for (int i=0; i<Src.Length(); i++)
+	{
+		char *f = Src[i];
+		Dependency *dep = Deps.Find(f);
+		if (!dep)
+			Deps.Add(f, new Dependency(f));
+	}
+	
+	// Scan all dependencies for includes
+	GArray<Dependency*> Unscanned;
+	do
+	{
+		// Find all the unscanned dependencies
+		Unscanned.Length(0);
+		for (Dependency *d = Deps.First(); d; d = Deps.Next())
+		{
+			if (!d->Scanned)
+				Unscanned.Add(d);
+		}		
+
+		for (int i=0; i<Unscanned.Length(); i++)
+		{
+			// Then scan source for includes...
+			GArray<char*> SrcDeps;
+			if (GetDependencies(Unscanned[i]->File, IncPaths, SrcDeps))
+			{
+				for (int n=0; n<SrcDeps.Length(); n++)
+				{
+					// Add include to dependencies...
+					char *File = SrcDeps[n];
+					if (!Deps.Find(File))
+						Deps.Add(File, new Dependency(File));
+				}
+				SrcDeps.DeleteArrays();
+			}
+		}
+	}
+	while (Unscanned.Length() > 0);
+	
+	for (Dependency *d = Deps.First(); d; d = Deps.Next())
+	{
+		Files.Add(d->File.Release());
+	}
+	
+	Src.DeleteArrays();
+	Deps.DeleteObjects();
+	return true;
+}
+
+bool IdeProject::GetDependencies(const char *SourceFile, List<char> &IncPaths, GArray<char*> &Files)
+{
+	GAutoString c8(ReadTextFile(SourceFile));
+	if (!c8)
+		return false;
+
+	List<char> Headers;
+	if (!BuildHeaderList(c8, Headers, IncPaths, false))
+		return false;
+
+	int n=0;
+	for (char *i=Headers.First(); i; i=Headers.Next(), n++)
+	{
+		char p[MAX_PATH];
+		if (!RelativePath(p, i))
+		{
+			strsafecpy(p, i, sizeof(p));
+		}
+		ToUnixPath(p);
+		Files.Add(NewStr(p));
+	}
+	Headers.DeleteArrays();
+	
+	return true;
 }
 
 bool IdeProject::CreateMakefile()
@@ -3048,7 +3165,7 @@ bool IdeProject::CreateMakefile()
 		{
 			m.Print("Target = %s\n", Target);
 
-			// Output the build mode, gui, flags and some paths
+			// Output the build mode, flags and some paths
 			int BuildMode = d->App->GetBuildMode();
 			char *BuildModeName = BuildMode ? (char*)"Release" : (char*)"Debug";
 			m.Print("ifndef Build\n"
@@ -3066,11 +3183,10 @@ bool IdeProject::CreateMakefile()
 			#else
 			char *ExtraLinkFlags = "";
 			char *ExeFlags = "";
-			m.Print("Gui = X\n"
-					"BuildDir = $(Build)$(Gui)\n"
+			m.Print("BuildDir = $(Build)\n"
 					"\n"
 					"Flags = -fPIC -w -fno-inline -fpermissive\n" // -fexceptions
-					"Defs = -DLINUX -D_REENTRANT -D$(Gui)WIN");
+					"Defs = -DLINUX -D_REENTRANT");
 			#endif
 			
 			if (d->Settings.GetStr(ProjDefines))
@@ -3278,8 +3394,7 @@ bool IdeProject::CreateMakefile()
 							{
 								char t[MAX_PATH];
 								GAutoString Base = GetBasePath();
-								if (d->GetTargetFile(t, sizeof(t)) &&
-									Base)
+								if (d->GetTargetFile(t, sizeof(t)) && Base)
 								{
 									char Rel[MAX_PATH] = "";
 									if (!RelativePath(Rel, Base))
@@ -3288,23 +3403,30 @@ bool IdeProject::CreateMakefile()
 									}
 									ToUnixPath(Rel);
 
-									char *e = LgiGetExtension(t);
-									if (e)
-									{
-										e--;
-										int Len = strlen(e);
-										memmove(e+6, e, Len+1);
-										memcpy(e, "$(Tag)", 6);
-									}
-									
 									sprintf(Buf, "%s/$(BuildDir)/%s", Rel, t);
 									m.Print(" %s", Buf);
 									
-									Rules.Print("%s : FORCE\n"
-												"	export Build=$(Build); \\\n"
-												"		export Gui=$(Gui); \\\n"
-												"		$(MAKE) -C %s",
-												Buf,
+									GArray<char*> AllDeps;
+									d->GetAllDependencies(AllDeps);
+									LgiAssert(AllDeps.Length() > 0);
+									AllDeps.Sort(StrSort);
+
+									Rules.Print("%s : ", Buf);
+									for (int i=0; i<AllDeps.Length(); i++)
+									{
+										if (i)
+											Rules.Print(" \\\n\t");
+										
+										char Rel[MAX_PATH];
+										char *f = RelativePath(Rel, AllDeps[i]) ? Rel : AllDeps[i];
+										ToUnixPath(f);
+										Rules.Print("%s", f);
+									}
+									
+									AllDeps.DeleteArrays();
+									
+									Rules.Print("\n\texport Build=$(Build); \\\n"
+												"\t$(MAKE) -C %s",
 												Rel);
 
 									GAutoString Mk = d->GetMakefile();
@@ -3319,7 +3441,7 @@ bool IdeProject::CreateMakefile()
 							}
 
 							m.Print(" outputfolder $(Depends)\n"
-									"	@echo Linking $(Target) [$(Gui)/$(Build)]...\n"
+									"	@echo Linking $(Target) [$(Build)]...\n"
 									"	$(CC)%s%s -Wl%s -f -o \\\n"
 									"		$(Target) $(addprefix $(BuildDir)/,$(Depends)) $(Libs)\n"
 									"	@echo Done.\n"
@@ -3328,14 +3450,10 @@ bool IdeProject::CreateMakefile()
 									ExeFlags,
 									LinkerFlags);
 
-							char *r = Rules.NewStr();
+							GAutoString r(Rules.NewStr());
 							if (r)
 							{
 								m.Write(r, strlen(r));
-								DeleteArray(r);
-								
-								m.Print("FORCE :\n"
-										"\n");
 							}
 
 							// Various fairly global rules
@@ -3360,7 +3478,7 @@ bool IdeProject::CreateMakefile()
 						{
 							m.Print("TargetFile = lib$(Target)$(Tag).%s\n"
 									"$(TargetFile) : outputfolder $(Depends)\n"
-									"	@echo Linking $(TargetFile) [$(Gui)/$(Build)]...\n"
+									"	@echo Linking $(TargetFile) [$(Build)]...\n"
 									"	$(CC)$s -shared \\\n"
 									"		-Wl%s \\\n"
 									"		-o $(BuildDir)/$(TargetFile) \\\n"
@@ -3389,7 +3507,7 @@ bool IdeProject::CreateMakefile()
 						{
 							m.Print("TargetFile = lib$(Target)$(Tag).%s\n"
 									"$(TargetFile) : outputfolder $(Depends)\n"
-									"	@echo Linking $(TargetFile) [$(Gui)/$(Build)]...\n"
+									"	@echo Linking $(TargetFile) [$(Build)]...\n"
 									"	ar rcs $(BuildDir)/$(TargetFile) $(addprefix $(BuildDir)/,$(Depends))\n"
 									"	@echo Done.\n"
 									"\n",
@@ -3426,51 +3544,32 @@ bool IdeProject::CreateMakefile()
 								char *Dot = strrchr(Part, '.');
 								if (Dot) *Dot = 0;
 
-								char Rel[256];
+								char Rel[MAX_PATH];
 								if (!RelativePath(Rel, Src))
 								{
-						 			strcpy(Rel, Src);
+						 			strsafecpy(Rel, Src, sizeof(Rel));
 								}
 								
 								m.Print("%s.o : %s ", Part, ToUnixPath(Rel));
 
-								char *c8 = ReadTextFile(Src);
-								if (c8)
+								GArray<char*> SrcDeps;
+								if (GetDependencies(Src, IncPaths, SrcDeps))
 								{
-									List<char> Headers;
-									if (BuildHeaderList(c8, Headers, IncPaths, false))
+									for (int i=0; i<SrcDeps.Length(); i++)
 									{
-										int n=0;
-										for (char *i=Headers.First(); i; i=Headers.Next(), n++)
-										{
-											if (n) m.Print(" \\\n\t");
-											
-											if (!RelativePath(Rel, i))
-											{
-						 						strcpy(Rel, i);
-											}
-											m.Print("%s", ToUnixPath(Rel));
-											
-											if (!Deps.Find(i))
-											{
-												Deps.Add(i);
-											}
-										}
-										Headers.DeleteArrays();
+										if (i) m.Print(" \\\n\t");
+										m.Print("%s", SrcDeps[i]);
+										if (!Deps.Find(SrcDeps[i]))
+											Deps.Add(SrcDeps[i]);
 									}
-									
-									DeleteArray(c8);
+									SrcDeps.DeleteArrays();
 								}
 
 								char *Ext = LgiGetExtension(Src);
 								const char *Compiler = Src && !stricmp(Ext, "c") ? "CC" : "CPP";
 
 								m.Print("\n"
-									#ifdef LINUX
-										"	@echo $(<F) [$(Gui)]\n"
-									#else
 										"	@echo $(<F)\n"
-									#endif
 										"	$(%s) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)\n"
 										"\n",
 										Compiler);
@@ -3530,16 +3629,15 @@ bool IdeProject::CreateMakefile()
 						}
 					}
 
-
 					// Output VPATH
 					m.Print("VPATH=%%.cpp \\\n"
 							"\t$(BuildDir)");
 					m.Print("\n\n");
 					
-					
-					if (ValidStr(d->Settings.GetStr(ProjMakefileRules)))
+					const char *OtherMakefileRules = d->Settings.GetStr(ProjMakefileRules);
+					if (ValidStr(OtherMakefileRules))
 					{
-						m.Print("\n%s\n", d->Settings.GetStr(ProjMakefileRules));
+						m.Print("\n%s\n", OtherMakefileRules);
 					}					
 				}
 			}
