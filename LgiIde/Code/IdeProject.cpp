@@ -39,6 +39,7 @@ char *PlatformName[] =
 	"Windows",
 	"Linux",
 	"Mac",
+	"Haiku",
 	0
 };
 
@@ -47,6 +48,7 @@ int PlatformCtrlId[] =
 	IDC_WIN32,
 	IDC_LINUX,
 	IDC_MAC,
+	IDC_HAIKU,
 	0
 };
 
