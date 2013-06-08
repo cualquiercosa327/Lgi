@@ -2998,6 +2998,7 @@ bool IdeProject::GetTargetFile(char *Buf, int BufSize)
 			}
 			else if (!stricmp(TargetType, "DynamicLibrary"))
 			{
+				/*
 				#ifndef WIN32
 				if (strnicmp(t, "lib", 3))
 				{
@@ -3006,6 +3007,7 @@ bool IdeProject::GetTargetFile(char *Buf, int BufSize)
 					memcpy(t, "lib", 3);
 				}
 				#endif
+				*/
 				char *ext = LgiGetExtension(t);
 				if (!ext)
 					sprintf(t + strlen(t), ".%s", LGI_LIBRARY_EXT);

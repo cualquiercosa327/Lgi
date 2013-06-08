@@ -170,6 +170,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../include/linux/Gtk/LgiWidget.h \
 	../include/linux/Gtk/LgiWinManGlue.h \
 	../include/win32/GSymLookup.h \
+	../include/win32/LgiOsDefs.h \
 	../src/common/Gdc2/15Bit.cpp \
 	../src/common/Gdc2/16Bit.cpp \
 	../src/common/Gdc2/24Bit.cpp \

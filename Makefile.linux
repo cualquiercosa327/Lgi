@@ -60,6 +60,8 @@ Depends =	GDateTime.o \
 			LgiRes.o \
 			Res.o \
 			GMutex.o \
+			Gel.o \
+			GPath.o \
 			GMemStream.o \
 			GStream.o \
 			GThread.o \
@@ -72,8 +74,6 @@ Depends =	GDateTime.o \
 			GTrayIcon.o \
 			Lgi.o \
 			LgiMsg.o \
-			Gel.o \
-			GPath.o \
 			GAlert.o \
 			GFindReplace.o \
 			GFontSelect.o \
@@ -317,6 +317,22 @@ GMutex.o : ./src/common/Lgi/GMutex.cpp ./include/common/Lgi.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
+Gel.o : ./src/common/Skins/Gel/Gel.cpp ./include/common/Lgi.h \
+	./include/common/GSkinEngine.h \
+	./include/common/GPath.h \
+	./include/common/GButton.h \
+	./include/common/GCombo.h \
+	./include/common/GCheckBox.h \
+	./include/common/GRadioGroup.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GPath.o : ./src/common/Gdc2/Path/GPath.cpp ./include/common/Lgi.h \
+	./include/common/GPath.h \
+	./include/common/GdiLeak.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
 GMemStream.o : ./src/common/Lgi/GMemStream.cpp ./include/common/Lgi.h \
 	./include/common/GStream.h
 	@echo $(<F) [$(Build)]
@@ -382,22 +398,6 @@ Lgi.o : ./src/common/Lgi/Lgi.cpp ./include/common/GRegKey.h \
 LgiMsg.o : ./src/common/Lgi/LgiMsg.cpp ./include/common/Lgi.h \
 	./include/common/GTextLabel.h \
 	./include/common/GButton.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-Gel.o : ./src/common/Skins/Gel/Gel.cpp ./include/common/Lgi.h \
-	./include/common/GSkinEngine.h \
-	./include/common/GPath.h \
-	./include/common/GButton.h \
-	./include/common/GCombo.h \
-	./include/common/GCheckBox.h \
-	./include/common/GRadioGroup.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-GPath.o : ./src/common/Gdc2/Path/GPath.cpp ./include/common/Lgi.h \
-	./include/common/GPath.h \
-	./include/common/GdiLeak.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
