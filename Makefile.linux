@@ -136,14 +136,15 @@ Depends =	GDateTime.o \
 			GTree.o \
 			INet.o \
 			INetTools.o \
-			md5.o
+			md5.o \
+			Gel.o \
+			GPath.o
 
 # Target
 TargetFile = lib$(Target)$(Tag).so
 $(TargetFile) : outputfolder $(Depends)
 	@echo Linking $(TargetFile) [$(Build)]...
 	$(CPP)$s -shared \
-		-Wl \
 		-o $(BuildDir)/$(TargetFile) \
 		$(addprefix $(BuildDir)/,$(Depends)) \
 		$(Libs)
@@ -157,6 +158,14 @@ outputfolder :
 clean :
 	rm -f $(BuildDir)/*.o $(BuildDir)/$(TargetFile)
 	@echo Cleaned $(BuildDir)
+
+Gel.o : ./src/common/Skins/Gel/Gel.cpp ./include/common/Lgi.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GPath.o : ./src/common/Gdc2/Path/GPath.cpp ./include/common/Lgi.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GDateTime.o : ./src/common/General/GDateTime.cpp ./include/common/Lgi.h \
 	./include/common/GDateTime.h \

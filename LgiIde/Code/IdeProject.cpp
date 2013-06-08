@@ -3506,7 +3506,7 @@ bool IdeProject::CreateMakefile()
 									"\n",
 									ExtraLinkFlags,
 									ExeFlags,
-									LinkerFlags ? "-Wl" : "", LinkerFlags);
+									ValidStr(LinkerFlags) ? "-Wl" : "", LinkerFlags);
 
 							GAutoString r(Rules.NewStr());
 							if (r)
@@ -3545,7 +3545,7 @@ bool IdeProject::CreateMakefile()
 									"	@echo Done.\n"
 									"\n",
 									LGI_LIBRARY_EXT,
-									ExtraLinkFlags ? "-Wl" : "", ExtraLinkFlags,
+									ValidStr(ExtraLinkFlags) ? "-Wl" : "", ExtraLinkFlags,
 									LinkerFlags);
 
 							// Cleaning target
