@@ -511,6 +511,7 @@ void GDialog::EndModeless(int Code)
 GControl::GControl(char *SubClassName) : GView(0)
 {
 	SubClass = 0;
+	SetOnDelete = NULL;
 	if (SubClassName)
 	{
 		SetClassW32(SubClassName);
@@ -521,6 +522,8 @@ GControl::GControl(char *SubClassName) : GView(0)
 
 GControl::~GControl()
 {
+	if (SetOnDelete)
+		*SetOnDelete = true;
 }
 
 GMessage::Result GControl::OnEvent(GMessage *Msg)
@@ -559,7 +562,13 @@ GMessage::Result GControl::OnEvent(GMessage *Msg)
 		case WM_SYSKEYDOWN:
 		case WM_SYSKEYUP:
 		{
-			GView::OnEvent(Msg);
+			bool Deleted = false;
+			SetOnDelete = &Deleted;
+			Status = GView::OnEvent(Msg);
+			if (Deleted)
+				return Status;
+			
+			SetOnDelete = NULL;
 			break;
 		}
 	}

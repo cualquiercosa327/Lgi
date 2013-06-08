@@ -144,10 +144,10 @@ typedef SOCKET						OsSocket;
 
 #ifdef _MSC_VER
 #define snprintf					_snprintf
-#define atoi64						_atoi64
 //#define vsnprintf					_vsnprintf
 #define vsnwprintf					_vsnwprintf
 #endif
+#define atoi64						_atoi64
 
 #define K_CHAR						0x0
 

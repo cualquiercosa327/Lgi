@@ -1,3 +1,4 @@
+
 #include "Lgi.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -48,6 +49,7 @@ uint WINAPI ThreadEntryPoint(void *i)
 
 		if (Thread->State == GThread::THREAD_RUNNING)
 		{
+			#ifdef _MSC_VER
             // Set the name if provided...
             if (Thread->Name)
             {
@@ -62,6 +64,7 @@ uint WINAPI ThreadEntryPoint(void *i)
                 {
                 }
             }
+            #endif
 
 			// Ok now we're ready to go...
 			Thread->OnBeforeMain();

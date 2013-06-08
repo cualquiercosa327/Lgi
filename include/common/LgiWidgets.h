@@ -278,6 +278,7 @@ protected:
 	bigtime_t Sys_LastClick;
 	void MouseClickEvent(bool Down);
 	#elif WIN32NATIVE
+	bool *SetOnDelete;
 	GWin32Class *SubClass;
 	#endif
 
@@ -285,13 +286,9 @@ protected:
 
 public:
 	#if WIN32NATIVE
-
 	GControl(char *SubClassName = 0);
-
 	#else
-
 	GControl(OsView view = 0);
-
 	#endif
 
 	~GControl();

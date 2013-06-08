@@ -15,7 +15,7 @@
 
 	// dynamically linked
 
-	#ifdef _MSC_VER
+	#if defined(WIN32) || defined(_WIN64)
 
 		#ifdef LGI_LIBRARY
 			#define LgiNetFunc			extern "C" __declspec(dllexport)

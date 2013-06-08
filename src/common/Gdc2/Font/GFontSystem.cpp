@@ -24,11 +24,7 @@
 // may not want to bother depending on what sort of app your
 // writing.
 //
-#ifdef __MINGW32__
-#include "../iconv.h"
-#else
 #include "iconv.h"
-#endif
 
 #if defined(_WINDOWS)
 typedef const char IconvChar;

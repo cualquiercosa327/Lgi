@@ -2,6 +2,8 @@
 #define _GVIEW_PRIV_
 
 #if WIN32NATIVE
+#define _WIN32_WINNT 0x501
+#include "commctrl.h"
 #include "Uxtheme.h"
 #endif
 

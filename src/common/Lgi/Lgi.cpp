@@ -207,6 +207,7 @@ bool RegisterActiveXControl(char *Dll)
 	GLibrary Lib(Dll);
 	if (Lib.IsLoaded())
 	{
+		#ifdef _MSC_VER
 		typedef HRESULT (STDAPICALLTYPE *p_DllRegisterServer)(void);
 
 		p_DllRegisterServer DllRegisterServer = (p_DllRegisterServer)Lib.GetAddress("DllRegisterServer");
@@ -214,6 +215,9 @@ bool RegisterActiveXControl(char *Dll)
 		{
 			return DllRegisterServer() == S_OK;
 		}
+		#else
+		LgiAssert(!"Not impl.");
+		#endif
 	}
 
 	return false;
@@ -762,7 +766,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 		{
 			case LSP_USER_DOWNLOADS:
 			{
-				#if defined WIN32
+				#if defined(WIN32) && defined(_MSC_VER)
 
 				// OMG!!!! Really?
 				
@@ -831,7 +835,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 			}
 			case LSP_USER_DOCUMENTS:
 			{
-				#if defined WIN32
+				#if defined(WIN32) && defined(_MSC_VER)
 
 				GAutoString f(GetWindowsFolder(CSIDL_PERSONAL));
 				if (f)
@@ -1205,7 +1209,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 			}
 			case LSP_DESKTOP:
 			{
-				#if defined(_WINDOWS)
+				#if defined(_WINDOWS) && defined(_MSC_VER)
 
 				GAutoString f(GetWindowsFolder(CSIDL_DESKTOPDIRECTORY));
 				if (f)

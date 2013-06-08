@@ -1,3 +1,4 @@
+
 //////////////////////////////////////////////////////////////////////
 // Includes
 #include <stdio.h>
@@ -1146,7 +1147,8 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 							{
 								int Dx = TabSize - ((X - Ox + TabOrigin) % TabSize);
 								GRect Char(X, b.y1, X + Dx - 1, b.y2);
-								f->_Draw(pDC, X, py, Info[i].Str, 1, &Char, f->WhitespaceColour());
+								GColour WsCol = f->WhitespaceColour();
+								f->_Draw(pDC, X, py, Info[i].Str, 1, &Char, WsCol);
 								X += Dx;
 							}
 						}
@@ -1154,7 +1156,8 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 					else
 					{
 						// Draw the character(s)
-						f->_Draw(pDC, px, py, Info[i].Str, Info[i].Len, &b, f->Fore());
+						GColour Fg = f->Fore();
+						f->_Draw(pDC, px, py, Info[i].Str, Info[i].Len, &b, Fg);
 					}
 				}
 			}
@@ -1184,7 +1187,8 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 				b.y2 = py + Y() - 1;
 			}
 
-			Font->_Draw(pDC, px, py, GDisplayStringDots, 3, &b, Font->Fore());
+			GColour Fg = Font->Fore();
+			Font->_Draw(pDC, px, py, GDisplayStringDots, 3, &b, Fg);
 		}
 
 		pDC->Colour(Old);

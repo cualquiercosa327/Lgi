@@ -313,10 +313,12 @@ DumpTime("exception handler");
 			}
 		}
 		
+		#ifdef _MSC_VER
 		if (!d->ThemeAware)
 		{
 			SetThemeAppProperties(0);
 		}
+		#endif
 	}
 		
 DumpTime("init common ctrls");

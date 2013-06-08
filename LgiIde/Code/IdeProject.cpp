@@ -3164,7 +3164,7 @@ bool IdeProject::GetDependencies(const char *SourceFile, GArray<char*> &IncPaths
 bool IdeProject::CreateMakefile()
 {
 	#if defined WIN32
-	char *LinkerFlags = ",--disable-auto-import";
+	char *LinkerFlags = ",--enable-auto-import";
 	#else
 	char *LinkerFlags = ",-soname,$(TargetFile),-export-dynamic,-R.";
 	#endif
@@ -3453,13 +3453,11 @@ bool IdeProject::CreateMakefile()
 									ToUnixPath(Rel);
 									
 									// Add tag to target name
-									char *Ext = LgiGetExtension(t);
-									if (Ext)
-									{
-										Ext--;
-										memmove(Ext + 6, Ext, strlen(Ext)+1);
-										memcpy(Ext, "$(Tag)", 6);
-									}
+									GToken Parts(t, ".");
+									if (Parts.Length() == 2)
+										sprintf_s(t, sizeof(t), "lib%s$(Tag).%s", Parts[0], Parts[1]);
+									else
+										LgiAssert(0);
 
 									sprintf(Buf, "%s/$(BuildDir)/%s", Rel, t);
 									m.Print(" %s", Buf);

@@ -22,7 +22,9 @@
 #else
 #include "Lgi.h"
 #include <objbase.h>
+#ifdef _MSC_VER
 #include <IImgCtx.h>
+#endif
 #endif
 
 int FindHeader(int Offset, const char *Str, GStream *f)
@@ -1755,8 +1757,8 @@ GSurface *GdcDevice::Load(char *Name, bool UseOSLoader)
 			CFRelease(FileUrl);
 		}
 
-		#elif WIN32NATIVE
-
+		#elif WIN32NATIVE && defined(_MSC_VER)
+		
 		char *Ext = LgiGetExtension(Name);
 		if (Ext && stricmp(Ext, "gif") && stricmp(Ext, "png"))
 		{

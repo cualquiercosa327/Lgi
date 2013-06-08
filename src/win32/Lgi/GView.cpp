@@ -1,3 +1,4 @@
+
 /*hdr
 **      FILE:           GView.cpp
 **      AUTHOR:         Matthew Allen
@@ -1156,7 +1157,7 @@ bool SysOnKey(GView *w, GMessage *m)
 	return false;
 }
 
-#if 1
+#ifdef _MSC_VER
 #include "vsstyle.h"
 
 void GView::DrawThemeBorder(GSurface *pDC, GRect &r)

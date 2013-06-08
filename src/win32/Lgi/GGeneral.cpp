@@ -1,3 +1,4 @@
+
 // Win32 Implementation of General LGI functions
 #include <stdio.h>
 #include <stdlib.h>
@@ -872,7 +873,7 @@ void _lgi_assert(bool b, const char *test, const char *file, int line)
 				case 2:
 				{
 					// Bring up the debugger...
-					#ifdef _WIN64
+					#if defined(_WIN64) || !defined(_MSC_VER)
 					assert(0);
 					#else
 					_asm int 3
