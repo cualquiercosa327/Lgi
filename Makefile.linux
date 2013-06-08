@@ -72,6 +72,8 @@ Depends =	GDateTime.o \
 			GTrayIcon.o \
 			Lgi.o \
 			LgiMsg.o \
+			Gel.o \
+			GPath.o \
 			GAlert.o \
 			GFindReplace.o \
 			GFontSelect.o \
@@ -136,15 +138,14 @@ Depends =	GDateTime.o \
 			GTree.o \
 			INet.o \
 			INetTools.o \
-			md5.o \
-			Gel.o \
-			GPath.o
+			md5.o
 
 # Target
 TargetFile = lib$(Target)$(Tag).so
 $(TargetFile) : outputfolder $(Depends)
 	@echo Linking $(TargetFile) [$(Build)]...
 	$(CPP)$s -shared \
+		 \
 		-o $(BuildDir)/$(TargetFile) \
 		$(addprefix $(BuildDir)/,$(Depends)) \
 		$(Libs)
@@ -158,14 +159,6 @@ outputfolder :
 clean :
 	rm -f $(BuildDir)/*.o $(BuildDir)/$(TargetFile)
 	@echo Cleaned $(BuildDir)
-
-Gel.o : ./src/common/Skins/Gel/Gel.cpp ./include/common/Lgi.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-GPath.o : ./src/common/Gdc2/Path/GPath.cpp ./include/common/Lgi.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GDateTime.o : ./src/common/General/GDateTime.cpp ./include/common/Lgi.h \
 	./include/common/GDateTime.h \
@@ -389,6 +382,22 @@ Lgi.o : ./src/common/Lgi/Lgi.cpp ./include/common/GRegKey.h \
 LgiMsg.o : ./src/common/Lgi/LgiMsg.cpp ./include/common/Lgi.h \
 	./include/common/GTextLabel.h \
 	./include/common/GButton.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+Gel.o : ./src/common/Skins/Gel/Gel.cpp ./include/common/Lgi.h \
+	./include/common/GSkinEngine.h \
+	./include/common/GPath.h \
+	./include/common/GButton.h \
+	./include/common/GCombo.h \
+	./include/common/GCheckBox.h \
+	./include/common/GRadioGroup.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GPath.o : ./src/common/Gdc2/Path/GPath.cpp ./include/common/Lgi.h \
+	./include/common/GPath.h \
+	./include/common/GdiLeak.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -937,6 +946,8 @@ GMenuImpl.h : ./include/common/GPopup.h
 
 GArray.h : ./include/common/LgiDefs.h \
 	./include/common/GMem.h
+
+GPath.h : ./include/common/GMatrix.h
 
 Gdc2.h : ./include/linux/Gtk/LgiOsDefs.h \
 	./include/common/LgiInc.h \

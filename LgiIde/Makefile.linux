@@ -109,6 +109,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../include/common/GList.h \
 	../include/common/GListItemCheckBox.h \
 	../include/common/GListItemRadioBtn.h \
+	../include/common/GMatrix.h \
 	../include/common/GMem.h \
 	../include/common/GMenu.h \
 	../include/common/GMenuImpl.h \
@@ -118,6 +119,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../include/common/GOptionsFile.h \
 	../include/common/GPanel.h \
 	../include/common/GPassword.h \
+	../include/common/GPath.h \
 	../include/common/GPopup.h \
 	../include/common/GPrinter.h \
 	../include/common/GProcess.h \
@@ -184,6 +186,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../src/common/Gdc2/GdcCommon.cpp \
 	../src/common/Gdc2/GRect.cpp \
 	../src/common/Gdc2/GSurface.cpp \
+	../src/common/Gdc2/Path/GPath.cpp \
 	../src/common/Gdc2/Tools/GColourReduce.cpp \
 	../src/common/Gdc2/Tools/GdcTools.cpp \
 	../src/common/General/GContainers.cpp \
@@ -225,6 +228,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../src/common/Lgi/LgiRand.cpp \
 	../src/common/Resource/LgiRes.cpp \
 	../src/common/Resource/Res.cpp \
+	../src/common/Skins/Gel/Gel.cpp \
 	../src/common/Text/GDocView.cpp \
 	../src/common/Text/GString.cpp \
 	../src/common/Text/GTextView3.cpp \
