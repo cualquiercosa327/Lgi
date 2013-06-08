@@ -77,6 +77,7 @@
 #define IDC_STR									192
 #define IDC_SHOW_CURRENT_ONLY					195
 #define IDD_PROJECT_SETTINGS2					199
+#define IDC_HAIKU								200
 #define IDC_SEARCH								202
 #define IDC_CLEAR_SEARCH						203
 #define IDC_SUB_TABLE							206

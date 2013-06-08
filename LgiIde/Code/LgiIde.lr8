@@ -143,6 +143,7 @@
 		<String Ref="195" Cid="195" Define="IDC_SHOW_CURRENT_ONLY" en="Show only symbols in current project" />
 		<String Ref="196" Cid="117" Define="IDC_LOG" />
 		<String Ref="199" Cid="199" Define="IDD_PROJECT_SETTINGS2" en="Project Settings" />
+		<String Ref="200" Cid="200" Define="IDC_HAIKU" en="Haiku" />
 		<String Ref="201" Cid="202" Define="IDC_SEARCH" />
 		<String Ref="202" Cid="203" Define="IDC_CLEAR_SEARCH" en="X" />
 		<String Ref="204" Cid="563" Define="IDC_SETTINGS" />
@@ -198,10 +199,11 @@
 			</tr>
 			<tr>
 				<td colspan="2">
-					<Group pos="14,114,286,190" ref="37">
+					<Group pos="14,112,286,216" ref="37">
 						<CheckBox pos="84,14,265,27" ref="78" />
 						<CheckBox pos="84,35,223,48" ref="79" />
 						<CheckBox pos="84,56,265,69" ref="80" />
+						<CheckBox pos="84,77,181,90" ref="200" />
 					</Group>
 				</td>
 			</tr>
