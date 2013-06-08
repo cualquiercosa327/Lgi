@@ -273,18 +273,39 @@ static gboolean lgi_widget_key_event(GtkWidget *wid, GdkEventKey *e)
         switch (k.c16)
         {
             case GDK_ISO_Left_Tab:
-            case GDK_Tab:       k.vkey = VK_TAB; k.IsChar = true; k.c16 = k.vkey = '\t'; break;
-            case GDK_Return:    k.vkey = VK_RETURN; k.IsChar = true; break;
-            case GDK_BackSpace: k.vkey = VK_BACKSPACE; k.IsChar = !k.Ctrl() && !k.Alt(); break;
-            case GDK_Left:      k.vkey = VK_LEFT; break;
-            case GDK_Right:     k.vkey = VK_RIGHT; break;
-            case GDK_Up:        k.vkey = VK_UP; break;
-            case GDK_Down:      k.vkey = VK_DOWN; break;
-            case GDK_Home:      k.vkey = VK_HOME; break;
-            case GDK_End:       k.vkey = VK_END; break;
+            case GDK_Tab:
+            	k.IsChar = true;
+            	k.c16 = k.vkey = VK_TAB;
+            	break;
+            case GDK_Return:
+            	k.IsChar = true;
+            	k.c16 = k.vkey = VK_RETURN;
+            	break;
+            case GDK_BackSpace:
+            	k.c16 = k.vkey = VK_BACKSPACE;
+            	k.IsChar = !k.Ctrl() && !k.Alt();
+            	break;
+            case GDK_Left:
+            	k.vkey = VK_LEFT;
+            	break;
+            case GDK_Right:
+            	k.vkey = VK_RIGHT;
+            	break;
+            case GDK_Up:
+            	k.vkey = VK_UP;
+            	break;
+            case GDK_Down:
+            	k.vkey = VK_DOWN;
+            	break;
+            case GDK_Home:
+            	k.vkey = VK_HOME;
+            	break;
+            case GDK_End:
+            	k.vkey = VK_END;
+            	break;
         }
         
-        k.Trace("lgi_widget_key_event");
+        // k.Trace("lgi_widget_key_event");
 
         GWindow *w = v->GetWindow();
         if (w)

@@ -51,7 +51,6 @@ bool BuildHeaderList(char *Cpp, GArray<char*> &Headers, GArray<char*> &IncPaths,
 					if (Short)
 					{
 						char *File = FindHeader(Short, IncPaths);
-printf("Found hdr '%s' -> '%s'\n", Short, File);
 						if (File)
 						{
 							bool Has = false;

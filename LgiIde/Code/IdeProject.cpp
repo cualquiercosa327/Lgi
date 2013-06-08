@@ -3101,8 +3101,15 @@ bool IdeProject::GetAllDependencies(GArray<char*> &Files)
 				{
 					// Add include to dependencies...
 					char *File = SrcDeps[n];
-					if (!Deps.Find(File))
+
+					if (LgiIsRelativePath(File))
 					{
+						LgiMakePath(Full, sizeof(Full), Base, File);
+						File = Full;
+					}
+
+					if (!Deps.Find(File))
+					{						
 						Deps.Add(File, new Dependency(File));
 					}
 				}
@@ -3214,9 +3221,10 @@ bool IdeProject::CreateMakefile()
 					"Defs = -DLINUX -D_REENTRANT");
 			#endif
 			
-			if (d->Settings.GetStr(ProjDefines))
+			const char *PDefs = d->Settings.GetStr(ProjDefines);
+			if (ValidStr(PDefs))
 			{
-				GToken Defs(d->Settings.GetStr(ProjDefines), " ;,");
+				GToken Defs(PDefs, " ;,\r\n");
 				for (int i=0; i<Defs.Length(); i++)
 				{
 					m.Print(" -D%s", Defs[i]);
@@ -3239,23 +3247,27 @@ bool IdeProject::CreateMakefile()
 					"Libs ="
 					);
 
-			const char *ProjLibPaths = d->Settings.GetStr(ProjLibraryPaths);
-			if (ValidStr(ProjLibPaths))
+			const char *PLibPaths = d->Settings.GetStr(ProjLibraryPaths);
+			if (ValidStr(PLibPaths))
 			{
-				GToken LibPaths(ProjLibPaths, " \r\n");
+				GToken LibPaths(PLibPaths, " \r\n");
 				for (int i=0; i<LibPaths.Length(); i++)
 				{
-					m.Print(" \\\n			-L%s", ToUnixPath(LibPaths[i]));
+					m.Print(" \\\n\t-L%s", ToUnixPath(LibPaths[i]));
 				}
 			}
 
-			const char *ProjLibs = d->Settings.GetStr(ProjLibraries);
-			if (ValidStr(ProjLibs))
+			const char *PLibs = d->Settings.GetStr(ProjLibraries);
+			if (ValidStr(PLibs))
 			{
-				GToken Libs(ProjLibs, " \r\n");
+				GToken Libs(PLibs, "\r\n");
 				for (int i=0; i<Libs.Length(); i++)
 				{
-					m.Print(" \\\n			-l%s", ToUnixPath(Libs[i]));
+					char *l = Libs[i];
+					if (*l == '`' || *l == '-')
+						m.Print(" \\\n\t%s", Libs[i]);
+					else
+						m.Print(" \\\n\t-l%s", ToUnixPath(Libs[i]));
 				}
 			}
 
@@ -3273,12 +3285,12 @@ bool IdeProject::CreateMakefile()
 						if (dot)
 							*dot = 0;
 														
-						m.Print(" \\\n			-l%s", ToUnixPath(t));
+						m.Print(" \\\n\t-l%s$(Tag)", ToUnixPath(t));
 
 						GAutoString Base = d->GetBasePath();
 						if (Base)
 						{
-							m.Print(" \\\n			-L%s/$(BuildDir)", ToUnixPath(Base));
+							m.Print(" \\\n\t-L%s/$(BuildDir)", ToUnixPath(Base));
 						}
 					}
 				}
@@ -3377,7 +3389,10 @@ bool IdeProject::CreateMakefile()
 				Incs.Sort(StrCmp, 0);
 				for (i = Incs.First(); i; i = Incs.Next())
 				{
-					m.Print(" \\\n\t\t\t-I%s", ToUnixPath(i));
+					if (*i == '`')
+						m.Print(" \\\n\t%s", i);
+					else
+						m.Print(" \\\n\t-I%s", ToUnixPath(i));
 				}
 				
 				m.Print("\n\n");
@@ -3436,6 +3451,15 @@ bool IdeProject::CreateMakefile()
 										strsafecpy(Rel, DepBase, sizeof(Rel));
 									}
 									ToUnixPath(Rel);
+									
+									// Add tag to target name
+									char *Ext = LgiGetExtension(t);
+									if (Ext)
+									{
+										Ext--;
+										memmove(Ext + 6, Ext, strlen(Ext)+1);
+										memcpy(Ext, "$(Tag)", 6);
+									}
 
 									sprintf(Buf, "%s/$(BuildDir)/%s", Rel, t);
 									m.Print(" %s", Buf);
@@ -3476,13 +3500,13 @@ bool IdeProject::CreateMakefile()
 
 							m.Print(" outputfolder $(Depends)\n"
 									"	@echo Linking $(Target) [$(Build)]...\n"
-									"	$(CC)%s%s -Wl%s -f -o \\\n"
+									"	$(CPP)%s%s %s%s -o \\\n"
 									"		$(Target) $(addprefix $(BuildDir)/,$(Depends)) $(Libs)\n"
 									"	@echo Done.\n"
 									"\n",
 									ExtraLinkFlags,
 									ExeFlags,
-									LinkerFlags);
+									LinkerFlags ? "-Wl" : "", LinkerFlags);
 
 							GAutoString r(Rules.NewStr());
 							if (r)
@@ -3513,15 +3537,15 @@ bool IdeProject::CreateMakefile()
 							m.Print("TargetFile = lib$(Target)$(Tag).%s\n"
 									"$(TargetFile) : outputfolder $(Depends)\n"
 									"	@echo Linking $(TargetFile) [$(Build)]...\n"
-									"	$(CC)$s -shared \\\n"
-									"		-Wl%s \\\n"
+									"	$(CPP)$s -shared \\\n"
+									"		%s%s \\\n"
 									"		-o $(BuildDir)/$(TargetFile) \\\n"
 									"		$(addprefix $(BuildDir)/,$(Depends)) \\\n"
 									"		$(Libs)\n"
 									"	@echo Done.\n"
 									"\n",
 									LGI_LIBRARY_EXT,
-									ExtraLinkFlags,
+									ExtraLinkFlags ? "-Wl" : "", ExtraLinkFlags,
 									LinkerFlags);
 
 							// Cleaning target
@@ -3604,7 +3628,7 @@ bool IdeProject::CreateMakefile()
 								const char *Compiler = Src && !stricmp(Ext, "c") ? "CC" : "CPP";
 
 								m.Print("\n"
-										"	@echo $(<F)\n"
+										"	@echo $(<F) [$(Build)]\n"
 										"	$(%s) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)\n"
 										"\n",
 										Compiler);

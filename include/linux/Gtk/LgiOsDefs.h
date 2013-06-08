@@ -381,10 +381,10 @@ typedef enum {
 	/* The keyboard syms have been cleverly chosen to map to ASCII */
 	VK_UNKNOWN		= 0,
 	VK_FIRST		= 0,
-	VK_BACKSPACE	= 0xff08,
-	VK_TAB			= 0x09,
+	VK_BACKSPACE	= 8,
+	VK_TAB			= 9,
 	VK_CLEAR		= 12,
-	VK_RETURN		= 0xff0d,
+	VK_RETURN		= 13,
 	VK_PAUSE		= 19,
 	VK_ESCAPE		= 0xff1b,
 	VK_SPACE		= 32,
