@@ -82,6 +82,10 @@ void FindInFiles::OnCreate()
 		
 		SerializeHistory(TypeHistory, "TypeHist", App->GetOptions(), false);
 		SerializeHistory(FolderHistory, "FolderHist", App->GetOptions(), false);
+		
+		GViewI *v;
+		if (GetViewById(IDC_LOOK_FOR, v))
+			v->Focus(true);
 	}
 }
 

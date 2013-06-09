@@ -504,6 +504,14 @@ int FindSymbolDlg::OnNotify(GViewI *v, int f)
 			}
 			break;
 		}
+		case IDC_RESULTS:
+		{
+			if (f == GLIST_NOTIFY_DBL_CLICK)
+			{
+				// Fall throu
+			}
+			else break;
+		}
 		case IDOK:
 		{
 			if (d->Lst)
