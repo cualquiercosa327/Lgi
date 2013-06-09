@@ -149,17 +149,23 @@ GDialogCallback(GtkWidget   *widget,
 
 	switch (event->type)
 	{
+		case GDK_DELETE:
+		{
+			printf("GDK_DELETE\n");
+			This->Quit();
+			return false;
+		}
 		case GDK_DESTROY:
 		{
 			delete This;
-			return TRUE;
+			return true;
 		}
 		case GDK_CONFIGURE:
 		{
 			GdkEventConfigure *c = (GdkEventConfigure*)event;
 			This->Pos.Set(c->x, c->y, c->x+c->width-1, c->y+c->height-1);
 			This->OnPosChange();
-			return FALSE;
+			return false;
 			break;
 		}
 		case GDK_CLIENT_EVENT:
@@ -175,7 +181,7 @@ GDialogCallback(GtkWidget   *widget,
 		}
 	}
 	
-	return TRUE;
+	return true;
 }
 
 int GDialog::DoModal(OsView OverrideParent)
@@ -238,6 +244,10 @@ int GDialog::DoModal(OsView OverrideParent)
 	d->IsModal = true;
 
 	g_signal_connect(	G_OBJECT(Wnd),
+						"delete_event",
+						G_CALLBACK(GDialogCallback),
+						this);
+	g_signal_connect(	G_OBJECT(Wnd),
 						"destroy",
 						G_CALLBACK(GDialogCallback),
 						this);
@@ -253,6 +263,7 @@ int GDialog::DoModal(OsView OverrideParent)
 	// gint r = gtk_dialog_run(GTK_DIALOG(Wnd));
 	gtk_widget_show(GTK_WIDGET(Wnd));
 	gtk_main();
+printf("Dlg: gtk_main done.\n");
 	return d->ModalStatus;
 }
 
@@ -272,6 +283,7 @@ void _Dump(GViewI *v, int Depth = 0)
 
 void GDialog::EndModal(int Code)
 {
+printf("EndModal(%i)\n", Code);
 	if (d->IsModal)
 	{
 		d->IsModal = false;

@@ -3,46 +3,46 @@
 	<Node Name="Source Files" Type="1" Platforms="7" Open="1">
 		<Node Name="Ftp" Type="1" Platforms="7" Open="0">
 			<Node File=".\Code\FtpThread.cpp" Type="2" Platforms="7" />
-			<Node File="./Code/FtpThread.h" Type="3" Platforms="7" />
+			<Node File=".\Code\FtpThread.h" Type="3" Platforms="7" />
 			<Node File="..\src\common\INet\IFtp.cpp" Type="2" Platforms="7" />
-			<Node File="../include/common/IFtp.h" Type="3" Platforms="7" />
+			<Node File="..\include\common\IFtp.h" Type="3" Platforms="7" />
 		</Node>
-		<Node Name="Search" Type="1" Platforms="7" Open="0">
+		<Node Name="Search" Type="1" Platforms="7" Open="1">
 			<Node File=".\Code\FindInFiles.cpp" Type="2" Platforms="7" />
-			<Node File="./Code/FindInFiles.h" Type="3" Platforms="7" />
+			<Node File=".\Code\FindInFiles.h" Type="3" Platforms="7" />
 			<Node File=".\Code\FindSymbol.cpp" Type="2" Platforms="7" />
-			<Node File="./Code/FindSymbol.h" Type="3" Platforms="7" />
+			<Node File=".\Code\FindSymbol.h" Type="3" Platforms="7" />
 		</Node>
-		<Node Name="Source Code" Type="1" Platforms="7" Open="0">
+		<Node Name="Source Code" Type="1" Platforms="7" Open="1">
 			<Node File=".\Code\SysCharSupport.cpp" Type="2" Platforms="7" />
 			<Node File="..\src\common\Coding\GLexCpp.cpp" Type="2" Platforms="7" />
 		</Node>
-		<Node File="./Code/GHistory.cpp" Type="2" Platforms="7" />
-		<Node File="./Code/GHistory.h" Type="3" Platforms="7" />
-		<Node File="./Code/IdeDoc.cpp" Type="2" Platforms="7" />
-		<Node File="./Code/IdeDoc.h" Type="3" Platforms="7" />
-		<Node File="./Code/IdeProject.cpp" Type="2" Platforms="7" />
-		<Node File="./Code/IdeProject.h" Type="3" Platforms="7" />
-		<Node File="./Code/IdeProjectSettings.cpp" Type="2" Platforms="15" />
-		<Node File="./Code/LgiIde.cpp" Type="2" Platforms="7" />
-		<Node File="./Code/LgiIde.h" Type="3" Platforms="7" />
-		<Node File="./Code/LgiUtils.cpp" Type="2" Platforms="7" />
-		<Node File="./Code/MemDumpViewer.cpp" Type="2" Platforms="7" />
-		<Node File="./Code/SpaceTabConv.cpp" Type="2" Platforms="7" />
-		<Node File="./Code/SpaceTabConv.h" Type="3" Platforms="7" />
+		<Node File=".\Code\GHistory.cpp" Type="2" Platforms="7" />
+		<Node File=".\Code\GHistory.h" Type="3" Platforms="7" />
+		<Node File=".\Code\IdeDoc.cpp" Type="2" Platforms="7" />
+		<Node File=".\Code\IdeDoc.h" Type="3" Platforms="7" />
+		<Node File=".\Code\IdeProject.cpp" Type="2" Platforms="7" />
+		<Node File=".\Code\IdeProject.h" Type="3" Platforms="7" />
+		<Node File=".\Code\IdeProjectSettings.cpp" Type="2" Platforms="15" />
+		<Node File=".\Code\LgiIde.cpp" Type="2" Platforms="7" />
+		<Node File=".\Code\LgiIde.h" Type="3" Platforms="7" />
+		<Node File=".\Code\LgiUtils.cpp" Type="2" Platforms="7" />
+		<Node File=".\Code\MemDumpViewer.cpp" Type="2" Platforms="7" />
+		<Node File=".\Code\SpaceTabConv.cpp" Type="2" Platforms="7" />
+		<Node File=".\Code\SpaceTabConv.h" Type="3" Platforms="7" />
 	</Node>
 	<Node Name="Lgi" Type="1" Platforms="7" Open="1">
-		<Node File="../src/common/Text/GDocView.cpp" Type="2" Platforms="7" />
-		<Node File="../src/common/Lgi/GMdi.cpp" Type="2" Platforms="7" />
-		<Node File="../src/common/Text/GTextView3.cpp" Type="2" Platforms="7" />
-		<Node File="../src/common/Lgi/LgiMain.cpp" Type="2" Platforms="7" />
-		<Node File="../src/common/Gdc2/Filters/Png.cpp" Type="2" Platforms="7" />
+		<Node File="..\src\common\Text\GDocView.cpp" Type="2" Platforms="7" />
+		<Node File="..\src\common\Lgi\GMdi.cpp" Type="2" Platforms="7" />
+		<Node File="..\src\common\Text\GTextView3.cpp" Type="2" Platforms="7" />
+		<Node File="..\src\common\Lgi\LgiMain.cpp" Type="2" Platforms="7" />
+		<Node File="..\src\common\Gdc2\Filters\Png.cpp" Type="2" Platforms="7" />
 	</Node>
 	<Node Name="Resources" Type="1" Platforms="7" Open="0">
 		<Node File="./Code/resource.h" Type="3" Platforms="7" />
 		<Node File=".\Code\Script1.rc" Type="5" Platforms="7" />
 	</Node>
-	<Node File="../Lgi.xml" Type="4" Platforms="15" />
+	<Node File="..\Lgi.xml" Type="4" Platforms="15" />
 	<Settings>
 		<General>
 			<Makefile>
@@ -50,14 +50,14 @@
 				<Linux>Makefile.linux</Linux>
 			</Makefile>
 			<Executable>
-				<Linux />
+				<Windows />
 			</Executable>
 			<Arguments>
 				<All />
 			</Arguments>
 			<Defines>
 				<All />
-				<Linux />
+				<Windows />
 			</Defines>
 			<Compiler>
 				<Windows>MingW</Windows>
@@ -99,7 +99,7 @@
 			</Libraries>
 			<LibraryPaths>
 				<All />
-				<Linux />
+				<Windows />
 			</LibraryPaths>
 			<TargetType>
 				<All>Executable</All>

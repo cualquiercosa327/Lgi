@@ -700,7 +700,7 @@ public:
 								o->SetCursor(NumIndex + 1, true);
 								
 								char *Context8 = LgiNewUtf16To8(Context);
-								ViewMsg(File, LineNumber - 1, Context8);
+								ViewMsg(File, LineNumber, Context8);
 								DeleteArray(Context8);
 							}
 							DeleteArray(File);
