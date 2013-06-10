@@ -691,6 +691,7 @@ bool GPopup::Attach(GViewI *p)
 			#endif
 
             #if 1
+            // printf("Popup connect Wnd=%p, this=%p\n", GTK_WIDGET(Wnd), this);
             g_signal_connect(	G_OBJECT(Wnd),
 								"button-press-event",
 								G_CALLBACK(PopupEvent),

@@ -165,11 +165,7 @@ void GWindow::OnGtkDelete()
 	_View = NULL;
 }
 
-static
-gboolean
-GWindowCallback(GtkWidget   *widget,
-				GdkEvent    *event,
-				GWindow     *This)
+gboolean GWindow::OnGtkEvent(GtkWidget *widget, GdkEvent *event)
 {
 	if (!event)
 	{
@@ -177,55 +173,47 @@ GWindowCallback(GtkWidget   *widget,
 		return FALSE;
 	}
 
+	// printf("%s::OnGtkEvent(%i)\n", GetClass(), event->type);
 	switch (event->type)
 	{
 		case GDK_DELETE:
 		{
-			bool Close = This->OnRequestClose(false);
+			bool Close = OnRequestClose(false);
 			if (Close)
 			{
-				This->OnGtkDelete();
-				delete This;
+				OnGtkDelete();
+				delete this;
 			}
 			return !Close;
 		}
 		case GDK_DESTROY:
 		{
-			delete This;
-			return TRUE;
+			delete this;
+			return true;
 		}
 		case GDK_CONFIGURE:
 		{
 			GdkEventConfigure *c = (GdkEventConfigure*)event;
-			This->Pos.Set(c->x, c->y, c->x+c->width-1, c->y+c->height-1);
-			This->OnPosChange();
+			Pos.Set(c->x, c->y, c->x+c->width-1, c->y+c->height-1);
+			OnPosChange();
 			return FALSE;
 			break;
 		}
 		case GDK_FOCUS_CHANGE:
 		{
-			/*
-			char buf[1024];
-			int ch = 0;
-			::GArray<GViewI*> a;
-			for (GViewI *i = This; i; i = i->GetParent())
-			{
-				a.Add(i);
-			}
-			for (int n=a.Length()-1; n>=0; n--)
-			{
-				ch += sprintf_s(buf + ch, sizeof(buf) - ch, "> %s \"%-.8s\" ", a[n]->GetClass(), a[n]->Name());
-			}
-			LgiTrace("%s : gwnd_focus=%i\n", buf, event->focus_change.in);
-			*/
-			
-			This->d->Active = event->focus_change.in;
+			d->Active = event->focus_change.in;
+			#if 0
+			printf("%s/%s::GDK_FOCUS_CHANGE(%i)\n",
+				GetClass(),
+				Name(),
+				event->focus_change.in);
+			#endif
 			break;
 		}
 		case GDK_CLIENT_EVENT:
 		{
 			GMessage m(event);
-			This->OnEvent(&m);
+			OnEvent(&m);
 			break;
 		}
 		default:
@@ -235,14 +223,7 @@ GWindowCallback(GtkWidget   *widget,
 		}
 	}
 	
-	return TRUE;
-}
-
-static gboolean GWindowClientEvent(GtkWidget *widget, GdkEventClient *ev, GWindow *Wnd)
-{
-	GMessage m(ev->data.l[0], ev->data.l[1], ev->data.l[2]);
-    Wnd->OnEvent(&m);
-	return FALSE;
+	return true;
 }
 
 bool GWindow::Attach(GViewI *p)
@@ -254,35 +235,36 @@ bool GWindow::Attach(GViewI *p)
 	if (Wnd)
 	{
 		_View = GTK_WIDGET(Wnd);
+		GViewI *i = this;
 		
 		g_signal_connect(	G_OBJECT(Wnd),
 							"delete_event",
-							G_CALLBACK(GWindowCallback),
-							this);
+							G_CALLBACK(GtkViewCallback),
+							i);
 		g_signal_connect(	G_OBJECT(Wnd),
 							"destroy",
-							G_CALLBACK(GWindowCallback),
-							this);
+							G_CALLBACK(GtkViewCallback),
+							i);
 		g_signal_connect(	G_OBJECT(Wnd),
 							"configure-event",
-							G_CALLBACK(GWindowCallback),
-							this);
+							G_CALLBACK(GtkViewCallback),
+							i);
 		g_signal_connect(	G_OBJECT(Wnd),
 							"button-press-event",
-							G_CALLBACK(GWindowCallback),
-							this);
+							G_CALLBACK(GtkViewCallback),
+							i);
 		g_signal_connect(	G_OBJECT(Wnd),
 							"focus-in-event",
-							G_CALLBACK(GWindowCallback),
-							this);
+							G_CALLBACK(GtkViewCallback),
+							i);
 		g_signal_connect(	G_OBJECT(Wnd),
 							"focus-out-event",
-							G_CALLBACK(GWindowCallback),
-							this);
+							G_CALLBACK(GtkViewCallback),
+							i);
 		g_signal_connect(	G_OBJECT(Wnd),
 							"client-event",
-							G_CALLBACK(GWindowClientEvent),
-							this);
+							G_CALLBACK(GtkViewCallback),
+							i);
 
 		gtk_window_set_default_size(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
 		gtk_widget_add_events(GTK_WIDGET(Wnd), GDK_ALL_EVENTS_MASK);
@@ -1183,18 +1165,21 @@ void GWindow::SetFocus(GViewI *ctrl, FocusType type)
 				GView *gv = d->Focus->GetGView();
 				if (gv)
 				{
+					#if DEBUG_SETFOCUS
+					GAutoString _foc = DescribeView(d->Focus);
+					LgiTrace(".....defocus GView: %s\n", _foc.Get());
+					#endif
 					gv->_Focus(false);
 				}
 				else if (IsActive())
 				{
+					#if DEBUG_SETFOCUS
+					GAutoString _foc = DescribeView(d->Focus);
+					LgiTrace(".....defocus view: %s (active=%i)\n", _foc.Get(), IsActive());
+					#endif
 					d->Focus->OnFocus(false);
 					d->Focus->Invalidate();
 				}
-
-				#if DEBUG_SETFOCUS
-				GAutoString _foc = DescribeView(d->Focus);
-				LgiTrace(".....defocus: %s\n", _foc.Get());
-				#endif
 			}
 
 			d->Focus = ctrl;
@@ -1204,21 +1189,30 @@ void GWindow::SetFocus(GViewI *ctrl, FocusType type)
 				GView *gv = d->Focus->GetGView();
 				if (gv)
 				{
+					#if DEBUG_SETFOCUS
+					GAutoString _set = DescribeView(d->Focus);
+					LgiTrace("GWindow::SetFocus(%s, %s) focusing GView %p\n",
+						_set.Get(),
+						TypeName,
+						d->Focus->Handle());
+					#endif
+
 					gv->_Focus(true);
 				}
 				else if (IsActive())
 				{			
+					#if DEBUG_SETFOCUS
+					GAutoString _set = DescribeView(d->Focus);
+					LgiTrace("GWindow::SetFocus(%s, %s) focusing nonGView %p (active=%i)\n",
+						_set.Get(),
+						TypeName,
+						d->Focus->Handle(),
+						IsActive());
+					#endif
+
 					d->Focus->OnFocus(true);
 					d->Focus->Invalidate();
 				}
-
-				#if DEBUG_SETFOCUS
-				GAutoString _set = DescribeView(d->Focus);
-				LgiTrace("GWindow::SetFocus(%s, %s) focusing %p\n",
-					_set.Get(),
-					TypeName,
-					d->Focus->Handle());
-				#endif
 			}
 			break;
 		}
@@ -1232,6 +1226,10 @@ void GWindow::SetFocus(GViewI *ctrl, FocusType type)
 				TypeName,
 				_Focus.Get());
 			#endif
+			if (ctrl == d->Focus)
+			{
+				d->Focus = NULL;
+			}
 			break;
 		}
 		case ViewDelete:

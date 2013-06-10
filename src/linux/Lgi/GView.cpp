@@ -113,6 +113,7 @@ void _lgi_yield()
 ////////////////////////////////////////////////////////////////////////////
 bool LgiIsKeyDown(int Key)
 {
+	LgiAssert(0);
 	return false;
 }
 
@@ -428,6 +429,26 @@ bool GView::_Mouse(GMouse &m, bool Move)
 	}
 	
 	return true;
+}
+
+gboolean GtkViewCallback(GtkWidget *widget, GdkEvent *event, GView *This)
+{
+	#if 0
+	printf("GtkViewCallback, widget=%p, event=%p, event=%x, This=%p\n",
+		widget, event,
+		event->type, This);
+	#endif
+	
+	if (event->type < 0 || event->type > 1000)
+		return false;
+
+	return This->OnGtkEvent(widget, event);
+}
+
+gboolean GView::OnGtkEvent(GtkWidget *widget, GdkEvent *event)
+{
+	printf("GView::OnGtkEvent ?????\n");
+	return false;
 }
 
 GRect &GView::GetClient(bool ClientSpace)

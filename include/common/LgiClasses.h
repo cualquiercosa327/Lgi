@@ -389,9 +389,10 @@ class LgiClass GView : virtual public GViewI, virtual public GBase
     friend Gtk::gboolean lgi_widget_click(Gtk::GtkWidget *widget, Gtk::GdkEventButton *ev);
     friend Gtk::gboolean lgi_widget_motion(Gtk::GtkWidget *widget, Gtk::GdkEventMotion *ev);
 	friend Gtk::gboolean GViewCallback(Gtk::GtkWidget *widget, Gtk::GdkEvent  *event, GView *view);
-	friend Gtk::gboolean GWindowCallback(Gtk::GtkWidget *widget, Gtk::GdkEvent *event, GWindow *wnd);
-	friend Gtk::gboolean GDialogCallback(Gtk::GtkWidget *widget, Gtk::GdkEvent *event, GDialog *dlg);
 	friend Gtk::gboolean PopupEvent(Gtk::GtkWidget *widget, Gtk::GdkEvent *event, class GPopup *This);
+	friend Gtk::gboolean GtkViewCallback(Gtk::GtkWidget *widget, Gtk::GdkEvent *event, GView *This);
+	
+	virtual Gtk::gboolean OnGtkEvent(Gtk::GtkWidget *widget, Gtk::GdkEvent *event);
 
 	#elif defined WIN32
 
@@ -1244,11 +1245,11 @@ protected:
 	#elif defined __GTK_H__
 
 	friend class GMenu;	
-	friend Gtk::gboolean GWindowCallback(Gtk::GtkWidget *widget, Gtk::GdkEvent *event, GWindow *This);
 	
 	Gtk::GtkWidget *_Root, *_VBox, *_MenuBar;
 	void _Paint(GSurface *pDC = 0, int Ox = 0, int Oy = 0);
 	void OnGtkDelete();
+	Gtk::gboolean OnGtkEvent(Gtk::GtkWidget *widget, Gtk::GdkEvent *event);
 
 	#endif
 
@@ -1749,6 +1750,9 @@ LgiFunc void LgiThinBorder(GSurface *pDC, GRect &r, int Type);
 LgiFunc void LgiFlatBorder(GSurface *pDC, GRect &r, int Width = -1);
 
 // Helpers
+#ifdef __GTK_H__
+extern Gtk::gboolean GtkViewCallback(Gtk::GtkWidget *widget, Gtk::GdkEvent *event, GView *This);
+#endif
 
 #ifdef LINUX
 /// Ends a x windows startup session

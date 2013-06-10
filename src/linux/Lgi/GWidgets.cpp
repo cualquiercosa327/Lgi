@@ -135,11 +135,7 @@ void GDialog::IsResizeable(bool r)
 	d->Resizable = r;
 }
 
-static
-gboolean
-GDialogCallback(GtkWidget   *widget,
-				GdkEvent    *event,
-				GDialog     *This)
+gboolean GDialog::OnGtkEvent(GtkWidget *widget, GdkEvent *event)
 {
 	if (!event)
 	{
@@ -151,27 +147,32 @@ GDialogCallback(GtkWidget   *widget,
 	{
 		case GDK_DELETE:
 		{
-			printf("GDK_DELETE\n");
-			This->Quit();
+			Quit();
+			OnGtkDelete();
 			return false;
 		}
 		case GDK_DESTROY:
 		{
-			delete This;
+			_View = NULL;
 			return true;
 		}
 		case GDK_CONFIGURE:
 		{
 			GdkEventConfigure *c = (GdkEventConfigure*)event;
-			This->Pos.Set(c->x, c->y, c->x+c->width-1, c->y+c->height-1);
-			This->OnPosChange();
+			Pos.Set(c->x, c->y, c->x+c->width-1, c->y+c->height-1);
+			OnPosChange();
 			return false;
+			break;
+		}
+		case GDK_FOCUS_CHANGE:
+		{
+			GWindow::OnGtkEvent(widget, event);
 			break;
 		}
 		case GDK_CLIENT_EVENT:
 		{
 			GMessage m(event);
-			This->OnEvent(&m);
+			OnEvent(&m);
 			break;
 		}
 		default:
@@ -242,28 +243,37 @@ int GDialog::DoModal(OsView OverrideParent)
 	OnCreate();
 	AttachChildren();
 	d->IsModal = true;
+	GViewI *gvi = this;
+	// printf("Setting up dialog event, Wnd=%p, gvi=%p, this=%p\n", Wnd, gvi, this);
 
 	g_signal_connect(	G_OBJECT(Wnd),
 						"delete_event",
-						G_CALLBACK(GDialogCallback),
-						this);
-	g_signal_connect(	G_OBJECT(Wnd),
-						"destroy",
-						G_CALLBACK(GDialogCallback),
-						this);
+						G_CALLBACK(GtkViewCallback),
+						gvi);
 	g_signal_connect(	G_OBJECT(Wnd),
 						"configure-event",
-						G_CALLBACK(GDialogCallback),
-						this);
+						G_CALLBACK(GtkViewCallback),
+						gvi);
+	g_signal_connect(	G_OBJECT(Wnd),
+						"destroy",
+						G_CALLBACK(GtkViewCallback),
+						gvi);
 	g_signal_connect(	G_OBJECT(Wnd),
 						"client-event",
-						G_CALLBACK(GDialogCallback),
-						this);
+						G_CALLBACK(GtkViewCallback),
+						gvi);
+	g_signal_connect(	G_OBJECT(Wnd),
+						"focus-in-event",
+						G_CALLBACK(GtkViewCallback),
+						gvi);
+	g_signal_connect(	G_OBJECT(Wnd),
+						"focus-out-event",
+						G_CALLBACK(GtkViewCallback),
+						gvi);
 
 	// gint r = gtk_dialog_run(GTK_DIALOG(Wnd));
 	gtk_widget_show(GTK_WIDGET(Wnd));
 	gtk_main();
-printf("Dlg: gtk_main done.\n");
 	return d->ModalStatus;
 }
 
@@ -283,7 +293,6 @@ void _Dump(GViewI *v, int Depth = 0)
 
 void GDialog::EndModal(int Code)
 {
-printf("EndModal(%i)\n", Code);
 	if (d->IsModal)
 	{
 		d->IsModal = false;

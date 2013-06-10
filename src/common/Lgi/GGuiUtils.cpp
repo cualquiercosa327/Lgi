@@ -200,7 +200,7 @@ void LgiInitColours()
 						((c >> 16) & 0xff00) |
 						((c >> 24) & 0xff0000);
 
-			printf("ParseSysColour %s = %x\n", var, c24);
+			// printf("ParseSysColour %s = %x\n", var, c24);
 			Colours.Add(var, c24);
 		}
 	}
