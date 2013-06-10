@@ -278,7 +278,8 @@ static gboolean lgi_widget_key_event(GtkWidget *wid, GdkEventKey *e)
             	k.c16 = k.vkey = VK_TAB;
             	break;
             case GDK_Return:
-            	k.IsChar = true;
+            case 0xff8d:
+            	k.IsChar = false;
             	k.c16 = k.vkey = VK_RETURN;
             	break;
             case GDK_BackSpace:
@@ -305,7 +306,7 @@ static gboolean lgi_widget_key_event(GtkWidget *wid, GdkEventKey *e)
             	break;
         }
         
-        // k.Trace("lgi_widget_key_event");
+        k.Trace("lgi_widget_key_event");
 
         GWindow *w = v->GetWindow();
         if (w)

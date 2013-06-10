@@ -40,10 +40,7 @@ struct GDialogPriv
 GDialog::GDialog()
 	: ResObject(Res_Dialog)
 	#ifdef __GTK_H__
-	, GWindow(
-		// gtk_dialog_new_with_buttons(0, 0, (GtkDialogFlags) (GTK_DIALOG_MODAL | GTK_DIALOG_NO_SEPARATOR), 0)
-		 gtk_dialog_new()
-		)
+	, GWindow(gtk_dialog_new())
 	#endif
 {
 	d = new GDialogPriv();
@@ -271,7 +268,11 @@ int GDialog::DoModal(OsView OverrideParent)
 						G_CALLBACK(GtkViewCallback),
 						gvi);
 
-	// gint r = gtk_dialog_run(GTK_DIALOG(Wnd));
+	if (!_Default)
+	{
+		_Default = FindControl(IDOK);
+	}
+
 	gtk_widget_show(GTK_WIDGET(Wnd));
 	gtk_main();
 	return d->ModalStatus;

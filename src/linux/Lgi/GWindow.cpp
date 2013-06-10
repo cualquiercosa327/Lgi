@@ -379,7 +379,7 @@ bool GWindow::HandleViewMouse(GView *v, GMouse &m)
 	}
 */
 
-#define DEBUG_HANDLEVIEWKEY		0
+#define DEBUG_HANDLEVIEWKEY		1
 
 bool GWindow::HandleViewKey(GView *v, GKey &k)
 {
@@ -506,7 +506,11 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 		}
 		// else printf("Ctrl=disabled\n");
 	}
-
+	#if DEBUG_HANDLEVIEWKEY
+	else if (Debug)
+		printf("No default ctrl to handle key.\n");
+	#endif
+	
 	if (Menu)
 	{
 		Status = Menu->OnKey(v, k);
