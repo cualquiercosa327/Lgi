@@ -130,9 +130,11 @@ bool LgiPostEvent(OsView Wnd, int Event, GMessage::Param a, GMessage::Param b)
 			}
 			else if (result == B_TIMED_OUT)
 			{
-				printf("%s:%i - LgiPostEvent->LockLooperWithTimeout timeout, locker=%i, cur thread=%i\n",
+				const char *Locker = GLocker::GetLocker(Wnd->Looper()->LockingThread());
+				printf("%s:%i - LgiPostEvent->LockLooperWithTimeout timeout, locker=%i (%s), cur thread=%i\n",
 					_FL,
 					Wnd->Looper()->LockingThread(),
+					Locker,
 					LgiGetCurrentThread());
 			}
 			else

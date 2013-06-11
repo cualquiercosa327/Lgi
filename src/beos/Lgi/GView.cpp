@@ -72,6 +72,8 @@ bool GLocker::Lock()
 		i->Thread = LgiGetCurrentThread();
 		i->File = File;
 		i->Line = Line;
+
+		printf("Lock %i = %s:%i count=%i\n", i->Thread, i->File, i->Line, hnd->Looper()->CountLocks());
 	}
 	
 	return Locked;
@@ -89,6 +91,8 @@ status_t GLocker::LockWithTimeout(int64 time)
 		i->Thread = LgiGetCurrentThread();
 		i->File = File;
 		i->Line = Line;
+		
+		printf("LockWithTimeout %i = %s:%i count=%i\n", i->Thread, i->File, i->Line, hnd->Looper()->CountLocks());
 	}
 	
 	return result;
@@ -98,16 +102,17 @@ void GLocker::Unlock()
 {
 	if (Locked)
 	{
+		hnd->UnlockLooper();
+		Locked = false;
+
 		LockerInfo *i = GetLockerInfo(LgiGetCurrentThread(), false);
 		if (i)
 		{
+			printf("Unlock %i = %s:%i count=%i\n", i->Thread, i->File, i->Line, hnd->Looper()->CountLocks());
 			i->Thread = 0;
 			i->File = NULL;
 			i->Line = 0;
 		}
-		
-		hnd->UnlockLooper();
-		Locked = false;
 	}
 }
 

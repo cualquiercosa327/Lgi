@@ -131,14 +131,13 @@ public:
 			if (Ms.x != m.x ||
 				Ms.y != m.y)
 			{
-				if (Notify->Handle()->LockLooper())
+				GLocker Locker(Notify->Handle(), _FL);
+				if (Locker.Lock())
 				{
 					m.x = Ms.x;
 					m.y = Ms.y;
 					m.Flags |= LGI_WATCHER_MSG;
 					Notify->OnMouseMove(m);
-
-					Notify->Handle()->UnlockLooper();
 				}
 			}
 		}
@@ -294,7 +293,8 @@ int GDialog::DoModal(OsView ParentHnd)
 		}
 	}
 
-	if (Wnd->LockLooper())
+	GLocker Locker(Wnd, _FL);
+	if (Locker.Lock())
 	{
 		// Setup the BWindow
 		Wnd->ResizeTo(Pos.X(), Pos.Y());
@@ -309,7 +309,7 @@ int GDialog::DoModal(OsView ParentHnd)
 		AttachChildren();
 
 		Wnd->Show();
-		Wnd->UnlockLooper();
+		Locker.Unlock();
 
 		printf("starting WaitForDelete\n");
 
@@ -317,7 +317,9 @@ int GDialog::DoModal(OsView ParentHnd)
 		status_t	result;
 		bool		Warned = false;
 		BWindow		*parent = GetParent() ? GetParent()->WindowHandle() : NULL;
-		printf("GDialog::DoModal parent=%p\n", parent);
+
+		printf("GDialog::DoModal parent=%p count=%i\n", parent, parent ? parent->CountLocks() : 0);
+		parent->Unlock();
 	
 		// block until semaphore is deleted (modal is finished)
 		do
@@ -341,6 +343,7 @@ int GDialog::DoModal(OsView ParentHnd)
 		}
 		while (result != B_BAD_SEM_ID);
 	
+		parent->Lock();
 		printf("...WaitForDelete done\n");
 	}
 	else
@@ -425,7 +428,9 @@ void GControl::MouseClickEvent(bool Down)
 	GMouse m;
 	BPoint Pt;
 	uint32 Buttons;
-	if (Handle()->LockLooper())
+	
+	GLocker Locker(Handle(), _FL);
+	if (Locker.Lock())
 	{
 		Handle()->GetMouse(&Pt, &Buttons, FALSE);
 		m.x = Pt.x;
@@ -450,7 +455,6 @@ void GControl::MouseClickEvent(bool Down)
 		
 		m.Down(Down);
 		OnMouseClick(m);
-		Handle()->UnlockLooper();
 	}
 }
 
