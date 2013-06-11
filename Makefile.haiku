@@ -108,6 +108,7 @@ Depends =	GDateTime.o \
 			GUtf8.o \
 			GXmlTree.o \
 			GCss.o \
+			GCssTools.o \
 			GDocView.o \
 			GEdit.o \
 			GLayout.o \
@@ -580,6 +581,11 @@ GXmlTree.o : ./src/common/Text/GXmlTree.cpp ./include/common/Lgi.h \
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GCss.o : ./src/common/Lgi/GCss.cpp ./include/common/GCss.h \
+	./include/common/LgiCommon.h
+	@echo $(<F) [$(Gui)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GCssTools.o : ./src/common/Lgi/GCssTools.cpp ./include/common/GCss.h \
 	./include/common/LgiCommon.h
 	@echo $(<F) [$(Gui)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)

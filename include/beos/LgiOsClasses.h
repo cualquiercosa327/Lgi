@@ -54,4 +54,22 @@ public:
 	void FrameResized(float width, float height);
 };
 
+class LgiClass GLocker
+{
+	BHandler *hnd;
+	bool Locked;
+	const char *File;
+	int Line;
+
+public:
+	GLocker(BHandler *h, const char *file, int line);
+	~GLocker();
+	
+	bool IsLocked() { return Locked; }
+	bool Lock();
+	status_t LockWithTimeout(int64 time);
+	void Unlock();
+	static const char *GetLocker(int Thread = 0);
+};
+
 #endif

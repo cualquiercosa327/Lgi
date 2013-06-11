@@ -92,7 +92,8 @@ bool GLayout::Attach(GViewI *p)
 	
 	if (_View)
 	{
-		bool Lock = Handle()->LockLooper();
+		GLocker Locker(Handle(), _FL);
+		Locker.Lock();
 		if (HScroll)
 		{
 			if (HScroll->Handle()->Parent())
@@ -112,7 +113,6 @@ bool GLayout::Attach(GViewI *p)
 	
 			Handle()->AddChild(VScroll->Handle());
 		}
-		if (Lock) Handle()->UnlockLooper();
 	}
 	
 	return Status;

@@ -899,7 +899,6 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 	
 	#elif defined(BEOS)
 
-	// FIXME
 	if (pDC && Font)
 	{
 		BView *Hnd = pDC->Handle();
@@ -930,7 +929,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 			Hnd->DrawString(Str, Len, BPoint(px, py + Font->Ascent()));
 			// printf("Drawing String '%s' %i at %i,%i\n", Str, Len, px, py);
 		}
-		else printf("%s:%i - Error: no BView to draw on.", _FL);
+		else printf("%s:%i - Error: no BView to draw on.\n", _FL);
 	}
 	else printf("%s:%i - Error: no DC or Font.\n", _FL);
 

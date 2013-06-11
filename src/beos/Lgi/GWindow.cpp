@@ -14,6 +14,7 @@ GWnd::GWnd(GView *notify) :
 			B_CURRENT_WORKSPACE)
 {
 	Notify = notify;
+	printf("new GWnd %p\n", notify);
 }
 
 GWnd::GWnd(	GView *notify,
@@ -25,6 +26,7 @@ GWnd::GWnd(	GView *notify,
 	: BWindow(frame, title, type, flags, workspaces)		
 {
 	Notify = notify;
+	printf("new GWnd %p\n", notify);
 }
 
 GWnd::~GWnd()
@@ -33,6 +35,7 @@ GWnd::~GWnd()
 
 bool GWnd::QuitRequested()
 {
+	printf("GWnd::QuitRequested()\n");
 	return Notify->OnRequestClose(false);
 }
 
@@ -49,6 +52,8 @@ void GWnd::FrameMoved(BPoint origin)
 							-Notify->Pos.y1 + origin.y);
 	}
 	else printf("%s:%i - Error: no notify.\n", _FL);
+	
+	BWindow::FrameMoved(origin);
 }
 
 void GWnd::FrameResized(float width, float height)
@@ -60,6 +65,8 @@ void GWnd::FrameResized(float width, float height)
 		Notify->OnPosChange();
 	}
 	else printf("%s:%i - Error: no notify.\n", _FL);
+
+	BWindow::FrameResized(width, height);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

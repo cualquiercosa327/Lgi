@@ -110,19 +110,36 @@ bool LgiPostEvent(OsView Wnd, int Event, GMessage::Param a, GMessage::Param b)
 	if (Wnd)
 	{
 		bool Status = false;
-		
-		if (Wnd->LockLooper())
-		{
-			BMessage *Msg = new BMessage(Event);
-			if (Msg)
+
+		while (true)
+		{		
+			status_t result = Wnd->LockLooperWithTimeout(1000000);
+			if (result == B_OK)
 			{
-				Msg->AddInt32("a", a);
-				Msg->AddInt32("b", b);
-				BMessenger m(Wnd);
-				Status = m.SendMessage(Msg) == B_OK;
-				DeleteObj(Msg);
+				BMessage *Msg = new BMessage(Event);
+				if (Msg)
+				{
+					Msg->AddInt32("a", a);
+					Msg->AddInt32("b", b);
+					BMessenger m(Wnd);
+					Status = m.SendMessage(Msg) == B_OK;
+					DeleteObj(Msg);
+				}
+				Wnd->UnlockLooper();
+				break;
 			}
-			Wnd->UnlockLooper();
+			else if (result == B_TIMED_OUT)
+			{
+				printf("%s:%i - LgiPostEvent->LockLooperWithTimeout timeout, locker=%i, cur thread=%i\n",
+					_FL,
+					Wnd->Looper()->LockingThread(),
+					LgiGetCurrentThread());
+			}
+			else
+			{
+				printf("%s:%i - LockLooperWithTimeout error 0x%x\n", _FL, result);
+				break;
+			}
 		}
 		
 		return Status;
