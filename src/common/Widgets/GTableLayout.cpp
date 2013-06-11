@@ -760,7 +760,7 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 			Pos.y2 += GTableLayout::CellSpacing;
 		}
 
-		printf("\t\t\tlayout child[%i/%s] %i\n", i, v->GetClass(), Pos.Y());
+		// printf("\t\t\tlayout child[%i/%s] %i\n", i, v->GetClass(), Pos.Y());
 		if (Izza(GText))
 		{
 			GText *Txt = dynamic_cast<GText*>(v);
@@ -881,7 +881,7 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 				Pos.y2 += v->Y();
 			}
 		}
-		printf("\t\t\t...[%i/%s] %i\n", i, v->GetClass(), Pos.Y());
+		// printf("\t\t\t...[%i/%s] %i\n", i, v->GetClass(), Pos.Y());
 	}
 	
 	MinY = max(MinY, Pos.Y() + Padding.y1 + Padding.y2);

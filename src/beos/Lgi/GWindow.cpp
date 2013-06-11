@@ -127,7 +127,7 @@ GWindow::~GWindow()
 {
 	DeleteObj(Menu);
 
-	if (Handle()->LockLooper())
+	if (Wnd && Handle()->LockLooper())
 	{
 		if (Handle()->Window())
 		{
@@ -137,7 +137,8 @@ GWindow::~GWindow()
 		Wnd->Hide();
 
 		((GWnd*)Wnd)->Notify = 0;
-		_QuitMe = Wnd;
+		Wnd->Quit();
+		Wnd = NULL;
 	}
 
 	DeleteObj(d);

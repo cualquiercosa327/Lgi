@@ -127,11 +127,11 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 	}
 
 	DeleteObj(d->Bmp);
-	d->Bmp = new BBitmap(BRect(0, 0, x-1, y-1), Mode, true, true);
+	BRect r(0, 0, x-1, y-1);
+	d->Bmp = new BBitmap(r, Mode, true, true);
 	if (d->Bmp)
 	{
-		BRect r(0, 0, x-1, y-1);
-		d->View = new BView(r, "GMemDC", B_FOLLOW_NONE, 0);
+		d->View = new BView(r, "GMemDC", B_FOLLOW_ALL_SIDES, B_WILL_DRAW);
 		if (d->View)
 		{
 			d->Bmp->AddChild(d->View);
@@ -148,7 +148,7 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 			pMem->Flags = 0;
 			
 			// Msg("Base: %p x: %i y: %i Bits: %i Line: %i", pMem->Base, pMem->x, pMem->y, pMem->Bits, pMem->Line);
-			Status = TRUE;
+			Status = true;
 
 			int NewOp = (pApp) ? Op() : GDC_SET;
 
@@ -178,11 +178,11 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 			
 			if (!pApp)
 			{
-				LgiMsg(0, "Couldn't create applicator (%ix%i,%i bits)\n", "Error", MB_OK, x, y, Bits);
+				LgiTrace("Couldn't create applicator (%ix%i,%i bits)\n", x, y, Bits);
 				LgiAssert(0);
 			}
 
-			Clip.ZOff(X()-1, Y()-1);
+			Clip.ZOff(x-1, y-1);
 		}
 	}
 

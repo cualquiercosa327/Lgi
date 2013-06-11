@@ -957,7 +957,21 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 			Hnd->SetHighColor(Fg);
 			Hnd->SetLowColor(Bk);			
 			Hnd->SetFont(Font->Handle());
-			Hnd->DrawString(Str, len, BPoint(px, py + Font->Ascent() - 1));
+			BPoint pos(px, py + Font->Ascent() - 1);
+			Hnd->DrawString(Str, len, pos);
+			
+			if (!pDC->IsScreen())
+			{
+				printf("::draw '%s' at %f,%f on %i,%i\n",
+					Str,
+					pos.x, pos.y,
+					pDC->X(), pDC->Y());
+				
+				/* What about just plain rect?
+				BRect rc(px, py, px+x, py+y);
+				Hnd->FillRect(rc);
+				*/
+			}
 		}
 		else printf("%s:%i - Error: no BView to draw on.\n", _FL);
 	}
