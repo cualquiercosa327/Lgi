@@ -31,9 +31,9 @@ enum CellFlag
 #include "GCss.h"
 
 #define Izza(c)				dynamic_cast<c*>(v)
-#define DEBUG_LAYOUT		1
+#define DEBUG_LAYOUT		0
 #define DEBUG_PROFILE		0
-#define DEBUG_DRAW_CELLS	1
+#define DEBUG_DRAW_CELLS	0
 
 int GTableLayout::CellSpacing = 4;
 
@@ -760,6 +760,7 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 			Pos.y2 += GTableLayout::CellSpacing;
 		}
 
+		printf("\t\t\tlayout child[%i/%s] %i\n", i, v->GetClass(), Pos.Y());
 		if (Izza(GText))
 		{
 			GText *Txt = dynamic_cast<GText*>(v);
@@ -880,6 +881,7 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 				Pos.y2 += v->Y();
 			}
 		}
+		printf("\t\t\t...[%i/%s] %i\n", i, v->GetClass(), Pos.Y());
 	}
 	
 	MinY = max(MinY, Pos.Y() + Padding.y1 + Padding.y2);
@@ -1235,6 +1237,8 @@ void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, Ce
 {
 	int Cx, Cy, i;
 
+	// printf("\t\t\trows=%i row[0]=%i\n", MinRow.Length(), MinRow[0]);
+
 	// Do row height layout for single cells
 	for (Cy=0; Cy<Rows.Length(); Cy++)
 	{
@@ -1249,6 +1253,8 @@ void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, Ce
 					int x = CountRange<int>(MinCol, c->Cell.x1, c->Cell.x2) +
 							((c->Cell.X() - 1) * CellSpacing);
 					c->Layout(x, MinRow[Cy], MaxRow[Cy], RowFlags[Cy]);
+					
+					// printf("\t\t\trow layout %i,%i = %i,%i\n", c->Cell.x1, c->Cell.y1, MinRow[Cy], MaxRow[Cy]);
 				}
 
 				Cx += c->Cell.X();

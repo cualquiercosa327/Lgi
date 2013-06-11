@@ -48,14 +48,16 @@ GDisplayString::GDisplayString(GFont *f, const char *s, int l, GSurface *pdc)
 	
 	#if defined(MAC) || WIN32NATIVE
 	Str = LgiNewUtf8To16(s, l);
+	len = Str ? StrlenW(Str) : 0;
 	#else
 	Str = NewStr(s, l);
+	len = Str ? strlen(Str) : 0;
 	if (!LgiIsUtf8(Str))
 		printf("%s:%i - Not valid utf\n", _FL);
 	#endif
 	
 	Info = 0;
-	Blocks = x = y = len = 0;
+	Blocks = x = y = 0;
 	TabOrigin = 0;
 	LaidOut = 0;
 	AppendDots = 0;
@@ -95,6 +97,7 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc)
 
     #if defined(MAC) || WIN32NATIVE	
 	Str = NewStrW(s, len = l);
+	len = Str ? StrlenW(Str) : 0;
 	#else
 	Str = LgiNewUtf16To8(s, l < 0 ? -1 : l * sizeof(char16));
 	len = Str ? strlen(Str) : 0;
@@ -192,8 +195,6 @@ void GDisplayString::Layout()
 	
 	if (Hnd && Str)
 	{
-		len = StrlenW(Str);
-		
 		OSStatus e = ATSUSetTextPointerLocation(Hnd, Str, 0, len, len);
 		if (e)
 		{
@@ -485,11 +486,10 @@ void GDisplayString::Layout()
 			x = 0;
 			y = ceil(Ht.ascent + Ht.descent);
 			
-			int Len = strlen(Str);
-			float *esc = new float[Len];
+			float *esc = new float[len];
 
-			Font->Handle()->GetEscapements(Str, Len, esc);
-			for (int i=0; i<Len; i++)
+			Font->Handle()->GetEscapements(Str, len, esc);
+			for (int i=0; i<len; i++)
 			{
 				x += ceil(esc[i] * y);
 				/*
@@ -506,7 +506,7 @@ void GDisplayString::Layout()
 			Blocks = 1;
 			Info = new CharInfo[Blocks];
 			Info[0].Str = Str;
-			Info[0].Len = strlen(Str);
+			Info[0].Len = len;
 			Info[0].X = x;
 			Info[0].FontId = -1;
 			Info[0].SizeDelta = 0;
@@ -707,9 +707,13 @@ int GDisplayString::CharAt(int Px)
 
     Layout();
 	if (Px < 0)
+	{
+		// printf("CharAt(%i) <0\n", Px);
 		return 0;
+	}
 	else if (Px >= x)
 	{
+		// printf("CharAt(%i) >x=%i len=%i\n", Px, x, len);
 		#if defined __GTK_H__
 		if (Str)
 		{
@@ -843,6 +847,18 @@ int GDisplayString::CharAt(int Px)
 	}
 
 CharAtError:
+
+	#elif defined(BEOS)
+	
+	if (Font && Font->Handle())
+	{
+		BString s;
+		Font->Handle()->TruncateString(&s, B_TRUNCATE_END, Px);
+		Status = s.Length();
+		// printf("CharAt(%i) for '%s' = %i (size=%i,%i)\n", Px, Str, Status, x, y);
+	}
+	else printf("%s:%i - No font handle for CharAt\n", _FL);
+	
 	#endif
 
 	return Status;
@@ -902,7 +918,6 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 	if (pDC && Font)
 	{
 		rgb_color Fg, Bk;
-		int Len = strlen(Str);
 
 		// Create colours
 		GColour c = Font->Fore();
@@ -942,7 +957,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 			Hnd->SetHighColor(Fg);
 			Hnd->SetLowColor(Bk);			
 			Hnd->SetFont(Font->Handle());
-			Hnd->DrawString(Str, Len, BPoint(px, py + Font->Ascent()));
+			Hnd->DrawString(Str, len, BPoint(px, py + Font->Ascent() - 1));
 		}
 		else printf("%s:%i - Error: no BView to draw on.\n", _FL);
 	}
