@@ -97,44 +97,11 @@ GApp::GApp(const char *Mime, OsAppArguments &OsArgs, GAppArguments *AppArgs) : B
 		LgiExitApp();
 	}
 
-	#if 0
+	#if 1
 	if (!GetOption("noskin"))
 	{
-		// Load library
-		#if defined(_DEBUG)
-		d->SkinLib = new GLibrary("liblgiskind");
-		#else
-		d->SkinLib = new GLibrary("liblgiskin");
-		#endif
-		if (d->SkinLib)
-		{
-			if (d->SkinLib->IsLoaded())
-			{
-				Proc_CreateSkinEngine CreateSkinEngine =
-					(Proc_CreateSkinEngine)d->SkinLib->GetAddress(LgiSkinEntryPoint);
-				if (CreateSkinEngine)
-				{
-					SkinEngine = CreateSkinEngine(this);
-					if (!SkinEngine)
-					{
-						printf("%s:%i - CreateSkinEngine returned NULL.\n", __FILE__, __LINE__);
-					}
-				}
-				else
-				{
-					printf("%s:%i - No CreateSkinEngine entry point.\n", __FILE__, __LINE__);
-				}
-			}
-			else
-			{
-				printf("%s:%i - Can't load skin library.\n", __FILE__, __LINE__);
-				DeleteObj(d->SkinLib);
-			}
-		}
-		else
-		{
-			printf("%s:%i - Can't find skin library.\n", __FILE__, __LINE__);
-		}
+		extern GSkinEngine *CreateSkinEngine(GApp *App);
+		SkinEngine = CreateSkinEngine(this);
 	}
 	#endif
 }

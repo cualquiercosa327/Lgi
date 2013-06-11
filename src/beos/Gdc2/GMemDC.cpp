@@ -34,7 +34,7 @@ public:
 GMemDC::GMemDC(int x, int y, int bits)
 {
 	d = new GMemDCPrivate;
-	if (x AND y AND bits)
+	if (x && y && bits)
 	{
 		Create(x, y, bits);
 	}
@@ -60,6 +60,11 @@ GMemDC::GMemDC(GSurface *pDC)
 GMemDC::~GMemDC()
 {
 	DeleteObj(d);
+}
+
+OsPainter GMemDC::Handle()
+{
+	return d->View;
 }
 
 OsBitmap GMemDC::GetBitmap()

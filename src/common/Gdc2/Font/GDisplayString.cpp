@@ -901,33 +901,48 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 
 	if (pDC && Font)
 	{
+		rgb_color Fg, Bk;
+		int Len = strlen(Str);
+
+		// Create colours
+		GColour c = Font->Fore();
+		Fg.red = c.r();
+		Fg.green = c.g();
+		Fg.blue = c.b();
+
+		c = Font->Back();
+		Bk.red = c.r();
+		Bk.green = c.g();
+		Bk.blue = c.b();
+
+		// Draw background if required.		
+		if (!Font->Transparent())
+		{
+			pDC->Colour(c);
+			if (r)
+			{
+				pDC->Rectangle(r);
+			}
+			else
+			{
+				GRect b;
+				b.ZOff(x-1, y-1);
+				b.Offset(px, py);
+				pDC->Rectangle(&b);				
+			}
+		}
+		
+		// Paint text
 		BView *Hnd = pDC->Handle();
 		if (Hnd)
 		{
-			/*
-			BPoint o = Hnd->Origin();
-			int Ox = 0, Oy = 0;
-			pDC->GetOrigin(Ox, Oy);
-			*/
+			GLocker Locker(Hnd, _FL);
+			Locker.Lock();
 			
-			GColour c = Font->Fore();
-			rgb_color Fg;
-			Fg.red = c.r();
-			Fg.green = c.g();
-			Fg.blue = c.b();
 			Hnd->SetHighColor(Fg);
-
-			c = Font->Back();
-			rgb_color Bk;
-			Bk.red = c.r();
-			Bk.green = c.g();
-			Bk.blue = c.b();
 			Hnd->SetLowColor(Bk);			
-			
-			int Len = strlen(Str);
 			Hnd->SetFont(Font->Handle());
 			Hnd->DrawString(Str, Len, BPoint(px, py + Font->Ascent()));
-			// printf("Drawing String '%s' %i at %i,%i\n", Str, Len, px, py);
 		}
 		else printf("%s:%i - Error: no BView to draw on.\n", _FL);
 	}
