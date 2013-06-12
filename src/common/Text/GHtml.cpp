@@ -1545,14 +1545,15 @@ void GTag::_Dump(GStringPipe &Buf, int Depth)
 				(TagId == ROOT ? (char*)"Root" : Tag);
 
 	snprintf(s, sizeof(s)-1,
-			"%sStartTag=%s%c%s (%i) Pos=%i,%i Size=%i,%i Color=%s/%s %s\r\n",
+			"%s%s(%p)%c%s (%i) Pos=%i,%i Size=%i,%i Color=%s/%s %s\r\n",
 			Tab,
 			ElementName,
+			this,
 			HtmlId ? '#' : ' ',
 			HtmlId ? HtmlId : (char*)"",
 			WasClosed,
 			Pos.x, Pos.y,
-			0, 0, // Size.x, Size.y,
+			Size.x, Size.y,
 			_DumpColour(Color()), _DumpColour(BackgroundColor()),
 			Trs);
 	Buf.Push(s);
@@ -1565,7 +1566,7 @@ void GTag::_Dump(GStringPipe &Buf, int Depth)
 
 	if (Children.Length())
 	{
-		snprintf(s, sizeof(s)-1, "%sEnd '%s'\r\n", Tab, ElementName);
+		snprintf(s, sizeof(s)-1, "%s/%s\r\n", Tab, ElementName);
 		Buf.Push(s);
 	}
 }
@@ -2022,8 +2023,8 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, bool DebugLog)
 					if (!TagHit.Near)
 					{
 						TagHit.Direct = this;
-						TagHit.LocalCoords.x = x - Pos.x;
-						TagHit.LocalCoords.y = y - Pos.y;
+						TagHit.LocalCoords.x = x;
+						TagHit.LocalCoords.y = y;
 					}
 				}
 			}
@@ -2031,6 +2032,7 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, bool DebugLog)
 	}
 	else if
 	(
+		TagId != TAG_TR &&
 		Tag &&
 		x >= 0 &&
 		y >= 0 &&
@@ -2040,8 +2042,8 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, bool DebugLog)
 	{
 		// Direct hit
 		TagHit.Direct = this;
-		TagHit.LocalCoords.x = x - Pos.x;
-		TagHit.LocalCoords.y = y - Pos.y;
+		TagHit.LocalCoords.x = x;
+		TagHit.LocalCoords.y = y;
 
 		if (DebugLog)
 			LgiTrace("GetTagByPos DirectHit %s, idx=%i, near=%i\n", Tag.Get(), TagHit.Index, TagHit.Near);
