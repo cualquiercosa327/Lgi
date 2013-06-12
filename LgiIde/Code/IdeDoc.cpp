@@ -489,7 +489,9 @@ public:
 	{
 		GRect c = r.Bound();
 
+		#if !MDI_TAB_STYLE
 		c.Size(2, 2);
+		#endif
 		c.y2 -= 20;
 		SetPos(c);
 		
@@ -903,8 +905,10 @@ void IdeDoc::OnPaint(GSurface *pDC)
 {
 	GMdiChild::OnPaint(pDC);
 	
+	#if !MDI_TAB_STYLE
 	GRect c = GetClient();
 	LgiWideBorder(pDC, c, SUNKEN);
+	#endif
 }
 
 void IdeDoc::OnPosChange()

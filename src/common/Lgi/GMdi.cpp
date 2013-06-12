@@ -18,9 +18,16 @@ class GMdiChildPrivate
 {
 public:
 	GMdiChild *Child;
+
 	GRect Title;
+	#if MDI_TAB_STYLE
+	GRect Tab;
+	int Order;
+	#else
 	GRect Close;
 	GRect System;
+	#endif
+	
 	int Fy;	
 	GMdiDrag Drag;	
 	int Ox, Oy;
@@ -34,10 +41,17 @@ public:
 		CloseDown = false;
 		Fy = SysFont->GetHeight() + 1;
 		Title.ZOff(-1, -1);
+		
+		#if MDI_TAB_STYLE
+		Tab.ZOff(-1, -1);
+		Order = -1;
+		#else
 		Close.ZOff(-1, -1);
 		System.ZOff(-1, -1);
+		#endif
 	}
 
+	#if !MDI_TAB_STYLE
 	GMdiDrag HitTest(int x, int y)
 	{
 		GMdiDrag Hit = DragNone;
@@ -84,14 +98,11 @@ public:
 
 		return Hit;
 	}
+	#endif
 };
 
 GMdiChild::GMdiChild()
 {
-	#ifdef BEOS
-	DeleteObj(_View);
-	#endif
-
 	d = new GMdiChildPrivate(this);
 	GdcPt2 m(100, d->Fy + 8);
 	SetMinimumSize(m);
@@ -108,19 +119,7 @@ GMdiChild::~GMdiChild()
 
 bool GMdiChild::Attach(GViewI *p)
 {
-	#if 0 // def BEOS
-	bool s = true;
-	GView::Visible(true);
-	if (!p->Children.HasItem(this))
-	{
-		p->Children.Insert(this);
-	}
-	SetParent(p);
-	Invalidate();
-	#else
 	bool s = GLayout::Attach(p);
-	#endif
-
 	if (s) AttachChildren();
 	return s;
 }
@@ -135,18 +134,6 @@ bool GMdiChild::Name(const char *n)
 	bool s = GView::Name(n);
 	Invalidate((GRect*)0, false, true);
 	return s;
-}
-
-GRect &GMdiChild::GetClient(bool ClientSpace)
-{
-	static GRect r;
-	
-	r = GLayout::GetClient(ClientSpace);
-	r.Size(3, 3);
-	r.y1 += d->Fy + 2;
-	r.Size(1, 1);
-	
-	return r;
 }
 
 bool GMdiChild::Pour()
@@ -181,6 +168,19 @@ bool GMdiChild::Pour()
 	}
 
 	return true;
+}
+
+#if !MDI_TAB_STYLE
+GRect &GMdiChild::GetClient(bool ClientSpace)
+{
+	static GRect r;
+	
+	r = GLayout::GetClient(ClientSpace);
+	r.Size(3, 3);
+	r.y1 += d->Fy + 2;
+	r.Size(1, 1);
+	
+	return r;
 }
 
 void GMdiChild::OnPaint(GSurface *pDC)
@@ -471,6 +471,7 @@ void GMdiChild::OnMouseMove(GMouse &m)
 		SetPos(p);
 	}
 }
+#endif
 
 #if defined __GTK_H__
 using namespace Gtk;
@@ -481,19 +482,19 @@ void GMdiChild::Raise()
 	GViewI *p = GetParent();
 	if (p)
 	{
-		#if defined __GTK_H__
-		GtkWidget *wid = Handle();
-		GdkWindow *wnd = wid ? GDK_WINDOW(wid->window) : NULL;
-		if (wnd)
-			gdk_window_raise(wnd);
-		else
-			LgiAssert(0);
-		#elif WIN32NATIVE
-		SetWindowPos(Handle(), HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-		#elif BEOS
-		// What to do here?
-		#else
-		#error "Impl me."
+		#if !MDI_TAB_STYLE
+			#if defined __GTK_H__
+			GtkWidget *wid = Handle();
+			GdkWindow *wnd = wid ? GDK_WINDOW(wid->window) : NULL;
+			if (wnd)
+				gdk_window_raise(wnd);
+			else
+				LgiAssert(0);
+			#elif WIN32NATIVE
+			SetWindowPos(Handle(), HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+			#else
+			#error "Impl me."
+			#endif
 		#endif
 
 		p->DelView(this);
@@ -507,19 +508,19 @@ void GMdiChild::Lower()
 	GViewI *p = GetParent();
 	if (p)
 	{
-		#if defined __GTK_H__
-		GtkWidget *wid = Handle();
-		GdkWindow *wnd = wid ? GDK_WINDOW(wid->window) : NULL;
-		if (wnd)
-			gdk_window_lower(wnd);
-		else
-			LgiAssert(0);
-		#elif WIN32NATIVE
-		SetWindowPos(Handle(), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-		#elif BEOS
-		// What to do here?
-		#else
-		#error "Impl me."
+		#if !MDI_TAB_STYLE
+			#if defined __GTK_H__
+			GtkWidget *wid = Handle();
+			GdkWindow *wnd = wid ? GDK_WINDOW(wid->window) : NULL;
+			if (wnd)
+				gdk_window_lower(wnd);
+			else
+				LgiAssert(0);
+			#elif WIN32NATIVE
+			SetWindowPos(Handle(), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+			#else
+			#error "Impl me."
+			#endif
 		#endif
 
 		p->DelView(this);
@@ -528,15 +529,12 @@ void GMdiChild::Lower()
 	}
 }
 
-GMessage::Result GMdiChild::OnEvent(GMessage *m)
-{
-	return GLayout::OnEvent(m);
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 class GMdiParentPrivate
 {
 public:
+	GRect Tabs;
+	GRect Content;
 };
 
 GMdiParent::GMdiParent()
@@ -557,8 +555,57 @@ GMdiParent::~GMdiParent()
 
 void GMdiParent::OnPaint(GSurface *pDC)
 {
+	#if MDI_TAB_STYLE
+	// Draw tabs...
+	GFont *Fnt = GetFont();
+	
+	GColour Back(LC_LOW, 24), Shadow(LC_SHADOW, 24);
+	List<GViewI>::I it = Children.Start();
+	int Idx = 0, Cx = 5;
+	pDC->Colour(Back);
+	pDC->Rectangle(d->Tabs.x1, d->Tabs.y1, d->Tabs.x1 + Cx - 1, d->Tabs.y2 - 1);
+	pDC->Colour(Shadow);
+	pDC->Line(d->Tabs.x1, d->Tabs.y2, d->Tabs.x2, d->Tabs.y2);
+	
+	for (GViewI *v = *it; v; v = *++it, Idx++)
+	{
+		GMdiChild *c = dynamic_cast<GMdiChild*>(v);
+		if (!c) continue;
+		
+		GDisplayString ds(GetFont(), c->Name());
+		c->d->Tab.ZOff(ds.X()-1, ds.Y()-1);
+		c->d->Tab.Offset(d->Tabs.x1 + Cx, d->Tabs.y1);
+		
+		bool Active = Idx == 0;
+		c->Visible(Active);
+		GColour Bk(Active ? LC_WORKSPACE : LC_LIGHT, 24);
+		GColour Edge(LC_BLACK, 24);
+		GColour Txt(LC_TEXT, 24);
+		
+		GRect r = c->d->Tab;
+		pDC->Colour(Edge);
+		pDC->Box(&r);
+		r.Size(1, 1);
+		Fnt->Fore(Txt);
+		Fnt->Back(Bk);
+		Fnt->Transparent(false);
+		ds.Draw(pDC, r.x1, r.y1, &r);
+		
+		Cx += ds.X();
+	}
+
+	pDC->Colour(Back);
+	pDC->Rectangle(d->Tabs.x1 + Cx, d->Tabs.y1, d->Tabs.x2, d->Tabs.y2 - 1);
+	
+	if (Children.Length() == 0)
+	{
+		pDC->Colour(LC_MED, 24);
+		pDC->Rectangle(&d->Content);
+	}
+	#else
 	pDC->Colour(LC_LOW, 24);
-	pDC->Rectangle();	
+	pDC->Rectangle();
+	#endif
 }
 
 bool GMdiParent::Attach(GViewI *p)
@@ -643,6 +690,25 @@ bool GMdiParent::OnViewKey(GView *View, GKey &Key)
 	return false;
 }
 
+#if MDI_TAB_STYLE
+void GMdiParent::OnPosChange()
+{
+	GFont *Fnt = GetFont();
+	GRect Client = GetClient();
+	d->Tabs = Client;
+	d->Tabs.y2 = d->Tabs.y1 + Fnt->GetHeight() + 2;
+	d->Content = Client;
+	d->Content.y1 = d->Tabs.y2 + 1;
+
+	GMdiChild *c = dynamic_cast<GMdiChild*>(Children.First());
+	if (c)
+	{	
+		c->SetPos(d->Content);
+		c->Pour();
+	}
+}
+#endif
+
 GRect GMdiParent::NewPos()
 {
 	GRect Status(0, 0, X()*0.75, Y()*0.75);
@@ -677,10 +743,16 @@ GRect GMdiParent::NewPos()
 
 void GMdiParent::OnChildrenChanged(GViewI *Wnd, bool Attaching)
 {
+	#if MDI_TAB_STYLE
+	if (Wnd && Attaching)
+	{
+		OnPosChange();
+	}
+	#else
 	for (GViewI *v=Children.First(); v; )
 	{
 		GMdiChild *c = dynamic_cast<GMdiChild*>(v);
-		v=Children.Next();
+		v = Children.Next();
 		if (c)
 		{
 			c->Invalidate(&c->d->Title);
@@ -695,4 +767,5 @@ void GMdiParent::OnChildrenChanged(GViewI *Wnd, bool Attaching)
 			}
 		}
 	}
+	#endif
 }

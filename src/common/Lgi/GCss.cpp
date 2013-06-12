@@ -1873,7 +1873,7 @@ void GCss::Selector::TokString(GAutoString &a, const char *&s)
 			||
 			IsDigit(*e)
 			||
-			strchr("-_", *e)
+			strchr("-_,", *e)
 		)
 	)
 		e++;

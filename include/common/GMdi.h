@@ -1,6 +1,8 @@
 #ifndef _GMDI_H_
 #define _GMDI_H_
 
+#define MDI_TAB_STYLE	1
+
 class GMdiChild : public GLayout
 {
 	friend class GMdiParent;
@@ -10,17 +12,19 @@ class GMdiChild : public GLayout
 public:
 	GMdiChild();
 	~GMdiChild();
-	
+
+	#if !MDI_TAB_STYLE
 	void OnPaint(GSurface *pDC);	
 	void OnMouseClick(GMouse &m);
 	void OnMouseMove(GMouse &m);
 	LgiCursor GetCursor(int x, int y);
+	GRect &GetClient(bool InClientSpace = true);
+	#endif
+
 	void Raise();
 	void Lower();
-	GRect &GetClient(bool InClientSpace = true);
 	bool Pour();
 	bool Attach(GViewI *p);
-	GMessage::Result OnEvent(GMessage *m);
 	char *Name();
 	bool Name(const char *n);
 };
@@ -39,8 +43,12 @@ public:
 	bool Attach(GViewI *p);
 	bool OnViewMouse(GView *View, GMouse &m);
 	bool OnViewKey(GView *View, GKey &Key);
-	GRect NewPos();
 	void OnChildrenChanged(GViewI *Wnd, bool Attaching);
+	GRect NewPos();
+	
+	#if MDI_TAB_STYLE
+	void OnPosChange();
+	#endif
 };
 
 #endif

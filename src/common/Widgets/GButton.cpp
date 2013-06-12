@@ -102,7 +102,7 @@ bool GButton::Default()
 	}
 	else
 	{
-		printf("%s:%i - No window.\n", __FILE__, __LINE__);
+		printf("%s:%i - No window.\n", _FL);
 	}
 	
 	return false;
