@@ -236,37 +236,6 @@ bool GDialog::OnRequestClose(bool OsClose)
 	return false;
 }
 
-status_t WaitForDelete(sem_id blocker, BWindow *Wnd)
-{
-	status_t	result;
-	thread_id	this_tid = find_thread(NULL);
-	bool		Warned = false;
-
-	// block until semaphore is deleted (modal is finished)
-	do
-	{
-		if (Wnd)
-		{
-			if (!Warned && Wnd->IsLocked())
-			{
-				printf("%p Locked! Count=%i Thread=%i Req=%i\n",
-					Wnd, Wnd->CountLocks(), Wnd->LockingThread(),
-					Wnd->CountLockRequests());
-				Warned = true;
-			}
-			
-			// update the parent window periodically
-			Wnd->UpdateIfNeeded();
-		}
-		
-		result = acquire_sem_etc(blocker, 1, B_TIMEOUT, 1000000);
-		printf("acquire_sem_etc = %i\n", result);
-	}
-	while (result != B_BAD_SEM_ID);
-	
-	return result;
-}
-
 int GDialog::DoModal(OsView ParentHnd)
 {
 	LgiTrace("DoModal() Me=%i Count=%i Thread=%i\n", LgiGetCurrentThread(), Wnd->CountLocks(), Wnd->LockingThread());
@@ -317,9 +286,11 @@ int GDialog::DoModal(OsView ParentHnd)
 		status_t	result;
 		bool		Warned = false;
 		BWindow		*parent = GetParent() ? GetParent()->WindowHandle() : NULL;
+		int			Locks = parent ? parent->CountLocks() : 0;
 
-		printf("GDialog::DoModal parent=%p count=%i\n", parent, parent ? parent->CountLocks() : 0);
-		parent->Unlock();
+		// printf("GDialog::DoModal parent=%p count=%i\n", parent, parent ? parent->CountLocks() : 0);
+		for (int c=0; c<Locks; c++)
+			parent->UnlockLooper();
 	
 		// block until semaphore is deleted (modal is finished)
 		do
@@ -338,13 +309,14 @@ int GDialog::DoModal(OsView ParentHnd)
 				parent->UpdateIfNeeded();
 			}
 			
-			result = acquire_sem_etc(d->ModalSem, 1, B_TIMEOUT, 1000000);
-			printf("acquire_sem_etc = %x\n", result);
+			result = acquire_sem_etc(d->ModalSem, 1, B_TIMEOUT, 50 * 1000); // 50 ms
+			// printf("acquire_sem_etc = %x\n", result);
 		}
 		while (result != B_BAD_SEM_ID);
 	
-		parent->Lock();
-		printf("...WaitForDelete done\n");
+		for (int c=0; c<Locks; c++)
+			parent->LockLooper();
+		// printf("...WaitForDelete done\n");
 	}
 	else
 	{

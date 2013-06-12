@@ -961,17 +961,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 			Hnd->DrawString(Str, len, pos);
 			
 			if (!pDC->IsScreen())
-			{
-				printf("::draw '%s' at %f,%f on %i,%i\n",
-					Str,
-					pos.x, pos.y,
-					pDC->X(), pDC->Y());
-				
-				/* What about just plain rect?
-				BRect rc(px, py, px+x, py+y);
-				Hnd->FillRect(rc);
-				*/
-			}
+				Hnd->Sync();
 		}
 		else printf("%s:%i - Error: no BView to draw on.\n", _FL);
 	}
