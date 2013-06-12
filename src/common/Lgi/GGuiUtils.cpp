@@ -79,27 +79,6 @@ uint32 _LgiColours[LC_MAXIMUM];
 
 #define ReadColourConfig(def)	_lgi_read_colour_config("Colour."#def, _LgiColours+i++)
 
-/*
-int _hex_to_int(char h)
-{
-	if (h >= '0' && h <= '9')
-	{
-		return h - '0';
-	}
-	else if (h >= 'A' && h <= 'F')
-	{
-		return h - 'A' + 10;
-	}
-	else if (h >= 'a' && h <= 'f')
-	{
-		return h - 'a' + 10;
-	}
-
-	LgiAssert(0);
-	return 0;
-}
-*/
-
 bool _lgi_read_colour_config(const char *Tag, uint32 *c)
 {
 	if (!c || !Tag)
@@ -132,6 +111,12 @@ COLOUR ColTo24(Gtk::GdkColor &c)
 static uint32 ConvertWinColour(uint32 c)
 {
 	return Rgb24(GetRValue(c), GetGValue(c), GetBValue(c));
+}
+#elif defined(BEOS)
+static uint32 ConvertHaikuColour(color_which c)
+{
+	rgb_color rgb = ui_color(c);
+	return Rgb24(rgb.red, rgb.green, rgb.blue);
 }
 #endif
 
@@ -168,6 +153,34 @@ void LgiInitColours()
 	_LgiColours[i++] = Rgb24(0xbc, 0xa9, 0xd4); // LC_NON_FOCUS_SEL_BACK
 	_LgiColours[i++] = Rgb24(0x35, 0x1f, 0x4f); // LC_NON_FOCUS_SEL_FORE
 	LgiAssert(i == LC_MAXIMUM);
+	
+	#elif defined BEOS
+	
+	GColour Black(0, 0, 0);
+	GColour White(255, 255, 255);
+	GColour Med(ConvertHaikuColour(B_PANEL_BACKGROUND_COLOR), 24);
+	GColour SelFore(ConvertHaikuColour(B_CONTROL_HIGHLIGHT_COLOR), 24);
+	GColour SelBack(ConvertHaikuColour(B_MENU_SELECTED_ITEM_TEXT_COLOR), 24);
+	
+	_LgiColours[i++] = Med.Mix(Black, 0.4f).c24(); // LC_SHADOW
+	_LgiColours[i++] = Med.Mix(Black, 0.25f).c24(); // LC_LOW
+	_LgiColours[i++] = Med.c24(); // LC_MED
+	_LgiColours[i++] = Med.Mix(White, 0.25f).c24(); // LC_HIGH, 
+	_LgiColours[i++] = Med.Mix(White, 0.4f).c24(); // LC_LIGHT
+	_LgiColours[i++] = ConvertHaikuColour(B_PANEL_BACKGROUND_COLOR); // LC_DIALOG
+	_LgiColours[i++] = ConvertHaikuColour(B_DOCUMENT_BACKGROUND_COLOR); // LC_WORKSPACE
+	_LgiColours[i++] = ConvertHaikuColour(B_CONTROL_TEXT_COLOR); // LC_TEXT
+	_LgiColours[i++] = SelFore.c24(); // LC_FOCUS_SEL_BACK
+	_LgiColours[i++] = SelBack.c24(); // LC_FOCUS_SEL_FORE
+	_LgiColours[i++] = ConvertHaikuColour(B_WINDOW_TAB_COLOR); // LC_ACTIVE_TITLE
+	_LgiColours[i++] = ConvertHaikuColour(B_WINDOW_TEXT_COLOR); // LC_ACTIVE_TITLE_TEXT
+	_LgiColours[i++] = ConvertHaikuColour(B_WINDOW_INACTIVE_TAB_COLOR); // LC_INACTIVE_TITLE
+	_LgiColours[i++] = ConvertHaikuColour(B_WINDOW_INACTIVE_TEXT_COLOR); // LC_INACTIVE_TITLE_TEXT
+	_LgiColours[i++] = ConvertHaikuColour(B_MENU_BACKGROUND_COLOR); // LC_MENU_BACKGROUND
+	_LgiColours[i++] = ConvertHaikuColour(B_MENU_ITEM_TEXT_COLOR); // LC_MENU_TEXT
+	_LgiColours[i++] = SelFore.Mix(White, 0.4f).c24(); // LC_NON_FOCUS_SEL_BACK
+	_LgiColours[i++] = SelBack.Mix(White, 0.4f).c24(); // LC_NON_FOCUS_SEL_FORE
+	LgiAssert(i == LC_MAXIMUM);	
 	
 	#elif defined __GTK_H__
 

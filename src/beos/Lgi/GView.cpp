@@ -91,6 +91,7 @@ status_t GLocker::LockWithTimeout(int64 time)
 		i->Thread = LgiGetCurrentThread();
 		i->File = File;
 		i->Line = Line;
+		Locked = true;
 		
 		// printf("LockWithTimeout %i = %s:%i count=%i\n", i->Thread, i->File, i->Line, hnd->Looper()->CountLocks());
 	}
@@ -441,72 +442,45 @@ void GView::PointToView(GdcPt2 &p)
 
 bool GView::Invalidate(GRect *r, bool Repaint, bool NonClient)
 {
-	return false;
-	
 	if (_View)
 	{
-		if (_View->Window())
+		BWindow *Wnd = _View->Window();
+		if (Wnd)
 		{
 			GLocker Locker(_View, _FL);
 			if (Locker.LockWithTimeout(50 * 1000) == B_OK)
-			{			
-				BWindow *Wnd = _View->Window();
-				thread_id MyThread = find_thread(0);
-				thread_id WndThread = Wnd ? Wnd->Thread() : 0;
-				if (MyThread == WndThread)
+			{
+				if (r)
 				{
-					if (r)
+					if (NonClient)
 					{
-						if (NonClient)
-						{
-							BRect Rc = *r;
-							_View->Draw(Rc);
-						}
-						else
-						{
-							GRect c = GetClient(false);
-							GRect a = *r;
-							a.Offset(c.x1, c.y1);
-							a.Bound(&c);
-							BRect Rc = a;
-							_View->Draw(Rc);
-						}
+						BRect Rc = *r;
+						_View->Invalidate(Rc);
 					}
 					else
 					{
-						// _View->Invalidate(_View->Bounds());
-						// _View->Draw(_View->Bounds());
-					}
-	
-					if (Repaint)
-					{
-						Wnd->UpdateIfNeeded();
+						GRect c = GetClient(false);
+						GRect a = *r;
+						a.Offset(c.x1, c.y1);
+						a.Bound(&c);
+						BRect Rc = a;
+						_View->Invalidate(Rc);
 					}
 				}
 				else
 				{
-					/*
-					// out of thread
-					if (r)
-					{
-						BRect Rc = *r;
-						BRegion *Rgn = new BRegion(Rc);
-						_View->ConstrainClippingRegion(Rgn);
-						_View->Draw(Rc);
-						_View->ConstrainClippingRegion(NULL);
-					}
-					else
-					{
-						BRect Rc = _View->Frame();
-						_View->Draw(Rc);
-					}
-					*/
+					_View->Invalidate(_View->Bounds());
+				}
+
+				if (Repaint)
+				{
+					Wnd->UpdateIfNeeded();
 				}
 			}
-		}
-		else
-		{
-			// printf("******** Invalidate couldn't lock ********\n");
+			else
+			{
+				printf("%s:%i - Can't lock looper for invalidate\n", _FL);
+			}
 		}
 	}
 	else
@@ -542,10 +516,16 @@ static void SetBeosCursor(LgiCursor c)
 {
 }
 
+#define DEBUG_MOUSE_CLICK	1
+#define DEBUG_MOUSE_MOVE	0
+
 bool GView::_Mouse(GMouse &m, bool Move)
 {
 	GWindow *Wnd = GetWindow();
 
+	#if DEBUG_MOUSE_CLICK
+	if (!Move) printf("\tCap=%p\n", _Capturing);
+	#endif
 	if (_Capturing)
 	{
 		if (_Capturing != m.Target)
@@ -566,6 +546,15 @@ bool GView::_Mouse(GMouse &m, bool Move)
 			if (!Wnd || Wnd->HandleViewMouse(dynamic_cast<GView*>(m.Target), m))
 			{
 				m.Target->OnMouseClick(m);
+				#if DEBUG_MOUSE_CLICK
+				printf("\tCap HandleViewMouse=0\n");
+				#endif
+			}
+			else
+			{
+				#if DEBUG_MOUSE_CLICK
+				printf("\tCap HandleViewMouse=1\n");
+				#endif
 			}
 		}
 	}
@@ -579,6 +568,9 @@ bool GView::_Mouse(GMouse &m, bool Move)
 			}
 
 			_Over = this;
+			#if DEBUG_MOUSE_CLICK
+			if (!Move) printf("\tCap Over changed to %s\n", _Over?_Over->GetClass():0);
+			#endif
 
 			if (_Over)
 			{
@@ -587,8 +579,8 @@ bool GView::_Mouse(GMouse &m, bool Move)
 		}
 			
 		GView *Target = dynamic_cast<GView*>(_Over ? _Over : this);
-		GLayout *Lo = dynamic_cast<GLayout*>(Target);
-		GRect Client = Lo ? Lo->GetClient(false) : Target->GView::GetClient(false);
+		// GLayout *Lo = dynamic_cast<GLayout*>(Target);
+		GRect Client = Target->GView::GetClient(false);
 
 		if (!Client.Valid() || Client.Overlap(m.x, m.y))
 		{
@@ -602,10 +594,26 @@ bool GView::_Mouse(GMouse &m, bool Move)
 				if (!Wnd || Wnd->HandleViewMouse(Target, m))
 				{
 					Target->OnMouseClick(m);
+					#if DEBUG_MOUSE_CLICK
+					printf("\tClick HandleViewMouse=0 %s\n", Target->GetClass());
+					#endif
+				}
+				else
+				{
+					#if DEBUG_MOUSE_CLICK
+					printf("\tClick HandleViewMouse=1 %s\n", Target->GetClass());
+					#endif
 				}
 			}
 		}
-		else return false;
+		else
+		{
+			#if DEBUG_MOUSE_CLICK
+			if (!Move) printf("\tClick no client %s, m=%i,%i cli=%s\n",
+				Target->GetClass(), m.x, m.y, Client.GetStr());
+			#endif
+			return false;
+		}
 	}
 	
 	return true;
@@ -1146,6 +1154,7 @@ void BViewRedir::MouseUp(BPoint point)
 	m.Down(false);
 	m.Target = Wnd;
 	
+	m.Trace("MouseUp");
 	Wnd->_Mouse(m, false);
 	WndBtn = Btns;
 }

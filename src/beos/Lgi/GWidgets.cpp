@@ -238,7 +238,7 @@ bool GDialog::OnRequestClose(bool OsClose)
 
 int GDialog::DoModal(OsView ParentHnd)
 {
-	LgiTrace("DoModal() Me=%i Count=%i Thread=%i\n", LgiGetCurrentThread(), Wnd->CountLocks(), Wnd->LockingThread());
+	// LgiTrace("DoModal() Me=%i Count=%i Thread=%i\n", LgiGetCurrentThread(), Wnd->CountLocks(), Wnd->LockingThread());
 
 	d->IsModal = true;
 	d->ModalRet = 0;
@@ -280,23 +280,25 @@ int GDialog::DoModal(OsView ParentHnd)
 		Wnd->Show();
 		Locker.Unlock();
 
-		printf("starting WaitForDelete\n");
-
 		thread_id	this_tid = find_thread(NULL);
 		status_t	result;
 		bool		Warned = false;
 		BWindow		*parent = GetParent() ? GetParent()->WindowHandle() : NULL;
 		int			Locks = parent ? parent->CountLocks() : 0;
+		bool		ForceParentToUnlock = false;
 
-		// printf("GDialog::DoModal parent=%p count=%i\n", parent, parent ? parent->CountLocks() : 0);
-		for (int c=0; c<Locks; c++)
-			parent->UnlockLooper();
+		if (ForceParentToUnlock)
+		{
+			for (int c=0; c<Locks; c++)
+				parent->UnlockLooper();
+		}
 	
 		// block until semaphore is deleted (modal is finished)
 		do
 		{
 			if (parent)
 			{
+				/*
 				if (!Warned && parent->IsLocked())
 				{
 					printf("%p Locked! Count=%i Thread=%i Req=%i\n",
@@ -304,19 +306,21 @@ int GDialog::DoModal(OsView ParentHnd)
 						parent->CountLockRequests());
 					Warned = true;
 				}
+				*/
 				
 				// update the parent window periodically
 				parent->UpdateIfNeeded();
 			}
 			
 			result = acquire_sem_etc(d->ModalSem, 1, B_TIMEOUT, 50 * 1000); // 50 ms
-			// printf("acquire_sem_etc = %x\n", result);
 		}
 		while (result != B_BAD_SEM_ID);
 	
-		for (int c=0; c<Locks; c++)
-			parent->LockLooper();
-		// printf("...WaitForDelete done\n");
+		if (ForceParentToUnlock)
+		{
+			for (int c=0; c<Locks; c++)
+				parent->LockLooper();
+		}
 	}
 	else
 	{

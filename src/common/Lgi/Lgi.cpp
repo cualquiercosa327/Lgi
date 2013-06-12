@@ -111,6 +111,17 @@ bool LgiPostEvent(OsView Wnd, int Event, GMessage::Param a, GMessage::Param b)
 	{
 		bool Status = false;
 
+		#if 1
+		
+		BMessage Msg(Event);
+		Msg.AddInt32("a", a);
+		Msg.AddInt32("b", b);
+
+		BMessenger m(Wnd);
+		Status = m.SendMessage(&Msg) == B_OK;
+		
+		#else
+
 		while (true)
 		{		
 			status_t result = Wnd->LockLooperWithTimeout(1000000);
@@ -143,6 +154,8 @@ bool LgiPostEvent(OsView Wnd, int Event, GMessage::Param a, GMessage::Param b)
 				break;
 			}
 		}
+		
+		#endif
 		
 		return Status;
 	}

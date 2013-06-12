@@ -35,7 +35,7 @@ GWnd::~GWnd()
 
 bool GWnd::QuitRequested()
 {
-	printf("GWnd::QuitRequested()\n");
+	// printf("GWnd::QuitRequested()\n");
 	return Notify->OnRequestClose(false);
 }
 
@@ -58,7 +58,7 @@ void GWnd::FrameMoved(BPoint origin)
 
 void GWnd::FrameResized(float width, float height)
 {
-	printf("FrameResize event %f, %f\n", width, height);
+	// printf("FrameResize event %f, %f\n", width, height);
 	if (Notify)
 	{
 		Notify->Pos.Dimension(width, height);
