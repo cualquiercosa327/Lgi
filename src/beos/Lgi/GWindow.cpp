@@ -5,6 +5,9 @@
 #include "GToken.h"
 #include "GPopup.h"
 
+#define DEBUG_SETFOCUS			0
+#define DEBUG_HANDLEVIEWKEY		0
+
 ///////////////////////////////////////////////////////////////////////////////////////////////
 GWnd::GWnd(GView *notify) :
 	BWindow(BRect(10, 10, 100, 100),
@@ -82,6 +85,7 @@ class GWindowPrivate
 public:
 	GViewI *Focus;
 	GArray<HookInfo> Hooks;
+	GKey LastKey;
 
 	GWindowPrivate()
 	{
@@ -560,33 +564,164 @@ bool GWindow::HandleViewMouse(GView *v, GMouse &m)
 
 bool GWindow::HandleViewKey(GView *v, GKey &k)
 {
-	// printf("GWindow::OnViewKey(%p) key=%i down=%i sh=%i alt=%i ctrl=%i\n", v, k.c, k.Down(), k.Shift(), k.Alt(), k.Ctrl());
-	for (GViewI *p = v; p; p = p->GetParent())
+	bool Status = false;
+	GViewI *Ctrl = 0;
+	
+	#if DEBUG_HANDLEVIEWKEY
+	bool Debug = 1; // k.vkey == VK_RETURN;
+	char SafePrint = k.c16 < ' ' ? ' ' : k.c16;
+	
+	if (Debug)
+	{
+		printf("%s::HandleViewKey=%i ischar=%i %s%s%s%s\n",
+			v->GetClass(),
+			k.c16,
+			k.IsChar,
+			(char*)(k.Down()?" Down":" Up"),
+			(char*)(k.Shift()?" Shift":""),
+			(char*)(k.Alt()?" Alt":""),
+			(char*)(k.Ctrl()?" Ctrl":""));
+	}
+	#endif
+
+	// Any window in a popup always gets the key...
+	GViewI *p;
+	for (p = v->GetParent(); p; p = p->GetParent())
 	{
 		if (dynamic_cast<GPopup*>(p))
 		{
-			return true;
+			#if DEBUG_HANDLEVIEWKEY
+			if (Debug)
+				printf("Sending key to popup\n");
+			#endif
+			
+			return v->OnKey(k);
 		}
 	}
 
-	if (Menu)
+	// Give key to popups
+	if (LgiApp &&
+		LgiApp->GetMouseHook() &&
+		LgiApp->GetMouseHook()->OnViewKey(v, k))
 	{
-		return Menu->OnKey(v, k);
+		#if DEBUG_HANDLEVIEWKEY
+		if (Debug)
+			printf("MouseHook got key\n");
+		#endif
+		goto AllDone;
 	}
 
+	// Allow any hooks to see the key...
 	for (int i=0; i<d->Hooks.Length(); i++)
 	{
 		if (d->Hooks[i].Flags & GKeyEvents)
 		{
-			if (!d->Hooks[i].Target->OnViewKey(v, k))
+			if (d->Hooks[i].Target->OnViewKey(v, k))
 			{
-				return false;
+				Status = true;
+				
+				#if DEBUG_HANDLEVIEWKEY
+				if (Debug)
+					printf("Hook ate '%c'(%i) down=%i alt=%i ctrl=%i sh=%i\n", SafePrint, k.c16, k.Down(), k.Alt(), k.Ctrl(), k.Shift());
+				#endif
+				
+				goto AllDone;
 			}
 		}
 	}
 
-	return true;
+	// Give the key to the window...
+	if (v->OnKey(k))
+	{
+		#if DEBUG_HANDLEVIEWKEY
+		if (Debug)
+			printf("View ate '%c'(%i) down=%i alt=%i ctrl=%i sh=%i\n",
+				SafePrint, k.c16, k.Down(), k.Alt(), k.Ctrl(), k.Shift());
+		#endif
+		
+		Status = true;
+		goto AllDone;
+	}
+	#if DEBUG_HANDLEVIEWKEY
+	else if (Debug)
+		printf("%s didn't eat '%c'(%i) down=%i alt=%i ctrl=%i sh=%i\n",
+			v->GetClass(), SafePrint, k.c16, k.Down(), k.Alt(), k.Ctrl(), k.Shift());
+	#endif
+	
+	// Window didn't want the key...
+	switch (k.vkey)
+	{
+		case VK_RETURN:
+		#ifdef VK_KP_ENTER
+		case VK_KP_ENTER:
+		#endif
+		{
+			Ctrl = _Default;
+			break;
+		}
+		case VK_ESCAPE:
+		{
+			Ctrl = FindControl(IDCANCEL);
+			break;
+		}
+	}
+
+	// printf("Ctrl=%p\n", Ctrl);
+	if (Ctrl)
+	{
+		if (Ctrl->Enabled())
+		{
+			if (Ctrl->OnKey(k))
+			{
+				Status = true;
+
+				#if DEBUG_HANDLEVIEWKEY
+				if (Debug)
+					printf("Default Button ate '%c'(%i) down=%i alt=%i ctrl=%i sh=%i\n",
+						SafePrint, k.c16, k.Down(), k.Alt(), k.Ctrl(), k.Shift());
+				#endif
+				
+				goto AllDone;
+			}
+			// else printf("OnKey()=false\n");
+		}
+		// else printf("Ctrl=disabled\n");
+	}
+	#if DEBUG_HANDLEVIEWKEY
+	else if (Debug)
+		printf("No default ctrl to handle key.\n");
+	#endif
+	
+	if (Menu)
+	{
+		Status = Menu->OnKey(v, k);
+		if (Status)
+		{
+			#if DEBUG_HANDLEVIEWKEY
+			if (Debug)
+				printf("Menu ate '%c' down=%i alt=%i ctrl=%i sh=%i\n", k.c16, k.Down(), k.Alt(), k.Ctrl(), k.Shift());
+			#endif
+		}
+	}
+	
+	// Tab through controls
+	if (k.vkey == VK_TAB && k.Down() && !k.IsChar)
+	{
+		GViewI *Wnd = GetNextTabStop(v, k.Shift());
+		#if DEBUG_HANDLEVIEWKEY
+		if (Debug)
+			printf("Tab moving focus shift=%i Wnd=%p\n", k.Shift(), Wnd);
+		#endif
+		if (Wnd)
+			Wnd->Focus(true);
+	}
+
+AllDone:
+	d->LastKey = k;
+
+	return Status;
 }
+
 
 bool GWindow::RegisterHook(GView *Target, GWindowHookType EventType, int Priority)
 {

@@ -895,7 +895,7 @@ AppWnd::AppWnd()
 	LgiGetResObj(true, AppName);
 	#endif
 
-	GRect r(0, 0, 1000, 900);
+	GRect r(0, 0, 1000, 750);
 	SetPos(r);
 	MoveToCenter();
 

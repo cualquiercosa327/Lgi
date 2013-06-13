@@ -470,11 +470,7 @@ protected:
 	int				_PulseRate;
 	BWindow			*_QuitMe;
 
-	void Sys_KeyDown(const char *bytes, int32 numBytes);
-	void Sys_KeyUp(const char *bytes, int32 numBytes);
-	void Sys_MouseDown(BPoint point);
-	void Sys_MouseMoved(BPoint point, uint32 transit, const BMessage *message);
-	void Sys_FrameMoved(BPoint p);
+	void _Key(const char *bytes, int32 numBytes, bool down);
 	virtual bool QuitRequested() {}
 	
 	#elif defined MAC

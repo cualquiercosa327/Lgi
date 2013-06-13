@@ -249,10 +249,6 @@ int GToolTip::NewTip(char *Name, GRect &Pos)
 					d->Thread = new NativeTipThread(&d->Tips);
 				}
 			}
-			else
-			{
-				printf("Attach failed!!!\n");
-			}
 			
 			Status = true;
 		}

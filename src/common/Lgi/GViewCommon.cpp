@@ -513,11 +513,11 @@ void GView::SendNotify(int Data)
 				}
 			}
 			
-			#ifdef BEOS
+			#if 0 // def BEOS
 
 			static int ChangeId = 1;
 			int Cid = ChangeId++;
-			printf("**** M_CHANGE sending  **** Ctrl=%i %s, Data=%i, Cid=%i\n", Ptr->GetId(), Ptr->Name(), Data, Cid);
+			// printf("**** M_CHANGE sending  **** Ctrl=%i %s, Data=%i, Cid=%i\n", Ptr->GetId(), Ptr->Name(), Data, Cid);
 			
 			BMessage Msg(M_CHANGE);
 			Msg.AddInt32("a", GetId());
@@ -804,7 +804,7 @@ bool GView::HandleCapture(GView *Wnd, bool c)
 
 			Status = true;
 			_Capturing = Wnd;
-			LgiTrace("Capturing on %p/%s\n", _View, GetClass());
+			// LgiTrace("Capturing on %p/%s\n", _View, GetClass());
 		}
 		else
 		{
@@ -817,7 +817,7 @@ bool GView::HandleCapture(GView *Wnd, bool c)
 				#elif defined MAC
 				#endif
 
-				LgiTrace("Uncapture on %p/%s\n", _Capturing, GetClass());
+				// LgiTrace("Uncapture on %p/%s\n", _Capturing, GetClass());
 				_Capturing = 0;
 			}
 		}
@@ -930,7 +930,7 @@ bool GView::Focus()
 	bool Has = false;
 	GWindow *w = GetWindow();
    
-	#if defined(__GTK_H__)
+	#if defined(__GTK_H__) || defined(BEOS)
 	if (w)
 	{
 		bool Active = w->IsActive();

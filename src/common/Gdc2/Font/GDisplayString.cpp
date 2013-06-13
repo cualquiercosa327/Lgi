@@ -479,10 +479,9 @@ void GDisplayString::Layout()
 
 		const char *Strs[] = { Str };
 		BRect Rc;
-		escapement_delta Delta;
+		escapement_delta Delta = {0, 0};
 		Font->Handle()->GetBoundingBoxesForStrings(Strs, 1, B_SCREEN_METRIC, &Delta, &Rc);
 		x = Rc.IntegerWidth();
-		// y = Rc.IntegerHeight();
 		if (Rc.IntegerWidth() < 0)
 		{
 			x = 0;
@@ -493,11 +492,6 @@ void GDisplayString::Layout()
 			for (int i=0; i<len; i++)
 			{
 				x += ceil(esc[i] * y);
-				/*
-				printf("Glyph[%i/%c] = %f, %f, %f\n", i, Str[i],
-					(double)g[i].space, (double)g[i].nonspace,
-					(double)esc[i]);
-				*/
 			}
 
 			delete [] esc;

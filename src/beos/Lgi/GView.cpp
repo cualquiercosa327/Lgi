@@ -751,12 +751,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				int32 Cid = -1;
 				Msg->FindInt32("cid", &Cid);
 				GMessage::Param Data = MsgB(Msg);
-				printf("#### M_CHANGE received #### Ctrl=%i %s, Data=%i, Cid=%i\n", CtrlId, Ctrl->Name(), Data, Cid);
-
-				if (CtrlId == 66)
-				{
-					int asd=0;
-				}
+				// printf("#### M_CHANGE received #### Ctrl=%i %s, Data=%i, Cid=%i\n", CtrlId, Ctrl->Name(), Data, Cid);
 
 				OnNotify(Ctrl, Data);
 			}
@@ -959,7 +954,7 @@ GView *&GView::PopupChild()
 
 static int LastFunctionKey = 0;
 
-void GView::Sys_KeyDown(const char *bytes, int32 numBytes)
+void GView::_Key(const char *bytes, int32 numBytes, bool down)
 {
 	key_info Info;
 	get_key_info(&Info);
@@ -1032,30 +1027,18 @@ void GView::Sys_KeyDown(const char *bytes, int32 numBytes)
 						(k.c16 == 10);
 		}
 		
+		k.vkey = k.c16;
 		k.Flags = modifiers();
 		k.Data = 0;
-		k.Down(true);
-		
-		OnKey(k);
-	}
-}
+		k.Down(down);
 
-void GView::Sys_KeyUp(const char *bytes, int32 numBytes)
-{
-	key_info Info;
-	get_key_info(&Info);
+		// k.Trace("sys down");		
 
-	for (int i=0; i<numBytes; i++)
-	{
-		GKey k;
-		
-		k.c16 = bytes[i];
-		k.Flags = modifiers();
-		k.Data = 0;
-		k.Down(false);
-		k.IsChar = 0;
-		
-		OnKey(k);
+		GWindow *w = GetWindow();
+		if (w)
+			w->HandleViewKey(this, k);
+		else
+			OnKey(k);
 	}
 }
 
@@ -1070,7 +1053,9 @@ void GView::_Focus(bool f)
 	Invalidate();
 
 	if (_View)
+	{
 		_View->MakeFocus();
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1125,22 +1110,16 @@ void BViewRedir::MessageReceived(BMessage *message)
 	Wnd->OnEvent((GMessage*) message); // Haha, this is so bad... oh well.
 }
 
-void BViewRedir::MakeFocus(bool f = true)
-{
-	// BView::MakeFocus(f);
-	Wnd->OnFocus(f);
-}
-
 void BViewRedir::KeyDown(const char *bytes, int32 numBytes)
 {
-	// BView::KeyDown(bytes, numBytes);
-	Wnd->Sys_KeyDown(bytes, numBytes);
+	// printf("%s.keydown\n", Wnd->GetClass());
+	Wnd->_Key(bytes, numBytes, true);
 }
 
 void BViewRedir::KeyUp(const char *bytes, int32 numBytes)
 {
-	// BView::KeyUp(bytes, numBytes);
-	Wnd->Sys_KeyUp(bytes, numBytes);
+	// printf("%s.keyup\n", Wnd->GetClass());
+	Wnd->_Key(bytes, numBytes, false);
 }
 
 void BViewRedir::MouseDown(BPoint point)

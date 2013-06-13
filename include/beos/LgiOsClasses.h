@@ -17,7 +17,6 @@ class LgiClass BViewRedir : public BView
 	void FrameResized(float width, float height);
 	void Pulse();
 	void MessageReceived(BMessage *message);
-	void MakeFocus(bool f = true);
 	void KeyDown(const char *bytes, int32 numBytes);
 	void KeyUp(const char *bytes, int32 numBytes);
 	void MouseDown(BPoint point);

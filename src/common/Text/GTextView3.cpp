@@ -523,7 +523,6 @@ void GTextView3::SetFont(GFont *f, bool OwnIt)
 	if (!f)
 		return;
 	
-	printf("GTextView3::SetFont\n");
 	if (OwnIt)
 	{
 		DeleteObj(Font);
@@ -3089,6 +3088,7 @@ void GTextView3::OnMouseClick(GMouse &m)
 	{
 		if (!m.IsContextMenu())
 		{
+			printf("...focus\n");
 			Focus(true);
 
 			int Hit = HitText(m.x, m.y);
@@ -4183,9 +4183,10 @@ void GTextView3::OnPaint(GSurface *pDC)
 		GSurface *pOut = pDC;
 		bool DrawSel = false;
 		
+		bool HasFocus = Focus();
 		GColour Fore(LC_TEXT, 24);
-		GColour SelectedText(Focus() ? LC_FOCUS_SEL_FORE : LC_NON_FOCUS_SEL_FORE, 24);
-		GColour SelectedBack(Focus() ? LC_FOCUS_SEL_BACK : LC_NON_FOCUS_SEL_BACK, 24);
+		GColour SelectedText(HasFocus ? LC_FOCUS_SEL_FORE : LC_NON_FOCUS_SEL_FORE, 24);
+		GColour SelectedBack(HasFocus ? LC_FOCUS_SEL_BACK : LC_NON_FOCUS_SEL_BACK, 24);
 		GViewFill *BackFill = GetBackgroundFill();
 		GColour Back(!ReadOnly ? (BackFill ? BackFill->GetFlat().c24() : LC_WORKSPACE) : BackColour, 24);
 		GColour Whitespace = Fore.Mix(Back, 0.85f);
@@ -4415,7 +4416,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 				pOut->Rectangle(Tr.x2, Tr.y1, r.x2, Tr.y2);
 
 				// cursor?
-				if (Focus())
+				if (HasFocus)
 				{
 					// draw the cursor if on this line
 					if (Cursor >= l->Start && Cursor <= l->Start+l->Len)
