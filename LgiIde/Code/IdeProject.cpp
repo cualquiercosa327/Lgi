@@ -1559,71 +1559,7 @@ public:
 				}
 				case IDM_PROPERTIES:
 				{
-					if (IsWeb())
-					{
-						bool IsFolder = File == 0;
-
-						WebFldDlg Dlg(Tree, Name, IsFolder ? GetAttr(OPT_Ftp) : File, GetAttr(OPT_Www));
-						if (Dlg.DoModal())
-						{
-							if (IsFolder)
-							{
-								SetName(Dlg.Name);
-								SetAttr(OPT_Ftp, Dlg.Ftp);
-								SetAttr(OPT_Www, Dlg.Www);
-							}
-							else
-							{
-								DeleteArray(File);
-								File = NewStr(Dlg.Ftp);
-							}
-
-							Project->SetDirty();
-							Update();
-						}
-					}
-					else if (Type == NodeDir)
-					{
-					}
-					else if (Type == NodeDependancy)
-					{
-						GAutoString Path = GetFullPath();
-						LgiMsg(Tree, "Path: %s", AppName, MB_OK, Path.Get());
-					}
-					else
-					{
-						GAutoString Path = GetFullPath();
-						if (Path)
-						{
-							char Size[32];
-							int64 FSize = LgiFileSize(Path);
-							LgiFormatSize(Size, FSize);
-							char Msg[512];
-							sprintf(Msg, "Source Code:\n\n\t%s\n\nSize: %s (%i bytes)", Path.Get(), Size, (int32)FSize);
-						
-							FileProps Dlg(Tree, Msg, Type, Platforms);
-							switch (Dlg.DoModal())
-							{
-								case IDC_COPY_PATH:
-								{
-									GClipBoard Clip(Tree);
-									Clip.Text(Path);
-									break;
-								}
-							}
-							if (Type != Dlg.Type)
-							{
-								Type = Dlg.Type;
-								Project->SetDirty();
-							}
-							if (Platforms != Dlg.Platforms)
-							{
-								Platforms = Dlg.Platforms;
-								Project->SetDirty();
-							}									
-							Update();
-						}
-					}
+					OnProperties();
 					break;
 				}
 			}
@@ -1657,7 +1593,7 @@ public:
 		}
 	}
 	
-	ProjectNode *FindFile(char *In, char **Full)
+	ProjectNode *FindFile(const char *In, char **Full)
 	{
 		if (File)
 		{
@@ -1734,6 +1670,75 @@ public:
 		}
 		
 		return 0;
+	}
+	
+	void OnProperties()
+	{
+		if (IsWeb())
+		{
+			bool IsFolder = File == 0;
+
+			WebFldDlg Dlg(Tree, Name, IsFolder ? GetAttr(OPT_Ftp) : File, GetAttr(OPT_Www));
+			if (Dlg.DoModal())
+			{
+				if (IsFolder)
+				{
+					SetName(Dlg.Name);
+					SetAttr(OPT_Ftp, Dlg.Ftp);
+					SetAttr(OPT_Www, Dlg.Www);
+				}
+				else
+				{
+					DeleteArray(File);
+					File = NewStr(Dlg.Ftp);
+				}
+
+				Project->SetDirty();
+				Update();
+			}
+		}
+		else if (Type == NodeDir)
+		{
+		}
+		else if (Type == NodeDependancy)
+		{
+			GAutoString Path = GetFullPath();
+			LgiMsg(Tree, "Path: %s", AppName, MB_OK, Path.Get());
+		}
+		else
+		{
+			GAutoString Path = GetFullPath();
+			if (Path)
+			{
+				char Size[32];
+				int64 FSize = LgiFileSize(Path);
+				LgiFormatSize(Size, FSize);
+				char Msg[512];
+				sprintf(Msg, "Source Code:\n\n\t%s\n\nSize: %s (%i bytes)", Path.Get(), Size, (int32)FSize);
+			
+				FileProps Dlg(Tree, Msg, Type, Platforms);
+				switch (Dlg.DoModal())
+				{
+					case IDC_COPY_PATH:
+					{
+						GClipBoard Clip(Tree);
+						Clip.Text(Path);
+						break;
+					}
+				}
+				if (Type != Dlg.Type)
+				{
+					Type = Dlg.Type;
+					Project->SetDirty();
+				}
+				if (Platforms != Dlg.Platforms)
+				{
+					Platforms = Dlg.Platforms;
+					Project->SetDirty();
+				}									
+				Update();
+			}
+		}
 	}
 };
 
@@ -2072,6 +2077,16 @@ IdeProject::~IdeProject()
 {
 	d->App->OnProjectDestroy(this);
 	DeleteObj(d);
+}
+
+void IdeProject::ShowFileProperties(const char *File)
+{
+	ProjectNode *Node = NULL;
+	char *fp = FindFullPath(File, &Node);
+	if (Node)
+	{
+		Node->OnProperties();
+	}
 }
 
 const char *IdeProject::GetFileComment()
@@ -2721,14 +2736,17 @@ void IdeProject::OnMouseClick(GMouse &m)
 	}
 }
 
-char *IdeProject::FindFullPath(char *File)
+char *IdeProject::FindFullPath(const char *File, class ProjectNode **Node)
 {
 	char *Full = 0;
 	
 	ForAllProjectNodes(c)
 	{
-		if (c->FindFile(File, &Full))
+		ProjectNode *n = c->FindFile(File, &Full);
+		if (n)
 		{
+			if (Node)
+				*Node = n;			
 			break;
 		}
 	}

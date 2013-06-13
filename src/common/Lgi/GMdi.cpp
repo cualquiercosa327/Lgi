@@ -147,17 +147,27 @@ char *GMdiChild::Name()
 bool GMdiChild::Name(const char *n)
 {
 	bool s = GView::Name(n);
+	
+	#if MDI_TAB_STYLE
+	if (GetParent())
+		GetParent()->Invalidate();
+	#else
 	Invalidate((GRect*)0, false, true);
+	#endif
+	
 	return s;
 }
 
 bool GMdiChild::Pour()
 {
 	GRect c = GetClient();
+	#if !MDI_TAB_STYLE
+	c.Size(2, 2);
+	#endif
+
 	GRegion Client(c);
 	GRegion Update;
 
-	// LgiStackTrace("%s pour, vis=%i, c=%s, len=%i\n", Name(), Visible(), c.GetStr(), Children.Length());
 	for (GViewI *w = Children.First(); w; w = Children.Next())
 	{
 		if (Visible())
@@ -171,11 +181,8 @@ bool GMdiChild::Pour()
 				
 				if (!w->Visible())
 				{
-					LgiTrace("\tshowing child: %s\n", Name());
 					w->Visible(true);
 				}
-
-				// w->Invalidate();
 
 				Client.Subtract(&w->GetPos());
 				Update.Subtract(&w->GetPos());
@@ -187,7 +194,6 @@ bool GMdiChild::Pour()
 		}
 		else
 		{
-			LgiTrace("\thiding child: %s\n", Name());
 			w->Visible(false);
 		}
 	}
@@ -756,9 +762,10 @@ bool GMdiParent::OnViewMouse(GView *View, GMouse &m)
 
 bool GMdiParent::OnViewKey(GView *View, GKey &Key)
 {
-	if (Key.Down() AND Key.Ctrl() AND Key.c16 == '\t')
+	if (Key.Down() && Key.Ctrl() && Key.c16 == '\t')
 	{
-		bool Child = IsChild(View);
+		GMdiChild *Child = IsChild(View);
+		LgiTrace("Child=%p %s view=%s\n", Child, Child ? Child->Name() : 0, View->GetClass());
 		if (Child)
 		{
 			GView *v;
@@ -775,6 +782,9 @@ bool GMdiParent::OnViewKey(GView *View, GKey &Key)
 			GMdiChild *c = dynamic_cast<GMdiChild*>(v);
 			if (c)
 			{
+				int Idx = Children.IndexOf((GViewI*)v);
+				LgiTrace("roll = %i of %i\n", Idx, Children.Length());
+				
 				if (Key.Shift())
 				{
 					c->Raise();
@@ -783,6 +793,10 @@ bool GMdiParent::OnViewKey(GView *View, GKey &Key)
 				{
 					c->Lower();
 				}
+
+				GMdiChild *Top = dynamic_cast<GMdiChild*>(Children.Last());
+				if (Top)
+					Top->Focus(true);
 
 				return true;
 			}

@@ -119,7 +119,7 @@ public:
 	void Build(bool All);
 	void Clean();
 	void Execute(ExeAction Act = ExeRun);
-	char *FindFullPath(char *File);
+	char *FindFullPath(const char *File, class ProjectNode **Node = NULL);
 	bool InProject(char *FullPath, bool Open, class IdeDoc **Doc = 0);
 	const char *GetFileComment();
 	const char *GetFunctionComment();
@@ -127,6 +127,7 @@ public:
 	bool GetTargetName(char *Buf, int BufSize);
 	bool GetTargetFile(char *Buf, int BufSize);
 	bool BuildIncludePaths(GArray<char*> &Paths, bool Recurse);
+	void ShowFileProperties(const char *File);
 
 	// Project heirarchy
 	IdeProject *GetParentProject();

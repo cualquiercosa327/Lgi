@@ -6,6 +6,7 @@
 #include "GToken.h"
 #include "GLexCpp.h"
 #include "INet.h"
+#include "GClipBoard.h"
 
 char *Untitled = "[untitled]";
 static char *White = " \r\t\n";
@@ -102,9 +103,6 @@ public:
 		if (c)
 		{
 			GRect n = *c;
-			n.x1 += 2;
-			n.x2 -= 2;
-			n.y2 -= 2;
 			SetPos(n);		
 			return true;
 		}
@@ -489,9 +487,6 @@ public:
 	{
 		GRect c = r.Bound();
 
-		#if !MDI_TAB_STYLE
-		c.Size(2, 2);
-		#endif
 		c.y2 -= 20;
 		SetPos(c);
 		
@@ -671,14 +666,19 @@ public:
 	{
 		char n[MAX_PATH+30];
 		
-		char *Dsp = GetDisplayName();
-		strsafecpy(n, Dsp ? Dsp : Untitled, sizeof(n));
+		GAutoString Dsp(GetDisplayName());
+		char *File = Dsp;
+		#if MDI_TAB_STYLE
+		char *Dir = File ? strrchr(File, DIR_CHAR) : NULL;
+		if (Dir) File = Dir + 1;
+		#endif
+		
+		strsafecpy(n, File ? File : Untitled, sizeof(n));
 		if (Edit->IsDirty())
 		{
 			strcat(n, " (changed)");
 		}	
 		Doc->Name(n);
-		DeleteArray(Dsp);
 	}
 
 	char *GetDisplayName()
@@ -801,6 +801,108 @@ IdeDoc::~IdeDoc()
 	DeleteObj(d);
 }
 
+enum
+{
+	IDM_SAVE = 100,
+	IDM_COPY_FILE,
+	IDM_COPY_PATH,
+	IDM_BROWSE,
+	IDM_PROPERTIES
+};
+
+void IdeDoc::OnTitleClick(GMouse &m)
+{
+	GMdiChild::OnTitleClick(m);
+	
+	if (m.IsContextMenu())
+	{
+		char Full[MAX_PATH] = "", sFile[MAX_PATH] = "", sFull[MAX_PATH] = "", sBrowse[MAX_PATH] = "";
+		char *Fn = GetFileName(), *Dir = NULL;
+		IdeProject *p = GetProject();
+		if (Fn)
+		{
+			strsafecpy(Full, Fn, sizeof(Full));
+			if (LgiIsRelativePath(Fn) && p)
+			{
+				GAutoString Base = p->GetBasePath();
+				if (Base)
+					LgiMakePath(Full, sizeof(Full), Base, Fn);
+			}
+			
+			Dir = Full ? strrchr(Full, DIR_CHAR) : NULL;
+			if (Dir)
+				sprintf_s(sFile, sizeof(sFile), "Copy '%s'", Dir + 1);
+			sprintf_s(sFull, sizeof(sFull), "Copy '%s'", Full);
+			sprintf_s(sBrowse, sizeof(sBrowse), "Browse to '%s'", Dir ? Dir + 1 : Full);			
+		}
+		
+		GSubMenu s;
+		s.AppendItem("Save", IDM_SAVE, d->IsDirty);
+		s.AppendItem("Close", IDM_CLOSE, true);
+		if (Fn)
+		{
+			s.AppendSeparator();
+			if (Dir)
+				s.AppendItem(sFile, IDM_COPY_FILE, true);
+			s.AppendItem(sFull, IDM_COPY_PATH, true);
+			s.AppendItem(sBrowse, IDM_BROWSE, true);
+		}
+		if (p)
+		{
+			s.AppendSeparator();
+			s.AppendItem("Properties", IDM_PROPERTIES, true);
+		}
+		
+		m.ToScreen();
+		int Cmd = s.Float(this, m.x, m.y, m.Left());
+		switch (Cmd)
+		{
+			case IDM_SAVE:
+			{
+				SetClean();
+				break;
+			}
+			case IDM_CLOSE:
+			{
+				if (OnRequestClose(false))
+					Quit();
+				break;
+			}
+			case IDM_COPY_FILE:
+			{
+				if (Dir)
+				{
+					GClipBoard c(this);
+					c.Text(Dir + 1);
+				}
+				break;
+			}
+			case IDM_COPY_PATH:
+			{
+				GClipBoard c(this);
+				c.Text(Full);
+				break;
+			}
+			case IDM_BROWSE:
+			{
+				#if defined(WIN32)
+				char Args[MAX_PATH];
+				sprintf(Args, "/e,/select,\"%s\"", Full);
+				LgiExecute("explorer", Args);
+				#else
+				LgiAssert(!"Impl me.");
+				#endif
+				break;
+			}
+			case IDM_PROPERTIES:
+			{
+				p->ShowFileProperties(Full);
+				break;
+			}
+		}
+	}
+}
+
 AppWnd *IdeDoc::GetApp()
 {
 	return d->App;
@@ -835,9 +937,9 @@ void IdeDoc::SetFileName(char *f, bool Write)
 	}
 }
 
-void IdeDoc::SetFocus()
+void IdeDoc::Focus(bool f)
 {
-	d->Edit->Focus(true);
+	d->Edit->Focus(f);
 }
 
 int IdeDoc::OnNotify(GViewI *v, int f)

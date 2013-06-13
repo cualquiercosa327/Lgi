@@ -77,7 +77,7 @@ public:
 	IdeProject *GetProject();
 	char *GetFileName();
 	void SetFileName(char *f, bool Write);
-	void SetFocus();
+	void Focus(bool f);
 	bool SetClean();
 	void SetDirty();
 	bool OnRequestClose(bool OsShuttingDown);
@@ -92,6 +92,9 @@ public:
 	bool BuildHeaderList(char16 *Cpp, GArray<char*> &Headers, GArray<char*> &IncPaths);
 	bool BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Funcs, DefnType LimitTo, bool Debug = false);
 	bool FindDefn(char16 *Def, char16 *Source, List<DefnInfo> &Matches);
+	
+	// Impl
+	void OnTitleClick(GMouse &m);
 };
 
 #endif

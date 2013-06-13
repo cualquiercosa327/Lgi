@@ -23,13 +23,13 @@ public:
 	GRect &GetClient(bool InClientSpace = true);
 	#endif
 
-	void Raise();
-	void Lower();
 	bool Pour();
 	bool Attach(GViewI *p);
 	char *Name();
 	bool Name(const char *n);
 	
+	virtual void Raise();
+	virtual void Lower();
 	virtual void OnTitleClick(GMouse &m);
 };
 

@@ -1144,7 +1144,7 @@ IdeDoc *AppWnd::NewDocWnd(char *FileName, NodeSource *Src)
 		GRect p = d->Mdi->NewPos();
 		Doc->SetPos(p);
 		Doc->Attach(d->Mdi);
-		Doc->SetFocus();
+		Doc->Focus(true);
 		Doc->Raise();
 
 		char *File = Src ? Src->GetFileName() : FileName;
@@ -1248,7 +1248,7 @@ IdeDoc *AppWnd::OpenFile(char *FileName, NodeSource *Src)
 				Doc->Attach(d->Mdi);
 			}
 
-			Doc->SetFocus();
+			Doc->Focus(true);
 			Doc->Raise();
 		}
 	}
@@ -1435,7 +1435,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 				GRect p = d->Mdi->NewPos();
 				Doc->SetPos(p);
 				Doc->Attach(d->Mdi);
-				Doc->SetFocus();
+				Doc->Focus(true);
 			}
 			break;
 		}
