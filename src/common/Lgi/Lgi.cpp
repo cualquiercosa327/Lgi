@@ -109,55 +109,12 @@ bool LgiPostEvent(OsView Wnd, int Event, GMessage::Param a, GMessage::Param b)
 	
 	if (Wnd)
 	{
-		bool Status = false;
-
-		#if 1
-		
 		BMessage Msg(Event);
 		Msg.AddInt32("a", a);
 		Msg.AddInt32("b", b);
 
 		BMessenger m(Wnd);
-		Status = m.SendMessage(&Msg) == B_OK;
-		
-		#else
-
-		while (true)
-		{		
-			status_t result = Wnd->LockLooperWithTimeout(1000000);
-			if (result == B_OK)
-			{
-				BMessage *Msg = new BMessage(Event);
-				if (Msg)
-				{
-					Msg->AddInt32("a", a);
-					Msg->AddInt32("b", b);
-					BMessenger m(Wnd);
-					Status = m.SendMessage(Msg) == B_OK;
-					DeleteObj(Msg);
-				}
-				Wnd->UnlockLooper();
-				break;
-			}
-			else if (result == B_TIMED_OUT)
-			{
-				const char *Locker = GLocker::GetLocker(Wnd->Looper()->LockingThread());
-				printf("%s:%i - LgiPostEvent->LockLooperWithTimeout timeout, locker=%i (%s), cur thread=%i\n",
-					_FL,
-					Wnd->Looper()->LockingThread(),
-					Locker,
-					LgiGetCurrentThread());
-			}
-			else
-			{
-				printf("%s:%i - LockLooperWithTimeout error 0x%x\n", _FL, result);
-				break;
-			}
-		}
-		
-		#endif
-		
-		return Status;
+		return m.SendMessage(&Msg) == B_OK;
 	}
 
 	#elif defined(MAC) && !defined COCOA

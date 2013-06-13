@@ -13,7 +13,9 @@ public:
 	GMdiChild();
 	~GMdiChild();
 
-	#if !MDI_TAB_STYLE
+	#if MDI_TAB_STYLE
+	int GetOrder();
+	#else
 	void OnPaint(GSurface *pDC);	
 	void OnMouseClick(GMouse &m);
 	void OnMouseMove(GMouse &m);
@@ -27,13 +29,15 @@ public:
 	bool Attach(GViewI *p);
 	char *Name();
 	bool Name(const char *n);
+	
+	virtual void OnTitleClick(GMouse &m);
 };
 
 class GMdiParent : public GLayout
 {
 	class GMdiParentPrivate *d;
 
-	GMdiChild *IsChild(GView *v);
+	GMdiChild *IsChild(GViewI *v);
 
 public:
 	GMdiParent();
@@ -45,9 +49,11 @@ public:
 	bool OnViewKey(GView *View, GKey &Key);
 	void OnChildrenChanged(GViewI *Wnd, bool Attaching);
 	GRect NewPos();
+	bool GetChildren(GArray<GMdiChild*> &Views);
 	
 	#if MDI_TAB_STYLE
 	void OnPosChange();
+	void OnMouseClick(GMouse &m);
 	#endif
 };
 
