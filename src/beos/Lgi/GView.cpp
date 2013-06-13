@@ -635,9 +635,29 @@ bool GView::_Mouse(GMouse &m, bool Move)
 	return true;
 }
 
+long _lgi_pulse_thread(void *ptr)
+{
+	GView *Wnd = (GView*) ptr;
+	if (Wnd)
+	{
+		while (Wnd->_PulseRate > 0)
+		{
+			LgiSleep(Wnd->_PulseRate);
+			
+			BMessenger m(Wnd->Handle());
+			BMessage msg(M_PULSE);
+			m.SendMessage(&msg);
+		}
+		
+		Wnd->_PulseThread = 0;
+	}
+} 
+
 void GView::SetPulse(int Length)
 {
-	/*
+	if (!_View)
+		return;
+
 	GLocker Locker(_View, _FL);
 	if (Locker.Lock())
 	{
@@ -658,7 +678,6 @@ void GView::SetPulse(int Length)
 			}
 		}
 	}
-	*/
 }
 
 GMessage::Result GView::OnEvent(GMessage *Msg)
@@ -914,6 +933,11 @@ GView *_lgi_search_children(GView *v, int &x, int &y)
 
 void GView::_Delete()
 {
+	if (_PulseThread)
+	{
+		kill_thread(_PulseThread);
+		_PulseThread = 0;
+	}
 	if (_Over == this) _Over = 0;
 	if (_Capturing == this) _Capturing = 0;
 

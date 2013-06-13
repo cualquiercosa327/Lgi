@@ -477,6 +477,17 @@ void GDisplayString::Layout()
 		Font->Handle()->GetHeight(&Ht);
 		y = ceil(Ht.ascent + Ht.descent);
 
+		#if 1
+
+		Blocks = 1;
+		Info = new CharInfo[Blocks];
+		Info[0].Str = Str;
+		Info[0].Len = len;
+		Info[0].X = x = Font->Handle()->StringWidth(Str);
+		Info[0].FontId = -1;
+		Info[0].SizeDelta = 0;
+		
+		#else
 		const char *Strs[] = { Str };
 		BRect Rc;
 		escapement_delta Delta = {0, 0};
@@ -506,6 +517,7 @@ void GDisplayString::Layout()
 			Info[0].FontId = -1;
 			Info[0].SizeDelta = 0;
 		}
+		#endif
 
 		// printf("Layout '%s' = %i,%i\n", Str, x, y);
 	}
