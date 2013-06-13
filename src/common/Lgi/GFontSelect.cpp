@@ -216,7 +216,7 @@ void GFontSelect::UiToThis()
 {
 	DeleteArray(Face);
 	Face = NewStr(GetSelectedFace());
-	Size = atoi(Ctrl7->Name());
+	Size = Ctrl7->Name() ? atoi(Ctrl7->Name()) : 0;
 	Underline = Ctrl3->Value();
 	Bold = Ctrl4->Value();
 	Italic = Ctrl5->Value();

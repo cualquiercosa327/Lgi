@@ -477,7 +477,7 @@ GViewI *GView::GetParent()
 
 void GView::SetParent(GViewI *p)
 {
-	d->Parent = dynamic_cast<GView*>(p);
+	d->Parent = p ? p->GetGView() : NULL;
 	d->ParentI = p;
 }
 

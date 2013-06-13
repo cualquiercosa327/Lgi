@@ -473,18 +473,19 @@ void GDisplayString::Layout()
 	
 	if (Font && Font->Handle())
 	{
+		font_height Ht;
+		Font->Handle()->GetHeight(&Ht);
+		y = ceil(Ht.ascent + Ht.descent);
+
 		const char *Strs[] = { Str };
 		BRect Rc;
 		escapement_delta Delta;
 		Font->Handle()->GetBoundingBoxesForStrings(Strs, 1, B_SCREEN_METRIC, &Delta, &Rc);
 		x = Rc.IntegerWidth();
-		y = Rc.IntegerHeight();
+		// y = Rc.IntegerHeight();
 		if (Rc.IntegerWidth() < 0)
 		{
-			font_height Ht;
-			Font->Handle()->GetHeight(&Ht);
 			x = 0;
-			y = ceil(Ht.ascent + Ht.descent);
 			
 			float *esc = new float[len];
 
@@ -957,7 +958,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 			Hnd->SetHighColor(Fg);
 			Hnd->SetLowColor(Bk);			
 			Hnd->SetFont(Font->Handle());
-			BPoint pos(px, py + Font->Ascent() - 1);
+			BPoint pos(px, py + Font->Ascent());
 			Hnd->DrawString(Str, len, pos);
 			
 			if (!pDC->IsScreen())

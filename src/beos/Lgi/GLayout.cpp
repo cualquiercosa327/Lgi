@@ -96,7 +96,8 @@ bool GLayout::Attach(GViewI *p)
 		Locker.Lock();
 		if (HScroll)
 		{
-			if (HScroll->Handle()->Parent())
+			if (HScroll->Handle() &&
+				HScroll->Handle()->Parent())
 			{
 				HScroll->Handle()->RemoveSelf();
 			}
@@ -106,7 +107,8 @@ bool GLayout::Attach(GViewI *p)
 		
 		if (VScroll)
 		{
-			if (VScroll->Handle()->Parent())
+			if (VScroll->Handle() &&
+				VScroll->Handle()->Parent())
 			{
 				VScroll->Handle()->RemoveSelf();
 			}

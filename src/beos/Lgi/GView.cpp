@@ -1032,6 +1032,20 @@ void GView::Sys_KeyUp(const char *bytes, int32 numBytes)
 	}
 }
 
+void GView::_Focus(bool f)
+{
+	if (f)
+		SetFlag(WndFlags, GWF_FOCUS);
+	else
+		ClearFlag(WndFlags, GWF_FOCUS);
+
+	OnFocus(f);	
+	Invalidate();
+
+	if (_View)
+		_View->MakeFocus();
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 BViewRedir::BViewRedir(GView *wnd, uint32 Resize) :
 	BView(	BRect(0, 0, 100, 100),
