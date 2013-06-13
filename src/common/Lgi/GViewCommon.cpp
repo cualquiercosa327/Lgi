@@ -486,13 +486,50 @@ void GView::SendNotify(int Data)
 	GViewI *n = d->Notify ? d->Notify : d->Parent;
 	if (n)
 	{
-		if (LgiGetCurrentThread() != LgiApp->GetGuiThread())
+		if (InThread())
 		{
-            n->PostEvent(M_CHANGE, (GMessage::Param)(GViewI*)this, Data);
+			n->OnNotify(this, Data);
 		}
 		else
 		{
-			n->OnNotify(this, Data);
+			GViewI *Ptr = this;
+			if (GetId() == -1)
+			{
+				GWindow *w = GetWindow();
+				if (w)
+				{
+					// Give the control a valid ID
+					for (int i=10; i<1000; i++)
+					{
+						if (!w->FindControl(i))
+						{
+							printf("Giving the ctrl '%s' the id '%i' for SendNotify\n",
+								GetClass(),
+								i);
+							SetId(i);
+							break;
+						}
+					}
+				}
+			}
+			
+			#ifdef BEOS
+
+			static int ChangeId = 1;
+			int Cid = ChangeId++;
+			printf("**** M_CHANGE sending  **** Ctrl=%i %s, Data=%i, Cid=%i\n", Ptr->GetId(), Ptr->Name(), Data, Cid);
+			
+			BMessage Msg(M_CHANGE);
+			Msg.AddInt32("a", GetId());
+			Msg.AddInt32("b", Data);
+			Msg.AddInt32("cid", Cid);
+	
+			BMessenger m(n->Handle());
+			m.SendMessage(&Msg) == B_OK;
+			
+			#else
+            n->PostEvent(M_CHANGE, GetId(), Data);
+            #endif
 		}
 	}
 }
@@ -767,7 +804,7 @@ bool GView::HandleCapture(GView *Wnd, bool c)
 
 			Status = true;
 			_Capturing = Wnd;
-			// LgiTrace("Capturing on %p/%s\n", _View, GetClass());
+			LgiTrace("Capturing on %p/%s\n", _View, GetClass());
 		}
 		else
 		{
@@ -780,7 +817,7 @@ bool GView::HandleCapture(GView *Wnd, bool c)
 				#elif defined MAC
 				#endif
 
-				// LgiTrace("Uncapture on %p/%s\n", _Capturing, GetClass());
+				LgiTrace("Uncapture on %p/%s\n", _Capturing, GetClass());
 				_Capturing = 0;
 			}
 		}

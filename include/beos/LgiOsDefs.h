@@ -243,8 +243,8 @@ typedef int OsSocket;
 
 /////////////////////////////////////////////////////////////////////////////////////
 #define MsgCode(m) m->what
-extern int MsgA(GMessage *m);
-extern int MsgB(GMessage *m);
+extern GMessage::Param MsgA(GMessage *m);
+extern GMessage::Param MsgB(GMessage *m);
 extern GMessage CreateMsg(int m, int a, int b);
 
 /////////////////////////////////////////////////////////////////////////////////////

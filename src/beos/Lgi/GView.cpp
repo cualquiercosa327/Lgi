@@ -238,17 +238,29 @@ GMessage CreateMsg(int m, int a, int b)
 	return Msg;
 }
 
-int MsgA(GMessage *m)
+GMessage::Param MsgA(GMessage *m)
 {
-	int32 i=0;
-	if (m) m->FindInt32("a", &i);
+	GMessage::Param i = 0;
+	if (m)
+	{
+		status_t s = m->FindInt32("a", (int32*)&i);
+		if (s != B_OK)
+			printf("%s:%i - MsgA found no part 'a' (0x%x)\n", _FL, s);
+	}
+	
 	return i;
 }
 
-int MsgB(GMessage *m)
+GMessage::Param MsgB(GMessage *m)
 {
-	int32 i=0;
-	if (m) m->FindInt32("b", &i);
+	GMessage::Param i = 0;
+	if (m)
+	{
+		status_t s = m->FindInt32("b", (int32*)&i);
+		if (s != B_OK)
+			printf("%s:%i - MsgB found no part 'b' (0x%x)\n", _FL, s);
+	}
+	
 	return i;
 }
 
@@ -516,7 +528,7 @@ static void SetBeosCursor(LgiCursor c)
 {
 }
 
-#define DEBUG_MOUSE_CLICK	1
+#define DEBUG_MOUSE_CLICK	0
 #define DEBUG_MOUSE_MOVE	0
 
 bool GView::_Mouse(GMouse &m, bool Move)
@@ -524,7 +536,11 @@ bool GView::_Mouse(GMouse &m, bool Move)
 	GWindow *Wnd = GetWindow();
 
 	#if DEBUG_MOUSE_CLICK
-	if (!Move) printf("\tCap=%p\n", _Capturing);
+	if (!Move)
+	{
+		m.Trace("MouseDown");
+		printf("\tCap=%p\n", _Capturing);
+	}
 	#endif
 	if (_Capturing)
 	{
@@ -728,10 +744,21 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 		}
 		case M_CHANGE:
 		{
-			GViewI *Ctrl = dynamic_cast<GViewI*>((GViewI*) MsgA(Msg));
+			int CtrlId = MsgA(Msg);
+			GViewI *Ctrl = FindControl(CtrlId);
 			if (Ctrl)
 			{
-				OnNotify(Ctrl, MsgB(Msg));
+				int32 Cid = -1;
+				Msg->FindInt32("cid", &Cid);
+				GMessage::Param Data = MsgB(Msg);
+				printf("#### M_CHANGE received #### Ctrl=%i %s, Data=%i, Cid=%i\n", CtrlId, Ctrl->Name(), Data, Cid);
+
+				if (CtrlId == 66)
+				{
+					int asd=0;
+				}
+
+				OnNotify(Ctrl, Data);
 			}
 			break;
 		}
@@ -1070,7 +1097,7 @@ void BViewRedir::AttachedToWindow()
 
 void BViewRedir::DetachedFromWindow()
 {
-	BView::DetachedFromWindow();
+	// BView::DetachedFromWindow();
 	Wnd->OnDestroy();
 }
 
@@ -1082,43 +1109,43 @@ void BViewRedir::Draw(BRect UpdateRect)
 
 void BViewRedir::FrameResized(float width, float height)
 {
-	BView::FrameResized(width, height);
+	// BView::FrameResized(width, height);
 	Wnd->OnPosChange();
 }
 
 void BViewRedir::Pulse()
 {
-	BView::Pulse();
+	// BView::Pulse();
 	Wnd->OnPulse();
 }
 
 void BViewRedir::MessageReceived(BMessage *message)
 {
-	BView::MessageReceived(message);
+	// BView::MessageReceived(message);
 	Wnd->OnEvent((GMessage*) message); // Haha, this is so bad... oh well.
 }
 
 void BViewRedir::MakeFocus(bool f = true)
 {
-	BView::MakeFocus(f);
+	// BView::MakeFocus(f);
 	Wnd->OnFocus(f);
 }
 
 void BViewRedir::KeyDown(const char *bytes, int32 numBytes)
 {
-	BView::KeyDown(bytes, numBytes);
+	// BView::KeyDown(bytes, numBytes);
 	Wnd->Sys_KeyDown(bytes, numBytes);
 }
 
 void BViewRedir::KeyUp(const char *bytes, int32 numBytes)
 {
-	BView::KeyUp(bytes, numBytes);
+	// BView::KeyUp(bytes, numBytes);
 	Wnd->Sys_KeyUp(bytes, numBytes);
 }
 
 void BViewRedir::MouseDown(BPoint point)
 {
-	BView::MouseDown(point);
+	// BView::MouseDown(point);
 
 	BPoint u;
 	GetMouse(&u, &WndBtn);
@@ -1145,13 +1172,12 @@ void BViewRedir::MouseDown(BPoint point)
 		Window()->CurrentMessage()->PrintToStream();
 	}
 	
-	m.Trace("MouseDown");
 	Wnd->_Mouse(m, false);
 }
 
 void BViewRedir::MouseUp(BPoint point)
 {
-	BView::MouseUp(point);
+	// BView::MouseUp(point);
 
 	BPoint u;
 	uint32 Btns;
@@ -1168,14 +1194,13 @@ void BViewRedir::MouseUp(BPoint point)
 	m.Down(false);
 	m.Target = Wnd;
 	
-	m.Trace("MouseUp");
 	Wnd->_Mouse(m, false);
 	WndBtn = Btns;
 }
 
 void BViewRedir::MouseMoved(BPoint point, uint32 transit, const BMessage *message)
 {
-	BView::MouseMoved(point, transit, message);
+	// BView::MouseMoved(point, transit, message);
 
 	int32 Btns = 0;
 	if (message)

@@ -364,7 +364,6 @@ public:
 
 	void OnPosChange()
 	{
-		printf("panel onposchange %s\n", GetPos().GetStr());
 		GPanel::OnPosChange();
 		if (Tab)
 		{
@@ -1392,6 +1391,7 @@ public:
 			}
 			case IDC_SET_FONT:
 			{
+				printf("IDC_SET_FONT %s %i\n", c->Name(), c->GetId());
 				if (Font.DoUI(this))
 				{
 					char s[256];

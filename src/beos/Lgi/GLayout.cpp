@@ -232,14 +232,6 @@ GMessage::Result GLayout::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{
-		case M_CHANGE:
-		{
-			if (GetParent())
-			{
-				GetParent()->OnEvent(Msg);
-			}
-			break;
-		}
 		case M_VSCROLL:
 		{
 			if (VScroll)

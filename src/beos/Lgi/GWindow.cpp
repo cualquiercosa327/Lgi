@@ -14,7 +14,7 @@ GWnd::GWnd(GView *notify) :
 			B_CURRENT_WORKSPACE)
 {
 	Notify = notify;
-	printf("new GWnd %p\n", notify);
+	// printf("new GWnd %p\n", notify);
 }
 
 GWnd::GWnd(	GView *notify,
@@ -26,7 +26,7 @@ GWnd::GWnd(	GView *notify,
 	: BWindow(frame, title, type, flags, workspaces)		
 {
 	Notify = notify;
-	printf("new GWnd %p\n", notify);
+	// printf("new GWnd %p\n", notify);
 }
 
 GWnd::~GWnd()

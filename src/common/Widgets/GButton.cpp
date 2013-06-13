@@ -174,9 +174,9 @@ void GButton::OnMouseClick(GMouse &m)
 
 				Invalidate();
 
-				// LgiTrace("Mouse=%i Pressed=%x\n", m.Down(), d->Pressed);
+				LgiTrace("GButton '%s' Mouse=%i Pressed=%x\n", Name(), m.Down(), d->Pressed);
 				
-				if (!m.Down() AND
+				if (!m.Down() &&
 					d->Pressed == 0)
 				{
 					// This may delete ourself, so do it last.
@@ -274,6 +274,7 @@ bool GButton::OnKey(GKey &k)
 
 void GButton::OnClick()
 {
+	printf("GButton::OnClick() name='%s'\n", Name());
 	SendNotify();
 }
 

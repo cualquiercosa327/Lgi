@@ -6,165 +6,28 @@
 
 #if !WIN32NATIVE
 
-#ifdef XWIN
-
-// Returns the parent window of 'w'
-OsView XGetParent(OsView w)
-{
-	OsView p, r, *c = 0;
-	uint i;
-	/*
-	if (XQueryTree(Dsp, w, &r, &p, &c, &i))
-	{
-		if (c) XFree(c);
-		return p;
-	}
-	*/
-	return 0;
-}
-
-#endif
-
 class NativeTip : public GView
 {
 	GDisplayString *s;
 	
-	#ifdef BEOS
-	BWindow *Wnd;
-	GRect Loc;
-	#endif
-
 public:
 	int Id;
 	GRect Watch;
 	GViewI *Owner;
 
 	NativeTip(int id, GViewI *p)
-	#ifdef BEOS
-		: GView( new BViewRedir(this) )
-	#endif
 	{
 		Id = id;
 		Owner = p;
 		s = 0;
 		ClearFlag(WndFlags, GWF_VISIBLE);
 		Watch.ZOff(-1, -1);
-		
-		// Implement this code to switch off the decor on the top level window.
-		#if defined(XWIN)
-		
-		/*
-		Window w = Handle()->handle();
-		if (w)
-		{
-			XSetWindowAttributes a;
-			a.override_redirect = true;
-			a.save_under = false; // true;
-			XChangeWindowAttributes(XWidget::XDisplay(), w, CWOverrideRedirect, &a);
-		}
-		else
-		{
-			printf("%s:%i - No handle!\n", __FILE__, __LINE__);
-		}
-		*/
-		
-		#elif defined(BEOS)
-		
-		Loc.ZOff(40, 20);
-		Wnd = new BWindow(BRect(-10, -10, -5, -5), "", B_NO_BORDER_WINDOW_LOOK, B_FLOATING_ALL_WINDOW_FEEL, 0);
-		if (Wnd)
-		{
-			Wnd->AddChild(Handle());
-		}
-		
-		#else
-		
-		// #error Impl Me.
-		
-		#endif
 	}
 	
-	#ifdef BEOS
-	~NativeTip()
-	{
-		DeleteObj(s);
-		if (Wnd AND Wnd->Lock())
-		{
-			Wnd->Hide();
-			Wnd->RemoveChild(Handle());
-			Wnd->Quit();
-			Wnd = 0;
-		}
-	}
-	
-	bool Visible()
-	{
-		bool v = false;
-		if (Wnd AND Wnd->Lock())
-		{
-			v = !Wnd->IsHidden();
-			Wnd->Unlock();
-		}
-		return v;
-	}
-	
-	void Visible(bool b)
-	{
-		if (Wnd AND Wnd->Lock())
-		{
-			if (b)
-			{
-				if (Wnd->IsHidden())
-				{
-					Wnd->Show();
-				}
-			}
-			else
-			{
-				if (!Wnd->IsHidden())
-				{
-					Wnd->Hide();
-				}
-			}			
-			Wnd->Unlock();
-		}
-	}
-	
-	bool Attach(GViewI *p)
-	{
-		Visible(true);
-		Visible(false);
-		
-		return true;
-	}
-
-	GRect &GetPos()
-	{
-		return Loc;
-	}
-		
-	bool SetPos(GRect &p, bool Repaint = false)
-	{
-		Loc = p;
-		if (Wnd AND Wnd->Lock())
-		{
-			Wnd->MoveTo(p.x1, p.y1);
-			Wnd->ResizeTo(p.X()-1, p.Y()-1);
-			
-			GRect r(0, 0, p.X()-1, p.Y()-1);
-			GView::SetPos(r);
-
-			Wnd->Unlock();
-		}
-		return true;
-	}
-	#else
 	~NativeTip()
 	{
 		DeleteObj(s);
 	}
-	#endif
-	
 	
 	bool Name(char *n)
 	{
@@ -210,58 +73,6 @@ public:
 		// Implement this code to return true if the x, y coordinate passed in is over the
 		// window 'Parent'. It must return false if another window obsures the location given
 		// be 'x' and 'y'.
-		#if defined XWIN
-		
-		int cx, cy;
-		/*
-		Display *Dsp = XWidget::XDisplay();
-		Window Root = RootWindow(Dsp, 0);
-		Window Over = 0;
-		Window ParentWnd =	Owner->GetWindow() AND
-							Owner->GetWindow()->Handle()
-							?
-							Owner->GetWindow()->Handle()->handle()
-							:
-							0;
-		if (ParentWnd)
-		{
-			XTranslateCoordinates(	Dsp,
-									Root,
-									Root,
-									x,
-									y,
-									&cx, &cy,
-									&Over);
-			if (Over)
-			{
-				Window p = ParentWnd;
-				do
-				{
-					if (p == Over)
-					{
-						return true;
-					}
-				}
-				while (p = XGetParent(Dsp, p));
-			}
-		}
-		*/
-		
-		#elif defined BEOS
-		
-		GWindow *w = Owner->GetWindow();
-		if (w)
-		{
-			GRect p = w->GetPos();
-			return p.Overlap(x, y);
-		}
-		
-		#else
-		
-		// #error Impl Me.
-		
-		#endif		
-
 		return false;
 	}
 };
@@ -287,10 +98,13 @@ public:
 	~NativeTipThread()
 	{
 		Loop = false;
+		#if defined(BEOS) || defined(__GTK_H__)
+		#else
 		while (!IsExited())
 		{
 			LgiSleep(25);
 		}
+		#endif
 	}
 	
 	int Main()
