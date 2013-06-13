@@ -1382,11 +1382,13 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			}
 			case M_CHANGE:
 			{
-				GViewI *Ctrl = dynamic_cast<GViewI*>((GViewI*) Msg->a);
+				GWindow *w = GetWindow();
+				GViewI *Ctrl = w ? w->FindControl(Msg->a) : 0;
 				if (Ctrl)
 				{
 					return OnNotify(Ctrl, Msg->b);
 				}
+				else LgiAssert(!"Ctrl not found.");
 				break;
 			}
 			#if 0 // Depreciated
