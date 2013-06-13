@@ -89,7 +89,7 @@ typedef int OsSocket;
 #define SND_ASYNC 1
 #define DOUBLE_CLICK_THRESHOLD	5
 #define LGI_FileDropFormat		"Something?"
-#define LGI_WideCharset			"utf-8"
+#define LGI_WideCharset			"utf-32"
 #define LGI_LIBRARY_EXT			"so"
 #define LGI_PrintfInt64			"%ll"
 

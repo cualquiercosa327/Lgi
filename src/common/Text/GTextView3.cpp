@@ -1999,7 +1999,7 @@ bool GTextView3::Open(const char *Name, const char *CharSet)
 	if (f.Open(Name, O_READ|O_SHARE))
 	{
 		DeleteArray(Text);
-		int Bytes = (int)f.GetSize();
+		int64 Bytes = f.GetSize();
 		SetCursor(0, false);
 		
 		char *c8 = new char[Bytes + 4];
@@ -2013,7 +2013,7 @@ bool GTextView3::Open(const char *Name, const char *CharSet)
 				c8[Bytes+1] = 0;
 				c8[Bytes+2] = 0;
 				c8[Bytes+3] = 0;
-
+				
 				if ((uchar)c8[0] == 0xff && (uchar)c8[1] == 0xfe)
 				{
 					// utf-16
@@ -2023,6 +2023,8 @@ bool GTextView3::Open(const char *Name, const char *CharSet)
 						DataStart += 2;
 					}
 				}
+				
+				printf("wchar_t=%i, char16=%i, c8=%p\n", sizeof(wchar_t), sizeof(char16), c8);
 
 				// Convert to unicode first....
 				if (Bytes == 0)
@@ -2034,6 +2036,12 @@ bool GTextView3::Open(const char *Name, const char *CharSet)
 				{
 					Text = (char16*)LgiNewConvertCp(LGI_WideCharset, DataStart, CharSet ? CharSet : DefaultCharset);
 				}
+				
+				for (int i=0; i<10; i++)
+				{
+					printf("Text[%i]=%c %x %i\n", i, Text[i], Text[i], Text[i]);
+				}
+
 				if (Text)
 				{
 					// Remove LF's
