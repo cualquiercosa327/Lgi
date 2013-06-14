@@ -2886,6 +2886,8 @@ void GTag::SetStyle()
 				if (l.Parse(s))
 					XAlign = l.Type;
 			}
+			
+			Display(DispBlock); // Inline-block TD??? Nope.
 			break;
 		}
 		case TAG_IMG:
