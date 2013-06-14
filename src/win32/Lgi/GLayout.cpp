@@ -31,6 +31,16 @@ GLayout::~GLayout()
 	DeleteObj(HScroll);
 }
 
+GViewI *GLayout::FindControl(int Id)
+{
+	if (VScroll && VScroll->GetId() == Id)
+		return VScroll;
+	if (HScroll && HScroll->GetId() == Id)
+		return HScroll;
+
+	return GView::FindControl(Id);
+}
+
 void GLayout::GetScrollPos(int &x, int &y)
 {
 	if (HScroll)

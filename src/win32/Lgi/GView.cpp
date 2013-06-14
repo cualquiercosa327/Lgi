@@ -1390,7 +1390,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				}
 				else
 				{
-					LgiAssert(!"Ctrl not found.");
+					LgiTrace("Ctrl %i not found.\n", Msg->a);
 				}
 				break;
 			}

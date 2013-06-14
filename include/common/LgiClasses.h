@@ -1132,6 +1132,8 @@ public:
 
 	#endif
 	#endif
+	
+	GViewI *FindControl(int Id);
 };
 
 /// Client draws the content.
