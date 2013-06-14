@@ -516,6 +516,42 @@ public:
 		#endif		
 		return c32();
 	}
+	
+	char *GetStr()
+	{
+		static char Buf[4][32];
+		static int Idx = 0;
+		int b = Idx++;
+		if (Idx >= 4) Idx = 0;
+		switch (space)
+		{
+			case System32BitColourSpace:
+				sprintf_s(	Buf[b], 32,
+							"rgba(%i,%i,%i,%i)",
+							rgb.r,
+							rgb.g,
+							rgb.b,
+							rgb.a);
+				break;
+			case CsIndex8:
+				sprintf_s(	Buf[b], 32,
+							"index(%i)",
+							index);
+				break;
+			case CsHls32:
+				sprintf_s(	Buf[b], 32,
+							"hls(%i,%i,%i)",
+							hls.h,
+							hls.l,
+							hls.s);
+				break;
+			default:
+				sprintf_s(	Buf[b], 32,
+							"unknown()");
+				break;
+		}
+		return Buf[b];
+	}
 };
 
 #endif

@@ -1561,7 +1561,11 @@ void GTag::_Dump(GStringPipe &Buf, int Depth)
 			this,
 			HtmlId ? "#" : Empty,
 			HtmlId ? HtmlId : Empty,
+			#ifdef _DEBUG
 			Debug ? " debug" : Empty,
+			#else
+			Empty,
+			#endif
 			WasClosed,
 			Pos.x, Pos.y,
 			Size.x, Size.y,
