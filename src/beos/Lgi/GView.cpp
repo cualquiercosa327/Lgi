@@ -325,8 +325,10 @@ LgiCursor GView::GetCursor(int x, int y)
 
 bool GView::GetMouse(GMouse &m, bool ScreenCoords)
 {
-	/*
-	GLocker(Handle(), _FL);
+	if (!_View)
+		return false;
+
+	GLocker Locker(_View, _FL);
 	if (Locker.Lock())
 	{
 		// get mouse state
@@ -359,9 +361,7 @@ bool GView::GetMouse(GMouse &m, bool ScreenCoords)
 		
 		return true;
 	};
-	*/
 
-	printf("%s:%i - GetMouse not impl.\n", _FL);
 	return false;
 }
 

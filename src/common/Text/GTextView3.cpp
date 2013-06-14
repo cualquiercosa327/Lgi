@@ -2024,8 +2024,6 @@ bool GTextView3::Open(const char *Name, const char *CharSet)
 					}
 				}
 				
-				printf("wchar_t=%i, char16=%i, c8=%p\n", sizeof(wchar_t), sizeof(char16), c8);
-
 				// Convert to unicode first....
 				if (Bytes == 0)
 				{
@@ -2037,11 +2035,6 @@ bool GTextView3::Open(const char *Name, const char *CharSet)
 					Text = (char16*)LgiNewConvertCp(LGI_WideCharset, DataStart, CharSet ? CharSet : DefaultCharset);
 				}
 				
-				for (int i=0; i<10; i++)
-				{
-					printf("Text[%i]=%c %x %i\n", i, Text[i], Text[i], Text[i]);
-				}
-
 				if (Text)
 				{
 					// Remove LF's
@@ -3096,7 +3089,6 @@ void GTextView3::OnMouseClick(GMouse &m)
 	{
 		if (!m.IsContextMenu())
 		{
-			printf("...focus\n");
 			Focus(true);
 
 			int Hit = HitText(m.x, m.y);

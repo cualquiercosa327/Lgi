@@ -844,12 +844,12 @@ void GMdiParent::OnPosChange()
 		GAutoPtr<GViewIterator> i(IterateViews());
 		GMdiChild *Last = dynamic_cast<GMdiChild*>(i->Last());
 
-		/*
+		#if 0
 		LgiTrace("Tabs=%s, Content=%s, Children=%i, Last=%s\n",
 			d->Tabs.GetStr(), d->Content.GetStr(),
 			Children.Length(),
 			Last ? Last->Name() : 0);
-		*/
+		#endif
 
 		for (GViewI *v = i->First(); v; v = i->Next())
 		{

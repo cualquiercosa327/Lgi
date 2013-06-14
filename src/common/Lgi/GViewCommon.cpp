@@ -11,6 +11,8 @@
 #include "GButton.h"
 #include "GCss.h"
 
+#define DEBUG_CAPTURE	1
+
 #if WIN32NATIVE
 #define GViewFlags d->WndStyle
 #else
@@ -824,7 +826,14 @@ bool GView::HandleCapture(GView *Wnd, bool c)
 
 			Status = true;
 			_Capturing = Wnd;
-			// LgiTrace("Capturing on %p/%s\n", _View, GetClass());
+			
+			#if DEBUG_CAPTURE
+			LgiTrace("%s::HandleCapture(%i) %s/%p\n",
+				GetClass(),
+				c,
+				_View->GetClass(),
+				_View);
+			#endif
 		}
 		else
 		{
@@ -837,7 +846,13 @@ bool GView::HandleCapture(GView *Wnd, bool c)
 				#elif defined MAC
 				#endif
 
-				// LgiTrace("Uncapture on %p/%s\n", _Capturing, GetClass());
+				#if DEBUG_CAPTURE
+				LgiTrace("%s::HandleCapture(%i) %s/%p\n",
+					GetClass(),
+					c,
+					_View->GetClass(),
+					_View);
+				#endif
 				_Capturing = 0;
 			}
 		}
@@ -927,6 +942,11 @@ void GView::Visible(bool v)
 	{
 		#if WIN32NATIVE
 		ShowWindow(_View, (v) ? SW_SHOWNORMAL : SW_HIDE);
+		#elif defined(BEOS)
+		if (v)
+			_View->Show();
+		else
+			_View->Hide();
 		#elif defined __GTK_H__
 		if (v)
 			Gtk::gtk_widget_show(_View);

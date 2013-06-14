@@ -400,7 +400,16 @@ bool GScrollBar::Attach(GViewI *p)
 		SetVertical(false);
 	}
 
-	return GControl::Attach(p);
+	bool Status = GControl::Attach(p);
+	#if 0
+	printf("%p::Attach scroll bar to %s, Status=%i, _View=%p, Vis=%i\n",
+		this, p->GetClass(),
+		Status,
+		_View,
+		Visible());
+	#endif
+	
+	return Status;
 }
 
 void GScrollBar::OnPaint(GSurface *pDC)

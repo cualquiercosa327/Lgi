@@ -178,22 +178,26 @@ bool GLayout::SetScrollBars(bool x, bool y)
 
 void GLayout::OnPosChange()
 {
-	GRect r = GView::GetClient(); // (0, 0, X()-1, Y()-1);
-	// int Border = (Sunken() || Raised()) ? _BorderSize : 0;
-	// r.Size(Border, Border);
-	
+	GRect r = GView::GetClient();	
 	GRect v(r.x2-B_V_SCROLL_BAR_WIDTH+1, r.y1, r.x2, r.y2);
 	GRect h(r.x1, r.y2-B_H_SCROLL_BAR_HEIGHT+1, r.x2, r.y2);
 
 	if (VScroll)
 	{
-		h.x2 = v.x1 - 1;
+		if (!VScroll->IsAttached())
+			VScroll->Attach(this);
+		if (HScroll)
+			v.y2 = h.y1 - 1;
 		VScroll->SetPos(v, true);
 		VScroll->Visible(true);
 	}
 	
 	if (HScroll)
 	{
+		if (!HScroll->IsAttached())
+			HScroll->Attach(this);
+		if (HScroll)
+			h.x2 = v.x1 - 1;
 		HScroll->SetPos(h, true);
 		HScroll->Visible(true);
 	}
@@ -253,5 +257,15 @@ GMessage::Result GLayout::OnEvent(GMessage *Msg)
 	if (VScroll) VScroll->OnEvent(Msg);
 	if (HScroll) HScroll->OnEvent(Msg);
 	return GView::OnEvent(Msg);
+}
+
+GViewI *GLayout::FindControl(int Id)
+{
+	if (VScroll && VScroll->GetId() == Id)
+		return VScroll;
+	if (HScroll && HScroll->GetId() == Id)
+		return HScroll;
+
+	return GView::FindControl(Id);
 }
 
