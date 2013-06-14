@@ -380,6 +380,7 @@ public:
 				
 				// fall thru
 			}
+			case IDCANCEL:
 			case IDC_COPY_PATH:
 			{
 				EndModal(c->GetId());
@@ -1719,6 +1720,22 @@ public:
 				FileProps Dlg(Tree, Msg, Type, Platforms);
 				switch (Dlg.DoModal())
 				{
+					case IDOK:
+					{
+						if (Type != Dlg.Type)
+						{
+							Type = Dlg.Type;
+							Project->SetDirty();
+						}
+						if (Platforms != Dlg.Platforms)
+						{
+							Platforms = Dlg.Platforms;
+							Project->SetDirty();
+						}
+						
+						Update();
+						break;
+					}
 					case IDC_COPY_PATH:
 					{
 						GClipBoard Clip(Tree);
@@ -1726,17 +1743,6 @@ public:
 						break;
 					}
 				}
-				if (Type != Dlg.Type)
-				{
-					Type = Dlg.Type;
-					Project->SetDirty();
-				}
-				if (Platforms != Dlg.Platforms)
-				{
-					Platforms = Dlg.Platforms;
-					Project->SetDirty();
-				}									
-				Update();
 			}
 		}
 	}

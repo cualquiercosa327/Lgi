@@ -123,7 +123,7 @@
 		<String Ref="122" Cid="-1" Define="IDC_STATIC" en="Look for:" />
 		<String Ref="176" Cid="2" Define="IDCANCEL" en="Cancel" />
 		<String Ref="177" Cid="2" Define="IDCANCEL" en="Cancel" />
-		<String Ref="178" Cid="1" Define="IDOK" en="Ok" />
+		<String Ref="178" Cid="1" Define="IDOK" en="Save" />
 		<String Ref="179" Cid="179" Define="IDD_FIND_SYMBOL" en="Find Symbol" />
 		<String Ref="180" Cid="180" Define="IDC_TABLE" />
 		<String Ref="181" Cid="181" Define="IDC_RESULTS" />
@@ -146,6 +146,7 @@
 		<String Ref="200" Cid="200" Define="IDC_HAIKU" en="Haiku" />
 		<String Ref="201" Cid="202" Define="IDC_SEARCH" />
 		<String Ref="202" Cid="203" Define="IDC_CLEAR_SEARCH" en="X" />
+		<String Ref="203" Cid="2" Define="IDCANCEL" en="Cancel" />
 		<String Ref="204" Cid="563" Define="IDC_SETTINGS" />
 		<String Ref="205" Cid="1" Define="IDOK" en="Ok" />
 		<String Ref="206" Cid="206" Define="IDC_SUB_TABLE" />
@@ -182,24 +183,24 @@
 			<Column ref="92" width="111" />
 		</ListView>
 	</Dialog>
-	<Dialog pos="7,7,405,357" ref="33">
-		<TableLayout pos="7,7,384,321" ref="24" cols="0.500,0.500" rows="0.250,0.103,0.397,0.250">
+	<Dialog pos="7,7,405,304" ref="33">
+		<TableLayout pos="7,7,384,265" ref="24" cols="0.500,0.500" rows="0.250,0.103,0.397,0.250">
 			<tr>
 				<td colspan="2">
-					<StaticText pos="0,0,265,69" ref="30" />
+					<StaticText pos="0,0,265,59" ref="30" />
 				</td>
 			</tr>
 			<tr>
 				<td>
-					<StaticText pos="0,75,62,88" ref="36" />
+					<StaticText pos="0,61,62,74" ref="36" />
 				</td>
 				<td>
-					<ComboBox pos="183,75,364,95" ref="38" />
+					<ComboBox pos="183,61,364,81" ref="38" />
 				</td>
 			</tr>
 			<tr>
 				<td colspan="2">
-					<Group pos="14,112,286,216" ref="37">
+					<Group pos="14,86,286,182" ref="37">
 						<CheckBox pos="84,14,265,27" ref="78" />
 						<CheckBox pos="84,35,223,48" ref="79" />
 						<CheckBox pos="84,56,265,69" ref="80" />
@@ -209,8 +210,9 @@
 			</tr>
 			<tr>
 				<td colspan="2" align="Max">
-					<Button pos="203,245,279,265" ref="35" />
-					<Button pos="309,240,364,260" ref="178" />
+					<Button pos="105,203,181,223" ref="35" />
+					<Button pos="203,203,258,223" ref="178" />
+					<Button pos="273,203,328,223" ref="203" />
 				</td>
 			</tr>
 		</TableLayout>
