@@ -195,9 +195,8 @@ bool GHtmlParser::Parse(GHtmlElement *Root, const char *Doc)
 	SourceData.Empty();
 	CurrentSrc = Doc;
 	char *Cur = ParseHtml(Root, (char*)Doc, 0);
-	if (Cur > CurrentSrc)
-		SourceData.Write(CurrentSrc, Cur - CurrentSrc);
-	
+	if (CurrentSrc)
+		SourceData.Write(CurrentSrc, strlen(CurrentSrc));	
 	Source.Reset(SourceData.NewStr());
 	return true;
 }
@@ -394,6 +393,17 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 
 					bool TagClosed = false;
 					s = ParsePropList(s, Elem, TagClosed);
+					
+					#if 0 // def _DEBUG
+					GVariant vDebug;
+					bool Debug = false;
+					if (Elem->GetValue("debug", vDebug))
+						Debug = vDebug.CastBool();
+					if (Debug)
+					{
+						int asd=0;
+					}
+					#endif
 
 					if (stricmp("th", Elem->Tag) == 0)
 					{

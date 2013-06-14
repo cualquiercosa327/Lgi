@@ -1294,8 +1294,9 @@ bool GDom::GetValue(const char *Var, GVariant &Value)
 						__FILE__, __LINE__, Var);
 				}
 				else
-				{			
-					Status = Object->GetVariant(Name, Value, ValidStr(Arr) ? Arr : 0);
+				{
+					bool ValidArray = ValidStr(Arr);
+					Status = Object->GetVariant(Name, Value, ValidArray ? Arr : 0);
 				}
 			}
 

@@ -19,6 +19,8 @@
 #include "GdcTools.h"
 
 #define DEBUG_TABLE_LAYOUT			1
+#define DEBUG_RESTYLE				0
+
 #define LUIS_DEBUG					0
 #define CRASH_TRACE					0
 #ifdef MAC
@@ -1191,6 +1193,13 @@ void GTag::Set(const char *attr, const char *val)
 
 bool GTag::GetVariant(const char *Name, GVariant &Value, char *Array)
 {
+	char *a = Attr.Find(Name);
+	if (a)
+	{
+		Value = a;
+		return true;
+	}
+	
 	return false;
 }
 
@@ -1541,16 +1550,18 @@ void GTag::_Dump(GStringPipe &Buf, int Depth)
 		snprintf(Trs+Len, sizeof(Trs)-Len-1, "Tr(%i,%i %ix%i '%s') ", Tr->x1, Tr->y1, Tr->X(), Tr->Y(), Utf8.Get());
 	}
 	
+	const char *Empty = "";
 	char *ElementName = TagId == CONTENT ? (char*)"Content" :
 				(TagId == ROOT ? (char*)"Root" : Tag);
 
 	snprintf(s, sizeof(s)-1,
-			"%s%s(%p)%c%s (%i) Pos=%i,%i Size=%i,%i Color=%s/%s %s\r\n",
+			"%s%s(%p)%s%s%s (%i) Pos=%i,%i Size=%i,%i Color=%s/%s %s\r\n",
 			Tab,
 			ElementName,
 			this,
-			HtmlId ? '#' : ' ',
-			HtmlId ? HtmlId : (char*)"",
+			HtmlId ? "#" : Empty,
+			HtmlId ? HtmlId : Empty,
+			Debug ? " debug" : Empty,
 			WasClosed,
 			Pos.x, Pos.y,
 			Size.x, Size.y,
@@ -2483,7 +2494,7 @@ void GTag::Restyle()
 		Disp = Display();
 	*/
 
-	#if 1 && defined(_DEBUG)
+	#if DEBUG_RESTYLE && defined(_DEBUG)
 	if (Debug)
 	{
 		GAutoString Style = ToString();
@@ -2865,6 +2876,9 @@ void GTag::SetStyle()
 				Span.y = atoi(s);
 			else
 				Span.y = 1;
+			
+			Span.x = max(Span.x, 1);
+			Span.y = max(Span.y, 1);
 			
 			if (Get("align", s))
 			{
@@ -7583,20 +7597,20 @@ GCellStore::GCellStore(GTag *Table)
 		if (r->TagId == TAG_TR)
 		{
 			int x = 0;
-			for (int i=0; i<r->Children.Length(); i++) // GTag *c=r->Tags.First(); c; c=r->Tags.Next())
+			for (int i=0; i<r->Children.Length(); i++)
 			{
-				GTag *c = ToTag(r->Children[i]);
-				if (c->TagId == TAG_TD)
+				GTag *cell = ToTag(r->Children[i]);
+				if (cell->TagId == TAG_TD)
 				{
 					while (Get(x, y))
 					{
 						x++;
 					}
 
-					c->Cell.x = x;
-					c->Cell.y = y;
-					Set(c);
-					x += c->Span.x;
+					cell->Cell.x = x;
+					cell->Cell.y = y;
+					Set(cell);
+					x += cell->Span.x;
 				}
 			}
 
