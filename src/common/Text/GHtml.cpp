@@ -7469,7 +7469,7 @@ bool GHtml::GotoAnchor(char *Name)
 				int Ay = a->AbsY();
 				int Scr = Ay / LineY;
 				VScroll->Value(Scr);
-				PostEvent(M_CHANGE, (GMessage::Param)(GViewI*)VScroll);
+				VScroll->SendNotify();
 			}
 			else
 				d->OnLoadAnchor.Reset(NewStr(Name));
