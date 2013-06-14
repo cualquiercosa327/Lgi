@@ -492,16 +492,30 @@ void GView::SendNotify(int Data)
 		}
 		else
 		{
+			// We are not in the same thread as the target window. So we post a message
+			// across to the view.
 			GViewI *Ptr = this;
-			if (GetId() == -1)
+			if (GetId() <= 0)
 			{
-				GWindow *w = GetWindow();
-				if (w)
+				// We are going to generate a control Id to help the receiver of the
+				// M_CHANGE message find out view later on. The reason for doing this
+				// instead of sending a pointer to the object, is that the object 
+				// _could_ be deleted between the message being sent and being received.
+				// Which would result in an invalid memory access on that object.
+				GViewI *p = GetWindow();
+				if (!p)
+				{
+					// No window? Find the top most parent we can...
+					p = this;
+					while (p->GetParent())
+						p = p->GetParent();
+				}
+				if (p)
 				{
 					// Give the control a valid ID
 					for (int i=10; i<1000; i++)
 					{
-						if (!w->FindControl(i))
+						if (!p->FindControl(i))
 						{
 							printf("Giving the ctrl '%s' the id '%i' for SendNotify\n",
 								GetClass(),
@@ -511,10 +525,15 @@ void GView::SendNotify(int Data)
 						}
 					}
 				}
+				else
+				{
+					// Ok this is really bad... go random (better than nothing)
+					SetId(5000 + LgiRand(2000));
+				}
 			}
 			
 			#if 0 // def BEOS
-
+			// This is for debugging only
 			static int ChangeId = 1;
 			int Cid = ChangeId++;
 			// printf("**** M_CHANGE sending  **** Ctrl=%i %s, Data=%i, Cid=%i\n", Ptr->GetId(), Ptr->Name(), Data, Cid);
@@ -525,9 +544,10 @@ void GView::SendNotify(int Data)
 			Msg.AddInt32("cid", Cid);
 	
 			BMessenger m(n->Handle());
-			m.SendMessage(&Msg) == B_OK;
-			
+			m.SendMessage(&Msg) == B_OK;			
 			#else
+            LgiAssert(GetId() > 0); // We must have a valid ctrl ID at this point, otherwise
+									// the receiver will never be able to find our object.
             n->PostEvent(M_CHANGE, GetId(), Data);
             #endif
 		}

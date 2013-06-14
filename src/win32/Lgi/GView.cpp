@@ -1388,7 +1388,10 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				{
 					return OnNotify(Ctrl, Msg->b);
 				}
-				else LgiAssert(!"Ctrl not found.");
+				else
+				{
+					LgiAssert(!"Ctrl not found.");
+				}
 				break;
 			}
 			#if 0 // Depreciated
