@@ -473,11 +473,7 @@ void GDisplayString::Layout()
 	
 	if (Font && Font->Handle())
 	{
-		font_height Ht;
-		Font->Handle()->GetHeight(&Ht);
-		y = ceil(Ht.ascent + Ht.descent);
-
-		#if 1
+		y = Font->GetHeight();
 
 		Blocks = 1;
 		Info = new CharInfo[Blocks];
@@ -486,38 +482,6 @@ void GDisplayString::Layout()
 		Info[0].X = x = Font->Handle()->StringWidth(Str);
 		Info[0].FontId = -1;
 		Info[0].SizeDelta = 0;
-		
-		#else
-		const char *Strs[] = { Str };
-		BRect Rc;
-		escapement_delta Delta = {0, 0};
-		Font->Handle()->GetBoundingBoxesForStrings(Strs, 1, B_SCREEN_METRIC, &Delta, &Rc);
-		x = Rc.IntegerWidth();
-		if (Rc.IntegerWidth() < 0)
-		{
-			x = 0;
-			
-			float *esc = new float[len];
-
-			Font->Handle()->GetEscapements(Str, len, esc);
-			for (int i=0; i<len; i++)
-			{
-				x += ceil(esc[i] * y);
-			}
-
-			delete [] esc;
-		}
-		else
-		{
-			Blocks = 1;
-			Info = new CharInfo[Blocks];
-			Info[0].Str = Str;
-			Info[0].Len = len;
-			Info[0].X = x;
-			Info[0].FontId = -1;
-			Info[0].SizeDelta = 0;
-		}
-		#endif
 
 		// printf("Layout '%s' = %i,%i\n", Str, x, y);
 	}
@@ -937,23 +901,6 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 		Bk.green = c.g();
 		Bk.blue = c.b();
 
-		// Draw background if required.		
-		if (!Font->Transparent())
-		{
-			pDC->Colour(c);
-			if (r)
-			{
-				pDC->Rectangle(r);
-			}
-			else
-			{
-				GRect b;
-				b.ZOff(x-1, y-1);
-				b.Offset(px, py);
-				pDC->Rectangle(&b);				
-			}
-		}
-		
 		// Paint text
 		BView *Hnd = pDC->Handle();
 		if (Hnd)
@@ -961,6 +908,25 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 			GLocker Locker(Hnd, _FL);
 			Locker.Lock();
 			
+			// Draw background if required.		
+			if (!Font->Transparent())
+			{
+				Hnd->SetHighColor(Bk);
+				if (r)
+				{
+					BRect rc(r->x1, r->y1, r->x2, r->y2);
+					Hnd->FillRect(rc);
+				}
+				else
+				{
+					GRect b;
+					b.ZOff(x-1, y-1);
+					b.Offset(px, py);
+					BRect rc(b.x1, b.y1, b.x2, b.y2);
+					Hnd->FillRect(rc);				
+				}
+			}
+		
 			Hnd->SetHighColor(Fg);
 			Hnd->SetLowColor(Bk);			
 			Hnd->SetFont(Font->Handle());

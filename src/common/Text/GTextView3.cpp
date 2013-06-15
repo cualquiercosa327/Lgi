@@ -17,10 +17,13 @@
 #define GDCF_UTF8					-1
 #define LUIS_DEBUG					0
 #define POUR_DEBUG					0
+#define PROFILE_POUR				0
 
+/*
 #ifdef BEOS
 #define DOUBLE_BUFFER_PAINT
 #endif
+*/
 
 #define ALLOC_BLOCK					64
 #define IDC_VS						1000
@@ -58,13 +61,8 @@
 #define IDM_DUMP					17
 #define IDM_RTL						18
 
-#if 0
-#define PAINT_BORDER				Rgb24(255, 222, 255)
-#define PAINT_AFTER_LINE			Rgb24(222, 255, 255)
-#else
 #define PAINT_BORDER				Back
 #define PAINT_AFTER_LINE			Back
-#endif
 
 #define CODEPAGE_BASE				100
 #define CONVERT_CODEPAGE_BASE		200
@@ -602,7 +600,9 @@ void GTextView3::OnFontChange()
 
 void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 {
-//int StartTime = LgiCurrentTime();
+	#if PROFILE_POUR
+	int StartTime = LgiCurrentTime();
+	#endif
 
 	GRect Client = GetClient();
 	int Mx = Client.X() - d->Margin.x1;
@@ -899,7 +899,10 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 	d->LayoutDirty = false;
 	UpdateScrollBars();
 	
-//int _PourTime = LgiCurrentTime() - StartTime;
+	#if PROFILE_POUR
+	int _PourTime = LgiCurrentTime() - StartTime;
+	printf("TextPour: %i ms, %i lines\n", _PourTime, Line.Length());
+	#endif
 	#ifdef _DEBUG
 	if (GetWindow())
 	{
@@ -2829,7 +2832,7 @@ void GTextView3::OnCreate()
 	DropTarget(true);
 
 	if (Focus())
-		SetPulse(500);
+		SetPulse(1500);
 }
 
 void GTextView3::OnEscape(GKey &K)
@@ -4191,6 +4194,8 @@ void GTextView3::OnPaint(GSurface *pDC)
 		GColour Back(!ReadOnly ? (BackFill ? BackFill->GetFlat().c24() : LC_WORKSPACE) : BackColour, 24);
 		GColour Whitespace = Fore.Mix(Back, 0.85f);
 
+		// printf("GTextView colours, Focus=%i, SelTxt=%s, SelBk=%s\n", HasFocus, SelectedText.GetStr(), SelectedBack.GetStr());
+
 		if (!Enabled())
 		{
 			Fore.Set(LC_LOW, 24);
@@ -4405,6 +4410,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 				if (EndOfLine >= SelMin && EndOfLine < SelMax)
 				{
 					// draw the '\n' at the end of the line as selected
+					GColour bk = Font->Back();
 					pOut->Colour(Font->Back());
 					pOut->Rectangle(Tr.x2, Tr.y1, Tr.x2+7, Tr.y2);
 					Tr.x2 += 7;

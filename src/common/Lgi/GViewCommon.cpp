@@ -831,8 +831,8 @@ bool GView::HandleCapture(GView *Wnd, bool c)
 			LgiTrace("%s::HandleCapture(%i) %s/%p\n",
 				GetClass(),
 				c,
-				_View->GetClass(),
-				_View);
+				Wnd->GetClass(),
+				Wnd);
 			#endif
 		}
 		else
@@ -850,8 +850,8 @@ bool GView::HandleCapture(GView *Wnd, bool c)
 				LgiTrace("%s::HandleCapture(%i) %s/%p\n",
 					GetClass(),
 					c,
-					_View->GetClass(),
-					_View);
+					Wnd?Wnd->GetClass():0,
+					Wnd);
 				#endif
 				_Capturing = 0;
 			}

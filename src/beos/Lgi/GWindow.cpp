@@ -72,6 +72,19 @@ void GWnd::FrameResized(float width, float height)
 	BWindow::FrameResized(width, height);
 }
 
+void GWnd::KeyDown(const char *bytes, int32 numBytes)
+{
+	if (Notify)
+		Notify->_Key(bytes, numBytes, true);
+}
+
+void GWnd::KeyUp(const char *bytes, int32 numBytes)
+{
+	if (Notify)
+		Notify->_Key(bytes, numBytes, false);
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 class HookInfo
 {
@@ -627,6 +640,18 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 				
 				goto AllDone;
 			}
+		}
+	}
+	
+	// Does the key reference a menu shortcut?
+	// Some of the shortcuts in Haiku are not supported by the system. So we
+	// have to hook the key here and match it against the unsupported shortcuts.
+	if (Menu)
+	{
+		if (Menu->OnKey(v, k))
+		{
+			Status = true;
+			goto AllDone;
 		}
 	}
 

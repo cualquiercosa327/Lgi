@@ -158,10 +158,14 @@ GColour GScreenDC::Colour(GColour c)
 {
 	rgb_color Rgb = d->View->HighColor();
 	GColour Prev(Rgb.red, Rgb.green, Rgb.blue);
+
 	Rgb.red = c.r();
 	Rgb.green = c.g();
 	Rgb.blue = c.b();
+
 	d->View->SetHighColor(Rgb);
+	d->View->SetLowColor(Rgb);
+
 	return Prev;
 }
 

@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include "Lgi.h"
 #include "GString.h"
+#include "GToken.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 extern char *NewStrLessAnd(char *s);
@@ -115,18 +116,15 @@ GSubMenu::~GSubMenu()
 
 GMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Where, const char *ShortCut)
 {
-	GMenuItem *i = new GMenuItem;
-	if (Info AND i)
+	GMenuItem *i = new GMenuItem(Menu, this, Str, Where, ShortCut);
+	if (Info && i)
 	{
 		Items.Insert(i, Where);
 
-		i->Menu = Menu;
-		i->Parent = this;
 		i->Position = Items.IndexOf(i);
-		i->Name(Str);
 		i->Id(Id);
 		i->Enabled(Enabled);
-		if (Window AND Window->Handle())
+		if (Window && Window->Handle())
 		{
 			i->Info->SetTarget(Window->Handle());
 		}
@@ -140,7 +138,7 @@ GMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Where
 GMenuItem *GSubMenu::AppendSeparator(int Where)
 {
 	GMenuItem *i = new GMenuItem(new BSeparatorItem);
-	if (Info AND i)
+	if (Info && i)
 	{
 		Items.Insert(i, Where);
 
@@ -158,7 +156,7 @@ GSubMenu *GSubMenu::AppendSub(const char *Str, int Where)
 {
 	GSubMenu *Sub = 0;
 	GMenuItem *i = new GMenuItem(Sub = new GSubMenu(Str));
-	if (Info AND i)
+	if (Info && i)
 	{
 		Items.Insert(i, Where);
 
@@ -211,7 +209,7 @@ bool GSubMenu::RemoveItem(int i)
 bool GSubMenu::RemoveItem(GMenuItem *Item)
 {
 	bool Status = false;
-	if (Item AND Items.HasItem(Item))
+	if (Item && Items.HasItem(Item))
 	{
 		Items.Delete(Item);
 		Status = true;
@@ -220,9 +218,20 @@ bool GSubMenu::RemoveItem(GMenuItem *Item)
 	return Status;
 }
 
+GMenuItem *GSubMenu::MatchShortcut(GKey &k)
+{
+	for (GMenuItem *i=Items.First(); i; i=Items.Next())
+	{
+		GMenuItem *f = i->MatchShortcut(k);
+		if (f)
+			return f;
+	}
+	return NULL;
+}
+
 void GSubMenu::_CopyMenu(BMenu *To, GSubMenu *From)
 {
-	if (To AND From)
+	if (To && From)
 	{
 		GMenuItem *i = 0;
 		for (int n=0; i=From->ItemAt(n); n++)
@@ -285,7 +294,7 @@ int GSubMenu::Float(GView *Parent, int x, int y, bool Left)
 				#undef Message
 				BMessage *Msg = Item->Message();
 				int32 i;
-				if (Msg AND Msg->FindInt32("Cmd", &i) == B_OK)
+				if (Msg && Msg->FindInt32("Cmd", &i) == B_OK)
 				{
 					return i;
 				}
@@ -371,6 +380,9 @@ GMenuItem::GMenuItem()
 	Child = 0;
 	Position = -1;
 	_Icon = -1;
+	UnsupportedShortcut = false;
+	ShortcutKey = 0;
+	ShortcutMod = 0;
 	
 	Info = new LgiMenuItem(this, "<error>", d->Msg = new BMessage(M_COMMAND));
 }
@@ -383,6 +395,9 @@ GMenuItem::GMenuItem(BMenuItem *item)
 	Child = 0;
 	Position = -1;
 	_Icon = -1;
+	UnsupportedShortcut = false;
+	ShortcutKey = 0;
+	ShortcutMod = 0;
 	
 	Info = item;
 }
@@ -395,6 +410,9 @@ GMenuItem::GMenuItem(GSubMenu *p)
 	Child = p;
 	Position = -1;
 	_Icon = -1;
+	UnsupportedShortcut = false;
+	ShortcutKey = 0;
+	ShortcutMod = 0;
 
 	if (Child)
 	{
@@ -411,6 +429,25 @@ GMenuItem::GMenuItem(GSubMenu *p)
 	}
 }
 
+GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, const char *txt, int Pos, const char *shortcut)
+{
+	d = new GMenuItemPrivate;
+	Menu = m;
+	Parent = p;
+	Child = 0;
+	Position = Pos;
+	_Icon = -1;
+	UnsupportedShortcut = false;
+	ShortCut.Reset(NewStr(shortcut));
+	ShortcutKey = 0;
+	ShortcutMod = 0;
+	
+	GAutoString str(NewStrLessAnd(txt));
+	
+	if (Info = new LgiMenuItem(this, str, d->Msg = new BMessage(M_COMMAND)))
+		ScanForAccel();
+}
+
 GMenuItem::~GMenuItem()
 {
 	if (Parent)
@@ -418,6 +455,126 @@ GMenuItem::~GMenuItem()
 		Parent->Items.Delete(this);
 	}
 	DeleteObj(d);
+}
+
+bool GMenuItem::ScanForAccel()
+{
+	char *Sc = ShortCut;
+	if (!Sc)
+	{
+		char *n = GBase::Name();
+		if (n)
+		{
+			char *tab = strrchr(n, '\t');
+			if (tab)
+			{
+				Sc = tab + 1;
+			}
+		}
+	}
+	if (!Sc || !Info)
+		return false;
+	
+	GToken Keys(Sc, "-+ \r\n");
+	for (int i=0; i<Keys.Length(); i++)
+	{
+		char *k = Keys[i];
+		if (stricmp(k, "Ctrl") == 0)
+		{
+			ShortcutMod |= B_COMMAND_KEY;
+		}
+		else if (stricmp(k, "Alt") == 0)
+		{
+			ShortcutMod |= B_CONTROL_KEY;
+		}
+		else if (stricmp(k, "Shift") == 0)
+		{
+			ShortcutMod |= B_SHIFT_KEY;
+		}
+		else if (stricmp(k, "Del") == 0 ||
+				 stricmp(k, "Delete") == 0)
+		{
+			ShortcutKey = VK_DELETE;
+		}
+		else if (stricmp(k, "Ins") == 0 ||
+				 stricmp(k, "Insert") == 0)
+		{
+			ShortcutKey = VK_INSERT;
+		}
+		else if (stricmp(k, "Home") == 0)
+		{
+			ShortcutKey = VK_HOME;
+		}
+		else if (stricmp(k, "End") == 0)
+		{
+			ShortcutKey = VK_END;
+		}
+		else if (stricmp(k, "PageUp") == 0)
+		{
+			ShortcutKey = VK_PAGEUP;
+		}
+		else if (stricmp(k, "PageDown") == 0)
+		{
+			ShortcutKey = VK_PAGEDOWN;
+		}
+		else if (stricmp(k, "Backspace") == 0)
+		{
+			ShortcutKey = VK_BACKSPACE;
+		}
+		else if (stricmp(k, "Space") == 0)
+		{
+			ShortcutKey = ' ';
+		}
+		else if (k[0] == 'F' && isdigit(k[1]))
+		{
+			ShortcutKey = VK_F1 + atoi(k+1) - 1;
+		}
+		else if (isalpha(k[0]))
+		{
+			ShortcutKey = toupper(k[0]);
+		}
+		else if (isdigit(k[0]))
+		{
+			ShortcutKey = k[0];
+		}
+	}
+	
+	if ((isalpha(ShortcutKey) || isdigit(ShortcutKey)) &&
+		(ShortcutMod & B_COMMAND_KEY) != 0)
+	{
+		Info->SetShortcut(ShortcutKey, ShortcutMod);
+	}
+	else
+	{
+		UnsupportedShortcut = true;
+	}
+	return true;
+}
+
+GMenuItem *GMenuItem::MatchShortcut(GKey &k)
+{
+	if (UnsupportedShortcut && k.vkey == ShortcutKey)
+	{
+		k.Trace("MatchShortcut");
+		
+		bool Shift = (ShortcutMod & B_SHIFT_KEY) != 0;
+		bool Alt = (ShortcutMod & B_CONTROL_KEY) != 0;
+		bool Ctrl = (ShortcutMod & B_COMMAND_KEY) != 0;
+		if (Shift == k.Shift() &&
+			Alt == k.Alt() &&
+			Ctrl == k.Ctrl())
+		{
+			printf("MatchShortcut TRUE %s\n", GBase::Name());
+			return this;
+		}
+	}
+	
+	if (Child)
+	{
+		return Child->MatchShortcut(k);
+	}
+	
+	return NULL;
 }
 
 void GMenuItem::_Measure(GdcPt2 &Size)
@@ -428,7 +585,7 @@ void GMenuItem::_Paint(GSurface *pDC, int Flags)
 {
 	if (_Icon >= 0)
 	{
-		if (Parent AND
+		if (Parent &&
 			Parent->GetImageList())
 		{
 			GColour Back(LC_MED, 24);
@@ -516,28 +673,11 @@ bool GMenuItem::Checked()
 bool GMenuItem::Name(const char *n)
 {
 	bool Status = false;
-	char *p = (n) ? NewStrLessAnd(n) : NewStr("");
+	GAutoString p((n) ? NewStrLessAnd(n) : NewStr(""));
 	if (p)
 	{
-		char *Tab = strchr(p, '\t');
-		if (Tab)
-		{
-			*Tab = 0;
-			Tab++;
-			
-			if (strnicmp(Tab, "Ctrl+", 5) == 0)
-			{
-				if (Info) Info->SetShortcut(Tab[5], 0);
-			}
-			else if (stricmp(Tab, "Del") == 0)
-			{
-				// SetShortcut('', 0);
-			}
-		}
-
 		Status = GBase::Name(p);
 		if (Info) Info->SetLabel(p);
-		DeleteArray(p);
 	}
 
 	return Status;
@@ -581,7 +721,7 @@ void GMenuItem::Sub(GSubMenu *s)
 {
 	DeleteObj(Child);
 	Child = s;
-	if (Child AND Info)
+	if (Child && Info)
 	{
 		// fixme.... reallocate the item to have a submenu
 	}
@@ -681,131 +821,22 @@ bool GMenu::Detach()
 
 bool GMenu::OnKey(GView *v, GKey &k)
 {
-	return true;
-}
-
-/*
-GMenuItem *GMenu::AppendItem(char *Str, int Id, bool Enabled, int Where)
-{
-	GMenuItem *Item = new GMenuItem();
-	if (Item)
+	GMenuItem *m = MatchShortcut(k);
+	if (m)
 	{
-		if (Window AND Window->_View)
+		if (!k.Down() && Window)
 		{
-			Item->Info->SetTarget(Window->_View);
+			BMessage Cmd(M_COMMAND);
+			Cmd.AddInt32("Cmd", m->Id());
+			BMessenger Mess(Window->Handle());
+			status_t Status = Mess.SendMessage(&Cmd);
+			printf("%s:%i - Menu cmd status=%i\n", _FL, Status);
 		}
-
-		Item->Menu = this;
-		Item->Parent = this;
-		Items.Insert(Item, Where);
-		Item->Position = Items.IndexOf(Item);
-		AddItem(Item->Info, Item->Position);
-		
-		char *s = NewStrLessAnd(Str);
-		if (s)
-		{
-			Item->Name(s);
-			DeleteArray(s);
-		}
-
-		Item->Id(Id);
-		Item->Enabled(Enabled);
-	}
-	return Item;
-}
-
-GMenuItem *GMenu::AppendSeparator(int Where)
-{
-	GMenuItem *Item = new GMenuItem(new BSeparatorItem);
-	if (Item)
-	{
-		Item->Menu = this;
-		Item->Parent = this;
-		Items.Insert(Item, Where);
-		Item->Position = Items.IndexOf(Item);
-		AddItem(Item->Info, Item->Position);
-	}
-	return NULL;
-}
-
-GSubMenu *GMenu::AppendSub(char *Str, int Where)
-{
-	GSubMenu *Sub = 0;
-	GMenuItem *Item = new GMenuItem(Sub = new GSubMenu(Str));
-	if (Item)
-	{
-		Item->Menu = this;
-		Item->Parent = this;
-		Items.Insert(Item, Where);
-		Item->Position = Items.IndexOf(Item);
-
-		Sub->Window = Window;
-		Sub->Parent = Item;
-
-		AddItem(Item->Info, Item->Position);
+		return true;
 	}
 
-	return Sub;
+	return false;
 }
-
-void GMenu::Empty()
-{
-	GMenuItem *i = 0;
-	while (i = Items.First())
-	{
-		BMenu::RemoveItem(i->Info);
-		DeleteObj(i);
-	}
-}
-
-bool GMenu::RemoveItem(int i)
-{
-	bool Status = false;
-	GMenuItem *Item = Items.ItemAt(i);
-	if (Item)
-	{
-		Status = BMenu::RemoveItem(Item->Info);
-	}
-	return Status;
-}
-
-bool GMenu::RemoveItem(GMenuItem *Item)
-{
-	bool Status = false;
-	if (Item AND Items.HasItem(Item))
-	{
-		Status = BMenu::RemoveItem(Item->Info);
-	}
-	return Status;
-}
-
-GMenuItem *GMenu::FindItem(int Id)
-{
-	for (int n=0; n<Items.GetItems(); n++)
-	{
-		GMenuItem *i = Items.ItemAt(n);
-		if (i)
-		{
-			GSubMenu *Sub = i->Sub();
-	
-			if (i->Id() == Id)
-			{
-				return i;
-			}
-			else if (Sub)
-			{
-				i = Sub->FindItem(Id);
-				if (i)
-				{
-					return i;
-				}
-			}
-		}
-	}
-
-	return 0;
-}
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 GCommand::GCommand()

@@ -1052,11 +1052,21 @@ void GView::_Key(const char *bytes, int32 numBytes, bool down)
 		}
 		
 		k.vkey = k.c16;
-		k.Flags = modifiers();
+		k.Flags = 0;
 		k.Data = 0;
 		k.Down(down);
 
-		// k.Trace("sys down");		
+		int mods = modifiers();
+		if (mods & B_SHIFT_KEY)
+			k.Shift(true);
+		if (mods & B_CONTROL_KEY)
+			k.Ctrl(true);
+		if (mods & B_COMMAND_KEY)
+			k.Alt(true);
+		if (mods & B_OPTION_KEY)
+			k.System(true);
+
+		k.Trace("sys down");		
 
 		GWindow *w = GetWindow();
 		if (w)
