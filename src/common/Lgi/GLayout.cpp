@@ -26,6 +26,16 @@ GLayout::~GLayout()
 	DeleteObj(VScroll);
 }
 
+GViewI *GLayout::FindControl(int Id)
+{
+	if (VScroll && VScroll->GetId() == Id)
+		return VScroll;
+	if (HScroll && HScroll->GetId() == Id)
+		return HScroll;
+
+	return GView::FindControl(Id);
+}
+
 bool GLayout::GetPourLargest()
 {
 	return _PourLargest;

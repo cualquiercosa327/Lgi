@@ -64,6 +64,7 @@
 		344B738708D840CF00D49457 /* GFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344B738608D840CF00D49457 /* GFile.cpp */; };
 		344B738A08D8410B00D49457 /* LgiMsg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344B738908D8410B00D49457 /* LgiMsg.cpp */; };
 		344B738D08D8414400D49457 /* GGuiUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344B738C08D8414400D49457 /* GGuiUtils.cpp */; };
+		344CD2D4176C75B9008A716C /* GCssTools.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344CD2D3176C75B9008A716C /* GCssTools.cpp */; };
 		344D1B0608F4A26300228075 /* GSlider.h in Headers */ = {isa = PBXBuildFile; fileRef = 344D1B0508F4A26300228075 /* GSlider.h */; };
 		344D1B0E08F4A2DB00228075 /* LgiRes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344D1B0C08F4A2DB00228075 /* LgiRes.cpp */; };
 		344D1B0F08F4A2DB00228075 /* Res.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344D1B0D08F4A2DB00228075 /* Res.cpp */; };
@@ -224,6 +225,7 @@
 		344B738608D840CF00D49457 /* GFile.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GFile.cpp; path = General/GFile.cpp; sourceTree = "<group>"; };
 		344B738908D8410B00D49457 /* LgiMsg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = LgiMsg.cpp; path = ../../common/Lgi/LgiMsg.cpp; sourceTree = "<group>"; };
 		344B738C08D8414400D49457 /* GGuiUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GGuiUtils.cpp; path = ../../common/Lgi/GGuiUtils.cpp; sourceTree = "<group>"; };
+		344CD2D3176C75B9008A716C /* GCssTools.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GCssTools.cpp; path = ../../common/Lgi/GCssTools.cpp; sourceTree = "<group>"; };
 		344D1B0508F4A26300228075 /* GSlider.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GSlider.h; path = ../../../include/common/GSlider.h; sourceTree = "<group>"; };
 		344D1B0C08F4A2DB00228075 /* LgiRes.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = LgiRes.cpp; path = ../../common/Resource/LgiRes.cpp; sourceTree = "<group>"; };
 		344D1B0D08F4A2DB00228075 /* Res.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Res.cpp; path = ../../common/Resource/Res.cpp; sourceTree = "<group>"; };
@@ -439,6 +441,7 @@
 		3429212A1087D55900578ECC /* Css */ = {
 			isa = PBXGroup;
 			children = (
+				344CD2D3176C75B9008A716C /* GCssTools.cpp */,
 				3429212D1087D58100578ECC /* GCss.h */,
 				3429212B1087D57200578ECC /* GCss.cpp */,
 			);
@@ -1005,6 +1008,7 @@
 				34A11A7A1675347500FCC5D7 /* GThreadCommon.cpp in Sources */,
 				34A11A7C1675349900FCC5D7 /* GMutex.cpp in Sources */,
 				343E950D1751C6090085611D /* GThreadEvent.cpp in Sources */,
+				344CD2D4176C75B9008A716C /* GCssTools.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
