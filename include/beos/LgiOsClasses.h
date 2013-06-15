@@ -51,6 +51,8 @@ public:
 	void MessageReceived(BMessage *Msg);
 	void FrameMoved(BPoint origin);
 	void FrameResized(float width, float height);
+	void KeyDown(const char *bytes, int32 numBytes);
+	void KeyUp(const char *bytes, int32 numBytes);
 };
 
 class LgiClass GLocker

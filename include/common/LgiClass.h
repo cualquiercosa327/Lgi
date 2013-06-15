@@ -96,9 +96,11 @@ public:
 
 	bool Modifier()
 	{
-		#ifdef MAC
+		#if defined(BEOS)
+		return Alt();
+		#elif defined(MAC)
 		return System(); // "Apple" key
-		#else
+		#else // win32 and linux
 		return Ctrl();
 		#endif
 	}

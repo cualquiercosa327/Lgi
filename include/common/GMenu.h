@@ -7,14 +7,8 @@
 
 // Os specific declarations
 #if defined __GTK_H__
-	#if 0
-		#include <GMenuImpl.h>
-		typedef MenuClickImpl *OsSubMenu;
-		typedef MenuItemImpl *OsMenuItem;
-	#else
-		typedef Gtk::GtkMenuShell *OsSubMenu;
-		typedef Gtk::GtkMenuItem *OsMenuItem;
-	#endif
+	typedef Gtk::GtkMenuShell *OsSubMenu;
+	typedef Gtk::GtkMenuItem *OsMenuItem;
 #elif defined WIN32
 	typedef HMENU OsSubMenu;
 	typedef MENUITEMINFO OsMenuItem;
@@ -106,7 +100,8 @@ class LgiClass GSubMenu :
 	#elif defined(WIN32NATIVE)
 	HWND TrackHandle;
 	#elif defined(BEOS)
-	void _CopyMenu(BMenu *To, GSubMenu *From);
+	void		_CopyMenu(BMenu *To, GSubMenu *From);
+	GMenuItem	*MatchShortcut(GKey &k);
 	#else
 	bool OnKey(GKey &k);
 	#endif
@@ -262,7 +257,7 @@ private:
 	bool			Insert(int Pos);
 	bool			Update();
 	#endif
-	#ifdef __GTK_H__
+	#if defined(__GTK_H__) || defined(BEOS)
 	GAutoString		ShortCut;
 	#endif
 
@@ -278,6 +273,10 @@ protected:
 
 	#if defined BEOS
 	BMessage		*Msg;
+	bool			UnsupportedShortcut;
+	int				ShortcutKey;
+	int				ShortcutMod;
+	GMenuItem		*MatchShortcut(GKey &k);
 	#else
 	int				_Id;
 	bool			_Check;
@@ -295,9 +294,8 @@ public:
 	#if defined BEOS
 	GMenuItem(BMenuItem *item);
 	GMenuItem(GSubMenu *p);
-	#else
-	GMenuItem(GMenu *m, GSubMenu *p, const char *txt, int Pos, const char *Shortcut = 0);
 	#endif
+	GMenuItem(GMenu *m, GSubMenu *p, const char *txt, int Pos, const char *Shortcut = 0);
 	virtual ~GMenuItem();
 
 	GMenuItem &operator =(const GMenuItem &m) { LgiAssert(!"This shouldn't be used anywhere"); return *this; }
