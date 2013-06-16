@@ -350,9 +350,6 @@ GTextView3::GTextView3(	int Id,
 	{
 		// Font->PointSize(Font->PointSize() + 2);
 
-		#if defined BEOS
-		Handle()->SetViewColor(B_TRANSPARENT_COLOR);
-		#endif
 		SetTabStop(true);
 
 		Underline = new GFont;

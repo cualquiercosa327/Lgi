@@ -28,7 +28,7 @@ endif
 # Libraries
 Libs = \
 	-llgi$(Tag) \
-	-LH:/Code/Lgi/trunk/$(BuildDir)
+	-L../$(BuildDir)
 
 # Includes
 Inc = \
