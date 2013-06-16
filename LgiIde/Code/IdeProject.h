@@ -126,7 +126,7 @@ public:
 	const char *GetFileComment();
 	const char *GetFunctionComment();
 	bool CreateMakefile(IdePlatform Platform);
-	bool GetTargetName(char *Buf, int BufSize);
+	GAutoString GetTargetName(IdePlatform Platform);
 	bool GetTargetFile(char *Buf, int BufSize);
 	bool BuildIncludePaths(GArray<char*> &Paths, bool Recurse, IdePlatform Platform);
 	void ShowFileProperties(const char *File);

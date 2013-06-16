@@ -36,7 +36,9 @@ Libs = \
 Inc = \
 	-I./include/beos \
 	-I./include/common \
-	-I/boot/develop/headers/os/app
+	-I/boot/develop/headers/os/app \
+	-Iinclude/beos \
+	-Iinclude/common
 
 # Dependencies
 Depends =	GDateTime.o \

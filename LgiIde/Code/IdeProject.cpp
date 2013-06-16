@@ -2995,12 +2995,14 @@ void IdeProjectPrivate::CollectAllFiles(GTreeNode *Base, GArray<ProjectNode*> &F
 	}
 }
 
-bool IdeProject::GetTargetName(char *Target, int BufSize)
+GAutoString IdeProject::GetTargetName(IdePlatform Platform)
 {
-	if (ValidStr(d->Settings.GetStr(ProjTargetName)))
+	GAutoString Status;
+	const char *t = d->Settings.GetStr(ProjTargetName, NULL, Platform);
+	if (ValidStr(t))
 	{
 		// Take target name from the settings
-		strsafecpy(Target, d->Settings.GetStr(ProjTargetName), BufSize);
+		Status.Reset(NewStr(t));
 	}
 	else
 	{
@@ -3008,7 +3010,8 @@ bool IdeProject::GetTargetName(char *Target, int BufSize)
 		if (s)
 		{
 			// Generate the target executable name
-			strsafecpy(Target, s + 1, BufSize);
+			char Target[MAX_PATH];
+			strsafecpy(Target, s + 1, sizeof(Target));
 			s = strrchr(Target, '.');
 			if (s) *s = 0;
 			strlwr(Target);
@@ -3021,39 +3024,31 @@ bool IdeProject::GetTargetName(char *Target, int BufSize)
 				}
 			}
 			*s = 0;
+			Status.Reset(NewStr(Target));
 		}
-		else return false;
 	}
 	
-	return true;
+	return Status;
 }
 
 bool IdeProject::GetTargetFile(char *Buf, int BufSize)
 {
 	bool Status = false;
-	char t[MAX_PATH];
-	if (GetTargetName(t, sizeof(t)))
+	GAutoString Target = GetTargetName(PlatformCurrent);
+	if (Target)
 	{
 		const char *TargetType = d->Settings.GetStr(ProjTargetType);
 		if (TargetType)
 		{
 			if (!stricmp(TargetType, "Executable"))
 			{
-				strsafecpy(Buf, t, BufSize);
+				strsafecpy(Buf, Target, BufSize);
 				Status = true;
 			}
 			else if (!stricmp(TargetType, "DynamicLibrary"))
 			{
-				/*
-				#ifndef WIN32
-				if (strnicmp(t, "lib", 3))
-				{
-					// Add lib prefix
-					memmove(t+3, t, strlen(t)+1);
-					memcpy(t, "lib", 3);
-				}
-				#endif
-				*/
+				char t[MAX_PATH];
+				strsafecpy(t, Target, sizeof(t));
 				char *ext = LgiGetExtension(t);
 				if (!ext)
 					sprintf(t + strlen(t), ".%s", LGI_LIBRARY_EXT);
@@ -3064,7 +3059,7 @@ bool IdeProject::GetTargetFile(char *Buf, int BufSize)
 			}
 			else if (!stricmp(TargetType, "StaticLibrary"))
 			{
-				snprintf(Buf, BufSize, "lib%s.%s", t, LGI_STATIC_LIBRARY_EXT);
+				snprintf(Buf, BufSize, "lib%s.%s", Target.Get(), LGI_STATIC_LIBRARY_EXT);
 				Status = true;
 			}
 		}
@@ -3233,6 +3228,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 	const char *PlatformName = PlatformNames[Platform];
 	const char *PlatformLibraryExt = NULL;
 	const char *PlatformStaticLibExt = NULL;
+	const char *PlatformExeExt = "";
 	char *LinkerFlags;
 	if (Platform == PlatformWin32)
 		LinkerFlags = ",--enable-auto-import";
@@ -3253,6 +3249,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 		case PlatformWin32:
 			PlatformLibraryExt = "dll";
 			PlatformStaticLibExt = "lib";
+			PlatformExeExt = ".exe";
 			break;
 		case PlatformLinux:
 		case PlatformHaiku:
@@ -3284,10 +3281,10 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 				"CC = gcc\n"
 				"CPP = g++\n");
 		
-		char Target[256];
-		if (GetTargetName(Target, sizeof(Target)))
+		GAutoString Target = GetTargetName(Platform);
+		if (Target)
 		{
-			m.Print("Target = %s\n", Target);
+			m.Print("Target = %s\n", Target.Get());
 
 			// Output the build mode, flags and some paths
 			int BuildMode = d->App->GetBuildMode();
@@ -3380,9 +3377,11 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 			{
 				for (IdeProject *d=Deps.First(); d; d=Deps.Next())
 				{
-					char t[256];
-					if (d->GetTargetName(t, sizeof(t)))
+					GAutoString Target = d->GetTargetName(Platform);
+					if (Target)
 					{
+						char t[MAX_PATH];
+						strsafecpy(t, Target, sizeof(t));
 						if (!strnicmp(t, "lib", 3))
 							memmove(t, t + 3, strlen(t + 3) + 1);
 						char *dot = strrchr(t, '.');
