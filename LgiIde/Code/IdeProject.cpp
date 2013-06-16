@@ -34,7 +34,7 @@ extern char *Untitled;
 #define LGI_STATIC_LIBRARY_EXT		"a"
 #endif
 
-char *PlatformName[] =
+const char *PlatformNames[] =
 {
 	"Windows",
 	"Linux",
@@ -350,7 +350,7 @@ public:
 				c->Value(Type);
 			}
 
-			for (int i=0; PlatformName[i]; i++)
+			for (int i=0; PlatformNames[i]; i++)
 			{
 				SetCtrlValue(PlatformCtrlId[i], ((1 << i) & Platforms) != 0);
 			}
@@ -370,7 +370,7 @@ public:
 				}
 
 				Platforms = 0;
-				for (int i=0; PlatformName[i]; i++)
+				for (int i=0; PlatformNames[i]; i++)
 				{
 					if (GetCtrlValue(PlatformCtrlId[i]))
 					{
@@ -2883,7 +2883,7 @@ IdeProjectSettings *IdeProject::GetSettings()
 	return &d->Settings;
 }
 
-bool IdeProject::BuildIncludePaths(GArray<char*> &Paths, bool Recurse)
+bool IdeProject::BuildIncludePaths(GArray<char*> &Paths, bool Recurse, IdePlatform Platform)
 {
 	List<IdeProject> Projects;
 	if (Recurse)
@@ -2894,7 +2894,8 @@ bool IdeProject::BuildIncludePaths(GArray<char*> &Paths, bool Recurse)
 	
 	for (IdeProject *p=Projects.First(); p; p=Projects.Next())
 	{
-		GAutoString IncludePaths = ToNativePath(p->GetIncludePaths());
+		const char *AllIncludes = d->Settings.GetStr(ProjIncludePaths, NULL, Platform);
+		GAutoString IncludePaths = ToNativePath(AllIncludes);
 		if (IncludePaths)
 		{
 			GToken Inc(IncludePaths, (char*)",;\r\n");
@@ -3074,7 +3075,7 @@ struct Dependency
 	}
 };
 
-bool IdeProject::GetAllDependencies(GArray<char*> &Files)
+bool IdeProject::GetAllDependencies(GArray<char*> &Files, IdePlatform Platform)
 {
 	GHashTbl<char*, Dependency*> Deps;
 	GAutoString Base = GetBasePath();
@@ -3085,7 +3086,7 @@ bool IdeProject::GetAllDependencies(GArray<char*> &Files)
 	
 	// Get all include paths
 	GArray<char*> IncPaths;
-	BuildIncludePaths(IncPaths, false);
+	BuildIncludePaths(IncPaths, false, PlatformCurrent);
 	
 	// Add all source to dependencies
 	for (int i=0; i<Src.Length(); i++)
@@ -3123,7 +3124,7 @@ bool IdeProject::GetAllDependencies(GArray<char*> &Files)
 			}
 			
 			GArray<char*> SrcDeps;
-			if (GetDependencies(Src, IncPaths, SrcDeps))
+			if (GetDependencies(Src, IncPaths, SrcDeps, Platform))
 			{
 				for (int n=0; n<SrcDeps.Length(); n++)
 				{
@@ -3157,7 +3158,7 @@ bool IdeProject::GetAllDependencies(GArray<char*> &Files)
 	return true;
 }
 
-bool IdeProject::GetDependencies(const char *SourceFile, GArray<char*> &IncPaths, GArray<char*> &Files)
+bool IdeProject::GetDependencies(const char *SourceFile, GArray<char*> &IncPaths, GArray<char*> &Files, IdePlatform Platform)
 {
     if (!FileExists(SourceFile))
     {
@@ -3189,19 +3190,56 @@ bool IdeProject::GetDependencies(const char *SourceFile, GArray<char*> &IncPaths
 	return true;
 }
 
-bool IdeProject::CreateMakefile()
+bool IdeProject::CreateMakefile(IdePlatform Platform)
 {
-	#if defined WIN32
-	char *LinkerFlags = ",--enable-auto-import";
-	#else
-	char *LinkerFlags = ",-soname,$(TargetFile),-export-dynamic,-R.";
-	#endif
+	const char *PlatformName = PlatformNames[Platform];
+	const char *PlatformLibraryExt = NULL;
+	const char *PlatformStaticLibExt = NULL;
+	char *LinkerFlags;
+	if (Platform == PlatformWin32)
+		LinkerFlags = ",--enable-auto-import";
+	else
+		LinkerFlags = ",-soname,$(TargetFile),-export-dynamic,-R.";
 
 	char Buf[256];
 	GAutoString MakeFile = GetMakefile();
 	if (!MakeFile)
 	{
 		MakeFile.Reset(NewStr("../Makefile"));
+	}
+	if (MakeFile)
+	{
+		char *Dot = strrchr(MakeFile, '.');
+		if (Dot && stricmp(sCurrentPlatform, ++Dot) != 0)
+		{
+			char mk[MAX_PATH];
+			*Dot = 0;
+			sprintf_s(mk, sizeof(mk), "%s%s", MakeFile.Get(), PlatformNames[Platform]);
+			if (Dot = strrchr(mk, '.'))
+				strlwr(Dot);
+			MakeFile.Reset(NewStr(mk));
+		}
+	}
+	
+	// LGI_LIBRARY_EXT
+	switch (Platform)
+	{
+		case PlatformWin32:
+			PlatformLibraryExt = "dll";
+			PlatformStaticLibExt = "lib";
+			break;
+		case PlatformLinux:
+		case PlatformHaiku:
+			PlatformLibraryExt = "so";
+			PlatformStaticLibExt = "a";
+			break;
+		case PlatformMac:
+			PlatformLibraryExt = "dylib";
+			PlatformStaticLibExt = "a";
+			break;
+		default:
+			LgiAssert(0);
+			break;
 	}
 	
 	GFile m;
@@ -3233,23 +3271,35 @@ bool IdeProject::CreateMakefile()
 					"endif\n",
 					BuildModeName);
 			
-			#ifdef WIN32
-			char *ExtraLinkFlags = "";
-			char *ExeFlags = " -mwindows";
-			m.Print("BuildDir = $(Build)\n"
-					"\n"
-					"Flags = -fPIC -w -fno-inline -fpermissive\n"
-					"Defs = -DWIN32 -D_REENTRANT");
-			#else
-			char *ExtraLinkFlags = "";
-			char *ExeFlags = "";
-			m.Print("BuildDir = $(Build)\n"
-					"\n"
-					"Flags = -fPIC -w -fno-inline -fpermissive\n" // -fexceptions
-					"Defs = -DLINUX -D_REENTRANT");
-			#endif
+			char *ExtraLinkFlags = NULL;
+			char *ExeFlags = NULL;
+			if (Platform == PlatformWin32)
+			{
+				ExtraLinkFlags = "";
+				ExeFlags = " -mwindows";
+				m.Print("BuildDir = $(Build)\n"
+						"\n"
+						"Flags = -fPIC -w -fno-inline -fpermissive\n"
+						"Defs = -DWIN32 -D_REENTRANT");
+			}
+			else
+			{
+				char PlatformCap[32];
+				strsafecpy(	PlatformCap,
+							Platform == PlatformHaiku ? "BEOS" : PlatformName,
+							sizeof(PlatformCap));
+				strupr(PlatformCap);
+				
+				ExtraLinkFlags = "";
+				ExeFlags = "";
+				m.Print("BuildDir = $(Build)\n"
+						"\n"
+						"Flags = -fPIC -w -fno-inline -fpermissive\n" // -fexceptions
+						"Defs = -D%s -D_REENTRANT",
+						PlatformCap);
+			}
 			
-			const char *PDefs = d->Settings.GetStr(ProjDefines);
+			const char *PDefs = d->Settings.GetStr(ProjDefines, NULL, Platform);
 			if (ValidStr(PDefs))
 			{
 				GToken Defs(PDefs, " ;,\r\n");
@@ -3275,7 +3325,7 @@ bool IdeProject::CreateMakefile()
 					"Libs ="
 					);
 
-			const char *PLibPaths = d->Settings.GetStr(ProjLibraryPaths);
+			const char *PLibPaths = d->Settings.GetStr(ProjLibraryPaths, NULL, Platform);
 			if (ValidStr(PLibPaths))
 			{
 				GToken LibPaths(PLibPaths, " \r\n");
@@ -3285,7 +3335,7 @@ bool IdeProject::CreateMakefile()
 				}
 			}
 
-			const char *PLibs = d->Settings.GetStr(ProjLibraries);
+			const char *PLibs = d->Settings.GetStr(ProjLibraries, NULL, Platform);
 			if (ValidStr(PLibs))
 			{
 				GToken Libs(PLibs, "\r\n");
@@ -3332,17 +3382,7 @@ bool IdeProject::CreateMakefile()
 				this,
 				Files,
 				false,
-				#if defined WIN32
-				PLATFORM_WIN32
-				#elif defined LINUX
-				PLATFORM_LINUX
-				#elif defined MAC
-				PLATFORM_MAC
-				#elif defined BEOS
-				PLATFORM_BEOS
-				#else
-				#error "Not impl"
-				#endif
+				1 << Platform
 			);
 			if (Files.First())
 			{
@@ -3350,10 +3390,11 @@ bool IdeProject::CreateMakefile()
 
 				// Do include paths
 				GHashTable Inc;
-				if (ValidStr(d->Settings.GetStr(ProjIncludePaths)))
+				const char *AllIncludes = d->Settings.GetStr(ProjIncludePaths, NULL, Platform);
+				if (ValidStr(AllIncludes))
 				{
 					// Add settings include paths.
-					GToken Paths(d->Settings.GetStr(ProjIncludePaths), "\r\n");
+					GToken Paths(AllIncludes, "\r\n", Platform);
 					for (int i=0; i<Paths.Length(); i++)
 					{
 						char *p = Paths[i];
@@ -3426,7 +3467,7 @@ bool IdeProject::CreateMakefile()
 				m.Print("\n\n");
 				
 				GArray<char*> IncPaths;
-				if (BuildIncludePaths(IncPaths, false))
+				if (BuildIncludePaths(IncPaths, false, Platform))
 				{
 					// Do dependencies
 					m.Print("# Dependencies\n"
@@ -3452,7 +3493,7 @@ bool IdeProject::CreateMakefile()
 
 					// Write out the target stuff
 					m.Print("# Target\n");
-					const char *TargetType = d->Settings.GetStr(ProjTargetType);
+					const char *TargetType = d->Settings.GetStr(ProjTargetType, NULL, Platform);
 					if (TargetType)
 					{
 						if (!stricmp(TargetType, "Executable"))
@@ -3465,7 +3506,7 @@ bool IdeProject::CreateMakefile()
 							for (Dep=Deps.First(); Dep; Dep=Deps.Next())
 							{
 								// Get dependency to create it's own makefile...
-								Dep->CreateMakefile();
+								Dep->CreateMakefile(Platform);
 							
 								// Build a rule to make the dependency if any of the source changes...
 								char t[MAX_PATH] = "";
@@ -3491,7 +3532,7 @@ bool IdeProject::CreateMakefile()
 									m.Print(" %s", Buf);
 									
 									GArray<char*> AllDeps;
-									Dep->GetAllDependencies(AllDeps);
+									Dep->GetAllDependencies(AllDeps, Platform);
 									LgiAssert(AllDeps.Length() > 0);
 									AllDeps.Sort(StrSort);
 
@@ -3570,7 +3611,7 @@ bool IdeProject::CreateMakefile()
 									"		$(Libs)\n"
 									"	@echo Done.\n"
 									"\n",
-									LGI_LIBRARY_EXT,
+									PlatformLibraryExt,
 									ValidStr(ExtraLinkFlags) ? "-Wl" : "", ExtraLinkFlags,
 									LinkerFlags);
 
@@ -3584,7 +3625,7 @@ bool IdeProject::CreateMakefile()
 									"	rm -f $(BuildDir)/*.o $(BuildDir)/$(TargetFile)\n"
 									"	@echo Cleaned $(BuildDir)\n"
 									"\n",
-									LGI_LIBRARY_EXT);
+									PlatformLibraryExt);
 						}
 						// Static library
 						else if (!stricmp(TargetType, "StaticLibrary"))
@@ -3595,7 +3636,7 @@ bool IdeProject::CreateMakefile()
 									"	ar rcs $(BuildDir)/$(TargetFile) $(addprefix $(BuildDir)/,$(Depends))\n"
 									"	@echo Done.\n"
 									"\n",
-									LGI_STATIC_LIBRARY_EXT);
+									PlatformStaticLibExt);
 
 							// Cleaning target
 							m.Print("# Create the output folder\n"
@@ -3607,7 +3648,7 @@ bool IdeProject::CreateMakefile()
 									"	rm -f $(BuildDir)/*.o $(BuildDir)/$(TargetFile)\n"
 									"	@echo Cleaned $(BuildDir)\n"
 									"\n",
-									LGI_STATIC_LIBRARY_EXT);
+									PlatformStaticLibExt);
 						}
 					}
 
@@ -3638,7 +3679,7 @@ bool IdeProject::CreateMakefile()
 								m.Print("%s.o : %s ", Part, ToUnixPath(Rel));
 
 								GArray<char*> SrcDeps;
-								if (GetDependencies(Src, IncPaths, SrcDeps))
+								if (GetDependencies(Src, IncPaths, SrcDeps, Platform))
 								{
 									for (int i=0; i<SrcDeps.Length(); i++)
 									{
@@ -3727,7 +3768,7 @@ bool IdeProject::CreateMakefile()
 							"\t$(BuildDir)");
 					m.Print("\n\n");
 					
-					const char *OtherMakefileRules = d->Settings.GetStr(ProjMakefileRules);
+					const char *OtherMakefileRules = d->Settings.GetStr(ProjMakefileRules, NULL, Platform);
 					if (ValidStr(OtherMakefileRules))
 					{
 						m.Print("\n%s\n", OtherMakefileRules);

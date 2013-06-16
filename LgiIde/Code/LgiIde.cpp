@@ -28,6 +28,7 @@
 #define IDM_RECENT_FILE			1000
 #define IDM_RECENT_PROJECT		1100
 #define IDM_WINDOWS				1200
+#define IDM_MAKEFILE_BASE		1300
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -448,6 +449,7 @@ public:
 	bool Debugging;
 	bool Building;
 	GSubMenu *WindowsMenu;
+	GSubMenu *CreateMakefileMenu;
 	FindSymbolSystem FindSym;
 	
 	// Find in files
@@ -919,6 +921,15 @@ AppWnd::AppWnd()
 				d->RecentFilesMenu = Menu->FindSubMenu(IDM_RECENT_FILES);
 				d->RecentProjectsMenu = Menu->FindSubMenu(IDM_RECENT_PROJECTS);
 				d->WindowsMenu = Menu->FindSubMenu(IDM_WINDOW_LST);
+				d->CreateMakefileMenu = Menu->FindSubMenu(IDM_CREATE_MAKEFILE);
+				if (d->CreateMakefileMenu)
+				{
+					d->CreateMakefileMenu->Empty();
+					for (int i=0; PlatformNames[i]; i++)
+					{
+						d->CreateMakefileMenu->AppendItem(PlatformNames[i], IDM_MAKEFILE_BASE + i);
+					}
+				}
 
 				GMenuItem *Debug = GetMenu()->FindItem(IDM_DEBUG_MODE);
 				if (Debug)
@@ -1043,8 +1054,14 @@ void AppWnd::OnReceiveFiles(GArray<char*> &Files)
 			NewMemDumpViewer(this, f);
 			return;
 		}
+		else if (ext && !stricmp(ext, "xml"))
+		{
+			OpenProject(f, NULL);
+		}
 		else
+		{
 			OpenFile(f);
+		}
 	}
 	
 	Raise();
@@ -1735,15 +1752,6 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			d->NextMsg();
 			break;
 		}
-		case IDM_CREATE_MAKEFILE:
-		{
-			IdeProject *p = RootProject();
-			if (p)
-			{
-				p->CreateMakefile();
-			}			
-			break;
-		}
 		case IDM_DEBUG_MODE:
 		{
 			GMenuItem *Debug = GetMenu()->FindItem(IDM_DEBUG_MODE);
@@ -1866,6 +1874,21 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			if (Doc)
 			{
 				Doc->Raise();
+			}
+			
+			IdePlatform PlatIdx = (IdePlatform) (Cmd - IDM_MAKEFILE_BASE);
+			const char *Platform =	PlatIdx >= 0 && PlatIdx < PlatformMax
+									?
+									PlatformNames[Cmd - IDM_MAKEFILE_BASE]
+									:
+									NULL;
+			if (Platform)
+			{
+				IdeProject *p = RootProject();
+				if (p)
+				{
+					p->CreateMakefile(PlatIdx);
+				}
 			}
 			break;
 		}

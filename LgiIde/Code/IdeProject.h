@@ -85,10 +85,10 @@ public:
 	bool Serialize(GXmlTag *Parent, bool Write);
 
 	// Accessors
-	const char *GetStr(ProjSetting Setting, const char *Default = NULL);
-	int GetInt(ProjSetting Setting, int Default = NULL);
-	bool Set(ProjSetting Setting, const char *Value);
-	bool Set(ProjSetting Setting, int Value);
+	const char *GetStr(ProjSetting Setting, const char *Default = NULL, IdePlatform Platform = PlatformCurrent);
+	int GetInt(ProjSetting Setting, int Default = NULL, IdePlatform Platform = PlatformCurrent);
+	bool Set(ProjSetting Setting, const char *Value, IdePlatform Platform = PlatformCurrent);
+	bool Set(ProjSetting Setting, int Value, IdePlatform Platform = PlatformCurrent);
 };
 
 class IdeProject : public GXmlFactory, public IdeCommon
@@ -123,10 +123,10 @@ public:
 	bool InProject(char *FullPath, bool Open, class IdeDoc **Doc = 0);
 	const char *GetFileComment();
 	const char *GetFunctionComment();
-	bool CreateMakefile();
+	bool CreateMakefile(IdePlatform Platform);
 	bool GetTargetName(char *Buf, int BufSize);
 	bool GetTargetFile(char *Buf, int BufSize);
-	bool BuildIncludePaths(GArray<char*> &Paths, bool Recurse);
+	bool BuildIncludePaths(GArray<char*> &Paths, bool Recurse, IdePlatform Platform);
 	void ShowFileProperties(const char *File);
 
 	// Project heirarchy
@@ -144,8 +144,8 @@ public:
 	void ImportDsp(char *File);
 
 	// Dependency calculation
-	bool GetAllDependencies(GArray<char*> &Files);
-	bool GetDependencies(const char *SourceFile, GArray<char*> &IncPaths, GArray<char*> &Files);
+	bool GetAllDependencies(GArray<char*> &Files, IdePlatform Platform);
+	bool GetDependencies(const char *SourceFile, GArray<char*> &IncPaths, GArray<char*> &Files, IdePlatform Platform);
 	
 	// Settings
 	IdeProjectSettings *GetSettings();

@@ -120,7 +120,7 @@ void EditTray::OnMouseClick(GMouse &m)
 		{
 			// Header list button
 			GArray<char*> Paths;
-			if (Doc->BuildIncludePaths(Paths))
+			if (Doc->BuildIncludePaths(Paths, PlatformCurrent))
 			{
 				GArray<char*> Headers;
 				if (Doc->BuildHeaderList(Ctrl->NameW(), Headers, Paths))
@@ -1055,11 +1055,11 @@ GTextView3 *IdeDoc::GetEdit()
 	return d->Edit;
 }
 
-bool IdeDoc::BuildIncludePaths(GArray<char*> &Paths)
+bool IdeDoc::BuildIncludePaths(GArray<char*> &Paths, IdePlatform Platform)
 {
 	if (GetProject())
 	{
-		return GetProject()->BuildIncludePaths(Paths, true);
+		return GetProject()->BuildIncludePaths(Paths, true, Platform);
 	}
 	
 	return false;
@@ -1609,7 +1609,7 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 	{
 		GArray<char*> Paths;
 		GArray<char*> Headers;
-		if (BuildIncludePaths(Paths) &&
+		if (BuildIncludePaths(Paths, PlatformCurrent) &&
 			BuildHeaderList(Source, Headers, Paths))
 		{
 			List<DefnInfo> Defns;

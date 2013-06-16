@@ -378,6 +378,12 @@ include/linux/Gtk
 include/linux/Gtk
 `pkg-config --cflags gtk+-2.0`</Release>
 				</Linux>
+				<Haiku>
+					<Debug>include/beos
+/boot/develop/headers/os/app</Debug>
+					<Release>include/beos
+/boot/develop/headers/os/app</Release>
+				</Haiku>
 			</IncludePaths>
 			<Libraries>
 				<Windows>
@@ -402,11 +408,25 @@ uuid</Release>
 					<Release>-static-libgcc 
 `pkg-config --libs gtk+-2.0`</Release>
 				</Linux>
+				<Haiku>
+					<Debug>network
+be
+game
+textencoding</Debug>
+					<Release>network
+be
+game
+textencoding</Release>
+				</Haiku>
 			</Libraries>
 			<TargetType>
 				<All>DynamicLibrary</All>
 			</TargetType>
 			<TargetName>
+				<Haiku>
+					<Debug>lgi</Debug>
+					<Release>lgi</Release>
+				</Haiku>
 				<Windows>
 					<Debug>lgi</Debug>
 					<Release>lgi</Release>

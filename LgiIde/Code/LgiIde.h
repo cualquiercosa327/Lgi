@@ -22,12 +22,6 @@
 #define M_APPEND_TEXT			(M_USER+1)
 #define M_BUILD_ERR				(M_USER+2)
 
-#define PLATFORM_WIN32			0x0001
-#define PLATFORM_LINUX			0x0002
-#define PLATFORM_MAC			0x0004
-#define PLATFORM_BEOS			0x0008
-#define PLATFORM_ALL			(PLATFORM_WIN32|PLATFORM_LINUX|PLATFORM_MAC|PLATFORM_BEOS)
-
 #define ICON_PROJECT			0
 #define ICON_DEPENDANCY			1
 #define ICON_FOLDER				2
@@ -64,6 +58,27 @@
 
 #define OPT_EditorFont			"EdFont"
 
+//////////////////////////////////////////////////////////////////////
+// Platform stuff
+enum IdePlatform
+{
+	PlatformCurrent = -1,
+	PlatformWin32 = 0,
+	PlatformLinux,
+	PlatformMac,
+	PlatformHaiku,
+	PlatformMax,
+};
+#define PLATFORM_WIN32			(1 << PlatformWin32)
+#define PLATFORM_LINUX			(1 << PlatformLinux)
+#define PLATFORM_MAC			(1 << PlatformMac)
+#define PLATFORM_HAIKU			(1 << PlatformHaiku)
+#define PLATFORM_ALL			(PLATFORM_WIN32|PLATFORM_LINUX|PLATFORM_MAC|PLATFORM_HAIKU)
+
+extern const char *PlatformNames[];
+extern const char sCurrentPlatform[];
+
+//////////////////////////////////////////////////////////////////////
 class IdeDoc;
 class IdeProject;
 

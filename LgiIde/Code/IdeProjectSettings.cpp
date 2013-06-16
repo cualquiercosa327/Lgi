@@ -1,4 +1,5 @@
 #include "Lgi.h"
+#include "LgiIde.h"
 #include "IdeProject.h"
 #include "GTableLayout.h"
 #include "resdefs.h"
@@ -188,16 +189,32 @@ public:
 		return FindConfig(CurConfig);
 	}
 
-	char *BuildPath(ProjSetting s, bool PlatformSpecific, int Config = -1)
+	const char *PlatformToString(bool PlatformSpecific, IdePlatform Platform)
+	{
+		if (PlatformSpecific)
+		{
+			if (Platform >= 0 && Platform < PlatformMax)
+			{
+				return PlatformNames[Platform];
+			}
+			
+			return sCurrentPlatform;
+		}
+		
+		return sAllPlatforms;
+	}
+
+	char *BuildPath(ProjSetting s, bool PlatformSpecific, IdePlatform Platform, int Config = -1)
 	{
 		SettingInfo *i = Map.Find(s);
 		LgiAssert(i);
 
+		const char *PlatformStr = PlatformToString(PlatformSpecific, Platform);
 		int Ch = sprintf_s(	PathBuf, sizeof(PathBuf),
 							"%s.%s.%s",
 							i->Category,
 							i->Name,
-							PlatformSpecific ? sCurrentPlatform : sAllPlatforms);
+							PlatformStr);
 
 		if (i->Flag.ConfigSpecific)
 		{
@@ -274,7 +291,7 @@ public:
 		char *Path;
 		int CellY = i * 2;
 		GLayoutCell *c = Tbl->GetCell(0, CellY);
-		c->Add(Ctrls[i].Text = new GText(IDC_TEXT_BASE + i, 0, 0, -1, -1, Path = d->BuildPath(Setting->Setting, PlatformSpecific, Config)));
+		c->Add(Ctrls[i].Text = new GText(IDC_TEXT_BASE + i, 0, 0, -1, -1, Path = d->BuildPath(Setting->Setting, PlatformSpecific, PlatformCurrent, Config)));
 		c = Tbl->GetCell(0, CellY + 1);
 		
 		GXmlTag *t = d->Editing.GetTag(Path);
@@ -642,7 +659,7 @@ void IdeProjectSettings::InitAllSettings(bool ClearCurrent)
 			{
 				if (!i->Flag.PlatformSpecific)
 				{
-					p = d->BuildPath(i->Setting, false, Cfg);
+					p = d->BuildPath(i->Setting, false, PlatformCurrent, Cfg);
 					d->Active.GetTag(p, true);
 					if (t && !t->Content && Default.Type != GV_NULL)
 						t->SetContent(Default.Str());
@@ -650,7 +667,7 @@ void IdeProjectSettings::InitAllSettings(bool ClearCurrent)
 				
 				if (!i->Flag.CrossPlatform)
 				{
-					p = d->BuildPath(i->Setting, true, Cfg);
+					p = d->BuildPath(i->Setting, true, PlatformCurrent, Cfg);
 					d->Active.GetTag(p, true);
 					if (t && !t->Content && Default.Type != GV_NULL)
 						t->SetContent(Default.Str());
@@ -661,7 +678,7 @@ void IdeProjectSettings::InitAllSettings(bool ClearCurrent)
 		{
 			if (!i->Flag.PlatformSpecific)
 			{
-				p = d->BuildPath(i->Setting, false, -1);
+				p = d->BuildPath(i->Setting, false, PlatformCurrent, -1);
 				t = d->Active.GetTag(p, true);
 				if (t && !t->Content && Default.Type != GV_NULL)
 					t->SetContent(Default.Str());
@@ -669,7 +686,7 @@ void IdeProjectSettings::InitAllSettings(bool ClearCurrent)
 
 			if (!i->Flag.CrossPlatform)
 			{
-				p = d->BuildPath(i->Setting, true, -1);
+				p = d->BuildPath(i->Setting, true, PlatformCurrent, -1);
 				t = d->Active.GetTag(p, true);
 				if (t && !t->Content && Default.Type != GV_NULL)
 					t->SetContent(Default.Str());
@@ -729,7 +746,7 @@ bool IdeProjectSettings::Serialize(GXmlTag *Parent, bool Write)
 	return false;
 }
 
-const char *IdeProjectSettings::GetStr(ProjSetting Setting, const char *Default)
+const char *IdeProjectSettings::GetStr(ProjSetting Setting, const char *Default, IdePlatform Platform)
 {
 	SettingInfo *s = d->Map.Find(Setting);
 	LgiAssert(s);
@@ -737,7 +754,7 @@ const char *IdeProjectSettings::GetStr(ProjSetting Setting, const char *Default)
 	int Bytes = 0;
 	if (!s->Flag.PlatformSpecific)
 	{
-		GXmlTag *t = d->Active.GetTag(d->BuildPath(Setting, false));
+		GXmlTag *t = d->Active.GetTag(d->BuildPath(Setting, false, Platform));
 		if (t && t->Content)
 		{
 			Strs.Add(t->Content);
@@ -746,13 +763,14 @@ const char *IdeProjectSettings::GetStr(ProjSetting Setting, const char *Default)
 	}
 	if (!s->Flag.CrossPlatform)
 	{
-		GXmlTag *t = d->Active.GetTag(d->BuildPath(Setting, true));
+		GXmlTag *t = d->Active.GetTag(d->BuildPath(Setting, true, Platform));
 		if (t && t->Content)
 		{
 			Strs.Add(t->Content);
 			Bytes += strlen(t->Content) + 1;
 		}
 	}
+	
 	if (Strs.Length() == 0)
 		return Default;
 	
@@ -772,7 +790,7 @@ const char *IdeProjectSettings::GetStr(ProjSetting Setting, const char *Default)
 	return d->StrBuf;
 }
 
-int IdeProjectSettings::GetInt(ProjSetting Setting, int Default)
+int IdeProjectSettings::GetInt(ProjSetting Setting, int Default, IdePlatform Platform)
 {
 	int Status = Default;
 
@@ -781,7 +799,7 @@ int IdeProjectSettings::GetInt(ProjSetting Setting, int Default)
 	
 	if (!s->Flag.PlatformSpecific)
 	{
-		GXmlTag *t = d->Active.GetTag(d->BuildPath(Setting, false));
+		GXmlTag *t = d->Active.GetTag(d->BuildPath(Setting, false, Platform));
 		if (t)
 		{
 			Status = t->Content ? atoi(t->Content) : 0;
@@ -789,7 +807,7 @@ int IdeProjectSettings::GetInt(ProjSetting Setting, int Default)
 	}
 	else if (!s->Flag.CrossPlatform)
 	{
-		GXmlTag *t = d->Active.GetTag(d->BuildPath(Setting, true));
+		GXmlTag *t = d->Active.GetTag(d->BuildPath(Setting, true, Platform));
 		if (t)
 		{
 			Status = t->Content ? atoi(t->Content) : 0;
@@ -800,10 +818,10 @@ int IdeProjectSettings::GetInt(ProjSetting Setting, int Default)
 	return Status;
 }
 
-bool IdeProjectSettings::Set(ProjSetting Setting, const char *Value)
+bool IdeProjectSettings::Set(ProjSetting Setting, const char *Value, IdePlatform Platform)
 {
 	bool Status = false;
-	char *path = d->BuildPath(Setting, true);
+	char *path = d->BuildPath(Setting, true, Platform);
 	GXmlTag *t = d->Active.GetTag(path, true);
 	if (t)
 	{
@@ -814,10 +832,10 @@ bool IdeProjectSettings::Set(ProjSetting Setting, const char *Value)
 	return Status;
 }
 
-bool IdeProjectSettings::Set(ProjSetting Setting, int Value)
+bool IdeProjectSettings::Set(ProjSetting Setting, int Value, IdePlatform Platform)
 {
 	bool Status = false;
-	char *path = d->BuildPath(Setting, true);
+	char *path = d->BuildPath(Setting, true, Platform);
 	GXmlTag *t = d->Active.GetTag(path, true);
 	if (t)
 	{

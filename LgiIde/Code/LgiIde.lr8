@@ -685,6 +685,7 @@
 			<String Ref="81" Cid="560" Define="IDM_FIND_REFERENCES" en="Find References" />
 			<String Ref="197" Cid="561" Define="IDM_MENU_561" />
 			<String Ref="198" Cid="562" Define="IDM_GOTO_SYMBOL" en="Goto Symbol" />
+			<String Ref="211" Cid="565" Define="IDM_MAKEFILE_PLATFORMS" en="(error)" />
 		</string-group>
 		<submenu Ref="175">
 			<menuitem Ref="174" Shortcut="Ctrl+N" />
@@ -729,7 +730,9 @@
 			<menuitem Ref="148" />
 			<menuitem Sep="1" />
 			<menuitem Ref="147" />
-			<menuitem Ref="146" />
+			<submenu Ref="146">
+				<menuitem Ref="211" />
+			</submenu>
 			<submenu Ref="145">
 				<menuitem Ref="144" />
 				<menuitem Ref="143" />

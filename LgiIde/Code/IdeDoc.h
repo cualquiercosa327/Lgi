@@ -88,7 +88,7 @@ public:
 	bool IsFile(char *File);
 
 	// Source tools
-	bool BuildIncludePaths(GArray<char*> &Paths);
+	bool BuildIncludePaths(GArray<char*> &Paths, IdePlatform Platform);
 	bool BuildHeaderList(char16 *Cpp, GArray<char*> &Headers, GArray<char*> &IncPaths);
 	bool BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Funcs, DefnType LimitTo, bool Debug = false);
 	bool FindDefn(char16 *Def, char16 *Source, List<DefnInfo> &Matches);

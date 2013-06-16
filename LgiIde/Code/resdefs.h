@@ -146,3 +146,4 @@
 #define IDM_GOTO_SYMBOL							562
 #define IDC_SETTINGS							563
 #define IDC_DETAIL								564
+#define IDM_MAKEFILE_PLATFORMS					565
