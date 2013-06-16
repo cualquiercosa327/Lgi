@@ -11,7 +11,7 @@
 				<Node File=".\src\common\Lgi\GDragAndDrop.cpp" Type="2" Platforms="15" />
 				<Node File=".\include\common\GDragAndDrop.h" Type="3" Platforms="15" />
 			</Node>
-			<Node Name="File" Type="1" Platforms="15" Open="1">
+			<Node Name="File" Type="1" Platforms="15" Open="0">
 				<Node Name="Haiku" Type="1" Platforms="15" Open="1">
 					<Node File=".\src\beos\General\GFile.cpp" Type="2" Platforms="8" />
 				</Node>
@@ -144,20 +144,23 @@
 			<Node File=".\src\common\Lgi\LgiMsg.cpp" Type="2" Platforms="15" />
 		</Node>
 		<Node Name="Dialogs" Type="1" Platforms="15" Open="0">
-			<Node File="./src/common/Lgi/GAlert.cpp" Type="2" Platforms="15" />
-			<Node File=".\include\common\GFileSelect.h" Type="3" Platforms="15" />
-			<Node File="./src/common/Lgi/GFindReplace.cpp" Type="2" Platforms="15" />
-			<Node File="./src/common/Lgi/GFontSelect.cpp" Type="2" Platforms="15" />
-			<Node File="./src/common/Lgi/GInput.cpp" Type="2" Platforms="15" />
+			<Node Name="Xp" Type="1" Platforms="15" Open="1">
+				<Node File=".\src\common\Lgi\GFileSelect.cpp" Type="2" Platforms="14" />
+			</Node>
 			<Node Name="Win32" Type="1" Platforms="15" Open="0">
 				<Node File="./src/win32/Lgi/GFileSelect.cpp" Type="2" Platforms="1" />
 			</Node>
-			<Node Name="Linux" Type="1" Platforms="15" Open="1">
-				<Node File="./src/common/Lgi/GFileSelect.cpp" Type="2" Platforms="6" />
-			</Node>
+			<Node File=".\src\common\Lgi\GAlert.cpp" Type="2" Platforms="15" />
+			<Node File=".\include\common\GFileSelect.h" Type="3" Platforms="15" />
+			<Node File=".\src\common\Lgi\GFindReplace.cpp" Type="2" Platforms="15" />
+			<Node File=".\src\common\Lgi\GFontSelect.cpp" Type="2" Platforms="15" />
+			<Node File=".\src\common\Lgi\GInput.cpp" Type="2" Platforms="15" />
 		</Node>
-		<Node Name="Gdc2" Type="1" Platforms="15" Open="0">
+		<Node Name="Gdc2" Type="1" Platforms="15" Open="1">
 			<Node Name="_Core" Type="1" Platforms="15" Open="0">
+				<Node Name="Haiku" Type="1" Platforms="15" Open="0">
+					<Node File=".\src\beos\Gdc2\Gdc2.cpp" Type="2" Platforms="8" />
+				</Node>
 				<Node Name="Linux" Type="1" Platforms="15" Open="0">
 					<Node File=".\src\linux\Gtk\Gdc2.cpp" Type="2" Platforms="2" />
 				</Node>
@@ -168,8 +171,8 @@
 				<Node File=".\src\common\Gdc2\Tools\GColourReduce.cpp" Type="2" Platforms="15" />
 				<Node File=".\include\common\Gdc2.h" Type="3" Platforms="15" />
 				<Node File=".\src\common\Gdc2\GdcCommon.cpp" Type="2" Platforms="15" />
-				<Node File=".\include\common\GFilter.h" Type="3" Platforms="15" />
 				<Node File=".\src\common\Gdc2\Tools\GdcTools.cpp" Type="2" Platforms="15" />
+				<Node File=".\include\common\GFilter.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Font" Type="1" Platforms="15" Open="0">
 				<Node File=".\src\common\Gdc2\Font\GDisplayString.cpp" Type="2" Platforms="15" />
@@ -195,16 +198,21 @@
 				<Node File="./src/common/Gdc2/GRect.cpp" Type="2" Platforms="15" />
 				<Node File=".\include\common\GRect.h" Type="3" Platforms="15" />
 			</Node>
-			<Node Name="Surfaces" Type="1" Platforms="15" Open="0">
-				<Node Name="Win32" Type="1" Platforms="15" Open="0">
-					<Node File=".\src\win32\Gdc2\GScreenDC.cpp" Type="2" Platforms="1" />
-					<Node File=".\src\win32\Gdc2\GPrintDC.cpp" Type="2" Platforms="1" />
-					<Node File=".\src\win32\Gdc2\GMemDC.cpp" Type="2" Platforms="1" />
+			<Node Name="Surfaces" Type="1" Platforms="15" Open="1">
+				<Node Name="Haiku" Type="1" Platforms="15" Open="1">
+					<Node File=".\src\beos\Gdc2\GMemDC.cpp" Type="2" Platforms="8" />
+					<Node File=".\src\beos\Gdc2\GPrintDC.cpp" Type="2" Platforms="8" />
+					<Node File=".\src\beos\Gdc2\GScreenDC.cpp" Type="2" Platforms="8" />
 				</Node>
-				<Node Name="Linux" Type="1" Platforms="15" Open="0">
+				<Node Name="Linux" Type="1" Platforms="15" Open="1">
 					<Node File=".\src\linux\Gtk\GMemDC.cpp" Type="2" Platforms="2" />
 					<Node File=".\src\linux\Gtk\GPrintDC.cpp" Type="2" Platforms="2" />
 					<Node File=".\src\linux\Gtk\GScreenDC.cpp" Type="2" Platforms="2" />
+				</Node>
+				<Node Name="Win32" Type="1" Platforms="15" Open="1">
+					<Node File=".\src\win32\Gdc2\GScreenDC.cpp" Type="2" Platforms="1" />
+					<Node File=".\src\win32\Gdc2\GPrintDC.cpp" Type="2" Platforms="1" />
+					<Node File=".\src\win32\Gdc2\GMemDC.cpp" Type="2" Platforms="1" />
 				</Node>
 				<Node File=".\src\common\Gdc2\GSurface.cpp" Type="2" Platforms="15" />
 			</Node>
@@ -213,13 +221,16 @@
 				<Node File=".\include\common\GdiLeak.h" Type="3" Platforms="15" />
 			</Node>
 		</Node>
-		<Node Name="General" Type="1" Platforms="15" Open="0">
-			<Node Name="Clipboard" Type="1" Platforms="15" Open="0">
+		<Node Name="General" Type="1" Platforms="15" Open="1">
+			<Node Name="Clipboard" Type="1" Platforms="15" Open="1">
 				<Node Name="Win32" Type="1" Platforms="15" Open="1">
 					<Node File=".\src\win32\Lgi\GClipBoard.cpp" Type="2" Platforms="1" />
 				</Node>
 				<Node Name="Linux" Type="1" Platforms="15" Open="1">
 					<Node File=".\src\linux\Lgi\GClipBoard.cpp" Type="2" Platforms="2" />
+				</Node>
+				<Node Name="Haiku" Type="1" Platforms="15" Open="1">
+					<Node File=".\src\beos\Lgi\GClipBoard.cpp" Type="2" Platforms="8" />
 				</Node>
 			</Node>
 			<Node Name="Data Dlg" Type="1" Platforms="15" Open="0">
@@ -357,12 +368,6 @@
 			<Compiler>
 				<Windows>MingW</Windows>
 			</Compiler>
-			<Executable>
-				<Windows />
-			</Executable>
-			<Arguments>
-				<All />
-			</Arguments>
 		</General>
 		<Build>
 			<IncludePaths>
@@ -424,7 +429,6 @@ be
 game
 textencoding</Release>
 				</Haiku>
-				<All />
 			</Libraries>
 			<TargetType>
 				<All>DynamicLibrary</All>
@@ -443,10 +447,6 @@ textencoding</Release>
 					<Release>lgi</Release>
 				</Linux>
 			</TargetName>
-			<LibraryPaths>
-				<All />
-				<Windows />
-			</LibraryPaths>
 		</Build>
 		<Editor>
 			<TabSize>
@@ -461,11 +461,6 @@ textencoding</Release>
 			<UseHardTabs>
 				<All>1</All>
 			</UseHardTabs>
-			<CommentFile />
-			<CommentFunction />
 		</Editor>
-		<Advanced>
-			<OtherMakefileRules />
-		</Advanced>
 	</Settings>
 </Project>

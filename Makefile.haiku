@@ -74,10 +74,12 @@ Depends =	GDateTime.o \
 			GTrayIcon.o \
 			Lgi.o \
 			LgiMsg.o \
+			GFileSelect.o \
 			GAlert.o \
 			GFindReplace.o \
 			GFontSelect.o \
 			GInput.o \
+			Gdc2.o \
 			GColourReduce.o \
 			GdcCommon.o \
 			GdcTools.o \
@@ -95,7 +97,11 @@ Depends =	GDateTime.o \
 			Alpha.o \
 			GFilter.o \
 			GRect.o \
+			GMemDC.o \
+			GPrintDC.o \
+			GScreenDC.o \
 			GSurface.o \
+			GClipBoard.o \
 			GDataDlg.o \
 			GPassword.o \
 			GMru.o \
@@ -362,6 +368,20 @@ LgiMsg.o : ./src/common/Lgi/LgiMsg.cpp ./include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
+GFileSelect.o : ./src/common/Lgi/GFileSelect.cpp ./include/common/Lgi.h \
+	./include/common/GPopup.h \
+	./include/common/GToken.h \
+	./include/common/GList.h \
+	./include/common/GTextLabel.h \
+	./include/common/GEdit.h \
+	./include/common/GButton.h \
+	./include/common/GCheckBox.h \
+	./include/common/GCombo.h \
+	./include/common/GTree.h \
+	./include/common/GTableLayout.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
 GAlert.o : ./src/common/Lgi/GAlert.cpp ./include/common/Lgi.h \
 	./include/common/GTextLabel.h \
 	./include/common/GButton.h
@@ -397,6 +417,10 @@ GInput.o : ./src/common/Lgi/GInput.cpp ./include/common/Lgi.h \
 	./include/common/GTextLabel.h \
 	./include/common/GEdit.h \
 	./include/common/GButton.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+Gdc2.o : ./src/beos/Gdc2/Gdc2.cpp ./include/common/Gdc2.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -491,8 +515,27 @@ GRect.o : ./src/common/Gdc2/GRect.cpp ./include/common/Gdc2.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
+GMemDC.o : ./src/beos/Gdc2/GMemDC.cpp ./include/common/Gdc2.h \
+	./include/common/Lgi.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GPrintDC.o : ./src/beos/Gdc2/GPrintDC.cpp ./include/common/Lgi.h \
+	./include/common/GdiLeak.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GScreenDC.o : ./src/beos/Gdc2/GScreenDC.cpp ./include/common/Lgi.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
 GSurface.o : ./src/common/Gdc2/GSurface.cpp ./include/common/Gdc2.h \
 	./include/common/GdiLeak.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GClipBoard.o : ./src/beos/Lgi/GClipBoard.cpp ./include/common/Lgi.h \
+	./include/common/GClipBoard.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
