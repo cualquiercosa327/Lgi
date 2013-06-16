@@ -83,6 +83,10 @@
 ../include/linux/Gtk
 `pkg-config --cflags gtk+-2.0`</Release>
 				</Linux>
+				<Haiku>
+					<Debug>../include/beos</Debug>
+					<Release>../include/beos</Release>
+				</Haiku>
 			</IncludePaths>
 			<Libraries>
 				<Windows>
@@ -95,6 +99,10 @@
 					<Release>`pkg-config --libs gtk+-2.0`
 -static-libgcc</Release>
 				</Linux>
+				<Haiku>
+					<Debug></Debug>
+					<Release></Release>
+				</Haiku>
 				<All />
 			</Libraries>
 			<LibraryPaths>
@@ -105,6 +113,10 @@
 				<All>Executable</All>
 			</TargetType>
 			<TargetName>
+				<Haiku>
+					<Debug>lgi</Debug>
+					<Release>lgi</Release>
+				</Haiku>
 				<Windows>
 					<Debug>LgiIde.exe</Debug>
 					<Release>LgiIde.exe</Release>
@@ -122,10 +134,12 @@
 			<IndentSize>
 				<All>4</All>
 			</IndentSize>
+			<ShowWhiteSpace>
+				<All>0</All>
+			</ShowWhiteSpace>
 			<UseHardTabs>
 				<All>1</All>
 			</UseHardTabs>
-			<ShowWhiteSpace />
 			<CommentFile />
 			<CommentFunction />
 		</Editor>

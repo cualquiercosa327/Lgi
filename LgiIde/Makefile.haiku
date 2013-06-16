@@ -32,6 +32,7 @@ Libs = \
 
 # Includes
 Inc = \
+	-I../include/beos \
 	-I../include/common
 
 # Dependencies
@@ -266,9 +267,10 @@ IdeProjectSettings.o : ./Code/IdeProjectSettings.cpp ../include/common/Lgi.h \
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 ../include/common/Lgi.h : ../include/common/LgiInc.h \
+	../include/beos/LgiOsDefs.h \
 	../include/common/LgiMsgs.h \
 	../include/common/LgiDefs.h \
-	../include/common/GMem.h \
+	../include/beos/GMem.h \
 	../include/common/GString.h \
 	../include/common/LgiClass.h \
 	../include/common/Progress.h \
@@ -278,14 +280,19 @@ IdeProjectSettings.o : ./Code/IdeProjectSettings.cpp ../include/common/Lgi.h \
 	../include/common/LgiClasses.h \
 	../include/common/LgiCommon.h
 
+LgiOsDefs.h : ../include/common/LgiInc.h
+
+GMem.h : ../include/common/LgiDefs.h \
+	../include/beos/LgiOsDefs.h
+
 Progress.h : ../include/common/GMutex.h
 
-GFile.h : ../include/common/GMem.h \
+GFile.h : ../include/beos/GMem.h \
 	../include/common/GStream.h \
 	../include/common/GArray.h
 
 GArray.h : ../include/common/LgiDefs.h \
-	../include/common/GMem.h
+	../include/beos/GMem.h
 
 GStream.h : ../include/common/GDom.h
 
@@ -299,20 +306,20 @@ LgiClass.h : ../include/common/LgiInc.h \
 	../include/common/LgiDefs.h \
 	../include/common/GAutoPtr.h
 
-GMem.h : ../include/common/LgiInc.h
-
 LgiRes.h : ../include/common/Res.h \
 	../include/common/GContainers.h \
 	../include/common/GCss.h
 
 GCss.h : ../include/common/LgiInc.h \
-	../include/common/GMem.h \
+	../include/beos/LgiOsDefs.h \
+	../include/beos/GMem.h \
 	../include/common/Gdc2.h \
 	../include/common/GAutoPtr.h \
 	../include/common/GString.h \
 	../include/common/GHashTable.h
 
 GContainers.h : ../include/common/LgiInc.h \
+	../include/beos/LgiOsDefs.h \
 	../include/common/GStream.h
 
 Res.h : ../include/common/GXmlTree.h
@@ -322,6 +329,7 @@ GXmlTree.h : ../include/common/GHashTable.h \
 	../include/common/GDom.h
 
 LgiClasses.h : ../include/common/GMutex.h \
+	../include/beos/LgiOsClasses.h \
 	../include/common/GArray.h \
 	../include/common/LgiCommon.h \
 	../include/common/GXmlTree.h \
@@ -355,14 +363,16 @@ GVariant.h : ../include/common/GDom.h \
 GDom.h : ../include/common/LgiInterfaces.h \
 	../include/common/GArray.h
 
-LgiInterfaces.h : ../include/common/GArray.h
+LgiInterfaces.h : ../include/common/GArray.h \
+	../include/beos/LgiOsDefs.h
 
-Gdc2.h : ../include/common/LgiInc.h \
+Gdc2.h : ../include/beos/LgiOsDefs.h \
+	../include/common/LgiInc.h \
 	../include/common/LgiClass.h \
 	../include/common/Progress.h \
 	../include/common/GFile.h \
-	../include/common/GMem.h \
-	../include/common/Core.h \
+	../include/beos/GMem.h \
+	../include/beos/Core.h \
 	../include/common/GContainers.h \
 	../include/common/GCapabilities.h \
 	../include/common/GLibrary.h \
@@ -374,6 +384,7 @@ Gdc2.h : ../include/common/LgiInc.h \
 GFilter.h : ../include/common/GContainers.h
 
 GFont.h : ../include/common/GRect.h \
+	../include/beos/LgiOsClasses.h \
 	../include/common/GColour.h \
 	../include/common/GCapabilities.h \
 	../include/common/GDisplayString.h
