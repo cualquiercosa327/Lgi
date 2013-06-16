@@ -578,7 +578,7 @@ void FindSymbolSystem::OnProject()
 	}
 	for (p = Projects.First(); p; p = Projects.Next())
 	{
-		p->CollectAllSource(d->Files);
+		p->CollectAllSource(d->Files, PlatformCurrent);
 	}
 
 	d->TagsDirty = true;

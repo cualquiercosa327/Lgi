@@ -11,14 +11,14 @@
 				<Node File=".\src\common\Lgi\GDragAndDrop.cpp" Type="2" Platforms="15" />
 				<Node File=".\include\common\GDragAndDrop.h" Type="3" Platforms="15" />
 			</Node>
-			<Node Name="File" Type="1" Platforms="15" Open="0">
-				<Node Name="Haiku" Type="1" Platforms="15" Open="0">
+			<Node Name="File" Type="1" Platforms="15" Open="1">
+				<Node Name="Haiku" Type="1" Platforms="15" Open="1">
 					<Node File=".\src\beos\General\GFile.cpp" Type="2" Platforms="8" />
 				</Node>
-				<Node Name="Linux" Type="1" Platforms="15" Open="0">
+				<Node Name="Linux" Type="1" Platforms="15" Open="1">
 					<Node File=".\src\linux\General\GFile.cpp" Type="2" Platforms="2" />
 				</Node>
-				<Node Name="Win32" Type="1" Platforms="15" Open="0">
+				<Node Name="Win32" Type="1" Platforms="15" Open="1">
 					<Node File=".\src\win32\General\GFile.cpp" Type="2" Platforms="1" />
 				</Node>
 				<Node File=".\src\common\General\GExeCheck.cpp" Type="2" Platforms="15" />

@@ -106,9 +106,6 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).dll outputfolder $(Depends)
 	../include/common/LgiInterfaces.h \
 	../include/common/LgiRes.h \
 	../include/common/Res.h \
-	../include/linux/Gtk/LgiOsClasses.h \
-	../include/linux/Gtk/LgiOsDefs.h \
-	../include/win32/LgiOsDefs.h \
 	../src/beos/General/GFile.cpp \
 	../src/beos/General/GMem.cpp \
 	../src/beos/Lgi/GApp.cpp \
@@ -153,7 +150,6 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).dll outputfolder $(Depends)
 	../src/common/Lgi/GCssTools.cpp \
 	../src/common/Lgi/GDataDlg.cpp \
 	../src/common/Lgi/GDragAndDrop.cpp \
-	../src/common/Lgi/GFileSelect.cpp \
 	../src/common/Lgi/GFindReplace.cpp \
 	../src/common/Lgi/GFontSelect.cpp \
 	../src/common/Lgi/GGuiUtils.cpp \
@@ -203,50 +199,9 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).dll outputfolder $(Depends)
 	../src/common/Widgets/GTabView.cpp \
 	../src/common/Widgets/GTextLabel.cpp \
 	../src/common/Widgets/GToolBar.cpp \
-	../src/common/Widgets/GTree.cpp \
-	../src/linux/General/GFile.cpp \
-	../src/linux/General/GMem.cpp \
-	../src/linux/Gtk/Gdc2.cpp \
-	../src/linux/Gtk/GMemDC.cpp \
-	../src/linux/Gtk/GPrintDC.cpp \
-	../src/linux/Gtk/GScreenDC.cpp \
-	../src/linux/Gtk/LgiWidget.cpp \
-	../src/linux/Lgi/GApp.cpp \
-	../src/linux/Lgi/GClipBoard.cpp \
-	../src/linux/Lgi/GGeneral.cpp \
-	../src/linux/Lgi/GLayout.cpp \
-	../src/linux/Lgi/GMenuGtk.cpp \
-	../src/linux/Lgi/GPrinter.cpp \
-	../src/linux/Lgi/GThread.cpp \
-	../src/linux/Lgi/GView.cpp \
-	../src/linux/Lgi/GWidgets.cpp \
-	../src/linux/Lgi/GWindow.cpp \
-	../src/win32/Gdc2/Gdc2.cpp \
-	../src/win32/Gdc2/GdiLeak.cpp \
-	../src/win32/Gdc2/GMemDC.cpp \
-	../src/win32/Gdc2/GPrintDC.cpp \
-	../src/win32/Gdc2/GScreenDC.cpp \
-	../src/win32/General/GFile.cpp \
-	../src/win32/General/GMem.cpp \
-	../src/win32/INet/MibAccess.cpp \
-	../src/win32/Lgi/GApp.cpp \
-	../src/win32/Lgi/GClipBoard.cpp \
-	../src/win32/Lgi/GFileSelect.cpp \
-	../src/win32/Lgi/GGeneral.cpp \
-	../src/win32/Lgi/GLayout.cpp \
-	../src/win32/Lgi/GMenu.cpp \
-	../src/win32/Lgi/GPrinter.cpp \
-	../src/win32/Lgi/GScrollBar.cpp \
-	../src/win32/Lgi/GThread.cpp \
-	../src/win32/Lgi/GView.cpp \
-	../src/win32/Lgi/GWindow.cpp \
-	../src/win32/Lgi/LgiException.cpp \
-	../src/win32/Widgets/GDialog.cpp \
-	../src/win32/Widgets/GEdit.cpp \
-	../src/win32/Widgets/GProgress.cpp \
-	../src/win32/Widgets/GSlider.cpp
+	../src/common/Widgets/GTree.cpp
 	export Build=$(Build); \
-	$(MAKE) -C .. -f Makefile.win32
+	$(MAKE) -C .. -f Makefile.haiku
 
 # Create the output folder
 outputfolder :

@@ -32,11 +32,12 @@ public:
 
 	void OnOpen(GXmlTag *Src);	
 	void CollectAllSubProjects(List<IdeProject> &c);
-	void CollectAllSource(GArray<char*> &c);
+	void CollectAllSource(GArray<char*> &c, IdePlatform Platform);
 	void SortChildren();
 	void InsertTag(GXmlTag *t);
 	void RemoveTag();
 	virtual bool IsWeb() = 0;	
+	virtual int GetPlatforms() = 0;
 	IdeCommon *GetSubFolder(IdeProject *Project, char *Name, bool Create = false);
 };
 
@@ -101,6 +102,7 @@ public:
 	~IdeProject();
 
 	bool IsWeb() { return false; }
+	int GetPlatforms();
 
 	char *GetFileName(); // Can be a relative path
 	GAutoString GetFullPath(); // Always a complete path

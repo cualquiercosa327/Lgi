@@ -609,6 +609,11 @@ public:
 		DeleteArray(LocalCache);
 	}
 
+	int GetPlatforms()
+	{
+		return Platforms;
+	}
+
 	char *GetLocalCache()
 	{
 		return LocalCache;
@@ -689,11 +694,6 @@ public:
 			return true;
 
 		return false;
-	}
-	
-	int GetPlatforms()
-	{
-		return Platforms;
 	}
 	
 	ProjectNode *ChildNode()
@@ -1831,7 +1831,7 @@ void IdeCommon::CollectAllSubProjects(List<IdeProject> &c)
 	}
 }
 
-void IdeCommon::CollectAllSource(GArray<char*> &c)
+void IdeCommon::CollectAllSource(GArray<char*> &c, IdePlatform Platform)
 {
 	ForAllProjectNodes(p)
 	{
@@ -1840,15 +1840,29 @@ void IdeCommon::CollectAllSource(GArray<char*> &c)
 			case NodeSrc:
 			case NodeHeader:
 			{
-				GAutoString path = p->GetFullPath();
-				if (path)
-					c.Add(path.Release());
+				int Flags = p->GetPlatforms();
+				if (Flags & (1 << Platform))
+				{
+					GAutoString path = p->GetFullPath();
+					if (path)
+					{
+						if (stristr(path, "win32") ||
+							stristr(path, "linux"))
+						{
+							int asd=0;
+						}
+						c.Add(path.Release());
+					}
+				}
+				break;
 			}
 			default:
+			{
 				break;
+			}
 		}
 		
-		p->CollectAllSource(c);
+		p->CollectAllSource(c, Platform);
 	}
 }
 
@@ -2448,6 +2462,11 @@ char *IdeProject::GetFileName()
 	return d->FileName;
 }
 
+int IdeProject::GetPlatforms()
+{
+	return PLATFORM_ALL;
+}
+	
 GAutoString IdeProject::GetFullPath()
 {
 	GAutoString Status;
@@ -3082,11 +3101,11 @@ bool IdeProject::GetAllDependencies(GArray<char*> &Files, IdePlatform Platform)
 	
 	// Build list of all the source files...
 	GArray<char*> Src;
-	CollectAllSource(Src);
+	CollectAllSource(Src, Platform);
 	
 	// Get all include paths
 	GArray<char*> IncPaths;
-	BuildIncludePaths(IncPaths, false, PlatformCurrent);
+	BuildIncludePaths(IncPaths, false, Platform);
 	
 	// Add all source to dependencies
 	for (int i=0; i<Src.Length(); i++)
@@ -3190,6 +3209,25 @@ bool IdeProject::GetDependencies(const char *SourceFile, GArray<char*> &IncPaths
 	return true;
 }
 
+static bool RenameMakefileForPlatform(GAutoString &MakeFile, IdePlatform Platform)
+{
+	if (!MakeFile)
+		return false;
+
+	char *Dot = strrchr(MakeFile, '.');
+	if (Dot && stricmp(sCurrentPlatform, ++Dot) != 0)
+	{
+		char mk[MAX_PATH];
+		*Dot = 0;
+		sprintf_s(mk, sizeof(mk), "%s%s", MakeFile.Get(), PlatformNames[Platform]);
+		if (Dot = strrchr(mk, '.'))
+			strlwr(Dot);
+		MakeFile.Reset(NewStr(mk));
+	}
+	
+	return true;
+}
+
 bool IdeProject::CreateMakefile(IdePlatform Platform)
 {
 	const char *PlatformName = PlatformNames[Platform];
@@ -3207,19 +3245,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 	{
 		MakeFile.Reset(NewStr("../Makefile"));
 	}
-	if (MakeFile)
-	{
-		char *Dot = strrchr(MakeFile, '.');
-		if (Dot && stricmp(sCurrentPlatform, ++Dot) != 0)
-		{
-			char mk[MAX_PATH];
-			*Dot = 0;
-			sprintf_s(mk, sizeof(mk), "%s%s", MakeFile.Get(), PlatformNames[Platform]);
-			if (Dot = strrchr(mk, '.'))
-				strlwr(Dot);
-			MakeFile.Reset(NewStr(mk));
-		}
-	}
+	RenameMakefileForPlatform(MakeFile, Platform);
 	
 	// LGI_LIBRARY_EXT
 	switch (Platform)
@@ -3555,6 +3581,8 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 												Rel);
 
 									GAutoString Mk = Dep->GetMakefile();
+									RenameMakefileForPlatform(Mk, Platform);
+
 									char *DepMakefile = strrchr(Mk, DIR_CHAR);
 									if (DepMakefile)
 									{
