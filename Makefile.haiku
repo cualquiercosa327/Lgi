@@ -237,7 +237,8 @@ GContainers.o : ./src/common/General/GContainers.cpp ./include/beos/GMem.h \
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GMenu.o : ./src/beos/Lgi/GMenu.cpp ./include/common/Lgi.h \
-	./include/common/GString.h
+	./include/common/GString.h \
+	./include/common/GToken.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -758,17 +759,25 @@ md5.o : ./src/common/Hash/md5/md5.c
 ./include/common/GDragAndDrop.h : ./include/common/GVariant.h \
 	./include/common/GCom.h
 
-./include/common/GTree.h : ./include/common/GList.h
-
-./include/common/GSkinEngine.h : ./include/common/GList.h
-
-./include/common/GProperties.h : ./include/common/GContainers.h \
-	./include/common/LgiClass.h \
-	./include/common/GString.h
+GCom.h : ./include/common/GContainers.h
 
 GContainers.h : ./include/common/LgiInc.h \
 	./include/beos/LgiOsDefs.h \
 	./include/common/GStream.h
+
+./include/common/GTree.h : ./include/common/GList.h
+
+./include/common/GSkinEngine.h : ./include/common/GList.h
+
+GXmlTree.h : ./include/common/GHashTable.h \
+	./include/common/GRefCount.h \
+	./include/common/GDom.h
+
+LgiOsDefs.h : ./include/common/LgiInc.h
+
+./include/common/GProperties.h : ./include/common/GContainers.h \
+	./include/common/LgiClass.h \
+	./include/common/GString.h
 
 ./include/common/GProcess.h : ./include/common/GStream.h
 
@@ -780,18 +789,19 @@ GContainers.h : ./include/common/LgiInc.h \
 GArray.h : ./include/common/LgiDefs.h \
 	./include/beos/GMem.h
 
-GMem.h : ./include/common/LgiDefs.h \
-	./include/beos/LgiOsDefs.h
+GVariant.h : ./include/common/GDom.h \
+	./include/common/GDateTime.h \
+	./include/common/GContainers.h \
+	./include/common/GHashTable.h
 
 ./include/common/Res.h : ./include/common/GXmlTree.h
 
 ./src/common/Hash/md5/md5.h : ./include/common/LgiInc.h
 
-LgiClass.h : ./include/common/LgiInc.h \
-	./include/common/LgiDefs.h \
-	./include/common/GAutoPtr.h
+GMem.h : ./include/common/LgiDefs.h \
+	./include/beos/LgiOsDefs.h
 
-LgiOsDefs.h : ./include/common/LgiInc.h
+GStream.h : ./include/common/GDom.h
 
 ./include/common/GFile.h : ./include/beos/GMem.h \
 	./include/common/GStream.h \
@@ -813,6 +823,104 @@ LgiOsDefs.h : ./include/common/LgiInc.h
 	./include/common/LgiClasses.h \
 	./include/common/LgiCommon.h
 
+./include/common/GXmlTree.h : ./include/common/GHashTable.h \
+	./include/common/GRefCount.h \
+	./include/common/GDom.h
+
+Progress.h : ./include/common/GMutex.h
+
+GFile.h : ./include/beos/GMem.h \
+	./include/common/GStream.h \
+	./include/common/GArray.h
+
+./include/common/GStream.h : ./include/common/GDom.h
+
+./include/common/Base64.h : ./include/common/LgiDefs.h
+
+./include/common/INetTools.h : ./include/common/GContainers.h \
+	./include/common/LgiNetInc.h
+
+GString.h : ./include/common/LgiInc.h \
+	./include/common/LgiDefs.h
+
+./include/common/GVariant.h : ./include/common/GDom.h \
+	./include/common/GDateTime.h \
+	./include/common/GContainers.h \
+	./include/common/GHashTable.h
+
+./include/common/GPath.h : ./include/common/GMatrix.h
+
+LgiDefs.h : ./include/common/LgiInc.h \
+	./include/common/GAutoPtr.h
+
+./include/common/Gdc2.h : ./include/beos/LgiOsDefs.h \
+	./include/common/LgiInc.h \
+	./include/common/LgiClass.h \
+	./include/common/Progress.h \
+	./include/common/GFile.h \
+	./include/beos/GMem.h \
+	./include/beos/Core.h \
+	./include/common/GContainers.h \
+	./include/common/GCapabilities.h \
+	./include/common/GLibrary.h \
+	./include/common/GRect.h \
+	./include/common/GFont.h \
+	./include/common/GColour.h \
+	./include/common/GFilter.h
+
+GFilter.h : ./include/common/GContainers.h
+
+GFont.h : ./include/common/GRect.h \
+	./include/beos/LgiOsClasses.h \
+	./include/common/GColour.h \
+	./include/common/GCapabilities.h \
+	./include/common/GDisplayString.h
+
+LgiClass.h : ./include/common/LgiInc.h \
+	./include/common/LgiDefs.h \
+	./include/common/GAutoPtr.h
+
+./include/common/GTextView3.h : ./include/common/GDocView.h \
+	./include/common/GUndo.h \
+	./include/common/GDragAndDrop.h
+
+GDocView.h : ./include/common/GVariant.h
+
+GDragAndDrop.h : ./include/common/GVariant.h \
+	./include/common/GCom.h
+
+./include/common/GString.h : ./include/common/LgiInc.h \
+	./include/common/LgiDefs.h
+
+./include/common/GList.h : ./include/common/GPopup.h \
+	./include/common/GArray.h
+
+./include/common/GDataDlg.h : ./include/common/GProperties.h \
+	./include/common/GScrollBar.h \
+	./include/common/GTextLabel.h
+
+GProperties.h : ./include/common/GContainers.h \
+	./include/common/LgiClass.h \
+	./include/common/GString.h
+
+LgiRes.h : ./include/common/Res.h \
+	./include/common/GContainers.h \
+	./include/common/GCss.h
+
+GCss.h : ./include/common/LgiInc.h \
+	./include/beos/LgiOsDefs.h \
+	./include/beos/GMem.h \
+	./include/common/Gdc2.h \
+	./include/common/GAutoPtr.h \
+	./include/common/GString.h \
+	./include/common/GHashTable.h
+
+Res.h : ./include/common/GXmlTree.h
+
+./include/beos/GSymLookup.h : ./include/common/GProcess.h
+
+GProcess.h : ./include/common/GStream.h
+
 LgiClasses.h : ./include/common/GMutex.h \
 	./include/beos/LgiOsClasses.h \
 	./include/common/GArray.h \
@@ -830,11 +938,39 @@ LgiClasses.h : ./include/common/GMutex.h \
 	./include/common/GInput.h \
 	./include/common/GPrinter.h
 
-Progress.h : ./include/common/GMutex.h
+GMenu.h : ./include/common/GXmlTree.h \
+	./include/common/Res.h
 
-GFile.h : ./include/beos/GMem.h \
-	./include/common/GStream.h \
+GThread.h : ./include/common/GMutex.h
+
+./include/beos/LgiOsDefs.h : ./include/common/LgiInc.h
+
+./include/common/GCapabilities.h : ./include/common/GHashTable.h
+
+./include/common/GCss.h : ./include/common/LgiInc.h \
+	./include/beos/LgiOsDefs.h \
+	./include/beos/GMem.h \
+	./include/common/Gdc2.h \
+	./include/common/GAutoPtr.h \
+	./include/common/GString.h \
+	./include/common/GHashTable.h
+
+./include/common/GContainers.h : ./include/common/LgiInc.h \
+	./include/beos/LgiOsDefs.h \
+	./include/common/GStream.h
+
+GDom.h : ./include/common/LgiInterfaces.h \
 	./include/common/GArray.h
+
+LgiInterfaces.h : ./include/common/GArray.h \
+	./include/beos/LgiOsDefs.h
+
+GList.h : ./include/common/GPopup.h \
+	./include/common/GArray.h
+
+GCapabilities.h : ./include/common/GHashTable.h
+
+./include/common/GMru.h : ./include/common/GProperties.h
 
 Gdc2.h : ./include/beos/LgiOsDefs.h \
 	./include/common/LgiInc.h \
@@ -851,146 +987,14 @@ Gdc2.h : ./include/beos/LgiOsDefs.h \
 	./include/common/GColour.h \
 	./include/common/GFilter.h
 
-GCapabilities.h : ./include/common/GHashTable.h
+./include/common/GEdit.h : ./include/common/GTextView3.h
 
-GFont.h : ./include/common/GRect.h \
-	./include/beos/LgiOsClasses.h \
-	./include/common/GColour.h \
-	./include/common/GCapabilities.h \
-	./include/common/GDisplayString.h
-
-GHashTable.h : ./include/common/GArray.h \
-	./include/common/GString.h
-
-GDragAndDrop.h : ./include/common/GVariant.h \
-	./include/common/GCom.h
-
-LgiCommon.h : ./include/common/GArray.h \
-	./include/common/LgiClass.h
-
-./include/common/GXmlTree.h : ./include/common/GHashTable.h \
-	./include/common/GRefCount.h \
-	./include/common/GDom.h
-
-GDom.h : ./include/common/LgiInterfaces.h \
-	./include/common/GArray.h
-
-GFilter.h : ./include/common/GContainers.h
-
-GCom.h : ./include/common/GContainers.h
-
-GStream.h : ./include/common/GDom.h
-
-LgiInterfaces.h : ./include/common/GArray.h \
-	./include/beos/LgiOsDefs.h
-
-./include/common/GStream.h : ./include/common/GDom.h
-
-./include/common/Base64.h : ./include/common/LgiDefs.h
-
-./include/common/INetTools.h : ./include/common/GContainers.h \
-	./include/common/LgiNetInc.h
-
-GThread.h : ./include/common/GMutex.h
-
-./include/common/GVariant.h : ./include/common/GDom.h \
-	./include/common/GDateTime.h \
-	./include/common/GContainers.h \
-	./include/common/GHashTable.h
-
-GList.h : ./include/common/GPopup.h \
-	./include/common/GArray.h
-
-./include/common/GPath.h : ./include/common/GMatrix.h
-
-./include/common/Gdc2.h : ./include/beos/LgiOsDefs.h \
-	./include/common/LgiInc.h \
-	./include/common/LgiClass.h \
-	./include/common/Progress.h \
-	./include/common/GFile.h \
-	./include/beos/GMem.h \
-	./include/beos/Core.h \
-	./include/common/GContainers.h \
-	./include/common/GCapabilities.h \
-	./include/common/GLibrary.h \
-	./include/common/GRect.h \
-	./include/common/GFont.h \
-	./include/common/GColour.h \
-	./include/common/GFilter.h
-
-GString.h : ./include/common/LgiInc.h \
-	./include/common/LgiDefs.h
-
-./include/common/GTextView3.h : ./include/common/GDocView.h \
+GTextView3.h : ./include/common/GDocView.h \
 	./include/common/GUndo.h \
 	./include/common/GDragAndDrop.h
 
-./include/common/GString.h : ./include/common/LgiInc.h \
-	./include/common/LgiDefs.h
-
-./include/common/GList.h : ./include/common/GPopup.h \
-	./include/common/GArray.h
-
-./include/common/GDataDlg.h : ./include/common/GProperties.h \
-	./include/common/GScrollBar.h \
-	./include/common/GTextLabel.h
-
-GProperties.h : ./include/common/GContainers.h \
-	./include/common/LgiClass.h \
-	./include/common/GString.h
-
-LgiDefs.h : ./include/common/LgiInc.h \
-	./include/common/GAutoPtr.h
-
-./include/beos/GSymLookup.h : ./include/common/GProcess.h
-
-GProcess.h : ./include/common/GStream.h
-
-GDocView.h : ./include/common/GVariant.h
-
-./include/beos/LgiOsDefs.h : ./include/common/LgiInc.h
-
-./include/common/GCapabilities.h : ./include/common/GHashTable.h
-
-LgiRes.h : ./include/common/Res.h \
-	./include/common/GContainers.h \
-	./include/common/GCss.h
-
-Res.h : ./include/common/GXmlTree.h
-
-GCss.h : ./include/common/LgiInc.h \
-	./include/beos/LgiOsDefs.h \
-	./include/beos/GMem.h \
-	./include/common/Gdc2.h \
-	./include/common/GAutoPtr.h \
-	./include/common/GString.h \
-	./include/common/GHashTable.h
-
-./include/common/GCss.h : ./include/common/LgiInc.h \
-	./include/beos/LgiOsDefs.h \
-	./include/beos/GMem.h \
-	./include/common/Gdc2.h \
-	./include/common/GAutoPtr.h \
-	./include/common/GString.h \
-	./include/common/GHashTable.h
-
-./include/common/GContainers.h : ./include/common/LgiInc.h \
-	./include/beos/LgiOsDefs.h \
-	./include/common/GStream.h
-
-GMenu.h : ./include/common/GMenuImpl.h \
-	./include/common/GXmlTree.h \
-	./include/common/Res.h
-
-GMenuImpl.h : ./include/common/GPopup.h
-
-./include/common/GMru.h : ./include/common/GProperties.h
-
-GXmlTree.h : ./include/common/GHashTable.h \
-	./include/common/GRefCount.h \
-	./include/common/GDom.h
-
-./include/common/GEdit.h : ./include/common/GTextView3.h
+LgiCommon.h : ./include/common/GArray.h \
+	./include/common/LgiClass.h
 
 ./include/common/GTableLayout.h : ./include/common/GCss.h
 
@@ -1006,14 +1010,8 @@ GXmlTree.h : ./include/common/GHashTable.h \
 
 ./include/common/GRegKey.h : ./include/common/GContainers.h
 
-GTextView3.h : ./include/common/GDocView.h \
-	./include/common/GUndo.h \
-	./include/common/GDragAndDrop.h
-
-GVariant.h : ./include/common/GDom.h \
-	./include/common/GDateTime.h \
-	./include/common/GContainers.h \
-	./include/common/GHashTable.h
+GHashTable.h : ./include/common/GArray.h \
+	./include/common/GString.h
 
 VPATH=%.cpp \
 	$(BuildDir)
