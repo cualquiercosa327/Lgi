@@ -17,7 +17,7 @@
 #define GDCF_UTF8					-1
 #define LUIS_DEBUG					0
 #define POUR_DEBUG					0
-#define PROFILE_POUR				1
+#define PROFILE_POUR				0
 
 /*
 #ifdef BEOS
@@ -3113,50 +3113,6 @@ void GTextView3::OnMouseClick(GMouse &m)
 				d->WordSelectMode = -1;
 			}
 		}
-#ifdef XWIN
-		else if (m.Middle())
-		{
-			uchar *Data = 0;
-			ulong Len = 0;
-			/*
-			Display *Dsp = Handle()->XDisplay();
-			Atom Utf8 = XInternAtom(Dsp, "UTF-8", false);
-			Atom Utf8String = XInternAtom(Dsp, "UTF8_STRING", false);
-
-			if (Handle()->XApp()->GetSelection
-						 (
-						  Handle()->handle(),
-								 XA_PRIMARY,
-		 						Utf8,
-   								Data,
-   								Len
-						 ) ||
-						 Handle()->XApp()->GetSelection
-						 (
-						  Handle()->handle(),
-								 XA_PRIMARY,
-		 						Utf8String,
-   								Data,
-   								Len
-						 ))
-			{
-				char16 *s = LgiNewUtf8To16((char*)Data, Len);
-				XFree(Data);
-				if (s)
-				{
-					int Chars = StrlenW(s);
-					Insert(Cursor, s, Chars);
-					DeleteArray(s);
-					SetCursor(Cursor+Chars, false);
-				}
-			}
-			else
-			{
-				printf("%s:%i - GetSelection failed.\n", __FILE__, __LINE__);
-			}
-			*/
-		}
-#endif
 		else
 		{
 			DoContextMenu(m);

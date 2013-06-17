@@ -227,7 +227,6 @@ bool GDialog::LoadFromResource(int Resource, char *Param)
 
 bool GDialog::OnRequestClose(bool OsClose)
 {
-	printf("GDialog::OnRequestClose(%i) modal=%i\n", OsClose, d->IsModal);
 	if (d->IsModal)
 		EndModal(0);
 	else
@@ -243,6 +242,9 @@ int GDialog::DoModal(OsView ParentHnd)
 	d->IsModal = true;
 	d->ModalRet = 0;
 	d->ModalSem = create_sem(0, "ModalSem");
+	
+	if (GetParent())
+		GetParent()->Capture(false);
 	
 	if (!_Default)
 	{

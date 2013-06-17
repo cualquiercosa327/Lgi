@@ -16,6 +16,8 @@
 #undef FontChange
 #endif
 
+#define DEBUG_CHAR_AT				0
+
 //////////////////////////////////////////////////////////////////////
 #define SubtractPtr(a, b)			(	(((NativeInt)(a))-((NativeInt)(b))) / sizeof(*a)	)
 #define IsTabChar(c)				(c == '\t' || (c == 0x2192 && VisibleTab))
@@ -792,21 +794,31 @@ int GDisplayString::CharAt(int Px)
 		else Status = 0;
 	}
 	
-	#elif defined WIN32NATIVE
+	#else // This case is for Win32 and Haiku.
 	
+	#if defined(BEOS)
+	if (Font && Font->Handle())
+	#elif defined(WIN32NATIVE)
 	GFontSystem *Sys = GFontSystem::Inst();
-
 	if (Info && Font && Sys)
+	#endif
 	{
 		int TabSize = Font->TabSize() ? Font->TabSize() : 32;
 		int Cx = 0;
 		int Char = 0;
+
+		#if DEBUG_CHAR_AT
+		printf("CharAt(%i) Str='%s'\n", Px, Str);
+		#endif
 
 		for (int i=0; i<Blocks && Status < 0; i++)
 		{
 			if (Px < Cx)
 			{
 				Status = Char;
+				#if DEBUG_CHAR_AT
+				printf("\tPx<Cx %i<%i\n", Px, Cx);
+				#endif
 				break;
 			}
 
@@ -822,6 +834,9 @@ int GDisplayString::CharAt(int Px)
 						if (Px >= Cx && Px < Cx + TabX)
 						{
 							Status = Char;
+							#if DEBUG_CHAR_AT
+							printf("\tIn tab block %i\n", i);
+							#endif
 							break;
 						}
 						Cx += TabX;
@@ -830,8 +845,14 @@ int GDisplayString::CharAt(int Px)
 				}
 				else
 				{
-					// Get the blocks font
+					// Find the pos in this block
 					GFont *f = Font;
+
+					#if defined(BEOS)
+					BString s(Info[i].Str, Info[i].Len);
+					Font->Handle()->TruncateString(&s, B_TRUNCATE_END, Px - Cx);
+					int Fit = s.CountChars();
+					#elif defined(WIN32)
 					if (Info[i].FontId)
 					{
 						f = Sys->Font[Info[i].FontId];
@@ -843,8 +864,13 @@ int GDisplayString::CharAt(int Px)
 						}
 					}
 
-					// Find the pos
 					int Fit = f->_CharAt(Px - Cx, Info[i].Str, Info[i].Len);
+					#endif
+
+					#if DEBUG_CHAR_AT
+					printf("\tNon tab block %i, Fit=%i, Px-Cx=%i-%i=%i, Str='%.5s'\n",
+						i, Fit, Px, Cx, Px-Cx, Info[i].Str);
+					#endif
 					if (Fit >= 0)
 					{
 						Status = Char + Fit;
@@ -852,7 +878,6 @@ int GDisplayString::CharAt(int Px)
 					else
 					{
 						Status = -1;
-						goto CharAtError;
 					}
 					break;
 				}
@@ -870,19 +895,6 @@ int GDisplayString::CharAt(int Px)
 			Status = Char;
 		}
 	}
-
-CharAtError:
-
-	#elif defined(BEOS)
-	
-	if (Font && Font->Handle())
-	{
-		BString s;
-		Font->Handle()->TruncateString(&s, B_TRUNCATE_END, Px);
-		Status = s.Length();
-		// printf("CharAt(%i) for '%s' = %i (size=%i,%i)\n", Px, Str, Status, x, y);
-	}
-	else printf("%s:%i - No font handle for CharAt\n", _FL);
 	
 	#endif
 

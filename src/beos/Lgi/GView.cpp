@@ -40,6 +40,11 @@ static LockerInfo *GetLockerInfo(int Thread, bool GiveUnused)
 	LockerInfo *Unused = NULL;
 	for (int i=0; i<16; i++)
 	{
+		/*
+		if (!GiveUnused)
+			printf("[%i]=%s,%i - %i\n", i, Lockers[i].File, Lockers[i].Line, Lockers[i].Thread);
+		*/
+			
 		if (Lockers[i].Thread == Thread)
 			return Lockers + i;
 		
@@ -66,7 +71,34 @@ bool GLocker::Lock()
 {
 	LgiAssert(!Locked);
 	LgiAssert(hnd != NULL);
-	if (Locked = hnd->LockLooper())
+
+	while (!Locked)
+	{
+		status_t result = hnd->LockLooperWithTimeout(1000 * 1000);
+		if (result == B_OK)
+		{
+			Locked = true;
+			break;
+		}
+		else if (result == B_TIMED_OUT)
+		{
+			// Warn about failure to lock...
+			thread_id Thread = hnd->Looper()->LockingThread();
+			const char *Lck = GetLocker(Thread);
+			printf("%s:%i - Warning: can't lock. Myself=%i Locker=%i,%s\n", _FL, LgiGetCurrentThread(), Thread, Lck);
+		}
+		else if (result == B_BAD_VALUE)
+		{
+			break;
+		}
+		else
+		{
+			// Warn about error
+			printf("%s:%i - Error from LockLooperWithTimeout = 0x%x\n", _FL, result);
+		}
+	}
+
+	if (Locked)
 	{
 		LockerInfo *i = GetLockerInfo(LgiGetCurrentThread(), true);
 		i->Thread = LgiGetCurrentThread();
@@ -440,7 +472,7 @@ void GView::PointToView(GdcPt2 &p)
 	if (_View)
 	{
 		GLocker Locker(_View, _FL);
-
+		Locker.Lock();
 		BPoint b(p.x, p.y);
 		b = _View->ConvertFromScreen(b);
 		p.x = b.x;
