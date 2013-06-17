@@ -221,7 +221,7 @@ public:
 			
 			GUtf8Ptr p(&Buf[0]);
 			uint8 *End = (uint8*) &Buf[CharsOnLine];
-			while (p.GetCurrent() < End)
+			while (p.GetPtr() < End)
 			{
 				if (!strchr((char*)Ws, p))
 				{

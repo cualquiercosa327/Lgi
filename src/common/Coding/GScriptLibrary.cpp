@@ -393,7 +393,7 @@ bool SystemFunctions::Tokenize(GVariant *Ret, ArgumentArray &Args)
 	{
 		if (i == d)
 		{
-			char *Cur = (char*)s.GetCurrent();
+			char *Cur = (char*)s.GetPtr();
 			GVariant *v = new GVariant;
 			if (!v) return false;
 			if (Start && Cur > Start)
@@ -404,11 +404,11 @@ bool SystemFunctions::Tokenize(GVariant *Ret, ArgumentArray &Args)
 			Start = 0;
 		}
 		else if (!Start)
-			Start = (char*)s.GetCurrent();
+			Start = (char*)s.GetPtr();
 		s++;
 	}
 
-	char *Cur = (char*)s.GetCurrent();
+	char *Cur = (char*)s.GetPtr();
 	if (Cur > Start)
 	{
 		GVariant *v = new GVariant;

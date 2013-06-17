@@ -260,8 +260,6 @@ public:
 	int GetBytes();
 	/// Gets the characters between the cur pointer and the end of the buffer or string.
 	int GetChars();
-	/// Gets the current ptr
-	uint8 *GetCurrent() { return Ptr; }
 	/// Encodes a utf-8 char at the current location and moves the pointer along
 	void Add(char16 c);
 
