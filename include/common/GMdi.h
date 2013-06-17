@@ -13,6 +13,8 @@ public:
 	GMdiChild();
 	~GMdiChild();
 
+	const char *GetClass() { return "GMdiChild"; }
+
 	#if MDI_TAB_STYLE
 	int GetOrder();
 	#else
@@ -43,6 +45,8 @@ public:
 	GMdiParent();
 	~GMdiParent();
 	
+	const char *GetClass() { return "GMdiParent"; }
+
 	void OnPaint(GSurface *pDC);
 	bool Attach(GViewI *p);
 	bool OnViewMouse(GView *View, GMouse &m);

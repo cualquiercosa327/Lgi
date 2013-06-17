@@ -947,6 +947,7 @@ void GView::Visible(bool v)
 			_View->Show();
 		else
 			_View->Hide();
+		// printf("\t\t%s::Vis(%i)\n", GetClass(), v);
 		#elif defined __GTK_H__
 		if (v)
 			Gtk::gtk_widget_show(_View);
@@ -962,6 +963,7 @@ void GView::Visible(bool v)
 	else
 	{
 		Invalidate();
+		// printf("\t\t%s::Vis(%i) virtual\n", GetClass(), v);
 	}
 }
 

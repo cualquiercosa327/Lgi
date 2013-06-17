@@ -171,7 +171,8 @@ bool GMdiChild::Pour()
 	GRegion Update;
 
 	#if DEBUG_MDI
-	LgiTrace("    GMdiChild::Pour() '%s', cli=%s, vis=%i\n", Name(), c.GetStr(), Visible());
+	LgiTrace("    GMdiChild::Pour() '%s', cli=%s, vis=%i, children=%i\n",
+		Name(), c.GetStr(), Visible(), Children.Length());
 	#endif
 
 
@@ -189,9 +190,6 @@ bool GMdiChild::Pour()
 				if (!w->Visible())
 				{
 					w->Visible(true);
-					#if DEBUG_MDI
-					LgiTrace("      %s, vis=%i\n", w->GetClass(), true);
-					#endif
 				}
 
 				Client.Subtract(&w->GetPos());
@@ -205,10 +203,11 @@ bool GMdiChild::Pour()
 		else
 		{
 			w->Visible(false);
-			#if DEBUG_MDI
-			LgiTrace("      %s, vis=%i\n", w->GetClass(), false);
-			#endif
 		}
+
+		#if DEBUG_MDI
+		LgiTrace("      %s, vis=%i\n", w->GetClass(), w->Visible());
+		#endif
 	}
 
 	return true;
@@ -850,7 +849,7 @@ void GMdiParent::OnPosChange()
 		GMdiChild *Last = dynamic_cast<GMdiChild*>(i->Last());
 
 		#if DEBUG_MDI
-		LgiTrace("Tabs=%s, Content=%s, Children=%i, Last=%s\n",
+		LgiTrace("OnPosChange: Tabs=%s, Content=%s, Children=%i, Last=%s\n",
 			d->Tabs.GetStr(), d->Content.GetStr(),
 			Children.Length(),
 			Last ? Last->Name() : 0);
@@ -861,13 +860,16 @@ void GMdiParent::OnPosChange()
 			GMdiChild *c = dynamic_cast<GMdiChild*>(v);
 			if (c)
 			{
-				c->SetPos(d->Content);
-				c->Visible(c == Last);
-				c->Pour();
-				
 				#if DEBUG_MDI
 				LgiTrace("  [%p/%s], vis=%i\n", c, c->Name(), c == Last);
 				#endif
+
+				#if defined(BEOS)
+				c->MakeVirtual(c != Last);
+				#endif
+				c->Visible(c == Last);
+				c->SetPos(d->Content);
+				c->Pour();
 			}
 		}
 	}
