@@ -363,6 +363,12 @@ public:
 	uchar			*GlyphMap;
 	static class GlyphCache *Cache;
 
+	#ifdef BEOS
+	// Beos glyph sizes
+	uint16			CharX[128]; // Widths of ascii
+	GHashTbl<int,int> UnicodeX; // Widths of any other characters
+	#endif
+
 	GFontPrivate()
 	{
 		hFont = 0;
@@ -439,6 +445,45 @@ bool GFont::Destroy()
 	
 	return Status;
 }
+
+#ifdef BEOS
+#include "GUtf8.h"
+GdcPt2 GFont::StringBounds(const char *s, int len)
+{
+	GdcPt2 Sz(0, GetHeight());
+	GArray<uint32> CacheMiss;
+	
+	if (s)
+	{
+		GUtf8Ptr p(s);
+		char *end = s + (len < 0 ? strlen(s) : len);
+		while (p.GetPtr() < end)
+		{
+			uint32 c = p;
+			if (c < 0x80)
+			{
+				Sz.x += d->CharX[c];
+			}
+			else
+			{
+				int cx = d->UnicodeX.Find(c);
+				if (cx)
+				{
+					Sz.x += cx;
+				}
+				else
+				{
+					CacheMiss.Add(c);
+					LgiAssert(!"Impl me.");
+				}
+			}
+			p++;
+		}
+	}
+	
+	return Sz;
+}
+#endif
 
 uchar *GFont::GetGlyphMap()
 {
@@ -724,12 +769,6 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 						(PointSize() == 8 || PointSize() == 9) &&
 						GTypeFace::d->_Underline;
 
-    /*
-    char mm[256];
-    sprintf(mm, "CreateFont %s,%i\n", Face(), PointSize());
-    OutputDebugString(mm);
-    */
-	
 	d->hFont = ::CreateFont(Win32Height,
 							0,
 							0,
@@ -930,6 +969,15 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 		GTypeFace::d->_Ascent = h.ascent;
 		GTypeFace::d->_Descent = h.descent;
 		d->Height = ceil(h.ascent + h.descent);
+		
+		// Create glyph size cache of the first 128 characters. StringWidth is too slow
+		// to do for every string at runtime.
+		d->CharX[0] = 0;
+		for (int i=1; i<128; i++)
+		{
+			char str[] = {i, 0};
+			d->CharX[i] = (int)d->hFont->StringWidth(str, 1);
+		}
 	}
 	
 	return true;

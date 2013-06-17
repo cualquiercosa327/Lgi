@@ -234,6 +234,10 @@ public:
 	NativeInt GetParam();
 	/// Get supported glyphs
 	uchar *GetGlyphMap();
+	
+	#ifdef BEOS
+	GdcPt2 StringBounds(const char *s, int len = -1);
+	#endif
 };
 
 /// Font type information and system font query tools.

@@ -17,7 +17,7 @@
 #define GDCF_UTF8					-1
 #define LUIS_DEBUG					0
 #define POUR_DEBUG					0
-#define PROFILE_POUR				0
+#define PROFILE_POUR				1
 
 /*
 #ifdef BEOS

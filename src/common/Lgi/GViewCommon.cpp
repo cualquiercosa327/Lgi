@@ -11,7 +11,7 @@
 #include "GButton.h"
 #include "GCss.h"
 
-#define DEBUG_CAPTURE	1
+#define DEBUG_CAPTURE	0
 
 #if WIN32NATIVE
 #define GViewFlags d->WndStyle

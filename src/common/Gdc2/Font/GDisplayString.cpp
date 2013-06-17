@@ -473,17 +473,71 @@ void GDisplayString::Layout()
 	
 	if (Font && Font->Handle())
 	{
+		int TabSize = Font->TabSize() ? Font->TabSize() : 32;
+		char *End = Str + len;
+		GArray<CharInfo> a;
+		char *s = Str;
+		
+		x = 0;
+		while (s < End)
+		{
+			char *Start = s;
+			while (s < End && *s && *s != '\t')
+				s++;
+
+			if (s > Start)
+			{
+				// Normal segment
+				CharInfo &i = a.New();
+				i.Str = Start;
+				i.Len = s - Start;
+				
+				GdcPt2 size = Font->StringBounds(i.Str, i.Len);
+				i.X = size.x;
+				i.FontId = -1;
+				i.SizeDelta = 0;
+				
+				x += size.x;
+			}
+			
+			Start = s;
+			while (s < End && *s && *s == '\t')
+				s++;
+
+			if (s > Start)
+			{
+				// Tabs segment
+				CharInfo &i = a.New();
+				i.Str = Start;
+				i.Len = s - Start;
+				
+				i.X = 0;
+				i.FontId = -1;
+				i.SizeDelta = 0;
+				
+				for (int n=0; n<i.Len; n++)
+				{
+					int Dx = TabSize - ((x + TabOrigin) % TabSize);
+					i.X += Dx;
+					x += Dx;
+				}
+			}
+		}
+		
+		LgiAssert(s == End);
+		
+		Blocks = a.Length();
+		Info = a.Release();
 		y = Font->GetHeight();
 
-		Blocks = 1;
-		Info = new CharInfo[Blocks];
-		Info[0].Str = Str;
-		Info[0].Len = len;
-		Info[0].X = x = Font->Handle()->StringWidth(Str);
-		Info[0].FontId = -1;
-		Info[0].SizeDelta = 0;
-
-		// printf("Layout '%s' = %i,%i\n", Str, x, y);
+		#if 0
+		printf("Layout '%s' = %i,%i\n", Str, x, y);
+		for (int i=0; i<Blocks; i++)
+		{
+			CharInfo *ci = Info + i;
+			printf("  [%i]=%s,%i x=%i\n", i, ci->Str, ci->Len, ci->X);
+		}
+		#endif		
 	}
 	else printf("%s:%i - No font or handle.\n", _FL);
 	
@@ -907,7 +961,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 		{
 			GLocker Locker(Hnd, _FL);
 			Locker.Lock();
-			
+
 			// Draw background if required.		
 			if (!Font->Transparent())
 			{
@@ -926,12 +980,29 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 					Hnd->FillRect(rc);				
 				}
 			}
-		
+
+			// Draw foreground text segments		
 			Hnd->SetHighColor(Fg);
 			Hnd->SetLowColor(Bk);			
 			Hnd->SetFont(Font->Handle());
-			BPoint pos(px, py + Font->Ascent());
-			Hnd->DrawString(Str, len, pos);
+
+			int CurX = 0;
+			for (int i=0; i<Blocks; i++)
+			{
+				CharInfo *ci = Info + i;
+				BPoint pos(px + CurX, py + Font->Ascent());
+				if (ci->Str[0] != '\t')
+					Hnd->DrawString(ci->Str, ci->Len, pos);
+				#if 0 // useful to debug where strings are drawn
+				{
+					GRect r;
+					r.ZOff(ci->X-1, Font->GetHeight()-1);
+					r.Offset(px + CurX, py);
+					pDC->Box(&r);
+				}
+				#endif
+				CurX += ci->X;
+			}
 			
 			if (!pDC->IsScreen())
 				Hnd->Sync();
