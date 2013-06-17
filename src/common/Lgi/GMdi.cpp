@@ -2,6 +2,8 @@
 #include "GMdi.h"
 #include <stdio.h>
 
+#define DEBUG_MDI			1
+
 enum GMdiDrag
 {
 	DragNone	= 0,
@@ -168,6 +170,11 @@ bool GMdiChild::Pour()
 	GRegion Client(c);
 	GRegion Update;
 
+	#if DEBUG_MDI
+	LgiTrace("    GMdiChild::Pour() '%s', cli=%s, vis=%i\n", Name(), c.GetStr(), Visible());
+	#endif
+
+
 	for (GViewI *w = Children.First(); w; w = Children.Next())
 	{
 		if (Visible())
@@ -182,6 +189,9 @@ bool GMdiChild::Pour()
 				if (!w->Visible())
 				{
 					w->Visible(true);
+					#if DEBUG_MDI
+					LgiTrace("      %s, vis=%i\n", w->GetClass(), true);
+					#endif
 				}
 
 				Client.Subtract(&w->GetPos());
@@ -195,6 +205,9 @@ bool GMdiChild::Pour()
 		else
 		{
 			w->Visible(false);
+			#if DEBUG_MDI
+			LgiTrace("      %s, vis=%i\n", w->GetClass(), false);
+			#endif
 		}
 	}
 
@@ -548,28 +561,12 @@ void GMdiChild::Raise()
 		p->DelView(this);
 		p->AddView(this);
 		p->OnChildrenChanged(this, true);
+
+		#if DEBUG_MDI
+		LgiTrace("GMdiChild::Raise() '%s'\n", Name());
+		#endif
 	}
 }
-
-/*
-		GArray<GMdiChild*> Views;
-		GAutoPtr<GViewIterator> i(p->IterateViews());
-		for (GViewI *v = i->First(); v; v = i->Next())
-		{
-			GMdiChild *c = dynamic_cast<GMdiChild*>(v);
-			if (c)
-			{
-				if (c != this)
-					Views.Add(c);
-			}
-		}
-		Views.Add(this); // Add this view at the end
-		for (int n=0; n<Views.Length(); n++)
-		{
-			Views[n]->d->Order = n;
-		}
-		p->Invalidate();
-*/
 
 void GMdiChild::Lower()
 {
@@ -599,6 +596,10 @@ void GMdiChild::Lower()
 		p->DelView(this);
 		p->AddView(this, 0);
 		p->OnChildrenChanged(this, true);
+		
+		#if DEBUG_MDI
+		LgiTrace("GMdiChild::Lower() '%s'\n", Name());
+		#endif
 	}
 }
 
@@ -765,7 +766,9 @@ bool GMdiParent::OnViewKey(GView *View, GKey &Key)
 	if (Key.Down() && Key.Ctrl() && Key.c16 == '\t')
 	{
 		GMdiChild *Child = IsChild(View);
+		#if DEBUG_MDI
 		LgiTrace("Child=%p %s view=%s\n", Child, Child ? Child->Name() : 0, View->GetClass());
+		#endif
 		if (Child)
 		{
 			GView *v;
@@ -783,7 +786,9 @@ bool GMdiParent::OnViewKey(GView *View, GKey &Key)
 			if (c)
 			{
 				int Idx = Children.IndexOf((GViewI*)v);
+				#if DEBUG_MDI
 				LgiTrace("roll = %i of %i\n", Idx, Children.Length());
+				#endif
 				
 				if (Key.Shift())
 				{
@@ -844,7 +849,7 @@ void GMdiParent::OnPosChange()
 		GAutoPtr<GViewIterator> i(IterateViews());
 		GMdiChild *Last = dynamic_cast<GMdiChild*>(i->Last());
 
-		#if 0
+		#if DEBUG_MDI
 		LgiTrace("Tabs=%s, Content=%s, Children=%i, Last=%s\n",
 			d->Tabs.GetStr(), d->Content.GetStr(),
 			Children.Length(),
@@ -859,6 +864,10 @@ void GMdiParent::OnPosChange()
 				c->SetPos(d->Content);
 				c->Visible(c == Last);
 				c->Pour();
+				
+				#if DEBUG_MDI
+				LgiTrace("  [%p/%s], vis=%i\n", c, c->Name(), c == Last);
+				#endif
 			}
 		}
 	}
