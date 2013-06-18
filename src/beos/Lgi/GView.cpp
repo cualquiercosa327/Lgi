@@ -319,61 +319,6 @@ bool GView::Detach()
 	return Status;
 }
 
-bool GView::MakeVirtual(bool Virtual)
-{
-	if (Virtual)
-	{
-		if (_View && d->GetParent())
-		{
-			// Detact the view, but leave the heirarchy alone
-			BView *Par = d->GetParent()->Handle();
-			if (Par)
-			{
-				GLocker Locker(Par, _FL);
-				Locker.Lock();
-				Par->RemoveChild(_View);
-				delete _View;
-				_View = NULL;
-				printf("\tRemoving %s from %s '%s'\n",
-					GetClass(), d->GetParent()->GetClass(), Name());
-				return true;
-			}
-			else printf("%s:%i - No parent to un-attach from.\n", _FL);
-		}
-		else return true;
-	}
-	else
-	{
-		if (!_View)
-		{
-			if (d->GetParent())
-			{
-				BView *p = d->GetParent()->Handle();
-				
-				// Re-create the view, but leave the heirarchy alone
-				printf("\tRe-attaching %s to %s '%s'\n",
-					GetClass(), d->GetParent()->GetClass(), Name());
-				_View = new BViewRedir(this);
-				int Ox = 0, Oy = 0;
-				_View->MoveTo(Pos.x1 + Ox, Pos.y1 + Oy);
-				_View->ResizeTo(Pos.X()-1, Pos.Y()-1);
-				if (!GView::Visible())
-					_View->Hide();
-				if (!Enabled())
-					Enabled(false);
-				
-				GLocker Locker(p, _FL);
-				Locker.Lock();
-				p->AddChild(_View);
-			}
-			else printf("%s:%i - No parent to re-attach to.\n", _FL);
-		}
-		else return true;
-	}
-	
-	return false;
-}
-
 bool GView::IsAttached()
 {
 	BWindow *BWin = 0;

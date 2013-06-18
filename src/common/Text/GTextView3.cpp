@@ -2758,6 +2758,7 @@ void GTextView3::OnPosChange()
 {
 	static bool Processing = false;
 
+	/*
 	RECT rc;
 	GetClientRect(Handle(), &rc);
 	LgiTrace("GTextView3::OnPosChange par=%s iswin=%i isvis=%i rc=%i,%i,%i,%i par=%p\n",
@@ -2773,6 +2774,7 @@ void GTextView3::OnPosChange()
 		scr.Colour(GColour(255, 0, 0));
 		scr.Line(0,0,X()-1, Y()-1);
 	}
+	*/
 
 	if (!Processing)
 	{
