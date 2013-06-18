@@ -1522,10 +1522,11 @@ bool GView::PostEvent(int Cmd, GMessage::Param a, GMessage::Param b)
 		return Ret;
 		#endif
 	}
+	else printf("%s:%i - No view to post event to.\n", _FL);
 
-	GMessage e(Cmd, a, b);
-	OnEvent(&e);
-	return true;
+	// GMessage e(Cmd, a, b);
+	// OnEvent(&e);
+	return false;
 }
 
 bool GView::Invalidate(GRegion *r, bool Repaint, bool NonClient)

@@ -109,7 +109,7 @@ public:
 	bool InOnPosChange;
 	GRect Tabs;
 	GRect Content;
-	GArray<GMdiChild*> Children;
+	::GArray<GMdiChild*> Children;
 	
 	GMdiParentPrivate()
 	{
@@ -697,7 +697,7 @@ void GMdiParent::OnPaint(GSurface *pDC)
 	
 	int MarginPx = 10;
 	
-	GArray<GMdiChild*> Views;
+	::GArray<GMdiChild*> Views;
 	GMdiChild *Last = dynamic_cast<GMdiChild*>(d->Children.Last());
 	GetChildren(Views);
 	
@@ -853,7 +853,7 @@ bool GMdiParent::OnViewKey(GView *View, GKey &Key)
 #if MDI_TAB_STYLE
 void GMdiParent::OnMouseClick(GMouse &m)
 {
-	GArray<GMdiChild*> Views;
+	::GArray<GMdiChild*> Views;
 	if (GetChildren(Views))
 	{
 		for (int i=0; i<Views.Length(); i++)
@@ -1008,7 +1008,7 @@ void GMdiParent::OnChildrenChanged(GViewI *Wnd, bool Attaching)
 	#endif
 }
 
-bool GMdiParent::GetChildren(GArray<GMdiChild*> &Views)
+bool GMdiParent::GetChildren(::GArray<GMdiChild*> &Views)
 {
 	Views = d->Children;
 	#if MDI_TAB_STYLE
