@@ -913,8 +913,12 @@ void GMdiParent::OnPosChange()
 					#if DEBUG_MDI
 					LgiTrace("    detaching %s\n", c->GetClass());
 					#endif
+					#ifdef BEOS
 					c->GLayout::Detach();
 					c->SetParent(this);
+					#else
+					c->Visible(false);
+					#endif
 				}
 			}
 		}
