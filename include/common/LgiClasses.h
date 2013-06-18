@@ -587,9 +587,6 @@ public:
 	/// Destroys the window async
 	virtual void Quit(bool DontDelete = false);
 	
-	/// Converts the view to and from a virtal view (no OS view)
-	virtual bool MakeVirtual(bool Virtual);
-	
 	// Properties
 	
 	/// Gets the top level window that this view belongs to

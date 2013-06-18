@@ -2758,6 +2758,22 @@ void GTextView3::OnPosChange()
 {
 	static bool Processing = false;
 
+	RECT rc;
+	GetClientRect(Handle(), &rc);
+	LgiTrace("GTextView3::OnPosChange par=%s iswin=%i isvis=%i rc=%i,%i,%i,%i par=%p\n",
+		GetParent() ? GetParent()->Name() : "(none)",
+		IsWindow(Handle()),
+		IsWindowVisible(Handle()),
+		rc.left, rc.top, rc.right, rc.bottom,
+		::GetParent(Handle())
+		);
+	if (Handle())
+	{
+		GScreenDC scr(Handle());
+		scr.Colour(GColour(255, 0, 0));
+		scr.Line(0,0,X()-1, Y()-1);
+	}
+
 	if (!Processing)
 	{
 		Processing = true;
@@ -4112,6 +4128,8 @@ int GTextView3::ScrollYPixel()
 
 void GTextView3::OnPaint(GSurface *pDC)
 {
+	LgiTrace("GTextView3::OnPaint par=%s\n", GetParent() ? GetParent()->Name() : "(none)");
+
 	#if LGI_EXCEPTIONS
 	try
 	{

@@ -25,8 +25,10 @@ public:
 	GRect &GetClient(bool InClientSpace = true);
 	#endif
 
-	bool Pour();
 	bool Attach(GViewI *p);
+	bool Detach();
+
+	bool Pour();
 	char *Name();
 	bool Name(const char *n);
 	
@@ -37,8 +39,12 @@ public:
 
 class GMdiParent : public GLayout
 {
+	friend class GMdiChild;
 	class GMdiParentPrivate *d;
 
+	#if MDI_TAB_STYLE
+	int GetNextOrder();
+	#endif
 	GMdiChild *IsChild(GViewI *v);
 
 public:

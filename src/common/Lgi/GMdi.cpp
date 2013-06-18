@@ -103,6 +103,21 @@ public:
 	#endif
 };
 
+class GMdiParentPrivate
+{
+public:
+	bool InOnPosChange;
+	GRect Tabs;
+	GRect Content;
+	GArray<GMdiChild*> Children;
+	
+	GMdiParentPrivate()
+	{
+		InOnPosChange = false;
+	}
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////
 GMdiChild::GMdiChild()
 {
 	d = new GMdiChildPrivate(this);
@@ -123,22 +138,46 @@ bool GMdiChild::Attach(GViewI *p)
 {
 	#if MDI_TAB_STYLE
 	GMdiParent *par = dynamic_cast<GMdiParent*>(p);
+	if (!par)
+		return false;	
+	if (!par->d->InOnPosChange)
+	{
+		SetParent(par);
+		LgiAssert(!par->d->Children.HasItem(this));
+		par->d->Children.Add(this);
+		d->Order = par->GetNextOrder();
+		
+		par->d->Tabs.ZOff(-1, -1);
+		par->OnPosChange();
+	}
+	return true;
+	#else
+	bool s = GLayout::Attach(p);
+	if (s)
+		AttachChildren();
+	return s;
+	#endif
+}
+
+bool GMdiChild::Detach()
+{
+	#if MDI_TAB_STYLE
+	GMdiParent *par = dynamic_cast<GMdiParent*>(GetParent());
 	if (par)
 	{
-		GArray<GMdiChild*> Views;
-		par->GetChildren(Views);
-		int MaxOrder = 0;
-		for (int i=0; i<Views.Length(); i++)
+		if (!par->d->InOnPosChange)
 		{
-			MaxOrder = max(MaxOrder, Views[i]->GetOrder());
-		}
-		d->Order = MaxOrder + 1;
-	}
-	#endif
+			LgiAssert(par->d->Children.HasItem(this));
+			par->d->Children.Delete(this);
 
-	bool s = GLayout::Attach(p);
-	if (IsAttached()) AttachChildren();
-	return s;
+			par->d->Tabs.ZOff(-1, -1);
+			par->OnPosChange();
+		}
+	}
+	return true;
+	#else
+	return GLayout::Detach();
+	#endif
 }
 
 char *GMdiChild::Name()
@@ -175,7 +214,6 @@ bool GMdiChild::Pour()
 		Name(), c.GetStr(), Visible(), Children.Length());
 	#endif
 
-
 	for (GViewI *w = Children.First(); w; w = Children.Next())
 	{
 		if (Visible())
@@ -187,10 +225,11 @@ bool GMdiChild::Pour()
 			{
 				GRect p = w->GetPos();
 				
+				if (!w->IsAttached())
+					w->Attach(this);
+
 				if (!w->Visible())
-				{
 					w->Visible(true);
-				}
 
 				Client.Subtract(&w->GetPos());
 				Update.Subtract(&w->GetPos());
@@ -535,7 +574,7 @@ using namespace Gtk;
 
 void GMdiChild::Raise()
 {
-	GViewI *p = GetParent();
+	GMdiParent *p = dynamic_cast<GMdiParent*>(GetParent());
 	if (p)
 	{
 		#if MDI_TAB_STYLE
@@ -557,9 +596,13 @@ void GMdiChild::Raise()
 
 		#endif
 
-		p->DelView(this);
-		p->AddView(this);
-		p->OnChildrenChanged(this, true);
+		if (p->d->Children.Last() != this)
+		{
+			p->d->Children.Delete(this);
+			p->d->Children.Add(this);
+			p->d->Tabs.ZOff(-1, -1);
+			p->OnPosChange();
+		}
 
 		#if DEBUG_MDI
 		LgiTrace("GMdiChild::Raise() '%s'\n", Name());
@@ -569,7 +612,7 @@ void GMdiChild::Raise()
 
 void GMdiChild::Lower()
 {
-	GViewI *p = GetParent();
+	GMdiParent *p = dynamic_cast<GMdiParent*>(GetParent());
 	if (p)
 	{
 		#if MDI_TAB_STYLE
@@ -592,9 +635,13 @@ void GMdiChild::Lower()
 
 		#endif
 
-		p->DelView(this);
-		p->AddView(this, 0);
-		p->OnChildrenChanged(this, true);
+		if (p->d->Children[0] != this)
+		{
+			p->d->Children.Delete(this);
+			p->d->Children.AddAt(0, this);
+			p->d->Tabs.ZOff(-1, -1);
+			p->OnPosChange();
+		}
 		
 		#if DEBUG_MDI
 		LgiTrace("GMdiChild::Lower() '%s'\n", Name());
@@ -603,13 +650,6 @@ void GMdiChild::Lower()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-class GMdiParentPrivate
-{
-public:
-	GRect Tabs;
-	GRect Content;
-};
-
 GMdiParent::GMdiParent()
 {
 	d = new GMdiParentPrivate;
@@ -636,7 +676,7 @@ int ViewCmp(GMdiChild **a, GMdiChild **b)
 void GMdiParent::OnPaint(GSurface *pDC)
 {
 	#if MDI_TAB_STYLE
-	if (Children.Length() == 0)
+	if (d->Children.Length() == 0)
 	#endif
 	{
 		pDC->Colour(LC_LOW, 24);
@@ -658,7 +698,7 @@ void GMdiParent::OnPaint(GSurface *pDC)
 	int MarginPx = 10;
 	
 	GArray<GMdiChild*> Views;
-	GMdiChild *Last = dynamic_cast<GMdiChild*>(Children.Last());
+	GMdiChild *Last = dynamic_cast<GMdiChild*>(d->Children.Last());
 	GetChildren(Views);
 	
 	for (int Idx=0; Idx<Views.Length(); Idx++)
@@ -720,8 +760,8 @@ bool GMdiParent::Attach(GViewI *p)
 	bool s = GLayout::Attach(p);
 	if (s)
 	{
-		AttachChildren();
 		GetWindow()->RegisterHook(this, GKeyAndMouseEvents);
+		OnPosChange();
 	}
 	return s;
 }
@@ -830,9 +870,14 @@ void GMdiParent::OnMouseClick(GMouse &m)
 
 void GMdiParent::OnPosChange()
 {
+	if (!IsAttached())
+		return;
+
 	GFont *Fnt = GetFont();
 	GRect Client = GetClient();
 	GRect Tabs, Content;
+		
+	d->InOnPosChange = true;
 	
 	Tabs = Client;
 	Tabs.y2 = Tabs.y1 + Fnt->GetHeight() + 1;
@@ -845,8 +890,7 @@ void GMdiParent::OnPosChange()
 		d->Tabs = Tabs;
 		d->Content = Content;
 		
-		GAutoPtr<GViewIterator> i(IterateViews());
-		GMdiChild *Last = dynamic_cast<GMdiChild*>(i->Last());
+		GMdiChild *Last = d->Children.Length() ? d->Children.Last() : NULL;
 
 		#if DEBUG_MDI
 		LgiTrace("OnPosChange: Tabs=%s, Content=%s, Children=%i, Last=%s\n",
@@ -855,24 +899,49 @@ void GMdiParent::OnPosChange()
 			Last ? Last->Name() : 0);
 		#endif
 
-		for (GViewI *v = i->First(); v; v = i->Next())
+		for (int Idx=0; Idx<d->Children.Length(); Idx++)
 		{
-			GMdiChild *c = dynamic_cast<GMdiChild*>(v);
-			if (c)
+			GMdiChild *c = d->Children[Idx];
+			if (c != Last)
 			{
 				#if DEBUG_MDI
-				LgiTrace("  [%p/%s], vis=%i\n", c, c->Name(), c == Last);
+				LgiTrace("  [%p/%s], vis=%i, attached=%i\n",
+					c, c->Name(), c == Last, c->IsAttached());
 				#endif
+				if (c->IsAttached())
+				{
+					#if DEBUG_MDI
+					LgiTrace("    detaching %s\n", c->GetClass());
+					#endif
+					c->GLayout::Detach();
+					c->SetParent(this);
+				}
+			}
+		}
 
-				#if defined(BEOS)
-				c->MakeVirtual(c != Last);
+		for (int Idx=0; Idx<d->Children.Length(); Idx++)
+		{
+			GMdiChild *c = d->Children[Idx];
+			if (c == Last)
+			{
+				#if DEBUG_MDI
+				LgiTrace("  [%p/%s], vis=%i, attached=%i\n",
+					c, c->Name(), c == Last, c->IsAttached());
 				#endif
-				c->Visible(c == Last);
+				
+				if (!c->IsAttached())
+					c->GLayout::Attach(this);
+
 				c->SetPos(d->Content);
+				c->Visible(true);
 				c->Pour();
 			}
 		}
+		
+		Invalidate();
 	}
+
+	d->InOnPosChange = false;
 }
 #endif
 
@@ -911,9 +980,12 @@ GRect GMdiParent::NewPos()
 void GMdiParent::OnChildrenChanged(GViewI *Wnd, bool Attaching)
 {
 	#if MDI_TAB_STYLE
-	d->Tabs.ZOff(-1, -1);
-	OnPosChange();
-	Invalidate();
+	if (!d->InOnPosChange)
+	{
+		d->Tabs.ZOff(-1, -1);
+		OnPosChange();
+		Invalidate();
+	}
 	#else
 	for (GViewI *v=Children.First(); v; )
 	{
@@ -938,18 +1010,21 @@ void GMdiParent::OnChildrenChanged(GViewI *Wnd, bool Attaching)
 
 bool GMdiParent::GetChildren(GArray<GMdiChild*> &Views)
 {
-	GAutoPtr<GViewIterator> i(IterateViews());
-	for (GViewI *v = i->First(); v; v = i->Next())
-	{
-		GMdiChild *c = dynamic_cast<GMdiChild*>(v);
-		if (c)
-		{
-			Views.Add(c);
-		}
-	}
+	Views = d->Children;
 	#if MDI_TAB_STYLE
 	Views.Sort(ViewCmp);
 	#endif
 	return Views.Length() > 0;
 }
 
+#if MDI_TAB_STYLE
+int GMdiParent::GetNextOrder()
+{
+	int m = 0;
+	for (int i=0; i<d->Children.Length(); i++)
+	{
+		m = max(m, d->Children[i]->GetOrder());
+	}
+	return m + 1;
+}
+#endif

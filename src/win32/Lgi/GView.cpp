@@ -794,9 +794,7 @@ bool GView::Detach()
 		if (_Capturing == this)
 		{
 			if (_View)
-			{
 				ReleaseCapture();
-			}
 			_Capturing = 0;
 		}
 		if (_View)
