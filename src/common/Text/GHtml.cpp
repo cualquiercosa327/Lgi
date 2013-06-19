@@ -5810,6 +5810,7 @@ GHtml::GHtml(int id, int x, int y, int cx, int cy, GDocumentEnv *e)
 	SetBackColour(Rgb24To32(LC_WORKSPACE));
 	PrevTip = 0;
 	DocCharSet = 0;
+	DocumentUid = 0;
 
 	_New();
 }

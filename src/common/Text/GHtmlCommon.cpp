@@ -604,6 +604,15 @@ void GHtmlElement::Detach()
 
 bool GHtmlElement::HasChild(GHtmlElement *c)
 {
-	return Children.IndexOf(c) >= 0;
+	for (int i=0; i<Children.Length(); i++)
+	{
+		if (Children[i] == c)
+			return true;
+			
+		if (Children[i]->HasChild(c))
+			return true;
+	}
+	
+	return false;
 }
 
