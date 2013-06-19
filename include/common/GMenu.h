@@ -95,8 +95,11 @@ class LgiClass GSubMenu :
 
 	#if defined(__GTK_H__)
 	friend void MenuItemCallback(class GMenuItem *Item);
+	friend void GSubMenuDeactivate(Gtk::GtkMenuShell *widget, GSubMenu *Sub);
+
 	int *_ContextMenuId;
 	bool IsContext(GMenuItem *Item);
+	void OnDeactivate();
 	#elif defined(WIN32NATIVE)
 	HWND TrackHandle;
 	#elif defined(BEOS)

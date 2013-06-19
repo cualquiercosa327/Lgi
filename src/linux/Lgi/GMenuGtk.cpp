@@ -175,14 +175,6 @@ bool GSubMenu::RemoveItem(GMenuItem *Item)
 	return false;
 }
 
-void GetGSubMenuPosition(Gtk::GtkMenu *menu, Gtk::gint *x, Gtk::gint *y, Gtk::gboolean *push_in, Gtk::gpointer user_data)
-{
-	GdcPt2 *pt = (GdcPt2*) user_data;
-	*x = pt->x;
-	*y = pt->y;
-	*push_in = true;
-}
-
 bool GSubMenu::IsContext(GMenuItem *Item)
 {
 	if (!_ContextMenuId)
@@ -191,6 +183,18 @@ bool GSubMenu::IsContext(GMenuItem *Item)
 	*_ContextMenuId = Item->Id();
 	Gtk::gtk_main_quit();
 	return true;
+}
+
+void GSubMenuDeactivate(Gtk::GtkMenuShell *widget, GSubMenu *Sub)
+{
+	Sub->OnDeactivate();
+	return 0;
+}
+
+void GSubMenu::OnDeactivate()
+{
+	*_ContextMenuId = 0;
+	Gtk::gtk_main_quit();
 }
                                                          
 int GSubMenu::Float(GView *From, int x, int y, bool Left)
@@ -211,6 +215,12 @@ int GSubMenu::Float(GView *From, int x, int y, bool Left)
 	if (From->IsCapturing())
 		From->Capture(false);
 
+	// This signal handles the case where the user cancels the menu by clicking away from it.
+	Gtk::g_signal_connect_data(GtkCast(Info, g_object, GObject), 
+						"deactivate", 
+						GSubMenuDeactivate,
+						this, NULL, (Gtk::GConnectFlags) 0);
+	
 	Gtk::gtk_widget_show_all(GtkCast(Info, gtk_widget, GtkWidget));
 
 	int MenuId = 0;
