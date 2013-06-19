@@ -156,6 +156,7 @@ void GView::_Focus(bool f)
 void GView::_Delete()
 {
 	ThreadCheck();
+	SetPulse();
 
 	// Remove static references to myself
 	if (_Over == this)
@@ -173,7 +174,6 @@ void GView::_Delete()
 	}
 
 	// Misc
-	SetPulse();
 	Pos.ZOff(-1, -1);
 
 	// Heirarchy
@@ -890,7 +890,7 @@ bool GView::Detach()
 {
 	ThreadCheck();
 	
-printf("%s::Detach()\n", GetClass());
+//printf("%s::Detach()\n", GetClass());
 
 	// Detach view
 	GViewI *Par = GetParent();
@@ -912,7 +912,7 @@ printf("%s::Detach()\n", GetClass());
 			GViewI *c, *prev = NULL;
 			while (c = Children.First())
 			{
-printf("    c=%p(%s) prev=%p\n", c, c->GetClass(), prev);
+//printf("    c=%p(%s) prev=%p\n", c, c->GetClass(), prev);
 				LgiAssert(!prev || c != prev);
 				if (c->GetParent())
 					c->Detach();

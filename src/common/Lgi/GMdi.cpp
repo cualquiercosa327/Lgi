@@ -140,23 +140,16 @@ bool GMdiChild::Attach(GViewI *p)
 	GMdiParent *par = dynamic_cast<GMdiParent*>(p);
 	if (!par)
 		return false;	
-	if (!par->d->InOnPosChange)
-	{
-		SetParent(par);
-		LgiAssert(!par->d->Children.HasItem(this));
-		par->d->Children.Add(this);
-		d->Order = par->GetNextOrder();
-		
-		par->d->Tabs.ZOff(-1, -1);
-		par->OnPosChange();
-	}
-	return true;
-	#else
+
+	LgiAssert(!par->d->Children.HasItem(this));
+	par->d->Children.Add(this);
+	d->Order = par->GetNextOrder();
+	#endif
+
 	bool s = GLayout::Attach(p);
 	if (s)
 		AttachChildren();
 	return s;
-	#endif
 }
 
 bool GMdiChild::Detach()
@@ -165,19 +158,12 @@ bool GMdiChild::Detach()
 	GMdiParent *par = dynamic_cast<GMdiParent*>(GetParent());
 	if (par)
 	{
-		if (!par->d->InOnPosChange)
-		{
-			LgiAssert(par->d->Children.HasItem(this));
-			par->d->Children.Delete(this);
-
-			par->d->Tabs.ZOff(-1, -1);
-			par->OnPosChange();
-		}
+		LgiAssert(par->d->Children.HasItem(this));
+		par->d->Children.Delete(this);
 	}
-	return true;
-	#else
-	return GLayout::Detach();
 	#endif
+
+	return GLayout::Detach();
 }
 
 char *GMdiChild::Name()

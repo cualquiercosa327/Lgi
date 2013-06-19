@@ -67,7 +67,8 @@ public:
 			LgiSleep(Length);
 			if (Loop && View)
 			{
-				View->PostEvent(M_PULSE);
+				if (!View->PostEvent(M_PULSE))
+					Loop = false;
 			}
 		}
 		
