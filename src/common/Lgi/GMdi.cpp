@@ -902,30 +902,7 @@ void GMdiParent::OnPosChange()
 		for (int Idx=0; Idx<d->Children.Length(); Idx++)
 		{
 			GMdiChild *c = d->Children[Idx];
-			if (c != Last)
-			{
-				#if DEBUG_MDI
-				LgiTrace("  [%p/%s], vis=%i, attached=%i\n",
-					c, c->Name(), c == Last, c->IsAttached());
-				#endif
-				if (c->IsAttached())
-				{
-					#if DEBUG_MDI
-					LgiTrace("    detaching %s\n", c->GetClass());
-					#endif
-					#ifdef BEOS
-					c->GLayout::Detach();
-					c->SetParent(this);
-					#else
-					c->Visible(false);
-					#endif
-				}
-			}
-		}
 
-		for (int Idx=0; Idx<d->Children.Length(); Idx++)
-		{
-			GMdiChild *c = d->Children[Idx];
 			if (c == Last)
 			{
 				#if DEBUG_MDI
@@ -940,8 +917,27 @@ void GMdiParent::OnPosChange()
 				c->Visible(true);
 				c->Pour();
 			}
+			else
+			{
+				#if DEBUG_MDI
+				LgiTrace("  [%p/%s], vis=%i, attached=%i\n",
+					c, c->Name(), c == Last, c->IsAttached());
+				#endif
+				#ifdef BEOS
+				if (c->IsAttached())
+				{
+					#if DEBUG_MDI
+					LgiTrace("    detaching %s\n", c->GetClass());
+					#endif
+					c->GLayout::Detach();
+					c->SetParent(this);
+				}
+				#else
+				c->Visible(false);
+				#endif
+			}
 		}
-		
+
 		Invalidate();
 	}
 
@@ -981,10 +977,16 @@ GRect GMdiParent::NewPos()
 	return Status;
 }
 
+bool GMdiParent::Detach()
+{
+	d->InOnPosChange = true;
+	return GLayout::Detach();
+}
+
 void GMdiParent::OnChildrenChanged(GViewI *Wnd, bool Attaching)
 {
 	#if MDI_TAB_STYLE
-	if (!d->InOnPosChange)
+	if (!d->InOnPosChange && Attaching)
 	{
 		d->Tabs.ZOff(-1, -1);
 		OnPosChange();

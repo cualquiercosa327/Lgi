@@ -64,6 +64,7 @@ public:
 	#if MDI_TAB_STYLE
 	void OnPosChange();
 	void OnMouseClick(GMouse &m);
+	bool Detach();
 	#endif
 };
 

@@ -80,16 +80,39 @@ void _lgi_assert(bool b, const char *test, const char *file, int line)
 
 		printf("%s:%i - Assert failed:\n%s\n", file, line, test);
 
-		#if 0
-		LgiMsg(0,
-				"Assert failed, file: %s, line: %i\n"
-				"%s\n",
-				"Debug",
-				MB_OK,
-				file, line, test);
+		Gtk::gint Result = Gtk::GTK_RESPONSE_NO;
+		#if 1
+		Gtk::GtkWidget *dialog = 
+			Gtk::gtk_message_dialog_new 
+			(
+				NULL,
+				Gtk::GTK_DIALOG_DESTROY_WITH_PARENT,
+				Gtk::GTK_MESSAGE_ERROR,
+				Gtk::GTK_BUTTONS_YES_NO,
+				"%s:%i - Assert failed:\n%s\n\nYes: Break, No: Quit",
+				file, line,
+				test
+			);
+		Result = Gtk::gtk_dialog_run(GtkCast(dialog, gtk_dialog, GtkDialog));
+		Gtk::gtk_widget_destroy(dialog);
 		#endif
 
-		exit(-1);
+		switch (Result)
+		{
+			case Gtk::GTK_RESPONSE_YES:
+			{
+				int *i = NULL;
+				*i = 0;
+				break;
+			}
+			case Gtk::GTK_RESPONSE_NO:
+			{
+				exit(-1);
+				break;
+			}
+		}
+
+		Asserting = false;
 	}
 }
 

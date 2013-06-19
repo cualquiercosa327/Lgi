@@ -4130,7 +4130,7 @@ int GTextView3::ScrollYPixel()
 
 void GTextView3::OnPaint(GSurface *pDC)
 {
-	LgiTrace("GTextView3::OnPaint par=%s\n", GetParent() ? GetParent()->Name() : "(none)");
+	// LgiTrace("GTextView3::OnPaint par=%s\n", GetParent() ? GetParent()->Name() : "(none)");
 
 	#if LGI_EXCEPTIONS
 	try

@@ -890,6 +890,8 @@ bool GView::Detach()
 {
 	ThreadCheck();
 	
+printf("%s::Detach()\n", GetClass());
+
 	// Detach view
 	GViewI *Par = GetParent();
 	if (Par)
@@ -910,6 +912,7 @@ bool GView::Detach()
 			GViewI *c, *prev = NULL;
 			while (c = Children.First())
 			{
+printf("    c=%p(%s) prev=%p\n", c, c->GetClass(), prev);
 				LgiAssert(!prev || c != prev);
 				if (c->GetParent())
 					c->Detach();
