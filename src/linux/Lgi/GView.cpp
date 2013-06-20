@@ -197,13 +197,6 @@ void GView::_Delete()
 		LgiApp->UnregisterHandle(this);
 		#endif
 
-		/*
-		printf("destroy %p parent=%p, iscon=%p\n",
-			_View,
-			gtk_widget_get_parent(_View),
-			GTK_IS_CONTAINER(gtk_widget_get_parent(_View)));
-		*/
-				
 		gtk_widget_destroy(_View);
 		_View = 0;
 	}

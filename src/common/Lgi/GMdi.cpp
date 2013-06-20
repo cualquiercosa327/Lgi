@@ -133,6 +133,7 @@ GMdiChild::GMdiChild()
 
 GMdiChild::~GMdiChild()
 {
+	Detach();
 	DeleteObj(d);
 }
 
@@ -158,7 +159,6 @@ bool GMdiChild::Detach()
 {
 	#if MDI_TAB_STYLE
 	GMdiParent *par = dynamic_cast<GMdiParent*>(GetParent());
-	printf("GMdiChild::Detach par=%p\n", par);
 	if (par)
 	{
 		LgiAssert(par->d->Children.HasItem(this));
