@@ -84,7 +84,7 @@ public:
 		LgiThinBorder(pDC, f, RAISED);
 		SysFont->Transparent(true);
 		{
-			GDisplayString ds(SysFont, "{ }");
+			GDisplayString ds(SysFont, "{}");
 			ds.Draw(pDC, f.x1 + 3, f.y1);
 		}
 
@@ -214,7 +214,7 @@ void EditTray::OnMouseClick(GMouse &m)
 						DefnInfo *Info = Funcs[Goto-1];
 						if (Info)
 						{
-							Ctrl->GotoLine(Info->Line);
+							Ctrl->GotoLine(Info->Line + 1);
 						}
 					}
 					

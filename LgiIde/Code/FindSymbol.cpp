@@ -221,7 +221,8 @@ void FindSymbolThread::UpdateTags()
 			}
 		}
 		d->Unlock();
-	}		
+	}
+	else printf("%s:%i - failed to lock.\n", _FL);	
 	
 	char args[MAX_PATH];
 	sprintf_s(args, sizeof(args), "--excmd=number -f \"%s\" -L \"%s\"", d->CTagsIndexFile.Get(), tmp);
@@ -307,7 +308,7 @@ int FindSymbolThread::Main()
 				d->Unlock();
 			}
 			if (Req)
-			{			
+			{
 				Symbol *s = &Syms[0];
 				GArray<Symbol*> Matches;
 				for (int i=0; State == Working && i<Syms.Length(); i++)
@@ -595,6 +596,7 @@ void FindSymbolSystem::OnProject()
 		Projects.Add(p);
 		p->GetChildProjects(Projects);
 	}
+
 	for (p = Projects.First(); p; p = Projects.Next())
 	{
 		p->CollectAllSource(d->Files, PlatformCurrent);

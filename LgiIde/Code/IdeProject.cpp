@@ -1831,6 +1831,21 @@ void IdeCommon::CollectAllSubProjects(List<IdeProject> &c)
 	}
 }
 
+IdePlatform GetCurrentPlatform()
+{
+	#if defined(WIN32)
+	return PlatformWin32;
+	#elif defined(LINUX)
+	return PlatformLinux;
+	#elif defined(MAC)
+	return PlatformMac;
+	#elif defined(BEOS)
+	return PlatformHaiku;
+	#else
+	#error "Not impl."
+	#endif
+}
+
 void IdeCommon::CollectAllSource(GArray<char*> &c, IdePlatform Platform)
 {
 	ForAllProjectNodes(p)
@@ -1840,17 +1855,15 @@ void IdeCommon::CollectAllSource(GArray<char*> &c, IdePlatform Platform)
 			case NodeSrc:
 			case NodeHeader:
 			{
+				if (Platform == PlatformCurrent)
+					Platform = GetCurrentPlatform();
+					
 				int Flags = p->GetPlatforms();
 				if (Flags & (1 << Platform))
 				{
 					GAutoString path = p->GetFullPath();
 					if (path)
 					{
-						if (stristr(path, "win32") ||
-							stristr(path, "linux"))
-						{
-							int asd=0;
-						}
 						c.Add(path.Release());
 					}
 				}
