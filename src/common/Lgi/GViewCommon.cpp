@@ -488,7 +488,7 @@ void GView::SendNotify(int Data)
 	GViewI *n = d->Notify ? d->Notify : d->Parent;
 	if (n)
 	{
-		if (InThread())
+		if (!_View || InThread())
 		{
 			n->OnNotify(this, Data);
 		}
@@ -1504,7 +1504,15 @@ GViewI *GView::WindowFromPoint(int x, int y, bool Debug)
 bool GView::InThread()
 {
 	#if WIN32NATIVE
-	return GetCurrentThreadId() == GetWindowThreadProcessId(_View, NULL);
+	HWND Hnd = _View;
+	for (GViewI *p = GetParent(); p && !Hnd; p = p->GetParent())
+	{
+		Hnd = p->Handle();
+	}
+	
+	DWORD CurThread = GetCurrentThreadId();
+	DWORD ViewThread = GetWindowThreadProcessId(Hnd, NULL);
+	return CurThread == ViewThread;
 	#else
 	OsThreadId Me = LgiGetCurrentThread();
 	return LgiApp->GetGuiThread() == Me;
