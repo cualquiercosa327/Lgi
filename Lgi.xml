@@ -221,12 +221,12 @@
 				<Node File=".\include\common\GdiLeak.h" Type="3" Platforms="15" />
 			</Node>
 		</Node>
-		<Node Name="General" Type="1" Platforms="15" Open="0">
-			<Node Name="Clipboard" Type="1" Platforms="15" Open="0">
+		<Node Name="General" Type="1" Platforms="15" Open="1">
+			<Node Name="Clipboard" Type="1" Platforms="15" Open="1">
 				<Node Name="Win32" Type="1" Platforms="15" Open="0">
 					<Node File="./src/win32/Lgi/GClipBoard.cpp" Type="2" Platforms="1" />
 				</Node>
-				<Node Name="Linux" Type="1" Platforms="15" Open="0">
+				<Node Name="Linux" Type="1" Platforms="15" Open="1">
 					<Node File="./src/linux/Lgi/GClipBoard.cpp" Type="2" Platforms="2" />
 				</Node>
 				<Node Name="Haiku" Type="1" Platforms="15" Open="0">

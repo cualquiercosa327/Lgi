@@ -640,6 +640,23 @@ void GMenuItem::_Paint(GSurface *pDC, int Flags)
 #include <gdk/gdkkeysyms-compat.h>
 #endif
 
+#ifndef GDK_F1
+enum {
+	GDK_F1 = 0xffbe,
+	GDK_F2,
+	GDK_F3,
+	GDK_F4,
+	GDK_F5,
+	GDK_F6,
+	GDK_F7,
+	GDK_F8,
+	GDK_F9,
+	GDK_F10,
+	GDK_F11,
+	GDK_F12
+};
+#endif
+
 Gtk::gint LgiKeyToGtkKey(int Key, const char *ShortCut)
 {
 	#ifdef GDK_a
@@ -675,52 +692,30 @@ Gtk::gint LgiKeyToGtkKey(int Key, const char *ShortCut)
 		#ifdef GDK_BackSpace
 		case VK_BACKSPACE: return GDK_BackSpace;
 		#endif
-		#ifdef GDK_F1
-		case VK_F1: return GDK_F1;
-		#endif
-		#ifdef GDK_F2
-		case VK_F2: return GDK_F2;
-		#endif
-		#ifdef GDK_F3
+		case VK_F1:
+			return GDK_F1;
+		case VK_F2:
+			return GDK_F2;
 		case VK_F3:
 			return GDK_F3;
-		#endif
-		#ifdef GDK_F4
 		case VK_F4:
 			return GDK_F4;
-		#endif
-		#ifdef GDK_F5
 		case VK_F5:
 			return GDK_F5;
-		#endif
-		#ifdef GDK_F6
 		case VK_F6:
 			return GDK_F6;
-		#endif
-		#ifdef GDK_F7
 		case VK_F7:
 			return GDK_F7;
-		#endif
-		#ifdef GDK_F8
 		case VK_F8:
 			return GDK_F8;
-		#endif
-		#ifdef GDK_F9
 		case VK_F9:
 			return GDK_F9;
-		#endif
-		#ifdef GDK_F10
 		case VK_F10:
 			return GDK_F10;
-		#endif
-		#ifdef GDK_F11
 		case VK_F11:
 			return GDK_F11;
-		#endif
-		#ifdef GDK_F12
 		case VK_F12:
 			return GDK_F12;
-		#endif
 		case ' ':
 			#ifdef GDK_space
 			return GDK_space;
