@@ -1691,8 +1691,8 @@ int GTextView3::IndexAt(int x, int y)
 
 void GTextView3::SetCursor(int i, bool Select, bool ForceFullUpdate)
 {
-    //int _Start = LgiCurrentTime();
-	// LgiTrace("SetCursor(%i)\n", i);
+    // int _Start = LgiCurrentTime();
+	Blink = true;
 
 	// Bound the new cursor position to the document
 	if (i < 0) i = 0;

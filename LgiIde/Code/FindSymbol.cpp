@@ -118,6 +118,25 @@ struct FindSymbolSystemPriv : public GMutex
 					CTagsExe.Reset(NewStr(p));
 			}
 		}
+
+		if (!CTagsExe)
+		{
+			char *Path = getenv("PATH");
+			if (Path)
+			{
+				GToken t(Path, ":");
+				for (int i=0; i<t.Length(); i++)
+				{
+					char p[MAX_PATH];
+					LgiMakePath(p, sizeof(p), t[i], CTagsExeName);
+					if (FileExists(p))
+					{
+						CTagsExe.Reset(NewStr(p));
+						break;
+					}
+				}
+			}
+		}
 	}
 };
 

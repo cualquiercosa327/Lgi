@@ -1146,7 +1146,9 @@ bool GMessage::Send(GtkWidget *Wnd)
 	    p->w = Wnd;
 	    p->e = gdk_event_new(GDK_CLIENT_EVENT);
 	    *p->e = *Event;
+	    
 	    g_idle_add((GSourceFunc)GlibPostMessage, p);
+	    Status = true;
 	}
 	else LgiAssert(!"No Event or Wnd");
 	
