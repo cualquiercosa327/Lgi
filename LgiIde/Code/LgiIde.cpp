@@ -333,6 +333,8 @@ public:
 	
 	void OnPulse()
 	{
+		int Changed = -1;
+		
 		for (int Channel = 0; Channel<CountOf(Buf); Channel++)
 		{
 			int64 Size = Buf[Channel].Length();
@@ -357,10 +359,14 @@ public:
 				{
 					Txt[Channel]->SetCursor(OldLen + StrlenW(w), false);
 				}
-				Tab->Value(Channel);
+				Changed = Channel;
 				Buf[Channel].Length(0);
+				Txt[Channel]->Invalidate();
 			}
 		}
+		
+		if (Changed >= 0)
+			Tab->Value(Changed);
 	}
 
 	void OnPosChange()

@@ -1,4 +1,3 @@
-
 /*hdr
 **      FILE:           GView.cpp
 **      AUTHOR:         Matthew Allen
@@ -210,12 +209,14 @@ GView *&GView::PopupChild()
 	return d->Popup;
 }
 
-static LgiCursor CurrectCursor = LCUR_Normal;
-void LgiToGtkCursor(OsView v, LgiCursor c)
+void LgiToGtkCursor(GViewI *v, LgiCursor c)
 {
-	if (!v)
+	static LgiCursor CurrentCursor = LCUR_Normal;
+
+	if (!v || c == CurrentCursor)
 		return;
-		
+	
+	CurrentCursor = c;
 	GdkCursorType type = GDK_ARROW;
 	switch (c)
 	{
@@ -300,16 +301,28 @@ void LgiToGtkCursor(OsView v, LgiCursor c)
 		*/
 	}
 	
-	LgiAssert(v->window);
+	GWindow *Wnd = v->GetWindow();
+	OsView h = Wnd ? Wnd->Handle() : v->Handle();
+	
+	LgiAssert(h->window);
 	if (type == GDK_ARROW)
 	{
-		gdk_window_set_cursor(v->window, NULL);
+		gdk_window_set_cursor(h->window, NULL);
+		// printf("gdk_window_set_cursor(%s, NULL)\n", v->GetClass());
 	}
 	else
 	{
 		GdkCursor *cursor = gdk_cursor_new_for_display(gdk_display_get_default(), type);
 		if (cursor)
-			gdk_window_set_cursor(v->window, cursor);
+		{
+			gdk_window_set_cursor(h->window, cursor);
+			// printf("gdk_window_set_cursor(%s, cursor)\n", v->GetClass());
+		}
+		else
+		{
+			gdk_window_set_cursor(h->window, NULL);
+			// printf("gdk_window_set_cursor(%s, gdk_cursor_new_for_display fail)\n", v->GetClass());
+		}
 	}
 }
 
@@ -365,7 +378,7 @@ bool GView::_Mouse(GMouse &m, bool Move)
 		if (Move)
 		{
 			GMouse Local = lgi_adjust_click(m, _Capturing);
-			LgiToGtkCursor(_Capturing->Handle(), _Capturing->GetCursor(Local.x, Local.y));
+			LgiToGtkCursor(_Capturing, _Capturing->GetCursor(Local.x, Local.y));
 			_Capturing->OnMouseMove(Local); // This can set _Capturing to NULL
 		}
 		else
@@ -396,7 +409,7 @@ bool GView::_Mouse(GMouse &m, bool Move)
 		m = lgi_adjust_click(m, Target, !Move);
 		if (!Client.Valid() || Client.Overlap(m.x, m.y))
 		{
-			LgiToGtkCursor(Target->Handle(), Target->GetCursor(m.x, m.y));
+			LgiToGtkCursor(Target, Target->GetCursor(m.x, m.y));
 
 			if (Move)
 			{
@@ -807,8 +820,6 @@ bool GView::GetMouse(GMouse &m, bool ScreenCoords)
 
 bool GView::IsAttached()
 {
-	ThreadCheck();
-	
 	return	_View && _View->parent;
 }
 
