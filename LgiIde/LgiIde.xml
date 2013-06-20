@@ -31,7 +31,7 @@
 		<Node File="./Code/SpaceTabConv.cpp" Type="2" Platforms="15" />
 		<Node File="./Code/SpaceTabConv.h" Type="3" Platforms="15" />
 	</Node>
-	<Node Name="Lgi" Type="1" Platforms="15" Open="0">
+	<Node Name="Lgi" Type="1" Platforms="15" Open="1">
 		<Node File="../src/common/Text/GDocView.cpp" Type="2" Platforms="15" />
 		<Node File="../src/common/Lgi/GMdi.cpp" Type="2" Platforms="15" />
 		<Node File="../src/common/Text/GTextView3.cpp" Type="2" Platforms="15" />
@@ -99,10 +99,7 @@
 					<Release>`pkg-config --libs gtk+-2.0`
 -static-libgcc</Release>
 				</Linux>
-				<Haiku>
-					<Debug></Debug>
-					<Release></Release>
-				</Haiku>
+				<Haiku />
 				<All />
 			</Libraries>
 			<LibraryPaths>

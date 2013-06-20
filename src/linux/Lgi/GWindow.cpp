@@ -9,7 +9,8 @@
 using namespace Gtk;
 #include "LgiWidget.h"
 
-#define DEBUG_SETFOCUS		0
+#define DEBUG_SETFOCUS			0
+#define DEBUG_HANDLEVIEWKEY		0
 
 ///////////////////////////////////////////////////////////////////////
 class HookInfo
@@ -378,8 +379,6 @@ bool GWindow::HandleViewMouse(GView *v, GMouse &m)
 		}
 	}
 */
-
-#define DEBUG_HANDLEVIEWKEY		1
 
 bool GWindow::HandleViewKey(GView *v, GKey &k)
 {

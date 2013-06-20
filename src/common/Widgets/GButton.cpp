@@ -100,10 +100,7 @@ bool GButton::Default()
 	{
 		return GetWindow()->_Default == this;
 	}
-	else
-	{
-		printf("%s:%i - No window.\n", _FL);
-	}
+	else LgiTrace("%s:%i - No window.\n", _FL);
 	
 	return false;
 }
@@ -174,8 +171,6 @@ void GButton::OnMouseClick(GMouse &m)
 
 				Invalidate();
 
-				LgiTrace("GButton '%s' Mouse=%i Pressed=%x\n", Name(), m.Down(), d->Pressed);
-				
 				if (!m.Down() &&
 					d->Pressed == 0)
 				{
@@ -185,7 +180,7 @@ void GButton::OnMouseClick(GMouse &m)
 			}
 		}
 	}
-	else printf("%s:%i - Not enabled.\n", _FL);
+	else LgiTrace("%s:%i - Not enabled.\n", _FL);
 }
 
 void GButton::OnMouseEnter(GMouse &m)
@@ -262,7 +257,6 @@ bool GButton::OnKey(GKey &k)
 					OnClick();
 				}
 			}
-			// else printf("No change.\n");
 
 			return true;
 			break;
@@ -274,7 +268,6 @@ bool GButton::OnKey(GKey &k)
 
 void GButton::OnClick()
 {
-	printf("GButton::OnClick() name='%s'\n", Name());
 	SendNotify();
 }
 

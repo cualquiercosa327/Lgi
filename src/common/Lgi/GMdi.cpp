@@ -2,7 +2,7 @@
 #include "GMdi.h"
 #include <stdio.h>
 
-#define DEBUG_MDI			1
+#define DEBUG_MDI			0
 
 enum GMdiDrag
 {
@@ -114,6 +114,8 @@ public:
 	GMdiParentPrivate()
 	{
 		InOnPosChange = false;
+		Tabs.ZOff(-1, -1);
+		Content.ZOff(-1, -1);
 	}
 };
 
@@ -156,6 +158,7 @@ bool GMdiChild::Detach()
 {
 	#if MDI_TAB_STYLE
 	GMdiParent *par = dynamic_cast<GMdiParent*>(GetParent());
+	printf("GMdiChild::Detach par=%p\n", par);
 	if (par)
 	{
 		LgiAssert(par->d->Children.HasItem(this));
