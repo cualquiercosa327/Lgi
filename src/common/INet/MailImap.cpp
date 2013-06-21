@@ -1,4 +1,7 @@
 #include <time.h>
+#ifdef LINUX
+#include <unistd.h>
+#endif
 
 #include "Lgi.h"
 #include "GToken.h"
@@ -1052,7 +1055,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 							}
 						}						
 					}
-					#if (GPL_COMPATIBLE || defined(_LIBNTLM_H)) && !defined(MAC)
+					#if (GPL_COMPATIBLE || defined(_LIBNTLM_H)) && defined(WIN32NATIVE)
 					else if (stricmp(AuthType, "NTLM") == 0)
 					{
 						// NT Lan Man authentication

@@ -125,7 +125,7 @@ GMessage CreateMsg(int m, int a, int b)
 	return Msg;
 }
 
-bool LgiGetMimeTypeExtensions(char *Mime, GArray<char*> &Ext)
+bool LgiGetMimeTypeExtensions(const char *Mime, GArray<char*> &Ext)
 {
 	int Start = Ext.Length();
 	char *e;
@@ -336,7 +336,7 @@ int LgiRand(int Limit)
 	return rand() % Limit;
 }
 
-bool LgiPlaySound(char *FileName, int ASync)
+bool LgiPlaySound(const char *FileName, int ASync)
 {
 	return LgiExecute(FileName);
 }

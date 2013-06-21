@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include "GArray.h"
 #include "GString.h"
+#include "LgiClass.h"
 
 template<typename CHAR>
 uint LgiHash(CHAR *v, int l, bool Case)

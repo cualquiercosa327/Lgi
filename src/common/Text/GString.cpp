@@ -287,7 +287,7 @@ char *strupr(char *a)
 {
 	for (char *s = a; s && *s; s++)
 	{
-		*s = tolower(*s);
+		*s = toupper(*s);
 	}
 
 	return a;

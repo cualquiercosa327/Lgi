@@ -421,7 +421,7 @@ bool ResolveShortcut(const char *LinkFile, char *Path, int Len)
 	return Status;
 }
 
-void WriteStr(GFile &f, char *s)
+void WriteStr(GFile &f, const char *s)
 {
 	ulong Len = (s) ? strlen(s) : 0;
 	f << Len;
@@ -473,7 +473,7 @@ char *ReadStr(GFile &f DeclDebugArgs)
 	return s;
 }
 
-int SizeofStr(char *s)
+int SizeofStr(const char *s)
 {
 	return sizeof(ulong) + ((s) ? strlen(s) : 0);
 }

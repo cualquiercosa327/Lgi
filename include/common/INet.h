@@ -23,10 +23,6 @@
 	#include <sys/socket.h>
 	#include <netdb.h>
 
-#elif defined ATHEOS
-
-	#include <atheos/socket.h>
-
 #else
 
 typedef int SOCKET;

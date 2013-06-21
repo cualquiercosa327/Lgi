@@ -75,6 +75,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../include/common/GArray.h \
 	../include/common/GAutoPtr.h \
 	../include/common/GBitmap.h \
+	../include/common/GBox.h \
 	../include/common/GButton.h \
 	../include/common/GCapabilities.h \
 	../include/common/GCheckBox.h \
@@ -94,7 +95,6 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../include/common/GDocView.h \
 	../include/common/GDom.h \
 	../include/common/GDragAndDrop.h \
-	../include/common/GDropFiles.h \
 	../include/common/GEdit.h \
 	../include/common/GFile.h \
 	../include/common/GFileSelect.h \
@@ -112,7 +112,6 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../include/common/GMatrix.h \
 	../include/common/GMem.h \
 	../include/common/GMenu.h \
-	../include/common/GMenuImpl.h \
 	../include/common/GMime.h \
 	../include/common/GMru.h \
 	../include/common/GMutex.h \
@@ -170,7 +169,6 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../include/linux/Gtk/LgiWidget.h \
 	../include/linux/Gtk/LgiWinManGlue.h \
 	../include/win32/GSymLookup.h \
-	../include/win32/LgiOsDefs.h \
 	../src/common/Gdc2/15Bit.cpp \
 	../src/common/Gdc2/16Bit.cpp \
 	../src/common/Gdc2/24Bit.cpp \
@@ -237,6 +235,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../src/common/Text/GUtf8.cpp \
 	../src/common/Text/GXmlTree.cpp \
 	../src/common/Widgets/GBitmap.cpp \
+	../src/common/Widgets/GBox.cpp \
 	../src/common/Widgets/GButton.cpp \
 	../src/common/Widgets/GCheckBox.cpp \
 	../src/common/Widgets/GCombo.cpp \
@@ -271,31 +270,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../src/linux/Lgi/GThread.cpp \
 	../src/linux/Lgi/GView.cpp \
 	../src/linux/Lgi/GWidgets.cpp \
-	../src/linux/Lgi/GWindow.cpp \
-	../src/win32/Gdc2/Gdc2.cpp \
-	../src/win32/Gdc2/GdiLeak.cpp \
-	../src/win32/Gdc2/GMemDC.cpp \
-	../src/win32/Gdc2/GPrintDC.cpp \
-	../src/win32/Gdc2/GScreenDC.cpp \
-	../src/win32/General/GFile.cpp \
-	../src/win32/General/GMem.cpp \
-	../src/win32/INet/MibAccess.cpp \
-	../src/win32/Lgi/GApp.cpp \
-	../src/win32/Lgi/GClipBoard.cpp \
-	../src/win32/Lgi/GFileSelect.cpp \
-	../src/win32/Lgi/GGeneral.cpp \
-	../src/win32/Lgi/GLayout.cpp \
-	../src/win32/Lgi/GMenu.cpp \
-	../src/win32/Lgi/GPrinter.cpp \
-	../src/win32/Lgi/GScrollBar.cpp \
-	../src/win32/Lgi/GThread.cpp \
-	../src/win32/Lgi/GView.cpp \
-	../src/win32/Lgi/GWindow.cpp \
-	../src/win32/Lgi/LgiException.cpp \
-	../src/win32/Widgets/GDialog.cpp \
-	../src/win32/Widgets/GEdit.cpp \
-	../src/win32/Widgets/GProgress.cpp \
-	../src/win32/Widgets/GSlider.cpp
+	../src/linux/Lgi/GWindow.cpp
 	export Build=$(Build); \
 	$(MAKE) -C .. -f Makefile.linux
 
@@ -353,7 +328,8 @@ GHistory.o : ./Code/GHistory.cpp ../include/common/Lgi.h \
 IdeDoc.o : ./Code/IdeDoc.cpp ../include/common/Lgi.h \
 	../include/common/GToken.h \
 	../include/common/GLexCpp.h \
-	../include/common/INet.h
+	../include/common/INet.h \
+	../include/common/GClipBoard.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -508,7 +484,8 @@ GContainers.h : ../include/common/LgiInc.h \
 	../include/common/GStream.h
 
 GHashTable.h : ../include/common/GArray.h \
-	../include/common/GString.h
+	../include/common/GString.h \
+	../include/common/LgiClass.h
 
 GXmlTree.h : ../include/common/GHashTable.h \
 	../include/common/GRefCount.h \
@@ -522,13 +499,10 @@ GVariant.h : ../include/common/GDom.h \
 	../include/common/GContainers.h \
 	../include/common/GHashTable.h
 
-GMenu.h : ../include/common/GMenuImpl.h \
-	../include/common/GXmlTree.h \
+GMenu.h : ../include/common/GXmlTree.h \
 	../include/common/Res.h
 
 Res.h : ../include/common/GXmlTree.h
-
-GMenuImpl.h : ../include/common/GPopup.h
 
 GContainers.h : ../include/common/LgiInc.h \
 	../include/linux/Gtk/LgiOsDefs.h \

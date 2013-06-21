@@ -56,21 +56,21 @@ public:
 				if (strnicmp(File, "file:", 5) == 0) File += 5;
 
 				// Decode URI
-				char *i = File, *o = File;
-				while (*i)
+				char *in = File, *out = File;
+				while (*in)
 				{
-					if (*i == '%')
+					if (*in == '%')
 					{
-						char h[3] = { i[1], i[2], 0 };
-						*o++ = htoi(h);
-						i += 3;
+						char h[3] = { in[1], in[2], 0 };
+						*out++ = htoi(h);
+						in += 3;
 					}
 					else
 					{
-						*o++ = *i++;
+						*out++ = *in++;
 					}
 				}
-				*o++ = 0;
+				*out++ = 0;
 
 				// Check file exists..
 				if (FileExists(File))

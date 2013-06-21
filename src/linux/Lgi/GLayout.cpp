@@ -12,6 +12,8 @@
 #include "Lgi.h"
 #include "GScrollBar.h"
 
+#define M_SET_SCROLL		(M_USER + 0x2000)
+
 //////////////////////////////////////////////////////////////////////////////
 GLayout::GLayout()
 {
@@ -126,6 +128,17 @@ void GLayout::AttachScrollBars()
 
 bool GLayout::SetScrollBars(bool x, bool y)
 {
+	#ifdef M_SET_SCROLL
+	PostEvent(M_SET_SCROLL, x, y);
+	#else
+	_SetScrollBars(x, y);
+	#endif
+
+	return true;
+}
+
+bool GLayout::_SetScrollBars(bool x, bool y)
+{
 	static bool Processing = false;
 
 	if (!Processing &&
@@ -170,8 +183,6 @@ bool GLayout::SetScrollBars(bool x, bool y)
 
 		Processing = false;
 	}
-
-	return true;
 }
 
 int GLayout::OnNotify(GViewI *c, int f)
@@ -250,6 +261,14 @@ GRect &GLayout::GetClient(bool ClientSpace)
 
 GMessage::Param GLayout::OnEvent(GMessage *Msg)
 {
+	#ifdef M_SET_SCROLL
+	if (MsgCode(Msg) == M_SET_SCROLL)
+	{
+		_SetScrollBars(MsgA(Msg), MsgB(Msg));
+		return 0;
+	}
+	#endif
+
 	if (VScroll) VScroll->OnEvent(Msg);
 	if (HScroll) HScroll->OnEvent(Msg);
 	int Status = GView::OnEvent(Msg);

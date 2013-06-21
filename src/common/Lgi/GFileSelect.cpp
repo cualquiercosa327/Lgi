@@ -359,7 +359,6 @@ public:
 	GFolderList(GFileSelectDlg *dlg, int Id, int x, int y, int cx, int cy);
 	~GFolderList()
 	{
-		printf("%p::~GFolderList\n", this);
 	}	
 
 	void OnFolder();

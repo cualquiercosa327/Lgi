@@ -878,6 +878,7 @@ void GSlider::OnMouseMove(GMouse &m)
 	}
 }
 
+/*
 //////////////////////////////////////////////////////////////////////////////////
 #if defined(_MT) || defined(LINUX)
 #define LgiThreadBitmapLoad
@@ -1052,6 +1053,7 @@ void GBitmap::OnMouseClick(GMouse &m)
 		if (Dlg) Dlg->OnNotify(this, 0);
 	}
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 GItemContainer::GItemContainer()

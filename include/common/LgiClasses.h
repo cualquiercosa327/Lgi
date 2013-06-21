@@ -1071,6 +1071,7 @@ protected:
 	
 	#if defined(XPLATFORM_GLAYOUT)
 	void AttachScrollBars();
+	bool _SetScrollBars(bool x, bool y);
 	#endif
 	#if defined(MAC) && !XPLATFORM_GLAYOUT
 	friend class GLayoutScrollBar;

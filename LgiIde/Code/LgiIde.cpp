@@ -1528,6 +1528,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			{
 				Doc->GetEdit()->Undo();
 			}
+			else printf("%s:%i - No focus doc.\n", _FL);
 			break;
 		}
 		case IDM_REDO:
@@ -1537,6 +1538,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			{
 				Doc->GetEdit()->Redo();
 			}
+			else printf("%s:%i - No focus doc.\n", _FL);
 			break;
 		}
 		case IDM_FIND:
@@ -1546,6 +1548,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			{
 				Doc->GetEdit()->DoFind();
 			}
+			else printf("%s:%i - No focus doc.\n", _FL);
 			break;
 		}
 		case IDM_FIND_NEXT:
@@ -1555,6 +1558,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			{
 				Doc->GetEdit()->DoFindNext();
 			}
+			else printf("%s:%i - No focus doc.\n", _FL);
 			break;
 		}
 		case IDM_REPLACE:
@@ -1564,6 +1568,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			{
 				Doc->GetEdit()->DoReplace();
 			}
+			else printf("%s:%i - No focus doc.\n", _FL);
 			break;
 		}
 		case IDM_GOTO:
@@ -1573,6 +1578,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			{
 				Doc->GetEdit()->DoGoto();
 			}
+			else printf("%s:%i - No focus doc.\n", _FL);
 			break;
 		}
 		case IDM_CUT:

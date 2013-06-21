@@ -722,7 +722,7 @@ bool IdeProjectSettings::Serialize(GXmlTag *Parent, bool Write)
 		return false;
 	}
 
-	GXmlTag *t = Parent->GetTag(TagSettings, Write);
+	GXmlTag *t = Parent->GetTag(TagSettings, true);
 	if (!t)
 	{
 		LgiAssert(!"Can't find settings tags?");
