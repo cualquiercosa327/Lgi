@@ -1314,7 +1314,7 @@ bool GFolderList::OnKey(GKey &k)
 	{
 		case VK_BACKSPACE:
 		{
-			if (k.Down() && !k.IsChar && GetWindow())
+			if (k.Down() && GetWindow())
 			{
 				// Go up a directory
 				GViewI *v = GetWindow()->FindControl(IDC_UP);
@@ -1331,7 +1331,7 @@ bool GFolderList::OnKey(GKey &k)
 		case VK_KP_ENTER:
 		#endif
 		{
-			if (k.Down() && !k.IsChar && GetWindow())
+			if (k.Down() && GetWindow())
 			{
 				GFolderItem *Sel = dynamic_cast<GFolderItem*>(GetSelected());
 				if (Sel)

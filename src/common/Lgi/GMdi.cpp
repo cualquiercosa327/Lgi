@@ -7,13 +7,13 @@
 enum GMdiDrag
 {
 	DragNone	= 0,
-	DragMove	= 0x01,
-	DragLeft	= 0x02,
-	DragTop		= 0x04,
-	DragRight	= 0x08,
-	DragBottom	= 0x10,
-	DragClose	= 0x20,
-	DragSystem	= 0x40
+	DragMove	= 1 << 1,
+	DragLeft	= 1 << 2,
+	DragTop		= 1 << 3,
+	DragRight	= 1 << 4,
+	DragBottom	= 1 << 5,
+	DragClose	= 1 << 6,
+	DragSystem	= 1 << 7
 };
 
 class GMdiChildPrivate

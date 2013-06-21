@@ -2203,21 +2203,6 @@ LgiCursor GList::GetCursor(int x, int y)
 	return LCUR_Normal;
 }
 
-/*
-int GList::OnHitTest(int x, int y)
-{
-	GListColumn *Resize, *Over;
-	HitColumn(x, y, Resize, Over);
-	if (Resize)
-	{
-		SetCursor(LCUR_SizeHor);
-		return 1;
-	}
-
-	return -1;
-}
-*/
-
 void GList::OnMouseClick(GMouse &m)
 {
 	if (Lock(_FL))

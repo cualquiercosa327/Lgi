@@ -118,6 +118,9 @@ static gboolean lgi_widget_click(GtkWidget *widget, GdkEventButton *ev)
         m.Left(ev->button == 1);
         m.Middle(ev->button == 2);
         m.Right(ev->button == 3);
+        m.Alt((ev->state & GDK_MOD1_MASK) != 0);
+        m.Shift((ev->state & GDK_SHIFT_MASK) != 0);
+        m.Ctrl((ev->state & GDK_CONTROL_MASK) != 0);
 
 		// LgiTrace("%s::OnMouseClick %i,%i\n", v->GetClass(), m.x, m.y);
         v->_Mouse(m, false);

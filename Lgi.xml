@@ -143,18 +143,18 @@
 			<Node File="./src/common/Lgi/Lgi.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Lgi/LgiMsg.cpp" Type="2" Platforms="15" />
 		</Node>
-		<Node Name="Dialogs" Type="1" Platforms="15" Open="0">
+		<Node Name="Dialogs" Type="1" Platforms="15" Open="1">
 			<Node Name="Xp" Type="1" Platforms="15" Open="1">
-				<Node File=".\src\common\Lgi\GFileSelect.cpp" Type="2" Platforms="14" />
+				<Node File="./src/common/Lgi/GFileSelect.cpp" Type="2" Platforms="14" />
 			</Node>
 			<Node Name="Win32" Type="1" Platforms="15" Open="0">
 				<Node File="./src/win32/Lgi/GFileSelect.cpp" Type="2" Platforms="1" />
 			</Node>
-			<Node File=".\src\common\Lgi\GAlert.cpp" Type="2" Platforms="15" />
-			<Node File=".\include\common\GFileSelect.h" Type="3" Platforms="15" />
-			<Node File=".\src\common\Lgi\GFindReplace.cpp" Type="2" Platforms="15" />
-			<Node File=".\src\common\Lgi\GFontSelect.cpp" Type="2" Platforms="15" />
-			<Node File=".\src\common\Lgi\GInput.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/Lgi/GAlert.cpp" Type="2" Platforms="15" />
+			<Node File="./include/common/GFileSelect.h" Type="3" Platforms="15" />
+			<Node File="./src/common/Lgi/GFindReplace.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/Lgi/GFontSelect.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/Lgi/GInput.cpp" Type="2" Platforms="15" />
 		</Node>
 		<Node Name="Gdc2" Type="1" Platforms="15" Open="0">
 			<Node Name="_Core" Type="1" Platforms="15" Open="0">
@@ -221,12 +221,12 @@
 				<Node File=".\include\common\GdiLeak.h" Type="3" Platforms="15" />
 			</Node>
 		</Node>
-		<Node Name="General" Type="1" Platforms="15" Open="1">
-			<Node Name="Clipboard" Type="1" Platforms="15" Open="1">
+		<Node Name="General" Type="1" Platforms="15" Open="0">
+			<Node Name="Clipboard" Type="1" Platforms="15" Open="0">
 				<Node Name="Win32" Type="1" Platforms="15" Open="0">
 					<Node File="./src/win32/Lgi/GClipBoard.cpp" Type="2" Platforms="1" />
 				</Node>
-				<Node Name="Linux" Type="1" Platforms="15" Open="1">
+				<Node Name="Linux" Type="1" Platforms="15" Open="0">
 					<Node File="./src/linux/Lgi/GClipBoard.cpp" Type="2" Platforms="2" />
 				</Node>
 				<Node Name="Haiku" Type="1" Platforms="15" Open="0">
@@ -256,7 +256,7 @@
 			<Node File=".\include\common\GXmlTree.h" Type="3" Platforms="15" />
 		</Node>
 		<Node Name="Widgets" Type="1" Platforms="15" Open="0">
-			<Node Name="Common" Type="1" Platforms="15" Open="1">
+			<Node Name="Common" Type="1" Platforms="15" Open="0">
 				<Node File="./src/common/Widgets/GEdit.cpp" Type="2" Platforms="14" />
 				<Node File="./src/common/Text/GDocView.cpp" Type="2" Platforms="14" />
 				<Node File="./src/common/Widgets/GProgress.cpp" Type="2" Platforms="14" />

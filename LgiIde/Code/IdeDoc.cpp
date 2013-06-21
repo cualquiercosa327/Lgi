@@ -84,7 +84,7 @@ public:
 		LgiThinBorder(pDC, f, RAISED);
 		SysFont->Transparent(true);
 		{
-			GDisplayString ds(SysFont, "{}");
+			GDisplayString ds(SysFont, "{ }");
 			ds.Draw(pDC, f.x1 + 3, f.y1);
 		}
 
