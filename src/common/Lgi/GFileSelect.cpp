@@ -412,6 +412,21 @@ public:
 	void SetFolder(char *f);
 	void OnFolder();
 	void OnFile(char *f);
+
+	bool OnViewKey(GView *v, GKey &k)
+	{
+		if (k.vkey == VK_UP && k.Alt())
+		{
+			if (k.Down())
+			{
+				UpBtn->SendNotify();
+			}
+			
+			return true;
+		}
+
+		return false;
+	}
 };
 
 GFileSelectDlg::GFileSelectDlg(GFileSelectPrivate *select)
@@ -437,8 +452,6 @@ GFileSelectDlg::GFileSelectDlg(GFileSelectPrivate *select)
 	OldPos.Set(0, 0, 475, 350 + LgiApp->GetMetric(LGI_MET_DECOR_Y) );
 	SetPos(OldPos);
 
-	#if 1
-	
 	int x = 0, y = 0;
 	AddView(Tbl = new GTableLayout);
 
@@ -487,28 +500,6 @@ GFileSelectDlg::GFileSelectDlg(GFileSelectPrivate *select)
 	c = Tbl->GetCell(x++, y, true, 6);
 	c->Add(ShowHidden = new GCheckBox(IDC_SHOWHIDDEN, 14, 326, -1, -1, "Show hidden files."));
 	
-	#else
-
-	Children.Insert(Ctrl1 = new GText(IDC_STATIC, 14, 14, -1, -1, "Look in:"));
-	Children.Insert(Ctrl2 = new GEdit(IDC_PATH, 91, 7, 245, 21, ""));
-	Children.Insert(Ctrl3 = new GFolderDrop(this, IDC_DROP, 336, 7, 16, 21));
-	Children.Insert(BackBtn = new GIconButton(IDC_BACK, 378, 7, 27, 21, d->Icons, FSI_BACK));
-	Children.Insert(UpBtn = new GIconButton(IDC_UP, 406, 7, 27, 21, d->Icons, FSI_UPDIR));
-	Children.Insert(NewDirBtn = new GIconButton(IDC_NEW, 434, 7, 27, 21, d->Icons, FSI_NEWDIR));
-
-	Children.Insert(FileLst = new GFolderList(this, IDC_VIEW, 14, 35, 448, 226));
-
-	Children.Insert(Ctrl8 = new GText(IDC_STATIC, 14, 275, -1, -1, "File name:"));
-	Children.Insert(FileNameEdit = new GEdit(IDC_FILE, 100, 268, 266, 21, ""));
-	Children.Insert(SaveBtn = new GButton(IDOK, 392, 268, 70, 21, "Ok"));
-
-	Children.Insert(Ctrl9 = new GText(IDC_STATIC, 14, 303, -1, -1, "Files of type:"));
-	Children.Insert(FileTypeCbo = new GCombo(IDC_TYPE, 100, 296, 266, 21, ""));
-	Children.Insert(CancelBtn = new GButton(IDCANCEL, 392, 296, 70, 21, "Cancel"));
-
-	Children.Insert(ShowHidden = new GCheckBox(IDC_SHOWHIDDEN, 14, 326, -1, -1, "Show hidden files."));
-	
-	#endif
 
 	// Init
 	if (BackBtn)
@@ -570,10 +561,14 @@ GFileSelectDlg::GFileSelectDlg(GFileSelectPrivate *select)
 	// Size/layout
 	SetPos(d->InitSize);
 	MoveToCenter();
+
+	RegisterHook(this, GKeyEvents);
+	FileLst->Focus(true);
 }
 
 GFileSelectDlg::~GFileSelectDlg()
 {
+	UnregisterHook(this);
 	d->InitShowHiddenFiles = ShowHidden ? ShowHidden->Value() : false;
 	d->InitSize = GetPos();
 
