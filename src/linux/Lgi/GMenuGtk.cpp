@@ -668,6 +668,8 @@ Gtk::gint LgiKeyToGtkKey(int Key, const char *ShortCut)
 		return Key;
 	if (Key >= 'A' && Key <= 'Z')
 		return Key;
+	if (Key >= '0' && Key <= '9')
+		return Key;
 	
 	switch (Key)
 	{

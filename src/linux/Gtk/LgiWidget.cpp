@@ -273,7 +273,7 @@ static gboolean lgi_widget_key_event(GtkWidget *wid, GdkEventKey *e)
         k.Alt((e->state & 8) != 0);
         
         k.IsChar = !k.Ctrl() && (k.c16 >= ' ' && k.c16 <= 0x7f);
-        switch (k.c16)
+        switch (k.vkey)
         {
             case GDK_ISO_Left_Tab:
             case GDK_Tab:
@@ -281,7 +281,7 @@ static gboolean lgi_widget_key_event(GtkWidget *wid, GdkEventKey *e)
             	k.c16 = k.vkey = VK_TAB;
             	break;
             case GDK_Return:
-            case 0xff8d:
+            case GDK_KP_Enter:
             	k.IsChar = true;
             	k.c16 = k.vkey = VK_RETURN;
             	break;
@@ -290,23 +290,62 @@ static gboolean lgi_widget_key_event(GtkWidget *wid, GdkEventKey *e)
             	k.IsChar = !k.Ctrl() && !k.Alt();
             	break;
             case GDK_Left:
-            	k.vkey = VK_LEFT;
+            	k.vkey = k.c16 = VK_LEFT;
             	break;
             case GDK_Right:
-            	k.vkey = VK_RIGHT;
+            	k.vkey = k.c16 = VK_RIGHT;
             	break;
             case GDK_Up:
-            	k.vkey = VK_UP;
+            	k.vkey = k.c16 = VK_UP;
             	break;
             case GDK_Down:
-            	k.vkey = VK_DOWN;
+            	k.vkey = k.c16 = VK_DOWN;
             	break;
             case GDK_Home:
-            	k.vkey = VK_HOME;
+            	k.vkey = k.c16 = VK_HOME;
             	break;
             case GDK_End:
-            	k.vkey = VK_END;
+            	k.vkey = k.c16 = VK_END;
             	break;
+            
+            #define KeyPadMap(gdksym, ch, is) \
+            	case gdksym: k.c16 = ch; k.IsChar = is; break;
+            
+            KeyPadMap(GDK_KP_0, '0', true)
+            KeyPadMap(GDK_KP_1, '1', true)
+            KeyPadMap(GDK_KP_2, '2', true)
+            KeyPadMap(GDK_KP_3, '3', true)
+            KeyPadMap(GDK_KP_4, '4', true)
+            KeyPadMap(GDK_KP_5, '5', true)
+            KeyPadMap(GDK_KP_6, '6', true)
+            KeyPadMap(GDK_KP_7, '7', true)
+            KeyPadMap(GDK_KP_8, '8', true)
+            KeyPadMap(GDK_KP_9, '9', true)
+
+            KeyPadMap(GDK_KP_Space, ' ', true)
+            KeyPadMap(GDK_KP_Tab, '\t', true)
+			KeyPadMap(GDK_KP_F1, VK_F1, false)
+			KeyPadMap(GDK_KP_F2, VK_F2, false)
+			KeyPadMap(GDK_KP_F3, VK_F3, false)
+			KeyPadMap(GDK_KP_F4, VK_F4, false)
+			KeyPadMap(GDK_KP_Home, VK_HOME, false)
+			KeyPadMap(GDK_KP_Left, VK_LEFT, false)
+			KeyPadMap(GDK_KP_Up, VK_UP, false)
+			KeyPadMap(GDK_KP_Right, VK_RIGHT, false)
+			KeyPadMap(GDK_KP_Down, VK_DOWN, false)
+			KeyPadMap(GDK_KP_Page_Up, VK_PAGEUP, false)
+			KeyPadMap(GDK_KP_Page_Down, VK_PAGEDOWN, false)
+			KeyPadMap(GDK_KP_End, VK_END, false)
+			KeyPadMap(GDK_KP_Begin, VK_HOME, false)
+			KeyPadMap(GDK_KP_Insert, VK_INSERT, false)
+			KeyPadMap(GDK_KP_Delete, VK_DELETE, false)
+			KeyPadMap(GDK_KP_Equal, '=', true)
+			KeyPadMap(GDK_KP_Multiply, '*', true)
+			KeyPadMap(GDK_KP_Add, '+', true)
+			KeyPadMap(GDK_KP_Separator, '|', true) // is this right?
+			KeyPadMap(GDK_KP_Subtract, '-', true)
+			KeyPadMap(GDK_KP_Decimal, '.', true)
+			KeyPadMap(GDK_KP_Divide, '/', true)
         }
         
         // k.Trace("lgi_widget_key_event");
