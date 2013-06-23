@@ -2466,7 +2466,11 @@ bool GTag::MatchSimpleSelector
 void GTag::Restyle()
 {
 	int i;
-
+	if (Debug)
+	{
+		int asd=0;
+	}
+	
 	GArray<GCss::SelArray*> Maps;
 	GCss::SelArray *s;
 	if ((s = Html->CssStore.TypeMap.Find(Tag)))
@@ -2891,7 +2895,11 @@ void GTag::SetStyle()
 					XAlign = l.Type;
 			}
 			
-			Display(DispBlock); // Inline-block TD??? Nope.
+			if (Display() == DispInline ||
+				Display() == DispInlineBlock)
+			{
+				Display(DispBlock); // Inline-block TD??? Nope.
+			}
 			break;
 		}
 		case TAG_IMG:
@@ -5873,6 +5881,18 @@ void GHtml::OnAddStyle(const char *MimeType, const char *Styles)
 	{
 		const char *c = Styles;
 		CssStore.Parse(c);
+
+		GStringPipe p;
+		CssStore.Dump(p);
+		GAutoString a(p.NewStr());
+		GFile f;
+		if (f.Open("C:\\temp\\css.txt", O_WRITE))
+		{
+			f.Write(a, strlen(a));
+			f.Close();
+		}
+		
+		int asd=0;
 	}
 }
 
@@ -7539,6 +7559,9 @@ GCellStore::GCellStore(GTag *Table)
 	for (int i=0; i<Table->Children.Length(); i++)
 	{
 		r = ToTag(Table->Children[i]);
+		if (r->Display() == GCss::DispNone)
+			continue;
+			
 		if (r->TagId == TAG_TR)
 		{
 			FakeRow = 0;
@@ -7609,6 +7632,9 @@ GCellStore::GCellStore(GTag *Table)
 				GTag *cell = ToTag(r->Children[i]);
 				if (cell->TagId == TAG_TD)
 				{
+					if (cell->Display() == GCss::DispNone)
+						continue;
+						
 					while (Get(x, y))
 					{
 						x++;

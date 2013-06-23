@@ -1873,7 +1873,10 @@ void GCss::Selector::TokString(GAutoString &a, const char *&s)
 			||
 			IsDigit(*e)
 			||
-			strchr("-_,", *e)
+			strchr("-_", *e) // I removed ',' from this because it causes
+							 // css selector parsing to miss the end of the
+							 // selector: i.e.
+							 // table#id td.class,table#id td.class2
 		)
 	)
 		e++;
@@ -2136,6 +2139,31 @@ static const char *SkipComment(const char *c)
 		SkipWhiteSpace(c);
 	}
 	return c;
+}
+
+bool GCss::Store::Dump(GStream &out)
+{
+	const char *MapNames[] = {"TypeMap", "ClassMap", "IdMap", NULL};
+	SelectorMap *Maps[] = {&TypeMap, &ClassMap, &IdMap, NULL};
+	for (int i=0; Maps[i]; i++)
+	{
+		SelectorMap *m = Maps[i];
+		out.Print("%s = {\n", MapNames[i]);
+		const char *Key;
+		for (SelArray *a = m->First(&Key); a; a = m->Next(&Key))
+		{
+			out.Print("\t'%s' -> ", Key);
+			for (int n=0; n<a->Length(); n++)
+			{
+				GCss::Selector *sel = (*a)[n];
+				if (n) out.Print("\t\t");
+				out.Print("%i of %i: %s\n", n, a->Length(), sel->Raw.Get());
+				// out.Print("\t\t{ %s }\n", sel->Style);
+			}
+		}
+	}
+	
+	return true;
 }
 
 bool GCss::Store::Parse(const char *&c)

@@ -531,7 +531,8 @@ public:
 	};
 
 	/// This class parses and stores a selector. The job of matching selectors and
-	/// hashing them is still the resposibility of the calling library.
+	/// hashing them is still the responsibility of the calling library. If an application
+	/// needs some code to do that it can optionally use GCss::Store to do that.
 	class LgiClass Selector
 	{
 	public:
@@ -661,6 +662,7 @@ public:
 		}
 		
 		bool Parse(const char *&s);
+		bool Dump(GStream &out);
 	};
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
