@@ -23,6 +23,7 @@ public:
 		Ptr = 0;	
 	}
 	
+	const char *GetClass() { return "GdcApp16"; }
 	bool SetSurface(GBmpMem *d, GPalette *p, GBmpMem *a);
 	void SetPtr(int x, int y);
 	void IncX();
@@ -34,6 +35,7 @@ public:
 class LgiClass GdcApp16Set : public GdcApp16
 {
 public:
+	const char *GetClass() { return "GdcApp16Set"; }
 	void Set();
 	void VLine(int height);
 	void Rectangle(int x, int y);
@@ -43,6 +45,7 @@ public:
 class LgiClass GdcApp16And : public GdcApp16
 {
 public:
+	const char *GetClass() { return "GdcApp16And"; }
 	void Set();
 	void VLine(int height);
 	void Rectangle(int x, int y);
@@ -52,6 +55,7 @@ public:
 class LgiClass GdcApp16Or : public GdcApp16
 {
 public:
+	const char *GetClass() { return "GdcApp16Or"; }
 	void Set();
 	void VLine(int height);
 	void Rectangle(int x, int y);
@@ -61,6 +65,7 @@ public:
 class LgiClass GdcApp16Xor : public GdcApp16
 {
 public:
+	const char *GetClass() { return "GdcApp16Xor"; }
 	void Set();
 	void VLine(int height);
 	void Rectangle(int x, int y);

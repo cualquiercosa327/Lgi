@@ -24,6 +24,8 @@ protected:
 	uchar *Ptr;
 	uchar *APtr;
 
+	const char *GetClass() { return "GAlphaApp"; }
+
 	template<typename T>
 	void CreatePaletteLut(T *c, GPalette *Pal, int Scale = 255)
 	{
@@ -254,6 +256,8 @@ GApplicator *GAlphaFactory::Create(GColourSpace Cs, int Op)
 		switch (Cs)
 		{
 			default:
+				printf("%s:%i - Unknown colour space: 0x%x %s\n",
+					_FL, Cs, GColourSpaceToString(Cs));
 				LgiAssert(0);
 				break;
 			case CsIndex8:

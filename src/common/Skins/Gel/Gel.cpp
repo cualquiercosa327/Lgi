@@ -679,7 +679,11 @@ public:
 				Mem.Line(r.x1+1, r.y1+1, r.x1+1, r.y2-2);
 			}
 			r.Size(2, 2);
-			if (Callback) Callback(UserData, &Mem, r, false);
+			if (Callback)
+			{
+				Mem.Op(GDC_ALPHA);
+				Callback(UserData, &Mem, r, false);
+			}
 			State->pScreen->Blt(State->Rect.x1, State->Rect.y1, &Mem);
 		}
 	}

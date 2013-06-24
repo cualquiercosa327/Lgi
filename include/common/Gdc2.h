@@ -606,6 +606,8 @@ public:
 	GApplicator(COLOUR Colour) { c = Colour; }
 	virtual ~GApplicator() { }
 
+	virtual const char *GetClass() { return "GApplicator"; }
+
 	/// Get a parameter
 	virtual int GetVar(int Var) { return 0; }
 	/// Set a parameter

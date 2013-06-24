@@ -293,6 +293,8 @@ static GAutoString MenuItemParse(const char *s)
 	{
 		if (*in != '&' || in[1] == '&')
 			*out++ = *in;
+		else
+			*out++ = '_';
 		in++;
 	}
 	*out++ = 0;
@@ -347,7 +349,7 @@ GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, const char *txt, int Pos, const char
 {
 	GAutoString Txt = MenuItemParse(txt);
 	GBase::Name(txt);
-	Info = GtkCast(Gtk::gtk_menu_item_new_with_label(Txt), gtk_menu_item, GtkMenuItem);
+	Info = GtkCast(Gtk::gtk_menu_item_new_with_mnemonic(Txt), gtk_menu_item, GtkMenuItem);
 
 	Gtk::gulong ret = Gtk::g_signal_connect_data(Info,
 												"activate",

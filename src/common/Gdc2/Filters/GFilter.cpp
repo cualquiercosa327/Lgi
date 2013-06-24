@@ -1827,44 +1827,47 @@ GSurface *GdcDevice::Load(char *Name, bool UseOSLoader)
 			return pDC.Release();
 	}
 
-	GFile File;
-	if (File.Open(Name, O_READ))
+	if (FileExists(Name))
 	{
-		GAutoPtr<uchar, true> Hint(new uchar[16]);
-		memset(Hint, 0, 16);
-		if (File.Read(Hint, 16) == 0)
+		GFile File;
+		if (File.Open(Name, O_READ))
 		{
-			Hint.Reset(0);
+			GAutoPtr<uchar, true> Hint(new uchar[16]);
+			memset(Hint, 0, 16);
+			if (File.Read(Hint, 16) == 0)
+			{
+				Hint.Reset(0);
+			}
+
+			File.SetPos(0);
+
+			GAutoPtr<GFilter> Filter(GFilterFactory::New(Name, FILTER_CAP_READ, Hint));
+			if (Filter &&
+			    pDC.Reset(new GMemDC))
+			{
+	            GFilter::IoStatus s = Filter->ReadImage(pDC, &File);
+	            if (s != GFilter::IoSuccess)
+				{
+					pDC.Reset();
+					LgiTrace("%s:%i - Filter couldn't cope with '%s'.\n", _FL, Name);
+				}
+				if (s == GFilter::IoComponentMissing)
+				{
+				    const char *c = Filter->GetComponentName();
+				    LgiAssert(c);
+				    if (c)
+				    {
+				        GToken t(c, ",");
+				        for (int i=0; i<t.Length(); i++)
+				            NeedsCapability(t[i]);
+				    }
+				}
+			}
 		}
-
-		File.SetPos(0);
-
-		GAutoPtr<GFilter> Filter(GFilterFactory::New(Name, FILTER_CAP_READ, Hint));
-		if (Filter &&
-		    pDC.Reset(new GMemDC))
+		else
 		{
-            GFilter::IoStatus s = Filter->ReadImage(pDC, &File);
-            if (s != GFilter::IoSuccess)
-			{
-				pDC.Reset();
-				LgiTrace("%s:%i - Filter couldn't cope with '%s'.\n", _FL, Name);
-			}
-			if (s == GFilter::IoComponentMissing)
-			{
-			    const char *c = Filter->GetComponentName();
-			    LgiAssert(c);
-			    if (c)
-			    {
-			        GToken t(c, ",");
-			        for (int i=0; i<t.Length(); i++)
-			            NeedsCapability(t[i]);
-			    }
-			}
+			LgiTrace("%s:%i - Couldn't open '%s' for reading.\n", _FL, Name);
 		}
-	}
-	else
-	{
-		LgiTrace("%s:%i - Couldn't open '%s' for reading.\n", _FL, Name);
 	}
 	
 	#if WIN32NATIVE

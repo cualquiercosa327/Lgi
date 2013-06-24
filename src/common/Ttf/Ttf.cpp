@@ -2439,7 +2439,8 @@ void StretchBlt(	GSurface *pDest,
 int GlyphX, GlyphY;
 int SDiff, DDiff;
 
-class GdcFontApp : public GApplicator {
+class GdcFontApp : public GApplicator
+{
 
 	uchar *Ptr;
 	int Bytes;
@@ -2450,6 +2451,8 @@ public:
 		Ptr = 0;
 		Bytes = 0;
 	}
+
+	const char *GetClass() { return "GdcFontApp"; }
 
 	bool SetSurface(GBmpMem *d, GPalette *p, GBmpMem *a)
 	{

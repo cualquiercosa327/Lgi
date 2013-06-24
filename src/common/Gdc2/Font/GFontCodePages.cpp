@@ -176,7 +176,7 @@ bool LgiIsUtf8(const char *s, int len)
 	return true;
 
 Utf8Error:
-	LgiAssert(0);
+	LgiTrace("%s:%i - Invalid utf...\n", _FL);
 	return false;
 }
 				

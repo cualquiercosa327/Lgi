@@ -1,4 +1,3 @@
-
 /*hdr
 **      FILE:           GList.cpp
 **      AUTHOR:         Matthew Allen
@@ -19,45 +18,46 @@
 #include "GEdit.h"
 #include "GScrollBar.h"
 
-#define DRAG_NONE					0
-#define SELECT_ITEMS				1
-#define RESIZE_COLUMN				2
-#define DRAG_COLUMN					3
-#define CLICK_COLUMN				4
-#define TOGGLE_ITEMS				5
-#define CLICK_ITEM					6
+#define DRAG_NONE						0
+#define SELECT_ITEMS					1
+#define RESIZE_COLUMN					2
+#define DRAG_COLUMN						3
+#define CLICK_COLUMN					4
+#define TOGGLE_ITEMS					5
+#define CLICK_ITEM						6
 
 // Number of pixels you have to move the mouse until a drag is initiated.
-#define DRAG_THRESHOLD				4
+#define DRAG_THRESHOLD					4
 
 // Switches for various profiling code..
-#define GLIST_POUR_PROFILE			0
-#define GLIST_ONPAINT_PROFILE		0
+#define GLIST_POUR_PROFILE				0
+#define GLIST_ONPAINT_PROFILE			0
 
 // Options
-#define DOUBLE_BUFFER_PAINT			0
+#define DOUBLE_BUFFER_PAINT				0
+#define DOUBLE_BUFFER_COLUMN_DRAWING	0
 
 // Colours
-#define DragColumnColour			LC_LOW
+#define DragColumnColour				LC_LOW
 
 #if defined(WIN32)
 #if !defined(WS_EX_LAYERED)
-#define WS_EX_LAYERED				0x80000
+#define WS_EX_LAYERED					0x80000
 #endif
 #if !defined(LWA_ALPHA)
-#define LWA_ALPHA					2
+#define LWA_ALPHA						2
 #endif
 typedef BOOL (__stdcall *_SetLayeredWindowAttributes)(HWND hwnd, COLORREF crKey, BYTE bAlpha, DWORD dwFlags);
 #endif
 
-#define ForAllItems(Var)			List<GListItem>::I it = Items.Start(); for (GListItem *Var = *it; it.In(); it++, Var = *it)
-#define ForAllItemsReverse(Var)		Iterator<GListItem> ItemIter(&Items); for (GListItem *Var = ItemIter.Last(); Var; Var = ItemIter.Prev())
-#define VisibleItems()				CompletelyVisible // (LastVisible - FirstVisible + 1)
-#define MaxScroll()					max(Items.Length() - CompletelyVisible, 0)
+#define ForAllItems(Var)				List<GListItem>::I it = Items.Start(); for (GListItem *Var = *it; it.In(); it++, Var = *it)
+#define ForAllItemsReverse(Var)			Iterator<GListItem> ItemIter(&Items); for (GListItem *Var = ItemIter.Last(); Var; Var = ItemIter.Prev())
+#define VisibleItems()					CompletelyVisible // (LastVisible - FirstVisible + 1)
+#define MaxScroll()						max(Items.Length() - CompletelyVisible, 0)
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-#define DRAG_COL_ALPHA				0xc0
-#define LINUX_TRANS_COL				0
+#define DRAG_COL_ALPHA					0xc0
+#define LINUX_TRANS_COL					0
 
 class GDragColumn : public GWindow
 {
@@ -802,6 +802,7 @@ void GListColumn::OnPaint_Content(GSurface *pDC, GRect &r, bool FillBackground)
 			}
 
 			int x = (r.X()-d->cIcon->X()) / 2;
+			
 			pDC->Blt(	r.x1 + x + Off,
 						r.y1 + ((r.Y()-d->cIcon->Y())/2) + Off,
 						d->cIcon);
@@ -3389,17 +3390,40 @@ void GList::OnPaint(GSurface *pDC)
 		// Draw column headings
 		if (ColumnHeaders && ColumnHeader.Valid())
 		{
-			// Draw columns
+			GSurface *ColDC = pDC;
 			GRect cr = ColumnHeader;
 			int cx = cr.x1;
-			pDC->ClipRgn(&cr);
+			#if DOUBLE_BUFFER_COLUMN_DRAWING
+			GMemDC Bmp;
+			if (!pDC->SupportsAlphaCompositing())
+			{
+				if (Bmp.Create(ColumnHeader.X(), ColumnHeader.Y(), 32))
+				{
+					ColDC = &Bmp;
+					Bmp.Op(GDC_ALPHA);
+				}
+				else
+				{
+					ColDC = pDC;
+				}
+			}
+			else
+			{
+				ColDC = pDC;
+				pDC->ClipRgn(&cr);
+			}
 
+			printf("GList::OnPaint ***START*** %s %i\n",
+				GColourSpaceToString(ColDC->GetColourSpace()), ColDC->SupportsAlphaCompositing());
+			#endif
+			
+			// Draw columns
 			if (IconCol)
 			{
 				cr.x1 = cx;
 				cr.x2 = cr.x1 + IconCol->Width() - 1;
 				IconCol->d->Pos = cr;
-				IconCol->OnPaint(pDC, cr);
+				IconCol->OnPaint(ColDC, cr);
 				cx += IconCol->Width();
 			}
 
@@ -3409,7 +3433,7 @@ void GList::OnPaint(GSurface *pDC)
 				cr.x1 = cx;
 				cr.x2 = cr.x1 + c->Width() - 1;
 				c->d->Pos = cr;
-				c->OnPaint(pDC, cr);
+				c->OnPaint(ColDC, cr);
 				cx += c->Width();
 			}
 
@@ -3422,8 +3446,8 @@ void GList::OnPaint(GSurface *pDC)
 				#ifdef MAC
 				GArray<GColourStop> Stops;
 				GRect j(cr.x1, cr.y1, cr.x2-1, cr.y2-1); 
-				// pDC->Colour(Rgb24(160, 160, 160), 24);
-				// pDC->Line(r.x1, r.y1, r.x2, r.y1);
+				// ColDC->Colour(Rgb24(160, 160, 160), 24);
+				// ColDC->Line(r.x1, r.y1, r.x2, r.y1);
 					
 				Stops[0].Pos = 0.0;
 				Stops[0].Colour = Rgb32(255, 255, 255);
@@ -3434,29 +3458,41 @@ void GList::OnPaint(GSurface *pDC)
 				Stops[3].Pos = 1.0;
 				Stops[3].Colour = Rgb32(255, 255, 255);
 				
-				LgiFillGradient(pDC, j, true, Stops);
+				LgiFillGradient(ColDC, j, true, Stops);
 				
-				pDC->Colour(Rgb24(178, 178, 178), 24);
-				pDC->Line(cr.x1, cr.y2, cr.x2, cr.y2);
+				ColDC->Colour(Rgb24(178, 178, 178), 24);
+				ColDC->Line(cr.x1, cr.y2, cr.x2, cr.y2);
 				#else
 				if (GApp::SkinEngine)
 				{
 					GSkinState State;
-					State.pScreen = pDC;
+					State.pScreen = ColDC;
 					State.Rect = cr;
 					State.Enabled = Enabled();
 					GApp::SkinEngine->OnPaint_ListColumn(0, 0, &State);
 				}
 				else
 				{
-					LgiWideBorder(pDC, cr, RAISED);
-					pDC->Colour(LC_MED, 24);
-					pDC->Rectangle(&cr);
+					LgiWideBorder(ColDC, cr, RAISED);
+					ColDC->Colour(LC_MED, 24);
+					ColDC->Rectangle(&cr);
 				}
 				#endif
 			}
 
-			pDC->ClipRgn(0);
+			#if DOUBLE_BUFFER_COLUMN_DRAWING
+			printf("GList::OnPaint ***END*** %s %i\n",
+				GColourSpaceToString(ColDC->GetColourSpace()), ColDC->SupportsAlphaCompositing());
+
+			if (!pDC->SupportsAlphaCompositing())
+			{
+				pDC->Blt(ColumnHeader.x1, ColumnHeader.y1, &Bmp);
+			}
+			else
+			#endif
+			{
+				pDC->ClipRgn(0);
+			}
 		}
 
 		#if GLIST_ONPAINT_PROFILE

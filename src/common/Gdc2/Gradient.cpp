@@ -12,6 +12,8 @@ protected:
 	GRect Rect;
 
 public:
+	const char *GetClass() { return "GGradient"; }
+
 	bool SetSurface(GBmpMem *d, GPalette *p = 0, GBmpMem *a = 0)
 	{
 		Ptr = 0;
@@ -263,6 +265,8 @@ public:
 class GRadialGradient : public GGradient
 {
 public:
+	const char *GetClass() { return "GRadialGradient"; }
+
 	void Rectangle(int X, int Y)
 	{
 		COLOUR Fore = CBit(24, c, Dest->Bits);

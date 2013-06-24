@@ -934,7 +934,8 @@ void GSurface::Blt(int x, int y, GSurface *Src, GRect *a)
 
 				pApp->SetPtr(DClip.x1, DClip.y1);
 				GPalette *SrcPal = Src->DrawOnAlpha() ? NULL : Src->Palette();
-				pApp->Blt(&Bits, SrcPal, Alpha.Base ? &Alpha : 0);
+				// printf("\t%p::Blt pApp=%p, %s\n", this, pApp, pApp->GetClass());
+				pApp->Blt(&Bits, SrcPal, Alpha.Base ? &Alpha : NULL);
 				Update(GDC_BITS_CHANGE);
 
 				if (pApp->GetFlags() & GDC_UPDATED_PALETTE)
@@ -1365,12 +1366,27 @@ GApplicator *GSurface::CreateApplicator(int Op, GColourSpace Cs)
 {
 	GApplicator *pA = NULL;
 
-	if (!Cs && pMem)
+	if (!Cs)
 	{
-		if (DrawOnAlpha())
-			Cs = CsIndex8;
+		if (pMem)
+		{
+			if (DrawOnAlpha())
+			{
+				Cs = CsIndex8;
+			}
+			else if (pMem->Cs)
+			{
+				Cs = pMem->Cs;
+			}
+			else
+			{
+				LgiAssert(!"Memory context has no colour space...");
+			}
+		}
 		else
-			Cs = pMem->Cs;
+		{
+			LgiAssert(!"No memory context to read colour space from.");
+		}
 	}
 	
 	pA = GApplicatorFactory::NewApp(Cs, Op);
