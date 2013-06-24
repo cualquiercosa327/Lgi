@@ -118,6 +118,7 @@ protected:
 	GViewI			*Window;
 	
 	void OnAttach(bool Attach);
+	void ClearHandle();
 
 public:
 	/// Constructor
@@ -291,6 +292,7 @@ protected:
 	virtual void _PaintText(GSurface *pDC, int x, int y, int Width);
 
 	void OnAttach(bool Attach);
+	void ClearHandle();
 
 public:
 	GMenuItem();

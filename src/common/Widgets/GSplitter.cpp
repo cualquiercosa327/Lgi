@@ -45,6 +45,8 @@ GSplitter::GSplitter()
 	d->BorderB = false;
 	d->SplitFollow = false;
 	d->BarSize = SPLITER_BAR_DEFAULT;
+	d->Vertical = true;
+	d->SplitPos = 100;
 
 	GRect r(0, 0, 2000, 1000);
 	SetPos(r);

@@ -150,6 +150,15 @@ GSubMenu *GSubMenu::AppendSub(const char *Str, int Where)
 	return 0;
 }
 
+void GSubMenu::ClearHandle()
+{
+	Info = NULL;
+	for (GMenuItem *i = Items.First(); i; i = Items.Next())
+	{
+		i->ClearHandle();
+	}
+}
+
 void GSubMenu::Empty()
 {
 	GMenuItem *i;
@@ -867,6 +876,13 @@ GSubMenu *GMenuItem::GetParent()
 	return Parent;
 }
 
+void GMenuItem::ClearHandle()
+{
+	Info = NULL;
+	if (Child)
+		Child->ClearHandle();
+}
+
 bool GMenuItem::Remove()
 {
 	if (!Parent)
@@ -877,16 +893,17 @@ bool GMenuItem::Remove()
 
 	if (Info)
 	{
+		/*
 		if (Child)
-		{
 			DeleteObj(Child);
-		}
+		*/
 
 		LgiAssert(Info->item.bin.container.widget.object.parent_instance.g_type_instance.g_class);
+		Gtk::GtkContainer *c = GtkCast(Parent->Info, gtk_container, GtkContainer);
 		Gtk::GtkWidget *w = GtkCast(Info, gtk_widget, GtkWidget);
 		// LgiTrace("%p::~GMenuItem w=%p name=%s\n", this, w, Name());
-		Gtk::gtk_widget_destroy(w);
-		Info = NULL;
+		Gtk::gtk_container_remove(c, w);
+		// ClearHandle();
 	}
 
 	Parent->Items.Delete(this);

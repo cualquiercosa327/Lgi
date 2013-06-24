@@ -83,7 +83,7 @@
 				<Node File="./include/common/GHashTable.h" Type="3" Platforms="15" />
 				<Node File="./include/common/GMem.h" Type="3" Platforms="15" />
 			</Node>
-			<Node Name="Menus" Type="1" Platforms="15" Open="1">
+			<Node Name="Menus" Type="1" Platforms="15" Open="0">
 				<Node Name="Haiku" Type="1" Platforms="15" Open="0">
 					<Node File="./src/beos/Lgi/GMenu.cpp" Type="2" Platforms="8" />
 				</Node>
@@ -99,10 +99,10 @@
 				<Node File=".\src\common\Lgi\GProcess.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GProcess.h" Type="3" Platforms="15" />
 			</Node>
-			<Node Name="Resources" Type="1" Platforms="15" Open="0">
-				<Node File=".\src\common\Resource\LgiRes.cpp" Type="2" Platforms="15" />
+			<Node Name="Resources" Type="1" Platforms="15" Open="1">
+				<Node File="./src/common/Resource/LgiRes.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/LgiRes.h" Type="3" Platforms="15" />
-				<Node File=".\src\common\Resource\Res.cpp" Type="2" Platforms="15" />
+				<Node File="./src/common/Resource/Res.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/Res.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Skin" Type="1" Platforms="15" Open="1">
@@ -255,7 +255,7 @@
 			<Node File="./src/common/Text/GXmlTree.cpp" Type="2" Platforms="15" />
 			<Node File="./include/common/GXmlTree.h" Type="3" Platforms="15" />
 		</Node>
-		<Node Name="Widgets" Type="1" Platforms="15" Open="0">
+		<Node Name="Widgets" Type="1" Platforms="15" Open="1">
 			<Node Name="Common" Type="1" Platforms="15" Open="1">
 				<Node File="./src/common/Widgets/GEdit.cpp" Type="2" Platforms="14" />
 				<Node File="./src/common/Text/GDocView.cpp" Type="2" Platforms="14" />
@@ -365,17 +365,12 @@
 					<Debug>WIN32NATIVE</Debug>
 					<Release>WIN32NATIVE</Release>
 				</Windows>
-				<Linux />
 			</Defines>
 			<Compiler>
 				<Windows>MingW</Windows>
 			</Compiler>
-			<Executable>
-				<Linux />
-			</Executable>
-			<Arguments>
-				<All />
-			</Arguments>
+			<Executable />
+			<Arguments />
 		</General>
 		<Build>
 			<IncludePaths>
@@ -437,7 +432,6 @@ be
 game
 textencoding</Release>
 				</Haiku>
-				<All />
 			</Libraries>
 			<TargetType>
 				<All>DynamicLibrary</All>
@@ -456,10 +450,7 @@ textencoding</Release>
 					<Release>lgi</Release>
 				</Linux>
 			</TargetName>
-			<LibraryPaths>
-				<All />
-				<Linux />
-			</LibraryPaths>
+			<LibraryPaths />
 		</Build>
 		<Editor>
 			<TabSize>
@@ -474,11 +465,7 @@ textencoding</Release>
 			<UseHardTabs>
 				<All>1</All>
 			</UseHardTabs>
-			<CommentFile />
-			<CommentFunction />
 		</Editor>
-		<Advanced>
-			<OtherMakefileRules />
-		</Advanced>
+		<Advanced />
 	</Settings>
 </Project>
