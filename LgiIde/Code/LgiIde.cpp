@@ -1916,8 +1916,7 @@ GTree *AppWnd::GetTree()
 
 IdeDoc *AppWnd::TopDoc()
 {
-	GAutoPtr<GViewIterator> i(d->Mdi->IterateViews());
-	return i ? dynamic_cast<IdeDoc *>(i->Last()) : 0;
+	return dynamic_cast<IdeDoc*>(d->Mdi->GetTop());
 }
 	
 IdeDoc *AppWnd::FocusDoc()
@@ -1928,6 +1927,14 @@ IdeDoc *AppWnd::FocusDoc()
 		if (Doc->GetEdit()->Focus())
 		{
 			return Doc;
+		}
+		else
+		{
+			GViewI *f = GetFocus();
+			printf("%s:%i - Edit doesn't have focus, f=%p %s doc.edit=%p %s\n",
+				_FL, f, f ? f->GetClass() : 0,
+				Doc->GetEdit(),
+				Doc->Name());
 		}
 	}
 	

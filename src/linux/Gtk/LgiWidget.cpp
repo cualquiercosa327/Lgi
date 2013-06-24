@@ -1,5 +1,7 @@
 #include "Lgi.h"
 
+#define DEBUG_KEY_EVENT		0
+
 using namespace Gtk;
 #include "LgiWidget.h"
 #include "gdk/gdkkeysyms.h"
@@ -348,7 +350,9 @@ static gboolean lgi_widget_key_event(GtkWidget *wid, GdkEventKey *e)
 			KeyPadMap(GDK_KP_Divide, '/', true)
         }
         
-        // k.Trace("lgi_widget_key_event");
+        #if DEBUG_KEY_EVENT
+        k.Trace("lgi_widget_key_event");
+        #endif
 
         GWindow *w = v->GetWindow();
         if (w)

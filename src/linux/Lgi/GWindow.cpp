@@ -1142,8 +1142,12 @@ static GAutoString DescribeView(GViewI *v)
 	}
 	for (int n=min(3, p.Length()-1); n>=0; n--)
 	{
+		char Buf[256] = "";
+		if (!stricmp(v->GetClass(), "GMdiChild"))
+			sprintf(Buf, "'%s'", v->Name());
 		v = p[n];
-		ch += sprintf_s(s + ch, sizeof(s) - ch, ">%s", v->GetClass());
+		
+		ch += sprintf_s(s + ch, sizeof(s) - ch, "%s>%s", Buf, v->GetClass());
 	}
 	return GAutoString(NewStr(s));
 }

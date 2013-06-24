@@ -592,6 +592,8 @@ void GMdiChild::Raise()
 			p->d->Tabs.ZOff(-1, -1);
 			p->OnPosChange();
 		}
+		
+		Focus(true);
 
 		#if DEBUG_MDI
 		LgiTrace("GMdiChild::Raise() '%s'\n", Name());
@@ -1010,6 +1012,11 @@ bool GMdiParent::GetChildren(::GArray<GMdiChild*> &Views)
 	Views.Sort(ViewCmp);
 	#endif
 	return Views.Length() > 0;
+}
+
+GViewI *GMdiParent::GetTop()
+{
+	return d->Children.Last();
 }
 
 #if MDI_TAB_STYLE

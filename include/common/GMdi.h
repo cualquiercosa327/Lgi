@@ -60,6 +60,7 @@ public:
 	void OnChildrenChanged(GViewI *Wnd, bool Attaching);
 	GRect NewPos();
 	bool GetChildren(GArray<GMdiChild*> &Views);
+	GViewI *GetTop();
 	
 	#if MDI_TAB_STYLE
 	void OnPosChange();

@@ -290,10 +290,20 @@ static GAutoString MenuItemParse(const char *s)
 	const char *in = s;
 	while (in && *in && out < buf + sizeof(buf) - 1)
 	{
-		if (*in != '&' || in[1] == '&')
-			*out++ = *in;
-		else
+		if (*in == '_')
+		{
 			*out++ = '_';
+			*out++ = '_';
+		}
+		else if (*in != '&' || in[1] == '&')
+		{
+			*out++ = *in;
+		}
+		else
+		{
+			*out++ = '_';
+		}
+		
 		in++;
 	}
 	*out++ = 0;
