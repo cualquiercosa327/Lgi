@@ -799,6 +799,7 @@ bool GView::GetMouse(GMouse &m, bool ScreenCoords)
 			m.y = y;
 		}
 		
+		return true;
 		#endif
 	}
 	else if (GetParent())

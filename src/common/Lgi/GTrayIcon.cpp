@@ -4,67 +4,20 @@
 #define SYSTEM_TRAY_BEGIN_MESSAGE   1
 #define SYSTEM_TRAY_CANCEL_MESSAGE  2
 
-////////////////////////////////////////////////////////////////////////////
-#ifdef XWIN
-
-OsView LgiGetSystemTray()
-{
-	/*
-	char Tray[64];
-	sprintf(Tray, "_NET_SYSTEM_TRAY_S%i", XDefaultScreen(Dsp));
-	Window SystemTrayWnd = XGetSelectionOwner(Dsp, XInternAtom(Dsp, Tray, false));
-	if (SystemTrayWnd)
-	{
-	}
-	else if (!SystemTrayWnd)
-	{
-		printf("%s:%i - Couldn't find SystemTrayWnd.\n", __FILE__, __LINE__);
-	}
-	
-	return SystemTrayWnd;
-	*/
-	
-	return 0;
-}
-
-void LgiSendTrayMessage(long Message, long Data1 = 0, long Data2 = 0, long Data3 = 0)
-{
-	/*
-	Atom XA_SysTrayOpCode = XInternAtom(Dsp, "_NET_SYSTEM_TRAY_OPCODE", false);
-	Window SystemTrayWnd = LgiGetSystemTray(Dsp);
-	if (SystemTrayWnd)
-	{
-		XEvent ev;
-
-		ZeroObj(ev);
-		ev.xclient.type = ClientMessage;
-		ev.xclient.window = SystemTrayWnd;
-		ev.xclient.message_type = XA_SysTrayOpCode;
-		ev.xclient.format = 32;
-		ev.xclient.data.l[0] = CurrentTime;
-		ev.xclient.data.l[1] = Message;
-		ev.xclient.data.l[2] = Data1;
-		ev.xclient.data.l[3] = Data2;
-		ev.xclient.data.l[4] = Data3;
-
-//		printf("%s:%i - XSendEvent\n", __FILE__, __LINE__);
-		XSendEvent(Dsp, SystemTrayWnd, false, NoEventMask, &ev);
-		XSync(Dsp, False);
-	}
-	else
-	{
-		printf("%s:%i - GTrayIcon::SendTrayMessage(...) Don't have the SystemTrayWnd.\n", __FILE__, __LINE__);
-	}
-	*/
-}
-
+#if defined(__GTK_H__)
+using namespace Gtk;
+class GTrayIconPrivate;
+void tray_icon_on_click(GtkStatusIcon *status_icon, GTrayIconPrivate *d);
+static void tray_icon_on_menu(GtkStatusIcon *status_icon, guint button, guint activate_time, GTrayIconPrivate *d);
 #endif
 
+////////////////////////////////////////////////////////////////////////////
 class GTrayIconPrivate
 {
 public:
 	GWindow *Parent;	// parent window
 	int Val;			// which icon is currently visible
+	bool Visible;
 
 	#if WIN32NATIVE
 	
@@ -78,23 +31,58 @@ public:
 	}
 	TrayIcon;
 
-	List<HICON> Icon;
+	typedef HICON IconRef;
+
+	#elif defined(__GTK_H__)
 	
-	#else
+	GtkStatusIcon *tray_icon;
+	typedef GAutoString *IconRef;
+	
+	void OnClick()
+	{
+		GdkScreen *s = gtk_status_icon_get_screen(tray_icon);
+		GdkDisplay *dsp =gdk_screen_get_display(s);
+		gint x, y;
+		GdkModifierType mask;
+		gdk_display_get_pointer(dsp, &s, &x, &y, &mask);
 		
-	List<GSurface> Icon;
-	GView *TrayWnd;
+		GMouse m;
+		m.x = x;
+		m.y = y;
+		m.Shift((mask & GDK_SHIFT_MASK) != 0);
+		m.Ctrl((mask & GDK_CONTROL_MASK) != 0);
+		m.Alt((mask & GDK_MOD1_MASK) != 0);
+		m.Left(true);
+		m.Down(true);
+		Parent->OnTrayClick(m);
+	}
 	
-	#ifdef MAC
-	bool Visible;
-	#endif
+	void OnMenu(guint button, guint activate_time)
+	{
+		GMouse m;
+		m.Left(button == 1);
+		m.Middle(button == 2);
+		m.Right(button == 3);
+		m.Down(true);
+		
+		LgiTrace("button=%x\n", button);
+		m.Trace("OnMenu");
+		Parent->OnTrayClick(m);
+	}
+
+	#else
+
+	typedef GSurface *IconRef;
 	
 	#endif
+
+	::GArray<IconRef> Icon;
 
 	GTrayIconPrivate(GWindow *p)
 	{
 		Parent = p;
 		Val = 0;
+		Visible = false;
 		
 		#if WIN32NATIVE
 		
@@ -102,13 +90,20 @@ public:
 		MyId = 0;
 		TrayCreateMsg = RegisterWindowMessage(TEXT("TaskbarCreated"));
 		
-		#else
+		#elif defined(__GTK_H__)
 
-		TrayWnd = 0;
-
-		#ifdef MAC
-		Visible = false;
-		#endif
+		tray_icon = Gtk::gtk_status_icon_new();
+		if (tray_icon)
+		{
+			g_signal_connect(G_OBJECT(tray_icon),
+							"activate", 
+							G_CALLBACK(tray_icon_on_click),
+							this);
+			g_signal_connect(G_OBJECT(tray_icon), 
+							 "popup-menu",
+							 G_CALLBACK(tray_icon_on_menu),
+							 this);
+		}
 		
 		#endif
 	}	
@@ -116,136 +111,27 @@ public:
 	~GTrayIconPrivate()
 	{
 		#if WIN32NATIVE
-		for (HICON *i=Icon.First(); i; i=Icon.Next())
+		for (int n=0; n<Icon.Length(); n++)
 		{
-			DeleteObject(*i);
+			DeleteObject(Icon[n]);
 		}
-		#endif
+		#else
 		Icon.DeleteObjects();
+		#endif
 	}
 
 };
 
-////////////////////////////////////////////////////////////////////////////
-#ifdef XWIN
-class GTrayWnd : public GView
+#if defined(__GTK_H__)
+static void tray_icon_on_click(GtkStatusIcon *status_icon, GTrayIconPrivate *d)
 {
-	GTrayIcon *TrayIcon;
-	int Atom_XEMBED;
+	d->OnClick();
+}
 
-public:
-	GTrayWnd(GTrayIcon *ti)
-	{
-		TrayIcon = ti;
-		
-		/*
-		Display *Dsp = Handle()->XDisplay();
-		Atom_XEMBED = XInternAtom(Dsp, "_XEMBED", false);
-		
-		XSizeHints *Sh = XAllocSizeHints();
-		if (Sh)
-		{
-			Sh->flags = USSize | PBaseSize;
-			Sh->base_width = Sh->width = 24;
-			Sh->base_height = Sh->height = 24;
-			XSetWMNormalHints(Dsp, Handle()->handle(), Sh);
-			XFree(Sh);
-		}		
-		
-		// Support for freedesktop.org
-		uint32 x[2] = { 0, 1 };
-		XChangeProperty(Dsp,
-						Handle()->handle(),
-						XInternAtom(Dsp, "_XEMBED_INFO", false),
-						XInternAtom(Dsp, "CARD32", false), // ??
-						32,
-						PropModeReplace,
-						(uchar*) &x,
-						2);
-
-
-		// Support for KDE
-		Window Win = Handle()->handle();
-		Atom kde_net_wm_system_tray_window_for = XInternAtom(Dsp, "_KDE_NET_WM_SYSTEM_TRAY_WINDOW_FOR", false);
-	    XChangeProperty(Dsp,
-	    				Handle()->handle(),
-	    				kde_net_wm_system_tray_window_for,
-	    				XA_WINDOW,
-	    				32,
-			    		PropModeReplace,
-			    		(unsigned char *)&Win,
-			    		1);
-
-		if (Handle() AND
-			Handle()->handle())
-		{
-			LgiSendTrayMessage(Dsp, SYSTEM_TRAY_REQUEST_DOCK, Handle()->handle());
-		}
-		else
-		{
-			printf("%s:%i - No handle()\n", __FILE__, __LINE__);
-		}
-		*/
-	}
-	
-	GMessage::Result OnEvent(GMessage *m)
-	{
-		switch (MsgCode(m))
-		{
-			case M_X11_REPARENT:
-			{
-				static uint64 LastReparent = 0; // don't ask.
-			
-				/*
-				Window NewParent = (Window)MsgA(m);
-				Window Desktop = XDefaultRootWindow(Handle()->XDisplay());
-				bool IsDesktop = NewParent == Desktop;
-				if (IsDesktop)
-				{
-					uint64 Now = LgiCurrentTime();
-
-					if (LastReparent + 1000 < Now)
-					{
-						Display *Dsp = Handle()->XDisplay();
-						XSync(Dsp, false);
-						LgiSendTrayMessage(Dsp, SYSTEM_TRAY_REQUEST_DOCK, Handle()->handle());
-						LastReparent = Now;
-					}
-				}
-				*/
-				
-				break;
-			}
-		}
-		
-		if (MsgCode(m) == Atom_XEMBED)
-		{
-			Invalidate();
-		}
-		
-		return GView::OnEvent(m);
-	}
-
-	void OnPaint(GSurface *pDC)
-	{
-		pDC->Colour(LC_MED, 24);
-		pDC->Rectangle();
-
-		GSurface *i = TrayIcon->d->Icon[TrayIcon->d->Val];
-		if (i)
-		{
-			pDC->Blt((pDC->X() - i->X()) / 2,
-					 (pDC->Y() - i->Y()) / 2,
-					 i);
-		}
-	}
-
-	void OnMouseClick(GMouse &m)
-	{
-		if (TrayIcon->d->Parent)
-			TrayIcon->d->Parent->OnTrayClick(m);
-	}
-};
+static void tray_icon_on_menu(GtkStatusIcon *status_icon, guint button, guint activate_time, GTrayIconPrivate *d)
+{
+	d->OnMenu(button, activate_time);
+}
 #endif
 
 ////////////////////////////////////////////////////////////////////////////
@@ -267,11 +153,19 @@ bool GTrayIcon::Load(const TCHAR *Str)
 	HICON i = ::LoadIcon(LgiProcessInst(), Str);
 	if (i)
 	{
-		d->Icon.Insert(new HICON(i));
+		d->Icon.Add(i);
 		return true;
 	}
 	
-	#elif defined(__GTK_H__) || defined(MAC)
+	#elif defined(__GTK_H__)
+
+	if (Str)	
+	{
+		GAutoString File(LgiFindFile(Str));
+		d->Icon.Add(new GAutoString(NewStr(File ? File : Str)));
+	}
+	
+	#else
 	
 	GAutoString File(LgiFindFile(Str));
 	if (File)
@@ -294,22 +188,11 @@ bool GTrayIcon::Load(const TCHAR *Str)
 
 			d->Icon.Insert(i);
 		}
-		else
-		{
-			printf("%s:%i - Couldn't load '%s'\n", __FILE__, __LINE__, Str);
-		}
+		else LgiTrace("%s:%i - Couldn't load '%s'\n", _FL, Str);
 
 		return i != 0;
 	}
-	else
-	{
-		printf("%s:%i - Couldn't find '%s'\n", __FILE__, __LINE__, Str);
-	}
-	
-	#else
-
-	// FIXME
-	#warning "Impl GTrayIcon::Load for this OS"
+	else LgiTrace("%s:%i - Couldn't find '%s'\n", _FL, Str);
 	
 	#endif
 
@@ -320,12 +203,8 @@ bool GTrayIcon::Visible()
 {
 	#if WIN32NATIVE
 	return d->TrayIcon.a.cbSize != 0;
-	#elif defined LINUX	
-	return d->TrayWnd;
-	#elif defined MAC
-	return d->Visible;
 	#else
-	return false;
+	return d->Visible;
 	#endif
 }
 
@@ -338,7 +217,7 @@ void GTrayIcon::Visible(bool v)
 			#if WIN32NATIVE
 			
 			static int Id = 1;
-			HICON *Cur = d->Icon[d->Val];
+			HICON Cur = d->Icon[d->Val];
 
 			ZeroObj(d->TrayIcon);
 			if (IsWin9x)
@@ -348,7 +227,7 @@ void GTrayIcon::Visible(bool v)
 				d->TrayIcon.a.uID = d->MyId = Id++;
 				d->TrayIcon.a.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
 				d->TrayIcon.a.uCallbackMessage = M_TRAY_NOTIFY;
-				d->TrayIcon.a.hIcon = Cur ? *Cur : 0;
+				d->TrayIcon.a.hIcon = Cur;
 				
 				char *n = LgiToNativeCp(Name());
 				strncpy(d->TrayIcon.a.szTip, n?n:"", sizeof(d->TrayIcon.a.szTip));
@@ -363,24 +242,36 @@ void GTrayIcon::Visible(bool v)
 				d->TrayIcon.w.uID = d->MyId = Id++;
 				d->TrayIcon.w.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
 				d->TrayIcon.w.uCallbackMessage = M_TRAY_NOTIFY;
-				d->TrayIcon.w.hIcon = Cur ? *Cur : 0;
+				d->TrayIcon.w.hIcon = Cur;
 				StrncpyW(d->TrayIcon.w.szTip, (char16*)(NameW()?NameW():L""), sizeof(d->TrayIcon.w.szTip));
 
 				Shell_NotifyIconW(NIM_ADD, &d->TrayIcon.w);
 			}
 			
-			#elif defined XWIN
-			
-			if (!d->TrayWnd)
+			#elif defined(__GTK_H__)
+
+			if (d->tray_icon)
 			{
-				d->TrayWnd = new GTrayWnd(this);
+				if (d->Val < 0 || d->Val >= d->Icon.Length())
+					d->Val = 0;
+				if (d->Val < d->Icon.Length())
+				{
+					char *Path = d->Icon[d->Val]->Get();
+					if (Path)
+					{
+						Gtk::gtk_status_icon_set_from_file(d->tray_icon, Path);					
+						Gtk::gtk_status_icon_set_tooltip(d->tray_icon, GBase::Name());
+						Gtk::gtk_status_icon_set_visible(d->tray_icon, true);
+					}
+				}
+				else LgiTrace("%s:%i - No icon to show in tray.\n", _FL);
 			}
+			else LgiTrace("%s:%i - No tray icon to hide.\n", _FL);
 			
 			#elif defined MAC
-			
+
 			if (!d->Visible)
 			{
-				d->Visible = true;
 				int Ico = d->Val;
 				d->Val = -1;
 				Value(Ico);
@@ -401,10 +292,13 @@ void GTrayIcon::Visible(bool v)
 				Shell_NotifyIconW(NIM_DELETE, &d->TrayIcon.w);
 			}
 			ZeroObj(d->TrayIcon);
-			
-			#elif defined XWIN
-			
-			DeleteObj(d->TrayWnd);
+
+			#elif defined(__GTK_H__)
+
+			if (d->tray_icon)
+				gtk_status_icon_set_visible(d->tray_icon, false);
+			else
+				LgiTrace("%s:%i - No tray icon to hide.\n", _FL);
 			
 			#elif defined MAC
 			
@@ -412,11 +306,12 @@ void GTrayIcon::Visible(bool v)
 			#else
 			RestoreApplicationDockTileImage();
 			#endif
-			d->Visible = false;
-			
+
 			#endif
 		}
 	}
+
+	d->Visible = v;
 }
 
 int64 GTrayIcon::Value()
@@ -434,7 +329,7 @@ void GTrayIcon::Value(int64 v)
 		
 		if (Visible())
 		{
-			HICON *Cur = d->Icon[d->Val];
+			HICON Cur = d->Icon[d->Val];
 
 			ZeroObj(d->TrayIcon);
 
@@ -445,7 +340,7 @@ void GTrayIcon::Value(int64 v)
 				d->TrayIcon.a.uID = d->MyId;
 				d->TrayIcon.a.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
 				d->TrayIcon.a.uCallbackMessage = M_TRAY_NOTIFY;
-				d->TrayIcon.a.hIcon = Cur ? *Cur : 0;
+				d->TrayIcon.a.hIcon = Cur;
 				char *n = LgiToNativeCp(Name());
 				strncpy(d->TrayIcon.a.szTip, n?n:"", sizeof(d->TrayIcon.a.szTip));
 				Shell_NotifyIconA(NIM_MODIFY, &d->TrayIcon.a);
@@ -457,18 +352,14 @@ void GTrayIcon::Value(int64 v)
 				d->TrayIcon.w.uID = d->MyId;
 				d->TrayIcon.w.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
 				d->TrayIcon.w.uCallbackMessage = M_TRAY_NOTIFY;
-				d->TrayIcon.w.hIcon = Cur ? *Cur : 0;
+				d->TrayIcon.w.hIcon = Cur;
 				StrncpyW(d->TrayIcon.w.szTip, (char16*)(NameW()?NameW():L""), sizeof(d->TrayIcon.w.szTip));
 				Shell_NotifyIconW(NIM_MODIFY, &d->TrayIcon.w);
 			}
 		}
 		
-		#elif defined LINUX
+		#elif defined __GTK_H__
 		
-		if (d->TrayWnd)
-		{
-			d->TrayWnd->Invalidate();
-		}
 		
 		#elif defined MAC
 		

@@ -236,7 +236,7 @@ bool GWindow::Attach(GViewI *p)
 	if (Wnd)
 	{
 		_View = GTK_WIDGET(Wnd);
-		GViewI *i = this;
+		GView *i = this;
 		
 		g_signal_connect(	G_OBJECT(Wnd),
 							"delete_event",

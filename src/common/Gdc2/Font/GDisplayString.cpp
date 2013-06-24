@@ -1,4 +1,3 @@
-
 //////////////////////////////////////////////////////////////////////
 // Includes
 #include <stdio.h>
@@ -575,7 +574,7 @@ void GDisplayString::TruncateWithDots(int Width)
 {
     Layout();
     
-	#if defined WIN32NATIVE
+	#if WIN32NATIVE
 	
 	if (Width < X() + 8)
 	{
@@ -663,7 +662,7 @@ void GDisplayString::Length(int New)
 {
     Layout();
 
-	#if defined WIN32NATIVE
+	#if WIN32NATIVE
 	
 	if (New < len)
 	{

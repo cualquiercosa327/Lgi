@@ -2466,10 +2466,6 @@ bool GTag::MatchSimpleSelector
 void GTag::Restyle()
 {
 	int i;
-	if (Debug)
-	{
-		int asd=0;
-	}
 	
 	GArray<GCss::SelArray*> Maps;
 	GCss::SelArray *s;

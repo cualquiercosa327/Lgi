@@ -2117,9 +2117,7 @@ bool GCss::Selector::Parse(const char *&s)
 		Prev = s;
 	}
 
-	#ifdef _DEBUG
 	Raw.Reset(NewStr(Start, s - Start));
-	#endif
 
 	return Parts.Length() > 0;
 }

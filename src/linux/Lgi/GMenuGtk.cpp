@@ -188,7 +188,6 @@ bool GSubMenu::IsContext(GMenuItem *Item)
 void GSubMenuDeactivate(Gtk::GtkMenuShell *widget, GSubMenu *Sub)
 {
 	Sub->OnDeactivate();
-	return 0;
 }
 
 void GSubMenu::OnDeactivate()
@@ -218,7 +217,7 @@ int GSubMenu::Float(GView *From, int x, int y, bool Left)
 	// This signal handles the case where the user cancels the menu by clicking away from it.
 	Gtk::g_signal_connect_data(GtkCast(Info, g_object, GObject), 
 						"deactivate", 
-						GSubMenuDeactivate,
+						(Gtk::GCallback)GSubMenuDeactivate,
 						this, NULL, (Gtk::GConnectFlags) 0);
 	
 	Gtk::gtk_widget_show_all(GtkCast(Info, gtk_widget, GtkWidget));

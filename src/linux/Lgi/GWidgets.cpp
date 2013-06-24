@@ -240,33 +240,33 @@ int GDialog::DoModal(OsView OverrideParent)
 	OnCreate();
 	AttachChildren();
 	d->IsModal = true;
-	GViewI *gvi = this;
+	GView *gv = this;
 	// printf("Setting up dialog event, Wnd=%p, gvi=%p, this=%p\n", Wnd, gvi, this);
 
 	g_signal_connect(	G_OBJECT(Wnd),
 						"delete_event",
 						G_CALLBACK(GtkViewCallback),
-						gvi);
+						gv);
 	g_signal_connect(	G_OBJECT(Wnd),
 						"configure-event",
 						G_CALLBACK(GtkViewCallback),
-						gvi);
+						gv);
 	g_signal_connect(	G_OBJECT(Wnd),
 						"destroy",
 						G_CALLBACK(GtkViewCallback),
-						gvi);
+						gv);
 	g_signal_connect(	G_OBJECT(Wnd),
 						"client-event",
 						G_CALLBACK(GtkViewCallback),
-						gvi);
+						gv);
 	g_signal_connect(	G_OBJECT(Wnd),
 						"focus-in-event",
 						G_CALLBACK(GtkViewCallback),
-						gvi);
+						gv);
 	g_signal_connect(	G_OBJECT(Wnd),
 						"focus-out-event",
 						G_CALLBACK(GtkViewCallback),
-						gvi);
+						gv);
 
 	if (!_Default)
 	{

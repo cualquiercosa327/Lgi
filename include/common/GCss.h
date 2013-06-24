@@ -595,9 +595,7 @@ public:
 		GArray<Part> Parts;
 		GArray<int> Combs;
 		char *Style;
-		#ifdef _DEBUG
 		GAutoString Raw;
-		#endif
 
 		Selector() { Style = NULL; }
 		void TokString(GAutoString &a, const char *&s);

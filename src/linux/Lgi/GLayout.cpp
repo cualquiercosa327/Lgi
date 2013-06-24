@@ -183,6 +183,8 @@ bool GLayout::_SetScrollBars(bool x, bool y)
 
 		Processing = false;
 	}
+	
+	return true;
 }
 
 int GLayout::OnNotify(GViewI *c, int f)
