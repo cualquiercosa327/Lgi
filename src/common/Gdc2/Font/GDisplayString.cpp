@@ -182,6 +182,15 @@ void GDisplayString::Layout()
 		}
 	}
 
+	if (Font->Underline())
+	{
+		Gtk::PangoAttrList *attrs = Gtk::pango_attr_list_new();
+		Gtk::PangoAttribute *attr = Gtk::pango_attr_underline_new(Gtk::PANGO_UNDERLINE_SINGLE);
+		Gtk::pango_attr_list_insert(attrs, attr);
+		Gtk::pango_layout_set_attributes(Hnd, attrs);
+		Gtk::pango_attr_list_unref(attrs);
+	}
+
 	Gtk::pango_layout_set_text(Hnd, Str, len);
 	
 	int px, py;
