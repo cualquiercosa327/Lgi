@@ -15,7 +15,7 @@ endif
 BuildDir = $(Build)
 
 Flags = -fPIC -w -fno-inline -fpermissive
-Defs = -DLINUX -D_REENTRANT -DLGI_LIBRARY
+Defs = -DLINUX -D_REENTRANT -D_FILE_OFFSET_BITS=64 -DLGI_LIBRARY
 
 ifeq ($(Build),Debug)
 	Defs += -D_DEBUG

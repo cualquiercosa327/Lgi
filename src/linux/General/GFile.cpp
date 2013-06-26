@@ -341,9 +341,26 @@ bool DirExists(const char *FileName, char *CorrectCase)
 		struct stat s;
 		
 		// Check for exact match...
-		if (stat(FileName, &s) == 0)
+		int r = lstat(FileName, &s);
+		if (r == 0)
 		{
-			Status = S_ISDIR(s.st_mode);
+			Status = S_ISDIR(s.st_mode) ||
+					 S_ISLNK(s.st_mode);
+			// printf("DirStatus(%s) lstat = %i, %i\n", FileName, Status, s.st_mode);
+		}
+		else
+		{
+			r = stat(FileName, &s);
+			if (r == 0)
+			{
+				Status = S_ISDIR(s.st_mode) ||
+					 	S_ISLNK(s.st_mode);
+				// printf("DirStatus(%s) stat ok = %i, %i\n", FileName, Status, s.st_mode);
+			}
+			else
+			{
+				printf("DirStatus(%s) lstat and stat failed, r=%i, errno=%i\n", FileName, r, errno);
+			}
 		}
 	}
 
@@ -859,7 +876,13 @@ bool GFileSystem::Delete(char *FileName, bool ToTrash)
 
 bool GFileSystem::CreateFolder(char *PathName)
 {
-	return mkdir(PathName, S_IRWXU | S_IXGRP | S_IXOTH) == 0;
+	int r = mkdir(PathName, S_IRWXU | S_IXGRP | S_IXOTH);
+	if (r)
+	{
+		printf("%s:%i - mkdir('%s') failed with %i, errno=%i\n", _FL, PathName, r, errno);
+	}
+	
+	return r == 0;
 }
 
 bool GFileSystem::RemoveFolder(char *PathName, bool Recurse)

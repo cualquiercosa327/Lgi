@@ -887,26 +887,22 @@ bool GMenuItem::Remove()
 {
 	if (!Parent)
 	{
-		LgiAssert(!"No parent to remove menu item from");
 		return false;
 	}
 
 	if (Info)
 	{
-		/*
-		if (Child)
-			DeleteObj(Child);
-		*/
-
 		LgiAssert(Info->item.bin.container.widget.object.parent_instance.g_type_instance.g_class);
-		Gtk::GtkContainer *c = GtkCast(Parent->Info, gtk_container, GtkContainer);
 		Gtk::GtkWidget *w = GtkCast(Info, gtk_widget, GtkWidget);
-		// LgiTrace("%p::~GMenuItem w=%p name=%s\n", this, w, Name());
-		Gtk::gtk_container_remove(c, w);
-		// ClearHandle();
+		if (Gtk::gtk_widget_get_parent(w))
+		{		
+			Gtk::GtkContainer *c = GtkCast(Parent->Info, gtk_container, GtkContainer);
+			Gtk::gtk_container_remove(c, w);
+		}
 	}
 
 	Parent->Items.Delete(this);
+	Parent = NULL;
 	return true;
 }
 

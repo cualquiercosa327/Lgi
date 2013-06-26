@@ -3333,6 +3333,9 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 						"Flags = -fPIC -w -fno-inline -fpermissive\n" // -fexceptions
 						"Defs = -D%s -D_REENTRANT",
 						PlatformCap);
+				#ifdef LINUX
+				m.Print(" -D_FILE_OFFSET_BITS=64"); // >:-(
+				#endif
 			}
 			
 			const char *PDefs = d->Settings.GetStr(ProjDefines, NULL, Platform);
