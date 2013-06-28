@@ -23,25 +23,6 @@
 
 static OsChar GDisplayStringDots[] = {'.', '.', '.', 0};
 
-class CharInfo
-{
-public:
-	OsChar *Str;
-	uint16 Len;
-	uint16 X;
-	uint8 FontId;
-	int8 SizeDelta;
-
-	CharInfo()
-	{
-		Str = 0;
-		Len = 0;
-		X = 0;
-		FontId = 0;
-		SizeDelta = 0;
-	}
-};
-
 GDisplayString::GDisplayString(GFont *f, const char *s, int l, GSurface *pdc)
 {
 	pDC = pdc;
@@ -57,8 +38,7 @@ GDisplayString::GDisplayString(GFont *f, const char *s, int l, GSurface *pdc)
 		printf("%s:%i - Not valid utf\n", _FL);
 	#endif
 	
-	Info = 0;
-	Blocks = x = y = 0;
+	x = y = 0;
 	TabOrigin = 0;
 	LaidOut = 0;
 	AppendDots = 0;
@@ -104,8 +84,7 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc)
 	len = Str ? strlen(Str) : 0;
 	#endif	
 	
-	Info = 0;
-	Blocks = x = y = 0;
+	x = y = 0;
 	TabOrigin = 0;
 	LaidOut = 0;
 	AppendDots = 0;
@@ -146,7 +125,6 @@ GDisplayString::~GDisplayString()
 	#endif
 	
 	DeleteArray(Str);
-	DeleteArray(Info);
 }
 
 void GDisplayString::Layout()
@@ -355,127 +333,100 @@ void GDisplayString::Layout()
 		OsChar *s;
 		bool GlyphSub = Font->SubGlyphs();
 
-		Blocks = 1;
+		Info[i].Str = Str;
+
+		int TabSize = Font->TabSize() ? Font->TabSize() : 32;
+
 		bool WasTab = IsTabChar(*Str);
-		for (s=Str; *s && *s != '\n'; NextOsChar(s))
+		f = GlyphSub ? Sys->GetGlyph(*Str, Font) : Font;
+		if (f && f != Font)
+		{
+			f->PointSize(Font->PointSize());
+			f->SetWeight(Font->GetWeight());
+			if (!f->Handle())
+				f->Create();
+		}
+
+		bool Debug = WasTab;
+		
+		for (s=Str; true; NextOsChar(s))
 		{
 			GFont *n = GlyphSub ? Sys->GetGlyph(*s, Font) : Font;
-			if (n != f || (IsTabChar(*s) ^ WasTab))
+			bool Change =	n != f ||					// The font changed
+							(IsTabChar(*s) ^ WasTab) ||	// Entering/leaving a run of tabs
+							!*s ||						// Hit a NULL character
+							(s - Info[i].Str) >= 1000;	// This is to stop very long segments not rendering
+			if (Change)
 			{
-				Blocks++;
-				f = n;
-				WasTab = IsTabChar(*s);
-			}
-		}
-		len = s - Str;
-
-		if (*s == '\n')
-		{
-			*s = 0;
-		}
-
-		Info = Blocks ? new CharInfo[Blocks] : 0;
-		if (Info)
-		{
-			Info[i].Str = Str;
-
-			int TabSize = Font->TabSize() ? Font->TabSize() : 32;
-
-			WasTab = IsTabChar(*Str);
-			f = GlyphSub ? Sys->GetGlyph(*Str, Font) : Font;
-			if (f && f != Font)
-			{
-				f->PointSize(Font->PointSize());
-				f->SetWeight(Font->GetWeight());
-				if (!f->Handle())
-					f->Create();
-			}
-
-			bool Debug = WasTab;
-			
-			for (s=Str; true; NextOsChar(s))
-			{
-				GFont *n = GlyphSub ? Sys->GetGlyph(*s, Font) : Font;
-				bool Change = n != f || (IsTabChar(*s) ^ WasTab) || !*s;
-
-				if (Change)
+				// End last segment
+				if (n && n != Font)
 				{
-					// End last segment
-					if (n && n != Font)
-					{
-						n->PointSize(Font->PointSize());
-						n->SetWeight(Font->GetWeight());
-						if (!n->Handle())
-							n->Create();
-					}
-
-					Info[i].Len = s - Info[i].Str;
-					if (Info[i].Len)
-					{
-						LgiAssert(i < Blocks);
-
-						if (WasTab)
-						{
-							// Handle tab(s)
-							for (int t=0; t<Info[i].Len; t++)
-							{
-								int Dx = TabSize - ((Info[i].X + x + TabOrigin) % TabSize);
-								Info[i].X += Dx;
-							}
-							x += Info[i].X;
-						}
-						else
-						{
-							GFont *m = f;
-
-							#if 0
-							// This code is causing email to display very slowly in Scribe...
-							// I guess I should rewrite the glyph substitution code to be
-							// better away of point size differences.
-							if (f && (f->GetHeight() > Font->GetHeight()))
-							{
-								Info[i].SizeDelta = -1;
-								f->PointSize(Font->PointSize() + Info[i].SizeDelta);
-								f->Create();
-							}
-							#endif
-
-							if (!f)
-							{
-								// no font, so ? out the chars... as they aren't available anyway
-								// printf("Font Cache Miss, Len=%i\n\t", Info[i].Len);
-								m = Font;
-								for (int n=0; n<Info[i].Len; n++)
-								{
-									Info[i].Str[n] = '?';
-								}
-							}
-							m->_Measure(sx, sy, Info[i].Str, Info[i].Len);
-							x += Info[i].X = sx > 0xffff ? 0xffff : sx;
-						}
-						Info[i].FontId = !f || Font == f ? 0 : Sys->Lut[Info[i].Str[0]];
-
-						i++;
-					}
-
-					f = n;
-
-					// Start next segment
-					WasTab = IsTabChar(*s);
-					if (i < Blocks)
-					{
-						Info[i].Str = s;
-					}
+					n->PointSize(Font->PointSize());
+					n->SetWeight(Font->GetWeight());
+					if (!n->Handle())
+						n->Create();
 				}
 
-				if (!*s) break;
+				Info[i].Len = s - Info[i].Str;
+				if (Info[i].Len)
+				{
+					if (WasTab)
+					{
+						// Handle tab(s)
+						for (int t=0; t<Info[i].Len; t++)
+						{
+							int Dx = TabSize - ((Info[i].X + x + TabOrigin) % TabSize);
+							Info[i].X += Dx;
+						}
+						x += Info[i].X;
+					}
+					else
+					{
+						GFont *m = f;
+
+						#if 0
+						// This code is causing email to display very slowly in Scribe...
+						// I guess I should rewrite the glyph substitution code to be
+						// better aware of point size differences.
+						if (f && (f->GetHeight() > Font->GetHeight()))
+						{
+							Info[i].SizeDelta = -1;
+							f->PointSize(Font->PointSize() + Info[i].SizeDelta);
+							f->Create();
+						}
+						#endif
+
+						if (!f)
+						{
+							// no font, so ? out the chars... as they aren't available anyway
+							// printf("Font Cache Miss, Len=%i\n\t", Info[i].Len);
+							m = Font;
+							for (int n=0; n<Info[i].Len; n++)
+							{
+								Info[i].Str[n] = '?';
+							}
+						}
+						m->_Measure(sx, sy, Info[i].Str, Info[i].Len);
+						x += Info[i].X = sx > 0xffff ? 0xffff : sx;
+					}
+					Info[i].FontId = !f || Font == f ? 0 : Sys->Lut[Info[i].Str[0]];
+
+					i++;
+				}
+
+				f = n;
+
+				// Start next segment
+				WasTab = IsTabChar(*s);
+				Info[i].Str = s;
 			}
 
-			Blocks = min(Blocks, i + 1);
-			if (Blocks > 0 && Info[Blocks-1].Len == 0)
-			{
-				Blocks--;
-			}
+			if (!*s) break;
+		}
+
+		if (Info.Length() > 0 && Info.Last().Len == 0)
+		{
+			Info.Length(Info.Length()-1);
 		}
 	}
 	
@@ -595,11 +546,11 @@ void GDisplayString::TruncateWithDots(int Width)
 			
 			AppendDots = 1;
 			
-			if (Info)
+			if (Info.Length())
 			{
 				int Width = 0;
 				int Pos = 0;
-				for (int i=0; i<Blocks; i++)
+				for (int i=0; i<Info.Length(); i++)
 				{
 					if (c >= Pos &&
 						c < Pos + Info[i].Len)
@@ -631,8 +582,7 @@ void GDisplayString::TruncateWithDots(int Width)
 							Width += Info[i].X;
 						}
 						
-						Blocks = i + 1;
-						
+						Info.Length(i + 1);						
 						break;
 					}
 					
@@ -679,7 +629,7 @@ void GDisplayString::Length(int New)
 		
 		int CurX = 0;
 		int CurLen = 0;
-		for (int i=0; i<Blocks; i++)
+		for (int i=0; i<Info.Length(); i++)
 		{
 			// Is the cut point in this block?
 			if (New >= CurLen && New < CurLen + Info[i].Len )
@@ -711,7 +661,7 @@ void GDisplayString::Length(int New)
 				f->_Measure(ChoppedX, Unused, Info[i].Str, Info[i].Len);
 				Info[i].X = ChoppedX;
 				x = CurX + Info[i].X;
-				Blocks = i+1;
+				Info.Length(i + 1);
 				
 				// Leave the loop
 				break;
@@ -808,7 +758,7 @@ int GDisplayString::CharAt(int Px)
 	if (Font && Font->Handle())
 	#elif defined(WIN32NATIVE)
 	GFontSystem *Sys = GFontSystem::Inst();
-	if (Info && Font && Sys)
+	if (Info.Length() && Font && Sys)
 	#endif
 	{
 		int TabSize = Font->TabSize() ? Font->TabSize() : 32;
@@ -819,7 +769,7 @@ int GDisplayString::CharAt(int Px)
 		printf("CharAt(%i) Str='%s'\n", Px, Str);
 		#endif
 
-		for (int i=0; i<Blocks && Status < 0; i++)
+		for (int i=0; i<Info.Length() && Status < 0; i++)
 		{
 			if (Px < Cx)
 			{
@@ -1170,14 +1120,14 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 	
 	#elif defined WIN32NATIVE
 	
-	if (Info && pDC && Font)
+	if (Info.Length() && pDC && Font)
 	{
 		GFontSystem *Sys = GFontSystem::Inst();
 		COLOUR Old = pDC->Colour();
 		int TabSize = Font->TabSize() ? Font->TabSize() : 32;
 		int Ox = px;
 
-		for (int i=0; i<Blocks; i++)
+		for (int i=0; i<Info.Length(); i++)
 		{
 			GFont *f = 0;
 
@@ -1212,7 +1162,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 				{
 					b.x1 = i ? px : r->x1;
 					b.y1 = r->y1;
-					b.x2 = i < Blocks - 1 ? px + Info[i].X - 1 : r->x2;
+					b.x2 = i < Info.Length() - 1 ? px + Info[i].X - 1 : r->x2;
 					b.y2 = r->y2;
 				}
 				else

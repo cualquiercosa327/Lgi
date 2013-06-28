@@ -26,13 +26,31 @@ namespace Pango
 /// are expanded to the current tab size setting.
 class LgiClass GDisplayString
 {
+	class CharInfo
+	{
+	public:
+		OsChar *Str;
+		uint16 Len;
+		uint16 X;
+		uint8 FontId;
+		int8 SizeDelta;
+
+		CharInfo()
+		{
+			Str = 0;
+			Len = 0;
+			X = 0;
+			FontId = 0;
+			SizeDelta = 0;
+		}
+	};
+
 	GSurface *pDC;
 	OsChar *Str;
 	GFont *Font;
 	uint32 x, y, len;
 	uint16 TabOrigin;
-	uint16 Blocks;
-	class CharInfo *Info;
+	GArray<CharInfo> Info;
 	
 	// Flags
 	uint8 LaidOut : 1;
