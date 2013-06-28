@@ -6,6 +6,7 @@
 #include "GEdit.h"
 #include "GCombo.h"
 #include "GToken.h"
+#include "GDisplayString.h"
 
 #define IconSize			15
 static GColour TransparentBlk(0, 0, 0, 0);

@@ -20,6 +20,7 @@
 #include "FileTransferProgress.h"
 #include "GSlider.h"
 #include "GVariant.h"
+#include "GDisplayString.h"
 
 //////////////////////////////////////////////////////////////////
 #define THROTTLE_TEXT_WIDTH		80

@@ -2,6 +2,7 @@
 #include "GPopup.h"
 #include "MonthView.h"
 #include "GDateTimeCtrls.h"
+#include "GDisplayString.h"
 
 class GDatePopup;
 class GDateDrop : public GPopup

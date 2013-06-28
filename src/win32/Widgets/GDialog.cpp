@@ -13,6 +13,7 @@
 #include "Lgi.h"
 #include <commctrl.h>
 #include "GTableLayout.h"
+#include "GDisplayString.h"
 
 #define USE_DIALOGBOXINDIRECTPARAM         0
 

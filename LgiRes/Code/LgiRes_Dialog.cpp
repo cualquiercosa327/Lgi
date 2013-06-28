@@ -18,6 +18,7 @@
 #include "GButton.h"
 #include "GVariant.h"
 #include "GToken.h"
+#include "GDisplayString.h"
 #include "GClipBoard.h"
 #include "resdefs.h"
 

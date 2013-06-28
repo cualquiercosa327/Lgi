@@ -17,6 +17,7 @@
 #include "GEdit.h"
 #include "GCombo.h"
 #include "GdcTools.h"
+#include "GDisplayString.h"
 
 #define DEBUG_TABLE_LAYOUT			1
 #define DEBUG_RESTYLE				0

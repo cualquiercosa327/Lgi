@@ -2,6 +2,7 @@
 
 #include "Lgi.h"
 #include "GColourSelect.h"
+#include "GDisplayString.h"
 
 class GColourSelectPopup : public GPopup
 {

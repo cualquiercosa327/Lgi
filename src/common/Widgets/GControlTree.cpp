@@ -7,6 +7,7 @@
 #include "GCheckBox.h"
 #include "GCombo.h"
 #include "GButton.h"
+#include "GDisplayString.h"
 
 #define IDC_BROWSE -10
 

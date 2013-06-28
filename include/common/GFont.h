@@ -75,7 +75,6 @@
 //////////////////////////////////////////////////////////////
 // Classes
 class GFontType;
-class GDisplayString;
 
 /// Font parameters collection
 class LgiClass GTypeFace

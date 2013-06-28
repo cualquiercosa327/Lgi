@@ -14,6 +14,7 @@
 #include "Lgi.h"
 #include "GLog.h"
 #include "GScrollBar.h"
+#include "GDisplayString.h"
 
 ////////////////////////////////////////////////////////////////////
 RLogEntry::RLogEntry(const char *t, const char *desc, int Len, COLOUR Col)
