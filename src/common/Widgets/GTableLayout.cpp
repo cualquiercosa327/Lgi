@@ -1,6 +1,7 @@
 #include "Lgi.h"
 #include "GTableLayout.h"
 #include "GCssTools.h"
+#include "GDisplayString.h"
 
 enum CellFlag
 {

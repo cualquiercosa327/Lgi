@@ -10,6 +10,7 @@
 #include <imm.h>
 #endif
 #include "GClipBoard.h"
+#include "GDisplayString.h"
 
 #define DefaultCharset              "utf-8" // historically LgiAnsiToLgiCp()
 #define SubtractPtr(a, b)			((a) - (b))

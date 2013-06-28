@@ -21,6 +21,7 @@
 #include "LgiWinManGlue.h"
 #endif
 #include "GVariant.h"
+#include "GDisplayString.h"
 
 // If it is defined it will use the cross platform 
 // "res" library distributed with the LGI library.

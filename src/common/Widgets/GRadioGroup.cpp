@@ -5,6 +5,7 @@
 #include "GSkinEngine.h"
 #include "GRadioGroup.h"
 #include "GCheckBox.h"
+#include "GDisplayString.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Radio group

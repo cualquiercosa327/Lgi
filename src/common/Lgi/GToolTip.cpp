@@ -5,6 +5,7 @@
 #endif
 
 #if !WIN32NATIVE
+#include "GDisplayString.h"
 
 class NativeTip : public GView
 {

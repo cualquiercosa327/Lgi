@@ -8,7 +8,7 @@
 #include "GCombo.h"
 #include "GCheckBox.h"
 #include "GRadioGroup.h"
-// #include "LgiSkinGel.h"
+#include "GDisplayString.h"
 
 #ifdef WIN32
 #define BTN_TEXT_OFFSET_Y	-1

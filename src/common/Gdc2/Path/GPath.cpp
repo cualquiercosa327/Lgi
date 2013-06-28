@@ -5,6 +5,7 @@
 #include "Lgi.h"
 #include "GPath.h"
 #include "GdiLeak.h"
+#include "GDisplayString.h"
 
 #define CIRCLE_STEPS			24
 #define BEZIER_STEPS			24

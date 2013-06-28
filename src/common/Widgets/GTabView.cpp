@@ -12,6 +12,7 @@
 #include "Lgi.h"
 #include "GTabView.h"
 #include "GSkinEngine.h"
+#include "GDisplayString.h"
 
 #ifdef WIN32
 

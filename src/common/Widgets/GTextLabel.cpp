@@ -4,6 +4,7 @@
 #include "Lgi.h"
 #include "GTextLabel.h"
 #include "GUtf8.h"
+#include "GDisplayString.h"
 
 class GTextPrivate : public GMutex
 {

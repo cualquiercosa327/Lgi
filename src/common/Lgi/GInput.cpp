@@ -13,6 +13,7 @@
 #include "GTextLabel.h"
 #include "GEdit.h"
 #include "GButton.h"
+#include "GDisplayString.h"
 
 #define IDC_CALLBACK		100
 #define IDC_EDIT			101

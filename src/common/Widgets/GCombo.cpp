@@ -5,6 +5,7 @@
 #include "GVariant.h"
 #include "GSkinEngine.h"
 #include "GCombo.h"
+#include "GDisplayString.h"
 
 #define COMBO_HEIGHT			20
 

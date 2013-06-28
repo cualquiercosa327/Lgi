@@ -17,6 +17,7 @@
 #include "GList.h"
 #include "GEdit.h"
 #include "GScrollBar.h"
+#include "GDisplayString.h"
 
 #define DRAG_NONE						0
 #define SELECT_ITEMS					1

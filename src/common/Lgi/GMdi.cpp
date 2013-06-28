@@ -1,6 +1,7 @@
 #include "Lgi.h"
 #include "GMdi.h"
 #include <stdio.h>
+#include "GDisplayString.h"
 
 #define DEBUG_MDI			0
 
@@ -1016,7 +1017,7 @@ bool GMdiParent::GetChildren(::GArray<GMdiChild*> &Views)
 
 GViewI *GMdiParent::GetTop()
 {
-	return d->Children.Last();
+	return d->Children.Length() > 0 ? d->Children.Last() : NULL;
 }
 
 #if MDI_TAB_STYLE

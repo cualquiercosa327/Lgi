@@ -7,6 +7,7 @@
 #include "GLexCpp.h"
 #include "INet.h"
 #include "GClipBoard.h"
+#include "GDisplayString.h"
 
 char *Untitled = "[untitled]";
 static char *White = " \r\t\n";

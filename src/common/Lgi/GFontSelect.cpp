@@ -12,6 +12,7 @@
 #include "GCombo.h"
 #include "GBitmap.h"
 #include "GTextLabel.h"
+#include "GDisplayString.h"
 #include "GdiLeak.h"
 
 #define IDD_FONT					1000

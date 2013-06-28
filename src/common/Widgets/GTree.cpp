@@ -3,6 +3,7 @@
 #include "Lgi.h"
 #include "GTree.h"
 #include "GScrollBar.h"
+#include "GDisplayString.h"
 
 #define TREE_BLOCK          16
 #define DRAG_THRESHOLD		4

@@ -338,8 +338,6 @@ public:
 	bool IsAvailable();
 };
 
-#include "GDisplayString.h"
-
 /// Charset table manager class
 class LgiClass GCharsetSystem
 {

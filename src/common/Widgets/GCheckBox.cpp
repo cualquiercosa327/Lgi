@@ -4,6 +4,7 @@
 #include "Lgi.h"
 #include "GSkinEngine.h"
 #include "GCheckBox.h"
+#include "GDisplayString.h"
 
 class GCheckBoxPrivate
 {

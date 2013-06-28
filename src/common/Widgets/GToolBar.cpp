@@ -13,6 +13,7 @@
 #include "Lgi.h"
 #include "GToken.h"
 #include "GVariant.h"
+#include "GDisplayString.h"
 
 #define ToolBarHilightColour LC_HIGH
 

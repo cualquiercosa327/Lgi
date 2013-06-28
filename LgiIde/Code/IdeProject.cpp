@@ -2054,11 +2054,11 @@ public:
 					if (d > MakePath)
 					{
 						*d++ = 0;
-						a.Print("-C \"%s\" -f \"%s\"", MakePath, d);
+						a.Print("-j 4 -C \"%s\" -f \"%s\"", MakePath, d);
 					}
 					else
 					{
-						a.Print("-f \"%s\"", MakePath);
+						a.Print("-j 4 -f \"%s\"", MakePath);
 					}
 
 					if (Args)
@@ -3761,11 +3761,28 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 								Done = false;
 								Processed.Add(Src);
 								
-								char Full[MAX_PATH];
+								char Full[MAX_PATH], Rel[MAX_PATH];
 								if (LgiIsRelativePath(Src))
+								{
 									LgiMakePath(Full, sizeof(Full), Base, Src);
+									strsafecpy(Rel, Src, sizeof(Rel));
+								}
 								else
+								{
 									strsafecpy(Full, Src, sizeof(Full));
+									GAutoString a = LgiMakeRelativePath(Base, Src);
+									if (a)
+									{
+										strsafecpy(Rel, a, sizeof(Rel));
+									}
+									else
+									{
+										strsafecpy(Rel, a, sizeof(Rel));
+										printf("%s:%i - Failed to make relative path '%s' '%s'\n",
+											_FL,
+											Base.Get(), Src);
+									}
+								}
 								
 								char *c8 = ReadTextFile(Full);
 								if (c8)
@@ -3773,9 +3790,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 									GArray<char*> Headers;
 									if (BuildHeaderList(c8, Headers, IncPaths, false))
 									{
-										char *d = strrchr(Src, DIR_CHAR);
-										d = d ? d + 1 : Src;
-										m.Print("%s : ", d);
+										m.Print("%s : ", Rel);
 
 										for (int n=0; n<Headers.Length(); n++)
 										{
@@ -3807,10 +3822,25 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 					}
 
 					// Output VPATH
-					m.Print("VPATH=%%.cpp \\\n"
-							"\t$(BuildDir)");
-					m.Print("\n\n");
-					
+					m.Print("VPATH=%%.cpp \\\n");
+					for (int i=0; i<IncPaths.Length(); i++)
+					{
+						char *p = IncPaths[i];
+						if (p && !strchr(p, '`'))
+						{
+							if (!LgiIsRelativePath(p))
+							{
+								GAutoString a = LgiMakeRelativePath(Base, p);
+								m.Print("\t%s \\\n", a?a:p);
+							}
+							else
+							{
+								m.Print("\t%s \\\n", p);
+							}
+						}
+					}
+					m.Print("\t$(BuildDir)\n\n");
+
 					const char *OtherMakefileRules = d->Settings.GetStr(ProjMakefileRules, NULL, Platform);
 					if (ValidStr(OtherMakefileRules))
 					{

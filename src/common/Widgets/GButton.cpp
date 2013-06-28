@@ -4,6 +4,7 @@
 #include "Lgi.h"
 #include "GSkinEngine.h"
 #include "GButton.h"
+#include "GDisplayString.h"
 
 #define DOWN_MOUSE		0x1
 #define DOWN_KEY		0x2

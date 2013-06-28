@@ -2,6 +2,7 @@
 #include "Lgi.h"
 #include "GTextLabel.h"
 #include "GButton.h"
+#include "GDisplayString.h"
 
 //////////////////////////////////////////////////////////////////////////////
 #define CMD_BASE		100

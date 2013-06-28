@@ -2,6 +2,7 @@
 #include "Lgi.h"
 #include "GPopup.h"
 #include "GSkinEngine.h"
+#include "GDisplayString.h"
 
 #define POPUP_DELETE		1
 #define POPUP_VISIBLE		2

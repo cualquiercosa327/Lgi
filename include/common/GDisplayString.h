@@ -1,4 +1,3 @@
-
 #ifndef _GDISPLAY_STRING_H_
 #define _GDISPLAY_STRING_H_
 
@@ -9,7 +8,6 @@ namespace Pango
 #include "pango/pangocairo.h"
 }
 #endif
-
 /// \brief Cache for text measuring, glyph substitution and painting
 ///
 /// To paint text onto the screen several stages need to be implemented to
@@ -26,31 +24,11 @@ namespace Pango
 /// are expanded to the current tab size setting.
 class LgiClass GDisplayString
 {
-	class CharInfo
-	{
-	public:
-		OsChar *Str;
-		uint16 Len;
-		uint16 X;
-		uint8 FontId;
-		int8 SizeDelta;
-
-		CharInfo()
-		{
-			Str = 0;
-			Len = 0;
-			X = 0;
-			FontId = 0;
-			SizeDelta = 0;
-		}
-	};
-
 	GSurface *pDC;
 	OsChar *Str;
 	GFont *Font;
 	uint32 x, y, len;
 	uint16 TabOrigin;
-	GArray<CharInfo> Info;
 	
 	// Flags
 	uint8 LaidOut : 1;
@@ -70,6 +48,28 @@ class LgiClass GDisplayString
 	
 	Gtk::PangoLayout *Hnd;
 	
+	#elif defined(WIN32NATIVE) || defined(BEOS)
+	
+	class CharInfo
+	{
+	public:
+		OsChar *Str;
+		uint16 Len;
+		uint16 X;
+		uint8 FontId;
+		int8 SizeDelta;
+
+		CharInfo()
+		{
+			Str = 0;
+			Len = 0;
+			X = 0;
+			FontId = 0;
+			SizeDelta = 0;
+		}
+	};
+	GArray<CharInfo> Info;
+
 	#endif
 
 	void Layout();

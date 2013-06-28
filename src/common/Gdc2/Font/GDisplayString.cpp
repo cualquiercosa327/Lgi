@@ -10,6 +10,7 @@
 #include "GFontSelect.h"
 #include "GdiLeak.h"
 #include "GUtf8.h"
+#include "GDisplayString.h"
 
 #ifdef FontChange
 #undef FontChange

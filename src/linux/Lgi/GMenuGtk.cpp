@@ -12,8 +12,7 @@
 #include "Lgi.h"
 #include "GUtf8.h"
 #include "GToken.h"
-
-#if 1 // && defined __GTK_H__
+#include "GDisplayString.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 GSubMenu::GSubMenu(const char *name, bool Popup)
@@ -1317,5 +1316,3 @@ void GCommand::Value(bool v)
 	}
 	PrevValue = v;
 }
-
-#endif

@@ -4,6 +4,7 @@
 #include "LgiIde.h"
 #include "GList.h"
 #include "GUtf8.h"
+#include "GDisplayString.h"
 
 class CharItem : public GListItem
 {
