@@ -1169,8 +1169,8 @@ IdeDoc *AppWnd::NewDocWnd(char *FileName, NodeSource *Src)
 		Doc->Focus(true);
 		Doc->Raise();
 
-		char *File = Src ? Src->GetFileName() : FileName;
-		d->OnFile(File);
+		if (FileName)
+			d->OnFile(FileName);
 	}
 
 	return Doc;

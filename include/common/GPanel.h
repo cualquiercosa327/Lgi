@@ -11,6 +11,8 @@
 #ifndef __GPANEL_H
 #define __GPANEL_H
 
+#include "GDisplayString.h"
+
 class LgiClass GPanel : public GLayout
 {
 protected:

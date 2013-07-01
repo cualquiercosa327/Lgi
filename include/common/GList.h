@@ -8,6 +8,7 @@
 // Includes
 #include "GPopup.h"
 #include "GArray.h"
+#include "GDisplayString.h"
 
 // GList notification flags
 

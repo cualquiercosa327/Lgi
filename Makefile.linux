@@ -651,6 +651,7 @@ GXmlTree.o : ./src/common/Text/GXmlTree.cpp ./include/common/Lgi.h \
 GEdit.o : ./src/common/Widgets/GEdit.cpp ./include/common/Lgi.h \
 	./include/common/GEdit.h \
 	./include/common/GClipBoard.h \
+	./include/common/GDisplayString.h \
 	./include/common/GTextView3.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -688,20 +689,23 @@ GBitmap.o : ./src/common/Widgets/GBitmap.cpp ./include/common/Lgi.h \
 
 GButton.o : ./src/common/Widgets/GButton.cpp ./include/common/Lgi.h \
 	./include/common/GSkinEngine.h \
-	./include/common/GButton.h
+	./include/common/GButton.h \
+	./include/common/GDisplayString.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GCheckBox.o : ./src/common/Widgets/GCheckBox.cpp ./include/common/Lgi.h \
 	./include/common/GSkinEngine.h \
-	./include/common/GCheckBox.h
+	./include/common/GCheckBox.h \
+	./include/common/GDisplayString.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GCombo.o : ./src/common/Widgets/GCombo.cpp ./include/common/Lgi.h \
 	./include/common/GVariant.h \
 	./include/common/GSkinEngine.h \
-	./include/common/GCombo.h
+	./include/common/GCombo.h \
+	./include/common/GDisplayString.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -709,18 +713,21 @@ GList.o : ./src/common/Widgets/GList.cpp ./include/common/Lgi.h \
 	./include/common/GSkinEngine.h \
 	./include/common/GList.h \
 	./include/common/GEdit.h \
-	./include/common/GScrollBar.h
+	./include/common/GScrollBar.h \
+	./include/common/GDisplayString.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GPanel.o : ./src/common/Widgets/GPanel.cpp ./include/common/Lgi.h \
-	./include/common/GPanel.h
+	./include/common/GPanel.h \
+	./include/common/GDisplayString.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GPopup.o : ./src/common/Widgets/GPopup.cpp ./include/common/Lgi.h \
 	./include/common/GPopup.h \
 	./include/common/GSkinEngine.h \
+	./include/common/GDisplayString.h \
 	./include/linux/Gtk/LgiWidget.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -736,35 +743,41 @@ GProgressDlg.o : ./src/common/Widgets/GProgressDlg.cpp ./include/common/Lgi.h \
 GRadioGroup.o : ./src/common/Widgets/GRadioGroup.cpp ./include/common/Lgi.h \
 	./include/common/GSkinEngine.h \
 	./include/common/GRadioGroup.h \
-	./include/common/GCheckBox.h
+	./include/common/GCheckBox.h \
+	./include/common/GDisplayString.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GStatusBar.o : ./src/common/Widgets/GStatusBar.cpp ./include/common/Lgi.h
+GStatusBar.o : ./src/common/Widgets/GStatusBar.cpp ./include/common/Lgi.h \
+	./include/common/GDisplayString.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GTabView.o : ./src/common/Widgets/GTabView.cpp ./include/common/Lgi.h \
 	./include/common/GTabView.h \
-	./include/common/GSkinEngine.h
+	./include/common/GSkinEngine.h \
+	./include/common/GDisplayString.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GTextLabel.o : ./src/common/Widgets/GTextLabel.cpp ./include/common/Lgi.h \
 	./include/common/GTextLabel.h \
-	./include/common/GUtf8.h
+	./include/common/GUtf8.h \
+	./include/common/GDisplayString.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GToolBar.o : ./src/common/Widgets/GToolBar.cpp ./include/common/Lgi.h \
 	./include/common/GToken.h \
-	./include/common/GVariant.h
+	./include/common/GVariant.h \
+	./include/common/GDisplayString.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GTree.o : ./src/common/Widgets/GTree.cpp ./include/common/Lgi.h \
 	./include/common/GTree.h \
-	./include/common/GScrollBar.h
+	./include/common/GScrollBar.h \
+	./include/common/GDisplayString.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -787,6 +800,7 @@ GWidgets.o : ./src/linux/Lgi/GWidgets.cpp ./include/common/Lgi.h \
 	./include/common/GSlider.h \
 	./include/common/GBitmap.h \
 	./include/common/GTableLayout.h \
+	./include/common/GDisplayString.h \
 	./include/linux/Gtk/LgiWidget.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -800,6 +814,7 @@ GBox.o : ./src/common/Widgets/GBox.cpp ./include/common/Lgi.h \
 GTableLayout.o : ./src/common/Widgets/GTableLayout.cpp ./include/common/Lgi.h \
 	./include/common/GTableLayout.h \
 	./include/common/GCssTools.h \
+	./include/common/GDisplayString.h \
 	./include/common/GToken.h \
 	./include/common/GVariant.h \
 	./include/common/GTextLabel.h \
@@ -849,6 +864,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 	./include/common/GXmlTree.h \
 	./include/common/GMutex.h
 
+./include/common/GPanel.h : ./include/common/GDisplayString.h
+
 ./include/common/GDragAndDrop.h : ./include/common/GVariant.h \
 	./include/common/GCom.h
 
@@ -879,7 +896,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 ./include/common/GProcess.h : ./include/common/GStream.h
 
 ./include/common/GList.h : ./include/common/GPopup.h \
-	./include/common/GArray.h
+	./include/common/GArray.h \
+	./include/common/GDisplayString.h
 
 ./include/common/Res.h : ./include/common/GXmlTree.h
 
@@ -1010,7 +1028,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 	./include/common/LgiDefs.h
 
 ./include/common/GList.h : ./include/common/GPopup.h \
-	./include/common/GArray.h
+	./include/common/GArray.h \
+	./include/common/GDisplayString.h
 
 ./include/common/GDataDlg.h : ./include/common/GProperties.h \
 	./include/common/GScrollBar.h \

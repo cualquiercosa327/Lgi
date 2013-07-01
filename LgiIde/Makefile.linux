@@ -552,18 +552,22 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 ../include/common/GListItemCheckBox.h : ../include/common/GList.h
 
 ../include/common/GList.h : ../include/common/GPopup.h \
-	../include/common/GArray.h
+	../include/common/GArray.h \
+	../include/common/GDisplayString.h
 
 ../include/common/GProcess.h : ../include/common/GStream.h
 
 ../include/common/GList.h : ../include/common/GPopup.h \
-	../include/common/GArray.h
+	../include/common/GArray.h \
+	../include/common/GDisplayString.h
 
 ../include/common/LgiRes.h : ../include/common/Res.h \
 	../include/common/GContainers.h \
 	../include/common/GCss.h
 
 ../include/common/GDocView.h : ../include/common/GVariant.h
+
+../include/common/GPanel.h : ../include/common/GDisplayString.h
 
 ../include/common/LgiClass.h : ../include/common/LgiInc.h \
 	../include/common/LgiDefs.h \

@@ -762,8 +762,14 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
+struct GToolButtonPriv
+{
+	GArray<GDisplayString*> Text;
+};
+
 GToolButton::GToolButton(int Bx, int By)
 {
+	d = new GToolButtonPriv;
 	Type = TBT_PUSH;
 	SetId(IDM_NONE);
 	SetDown(false);
@@ -782,7 +788,8 @@ GToolButton::GToolButton(int Bx, int By)
 
 GToolButton::~GToolButton()
 {
-	Text.DeleteObjects();
+	d->Text.DeleteObjects();
+	delete d;
 }
 
 bool GToolButton::Name(const char *n)
@@ -801,7 +808,7 @@ bool GToolButton::Name(const char *n)
 	*o++ = 0;
 	*/
 
-	Text.DeleteObjects();
+	d->Text.DeleteObjects();
 
 	return s;
 }
@@ -824,9 +831,9 @@ void GToolButton::Layout()
 		if (t.Length() < 3)
 		{
 			if (t.Length() > 0)
-				Text.Add(new GDisplayString(Par->d->Font, t[0]));
+				d->Text.Add(new GDisplayString(Par->d->Font, t[0]));
 			if (t.Length() > 1)
-				Text.Add(new GDisplayString(Par->d->Font, t[1]));
+				d->Text.Add(new GDisplayString(Par->d->Font, t[1]));
 		}
 		else if (t.Length() == 3)
 		{
@@ -839,14 +846,14 @@ void GToolButton::Layout()
 				if (d1->X() < d2->X())
 				{
 					DeleteObj(d2);
-					Text.Add(d1);
-					Text.Add(new GDisplayString(Par->d->Font, t[2]));
+					d->Text.Add(d1);
+					d->Text.Add(new GDisplayString(Par->d->Font, t[2]));
 				}
 				else
 				{
 					DeleteObj(d1);
-					Text.Add(new GDisplayString(Par->d->Font, t[0]));
-					Text.Add(d2);
+					d->Text.Add(new GDisplayString(Par->d->Font, t[0]));
+					d->Text.Add(d2);
 				}
 			}
 		}
@@ -937,12 +944,12 @@ void GToolButton::OnPaint(GSurface *pDC)
 			if (Par->d->Text &&
 				Par->d->Font)
 			{
-				if (Name() && !Text.Length())
+				if (Name() && !d->Text.Length())
 				{
 					Layout();
 				}
 
-				if (Text.Length())
+				if (d->Text.Length())
 				{
 					// Write each word centered on a different line
 					int Ty = Down + Par->d->By + 2;
@@ -950,9 +957,9 @@ void GToolButton::OnPaint(GSurface *pDC)
 					COLOUR b = LC_MED;
 
 					Par->d->Font->Colour(a, b);
-					for (int i=0; i<Text.Length(); i++)
+					for (int i=0; i<d->Text.Length(); i++)
 					{
-						GDisplayString *Ds = Text[i];
+						GDisplayString *Ds = d->Text[i];
 						Ds->Draw(pDC, Down + ((X()-Ds->X())/2), Ty);
 						Ty += Ds->Y();
 					}
@@ -1493,14 +1500,14 @@ bool GToolBar::Pour(GRegion &r)
 				GToolButton *Btn = dynamic_cast<GToolButton*>(But);
 				if (Btn)
 				{
-					if (Btn->Text.Length() == 0)
+					if (Btn->d->Text.Length() == 0)
 					{
 						Btn->Layout();
 					}
 					
-					for (int i=0; i<Btn->Text.Length(); i++)
+					for (int i=0; i<Btn->d->Text.Length(); i++)
 					{
-						GDisplayString *Ds = Btn->Text[i];
+						GDisplayString *Ds = Btn->d->Text[i];
 						Tx = max(Ds->X() + 4, Tx);
 						Ty += Ds->Y();
 					}

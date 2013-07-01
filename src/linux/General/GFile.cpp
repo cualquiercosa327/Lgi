@@ -1,4 +1,3 @@
-
 /*hdr
 **	FILE:			File.cpp
 **	AUTHOR:			Matthew Allen
@@ -359,7 +358,7 @@ bool DirExists(const char *FileName, char *CorrectCase)
 			}
 			else
 			{
-				printf("DirStatus(%s) lstat and stat failed, r=%i, errno=%i\n", FileName, r, errno);
+				// printf("DirStatus(%s) lstat and stat failed, r=%i, errno=%i\n", FileName, r, errno);
 			}
 		}
 	}

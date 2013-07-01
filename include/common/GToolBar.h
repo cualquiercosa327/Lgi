@@ -117,6 +117,8 @@ class LgiClass GToolButton :
 	friend class GToolBar;
 
 protected:
+	struct GToolButtonPriv *d;
+
 	int			Type;		// Button Type
 	bool		Clicked;
 	bool		Down;
@@ -129,7 +131,6 @@ protected:
 	HIToolbarItemRef ItemRef;
 	#endif
 
-	GArray<GDisplayString*> Text;
 	void Layout();
 
 	virtual	void SetDown(bool d);

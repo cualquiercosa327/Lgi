@@ -281,7 +281,9 @@ bool GWindow::Attach(GViewI *p)
 							G_CALLBACK(GtkViewCallback),
 							i);
 
-printf("GWindow set default size: %i, %i\n", Pos.X(), Pos.Y());
+		/*
+		printf("GWindow set default size: %i, %i\n", Pos.X(), Pos.Y());
+		*/
 		gtk_window_set_default_size(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
 		gtk_widget_add_events(GTK_WIDGET(Wnd), GDK_ALL_EVENTS_MASK);
 		gtk_window_set_title(Wnd, GBase::Name());
@@ -681,7 +683,7 @@ bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
 			GRect Position(0, 0, -1, -1);
 			GWindowZoom State = GZoomNormal;
 
-printf("SerializeState load %s\n", v.Str());
+// printf("SerializeState load %s\n", v.Str());
 
 
 			GToken t(v.Str(), ";");
@@ -703,7 +705,7 @@ printf("SerializeState load %s\n", v.Str());
 			
 			if (Position.Valid())
 			{
-printf("SerializeState setpos %s\n", Position.GetStr());
+// printf("SerializeState setpos %s\n", Position.GetStr());
 				SetPos(Position);
 			}
 			
