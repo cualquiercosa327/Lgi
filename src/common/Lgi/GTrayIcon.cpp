@@ -5,7 +5,12 @@
 #define SYSTEM_TRAY_CANCEL_MESSAGE  2
 
 #if defined(__GTK_H__)
+namespace Gtk {
+#include <glib/gerror.h>
+#include <gdk-pixbuf/gdk-pixbuf.h>
+}
 using namespace Gtk;
+
 class GTrayIconPrivate;
 void tray_icon_on_click(GtkStatusIcon *status_icon, GTrayIconPrivate *d);
 static void tray_icon_on_menu(GtkStatusIcon *status_icon, guint button, guint activate_time, GTrayIconPrivate *d);
@@ -36,7 +41,7 @@ public:
 	#elif defined(__GTK_H__)
 	
 	GtkStatusIcon *tray_icon;
-	typedef GAutoString *IconRef;
+	typedef GdkPixbuf *IconRef;
 	
 	void OnClick()
 	{
@@ -115,6 +120,11 @@ public:
 		{
 			DeleteObject(Icon[n]);
 		}
+		#elif defined(__GTK_H__)
+		for (int n=0; n<Icon.Length(); n++)
+		{
+			g_object_unref(Icon[n]);
+		}
 		#else
 		Icon.DeleteObjects();
 		#endif
@@ -162,7 +172,13 @@ bool GTrayIcon::Load(const TCHAR *Str)
 	if (Str)	
 	{
 		GAutoString File(LgiFindFile(Str));
-		d->Icon.Add(new GAutoString(NewStr(File ? File : Str)));
+		// d->Icon.Add(new GAutoString(NewStr(File ? File : Str)));
+		GError *err = NULL;
+		Gtk::GdkPixbuf *pb =  Gtk::gdk_pixbuf_new_from_file(File ? File : Str, &err);
+		if (!pb)
+			return false;
+		
+		d->Icon.Add(pb);
 	}
 	
 	#else
@@ -256,10 +272,10 @@ void GTrayIcon::Visible(bool v)
 					d->Val = 0;
 				if (d->Val < d->Icon.Length())
 				{
-					char *Path = d->Icon[d->Val]->Get();
-					if (Path)
+					GTrayIconPrivate::IconRef Ref = d->Icon[d->Val];
+					if (Ref)
 					{
-						Gtk::gtk_status_icon_set_from_file(d->tray_icon, Path);					
+						Gtk::gtk_status_icon_set_from_pixbuf(d->tray_icon, Ref);
 						Gtk::gtk_status_icon_set_tooltip(d->tray_icon, GBase::Name());
 						Gtk::gtk_status_icon_set_visible(d->tray_icon, true);
 					}
@@ -359,6 +375,20 @@ void GTrayIcon::Value(int64 v)
 		}
 		
 		#elif defined __GTK_H__
+
+		if (d->tray_icon)
+		{
+			if (d->Val < 0 || d->Val >= d->Icon.Length())
+				d->Val = 0;
+			if (d->Val < d->Icon.Length())
+			{
+				GTrayIconPrivate::IconRef Ref = d->Icon[d->Val];
+				if (Ref)
+					Gtk::gtk_status_icon_set_from_pixbuf(d->tray_icon, Ref);
+			}
+			else LgiTrace("%s:%i - No icon to show in tray.\n", _FL);
+		}
+		else LgiTrace("%s:%i - No tray icon to hide.\n", _FL);
 		
 		
 		#elif defined MAC

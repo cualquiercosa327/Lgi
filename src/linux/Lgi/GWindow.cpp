@@ -29,6 +29,9 @@ public:
 	::GArray<HookInfo> Hooks;
 	bool SnapToEdge;
 	
+	// Zoom state
+	GdkWindowState State;
+	
 	// Focus stuff
 	OsView FirstFocus;
 	GViewI *Focus;
@@ -39,6 +42,7 @@ public:
 		FirstFocus = NULL;
 		Focus = NULL;
 		Active = false;
+		State = (Gtk::GdkWindowState)0;
 		
 		Sx = Sy = 0;
 		Dynamic = true;
@@ -135,7 +139,8 @@ void GWindow::Visible(bool i)
 
 bool GWindow::Obscured()
 {
-	return false;
+	return	d->State == GDK_WINDOW_STATE_WITHDRAWN ||
+			d->State == GDK_WINDOW_STATE_ICONIFIED;
 }
 
 void GWindow::_SetDynamic(bool i)
@@ -211,6 +216,11 @@ gboolean GWindow::OnGtkEvent(GtkWidget *widget, GdkEvent *event)
 			#endif
 			break;
 		}
+		case GDK_WINDOW_STATE:
+		{
+			d->State = event->window_state.new_window_state;
+			break;
+		}
 		case GDK_CLIENT_EVENT:
 		{
 			GMessage m(event);
@@ -264,6 +274,10 @@ bool GWindow::Attach(GViewI *p)
 							i);
 		g_signal_connect(	G_OBJECT(Wnd),
 							"client-event",
+							G_CALLBACK(GtkViewCallback),
+							i);
+		g_signal_connect(	G_OBJECT(Wnd),
+							"window-state-event",
 							G_CALLBACK(GtkViewCallback),
 							i);
 
@@ -563,118 +577,38 @@ void GWindow::Raise()
 
 GWindowZoom GWindow::GetZoom()
 {
-	/*
-	#if defined XWIN
-	if (Handle())
+	switch (d->State)
 	{
-		Display *Dsp = Handle()->XDisplay();
-		Window Win = Handle()->handle();
-		Atom Type;
-		int Format;
-		ulong Items, Bytes;
-		uchar *Prop = 0;
-
-		XGetWindowProperty(	Dsp,
-							Win,
-							XInternAtom(Dsp, "_NET_WM_STATE", false),
-							0, 1024,
-							false,
-							AnyPropertyType,
-							&Type,
-							&Format,
-							&Items,
-							&Bytes,
-							&Prop);
-		if (Prop)
-		{
-			Atom s[] =
-			{
-				XInternAtom(Dsp, "_NET_WM_STATE_MAX_V", false),
-				XInternAtom(Dsp, "_NET_WM_STATE_MAX_H", false)
-			};
-
-			for (int i=0; i<Items; i++)
-			{
-				Atom a = ((Atom*)Prop)[i];
-				if (a == s[0] OR a == s[1])
-				{
-					XFree(Prop);
-					return GZoomMax;
-				}
-			}
-
-			XFree(Prop);
-		}
-
-		XWindowAttributes a;
-		ZeroObj(a);
-		XGetWindowAttributes(Dsp, Win, &a);
-		
-		if (a.map_state == IsUnmapped)
-		{
+		case GDK_WINDOW_STATE_ICONIFIED:
 			return GZoomMin;
-		}
+		case GDK_WINDOW_STATE_MAXIMIZED:
+			return GZoomMax;
 	}
-	#endif
-	*/
 
 	return GZoomNormal;
 }
 
 void GWindow::SetZoom(GWindowZoom i)
 {
-	/*
-	#if defined XWIN
-	Display *Dsp = Handle()->XDisplay();
-	Window Win = Handle()->handle();
-
 	switch (i)
 	{
-		case GZoomMax:
-		{
-			//_NET_WM_STATE_MAX_V
-			//_NET_WM_STATE_MAX_H
-		    //_NET_WM_STATE_STAYS_ON_TOP
-            //_NET_WM_STATE_MODAL
-
-			Atom s[] =
-			{
-				XInternAtom(Dsp, "_NET_WM_STATE_MAX_V", false),
-				XInternAtom(Dsp, "_NET_WM_STATE_MAX_H", false)
-			};
-
-		    XChangeProperty(Dsp,
-							Win,
-							XInternAtom(Dsp, "_NET_WM_STATE", false),
-							XA_ATOM,
-							32,
-							PropModeReplace,
-							(unsigned char *) s,
-							CountOf(s));
-			break;
-		}
 		case GZoomMin:
 		{
-			XIconifyWindow(Dsp, Win, DefaultScreen(Dsp) );
+			gtk_window_iconify(Wnd);
 			break;
 		}
 		case GZoomNormal:
 		{
-		    XChangeProperty(Dsp,
-							Win,
-							XInternAtom(Dsp, "_NET_WM_STATE", false),
-							XA_ATOM,
-							32,
-							PropModeReplace,
-							0,
-							0);
-
-			XMapRaised(Dsp, Win);
+			gtk_window_deiconify(Wnd);
+			gtk_window_unmaximize(Wnd);
 			break;
 		}
-	}
-	#endif
-	*/
+		case GZoomMax:
+		{
+			gtk_window_unmaximize(Wnd);
+			break;
+		}
+	}	
 }
 
 GViewI *GWindow::GetDefault()
