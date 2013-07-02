@@ -817,6 +817,14 @@ void GPopup::Visible(bool i)
 		if (Hook) Hook->UnregisterPopup(this);
 
 		SendNotify(POPUP_HIDE);
+
+		#if WIN32NATIVE
+		// This is required to re-focus the owner.
+		// If the popup or a child window gets focus at some point. The
+		// owner doesn't get focus when we close... weird I know.
+		if (Owner)
+			Owner->Focus(true);
+		#endif
 	}
 	#endif
 }
