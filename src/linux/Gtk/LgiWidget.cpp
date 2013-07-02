@@ -385,6 +385,81 @@ static gboolean lgi_widget_key_event(GtkWidget *wid, GdkEventKey *e)
 }
 
 static void
+lgi_widget_drag_begin(GtkWidget *widget, GdkDragContext *context)
+{
+	LgiTrace("lgi_widget_drag_begin\n");
+}
+
+static void
+lgi_widget_drag_end(GtkWidget *widget, GdkDragContext *drag_context)
+{
+	LgiTrace("lgi_widget_drag_end\n");
+	/*
+	LgiWidget *p = LGI_WIDGET(widget);
+    GView *v = dynamic_cast<GView*>(p->target);
+    */
+}
+
+static void
+lgi_widget_drag_data_get(GtkWidget          *widget,
+						GdkDragContext     *context,
+						GtkSelectionData   *selection_data,
+						guint               info,
+						guint               time_)
+{
+	LgiTrace("lgi_widget_drag_data_get\n");
+}
+
+static void
+lgi_widget_drag_data_delete(GtkWidget	       *widget,
+							GdkDragContext     *context)
+{
+	LgiTrace("lgi_widget_drag_data_delete\n");
+}
+
+static void
+lgi_widget_drag_leave(GtkWidget	       *widget,
+				    GdkDragContext     *context,
+				    guint               time_)
+{
+	LgiTrace("lgi_widget_drag_leave\n");
+}
+
+static gboolean
+lgi_widget_drag_motion(GtkWidget	       *widget,
+				    GdkDragContext     *context,
+				    gint                x,
+				    gint                y,
+				    guint               time_)
+{
+	LgiTrace("lgi_widget_drag_motion\n");
+	return false;
+}
+
+static gboolean
+lgi_widget_drag_drop(GtkWidget	       *widget,
+					GdkDragContext     *context,
+					gint                x,
+					gint                y,
+					guint               time_)
+{
+	LgiTrace("lgi_widget_drag_drop\n");
+	return false;
+}
+
+static void
+lgi_widget_drag_data_received(GtkWidget          *widget,
+							GdkDragContext     *context,
+							gint                x,
+							gint                y,
+							GtkSelectionData   *selection_data,
+							guint               info,
+							guint               time_)
+{
+	LgiTrace("lgi_widget_drag_data_received\n");
+}
+
+static void
 lgi_widget_destroy(GtkObject *object)
 {
 	g_return_if_fail(object != NULL);
@@ -646,6 +721,14 @@ lgi_widget_class_init(LgiWidgetClass *klass)
 	widget_class->focus_out_event = lgi_widget_focus_event;
 	widget_class->key_press_event = lgi_widget_key_event;
 	widget_class->key_release_event = lgi_widget_key_event;
+	widget_class->drag_begin = lgi_widget_drag_begin;
+	widget_class->drag_end = lgi_widget_drag_end;
+	widget_class->drag_data_get = lgi_widget_drag_data_get;
+	widget_class->drag_data_delete = lgi_widget_drag_data_delete;
+	widget_class->drag_leave = lgi_widget_drag_leave;
+	widget_class->drag_motion = lgi_widget_drag_motion;
+	widget_class->drag_drop = lgi_widget_drag_drop;
+	widget_class->drag_data_received = lgi_widget_drag_data_received;
 
 	GtkContainerClass *container_class = (GtkContainerClass*)klass;
 	container_class->add = lgi_widget_add;

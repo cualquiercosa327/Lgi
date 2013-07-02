@@ -42,11 +42,14 @@ public:
 	
 	GtkStatusIcon *tray_icon;
 	typedef GdkPixbuf *IconRef;
+	uint64 LastClickTime;
+	gint DoubleClickTime;
 	
 	void OnClick()
 	{
+		uint64 Now = LgiCurrentTime();
 		GdkScreen *s = gtk_status_icon_get_screen(tray_icon);
-		GdkDisplay *dsp =gdk_screen_get_display(s);
+		GdkDisplay *dsp = gdk_screen_get_display(s);
 		gint x, y;
 		GdkModifierType mask;
 		gdk_display_get_pointer(dsp, &s, &x, &y, &mask);
@@ -59,7 +62,9 @@ public:
 		m.Alt((mask & GDK_MOD1_MASK) != 0);
 		m.Left(true);
 		m.Down(true);
+		m.Double(Now - LastClickTime < DoubleClickTime);
 		Parent->OnTrayClick(m);
+		LastClickTime = Now;
 	}
 	
 	void OnMenu(guint button, guint activate_time)
@@ -97,6 +102,12 @@ public:
 		
 		#elif defined(__GTK_H__)
 
+		GtkSettings *settings = gtk_settings_get_default();
+		DoubleClickTime = 500;
+		if (settings)
+			g_object_get(G_OBJECT(settings), "gtk-double-click-time", &DoubleClickTime, NULL);
+
+		LastClickTime = 0;
 		tray_icon = Gtk::gtk_status_icon_new();
 		if (tray_icon)
 		{

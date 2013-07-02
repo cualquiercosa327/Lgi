@@ -22,9 +22,9 @@
 
 #endif
 
-// int <-> char* format conversions
-#if defined WIN32
-
+#ifdef __GTK_H__
+LgiFunc int GtkGetDndType(const char *Format);
+LgiFunc const char *GtkGetDndFormat(int Type);
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
@@ -62,10 +62,6 @@ protected:
 	/// Creates a file drop
 	bool CreateFileDrop(GVariant *OutputData, GMouse &m, List<char> &Files);
 
-	#ifdef XWIN
-	// void OnSelectionRequest(Display *Dsp, XEvent &Event, XWidget *W, Atom XdndSelection); 
-	#endif
-	
 public:
 	GDragDropSource();
 	~GDragDropSource();

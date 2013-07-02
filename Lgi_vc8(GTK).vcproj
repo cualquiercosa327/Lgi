@@ -292,10 +292,6 @@
 					Name="Drag and Drop"
 					>
 					<File
-						RelativePath=".\include\win32\GCom.h"
-						>
-					</File>
-					<File
 						RelativePath=".\src\common\Lgi\GDragAndDrop.cpp"
 						>
 					</File>

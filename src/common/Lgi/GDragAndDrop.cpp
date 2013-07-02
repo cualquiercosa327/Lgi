@@ -18,12 +18,44 @@
 
 // #define DND_DEBUG_TRACE
 
+#ifdef __GTK_H__
+static int NextDndType = 600;
+static GHashTbl<const char*, int> DndTypes(0, false, NULL, -1);
+
+int GtkGetDndType(const char *Format)
+{
+	int Type = DndTypes.Find(Format);
+	if (Type < 0)
+		DndTypes.Add(Format, Type = NextDndType++);
+	return Type;
+}
+
+const char *GtkGetDndFormat(int Type)
+{
+	return DndTypes.FindKey(Type);
+}
+#endif
+
 class GDndSourcePriv
 {
 public:
 	GAutoString CurrentFormat;
 	#if defined(MAC) && !defined(COCOA)
 	GAutoPtr<CGImg> Img;
+	#endif
+	
+	#ifdef __GTK_H__
+	Gtk::GdkDragContext *Ctx;
+	
+	GDndSourcePriv()
+	{
+		Ctx = NULL;
+	}
+	
+	~GDndSourcePriv()
+	{
+		
+	}
 	#endif
 };
 
@@ -358,176 +390,22 @@ bool GDragDropSource::CreateFileDrop(GVariant *OutputData, GMouse &m, List<char>
 	return false;
 }
 
-#ifdef XWIN
-bool IsDndAware(OsView w, int &Ver)
+#ifdef __GTK_H__
+static Gtk::GdkDragAction EffectToDragAction(int Effect)
 {
-	// Check XDND status of window
-	uint32 Actual = 0;
-	int Format = 0;
-	ulong Items, Bytes;
-	uchar *Prop = 0;
-	int e;
-	
-	/*
-	if ((e=XGetWindowProperty(	Dsp, w,
-								XInternAtom(Dsp, "XdndAware", false),
-								0, 100, false, XA_ATOM, &Actual, &Format,
-								&Items, &Bytes, &Prop)) == XSuccess &&
-		Prop)
+	switch (Effect)
 	{
-		// printf("XDND version supported on %p is %i\n", w, (int)(*Prop));
-		Ver = *Prop;
-		return Ver >= 4;
-	}
-	*/
-	
-	return false;
-}
-
-void DumpWnd(int i, OsView w)
-{
-	/*
-	char *s = 0;
-	QWidget *q = QWidget::Find(w);
-	if (q)
-	{
-		s = q->getText();
-	}
-	else
-	{
-		XFetchName(Dsp, w, &s);
-	}
-	printf("\t[%i]=%p (%s)\n", i, w, s);
-	if (!q)
-		XFree(s);
-	*/
-}
-
-OsView FindDndTarget(OsView Over, int x, int y, int &Ver)
-{
-	OsView Status = 0;
-	/*
-	OsView Root = XcbScreen()->root;
-	int n = 0;
-
-	OsView w1 = Over;
-	OsView w2 = Root;
-	OsView Child;
-	int x1 = x, y1 = y, x2, y2;
-	
-	DumpWnd(n, w1);
-	while (XTranslateCoordinates(Dsp,
-								w1, w2,
-								x1, y1,
-								&x2, &y2,
-								&Child))
-	{
-		if (w2 != Root &&
-			IsDndAware(Dsp, w2, Ver))
-		{
-			Status = w2;
-			break;
-		}
-		else if (Child == XNone)
-		{
-			break;
-		}
-
-		w1 = w2;
-		w2 = Child;
-		x1 = x2;
-		y1 = y2;
-		
-		n++;
-		DumpWnd(Dsp, n, w1);
-	}
-	*/
-
-	return Status;
-}
-
-/*
-void GDragDropSource::OnSelectionRequest(Display *Dsp, XEvent &Event, XWidget *W, Atom XdndSelection)
-{
-	if (Event.xselectionrequest.owner == W->handle() &&
-		Event.xselectionrequest.selection == XdndSelection)
-	{
-		// got it
-		char *Type = XGetAtomName(Dsp, Event.xselectionrequest.target);
-		GVariant Data;
-
-		// printf("XDrag: Getting data of type '%s'\n", Type);
-
-		bool PropDone = false;
-		if (GetData(&Data, Type))
-		{
-			switch (Data.Type)
-			{
-				case GV_BINARY:
-				{
-					XChangeProperty(Dsp,
-									Event.xselectionrequest.requestor,
-									Event.xselectionrequest.property,
-									Event.xselectionrequest.target,
-									8,
-									PropModeReplace,
-									(uchar*)Data.Value.Binary.Data,
-									Data.Value.Binary.Length);
-					PropDone = true;
-					break;
-				}
-				case GV_STRING:
-				{
-					XChangeProperty(Dsp,
-									Event.xselectionrequest.requestor,
-									Event.xselectionrequest.property,
-									Event.xselectionrequest.target,
-									8,
-									PropModeReplace,
-									(uchar*)Data.Str(),
-									strlen(Data.Str()));
-					PropDone = true;
-					break;
-				}
-				default:
-				{
-					PropDone = false;
-					// printf("XDrag: Unhandled data type in conversion.\n");
-					break;
-				}
-			}
-		}
-		else
-		{
-			// printf("XDrag: GetData(%s) failed.\n", Type);
-		}
-
-		XEvent s;
-		ZeroObj(s);
-		s.xselection.type = SelectionNotify;
-		s.xselection.display = Dsp;
-		s.xselection.requestor = Event.xselectionrequest.requestor;
-		s.xselection.selection = Event.xselectionrequest.selection;
-		s.xselection.property = PropDone ? Event.xselectionrequest.property : XNone;
-		s.xselection.target = Event.xselectionrequest.target;
-		s.xselection.property = XNone;
-		s.xselection.time = Event.xselectionrequest.time;
-
-		printf("%s:%i - XSendEvent\n", __FILE__, __LINE__);
-		XSendEvent(	Dsp,
-					Event.xselectionrequest.requestor,
-					true,
-					XNone,
-					&s);
-		
-		// printf("XDrag: Sending SelectionNotify\n");
-	}
-	else
-	{
-		// printf("XDrag: Stray SelectionRequest!!!\n");
+		default:
+		case DROPEFFECT_NONE:
+			return Gtk::GDK_ACTION_DEFAULT;
+		case DROPEFFECT_COPY:
+			return Gtk::GDK_ACTION_COPY;
+		case DROPEFFECT_MOVE:
+			return Gtk::GDK_ACTION_MOVE;
+		case DROPEFFECT_LINK:
+			return Gtk::GDK_ACTION_LINK;
 	}
 }
-*/
 #endif
 
 int GDragDropSource::Drag(GView *SourceWnd, int Effect)
@@ -677,339 +555,41 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 	
 	return DROPEFFECT_NONE;
 
-	#elif defined XWIN
+	#elif defined __GTK_H__
 
-	static bool Dragging = false;
-
-	if (!SourceWnd)
+	if (!SourceWnd || !SourceWnd->Handle())
 	{
-		return DROPEFFECT_NONE;
+		LgiTrace("%s:%i - Error: No source window or handle.\n", _FL);
+		return -1;
 	}
 
-	if (Dragging)
+	List<char> Formats;
+	if (!GetFormats(Formats))
 	{
-		printf("%s,%i - Already in a DND operation.\n", __FILE__, __LINE__);
-		
-		SourceWnd->Capture(true);
-		SourceWnd->Capture(false);
+		LgiTrace("%s:%i - Error: Failed to get source formats.\n", _FL);
+		return -1;
 	}
-	else
+	
+	GArray<Gtk::GtkTargetEntry> e;
+	for (char *f = Formats.First(); f; f = Formats.Next())
 	{
-		Dragging = true;
-
-		List<char> Formats;
-		if (!GetFormats(Formats))
-		{
-			printf("%s,%i - Couldn't get DND formats.\n", __FILE__, __LINE__);
-			return 0;
-		}
-		
-		SourceWnd->Capture(true);
-
-		// printf("XDrag: start, wnd=%p\n", SourceWnd);
-		GWindow *Top = SourceWnd ? SourceWnd->GetWindow() : 0;
-		if (Top)
-		{
-			// Take control of the XDND selection
-			/*
-			Display *Dsp = Top->Handle()->XDisplay();
-			XWidget *W = Top->Handle();
-			Atom XdndFinished	= XInternAtom(Dsp, "XdndFinished", false);
-			Atom XdndLeave		= XInternAtom(Dsp, "XdndLeave", false);
-			Atom XdndEnter		= XInternAtom(Dsp, "XdndEnter", false);
-			Atom XdndActionCopy = XInternAtom(Dsp, "XdndActionCopy", false);
-			Atom XdndActionMove = XInternAtom(Dsp, "XdndActionMove", false);
-			Atom XdndPosition	= XInternAtom(Dsp, "XdndPosition", false);
-			Atom XdndDrop		= XInternAtom(Dsp, "XdndDrop", false);
-			Atom XdndSelection	= XInternAtom(Dsp, "XdndSelection", false);
-			Atom XdndStatus		= XInternAtom(Dsp, "XdndStatus", false);
-
-			XSetSelectionOwner(	Dsp,
-								XInternAtom(Dsp, "XdndSelection", false),
-								W->handle(),
-								CurrentTime);
-
-			// Loop until we the mouse is released
-
-			Window Over = 0, Target = 0;
-			int Ver = 0;
-			GView *Cursored = 0;
-
-			while (true)
-			{
-				XEvent Event;
-				XNextEvent(Dsp, &Event);
-
-				if (Event.xany.type == ButtonRelease)
-				{
-					// printf("ButtonRelease, button=%i\n", Event.xbutton.button);
-					if (Event.xbutton.button < 4)
-					{
-						break;
-					}
-				}
-				else if (Event.xany.type == KeyPress)
-				{
-					KeySym k = 0;
-					char c[16] = "";
-					XLookupString(&Event.xkey, c, sizeof(c), &k, 0);
-					if (k == 65307)
-					{
-						// Esc pressed...
-						Over = 0;
-						break;
-					}
-				}
-				else if (Event.xany.type == ClientMessage)
-				{
-					if (Event.xclient.message_type == XdndFinished)
-					{
-						// printf("XDrag: XdndFinished received.\n");
-						break;
-					}
-					else if (Event.xclient.message_type == XdndStatus)
-					{
-						bool Accept = (Event.xclient.data.l[1] & 0x1) != 0;
-						Atom Action = (Atom) Event.xclient.data.l[4];
-						
-						XWidget *q = XWidget::Find(Event.xclient.window);
-						XWindow *w = dynamic_cast<XWindow*>(q);
-						if (w)
-						{
-							GView *v = (GView*) w->_GetWndPtr();
-							if (v)
-							{
-								if (Cursored)
-								{
-									Cursored->SetCursor(LCUR_Normal);
-								}
-								
-								if (Accept)
-								{
-									v->SetCursor(Action == XdndActionMove ? LCUR_DropMove : LCUR_DropCopy);
-								}
-								else
-								{
-									v->SetCursor(LCUR_Forbidden);
-								}
-								
-								Cursored = v;
-							}
-						}
-					}
-
-					XApp()->onEvent(Event);
-				}
-				else if (Event.xany.type == MotionNotify)
-				{
-					// Get the most recent MotionNotify, no need to process anything but.
-					while (XCheckTypedEvent(Dsp, MotionNotify, &Event))
-					{
-					}
-
-					Window o;
-					int x, y;
-					XTranslateCoordinates(	Dsp,
-											Event.xmotion.window,
-											RootWindow(Dsp, 0),
-											Event.xmotion.x,
-											Event.xmotion.y,
-											&x, &y,
-											&o);
-					
-					// printf("%i,%i w=%p o=%p\n", Event.xmotion.x, Event.xmotion.y, W->handle(), o);
-					
-					if (Over != o)
-					{
-						if (Over && Target)
-						{
-							// Send leave
-							XEvent Leave;
-							ZeroObj(Leave);
-							Leave.xclient.window = Target;
-							Leave.xclient.type = ClientMessage;
-							Leave.xclient.message_type = XdndLeave;
-							Leave.xclient.format = 32;
-							Leave.xclient.data.l[0] = W->handle();
-							printf("%s:%i - XSendEvent\n", __FILE__, __LINE__);
-							XSendEvent(	Dsp,
-										Target,
-										false,
-										XNone,
-										&Leave);
-							if (Cursored)
-							{
-								Cursored->SetCursor(LCUR_Normal);
-								Cursored = 0;
-							}
-						}
-
-						Over = o;
-
-						if (Over)
-						{
-							// Get target window
-							Target = FindDndTarget(Dsp, RootWindow(Dsp, 0), Event.xmotion.x_root, Event.xmotion.y_root, Ver);
-							// printf("Target=%i\n", Target);
-
-							// Send enter
-							if (Target)
-							{
-								int MoreThan3 = 0;
-
-								XEvent Enter;
-								ZeroObj(Enter);
-								Enter.xclient.type = ClientMessage;
-								Enter.xclient.window = Target;
-								Enter.xclient.message_type = XdndEnter;
-								Enter.xclient.format = 32;
-								Enter.xclient.data.l[0] = W->handle();
-								Enter.xclient.data.l[1] = (Ver << 24) | MoreThan3;
-								for (int i=0; i<3; i++)
-								{
-									char *Format = Formats[i];
-									Enter.xclient.data.l[2+i] = (Format) ? XInternAtom(Dsp, Format, false) : XNone;
-								}
-
-								printf("%s:%i - XSendEvent\n", __FILE__, __LINE__);
-								XSendEvent(	Dsp,
-											Target,
-											false,
-											XNone,
-											&Enter);
-							}
-							else
-							{
-								// printf("Tw=0\n");
-							}
-						}
-
-						// printf("MotionNotify Over changed\n");
-					}
-					else if (Target)
-					{
-						// Send position update
-						XEvent Pos;
-						ZeroObj(Pos);
-						Pos.xclient.type = ClientMessage;
-						Pos.xclient.window = Target;
-						Pos.xclient.message_type = XdndPosition;
-						Pos.xclient.format = 32;
-						Pos.xclient.data.l[0] = W->handle();
-						Pos.xclient.data.l[2] = (Event.xmotion.x_root << 16) | Event.xmotion.y_root;
-						Pos.xclient.data.l[4] = Effect & DROPEFFECT_MOVE ? XdndActionMove : XdndActionCopy;
-
-						// printf("%s:%i - XSendEvent\n", __FILE__, __LINE__);
-						XSendEvent(	Dsp,
-									Target,
-									false,
-									XNone,
-									&Pos);
-					}
-				}
-				else if (Event.xany.type == SelectionRequest)
-				{
-					OnSelectionRequest(Dsp, Event, W, XdndSelection);
-				}
-				else
-				{
-					XApp()->onEvent(Event);
-				}
-			}
-
-			if (Cursored)
-			{
-				Cursored->SetCursor(LCUR_Normal);
-				Cursored = 0;
-			}
-			SourceWnd->Capture(false);
-
-			if (Over && Target)
-			{
-				// Do drop..
-				XEvent Drop;
-				ZeroObj(Drop);
-				Drop.xclient.type = ClientMessage;
-				Drop.xclient.window = Target;
-				Drop.xclient.message_type = XdndDrop;
-				Drop.xclient.format = 32;
-				Drop.xclient.data.l[0] = W->handle();
-
-				// printf("%s:%i - XSendEvent\n", __FILE__, __LINE__);
-				XSendEvent(	Dsp,
-							Target,
-							false,
-							XNone,
-							&Drop);
-
-				// Wait for and handle data conversion request...
-				bool ExitOk = false;
-				int Start = LgiCurrentTime();
-				while (	!ExitOk &&
-						LgiCurrentTime() < Start + 2000) // Timeout after 2 sec
-				{
-					XEvent Event;
-					XNextEvent(Dsp, &Event);
-
-					
-					if (Event.xany.type == SelectionRequest)
-					{
-						OnSelectionRequest(Dsp, Event, W, XdndSelection);
-					}
-					else if (Event.xany.type == ClientMessage)
-					{
-						if (Event.xclient.window == Target)
-						{
-							if (Event.xclient.message_type == XdndFinished)
-							{
-								// End d'n'd
-								// printf("XDrag: Got XdndFinished\n");
-								ExitOk = true;
-							}
-							else if (Event.xclient.message_type == XdndLeave)
-							{
-								// End d'n'd
-								// printf("XDrag: Got XA_XdndLeave\n");
-								ExitOk = true;
-							}
-						}
-
-						if (!ExitOk)
-						{
-							XApp()->onEvent(Event);
-						}
-					}
-					else
-					{
-						XApp()->onEvent(Event);
-					}
-				}
-			}
-			else if (Target)
-			{
-				XEvent Leave;
-				ZeroObj(Leave);
-				Leave.xclient.window = Target;
-				Leave.xclient.type = ClientMessage;
-				Leave.xclient.message_type = XdndLeave;
-				Leave.xclient.format = 32;
-				Leave.xclient.data.l[0] = W->handle();
-
-				printf("%s:%i - XSendEvent\n", __FILE__, __LINE__);
-				XSendEvent(	Dsp,
-							Target,
-							false,
-							XNone,
-							&Leave);
-			}
-			*/
-		}
-
-		Formats.DeleteArrays();
-		Dragging = false;
-
-		// printf("XDrag: finished\n");
+		Gtk::GtkTargetEntry &entry = e.New();
+		entry.target = f;
+		entry.flags = 0;
+		entry.info = GtkGetDndType(f);
 	}
+	
+	Gtk::GtkTargetList *Targets = Gtk::gtk_target_list_new(&e[0], e.Length());
+	
+	Gtk::GdkDragAction Action = EffectToDragAction(Effect);
+	
+	int Button = 1;
+
+	d->Ctx = Gtk::gtk_drag_begin(SourceWnd->Handle(),
+								Targets,
+								Action,
+								Button,
+								NULL); // Gdk event if available...
 
 	#elif defined BEOS
 

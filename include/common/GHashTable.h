@@ -606,6 +606,26 @@ public:
 
 		return NullValue;
 	}
+
+	/// Returns the Key at 'val'
+	Key FindKey(const Value val)
+	{
+		if (IsOk())
+		{
+			Entry *c = Table;
+			Entry *e = Table + Size;
+			while (c < e)
+			{
+				if (CmpKey(c->v, val))
+				{
+					return c->k;
+				}
+				c++;
+			}
+		}
+
+		return NullKey;
+	}
 	
 	/// Returns the first value
 	Value First(Key *k = 0)
