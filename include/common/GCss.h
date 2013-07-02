@@ -598,7 +598,7 @@ public:
 		GAutoString Raw;
 
 		Selector() { Style = NULL; }
-		void TokString(GAutoString &a, const char *&s);
+		bool TokString(GAutoString &a, const char *&s);
 		const char *PartTypeToString(PartType p);
 		GAutoString Print();
 		bool Parse(const char *&s);

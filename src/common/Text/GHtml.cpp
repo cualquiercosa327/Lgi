@@ -3298,7 +3298,7 @@ char *GTag::ParseText(char *Doc)
 	
 	GStringPipe Utf16;
 	char *s = Doc;
-	while (true)
+	while (s)
 	{
 		if (*s == '\r')
 		{

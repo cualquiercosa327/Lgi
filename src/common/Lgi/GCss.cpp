@@ -1862,7 +1862,7 @@ GCss::Selector &GCss::Selector::operator =(const GCss::Selector &s)
 	return *this;
 }
 
-void GCss::Selector::TokString(GAutoString &a, const char *&s)
+bool GCss::Selector::TokString(GAutoString &a, const char *&s)
 {
 	const char *e = s;
 	while
@@ -1885,9 +1885,11 @@ void GCss::Selector::TokString(GAutoString &a, const char *&s)
 	{
 		LgiTrace("Stuck at '%s'\n", e);
 		LgiAssert(!"Failed to tokenise string.");
+		return false;
 	}
 	a.Reset(NewStr(s, e - s));
 	s = e;
+	return true;
 }
 
 const char *GCss::Selector::PartTypeToString(PartType p)
@@ -1979,7 +1981,8 @@ bool GCss::Selector::Parse(const char *&s)
 
 			Part &n = Parts.New();
 			n.Type = SelPseudo;
-			TokString(n.Value, s);
+			if (!TokString(n.Value, s))
+				break;
 		}
 		else if (*s == '#')
 		{
@@ -1987,7 +1990,8 @@ bool GCss::Selector::Parse(const char *&s)
 
 			Part &n = Parts.New();
 			n.Type = SelID;
-			TokString(n.Value, s);
+			if (!TokString(n.Value, s))
+				break;
 		}
 		else if (*s == '.')
 		{
@@ -1997,12 +2001,8 @@ bool GCss::Selector::Parse(const char *&s)
 
 			Part &n = Parts.New();
 			n.Type = SelClass;
-			TokString(n.Value, s);
-			
-			if (!stricmp(n.Value, "signin-box"))
-			{
-				int asd=0;
-			}			
+			if (!TokString(n.Value, s))
+				break;
 		}
 		else if (*s == '@')
 		{
@@ -2012,7 +2012,8 @@ bool GCss::Selector::Parse(const char *&s)
 			n.Type = SelMedia;
 			n.Media = MediaNull;
 			GAutoString Str;
-			TokString(Str, s);
+			if (!TokString(Str, s))
+				break;
 			if (!Str || stricmp(Str, "media"))
 				return false;
 			
@@ -2030,7 +2031,12 @@ bool GCss::Selector::Parse(const char *&s)
 					}
 				}
 				
-				TokString(Str, s);
+				if (!TokString(Str, s))
+				{
+					// Skip bad char...
+					s++;
+					break;
+				}
 				SkipWhite(s);
 				
 				if (!Str)
@@ -2059,7 +2065,8 @@ bool GCss::Selector::Parse(const char *&s)
 		{
 			Part &n = Parts.New();
 			n.Type = SelType;
-			TokString(n.Value, s);
+			if (!TokString(n.Value, s))
+				break;
 		}
 		else if (*s == '[')
 		{
