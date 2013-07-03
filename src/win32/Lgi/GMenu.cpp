@@ -197,7 +197,6 @@ bool GSubMenu::RemoveItem(GMenuItem *Item)
         Items.HasItem(Item) &&
         Item->Remove())
     {
-        DeleteObj(Item);
         return true;
 	}    
 	return false;
