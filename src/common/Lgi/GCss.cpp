@@ -2031,6 +2031,13 @@ bool GCss::Selector::Parse(const char *&s)
 					}
 				}
 				
+				if (*s == ',')
+				{
+					s++;
+					SkipWhite(s);
+					continue;
+				}
+					
 				if (!TokString(Str, s))
 				{
 					// Skip bad char...
