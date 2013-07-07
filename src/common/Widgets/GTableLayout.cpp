@@ -541,6 +541,7 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 	#define CalcCssPadding(Prop, Axis, Edge) \
 	{ \
 		Len l = Prop(); \
+		if (l.Type == GCss::LenInherit) l = GCss::Padding(); \
 		if (l.Type) \
 			Padding.Edge = l.ToPx(Table->Axis(), Table->GetFont()); \
 		else \
