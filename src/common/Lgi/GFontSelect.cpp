@@ -162,41 +162,36 @@ void GFontSelect::UpdatePreview()
 			GDisplayString ds(&f, "AaBbCcDdEeFf");
 			ds.Draw(Dc, 5, 5);
 
-			// Hack the alpha channel back to "FF"
-			// On win32 the font draws in "00000000" instead of "ff000000"
-			switch (Dc->GetColourSpace())
+			if (Dc->GetBits() == 32)
 			{
-				case CsRgba32:
+				// Hack the alpha channel back to "FF"
+				// On win32 the font draws in "00000000" instead of "ff000000"
+				switch (Dc->GetColourSpace())
 				{
-					for (int y=0; y<Dc->Y(); y++)
-					{
-						GRgba32 *p = (GRgba32*) (*Dc)[y];
-						GRgba32 *e = p + Dc->X();
-						while (p < e)
-						{
-							p->a = 255;
-							p++;
+					#define AlphaHack(cs) \
+						case Cs##cs: \
+						{ \
+							for (int y=0; y<Dc->Y(); y++) \
+							{ \
+								G##cs *p = (G##cs*) (*Dc)[y]; \
+								G##cs *e = p + Dc->X(); \
+								while (p < e) \
+								{ \
+									p->a = 255; \
+									p++; \
+								} \
+							} \
+							break; \
 						}
-					}
-					break;
+					
+					AlphaHack(Rgba32);
+					AlphaHack(Argb32);
+					AlphaHack(Abgr32);
+					AlphaHack(Bgra32);
+					default:
+						LgiAssert(0);
+						break;
 				}
-				case CsArgb32:
-				{
-					for (int y=0; y<Dc->Y(); y++)
-					{
-						GArgb32 *p = (GArgb32*) (*Dc)[y];
-						GArgb32 *e = p + Dc->X();
-						while (p < e)
-						{
-							p->a = 255;
-							p++;
-						}
-					}
-					break;
-				}
-				default:
-					LgiAssert(0);
-					break;
 			}
 
 			Ctrl9->SetDC(Dc);
