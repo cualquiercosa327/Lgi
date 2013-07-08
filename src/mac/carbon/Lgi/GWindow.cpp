@@ -4,6 +4,7 @@
 #include "GDragAndDrop.h"
 #include "GToken.h"
 #include "GPopup.h"
+#include "GDisplayString.h"
 
 extern void NextTabStop(GViewI *v, int dir);
 extern void SetDefaultFocus(GViewI *v);

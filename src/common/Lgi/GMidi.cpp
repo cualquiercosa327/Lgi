@@ -1,6 +1,11 @@
 #include "Lgi.h"
 #include "GMidi.h"
+#if defined(WIN32)
 #include "mmsystem.h"
+#endif
+#if defined(MAC)
+#include <MIDIServices.h>
+#endif
 
 #define MIDI_MIRROR_IN_TO_OUT		0
 

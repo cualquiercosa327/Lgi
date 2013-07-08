@@ -15,6 +15,7 @@
 #include "GSlider.h"
 #include "GBitmap.h"
 #include "GTableLayout.h"
+#include "GDisplayString.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 #define GreyBackground()

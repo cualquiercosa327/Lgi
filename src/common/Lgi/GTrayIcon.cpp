@@ -213,7 +213,7 @@ bool GTrayIcon::Load(const TCHAR *Str)
 				}
 			}
 
-			d->Icon.Insert(i);
+			d->Icon.Add(i);
 		}
 		else LgiTrace("%s:%i - Couldn't load '%s'\n", _FL, Str);
 

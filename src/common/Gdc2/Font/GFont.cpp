@@ -21,6 +21,7 @@
 #include "GVariant.h"
 #include "GFontSelect.h"
 #include "GdiLeak.h"
+#include "GDisplayString.h"
 
 #ifdef FontChange
 #undef FontChange
