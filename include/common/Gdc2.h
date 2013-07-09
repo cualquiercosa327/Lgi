@@ -215,7 +215,9 @@ enum GColourSpace
 
 	// uint16 types
 	CsRgb15 = GDC_COLOUR_SPACE_3(CtRed, 5, CtGreen, 5, CtBlue, 5),
+	CsBgr15 = GDC_COLOUR_SPACE_3(CtBlue, 5, CtGreen, 5, CtRed, 5),
 	CsRgb16 = GDC_COLOUR_SPACE_3(CtRed, 5, CtGreen, 6, CtBlue, 5),
+	CsBgr16 = GDC_COLOUR_SPACE_3(CtBlue, 5, CtGreen, 6, CtRed, 5),
 
 	// 24 bit types
 	CsRgb24 = GDC_COLOUR_SPACE_3(CtRed, 8, CtGreen, 8, CtBlue, 8),
@@ -250,10 +252,23 @@ struct GRgb15 {
 	uint16 b : 5;
 };
 
+struct GBgr15 {
+	uint16 pad : 1;
+	uint16 b : 5;
+	uint16 g : 5;
+	uint16 r : 5;
+};
+
 struct GRgb16 {
 	uint16 r : 5;
 	uint16 g : 6;
 	uint16 b : 5;
+};
+
+struct GBgr16 {
+	uint16 b : 5;
+	uint16 g : 6;
+	uint16 r : 5;
 };
 
 struct GRgb24 {

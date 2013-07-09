@@ -1969,6 +1969,9 @@ void GSolidBrush::Rop(GRopArgs &Args)
 		#define SolidCase(cs, bits) \
 			case Cs##cs: SolidRop##bits((G##cs*)Args.Pixels, Args.Len, Args.Alpha, c32); break;
 
+		SolidCase(Rgb16, 16);
+		SolidCase(Bgr16, 16);
+
 		SolidCase(Rgb24, 24);
 		SolidCase(Bgr24, 24);
 		SolidCase(Xrgb32, 24);
@@ -2091,6 +2094,7 @@ void GLinearBlendBrush::Rop(GRopArgs &Args)
 			case Cs##cs: Linear##bits((G##cs*)Args.Pixels, Args); break;
 
 		LinearCase(Rgb16, 16);
+		LinearCase(Bgr16, 16);
 
 		LinearCase(Rgb24, 24);
 		LinearCase(Bgr24, 24);
@@ -2121,6 +2125,9 @@ void GRadialBlendBrush::Rop(GRopArgs &Args)
 
 		#define RadialCase(cs, bits) \
 			case Cs##cs: Radial##bits((G##cs*)Args.Pixels, Args); break;
+
+		RadialCase(Rgb16, 16);
+		RadialCase(Bgr16, 16);
 
 		RadialCase(Rgb24, 24);
 		RadialCase(Bgr24, 24);

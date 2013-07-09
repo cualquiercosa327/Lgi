@@ -455,8 +455,17 @@ void GImageList::Draw(GSurface *pDest, int Dx, int Dy, int Image, GColour Backgr
 				#if WIN32NATIVE
 
 				BOOL Status = false;
-				if (GdcD->AlphaBlend &&
-					!LgiApp->IsWine())
+				
+				if (!pDest->IsScreen() &&
+					pDest->GetBits() < 24)
+				{
+					int Op = pDest->Op(GDC_ALPHA);
+					pDest->Blt(Dx, Dy, this, &r);
+					pDest->Op(Op);
+					Status = true;
+				}
+				else if (GdcD->AlphaBlend &&
+						!LgiApp->IsWine())
 				{
 					HDC hDest = pDest->StartDC();
 					HDC hSrc = StartDC();

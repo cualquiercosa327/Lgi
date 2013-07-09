@@ -197,9 +197,10 @@ public:
 // -or-
 // In non-premultiplied:
 //		Dc' = (Sc.Sa + Dc.Da.(1 - Sa))/Da'
-#define NonPreMulOver32(c)	d->c = ((s.c * sa) + (DivLut[d->c * da] * o)) / d->a
-#define NonPreMulOver24(c)	d->c = ((s.c * sa) + (DivLut[d->c * 255] * o)) / 255
-#define NonPreMulAlpha		d->a = (d->a + sa) - DivLut[d->a * sa]
+#define NonPreMulOver16(c, sh)	d->c = (((s.c * sa) + (DivLut[(d->c << sh) * 255] * o)) / 255) >> sh
+#define NonPreMulOver32(c)		d->c = ((s.c * sa) + (DivLut[d->c * da] * o)) / d->a
+#define NonPreMulOver24(c)		d->c = ((s.c * sa) + (DivLut[d->c * 255] * o)) / 255
+#define NonPreMulAlpha			d->a = (d->a + sa) - DivLut[d->a * sa]
 
 class LgiClass GSolidBrush : public GBrush
 {
@@ -227,6 +228,38 @@ public:
 		MakeAlphaLut();
 	}
 
+	template<typename T>
+	void SolidRop16(T *d, int Len, uint8 *Alpha, COLOUR c32)
+	{
+		uchar *DivLut = Div255Lut;
+		T *end = d + Len;
+		GRgb24 s;
+
+		s.r = R32(c32);
+		s.g = G32(c32);
+		s.b = B32(c32);
+		
+		while (d < end)
+		{
+			uchar sa = AlphaLut[*Alpha++];
+			if (sa == 255)
+			{
+				d->r = s.r >> 3;
+				d->g = s.g >> 2;
+				d->b = s.b >> 3;
+			}
+			else if (sa)
+			{
+				uchar o = 0xff - sa;
+				NonPreMulOver16(r, 3);
+				NonPreMulOver16(g, 2);
+				NonPreMulOver16(b, 3);
+			}
+
+			d++;
+		}
+	}
+	
 	template<typename T>
 	void SolidRop24(T *d, int Len, uint8 *Alpha, COLOUR c32)
 	{
@@ -368,7 +401,7 @@ public:
 		int Inc = (int) (IncX * Scale);
 		
 		T *e = d + Args.Len;
-		T s;
+		GRgb24 s;
 
 		while (d < e)
 		{
@@ -381,23 +414,25 @@ public:
 				else if (Ci > 255) c32 = Lut[255];
 				else c32 = Lut[Ci];
 
-				s.r = R32(c32) >> 3;
-				s.g = G32(c32) >> 2;
-				s.b = B32(c32) >> 3;
+				s.r = R32(c32);
+				s.g = G32(c32);
+				s.b = B32(c32);
 
 				// assign pixel
 				uchar sa = DivLut[AlphaLut[*Alpha] * A32(c32)];
 				if (sa == 0xff)
 				{
-					*d = s;
+					d->r = s.r >> 3;
+					d->g = s.g >> 2;
+					d->b = s.b >> 3;
 				}
 				else if (sa)
 				{
 					uchar o = 0xff - sa;
 
-					NonPreMulOver24(r);
-					NonPreMulOver24(g);
-					NonPreMulOver24(b);
+					NonPreMulOver16(r, 3);
+					NonPreMulOver16(g, 2);
+					NonPreMulOver16(b, 3);
 				}
 			}
 
@@ -523,6 +558,110 @@ public:
 	{
 		p[0] = center;
 		p[1] = rim;
+	}
+
+	template<typename T>
+	void Radial16(T *d, GRopArgs &Args)
+	{
+		uchar *DivLut = Div255Lut;
+		uchar *Alpha = Args.Alpha;
+
+		double dx = p[1].x - p[0].x;
+		double dy = p[1].y - p[0].y;
+		double Radius = sqrt((dx*dx)+(dy*dy)) / 255; // scaled by 255 to index into the Lut
+
+		int dysq = (int) (Args.y - p[0].y);
+		dysq *= dysq;
+
+		int x = (int) (Args.x - p[0].x);
+		int dxsq = x * x;	// forward difference the (x * x) calculation
+		int xd = 2 * x + 1;	// to remove a MUL from the inner loop
+
+		int Ci = 0;
+		COLOUR c32;
+		uchar sa;
+		T *End = (T*) d + Args.Len;
+		GRgb24 s;
+
+		if (Radius < 0.0000000001)
+		{
+			// No blend... just the end colour
+			c32 = Lut[255];
+			s.r = R32(c32);
+			s.g = G32(c32);
+			s.b = B32(c32);
+
+			for (; d<End; Alpha++)
+			{
+				if (*Alpha)
+				{
+					// composite the pixel
+					sa = DivLut[AlphaLut[*Alpha] * A32(c32)];
+					if (sa == 0xff)
+					{
+						d->r = s.r >> 3;
+						d->g = s.g >> 2;
+						d->b = s.b >> 3;
+					}
+					else if (sa)
+					{
+						uchar o = 0xff - sa;
+
+						NonPreMulOver16(r, 3);
+						NonPreMulOver16(g, 2);
+						NonPreMulOver16(b, 3);
+					}
+				}
+				
+				d++;
+			}
+		}
+		else
+		{
+			// Radial blend
+			for (; d<End; Alpha++)
+			{
+				if (*Alpha)
+				{
+					// work out colour
+					
+					// sqrt??? gee can we get rid of this?
+					Ci = (int) (sqrt((double) (dxsq+dysq)) / Radius);
+
+					// clamp colour to the ends of the Lut
+					if (Ci < 0) c32 = Lut[0];
+					else if (Ci > 255) c32 = Lut[255];
+					else c32 = Lut[Ci];
+
+					s.r = R32(c32);
+					s.g = G32(c32);
+					s.b = B32(c32);
+
+					// composite the pixel
+					sa = DivLut[AlphaLut[*Alpha] * A32(c32)];
+					if (sa == 0xff)
+					{
+						d->r = s.r >> 3;
+						d->g = s.g >> 2;
+						d->b = s.b >> 3;
+					}
+					else if (sa)
+					{
+						uchar o = 0xff - sa;
+
+						NonPreMulOver16(r, 3);
+						NonPreMulOver16(g, 2);
+						NonPreMulOver16(b, 3);
+					}
+				}
+
+				// apply forward difference to the x values
+				x++;
+				dxsq += xd;
+				xd += 2;
+				d++;
+			}
+		}
 	}
 
 	template<typename T>

@@ -1485,7 +1485,8 @@ GColour GSurface::Colour(GColour c)
 	GColour cPrev(pApp->c, GetBits());
 	
 	uint32 c32 = c.c32();
-	switch (GColourSpaceToBits(pApp->GetColourSpace()))
+	GColourSpace Cs = pApp->GetColourSpace();
+	switch (GColourSpaceToBits(Cs))
 	{
 		case 8:
 			pApp->c = c.c8();

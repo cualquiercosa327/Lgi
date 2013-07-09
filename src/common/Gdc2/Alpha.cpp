@@ -265,6 +265,7 @@ GApplicator *GAlphaFactory::Create(GColourSpace Cs, int Op)
 			case CsRgb15:
 				return new GdcApp15Alpha;
 			case CsRgb16:
+			case CsBgr16:
 				return new GdcApp16Alpha;
 			case System24BitColourSpace:
 				return new GdcApp24Alpha;
@@ -1472,6 +1473,7 @@ bool GdcApp16Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				break;
 			}
 			case CsRgb16:
+			case CsBgr16:
 			{
 				for (int y=0; y<Src->y; y++)
 				{

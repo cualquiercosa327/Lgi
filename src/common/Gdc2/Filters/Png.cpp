@@ -682,6 +682,22 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 										}										
 										break;
 									}
+									case CsBgr16:
+									{
+										Png24 *i = (Png24*)Scan0[y];
+										Png24 *e = i + pDC->X();
+										GBgr16 *o = (GBgr16*)Scan;
+								
+										while (i < e)
+										{
+											o->r = i->r >> 3;
+											o->g = i->g >> 2;
+											o->b = i->b >> 3;
+											o++;
+											i++;
+										}										
+										break;
+									}
 									default:
 										LgiTrace("%s:%i - Unsupported colour space: 0x%x (%s)\n",
 												_FL,	
@@ -721,6 +737,22 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 										Png32 *i = (Png32*)Scan0[y];
 										Png32 *e = i + pDC->X();
 										GRgb16 *o = (GRgb16*)Scan;
+								
+										while (i < e)
+										{
+											o->r = i->r >> 3;
+											o->g = i->g >> 2;
+											o->b = i->b >> 3;
+											o++;
+											i++;
+										}										
+										break;
+									}
+									case CsBgr16:
+									{
+										Png32 *i = (Png32*)Scan0[y];
+										Png32 *e = i + pDC->X();
+										GBgr16 *o = (GBgr16*)Scan;
 								
 										while (i < e)
 										{

@@ -74,7 +74,8 @@ public:
 
 GApplicator *GApp16::Create(GColourSpace Cs, int Op)
 {
-	if (Cs == CsRgb16)
+	if (Cs == CsRgb16 ||
+		Cs == CsBgr16)
 	{
 		switch (Op)
 		{
@@ -96,7 +97,8 @@ GApplicator *GApp16::Create(GColourSpace Cs, int Op)
 
 bool GdcApp16::SetSurface(GBmpMem *d, GPalette *p, GBmpMem *a)
 {
-	if (d && d->Cs == CsRgb16)
+	if (d &&
+		(d->Cs == CsRgb16 || d->Cs == CsBgr16))
 	{
 		Dest = d;
 		Pal = p;
@@ -270,6 +272,7 @@ bool GdcApp16Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				break;
 			}
 			case CsRgb16:
+			case CsBgr16:
 			{
 				uchar *s = Src->Base;
 				for (int y=0; y<Src->y; y++)

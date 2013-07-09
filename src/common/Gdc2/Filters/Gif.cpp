@@ -155,6 +155,22 @@ int GdcGif::out_line(uchar *pixels, int linewidth, int interlaced, int BitDepth)
 	        memcpy((*pDC)[lines], pixels, pDC->X());
 	        break;
 	    }
+	    case CsRgb16:
+	    {
+	        GRgb16 *s = (GRgb16*) (*pDC)[lines];
+	        GRgb16 *e = s + pDC->X();
+	        GPalette *pal = pDC->Palette();
+        	GdcRGB *p = (*pal)[0], *pix;
+        	
+	        while (s < e)
+	        {
+	            pix = p + *pixels++;
+	            s->r = pix->R >> 3;
+	            s->g = pix->G >> 2;
+	            s->b = pix->B >> 3;
+	            s++;
+	        }
+	    }
 	    case System32BitColourSpace:
 	    {
 	        System32BitPixel *s = (System32BitPixel*) (*pDC)[lines];
