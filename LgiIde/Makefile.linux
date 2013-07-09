@@ -30,7 +30,7 @@ Libs = \
 	`pkg-config --libs gtk+-2.0` \
 	-static-libgcc \
 	-llgi$(Tag) \
-	-L/home/matthew/Code/Lgi/trunk/$(BuildDir)
+	-L../$(BuildDir)
 
 # Includes
 Inc = \

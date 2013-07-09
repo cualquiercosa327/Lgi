@@ -666,7 +666,27 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 									Read24Case(Bgra32, 32);
 									Read24Case(Argb32, 32);
 									Read24Case(Abgr32, 32);
+									case CsRgb16:
+									{
+										Png24 *i = (Png24*)Scan0[y];
+										Png24 *e = i + pDC->X();
+										GRgb16 *o = (GRgb16*)Scan;
+								
+										while (i < e)
+										{
+											o->r = i->r >> 3;
+											o->g = i->g >> 2;
+											o->b = i->b >> 3;
+											o++;
+											i++;
+										}										
+										break;
+									}
 									default:
+										LgiTrace("%s:%i - Unsupported colour space: 0x%x (%s)\n",
+												_FL,	
+												pDC->GetColourSpace(),
+												GColourSpaceToString(pDC->GetColourSpace()));
 										LgiAssert(!"Not impl.");
 										break;
 								}
@@ -696,8 +716,25 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 									Read32Case(Bgra32, 32);
 									Read32Case(Argb32, 32);
 									Read32Case(Abgr32, 32);
+									case CsRgb16:
+									{
+										Png32 *i = (Png32*)Scan0[y];
+										Png32 *e = i + pDC->X();
+										GRgb16 *o = (GRgb16*)Scan;
+								
+										while (i < e)
+										{
+											o->r = i->r >> 3;
+											o->g = i->g >> 2;
+											o->b = i->b >> 3;
+											o++;
+											i++;
+										}										
+										break;
+									}
 									default:
 										LgiTrace("%s:%i - Unsupported colour space: 0x%x (%s)\n",
+												_FL,	
 												pDC->GetColourSpace(),
 												GColourSpaceToString(pDC->GetColourSpace()));
 										LgiAssert(!"Not impl.");
@@ -782,7 +819,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 			}
 			else
 			{
-				printf("%s:%i - png_get_rows failed.\n", __FILE__, __LINE__);
+				printf("%s:%i - png_get_rows failed.\n", _FL);
 			}
 		}
 

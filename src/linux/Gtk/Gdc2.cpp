@@ -417,9 +417,9 @@ public:
 	{
 		Device = d;
 		GlobalColour = 0;
-    	ZeroObj(OptVal);
-    	ScrX = ScrY = 0;
-    	ScrBits = 0;
+	    	ZeroObj(OptVal);
+	    	ScrX = ScrY = 0;
+	    	ScrBits = 0;
 
 		// Palette information
 		GammaCorrection = 1.0;
@@ -429,9 +429,9 @@ public:
 		Gtk::gint Screens = Gtk::gdk_display_get_n_screens(Dsp);
 		for (Gtk::gint i=0; i<Screens; i++)
 		{
-            Gtk::GdkScreen *Scr = Gtk::gdk_display_get_screen(Dsp, i);
-            if (Scr)
-            {
+	            Gtk::GdkScreen *Scr = Gtk::gdk_display_get_screen(Dsp, i);
+	            if (Scr)
+	            {
 		        ScrX = Gtk::gdk_screen_get_width(Scr);
 		        ScrY = Gtk::gdk_screen_get_height(Scr);
 		        Gtk::GdkVisual *Vis = Gtk::gdk_screen_get_system_visual(Scr);
@@ -441,7 +441,7 @@ public:
 		            ScrColourSpace = GdkVisualToColourSpace(Vis, Vis->depth);
 		        }
 		    }
-        }
+	        }
 		
 		printf("Screen: %i x %i @ %i bpp (%s)\n", ScrX, ScrY, ScrBits, GColourSpaceToString(ScrColourSpace));
 
@@ -723,480 +723,6 @@ COLOUR GdcDevice::GetColour(COLOUR Rgb24, GSurface *pDC)
 	return C;
 }
 
-/*
-GSprite::GSprite()
-{
-	Sx = Sy = Bits = 0;
-	PosX = PosY = 0;
-	HotX = HotY = 0;
-	Visible = false;
-	pScreen = pBack = pMask = pColour = pTemp = 0;
-}
-
-GSprite::~GSprite()
-{
-	Delete();
-}
-
-void GSprite::SetXY(int x, int y)
-{
-	PosX = x;
-	PosY = y;
-}
-
-bool GSprite::Create(GSurface *pScr, int x, int y, int SrcBitDepth, uchar *Colour, uchar *Mask)
-{
-	bool Status = false;
-
-	pScreen = pScr;
-	if (pScreen AND Colour AND Mask)
-	{
-		Delete();
-
-		if (SetSize(x, y, pScreen->GetBits()))
-		{
-			COLOUR cBlack = 0;
-			COLOUR cWhite = 0xFFFFFFFF;
-
-			switch (SrcBitDepth)
-			{
-				case 1:
-				{
-					int Scan = (Sx + 7) / 8;
-
-					for (int y=0; y<Sy; y++)
-					{
-						uchar *c = Colour + (y * Scan);
-						uchar *m = Mask + (y * Scan);
-
-						for (int x=0; x<Sx; x++)
-						{
-							int Div = x >> 3;
-							int Mod = x & 0x7;
-
-							pColour->Colour((c[Div] & (0x80 >> Mod)) ? cWhite : cBlack);
-							pColour->Set(x, y);
-
-							pMask->Colour((m[Div] & (0x80 >> Mod)) ? cWhite : cBlack);
-							pMask->Set(x, y);
-						}
-					}
-
-					Status = true;
-					break;
-				}
-			}
-		}
-
-		if (!Status)
-		{
-			Delete();
-		}
-	}
-
-	return Status;
-}
-
-bool GSprite::Create(GSurface *pScr, GSprite *pSpr)
-{
-	bool Status = false;
-
-	pScreen = pSpr->pScreen;
-	if (pScreen)
-	{
-		Delete();
-
-		if (SetSize(pSpr->X(), pSpr->Y(), pSpr->GetBits()))
-		{
-			HotX = pSpr->GetHotX();
-			HotY = pSpr->GetHotY();
-
-			pBack->Blt(0, 0, pSpr->pBack, NULL);
-			pMask->Blt(0, 0, pSpr->pMask, NULL);
-			pColour->Blt(0, 0, pSpr->pColour, NULL);
-
-			Status = true;
-		}
-
-		if (!Status)
-		{
-			Delete();
-		}
-	}
-
-	return Status;
-}
-
-bool GSprite::CreateKey(GSurface *pScr, int x, int y, int Bits, uchar *Colour, int Key)
-{
-	bool Status = false;
-
-	pScreen = pScr;
-	if (pScreen AND Colour)
-	{
-		Delete();
-
-		if (SetSize(x, y, Bits))
-		{
-			COLOUR cBlack = 0;
-			COLOUR cWhite = 0xFFFFFFFF;
-
-			switch (Bits)
-			{
-				case 8:
-				{
-					for (int y=0; y<Sy; y++)
-					{
-						uchar *c = Colour + (y * Sx);
-
-						for (int x=0; x<Sx; x++, c++)
-						{
-							pColour->Colour(*c);
-							pColour->Set(x, y);
-
-							pMask->Colour((*c != Key) ? cWhite : cBlack);
-							pMask->Set(x, y);
-						}
-					}
-
-					Status = true;
-					break;
-				}
-				case 16:
-				case 15:
-				{
-					for (int y=0; y<Sy; y++)
-					{
-						ushort *c = ((ushort*) Colour) + (y * Sx);
-
-						for (int x=0; x<Sx; x++, c++)
-						{
-							pColour->Colour(*c);
-							pColour->Set(x, y);
-
-							pMask->Colour((*c != Key) ? cWhite : cBlack);
-							pMask->Set(x, y);
-						}
-					}
-
-					Status = true;
-					break;
-				}
-				case 24:
-				{
-					for (int y=0; y<Sy; y++)
-					{
-						uchar *c = Colour + (y * Sx * 3);
-
-						for (int x=0; x<Sx; x++, c+=3)
-						{
-							COLOUR p = Rgb24(c[2], c[1], c[0]);
-							pColour->Colour(p);
-							pColour->Set(x, y);
-
-							pMask->Colour((p != Key) ? cWhite : cBlack);
-							pMask->Set(x, y);
-						}
-					}
-
-					Status = true;
-					break;
-				}
-				case 32:
-				{
-					for (int y=0; y<Sy; y++)
-					{
-						ulong *c = ((ulong*) Colour) + (y * Sx);
-
-						for (int x=0; x<Sx; x++, c++)
-						{
-							pColour->Colour(*c);
-							pColour->Set(x, y);
-
-							pMask->Colour((*c != Key) ? cWhite : cBlack);
-							pMask->Set(x, y);
-						}
-					}
-
-					Status = true;
-					break;
-				}
-			}
-		}
-
-		if (!Status)
-		{
-			Delete();
-		}
-	}
-
-	return Status;
-}
-
-bool GSprite::SetSize(int x, int y, int BitSize, GSurface *pScr)
-{
-	bool Status = false;
-	if (pScr)
-	{
-		pScreen = pScr;
-	}
-
-	if (pScreen)
-	{
-		Sx = x;
-		Sy = y;
-		Bits = BitSize;
-		HotX = 0;
-		HotY = 0;
-		DrawMode = 0;
-
-		pBack = new GMemDC;
-		pMask = new GMemDC;
-		pColour = new GMemDC;
-		pTemp = new GMemDC;
-
-		if (pBack AND pMask AND pColour AND pTemp)
-		{
-			if (	pBack->Create(x, y, Bits) AND
-				pMask->Create(x, y, Bits) AND
-				pColour->Create(x, y, Bits) AND
-				pTemp->Create(x<<1, y<<1, Bits))
-			{
-				if (pScreen->GetBits() == 8)
-				{
-					pTemp->Palette(new GPalette(pScreen->Palette()));
-				}
-
-				Status = true;
-			}
-		}
-	}
-
-	return Status;
-};
-
-void GSprite::Delete()
-{
-	SetVisible(false);
-	DeleteObj(pBack);
-	DeleteObj(pMask);
-	DeleteObj(pColour);
-	DeleteObj(pTemp);
-}
-
-void GSprite::SetHotPoint(int x, int y)
-{
-	HotX = x;
-	HotY = y;
-}
-
-void GSprite::SetVisible(bool v)
-{
-	if (pScreen)
-	{
-		if (Visible)
-		{
-			if (!v)
-			{
-				// Hide
-				int Op = pScreen->Op(GDC_SET);
-				pScreen->Blt(PosX-HotX, PosY-HotY, pBack, NULL);
-				pScreen->Op(Op);
-				Visible = false;
-			}
-		}
-		else
-		{
-			if (v)
-			{
-				// Show
-				GRect s, n;
-
-				s.ZOff(Sx-1, Sy-1);
-				n = s;
-				s.Offset(PosX-HotX, PosY-HotY);
-				pBack->Blt(0, 0, pScreen, &s);
-				
-				pTemp->Op(GDC_SET);
-				pTemp->Blt(0, 0, pBack);
-
-				if (DrawMode == 3)
-				{
-					int Op = pTemp->Op(GDC_ALPHA);
-					pTemp->Blt(0, 0, pColour, NULL);
-					pTemp->Op(Op);
-				}
-				else
-				{
-					int OldOp = pTemp->Op(GDC_AND);
-					pTemp->Blt(0, 0, pMask, NULL);
-					if (DrawMode == 1)
-					{
-						pTemp->Op(GDC_OR);
-					}
-					else
-					{
-						pTemp->Op(GDC_XOR);
-					}
-					pTemp->Blt(0, 0, pColour, NULL);
-					pTemp->Op(OldOp);
-				}
-
-				int OldOp = pScreen->Op(GDC_SET);
-				pScreen->Blt(PosX-HotX, PosY-HotY, pTemp, &n);
-				pScreen->Op(OldOp);
-				Visible = true;
-			}
-		}
-	}
-}
-
-void GSprite::Draw(int x, int y, COLOUR Back, int Mode, GSurface *pDC)
-{
-	if (pScreen)
-	{
-		if (!pDC)
-		{
-			pDC = pScreen;
-		}
-
-		if (Mode == 3)
-		{
-			pDC->Blt(x-HotX, y-HotY, pColour, NULL);
-		}
-		else if (Mode == 2)
-		{
-			int Op = pScreen->Op(GDC_AND);
-			pDC->Blt(x-HotX, y-HotY, pMask, NULL);
-			pDC->Op(GDC_OR);
-			pDC->Blt(x-HotX, y-HotY, pColour, NULL);
-			pDC->Op(Op);
-		}
-		else
-		{
-			pBack->Colour(Back);
-			pBack->Rectangle(0, 0, pBack->X(), pBack->Y());
-			
-			if (Mode == 0)
-			{
-				pBack->Op(GDC_AND);
-				pBack->Blt(0, 0, pColour, NULL);
-				pBack->Op(GDC_XOR);
-				pBack->Blt(0, 0, pMask, NULL);
-			}
-			else if (Mode == 1)
-			{
-				pBack->Op(GDC_AND);
-				pBack->Blt(0, 0, pMask, NULL);
-				pBack->Op(GDC_OR);
-				pBack->Blt(0, 0, pColour, NULL);
-			}
-
-			pDC->Blt(x-HotX, y-HotY, pBack, NULL);
-		}
-	}
-}
-
-void GSprite::Move(int x, int y, bool WaitRetrace)
-{
-	if (	pScreen AND
-		(x != PosX ||
-		y != PosY))
-	{
-		if (Visible)
-		{
-			GRect New, Old;
-			
-			New.ZOff(Sx-1, Sy-1);
-			Old = New;
-			New.Offset(x - HotX, y - HotY);
-			Old.Offset(PosX - HotX, PosY - HotY);
-			
-			if (New.Overlap(&Old))
-			{
-				GRect Both;
-				
-				Both.Union(&Old, &New);
-				
-				if (pTemp)
-				{
-					// Get working area of screen
-					pTemp->Blt(0, 0, pScreen, &Both);
-
-					// Restore the back of the sprite
-					pTemp->Blt(Old.x1-Both.x1, Old.y1-Both.y1, pBack, NULL);
-
-					// Update any dependent graphics
-					DrawOnMove(pTemp, x, y, HotX-Both.x1, HotX-Both.y1);
-
-					// Get the new background
-					GRect Bk = New;
-					Bk.Offset(-Both.x1, -Both.y1);
-					pBack->Blt(0, 0, pTemp, &Bk);
-		
-					// Paint the new sprite
-					int NewX = New.x1 - Both.x1;
-					int NewY = New.y1 - Both.y1;
-
-					if (DrawMode == 3)
-					{
-						int Op = pTemp->Op(GDC_ALPHA);
-						pTemp->Blt(NewX, NewY, pColour, NULL);
-						pTemp->Op(Op);
-					}
-					else
-					{
-						int OldOp = pTemp->Op(GDC_AND);
-						pTemp->Blt(NewX, NewY, pMask, NULL);
-
-						if (DrawMode == 1)
-						{
-							pTemp->Op(GDC_OR);
-						}
-						else
-						{
-							pTemp->Op(GDC_XOR);
-						}
-
-						pTemp->Blt(NewX, NewY, pColour, NULL);
-						pTemp->Op(OldOp);
-					}
-		
-					// Update all under sprite info on screen
-					DrawOnMove(pScreen, x, y, 0, 0);
-
-					// Put it all back on the screen
-					GRect b = Both;
-					b.Offset(-b.x1, -b.y1);
-
-					int OldOp = pScreen->Op(GDC_SET);
-					pScreen->Blt(Both.x1, Both.y1, pTemp, &b);
-					pScreen->Op(OldOp);
-
-					PosX = x;
-					PosY = y;
-				}
-			}
-			else
-			{
-				SetVisible(false);
-
-				DrawOnMove(pScreen, x, y, 0, 0);
-				PosX = x;
-				PosY = y;
-
-				SetVisible(true);
-			}
-		}
-		else
-		{
-			PosX = x;
-			PosY = y;
-		}
-	}
-}
-*/
-
 //////////////////////////////////////////////////////////////////////////////////////////////
 static int _Factories;
 static GApplicatorFactory *_Factory[16];
@@ -1341,7 +867,7 @@ bool GGlobalColour::RemapBitmap(GSurface *pDC)
 GColourSpace GdkVisualToColourSpace(Gtk::GdkVisual *v, int output_bits)
 {
 	uint32 c = CsNone;
-
+	
 	if (v)
 	{
 		// printf("GdkVisualToColourSpace, Type: %i\n", v->type);
@@ -1363,12 +889,20 @@ GColourSpace GdkVisualToColourSpace(Gtk::GdkVisual *v, int output_bits)
 			case Gtk::GDK_VISUAL_TRUE_COLOR:
 			case Gtk::GDK_VISUAL_DIRECT_COLOR:
 			{
-				c |= ((CtRed   << 4) | v->red_prec  ) << (v->red_shift);
-				c |= ((CtGreen << 4) | v->green_prec) << (v->green_shift);
-				c |= ((CtBlue  << 4) | v->blue_prec ) << (v->blue_shift);
-
+				int red = (CtRed   << 4) | v->red_prec;
+				int green = (CtGreen << 4) | v->green_prec;
+				int blue = (CtBlue  << 4) | v->blue_prec;
+				if (v->red_shift < v->blue_shift)
+				{
+					c = (red << 16) | (green << 8) | blue;
+				}
+				else
+				{
+					c = (blue << 16) | (green << 8) | red;
+				}
+	
 				int bits = GColourSpaceToBits((GColourSpace) c);
-
+	
 				/*
 				printf("GdkVisualToColourSpace, rgb: %i/%i, %i/%i, %i/%i  bits: %i  output_bits: %i\n",
 					v->red_prec, v->red_shift,
@@ -1408,7 +942,7 @@ GColourSpace GdkVisualToColourSpace(Gtk::GdkVisual *v, int output_bits)
 		while (!(c & 0xff))
 			c >>= 8;
 	}
-
+	
 	Cs = (GColourSpace)c;
 	return Cs;
 }
