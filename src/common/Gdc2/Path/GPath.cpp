@@ -2090,6 +2090,8 @@ void GLinearBlendBrush::Rop(GRopArgs &Args)
 		#define LinearCase(cs, bits) \
 			case Cs##cs: Linear##bits((G##cs*)Args.Pixels, Args); break;
 
+		LinearCase(Rgb16, 16);
+
 		LinearCase(Rgb24, 24);
 		LinearCase(Bgr24, 24);
 		LinearCase(Xrgb32, 24);

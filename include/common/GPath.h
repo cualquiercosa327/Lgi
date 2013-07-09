@@ -357,6 +357,57 @@ public:
 	}
 
 	template<typename T>
+	void Linear16(T *d, GRopArgs &Args)
+	{
+		uchar *DivLut = Div255Lut;
+		uchar *Alpha = Args.Alpha;
+
+		double DPos = Base + (Args.x * IncX) + (Args.y * IncY);
+		double Scale = (double)0x10000;
+		int Pos = (int) (DPos * Scale);
+		int Inc = (int) (IncX * Scale);
+		
+		T *e = d + Args.Len;
+		T s;
+
+		while (d < e)
+		{
+			if (*Alpha)
+			{
+				// work out colour
+				COLOUR c32;
+				int Ci = ((Pos << 8) - Pos) >> 16;
+				if (Ci < 0) c32 = Lut[0];
+				else if (Ci > 255) c32 = Lut[255];
+				else c32 = Lut[Ci];
+
+				s.r = R32(c32) >> 3;
+				s.g = G32(c32) >> 2;
+				s.b = B32(c32) >> 3;
+
+				// assign pixel
+				uchar sa = DivLut[AlphaLut[*Alpha] * A32(c32)];
+				if (sa == 0xff)
+				{
+					*d = s;
+				}
+				else if (sa)
+				{
+					uchar o = 0xff - sa;
+
+					NonPreMulOver24(r);
+					NonPreMulOver24(g);
+					NonPreMulOver24(b);
+				}
+			}
+
+			d++;
+			Alpha++;
+			Pos += Inc;
+		}
+	}
+
+	template<typename T>
 	void Linear24(T *d, GRopArgs &Args)
 	{
 		uchar *DivLut = Div255Lut;
