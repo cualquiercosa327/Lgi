@@ -74,8 +74,7 @@ public:
 
 GApplicator *GApp16::Create(GColourSpace Cs, int Op)
 {
-	if (Cs == CsRgb16 ||
-		Cs == CsBgr16)
+	if (Cs == System16BitColourSpace)
 	{
 		switch (Op)
 		{
@@ -97,8 +96,7 @@ GApplicator *GApp16::Create(GColourSpace Cs, int Op)
 
 bool GdcApp16::SetSurface(GBmpMem *d, GPalette *p, GBmpMem *a)
 {
-	if (d &&
-		(d->Cs == CsRgb16 || d->Cs == CsBgr16))
+	if (d && d->Cs == System16BitColourSpace)
 	{
 		Dest = d;
 		Pal = p;
@@ -224,9 +222,9 @@ bool GdcApp16Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 			{
 				ushort c[256];
 				GdcRGB *p;
-				if (SPal AND (p = (*SPal)[0]))
+				if (SPal && (p = (*SPal)[0]))
 				{
-					for (int i=0; i<256 AND i<SPal->GetSize(); i++, p++)
+					for (int i=0; i<256 && i<SPal->GetSize(); i++, p++)
 					{
 						c[i] = Rgb24To16(Rgb24(p->R, p->G, p->B));
 					}
@@ -271,8 +269,7 @@ bool GdcApp16Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case CsRgb16:
-			case CsBgr16:
+			case System16BitColourSpace:
 			{
 				uchar *s = Src->Base;
 				for (int y=0; y<Src->y; y++)
@@ -283,17 +280,20 @@ bool GdcApp16Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case CsBgr24:
+			case System24BitColourSpace:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
-					GBgr24 *s = (GBgr24*) ((char*)Src->Base + (y * Src->Line));
-					ushort *d = (ushort*) Ptr;
-					ushort *e = d + Src->x;
+					System24BitPixel *s = (System24BitPixel*) ((char*)Src->Base + (y * Src->Line));
+					System16BitPixel *d = (System16BitPixel*) Ptr;
+					System16BitPixel *e = d + Src->x;
 
 					while (d < e)
 					{
-						*d++ = Rgb16(s->r, s->g, s->b);
+						d->r = s->r >> 3;
+						d->g = s->r >> 2;
+						d->b = s->r >> 3;
+						d++;
 						s++;
 					}
 
@@ -301,28 +301,25 @@ bool GdcApp16Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case CsArgb32:
+			case System32BitColourSpace:
 			{
-				ulong *s = (ulong*) Src->Base;
-				ushort *d = (ushort*) Ptr;
-
 				for (int y=0; y<Src->y; y++)
 				{
-					ulong *NextS = (ulong*) (((uchar*) s) + Src->Line);
-					ushort *NextD = (ushort*) (((uchar*) d) + Dest->Line);
+					System32BitPixel *s = (System32BitPixel*) ((char*)Src->Base + (y * Src->Line));
+					System16BitPixel *d = (System16BitPixel*) Ptr;
+					System16BitPixel *e = d + Src->x;
 
-					for (int x=0; x<Src->x; x++)
+					while (d < e)
 					{
-						*d = Rgb32To16(*s);
+						d->r = s->r >> 3;
+						d->g = s->r >> 2;
+						d->b = s->r >> 3;
 						d++;
 						s++;
 					}
 
-					s = NextS;
-					d = NextD;
+					((char*&)Ptr) += Dest->Line;
 				}
-
-				Ptr = (uchar*) d;
 				break;
 			}
 		}

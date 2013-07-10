@@ -410,125 +410,181 @@ void PNGAPI LibPngWrite(png_structp Png, png_bytep Ptr, png_size_t Size)
 }
 
 template<typename Out, typename In>
-void Read24(Out *o, In *i, int Len)
+void Read32_16(Out *o, In *i, int Len)
 {
-	if (sizeof(i->r) == 2)
-	{
-		In *e = i + Len;
-		while (i < e)
-		{
-			o->r = i->r / 257;
-			o->g = i->g / 257;
-			o->b = i->b / 257;
-			o++;
-			i++;
-		}
-	}
-	else
-	{
-		In *e = i + Len;
+	In *e = i + Len;
 
-		while (i < e)
-		{
-			o->r = i->r;
-			o->g = i->g;
-			o->b = i->b;
-			o++;
-			i++;
-		}
+	while (i < e)
+	{
+		o->r = i->r >> 3;
+		o->g = i->g >> 2;
+		o->b = i->b >> 3;
+		o++;
+		i++;
 	}
 }
 
 template<typename Out, typename In>
-void Read32(Out *o, In *i, int Len)
+void Read64_16(Out *o, In *i, int Len)
 {
-	if (sizeof(i->r) == 2)
+	In *e = i + Len;
+	while (i < e)
 	{
-		In *e = i + Len;
-		while (i < e)
-		{
-			o->r = i->r / 257;
-			o->g = i->g / 257;
-			o->b = i->b / 257;
-			o->a = 255;
-			o++;
-			i++;
-		}
-	}
-	else
-	{
-		In *e = i + Len;
-
-		while (i < e)
-		{
-			o->r = i->r;
-			o->g = i->g;
-			o->b = i->b;
-			o->a = 255;
-			o++;
-			i++;
-		}
+		o->r = i->r >> 11;
+		o->g = i->g >> 10;
+		o->b = i->b >> 11;
+		o++;
+		i++;
 	}
 }
 
 template<typename Out, typename In>
-void ReadAlpha24(Out *o, In *i, int Len)
+void Read32_24(Out *o, In *i, int Len)
 {
-	if (sizeof(i->r) == 2)
-	{
-		In *e = i + Len;
-		while (i < e)
-		{
-			o->r = i->r / 257;
-			o->g = i->g / 257;
-			o->b = i->b / 257;
-			o++;
-			i++;
-		}
-	}
-	else
-	{
-		In *e = i + Len;
+	In *e = i + Len;
 
-		while (i < e)
-		{
-			o->r = i->r;
-			o->g = i->g;
-			o->b = i->b;
-			o++;
-			i++;
-		}
+	while (i < e)
+	{
+		o->r = i->r;
+		o->g = i->g;
+		o->b = i->b;
+		o++;
+		i++;
 	}
 }
-template<typename Out, typename In>
-void ReadAlpha32(Out *o, In *i, int Len)
-{
-	if (sizeof(i->r) == 2)
-	{
-		In *e = i + Len;
-		while (i < e)
-		{
-			o->r = i->r / 257;
-			o->g = i->g / 257;
-			o->b = i->b / 257;
-			o->a = i->a / 257;
-			o++;
-			i++;
-		}
-	}
-	else
-	{
-		In *e = i + Len;
 
-		while (i < e)
-		{
-			o->r = i->r;
-			o->g = i->g;
-			o->b = i->b;
-			o->a = i->a;
-			o++;
-			i++;
-		}
+template<typename Out, typename In>
+void Read64_24(Out *o, In *i, int Len)
+{
+	In *e = i + Len;
+	while (i < e)
+	{
+		o->r = i->r >> 8;
+		o->g = i->g >> 8;
+		o->b = i->b >> 8;
+		o++;
+		i++;
+	}
+}
+
+template<typename Out, typename In>
+void Read32_32(Out *o, In *i, int Len)
+{
+	In *e = i + Len;
+
+	while (i < e)
+	{
+		o->r = i->r;
+		o->g = i->g;
+		o->b = i->b;
+		o->a = 255;
+		o++;
+		i++;
+	}
+}
+
+template<typename Out, typename In>
+void Read64_32(Out *o, In *i, int Len)
+{
+	In *e = i + Len;
+
+	while (i < e)
+	{
+		o->r = i->r;
+		o->g = i->g;
+		o->b = i->b;
+		o->a = 255;
+		o++;
+		i++;
+	}
+}
+
+template<typename Out, typename In>
+void ReadAlpha32_16(Out *o, In *i, int Len)
+{
+	In *e = i + Len;
+
+	while (i < e)
+	{
+		o->r = i->r >> 3;
+		o->g = i->g >> 2;
+		o->b = i->b >> 3;
+		o++;
+		i++;
+	}
+}
+
+template<typename Out, typename In>
+void ReadAlpha64_16(Out *o, In *i, int Len)
+{
+	In *e = i + Len;
+	while (i < e)
+	{
+		o->r = i->r >> 11;
+		o->g = i->g >> 10;
+		o->b = i->b >> 11;
+		o++;
+		i++;
+	}
+}
+
+template<typename Out, typename In>
+void ReadAlpha32_24(Out *o, In *i, int Len)
+{
+	In *e = i + Len;
+
+	while (i < e)
+	{
+		o->r = i->r;
+		o->g = i->g;
+		o->b = i->b;
+		o++;
+		i++;
+	}
+}
+
+template<typename Out, typename In>
+void ReadAlpha64_24(Out *o, In *i, int Len)
+{
+	In *e = i + Len;
+	while (i < e)
+	{
+		o->r = i->r >> 8;
+		o->g = i->g >> 8;
+		o->b = i->b >> 8;
+		o++;
+		i++;
+	}
+}
+
+template<typename Out, typename In>
+void ReadAlpha32_32(Out *o, In *i, int Len)
+{
+	In *e = i + Len;
+
+	while (i < e)
+	{
+		o->r = i->r;
+		o->g = i->g;
+		o->b = i->b;
+		o->a = i->a;
+		o++;
+		i++;
+	}
+}
+
+template<typename Out, typename In>
+void ReadAlpha64_32(Out *o, In *i, int Len)
+{
+	In *e = i + Len;
+	while (i < e)
+	{
+		o->r = i->r >> 8;
+		o->g = i->g >> 8;
+		o->b = i->b >> 8;
+		o->a = i->a >> 8;
+		o++;
+		i++;
 	}
 }
 
@@ -650,11 +706,15 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 										case Cs##name: \
 										{ \
 											if (png_get_bit_depth(png_ptr, info_ptr) == 16) \
-												Read##bits((G##name*)Scan, (Png48*)Scan0[y], pDC->X()); \
+												Read64_##bits((G##name*)Scan, (Png48*)Scan0[y], pDC->X()); \
 											else \
-												Read##bits((G##name*)Scan, (Png24*)Scan0[y], pDC->X()); \
+												Read32_##bits((G##name*)Scan, (Png24*)Scan0[y], pDC->X()); \
 											break; \
 										}
+
+									Read24Case(Rgb16, 16);
+									Read24Case(Bgr16, 16);
+
 									Read24Case(Rgb24, 24);
 									Read24Case(Bgr24, 24);
 									Read24Case(Xrgb32, 24);
@@ -666,38 +726,6 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 									Read24Case(Bgra32, 32);
 									Read24Case(Argb32, 32);
 									Read24Case(Abgr32, 32);
-									case CsRgb16:
-									{
-										Png24 *i = (Png24*)Scan0[y];
-										Png24 *e = i + pDC->X();
-										GRgb16 *o = (GRgb16*)Scan;
-								
-										while (i < e)
-										{
-											o->r = i->r >> 3;
-											o->g = i->g >> 2;
-											o->b = i->b >> 3;
-											o++;
-											i++;
-										}										
-										break;
-									}
-									case CsBgr16:
-									{
-										Png24 *i = (Png24*)Scan0[y];
-										Png24 *e = i + pDC->X();
-										GBgr16 *o = (GBgr16*)Scan;
-								
-										while (i < e)
-										{
-											o->r = i->r >> 3;
-											o->g = i->g >> 2;
-											o->b = i->b >> 3;
-											o++;
-											i++;
-										}										
-										break;
-									}
 									default:
 										LgiTrace("%s:%i - Unsupported colour space: 0x%x (%s)\n",
 												_FL,	
@@ -716,11 +744,15 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 										case Cs##name: \
 										{ \
 											if (png_get_bit_depth(png_ptr, info_ptr) == 16) \
-												ReadAlpha##bits((G##name*)Scan, (Png64*)Scan0[y], pDC->X()); \
+												ReadAlpha64_##bits((G##name*)Scan, (Png64*)Scan0[y], pDC->X()); \
 											else \
-												ReadAlpha##bits((G##name*)Scan, (Png32*)Scan0[y], pDC->X()); \
+												ReadAlpha32_##bits((G##name*)Scan, (Png32*)Scan0[y], pDC->X()); \
 											break; \
 										}
+
+									Read32Case(Rgb16, 16);
+									Read32Case(Bgr16, 16);
+
 									Read32Case(Rgb24, 24);
 									Read32Case(Bgr24, 24);
 									Read32Case(Xrgb32, 24);
@@ -732,38 +764,6 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 									Read32Case(Bgra32, 32);
 									Read32Case(Argb32, 32);
 									Read32Case(Abgr32, 32);
-									case CsRgb16:
-									{
-										Png32 *i = (Png32*)Scan0[y];
-										Png32 *e = i + pDC->X();
-										GRgb16 *o = (GRgb16*)Scan;
-								
-										while (i < e)
-										{
-											o->r = i->r >> 3;
-											o->g = i->g >> 2;
-											o->b = i->b >> 3;
-											o++;
-											i++;
-										}										
-										break;
-									}
-									case CsBgr16:
-									{
-										Png32 *i = (Png32*)Scan0[y];
-										Png32 *e = i + pDC->X();
-										GBgr16 *o = (GBgr16*)Scan;
-								
-										while (i < e)
-										{
-											o->r = i->r >> 3;
-											o->g = i->g >> 2;
-											o->b = i->b >> 3;
-											o++;
-											i++;
-										}										
-										break;
-									}
 									default:
 										LgiTrace("%s:%i - Unsupported colour space: 0x%x (%s)\n",
 												_FL,	

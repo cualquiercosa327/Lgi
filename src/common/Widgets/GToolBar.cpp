@@ -456,13 +456,83 @@ void GImageList::Draw(GSurface *pDest, int Dx, int Dy, int Image, GColour Backgr
 
 				BOOL Status = false;
 				
-				if (!pDest->IsScreen() &&
-					pDest->GetBits() < 24)
+				if (pDest->GetBits() <= 24)
 				{
-					int Op = pDest->Op(GDC_ALPHA);
-					pDest->Blt(Dx, Dy, this, &r);
-					pDest->Op(Op);
+					// No source alpha, have to do colour keying manually.
+					GMemDC Tmp;
+					GSurface *Dest = pDest;
+					GRect drc;
+					if (pDest->IsScreen() ||
+						GetColourSpace() != pDest->GetColourSpace())
+					{
+						drc.ZOff(r.X()-1, r.Y()-1);
+						Tmp.Create(r.X(), r.Y(), GetBits());
+						Tmp.Colour(Background);
+						Tmp.Rectangle();
+						Dest = &Tmp;
+					}
+					else
+					{
+						drc.ZOff(r.X()-1, r.Y()-1);
+						drc.Offset(Dx, Dy);
+						Dest->Colour(Background);
+						Dest->Rectangle(&drc);
+					}
+										
 					Status = true;
+					LgiAssert(Dest->GetColourSpace() == GetColourSpace());
+					switch (GetColourSpace())
+					{
+						case CsRgb16:
+						case CsBgr16:
+						{
+							for (int y=0; y<r.Y(); y++)
+							{
+								uint16 *s = ((uint16*)(*this)[r.y1+y]) + r.x1;
+								uint16 *d = ((uint16*)(*Dest)[drc.y1+y]) + drc.x1;
+								uint16 *e = d + drc.X();
+								while (d < e)
+								{
+									if (*s != Key)
+										*d = *s;
+									d++;
+									s++;
+								}
+							}
+							break;
+						}
+						case CsRgba32:
+						case CsBgra32:
+						case CsArgb32:
+						case CsAbgr32:
+						{
+							for (int y=0; y<r.Y(); y++)
+							{
+								uint32 *s = ((uint32*)(*this)[r.y1+y]) + r.x1;
+								uint32 *d = ((uint32*)(*Dest)[drc.y1+y]) + drc.x1;
+								uint32 *e = d + drc.X();
+								while (d < e)
+								{
+									if (*s != Key)
+										*d = *s;
+									d++;
+									s++;
+								}
+							}
+							break;
+						}
+						default:
+						{
+							Status = false;
+							LgiAssert(0);
+							break;
+						}
+					}					
+
+					if (pDest->IsScreen())
+					{
+						pDest->Blt(Dx, Dy, &Tmp);
+					}
 				}
 				else if (GdcD->AlphaBlend &&
 						!LgiApp->IsWine())

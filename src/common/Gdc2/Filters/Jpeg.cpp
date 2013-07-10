@@ -324,6 +324,23 @@ struct JpegXyz
 };
 
 template<typename T>
+void Convert16(T *d, int width)
+{
+	JpegRgb *s = (JpegRgb*) d;
+	JpegRgb *e = s + width;
+	
+	while (s < e)
+	{
+		JpegRgb t = *s++;
+		
+		d->r = t.r >> 3;
+		d->g = t.g >> 2;
+		d->b = t.b >> 3;
+		d++;
+	}
+}
+
+template<typename T>
 void Convert24(T *d, int width)
 {
 	JpegRgb *e = (JpegRgb*) d;
@@ -652,6 +669,10 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 										YccCase(Abgr32, 32);
 										YccCase(Rgba32, 32);
 										YccCase(Bgra32, 32);
+										
+										default:
+											LgiAssert(!"Unsupported colour space.");
+											break;
 									}
 								}
 								break;
@@ -666,6 +687,9 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 									{
 										#define JpegCase(name, bits) \
 											case Cs##name: Convert##bits((G##name*)Ptr, Width); break;
+
+										JpegCase(Rgb16, 16);
+										JpegCase(Bgr16, 16);
 										
 										JpegCase(Rgb24, 24);
 										JpegCase(Bgr24, 24);
@@ -678,6 +702,10 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 										JpegCase(Abgr32, 32);
 										JpegCase(Rgba32, 32);
 										JpegCase(Bgra32, 32);
+
+										default:
+											LgiAssert(!"Unsupported colour space.");
+											break;
 									}
 								}
 								break;
@@ -915,13 +943,27 @@ GFilter::IoStatus GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality, SubS
 				}
 				case CsRgb16:
 				{
-				    uint16 *p = (uint16*)(*pDC)[cinfo.next_scanline];
-				    uint16 *end = p + pDC->X();
+				    GRgb16 *p = (GRgb16*)(*pDC)[cinfo.next_scanline];
+				    GRgb16 *end = p + pDC->X();
 					while (p < end)
 					{
-						dst[0] = (R16(*p) << 3) | (R16(*p) >> 5);
-						dst[1] = (G16(*p) << 2) | (G16(*p) >> 6);
-						dst[2] = (B16(*p) << 3) | (B16(*p) >> 5);
+						dst[0] = (p->r << 3) | (p->r >> 5);
+						dst[1] = (p->g << 2) | (p->g >> 6);
+						dst[2] = (p->b << 3) | (p->b >> 5);
+						dst += 3;
+						p++;
+					}
+					break;
+				}
+				case CsBgr16:
+				{
+				    GBgr16 *p = (GBgr16*)(*pDC)[cinfo.next_scanline];
+				    GBgr16 *end = p + pDC->X();
+					while (p < end)
+					{
+						dst[0] = (p->r << 3) | (p->r >> 5);
+						dst[1] = (p->g << 2) | (p->g >> 6);
+						dst[2] = (p->b << 3) | (p->b >> 5);
 						dst += 3;
 						p++;
 					}

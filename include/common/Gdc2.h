@@ -355,6 +355,9 @@ LgiFunc GColourSpace GdkVisualToColourSpace(Gtk::GdkVisual *v, int output_bits);
 // can have different colour spaces depending on OS version or hardware configuration.
 #if defined(WIN32) || defined(LINUX) || defined(BEOS)
 
+	#define System16BitColourSpace CsBgr16
+	typedef GBgr16 System16BitPixel;
+
 	#define System24BitColourSpace CsBgr24
 	typedef GBgr24 System24BitPixel;
 
@@ -362,6 +365,9 @@ LgiFunc GColourSpace GdkVisualToColourSpace(Gtk::GdkVisual *v, int output_bits);
 	typedef GBgra32 System32BitPixel;
 
 #else
+
+	#define System16BitColourSpace CsRgb16
+	typedef GRgb16 System16BitPixel;
 
 	#define System24BitColourSpace CsRgb24
 	typedef GRgb24 System24BitPixel;
@@ -379,7 +385,9 @@ typedef union
 	int i;
 	
 	GRgb15  *rgb15;
+	GBgr15  *bgr15;
 	GRgb16  *rgb16;
+	GBgr16  *bgr16;
 	GRgb24  *rgb24;
 	GBgr24  *bgr24;
 	GRgba32 *rgba32;
