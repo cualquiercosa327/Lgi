@@ -406,19 +406,20 @@ GXmlTag *GXmlTag::CreateTag(const char *Name, char *Content)
 	return c;
 }
 
-GXmlTag *GXmlTag::GetTag(const char *Name, bool Create)
+GXmlTag *GXmlTag::GetTag(const char *Name, bool Create, const char *TagSeparator)
 {
-	GToken p(Name, ".");
+	GToken p(Name, TagSeparator);
 
 	GXmlTag *t = this;
 	for (int i=0; i<p.Length() && t; i++)
 	{
 		GXmlTag *Child = 0;
+		char *Part = p[i];
 		
 		List<GXmlTag>::I n = t->Children.Start();
 		for (GXmlTag *c = *n; n; c = *++n)
 		{
-			if (c->Tag && stricmp(c->Tag, p[i]) == 0)
+			if (c->Tag && stricmp(c->Tag, Part) == 0)
 			{
 				Child = c;
 				break;
@@ -1329,13 +1330,7 @@ bool GXmlTree::Read(GXmlTag *Root, GStreamI *File, GXmlFactory *Factory)
 						}
 						else
 						{
-						    // LgiAssert(0);
 						    break;
-						}
-						
-						if (t)
-						{
-						    int asd=0;
 						}
 					}
 					
