@@ -7572,10 +7572,6 @@ GCellStore::GCellStore(GTag *Table)
 		}
 		else if (r->TagId == TAG_TBODY)
 		{
-			// TBODY should always have zero children because they get re-parented to the
-			// table.
-			LgiAssert(r->Children.Length() == 0);
-			/*
 			int Index = Table->Children.IndexOf(r);			
 			for (int n=0; n<r->Children.Length(); n++)
 			{
@@ -7584,7 +7580,6 @@ GCellStore::GCellStore(GTag *Table)
 				t->Parent = Table;
 			}
 			r->Children.Length(0);
-			*/
 		}
 		else
 		{
