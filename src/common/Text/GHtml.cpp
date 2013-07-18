@@ -3790,6 +3790,12 @@ void GTag::LayoutTable(GFlowRegion *f)
 
 	if (!Cells)
 	{
+		#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
+		if (Debug)
+		{
+			int asd=0;
+		}
+		#endif
 		Cells = new GCellStore(this);
 		#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 		if (Cells && Debug)
@@ -7566,7 +7572,11 @@ GCellStore::GCellStore(GTag *Table)
 		}
 		else if (r->TagId == TAG_TBODY)
 		{
-			int Index = Table->Children.IndexOf(r);
+			// TBODY should always have zero children because they get re-parented to the
+			// table.
+			LgiAssert(r->Children.Length() == 0);
+			/*
+			int Index = Table->Children.IndexOf(r);			
 			for (int n=0; n<r->Children.Length(); n++)
 			{
 				GTag *t = ToTag(r->Children[n]);
@@ -7574,6 +7584,7 @@ GCellStore::GCellStore(GTag *Table)
 				t->Parent = Table;
 			}
 			r->Children.Length(0);
+			*/
 		}
 		else
 		{
@@ -7618,6 +7629,7 @@ GCellStore::GCellStore(GTag *Table)
 		}
 	}
 
+	FakeCell = NULL;
 	for (int n=0; n<Table->Children.Length(); n++)
 	{
 		GTag *r = ToTag(Table->Children[n]);
@@ -7627,6 +7639,38 @@ GCellStore::GCellStore(GTag *Table)
 			for (int i=0; i<r->Children.Length(); i++)
 			{
 				GTag *cell = ToTag(r->Children[i]);
+				if (cell->TagId != TAG_TD)
+				{
+					if (!FakeCell)
+					{
+						// Make a fake TD cell
+						FakeCell = new GTag(Table->Html, NULL);
+						FakeCell->Tag.Reset(NewStr("td"));
+						FakeCell->TagId = TAG_TD;
+						FakeCell->Span.x = 1;
+						FakeCell->Span.y = 1;
+						
+						// Join the fake TD into the TR
+						r->Children[i] = FakeCell;
+						FakeCell->Parent = r;
+					}
+					else
+					{
+						// Not the first non-TD tag, so delete it from the TR. Only the
+						// fake TD will remain in the TR.
+						r->Children.DeleteAt(i--, true);
+					}
+					
+					// Insert the tag into it as a child
+					FakeCell->Children.Add(cell);
+					cell->Parent = FakeCell;
+					cell = FakeCell;
+				}
+				else
+				{
+					FakeCell = NULL;
+				}
+				
 				if (cell->TagId == TAG_TD)
 				{
 					if (cell->Display() == GCss::DispNone)
@@ -7645,6 +7689,7 @@ GCellStore::GCellStore(GTag *Table)
 			}
 
 			y++;
+			FakeCell = NULL;
 		}
 	}
 }
