@@ -6,7 +6,7 @@
 
 #if defined(__GTK_H__)
 namespace Gtk {
-#include <glib/gerror.h>
+#include <glib.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 }
 using namespace Gtk;
