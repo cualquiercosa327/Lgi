@@ -864,13 +864,24 @@ bool GGlobalColour::RemapBitmap(GSurface *pDC)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
+union EndianTest
+{
+	char b[2];
+	short s;
+};
+
 GColourSpace GdkVisualToColourSpace(Gtk::GdkVisual *v, int output_bits)
 {
 	uint32 c = CsNone;
 	
 	if (v)
 	{
-		// printf("GdkVisualToColourSpace, Type: %i\n", v->type);
+		EndianTest Test;
+		Test.b[0] = 1;
+		Test.b[1] = 0;
+		bool LittleEndian = Test.s == 1;
+		
+		printf("GdkVisualToColourSpace, Type: %i, LittleEndian=%i\n", v->type, LittleEndian);
 		switch (v->type)
 		{
 			default:
@@ -892,7 +903,7 @@ GColourSpace GdkVisualToColourSpace(Gtk::GdkVisual *v, int output_bits)
 				int red = (CtRed   << 4) | v->red_prec;
 				int green = (CtGreen << 4) | v->green_prec;
 				int blue = (CtBlue  << 4) | v->blue_prec;
-				if (v->red_shift < v->blue_shift)
+				if ((v->red_shift < v->blue_shift) ^ LittleEndian)
 				{
 					c = (red << 16) | (green << 8) | blue;
 				}
@@ -903,14 +914,14 @@ GColourSpace GdkVisualToColourSpace(Gtk::GdkVisual *v, int output_bits)
 	
 				int bits = GColourSpaceToBits((GColourSpace) c);
 	
-				/*
+				
 				printf("GdkVisualToColourSpace, rgb: %i/%i, %i/%i, %i/%i  bits: %i  output_bits: %i\n",
 					v->red_prec, v->red_shift,
 					v->green_prec, v->green_shift,
 					v->blue_prec, v->blue_shift,
 					bits, output_bits
 					);
-				*/
+				
 				
 				if (bits != output_bits)
 				{

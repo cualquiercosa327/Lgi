@@ -677,6 +677,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 						LgiAssert(Scan);
 
 						GColourSpace OutCs = pDC->GetColourSpace();
+						printf("Png Load cs=%s\n", GColourSpaceToString(OutCs));
 						switch (RequestBits)
 						{
 							case 1:
@@ -700,7 +701,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 							}
 							case 24:
 							{
-							    switch (pDC->GetColourSpace())
+							    switch (OutCs)
 							    {
 									#define Read24Case(name, bits) \
 										case Cs##name: \

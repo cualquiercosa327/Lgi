@@ -10,19 +10,19 @@ void Add64(ulong *DestH, ulong *DestL, ulong SrcH, ulong SrcL)
 
 void MemSet(void *d, int c, uint s)
 {
-	if (d AND s > 0) memset(d, c, s);
+	if (d && s > 0) memset(d, c, s);
 }
 
 void MemCpy(void *d, void *s, uint l)
 {
-	if (d AND s AND l > 0) memcpy(d, s, l);
+	if (d && s && l > 0) memcpy(d, s, l);
 }
 
 void MemAnd(void *d, void *s, uint l)
 {
 	uchar *D = (uchar*) d;
 	uchar *S = (uchar*) s;
-	if (D AND S)
+	if (D && S)
 	{
 		for (; l > 0; l--)
 		{
@@ -35,7 +35,7 @@ void MemXor(void *d, void *s, uint l)
 {
 	uchar *D = (uchar*) d;
 	uchar *S = (uchar*) s;
-	if (D AND S)
+	if (D && S)
 	{
 		for (; l > 0; l--)
 		{
@@ -48,7 +48,7 @@ void MemOr(void *d, void *s, uint l)
 {
 	uchar *D = (uchar*) d;
 	uchar *S = (uchar*) s;
-	if (D AND S)
+	if (D && S)
 	{
 		for (; l > 0; l--)
 		{
