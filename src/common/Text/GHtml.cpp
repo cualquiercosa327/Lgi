@@ -5920,96 +5920,94 @@ void GHtml::ParseDocument(const char *Doc)
 
 			// Add body tag if not specified...
 			GTag *Html = Tag->GetTagByName("html");
-			if (!Html)
+			GTag *Body = Tag->GetTagByName("body");
+
+			if (!Html && !Body)
 			{
 				if ((Html = new GTag(this, 0)))
-				{
 					Html->SetTag("html");
-					
-					while (Tag->Children.Length())
-					{
-						GTag *c = ToTag(Tag->Children[0]);
-						Html->Attach(c);
-					}
-					
-					Tag->Attach(Html);
-				}
+				if ((Body = new GTag(this, Html)))
+					Body->SetTag("body");
+				
+				Html->Attach(Body);
+				Body->Attach(Tag);
+				
+				Tag = Html;
 			}
-
-			if (Html)
+			else if (!Body)
 			{
-				GTag *Body = Tag->GetTagByName("body");
-				if (!Body)
+				if ((Body = new GTag(this, Html)))
+					Body->SetTag("body");
+					
+				for (int i=0; i<Html->Children.Length(); i++)
 				{
-					if ((Body = new GTag(this, 0)))
+					GTag *t = ToTag(Html->Children[i]);
+					if (t->TagId != TAG_HEAD)
 					{
-						Body->SetTag("body");
-						Html->Attach(Body);
+						Body->Attach(t);
+						i--;
+					}
+				}
+				
+				Html->Attach(Body);
+			}
+			
+			if (Html && Body)
+			{
+				if (Tag->Text())
+				{
+					GTag *Content = new GTag(this, 0);
+					if (Content)
+					{
+						Content->Text(NewStrW(Tag->Text()));
+						Tag->Text(0);
+						Body->Attach(Content, 0);
 					}
 				}
 
-				if (Body)
+				#if 0 // Enabling this breaks the test file 'gw2.html'.
+				for (GTag *t = Html->Tags.First(); t; )
 				{
-					if (Body->Parent != Html)
+					if (t->Tag && t->Tag[0] == '!')
 					{
-						Html->Attach(Body);
+						Tag->Attach(t, 0);
+						t = Html->Tags.Current();
 					}
-
-					if (Tag->Text())
+					else if (t->TagId != TAG_HEAD &&
+							t != Body)
 					{
-						GTag *Content = new GTag(this, 0);
-						if (Content)
+						if (t->TagId == TAG_HTML)
 						{
-							Content->Text(NewStrW(Tag->Text()));
-							Tag->Text(0);
-							Body->Attach(Content, 0);
-						}
-					}
-
-					#if 0 // Enabling this breaks the test file 'gw2.html'.
-					for (GTag *t = Html->Tags.First(); t; )
-					{
-						if (t->Tag && t->Tag[0] == '!')
-						{
-							Tag->Attach(t, 0);
-							t = Html->Tags.Current();
-						}
-						else if (t->TagId != TAG_HEAD &&
-								t != Body)
-						{
-							if (t->TagId == TAG_HTML)
+							GTag *c;
+							while ((c = t->Tags.First()))
 							{
-								GTag *c;
-								while ((c = t->Tags.First()))
-								{
-									Html->Attach(c, 0);
-								}
-
-								t->Detach();
-								DeleteObj(t);
-							}
-							else
-							{
-								t->Detach();
-								Body->Attach(t);
+								Html->Attach(c, 0);
 							}
 
-							t = Html->Tags.Current();
+							t->Detach();
+							DeleteObj(t);
 						}
 						else
 						{
-							t = Html->Tags.Next();
+							t->Detach();
+							Body->Attach(t);
 						}
-					}
-					#endif					
 
-					if (Environment)
+						t = Html->Tags.Current();
+					}
+					else
 					{
-						const char *OnLoad;
-						if (Body->Get("onload", OnLoad))
-						{
-							Environment->OnExecuteScript((char*)OnLoad);
-						}
+						t = Html->Tags.Next();
+					}
+				}
+				#endif					
+
+				if (Environment)
+				{
+					const char *OnLoad;
+					if (Body->Get("onload", OnLoad))
+					{
+						Environment->OnExecuteScript((char*)OnLoad);
 					}
 				}
 			}
