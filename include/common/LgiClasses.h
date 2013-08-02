@@ -1823,6 +1823,29 @@ LgiFunc bool LgiGetDisplays
 	GRect *AllDisplays = 0
 );
 
+/// This class makes it easy to profile a function and write out timings at the end
+class LgiClass GProfile
+{
+	struct Sample
+	{
+		uint64 Time;
+		const char *Name;
+		
+		Sample(uint64 t = 0, const char *n = 0)
+		{
+			Time = t;
+			Name = n;
+		}
+	};
+	
+	GArray<Sample> s;
+	
+public:
+	GProfile(const char *Name);
+	virtual ~GProfile();
+	virtual void Add(const char *Name);
+};
+
 #endif
 
 

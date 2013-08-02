@@ -1488,7 +1488,9 @@ ResObjectImpl::SStatus ResTableLayout::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 		return SError;
 
 	Res_SetPos(Tag);
-	Res_SetStrRef(Tag, &Ctx);
+	if (!Res_SetStrRef(Tag, &Ctx))
+		return SExclude;
+	Res_SetFlags(Tag);
 
 	GDom *d = Factory->Res_GetDom(Object);
 	if (d)

@@ -2030,3 +2030,24 @@ GCapabilityTarget::~GCapabilityTarget()
         Clients[i]->Targets.Delete(this);
 }
 
+/////////////////////////////////////////////////////////////////////
+GProfile::GProfile(const char *Name)
+{
+	Add(Name);
+}
+
+GProfile::~GProfile()
+{
+	Add("End");
+	for (int i=0; i<s.Length()-1; i++)
+	{
+		Sample &a = s[i];
+		Sample &b = s[i+1];
+		LgiTrace("%s = %i ms\n", a.Name, (int)(b.Time - a.Time));
+	}
+}
+
+void GProfile::Add(const char *Name)
+{
+	s.Add(Sample(LgiCurrentTime(), Name));
+}
