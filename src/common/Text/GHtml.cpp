@@ -3578,7 +3578,7 @@ GTag *GTag::GetTableCell(int x, int y)
 	return 0;
 }
 
-// This function gets the largest and smallest peice of content
+// This function gets the largest and smallest piece of content
 // in this cell and all it's children.
 bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 {
@@ -3607,19 +3607,26 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 				GDisplayString ds(f, s, Len);
 				int X = ds.X();
 				MinContent = max(MinContent, X);
-				MaxContent += X + 4;
+				MaxContent += MaxContent ? X + 4 : X;
 				
 				// Move to the next word.
 				s = (*e) ? e + 1 : 0;
 			}
 		}
 		
-		int Add = (int)(MarginLeft().Value +
-					MarginRight().Value +
-					PaddingLeft().Value +
-					PaddingRight().Value);
-		Min = max(Min, MinContent) + Add;
-		Max =	max(Max, MaxContent) + Add;
+		/*
+		GCss::Len MLeft = MarginLeft();
+		GCss::Len MRight = MarginRight();
+		GCss::Len PLeft = PaddingLeft();
+		GCss::Len PRight = PaddingRight();
+		
+		int Add = (int)(MLeft.ToPx()  +
+						MRight.ToPx() +
+						PLeft.ToPx()  +
+						PRight.ToPx() );
+		*/
+		Min = max(Min, MinContent); // + Add;
+		Max = max(Max, MaxContent); // + Add;
 	}
 
 	// Specific tag handling?
@@ -3736,17 +3743,21 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 		Max = max(Max, Width);
 	}
 
+	/*
 	switch (TagId)
 	{
 		default: break;
 		case TAG_TD:
 		{
-			int Add = (int) (PaddingLeft().Value + PaddingRight().Value);
+			GCss::Len PLeft = PaddingLeft();
+			GCss::Len PRight = PaddingRight();
+			int Add = (int) (PLeft.ToPx() + PRight.ToPx());
 			Min += Add;
 			Max += Add;
 			break;
 		}
 	}
+	*/
 	
 	return Status;
 }
