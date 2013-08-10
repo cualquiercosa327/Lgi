@@ -2,14 +2,16 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="Lgi_vc9"
+	Name="Lgi"
 	ProjectGUID="{95DF9CA4-6D37-4A85-A648-80C2712E0DA1}"
-	RootNamespace="Lgi_vc9"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
 			Name="Win32"
+		/>
+		<Platform
+			Name="x64"
 		/>
 	</Platforms>
 	<ToolFiles>
@@ -18,7 +20,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory=".\Lib"
-			IntermediateDirectory=".\$(ConfigurationName)9"
+			IntermediateDirectory=".\$(PlatformName)$(ConfigurationName)9"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
@@ -48,7 +50,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="1"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="include\common,include\win32"
+				AdditionalIncludeDirectories="include\common;include\win32;&quot;..\..\..\CodeLib\libiconv-1.9.1\include&quot;"
 				PreprocessorDefinitions="NDEBUG;WIN32;_WINDOWS;LGI_RES;LGI_LIBRARY"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -59,7 +61,10 @@
 				AssemblerListingLocation="$(IntDir)/"
 				ObjectFile="$(IntDir)/"
 				ProgramDataBaseFileName="$(IntDir)/"
+				BrowseInformation="0"
+				WarningLevel="2"
 				SuppressStartupBanner="true"
+				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 				CompileAs="0"
 			/>
@@ -77,17 +82,116 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="comctl32.lib"
-				OutputFile="$(OutDir)/Lgi9.dll"
+				AdditionalDependencies="ComCtl32.lib Ws2_32.lib  UxTheme.lib"
+				OutputFile="$(OutDir)\Lgi9.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(IntDir)/Lgi9.pdb"
+				ProgramDatabaseFile="$(IntDir)\Lgi8.pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary="$(OutDir)/Lgi9.lib"
+				ImportLibrary="$(OutDir)\Lgi8.lib"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|x64"
+			OutputDirectory=".\Lib"
+			IntermediateDirectory="$(PlatformName)$(ConfigurationName)8"
+			ConfigurationType="2"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="NDEBUG"
+				MkTypLibCompatible="true"
+				SuppressStartupBanner="true"
+				TargetEnvironment="3"
+				TypeLibraryName=".\Release/Lgi.tlb"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="1"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="include\common;include\win32;&quot;..\..\..\CodeLib\libiconv-1.9.1\include&quot;"
+				PreprocessorDefinitions="WIN64;NDEBUG;_WINDOWS;LGI_RES;LGI_LIBRARY"
+				StringPooling="true"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="true"
+				RuntimeTypeInfo="true"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(IntDir)/Lgi.pch"
+				AssemblerListingLocation="$(IntDir)/"
+				ObjectFile="$(IntDir)/"
+				ProgramDataBaseFileName="$(IntDir)/"
+				BrowseInformation="0"
+				WarningLevel="2"
+				SuppressStartupBanner="true"
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="3"
+				CompileAs="0"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="3081"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="Ws2_32.lib Comctl32.lib  UxTheme.lib"
+				OutputFile="$(OutDir)\Lgi64.dll"
+				LinkIncremental="1"
+				SuppressStartupBanner="true"
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(IntDir)\Lgi64.pdb"
+				SubSystem="2"
+				OptimizeReferences="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
+				ImportLibrary="$(OutDir)\Lgi64.lib"
+				TargetMachine="17"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -114,7 +218,7 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory=".\Lib"
-			IntermediateDirectory=".\$(ConfigurationName)9"
+			IntermediateDirectory=".\$(PlatformName)$(ConfigurationName)9"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
@@ -143,7 +247,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="include\common,include\win32"
+				AdditionalIncludeDirectories="include\common;include\win32;&quot;..\..\..\CodeLib\libiconv-1.9.1\include&quot;"
 				PreprocessorDefinitions="LGI_LIBRARY;_DEBUG;WIN32;_WINDOWS;LGI_RES"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -153,8 +257,10 @@
 				AssemblerListingLocation="$(IntDir)/"
 				ObjectFile="$(IntDir)/"
 				ProgramDataBaseFileName="$(IntDir)/"
-				BrowseInformation="1"
+				BrowseInformation="0"
+				WarningLevel="2"
 				SuppressStartupBanner="true"
+				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 				CompileAs="0"
 			/>
@@ -172,16 +278,311 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="comctl32.lib"
-				OutputFile="$(OutDir)/Lgi9d.dll"
+				AdditionalDependencies="ComCtl32.lib Ws2_32.lib  UxTheme.lib"
+				OutputFile="$(OutDir)\Lgi9d.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(IntDir)/Lgi9d.pdb"
+				ProgramDatabaseFile="$(IntDir)\Lgi8d.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary="$(OutDir)/Lgi9d.lib"
+				ImportLibrary="$(OutDir)/Lgi8d.lib"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Debug|x64"
+			OutputDirectory=".\Lib"
+			IntermediateDirectory="$(PlatformName)$(ConfigurationName)8"
+			ConfigurationType="2"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="_DEBUG"
+				MkTypLibCompatible="true"
+				SuppressStartupBanner="true"
+				TargetEnvironment="3"
+				TypeLibraryName=".\Debug/Lgi.tlb"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="include\common;include\win32;&quot;..\..\..\CodeLib\libiconv-1.9.1\include&quot;"
+				PreprocessorDefinitions="WIN64;LGI_LIBRARY;_DEBUG;_WINDOWS;LGI_RES"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				RuntimeTypeInfo="true"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(IntDir)/Lgi.pch"
+				AssemblerListingLocation="$(IntDir)/"
+				ObjectFile="$(IntDir)/"
+				ProgramDataBaseFileName="$(IntDir)/"
+				BrowseInformation="0"
+				WarningLevel="2"
+				SuppressStartupBanner="true"
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="3"
+				CompileAs="0"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="3081"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="Ws2_32.lib Comctl32.lib  UxTheme.lib"
+				ShowProgress="0"
+				OutputFile="$(OutDir)\Lgi64d.dll"
+				LinkIncremental="2"
+				SuppressStartupBanner="true"
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(IntDir)\Lgi64d.pdb"
+				SubSystem="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
+				ImportLibrary="$(OutDir)/Lgi64d.lib"
+				TargetMachine="17"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="ReleaseNoOptimize|Win32"
+			OutputDirectory=".\Lib"
+			IntermediateDirectory="$(PlatformName)$(ConfigurationName)9"
+			ConfigurationType="2"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="NDEBUG"
+				MkTypLibCompatible="true"
+				SuppressStartupBanner="true"
+				TargetEnvironment="1"
+				TypeLibraryName=".\Release/Lgi.tlb"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="include\common;include\win32;&quot;..\..\..\CodeLib\libiconv-1.9.1\include&quot;"
+				PreprocessorDefinitions="NDEBUG;WIN32;_WINDOWS;LGI_RES;LGI_LIBRARY"
+				StringPooling="true"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="true"
+				RuntimeTypeInfo="true"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(IntDir)/Lgi.pch"
+				AssemblerListingLocation="$(IntDir)/"
+				ObjectFile="$(IntDir)/"
+				ProgramDataBaseFileName="$(IntDir)/"
+				BrowseInformation="0"
+				WarningLevel="2"
+				SuppressStartupBanner="true"
+				Detect64BitPortabilityProblems="false"
+				DebugInformationFormat="3"
+				CompileAs="0"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="3081"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/MACHINE:I386"
+				AdditionalDependencies="ComCtl32.lib Ws2_32.lib  UxTheme.lib"
+				OutputFile="$(OutDir)\Lgi9nop.dll"
+				LinkIncremental="1"
+				SuppressStartupBanner="true"
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(IntDir)\LgiNoOpt.pdb"
+				SubSystem="2"
+				OptimizeReferences="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
+				ImportLibrary="$(OutDir)\LgiNoOpt.lib"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="ReleaseNoOptimize|x64"
+			OutputDirectory=".\Lib"
+			IntermediateDirectory="$(PlatformName)$(ConfigurationName)8"
+			ConfigurationType="2"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="NDEBUG"
+				MkTypLibCompatible="true"
+				SuppressStartupBanner="true"
+				TargetEnvironment="3"
+				TypeLibraryName=".\Release/Lgi.tlb"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="1"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="include\common;include\win32;&quot;..\..\..\CodeLib\libiconv-1.9.1\include&quot;"
+				PreprocessorDefinitions="WIN64;NDEBUG;_WINDOWS;LGI_RES;LGI_LIBRARY"
+				StringPooling="true"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="true"
+				RuntimeTypeInfo="true"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(IntDir)/Lgi.pch"
+				AssemblerListingLocation="$(IntDir)/"
+				ObjectFile="$(IntDir)/"
+				ProgramDataBaseFileName="$(IntDir)/"
+				BrowseInformation="0"
+				WarningLevel="2"
+				SuppressStartupBanner="true"
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="3"
+				CompileAs="0"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="3081"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="Ws2_32.lib Comctl32.lib  UxTheme.lib"
+				OutputFile="$(OutDir)\Lgi64.dll"
+				LinkIncremental="1"
+				SuppressStartupBanner="true"
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(IntDir)\Lgi64.pdb"
+				SubSystem="2"
+				OptimizeReferences="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
+				ImportLibrary="$(OutDir)\Lgi64.lib"
+				TargetMachine="17"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -233,6 +634,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\common\Lgi\GOptionsFile.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\win32\Lgi\GPrinter.cpp"
 					>
 				</File>
@@ -250,6 +655,10 @@
 				</File>
 				<File
 					RelativePath=".\src\common\Lgi\GViewCommon.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\include\common\GViewPriv.h"
 					>
 				</File>
 				<File
@@ -281,14 +690,14 @@
 					</File>
 				</Filter>
 				<Filter
-					Name="Semaphores"
+					Name="Mutex"
 					>
 					<File
-						RelativePath=".\src\common\Lgi\GSemaphore.cpp"
+						RelativePath=".\src\common\Lgi\GMutex.cpp"
 						>
 					</File>
 					<File
-						RelativePath=".\include\common\GSemaphore.h"
+						RelativePath=".\include\common\GMutex.h"
 						>
 					</File>
 				</Filter>
@@ -352,7 +761,15 @@
 						>
 					</File>
 					<File
-						RelativePath=".\src\common\General\GThreadCommon.cpp"
+						RelativePath=".\src\common\Lgi\GThreadCommon.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\src\common\Lgi\GThreadEvent.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\include\common\GThreadEvent.h"
 						>
 					</File>
 				</Filter>
@@ -416,29 +833,21 @@
 						>
 					</File>
 					<File
+						RelativePath=".\include\common\GHashTable.h"
+						>
+					</File>
+					<File
 						RelativePath=".\src\win32\General\GMem.cpp"
 						>
 					</File>
 					<File
-						RelativePath=".\include\win32\GMem.h"
+						RelativePath=".\include\common\GMem.h"
 						>
 					</File>
 					<File
 						RelativePath=".\src\common\Lgi\GMemStream.cpp"
 						>
 					</File>
-					<Filter
-						Name="Property List"
-						>
-						<File
-							RelativePath=".\src\common\General\GProperties.cpp"
-							>
-						</File>
-						<File
-							RelativePath=".\include\common\GProperties.h"
-							>
-						</File>
-					</Filter>
 				</Filter>
 				<Filter
 					Name="File"
@@ -465,6 +874,14 @@
 					</File>
 					<File
 						RelativePath=".\include\common\GProcess.h"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="Skin"
+					>
+					<File
+						RelativePath=".\src\common\Skins\Gel\Gel.cpp"
 						>
 					</File>
 				</Filter>
@@ -498,10 +915,6 @@
 				</File>
 				<File
 					RelativePath=".\include\common\GCombo.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\win32\Widgets\GDialog.cpp"
 					>
 				</File>
 				<File
@@ -585,10 +998,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\common\Widgets\GTableLayout.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\common\Widgets\GTabView.cpp"
 					>
 				</File>
@@ -616,12 +1025,56 @@
 					RelativePath=".\include\common\GTree.h"
 					>
 				</File>
+				<Filter
+					Name="Css"
+					>
+					<File
+						RelativePath=".\src\common\Lgi\GCss.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\include\common\GCss.h"
+						>
+					</File>
+					<File
+						RelativePath=".\src\common\Lgi\GCssTools.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\include\common\GCssTools.h"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="Layout"
+					>
+					<File
+						RelativePath=".\src\common\Widgets\GBox.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\include\common\GBox.h"
+						>
+					</File>
+					<File
+						RelativePath=".\src\common\Widgets\GTableLayout.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\include\common\GTableLayout.h"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="General"
 				>
 				<File
 					RelativePath=".\src\common\INet\Base64.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\include\common\GMatrix.h"
 					>
 				</File>
 				<File
@@ -649,22 +1102,34 @@
 					</File>
 				</Filter>
 				<Filter
-					Name="Data Dlg"
+					Name="Hash"
 					>
 					<File
-						RelativePath=".\src\common\Lgi\GDataDlg.cpp"
+						RelativePath=".\src\common\Hash\md5\md5.c"
 						>
 					</File>
 					<File
-						RelativePath="..\_Common\Include\GDataDlg.h"
+						RelativePath=".\src\common\Hash\md5\md5.h"
 						>
 					</File>
 					<File
-						RelativePath=".\src\common\General\GPassword.cpp"
+						RelativePath=".\src\common\Hash\sha1\sha1.c"
 						>
 					</File>
 					<File
-						RelativePath="..\_Common\Include\GPassword.h"
+						RelativePath=".\src\common\Hash\sha1\sha1.h"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="Growl"
+					>
+					<File
+						RelativePath=".\src\common\General\GGrowl.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\include\common\GGrowl.h"
 						>
 					</File>
 				</Filter>
@@ -694,13 +1159,13 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="Gdc2"
+				Name="Graphics"
 				>
 				<Filter
 					Name="_Core"
 					>
 					<File
-						RelativePath=".\src\common\Gdc2\GColourReduce.cpp"
+						RelativePath=".\include\common\GColour.h"
 						>
 					</File>
 					<File
@@ -713,6 +1178,10 @@
 					</File>
 					<File
 						RelativePath=".\src\common\Gdc2\GdcCommon.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\src\common\Gdc2\Path\GPath.cpp"
 						>
 					</File>
 				</Filter>
@@ -783,12 +1252,20 @@
 						RelativePath=".\src\common\Gdc2\Filters\GFilter.cpp"
 						>
 					</File>
+					<File
+						RelativePath=".\include\common\GFilter.h"
+						>
+					</File>
 				</Filter>
 				<Filter
 					Name="Rect/Region"
 					>
 					<File
 						RelativePath=".\src\common\Gdc2\GRect.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\include\common\GRect.h"
 						>
 					</File>
 				</Filter>
@@ -824,12 +1301,24 @@
 						>
 					</File>
 				</Filter>
+				<Filter
+					Name="Colour Reduction"
+					>
+					<File
+						RelativePath=".\src\common\Gdc2\Tools\GColourReduce.cpp"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="Dialogs"
 				>
 				<File
 					RelativePath=".\src\common\Lgi\GAlert.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\Widgets\GDialog.cpp"
 					>
 				</File>
 				<File
@@ -852,16 +1341,36 @@
 					RelativePath=".\src\common\Lgi\GInput.cpp"
 					>
 				</File>
+				<File
+					RelativePath=".\src\common\General\GPassword.cpp"
+					>
+				</File>
 			</Filter>
 			<Filter
-				Name="GelSkin"
+				Name="Network"
 				>
 				<File
-					RelativePath=".\src\common\Skins\Gel\Gel.cpp"
+					RelativePath=".\src\common\INet\INet.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\src\common\Gdc2\Path\GPath.cpp"
+					RelativePath=".\include\common\INet.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\common\INet\INetTools.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\include\common\INetTools.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\INet\MibAccess.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\INet\MibAccess.h"
 					>
 				</File>
 			</Filter>
@@ -870,6 +1379,10 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
+			<File
+				RelativePath=".\include\common\GCapabilities.h"
+				>
+			</File>
 			<File
 				RelativePath=".\include\common\Lgi.h"
 				>
@@ -884,6 +1397,14 @@
 			</File>
 			<File
 				RelativePath=".\include\common\LgiDefs.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\common\LgiInc.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\common\LgiInterfaces.h"
 				>
 			</File>
 			<File
