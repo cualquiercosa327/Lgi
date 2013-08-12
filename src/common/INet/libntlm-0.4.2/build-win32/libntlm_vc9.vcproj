@@ -77,7 +77,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="../../../../../lib/libntlm8d.dll"
+				OutputFile="../../../../../lib/libntlm9d.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
@@ -263,7 +263,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="../../../../../lib/libntlm8.dll"
+				OutputFile="../../../../../lib/libntlm9.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				ProgramDatabaseFile=".\Release8\libntlm.pdb"
@@ -447,7 +447,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="../../../../../lib/libntlm8.dll"
+				OutputFile="../../../../../lib/libntlm9.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				ProgramDatabaseFile=".\Release8\libntlm.pdb"
