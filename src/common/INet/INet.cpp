@@ -1701,6 +1701,7 @@ void GUri::Empty()
 
 GAutoString GUri::GetUri()
 {
+	const char *Empty = "";
 	GStringPipe p;
 	if (Protocol)
 	{
@@ -1708,8 +1709,9 @@ GAutoString GUri::GetUri()
 	}
 	if (User || Pass)
 	{
-		const char *Empty = "";
-		p.Print("%s:%s@", User?User:Empty, Pass?Pass:Empty);
+		GAutoString UserEnc = Encode(User, "@:");
+		GAutoString PassEnc = Encode(Pass, "@:");
+		p.Print("%s:%s@", UserEnc?UserEnc:Empty, PassEnc?PassEnc:Empty);
 	}
 	if (Host)
 	{
