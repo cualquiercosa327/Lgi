@@ -3614,19 +3614,8 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 			}
 		}
 		
-		/*
-		GCss::Len MLeft = MarginLeft();
-		GCss::Len MRight = MarginRight();
-		GCss::Len PLeft = PaddingLeft();
-		GCss::Len PRight = PaddingRight();
-		
-		int Add = (int)(MLeft.ToPx()  +
-						MRight.ToPx() +
-						PLeft.ToPx()  +
-						PRight.ToPx() );
-		*/
-		Min = max(Min, MinContent); // + Add;
-		Max = max(Max, MaxContent); // + Add;
+		Min = max(Min, MinContent);
+		Max = max(Max, MaxContent);
 	}
 
 	// Specific tag handling?
@@ -3668,6 +3657,18 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 				{
 					Min = Max = (int)w.Value;
 				}
+			}
+			else
+			{
+				// GCss::Len MLeft = MarginLeft();
+				// GCss::Len MRight = MarginRight();
+				GCss::Len PLeft = PaddingLeft();
+				GCss::Len PRight = PaddingRight();
+				
+				int Add = (int)(PLeft.ToPx()  +
+								PRight.ToPx() );
+				Min += Add;
+				Max += Add;
 			}
 			break;
 		}
