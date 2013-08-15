@@ -11,6 +11,8 @@
 
 #include "resdefs.h"
 
+#define DEBUG_FIND_SYMBOL		0
+
 const char *CTagsExeName = "ctags"
 	#ifdef WIN32
 	".exe"
@@ -300,8 +302,9 @@ int FindSymbolThread::Main()
 			SearchRequest *Req = NULL;
 			if (d->Lock(_FL))
 			{
-				if (d->Requests.Length())
+				while (d->Requests.Length())
 				{
+					DeleteObj(Req);
 					Req = d->Requests[0];
 					d->Requests.DeleteAt(0, true);
 				}
@@ -311,6 +314,11 @@ int FindSymbolThread::Main()
 			{
 				Symbol *s = &Syms[0];
 				GArray<Symbol*> Matches;
+				
+				#if DEBUG_FIND_SYMBOL
+				printf("Searching for '%s'...\n", Req->Str.Get());
+				#endif
+				
 				for (int i=0; State == Working && i<Syms.Length(); i++)
 				{
 					if (stristr(s[i].Sym, Req->Str))
@@ -318,6 +326,11 @@ int FindSymbolThread::Main()
 						Matches.Add(s + i);
 					}
 				}
+				
+				#if DEBUG_FIND_SYMBOL
+				printf("Searched for '%s', got %i hits. %i requests remain\n", Req->Str.Get(), Matches.Length(), d->Requests.Length());
+				#endif
+				
 				if (Matches.Length())
 					MatchesToResults(Req, Matches);
 				else
@@ -435,6 +448,10 @@ void FindSymbolDlg::OnPulse()
 					Old.Add(i->GetText(1), i);
 				}
 
+				#if DEBUG_FIND_SYMBOL
+				printf("OnPulse results for '%s' = %i\n", Req->Str.Get(), Req->Results.Length());
+				#endif				
+
 				for (int n=0; n<Req->Results.Length(); n++)
 				{
 					FindSymResult &r = Req->Results[n];
@@ -518,6 +535,11 @@ int FindSymbolDlg::OnNotify(GViewI *v, int f)
 						Req->Str.Reset(NewStr(Str));
 						d->Requests.Add(Req);
 						d->Unlock();
+						
+						#if DEBUG_FIND_SYMBOL
+						printf("OnNotify str '%s'\n", Str);
+						#endif
+						
 						d->Sync.Signal();
 					}
 				}

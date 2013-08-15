@@ -1417,7 +1417,7 @@ bool GMenuLoader::Load(LgiMenuRes *MenuRes, GXmlTag *Tag, ResFileFormat Format, 
 
 							if (!Add)
 							{
-								printf("Sub->GetParent()=%p this=%p\n", Sub->GetParent(), this);
+								// printf("Sub->GetParent()=%p this=%p\n", Sub->GetParent(), this);
 								Sub->GetParent()->Remove();
 								delete Sub->GetParent();
 							}

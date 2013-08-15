@@ -622,8 +622,8 @@ lgi_widget_setchildpos(GtkWidget *parent, GtkWidget *child, int x, int y)
 				    GtkAllocation a;
 				    a.x = c.x;
 				    a.y = c.y;
-				    a.width = child_wid->w;
-				    a.height = child_wid->h;
+				    a.width = max(1, child_wid->w);
+				    a.height = max(1, child_wid->h);
     				gtk_widget_size_allocate(c.w, &a);
 
             		gdk_window_invalidate_rect(

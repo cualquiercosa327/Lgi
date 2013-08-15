@@ -141,6 +141,12 @@ LgiFunc void LgiExitApp();
 /// This actually causes GApp::Run() to stop processing message and return.
 #define LgiCloseApp()				LgiApp->Exit(false)
 
+#ifdef LINUX
+#define ThreadCheck()				LgiAssert(InThread())
+#else
+#define ThreadCheck()
+#endif
+
 /// Optional arguments to the GApp object
 struct GAppArguments
 {
@@ -354,6 +360,7 @@ public:
 	class GLibrary *GetWindowManagerLib();
 	void RegisterHandle(GView *v);
 	void UnregisterHandle(GView *v);
+	bool InThread();
 	#endif
 };
 

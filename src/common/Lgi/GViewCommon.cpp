@@ -818,6 +818,7 @@ bool GView::HandleCapture(GView *Wnd, bool c)
 			}
 
 			#if defined __GTK_H__
+			ThreadCheck();
 			gtk_grab_add(_View);
 			#elif WIN32NATIVE
 			d->hPrevCapture = SetCapture(_View);
@@ -840,6 +841,7 @@ bool GView::HandleCapture(GView *Wnd, bool c)
 			if (_Capturing)
 			{
 				#if defined __GTK_H__
+				ThreadCheck();
 				gtk_grab_remove(_View);
 				#elif defined WIN32
 				ReleaseCapture();
@@ -949,6 +951,7 @@ void GView::Visible(bool v)
 			_View->Hide();
 		// printf("\t\t%s::Vis(%i)\n", GetClass(), v);
 		#elif defined __GTK_H__
+		ThreadCheck();
 		if (v)
 			Gtk::gtk_widget_show(_View);
 		else
@@ -1277,6 +1280,7 @@ void GView::SetTabStop(bool b)
 	if (_View)
 	{
 		#if GtkVer(2, 18)
+		ThreadCheck();
         gtk_widget_set_can_focus(_View, b);
 		#else
 		LgiTrace("Error: no api to set tab stop.\n");

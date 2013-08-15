@@ -131,6 +131,8 @@ bool GWindow::Visible()
 
 void GWindow::Visible(bool i)
 {
+	ThreadCheck();
+
 	if (i)
 		gtk_widget_show(GTK_WIDGET(Wnd));
 	else
@@ -240,6 +242,8 @@ gboolean GWindow::OnGtkEvent(GtkWidget *widget, GdkEvent *event)
 bool GWindow::Attach(GViewI *p)
 {
 	bool Status = false;
+
+	ThreadCheck();
 	
 	if (!Wnd)
 		Wnd = GTK_WINDOW(gtk_window_new(GTK_WINDOW_TOPLEVEL));
@@ -592,6 +596,8 @@ GWindowZoom GWindow::GetZoom()
 
 void GWindow::SetZoom(GWindowZoom i)
 {
+	ThreadCheck();
+
 	switch (i)
 	{
 		case GZoomMin:
@@ -642,6 +648,7 @@ bool GWindow::Name(const char *n)
 {
 	if (Wnd)
 	{
+		ThreadCheck();
 		gtk_window_set_title(Wnd, n);
 	}
 
@@ -761,6 +768,7 @@ bool GWindow::SetPos(GRect &p, bool Repaint)
 	Pos = p;
 	if (Wnd)
 	{
+		ThreadCheck();
 		gtk_window_set_default_size(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
 	}
 	return true;

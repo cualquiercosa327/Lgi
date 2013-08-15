@@ -677,7 +677,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 						LgiAssert(Scan);
 
 						GColourSpace OutCs = pDC->GetColourSpace();
-						printf("Png Load cs=%s\n", GColourSpaceToString(OutCs));
+						// printf("Png Load cs=%s\n", GColourSpaceToString(OutCs));
 						switch (RequestBits)
 						{
 							case 1:

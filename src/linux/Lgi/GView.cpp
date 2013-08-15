@@ -25,12 +25,6 @@ using namespace Gtk;
 #define ADJ_UP						3
 #define ADJ_DOWN					4
 
-#ifdef LINUX
-#define ThreadCheck()				LgiAssert(InThread())
-#else
-#define ThreadCheck()
-#endif
-
 struct X11_INVALIDATE_PARAMS
 {
 	GView *View;
@@ -304,6 +298,7 @@ void LgiToGtkCursor(GViewI *v, LgiCursor c)
 	GWindow *Wnd = v->GetWindow();
 	OsView h = Wnd ? Wnd->Handle() : v->Handle();
 	
+	LgiAssert(v->InThread());
 	LgiAssert(h->window);
 	if (type == GDK_ARROW)
 	{
@@ -895,8 +890,6 @@ bool GView::Detach()
 {
 	ThreadCheck();
 	
-//printf("%s::Detach()\n", GetClass());
-
 	// Detach view
 	GViewI *Par = GetParent();
 	if (Par)
@@ -917,7 +910,6 @@ bool GView::Detach()
 			GViewI *c, *prev = NULL;
 			while (c = Children.First())
 			{
-//printf("    c=%p(%s) prev=%p\n", c, c->GetClass(), prev);
 				LgiAssert(!prev || c != prev);
 				if (c->GetParent())
 					c->Detach();
