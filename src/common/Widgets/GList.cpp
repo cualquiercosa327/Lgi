@@ -3394,6 +3394,7 @@ void GList::OnPaint(GSurface *pDC)
 			GSurface *ColDC = pDC;
 			GRect cr = ColumnHeader;
 			int cx = cr.x1;
+
 			#if DOUBLE_BUFFER_COLUMN_DRAWING
 			GMemDC Bmp;
 			if (!pDC->SupportsAlphaCompositing())
@@ -3407,15 +3408,16 @@ void GList::OnPaint(GSurface *pDC)
 				{
 					ColDC = pDC;
 				}
+
+				printf("GList::OnPaint ***START*** %s %i\n",
+					GColourSpaceToString(ColDC->GetColourSpace()), ColDC->SupportsAlphaCompositing());
 			}
 			else
+			#else
 			{
 				ColDC = pDC;
 				pDC->ClipRgn(&cr);
 			}
-
-			printf("GList::OnPaint ***START*** %s %i\n",
-				GColourSpaceToString(ColDC->GetColourSpace()), ColDC->SupportsAlphaCompositing());
 			#endif
 			
 			// Draw columns

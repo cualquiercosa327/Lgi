@@ -845,7 +845,6 @@ bool GMenuItem::Remove()
             LgiAssert(Index + 1 == Info);
             
 			DeleteMenuItem(Parent->Info, Info);
-
             Parent->Items.Delete(this);
 
             // Re-index all the following items
@@ -855,7 +854,7 @@ bool GMenuItem::Remove()
                 mi->Info = i + 1;
             }
             
-            Info = 0;
+            Info = NULL;
         }
         else
         {
@@ -966,12 +965,13 @@ void GMenuItem::Icon(int i)
 {
 	_Icon = i;
 	
-	if (Parent AND Parent->Info AND Info)
+	if (Parent && Parent->Info && Info)
 	{
 		GImageList *Lst = Menu ? Menu->GetImageList() : Parent->GetImageList();
 		if (!Lst)
 			return;
 
+		#if 0
 		int Bpp = Lst->GetBits() / 8;
 		int Off = _Icon * Lst->TileX() * Bpp;
 		int Line = (*Lst)[1] - (*Lst)[0];
@@ -1026,6 +1026,7 @@ void GMenuItem::Icon(int i)
 			// CGColorSpaceRelease(Cs);
 			// CGDataProviderRelease(Provider);
 		}
+		#endif
 	}
 	else
 	{

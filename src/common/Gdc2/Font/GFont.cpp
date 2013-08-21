@@ -20,6 +20,7 @@
 #include "Lgi.h"
 #include "GVariant.h"
 #include "GFontSelect.h"
+#include "GDisplayString.h"
 #include "GdiLeak.h"
 #include "GDisplayString.h"
 
