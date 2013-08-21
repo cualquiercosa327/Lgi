@@ -220,10 +220,9 @@ void GSubMenu::Empty()
 bool GSubMenu::RemoveItem(int i)
 {
 	GMenuItem *Item = Items[i];
-	if (Item && Item->Remove())
+	if (Item)
 	{
-		DeleteObj(Item);
-        return true;
+		return Item->Remove();
 	}
 	return false;
 }
@@ -231,12 +230,10 @@ bool GSubMenu::RemoveItem(int i)
 bool GSubMenu::RemoveItem(GMenuItem *Item)
 {
 	if (Item &&
-        Items.HasItem(Item) &&
-        Item->Remove())
+        Items.HasItem(Item))
     {
-        DeleteObj(Item);
-        return true;
-	}    
+		return Item->Remove();
+	}
 	return false;
 }
 

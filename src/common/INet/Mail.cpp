@@ -1430,7 +1430,7 @@ bool MailSmtp::Open(GSocketI *S,
 			Socket->SetTimeout(30 * 1000);
 
 			char Msg[256];
-			sprintf_s(Msg, sizeof(Msg), "Connecting to %s:%i...", Server, Port);
+			sprintf_s(Msg, sizeof(Msg), "Connecting to %s:%i...", Server.Get(), Port);
 			Log(Msg, MAIL_INFO_COLOUR);
 	
 			if (!Socket->Open(Server, Port))
