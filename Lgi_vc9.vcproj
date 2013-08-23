@@ -87,12 +87,12 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(IntDir)\Lgi8.pdb"
+				ProgramDatabaseFile="$(IntDir)\Lgi9.pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary="$(OutDir)\Lgi8.lib"
+				ImportLibrary="$(OutDir)\Lgi9.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"

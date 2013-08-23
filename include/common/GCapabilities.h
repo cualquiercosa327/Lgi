@@ -40,6 +40,9 @@ public:
     
     /// This is called after the dependcy is installed.
     virtual void OnInstall(CapsHash *Caps, bool Status) = 0;
+
+    /// This is called if the user closes the capability bar...
+    virtual void OnCloseInstaller() = 0;
 };
 
 #endif

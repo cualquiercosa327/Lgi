@@ -2,9 +2,13 @@
 #define _GVIEW_PRIV_
 
 #if WIN32NATIVE
-#define _WIN32_WINNT 0x501
-#include "commctrl.h"
-#include "Uxtheme.h"
+	#if !defined(_WIN32_WINNT) || _WIN32_WINNT < 0x501
+		#undef _WIN32_WINNT
+		#define _WIN32_WINNT 0x501
+	#endif
+
+	#include "commctrl.h"
+	#include "Uxtheme.h"
 #endif
 
 #define PAINT_VIRTUAL_CHILDREN	1

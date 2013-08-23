@@ -2021,6 +2021,8 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, bool DebugLog)
 		for (int i=0; i<TextPos.Length(); i++)
 		{
 			GFlowRect *Tr = TextPos[i];
+			if (!Tr)
+				break;
 			
 			int Near = IsNearRect(Tr, x, y);
 			if (Near >= 0 && Near < 100)
