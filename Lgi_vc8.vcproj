@@ -413,8 +413,8 @@
 		</Configuration>
 		<Configuration
 			Name="ReleaseNoOptimize|Win32"
-			OutputDirectory="$(PlatformName)$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)$(ConfigurationName)"
+			OutputDirectory=".\Lib"
+			IntermediateDirectory="$(PlatformName)$(ConfigurationName)8"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"

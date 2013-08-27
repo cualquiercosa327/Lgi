@@ -19,8 +19,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(PlatformName)$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)$(ConfigurationName)"
+			OutputDirectory="$(PlatformName)$(ConfigurationName)8"
+			IntermediateDirectory="$(PlatformName)$(ConfigurationName)8"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
@@ -207,8 +207,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(PlatformName)$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)$(ConfigurationName)"
+			OutputDirectory="$(PlatformName)$(ConfigurationName)8"
+			IntermediateDirectory="$(PlatformName)$(ConfigurationName)8"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
@@ -393,8 +393,8 @@
 		</Configuration>
 		<Configuration
 			Name="ReleaseNoOptimize|Win32"
-			OutputDirectory="$(PlatformName)$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)$(ConfigurationName)"
+			OutputDirectory="$(PlatformName)$(ConfigurationName)8"
+			IntermediateDirectory="$(PlatformName)$(ConfigurationName)8"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
