@@ -10,6 +10,7 @@
 #include "GToken.h"
 
 #define DEBUG_WINDOW_PLACEMENT				0
+#define DEBUG_HANDLE_VIEW_KEY				0
 
 extern bool In_SetWindowPos;
 
@@ -406,12 +407,21 @@ bool GWindow::HandleViewMouse(GView *v, GMouse &m)
 
 bool GWindow::HandleViewKey(GView *v, GKey &k)
 {
+	#if DEBUG_HANDLE_VIEW_KEY
+	char msg[256];
+	sprintf_s(msg, sizeof(msg), "HandleViewKey, v=%s", v ? v->GetClass() : "NULL");
+	k.Trace(msg);
+	#endif
+
 	// Any window in a popup always gets the key...
 	GViewI *p;
 	for (p = v->GetParent(); p; p = p->GetParent())
 	{
 		if (dynamic_cast<GPopup*>(p))
 		{
+			#if DEBUG_HANDLE_VIEW_KEY
+			LgiTrace("    Popup %s handling key.\n", p->GetClass());
+			#endif
 			return v->OnKey(k);
 		}
 	}
@@ -423,6 +433,9 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 		{
 			if (d->Hooks[i].Target->OnViewKey(v, k))
 			{
+				#if DEBUG_HANDLE_VIEW_KEY
+				LgiTrace("    Hook[%i] %s handling key.\n", i, d->Hooks[i].Target->GetClass());
+				#endif
 				return true;
 			}
 		}
@@ -431,6 +444,9 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 	// Give the key to the focused window...
 	if (d->Focus && d->Focus->OnKey(k))
 	{
+		#if DEBUG_HANDLE_VIEW_KEY
+		LgiTrace("    d->Focus %s handling key.\n", d->Focus->GetClass());
+		#endif
 		return true;
 	}
 
@@ -439,22 +455,38 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 	if (k.c16 == VK_RETURN)
 	{
 		p = _Default;
+		#if DEBUG_HANDLE_VIEW_KEY
+		LgiTrace("    Using _Default ctrl.\n", p->GetClass());
+		#endif
 	}
 	else if (k.c16 == VK_ESCAPE)
 	{
 		p = FindControl(IDCANCEL);
+		#if DEBUG_HANDLE_VIEW_KEY
+		LgiTrace("    Using IDCANCEL ctrl.\n", p->GetClass());
+		#endif
 	}
+	
 	if (p && p->OnKey(k))
 	{
+		#if DEBUG_HANDLE_VIEW_KEY
+		LgiTrace("    Default control %s handled key.\n", p->GetClass());
+		#endif
 		return true;
 	}
 
 	// Menu shortcut?
 	if (Menu && Menu->OnKey(v, k))
 	{
+		#if DEBUG_HANDLE_VIEW_KEY
+		LgiTrace("    Menu handled key.\n");
+		#endif
 		return true;
 	}
 
+	#if DEBUG_HANDLE_VIEW_KEY
+	LgiTrace("    No one handled key.\n");
+	#endif
 	return false;
 }
 

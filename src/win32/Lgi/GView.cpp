@@ -1126,6 +1126,8 @@ void GView::SetPulse(int Length)
 	}
 }
 
+static int ConsumeTabKey = 0;
+
 bool SysOnKey(GView *w, GMessage *m)
 {
 	if (m->a == VK_TAB &&
@@ -1146,6 +1148,7 @@ bool SysOnKey(GView *w, GMessage *m)
 					LgiTrace("%s:%i - SetFocus(%p)\\n", _FL, Wnd->Handle());
 				}
 
+				ConsumeTabKey = 2;
 				::SetFocus(Wnd->Handle());
 				return true;
 			}
@@ -2136,7 +2139,12 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				}
 				#endif
 
-				if (!SysOnKey(this, Msg))
+				if (SysOnKey(this, Msg))
+				{
+					LgiTrace("SysOnKey true, Msg=0x%x\n", Msg->Msg);
+					return 0;
+				}
+				else
 				{
 					// Key
 					GKey Key(Msg->a, Msg->b);
@@ -2158,19 +2166,26 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 						Key.Ctrl(), Key.Alt(), Key.Shift());
 					#endif
 
-					GWindow *Wnd = GetWindow();
-					if (Wnd)
+					if (Key.c16 == VK_TAB && ConsumeTabKey)
 					{
-						if (Key.Alt() ||
-							Key.Ctrl() ||
-							(Key.c16 < 'A' || Key.c16 > 'Z'))
-						{
-							Wnd->HandleViewKey(this, Key);
-						}
+						ConsumeTabKey--;
 					}
 					else
 					{
-						OnKey(Key);
+						GWindow *Wnd = GetWindow();
+						if (Wnd)
+						{
+							if (Key.Alt() ||
+								Key.Ctrl() ||
+								(Key.c16 < 'A' || Key.c16 > 'Z'))
+							{
+								Wnd->HandleViewKey(this, Key);
+							}
+						}
+						else
+						{
+							OnKey(Key);
+						}
 					}
 
 					#if !OLD_WM_CHAR_MODE
@@ -2225,14 +2240,21 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 					Key.c16 = ToUpper(Key.c16);
 				}
 
-				GWindow *Wnd = GetWindow();
-				if (Wnd)
+				if (Key.c16 == VK_TAB && ConsumeTabKey)
 				{
-					Wnd->HandleViewKey(this, Key);
+					ConsumeTabKey--;
 				}
 				else
 				{
-					OnKey(Key);
+					GWindow *Wnd = GetWindow();
+					if (Wnd)
+					{
+						Wnd->HandleViewKey(this, Key);
+					}
+					else
+					{
+						OnKey(Key);
+					}
 				}
 				break;
 			}

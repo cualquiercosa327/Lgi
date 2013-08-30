@@ -3250,6 +3250,8 @@ bool GTextView3::OnKey(GKey &k)
 		Blink = true;
 	}
 
+	// k.Trace("GTextView3::OnKey");
+
 	if (k.IsContextMenu())
 	{
 		GMouse m;
