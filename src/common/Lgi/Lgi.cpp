@@ -458,7 +458,16 @@ void LgiTrace(const char *Msg, ...)
 		char Buffer[2049] = "";
 		#ifdef LGI_TRACE_TO_FILE
 		GFile f;
-		if (LgiGetExeFile(Buffer, sizeof(Buffer)))
+		static int CanWriteToExeLocation = -1;
+		
+		if (CanWriteToExeLocation == 0)
+		{
+			ResetToAppRoot:
+			LgiGetSystemPath(LSP_APP_ROOT, Buffer, sizeof(Buffer));
+			LgiMakePath(Buffer, sizeof(Buffer), Buffer, "trace.txt");
+			f.Open(Buffer, O_WRITE);
+		}
+		else if (LgiGetExeFile(Buffer, sizeof(Buffer)))
 		{
 			#ifdef MAC
 			char *Dir = strrchr(Buffer, DIR_CHAR);
@@ -476,15 +485,19 @@ void LgiTrace(const char *Msg, ...)
 			{
 				char *Dot = strrchr(Buffer, '.');
 				if (Dot && !strchr(Dot, DIR_CHAR))
-				{
 					strcpy(Dot+1, "txt");
-				}
 				else
-				{
 					strcat(Buffer, ".txt");
+			}
+			bool Status = f.Open(Buffer, O_WRITE);
+			if (CanWriteToExeLocation < 0)
+			{
+				CanWriteToExeLocation = Status != 0;
+				if (!CanWriteToExeLocation)
+				{
+					goto ResetToAppRoot;
 				}
 			}
-			f.Open(Buffer, O_WRITE);
 		}
 		#endif
 
@@ -989,7 +1002,6 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 						if (Base)
 						{
 							LgiMakePath(Dst, DstSize, Base, Name);
-							// Status = DirExists(Dst) || FileDev->CreateDirectory(Dst);
 							Status = true;
 						}
 					}

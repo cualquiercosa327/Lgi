@@ -478,12 +478,12 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(IntDir)\LgiNoOpt.pdb"
+				ProgramDatabaseFile="$(IntDir)\Lgi9nop.pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary="$(OutDir)\LgiNoOpt.lib"
+				ImportLibrary="$(OutDir)\Lgi9nop.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"

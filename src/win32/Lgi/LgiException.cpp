@@ -64,7 +64,7 @@ LONG __stdcall GApp::_ExceptionFilter(LPEXCEPTION_POINTERS e, char *ProductId)
 									// do it.
 
 	char p[MAX_PATH];
-	LgiGetSystemPath(LSP_APP_INSTALL, p, sizeof(p));
+	LgiGetSystemPath(LSP_APP_ROOT, p, sizeof(p));
 	if (ProductId)
 		sprintf(p+strlen(p), "%s%s-crash.dmp", DIR_STR, ProductId);
 	else

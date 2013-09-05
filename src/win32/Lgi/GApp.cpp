@@ -227,6 +227,10 @@ bool GApp::Win9x = LgiGetOs() == LGI_OS_WIN9X;
 
 GApp::GApp(const char *MimeType, OsAppArguments &AppArgs, GAppArguments *ObjArgs)
 {
+	// GApp instance
+	LgiAssert(TheApp == 0);
+	TheApp = this;
+
 int64 Time = LgiCurrentTime();
 #define DumpTime(str) /* \
 	{ int64 n = LgiCurrentTime(); \
@@ -277,6 +281,10 @@ DumpTime("priv");
 
     InitializeCriticalSection(&StackTraceSync);
 	#if 1 // ndef _DEBUG
+	char p[MAX_PATH];
+	LgiGetSystemPath(LSP_APP_ROOT, p, sizeof(p));
+	LgiTrace("LSP_APP_ROOT='%s'\n", p);
+	
 	_PrevExceptionHandler = SetUnhandledExceptionFilter(_ExceptionFilter_Redir);
 	#endif
 
@@ -340,10 +348,6 @@ DumpTime("gdc");
 	d->Config = 0;
 	AppWnd = 0;
 	SetAppArgs(AppArgs);
-
-	// GApp instance
-	LgiAssert(TheApp == 0);
-	TheApp = this;
 
 DumpTime("vars");
 
