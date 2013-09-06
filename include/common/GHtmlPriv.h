@@ -287,7 +287,6 @@ public:
 
 	GAutoString Condition;
 	int TipId;
-	// DisplayType Disp;
 
 	// Heirarchy
 	GHtml *Html;
@@ -369,7 +368,7 @@ public:
 	void OnPaint(GSurface *pDC, bool &InSelection);
 	void SetSize(GdcPt2 &s);
 	void SetTag(const char *Tag);
-	void GetTagByPos(GTagHit &TagHit, int x, int y, bool DebugLog = false);
+	void GetTagByPos(GTagHit &TagHit, int x, int y, int Depth, bool DebugLog = false);
 	GTag *GetTagByName(const char *Name);
 	void CopyClipboard(GBytePipe &p, bool &InSelection);
 	GTag *IsAnchor(GAutoString *Uri);

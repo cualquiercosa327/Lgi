@@ -19,8 +19,9 @@
 #include "GdcTools.h"
 #include "GDisplayString.h"
 
-#define DEBUG_TABLE_LAYOUT			1
+#define DEBUG_TABLE_LAYOUT			0
 #define DEBUG_RESTYLE				0
+#define DEBUG_TAG_BY_POS			0
 
 #define LUIS_DEBUG					0
 #define CRASH_TRACE					0
@@ -2004,8 +2005,12 @@ int GTag::NearestChar(GFlowRect *Tr, int x, int y)
 	return -1;
 }
 
-void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, bool DebugLog)
+void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, int Depth, bool DebugLog)
 {
+	char DepthStr[256];
+	memset(DepthStr, ' ', Depth);
+	DepthStr[Depth] = 0;
+
 	if (TagId == TAG_IMG)
 	{
 		GRect img(0, 0, Size.x - 1, Size.y - 1);
@@ -2013,7 +2018,6 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, bool DebugLog)
 		{
 			TagHit.Direct = this;
 			TagHit.Block = 0;
-			TagHit.Near = 0;
 		}
 	}
 	else if (TextPos.Length())
@@ -2036,7 +2040,13 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, bool DebugLog)
 					TagHit.Index = NearestChar(Tr, x, y);
 					
 					if (DebugLog)
-						LgiTrace("GetTagByPos HitText %s, idx=%i, near=%i\n", Tag.Get(), TagHit.Index, TagHit.Near);
+						LgiTrace("%sGetTagByPos HitText %s #%s, idx=%i, near=%i, txt='%S'\n",
+							DepthStr,
+							Tag.Get(),
+							HtmlId,
+							TagHit.Index,
+							TagHit.Near,
+							Tr->Text);
 
 					if (!TagHit.Near)
 					{
@@ -2064,7 +2074,14 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, bool DebugLog)
 		TagHit.LocalCoords.y = y;
 
 		if (DebugLog)
-			LgiTrace("GetTagByPos DirectHit %s, idx=%i, near=%i\n", Tag.Get(), TagHit.Index, TagHit.Near);
+		{
+			LgiTrace("%sGetTagByPos DirectHit %s #%s, idx=%i, near=%i\n",
+				DepthStr,
+				Tag.Get(),
+				HtmlId,
+				TagHit.Index,
+				TagHit.Near);
+		}
 	}
 
 	for (int i=0; i<Children.Length(); i++)
@@ -2073,7 +2090,7 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, bool DebugLog)
 		if (t->Pos.x >= 0 &&
 			t->Pos.y >= 0)
 		{
-			t->GetTagByPos(TagHit, x - t->Pos.x, y - t->Pos.y, DebugLog);
+			t->GetTagByPos(TagHit, x - t->Pos.x, y - t->Pos.y, Depth + 1, DebugLog);
 		}
 	}
 }
@@ -6844,8 +6861,10 @@ void GHtml::OnMouseClick(GMouse &m)
 		GTagHit Hit;
 		if (Tag)
 		{
-			Tag->GetTagByPos(Hit, m.x, m.y + Offset);
-			// Hit.Dump("MouseClick");
+			Tag->GetTagByPos(Hit, m.x, m.y + Offset, 0, DEBUG_TAG_BY_POS);
+			#if DEBUG_TAG_BY_POS
+			Hit.Dump("MouseClick");
+			#endif
 		}
 		
 		if (m.Left() && !m.IsContextMenu())
@@ -7188,7 +7207,7 @@ GTag *GHtml::GetTagByPos(int x, int y, int *Index, GdcPt2 *LocalCoords, bool Deb
 			LgiTrace("GetTagByPos starting...\n");
 
 		GTagHit Hit;
-		Tag->GetTagByPos(Hit, x, y, DebugLog);
+		Tag->GetTagByPos(Hit, x, y, 0, DebugLog);
 
 		if (DebugLog)
 			LgiTrace("GetTagByPos Hit=%s, %i, %i...\n\n", Hit.Direct ? Hit.Direct->Tag.Get() : 0, Hit.Index, Hit.Near);
@@ -7247,14 +7266,7 @@ void GHtml::OnMouseMove(GMouse &m)
 
 	int Offset = ScrollY();
 	GTagHit Hit;
-	Tag->GetTagByPos(Hit, m.x, m.y + Offset);
-	/*
-	if (IsCapturing())
-	{
-		Hit.Dump("    MouseMove");
-	}
-	*/
-
+	Tag->GetTagByPos(Hit, m.x, m.y + Offset, 0);
 	if (!Hit.Direct && !Hit.NearestText)
 		return;
 		
