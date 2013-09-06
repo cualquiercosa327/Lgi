@@ -57,10 +57,10 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\Debug/libntlm.pch"
-				AssemblerListingLocation=".\Debug/"
-				ObjectFile=".\Debug/"
-				ProgramDataBaseFileName=".\Debug/"
+				PrecompiledHeaderFile=".\$(IntDir)\libntlm.pch"
+				AssemblerListingLocation=".\$(IntDir)\"
+				ObjectFile=".\$(IntDir)\"
+				ProgramDataBaseFileName=".\$(IntDir)\"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 			/>
@@ -113,8 +113,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|x64"
-			OutputDirectory="$(PlatformName)$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)$(ConfigurationName)"
+			OutputDirectory="$(PlatformName)$(ConfigurationName)9"
+			IntermediateDirectory="$(PlatformName)$(ConfigurationName)9"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
@@ -245,9 +245,9 @@
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				PrecompiledHeaderFile=".\Release/libntlm.pch"
-				AssemblerListingLocation=".\Release/"
-				ObjectFile=".\Release/"
-				ProgramDataBaseFileName=".\Release/"
+				AssemblerListingLocation=".\$(IntDir)\"
+				ObjectFile=".\$(IntDir)\"
+				ProgramDataBaseFileName=".\$(IntDir)\"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -298,8 +298,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
-			OutputDirectory="$(PlatformName)$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)$(ConfigurationName)"
+			OutputDirectory="$(PlatformName)$(ConfigurationName)9"
+			IntermediateDirectory="$(PlatformName)$(ConfigurationName)9"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
@@ -429,9 +429,9 @@
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				PrecompiledHeaderFile=".\Release/libntlm.pch"
-				AssemblerListingLocation=".\Release/"
-				ObjectFile=".\Release/"
-				ProgramDataBaseFileName=".\Release/"
+				AssemblerListingLocation=".\$(IntDir)\"
+				ObjectFile=".\$(IntDir)\"
+				ProgramDataBaseFileName=".\$(IntDir)\"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -482,8 +482,8 @@
 		</Configuration>
 		<Configuration
 			Name="ReleaseNoOptimize|x64"
-			OutputDirectory="$(PlatformName)$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)$(ConfigurationName)"
+			OutputDirectory="$(PlatformName)$(ConfigurationName)9"
+			IntermediateDirectory="$(PlatformName)$(ConfigurationName)9"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
