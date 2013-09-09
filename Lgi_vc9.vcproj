@@ -185,12 +185,12 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(IntDir)\Lgi64.pdb"
+				ProgramDatabaseFile="$(IntDir)\Lgi9x64.pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary="$(OutDir)\Lgi64.lib"
+				ImportLibrary="$(OutDir)\Lgi9x64.lib"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -379,11 +379,11 @@
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(IntDir)\Lgi64d.pdb"
+				ProgramDatabaseFile="$(IntDir)\Lgi9x64d.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary="$(OutDir)/Lgi64d.lib"
+				ImportLibrary="$(OutDir)/Lgi9x64d.lib"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -572,7 +572,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="Ws2_32.lib Comctl32.lib  UxTheme.lib"
-				OutputFile="$(OutDir)\Lgi64.dll"
+				OutputFile="$(OutDir)\Lgi9x64nop.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
@@ -581,7 +581,7 @@
 				OptimizeReferences="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary="$(OutDir)\Lgi64.lib"
+				ImportLibrary="$(OutDir)\Lgi9x64nop.lib"
 				TargetMachine="17"
 			/>
 			<Tool

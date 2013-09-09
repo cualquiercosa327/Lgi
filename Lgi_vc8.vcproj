@@ -82,14 +82,14 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="ComCtl32.lib Ws2_32.lib  UxTheme.lib"
-				OutputFile="$(OutDir)\Lgi8.dll"
+				OutputFile="$(OutDir)\Lgi8x32.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(IntDir)\Lgi8.pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
-				ImportLibrary="$(OutDir)\Lgi8.lib"
+				ImportLibrary="$(OutDir)\Lgi8x32.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -181,14 +181,14 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="Ws2_32.lib Comctl32.lib  UxTheme.lib"
-				OutputFile="$(OutDir)\Lgi64.dll"
+				OutputFile="$(OutDir)\Lgi8x64.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(IntDir)\Lgi64.pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
-				ImportLibrary="$(OutDir)\Lgi64.lib"
+				ImportLibrary="$(OutDir)\Lgi8x64.lib"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -280,13 +280,13 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="ComCtl32.lib Ws2_32.lib  UxTheme.lib"
-				OutputFile="$(OutDir)\Lgi8d.dll"
+				OutputFile="$(OutDir)\Lgi8x32d.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(IntDir)\Lgi8d.pdb"
 				SubSystem="2"
-				ImportLibrary="$(OutDir)/Lgi8d.lib"
+				ImportLibrary="$(OutDir)/Lgi8x32d.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -377,13 +377,13 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="Ws2_32.lib Comctl32.lib  UxTheme.lib"
 				ShowProgress="0"
-				OutputFile="$(OutDir)\Lgi64d.dll"
+				OutputFile="$(OutDir)\Lgi8x64d.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(IntDir)\Lgi64d.pdb"
 				SubSystem="2"
-				ImportLibrary="$(OutDir)/Lgi64d.lib"
+				ImportLibrary="$(OutDir)/Lgi8x64d.lib"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -477,14 +477,14 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="ComCtl32.lib Ws2_32.lib  UxTheme.lib"
-				OutputFile="$(OutDir)\LgiNoOpt.dll"
+				OutputFile="$(OutDir)\Lgi8x32nop.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(IntDir)\LgiNoOpt.pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
-				ImportLibrary="$(OutDir)\LgiNoOpt.lib"
+				ImportLibrary="$(OutDir)\Lgi8x32nop.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -576,14 +576,14 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="Ws2_32.lib Comctl32.lib  UxTheme.lib"
-				OutputFile="$(OutDir)\Lgi64.dll"
+				OutputFile="$(OutDir)\Lgi8x64nop.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(IntDir)\Lgi64.pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
-				ImportLibrary="$(OutDir)\Lgi64.lib"
+				ImportLibrary="$(OutDir)\Lgi8x64nop.lib"
 				TargetMachine="17"
 			/>
 			<Tool
