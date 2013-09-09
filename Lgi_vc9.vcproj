@@ -283,11 +283,11 @@
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(IntDir)\Lgi8d.pdb"
+				ProgramDatabaseFile="$(IntDir)\Lgi9d.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary="$(OutDir)/Lgi8d.lib"
+				ImportLibrary="$(OutDir)/Lgi9d.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
