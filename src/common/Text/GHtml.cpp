@@ -6922,7 +6922,7 @@ void GHtml::OnMouseClick(GMouse &m)
 					Selection = NULL;
 				}
 				
-				if (Hit.NearestText)
+				if (Hit.NearestText && Hit.Near == 0)
 				{
 					Cursor = Hit.NearestText;
 					Cursor->Cursor = Hit.Index;
@@ -6937,9 +6937,9 @@ void GHtml::OnMouseClick(GMouse &m)
 			}
 		}
 
-		if (Hit.Direct)
+		if (Hit.NearestText && Hit.Near == 0)
 		{
-			TagProcessedClick = Hit.Direct->OnMouseClick(m);
+			TagProcessedClick = Hit.NearestText->OnMouseClick(m);
 		}
 		#ifdef _DEBUG
 		else if (m.Left() && m.Ctrl())
@@ -7212,7 +7212,7 @@ GTag *GHtml::GetTagByPos(int x, int y, int *Index, GdcPt2 *LocalCoords, bool Deb
 		if (DebugLog)
 			LgiTrace("GetTagByPos Hit=%s, %i, %i...\n\n", Hit.Direct ? Hit.Direct->Tag.Get() : 0, Hit.Index, Hit.Near);
 		
-		Status = Hit.Direct ? Hit.Direct : Hit.NearestText;
+		Status = Hit.NearestText && Hit.Near == 0 ? Hit.NearestText : Hit.Direct;
 		if (Hit.NearestText && Hit.Near < 30)
 		{
 			if (Index) *Index = Hit.Index;
@@ -7279,9 +7279,10 @@ void GHtml::OnMouseMove(GMouse &m)
 	}
 
 	GAutoString Uri;
+	GTag *HitTag = Hit.NearestText && Hit.Near == 0 ? Hit.NearestText : Hit.Direct;
 	if (Hit.LocalCoords.x >= 0 &&
 		Hit.LocalCoords.y >= 0 &&
-		Hit.Direct->IsAnchor(&Uri))
+		HitTag->IsAnchor(&Uri))
 	{
 		if (Uri)
 		{
