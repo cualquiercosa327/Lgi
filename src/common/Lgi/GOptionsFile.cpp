@@ -68,7 +68,7 @@ bool GOptionsFile::IsValid()
 
 	if (Lock(_FL))
 	{
-		if (Attr.Length() > 0 AND
+		if (Attr.Length() > 0 &&
 			Children.Length() > 0)
 		{
 			Status = true;
@@ -90,7 +90,7 @@ bool GOptionsFile::Serialize(bool Write)
 {
 	bool Status = false;
 
-	if (File AND Lock(_FL))
+	if (File && Lock(_FL))
 	{
 		GFile f;
 		if
@@ -100,8 +100,8 @@ bool GOptionsFile::Serialize(bool Write)
 				||
 				FileExists(File)
 			)
-			AND
-			f.Open(File, Write?O_WRITE:O_READ)
+			&&
+			f.Open(File, Write ? O_WRITE : O_READ)
 		)
 		{
 			GXmlTree Tree(GXT_PRETTY_WHITESPACE);
@@ -120,7 +120,10 @@ bool GOptionsFile::Serialize(bool Write)
 			}
 		}
 		else if (Write)
+		{
 			LgiAssert(!"Failed to open file.");
+			LgiTrace("%s:%i - Failed to open '%s'\n", _FL, File);
+		}
 
 		Unlock();
 	}
@@ -132,7 +135,7 @@ bool GOptionsFile::DeleteValue(const char *Name)
 {
 	bool Status = false;
 
-	if (Name AND Lock(_FL))
+	if (Name && Lock(_FL))
 	{
 		GVariant v;
 		SetValue(Name, v);
@@ -146,7 +149,7 @@ bool GOptionsFile::CreateTag(const char *Name)
 {
 	GXmlTag *Status = 0;
 
-	if (Name AND Lock(_FL))
+	if (Name && Lock(_FL))
 	{
 		Status = GetTag(Name, true);
 		Unlock();
@@ -159,7 +162,7 @@ bool GOptionsFile::DeleteTag(const char *Name)
 {
 	bool Status = false;
 
-	if (Name AND Lock(_FL))
+	if (Name && Lock(_FL))
 	{
 		GXmlTag *t = GetTag(Name);
 		if (t)

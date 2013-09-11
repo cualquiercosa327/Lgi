@@ -23,6 +23,12 @@
 
 /// A base for a document processing application.
 /// The 2 types you can use for OptionsFmt are (ideally) GOptionsFile or (deprecated) ObjProperties.
+enum GDocAppInstallMode
+{
+	InstallDesktop,
+	InstallPortable,
+};
+
 template<typename OptionsFmt>
 class GDocApp :
 	public GWindow,
@@ -41,7 +47,7 @@ protected:
 	bool			_Create();
 	/// Call this to destroy the window, usually in the destuctor of your main window class.
 	bool			_Destroy();
-	/// Use the open file dialog to select a docuement to open.
+	/// Use the open file dialog to select a document to open.
 	bool			_OpenFile(char *File, bool ReadOnly);
 	/// Save the current document.
 	bool			_SaveFile(char *File);
@@ -65,10 +71,11 @@ public:
 		const TCHAR *icon = 0,
 		/// Options file base name..
 		char *optsname = 0
-
 	);
 	~GDocApp();
 
+	/// Gets the install mode
+	GDocAppInstallMode GetInstallMode();
 	/// Sets the current file name.
 	void SetCurFile(char *f);
 	/// Gets the current file name.

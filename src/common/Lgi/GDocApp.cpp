@@ -19,12 +19,13 @@ class GDocAppPrivate
 {
 public:
 	// Data
-	GAutoString		OptionsFile;
-	GAutoString		OptionsParam;
-	char			*AppName;
-	GAutoString		CurFile;
-	char			*Icon;
-	bool			Dirty;
+	GAutoString			OptionsFile;
+	GAutoString			OptionsParam;
+	char				*AppName;
+	GAutoString			CurFile;
+	char				*Icon;
+	bool				Dirty;
+	GDocAppInstallMode	Mode;
 
 	GDocAppPrivate(char *param)
 	{
@@ -32,6 +33,7 @@ public:
 		AppName = 0;
 		Icon = 0;
 		Dirty = 0;
+		Mode = InstallPortable;
 	}
 	
 	~GDocAppPrivate()
@@ -45,7 +47,7 @@ public:
 	{
 		// Get options file
 		GAutoString Status;
-		char Buf[256];
+		char Buf[MAX_PATH];
 		if (LgiApp->GetOption("o", Buf, sizeof(Buf)))
 		{
 			if (FileExists(Buf))
@@ -57,6 +59,7 @@ public:
 		if (!Status)
 		{
 			LgiGetExeFile(Buf, sizeof(Buf));
+				
 			char *File = strrchr(Buf, DIR_CHAR);
 			if (File)
 			{
@@ -75,14 +78,13 @@ public:
 					size_t Len = strlen(File);
 					sprintf_s(File + Len, Buf + sizeof(Buf) - (File + Len), ".%s", Ext);
 				}
-
-				Status.Reset(LgiFindFile(File));
-				if (!Status)
-				{
-					// No options file yet... so create one in the
-					// app's directory
-					Status.Reset(NewStr(Buf));
-				}
+				
+				GAutoString BaseName(NewStr(File));
+				
+				char p[MAX_PATH];
+				LgiGetSystemPath(Mode == InstallPortable ? LSP_APP_INSTALL : LSP_APP_ROOT, p, sizeof(p));
+				LgiMakePath(p, sizeof(p), p, BaseName);
+				Status.Reset(NewStr(p));
 			}
 		}
 
@@ -173,6 +175,22 @@ GDocApp<OptionsFmt>::GDocApp(const char *appname, const TCHAR *icon, char *optsn
 	_FileMenu = 0;
 	d->AppName = NewStr(appname?appname:(char*)"Lgi.GDocApp");
 
+	char p[MAX_PATH];
+	if (LgiGetSystemPath(LSP_APP_INSTALL, p, sizeof(p)))
+	{
+		LgiMakePath(p, sizeof(p), p, "_write_test.txt");
+		GFile f;
+		if (!f.Open(p, O_WRITE))
+		{
+			d->Mode = InstallDesktop;
+		}
+		else
+		{
+			f.Close();
+			FileDev->Delete(p, false);
+		}
+	}
+
 	SetQuitOnClose(true);
 
 	// Setup class
@@ -207,10 +225,16 @@ GDocApp<OptionsFmt>::GDocApp(const char *appname, const TCHAR *icon, char *optsn
 template <typename OptionsFmt>
 GDocApp<OptionsFmt>::~GDocApp()
 {
+	LgiTrace("~GDocApp()\n");
 	DeleteObj(d);
 	DeleteObj(Options);
 }
 
+template <typename OptionsFmt>
+GDocAppInstallMode GDocApp<OptionsFmt>::GetInstallMode()
+{
+	return d->Mode;
+}
 
 template <typename OptionsFmt>
 bool GDocApp<OptionsFmt>::SetLanguage(char *LangId)
@@ -260,8 +284,10 @@ bool GDocApp<OptionsFmt>::_DoSerialize(bool Write)
 	{
 		const char *Ext = d->GetExtension(Options);
 		d->OptionsFile = d->GetOptionsFile(Ext);
+		LgiTrace("d->OptionsFile='%s'\n", d->OptionsFile.Get());
 	}
 
+	LgiTrace("Options='%p'\n", Options);
 	if (!Options)
 	{
 		if (FileExists(d->OptionsFile))
@@ -314,6 +340,7 @@ bool GDocApp<OptionsFmt>::_DoSerialize(bool Write)
 template <typename OptionsFmt>
 bool GDocApp<OptionsFmt>::_SerializeFile(bool Write)
 {
+	LgiTrace("_SerializeFile(%i) file='%s'\n", Write, d->OptionsFile.Get());
 	return d->SerializeOpts(Options, Write);
 }
 
