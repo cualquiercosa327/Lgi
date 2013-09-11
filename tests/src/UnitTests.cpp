@@ -30,7 +30,7 @@ void UnitTests()
 int main(int args, char **arg)
 {
 	OsAppArguments Args(args, arg);
-	GApp a("application/x-lgi-unit-tests", Args);
+	GApp a(Args, "LgiUnitTests");
 	if (a.IsOk())
 	{
 		UnitTests();

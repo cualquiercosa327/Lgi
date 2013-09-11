@@ -2092,7 +2092,7 @@ public:
 int LgiMain(OsAppArguments &AppArgs)
 {
 	printf("LgiIde v%.2f\n", LgiIdeVer);
-	GApp a("application/LgiIde", AppArgs);
+	GApp a(AppArgs, "LgiIde");
 	if (a.IsOk())
 	{	
 		a.AppWnd = new AppWnd;

@@ -4333,7 +4333,7 @@ void TestFunc()
 
 int LgiMain(OsAppArguments &AppArgs)
 {
-	GApp a("application/x-LgiRes", AppArgs);
+	GApp a(AppArgs, "LgiRes");
 	if (a.IsOk())
 	{
 		if ((a.AppWnd = new AppWnd))
