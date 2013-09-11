@@ -77,7 +77,7 @@ public:
 	GLibrary *SkinLib;
 	OsThreadId GuiThread;
 	int LinuxWine;
-	GAutoString Name, Mime, ProductId;
+	GAutoString Mime, ProductId;
 	bool ThemeAware;
 
 	// Win32
@@ -225,11 +225,13 @@ typedef HRESULT (CALLBACK *fDllGetVersion)(DLLVERSIONINFO *);
 
 bool GApp::Win9x = LgiGetOs() == LGI_OS_WIN9X;
 
-GApp::GApp(const char *MimeType, OsAppArguments &AppArgs, GAppArguments *ObjArgs)
+GApp::GApp(OsAppArguments &AppArgs, const char *AppName, GAppArguments *ObjArgs)
 {
 	// GApp instance
 	LgiAssert(TheApp == 0);
 	TheApp = this;
+	LgiAssert(AppName);
+	Name(AppName);
 
 int64 Time = LgiCurrentTime();
 #define DumpTime(str) /* \
@@ -256,7 +258,9 @@ DumpTime("start");
 
 	// Private data
 	d = new GAppPrivate;
-	d->Mime.Reset(NewStr(MimeType));
+	char Mime[256];
+	sprintf_s(Mime, sizeof(Mime), "application/x-%s", AppName);
+	d->Mime.Reset(NewStr(Mime));
 
 DumpTime("priv");
 
@@ -493,51 +497,6 @@ bool GApp::IsOk()
 					(d->GdcSystem != 0);
 	LgiAssert(Status);
 	return Status;
-}
-
-char *GApp::GetName()
-{
-	if (d->Name)
-		return d->Name;
-	
-	if (d->Mime)
-	{
-		char *i = strchr(d->Mime, '/');
-		if (i)
-		{
-			static char s[128];
-			i++;
-			if (ToLower(i[0]) == 'x' && i[1] == '-')
-				i += 2;
-			char *o = s;
-			bool First = true;
-			while (*i && o < s + sizeof(s) - 1)
-			{
-				if (*i != '-')
-				{
-					if (First)
-					{
-						*o++ = ToUpper(*i);
-						First = false;
-					}
-					else
-						*o++ = *i;
-				}
-				else First = true;
-				i++;
-			}
-			*o = 0;
-			
-			return s;
-		}
-	}
-	
-	return 0;
-}
-
-void GApp::SetName(const char *Name)
-{
-	d->Name.Reset(NewStr(Name));
 }
 
 OsThreadId GApp::GetGuiThread()

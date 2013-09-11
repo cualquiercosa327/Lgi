@@ -969,42 +969,56 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 			}
 			case LSP_APP_ROOT:
 			{
-				if (LgiApp)
+				if (!LgiApp)
 				{
-					char *Name = LgiApp->GetName();
-					if (Name)
-					{
-						GAutoString Base;
-						
-						#if defined MAC && !defined COCOA
-						FSRef Ref;
-						OSErr e = FSFindFolder(kUserDomain, kDomainLibraryFolderType, kDontCreateFolder, &Ref);
-						if (e) printf("%s:%i - FSFindFolder failed e=%i\n", __FILE__, __LINE__, e);
-						else
-						{
-							Base = FSRefPath(Ref);
-						}
-						#elif defined WIN32
-						Base.Reset(GetWindowsFolder(CSIDL_APPDATA));
-						#elif defined LINUX
-						char Dot[128];
-						snprintf(Dot, sizeof(Dot), ".%s", Name);
-						Name = Dot;
-						struct passwd *pw = getpwuid(getuid());
-						if (pw)
-						{
-							Base.Reset(NewStr(pw->pw_dir));
-						}
-						#else
-						LgiAssert(0);
-						#endif
+					LgiAssert(0);
+					break;
+				}
+				char *Name = LgiApp->Name();
+				if (!Name)
+				{
+					LgiAssert(0);
+					break;
+				}
 
-						if (Base)
-						{
-							LgiMakePath(Dst, DstSize, Base, Name);
-							Status = true;
-						}
-					}
+				GAutoString Base;
+				
+				#if defined MAC && !defined COCOA
+				FSRef Ref;
+				OSErr e = FSFindFolder(kUserDomain, kDomainLibraryFolderType, kDontCreateFolder, &Ref);
+				if (e)
+				{
+					printf("%s:%i - FSFindFolder failed e=%i\n", _FL, e);
+					LgiAssert(0);
+				}
+				else
+				{
+					Base = FSRefPath(Ref);
+				}
+				#elif defined WIN32
+				Base.Reset(GetWindowsFolder(CSIDL_APPDATA));
+				#elif defined LINUX
+				char Dot[128];
+				snprintf(Dot, sizeof(Dot), ".%s", Name);
+				Name = Dot;
+				struct passwd *pw = getpwuid(getuid());
+				if (pw)
+				{
+					Base.Reset(NewStr(pw->pw_dir));
+				}
+				else LgiAssert(0);
+				#else
+				LgiAssert(0);
+				#endif
+
+				if (Base)
+				{
+					LgiMakePath(Dst, DstSize, Base, Name);
+					Status = true;
+				}
+				else
+				{
+					LgiAssert(0);
 				}
 				break;
 			}
@@ -1205,6 +1219,8 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 					strsafecpy(Dst, f, DstSize);
 					Status = true;
 				}
+				#else
+				LgiAssert(!"Impl me.");
 				#endif
 				break;
 			}

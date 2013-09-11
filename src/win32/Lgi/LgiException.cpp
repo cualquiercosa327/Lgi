@@ -109,8 +109,12 @@ LONG __stdcall GApp::_ExceptionFilter(LPEXCEPTION_POINTERS e, char *ProductId)
 	}
 	else
 	{
-		LgiTrace("%s:%i - Can't open minidump\n", _FL);
-		LgiMsg(0, "This application has crashed. Can't open mini dump file either.", Title, MB_OK|MB_APPLMODAL);
+		LgiTrace("%s:%i - Can't open minidump '%s'\n", _FL, p);
+		LgiMsg(	0,
+				"This application has crashed. Can't open mini dump '%s' either.",
+				Title,
+				MB_OK|MB_APPLMODAL,
+				p);
 	}
 
 	return EXCEPTION_EXECUTE_HANDLER;

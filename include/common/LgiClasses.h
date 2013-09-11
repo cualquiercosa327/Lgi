@@ -160,7 +160,9 @@ struct GAppArguments
 /// operating system. And once your initialization is complete the 'Run' method
 /// is called to enter the main application loop that processes messages for the
 /// life time of the application.
-class LgiClass GApp : virtual public GAppI, public OsApplication
+class LgiClass GApp : virtual public GAppI,
+	public GBase,
+	public OsApplication
 {
 	friend class GView;
 
@@ -228,25 +230,16 @@ public:
 	/// Construct the object
 	GApp
 	(
-		/// The application's mime type. Typically 'application/x-[appname]'. This
-		/// is mostly ignored on Win32 and Linux, but is useful on BeOS.
-		const char *MimeType,
 		/// The arguments passed in by the OS.
 		OsAppArguments &AppArgs,
+		/// The application's name.
+		const char *AppName,
 		/// Optional args
 		GAppArguments *ObjArgs = 0
 	);
 
 	/// Destroys the object
 	virtual ~GApp();
-
-	/// Gets the application name, by default it will be generated from the mime type, but
-	/// can also be set by calling GApp::SetName
-	char *GetName();
-	
-	/// Set the application name.
-	/// This is currently used to generate the leaf folder for #LSP_APP_ROOT
-	void SetName(const char *Name);
 
 	/// Returns the version of Lgi used. String returned is in the form '#.#.#'
 	const char *GetLgiVersion() { return LGI_VER; }
@@ -315,7 +308,7 @@ public:
 
 	/// Sets a single tag in the config. (Not written to disk)
 	void SetConfig(GXmlTag *Tag);
-	
+
 	/// Gets the control with the keyboard focus
 	GViewI *GetFocus();
 	
