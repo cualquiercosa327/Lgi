@@ -30,7 +30,7 @@ public:
 		while (strchr(" \t\r\n", *s)) s++;	
 		Line = line;
 		Name = LgiNewUtf16To8(s);
-		if (Name AND Type == DefnFunc)
+		if (Name && Type == DefnFunc)
 		{
 			if (strlen(Name) > 42)
 			{

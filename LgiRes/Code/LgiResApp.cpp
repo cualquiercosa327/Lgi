@@ -65,7 +65,7 @@ char *EncodeXml(char *Str, int Len)
 		GStringPipe p;
 		
 		char *s = Str;
-		for (char *e = Str; e AND *e AND (Len < 0 || ((e-Str) < Len)); )
+		for (char *e = Str; e && *e && (Len < 0 || ((e-Str) < Len)); )
 		{
 			switch (*e)
 			{
@@ -140,7 +140,7 @@ char *DecodeXml(char *Str, int Len)
 		GStringPipe p;
 		
 		char *s = Str;
-		for (char *e = Str; e AND *e AND (Len < 0 || ((e-Str) < Len)); )
+		for (char *e = Str; e && *e && (Len < 0 || ((e-Str) < Len)); )
 		{
 			switch (*e)
 			{
@@ -183,23 +183,23 @@ char *DecodeXml(char *Str, int Len)
 							LgiAssert(0);
 						}
 
-						while (*e AND *e != ';') e++;
+						while (*e && *e != ';') e++;
 					}
 					else if (isalpha(*e))
 					{
 						// named entity
 						char *Name = e;
-						while (*e AND *e != ';') e++;
+						while (*e && *e != ';') e++;
 						int Len = e - Name;
-						if (Len == 3 AND strnicmp(Name, "amp", Len) == 0)
+						if (Len == 3 && strnicmp(Name, "amp", Len) == 0)
 						{
 							p.Push("&");
 						}
-						else if (Len == 2 AND strnicmp(Name, "gt", Len) == 0)
+						else if (Len == 2 && strnicmp(Name, "gt", Len) == 0)
 						{
 							p.Push(">");
 						}
-						else if (Len == 2 AND strnicmp(Name, "lt", Len) == 0)
+						else if (Len == 2 && strnicmp(Name, "lt", Len) == 0)
 						{
 							p.Push("<");
 						}
@@ -212,7 +212,7 @@ char *DecodeXml(char *Str, int Len)
 					else
 					{
 						LgiAssert(0);
-						while (*e AND *e != ';') e++;
+						while (*e && *e != ';') e++;
 					}
 					
 					s = ++e;
@@ -515,7 +515,7 @@ void FieldView::Serialize(bool Write)
 					if (Write) // Ctrl -> Options
 					{
 						char *s = v->Name();
-						if (s AND (s = strchr(s, '\'')))
+						if (s && (s = strchr(s, '\'')))
 						{
 							s++;
 
@@ -741,7 +741,7 @@ int FieldView::OnNotify(GViewI *Ctrl, int Flags)
 	if (!Ignore)
 	{
 		GTextView3 *Tv = dynamic_cast<GTextView3*>(Ctrl);
-		if (Tv AND Flags == GTVN_CURSOR_CHANGED)
+		if (Tv && Flags == GTVN_CURSOR_CHANGED)
 		{
 			return 0;
 		}
@@ -898,7 +898,7 @@ void AppWnd::OnLanguagesChange(GLanguageId Lang, bool Add, bool Update)
 			}
 		}
 
-		if (Add AND !Has)
+		if (Add && !Has)
 		{
 			Change = true;
 			Languages.Add(GFindLang(Lang));
@@ -906,7 +906,7 @@ void AppWnd::OnLanguagesChange(GLanguageId Lang, bool Add, bool Update)
 	}
 
 	// Update the menu...
-	if (ViewMenu AND (Change || Update))
+	if (ViewMenu && (Change || Update))
 	{
 		// Remove existing language menu items
 		while (ViewMenu->RemoveItem(2));
@@ -978,7 +978,7 @@ void AppWnd::ShowLang(GLanguageId Lang, bool Show)
 
 GLanguage *AppWnd::GetCurLang()
 {
-	if (CurLang >= 0 AND CurLang < Languages.Length())
+	if (CurLang >= 0 && CurLang < Languages.Length())
 		return Languages[CurLang];
 
 	return GFindLang("en");
@@ -1274,7 +1274,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Handle)
 			char ExeName[256];
 			LgiGetExePath(ExeName, sizeof(ExeName));
 
-			while (strchr(ExeName, DIR_CHAR) AND strlen(ExeName) > 3)
+			while (strchr(ExeName, DIR_CHAR) && strlen(ExeName) > 3)
 			{
 				char p[256];
 				LgiMakePath(p, sizeof(p), ExeName, "index.html");
@@ -1307,7 +1307,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Handle)
 		default:
 		{
 			int Idx = Cmd - IDM_LANG_BASE;
-			if (Idx >= 0 AND Idx < Languages.Length())
+			if (Idx >= 0 && Idx < Languages.Length())
 			{
 				// Deselect the old lang
 				GMenuItem *Item = ViewMenu ? ViewMenu->ItemAt(CurLang + 2) : 0;
@@ -1369,7 +1369,7 @@ void AppWnd::FindStrings(List<ResString> &Strs, char *Define, int *CtrlId)
 				{
 					for (ResString *Str = s->First(); Str; Str = s->Next())
 					{
-						if (Define AND ValidStr(Str->GetDefine()))
+						if (Define && ValidStr(Str->GetDefine()))
 						{
 							if (strcmp(Define, Str->GetDefine()) == 0)
 							{
@@ -1513,7 +1513,7 @@ ResString *AppWnd::GetStrFromRef(int Ref)
 		List<Resource> l;
 		if (Objs->ListObjects(l))
 		{
-			for (Resource *r = l.First(); r AND !Str; r = l.Next())
+			for (Resource *r = l.First(); r && !Str; r = l.Next())
 			{
 				ResStringGroup *Grp = dynamic_cast<ResStringGroup*>(r);
 				if (Grp)
@@ -1541,7 +1541,7 @@ ResStringGroup *AppWnd::GetDialogSymbols()
 				if (Grp)
 				{
 					char *ObjName = Grp->Wnd()->Name();
-					if (ObjName AND stricmp(ObjName, StrDialogSymbols) == 0)
+					if (ObjName && stricmp(ObjName, StrDialogSymbols) == 0)
 					{
 						return Grp;
 					}
@@ -1564,7 +1564,7 @@ void AppWnd::OnReceiveFiles(GArray<char*> &Files)
 
 void AppWnd::SetStatusText(char *Text, int Pane)
 {
-	if (Pane >= 0 AND Pane < STATUS_MAX AND StatusInfo[Pane])
+	if (Pane >= 0 && Pane < STATUS_MAX && StatusInfo[Pane])
 	{
 		StatusInfo[Pane]->Name(Text);
 	}
@@ -1670,7 +1670,7 @@ bool AppWnd::InsertObject(int Type, Resource *r, bool Select)
 				char *Name = Item->GetText();
 
 				r->Item = Item;
-				Dir->Insert(Item, (Name AND Name[0] == '_') ? 0 : -1);
+				Dir->Insert(Item, (Name && Name[0] == '_') ? 0 : -1);
 				Dir->Update();
 				Dir->Expanded(true);
 				
@@ -1882,7 +1882,7 @@ public:
 
 				GXmlTag *t1 = new GXmlTag;
 				GXmlTag *t2 = new GXmlTag;
-				if (t1 AND File1)
+				if (t1 && File1)
 				{
 					GFile f;
 					if (f.Open(File1, O_READ))
@@ -1898,7 +1898,7 @@ public:
 						DeleteObj(t1);
 					}
 				}
-				if (t2 AND File2)
+				if (t2 && File2)
 				{
 					GFile f;
 					if (f.Open(File2, O_READ))
@@ -1915,7 +1915,7 @@ public:
 					}
 				}
 
-				if (Lst AND t1 AND t2)
+				if (Lst && t1 && t2)
 				{
 					Lst->Enabled(false);
 					Compare(t1, t2);
@@ -2031,7 +2031,7 @@ public:
 			int Max = max(r1.Length(), r2.Length());
 			for (int i = 0; i<Max; i++)
 			{
-				if (r1[i] AND r2[i])
+				if (r1[i] && r2[i])
 				{
 					Compare(r1[i], r2[i]);
 				}
@@ -2063,7 +2063,7 @@ public:
 		{
 			GXmlTag *c1 = t1->Children.First();
 			GXmlTag *c2 = t2->Children.First();
-			while (c1 AND c2)
+			while (c1 && c2)
 			{
 				Compare(c1, c2);
 				c1 = t1->Children.Next();
@@ -2127,7 +2127,7 @@ void AppWnd::ImportLang()
 						if (stricmp(t->Tag, "menu") == 0)
 						{
 							ResMenu *Menu = new ResMenu(this);
-							if (Menu AND Menu->Read(t, Format))
+							if (Menu && Menu->Read(t, Format))
 							{
 								Menus.Insert(Menu);
 							}
@@ -2136,7 +2136,7 @@ void AppWnd::ImportLang()
 						else if (stricmp(t->Tag, "string-group") == 0)
 						{
 							ResStringGroup *g = new ResStringGroup(this);
-							if (g AND g->Read(t, Format))
+							if (g && g->Read(t, Format))
 							{
 								Groups.Insert(g);
 							}
@@ -2149,7 +2149,7 @@ void AppWnd::ImportLang()
 					{
 						g->SetLanguages();
 
-						if (g->GetStrs()->Length() > 0 AND
+						if (g->GetStrs()->Length() > 0 &&
 							g->GetLanguages() > 0)
 						{
 							HasData = true;
@@ -2184,7 +2184,7 @@ void AppWnd::ImportLang()
 						}
 
 						LangDlg Dlg(this, Langs);
-						if (Dlg.DoModal() == IDOK AND
+						if (Dlg.DoModal() == IDOK &&
 							Dlg.Lang)
 						{
 							GStringPipe Errors;
@@ -2209,8 +2209,8 @@ void AppWnd::ImportLang()
 										if
 										(
 											(
-												Str AND
-												Dst AND
+												Str &&
+												Dst &&
 												strcmp(Dst, Str) != 0
 											)
 											||
@@ -2246,7 +2246,7 @@ void AppWnd::ImportLang()
 									for (Resource *r=Lst.First(); r; r=Lst.Next())
 									{
 										ResMenu *n = dynamic_cast<ResMenu*>(r);
-										if (n AND stricmp(n->Name(), m->Name()) == 0)
+										if (n && stricmp(n->Name(), m->Name()) == 0)
 										{
 											Match = n;
 											break;
@@ -2557,7 +2557,7 @@ bool AppWnd::LoadLgi(char *FileName)
 						{
 							Languages.Add(i);
 							GMenuItem *Item = ViewMenu->AppendItem(i->Name, IDM_LANG_BASE + n, true);
-							if (Item AND i->IsEnglish())
+							if (Item && i->IsEnglish())
 							{
 								Item->Checked(true);
 								CurLang = n;
@@ -2589,7 +2589,7 @@ int DialogNameCompare(ResDialog *a, ResDialog *b, int Data)
 {
 	char *A = (a)?a->Name():0;
 	char *B = (b)?b->Name():0;
-	if (A AND B) return stricmp(A, B);
+	if (A && B) return stricmp(A, B);
 	return -1;
 }
 
@@ -2656,7 +2656,7 @@ public:
 
 	bool Add(char *s)
 	{
-		int Comp = (Str AND s) ? stricmp(Str, s) : -1;
+		int Comp = (Str && s) ? stricmp(Str, s) : -1;
 		if (Comp == 0)
 		{
 			return false;
@@ -2837,10 +2837,10 @@ bool AppWnd::WriteDefines(GFile &Defs)
 		char *s = 0;
 		for (int i = Def.First(&s); i; i = Def.Next(&s))
 		{
-			if (ValidStr(s) AND
-				stricmp(s, "IDOK") != 0 AND
-				stricmp(s, "IDCANCEL") != 0 AND
-				stricmp(s, "IDC_STATIC") != 0 AND
+			if (ValidStr(s) &&
+				stricmp(s, "IDOK") != 0 &&
+				stricmp(s, "IDCANCEL") != 0 &&
+				stricmp(s, "IDC_STATIC") != 0 &&
 				stricmp(s, "-1") != 0)
 			{
 				DefinePair &p = Pairs.New();
@@ -2925,7 +2925,7 @@ bool AppWnd::SaveLgi(char *FileName)
 		strcat(DefsName, DIR_STR);
 		strcat(DefsName, "resdefs.h");
 
-		if (f.Open(FileName, O_WRITE) AND
+		if (f.Open(FileName, O_WRITE) &&
 			Defs.Open(DefsName, O_WRITE))
 		{
 			f.SetSize(0);
@@ -2958,7 +2958,7 @@ bool AppWnd::SaveLgi(char *FileName)
 					if (r->Type() == TYPE_STRING)
 					{
 						GXmlTag *c = new GXmlTag;
-						if (c AND r->Write(c, Format))
+						if (c && r->Write(c, Format))
 						{
 							Root.InsertTag(c);
 						}
@@ -2976,7 +2976,7 @@ bool AppWnd::SaveLgi(char *FileName)
 					if (r->Type() != TYPE_STRING)
 					{
 						GXmlTag *c = new GXmlTag;
-						if (c AND r->Write(c, Format))
+						if (c && r->Write(c, Format))
 						{
 							Root.InsertTag(c);
 						}
@@ -3044,7 +3044,7 @@ public:
 	ImportDefine(char *Line)
 	{
 		Name = Value = 0;
-		if (Line AND *Line == '#')
+		if (Line && *Line == '#')
 		{
 			Line++;
 			if (strnicmp(Line, "define", 6) == 0)
@@ -3053,7 +3053,7 @@ public:
 				Line = LgiSkipDelim(Line);
 				char *Start = Line;
 				const char *WhiteSpace = " \r\n\t";
-				while (*Line AND !strchr(WhiteSpace, *Line))
+				while (*Line && !strchr(WhiteSpace, *Line))
 				{
 					Line++;
 				}
@@ -3061,7 +3061,7 @@ public:
 				Name = NewStr(Start, Line-Start);
 				Line = LgiSkipDelim(Line);
 				Start = Line;
-				while (*Line AND !strchr(WhiteSpace, *Line))
+				while (*Line && !strchr(WhiteSpace, *Line))
 				{
 					Line++;
 				}
@@ -3124,7 +3124,7 @@ public:
 		{
 			for (ImportDefine *i = First(); i; i = Next())
 			{
-				if (i->Name AND stricmp(i->Name, Name) == 0)
+				if (i->Name && stricmp(i->Name, Name) == 0)
 				{
 					return i;
 				}
@@ -3140,7 +3140,7 @@ public:
 			return;
 		}
 
-		if (Line AND *Line == '#')
+		if (Line && *Line == '#')
 		{
 			Line++;
 			GToken T(Line);
@@ -3222,7 +3222,7 @@ public:
 						char *Str = Line + 7;
 						char *First = strchr(Str, '(');
 						char *Second = (First) ? strchr(First+1, ')') : 0;
-						if (First AND Second)
+						if (First && Second)
 						{
 							Insert(Def);
 							Def->Name = NewStr(Str, First-Str);
@@ -3251,7 +3251,7 @@ void TokLine(GArray<char*> &T, char *Line)
 		// Exclude comments
 		for (int k=0; Line[k]; k++)
 		{
-			if (Line[k] == '/' AND Line[k+1] == '/')
+			if (Line[k] == '/' && Line[k+1] == '/')
 			{
 				Line[k] = 0;
 				break;
@@ -3259,9 +3259,9 @@ void TokLine(GArray<char*> &T, char *Line)
 		}
 		
 		// Break into tokens
-		for (const char *s = Line; s AND *s; )
+		for (const char *s = Line; s && *s; )
 		{
-			while (*s AND strchr(" \t", *s)) s++;
+			while (*s && strchr(" \t", *s)) s++;
 			char *t = LgiTokStr(s);
 			if (t)
 				T.Add(t);
@@ -3379,7 +3379,7 @@ bool AppWnd::LoadWin32(char *FileName)
 							Dlg = 0;
 							if (*p != '#')
 							{
-								if (T.Length() > 1 AND
+								if (T.Length() > 1 &&
 									(stricmp(T[1], "DIALOG") == 0 ||
 									 stricmp(T[1], "DIALOGEX") == 0))
 								{
@@ -3424,7 +3424,7 @@ bool AppWnd::LoadWin32(char *FileName)
 									break;
 								}
 
-								if (T.Length() > 1 AND
+								if (T.Length() > 1 &&
 									stricmp(T[1], "MENU") == 0)
 								{
 									ZeroObj(MenuItem);
@@ -3457,7 +3457,7 @@ bool AppWnd::LoadWin32(char *FileName)
 									break;
 								}
 
-								if (T.Length() > 0 AND
+								if (T.Length() > 0 &&
 									stricmp(T[0], "STRINGTABLE") == 0)
 								{
 									Mode = IMP_MODE_STRINGS;
@@ -3468,7 +3468,7 @@ bool AppWnd::LoadWin32(char *FileName)
 									break;
 								}
 
-								if (T.Length() > 2 AND
+								if (T.Length() > 2 &&
 									stricmp(T[0], "LANGUAGE") == 0)
 								{
 									LanguageId = 0;
@@ -3490,7 +3490,7 @@ bool AppWnd::LoadWin32(char *FileName)
 						}
 						case IMP_MODE_DIALOG:
 						{
-							if (T.Length() > 0 AND Dlg)
+							if (T.Length() > 0 && Dlg)
 							{
 								if (stricmp(T[0], "CAPTION") == 0)
 								{
@@ -3522,7 +3522,7 @@ bool AppWnd::LoadWin32(char *FileName)
 									char *NextTok = LgiTokStr((const char*&)Next);
 									if (NextTok)
 									{
-										if (stricmp(NextTok, "END") != 0 AND
+										if (stricmp(NextTok, "END") != 0 &&
 											!CtrlNames.Find(NextTok))
 										{
 											TokLine(T, Lines[++CurLine]);
@@ -3689,7 +3689,7 @@ bool AppWnd::LoadWin32(char *FileName)
 
 									// loop through styles
 									int i;
-									for (i=4; !Done AND i<T.Length(); i++)
+									for (i=4; !Done && i<T.Length(); i++)
 									{
 										Done = true;
 										if (stricmp(T[i], "BS_AUTOCHECKBOX") == 0)
@@ -3701,7 +3701,7 @@ bool AppWnd::LoadWin32(char *FileName)
 											Radio = true;
 										}
 
-										if (i<T.Length()-1 AND stricmp(T[i+1], "|") == 0)
+										if (i<T.Length()-1 && stricmp(T[i+1], "|") == 0)
 										{
 											// next token is an || operator
 											i++;
@@ -3710,7 +3710,7 @@ bool AppWnd::LoadWin32(char *FileName)
 									}
 
 									GRect r(0, 0, 0, 0);
-									if (i + 3 < T.Length() AND Type)
+									if (i + 3 < T.Length() && Type)
 									{
 										ResDialogCtrl *Ctrl = 0;
 										if (stricmp(Type, "Button") == 0)
@@ -3848,7 +3848,7 @@ bool AppWnd::LoadWin32(char *FileName)
 										{
 											for (ResDialogCtrl *Mc = Old.First(); Mc; Mc = Old.Next())
 											{
-												if (Mc->Str->GetId() == c->Str->GetId() AND
+												if (Mc->Str->GetId() == c->Str->GetId() &&
 													Mc->Str->GetId() > 0)
 												{
 													MatchCtrl = Mc;
@@ -3956,7 +3956,7 @@ bool AppWnd::LoadWin32(char *FileName)
 										StrLang *s = 0;
 
 										// look for language present in string object
-										for (s = Str->Items.First(); s AND *s != SLang; s = Str->Items.Next());
+										for (s = Str->Items.First(); s && *s != SLang; s = Str->Items.Next());
 										
 										// if not present then add it
 										if (!s)
@@ -4065,7 +4065,7 @@ bool AppWnd::LoadWin32(char *FileName)
 										{
 											if (MenuNewLang)
 											{
-												if (MenuItem[MenuLevel-1] AND T.Length() > 2)
+												if (MenuItem[MenuLevel-1] && T.Length() > 2)
 												{
 													ImportDefine *id = Defines.GetDefine(T[2]);
 													if (id)
@@ -4076,7 +4076,7 @@ bool AppWnd::LoadWin32(char *FileName)
 														for (GTreeItem *o = MenuItem[MenuLevel-1]->GetChild(); o; o = o->GetNext(), n++)
 														{
 															ResMenuItem *Res = dynamic_cast<ResMenuItem*>(o);
-															if (Res AND Res->GetStr()->GetId() == Id)
+															if (Res && Res->GetStr()->GetId() == Id)
 															{
 																i = Res;
 																break;
@@ -4124,7 +4124,7 @@ bool AppWnd::LoadWin32(char *FileName)
 										}
 									}
 
-									if (i AND !MenuNewLang)
+									if (i && !MenuNewLang)
 									{
 										if (MenuLevel == 1)
 										{
@@ -4189,7 +4189,7 @@ void ResFrame::OnFocus(bool b)
 bool ResFrame::Attach(GViewI *p)
 {
 	bool Status = GLayout::Attach(p);
-	if (Status AND Child)
+	if (Status && Child)
 	{
 		Child->Attach(this);
 		Child->Wnd()->Visible(true);
@@ -4212,7 +4212,7 @@ bool ResFrame::OnKey(GKey &k)
 {
 	bool Status = false;
 	
-	if (k.Down() AND Child)
+	if (k.Down() && Child)
 	{
 		switch (k.c16)
 		{

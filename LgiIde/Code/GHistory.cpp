@@ -135,7 +135,7 @@ void GHistory::Add(char *Str)
 		if (!Has)
 		{
 			Insert(NewStr(Str));
-			if (d->Popup AND d->Popup->Lst)
+			if (d->Popup && d->Popup->Lst)
 			{
 				d->Popup->Lst->Insert(new GHistoryItem(d->Popup, Str));
 			}
@@ -159,9 +159,9 @@ void GHistory::Update()
 
 void GHistory::OnPopupClose()
 {
-	if (!d->Popup->GetCancelled() AND
-		d->TargetId AND
-		d->Popup AND
+	if (!d->Popup->GetCancelled() &&
+		d->TargetId &&
+		d->Popup &&
 		d->Popup->Str)
 	{
 		GetWindow()->SetCtrlName(d->TargetId, d->Popup->Str);

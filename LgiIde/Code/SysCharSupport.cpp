@@ -51,7 +51,7 @@ public:
 
 	void Search(char *ch)
 	{
-		if (ch AND Match AND NonMatch)
+		if (ch && Match && NonMatch)
 		{
 			Match->Empty();
 			NonMatch->Empty();

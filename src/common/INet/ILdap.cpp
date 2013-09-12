@@ -48,7 +48,7 @@ ILdap::~ILdap()
 
 void ILdap::SetProtocol(int i)
 {
-	if (i >= LDAP_VERSION_MIN AND
+	if (i >= LDAP_VERSION_MIN &&
 		i <= LDAP_VERSION_MAX)
 	{
 		Opt_ProtocolVer = i;
@@ -97,7 +97,7 @@ bool ILdap::Close()
 
 ILdapEntry *ILdap::RetreiveOne(char *Name, char *Base, bool Recursive)
 {
-	if (Ldap AND Name)
+	if (Ldap && Name)
 	{
 		// create a filter string
 		char Filter[256];
@@ -132,12 +132,12 @@ ILdapEntry *ILdap::RetreiveOne(char *Name, char *Base, bool Recursive)
 					char **Name = ldap_get_values(Ldap, m, "cn");
 					char **Email = ldap_get_values(Ldap, m, "rfc822Mailbox");
 
-					if (Type AND Name AND Email)
+					if (Type && Name && Email)
 					{
 						ILdapEntry *e = new ILdapEntry;
 						if (e)
 						{
-							if (Type AND stricmp(Type[0], "groupOfNames") == 0)
+							if (Type && stricmp(Type[0], "groupOfNames") == 0)
 							{
 								e->Type = LDAP_ENTRY_GROUP;
 							}
@@ -227,7 +227,7 @@ bool ILdap::RetreiveList(List<ILdapEntry> &Lst, char *Base, bool Recursive)
 
 						// Ldap_Trace("ldap_get_values, Type=%p, Name=%p, Email=%p, Email2=%p\n", Type, Name, Email, Email2);
 
-						if (Type AND Name AND (Email || Email2) )
+						if (Type && Name && (Email || Email2) )
 						{
 							Ldap_Trace(	"real values, Type=%s, Name=%s, Email=%s, Email2=%s",
 										*Type,

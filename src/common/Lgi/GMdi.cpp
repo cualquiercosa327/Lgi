@@ -950,7 +950,7 @@ GRect GMdiParent::NewPos()
 			for (GViewI *c = Children.First(); c; c = Children.Next())
 			{
 				GRect p = c->GetPos();
-				if (p.x1 >> Block == x AND
+				if (p.x1 >> Block == x &&
 					p.y1 >> Block == y)
 				{
 					Has = true;

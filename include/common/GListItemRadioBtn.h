@@ -47,7 +47,7 @@ public:
 
 	void OnMouseClick(GMouse &m)
 	{
-		if (m.Down() AND m.Left())
+		if (m.Down() && m.Left())
 		{
 			Value(!Value());
 		}
@@ -64,7 +64,7 @@ public:
 		GListItemColumn::Value(i);
 
 		// Switch off any other controls in the list...
-		if (i AND
+		if (i &&
 			GetList())
 		{
 			List<GListItem>::I Items = GetAllItems()->Start();

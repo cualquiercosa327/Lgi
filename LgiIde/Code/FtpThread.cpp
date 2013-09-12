@@ -34,7 +34,7 @@ class LogSock : public GSocket
 		while (p.Pop(s, sizeof(s)))
 		{
 			char *e = s + strlen(s) - 1;
-			while (e > s AND strchr(" \t\r\n", e[-1]))
+			while (e > s && strchr(" \t\r\n", e[-1]))
 			{
 				e--;
 				*e = 0;
@@ -99,13 +99,13 @@ struct FtpConn
 	{
 		GUri u(Uri);
 		
-		if (Base AND
-			u.Host AND Base->Host AND
-			u.User AND Base->User AND
-			u.Pass AND Base->Pass)
+		if (Base &&
+			u.Host && Base->Host &&
+			u.User && Base->User &&
+			u.Pass && Base->Pass)
 		{
-			return	stricmp(u.Host, Base->Host) == 0 AND
-					strcmp(u.User, Base->User) == 0 AND
+			return	stricmp(u.Host, Base->Host) == 0 &&
+					strcmp(u.User, Base->User) == 0 &&
 					strcmp(u.Pass, Base->Pass) == 0;
 		}
 

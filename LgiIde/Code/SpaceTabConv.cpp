@@ -8,7 +8,7 @@ char *SpacesToTabs(char *Text, int TabSize)
 	if (Text)
 	{
 		int	x = 0;
-		for	(char *s = Text; s AND *s;  )
+		for	(char *s = Text; s && *s;  )
 		{
 			if (*s == ' ')
 			{
@@ -48,7 +48,7 @@ char *SpacesToTabs(char *Text, int TabSize)
 			else
 			{
 				char *e = s;
-				while (*e AND *e != ' ' AND *e != '\n' AND *e != '\t') e++;
+				while (*e && *e != ' ' && *e != '\n' && *e != '\t') e++;
 				int Len = e-s;
 				p.Push(s, Len);
 				x += Len;
@@ -67,7 +67,7 @@ char *TabsToSpaces(char *Text, int TabSize)
 	if (Text)
 	{
 		int x = 0;
-		for (char *s = Text; s AND *s; )
+		for (char *s = Text; s && *s; )
 		{
 			if (*s == '\t')
 			{
@@ -90,7 +90,7 @@ char *TabsToSpaces(char *Text, int TabSize)
 			else
 			{
 				char *e = s;
-				while (*e AND *e != '\n' AND *e != '\t') e++;
+				while (*e && *e != '\n' && *e != '\t') e++;
 				int Len = e-s;
 				p.Push(s, Len);
 				x += Len;

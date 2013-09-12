@@ -252,7 +252,7 @@ public:
 		#define IDM_FIX_TABLE				107
 		#define IDM_INSERT_ROW				108
 
-		if (m.Down() AND m.Right())
+		if (m.Down() && m.Right())
 		{
 			GSubMenu *RClick = new GSubMenu;
 			if (RClick)
@@ -454,7 +454,7 @@ public:
 					ResTableCell *Cell = GetCellAt(x, y);
 					if (Cell)
 					{
-						if (Cell->Cell.x1 == x AND
+						if (Cell->Cell.x1 == x &&
 							Cell->Cell.y1 == y)
 						{
 							GRect Pos = Cell->Pos;
@@ -473,7 +473,7 @@ public:
 							{
 								// Add cell joining goobers...
 								ResTableCell *c = GetCellAt(x + Cell->Cell.X(), y);
-								if (c AND c->Selected)
+								if (c && c->Selected)
 								{
 									CellJoin *j = &JoinBtns[JoinBtns.Length()];
 									j->a = Cell;
@@ -483,7 +483,7 @@ public:
 								}
 
 								c = GetCellAt(x, y + Cell->Cell.Y());
-								if (c AND c->Selected)
+								if (c && c->Selected)
 								{
 									CellJoin *j = &JoinBtns[JoinBtns.Length()];
 									j->a = Cell;
@@ -589,7 +589,7 @@ public:
 				ResTableCell *c = GetCellAt(x, y);
 				if (c)
 				{
-					if (c->Cell.x1 == x AND
+					if (c->Cell.x1 == x &&
 						c->Cell.y1 == y)
 					{
 						c->Cell.Offset(-1, 0);
@@ -644,7 +644,7 @@ public:
 				ResTableCell *c = GetCellAt(x, y);
 				if (c)
 				{
-					if (c->Cell.x1 == x AND
+					if (c->Cell.x1 == x &&
 						c->Cell.y1 == y)
 					{
 						c->Cell.Offset(0, -1);
@@ -1149,7 +1149,7 @@ void CtrlTable::InsertRow(int y)
 
 void CtrlTable::UnMerge(ResTableCell *Cell)
 {
-	if (Cell AND (Cell->Cell.X() > 1 || Cell->Cell.Y() > 1))
+	if (Cell && (Cell->Cell.X() > 1 || Cell->Cell.Y() > 1))
 	{
 		for (int y=Cell->Cell.x1; y<=Cell->Cell.y2; y++)
 		{

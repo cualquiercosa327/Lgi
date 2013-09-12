@@ -411,11 +411,11 @@ bool ResString::Read(GXmlTag *t, ResFileFormat Format)
 			if (v->GetName())
 			{
 				GLanguage *Lang = GFindLang(v->GetName());
-				if (!Lang AND
-					v->GetName()[0] == 'T' AND
-					v->GetName()[1] == 'e' AND
-					v->GetName()[2] == 'x' AND
-					v->GetName()[3] == 't' AND
+				if (!Lang &&
+					v->GetName()[0] == 'T' &&
+					v->GetName()[1] == 'e' &&
+					v->GetName()[2] == 'x' &&
+					v->GetName()[3] == 't' &&
 					v->GetName()[4] == '(')
 				{
 					Lang = GFindOldLang(atoi(v->GetName()+5));
@@ -489,7 +489,7 @@ bool ResString::Write(GXmlTag *t, ResFileFormat Format)
 			if (Format == Lr8File)
 			{
 				// Don't save the string if it's the same as the English
-				if (English AND !s->IsEnglish())
+				if (English && !s->IsEnglish())
 				{
 					if (strcmp(English, s->GetStr()) == 0)
 					{
@@ -513,7 +513,7 @@ bool ResString::Write(GXmlTag *t, ResFileFormat Format)
 			else if (Format == XmlFile)
 			{
 				// Don't save the string if it's the same as the English
-				if (English AND !s->IsEnglish())
+				if (English && !s->IsEnglish())
 				{
 					if (strcmp(English, s->GetStr()) == 0)
 					{
@@ -847,7 +847,7 @@ void ResString::PasteText()
 	if (Clip)
 	{
 		GToken Lines(Clip, "\r\n");
-		if (Lines.Length() > 0 AND
+		if (Lines.Length() > 0 &&
 			strcmp(Lines[0], TranslationStrMagic) == 0)
 		{
 			Items.DeleteObjects();
@@ -867,7 +867,7 @@ void ResString::PasteText()
 				}
 			}
 
-			if (Group AND Group->App())
+			if (Group && Group->App())
 			{
 				Group->App()->OnObjSelect(this);
 			}
@@ -954,7 +954,7 @@ int ResString::Compare(ResString *r, int Column)
 			default:
 			{
 				int Col = Column - 3;
-				if (Group AND Col >= 0 AND Col < Group->GetLanguages())
+				if (Group && Col >= 0 && Col < Group->GetLanguages())
 				{
 					GLanguageId Lang = Group->Visible[Column - 3]->Id;
 					char *a = Get(Lang);
@@ -1011,7 +1011,7 @@ void ResStringGroup::OnItemSelect(GArray<GListItem*> &Items)
 	if (IsAttached())
 	{
 		ResString *s = dynamic_cast<ResString*>(Items[0]);
-		if (s AND AppWindow)
+		if (s && AppWindow)
 		{
 			AppWindow->OnObjSelect(s);
 		}
@@ -1179,7 +1179,7 @@ int ResStringGroup::OnCommand(int Cmd, int Event, OsView hWnd)
 
 			// Display the list
 			LangDlg Dlg(this, l);
-			if (Dlg.DoModal() AND Dlg.Lang)
+			if (Dlg.DoModal() && Dlg.Lang)
 			{
 				if (Dlg.Lang)
 				{
@@ -1277,9 +1277,9 @@ int ResStringGroup::UniqueId(char *Define)
 	for (ResString *i = dynamic_cast<ResString*>(Items.First()); i;
 					i = dynamic_cast<ResString*>(Items.Next()))
 	{
-		if (i->Id AND
-			i->Define AND
-			Define AND
+		if (i->Id &&
+			i->Define &&
+			Define &&
 			stricmp(Define, i->Define) == 0)
 		{
 			return i->Id;
@@ -1308,7 +1308,7 @@ void ResStringGroup::SetLanguages()
 		for (StrLang *sl = s->Items.First(); sl; sl = s->Items.Next())
 		{
 			GLanguage *li = 0;
-			for (li = l.First(); li AND *sl != li->Id; li = l.Next());
+			for (li = l.First(); li && *sl != li->Id; li = l.Next());
 			if (!li)
 			{
 				GLanguage *NewLang = GFindLang(sl->GetLang());
@@ -1401,7 +1401,7 @@ bool ResStringGroup::Read(GXmlTag *t, ResFileFormat Format)
 		for (GXmlTag *c = t->Children.First(); c; c = t->Children.Next())
 		{
 			ResString *s = new ResString(this);
-			if (s AND s->Read(c, Format))
+			if (s && s->Read(c, Format))
 			{
 				for (StrLang *i=s->Items.First(); i; i=s->Items.Next())
 				{
@@ -1443,10 +1443,10 @@ bool ResStringGroup::Write(GXmlTag *t, ResFileFormat Format)
 	for (GListItem *i = Strs.First(); i; i = Strs.Next())
 	{
 		ResString *s = dynamic_cast<ResString*>(i);
-		if (s AND (s->Define || s->Items.Length() > 0))
+		if (s && (s->Define || s->Items.Length() > 0))
 		{
 			GXmlTag *c = new GXmlTag;
-			if (c AND s->Write(c, Format))
+			if (c && s->Write(c, Format))
 			{
 				t->InsertTag(c);
 			}
@@ -1621,7 +1621,7 @@ void ResStringUi::OnCreate()
 	if (Tools)
 	{
 		char *FileName = LgiFindFile("_StringIcons.gif");
-		if (FileName AND Tools->SetBitmap(FileName, 16, 16))
+		if (FileName && Tools->SetBitmap(FileName, 16, 16))
 		{
 			Tools->Attach(this);
 

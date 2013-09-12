@@ -4,8 +4,8 @@
 #include "LgiIde.h"
 
 static char *White = " \r\t\n";
-#define iswhite(s)		(s AND strchr(White, s) != 0)
-#define isword(s)		(s AND (isdigit(s) || isalpha(s) || (s) == '_') )
+#define iswhite(s)		(s && strchr(White, s) != 0)
+#define isword(s)		(s && (isdigit(s) || isalpha(s) || (s) == '_') )
 #define skipws(s)		while (iswhite(*s)) s++;
 
 char *FindHeader(char *Short, GArray<char*> &Paths)
