@@ -449,7 +449,7 @@ void GTabView::OnPaint(GSurface *pDC)
 	if (d->Current >= it.Length())
 		Value(it.Length() - 1);
 
-	if (GApp::SkinEngine AND
+	if (GApp::SkinEngine &&
 		TestFlag(GApp::SkinEngine->GetFeatures(), GSKIN_TABVIEW))
 	{
 		GSkinState State;
@@ -591,7 +591,7 @@ void GTabView::OnPosChange()
 char *_lgi_gview_cmp(GView *a, GView *b)
 {
 	static char Str[256];
-	if (a AND b)
+	if (a && b)
 	{
 		sprintf(Str,
 				"GView: %p,%p Hnd: %p,%p",
@@ -691,7 +691,7 @@ void GTabPage::PaintTab(GSurface *pDC, bool Selected)
 		int x = r.x1 + ((r.X()-ds.X())/2), y = r.y1 + ((r.Y()-ds.Y())/2);
 		ds.Draw(pDC, x, y);
 		
-		if (TabCtrl->Focus() AND Selected)
+		if (TabCtrl->Focus() && Selected)
 		{
 			r.Set(x, y, x+ds.X(), y+ds.Y());
 			r.Size(-2, -1);

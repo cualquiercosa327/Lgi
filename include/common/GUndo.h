@@ -18,8 +18,8 @@ public:
 	GUndo() { Pos = 0; }
 	~GUndo() { Empty(); }
 
-	bool CanUndo() { return (Pos > 0) AND (Events.Length() > 0); }
-	bool CanRedo() { return (Pos < Events.Length()) AND (Events.Length() > 0); }
+	bool CanUndo() { return (Pos > 0) && (Events.Length() > 0); }
+	bool CanRedo() { return (Pos < Events.Length()) && (Events.Length() > 0); }
 	void Empty() { Events.DeleteObjects(); Pos = 0; }
 
 	GUndo &operator +=(GUndoEvent *e)

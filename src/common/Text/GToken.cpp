@@ -13,7 +13,7 @@ bool LgiIsNumber(char *p)
 	{
 		for (uint i=0; i<strlen(p); i++)
 		{
-			if ((p[i]<'0' || p[i]>'9') AND p[i]!='-')
+			if ((p[i]<'0' || p[i]>'9') && p[i]!='-')
 			{
 				return false;
 			}
@@ -25,7 +25,7 @@ bool LgiIsNumber(char *p)
 
 char *LgiSkipDelim(char *p, const char *Delimiter)
 {
-	while (p AND *p AND strchr(Delimiter, *p)) p++;
+	while (p && *p && strchr(Delimiter, *p)) p++;
 	return p;
 }
 

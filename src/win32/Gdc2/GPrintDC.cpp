@@ -84,7 +84,7 @@ int GPrintDC::DpiY()
 bool GPrintDC::StartPage()
 {
 	bool Status = false;
-	if (hDC AND d->DocOpen)
+	if (hDC && d->DocOpen)
 	{
 		EndPage();
 		d->PageOpen = Status = ::StartPage(hDC) > 0;
@@ -95,7 +95,7 @@ bool GPrintDC::StartPage()
 
 void GPrintDC::EndPage()
 {
-	if (hDC AND d->PageOpen)
+	if (hDC && d->PageOpen)
 	{
 		::EndPage(hDC);
 		d->PageOpen = false;

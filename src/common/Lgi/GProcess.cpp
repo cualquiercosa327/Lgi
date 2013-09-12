@@ -63,7 +63,7 @@ bool LgiIsProcess(OsProcessId Pid)
 		if (hProc)
 		{
 			DWORD ExitCode = 0;
-			if (GetExitCodeProcess(hProc, &ExitCode) AND
+			if (GetExitCodeProcess(hProc, &ExitCode) &&
 				ExitCode == STILL_ACTIVE)
 			{
 				Status = true;
@@ -420,8 +420,8 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 		saAttr.lpSecurityDescriptor = NULL;
 
 		if (!Out ||
-			(CreatePipe(&hChildStdoutRd, &hChildStdoutWr, &saAttr, 0) AND
-			SetStdHandle(STD_OUTPUT_HANDLE, hChildStdoutWr) AND
+			(CreatePipe(&hChildStdoutRd, &hChildStdoutWr, &saAttr, 0) &&
+			SetStdHandle(STD_OUTPUT_HANDLE, hChildStdoutWr) &&
 			DuplicateHandle(GetCurrentProcess(), hChildStdoutRd,
 							GetCurrentProcess(), &hChildStdoutRdDup,
 							0, FALSE, DUPLICATE_SAME_ACCESS)))
@@ -432,8 +432,8 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 			}
 
 			if (!In ||
-				(CreatePipe(&hChildStdinRd, &hChildStdinWr, &saAttr, 0) AND
-				SetStdHandle(STD_INPUT_HANDLE, hChildStdinRd) AND
+				(CreatePipe(&hChildStdinRd, &hChildStdinWr, &saAttr, 0) &&
+				SetStdHandle(STD_INPUT_HANDLE, hChildStdinRd) &&
 				DuplicateHandle(GetCurrentProcess(), hChildStdinWr,
 								GetCurrentProcess(), &hChildStdinWrDup,
 								0, false, DUPLICATE_SAME_ACCESS)))
@@ -591,7 +591,7 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 								// Look in the read queue
 								char Buf[256] = "";
 								DWORD r = 0;
-								while (ReadFile(hChildStdoutRdDup, Buf, sizeof(Buf), &r, 0) AND r > 0)
+								while (ReadFile(hChildStdoutRdDup, Buf, sizeof(Buf), &r, 0) && r > 0)
 								{
 									Out->Write(Buf, r);
 								}
@@ -632,10 +632,10 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 		
 		GArray<char*> a;
 		a.Add((char*)Exe);
-		for (const char *s=Arguments; s AND *s; )
+		for (const char *s=Arguments; s && *s; )
 		{
 			// skip white
-			while (*s AND strchr(" \t\r\n", *s)) s++;
+			while (*s && strchr(" \t\r\n", *s)) s++;
 			
 			// Find token
 			GStringPipe p(256);
@@ -653,7 +653,7 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 				n = s;
 				while (*n)
 				{
-					if (*n == '\\' AND n[1] == ' ')
+					if (*n == '\\' && n[1] == ' ')
 					{
 						n++;
 					}
@@ -766,7 +766,7 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 			Status = true;
 
 			int r;
-			if (In AND In->GetSize() > 0)
+			if (In && In->GetSize() > 0)
 			{
 				/*
 				while (!TestFlag(hndstate(Read.Read), POLLOUT))
@@ -791,7 +791,7 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 				{
 					char Buf[256];
 					
-					while (	TestFlag(hndstate(Read.Read), POLLIN) AND
+					while (	TestFlag(hndstate(Read.Read), POLLIN) &&
 							(r = read(Read.Read, Buf, sizeof(Buf)-1)) > 0)
 					{
 						Buf[r] = 0;
@@ -801,7 +801,7 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 						Out->Write(Buf, r);
 					}
 
-					while (	TestFlag(hndstate(Error.Read), POLLIN) AND
+					while (	TestFlag(hndstate(Error.Read), POLLIN) &&
 							(r = read(Error.Read, Buf, sizeof(Buf)-1)) > 0)
 					{
 						Buf[r] = 0;

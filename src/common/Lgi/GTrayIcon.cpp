@@ -462,7 +462,7 @@ GMessage::Result GTrayIcon::OnEvent(GMessage *Message)
 {
 	#if WIN32NATIVE
 	
-	if (MsgCode(Message) == M_TRAY_NOTIFY AND
+	if (MsgCode(Message) == M_TRAY_NOTIFY &&
 		MsgA(Message) == d->MyId)
 	{
 		// got a notification from the icon

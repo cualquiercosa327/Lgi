@@ -223,7 +223,7 @@ bool GCombo::Delete(int i)
 
 bool GCombo::Delete(char *p)
 {
-	if (p AND d->Items.HasItem(p))
+	if (p && d->Items.HasItem(p))
 	{
 		d->Items.Delete(p);
 		DeleteArray(p);
@@ -316,7 +316,7 @@ void GCombo::DoMenu()
 								char Name[16];
 								sprintf(Name, "%f", dbl = cd);
 								char *e = Name+strlen(Name)-1;
-								while (e > Name AND e[0] == '0') *e-- = 0;
+								while (e > Name && e[0] == '0') *e-- = 0;
 								strcat(Name, "...");
 								m = RClick->AppendSub(Name);
 							}
@@ -388,7 +388,7 @@ void GCombo::DoMenu()
 
 void GCombo::OnMouseClick(GMouse &m)
 {
-	if (m.Down() AND
+	if (m.Down() &&
 		Enabled())
 	{
 		Focus(true);
@@ -440,7 +440,7 @@ bool GCombo::OnKey(GKey &k)
 			default:
 			{
 				// Search for value
-				if (k.IsChar AND k.c16 > ' ')
+				if (k.IsChar && k.c16 > ' ')
 				{
 					int Now = LgiCurrentTime();
 					if (d->LastKey + 2000 < Now)
@@ -458,7 +458,7 @@ bool GCombo::OnKey(GKey &k)
 						d->Find = n;
 					}
 
-					if (Len > 0 AND d->Find)
+					if (Len > 0 && d->Find)
 					{
 						int Index = 0;
 						for (char *i=d->Items.First(); i; i=d->Items.Next(), Index++)
@@ -536,7 +536,7 @@ void GCombo::OnPaint(GSurface *pDC)
 	
 	#else
 	
-	if (GApp::SkinEngine AND
+	if (GApp::SkinEngine &&
 		TestFlag(GApp::SkinEngine->GetFeatures(), GSKIN_COMBO))
 	{
 		GSkinState State;

@@ -185,7 +185,7 @@ void GdcApp8Set::Rectangle(int x, int y)
 	uchar *p = Ptr;
 	int Line = Dest->Line;
 
-	if (x > 0 AND y > 0)
+	if (x > 0 && y > 0)
 	{
 		_asm {
 			mov esi, p
@@ -581,7 +581,7 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 						}
 
 						GSurface *pBuf = new GMemDC;
-						if (pBuf AND pBuf->Create(Src->x+2, 2, 24))
+						if (pBuf && pBuf->Create(Src->x+2, 2, 24))
 						{
 							// Clear buffer
 							pBuf->Colour(0, 24);

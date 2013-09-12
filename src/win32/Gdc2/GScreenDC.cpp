@@ -251,7 +251,7 @@ bool GScreenDC::Create(HDC hdc)
 		Status = TRUE;
 	}
 
-	if (GetBits() == 8 AND d->hWnd)
+	if (GetBits() == 8 && d->hWnd)
 	{
 		d->Gc = GdcD->GetGlobalColour();
 		if (d->Gc)
@@ -705,8 +705,8 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 			}
 			case GDC_ALPHA:
 			{
-				if (GdcD->AlphaBlend AND
-					// GdcD->GetBits() > 8 AND
+				if (GdcD->AlphaBlend &&
+					// GdcD->GetBits() > 8 &&
 					Src->GetBits() == 32)
 				{
 					HDC hDestDC = StartDC();
@@ -874,7 +874,7 @@ void GScreenDC::StretchBlt(GRect *dst, GSurface *Src, GRect *s)
 
 void GScreenDC::Polygon(int Points, GdcPt2 *Data)
 {
-	if (Points > 0 AND Data)
+	if (Points > 0 && Data)
 	{
 		PPOINT pt = new POINT[Points];
 		if (pt)

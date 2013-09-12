@@ -287,7 +287,7 @@ int IFD::ArrayValue(int i)
 {
 	void *p = GetData();
 	
-	if (i < Count AND p)
+	if (i < Count && p)
 	{
 		switch (Type)
 		{
@@ -508,7 +508,7 @@ GFilter::IoStatus GdcTiff::ProcessRead(GSurface *pDC)
 			case 3:
 			{
 				ushort *Depth = (ushort*) BitTag->GetData();
-				if (Depth AND
+				if (Depth &&
 					BitTag->Type == TYPE_USHORT)
 				{
 					// Baseline RGB image
@@ -520,7 +520,7 @@ GFilter::IoStatus GdcTiff::ProcessRead(GSurface *pDC)
 			{
 				// Maybe a 32-bit image?
 				ushort *Depth = (ushort*) BitTag->GetData();
-				if (Depth AND
+				if (Depth &&
 					BitTag->Type == TYPE_USHORT)
 				{
 					// CMYK image?
@@ -551,7 +551,7 @@ GFilter::IoStatus GdcTiff::ProcessRead(GSurface *pDC)
 		B = 32;
 	#endif
 
-	if (pDC AND
+	if (pDC &&
 		pDC->Create(X, Y, B))
 	{
 		if (Meter)
@@ -571,7 +571,7 @@ GFilter::IoStatus GdcTiff::ProcessRead(GSurface *pDC)
 		if (Palette)
 		{
 			ushort *s = (ushort*) Palette->GetData();
-			if (s AND Palette->Type == TYPE_USHORT)
+			if (s && Palette->Type == TYPE_USHORT)
 			{
 				int Colours = Palette->Count / 3;
 				GPalette *Pal = new GPalette(0, Colours);
@@ -599,8 +599,8 @@ GFilter::IoStatus GdcTiff::ProcessRead(GSurface *pDC)
 		IFD *StripOffsets = FindTag(TAG_StripOffsets);
 		IFD *StripByteCounts = FindTag(TAG_StripByteOffsets);
 		IFD *PhotometricInterpretation = FindTag(TAG_PhotometricInterpretation);
-		if (Compression AND
-			StripOffsets AND
+		if (Compression &&
+			StripOffsets &&
 			StripByteCounts)
 		{
 			int Comp = Compression->Value();
@@ -620,8 +620,8 @@ GFilter::IoStatus GdcTiff::ProcessRead(GSurface *pDC)
 					ScanLength = ((pDC->X() * Bits) + 7) / 8;
 					
 					for (	;
-							!Error AND
-							Cy<pDC->Y() AND
+							!Error &&
+							Cy<pDC->Y() &&
 							Strip < StripOffsets->Count;
 							Strip++)
 					{
@@ -808,7 +808,7 @@ GFilter::IoStatus GdcTiff::ProcessRead(GSurface *pDC)
 						}
 					}
 
-					if (Interpretation == PHOTOMETRIC_RGB AND
+					if (Interpretation == PHOTOMETRIC_RGB &&
 						pDC->GetBits() >= 24)
 					{
 						if (pDC->GetBits() == 24)
@@ -875,7 +875,7 @@ GFilter::IoStatus GdcTiff::ProcessRead(GSurface *pDC)
 						}
 					}
 					
-					if (Interpretation == PHOTOMETRIC_CMYK AND
+					if (Interpretation == PHOTOMETRIC_CMYK &&
 						pDC->GetBits() == 32)
 					{
 						class TiffCmyk
@@ -910,7 +910,7 @@ GFilter::IoStatus GdcTiff::ProcessRead(GSurface *pDC)
 					}
 
 					IFD *Predictor = FindTag(TAG_Predictor);
-					if (Predictor AND Predictor->Value() == 2)
+					if (Predictor && Predictor->Value() == 2)
 					{
 						switch (Bits)
 						{
@@ -1015,7 +1015,7 @@ GFilter::IoStatus GdcTiff::ReadImage(GSurface *pDC, GStream *In)
 		Read(&Offset, sizeof(Offset));
 
 		// loop through all the IFD's
-		while (	!Done AND
+		while (	!Done &&
 				!Error)
 		{
 			if (Offset == 0)

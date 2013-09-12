@@ -17,7 +17,7 @@ GBase::~GBase()
 
 char *GBase::Name()
 {
-	if (!_Name8 AND _Name16)
+	if (!_Name8 && _Name16)
 	{
 		_Name8 = LgiNewUtf16To8(_Name16);
 	}
@@ -38,7 +38,7 @@ bool GBase::Name(const char *n)
 
 char16 *GBase::NameW()
 {
-	if (!_Name16 AND _Name8)
+	if (!_Name16 && _Name8)
 	{
 		_Name16 = LgiNewUtf8To16(_Name8);
 	}

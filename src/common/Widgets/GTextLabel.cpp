@@ -27,7 +27,7 @@ public:
 	uint32 NextChar(char *s)
 	{
 		int Len = 0;
-		while (s[Len] AND Len < 6) Len++;
+		while (s[Len] && Len < 6) Len++;
 		return LgiUtf8To32((uint8*&)s, Len);
 	}
 
@@ -37,7 +37,7 @@ public:
 		{
 			s--;
 			int Len = 1;
-			while (IsUtf8_Trail(*s) AND Len < 6) { s--; Len++; }
+			while (IsUtf8_Trail(*s) && Len < 6) { s--; Len++; }
 
 			return LgiUtf8To32((uint8*&)s, Len);
 		}
@@ -51,7 +51,7 @@ public:
 		{
 			Mx = My = 0;
 			Strs.DeleteObjects();
-			while (s AND *s)
+			while (s && *s)
 			{
 				char *e = strchr(s, '\n');
 				if (!e) e = s + strlen(s);

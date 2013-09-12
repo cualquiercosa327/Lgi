@@ -655,7 +655,7 @@ class GDataGridFactory : public GViewFactory
 {
 	GView *NewView(const char *Class, GRect *Pos, const char *Text)
 	{
-		if (Class AND
+		if (Class &&
 			stricmp(Class, "GDataGrid") == 0)
 		{
 			return new GDataGrid(0);

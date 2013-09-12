@@ -201,7 +201,7 @@ void GStatusPane::Sunken(bool s)
 	bool Old = Sunken();
 	if (s) SetFlag(Flags, GSP_SUNKEN);
 	else ClearFlag(Flags, GSP_SUNKEN);
-	if (Old != Sunken() AND GetParent())
+	if (Old != Sunken() && GetParent())
 	{
 		GetParent()->Invalidate();
 	}

@@ -244,7 +244,7 @@ int GProgressPane::OnNotify(GViewI *Ctrl, int Flags)
 		{
 			Cancel(true);
 
-			if (GetParent() AND
+			if (GetParent() &&
 				!Wait)
 			{
 				delete GetParent();
@@ -516,7 +516,7 @@ void GProgressDlg::OnPaint(GSurface *pDC)
 // Sync this window with the contents of a list.
 void GProgressDlg::OnSync(ProgressList *Prg)
 {
-	if (Prg AND Prg->Lock())
+	if (Prg && Prg->Lock())
 	{
 		GProgressPane *Pane = Progri[1];
 

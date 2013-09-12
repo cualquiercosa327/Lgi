@@ -564,9 +564,9 @@ public:
 
 	bool Inside(GRect &r)
 	{
-		return	(x >= r.x1) AND
-				(x <= r.x2) AND
-				(y >= r.y1) AND
+		return	(x >= r.x1) &&
+				(x <= r.x2) &&
+				(y >= r.y1) &&
 				(y <= r.y2);
 	}
 };

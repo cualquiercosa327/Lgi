@@ -126,7 +126,7 @@ protected:
 		virtual ~GTextLine() {}
 		bool Overlap(int i)
 		{
-			return i>=Start AND i<=Start+Len;
+			return i>=Start && i<=Start+Len;
 		}
 	};
 	

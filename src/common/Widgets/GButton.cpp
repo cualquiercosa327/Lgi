@@ -86,7 +86,7 @@ GButton::GButton(int id, int x, int y, int cx, int cy, const char *name) :
 
 GButton::~GButton()
 {
-	if (GetWindow() AND
+	if (GetWindow() &&
 		GetWindow()->_Default == this)
 	{
 		GetWindow()->_Default = 0;
@@ -314,7 +314,7 @@ void GButton::OnPaint(GSurface *pDC)
 	
 	#else
 
-	if (GApp::SkinEngine AND
+	if (GApp::SkinEngine &&
 		TestFlag(GApp::SkinEngine->GetFeatures(), GSKIN_BUTTON))
 	{
 		GSkinState State;

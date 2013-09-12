@@ -253,7 +253,7 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 						uchar *p = Data;
 						bool Done = false;
 
-						while (!Done AND p < Data + Remaining)
+						while (!Done && p < Data + Remaining)
 						{
 							uchar Length = *p++;
 							uchar Colour = *p++;
@@ -283,7 +283,7 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 									{
 										// absolute mode
 										uchar *Pixel = (*pDC)[y];
-										if (Pixel AND y >= 0 AND y < pDC->Y())
+										if (Pixel && y >= 0 && y < pDC->Y())
 										{
 											int Len = min(Colour, pDC->X() - x);
 											if (Len > 0)
@@ -306,7 +306,7 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 							{
 								// encoded mode
 								uchar *Pixel = (*pDC)[y];
-								if (Pixel AND y >= 0 AND y < pDC->Y())
+								if (Pixel && y >= 0 && y < pDC->Y())
 								{
 									int Len = min(Length, pDC->X() - x);
 									if (Len > 0)
@@ -829,9 +829,9 @@ GFilter::IoStatus GdcIco::ReadImage(GSurface *pDC, GStream *In)
 			BytesLeft);
 		*/
 
-		if (Colours AND
-			XorBytes AND
-			(Header.Bits > MyBits || Width > pDC->X() || Height > pDC->Y()) AND
+		if (Colours &&
+			XorBytes &&
+			(Header.Bits > MyBits || Width > pDC->X() || Height > pDC->Y()) &&
 			pDC->Create(Width, Height, max(8, Header.Bits) ))
 		{
 			MyBits = Header.Bits;
@@ -1274,7 +1274,7 @@ void GdcRleDC::Update(int UpdateFlags)
 {
 	bool Error = false;
 
-	if (	(UpdateFlags & GDC_BITS_CHANGE) AND
+	if ( (UpdateFlags & GDC_BITS_CHANGE) &&
 		!(Flags & GDC_RLE_READONLY))
 	{
 		Empty();
@@ -1283,7 +1283,7 @@ void GdcRleDC::Update(int UpdateFlags)
 		ulong Pos = 0;
 		ulong PixelSize = GetBits() / 8;
 		
-		for (ulong y=0; !Error AND y<Y(); y++)
+		for (ulong y=0; !Error && y<Y(); y++)
 		{
 			for (ulong x=0; x<X(); )
 			{
@@ -1291,14 +1291,14 @@ void GdcRleDC::Update(int UpdateFlags)
 				ulong Pixels = 0;
 				uchar *Bits = 0;
 
-				while (Get(x, y) == Key AND x < X())
+				while (Get(x, y) == Key && x < X())
 				{
 					Skip++;
 					x++;
 				}
 
 				Bits = (*this)[y] + (x * PixelSize);
-				while (Get(x, y) != Key AND x < X())
+				while (Get(x, y) != Key && x < X())
 				{
 					Pixels++;
 					x++;
@@ -1368,7 +1368,7 @@ bool GdcRleDC::FindScanLines()
 			ulong Pos = 0;
 			ulong PixelSize = GetBits() / 8;
 			
-			for (ulong y=0; !Error AND y<Y(); y++)
+			for (ulong y=0; !Error && y<Y(); y++)
 			{
 				ScanLine[y] = Data + Pos;
 				ulong x;
@@ -1417,12 +1417,12 @@ void GdcRleDC::Draw(GSurface *Dest, int Ox, int Oy)
 	Ox += OriX;
 	Oy += OriY;
 
-	if (Dest AND Data)
+	if (Dest && Data)
 	{
 		bool ReBuildScanInfo = false;
 		
 		if (!ScanLine) ReBuildScanInfo = true;
-		if (ScanLine AND Data AND ScanLine[0] != Data) ReBuildScanInfo = true;
+		if (ScanLine && Data && ScanLine[0] != Data) ReBuildScanInfo = true;
 
 		if (ReBuildScanInfo)
 		{
@@ -1443,7 +1443,7 @@ void GdcRleDC::Draw(GSurface *Dest, int Ox, int Oy)
 		GRect Temp = Dest->ClipRgn();
 		D.Bound(&Temp);
 
-		if (DClip == D AND (*Dest)[0])
+		if (DClip == D && (*Dest)[0])
 		{
 			// no clipping needed
 			int PixLen = Dest->GetBits() / 8;
@@ -1498,7 +1498,7 @@ void GdcRleDC::Draw(GSurface *Dest, int Ox, int Oy)
 					for (int y=0; y<Y(); y++)
 					{
 						int Fy = Oy+y;
-						if (Fy >= Temp.y1 AND Fy < Temp.y2) // clip y
+						if (Fy >= Temp.y1 && Fy < Temp.y2) // clip y
 						{
 							uchar *s = ScanLine[y];
 							uchar *d = (*Dest)[Fy];
@@ -1638,7 +1638,7 @@ GFilterFactory::~GFilterFactory()
 	else
 	{
 		GFilterFactory *i = First;
-		while (i->Next AND i->Next != this)
+		while (i->Next && i->Next != this)
 		{
 			i = i->Next;
 		}
@@ -1896,7 +1896,7 @@ GSurface *GdcDevice::Load(char *Name, bool UseOSLoader)
 	{
 		int PromoteTo = GdcD->GetOption(GDC_PROMOTE_ON_LOAD);
 		
-		if (PromoteTo > 0 AND
+		if (PromoteTo > 0 &&
 			PromoteTo != pDC->GetBits())
 		{
 			GAutoPtr<GSurface> pOld;;
@@ -1918,7 +1918,7 @@ GSurface *GdcDevice::Load(char *Name, bool UseOSLoader)
 			// Create remap table
 			color_map *Map = (color_map*) system_colors();
 			GPalette *Palette = pDC->Palette();
-			if (Map AND Palette)
+			if (Map && Palette)
 			{
 				char ReMap[256];
 				for (int i=0; i<256; i++)

@@ -232,9 +232,9 @@ void GPanel::OnPaint(GSurface *pDC)
 
 void GPanel::OnMouseClick(GMouse &m)
 {
-	if (OpenSize > 0 AND
-		m.Left() AND
-		m.Down() AND
+	if (OpenSize > 0 &&
+		m.Left() &&
+		m.Down() &&
 		ThumbPos.Overlap(m.x, m.y))
 	{
 		Open(!IsOpen);
@@ -258,7 +258,7 @@ void GPanel::SetChildrenVisibility(bool i)
 {
 	for (GViewI *w = Children.First(); w; w = Children.Next())
 	{
-		if (i AND
+		if (i &&
 			!w->IsAttached())
 		{
 			w->Attach(this);

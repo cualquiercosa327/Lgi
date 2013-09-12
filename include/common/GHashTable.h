@@ -197,7 +197,7 @@ class GHashTbl
 		if (Min <= Max)
 		{
 			// Not wrapped
-			return Val >= Min AND Val <= Max;
+			return Val >= Min && Val <= Max;
 		}
 		else
 		{
@@ -560,7 +560,7 @@ public:
 					uint32 Hsh = Hash(Table[i].k);
 					uint32 HashIndex = Hsh % Size;
 					
-					if (HashIndex != i AND Between(Hole, HashIndex, i))
+					if (HashIndex != i && Between(Hole, HashIndex, i))
 					{
 						// Do bubble
 						if (Table[Hole].k != NullKey)

@@ -397,7 +397,7 @@ bool GFileSelect::Open()
 		d->AfterDlg(Info, Status);
 	}
 
-	return Status AND Length() > 0;
+	return Status && Length() > 0;
 }
 
 #include "shlobj.h"
@@ -405,7 +405,7 @@ bool GFileSelect::Open()
 int CALLBACK GFileSelectBrowseCallback(HWND hwnd, UINT uMsg, LPARAM lParam, LPARAM lpData)
 {
 	char *Name = (char*)lpData;
-	if (uMsg == BFFM_INITIALIZED AND Name)
+	if (uMsg == BFFM_INITIALIZED && Name)
 	{
         PostMessage(hwnd, BFFM_SETSELECTION, true, (GMessage::Param)Name);
 	}
@@ -472,5 +472,5 @@ bool GFileSelect::Save()
 		d->AfterDlg(Info, Status = GetSaveFileNameW(&Info));
 	}
 
-	return Status AND Length() > 0;
+	return Status && Length() > 0;
 }

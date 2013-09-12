@@ -349,7 +349,7 @@ public:
 
 	GPointF *First()
 	{
-		if (Points > 0 AND Point)
+		if (Points > 0 && Point)
 		{
 			return Point;
 		}
@@ -358,7 +358,7 @@ public:
 
 	GPointF *Last()
 	{
-		if (Points > 0 AND Point)
+		if (Points > 0 && Point)
 		{
 			return Point + Points - 1;
 		}
@@ -446,17 +446,17 @@ void GRectF::Union(GRectF &p)
 
 bool GRectF::Overlap(GPointF &p)
 {
-	return	(p.x >= x1) AND
-			(p.y >= y1) AND
-			(p.x <= x2) AND
+	return	(p.x >= x1) &&
+			(p.y >= y1) &&
+			(p.x <= x2) &&
 			(p.y <= y2);
 }
 
 bool GRectF::Overlap(GRectF &p)
 {
-	return	(p.x1 <= x2) AND
-			(p.x2 >= x1) AND
-			(p.y1 <= y2) AND
+	return	(p.x1 <= x2) &&
+			(p.x2 >= x1) &&
+			(p.y1 <= y2) &&
 			(p.y2 >= y1);
 }
 
@@ -905,7 +905,7 @@ bool GPath::Text(	GFont *Font,
 {
 	bool Error = false;
 
-	if (Font AND Utf8)
+	if (Font && Utf8)
 	{
 		char16 *Utf16 = LgiNewUtf8To16(Utf8, Bytes);
 		if (Utf16)
@@ -1095,11 +1095,11 @@ bool GPath::IsClosed()
 {
 	GSeg *f = Segs.First();
 	GSeg *l = Segs.Last();
-	if (f AND l)
+	if (f && l)
 	{
 		GPointF *Start = f->First();
 		GPointF *End = l->Last();
-		if (Start AND End)
+		if (Start && End)
 		{
 			return *Start == *End;
 		}
@@ -1114,7 +1114,7 @@ void GPath::Close()
 	{
 		// Find last moveto
 		GSeg *f = Segs.Last();
-		while (f AND f->Type != SegMove)
+		while (f && f->Type != SegMove)
 		{
 			f = Segs.Prev();
 		}
@@ -1190,7 +1190,7 @@ bool GPath::Flatten()
 				case SegMove:
 				{
 					// Close the shape back to the start of the object
-					if (n AND c[-1] != *OutlineStart)
+					if (n && c[-1] != *OutlineStart)
 					{
 						*c++ = *OutlineStart;
 					}
@@ -1287,14 +1287,14 @@ bool GPath::Flatten()
 		// Collect points
 		GPointF *Prev = Point + i - 1;
 		GPointF *Cur = Point + i;
-		GPointF *Next = i < Points - 1 AND i < Outline[NextOutline] ? Point + i + 1 : 0;
+		GPointF *Next = i < Points - 1 && i < Outline[NextOutline] ? Point + i + 1 : 0;
 
 		// Get absolute change in y
 		double dy = Cur->y - Prev->y;
 		dy = dy < 0 ? -dy : dy;
 
 		// Start the next segment if no start defined and there is some change in y
-		if (Start < 0 AND dy > GPointF::Threshold)
+		if (Start < 0 && dy > GPointF::Threshold)
 		{
 			// Store the index of the start for this vector
 			Start = i - 1;
@@ -1462,7 +1462,7 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 		a.Len = RopLength;
 		a.EndOfMem = (*pDC)[pDC->Y()-1] + (pDC->X() * pDC->GetBits() / 8);
 
-		if (x AND Alpha AND c.Start(a))
+		if (x && Alpha && c.Start(a))
 		{
 			if (Aa)
 			{
@@ -1485,8 +1485,8 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 						int Aay1 = (New->aay1 - y1) >> SUB_SHIFT;
 						int Aay2 = (New->aay2 - y1) >> SUB_SHIFT;
 
-						PathAssert(Aay1 >= 0 AND Aay1 < Height);
-						PathAssert(Aay2 >= 0 AND Aay2 < Height);
+						PathAssert(Aay1 >= 0 && Aay1 < Height);
+						PathAssert(Aay2 >= 0 && Aay2 < Height);
 
 						Events[Aay1] |= ADD_EVENT;
 						Events[Aay2] |= REMOVE_EVENT;
@@ -1499,7 +1499,7 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 						memset(Alpha, 0, Width);
 
 						// Loop subpixel
-						for (int s = y&SUB_MASK; s<SUB_SAMPLE AND y<=y2; s++, y++)
+						for (int s = y&SUB_MASK; s<SUB_SAMPLE && y<=y2; s++, y++)
 						{
 							if (!_Disable_ActiveList)
 							{
@@ -2003,7 +2003,7 @@ bool GBlendBrush::Start(GRopArgs &Args)
 
 	GBlendStop *Prev = s.First();
 	GBlendStop *Next = s.Next();
-	if (Prev AND Next)
+	if (Prev && Next)
 	{
 		for (int i=0; i<CountOf(Lut); i++)
 		{

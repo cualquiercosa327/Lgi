@@ -226,7 +226,7 @@ void LgiFillGradient(GSurface *pDC, GRect &r, bool Vert, GArray<GColourStop> &St
 				// Just this
 				c = This->Colour;
 			}
-			else if (p > This->Pos AND p < Next->Pos)
+			else if (p > This->Pos && p < Next->Pos)
 			{
 				// Interpolate between this and next
 				float d = Next->Pos - This->Pos;
@@ -261,7 +261,7 @@ void LgiFillGradient(GSurface *pDC, GRect &r, bool Vert, GArray<GColourStop> &St
 GSurface *ConvertDC(GSurface *pDC, int Bits)
 {
 	GSurface *pNew = new GMemDC;
-	if (pNew AND pNew->Create(pDC->X(), pDC->Y(), Bits))
+	if (pNew && pNew->Create(pDC->X(), pDC->Y(), Bits))
 	{
 		pNew->Blt(0, 0, pDC);
 		DeleteObj(pDC);

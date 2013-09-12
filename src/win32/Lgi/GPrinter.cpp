@@ -42,7 +42,7 @@ GPrintDC *GPrinter::StartDC(const char *PrintJobName, GView *Parent)
 	if
 	(
 		Parent
-		AND
+		&&
 		(
 			!d->Info.hDevMode
 			||
@@ -65,7 +65,7 @@ GPrintDC *GPrinter::StartDC(const char *PrintJobName, GView *Parent)
 		d->Info.nMaxPage = d->Pages;
 	}
 
-	if ( // (d->Info.hDevMode AND d->Info.hDevNames) ||
+	if ( // (d->Info.hDevMode && d->Info.hDevNames) ||
 		PrintDlg(&d->Info))
 	{
 		/*
@@ -176,7 +176,7 @@ bool GPrinter::Serialize(char *&Str, bool Write)
 		// Convert to base64
 		int BinLen = Temp.GetSize();
 		uchar *Bin = new uchar[BinLen];
-		if (Bin AND Temp.Read(Bin, BinLen))
+		if (Bin && Temp.Read(Bin, BinLen))
 		{
 			int Base64Len = BufferLen_BinTo64(BinLen);
 			char *Base64 = new char[Base64Len+1];
@@ -216,7 +216,7 @@ bool GPrinter::Serialize(char *&Str, bool Write)
 					int Type = 0;
 					int Size = 0;
 
-					if (Temp.Pop(Type) AND
+					if (Temp.Pop(Type) &&
 						Temp.Pop(Size))
 					{
 						switch (Type)

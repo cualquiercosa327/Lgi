@@ -118,7 +118,7 @@ GMessage::Result GProgress::OnEvent(GMessage *Msg)
 
 bool GProgress::SetForegroundFill(GViewFill *Fill)
 {
-	if (_View AND Fill)
+	if (_View && Fill)
 	{
 		GColour c32 = Fill->GetFlat();
 		SendMessage(_View, PBM_SETBARCOLOR, 0, c32.c24());
@@ -133,7 +133,7 @@ bool GProgress::SetForegroundFill(GViewFill *Fill)
 
 bool GProgress::SetBackgroundFill(GViewFill *Fill)
 {
-	if (_View AND Fill)
+	if (_View && Fill)
 	{
 		GColour c = Fill->GetFlat();
 		SendMessage(_View, PBM_SETBKCOLOR, 0, c.c24());

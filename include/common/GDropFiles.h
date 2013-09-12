@@ -16,7 +16,7 @@ public:
     GDropFiles(GVariant &v)
     {
 		#if WIN32NATIVE
-		DROPFILES *Df = v.IsBinary() AND v.Value.Binary.Length >= sizeof(DROPFILES) ? (DROPFILES*)v.Value.Binary.Data : 0;
+		DROPFILES *Df = v.IsBinary() && v.Value.Binary.Length >= sizeof(DROPFILES) ? (DROPFILES*)v.Value.Binary.Data : 0;
 		if (Df)
 		{
 			void *FilesPtr = ((char*)Df) + Df->pFiles;
@@ -85,9 +85,9 @@ public:
 		if (s)
 		{
 			GUri u(s);
-			if (u.Protocol AND
-				stricmp(u.Protocol, "file") == 0 AND
-				u.Host AND
+			if (u.Protocol &&
+				stricmp(u.Protocol, "file") == 0 &&
+				u.Host &&
 				stricmp(u.Host, "localhost") == 0)
 			{
 				Add(NewStr(u.Path));

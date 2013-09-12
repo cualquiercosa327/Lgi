@@ -108,14 +108,14 @@ void GFont::_Draw(GSurface *pDC, int x, int y, OsChar *Str, int Len, GRect *r, G
 		SetBkMode(hDC, Transparent() ? TRANSPARENT : OPAQUE);
 
 		SIZE Size;
-		if ((!Transparent() AND !r)
+		if ((!Transparent() && !r)
 			||
 			(GetOwnerUnderline()))
 		{
 			GetTextExtentPoint32W(hDC, Str, Len, &Size);
 		}
 
-		if (Transparent() AND !r)
+		if (Transparent() && !r)
 		{
 			TextOutW(hDC, x, y, Str, Len);
 		}

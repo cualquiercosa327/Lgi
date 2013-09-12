@@ -89,7 +89,7 @@ char *InetGetHeaderField(	// Returns an allocated string or NULL on failure
 		size_t FldLen = strlen(Field);
 		
 		for (const char *s = Headers;
-			*s AND (!End || s < End);
+			*s && (!End || s < End);
 			s = SeekNextLine(s, End))
 		{
 			if (*s != 9 &&
@@ -167,11 +167,11 @@ char *InetRemoveField(char *Headers, const char *Field)
 {
 	char *Status = Headers;
 
-	if (Headers AND Field)
+	if (Headers && Field)
 	{
 		// loop through and look at all the headers
 		char *e = 0;
-		for (char *s=Headers; s AND *s; s = *e == '\n' ? e + 1 : e)
+		for (char *s=Headers; s && *s; s = *e == '\n' ? e + 1 : e)
 		{
 			// skip whitespace
 			while (strchr(" \t", *s)) s++;
@@ -229,10 +229,10 @@ char *InetGetAllHeaders(const char *s)
 	if (s)
 	{
 		const char *Start = s;
-		while (s AND *s)
+		while (s && *s)
 		{
 			int i=0;
-			for (; *s AND *s != '\r' AND *s != '\n'; s++, i++);
+			for (; *s && *s != '\r' && *s != '\n'; s++, i++);
 			if (*s == '\r') s++;
 			if (*s == '\n') s++;
 			if (!i) break;			
@@ -268,8 +268,8 @@ char *InetExtractBoundary(const char *Field)
 			{
 				// not delimited.... hmmm... grrrr!
 				char *End = Start;
-				while (	*End AND
-						!strchr(" \t\r\n", *End) AND
+				while (	*End &&
+						!strchr(" \t\r\n", *End) &&
 						*End != ';')
 				{
 					End++;
@@ -288,7 +288,7 @@ char *InetGetSubField(const char *s, const char *Field)
 {
 	char *Status = 0;
 
-	if (s AND Field)
+	if (s && Field)
 	{
 		s = strchr(s, ';');
 		if (s)
@@ -300,20 +300,20 @@ char *InetGetSubField(const char *s, const char *Field)
 			while (*s)
 			{
 				// Skip leading whitespace
-				while (*s AND (strchr(White, *s) || *s == ';')) s++;
+				while (*s && (strchr(White, *s) || *s == ';')) s++;
 
 				// Parse field name
 				if (IsAlpha((uint8)*s))
 				{
 					const char *f = s;
-					while (*s AND (IsAlpha(*s) || *s == '-')) s++;
+					while (*s && (IsAlpha(*s) || *s == '-')) s++;
 					bool HasField = ((s-f) == FieldLen) && (_strnicmp(Field, f, FieldLen) == 0);
-					while (*s AND strchr(White, *s)) s++;
+					while (*s && strchr(White, *s)) s++;
 					if (*s == '=')
 					{
 						s++;
-						while (*s AND strchr(White, *s)) s++;
-						if (*s AND strchr("\'\"", *s))
+						while (*s && strchr(White, *s)) s++;
+						if (*s && strchr("\'\"", *s))
 						{
 							// Quote Delimited Field
 							char d = *s++;
@@ -334,7 +334,7 @@ char *InetGetSubField(const char *s, const char *Field)
 						{
 							// Space Delimited Field
 							const char *e = s;
-							while (*e AND !strchr(White, *e) AND *e != ';') e++;
+							while (*e && !strchr(White, *e) && *e != ';') e++;
 
 							if (HasField)
 							{

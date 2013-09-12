@@ -751,7 +751,7 @@ GCharset *LgiGetCpInfo(const char *Cs)
 // Utf-16 conversion
 int LgiByteLen(const void *p, const char *cp)
 {
-	if (p AND cp)
+	if (p && cp)
 	{
 		if (stricmp(cp, "utf-16") == 0)
 		{
@@ -770,7 +770,7 @@ int LgiCpToAnsi(char *cp)
 {
 	int Ansi = 0;
 
-	if (cp AND
+	if (cp &&
 		strnicmp(cp, "windows-", 8) == 0)
 	{
 		Ansi = atoi(cp+9);
@@ -783,12 +783,12 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 {
 	int Status = 0;
 
-	if (Out AND OutCp AND In AND InCp)
+	if (Out && OutCp && In && InCp)
 	{
 		GCharset *InInfo = LgiGetCpInfo(InCp);
 		GCharset *OutInfo = LgiGetCpInfo(OutCp);
 
-		if (InInfo AND OutInfo)
+		if (InInfo && OutInfo)
 		{
 			char *In8 = (char*)In;
 			uchar *Out8 = (uchar*)Out;
@@ -799,7 +799,7 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 			}
 
 			#ifdef WIN32
-			if (InInfo->Type == CpWindowsDb AND OutInfo->Type == CpWide)
+			if (InInfo->Type == CpWindowsDb && OutInfo->Type == CpWide)
 			{
 				// mb -> unicode
 				char Cp[32];
@@ -807,7 +807,7 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 				setlocale(LC_ALL, Cp);
 
 				void *Start = Out;
-				while (OutLen >= sizeof(char16) AND
+				while (OutLen >= sizeof(char16) &&
 						InLen > 0)
 				{
 					int s = mbtowc((char16*)Out, (char*)In, min(InLen, MB_CUR_MAX));
@@ -822,7 +822,7 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 				}
 				return (NativeInt)Out-(NativeInt)Start;
 			}
-			else if (InInfo->Type == CpWide AND OutInfo->Type == CpWindowsDb)
+			else if (InInfo->Type == CpWide && OutInfo->Type == CpWindowsDb)
 			{
 				// unicode -> mb
 				char Cp[32];
@@ -830,7 +830,7 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 				setlocale(LC_ALL, Cp);
 
 				void *Start = Out;
-				while (OutLen >= MB_CUR_MAX AND
+				while (OutLen >= MB_CUR_MAX &&
 						InLen > sizeof(char16) )
 				{
 					int s = wctomb((char*)Out, ((char16*)In)[0] );
@@ -1074,7 +1074,7 @@ char *LgiNewUtf16To8(const char16 *In, int InLen)
 
 int LgiCharLen(const void *Str, const char *Cp, int Bytes)
 {
-	if (Str AND Cp)
+	if (Str && Cp)
 	{
 		GCharset *InInfo = LgiGetCpInfo(Cp);
 		if (InInfo)
@@ -1093,7 +1093,7 @@ int LgiCharLen(const void *Str, const char *Cp, int Bytes)
 					if (Bytes > 0)
 					{
 						uchar *e = s + Bytes;
-						while (*s AND s < e)
+						while (*s && s < e)
 						{
 							LgiNextUtf8((char*&)s);
 							Len++;
@@ -1206,10 +1206,10 @@ char *LgiSeekUtf8(const char *Ptr, int D, char *Start)
 		}
 		else if (Start)
 		{
-			for (int i=0; i<-D AND p>(uchar*)Start; i++)
+			for (int i=0; i<-D && p>(uchar*)Start; i++)
 			{
 				p--;
-				while (p>(uchar*)Start AND IsUtf8_Trail(*p))
+				while (p>(uchar*)Start && IsUtf8_Trail(*p))
 					p--;
 			}
 		}
@@ -1227,7 +1227,7 @@ char *LgiSeekUtf8(const char *Ptr, int D, char *Start)
 
 bool LgiMatchCharset(short *Map, char16 *Utf, bool &Has8Bit)
 {
-	if (Map AND Utf)
+	if (Map && Utf)
 	{
 		// Test Charset because we have a map of all the chars in it...
 		char16 *c;
@@ -1275,8 +1275,8 @@ const char *LgiDetectCharset(const char *Utf8, int Len, List<char> *Prefs)
 			for (char *p = Prefs->First(); p; p = Prefs->Next())
 			{
 				GCharset *Cp = CharsetSystem.GetCsInfo(p);
-				if (Cp AND
-					stricmp(Cp->Charset, "us-ascii") != 0 AND
+				if (Cp &&
+					stricmp(Cp->Charset, "us-ascii") != 0 &&
 					Cp->UnicodeMap)
 				{
 					bool Has8Bit = false;
@@ -1382,7 +1382,7 @@ char *LgiFromNativeCp(const char *In, int InLen)
 				int Bytes = InLen;
 				const char *i = In;
 				int Chars = 0;
-				while (*i AND Bytes > 0)
+				while (*i && Bytes > 0)
 				{
 					int n = mblen(i, MB_CUR_MAX);
 					if (n > 0)
@@ -1473,7 +1473,7 @@ GCharsetSystem::~GCharsetSystem()
 
 GCharset *GCharsetSystem::GetCsInfo(const char *Cp)
 {
-	if (Cp AND d)
+	if (Cp && d)
 	{
 		// Lookup the charset in the hash table
 		char l[256];

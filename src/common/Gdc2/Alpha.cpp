@@ -132,7 +132,7 @@ public:
 
 	void SetPtr(int x, int y)
 	{
-		LgiAssert(Dest AND Dest->Base);
+		LgiAssert(Dest && Dest->Base);
 		Ptr = Dest->Base + ((y * Dest->Line) + (x * Bytes));
 		if (APtr)
 			APtr = Alpha->Base + ((y * Alpha->Line) + x);
@@ -296,7 +296,7 @@ int GdcApp8Alpha::SetVar(int Var, NativeInt Value)
 		{
 			GPalette *Pal = (GPalette*)Value;
 
-			if (Pal AND alpha < 255)
+			if (Pal && alpha < 255)
 			{
 				GdcRGB *p = (*Pal)[0];
 				GdcRGB *Col = (*Pal)[c&0xFF];

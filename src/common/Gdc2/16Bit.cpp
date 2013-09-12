@@ -109,7 +109,7 @@ bool GdcApp16::SetSurface(GBmpMem *d, GPalette *p, GBmpMem *a)
 
 void GdcApp16::SetPtr(int x, int y)
 {
-	if (Dest AND Dest->Base)
+	if (Dest && Dest->Base)
 	{
 		Ptr = Dest->Base + ((y * Dest->Line) + x + x);
 	}

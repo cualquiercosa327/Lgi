@@ -73,7 +73,7 @@ uint32 GUtf8Ptr::operator--(const int n)
 
 uint32 GUtf8Ptr::operator += (int n)
 {
-	while (*Ptr AND n-- > 0)
+	while (*Ptr && n-- > 0)
 	{
 		(*this)++;
 	}
@@ -83,7 +83,7 @@ uint32 GUtf8Ptr::operator += (int n)
 
 uint32 GUtf8Ptr::operator-=(int n)
 {
-	while (*Ptr AND n-- > 0)
+	while (*Ptr && n-- > 0)
 	{
 		(*this)--;
 	}
@@ -191,7 +191,7 @@ bool GUtf8Str::Valid()
 	if (Ptr < Start)
 		return false;
 
-	if (End AND Ptr > End)
+	if (End && Ptr > End)
 		return false;
 
 	return true;

@@ -102,7 +102,7 @@ char *GFontSelect::GetSelectedFace()
 
 void GFontSelect::InsertFont(const char *f)
 {
-	if (f AND f[0] != '@')
+	if (f && f[0] != '@')
 	{
 		GListItem *i = new GListItem;
 		if (i)
@@ -122,7 +122,7 @@ int SortFunc(GListItem *a, GListItem *b, NativeInt Data)
 {
 	char *A = a->GetText(0);
 	char *B = b->GetText(0);
-	if (A AND B) return stricmp(A, B);
+	if (A && B) return stricmp(A, B);
 	return 0;
 }
 

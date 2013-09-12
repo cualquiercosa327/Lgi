@@ -42,11 +42,11 @@ GPassword &GPassword::operator =(GPassword &p)
 
 bool GPassword::operator ==(GPassword &p)
 {
-	if (Data AND p.Data AND Len == p.Len)
+	if (Data && p.Data && Len == p.Len)
 	{
 		return memcmp(Data, p.Data, Len) == 0;
 	}
-	else if (Data == 0 AND p.Data == 0)
+	else if (Data == 0 && p.Data == 0)
 	{
 		return true;
 	}
@@ -56,7 +56,7 @@ bool GPassword::operator ==(GPassword &p)
 
 void GPassword::Process(char *Out, char *In, int Len)
 {
-	if (Out AND In AND Len > 0)
+	if (Out && In && Len > 0)
 	{
 		int HashLen = strlen(HashString);
 		int i;
@@ -126,7 +126,7 @@ void GPassword::Serialize(char *Password, int Write)
 bool GPassword::Serialize(ObjProperties *Options, char *Prop, int Write)
 {
 	bool Status = false;
-	if (Options AND Prop)
+	if (Options && Prop)
 	{
 		if (Write)
 		{
@@ -155,7 +155,7 @@ bool GPassword::Serialize(ObjProperties *Options, char *Prop, int Write)
 bool GPassword::Serialize(GDom *Options, const char *Prop, int Write)
 {
 	bool Status = false;
-	if (Options AND Prop)
+	if (Options && Prop)
 	{
 		GVariant v;
 		if (Write)
@@ -165,7 +165,7 @@ bool GPassword::Serialize(GDom *Options, const char *Prop, int Write)
 		}
 		else // read from prop list
 		{
-			if (Options->GetValue(Prop, v) AND
+			if (Options->GetValue(Prop, v) &&
 				v.Type == GV_BINARY)
 			{
 				DeleteArray(Data);

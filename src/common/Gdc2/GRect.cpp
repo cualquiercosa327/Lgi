@@ -50,14 +50,14 @@ int GRect::Near(int x, int y)
 	{
 		return 0;
 	}
-	else if (x >= x1 AND x <= x2)
+	else if (x >= x1 && x <= x2)
 	{
 		if (y < y1)
 			return y1 - y;
 		else
 			return y - y2;
 	}
-	else if (y >= y1 AND y <= y2)
+	else if (y >= y1 && y <= y2)
 	{
 		if (x < x1)
 			return x1 - x;
@@ -130,7 +130,7 @@ int GRect::Near(GRect &r)
 
 bool GRect::Valid()
 {
-	return (x1 <= x2 AND y1 <= y2);
+	return (x1 <= x2 && y1 <= y2);
 }
 
 void GRect::Offset(int x, int y)
@@ -187,13 +187,13 @@ void GRect::Bound(GRect *b)
 
 bool GRect::Overlap(int x, int y)
 {
-	return (x >= x1) AND (x <= x2) AND (y >= y1) AND (y <= y2);
+	return (x >= x1) && (x <= x2) && (y >= y1) && (y <= y2);
 }
 
 bool GRect::Overlap(GRect *b)
 {
-	if (Valid() AND
-		b->Valid() AND
+	if (Valid() &&
+		b->Valid() &&
 		(x1 > b->x2 ||
 		y1 > b->y2 ||
 		x2 < b->x1 ||
@@ -296,17 +296,17 @@ bool GRect::SetStr(char *s)
 
 bool operator ==(GRect &a, GRect &b)
 {
-	return (a.x1 == b.x1 AND
-		a.y1 == b.y1 AND
-		a.x2 == b.x2 AND
+	return (a.x1 == b.x1 &&
+		a.y1 == b.y1 &&
+		a.x2 == b.x2 &&
 		a.y2 == b.y2);
 }
 
 bool operator !=(GRect &a, GRect &b)
 {
-	return !((a.x1 == b.x1 AND
-		a.y1 == b.y1 AND
-		a.x2 == b.x2 AND
+	return !((a.x1 == b.x1 &&
+		a.y1 == b.y1 &&
+		a.x2 == b.x2 &&
 		a.y2 == b.y2));
 }
 
@@ -400,25 +400,25 @@ GRegion &GRegion::operator =(const GRect &r)
 GRect *GRegion::First()
 {
 	Current = 0;
-	return (Current >= 0 AND Current < Size) ? a+Current : 0;
+	return (Current >= 0 && Current < Size) ? a+Current : 0;
 }
 
 GRect *GRegion::Last()
 {
 	Current = Size-1;
-	return (Current >= 0 AND Current < Size) ? a+Current : 0;
+	return (Current >= 0 && Current < Size) ? a+Current : 0;
 }
 
 GRect *GRegion::Next()
 {
 	Current++;
-	return (Current >= 0 AND Current < Size) ? a+Current : 0;
+	return (Current >= 0 && Current < Size) ? a+Current : 0;
 }
 
 GRect *GRegion::Prev()
 {
 	Current--;
-	return (Current >= 0 AND Current < Size) ? a+Current : 0;
+	return (Current >= 0 && Current < Size) ? a+Current : 0;
 }
 
 bool GRegion::SetSize(int s)
@@ -458,7 +458,7 @@ bool GRegion::SetSize(int s)
 
 bool GRegion::Delete(int i)
 {
-	if (i >= 0 AND i < Size)
+	if (i >= 0 && i < Size)
 	{
 		if (i != Size - 1)
 		{
@@ -496,12 +496,12 @@ bool GRegion::Valid()
 {
 	bool Status = true;
 
-	for (int i=0; i<Size AND Status; i++)
+	for (int i=0; i<Size && Status; i++)
 	{
 		Status &= a[i].Valid();
 	}
 
-	return Status AND Size > 0;
+	return Status && Size > 0;
 }
 
 void GRegion::Offset(int x, int y)
@@ -516,7 +516,7 @@ GRect GRegion::Bound()
 {
 	static GRect r;
 	
-	if (a AND Size > 0)
+	if (a && Size > 0)
 	{
 		r = a[0];
 		for (int i=1; i<Size; i++)
@@ -578,7 +578,7 @@ bool GRegion::Overlap(GRect *b)
 
 void GRegion::Union(GRect *b)
 {
-	if (b AND b->Valid())
+	if (b && b->Valid())
 	{
 		Subtract(b);
 		GRect *n = NewOne();
@@ -609,7 +609,7 @@ void GRegion::Intersect(GRect *b)
 
 void GRegion::Subtract(GRect *b)
 {
-	if (b AND b->Valid())
+	if (b && b->Valid())
 	{
 		GRect Sub = *b;
 		int StartSize = Size;

@@ -227,7 +227,7 @@ GSurface *GClipBoard::ConvertFromPtr(void *Ptr)
 		if (Info)
 		{
 			pDC = new GMemDC;
-			if (pDC AND
+			if (pDC &&
 				(Info->bmiHeader.biCompression == BI_RGB ||
 				Info->bmiHeader.biCompression == BI_BITFIELDS))
 			{

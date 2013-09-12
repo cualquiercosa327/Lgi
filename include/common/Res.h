@@ -27,14 +27,14 @@ struct GLanguage
 
 	bool IsEnglish()
 	{
-		return	Id[0] == 'e' AND
-				Id[1] == 'n' AND
+		return	Id[0] == 'e' &&
+				Id[1] == 'n' &&
 				!Id[2];
 	}
 
 	bool operator ==(GLanguageId i)
 	{
-		return i AND _stricmp(Id, i) == 0;
+		return i && _stricmp(Id, i) == 0;
 	}
 
 	bool operator !=(GLanguageId i)

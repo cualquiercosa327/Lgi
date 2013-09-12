@@ -143,11 +143,11 @@ public:
 	{
 		if (Shift() ^ TestFlag(Flags, LGI_EF_CAPS_LOCK))
 		{
-			return (c16 >= 'a' AND c16 <= 'z') ? c16 - 'a' + 'A' : c16;
+			return (c16 >= 'a' && c16 <= 'z') ? c16 - 'a' + 'A' : c16;
 		}
 		else
 		{
-			return (c16 >= 'A' AND c16 <= 'Z') ? c16 - 'A' + 'a' : c16;
+			return (c16 >= 'A' && c16 <= 'Z') ? c16 - 'A' + 'a' : c16;
 		}
 	}
 	

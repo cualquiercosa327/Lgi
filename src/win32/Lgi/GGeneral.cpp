@@ -93,8 +93,8 @@ bool LgiGetFileMimeType(const char *File, char *Mime, int BufLen)
 			if (Key.IsOk())
 			{
 				char *Ct = Key.GetStr("Content Type");
-				if (Ct AND
-					!stricmp(Dot, ".dsw") == 0 AND
+				if (Ct &&
+					!stricmp(Dot, ".dsw") == 0 &&
 					!stricmp(Dot, ".dsp") == 0)
 				{
 					strsafecpy(Mime, Ct, BufLen);
@@ -110,7 +110,7 @@ bool LgiGetFileMimeType(const char *File, char *Mime, int BufLen)
 					{
 						GRegKey Type("HKEY_LOCAL_MACHINE\\SOFTWARE\\Classes\\MIME\\Database\\Content Type\\%s", k);
 						char *Ext = Type.GetStr("Extension");
-						if (Ext AND stricmp(Ext, Dot) == 0)
+						if (Ext && stricmp(Ext, Dot) == 0)
 						{
 							strsafecpy(Mime, k, BufLen);
 							Status = true;
@@ -304,7 +304,7 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 			// get generic app
 			char Ext[64] = "";
 			char *EndPart = strrchr((char*)Mime, '/');
-			if (EndPart AND EndPart[1] == '.')
+			if (EndPart && EndPart[1] == '.')
 			{
 				strsafecpy(Ext, EndPart, sizeof(Ext));
 
@@ -653,7 +653,7 @@ bool GRegKey::Create()
 {
 	bool Status = false;
 
-	if (!k AND KeyName)
+	if (!k && KeyName)
 	{
 		char *Sub = strchr(KeyName, '\\');
 		if (Sub)
@@ -725,14 +725,14 @@ char *GRegKey::GetStr(char *Name)
 
 bool GRegKey::SetStr(char *Name, const char *Value)
 {
-	return k AND RegSetValueEx(k, Name, 0, REG_SZ, (uchar*)Value, Value ? strlen(Value) : 0) == ERROR_SUCCESS;
+	return k && RegSetValueEx(k, Name, 0, REG_SZ, (uchar*)Value, Value ? strlen(Value) : 0) == ERROR_SUCCESS;
 }
 
 int GRegKey::GetInt(char *Name)
 {
 	int i = 0;
 	DWORD Size = sizeof(i), Type;
-	if (k AND RegQueryValueEx(k, Name, 0, &Type, (uchar*)&i, &Size) != ERROR_SUCCESS)
+	if (k && RegQueryValueEx(k, Name, 0, &Type, (uchar*)&i, &Size) != ERROR_SUCCESS)
 	{
 		i = 0;
 	}
@@ -757,7 +757,7 @@ bool GRegKey::SetInt(char *Name, int Value)
 bool GRegKey::GetBinary(char *Name, void *&Ptr, int &Len)
 {
 	DWORD Size = 0, Type;
-	if (k AND RegQueryValueEx(k, Name, 0, &Type, 0, &Size) == ERROR_SUCCESS)
+	if (k && RegQueryValueEx(k, Name, 0, &Type, 0, &Size) == ERROR_SUCCESS)
 	{
 		Len = Size;
 		Ptr = new uchar[Len];

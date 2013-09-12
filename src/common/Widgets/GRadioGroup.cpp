@@ -241,7 +241,7 @@ int GRadioGroup::OnNotify(GViewI *Ctrl, int Flags)
 
 void GRadioGroup::OnPaint(GSurface *pDC)
 {
-	if (GApp::SkinEngine AND
+	if (GApp::SkinEngine &&
 		TestFlag(GApp::SkinEngine->GetFeatures(), GSKIN_GROUP))
 	{
 		GSkinState State;
@@ -313,8 +313,8 @@ GRadioButton::GRadioButton(int id, int x, int y, int cx, int cy, const char *nam
 {
 	d = new GRadioButtonPrivate;
 	Name(name);
-	if (cx < 0 AND d->Txt) cx = d->Txt->X() + 26;
-	if (cy < 0 AND d->Txt) cy = d->Txt->Y() + 4;
+	if (cx < 0 && d->Txt) cx = d->Txt->X() + 26;
+	if (cy < 0 && d->Txt) cy = d->Txt->Y() + 4;
 
 	GRect r(x, y, x+cx, y+cy);
 	SetPos(r);
@@ -405,7 +405,7 @@ void GRadioButton::Value(int64 i)
 						if (c != this)
 						{
 							GRadioButton *b = dynamic_cast<GRadioButton*>(c);
-							if (b AND b->d->Val)
+							if (b && b->d->Val)
 							{
 								b->d->Val = false;
 								b->Invalidate();
@@ -438,8 +438,8 @@ void GRadioButton::OnMouseClick(GMouse &m)
 		d->Over = m.Down();
 	
 		GRect r(0, 0, X()-1, Y()-1);
-		if (!m.Down() AND
-			r.Overlap(m.x, m.y) AND
+		if (!m.Down() &&
+			r.Overlap(m.x, m.y) &&
 			WasCapturing)
 		{
 			Value(true);
@@ -453,7 +453,7 @@ void GRadioButton::OnMouseClick(GMouse &m)
 
 void GRadioButton::OnMouseEnter(GMouse &m)
 {
-	if (Enabled() AND IsCapturing())
+	if (Enabled() && IsCapturing())
 	{
 		d->Over = true;
 		Invalidate();
@@ -462,7 +462,7 @@ void GRadioButton::OnMouseEnter(GMouse &m)
 
 void GRadioButton::OnMouseExit(GMouse &m)
 {
-	if (Enabled() AND IsCapturing())
+	if (Enabled() && IsCapturing())
 	{
 		d->Over = false;
 		Invalidate();
@@ -535,7 +535,7 @@ void GRadioButton::OnFocus(bool f)
 
 void GRadioButton::OnPaint(GSurface *pDC)
 {
-	if (GApp::SkinEngine AND
+	if (GApp::SkinEngine &&
 		TestFlag(GApp::SkinEngine->GetFeatures(), GSKIN_RADIO))
 	{
 		GSkinState State;

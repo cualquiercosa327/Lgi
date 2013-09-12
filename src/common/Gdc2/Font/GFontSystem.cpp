@@ -99,7 +99,7 @@ static bool FontSystemDone = false;
 GFontSystem *GFontSystem::Me = 0;
 GFontSystem *GFontSystem::Inst()
 {
-	if (!Me AND !FontSystemDone)
+	if (!Me && !FontSystemDone)
 		new GFontSystem;
 	
 	return Me;
@@ -115,7 +115,7 @@ GFontSystem::GFontSystem()
 
 	d->SubSupport =	(Os == LGI_OS_LINUX) ||
 					(Os == LGI_OS_WIN9X) ||
-					(Os == LGI_OS_WINNT); //  AND Rev == 0);  // WinXP does it's own glyph substitution
+					(Os == LGI_OS_WINNT); //  && Rev == 0);  // WinXP does it's own glyph substitution
 	d->DefaultGlyphSub = d->SubSupport;
 	d->CheckedConfig = false;
 	d->FontTableLoaded = false;
@@ -161,7 +161,7 @@ bool GFontSystem::GetGlyphSubSupport()
 
 bool GFontSystem::GetDefaultGlyphSub()
 {
-	if (!d->CheckedConfig AND LgiApp)
+	if (!d->CheckedConfig && LgiApp)
 	{
 		GXmlTag *FontSys = LgiApp->GetConfig("font_system");
 		if (FontSys)
@@ -201,7 +201,7 @@ int CALLBACK _EnumFonts(ENUMLOGFONT FAR *lpelf,
 
 int StringSort(const char *a, const char *b, NativeInt Data)
 {
-	if (a AND b) return stricmp(a, b);
+	if (a && b) return stricmp(a, b);
 	return 0;
 }
 
@@ -307,7 +307,7 @@ bool GFontSystem::EnumerateFonts(List<const char> &Fonts)
 		AllFonts.Sort(StringSort, 0);
 	}
 
-	if (AllFonts.First() AND &AllFonts != &Fonts)
+	if (AllFonts.First() && &AllFonts != &Fonts)
 	{
 		for (const char *s=AllFonts.First(); s; s=AllFonts.Next())
 		{
@@ -529,7 +529,7 @@ GFont *GFontSystem::GetBestFont(char *Str)
 				int Chars = 0;
 				for (i = s; *i; i++)
 				{
-					if (h->GetGlyphMap() AND
+					if (h->GetGlyphMap() &&
 						_HasUnicodeGlyph(h->GetGlyphMap(), *i))
 					{
 						Chars++;
@@ -559,7 +559,7 @@ GFont *GFontSystem::GetGlyph(int u, GFont *UserFont)
 
 	// Check app font
 	if (!d->SubSupport ||
-		(UserFont->GetGlyphMap() AND
+		(UserFont->GetGlyphMap() &&
 		_HasUnicodeGlyph(UserFont->GetGlyphMap(), u)))
 	{
 		return UserFont;
@@ -577,7 +577,7 @@ GFont *GFontSystem::GetGlyph(int u, GFont *UserFont)
 			Has = UserFont;
 		}
 	}
-	else if (d->Used < 255 AND !d->FontTableLoaded)
+	else if (d->Used < 255 && !d->FontTableLoaded)
 	{
 		// Add fonts to Lut...
 		if (!SubFonts.First())
@@ -708,7 +708,7 @@ GFont *GFontSystem::GetGlyph(int u, GFont *UserFont)
 		{
 		#endif
 			const char *s;
-			while (	(d->Used < CountOf(Font) - 1) AND
+			while (	(d->Used < CountOf(Font) - 1) &&
 					(s = SubFonts.First()))
 			{
 				SubFonts.Delete(s);
@@ -730,7 +730,7 @@ GFont *GFontSystem::GetGlyph(int u, GFont *UserFont)
 						// so that we can map from a character back to the font
 						for (int k=0; k<=MAX_UNICODE; k++)
 						{
-							if (!Lut[k] AND
+							if (!Lut[k] &&
 								_HasUnicodeGlyph(n->GetGlyphMap(), k))
 							{
 								Lut[k] = LutIndex;

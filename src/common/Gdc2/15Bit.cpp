@@ -92,7 +92,7 @@ GApplicator *GApp15::Create(GColourSpace Cs, int Op)
 
 bool GdcApp15::SetSurface(GBmpMem *d, GPalette *p, GBmpMem *a)
 {
-	if (d AND d->Cs == CsRgb15)
+	if (d && d->Cs == CsRgb15)
 	{
 		Dest = d;
 		Pal = p;
@@ -105,7 +105,7 @@ bool GdcApp15::SetSurface(GBmpMem *d, GPalette *p, GBmpMem *a)
 
 void GdcApp15::SetPtr(int x, int y)
 {
-	LgiAssert(Dest AND Dest->Base);
+	LgiAssert(Dest && Dest->Base);
 	Ptr = Dest->Base + ((y * Dest->Line) + x + x);
 }
 
@@ -354,7 +354,7 @@ void GdcApp15Or::Rectangle(int x, int y)
 
 bool GdcApp15Or::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 {
-	if (Src AND Src->Cs == Dest->Cs)
+	if (Src && Src->Cs == Dest->Cs)
 	{
 		uchar *s = Src->Base;
 		for (int y=0; y<Src->y; y++)
@@ -393,7 +393,7 @@ void GdcApp15And::Rectangle(int x, int y)
 
 bool GdcApp15And::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 {
-	if (Src AND Src->Cs == Dest->Cs)
+	if (Src && Src->Cs == Dest->Cs)
 	{
 		uchar *s = Src->Base;
 		for (int y=0; y<Src->y; y++)
@@ -432,7 +432,7 @@ void GdcApp15Xor::Rectangle(int x, int y)
 
 bool GdcApp15Xor::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 {
-	if (Src AND Src->Cs == Dest->Cs)
+	if (Src && Src->Cs == Dest->Cs)
 	{
 		uchar *s = Src->Base;
 		for (int y=0; y<Src->y; y++)

@@ -116,7 +116,7 @@ void GBitmap::SetDC(GSurface *pNewDC)
 	if (pNewDC)
 	{
 		pDC = new GMemDC;
-		if (pDC AND pDC->Create(pNewDC->X(), pNewDC->Y(), GdcD->GetBits()))
+		if (pDC && pDC->Create(pNewDC->X(), pNewDC->Y(), GdcD->GetBits()))
 		{
 			pDC->Colour(LC_WORKSPACE, 24);
 			pDC->Rectangle();
@@ -178,7 +178,7 @@ void GBitmap::OnPaint(GSurface *pScreen)
 
 void GBitmap::OnMouseClick(GMouse &m)
 {
-	if (!m.Down() AND GetParent())
+	if (!m.Down() && GetParent())
 	{
 		GDialog *Dlg = dynamic_cast<GDialog*>(GetParent());
 		if (Dlg) Dlg->OnNotify(this, 0);

@@ -42,8 +42,8 @@ GCheckBox::GCheckBox(int id, int x, int y, int cx, int cy, const char *name, int
 {
 	d = new GCheckBoxPrivate;
 	Name(name);
-	if (cx < 0 AND d->Txt) cx = d->Txt->X() + 26;
-	if (cy < 0 AND d->Txt) cy = max(d->Txt->Y(), 16);
+	if (cx < 0 && d->Txt) cx = d->Txt->X() + 26;
+	if (cy < 0 && d->Txt) cy = max(d->Txt->Y(), 16);
 
 	d->Val = InitState;
 	GRect r(x, y, x+cx, y+cy);
@@ -142,8 +142,8 @@ void GCheckBox::OnMouseClick(GMouse &m)
 		}
 		
 		GRect r(0, 0, X()-1, Y()-1);
-		if (!m.Down() AND
-			r.Overlap(m.x, m.y) AND
+		if (!m.Down() &&
+			r.Overlap(m.x, m.y) &&
 			Click)
 		{
 			if (d->Three)
@@ -218,7 +218,7 @@ void GCheckBox::OnFocus(bool f)
 
 void GCheckBox::OnPaint(GSurface *pDC)
 {
-	if (GApp::SkinEngine AND
+	if (GApp::SkinEngine &&
 		TestFlag(GApp::SkinEngine->GetFeatures(), GSKIN_CHECKBOX))
 	{
 		GSkinState State;
@@ -252,7 +252,7 @@ void GCheckBox::OnPaint(GSurface *pDC)
 			{
 				d->Txt->Draw(pDC, t.x1 + 5, t.y1 - 1, &t);
 
-				if (Focus() AND ValidStr(Name()))
+				if (Focus() && ValidStr(Name()))
 				{
 					GRect f(t.x1 + 3, t.y1, t.x1 + 7 + d->Txt->X(), t.y1 + d->Txt->Y());
 					GRect c = GetClient();
@@ -278,7 +278,7 @@ void GCheckBox::OnPaint(GSurface *pDC)
 		pDC->Rectangle(&d->ValuePos);
 		pDC->Colour(e ? LC_TEXT : LC_LOW, 24);
 
-		if (d->Three AND d->Val == 2)
+		if (d->Three && d->Val == 2)
 		{
 			for (int y=d->ValuePos.y1; y<=d->ValuePos.y2; y++)
 			{

@@ -112,7 +112,7 @@ void GPalette::Set(GPalette *pPal)
 	DeleteArray(Data);
 	if (hPal) DeleteObject(hPal);
 
-	if (pPal AND pPal->Data)
+	if (pPal && pPal->Data)
 	{
 		int Len = sizeof(LOGPALETTE) + (pPal->Data->palNumEntries * sizeof(GdcRGB));
 		Data = (LOGPALETTE*) new char[Len];
@@ -157,7 +157,7 @@ void GPalette::Set(uchar *pPal, int s)
 
 bool GPalette::Update()
 {
-	if (Data AND hPal)
+	if (Data && hPal)
 	{
 		return SetPaletteEntries(hPal, 0, GetSize(), Data->palPalEntry);
 	}
@@ -187,7 +187,7 @@ bool GPalette::SetSize(int s)
 		hPal = CreatePalette(Data);
 	}
 
-	return (Data != 0) AND (hPal != 0);
+	return (Data != 0) && (hPal != 0);
 }
 
 int GPalette::GetSize()
@@ -197,7 +197,7 @@ int GPalette::GetSize()
 
 GdcRGB *GPalette::operator [](int i)
 {
-	return (i >= 0 AND i < GetSize() AND Data) ? (GdcRGB*) (Data->palPalEntry + i) : 0;
+	return (i >= 0 && i < GetSize() && Data) ? (GdcRGB*) (Data->palPalEntry + i) : 0;
 }
 
 void GPalette::SwapRAndB()
@@ -351,14 +351,14 @@ void TrimWhite(char *s)
 {
 	char *White = " \r\n\t";
 	char *c = s;
-	while (*c AND strchr(White, *c)) c++;
+	while (*c && strchr(White, *c)) c++;
 	if (c != s)
 	{
 		strcpy(s, c);
 	}
 
 	c = s + strlen(s) - 1;
-	while (c > s AND strchr(White, *c))
+	while (c > s && strchr(White, *c))
 	{
 		*c = 0;
 		c--;
@@ -381,7 +381,7 @@ bool GPalette::Load(GFile &F)
 		// read decimal length
 		F.ReadStr(Buf, sizeof(Buf));
 		SetSize(atoi(Buf));
-		for (int i=0; i<GetSize() AND !F.Eof(); i++)
+		for (int i=0; i<GetSize() && !F.Eof(); i++)
 		{
 			F.ReadStr(Buf, sizeof(Buf));
 			GdcRGB *p = (*this)[i];
@@ -476,326 +476,11 @@ GBmpMem::GBmpMem()
 
 GBmpMem::~GBmpMem()
 {
-	if (Base AND (Flags & GDC_OWN_MEMORY))
+	if (Base && (Flags & GDC_OWN_MEMORY))
 	{
 		delete [] Base;
 	}
 }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/*
-GDeviceContext::GDeviceContext()
-{
-	OriginX = OriginY = 0;
-	pMem = NULL;
-	pAlphaDC = 0;
-	Flags = 0;
-	Clip.ZOff(0, 0);
-	pPalette = NULL;
-	pApp = NULL;
-
-	for (int i=0; i<GDC_CACHE_SIZE; i++)
-	{
-		pAppCache[i] = 0;
-	}
-}
-
-GDeviceContext::~GDeviceContext()
-{
-	DrawOnAlpha(FALSE);
-	DeleteObj(pMem);
-	DeleteObj(pAlphaDC);
-
-	if (pPalette AND (Flags & GDC_OWN_PALETTE))
-	{
-		DeleteObj(pPalette);
-	}
-
-	if (	(Flags & GDC_OWN_APPLICATOR) AND
-		!(Flags & GDC_CACHED_APPLICATOR))
-	{
-		DeleteObj(pApp);
-	}
-
-	for (int i=0; i<GDC_CACHE_SIZE; i++)
-	{
-		DeleteObj(pAppCache[i]);
-	}
-}
-
-bool GDeviceContext::IsAlpha(bool b)
-{
-	DrawOnAlpha(FALSE);
-
-	if (b)
-	{
-		if (!pAlphaDC)
-		{
-			pAlphaDC = new GMemDC;
-		}
-
-		if (pAlphaDC AND pMem)
-		{
-			if (!pAlphaDC->Create(pMem->x, pMem->y, 8))
-			{
-				DeleteObj(pAlphaDC);
-			}
-			else
-			{
-				ClearFlag(Flags, GDC_DRAW_ON_ALPHA);
-			}
-		}
-	}
-	else
-	{
-		DeleteObj(pAlphaDC);
-	}
-
-	return (b == IsAlpha());
-}
-
-bool GDeviceContext::DrawOnAlpha(bool Draw)
-{
-	bool Prev = DrawOnAlpha();
-
-	if (Draw)
-	{
-		if (!Prev AND pAlphaDC AND pMem)
-		{
-			GBmpMem *Temp = pMem;
-			pMem = pAlphaDC->pMem;
-			pAlphaDC->pMem = Temp;
-			SetFlag(Flags, GDC_DRAW_ON_ALPHA);
-
-			// remove current application, we may be changing bit depth
-			if (Flags & GDC_OWN_APPLICATOR)
-			{
-				DeleteObj(pApp);
-			}
-			else pApp = 0;
-
-			// set the new applicator
-			PrevOp = Op(GDC_SET);
-		}
-	}
-	else
-	{
-		if (Prev AND pAlphaDC AND pMem)
-		{
-			GBmpMem *Temp = pMem;
-			pMem = pAlphaDC->pMem;
-			pAlphaDC->pMem = Temp;
-			ClearFlag(Flags, GDC_DRAW_ON_ALPHA);
-
-			Op(PrevOp);
-		}
-	}
-
-	return Prev;
-}
-
-GApplicator *GDeviceContext::CreateApplicator(int Op, int Bits)
-{
-	GApplicator *pA = NULL;
-
-	if (!Bits AND pMem)
-	{
-		if (DrawOnAlpha())
-		{
-			Bits = 8;
-		}
-		else
-		{
-			Bits = pMem->Bits;
-		}
-	}
-
-	pA = GApplicatorFactory::NewApp(Bits, Op);
-	if (!pA)
-	{
-		LgiTrace("%s:%i - Failed to create application (op=%i)\n", Op);
-		LgiAssert(0);
-	}
-
-	if (pA AND pMem)
-	{
-		if (DrawOnAlpha())
-		{
-			pA->SetSurface(pMem);
-		}
-		else
-		{
-			pA->SetSurface(pMem, pPalette, (pAlphaDC) ? pAlphaDC->pMem : 0);
-		}
-		pA->SetOp(Op);
-	}
-
-	return pA;
-}
-
-bool GDeviceContext::Applicator(GApplicator *pApplicator)
-{
-	bool Status = FALSE;
-
-	if (pApplicator)
-	{
-		if (Flags & GDC_OWN_APPLICATOR)
-		{
-			DeleteObj(pApp)
-			Flags &= ~GDC_OWN_APPLICATOR;
-		}
-
-		Flags &= ~GDC_CACHED_APPLICATOR;
-
-		pApp = pApplicator;
-		if (DrawOnAlpha())
-		{
-			pApp->SetSurface(pMem);
-		}
-		else
-		{
-			pApp->SetSurface(pMem, pPalette, pAlphaDC->pMem);
-		}
-		pApp->SetPtr(0, 0);
-
-		Status = TRUE;
-	}
-
-	return Status;
-}
-
-GApplicator *GDeviceContext::Applicator()
-{
-	return pApp;
-}
-
-GRect GDeviceContext::ClipRgn(GRect *Rgn)
-{
-	GRect Old = Clip;
-	
-	if (Rgn)
-	{
-		Clip.x1 = max(0, Rgn->x1);
-		Clip.y1 = max(0, Rgn->y1);
-		Clip.x2 = min(X()-1, Rgn->x2);
-		Clip.y2 = min(Y()-1, Rgn->y2);
-	}
-	else
-	{
-		Clip.x1 = 0;
-		Clip.y1 = 0;
-		Clip.x2 = X()-1;
-		Clip.y2 = Y()-1;
-	}
-	
-	return Old;
-}
-
-GRect GDeviceContext::ClipRgn()
-{
-	return Clip;
-}
-
-COLOUR GDeviceContext::Colour(COLOUR c, int Bits)
-{
-	LgiAssert(pApp);
-
-	COLOUR cPrev = pApp->c;
-
-	if (Bits)
-	{
-		pApp->c = CBit(GetBits(), c, Bits, pPalette);
-	}
-	else
-	{
-		pApp->c = c;
-	}
-
-	return cPrev;
-}
-
-int GDeviceContext::Op(int NewOp)
-{
-	int PrevOp = (pApp) ? pApp->GetOp() : GDC_SET;
-	if (!pApp || PrevOp != NewOp)
-	{
-		COLOUR cCurrent = (pApp) ? Colour() : 0;
-
-		if (Flags & GDC_OWN_APPLICATOR)
-		{
-			DeleteObj(pApp);
-		}
-
-		if (NewOp < GDC_CACHE_SIZE AND !DrawOnAlpha())
-		{
-			pApp = (pAppCache[NewOp]) ? pAppCache[NewOp] : pAppCache[NewOp] = CreateApplicator(NewOp);
-			Flags &= ~GDC_OWN_APPLICATOR;
-			Flags |= GDC_CACHED_APPLICATOR;
-		}
-		else
-		{
-			pApp = CreateApplicator(NewOp);
-			Flags &= ~GDC_CACHED_APPLICATOR;
-			Flags |= GDC_OWN_APPLICATOR;
-		}
-
-		if (pApp)
-		{
-			Colour(cCurrent);
-		}
-		else
-		{
-			printf("Error: Couldn't create applicator, Op=%i\n", NewOp);
-			LgiAssert(0);
-		}
-	}
-
-	if (pApp)
-	{
-		pApp->SetSurface(pMem, pPalette, (pAlphaDC) ? pAlphaDC->pMem : 0);
-	}
-
-	return PrevOp;
-}
-
-GPalette *GDeviceContext::Palette()
-{
-	if (!pPalette AND pMem AND (pMem->Flags & GDC_ON_SCREEN))
-	{
-		pPalette = GdcD->GetSystemPalette();
-		if (pPalette)
-		{
-			Flags |= GDC_OWN_PALETTE;
-		}
-	}
-
-	return pPalette;
-}
-
-void GDeviceContext::Palette(GPalette *pPal, bool bOwnIt)
-{
-	if (pPalette AND Flags & GDC_OWN_PALETTE)
-	{
-		delete pPalette;
-	}
-
-	pPalette = pPal;
-
-	if (pPal AND bOwnIt)
-	{
-		Flags |= GDC_OWN_PALETTE;
-	}
-	else
-	{
-		Flags &= ~GDC_OWN_PALETTE;
-	}
-
-	if (pApp)
-	{
-		pApp->SetSurface(pMem, pPalette, (pAlphaDC) ? pAlphaDC->pMem : 0);
-	}
-}
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 class GlobalColourEntry
@@ -1033,7 +718,7 @@ COLOUR GGlobalColour::GetColour(COLOUR c24)
 {
 	for (int i=0; i<256; i++)
 	{
-		if (d->c[i].Used AND
+		if (d->c[i].Used &&
 			d->c[i].c24 == c24)
 		{
 			return PALETTEINDEX(i);
@@ -1213,13 +898,13 @@ GdcDevice::~GdcDevice()
 
 int GdcDevice::GetOption(int Opt)
 {
-	return (Opt >= 0 AND Opt < GDC_MAX_OPTION) ? d->OptVal[Opt] : 0;
+	return (Opt >= 0 && Opt < GDC_MAX_OPTION) ? d->OptVal[Opt] : 0;
 }
 
 int GdcDevice::SetOption(int Opt, int Value)
 {
 	int Prev = d->OptVal[Opt];
-	if (Opt >= 0 AND Opt < GDC_MAX_OPTION)
+	if (Opt >= 0 && Opt < GDC_MAX_OPTION)
 		d->OptVal[Opt] = Value;
 	return Prev;
 }
@@ -1441,7 +1126,7 @@ GAlphaFactory FactoryAlpha;
 
 GApplicatorFactory::GApplicatorFactory()
 {
-	LgiAssert(_Factories >= 0 AND _Factories < CountOf(_Factory));
+	LgiAssert(_Factories >= 0 && _Factories < CountOf(_Factory));
 	if (_Factories < CountOf(_Factory) - 1)
 	{
 		_Factory[_Factories++] = this;
@@ -1450,7 +1135,7 @@ GApplicatorFactory::GApplicatorFactory()
 
 GApplicatorFactory::~GApplicatorFactory()
 {
-	LgiAssert(_Factories >= 0 AND _Factories < CountOf(_Factory));
+	LgiAssert(_Factories >= 0 && _Factories < CountOf(_Factory));
 	for (int i=0; i<_Factories; i++)
 	{
 		if (_Factory[i] == this)
@@ -1464,7 +1149,7 @@ GApplicatorFactory::~GApplicatorFactory()
 
 GApplicator *GApplicatorFactory::NewApp(GColourSpace Cs, int Op)
 {
-	LgiAssert(_Factories >= 0 AND _Factories < CountOf(_Factory));
+	LgiAssert(_Factories >= 0 && _Factories < CountOf(_Factory));
 	for (int i=0; i<_Factories; i++)
 	{
 		GApplicator *a = _Factory[i]->Create(Cs, Op);

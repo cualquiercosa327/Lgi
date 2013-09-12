@@ -230,9 +230,6 @@ typedef union
 										  (((a) & 0x00000000000000ff) << 56) )
 #endif
 
-// Operators
-#define AND								&&
-
 // Good ol NULLy
 #ifndef NULL
 #define NULL							0

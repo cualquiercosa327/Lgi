@@ -172,7 +172,7 @@ int GLinePrefix::IsEnd(void *v, int Len)
 			}
 			else if (Start)
 			{
-				if (Prefix[0] AND
+				if (Prefix[0] &&
 					s[i] == Prefix[0])
 				{
 					At = Prefix + 1;
@@ -205,7 +205,7 @@ int GCopyStreamer::Copy(GStreamI *Source, GStreamI *Dest, GStreamEnd *End)
 	int Bytes = 0;
 	int r, w, e = -1;
 
-	if (Source AND Dest)
+	if (Source && Dest)
 	{
 		char Buf[4 << 10];
 		while (e < 0)

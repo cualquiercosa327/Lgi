@@ -194,7 +194,7 @@ void *GLibrary::GetAddress(const char *Resource)
 {
 	void *p = 0;
 	
-	if (Resource AND hLib)
+	if (Resource && hLib)
 	{
 		#if defined WIN32
 		p = (void*) GetProcAddress(hLib, Resource);

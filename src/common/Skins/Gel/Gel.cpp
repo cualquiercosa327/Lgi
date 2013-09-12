@@ -234,7 +234,7 @@ class GelSkin : public GSkinEngine
 	GMemDC *DrawCtrl(GViewI *Ctrl, int Flags, bool Round)
 	{
 		GMemDC *Mem = new GMemDC;
-		if (Mem AND Mem->Create(14, 14, BitDepth))
+		if (Mem && Mem->Create(14, 14, BitDepth))
 		{
 			// blank out background
 			GViewFill *Back = Ctrl->GetBackgroundFill();
@@ -401,7 +401,7 @@ class GelSkin : public GSkinEngine
 	void DrawText(GSurface *pDC, GDisplayString *Text, int x, int y, GRect &r, bool Enabled, GViewI *Ctrl)
 	{
 		GViewFill *Back = Ctrl->GetBackgroundFill();
-		if (Text AND r.X() > 3)
+		if (Text && r.X() > 3)
 		{
 			if (Enabled)
 			{
@@ -671,7 +671,7 @@ public:
 			e.Rectangle(r.x1, r.y1, r.x2, r.y2);
 			static bool LastEnabled = true;			
 			FillPath(&e, &Mem, State ? State->Value : false, State ? LastEnabled = State->Enabled : LastEnabled);
-			if (State AND State->Value)
+			if (State && State->Value)
 			{
 				Mem.Colour(Rgb24(0xc0, 0xc0, 0xc0), 24);
 				Mem.Line(r.x1, r.y1, r.x1, r.y2-1);
@@ -745,7 +745,7 @@ public:
 						Text->Draw(&Mem, tx+Off, ty+Off+BTN_TEXT_OFFSET_Y, &c);
 					}
 					
-					if (Ctrl->Focus() AND c.X() > 4)
+					if (Ctrl->Focus() && c.X() > 4)
 					{
 						GRect b(tx-2, ty, tx + sx + 1, ty + sy - 2);
 						b.Offset(Off, Off);
@@ -891,7 +891,7 @@ public:
 
 	GFont *GetDefaultFont(char *Class)
 	{
-		if (Class AND stricmp(Class, Res_Button) == 0)
+		if (Class && stricmp(Class, Res_Button) == 0)
 		{
 			return SysBold;
 		}

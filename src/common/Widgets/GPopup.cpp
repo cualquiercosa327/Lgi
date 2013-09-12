@@ -343,7 +343,7 @@ public:
 					if (hWnd != hMouseOver)
 					{
 						// Window has changed
-						if (hMouseOver AND IsWindow(hMouseOver))
+						if (hMouseOver && IsWindow(hMouseOver))
 						{
 							// Window is LOSING mouse
 							// Using 'post' because send can cause a deadlock.
@@ -357,7 +357,7 @@ public:
 						// Set current window
 						hMouseOver = hWnd;
 
-						if (hMouseOver AND IsWindow(hMouseOver))
+						if (hMouseOver && IsWindow(hMouseOver))
 						{
 							// Window is GETTING mouse
 							// Using 'post' because send can cause a deadlock.
@@ -382,7 +382,7 @@ public:
 						// First find the parent LGI window
 						HWND hWnd = hMouseOver;
 						GViewI *v = 0;
-						while (hWnd AND !(v = GWindowFromHandle(hMouseOver)))
+						while (hWnd && !(v = GWindowFromHandle(hMouseOver)))
 						{
 							HWND w = ::GetParent(hWnd);
 							if (w)
@@ -928,7 +928,7 @@ void GDropDown::OnPaint(GSurface *pDC)
 
 	int Cx = r.x2 - 7;
 	int Cy = r.y1 + ((r.Y() - 3) >> 1);
-	pDC->Colour(Enabled() AND Popup ? LC_TEXT : LC_LOW, 24);
+	pDC->Colour(Enabled() && Popup ? LC_TEXT : LC_LOW, 24);
 	if (IsOpen())
 	{
 		Cx++;
@@ -980,7 +980,7 @@ void GDropDown::Activate()
 
 bool GDropDown::OnKey(GKey &k)
 {
-	if (k.IsChar AND (k.c16 == ' ' || k.c16 == VK_RETURN))
+	if (k.IsChar && (k.c16 == ' ' || k.c16 == VK_RETURN))
 	{
 		if (k.Down())
 		{
@@ -991,7 +991,7 @@ bool GDropDown::OnKey(GKey &k)
 	}
 	else if (k.vkey == VK_ESCAPE)
 	{
-		if (k.Down() AND IsOpen())
+		if (k.Down() && IsOpen())
 		{
 			Activate();
 		}
@@ -1004,7 +1004,7 @@ bool GDropDown::OnKey(GKey &k)
 
 void GDropDown::OnMouseClick(GMouse &m)
 {
-	if (Popup AND m.Down())
+	if (Popup && m.Down())
 	{
 		Focus(true);
 		Activate();

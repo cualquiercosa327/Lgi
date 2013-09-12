@@ -70,7 +70,7 @@ public:
 		if (dx < 0) dx = -dx;
 		double dy = y - p.y;
 		if (dy < 0) dy = -dy;
-		return dx<Threshold AND dy<Threshold;
+		return dx<Threshold && dy<Threshold;
 	}
 
 	bool operator !=(GPointF &p)
@@ -131,7 +131,7 @@ public:
 
 	double X() { return x2 - x1; }
 	double Y() { return y2 - y1; }
-	bool IsNormal() { return x2 >= x1 AND y2 >= y1; }
+	bool IsNormal() { return x2 >= x1 && y2 >= y1; }
 	
 	void Normalize();
 	void Union(GPointF &p);

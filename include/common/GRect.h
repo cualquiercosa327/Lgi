@@ -252,7 +252,7 @@ public:
 	int X() { return x2 - x1 + 1; }
 	int Y() { return y2 - y1 + 1; }
 	int Length() { return Size; }
-	GRect *operator [](int i) { return (i >= 0 AND i < Size) ? a+i : 0; }
+	GRect *operator [](int i) { return (i >= 0 && i < Size) ? a+i : 0; }
 	GRegion &operator =(const GRect &r);	
 	GRect *First();
 	GRect *Last();
