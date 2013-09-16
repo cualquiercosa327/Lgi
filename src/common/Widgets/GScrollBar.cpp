@@ -340,7 +340,7 @@ public:
 			i = Min;
 		}
 
-		if (IsValid() AND i > Max - Page + 1)
+		if (IsValid() && i > Max - Page + 1)
 		{
 			i = max(Min, Max - Page + 1);
 		}

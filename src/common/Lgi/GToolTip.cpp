@@ -141,7 +141,7 @@ public:
 						t->Owner->PointToScreen(p);
 						w.Offset(p.x, p.y);
 						
-						bool Over = w.Overlap(m.x, m.y) AND t->IsOverParent(m.x, m.y);
+						bool Over = w.Overlap(m.x, m.y) && t->IsOverParent(m.x, m.y);
 						if (Over ^ t->Visible())
 						{
 							if (Over)
@@ -233,7 +233,7 @@ int GToolTip::NewTip(char *Name, GRect &Pos)
 	
 	#elif !defined(MAC)
 	
-	if (ValidStr(Name) AND d->Parent)
+	if (ValidStr(Name) && d->Parent)
 	{
 		// printf("NewTip('%s',%s)\n", Name, Pos.Describe());
 		

@@ -270,7 +270,7 @@ public:
 		if (WmLib)
 		{
 			Proc_LgiWmExit WmExit = (Proc_LgiWmExit) WmLib->GetAddress("LgiWmExit");
-			if (WmExit AND WmExit())
+			if (WmExit && WmExit())
 			{
 				DeleteObj(WmLib);
 			}
@@ -303,13 +303,14 @@ GSkinEngine *GApp::SkinEngine = 0;
 GApp *TheApp = 0;
 GMouseHook *GApp::MouseHook = 0;
 
-GApp::GApp(const char *AppMime, OsAppArguments &AppArgs, GAppArguments *Args) :
+GApp::GApp(OsAppArguments &AppArgs, const char *name, GAppArguments *Args) :
 	OsApplication(AppArgs.Args, AppArgs.Arg)
 {
 	TheApp = this;
 	SystemNormal = 0;
 	SystemBold = 0;
 	d = new GAppPrivate;
+	Name(name);
 	
 	// We want our printf's NOW!
 	setvbuf(stdout,(char *)NULL,_IONBF,0); // print mesgs immediately.
@@ -328,7 +329,7 @@ GApp::GApp(const char *AppMime, OsAppArguments &AppArgs, GAppArguments *Args) :
 
 	#if defined XWIN
 	// Setup the SIGSEGV signal to call the KDE crash handler
-	if (!GetOption("nch") AND
+	if (!GetOption("nch") &&
 		LgiGetWindowManager() == WM_Kde)
 	{
 		signal(SIGSEGV, LgiCrashHandler);
@@ -389,6 +390,7 @@ GApp::~GApp()
 	TheApp = 0;
 }
 
+/*
 char *GApp::GetName()
 {
 	if (!d->Name)
@@ -409,6 +411,7 @@ char *GApp::GetName()
 	
     return d->Name;
 }
+*/
 
 GApp *GApp::ObjInstance()
 {
@@ -421,7 +424,7 @@ bool GApp::IsOk()
 					(d != 0)
 					/*
 					#ifdef XWIN
-					AND (XDisplay() != 0)
+					&& (XDisplay() != 0)
 					#endif
 					*/
 					;
@@ -626,7 +629,7 @@ GXmlTag *GApp::GetConfig(const char *Tag)
 		}
 	}
 
-	if (Tag AND d->Config)
+	if (Tag && d->Config)
 	{
 		return d->Config->GetTag(Tag);
 	}
@@ -636,7 +639,7 @@ GXmlTag *GApp::GetConfig(const char *Tag)
 
 char *GApp::GetArgumentAt(int n)
 {
-	return n >= 0 AND n < d->Args.Args ? NewStr(d->Args.Arg[n]) : 0;
+	return n >= 0 && n < d->Args.Args ? NewStr(d->Args.Arg[n]) : 0;
 }
 
 bool GApp::GetOption(const char *Option, char *Dest, int DestLen)
@@ -659,7 +662,7 @@ bool GApp::GetOption(const char *Option, char *Dest, int DestLen)
 
 bool GApp::GetOption(const char *Option, GAutoString &Buf)
 {
-	if (IsOk() AND Option)
+	if (IsOk() && Option)
 	{
 		int OptLen = strlen(Option);
 		for (int i=1; i<d->Args.Args; i++)
@@ -779,12 +782,12 @@ GAutoString GApp::GetFileMimeType(const char *File)
 	{
 		// Not loaded, go and try to load it...
 		d->Sm = new GSharedMime;
-		if (d->Sm AND d->Sm->IsLoaded())
+		if (d->Sm && d->Sm->IsLoaded())
 		{
 			d->Sm->mimetypes_init();
 		}
 	}
-	if (d->Sm AND d->Sm->IsLoaded())
+	if (d->Sm && d->Sm->IsLoaded())
 	{
 		// Loaded...
 		char *m = (char*)d->Sm->mimetypes_get_file_type(File, MIMETYPES_CHECK_ALL);
@@ -821,12 +824,12 @@ GAutoString GApp::GetFileMimeType(const char *File)
 		if (Out)
 		{
 			char *s = strchr(Out, ':');
-			if (s AND strchr(Out, '/'))
+			if (s && strchr(Out, '/'))
 			{
 				s += 2;
 				
 				char *e = s;
-				while (*e AND (isalpha(*e) OR strchr("-_/", *e))) e++;
+				while (*e && (isalpha(*e) OR strchr("-_/", *e))) e++;
 				*e = 0;
 				
 				strcpy(Mime, s);
@@ -898,7 +901,7 @@ bool GApp::GetAppsForMimeType(char *Mime, GArray<GAppInfo*> &Apps)
 					char AppPath[256] = "";
 
 					// this is an app that supports the MimeTypes...
-					if (_GetIniField("Desktop Entry", "MimeType", DesktopFile, MimeTypes, sizeof(MimeTypes)) AND
+					if (_GetIniField("Desktop Entry", "MimeType", DesktopFile, MimeTypes, sizeof(MimeTypes)) &&
 						_GetIniField("Desktop Entry", "Exec", DesktopFile, AppPath, sizeof(AppPath)))
 					{
 						// look through the types..
@@ -922,7 +925,7 @@ bool GApp::GetAppsForMimeType(char *Mime, GArray<GAppInfo*> &Apps)
 									for (int n=0; n<Group->Length(); n++)
 									{
 										GAppInfo *Existing = (*Group)[n];
-										if (Existing AND Existing->Path)
+										if (Existing && Existing->Path)
 										{
 											char *a = strchr(AppPath, ' ');
 											int alen = a ? (int)a-(int)AppPath : strlen(AppPath);
@@ -930,7 +933,7 @@ bool GApp::GetAppsForMimeType(char *Mime, GArray<GAppInfo*> &Apps)
 											char *b = strchr(Existing->Path, ' ');
 											int blen = b ? (int)b-(int)Existing->Path : strlen(Existing->Path);
 
-											if (alen == blen AND
+											if (alen == blen &&
 												strncmp(AppPath, Existing->Path, alen) == 0)
 											{
 												Has = true;
@@ -1038,7 +1041,7 @@ GLibrary *GApp::GetWindowManagerLib()
 		else printf("%s:%i - alloc error\n", __FILE__, __LINE__);
 	}
 	
-	return d->WmLib AND d->WmLib->IsLoaded() ? d->WmLib : 0;
+	return d->WmLib && d->WmLib->IsLoaded() ? d->WmLib : 0;
 }
 
 void GApp::DeleteMeLater(GViewI *v)

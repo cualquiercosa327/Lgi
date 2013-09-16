@@ -117,7 +117,7 @@ bool GClipBoard::Binary(FormatType Format, uchar *Ptr, int Len, bool AutoEmpty)
 {
 	bool Status = false;
 
-	if (Ptr AND Len > 0)
+	if (Ptr && Len > 0)
 	{
 	}
 
@@ -128,7 +128,7 @@ bool GClipBoard::Binary(FormatType Format, GAutoPtr<uint8> &Ptr, int *Len)
 {
 	bool Status = false;
 
-	if (Ptr AND Len)
+	if (Ptr && Len)
 	{
 	}
 

@@ -129,12 +129,12 @@ public:
 
 	int GetCurrentIndex()
 	{
-		return (Records AND Current) ? Records->IndexOf(Current) : -1;
+		return (Records && Current) ? Records->IndexOf(Current) : -1;
 	}
 
 	void Serialize(bool Write)
 	{
-		if (Fields AND Dlg AND Current)
+		if (Fields && Dlg && Current)
 		{
 			ObjProperties Temp;
 			Options = &Temp;
@@ -162,7 +162,7 @@ public:
 
 	void OnMoveRecord(Record *r)
 	{
-		if (Dlg AND Fields)
+		if (Dlg && Fields)
 		{
 			Serialize(true);
 			Current = r;
@@ -203,7 +203,7 @@ public:
 
 	int OnNotify(GViewI *Col, int Flags)
 	{
-		if (Fields AND Dlg AND Records)
+		if (Fields && Dlg && Records)
 		{
 			if (Col == Scroll)
 			{

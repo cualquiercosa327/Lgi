@@ -361,7 +361,7 @@ GdcPt2 GControl::SizeOfStr(const char *Str)
 	if (Str)
 	{
 		const char *e = 0;
-		for (const char *s = Str; s AND *s; s = e?e+1:0)
+		for (const char *s = Str; s && *s; s = e?e+1:0)
 		{
 			e = strchr(s, '\n');
 			int Len = e ? (int)e-(int)s : strlen(s);
@@ -424,7 +424,7 @@ void GText::OnPaint(GSurface *pDC)
 	int Ly = SysFont->Y("A");
 	int y = 0;
 	char *e = 0;
-	for (char *s = Name(); s AND *s; s = e?e+1:0)
+	for (char *s = Name(); s && *s; s = e?e+1:0)
 	{
 		e = strchr(s, '\n');
 		
@@ -627,7 +627,7 @@ void GRadioButton::Value(int i)
 					if (c != this)
 					{
 						GRadioButton *b = dynamic_cast<GRadioButton*>(c);
-						if (b AND b->Val)
+						if (b && b->Val)
 						{
 							b->Val = false;
 							b->Invalidate();
@@ -664,7 +664,7 @@ void GRadioButton::OnMouseClick(GMouse &m)
 		Over = m.Down();
 	
 		GRect r(0, 0, X()-1, Y()-1);
-		if (!m.Down() AND
+		if (!m.Down() &&
 			r.Overlap(m.x, m.y))
 		{
 			Value(true);
@@ -678,7 +678,7 @@ void GRadioButton::OnMouseClick(GMouse &m)
 
 void GRadioButton::OnMouseEnter(GMouse &m)
 {
-	if (Enabled() AND IsCapturing())
+	if (Enabled() && IsCapturing())
 	{
 		Over = true;
 		Invalidate();
@@ -687,7 +687,7 @@ void GRadioButton::OnMouseEnter(GMouse &m)
 
 void GRadioButton::OnMouseExit(GMouse &m)
 {
-	if (Enabled() AND IsCapturing())
+	if (Enabled() && IsCapturing())
 	{
 		Over = false;
 		Invalidate();
@@ -870,7 +870,7 @@ void GSlider::OnMouseMove(GMouse &m)
 	if (IsCapturing())
 	{
 		int Rx = X() - 6;
-		if (Rx > 0 AND Max >= Min)
+		if (Rx > 0 && Max >= Min)
 		{
 			int x = m.x - Tx;
 			int v = x * (Max-Min) / Rx;
@@ -1048,7 +1048,7 @@ void GBitmap::OnPaint(GSurface *pScreen)
 
 void GBitmap::OnMouseClick(GMouse &m)
 {
-	if (!m.Down() AND GetParent())
+	if (!m.Down() && GetParent())
 	{
 		GDialog *Dlg = dynamic_cast<GDialog*>(GetParent());
 		if (Dlg) Dlg->OnNotify(this, 0);

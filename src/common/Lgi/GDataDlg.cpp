@@ -53,7 +53,7 @@ bool DataDlgTools::ProcessField(DataDlgField *f, bool Write, char *OptionOverrid
 {
 	char *Opt = (OptionOverride) ? OptionOverride : f->Option;
 	GViewI *v = Dlg->FindControl(f->CtrlId);
-	if (Options AND Dlg AND Opt AND v)
+	if (Options && Dlg && Opt && v)
 	{
 		char OsOpt[256] = "";
 		switch (f->Type)
@@ -97,7 +97,7 @@ bool DataDlgTools::ProcessField(DataDlgField *f, bool Write, char *OptionOverrid
 				if (Write) // Ctrl -> Opts
 				{
 					char *s = v->Name();
-					if (DeleteEmptyStrings AND !ValidStr(s))
+					if (DeleteEmptyStrings && !ValidStr(s))
 					{
 						Options->DeleteKey(Opt);
 					}

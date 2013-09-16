@@ -141,7 +141,7 @@ public:
 	
 	bool IsOk()
 	{
-		return	this != 0; // AND IsLoaded();
+		return	this != 0; // && IsLoaded();
 	}
 	
 	bool StartPs()
@@ -295,7 +295,7 @@ public:
 	
 	void setFont(GFont *f)
 	{
-		if (File().IsOpen() AND
+		if (File().IsOpen() &&
 			(stricmp(f->Face(), Face) != 0 || PtSize != f->PointSize()))
 		{
 			strcpy(Face, f->Face());
@@ -374,7 +374,7 @@ public:
 	
 	void drawText(int x, int y, char16 *text, int len, int *backColour, GRect *clip)
 	{
-		if (ValidStrW(text) AND File().IsOpen())
+		if (ValidStrW(text) && File().IsOpen())
 		{
 			if (len < 0)
 			{
@@ -385,10 +385,10 @@ public:
 			// of the postscript language. So we escape them here.
 			char *Mem = LgiNewUtf16To8(text);
 			GStringPipe p;
-			for (char *s = Mem; s AND *s; )
+			for (char *s = Mem; s && *s; )
 			{
 				char *e = s;
-				while (*e AND *e != '(' AND *e != ')') e++;
+				while (*e && *e != '(' && *e != ')') e++;
 				if (*e)
 				{
 					p.Push(s, (int)e-(int)s);
@@ -571,7 +571,7 @@ bool GPrintDC::StartPage()
 
 void GPrintDC::EndPage()
 {
-	if (d->IsOk() AND
+	if (d->IsOk() &&
 		d->PageOpen)
 	{
 		d->EndPage();

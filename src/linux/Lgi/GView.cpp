@@ -161,7 +161,7 @@ void GView::_Delete()
 	if (Wnd && Wnd->GetFocus() == static_cast<GViewI*>(this))
 		Wnd->SetFocus(this, GWindow::ViewDelete);
 
-	if (LgiApp AND LgiApp->AppWnd == this)
+	if (LgiApp && LgiApp->AppWnd == this)
 	{
 		LgiApp->AppWnd = 0;
 	}
@@ -497,7 +497,7 @@ bool GView::SetPos(GRect &p, bool Repaint)
 		int o = 0;
 		
 		GView *Par = d->GetParent();
-		if (Par AND (Par->Sunken() || Par->Raised()))
+		if (Par && (Par->Sunken() || Par->Raised()))
 		{
 			o = Par->_BorderSize;
 		}
@@ -653,7 +653,7 @@ GMessage::Param GView::OnEvent(GMessage *Msg)
 		case M_X11_INVALIDATE:
 		{
 			X11_INVALIDATE_PARAMS *p = (X11_INVALIDATE_PARAMS*)MsgA(Msg);
-			if (p AND p->View == this)
+			if (p && p->View == this)
 			{
 				Invalidate(p->Rgn.Valid() ? &p->Rgn : 0, p->Repaint);
 				DeleteObj(p);
@@ -836,7 +836,7 @@ bool GView::Attach(GViewI *parent)
 		int o = 0;
 		{
 			GView *Par = d->GetParent();
-			if (Par AND (Par->Sunken() || Par->Raised()))
+			if (Par && (Par->Sunken() || Par->Raised()))
 			{
 				o = Par->_BorderSize;
 			}
