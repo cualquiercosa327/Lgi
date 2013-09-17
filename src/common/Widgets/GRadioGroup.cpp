@@ -371,13 +371,12 @@ bool GRadioButton::OnLayout(GViewLayoutInfo &Inf)
             Inf.Width.Max =
             d->Txt ? 20 + d->Txt->X() : 30;
     }
-    else if (!Inf.Height.Max)
+    else
     {
-        Inf.Height.Min =
-            Inf.Height.Max =
-            d->Txt ? d->Txt->Y() : SysFont->GetHeight();
+		int y = d->Txt ? d->Txt->Y() : SysFont->GetHeight();
+        Inf.Height.Min = max(Inf.Height.Min, y);
+        Inf.Height.Max = max(Inf.Height.Max, y);
     }
-    else return false;
 	
     return true;    
 }

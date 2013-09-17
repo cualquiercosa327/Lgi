@@ -788,6 +788,41 @@ bool GCss::InheritResolve(PropMap &Contrib)
 			                            Mine->Value = Mine->Value - 1;
 			                            break;
 			                        }
+			                        case SizeXXSmall:
+			                        {
+										// No smaller sizes..
+										break;
+			                        }
+			                        case SizeXSmall:
+			                        {
+										Mine->Value = SizeXXSmall;
+										break;
+			                        }
+			                        case SizeSmall:
+			                        {
+										Mine->Value = SizeXSmall;
+										break;
+			                        }
+			                        case SizeMedium:
+			                        {
+										Mine->Value = SizeSmall;
+										break;
+			                        }
+			                        case SizeLarge:
+			                        {
+										Mine->Value = SizeMedium;
+										break;
+			                        }
+			                        case SizeXLarge:
+			                        {
+										Mine->Value = SizeLarge;
+										break;
+			                        }
+			                        case SizeXXLarge:
+			                        {
+										Mine->Value = SizeXLarge;
+										break;
+			                        }
 			                        default:
 			                        {
 			                            LgiAssert(!"Not impl");
@@ -805,6 +840,41 @@ bool GCss::InheritResolve(PropMap &Contrib)
 			                        {
 			                            Mine->Value = Mine->Value + 1;
 			                            break;
+			                        }
+			                        case SizeXXSmall:
+			                        {
+										Mine->Value = SizeXSmall;
+										break;
+			                        }
+			                        case SizeXSmall:
+			                        {
+										Mine->Value = SizeSmall;
+										break;
+			                        }
+			                        case SizeSmall:
+			                        {
+										Mine->Value = SizeMedium;
+										break;
+			                        }
+			                        case SizeMedium:
+			                        {
+										Mine->Value = SizeLarge;
+										break;
+			                        }
+			                        case SizeLarge:
+			                        {
+										Mine->Value = SizeXLarge;
+										break;
+			                        }
+			                        case SizeXLarge:
+			                        {
+										Mine->Value = SizeXXLarge;
+										break;
+			                        }
+			                        case SizeXXLarge:
+			                        {
+										// No higher sizess...
+										break;
 			                        }
 			                        default:
 			                        {
