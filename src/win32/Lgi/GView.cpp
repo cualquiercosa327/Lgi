@@ -1889,6 +1889,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				Ms.x = (short) (Msg->b&0xFFFF);
 				Ms.y = (short) (Msg->b>>16);
 				Ms.Flags = _lgi_get_key_flags();
+				Ms.IsMove(true);
 				if (TestFlag(Msg->a, MK_LBUTTON)) SetFlag(Ms.Flags, LGI_EF_LEFT);
 				if (TestFlag(Msg->a, MK_RBUTTON)) SetFlag(Ms.Flags, LGI_EF_RIGHT);
 				if (TestFlag(Msg->a, MK_MBUTTON)) SetFlag(Ms.Flags, LGI_EF_MIDDLE);

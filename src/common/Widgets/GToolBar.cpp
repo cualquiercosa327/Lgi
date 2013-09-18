@@ -952,7 +952,7 @@ void GToolButton::OnPaint(GSurface *pDC)
 	{
 		GRect p = GetClient();
 		
-		#ifdef _DEBUG
+		#if 0 // def _DEBUG
 		pDC->Colour(GColour(255, 0, 255));
 		pDC->Rectangle();
 		#endif

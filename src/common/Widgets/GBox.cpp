@@ -110,7 +110,7 @@ bool GBox::OnViewMouse(GView *v, GMouse &m)
 	// to grab normally. Consider the case of a split that is 1px wide. The active region needs to
 	// be a little larger than that, however a normal click would go through to the child windows
 	// on either side of the split rather than to the GBox.
-	if (m.Down())
+	if (!m.IsMove() && m.Down())
 	{
 		// Convert click to the local coordinates of this view
 		GMouse Local = m;

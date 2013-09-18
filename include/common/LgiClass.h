@@ -200,6 +200,8 @@ public:
 	bool Middle()	{ return TestFlag(Flags, LGI_EF_MIDDLE); }
 	/// True if the right mouse button was clicked
 	bool Right()	{ return TestFlag(Flags, LGI_EF_RIGHT); }
+	/// True if the mouse event is a move, false for a click event.
+	bool IsMove()	{ return TestFlag(Flags, LGI_EF_MOVE); }
 
 	/// Sets the left button flag
 	void Left(bool i)	{ AssignFlag(Flags, LGI_EF_LEFT, i); }
@@ -207,6 +209,8 @@ public:
 	void Middle(bool i)	{ AssignFlag(Flags, LGI_EF_MIDDLE, i); }
 	/// Sets the right button flag
 	void Right(bool i)	{ AssignFlag(Flags, LGI_EF_RIGHT, i); }
+	/// Sets the move flag
+	void IsMove(bool i)	{ AssignFlag(Flags, LGI_EF_MOVE, i); }
 	
 	/// Converts to screen coordinates
 	bool ToScreen();

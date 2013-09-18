@@ -407,6 +407,7 @@ enum LgiCursor
 #define LGI_EF_LEFT						0x00001000
 #define LGI_EF_MIDDLE					0x00002000
 #define LGI_EF_RIGHT					0x00004000
+#define LGI_EF_MOVE						0x00008000
 
 // Emit compiler warnings
 #define __STR2__(x) #x
