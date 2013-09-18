@@ -65,6 +65,9 @@ LONG __stdcall GApp::_ExceptionFilter(LPEXCEPTION_POINTERS e, char *ProductId)
 
 	char p[MAX_PATH];
 	LgiGetSystemPath(LSP_APP_ROOT, p, sizeof(p));
+	if (!DirExists(p))
+		FileDev->CreateFolder(p);
+
 	if (ProductId)
 		sprintf(p+strlen(p), "%s%s-crash.dmp", DIR_STR, ProductId);
 	else

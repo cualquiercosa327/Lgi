@@ -82,7 +82,18 @@ public:
 				GAutoString BaseName(NewStr(File));
 				
 				char p[MAX_PATH];
-				LgiGetSystemPath(Mode == InstallPortable ? LSP_APP_INSTALL : LSP_APP_ROOT, p, sizeof(p));
+				if (Mode == InstallPortable)
+				{
+					LgiGetSystemPath(LSP_APP_INSTALL, p, sizeof(p));
+				}
+				else
+				{
+					if (LgiGetSystemPath(LSP_APP_ROOT, p, sizeof(p)) &&
+						!DirExists(p))
+					{
+						FileDev->CreateFolder(p);
+					}
+				}
 				LgiMakePath(p, sizeof(p), p, BaseName);
 				Status.Reset(NewStr(p));
 			}

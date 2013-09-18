@@ -464,6 +464,8 @@ void LgiTrace(const char *Msg, ...)
 		{
 			ResetToAppRoot:
 			LgiGetSystemPath(LSP_APP_ROOT, Buffer, sizeof(Buffer));
+			if (!DirExists(Buffer))
+				FileDev->CreateFolder(Buffer);
 			LgiMakePath(Buffer, sizeof(Buffer), Buffer, "trace.txt");
 			f.Open(Buffer, O_WRITE);
 		}
