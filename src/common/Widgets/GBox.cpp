@@ -84,11 +84,14 @@ void GBox::SetVertical(bool v)
 
 GBox::Spacer *GBox::GetSpacer(int idx)
 {
-	while (d->Spacers.Length() < Children.Length() - 1)
+	if (Children.Length())
 	{
-		Spacer &s = d->Spacers.New();
-		s.SizePx = DEFAULT_SPACER_PX;
-		s.Colour.c24(DEFAULT_SPACER_COLOUR24);
+		while (d->Spacers.Length() < Children.Length() - 1)
+		{
+			Spacer &s = d->Spacers.New();
+			s.SizePx = DEFAULT_SPACER_PX;
+			s.Colour.c24(DEFAULT_SPACER_COLOUR24);
+		}
 	}
 	
 	return idx >= 0 && idx < d->Spacers.Length() ? &d->Spacers[idx] : NULL;
@@ -177,7 +180,12 @@ void GBox::OnPosChange()
 		GCss::Len size;
 		GCss *css = c->GetCss();
 		if (css)
-			size = css->Width();
+		{
+			if (IsVertical())
+				size = css->Height();
+			else
+				size = css->Width();
+		}
 		if (!size.IsValid())
 		{
 			size.Type = GCss::LenPx;

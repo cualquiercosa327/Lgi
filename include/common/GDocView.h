@@ -15,17 +15,21 @@
 #define TEXTED_WRAP_REFLOW			1
 
 // Notify flags
-
-/// GView::OnNotify flag: the document has changed
-#define GTVN_DOC_CHANGED			0x01
-/// GView::OnNotify flag: the cursor moved
-#define GTVN_CURSOR_CHANGED			0x02
-/// GView::OnNotify flag: the charset has changed
-#define GTVN_CODEPAGE_CHANGED		0x04
-/// GView::OnNotify flag: the fixed width font setting has changed
-#define GTVN_FIXED_WIDTH_CHANGED	0x08
-/// GView::OnNotify flag: the show images setting has changed
-#define GTVN_SHOW_IMGS_CHANGED		0x10
+enum GDocViewNotify
+{
+	/// GView::OnNotify flag: the document has changed
+	GTVN_DOC_CHANGED,
+	/// GView::OnNotify flag: the cursor moved
+	GTVN_CURSOR_CHANGED,
+	/// GView::OnNotify flag: the selection has changed
+	GTVN_SELECTION_CHANGED,
+	/// GView::OnNotify flag: the charset has changed
+	GTVN_CODEPAGE_CHANGED,
+	/// GView::OnNotify flag: the fixed width font setting has changed
+	GTVN_FIXED_WIDTH_CHANGED,
+	/// GView::OnNotify flag: the show images setting has changed
+	GTVN_SHOW_IMGS_CHANGED,
+};
 
 // Util macros
 

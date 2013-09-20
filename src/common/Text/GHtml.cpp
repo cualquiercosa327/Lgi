@@ -22,6 +22,7 @@
 #define DEBUG_TABLE_LAYOUT			0
 #define DEBUG_RESTYLE				0
 #define DEBUG_TAG_BY_POS			0
+#define DEBUG_SELECTION				0
 
 #define LUIS_DEBUG					0
 #define CRASH_TRACE					0
@@ -6365,11 +6366,13 @@ void GHtml::UnSelectAll()
 	if (Cursor)
 	{
 		Cursor->Cursor = -1;
+		Cursor = NULL;
 		i = true;
 	}
 	if (Selection)
 	{
 		Selection->Selection = -1;
+		Selection = NULL;
 		i = true;
 	}
 	if (i)
@@ -6531,28 +6534,29 @@ void GHtml::SetLoadImages(bool i)
 }
 
 char *GHtml::GetSelection()
-
 {
 	char *s = 0;
 
-	GBytePipe p;
-
-	bool InSelection = false;
-	Tag->CopyClipboard(p, InSelection);
-
-	int Len = p.GetSize();
-	if (Len > 0)
+	if (Cursor && Selection)
 	{
-		char16 *t = (char16*)p.New(sizeof(char16));
-		if (t)
+		GBytePipe p;
+		bool InSelection = false;
+		Tag->CopyClipboard(p, InSelection);
+
+		int Len = p.GetSize();
+		if (Len > 0)
 		{
-			int Len = StrlenW(t);
-			for (int i=0; i<Len; i++)
+			char16 *t = (char16*)p.New(sizeof(char16));
+			if (t)
 			{
-				if (t[i] == 0xa0) t[i] = ' ';
+				int Len = StrlenW(t);
+				for (int i=0; i<Len; i++)
+				{
+					if (t[i] == 0xa0) t[i] = ' ';
+				}
+				s = LgiNewUtf16To8(t);
+				DeleteArray(t);
 			}
-			s = LgiNewUtf16To8(t);
-			DeleteArray(t);
 		}
 	}
 
@@ -6909,31 +6913,32 @@ void GHtml::OnMouseClick(GMouse &m)
 					}
 
 					Invalidate();
+					SendNotify(GTVN_SELECTION_CHANGED);
 				}
 			}
-			else if (Hit.Direct || Hit.NearestText)
+			else
 			{
 				d->WordSelectMode = false;
 				UnSelectAll();
-
-				if (Selection)
-				{
-					Selection->Selection = -1;
-					Selection = NULL;
-				}
 				
-				if (Hit.NearestText && Hit.Near == 0)
+				if (Hit.NearestText && Hit.Near < 5)
 				{
 					Cursor = Hit.NearestText;
 					Cursor->Cursor = Hit.Index;
+
+					#if DEBUG_SELECTION
+					LgiTrace("StartSelect Near='%20S' Idx=%i\n", Hit.NearestText->Text(), Hit.Index);
+					#endif
 				}
 				else
 				{
-					Cursor = Hit.Direct;
-					Cursor->Cursor = 0;
+					#if DEBUG_SELECTION
+					LgiTrace("StartSelect no text hit %p, %p\n", Cursor, Selection);
+					#endif
 				}
 				
 				OnCursorChanged();
+				SendNotify(GTVN_SELECTION_CHANGED);
 			}
 		}
 
@@ -7187,12 +7192,18 @@ void GHtml::OnMouseClick(GMouse &m)
 	}
 	else // Up Click
 	{
-		if (Selection && Cursor &&
+		if (Selection &&
+			Cursor &&
 			Selection == Cursor &&
 			Selection->Selection == Cursor->Cursor)
 		{
 			Selection->Selection = -1;
 			Selection = 0;
+			SendNotify(GTVN_SELECTION_CHANGED);
+
+			#if DEBUG_SELECTION
+			LgiTrace("NoSelect on release\n");
+			#endif
 		}
 	}
 }
@@ -7310,6 +7321,12 @@ void GHtml::OnMouseMove(GMouse &m)
 			Cursor->Cursor = Hit.Index;
 			OnCursorChanged();
 			Invalidate();
+			
+			SendNotify(GTVN_SELECTION_CHANGED);
+
+			#if DEBUG_SELECTION
+			LgiTrace("CreateSelection '%20S' %i\n", Hit.NearestText->Text(), Hit.Index);
+			#endif
 		}
 		else if ((Cursor != Hit.NearestText) ||
 				 (Cursor->Cursor != Hit.Index))
@@ -7322,6 +7339,9 @@ void GHtml::OnMouseMove(GMouse &m)
 
 			Cursor = Hit.NearestText;
 			Cursor->Cursor = Hit.Index;
+			#if DEBUG_SELECTION
+			LgiTrace("ExtendSelection '%20S' %i\n", Hit.NearestText->Text(), Hit.Index);
+			#endif
 
 			if (d->WordSelectMode && Cursor->Text())
 			{
@@ -7356,6 +7376,7 @@ void GHtml::OnMouseMove(GMouse &m)
 
 			OnCursorChanged();
 			Invalidate();
+			SendNotify(GTVN_SELECTION_CHANGED);
 		}
 	}
 }
