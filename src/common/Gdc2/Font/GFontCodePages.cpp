@@ -666,25 +666,25 @@ GCharset("iso-8859-13",		"ISO 8859-13 (Baltik)",			_gdc_ISO_8859_13_mapping, "IS
 GCharset("iso-8859-15",		"ISO 8859-15 (Latic 9)",		_gdc_ISO_8859_15_mapping, "ISO_8859-15"),
 
 // Windows
-GCharset("windows-874",		"Windows 874 (Thai)",			_gdc_win_874_mapping, "iso-8859-11"),
+GCharset("windows-874",		"Windows 874 (Thai)",			_gdc_win_874_mapping, "iso-8859-11,cp874"),
 GCharset("windows-932",		"Windows 932 (Japanese)"),
 GCharset("windows-936",		"Windows 936 (Chinese)"),
 GCharset("windows-949",		"Windows 949 (Korean)"),
 GCharset("windows-950",		"Windows 950 (Chinese)"),
-GCharset("windows-1250",	"Windows 1250 (Latin 2)",		_gdc_win_1250_mapping),
-GCharset("windows-1251",	"Windows 1251 (Cyrillic)",		_gdc_win_1251_mapping),
-GCharset("windows-1252",	"Windows 1252 (Latin 1)",		_gdc_win_1252_mapping, "x-cp1252"),
-GCharset("windows-1253",	"Windows 1253 (Greek)",			_gdc_win_1253_mapping),
-GCharset("windows-1254",	"Windows 1254 (Turkish)",		_gdc_win_1254_mapping),
-GCharset("windows-1255",	"Windows 1255 (Hebrew)",		_gdc_win_1255_mapping),
-GCharset("windows-1256",	"Windows 1256 (Arabic)",		_gdc_win_1256_mapping),
-GCharset("windows-1257",	"Windows 1257 (Baltic)",		_gdc_win_1257_mapping),
-GCharset("windows-1258",	"Windows 1258 (Veitnam),		_gdc_win_1258_mapping"),
+GCharset("windows-1250",	"Windows 1250 (Latin 2)",		_gdc_win_1250_mapping, "x-cp1250,cp1250"),
+GCharset("windows-1251",	"Windows 1251 (Cyrillic)",		_gdc_win_1251_mapping, "x-cp1251,cp1251"),
+GCharset("windows-1252",	"Windows 1252 (Latin 1)",		_gdc_win_1252_mapping, "x-cp1252,cp1252"),
+GCharset("windows-1253",	"Windows 1253 (Greek)",			_gdc_win_1253_mapping, "x-cp1253,cp1253"),
+GCharset("windows-1254",	"Windows 1254 (Turkish)",		_gdc_win_1254_mapping, "x-cp1254,cp1254"),
+GCharset("windows-1255",	"Windows 1255 (Hebrew)",		_gdc_win_1255_mapping, "x-cp1255,cp1255"),
+GCharset("windows-1256",	"Windows 1256 (Arabic)",		_gdc_win_1256_mapping, "x-cp1256,cp1256"),
+GCharset("windows-1257",	"Windows 1257 (Baltic)",		_gdc_win_1257_mapping, "x-cp1257,cp1257"),
+GCharset("windows-1258",	"Windows 1258 (Veitnam)",		_gdc_win_1258_mapping, "x-cp1258,cp1258"),
 
 // Russian
 GCharset("koi8-r",			"KOI8-R",						_gdc_koi8r_mapping, "csKOI8R"),
-GCharset("koi8-u",			"KOI8-U",						_gdc_koi8u_mapping),
-GCharset("koi8-ru",			"KOI8-RU",						_gdc_koi8ru_mapping),
+GCharset("koi8-u",			"KOI8-U",						_gdc_koi8u_mapping, "csKOI8U"),
+GCharset("koi8-ru",			"KOI8-RU",						_gdc_koi8ru_mapping, "csKOI8RU"),
 GCharset("koi8-t",			"KOI8-T (Tajik)"),
 
 // Codepages
