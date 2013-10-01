@@ -236,7 +236,7 @@ GDocApp<OptionsFmt>::GDocApp(const char *appname, const TCHAR *icon, char *optsn
 template <typename OptionsFmt>
 GDocApp<OptionsFmt>::~GDocApp()
 {
-	LgiTrace("~GDocApp()\n");
+	// LgiTrace("~GDocApp()\n");
 	DeleteObj(d);
 	DeleteObj(Options);
 }
@@ -295,10 +295,10 @@ bool GDocApp<OptionsFmt>::_DoSerialize(bool Write)
 	{
 		const char *Ext = d->GetExtension(Options);
 		d->OptionsFile = d->GetOptionsFile(Ext);
-		LgiTrace("d->OptionsFile='%s'\n", d->OptionsFile.Get());
+		// LgiTrace("d->OptionsFile='%s'\n", d->OptionsFile.Get());
 	}
 
-	LgiTrace("Options='%p'\n", Options);
+	// LgiTrace("Options='%p'\n", Options);
 	if (!Options)
 	{
 		if (FileExists(d->OptionsFile))
@@ -351,7 +351,7 @@ bool GDocApp<OptionsFmt>::_DoSerialize(bool Write)
 template <typename OptionsFmt>
 bool GDocApp<OptionsFmt>::_SerializeFile(bool Write)
 {
-	LgiTrace("_SerializeFile(%i) file='%s'\n", Write, d->OptionsFile.Get());
+	// LgiTrace("_SerializeFile(%i) file='%s'\n", Write, d->OptionsFile.Get());
 	return d->SerializeOpts(Options, Write);
 }
 

@@ -384,6 +384,35 @@ void TiffProcess32(D *d, S *s, int width)
 	}
 }
 
+template<typename D, typename S>
+void TiffProcess64_24(D *d, S *s, int width)
+{
+	D *e = d + width;
+	while (d < e)
+	{
+		d->r = s->r >> 8;
+		d->g = s->g >> 8;
+		d->b = s->b >> 8;
+		d++;
+		s++;
+	}
+}
+
+template<typename D, typename S>
+void TiffProcess64_32(D *d, S *s, int width)
+{
+	D *e = d + width;
+	while (d < e)
+	{
+		d->r = s->r >> 8;
+		d->g = s->g >> 8;
+		d->b = s->b >> 8;
+		d->a = s->a >> 8;
+		d++;
+		s++;
+	}
+}
+
 GFilter::IoStatus GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 {
 	GVariant v;
@@ -463,7 +492,8 @@ GFilter::IoStatus GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 			}
 			else
 			{
-	            if (pDC->Create(img.width, img.height, max(Bits, 8)))
+				int CreateBits = BitsPerSample == 16 ? Bits >> 1 : Bits;
+	            if (pDC->Create(img.width, img.height, max(CreateBits, 8)))
 	            {
 	                if (Meter)
 	                    Meter->SetLimits(0, img.height);
@@ -584,11 +614,46 @@ GFilter::IoStatus GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 									Meter->Value(y);
 							}
 							break;
-						}			            
-			        }
-			        
-		            Status = IoSuccess;
-		        }
+						}
+						case 64:
+						{
+							GArray<GRgba64> Buf;
+							Buf.Length(img.width);
+							GRgba64 *b = &Buf[0];
+							LgiAssert(Lib->TIFFScanlineSize(tif) == Buf.Length() * sizeof(Buf[0]));
+
+							for (unsigned y=0; y<img.height; y++)
+							{
+								uint8 *d = (*pDC)[y];
+								Lib->TIFFReadScanline(tif, (t::tdata_t)b, y, 0);
+					            
+								switch (pDC->GetColourSpace())
+								{
+									#define TiffCase64(name, bits) \
+										case Cs##name: TiffProcess64_##bits((G##name*)d, b, pDC->X()); break
+									
+									TiffCase64(Rgb24, 24);
+									TiffCase64(Bgr24, 24);
+									TiffCase64(Xrgb32, 24);
+									TiffCase64(Rgbx32, 24);
+									TiffCase64(Xbgr32, 24);
+									TiffCase64(Bgrx32, 24);
+
+									TiffCase64(Rgba32, 32);
+									TiffCase64(Bgra32, 32);
+									TiffCase64(Argb32, 32);
+									TiffCase64(Abgr32, 32);
+								}
+
+								if (Meter && (y % 32) == 0)
+									Meter->Value(y);
+							}
+							break;
+						}
+					}
+					
+					Status = IoSuccess;
+				}
 			}
 
 			Lib->TIFFRGBAImageEnd(&img);

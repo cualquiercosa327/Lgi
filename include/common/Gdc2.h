@@ -311,13 +311,29 @@ struct GBgrx32 {
 	uint8 b, g, r, pad;
 };
 
+struct GRgba64 {
+	uint16 r, g, b, a;
+};
+
+struct GBgra64 {
+	uint16 b, g, r, a;
+};
+
+struct GArgb64 {
+	uint16 a, r, g, b;
+};
+
+struct GAbgr64 {
+	uint16 a, b, g, r;
+};
+
 struct GHls32 {
 	uint16 h;
 	uint8 l, s;
 };
 
 struct GCmyk32 {
-	uint32 c, m, k, y;
+	uint8 c, m, k, y;
 };
 
 union GColourSpaceBits
