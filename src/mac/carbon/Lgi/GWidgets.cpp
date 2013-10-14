@@ -198,7 +198,7 @@ GdcPt2 GControl::SizeOfStr(const char *Str)
 	if (Str)
 	{
 		const char *e = 0;
-		for (const char *s = Str; s AND *s; s = e?e+1:0)
+		for (const char *s = Str; s && *s; s = e?e+1:0)
 		{
 			e = strchr(s, '\n');
 			int Len = e ? (int)e-(int)s : strlen(s);
@@ -310,7 +310,7 @@ void GSlider::OnMouseMove(GMouse &m)
 	if (IsCapturing())
 	{
 		int Rx = X() - 6;
-		if (Rx > 0 AND Max >= Min)
+		if (Rx > 0 && Max >= Min)
 		{
 			int x = m.x - Tx;
 			int v = x * (Max-Min) / Rx;

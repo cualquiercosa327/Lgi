@@ -41,7 +41,7 @@ XmlValue::XmlValue(Xml *x, char *&s)
 	{
 		// Find the equals
 		char *Start = s;
-		while (*s AND *s != '=')
+		while (*s && *s != '=')
 		{
 			s++;
 		}
@@ -57,7 +57,7 @@ XmlValue::XmlValue(Xml *x, char *&s)
 			{
 				s++;
 				Start = s;
-				while (	*s AND
+				while (	*s &&
 						*s != Quote)
 				{
 					s++;
@@ -66,8 +66,8 @@ XmlValue::XmlValue(Xml *x, char *&s)
 			else
 			{
 				Start = s;
-				while (	(*s) AND
-						(!strchr(" \r\n\t", *s)) AND
+				while (	(*s) &&
+						(!strchr(" \r\n\t", *s)) &&
 						(*s != '>'))
 				{
 					s++;
@@ -107,20 +107,20 @@ XmlTag::XmlTag(Xml *x, char *&s)
 	X = x;
 
 	// skip leading characters
-	for (; *s AND *s != '<'; s++);
+	for (; *s && *s != '<'; s++);
 
 	if (*s == '<')
 	{
 		// read name
 		char *Start = ++s;
-		for (;	(*s) AND
-				(*s != '>') AND
+		for (;	(*s) &&
+				(*s != '>') &&
 				(!strchr(Whitespace, *s)); s++)
 		{
 			if (*s == '\"' || *s == '\'')
 			{
 				char d = *s++;
-				while (*s AND *s != d)
+				while (*s && *s != d)
 				{
 					s++;
 				}
@@ -129,10 +129,10 @@ XmlTag::XmlTag(Xml *x, char *&s)
 
 		Name = x->GetStr(Start, (int)s-(int)Start);
 
-		while (*s AND strchr(Whitespace, *s)) s++;
+		while (*s && strchr(Whitespace, *s)) s++;
 
 		// read any values
-		while (*s AND *s != '>')
+		while (*s && *s != '>')
 		{
 			char *b = s;
 			XmlValue *Val = new XmlValue(x, s);
@@ -148,7 +148,7 @@ XmlTag::XmlTag(Xml *x, char *&s)
 				}
 			}
 
-			while (s AND *s AND strchr(Whitespace, *s)) s++;
+			while (s && *s && strchr(Whitespace, *s)) s++;
 			if (*s == '/') s++;
 			if (s == b || *s == '>')
 			{
@@ -235,7 +235,7 @@ char *Xml::GetStr(char *Start, int Len)
 {
 	char *Status = 0;
 
-	if (Data AND Start >= Data AND Start < Data + Length)
+	if (Data && Start >= Data && Start < Data + Length)
 	{
 		if (!End) End = Data;
 
@@ -297,7 +297,7 @@ bool Xml::ExpandXml(GStringPipe &p, char *s)
 				Start = s;
 
 				XmlTag *Tag = new XmlTag(this, s);
-				if (Tag AND Tag->Name)
+				if (Tag && Tag->Name)
 				{
 					// Add to list of tags
 					Values.Insert(Tag);
@@ -392,11 +392,11 @@ int Xml::ParseXml(char *s, int Flags)
 
 			for (char *p = Data; *p; )
 			{
-				for (; *p AND *p != '<'; p++);
+				for (; *p && *p != '<'; p++);
 				if (*p == '<')
 				{
 					XmlTag *Tag = new XmlTag(this, p);
-					if (Tag AND Tag->Name)
+					if (Tag && Tag->Name)
 					{
 						Values.Insert(Tag);
 					}

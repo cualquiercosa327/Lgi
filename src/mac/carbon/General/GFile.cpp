@@ -262,7 +262,7 @@ char *ReadTextFile(const char *File)
 {
 	char *s = 0;
 	GFile f;
-	if (File AND f.Open(File, O_READ))
+	if (File && f.Open(File, O_READ))
 	{
 		int Len = f.GetSize();
 		s = new char[Len+1];
@@ -278,7 +278,7 @@ char *ReadTextFile(const char *File)
 int64 LgiFileSize(const char *FileName)
 {
 	struct stat64 s;
-	if (FileName AND
+	if (FileName &&
 		stat64(FileName, &s) == 0)
 	{
 		return s.st_size;
@@ -528,7 +528,7 @@ public:
 	
 	GVolume *First()
 	{
-		if (Which < 0 AND
+		if (Which < 0 &&
 			!_Sub.Length())
 		{
 			// Get various shortcuts to points of interest
@@ -622,7 +622,7 @@ public:
 	GDirectory *GetContents()
 	{
 		GDirectory *Dir = 0;
-		if (Which >= 0 AND
+		if (Which >= 0 &&
 			_Path)
 		{
 			Dir = new GDirectory;
@@ -1114,7 +1114,7 @@ public:
 	bool Ignore()
 	{
 		return	De
-				AND
+				&&
 				(
 					strcmp(De->d_name, ".") == 0
 					||
@@ -1122,7 +1122,7 @@ public:
 					||
 					(
 						Pattern
-						AND
+						&&
 						!MatchStr(Pattern, De->d_name)
 					)
 				);
@@ -1194,14 +1194,14 @@ int GDirectory::First(const char *Name, const char *Pattern)
 		}
 	}
 
-	return d->Dir != 0 AND d->De != 0;
+	return d->Dir != 0 && d->De != 0;
 }
 
 int GDirectory::Next()
 {
 	int Status = false;
 
-	while (d->Dir AND d->De)
+	while (d->Dir && d->De)
 	{
 		if ((d->De = readdir(d->Dir)))
 		{
@@ -1358,7 +1358,7 @@ GFile::GFile()
 
 GFile::~GFile()
 {
-	if (d AND ValidHandle(d->hFile))
+	if (d && ValidHandle(d->hFile))
 	{
 		Close();
 	}
@@ -1497,7 +1497,7 @@ int GFile::Read(void *Buffer, int Size, int Flags)
 {
 	int Red = 0;
 
-	if (Buffer AND Size > 0)
+	if (Buffer && Size > 0)
 	{
 		Red = read(d->hFile, Buffer, Size);
 		#ifdef _DEBUG
@@ -1518,7 +1518,7 @@ int GFile::Write(const void *Buffer, int Size, int Flags)
 {
 	int Written = 0;
 
-	if (Buffer AND Size > 0)
+	if (Buffer && Size > 0)
 	{
 		Written = write(d->hFile, Buffer, Size);
 		#ifdef _DEBUG
@@ -1709,7 +1709,7 @@ int GFile::ReadStr(char *Buf, int Size)
 {
 	int i = 0;
 	int r = 0;
-	if (Buf AND Size > 0)
+	if (Buf && Size > 0)
 	{
 		char c;
 
@@ -1726,7 +1726,7 @@ int GFile::ReadStr(char *Buf, int Size)
 			*Buf++ = c;
 			i++;
 
-		} while (i < Size - 1 AND c != '\n');
+		} while (i < Size - 1 && c != '\n');
 
 		*Buf = 0;
 	}

@@ -92,7 +92,7 @@ void GThread::Run()
 
 void GThread::Terminate()
 {
-	if (hThread AND
+	if (hThread &&
 		pthread_cancel(hThread) == 0)
 	{
 		State = THREAD_EXITED;

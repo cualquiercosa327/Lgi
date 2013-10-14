@@ -462,12 +462,12 @@ GSkinEngine *GApp::SkinEngine = 0;
 GApp *TheApp = 0;
 GMouseHook *GApp::MouseHook = 0;
 
-GApp::GApp(const char *AppMime, OsAppArguments &AppArgs, GAppArguments *ObjArgs) :
+GApp::GApp(OsAppArguments &AppArgs, const char *AppName, GAppArguments *ObjArgs) :
 	OsApplication(AppArgs.Args, AppArgs.Arg)
 {
 	TheApp = this;
 	d = new GAppPrivate;
-	d->Mime.Reset(NewStr(AppMime));
+	d->Name.Reset(NewStr(AppName));
 	AppWnd = 0;
 
 	// Catch and ignore SIGPIPE
@@ -618,7 +618,8 @@ GApp::~GApp()
 	TheApp = 0;
 }
 
-char *GApp::GetName()
+/*
+const char *GApp::GetName()
 {
 	if (d->Name)
 		return d->Name;
@@ -662,6 +663,7 @@ void GApp::SetName(const char *Name)
 {
 	d->Name.Reset(NewStr(Name));
 }
+*/
 
 GApp *GApp::ObjInstance()
 {

@@ -1465,8 +1465,8 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 	GViewI *Ctrl = 0;
 
 	// Give key to popups
-	if (LgiApp AND
-		LgiApp->GetMouseHook() AND
+	if (LgiApp &&
+		LgiApp->GetMouseHook() &&
 		LgiApp->GetMouseHook()->OnViewKey(v, k))
 	{
 		goto AllDone;
@@ -1517,7 +1517,7 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 		}
 	}
 
-	if (Ctrl AND Ctrl->Enabled())
+	if (Ctrl && Ctrl->Enabled())
 	{
 		if (Ctrl->OnKey(k))
 		{
@@ -1544,8 +1544,8 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 	}
 	
 	// Command+W closes the window... if it doesn't get nabbed earlier.
-	if (k.Down() AND
-		k.System() AND
+	if (k.Down() &&
+		k.System() &&
 		tolower(k.c16) == 'w')
 	{
 		// Close
@@ -1620,7 +1620,7 @@ GViewI *GWindow::GetDefault()
 
 void GWindow::SetDefault(GViewI *v)
 {
-	if (v AND
+	if (v &&
 		v->GetWindow() == (GViewI*)this)
 	{
 		if (_Default != v)
@@ -1703,7 +1703,7 @@ bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
 	if (Load)
 	{
 		GVariant v;
-		if (Store->GetValue(FieldName, v) AND v.Str())
+		if (Store->GetValue(FieldName, v) && v.Str())
 		{
 			GRect Position(0, 0, -1, -1);
 			GWindowZoom State = GZoomNormal;
@@ -1826,7 +1826,7 @@ void GWindow::OnPosChange()
 #define IsTool(v) \
 	( \
 		dynamic_cast<GView*>(v) \
-		AND \
+		&& \
 		dynamic_cast<GView*>(v)->_IsToolBar \
 	)
 
@@ -2054,7 +2054,7 @@ bool GWindow::RegisterHook(GView *Target, GWindowHookType EventType, int Priorit
 {
 	bool Status = false;
 	
-	if (Target AND EventType)
+	if (Target && EventType)
 	{
 		int i = d->GetHookIndex(Target, true);
 		if (i >= 0)

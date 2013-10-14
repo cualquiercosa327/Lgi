@@ -4,7 +4,7 @@
 #define _GHTML2_H
 
 #include "GDocView.h"
-#include "GHtmlStatic.h"
+#include "GHtmlCommon.h"
 
 namespace Html2
 {

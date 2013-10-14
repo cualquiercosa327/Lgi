@@ -52,9 +52,9 @@ void GSubMenu::OnAttach(bool Attach)
 		i->OnAttach(Attach);
 	}
 	
-	if (Attach AND
-		this != Menu AND
-		Parent AND
+	if (Attach &&
+		this != Menu &&
+		Parent &&
 		Parent->Parent)
 	{
 		#if 0
@@ -283,7 +283,7 @@ int GSubMenu::Float(GView *From, int x, int y, bool Left)
 	static int Depth = 0;
 
 	MenuCommand Cmd = 0;
-	if (From AND Depth == 0)
+	if (From && Depth == 0)
 	{
 		Depth++;
 
@@ -434,7 +434,7 @@ void GMenuItem::OnAttach(bool Attach)
 // the default painting behaviour if desired.
 void GMenuItem::_Measure(GdcPt2 &Size)
 {
-	GFont *Font = Menu AND Menu->GetFont() ? Menu->GetFont() : SysFont;
+	GFont *Font = Menu && Menu->GetFont() ? Menu->GetFont() : SysFont;
 	bool BaseMenu = Parent == Menu; // true if attached to a windows menu
 									// else is a submenu
 	int Ht = Font->GetHeight();
@@ -452,7 +452,7 @@ void GMenuItem::_Measure(GdcPt2 &Size)
 		char Str[256];
 		char *n = Name(), *i = n, *o = Str;
 
-		while (i AND *i)
+		while (i && *i)
 		{
 			if (*i == '&')
 			{
@@ -506,10 +506,10 @@ void GMenuItem::_PaintText(GSurface *pDC, int x, int y, int Width)
 	char *n = Name();
 	if (n)
 	{
-		GFont *Font = Menu AND Menu->GetFont() ? Menu->GetFont() : SysFont;
+		GFont *Font = Menu && Menu->GetFont() ? Menu->GetFont() : SysFont;
 		bool Underline = false;
 		char *e = 0;
-		for (char *s=n; s AND *s; s = *e ? e : 0)
+		for (char *s=n; s && *s; s = *e ? e : 0)
 		{
 			switch (*s)
 			{
@@ -619,7 +619,7 @@ void GMenuItem::_Paint(GSurface *pDC, int Flags)
 		pDC->Rectangle();
 
 		// Draw the text on top
-		GFont *Font = Menu AND Menu->GetFont() ? Menu->GetFont() : SysFont;
+		GFont *Font = Menu && Menu->GetFont() ? Menu->GetFont() : SysFont;
 		Font->Transparent(true);
 		if (Disabled)
 		{
@@ -642,10 +642,10 @@ void GMenuItem::_Paint(GSurface *pDC, int Flags)
 			_PaintText(pDC, x, y, r.X());
 		}
 
-		GImageList *ImgLst = (Menu AND Menu->GetImageList()) ? Menu->GetImageList() : Parent ? Parent->GetImageList() : 0;
+		GImageList *ImgLst = (Menu && Menu->GetImageList()) ? Menu->GetImageList() : Parent ? Parent->GetImageList() : 0;
 
 		// Draw icon/check mark
-		if (Checked AND IconX > 0)
+		if (Checked && IconX > 0)
 		{
 			// it's a check!
 			int x = 4;
@@ -661,7 +661,7 @@ void GMenuItem::_Paint(GSurface *pDC, int Flags)
 			pDC->Line(x, y, x+2, y+2);
 			pDC->Line(x+2, y+2, x+6, y-2);
 		}
-		else if (ImgLst AND
+		else if (ImgLst &&
 				_Icon >= 0)
 		{
 			// it's an icon!
@@ -670,7 +670,7 @@ void GMenuItem::_Paint(GSurface *pDC, int Flags)
 		}
 
 		// Sub menu arrow
-		if (Child AND !dynamic_cast<GMenu*>(Parent))
+		if (Child && !dynamic_cast<GMenu*>(Parent))
 		{
 			pDC->Colour(LC_TEXT, 24);
 
@@ -746,7 +746,7 @@ bool GMenuItem::ScanForAccel()
 		{
 			Key = ' ';
 		}
-		else if (k[0] == 'F' AND isdigit(k[1]))
+		else if (k[0] == 'F' && isdigit(k[1]))
 		{
 			int F[] =
 			{
@@ -754,7 +754,7 @@ bool GMenuItem::ScanForAccel()
 				VK_F7, VK_F8, VK_F9, VK_F10, VK_F11, VK_F12
 			};
 			int idx = atoi(k + 1);
-			if (idx >= 1 AND idx <= 12)
+			if (idx >= 1 && idx <= 12)
 			{
 				Key = F[idx-1];
 			}
@@ -1177,8 +1177,8 @@ bool GMenu::OnKey(GView *v, GKey &k)
 			}
 		}
 		
-		if (k.Alt() AND
-			!dynamic_cast<GMenuItem*>(v) AND
+		if (k.Alt() &&
+			!dynamic_cast<GMenuItem*>(v) &&
 			!dynamic_cast<GSubMenu*>(v))
 		{
 			bool Hide = false;
@@ -1197,7 +1197,7 @@ bool GMenu::OnKey(GView *v, GKey &k)
 						if (ValidStr(n))
 						{
 							char *Amp = strchr(n, '&');
-							while (Amp AND Amp[1] == '&')
+							while (Amp && Amp[1] == '&')
 							{
 								Amp = strchr(Amp + 2, '&');
 							}

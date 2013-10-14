@@ -76,7 +76,7 @@ GScreenDC::GScreenDC(GView *v, void *param)
 	if (d->Ctx)
 	{
 		HIRect r;
-		if (d->View AND !HIViewGetBounds(d->View->Handle(), &r))
+		if (d->View && !HIViewGetBounds(d->View->Handle(), &r))
 		{
 			d->Rc.ZOff((int)r.size.width, (int)r.size.height);
 		}
@@ -431,7 +431,7 @@ void GScreenDC::Box(int x1, int y1, int x2, int y2)
 
 void GScreenDC::Box(GRect *a)
 {
-	if (d->Ctx AND a)
+	if (d->Ctx && a)
 	{
 		CGRect r = {{a->x1+0.5, a->y1+0.5}, {a->x2-a->x1, a->y2-a->y1}};
 		CGContextSetLineWidth(d->Ctx, 1.0);

@@ -214,10 +214,10 @@ bool _GetIniField(char *Grp, char *Field, char *In, char *Out, int OutSize)
 
 					// Seek e through any whitespace between the equals and the
 					// field name
-					while (e > Line AND strchr(" \t", *e)) e--;
+					while (e > Line && strchr(" \t", *e)) e--;
 					
 					// Seek v through any whitespace after the equals
-					while (*v AND strchr(" \t", *v)) v++;
+					while (*v && strchr(" \t", *v)) v++;
 					
 					// Calculate the length of the field
 					int flen = (int)e-(int)Line;
@@ -225,8 +225,8 @@ bool _GetIniField(char *Grp, char *Field, char *In, char *Out, int OutSize)
 					// Check the current field against the input field
 					if (strnicmp(Field, Line, flen) == 0)
 					{
-						while (	*v AND
-								strchr("\r\n", *v) == 0 AND
+						while (	*v &&
+								strchr("\r\n", *v) == 0 &&
 								OutSize > 1) // leave space for NULL
 						{
 							*Out++ = *v++;

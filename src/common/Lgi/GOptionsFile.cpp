@@ -122,7 +122,7 @@ bool GOptionsFile::Serialize(bool Write)
 		else if (Write)
 		{
 			LgiAssert(!"Failed to open file.");
-			LgiTrace("%s:%i - Failed to open '%s'\n", _FL, File);
+			LgiTrace("%s:%i - Failed to open '%s'\n", _FL, File.Get());
 		}
 
 		Unlock();

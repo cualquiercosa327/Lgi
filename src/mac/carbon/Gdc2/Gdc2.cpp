@@ -111,7 +111,7 @@ int GPalette::GetSize()
 
 GdcRGB *GPalette::operator [](int i)
 {
-	return i >= 0 AND i < Size AND Data != 0 ? Data + i : 0;
+	return i >= 0 && i < Size && Data != 0 ? Data + i : 0;
 }
 
 void GPalette::SwapRAndB()
@@ -269,14 +269,14 @@ void TrimWhite(char *s)
 {
 	const char *White = " \r\n\t";
 	char *c = s;
-	while (*c AND strchr(White, *c)) c++;
+	while (*c && strchr(White, *c)) c++;
 	if (c != s)
 	{
 		strcpy(s, c);
 	}
 
 	c = s + strlen(s) - 1;
-	while (c > s AND strchr(White, *c))
+	while (c > s && strchr(White, *c))
 	{
 		*c = 0;
 		c--;
@@ -299,7 +299,7 @@ bool GPalette::Load(GFile &F)
 		// read decimal length
 		F.ReadStr(Buf, sizeof(Buf));
 		SetSize(atoi(Buf));
-		for (int i=0; i<GetSize() AND !F.Eof(); i++)
+		for (int i=0; i<GetSize() && !F.Eof(); i++)
 		{
 			F.ReadStr(Buf, sizeof(Buf));
 			GdcRGB *p = (*this)[i];
@@ -393,7 +393,7 @@ GBmpMem::GBmpMem()
 
 GBmpMem::~GBmpMem()
 {
-	if (Base AND (Flags & GDC_OWN_MEMORY))
+	if (Base && (Flags & GDC_OWN_MEMORY))
 	{
 		delete [] Base;
 	}
@@ -637,7 +637,7 @@ COLOUR GGlobalColour::GetColour(COLOUR c24)
 {
 	for (int i=0; i<256; i++)
 	{
-		if (d->c[i].Used AND
+		if (d->c[i].Used &&
 			d->c[i].c24 == c24)
 		{
 			return i;
@@ -774,13 +774,13 @@ GdcDevice::~GdcDevice()
 
 int GdcDevice::GetOption(int Opt)
 {
-	return (Opt >= 0 AND Opt < GDC_MAX_OPTION) ? d->OptVal[Opt] : 0;
+	return (Opt >= 0 && Opt < GDC_MAX_OPTION) ? d->OptVal[Opt] : 0;
 }
 
 int GdcDevice::SetOption(int Opt, int Value)
 {
 	int Prev = d->OptVal[Opt];
-	if (Opt >= 0 AND Opt < GDC_MAX_OPTION)
+	if (Opt >= 0 && Opt < GDC_MAX_OPTION)
 		d->OptVal[Opt] = Value;
 	return Prev;
 }
@@ -993,7 +993,7 @@ GAlphaFactory FactoryAlpha;
 
 GApplicatorFactory::GApplicatorFactory()
 {
-	LgiAssert(_Factories >= 0 AND _Factories < CountOf(_Factory));
+	LgiAssert(_Factories >= 0 && _Factories < CountOf(_Factory));
 	if (_Factories < CountOf(_Factory) - 1)
 	{
 		_Factory[_Factories++] = this;
@@ -1002,7 +1002,7 @@ GApplicatorFactory::GApplicatorFactory()
 
 GApplicatorFactory::~GApplicatorFactory()
 {
-	LgiAssert(_Factories >= 0 AND _Factories < CountOf(_Factory));
+	LgiAssert(_Factories >= 0 && _Factories < CountOf(_Factory));
 	for (int i=0; i<_Factories; i++)
 	{
 		if (_Factory[i] == this)
@@ -1016,7 +1016,7 @@ GApplicatorFactory::~GApplicatorFactory()
 
 GApplicator *GApplicatorFactory::NewApp(GColourSpace Cs, int Op)
 {
-	LgiAssert(_Factories >= 0 AND _Factories < CountOf(_Factory));
+	LgiAssert(_Factories >= 0 && _Factories < CountOf(_Factory));
 	for (int i=0; i<_Factories; i++)
 	{
 		GApplicator *a = _Factory[i]->Create(Cs, Op);

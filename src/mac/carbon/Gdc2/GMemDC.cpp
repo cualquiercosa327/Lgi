@@ -204,7 +204,7 @@ GMemDC::GMemDC(int x, int y, int bits)
 	d = new GMemDCPrivate;
 	pMem = 0;
 
-	if (x AND y AND bits)
+	if (x && y && bits)
 	{
 		Create(x, y, bits);
 	}
@@ -215,7 +215,7 @@ GMemDC::GMemDC(GSurface *pDC)
 	d = new GMemDCPrivate;
 	pMem = 0;
 
-	if (pDC AND
+	if (pDC &&
 		Create(pDC->X(), pDC->Y(), pDC->GetBits()) )
 	{
 		if (pDC->Palette())
@@ -225,7 +225,7 @@ GMemDC::GMemDC(GSurface *pDC)
 
 		Blt(0, 0, pDC);
 
-		if (pDC->AlphaDC() AND
+		if (pDC->AlphaDC() &&
 			HasAlpha(true))
 		{
 			pAlphaDC->Blt(0, 0, pDC->AlphaDC());
@@ -516,8 +516,8 @@ void GMemDC::HLine(int x1, int x2, int y, COLOUR a, COLOUR b)
 
 	if (x1 < Clip.x1) x1 = Clip.x1;
 	if (x2 > Clip.x2) x2 = Clip.x2;
-	if (	x1 <= x2 AND
-		y >= Clip.y1 AND
+	if (	x1 <= x2 &&
+		y >= Clip.y1 &&
 		y <= Clip.y2)
 	{
 		COLOUR Prev = pApp->c;
@@ -548,8 +548,8 @@ void GMemDC::VLine(int x, int y1, int y2, COLOUR a, COLOUR b)
 	
 	if (y1 < Clip.y1) y1 = Clip.y1;
 	if (y2 > Clip.y2) y2 = Clip.y2;
-	if (	y1 <= y2 AND
-		x >= Clip.x1 AND
+	if (	y1 <= y2 &&
+		x >= Clip.x1 &&
 		x <= Clip.x2)
 	{
 		COLOUR Prev = pApp->c;
