@@ -1,16 +1,40 @@
 #include "Lgi.h"
 #include "GMidi.h"
-#if defined(WIN32)
-#include "mmsystem.h"
-#endif
 #if defined(MAC)
 #include <MIDIServices.h>
 #endif
 
 #define MIDI_MIRROR_IN_TO_OUT		0
 
+#ifdef WIN32
+#define M_MIDI_IN	(M_USER + 2000)
+class GMidiNotifyWnd : public GWindow
+{
+	GMidi *m;
+	
+public:
+	GMidiNotifyWnd(GMidi *midi)
+	{
+		m = midi;
+		Attach(0);
+	}
+	
+	GMessage::Result OnEvent(GMessage *Msg)
+	{
+		if (MsgCode(Msg) == M_MIDI_IN)
+		{
+			m->ParseMidi();
+		}
+		
+		return GView::OnEvent(Msg);
+	}
+};
+#endif
+
 struct GMidiPriv
 {
+	GMidi *Midi;
+	
 	#if defined(MAC)
 	MIDIClientRef Client;
 	MIDIPortRef InPort, OutPort;
@@ -22,7 +46,21 @@ struct GMidiPriv
 	HMIDIOUT hOut;
 	MIDIHDR InHdr;
 	char InBuf[2 << 10];
+	GMidiNotifyWnd Notify;
 	#endif
+	
+	GMidiPriv(GMidi *m) : Notify(m)
+	{
+		Midi = m;
+
+		#if defined(MAC)
+		Client = 0;
+		Dst = 0;
+		#elif defined(WIN32)
+		hIn = 0;
+		hOut = 0;
+		#endif
+	}
 };
 
 #if defined(MAC)
@@ -170,9 +208,9 @@ void CALLBACK MidiInProc(HMIDIIN hmi, UINT wMsg, MIDI_TYPE dwInstance, MIDI_TYPE
 
 GMidi::GMidi() : GMutex("GMidi")
 {
+	d = new GMidiPriv(this);
+
 	#if defined(MAC)
-	Client = 0;
-	Dst = 0;
 
 	int Devs = MIDIGetNumberOfDevices();
 	for (int i = 0; i < Devs; i++)
@@ -220,10 +258,6 @@ GMidi::GMidi() : GMutex("GMidi")
 
 	#elif defined(WIN32)
 
-	d = new GMidiPriv;
-	d->hIn = 0;
-	d->hOut = 0;
-
 	UINT InDevs = midiInGetNumDevs();
 	UINT OutDevs = midiOutGetNumDevs();
 	UINT n;
@@ -233,7 +267,13 @@ GMidi::GMidi() : GMutex("GMidi")
 	{
 		MMRESULT r = midiInGetDevCaps(n, &InCaps, sizeof(InCaps));
 		if (r == MMSYSERR_NOERROR)
+		{
+			#ifdef UNICODE
 			In.New().Reset(LgiNewUtf16To8(InCaps.szPname));
+			#else
+			In.New().Reset(NewStr(InCaps.szPname));
+			#endif
+		}
 	}
 
 	MIDIOUTCAPS OutCaps;
@@ -241,7 +281,13 @@ GMidi::GMidi() : GMutex("GMidi")
 	{
 		MMRESULT r = midiOutGetDevCaps(n, &OutCaps, sizeof(OutCaps));
 		if (r == MMSYSERR_NOERROR)
+		{
+			#ifdef UNICODE
 			Out.New().Reset(LgiNewUtf16To8(OutCaps.szPname));
+			#else
+			Out.New().Reset(NewStr(OutCaps.szPname));
+			#endif
+		}
 	}
 	
 	#endif
@@ -262,14 +308,88 @@ bool GMidi::IsMidiOpen()
 	#endif
 }
 
+int GMidi::GetMidiPacketSize(uint8 *ptr, int len)
+{
+	if (!ptr || len < 1)
+		return 0;
+
+	if (ptr[0] == MIDI_SYSEX_START)
+	{
+		int i;
+		for (i=1; i<len; i++)
+		{
+			if (ptr[i] == MIDI_SYSEX_END)
+				return i + 1;
+		}
+	}
+	else
+	{
+		switch (ptr[0] >> 4)
+		{
+			case 0x8:
+			case 0x9:
+			case 0xa:
+			case 0xb:
+			case 0xe:
+				if (len >= 3)
+					return 3;
+				break;
+			case 0xc:
+			case 0xd:
+				if (len >= 2)
+					return 2;
+				break;
+			default:
+				return 1;
+				break;
+		}
+	}
+
+	return 0;
+}
+
+#ifdef WIN32
+void GMidi::ParseMidi()
+{
+	if (Lock(_FL))
+	{
+		while (MidiIn.Length() > 0)
+		{
+			int len = GetMidiPacketSize(&MidiIn[0], MidiIn.Length());
+			if (len > 0)
+			{
+				OnMidiIn(&MidiIn[0], len);
+				int Remaining = MidiIn.Length() - len;
+				if (Remaining > 0)
+				{
+					memmove(&MidiIn[0], &MidiIn[len], Remaining);
+					MidiIn.Length(Remaining);
+				}
+				else break;
+			}
+			else
+			{
+				LgiAssert(0);
+				break;
+			}
+		}
+		Unlock();
+	}
+}
+
 void GMidi::StoreMidi(uint8 *ptr, int len)
 {
 	if (Lock(_FL))
 	{
 		MidiIn.Add(ptr, len);
 		Unlock();
+		
+		#ifdef WIN32
+		d->Notify.PostEvent(M_MIDI_IN);
+		#endif
 	}
 }
+#endif
 
 bool GMidi::Connect(int InIdx, int OutIdx, GAutoString *ErrorMsg)
 {

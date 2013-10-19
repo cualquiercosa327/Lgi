@@ -4892,9 +4892,10 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 					LineHeightCache = CssLineHeight.IsValid() && CssLineHeight.Type != GCss::LenNormal ?
 									 CssLineHeight.ToPx(Font->GetHeight(), Font) :
 									 Font->GetHeight();
-					LgiAssert(LineHeightCache > 0);
+					/*
 					if (LineHeightCache <= 0)
 						LineHeightCache = Font->GetHeight();
+					*/
 				}
 			}
 

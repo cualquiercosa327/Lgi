@@ -8,12 +8,25 @@
 	typedef DWORD MIDI_TYPE;
 	#endif
 #endif
+#if defined(WIN32)
+#include "mmsystem.h"
+#endif
+
+#define MIDI_SYSEX_START	0xf0
+#define MIDI_SYSEX_END		0xf7
 
 class GMidi : public GMutex
 {
 	struct GMidiPriv *d;
 
 	void OnError(char *Func, GAutoString *Error, uint32 Code, char *File, int Line);
+
+	#ifdef WIN32
+	friend class GMidiNotifyWnd;
+	friend void CALLBACK MidiInProc(HMIDIIN hmi, UINT wMsg, MIDI_TYPE dwInstance, MIDI_TYPE dwParam1, MIDI_TYPE dwParam2);
+	void StoreMidi(uint8 *ptr, int len);
+	void ParseMidi();
+	#endif
 
 protected:
 	// Lock the object before accessing this
@@ -25,6 +38,8 @@ protected:
 public:	
 	GMidi();
 	~GMidi();
+
+	static int GetMidiPacketSize(uint8 *ptr, int len);
 	
 	virtual GStream *GetLog() { return NULL; }
 
@@ -33,12 +48,8 @@ public:
 	void SendMidi(uint8 *ptr, int len, bool quiet);
 	void CloseMidi();
 
-	virtual void OnMidiIn(uint8 *midi, int midi_len);
-	virtual void OnMidiOut(uint8 *p, int len);
-
-	#ifdef WIN32
-	void StoreMidi(uint8 *ptr, int len);
-	#endif
+	virtual void OnMidiIn(uint8 *midi, int len);
+	virtual void OnMidiOut(uint8 *midi, int len);
 };
 
 #endif

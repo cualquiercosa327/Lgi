@@ -1552,7 +1552,7 @@ void CtrlTabs::OnMouseClick(GMouse &m)
 					Dlg->OnSelect(Tab);
 					Invalidate();
 
-					return;
+					break;
 				}
 			}
 		}

@@ -154,6 +154,8 @@ ResString::ResString(ResStringGroup *grp, int init_ref)
 
 ResString::~ResString()
 {
+	LgiStackTrace("%p::~ResString\n", this);
+
 	if (Group)
 	{
 		if (!Group->Strs.Delete(this))
@@ -1099,11 +1101,16 @@ void ResStringGroup::Sort()
 
 void ResStringGroup::RemoveUnReferenced()
 {
-	for (ResString *s = Strs.First(); s; s = Strs.Next())
+	for (ResString *s = Strs.First(); s; )
 	{
 		if (!s->UpdateWnd)
 		{
 			DeleteStr(s);
+			s = Strs.Current();
+		}
+		else
+		{
+			s = Strs.Next();
 		}
 	}
 }
@@ -1217,13 +1224,6 @@ ResString *ResStringGroup::CreateStr(bool User)
 
 void ResStringGroup::DeleteStr(ResString *Str)
 {
-	/*
-	if (Str)
-	{
-		Strs.Delete(Str);
-		GList::Delete(Str);
-	}
-	*/
 	DeleteObj(Str);
 }
 
