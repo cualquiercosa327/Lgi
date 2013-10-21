@@ -365,7 +365,11 @@ void GMidi::ParseMidi()
 					memmove(&MidiIn[0], &MidiIn[len], Remaining);
 					MidiIn.Length(Remaining);
 				}
-				else break;
+				else
+				{
+					MidiIn.Length(0);
+					break;
+				}
 			}
 			else
 			{
