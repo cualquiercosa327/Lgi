@@ -4892,10 +4892,11 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 					LineHeightCache = CssLineHeight.IsValid() && CssLineHeight.Type != GCss::LenNormal ?
 									 CssLineHeight.ToPx(Font->GetHeight(), Font) :
 									 Font->GetHeight();
-					/*
+					#if 0
+					LgiAssert(LineHeightCache > 0);
 					if (LineHeightCache <= 0)
 						LineHeightCache = Font->GetHeight();
-					*/
+					#endif
 				}
 			}
 
@@ -5419,11 +5420,14 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 						GAutoPtr<GSurface> r(new GMemDC(Size.x, Size.y, Image->GetBits()));
 						if (r)
 						{
+							if (Image->Palette())
+								r->Palette(new GPalette(Image->Palette()));
 							ResampleDC(r, Image);
 							Image = r;
 						}
 					}
 				}
+
 				int Old = pDC->Op(GDC_ALPHA);
 				pDC->Blt(0, 0, Image);
 				pDC->Op(Old);

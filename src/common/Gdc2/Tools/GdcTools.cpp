@@ -600,6 +600,30 @@ bool ResampleDC(GSurface *pDest, GSurface *pSrc, GRect *FromRgn, Progress *Prog)
 	Sr.x2 <<= 8;
 	Sr.y2 <<= 8;
 
+	GPalette *DestPal = pDest->Palette();
+	System32BitPixel pal8[256];
+	if (pSrc->GetBits() <= 8)
+	{
+		GPalette *p = pSrc->Palette();
+		for (int i=0; i<256; i++)
+		{
+			if (p && i < p->GetSize())
+			{
+				GdcRGB *rgb = (*p)[i];
+				pal8[i].r = rgb->R;
+				pal8[i].g = rgb->G;
+				pal8[i].b = rgb->B;
+			}
+			else
+			{
+				pal8[i].r = i;
+				pal8[i].g = i;
+				pal8[i].b = i;
+			}
+			pal8[i].a = 255;
+		}
+	}
+
 	// For each destination pixel
 	for (int Dy = 0; Dy<pDest->Y(); Dy++)
 	{
@@ -617,47 +641,75 @@ bool ResampleDC(GSurface *pDest, GSurface *pSrc, GRect *FromRgn, Progress *Prog)
 			int Nx, Ny;
 			COLOUR c;
 
-			if (pSrc->GetBits() == 32)
+			uint16 *lin = ToLinear.Lut;
+			switch (pSrc->GetBits())
 			{
-				for (int y=Dy*Sy+Sr.y1; y<NextY; y=Ny)
+				case 32:
 				{
-					Ny = y + (256 - (y%256));
-
-					for (int x=Dx*Sx+Sr.x1; x<NextX; x=Nx)
+					for (int y=Dy*Sy+Sr.y1; y<NextY; y=Ny)
 					{
-						Nx = x + (256 - (x%256));
+						Ny = y + (256 - (y%256));
 
-						c = pSrc->Get(x >> 8, y >> 8);
-						a = (Nx - x) * (Ny - y);
+						for (int x=Dx*Sx+Sr.x1; x<NextX; x=Nx)
+						{
+							Nx = x + (256 - (x%256));
 
-						// Add the colour and area to the running total
-						R += a * ToLinear.Lut[R32(c)];
-						G += a * ToLinear.Lut[G32(c)];
-						B += a * ToLinear.Lut[B32(c)];
-						A += a * ToLinear.Lut[A32(c)];
-						Area += a;
+							c = pSrc->Get(x >> 8, y >> 8);
+							a = (Nx - x) * (Ny - y);
+
+							// Add the colour and area to the running total
+							R += a * lin[R32(c)];
+							G += a * lin[G32(c)];
+							B += a * lin[B32(c)];
+							A += a * lin[A32(c)];
+							Area += a;
+						}
 					}
+					break;
 				}
-			}
-			else
-			{
-				for (int y=Dy*Sy+Sr.y1; y<NextY; y=Ny)
+				case 8:
 				{
-					Ny = y + (256 - (y%256));
-
-					for (int x=Dx*Sx+Sr.x1; x<NextX; x=Nx)
+					for (int y=Dy*Sy+Sr.y1; y<NextY; y=Ny)
 					{
-						Nx = x + (256 - (x%256));
+						Ny = y + (256 - (y%256));
 
-						c = CBit(24, pSrc->Get(x>>8, y>>8), SrcBits);
-						a = (Nx - x) * (Ny - y);
+						for (int x=Dx*Sx+Sr.x1; x<NextX; x=Nx)
+						{
+							Nx = x + (256 - (x%256));
 
-						// Add the colour and area to the running total
-						R += a * ToLinear.Lut[R24(c)];
-						G += a * ToLinear.Lut[G24(c)];
-						B += a * ToLinear.Lut[B24(c)];
-						Area += a;
+							c = pSrc->Get(x>>8, y>>8);
+							a = (Nx - x) * (Ny - y);
+
+							// Add the colour and area to the running total
+							R += a * lin[pal8[c].r];
+							G += a * lin[pal8[c].g];
+							B += a * lin[pal8[c].b];
+							Area += a;
+						}
 					}
+					break;
+				}
+				default:
+				{
+					for (int y=Dy*Sy+Sr.y1; y<NextY; y=Ny)
+					{
+						Ny = y + (256 - (y%256));
+
+						for (int x=Dx*Sx+Sr.x1; x<NextX; x=Nx)
+						{
+							Nx = x + (256 - (x%256));
+
+							c = CBit(24, pSrc->Get(x>>8, y>>8), SrcBits);
+							a = (Nx - x) * (Ny - y);
+
+							// Add the colour and area to the running total
+							R += a * lin[R24(c)];
+							G += a * lin[G24(c)];
+							B += a * lin[B24(c)];
+							Area += a;
+						}
+					}
+					break;
 				}
 			}
 
@@ -686,7 +738,15 @@ bool ResampleDC(GSurface *pDest, GSurface *pSrc, GRect *FromRgn, Progress *Prog)
 				c = 0;
 			}
 
-			pDest->Colour(c, OutBits);
+			if (DestPal)
+			{
+				c = DestPal->MatchRgb(c);
+				pDest->Colour(c);
+			}
+			else
+			{
+				pDest->Colour(c, OutBits);
+			}
 			pDest->Set(Dx, Dy);
 		}
 
