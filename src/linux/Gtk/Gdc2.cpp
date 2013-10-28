@@ -914,14 +914,14 @@ GColourSpace GdkVisualToColourSpace(Gtk::GdkVisual *v, int output_bits)
 	
 				int bits = GColourSpaceToBits((GColourSpace) c);
 	
-				#if 0
+				/*
 				printf("GdkVisualToColourSpace, rgb: %i/%i, %i/%i, %i/%i  bits: %i  output_bits: %i\n",
 					v->red_prec, v->red_shift,
 					v->green_prec, v->green_shift,
 					v->blue_prec, v->blue_shift,
 					bits, output_bits
 					);
-				#endif
+				*/
 				
 				if (bits != output_bits)
 				{
