@@ -154,7 +154,7 @@ ResString::ResString(ResStringGroup *grp, int init_ref)
 
 ResString::~ResString()
 {
-	LgiStackTrace("%p::~ResString\n", this);
+	// LgiStackTrace("%p::~ResString\n", this);
 
 	if (Group)
 	{
