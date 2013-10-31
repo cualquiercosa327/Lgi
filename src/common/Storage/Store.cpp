@@ -75,7 +75,7 @@ bool StorageItemImpl::EndOfObj(GFile &f)
 {
 	int Pos = f.GetPos();
 	int ObjStart = StoreLoc + sizeof(StorageItemHeader);
-	bool Status = !((Pos >= ObjStart) AND (Pos < (ObjStart + StoreSize)));
+	bool Status = !((Pos >= ObjStart) && (Pos < (ObjStart + StoreSize)));
 	return Status;
 }
 
@@ -380,7 +380,7 @@ bool StorageItemImpl::SetSize(int NewSize)
 				StoreSize = NewSize;
 				StoreAllocatedSize = NewSize;
 				Status &= Serialize(File, true);
-				if (Status AND Object)
+				if (Status && Object)
 				{
 					File.Seek(StoreLoc + sizeof(StorageItemHeader), SEEK_SET);
 					Status &= Object->Serialize(File, true);
@@ -501,7 +501,7 @@ StorageItem *StorageItemImpl::GetChild()
 
 StorageItem *StorageItemImpl::CreateNext(StorageObj *Obj)
 {
-	if (Tree AND Obj)
+	if (Tree && Obj)
 	{
 		Next = (StorageItemImpl*)GetNext();
 		if (Next)
@@ -532,7 +532,7 @@ StorageItem *StorageItemImpl::CreateNext(StorageObj *Obj)
 
 StorageItem *StorageItemImpl::CreateChild(StorageObj *Obj)
 {
-	if (Tree AND Obj)
+	if (Tree && Obj)
 	{
 		Child = (StorageItemImpl*)GetChild();
 		if (Child)
@@ -603,7 +603,7 @@ bool StorageItemImpl::DeleteChild(StorageItem *Item)
 {
 	bool Status = false;
 	StorageItemImpl *i = (StorageItemImpl*)Item;
-	if (i AND
+	if (i &&
 		i->Parent == this)
 	{
 		if (i->Prev)
@@ -641,7 +641,7 @@ bool StorageItemImpl::DeleteChild(StorageItem *Item)
 bool StorageItemImpl::DeleteAllChildren()
 {
 	StorageItemImpl *i = (StorageItemImpl*)GetChild();
-	while (i AND i->StoreNext)
+	while (i && i->StoreNext)
 	{
 		i = (StorageItemImpl*)i->GetNext();
 	}
@@ -781,7 +781,7 @@ bool StorageKitImpl::SeparateItem(StorageItem *Item)
 	bool Status = false;
 	StorageItemImpl *ItemImpl = (StorageItemImpl*) Item;
 
-	if (!ReadOnly AND Item)
+	if (!ReadOnly && Item)
 	{
 		StorageItemImpl *Parent = (StorageItemImpl*) ItemImpl->GetParent();
 		StorageItemImpl *Next = (StorageItemImpl*) ItemImpl->GetNext();
@@ -851,7 +851,7 @@ bool StorageKitImpl::DeleteItem(StorageItem *ItemVirtual)
 	bool Status = true;
 	StorageItemImpl *Item = (StorageItemImpl*) ItemVirtual;
 
-	if (!ReadOnly AND Item)
+	if (!ReadOnly && Item)
 	{
 		DeleteItem(Item->GetChild());
 		DeleteItem(Item->GetNext());
@@ -966,7 +966,7 @@ bool StorageKitImpl::Compact(Progress *p, bool Interactive, StorageValidator *va
 			}
 			else break;
 
-			if (p AND Time.DoNow())
+			if (p && Time.DoNow())
 			{
 				p->Value(Sorted.Length());
 				LgiYield();
@@ -1009,7 +1009,7 @@ bool StorageKitImpl::Compact(Progress *p, bool Interactive, StorageValidator *va
 
 			b = Next;
 
-			if (p AND Time.DoNow())
+			if (p && Time.DoNow())
 			{
 				p->Value(n);
 				LgiYield();
@@ -1029,7 +1029,7 @@ StorageItemImpl *StorageKitImpl::LoadLocation(int Loc)
 {
 	StorageItemImpl *Item = 0;
 
-	if (Loc > 0 AND Status)
+	if (Loc > 0 && Status)
 	{
 		Item = new StorageItemImpl;
 		if (Item)
@@ -1087,8 +1087,8 @@ bool StorageKitImpl::AttachItem(StorageItem *ItemVirtual, StorageItem *ToVirtual
 	StorageItemImpl *Item = (StorageItemImpl*)ItemVirtual;
 	StorageItemImpl *To = (StorageItemImpl*)ToVirtual;
 
-	if (Item AND
-		To AND
+	if (Item &&
+		To &&
 		SeparateItem(Item))
 	{
 		if (Relationship == NodeNext)

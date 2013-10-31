@@ -75,7 +75,7 @@ public:
 
 	bool Serialize(GFile &f, bool Write)
 	{
-		if (Data AND Write)
+		if (Data && Write)
 		{
 			f.Write(Data->Data, Data->Len);
 			return true;
@@ -114,7 +114,7 @@ public:
 	{
 		bool Status = false;
 
-		if (Reader AND Writer)
+		if (Reader && Writer)
 		{
 			// convert object across
 			if (Prog)
@@ -131,12 +131,12 @@ public:
 				ri = ri->GetNext())
 			{
 				ReaderItem *Reader1 = new ReaderItem(ri);
-				if (Reader1 AND
+				if (Reader1 &&
 					Reader1->Len > 0)
 				{
 					WriterItem *Writer2 = new WriterItem(Reader1);
 					StorageItem *wi = Writer->Store->CreateSub(Writer2);
-					if (Writer2 AND wi)
+					if (Writer2 && wi)
 					{
 						wi->Object = Writer2;
 						Writer2->Store = wi;
@@ -163,7 +163,7 @@ public:
 		bool Status = false;
 		GProgressDlg Dlg(Parent);
 
-		if (Store1 AND
+		if (Store1 &&
 			Store2)
 		{
 			if (Store1->GetStatus())
@@ -186,13 +186,13 @@ public:
 
 				WriterItem *Writer2 = new WriterItem(Reader1);
 				StorageItem *Item2 = Store2->CreateRoot(Writer2);
-				if (Writer2 AND Item2)
+				if (Writer2 && Item2)
 				{
 					Writer2->Store = Item2;
 					Item2->Object = Writer2;
 				}
 
-				if (Reader1 AND Writer2)
+				if (Reader1 && Writer2)
 				{
 					Status = ConvertItem(Reader1, Writer2);
 
@@ -226,7 +226,7 @@ bool ConvertStorage1To2(GView *Parent, char *InFile, char *OutFile)
 	GFileSelect In;
 	In.Parent(Parent);
 	In.Type("Mail folders", "*.mail");
-	if (!InFile AND
+	if (!InFile &&
 		In.Open())
 	{
 		InFile = In.Name();
@@ -237,7 +237,7 @@ bool ConvertStorage1To2(GView *Parent, char *InFile, char *OutFile)
 		GFileSelect Out;
 		Out.Parent(Parent);
 		Out.Type("Mail folders", "*.mail2");
-		if ((!OutFile || strlen(OutFile) == 0) AND
+		if ((!OutFile || strlen(OutFile) == 0) &&
 			Out.Save())
 		{
 			if (OutFile)

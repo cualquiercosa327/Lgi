@@ -1053,7 +1053,7 @@
 				MACH_O_TYPE = mh_dylib;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = Lgi;
-				SDKROOT = macosx10.7;
+				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.6.sdk";
 				SYMROOT = build;
 				WRAPPER_EXTENSION = framework;
 			};
@@ -1084,7 +1084,7 @@
 				MACH_O_TYPE = mh_dylib;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = Lgi;
-				SDKROOT = macosx10.7;
+				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.6.sdk";
 				SYMROOT = build;
 				WRAPPER_EXTENSION = framework;
 			};
@@ -1105,7 +1105,7 @@
 					"-DMAC",
 					"-DLGI_LIBRARY",
 				);
-				SDKROOT = macosx10.7;
+				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.6.sdk";
 				STRIP_INSTALLED_PRODUCT = NO;
 				SYMROOT = ./build;
 				USER_HEADER_SEARCH_PATHS = "../../../include/common ../../../include/mac/carbon ../../../include/posix";
@@ -1125,7 +1125,7 @@
 					"-DMAC",
 					"-DLGI_LIBRARY",
 				);
-				SDKROOT = macosx10.7;
+				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.6.sdk";
 				SYMROOT = ./build;
 				USER_HEADER_SEARCH_PATHS = "../../../include/common ../../../include/mac/carbon ../../../include/posix";
 				VALID_ARCHS = i386;

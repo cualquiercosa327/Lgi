@@ -389,7 +389,7 @@ bool SystemFunctions::Tokenize(GVariant *Ret, ArgumentArray &Args)
 	Ret->SetList();
 
 	uint32 i;
-	while (i = s)
+	while ((i = s))
 	{
 		if (i == d)
 		{
