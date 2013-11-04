@@ -2567,8 +2567,8 @@ int GHtmlEdit::OnNotify(GViewI *c, int f)
 		case IDC_HTML_EDIT:
 		{
 			#ifdef _DEBUG
-			if (f == GTVN_CURSOR_CHANGED ||
-				f == GTVN_DOC_CHANGED)
+			if (TestFlag(f, GTVN_CURSOR_CHANGED) ||
+				TestFlag(f, GTVN_DOC_CHANGED))
 			{
 				if (d->DebugWnd)
 					d->DebugWnd->Invalidate();
