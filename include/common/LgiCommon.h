@@ -179,7 +179,9 @@ LgiFunc bool LgiExecute
 	/// The arguments to pass to the program
 	const char *Arguments="",
 	/// The directory to run in
-	const char *Dir=0
+	const char *Dir = 0,
+	/// An error message
+	GAutoString *ErrorMsg = NULL
 );
 
 /// Initializes the random number generator

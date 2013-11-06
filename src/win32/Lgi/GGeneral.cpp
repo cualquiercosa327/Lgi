@@ -489,74 +489,65 @@ static char *LgiFindArgsStart(char *File)
 	return 0;
 }
 
-bool LgiExecute(const char *File, const char *Arguments, const char *Dir)
+#include <lmerr.h>
+
+GAutoString LgiErrorCodeToString(uint32 ErrorCode)
 {
-	int Status = 0;
+	GAutoString Str;
+    HMODULE hModule = NULL;
+    LPSTR MessageBuffer;
+    DWORD dwBufferLength;
+    DWORD dwFormatFlags =	FORMAT_MESSAGE_ALLOCATE_BUFFER |
+							FORMAT_MESSAGE_IGNORE_INSERTS |
+							FORMAT_MESSAGE_FROM_SYSTEM ;
+
+    if (ErrorCode >= NERR_BASE && ErrorCode <= MAX_NERR)
+    {
+        hModule = LoadLibraryEx(	TEXT("netmsg.dll"),
+									NULL,
+									LOAD_LIBRARY_AS_DATAFILE);
+        if (hModule != NULL)
+            dwFormatFlags |= FORMAT_MESSAGE_FROM_HMODULE;
+    }
+
+    if (dwBufferLength = FormatMessageA(dwFormatFlags,
+										hModule, // module to get message from (NULL == system)
+										ErrorCode,
+										MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // default language
+										(LPSTR) &MessageBuffer,
+										0,
+										NULL))
+    {
+        DWORD dwBytesWritten;
+		Str.Reset(NewStr(MessageBuffer, dwBufferLength));
+        LocalFree(MessageBuffer);
+    }
+
+    if (hModule != NULL)
+        FreeLibrary(hModule);
+    
+    return Str;
+}
+
+bool LgiExecute(const char *File, const char *Arguments, const char *Dir, GAutoString *ErrorMsg)
+{
+	int Status = 0, Error = 0;
 	
 	if (!File)
 		return false;
 
-	#if 0
-	bool IsWeb = !strnicmp(File, "http://", 7) ||
-				 !strnicmp(File, "https://", 8);
-	GAutoString FileMem, ArgsMem;
-	if (IsWeb)
-	{
-		// Find the application instead of letting ShellExecute do the work.
-		GRegKey h("HKCR\\http\\shell\\open\\command");
-		if (h.IsOk())
-		{
-			char *Path = h.GetStr();
-			if (Path)
-			{
-				int PathLen = strlen(Path);
-				int FileLen = strlen(File);
-				char *Pc = strchr(Path, '%');
-				if (Pc && Pc[1])
-				{
-					FileMem.Reset(new char[PathLen+FileLen]);
-					memcpy(FileMem, Path, Pc-Path);
-					sprintf(FileMem+(Pc-Path), "%s%s", File, Pc + 2);
-					File = FileMem;
-
-					char *a = LgiFindArgsStart(File);
-					if (a)
-					{
-						*a++ = 0;
-						Arguments = a;
-					}
-				}
-				else
-				{
-					FileMem.Reset(NewStr(Path));
-					char *a = LgiFindArgsStart(FileMem);
-					if (a)
-					{
-						*a++ = 0;
-
-						ArgsMem.Reset(new char[strlen(a)+strlen(File)+5]);
-						sprintf(ArgsMem, "%s \"%s\"", a, File);
-						Arguments = ArgsMem;
-						File = FileMem;
-					}
-					else
-					{
-						Arguments = File;
-						File = FileMem;
-					}
-				}
-			}
-		}
-	}
-	#endif
-
+	uint64 Now = LgiCurrentTime();
 	if (LgiGetOs() == LGI_OS_WIN9X)
 	{
 		GAutoString f(LgiToNativeCp(File));
 		GAutoString a(LgiToNativeCp(Arguments));
 		GAutoString d(LgiToNativeCp(Dir));
 		if (f)
-			Status = (NativeInt) ShellExecute(NULL, "open", f, a, d, 5);
+		{
+			Status = (NativeInt) ShellExecuteA(NULL, "open", f, a, d, 5);
+			if (Status <= 32)
+				Error = GetLastError();
+		}
 	}
 	else
 	{
@@ -565,16 +556,21 @@ bool LgiExecute(const char *File, const char *Arguments, const char *Dir)
 		GAutoWString d(LgiNewUtf8To16(Dir));
 		if (f)
 		{
-			int64 Now = LgiCurrentTime();
 			Status = (NativeInt) ShellExecuteW(NULL, L"open", f, a, d, 5);
-			#ifdef _DEBUG
 			if (Status <= 32)
-				LgiTrace("ShellExecuteW failed with %i (LastErr=0x%x)\n", Status, GetLastError());
-			if (LgiCurrentTime() - Now > 1000)
-				LgiTrace("ShellExecuteW took %I64i\n", LgiCurrentTime() - Now);
-			#endif
+				Error = GetLastError();
 		}
 	}
+
+	#ifdef _DEBUG
+	if (Status <= 32)
+		LgiTrace("ShellExecuteW failed with %i (LastErr=0x%x)\n", Status, Error);
+	if (LgiCurrentTime() - Now > 1000)
+		LgiTrace("ShellExecuteW took %I64i\n", LgiCurrentTime() - Now);
+	#endif
+
+	if (ErrorMsg)
+		*ErrorMsg = LgiErrorCodeToString(Error);
 	
 	return Status > 32;
 }

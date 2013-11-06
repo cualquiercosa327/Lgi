@@ -7065,8 +7065,6 @@ void GHtml::OnMouseClick(GMouse &m)
 								sprintf(f, "_%i.html", LgiRand(1000000));
 								LgiMakePath(Path, sizeof(Path), Path, f);
 								
-								LgiCheckHeap();
-
 								GFile F;
 								if (F.Open(Path, O_WRITE))
 								{
@@ -7148,17 +7146,24 @@ void GHtml::OnMouseClick(GMouse &m)
 										}
 									}
 
-									LgiCheckHeap();
-
 									if (!Error)
 									{
-										char *Final = Ex.NewStr();
+										GAutoString Final(Ex.NewStr());
 										if (Final)
 										{
 											F.Write(Final, strlen(Final));
-											DeleteArray(Final);
 											F.Close();
-											LgiExecute(Path);
+											
+											GAutoString Err;
+											if (!LgiExecute(Path, NULL, NULL, &Err))
+											{
+												LgiMsg(	this,
+														"Failed to open '%s'\n%s",
+														LgiApp ? LgiApp->Name() : GetClass(),
+														MB_OK,
+														Path,
+														Err.Get());
+											}
 										}
 									}
 								}
