@@ -32,7 +32,7 @@ extern bool LgiCheckFile(char *Path, int PathSize);
 LgiFunc bool LgiPostEvent(OsView Wnd, int Event, GMessage::Param a = 0, GMessage::Param b = 0);
 LgiFunc GViewI *GetNextTabStop(GViewI *v, bool Back);
 /// Converts an OS error code into a text string
-LgiFunc GAutoString LgiErrorCodeToString(uint32 ErrorCode);
+LgiClass GAutoString LgiErrorCodeToString(uint32 ErrorCode);
 #if defined(MAC) && !defined(COCOA)
 LgiFunc void DumpHnd(HIViewRef v, int depth = 0);
 #endif
