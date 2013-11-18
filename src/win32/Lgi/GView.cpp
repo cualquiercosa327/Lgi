@@ -2142,7 +2142,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 
 				if (SysOnKey(this, Msg))
 				{
-					LgiTrace("SysOnKey true, Msg=0x%x\n", Msg->Msg);
+					// LgiTrace("SysOnKey true, Msg=0x%x\n", Msg->Msg);
 					return 0;
 				}
 				else
