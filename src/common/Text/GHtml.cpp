@@ -6951,6 +6951,10 @@ void GHtml::OnMouseClick(GMouse &m)
 		{
 			TagProcessedClick = Hit.NearestText->OnMouseClick(m);
 		}
+		else if (Hit.Direct)
+		{
+			TagProcessedClick = Hit.Direct->OnMouseClick(m);
+		}
 		#ifdef _DEBUG
 		else if (m.Left() && m.Ctrl())
 		{
