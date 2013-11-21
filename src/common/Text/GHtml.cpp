@@ -4834,41 +4834,55 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 		// Clear the previous text layout...
 		TextPos.DeleteObjects();
 		
-		if (TagId == TAG_LI)
+		switch (TagId)
 		{
-			// Insert the list marker
-			if (!PreText())
+			case TAG_LI:
 			{
-				GCss::ListStyleTypes s = Parent->ListStyleType();
-				if (s == ListInherit)
+				// Insert the list marker
+				if (!PreText())
 				{
-					if (Parent->TagId == TAG_OL)
-						s = ListDecimal;
-					else if (Parent->TagId == TAG_UL)
-						s = ListDisc;
-				}
-				
-				switch (s)
-				{
-					default: break;
-					case ListDecimal:
+					GCss::ListStyleTypes s = Parent->ListStyleType();
+					if (s == ListInherit)
 					{
-						int Index = Parent->Children.IndexOf(this);
-						char Txt[32];
-						sprintf(Txt, "%i. ", Index + 1);
-						PreText(LgiNewUtf8To16(Txt));
-						break;
+						if (Parent->TagId == TAG_OL)
+							s = ListDecimal;
+						else if (Parent->TagId == TAG_UL)
+							s = ListDisc;
 					}
-					case ListDisc:
+					
+					switch (s)
 					{
-						PreText(NewStrW(GHtmlListItem));
-						break;
+						default: break;
+						case ListDecimal:
+						{
+							int Index = Parent->Children.IndexOf(this);
+							char Txt[32];
+							sprintf(Txt, "%i. ", Index + 1);
+							PreText(LgiNewUtf8To16(Txt));
+							break;
+						}
+						case ListDisc:
+						{
+							PreText(NewStrW(GHtmlListItem));
+							break;
+						}
 					}
 				}
-			}
 
-			if (PreText())
-				TextPos.FlowText(this, Flow, f, f->GetHeight(), PreText(), AlignLeft);
+				if (PreText())
+					TextPos.FlowText(this, Flow, f, f->GetHeight(), PreText(), AlignLeft);
+				
+				break;
+			}
+			case TAG_IMG:
+			{
+				if (Disp == DispBlock && Image)
+				{
+					Flow->cx += Image->X();
+					Flow->y2 += Image->Y();
+				}
+				break;
+			}
 		}
 
 		if (Text())
