@@ -1934,6 +1934,7 @@ GCss::Selector &GCss::Selector::operator =(const GCss::Selector &s)
 
 bool GCss::Selector::TokString(GAutoString &a, const char *&s)
 {
+	const char *Init = s;
 	const char *e = s;
 	while
 	(
