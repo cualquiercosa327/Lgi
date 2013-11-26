@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <string.h>
 
 // #define _POSIX_TIMERS
 #include <time.h>
@@ -383,7 +384,20 @@ OSErr FinderLaunch(long nTargets, FSRef *targetList)
 	return err;
 }
 
-bool LgiExecute(const char *File, const char *Args, const char *Dir)
+GAutoString LgiErrorCodeToString(uint32 ErrorCode)
+{
+    const char *e = strerror(ErrorCode);
+	static char tmp[32];
+	if (!e)
+	{
+		sprintf_s(tmp, sizeof(tmp), "Error(%i)", ErrorCode);
+		e = tmp;
+	}
+	
+    return GAutoString(NewStr(e));
+}
+
+bool LgiExecute(const char *File, const char *Args, const char *Dir, GAutoString *ErrorMsg)
 {
 	bool Status = false;
 	

@@ -321,7 +321,7 @@ public:
 		/// The string to encode
 		const char *s,
 		/// [Optional] Any extra characters you want encoded
-		char *ExtraCharsToEncode = 0
+		const char *ExtraCharsToEncode = 0
 	);
 
 	/// URL decode

@@ -4836,6 +4836,8 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 		
 		switch (TagId)
 		{
+			default:
+				break;
 			case TAG_LI:
 			{
 				// Insert the list marker
@@ -7493,7 +7495,7 @@ void GHtml::SetLinkDoubleClick(bool b)
 	d->LinkDoubleClick = b;
 }
 
-bool GHtml::GetFormattedContent(char *MimeType, GAutoString &Out, GArray<GDocView::ContentMedia> *Media)
+bool GHtml::GetFormattedContent(const char *MimeType, GAutoString &Out, GArray<GDocView::ContentMedia> *Media)
 {
 	if (!MimeType)
 	{

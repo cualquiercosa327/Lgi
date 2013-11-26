@@ -198,8 +198,10 @@ bool GMutex::Lock(const char *file, int line)
 	}
 
 	#ifdef _DEBUG
+    /*
 	if (_DebugSem)
-		;//LgiStackTrace("%p::Lock %i\n", this, _Count);
+		LgiStackTrace("%p::Lock %i\n", this, _Count);
+    */
 	#endif
 	return Status;
 }
@@ -234,8 +236,10 @@ bool GMutex::LockWithTimeout(int Timeout, const char *file, int line)
 	}
 
 	#ifdef _DEBUG
+    /*
 	if (_DebugSem)
-		;//LgiStackTrace("%p::LockWi %i\n", this, _Count);
+		LgiStackTrace("%p::LockWi %i\n", this, _Count);
+    */
 	#endif
 	return Status;
 }
@@ -243,8 +247,10 @@ bool GMutex::LockWithTimeout(int Timeout, const char *file, int line)
 void GMutex::Unlock()
 {
 	#ifdef _DEBUG
+    /*
 	if (_DebugSem)
-		;//LgiStackTrace("%p::Unlock %i\n", this, _Count);
+		LgiStackTrace("%p::Unlock %i\n", this, _Count);
+    */
 	#endif
 	while (!_Lock())
 	{

@@ -1857,7 +1857,7 @@ bool GUri::Set(const char *uri)
 	return Host || Path;
 }
 
-GAutoString GUri::Encode(const char *s, char *ExtraCharsToEncode)
+GAutoString GUri::Encode(const char *s, const char *ExtraCharsToEncode)
 {
 	GStringPipe p(256);
 	if (s)
