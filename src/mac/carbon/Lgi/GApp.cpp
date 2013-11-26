@@ -469,6 +469,7 @@ GApp::GApp(OsAppArguments &AppArgs, const char *AppName, GAppArguments *ObjArgs)
 	d = new GAppPrivate;
 	d->Name.Reset(NewStr(AppName));
 	AppWnd = 0;
+	Name(AppName);
 
 	// Catch and ignore SIGPIPE
 	signal(SIGPIPE, OnSigPipe);
