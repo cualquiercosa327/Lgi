@@ -165,13 +165,16 @@ public:
 
 	int Write(const void *p, int size, int f = 0)
 	{
+		int Written = 0;
+		
 		Buf.Push((char*)p, size);
 
-		char In[512];
-		char Line[512];
-		char *o = Line;
+		char In[1024];
 		while (Buf.Pop(In, sizeof(In)))
 		{
+			char Line[1024];
+			char *o = Line;
+
 			for (char *s=In; *s; )
 			{
 				if (*s == '=')
@@ -197,16 +200,17 @@ public:
 				}
 			}
 
-			int Len = o-Line;
+			int Len = o - Line;
 			if (Out->Write(Line, Len) < Len)
 			{
 				// Error
 				return 0;
 			}
+			Written += Len;
 			o = Line;
 		}
 
-		return size;
+		return Written;
 	}
 };
 

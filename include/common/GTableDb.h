@@ -15,60 +15,76 @@ public:
 	enum HeaderTypes
 	{
 		DbIndexHeader = ID('indx'),
-		DbFieldDef = ID('flds'),
-		DbKeys = ID('keys'),
-		DbRow = ID('data'),
-		DbEmpty = ID('empt'),
+		DbFieldDef    = ID('flds'),
+		DbKeys        = ID('keys'),
+		DbRow         = ID('data'),
+		DbEmpty       = ID('empt'),
 	};
 	
-	class Block
+	enum FieldFlags
+	{
+		FIELD_SORTED		= 0x01,
+		FIELD_AUTONUMBER	= 0x02,
+	};
+	
+	// Riff chunk
+	class Chunk
 	{
 		union
 		{
 			uint32 IntId;
 			char StrId[4];
 		};
-		uint32 Size;
+		uint32 Size;	// If size is zero, the all the remaining data in 
+						// the file or memory is part of the chunk.
 	};
 	
-	class FieldDef
+	struct Base
 	{
-		Block Hdr;		// DbFieldDef
-		uint32 Id;		// Identifier of data
-		uint8 Type;		// GVariantType
-		char Name[1];	// String name
-	};
-	
-	class Key
-	{
-		uint32 Offset;
-		uint16 BlockId;
-		char Data[1];
+		bool Io(uint8 &i8, GPointer &p, bool write);
+		bool Io(uint16 &i16, GPointer &p, bool write);
+		bool Io(uint32 &i32, GPointer &p, bool write);
+		bool Io(uint64 &i64, GPointer &p, bool write);
+		bool Io(GAutoString &str, GPointer &p, bool write);
 	};
 
-	class Field
+	class Field : public Base
 	{
 	public:
-		int Id;
+		union {
+			uint32 Id;
+			char IdStr[4];
+		};
+		char Null;
+		uint8 Type;
+		uint8 Flags;
 		GAutoString Name;
-		GVariantType Type;
+		
+		Field();
+		Field(int id, int type, const char *name, int flags = 0);
+		
+		void Set(int id, int type, const char *name, int flags = 0);
+		bool Serialize(GPointer &p, bool Write);
+		bool operator !=(const Field &b);
+		Field &operator=(const Field &b);
 	};
+	
+	typedef GArray<Field> Schema;
+	
+	/// \returns TRUE if the schemas are the same.
+	static bool CompareSchema(Schema &a, Schema &b);
+	/// Copies 'src' to 'dest'
+	static bool CopySchema(Schema &dest, Schema &src);
 
-	class Row
+	struct RowId
 	{
-		Table *t;
+		int32 BlockId;
+		int32 Offset;
 		
-	public:
-		Row(Table *tbl, uint64 id);
-		~Row();
-		
-		int32 GetInt(int FieldId);
-		int64 GetInt64(int FieldId);
-		const char *GetStr(int FieldId);
-
-		bool SetInt(int FieldId, int32 value);
-		bool SetInt64(int FieldId, int64 value);
-		bool GetStr(int FieldId, const char *value);
+		bool Empty()
+		{
+			return Offset < 0;
+		}
 	};
 
 	class Table : public GBase, public GDom
@@ -84,15 +100,33 @@ public:
 		bool AddFile(const char *Path, int Number, bool IsIndex);
 
 		// Field operations
-		bool AddField(char *Name, int FieldId, GVariantType Type);
-		bool DeleteField(int FieldId);
+		bool ChangeSchema(Schema &NewFields);
 		Field *GetField(int FieldId);
 		Field *GetFieldAt(int Index);
 		
 		// Row operations
-		Row *NewRow(GVariant *Key);
-		bool DeleteRow(int Index);
-		Row *operator[](int index);
+		
+		/// Create a new row for a auto-numbered table
+		RowId NewRow(uint32 *Auto);
+		/// Create a new row with the specified integer key
+		RowId NewRow(uint32 Key);
+		/// Create a new row with the specified string key
+		RowId NewRow(const char *Key);
+
+		/// Finds the first matching record for the specified key
+		RowId SeekKey(uint32 key);
+		/// Finds the first matching record for the specified key
+		RowId SeekKey(const char *key);
+		
+		/// Sets an integer value
+		bool Set(RowId row, uint32 Fld, uint32 i);
+		/// Sets a string value
+		bool Set(RowId row, uint32 Fld, const char *str);
+
+		/// Gets an integer value
+		uint32 GetInt32(RowId row, uint32 Fld);
+		/// Gets a string value
+		const char *GetStr(RowId row, uint32 Fld);
 	};
 
 	GTableDb(const char *BaseFolder);
@@ -109,8 +143,21 @@ public:
 	
 	/// An array of available tables
 	GArray<Table*> &Tables();
-	/// Create a new table
-	Table *CreateTable(const char *Name);
+
+	/// Get a specific table
+	Table *GetTable(const char *Name);
+
+	/// Create a new table, or if it already exists makes sure the fields are correct.
+	/// If the table exists and the fields are different, it will be updated to match the
+	/// required format.
+	Table *CreateTable
+	(
+		/// The name of the table (this forms the first part of the filename)
+		const char *Name,
+		/// The fields the table will have. If it already exists the fields will
+		/// be made to match this initial schema.
+		const Schema &Sch
+	);
 	
 	/// This function flushes all writes to the disk.
 	bool Commit();
@@ -118,5 +165,7 @@ public:
 	/// \returns true if the DB is good condition
 	bool IsOk();
 };
+
+extern bool RunTableDbTest(GStream *Log);
 
 #endif
