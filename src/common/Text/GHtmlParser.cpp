@@ -3,6 +3,7 @@
 #include "GToken.h"
 #include "GHtmlCommon.h"
 #include "GHtmlParser.h"
+#include "GUtf8.h"
 
 #define IsBlock(d)		((d) == GCss::DispBlock)
 
@@ -80,6 +81,130 @@ void GHtmlParser::SkipNonDisplay(char *&s)
 	}
 }
 
+char *GHtmlParser::DecodeEntities(const char *s, int len)
+{
+	char buf[256];
+	char *o = buf;
+	const char *end = s + len;
+	GStringPipe p(256);
+
+	for (const char *i = s; i < end; )
+	{
+		if (o - buf > sizeof(buf) - 32)
+		{
+			// We are getting near the end of the buffer...
+			// push existing data into the GStringPipe and
+			// reset the output ptr.
+			p.Write(buf, o - buf);
+			o = buf;
+		}
+		
+		switch (*i)
+		{
+			case '&':
+			{
+				i++;
+				
+				if (*i == '#')
+				{
+					// Unicode Number
+					char n[32] = "", *p = n;
+					
+					i++;
+					
+					if (*i == 'x' || *i == 'X')
+					{
+						// Hex number
+						i++;
+						while (	*i &&
+								(
+									IsDigit(*i) ||
+									(*i >= 'A' && *i <= 'F') ||
+									(*i >= 'a' && *i <= 'f')
+								) &&
+								(p - n) < 31)
+						{
+							*p++ = *i++;
+						}
+					}
+					else
+					{
+						// Decimal number
+						while (*i && IsDigit(*i) && (p - n) < 31)
+						{
+							*p++ = *i++;
+						}
+					}
+					*p++ = 0;
+					
+					char16 Ch = atoi(n);
+					if (Ch)
+					{
+						*o++ = Ch;
+					}
+					
+					if (*i && *i != ';')
+						i--;
+				}
+				else
+				{
+					// Named Char
+					const char *e = i;
+					while (*e && IsAlpha(*e) && *e != ';')
+					{
+						e++;
+					}
+					
+					GAutoWString Var(LgiNewUtf8To16(i, e-i));							
+					uint32 Char = GHtmlStatic::Inst->VarMap.Find(Var);
+					if (Char)
+					{
+						int buflen = sizeof(buf) - (o - buf);
+						LgiUtf32To8(Char, (uint8*&)o, buflen);
+						i = e;
+					}
+					else
+					{
+						i--;
+						*o++ = *i;
+					}
+				}
+				break;
+			}
+			case '\r':
+			{
+				break;
+			}
+			case ' ':
+			case '\t':
+			case '\n':
+			{
+				*o++ = *i;
+				break;
+			}
+			default:
+			{
+				// Normal char
+				*o++ = *i;
+				break;
+			}
+		}
+
+		if (*i) i++;
+		else break;
+	}
+	*o = 0;
+	
+	if (p.GetSize() > 0)
+	{
+		// Long string mode... use the GStringPipe
+		p.Write(buf, o - buf);
+		return p.NewStr();
+	}
+	
+	return NewStr(buf, o - buf);
+}
+
 char *GHtmlParser::ParsePropValue(char *s, char *&Value)
 {
 	Value = 0;
@@ -90,14 +215,14 @@ char *GHtmlParser::ParsePropValue(char *s, char *&Value)
 			char Delim = *s++;
 			char *Start = s;
 			while (*s && *s != Delim) s++;
-			Value = NewStr(Start, s - Start);
+			Value = DecodeEntities(Start, s - Start);
 			s++;
 		}
 		else
 		{
 			char *Start = s;
 			while (*s && !IsWhiteSpace(*s) && *s != '>') s++;
-			Value = NewStr(Start, s - Start);
+			Value = DecodeEntities(Start, s - Start);
 		}
 	}
 
@@ -410,9 +535,24 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 						Elem->Tag.Reset(NewStr("td"));
 					}
 					
+					bool AlreadyOpen = false;
 					Elem->Info = GetTagInfo(Elem->Tag);
 					if (Elem->Info)
 					{
+						if (Elem->Info->Flags & GHtmlElemInfo::TI_SINGLETON)
+						{
+							// Do singleton check... we don't want nested BODY or HEAD tags...
+							List<GHtmlElement>::I it = OpenTags.End();
+							for (GHtmlElement *e = *it; e; e = *--it)
+							{
+								if (e->Tag && !stricmp(e->Tag, Elem->Tag))
+								{
+									AlreadyOpen = true;
+									break;
+								}
+							}
+						}
+					
 						Elem->TagId = Elem->Info->Id;
 						Elem->Display
 						(
@@ -560,7 +700,9 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 					}
 					*/
 
-					if (TagClosed || Elem->Info->NeverCloses())
+					if (AlreadyOpen ||
+						TagClosed ||
+						Elem->Info->NeverCloses())
 					{
 						return s;
 					}

@@ -24,6 +24,7 @@ protected:
 	GHtmlElement *GetOpenTag(const char *Tag);
 	void _TraceOpenTags();
 	char *ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPreTag = false, bool *BackOut = NULL);	
+	char *DecodeEntities(const char *s, int len);
 
 public:
 	GHtmlParser(GDocView *view)

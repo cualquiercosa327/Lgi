@@ -70,6 +70,7 @@ public:
 		TI_NO_TEXT		= 0x02,
 		TI_BLOCK		= 0x04,
 		TI_TABLE		= 0x08,
+		TI_SINGLETON	= 0x10,
 	};
 
 	HtmlTag Id;
@@ -93,7 +94,7 @@ public:
 	static GHtmlStatic *Inst;
 
 	int Refs;
-	GHashTbl<char16*,int>				 VarMap;
+	GHashTbl<char16*,uint32>			 VarMap;
 	GHashTbl<const char*,GCss::PropType> StyleMap;
 	GHashTbl<const char*,int>			 ColourMap;
 
