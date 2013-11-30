@@ -49,11 +49,16 @@ public:
 				RootMenuBack = GetSysColor(COLOR_MENUBAR);
 			else
 				RootMenuBack = GetSysColor(COLOR_MENU);
+			// LgiTrace("NT: flat=%i, menu=%x\n", Flat, RootMenuBack);
 		}
 		else
 		{
 			RootMenuBack = GetSysColor(COLOR_MENU);
+			// LgiTrace("9x: menu=%x\n", RootMenuBack);
 		}
+		
+		// Convert RootMenuBack to an Lgi colour
+		RootMenuBack = Rgb24(GetRValue(RootMenuBack), GetGValue(RootMenuBack), GetBValue(RootMenuBack));
 	}
 };
 

@@ -556,9 +556,13 @@ public:
 				}
 			}
 
-			char s[MAX_PATH];
-			sprintf(s, "%s (%.2s)", Desc, Drive);
-			_Name = NewStr(s);
+			if (Desc)
+			{
+				char s[MAX_PATH];
+				sprintf(s, "%s (%.2s)", Desc, Drive);
+				_Name = NewStr(s);
+			}
+			
 			_Path = NewStr(Drive);
 		}
 	}
@@ -599,7 +603,12 @@ public:
 				{
 					GWin32Volume *v = new GWin32Volume(d);
 					if (v)
-						_Sub.Insert(v);
+					{
+						if (v->Name())
+							_Sub.Insert(v);
+						else
+							DeleteObj(v);
+					}
 				}
 			}
 		}

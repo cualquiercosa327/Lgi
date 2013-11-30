@@ -95,32 +95,8 @@ public:
 	char *Text;
 	COLOUR c;
 
-	LogEntry(char *t, int len, COLOUR col)
-	{
-		c = col;
-		Text = 0;
-		
-		if (t)
-		{
-			if (len < 0)
-				len = strlen(t);
-
-			char *n = strnchr(t, '\r', len);
-			if (n)
-			{
-				Text = NewStr(t, (int)(n-t));
-			}
-			else
-			{
-				Text = NewStr(t, len);
-			}
-		}
-	}
-
-	~LogEntry()
-	{
-		DeleteArray(Text);
-	}
+	LogEntry(char *t, int len, COLOUR col);
+	~LogEntry();
 };
 
 /// Attachment descriptor

@@ -22,6 +22,50 @@
 #include "GDocView.h"
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
+LogEntry::LogEntry(char *t, int len, COLOUR col)
+{
+	c = col;
+	Text = 0;
+	
+	if (t)
+	{
+		if (len < 0)
+			len = strlen(t);
+
+		// Strip off any whitespace on the end of the line.
+		char *e = t + len;
+		while (e > t && strchr(" \t\r\n", e[-1]))
+			e--;
+		*e = 0;
+		
+
+		#if 0 // Debug weird characters in log file.
+		GStringPipe p(256);
+		for (char *s = t; *s; s++)
+		{
+			if (IsAlpha(*s) || IsDigit(*s))
+			{
+				p.Write(s, 1);
+			}
+			else
+			{
+				p.Print("%%%.2x", *s);
+			}
+		}
+		
+		Text = p.NewStr();
+		#else
+		Text = NewStr(t, len);
+		#endif
+	}
+}
+
+LogEntry::~LogEntry()
+{
+	DeleteArray(Text);
+}
+	
+//////////////////////////////////////////////////////////////////////////////////////////////////
 // return true if there are any characters with the 0x80 bit set
 bool Is8Bit(char *Text)
 {
