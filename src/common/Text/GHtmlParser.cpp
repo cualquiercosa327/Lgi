@@ -409,7 +409,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 							GAutoString Code(NewStr(Start, e - Start));
 							if (Code)
 							{
-								GAutoString Result(View->GetEnv()->OnDynamicContent(Code));
+								GAutoString Result(View->GetEnv()->OnDynamicContent(View, Code));
 								if (Result)
 								{
 									// Save the dynamic code to the source pipe
@@ -597,7 +597,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 									GVariant Lang, Type;
 									Elem->GetValue("language", Lang);
 									Elem->GetValue("type", Type);
-									View->GetEnv()->OnCompileScript(s, Lang.Str(), Type.Str());
+									View->GetEnv()->OnCompileScript(View, s, Lang.Str(), Type.Str());
 									*End = '<';
 								}
 

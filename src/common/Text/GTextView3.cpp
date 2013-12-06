@@ -4610,7 +4610,7 @@ void GTextView3::OnUrl(char *Url)
 {
 	if (Environment)
 	{
-		Environment->OnNavigate(Url);
+		Environment->OnNavigate(this, Url);
 	}
 }
 

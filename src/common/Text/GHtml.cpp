@@ -1175,7 +1175,7 @@ bool GTag::OnClick()
 	const char *OnClick = NULL;
 	if (Get("onclick", OnClick))
 	{
-		Html->Environment->OnExecuteScript((char*)OnClick);
+		Html->Environment->OnExecuteScript(Html, (char*)OnClick);
 	}
 	else
 	{
@@ -1835,7 +1835,7 @@ bool GTag::OnMouseClick(GMouse &m)
 				{
 					if (!Html->d->LinkDoubleClick || m.Double())
 					{
-						Html->Environment->OnNavigate(Uri);
+						Html->Environment->OnNavigate(Html, Uri);
 						Processed = true;
 					}
 				}
@@ -6060,7 +6060,7 @@ void GHtml::ParseDocument(const char *Doc)
 					const char *OnLoad;
 					if (Body->Get("onload", OnLoad))
 					{
-						Environment->OnExecuteScript((char*)OnLoad);
+						Environment->OnExecuteScript(this, (char*)OnLoad);
 					}
 				}
 			}
@@ -6691,11 +6691,11 @@ bool GHtml::OnSubmitForm(GTag *Form)
 		}
 		
 		GAutoPtr<const char, true> Data(p.NewStr());
-		Status = Environment->OnPostForm(Action, Data);
+		Status = Environment->OnPostForm(this, Action, Data);
 	}
 	else if (!stricmp(Method, "get"))
 	{
-		Status = Environment->OnNavigate(Action);
+		Status = Environment->OnNavigate(this, Action);
 	}
 	else
 	{

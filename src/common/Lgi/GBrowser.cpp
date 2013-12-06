@@ -181,7 +181,7 @@ public:
 		return true;
 	}
 
-	bool OnNavigate(const char *Uri)
+	bool OnNavigate(GDocView *Parent, const char *Uri)
 	{
 		GUri u(Uri);
 		char Sep, Buf[MAX_PATH];

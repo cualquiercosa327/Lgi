@@ -214,7 +214,7 @@ GDocumentEnv::LoadType GDefaultDocumentEnv::GetContent(LoadJob *&j)
 	return LoadError;
 }
 
-bool GDefaultDocumentEnv::OnNavigate(const char *Uri)
+bool GDefaultDocumentEnv::OnNavigate(GDocView *Parent, const char *Uri)
 {
 	if (Uri)
 	{
@@ -251,17 +251,26 @@ bool GDefaultDocumentEnv::OnNavigate(const char *Uri)
 
 				GAutoString Exe(TrimStr(First->Path, "\"\'"));
 				GAutoString Args(a.NewStr());
-				LgiExecute(Exe, Args, ".");
+
+				GAutoString ErrorMsg;
+				if (LgiExecute(Exe, Args, ".", &ErrorMsg))
+					return true;
+
+				LgiMsg(Parent, "Failed to open '%s':\n%s", LgiApp->Name(), MB_OK, Exe.Get(), ErrorMsg.Get());
 			}
 			else
 			{
-				printf("%s:%i - Couldn't get app to handle email.\n", _FL);
+				LgiMsg(Parent, "Couldn't get app to handle email.", LgiApp->Name(), MB_OK);
 			}
 		}
 		else
 		{
 			// webpage
-			return LgiExecute(Uri);
+			GAutoString ErrorMsg;
+			if (LgiExecute(Uri, NULL, NULL, &ErrorMsg))
+				return true;
+
+			LgiMsg(Parent, "Failed to open '%s':\n%s", LgiApp->Name(), MB_OK, Uri, ErrorMsg.Get());
 		}
 	}
 

@@ -173,20 +173,20 @@ public:
 	void OnDone(GAutoPtr<GThreadJob> j);
 	
 	/// Handle a click on URI
-	virtual bool OnNavigate(const char *Uri) { return false; }
+	virtual bool OnNavigate(GDocView *Parent, const char *Uri) { return false; }
 	/// Handle a form post
-	virtual bool OnPostForm(const char *Uri, const char *Data) { return false; }
+	virtual bool OnPostForm(GDocView *Parent, const char *Uri, const char *Data) { return false; }
 
 	/// Process dynamic content, returning a dynamically allocated string
 	/// for the result of the executed script. Dynamic content is enclosed
 	/// between &lt;? and ?&gt;.
-	virtual char *OnDynamicContent(const char *Code) { return 0; }
+	virtual char *OnDynamicContent(GDocView *Parent, const char *Code) { return 0; }
 
 	/// Some script was received, the owner should compile it
-	virtual bool OnCompileScript(char *Script, const char *Language, const char *MimeType) { return false; }
+	virtual bool OnCompileScript(GDocView *Parent, char *Script, const char *Language, const char *MimeType) { return false; }
 
 	/// Some script needs to be executed, the owner should compile it
-	virtual bool OnExecuteScript(char *Script) { return false; }
+	virtual bool OnExecuteScript(GDocView *Parent, char *Script) { return false; }
 };
 
 /// Default text view environment
@@ -198,7 +198,7 @@ class GDefaultDocumentEnv : public GDocumentEnv
 {
 public:
 	LoadType GetContent(LoadJob *&j);
-	bool OnNavigate(const char *Uri);
+	bool OnNavigate(GDocView *Parent, const char *Uri);
 };
 
 /// Find params
