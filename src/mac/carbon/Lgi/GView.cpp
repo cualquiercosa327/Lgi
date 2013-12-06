@@ -143,6 +143,14 @@ GView *GWindowFromHandle(OsView h)
 	return 0;
 }
 
+GKey::GKey(int Vkey, int flags)
+{
+	c16 = vkey = Vkey;
+	Flags = flags;
+	Data = 0;
+	IsChar = false;
+}
+
 ////////////////////////////////////////////////////////////////////////////
 HIRect &ConvertRect(GRect &g)
 {
