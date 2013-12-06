@@ -1031,6 +1031,7 @@ int VirtualKeyToLgi(UInt32 Virt)
 		case 42: return '\\';
 		case 47: return '.';
 		case 50: return '`';
+		case 43: return ',';
 		
 		// digits
 		case 18: return '1';

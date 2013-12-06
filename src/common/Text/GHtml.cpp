@@ -5938,6 +5938,7 @@ void GHtml::OnAddStyle(const char *MimeType, const char *Styles)
 		const char *c = Styles;
 		CssStore.Parse(c);
 
+		#if 0
 		GStringPipe p;
 		CssStore.Dump(p);
 		GAutoString a(p.NewStr());
@@ -5947,8 +5948,7 @@ void GHtml::OnAddStyle(const char *MimeType, const char *Styles)
 			f.Write(a, strlen(a));
 			f.Close();
 		}
-		
-		int asd=0;
+		#endif
 	}
 }
 

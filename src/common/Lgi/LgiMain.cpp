@@ -154,9 +154,11 @@ int main(int Args, char **Arg)
 	int Status = 0;
 	
 	#ifdef MAC
+	#if 0
 	LgiTrace("Args=%i\n", Args);
 	for (int i=0; i<Args; i++)
 		LgiTrace("\t[%i]='%s'\n", i, Arg[i]);
+	#endif
 	
 	OSStatus e;
 	

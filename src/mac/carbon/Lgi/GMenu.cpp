@@ -767,6 +767,14 @@ bool GMenuItem::ScanForAccel()
 		{
 			Key = k[0];
 		}
+		else if (strchr(",", k[0]))
+		{
+			Key = k[0];
+		}
+		else
+		{
+			printf("%s:%i - Unhandled shortcut token '%s'\n", _FL, k);
+		}
 	}
 	
 	if (Key == ' ')
@@ -805,7 +813,7 @@ bool GMenuItem::ScanForAccel()
 			Map(VK_F11, kMenuF11Glyph);
 			Map(VK_F12, kMenuF12Glyph);
 			Map(' ', kMenuSpaceGlyph);
-			Map(VK_DELETE, kMenuDeleteLeftGlyph); // kMenuDeleteRightGlyph
+			Map(VK_DELETE, kMenuDeleteRightGlyph);
 			Map(VK_BACKSPACE, kMenuDeleteLeftGlyph);
 			Map(VK_UP, kMenuUpArrowGlyph);
 			Map(VK_DOWN, kMenuDownArrowGlyph);
@@ -1247,7 +1255,7 @@ bool GAccelerator::Match(GKey &k)
 {
 	int Press = (uint) k.c16;
 	
-	#if 0
+	#if 1
 	printf("GAccelerator::Match %i(%c)%s%s%s = %i(%c)%s%s%s\n",
 		Press,
 		Press>=' '?Press:'.',

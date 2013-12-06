@@ -127,7 +127,13 @@ public:
 		IsChar = 0;
 	}
 
-	GKey(int vkey, int flags);
+	GKey(int Vkey, int flags)
+	{
+		c16 = vkey = Vkey;
+		Flags = flags;
+		Data = 0;
+		IsChar = false;
+	}
 
 	void Trace(const char *Msg)
 	{
