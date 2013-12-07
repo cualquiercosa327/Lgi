@@ -1701,6 +1701,7 @@ static void GTreeItemUpdateAll(GTreeNode *n)
 
 void GTree::UpdateAllItems()
 {
+	d->LayoutDirty = true;
 	GTreeItemUpdateAll(this);
 }
 
