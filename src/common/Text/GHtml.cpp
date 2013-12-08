@@ -7513,9 +7513,12 @@ bool GHtml::GetFormattedContent(const char *MimeType, GAutoString &Out, GArray<G
 			Tag->Find(TAG_IMG, Imgs);
 
 			// Give them CID's if they don't already have them
-			for (int i=0; Imgs.Length(); i++)
+			for (int i=0; i<Imgs.Length(); i++)
 			{
 				GTag *Img = Imgs[i];
+				if (!Img)
+					continue;
+				
 				const char *Cid, *Src;
 				if (Img->Get("src", Src) &&
 					!Img->Get("cid", Cid))
