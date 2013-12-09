@@ -541,7 +541,7 @@ bool DocEdit::OnMenu(GDocView *View, int Id)
 						int OpenBracketIndex = -1;							
 						
 						// Parse from cursor to the end of the function defn
-						while (s = LexCpp(p))
+						while (s = LexCpp(p, LexStrdup))
 						{
 							if (StricmpW(s, OpenBrac) == 0)
 							{
@@ -1138,7 +1138,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 					{
 						s += 6;
 						defnskipws(s);
-						LexCpp(s, false);
+						LexCpp(s, LexNoReturn);
 
 						char16 r = *s;
 						*s = 0;
@@ -1385,7 +1385,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 						if (TokLen == 6 && StrncmpW(StrExtern, Start, 6) == 0)
 						{
 							// extern "C" block
-							char16 *t = LexCpp(s); // "C"
+							char16 *t = LexCpp(s, LexStrdup); // "C"
 							if (t && StrcmpW(t, StrC) == 0)
 							{
 								defnskipws(s);
@@ -1509,7 +1509,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 								while (n && *n)
 								{
 									char16 *Last = n;
-									if (t = LexCpp(n))
+									if (t = LexCpp(n, LexStrdup))
 									{
 										if (StrcmpW(t, StrSemiColon) == 0)
 										{

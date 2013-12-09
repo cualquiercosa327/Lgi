@@ -5,15 +5,52 @@
 static const char *White = " \r\t\n";
 #define iswhite(s)		(s && strchr(White, s) != 0)
 #define isword(s)		(s && (IsDigit(s) || IsAlpha(s) || (s) == '_') )
-#define skipws(s)		while (iswhite(*s)) s++;
+#define skipws(s)		while (*s) \
+						{ \
+							if (*s == '\n') \
+							{ \
+								if (LineCount) *LineCount = *LineCount + 1; \
+								s++; \
+							} \
+							else if (*s == ' ' || *s == '\t' || *s == '\r') \
+								s++; \
+							else \
+								break; \
+						}
+
+char16 *LexStrdup(void *context, const char16 *start, int len)
+{
+	if (len < 0)
+		len = StrlenW(start);
+		
+	char16 *n = new char16[len + 1];
+	if (n)
+	{
+		memcpy(n, start, sizeof(*n) * len);
+		n[len] = 0;
+	}
+	
+	return n;
+}
+
+char16 *LexNoReturn(void *context, const char16 *start, int len)
+{
+	return NULL;
+}
 
 // Returns the next C++ token in 's'
 //
 // If 'ReturnString' is false then the next token is skipped and
 // not returned. i.e. the return is always NULL but 's' is moved.
-char16 *LexCpp(char16 *&s, bool ReturnString)
+char16 *LexCpp
+(
+	char16 *&s,
+	LexCppStrdup Strdup,
+	void *Context,
+	int *LineCount
+)
 {
-    char16 *Status = 0;
+    char16 *Status = NULL;
 
     LexAgain:
     skipws(s);
@@ -23,23 +60,14 @@ char16 *LexCpp(char16 *&s, bool ReturnString)
         char16 *Start = s++;
 
         // Non whitespace
-        char16 Nwsp = 0;
-        while (*s)
+        while (*s && IsAlpha(*s))
         {
             s++;
-            if (*s == '\n' && Nwsp != '\\')
-            {
-            	break;
-            }
-            if (!strchr(White, *s))
-            {
-            	Nwsp = *s;
-            }
         }
-        Status = ReturnString ? NewStrW(Start, s-Start) : 0;
+
+        return Strdup(Context, Start, s-Start);
     }
-    else if (*s == '_' ||
-        	 IsAlpha(*s))
+    else if (*s == '_' || IsAlpha(*s))
     {
         // Identifier
         char16 *Start = s++;
@@ -60,30 +88,45 @@ char16 *LexCpp(char16 *&s, bool ReturnString)
         {
             s++;
         }
-        Status = ReturnString ? NewStrW(Start, s-Start) : 0;
+        
+        return Strdup(Context, Start, s-Start);
     }
     else if (s[0] == '/' && s[1] == '/')
     {
         // C++ Comment
-        s = StrchrW(s, '\n');
-        if (s)
+        s += 2;
+        while (*s)
         {
-            s++;
-            goto LexAgain;
-        }
+			if (*s == '\n')
+			{
+				if (LineCount) *LineCount = *LineCount+1;
+				s++;
+				goto LexAgain;
+			}
+			
+			s++;
+		}
+		return NULL;
     }
     else if (s[0] == '/' && s[1] == '*')
     {
         // C comment
         s += 2;
-        
-        char16 Eoc[] = {'*','/',0};
-        s = StrstrW(s, Eoc);
-        if (s)
+        while (*s)
         {
-            s += 2;
-            goto LexAgain;
-        }
+			if (*s == '\n')
+			{
+				if (LineCount) *LineCount = *LineCount+1;
+			}
+			else if (s[0] == '*' && s[1] == '/')
+			{
+				s += 2;
+				goto LexAgain;
+			}
+			
+			s++;
+		}
+		return NULL;
     }
     else if
     (
@@ -119,8 +162,9 @@ char16 *LexCpp(char16 *&s, bool ReturnString)
     )
     {
         // 2 char delimiter
-        Status = ReturnString ? NewStrW(s, 2) : 0;
+        char16 *Status = Strdup(Context, s, 2);
         s += 2;
+        return Status;
     }
     else if (IsDigit(*s) || (*s == '-' && IsDigit(s[1]) ) )
     {
@@ -160,12 +204,13 @@ char16 *LexCpp(char16 *&s, bool ReturnString)
         {
             s++;
         }
-        Status = ReturnString ? NewStrW(Start, s-Start) : 0;
+        
+        return Strdup(Context, Start, s-Start);
     }
     else if (*s && strchr("-()*[]&,{};:=!<>?.\\+/%^|~", *s))
     {
         // Delimiter
-        Status = ReturnString ? NewStrW(s++, 1) : 0;
+        return Strdup(Context, s++, 1);
     }
     else if (*s && strchr("\"\'", *s))
     {
@@ -188,13 +233,10 @@ char16 *LexCpp(char16 *&s, bool ReturnString)
                 s++;
             }
         }
-        Status = ReturnString ? NewStrW(Start, s-Start) : 0;
+        
+        return Strdup(Context, Start, s-Start);
     }
-    else
-    {
-        return 0;
-    }
-    
-    return Status;
+
+    return NULL;
 };
 

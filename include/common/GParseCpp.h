@@ -2,19 +2,20 @@
 #define _GPARSECPP_H_
 
 /// C++ symbol types
-enum GCppSymType
+enum GSymbolType
 {
 	SymNone,
-	SymFunction,
-	SymVariable,
-	SymMacro,
+	SymDeclaration,
+	SymImplementation,
+	SymDefine,
+	SymReference
 };
 
 /// A reference to a matched symbol
-struct GCppSymbolResult
+struct GSymbolResult
 {
 	/// The type of the symbol
-	GCppSymType Type;
+	GSymbolType Type;
 	/// Which file the symbol is in
 	const char *File;
 	/// The line number in that file
@@ -29,7 +30,7 @@ class GCppParser
 	struct GCppParserPriv *d;
 
 public:
-	typedef void (*SearchResultsCb)(void *CallbackData, GArray<GCppSymbolResult*> &Syms);
+	typedef void (*SearchResultsCb)(void *CallbackData, GArray<GSymbolResult*> &Syms);
 	
 	struct ValuePair
 	{
@@ -51,14 +52,7 @@ public:
 	GCppParser();
 	virtual ~GCppParser();
 	
-	/// Returns true if the worker thread is actively doing something.
-	bool IsActive();
-
-	/// Returns true if the worker thread is available to do searches.
-	bool IsReady();
-	
-	/// Parse a group of source code files. This will be done in a worker thread and you 
-	/// won't get an immediate result.
+	/// Parse a group of source code files.
 	void ParseCode
 	(
 		/// All the include paths for this group of source code files
@@ -66,7 +60,7 @@ public:
 		/// Any pre-defined values
 		GArray<ValuePair*> &PreDefines,
 		/// All the source code files to parse
-		GArray<const char*> &Source
+		GArray<char*> &Source
 	);
 	
 	/// Do a search for a symbol
@@ -75,9 +69,7 @@ public:
 		/// The search string, can be multiple parts broken by spaces. Sub-strings will
 		/// match longer idenifiers and searches are case sensitive
 		const char *Str,
-		/// A callback to receive results. This method will be called from the worker thread,
-		/// if you need to display the result in a GUI you will have to do synchronization on
-		/// the receiving end.
+		/// A callback to receive results.
 		SearchResultsCb Callback,
 		/// A user defined value to pass back to the Callback.
 		void *CallbackData

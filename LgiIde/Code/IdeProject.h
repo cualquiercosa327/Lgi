@@ -112,6 +112,7 @@ public:
 	const char *GetExecutable();
 	const char *GetExeArgs();
 	const char *GetIncludePaths();
+	const char *GetPreDefinedValues();
 
 	GXmlTag *Create(char *Tag);
 	void Empty();

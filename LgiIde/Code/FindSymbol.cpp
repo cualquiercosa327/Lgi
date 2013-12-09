@@ -9,16 +9,23 @@
 #include "GProcess.h"
 #include "GToken.h"
 
+#if 1
+#include "GParseCpp.h"
+#endif
+
 #include "resdefs.h"
 
 #define DEBUG_FIND_SYMBOL		0
 
+#ifdef _GPARSECPP_H_
+#else
 const char *CTagsExeName = "ctags"
 	#ifdef WIN32
 	".exe"
 	#endif
 	;
 #define TEMP_FILE_NAME		"lgiide_ctags_filelist.txt"
+#endif
 
 class FindSymbolDlg : public GDialog
 {
@@ -91,8 +98,12 @@ struct FindSymbolSystemPriv : public GMutex
 	// All the input files from the projects that are open
 	GArray<char*> Files;
 
+	#ifdef _GPARSECPP_H_
+	GCppParser CppParser;
+	#else
 	GAutoString CTagsExe;
 	GAutoString CTagsIndexFile;
+	#endif
 	GArray<char*> ThreadMsg;
 
 	bool TagsDirty;
@@ -108,6 +119,7 @@ struct FindSymbolSystemPriv : public GMutex
 		Lst = NULL;
 		TagsDirty = false;
 		
+		#ifndef _GPARSECPP_H_
 		CTagsExe.Reset(LgiFindFile(CTagsExeName));
 		if (!CTagsExe)
 		{
@@ -139,6 +151,7 @@ struct FindSymbolSystemPriv : public GMutex
 				}
 			}
 		}
+		#endif
 	}
 };
 
@@ -188,6 +201,58 @@ void FindSymbolThread::MatchesToResults(SearchRequest *Req, GArray<Symbol*> &Mat
 
 void FindSymbolThread::UpdateTags()
 {
+	#ifdef _GPARSECPP_H_
+	
+	List<IdeProject> Projects;
+	IdeProject *p = d->App->RootProject();
+	if (p)
+	{
+		Projects.Add(p);
+		p->GetChildProjects(Projects);
+		
+		for (int i=0; i<Projects.Length(); i++)
+		{
+			IdeProject *p = Projects[i];
+			if (p)
+			{
+				GArray<char*> Src;
+				GArray<const char*> IncPaths;
+				
+				p->CollectAllSource(Src, PlatformCurrent);
+				
+				GAutoString Base = p->GetBasePath();
+				
+				const char *Ip = p->GetIncludePaths();
+				GToken t(Ip, "\n");
+				for (int n=0; n<t.Length(); n++)
+				{
+					if (LgiIsRelativePath(t[n]))
+					{
+						char p[MAX_PATH];
+						LgiMakePath(p, sizeof(p), Base, t[n]);
+						IncPaths.Add(NewStr(p));
+					}
+					else
+					{
+						IncPaths.Add(NewStr(t[n]));
+					}
+				}
+				
+				GArray<GCppParser::ValuePair*> PreDefs;
+				const char *Pd = p->GetPreDefinedValues();
+				GToken t2(Pd, ";");
+				for (int n=0; n<t.Length(); n++)
+				{
+				}
+				
+				d->CppParser.ParseCode(IncPaths, PreDefs, Src);
+				
+				IncPaths.DeleteArrays();
+			}
+		}
+	}
+			
+	#else
 	// Create index...
 	char tmp[MAX_PATH];
 	if (!LgiGetSystemPath(LSP_TEMP, tmp, sizeof(tmp)))
@@ -195,6 +260,7 @@ void FindSymbolThread::UpdateTags()
 		Msg("Error getting temp folder.");
 		return;
 	}
+	
 	if (!LgiMakePath(tmp, sizeof(tmp), tmp, TEMP_FILE_NAME))
 	{
 		Msg("Error making temp path.");
@@ -230,12 +296,11 @@ void FindSymbolThread::UpdateTags()
 	sprintf_s(args, sizeof(args), "--excmd=number -f \"%s\" -L \"%s\"", d->CTagsIndexFile.Get(), tmp);
 	GProcess proc;
 	bool b = proc.Run(d->CTagsExe, args, NULL, true);
-	// FileDev->Delete(tmp);
-	
+
 	// Read in the tags file...
 	Msg("Reading tags file...");
 	char *end = NULL;
-	
+
 	GFile in;
 	if (in.Open(d->CTagsIndexFile, O_READ))
 	{
@@ -277,6 +342,7 @@ void FindSymbolThread::UpdateTags()
 			b++;
 		}
 	}
+	#endif
 }
 
 int FindSymbolThread::Main()
@@ -376,12 +442,16 @@ FindSymbolDlg::FindSymbolDlg(FindSymbolSystemPriv *priv, GViewI *parent)
 		if (GetViewById(IDC_RESULTS, d->Lst))
 		{
 			d->Lst->MultiSelect(false);
+			
+			#ifdef _GPARSECPP_H_
+			#else
 			if (!d->CTagsExe)
 			{
 				GListItem *i = new GListItem;
 				i->SetText("Ctags binary missing.");
 				d->Lst->Insert(i);
 			}
+			#endif
 		}
 	}
 }
@@ -605,6 +675,7 @@ void FindSymbolSystem::OnProject()
 	IdeProject *p = d->App->RootProject();
 	if (p)
 	{
+		#ifndef _GPARSECPP_H_
 		char *ProjFile = p->GetFileName();
 		if (ProjFile)
 		{
@@ -614,6 +685,7 @@ void FindSymbolSystem::OnProject()
 				d->CTagsIndexFile.Reset(NewStr(p));
 			}
 		}
+		#endif
 		
 		Projects.Add(p);
 		p->GetChildProjects(Projects);

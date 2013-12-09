@@ -2460,6 +2460,11 @@ const char *IdeProject::GetIncludePaths()
 	return d->Settings.GetStr(ProjIncludePaths);
 }
 
+const char *IdeProject::GetPreDefinedValues()
+{
+	return d->Settings.GetStr(ProjDefines);
+}
+
 const char *IdeProject::GetExeArgs()
 {
 	return d->Settings.GetStr(ProjArgs);
