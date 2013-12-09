@@ -256,6 +256,18 @@
 					RelativePath=".\Code\FindSymbol.h"
 					>
 				</File>
+				<Filter
+					Name="Cpp Parser"
+					>
+					<File
+						RelativePath="..\src\common\Coding\GParseCpp.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\include\common\GParseCpp.h"
+						>
+					</File>
+				</Filter>
 			</Filter>
 		</Filter>
 		<Filter
