@@ -15,6 +15,8 @@
 #include "LgiWinManGlue.h"
 #include "GToken.h"
 
+#include <errno.h>
+
 ////////////////////////////////////////////////////////////////
 // Local helper functions
 bool _lgi_check_file(char *Path)
@@ -153,106 +155,6 @@ bool LgiGetFileMimeType(const char *File, char *Mime, int BufLen)
 	return true;
 }
 
-/*
-#include "GToken.h"
-bool _GetIniField(char *Grp, char *Field, char *In, char *Out, int OutSize)
-{
-	if (ValidStr(In))
-	{
-		bool InGroup = false;
-		GToken t(In, "\r\n");
-		
-		for (int i=0; i<t.Length(); i++)
-		{
-			char *Line = t[i];
-			if (*Line == '[')
-			{
-				// Reset inside group at the start of each group
-				InGroup = false;
-
-				char *e = strchr(++Line, ']');
-				if (e)
-				{
-					*e = 0;
-					InGroup = stricmp(Grp, Line) == 0;
-				}
-			}
-			else if (InGroup)
-			{
-				char *e = strchr(Line, '=');
-				if (e)
-				{
-					// Point v to the data after the equals
-					// Leave e pointing to the byte before
-					char *v = e-- + 1;
-
-					// Seek e through any whitespace between the equals and the
-					// field name
-					while (e > Line && strchr(" \t", *e)) e--;
-					
-					// Seek v through any whitespace after the equals
-					while (*v && strchr(" \t", *v)) v++;
-					
-					// Calculate the length of the field
-					int flen = (int)e-(int)Line;
-
-					// Check the current field against the input field
-					if (strnicmp(Field, Line, flen) == 0)
-					{
-						while (	*v &&
-								strchr("\r\n", *v) == 0 &&
-								OutSize > 1) // leave space for NULL
-						{
-							*Out++ = *v++;
-							OutSize--;
-						}
-
-						// Add the NULL
-						*Out++ = 0;
-						
-						return true;
-					}
-				}
-			}
-		}
-	}
-	
-	return false;
-}
-
-bool _GetKdePaths(GToken &t, char *Type)
-{
-	bool Status = false;
-
-	char Args[256];
-	sprintf(Args, "--path %s", Type);
-
-	GStringPipe Out;
-	GProcess p;
-	if (p.Run("kde-config", Args, 0, true, 0, &Out))
-	{
-		char *Buf = Out.NewStr();
-		if (Buf)
-		{
-			t.Parse(Buf, ":\r\n");
-			DeleteArray(Buf);
-			Status = true;
-		}
-		else
-		{
-			printf("_GetKdePaths: Didn't get string back from kde-config.\n");
-		}
-	}
-	else
-	{
-		printf("_GetKdePaths: Couldn't run kde-config.\n");
-	}
-
-	return Status;
-}
-
-*/
-
 bool _GetSystemFont(char *FontType, char *Font, int FontBufSize, int &PointSize)
 {
 	bool Status = false;
@@ -341,7 +243,25 @@ bool LgiPlaySound(const char *FileName, int ASync)
 	return LgiExecute(FileName);
 }
 
-bool LgiExecute(const char *File, const char *Args, const char *Dir)
+GAutoString LgiErrorCodeToString(uint32 ErrorCode)
+{
+	GAutoString e;
+	char *s = strerror(ErrorCode);
+	if (s)
+	{
+		e.Reset(NewStr(s));
+	}
+	else
+	{
+		char buf[256];
+		sprintf_s(buf, sizeof(buf), "UnknownError(%i)", ErrorCode);
+		e.Reset(NewStr(buf));
+	}
+	
+	return e;
+}
+
+bool LgiExecute(const char *File, const char *Args, const char *Dir, GAutoString *Error)
 {
 	if (File)
 	{
@@ -496,12 +416,12 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir)
 
 			strcat(App, " > /dev/null 2> /dev/null &");
 
-			printf("LgiExecute: document, system('%s')\n", App);
 			int e;
 			if (Dir) chdir(Dir);
 			if (e = system(App))
 			{
-				printf("\tsystem(...) failed with error: %i\n", e);
+				if (Error)
+					*Error = LgiErrorCodeToString(errno);
 				return false;
 			}
 
