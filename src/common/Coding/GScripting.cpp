@@ -546,7 +546,7 @@ public:
 		{
 			int Line = 1;
 			char16 *s = w, *t, *prev = w;
-			while ((t = LexCpp(s)))
+			while ((t = LexCpp(s, LexStrdup)))
 			{
 				while (prev < s)
 				{

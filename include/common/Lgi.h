@@ -216,7 +216,6 @@
 /// \brief Define as '1' if libsharedmime is available else as '0'
 /// \sa http://www.memecode.com/libsharedmime.php
 #define HAS_SHARED_MIME						0
-#define HAS_LIBPNG_ZLIB						1
 #define HAS_FILE_CMD						0
 #define HAS_SHARED_OBJECT_SKIN				0
 #define HAS_LIBGSASL						0

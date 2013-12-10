@@ -454,7 +454,7 @@ public:
 		{
 			int Line = 1;
 			char16 *s = w, *t, *prev = w;
-			while ((t = LexCpp(s)))
+			while ((t = LexCpp(s, LexStrdup)))
 			{
 				while (prev < s)
 				{
@@ -468,7 +468,7 @@ public:
 					if (!StrnicmpW(t + 1, sInclude, Len = StrlenW(sInclude)))
 					{
 						char16 *Inc = t + 1 + Len;
-						char16 *Raw = LexCpp(Inc);
+						char16 *Raw = LexCpp(Inc, LexStrdup);
 						char16 *File = TrimStrW(Raw, (char16*)L"\"\'");
 						DeleteArray(Raw);
 						if (File)
@@ -494,7 +494,7 @@ public:
 					else if (!StrnicmpW(t + 1, sDefine, Len = StrlenW(sDefine)))
 					{
 						char16 *Def = t + 1 + Len;
-						char16 *Name = LexCpp(Def);
+						char16 *Name = LexCpp(Def, LexStrdup);
 
 						if (IsAlpha(*Name))
 						{
@@ -513,7 +513,7 @@ public:
 				if (IsAlpha(*t) && (DefineValue = Defines.Find(t)))
 				{
 					char16 *Def = DefineValue, *f;
-					while ((f = LexCpp(Def)))
+					while ((f = LexCpp(Def, LexStrdup)))
 					{
 						Tokens.Add(f);
 						Lines.Add(FileName, Line);

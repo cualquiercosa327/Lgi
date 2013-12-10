@@ -58,6 +58,13 @@ char16 *LexCpp
     {
         // Pre-processor command
         char16 *Start = s++;
+        
+        // Skip any whitespace
+        while (*s == ' ' || *s == '\t')
+        {
+			Start = s;
+			*s++ = '#';
+		}
 
         // Non whitespace
         while (*s && IsAlpha(*s))
