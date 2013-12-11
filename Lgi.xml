@@ -38,12 +38,12 @@
 						<Node File="./include/linux/Gtk/LgiOsClasses.h" Type="3" Platforms="2" />
 						<Node File="./include/linux/Gtk/LgiOsDefs.h" Type="3" Platforms="2" />
 					</Node>
-					<Node File="./src/linux/Lgi/GApp.cpp" Type="2" Platforms="2" />
-					<Node File="./src/linux/Lgi/GGeneral.cpp" Type="2" Platforms="2" />
-					<Node File="./src/linux/Lgi/GPrinter.cpp" Type="2" Platforms="2" />
-					<Node File="./src/linux/Lgi/GView.cpp" Type="2" Platforms="2" />
-					<Node File="./src/linux/Lgi/GWindow.cpp" Type="2" Platforms="2" />
-					<Node File="./src/linux/Gtk/LgiWidget.cpp" Type="2" Platforms="2" />
+					<Node File=".\src\linux\Lgi\GApp.cpp" Type="2" Platforms="2" />
+					<Node File=".\src\linux\Lgi\GGeneral.cpp" Type="2" Platforms="2" />
+					<Node File=".\src\linux\Lgi\GPrinter.cpp" Type="2" Platforms="2" />
+					<Node File=".\src\linux\Lgi\GView.cpp" Type="2" Platforms="2" />
+					<Node File=".\src\linux\Lgi\GWindow.cpp" Type="2" Platforms="2" />
+					<Node File=".\src\linux\Gtk\LgiWidget.cpp" Type="2" Platforms="2" />
 				</Node>
 				<Node Name="Haiku" Type="1" Platforms="15" Open="0">
 					<Node Name="Headers" Type="1" Platforms="15" Open="0">
@@ -56,8 +56,8 @@
 					<Node File="./src/beos/Lgi/GView.cpp" Type="2" Platforms="8" />
 					<Node File="./src/beos/Lgi/GWindow.cpp" Type="2" Platforms="8" />
 				</Node>
-				<Node File="./src/common/Lgi/GViewCommon.cpp" Type="2" Platforms="15" />
-				<Node File="./include/common/GViewPriv.h" Type="3" Platforms="15" />
+				<Node File=".\src\common\Lgi\GViewCommon.cpp" Type="2" Platforms="15" />
+				<Node File=".\include\common\GViewPriv.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Libraries" Type="1" Platforms="15" Open="0">
 				<Node File="./src/common/Lgi/GLibrary.cpp" Type="2" Platforms="15" />
@@ -126,22 +126,22 @@
 					<Node File=".\src\win32\Lgi\GThread.cpp" Type="2" Platforms="1" />
 				</Node>
 				<Node File=".\src\common\Lgi\GMutex.cpp" Type="2" Platforms="15" />
-				<Node File="./include/common/GMutex.h" Type="3" Platforms="15" />
-				<Node File="./include/common/GThread.h" Type="3" Platforms="15" />
+				<Node File=".\include\common\GMutex.h" Type="3" Platforms="15" />
+				<Node File=".\include\common\GThread.h" Type="3" Platforms="15" />
 				<Node File=".\src\common\Lgi\GThreadCommon.cpp" Type="2" Platforms="15" />
 				<Node File=".\src\common\Lgi\GThreadEvent.cpp" Type="2" Platforms="15" />
-				<Node File="./include/common/GThreadEvent.h" Type="3" Platforms="15" />
+				<Node File=".\include\common\GThreadEvent.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Variant" Type="1" Platforms="15" Open="0">
 				<Node File=".\src\common\Lgi\GVariant.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GVariant.h" Type="3" Platforms="15" />
 			</Node>
-			<Node File="./src/common/Lgi/GGuiUtils.cpp" Type="2" Platforms="15" />
-			<Node File="./src/common/Lgi/GObject.cpp" Type="2" Platforms="15" />
-			<Node File="./src/common/Lgi/GToolTip.cpp" Type="2" Platforms="15" />
-			<Node File="./src/common/Lgi/GTrayIcon.cpp" Type="2" Platforms="15" />
-			<Node File="./src/common/Lgi/Lgi.cpp" Type="2" Platforms="15" />
-			<Node File="./src/common/Lgi/LgiMsg.cpp" Type="2" Platforms="15" />
+			<Node File=".\src\common\Lgi\GGuiUtils.cpp" Type="2" Platforms="15" />
+			<Node File=".\src\common\Lgi\GObject.cpp" Type="2" Platforms="15" />
+			<Node File=".\src\common\Lgi\GToolTip.cpp" Type="2" Platforms="15" />
+			<Node File=".\src\common\Lgi\GTrayIcon.cpp" Type="2" Platforms="15" />
+			<Node File=".\src\common\Lgi\Lgi.cpp" Type="2" Platforms="15" />
+			<Node File=".\src\common\Lgi\LgiMsg.cpp" Type="2" Platforms="15" />
 		</Node>
 		<Node Name="Dialogs" Type="1" Platforms="15" Open="0">
 			<Node Name="Xp" Type="1" Platforms="15" Open="0">
@@ -365,13 +365,12 @@
 					<Debug>WIN32NATIVE</Debug>
 					<Release>WIN32NATIVE</Release>
 				</Windows>
-				<Linux />
 			</Defines>
 			<Compiler>
 				<Windows>MingW</Windows>
 			</Compiler>
 			<Executable>
-				<Linux />
+				<Windows />
 			</Executable>
 			<Arguments>
 				<All />
@@ -458,7 +457,7 @@ textencoding</Release>
 			</TargetName>
 			<LibraryPaths>
 				<All />
-				<Linux />
+				<Windows />
 			</LibraryPaths>
 		</Build>
 		<Editor>
