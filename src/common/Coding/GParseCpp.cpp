@@ -5,6 +5,8 @@
 #include "GVariant.h"
 #include "GScriptingPriv.h"
 
+#define CheckToken(t) if (!t) { Error = true; break; }
+
 enum StackType
 {
 	StackNone,
@@ -105,16 +107,56 @@ struct GCppStringPool
 	}
 };
 
+char16 *LexPoolAlloc(void *Context, const char16 *s, int len)
+{
+	return ((GCppStringPool*)Context)->Alloc(s, len);
+}
+
 struct GSourceFile
 {
 	uint32 Id;
 	GAutoString Path;
-	GArray<GSymbol> Syms;
 	GCppStringPool Pool;
+	int Cur;
+	GArray<char16*> Tokens;
+	GHashTbl<int,int> LineMap;
 	
 	GSourceFile() : Pool(16 << 10)
 	{
 		Id = 0;
+		Cur = 0;
+	}
+	
+	char16 *NextToken()
+	{
+		return Cur < Tokens.Length() ? Tokens[Cur++] : NULL;
+	};
+	
+	bool Lex()
+	{
+		GAutoString f(ReadTextFile(Path));
+		if (!f)
+			return false;
+
+		GAutoWString raw(LgiNewUtf8To16(f));
+		f.Reset();
+		
+		char16 *t, *cur = raw;
+		int prev_line = 1, cur_line = 1;
+		int index = 0;
+		
+		while (t = LexCpp(cur, LexPoolAlloc, &Pool, &cur_line))
+		{
+			if (cur_line != prev_line)
+			{
+				LineMap.Add(index, cur_line);
+				prev_line = cur_line;
+			}
+			
+			Tokens[index++] = t;
+		}
+		
+		return true;
 	}
 };
 
@@ -215,9 +257,12 @@ GCppParserWorker::GCppParserWorker(GCppParserPriv *priv) :
 	AddHash("long", KwType);
 	AddHash("float", KwType);
 	AddHash("double", KwType);
+	#ifdef WIN32
 	AddHash("__int64", KwType);
-
+	AddHash("_W64", KwModifier);
+	#endif
 	AddHash("unsigned", KwModifier);
+	AddHash("signed", KwModifier);
 	
 	AddHash("class", KwUserType);
 	AddHash("struct", KwUserType);
@@ -293,18 +338,42 @@ Range GCppParserWorker::GetNameRange(GArray<char16*> &a)
 	for (int i=0; i<a.Length(); i++)
 	{
 		char16 *s = a[i];
+		GSymbol *sym;
 		
 		KeywordType kt = Keywords.Find(s);
 		if (kt)
 		{
+			if (kt == KwUserType)
+			{
+				int asd=0;
+			}
+		}
+		else if (sym = Resolve(s))
+		{
+			int asd=0;
+		}
+		else if (CmpToken(s, "*") ||
+				 CmpToken(s, "(") ||
+				 CmpToken(s, ")"))
+		{
+			int asd=0;
+		}
+		else if (IsAlpha(*s) || *s == '_')
+		{
+			if (i != a.Length() - 1)
+			{
+				int aas=0;
+			}
+			r.Start = r.End = i;
+			break;
 		}
 		else
 		{
-			GSymbol *sym = Resolve(s);
 			int asd=0;
-		}		
+		}
 	}
 	
+	LgiAssert(r.Start >= 0);
 	return r;
 }
 
@@ -319,11 +388,6 @@ void GCppParserWorker::Add(WorkUnit *w)
 	}
 }
 
-char16 *LexPoolAlloc(void *Context, const char16 *s, int len)
-{
-	return ((GCppStringPool*)Context)->Alloc(s, len);
-}
-
 GSymbol *GCppParserWorker::Resolve(char16 *Symbol)
 {
 	for (int i = Scopes.Length()-1; i >= 0; i--)
@@ -336,9 +400,6 @@ GSymbol *GCppParserWorker::Resolve(char16 *Symbol)
 	
 	return NULL;
 }
-
-#define NextToken() LexCpp(cur, LexPoolAlloc, &sf->Pool, &CurLine)
-#define CheckToken(t) if (!t) { Error = true; break; }
 
 GVariant *GetArg(GArray<GVariant> &Values, int i)
 {
@@ -407,7 +468,7 @@ int GCppParserWorker::Evaluate(GArray<char16*> &Exp)
 				break;
 			}
 
-			// Create array of sub-expression tokens and then evaulate that			
+			// Create array of sub-expression tokens and then evaluate that			
 			GArray<char16*> Sub;
 			for (int n=i+1; n<End; n++)
 			{
@@ -593,32 +654,27 @@ int GCppParserWorker::Evaluate(GArray<char16*> &Exp)
 
 GSourceFile *GCppParserWorker::ParseCpp(const char *Path)
 {
-	GAutoString f(ReadTextFile(Path));
-	if (!f)
-		return NULL;
-
 	GSourceFile *sf = new GSourceFile;
 	if (!sf)
 		return NULL;
 
 	sf->Path.Reset(NewStr(Path));
+	if (!sf->Lex())
+	{
+		delete sf;
+		return NULL;
+	}
+
 	Srcs.Add(sf);
 	SrcHash.Add(Path, sf);
 	
-	// Lex the source code
-	GAutoWString FileW(LgiNewUtf8To16(f));
-	char16 *t, *cur = FileW;
-	int CurLine = 1;
 	bool Error = false;
 	bool Active = true;
 	GArray<StackType> Stack;
 	
 	while (!Error)
 	{
-		char16 *prev = cur;
-		t = NextToken();
-		if (!t)
-			break;
+		char16 *t = sf->NextToken();
 		
 		ProcessToken:
 		switch (*t)
@@ -837,19 +893,51 @@ GSourceFile *GCppParserWorker::ParseCpp(const char *Path)
 			}
 			default:
 			{
-				if (CmpToken(t, "typedef"))
+				if (CmpToken(t, "class") ||
+					CmpToken(t, "struct") ||
+					CmpToken(t, "enum") ||
+					CmpToken(t, "union"))
 				{
-					// CurrentScope()
+				}
+				else if (CmpToken(t, "typedef"))
+				{
+					int StartLine = CurLine;
 					GArray<char16*> a;
 					while (t = NextToken())
 					{
+						if (kt == KwUserType)
+						{
+							goto UserTypeParse;
+						}
+						
 						if (CmpToken(t, ";"))
 							break;
 						a.Add(t);
 					}
 					
-					Range r = GetNameRange(a);
-					
+					if (Active)
+					{
+						Range r = GetNameRange(a);
+						char16 id[256];
+						int ch = 0;
+						for (int i=r.Start; i<=r.End; i++)
+						{
+							char16 *p = a[i];
+							while (*p)
+							{
+								id[ch++] = *p++;
+							}
+						}
+						id[ch] = 0;
+						LgiAssert(ch < CountOf(id));
+						GSymbol *sym = Scopes[0]->Define(id, SymDeclaration);
+						if (sym)
+						{
+							sym->File = sf->Path;
+							sym->Line = StartLine;
+							sym->Tokens = a;
+						}
+					}
 				}
 				else
 				{
