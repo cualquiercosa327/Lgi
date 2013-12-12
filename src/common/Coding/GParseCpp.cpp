@@ -220,6 +220,12 @@ enum KeywordType
 	KwPreprocessor
 };
 
+enum MsgType
+{
+	MsgError,
+	MsgInfo,
+};
+
 struct GCppParserWorker : public GThread, public GMutex, public GCompileTools
 {
 	GCppParserPriv *d;
@@ -239,6 +245,7 @@ struct GCppParserWorker : public GThread, public GMutex, public GCompileTools
 	void InitScopes();
 	GSourceScope *CurrentScope() { return Scopes[Scopes.Length()-1]; }
 	Range GetNameRange(GArray<char16*> &a);
+	GAutoWString GetSymbolName(GArray<char16*> &a);
 
 	GSymbol *ParseDecl(GSourceFile *sf, char16 *t);
 	GSymbol *ParseUserType(GSourceFile *sf, char16 *t);
@@ -254,6 +261,7 @@ public:
 	int Evaluate(GArray<char16*> &Exp);
 	void DoWork();
 	int Main();
+	void Msg(MsgType Type, char *Fmt, ...);
 };
 
 struct GCppParserPriv
@@ -287,12 +295,14 @@ GCppParserWorker::GCppParserWorker(GCppParserPriv *priv) :
 	AddHash("long", KwType);
 	AddHash("float", KwType);
 	AddHash("double", KwType);
+	AddHash("void", KwType);
 	#ifdef WIN32
 	AddHash("__int64", KwType);
 	AddHash("_W64", KwModifier);
 	#endif
 	AddHash("unsigned", KwModifier);
 	AddHash("signed", KwModifier);
+	AddHash("__declspec", KwModifier);
 	
 	AddHash("class", KwUserType);
 	AddHash("struct", KwUserType);
@@ -329,6 +339,22 @@ GCppParserWorker::~GCppParserWorker()
 	}
 	
 	Srcs.DeleteObjects();
+}
+
+void GCppParserWorker::Msg(MsgType Type, char *Fmt, ...)
+{
+	va_list Arg;
+	va_start(Arg, Fmt);
+	#ifdef WIN32
+	char Buf[256];
+	vsnprintf_s(Buf, sizeof(Buf), _TRUNCATE, Fmt, Arg);
+	OutputDebugString(Buf);
+	#else
+	vprintf(Fmt, Arg);
+	#endif
+	va_end(Arg);
+	if (Type == MsgError)
+		LgiAssert(!"Error msg.");
 }
 
 void GCppParserWorker::AddHash(const char *name, KeywordType type)
@@ -376,8 +402,9 @@ bool CmpToken(char16 *a, const char *b)
 	return !*a && !*b;
 }
 
-Range GCppParserWorker::GetNameRange(GArray<char16*> &a)
+Range GCppParserWorker::GetNameRange(GArray<char16*> &in)
 {
+	GArray<char16*> a = in;
 	Range r;
 	r.Start = -1;
 	r.End = -1;
@@ -390,14 +417,31 @@ Range GCppParserWorker::GetNameRange(GArray<char16*> &a)
 		KeywordType kt = Keywords.Find(s);
 		if (kt)
 		{
-			if (kt == KwUserType)
+			if (kt == KwModifier && CmpToken(s, "__declspec"))
 			{
-				int asd=0;
+				s = a[++i];
+				if (!CmpToken(s, "("))
+				{
+					Msg(MsgError, "%s:%i - unexpected token.\n", _FL);
+					break;
+				}
+				while (s = a[++i])
+				{
+					if (CmpToken(s, ")"))
+					{
+						break;
+					}
+				}
 			}
 		}
 		else if (sym = Resolve(s))
 		{
-			int asd=0;
+			a.DeleteAt(i, true);
+			for (int n=0; n<sym->Tokens.Length(); n++)
+			{
+				a.AddAt(i+n, sym->Tokens[n]);
+			}
+			i--;
 		}
 		else if (CmpToken(s, "*") ||
 				 CmpToken(s, "(") ||
@@ -407,10 +451,6 @@ Range GCppParserWorker::GetNameRange(GArray<char16*> &a)
 		}
 		else if (IsAlpha(*s) || *s == '_')
 		{
-			if (i != a.Length() - 1)
-			{
-				int aas=0;
-			}
 			r.Start = r.End = i;
 			break;
 		}
@@ -422,6 +462,24 @@ Range GCppParserWorker::GetNameRange(GArray<char16*> &a)
 	
 	LgiAssert(r.Start >= 0);
 	return r;
+}
+
+GAutoWString GCppParserWorker::GetSymbolName(GArray<char16*> &a)
+{
+	GAutoWString ret;
+	
+	Range r = GetNameRange(a);
+	if (r.Start >= 0)
+	{
+		GStringPipe p(64);
+		for (int i=r.Start; i<=r.End; i++)
+		{
+			p.Write(a[i], StrlenW(a[i]) * sizeof(char16) );
+		}
+		ret.Reset(p.NewStrW());
+	}
+	
+	return ret;
 }
 
 void GCppParserWorker::Add(WorkUnit *w)
@@ -740,16 +798,20 @@ GSourceFile *GCppParserWorker::ParseCpp(const char *Path)
 			}
 			default:
 			{
+				char16 *Start = sf->Cur;
 				if (CmpToken(t, "typedef"))
 				{
 					int StartLine = sf->Line;
 					GArray<char16*> a;
+					GSymbol *UserTypeSym = NULL;
+					
 					while (t = sf->NextToken())
 					{
 						KeywordType kt = Keywords.Find(t);
 						if (kt == KwUserType)
 						{
-							ParseUserType(sf, t);
+							UserTypeSym = ParseUserType(sf, t);
+							break;
 						}
 						
 						if (CmpToken(t, ";"))
@@ -757,28 +819,20 @@ GSourceFile *GCppParserWorker::ParseCpp(const char *Path)
 						a.Add(t);
 					}
 					
-					if (sf->Active)
+					if (sf->Active && !UserTypeSym)
 					{
-						Range r = GetNameRange(a);
-						char16 id[256];
-						int ch = 0;
-						for (int i=r.Start; i<=r.End; i++)
+						GAutoWString Name = GetSymbolName(a);
+						if (Name)
 						{
-							char16 *p = a[i];
-							while (*p)
+							GSymbol *sym = Scopes[0]->Define(Name, SymTypedef);
+							if (sym)
 							{
-								id[ch++] = *p++;
+								sym->File = sf->Path;
+								sym->Line = StartLine;
+								sym->Tokens = a;
 							}
 						}
-						id[ch] = 0;
-						LgiAssert(ch < CountOf(id));
-						GSymbol *sym = Scopes[0]->Define(id, SymTypedef);
-						if (sym)
-						{
-							sym->File = sf->Path;
-							sym->Line = StartLine;
-							sym->Tokens = a;
-						}
+						else Msg(MsgError, "%s:%i - Unabled to get symbol name.\n", _FL);
 					}
 				}
 				else
@@ -786,9 +840,14 @@ GSourceFile *GCppParserWorker::ParseCpp(const char *Path)
 					GSymbol *sym = ParseDecl(sf, t);
 					if (sym)
 					{
-						LgiAssert(0);
+						GAutoWString Name = GetSymbolName(sym->Tokens);
+						if (Name)
+						{
+							Scopes[0]->Add(Name, sym);
+						}
+						else Msg(MsgError, "%s:%i - Failed to get name of decl.\n", _FL);
 					}
-					else Error = true;
+					else Msg(MsgError, "%s:%i - Failed to parse decl.\n", _FL);
 				}
 				break;
 			}
@@ -845,6 +904,8 @@ GSymbol *GCppParserWorker::ParseUserType(GSourceFile *sf, char16 *t)
 		return NULL;
 	}	
 	
+	sym->Tokens.Add(t);
+	
 	while (t = sf->NextToken())
 	{
 		if (CmpToken(t, "{"))
@@ -871,7 +932,7 @@ GSymbol *GCppParserWorker::ParseUserType(GSourceFile *sf, char16 *t)
 				t = sf->NextToken();
 				if (!CmpToken(t, ":"))
 				{
-					LgiAssert(!"Unexpected token.");
+					Msg(MsgError, "%s:%i - Unexpected token.\n", _FL);
 				}
 			}
 			else if (kt == KwPreprocessor)
@@ -887,7 +948,7 @@ GSymbol *GCppParserWorker::ParseUserType(GSourceFile *sf, char16 *t)
 				}
 				else
 				{
-					LgiAssert(!"failed to parse defn.");
+					Msg(MsgError, "%s:%i - Failed to parse defn.\n", _FL);
 				}
 			}
 			else if (InParentList)
@@ -898,6 +959,23 @@ GSymbol *GCppParserWorker::ParseUserType(GSourceFile *sf, char16 *t)
 				sym->Tokens.Add(t);
 			}
 		}
+	}
+	
+	while (t = sf->NextToken())
+	{
+		if (CmpToken(t, ";"))
+			break;
+		sym->Tokens.Add(t);
+	}
+	
+	GAutoWString SymName = GetSymbolName(sym->Tokens);
+	if (SymName)
+	{
+	}
+	else
+	{
+		Msg(MsgError, "%s:%i - Failed to get symbol name.\n", _FL);
+		DeleteObj(sym);
 	}
 	
 	return sym;
