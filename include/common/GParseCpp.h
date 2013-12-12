@@ -5,10 +5,14 @@
 enum GSymbolType
 {
 	SymNone,
-	SymDeclaration,
-	SymImplementation,
 	SymDefine,
-	SymReference
+	SymTypedef,
+	SymUnion,
+	SymClass,
+	SymStruct,
+	SymEnum,
+	SymFunction,
+	SymVariable
 };
 
 /// A reference to a matched symbol

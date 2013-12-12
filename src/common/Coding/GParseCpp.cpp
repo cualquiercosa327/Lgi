@@ -62,6 +62,31 @@ struct GSymbol
 	char *File;
 	uint32 Line;
 	GArray<char16*> Tokens;
+	
+	GSymbol *Parent;
+	GArray<GSymbol*> Children;
+	
+	GSymbol()
+	{
+		Parent = 0;
+		Type = SymNone;
+		File = NULL;
+		Line = 0;
+	}
+
+	~GSymbol()
+	{
+		Children.DeleteObjects();
+	}
+	
+	void Add(GSymbol *s)
+	{
+		if (!Children.HasItem(s))
+		{
+			Children.Add(s);
+			s->Parent = this;
+		}
+	}
 };
 
 struct GCppStringPool
@@ -117,46 +142,46 @@ struct GSourceFile
 	uint32 Id;
 	GAutoString Path;
 	GCppStringPool Pool;
-	int Cur;
+
+	GAutoWString Raw;
+	char16 *Cur;
+	int Line;
 	GArray<char16*> Tokens;
-	GHashTbl<int,int> LineMap;
+	GHashTbl<char16*,int> LineMap;
+	GArray<StackType> Stack;
+	bool Active;
 	
 	GSourceFile() : Pool(16 << 10)
 	{
 		Id = 0;
-		Cur = 0;
+		Line = 1;
+		Active = true;
+		Cur = NULL;
 	}
 	
-	char16 *NextToken()
+	bool Read(const char *path)
 	{
-		return Cur < Tokens.Length() ? Tokens[Cur++] : NULL;
-	};
-	
-	bool Lex()
-	{
+		if (!Path.Reset(NewStr(path)))
+			return false;
+		
 		GAutoString f(ReadTextFile(Path));
 		if (!f)
 			return false;
 
-		GAutoWString raw(LgiNewUtf8To16(f));
-		f.Reset();
-		
-		char16 *t, *cur = raw;
-		int prev_line = 1, cur_line = 1;
-		int index = 0;
-		
-		while (t = LexCpp(cur, LexPoolAlloc, &Pool, &cur_line))
-		{
-			if (cur_line != prev_line)
-			{
-				LineMap.Add(index, cur_line);
-				prev_line = cur_line;
-			}
-			
-			Tokens[index++] = t;
-		}
+		Raw.Reset(LgiNewUtf8To16(f));
+		Cur = Raw;
+		LineMap.SetSize(StrlenW(Raw) / 2);
 		
 		return true;
+	}
+	
+	char16 *NextToken()
+	{
+		int PrevLine = Line;
+		char16 *t = LexCpp(Cur, LexPoolAlloc, &Pool, &Line);
+		if (t)
+			LineMap.Add(t, Line);
+		return t;
 	}
 };
 
@@ -191,7 +216,8 @@ enum KeywordType
 	KwQualifier,
 	KwModifier,
 	KwUserType,
-	KwOther
+	KwVisibility,
+	KwPreprocessor
 };
 
 struct GCppParserWorker : public GThread, public GMutex, public GCompileTools
@@ -213,6 +239,10 @@ struct GCppParserWorker : public GThread, public GMutex, public GCompileTools
 	void InitScopes();
 	GSourceScope *CurrentScope() { return Scopes[Scopes.Length()-1]; }
 	Range GetNameRange(GArray<char16*> &a);
+
+	GSymbol *ParseDecl(GSourceFile *sf, char16 *t);
+	GSymbol *ParseUserType(GSourceFile *sf, char16 *t);
+	bool ParsePreprocessor(GSourceFile *sf, char16 *t);
 	
 public:
 	GCppParserWorker(GCppParserPriv *priv);
@@ -268,6 +298,23 @@ GCppParserWorker::GCppParserWorker(GCppParserPriv *priv) :
 	AddHash("struct", KwUserType);
 	AddHash("union", KwUserType);
 	AddHash("enum", KwUserType);
+	
+	AddHash("public", KwVisibility);
+	AddHash("private", KwVisibility);
+	AddHash("protected", KwVisibility);
+
+	AddHash("#if", KwPreprocessor);
+	AddHash("#ifdef", KwPreprocessor);
+	AddHash("#ifndef", KwPreprocessor);
+	AddHash("#elif", KwPreprocessor);
+	AddHash("#else", KwPreprocessor);
+	AddHash("#endif", KwPreprocessor);
+	AddHash("#include", KwPreprocessor);
+	AddHash("#define", KwPreprocessor);
+	AddHash("#undef", KwPreprocessor);
+	AddHash("#error", KwPreprocessor);
+	AddHash("#warning", KwPreprocessor);
+	AddHash("#pragma", KwPreprocessor);
 
 	Run();
 }
@@ -658,8 +705,7 @@ GSourceFile *GCppParserWorker::ParseCpp(const char *Path)
 	if (!sf)
 		return NULL;
 
-	sf->Path.Reset(NewStr(Path));
-	if (!sf->Lex())
+	if (!sf->Read(Path))
 	{
 		delete sf;
 		return NULL;
@@ -669,245 +715,41 @@ GSourceFile *GCppParserWorker::ParseCpp(const char *Path)
 	SrcHash.Add(Path, sf);
 	
 	bool Error = false;
-	bool Active = true;
-	GArray<StackType> Stack;
+	char16 *t;
 	
-	while (!Error)
+	while (!Error && (t = sf->NextToken()))
 	{
-		char16 *t = sf->NextToken();
-		
-		ProcessToken:
-		switch (*t)
+		KeywordType kt = Keywords.Find(t);
+		switch (kt)
 		{
-			case '#':
+			case KwPreprocessor:
 			{
-				if (CmpToken(t, "#if"))
+				if (!ParsePreprocessor(sf, t))
+					Error = true;
+				break;
+			}
+			case KwUserType:
+			{
+				GSymbol *sym = ParseUserType(sf, t);
+				if (sym)
 				{
-					char16 *Start = cur;					
-					int StartLine = CurLine;
-
-					Stack.Add(Active ? StackCompileActive : StackCompileInactive);
-
-					GArray<char16*> Exp;
-					while (t = NextToken())
-					{
-						if (CurLine != StartLine)
-							break;
-						Exp.Add(t);
-					}
-					if (Active)
-						Active = Evaluate(Exp) != 0;
-					
-					goto ProcessToken;
+					LgiAssert(!"Impl me.");
 				}
-				else if (CmpToken(t, "#elif"))
-				{
-					char16 *Start = cur;					
-					int StartLine = CurLine;
-					
-					GArray<char16*> Exp;
-					while (t = NextToken())
-					{
-						if (CurLine != StartLine)
-							break;
-						Exp.Add(t);
-					}
-					
-					if (Active)
-						Active = Evaluate(Exp) != 0;
-						
-					goto ProcessToken;
-				}
-				else if (CmpToken(t, "#ifndef"))
-				{
-					t = NextToken();
-					CheckToken(t);
-
-					GSymbol *def = Resolve(t);
-					Stack.Add(Active ? StackCompileActive : StackCompileInactive);
-					
-					if (Active)
-					{
-						Active = def == NULL || def->Type != SymDefine;
-					}
-				}
-				else if (CmpToken(t, "#ifdef"))
-				{
-					t = NextToken();
-					CheckToken(t);
-
-					GSymbol *def = Resolve(t);
-					Stack.Add(Active ? StackCompileActive : StackCompileInactive);
-					
-					if (Active)
-					{
-						Active = def != NULL && def->Type == SymDefine;
-					}
-				}
-				else if (CmpToken(t, "#else"))
-				{
-					bool ParentActive;
-					for (int i=Stack.Length()-1; i>=0; i--)
-					{
-						if (Stack[i] == StackCompileActive)
-						{
-							ParentActive = true;
-							break;
-						}
-						if (Stack[i] == StackCompileInactive)
-						{
-							ParentActive = false;
-							break;
-						}
-					}
-					
-					if (ParentActive)
-					{
-						Active = !Active;
-					}
-					else
-					{
-						Active = false;
-					}
-				}
-				else if (CmpToken(t, "#endif"))
-				{
-					LgiAssert(Stack.Length() > 0);
-					if (Stack.Last() == StackCompileActive)
-						Active = true;
-					else if (Stack.Last() == StackCompileInactive)
-						Active = false;
-					else
-						LgiAssert(!"Unexpected #endif");
-						
-					Stack.Length(Stack.Length() - 1) ;
-				}
-				else if (CmpToken(t, "#pragma") ||
-						 CmpToken(t, "#error") ||
-						 CmpToken(t, "#warning"))
-				{
-					char16 *eol = StrchrW(cur, '\n');
-					CheckToken(eol);
-					cur = eol;
-				}
-				else if (CmpToken(t, "#define"))
-				{
-					t = NextToken();
-					CheckToken(t);
-
-					GSymbol *s = NULL;
-					if (Active)
-					{
-						s = Scopes[0]->Define(t, SymDefine);
-						s->File = sf->Path;
-						s->Line = CurLine;
-						s->Tokens.Length(0);
-					}
-					
-					int LastLine = CurLine;
-					while (t = NextToken())
-					{
-						if (CurLine != LastLine)
-							goto ProcessToken;
-						
-						if (!StrcmpW(t, L"\\"))
-							LastLine++;
-						else if (s)
-							s->Tokens.Add(t);
-					}
-				}
-				else if (CmpToken(t, "#undef"))
-				{
-					t = NextToken();
-					CheckToken(t);
-
-					GSymbol *s = Scopes[0]->Define(t, SymDefine);
-					if (s)
-					{
-						Scopes[0]->Delete(t);
-						delete s;
-					}					
-				}
-				else if (CmpToken(t, "#include"))
-				{
-					// Include a file
-					t = NextToken();
-					CheckToken(t);
-					
-					char16 *FileName = NULL;
-					if (!StricmpW(t, L"<"))
-					{
-						// System include
-						char16 *End = StrchrW(cur, '>');
-						CheckToken(End);
-						FileName = sf->Pool.Alloc(cur, End - cur);
-						CheckToken(FileName);
-						cur = End + 1;
-					}
-					else
-					{
-						// Basic include
-						FileName = t + 1;
-						char16 *e = StrrchrW(t, '\"');
-						if (e) *e = 0;
-					}
-					
-					GAutoString FileName8(LgiNewUtf16To8(FileName));
-					if (FileName8)
-					{
-						// Resolve filename
-						char p[MAX_PATH];
-						bool Exists = false;
-						if (LgiIsRelativePath(FileName8))
-						{
-							LgiMakePath(p, sizeof(p), Path, "..");
-							LgiMakePath(p, sizeof(p), p, FileName8);
-							Exists = FileExists(p);
-						}
-
-						for (int i=0; !Exists && i<w->IncludePaths.Length(); i++)
-						{
-							LgiMakePath(p, sizeof(p), w->IncludePaths[i], FileName8);
-							Exists = FileExists(p);							
-						}
-						
-						if (Exists)
-						{
-							GSourceFile *IncSf = SrcHash.Find(p);
-							if (!IncSf)
-							{
-								IncSf = ParseCpp(p);
-							}
-							if (IncSf)
-							{
-								// Add all symbols to the global scope
-							}
-						}
-					}
-				}
-				else
-				{
-					LgiAssert(!"Impl me");
-				}
+				else Error = true;
 				break;
 			}
 			default:
 			{
-				if (CmpToken(t, "class") ||
-					CmpToken(t, "struct") ||
-					CmpToken(t, "enum") ||
-					CmpToken(t, "union"))
+				if (CmpToken(t, "typedef"))
 				{
-				}
-				else if (CmpToken(t, "typedef"))
-				{
-					int StartLine = CurLine;
+					int StartLine = sf->Line;
 					GArray<char16*> a;
-					while (t = NextToken())
+					while (t = sf->NextToken())
 					{
+						KeywordType kt = Keywords.Find(t);
 						if (kt == KwUserType)
 						{
-							goto UserTypeParse;
+							ParseUserType(sf, t);
 						}
 						
 						if (CmpToken(t, ";"))
@@ -915,7 +757,7 @@ GSourceFile *GCppParserWorker::ParseCpp(const char *Path)
 						a.Add(t);
 					}
 					
-					if (Active)
+					if (sf->Active)
 					{
 						Range r = GetNameRange(a);
 						char16 id[256];
@@ -930,7 +772,7 @@ GSourceFile *GCppParserWorker::ParseCpp(const char *Path)
 						}
 						id[ch] = 0;
 						LgiAssert(ch < CountOf(id));
-						GSymbol *sym = Scopes[0]->Define(id, SymDeclaration);
+						GSymbol *sym = Scopes[0]->Define(id, SymTypedef);
 						if (sym)
 						{
 							sym->File = sf->Path;
@@ -941,7 +783,12 @@ GSourceFile *GCppParserWorker::ParseCpp(const char *Path)
 				}
 				else
 				{
-					int asd=0;
+					GSymbol *sym = ParseDecl(sf, t);
+					if (sym)
+					{
+						LgiAssert(0);
+					}
+					else Error = true;
 				}
 				break;
 			}
@@ -949,6 +796,369 @@ GSourceFile *GCppParserWorker::ParseCpp(const char *Path)
 	}
 	
 	return sf;
+}
+
+GSymbol *GCppParserWorker::ParseDecl(GSourceFile *sf, char16 *t)
+{
+	GSymbol *sym = new GSymbol;
+	sym->File = sf->Path;
+	sym->Line = sf->Line;
+	sym->Tokens.Add(t);
+
+	while (t = sf->NextToken())
+	{
+		KeywordType kt = Keywords.Find(t);
+		if (kt == KwUserType)
+		{
+			LgiAssert(0);
+		}
+		
+		if (CmpToken(t, ";"))
+			break;
+		
+		sym->Tokens.Add(t);
+	}
+
+	return sym;
+}
+
+GSymbol *GCppParserWorker::ParseUserType(GSourceFile *sf, char16 *t)
+{
+	if (!sf || !t)
+		return NULL;
+
+	GSymbol *sym = new GSymbol;
+	int InScope = 0;
+	bool InParentList = false;
+	
+	if (CmpToken(t, "union"))
+		sym->Type = SymUnion;
+	else if (CmpToken(t, "class"))
+		sym->Type = SymClass;
+	else if (CmpToken(t, "struct"))
+		sym->Type = SymStruct;
+	else if (CmpToken(t, "enum"))
+		sym->Type = SymEnum;
+	else
+	{
+		delete sym;
+		return NULL;
+	}	
+	
+	while (t = sf->NextToken())
+	{
+		if (CmpToken(t, "{"))
+		{
+			InScope++;
+		}
+		else if (CmpToken(t, "}"))
+		{
+			if (--InScope == 0)
+				break;
+		}
+		else if (CmpToken(t, ":"))
+		{
+			if (InScope == 0)
+			{
+				InParentList = true;
+			}
+		}
+		else
+		{
+			KeywordType kt = Keywords.Find(t);
+			if (kt == KwVisibility)
+			{
+				t = sf->NextToken();
+				if (!CmpToken(t, ":"))
+				{
+					LgiAssert(!"Unexpected token.");
+				}
+			}
+			else if (kt == KwPreprocessor)
+			{
+				ParsePreprocessor(sf, t);
+			}
+			else if (InScope > 0)
+			{
+				GSymbol *def = ParseDecl(sf, t);
+				if (def)
+				{
+					sym->Add(def);
+				}
+				else
+				{
+					LgiAssert(!"failed to parse defn.");
+				}
+			}
+			else if (InParentList)
+			{
+			}
+			else
+			{
+				sym->Tokens.Add(t);
+			}
+		}
+	}
+	
+	return sym;
+}
+
+char16 *FindEol(char16 *s)
+{
+	char16 *LastNonWhite = NULL;
+	while (*s)
+	{
+		if (!strchr(WhiteSpace, *s))
+			LastNonWhite = s;
+		else if (*s == '\n')
+		{
+			if (!LastNonWhite || *LastNonWhite != '\\')	
+				break;
+		}
+		s++;
+	}
+	return s;
+}
+
+bool HasNonWhiteSpace(char16 *Start, char16 *End)
+{
+	while (*Start && Start < End)
+	{
+		if (!strchr(" \t\r", *Start))
+			return true;
+		*Start++;
+	}
+	return false;
+}
+
+bool GCppParserWorker::ParsePreprocessor(GSourceFile *sf, char16 *t)
+{
+	if (!t)
+		return false;
+		
+	if (CmpToken(t, "#if"))
+	{
+		char16 *Start = sf->Cur;
+		char16 *End = FindEol(Start);
+
+		sf->Stack.Add(sf->Active ? StackCompileActive : StackCompileInactive);
+
+		GArray<char16*> Exp;
+		while (HasNonWhiteSpace(sf->Cur, End))
+		{
+			t = sf->NextToken();
+			if (!t)
+				break;
+			Exp.Add(t);
+		}
+
+		if (sf->Active)
+			sf->Active = Evaluate(Exp) != 0;
+	}
+	else if (CmpToken(t, "#elif"))
+	{
+		char16 *Start = sf->Cur;					
+		char16 *End = FindEol(Start);
+		
+		GArray<char16*> Exp;
+		while (HasNonWhiteSpace(sf->Cur, End))
+		{
+			t = sf->NextToken();
+			if (!t)
+				break;
+			Exp.Add(t);
+		}
+		
+		if (sf->Active)
+			sf->Active = Evaluate(Exp) != 0;
+	}
+	else if (CmpToken(t, "#ifndef"))
+	{
+		t = sf->NextToken();
+		if (!t)
+			return false;
+
+		GSymbol *def = Resolve(t);
+		sf->Stack.Add(sf->Active ? StackCompileActive : StackCompileInactive);
+		
+		if (sf->Active)
+		{
+			sf->Active = def == NULL || def->Type != SymDefine;
+		}
+	}
+	else if (CmpToken(t, "#ifdef"))
+	{
+		t = sf->NextToken();
+		if (!t)
+			return false;
+
+		GSymbol *def = Resolve(t);
+		sf->Stack.Add(sf->Active ? StackCompileActive : StackCompileInactive);
+		
+		if (sf->Active)
+		{
+			sf->Active = def != NULL && def->Type == SymDefine;
+		}
+	}
+	else if (CmpToken(t, "#else"))
+	{
+		bool ParentActive;
+		for (int i=sf->Stack.Length()-1; i>=0; i--)
+		{
+			if (sf->Stack[i] == StackCompileActive)
+			{
+				ParentActive = true;
+				break;
+			}
+			if (sf->Stack[i] == StackCompileInactive)
+			{
+				ParentActive = false;
+				break;
+			}
+		}
+		
+		if (ParentActive)
+		{
+			sf->Active = !sf->Active;
+		}
+		else
+		{
+			sf->Active = false;
+		}
+	}
+	else if (CmpToken(t, "#endif"))
+	{
+		LgiAssert(sf->Stack.Length() > 0);
+		if (sf->Stack.Last() == StackCompileActive)
+			sf->Active = true;
+		else if (sf->Stack.Last() == StackCompileInactive)
+			sf->Active = false;
+		else
+			LgiAssert(!"Unexpected #endif");
+			
+		sf->Stack.Length(sf->Stack.Length() - 1) ;
+	}
+	else if (CmpToken(t, "#pragma") ||
+			 CmpToken(t, "#error") ||
+			 CmpToken(t, "#warning"))
+	{
+		char16 *eol = StrchrW(sf->Cur, '\n');
+		if (!eol)
+			return false;
+
+		sf->Cur = eol;
+	}
+	else if (CmpToken(t, "#define"))
+	{
+		t = sf->NextToken();
+		if (!t)
+			return false;
+
+		GSymbol *sym = NULL;
+		if (sf->Active)
+		{
+			sym = Scopes[0]->Define(t, SymDefine);
+			sym->File = sf->Path;
+			sym->Line = sf->Line;
+			sym->Tokens.Length(0);
+		}
+		
+		char16 *End = FindEol(sf->Cur);
+		while (HasNonWhiteSpace(sf->Cur, End))
+		{
+			// Look for and skip line-continuation mark
+			char16 *s = sf->Cur;
+			while (strchr(WhiteSpace, *s))
+				s++;
+			if (*s == '\\')
+			{
+				*s++;
+				while (strchr(" \r\t", *s))
+					s++;
+				if (*s == '\n')
+					sf->Cur = s + 1;
+			}
+			
+			t = sf->NextToken();
+			if (!t)
+				break;
+				
+			if (sym)
+				sym->Tokens.Add(t);
+		}
+	}
+	else if (CmpToken(t, "#undef"))
+	{
+		t = sf->NextToken();
+		if (!t)
+			return false;
+
+		GSymbol *s = Scopes[0]->Define(t, SymDefine);
+		if (s)
+		{
+			Scopes[0]->Delete(t);
+			delete s;
+		}					
+	}
+	else if (CmpToken(t, "#include"))
+	{
+		// Include a file
+		t = sf->NextToken();
+		if (!t)
+			return false;
+		
+		char16 *FileName = NULL;
+		if (!StricmpW(t, L"<"))
+		{
+			// System include
+			char16 *End = StrchrW(sf->Cur, '>');
+			if (!End)
+				return false;
+			FileName = sf->Pool.Alloc(sf->Cur, End - sf->Cur);
+			if (!FileName)
+				return false;
+			sf->Cur = End + 1;
+		}
+		else
+		{
+			// Basic include
+			FileName = t + 1;
+			char16 *e = StrrchrW(t, '\"');
+			if (e) *e = 0;
+		}
+		
+		GAutoString FileName8(LgiNewUtf16To8(FileName));
+		if (FileName8)
+		{
+			// Resolve filename
+			char p[MAX_PATH];
+			bool Exists = false;
+			if (LgiIsRelativePath(FileName8))
+			{
+				LgiMakePath(p, sizeof(p), sf->Path, "..");
+				LgiMakePath(p, sizeof(p), p, FileName8);
+				Exists = FileExists(p);
+			}
+
+			for (int i=0; !Exists && i<w->IncludePaths.Length(); i++)
+			{
+				LgiMakePath(p, sizeof(p), w->IncludePaths[i], FileName8);
+				Exists = FileExists(p);							
+			}
+			
+			if (Exists)
+			{
+				ParseCpp(p);
+			}
+		}
+	}
+	else
+	{
+		LgiAssert(!"Impl me");
+		return false;
+	}
+	
+	return true;
 }
 
 void GCppParserWorker::DoWork()
