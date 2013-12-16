@@ -32,6 +32,20 @@ bool CmpToken(char16 *a, const char *b)
 	return !*a && !*b;
 }
 
+bool HasToken(GArray<char16*> &a, const char *b)
+{
+	if (!a.Length() || !b)
+		return false;
+	
+	for (int i=0; i<a.Length(); i++)
+	{
+		if (CmpToken(a[i], b))
+			return true;
+	}
+	
+	return false;
+}
+
 struct WorkUnit
 {
 	GArray<GAutoString> IncludePaths;
@@ -331,6 +345,8 @@ GCppParserWorker::GCppParserWorker(GCppParserPriv *priv) :
 	AddHash("signed", KwModifier);
 	AddHash("__declspec", KwModifier);
 	AddHash("template", KwModifier);
+	AddHash("__stdcall", KwModifier);
+	AddHash("friend", KwModifier);
 	
 	AddHash("class", KwUserType);
 	AddHash("struct", KwUserType);
@@ -414,16 +430,68 @@ void GCppParserWorker::InitScopes()
 	#endif
 }
 
+struct RoundBracket
+{
+	int Depth;
+	int Sections;
+	bool HasPtr;
+	
+	RoundBracket()
+	{
+		Depth = 0;
+		Sections = 0;
+		HasPtr = false;
+	}
+	
+	void Parse(GArray<char16*> &a)
+	{
+		for (int i=0; i<a.Length(); i++)
+		{
+			char16 *t = a[i];
+			if (CmpToken(t, "__declspec"))
+			{
+				while (t = a[++i])
+				{
+					if (CmpToken(t, ")"))
+						break;
+				}
+			}
+			else if (CmpToken(t, "("))
+			{
+				if (Depth == 0)
+					Sections++;
+				Depth++;
+			}
+			else if (CmpToken(t, ")"))
+			{
+				Depth--;
+				LgiAssert(Depth >= 0);
+			}
+			else if (CmpToken(t, "*") && Sections == 1)
+			{
+				HasPtr = true;
+			}
+		}
+		
+		LgiAssert(Depth == 0);
+	}
+};
+
 GAutoWString GCppParserWorker::GetSymbolName(GArray<char16*> &in)
 {
 	GArray<char16*> a = in;
 	GAutoWString ret;
 	GStringPipe p(64);
-	int RoundBracketDepth = 0;
+	RoundBracket Rb;
 	int LastName = -1;
 	bool FuncPtr = false;
 	char16 *t, *prev = NULL;
 
+	Rb.Parse(a);
+	if (Rb.Sections == 2 && Rb.HasPtr)
+		FuncPtr = true;
+		
+	Rb.Sections = 0;
 	for (int i=0; i<a.Length(); i++)
 	{
 		t = a[i];
@@ -456,45 +524,69 @@ GAutoWString GCppParserWorker::GetSymbolName(GArray<char16*> &in)
 				a.DeleteAt(i, true);
 				for (int n=0; n<sym->Tokens.Length(); n++)
 				{
-					a.AddAt(i+n, sym->Tokens[n]);
+					char16 *s = sym->Tokens[n];
+					a.AddAt(i+n, s);
 				}
 				i--;
 			}
 			else if (sym->Type == SymTypedef)
 			{
 				a.DeleteAt(i, true);
-				for (int n=0; n<sym->Tokens.Length(); n++)
+				if (i < a.Length())
 				{
-					char16 *s = sym->Tokens[n];
-					if (StricmpW(s, t))
-						a.AddAt(i+n, s);
+					char16 *Next = a[i];
+					a.DeleteAt(i, true);
+					
+					for (int n=0; n<sym->Tokens.Length(); n++)
+					{
+						char16 *s = sym->Tokens[n];
+						if (StricmpW(s, t))
+							a.AddAt(i+n, s);
+						else
+							a.AddAt(i+n, Next);
+					}
+					
+					i--;
+					
+					RoundBracket rb;
+					rb.Parse(a);
+					if (rb.Sections == 2 && rb.HasPtr)
+						FuncPtr = true;
 				}
-				i--;
+				else
+				{
+					// This can happen when you define a typedef to twice
+					GAutoWString Empty;
+					return Empty;
+				}
 			}
-			else
+			else if (sym->Type == SymFunction)
 			{
 				Debug
 			}
 		}
 		else if (CmpToken(t, "("))
 		{
-			RoundBracketDepth++;
+			if (Rb.Depth == 0)
+				Rb.Sections++;
+			Rb.Depth++;
 		}
 		else if (CmpToken(t, ")"))
 		{
-			RoundBracketDepth--;
-			LgiAssert(RoundBracketDepth >= 0);
-		}
-		else if (CmpToken(t, "*"))
-		{
-			if (prev && CmpToken(prev, "("))
-				FuncPtr = true;
+			Rb.Depth--;
+			LgiAssert(Rb.Depth >= 0);
 		}
 		else if (IsAlpha(*t) || *t == '_')
 		{
-			if (RoundBracketDepth == 0
-				||
-				FuncPtr)
+			if (FuncPtr)
+			{
+				if (Rb.Depth == 1 &&
+					Rb.Sections == 1)
+				{
+					LastName = i;
+				}
+			}
+			else if (Rb.Depth == 0)
 			{
 				LastName = i;
 			}
@@ -505,6 +597,8 @@ GAutoWString GCppParserWorker::GetSymbolName(GArray<char16*> &in)
 
 	LgiAssert(LastName >= 0);
 	t = a[LastName];
+	if (CmpToken(t, "n"))
+		Debug
 	p.Write(t, StrlenW(t) * sizeof(char16) );
 	
 	ret.Reset(p.NewStrW());
@@ -805,6 +899,13 @@ GSourceFile *GCppParserWorker::ParseCpp(const char *Path)
 	
 	bool Error = false;
 	char16 *t;
+
+	const char16 *CppDef = L"__cplusplus";
+	char *Ext = LgiGetExtension((char*)Path);
+	if (Ext && stricmp(Ext, "cpp"))
+	{
+		Scopes[0]->Define((char16*)CppDef, SymDefine, _FL);
+	}
 	
 	while (!Error && (t = sf->NextToken()))
 	{
@@ -873,7 +974,6 @@ GSourceFile *GCppParserWorker::ParseCpp(const char *Path)
 							DeleteObj(sym);
 						}
 					}
-					else Msg(MsgError, "%s:%i - Failed to parse decl.\n", _FL);
 				}
 				break;
 			}
@@ -986,7 +1086,6 @@ GSymbol *GCppParserWorker::ParseTypedef(GSourceFile *sf, char16 *t)
 				sym->Tokens = a;
 			}
 		}
-		else Msg(MsgError, "%s:%i - Unabled to get symbol name.\n", _FL);
 	}
 	
 	return sym;
@@ -1022,11 +1121,6 @@ GSymbol *GCppParserWorker::ParseUserType(GSourceFile *sf, char16 *t)
 	
 	while (t = sf->NextToken())
 	{
-		if (CmpToken(t, "GKey"))
-		{
-			int asd=0;
-		}
-		
 		if (CmpToken(t, "{"))
 		{
 			InScope++;
@@ -1069,6 +1163,21 @@ GSymbol *GCppParserWorker::ParseUserType(GSourceFile *sf, char16 *t)
 			{
 				ParsePreprocessor(sf, t);
 			}
+			else if (kt == KwUserType)
+			{
+				GSymbol *cls = ParseUserType(sf, t);
+				if (cls)
+				{
+					if (sf->Active)
+					{
+						sym->Add(cls);
+					}
+					else
+					{
+						DeleteObj(cls);
+					}
+				}
+			}
 			else if (InScope > 0)
 			{
 				if (sym->Type == SymEnum)
@@ -1107,7 +1216,14 @@ GSymbol *GCppParserWorker::ParseUserType(GSourceFile *sf, char16 *t)
 					GSymbol *def = ParseDecl(sf, t);
 					if (def)
 					{
-						sym->Add(def);
+						if (sf->Active)
+						{
+							sym->Add(def);
+						}
+						else
+						{
+							DeleteObj(def);
+						}
 					}
 					else
 					{
@@ -1121,6 +1237,9 @@ GSymbol *GCppParserWorker::ParseUserType(GSourceFile *sf, char16 *t)
 			else
 			{
 				sym->Tokens.Add(t);
+
+				if (CmpToken(t, "GViewI"))
+					Debug				
 			}
 		}
 	}
