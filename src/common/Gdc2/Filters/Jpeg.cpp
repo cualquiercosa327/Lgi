@@ -35,7 +35,7 @@ class GdcJpegPriv : public GLibrary
 {
 public:
 	GdcJpegPriv() :
-		GLibrary("libjpeg")
+		GLibrary("libjpeg9")
 	{
 		#if 0 // def _DEBUG
 		char File[256];
@@ -503,7 +503,11 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 		IJG_JPEG_ICC_MARKER,
 		IJG_JPEG_APP_ICC_PROFILE_LEN
 	);
-	JPEGLIB jpeg_read_header(&cinfo, true);
+	int result = JPEGLIB jpeg_read_header(&cinfo, true);
+	if (result != JPEG_HEADER_OK)
+	{
+		return IoError;
+	}
 	
 	uchar *icc_data = 0;
 	uint icc_len = 0;

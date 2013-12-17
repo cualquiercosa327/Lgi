@@ -69,9 +69,9 @@ public:
 			#if defined(__CYGWIN__)
 			"cygpng12"
 			#else
-			"libpng"
+			"libpng9"
             #if defined(WIN64)
-            "64"
+            "x64"
             #endif
 			#endif
 		)

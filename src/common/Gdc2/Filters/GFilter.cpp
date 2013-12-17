@@ -1832,35 +1832,39 @@ GSurface *GdcDevice::Load(char *Name, bool UseOSLoader)
 		GFile File;
 		if (File.Open(Name, O_READ))
 		{
-			GAutoPtr<uchar, true> Hint(new uchar[16]);
-			memset(Hint, 0, 16);
-			if (File.Read(Hint, 16) == 0)
+			int64 Size = File.GetSize();
+			if (Size > 0)
 			{
-				Hint.Reset(0);
-			}
-
-			File.SetPos(0);
-
-			GAutoPtr<GFilter> Filter(GFilterFactory::New(Name, FILTER_CAP_READ, Hint));
-			if (Filter &&
-			    pDC.Reset(new GMemDC))
-			{
-	            GFilter::IoStatus s = Filter->ReadImage(pDC, &File);
-	            if (s != GFilter::IoSuccess)
+				GAutoPtr<uchar, true> Hint(new uchar[16]);
+				memset(Hint, 0, 16);
+				if (File.Read(Hint, 16) == 0)
 				{
-					pDC.Reset();
-					LgiTrace("%s:%i - Filter couldn't cope with '%s'.\n", _FL, Name);
+					Hint.Reset(0);
 				}
-				if (s == GFilter::IoComponentMissing)
+
+				File.SetPos(0);
+
+				GAutoPtr<GFilter> Filter(GFilterFactory::New(Name, FILTER_CAP_READ, Hint));
+				if (Filter &&
+					pDC.Reset(new GMemDC))
 				{
-				    const char *c = Filter->GetComponentName();
-				    LgiAssert(c);
-				    if (c)
-				    {
-				        GToken t(c, ",");
-				        for (int i=0; i<t.Length(); i++)
-				            NeedsCapability(t[i]);
-				    }
+					GFilter::IoStatus s = Filter->ReadImage(pDC, &File);
+					if (s != GFilter::IoSuccess)
+					{
+						pDC.Reset();
+						LgiTrace("%s:%i - Filter couldn't cope with '%s'.\n", _FL, Name);
+					}
+					if (s == GFilter::IoComponentMissing)
+					{
+						const char *c = Filter->GetComponentName();
+						LgiAssert(c);
+						if (c)
+						{
+							GToken t(c, ",");
+							for (int i=0; i<t.Length(); i++)
+								NeedsCapability(t[i]);
+						}
+					}
 				}
 			}
 		}

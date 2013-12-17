@@ -467,8 +467,7 @@ public:
 					int Len;
 					if (!StrnicmpW(t + 1, sInclude, Len = StrlenW(sInclude)))
 					{
-						char16 *Inc = t + 1 + Len;
-						char16 *Raw = LexCpp(Inc, LexStrdup);
+						char16 *Raw = LexCpp(s, LexStrdup);
 						char16 *File = TrimStrW(Raw, (char16*)L"\"\'");
 						DeleteArray(Raw);
 						if (File)
@@ -493,16 +492,24 @@ public:
 					}
 					else if (!StrnicmpW(t + 1, sDefine, Len = StrlenW(sDefine)))
 					{
-						char16 *Def = t + 1 + Len;
-						char16 *Name = LexCpp(Def, LexStrdup);
-
-						if (IsAlpha(*Name))
+						GAutoWString Name(LexCpp(s, LexStrdup));
+						if (Name && IsAlpha(*Name))
 						{
 							Lines.Add(FileName, Line);
-							Defines.Add(Name, TrimStrW(Def, (char16*)L" \t\r\n"));
+							
+							char16 *Start = s;
+							while (*Start && strchr(WhiteSpace, *Start))
+								Start++;
+							char16 *Eol = StrchrW(Start, '\n');
+							if (!Eol)
+								Eol = Start + StrlenW(Start);
+							while (Eol > Start && strchr(WhiteSpace, Eol[-1]))
+								Eol--;
+							
+							Defines.Add(Name, NewStrW(Start, Eol - Start));
+							
+							s = Eol;
 						}
-
-						DeleteArray(Name);
 					}
 
 					DeleteArray(t);
