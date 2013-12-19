@@ -350,6 +350,7 @@ GCppParserWorker::GCppParserWorker(GCppParserPriv *priv) :
 	AddHash("template", KwModifier);
 	AddHash("__stdcall", KwModifier);
 	AddHash("friend", KwModifier);
+	AddHash("operator", KwModifier);
 	
 	AddHash("class", KwUserType);
 	AddHash("struct", KwUserType);
@@ -957,7 +958,32 @@ GSourceFile *GCppParserWorker::ParseCpp(const char *Path)
 				char16 *Start = sf->Cur;
 				if (CmpToken(t, "typedef"))
 				{
+					int StartLine = sf->Line;
 					GSymbol *sym = ParseTypedef(sf, t);
+					if (sym)
+					{
+						if (sf->Active)
+						{
+							GAutoWString Name = GetSymbolName(sym->Tokens);
+							if (Name)
+							{
+								GSymbol *existing = CurrentScope()->Find(Name);
+								if (existing)
+								{
+									Msg(MsgError, "Symbol '%S' already exists.\n", Name.Get());
+								}
+								else
+								{
+									CurrentScope()->Add(Name, sym);
+									sym->File = sf->Path;
+									sym->Line = StartLine;
+									sym = NULL;
+								}
+							}
+						}
+						
+						DeleteObj(sym);
+					}
 				}
 				else
 				{
@@ -1062,41 +1088,22 @@ GSymbol *GCppParserWorker::ParseDecl(GSourceFile *sf, char16 *t)
 
 GSymbol *GCppParserWorker::ParseTypedef(GSourceFile *sf, char16 *t)
 {
-	GSymbol *sym = NULL;
-	int StartLine = sf->Line;
-	GArray<char16*> a;
+	GSymbol *sym = new GSymbol(_FL);
+	sym->Type = SymTypedef;
 	
 	while (t = sf->NextToken())
 	{
 		KeywordType kt = Keywords.Find(t);
 		if (kt == KwUserType)
 		{
+			DeleteObj(sym);
 			return ParseUserType(sf, t);
 		}
 		
 		if (CmpToken(t, ";"))
 			break;
-		a.Add(t);
-	}
-	
-	if (sf->Active)
-	{
-		GAutoWString Name = GetSymbolName(a);
-		if (Name)
-		{
-			if (CmpToken(Name, "HWND"))
-			{
-				int asd=0;
-			}
-			
-			sym = CurrentScope()->Define(Name, SymTypedef, _FL);
-			if (sym)
-			{
-				sym->File = sf->Path;
-				sym->Line = StartLine;
-				sym->Tokens = a;
-			}
-		}
+
+		sym->Tokens.Add(t);
 	}
 	
 	return sym;
@@ -1326,6 +1333,11 @@ bool GCppParserWorker::ParsePreprocessor(GSourceFile *sf, char16 *t)
 	{
 		char16 *Start = sf->Cur;
 		char16 *End = FindEol(Start);
+		
+		if (sf->Line == 10)
+		{
+			int asd=0;
+		}
 
 		PreprocessState &ps = sf->Stack.New();
 		ps.ParentIsActive = sf->Active;
@@ -1364,6 +1376,10 @@ bool GCppParserWorker::ParsePreprocessor(GSourceFile *sf, char16 *t)
 			if (sf->Active)
 				sf->Active = ps.IfBranchClaimed;
 		}
+		else
+		{
+			sf->Active = false;
+		}
 	}
 	else if (CmpToken(t, "#ifndef"))
 	{
@@ -1385,7 +1401,7 @@ bool GCppParserWorker::ParsePreprocessor(GSourceFile *sf, char16 *t)
 		t = sf->NextToken();
 		if (!t)
 			return false;
-
+			
 		GSymbol *def = Resolve(t);
 		PreprocessState &ps = sf->Stack.New();
 		ps.ParentIsActive = sf->Active;
@@ -1401,6 +1417,10 @@ bool GCppParserWorker::ParsePreprocessor(GSourceFile *sf, char16 *t)
 			ps.IfBranchClaimed = true;
 			if (ps.ParentIsActive)
 				sf->Active = true;
+		}
+		else
+		{
+			sf->Active = false;
 		}
 	}
 	else if (CmpToken(t, "#endif"))
