@@ -8,12 +8,10 @@
 #define CheckToken(t)	if (!t) { Error = true; break; }
 #define Debug			__asm int 3
 
-enum StackType
+struct PreprocessState
 {
-	StackNone,
-	StackCompileActive,
-	StackCompileInactive,
-	StackScope,
+	bool ParentIsActive;
+	bool IfBranchClaimed;
 };
 
 bool CmpToken(char16 *a, const char *b)
@@ -100,12 +98,17 @@ struct GSymbol
 	const char *DefineFile;
 	int DefineLine;
 	
+	bool FriendDecl;
+	bool ForwardDecl;
+	
 	GSymbol(const char *def_file, int def_line)
 	{
 		Parent = 0;
 		Type = SymNone;
 		File = NULL;
 		Line = 0;
+		FriendDecl = false;
+		ForwardDecl = false;
 		DefineFile = def_file;
 		DefineLine = def_line;
 	}
@@ -184,7 +187,7 @@ struct GSourceFile
 	int Line;
 	GArray<char16*> Tokens;
 	GHashTbl<char16*,int> LineMap;
-	GArray<StackType> Stack;
+	GArray<PreprocessState> Stack;
 	bool Active;
 	
 	GSourceFile() : Pool(16 << 10)
@@ -564,6 +567,10 @@ GAutoWString GCppParserWorker::GetSymbolName(GArray<char16*> &in)
 			{
 				Debug
 			}
+			else
+			{
+				goto IsAlpha;
+			}
 		}
 		else if (CmpToken(t, "("))
 		{
@@ -578,6 +585,7 @@ GAutoWString GCppParserWorker::GetSymbolName(GArray<char16*> &in)
 		}
 		else if (IsAlpha(*t) || *t == '_')
 		{
+			IsAlpha:
 			if (FuncPtr)
 			{
 				if (Rb.Depth == 1 &&
@@ -989,7 +997,10 @@ GSymbol *GCppParserWorker::ParseDecl(GSourceFile *sf, char16 *t)
 	sym->Type = SymVariable;
 	sym->File = sf->Path;
 	sym->Line = sf->Line;
-	sym->Tokens.Add(t);
+	if (CmpToken(t, "friend"))
+		sym->FriendDecl = true;
+	else
+		sym->Tokens.Add(t);
 
 	GArray<char16*> Temp;
 	if (CmpToken(t, "template"))
@@ -1099,7 +1110,6 @@ GSymbol *GCppParserWorker::ParseUserType(GSourceFile *sf, char16 *t)
 	GSymbol *sym = new GSymbol(_FL);
 	int InScope = 0;
 	bool InParentList = false;
-	bool HasDefn = false;
 	
 	if (CmpToken(t, "union"))
 		sym->Type = SymUnion;
@@ -1124,7 +1134,6 @@ GSymbol *GCppParserWorker::ParseUserType(GSourceFile *sf, char16 *t)
 		if (CmpToken(t, "{"))
 		{
 			InScope++;
-			HasDefn = true;
 		}
 		else if (CmpToken(t, "}"))
 		{
@@ -1216,7 +1225,7 @@ GSymbol *GCppParserWorker::ParseUserType(GSourceFile *sf, char16 *t)
 					GSymbol *def = ParseDecl(sf, t);
 					if (def)
 					{
-						if (sf->Active)
+						if (sf->Active && !def->FriendDecl)
 						{
 							sym->Add(def);
 						}
@@ -1237,16 +1246,8 @@ GSymbol *GCppParserWorker::ParseUserType(GSourceFile *sf, char16 *t)
 			else
 			{
 				sym->Tokens.Add(t);
-
-				if (CmpToken(t, "GViewI"))
-					Debug				
 			}
 		}
-	}
-	
-	if (!HasDefn)
-	{
-		DeleteObj(sym);
 	}
 	
 	return sym;
@@ -1326,7 +1327,8 @@ bool GCppParserWorker::ParsePreprocessor(GSourceFile *sf, char16 *t)
 		char16 *Start = sf->Cur;
 		char16 *End = FindEol(Start);
 
-		sf->Stack.Add(sf->Active ? StackCompileActive : StackCompileInactive);
+		PreprocessState &ps = sf->Stack.New();
+		ps.ParentIsActive = sf->Active;
 
 		GArray<char16*> Exp;
 		while (HasNonWhiteSpace(sf->Cur, End))
@@ -1337,8 +1339,9 @@ bool GCppParserWorker::ParsePreprocessor(GSourceFile *sf, char16 *t)
 			Exp.Add(t);
 		}
 
+		ps.IfBranchClaimed = Evaluate(Exp) != 0;
 		if (sf->Active)
-			sf->Active = Evaluate(Exp) != 0;
+			sf->Active = ps.IfBranchClaimed;
 	}
 	else if (CmpToken(t, "#elif"))
 	{
@@ -1354,8 +1357,13 @@ bool GCppParserWorker::ParsePreprocessor(GSourceFile *sf, char16 *t)
 			Exp.Add(t);
 		}
 		
-		if (sf->Active)
-			sf->Active = Evaluate(Exp) != 0;
+		PreprocessState &ps = sf->Stack.Last();
+		if (!ps.IfBranchClaimed)
+		{
+			ps.IfBranchClaimed = Evaluate(Exp) != 0;
+			if (sf->Active)
+				sf->Active = ps.IfBranchClaimed;
+		}
 	}
 	else if (CmpToken(t, "#ifndef"))
 	{
@@ -1363,18 +1371,14 @@ bool GCppParserWorker::ParsePreprocessor(GSourceFile *sf, char16 *t)
 		if (!t)
 			return false;
 
-		if (CmpToken(t, "_LGI_CLASS_H_"))		
-		{
-			int asd=0;
-		}
-
 		GSymbol *def = Resolve(t);
-		sf->Stack.Add(sf->Active ? StackCompileActive : StackCompileInactive);
-		
+
+		PreprocessState &ps = sf->Stack.New();
+		ps.ParentIsActive = sf->Active;
+		ps.IfBranchClaimed = def == NULL || def->Type != SymDefine;
+
 		if (sf->Active)
-		{
-			sf->Active = def == NULL || def->Type != SymDefine;
-		}
+			sf->Active = ps.IfBranchClaimed;
 	}
 	else if (CmpToken(t, "#ifdef"))
 	{
@@ -1383,49 +1387,27 @@ bool GCppParserWorker::ParsePreprocessor(GSourceFile *sf, char16 *t)
 			return false;
 
 		GSymbol *def = Resolve(t);
-		sf->Stack.Add(sf->Active ? StackCompileActive : StackCompileInactive);
-		
+		PreprocessState &ps = sf->Stack.New();
+		ps.ParentIsActive = sf->Active;
+		ps.IfBranchClaimed = def != NULL && def->Type == SymDefine;
 		if (sf->Active)
-		{
-			sf->Active = def != NULL && def->Type == SymDefine;
-		}
+			sf->Active = ps.IfBranchClaimed;
 	}
 	else if (CmpToken(t, "#else"))
 	{
-		bool ParentActive;
-		for (int i=sf->Stack.Length()-1; i>=0; i--)
+		PreprocessState &ps = sf->Stack.Last();
+		if (!ps.IfBranchClaimed)
 		{
-			if (sf->Stack[i] == StackCompileActive)
-			{
-				ParentActive = true;
-				break;
-			}
-			if (sf->Stack[i] == StackCompileInactive)
-			{
-				ParentActive = false;
-				break;
-			}
-		}
-		
-		if (ParentActive)
-		{
-			sf->Active = !sf->Active;
-		}
-		else
-		{
-			sf->Active = false;
+			ps.IfBranchClaimed = true;
+			if (ps.ParentIsActive)
+				sf->Active = true;
 		}
 	}
 	else if (CmpToken(t, "#endif"))
 	{
 		LgiAssert(sf->Stack.Length() > 0);
-		if (sf->Stack.Last() == StackCompileActive)
-			sf->Active = true;
-		else if (sf->Stack.Last() == StackCompileInactive)
-			sf->Active = false;
-		else
-			Msg(MsgError, "Unexpected #endif\n");
-			
+		PreprocessState &ps = sf->Stack.Last();
+		sf->Active = ps.ParentIsActive;
 		sf->Stack.Length(sf->Stack.Length() - 1) ;
 	}
 	else if (CmpToken(t, "#pragma") ||
@@ -1443,12 +1425,6 @@ bool GCppParserWorker::ParsePreprocessor(GSourceFile *sf, char16 *t)
 		t = sf->NextToken();
 		if (!t)
 			return false;
-
-		if (CmpToken(t, "_LGI_CLASS_H_"))		
-		{
-			int asd=0;
-		}
-
 
 		GSymbol *sym = NULL;
 		if (sf->Active)
