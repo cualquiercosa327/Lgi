@@ -489,6 +489,7 @@ GAutoWString GCppParserWorker::GetSymbolName(GArray<char16*> &in)
 	RoundBracket Rb;
 	int LastName = -1;
 	bool FuncPtr = false;
+	int Operator = -1;
 	char16 *t, *prev = NULL;
 
 	Rb.Parse(a);
@@ -504,20 +505,27 @@ GAutoWString GCppParserWorker::GetSymbolName(GArray<char16*> &in)
 		KeywordType kt = Keywords.Find(t);
 		if (kt)
 		{
-			if (kt == KwModifier && CmpToken(t, "__declspec"))
+			if (kt == KwModifier)
 			{
-				t = a[++i];
-				if (!CmpToken(t, "("))
+				if (CmpToken(t, "__declspec"))
 				{
-					Msg(MsgError, "%s:%i - unexpected token.\n", _FL);
-					break;
-				}
-				while (t = a[++i])
-				{
-					if (CmpToken(t, ")"))
+					t = a[++i];
+					if (!CmpToken(t, "("))
 					{
+						Msg(MsgError, "%s:%i - unexpected token.\n", _FL);
 						break;
 					}
+					while (t = a[++i])
+					{
+						if (CmpToken(t, ")"))
+						{
+							break;
+						}
+					}
+				}				
+				else if (CmpToken(t, "operator"))
+				{
+					Operator = i;
 				}
 			}
 		}
@@ -604,11 +612,22 @@ GAutoWString GCppParserWorker::GetSymbolName(GArray<char16*> &in)
 		prev = t;
 	}
 
-	LgiAssert(LastName >= 0);
-	t = a[LastName];
-	if (CmpToken(t, "n"))
-		Debug
-	p.Write(t, StrlenW(t) * sizeof(char16) );
+	if (Operator >= 0)
+	{
+		for (int i=Operator; i<a.Length(); i++)
+		{
+			char16 *t = a[i];
+			if (i > Operator)
+				p.Write(L"_", sizeof(char16));
+			p.Write(t, StrlenW(t) * sizeof(char16) );
+		}
+	}
+	else
+	{
+		LgiAssert(LastName >= 0);
+		t = a[LastName];
+		p.Write(t, StrlenW(t) * sizeof(char16) );
+	}
 	
 	ret.Reset(p.NewStrW());
 	LgiAssert(ret);
