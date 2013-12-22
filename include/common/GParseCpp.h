@@ -12,7 +12,8 @@ enum GSymbolType
 	SymStruct,
 	SymEnum,
 	SymFunction,
-	SymVariable
+	SymVariable,
+	SymExternC
 };
 
 /// A reference to a matched symbol

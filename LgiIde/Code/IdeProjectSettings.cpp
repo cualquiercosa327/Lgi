@@ -173,6 +173,11 @@ public:
 		Configs.Add(NewStr(sRelease));
 		CurConfig.Reset(NewStr(sDebug));
 	}
+	
+	~IdeProjectSettingsPriv()
+	{
+		Configs.DeleteArrays();
+	}
 
 	int FindConfig(const char *Cfg)
 	{

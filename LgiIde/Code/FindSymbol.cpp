@@ -16,6 +16,7 @@
 #include "resdefs.h"
 
 #define DEBUG_FIND_SYMBOL		0
+#define DEBUG_NO_THREAD			1
 
 #ifdef _GPARSECPP_H_
 #else
@@ -57,7 +58,10 @@ struct SearchRequest
 	}
 };
 
-class FindSymbolThread : public GThread
+class FindSymbolThread
+	#if !DEBUG_NO_THREAD
+	: public GThread
+	#endif
 {
 	struct Symbol
 	{
@@ -108,7 +112,9 @@ struct FindSymbolSystemPriv : public GMutex
 
 	bool TagsDirty;
 
+	#if !DEBUG_NO_THREAD
 	GThreadEvent Sync;
+	#endif
 	GAutoPtr<FindSymbolThread> Thread;
 
 	GArray<SearchRequest*> Requests, Done;
@@ -153,23 +159,38 @@ struct FindSymbolSystemPriv : public GMutex
 		}
 		#endif
 	}
+	
+	~FindSymbolSystemPriv()
+	{
+		Files.DeleteArrays();
+		ThreadMsg.DeleteArrays();
+	}
 };
 
-FindSymbolThread::FindSymbolThread(FindSymbolSystemPriv *priv) : GThread("FindSymbolThread")
+FindSymbolThread::FindSymbolThread(FindSymbolSystemPriv *priv)
+	#if !DEBUG_NO_THREAD
+	: GThread("FindSymbolThread")
+	#endif
 {
 	State = Initializing;
 	d = priv;
 	Loop = true;
+	#if DEBUG_NO_THREAD
+	UpdateTags();
+	#else
 	Run();
+	#endif
 }
 
 FindSymbolThread::~FindSymbolThread()
 {
 	Loop = false;
 	State = ExitSearch;
+	#if !DEBUG_NO_THREAD
 	d->Sync.Signal();
 	while (!IsExited())
 		LgiSleep(1);
+	#endif
 }
 
 void FindSymbolThread::Msg(const char *s)
@@ -248,11 +269,13 @@ void FindSymbolThread::UpdateTags()
 				d->CppParser.ParseCode(IncPaths, PreDefs, Src);
 				
 				IncPaths.DeleteArrays();
+				Src.DeleteArrays();
 			}
 		}
 	}
 			
 	#else
+
 	// Create index...
 	char tmp[MAX_PATH];
 	if (!LgiGetSystemPath(LSP_TEMP, tmp, sizeof(tmp)))
@@ -352,6 +375,7 @@ int FindSymbolThread::Main()
 	while (Loop)
 	{
 		State = Waiting;
+		#if !DEBUG_NO_THREAD
 		if (d->Sync.Wait())
 		{
 			if (!Loop)
@@ -411,6 +435,7 @@ int FindSymbolThread::Main()
 				else delete Req;
 			}
 		}
+		#endif
 	}
 	return 0;
 }
@@ -610,7 +635,9 @@ int FindSymbolDlg::OnNotify(GViewI *v, int f)
 						printf("OnNotify str '%s'\n", Str);
 						#endif
 						
+						#if !DEBUG_NO_THREAD
 						d->Sync.Signal();
+						#endif
 					}
 				}
 			}
@@ -700,7 +727,9 @@ void FindSymbolSystem::OnProject()
 	if (!d->Thread)
 	{
 		d->Thread.Reset(new FindSymbolThread(d));
+		#if !DEBUG_NO_THREAD
 		d->Sync.Signal();
+		#endif
 	}
 }
 
@@ -722,7 +751,9 @@ void FindSymbolSystem::Search(const char *SearchStr, GArray<FindSymResult> &Resu
 		Req->Str.Reset(NewStr(SearchStr));
 		d->Requests.Add(Req);
 		d->Unlock();
+		#if !DEBUG_NO_THREAD
 		d->Sync.Signal();
+		#endif
 		
 		// Wait for it to complete...
 		uint64 Start = LgiCurrentTime();

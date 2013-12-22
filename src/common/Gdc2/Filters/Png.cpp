@@ -72,6 +72,8 @@ public:
 			"libpng9"
             #if defined(WIN64)
             "x64"
+            #else
+            "x32"
             #endif
 			#endif
 		)

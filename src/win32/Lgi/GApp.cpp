@@ -495,7 +495,8 @@ bool GApp::IsOk()
 					(d != 0) &&
 					(d->FileSystem != 0) &&
 					(d->GdcSystem != 0);
-	LgiAssert(Status);
+	if (!Status)
+		LgiAssert(!"Hash table error");
 	return Status;
 }
 

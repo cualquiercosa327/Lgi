@@ -122,7 +122,7 @@ class GHashTbl
 		
 	    char16 *New(char16 *s)
 	    {
-		    int Len = StrlenW(s) + sizeof(char16);
+		    int Len = (StrlenW(s) + 1) * sizeof(char16);
 		    if (Used < Size - Len)
 		    {
 			    char16 *p = (char16*) (Mem + Used);
@@ -135,7 +135,7 @@ class GHashTbl
 
 	    char16 *New(const char16 *s)
 	    {
-		    int Len = StrlenW(s) + sizeof(char16);
+		    int Len = (StrlenW(s) + 1) * sizeof(char16);
 		    if (Used < Size - Len)
 		    {
 			    char16 *p = (char16*) (Mem + Used);
@@ -179,7 +179,6 @@ class GHashTbl
 			for (int i=0; i<Size; i++)
 			{
 				Index = (h + i) % Size;
-				LgiAssert(Index >= 0);
 
 				if (Table[Index].k == NullKey)
 					return false;
@@ -212,7 +211,11 @@ class GHashTbl
 			uint Hash(char *s) { return LgiHash<uchar>((uchar*)s, 0, Case); }
 			char *CopyKey(char *a) { return NewStr(a); }
 			int SizeKey(char *a) { return strlen(a) + 1; }
-			void FreeKey(char *&a) { DeleteArray(a); }
+			void FreeKey(char *&a)
+			{
+				if (!Pool) { DeleteArray(a); }
+				else { a = NULL; }
+			}
 			bool CmpKey(char *a, char *b)
 			{
 				return strcompare(a, b, Case) == 0;
@@ -222,7 +225,11 @@ class GHashTbl
 			uint Hash(const char *s) { return LgiHash<uchar>((uchar*)s, 0, Case); }
 			char *CopyKey(const char *a) { return NewStr(a); }
 			int SizeKey(const char *a) { return strlen(a) + 1; }
-			void FreeKey(const char *&a) { DeleteArray((char*&)a); }
+			void FreeKey(const char *&a)
+			{
+				if (Pool) a = NULL;
+				else DeleteArray((char*&)a);
+			}
 			bool CmpKey(const char *a, const char *b)
 			{
 				return strcompare(a, b, Case) == 0;
@@ -232,7 +239,11 @@ class GHashTbl
 			uint Hash(char16 *s) { return LgiHash<char16>(s, 0, Case); }
 			char16 *CopyKey(char16 *a) { return NewStrW(a); }
 			int SizeKey(char16 *a) { return StrlenW(a) + 1; }
-			void FreeKey(char16 *&a) { DeleteArray(a); }
+			void FreeKey(char16 *&a)
+			{
+				if (Pool) a = NULL;
+				else DeleteArray(a);
+			}
 			bool CmpKey(char16 *a, char16 *b)
 			{
 				if (Case)
@@ -384,8 +395,7 @@ public:
 						{
 							LgiAssert(0);
 						}
-						if (!Pool)
-							FreeKey(OldTable[i].k);
+						FreeKey(OldTable[i].k);
 					}
 				}
 
@@ -444,8 +454,8 @@ public:
 		if (!Status)
 		{
 			LgiStackTrace("%s:%i - this=%p Table=%p Used=%i Size=%i\n", _FL, this, Table, Used, Size);
-		}
-		LgiAssert(Status);
+			LgiAssert(0);
+		}		
 		return Status;
 	}
 

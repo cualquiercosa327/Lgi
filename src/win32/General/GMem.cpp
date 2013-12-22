@@ -416,9 +416,9 @@ bool LgiDumpMemoryStats(char *filename)
 
 						uint8 *Data = (uint8*)(b + 1);
 						char *Str = s + sprintf(s, "Block %p, %i bytes = {", b + 1, b->Size);
-						for (int n=0; n<b->Size AND n<16; n++)
+						for (int n=0; n<b->Size && n<16; n++)
 						{
-							if (Data[n] >= ' ' AND Data[n] < 127)
+							if (Data[n] >= ' ' && Data[n] < 127)
 							{
 								Str += sprintf(Str, "'%c', ", Data[n]);
 							}
@@ -437,7 +437,7 @@ bool LgiDumpMemoryStats(char *filename)
 						}
 						fwrite(s, 1, Str - s, f);
 
-						for (int i=0; b->Stack[i].Ip AND i<MEM_STACK_SIZE; i++)
+						for (int i=0; b->Stack[i].Ip && i<MEM_STACK_SIZE; i++)
 						{
 							MEMORY_BASIC_INFORMATION mbi;
 							VirtualQuery((void*)b->Stack[i].Ip, &mbi, sizeof(mbi));
@@ -604,7 +604,7 @@ public:
 		for (int i=0; i<10; i++)
 		{
 			_metric *Max = m;
-			for (int n=0; n<Length AND m[n].File; n++)
+			for (int n=0; n<Length && m[n].File; n++)
 			{
 				if (m[n].Count > Max->Count)
 				{
@@ -629,10 +629,10 @@ public:
 		if (Lock.Lock())
 		{
 			int i;
-			for (i=0; i<Length AND m[i].File; i++)
+			for (i=0; i<Length && m[i].File; i++)
 			{
-				if (stricmp(m[i].File, file) == 0 AND
-				// if (m[i].File == file AND
+				if (stricmp(m[i].File, file) == 0 &&
+				// if (m[i].File == file &&
 					m[i].Line == line)
 				{
 					m[i].Count++;
@@ -688,7 +688,7 @@ struct _vmem_info
 
 		char *Data = ((char*)(this+1)) + _VMEM_BUFFER;
 		char *e = s + strlen(s);
-		for (int i=0; i<min(Size, 32) AND Data[i]; i++)
+		for (int i=0; i<min(Size, 32) && Data[i]; i++)
 		{
 			if (Data[i] >= ' ')
 				*e++ = Data[i];
@@ -803,7 +803,7 @@ void _vmem_free(void *ptr)
 			}
 
 			// Remove from the list
-			if (p == _First AND p == _Last)
+			if (p == _First && p == _Last)
 			{
 				_First = _Last = 0;
 			}
@@ -823,7 +823,7 @@ void _vmem_free(void *ptr)
 			}
 			else
 			{
-				if (!p->Next OR !p->Prev) _asm int 3
+				if (!p->Next || !p->Prev) _asm int 3
 
 				p->Next->Prev = p->Prev;
 				p->Prev->Next = p->Next;
@@ -862,7 +862,7 @@ bool LgiCheckHeap()
 		{
 			char c = i->File[0];
 
-			if (i->Magic != _VMEM_MAGIC OR
+			if (i->Magic != _VMEM_MAGIC ||
 				!i->CheckFill())
 			{
 				_asm int 3
