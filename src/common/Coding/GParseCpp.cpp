@@ -4,6 +4,7 @@
 #include "GLexCpp.h"
 #include "GVariant.h"
 #include "GScriptingPriv.h"
+#include "GXmlTree.h"
 
 #define CheckToken(t)	if (!t) { Error = true; break; }
 #define Debug			__asm int 3
@@ -12,6 +13,97 @@ struct PreprocessState
 {
 	bool ParentIsActive;
 	bool IfBranchClaimed;
+};
+
+enum PreprocessSymbol
+{
+	SourceBlock,
+	HashIf,
+	HashElif,
+	HashIfndef,
+	HashIfdef,
+	HashElse,
+	HashEndif,
+	HashPragma,
+	HashError,
+	HashWarning,
+	HashDefine,
+	HashUndef,
+	HashInclude,
+};
+
+const char *PreprocessSymbolNames[] =
+{
+	"SourceBlock",
+	"HashIf",
+	"HashElif",
+	"HashIfndef",
+	"HashIfdef",
+	"HashElse",
+	"HashEndif",
+	"HashPragma",
+	"HashError",
+	"HashWarning",
+	"HashDefine",
+	"HashUndef",
+	"HashInclude",
+};
+
+/// A file is parsed into a stream of these preprocessed blocks. The content
+/// of the block may be present in unlexed form, or parsed form. This saves
+/// on having to re-lex files over and over.
+class PreprocessBlock
+{
+	friend struct GSourceFile;
+	
+	GArray<int> Lines;
+
+public:
+	/// The type of block this is.
+	PreprocessSymbol Type;
+	
+	/// The start line in the original source code of this block.
+	int BlockLine;
+	
+	// Unparsed string data
+	char16 *Start;
+	int Len;
+	
+	// -or-
+	
+	// Lexed data
+	int CurToken;
+	int Line;
+	GArray<char16*> Tokens;
+	
+	PreprocessBlock()
+	{
+		Type = SourceBlock;
+		Start = NULL;
+		Len = 0;
+		CurToken = 0;
+		BlockLine = 0; // Invalid line..
+	}
+	
+	char16 *NextToken()
+	{
+		if (Start != NULL)
+			LgiAssert(0); // Call GSourceFile::Lex first
+			
+		if (CurToken >= Tokens.Length())
+			return NULL;
+			
+		Line = Lines[CurToken];
+		return Tokens[CurToken++];
+	}
+	
+	int GetLine()
+	{
+		if (CurToken >= Tokens.Length())
+			Lines.Last();
+		
+		return Lines[CurToken];		
+	}
 };
 
 bool CmpToken(char16 *a, const char *b)
@@ -183,19 +275,14 @@ struct GSourceFile
 	GCppStringPool Pool;
 
 	GAutoWString Raw;
-	char16 *Cur;
-	int Line;
-	GArray<char16*> Tokens;
-	GHashTbl<char16*,int> LineMap;
+	GArray<PreprocessBlock> Blocks;
 	GArray<PreprocessState> Stack;
 	bool Active;
 	
 	GSourceFile() : Pool(16 << 10)
 	{
 		Id = 0;
-		Line = 1;
 		Active = true;
-		Cur = NULL;
 	}
 	
 	bool Read(const char *path)
@@ -208,21 +295,124 @@ struct GSourceFile
 			return false;
 
 		Raw.Reset(LgiNewUtf8To16(f));
-		Cur = Raw;
-		LineMap.SetSize(StrlenW(Raw) / 2);
-		
+
 		return true;
 	}
 	
-	char16 *NextToken()
+	bool Lex(PreprocessBlock &blk)
 	{
-		int PrevLine = Line;
-		char16 *t = LexCpp(Cur, LexPoolAlloc, &Pool, &Line);
-		if (t)
-			LineMap.Add(t, Line);
-		return t;
+		if (blk.Start)
+		{
+			char16 *Cur = blk.Start;
+			char16 *End = blk.Start + blk.Len;
+			int Line = blk.BlockLine, PrevLine = Line;
+			char16 *t;
+
+			// Temporarily NULL terminate this block
+			char16 OldEndChar = *End;
+			*End = 0;
+
+			if (blk.Type == HashInclude)
+			{
+				// Special include parsing...
+				while (*Cur && (t = LexCpp(Cur, LexPoolAlloc, &Pool, &Line)))
+				{
+					if (CmpToken(t, "<"))
+					{
+						char16 delim = '>';
+						char16 *End = StrchrW(t = Cur, delim);
+						*End = 0;
+					}
+					else if (*t == '\"' || *t == '\'')
+					{
+						// Trim the string markers
+						char16 delim = *t++;
+						char16 *End = StrchrW(t, delim);
+						*End = 0;
+					}
+					
+					blk.Tokens.Add(t);
+					blk.Lines.Add(PrevLine);
+					break;
+				}
+			}
+			else if (blk.Type == HashDefine)
+			{
+				// Special #define parsing to remove the line continuation characters...
+				while (*Cur && (t = LexCpp(Cur, LexPoolAlloc, &Pool, &Line)))
+				{
+					if (CmpToken(t, "\\"))
+					{
+						// Is this a line continuation char?
+						char16 *End = Cur;
+						bool AllWhiteSpace = true;
+						while (*End && *End != '\r' && *End != '\n')
+						{
+							if (*End != ' ' && *End != '\t')
+							{
+								AllWhiteSpace = false;
+								break;
+							}
+							End++;
+						}
+						if (AllWhiteSpace)
+						{
+							continue;
+						}
+					}
+					
+					blk.Tokens.Add(t);
+					blk.Lines.Add(PrevLine);
+					PrevLine = Line;
+				}
+			}
+			else
+			{
+				// General code parsing
+				while (*Cur && (t = LexCpp(Cur, LexPoolAlloc, &Pool, &Line)))
+				{
+					blk.Tokens.Add(t);
+					blk.Lines.Add(PrevLine);
+					PrevLine = Line;
+				}			
+			}
+
+			// Restore the string to normal
+			*End = OldEndChar;
+			
+			// Clear the unparsed data ptr
+			blk.Start = NULL;
+		}
+		
+		return NULL; // 
 	}
-	
+
+	void DumpBlocks()
+	{
+		#if 1
+		GXmlTree t;
+		GFile f;
+		if (f.Open("c:\\Temp\\CppBlocks.xml", O_WRITE))
+		{
+			f.SetSize(0);
+			GXmlTag r("Dump");
+			r.SetAttr("Path", Path);
+			for (int i=0; i<Blocks.Length(); i++)
+			{
+				PreprocessBlock &b = Blocks[i];
+				GXmlTag *c = new GXmlTag(PreprocessSymbolNames[b.Type]);
+				r.InsertTag(c);
+				c->SetAttr("Line", b.BlockLine);
+				c->Content = LgiNewUtf16To8(b.Start, b.Len * sizeof(char16));
+			}
+			
+			t.Write(&r, &f);
+			f.Close();
+		}
+		#endif		
+	}
+
+	/*	
 	bool At(const char *file, int line)
 	{
 		char *d = Path ? strrchr(Path, DIR_CHAR) : NULL;
@@ -230,6 +420,7 @@ struct GSourceFile
 			return false;
 		return stricmp(d+1, file) == 0 && Line == line;
 	}
+	*/
 };
 
 struct GSourceScope : public GHashTbl<char16*, GSymbol*>
@@ -284,6 +475,16 @@ enum MsgType
 	MsgInfo,
 };
 
+template<typename T>
+void AddHash(GHashTbl<char16*, T> &tbl, const char *name, T type)
+{
+	char16 s[256], *o = s;
+	while (*name)
+		*o++ = *name++;
+	*o++ = 0;
+	tbl.Add(s, type);
+}
+
 struct GCppParserWorker : public GCompileTools
 {
 	GCppParserPriv *d;
@@ -294,19 +495,20 @@ struct GCppParserWorker : public GCompileTools
 	GArray<GSourceScope*> Scopes; // from global to local
 	
 	GHashTbl<char16*, KeywordType> Keywords;
-	void AddHash(const char *name, KeywordType type);
+	GHashTbl<char16*, PreprocessSymbol> PreprocessSyms;
 	
 	GHashTbl<char*, char*> IncludePathFiles;
 	char *FindInclude(char *file);
+	bool Preprocess(GSourceFile *sf);
 	
 	void InitScopes();
 	GSourceScope *CurrentScope() { return Scopes[Scopes.Length()-1]; }
 	GAutoWString GetSymbolName(GArray<char16*> &a, bool IsEnum = false);
 
-	GSymbol *ParseDecl(GSourceFile *sf, char16 *t);
-	GSymbol *ParseUserType(GSourceFile *sf, char16 *t);
-	GSymbol *ParseTypedef(GSourceFile *sf, char16 *t);
-	bool ParsePreprocessor(GSourceFile *sf, char16 *t);
+	GSymbol *ParseDecl(GSourceFile *sf, PreprocessBlock &blk, char16 *t);
+	GSymbol *ParseUserType(GSourceFile *sf, PreprocessBlock &blk, char16 *t);
+	GSymbol *ParseTypedef(GSourceFile *sf, PreprocessBlock &blk);
+	bool ParsePreprocessor(GSourceFile *sf, PreprocessBlock &blk);
 	
 public:
 	GCppParserWorker(GCppParserPriv *priv);
@@ -328,58 +530,72 @@ struct GCppParserPriv
 
 GCppParserWorker::GCppParserWorker(GCppParserPriv *priv) :
 	GeneralPool(4 << 10),
-	IncludePathFiles(0, false)
+	IncludePathFiles(0, false),
+	PreprocessSyms(0, false)
 {
 	d = priv;
 	
-	AddHash("auto", KwSpecifier);
-	AddHash("extern", KwSpecifier);
-	AddHash("static", KwSpecifier);
-	AddHash("register", KwSpecifier);
-	AddHash("mutable", KwSpecifier);
+	AddHash(Keywords, "auto", KwSpecifier);
+	AddHash(Keywords, "extern", KwSpecifier);
+	AddHash(Keywords, "static", KwSpecifier);
+	AddHash(Keywords, "register", KwSpecifier);
+	AddHash(Keywords, "mutable", KwSpecifier);
 
-	AddHash("bool", KwType);
-	AddHash("char", KwType);
-	AddHash("wchar_t", KwType);
-	AddHash("short", KwType);
-	AddHash("int", KwType);
-	AddHash("long", KwType);
-	AddHash("float", KwType);
-	AddHash("double", KwType);
-	AddHash("void", KwType);
+	AddHash(Keywords, "bool", KwType);
+	AddHash(Keywords, "char", KwType);
+	AddHash(Keywords, "wchar_t", KwType);
+	AddHash(Keywords, "short", KwType);
+	AddHash(Keywords, "int", KwType);
+	AddHash(Keywords, "long", KwType);
+	AddHash(Keywords, "float", KwType);
+	AddHash(Keywords, "double", KwType);
+	AddHash(Keywords, "void", KwType);
 	#ifdef WIN32
-	AddHash("__int64", KwType);
-	AddHash("_W64", KwModifier);
+	AddHash(Keywords, "__int64", KwType);
+	AddHash(Keywords, "_W64", KwModifier);
 	#endif
-	AddHash("unsigned", KwModifier);
-	AddHash("signed", KwModifier);
-	AddHash("__declspec", KwModifier);
-	AddHash("template", KwModifier);
-	AddHash("__stdcall", KwModifier);
-	AddHash("friend", KwModifier);
-	AddHash("operator", KwModifier);
+	AddHash(Keywords, "unsigned", KwModifier);
+	AddHash(Keywords, "signed", KwModifier);
+	AddHash(Keywords, "__declspec", KwModifier);
+	AddHash(Keywords, "template", KwModifier);
+	AddHash(Keywords, "__stdcall", KwModifier);
+	AddHash(Keywords, "friend", KwModifier);
+	AddHash(Keywords, "operator", KwModifier);
 	
-	AddHash("class", KwUserType);
-	AddHash("struct", KwUserType);
-	AddHash("union", KwUserType);
-	AddHash("enum", KwUserType);
+	AddHash(Keywords, "class", KwUserType);
+	AddHash(Keywords, "struct", KwUserType);
+	AddHash(Keywords, "union", KwUserType);
+	AddHash(Keywords, "enum", KwUserType);
 	
-	AddHash("public:", KwVisibility);
-	AddHash("private:", KwVisibility);
-	AddHash("protected:", KwVisibility);
+	AddHash(Keywords, "public:", KwVisibility);
+	AddHash(Keywords, "private:", KwVisibility);
+	AddHash(Keywords, "protected:", KwVisibility);
 
-	AddHash("#if", KwPreprocessor);
-	AddHash("#ifdef", KwPreprocessor);
-	AddHash("#ifndef", KwPreprocessor);
-	AddHash("#elif", KwPreprocessor);
-	AddHash("#else", KwPreprocessor);
-	AddHash("#endif", KwPreprocessor);
-	AddHash("#include", KwPreprocessor);
-	AddHash("#define", KwPreprocessor);
-	AddHash("#undef", KwPreprocessor);
-	AddHash("#error", KwPreprocessor);
-	AddHash("#warning", KwPreprocessor);
-	AddHash("#pragma", KwPreprocessor);
+	AddHash(Keywords, "#if", KwPreprocessor);
+	AddHash(Keywords, "#ifdef", KwPreprocessor);
+	AddHash(Keywords, "#ifndef", KwPreprocessor);
+	AddHash(Keywords, "#elif", KwPreprocessor);
+	AddHash(Keywords, "#else", KwPreprocessor);
+	AddHash(Keywords, "#endif", KwPreprocessor);
+	AddHash(Keywords, "#include", KwPreprocessor);
+	AddHash(Keywords, "#define", KwPreprocessor);
+	AddHash(Keywords, "#undef", KwPreprocessor);
+	AddHash(Keywords, "#error", KwPreprocessor);
+	AddHash(Keywords, "#warning", KwPreprocessor);
+	AddHash(Keywords, "#pragma", KwPreprocessor);
+
+	AddHash(PreprocessSyms, "#if", HashIf);
+	AddHash(PreprocessSyms, "#elif", HashElif);
+	AddHash(PreprocessSyms, "#ifndef", HashIfndef);
+	AddHash(PreprocessSyms, "#ifdef", HashIfdef);
+	AddHash(PreprocessSyms, "#else", HashElse);
+	AddHash(PreprocessSyms, "#endif", HashEndif);
+	AddHash(PreprocessSyms, "#pragma", HashPragma);
+	AddHash(PreprocessSyms, "#error", HashError);
+	AddHash(PreprocessSyms, "#warning", HashWarning);
+	AddHash(PreprocessSyms, "#define", HashDefine);
+	AddHash(PreprocessSyms, "#undef", HashUndef);
+	AddHash(PreprocessSyms, "#include", HashInclude);
 }
 
 GCppParserWorker::~GCppParserWorker()
@@ -403,15 +619,6 @@ void GCppParserWorker::Msg(MsgType Type, char *Fmt, ...)
 	va_end(Arg);
 	if (Type == MsgError)
 		Debug;
-}
-
-void GCppParserWorker::AddHash(const char *name, KeywordType type)
-{
-	char16 s[256], *o = s;
-	while (*name)
-		*o++ = *name++;
-	*o++ = 0;
-	Keywords.Add(s, type);
 }
 
 char *GCppParserWorker::FindInclude(char *File)
@@ -461,7 +668,6 @@ void GCppParserWorker::InitScopes()
 
 	s = Scopes[0]->Define(L"WIN32", SymDefine, _FL);
 	s->File = "none";
-
 	#endif
 }
 
@@ -929,189 +1135,375 @@ int GCppParserWorker::Evaluate(GArray<char16*> &Exp)
 	return Values.Length() == 1 ? Values[0].CastInt32() : 0;
 }
 
-GSourceFile *GCppParserWorker::ParseCpp(const char *Path)
+#define IsWhite(c)		(  (c) == ' ' || (c) == '\t' )
+#define SkipNewLine(Cur) \
+	if (Cur[0] == '\r' && Cur[1] == '\n') \
+		Cur += 2; \
+	else if (Cur[0] == '\r') \
+		Cur++; \
+	else if (Cur[0] == '\n') \
+		Cur++; \
+	Line++;
+
+bool GCppParserWorker::Preprocess(GSourceFile *sf)
 {
-	GSourceFile *sf = new GSourceFile;
-	if (!sf)
-		return NULL;
-
-	if (!sf->Read(Path))
-	{
-		delete sf;
-		return NULL;
-	}
-
-	Srcs.Add(sf);
+	char16 *Cur = sf->Raw;
+	int Line = 1;
+	char16 Cmd[256];
+	PreprocessBlock *Blk = NULL;
 	
-	bool Error = false;
-	bool IsExternC = false;
-	char16 *t;
+	while (*Cur)
+	{
+		// Find Start of line
+		while (IsWhite(*Cur))
+			Cur++;
 
-	const char16 *CppDef = L"__cplusplus";
-	char *Ext = LgiGetExtension((char*)Path);
-	if (Ext && stricmp(Ext, "cpp"))
-	{
-		Scopes[0]->Define((char16*)CppDef, SymDefine, _FL);
-	}
-	
-	while (!Error && (t = sf->NextToken()))
-	{
-		KeywordType kt = Keywords.Find(t);
-		switch (kt)
+		if (*Cur == '#')
 		{
-			case KwPreprocessor:
+			// Emit a source code block
+			if (Blk)
 			{
-				if (!ParsePreprocessor(sf, t))
-					Error = true;
-				break;
-			}
-			case KwUserType:
-			{
-				char16 *Start = sf->Cur;
-				GSymbol *sym = ParseUserType(sf, t);
-				if (sym)
+				Blk->Len = Cur - Blk->Start;
+				if (Blk->Len <= 8)
 				{
-					if (sf->Active)
+					bool IsWhiteSpace = true;
+					for (int i=0; i<Blk->Len; i++)
 					{
-						GAutoWString SymName = GetSymbolName(sym->Tokens, sym->Type == SymEnum);
-						if (SymName)
+						if (Blk->Start[i] != ' ' &&
+							Blk->Start[i] != '\t' &&
+							Blk->Start[i] != '\r' &&
+							Blk->Start[i] != '\n')
 						{
-							if (CurrentScope()->Find(SymName))
-							{
-								DeleteObj(sym);
-							}
-							else
-							{
-								CurrentScope()->Add(SymName, sym);
-							}
+							IsWhiteSpace = false;
 						}
-						else if (sym->Type == SymEnum)
-						{
-							// Unnamed enum
-							static int Idx = 1;
-							char16 Buf[256];
-							swprintf_s(Buf, CountOf(Buf), L"UnnamedEnum%i", Idx++);
-
-							if (CurrentScope()->Find(SymName))
-							{
-								DeleteObj(sym);
-							}
-							else
-							{
-								CurrentScope()->Add(Buf, sym);
-							}
-						}
-						else
-						{
-							Msg(MsgError, "%s:%i - Failed to get symbol name.\n", _FL);
-							DeleteObj(sym);
-						}
+					}
+					if (IsWhiteSpace)
+					{
+						Blk->Start = NULL;
+						Blk->Len = 0;
 					}
 					else
 					{
-						DeleteObj(sym);
+						Blk = NULL;
 					}
-				}
-				break;
-			}
-			default:
-			{
-				if (IsExternC && CmpToken(t, "}"))
-				{
-					if (sf->Active)
-						IsExternC = false;
-				}
-				else if (CmpToken(t, "typedef"))
-				{
-					int StartLine = sf->Line;
-					GSymbol *sym = ParseTypedef(sf, t);
-					if (sym)
-					{
-						if (sf->Active)
-						{
-							GAutoWString Name = GetSymbolName(sym->Tokens);
-							if (Name)
-							{
-								GSymbol *existing = CurrentScope()->Find(Name);
-								if (existing)
-								{
-									Msg(MsgError, "Symbol '%S' already exists.\n", Name.Get());
-								}
-								else
-								{
-									CurrentScope()->Add(Name, sym);
-									sym->File = sf->Path;
-									sym->Line = StartLine;
-									sym = NULL;
-								}
-							}
-						}
-						
-						DeleteObj(sym);
-					}
-				}
-				else if (CmpToken(t, ";"))
-				{
 				}
 				else
 				{
-					if (sf->At("GFile.cpp", 2007))
-						Debug
-					
-					GSymbol *sym = ParseDecl(sf, t);
-					if (sym)
+					Blk = NULL;
+				}
+			}
+			
+			// Read over the preprocessor command and save the name
+			char16 *o = Cmd;
+			char16 *e = Cmd + 255;
+			*o++ = *Cur++;
+			while (IsWhite(*Cur))
+				Cur++;
+			while (	*Cur &&
+					!IsWhite(*Cur) &&
+					*Cur != '\r' &&
+					*Cur != '\n' &&
+					o < e)
+			{
+				*o++ = *Cur++;
+			}
+			*o++ = 0;
+			while (IsWhite(*Cur))
+				Cur++;
+			
+			// Create a block for the statement
+			if (Blk == NULL)
+				Blk = &sf->Blocks.New();
+			Blk->BlockLine = Line;
+			Blk->Type = PreprocessSyms.Find(Cmd);
+			LgiAssert(Blk->Type != SourceBlock);
+			Blk->Start = Cur;
+
+			// Scan till the end of line...		
+			char16 *LastNonWhite = NULL;			
+			do 
+			{
+				while (*Cur && *Cur != '\r' && *Cur != '\n')
+				{
+					if (!IsWhite(*Cur))
+						LastNonWhite = Cur;
+					Cur++;
+				}
+				if (LastNonWhite && *LastNonWhite == '\\' && Blk->Type == HashDefine)
+				{
+					// Multi-line #define...
+					SkipNewLine(Cur);
+				}
+				else
+				{
+					SkipNewLine(Cur);
+					break;
+				}
+			}
+			while (*Cur);
+			
+			Blk->Len = Cur - Blk->Start;
+			while (Blk->Len > 0 && strchr(" \r\t\n", Blk->Start[Blk->Len - 1]))
+				Blk->Len--;
+			Blk = NULL;
+		}
+		else
+		{
+			if (!Blk)
+			{
+				Blk = &sf->Blocks.New();
+				Blk->BlockLine = Line;
+				Blk->Start = Cur;
+			}
+			
+			// Scan till the end of line...		
+			while (*Cur && *Cur != '\r' && *Cur != '\n')
+			{
+				if (Cur[0] == '/' && Cur[1] == '*')
+				{
+					// Process multi-line comment...
+					for (Cur += 2; *Cur; )
 					{
-						if (sf->Active)
+						if (*Cur == '\r' || *Cur == '\n')
 						{
-							if (sym->Type == SymExternC)
+							SkipNewLine(Cur);
+						}
+						else if (Cur[0] == '*' && Cur[1] == '/')
+						{
+							Cur += 2;
+							break;
+						}
+						else Cur++;
+					}
+				}
+				else
+				{				
+					Cur++;
+				}
+			}
+				
+			// Skip over new line...
+			SkipNewLine(Cur);
+		}
+	}	
+
+	if (Blk)
+	{
+		Blk->Len = Cur - Blk->Start;
+	}
+	
+	return true;
+}
+
+GSourceFile *GCppParserWorker::ParseCpp(const char *Path)
+{
+	GSourceFile *sf = NULL;
+
+	for (int i=0; i<Srcs.Length(); i++)
+	{
+		GSourceFile *s = Srcs[i];
+		if (s->Path && !strcmp(s->Path, Path))
+		{
+			sf = s;
+			break;
+		}
+	}
+	
+	if (!sf)
+	{
+		sf = new GSourceFile;
+		if (sf)
+		{
+			if (!sf->Read(Path))
+			{
+				delete sf;
+				return NULL;
+			}
+			
+			Srcs.Add(sf);
+			
+			Preprocess(sf);
+		}
+		else return NULL;
+	}
+	
+	bool IsExternC = false;
+	char16 *t;
+
+	for (int i=0; i<sf->Blocks.Length(); i++)
+	{
+		PreprocessBlock &blk = sf->Blocks[i];
+		if (blk.Type == SourceBlock)
+		{
+			sf->Lex(blk);
+
+			bool Error = false;
+			while (!Error && (t = blk.NextToken()))
+			{
+				KeywordType kt = Keywords.Find(t);
+				switch (kt)
+				{
+					case KwPreprocessor:
+					{
+						LgiAssert(!"We shouldn't see these here at all.");
+						Error = true;
+						break;
+					}
+					case KwUserType:
+					{
+						GSymbol *sym = ParseUserType(sf, blk, t);
+						if (sym)
+						{
+							if (sf->Active)
 							{
-								IsExternC = true;
-								delete sym;
-							}
-							else
-							{
-								GAutoWString Name = GetSymbolName(sym->Tokens);
-								if (Name)
+								GAutoWString SymName = GetSymbolName(sym->Tokens, sym->Type == SymEnum);
+								if (SymName)
 								{
-									GSymbol *e = Scopes[0]->Find(Name);
-									if (e)
+									if (CurrentScope()->Find(SymName))
 									{
 										DeleteObj(sym);
 									}
 									else
 									{
-										Scopes[0]->Add(Name, sym);
+										CurrentScope()->Add(SymName, sym);
+									}
+								}
+								else if (sym->Type == SymEnum)
+								{
+									// Unnamed enum
+									static int Idx = 1;
+									char16 Buf[256];
+									swprintf_s(Buf, CountOf(Buf), L"UnnamedEnum%i", Idx++);
+
+									if (CurrentScope()->Find(SymName))
+									{
+										DeleteObj(sym);
+									}
+									else
+									{
+										CurrentScope()->Add(Buf, sym);
 									}
 								}
 								else
 								{
-									Msg(MsgError, "%s:%i - Failed to get name of decl.\n", _FL);
+									Msg(MsgError, "%s:%i - Failed to get symbol name.\n", _FL);
+									DeleteObj(sym);
+								}
+							}
+							else
+							{
+								DeleteObj(sym);
+							}
+						}
+						break;
+					}
+					default:
+					{
+						if (IsExternC && CmpToken(t, "}"))
+						{
+							if (sf->Active)
+								IsExternC = false;
+						}
+						else if (CmpToken(t, "typedef"))
+						{
+							GSymbol *sym = ParseTypedef(sf, blk);
+							if (sym)
+							{
+								if (sf->Active)
+								{
+									GAutoWString Name = GetSymbolName(sym->Tokens);
+									if (Name)
+									{
+										GSymbol *existing = CurrentScope()->Find(Name);
+										if (existing)
+										{
+											Msg(MsgError, "Symbol '%S' already exists.\n", Name.Get());
+										}
+										else
+										{
+											CurrentScope()->Add(Name, sym);
+											sym->File = sf->Path;
+											sym->Line = blk.BlockLine;
+											sym = NULL;
+										}
+									}
+								}
+								
+								DeleteObj(sym);
+							}
+						}
+						else if (CmpToken(t, ";"))
+						{
+						}
+						else
+						{
+							GSymbol *sym = ParseDecl(sf, blk, t);
+							if (sym)
+							{
+								if (sf->Active)
+								{
+									if (sym->Type == SymExternC)
+									{
+										IsExternC = true;
+										delete sym;
+									}
+									else
+									{
+										GAutoWString Name = GetSymbolName(sym->Tokens);
+										if (Name)
+										{
+											GSymbol *e = Scopes[0]->Find(Name);
+											if (e)
+											{
+												DeleteObj(sym);
+											}
+											else
+											{
+												Scopes[0]->Add(Name, sym);
+											}
+										}
+										else
+										{
+											Msg(MsgError, "%s:%i - Failed to get name of decl.\n", _FL);
+											DeleteObj(sym);
+										}
+									}
+								}
+								else
+								{
 									DeleteObj(sym);
 								}
 							}
 						}
-						else
-						{
-							DeleteObj(sym);
-						}
+						break;
 					}
 				}
-				break;
 			}
 		}
+		else
+		{
+			if (!ParsePreprocessor(sf, blk))
+				break;
+		}
 	}
+
+
+	/*
+	*/
 	
 	return sf;
 }
 
-GSymbol *GCppParserWorker::ParseDecl(GSourceFile *sf, char16 *t)
+GSymbol *GCppParserWorker::ParseDecl(GSourceFile *sf, PreprocessBlock &blk, char16 *t)
 {
 	char16 *First = t;
 	int ExternC = CmpToken(t, "extern") ? 1 : 0;
 	GSymbol *sym = new GSymbol(_FL);
+
+	#if 1
 	sym->Type = SymVariable;
 	sym->File = sf->Path;
-	sym->Line = sf->Line;
+	sym->Line = blk.GetLine();
 	
 	if (CmpToken(t, "virtual"))
 		sym->Type = SymFunction;
@@ -1125,7 +1517,7 @@ GSymbol *GCppParserWorker::ParseDecl(GSourceFile *sf, char16 *t)
 	if (CmpToken(t, "template"))
 	{
 		Temp.Add(t);
-		while (t = sf->NextToken())
+		while (t = blk.NextToken())
 		{
 			Temp.Add(t);
 			if (CmpToken(t, ">"))
@@ -1133,12 +1525,12 @@ GSymbol *GCppParserWorker::ParseDecl(GSourceFile *sf, char16 *t)
 		}
 	}
 
-	while (t = sf->NextToken())
+	while (t = blk.NextToken())
 	{
 		KeywordType kt = Keywords.Find(t);
 		if (kt == KwUserType && sym->Type != SymFunction)
 		{
-			GSymbol *ut = ParseUserType(sf, t);
+			GSymbol *ut = ParseUserType(sf, blk, t);
 			if (ut)
 				ut->FriendDecl = sym->FriendDecl;
 			DeleteObj(sym);
@@ -1168,7 +1560,7 @@ GSymbol *GCppParserWorker::ParseDecl(GSourceFile *sf, char16 *t)
 		if (CmpToken(t, "{"))
 		{
 			int Depth = 1;
-			while (t = sf->NextToken())
+			while (t = blk.NextToken())
 			{
 				if (CmpToken(t, "{"))
 				{
@@ -1189,16 +1581,17 @@ GSymbol *GCppParserWorker::ParseDecl(GSourceFile *sf, char16 *t)
 		
 		sym->Tokens.Add(t);
 	}
+	#endif
 
 	return sym;
 }
 
-GSymbol *GCppParserWorker::ParseTypedef(GSourceFile *sf, char16 *t)
+GSymbol *GCppParserWorker::ParseTypedef(GSourceFile *sf, PreprocessBlock &blk)
 {
 	GSymbol *sym = new GSymbol(_FL);
 	sym->Type = SymTypedef;
 	
-	t = sf->NextToken();
+	char16 *t = blk.NextToken();
 	if (t == NULL)
 	{
 		delete sym;
@@ -1209,12 +1602,12 @@ GSymbol *GCppParserWorker::ParseTypedef(GSourceFile *sf, char16 *t)
 	if (kt == KwUserType)
 	{
 		DeleteObj(sym);
-		return ParseUserType(sf, t);
+		return ParseUserType(sf, blk, t);
 	}
 
 	sym->Tokens.Add(t);
 	
-	while (t = sf->NextToken())
+	while (t = blk.NextToken())
 	{
 		if (CmpToken(t, ";"))
 			break;
@@ -1225,12 +1618,14 @@ GSymbol *GCppParserWorker::ParseTypedef(GSourceFile *sf, char16 *t)
 	return sym;
 }
 
-GSymbol *GCppParserWorker::ParseUserType(GSourceFile *sf, char16 *t)
+GSymbol *GCppParserWorker::ParseUserType(GSourceFile *sf, PreprocessBlock &blk, char16 *t)
 {
 	if (!sf || !t)
 		return NULL;
 
 	GSymbol *sym = new GSymbol(_FL);
+	
+	#if 1
 	int InScope = 0;
 	bool InParentList = false;
 	bool _Debug = false;
@@ -1251,9 +1646,9 @@ GSymbol *GCppParserWorker::ParseUserType(GSourceFile *sf, char16 *t)
 	
 	sym->Tokens.Add(t);
 	sym->File = sf->Path;
-	sym->Line = sf->Line;
+	sym->Line = blk.GetLine();
 	
-	while (t = sf->NextToken())
+	while (t = blk.NextToken())
 	{
 		if (CmpToken(t, "{"))
 		{
@@ -1264,7 +1659,7 @@ GSymbol *GCppParserWorker::ParseUserType(GSourceFile *sf, char16 *t)
 			ProcessEndBracket:
 			if (--InScope == 0)
 			{
-				while (t = sf->NextToken())
+				while (t = blk.NextToken())
 				{
 					if (CmpToken(t, ";"))
 						break;
@@ -1294,11 +1689,11 @@ GSymbol *GCppParserWorker::ParseUserType(GSourceFile *sf, char16 *t)
 			}
 			else if (kt == KwPreprocessor)
 			{
-				ParsePreprocessor(sf, t);
+				LgiAssert(0);
 			}
 			else if (kt == KwUserType)
 			{
-				GSymbol *cls = ParseUserType(sf, t);
+				GSymbol *cls = ParseUserType(sf, blk, t);
 				if (cls)
 				{
 					if (sf->Active)
@@ -1321,9 +1716,9 @@ GSymbol *GCppParserWorker::ParseUserType(GSourceFile *sf, char16 *t)
 						bool GotEquals = false;
 						
 						def->File = sf->Path;
-						def->Line = sf->Line;
+						def->Line = blk.GetLine();
 						
-						while (t = sf->NextToken())
+						while (t = blk.NextToken())
 						{
 							if (CmpToken(t, ","))
 								break;
@@ -1349,7 +1744,7 @@ GSymbol *GCppParserWorker::ParseUserType(GSourceFile *sf, char16 *t)
 				}
 				else
 				{
-					GSymbol *def = ParseDecl(sf, t);
+					GSymbol *def = ParseDecl(sf, blk, t);
 					if (def)
 					{
 						if (sf->Active && !def->FriendDecl)
@@ -1376,6 +1771,7 @@ GSymbol *GCppParserWorker::ParseUserType(GSourceFile *sf, char16 *t)
 			}
 		}
 	}
+	#endif
 	
 	return sym;
 }
@@ -1444,235 +1840,178 @@ bool HasNonWhiteSpace(char16 *Start, char16 *End)
 	return false;
 }
 
-bool GCppParserWorker::ParsePreprocessor(GSourceFile *sf, char16 *t)
+bool GCppParserWorker::ParsePreprocessor(GSourceFile *sf, PreprocessBlock &blk)
 {
-	if (!t)
+	char16 *t;
+	
+	if (blk.Type == SourceBlock)
 		return false;
 		
-	if (CmpToken(t, "#if"))
+	sf->Lex(blk);
+	switch (blk.Type)
 	{
-		char16 *Start = sf->Cur;
-		char16 *End = FindEol(Start);
-		
-		if (sf->Line == 10)
+		case HashIf:
 		{
-			int asd=0;
+			PreprocessState &ps = sf->Stack.New();
+			ps.ParentIsActive = sf->Active;
+
+			ps.IfBranchClaimed = Evaluate(blk.Tokens) != 0;
+			if (sf->Active)
+				sf->Active = ps.IfBranchClaimed;			
+			break;
 		}
-
-		PreprocessState &ps = sf->Stack.New();
-		ps.ParentIsActive = sf->Active;
-
-		GArray<char16*> Exp;
-		while (HasNonWhiteSpace(sf->Cur, End))
+		case HashElif:
 		{
-			t = sf->NextToken();
+			PreprocessState &ps = sf->Stack.Last();
+			if (!ps.IfBranchClaimed)
+			{
+				ps.IfBranchClaimed = Evaluate(blk.Tokens) != 0;
+				if (sf->Active)
+					sf->Active = ps.IfBranchClaimed;
+			}
+			else
+			{
+				sf->Active = false;
+			}
+			break;
+		}
+		case HashIfndef:
+		{
+			t = blk.NextToken();
 			if (!t)
-				break;
-			Exp.Add(t);
-		}
+				return false;
 
-		ps.IfBranchClaimed = Evaluate(Exp) != 0;
-		if (sf->Active)
-			sf->Active = ps.IfBranchClaimed;
-	}
-	else if (CmpToken(t, "#elif"))
-	{
-		char16 *Start = sf->Cur;					
-		char16 *End = FindEol(Start);
-		
-		GArray<char16*> Exp;
-		while (HasNonWhiteSpace(sf->Cur, End))
-		{
-			t = sf->NextToken();
-			if (!t)
-				break;
-			Exp.Add(t);
-		}
-		
-		PreprocessState &ps = sf->Stack.Last();
-		if (!ps.IfBranchClaimed)
-		{
-			ps.IfBranchClaimed = Evaluate(Exp) != 0;
+			GSymbol *def = Resolve(t);
+
+			PreprocessState &ps = sf->Stack.New();
+			ps.ParentIsActive = sf->Active;
+			ps.IfBranchClaimed = def == NULL || def->Type != SymDefine;
+
 			if (sf->Active)
 				sf->Active = ps.IfBranchClaimed;
+			break;
 		}
-		else
+		case HashIfdef:
 		{
-			sf->Active = false;
+			t = blk.NextToken();
+			if (!t)
+				return false;
+				
+			GSymbol *def = Resolve(t);
+			PreprocessState &ps = sf->Stack.New();
+			ps.ParentIsActive = sf->Active;
+			ps.IfBranchClaimed = def != NULL && def->Type == SymDefine;
+			if (sf->Active)
+				sf->Active = ps.IfBranchClaimed;
+			break;
 		}
-	}
-	else if (CmpToken(t, "#ifndef"))
-	{
-		t = sf->NextToken();
-		if (!t)
-			return false;
-
-		GSymbol *def = Resolve(t);
-
-		PreprocessState &ps = sf->Stack.New();
-		ps.ParentIsActive = sf->Active;
-		ps.IfBranchClaimed = def == NULL || def->Type != SymDefine;
-
-		if (sf->Active)
-			sf->Active = ps.IfBranchClaimed;
-	}
-	else if (CmpToken(t, "#ifdef"))
-	{
-		t = sf->NextToken();
-		if (!t)
-			return false;
-			
-		GSymbol *def = Resolve(t);
-		PreprocessState &ps = sf->Stack.New();
-		ps.ParentIsActive = sf->Active;
-		ps.IfBranchClaimed = def != NULL && def->Type == SymDefine;
-		if (sf->Active)
-			sf->Active = ps.IfBranchClaimed;
-	}
-	else if (CmpToken(t, "#else"))
-	{
-		PreprocessState &ps = sf->Stack.Last();
-		if (!ps.IfBranchClaimed)
+		case HashElse:
 		{
-			ps.IfBranchClaimed = true;
-			if (ps.ParentIsActive)
-				sf->Active = true;
-		}
-		else
-		{
-			sf->Active = false;
-		}
-	}
-	else if (CmpToken(t, "#endif"))
-	{
-		LgiAssert(sf->Stack.Length() > 0);
-		PreprocessState &ps = sf->Stack.Last();
-		sf->Active = ps.ParentIsActive;
-		sf->Stack.Length(sf->Stack.Length() - 1) ;
-	}
-	else if (CmpToken(t, "#pragma") ||
-			 CmpToken(t, "#error") ||
-			 CmpToken(t, "#warning"))
-	{
-		char16 *eol = StrchrW(sf->Cur, '\n');
-		if (!eol)
-			return false;
-
-		sf->Cur = eol;
-	}
-	else if (CmpToken(t, "#define"))
-	{
-		t = sf->NextToken();
-		if (!t)
-			return false;
-
-		GSymbol *sym = NULL;
-		if (sf->Active)
-		{
-			sym = Scopes[0]->Define(t, SymDefine, _FL);
-			sym->File = sf->Path;
-			sym->Line = sf->Line;
-			sym->Tokens.Length(0);
-		}
-		
-		char16 *End = FindEol(sf->Cur);
-		while (HasNonWhiteSpace(sf->Cur, End))
-		{
-			// Look for and skip line-continuation mark
-			char16 *s = sf->Cur;
-			while (strchr(WhiteSpace, *s))
-				s++;
-			if (*s == '\\')
+			PreprocessState &ps = sf->Stack.Last();
+			if (!ps.IfBranchClaimed)
 			{
-				*s++;
-				while (strchr(" \r\t", *s))
-					s++;
-				if (*s == '\n')
+				ps.IfBranchClaimed = true;
+				if (ps.ParentIsActive)
+					sf->Active = true;
+			}
+			else
+			{
+				sf->Active = false;
+			}
+			break;
+		}
+		case HashEndif:
+		{
+			LgiAssert(sf->Stack.Length() > 0);
+			PreprocessState &ps = sf->Stack.Last();
+			sf->Active = ps.ParentIsActive;
+			sf->Stack.Length(sf->Stack.Length() - 1);
+			break;
+		}
+		case HashPragma:
+		case HashError:
+		case HashWarning:
+		{
+			break;
+		}
+		case HashDefine:
+		{
+			t = blk.NextToken();
+			if (!t)
+				return false;
+
+			GSymbol *sym = NULL;
+			if (sf->Active)
+			{
+				sym = Scopes[0]->Define(t, SymDefine, _FL);
+				sym->File = sf->Path;
+				sym->Line = blk.BlockLine;
+				if (blk.Tokens.Length() > 1)
 				{
-					sf->Cur = s + 1;
-					sf->Line++;
+					sym->Tokens = blk.Tokens;
+					sym->Tokens.DeleteAt(0, true);
+				}
+				else
+				{
+					sym->Tokens.Length(0);
 				}
 			}
-			
-			t = sf->NextToken();
+			break;
+		}
+		case HashUndef:
+		{
+			t = blk.NextToken();
 			if (!t)
-				break;
-				
-			if (sym)
-				sym->Tokens.Add(t);
-		}
-	}
-	else if (CmpToken(t, "#undef"))
-	{
-		t = sf->NextToken();
-		if (!t)
-			return false;
+				return false;
 
-		GSymbol *s = Scopes[0]->Define(t, SymDefine, _FL);
-		if (s)
+			GSymbol *s = Scopes[0]->Define(t, SymDefine, _FL);
+			if (s)
+			{
+				Scopes[0]->Delete(t);
+				delete s;
+			}
+			break;
+		}
+		case HashInclude:
 		{
-			Scopes[0]->Delete(t);
-			delete s;
-		}					
-	}
-	else if (CmpToken(t, "#include"))
-	{
-		// Include a file
-		t = sf->NextToken();
-		if (!t)
+			// Include a file
+			t = blk.NextToken();
+			if (!t)
+				return false;
+			
+			GAutoString FileName8(LgiNewUtf16To8(t));
+			if (FileName8)
+			{
+				// Resolve filename
+				char p[MAX_PATH];
+				bool Exists = false;
+				char *IncPath = NULL;
+				if (LgiIsRelativePath(FileName8))
+				{
+					LgiMakePath(p, sizeof(p), sf->Path, "..");
+					LgiMakePath(p, sizeof(p), p, FileName8);
+					if (Exists = FileExists(p))
+						IncPath = p;
+				}
+				
+				if (!Exists)
+				{
+					if ((IncPath = FindInclude(FileName8)))
+						Exists = true;
+				}
+				
+				if (Exists)
+				{
+					ParseCpp(IncPath);
+				}
+			}
+			break;
+		}
+		default:
+		{
+			LgiAssert(!"Impl me");
 			return false;
-		
-		char16 *FileName = NULL;
-		if (!StricmpW(t, L"<"))
-		{
-			// System include
-			char16 *End = StrchrW(sf->Cur, '>');
-			if (!End)
-				return false;
-			FileName = sf->Pool.Alloc(sf->Cur, End - sf->Cur);
-			if (!FileName)
-				return false;
-			sf->Cur = End + 1;
 		}
-		else
-		{
-			// Basic include
-			FileName = t + 1;
-			char16 *e = StrrchrW(t, '\"');
-			if (e) *e = 0;
-		}
-		
-		GAutoString FileName8(LgiNewUtf16To8(FileName));
-		if (FileName8)
-		{
-			// Resolve filename
-			char p[MAX_PATH];
-			bool Exists = false;
-			char *IncPath = NULL;
-			if (LgiIsRelativePath(FileName8))
-			{
-				LgiMakePath(p, sizeof(p), sf->Path, "..");
-				LgiMakePath(p, sizeof(p), p, FileName8);
-				if (Exists = FileExists(p))
-					IncPath = p;
-			}
-			
-			if (!Exists)
-			{
-				if ((IncPath = FindInclude(FileName8)))
-					Exists = true;
-			}
-			
-			if (Exists)
-			{
-				ParseCpp(IncPath);
-			}
-		}
-	}
-	else
-	{
-		LgiAssert(!"Impl me");
-		return false;
 	}
 	
 	return true;
@@ -1701,6 +2040,13 @@ void GCppParserWorker::DoWork(WorkUnit *wk)
 				InitScopes();
 				
 				uint64 Start = LgiCurrentTime();
+
+				if (!stricmp(ext, "cpp"))
+				{
+					const char16 *CppDef = L"__cplusplus";
+					Scopes[0]->Define((char16*)CppDef, SymDefine, _FL);
+				}	
+
 				ParseCpp(w->Source[i]);
 				uint64 Time = LgiCurrentTime() - Start;
 				
