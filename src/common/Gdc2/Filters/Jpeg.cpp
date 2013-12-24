@@ -35,7 +35,15 @@ class GdcJpegPriv : public GLibrary
 {
 public:
 	GdcJpegPriv() :
-		GLibrary("libjpeg9")
+		GLibrary
+		(
+			"libjpeg9"
+			#ifdef WIN64
+			"x64"
+			#else
+			"x32"
+			#endif
+		)
 	{
 		#if 0 // def _DEBUG
 		char File[256];

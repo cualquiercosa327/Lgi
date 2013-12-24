@@ -9,6 +9,13 @@
 #define CheckToken(t)	if (!t) { Error = true; break; }
 #define Debug			__asm int 3
 
+enum LoopState
+{
+	LsLooping,
+	LsFinished,
+	LsError
+};
+
 struct PreprocessState
 {
 	bool ParentIsActive;
@@ -1363,18 +1370,22 @@ GSourceFile *GCppParserWorker::ParseCpp(const char *Path)
 	PreprocessBlock *blk;
 	while (blk = sf->Current())
 	{
-		if (blk->Type == SourceBlock)
+		if (blk->Type != SourceBlock)
 		{
-			#if 0
+			if (!ParsePreprocessor(sf))
+				break;
+		}
+		else if (sf->Active)
+		{
 			bool Error = false;
+			
+			sf->Lex(*blk);
+						
 			while (!Error)
 			{
 				t = blk->NextToken();
 				if (!t)
-				{
-					sf->Next();
 					break;
-				}
 				
 				KeywordType kt = Keywords.Find(t);
 				switch (kt)
@@ -1442,29 +1453,23 @@ GSourceFile *GCppParserWorker::ParseCpp(const char *Path)
 						}
 						else if (CmpToken(t, "typedef"))
 						{
-							if (blk->Line == 162)
-								Debug
-							
 							GSymbol *sym = ParseTypedef(sf);
 							if (sym)
 							{
-								if (sf->Active)
+								GAutoWString Name = GetSymbolName(sym->Tokens);
+								if (Name)
 								{
-									GAutoWString Name = GetSymbolName(sym->Tokens);
-									if (Name)
+									GSymbol *existing = CurrentScope()->Find(Name);
+									if (existing)
 									{
-										GSymbol *existing = CurrentScope()->Find(Name);
-										if (existing)
-										{
-											Msg(MsgError, "Symbol '%S' already exists.\n", Name.Get());
-										}
-										else
-										{
-											CurrentScope()->Add(Name, sym);
-											sym->File = sf->Path;
-											sym->Line = blk->GetLine();
-											sym = NULL;
-										}
+										Msg(MsgError, "Symbol '%S' already exists.\n", Name.Get());
+									}
+									else
+									{
+										CurrentScope()->Add(Name, sym);
+										sym->File = sf->Path;
+										sym->Line = blk->GetLine();
+										sym = NULL;
 									}
 								}
 								
@@ -1518,14 +1523,12 @@ GSourceFile *GCppParserWorker::ParseCpp(const char *Path)
 					}
 				}
 			}			
-			#endif
 			
 			sf->Next();
 		}
 		else
 		{
-			if (!ParsePreprocessor(sf))
-				break;
+			sf->Next();
 		}
 	}
 
@@ -1539,7 +1542,6 @@ GSymbol *GCppParserWorker::ParseDecl(GSourceFile *sf, char16 *t)
 	int ExternC = CmpToken(t, "extern") ? 1 : 0;
 	GSymbol *sym = new GSymbol(_FL);
 
-	#if 1
 	sym->Type = SymVariable;
 	sym->File = sf->Path;
 	sym->Line = blk->GetLine();
@@ -1562,65 +1564,107 @@ GSymbol *GCppParserWorker::ParseDecl(GSourceFile *sf, char16 *t)
 			if (CmpToken(t, ">"))
 				break;
 		}
+		if (!t)
+			blk = sf->Next();
 	}
 
-	while (t = blk->NextToken())
+	LoopState Loop = LsLooping;
+	int ScopeDepth = 0;
+	while (Loop == LsLooping && blk)
 	{
-		KeywordType kt = Keywords.Find(t);
-		if (kt == KwUserType && sym->Type != SymFunction)
+		if (blk->Type != SourceBlock)
 		{
-			GSymbol *ut = ParseUserType(sf, t);
-			if (ut)
-				ut->FriendDecl = sym->FriendDecl;
-			DeleteObj(sym);
-			sym = ut;
-			break;
-		}
-		
-		if (ExternC > 0)
-		{
-			if (ExternC == 1 && CmpToken(t, "\"C\""))
+			if (!ParsePreprocessor(sf))
 			{
-				ExternC++;
+				Loop = LsError;
+				break;
 			}
-			else if (ExternC == 2 && CmpToken(t, "{"))
-			{
-				sym->Type = SymExternC;
-				return sym;
-			}
-			else
-			{
-				ExternC = 0;
-			}
-		}
 			
-		if (CmpToken(t, ";"))
-			break;
-		if (CmpToken(t, "{"))
+			blk = sf->Current();
+		}
+		else if (!sf->Active)
 		{
-			int Depth = 1;
-			while (t = blk->NextToken())
+			blk = sf->Next();
+		}
+		else
+		{
+			sf->Lex(*blk);
+			
+			while (Loop == LsLooping)
 			{
+				t = blk->NextToken();
+				if (!t)
+				{
+					blk = sf->Next();
+					break;
+				}
+				
 				if (CmpToken(t, "{"))
 				{
-					Depth++;					
+					ScopeDepth++;
 				}
 				else if (CmpToken(t, "}"))
 				{
-					if (--Depth == 0)
+					if (ScopeDepth <= 0)
+					{
+						Loop = LsError;
 						break;
+					}
+
+					if (--ScopeDepth <= 0)
+					{
+						Loop = LsFinished;
+						break;
+					}
+				}
+				else if (ScopeDepth == 0)
+				{
+					KeywordType kt = Keywords.Find(t);
+					if (kt == KwUserType && sym->Type != SymFunction)
+					{
+						GSymbol *ut = ParseUserType(sf, t);
+						if (ut)
+							ut->FriendDecl = sym->FriendDecl;
+						DeleteObj(sym);
+						sym = ut;
+						Loop = LsFinished;
+						break;
+					}
+					
+					if (ExternC > 0)
+					{
+						if (ExternC == 1 && CmpToken(t, "\"C\""))
+						{
+							ExternC++;
+						}
+						else if (ExternC == 2 && CmpToken(t, "{"))
+						{
+							sym->Type = SymExternC;
+							Loop = LsFinished;
+							break;
+						}
+						else
+						{
+							ExternC = 0;
+						}
+					}
+
+					if (CmpToken(t, ";"))
+					{
+						Loop = LsFinished;
+						break;
+					}
+
+					if (CmpToken(t, "("))
+					{
+						sym->Type = SymFunction;
+					}
+					
+					sym->Tokens.Add(t);
 				}
 			}
-			break;
 		}
-		if (CmpToken(t, "("))
-		{
-			sym->Type = SymFunction;
-		}
-		
-		sym->Tokens.Add(t);
 	}
-	#endif
 
 	return sym;
 }
@@ -1691,8 +1735,21 @@ GSymbol *GCppParserWorker::ParseUserType(GSourceFile *sf, char16 *t)
 	
 	while (blk && !Finished)
 	{
-		if (blk->Type == SourceBlock)
+		if (blk->Type != SourceBlock)
 		{
+			if (!ParsePreprocessor(sf))
+				Finished = true;
+			
+			blk = sf->Current();
+		}
+		else if (!sf->Active)
+		{
+			blk = sf->Next();
+		}
+		else
+		{
+			sf->Lex(*blk);
+			
 			while (t = blk->NextToken())
 			{
 				if (CmpToken(t, "{"))
@@ -1702,15 +1759,14 @@ GSymbol *GCppParserWorker::ParseUserType(GSourceFile *sf, char16 *t)
 				else if (CmpToken(t, "}"))
 				{
 					ProcessEndBracket:
-					if (--InScope == 0)
+					if (InScope > 0)
 					{
-						while (t = blk->NextToken())
-						{
-							if (CmpToken(t, ";"))
-								break;
-							sym->Tokens.Add(t);
-						}
-
+						InScope--;
+					}
+					else
+					{
+						LgiAssert(!"End scope mis-match.");
+						Finished = true;
 						break;
 					}
 				}
@@ -1821,11 +1877,7 @@ GSymbol *GCppParserWorker::ParseUserType(GSourceFile *sf, char16 *t)
 			}
 			
 			if (!Finished)
-				sf->Next();
-		}
-		else
-		{
-			ParsePreprocessor(sf);
+				blk = sf->Next();
 		}
 	}
 	
