@@ -508,6 +508,7 @@ enum KeywordType
 enum MsgType
 {
 	MsgError,
+	MsgWarning,
 	MsgInfo,
 };
 
@@ -697,12 +698,12 @@ void GCppParserWorker::InitScopes()
 	#ifdef WIN32
 	char16 buf[256];
 
-	GSymbol *s = Scopes[0]->Define(L"_MSC_VER", SymDefine, _FL);
+	GSymbol *s = Scopes[0]->Define(L"_MSC_VER", SymDefineValue, _FL);
 	int ch = swprintf_s(buf, CountOf(buf), L"%i", _MSC_VER);
 	s->Tokens.Add(GeneralPool.Alloc(buf, ch));
 	s->File = "none";
 
-	s = Scopes[0]->Define(L"WIN32", SymDefine, _FL);
+	s = Scopes[0]->Define(L"WIN32", SymDefineValue, _FL);
 	s->File = "none";
 	#endif
 }
@@ -804,8 +805,36 @@ GAutoWString GCppParserWorker::GetSymbolName(GArray<char16*> &in, bool IsEnum)
 		}
 		else if (sym = Resolve(t))
 		{
-			if (sym->Type == SymDefine)
+			if (sym->Type == SymDefineValue ||
+				sym->Type == SymDefineFunction)
 			{
+				if (sym->Type == SymDefineFunction)
+				{
+					// Resolve the arguments...
+					t = a[++i];
+					if (!CmpToken(t, "("))
+					{
+						Msg(MsgError, "Missing '(' in call to '%S' define.\n", t);
+						break;
+					}
+					
+					int Depth = 1;
+					while (t = a[++i])
+					{
+						if (CmpToken(t, "("))
+						{
+							Depth++;
+						}
+						else if (CmpToken(t, ")"))
+						{
+							if (--Depth <= 0)
+								break;
+						}
+					}
+
+					Msg(MsgWarning, "NotImpl: Parsing of #define arguments.\n");
+				}
+				
 				a.DeleteAt(i, true);
 				for (int n=0; n<sym->Tokens.Length(); n++)
 				{
@@ -1442,6 +1471,9 @@ GSourceFile *GCppParserWorker::ParseCpp(const char *Path)
 								DeleteObj(sym);
 							}
 						}
+						
+						if (sf->Current())
+							blk = sf->Current();
 						break;
 					}
 					default:
@@ -1518,6 +1550,9 @@ GSourceFile *GCppParserWorker::ParseCpp(const char *Path)
 									DeleteObj(sym);
 								}
 							}
+							
+							if (sf->Current())
+								blk = sf->Current();
 						}
 						break;
 					}
@@ -1574,6 +1609,8 @@ GSymbol *GCppParserWorker::ParseDecl(GSourceFile *sf, char16 *t)
 	{
 		if (blk->Type != SourceBlock)
 		{
+			// if (stristr(sf->Path, "GDragAndDrop.cpp") && blk->BlockLine == 
+			
 			if (!ParsePreprocessor(sf))
 			{
 				Loop = LsError;
@@ -1601,6 +1638,13 @@ GSymbol *GCppParserWorker::ParseDecl(GSourceFile *sf, char16 *t)
 				
 				if (CmpToken(t, "{"))
 				{
+					if (ExternC == 2 && CmpToken(t, "{"))
+					{
+						sym->Type = SymExternC;
+						Loop = LsFinished;
+						break;
+					}
+					
 					ScopeDepth++;
 				}
 				else if (CmpToken(t, "}"))
@@ -1628,6 +1672,9 @@ GSymbol *GCppParserWorker::ParseDecl(GSourceFile *sf, char16 *t)
 						DeleteObj(sym);
 						sym = ut;
 						Loop = LsFinished;
+						
+						if (sf->Current())
+							blk = sf->Current();
 						break;
 					}
 					
@@ -1809,6 +1856,9 @@ GSymbol *GCppParserWorker::ParseUserType(GSourceFile *sf, char16 *t)
 								DeleteObj(cls);
 							}
 						}
+
+						if (sf->Current())
+							blk = sf->Current();
 					}
 					else if (InScope > 0)
 					{
@@ -1864,6 +1914,9 @@ GSymbol *GCppParserWorker::ParseUserType(GSourceFile *sf, char16 *t)
 							{
 								Msg(MsgError, "%s:%i - Failed to parse defn.\n", _FL);
 							}
+
+							if (sf->Current())
+								blk = sf->Current();
 						}
 					}
 					else if (InParentList)
@@ -2010,7 +2063,11 @@ bool GCppParserWorker::ParsePreprocessor(GSourceFile *sf)
 
 			PreprocessState &ps = sf->Stack.New();
 			ps.ParentIsActive = sf->Active;
-			ps.IfBranchClaimed = def == NULL || def->Type != SymDefine;
+			ps.IfBranchClaimed = def == NULL ||
+								(
+									def->Type != SymDefineValue &&
+									def->Type != SymDefineFunction
+								);
 
 			if (sf->Active)
 				sf->Active = ps.IfBranchClaimed;
@@ -2028,7 +2085,11 @@ bool GCppParserWorker::ParsePreprocessor(GSourceFile *sf)
 			GSymbol *def = Resolve(t);
 			PreprocessState &ps = sf->Stack.New();
 			ps.ParentIsActive = sf->Active;
-			ps.IfBranchClaimed = def != NULL && def->Type == SymDefine;
+			ps.IfBranchClaimed = def != NULL &&
+								(
+									def->Type == SymDefineValue ||
+									def->Type == SymDefineFunction
+								);
 			if (sf->Active)
 				sf->Active = ps.IfBranchClaimed;
 			break;
@@ -2074,7 +2135,7 @@ bool GCppParserWorker::ParsePreprocessor(GSourceFile *sf)
 			GSymbol *sym = NULL;
 			if (sf->Active)
 			{
-				sym = Scopes[0]->Define(t, SymDefine, _FL);
+				sym = Scopes[0]->Define(t, SymDefineValue, _FL);
 				sym->File = sf->Path;
 				sym->Line = blk->BlockLine;
 				if (blk->Tokens.Length() > 1)
@@ -2086,6 +2147,10 @@ bool GCppParserWorker::ParsePreprocessor(GSourceFile *sf)
 				{
 					sym->Tokens.Length(0);
 				}
+				
+				if (sym->Tokens.Length() > 0 &&
+					CmpToken(sym->Tokens[0], "("))
+					sym->Type = SymDefineFunction;
 			}
 			break;
 		}
@@ -2098,7 +2163,7 @@ bool GCppParserWorker::ParsePreprocessor(GSourceFile *sf)
 				break;
 			}
 
-			GSymbol *s = Scopes[0]->Define(t, SymDefine, _FL);
+			GSymbol *s = Scopes[0]->Find(t);
 			if (s)
 			{
 				Scopes[0]->Delete(t);
@@ -2186,7 +2251,7 @@ void GCppParserWorker::DoWork(WorkUnit *wk)
 				if (!stricmp(ext, "cpp"))
 				{
 					const char16 *CppDef = L"__cplusplus";
-					Scopes[0]->Define((char16*)CppDef, SymDefine, _FL);
+					Scopes[0]->Define((char16*)CppDef, SymDefineValue, _FL);
 				}	
 
 				ParseCpp(w->Source[i]);

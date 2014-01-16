@@ -5,7 +5,8 @@
 enum GSymbolType
 {
 	SymNone,
-	SymDefine,
+	SymDefineValue,
+	SymDefineFunction,
 	SymTypedef,
 	SymUnion,
 	SymClass,
