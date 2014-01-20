@@ -1084,6 +1084,7 @@ char16 *GHtmlParser::CleanText(const char *s, int Len, bool ConversionAllowed, b
 							
 							i++;
 							
+							char16 Ch = 0;
 							if (*i == 'x' || *i == 'X')
 							{
 								// Hex number
@@ -1098,6 +1099,8 @@ char16 *GHtmlParser::CleanText(const char *s, int Len, bool ConversionAllowed, b
 								{
 									*p++ = *i++;
 								}
+								*p = 0;
+								Ch = htoi(n);
 							}
 							else
 							{
@@ -1106,14 +1109,12 @@ char16 *GHtmlParser::CleanText(const char *s, int Len, bool ConversionAllowed, b
 								{
 									*p++ = *i++;
 								}
+								*p = 0;
+								Ch = atoi(n);
 							}
-							*p++ = 0;
 							
-							char16 Ch = atoi(n);
 							if (Ch)
-							{
 								*o++ = Ch;
-							}
 							
 							if (*i && *i != ';')
 								i--;
