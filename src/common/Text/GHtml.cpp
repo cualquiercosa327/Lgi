@@ -2583,7 +2583,8 @@ void GTag::SetStyle()
 
 	switch (TagId)
 	{
-		default: break;
+		default:
+			break;
 		case TAG_LINK:
 		{
 			const char *Type, *Href;
@@ -2608,13 +2609,14 @@ void GTag::SetStyle()
 						GDocumentEnv::LoadType Result = Html->Environment->GetContent(j);
 						if (Result == GDocumentEnv::LoadImmediate)
 						{
-							if (j->Stream)
+							GStreamI *s = j->GetStream();							
+							if (s)
 							{
-								uint64 Len = j->Stream->GetSize();
+								uint64 Len = s->GetSize();
 								if (Len > 0)
 								{
 									GAutoString a(new char[Len+1]);
-									int r = j->Stream->Read(a, Len);
+									int r = s->Read(a, Len);
 									a[r] = 0;
 
 									Html->OnAddStyle("text/css", a);
@@ -6194,17 +6196,21 @@ GMessage::Result GHtml::OnEvent(GMessage *Msg)
 								ViewWidth = 0;
 								Update = true;
 							}
-							else if (r->TagId == TAG_LINK && j->Stream)
+							else if (r->TagId == TAG_LINK)
 							{
-								int64 Size = j->Stream->GetSize();
-								GAutoString Style(new char[Size+1]);
-								int rd = j->Stream->Read(Style, Size);
-								if (rd > 0)
+								GStreamI *s = j->GetStream();
+								if (s)
 								{
-									Style[rd] = 0;									
-									OnAddStyle("text/css", Style);									
-									ViewWidth = 0;
-									Update = true;
+									int64 Size = s->GetSize();
+									GAutoString Style(new char[Size+1]);
+									int rd = s->Read(Style, Size);
+									if (rd > 0)
+									{
+										Style[rd] = 0;									
+										OnAddStyle("text/css", Style);									
+										ViewWidth = 0;
+										Update = true;
+									}
 								}
 							}
 						}

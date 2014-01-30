@@ -184,31 +184,44 @@ GDocumentEnv::LoadType GDefaultDocumentEnv::GetContent(LoadJob *&j)
 	if (!j || !ValidStr(j->Uri))
 		return LoadError;
 
+	char p[MAX_PATH];
+	char *FullPath = NULL;
+	char *FileName = NULL;
 	GUri u(j->Uri);
 	if (u.Protocol && !stricmp(u.Protocol, "file"))
+		FileName = u.Path;
+	else
+		FileName = j->Uri;
+
+	if (FileName)
 	{
-		char p[MAX_PATH];
 		LgiGetSystemPath(LSP_APP_INSTALL, p, sizeof(p));
-		LgiMakePath(p, sizeof(p), p, u.Path);
-		if (!FileExists(p))
-		{
-			GAutoString f(LgiFindFile(u.Path));
-			if (f)
-				strsafecpy(p, f, sizeof(p));
-		}		
+		LgiMakePath(p, sizeof(p), p, FileName);
 		if (FileExists(p))
 		{
-			if (j->Pref == GDocumentEnv::LoadJob::FmtFilename)
-			{
-				j->Filename.Reset(NewStr(p));
-				return LoadImmediate;
-			}
-			else
-			{
-				j->pDC.Reset(LoadDC(p));
-				return LoadImmediate;
-			}
+			FullPath = p;
 		}
+		else
+		{
+			GAutoString f(LgiFindFile(FileName));
+			if (f)
+				strsafecpy(FullPath = p, f, sizeof(p));
+		}
+	}			
+
+	if (FileExists(FullPath))
+	{
+		char Mt[256] = "";
+		LgiGetFileMimeType(FullPath, Mt, sizeof(Mt));
+		
+		if (stristr(Mt, "image/"))
+		{
+			j->pDC.Reset(LoadDC(p));
+			return LoadImmediate;
+		}
+		
+		j->Filename.Reset(NewStr(FullPath));
+		return LoadImmediate;
 	}
 
 	return LoadError;

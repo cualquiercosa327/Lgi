@@ -640,13 +640,14 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 									GDocumentEnv::LoadType Result = View->GetEnv()->GetContent(j);
 									if (Result == GDocumentEnv::LoadImmediate)
 									{
-										if (j->Stream)
+										GStreamI *s = j->GetStream();
+										if (s)
 										{
-											uint64 Len = j->Stream->GetSize();
+											uint64 Len = s->GetSize();
 											if (Len > 0)
 											{
 												GAutoString a(new char[Len+1]);
-												int r = j->Stream->Read(a, Len);
+												int r = s->Read(a, Len);
 												a[r] = 0;
 												
 												GHtmlElement *Child = CreateElement(Elem);

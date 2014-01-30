@@ -127,6 +127,20 @@ public:
 			UserData = 0;
 			Pref = FmtNone;
 		}
+		
+		GStreamI *GetStream()
+		{
+			if (!Stream && Filename)
+			{
+				GFile *file = new GFile;
+				if (file && file->Open(Filename, O_READ))
+					Stream.Reset(file);
+				else
+					DeleteObj(file);
+			}
+			
+			return Stream;
+		}
 	};
 
 	LoadJob *NewJob()
