@@ -246,74 +246,57 @@ int _GetLongPathName(char *Short, char *Long, int Buf)
 bool ResolveShortcut(const char *LinkFile, char *Path, int Len) 
 {
 	bool Status = false;
-	/*
-	HMODULE hDll = LoadLibrary("ole32.dll");
-	if (hDll)
+
+	HWND hwnd = NULL;
+	HRESULT hres;
+	IShellLink* psl;
+	char szGotPath[MAX_PATH] = "";
+	WIN32_FIND_DATA wfd;
+
+	CoInitialize(0);
+	hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (void**) &psl);
+
+	if (SUCCEEDED(hres))
 	{
-		typedef HRESULT (__stdcall *Proc_CoInitialize)(LPVOID pvReserved);
-		typedef HRESULT (__stdcall *Proc_CoCreateInstance)(REFCLSID rclsid, LPUNKNOWN pUnkOuter, DWORD dwClsContext, REFIID riid, LPVOID FAR* ppv);
-		typedef void (__stdcall *Proc_CoUninitialize)(void);
+		IPersistFile* ppf;
 
-		Proc_CoInitialize pCoInitialize = (Proc_CoInitialize)GetProcAddress(hDll, "CoInitialize");
-		Proc_CoCreateInstance pCoCreateInstance = (Proc_CoCreateInstance)GetProcAddress(hDll, "CoCreateInstance");
-		Proc_CoUninitialize pCoUninitialize = (Proc_CoUninitialize)GetProcAddress(hDll, "CoUninitialize");
-
-		if (pCoInitialize &&
-			pCoCreateInstance &&
-			pCoUninitialize)
+		hres = psl->QueryInterface(IID_IPersistFile, (void**) &ppf);
+		if (SUCCEEDED(hres))
 		{
-		*/
-			HWND hwnd = NULL;
-			HRESULT hres;
-			IShellLink* psl;
-			char szGotPath[MAX_PATH] = "";
-			WIN32_FIND_DATA wfd;
+			char16 wsz[MAX_PATH];
 
-			CoInitialize(0);
-			hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (void**) &psl);
+			MultiByteToWideChar(CP_ACP, 0, LinkFile, -1, wsz, MAX_PATH);
 
-			if (SUCCEEDED(hres))
+			char16 *l = StrrchrW(wsz, '.');
+			if (l && StricmpW(l, L".lnk"))
 			{
-				IPersistFile* ppf;
-
-				hres = psl->QueryInterface(IID_IPersistFile, (void**) &ppf);
-				if (SUCCEEDED(hres))
-				{
-					char16 wsz[MAX_PATH];
-
-					MultiByteToWideChar(CP_ACP, 0, LinkFile, -1, wsz, MAX_PATH);
-
-					hres = ppf->Load(wsz, STGM_READ);
-					if (SUCCEEDED(hres))
-					{
-						hres = psl->Resolve(hwnd, SLR_ANY_MATCH);
-						if (SUCCEEDED(hres))
-						{
-							hres = psl->GetPath(szGotPath, MAX_PATH, (WIN32_FIND_DATA *)&wfd, SLGP_SHORTPATH );
-
-							if (SUCCEEDED(hres) && strlen(szGotPath) > 0)
-							{
-								// lstrcpy(Path, szGotPath);
-								_GetLongPathName(szGotPath, Path, Len);
-								Status = true;
-							}
-						}
-					}
-
-					ppf->Release();
-				}
-
-				psl->Release();
+				StrcatW(wsz, L".lnk");
 			}
 
-			CoUninitialize();
+			hres = ppf->Load(wsz, STGM_READ);
+			if (SUCCEEDED(hres))
+			{
+				hres = psl->Resolve(hwnd, SLR_ANY_MATCH);
+				if (SUCCEEDED(hres))
+				{
+					hres = psl->GetPath(szGotPath, MAX_PATH, (WIN32_FIND_DATA *)&wfd, SLGP_SHORTPATH );
 
-		/*
+					if (SUCCEEDED(hres) && strlen(szGotPath) > 0)
+					{
+						// lstrcpy(Path, szGotPath);
+						_GetLongPathName(szGotPath, Path, Len);
+						Status = true;
+					}
+				}
+			}
+
+			ppf->Release();
 		}
 
-		FreeLibrary(hDll);
+		psl->Release();
 	}
-	*/
+
+	CoUninitialize();
 
 	return Status;
 }
