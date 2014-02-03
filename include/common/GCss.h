@@ -668,9 +668,10 @@ public:
 	GCss(const GCss &c);
 	virtual ~GCss();
 
-	#define Accessor(PropName, Type, Default) \
+	#define Accessor(PropName, Type, Default, BaseProp) \
 		Type PropName() { Type *Member = (Type*)Props.Find(Prop##PropName); \
 							if (Member) return *Member; \
+							else if (Member = (Type*)Props.Find(BaseProp)) return *Member; \
 							return Default; } \
 		void PropName(Type t) { Type *Member = (Type*)Props.Find(Prop##PropName); \
 								if (Member) *Member = t; \
@@ -678,68 +679,68 @@ public:
 										*Member = t; } \
 								OnChange(Prop##PropName); }
 
-	Accessor(Display, DisplayType, DispInherit);
-	Accessor(Float, FloatType, FloatInherit);
-	Accessor(Position, PositionType, PosInherit);
-	Accessor(ZIndex, Len, Len());
+	Accessor(Display, DisplayType, DispInherit, PropNull);
+	Accessor(Float, FloatType, FloatInherit, PropNull);
+	Accessor(Position, PositionType, PosInherit, PropNull);
+	Accessor(ZIndex, Len, Len(), PropNull);
 
-	Accessor(TextAlign, Len, Len());
-	Accessor(VerticalAlign, Len, Len());
+	Accessor(TextAlign, Len, Len(), PropNull);
+	Accessor(VerticalAlign, Len, Len(), PropNull);
 
-	Accessor(Width, Len, Len());
-	Accessor(MinWidth, Len, Len());
-	Accessor(MaxWidth, Len, Len());
+	Accessor(Width, Len, Len(), PropNull);
+	Accessor(MinWidth, Len, Len(), PropNull);
+	Accessor(MaxWidth, Len, Len(), PropNull);
 
-	Accessor(Height, Len, Len());
-	Accessor(MinHeight, Len, Len());
-	Accessor(MaxHeight, Len, Len());
-	Accessor(LineHeight, Len, Len());
+	Accessor(Height, Len, Len(), PropNull);
+	Accessor(MinHeight, Len, Len(), PropNull);
+	Accessor(MaxHeight, Len, Len(), PropNull);
+	Accessor(LineHeight, Len, Len(), PropNull);
 
-	Accessor(Top, Len, Len());
-	Accessor(Right, Len, Len());
-	Accessor(Bottom, Len, Len());
-	Accessor(Left, Len, Len());
+	Accessor(Top, Len, Len(), PropNull);
+	Accessor(Right, Len, Len(), PropNull);
+	Accessor(Bottom, Len, Len(), PropNull);
+	Accessor(Left, Len, Len(), PropNull);
 
-	Accessor(Margin, Len, Len());
-	Accessor(MarginTop, Len, Len());
-	Accessor(MarginRight, Len, Len());
-	Accessor(MarginBottom, Len, Len());
-	Accessor(MarginLeft, Len, Len());
+	Accessor(Margin, Len, Len(), PropNull);
+	Accessor(MarginTop, Len, Len(), PropNull);
+	Accessor(MarginRight, Len, Len(), PropNull);
+	Accessor(MarginBottom, Len, Len(), PropNull);
+	Accessor(MarginLeft, Len, Len(), PropNull);
 
-	Accessor(Padding, Len, Len());
-	Accessor(PaddingTop, Len, Len());
-	Accessor(PaddingRight, Len, Len());
-	Accessor(PaddingBottom, Len, Len());
-	Accessor(PaddingLeft, Len, Len());
+	Accessor(Padding, Len, Len(), PropNull);
+	Accessor(PaddingTop, Len, Len(), PropPadding);
+	Accessor(PaddingRight, Len, Len(), PropPadding);
+	Accessor(PaddingBottom, Len, Len(), PropPadding);
+	Accessor(PaddingLeft, Len, Len(), PropPadding);
 
-	Accessor(Border, BorderDef, BorderDef());
-	Accessor(BorderTop, BorderDef, BorderDef());
-	Accessor(BorderRight, BorderDef, BorderDef());
-	Accessor(BorderBottom, BorderDef, BorderDef());
-	Accessor(BorderLeft, BorderDef, BorderDef());
-	Accessor(BorderSpacing, Len, Len()); // 'cellspacing'
-	Accessor(_CellPadding, Len, Len()); // 'cellpadding' (not CSS)
+	Accessor(Border, BorderDef, BorderDef(), PropNull);
+	Accessor(BorderTop, BorderDef, BorderDef(), PropBorder);
+	Accessor(BorderRight, BorderDef, BorderDef(), PropBorder);
+	Accessor(BorderBottom, BorderDef, BorderDef(), PropBorder);
+	Accessor(BorderLeft, BorderDef, BorderDef(), PropBorder);
+	Accessor(BorderSpacing, Len, Len(), PropNull); // 'cellspacing'
+	Accessor(_CellPadding, Len, Len(), PropNull); // 'cellpadding' (not CSS)
 
-	Accessor(Overflow, OverflowType, OverflowInherit);
-	Accessor(Clip, GRect, GRect(0, 0, -1, -1));
-	Accessor(XSubRect, GRect, GRect(0, 0, -1, -1));
-	Accessor(Visibility, VisibilityType, VisibilityInherit);
-	Accessor(ListStyleType, ListStyleTypes, ListInherit);
+	Accessor(Overflow, OverflowType, OverflowInherit, PropNull);
+	Accessor(Clip, GRect, GRect(0, 0, -1, -1), PropNull);
+	Accessor(XSubRect, GRect, GRect(0, 0, -1, -1), PropNull);
+	Accessor(Visibility, VisibilityType, VisibilityInherit, PropNull);
+	Accessor(ListStyleType, ListStyleTypes, ListInherit, PropNull);
 
-	Accessor(FontFamily, StringsDef, StringsDef());
-	Accessor(FontSize, Len, Len());
-	Accessor(FontStyle, FontStyleType, FontStyleInherit);
-	Accessor(FontVariant, FontVariantType, FontVariantInherit);
-	Accessor(FontWeight, FontWeightType, FontWeightInherit);
-	Accessor(TextDecoration, TextDecorType, TextDecorInherit);
+	Accessor(FontFamily, StringsDef, StringsDef(), PropNull);
+	Accessor(FontSize, Len, Len(), PropNull);
+	Accessor(FontStyle, FontStyleType, FontStyleInherit, PropNull);
+	Accessor(FontVariant, FontVariantType, FontVariantInherit, PropNull);
+	Accessor(FontWeight, FontWeightType, FontWeightInherit, PropNull);
+	Accessor(TextDecoration, TextDecorType, TextDecorInherit, PropNull);
 
-	Accessor(Color, ColorDef, ColorDef());
-	Accessor(BackgroundColor, ColorDef, ColorDef());
-	Accessor(BackgroundImage, ImageDef, ImageDef());
-	Accessor(BackgroundRepeat, RepeatType, RepeatInherit);
-	Accessor(BackgroundAttachment, AttachmentType, AttachmentInherit);
-	Accessor(BackgroundX, Len, Len());
-	Accessor(BackgroundY, Len, Len());
+	Accessor(Color, ColorDef, ColorDef(), PropNull);
+	Accessor(BackgroundColor, ColorDef, ColorDef(), PropNull);
+	Accessor(BackgroundImage, ImageDef, ImageDef(), PropNull);
+	Accessor(BackgroundRepeat, RepeatType, RepeatInherit, PropNull);
+	Accessor(BackgroundAttachment, AttachmentType, AttachmentInherit, PropNull);
+	Accessor(BackgroundX, Len, Len(), PropNull);
+	Accessor(BackgroundY, Len, Len(), PropNull);
 	
 	void Empty();
 	void DeleteProp(PropType p);

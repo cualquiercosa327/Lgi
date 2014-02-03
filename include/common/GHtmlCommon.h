@@ -165,6 +165,7 @@ public:
 	// Virtuals
 	virtual void Set(const char *attr, const char *val) {}
 	virtual void SetStyle() {}
+	virtual GAutoString DescribeElement() = 0;
 };
 
 #endif

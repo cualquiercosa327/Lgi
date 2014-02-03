@@ -1436,6 +1436,10 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 					else if (Lengths.Length() == 1)
 					{
 						StoreProp(PropPadding, Lengths[0], false);
+						DeleteProp(PropPaddingLeft);
+						DeleteProp(PropPaddingTop);
+						DeleteProp(PropPaddingRight);
+						DeleteProp(PropPaddingBottom);
 					}
 					else Mismatch = true;
 					if (!Mismatch)
@@ -1469,10 +1473,11 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 					}
 					else if (Lengths.Length() == 1)
 					{
-						StoreProp(PropMarginTop, Lengths[0], false);
-						StoreProp(PropMarginBottom, Lengths[0], false);
-						StoreProp(PropMarginRight, Lengths[0], false);
-						StoreProp(PropMarginLeft, Lengths[0], true);
+						StoreProp(PropMargin, Lengths[0], false);
+						DeleteProp(PropMarginTop);
+						DeleteProp(PropMarginBottom);
+						DeleteProp(PropMarginRight);
+						DeleteProp(PropMarginLeft);
 					}
 					else Mismatch = true;
 					if (!Mismatch)

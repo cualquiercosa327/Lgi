@@ -545,9 +545,26 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 							List<GHtmlElement>::I it = OpenTags.End();
 							for (GHtmlElement *e = *it; e; e = *--it)
 							{
-								if (e->Tag && !stricmp(e->Tag, Elem->Tag))
+								if (e->TagId == TAG_IFRAME)
+								{
+									// In the case of IFRAMEs... don't consider the parent document.
+									break;
+								}
+
+								if (e->Tag &&
+									!stricmp(e->Tag, Elem->Tag))
 								{
 									AlreadyOpen = true;
+									
+									#if 0 // This dumps the tags in the list
+									it = OpenTags.Start();
+									LgiTrace("Open tags:\n");
+									for (GHtmlElement *e = *it; e; e = *++it)
+									{
+										GAutoString a = e->DescribeElement();
+										LgiTrace("\t%s\n", a.Get());
+									}
+									#endif
 									break;
 								}
 							}
@@ -582,6 +599,8 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 					{
 						SkipNonDisplay(s);
 					}
+
+					Elem->SetStyle();
 
 					switch (Elem->TagId)
 					{
@@ -624,83 +643,31 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 							}
 							break;
 						}
-						case TAG_IFRAME:
+						case TAG_STYLE:
 						{
-							GVariant Src;
-							if (Elem->GetValue("src", Src) && View && View->GetEnv())
+							char *End = stristr(s, "</style>");
+							if (End)
 							{
-								GDocumentEnv::LoadJob *j = View->GetEnv()->NewJob();
-								if (j)
+								if (View)
 								{
-									j->Uri.Reset(Src.ReleaseStr());
-									j->View = View;
-									j->UserData = this;
-									j->UserUid = View ? View->GetDocumentUid() : 0;
-
-									GDocumentEnv::LoadType Result = View->GetEnv()->GetContent(j);
-									if (Result == GDocumentEnv::LoadImmediate)
+									GAutoString Css(NewStr(s, End - s));
+									if (Css)
 									{
-										GStreamI *s = j->GetStream();
-										if (s)
-										{
-											uint64 Len = s->GetSize();
-											if (Len > 0)
-											{
-												GAutoString a(new char[Len+1]);
-												int r = s->Read(a, Len);
-												a[r] = 0;
-												
-												GHtmlElement *Child = CreateElement(Elem);
-												if (Child)
-												{
-													bool BackOut = false;
-													ParseHtml(Child, a, Depth + 1, false, &BackOut);
-												}
-											}
-										}
+										View->OnAddStyle("text/css", Css);
 									}
-									DeleteObj(j);
 								}
+
+								s = End;
+							}
+							else
+							{
+								// wtf?
+								return s + strlen(s);
 							}
 							break;
 						}
 					}
 					
-					Elem->SetStyle();
-
-					if (Elem->TagId == TAG_STYLE)
-					{
-						char *End = stristr(s, "</style>");
-						if (End)
-						{
-							if (View)
-							{
-								GAutoString Css(NewStr(s, End - s));
-								if (Css)
-								{
-									View->OnAddStyle("text/css", Css);
-								}
-							}
-
-							s = End;
-						}
-						else
-						{
-							// wtf?
-						}
-					}
-
-					/* FIXME???
-					if (TagId == TAG_P)
-					{
-						GHtmlElement *p;
-						if (p = Html->GetOpenTag("p"))
-						{
-							return s;
-						}
-					}
-					*/
-
 					if (AlreadyOpen ||
 						TagClosed ||
 						Elem->Info->NeverCloses())
@@ -763,6 +730,46 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 					}
 
 					OpenTags.Insert(Elem);
+					
+					if (Elem->TagId == TAG_IFRAME)
+					{
+						GVariant Src;
+						if (Elem->GetValue("src", Src) && View && View->GetEnv())
+						{
+							GDocumentEnv::LoadJob *j = View->GetEnv()->NewJob();
+							if (j)
+							{
+								j->Uri.Reset(Src.ReleaseStr());
+								j->View = View;
+								j->UserData = this;
+								j->UserUid = View ? View->GetDocumentUid() : 0;
+
+								GDocumentEnv::LoadType Result = View->GetEnv()->GetContent(j);
+								if (Result == GDocumentEnv::LoadImmediate)
+								{
+									GStreamI *s = j->GetStream();
+									if (s)
+									{
+										uint64 Len = s->GetSize();
+										if (Len > 0)
+										{
+											GAutoString a(new char[Len+1]);
+											int r = s->Read(a, Len);
+											a[r] = 0;
+											
+											GHtmlElement *Child = CreateElement(Elem);
+											if (Child)
+											{
+												bool BackOut = false;
+												ParseHtml(Child, a, Depth + 1, false, &BackOut);
+											}
+										}
+									}
+								}
+								DeleteObj(j);
+							}
+						}
+					}
 				}
 				else
 				{

@@ -20,7 +20,7 @@
 #include "GDisplayString.h"
 
 #define DEBUG_TABLE_LAYOUT			0
-#define DEBUG_RESTYLE				0
+#define DEBUG_RESTYLE				1
 #define DEBUG_TAG_BY_POS			0
 #define DEBUG_SELECTION				0
 
@@ -468,6 +468,8 @@ class GFlowRegion
 
 public:
 	GHtml *Html;
+	int ScreenDpi;				// Haha, where should I get this from?
+
 	int x1, x2;					// Left and right margins
 	int y1;						// Current y position
 	int y2;						// Maximum used y position
@@ -478,12 +480,14 @@ public:
 	GFlowRegion(GHtml *html)
 	{
 		Html = html;
+		ScreenDpi = 96;
 		x1 = x2 = y1 = y2 = cx = my = max_cx = 0;
 	}
 
 	GFlowRegion(GHtml *html, GRect r)
 	{
 		Html = html;
+		ScreenDpi = 96;
 		max_cx = cx = x1 = r.x1;
 		y1 = y2 = r.y1;
 		x2 = r.x2;
@@ -493,6 +497,7 @@ public:
 	GFlowRegion(GFlowRegion &r)
 	{
 		Html = r.Html;
+		ScreenDpi = 96;
 		x1 = r.x1;
 		x2 = r.x2;
 		y1 = r.y1;
@@ -570,19 +575,6 @@ public:
 	{
 		GFlowRegion This = *this;
 
-		#if 0
-		int LeftAbs = Left.GetPrevAbs();
-		int RightAbs = Right.GetPrevAbs();
-		int BottomAbs = Bottom.Get(&This, Font);
-
-		x1 -= LeftAbs;
-		cx -= LeftAbs;
-		x2 += RightAbs;
-		// y1 += BottomAbs;
-		y2 += BottomAbs;
-		if (Margin)
-			my += BottomAbs;
-		#else
 		int len = Stack.Length();
 		if (len > 0)
 		{
@@ -593,7 +585,6 @@ public:
 			x1 -= Fs.LeftAbs;
 			cx -= Fs.LeftAbs;
 			x2 += Fs.RightAbs;
-			// y1 += Fs.BottomAbs;
 			y2 += BottomAbs;
 			if (IsMargin)
 				my += BottomAbs;
@@ -601,13 +592,10 @@ public:
 			Stack.Length(len-1);
 		}
 		else LgiAssert(!"Nothing to pop.");
-		#endif
 	}
 
 	int ResolveX(GCss::Len l, GFont *f, bool IsMargin)
 	{
-		int ScreenDpi = 96; // Haha, where should I get this from?
-
 		switch (l.Type)
 		{
 			default:
@@ -658,8 +646,6 @@ public:
 
 	int ResolveY(GCss::Len l, GFont *f, bool IsMargin)
 	{
-		int ScreenDpi = 96; // Haha, where should I get this from?
-
 		switch (l.Type)
 		{
 			case GCss::LenInherit:
@@ -695,9 +681,16 @@ public:
 				return (int) (l.Value * f->GetHeight() / 2); // More haha, who uses 'ex' anyway?
 			}
 			case GCss::LenPercent:
-				return (int)l.Value;
+			{
+				LgiAssert(Html);
+				int TotalY = Html ? Html->Y() : 0;
+				return (int) (((double)l.Value * TotalY) / 100);
+			}
 			default:
+			{
 				LgiAssert(!"Not supported.");
+				break;
+			}
 		}
 
 		return 0;
@@ -1597,6 +1590,17 @@ GAutoWString GTag::DumpW()
 	GAutoString a(Buf.NewStr());
 	GAutoWString w(LgiNewUtf8To16(a));
 	return w;
+}
+
+GAutoString GTag::DescribeElement()
+{
+	char s[256];
+	int ch = sprintf_s(s, sizeof(s), "%s", Tag ? Tag.Get() : "CONTENT");
+	if (HtmlId)
+		ch += sprintf_s(s+ch, sizeof(s)-ch, "#%s", HtmlId);
+	for (int i=0; i<Class.Length(); i++)
+		ch += sprintf_s(s+ch, sizeof(s)-ch, ".%s", Class[i]);
+	return GAutoString(NewStr(s));
 }
 
 GFont *GTag::NewFont()
@@ -2514,11 +2518,6 @@ void GTag::Restyle()
 		}
 	}
 	
-	/*
-	if (Display() != DispInherit)
-		Disp = Display();
-	*/
-
 	#if DEBUG_RESTYLE && defined(_DEBUG)
 	if (Debug)
 	{
@@ -4624,13 +4623,12 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, int LineHeight, 
 	}
 }
 
-void GTag::OnFlow(GFlowRegion *InputFlow)
+void GTag::OnFlow(GFlowRegion *Flow)
 {
 	DisplayType Disp = Display();
 	if (Disp == DispNone)
 		return;
 
-	GFlowRegion *Flow = InputFlow;
 	GFont *f = GetFont();
 	GFlowRegion Local(Html);
 	bool Restart = true;
@@ -4927,7 +4925,30 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 	for (int i=0; i<Children.Length(); i++)
 	{
 		GTag *t = ToTag(Children[i]);
-		t->OnFlow(Flow);
+
+		switch (t->Position())
+		{
+			case PosStatic:
+			case PosRelative:
+			case PosAbsolute:
+			case PosFixed:
+			{
+				GFlowRegion old = *Flow;
+				t->OnFlow(Flow);
+				
+				// Try and reset the flow to how it was before...
+				Flow->x1 = old.x1;
+				Flow->x2 = old.x2;
+				Flow->cx = old.cx;
+				Flow->y1 = old.y1;
+				break;
+			}
+			default:
+			{
+				t->OnFlow(Flow);
+				break;
+			}
+		}
 
 		if (TagId == TAG_TR)
 		{
@@ -5065,13 +5086,6 @@ void GTag::OnFlow(GFlowRegion *InputFlow)
 				Flow->y2 = max(Flow->y2, Flow->y1 + Size.y - 1);
 				break;
 			}
-			/* This doesn't make sense....
-			case TAG_TD:
-			{
-				Size.x = Flow->X();
-				break;
-			}
-			*/
 		}
 	}
 

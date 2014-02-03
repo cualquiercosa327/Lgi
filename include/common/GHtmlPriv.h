@@ -341,6 +341,7 @@ public:
 
 	int GetTextStart();
 	GAutoWString DumpW();
+	GAutoString DescribeElement();
 	char16 *CleanText(const char *s, int len, bool ConversionAllowed = true, bool KeepWhiteSpace = false);
 	char *ParseText(char *Doc);
 	bool ConvertToText(TextConvertState &State);
