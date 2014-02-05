@@ -95,7 +95,7 @@ public:
 	char *Text;
 	COLOUR c;
 
-	LogEntry(char *t, int len, COLOUR col);
+	LogEntry(const char *t, int len, COLOUR col);
 	~LogEntry();
 };
 

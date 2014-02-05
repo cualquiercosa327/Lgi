@@ -22,7 +22,7 @@
 #include "GDocView.h"
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
-LogEntry::LogEntry(char *t, int len, COLOUR col)
+LogEntry::LogEntry(const char *t, int len, COLOUR col)
 {
 	c = col;
 	Text = 0;
@@ -33,10 +33,8 @@ LogEntry::LogEntry(char *t, int len, COLOUR col)
 			len = strlen(t);
 
 		// Strip off any whitespace on the end of the line.
-		char *e = t + len;
-		while (e > t && strchr(" \t\r\n", e[-1]))
-			e--;
-		*e = 0;
+		while (len > 0 && strchr(" \t\r\n", t[len-1]))
+			len--;
 		
 
 		#if 0 // Debug weird characters in log file.
