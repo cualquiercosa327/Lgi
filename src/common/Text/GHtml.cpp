@@ -4255,15 +4255,15 @@ void GTag::LayoutTable(GFlowRegion *f)
 							Box.x2 += MinCol[x+i] + CellSpacing;
 						}
 						
+						GCss::Len Ht = t->Height();
 						GFlowRegion r(Html, Box);
 						int Rx = r.X();
 						t->OnFlow(&r);
-						// t->Size.y += t->PaddingBottom().Value;
 						
-						if (t->Height().IsValid() &&
-							t->Height().Type != LenPercent)
+						if (Ht.IsValid() &&
+							Ht.Type != LenPercent)
 						{
-							int h = f->ResolveY(t->Height(), Font, false);
+							int h = f->ResolveY(Ht, Font, false);
 							t->Size.y = max(h, t->Size.y);
 
 							DistributeSize(MaxRow, y, t->Span.y, t->Size.y, CellSpacing);
@@ -4291,7 +4291,8 @@ void GTag::LayoutTable(GFlowRegion *f)
 				{
 					if (t->Cell.x == x && t->Cell.y == y)
 					{
-						if (!(t->Height().IsValid() && t->Height().Type != LenPercent))
+						GCss::Len Ht = t->Height();
+						if (!(Ht.IsValid() && Ht.Type != LenPercent))
 						{
 							DistributeSize(MaxRow, y, t->Span.y, t->Size.y, CellSpacing);
 						}
@@ -4674,30 +4675,52 @@ void GTag::OnFlow(GFlowRegion *Flow)
 		}
 		case TAG_IMG:
 		{
+			Size.x = Size.y = 0;
+
+			GCss::Len w = Width();
+			GCss::Len h = Height();
+			GAutoPtr<GDisplayString> a;
+			
+			if (w.IsValid() && w.Type != LenAuto)
+			{
+				Size.x = Flow->ResolveX(w, GetFont(), false);
+			}
+			else if (Image)
+			{
+				Size.x = Image->X();
+			}
+			
+			if (h.IsValid() && w.Type != LenAuto)
+			{
+				Size.y = Flow->ResolveY(h, GetFont(), false);
+			}
+			else if (Image)
+			{
+				Size.y = Image->Y();
+			}
+			else if (Get("alt", ImgAltText) && ValidStr(ImgAltText))
+			{
+				GDisplayString a(Html->GetFont(), ImgAltText);
+				Size.x = a.X() + 4;
+				Size.y = a.Y() + 4;
+			}
+
+			if (!Size.x || !Size.y)
+			{
+				if (Get("alt", ImgAltText) && ValidStr(ImgAltText))
+					a.Reset(new GDisplayString(Html->GetFont(), ImgAltText));
+			}
+			if (!Size.x)
+				Size.x = a ? a->X() + 4 : DefaultImgSize;
+			if (!Size.y)
+				Size.y = a ? a->Y() + 4 : DefaultImgSize;
+				
 			if (Disp == DispInline)
 			{
 				Restart = false;
 
 				Pos.y = Flow->y1;
-				
-				if (Width().IsValid())
-				{
-					Size.x = Flow->ResolveX(Width(), GetFont(), false);
-				}
-				else if (Image)
-				{
-					Size.x = Image->X();
-				}
-				else if (Get("alt", ImgAltText) && ValidStr(ImgAltText))
-				{
-					GDisplayString a(Html->GetFont(), ImgAltText);
-					Size.x = a.X() + 4;
-				}
-				else
-				{
-					Size.x = DefaultImgSize;
-				}
-				
+
 				GCss::LengthType a = GetAlign(true);
 				switch (a)
 				{
@@ -4878,10 +4901,10 @@ void GTag::OnFlow(GFlowRegion *Flow)
 			}
 			case TAG_IMG:
 			{
-				if (Disp == DispBlock && Image)
+				if (Disp == DispBlock)
 				{
-					Flow->cx += Image->X();
-					Flow->y2 += Image->Y();
+					Flow->cx += Size.x;
+					Flow->y2 += Size.y;
 				}
 				break;
 			}
@@ -4929,7 +4952,6 @@ void GTag::OnFlow(GFlowRegion *Flow)
 		switch (t->Position())
 		{
 			case PosStatic:
-			case PosRelative:
 			case PosAbsolute:
 			case PosFixed:
 			{
@@ -4960,10 +4982,13 @@ void GTag::OnFlow(GFlowRegion *Flow)
 	{		
 		GCss::Len Ht = Height();
 		if (Ht.IsValid())
-		{			
-			int HtPx = Flow->ResolveY(Ht, GetFont(), false);
-			if (HtPx > Flow->y2)
-				Flow->y2 = HtPx;
+		{
+			if (TagId != TAG_TD || Ht.Type != LenPercent)
+			{
+				int HtPx = Flow->ResolveY(Ht, GetFont(), false);
+				if (HtPx > Flow->y2)
+					Flow->y2 = HtPx;
+			}
 		}
 
 		if (Disp == DispBlock)

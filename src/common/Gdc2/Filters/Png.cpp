@@ -229,6 +229,11 @@ public:
                 png_structp, png_ptr,
                 png_infop, info_ptr);
 
+	DynFunc2(   png_byte,
+				png_get_color_type,
+				png_const_structp, png_ptr,
+				png_const_infop, info_ptr);
+
     DynFunc2(   png_byte,
                 png_get_bit_depth,
                 png_structp, png_ptr,
@@ -655,12 +660,13 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 			{
 			    int BitDepth = png_get_bit_depth(png_ptr, info_ptr);
 				int FinalBits = BitDepth == 16 ? 8 : BitDepth;
-				int RequestBits = FinalBits * png_get_channels(png_ptr, info_ptr);
-				// png_byte Interlaced = png_get_interlace_type(png_ptr, info_ptr);
+				int ColourType = png_get_color_type(png_ptr, info_ptr);
+				int Channels = png_get_channels(png_ptr, info_ptr);
+				int RequestBits = FinalBits * Channels;
 				
 				if (!pDC->Create(	png_get_image_width(png_ptr, info_ptr),
 									png_get_image_height(png_ptr, info_ptr),
-									max(RequestBits, 8)))
+									ColourType == PNG_COLOR_TYPE_GRAY_ALPHA ? 8 : max(RequestBits, 8)))
 				{
 					printf("%s:%i - GMemDC::Create(%i, %i, %i) failed.\n",
 							_FL,
@@ -670,6 +676,13 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 				}
 				else
 				{
+					#if 1
+					if (ColourType == PNG_COLOR_TYPE_GRAY_ALPHA)
+					{
+						pDC->HasAlpha(true); // Setup alpha channel
+					}
+					#endif
+				
 					// Copy in the scanlines
 					int ActualBits = pDC->GetBits();
 					int ScanLen = png_get_image_width(png_ptr, info_ptr) * ActualBits / 8;
@@ -679,7 +692,6 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 						LgiAssert(Scan);
 
 						GColourSpace OutCs = pDC->GetColourSpace();
-						// printf("Png Load cs=%s\n", GColourSpaceToString(OutCs));
 						switch (RequestBits)
 						{
 							case 1:
@@ -698,6 +710,28 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 										i++;
 										Mask = 0x80;
 									}
+								}
+								break;
+							}
+							case 16:
+							{
+								if (ColourType == PNG_COLOR_TYPE_GRAY_ALPHA)
+								{
+									uint8 *grey = Scan;
+									uint8 *alpha = (*(pDC->AlphaDC()))[y];
+									LgiAssert(grey && alpha);
+									uint8 *end = grey + pDC->X();
+									uint8 *in = Scan0[y];
+									
+									while (grey < end)
+									{
+										*grey++ = *in++;
+										*alpha++ = *in++;
+									}
+								}
+								else
+								{
+									memcpy(Scan, Scan0[y], ScanLen);
 								}
 								break;
 							}
