@@ -4263,7 +4263,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 						if (Ht.IsValid() &&
 							Ht.Type != LenPercent)
 						{
-							int h = f->ResolveY(Ht, Font, false);
+							int h = f->ResolveY(Ht, GetFont(), false);
 							t->Size.y = max(h, t->Size.y);
 
 							DistributeSize(MaxRow, y, t->Span.y, t->Size.y, CellSpacing);
