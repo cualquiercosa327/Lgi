@@ -564,6 +564,7 @@ public:
 		{
 			PartType Type;
 			GAutoString Value;
+			GAutoString Param;
 			int Media;
 			
 			Part()

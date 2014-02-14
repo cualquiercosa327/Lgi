@@ -2059,6 +2059,15 @@ bool GCss::Selector::Parse(const char *&s)
 			n.Type = SelPseudo;
 			if (!TokString(n.Value, s))
 				break;
+			if (*s == '(')
+			{
+				char *e = strchr(s + 1, ')');
+				if (e && e - s < 100)
+				{
+					n.Param.Reset(NewStr(++s, e - s));
+					s = e + 1;
+				}
+			}			
 		}
 		else if (*s == '#')
 		{
@@ -2130,14 +2139,7 @@ bool GCss::Selector::Parse(const char *&s)
 					n.Media |= MediaPrint;
 			}
 		}
-		else if
-		(
-			s[0] == '*' &&
-			(
-				IsWhite(s[1]) ||
-				s[1] == '{'
-			)
-		)
+		else if (s[0] == '*')
 		{
 			s++;
 
@@ -2276,7 +2278,7 @@ bool GCss::Store::Parse(const char *&c)
 		// read selector
 		GArray<GCss::Selector*> Selectors;
 		GCss::Selector *Cur = new GCss::Selector;
-		
+
 		if (Cur->Parse(c))
 			Selectors.Add(Cur);
 		else
@@ -2303,7 +2305,7 @@ bool GCss::Store::Parse(const char *&c)
 					c = n;
 			}
 			else break;
-		}		
+		}
 
 		SkipWhiteSpace(c);
 
