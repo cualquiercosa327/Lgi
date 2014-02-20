@@ -500,6 +500,14 @@ bool GApp::IsOk()
 	return Status;
 }
 
+int GApp::GetCpuCount()
+{
+	SYSTEM_INFO si;
+	ZeroObj(si);
+	GetSystemInfo(&si);
+	return si.dwNumberOfProcessors;
+}
+
 OsThreadId GApp::GetGuiThread()
 {
 	return d->GuiThread;

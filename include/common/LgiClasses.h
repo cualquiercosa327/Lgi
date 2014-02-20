@@ -228,6 +228,9 @@ public:
 	
 	/// Returns the thread currently running the active message loop
 	OsThreadId GetGuiThread();
+	
+	/// Returns the number of CPU cores the machine has
+	int GetCpuCount();
 
 	/// Construct the object
 	GApp
