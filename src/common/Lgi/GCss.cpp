@@ -2326,7 +2326,14 @@ bool GCss::Store::Parse(const char *&c)
 				s->Style = Style;
 				
 				int n = s->GetSimpleIndex();
-				LgiAssert(n < s->Parts.Length());
+				if (n >= s->Parts.Length())
+				{
+					char err[256];
+					sprintf_s(err, sizeof(err), "ErrSimpleIndex %i>=%i @ '%.80s'", n, s->Parts.Length(), c);
+					Error.Reset(NewStr(err));
+					LgiAssert(!"Part index too high.");
+					return false;
+				}
 				GCss::Selector::Part &p = s->Parts[n];
 				
 				switch (p.Type)

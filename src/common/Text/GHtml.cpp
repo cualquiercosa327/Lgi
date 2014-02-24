@@ -5976,18 +5976,38 @@ void GHtml::OnAddStyle(const char *MimeType, const char *Styles)
 {
 	if (Styles)
 	{
+		bool LogCss = false;
+		
 		const char *c = Styles;
-		CssStore.Parse(c);
+		bool Status = CssStore.Parse(c);
 
-		#if 0
-		GStringPipe p;
-		CssStore.Dump(p);
-		GAutoString a(p.NewStr());
-		GFile f;
-		if (f.Open("C:\\temp\\css.txt", O_WRITE))
+		#ifdef _DEBUG
+		if (!Status)
 		{
-			f.Write(a, strlen(a));
-			f.Close();
+			char p[MAX_PATH];
+			sprintf_s(p, sizeof(p), "c:\\temp\\css_parse_failure_%i.txt", LgiRand());
+			GFile f;
+			if (f.Open(p, O_WRITE))
+			{
+				f.SetSize(0);
+				if (CssStore.Error)
+					f.Print("Error: %s\n\n", CssStore.Error.Get());
+				f.Write(Styles, strlen(Styles));
+				f.Close();
+			}
+		}
+
+		if (LogCss)
+		{
+			GStringPipe p;
+			CssStore.Dump(p);
+			GAutoString a(p.NewStr());
+			GFile f;
+			if (f.Open("C:\\temp\\css.txt", O_WRITE))
+			{
+				f.Write(a, strlen(a));
+				f.Close();
+			}
 		}
 		#endif
 	}

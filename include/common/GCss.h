@@ -640,6 +640,7 @@ public:
 	{
 		SelectorMap TypeMap, ClassMap, IdMap;
 		SelArray Other;
+		GAutoString Error;
 
 		// This stores the unparsed style strings. More than one selector
 		// may reference this memory.
@@ -656,6 +657,7 @@ public:
 			ClassMap.Empty();
 			IdMap.Empty();
 			Other.DeleteObjects();
+			Error.Reset();
 
 			Styles.DeleteArrays();
 		}
