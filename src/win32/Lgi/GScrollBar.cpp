@@ -216,7 +216,7 @@ void GScrollBar::SetParent(GViewI *p)
 
 int64 GScrollBar::Value()
 {
-	return d->Value;
+	return limit(d->Value, d->Min, d->Max);
 }
 
 void GScrollBar::Value(int64 p)

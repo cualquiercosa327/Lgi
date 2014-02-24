@@ -165,7 +165,7 @@
 #define GDCPAL_MICROSOFT			2
 
 // Misc
-#define BMPWIDTH(bits)				((((bits)+31)/32)*4)
+#define BMPWIDTH(bits)				((((bits)+31)/32)<<2)
 
 
 /// Colour component type
@@ -234,6 +234,12 @@ enum GColourSpace
 	CsBgra32 = GDC_COLOUR_SPACE_4(CtBlue, 8, CtGreen, 8, CtRed, 8, CtAlpha, 8),
 	CsArgb32 = GDC_COLOUR_SPACE_4(CtAlpha, 8, CtRed, 8, CtGreen, 8, CtBlue, 8),
 	CsAbgr32 = GDC_COLOUR_SPACE_4(CtAlpha, 8, CtBlue, 8, CtGreen, 8, CtRed, 8),
+
+	// 16 bit component depth (size==0 means 16 bit)
+	CsBgr48 = GDC_COLOUR_SPACE_3(CtBlue, 0, CtGreen, 0, CtRed, 0),
+	CsRgb48 = GDC_COLOUR_SPACE_3(CtRed, 0, CtGreen, 0, CtBlue, 0),
+	CsBgra64 = GDC_COLOUR_SPACE_4(CtBlue, 0, CtGreen, 0, CtRed, 0, CtAlpha, 0),
+	CsRgba64 = GDC_COLOUR_SPACE_4(CtRed, 0, CtGreen, 0, CtBlue, 0, CtAlpha, 0),
 
 	// other colour spaces
 	CsHls32 = GDC_COLOUR_SPACE_4(CtHue, 0 /*16*/, CtRed, 8, CtGreen, 8, CtBlue, 8),
@@ -311,6 +317,15 @@ struct GBgrx32 {
 	uint8 b, g, r, pad;
 };
 
+#pragma pack(push, 2)
+struct GRgb48 {
+	uint16 r, g, b;
+};
+
+struct GBgr48 {
+	uint16 b, g, r;
+};
+
 struct GRgba64 {
 	uint16 r, g, b, a;
 };
@@ -326,6 +341,7 @@ struct GArgb64 {
 struct GAbgr64 {
 	uint16 a, b, g, r;
 };
+#pragma pack(pop)
 
 struct GHls32 {
 	uint16 h;

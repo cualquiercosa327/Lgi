@@ -589,6 +589,27 @@ bool GdcApp24Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
+			case CsBgr48:
+			{
+				for (int y=0; y<Src->y; y++)
+				{
+					System24BitPixel *d = (System24BitPixel*) Ptr;
+					GBgr48 *s = (GBgr48*) (Src->Base + (y * Src->Line));
+					GBgr48 *e = s + Src->x;
+
+					while (s < e)
+					{
+						d->r = s->r >> 8;
+						d->g = s->g >> 8;
+						d->b = s->b >> 8;
+						s++;
+						d++;
+					}
+
+					((uint8*&)Ptr) += Dest->Line;
+				}
+				break;
+			}
 		}
 	}
 	return true;

@@ -384,35 +384,6 @@ void TiffProcess32(D *d, S *s, int width)
 	}
 }
 
-template<typename D, typename S>
-void TiffProcess64_24(D *d, S *s, int width)
-{
-	D *e = d + width;
-	while (d < e)
-	{
-		d->r = s->r >> 8;
-		d->g = s->g >> 8;
-		d->b = s->b >> 8;
-		d++;
-		s++;
-	}
-}
-
-template<typename D, typename S>
-void TiffProcess64_32(D *d, S *s, int width)
-{
-	D *e = d + width;
-	while (d < e)
-	{
-		d->r = s->r >> 8;
-		d->g = s->g >> 8;
-		d->b = s->b >> 8;
-		d->a = s->a >> 8;
-		d++;
-		s++;
-	}
-}
-
 GFilter::IoStatus GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 {
 	GVariant v;
@@ -492,8 +463,7 @@ GFilter::IoStatus GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 			}
 			else
 			{
-				int CreateBits = BitsPerSample == 16 ? Bits >> 1 : Bits;
-	            if (pDC->Create(img.width, img.height, max(CreateBits, 8)))
+	            if (pDC->Create(img.width, img.height, max(Bits, 8)))
 	            {
 	                if (Meter)
 	                    Meter->SetLimits(0, img.height);
@@ -573,6 +543,12 @@ GFilter::IoStatus GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 									TiffCase(Bgra32, 24To32);
 									TiffCase(Argb32, 24To32);
 									TiffCase(Abgr32, 24To32);
+
+									#undef TiffCase
+
+									default:
+										LgiAssert(!"impl me.");
+										break;
 								}
 
 								if (Meter && (y % 32) == 0)
@@ -608,6 +584,44 @@ GFilter::IoStatus GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 									TiffCase(Bgra32, 32);
 									TiffCase(Argb32, 32);
 									TiffCase(Abgr32, 32);
+
+									#undef TiffCase
+
+									default:
+										LgiAssert(!"impl me.");
+										break;
+								}
+
+								if (Meter && (y % 32) == 0)
+									Meter->Value(y);
+							}
+							break;
+						}
+						case 48:
+						{
+							GArray<GRgb48> Buf;
+							Buf.Length(img.width);
+							GRgb48 *b = &Buf[0];
+							LgiAssert(Lib->TIFFScanlineSize(tif) == Buf.Length() * sizeof(Buf[0]));
+
+							for (unsigned y=0; y<img.height; y++)
+							{
+								uint8 *d = (*pDC)[y];
+								Lib->TIFFReadScanline(tif, (t::tdata_t)b, y, 0);
+					            
+								switch (pDC->GetColourSpace())
+								{
+									#define TiffCase(name, bits) \
+										case Cs##name: TiffProcess##bits((G##name*)d, b, pDC->X()); break
+									
+									TiffCase(Rgb48, 24);
+									TiffCase(Bgr48, 24);
+
+									#undef TiffCase
+									
+									default:
+										LgiAssert(!"impl me.");
+										break;
 								}
 
 								if (Meter && (y % 32) == 0)
@@ -630,19 +644,16 @@ GFilter::IoStatus GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 								switch (pDC->GetColourSpace())
 								{
 									#define TiffCase64(name, bits) \
-										case Cs##name: TiffProcess64_##bits((G##name*)d, b, pDC->X()); break
+										case Cs##name: TiffProcess##bits((G##name*)d, b, pDC->X()); break
 									
-									TiffCase64(Rgb24, 24);
-									TiffCase64(Bgr24, 24);
-									TiffCase64(Xrgb32, 24);
-									TiffCase64(Rgbx32, 24);
-									TiffCase64(Xbgr32, 24);
-									TiffCase64(Bgrx32, 24);
+									TiffCase64(Rgba64, 32);
+									TiffCase64(Bgra64, 32);
 
-									TiffCase64(Rgba32, 32);
-									TiffCase64(Bgra32, 32);
-									TiffCase64(Argb32, 32);
-									TiffCase64(Abgr32, 32);
+									#undef TiffCase64
+
+									default:
+										LgiAssert(!"impl me.");
+										break;
 								}
 
 								if (Meter && (y % 32) == 0)

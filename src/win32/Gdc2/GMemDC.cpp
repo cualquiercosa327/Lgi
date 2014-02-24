@@ -251,156 +251,200 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 	DrawOnAlpha(FALSE);
 	DeleteObj(pAlphaDC);
 
-	hBmp = 0;
-	d->Info = 0;
-	pMem = 0;
+	hBmp = NULL;
+	d->Info = NULL;
+	pMem = NULL;
 
 	if (Bits == 15)
 		Bits = 16;
 
-	if ((x > 0 && y > 0) && (Bits == 8 || Bits == 16 || Bits == 24 || Bits == 32))
+	if (x > 0 && y > 0)
 	{
-		int Colours = 1 << min(Bits, 8);
-		int SizeOf = sizeof(BITMAPINFO)+(sizeof(RGBQUAD)*Colours);
-		d->Info = (PBITMAPINFO) new char[SizeOf];
-		if (d->Info)
+		if (Bits == 8 || Bits == 16 || Bits == 24 || Bits == 32)
 		{
-			LineLen = max((((x * Bits) + 31) / 32) * 4, LineLen);
+			int Colours = 1 << min(Bits, 8);
+			int SizeOf = sizeof(BITMAPINFO)+(sizeof(RGBQUAD)*Colours);
+			d->Info = (PBITMAPINFO) new char[SizeOf];
+			if (d->Info)
+			{
+				LineLen = max((((x * Bits) + 31) / 32) * 4, LineLen);
 
-			d->Info->bmiHeader.biSize = sizeof(d->Info->bmiHeader);
-			d->Info->bmiHeader.biWidth = x;
-			d->Info->bmiHeader.biHeight = d->UpsideDown ? y : -y;
-			d->Info->bmiHeader.biPlanes = 1;
-			d->Info->bmiHeader.biBitCount = Bits;
-			d->Info->bmiHeader.biCompression = (Bits == 16 || Bits == 32) ? BI_BITFIELDS : BI_RGB;
-			d->Info->bmiHeader.biSizeImage = LineLen * y;
-			d->Info->bmiHeader.biXPelsPerMeter = 3000;
-			d->Info->bmiHeader.biYPelsPerMeter = 3000;
-			d->Info->bmiHeader.biClrUsed = 0;
-			d->Info->bmiHeader.biClrImportant = 0;
+				d->Info->bmiHeader.biSize = sizeof(d->Info->bmiHeader);
+				d->Info->bmiHeader.biWidth = x;
+				d->Info->bmiHeader.biHeight = d->UpsideDown ? y : -y;
+				d->Info->bmiHeader.biPlanes = 1;
+				d->Info->bmiHeader.biBitCount = Bits;
+				d->Info->bmiHeader.biCompression = (Bits == 16 || Bits == 32) ? BI_BITFIELDS : BI_RGB;
+				d->Info->bmiHeader.biSizeImage = LineLen * y;
+				d->Info->bmiHeader.biXPelsPerMeter = 3000;
+				d->Info->bmiHeader.biYPelsPerMeter = 3000;
+				d->Info->bmiHeader.biClrUsed = 0;
+				d->Info->bmiHeader.biClrImportant = 0;
 
+				switch (Bits)
+				{
+					case 8:
+					{
+						ColourSpace = CsIndex8;
+						break;
+					}
+					case 15:
+					{
+						ColourSpace = CsRgb15;
+						break;
+					}
+					case 16:
+					{
+						int *BitFeilds = (int*) d->Info->bmiColors;
+						BitFeilds[0] = 0xF800;
+						BitFeilds[1] = 0x07E0;
+						BitFeilds[2] = 0x001F;
+						ColourSpace = CsBgr16;
+						break;
+					}
+					case 24:
+					{
+						ColourSpace = CsBgr24;
+						break;
+					}
+					case 32:
+					{
+						int *BitFeilds = (int*) d->Info->bmiColors;
+						BitFeilds[0] = 0x00FF0000;
+						BitFeilds[1] = 0x0000FF00;
+						BitFeilds[2] = 0x000000FF;
+						ColourSpace = CsBgra32;
+						break;
+					}
+					default:
+					{
+						LgiAssert(!"Unknown colour space.");
+						break;
+					}
+				}
+
+				HDC hDC = GetDC(NULL);
+				if (hDC)
+				{
+					if (Bits == 8 && GdcD->GetBits())
+					{
+						PALETTEENTRY Pal[256];
+						int Cols = 1 << Bits;
+						GetSystemPaletteEntries(hDC, 0, Cols, Pal);
+						for (int i=0; i<Cols; i++)
+						{
+							d->Info->bmiColors[i].rgbReserved = 0;
+							d->Info->bmiColors[i].rgbRed = Pal[i].peRed;
+							d->Info->bmiColors[i].rgbGreen = Pal[i].peGreen;
+							d->Info->bmiColors[i].rgbBlue = Pal[i].peBlue;
+						}
+					}
+
+					hBmp = CreateDIBSection(hDC, d->Info, DIB_RGB_COLORS, &d->pBits, NULL, 0);
+					if (hBmp)
+					{
+						pMem = new GBmpMem;
+						if (pMem)
+						{
+							if (d->UpsideDown)
+							{
+								pMem->Base = ((uchar*) d->pBits) + (LineLen * (y - 1));
+							}
+							else
+							{
+								pMem->Base = (uchar*) d->pBits;
+							}
+							pMem->x = x;
+							pMem->y = y;
+							pMem->Cs = ColourSpace;
+							pMem->Line = d->UpsideDown ? -LineLen : LineLen;
+							pMem->Flags = 0;
+
+							Status = TRUE;
+						}
+					}
+					else
+					{
+						DWORD Error = GetLastError();
+						LgiAssert(!"Create bmp failed.");
+					}
+				}
+
+				ReleaseDC(NULL, hDC);
+			}
+		}
+		else
+		{
+			ColourSpace = CsNone;
 			switch (Bits)
 			{
-				case 8:
-				{
-					ColourSpace = CsIndex8;
+				case 48:
+					#ifdef WIN32
+					ColourSpace = CsBgr48;
+					#else
+					ColourSpace = CsRgb48;
+					#endif
 					break;
-				}
-				case 15:
-				{
-					ColourSpace = CsRgb15;
+				case 64:
+					#ifdef WIN32
+					ColourSpace = CsBgra64;
+					#else
+					ColourSpace = CsRgba64;
+					#endif
 					break;
-				}
-				case 16:
-				{
-					int *BitFeilds = (int*) d->Info->bmiColors;
-					BitFeilds[0] = 0xF800;
-					BitFeilds[1] = 0x07E0;
-					BitFeilds[2] = 0x001F;
-					ColourSpace = CsBgr16;
-					break;
-				}
-				case 24:
-				{
-					ColourSpace = CsBgr24;
-					break;
-				}
-				case 32:
-				{
-					int *BitFeilds = (int*) d->Info->bmiColors;
-					BitFeilds[0] = 0x00FF0000;
-					BitFeilds[1] = 0x0000FF00;
-					BitFeilds[2] = 0x000000FF;
-					ColourSpace = CsBgra32;
-					break;
-				}
 				default:
-				{
-					LgiAssert(!"Unknown colour space.");
+					LgiAssert(!"Unknown bitdepth.");
 					break;
-				}
 			}
 
-			HDC hDC = GetDC(NULL);
-			if (hDC)
+			if (ColourSpace)
 			{
-				if (Bits == 8 && GdcD->GetBits())
+				// Non-native image data
+				pMem = new GBmpMem;
+				if (pMem)
 				{
-					PALETTEENTRY Pal[256];
-					int Cols = 1 << Bits;
-					GetSystemPaletteEntries(hDC, 0, Cols, Pal);
-					for (int i=0; i<Cols; i++)
-					{
-						d->Info->bmiColors[i].rgbReserved = 0;
-						d->Info->bmiColors[i].rgbRed = Pal[i].peRed;
-						d->Info->bmiColors[i].rgbGreen = Pal[i].peGreen;
-						d->Info->bmiColors[i].rgbBlue = Pal[i].peBlue;
-					}
-				}
-
-				hBmp = CreateDIBSection(hDC, d->Info, DIB_RGB_COLORS, &d->pBits, NULL, 0);
-				if (hBmp)
-				{
-					pMem = new GBmpMem;
-					if (pMem)
-					{
-						if (d->UpsideDown)
-						{
-							pMem->Base = ((uchar*) d->pBits) + (LineLen * (y - 1));
-						}
-						else
-						{
-							pMem->Base = (uchar*) d->pBits;
-						}
-						pMem->x = x;
-						pMem->y = y;
-						pMem->Cs = ColourSpace;
-						pMem->Line = d->UpsideDown ? -LineLen : LineLen;
-						pMem->Flags = 0;
-
-						Status = TRUE;
-
-						int NewOp = (pApp) ? Op() : GDC_SET;
-
-						if ( (Flags & GDC_OWN_APPLICATOR) &&
-							!(Flags & GDC_CACHED_APPLICATOR))
-						{
-							DeleteObj(pApp);
-						}
-
-						for (int i=0; i<GDC_CACHE_SIZE; i++)
-						{
-							DeleteObj(pAppCache[i]);
-						}
-
-						if (NewOp < GDC_CACHE_SIZE && !DrawOnAlpha())
-						{
-							pApp = (pAppCache[NewOp]) ? pAppCache[NewOp] : pAppCache[NewOp] = CreateApplicator(NewOp);
-							Flags &= ~GDC_OWN_APPLICATOR;
-							Flags |= GDC_CACHED_APPLICATOR;
-						}
-						else
-						{
-							pApp = CreateApplicator(NewOp);
-							Flags &= ~GDC_CACHED_APPLICATOR;
-							Flags |= GDC_OWN_APPLICATOR;
-						}
-
-						Clip.ZOff(X()-1, Y()-1);
-					}
-				}
-				else
-				{
-					DWORD Error = GetLastError();
-					int k=0;
+					pMem->x = x;
+					pMem->y = y;
+					pMem->Line = ((x * Bits + 31) / 32) << 2;
+					pMem->Cs = ColourSpace;
+					pMem->Flags = GDC_OWN_MEMORY;
+					pMem->Base = new uchar[pMem->y * pMem->Line];
+					
+					Status = pMem->Base != NULL;
 				}
 			}
-
-			ReleaseDC(NULL, hDC);
 		}
 
 		if (Status)
 		{
+			int NewOp = (pApp) ? Op() : GDC_SET;
+
+			if ( (Flags & GDC_OWN_APPLICATOR) &&
+				!(Flags & GDC_CACHED_APPLICATOR))
+			{
+				DeleteObj(pApp);
+			}
+
+			for (int i=0; i<GDC_CACHE_SIZE; i++)
+			{
+				DeleteObj(pAppCache[i]);
+			}
+
+			if (NewOp < GDC_CACHE_SIZE && !DrawOnAlpha())
+			{
+				pApp = (pAppCache[NewOp]) ? pAppCache[NewOp] : pAppCache[NewOp] = CreateApplicator(NewOp);
+				Flags &= ~GDC_OWN_APPLICATOR;
+				Flags |= GDC_CACHED_APPLICATOR;
+			}
+			else
+			{
+				pApp = CreateApplicator(NewOp);
+				Flags &= ~GDC_CACHED_APPLICATOR;
+				Flags |= GDC_OWN_APPLICATOR;
+			}
+
+			Clip.ZOff(X()-1, Y()-1);
+
 			if (KeepData)
 			{
 				GApplicator *MyApp = CreateApplicator(GDC_SET);
