@@ -155,18 +155,18 @@ public:
 			case 15:
 			{
 				space = System32BitColourSpace;
-				rgb.r = R15(c);
-				rgb.g = G15(c);
-				rgb.b = B15(c);
+				rgb.r = Rc15(c);
+				rgb.g = Gc15(c);
+				rgb.b = Bc15(c);
 				rgb.a = 255;
 				break;
 			}
 			case 16:
 			{
 				space = System32BitColourSpace;
-				rgb.r = R16(c);
-				rgb.g = G16(c);
-				rgb.b = B16(c);
+				rgb.r = Rc16(c);
+				rgb.g = Gc16(c);
+				rgb.b = Bc16(c);
 				rgb.a = 255;
 				break;
 			}

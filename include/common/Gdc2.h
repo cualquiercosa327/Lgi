@@ -503,6 +503,9 @@ typedef uint8						ALPHA;
 #define Gc16(c)						( (((c) & 0x07E0) >> 3) | (((c) & 0x07E0) >> 9) )
 #define Bc16(c)						( (((c) & 0x001F) << 3) | (((c) & 0x001F) >> 2) )
 
+#define G5bitTo8Bit(c)				( ((c) << 3) | ((c) >> 2) )
+#define G6bitTo8Bit(c)				( ((c) << 2) | ((c) >> 4) )
+
 /// Get the red component of a 24bit COLOUR
 #define R24(c24)					( ((c24)>>(C24R*8)) & 0xff )
 /// Get the green component of a 24bit COLOUR

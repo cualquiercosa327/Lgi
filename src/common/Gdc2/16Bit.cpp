@@ -291,8 +291,8 @@ bool GdcApp16Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 					while (d < e)
 					{
 						d->r = s->r >> 3;
-						d->g = s->r >> 2;
-						d->b = s->r >> 3;
+						d->g = s->g >> 2;
+						d->b = s->b >> 3;
 						d++;
 						s++;
 					}
