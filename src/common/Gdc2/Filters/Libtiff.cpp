@@ -296,6 +296,10 @@ void SwapRB(GSurface *pDC)
 	{
 		switch (pDC->GetColourSpace())
 		{
+			case CsIndex8:
+				// No swap needed
+				return;
+				break;
 			case System24BitColourSpace:
 			{
 				System24BitPixel *s1 = (System24BitPixel*)(*pDC)[y1];
@@ -728,14 +732,63 @@ GFilter::IoStatus GdcLibTiff::WriteImage(GStream *Out, GSurface *pDC)
 	if (tif)
 	{
 	    int bits = pDC->GetBits();
+	    int ComponentSize = bits > 32 ? 16 : 8;
 		
 		Lib->TIFFSetField(tif, TIFFTAG_IMAGEWIDTH, pDC->X());
 		Lib->TIFFSetField(tif, TIFFTAG_IMAGELENGTH, pDC->Y());
-		Lib->TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, bits / 8);
-		Lib->TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE, 8);
+		Lib->TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, bits / ComponentSize);
+		Lib->TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE, ComponentSize);
 		Lib->TIFFSetField(tif, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);
 		Lib->TIFFSetField(tif, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
-		Lib->TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
+		
+		switch (bits)
+		{
+			case 1:
+			{
+				Lib->TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK);
+				break;
+			}
+			case 2:
+			case 3:
+			case 4:
+			case 5:
+			case 6:
+			case 7:
+			case 8:
+			{
+				Lib->TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_PALETTE);
+
+				GPalette *p = pDC->Palette();
+				if (p)
+				{
+					uint16 rmap[256], gmap[256], bmap[256];
+					int colours = 1 << bits;
+					for (int i=0; i<colours; i++)
+					{
+						GdcRGB *rgb = (*p)[i];
+						if (rgb)
+						{
+							rmap[i] = G8bitTo16Bit(rgb->r);
+							gmap[i] = G8bitTo16Bit(rgb->g);
+							bmap[i] = G8bitTo16Bit(rgb->b);
+						}
+						else
+						{
+							rmap[i] = G8bitTo16Bit(i);
+							gmap[i] = G8bitTo16Bit(i);
+							bmap[i] = G8bitTo16Bit(i);
+						}
+					}
+					Lib->TIFFSetField(tif, TIFFTAG_COLORMAP, rmap, gmap, bmap);					
+				}				
+				break;
+			}
+			default:
+			{
+				Lib->TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
+				break;
+			}
+		}
 
 		Status = IoSuccess;
 		SwapRB(pDC);

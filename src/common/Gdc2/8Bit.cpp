@@ -619,7 +619,7 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 							pBuf->Rectangle();
 
 							// Create lookup table for converting RGB -> palette
-							int LookupSize = 32<<10;
+							int LookupSize = 32 << 10; // 32KB
 							uchar *Lookup = new uchar[LookupSize];
 							if (Lookup)
 							{
@@ -639,11 +639,9 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 								Buffer[1] = ((System24BitPixel*) (*pBuf)[0]) + 1;
 
 								// Depth converter function
+								
+								// Convert the first scan line
 								Convert(Buffer[0], Src, 0, SPal);
-								if (Src->y > 1)
-								{
-									Convert(Buffer[1], Src, 1, SPal);
-								}
 
 								// Loop through pixels
 								for (int y=0; y<Src->y; y++)
@@ -651,6 +649,12 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 									System24BitPixel *src = Buffer[0];
 									System24BitPixel *next = Buffer[1];
 									uchar *dst = Ptr;
+
+									if (y < Src->y - 1)
+									{
+										// Convert the next scanline
+										Convert(Buffer[1], Src, y + 1, SPal);
+									}
 
 									for (int x=0; x<Src->x; x++, dst++, src++, next++)
 									{
@@ -670,19 +674,19 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 												int n;										\
 																							\
 												/* next pixel: 7/16th's */					\
-												n = src[1].c + (nError * 7 / 16);			\
+												n = src[1].c + ((nError * 7) >> 4);			\
 												n = limit(n, 0, 255);						\
 												nRemainder += n - src[1].c;					\
 												src[1].c = n;								\
 																							\
 												/* below and to the left: 3/16th's */		\
-												n = next[-1].c + (nError * 3 / 16);			\
+												n = next[-1].c + ((nError * 3) >> 4);		\
 												n = limit(n, 0, 255);						\
 												nRemainder += n - next[-1].c;				\
 												next[-1].c = n;								\
 																							\
 												/* below: 5/16th's */						\
-												n = next[0].c + (nError * 5 / 16);			\
+												n = next[0].c + ((nError * 5) >> 4);		\
 												n = limit(n, 0, 255);						\
 												nRemainder += n - next[0].c;				\
 												next[0].c = n;								\
@@ -699,19 +703,10 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 										Diffuse(b)
 									}
 									
-									if (y < Src->y - 1)
-									{
-										memcpy(Buffer[0], Buffer[1], Src->x * sizeof(*Buffer[0]));
-										if (y < Src->y - 2)
-										{
-											Convert(Buffer[1], Src, y+2, SPal);
-										}
-										else
-										{
-											memset(Buffer[1]-1, 0, (Src->x + 2) * sizeof(*Buffer[0]));
-										}
-									}
-
+									// Copy the next scanline into the current one
+									memcpy(Buffer[0]-1, Buffer[1]-1, (Src->x + 2) * sizeof(*Buffer[0]));
+									
+									// Move output ptr to the next scanline
 									Ptr += Dest->Line;
 								}
 							}
