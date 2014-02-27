@@ -155,6 +155,17 @@ void GPalette::Set(uchar *pPal, int s)
 	}
 }
 
+void GPalette::Set(int Index, int r, int g, int b)
+{
+	GdcRGB *rgb = (*this)[Index];
+	if (rgb)
+	{
+		rgb->r = r;
+		rgb->g = g;
+		rgb->b = b;
+	}
+}
+
 bool GPalette::Update()
 {
 	if (Data && hPal)
@@ -206,9 +217,9 @@ void GPalette::SwapRAndB()
 	{
 		for (int i=0; i<GetSize(); i++)
 		{
-			uchar n = (*this)[i]->R;
-			(*this)[i]->R = (*this)[i]->B;
-			(*this)[i]->B = n;
+			uchar n = (*this)[i]->r;
+			(*this)[i]->r = (*this)[i]->b;
+			(*this)[i]->b = n;
 		}
 	}
 
@@ -292,9 +303,9 @@ int GPalette::MatchRgb(COLOUR Rgb)
 
 		for (int i = 0; i < Data->palNumEntries; i++)
 		{
-			rdist = Entry[i].R - r;
-			gdist = Entry[i].G - g;
-			bdist = Entry[i].B - b;
+			rdist = Entry[i].r - r;
+			gdist = Entry[i].g - g;
+			bdist = Entry[i].b - b;
 			curdist = squares[rdist] + squares[gdist] + squares[bdist];
 
 			if (curdist < mindist)
@@ -317,10 +328,10 @@ void GPalette::CreateGreyScale()
 
 	for (int i=0; i<256; i++)
 	{
-		p->R = i;
-		p->G = i;
-		p->B = i;
-		p->Flags = 0;
+		p->r = i;
+		p->g = i;
+		p->b = i;
+		p->a = 0;
 		p++;
 	}
 }
@@ -336,10 +347,10 @@ void GPalette::CreateCube()
 		{
 			for (int b=0; b<6; b++)
 			{
-				p->R = r * 51;
-				p->G = g * 51;
-				p->B = b * 51;
-				p->Flags = 0;
+				p->r = r * 51;
+				p->g = g * 51;
+				p->b = b * 51;
+				p->a = 0;
 				p++;
 			}
 		}
@@ -387,9 +398,9 @@ bool GPalette::Load(GFile &F)
 			GdcRGB *p = (*this)[i];
 			if (p)
 			{
-				p->R = atoi(strtok(Buf, " "));
-				p->G = atoi(strtok(NULL, " "));
-				p->B = atoi(strtok(NULL, " "));
+				p->r = atoi(strtok(Buf, " "));
+				p->g = atoi(strtok(NULL, " "));
+				p->b = atoi(strtok(NULL, " "));
 
 			}
 
@@ -422,7 +433,7 @@ bool GPalette::Save(GFile &F, int Format)
 				GdcRGB *p = (*this)[i];
 				if (p)
 				{
-					sprintf(Buf, "%i %i %i\r\n", p->R, p->G, p->B);
+					sprintf(Buf, "%i %i %i\r\n", p->r, p->g, p->b);
 					F.Write(Buf, strlen(Buf));
 				}
 			}
@@ -444,9 +455,9 @@ bool GPalette::operator ==(GPalette &p)
 
 		for (int i=0; i<GetSize(); i++)
 		{
-			if (a->R != b->R ||
-				a->G != b->G ||
-				a->B != b->B)
+			if (a->r != b->r ||
+				a->g != b->g ||
+				a->b != b->b)
 			{
 				return FALSE;
 			}
@@ -688,10 +699,10 @@ bool GGlobalColour::MakeGlobalPalette()
 					else
 					{
 					*/
-						r->R = R24(d->c[i].c24);
-						r->G = G24(d->c[i].c24);
-						r->B = B24(d->c[i].c24);
-						r->Flags = 0; // PC_RESERVED;
+						r->r = R24(d->c[i].c24);
+						r->g = G24(d->c[i].c24);
+						r->b = B24(d->c[i].c24);
+						r->a = 0; // PC_RESERVED;
 					// }
 				}
 			}
@@ -824,9 +835,9 @@ public:
 				GetSystemPaletteEntries(hScreenDC, 0, Colours, pal);
 				for (int i=0; i<Colours; i++)
 				{
-					p[i].R = pal[i].peRed;
-					p[i].G = pal[i].peGreen;
-					p[i].B = pal[i].peBlue;
+					p[i].r = pal[i].peRed;
+					p[i].g = pal[i].peGreen;
+					p[i].b = pal[i].peBlue;
 				}
 			}
 		}
@@ -1066,7 +1077,10 @@ COLOUR GdcDevice::GetColour(COLOUR Rgb24, GSurface *pDC)
 					}
 					else if (d->pSysPal)
 					{
-						(*d->pSysPal)[Current]->Set(R24(Rgb24), G24(Rgb24), B24(Rgb24));
+						GdcRGB *n = (*d->pSysPal)[Current];						
+						n->r = R24(Rgb24);
+						n->g = G24(Rgb24);
+						n->b = B24(Rgb24);
 						C = Current++;
 						if (Current == 255) Current = 1;
 					}

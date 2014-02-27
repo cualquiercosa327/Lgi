@@ -38,9 +38,9 @@ protected:
 				GdcRGB *p = (Pal) ? (*Pal)[i] : 0;
 				if (p)
 				{
-					c[i].r = DivLut[p->R * Scale];
-					c[i].g = DivLut[p->G * Scale];
-					c[i].b = DivLut[p->B * Scale];
+					c[i].r = DivLut[p->r * Scale];
+					c[i].g = DivLut[p->g * Scale];
+					c[i].b = DivLut[p->b * Scale];
 				}
 				else
 				{
@@ -57,9 +57,9 @@ protected:
 				GdcRGB *p = (Pal) ? (*Pal)[i] : 0;
 				if (p)
 				{
-					c[i].r = p->R;
-					c[i].g = p->G;
-					c[i].b = p->B;
+					c[i].r = p->r;
+					c[i].g = p->g;
+					c[i].b = p->b;
 				}
 				else
 				{
@@ -303,9 +303,9 @@ int GdcApp8Alpha::SetVar(int Var, NativeInt Value)
 
 				for (int i=0; i<Pal->GetSize(); i++)
 				{
-					COLOUR Rgb = Rgb24(	Div255((oma * p[i].R) + (alpha * Col->R)),
-										Div255((oma * p[i].G) + (alpha * Col->G)),
-										Div255((oma * p[i].B) + (alpha * Col->B)));
+					COLOUR Rgb = Rgb24(	Div255((oma * p[i].r) + (alpha * Col->r)),
+										Div255((oma * p[i].g) + (alpha * Col->g)),
+										Div255((oma * p[i].b) + (alpha * Col->b)));
 
 					Remap[i] = Pal->MatchRgb(Rgb);
 				}

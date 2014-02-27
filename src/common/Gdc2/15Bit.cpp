@@ -221,7 +221,7 @@ bool GdcApp15Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 					GdcRGB *p = (*SPal)[0];
 					for (int i=0; i<256; i++, p++)
 					{
-						c[i] = Rgb24To15(Rgb24(p->R, p->G, p->B));
+						c[i] = Rgb24To15(Rgb24(p->r, p->g, p->b));
 					}
 				}
 				else

@@ -566,9 +566,9 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 				{
 					for (int i=0; i<256; i++, p++)
 					{
-						p->R = i;
-						p->G = i;
-						p->B = i;
+						p->r = i;
+						p->g = i;
+						p->b = i;
 					}
 				}
 				pDC->Palette(Pal);
@@ -842,9 +842,9 @@ GFilter::IoStatus GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality, SubS
 				(
 					p &&
 					(
-						p->R != i ||
-						p->G != i ||
-						p->B != i
+						p->r != i ||
+						p->g != i ||
+						p->b != i
 					)
 				)
 				{
@@ -944,9 +944,9 @@ GFilter::IoStatus GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality, SubS
 							while (c < end)
 							{
 							    GdcRGB &rgb = p[*c++];
-								dst[0] = rgb.R;
-								dst[1] = rgb.G;
-								dst[2] = rgb.B;
+								dst[0] = rgb.r;
+								dst[1] = rgb.g;
+								dst[2] = rgb.b;
 								dst += 3;
 							}
 						}
@@ -959,9 +959,9 @@ GFilter::IoStatus GdcJpeg::_Write(GStream *Out, GSurface *pDC, int Quality, SubS
 				    GRgb16 *end = p + pDC->X();
 					while (p < end)
 					{
-						dst[0] = (p->r << 3) | (p->r >> 5);
-						dst[1] = (p->g << 2) | (p->g >> 6);
-						dst[2] = (p->b << 3) | (p->b >> 5);
+						dst[0] = G5bitTo8Bit(p->r);
+						dst[1] = G6bitTo8Bit(p->g);
+						dst[2] = G5bitTo8Bit(p->b);
 						dst += 3;
 						p++;
 					}

@@ -226,7 +226,7 @@ bool GdcApp16Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				{
 					for (int i=0; i<256 && i<SPal->GetSize(); i++, p++)
 					{
-						c[i] = Rgb24To16(Rgb24(p->R, p->G, p->B));
+						c[i] = Rgb24To16(Rgb24(p->r, p->g, p->b));
 					}
 				}
 				else

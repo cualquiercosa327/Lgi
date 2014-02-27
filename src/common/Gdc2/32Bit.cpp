@@ -513,9 +513,9 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 						GdcRGB *p = (*SPal)[i];
 						if (p)
 						{
-							c[i].r = p->R;
-							c[i].g = p->G;
-							c[i].b = p->B;
+							c[i].r = p->r;
+							c[i].g = p->g;
+							c[i].b = p->b;
 						}
 						else
 						{

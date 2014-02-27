@@ -193,9 +193,9 @@ GImageList::GImageList(int x, int y, GSurface *pDC)
 					GdcRGB *p = (*Pal)[i];
 					if (p)
 					{
-						Rgb[i].rgbRed = p->R = Entries[i].peRed;
-						Rgb[i].rgbGreen = p->G = Entries[i].peGreen;
-						Rgb[i].rgbBlue = p->B = Entries[i].peBlue;
+						Rgb[i].rgbRed = p->r = Entries[i].peRed;
+						Rgb[i].rgbGreen = p->g = Entries[i].peGreen;
+						Rgb[i].rgbBlue = p->b = Entries[i].peBlue;
 						Rgb[i].rgbReserved = 0;
 					}
 				}
@@ -227,7 +227,7 @@ GImageList::GImageList(int x, int y, GSurface *pDC)
 					GdcRGB *From = (*SrcPal)[i];
 					if (From)
 					{
-						Remap[i] = DstPal->MatchRgb(Rgb24(From->R, From->G, From->B));
+						Remap[i] = DstPal->MatchRgb(Rgb24(From->r, From->g, From->b));
 					}
 				}
 

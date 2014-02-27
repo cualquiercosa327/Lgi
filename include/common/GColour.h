@@ -10,24 +10,7 @@
 #endif
 
 /// RGB Colour
-class LgiClass GdcRGB
-{
-public:
-	uchar R, G, B;
-	#ifndef MAC
-	uchar Flags;
-	#endif
-
-	void Set(uchar r, uchar g, uchar b, uchar f = 0)
-	{
-		R = r;
-		G = g;
-		B = b;
-		#ifndef MAC
-		Flags = f;
-		#endif
-	}
-};
+typedef GRgba32 GdcRGB;
 
 #ifdef WIN32
 #pragma pack(pop, before_pack)
@@ -42,7 +25,7 @@ protected:
 	LOGPALETTE	*Data;
 	#else
 	int			Size;
-	GdcRGB		*Data;
+	GRgba32		*Data;
 	#endif
 	uchar *Lut;
 
@@ -58,9 +41,10 @@ public:
 	GPalette(uchar *pPal, int s = 256);
 	void Set(GPalette *pPal);
 	void Set(uchar *pPal, int s = 256);
+	void Set(int Index, int r, int g, int b);
 
 	int GetSize();
-	GdcRGB *operator [](int i);
+	GRgba32 *operator [](int i);
 	bool Update();
 	bool SetSize(int s = 256);
 	void SwapRAndB();
@@ -271,7 +255,7 @@ public:
 					GdcRGB *c = (*pal)[index];
 					if (c)
 					{
-						return Rgb24(c->R, c->G, c->B);
+						return Rgb24(c->r, c->g, c->b);
 					}
 				}
 
@@ -317,7 +301,7 @@ public:
 					GdcRGB *c = (*pal)[index];
 					if (c)
 					{
-						return Rgb32(c->R, c->G, c->B);
+						return Rgb32(c->r, c->g, c->b);
 					}
 				}
 
@@ -497,7 +481,7 @@ public:
 				GdcRGB *c = (*pal)[index];
 				if (c)
 				{
-					return RGB(c->R, c->G, c->B);
+					return RGB(c->r, c->g, c->b);
 				}
 			}
 			

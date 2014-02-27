@@ -160,10 +160,10 @@ bool GClipBoard::Bitmap(GSurface *pDC, bool AutoEmpty)
 						{
 							for (int i=0; i<Colours; i++, p++, Rgb++)
 							{
-								Rgb->rgbRed = p->R;
-								Rgb->rgbGreen = p->G;
-								Rgb->rgbBlue = p->B;
-								Rgb->rgbReserved = p->Flags;
+								Rgb->rgbRed = p->r;
+								Rgb->rgbGreen = p->g;
+								Rgb->rgbBlue = p->b;
+								Rgb->rgbReserved = p->a;
 							}
 						}
 					}
@@ -259,10 +259,10 @@ GSurface *GClipBoard::ConvertFromPtr(void *Ptr)
 							{
 								for (int i=0; i<Colours; i++, d++, s++)
 								{
-									d->R = s->rgbRed;
-									d->G = s->rgbGreen;
-									d->B = s->rgbBlue;
-									d->Flags = s->rgbReserved;
+									d->r = s->rgbRed;
+									d->g = s->rgbGreen;
+									d->b = s->rgbBlue;
+									d->a = s->rgbReserved;
 								}
 							}
 							Source = (char*) s;

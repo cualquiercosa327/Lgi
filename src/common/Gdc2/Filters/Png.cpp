@@ -834,9 +834,9 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 								    GdcRGB *Rgb = (*Pal)[i];
 								    if (Rgb)
 								    {
-									    Rgb->R = pal[i].red;
-									    Rgb->G = pal[i].green;
-									    Rgb->B = pal[i].blue;
+									    Rgb->r = pal[i].red;
+									    Rgb->g = pal[i].green;
+									    Rgb->b = pal[i].blue;
 								    }
 							    }
 							    pDC->Palette(Pal, true);
@@ -1143,9 +1143,9 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 									GdcRGB *Rgb = (*Pal)[i];
 									if (Rgb)
 									{
-							            PngPal[i].red = Rgb->R;
-							            PngPal[i].green = Rgb->G;
-							            PngPal[i].blue = Rgb->B;
+							            PngPal[i].red = Rgb->r;
+							            PngPal[i].green = Rgb->g;
+							            PngPal[i].blue = Rgb->b;
 							        }
 							    }
 							    

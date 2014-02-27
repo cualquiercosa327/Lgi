@@ -160,9 +160,9 @@ void GMemDC::Update(int Flags)
 		{
 			for (int i=0; i<pPalette->GetSize(); i++, p++)
 			{
-				d->Info->bmiColors[i].rgbRed = p->R;
-				d->Info->bmiColors[i].rgbGreen = p->G;
-				d->Info->bmiColors[i].rgbBlue = p->B;
+				d->Info->bmiColors[i].rgbRed = p->r;
+				d->Info->bmiColors[i].rgbGreen = p->g;
+				d->Info->bmiColors[i].rgbBlue = p->b;
 			}
 
 			if (hDC)

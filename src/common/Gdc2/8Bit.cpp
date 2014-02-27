@@ -292,55 +292,125 @@ uchar Mul8[8] = {0, 8, 16, 24, 32, 40, 48, 56};
 uchar Mul6[6] = {0, 6, 12, 18, 24, 30};
 uchar Mul36[6] = {0, 36, 72, 108, 144, 180};
 
-typedef void (*ConvertLineFunc)(uchar*, uchar*, int);
-void ConvertLine15(uchar *Out, uchar *in, int len)
+template<typename OutPx, typename InPx>
+void GConvertIndexed(OutPx *out, InPx *in, int len, GColourSpace inCs, GPalette *pal)
 {
-	ushort *In = (ushort*)in;
-	while (len--)
+	switch (inCs)
 	{
-		Out[2] = (*In >> 7) & 0xF8;
-		Out[1] = (*In >> 2) & 0xF8;
-		Out[0] = (*In << 3) & 0xF8;
-		In++;
-		Out += 3;
+		case CsIndex8:
+		{
+			OutPx p[256];
+			for (int i=0; i<256; i++)
+			{
+				GdcRGB *rgb = pal ? (*pal)[i] : NULL;
+				if (rgb)
+				{
+					p[i].r = rgb->r;
+					p[i].g = rgb->g;
+					p[i].b = rgb->b;
+				}
+				else
+				{
+					p[i].r = i;
+					p[i].g = i;
+					p[i].b = i;
+				}
+			}
+
+			// Indexed colour
+			InPx *end = in + len;
+			while (in < end)
+			{
+				*out++ = p[*in++];
+			}
+			break;
+		}
+		default:
+		{
+			LgiAssert(0);
+			break;
+		}
 	}
 }
 
-void ConvertLine16(uchar *Out, uchar *in, int len)
+template<typename OutPx, typename InPx>
+void GConvertRgb24(OutPx *out, InPx *in, int len, GColourSpace inCs, GPalette *pal)
 {
-	ushort *In = (ushort*)in;
-	while (len--)
+	switch (inCs)
 	{
-		Out[2] = (*In >> 8) & 0xF8;
-		Out[1] = (*In >> 3) & 0xFC;
-		Out[0] = (*In << 3) & 0xF8;
-		In++;
-		Out += 3;
+		case CsRgb15:
+		case CsBgr15:
+		{
+			// All 15 bit types
+			InPx *end = in + len;
+			while (in < end)
+			{
+				out->r = G5bitTo8Bit(in->r);
+				out->g = G5bitTo8Bit(in->g);
+				out->b = G5bitTo8Bit(in->b);
+				in++;
+				out++;
+			}
+			break;
+		}
+		case CsRgb16:
+		case CsBgr16:
+		{
+			// All 16 bit types
+			InPx *end = in + len;
+			while (in < end)
+			{
+				out->r = G5bitTo8Bit(in->r);
+				out->g = G6bitTo8Bit(in->g);
+				out->b = G5bitTo8Bit(in->b);
+				in++;
+				out++;
+			}
+			break;
+		}
+		default:
+		{
+			// All straight RGB types fall into here
+			InPx *end = in + len;
+			while (in < end)
+			{
+				out->r = in->r;
+				out->g = in->g;
+				out->b = in->b;
+				in++;
+				out++;
+			}
+			break;
+		}
 	}
 }
 
-void ConvertLine24(uchar *out, uchar *in, int len)
+void Convert(System24BitPixel *Dst, GBmpMem *Src, int Line, GPalette *SPal)
 {
-	GRgb24 *i = (GRgb24*)in;
-	while (len--)
+	uchar *In = Src->Base + (Line * Src->Line);
+	switch (Src->Cs)
 	{
-		*out++ = i->b;
-		*out++ = i->g;
-		*out++ = i->r;
-		i++;
-	}
-}
-
-void ConvertLine32(uchar *Out, uchar *in, int len)
-{
-	ulong *In = (ulong*)in;
-	while (len--)
-	{
-		Out[2] = R32(*In);
-		Out[1] = G32(*In);
-		Out[0] = B32(*In);
-		In++;
-		Out += 3;
+		#define ConvertCase(type) \
+			case Cs##type: \
+				GConvertRgb24<System24BitPixel, G##type>(Dst, (G##type*) In, Src->x, Src->Cs, NULL); \
+				break
+		
+		case CsIndex8:
+			GConvertIndexed<System24BitPixel, uint8>(Dst, In, Src->x, Src->Cs, SPal);
+			break;
+		ConvertCase(Rgb15);
+		ConvertCase(Bgr15);
+		ConvertCase(Rgb16);
+		ConvertCase(Bgr16);
+		ConvertCase(Rgb24);
+		ConvertCase(Bgr24);
+		ConvertCase(Rgba32);
+		ConvertCase(Bgra32);
+		ConvertCase(Argb32);
+		ConvertCase(Abgr32);
+		default:
+			LgiAssert(0);
+			break;
 	}
 }
 
@@ -369,8 +439,8 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 			}
 			case CsRgb15:
 			case CsRgb16:
-			case CsBgr24:
-			case CsArgb32:
+			case System24BitColourSpace:
+			case System32BitColourSpace:
 			{
 				switch (GdcD->GetOption(GDC_REDUCE_TYPE))
 				{
@@ -388,13 +458,9 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
     							
 								for (int i=0; i<LookupSize; i++)
 								{
-									int r = R15(i);
-									int g = G15(i);
-									int b = B15(i);
-
-									r = (r << 3) | (r >> 2);
-									g = (g << 3) | (g >> 2);
-									b = (b << 3) | (b >> 2);
+									int r = Rc15(i);
+									int g = Gc15(i);
+									int b = Bc15(i);
 
 									Lookup[i] = Pal->MatchRgb(Rgb24(r, g, b));
 								}
@@ -431,9 +497,9 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 											}
 											break;
 										}
-										case CsBgr24:
+										case System24BitColourSpace:
 										{
-											GBgr24 *s = (GBgr24*) (Src->Base + (y * Src->Line));
+											System24BitPixel *s = (System24BitPixel*) (Src->Base + (y * Src->Line));
 											for (int x=0; x<Src->x; x++)
 											{
 												*d++ = Lookup[Rgb15(s->r, s->g, s->b)];
@@ -441,9 +507,9 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 											}
 											break;
 										}
-										case CsArgb32:
+										case System32BitColourSpace:
 										{
-											ulong *s = (ulong*) (Src->Base + (y * Src->Line));
+											uint32 *s = (uint32*) (Src->Base + (y * Src->Line));
 											for (int x=0; x<Src->x; x++)
 											{
 												*d++ = Lookup[Rgb32To15(*s)];
@@ -506,36 +572,30 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 									}
 									break;
 								}
-								case CsBgr24:
+								case System24BitColourSpace:
 								{
-									uchar *S = Src->Base + (y * Src->Line);
-									for (int x=0; x<Src->x; x++)
+									System24BitPixel *s = (System24BitPixel*) (Src->Base + (y * Src->Line));
+
+									for (int x=0; x<Src->x; x++, s++)
 									{
 										int n = DitherIndex8[Mul8[x&7] + ym];
-										int b = *S++;
-										int g = *S++;
-										int r = *S++;
 										
-										*D++ =	(Div51[b] + (Mod51[b] > n)) +
-			        							Mul6[Div51[g] + (Mod51[g] > n)] +
-			        							Mul36[Div51[r] + (Mod51[r] > n)];
+										*D++ =	(Div51[s->b] + (Mod51[s->b] > n)) +
+			        							Mul6[Div51[s->g] + (Mod51[s->g] > n)] +
+			        							Mul36[Div51[s->r] + (Mod51[s->r] > n)];
 									}
 									break;
 								}
-								case CsArgb32:
+								case System32BitColourSpace:
 								{
-									ulong *S = (ulong*) (Src->Base + (y * Src->Line));
-									for (int x=0; x<Src->x; x++)
+									System32BitPixel *s = (System32BitPixel*) (Src->Base + (y * Src->Line));
+									for (int x=0; x<Src->x; x++, s++)
 									{
 										int n = DitherIndex8[Mul8[x&7] + ym];
-										int r = R32(*S);
-										int g = G32(*S);
-										int b = B32(*S);
-										S++;
 										
-										*D++ =	(Div51[b] + (Mod51[b] > n)) +
-			        							Mul6[Div51[g] + (Mod51[g] > n)] +
-			        							Mul36[Div51[r] + (Mod51[r] > n)];
+										*D++ =	(Div51[s->b] + (Mod51[s->b] > n)) +
+			        							Mul6[Div51[s->g] + (Mod51[s->g] > n)] +
+			        							Mul36[Div51[s->r] + (Mod51[s->r] > n)];
 									}
 									break;
 								}
@@ -550,35 +610,6 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 						// Floyd - Steinberg error diffusion... roughly anyway
 
 						if (!Pal) break;
-						ConvertLineFunc Konvertor = 0;
-						switch (Src->Cs)
-						{
-							default:
-							{
-								LgiAssert(!"Not impl.");
-								return false;
-							}
-							case CsRgb15:
-							{
-								Konvertor = ConvertLine15;
-								break;
-							}
-							case CsRgb16:
-							{
-								Konvertor = ConvertLine16;
-								break;
-							}
-							case CsBgr24:
-							{
-								Konvertor = ConvertLine24;
-								break;
-							}
-							case CsArgb32:
-							{
-								Konvertor = ConvertLine32;
-								break;
-							}
-						}
 
 						GSurface *pBuf = new GMemDC;
 						if (pBuf && pBuf->Create(Src->x+2, 2, 24))
@@ -595,91 +626,89 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 								int i;
 								for (i=0; i<LookupSize; i++)
 								{
-									int r = R15(i);
-									int g = G15(i);
-									int b = B15(i);
-
-									r = (r << 3) | (r >> 2);
-									g = (g << 3) | (g >> 2);
-									b = (b << 3) | (b >> 2);
+									int r = Rc15(i);
+									int g = Gc15(i);
+									int b = Bc15(i);
 
 									Lookup[i] = Pal->MatchRgb(Rgb24(r, g, b));
 								}
 
 								// Error diffusion buffer
-								uchar *Buffer[2];
-								Buffer[0] = (*pBuf)[0] + 3;
-								Buffer[1] = (*pBuf)[1] + 3;
+								System24BitPixel *Buffer[2];
+								Buffer[0] = ((System24BitPixel*) (*pBuf)[0]) + 1;
+								Buffer[1] = ((System24BitPixel*) (*pBuf)[0]) + 1;
 
 								// Depth converter function
-								Konvertor(Buffer[0], Src->Base, Src->x);
+								Convert(Buffer[0], Src, 0, SPal);
 								if (Src->y > 1)
 								{
-									Konvertor(Buffer[1], Src->Base + Src->Line, Src->x);
+									Convert(Buffer[1], Src, 1, SPal);
 								}
 
 								// Loop through pixels
 								for (int y=0; y<Src->y; y++)
 								{
-									uchar *S = Buffer[0];
-									uchar *SNext = Buffer[1];
-									uchar *D = Ptr;
+									System24BitPixel *src = Buffer[0];
+									System24BitPixel *next = Buffer[1];
+									uchar *dst = Ptr;
 
-									for (int x=0; x<Src->x; x++, D++, S+=3, SNext+=3)
+									for (int x=0; x<Src->x; x++, dst++, src++, next++)
 									{
-										COLOUR c24 = Rgb24(S[2], S[1], S[0]);
-										*D = Lookup[Rgb24To15(c24)];
+										*dst = Lookup[Rgb15(src->r, src->g, src->b)];
 
 										// cube nearest colour calc
 										// *D = (IndexLookup[S[2]]*36) + (IndexLookup[S[1]]*6) + IndexLookup[S[0]];
 
-										uchar *P = (uchar*) (*Pal)[*D];
+										GdcRGB *P = (*Pal)[*dst];
 
-										for (i=0; i<3; i++)
-										{
-											int k = 2-i;
-											int nError = S[k] - P[i];
-											if (nError != 0)
-											{
-												int nRemainder = 0;
-												int n;
-
-												// next pixel: 7/16th's
-												n = S[k+3] + (nError * 7 / 16);
-												n = limit(n, 0, 255);
-												nRemainder += n - S[k+3];
-												S[k+3] = n;
-
-												// below and to the left: 3/16th's
-												n = SNext[k-3] + (nError * 3 / 16);
-												n = limit(n, 0, 255);
-												nRemainder += n - SNext[k-3];
-												SNext[k-3] = n;
-
-												// below: 5/16th's
-												n = SNext[k] + (nError * 5 / 16);
-												n = limit(n, 0, 255);
-												nRemainder += n - SNext[k];
-												SNext[k] = n;
-
-												// below and to the right: 1/16th
-												n = SNext[k+3] + (nError - nRemainder);
-												n = limit(n, 0, 255);
-												SNext[k+3] = n;
-											}
+										#define Diffuse(c)									\
+										{													\
+											int nError = src->c - P->c;						\
+											if (nError != 0)								\
+											{												\
+												int nRemainder = 0;							\
+												int n;										\
+																							\
+												/* next pixel: 7/16th's */					\
+												n = src[1].c + (nError * 7 / 16);			\
+												n = limit(n, 0, 255);						\
+												nRemainder += n - src[1].c;					\
+												src[1].c = n;								\
+																							\
+												/* below and to the left: 3/16th's */		\
+												n = next[-1].c + (nError * 3 / 16);			\
+												n = limit(n, 0, 255);						\
+												nRemainder += n - next[-1].c;				\
+												next[-1].c = n;								\
+																							\
+												/* below: 5/16th's */						\
+												n = next[0].c + (nError * 5 / 16);			\
+												n = limit(n, 0, 255);						\
+												nRemainder += n - next[0].c;				\
+												next[0].c = n;								\
+																							\
+												/* below and to the right: 1/16th */		\
+												n = next[1].c + (nError - nRemainder);		\
+												n = limit(n, 0, 255);						\
+												next[1].c = n;								\
+											}												\
 										}
+										
+										Diffuse(r)
+										Diffuse(g)
+										Diffuse(b)
 									}
 									
 									if (y < Src->y - 1)
 									{
-										memcpy(Buffer[0], Buffer[1], Src->x * 3);
+										memcpy(Buffer[0], Buffer[1], Src->x * sizeof(*Buffer[0]));
 										if (y < Src->y - 2)
 										{
-											Konvertor(Buffer[1], Src->Base + ((y + 2) * Src->Line), Src->x);
+											Convert(Buffer[1], Src, y+2, SPal);
 										}
 										else
 										{
-											memset(Buffer[1]-3, 0, (Src->x + 2) * 3);
+											memset(Buffer[1]-1, 0, (Src->x + 2) * sizeof(*Buffer[0]));
 										}
 									}
 

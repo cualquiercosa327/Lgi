@@ -165,9 +165,9 @@ int GdcGif::out_line(uchar *pixels, int linewidth, int interlaced, int BitDepth)
 	        while (s < e)
 	        {
 	            pix = p + *pixels++;
-	            s->r = pix->R >> 3;
-	            s->g = pix->G >> 2;
-	            s->b = pix->B >> 3;
+	            s->r = pix->r >> 3;
+	            s->g = pix->g >> 2;
+	            s->b = pix->b >> 3;
 	            s++;
 	        }
 	        break;
@@ -182,9 +182,9 @@ int GdcGif::out_line(uchar *pixels, int linewidth, int interlaced, int BitDepth)
 	        while (s < e)
 	        {
 	            pix = p + *pixels++;
-	            s->r = pix->R >> 3;
-	            s->g = pix->G >> 2;
-	            s->b = pix->B >> 3;
+	            s->r = pix->r >> 3;
+	            s->g = pix->g >> 2;
+	            s->b = pix->b >> 3;
 	            s++;
 	        }
 	        break;
@@ -199,9 +199,9 @@ int GdcGif::out_line(uchar *pixels, int linewidth, int interlaced, int BitDepth)
 	        while (s < e)
 	        {
 	            pix = p + *pixels++;
-	            s->r = pix->R;
-	            s->g = pix->G;
-	            s->b = pix->B;
+	            s->r = pix->r;
+	            s->g = pix->g;
+	            s->b = pix->b;
 	            s->a = 255;
 	            s++;
 	        }
@@ -915,9 +915,9 @@ GFilter::IoStatus GdcGif::WriteImage(GStream *Out, GSurface *pDC)
 			GdcRGB *s = (*Pal)[i];
 			if (s)
 			{
-				*d++ = s->R;
-				*d++ = s->G;
-				*d++ = s->B;
+				*d++ = s->r;
+				*d++ = s->g;
+				*d++ = s->b;
 			}
 			else
 			{

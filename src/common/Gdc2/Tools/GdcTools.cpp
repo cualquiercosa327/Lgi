@@ -27,9 +27,9 @@ bool IsGreyScale(GSurface *pDC)
 				if (p)
 				{
 					int Grey = i * 255 / Pal->GetSize();
-					if (p->R != Grey ||
-						p->G != Grey ||
-						p->B != Grey)
+					if (p->r != Grey ||
+						p->g != Grey ||
+						p->b != Grey)
 					{
 						Status = false;
 					}
@@ -69,12 +69,12 @@ bool GreyScaleDC(GSurface *pDest, GSurface *pSrc)
 							GdcRGB *n = (*Pal)[i];
 							if (n)
 							{
-								uint32 r = ((uint32) n->R << 16) * FP_RED_TO_GREY;
-								uint32 g = ((uint32) n->G << 16) * FP_GREEN_TO_GREY;
-								uint32 b = ((uint32) n->B << 16) * FP_BLUE_TO_GREY;
+								uint32 r = ((uint32) n->r << 16) * FP_RED_TO_GREY;
+								uint32 g = ((uint32) n->g << 16) * FP_GREEN_TO_GREY;
+								uint32 b = ((uint32) n->b << 16) * FP_BLUE_TO_GREY;
 								Map[i] = (r + g + b) >> 16;
 
-								n->R = n->G = n->B = i;
+								n->r = n->g = n->b = i;
 							}
 						}
 
@@ -169,7 +169,7 @@ bool GreyScaleDC(GSurface *pDest, GSurface *pSrc)
 							GdcRGB *n = (*Pal)[i];
 							if (n)
 							{
-								n->R = n->G = n->B = i;
+								n->r = n->g = n->b = i;
 							}
 						}
 
@@ -220,9 +220,9 @@ bool InvertDC(GSurface *pDC)
 						{
 							for (int i=0; i<Pal->GetSize(); i++)
 							{
-								p[i].R = 255 - p[i].R;
-								p[i].G = 255 - p[i].G;
-								p[i].B = 255 - p[i].B;
+								p[i].r = 255 - p[i].r;
+								p[i].g = 255 - p[i].g;
+								p[i].b = 255 - p[i].b;
 							}
 							Status = true;
 						}
@@ -486,7 +486,7 @@ bool RemapDC(GSurface *pDC, GPalette *DestPal)
 					GdcRGB *p = (*SrcPal)[i];
 					if (p)
 					{
-						Remap[i] = DestPal->MatchRgb(Rgb24(p->R, p->G, p->B));
+						Remap[i] = DestPal->MatchRgb(Rgb24(p->r, p->g, p->b));
 					}
 					else
 					{
@@ -610,9 +610,9 @@ bool ResampleDC(GSurface *pDest, GSurface *pSrc, GRect *FromRgn, Progress *Prog)
 			if (p && i < p->GetSize())
 			{
 				GdcRGB *rgb = (*p)[i];
-				pal8[i].r = rgb->R;
-				pal8[i].g = rgb->G;
-				pal8[i].b = rgb->B;
+				pal8[i].r = rgb->r;
+				pal8[i].g = rgb->g;
+				pal8[i].b = rgb->b;
 			}
 			else
 			{

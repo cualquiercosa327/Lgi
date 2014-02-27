@@ -371,9 +371,9 @@ public:
 			for (i=0; i<Cols; i++)
 			{
 				GdcRGB *p = (*Out)[i];
-				p->R = Col[i].c[0];
-				p->G = Col[i].c[1];
-				p->B = Col[i].c[2];
+				p->r = Col[i].c[0];
+				p->g = Col[i].c[1];
+				p->b = Col[i].c[2];
 			}
 		}
 		else
@@ -490,9 +490,9 @@ public:
 				GdcRGB *out = (*Out)[i];
 				if (out)
 				{
-					out->R = in.r();
-					out->G = in.g();
-					out->B = in.b();
+					out->r = in.r();
+					out->g = in.g();
+					out->b = in.b();
 				}
 				else LgiAssert(0);
 			}

@@ -520,9 +520,9 @@ GFilter::IoStatus GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 										GdcRGB *c = (*p)[i];
 										if (c)
 										{
-											c->R = rmap[i] >> 8;
-											c->G = gmap[i] >> 8;
-											c->B = bmap[i] >> 8;
+											c->r = rmap[i] >> 8;
+											c->g = gmap[i] >> 8;
+											c->b = bmap[i] >> 8;
 										}
 									}
 									pDC->Palette(p);

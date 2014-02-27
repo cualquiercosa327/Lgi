@@ -319,7 +319,7 @@ COLOUR CBit(int DstBits, COLOUR c, int SrcBits, GPalette *Pal)
 				GdcRGB Grey, *p = 0;
 				if (!Pal || !(p = (*Pal)[c]))
 				{
-					Grey.R = Grey.G = Grey.B = c & 0xFF;
+					Grey.r = Grey.g = Grey.b = c & 0xFF;
 					p = &Grey;
 				}
 
@@ -327,15 +327,15 @@ COLOUR CBit(int DstBits, COLOUR c, int SrcBits, GPalette *Pal)
 				{
 					case 16:
 					{
-						return Rgb16(p->R, p->G, p->B);
+						return Rgb16(p->r, p->g, p->b);
 					}
 					case 24:
 					{
-						return Rgb24(p->R, p->G, p->B);
+						return Rgb24(p->r, p->g, p->b);
 					}
 					case 32:
 					{
-						return Rgb32(p->R, p->G, p->B);
+						return Rgb32(p->r, p->g, p->b);
 					}
 				}
 				break;

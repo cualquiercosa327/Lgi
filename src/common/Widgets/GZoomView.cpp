@@ -325,9 +325,9 @@ public:
 						GdcRGB *rgb = inPal ? (*inPal)[i] : NULL;
 						if (rgb)
 						{
-							pal[i].p32.r = rgb->R;
-							pal[i].p32.g = rgb->G;
-							pal[i].p32.b = rgb->B;
+							pal[i].p32.r = rgb->r;
+							pal[i].p32.g = rgb->g;
+							pal[i].p32.b = rgb->b;
 						}
 						else
 						{
@@ -568,9 +568,9 @@ public:
 				GdcRGB *rgb = inPal ? (*inPal)[i] : NULL;
 				if (rgb)
 				{
-					pal[i].p32.r = rgb->R;
-					pal[i].p32.g = rgb->G;
-					pal[i].p32.b = rgb->B;
+					pal[i].p32.r = rgb->r;
+					pal[i].p32.g = rgb->g;
+					pal[i].p32.b = rgb->b;
 				}
 				else
 				{
