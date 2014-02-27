@@ -582,9 +582,9 @@ GFilter::IoStatus GdcTiff::ProcessRead(GSurface *pDC)
 						GdcRGB *d = (*Pal)[i];
 						if (d)
 						{
-							d->R = s[(0*Colours)+i] >> 8;
-							d->G = s[(1*Colours)+i] >> 8;
-							d->B = s[(2*Colours)+i] >> 8;
+							d->r = s[(0*Colours)+i] >> 8;
+							d->g = s[(1*Colours)+i] >> 8;
+							d->b = s[(2*Colours)+i] >> 8;
 						}
 					}
 
