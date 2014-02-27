@@ -569,8 +569,9 @@ bool GReduceBitDepth(GSurface *pDC, int Bits, GPalette *Pal, GReduceOptions *Red
 			switch (Reduce->MatchType)
 			{
 				default:
-					LgiAssert(0);
+				{
 					break;
+				}
 				case CR_MATCH_HALFTONE:
 				{
 					Pal->CreateCube();

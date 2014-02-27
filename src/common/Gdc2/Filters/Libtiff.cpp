@@ -506,6 +506,30 @@ GFilter::IoStatus GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 						}
 						case 8:
 						{
+							// Read in the palette
+							uint16 *rmap = NULL, *gmap = NULL, *bmap = NULL;
+							int Result = Lib->TIFFGetField(tif, TIFFTAG_COLORMAP, &rmap, &gmap, &bmap);
+							if (Result)
+							{
+								GPalette *p = new GPalette;
+								if (p)
+								{
+									p->SetSize(256);
+									for (int i=0; i<256; i++)
+									{
+										GdcRGB *c = (*p)[i];
+										if (c)
+										{
+											c->R = rmap[i] >> 8;
+											c->G = gmap[i] >> 8;
+											c->B = bmap[i] >> 8;
+										}
+									}
+									pDC->Palette(p);
+								}								
+							}
+							
+							// Read in the pixels
 							for (unsigned y=0; y<img.height; y++)
 							{
 								uint8 *d = (*pDC)[y];
