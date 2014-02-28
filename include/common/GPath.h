@@ -202,6 +202,12 @@ public:
 #define NonPreMulOver24(c)		d->c = ((s.c * sa) + (DivLut[d->c * 255] * o)) / 255
 #define NonPreMulAlpha			d->a = (d->a + sa) - DivLut[d->a * sa]
 
+// Define 'uint8 dc, sc;' first. Takes 16bit source and 8bit dest.
+#define Rgb16to8PreMul(c)						\
+	sc = DivLut[(s->c >> 8) * (s->a >> 8)];		\
+	dc = DivLut[d->c * d->a];					\
+	d->c = sc + DivLut[dc * o]
+
 class LgiClass GSolidBrush : public GBrush
 {
 	COLOUR c32;

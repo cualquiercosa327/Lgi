@@ -1241,6 +1241,10 @@
 						>
 					</File>
 					<File
+						RelativePath=".\src\common\Gdc2\64Bit.cpp"
+						>
+					</File>
+					<File
 						RelativePath=".\src\common\Gdc2\8Bit.cpp"
 						>
 					</File>

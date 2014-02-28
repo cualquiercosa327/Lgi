@@ -11,6 +11,7 @@
 #include <math.h>
 
 #include "Gdc2.h"
+#include "GPath.h"
 
 // #define Div255(a)	DivLut[a]
 #define Div255(a)	((a)/255)
@@ -2494,6 +2495,63 @@ bool GdcApp32Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 							d++;
 							s++;
 						}
+					}
+
+					Ptr = (((uchar*) Ptr) + Dest->Line);
+				}
+				break;
+			}
+			case CsBgra64:
+			{
+				for (int y=0; y<Src->y; y++)
+				{
+					GBgra64 *s = (GBgra64*) (Src->Base + (y * Src->Line));
+					System32BitPixel *d = (System32BitPixel*) Ptr;
+
+					if (alpha == 255)
+					{
+						// 32bit alpha channel blt
+						GBgra64 *end = s + Src->x;
+						while (s < end)
+						{
+							if (s->a == 0xffff)
+							{
+								d->r = s->r >> 8;
+								d->g = s->g >> 8;
+								d->b = s->b >> 8;
+								d->a = s->a >> 8;
+							}
+							else if (s->a)
+							{
+								uint8 o = (0xffff - s->a) >> 8;
+								uint8 dc, sc;
+								
+								Rgb16to8PreMul(r);
+								Rgb16to8PreMul(g);
+								Rgb16to8PreMul(b);
+							}
+
+							d++;
+							s++;
+						}
+					}
+					else if (alpha)
+					{
+						// Const alpha + 32bit alpha channel blt
+						LgiAssert(0);
+						/*
+						for (int x=0; x<Src->x; x++)
+						{
+							uchar a = lookup[s->a];
+							uchar o = 255 - a;
+							d->r = lookup[s->r] + DivLut[d->r * o];
+							d->g = lookup[s->g] + DivLut[d->g * o];
+							d->b = lookup[s->b] + DivLut[d->b * o];
+							d->a = (d->a + a) - DivLut[d->a * a];
+							d++;
+							s++;
+						}
+						*/
 					}
 
 					Ptr = (((uchar*) Ptr) + Dest->Line);

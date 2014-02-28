@@ -240,6 +240,8 @@ enum GColourSpace
 	CsRgb48 = GDC_COLOUR_SPACE_3(CtRed, 0, CtGreen, 0, CtBlue, 0),
 	CsBgra64 = GDC_COLOUR_SPACE_4(CtBlue, 0, CtGreen, 0, CtRed, 0, CtAlpha, 0),
 	CsRgba64 = GDC_COLOUR_SPACE_4(CtRed, 0, CtGreen, 0, CtBlue, 0, CtAlpha, 0),
+	CsAbgr64 = GDC_COLOUR_SPACE_4(CtAlpha, 0, CtBlue, 0, CtGreen, 0, CtRed, 0),
+	CsArgb64 = GDC_COLOUR_SPACE_4(CtAlpha, 0, CtRed, 0, CtGreen, 0, CtBlue, 0),
 
 	// other colour spaces
 	CsHls32 = GDC_COLOUR_SPACE_4(CtHue, 0 /*16*/, CtRed, 8, CtGreen, 8, CtBlue, 8),
@@ -505,7 +507,7 @@ typedef uint8						ALPHA;
 
 #define G5bitTo8Bit(c)				( ((c) << 3) | ((c) >> 2) )
 #define G6bitTo8Bit(c)				( ((c) << 2) | ((c) >> 4) )
-#define G8bitTo16Bit(c)				( (((uint16)(c) & 0xff) << 8) | ((c) & 0xff) )
+#define G8bitTo16Bit(c)				( ((uint16)(c) << 8) | ((c) & 0xff) )
 
 /// Get the red component of a 24bit COLOUR
 #define R24(c24)					( ((c24)>>(C24R*8)) & 0xff )

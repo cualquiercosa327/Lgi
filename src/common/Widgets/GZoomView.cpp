@@ -481,7 +481,7 @@ public:
 					#define rop(c) dst->c = (DivLut[DivLut[dst->c * dst->a] * o] + DivLut[src->c * src->a]) * 255 / ra;
 
 					LgiAssert(Dst->GetColourSpace() == Src->GetColourSpace());
-					if (1) // SampleMode == GZoomView::SampleNearest)
+					if (SampleMode == GZoomView::SampleNearest)
 					{
 						while (src < end)
 						{
@@ -529,6 +529,49 @@ public:
 							dst->b = src->b >> 8;
 							dst++;
 							src += Factor;
+						}
+					}
+					else
+					{
+						LgiAssert(!"Impl me.");
+					}
+
+					break;
+				}
+				case CsBgra64:
+				{
+					GBgra64 *s = (GBgra64*) (*Src)[yy];
+					GBgra32 *d = (GBgra32*) (*Dst)[y];
+					GBgra64 *end = s + Ex;
+					s += Sx;
+
+					LgiAssert(Dst->GetColourSpace() == CsBgra32);
+
+					if (SampleMode == GZoomView::SampleNearest)
+					{
+						while (s < end)
+						{
+							if (s->a == 0xffff)
+							{
+								// Copy pixel
+								d->r = s->r >> 8;
+								d->g = s->g >> 8;
+								d->b = s->b >> 8;
+								d->a = s->a >> 8;
+							}
+							else if (s->a)
+							{
+								// Composite with dest
+								uint8 o = (0xffff - s->a) >> 8;
+								uint8 dc, sc;
+								
+								Rgb16to8PreMul(r);
+								Rgb16to8PreMul(g);
+								Rgb16to8PreMul(b);
+							}
+							
+							d++;
+							s += Factor;
 						}
 					}
 					else
@@ -666,6 +709,38 @@ public:
 					while (src < end)
 					{
 						Dst->Colour(Rgb24(src->r >> 8, src->g >> 8, src->b >> 8));
+						Dst->Rectangle(DstX, DstY, DstX+f, DstY+f);
+						DstX += Factor; 
+						src++;
+					}
+					break;
+				}
+				case CsRgba64:
+				{
+					GRgba64 *src = ((GRgba64*) (*Src)[SrcY]);
+					GRgba64 *end = src + EndX;
+					src += Sx;
+					
+					Dst->Op(GDC_ALPHA);
+					while (src < end)
+					{
+						Dst->Colour(Rgba32(src->r >> 8, src->g >> 8, src->b >> 8, src->a >> 8));
+						Dst->Rectangle(DstX, DstY, DstX+f, DstY+f);
+						DstX += Factor; 
+						src++;
+					}
+					break;
+				}
+				case CsBgra64:
+				{
+					GBgra64 *src = ((GBgra64*) (*Src)[SrcY]);
+					GBgra64 *end = src + EndX;
+					src += Sx;
+					
+					Dst->Op(GDC_ALPHA);
+					while (src < end)
+					{
+						Dst->Colour(Rgba32(src->r >> 8, src->g >> 8, src->b >> 8, src->a >> 8));
 						Dst->Rectangle(DstX, DstY, DstX+f, DstY+f);
 						DstX += Factor; 
 						src++;
@@ -889,6 +964,8 @@ public:
 				GRect s;
 				s.ZOff(TileSize-1, TileSize-1);
 				s.Offset(x * TileSize, y * TileSize);
+				
+				Dst->Op(GDC_ALPHA);
 				Dst->Blt(0, 0, Src, &s);
 			}
 
