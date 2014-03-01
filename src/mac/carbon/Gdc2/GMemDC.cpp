@@ -311,121 +311,112 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 	
 	if (x > 0 && y > 0 && Bits > 0)
 	{
-		if (LineLen == 0)
+		if (Bits <= 8)
 		{
-			int Align = 16 * 8;
-			LineLen = ((Bits * x + (Align - 1)) / Align) * (Align / 8);
+			d->Cs = CGColorSpaceCreateDeviceGray();
 		}
-		
-		if (d->BitsMem.Reset(new uchar[LineLen * y]))
+		else
 		{
-			d->Data = d->BitsMem;
-			if (Bits <= 8)
+			d->Cs = CGColorSpaceCreateDeviceRGB();
+		}
+			
+		d->Bmp = CGBitmapContextCreate
+			(
+				NULL,
+				x,
+				y,
+				Bits == 16 ? 5 : 8,
+				0,
+				d->Cs,
+				Bits == 32 ? AlphaType : kCGImageAlphaNoneSkipLast
+			);
+		if (d->Bmp)
+		{
+			CGImageAlphaInfo ai = CGBitmapContextGetAlphaInfo(d->Bmp);
+			LineLen = CGBitmapContextGetBytesPerRow(d->Bmp);
+			d->Data = (uint8*) CGBitmapContextGetData(d->Bmp);
+			
+			pMem = new GBmpMem;
+			if (pMem)
 			{
-				d->Cs = CGColorSpaceCreateDeviceGray();
-			}
-			else
-			{
-				d->Cs = CGColorSpaceCreateDeviceRGB();
-			}
-
-			d->Bmp = CGBitmapContextCreate
-				(
-					d->Data,
-					x,
-					y,
-					Bits == 16 ? 5 : 8,
-					LineLen,
-					d->Cs,
-					Bits == 32 ? AlphaType : kCGImageAlphaNone
-				);
-			if (d->Bmp)
-			{
-				CGImageAlphaInfo ai = CGBitmapContextGetAlphaInfo(d->Bmp);
-				
-				pMem = new GBmpMem;
-				if (pMem)
+				#if 1
+				pMem->Base = (uchar*)d->Data;
+				pMem->Line = LineLen;
+				#else
+				pMem->Base = ((uchar*)d->Data) + (LineLen * (y - 1));
+				pMem->Line = -LineLen;
+				#endif
+				pMem->x = x;
+				pMem->y = y;
+				switch (CGBitmapContextGetBitsPerPixel(d->Bmp))
 				{
-					#if 1
-					pMem->Base = (uchar*)d->Data;
-					pMem->Line = LineLen;
-					#else
-					pMem->Base = ((uchar*)d->Data) + (LineLen * (y - 1));
-					pMem->Line = -LineLen;
-					#endif
-					pMem->x = x;
-					pMem->y = y;
-					switch (CGBitmapContextGetBitsPerPixel(d->Bmp))
-					{
-						case 8:
-							pMem->Cs = ai == kCGImageAlphaOnly ? CsAlpha8 : CsIndex8;
-							break;
-						case 24:
-						case 32:
-							switch (ai)
-							{
-								case kCGImageAlphaNone:
-									pMem->Cs = CsRgb24;
-									break;
-								case kCGImageAlphaLast:               /* For example, non-premultiplied RGBA */
-								case kCGImageAlphaPremultipliedLast:  /* For example, premultiplied RGBA */
-									pMem->Cs = CsRgba32;
-									break;
-								case kCGImageAlphaFirst:              /* For example, non-premultiplied ARGB */
-								case kCGImageAlphaPremultipliedFirst: /* For example, premultiplied ARGB */
-									pMem->Cs = CsArgb32;
-									break;
-								case kCGImageAlphaNoneSkipLast:       /* For example, RGBX. */
-									pMem->Cs = CsRgbx32;
-									break;
-								case kCGImageAlphaNoneSkipFirst:      /* For example, XRGB. */
-									pMem->Cs = CsXrgb32;
-									break;
-								default:
-									LgiAssert(0);
-									break;
-							}
-							break;
-						default:
-							LgiAssert(0);
-							break;
-					}
-					pMem->Flags = GDC_ON_SCREEN;
-					ColourSpace = pMem->Cs;
-					
-					int NewOp = (pApp) ? Op() : GDC_SET;
-
-					if ((Flags & GDC_OWN_APPLICATOR) && !(Flags & GDC_CACHED_APPLICATOR))
-					{
-						DeleteObj(pApp);
-					}
-
-					for (int i=0; i<GDC_CACHE_SIZE; i++)
-					{
-						DeleteObj(pAppCache[i]);
-					}
-
-					if (NewOp < GDC_CACHE_SIZE && !DrawOnAlpha())
-					{
-						pApp = (pAppCache[NewOp]) ? pAppCache[NewOp] : pAppCache[NewOp] = CreateApplicator(NewOp);
-						Flags &= ~GDC_OWN_APPLICATOR;
-						Flags |= GDC_CACHED_APPLICATOR;
-					}
-					else
-					{
-						pApp = CreateApplicator(NewOp);
-						Flags &= ~GDC_CACHED_APPLICATOR;
-						Flags |= GDC_OWN_APPLICATOR;
-					}
-
-					Clip.ZOff(X()-1, Y()-1);
-					
-					Status = true;
+					case 8:
+						pMem->Cs = ai == kCGImageAlphaOnly ? CsAlpha8 : CsIndex8;
+						break;
+					case 24:
+					case 32:
+						switch (ai)
+						{
+							case kCGImageAlphaNone:
+								pMem->Cs = CsRgb24;
+								break;
+							case kCGImageAlphaLast:               /* For example, non-premultiplied RGBA */
+							case kCGImageAlphaPremultipliedLast:  /* For example, premultiplied RGBA */
+								pMem->Cs = CsRgba32;
+								break;
+							case kCGImageAlphaFirst:              /* For example, non-premultiplied ARGB */
+							case kCGImageAlphaPremultipliedFirst: /* For example, premultiplied ARGB */
+								pMem->Cs = CsArgb32;
+								break;
+							case kCGImageAlphaNoneSkipLast:       /* For example, RGBX. */
+								pMem->Cs = CsRgbx32;
+								break;
+							case kCGImageAlphaNoneSkipFirst:      /* For example, XRGB. */
+								pMem->Cs = CsXrgb32;
+								break;
+							default:
+								LgiAssert(0);
+								break;
+						}
+						break;
+					default:
+						LgiAssert(0);
+						break;
 				}
+				pMem->Flags = GDC_ON_SCREEN;
+				ColourSpace = pMem->Cs;
+				
+				int NewOp = (pApp) ? Op() : GDC_SET;
+
+				if ((Flags & GDC_OWN_APPLICATOR) && !(Flags & GDC_CACHED_APPLICATOR))
+				{
+					DeleteObj(pApp);
+				}
+
+				for (int i=0; i<GDC_CACHE_SIZE; i++)
+				{
+					DeleteObj(pAppCache[i]);
+				}
+
+				if (NewOp < GDC_CACHE_SIZE && !DrawOnAlpha())
+				{
+					pApp = (pAppCache[NewOp]) ? pAppCache[NewOp] : pAppCache[NewOp] = CreateApplicator(NewOp);
+					Flags &= ~GDC_OWN_APPLICATOR;
+					Flags |= GDC_CACHED_APPLICATOR;
+				}
+				else
+				{
+					pApp = CreateApplicator(NewOp);
+					Flags &= ~GDC_CACHED_APPLICATOR;
+					Flags |= GDC_OWN_APPLICATOR;
+				}
+
+				Clip.ZOff(X()-1, Y()-1);
+				
+				Status = true;
 			}
-			else LgiTrace("%s:%i - CGBitmapContextCreate(%i,%i,%i[,%i]) failed, Cs=%p.\n", _FL, x, y, Bits, LineLen, d->Cs);
 		}
-		else LgiTrace("%s:%i - Failed to allocate bitmap data.\n", _FL);
+		else LgiTrace("%s:%i - CGBitmapContextCreate(%i,%i,%i[,%i]) failed, Cs=%p.\n", _FL, x, y, Bits, LineLen, d->Cs);
 	}
 	
 	return Status;

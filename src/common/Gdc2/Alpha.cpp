@@ -12,6 +12,7 @@
 
 #include "Gdc2.h"
 #include "GPath.h"
+#include "GPixelRops.h"
 
 // #define Div255(a)	DivLut[a]
 #define Div255(a)	((a)/255)
@@ -2058,6 +2059,7 @@ void GdcApp32Alpha::Rectangle(int x, int y)
 	}
 }
 
+
 bool GdcApp32Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 {
 	if (!Src) return 0;
@@ -2261,7 +2263,16 @@ bool GdcApp32Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 		{
 			default:
 			{
-				LgiAssert(!"Not impl.");
+				GUniversalBlt(	System32BitColourSpace,
+								Ptr,
+								Dest->Line,
+								
+								Src->Cs,
+								Src->Base,
+								Src->Line,
+								
+								Src->x,
+								Src->y);
 				break;
 			}
 			case CsIndex8:

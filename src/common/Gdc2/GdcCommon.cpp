@@ -543,6 +543,21 @@ const char *GColourSpaceToString(GColourSpace cs)
 	return start;
 }
 
+bool GColourSpaceHasAlpha(GColourSpace Cs)
+{
+	while (Cs)
+	{
+		uint8 c = Cs & 0xff;
+		GComponentType type = (GComponentType)(c >> 4);
+		if (type == CtAlpha)
+			return true;
+		
+		((int&)Cs) >>= 8;
+	}
+	
+	return false;
+}
+
 int GColourSpaceToBits(GColourSpace ColourSpace)
 {
 	uint32 c = ColourSpace;
@@ -672,5 +687,232 @@ GSurface *GInlineBmp::Create()
 	}
 
 	return pDC;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////
+#include "GPixelRops.h"
+
+bool GUniversalBlt(	GColourSpace OutCs,
+					uint8 *OutPtr,
+					int OutLine,
+					
+					GColourSpace InCs,
+					uint8 *InPtr,
+					int InLine,
+					
+					int width,
+					int height)
+{
+	if (OutCs == CsNone ||
+		OutPtr == NULL ||
+		OutLine == 0 ||
+		InCs == CsNone ||
+		InPtr == NULL ||
+		InLine == 0)
+	{
+		LgiAssert(!"Invalid params");
+		return false;
+	}
+	
+	if (InCs == OutCs)
+	{
+		int Depth = GColourSpaceToBits(InCs);
+		int PixelBytes = Depth >> 3;
+		int ScanBytes = width * PixelBytes;
+		LgiAssert(Depth % 8 == 0);
+		
+		// No conversion so just copy memory
+		for (int y=0; y<height; y++)
+		{
+			memcpy(OutPtr, InPtr, ScanBytes);
+			OutPtr += OutLine;
+			InPtr += InLine;
+		}
+		
+		return true;
+	}
+	
+	bool InAlpha = GColourSpaceHasAlpha(InCs);
+	bool OutAlpha = GColourSpaceHasAlpha(OutCs);
+	if (InAlpha && OutAlpha)
+	{
+		// Compositing
+		for (int y=0; y<height; y++)
+		{
+			switch (CsMapping(OutCs, InCs))
+			{
+				#define CompCase(OutType, InType) \
+					case CsMapping(Cs##OutType, Cs##InType): \
+						CompositeNonPreMul32((G##OutType*)OutPtr, (G##InType*)InPtr, width); \
+						break
+
+				CompCase(Rgba32, Bgra32);
+				CompCase(Rgba32, Abgr32);
+				CompCase(Rgba32, Argb32);
+
+				CompCase(Bgra32, Rgba32);
+				CompCase(Bgra32, Abgr32);
+				CompCase(Bgra32, Argb32);
+
+				CompCase(Argb32, Rgba32);
+				CompCase(Argb32, Bgra32);
+				CompCase(Argb32, Abgr32);
+
+				CompCase(Abgr32, Rgba32);
+				CompCase(Abgr32, Bgra32);
+				CompCase(Abgr32, Argb32);
+				
+				#undef CompCase
+
+				default:
+					LgiAssert(!"Not impl.");
+					return false;
+			}
+
+			OutPtr += OutLine;
+			InPtr += InLine;
+		}
+	}
+	else if (OutAlpha)
+	{
+		// Dest Alpha
+		for (int y=0; y<height; y++)
+		{
+			switch (CsMapping(OutCs, InCs))
+			{
+				#define CopyCase(OutType, InType) \
+					case CsMapping(Cs##OutType, Cs##InType): \
+						Copy24to32((G##OutType*)OutPtr, (G##InType*)InPtr, width); \
+						break
+
+				CopyCase(Rgba32, Rgb24);
+				CopyCase(Rgba32, Bgr24);
+				CopyCase(Rgba32, Rgbx32);
+				CopyCase(Rgba32, Bgrx32);
+				CopyCase(Rgba32, Xrgb32);
+				CopyCase(Rgba32, Xbgr32);
+
+				CopyCase(Bgra32, Rgb24);
+				CopyCase(Bgra32, Bgr24);
+				CopyCase(Bgra32, Rgbx32);
+				CopyCase(Bgra32, Bgrx32);
+				CopyCase(Bgra32, Xrgb32);
+				CopyCase(Bgra32, Xbgr32);
+
+				CopyCase(Argb32, Rgb24);
+				CopyCase(Argb32, Bgr24);
+				CopyCase(Argb32, Rgbx32);
+				CopyCase(Argb32, Bgrx32);
+				CopyCase(Argb32, Xrgb32);
+				CopyCase(Argb32, Xbgr32);
+
+				CopyCase(Abgr32, Rgb24);
+				CopyCase(Abgr32, Bgr24);
+				CopyCase(Abgr32, Rgbx32);
+				CopyCase(Abgr32, Bgrx32);
+				CopyCase(Abgr32, Xrgb32);
+				CopyCase(Abgr32, Xbgr32);
+				
+				#undef CopyCase
+			
+				default:
+					LgiAssert(!"Not impl.");
+					return false;
+			}
+
+			OutPtr += OutLine;
+			InPtr += InLine;
+		}
+	}
+	else
+	{
+		// No Dest Alpha
+		for (int y=0; y<height; y++)
+		{
+			switch (CsMapping(OutCs, InCs))
+			{
+				#define CopyCase(OutType, InType) \
+					case CsMapping(Cs##OutType, Cs##InType): \
+						Copy24((G##OutType*)OutPtr, (G##InType*)InPtr, width); \
+						break
+
+				CopyCase(Rgb24, Bgr24);
+				CopyCase(Rgb24, Rgba32);
+				CopyCase(Rgb24, Bgra32);
+				CopyCase(Rgb24, Argb32);
+				CopyCase(Rgb24, Abgr32);
+				CopyCase(Rgb24, Rgbx32);
+				CopyCase(Rgb24, Bgrx32);
+				CopyCase(Rgb24, Xrgb32);
+				CopyCase(Rgb24, Xbgr32);
+
+				CopyCase(Bgr24, Rgb24);
+				CopyCase(Bgr24, Rgba32);
+				CopyCase(Bgr24, Bgra32);
+				CopyCase(Bgr24, Argb32);
+				CopyCase(Bgr24, Abgr32);
+				CopyCase(Bgr24, Rgbx32);
+				CopyCase(Bgr24, Bgrx32);
+				CopyCase(Bgr24, Xrgb32);
+				CopyCase(Bgr24, Xbgr32);
+
+				CopyCase(Rgbx32, Rgb24);
+				CopyCase(Rgbx32, Bgr24);
+				CopyCase(Rgbx32, Rgba32);
+				CopyCase(Rgbx32, Bgra32);
+				CopyCase(Rgbx32, Argb32);
+				CopyCase(Rgbx32, Abgr32);
+				CopyCase(Rgbx32, Rgbx32);
+				CopyCase(Rgbx32, Bgrx32);
+				CopyCase(Rgbx32, Xrgb32);
+				CopyCase(Rgbx32, Xbgr32);
+				
+				CopyCase(Bgrx32, Rgb24);
+				CopyCase(Bgrx32, Bgr24);
+				CopyCase(Bgrx32, Rgba32);
+				CopyCase(Bgrx32, Bgra32);
+				CopyCase(Bgrx32, Argb32);
+				CopyCase(Bgrx32, Abgr32);
+				CopyCase(Bgrx32, Rgbx32);
+				CopyCase(Bgrx32, Bgrx32);
+				CopyCase(Bgrx32, Xrgb32);
+				CopyCase(Bgrx32, Xbgr32);
+
+				CopyCase(Xrgb32, Rgb24);
+				CopyCase(Xrgb32, Bgr24);
+				CopyCase(Xrgb32, Rgba32);
+				CopyCase(Xrgb32, Bgra32);
+				CopyCase(Xrgb32, Argb32);
+				CopyCase(Xrgb32, Abgr32);
+				CopyCase(Xrgb32, Rgbx32);
+				CopyCase(Xrgb32, Bgrx32);
+				CopyCase(Xrgb32, Xrgb32);
+				CopyCase(Xrgb32, Xbgr32);
+				
+				CopyCase(Xbgr32, Rgb24);
+				CopyCase(Xbgr32, Bgr24);
+				CopyCase(Xbgr32, Rgba32);
+				CopyCase(Xbgr32, Bgra32);
+				CopyCase(Xbgr32, Argb32);
+				CopyCase(Xbgr32, Abgr32);
+				CopyCase(Xbgr32, Rgbx32);
+				CopyCase(Xbgr32, Bgrx32);
+				CopyCase(Xbgr32, Xrgb32);
+				CopyCase(Xbgr32, Xbgr32);
+				
+				#undef CopyCase
+			
+				default:
+					LgiAssert(!"Not impl.");
+					return false;
+			}
+
+			OutPtr += OutLine;
+			InPtr += InLine;
+		}
+	}
+	
+	
+	return true;
 }
 

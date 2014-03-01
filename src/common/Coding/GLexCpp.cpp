@@ -2,7 +2,6 @@
 #include <ctype.h>
 #include <string.h>
 
-static const char *White = " \r\t\n";
 #define iswhite(s)		(s && strchr(White, s) != 0)
 #define isword(s)		(s && (IsDigit(s) || IsAlpha(s) || (s) == '_') )
 #define skipws(s)		while (*s) \
@@ -50,8 +49,6 @@ char16 *LexCpp
 	int *LineCount
 )
 {
-    char16 *Status = NULL;
-
     LexAgain:
     skipws(s);
     if (*s == '#')

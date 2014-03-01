@@ -161,6 +161,7 @@
 		34DA5CB70DE0DE930050C7E4 /* GScrollBar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34DA5CB60DE0DE930050C7E4 /* GScrollBar.cpp */; };
 		34E51DB00D2EFCCB0021AA08 /* GList.h in Headers */ = {isa = PBXBuildFile; fileRef = 34E51DAF0D2EFCCB0021AA08 /* GList.h */; };
 		34F2E65A0E1849D300E8DA6A /* GTree.h in Headers */ = {isa = PBXBuildFile; fileRef = 34F2E6590E1849D300E8DA6A /* GTree.h */; };
+		34F45B9E18C161E40040FD99 /* GPixelRops.h in Headers */ = {isa = PBXBuildFile; fileRef = 34F45B9D18C161E40040FD99 /* GPixelRops.h */; };
 		34F96DAA0DB9B82B009C64B8 /* GDragAndDrop.h in Headers */ = {isa = PBXBuildFile; fileRef = 34F96DA90DB9B82B009C64B8 /* GDragAndDrop.h */; };
 		8DC2EF530486A6940098B216 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C1666FE841158C02AAC07 /* InfoPlist.strings */; };
 /* End PBXBuildFile section */
@@ -323,6 +324,7 @@
 		34DA5CB60DE0DE930050C7E4 /* GScrollBar.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GScrollBar.cpp; path = ../../common/Widgets/GScrollBar.cpp; sourceTree = "<group>"; };
 		34E51DAF0D2EFCCB0021AA08 /* GList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GList.h; path = ../../../include/common/GList.h; sourceTree = "<group>"; };
 		34F2E6590E1849D300E8DA6A /* GTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GTree.h; path = ../../../include/common/GTree.h; sourceTree = "<group>"; };
+		34F45B9D18C161E40040FD99 /* GPixelRops.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GPixelRops.h; path = ../../../include/common/GPixelRops.h; sourceTree = "<group>"; };
 		34F96DA90DB9B82B009C64B8 /* GDragAndDrop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GDragAndDrop.h; path = ../../../include/common/GDragAndDrop.h; sourceTree = "<group>"; };
 		8DC2EF5A0486A6940098B216 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8DC2EF5B0486A6940098B216 /* Lgi.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Lgi.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -457,6 +459,7 @@
 				344B738208D8408500D49457 /* Font */,
 				3446E31F08D0E9BB005024EB /* Applicators */,
 				344B738008D8406900D49457 /* GdcCommon.cpp */,
+				34F45B9D18C161E40040FD99 /* GPixelRops.h */,
 				3446E2CF08D0E5C2005024EB /* Gdc2.h */,
 				3446E2B508D0E4AF005024EB /* Gdc2.cpp */,
 				344AF36708E04156004ED88C /* GSurface.cpp */,
@@ -843,6 +846,7 @@
 				34B28AF2143FA6AF0023662F /* GPath.h in Headers */,
 				34A11A7E167534A500FCC5D7 /* GMutex.h in Headers */,
 				347CB600172A97D600AC3EA6 /* GTableLayout.h in Headers */,
+				34F45B9E18C161E40040FD99 /* GPixelRops.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

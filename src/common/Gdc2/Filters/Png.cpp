@@ -66,21 +66,25 @@ public:
 	LibPng() :
 		GLibrary
 		(
-			#if defined(__CYGWIN__)
-			"cygpng12"
+			#if defined(MAC) || defined(LINUX)
+				"libpng"
 			#else
-			"libpng9"
-            #if defined(WIN64)
-            "x64"
-            #else
-            "x32"
-            #endif
+				#if defined(__CYGWIN__)
+					"cygpng12"
+				#else
+					"libpng9"
+					#if defined(WIN64)
+					"x64"
+					#else
+					"x32"
+					#endif
+				#endif
 			#endif
 		)
 	{
 		if (!IsLoaded())
 		{
-			#ifdef LINUX
+			#if defined(MAC) || defined(LINUX)
 			if (!Load("/opt/local/lib/libpng.dylib"))
 			#endif
 			{

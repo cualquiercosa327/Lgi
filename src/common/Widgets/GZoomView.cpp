@@ -298,6 +298,111 @@ public:
 		System32BitPixel p32;
 	};
 	
+	template <typename OutPx, typename InPx>
+	void ScaleDown24(OutPx *out, InPx *in, int len, int Factor)
+	{
+		if (SampleMode == GZoomView::SampleNearest)
+		{
+			InPx *end = in + len;
+
+			while (in < end)
+			{
+				out->r = in->r;
+				out->g = in->g;
+				out->b = in->b;
+				in += Factor;
+				out++;
+			}
+		}
+		/*
+		else if (SampleMode == GZoomView::SampleAverage)
+		{
+			System24BitPixel *src[MAX_FACTOR];
+			for (int i=0; i<Factor; i++)
+			{
+				src[i] = ((System24BitPixel*) (*Src)[yy + i]) + Rgn.x1;
+			}
+			
+			int Fsq = Factor * Factor;
+			while (dst < end)
+			{
+				int r = 0, g = 0, b = 0;
+				
+				for (int f=0; f<Factor; f++)
+				{
+					System24BitPixel *e = src[f] + Factor;
+					while (src[f] < e)
+					{
+						r += src[f]->r;
+						g += src[f]->g;
+						b += src[f]->b;
+						src[f]++;
+					}
+				}
+				
+				dst->r = r / Fsq;
+				dst->g = g / Fsq;
+				dst->b = b / Fsq;
+				
+				dst++;
+			}
+		
+		}
+		*/
+	}
+
+	template <typename OutPx, typename InPx>
+	void ScaleDown24To32(OutPx *out, InPx *in, int len, int Factor)
+	{
+		if (SampleMode == GZoomView::SampleNearest)
+		{
+			InPx *end = in + len;
+
+			while (in < end)
+			{
+				out->r = in->r;
+				out->g = in->g;
+				out->b = in->b;
+				out->a = 0xff;
+				in += Factor;
+				out++;
+			}
+		}
+	}
+
+	template <typename InPx>
+	void ScaleDown24(GColourSpace outCs, void *out, InPx *in, int len, int Factor)
+	{
+		switch (outCs)
+		{
+			#define DownCase(type) \
+				case Cs##type: \
+					ScaleDown24((G##type*)out, in, len, Factor); \
+					break;
+			DownCase(Rgb24)
+			DownCase(Bgr24)
+			DownCase(Rgbx32)
+			DownCase(Bgrx32)
+			DownCase(Xrgb32)
+			DownCase(Xbgr32)
+			#undef DownCase
+
+			#define DownCase(type) \
+				case Cs##type: \
+					ScaleDown24To32((G##type*)out, in, len, Factor); \
+					break;
+			DownCase(Rgba32)
+			DownCase(Bgra32)
+			DownCase(Argb32)
+			DownCase(Abgr32)
+			#undef DownCase
+			
+			default:
+				LgiAssert(0);
+				break;
+		}
+	}
+	
 	void ScaleDown(GSurface *Dst, GSurface *Src, int Sx, int Sy, int Factor)
 	{
 		// ImageViewTarget *App = View->GetApp();
@@ -412,65 +517,20 @@ public:
 					}
 					break;
 				}
-				case System24BitColourSpace:
-				{
-					System24BitPixel *dst = (System24BitPixel*) (*Dst)[y];
 					
-					LgiAssert(Dst->GetColourSpace() == Src->GetColourSpace());
-					if (SampleMode == GZoomView::SampleNearest)
-					{
-						System24BitPixel *src = (System24BitPixel*) (*Src)[yy];
-						System24BitPixel *end = src + Ex;
-						src += Sx;
+				#define ScaleUpCase(type, bits) \
+					case Cs##type: \
+						ScaleDown##bits(Dst->GetColourSpace(), (*Dst)[y], (G##type*) (*Src)[yy] + Sx, Ex - Sx, Factor); \
+						break;
 
-						while (src < end)
-						{
-							*dst = *src;
-							src += Factor;
-							dst++;
-						}
-					}
-					/*
-					else if (SampleMode == GZoomView::SampleAverage)
-					{
-						System24BitPixel *src[MAX_FACTOR];
-						for (int i=0; i<Factor; i++)
-						{
-							src[i] = ((System24BitPixel*) (*Src)[yy + i]) + Rgn.x1;
-						}
-						
-						int Fsq = Factor * Factor;
-						while (dst < end)
-						{
-							int r = 0, g = 0, b = 0;
-							
-							for (int f=0; f<Factor; f++)
-							{
-								System24BitPixel *e = src[f] + Factor;
-								while (src[f] < e)
-								{
-									r += src[f]->r;
-									g += src[f]->g;
-									b += src[f]->b;
-									src[f]++;
-								}
-							}
-							
-							dst->r = r / Fsq;
-							dst->g = g / Fsq;
-							dst->b = b / Fsq;
-							
-							dst++;
-						}
+				ScaleUpCase(Rgbx32, 24);
+				ScaleUpCase(Xrgb32, 24);
+				ScaleUpCase(Bgrx32, 24);
+				ScaleUpCase(Xbgr32, 24);
+
+				ScaleUpCase(Rgb24, 24);
+				ScaleUpCase(Bgr24, 24);
 					
-					}
-					*/
-					else					
-					{
-						LgiAssert(!"Impl me.");
-					}
-					break;
-				}
 				case System32BitColourSpace:
 				{
 					System32BitPixel *src = (System32BitPixel*) (*Src)[yy];
@@ -936,7 +996,10 @@ public:
 		{
 			// Draw background
 			if (Callback)
-				Callback->DrawBackground(Dst, &Dst->Bounds());
+            {
+                GRect r = Dst->Bounds();
+				Callback->DrawBackground(Dst, &r);
+            }
 			else
 			{
 				Dst->Colour(LC_WORKSPACE, 24);
@@ -1426,7 +1489,6 @@ void GZoomView::OnPaint(GSurface *pDC)
 	{
 		if (!d->Tile)
 			d->ResetTiles();
-		int f = d->Factor();
 
 		int Sx = 0, Sy = 0;
 		GetScrollPos(Sx, Sy);

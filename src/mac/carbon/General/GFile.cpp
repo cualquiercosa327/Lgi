@@ -371,11 +371,7 @@ bool FileExists(const char *FileName, char *CorrectCase)
 
 bool ResolveShortcut(const char *LinkFile, char *Path, int Len)
 {
-	bool Status = false;
-
-	LgiAssert(0);
-
-	return Status;
+	return readlink (LinkFile, Path, Len) > 0;
 }
 
 void WriteStr(GFile &f, const char *s)

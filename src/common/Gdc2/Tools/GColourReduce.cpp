@@ -318,8 +318,6 @@ public:
 	{
 		for (int y=0; y<In->Y(); y++)
 		{
-			bool fuzzy = ColUsed > DestSize;
-
 			switch (In->GetColourSpace())
 			{
 				#define ScanCase24(type) \

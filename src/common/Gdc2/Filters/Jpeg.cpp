@@ -37,11 +37,15 @@ public:
 	GdcJpegPriv() :
 		GLibrary
 		(
-			"libjpeg9"
-			#ifdef WIN64
-			"x64"
+			#if defined(MAC) || defined(LINUX)
+			"libjpeg"
 			#else
-			"x32"
+				"libjpeg9"
+				#ifdef WIN64
+				"x64"
+				#else
+				"x32"
+				#endif
 			#endif
 		)
 	{
@@ -596,7 +600,7 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 				range_table[i+(MaxRGB+1)]=(uchar) i;
 				range_table[i+(MaxRGB+1)*2]=MaxRGB;
 			}
-			uchar *range_limit=range_table+(MaxRGB+1);
+			// uchar *range_limit=range_table+(MaxRGB+1);
 
 			for (i=0; i<=MaxRGB; i++)
 			{
