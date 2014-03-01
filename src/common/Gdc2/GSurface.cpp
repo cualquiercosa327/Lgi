@@ -1489,7 +1489,19 @@ GColour GSurface::Colour(GColour c)
 	switch (GColourSpaceToBits(Cs))
 	{
 		case 8:
-			pApp->c = c.c8();
+			if (c.GetColourSpace() == CsIndex8)
+			{
+				pApp->c = c.c8();
+			}
+			else
+			{
+				GPalette *p = Palette();
+				if (p)
+				{
+					pApp->c = p->MatchRgb(Rgb32To24(c32));
+				}
+				else LgiAssert(0);
+			}
 			break;
 		case 15:
 			pApp->c = Rgb32To15(c32);

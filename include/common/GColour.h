@@ -104,9 +104,14 @@ public:
 	}
 
 	/// Conversion from COLOUR
-	GColour(COLOUR c, int bits)
+	GColour(COLOUR c, int bits, GPalette *palette = NULL)
 	{
-		Set(c, bits);
+		Set(c, bits, palette);
+	}
+	
+	GColourSpace GetColourSpace()
+	{
+		return space;
 	}
 
 	bool Transparent()
@@ -125,7 +130,7 @@ public:
 	}
 
 	/// Sets the colour
-	void Set(COLOUR c, int bits)
+	void Set(COLOUR c, int bits, GPalette *palette = NULL)
 	{
 		pal = 0;
 		switch (bits)
@@ -134,6 +139,7 @@ public:
 			{
 				index = c;
 				space = CsIndex8;
+				pal = palette;
 				break;
 			}
 			case 15:

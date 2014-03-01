@@ -781,16 +781,8 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 		HPALETTE sPal = 0, dPal = 0;
 		if (Pal)
 		{
-			// Pal->Update();
 			Src->Update(-1);
 			dPal = SelectPalette(hDestDC, Pal->Handle(), false);
-
-			/*
-			if (GdcD->GetBits() == 8)
-			{
-				RealizePalette(hDestDC);
-			}
-			*/
 		}
 
 		POINT Old;

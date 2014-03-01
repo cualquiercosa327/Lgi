@@ -513,7 +513,7 @@ bool GdcApp24Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case CsRgb15:
+			case System15BitColourSpace:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
@@ -535,7 +535,7 @@ bool GdcApp24Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case CsRgb16:
+			case System16BitColourSpace:
 			{
 				for (int y=0; y<Src->y; y++)
 				{

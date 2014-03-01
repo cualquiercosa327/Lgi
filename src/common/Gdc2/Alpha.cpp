@@ -461,7 +461,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case CsRgb15:
+			case System15BitColourSpace:
 			{
 				GRgb24 dc[256];
 				CreatePaletteLut(dc, DPal);
@@ -499,7 +499,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case CsRgb16:
+			case System16BitColourSpace:
 			{
 				GRgb24 dc[256];
 				CreatePaletteLut(dc, DPal);
@@ -671,7 +671,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case CsRgb15:
+			case System15BitColourSpace:
 			{
 				GRgb24 dc[256];
 				CreatePaletteLut(dc, DPal, oma);
@@ -698,7 +698,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case CsRgb16:
+			case System16BitColourSpace:
 			{
 				GRgb24 dc[256];
 				CreatePaletteLut(dc, DPal, oma);
@@ -1298,7 +1298,7 @@ bool GdcApp16Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case CsRgb15:
+			case System15BitColourSpace:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
@@ -1331,7 +1331,7 @@ bool GdcApp16Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case CsRgb16:
+			case System16BitColourSpace:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
@@ -1693,7 +1693,7 @@ bool GdcApp24Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case CsRgb15:
+			case System15BitColourSpace:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
@@ -1728,7 +1728,7 @@ bool GdcApp24Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case CsRgb16:
+			case System16BitColourSpace:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
@@ -1866,7 +1866,7 @@ bool GdcApp24Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case CsRgb15:
+			case System15BitColourSpace:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
@@ -1888,7 +1888,7 @@ bool GdcApp24Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case CsRgb16:
+			case System16BitColourSpace:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
@@ -2121,7 +2121,7 @@ bool GdcApp32Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case CsRgb15:
+			case System15BitColourSpace:
 			{
 				for (int y=0; y<Src->y; y++)
 				{
@@ -2154,7 +2154,7 @@ bool GdcApp32Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case CsRgb16:
+			case System16BitColourSpace:
 			{
 				for (int y=0; y<Src->y; y++)
 				{

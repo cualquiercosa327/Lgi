@@ -77,21 +77,14 @@ void LgiDrawIcon(GSurface *pDC, int Dx, int Dy, HICON ico)
 GPalette::GPalette()
 {
 	Data = 0;
-	hPal = 0;
+	hPal = NULL;
 	Lut = 0;
-}
-
-GPalette::~GPalette()
-{
-	DeleteArray(Lut);
-	DeleteArray(Data);
-	if (hPal) DeleteObject(hPal);
 }
 
 GPalette::GPalette(GPalette *pPal)
 {
 	Data = 0;
-	hPal = 0;
+	hPal = NULL;
 	Lut = 0;
 	Set(pPal);
 }
@@ -99,9 +92,17 @@ GPalette::GPalette(GPalette *pPal)
 GPalette::GPalette(uchar *pPal, int s)
 {
 	Data = 0;
-	hPal = 0;
+	hPal = NULL;
 	Lut = 0;
-	Set(pPal, s);
+	if (pPal)
+		Set(pPal, s);
+}
+
+GPalette::~GPalette()
+{
+	DeleteArray(Lut);
+	DeleteArray(Data);
+	if (hPal) DeleteObject(hPal);
 }
 
 void GPalette::Set(GPalette *pPal)
@@ -355,6 +356,9 @@ void GPalette::CreateCube()
 			}
 		}
 	}
+	
+	bool b = Update();
+	LgiAssert(b);
 }
 
 

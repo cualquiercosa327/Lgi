@@ -437,8 +437,8 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case CsRgb15:
-			case CsRgb16:
+			case System15BitColourSpace:
+			case System16BitColourSpace:
 			case System24BitColourSpace:
 			case System32BitColourSpace:
 			{
@@ -478,7 +478,7 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 											LgiAssert(!"Not impl.");
 											break;
 										}
-										case CsRgb15:
+										case System15BitColourSpace:
 										{
 											ushort *s = (ushort*) (Src->Base + (y * Src->Line));
 											for (int x=0; x<Src->x; x++)
@@ -487,7 +487,7 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 											}
 											break;
 										}
-										case CsRgb16:
+										case System16BitColourSpace:
 										{
 											ushort *s = (ushort*) (Src->Base + (y * Src->Line));
 											for (int x=0; x<Src->x; x++)
