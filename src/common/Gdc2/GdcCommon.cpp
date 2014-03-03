@@ -441,10 +441,19 @@ COLOUR CBit(int DstBits, COLOUR c, int SrcBits, GPalette *Pal)
 
 						return (r << 11) | (g << 5) | (b);
 					}
+					case 24:
+					case 48:
+					{
+						return c;
+					}
 					case 32:
+					case 64:
 					{
 						return Rgb24To32(c);
 					}
+					default:
+						LgiAssert(0);
+						break;
 				}
 				break;
 			}
@@ -541,6 +550,23 @@ const char *GColourSpaceToString(GColourSpace cs)
 
 	s += sprintf_s(s, 4, "%i", total);	
 	return start;
+}
+
+int GColourSpaceChannels(GColourSpace Cs)
+{
+	int Channels = 0;
+	
+	while (Cs)
+	{
+		uint8 c = Cs & 0xff;
+		if (!c)
+			break;
+		
+		Channels++;
+		((int&)Cs) >>= 8;
+	}
+	
+	return Channels;
 }
 
 bool GColourSpaceHasAlpha(GColourSpace Cs)

@@ -67,11 +67,6 @@ public:
 				PalAlpha = (GPalette*)Value;
 				break;
 			}
-			default:
-			{
-				LgiAssert(!"impl me.");
-				break;
-			}
 		}
 		return 0;
 	}
@@ -112,9 +107,17 @@ public:
 	
 	void Set()
 	{
-		p->r = ((uint16)p24.r << 8) | p24.r;
-		p->g = ((uint16)p24.g << 8) | p24.g;
-		p->b = ((uint16)p24.b << 8) | p24.b;
+		if (p32.a == 255)
+		{
+			p->r = G8bitTo16Bit(p32.r);
+			p->g = G8bitTo16Bit(p32.g);
+			p->b = G8bitTo16Bit(p32.b);
+			p->a = -1;
+		}
+		else if (p32.a)
+		{
+			LgiAssert(0);
+		}
 	}
 	
 	COLOUR Get()
@@ -125,32 +128,48 @@ public:
 	void VLine(int height)
 	{
 		Pixel cp;
-		cp.r = ((uint16)p24.r << 8) | p24.r;
-		cp.g = ((uint16)p24.g << 8) | p24.g;
-		cp.b = ((uint16)p24.b << 8) | p24.b;
-		
-		while (height-- > 0)
+		cp.r = G8bitTo16Bit(p32.r);
+		cp.g = G8bitTo16Bit(p32.g);
+		cp.b = G8bitTo16Bit(p32.b);
+		cp.a = G8bitTo16Bit(p32.a);
+
+		if (p32.a == 255)
 		{
-			*p = cp;
-			u8 += Dest->Line;
+			while (height-- > 0)
+			{
+				*p = cp;
+				u8 += Dest->Line;
+			}
+		}
+		else if (p32.a)
+		{
+			LgiAssert(0);
 		}
 	}
 	
 	void Rectangle(int x, int y)
 	{
 		Pixel cp;
-		cp.r = ((uint16)p24.r << 8) | p24.r;
-		cp.g = ((uint16)p24.g << 8) | p24.g;
-		cp.b = ((uint16)p24.b << 8) | p24.b;
+		cp.r = G8bitTo16Bit(p32.r);
+		cp.g = G8bitTo16Bit(p32.g);
+		cp.b = G8bitTo16Bit(p32.b);
+		cp.a = G8bitTo16Bit(p32.a);
 		
-		while (y-- > 0)
+		if (p32.a == 255)
 		{
-			Pixel *i = p, *e = i + x;
-			while (i < e)
+			while (y-- > 0)
 			{
-				*i++ = cp;
+				Pixel *i = p, *e = i + x;
+				while (i < e)
+				{
+					*i++ = cp;
+				}
+				u8 += Dest->Line;
 			}
-			u8 += Dest->Line;
+		}
+		else if (p32.a)
+		{
+			LgiAssert(0);
 		}
 	}
 	

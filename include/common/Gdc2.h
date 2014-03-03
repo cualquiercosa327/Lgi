@@ -375,6 +375,9 @@ LgiFunc const char *GColourSpaceToString(GColourSpace cs);
 /// Works out how many bits required for a pixel in a particular colour space.
 LgiFunc int GColourSpaceToBits(GColourSpace ColourSpace);
 
+/// /returns the number of channels in the colour space
+LgiFunc int GColourSpaceChannels(GColourSpace Cs);
+
 /// /returns true if the colour space has an alpha channel
 LgiFunc bool GColourSpaceHasAlpha(GColourSpace Cs);
 

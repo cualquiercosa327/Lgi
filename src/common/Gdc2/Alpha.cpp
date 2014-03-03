@@ -1952,6 +1952,42 @@ bool GdcApp24Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
+			case CsBgr48:
+			{
+				for (int y=0; y<Src->y; y++)
+				{
+					GBgr48 *s = (GBgr48*) (Src->Base + (y * Src->Line));
+					GBgr24 *d = (GBgr24*) Ptr;
+
+					if (alpha == 255)
+					{
+						GBgr48 *e = s + Src->x;
+						while (s < e)
+						{
+							d->r = s->r >> 8;
+							d->g = s->g >> 8;
+							d->b = s->b >> 8;
+							d++;
+							s++;
+						}
+					}
+					else if (alpha)
+					{
+						for (int x=0; x<Src->x; x++)
+						{
+							d->r = DivLut[(oma * d->r) + (alpha * (s->r >> 8))];
+							d->g = DivLut[(oma * d->g) + (alpha * (s->g >> 8))];
+							d->b = DivLut[(oma * d->b) + (alpha * (s->b >> 8))];
+
+							s++;
+							d++;
+						}
+					}
+
+					Ptr += Dest->Line;
+				}
+				break;
+			}
 			case System32BitColourSpace:
 			{
 				for (int y=0; y<Src->y; y++)

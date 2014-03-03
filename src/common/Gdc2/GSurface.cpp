@@ -1510,12 +1510,14 @@ GColour GSurface::Colour(GColour c)
 			pApp->c = Rgb32To16(c32);
 			break;
 		case 32:
+		case 64:
 			pApp->p32.r = R32(c32);
 			pApp->p32.g = G32(c32);
 			pApp->p32.b = B32(c32);
 			pApp->p32.a = A32(c32);
 			break;
 		case 24:
+		case 48:
 			pApp->p24.r = R32(c32);
 			pApp->p24.g = G32(c32);
 			pApp->p24.b = B32(c32);

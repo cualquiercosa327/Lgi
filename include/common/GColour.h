@@ -161,6 +161,7 @@ public:
 				break;
 			}
 			case 24:
+			case 48:
 			{
 				space = System32BitColourSpace;
 				rgb.r = R24(c);
@@ -170,6 +171,7 @@ public:
 				break;
 			}
 			case 32:
+			case 64:
 			{
 				space = System32BitColourSpace;
 				rgb.r = R32(c);
