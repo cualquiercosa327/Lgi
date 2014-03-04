@@ -1143,7 +1143,7 @@ int ResStringGroup::OnCommand(int Cmd, int Event, OsView hWnd)
 			// List all the languages minus the ones already
 			// being edited
 			List<GLanguage> l;
-			for (GLanguage *li = LgiLanguageTable; li->Id; li++)
+			for (GLanguage *li = GFindLang(NULL); li->Id; li++)
 			{
 				bool Present = false;
 				for (int i=0; i<Lang.Length(); i++)

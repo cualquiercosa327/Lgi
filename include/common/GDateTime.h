@@ -1,5 +1,11 @@
 /// \file
 /// \author Matthew Allen
+
+/**
+ * \defgroup Time Time and date handling
+ * \ingroup Lgi
+ */
+
 #ifndef __DATE_TIME_H
 #define __DATE_TIME_H
 
@@ -7,23 +13,40 @@
 
 #define GDTF_DEFAULT				0
 
-/// Format the date as DD/MM/YYYY	
+/// Format the date as DD/MM/YYYY
+/// \ingroup Time
 #define GDTF_DAY_MONTH_YEAR			0x001
+
 /// Format the date as MM/DD/YYYY	
+/// \ingroup Time
 #define GDTF_MONTH_DAY_YEAR			0x002
+
 /// Format the date as YYYY/MM/DD
+/// \ingroup Time
 #define GDTF_YEAR_MONTH_DAY			0x004
+
+/// The bit mask for the date
+/// \ingroup Time
 #define GDTF_DATE_MASK				0x00f
 
 /// Format the time as HH:MM and an am/pm marker
+/// \ingroup Time
 #define GDTF_12HOUR					0x010
+
 /// Format the time as 24 hour time
+/// \ingroup Time
 #define GDTF_24HOUR					0x020
+
+/// The bit mask for the time
+/// \ingroup Time
 #define GDTF_TIME_MASK				0x0f0
 
 /// Format the date with a leading zero
+/// \ingroup Time
 #define GDTF_DAY_LEADINGZ			0x100
+
 /// Format the month with a leading zero
+/// \ingroup Time
 #define GDTF_MONTH_LEADINGZ			0x200
 
 /// A date/time class
@@ -36,6 +59,8 @@
 /// uses the same 64bit values as accepted here for the file's last modified timestamp etc. To convert the
 /// 64bit values to seconds, divide by GDateTime::Second64Bit, useful for calculating the time in seconds
 /// between 2 GDateTime objects.
+///
+/// \ingroup Time
 class LgiClass GDateTime
 {
 	/// 1 - DaysInMonth

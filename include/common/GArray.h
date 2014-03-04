@@ -12,6 +12,7 @@
 #define GARRAY_MIN_SIZE			16
 
 /// \brief Growable type-safe array.
+/// \ingroup Base
 ///
 /// You can store simple objects inline in this array, but all their contents are initialized 
 /// to the octet 0x00. Which limits use to objects that don't have a virtual table and

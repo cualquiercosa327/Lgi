@@ -3,10 +3,13 @@
 	\author Matthew Allen
 	\date 24/9/1999
 	\brief Global LGI include.
-	Copyright (C) 1999-2004, Matthew Allen
+	Copyright (C) 1999-2014, Matthew Allen
 */
 
 /**
+
+	\defgroup Lgi Lightweight Gui Library
+
 	\mainpage Lightweight GUI Library
 	\section intro Introduction
 	This library is aimed at producing small, quality applications that

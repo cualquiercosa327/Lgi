@@ -1,10 +1,38 @@
-///////////////////////////////////////////////////////////////////////
-// Multi-language library: LgiRes
+/**
+ * \defgroup Resources Lgi multi-language resource support
+ *
+ * The LGI resource module allows you to edit resources in LgiRes 
+ * and then load them at runtime. A system of tags allows you to
+ * include or exclude controls depending on various conditions. You
+ * might have slightly different builds of the software that have
+ * different UI.
+ *
+ * The system also allows full translation of the UI elements into
+ * any language. Currently the system only loads one language at runtime
+ * to save on memory. To change language you have to restart the 
+ * software using Lgi resources.
+ *
+ * There are two numbers that you can use to access resources:
+ * - Reference (Ref): This is a globally unique number for any given 
+ *		resource. Multiple controls with the same #define name will
+ *      have different Ref numbers.
+ * - Identifier (Id): This number is the same for any control having
+ *      the same #define name. Usually dialogs only have distinct 
+ *      control names internal to themselves. Different dialogs can
+ *      reuse the same names (Like ID_NEXT could be uses in several
+ *      dialogs). Id's are written to the 'resdefs.h' file that you
+ *      include in the source.
+ *
+ * \ingroup Lgi
+ */
 #include "Res.h"
 #include "GContainers.h"
 #include "GCss.h"
 
 class LgiResources;
+
+/// A string resource
+/// \ingroup Resources
 class LgiClass LgiStringRes
 {
 	LgiResources *Res;
@@ -26,6 +54,8 @@ public:
 	bool Read(GXmlTag *Tag, ResFileFormat Format);
 };
 
+/// A dialog resource
+/// \ingroup Resources
 class LgiClass LgiDialogRes
 {
 	LgiResources *Res;
@@ -46,6 +76,8 @@ public:
 	int Y() { return Pos.Y(); }
 };
 
+/// A menu resource
+/// \ingroup Resources
 class LgiClass LgiMenuRes : public GBase
 {
 	LgiResources *Res;
@@ -62,6 +94,8 @@ public:
 	LgiStringRes *GetString(GXmlTag *Tag);
 };
 
+/// A resource collection.
+/// \ingroup Resources
 class LgiClass LgiResources : public ResFactory
 {
 	friend class GLgiRes;
@@ -73,53 +107,127 @@ class LgiClass LgiResources : public ResFactory
 	List<LgiMenuRes> Menus;
 	GEventsI *ScriptEngine;
 
-	// NULL terminated list of languages
-	// available in the loaded file.
-	GLanguageId *Languages; 
+	/// Array of languages available in the loaded file.
+	GArray<GLanguageId> Languages; 
+	
+	/// Add a language to the Languages array
 	void AddLang(GLanguageId id);
 
 public:
 	GHashTbl<const char*, char*> LanguageNames;
 	GCss::Store CssStore;
 
-	LgiResources(const char *FileName = 0, bool Warn = false);
+	/// The constructor
+	LgiResources
+	(
+		/// [optional] The filename to use.
+		const char *FileName = 0,
+		/// [optional] Warn if the file is not found.
+		bool Warn = false
+	);
 	virtual ~LgiResources();
 
-	// Instantiate resources
-	bool LoadDialog(int Resource,
-					GViewI *Parent,
-					GRect *Pos = 0,
-					GAutoString *Name = 0,
-					GEventsI *ScriptEngine = 0,
-					char *Tags = 0);
+	/// Loads a dialog from the resource into the UI.
+	/// \return true on success.
+	bool LoadDialog
+	(
+		/// The ID of the resource
+		int Resource,
+		/// The view to contain all the new controls.
+		GViewI *Parent,
+		/// [Optional] The size of the dialog if needed
+		GRect *Pos = NULL,
+		/// [Optional] The name of the window.
+		GAutoString *Name = NULL,
+		/// [Optional] A scripting engine interface
+		GEventsI *ScriptEngine = NULL,
+		/// [Optional] The current tags list for optional 
+		/// inclusion / exclusion of controls.
+		char *Tags = 0
+	);
+	
+	/// Get a string resource object using it's reference.
 	LgiStringRes *StrFromRef(int Ref);
+	
+	/// Gets the value of a string resource from it's Ref.
 	char *StringFromRef(int Ref);
+
+	/// Gets the value of a string resource from it's Id.
 	char *StringFromId(int Ref);
+
+	/// \returns true if the object loaded ok.	
 	bool IsOk();
+	
+	/// Gets the file format.
 	ResFileFormat GetFormat();
 
-	// Api
+	/// Load a specific file
 	bool Load(char *FileName);
+	
+	/// Gets the filename used to load the object.
 	char *GetFileName();
-	GLanguageId *GetLanguages() { return Languages; }
+	
+	/// \returns the languages in the file.
+	GArray<GLanguageId> *GetLanguages() { return &Languages; }
+	
+	/// \returns an iterator for all the dialogs in the resource collection.
 	List<LgiDialogRes>::I GetDialogs() { return Dialogs.Start(); }
 
-	// Factory
+	/// Create a resource object
+	/// \private
 	ResObject *CreateObject(GXmlTag *Tag, ResObject *Parent);
+
+	/// Sets the position of an object
+	/// \private
 	void Res_SetPos(ResObject *Obj, int x1, int y1, int x2, int y2);
+
+	/// Create a resource object from a string
+	/// \private
 	void Res_SetPos(ResObject *Obj, char *s);
+
+	/// Gets the position
+	/// \private
 	GRect Res_GetPos(ResObject *Obj);
+
+	/// Gets the string ref number
+	/// \private
 	int Res_GetStrRef(ResObject *Obj);
+
+	/// Sets the string ref associated with a control
+	/// \private
 	bool Res_SetStrRef(ResObject *Obj, int Ref, ResReadCtx *Ctx);
+
+	/// Attach an object to another (create a parent / child relationship)
+	/// \private
 	void Res_Attach(ResObject *Obj, ResObject *Parent);
+
+	/// Gets all the child objects
+	/// \private
 	bool Res_GetChildren(ResObject *Obj, List<ResObject> *l, bool Deep);
+
+	/// Appends an object to a parent
+	/// \private
 	void Res_Append(ResObject *Obj, ResObject *Parent);
+
+	/// ?
+	/// \private
 	bool Res_GetItems(ResObject *Obj, List<ResObject> *l);
+
+	/// Gets a dom object of properties
+	/// \private
 	bool Res_GetProperties(ResObject *Obj, GDom *Props);
+
+	/// Sets a dom object of properties
+	/// \private
 	bool Res_SetProperties(ResObject *Obj, GDom *Props);
+
+	/// Gets the current dom object of properties
+	/// \private
 	GDom* Res_GetDom(ResObject *Obj);
 };
 
+/// A collection of resources
+/// \ingroup Resources
 class GResourceContainer : public GArray<LgiResources*>
 {
 public:
@@ -129,5 +237,9 @@ public:
 	}
 };
 
+/// \private
 LgiExtern GResourceContainer _ResourceOwner;
+
+/// Loads a resource and returns a pointer to it.
+/// \ingroup Resources
 LgiExtern LgiResources *LgiGetResObj(bool Warn = false, const char *filename = 0);

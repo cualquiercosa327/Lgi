@@ -6,6 +6,15 @@
 	Copyright (C) 2000-2004, <a href="mailto:fret@memecode.com">Matthew Allen</a> 
 */
 
+/**
+ * \defgroup Base Foundation tools
+ * \ingroup Lgi
+ */
+/**
+ * \defgroup Text Text handling
+ * \ingroup Lgi
+ */
+
 #ifndef _LGI_COMMON_H
 #define _LGI_COMMON_H
 
@@ -27,9 +36,12 @@ extern "C"
 // Codepages
 
 /// Converts a buffer of text to a different charset
+/// \ingroup Text
 LgiFunc int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, const char *InCp, int &InLen);
+
 /// \brief Converts a string to a new charset
 /// \return A dynamically allocate, null terminated string in the new charset
+/// \ingroup Text
 LgiFunc void *LgiNewConvertCp
 (
 	/// Output charset
@@ -41,9 +53,13 @@ LgiFunc void *LgiNewConvertCp
 	/// Bytes of valid data in the input
 	int InLen = -1
 );
+
 /// Converts a utf-8 string into a wide character string
+/// \ingroup Text
 LgiFunc char16 *LgiNewUtf8To16(const char *In, int InLen = -1);
+
 /// Converts a wide character string into a utf-8 string
+/// \ingroup Text
 LgiFunc char *LgiNewUtf16To8
 (
 	/// Input string
@@ -51,15 +67,25 @@ LgiFunc char *LgiNewUtf16To8
 	/// Number of bytes in the input or -1 for NULL terminated
 	int InLen = -1
 );
+
 /// Return true if Lgi support the charset
+/// \ingroup Text
 LgiFunc bool LgiIsCpImplemented(const char *Cp);
+
 /// Converts the ANSI code page to a charset name
+/// \ingroup Text
 LgiFunc const char *LgiAnsiToLgiCp(int AnsiCodePage = -1);
+
 /// Calculate the byte length of a string
+/// \ingroup Text
 LgiFunc int LgiByteLen(const void *Str, const char *Cp);
+
 /// Calculate the number of characters in a string
+/// \ingroup Text
 LgiFunc int LgiCharLen(const void *Str, const char *Cp, int Bytes = -1);
+
 /// Move a pointer along a utf-8 string by characters
+/// \ingroup Text
 LgiFunc char *LgiSeekUtf8
 (
 	/// Pointer to the current character
@@ -69,15 +95,25 @@ LgiFunc char *LgiSeekUtf8
 	/// The start of the memory buffer if you known
 	char *Start = 0
 );
+
 /// Return true if the string is valid utf-8
+/// \ingroup Text
 LgiFunc bool LgiIsUtf8(const char *s, int len = -1);
+
 /// Converts a string to the native 8bit charset of the OS from utf-8
+/// \ingroup Text
 LgiFunc char *LgiToNativeCp(const char *In, int InLen = -1);
+
 /// Converts a string from the native 8bit charset of the OS to utf-8
+/// \ingroup Text
 LgiFunc char *LgiFromNativeCp(const char *In, int InLen = -1);
+
 /// Returns the next token in a string, leaving the argument pointing to the end of the token
+/// \ingroup Text
 LgiFunc char *LgiTokStr(const char *&s);
+
 /// Formats a data size into appropriate units
+/// \ingroup Base
 LgiFunc void LgiFormatSize
 (
 	/// Output string
@@ -85,8 +121,10 @@ LgiFunc void LgiFormatSize
 	/// Input size in bytes
 	uint64 Size
 );
+
 /// Converts a string from URI encoding (ala %20 -> ' ')
 /// \returns a dynamically allocated string or NULL on error
+/// \ingroup Text
 LgiFunc char *LgiDecodeUri
 (
 	/// The URI
@@ -94,8 +132,10 @@ LgiFunc char *LgiDecodeUri
 	/// The length or -1 if NULL terminated
 	int len = -1
 );
+
 /// Converts a string to URI encoding (ala %20 -> ' ')
 /// \returns a dynamically allocated string or NULL on error
+/// \ingroup Text
 LgiFunc char *LgiEncodeUri
 (
 	/// The URI
@@ -107,13 +147,19 @@ LgiFunc char *LgiEncodeUri
 // Path
 
 /// Gets the path and file name of the currently running executable
+/// \ingroup Base
 LgiFunc bool LgiGetExeFile(char *Dst, int DstSize);
+
 /// Gets the path of the currently running executable
+/// \ingroup Base
 LgiFunc bool LgiGetExePath(char *Dst, int DstSize);
+
 /// Gets the path of the temporary file directory
+/// \ingroup Base
 LgiFunc bool LgiGetTempPath(char *Dst, int DstSize);
 
 /// Returns the system path specified
+/// \ingroup Base
 LgiFunc bool LgiGetSystemPath
 (
 	/// Which path to retreive
@@ -123,13 +169,18 @@ LgiFunc bool LgiGetSystemPath
 	/// The size of the receive buffer in bytes
 	int DstSize
 );
+
 /// Finds a file in the applications directory or nearby
+/// \ingroup Base
 LgiFunc char *LgiFindFile(const char *Name);
 
 /// Returns 0 to end search
+/// \ingroup Base
 typedef bool (*RecursiveFileSearch_Callback)(void *UserData, char *Path, class GDirectory *Dir);
+
 /// \brief Recursively search for files
 /// \return Non zero if something was found
+/// \ingroup Base
 LgiFunc bool LgiRecursiveFileSearch
 (
 	/// Start search in this dir
@@ -151,16 +202,22 @@ LgiFunc bool LgiRecursiveFileSearch
 // Resources
 
 /// Gets the currently selected language
+/// \ingroup Resources
 LgiFunc struct GLanguage *LgiGetLanguageId();
+
 /// Loads a string from the resource file
+/// \ingroup Resources
 LgiFunc const char *LgiLoadString(int Res, const char *Default = 0);
 
 // Os version functions
 
 /// Gets the current operating system and optionally it's version.
 /// \returns One of the defines starting with #LGI_OS_UNKNOWN in LgiDefs.h
+/// \ingroup Base
 LgiFunc int LgiGetOs(GArray<int> *Ver = 0);
+
 /// Gets the current operation systems name.
+/// \ingroup Base
 LgiFunc const char *LgiGetOsName();
 
 // System
@@ -172,6 +229,8 @@ LgiFunc const char *LgiGetOsName();
 /// file and the file is passed to that application. If the input is
 /// a directory then the OS's file manager is openned to browse the
 /// directory.
+///
+/// \ingroup Base
 LgiFunc bool LgiExecute
 (
 	/// The file to open
@@ -185,14 +244,17 @@ LgiFunc bool LgiExecute
 );
 
 /// Initializes the random number generator
+/// \ingroup Base
 LgiFunc void LgiRandomize(uint Seed);
 
 /// Returns a random number between 0 and Max-1
+/// \ingroup Base
 LgiFunc uint LgiRand(uint Max = 0);
 
 LgiFunc bool _lgi_read_colour_config(const char *Tag, uint32 *c);
 
 /// Plays a sound
+/// \ingroup Base
 LgiFunc bool LgiPlaySound
 (
 	/// File name of the sound to play
@@ -201,7 +263,14 @@ LgiFunc bool LgiPlaySound
 	int Flags
 );
 
+
+/**
+ * \defgroup Mime Mime handling support.
+ * \ingroup Lgi
+ */
+
 /// Returns the file extensions associated with the mimetype
+/// \ingroup Mime
 LgiFunc bool LgiGetMimeTypeExtensions
 (
 	/// The returned mime type
@@ -211,6 +280,7 @@ LgiFunc bool LgiGetMimeTypeExtensions
 );
 
 /// Returns the mime type of the file
+/// \ingroup Mime
 LgiFunc bool LgiGetFileMimeType
 (
 	/// File to file type of
@@ -222,6 +292,7 @@ LgiFunc bool LgiGetFileMimeType
 );
 
 /// Returns the application associated with the mime type
+/// \ingroup Mime
 LgiFunc bool LgiGetAppForMimeType
 (
 	/// Type of the file to find and app for
@@ -233,6 +304,7 @@ LgiFunc bool LgiGetAppForMimeType
 );
 
 /// Returns the all applications that can open a given mime type.
+/// \ingroup Mime
 LgiFunc bool LgiGetAppsForMimeType
 (
 	/// The type of files to match apps to.
@@ -249,11 +321,13 @@ LgiFunc bool LgiGetAppsForMimeType
 );
 
 /// Gets the current clock in milli-seconds.
+/// \ingroup Time
 LgiFunc uint64 LgiCurrentTime();
 
 // Debug
 
 /// Returns true if the build is for release.
+/// \ingroup Base
 LgiFunc int LgiIsReleaseBuild();
 
 #if defined WIN32

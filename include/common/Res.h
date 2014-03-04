@@ -4,27 +4,50 @@
 
 // Includes
 #include "GXmlTree.h"
-// #include "GProperties.h"
 
 /////////////////////////////////////////////////////////////////////
-// Language stuff
+
+/// LgiRes file format types
 enum ResFileFormat
 {
-	CodepageFile,		// The original format based on different codepages for each translations.
-	Lr8File,			// The second format using utf-8 throughout instead.
-	XmlFile,			// Straight XML.
+	/// The original format based on different codepages for each translations.
+	CodepageFile,
+	/// The second format using utf-8 throughout instead.
+	Lr8File,
+	/// Straight XML.
+	XmlFile,
 };
 
+/// All languages are defined by a short string using this type.
+///
+/// A list of all language supported is provide in ::LgiLanguageTable.
+/// 
+/// \ingroup Resources
 typedef const char *GLanguageId;
 
+/// Infomation pertaining to one language.
+///
+/// A table of these is in ::LgiLanguageTable.
+/// 
+/// \ingroup Resources
 struct GLanguage
 {
+	/// The full english name of the language
 	const char *Name;
+	
+	/// The short language code, e.g. 'en'
 	GLanguageId Id;
+	
+	/// Any windows language ID mapping
 	int Win32Id;
+	
+	/// The old ID in previous versions
 	int OldId;
+	
+	/// The default codepage to use with this language
 	const char *CodePage;
 
+	/// \return true if this language is 'en'
 	bool IsEnglish()
 	{
 		return	Id[0] == 'e' &&
@@ -32,19 +55,35 @@ struct GLanguage
 				!Id[2];
 	}
 
+	/// \returns true if the language is the same as 'i'
 	bool operator ==(GLanguageId i)
 	{
 		return i && _stricmp(Id, i) == 0;
 	}
 
+	/// \returns true if the language is NOT the same as 'i'
 	bool operator !=(GLanguageId i)
 	{
 		return !(*this == i);
 	}
 };
 
-LgiExtern GLanguage LgiLanguageTable[];
-LgiExtern GLanguage *GFindLang(GLanguageId Id, const char *Name = 0);
+/// Find a GLanguage object by it's language code.
+///
+/// This function is very fast, it's not a linear search through the
+/// list of all languages. So you can call it often without worrying
+/// about speed.
+LgiExtern GLanguage *GFindLang
+(
+	/// [Optional] The language code to search for.
+	/// If not provided the start of the table is returned.
+	GLanguageId Id,
+	/// [Optional] The textual name of the language to search for.
+	const char *Name = NULL
+);
+
+/// Finds a language by it's OldId.
+/// \deprecated Use ::GFindLang in any new code.
 LgiExtern GLanguage *GFindOldLang(int OldId);
 
 ////////////////////////////////////////////////////////////////////

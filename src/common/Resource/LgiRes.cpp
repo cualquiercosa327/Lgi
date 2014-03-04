@@ -271,8 +271,6 @@ LgiResources::LgiResources(const char *FileName, bool Warn)
 {
 	d = new LgiResourcesPrivate;
 	ScriptEngine = 0;
-	Languages = new GLanguageId[80];
-	if (Languages) *Languages = 0;
 
 	// global pointer list
 	_ResourceOwner.Add(this);
@@ -423,7 +421,6 @@ LgiResources::~LgiResources()
 	
 	Dialogs.DeleteObjects();
 	Menus.DeleteObjects();
-	DeleteArray(Languages);
 	DeleteObj(d);
 }
 
@@ -439,19 +436,15 @@ bool LgiResources::IsOk()
 
 void LgiResources::AddLang(GLanguageId id)
 {
-	if (Languages)
+	// search through id's...
+	for (int i=0; i<Languages.Length(); i++)
 	{
-		// search through id's...
-		GLanguageId *i;
-		for (i=Languages; *i; i++)
-		{
-			if (stricmp(*i, id) == 0) return;
-		}
-
-		// add id..
-		*i++ = id;
-		*i++ = 0;
+		if (stricmp(Languages[i], id) == 0)
+			// already in the list
+			return;
 	}
+
+	Languages.Add(id);
 }
 
 char *LgiResources::GetFileName()
@@ -1189,14 +1182,14 @@ GLanguage *LgiGetLanguageId()
 	GLanguage *i, *English = 0;
 
 	// Search for exact match
-	for (i = LgiLanguageTable; i->Id; i++)
+	for (i = GFindLang(NULL); i->Id; i++)
 	{
 		if (i->Win32Id == Lang)
 			return i;
 	}
 
 	// Search for PRIMARYLANGID match
-	for (i = LgiLanguageTable; i->Id; i++)
+	for (i = GFindLang(NULL); i->Id; i++)
 	{
 		if (PRIMARYLANGID(i->Win32Id) == PRIMARYLANGID(Lang))
 			return i;
