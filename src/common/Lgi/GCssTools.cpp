@@ -10,13 +10,13 @@ GRect GCssTools::ApplyMargin(GRect &in)
 	
 	// Insert by the margin
 	GCss::Len margin = Css->Margin();
-	#define DoMargin(name, edge, box) \
+	#define DoMargin(name, edge, box, sign) \
 		{ GCss::Len m = Css->Margin##name(); \
-		r.edge += (m.IsValid() ? m : margin).ToPx(in.box(), Font); }
-	DoMargin(Left, x1, X)
-	DoMargin(Top, y1, Y)
-	DoMargin(Right, x2, X)
-	DoMargin(Bottom, y2, Y)
+		r.edge sign (m.IsValid() ? m : margin).ToPx(in.box(), Font); }
+	DoMargin(Left, x1, X, +=)
+	DoMargin(Top, y1, Y, +=)
+	DoMargin(Right, x2, X, -=)
+	DoMargin(Bottom, y2, Y, -=)
 	
 	return r;
 }
@@ -29,13 +29,13 @@ GRect GCssTools::ApplyPadding(GRect &in)
 	// Insert by the padding
 	GRect r = in;
 	GCss::Len padding = Css->Padding();
-	#define DoPadding(name, edge, box) \
+	#define DoPadding(name, edge, box, sign) \
 		{ GCss::Len p = Css->Padding##name(); \
-		r.edge += (p.IsValid() ? p : padding).ToPx(in.box(), Font); }
-	DoPadding(Left, x1, X)
-	DoPadding(Top, y1, Y)
-	DoPadding(Right, x2, X)
-	DoPadding(Bottom, y2, Y)
+		r.edge sign (p.IsValid() ? p : padding).ToPx(in.box(), Font); }
+	DoPadding(Left, x1, X, +=)
+	DoPadding(Top, y1, Y, +=)
+	DoPadding(Right, x2, X, -=)
+	DoPadding(Bottom, y2, Y, -=)
 
 	return r;
 }

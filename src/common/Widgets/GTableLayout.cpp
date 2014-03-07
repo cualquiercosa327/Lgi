@@ -756,14 +756,44 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 
 		GTableLayout *Tbl;
 		GRadioGroup *Grp;
+		GCss *Css;
 
 		if (i)
 		{
 			Pos.y2 += GTableLayout::CellSpacing;
 		}
 
-		// printf("\t\t\tlayout child[%i/%s] %i\n", i, v->GetClass(), Pos.Y());
-		if (Izza(GText))
+		GViewLayoutInfo Inf;
+		Inf.Width.Min = Inf.Width.Max = Width;
+		if (v->OnLayout(Inf))
+		{
+			/*
+			if (Inf.Width.Max < 0)
+			{
+				if (Flag < SizeFill)
+					Flag = SizeFill;
+			}
+			else
+			{
+				Max = max(Max, Inf.Width.Max);
+			}
+
+			if (Inf.Width.Min)
+			{
+				Min = max(Min, Inf.Width.Min);
+			}
+			*/
+			// Supports layout info
+			if (Inf.Height.Max < 0)
+				Flags = SizeFill;
+			else
+				Pos.y2 += Inf.Height.Max - 1;
+		}
+		else if ((Css = v->GetCss()) && Css->Height().IsValid())
+		{
+			MinY = MaxY = Css->Height().ToPx(MaxY, v->GetFont());
+		}
+		else if (Izza(GText))
 		{
 			GText *Txt = dynamic_cast<GText*>(v);
 			if (Txt && Txt->GetWrap() == false)
@@ -867,23 +897,9 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 		}
 		else
 		{
-			GViewLayoutInfo Inf;
-			Inf.Width.Min = Inf.Width.Max = Width;
-			if (v->OnLayout(Inf))
-			{
-				// Supports layout info
-				if (Inf.Height.Max < 0)
-					Flags = SizeFill;
-				else
-					Pos.y2 += Inf.Height.Max - 1;
-			}
-			else
-			{
-				// Doesn't support layout info
-				Pos.y2 += v->Y();
-			}
+			// Doesn't support layout info
+			Pos.y2 += v->Y();
 		}
-		// printf("\t\t\t...[%i/%s] %i\n", i, v->GetClass(), Pos.Y());
 	}
 	
 	MinY = max(MinY, Pos.Y() + Padding.y1 + Padding.y2);
