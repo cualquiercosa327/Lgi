@@ -1006,7 +1006,11 @@ public:
 class ResTableLayout : public ResObjectImpl
 {
 public:
-	ResTableLayout(ResFactory *f, ResObject *o) : ResObjectImpl(f, o) {}
+	ResTableLayout(ResFactory *f, ResObject *o) : ResObjectImpl(f, o)
+	{
+		int asd=0;		
+	}
+	
 	SStatus Res_Read(GXmlTag *Tag, ResReadCtx &Ctx);
 	SStatus Res_Write(GXmlTag *t);
 };
@@ -1156,7 +1160,7 @@ ResObjectImpl *ResObject::GetObjectImpl(ResFactory *f)
 		#define Create(CtrlName, Obj) \
 			if (stricmp(_ObjName, CtrlName) == 0) \
 			{ \
-				_ObjImpl = new Obj(f, this); \
+				return _ObjImpl = new Obj(f, this); \
 			}
 
 		Create(Res_Dialog, ResDialogObj);
@@ -1181,8 +1185,6 @@ ResObjectImpl *ResObject::GetObjectImpl(ResFactory *f)
 		Create(Res_ControlTree, ResControlTree);
 	}
 
-	LgiAssert(_ObjImpl);
-
 	return _ObjImpl;
 }
 
@@ -1190,11 +1192,17 @@ ResObjectImpl *ResObject::GetObjectImpl(ResFactory *f)
 bool ResFactory::Res_Read(ResObject *Obj, GXmlTag *Tag, ResReadCtx &Ctx)
 {
 	if (!Obj)
+	{
+		LgiAssert(0);
 		return false;
+	}
 
 	ResObjectImpl *Impl = Obj->GetObjectImpl(this);
 	if (!Impl)
+	{
+		LgiAssert(0);
 		return false;
+	}
 
 	return Impl->Res_Read(Tag, Ctx);
 }
@@ -1208,7 +1216,10 @@ bool ResFactory::Res_Write(ResObject *Obj, GXmlTag *Tag)
 		{
 			return Impl->Res_Write(Tag);
 		}
+		else LgiAssert(0);
 	}
+	else LgiAssert(0);
+	
 	return false;
 }
 
@@ -1230,7 +1241,10 @@ ResObjectImpl *ResObjectImpl::CreateCtrl(GXmlTag *Tag, ResObject *Parent)
 ResObjectImpl::SStatus ResObjectImpl::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 {
 	if (!Tag)
+	{
+		LgiAssert(0);
 		return SError;
+	}
 
 	char *ObjName = Object->GetObjectName();
 	if (!stricmp(ObjName, "Slider") ||
@@ -1278,6 +1292,8 @@ bool ResObjectImpl::Res_SetStrRef(GXmlTag *t, ResReadCtx *Ctx)
 	{
 		return Factory->Res_SetStrRef(Object, atoi(s), Ctx);
 	}
+
+	LgiAssert(0);
 	return false;
 }
 
@@ -1368,17 +1384,6 @@ char *ResObjectImpl::ReadInt(char *s, int &Value)
 	return 0;
 }
 
-/*
-bool ResObjectImpl::IsEndTag(GXmlTag *Tag, char *ObjName)
-{
-	return	Tag &&
-			Tag->Name &&
-			ObjName &&
-			(Tag->Name[0] == '/') &&
-			(stricmp(ObjName, Tag->Name+1) == 0);
-}
-*/
-
 void ResObjectImpl::Res_SetPos(GXmlTag *t)
 {
 	char *Str = t->GetAttr("pos");
@@ -1401,7 +1406,10 @@ void ResObjectImpl::Res_SetPos(GXmlTag *t)
 ResObjectImpl::SStatus ResDialogObj::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 {
 	if (!Tag)
+	{
+		LgiAssert(0);
 		return SError;
+	}
 
 	int OffsetType = 0;
 	for (GXmlTag *p = Tag; p; p = p->Parent)
@@ -1415,7 +1423,10 @@ ResObjectImpl::SStatus ResDialogObj::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 	}
 
 	if (!Tag->IsTag(Res_Dialog))
+	{
+		LgiAssert(0);
 		return SError;
+	}
 
 	Res_SetPos(Tag);
 	Res_SetStrRef(Tag, &Ctx);
@@ -1469,6 +1480,7 @@ ResObjectImpl::SStatus ResDialogObj::Res_Write(GXmlTag *t)
 				}
 				else
 				{
+					LgiAssert(0);
 					DeleteObj(a);
 				}
 			}
@@ -1768,7 +1780,10 @@ ResObjectImpl::SStatus ResEditBox::Res_Write(GXmlTag *t)
 ResObjectImpl::SStatus ResGroup::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 {
 	if (!Tag || !Tag->IsTag(Res_Group))
+	{
+		LgiAssert(0);
 		return SError;
+	}
 
 	Res_SetPos(Tag);
 	if (!Res_SetStrRef(Tag, &Ctx))
@@ -1783,6 +1798,7 @@ ResObjectImpl::SStatus ResGroup::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 		}
 		else
 		{
+			LgiAssert(0);
 			return SError;
 		}
 	}
@@ -1816,7 +1832,10 @@ ResObjectImpl::SStatus ResGroup::Res_Write(GXmlTag *t)
 ResObjectImpl::SStatus ResTab::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 {
 	if (!Tag || !Tag->IsTag(Res_Tab))
+	{
+		LgiAssert(0);
 		return SError;
+	}
 
 	if (!Res_SetStrRef(Tag, &Ctx))
 		return SExclude;
@@ -1825,7 +1844,10 @@ ResObjectImpl::SStatus ResTab::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 	{
 		ResObjectImpl *Ctrl = CreateCtrl(t, Object);
 		if (!Ctrl)
+		{
+			LgiAssert(0);
 			return SError;
+		}
 		
 		SStatus e = Ctrl->Res_Read(t, Ctx);
 		if (e == SOk)
@@ -1871,7 +1893,10 @@ ResObjectImpl::SStatus ResTab::Res_Write(GXmlTag *t)
 ResObjectImpl::SStatus ResTabView::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 {
 	if (!Tag || !Tag->IsTag(Res_TabView))
+	{
+		LgiAssert(0);
 		return SError;
+	}
 
 	Res_SetPos(Tag);
 	Res_SetStrRef(Tag, &Ctx);
@@ -1879,11 +1904,17 @@ ResObjectImpl::SStatus ResTabView::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 	for (GXmlTag *t = Tag->Children.First(); t; t = Tag->Children.Next())
 	{
 		if (!t->IsTag(Res_Tab))
+		{
+			LgiAssert(0);
 			return SError;
+		}
 
 		ResObjectImpl *Tab = CreateCtrl(t, Object);
 		if (!Tab)
+		{
+			LgiAssert(0);
 			return SError;
+		}
 
 		if (Tab->Res_Read(t, Ctx) == SOk)
 			Res_Append(Tab);
@@ -1920,7 +1951,10 @@ ResObjectImpl::SStatus ResTabView::Res_Write(GXmlTag *t)
 ResObjectImpl::SStatus ResColumn::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 {
 	if (!Tag || !Tag->IsTag(Res_Column))
+	{
+		LgiAssert(0);
 		return SError;
+	}
 
 	char *s = 0;
 	if ((s = Tag->GetAttr("width")))
@@ -1947,13 +1981,20 @@ ResObjectImpl::SStatus ResColumn::Res_Write(GXmlTag *t)
 ResObjectImpl::SStatus ResListView::Res_Read(GXmlTag *t, ResReadCtx &Ctx)
 {
 	if (!t)
+	{
+		LgiAssert(0);
 		return SError;
+	}
 
 	if (!Object->GetObjectName() || stricmp(t->Tag, Object->GetObjectName()) != 0)
+	{
+		LgiAssert(0);
 		return SError;
+	}
 
 	Res_SetPos(t);
 	Res_SetStrRef(t, &Ctx);
+	Factory->Res_SetProperties(Object, t);
 
 	for (GXmlTag *c = t->Children.First(); c; c = t->Children.Next())
 	{
@@ -1966,11 +2007,13 @@ ResObjectImpl::SStatus ResListView::Res_Read(GXmlTag *t, ResReadCtx &Ctx)
 			}
 			else
 			{
+				LgiAssert(0);
 				return SError;
 			}
 		}
 		else
 		{
+			LgiAssert(0);
 			return SError;
 		}
 	}
@@ -2005,7 +2048,10 @@ ResObjectImpl::SStatus ResListView::Res_Write(GXmlTag *t)
 ResObjectImpl::SStatus ResCustom::Res_Read(GXmlTag *t, ResReadCtx &Ctx)
 {
 	if (!t || !t->IsTag(Res_Custom))
+	{
+		LgiAssert(0);
 		return SError;
+	}
 
 	Res_SetPos(t);
 	Res_SetStrRef(t, &Ctx);
@@ -2031,14 +2077,20 @@ ResObjectImpl::SStatus ResCustom::Res_Write(GXmlTag *t)
 ResObjectImpl::SStatus ResControlTree::Res_Read(GXmlTag *t, ResReadCtx &Ctx)
 {
 	if (!t || stricmp(t->Tag, Res_ControlTree))
+	{
+		LgiAssert(0);
 		return SError;
+	}
 
 	Res_SetPos(t);
 	Res_SetStrRef(t, &Ctx);
 
 	GDom *d = Factory->Res_GetDom(Object);
 	if (!d)
+	{
+		LgiAssert(0);
 		return SError;
+	}
 
 	GVariant v;
 	d->SetValue("LgiFactory", v = Factory);
@@ -2056,7 +2108,10 @@ ResObjectImpl::SStatus ResControlTree::Res_Write(GXmlTag *t)
 
 	GDom *d = Factory->Res_GetDom(Object);
 	if (!d)
+	{
+		LgiAssert(0);
 		return SError;
+	}
 
 	GVariant v;
 	if (d->GetValue("Tree", v))

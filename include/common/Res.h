@@ -132,6 +132,7 @@ private:
 
 protected:
 	char *_ObjName;
+	void SetObjectName(char *on) { _ObjName = on; }
 
 public:
 	ResObject(char *Name);

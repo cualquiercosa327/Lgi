@@ -147,15 +147,31 @@ void GLayout::SetPourLargest(bool i)
 
 bool GLayout::Pour(GRegion &r)
 {
+
 	if (_PourLargest)
 	{
-		GRect *Best = FindLargest(r);
-		if (Best)
+		GRect *Largest = FindLargest(r);
+		if (Largest)
 		{
-			SetPos(*Best, true);
-			return true;
+			GRect p = *Largest;
+			if (GetCss())
+			{
+				GCss::Len sz = GetCss()->Width();
+				if (sz.IsValid())
+					p.x2 = p.x1 + sz.ToPx(r.X(), GetFont()) - 1;
+				sz = GetCss()->Height();
+				if (sz.IsValid())
+					p.y2 = p.y1 + sz.ToPx(r.Y(), GetFont()) - 1;
+			}
+			if (p.Valid())
+			{	
+				SetPos(p, true);
+				return true;
+			}
+			else LgiAssert(0);
 		}
 	}
+
 	return false;
 }
 

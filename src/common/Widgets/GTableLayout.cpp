@@ -575,9 +575,18 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 			if (!v)
 				continue;
 			
+			const char *Cls = v->GetClass();
 			GViewLayoutInfo Inf;
-			GCss *Css;
-			if (v->OnLayout(Inf))
+			GCss *Css = v->GetCss();
+			GCss::Len Wid;
+			if (Css)
+				Wid = Css->Width();
+				
+			if (Wid.IsValid())
+			{
+				Min = Max = Wid.ToPx(Max, v->GetFont());
+			}
+			else if (v->OnLayout(Inf))
 			{
 				if (Inf.Width.Max < 0)
 				{
@@ -594,123 +603,116 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 					Min = max(Min, Inf.Width.Min);
 				}
 			}
-			else if ((Css = v->GetCss()) && Css->Width().IsValid())
+			else if (Izza(GText))
 			{
-				Min = Max = Css->Width().ToPx(Max, v->GetFont());
-			}
-			else
-			{
-				if (Izza(GText))
+				PreLayoutTextCtrl(v, Min, Max);
+				if (Max > Min)
 				{
-					PreLayoutTextCtrl(v, Min, Max);
-					if (Max > Min)
-					{
-						if (Flag < SizeGrow)
-							Flag = SizeGrow;
-					}
-					else
-					{
-						if (Flag < SizeFixed)
-							Flag = SizeFixed;
-					}
-				}
-				else if (Izza(GCheckBox) ||
-						 Izza(GRadioButton))
-				{
-					int cmin = 0, cmax = 0;
-					PreLayoutTextCtrl(v, cmin, cmax);
-					Min = max(Min, cmin + 16);
-					Max = max(Max, cmax + 16);
-				}
-				else if (Izza(GButton))
-				{
-					GDisplayString ds(v->GetFont(), v->Name());
-					int x = max(v->X(), ds.X() + GButton::Overhead.x);
-					if (x > v->X())
-					{
-						// Resize the button to show all the text on it...
-						GRect r = v->GetPos();
-						r.x2 = r.x1 + x - 1;
-						v->SetPos(r);
-					}
-
-					MaxBtnX = max(MaxBtnX, x);
-					TotalBtnX = TotalBtnX ? TotalBtnX + GTableLayout::CellSpacing + x : x;
-					
-					if (Flag < SizeFixed)
-						Flag = SizeFixed;
-				}
-				else if (Izza(GEdit) ||
-						 Izza(GScrollBar))
-				{
-					Min = max(Min, 40);
-					Flag = SizeFill;
-				}
-				else if (Izza(GCombo))
-				{
-					GCombo *Cbo = Izza(GCombo);
-					GFont *f = Cbo->GetFont();
-					int x = 0;
-					char *t;
-					for (int i=0; (t = (*Cbo)[i]); i++)
-					{
-						GDisplayString ds(f, t);
-						x = max(ds.X(), x);
-					}				
-					
-					Min = max(Min, x + 32);
-					Max = max(Max, x + 32);
 					if (Flag < SizeGrow)
 						Flag = SizeGrow;
 				}
-				else if (Izza(GBitmap))
+				else
 				{
-					GBitmap *b = Izza(GBitmap);
-					GSurface *Dc = b->GetSurface();
-					if (Dc)
-					{
-						Min = max(Min, Dc->X() + 4);
-						Max = max(Max, Dc->X() + 4);
-					}
-					else
-					{
-						Min = max(Min, 3000);
-						Max = max(Max, 3000);
-					}
+					if (Flag < SizeFixed)
+						Flag = SizeFixed;
 				}
-				else if (Izza(GList))
+			}
+			else if (Izza(GCheckBox) ||
+					 Izza(GRadioButton))
+			{
+				int cmin = 0, cmax = 0;
+				PreLayoutTextCtrl(v, cmin, cmax);
+				Min = max(Min, cmin + 16);
+				Max = max(Max, cmax + 16);
+			}
+			else if (Izza(GButton))
+			{
+				GDisplayString ds(v->GetFont(), v->Name());
+				int x = max(v->X(), ds.X() + GButton::Overhead.x);
+				if (x > v->X())
 				{
-					GList *Lst = Izza(GList);
-					int m = 0;
-					for (int i=0; i<Lst->GetColumns(); i++)
-					{
-						m += Lst->ColumnAt(i)->Width();
-					}
-					m = max(m, 40);
-					Min = max(Min, 40);
-					// Max = max(Max, m + 20);
-					Flag = SizeFill;
+					// Resize the button to show all the text on it...
+					GRect r = v->GetPos();
+					r.x2 = r.x1 + x - 1;
+					v->SetPos(r);
 				}
-				else if (Izza(GTree) ||
-						 Izza(GTabView))
+
+				MaxBtnX = max(MaxBtnX, x);
+				TotalBtnX = TotalBtnX ? TotalBtnX + GTableLayout::CellSpacing + x : x;
+				
+				if (Flag < SizeFixed)
+					Flag = SizeFixed;
+			}
+			else if (Izza(GEdit) ||
+					 Izza(GScrollBar))
+			{
+				Min = max(Min, 40);
+				Flag = SizeFill;
+			}
+			else if (Izza(GCombo))
+			{
+				GCombo *Cbo = Izza(GCombo);
+				GFont *f = Cbo->GetFont();
+				int x = 0;
+				char *t;
+				for (int i=0; (t = (*Cbo)[i]); i++)
 				{
-					Min = max(Min, 40);
-					// Max = max(Max, 3000);
-					Flag = SizeFill;
+					GDisplayString ds(f, t);
+					x = max(ds.X() + 4, x);
+				}				
+				
+				Min = max(Min, x + 32);
+				Max = max(Max, x + 32);
+				if (Flag < SizeGrow)
+					Flag = SizeGrow;
+			}
+			else if (Izza(GBitmap))
+			{
+				GBitmap *b = Izza(GBitmap);
+				GSurface *Dc = b->GetSurface();
+				if (Dc)
+				{
+					Min = max(Min, Dc->X() + 4);
+					Max = max(Max, Dc->X() + 4);
 				}
 				else
 				{
-					GTableLayout *Tbl = Izza(GTableLayout);
-					if (Tbl)
-					{
-						Tbl->d->LayoutHorizontal(Table->GetClient(), &Min, &Max, &Flag);
-						// LgiTrace("    TblHorz = %i, %i, %s\n", Min, Max, FlagToString(Flag));
-					}
-					else
-					{
-						Min = max(Min, v->X());
-						Max = max(Max, v->X());
-					}
+					Min = max(Min, 3000);
+					Max = max(Max, 3000);
+				}
+			}
+			else if (Izza(GList))
+			{
+				GList *Lst = Izza(GList);
+				int m = 0;
+				for (int i=0; i<Lst->GetColumns(); i++)
+				{
+					m += Lst->ColumnAt(i)->Width();
+				}
+				m = max(m, 40);
+				Min = max(Min, 40);
+				// Max = max(Max, m + 20);
+				Flag = SizeFill;
+			}
+			else if (Izza(GTree) ||
+					 Izza(GTabView))
+			{
+				Min = max(Min, 40);
+				// Max = max(Max, 3000);
+				Flag = SizeFill;
+			}
+			else
+			{
+				GTableLayout *Tbl = Izza(GTableLayout);
+				if (Tbl)
+				{
+					Tbl->d->LayoutHorizontal(Table->GetClient(), &Min, &Max, &Flag);
+					// LgiTrace("    TblHorz = %i, %i, %s\n", Min, Max, FlagToString(Flag));
+				}
+				else
+				{
+					Min = max(Min, v->X());
+					Max = max(Max, v->X());
 				}
 			}
 		}
@@ -754,44 +756,31 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 		if (!v)
 			continue;
 
+		const char *Cls = v->GetClass();
 		GTableLayout *Tbl;
 		GRadioGroup *Grp;
-		GCss *Css;
+		GCss *Css = v->GetCss();
+		GCss::Len Ht;
+		if (Css)
+			Ht = Css->Height();
 
 		if (i)
-		{
 			Pos.y2 += GTableLayout::CellSpacing;
-		}
 
 		GViewLayoutInfo Inf;
 		Inf.Width.Min = Inf.Width.Max = Width;
-		if (v->OnLayout(Inf))
-		{
-			/*
-			if (Inf.Width.Max < 0)
-			{
-				if (Flag < SizeFill)
-					Flag = SizeFill;
-			}
-			else
-			{
-				Max = max(Max, Inf.Width.Max);
-			}
 
-			if (Inf.Width.Min)
-			{
-				Min = max(Min, Inf.Width.Min);
-			}
-			*/
+		if (Ht.IsValid())
+		{
+			MinY = MaxY = Ht.ToPx(MaxY, v->GetFont());
+		}
+		else if (v->OnLayout(Inf))
+		{
 			// Supports layout info
 			if (Inf.Height.Max < 0)
 				Flags = SizeFill;
 			else
 				Pos.y2 += Inf.Height.Max - 1;
-		}
-		else if ((Css = v->GetCss()) && Css->Height().IsValid())
-		{
-			MinY = MaxY = Css->Height().ToPx(MaxY, v->GetFont());
 		}
 		else if (Izza(GText))
 		{
