@@ -66,6 +66,8 @@ public:
 	int GetCaret();
 	/// Sets the Caret position in characters
 	void SetCaret(int Pos);
+	/// Sets the text to display when the control is empty
+	void SetEmptyText(const char *EmptyText);
 
 	bool OnKey(GKey &k);
 	

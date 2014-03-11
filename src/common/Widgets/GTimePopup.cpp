@@ -10,31 +10,14 @@
 #include "GEdit.h"
 #include "GDateTimeCtrls.h"
 
-/// This class is the list of times in a popup, it is used by GTimePopup
-class GTimeDrop : public GPopup
-{
-	friend class GTimePopup;
-	GTimePopup *Popup;
-	GList *Times;
-	bool Ignore;
-
-public:
-	GTimeDrop(GTimePopup *p);
-	~GTimeDrop();
-
-	void OnCreate();
-	void OnPaint(GSurface *pDC);
-	void SetTime(GDateTime *t);
-	int OnNotify(GViewI *c, int f);
-};
-
-GTimePopup::GTimePopup() : ResObject(Res_Custom), GDropDown(-1, 0, 0, 10, 10, 0)
+/// This class is the list of times in a popup, it is used by GTimeDropDown
+GTimeDropDown::GTimeDropDown() : ResObject(Res_Custom), GDropDown(-1, 0, 0, 10, 10, 0)
 {
 	DateSrc = 0;
-	SetPopup(Drop = new GTimeDrop(this));
+	SetPopup(Drop = new GTimePopup(this));
 }
 
-bool GTimePopup::OnLayout(GViewLayoutInfo &Inf)
+bool GTimeDropDown::OnLayout(GViewLayoutInfo &Inf)
 {
     if (!Inf.Width.Max)
     {
@@ -49,7 +32,7 @@ bool GTimePopup::OnLayout(GViewLayoutInfo &Inf)
     return true;
 }
 
-void GTimePopup::SetDate(char *d)
+void GTimeDropDown::SetDate(char *d)
 {
 	GViewI *n = GetNotify();
 	if (n && d)
@@ -84,7 +67,7 @@ void GTimePopup::SetDate(char *d)
 	}
 }
 
-void GTimePopup::OnMouseClick(GMouse &m)
+void GTimeDropDown::OnMouseClick(GMouse &m)
 {
 	if (m.Down())
 	{
@@ -108,10 +91,10 @@ void GTimePopup::OnMouseClick(GMouse &m)
 	GDropDown::OnMouseClick(m);
 }
 
-GTimeDrop::GTimeDrop(GTimePopup *p) : GPopup(p)
+GTimePopup::GTimePopup(GView *owner) : GPopup(owner)
 {
-	SetParent(p);
-	Popup = p;
+	SetParent(owner);
+	Owner = owner;
 	Ignore = true;
 	
 	Children.Insert(Times = new GList(100, 1, 1, 50, 50));
@@ -179,18 +162,21 @@ GTimeDrop::GTimeDrop(GTimePopup *p) : GPopup(p)
 	SetPos(r);
 }
 
-GTimeDrop::~GTimeDrop()
+GTimePopup::~GTimePopup()
 {
-	Popup->Drop = 0;
-	Popup->Invalidate();
+	if (Owner)
+	{
+		Owner->OnChildrenChanged(this, false);
+		Owner->Invalidate();
+	}
 }
 
-void GTimeDrop::OnCreate()
+void GTimePopup::OnCreate()
 {
 	Times->Attach(this);
 }
 
-void GTimeDrop::OnPaint(GSurface *pDC)
+void GTimePopup::OnPaint(GSurface *pDC)
 {
 	// 1px black border
 	GRect r = GetClient();
@@ -209,7 +195,7 @@ void GTimeDrop::OnPaint(GSurface *pDC)
 	}
 }
 
-int GTimeDrop::OnNotify(GViewI *c, int f)
+int GTimePopup::OnNotify(GViewI *c, int f)
 {
 	if (c->GetId() == 100 && !Ignore)
 	{
@@ -221,7 +207,9 @@ int GTimeDrop::OnNotify(GViewI *c, int f)
 				char *t = Sel->GetText(0);
 				if (t)
 				{
-					Popup->SetDate(t);
+					Name(t);
+					if (Owner)
+						Owner->SendNotify(M_CHANGE);
 					Visible(false);
 				}
 			}
@@ -235,7 +223,7 @@ int GTimeDrop::OnNotify(GViewI *c, int f)
 	return 0;
 }
 
-void GTimeDrop::SetTime(GDateTime *t)
+void GTimePopup::SetTime(GDateTime *t)
 {
 	if (t && Times)
 	{
@@ -270,9 +258,9 @@ class GTimePopupFactory : public GViewFactory
 	GView *NewView(const char *Class, GRect *Pos, const char *Text)
 	{
 		if (Class &&
-			stricmp(Class, "GTimePopup") == 0)
+			stricmp(Class, "GTimeDropDown") == 0)
 		{
-			return new GTimePopup;
+			return new GTimeDropDown;
 		}
 
 		return 0;

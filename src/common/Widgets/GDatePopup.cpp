@@ -1,197 +1,276 @@
 #include "Lgi.h"
 #include "GPopup.h"
-#include "MonthView.h"
 #include "GDateTimeCtrls.h"
 #include "GDisplayString.h"
 
-class GDatePopup;
-class GDateDrop : public GPopup
+GDatePopup::GDatePopup(GView *owner) : GPopup(owner)
 {
-	friend class GDatePopup;
+	SetParent(owner);
+	Owner = owner;
+	
+	GDateTime Now;
+	Now.SetNow();
+	Mv.Set(&Now);
 
-	GDatePopup *Popup;
-	GRect Caption;
-	GRect Date;
-	GRect Prev;
-	GRect Next;
+	GRect r(0, 0, 150, 130);
+	SetPos(r);
+}
 
-	int Cx, Cy; // Cell Dimensions
-	MonthView Mv;
-
-public:
-	GDateDrop(GDatePopup *p);
-	~GDateDrop();
-
-	void OnPaint(GSurface *pDC)
+GDatePopup::~GDatePopup()
+{
+	if (Owner)
 	{
-		// Border
-		GRect r = GetClient();
-		LgiWideBorder(pDC, r, RAISED);
-		pDC->Colour(LC_MED, 24);
-		pDC->Line(r.x2, r.y1, r.x2, r.y2);
-		pDC->Line(r.x1, r.y2, r.x2-1, r.y2);
-		r.x2--;
-		r.y2--;
-		LgiThinBorder(pDC, r, SUNKEN);
+		Owner->OnChildrenChanged(this, false);
+		Owner->Invalidate();
+	}
+}
 
-		// Layout
-		Caption = r;
-		Caption.y2 = Caption.y1 + SysFont->GetHeight() + 2;
-		Prev = Next = Caption;
-		Prev.x2 = Prev.x1 + Prev.Y();
-		Next.x1 = Next.x2 - Next.Y();
-		Date = r;
-		Date.y1 = Caption.y2 + 1;
+GDateTime GDatePopup::Get()
+{
+	return Mv.Get();
+}
 
-		// Caption bar
-		r = Caption;
-		LgiThinBorder(pDC, r, RAISED);
-		pDC->Colour(LC_MED, 24);
-		pDC->Rectangle(&r);
-		char *Title = Mv.Title();
-		if (Title)
+void GDatePopup::Set(GDateTime &Ts)
+{
+	Mv.Set(&Ts);
+}
+
+void GDatePopup::OnPaint(GSurface *pDC)
+{
+	// Border
+	GRect r = GetClient();
+	LgiWideBorder(pDC, r, RAISED);
+	pDC->Colour(LC_MED, 24);
+	pDC->Line(r.x2, r.y1, r.x2, r.y2);
+	pDC->Line(r.x1, r.y2, r.x2-1, r.y2);
+	r.x2--;
+	r.y2--;
+	LgiThinBorder(pDC, r, SUNKEN);
+
+	// Layout
+	Caption = r;
+	Caption.y2 = Caption.y1 + SysFont->GetHeight() + 2;
+	Prev = Next = Caption;
+	Prev.x2 = Prev.x1 + Prev.Y();
+	Next.x1 = Next.x2 - Next.Y();
+	Date = r;
+	Date.y1 = Caption.y2 + 1;
+
+	// Caption bar
+	r = Caption;
+	LgiThinBorder(pDC, r, RAISED);
+	pDC->Colour(LC_MED, 24);
+	pDC->Rectangle(&r);
+	char *Title = Mv.Title();
+	if (Title)
+	{
+		SysFont->Transparent(true);
+		SysFont->Colour(LC_TEXT, LC_MED);
+		GDisplayString ds(SysFont, Title);
+		ds.Draw(pDC, r.x1 + (r.X()-ds.X())/2, r.y1);
+	}
+
+	// Arrows
+	int CntY = Prev.y1 + ((Prev.Y()-8)/2);
+	int Px = Prev.x2 - 6;
+	int Nx = Next.x1 + 4;
+	pDC->Colour(LC_TEXT, 24);
+	for (int i=0; i<5; i++)
+	{
+		pDC->Line(	Px-i, CntY+i,
+					Px-i, CntY+8-i);
+		pDC->Line(	Nx+i, CntY+i,
+					Nx+i, CntY+8-i);
+	}
+
+	// Date space
+	pDC->Colour(LC_WORKSPACE, 24);
+	pDC->Rectangle(&Date);
+
+	Date.Size(3, 3);
+	r = Date;
+	Cx = r.X() / Mv.X();
+	Cy = r.Y() / Mv.Y();
+	for (int y=0; y<Mv.Y(); y++)
+	{
+		for (int x=0; x<Mv.X(); x++)
 		{
-			SysFont->Transparent(true);
-			SysFont->Colour(LC_TEXT, LC_MED);
-			GDisplayString ds(SysFont, Title);
-			ds.Draw(pDC, r.x1 + (r.X()-ds.X())/2, r.y1);
-		}
+			int Px = x * Cx;
+			int Py = y * Cy;
+			Mv.SelectCell(x, y);
 
-		// Arrows
-		int CntY = Prev.y1 + ((Prev.Y()-8)/2);
-		int Px = Prev.x2 - 6;
-		int Nx = Next.x1 + 4;
-		pDC->Colour(LC_TEXT, 24);
-		for (int i=0; i<5; i++)
-		{
-			pDC->Line(	Px-i, CntY+i,
-						Px-i, CntY+8-i);
-			pDC->Line(	Nx+i, CntY+i,
-						Nx+i, CntY+8-i);
-		}
-
-		// Date space
-		pDC->Colour(LC_WORKSPACE, 24);
-		pDC->Rectangle(&Date);
-
-		Date.Size(3, 3);
-		r = Date;
-		Cx = r.X() / Mv.X();
-		Cy = r.Y() / Mv.Y();
-		for (int y=0; y<Mv.Y(); y++)
-		{
-			for (int x=0; x<Mv.X(); x++)
+			if (Mv.IsSelected())
 			{
-				int Px = x * Cx;
-				int Py = y * Cy;
-				Mv.SelectCell(x, y);
-
-				if (Mv.IsSelected())
+				pDC->Colour(LC_FOCUS_SEL_BACK, 24);
+				pDC->Rectangle(r.x1 + Px, r.y1 + Py, r.x1 + Px + Cx - 2, r.y1 + Py + Cy - 2);
+				SysFont->Colour(LC_FOCUS_SEL_FORE, LC_FOCUS_SEL_BACK);
+			}
+			else
+			{
+				if (Mv.IsToday())
 				{
-					pDC->Colour(LC_FOCUS_SEL_BACK, 24);
-					pDC->Rectangle(r.x1 + Px, r.y1 + Py, r.x1 + Px + Cx - 2, r.y1 + Py + Cy - 2);
-					SysFont->Colour(LC_FOCUS_SEL_FORE, LC_FOCUS_SEL_BACK);
+					SysFont->Colour(Rgb24(192, 0, 0), LC_WORKSPACE);
 				}
 				else
 				{
-					if (Mv.IsToday())
-					{
-						SysFont->Colour(Rgb24(192, 0, 0), LC_WORKSPACE);
-					}
-					else
-					{
-						SysFont->Colour(Mv.IsMonth() ? LC_TEXT : LC_MED, LC_WORKSPACE);
-					}
+					SysFont->Colour(Mv.IsMonth() ? LC_TEXT : LC_MED, LC_WORKSPACE);
 				}
-
-				GDisplayString ds(SysFont, Mv.Day());
-				ds.Draw(pDC, r.x1 + Px + 2, r.y1 + Py + 2);
 			}
+
+			GDisplayString ds(SysFont, Mv.Day());
+			ds.Draw(pDC, r.x1 + Px + 2, r.y1 + Py + 2);
 		}
 	}
-
-	void OnMouseClick(GMouse &m);
-
-	void Move(int Dx, int Dy)
-	{
-		int x = 0, y = 0;
-		Mv.GetCursor(x, y);
-		Mv.SetCursor(x + Dx, y + Dy);
-		Invalidate();
-	}
-
-	bool OnKey(GKey &k)
-	{
-		switch (k.c16)
-		{
-			case VK_ESCAPE:
-			{
-				if (!k.Down())
-				{
-					Visible(false);
-				}
-				return true;
-				break;
-			}
-			case VK_UP:
-			{
-				if (k.Down())
-				{
-					Move(0, -1);
-				}
-				return true;
-				break;
-			}
-			case VK_DOWN:
-			{
-				if (k.Down())
-				{
-					Move(0, 1);
-				}
-				return true;
-				break;
-			}
-			case VK_LEFT:
-			{
-				if (k.Down())
-				{
-					Move(-1, 0);
-				}
-				return true;
-				break;
-			}
-			case VK_RIGHT:
-			{
-				if (k.Down())
-				{
-					Move(1, 0);
-				}
-				return true;
-				break;
-			}
-			case VK_RETURN:
-			{
-				if (k.Down() && k.IsChar)
-				{
-					Popup->SetDate(Mv.Date(true));
-					Visible(false);
-				}
-
-				return true;
-			}
-		}
-
-		return false;
-	}
-};
-
-GDatePopup::GDatePopup() : ResObject(Res_Custom), GDropDown(-1, 0, 0, 10, 10, 0)
-{
-	DateSrc = 0;
-	SetPopup(Drop = new GDateDrop(this));
 }
 
-bool GDatePopup::OnLayout(GViewLayoutInfo &Inf)
+void GDatePopup::OnMouseClick(GMouse &m)
+{
+	if (m.Down())
+	{
+		if (Next.Overlap(m.x, m.y))
+		{
+			GDateTime &c = Mv.Get();
+			c.AddMonths(1);
+			Mv.Set(&c);
+			Invalidate();
+		}
+		else if (Prev.Overlap(m.x, m.y))
+		{
+			GDateTime &c = Mv.Get();
+			c.AddMonths(-1);
+			Mv.Set(&c);
+			Invalidate();
+		}
+		else if (Date.Overlap(m.x, m.y))
+		{
+			int x = (m.x - Date.x1) / Cx;
+			int y = (m.y - Date.y1) / Cy;
+			Mv.SetCursor(x, y);
+			Invalidate();
+		}
+	}
+	else
+	{
+		if (Date.Overlap(m.x, m.y))
+		{
+			if (Owner)
+			{
+				Owner->SendNotify(M_CHANGE);
+				// Popup->SetDate(Mv.Date(true));
+			}
+			Visible(false);
+			return;
+		}
+	}
+
+	GPopup::OnMouseClick(m);
+}
+
+void GDatePopup::Move(int Dx, int Dy)
+{
+	int x = 0, y = 0;
+	Mv.GetCursor(x, y);
+	Mv.SetCursor(x + Dx, y + Dy);
+	Invalidate();
+}
+
+bool GDatePopup::OnKey(GKey &k)
+{
+	switch (k.c16)
+	{
+		case VK_ESCAPE:
+		{
+			if (!k.Down())
+			{
+				Visible(false);
+			}
+			return true;
+			break;
+		}
+		case VK_UP:
+		{
+			if (k.Down())
+			{
+				Move(0, -1);
+			}
+			return true;
+			break;
+		}
+		case VK_DOWN:
+		{
+			if (k.Down())
+			{
+				Move(0, 1);
+			}
+			return true;
+			break;
+		}
+		case VK_LEFT:
+		{
+			if (k.Down())
+			{
+				Move(-1, 0);
+			}
+			return true;
+			break;
+		}
+		case VK_RIGHT:
+		{
+			if (k.Down())
+			{
+				Move(1, 0);
+			}
+			return true;
+			break;
+		}
+		case VK_RETURN:
+		{
+			if (k.Down() && k.IsChar)
+			{
+				if (Owner)
+				{
+					Owner->SendNotify(M_CHANGE);
+					// Popup->SetDate(Mv.Date(true));
+				}
+				Visible(false);
+			}
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+GDateDropDown::GDateDropDown() : ResObject(Res_Custom), GDropDown(-1, 0, 0, 10, 10, 0)
+{
+	DateSrc = 0;
+	SetPopup(Drop = new GDatePopup(this));
+}
+
+int GDateDropDown::OnNotify(GViewI *Wnd, int Flags)
+{
+	if (Wnd == (GViewI*)Drop)
+	{
+		char s[256];
+		GDateTime Ts = Drop->Get();
+		Ts.Get(s);
+		SetDate(s);
+	}
+	
+	return 0;
+}
+
+void GDateDropDown::OnChildrenChanged(GViewI *Wnd, bool Attaching)
+{
+	if (Wnd == (GViewI*)Drop && !Attaching)
+	{
+		Drop = NULL;
+	}
+}
+
+bool GDateDropDown::OnLayout(GViewLayoutInfo &Inf)
 {
     if (!Inf.Width.Max)
     {
@@ -206,7 +285,7 @@ bool GDatePopup::OnLayout(GViewLayoutInfo &Inf)
     return true;
 }
 
-void GDatePopup::SetDate(char *d)
+void GDateDropDown::SetDate(char *d)
 {
 	GViewI *n = GetNotify();
 	if (n && d)
@@ -237,7 +316,7 @@ void GDatePopup::SetDate(char *d)
 	}
 }
 
-void GDatePopup::OnMouseClick(GMouse &m)
+void GDateDropDown::OnMouseClick(GMouse &m)
 {
 	if (m.Down())
 	{
@@ -256,7 +335,7 @@ void GDatePopup::OnMouseClick(GMouse &m)
 				if (Old &&
 					New.Set(Old))
 				{
-					Drop->Mv.Set(&New);
+					Drop->Set(New);
 				}
 			}
 		}
@@ -265,72 +344,14 @@ void GDatePopup::OnMouseClick(GMouse &m)
 	GDropDown::OnMouseClick(m);
 }
 
-GDateDrop::GDateDrop(GDatePopup *p) : GPopup(p)
-{
-	SetParent(p);
-	Popup = p;
-	
-	GDateTime Now;
-	Now.SetNow();
-	Mv.Set(&Now);
-
-	GRect r(0, 0, 150, 130);
-	SetPos(r);
-}
-
-GDateDrop::~GDateDrop()
-{
-	Popup->Drop = 0;
-	Popup->Invalidate();
-}
-
-void GDateDrop::OnMouseClick(GMouse &m)
-{
-	if (m.Down())
-	{
-		if (Next.Overlap(m.x, m.y))
-		{
-			GDateTime &c = Mv.Get();
-			c.AddMonths(1);
-			Mv.Set(&c);
-			Invalidate();
-		}
-		else if (Prev.Overlap(m.x, m.y))
-		{
-			GDateTime &c = Mv.Get();
-			c.AddMonths(-1);
-			Mv.Set(&c);
-			Invalidate();
-		}
-		else if (Date.Overlap(m.x, m.y))
-		{
-			int x = (m.x - Date.x1) / Cx;
-			int y = (m.y - Date.y1) / Cy;
-			Mv.SetCursor(x, y);
-			Invalidate();
-		}
-	}
-	else
-	{
-		if (Date.Overlap(m.x, m.y))
-		{
-			Popup->SetDate(Mv.Date(true));
-			Visible(false);
-			return;
-		}
-	}
-
-	GPopup::OnMouseClick(m);
-}
-
 class GDatePopupFactory : public GViewFactory
 {
 	GView *NewView(const char *Class, GRect *Pos, const char *Text)
 	{
 		if (Class &&
-			stricmp(Class, "GDatePopup") == 0)
+			stricmp(Class, "GDateDropDown") == 0)
 		{
-			return new GDatePopup;
+			return new GDateDropDown;
 		}
 
 		return 0;

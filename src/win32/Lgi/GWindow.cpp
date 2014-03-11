@@ -11,6 +11,7 @@
 
 #define DEBUG_WINDOW_PLACEMENT				0
 #define DEBUG_HANDLE_VIEW_KEY				0
+#define DEBUG_HANDLE_VIEW_MOUSE				1
 
 extern bool In_SetWindowPos;
 
@@ -391,17 +392,29 @@ bool GWindow::OnRequestClose(bool OsShuttingDown)
 
 bool GWindow::HandleViewMouse(GView *v, GMouse &m)
 {
+	#if DEBUG_HANDLE_VIEW_MOUSE
+	m.Trace("HandleViewMouse");
+	#endif
+	
 	for (int i=0; i<d->Hooks.Length(); i++)
 	{
 		if (d->Hooks[i].Flags & GMouseEvents)
 		{
 			if (!d->Hooks[i].Target->OnViewMouse(v, m))
 			{
+				#if DEBUG_HANDLE_VIEW_MOUSE
+				if (!m.IsMove())
+					LgiTrace("   Hook %i of %i ate mouse event: '%s'\n", i, d->Hooks.Length(), d->Hooks[i].Target->GetClass());
+				#endif
 				return false;
 			}
 		}
 	}
 	
+	#if DEBUG_HANDLE_VIEW_MOUSE
+	if (!m.IsMove())
+		LgiTrace("   Passing mouse event to '%s'\n", v->GetClass());
+	#endif
 	return true;
 }
 

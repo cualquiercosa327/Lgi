@@ -481,6 +481,12 @@ LRESULT CALLBACK GMouseHook::MouseProc(int Code, WPARAM a, LPARAM b)
 class GPopupPrivate
 {
 public:
+	bool TakeFocus;
+	
+	GPopupPrivate()
+	{
+		TakeFocus = true;
+	}
 };
 
 #ifdef __GTK_H__
@@ -544,6 +550,11 @@ GPopup::~GPopup()
 
 	Children.DeleteObjects();
 	DeleteObj(d);
+}
+
+void GPopup::TakeFocus(bool Take)
+{
+	d->TakeFocus = Take;
 }
 
 #if defined MAC
@@ -786,9 +797,23 @@ void GPopup::Visible(bool i)
 	}
 	#else
 	if (!Handle() && i)
+	{
+		#ifdef WIN32
+		SetStyle(WS_POPUP);
+		#endif
 		GView::Attach(0);
+	}
+	
 	AttachChildren();
+	
+	#ifdef WIN32
+	if (d->TakeFocus)
+		GView::Visible(i);
+	else
+		ShowWindow(Handle(), SW_SHOWNOACTIVATE);
+	#else
 	GView::Visible(i);
+	#endif
 	#endif
 	
 	#if 1
