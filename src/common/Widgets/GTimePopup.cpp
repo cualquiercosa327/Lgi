@@ -17,6 +17,33 @@ GTimeDropDown::GTimeDropDown() : ResObject(Res_Custom), GDropDown(-1, 0, 0, 10, 
 	SetPopup(Drop = new GTimePopup(this));
 }
 
+int GTimeDropDown::OnNotify(GViewI *Ctrl, int Flags)
+{
+	if (Ctrl == (GViewI*)Drop && DateSrc)
+	{
+		GAutoString a = Drop->GetTime();
+		
+		GDateTime ts;
+		char *str = DateSrc->Name();
+		ts.Set(str);
+		ts.SetTime(a);
+		
+		char s[256];
+		ts.Get(s);
+		DateSrc->Name(s);
+	}
+	
+	return 0;
+}
+
+void GTimeDropDown::OnChildrenChanged(GViewI *Wnd, bool Attaching)
+{
+	if (Wnd == (GViewI*)Drop && !Attaching)
+	{
+		Drop = NULL;
+	}	
+}
+
 bool GTimeDropDown::OnLayout(GViewLayoutInfo &Inf)
 {
     if (!Inf.Width.Max)
@@ -94,6 +121,7 @@ void GTimeDropDown::OnMouseClick(GMouse &m)
 GTimePopup::GTimePopup(GView *owner) : GPopup(owner)
 {
 	SetParent(owner);
+	SetNotify(owner);
 	Owner = owner;
 	Ignore = true;
 	
@@ -208,8 +236,7 @@ int GTimePopup::OnNotify(GViewI *c, int f)
 				if (t)
 				{
 					Name(t);
-					if (Owner)
-						Owner->SendNotify(M_CHANGE);
+					SendNotify(M_CHANGE);
 					Visible(false);
 				}
 			}
@@ -221,6 +248,20 @@ int GTimePopup::OnNotify(GViewI *c, int f)
 	}
 
 	return 0;
+}
+
+GAutoString GTimePopup::GetTime()
+{
+	GAutoString a;
+	if (Times)
+	{
+		GListItem *s = Times->GetSelected();
+		if (s)
+		{
+			a.Reset(NewStr(s->GetText(0)));
+		}
+	}
+	return a;
 }
 
 void GTimePopup::SetTime(GDateTime *t)

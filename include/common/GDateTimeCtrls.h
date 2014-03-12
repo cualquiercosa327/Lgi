@@ -16,9 +16,11 @@ public:
 	GTimePopup(GView *owner);
 	~GTimePopup();
 
+	void SetTime(GDateTime *t);
+	GAutoString GetTime();
+
 	void OnCreate();
 	void OnPaint(GSurface *pDC);
-	void SetTime(GDateTime *t);
 	int OnNotify(GViewI *c, int f);
 };
 
@@ -31,7 +33,7 @@ class GTimeDropDown :
 	public GDropDown,
 	public ResObject
 {
-	class GTimePopup *Drop;
+	GTimePopup *Drop;
 	GViewI *DateSrc;
 
 public:
@@ -42,6 +44,8 @@ public:
 	void SetDate(char *d);
 	void OnMouseClick(GMouse &m);
 	bool OnLayout(GViewLayoutInfo &Inf);
+	int OnNotify(GViewI *Ctrl, int Flags);
+	void OnChildrenChanged(GViewI *Wnd, bool Attaching);
 };
 
 /// Popup window used to select a date.
