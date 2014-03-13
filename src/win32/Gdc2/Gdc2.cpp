@@ -94,7 +94,7 @@ GPalette::GPalette(uchar *pPal, int s)
 	Data = 0;
 	hPal = NULL;
 	Lut = 0;
-	if (pPal)
+	if (pPal || s > 0)
 		Set(pPal, s);
 }
 

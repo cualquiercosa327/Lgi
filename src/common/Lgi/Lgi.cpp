@@ -801,7 +801,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 
 				if (!Status)
 				{
-					GRegKey k("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders");
+					GRegKey k(false, "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders");
 					char *p = k.GetStr("{374DE290-123F-4565-9164-39C4925E467B}");
 					if (DirExists(p))
 					{

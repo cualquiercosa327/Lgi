@@ -219,6 +219,7 @@ GDocumentEnv::LoadType GDefaultDocumentEnv::GetContent(LoadJob *&j)
 			j->pDC.Reset(LoadDC(p));
 			return LoadImmediate;
 		}
+		else LgiAssert(!"Is this really not an image?");
 		
 		j->Filename.Reset(NewStr(FullPath));
 		return LoadImmediate;

@@ -13,6 +13,8 @@ public:
 	/// Constructor
 	GRegKey
 	(
+		/// The access type required
+		bool WriteAccess,
 		/// The key name: you can use printf style syntax and extra arguments
 		char *Key,
 		...

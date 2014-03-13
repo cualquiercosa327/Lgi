@@ -1920,7 +1920,7 @@ GProxyUri::GProxyUri()
 {
 	#if defined(WIN32)
 
-	GRegKey k("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings");
+	GRegKey k(false, "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings");
 	if (k.IsOk())
 	{
 	    int Enabled = k.GetInt("ProxyEnable");

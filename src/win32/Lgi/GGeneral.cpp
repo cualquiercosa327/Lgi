@@ -52,7 +52,7 @@ bool LgiGetMimeTypeExtensions(const char *Mime, GArray<char*> &Ext)
 	int Start = Ext.Length();
 	char *e;
 
-	GRegKey t("HKEY_LOCAL_MACHINE\\SOFTWARE\\Classes\\MIME\\Database\\Content Type\\%s", Mime);
+	GRegKey t(false, "HKEY_LOCAL_MACHINE\\SOFTWARE\\Classes\\MIME\\Database\\Content Type\\%s", Mime);
 	if (t.IsOk() && (e = t.GetStr("Extension")))
 	{
 		if (*e == '.') e++;
@@ -89,7 +89,7 @@ bool LgiGetFileMimeType(const char *File, char *Mime, int BufLen)
 		char *Dot = strrchr((char*)File, '.');
 		if (Dot)
 		{
-			GRegKey Key("HKEY_CLASSES_ROOT\\%s", Dot);
+			GRegKey Key(false, "HKEY_CLASSES_ROOT\\%s", Dot);
 			if (Key.IsOk())
 			{
 				char *Ct = Key.GetStr("Content Type");
@@ -103,12 +103,12 @@ bool LgiGetFileMimeType(const char *File, char *Mime, int BufLen)
 				else
 				{
 					// Search mime type DB.
-					GRegKey Db("HKEY_LOCAL_MACHINE\\SOFTWARE\\Classes\\MIME\\Database\\Content Type");
+					GRegKey Db(false, "HKEY_LOCAL_MACHINE\\SOFTWARE\\Classes\\MIME\\Database\\Content Type");
 					List<char> Sub;
 					Db.GetKeyNames(Sub);
 					for (char *k = Sub.First(); k; k = Sub.Next())
 					{
-						GRegKey Type("HKEY_LOCAL_MACHINE\\SOFTWARE\\Classes\\MIME\\Database\\Content Type\\%s", k);
+						GRegKey Type(false, "HKEY_LOCAL_MACHINE\\SOFTWARE\\Classes\\MIME\\Database\\Content Type\\%s", k);
 						char *Ext = Type.GetStr("Extension");
 						if (Ext && stricmp(Ext, Dot) == 0)
 						{
@@ -258,7 +258,7 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 		if (stricmp(Mime, "application/email") == 0)
 		{
 			// get email app
-			GRegKey Key("HKEY_CLASSES_ROOT\\mailto\\shell\\open\\command");
+			GRegKey Key(false, "HKEY_CLASSES_ROOT\\mailto\\shell\\open\\command");
 			if (Key.IsOk())
 			{
 				// get app path
@@ -277,7 +277,7 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 			char Base[] = "SOFTWARE\\Clients\\StartMenuInternet";
 			for (int i=0; i<CountOf(Keys); i++)
 			{
-				GRegKey k1("%s\\%s", Keys[i], Base);
+				GRegKey k1(false, "%s\\%s", Keys[i], Base);
 				if (k1.IsOk())
 				{
 					char *Def = k1.GetStr();
@@ -285,7 +285,7 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 					{
 						for (int n=0; n<CountOf(Keys); n++)
 						{
-							GRegKey k2("%s\\SOFTWARE\\Classes\\Applications\\%s\\shell\\open\\command", Keys[n], Def);
+							GRegKey k2(false, "%s\\SOFTWARE\\Classes\\Applications\\%s\\shell\\open\\command", Keys[n], Def);
 							if (k2.IsOk())
 							{
 								char *App = k2.GetStr();
@@ -310,11 +310,11 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 
 				// This is a hack to get around file types without a MIME database entry
 				// but do have a .ext entry. LgiGetFileMimeType knows about the hack too.
-				GRegKey ExtEntry("HKEY_CLASSES_ROOT\\%s", Ext + 1);
+				GRegKey ExtEntry(false, "HKEY_CLASSES_ROOT\\%s", Ext + 1);
 				char *Name = ExtEntry.GetStr();
 				if (Name)
 				{
-					GRegKey Edit("HKEY_CLASSES_ROOT\\%s\\shell\\edit\\command", Name);
+					GRegKey Edit(false, "HKEY_CLASSES_ROOT\\%s\\shell\\edit\\command", Name);
 					char *App = Edit.GetStr();
 					if (App)
 					{
@@ -322,7 +322,7 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 					}
 					else
 					{
-						GRegKey Open("HKEY_CLASSES_ROOT\\%s\\shell\\open\\command", Name);
+						GRegKey Open(false, "HKEY_CLASSES_ROOT\\%s\\shell\\open\\command", Name);
 						char *App = Open.GetStr();
 						if (App)
 						{
@@ -336,14 +336,14 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 				// This branch gets the list of application available to edit/open the file
 
 				// Map the MIME type to a .ext
-				GRegKey MimeEntry("HKEY_CLASSES_ROOT\\MIME\\Database\\Content Type\\%s", Mime);
+				GRegKey MimeEntry(false, "HKEY_CLASSES_ROOT\\MIME\\Database\\Content Type\\%s", Mime);
 				char *e = MimeEntry.GetStr("Extension");
 				if (e)
 					strsafecpy(Ext, e, sizeof(Ext));
 				if (Ext[0])
 				{
 					// Get list of "Open With" apps
-					GRegKey Other("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\%s\\OpenWithList", Ext);
+					GRegKey Other(false, "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\%s\\OpenWithList", Ext);
 					char *Mru = NewStr(Other.GetStr("MRUList"));
 					if (Mru)
 					{
@@ -353,11 +353,11 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 							char *Application = Other.GetStr(Str);
 							if (Application)
 							{
-								GRegKey Shell("HKEY_CLASSES_ROOT\\Applications\\%s\\shell", Application);
+								GRegKey Shell(false, "HKEY_CLASSES_ROOT\\Applications\\%s\\shell", Application);
 								List<char> Keys;
 								if (Shell.GetKeyNames(Keys))
 								{
-									GRegKey First("HKEY_CLASSES_ROOT\\Applications\\%s\\shell\\%s\\command", Application, Keys.First());
+									GRegKey First(false, "HKEY_CLASSES_ROOT\\Applications\\%s\\shell\\%s\\command", Application, Keys.First());
 									char *Path;
 									if (Path = First.GetStr())
 									{
@@ -374,11 +374,11 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 					if (!Status)
 					{
 						// Explorers file extensions
-						GRegKey FileExt("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\%s", Ext);
+						GRegKey FileExt(false, "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\%s", Ext);
 						char *Application;
 						if (Application = FileExt.GetStr("Application"))
 						{
-							GRegKey App("HKEY_CLASSES_ROOT\\Applications\\%s\\shell\\open\\command", Application);
+							GRegKey App(false, "HKEY_CLASSES_ROOT\\Applications\\%s\\shell\\open\\command", Application);
 							char *Path;
 							if (Path = App.GetStr())
 							{
@@ -390,8 +390,8 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 					if (!Status)
 					{
 						// get classes location
-						GRegKey ExtEntry("HKEY_CLASSES_ROOT\\%s", Ext);
-						GRegKey TypeEntry("HKEY_CLASSES_ROOT\\%s\\shell\\open\\command", ExtEntry.GetStr());
+						GRegKey ExtEntry(false, "HKEY_CLASSES_ROOT\\%s", Ext);
+						GRegKey TypeEntry(false, "HKEY_CLASSES_ROOT\\%s\\shell\\open\\command", ExtEntry.GetStr());
 						char *Path = TypeEntry.GetStr();
 						if (Path)
 						{
@@ -597,7 +597,7 @@ HKEY GetRootKey(char *s)
 	return Root;
 }
 
-GRegKey::GRegKey(char *Key, ...)
+GRegKey::GRegKey(bool WriteAccess, char *Key, ...)
 {
 	char Buffer[1025];
 
@@ -630,7 +630,12 @@ GRegKey::GRegKey(char *Key, ...)
 		else TestKey(HKEY_USERS, HKU)
 		else return;
 
-		RegOpenKeyEx(Root, SubKey, 0, KEY_ALL_ACCESS, &k);
+		LONG ret = RegOpenKeyEx(Root, SubKey, 0, WriteAccess ? KEY_ALL_ACCESS : KEY_READ, &k);
+		if (ret != ERROR_SUCCESS && ret != ERROR_FILE_NOT_FOUND)
+		{			
+			DWORD err = GetLastError();
+			LgiAssert(!"RegOpenKeyEx failed");
+		}
 	}
 }
 
@@ -655,6 +660,11 @@ bool GRegKey::Create()
 		if (Sub)
 		{
 			Status = RegCreateKey(Root, Sub+1, &k) == ERROR_SUCCESS;
+			if (!Status)
+			{
+				DWORD err = GetLastError();
+				LgiAssert(!"RegCreateKey failed");
+			}
 		}
 	}
 
@@ -677,7 +687,7 @@ bool GRegKey::DeleteValue(char *Name)
 		else
 		{
 			DWORD Err = GetLastError();
-			int asd=0;
+			LgiAssert(!"RegDeleteValue failed");
 		}
 	}
 
@@ -700,7 +710,9 @@ bool GRegKey::DeleteKey()
 			int Ret = RegDeleteKey(Root, n);
 			Status = Ret == ERROR_SUCCESS;
 			if (!Status)
+			{
 			    LgiAssert(!"RegDeleteKey failed.");
+			}
 			DeleteArray(KeyName);
 		}
 	}
