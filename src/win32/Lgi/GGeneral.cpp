@@ -597,6 +597,8 @@ HKEY GetRootKey(char *s)
 	return Root;
 }
 
+bool GRegKey::AssertOnError = true;
+
 GRegKey::GRegKey(bool WriteAccess, char *Key, ...)
 {
 	char Buffer[1025];
@@ -634,7 +636,8 @@ GRegKey::GRegKey(bool WriteAccess, char *Key, ...)
 		if (ret != ERROR_SUCCESS && ret != ERROR_FILE_NOT_FOUND)
 		{			
 			DWORD err = GetLastError();
-			LgiAssert(!"RegOpenKeyEx failed");
+			if (AssertOnError)
+				LgiAssert(!"RegOpenKeyEx failed");
 		}
 	}
 }
@@ -667,7 +670,8 @@ bool GRegKey::Create()
 			else
 			{
 				DWORD err = GetLastError();
-				LgiAssert(!"RegCreateKey failed");
+				if (AssertOnError)
+					LgiAssert(!"RegCreateKey failed");
 			}
 		}
 	}
@@ -715,7 +719,8 @@ bool GRegKey::DeleteKey()
 			Status = Ret == ERROR_SUCCESS;
 			if (!Status)
 			{
-			    LgiAssert(!"RegDeleteKey failed.");
+				if (AssertOnError)
+					LgiAssert(!"RegDeleteKey failed.");
 			}
 			DeleteArray(KeyName);
 		}
@@ -736,7 +741,8 @@ char *GRegKey::GetStr(const char *Name)
 	LONG Ret = RegQueryValueEx(k, Name, 0, &Type, (uchar*)s, &Size);
 	if (Ret != ERROR_SUCCESS)
 	{
-		LgiAssert(!"RegQueryValueEx failed.");
+		if (AssertOnError)
+			LgiAssert(!"RegQueryValueEx failed.");
 		return NULL;
 	}
 
@@ -754,7 +760,8 @@ bool GRegKey::SetStr(const char *Name, const char *Value)
 	LONG Ret = RegSetValueEx(k, Name, 0, REG_SZ, (uchar*)Value, Value ? strlen(Value) : 0);
 	if (Ret != ERROR_SUCCESS)
 	{
-		LgiAssert(!"RegSetValueEx failed.");
+		if (AssertOnError)
+			LgiAssert(!"RegSetValueEx failed.");
 		return false;
 	}
 	

@@ -10,6 +10,8 @@ class LgiClass GRegKey
 	char *KeyName;
 
 public:
+	static bool AssertOnError;
+
 	/// Constructor
 	GRegKey
 	(
