@@ -647,7 +647,7 @@ GRegKey::~GRegKey()
 
 bool GRegKey::IsOk()
 {
-	return k != 0;
+	return k != NULL;
 }
 
 bool GRegKey::Create()
@@ -659,8 +659,12 @@ bool GRegKey::Create()
 		char *Sub = strchr(KeyName, '\\');
 		if (Sub)
 		{
-			Status = RegCreateKey(Root, Sub+1, &k) == ERROR_SUCCESS;
-			if (!Status)
+			LONG Ret = RegCreateKey(Root, Sub+1, &k);
+			if (Ret == ERROR_SUCCESS)
+			{
+				Status = IsOk();
+			}
+			else
 			{
 				DWORD err = GetLastError();
 				LgiAssert(!"RegCreateKey failed");
@@ -720,20 +724,41 @@ bool GRegKey::DeleteKey()
 	return false;
 }
 
-char *GRegKey::GetStr(char *Name)
+char *GRegKey::GetStr(const char *Name)
 {
-	DWORD Size = sizeof(s), Type;
-	if (k && RegQueryValueEx(k, Name, 0, &Type, (uchar*)s, &Size) == ERROR_SUCCESS)
+	if (!k)
 	{
-		return s;
+		LgiAssert(!"No key to read from.");
+		return NULL;
 	}
 
-	return 0;		
+	DWORD Size = sizeof(s), Type;
+	LONG Ret = RegQueryValueEx(k, Name, 0, &Type, (uchar*)s, &Size);
+	if (Ret != ERROR_SUCCESS)
+	{
+		LgiAssert(!"RegQueryValueEx failed.");
+		return NULL;
+	}
+
+	return s;
 }
 
-bool GRegKey::SetStr(char *Name, const char *Value)
+bool GRegKey::SetStr(const char *Name, const char *Value)
 {
-	return k && RegSetValueEx(k, Name, 0, REG_SZ, (uchar*)Value, Value ? strlen(Value) : 0) == ERROR_SUCCESS;
+	if (!k)
+	{
+		LgiAssert(!"No key open.");
+		return false;
+	}
+
+	LONG Ret = RegSetValueEx(k, Name, 0, REG_SZ, (uchar*)Value, Value ? strlen(Value) : 0);
+	if (Ret != ERROR_SUCCESS)
+	{
+		LgiAssert(!"RegSetValueEx failed.");
+		return false;
+	}
+	
+	return true;
 }
 
 int GRegKey::GetInt(char *Name)

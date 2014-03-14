@@ -32,10 +32,10 @@ public:
 	char *GetStr
 	(
 		/// Name of the subkey or NULL for the default string.
-		char *Name = 0
+		const char *Name = 0
 	);
 	/// Sets a string value
-	bool SetStr(char *Name, const char *Value);
+	bool SetStr(const char *Name, const char *Value);
 	/// Get an int value
 	int GetInt(char *Name = 0);
 	/// Set an int value
