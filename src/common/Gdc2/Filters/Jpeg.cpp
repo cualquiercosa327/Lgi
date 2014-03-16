@@ -495,12 +495,16 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 
 	if (setjmp(jerr.setjmp_buffer))
 	{
+		const char *msg = cinfo.err->jpeg_message_table[cinfo.err->msg_code];
+	
 		JPEGLIB jpeg_destroy_decompress(&cinfo);
 		return Status;
 	}
 
 	JPEGLIB jpeg_create_decompress(&cinfo);
 	jpeg_source_mgr Source;
+	cinfo.mem->max_memory_to_use = 512 << 20;
+
 	ZeroObj(Source);
 	cinfo.src = &Source;
 	cinfo.src->init_source = j_init_source;

@@ -1249,6 +1249,12 @@ bool GZoomView::Convert(GPointF &p, int x, int y)
 	return false;
 }
 
+void GZoomView::OnMouseClick(GMouse &m)
+{
+	if (m.Down())
+		Focus(true);
+}
+
 bool GZoomView::OnMouseWheel(double Lines)
 {
 	GMouse m;

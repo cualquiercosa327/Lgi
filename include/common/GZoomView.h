@@ -58,28 +58,29 @@ public:
 		NotifyViewportChanged = 1000,
 	};
 
-    GZoomView(GZoomViewCallback *App);
-    ~GZoomView();
+	GZoomView(GZoomViewCallback *App);
+	~GZoomView();
 
-    // Methods
-    void SetCallback(GZoomViewCallback *cb);
-    bool Convert(GPointF &p, int x, int y);
-    ViewportInfo GetViewport();
-    void SetViewport(ViewportInfo i);
-    void SetSampleMode(SampleMode sm);
+	// Methods
+	void SetCallback(GZoomViewCallback *cb);
+	bool Convert(GPointF &p, int x, int y);
+	ViewportInfo GetViewport();
+	void SetViewport(ViewportInfo i);
+	void SetSampleMode(SampleMode sm);
 
-    // Subclass
+	// Subclass
 	void SetSurface(GSurface *dc, bool own);
 	GSurface *GetSurface();
 	void Update(GRect *Where = NULL);
 	void Reset();
 	int GetBlockSize();
 
-    // Events
+	// Events
+	void OnMouseClick(GMouse &m);
 	bool OnMouseWheel(double Lines);
 	void OnPulse();
 	void OnPaint(GSurface *pDC);
-    int OnNotify(GViewI *v, int f);
+	int OnNotify(GViewI *v, int f);
 	GMessage::Param OnEvent(GMessage *m);
 	bool OnLayout(GViewLayoutInfo &Inf);
 };
