@@ -8,27 +8,27 @@
 class GZoomViewCallback
 {
 public:
-	#define DefOption(_type, _name) \
-		virtual _type _name() = 0; \
-		virtual void _name(_type i) = 0;
+	#define DefOption(type, name, default) \
+		virtual type name() { return default; } \
+		virtual void name(type i) {}
 
-	DefOption(int, DisplayGrid);
-	DefOption(int, GridSize);
-	DefOption(int, DisplayTile);
-	DefOption(int, TileType);
-	DefOption(int, TileX);
-	DefOption(int, TileY);
+	DefOption(int, DisplayGrid, false);
+	DefOption(int, GridSize, 0);
+	DefOption(int, DisplayTile, false);
+	DefOption(int, TileType, 0);
+	DefOption(int, TileX, 32);
+	DefOption(int, TileY, 32);
 	
 	#undef DefOption
 	
 	virtual void DrawBackground(GSurface *Dst, GRect *Where) = 0;
-	virtual void SetStatusText(const char *Msg, int Pane = 0) = 0;
+	virtual void SetStatusText(const char *Msg, int Pane = 0) {}
 };
 
 #define GZOOM_SELECTION_MS          100
 
 /// Zoomable and scrollable bitmap viewer.
-class GZoomView : public GLayout
+class GZoomView : public GLayout, public ResObject
 {
     class GZoomViewPriv *d;
 
@@ -62,6 +62,7 @@ public:
     ~GZoomView();
 
     // Methods
+    void SetCallback(GZoomViewCallback *cb);
     bool Convert(GPointF &p, int x, int y);
     ViewportInfo GetViewport();
     void SetViewport(ViewportInfo i);
@@ -80,6 +81,7 @@ public:
 	void OnPaint(GSurface *pDC);
     int OnNotify(GViewI *v, int f);
 	GMessage::Param OnEvent(GMessage *m);
+	bool OnLayout(GViewLayoutInfo &Inf);
 };
 
 #endif

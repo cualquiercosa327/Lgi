@@ -1037,7 +1037,7 @@ public:
 	}
 };
 
-GZoomView::GZoomView(GZoomViewCallback *callback)
+GZoomView::GZoomView(GZoomViewCallback *callback) : ResObject(Res_Custom)
 {
 	d = new GZoomViewPriv(this, callback);
 	Sunken(true);
@@ -1046,6 +1046,16 @@ GZoomView::GZoomView(GZoomViewCallback *callback)
 GZoomView::~GZoomView()
 {
 	DeleteObj(d);
+}
+
+bool GZoomView::OnLayout(GViewLayoutInfo &Inf)
+{
+	Inf.Width.Min = -1;
+	Inf.Width.Max = -1;
+	Inf.Height.Min = -1;
+	Inf.Height.Max = -1;
+	
+	return true;
 }
 
 void GZoomView::SetSurface(GSurface *dc, bool own)
@@ -1195,6 +1205,11 @@ void GZoomView::SetViewport(ViewportInfo i)
 		// FIXME... mark stuff dirty
 		Invalidate();
 	}
+}
+
+void GZoomView::SetCallback(GZoomViewCallback *cb)
+{
+	d->Callback = cb;
 }
 
 bool GZoomView::Convert(GPointF &p, int x, int y)
@@ -1614,3 +1629,15 @@ void GZoomView::OnPaint(GSurface *pDC)
 		#endif
 	}
 }
+
+class GZoomViewFactory : public GViewFactory
+{
+public:
+	GView *NewView(const char *Class, GRect *Pos, const char *Text)
+	{
+		if (!stricmp(Class, "GZoomView"))
+			return new GZoomView(NULL);
+		
+		return NULL;
+	}
+} ZoomViewFactory;

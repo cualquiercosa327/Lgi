@@ -6,10 +6,14 @@
 #include "GString.h"
 #include "LgiClass.h"
 
-template<typename CHAR>
-uint LgiHash(CHAR *v, int l, bool Case)
+#ifndef GHASHTBL_MAX_SIZE
+#define GHASHTBL_MAX_SIZE 30000
+#endif
+
+template<typename RESULT, typename CHAR>
+RESULT LgiHash(CHAR *v, int l, bool Case)
 {
-	uint32 h = 0;
+	RESULT h = 0;
 
 	if (Case)
 	{
@@ -208,7 +212,7 @@ class GHashTbl
 	// Type specific implementations
 
 		// char
-			uint Hash(char *s) { return LgiHash<uchar>((uchar*)s, 0, Case); }
+			uint Hash(char *s) { return LgiHash<uint, uchar>((uchar*)s, 0, Case); }
 			char *CopyKey(char *a) { return NewStr(a); }
 			int SizeKey(char *a) { return strlen(a) + 1; }
 			void FreeKey(char *&a)
@@ -222,7 +226,7 @@ class GHashTbl
 			}
 
 		// const char
-			uint Hash(const char *s) { return LgiHash<uchar>((uchar*)s, 0, Case); }
+			uint Hash(const char *s) { return LgiHash<uint, uchar>((uchar*)s, 0, Case); }
 			char *CopyKey(const char *a) { return NewStr(a); }
 			int SizeKey(const char *a) { return strlen(a) + 1; }
 			void FreeKey(const char *&a)
@@ -236,7 +240,7 @@ class GHashTbl
 			}
 	
 		// char16
-			uint Hash(char16 *s) { return LgiHash<char16>(s, 0, Case); }
+			uint Hash(char16 *s) { return LgiHash<uint, char16>(s, 0, Case); }
 			char16 *CopyKey(char16 *a) { return NewStrW(a); }
 			int SizeKey(char16 *a) { return StrlenW(a) + 1; }
 			void FreeKey(char16 *&a)
@@ -264,10 +268,20 @@ class GHashTbl
 
 		// int64
 			uint Hash(int64 s) { return s; }
-			int CopyKey(int64 a) { return a; }
+			int64 CopyKey(int64 a) { return a; }
 			int SizeKey(int64 a) { return sizeof(a); }
 			void FreeKey(int64 &a) { memcpy(&a, &NullKey, sizeof(a)); }
 			bool CmpKey(int64 a, int64 b)
+			{
+				return a == b;
+			}
+
+		// uint64
+			uint Hash(uint64 s) { return s; }
+			uint64 CopyKey(uint64 a) { return a; }
+			int SizeKey(uint64 a) { return sizeof(a); }
+			void FreeKey(uint64 &a) { memcpy(&a, &NullKey, sizeof(a)); }
+			bool CmpKey(uint64 a, uint64 b)
 			{
 				return a == b;
 			}
@@ -294,7 +308,7 @@ class GHashTbl
 	}
 
 public:
-	///ructs the hash table
+	/// Constructs the hash table
 	GHashTbl
 	(
 		/// Sets the initial table size. Should be 2x your data set.
@@ -314,7 +328,7 @@ public:
 		Case = is_case;
 		Pool = false;
 		SizeBackup = Size = size ? max(size, 16) : 512;
-		LgiAssert(Size < 30000);
+		LgiAssert(Size < GHASHTBL_MAX_SIZE);
 		
 		if ((Table = new Entry[Size]))
 		{
@@ -375,7 +389,7 @@ public:
 			Entry *OldTable = Table;
 
 			Used = 0;
-			// LgiAssert(NewSize <= (512 << 10));
+			LgiAssert(NewSize < GHASHTBL_MAX_SIZE);
 			SizeBackup = Size = NewSize;
 
 			Table = new Entry[Size];
