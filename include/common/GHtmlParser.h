@@ -24,7 +24,7 @@ protected:
 	GHtmlElement *GetOpenTag(const char *Tag);
 	void _TraceOpenTags();
 	char *ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPreTag = false, bool *BackOut = NULL);	
-	char *DecodeEntities(const char *s, int len);
+	char16 *DecodeEntities(const char *s, int len);
 
 public:
 	GHtmlParser(GDocView *view)
@@ -39,7 +39,7 @@ public:
 	GHtmlElemInfo *GetTagInfo(const char *Tag);
 	static bool ParseColour(const char *s, GCss::ColorDef &c);
 	static bool Is8Bit(char *s);
-	char *ParsePropValue(char *s, char *&Value);
+	char *ParsePropValue(char *s, char16 *&Value);
 	char *ParseName(char *s, GAutoString &Name);
 	char *ParseName(char *s, char **Name);
 	char *ParsePropList(char *s, GHtmlElement *Obj, bool &Closed);

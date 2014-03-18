@@ -166,6 +166,13 @@ public:
 	virtual void Set(const char *attr, const char *val) {}
 	virtual void SetStyle() {}
 	virtual GAutoString DescribeElement() = 0;
+
+	// Helper
+	void Set(const char *attr, const char16 *val)
+	{
+		GAutoString utf8(LgiNewUtf16To8(val));
+		Set(attr, utf8);
+	}
 };
 
 #endif

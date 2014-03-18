@@ -81,21 +81,21 @@ void GHtmlParser::SkipNonDisplay(char *&s)
 	}
 }
 
-char *GHtmlParser::DecodeEntities(const char *s, int len)
+char16 *GHtmlParser::DecodeEntities(const char *s, int len)
 {
-	char buf[256];
-	char *o = buf;
+	char16 buf[256];
+	char16 *o = buf;
 	const char *end = s + len;
 	GStringPipe p(256);
 
 	for (const char *i = s; i < end; )
 	{
-		if (o - buf > sizeof(buf) - 32)
+		if (o - buf > CountOf(buf) - 32)
 		{
 			// We are getting near the end of the buffer...
 			// push existing data into the GStringPipe and
 			// reset the output ptr.
-			p.Write(buf, o - buf);
+			p.Write(buf, (o - buf) * sizeof(*o) );
 			o = buf;
 		}
 		
@@ -155,12 +155,11 @@ char *GHtmlParser::DecodeEntities(const char *s, int len)
 						e++;
 					}
 					
-					GAutoWString Var(LgiNewUtf8To16(i, e-i));							
+					GAutoWString Var(LgiNewUtf8To16(i, e-i));
 					uint32 Char = GHtmlStatic::Inst->VarMap.Find(Var);
 					if (Char)
 					{
-						int buflen = sizeof(buf) - (o - buf);
-						LgiUtf32To8(Char, (uint8*&)o, buflen);
+						*o++ = Char;
 						i = e;
 					}
 					else
@@ -198,14 +197,14 @@ char *GHtmlParser::DecodeEntities(const char *s, int len)
 	if (p.GetSize() > 0)
 	{
 		// Long string mode... use the GStringPipe
-		p.Write(buf, o - buf);
-		return p.NewStr();
+		p.Write(buf, (o - buf) * sizeof(*o));
+		return p.NewStrW();
 	}
 	
-	return NewStr(buf, o - buf);
+	return NewStrW(buf, o - buf);
 }
 
-char *GHtmlParser::ParsePropValue(char *s, char *&Value)
+char *GHtmlParser::ParsePropValue(char *s, char16 *&Value)
 {
 	Value = 0;
 	if (s)
@@ -287,15 +286,11 @@ char *GHtmlParser::ParsePropList(char *s, GHtmlElement *Obj, bool &Closed)
 			s++;
 			while (*s && IsWhiteSpace(*s)) s++;
 
-			char *Value = 0;
+			char16 *Value = 0;
 			s = ParsePropValue(s, Value);
 
 			if (Name && Value)
 			{
-				if (!stricmp(Name, "color"))
-				{
-					int asd=0;
-				}
 				Obj->Set(Name, Value);
 			}
 

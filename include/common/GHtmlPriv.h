@@ -247,6 +247,9 @@ public:
 protected:
 	friend class HtmlEdit;
 
+	/// A hash table of attributes.
+	///
+	/// All strings stored in here should be in UTF-8. Each string is allocated on the heap.
 	GHashTbl<const char*, char*> Attr;
 
 	// Forms
@@ -342,7 +345,7 @@ public:
 	int GetTextStart();
 	GAutoWString DumpW();
 	GAutoString DescribeElement();
-	char16 *CleanText(const char *s, int len, bool ConversionAllowed = true, bool KeepWhiteSpace = false);
+	char16 *CleanText(const char *s, int len, const char *SourceCs, bool ConversionAllowed = true, bool KeepWhiteSpace = false);
 	char *ParseText(char *Doc);
 	bool ConvertToText(TextConvertState &State);
 	

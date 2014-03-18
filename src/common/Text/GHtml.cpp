@@ -1708,7 +1708,7 @@ GTag *GTag::IsAnchor(GAutoString *Uri)
 		const char *u = 0;
 		if (a->Get("href", u))
 		{
-			GAutoWString w(CleanText(u, strlen(u)));
+			GAutoWString w(CleanText(u, strlen(u), "utf-8"));
 			if (w)
 			{
 				Uri->Reset(LgiNewUtf16To8(w));
@@ -2802,7 +2802,10 @@ void GTag::SetStyle()
 					char *CharSet = stristr(ContentType, "charset=");
 					if (CharSet)
 					{
-						Html->ParsePropValue(CharSet + 8, Cs);
+						char16 *cs = NULL;
+						Html->ParsePropValue(CharSet + 8, cs);
+						Cs = LgiNewUtf16To8(cs);
+						DeleteArray(cs);
 					}
 				}
 			}
@@ -2983,7 +2986,7 @@ void GTag::SetStyle()
 			const char *s = 0;
 			if (Get("Face", s))
 			{
-				char16 *cw = CleanText(s, strlen(s), true);
+				char16 *cw = CleanText(s, strlen(s), "utf-8", true);
 				char *c8 = LgiNewUtf16To8(cw);
 				DeleteArray(cw);
 				GToken Faces(c8, ",");
@@ -3039,7 +3042,7 @@ void GTag::SetStyle()
 
 			const char *Type, *Value = NULL;
 			Get("value", Value);
-			GAutoWString CleanValue(Value ? CleanText(Value, strlen(Value), true, true) : NULL);
+			GAutoWString CleanValue(Value ? CleanText(Value, strlen(Value), "utf-8", true, true) : NULL);
 			if (CleanValue)
 			{
 				CtrlValue = CleanValue;
@@ -3117,182 +3120,156 @@ void GTag::SetCssStyle(const char *Style)
 		// Parse CSS
 		const char *Ptr = Style;
 		GCss::Parse(Ptr, GCss::ParseRelaxed);
-
-		// Update display setting cache
-		/*
-		if (Display() != DispInherit)
-			Disp = Display();
-		*/
 	}
 }
 
-char16 *GTag::CleanText(const char *s, int Len, bool ConversionAllowed, bool KeepWhiteSpace)
+char16 *GTag::CleanText(const char *s, int Len, const char *SourceCs,  bool ConversionAllowed, bool KeepWhiteSpace)
 {
+	if (!s || Len <= 0)
+		return NULL;
+
 	static const char *DefaultCs = "iso-8859-1";
 	char16 *t = 0;
-
-	if (s && Len > 0)
+	bool DocAndCsTheSame = false;
+	if (Html->DocCharSet && Html->Charset)
 	{
-		bool Has8 = false;
-		if (Len >= 0)
-		{
-			for (int n = 0; n < Len; n++)
-			{
-				if (s[n] & 0x80)
-				{
-					Has8 = true;
-					break;
-				}
-			}
-		}
-		else
-		{
-			for (int n = 0; s[n]; n++)
-			{
-				if (s[n] & 0x80)
-				{
-					Has8 = true;
-					break;
-				}
-			}
-		}
-		
-		bool DocAndCsTheSame = false;
-		if (Html->DocCharSet && Html->Charset)
-		{
-			DocAndCsTheSame = stricmp(Html->DocCharSet, Html->Charset) == 0;
-		}
+		DocAndCsTheSame = stricmp(Html->DocCharSet, Html->Charset) == 0;
+	}
 
-		if (Html->DocCharSet &&
-			Html->Charset &&
-			!Html->OverideDocCharset)
-		{
-			char *DocText = (char*)LgiNewConvertCp(Html->DocCharSet, s, Html->Charset, Len);
-			t = (char16*) LgiNewConvertCp(LGI_WideCharset, DocText, Html->DocCharSet, -1);
-			DeleteArray(DocText);
-		}
-		else if (Html->DocCharSet)
-		{
-			t = (char16*) LgiNewConvertCp(LGI_WideCharset, s, Html->DocCharSet, Len);
-		}
-		else
-		{
-			t = (char16*) LgiNewConvertCp(LGI_WideCharset, s, Html->Charset ? Html->Charset : DefaultCs, Len);
-		}
+	if (SourceCs)
+	{
+		t = (char16*) LgiNewConvertCp(LGI_WideCharset, s, SourceCs, Len);
+	}
+	else if (Html->DocCharSet &&
+		Html->Charset &&
+		!DocAndCsTheSame &&
+		!Html->OverideDocCharset)
+	{
+		char *DocText = (char*)LgiNewConvertCp(Html->DocCharSet, s, Html->Charset, Len);
+		t = (char16*) LgiNewConvertCp(LGI_WideCharset, DocText, Html->DocCharSet, -1);
+		DeleteArray(DocText);
+	}
+	else if (Html->DocCharSet)
+	{
+		t = (char16*) LgiNewConvertCp(LGI_WideCharset, s, Html->DocCharSet, Len);
+	}
+	else
+	{
+		t = (char16*) LgiNewConvertCp(LGI_WideCharset, s, Html->Charset ? Html->Charset : DefaultCs, Len);
+	}
 
-		if (t && ConversionAllowed)
+	if (t && ConversionAllowed)
+	{
+		char16 *o = t;
+		for (char16 *i=t; *i; )
 		{
-			char16 *o = t;
-			for (char16 *i=t; *i; )
+			switch (*i)
 			{
-				switch (*i)
+				case '&':
 				{
-					case '&':
+					i++;
+					
+					if (*i == '#')
 					{
+						// Unicode Number
+						char n[32] = "", *p = n;
+						
 						i++;
 						
-						if (*i == '#')
+						if (*i == 'x' || *i == 'X')
 						{
-							// Unicode Number
-							char n[32] = "", *p = n;
-							
+							// Hex number
 							i++;
-							
-							if (*i == 'x' || *i == 'X')
+							while (	*i &&
+									(
+										IsDigit(*i) ||
+										(*i >= 'A' && *i <= 'F') ||
+										(*i >= 'a' && *i <= 'f')
+									) &&
+									(p - n) < 31)
 							{
-								// Hex number
-								i++;
-								while (	*i &&
-										(
-											IsDigit(*i) ||
-											(*i >= 'A' && *i <= 'F') ||
-											(*i >= 'a' && *i <= 'f')
-										) &&
-										(p - n) < 31)
-								{
-									*p++ = *i++;
-								}
+								*p++ = *i++;
 							}
-							else
-							{
-								// Decimal number
-								while (*i && IsDigit(*i) && (p - n) < 31)
-								{
-									*p++ = *i++;
-								}
-							}
-							*p++ = 0;
-							
-							char16 Ch = atoi(n);
-							if (Ch)
-							{
-								*o++ = Ch;
-							}
-							
-							if (*i && *i != ';')
-								i--;
 						}
 						else
 						{
-							// Named Char
-							char16 *e = i;
-							while (*e && IsAlpha(*e) && *e != ';')
+							// Decimal number
+							while (*i && IsDigit(*i) && (p - n) < 31)
 							{
-								e++;
-							}
-							
-							GAutoWString Var(NewStrW(i, e-i));							
-							char16 Char = GHtmlStatic::Inst->VarMap.Find(Var);
-							if (Char)
-							{
-								*o++ = Char;
-								i = e;
-							}
-							else
-							{
-								i--;
-								*o++ = *i;
+								*p++ = *i++;
 							}
 						}
-						break;
-					}
-					case '\r':
-					{
-						break;
-					}
-					case ' ':
-					case '\t':
-					case '\n':
-					{
-						if (KeepWhiteSpace)
+						*p++ = 0;
+						
+						char16 Ch = atoi(n);
+						if (Ch)
 						{
+							*o++ = Ch;
+						}
+						
+						if (*i && *i != ';')
+							i--;
+					}
+					else
+					{
+						// Named Char
+						char16 *e = i;
+						while (*e && IsAlpha(*e) && *e != ';')
+						{
+							e++;
+						}
+						
+						GAutoWString Var(NewStrW(i, e-i));							
+						char16 Char = GHtmlStatic::Inst->VarMap.Find(Var);
+						if (Char)
+						{
+							*o++ = Char;
+							i = e;
+						}
+						else
+						{
+							i--;
 							*o++ = *i;
 						}
-						else
-						{
-							*o++ = ' ';
-
-							// Skip furthur whitespace
-							while (i[1] && IsWhiteSpace(i[1]))
-							{
-								i++;
-							}
-						}
-						break;
 					}
-					default:
-					{
-						// Normal char
-						*o++ = *i;
-						break;
-					}
+					break;
 				}
+				case '\r':
+				{
+					break;
+				}
+				case ' ':
+				case '\t':
+				case '\n':
+				{
+					if (KeepWhiteSpace)
+					{
+						*o++ = *i;
+					}
+					else
+					{
+						*o++ = ' ';
 
-				if (*i) i++;
-				else break;
+						// Skip furthur whitespace
+						while (i[1] && IsWhiteSpace(i[1]))
+						{
+							i++;
+						}
+					}
+					break;
+				}
+				default:
+				{
+					// Normal char
+					*o++ = *i;
+					break;
+				}
 			}
-			*o++ = 0;
+
+			if (*i) i++;
+			else break;
 		}
+		*o++ = 0;
 	}
 
 	if (t && !*t)
@@ -3466,7 +3443,7 @@ bool GTag::ConvertToText(TextConvertState &State)
 						Href += 7;
 						
 					int HrefLen = strlen(Href);
-					GAutoWString h(CleanText(Href, HrefLen));
+					GAutoWString h(CleanText(Href, HrefLen, "utf-8"));
 					if (h && StrcmpW(h, Txt) != 0)
 					{
 						// Href different from the text of the link
