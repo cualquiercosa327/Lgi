@@ -1394,17 +1394,16 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 				SkipWhite(s);
 				while (*s && *s != ';')
 				{
-					Len *t = new Len;
+					GAutoPtr<Len> t(new Len);
 					if (t->Parse(s, PropId, PropId == PropZIndex ? ParseRelaxed : Type))
 					{
-						Lengths.Add(t);
+						Lengths.Add(t.Release());
 						SkipWhite(s);
 					}
 					else
 					{
 						if (Type == ParseStrict)
 							LgiAssert(!"Parsing failed.");
-						DeleteObj(t);
 						break;
 					}
 				}
@@ -1435,7 +1434,7 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 					}
 					else if (Lengths.Length() == 1)
 					{
-						StoreProp(PropPadding, Lengths[0], false);
+						StoreProp(PropPadding, Lengths[0], true);
 						DeleteProp(PropPaddingLeft);
 						DeleteProp(PropPaddingTop);
 						DeleteProp(PropPaddingRight);
@@ -1473,7 +1472,7 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 					}
 					else if (Lengths.Length() == 1)
 					{
-						StoreProp(PropMargin, Lengths[0], false);
+						StoreProp(PropMargin, Lengths[0], true);
 						DeleteProp(PropMarginTop);
 						DeleteProp(PropMarginBottom);
 						DeleteProp(PropMarginRight);
