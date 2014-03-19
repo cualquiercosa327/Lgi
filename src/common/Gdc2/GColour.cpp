@@ -4,6 +4,8 @@
 GColour::GColour()
 {
 	space = CsNone;
+	flat = 0;
+	pal = NULL;
 }
 
 GColour::GColour(uint8 idx8, GPalette *palette)

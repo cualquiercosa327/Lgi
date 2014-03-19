@@ -432,15 +432,16 @@ class GelSkin : public GSkinEngine
 				}
 				else
 				{
-					Text->GetFont()->Transparent(Back.Type != GCss::ColorRgb);
 					if (Back.Type == GCss::ColorRgb)
 					{
 						pDC->Colour(Back.Rgb32, 32);
 						pDC->Rectangle(&r);
+						Text->GetFont()->Transparent(true);
 						Text->Draw(pDC, x, y, &r);
 					}
 					else
 					{
+						Text->GetFont()->Transparent(false);
 						Text->Draw(pDC, x, y, &r);
 					}
 				}
@@ -801,7 +802,7 @@ public:
 
 			GRect Box1(Box.x1, 0, Box.x2, Box.y1 - 1);
 			GRect Box2(Box.x1, Box.y2 + 1, Box.x2, Ctrl->Y()-1);
-			if (Back.Type)
+			if (Back.Type == GCss::ColorRgb)
 			{
 				State->pScreen->Colour(Back.Rgb32, 32);
 				if (Box.y1 > 0)

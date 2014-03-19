@@ -358,7 +358,7 @@ GTextView3::GTextView3(	int Id,
 		{
 			*Underline = *Font;
 			Underline->Underline(true);
-			if (!d->UrlColour.Transparent())
+			if (d->UrlColour.IsValid())
 				Underline->Fore(d->UrlColour.c24());
 			Underline->Create();
 		}
@@ -540,7 +540,7 @@ void GTextView3::SetFont(GFont *f, bool OwnIt)
 		*Underline = *Font;
 		Underline->Underline(true);
 		
-		if (!d->UrlColour.Transparent())
+		if (d->UrlColour.IsValid())
 			Underline->Fore(d->UrlColour.c24());
 	}
 
@@ -4317,7 +4317,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 						if (NextStyle->Font)
 						{
 							// draw styled text
-							if (!NextStyle->c.Transparent())
+							if (NextStyle->c.IsValid())
 								NextStyle->Font->Colour(NextStyle->c, Back);
 							NextStyle->Font->Transparent(false);
 
@@ -4378,7 +4378,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 						}
 						else
 						{
-							GColour c = l->c.Transparent() ? Fore : l->c;
+							GColour c = l->c.IsValid() ? l->c : Fore;
 							Font->Colour(c, Back);
 						}
 						NextSelection = (NextSelection == SelMin) ? SelMax : -1;
