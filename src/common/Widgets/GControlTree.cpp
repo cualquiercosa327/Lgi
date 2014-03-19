@@ -218,13 +218,13 @@ void GControlTree::Item::Select(bool b)
 
 			if (Ctrl)
 			{
-				Ctrl->SetBackgroundFill(new GViewFill(LC_WORKSPACE, 24));
+				Ctrl->SetColour(GColour(LC_WORKSPACE, 24), false);
 				Ctrl->Visible(false);
 				Ctrl->Attach(GetTree());
 
 				if (Browse)
 				{
-					Browse->SetBackgroundFill(new GViewFill(LC_WORKSPACE, 24));
+					Browse->SetColour(GColour(LC_WORKSPACE, 24), false);
 					Browse->Visible(false);
 					Browse->Attach(GetTree());
 				}

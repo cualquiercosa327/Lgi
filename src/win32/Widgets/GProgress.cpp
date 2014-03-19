@@ -98,16 +98,19 @@ GMessage::Result GProgress::OnEvent(GMessage *Msg)
 			PostMessage(Handle(), PBM_SETRANGE32, Low>>Shift, High>>Shift);
 			PostMessage(Handle(), PBM_SETPOS, (WPARAM) Val>>Shift, 0);
 
-			GViewFill *f;
-			if (f = GetForegroundFill())
+			if (GetCss())
 			{
-				GColour c = f->GetFlat();
-				PostMessage(_View, PBM_SETBARCOLOR, 0, c.c24());
-			}
-			if (f = GetBackgroundFill())
-			{
-				GColour c = f->GetFlat();
-				PostMessage(_View, PBM_SETBKCOLOR, 0, c.c24());
+				GCss::ColorDef f = GetCss()->Color();
+				if (f.Type == GCss::ColorRgb)
+				{
+					PostMessage(_View, PBM_SETBARCOLOR, 0, Rgb32To24(f.Rgb32));
+				}
+				
+				f = GetCss()->BackgroundColor();
+				if (f.Type == GCss::ColorRgb)
+				{
+					PostMessage(_View, PBM_SETBKCOLOR, 0, Rgb32To24(f.Rgb32));
+				}
 			}
 			break;
 		}
@@ -116,33 +119,29 @@ GMessage::Result GProgress::OnEvent(GMessage *Msg)
 	return GControl::OnEvent(Msg);
 }
 
-bool GProgress::SetForegroundFill(GViewFill *Fill)
+bool GProgress::SetCssStyle(const char *CssStyle)
 {
-	if (_View && Fill)
+	bool Status = GControl::SetCssStyle(CssStyle);
+	if (Status && GetCss())
 	{
-		GColour c32 = Fill->GetFlat();
-		SendMessage(_View, PBM_SETBARCOLOR, 0, c32.c24());
+		GCss::ColorDef f = GetCss()->Color();
+		if (f.Type == GCss::ColorRgb)
+			SendMessage(_View, PBM_SETBARCOLOR, 0, Rgb32To24(f.Rgb32));
+		else
+			SendMessage(_View, PBM_SETBARCOLOR, 0, CLR_DEFAULT);
+		
+		f = GetCss()->BackgroundColor();
+		if (f.Type == GCss::ColorRgb)
+			SendMessage(_View, PBM_SETBKCOLOR, 0, Rgb32To24(f.Rgb32));
+		else
+			SendMessage(_View, PBM_SETBKCOLOR, 0, CLR_DEFAULT);
 	}
 	else
 	{
-		SendMessage(_View, PBM_SETBARCOLOR, 0, CLR_DEFAULT);		 
+		SendMessage(_View, PBM_SETBARCOLOR, 0, CLR_DEFAULT);
+		SendMessage(_View, PBM_SETBKCOLOR, 0, CLR_DEFAULT);
 	}
-
-	return GView::SetForegroundFill(Fill);
-}
-
-bool GProgress::SetBackgroundFill(GViewFill *Fill)
-{
-	if (_View && Fill)
-	{
-		GColour c = Fill->GetFlat();
-		SendMessage(_View, PBM_SETBKCOLOR, 0, c.c24());
-	}
-	else
-	{
-		SendMessage(_View, PBM_SETBKCOLOR, 0, CLR_DEFAULT);		 
-	}
-
-	return GView::SetForegroundFill(Fill);
+	
+	return Status;
 }
 

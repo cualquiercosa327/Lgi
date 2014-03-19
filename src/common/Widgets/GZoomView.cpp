@@ -11,6 +11,7 @@ Notes:
 #include "GZoomView.h"
 #include "GScrollBar.h"
 #include "GThreadEvent.h"
+#include "GPalette.h"
 
 #define MAX_FACTOR		32
 

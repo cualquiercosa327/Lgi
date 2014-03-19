@@ -10,6 +10,7 @@
 #include <math.h>
 
 #include "Gdc2.h"
+#include "GPalette.h"
 
 /// 16 bit rgb applicators
 class LgiClass GdcApp16 : public GApplicator

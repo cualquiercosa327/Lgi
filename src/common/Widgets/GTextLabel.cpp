@@ -190,11 +190,22 @@ void GText::OnPaint(GSurface *pDC)
 {
 	bool Status = false;
 
-	GViewFill *ForeFill = GetForegroundFill();
-	GColour Fore = ForeFill ? ForeFill->GetFlat() : GColour(LC_TEXT, 24);
-
-	GViewFill *BackFill = GetBackgroundFill();
-	GColour Back = BackFill ? BackFill->GetFlat() : GColour(LC_MED, 24);
+	GColour Fore, Back;
+	if (GetCss())
+	{
+		GCss::ColorDef Fill = GetCss()->Color();
+		if (Fill.Type == GCss::ColorRgb)
+			Fore.Set(Fill.Rgb32, 32);
+			
+		Fill = GetCss()->BackgroundColor();
+		if (Fill.Type == GCss::ColorRgb)
+			Back.Set(Fill.Rgb32, 32);
+	}
+	
+	if (!Fore.IsValid())
+		Fore.Set(LC_TEXT, 24);
+	if (!Back.IsValid())
+		Back.Set(LC_MED, 24);
 	
 	GFont *f = GetFont();
 	if (d->Lock(_FL))

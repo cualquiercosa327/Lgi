@@ -6,6 +6,7 @@
 // Includes
 #include "GArray.h"
 #include "LgiOsDefs.h"
+#include "GColour.h"
 
 // Fwd defs
 class GXmlTag;
@@ -362,7 +363,7 @@ public:
 	// Handles
 	virtual OsView Handle() = 0;
 	virtual OsWindow WindowHandle() = 0;
-	virtual GView *GetGView() { return 0; }
+	virtual GView *GetGView() { return NULL; }
 
 	// Heirarchy
 	virtual bool Attach(GViewI *p) = 0;
@@ -398,20 +399,26 @@ public:
 	virtual void Flat(bool i) = 0;
 	virtual bool Raised() = 0;
 	virtual void Raised(bool i) = 0;
-	virtual GViewFill *GetForegroundFill() = 0;
-	virtual bool SetForegroundFill(GViewFill *Fill) = 0;
-	virtual GViewFill *GetBackgroundFill() = 0;
-	virtual bool SetBackgroundFill(GViewFill *Fill) = 0;
+	virtual bool GetTabStop() = 0;
+	virtual void SetTabStop(bool b) = 0;
+
+	// Style
     virtual class GCss *GetCss(bool Create = false) = 0;
-
-	virtual bool Name(const char *n) = 0;
-	virtual bool NameW(const char16 *n) = 0;
-
-	virtual char *Name() = 0;
-	virtual char16 *NameW() = 0;
-	
+    virtual bool SetCssStyle(const char *CssStyle) = 0;
+    virtual bool SetColour(GColour &c, bool Fore) = 0;
 	virtual GFont *GetFont() = 0;
 	virtual void SetFont(GFont *Fnt, bool OwnIt = false) = 0;
+
+	// Name and value
+	virtual bool Name(const char *n) = 0;
+	virtual bool NameW(const char16 *n) = 0;
+	virtual char *Name() = 0;
+	virtual char16 *NameW() = 0;
+	virtual int64 Value() = 0;
+	virtual void Value(int64 i) = 0;
+	virtual const char *GetClass() { return "GViewI"; } // mainly for debugging
+
+	// Size and position	
 	virtual GRect &GetPos() = 0;
 	virtual GRect &GetClient(bool InClientSpace = true) = 0;
 	virtual bool SetPos(GRect &p, bool Repaint = false) = 0;
@@ -419,15 +426,12 @@ public:
 	virtual int Y() = 0;
 	virtual GdcPt2 GetMinimumSize() = 0;
 	virtual void SetMinimumSize(GdcPt2 Size) = 0;	
+
+	// Id
 	virtual int GetId() = 0;
 	virtual void SetId(int i) = 0;
-	virtual bool GetTabStop() = 0;
-	virtual void SetTabStop(bool b) = 0;
-	virtual int64 Value() = 0;
-	virtual void Value(int64 i) = 0;
-	virtual const char *GetClass() { return "GViewI"; } // mainly for debugging
 
-	// Events
+	// Events and notification
 	virtual void SendNotify(int Data = 0) = 0;
 	virtual GViewI *GetNotify() = 0;
 	virtual void SetNotify(GViewI *n) = 0;
@@ -435,7 +439,6 @@ public:
 
 	// Mouse
 	virtual LgiCursor GetCursor(int x, int y) = 0;
-	// virtual bool SetCursor(LgiCursor Cursor) = 0;
 	virtual bool Capture(bool c) = 0;
 	virtual bool IsCapturing() = 0;
 	virtual bool GetMouse(GMouse &m, bool ScreenCoords = false) = 0;

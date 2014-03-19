@@ -13,11 +13,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include <dos.h>
 #include <math.h>
 
 #include "Lgi.h"
 #include "GdiLeak.h"
+#include "GPalette.h"
 
 /****************************** Defines *************************************************************************************/
 

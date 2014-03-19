@@ -1303,10 +1303,16 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				GViewI *v = FindControl(hCtrl);
 				if (v)
 				{
-					GViewFill *b = v->GetBackgroundFill();
-					if (b)
+					GCss::ColorDef b;
+					if (v->GetCss())
+						b = v->GetCss()->BackgroundColor();
+					if (b.Type == GCss::ColorRgb)
 					{
-						return (GMessage::Result)b->GetBrush();
+						LOGBRUSH LogBrush;
+						LogBrush.lbStyle = BS_SOLID;
+						LogBrush.lbColor = Rgb32To24(b.Rgb32);
+						LogBrush.lbHatch = 0;
+						return (GMessage::Result)CreateBrushIndirect(&LogBrush);
 					}
 				}
 

@@ -921,14 +921,14 @@ void GDropDown::OnPaint(GSurface *pDC)
 	{
 		GMemDC Mem(r.X(), r.Y(), 24);
 
-		GViewFill *f = GetBackgroundFill();
-		if (f)
-			f->Fill(&Mem);
+		GCss::ColorDef f;
+		if (GetCss())
+			f = GetCss()->BackgroundColor();
+		if (f.Type == GCss::ColorRgb)
+			Mem.Colour(f.Rgb32, 32);
 		else
-		{
 			Mem.Colour(LC_MED, 24);
-			Mem.Rectangle();
-		}
+		Mem.Rectangle();
 
 		GApp::SkinEngine->DrawBtn(&Mem, r, IsOpen(), Enabled());
 		pDC->Blt(0, 0, &Mem);

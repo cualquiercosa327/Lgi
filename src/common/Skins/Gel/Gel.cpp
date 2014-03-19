@@ -237,16 +237,14 @@ class GelSkin : public GSkinEngine
 		if (Mem && Mem->Create(14, 14, BitDepth))
 		{
 			// blank out background
-			GViewFill *Back = Ctrl->GetBackgroundFill();
-			if (Back)
-			{
-				Back->Fill(Mem);
-			}
+			GCss::ColorDef Back;
+			if (Ctrl->GetCss())
+				Back = Ctrl->GetCss()->BackgroundColor();
+			if (Back.Type == GCss::ColorRgb)
+				Mem->Colour(Back.Rgb32, 32);
 			else
-			{
 				Mem->Colour(LC_MED, 24);
-				Mem->Rectangle();
-			}	
+			Mem->Rectangle();
 			
 			GRectF Box(0, 0, Mem->X(), Mem->Y());
 			double Radius = Box.X()/2;
@@ -400,7 +398,10 @@ class GelSkin : public GSkinEngine
 
 	void DrawText(GSurface *pDC, GDisplayString *Text, int x, int y, GRect &r, bool Enabled, GViewI *Ctrl)
 	{
-		GViewFill *Back = Ctrl->GetBackgroundFill();
+		GCss::ColorDef Back;
+		if (Ctrl->GetCss())
+			Back = Ctrl->GetCss()->BackgroundColor();
+
 		if (Text && r.X() > 3)
 		{
 			if (Enabled)
@@ -414,15 +415,11 @@ class GelSkin : public GSkinEngine
 					pDC->Box(&c);
 					c.Size(1, 1);
 
-					if (Back)
-					{
-						Back->Fill(pDC, &c);
-					}
+					if (Back.Type == GCss::ColorRgb)
+						pDC->Colour(Back.Rgb32, 32);
 					else
-					{
 						pDC->Colour(LC_MED, 24);
-						pDC->Rectangle(&c);
-					}
+					pDC->Rectangle(&c);
 
 					c.Size(-1, -1);
 					if (c.x2 < r.x2)
@@ -435,10 +432,11 @@ class GelSkin : public GSkinEngine
 				}
 				else
 				{
-					Text->GetFont()->Transparent(Back != 0);
-					if (Back)
+					Text->GetFont()->Transparent(Back.Type != GCss::ColorRgb);
+					if (Back.Type == GCss::ColorRgb)
 					{
-						Back->Fill(pDC, &r);
+						pDC->Colour(Back.Rgb32, 32);
+						pDC->Rectangle(&r);
 						Text->Draw(pDC, x, y, &r);
 					}
 					else
@@ -449,9 +447,10 @@ class GelSkin : public GSkinEngine
 			}
 			else
 			{
-				if (Back)
+				if (Back.Type == GCss::ColorRgb)
 				{
-					Back->Fill(pDC, &r);
+					pDC->Colour(Back.Rgb32, 32);
+					pDC->Rectangle(&r);
 
 					Text->GetFont()->Transparent(true);
 					Text->GetFont()->Colour(LC_LIGHT, LC_MED);
@@ -473,15 +472,11 @@ class GelSkin : public GSkinEngine
 		}
 		else
 		{
-			if (Back)
-			{
-				Back->Fill(pDC, &r);
-			}
+			if (Back.Type == GCss::ColorRgb)
+				pDC->Colour(Back.Rgb32, 32);
 			else
-			{
 				pDC->Colour(LC_MED, 24);
-				pDC->Rectangle(&r);
-			}
+			pDC->Rectangle(&r);
 		}
 	}
 
@@ -599,16 +594,14 @@ public:
 			}
 
 			// Background
-			GViewFill *Back = Ctrl->GetBackgroundFill();
-			if (Back)
-			{
-				Back->Fill(&Mem);
-			}
+			GCss::ColorDef Back;
+			if (Ctrl->GetCss())
+				Ctrl->GetCss()->BackgroundColor();
+			if (Back.Type == GCss::ColorRgb)
+				Mem.Colour(Back.Rgb32, 32);
 			else
-			{
 				Mem.Colour(LC_MED, 24);
-				Mem.Rectangle();
-			}
+			Mem.Rectangle();
 			
 			DrawBtn(&Mem, Ctrl->GetClient(), Ctrl->Value(), Ctrl->Enabled(), Ctrl->Default());
 			
@@ -700,16 +693,15 @@ public:
 			}
 
 			// Back
-			GViewFill *Back = Ctrl->GetBackgroundFill();
-			if (Back)
-			{
-				Back->Fill(&Mem);
-			}
+			GCss::ColorDef Back;
+			if (Ctrl->GetCss())
+				Ctrl->GetCss()->BackgroundColor();
+			if (Back.Type == GCss::ColorRgb)
+				Mem.Colour(Back.Rgb32, 32);
 			else
-			{
 				Mem.Colour(LC_MED, 24);
-				Mem.Rectangle();
-			}
+			Mem.Rectangle();
+
 			DrawBtn(&Mem, Ctrl->GetClient(), false, State->Enabled);
 			
 			int n = 22;
@@ -784,8 +776,12 @@ public:
 					(Ctrl->Enabled() ? Btn_Enabled : 0);
 		
 		// Create the bitmaps in cache if not already there
+		GCss::ColorDef Back;
+		if (Ctrl->GetCss())
+			Ctrl->GetCss()->BackgroundColor();
+
 		GMemDC *Temp = 0;
-		GMemDC *&Mem = Ctrl->GetBackgroundFill() ? Temp : CheckBox[Flags];
+		GMemDC *&Mem = Back.Type == GCss::ColorRgb ? Temp : CheckBox[Flags];
 		if (!Mem)
 		{
 			Mem = DrawCtrl(Ctrl, Flags, false);
@@ -805,13 +801,13 @@ public:
 
 			GRect Box1(Box.x1, 0, Box.x2, Box.y1 - 1);
 			GRect Box2(Box.x1, Box.y2 + 1, Box.x2, Ctrl->Y()-1);
-			GViewFill *Back = Ctrl->GetBackgroundFill();
-			if (Back)
+			if (Back.Type)
 			{
+				State->pScreen->Colour(Back.Rgb32, 32);
 				if (Box.y1 > 0)
-					Back->Fill(State->pScreen, &Box1);
+					State->pScreen->Rectangle(&Box1);
 				if (Box.y2 < Ctrl->Y() - 1)
-					Back->Fill(State->pScreen, &Box2);
+					State->pScreen->Rectangle(&Box2);
 			}
 			else
 			{

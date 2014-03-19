@@ -4,6 +4,7 @@
 #include "GTree.h"
 #include "GScrollBar.h"
 #include "GDisplayString.h"
+#include "GPalette.h"
 
 #define TREE_BLOCK          16
 #define DRAG_THRESHOLD		4
@@ -851,13 +852,13 @@ void GTreeItem::OnPaint(ItemPaintCtx &Ctx)
 			bool IsSelected = (Tree->d->DropTarget == i) || (Tree->d->DropTarget == 0 && i->Select());
 
 			// Foreground
-			GViewFill *Fill = i->GetForegroundFill();
-			Ctx.Fore = Fill ? Fill->GetFlat().c24() : (IsSelected ? SelFore : LC_TEXT);
+			GCss::ColorDef Fill = i->GetCss(true)->Color();
+			Ctx.Fore = Fill.Type == GCss::ColorRgb ? Rgb32To24(Fill.Rgb32) : (IsSelected ? SelFore : LC_TEXT);
 
 			// Background	
-			Fill = i->GetBackgroundFill();
-			Ctx.Back =	Fill ?
-						Fill->GetFlat().c24() :
+			Fill = i->GetCss()->BackgroundColor();
+			Ctx.Back =	Fill.Type == GCss::ColorRgb ?
+						Rgb32To24(Fill.Rgb32) :
 						(IsSelected ? SelBack : LC_WORKSPACE);
 
 			i->OnPaint(Ctx);
@@ -1439,14 +1440,12 @@ void GTree::OnPaint(GSurface *pDC)
 		bool IsSelected = (d->DropTarget == i) || (d->DropTarget == 0 && i->Select());
 
 		// Foreground
-		GViewFill *Fill = i->GetForegroundFill();
-		Ctx.Fore = Fill ? Fill->GetFlat().c24() : (IsSelected ? SelFore : LC_TEXT);
+		GCss::ColorDef Fill = i->GetCss(true)->Color();
+		Ctx.Fore = Fill.Type == GCss::ColorRgb ? Rgb32To24(Fill.Rgb32) : (IsSelected ? SelFore : LC_TEXT);
 
 		// Background	
-		Fill = i->GetBackgroundFill();
-		Ctx.Back =	Fill ?
-					Fill->GetFlat().c24() :
-					(IsSelected ? SelBack : LC_WORKSPACE);
+		Fill = i->GetCss()->BackgroundColor();
+		Ctx.Back =	Fill.Type == GCss::ColorRgb ? Rgb32To24(Fill.Rgb32) : (IsSelected ? SelBack : LC_WORKSPACE);
 
 		i->OnPaint(Ctx);
 	}

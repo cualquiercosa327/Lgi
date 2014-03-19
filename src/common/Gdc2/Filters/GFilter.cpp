@@ -15,6 +15,7 @@
 #include "GVariant.h"
 #include "GClipBoard.h"
 #include "GToken.h"
+#include "GPalette.h"
 
 #ifndef WIN32
 #define BI_RLE8       1L

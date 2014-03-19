@@ -89,41 +89,49 @@ GMessage::Result GSlider::OnEvent(GMessage *Msg)
 		}
 		case WM_ERASEBKGND:
 		{
-			GViewFill *f = GetBackgroundFill();
-			if (f)
+			if (GetCss())
 			{
-				HDC hDC = (HDC)MsgA(Msg);
-				GScreenDC dc(hDC, Handle());
-				f->Fill(&dc, &GetClient());
-				return 1;
+				GCss::ColorDef f = GetCss()->BackgroundColor();
+				if (f.Type == GCss::ColorRgb)
+				{
+					HDC hDC = (HDC)MsgA(Msg);
+					GScreenDC dc(hDC, Handle());
+					dc.Colour(f.Rgb32, 32);
+					dc.Rectangle();
+					return 1;
+				}
 			}
 			break;
 		}
 		case WM_PAINT:
 		{
-			GViewFill *f = GetBackgroundFill();
-			if (f)
+			if (GetCss())
 			{
-				GScreenDC dc(Handle());
-				f->Fill(&dc, &GetClient());
-				
-				RECT rc;
-				SendMessage(Handle(), TBM_GETCHANNELRECT, 0, (LPARAM)&rc);
-				GRect r = rc;
-				LgiWideBorder(&dc, r, SUNKEN);
-
-				SendMessage(Handle(), TBM_GETTHUMBRECT, 0, (LPARAM)&rc);
-				GRect t = rc;
-				LgiWideBorder(&dc, t, RAISED);
-				dc.Colour(LC_MED, 24);
-				dc.Rectangle(&t);
-
-				if (GetFocus() == Handle())
+				GCss::ColorDef f = GetCss()->BackgroundColor();
+				if (f.Type == GCss::ColorRgb)
 				{
-					RECT rc = GetClient();
-					DrawFocusRect(dc.Handle(), &rc);
+					GScreenDC dc(Handle());
+					dc.Colour(f.Rgb32, 32);
+					dc.Rectangle();
+					
+					RECT rc;
+					SendMessage(Handle(), TBM_GETCHANNELRECT, 0, (LPARAM)&rc);
+					GRect r = rc;
+					LgiWideBorder(&dc, r, SUNKEN);
+
+					SendMessage(Handle(), TBM_GETTHUMBRECT, 0, (LPARAM)&rc);
+					GRect t = rc;
+					LgiWideBorder(&dc, t, RAISED);
+					dc.Colour(LC_MED, 24);
+					dc.Rectangle(&t);
+
+					if (GetFocus() == Handle())
+					{
+						RECT rc = GetClient();
+						DrawFocusRect(dc.Handle(), &rc);
+					}
+					return 0;
 				}
-				return 0;
 			}
 			break;
 		}

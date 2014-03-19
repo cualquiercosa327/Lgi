@@ -26,6 +26,7 @@
 #endif
 
 #include "Lgi.h"
+#include "GPalette.h"
 
 #ifdef __CYGWIN__ 
 #include "png.h"

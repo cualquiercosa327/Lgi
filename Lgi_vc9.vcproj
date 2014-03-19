@@ -1161,30 +1161,38 @@
 			<Filter
 				Name="Graphics"
 				>
-				<Filter
-					Name="_Core"
+				<File
+					RelativePath=".\src\common\Gdc2\GColour.cpp"
 					>
-					<File
-						RelativePath=".\include\common\GColour.h"
-						>
-					</File>
-					<File
-						RelativePath=".\src\win32\Gdc2\Gdc2.cpp"
-						>
-					</File>
-					<File
-						RelativePath=".\include\common\Gdc2.h"
-						>
-					</File>
-					<File
-						RelativePath=".\src\common\Gdc2\GdcCommon.cpp"
-						>
-					</File>
-					<File
-						RelativePath=".\src\common\Gdc2\Path\GPath.cpp"
-						>
-					</File>
-				</Filter>
+				</File>
+				<File
+					RelativePath=".\include\common\GColour.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\common\GColourSpace.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\Gdc2\Gdc2.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\include\common\Gdc2.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\common\Gdc2\GdcCommon.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\include\common\GPalette.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\common\Gdc2\Path\GPath.cpp"
+					>
+				</File>
 				<Filter
 					Name="Font"
 					>

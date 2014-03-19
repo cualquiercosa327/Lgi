@@ -16,6 +16,7 @@
 
 #include "Gdc2.h"
 #include "GdiLeak.h"
+#include "GPalette.h"
 
 #define LINE_SOLID				0xFFFFFFFF
 

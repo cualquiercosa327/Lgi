@@ -13,6 +13,7 @@
 #include "Gdc2.h"
 #include "GPath.h"
 #include "GPixelRops.h"
+#include "GPalette.h"
 
 // #define Div255(a)	DivLut[a]
 #define Div255(a)	((a)/255)

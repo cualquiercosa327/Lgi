@@ -9,6 +9,7 @@
 #include "GPopup.h"
 #include "GArray.h"
 #include "GDisplayString.h"
+#include "GCss.h"
 
 // GList notification flags
 
@@ -87,7 +88,7 @@ public:
 /// Base class for items in widget containers
 class LgiClass GItem : virtual public GEventsI
 {
-    GAutoPtr<GViewFill> _Fore, _Back;
+    GAutoPtr<GCss> Css;
     
 public:
 	/// Painting context
@@ -104,16 +105,14 @@ public:
 
     GItem &operator =(GItem &i)
     {
-		if (i._Fore.Get())
-			_Fore.Reset(new GViewFill(*i._Fore));
-		else
-			_Fore.Reset();
-
-		if (i._Back.Get())
-			_Back.Reset(new GViewFill(*i._Back));
-		else
-			_Back.Reset();
-
+		if (i.GetCss())
+		{
+			GCss *c = GetCss(true);
+			if (c)
+			{
+				*c = *i.GetCss();
+			}
+		}
         return *this;
     }
 
@@ -163,14 +162,6 @@ public:
 	virtual GRect *GetPos(int Col = -1) { return 0; }
 	/// Gets the font for the item
 	virtual GFont *GetFont() { return 0; }
-    /// Gets the foreground (font colour)
-	virtual GViewFill *GetForegroundFill() { return _Fore; }
-	/// Sets the foreground
-	virtual void SetForegroundFill(GViewFill *Fill) { _Fore.Reset(Fill); }
-	/// Gets the background fill setting
-	virtual GViewFill *GetBackgroundFill() { return _Back; }
-	/// Sets the background fill setting.
-	virtual void SetBackgroundFill(GViewFill *Fill) { _Back.Reset(Fill); }
 	
 	/// Reads / writes list item to XML
 	virtual bool XmlIo(class GXmlTag *Tag, bool Write) { return false; }
@@ -194,6 +185,20 @@ public:
 	int OnNotify(GViewI *Ctrl, int Flags) { return 0; }
 	int OnCommand(int Cmd, int Event, OsView Wnd) { return 0; }
 	void OnPaint(GSurface *pDC) { LgiAssert(0); }
+
+	// Style access
+	GCss *GetCss(bool Create = false)
+	{
+		if (!Css && Create) Css.Reset(new GCss);
+		return Css;
+	}
+	
+	bool SetCssStyle(const char *CssStyle)
+	{
+		if (!Css && ValidStr(CssStyle)) Css.Reset(new GCss);
+		if (!Css) return false;
+		return Css->Parse(CssStyle, GCss::ParseRelaxed);		
+	}
 };
 
 /// The popup label for GItem's

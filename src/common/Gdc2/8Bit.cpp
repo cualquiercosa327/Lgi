@@ -11,6 +11,7 @@
 #include <math.h>
 
 #include "Gdc2.h"
+#include "GPalette.h"
 
 /// 8 bit paletted applicators
 class LgiClass GdcApp8 : public GApplicator

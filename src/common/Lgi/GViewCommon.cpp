@@ -1205,41 +1205,6 @@ void GView::Raised(bool i)
 	}
 }
 
-GViewFill *GView::GetForegroundFill()
-{
-	return d->Foreground;
-}
-
-bool GView::SetForegroundFill(GViewFill *Fill)
-{
-	if (d->Foreground != Fill)
-	{
-		if (d->Foreground != Fill)
-		{
-			d->Foreground.Reset(Fill);
-		}
-		Invalidate();
-	}
-
-	return true;
-}
-
-GViewFill *GView::GetBackgroundFill()
-{
-	return d->Background;
-}
-
-bool GView::SetBackgroundFill(GViewFill *Fill)
-{
-	if (d->Background != Fill)
-	{
-		d->Background.Reset(Fill);
-		Invalidate();
-	}
-
-	return true;
-}
-
 int GView::GetId()
 {
 	return d->CtrlId;
@@ -1771,10 +1736,27 @@ void GView::SetMinimumSize(GdcPt2 Size)
 	}
 }
 
-bool GView::SetCssStyle(char *CssStyle)
+bool GView::SetColour(GColour &c, bool Fore)
 {
-    if (!d->Css.Reset(new GCss))
-        return false;
+	char s[64];
+	sprintf_s(s, sizeof(s), "#%2.2x%2.2x%2.2x", c.r(), c.g(), c.b());
+	
+	GCss *css = GetCss(true);
+	if (!css)
+		return false;
+	
+	if (Fore)
+		css->Color(GCss::ColorDef(c.c24()));
+	else
+		css->BackgroundColor(GCss::ColorDef(c.c24()));
+	
+	return true;
+}
+
+bool GView::SetCssStyle(const char *CssStyle)
+{
+    if (!d->Css && !d->Css.Reset(new GCss))
+		return false;
     
     const char *Defs = CssStyle;
     return d->Css->Parse(Defs, GCss::ParseRelaxed);

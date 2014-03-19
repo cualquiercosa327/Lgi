@@ -19,6 +19,7 @@
 #include "Lzw.h"
 #include "GVariant.h"
 #include "GLibraryUtils.h"
+#include "GPalette.h"
 
 namespace t {
 #include "tiffio.h"

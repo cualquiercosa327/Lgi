@@ -1337,7 +1337,9 @@ void GListItem::OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GListColumn *c)
 		else
 		{
 			COLOUR Background = Ctx.Back;
-			GViewFill *ForeFill = GetForegroundFill();
+			GCss::ColorDef ForeFill;
+			if (GetCss())
+				ForeFill = GetCss()->Color();
 
 			if (Parent->GetMode() == GListDetails &&
 				c->Mark() &&
@@ -1359,7 +1361,7 @@ void GListItem::OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GListColumn *c)
 				{
 					Ds->GetFont()->TabSize(0);
 					Ds->GetFont()->Transparent(false);
-					Ds->GetFont()->Colour(ForeFill ? ForeFill->GetFlat().c24() : Ctx.Fore, Background);
+					Ds->GetFont()->Colour(ForeFill.Type == GCss::ColorRgb ? Rgb32To24(ForeFill.Rgb32) : Ctx.Fore, Background);
 					Ds->Draw(pDC, Ctx.x1+1, Ctx.y1+1, &ng);
 				}
 				else
@@ -1406,13 +1408,15 @@ void GListItem::OnPaint(GItem::ItemPaintCtx &Ctx)
 	int i = 0;
 	int x = Ctx.x1;
 
-	if (!Select())
+	if (!Select() && GetCss())
 	{
-		GViewFill *Fill;
-		if ((Fill = GetForegroundFill()))
-			Ctx.Fore = Fill->GetFlat().c24();
-		if ((Fill = GetBackgroundFill()))
-			Ctx.Back = Fill->GetFlat().c24();
+		GCss::ColorDef Fill = GetCss()->Color();
+		if (Fill.Type == GCss::ColorRgb)
+			Ctx.Fore = Rgb32To24(Fill.Rgb32);
+		
+		Fill = GetCss()->BackgroundColor();
+		if (Fill.Type == GCss::ColorRgb)
+			Ctx.Back = Rgb32To24(Fill.Rgb32);
 	}
 
 	// Icon?
@@ -3511,7 +3515,7 @@ void GList::OnPaint(GSurface *pDC)
 		GRect r = ItemsPos;
 		int n = FirstVisible;
 		int LastY = r.y1;
-		GViewFill *Fill;
+		GCss::ColorDef Fill;
 		COLOUR SelFore = Focus() ? LC_FOCUS_SEL_FORE : LC_NON_FOCUS_SEL_FORE;
 		COLOUR SelBack = Focus() ? LC_FOCUS_SEL_BACK : (Enabled() ? LC_NON_FOCUS_SEL_BACK : LC_MED);
 		int LastSelected = -1;
@@ -3539,15 +3543,21 @@ void GList::OnPaint(GSurface *pDC)
 					}
 				}
 
-				if ((Fill = i->GetForegroundFill()))
+				if (i->GetCss())
 				{
-					Ctx.Fore = Fill->GetFlat().c24();
-					LastSelected = -1;
-				}
-				if ((Fill = i->GetBackgroundFill()))
-				{
-					Ctx.Fore = Fill->GetFlat().c24();
-					LastSelected = -1;
+					Fill = i->GetCss()->Color();
+					if (Fill.Type == GCss::ColorRgb)
+					{
+						Ctx.Fore = Rgb32To24(Fill.Rgb32);
+						LastSelected = -1;
+					}
+					
+					Fill = i->GetCss()->BackgroundColor();
+					if (Fill.Type == GCss::ColorRgb)
+					{
+						Ctx.Fore = Rgb32To24(Fill.Rgb32);
+						LastSelected = -1;
+					}
 				}
 
 

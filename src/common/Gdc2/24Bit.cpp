@@ -11,6 +11,7 @@
 #include <math.h>
 
 #include "Gdc2.h"
+#include "GPalette.h"
 
 #define BytePtr	((uint8*&)Ptr)
 #undef NonPreMulOver24

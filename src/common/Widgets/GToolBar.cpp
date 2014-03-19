@@ -14,6 +14,7 @@
 #include "GToken.h"
 #include "GVariant.h"
 #include "GDisplayString.h"
+#include "GPalette.h"
 
 #define ToolBarHilightColour LC_HIGH
 

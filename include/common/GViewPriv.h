@@ -100,9 +100,6 @@ public:
 	// Size
 	GdcPt2			MinimumSize;
 	
-	// Fill colours
-	GAutoPtr<GViewFill> Foreground, Background;
-
 	// Font
 	GFont			*Font;
 	bool			FontOwn;

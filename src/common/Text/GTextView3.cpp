@@ -4166,8 +4166,10 @@ void GTextView3::OnPaint(GSurface *pDC)
 		GColour Fore(LC_TEXT, 24);
 		GColour SelectedText(HasFocus ? LC_FOCUS_SEL_FORE : LC_NON_FOCUS_SEL_FORE, 24);
 		GColour SelectedBack(HasFocus ? LC_FOCUS_SEL_BACK : LC_NON_FOCUS_SEL_BACK, 24);
-		GViewFill *BackFill = GetBackgroundFill();
-		GColour Back(!ReadOnly ? (BackFill ? BackFill->GetFlat().c24() : LC_WORKSPACE) : BackColour, 24);
+		GCss::ColorDef BackFill;
+		if (GetCss())
+			BackFill = GetCss()->BackgroundColor();
+		GColour Back(!ReadOnly ? (BackFill.Type == GCss::ColorRgb ? Rgb32To24(BackFill.Rgb32) : LC_WORKSPACE) : BackColour, 24);
 		GColour Whitespace = Fore.Mix(Back, 0.85f);
 
 		// printf("GTextView colours, Focus=%i, SelTxt=%s, SelBk=%s\n", HasFocus, SelectedText.GetStr(), SelectedBack.GetStr());

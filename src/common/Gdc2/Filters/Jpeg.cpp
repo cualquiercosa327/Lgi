@@ -10,6 +10,7 @@
 
 #include <math.h>
 #include "Lgi.h"
+#include "GPalette.h"
 #if HAS_LIBJPEG
 
 #define XMD_H

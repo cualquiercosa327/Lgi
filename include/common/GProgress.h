@@ -31,8 +31,7 @@ public:
 	bool Pour(GRegion &r);
 
 	#if WIN32NATIVE
-	bool SetForegroundFill(GViewFill *Fill);
-	bool SetBackgroundFill(GViewFill *Fill);
+	bool SetCssStyle(const char *CssStyle);
 	#else
 	void OnPaint(GSurface *pDC);
 	void GetLimits(int64 &l, int64 &h);

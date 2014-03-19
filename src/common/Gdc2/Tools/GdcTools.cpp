@@ -11,6 +11,7 @@
 #include <math.h>
 #include "Gdc2.h"
 #include "GdcTools.h"
+#include "GPalette.h"
 
 bool IsGreyScale(GSurface *pDC)
 {

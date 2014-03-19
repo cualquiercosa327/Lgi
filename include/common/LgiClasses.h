@@ -100,9 +100,6 @@ public:
 	}
 	
 	void Fill(GSurface *pDC, GRect *r = 0, GdcPt2 *Origin = 0);
-	#ifdef WIN32
-	HBRUSH GetBrush();
-	#endif
 };
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -693,22 +690,6 @@ public:
 	/// Sets the raised border state
 	void Raised(bool i);
 
-	/// Gets the foreground fill setting
-	GViewFill *GetForegroundFill();
-	
-	/// Sets the foreground fill setting. After this is called, the object
-	/// passed to SetForegroundFill is owned by the view and you should NOT
-	/// free it.
-	bool SetForegroundFill(GViewFill *Fill);
-
-	/// Gets the background fill setting
-	GViewFill *GetBackgroundFill();
-
-	/// Sets the background fill setting. After this is called, the object
-	/// passed to SetBackgroundFill is owned by the view and you should NOT
-	/// free it.
-	bool SetBackgroundFill(GViewFill *Fill);
-
 	/// Draws an OS themed border
 	void DrawThemeBorder(GSurface *pDC, GRect &r);
 
@@ -801,9 +782,11 @@ public:
 	void SetMinimumSize(GdcPt2 Size);	
 
     /// Sets the style of the control
-    bool SetCssStyle(char *CssStyle);
+    bool SetCssStyle(const char *CssStyle);
     /// Gets the style of the control
     class GCss *GetCss(bool Create = false);
+    /// Sets the CSS foreground or background colour
+	bool SetColour(GColour &c, bool Fore);
 
 	/// Moves a top level window on screen.
 	void MoveOnScreen();

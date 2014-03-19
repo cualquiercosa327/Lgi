@@ -11,6 +11,7 @@
 #include <math.h>
 
 #include "Gdc2.h"
+#include "GPalette.h"
 
 /// 15 bit rgb applicators
 class LgiClass GdcApp15 : public GApplicator

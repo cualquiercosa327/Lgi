@@ -2017,6 +2017,7 @@ void GViewFill::Fill(GSurface *pDC, GRect *r, GdcPt2 *Origin)
 }
 
 #ifdef WIN32
+/*
 HBRUSH GViewFill::GetBrush()
 {
 	if (!hBrush)
@@ -2029,6 +2030,7 @@ HBRUSH GViewFill::GetBrush()
 	}
 	return hBrush;
 }
+*/
 #endif
 
 //////////////////////////////////////////////////////////////////////

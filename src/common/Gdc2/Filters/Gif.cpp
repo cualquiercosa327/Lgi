@@ -14,6 +14,7 @@
 #include "Lgi.h"
 #include "Lzw.h"
 #include "GVariant.h"
+#include "GPalette.h"
 
 #ifdef FILTER_UI
 // define the symbol FILTER_UI to access the gif save options dialog
