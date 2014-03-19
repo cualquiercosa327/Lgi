@@ -432,12 +432,23 @@ char *GColour::GetStr()
 	switch (space)
 	{
 		case System32BitColourSpace:
-			sprintf_s(	Buf[b], 32,
-						"rgba(%i,%i,%i,%i)",
-						rgb.r,
-						rgb.g,
-						rgb.b,
-						rgb.a);
+			if (rgb.a == 0xff)
+			{
+				sprintf_s(	Buf[b], 32,
+							"rgb(%i,%i,%i)",
+							rgb.r,
+							rgb.g,
+							rgb.b);
+			}
+			else
+			{
+				sprintf_s(	Buf[b], 32,
+							"rgba(%i,%i,%i,%i)",
+							rgb.r,
+							rgb.g,
+							rgb.b,
+							rgb.a);
+			}
 			break;
 		case CsIndex8:
 			sprintf_s(	Buf[b], 32,

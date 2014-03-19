@@ -18,6 +18,7 @@
 #include "Lgi.h"
 #include "Lzw.h"
 #include "GVariant.h"
+#include "GPalette.h"
 
 // TIFF
 #define TIFF_USE_LZW
