@@ -44,6 +44,7 @@ public:
 	virtual GMessage::Result OnEvent(GMessage *Msg) { return 0; }
 };
 
+#if 0
 /// Fill colour definition
 class LgiClass GViewFill
 {
@@ -101,6 +102,7 @@ public:
 	
 	void Fill(GSurface *pDC, GRect *r = 0, GdcPt2 *Origin = 0);
 };
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////
 #if WIN32NATIVE

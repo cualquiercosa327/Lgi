@@ -1196,6 +1196,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 								int Dx = TabSize - ((X - Ox + TabOrigin) % TabSize);
 								GRect Char(X, b.y1, X + Dx - 1, b.y2);
 								GColour WsCol = f->WhitespaceColour();
+								LgiAssert(WsCol.IsValid());
 								f->_Draw(pDC, X, py, Info[i].Str, 1, &Char, WsCol);
 								X += Dx;
 							}
@@ -1205,6 +1206,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 					{
 						// Draw the character(s)
 						GColour Fg = f->Fore();
+						LgiAssert(Fg.IsValid());
 						f->_Draw(pDC, px, py, Info[i].Str, Info[i].Len, &b, Fg);
 					}
 				}

@@ -4163,13 +4163,19 @@ void GTextView3::OnPaint(GSurface *pDC)
 		bool DrawSel = false;
 		
 		bool HasFocus = Focus();
-		GColour Fore(LC_TEXT, 24);
 		GColour SelectedText(HasFocus ? LC_FOCUS_SEL_FORE : LC_NON_FOCUS_SEL_FORE, 24);
 		GColour SelectedBack(HasFocus ? LC_FOCUS_SEL_BACK : LC_NON_FOCUS_SEL_BACK, 24);
-		GCss::ColorDef BackFill;
+
+		GCss::ColorDef ForeDef, BkDef;
 		if (GetCss())
-			BackFill = GetCss()->BackgroundColor();
-		GColour Back(!ReadOnly ? (BackFill.Type == GCss::ColorRgb ? Rgb32To24(BackFill.Rgb32) : LC_WORKSPACE) : BackColour, 24);
+		{
+			ForeDef = GetCss()->Color();
+			BkDef = GetCss()->BackgroundColor();
+		}
+		
+		GColour Fore(ForeDef.Type ==  GCss::ColorRgb ? Rgb32To24(ForeDef.Rgb32) : LC_TEXT, 24);
+		GColour Back(!ReadOnly ? (BkDef.Type == GCss::ColorRgb ? Rgb32To24(BkDef.Rgb32) : LC_WORKSPACE) : BackColour, 24);
+
 		GColour Whitespace = Fore.Mix(Back, 0.85f);
 
 		// printf("GTextView colours, Focus=%i, SelTxt=%s, SelBk=%s\n", HasFocus, SelectedText.GetStr(), SelectedBack.GetStr());
@@ -4253,7 +4259,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 				}
 				else
 				{
-					GColour c = l->c.Transparent() ? Fore : l->c;
+					GColour c = l->c.IsValid() ? l->c : Fore;
 					Font->Colour(c, Back);
 				}
 
@@ -4334,7 +4340,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 									pOut->Set(Tr.x1+i, Tr.y2-(i%2));
 							}
 
-							GColour c = l->c.Transparent() ? Fore : l->c;
+							GColour c = l->c.IsValid() ? l->c : Fore;
 							NextStyle->Font->Colour(c, Back);
 						}
 					}

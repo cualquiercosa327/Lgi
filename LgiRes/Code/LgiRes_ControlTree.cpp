@@ -58,10 +58,14 @@ public:
 
 	char *GetText(int i)
 	{
-		if (!Str || !Str->Get())
-			SetForegroundFill(new GViewFill(Rgb24(0xbb, 0xbb, 0xbb), 24));
-		else
-			SetForegroundFill(0);
+		if (GetCss(true))
+		{
+			GCss::ColorDef c;
+			if (!Str || !Str->Get())
+				GetCss()->Color(GCss::ColorDef(Rgb32(0xbb, 0xbb, 0xbb)));
+			else
+				GetCss()->DeleteProp(GCss::PropColor);
+		}
 
 		if (!Str)
 			return (char*)"(no string)";

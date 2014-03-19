@@ -1746,9 +1746,19 @@ bool GView::SetColour(GColour &c, bool Fore)
 		return false;
 	
 	if (Fore)
-		css->Color(GCss::ColorDef(c.c24()));
+	{
+		if (c.IsValid())
+			css->Color(GCss::ColorDef(c.c24()));
+		else
+			css->DeleteProp(GCss::PropColor);
+	}
 	else
-		css->BackgroundColor(GCss::ColorDef(c.c24()));
+	{
+		if (c.IsValid())
+			css->BackgroundColor(GCss::ColorDef(c.c24()));
+		else
+			css->DeleteProp(GCss::PropBackgroundColor);
+	}
 	
 	return true;
 }

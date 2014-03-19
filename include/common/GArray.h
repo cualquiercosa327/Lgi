@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "LgiDefs.h"
-#include "GMem.h"
 
 #define GARRAY_MIN_SIZE			16
 
