@@ -3406,7 +3406,12 @@ bool GTag::ConvertToText(TextConvertState &State)
 		if (TagId == TAG_LI)
 			State.Write("* ", 2);
 
-		GAutoString u(LgiNewUtf16To8(Txt));
+		GFont *f = GetFont();
+		GAutoString u;
+		if (f)
+			u = f->ConvertToUnicode(Txt);
+		else
+			u.Reset(LgiNewUtf16To8(Txt));
 		if (u)
 		{
 			int u_len = strlen(u);

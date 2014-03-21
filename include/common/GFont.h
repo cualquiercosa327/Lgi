@@ -233,6 +233,8 @@ public:
 	NativeInt GetParam();
 	/// Get supported glyphs
 	uchar *GetGlyphMap();
+	/// Converts printable characters to unicode.
+	GAutoString ConvertToUnicode(char16 *Input, int Len = -1);
 	
 	#ifdef BEOS
 	GdcPt2 StringBounds(const char *s, int len = -1);

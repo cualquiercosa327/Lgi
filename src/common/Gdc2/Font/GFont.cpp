@@ -87,11 +87,15 @@ public:
 	bool _Transparent;
 	bool _SubGlyphs;
 
+	// Backs
+	bool IsSymbol;
+
 	// Props
 	double _Ascent, _Descent, _Leading;
 
 	GTypeFacePrivate()
 	{
+		IsSymbol = false;
 		_Ascent = _Descent = _Leading = 0.0;
 		_Face = 0;
 		_PtSize = 8;
@@ -761,7 +765,9 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 	HDC hDC = (Param) ? (HDC)Param : GetDC(0);
 	int LogPixelsY = GetDeviceCaps(hDC, LOGPIXELSY);
 	int Win32Height = -MulDiv(PointSize(), LogPixelsY, 72);
-	int Cs = GTypeFace::d->_Face && stristr(GTypeFace::d->_Face, "wingdings")
+	
+	GTypeFace::d->IsSymbol = GTypeFace::d->_Face && stristr(GTypeFace::d->_Face, "wingdings");
+	int Cs = GTypeFace::d->IsSymbol
 			?
 			SYMBOL_CHARSET
 			:
@@ -1894,3 +1900,63 @@ GFont *GFontType::Create(NativeInt Param)
 	}
 	return New;
 }
+
+char16 WinSymbolToUnicode[256] = 
+{
+    /*   0 to  15 */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    /*  16 to  31 */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    /*  32 to  47 */ 32, 9998, 9986, 9985, 0, 0, 0, 0, 9742, 9990, 9993, 9993, 0, 0, 0, 0,
+    /*  48 to  63 */ 0, 0, 0, 0, 0, 0, 8987, 9000, 0, 0, 0, 0, 0, 0, 9991, 9997,
+    /*  64 to  79 */ 9997, 9996, 0, 0, 0, 9756, 9758, 9757, 9759, 0, 9786, 9786, 9785, 0, 9760, 0,
+    /*  80 to  95 */ 0, 9992, 9788, 0, 10052, 10014, 10014, 10013, 10016, 10017, 9770, 9775, 2384, 9784, 9800, 9801,
+    /*  96 to 111 */ 9802, 9803, 9804, 9805, 9806, 9807, 9808, 9809, 9810, 9811, 38, 38, 9679, 10061, 9632, 9633,
+    /* 112 to 127 */ 9633, 10065, 10066, 9674, 9674, 9670, 10070, 9670, 8999, 9043, 8984, 10048, 10047, 10077, 10078, 0,
+    /* 128 to 143 */ 9450, 9312, 9313, 9314, 9315, 9316, 9317, 9318, 9319, 9320, 9321, 0, 10102, 10103, 10104, 10105,
+    /* 144 to 159 */ 10106, 10107, 10108, 10109, 10110, 10111, 10087, 9753, 9753, 10087, 10087, 9753, 9753, 10087, 8226, 9679,
+    /* 160 to 175 */ 160, 9675, 9675, 9675, 9737, 9737, 10061, 9642, 9633, 0, 10022, 9733, 10038, 10039, 10040, 10037,
+    /* 176 to 191 */ 0, 0, 10023, 0, 65533, 10026, 10032, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    /* 192 to 207 */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10086, 10086, 10086,
+    /* 208 to 223 */ 10086, 10086, 10086, 10086, 10086, 9003, 8998, 0, 10146, 0, 0, 0, 10162, 0, 0, 0,
+    /* 224 to 239 */ 0, 0, 0, 0, 0, 0, 0, 0, 10132, 0, 0, 0, 0, 0, 0, 8678,
+    /* 240 to 255 */ 8680, 8679, 8681, 8660, 8661, 8662, 8663, 8665, 8664, 0, 0, 10007, 10003, 9746, 9745, 0,
+};
+
+GAutoString GFont::ConvertToUnicode(char16 *Input, int Len)
+{
+	GAutoString a;
+	
+	if (GTypeFace::d->IsSymbol)
+	{
+		// F***ing wingdings.
+		if (Input)
+		{
+			GStringPipe p(256);
+			if (Len < 0)
+				Len = StrlenW(Input);
+			char16 *c = Input, *e = Input + Len;
+			while (c < e)
+			{
+				if (*c < 256 && WinSymbolToUnicode[*c])
+				{
+					p.Write(WinSymbolToUnicode + *c, sizeof(char16));
+					c++;
+				}
+				else
+				{
+					p.Write(c, sizeof(char16));
+				}
+			}
+			
+			GAutoWString w(p.NewStrW());
+			a.Reset(LgiNewUtf16To8(w));
+		}
+	}
+	else
+	{
+		// Normal utf-8 text...
+		a.Reset(LgiNewUtf16To8(Input, Len));
+	}
+	
+	return a;
+}
+
