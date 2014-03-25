@@ -186,17 +186,17 @@ LgiFunc bool LgiRecursiveFileSearch
 	/// Start search in this dir
 	const char *Root,
 	/// Extensions to match
-	GArray<const char*> *Ext = 0,
+	GArray<const char*> *Ext = NULL,
 	/// [optional] Output filenames
-	GArray<char*> *Files = 0,
+	GArray<char*> *Files = NULL,
 	/// [optional] Output total size
-	uint64 *Size = 0,
+	uint64 *Size = NULL,
 	/// [optional] File count
-	uint64 *Count = 0,
+	uint64 *Count = NULL,
 	/// [optional] Callback for match
-	RecursiveFileSearch_Callback Callback = 0,
+	RecursiveFileSearch_Callback Callback = NULL,
 	/// [options] Callback user data
-	void *UserData = 0
+	void *UserData = NULL
 );
 
 // Resources

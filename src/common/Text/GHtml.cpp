@@ -2791,7 +2791,7 @@ void GTag::SetStyle()
 	    }
 		case TAG_META:
 		{
-			char *Cs = 0;
+			GAutoString Cs;
 
 			const char *s;
 			if (Get("http-equiv", s) &&
@@ -2805,7 +2805,7 @@ void GTag::SetStyle()
 					{
 						char16 *cs = NULL;
 						Html->ParsePropValue(CharSet + 8, cs);
-						Cs = LgiNewUtf16To8(cs);
+						Cs.Reset(LgiNewUtf16To8(cs));
 						DeleteArray(cs);
 					}
 				}
@@ -2813,11 +2813,11 @@ void GTag::SetStyle()
 
 			if (Get("name", s) && stricmp(s, "charset") == 0 && Get("content", s))
 			{
-				Cs = NewStr(s);
+				Cs.Reset(NewStr(s));
 			}
 			else if (Get("charset", s))
 			{
-				Cs = NewStr(s);
+				Cs.Reset(NewStr(s));
 			}
 
 			if (Cs)
@@ -2827,11 +2827,8 @@ void GTag::SetStyle()
 					stricmp(Cs, "utf-32") != 0 &&
 					LgiGetCsInfo(Cs))
 				{
-					DeleteArray(Html->DocCharSet);
-					Html->DocCharSet = NewStr(Cs);
+					Html->SetCharset(Cs);
 				}
-
-				DeleteArray(Cs);
 			}
 			break;
 		}
@@ -5897,7 +5894,6 @@ GHtml::GHtml(int id, int x, int y, int cx, int cy, GDocumentEnv *e)
 	Selection = 0;
 	SetBackColour(Rgb24To32(LC_WORKSPACE));
 	PrevTip = 0;
-	DocCharSet = 0;
 	DocumentUid = 0;
 
 	_New();
@@ -5906,7 +5902,6 @@ GHtml::GHtml(int id, int x, int y, int cx, int cy, GDocumentEnv *e)
 GHtml::~GHtml()
 {
 	_Delete();
-	DeleteArray(DocCharSet);
 	DeleteObj(d);
 
 	if (JobSem.Lock(_FL))
@@ -5924,8 +5919,7 @@ void GHtml::_New()
 
 	d->Content.x = d->Content.y = 0;
 	Tag = 0;
-	DeleteArray(DocCharSet);
-	// if (!Charset) Charset = NewStr("utf-8");
+	DocCharSet.Reset();
 
 	IsHtml = true;
 	FontCache = new GFontCache(this);

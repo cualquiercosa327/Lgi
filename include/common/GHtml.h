@@ -42,7 +42,6 @@ protected:
 	GTag				*Tag;				// Tree root
 	GTag				*Cursor;			// Cursor location..
 	GTag				*Selection;			// Edge of selection or NULL
-	char				*DocCharSet;
 	char				IsHtml;
 	int					ViewWidth;
 	GToolTip			Tip;
