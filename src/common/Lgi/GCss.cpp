@@ -2381,4 +2381,3 @@ bool GCss::Store::Parse(const char *&c)
 
 	return true;
 }
-

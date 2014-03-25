@@ -841,6 +841,48 @@ bool LgiResources::Res_GetProperties(ResObject *Obj, GDom *Props)
 	return false;
 }
 
+struct ResObjectCallback : public GCss::ElementCallback<ResObject>
+{
+	GDom *Props;
+	GVariant v;
+	
+	ResObjectCallback(GDom *props)
+	{
+		Props = props;
+	}
+
+	const char *GetElement(ResObject *obj)
+	{
+		return obj->GetObjectName();
+	}
+	
+	const char *GetAttr(ResObject *obj, const char *Attr)
+	{
+		if (!Props->GetValue(Attr, v))
+			v.Empty();		
+		return v.Str();
+	}
+	
+	const bool GetClasses(GArray<const char *> &Classes, ResObject *obj)
+	{
+		if (Props->GetValue("class", v))
+			Classes.Add(v.Str());
+		return Classes.Length() > 0;
+	}
+	
+	ResObject *GetParent(ResObject *obj)
+	{
+		LgiAssert(0);
+		return NULL;
+	}
+	
+	GArray<ResObject*> GetChildren(ResObject *obj)
+	{
+		GArray<ResObject*> a;
+		return a;
+	}
+};
+
 bool LgiResources::Res_SetProperties(ResObject *Obj, GDom *Props)
 {
 	GView *v = dynamic_cast<GView*>(Obj);
@@ -858,6 +900,23 @@ bool LgiResources::Res_SetProperties(ResObject *Obj, GDom *Props)
 		if (Props->GetValue("style", i))
 		{
 		    v->SetCssStyle(i.Str());
+		}
+		if (Props->GetValue("class", i))
+		{
+			ResObjectCallback Cb(Props);
+			GCss::SelArray a;
+			if (CssStore.Match(a, &Cb, Obj))
+			{
+				for (int i=0; i<a.Length(); i++)
+				{
+					GCss::Selector *s = a[i];
+					if (s)
+					{
+						const char *style = s->Style;
+					    v->SetCssStyle(style);
+					}
+				}
+			}
 		}
 
 		GEdit *e = dynamic_cast<GEdit*>(v);

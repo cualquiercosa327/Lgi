@@ -635,22 +635,236 @@ public:
 		}
 	};
 	
-	/// This class parses and stores the CSS selectors and styles.
-	struct LgiClass Store
+	template<typename T>
+	struct LgiClass ElementCallback
 	{
-		SelectorMap TypeMap, ClassMap, IdMap;
-		SelArray Other;
-		GAutoString Error;
+	public:
+		/// Returns the element name
+		virtual const char *GetElement(T *obj) = 0;
+		/// Returns the document unque element ID
+		virtual const char *GetAttr(T *obj, const char *Attr) = 0;
+		/// Returns the class
+		virtual const bool GetClasses(GArray<const char *> &Classes, T *obj) = 0;
+		/// Returns the parent object
+		virtual T *GetParent(T *obj) = 0;
+		/// Returns an array of child objects
+		virtual GArray<T*> GetChildren(T *obj) = 0;
+	};
+	
+	/// This class parses and stores the CSS selectors and styles.
+	class LgiClass Store
+	{
+	protected:
+		/// This code matches a simple part of a selector, i.e. no combinatorial operators involved.
+		template<typename T>
+		bool MatchSimpleSelector
+		(
+			/// The full selector.
+			GCss::Selector *Sel,
+			/// The start index of the simple selector parts. Stop at the first comb operator or the end of the parts.
+			int PartIdx,
+			/// Our context callback to get properties of the object
+			ElementCallback<T> *Context,
+			/// The object to match
+			T *Obj
+		)
+		{
+			const char *Element = Context->GetElement(Obj);
+			
+			for (int n = PartIdx; n<Sel->Parts.Length(); n++)
+			{
+				GCss::Selector::Part &p = Sel->Parts[n];
+				switch (p.Type)
+				{
+					case GCss::Selector::SelType:
+					{
+						const char *Tag = Context->GetElement(Obj);
+						if (!Tag || stricmp(Tag, p.Value))
+							return false;
+						break;
+					}
+					case GCss::Selector::SelUniversal:
+					{
+						// Match everything
+						return true;
+						break;
+					}
+					case GCss::Selector::SelAttrib:
+					{
+						if (!p.Value)
+							return false;
+
+						char *e = strchr(p.Value, '=');
+						if (!e)
+							return false;
+
+						GAutoString Var(NewStr(p.Value, e - p.Value));
+						const char *TagVal = Context->GetAttr(Obj, Var);
+						if (!TagVal)
+							return false;
+
+						GAutoString Val(NewStr(e + 1));
+						if (stricmp(Val, TagVal))
+							return false;
+						break;
+					}
+					case GCss::Selector::SelClass:
+					{
+						// Check the class matches
+						GArray<const char *> Class;
+						if (!Context->GetClasses(Class, Obj))
+							return false;
+
+						if (Class.Length() == 0)
+							return false;
+
+						bool Match = false;
+						for (int i=0; i<Class.Length(); i++)
+						{
+							if (!stricmp(Class[i], p.Value))
+							{
+								Match = true;
+								break;
+							}
+						}
+						if (!Match)
+							return false;
+						break;
+					}
+					case GCss::Selector::SelMedia:
+					{
+						return false;
+						break;
+					}
+					case GCss::Selector::SelID:
+					{
+						const char *Id = Context->GetAttr(Obj, "id");
+						if (!Id || stricmp(Id, p.Value))
+							return false;
+						break;
+					}
+					case GCss::Selector::SelPseudo:
+					{
+						const char *Href = NULL;
+						if
+						(
+							(
+								!stricmp(Element, "a")
+								&&
+								p.Value && !stricmp(p.Value, "link")
+								&&
+								(Href = Context->GetAttr(Obj, "href")) != NULL
+							)
+							||
+							(
+								p.Value
+								&&
+								*p.Value == '-'
+							)
+						)
+							break;
+							
+						return false;
+						break;
+					}
+					default:
+					{
+						// Comb operator, so return the current match value
+						return true;
+					}
+				}
+			}
+			
+			return true;
+		}
+		
+		/// This code matches a all the parts of a selector.
+		template<typename T>
+		bool MatchFullSelector(GCss::Selector *Sel, ElementCallback<T> *Context, T *Obj)
+		{
+			bool Complex = Sel->Combs.Length() > 0;
+			int CombIdx = Complex ? Sel->Combs.Length() - 1 : 0;
+			int StartIdx = (Complex) ? Sel->Combs[CombIdx] + 1 : 0;
+			
+			bool Match = MatchSimpleSelector(Sel, StartIdx, Context, Obj);
+			if (!Match)
+				return false;
+
+			if (Complex)
+			{
+				T *CurrentParent = Context->GetParent(Obj);
+				
+				for (; CombIdx >= 0; CombIdx--)
+				{
+					if (CombIdx >= Sel->Combs.Length())
+						break;
+
+					StartIdx = Sel->Combs[CombIdx];
+					LgiAssert(StartIdx > 0);
+
+					if (StartIdx >= Sel->Parts.Length())
+						break;
+					
+					GCss::Selector::Part &p = Sel->Parts[StartIdx];
+					switch (p.Type)
+					{
+						case GCss::Selector::CombChild:
+						{
+							// LgiAssert(!"Not impl.");
+							return false;
+							break;
+						}
+						case GCss::Selector::CombAdjacent:
+						{
+							// LgiAssert(!"Not impl.");
+							return false;
+							break;
+						}
+						case GCss::Selector::CombDesc:
+						{
+							// Does the parent match the previous simple selector
+							int PrevIdx = StartIdx - 1;
+							while (PrevIdx > 0 && Sel->Parts[PrevIdx-1].IsSel())
+							{
+								PrevIdx--;
+							}
+							bool ParMatch = false;
+							for (; !ParMatch && CurrentParent; CurrentParent = Context->GetParent(CurrentParent))
+							{
+								ParMatch = MatchSimpleSelector(Sel, PrevIdx, Context, CurrentParent);
+							}
+							if (!ParMatch)
+								return false;
+							break;
+						}
+						default:
+						{
+							LgiAssert(!"This must be a comb.");
+							return false;
+							break;
+						}
+					}
+				}
+			}
+
+			return Match;
+		}
 
 		// This stores the unparsed style strings. More than one selector
 		// may reference this memory.
 		GArray<char*> Styles;
 		
+	public:
+		SelectorMap TypeMap, ClassMap, IdMap;
+		SelArray Other;
+		GAutoString Error;
+
 		~Store()
 		{
 			Empty();
 		}
 
+		/// Empty the data store
 		void Empty()
 		{
 			TypeMap.Empty();
@@ -661,8 +875,61 @@ public:
 
 			Styles.DeleteArrays();
 		}
-		
+
+		/// Parse general CSS into selectors.		
 		bool Parse(const char *&s);
+
+		/// Use to finding matching selectors for an element.
+		template<typename T>
+		bool Match(GCss::SelArray &Styles, ElementCallback<T> *Context, T *Obj)
+		{
+			SelArray *s;
+
+			if (!Context || !Obj)
+				return false;
+			
+			// An array of potential selector matches...
+			GArray<SelArray*> Maps;
+
+			// Check element type
+			const char *Type = Context->GetElement(Obj);
+			if (Type && (s = TypeMap.Find(Type)))
+				Maps.Add(s);
+			
+			// Check the ID
+			const char *Id = Context->GetAttr(Obj, "id");
+			if (Id && (s = IdMap.Find(Id)))
+				Maps.Add(s);
+			
+			// Check all the classes
+			GArray<const char *> Classes;
+			Context->GetClasses(Classes, Obj);
+			for (int i=0; i<Classes.Length(); i++)
+			{
+				if ((s = ClassMap.Find(Classes[i])))
+					Maps.Add(s);
+			}
+
+			// Now from the list of possibles, do the actual checking of selectors...
+			for (int i=0; i<Maps.Length(); i++)
+			{
+				GCss::SelArray *s = Maps[i];
+				for (int i=0; i<s->Length(); i++)
+				{
+					GCss::Selector *Sel = (*s)[i];
+					
+					if (MatchFullSelector(Sel, Context, Obj))
+					{
+						// Output the matching selector
+						Styles.Add(Sel);
+					}
+				}
+			}
+
+			return true;
+		}
+
+		/// For debugging: dumps a description of the store to a stream
 		bool Dump(GStream &out);
 	};
 
