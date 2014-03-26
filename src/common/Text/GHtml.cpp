@@ -3159,7 +3159,7 @@ char *GTag::ParseText(char *Doc)
 
 			// Output tag
 			Html->SetCharset("iso-8859-1");
-			char16 *t = CleanText(s, e - s, false);
+			char16 *t = CleanText(s, e - s, NULL, false);
 			if (t)
 			{
 				Utf16.Push(t);
@@ -3202,7 +3202,7 @@ char *GTag::ParseText(char *Doc)
 			
 			// Output text
 			Html->SetCharset(OriginalCp);
-			GAutoWString t(CleanText(s, e - s, false));
+			GAutoWString t(CleanText(s, e - s, NULL, false));
 			if (t)
 			{
 				Utf16.Push(t);
