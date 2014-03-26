@@ -863,7 +863,7 @@ struct ResObjectCallback : public GCss::ElementCallback<ResObject>
 		return v.Str();
 	}
 	
-	const bool GetClasses(GArray<const char *> &Classes, ResObject *obj)
+	bool GetClasses(GArray<const char *> &Classes, ResObject *obj)
 	{
 		if (Props->GetValue("class", v))
 			Classes.Add(v.Str());

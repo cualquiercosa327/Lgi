@@ -636,7 +636,7 @@ public:
 	};
 	
 	template<typename T>
-	struct LgiClass ElementCallback
+	struct ElementCallback
 	{
 	public:
 		/// Returns the element name
@@ -644,7 +644,7 @@ public:
 		/// Returns the document unque element ID
 		virtual const char *GetAttr(T *obj, const char *Attr) = 0;
 		/// Returns the class
-		virtual const bool GetClasses(GArray<const char *> &Classes, T *obj) = 0;
+		virtual bool GetClasses(GArray<const char *> &Classes, T *obj) = 0;
 		/// Returns the parent object
 		virtual T *GetParent(T *obj) = 0;
 		/// Returns an array of child objects

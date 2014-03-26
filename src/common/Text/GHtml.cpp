@@ -2305,217 +2305,57 @@ void GTag::ImageLoaded(char *uri, GSurface *Img, int &Used)
 	}
 }
 
-/// This code matches a all the parts of a selector
-bool GTag::MatchFullSelector(GCss::Selector *Sel)
+struct GTagElementCallback : public GCss::ElementCallback<GTag>
 {
-	bool Complex = Sel->Combs.Length() > 0;
-	int CombIdx = Complex ? Sel->Combs.Length() - 1 : 0;
-	int StartIdx = (Complex) ? Sel->Combs[CombIdx] + 1 : 0;
-	
-	bool Match = MatchSimpleSelector(Sel, StartIdx);
-	if (!Match)
-		return false;
+	const char *Val;
 
-	if (Complex)
+	const char *GetElement(GTag *obj)
 	{
-		GTag *CurrentParent = ToTag(Parent);
-		
-		for (; CombIdx >= 0; CombIdx--)
-		{
-			if (CombIdx >= Sel->Combs.Length())
-				break;
-
-			StartIdx = Sel->Combs[CombIdx];
-			LgiAssert(StartIdx > 0);
-
-			if (StartIdx >= Sel->Parts.Length())
-				break;
-			
-			GCss::Selector::Part &p = Sel->Parts[StartIdx];
-			switch (p.Type)
-			{
-				case GCss::Selector::CombChild:
-				{
-					// LgiAssert(!"Not impl.");
-					return false;
-					break;
-				}
-				case GCss::Selector::CombAdjacent:
-				{
-					// LgiAssert(!"Not impl.");
-					return false;
-					break;
-				}
-				case GCss::Selector::CombDesc:
-				{
-					// Does the parent match the previous simple selector
-					int PrevIdx = StartIdx - 1;
-					while (PrevIdx > 0 && Sel->Parts[PrevIdx-1].IsSel())
-					{
-						PrevIdx--;
-					}
-					bool ParMatch = false;
-					for (; !ParMatch && CurrentParent; CurrentParent = ToTag(CurrentParent->Parent))
-					{
-						ParMatch = CurrentParent->MatchSimpleSelector(Sel, PrevIdx);
-					}
-					if (!ParMatch)
-						return false;
-					break;
-				}
-				default:
-				{
-					LgiAssert(!"This must be a comb.");
-					return false;
-					break;
-				}
-			}
-		}
-	}
-
-	return Match;
-}
-
-/// This code matches a simple part of a selector, i.e. no combinatorial operators involved.
-bool GTag::MatchSimpleSelector
-(
-	/// The full selector.
-	GCss::Selector *Sel,
-	/// The start index of the simple selector parts. Stop at the first comb operator or the end of the parts.
-	int PartIdx
-)
-{
-	for (int n = PartIdx; n<Sel->Parts.Length(); n++)
-	{
-		GCss::Selector::Part &p = Sel->Parts[n];
-		switch (p.Type)
-		{
-			case GCss::Selector::SelType:
-			{
-				if (!Tag || stricmp(Tag, p.Value))
-					return false;
-				break;
-			}
-			case GCss::Selector::SelUniversal:
-			{
-				// Match everything
-				return true;
-				break;
-			}
-			case GCss::Selector::SelAttrib:
-			{
-				if (!p.Value)
-					return false;
-
-				char *e = strchr(p.Value, '=');
-				if (!e)
-					return false;
-
-				GAutoString Var(NewStr(p.Value, e - p.Value));
-				const char *TagVal;
-				if (!Get(Var, TagVal))
-					return false;
-
-				GAutoString Val(NewStr(e + 1));
-				if (stricmp(Val, TagVal))
-					return false;
-				break;
-			}
-			case GCss::Selector::SelClass:
-			{
-				// Check the class matches
-				if (Class.Length() == 0)
-					return false;
-
-				bool Match = false;
-				for (int i=0; i<Class.Length(); i++)
-				{
-					if (!stricmp(Class[i], p.Value))
-					{
-						Match = true;
-						break;
-					}
-				}
-				if (!Match)
-					return false;
-				break;
-			}
-			case GCss::Selector::SelMedia:
-			{
-				return false;
-				break;
-			}
-			case GCss::Selector::SelID:
-			{
-				const char *Id;
-				if (!Get("id", Id) || stricmp(Id, p.Value))
-					return false;
-				break;
-			}
-			case GCss::Selector::SelPseudo:
-			{
-				const char *Href = NULL;
-				if
-				(
-					(
-						TagId == TAG_A
-						&&
-						p.Value && !stricmp(p.Value, "link")
-						&&
-						Get("href", Href)
-					)
-					||
-					(
-						p.Value
-						&&
-						*p.Value == '-'
-					)
-				)
-					break;
-					
-				return false;
-				break;
-			}
-			default:
-			{
-				// Comb operator, so return the current match value
-				return true;
-			}
-		}
+		return obj->Tag;
 	}
 	
-	return true;
-}
+	const char *GetAttr(GTag *obj, const char *Attr)
+	{
+		if (obj->Get(Attr, Val))
+			return Val;
+		return NULL;
+	}
+	
+	bool GetClasses(GArray<const char *> &Classes, GTag *obj) 
+	{
+		for (int i=0; i<obj->Class.Length(); i++)
+			Classes.Add(obj->Class[i]);
+		return true;
+	}
+	
+	GTag *GetParent(GTag *obj)
+	{
+		return ToTag(obj->Parent);
+	}
+	
+	GArray<GTag*> GetChildren(GTag *obj)
+	{
+		GArray<GTag*> c;
+		for (int i=0; i<obj->Children.Length(); i++)
+			c.Add(ToTag(obj->Children[i]));
+		return c;
+	}
+};
 
 // After CSS has changed this function scans through the CSS and applies any rules
 // that match the current tag.
 void GTag::Restyle()
 {
-	int i;
-	
-	GArray<GCss::SelArray*> Maps;
-	GCss::SelArray *s;
-	if ((s = Html->CssStore.TypeMap.Find(Tag)))
-		Maps.Add(s);
-	if (HtmlId && (s = Html->CssStore.IdMap.Find(HtmlId)))
-		Maps.Add(s);
-	for (i=0; i<Class.Length(); i++)
+	// Use the matching built into the GCss Store.
+	GCss::SelArray Styles;
+	GTagElementCallback Context;
+	if (Html->CssStore.Match(Styles, &Context, this))
 	{
-		if ((s = Html->CssStore.ClassMap.Find(Class[i])))
-			Maps.Add(s);
-	}
-
-	for (i=0; i<Maps.Length(); i++)
-	{
-		GCss::SelArray *s = Maps[i];
-		for (int i=0; i<s->Length(); i++)
+		for (int i=0; i<Styles.Length(); i++)
 		{
-			GCss::Selector *Sel = (*s)[i];
-			
-			if (MatchFullSelector(Sel))
-			{
-				SetCssStyle(Sel->Style);
-			}
+			GCss::Selector *s = Styles[i];
+			if (s)
+				SetCssStyle(s->Style);
 		}
 	}
 	

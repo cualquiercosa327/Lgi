@@ -353,10 +353,6 @@ public:
 	void SetStyle();
 	/// Called to apply CSS selectors on initialization and also when properties change at runtime.
 	void Restyle();
-	/// Match a simple CSS selector against the current object
-	bool MatchSimpleSelector(GCss::Selector *Sel, int PartIdx);
-	/// Match all the CSS selectors against the current object (calls MatchSimpleSelector one or more times)
-	bool MatchFullSelector(GCss::Selector *Sel);
 	
 	/// Takes the CSS styles, parses and stores them in the current object,
 	//// overwriting any duplicate properties.
