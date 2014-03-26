@@ -8,6 +8,7 @@
 
 #include "Lgi.h"
 #include "GdiLeak.h"
+#include "GPalette.h"
 
 #include <ApplicationServices/ApplicationServices.h>
 

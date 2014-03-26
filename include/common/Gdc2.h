@@ -167,7 +167,7 @@
 // Misc
 #define BMPWIDTH(bits)				((((bits)+31)/32)<<2)
 
-#include "GColourSpace.h."
+#include "GColourSpace.h"
 
 // Look up tables
 #define Div255Lut					(GdcDevice::GetInst()->GetDiv255())

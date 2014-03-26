@@ -242,6 +242,9 @@ LgiFunc GColourSpace GdkVisualToColourSpace(Gtk::GdkVisual *v, int output_bits);
 
 #else
 
+	#define System15BitColourSpace CsRgb15
+	typedef GRgb15 System15BitPixel;
+
 	#define System16BitColourSpace CsRgb16
 	typedef GRgb16 System16BitPixel;
 

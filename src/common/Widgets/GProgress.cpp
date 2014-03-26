@@ -1,5 +1,6 @@
 #include "Lgi.h"
 #include "GProgress.h"
+#include "GCss.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 GProgress::GProgress(int id, int x, int y, int cx, int cy, const char *name) :
@@ -97,16 +98,14 @@ void GProgress::OnPaint(GSurface *pDC)
 
 			p.Size(1, 1);
 
-			GViewFill *f = GetBackgroundFill();
-			if (f)
-			{
-				f->Fill(pDC, &p);
-			}
+			GCss::ColorDef f;
+			if (GetCss())
+				f = GetCss()->BackgroundColor();
+			if (f.Type == GCss::ColorRgb)
+				pDC->Colour(f.Rgb32, 32);
 			else
-			{
 				pDC->Colour(c, 24);
-				pDC->Rectangle(&p);
-			}
+			pDC->Rectangle(&p);
 		}
 	}
 
