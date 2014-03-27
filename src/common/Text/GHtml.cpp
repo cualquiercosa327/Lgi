@@ -21,7 +21,7 @@
 #include "GPalette.h"
 
 #define DEBUG_TABLE_LAYOUT			0
-#define DEBUG_RESTYLE				1
+#define DEBUG_RESTYLE				0
 #define DEBUG_TAG_BY_POS			0
 #define DEBUG_SELECTION				0
 

@@ -20,8 +20,14 @@ class LgiClass GEdit :
 {
 protected:
 	class GEditPrivate *d;
+
 	#if WIN32NATIVE
-	int SysOnNotify(int Code);
+	void OnCreate();
+
+	GAutoWString	SysName();
+	bool			SysName(const char16 *Name);
+	int				SysOnNotify(int Code);
+	bool			SysEmptyText();
 	#endif
 
 public:
@@ -70,13 +76,14 @@ public:
 	void SetEmptyText(const char *EmptyText);
 
 	bool OnKey(GKey &k);
-	
-	#if WIN32NATIVE
-	GMessage::Result OnEvent(GMessage *Msg);
+	void OnFocus(bool f);
 	char *Name();
 	bool Name(const char *s);
 	char16 *NameW();
 	bool NameW(const char16 *s);
+	
+	#if WIN32NATIVE
+	GMessage::Result OnEvent(GMessage *Msg);
 	#else
 	bool Paste();
 	void OnEnter(GKey &k);

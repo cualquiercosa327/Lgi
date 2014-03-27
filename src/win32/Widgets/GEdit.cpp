@@ -17,9 +17,17 @@ class GEditPrivate
 public:
 	bool IgnoreNotify;
 
+	GAutoString ValueA;
+	GAutoWString ValueW;
+
+	bool InEmptyMode;
+	GCss::ColorDef NonEmptyColor;
+	GAutoWString EmptyText;
+
 	GEditPrivate()
 	{
 		IgnoreNotify = true;
+		InEmptyMode = false;
 	}
 
 	~GEditPrivate()
@@ -105,102 +113,22 @@ void GEdit::Password(bool m)
 		SetStyle(GetStyle() & ~ES_PASSWORD);
 }
 
-char *GEdit::Name()
-{
-	if (Handle())
-	{
-		GBase::Name(0);
-
-		char *s = GControl::Name();
-		if (s)
-		{
-			char *i = s;
-			char *o = s;
-			while (*i)
-			{
-				if (*i != '\r')
-				{
-					*o++ = *i;
-				}
-				i++;
-			}
-			*o = 0;
-
-		}
-
-		return s;
-	}
-	
-	return GBase::Name();
-}
-
-bool GEdit::Name(const char *n)
-{
-	bool Old = d->IgnoreNotify;
-	d->IgnoreNotify = true;
-
-	char *Mem = 0;
-
-	if (n && strchr(n, '\n'))
-	{
-		GStringPipe p(256);
-		for (char *s = (char*)n; s && *s; )
-		{
-			char *nl = strchr(s, '\n');
-			if (nl)
-			{
-				p.Write(s, nl-s);
-				p.Write("\r\n", 2);
-				s = nl + 1;
-			}
-			else
-			{
-				p.Write(s, strlen(s));
-				break;
-			}
-		}
-
-		n = Mem = p.NewStr();
-	}
-
-	bool Status = GControl::Name(n);
-
-	DeleteArray(Mem);
-
-	d->IgnoreNotify = Old;
-	return Status;
-}
-
-char16 *GEdit::NameW()
-{
-	return GControl::NameW();
-}
-
-bool GEdit::NameW(const char16 *s)
-{
-	bool Old = d->IgnoreNotify;
-	d->IgnoreNotify = true;
-	bool Status = GControl::NameW(s);
-	d->IgnoreNotify = Old;
-	return Status;
-}
-
 int GEdit::SysOnNotify(int Code)
 {
-	if (!d->IgnoreNotify)
+	if (!d->IgnoreNotify && Code == EN_CHANGE)
 	{
-		int Len = SendMessage(Handle(), WM_GETTEXTLENGTH, 0, 0);
-		char *Str = new char[Len+1];
-		if (Str)
+		GAutoWString w = SysName();
+		if (StrcmpW(w ? w : L"", d->ValueW ? d->ValueW : L""))
 		{
-			SendMessage(Handle(), WM_GETTEXT, (WPARAM) (Len+1), (LPARAM) Str);
-			GBase::Name(Str);
-			DeleteArray(Str);
-		}
-
-		if (_View)
-		{
-			SendNotify(0);
+			d->ValueW = w;
+			d->ValueA.Reset(LgiNewUtf16To8(d->ValueW));
+			
+			LgiTrace("SysOnNotify change to '%s'\n", d->ValueA.Get());
+			
+			if (_View)
+			{
+				SendNotify(0);
+			}
 		}
 	}
 
@@ -369,6 +297,18 @@ GMessage::Result GEdit::OnEvent(GMessage *Msg)
 	return Status;
 }
 
+void GEdit::OnCreate()
+{
+	if (d->EmptyText)
+		SysEmptyText();
+}
+
+void GEdit::OnFocus(bool f)
+{
+	if (d->EmptyText)
+		SysEmptyText();
+}
+
 bool GEdit::OnKey(GKey &k)
 {
 	if (!k.IsChar &&
@@ -400,4 +340,188 @@ void GEdit::SetCaret(int Pos)
 {
 	if (_View)
 		SendMessage(_View, EM_SETSEL, Pos, Pos);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+GAutoWString GEdit::SysName()
+{
+	GAutoWString a;
+	if (_View)
+	{
+		int Length = GetWindowTextLengthW(_View);
+		if (Length)
+		{
+			if (a.Reset(new char16[Length+1]))
+			{
+				a[0] = 0;
+				int Chars = GetWindowTextW(_View, a, Length+1);
+				if (Chars >= 0)
+				{
+					// Remove return characters
+					char16 *i = a;
+					char16 *end = a + Chars;
+					char16 *o = a;
+					while (i < end)
+					{
+						if (*i != '\r')
+							*o++ = *i;
+						i++;
+					}
+					*o = 0;
+				}
+				else a.Reset();
+			}
+		}
+	}
+	return a;
+}
+
+bool GEdit::SysName(const char16 *n)
+{
+	if (!_View)
+		return false;
+
+	GAutoWString w;
+	if (n && StrchrW(n, '\n'))
+	{
+		int Len = 0;
+		const char16 *c;
+		for (c = n; *c; c++)
+		{
+			if (*c == '\n')
+				Len += 2;
+			else if (*c != '\r')
+				Len++;
+		}
+		if (w.Reset(new char16[Len+1]))
+		{
+			char16 *o = w;
+			for (c = n; *c; c++)
+			{
+				if (*c == '\n')
+				{
+					*o++ = '\r';
+					*o++ = '\n';
+				}
+				else if (*c != '\r')
+				{
+					*o++ = *c;
+				}
+			}
+			*o = 0;
+			LgiAssert(o - w == Len);
+			n = w;
+		}
+	}
+
+	return SetWindowTextW(_View, n ? n : L"") != FALSE;
+}
+
+char *GEdit::Name()
+{
+	if (Handle())
+	{
+		d->ValueW = SysName();
+		d->ValueA.Reset(LgiNewUtf16To8(d->ValueW));
+	}
+	
+	return d->ValueA;
+}
+
+bool GEdit::Name(const char *n)
+{
+	bool Old = d->IgnoreNotify;
+	d->IgnoreNotify = true;
+
+	d->ValueA.Reset(NewStr(n));
+	d->ValueW.Reset(LgiNewUtf8To16(n));
+	bool Status = SysEmptyText();
+
+	d->IgnoreNotify = Old;
+	return Status;
+}
+
+char16 *GEdit::NameW()
+{
+	if (Handle())
+	{
+		d->ValueW = SysName();
+		d->ValueA.Reset(LgiNewUtf16To8(d->ValueW));
+	}
+
+	return d->ValueW;
+}
+
+bool GEdit::NameW(const char16 *s)
+{
+	bool Old = d->IgnoreNotify;
+	d->IgnoreNotify = true;
+
+	d->ValueW.Reset(NewStrW(s));
+	d->ValueA.Reset(LgiNewUtf16To8(s));
+	bool Status = SysEmptyText();
+
+	d->IgnoreNotify = Old;
+	return Status;
+}
+
+bool GEdit::SysEmptyText()
+{
+	bool Status = false;
+	bool HasFocus = Focus();
+	bool Empty = ValidStrW(d->EmptyText) &&
+				!ValidStrW(d->ValueW) &&
+				!HasFocus;
+
+	LgiTrace("SysEmptyText Empty=%i\n", Empty);
+		
+	if (Empty)
+	{
+		// Show empty text
+		GColour c(LC_LOW, 24);
+		if (!d->InEmptyMode)
+			d->NonEmptyColor = GetCss(true)->Color();
+		GetCss()->Color(GCss::ColorDef(c.c32()));
+		
+		bool Old = d->IgnoreNotify;
+		d->IgnoreNotify = true;
+		Status = SysName(d->EmptyText);
+		d->IgnoreNotify = Old;
+		
+		d->InEmptyMode = true;
+		if (_View)
+		{
+			DWORD Style = GetWindowLong(_View, GWL_STYLE);
+			SetWindowLong(_View, GWL_STYLE, Style & ~ES_PASSWORD);
+			SendMessage(_View, EM_SETPASSWORDCHAR, 0, 0);
+		}
+	}
+	else
+	{
+		// Show normal text
+		if (d->InEmptyMode)
+			GetCss()->Color(d->NonEmptyColor);
+
+		if (_View)
+		{
+			uint32 Style = GetStyle();
+			bool HasPass = Style & ES_PASSWORD;
+			if (HasPass)
+			{
+				SetWindowLong(_View, GWL_STYLE, Style);
+				SendMessage(_View, EM_SETPASSWORDCHAR, (WPARAM)'*', 0);
+			}
+		}
+
+		Status = SysName(d->ValueW);
+	}
+	
+	Invalidate();
+	return Status;
+}
+
+void GEdit::SetEmptyText(const char *EmptyText)
+{
+	d->EmptyText.Reset(LgiNewUtf8To16(EmptyText));
+	SysEmptyText();
 }

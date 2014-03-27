@@ -1297,22 +1297,33 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			case WM_CTLCOLOREDIT:
 			case WM_CTLCOLORSTATIC:
 			{
-				HDC hDC = (HDC)MsgA(Msg);
-				HWND hCtrl = (HWND)MsgB(Msg);
+				HDC hdc = (HDC)MsgA(Msg);
+				HWND hwnd = (HWND)MsgB(Msg);
 
-				GViewI *v = FindControl(hCtrl);
+				GViewI *v = FindControl(hwnd);
 				if (v)
 				{
-					GCss::ColorDef b;
 					if (v->GetCss())
-						b = v->GetCss()->BackgroundColor();
-					if (b.Type == GCss::ColorRgb)
 					{
-						LOGBRUSH LogBrush;
-						LogBrush.lbStyle = BS_SOLID;
-						LogBrush.lbColor = Rgb32To24(b.Rgb32);
-						LogBrush.lbHatch = 0;
-						return (GMessage::Result)CreateBrushIndirect(&LogBrush);
+						GCss::ColorDef f, b;
+						
+						f = v->GetCss()->Color();
+						b = v->GetCss()->BackgroundColor();
+						
+						if (f.Type == GCss::ColorRgb)
+						{
+							COLORREF c = RGB(R32(f.Rgb32), G32(f.Rgb32), B32(f.Rgb32));
+							SetTextColor(hdc, c);
+							// SetDCBrushColor(hdc, c);
+						}
+							
+						if (b.Type == GCss::ColorRgb)
+						{
+							COLORREF c = RGB(R32(b.Rgb32), G32(b.Rgb32), B32(b.Rgb32));
+							SetBkColor(hdc, c);
+						}
+
+						return (LRESULT) GetStockObject(DC_BRUSH);
 					}
 				}
 
