@@ -597,7 +597,7 @@ public:
 			// Background
 			GCss::ColorDef Back;
 			if (Ctrl->GetCss())
-				Ctrl->GetCss()->BackgroundColor();
+				Back = Ctrl->GetCss()->BackgroundColor();
 			if (Back.Type == GCss::ColorRgb)
 				Mem.Colour(Back.Rgb32, 32);
 			else
@@ -696,7 +696,7 @@ public:
 			// Back
 			GCss::ColorDef Back;
 			if (Ctrl->GetCss())
-				Ctrl->GetCss()->BackgroundColor();
+				Back = Ctrl->GetCss()->BackgroundColor();
 			if (Back.Type == GCss::ColorRgb)
 				Mem.Colour(Back.Rgb32, 32);
 			else
@@ -779,7 +779,7 @@ public:
 		// Create the bitmaps in cache if not already there
 		GCss::ColorDef Back;
 		if (Ctrl->GetCss())
-			Ctrl->GetCss()->BackgroundColor();
+			Back = Ctrl->GetCss()->BackgroundColor();
 
 		GMemDC *Temp = 0;
 		GMemDC *&Mem = Back.Type == GCss::ColorRgb ? Temp : CheckBox[Flags];

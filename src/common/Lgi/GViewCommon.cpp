@@ -1738,9 +1738,6 @@ void GView::SetMinimumSize(GdcPt2 Size)
 
 bool GView::SetColour(GColour &c, bool Fore)
 {
-	char s[64];
-	sprintf_s(s, sizeof(s), "#%2.2x%2.2x%2.2x", c.r(), c.g(), c.b());
-	
 	GCss *css = GetCss(true);
 	if (!css)
 		return false;
@@ -1748,14 +1745,14 @@ bool GView::SetColour(GColour &c, bool Fore)
 	if (Fore)
 	{
 		if (c.IsValid())
-			css->Color(GCss::ColorDef(c.c24()));
+			css->Color(GCss::ColorDef(c.c32()));
 		else
 			css->DeleteProp(GCss::PropColor);
 	}
 	else
 	{
 		if (c.IsValid())
-			css->BackgroundColor(GCss::ColorDef(c.c24()));
+			css->BackgroundColor(GCss::ColorDef(c.c32()));
 		else
 			css->DeleteProp(GCss::PropBackgroundColor);
 	}
