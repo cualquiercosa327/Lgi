@@ -299,8 +299,7 @@ GMessage::Result GEdit::OnEvent(GMessage *Msg)
 
 void GEdit::OnCreate()
 {
-	if (d->EmptyText)
-		SysEmptyText();
+	SysEmptyText();
 }
 
 void GEdit::OnFocus(bool f)
