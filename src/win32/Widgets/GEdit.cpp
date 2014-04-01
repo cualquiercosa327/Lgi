@@ -112,20 +112,11 @@ void GEdit::Password(bool m)
 
 int GEdit::SysOnNotify(int Code)
 {
-	if (!d->IgnoreNotify && Code == EN_CHANGE)
+	if (!d->IgnoreNotify &&
+		Code == EN_CHANGE &&
+		_View)
 	{
-		GAutoWString w = SysName();
-		if (StrcmpW(w ? w : L"", NameW() ? NameW() : L""))
-		{
-			GBase::NameW(w);
-			
-			LgiTrace("SysOnNotify change to '%s'\n", GBase::Name());
-			
-			if (_View)
-			{
-				SendNotify(0);
-			}
-		}
+		SendNotify(0);
 	}
 
 	return 0;
