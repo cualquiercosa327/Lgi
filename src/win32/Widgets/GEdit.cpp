@@ -17,9 +17,6 @@ class GEditPrivate
 public:
 	bool IgnoreNotify;
 
-	GAutoString ValueA;
-	GAutoWString ValueW;
-
 	bool InEmptyMode;
 	GCss::ColorDef NonEmptyColor;
 	GAutoWString EmptyText;
@@ -118,12 +115,11 @@ int GEdit::SysOnNotify(int Code)
 	if (!d->IgnoreNotify && Code == EN_CHANGE)
 	{
 		GAutoWString w = SysName();
-		if (StrcmpW(w ? w : L"", d->ValueW ? d->ValueW : L""))
+		if (StrcmpW(w ? w : L"", NameW() ? NameW() : L""))
 		{
-			d->ValueW = w;
-			d->ValueA.Reset(LgiNewUtf16To8(d->ValueW));
+			GBase::NameW(w);
 			
-			LgiTrace("SysOnNotify change to '%s'\n", d->ValueA.Get());
+			LgiTrace("SysOnNotify change to '%s'\n", GBase::Name());
 			
 			if (_View)
 			{
@@ -299,11 +295,13 @@ GMessage::Result GEdit::OnEvent(GMessage *Msg)
 
 void GEdit::OnCreate()
 {
-	SysEmptyText();
+	if (d->EmptyText)
+		SysEmptyText();
 }
 
 void GEdit::OnFocus(bool f)
 {
+	LgiTrace("GEdit::OnFocus(%i) d->EmptyText=%p\n", f, d->EmptyText.Get());
 	if (d->EmptyText)
 		SysEmptyText();
 }
@@ -420,11 +418,11 @@ char *GEdit::Name()
 {
 	if (Handle())
 	{
-		d->ValueW = SysName();
-		d->ValueA.Reset(LgiNewUtf16To8(d->ValueW));
+		GAutoWString w = SysName();
+		GBase::NameW(w);
 	}
 	
-	return d->ValueA;
+	return GBase::Name();
 }
 
 bool GEdit::Name(const char *n)
@@ -432,8 +430,7 @@ bool GEdit::Name(const char *n)
 	bool Old = d->IgnoreNotify;
 	d->IgnoreNotify = true;
 
-	d->ValueA.Reset(NewStr(n));
-	d->ValueW.Reset(LgiNewUtf8To16(n));
+	GBase::Name(n);
 	bool Status = SysEmptyText();
 
 	d->IgnoreNotify = Old;
@@ -444,11 +441,11 @@ char16 *GEdit::NameW()
 {
 	if (Handle())
 	{
-		d->ValueW = SysName();
-		d->ValueA.Reset(LgiNewUtf16To8(d->ValueW));
+		GAutoWString w = SysName();
+		GBase::NameW(w);
 	}
 
-	return d->ValueW;
+	return GBase::NameW();
 }
 
 bool GEdit::NameW(const char16 *s)
@@ -456,8 +453,7 @@ bool GEdit::NameW(const char16 *s)
 	bool Old = d->IgnoreNotify;
 	d->IgnoreNotify = true;
 
-	d->ValueW.Reset(NewStrW(s));
-	d->ValueA.Reset(LgiNewUtf16To8(s));
+	GBase::NameW(s);
 	bool Status = SysEmptyText();
 
 	d->IgnoreNotify = Old;
@@ -469,10 +465,10 @@ bool GEdit::SysEmptyText()
 	bool Status = false;
 	bool HasFocus = Focus();
 	bool Empty = ValidStrW(d->EmptyText) &&
-				!ValidStrW(d->ValueW) &&
+				!ValidStrW(GBase::NameW()) &&
 				!HasFocus;
 
-	LgiTrace("SysEmptyText Empty=%i\n", Empty);
+	LgiTrace("GEdit::SysEmptyText Empty=%i W=%p Focus=%i\n", Empty, GBase::NameW(), HasFocus);
 		
 	if (Empty)
 	{
@@ -484,7 +480,12 @@ bool GEdit::SysEmptyText()
 		
 		bool Old = d->IgnoreNotify;
 		d->IgnoreNotify = true;
+		
+		// This will set the GBase::_Name16 variable via a callback
 		Status = SysName(d->EmptyText);
+		// So delete that here...
+		GBase::NameW(NULL);
+		
 		d->IgnoreNotify = Old;
 		
 		d->InEmptyMode = true;
@@ -512,7 +513,7 @@ bool GEdit::SysEmptyText()
 			}
 		}
 
-		Status = SysName(d->ValueW);
+		Status = SysName(GBase::NameW());
 	}
 	
 	Invalidate();

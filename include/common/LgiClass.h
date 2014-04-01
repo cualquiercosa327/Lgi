@@ -47,8 +47,6 @@ public:
 	virtual bool Name(const char *n);
 	virtual char16 *NameW();
 	virtual bool NameW(const char16 *n);
-
-	virtual int Sizeof() { return 0; }
 };
 
 #define AssignFlag(f, bit, to) if (to) f |= bit; else f &= ~(bit)
