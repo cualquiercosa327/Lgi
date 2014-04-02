@@ -116,6 +116,13 @@ int GEdit::SysOnNotify(int Code)
 		Code == EN_CHANGE &&
 		_View)
 	{
+		if (!d->InEmptyMode)
+		{
+			GAutoWString w = SysName();
+			GBase::NameW(w);
+		}
+		
+		// LgiTrace("GEdit::SysOnNotify EN_CHANGE inempty=%i, n16=%S\n", d->InEmptyMode, GBase::NameW());
 		SendNotify(0);
 	}
 
@@ -150,9 +157,14 @@ GMessage::Result GEdit::OnEvent(GMessage *Msg)
 		}
 		case WM_SETTEXT:
 		{
-			if (d->IgnoreNotify)
+			if (d->InEmptyMode && SubClass)
 			{
-				// return true;
+				// LgiTrace("GEdit WM_SETTEXT - calling parent, inempty=%i\n", d->InEmptyMode);
+				return SubClass->CallParent(Handle(), Msg->Msg, Msg->a, Msg->b);
+			}
+			else
+			{
+				// LgiTrace("GEdit WM_SETTEXT - dropping through to GControl, inempty=%i.\n", d->InEmptyMode);
 			}
 			break;
 		}
@@ -292,7 +304,7 @@ void GEdit::OnCreate()
 
 void GEdit::OnFocus(bool f)
 {
-	LgiTrace("GEdit::OnFocus(%i) d->EmptyText=%p\n", f, d->EmptyText.Get());
+	// LgiTrace("GEdit::OnFocus(%i) d->EmptyText=%p\n", f, d->EmptyText.Get());
 	if (d->EmptyText)
 		SysEmptyText();
 }
@@ -407,7 +419,7 @@ bool GEdit::SysName(const char16 *n)
 
 char *GEdit::Name()
 {
-	if (Handle())
+	if (Handle() && !d->InEmptyMode)
 	{
 		GAutoWString w = SysName();
 		GBase::NameW(w);
@@ -430,7 +442,7 @@ bool GEdit::Name(const char *n)
 
 char16 *GEdit::NameW()
 {
-	if (Handle())
+	if (Handle() && !d->InEmptyMode)
 	{
 		GAutoWString w = SysName();
 		GBase::NameW(w);
@@ -459,27 +471,24 @@ bool GEdit::SysEmptyText()
 				!ValidStrW(GBase::NameW()) &&
 				!HasFocus;
 
-	LgiTrace("GEdit::SysEmptyText Empty=%i W=%p Focus=%i\n", Empty, GBase::NameW(), HasFocus);
+	// LgiTrace("GEdit::SysEmptyText Empty=%i W=%p Focus=%i\n", Empty, GBase::NameW(), HasFocus);
 		
 	if (Empty)
 	{
 		// Show empty text
 		GColour c(LC_LOW, 24);
 		if (!d->InEmptyMode)
+		{
 			d->NonEmptyColor = GetCss(true)->Color();
+			d->InEmptyMode = true;
+		}
 		GetCss()->Color(GCss::ColorDef(c.c32()));
 		
 		bool Old = d->IgnoreNotify;
 		d->IgnoreNotify = true;
-		
-		// This will set the GBase::_Name16 variable via a callback
 		Status = SysName(d->EmptyText);
-		// So delete that here...
-		GBase::NameW(NULL);
-		
 		d->IgnoreNotify = Old;
 		
-		d->InEmptyMode = true;
 		if (_View)
 		{
 			DWORD Style = GetWindowLong(_View, GWL_STYLE);
@@ -491,7 +500,10 @@ bool GEdit::SysEmptyText()
 	{
 		// Show normal text
 		if (d->InEmptyMode)
+		{
 			GetCss()->Color(d->NonEmptyColor);
+			d->InEmptyMode = false;
+		}
 
 		if (_View)
 		{

@@ -122,36 +122,6 @@ void GPassword::Serialize(char *Password, int Write)
 	}
 }
 
-/*
-bool GPassword::Serialize(ObjProperties *Options, char *Prop, int Write)
-{
-	bool Status = false;
-	if (Options && Prop)
-	{
-		if (Write)
-		{
-			Status = Options->Set(Prop, (void*)Data, Len);
-		}
-		else // read from prop list
-		{
-			void *d;
-			int l;
-			if (Status = Options->Get(Prop, d, l))
-			{
-				DeleteArray(Data);
-				Len = l;
-				Data = new char[Len];
-				if (Data)
-				{
-					memcpy(Data, d, Len);
-				}
-			}
-		}
-	}
-	return Status;
-}
-*/
-
 bool GPassword::Serialize(GDom *Options, const char *Prop, int Write)
 {
 	bool Status = false;
