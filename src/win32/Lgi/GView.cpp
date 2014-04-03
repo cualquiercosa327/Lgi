@@ -1323,6 +1323,9 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 							SetBkColor(hdc, c);
 						}
 
+						#if !defined(DC_BRUSH)
+						#define DC_BRUSH            18
+						#endif
 						return (LRESULT) GetStockObject(DC_BRUSH);
 					}
 				}

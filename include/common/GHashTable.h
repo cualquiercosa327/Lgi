@@ -7,7 +7,7 @@
 #include "LgiClass.h"
 
 #ifndef GHASHTBL_MAX_SIZE
-#define GHASHTBL_MAX_SIZE 30000
+#define GHASHTBL_MAX_SIZE	(64 << 10)
 #endif
 
 template<typename RESULT, typename CHAR>
@@ -158,6 +158,7 @@ class GHashTbl
 	};
 
 	int Size;
+	int MaxSize;
 	int Cur;
 	int Used;
 	bool Case;
@@ -328,7 +329,8 @@ public:
 		Case = is_case;
 		Pool = false;
 		SizeBackup = Size = size ? max(size, 16) : 512;
-		LgiAssert(Size < GHASHTBL_MAX_SIZE);
+		MaxSize = GHASHTBL_MAX_SIZE;
+		LgiAssert(Size <= MaxSize);
 		
 		if ((Table = new Entry[Size]))
 		{
@@ -368,6 +370,11 @@ public:
 		return *this;
 	}
 
+	void SetMaxSize(int m)
+	{
+		MaxSize = m;
+	}
+
 	/// Gets the total available entries
 	int64 GetSize()
 	{
@@ -389,7 +396,7 @@ public:
 			Entry *OldTable = Table;
 
 			Used = 0;
-			LgiAssert(NewSize < GHASHTBL_MAX_SIZE);
+			LgiAssert(NewSize <= MaxSize);
 			SizeBackup = Size = NewSize;
 
 			Table = new Entry[Size];
