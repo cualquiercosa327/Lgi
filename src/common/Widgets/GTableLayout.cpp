@@ -32,7 +32,7 @@ enum CellFlag
 #include "GCss.h"
 
 #define Izza(c)				dynamic_cast<c*>(v)
-#define DEBUG_LAYOUT		0
+#define DEBUG_LAYOUT		1
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 
@@ -691,14 +691,12 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 				}
 				m = max(m, 40);
 				Min = max(Min, 40);
-				// Max = max(Max, m + 20);
 				Flag = SizeFill;
 			}
 			else if (Izza(GTree) ||
 					 Izza(GTabView))
 			{
 				Min = max(Min, 40);
-				// Max = max(Max, 3000);
 				Flag = SizeFill;
 			}
 			else
@@ -1186,13 +1184,12 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 					}
 
 					DistributeSize(MinCol, ColFlags, c->Cell.x1, c->Cell.X(), Min, CellSpacing);
-					DistributeSize(MaxCol, ColFlags, c->Cell.x1, c->Cell.X(), Max, CellSpacing);
+					DistributeSize(MaxCol, ColFlags, c->Cell.x1, c->Cell.X(), Flag >= SizeGrow ? Client.X() : Max, CellSpacing);
 				}
 
 				Cx += c->Cell.X();
 			}
-			else
-				Cx++;
+			else Cx++;
 		}
 	}
 
