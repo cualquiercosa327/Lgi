@@ -23,6 +23,7 @@ struct Node
 	{
 		GVariant Name;
 		NodeExp Array;
+		NodeExp Args;
 	};
 
 	// Heirarchy
@@ -920,7 +921,7 @@ public:
 				// Load DOM parts...
 				for (int p=1; p<n.Variable.Length(); p++)
 				{
-					GVarRef Name, Arr;
+					GVarRef Name, Arr, Args, Arg1;
 					Node::VariablePart &Part = n.Variable[p];
 					
 					char *nm = Part.Name.Str();
@@ -931,6 +932,14 @@ public:
 						if (!AsmExpression(&Arr, Part.Array))
 						{
 							return OnError(n.Tok, "Can't assemble array expression.");
+						}
+					}
+					else if (Part.Args.Length())
+					{
+						AllocConst(Args, 1);
+						if (!AsmExpression(&Arg1, Part.Args))
+						{
+							return OnError(n.Tok, "Can't assemble argument expression.");
 						}
 					}
 					else
@@ -947,7 +956,30 @@ public:
 					{
 						AllocReg(Dst, _FL);
 					}
-					Asm4(n.Tok, IDomGet, Dst, n.Reg, Name, Arr);
+					
+					if (Args.Valid())
+					{
+						DebugInfo(n.Tok);
+
+						int Len = Code->ByteCode.Length();
+						if (Code->ByteCode.Length(Len + 1 + (sizeof(GVarRef) * 5) ))
+						{
+							GPtr p;
+							p.u8 = &Code->ByteCode[Len];
+							*p.u8++ = IDomCall;
+
+							*p.r++ = Dst;
+							*p.r++ = n.Reg;
+							*p.r++ = Name;
+							*p.r++ = Args;
+							*p.r++ = Arg1;
+						}
+					}
+					else
+					{
+						Asm4(n.Tok, IDomGet, Dst, n.Reg, Name, Arr);
+					}
+					
 					n.Reg = Dst;
 				}
 			}
@@ -1237,6 +1269,20 @@ public:
 									if (!(t = GetTok(Cur)) || StricmpW(t, sEndSqBracket) != 0)
 									{
 										return OnError(Cur, "Expecting ']', didn't get it.");
+									}
+
+									t = GetTok(Cur+1);
+								}
+								else if (StricmpW(t, sStartRdBracket) == 0)
+								{
+									Cur += 2;
+
+									if (!Expression(Cur, vp.Args))
+										return OnError(Cur, "Couldn't parse func call argument expression.");
+										
+									if (!(t = GetTok(Cur)) || StricmpW(t, sEndRdBracket) != 0)
+									{
+										return OnError(Cur, "Expecting ')', didn't get it.");
 									}
 
 									t = GetTok(Cur+1);

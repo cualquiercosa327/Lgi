@@ -482,6 +482,17 @@ public:
 					c.r += 4;
 					break;
 				}
+				case IDomCall:
+				{
+					f.Print("\t%p %s->DomCall(%s, %s) = %s\n",
+							c.u8 - Base - 1,
+							c.r[0].GetStr(),
+							c.r[1].GetStr(),
+							c.r[2].GetStr(),
+							c.r[3].GetStr());
+					c.r += 5;
+					break;
+				}
 				/*
 				case ICallSystem:
 				{
@@ -1703,9 +1714,12 @@ public:
 									c = next + SepLen;
 								}
 
-								GVariant *v = new GVariant;
-								v->OwnStr(NewStr(c));
-								Dst->Value.Lst->Insert(v);
+								if (c && *c)
+								{
+									GVariant *v = new GVariant;
+									v->OwnStr(NewStr(c));
+									Dst->Value.Lst->Insert(v);
+								}
 							}
 							else if (!stricmp(sName, "find"))
 							{
