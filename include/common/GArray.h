@@ -208,18 +208,6 @@ public:
 			return t;
 		}
 		
-		#if 1
-		if (i > 64<<20)
-		{
-			#if defined(_DEBUG) && defined(_MSC_VER)
-			LgiAssert(0);
-			#endif
-			
-			ZeroObj(t);
-			return t;
-		}
-		#endif
-
 		if (i >= alloc)
 		{
 			// increase array length
@@ -228,6 +216,18 @@ public:
 			{
 				nalloc <<= 1;
 			}
+
+			#if 0
+			if (nalloc > 1<<30)
+			{
+				#if defined(_DEBUG) && defined(_MSC_VER)
+				LgiAssert(0);
+				#endif
+				
+				ZeroObj(t);
+				return t;
+			}
+			#endif
 
 			// alloc new array
 			Type *np = (Type*) malloc(sizeof(Type) * nalloc);

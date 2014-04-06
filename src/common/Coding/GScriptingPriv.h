@@ -52,6 +52,7 @@
 	_i(IArrayGet,			73,					"ArrayGet") \
 	_i(IArraySet,			74,					"ArraySet") \
 	_i(IRet,				75,					"Return") \
+	_i(IDomCall,			76,					"DomCall") \
 
 enum GInstruction {
 	AllInstructions

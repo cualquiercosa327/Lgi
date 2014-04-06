@@ -1517,21 +1517,6 @@ public:
 							}
 							break;
 						}
-						/*
-						case GV_LIST:
-						{
-							if (stricmp(sName, "Length") == 0)
-							{
-							}
-							break;
-						}
-						case GV_HASHTABLE:
-						{
-							if (stricmp(sName, "Length") == 0)
-								(*Dst) = (int)Dom->Value.Hash->Length();
-							break;
-						}
-						*/
 						case GV_DATETIME:
 						{
 							DateTimeParts p = DtParts.Find(sName);
@@ -1602,6 +1587,165 @@ public:
 							}
 
 							// Else fall through
+						}
+						default:
+						{
+							if (Log)
+								Log->Print("%p IDomSet Error: Unexpected type %i (%s:%i).\n",
+											c.u8 - Base,
+											Dom->Type,
+											_FL);
+							break;
+						}
+					}
+					break;
+				}
+				case IDomCall:
+				{
+					#if LOG_ASM
+					f.Print("%p %s = %s->DomCall(%s, %s, ....)\n",
+							c.u8 - Base - 1,
+							c.r[0].GetStr(),
+							c.r[1].GetStr(),
+							c.r[2].GetStr(),
+							c.r[3].GetStr());
+					#endif
+
+					GVariant *Dst = Resolve();
+					GVariant *Dom = Resolve();
+					GVariant *Name = Resolve();
+					GVariant *Args = Resolve();
+					GArray<GVariant*> Arg;
+					Arg.Length(Args->CastInt32());
+					for (int i=0; i<Arg.Length(); i++)
+					{
+						Arg[i] = Resolve();
+					}
+					
+					char *sName = Name->Str();
+					if (!sName)
+					{
+						LgiAssert(!"No value");
+						break;
+					}
+
+					switch (Dom->Type)
+					{
+						case GV_DOM:
+						{
+							bool Ret = Dom->Value.Dom->CallMethod(sName, Dst, Arg);
+							if (!Ret)
+							{
+								Dst->Empty();
+							}
+							break;
+						}
+						case GV_STRING:
+						{
+							Dst->Empty();
+
+							if (Arg.Length() == 0 || !Arg[0])
+								break;
+
+							if (!stricmp(sName, "join"))
+							{
+								switch (Arg[0]->Type)
+								{
+									case GV_LIST:
+									{
+										GStringPipe p(256);
+										List<GVariant> *Lst = Arg[0]->Value.Lst;
+										const char *Sep = Dom->CastString();
+										GVariant *v = Lst->First();
+										if (v)
+										{
+											p.Print("%s", v->Str());
+											while (v = Lst->Next())
+											{
+												p.Print("%s%s", Sep, v->Str());
+											}
+										}
+										Dst->OwnStr(p.NewStr());
+										break;
+									}
+									default:
+									{
+										*Dst = *Arg[0];
+										Dst->CastString();
+										break;
+									}
+								}
+							}
+							else if (!stricmp(sName, "split"))
+							{
+								Dst->SetList();
+								
+								const char *Sep = Arg[0]->Str();
+								if (!Sep)
+									break;
+								
+								int SepLen = strlen(Sep);
+								int MaxSplit = Arg.Length() > 1 ? Arg[1]->CastInt32() : -1;
+								const char *c = Dom->CastString();
+								while (c && *c)
+								{
+									if (MaxSplit > 0 && Dst->Value.Lst->Length() >= MaxSplit + 1)
+										break;
+
+									const char *next = strstr(c, Sep);
+									if (!next)
+										break;
+									
+									GVariant *v = new GVariant;
+									v->OwnStr(NewStr(c, next - c));
+									Dst->Value.Lst->Insert(v);
+									
+									c = next + SepLen;
+								}
+
+								GVariant *v = new GVariant;
+								v->OwnStr(NewStr(c));
+								Dst->Value.Lst->Insert(v);
+							}
+							else if (!stricmp(sName, "find"))
+							{
+								const char *s = Dom->Str();
+								if (s)
+									break;
+
+								int sLen = strlen(s);
+								const char *sub = Arg[0]->Str();
+								int start = Arg.Length() > 1 ? Arg[1]->CastInt32() : 0;
+								int end = Arg.Length() > 2 ? Arg[2]->CastInt32() : -1;								
+
+								if (start >= sLen)
+									break;
+								char *sStart = (char*)s + start;
+								char *pos;
+								if (end > start)
+									pos = strnstr(sStart, sub, end - start);
+								else
+									pos = strstr(sStart, sub);
+
+								if (pos)
+									*Dst = pos - s;
+							}
+							else if (!stricmp(sName, "rfind"))
+							{
+								LgiAssert(0);
+							}
+							else if (!stricmp(sName, "lower"))
+							{
+								*Dst = Arg[0]->CastString();
+								strlwr(Dst->Str());
+							}
+							else if (!stricmp(sName, "upper"))
+							{
+								*Dst = Arg[0]->CastString();
+								strupr(Dst->Str());
+							}
+							else LgiAssert(0);
+							break;
 						}
 						default:
 						{
