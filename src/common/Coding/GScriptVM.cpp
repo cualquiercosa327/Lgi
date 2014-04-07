@@ -11,8 +11,17 @@
 #define Resolve() \
 	&Scope[c.r->Scope][c.r->Index]; c.r++
 
-enum DateTimeParts
+
+/// During execution the code needs to look up various object members via
+/// string. These enumeration values allow the executer to look up a string
+/// member reference via a hash table in O(1) time and then do another O(1)
+/// jump via a switch to the code that handles the member.
+enum ObjectParts
 {
+	ObjNone,
+	
+	ObjLength,
+
 	DateNone,
 	DateYear,
 	DateMonth,
@@ -23,6 +32,24 @@ enum DateTimeParts
 	DateDate, // "yyyymmdd"
 	DateTime, // "hhmmss"
 	DateDateTime, // "yyyymmdd hhmmss"
+
+	StrJoin,
+	StrSplit,
+	StrFind,
+	StrRfind,
+	StrLower,
+	StrUpper,
+	StrStrip,
+	StrInt,
+	StrDouble,
+	
+	SurfaceX,
+	SurfaceY,
+	SurfaceBits,
+	SurfaceColourSpace,
+	
+	ContainerAdd,
+	ContainerDelete,
 };
 
 class GVirtualMachinePriv
@@ -38,22 +65,42 @@ class GVirtualMachinePriv
 public:
 	GStream *Log;
 	GScriptContext *Context;
-	GHashTbl<const char*, DateTimeParts> DtParts;
+	GHashTbl<const char*, ObjectParts> ObjParts;
 
 	GVirtualMachinePriv(GScriptContext *context)
 	{
 		Log = 0;
 		Context = context;
+
+		ObjParts.Add("Length", ObjLength);
 		
-		DtParts.Add("Year", DateYear);
-		DtParts.Add("Month", DateMonth);
-		DtParts.Add("Day", DateDay);
-		DtParts.Add("Hour", DateHour);
-		DtParts.Add("Minute", DateMin);
-		DtParts.Add("Second", DateSec);
-		DtParts.Add("Date", DateDate);
-		DtParts.Add("Time", DateTime);
-		DtParts.Add("DateTime", DateDateTime);
+		ObjParts.Add("Year", DateYear);
+		ObjParts.Add("Month", DateMonth);
+		ObjParts.Add("Day", DateDay);
+		ObjParts.Add("Hour", DateHour);
+		ObjParts.Add("Minute", DateMin);
+		ObjParts.Add("Second", DateSec);
+		ObjParts.Add("Date", DateDate);
+		ObjParts.Add("Time", DateTime);
+		ObjParts.Add("DateTime", DateDateTime);
+
+		ObjParts.Add("Join", StrJoin);
+		ObjParts.Add("Split", StrSplit);
+		ObjParts.Add("Find", StrFind);
+		ObjParts.Add("Rfind", StrRfind);
+		ObjParts.Add("Lower", StrLower);
+		ObjParts.Add("Upper", StrUpper);
+		ObjParts.Add("Strip", StrStrip);
+		ObjParts.Add("Int", StrInt);
+		ObjParts.Add("Double", StrDouble);
+		
+		ObjParts.Add("X", SurfaceX);
+		ObjParts.Add("Y", SurfaceY);
+		ObjParts.Add("Bits", SurfaceBits);
+		ObjParts.Add("ColourSpace", SurfaceColourSpace);
+
+		ObjParts.Add("Add", ContainerAdd);
+		ObjParts.Add("Delete", ContainerDelete);
 	}
 
 	void DumpVariant(GStream *Log, GVariant &v)
@@ -1397,41 +1444,56 @@ public:
 						}
 						case GV_LIST:
 						{
-							if (stricmp(sName, "Length") == 0)
+							ObjectParts p = ObjParts.Find(sName);
+							if (p == ObjLength)
 								(*Dst) = (int)Dom->Value.Lst->Length();
 							break;
 						}
 						case GV_HASHTABLE:
 						{
-							if (stricmp(sName, "Length") == 0)
+							ObjectParts p = ObjParts.Find(sName);
+							if (p == ObjLength)
 								(*Dst) = (int)Dom->Value.Hash->Length();
 							break;
 						}
 						case GV_STRING:
 						{
-							if (stricmp(sName, "Length") == 0)
+							ObjectParts p = ObjParts.Find(sName);
+							switch (p)
 							{
-								(*Dst) = (int)strlen(Dom->Str());
-								break;
+								case ObjLength:
+								{
+									(*Dst) = (int)strlen(Dom->Str());
+									break;
+								}
+								case StrInt:
+								{
+									(*Dst) = Dom->CastInt32();
+									break;
+								}
+								case StrDouble:
+								{
+									(*Dst) = Dom->CastDouble();
+									break;
+								}
+								default:
+								{
+									Dst->Empty();
+									if (Log)
+										Log->Print("%p IDomGet Error: Unexpected string member %s (%s:%i).\n",
+													c.u8 - Base,
+													sName,
+													_FL);
+									break;
+								}
 							}
-							else if (stricmp(sName, "Int") == 0)
-							{
-								(*Dst) = Dom->CastInt32();
-								break;
-							}
-							else if (stricmp(sName, "Double") == 0)
-							{
-								(*Dst) = Dom->CastDouble();
-								break;
-							}
-							// else fall thru
+							break;
 						}
 						case GV_DATETIME:
 						{
-							DateTimeParts p = DtParts.Find(sName);
+							ObjectParts p = ObjParts.Find(sName);
 							switch (p)
 							{
-								default: break;
 								case DateYear:
 									(*Dst) = Dom->Value.Date->Year();
 									break;
@@ -1471,26 +1533,64 @@ public:
 									(*Dst) = s;
 									break;
 								}
+								default:
+								{
+									Dst->Empty();
+									if (Log)
+										Log->Print("%p IDomGet Error: Unexpected datetime member %s (%s:%i).\n",
+													c.u8 - Base,
+													sName,
+													_FL);
+									break;
+								}
 							}
 							break;
 						}
 						case GV_GSURFACE:
 						{
-							if (Dom->Value.Surface.Ptr)
+							if (!Dom->Value.Surface.Ptr)
 							{
-								if (!stricmp(sName, "x"))
-									(*Dst) = Dom->Value.Surface.Ptr->X();
-								else if (!stricmp(sName, "y"))
-									(*Dst) = Dom->Value.Surface.Ptr->Y();
-								else if (!stricmp(sName, "bits"))
-									(*Dst) = Dom->Value.Surface.Ptr->GetBits();
-								else
-									Dst->Empty();
-							}
-							else
-							{
-								LgiAssert(!"No surface pointer.");
 								Dst->Empty();
+								if (Log)
+									Log->Print("%p IDomGet Error: No surface pointer (%s:%i).\n",
+												c.u8 - Base,
+												_FL);
+								break;
+							}
+
+							ObjectParts p = ObjParts.Find(sName);
+							switch (p)
+							{
+								case SurfaceX:
+								{
+									(*Dst) = Dom->Value.Surface.Ptr->X();
+									break;
+								}
+								case SurfaceY:
+								{
+									(*Dst) = Dom->Value.Surface.Ptr->Y();
+									break;
+								}
+								case SurfaceBits:
+								{
+									(*Dst) = Dom->Value.Surface.Ptr->GetBits();
+									break;
+								}
+								case SurfaceColourSpace:
+								{
+									(*Dst) = Dom->Value.Surface.Ptr->GetColourSpace();
+									break;
+								}
+								default:
+								{
+									Dst->Empty();
+									if (Log)
+										Log->Print("%p IDomGet Error: Unexpected datetime member %s (%s:%i).\n",
+													c.u8 - Base,
+													sName,
+													_FL);
+									break;
+								}
 							}
 							break;
 						}
@@ -1548,10 +1648,9 @@ public:
 						}
 						case GV_DATETIME:
 						{
-							DateTimeParts p = DtParts.Find(sName);
+							ObjectParts p = ObjParts.Find(sName);
 							switch (p)
 							{
-								default: break;
 								case DateYear:
 									Dom->Value.Date->Year(Value->CastInt32());
 									break;
@@ -1579,43 +1678,62 @@ public:
 								case DateDateTime:
 									Dom->Value.Date->Set(Value->Str());
 									break;
+								default:
+									if (Log)
+										Log->Print("%p IDomSet Error: Unexpected datetime member %s (%s:%i).\n",
+													c.u8 - Base,
+													sName,
+													_FL);
+									break;
 							}
 							break;
 						}
 						case GV_STRING:
 						{
-							if (stricmp(sName, "Length") == 0)
+							ObjectParts p = ObjParts.Find(sName);
+							switch (p)
 							{
-								char *s;
-								int DLen = Value->CastInt32();
-								if (DLen && (s = new char[DLen+1]))
+								case ObjLength:
 								{
-									int SLen = Dom->Str() ? strlen(Dom->Str()) : 0;
-									if (SLen)
-										memcpy(s, Dom->Str(), SLen);
-									memset(s+SLen, ' ', DLen-SLen);
-									s[DLen] = 0;
-									DeleteArray(Dom->Value.String);
-									Dom->Value.String = s;
+									char *s;
+									int DLen = Value->CastInt32();
+									if (DLen && (s = new char[DLen+1]))
+									{
+										int SLen = Dom->Str() ? strlen(Dom->Str()) : 0;
+										if (SLen)
+											memcpy(s, Dom->Str(), SLen);
+										memset(s+SLen, ' ', DLen-SLen);
+										s[DLen] = 0;
+										DeleteArray(Dom->Value.String);
+										Dom->Value.String = s;
+									}
+									else Dom->Empty();
+
+									break;
 								}
-								else Dom->Empty();
-
-								break;
+								case StrInt:
+								{
+									*Dom = Value->CastInt32();
+									Dom->Str();
+									break;
+								}
+								case StrDouble:
+								{
+									*Dom = Value->CastDouble();
+									Dom->Str();
+									break;
+								}
+								default:
+								{
+									if (Log)
+										Log->Print("%p IDomSet Error: Unexpected string member %s (%s:%i).\n",
+													c.u8 - Base,
+													sName,
+													_FL);
+									break;
+								}
 							}
-							else if (stricmp(sName, "Int") == 0)
-							{
-								*Dom = Value->CastInt32();
-								Dom->Str();
-								break;
-							}
-							else if (stricmp(sName, "Double") == 0)
-							{
-								*Dom = Value->CastDouble();
-								Dom->Str();
-								break;
-							}
-
-							// Else fall through
+							break;
 						}
 						default:
 						{
@@ -1669,6 +1787,56 @@ public:
 							}
 							break;
 						}
+						case GV_LIST:
+						{
+							LgiAssert(Dom->Value.Lst);
+							
+							ObjectParts p = ObjParts.Find(sName);
+							switch (p)
+							{
+								case ContainerAdd:
+								{
+									for (int i=0; i<Arg.Length(); i++)
+									{
+										if (Arg[i])
+										{
+											GVariant *v = new GVariant;
+											*v = *Arg[i];
+											Dom->Value.Lst->Insert(v);
+										}
+									}
+									break;
+								}
+								case ContainerDelete:
+								{
+									for (int i=0; i<Arg.Length(); i++)
+									{
+										GVariant *Idx = Arg[i];
+										if (Idx)
+										{
+											int32 n = Arg[i]->CastInt32();
+											GVariant *Elem = Dom->Value.Lst->ItemAt(n);
+											if (Elem)
+											{
+												Dom->Value.Lst->Delete(Elem);
+												DeleteObj(Elem);
+											}
+										}
+									}
+									break;
+								}
+								default:
+								{
+									Dst->Empty();
+									if (Log)
+										Log->Print("%p IDomCall Error: Unexpected string member %s (%s:%i).\n",
+													c.u8 - Base,
+													sName,
+													_FL);
+								}
+							}
+							break;
+						}
 						case GV_STRING:
 						{
 							if (Arg.Length() > 0 && !Arg[0])
@@ -1677,137 +1845,161 @@ public:
 								break;
 							}
 
-							if (!stricmp(sName, "join"))
+							ObjectParts p = ObjParts.Find(sName);
+							switch (p)
 							{
-								switch (Arg[0]->Type)
+								case StrJoin:
 								{
-									case GV_LIST:
+									switch (Arg[0]->Type)
 									{
-										GStringPipe p(256);
-										List<GVariant> *Lst = Arg[0]->Value.Lst;
-										const char *Sep = Dom->CastString();
-										GVariant *v = Lst->First();
-										if (v)
+										case GV_LIST:
 										{
-											p.Print("%s", v->Str());
-											while (v = Lst->Next())
+											GStringPipe p(256);
+											List<GVariant> *Lst = Arg[0]->Value.Lst;
+											const char *Sep = Dom->CastString();
+											GVariant *v = Lst->First();
+											if (v)
 											{
-												p.Print("%s%s", Sep, v->Str());
+												GVariant Tmp = *v;
+												p.Print("%s", Tmp.CastString());
+												while (v = Lst->Next())
+												{
+													Tmp = *v;
+													p.Print("%s%s", Sep, Tmp.CastString());
+												}
 											}
+											Dst->OwnStr(p.NewStr());
+											break;
 										}
-										Dst->OwnStr(p.NewStr());
-										break;
+										default:
+										{
+											*Dst = *Arg[0];
+											Dst->CastString();
+											break;
+										}
 									}
-									default:
+									break;
+								}								
+								case StrSplit:
+								{
+									Dst->SetList();
+									
+									const char *Sep = Arg[0]->Str();
+									if (!Sep)
 									{
-										*Dst = *Arg[0];
-										Dst->CastString();
+										Dst->Empty();
 										break;
 									}
+									
+									int SepLen = strlen(Sep);
+									int MaxSplit = Arg.Length() > 1 ? Arg[1]->CastInt32() : -1;
+									const char *c = Dom->CastString();
+									while (c && *c)
+									{
+										if (MaxSplit > 0 && Dst->Value.Lst->Length() >= MaxSplit)
+											break;
+
+										const char *next = strstr(c, Sep);
+										if (!next)
+											break;
+										
+										GVariant *v = new GVariant;
+										v->OwnStr(NewStr(c, next - c));
+										Dst->Value.Lst->Insert(v);
+										
+										c = next + SepLen;
+									}
+
+									if (c && *c)
+									{
+										GVariant *v = new GVariant;
+										v->OwnStr(NewStr(c));
+										Dst->Value.Lst->Insert(v);
+									}
+									break;
+								}								
+								case StrFind:
+								{
+									const char *s = Dom->Str();
+									if (s)
+									{
+										Dst->Empty();
+										break;
+									}
+
+									int sLen = strlen(s);
+									const char *sub = Arg[0]->Str();
+									int start = Arg.Length() > 1 ? Arg[1]->CastInt32() : 0;
+									int end = Arg.Length() > 2 ? Arg[2]->CastInt32() : -1;								
+
+									if (start >= sLen)
+										break;
+									char *sStart = (char*)s + start;
+									char *pos;
+									if (end > start)
+										pos = strnstr(sStart, sub, end - start);
+									else
+										pos = strstr(sStart, sub);
+
+									if (pos)
+										*Dst = pos - s;
+									break;
 								}
-							}
-							else if (!stricmp(sName, "split"))
-							{
-								Dst->SetList();
-								
-								const char *Sep = Arg[0]->Str();
-								if (!Sep)
+								case StrRfind:
+								{
+									LgiAssert(0);
+									break;
+								}
+								case StrLower:
+								{
+									if (Dst != Dom)
+										*Dst = Dom->CastString();
+									strlwr(Dst->Str());
+									break;
+								}
+								case StrUpper:
+								{
+									if (Dst != Dom)
+										*Dst = Dom->CastString();
+									strupr(Dst->Str());
+									break;
+								}
+								case StrStrip:
+								{
+									char *s = Dom->Str();
+									if (s)
+									{
+										char *start = s;
+										char *end = s + strlen(s);
+										while (start < end && strchr(WhiteSpace, *start))
+											start++;
+
+										while (end > start && strchr(WhiteSpace, end[-1]))
+											end--;
+										
+										Dst->OwnStr(NewStr(start, end - start));
+									}
+									else Dst->Empty();
+									break;
+								}
+								default:
 								{
 									Dst->Empty();
+									if (Log)
+										Log->Print("%p IDomCall Error: Unexpected string member %s (%s:%i).\n",
+													c.u8 - Base,
+													sName,
+													_FL);
 									break;
 								}
-								
-								int SepLen = strlen(Sep);
-								int MaxSplit = Arg.Length() > 1 ? Arg[1]->CastInt32() : -1;
-								const char *c = Dom->CastString();
-								while (c && *c)
-								{
-									if (MaxSplit > 0 && Dst->Value.Lst->Length() >= MaxSplit)
-										break;
-
-									const char *next = strstr(c, Sep);
-									if (!next)
-										break;
-									
-									GVariant *v = new GVariant;
-									v->OwnStr(NewStr(c, next - c));
-									Dst->Value.Lst->Insert(v);
-									
-									c = next + SepLen;
-								}
-
-								if (c && *c)
-								{
-									GVariant *v = new GVariant;
-									v->OwnStr(NewStr(c));
-									Dst->Value.Lst->Insert(v);
-								}
 							}
-							else if (!stricmp(sName, "find"))
-							{
-								const char *s = Dom->Str();
-								if (s)
-								{
-									Dst->Empty();
-									break;
-								}
-
-								int sLen = strlen(s);
-								const char *sub = Arg[0]->Str();
-								int start = Arg.Length() > 1 ? Arg[1]->CastInt32() : 0;
-								int end = Arg.Length() > 2 ? Arg[2]->CastInt32() : -1;								
-
-								if (start >= sLen)
-									break;
-								char *sStart = (char*)s + start;
-								char *pos;
-								if (end > start)
-									pos = strnstr(sStart, sub, end - start);
-								else
-									pos = strstr(sStart, sub);
-
-								if (pos)
-									*Dst = pos - s;
-							}
-							else if (!stricmp(sName, "rfind"))
-							{
-								LgiAssert(0);
-							}
-							else if (!stricmp(sName, "lower"))
-							{
-								if (Dst != Dom)
-									*Dst = Dom->CastString();
-								strlwr(Dst->Str());
-							}
-							else if (!stricmp(sName, "upper"))
-							{
-								if (Dst != Dom)
-									*Dst = Dom->CastString();
-								strupr(Dst->Str());
-							}
-							else if (!stricmp(sName, "strip"))
-							{
-								char *s = Dom->Str();
-								if (s)
-								{
-									char *start = s;
-									char *end = s + strlen(s);
-									while (start < end && strchr(WhiteSpace, *start))
-										start++;
-
-									while (end > start && strchr(WhiteSpace, end[-1]))
-										end--;
-									
-									Dst->OwnStr(NewStr(start, end - start));
-								}
-							}
-							else LgiAssert(0);
 							break;
 						}
 						default:
 						{
+							Dst->Empty();
 							if (Log)
-								Log->Print("%p IDomSet Error: Unexpected type %i (%s:%i).\n",
+								Log->Print("%p IDomCall Error: Unexpected type %i (%s:%i).\n",
 											c.u8 - Base,
 											Dom->Type,
 											_FL);
