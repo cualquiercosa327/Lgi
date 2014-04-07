@@ -7,7 +7,9 @@
 #define TIME_INSTRUCTIONS		0
 #define POST_EXECUTE_STATE		0
 
-// #define BREAK_POINT				0x000000F8
+// #define BREAK_POINT				0x00000060
+#define Resolve() \
+	&Scope[c.r->Scope][c.r->Index]; c.r++
 
 enum DateTimeParts
 {
@@ -484,13 +486,32 @@ public:
 				}
 				case IDomCall:
 				{
-					f.Print("\t%p %s->DomCall(%s, %s) = %s\n",
+					f.Print("\t%p %s = %s->DomCall(%s, [",
 							c.u8 - Base - 1,
 							c.r[0].GetStr(),
 							c.r[1].GetStr(),
-							c.r[2].GetStr(),
-							c.r[3].GetStr());
-					c.r += 5;
+							c.r[2].GetStr());
+
+					c.r += 3;
+					GVariant *Count = NULL;
+					switch (c.r->Scope)
+					{
+						case SCOPE_GLOBAL:
+							Count = &Code->Globals[c.r->Index];
+							c.r++;
+							break;
+						default:
+							LgiAssert(0);
+							return false;
+					}
+					
+					int Args = Count->CastInt32();
+					for (int i=0; i<Args; i++)
+					{
+						f.Print("%s%s", i ? ", " : "", c.r->GetStr());
+						c.r++;
+					}
+					f.Print("])\n");
 					break;
 				}
 				/*
@@ -567,9 +588,6 @@ public:
 		GArray<GVariant> Locals;
 		GVariant *Scope[3] = { Reg, 0, &Code->Globals[0] };
 		GArray<StackFrame> Frames;
-
-		#define Resolve() \
-			&Scope[c.r->Scope][c.r->Index]; c.r++
 
 		// Calling a function only, not the whole script
 		if (Func)
@@ -1653,10 +1671,11 @@ public:
 						}
 						case GV_STRING:
 						{
-							Dst->Empty();
-
-							if (Arg.Length() == 0 || !Arg[0])
+							if (Arg.Length() > 0 && !Arg[0])
+							{
+								Dst->Empty();
 								break;
+							}
 
 							if (!stricmp(sName, "join"))
 							{
@@ -1693,14 +1712,17 @@ public:
 								
 								const char *Sep = Arg[0]->Str();
 								if (!Sep)
+								{
+									Dst->Empty();
 									break;
+								}
 								
 								int SepLen = strlen(Sep);
 								int MaxSplit = Arg.Length() > 1 ? Arg[1]->CastInt32() : -1;
 								const char *c = Dom->CastString();
 								while (c && *c)
 								{
-									if (MaxSplit > 0 && Dst->Value.Lst->Length() >= MaxSplit + 1)
+									if (MaxSplit > 0 && Dst->Value.Lst->Length() >= MaxSplit)
 										break;
 
 									const char *next = strstr(c, Sep);
@@ -1725,7 +1747,10 @@ public:
 							{
 								const char *s = Dom->Str();
 								if (s)
+								{
+									Dst->Empty();
 									break;
+								}
 
 								int sLen = strlen(s);
 								const char *sub = Arg[0]->Str();
@@ -1750,13 +1775,31 @@ public:
 							}
 							else if (!stricmp(sName, "lower"))
 							{
-								*Dst = Arg[0]->CastString();
+								if (Dst != Dom)
+									*Dst = Dom->CastString();
 								strlwr(Dst->Str());
 							}
 							else if (!stricmp(sName, "upper"))
 							{
-								*Dst = Arg[0]->CastString();
+								if (Dst != Dom)
+									*Dst = Dom->CastString();
 								strupr(Dst->Str());
+							}
+							else if (!stricmp(sName, "strip"))
+							{
+								char *s = Dom->Str();
+								if (s)
+								{
+									char *start = s;
+									char *end = s + strlen(s);
+									while (start < end && strchr(WhiteSpace, *start))
+										start++;
+
+									while (end > start && strchr(WhiteSpace, end[-1]))
+										end--;
+									
+									Dst->OwnStr(NewStr(start, end - start));
+								}
 							}
 							else LgiAssert(0);
 							break;

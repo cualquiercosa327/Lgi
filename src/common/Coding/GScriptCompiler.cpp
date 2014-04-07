@@ -4,7 +4,7 @@
 #include "GScriptingPriv.h"
 #include "GLexCpp.h"
 
-#define GetTok(c) ((c) < Tokens.Length() ? Tokens[c] : 0)
+#define GetTok(c) ((c) < Tokens.Length() ? Tokens[c] : NULL)
 
 int GFunctionInfo::_Infos = 0;
 
@@ -23,7 +23,18 @@ struct Node
 	{
 		GVariant Name;
 		NodeExp Array;
-		NodeExp Args;
+		bool Call;
+		GArray<NodeExp*> Args;
+		
+		VariablePart()
+		{
+			Call = false;
+		}
+		
+		~VariablePart()
+		{
+			Args.DeleteObjects();
+		}
 	};
 
 	// Heirarchy
@@ -441,6 +452,30 @@ public:
 			*p.r++ = c;
 			if (!d.Valid()) AllocNull(d);
 			*p.r++ = d;
+		}
+		else return false;
+
+		return true;
+	}
+
+	/// Assemble 'n' length arg instruction
+	bool AsmN(int Tok, uint8 Op, GArray<GVarRef> &Args)
+	{
+		DebugInfo(Tok);
+
+		int Len = Code->ByteCode.Length();
+		if (Code->ByteCode.Length(Len + 1 + (sizeof(GVarRef) * Args.Length()) ))
+		{
+			GPtr p;
+			p.u8 = &Code->ByteCode[Len];
+			*p.u8++ = Op;
+
+			for (int i=0; i<Args.Length(); i++)
+			{
+				if (!Args[i].Valid())
+					AllocNull(Args[i]);
+				*p.r++ = Args[i];
+			}
 		}
 		else return false;
 
@@ -921,7 +956,8 @@ public:
 				// Load DOM parts...
 				for (int p=1; p<n.Variable.Length(); p++)
 				{
-					GVarRef Name, Arr, Args, Arg1;
+					GVarRef Name, Arr;
+					GArray<GVarRef> Args;
 					Node::VariablePart &Part = n.Variable[p];
 					
 					char *nm = Part.Name.Str();
@@ -934,12 +970,15 @@ public:
 							return OnError(n.Tok, "Can't assemble array expression.");
 						}
 					}
-					else if (Part.Args.Length())
+					else if (Part.Call)
 					{
-						AllocConst(Args, 1);
-						if (!AsmExpression(&Arg1, Part.Args))
+						for (int i=0; i<Part.Args.Length(); i++)
 						{
-							return OnError(n.Tok, "Can't assemble argument expression.");
+							GVarRef &a = Args.New();
+							if (!AsmExpression(&a, *Part.Args[i]))
+							{
+								return OnError(n.Tok, "Can't assemble argument expression.");
+							}
 						}
 					}
 					else
@@ -957,23 +996,22 @@ public:
 						AllocReg(Dst, _FL);
 					}
 					
-					if (Args.Valid())
+					if (Part.Call)
 					{
 						DebugInfo(n.Tok);
 
-						int Len = Code->ByteCode.Length();
-						if (Code->ByteCode.Length(Len + 1 + (sizeof(GVarRef) * 5) ))
-						{
-							GPtr p;
-							p.u8 = &Code->ByteCode[Len];
-							*p.u8++ = IDomCall;
-
-							*p.r++ = Dst;
-							*p.r++ = n.Reg;
-							*p.r++ = Name;
-							*p.r++ = Args;
-							*p.r++ = Arg1;
-						}
+						GArray<GVarRef> Call;
+						Call[0] = Dst;
+						Call[1] = n.Reg;
+						Call[2] = Name;
+						
+						// This must always be a global, the decompiler requires access
+						// to the constant to know how many arguments to print. And it
+						// can only see the globals.
+						AllocConst(Call[3], (int)Args.Length());
+						
+						Call.Add(Args);
+						AsmN(n.Tok, IDomCall, Call);
 					}
 					else
 					{
@@ -1276,15 +1314,35 @@ public:
 								else if (StricmpW(t, sStartRdBracket) == 0)
 								{
 									Cur += 2;
+									t = GetTok(Cur);
 
-									if (!Expression(Cur, vp.Args))
-										return OnError(Cur, "Couldn't parse func call argument expression.");
-										
-									if (!(t = GetTok(Cur)) || StricmpW(t, sEndRdBracket) != 0)
+									vp.Call = true;
+									if (t && StricmpW(t, sEndRdBracket))
 									{
-										return OnError(Cur, "Expecting ')', didn't get it.");
-									}
+										while (true)
+										{
+											GAutoPtr<Node::NodeExp> e(new Node::NodeExp);
+											if (!e)
+												return OnError(Cur, "Mem alloc error.");
 
+											if (!Expression(Cur, *e))
+												return OnError(Cur, "Couldn't parse func call argument expression.");
+											
+											vp.Args.Add(e.Release());
+											
+											t = GetTok(Cur);
+											if (!t)
+												return OnError(Cur, "Unexpected end of file.");
+
+											if (!StricmpW(t, sComma))
+												Cur++;
+											else if (!StricmpW(t, sEndRdBracket))
+												break;
+											else
+												return OnError(Cur, "Expecting ',', didn't get it.");
+										}
+									}
+									
 									t = GetTok(Cur+1);
 								}
 								
