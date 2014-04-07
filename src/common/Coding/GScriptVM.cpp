@@ -1829,7 +1829,60 @@ public:
 								{
 									Dst->Empty();
 									if (Log)
-										Log->Print("%p IDomCall Error: Unexpected string member %s (%s:%i).\n",
+										Log->Print("%p IDomCall Error: Unexpected list member %s (%s:%i).\n",
+													c.u8 - Base,
+													sName,
+													_FL);
+								}
+							}
+							break;
+						}
+						case GV_HASHTABLE:
+						{
+							LgiAssert(Dom->Value.Hash);
+							
+							ObjectParts p = ObjParts.Find(sName);
+							switch (p)
+							{
+								case ContainerAdd:
+								{
+									if (Arg.Length() == 2 &&
+										Arg[0] &&
+										Arg[1])
+									{
+										char *Key = Arg[0]->Str();
+										if (Key)
+										{
+											GVariant *v = new GVariant;
+											*v = *Arg[1];
+											Dom->Value.Hash->Add(Key, v);
+										}
+									}
+									break;
+								}
+								case ContainerDelete:
+								{
+									if (Arg.Length() == 1 &&
+										Arg[0])
+									{
+										char *Key = Arg[0]->Str();
+										if (Key)
+										{
+											GVariant *v = (GVariant*) Dom->Value.Hash->Find(Key);
+											if (v)
+											{
+												Dom->Value.Hash->Delete(Key);
+												delete v;
+											}
+										}
+									}
+									break;
+								}
+								default:
+								{
+									Dst->Empty();
+									if (Log)
+										Log->Print("%p IDomCall Error: Unexpected hashtable member %s (%s:%i).\n",
 													c.u8 - Base,
 													sName,
 													_FL);
