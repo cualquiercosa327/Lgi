@@ -553,13 +553,20 @@ public:
 class SystemFunctions : public GScriptContext
 {
 	GScriptEngine *Engine;
+	GStream *Log;
 
 	GView *CastGView(GVariant &v);
 
 public:
 	SystemFunctions()
 	{
-		Engine = 0;
+		Engine = NULL;
+		Log = NULL;
+	}
+
+	void SetLog(GStream *log)
+	{
+		Log = log;
 	}
 
 	void SetEngine(GScriptEngine *Eng)

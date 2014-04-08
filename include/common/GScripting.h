@@ -85,6 +85,7 @@ public:
 	virtual void SetEngine(GScriptEngine *Eng) = 0;
 	virtual char *GetIncludeFile(char *FileName) = 0;
 	virtual GAutoString GetDataFolder() { return GAutoString(); }
+	virtual void SetLog(GStream *Log) {}
 
 	// AddPrimitive: Add your primitive's functions in a derived class using the format:
 	//

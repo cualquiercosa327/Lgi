@@ -11,6 +11,43 @@
 #include "GSkinEngine.h"
 #include "GEdit.h"
 
+GAutoWString LgiAddReturns(const char16 *n)
+{
+	GAutoWString w;
+	
+	if (n && StrchrW(n, '\n'))
+	{
+		int Len = 0;
+		const char16 *c;
+		for (c = n; *c; c++)
+		{
+			if (*c == '\n')
+				Len += 2;
+			else if (*c != '\r')
+				Len++;
+		}
+		if (w.Reset(new char16[Len+1]))
+		{
+			char16 *o = w;
+			for (c = n; *c; c++)
+			{
+				if (*c == '\n')
+				{
+					*o++ = '\r';
+					*o++ = '\n';
+				}
+				else if (*c != '\r')
+				{
+					*o++ = *c;
+				}
+			}
+			*o = 0;
+			LgiAssert(o - w == Len);
+		}
+	}
+	
+	return w;
+}
 ///////////////////////////////////////////////////////////////////////////////////////////
 class GEditPrivate
 {
@@ -381,38 +418,9 @@ bool GEdit::SysName(const char16 *n)
 	if (!_View)
 		return false;
 
-	GAutoWString w;
-	if (n && StrchrW(n, '\n'))
-	{
-		int Len = 0;
-		const char16 *c;
-		for (c = n; *c; c++)
-		{
-			if (*c == '\n')
-				Len += 2;
-			else if (*c != '\r')
-				Len++;
-		}
-		if (w.Reset(new char16[Len+1]))
-		{
-			char16 *o = w;
-			for (c = n; *c; c++)
-			{
-				if (*c == '\n')
-				{
-					*o++ = '\r';
-					*o++ = '\n';
-				}
-				else if (*c != '\r')
-				{
-					*o++ = *c;
-				}
-			}
-			*o = 0;
-			LgiAssert(o - w == Len);
-			n = w;
-		}
-	}
+	GAutoWString w = LgiAddReturns(n);
+	if (w)
+		n = w;
 
 	return SetWindowTextW(_View, n ? n : L"") != FALSE;
 }
@@ -434,6 +442,9 @@ bool GEdit::Name(const char *n)
 	d->IgnoreNotify = true;
 
 	GBase::Name(n);
+	GAutoWString w = LgiAddReturns(GBase::NameW());
+	if (w)
+		GBase::NameW(w);
 	bool Status = SysEmptyText();
 
 	d->IgnoreNotify = Old;
@@ -456,7 +467,8 @@ bool GEdit::NameW(const char16 *s)
 	bool Old = d->IgnoreNotify;
 	d->IgnoreNotify = true;
 
-	GBase::NameW(s);
+	GAutoWString w = LgiAddReturns(s);
+	GBase::NameW(w ? w : s);
 	bool Status = SysEmptyText();
 
 	d->IgnoreNotify = Old;
