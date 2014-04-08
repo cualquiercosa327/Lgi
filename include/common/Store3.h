@@ -266,6 +266,8 @@ public:
 	/// Deletes all child objects from disk and memory.
 	/// \return true on success;
 	virtual Store3Status DeleteAllChildren() { return Store3Error; }
+	/// Frees all the memory used by children objects without deleting from disk
+	virtual Store3Status FreeChildren() { return Store3Error; }
 	/// Called when the user selects the folder in the UI
 	virtual void OnSelect(bool s) {}
 	/// Called when the user selects a relevant context menu command
