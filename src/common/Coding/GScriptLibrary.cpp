@@ -578,8 +578,50 @@ bool SystemFunctions::Sleep(GVariant *Ret, ArgumentArray &Args)
 
 bool SystemFunctions::Print(GVariant *Ret, ArgumentArray &Args)
 {
-	LgiAssert(0);
-	return false;
+	for (int n=0; Log && n<Args.Length(); n++)
+	{
+		if (!Args[n])
+			continue;
+		GVariant v = Args[n];
+		char *f = v.CastString();
+		if (!f)
+			continue;
+
+		char *i = f, *o = f;
+		for (; *i; i++)
+		{
+			if (*i == '\\')
+			{
+				i++;
+				switch (*i)
+				{
+					case 'n':
+						*o++ = '\n';
+						break;
+					case 'r':
+						*o++ = '\r';
+						break;
+					case 't':
+						*o++ = '\t';
+						break;
+					case '\\':
+						*o++ = '\\';
+						break;
+					case '0':
+						*o++ = 0;
+						break;
+				}
+			}
+			else
+			{
+				*o++ = *i;
+			}
+		}
+		*o = 0;
+		Log->Write(f, o - f);
+	}
+
+	return true;
 }
 
 bool SystemFunctions::FormatSize(GVariant *Ret, ArgumentArray &Args)
