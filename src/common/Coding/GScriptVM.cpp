@@ -42,6 +42,7 @@ enum ObjectParts
 	StrStrip,
 	StrInt,
 	StrDouble,
+	StrSub,
 	
 	SurfaceX,
 	SurfaceY,
@@ -50,6 +51,7 @@ enum ObjectParts
 	
 	ContainerAdd,
 	ContainerDelete,
+	ContainerHasKey,
 };
 
 class GVirtualMachinePriv
@@ -93,6 +95,7 @@ public:
 		ObjParts.Add("Strip", StrStrip);
 		ObjParts.Add("Int", StrInt);
 		ObjParts.Add("Double", StrDouble);
+		ObjParts.Add("Sub", StrSub);
 		
 		ObjParts.Add("X", SurfaceX);
 		ObjParts.Add("Y", SurfaceY);
@@ -101,6 +104,7 @@ public:
 
 		ObjParts.Add("Add", ContainerAdd);
 		ObjParts.Add("Delete", ContainerDelete);
+		ObjParts.Add("HasKey", ContainerHasKey);
 	}
 
 	void DumpVariant(GStream *Log, GVariant &v)
@@ -1794,16 +1798,21 @@ public:
 							ObjectParts p = ObjParts.Find(sName);
 							switch (p)
 							{
+								case ObjLength:
+								{
+									*Dst = Dom->Value.Lst->Length();
+									break;
+								}
 								case ContainerAdd:
 								{
-									for (int i=0; i<Arg.Length(); i++)
+									if (Arg.Length() > 0 &&
+										Arg[0])
 									{
-										if (Arg[i])
-										{
-											GVariant *v = new GVariant;
-											*v = *Arg[i];
-											Dom->Value.Lst->Insert(v);
-										}
+										int Index = Arg.Length() > 1 ? Arg[1]->CastInt32() : -1;
+
+										GVariant *v = new GVariant;
+										*v = *Arg[0];
+										Dom->Value.Lst->Insert(v, Index);
 									}
 									break;
 								}
@@ -1822,6 +1831,19 @@ public:
 												DeleteObj(Elem);
 											}
 										}
+									}
+									break;
+								}
+								case ContainerHasKey:
+								{
+									if (Arg.Length() > 0 && Arg[0])
+									{
+										int Index = Arg[0]->CastInt32();
+										*Dst = (bool) (Index >= 0 && Index < Dom->Value.Lst->Length());
+									}
+									else
+									{
+										*Dst = false;
 									}
 									break;
 								}
@@ -1844,17 +1866,22 @@ public:
 							ObjectParts p = ObjParts.Find(sName);
 							switch (p)
 							{
+								case ObjLength:
+								{
+									*Dst = Dom->Value.Hash->Length();
+									break;
+								}
 								case ContainerAdd:
 								{
 									if (Arg.Length() == 2 &&
 										Arg[0] &&
 										Arg[1])
 									{
-										char *Key = Arg[0]->Str();
+										char *Key = Arg[1]->Str();
 										if (Key)
 										{
 											GVariant *v = new GVariant;
-											*v = *Arg[1];
+											*v = *Arg[0];
 											Dom->Value.Hash->Add(Key, v);
 										}
 									}
@@ -1875,6 +1902,19 @@ public:
 												delete v;
 											}
 										}
+									}
+									break;
+								}
+								case ContainerHasKey:
+								{
+									if (Arg.Length() > 0 && Arg[0])
+									{
+										char *Key = Arg[0]->Str();
+										*Dst = (bool) Dom->Value.Hash->Find(Key) != NULL;
+									}
+									else
+									{
+										*Dst = false;
 									}
 									break;
 								}
@@ -1901,6 +1941,12 @@ public:
 							ObjectParts p = ObjParts.Find(sName);
 							switch (p)
 							{
+								case ObjLength:
+								{
+									char *s = Dom->Str();
+									*Dst = (int) (s ? strlen(s) : 0);
+									break;
+								}
 								case StrJoin:
 								{
 									switch (Arg[0]->Type)
@@ -2033,6 +2079,26 @@ public:
 										Dst->OwnStr(NewStr(start, end - start));
 									}
 									else Dst->Empty();
+									break;
+								}
+								case StrSub:
+								{
+									Dst->Empty();
+									char *s = Dom->Str();
+									if (s)
+									{
+										int Start = Arg.Length() > 0 ? Arg[0]->CastInt32() : 0;
+										int End = Arg.Length() > 1 ? Arg[1]->CastInt32() : -1;
+										int Len = strlen(s);
+										if (End < 0 || End > Len)
+											End = Len;
+										if (Start < 0)
+											Start = 0;
+										if (Start <= End)
+										{
+											Dst->OwnStr(NewStr(s + Start, End - Start));
+										}
+									}
 									break;
 								}
 								default:

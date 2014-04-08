@@ -58,8 +58,9 @@ enum GVariantType
 	/// Pointer to GMouse
 	GV_GMOUSE,
 	/// Pointer to GKey
-	GV_GKEY
-
+	GV_GKEY,
+	/// Pointer to GFile
+	GV_GFILE
 };
 
 /// Language operators
@@ -156,11 +157,17 @@ public:
 		/// Valid when Type == #GV_OPERATOR
 		GOperator Op;		
 		/// Valid when Type == #GV_GSURFACE
-		struct _Surface
+		struct
 		{
 		    class GSurface *Ptr;
 		    bool Own;
-		} Surface;		
+		} Surface;
+		/// Valid when Type == #GV_GFILE
+		struct
+		{
+			class GFile *Ptr;
+			bool Own;
+		} File;
 		/// Valid when Type == #GV_GVIEW
 		class GView *View;
 		/// Valid when Type == #GV_GMOUSE

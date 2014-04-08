@@ -30,7 +30,7 @@ char16 sInclude[]	= { 'i','n','c','l','u','d','e',0 };
 char16 sDefine[]	= { 'd','e','f','i','n','e',0 };
 char16 sStruct[]	= { 's','t','r','u','c','t',0 };
 
-char16 sHash[]			= { '#', 0 };
+char16 sHash[]				= { '#', 0 };
 char16 sPeriod[]			= { '.', 0 };
 char16 sComma[]				= { ',', 0 };
 char16 sSemiColon[]			= { ';', 0 };
@@ -138,6 +138,7 @@ bool SystemFunctions::LoadString(GVariant *Ret, ArgumentArray &Args)
 	return true;	
 }
 
+/*
 bool SystemFunctions::Strchr(GVariant *Ret, ArgumentArray &Args)
 {
 	if (Args.Length() < 2)
@@ -210,6 +211,7 @@ bool SystemFunctions::Strstr(GVariant *Ret, ArgumentArray &Args)
 	}
 	return false;
 }
+*/
 
 bool SystemFunctions::Sprintf(GVariant *Ret, ArgumentArray &Args)
 {
@@ -300,6 +302,7 @@ bool SystemFunctions::Sprintf(GVariant *Ret, ArgumentArray &Args)
 	#endif
 }
 
+/*
 bool SystemFunctions::Strcmp(GVariant *Ret, ArgumentArray &Args)
 {
 	if (Args.Length() >= 2)
@@ -463,6 +466,7 @@ bool SystemFunctions::DeleteElement(GVariant *Ret, ArgumentArray &Args)
 
 	return false;
 }
+*/
 
 bool SystemFunctions::ReadTextFile(GVariant *Ret, ArgumentArray &Args)
 {
@@ -572,6 +576,12 @@ bool SystemFunctions::Sleep(GVariant *Ret, ArgumentArray &Args)
 	return true;
 }
 
+bool SystemFunctions::Print(GVariant *Ret, ArgumentArray &Args)
+{
+	LgiAssert(0);
+	return false;
+}
+
 bool SystemFunctions::FormatSize(GVariant *Ret, ArgumentArray &Args)
 {
 	if (Args.Length() != 1)
@@ -600,18 +610,46 @@ bool SystemFunctions::Now(GVariant *Ret, ArgumentArray &Args)
 
 bool SystemFunctions::New(GVariant *Ret, ArgumentArray &Args)
 {
-	if (!Engine || Args.Length() != 1)
+	if (!Engine || Args.Length() != 1 || !Args[0])
 		return false;
 
-	GCompiledCode *c = Engine->GetCurrentCode();
-	if (!c)
+	const char *ObjName = Args[0]->CastString();
+	if (!ObjName)
 		return false;
-
-	GBase o;
-	o.Name(Args[0]->CastString());
-	GTypeDef *t = c->GetType(o.NameW());
-	if (t)
+	
+	if (!stricmp(ObjName, "list"))
 	{
+		Ret->SetList();
+	}
+	else if (!stricmp(ObjName, "hashtable"))
+	{
+		Ret->SetHashTable();
+	}
+	else if (!stricmp(ObjName, "bitmap"))
+	{
+		Ret->Empty();
+		Ret->Type = GV_GSURFACE;
+		Ret->Value.Surface.Ptr = new GMemDC;
+		Ret->Value.Surface.Own = true;
+	}
+	else if (!stricmp(ObjName, "file"))
+	{
+		Ret->Empty();
+		Ret->Type = GV_GFILE;
+		Ret->Value.File.Ptr = new GFile;
+		Ret->Value.File.Own = true;
+	}
+	else
+	{
+		GCompiledCode *c = Engine->GetCurrentCode();
+		if (!c)
+			return false;
+
+		GAutoWString o(LgiNewUtf8To16(Args[0]->CastString()));
+		GTypeDef *t = c->GetType(o);
+		if (!t)
+			return false;
+
 		Ret->Empty();
 		Ret->Type = GV_CUSTOM;
 		Ret->Value.Custom.Dom = t;
@@ -631,14 +669,13 @@ bool SystemFunctions::Delete(GVariant *Ret, ArgumentArray &Args)
 	{
 		DeleteArray(v->Value.Custom.Data);
 		v->Empty();
-		*Ret = true;
 	}
 	else
 	{
-		LgiAssert(!"Not a custom type.");
-		*Ret = false;
+		v->Empty();
 	}
 
+	*Ret = true;
 	return true;
 }
 
@@ -705,6 +742,74 @@ bool SystemFunctions::ListFiles(GVariant *Ret, ArgumentArray &Args)
 	return true;
 }
 
+bool SystemFunctions::CreateBitmap(GVariant *Ret, ArgumentArray &Args)
+{
+	Ret->Empty();
+
+	if (Args.Length() < 2)
+		return false;
+
+	int x = Args[0]->CastInt32();
+	int y = Args[1]->CastInt32();
+	int Bits = GdcD->GetBits();
+	if (Args.Length() > 2)
+	{
+		if (Args[2]->IsInt())
+			Bits = Args[2]->CastInt32();
+	}
+
+	if (Bits <= 0)
+		return false;
+
+	if (Ret->Value.Surface.Ptr = new GMemDC(x, y, Bits))
+	{
+		Ret->Type = GV_GSURFACE;
+		Ret->Value.Surface.Own = true;
+		Ret->Value.Surface.Ptr->AddRef();
+	}
+
+	return true;
+}
+
+bool SystemFunctions::GetInputDlg(GVariant *Ret, ArgumentArray &Args)
+{
+	if (Args.Length() < 4)
+		return false;
+
+	GViewI *Parent = CastGView(*Args[0]);
+	char *InitVal = Args[1]->Str();
+	char *Msg = Args[2]->Str();
+	char *Title = Args[3]->Str();
+	bool Pass = Args.Length() > 4 ? Args[4]->CastBool() : false;
+	GInput Dlg(Parent, InitVal, Msg, Title, Pass);
+	if (Dlg.DoModal())
+	{
+		*Ret = Dlg.Str;
+	}
+
+	return true;
+}
+
+bool SystemFunctions::GetViewById(GVariant *Ret, ArgumentArray &Args)
+{
+	Ret->Empty();
+
+	if (Args.Length() < 2)
+		return false;
+
+	GViewI *Parent = CastGView(*Args[0]);
+	int Id = Args[1]->CastInt32();
+	if (!Parent || Id <= 0)
+		return false;
+
+	if (Parent->GetViewById(Id, Ret->Value.View))
+	{
+		Ret->Type = GV_GVIEW;
+	}
+
+	return true;
+}
+
 bool SystemFunctions::Execute(GVariant *Ret, ArgumentArray &Args)
 {
 	if (Args.Length() < 2)
@@ -732,21 +837,15 @@ bool SystemFunctions::System(GVariant *Ret, ArgumentArray &Args)
 	return true;
 }
 
-bool SystemFunctions::GetInputDlg(GVariant *Ret, ArgumentArray &Args)
+bool SystemFunctions::OsVersion(GVariant *Ret, ArgumentArray &Args)
 {
-	if (Args.Length() < 4)
-		return false;
+	Ret->Empty();
 
-	GViewI *Parent = CastGView(*Args[0]);
-	char *InitVal = Args[1]->Str();
-	char *Msg = Args[2]->Str();
-	char *Title = Args[3]->Str();
-	bool Pass = Args.Length() > 4 ? Args[4]->CastBool() : false;
-	GInput Dlg(Parent, InitVal, Msg, Title, Pass);
-	if (Dlg.DoModal())
-	{
-		*Ret = Dlg.Str;
-	}
+	GArray<int> Ver;
+	int Os = LgiGetOs(&Ver);
+	Ret->SetList();
+	for (int i=0; i<3; i++)
+		Ret->Value.Lst->Insert(new GVariant(Ver[i]));
 
 	return true;
 }
@@ -757,19 +856,12 @@ bool SystemFunctions::GetInputDlg(GVariant *Ret, ArgumentArray &Args)
 GHostFunc SystemLibrary[] =
 {
 	// String handling
-	DefFn(Strchr),
-	DefFn(Strstr),
-	DefFn(Strcmp),
-	DefFn(Substr),
 	DefFn(LoadString),
 	DefFn(FormatSize),
 	DefFn(Sprintf),
-	DefFn(Tokenize),
+	DefFn(Print),
 	
 	// Containers/objects
-	DefFn(NewHashTable),
-	DefFn(NewList),
-	DefFn(DeleteElement),
 	DefFn(New),
 	DefFn(Delete),
 
@@ -785,10 +877,17 @@ GHostFunc SystemLibrary[] =
 	DefFn(Sleep),
 	DefFn(Now),
 
+	// Images
+	DefFn(CreateBitmap),
+
+	// UI
+	DefFn(GetInputDlg),
+	DefFn(GetViewById),
+
 	// System
 	DefFn(Execute),
 	DefFn(System),
-	DefFn(GetInputDlg),
+	DefFn(OsVersion),
 
 	// End of list marker
 	GHostFunc(0, 0, 0),

@@ -571,43 +571,17 @@ public:
 	GHostFunc *GetCommands();
 
 	// String
-		/// int Strchr(string, char[, string_length][, reverse]);
-		/// \returns the position of 'char' in 'string' or -1 if 'string' doesn't contain 'char'. You may 
-		///			 optionally supply a max number of chars to search.
-		bool Strchr(GVariant *Ret, ArgumentArray &Args);
-		/// int Strstr(string1, string2, case_insensitive, string_length);
-		/// \returns the position of 'string2' in 'string1' or -1 if 'string1' doesn't contain 'string2'. You may 
-		///			 optionally supply a max number of chars to search.
-		bool Strstr(GVariant *Ret, ArgumentArray &Args);
-		/// int Strcmp(string1, string2, case_insensitive, string_length);
-		/// \returns a comparision of 'string1' and 'string2'. You can optionally make it case insensitive by 
-		///			 seting the 'case_insensitive' flag.
-		bool Strcmp(GVariant *Ret, ArgumentArray &Args);
-		/// String Substr(string, start[, length]);
-		/// \returns a sub-segment of 'string'.
-		bool Substr(GVariant *Ret, ArgumentArray &Args);
-		/// Loads a string from the resource file (.lr8)
-		/// i.e. LoadString(1102) where 1102 is the id of the string in the applications .lr8 file
-		/// Basically a wrapper around LgiLoadString
 		bool LoadString(GVariant *Ret, ArgumentArray &Args);
 		/// Formats a string
 		bool Sprintf(GVariant *Ret, ArgumentArray &Args);
 		/// Formats a file size
 		bool FormatSize(GVariant *Ret, ArgumentArray &Args);
-		/// Break a string into tokens
-		bool Tokenize(GVariant *Ret, ArgumentArray &Args);
+		/// Prints items to the console
+		bool Print(GVariant *Ret, ArgumentArray &Args);
 
-	// Object
+	// Object creation/deletion
 		bool New(GVariant *Ret, ArgumentArray &Args);
 		bool Delete(GVariant *Ret, ArgumentArray &Args);
-
-	// Container access
-		/// Creates an empty hash table
-		bool NewHashTable(GVariant *Ret, ArgumentArray &Args);
-		/// Creates an empty list variable
-		bool NewList(GVariant *Ret, ArgumentArray &Args);
-		/// Deletes an element out of an array or hash table
-		bool DeleteElement(GVariant *Ret, ArgumentArray &Args);
 
 	// File
 		/// Reads a text file into a variable
@@ -639,6 +613,17 @@ public:
 		/// Get the date time
 		bool Now(GVariant *Ret, ArgumentArray &Args);
 
+	// Bitmaps
+		/// Creates a memory context
+		bool CreateBitmap(GVariant *Ret, ArgumentArray &Args);
+
+	// User interface
+		/// Gets an input string from the user
+		/// String GetInputDlg(Window Parent, String InitialValue, String Question, String Title[, bool IsPassword]);
+		bool GetInputDlg(GVariant *Ret, ArgumentArray &Args);
+		/// Gets a view by id
+		bool GetViewById(GVariant *Ret, ArgumentArray &Args);
+
 	// System
 		/// Executes a command, waits for it to finish, then returns it's output:
 		/// String Execute(String Application, String CmdLine);
@@ -646,9 +631,38 @@ public:
 		/// Executes a command and doesn't wait for it to return:
 		/// Bool System(String Application, String CmdLine);
 		bool System(GVariant *Ret, ArgumentArray &Args);
-		/// Gets an input string from the user
-		/// String GetInputDlg(Window Parent, String InitialValue, String Question, String Title[, bool IsPassword]);
-		bool GetInputDlg(GVariant *Ret, ArgumentArray &Args);
+		/// Gets the operating system version.
+		bool OsVersion(GVariant *Ret, ArgumentArray &Args);
+
+	#if 0 // Deprecated
+	// Container access
+		/// Creates an empty hash table
+		bool NewHashTable(GVariant *Ret, ArgumentArray &Args);
+		/// Creates an empty list variable
+		bool NewList(GVariant *Ret, ArgumentArray &Args);
+		/// Deletes an element out of an array or hash table
+		bool DeleteElement(GVariant *Ret, ArgumentArray &Args);
+		/// Break a string into tokens
+		bool Tokenize(GVariant *Ret, ArgumentArray &Args);
+		/// int Strchr(string, char[, string_length][, reverse]);
+		/// \returns the position of 'char' in 'string' or -1 if 'string' doesn't contain 'char'. You may 
+		///			 optionally supply a max number of chars to search.
+		bool Strchr(GVariant *Ret, ArgumentArray &Args);
+		/// int Strstr(string1, string2, case_insensitive, string_length);
+		/// \returns the position of 'string2' in 'string1' or -1 if 'string1' doesn't contain 'string2'. You may 
+		///			 optionally supply a max number of chars to search.
+		bool Strstr(GVariant *Ret, ArgumentArray &Args);
+		/// int Strcmp(string1, string2, case_insensitive, string_length);
+		/// \returns a comparision of 'string1' and 'string2'. You can optionally make it case insensitive by 
+		///			 seting the 'case_insensitive' flag.
+		bool Strcmp(GVariant *Ret, ArgumentArray &Args);
+		/// String Substr(string, start[, length]);
+		/// \returns a sub-segment of 'string'.
+		bool Substr(GVariant *Ret, ArgumentArray &Args);
+		/// Loads a string from the resource file (.lr8)
+		/// i.e. LoadString(1102) where 1102 is the id of the string in the applications .lr8 file
+		/// Basically a wrapper around LgiLoadString
+	#endif
 };
 
 #endif

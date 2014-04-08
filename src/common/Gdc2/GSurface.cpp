@@ -22,7 +22,6 @@
 
 void GSurface::Init()
 {
-    _Refs = 0;
 	OriginX = OriginY = 0;
 	pMem = NULL;
 	pAlphaDC = 0;

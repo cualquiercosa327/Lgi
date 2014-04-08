@@ -449,7 +449,7 @@ GVariant &GVariant::operator =(GVariant const &i)
 		    Value.Surface = i.Value.Surface;
 		    if (Value.Surface.Own &&
 		        Value.Surface.Ptr)
-		        Value.Surface.Ptr->_Refs++;
+		        Value.Surface.Ptr->AddRef();
 			break;
 		}
 		default:
@@ -557,7 +557,7 @@ bool GVariant::SetSurface(class GSurface *Ptr, bool Own)
     Value.Surface.Ptr = Ptr;
     if ((Value.Surface.Own = Own))
     {
-        Value.Surface.Ptr->_Refs++;
+        Value.Surface.Ptr->AddRef();
     }
     
     return true;
@@ -697,10 +697,20 @@ void GVariant::Empty()
 		    if (Value.Surface.Own &&
 		        Value.Surface.Ptr)
 		    {
-		        if (--Value.Surface.Ptr->_Refs == 0)
-		            DeleteObj(Value.Surface.Ptr);
+				Value.Surface.Ptr->DelRef();
+				Value.Surface.Ptr = NULL;
 		    }
 		    break;
+		}
+		case GV_GFILE:
+		{
+			if (Value.File.Ptr &&
+				Value.File.Own)
+			{
+				Value.File.Ptr->DelRef();
+				Value.File.Ptr = NULL;
+			}
+			break;
 		}
 	}
 

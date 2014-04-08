@@ -20,6 +20,7 @@
 #include "Core.h"					// Platform specific
 #include "GContainers.h"
 #include "GCapabilities.h"
+#include "GRefCount.h"
 
 // Alpha Blting
 #ifdef WIN32
@@ -366,7 +367,7 @@ public:
 #define OrgRgn(r)		r.Offset(-OriginX, -OriginY)
 
 /// Base class API for graphics operations
-class LgiClass GSurface
+class LgiClass GSurface : public GRefCount
 {
 	friend class GFilter;
 	friend class GView;
@@ -375,8 +376,6 @@ class LgiClass GSurface
 
 	void Init();
 	
-	int             _Refs;
-
 protected:
 	int				Flags;
 	int				PrevOp;
@@ -391,9 +390,9 @@ protected:
 
 	// Protected functions
 	GApplicator		*CreateApplicator(int Op, GColourSpace Cs = CsNone);
-	uint32		LineBits;
-	uint32		LineMask;
-	uint32		LineReset;
+	uint32			LineBits;
+	uint32			LineMask;
+	uint32			LineReset;
 
 	#if WIN32NATIVE
 	OsPainter	hDC;

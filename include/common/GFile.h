@@ -14,6 +14,7 @@
 #include "GMem.h"
 #include "GStream.h"
 #include "GArray.h"
+#include "GRefCount.h"
 
 #ifdef WIN32
 
@@ -328,7 +329,7 @@ public:
 #endif
 
 /// Generic file access class
-class LgiClass GFile : public GStream
+class LgiClass GFile : public GStream, public GRefCount
 {
 protected:
 	class GFilePrivate *d;
