@@ -430,10 +430,13 @@ GVariant &GVariant::operator =(GVariant const &i)
 			if ((Value.Hash = new GHashTable))
 			{
 				char *k;
-				for (void *p = i.Value.Hash->First(&k); p; p = i.Value.Hash->Next(&k))
+				if (i.Value.Hash)
 				{
-					GVariant *var = (GVariant*)p;
-					Value.Hash->Add(k, new GVariant(*var));
+					for (void *p = i.Value.Hash->First(&k); p; p = i.Value.Hash->Next(&k))
+					{
+						GVariant *var = (GVariant*)p;
+						Value.Hash->Add(k, new GVariant(*var));
+					}
 				}
 			}
 			break;
@@ -1058,13 +1061,17 @@ char *GVariant::CastString()
 		case GV_LIST:
 		{
 			GStringPipe p(256);
+			
 			List<GVariant>::I it = Value.Lst->Start();
 			bool First = true;
+			
+			p.Print("{");
 			for (GVariant *v = *it; v; v = *++it)
 			{
 				p.Print("%s%s", First ? "" : ", ", v->CastString());
 				First = false;
 			}
+			p.Print("}");
 			OwnStr(p.NewStr());
 			return Str();
 			break;

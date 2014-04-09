@@ -544,10 +544,20 @@ bool SystemFunctions::SelectFiles(GVariant *Ret, ArgumentArray &Args)
 	{
 		char *c = t[i];
 		char *sp = strrchr(c, ' ');
-		if (*sp)
+		if (sp)
 		{
 			*sp++ = 0;
-			s.Type(c, sp);
+			s.Type(sp, c);
+		}
+		else
+		{
+			char *dot = strrchr(c, '.');
+			if (dot)
+			{
+				char Type[256];
+				sprintf_s(Type, sizeof(Type), "%s files", dot + 1);
+				s.Type(Type, c);
+			}
 		}
 	}
 	s.Type("All Files", LGI_ALL_FILES);
@@ -578,15 +588,21 @@ bool SystemFunctions::Sleep(GVariant *Ret, ArgumentArray &Args)
 
 bool SystemFunctions::Print(GVariant *Ret, ArgumentArray &Args)
 {
-	for (int n=0; Log && n<Args.Length(); n++)
+	GStream *Out = Log ? Log : (Engine ? Engine->GetTerm() : NULL);
+
+	for (int n=0; Out && n<Args.Length(); n++)
 	{
 		if (!Args[n])
 			continue;
-		GVariant v = Args[n];
+
+		GVariant v = *Args[n];
 		char *f = v.CastString();
 		if (!f)
 			continue;
 
+		#if 1
+		Out->Write(f, strlen(f));
+		#else
 		char *i = f, *o = f;
 		for (; *i; i++)
 		{
@@ -618,7 +634,8 @@ bool SystemFunctions::Print(GVariant *Ret, ArgumentArray &Args)
 			}
 		}
 		*o = 0;
-		Log->Write(f, o - f);
+		Out->Write(f, o - f);
+		#endif
 	}
 
 	return true;
@@ -671,31 +688,44 @@ bool SystemFunctions::New(GVariant *Ret, ArgumentArray &Args)
 	{
 		Ret->Empty();
 		Ret->Type = GV_GSURFACE;
-		Ret->Value.Surface.Ptr = new GMemDC;
-		Ret->Value.Surface.Own = true;
+		if (Ret->Value.Surface.Ptr = new GMemDC)
+		{
+			Ret->Value.Surface.Ptr->AddRef();
+			Ret->Value.Surface.Own = true;
+		}		
 	}
 	else if (!stricmp(ObjName, "file"))
 	{
 		Ret->Empty();
 		Ret->Type = GV_GFILE;
-		Ret->Value.File.Ptr = new GFile;
-		Ret->Value.File.Own = true;
+		if (Ret->Value.File.Ptr = new GFile)
+		{
+			Ret->Value.File.Ptr->AddRef();
+			Ret->Value.File.Own = true;
+		}
+	}
+	else if (!stricmp(ObjName, "datetime"))
+	{
+		Ret->Empty();
+		Ret->Type = GV_DATETIME;
+		Ret->Value.Date = new GDateTime;
 	}
 	else
 	{
+		Ret->Empty();
+
 		GCompiledCode *c = Engine->GetCurrentCode();
 		if (!c)
 			return false;
 
 		GAutoWString o(LgiNewUtf8To16(Args[0]->CastString()));
 		GTypeDef *t = c->GetType(o);
-		if (!t)
-			return false;
-
-		Ret->Empty();
-		Ret->Type = GV_CUSTOM;
-		Ret->Value.Custom.Dom = t;
-		Ret->Value.Custom.Data = new char[t->Sizeof()];
+		if (t)
+		{
+			Ret->Type = GV_CUSTOM;
+			Ret->Value.Custom.Dom = t;
+			Ret->Value.Custom.Data = new char[t->Sizeof()];
+		}
 	}
 
 	return true;

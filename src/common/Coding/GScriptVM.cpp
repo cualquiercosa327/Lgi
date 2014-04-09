@@ -21,6 +21,7 @@ enum ObjectParts
 	ObjNone,
 	
 	ObjLength,
+	ObjType,
 
 	DateNone,
 	DateYear,
@@ -69,12 +70,13 @@ public:
 	GScriptContext *Context;
 	GHashTbl<const char*, ObjectParts> ObjParts;
 
-	GVirtualMachinePriv(GScriptContext *context)
+	GVirtualMachinePriv(GScriptContext *context) : ObjParts(0, false)
 	{
 		Log = 0;
 		Context = context;
 
 		ObjParts.Add("Length", ObjLength);
+		ObjParts.Add("Type", ObjType);
 		
 		ObjParts.Add("Year", DateYear);
 		ObjParts.Add("Month", DateMonth);
@@ -1803,6 +1805,11 @@ public:
 									*Dst = Dom->Value.Lst->Length();
 									break;
 								}
+								case ObjType:
+								{
+									*Dst = "List";
+									break;
+								}
 								case ContainerAdd:
 								{
 									if (Arg.Length() > 0 &&
@@ -1869,6 +1876,11 @@ public:
 								case ObjLength:
 								{
 									*Dst = Dom->Value.Hash->Length();
+									break;
+								}
+								case ObjType:
+								{
+									*Dst = "HashTable";
 									break;
 								}
 								case ContainerAdd:
@@ -1947,6 +1959,11 @@ public:
 									*Dst = (int) (s ? strlen(s) : 0);
 									break;
 								}
+								case ObjType:
+								{
+									*Dst = "String";
+									break;
+								}
 								case StrJoin:
 								{
 									switch (Arg[0]->Type)
@@ -2020,9 +2037,9 @@ public:
 								case StrFind:
 								{
 									const char *s = Dom->Str();
-									if (s)
+									if (!s)
 									{
-										Dst->Empty();
+										*Dst = -1;
 										break;
 									}
 
@@ -2032,7 +2049,10 @@ public:
 									int end = Arg.Length() > 2 ? Arg[2]->CastInt32() : -1;								
 
 									if (start >= sLen)
+									{
+										*Dst = -1;
 										break;
+									}
 									char *sStart = (char*)s + start;
 									char *pos;
 									if (end > start)
@@ -2042,6 +2062,8 @@ public:
 
 									if (pos)
 										*Dst = pos - s;
+									else
+										*Dst = -1;
 									break;
 								}
 								case StrRfind:
@@ -2116,12 +2138,44 @@ public:
 						}
 						default:
 						{
-							Dst->Empty();
-							if (Log)
-								Log->Print("%p IDomCall Error: Unexpected type %i (%s:%i).\n",
-											c.u8 - Base,
-											Dom->Type,
-											_FL);
+							ObjectParts p = ObjParts.Find(sName);
+							if (p == ObjType)
+							{
+								switch (Dom->Type)
+								{
+									case GV_NULL:		*Dst = "Null"; break;
+									case GV_INT32:		*Dst = "int32"; break;
+									case GV_INT64:		*Dst = "int64"; break;
+									case GV_BOOL:		*Dst = "Bool"; break;
+									case GV_DOUBLE:		*Dst = "Double"; break;
+									case GV_STRING:		*Dst = "String"; break;
+									case GV_BINARY:		*Dst = "Binary"; break;
+									case GV_LIST:		*Dst = "List"; break;
+									case GV_DOM:		*Dst = "Dom"; break;
+									case GV_DOMREF:		*Dst = "DomReference"; break;
+									case GV_VOID_PTR:	*Dst = "VoidPtr"; break;
+									case GV_DATETIME:	*Dst = "DateTime"; break;
+									case GV_HASHTABLE:	*Dst = "HashTable"; break;
+									case GV_OPERATOR:	*Dst = "Operator"; break;
+									case GV_CUSTOM:		*Dst = "Custom"; break;
+									case GV_WSTRING:	*Dst = "WString"; break;
+									case GV_GSURFACE:	*Dst = "Surface"; break;
+									case GV_GVIEW:		*Dst = "View"; break;
+									case GV_GMOUSE:		*Dst = "MouseEvent"; break;
+									case GV_GKEY:		*Dst = "KeyboardEvent"; break;
+									case GV_GFILE:		*Dst = "File"; break;
+									default:			*Dst = "UnknownType"; break;
+								}
+							}
+							else
+							{
+								Dst->Empty();
+								if (Log)
+									Log->Print("%p IDomCall Error: Unexpected type %i (%s:%i).\n",
+												c.u8 - Base,
+												Dom->Type,
+												_FL);
+							}
 							break;
 						}
 					}

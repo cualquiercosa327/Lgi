@@ -766,12 +766,20 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 	int LogPixelsY = GetDeviceCaps(hDC, LOGPIXELSY);
 	int Win32Height = -MulDiv(PointSize(), LogPixelsY, 72);
 	
-	GTypeFace::d->IsSymbol = GTypeFace::d->_Face && stristr(GTypeFace::d->_Face, "wingdings");
-	int Cs = GTypeFace::d->IsSymbol
-			?
-			SYMBOL_CHARSET
-			:
-			ANSI_CHARSET;
+	GTypeFace::d->IsSymbol = GTypeFace::d->_Face &&
+								(
+									stristr(GTypeFace::d->_Face, "wingdings") ||
+									stristr(GTypeFace::d->_Face, "symbol")
+								);
+	int Cs;
+	if (GTypeFace::d->IsSymbol)
+	{
+		Cs = SYMBOL_CHARSET;
+	}
+	else
+	{
+		Cs = ANSI_CHARSET;
+	}
 
 	d->OwnerUnderline = Face() &&
 						stricmp(Face(), "Courier New") == 0 && 
@@ -941,6 +949,13 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 					}
 
 					DeleteArray((char*&)Set);
+				}
+				
+				if (GTypeFace::d->IsSymbol)
+				{
+					// Lies! It's all Lies! Symbol doesn't support non-breaking space.
+					int u = 0xa0;
+					d->GlyphMap[u >> 3] &= ~(1 << (u & 7));
 				}
 			}
 
