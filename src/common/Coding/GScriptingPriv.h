@@ -574,7 +574,11 @@ public:
 		Engine = Eng;
 	}
 	
-	char *GetIncludeFile(char *FileName) { return 0; }			
+	char *GetIncludeFile(char *FileName)
+	{
+		return 0;
+	}
+	
 	GHostFunc *GetCommands();
 
 	// String

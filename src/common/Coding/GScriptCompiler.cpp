@@ -2608,6 +2608,7 @@ public:
 	GScriptEnginePrivate2()
 	{
 		Code = 0;
+		SetLog(&Log);
 	}
 
 	~GScriptEnginePrivate2()
