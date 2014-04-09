@@ -1998,14 +1998,21 @@ public:
 								}								
 								case StrSplit:
 								{
-									Dst->SetList();
-									
 									const char *Sep = Arg[0]->Str();
 									if (!Sep)
 									{
 										Dst->Empty();
 										break;
 									}
+									
+									GVariant Tmp;
+									if (Dst == Dom)
+									{
+										Tmp = *Dom;
+										Dom = &Tmp;
+									}
+
+									Dst->SetList();
 									
 									int SepLen = strlen(Sep);
 									int MaxSplit = Arg.Length() > 1 ? Arg[1]->CastInt32() : -1;

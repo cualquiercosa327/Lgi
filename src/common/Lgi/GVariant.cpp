@@ -909,7 +909,9 @@ bool GVariant::CastBool()
 		case GV_DOUBLE:
 			return Value.Dbl != 0.0;
 		case GV_STRING:
-			return Value.String ? atoi(Value.String) != 0 : false;
+			return ValidStr(Value.String);
+		case GV_WSTRING:
+			return ValidStrW(Value.WString);
 		case GV_BINARY:
 			return Value.Binary.Data != 0;
 		case GV_LIST:
