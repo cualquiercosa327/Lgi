@@ -587,9 +587,9 @@ GFilter::IoStatus GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 						}
 						case 32:
 						{
-							GArray<GAbgr32> Buf;
+							GArray<GRgba32> Buf;
 							Buf.Length(img.width);
-							GAbgr32 *b = &Buf[0];
+							GRgba32 *b = &Buf[0];
 							LgiAssert(Lib->TIFFScanlineSize(tif) == Buf.Length() * sizeof(Buf[0]));
 
 							for (unsigned y=0; y<img.height; y++)
