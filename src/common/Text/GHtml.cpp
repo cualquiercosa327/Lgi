@@ -6472,7 +6472,7 @@ bool GHtml::SetVariant(const char *Name, GVariant &Value, char *Array)
 		return false;
 	if (!stricmp(Name, "ShowImages"))
 	{
-		SetLoadImages(Value.CastBool());
+		SetLoadImages(Value.CastInt32());
 	}
 	else return false;
 	

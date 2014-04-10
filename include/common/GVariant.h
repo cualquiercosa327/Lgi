@@ -291,7 +291,11 @@ public:
 	char *CastString();
 	/// Casts to a DOM ptr
 	GDom *CastDom();
-	/// Casts to a boolean
+	/// Casts to a boolean. You probably DON'T want to use this function. The
+	/// behaviour for strings -> bool is such that if the string is value it
+	/// always evaluates to true, and false if it's not a valid string. Commonly
+	/// what you want is to evaluate whether the string is zero or non-zero in
+	/// which cast you should use "CastInt32() != 0" instead.
 	bool CastBool();
 	/// Returns the pointer if available.
 	void *CastVoidPtr();

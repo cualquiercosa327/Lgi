@@ -749,7 +749,7 @@ public:
 					int32 Jmp = *c.i32++;
 					LgiAssert(Jmp != 0);
 					
-					if (!Exp->CastBool())
+					if (!Exp->CastInt32())
 					{
 						c.u8 += Jmp;
 					}

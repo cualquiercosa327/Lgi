@@ -852,7 +852,7 @@ bool SystemFunctions::GetInputDlg(GVariant *Ret, ArgumentArray &Args)
 	char *InitVal = Args[1]->Str();
 	char *Msg = Args[2]->Str();
 	char *Title = Args[3]->Str();
-	bool Pass = Args.Length() > 4 ? Args[4]->CastBool() : false;
+	bool Pass = Args.Length() > 4 ? Args[4]->CastInt32() != 0 : false;
 	GInput Dlg(Parent, InitVal, Msg, Title, Pass);
 	if (Dlg.DoModal())
 	{

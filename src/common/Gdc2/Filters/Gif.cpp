@@ -868,7 +868,7 @@ GFilter::IoStatus GdcGif::WriteImage(GStream *Out, GSurface *pDC)
 			    }
 			}
 			
-			if (Transparent.CastBool() && Back < 0)
+			if (Transparent.CastInt32() && Back < 0)
 			{
 			    LgiAssert(!"No background colour available??");
 	            if (Props)
@@ -931,7 +931,7 @@ GFilter::IoStatus GdcGif::WriteImage(GStream *Out, GSurface *pDC)
 		Out->Write(Buf, Colours * 3);
 	}
 
-	if (Transparent.CastBool())
+	if (Transparent.CastInt32())
 	{
 		// Graphic Control Extension
 		uchar gce[] = {0x21, 0xF9, 4, 1, 0, 0, Back, 0 };

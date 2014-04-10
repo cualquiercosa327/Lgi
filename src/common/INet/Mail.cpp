@@ -2532,7 +2532,7 @@ bool MailPop3::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *P
 		{
 			GVariant IsSsl;
 			if (S->GetValue("IsSSL", IsSsl) &&
-				IsSsl.CastBool())
+				IsSsl.CastInt32())
 				Port = POP3_SSL_PORT;
 			else
 				Port = POP3_PORT;

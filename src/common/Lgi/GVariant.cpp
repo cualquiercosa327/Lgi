@@ -908,10 +908,6 @@ bool GVariant::CastBool()
 			return Value.Bool;
 		case GV_DOUBLE:
 			return Value.Dbl != 0.0;
-		case GV_STRING:
-			return ValidStr(Value.String);
-		case GV_WSTRING:
-			return ValidStrW(Value.WString);
 		case GV_BINARY:
 			return Value.Binary.Data != 0;
 		case GV_LIST:
@@ -936,6 +932,18 @@ bool GVariant::CastBool()
 			return Value.Op != OpNull;
 		case GV_CUSTOM:
 			return Value.Custom.Dom != 0 && Value.Custom.Data != 0;
+
+		// As far as I understand this is the behavour in Python, which I'm using for
+		// a reference to what the "correct" thing to do here is. Basically it's treating
+		// the string like a pointer instead of a value. If the pointer is valid the
+		// conversion to bool return true, and false if it's not a valid pointer. This
+		// means things like if (!StringVariant) evaluate correctly in the scripting engine
+		// but it means that if you want to evaluate the value of the varient you should
+		// use CastInt32 instead.
+		case GV_STRING:
+			return ValidStr(Value.String);
+		case GV_WSTRING:
+			return ValidStrW(Value.WString);
 	}
 
 	return false;
