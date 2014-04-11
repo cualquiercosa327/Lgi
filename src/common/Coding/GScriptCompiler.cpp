@@ -2651,22 +2651,22 @@ bool GScriptEngine2::Compile(char *Script, bool Add)
 	return d->Code != 0;
 }
 
-bool GScriptEngine2::Run()
+GExecutionStatus GScriptEngine2::Run()
 {
-	bool Status = false;
+	GExecutionStatus Status = ScriptError;
 
 	if (d->Code)
 	{
 		GVirtualMachine Vm(d->Context);
-		Status = Vm.Execute(d->Code, &d->Log);
+		Status = Vm.Execute(d->Code, d->GetLog());
 	}
 
 	return Status;
 }
 
-bool GScriptEngine2::RunTemporary(char *Script)
+GExecutionStatus GScriptEngine2::RunTemporary(char *Script)
 {
-	bool Status = false;
+	GExecutionStatus Status = ScriptError;
 
 	if (Script && d->Code)
 	{
@@ -2700,9 +2700,14 @@ GVariant *GScriptEngine2::Var(char16 *name, bool create)
 	return d->Code->Set(v.Str(), Null);
 }
 
-GStringPipe *GScriptEngine2::GetTerm()
+GStream *GScriptEngine2::GetConsole()
 {
-	return &d->Log;
+	return d->GetLog();
+}
+
+bool GScriptEngine2::SetConsole(GStream *t)
+{
+	return d->SetLog(t);
 }
 
 bool GScriptEngine2::CallMethod(const char *Method, GVariant *Ret, ArgumentArray &Args)

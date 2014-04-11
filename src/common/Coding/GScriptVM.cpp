@@ -11,6 +11,11 @@
 #define Resolve() \
 	&Scope[c.r->Scope][c.r->Index]; c.r++
 
+#define ExitScriptExecution		c.u8 = e
+#define SetScriptError			c.u8 = e; LgiAssert(0); Status = ScriptError
+#define CurrentScriptAddress	(c.u8 - Base)
+
+
 
 /// During execution the code needs to look up various object members via
 /// string. These enumeration values allow the executer to look up a string
@@ -194,9 +199,9 @@ public:
 		}
 	}
 
-	bool Decompile(GScriptContext *Context, GCompiledCode *Code, GStream *log)
+	GExecutionStatus Decompile(GScriptContext *Context, GCompiledCode *Code, GStream *log)
 	{
-		bool Status = true;
+		GExecutionStatus Status = ScriptSuccess;
 		LgiAssert(sizeof(GVarRef) == 4);
 
 		GPtr c;
@@ -222,7 +227,7 @@ public:
 		int OldLineNum = 0;
 		while (c.u8 < e)
 		{
-			char *Meth = Fn.Find(c.u8 - Base);
+			char *Meth = Fn.Find(CurrentScriptAddress);
 			if (Meth)
 			{
 				f.Print("%s:\n", Meth);
@@ -241,8 +246,7 @@ public:
 					f.Print("\t%p Unknown instruction %i\n",
 							c.u8 - Base - 1,
 							c.u8[-1]);
-					c.u8 = e;
-					Status = false;
+					ExitScriptExecution;
 					break;
 				}
 				case INop:
@@ -370,8 +374,8 @@ public:
 					GFunc *Meth = *c.fn++;
 					if (!Meth)
 					{
-						Log->Print("VmError:%i - No method struct.\n", c.u8 - Base);
-						c.u8 = e;
+						Log->Print("%p ICallMethod error: No method struct.\n", CurrentScriptAddress - 1);
+						SetScriptError;
 						break;
 					}
 
@@ -391,8 +395,8 @@ public:
 					uint32 FuncAddr = *c.u32++;
 					if (!FuncAddr)
 					{
-						Log->Print("VmError:%i - Script function call invalid addr (0).\n", c.u8 - Base);
-						c.u8 = e;
+						Log->Print("%p ICallScript error: Script function call invalid addr (0).\n", CurrentScriptAddress - 4);
+						SetScriptError;
 						break;
 					}
 
@@ -555,7 +559,7 @@ public:
 							break;
 						default:
 							LgiAssert(0);
-							return false;
+							return ScriptError;
 					}
 					
 					int Args = Count->CastInt32();
@@ -579,8 +583,10 @@ public:
 		return Status;
 	}
 
-	bool Execute(GCompiledCode *Code, GStream *log, GFunctionInfo *Func, ArgumentArray *Args, GVariant *Ret)
+	GExecutionStatus Execute(GCompiledCode *Code, GStream *log, GFunctionInfo *Func, ArgumentArray *Args, GVariant *Ret)
 	{
+		GExecutionStatus Status = ScriptSuccess;
+		
 		Log = log;
 		LgiAssert(sizeof(GVarRef) == 4);
 
@@ -619,12 +625,12 @@ public:
 			if (f.Open(Obj, O_WRITE))
 			{
 				f.SetSize(0);
-				bool Decomp = Decompile(Context, Code, &f);
+				GExecutionStatus Decomp = Decompile(Context, Code, &f);
 				f.Close();
-				if (!Decomp)
+				if (Decomp != ScriptSuccess)
 				{
 					LgiAssert(!"Decompilation failed.");
-					return false;
+					return ScriptError;
 				}
 			}
 		}
@@ -681,7 +687,7 @@ public:
 			#endif
 			
 			#if defined(WIN32) && defined(BREAK_POINT)
-			if (c.u8 - Base == BREAK_POINT)
+			if (CurrentScriptAddress == BREAK_POINT)
 			{
 				_asm int 3
 			}
@@ -693,11 +699,11 @@ public:
 				{
 					#if LOG_ASM
 					f.Print("%p Unknown instruction %i\n",
-							c.u8 - Base - 1,
+							CurrentScriptAddress - 1,
 							c.u8[-1]);
 					#endif
 					LgiAssert(!"Unknown instruction");
-					c.u8 = e;
+					SetScriptError;
 					break;
 				}
 				case INop:
@@ -712,7 +718,7 @@ public:
 				{
 					#if LOG_ASM
 					f.Print("%p Assign %s <- %s\n",
-							c.u8 - Base - 1,
+							CurrentScriptAddress - 1,
 							c.r[0].GetStr(),
 							c.r[1].GetStr());
 					#endif
@@ -727,7 +733,7 @@ public:
 				{
 					#if LOG_ASM
 					f.Print("%p Jump by 0x%x\n",
-							c.u8 - Base - 1,
+							CurrentScriptAddress - 1,
 							c.i32[0]);
 					#endif
 
@@ -740,7 +746,7 @@ public:
 				{
 					#if LOG_ASM
 					f.Print("%p JumpZ(%s) by 0x%x\n",
-							c.u8 - Base - 1,
+							CurrentScriptAddress - 1,
 							c.r[0].GetStr(),
 							c.i32[1]);
 					#endif
@@ -760,7 +766,7 @@ public:
 				{
 					#if LOG_ASM
 					f.Print("%p UnaryMinus %s\n",
-							c.u8 - Base - 1,
+							CurrentScriptAddress - 1,
 							c.r[0].GetStr());
 					#endif
 
@@ -776,7 +782,7 @@ public:
 				{
 					#if LOG_ASM
 					f.Print("%p Plus %s += %s\n",
-							c.u8 - Base - 1,
+							CurrentScriptAddress - 1,
 							c.r[0].GetStr(),
 							c.r[1].GetStr());
 					#endif
@@ -828,7 +834,7 @@ public:
 				{
 					#if LOG_ASM
 					f.Print("%p Minus %s -= %s\n",
-							c.u8 - Base - 1,
+							CurrentScriptAddress - 1,
 							c.r[0].GetStr(),
 							c.r[1].GetStr());
 					#endif
@@ -847,7 +853,7 @@ public:
 				{
 					#if LOG_ASM
 					f.Print("%p Mul %s *= %s\n",
-							c.u8 - Base - 1,
+							CurrentScriptAddress - 1,
 							c.r[0].GetStr(),
 							c.r[1].GetStr());
 					#endif
@@ -866,7 +872,7 @@ public:
 				{
 					#if LOG_ASM
 					f.Print("%p Div %s /= %s\n",
-							c.u8 - Base - 1,
+							CurrentScriptAddress - 1,
 							c.r[0].GetStr(),
 							c.r[1].GetStr());
 					#endif
@@ -884,7 +890,7 @@ public:
 				{
 					#if LOG_ASM
 					f.Print("%p Mod %s %= %s\n",
-							c.u8 - Base - 1,
+							CurrentScriptAddress - 1,
 							c.r[0].GetStr(),
 							c.r[1].GetStr());
 					#endif
@@ -907,7 +913,7 @@ public:
 				{
 					#if LOG_ASM
 					f.Print("%p PostInc %s\n",
-							c.u8 - Base - 1,
+							CurrentScriptAddress - 1,
 							c.r[0].GetStr());
 					#endif
 
@@ -923,7 +929,7 @@ public:
 				{
 					#if LOG_ASM
 					f.Print("%p PostDec %sn",
-							c.u8 - Base - 1,
+							CurrentScriptAddress - 1,
 							c.r[0].GetStr());
 					#endif
 
@@ -939,14 +945,14 @@ public:
 					GHostFunc *Meth = dynamic_cast<GHostFunc*>(*c.fn++);
 					if (!Meth)
 					{
-						Log->Print("VmError:%i - No method struct.\n", c.u8 - Base);
-						c.u8 = e;
+						Log->Print("%p ICallMethod error: No method struct.\n", CurrentScriptAddress - 1);
+						SetScriptError;
 						break;
 					}
 
 					#if LOG_ASM
 					f.Print("%p Call: %s = %s(",
-							c.u8 - Base - 5,
+							CurrentScriptAddress - 5,
 							c.r[0].GetStr(),
 							Meth->Method);
 					#endif
@@ -971,10 +977,8 @@ public:
 					if (!(Meth->Context->*(Meth->Func))(Ret, Arg))
 					{
 						if (Log)
-						{
-							Log->Print("VmError:%i - Method '%s' failed.\n", c.u8 - Base, Meth->Method);
-						}
-						c.u8 = e;
+							Log->Print("%p ICallMethod error: Method '%s' failed.\n", CurrentScriptAddress, Meth->Method);
+						SetScriptError;
 					}
 					break;
 				}
@@ -983,8 +987,8 @@ public:
 					uint32 FuncAddr = *c.u32++;
 					if (!FuncAddr)
 					{
-						Log->Print("VmError:%i - Script function call invalid addr (0).\n", c.u8 - Base);
-						c.u8 = e;
+						Log->Print("%p ICallScript error: Script function call invalid addr '0'.\n", CurrentScriptAddress);
+						SetScriptError;
 						break;
 					}
 
@@ -992,7 +996,7 @@ public:
 
 					#if LOG_ASM
 					f.Print("%p ScriptCall: %s = %p(frame=%i)(",
-							c.u8 - Base - 5,
+							CurrentScriptAddress - 5,
 							c.r[0].GetStr(),
 							FuncAddr,
 							Frame);
@@ -1030,7 +1034,7 @@ public:
 					#endif
 
 					// Set IP to start of function
-					Sf.ReturnIp = c.u8 - Base;
+					Sf.ReturnIp = CurrentScriptAddress;
 					c.u8 = Base + FuncAddr;
 					break;
 				}
@@ -1038,7 +1042,7 @@ public:
 				{
 					#if LOG_ASM
 					f.Print("%p Ret %s\n",
-						c.u8 - Base - 1,
+						CurrentScriptAddress - 1,
 						c.r[0].GetStr());
 					#endif
 
@@ -1072,7 +1076,7 @@ public:
 					}
 					else
 					{
-						c.u8 = e;
+						ExitScriptExecution;
 					}
 					break;
 				}
@@ -1080,7 +1084,7 @@ public:
 				{
 					#if LOG_ASM
 					f.Print("%p ArrayGet %s = %s[%s]\n",
-							c.u8 - Base - 1,
+							CurrentScriptAddress - 1,
 							c.r[0].GetStr(),
 							c.r[1].GetStr(),
 							c.r[2].GetStr());
@@ -1125,9 +1129,8 @@ public:
 						default:
 						{
 							if (Log)
-							{
-								Log->Print("VmWarning: Can't array deref variant type %i\n", Var->Type);
-							}
+								Log->Print("%p IArrayGet warning: Can't array deref variant type %i\n", CurrentScriptAddress, Var->Type);
+							Status = ScriptWarning;
 							break;
 						}
 					}
@@ -1137,7 +1140,7 @@ public:
 				{
 					#if LOG_ASM
 					f.Print("%p ArraySet %s[%s] = %s\n",
-							c.u8 - Base - 1,
+							CurrentScriptAddress - 1,
 							c.r[0].GetStr(),
 							c.r[1].GetStr(),
 							c.r[2].GetStr());
@@ -1168,9 +1171,8 @@ public:
 						default:
 						{
 							if (Log)
-							{
-								Log->Print("VmWarning: Can't refer variant type %i\n", Var->Type);
-							}
+								Log->Print("%p IArraySet warning: Can't refer variant type '%s'\n", GVariant::TypeToString(Var->Type));
+							Status = ScriptWarning;
 							break;
 						}
 					}
@@ -1180,7 +1182,7 @@ public:
 				{
 					#if LOG_ASM
 					f.Print("%p %s == %s\n",
-							c.u8 - Base - 1,
+							CurrentScriptAddress - 1,
 							c.r[0].GetStr(),
 							c.r[1].GetStr());
 					#endif
@@ -1210,7 +1212,7 @@ public:
 				{
 					#if LOG_ASM
 					f.Print("%p %s != %s\n",
-							c.u8 - Base - 1,
+							CurrentScriptAddress - 1,
 							c.r[0].GetStr(),
 							c.r[1].GetStr());
 					#endif
@@ -1245,7 +1247,7 @@ public:
 				{
 					#if LOG_ASM
 					f.Print("%p %s < %s\n",
-							c.u8 - Base - 1,
+							CurrentScriptAddress - 1,
 							c.r[0].GetStr(),
 							c.r[1].GetStr());
 					#endif
@@ -1274,7 +1276,7 @@ public:
 				{
 					#if LOG_ASM
 					f.Print("%p %s < %s\n",
-							c.u8 - Base - 1,
+							CurrentScriptAddress - 1,
 							c.r[0].GetStr(),
 							c.r[1].GetStr());
 					#endif
@@ -1303,7 +1305,7 @@ public:
 				{
 					#if LOG_ASM
 					f.Print("%p %s < %s\n",
-							c.u8 - Base - 1,
+							CurrentScriptAddress - 1,
 							c.r[0].GetStr(),
 							c.r[1].GetStr());
 					#endif
@@ -1332,7 +1334,7 @@ public:
 				{
 					#if LOG_ASM
 					f.Print("%p %s < %s\n",
-							c.u8 - Base - 1,
+							CurrentScriptAddress - 1,
 							c.r[0].GetStr(),
 							c.r[1].GetStr());
 					#endif
@@ -1361,7 +1363,7 @@ public:
 				{
 					#if LOG_ASM
 					f.Print("%p %s && %s\n",
-							c.u8 - Base - 1,
+							CurrentScriptAddress - 1,
 							c.r[0].GetStr(),
 							c.r[1].GetStr());
 					#endif
@@ -1375,7 +1377,7 @@ public:
 				{
 					#if LOG_ASM
 					f.Print("%p %s || %s\n",
-							c.u8 - Base - 1,
+							CurrentScriptAddress - 1,
 							c.r[0].GetStr(),
 							c.r[1].GetStr());
 					#endif
@@ -1389,7 +1391,7 @@ public:
 				{
 					#if LOG_ASM
 					f.Print("%p %s = !%s\n",
-							c.u8 - Base - 1,
+							CurrentScriptAddress - 1,
 							c.r[0].GetStr(),
 							c.r[0].GetStr());
 					#endif
@@ -1402,7 +1404,7 @@ public:
 				{
 					#if LOG_ASM
 					f.Print("%p %s = %s->DomGet(%s, %s)\n",
-							c.u8 - Base - 1,
+							CurrentScriptAddress - 1,
 							c.r[0].GetStr(),
 							c.r[1].GetStr(),
 							c.r[2].GetStr(),
@@ -1486,10 +1488,11 @@ public:
 								{
 									Dst->Empty();
 									if (Log)
-										Log->Print("%p IDomGet Error: Unexpected string member %s (%s:%i).\n",
-													c.u8 - Base,
+										Log->Print("%p IDomGet warning: Unexpected string member %s (%s:%i).\n",
+													CurrentScriptAddress,
 													sName,
 													_FL);
+									Status = ScriptWarning;
 									break;
 								}
 							}
@@ -1543,10 +1546,11 @@ public:
 								{
 									Dst->Empty();
 									if (Log)
-										Log->Print("%p IDomGet Error: Unexpected datetime member %s (%s:%i).\n",
-													c.u8 - Base,
+										Log->Print("%p IDomGet warning: Unexpected datetime member %s (%s:%i).\n",
+													CurrentScriptAddress,
 													sName,
 													_FL);
+									Status = ScriptWarning;
 									break;
 								}
 							}
@@ -1558,9 +1562,10 @@ public:
 							{
 								Dst->Empty();
 								if (Log)
-									Log->Print("%p IDomGet Error: No surface pointer (%s:%i).\n",
-												c.u8 - Base,
+									Log->Print("%p IDomGet warning: No surface pointer (%s:%i).\n",
+												CurrentScriptAddress,
 												_FL);
+								Status = ScriptWarning;
 								break;
 							}
 
@@ -1591,10 +1596,11 @@ public:
 								{
 									Dst->Empty();
 									if (Log)
-										Log->Print("%p IDomGet Error: Unexpected datetime member %s (%s:%i).\n",
-													c.u8 - Base,
+										Log->Print("%p IDomGet warning: Unexpected surface member %s (%s:%i).\n",
+													CurrentScriptAddress,
 													sName,
 													_FL);
+									Status = ScriptWarning;
 									break;
 								}
 							}
@@ -1603,10 +1609,11 @@ public:
 						default:
 						{
 							if (Log)
-								Log->Print("%p IDomGet Error: Unexpected type %i (%s:%i).\n",
-											c.u8 - Base,
-											Dom->Type,
+								Log->Print("%p IDomGet warning: Unexpected type %s (%s:%i).\n",
+											CurrentScriptAddress,
+											GVariant::TypeToString(Dom->Type),
 											_FL);
+							Status = ScriptWarning;
 							break;
 						}
 					}
@@ -1616,7 +1623,7 @@ public:
 				{
 					#if LOG_ASM
 					f.Print("%p %s->DomSet(%s, %s) = %s\n",
-							c.u8 - Base - 1,
+							CurrentScriptAddress - 1,
 							c.r[0].GetStr(),
 							c.r[1].GetStr(),
 							c.r[2].GetStr(),
@@ -1631,7 +1638,11 @@ public:
 					char *sName = Name->Str();
 					if (!sName)
 					{
-						LgiAssert(!"No value");
+						if (Log)
+							Log->Print("%p IDomSet error: No name string (%s:%i).\n",
+										CurrentScriptAddress,
+										_FL);
+						SetScriptError;
 						break;
 					}
 
@@ -1686,10 +1697,11 @@ public:
 									break;
 								default:
 									if (Log)
-										Log->Print("%p IDomSet Error: Unexpected datetime member %s (%s:%i).\n",
-													c.u8 - Base,
+										Log->Print("%p IDomSet warning: Unexpected datetime member %s (%s:%i).\n",
+													CurrentScriptAddress,
 													sName,
 													_FL);
+									Status = ScriptWarning;
 									break;
 							}
 							break;
@@ -1732,10 +1744,11 @@ public:
 								default:
 								{
 									if (Log)
-										Log->Print("%p IDomSet Error: Unexpected string member %s (%s:%i).\n",
-													c.u8 - Base,
+										Log->Print("%p IDomSet warning: Unexpected string member %s (%s:%i).\n",
+													CurrentScriptAddress,
 													sName,
 													_FL);
+									Status = ScriptWarning;
 									break;
 								}
 							}
@@ -1744,10 +1757,11 @@ public:
 						default:
 						{
 							if (Log)
-								Log->Print("%p IDomSet Error: Unexpected type %i (%s:%i).\n",
-											c.u8 - Base,
+								Log->Print("%p IDomSet warning: Unexpected type %i (%s:%i).\n",
+											CurrentScriptAddress,
 											Dom->Type,
 											_FL);
+							Status = ScriptWarning;
 							break;
 						}
 					}
@@ -1757,7 +1771,7 @@ public:
 				{
 					#if LOG_ASM
 					f.Print("%p %s = %s->DomCall(%s, %s, ....)\n",
-							c.u8 - Base - 1,
+							CurrentScriptAddress - 1,
 							c.r[0].GetStr(),
 							c.r[1].GetStr(),
 							c.r[2].GetStr(),
@@ -1858,10 +1872,12 @@ public:
 								{
 									Dst->Empty();
 									if (Log)
-										Log->Print("%p IDomCall Error: Unexpected list member %s (%s:%i).\n",
-													c.u8 - Base,
+										Log->Print("%p IDomCall warning: Unexpected list member %s (%s:%i).\n",
+													CurrentScriptAddress,
 													sName,
 													_FL);
+									Status = ScriptWarning;
+									break;
 								}
 							}
 							break;
@@ -1934,10 +1950,12 @@ public:
 								{
 									Dst->Empty();
 									if (Log)
-										Log->Print("%p IDomCall Error: Unexpected hashtable member %s (%s:%i).\n",
-													c.u8 - Base,
+										Log->Print("%p IDomCall warning: Unexpected hashtable member %s (%s:%i).\n",
+													CurrentScriptAddress,
 													sName,
 													_FL);
+									Status = ScriptWarning;
+									break;
 								}
 							}
 							break;
@@ -2134,10 +2152,11 @@ public:
 								{
 									Dst->Empty();
 									if (Log)
-										Log->Print("%p IDomCall Error: Unexpected string member %s (%s:%i).\n",
-													c.u8 - Base,
+										Log->Print("%p IDomCall warning: Unexpected string member %s (%s:%i).\n",
+													CurrentScriptAddress,
 													sName,
 													_FL);
+									Status = ScriptWarning;
 									break;
 								}
 							}
@@ -2145,43 +2164,30 @@ public:
 						}
 						default:
 						{
+							const char *Type = GVariant::TypeToString(Dom->Type);
+							char t[32];
+							if (!Type)
+							{
+								sprintf_s(t, sizeof(t), "UnknownType(%i)", Dom->Type);
+								Type = t;
+							}
+							
 							ObjectParts p = ObjParts.Find(sName);
 							if (p == ObjType)
 							{
-								switch (Dom->Type)
-								{
-									case GV_NULL:		*Dst = "Null"; break;
-									case GV_INT32:		*Dst = "int32"; break;
-									case GV_INT64:		*Dst = "int64"; break;
-									case GV_BOOL:		*Dst = "Bool"; break;
-									case GV_DOUBLE:		*Dst = "Double"; break;
-									case GV_STRING:		*Dst = "String"; break;
-									case GV_BINARY:		*Dst = "Binary"; break;
-									case GV_LIST:		*Dst = "List"; break;
-									case GV_DOM:		*Dst = "Dom"; break;
-									case GV_DOMREF:		*Dst = "DomReference"; break;
-									case GV_VOID_PTR:	*Dst = "VoidPtr"; break;
-									case GV_DATETIME:	*Dst = "DateTime"; break;
-									case GV_HASHTABLE:	*Dst = "HashTable"; break;
-									case GV_OPERATOR:	*Dst = "Operator"; break;
-									case GV_CUSTOM:		*Dst = "Custom"; break;
-									case GV_WSTRING:	*Dst = "WString"; break;
-									case GV_GSURFACE:	*Dst = "Surface"; break;
-									case GV_GVIEW:		*Dst = "View"; break;
-									case GV_GMOUSE:		*Dst = "MouseEvent"; break;
-									case GV_GKEY:		*Dst = "KeyboardEvent"; break;
-									case GV_GFILE:		*Dst = "File"; break;
-									default:			*Dst = "UnknownType"; break;
-								}
+								*Dst = Type;
 							}
 							else
 							{
 								Dst->Empty();
 								if (Log)
-									Log->Print("%p IDomCall Error: Unexpected type %i (%s:%i).\n",
-												c.u8 - Base,
-												Dom->Type,
+								{
+									Log->Print("%p IDomCall warning: Unexpected type '%s' (%s:%i).\n",
+												CurrentScriptAddress,
+												Type,
 												_FL);
+								}
+								Status = ScriptWarning;
 							}
 							break;
 						}
@@ -2239,7 +2245,7 @@ public:
 			#endif
 		}
 
-		return true;
+		return Status;
 	}
 };
 
@@ -2253,18 +2259,18 @@ GVirtualMachine::~GVirtualMachine()
 	DeleteObj(d);
 }
 
-bool GVirtualMachine::Execute(GCompiledCode *Code, GStream *Log)
+GExecutionStatus GVirtualMachine::Execute(GCompiledCode *Code, GStream *Log)
 {
 	if (!d->Context || !Code)
-		return false;
+		return ScriptError;
 
 	return d->Execute(Code, Log, 0, 0, 0);
 }
 
-bool GVirtualMachine::ExecuteFunction(GCompiledCode *Code, GFunctionInfo *Func, ArgumentArray &Args, GVariant *Ret, GStream *Log)
+GExecutionStatus GVirtualMachine::ExecuteFunction(GCompiledCode *Code, GFunctionInfo *Func, ArgumentArray &Args, GVariant *Ret, GStream *Log)
 {
 	if (!d->Context || !Code)
-		return false;
+		return ScriptError;
 
 	return d->Execute(Code, Log, Func, &Args, Ret);
 }

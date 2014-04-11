@@ -525,7 +525,7 @@ public:
 	~GVirtualMachine();
 
 	/// Executes the whole script starting at the top
-	bool Execute
+	GExecutionStatus Execute
 	(
 		/// [In] The code to execute
 		GCompiledCode *Code,
@@ -534,7 +534,7 @@ public:
 	);
 
 	/// Execute just one method and return
-	bool ExecuteFunction
+	GExecutionStatus ExecuteFunction
 	(
 		/// [In] The code to execute
 		GCompiledCode *Code,
@@ -564,19 +564,13 @@ public:
 		Log = NULL;
 	}
 
-	void SetLog(GStream *log)
-	{
-		Log = log;
-	}
-
-	void SetEngine(GScriptEngine *Eng)
-	{
-		Engine = Eng;
-	}
+	GStream *GetLog();
+	bool SetLog(GStream *log);
+	void SetEngine(GScriptEngine *Eng);	
 	
 	char *GetIncludeFile(char *FileName)
 	{
-		return 0;
+		return NULL;
 	}
 	
 	GHostFunc *GetCommands();

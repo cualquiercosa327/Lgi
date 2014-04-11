@@ -98,8 +98,12 @@ enum GOperator
 class LgiClass GVariant
 {
 public:
+	/// Converts the varient type to a string
+	static const char *TypeToString(GVariantType t);
+
 	/// The type of the variant
     GVariantType Type;
+
     /// User data
     uint32 User;
 

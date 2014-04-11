@@ -12,6 +12,14 @@ class GCompiledCode;
 typedef GArray<GVariant*> ArgumentArray;
 typedef bool (GScriptContext::*ScriptCmd)(GVariant *Ret, ArgumentArray &Args);
 
+/// Execution status
+enum GExecutionStatus
+{
+	ScriptError,
+	ScriptWarning,
+	ScriptSuccess,
+};
+
 /// Various type of methods
 enum GFuncType
 {
@@ -41,7 +49,7 @@ struct GFunc
 		DeleteArray(Method);
 	}
 
-	virtual bool Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Args) = 0;
+	virtual GExecutionStatus Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Args) = 0;
 };
 
 struct GHostFunc : public GFunc
@@ -61,7 +69,7 @@ struct GHostFunc : public GFunc
 		DeleteArray(Args);
 	}
 
-	bool Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Args);
+	GExecutionStatus Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Args);
 };
 
 class GScriptUtils
@@ -85,7 +93,8 @@ public:
 	virtual void SetEngine(GScriptEngine *Eng) = 0;
 	virtual char *GetIncludeFile(char *FileName) = 0;
 	virtual GAutoString GetDataFolder() { return GAutoString(); }
-	virtual void SetLog(GStream *Log) {}
+	virtual GStream *GetLog() { return NULL; }
+	virtual bool SetLog(GStream *Log) { return false; }
 
 	// AddPrimitive: Add your primitive's functions in a derived class using the format:
 	//
@@ -106,31 +115,32 @@ public:
 	virtual ~GScriptEngine() {}
 
 	#define NotImplmented { LgiAssert(!"Not implemented"); }
-	#define NotImplmentedRet0 { LgiAssert(!"Not implemented"); return 0; }
+	#define NotImplmentedRet(c) { LgiAssert(!"Not implemented"); return c; }
+
+	/// Get the terminal output
+	virtual GStream *GetConsole() NotImplmentedRet(NULL)
+	virtual bool SetConsole(GStream *s) NotImplmentedRet(false)
 
 	/// Empty the object of all current script and variables
 	virtual void Empty() NotImplmented
 
 	/// Compile a script, required before you can run a script
-	virtual bool Compile(char *Script, bool Add = false) NotImplmentedRet0
+	virtual bool Compile(char *Script, bool Add = false) NotImplmentedRet(false)
 	
 	/// Run a previously compiled script
-	virtual bool Run() NotImplmentedRet0
+	virtual GExecutionStatus Run() NotImplmentedRet(ScriptError)
 
 	/// Compile and run a script in one step
-	virtual bool RunTemporary(char *Script) NotImplmentedRet0
+	virtual GExecutionStatus RunTemporary(char *Script) NotImplmentedRet(ScriptError)
 
 	/// Evaluate a single expression
-	virtual bool EvaluateExpression(GVariant *Result, GDom *VariableSource, char *Expression) NotImplmentedRet0
+	virtual bool EvaluateExpression(GVariant *Result, GDom *VariableSource, char *Expression) NotImplmentedRet(false)
 
 	/// Create a variable
-	virtual GVariant *Var(char16 *name, bool create = true) NotImplmentedRet0
-
-	/// Get the terminal output
-	virtual GStringPipe *GetTerm() NotImplmentedRet0
+	virtual GVariant *Var(char16 *name, bool create = true) NotImplmentedRet(NULL)
 
 	/// Call a method with the given parameters.
-	virtual bool CallMethod(const char *Method, GVariant *Ret, ArgumentArray &Args) NotImplmentedRet0
+	virtual bool CallMethod(const char *Method, GVariant *Ret, ArgumentArray &Args) NotImplmentedRet(false)
 
 	/// Dump the stack variables to the terminal
 	virtual void DumpVariables() NotImplmented
@@ -149,8 +159,8 @@ public:
 
 	void Empty();
 	bool Compile(char *Script, bool Add = false);
-	bool Run();
-	bool RunTemporary(char *Script);
+	GExecutionStatus Run();
+	GExecutionStatus RunTemporary(char *Script);
 	bool EvaluateExpression(GVariant *Result, GDom *VariableSource, char *Expression);
 	GVariant *Var(char16 *name, bool create = true);
 	GStringPipe *GetTerm();
@@ -169,13 +179,15 @@ public:
 	GScriptEngine2(GViewI *parent, GScriptContext *context);
 	~GScriptEngine2();
 
+	GStream *GetConsole();
+	bool SetConsole(GStream *t);
+
 	void Empty();
 	bool Compile(char *Script, bool Add = false);
-	bool Run();
-	bool RunTemporary(char *Script);
+	GExecutionStatus Run();
+	GExecutionStatus RunTemporary(char *Script);
 	bool EvaluateExpression(GVariant *Result, GDom *VariableSource, char *Expression);
 	GVariant *Var(char16 *name, bool create = true);
-	GStringPipe *GetTerm();
 	bool CallMethod(const char *Method, GVariant *Ret, ArgumentArray &Args);
 	void DumpVariables();
 };

@@ -42,9 +42,9 @@ char16 sStartCurlyBracket[]	= { '{', 0 };
 char16 sEndCurlyBracket[]	= { '}', 0 };
 
 //////////////////////////////////////////////////////////////////////////////////////
-bool GHostFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Args)
+GExecutionStatus GHostFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Args)
 {
-	return (Ctx->*(Func))(Ret, Args);
+	return (Ctx->*(Func))(Ret, Args) ? ScriptSuccess : ScriptError;
 }
 
 const char *InstToString(GInstruction i)
@@ -129,6 +129,22 @@ int GScriptUtils::htoi(char16 *s)
 
 
 //////////////////////////////////////////////////////////////////////////////////////
+GStream *SystemFunctions::GetLog()
+{
+	return Log;
+}
+
+bool SystemFunctions::SetLog(GStream *log)
+{
+	Log = log;	
+	return true;
+}
+
+void SystemFunctions::SetEngine(GScriptEngine *Eng)
+{
+	Engine = Eng;
+}
+
 bool SystemFunctions::LoadString(GVariant *Ret, ArgumentArray &Args)
 {
 	if (Args.Length() != 1)
@@ -588,7 +604,7 @@ bool SystemFunctions::Sleep(GVariant *Ret, ArgumentArray &Args)
 
 bool SystemFunctions::Print(GVariant *Ret, ArgumentArray &Args)
 {
-	GStream *Out = Log ? Log : (Engine ? Engine->GetTerm() : NULL);
+	GStream *Out = Log ? Log : (Engine ? Engine->GetConsole() : NULL);
 
 	for (int n=0; Out && n<Args.Length(); n++)
 	{
@@ -601,7 +617,8 @@ bool SystemFunctions::Print(GVariant *Ret, ArgumentArray &Args)
 			continue;
 
 		#if 1
-		Out->Write(f, strlen(f));
+		int Len = strlen(f);
+		Out->Write(f, Len);
 		#else
 		char *i = f, *o = f;
 		for (; *i; i++)

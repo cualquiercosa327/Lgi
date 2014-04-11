@@ -64,10 +64,8 @@ bool _BuildCheck()
 
 #ifdef WIN32
 
-#define CONSOLE 0
-
 int
-#if CONSOLE
+#if _CONSOLE
 main(int args, char **arg)
 #else
 WINAPI
@@ -75,7 +73,7 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdS
 #endif
 {
 	int Status = 0;
-	#if !CONSOLE && WIN32NATIVE
+	#if !_CONSOLE && WIN32NATIVE
 	_lgi_app_instance = hInstance;
 	#endif
 	if (_BuildCheck())
@@ -84,7 +82,7 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdS
 
     	#if WIN32NATIVE
 		OsAppArguments AppArgs;
-		#if !CONSOLE
+		#if !_CONSOLE
 		AppArgs.hInstance = hInstance;
 		AppArgs.nCmdShow = nCmdShow;
 		#endif

@@ -5,6 +5,36 @@
 #include "GVariant.h"
 #include "GToken.h"
 
+const char *GVariant::TypeToString(GVariantType t)
+{
+	switch (t)
+	{
+		case GV_NULL:		return "NULL";
+		case GV_INT32:		return "int32";
+		case GV_INT64:		return "int64";
+		case GV_BOOL:		return "bool";
+		case GV_DOUBLE:		return "double";
+		case GV_STRING:		return "String";
+		case GV_BINARY:		return "Binary";
+		case GV_LIST:		return "List";
+		case GV_DOM:		return "Dom";
+		case GV_DOMREF:		return "DomReference";
+		case GV_VOID_PTR:	return "VoidPtr";
+		case GV_DATETIME:	return "DateTime";
+		case GV_HASHTABLE:	return "HashTable";
+		case GV_OPERATOR:	return "Operator";
+		case GV_CUSTOM:		return "Custom";
+		case GV_WSTRING:	return "WString";
+		case GV_GSURFACE:	return "Surface";
+		case GV_GVIEW:		return "View";
+		case GV_GMOUSE:		return "MouseEvent";
+		case GV_GKEY:		return "KeyboardEvent";
+		case GV_GFILE:		return "File";
+	}
+	
+	return NULL;
+}
+
 GVariant::GVariant()
 {
 	Type = GV_NULL;

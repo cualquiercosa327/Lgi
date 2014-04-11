@@ -175,7 +175,7 @@ struct GExternFunc : public GFunc
 		Args.DeleteObjects();
 	}
 
-	bool Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Args);
+	GExecutionStatus Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Args);
 };
 
 struct GScriptFunc : public GFunc
@@ -197,7 +197,7 @@ struct GScriptFunc : public GFunc
 		Args.DeleteArrays();
 	}
 
-	bool Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Args);
+	GExecutionStatus Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Args);
 };
 
 struct GDomPart
@@ -436,14 +436,14 @@ public:
 		return (char*) (IsCompiling ? "CompileError" : "ExecuteError");
 	}
 
-	bool Call(GFunc *Fn, GVariant *Ret, GArray<int> *Idx)
+	GExecutionStatus Call(GFunc *Fn, GVariant *Ret, GArray<int> *Idx)
 	{
 		if (!Fn)
-			return false;
+			return ScriptError;
 
 		ArgumentArray Args, Mem;
 		ProcessArguments(Args, Mem, Idx);
-		bool Status = Fn->Call(Context, Ret, Args);
+		GExecutionStatus Status = Fn->Call(Context, Ret, Args);
 		Mem.DeleteObjects();
 
 		return Status;
@@ -620,7 +620,7 @@ public:
 
 	// Execution of code
 	GVariant *Execute_Expression(int &Cur, GDom *Src = 0, int Depth = 0);
-	bool    Execute_Statement(GArray<GCode> &To);
+	GExecutionStatus Execute_Statement(GArray<GCode> &To);
 };
 
 bool GDomRef::Get(GScriptEnginePrivate *Priv, GVariant &v)
@@ -1162,7 +1162,7 @@ bool GScriptEngine1::Compile(char *Script, bool Add)
 	return Status;
 }
 
-bool GScriptEngine1::Run()
+GExecutionStatus GScriptEngine1::Run()
 {
 	if (d->Compiled.Length() > 0)
 	{
@@ -1170,7 +1170,7 @@ bool GScriptEngine1::Run()
 		return d->Execute_Statement(d->Compiled);
 	}
 
-	return false;
+	return ScriptError;
 }
 
 class ScriptTokenState
@@ -1198,9 +1198,9 @@ public:
 	}
 };
 
-bool GScriptEngine1::RunTemporary(char *Script)
+GExecutionStatus GScriptEngine1::RunTemporary(char *Script)
 {
-	bool Status = false;
+	GExecutionStatus Status = ScriptError;
 
 	if (Script)
 	{
@@ -2396,12 +2396,12 @@ bool GScriptEnginePrivate::Type(int &Cur, GExternType &Type)
 	return false;
 }
 
-bool GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &In)
+GExecutionStatus GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &In)
 {
 	if (!Priv || !Library || !Method)
-		return false;
+		return ScriptError;
 
-	bool Status = false;
+	GExecutionStatus Status = ScriptError;
 	GArray<uint32> ArgVal;
 	GArray<char*> Mem;
 
@@ -2464,7 +2464,7 @@ bool GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &In)
 				#endif
 				uint32 r = 0;
 
-				#if defined(_MSC_VER) && !defined(WIN64)
+				#if defined(_MSC_VER) && !defined(_WIN64)
 				_asm
 				{
 					mov ecx, a
@@ -2487,7 +2487,7 @@ bool GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &In)
 				#endif
 
 				if (Ret) (*Ret) = (int) r;
-				Status = true;
+				Status = ScriptSuccess;
 			}
 			else if (Priv)
 			{
@@ -2516,12 +2516,12 @@ bool GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &In)
 	return Status;
 }
 
-bool GScriptFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Values)
+GExecutionStatus GScriptFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Values)
 {
 	if (!BodyArr || BodyIdx < 0 || !Priv)
-		return false;
+		return ScriptError;
 
-	bool Status = false;
+	GExecutionStatus Status = ScriptError;
 
 	// Process the arguments into values...
 	if (Args.Length() == Values.Length())
@@ -2530,7 +2530,7 @@ bool GScriptFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Values
 		GVariant *n;
 		StackFrame *sf = new StackFrame;
 		if (!sf)
-			return false;
+			return ScriptError;
 
 		// Add to the stack
 		Priv->Stack.Add(sf);
@@ -2602,9 +2602,9 @@ void GScriptEnginePrivate::ProcessArguments(ArgumentArray &Args, ArgumentArray &
 	}
 }
 
-bool GScriptEnginePrivate::Execute_Statement(GArray<GCode> &To)
+GExecutionStatus GScriptEnginePrivate::Execute_Statement(GArray<GCode> &To)
 {
-	bool Status = false;
+	GExecutionStatus Status = ScriptError;
 
 	for (int k=0; k<To.Length(); k++)
 	{
@@ -2668,7 +2668,7 @@ bool GScriptEnginePrivate::Execute_Statement(GArray<GCode> &To)
 				{
 					Status = Execute_Statement(Block->Block);
 				}
-				else Status = true;
+				else Status = ScriptSuccess;
 				break;
 			}
 			case GS_FUNCTION_DEFN:
@@ -2714,7 +2714,7 @@ bool GScriptEnginePrivate::Execute_Statement(GArray<GCode> &To)
 					DeleteObj(v);
 					if (!Cond)
 					{
-						Status = true;
+						Status = ScriptSuccess;
 						break;
 					}
 
@@ -2796,7 +2796,7 @@ bool GScriptEnginePrivate::Execute_Statement(GArray<GCode> &To)
 										}
 									}
 
-									Status = true;
+									Status = ScriptSuccess;
 								}
 								DeleteObj(v);
 							}
@@ -2812,7 +2812,7 @@ bool GScriptEnginePrivate::Execute_Statement(GArray<GCode> &To)
 							if (v)
 							{
 								*v = v->CastInt32() + 1;
-								Status = true;
+								Status = ScriptSuccess;
 							}
 							break;
 						}
@@ -2822,7 +2822,7 @@ bool GScriptEnginePrivate::Execute_Statement(GArray<GCode> &To)
 							if (v)
 							{
 								*v = v->CastInt32() - 1;
-								Status = true;
+								Status = ScriptSuccess;
 							}
 							break;
 						}
@@ -2875,7 +2875,7 @@ bool GScriptEnginePrivate::Execute_Statement(GArray<GCode> &To)
 										*Ref.Var = Ref.Var->CastInt32() + v->CastInt32();
 									}
 
-									Status = true;
+									Status = ScriptSuccess;
 								}
 								DeleteObj(v);
 							}
@@ -2897,13 +2897,13 @@ bool GScriptEnginePrivate::Execute_Statement(GArray<GCode> &To)
 			default:
 			{
 				LgiAssert(0);
-				return false;
+				return ScriptError;
 				break;
 			}
 		}
 	}
 
-	return true;
+	return ScriptSuccess;
 }
 
 bool GScriptEnginePrivate::Compile_Statement(GArray<GCode> &To, int &Cur)
