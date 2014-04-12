@@ -146,6 +146,7 @@ public:
 			s.x2 *= f;
 			s.y2 *= f;
 		}
+		
 		return s;
 	}
 
@@ -1091,6 +1092,9 @@ void GZoomView::Update(GRect *Where)
 		w.y1 /= d->TileSize;
 		w.x2 /= d->TileSize;
 		w.y2 /= d->TileSize;
+		
+		GRect b(0, 0, d->Tiles.x-1, d->Tiles.y-1);
+		w.Bound(&b);
 	}
 	else
 	{
