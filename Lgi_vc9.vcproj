@@ -87,12 +87,12 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(IntDir)\Lgi9.pdb"
+				ProgramDatabaseFile="$(IntDir)\Lgi9x32.pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary="$(OutDir)\Lgi9.lib"
+				ImportLibrary="$(OutDir)\Lgi9x32.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -181,7 +181,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="Ws2_32.lib Comctl32.lib  UxTheme.lib"
-				OutputFile="$(OutDir)\Lgi64.dll"
+				OutputFile="$(OutDir)\Lgi9x64.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
@@ -283,11 +283,11 @@
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(IntDir)\Lgi9d.pdb"
+				ProgramDatabaseFile="$(IntDir)\Lgi9x32d.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary="$(OutDir)/Lgi9d.lib"
+				ImportLibrary="$(OutDir)/Lgi9x32d.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -375,7 +375,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="Ws2_32.lib Comctl32.lib  UxTheme.lib"
 				ShowProgress="0"
-				OutputFile="$(OutDir)\Lgi64d.dll"
+				OutputFile="$(OutDir)\Lgi9x64d.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
@@ -478,12 +478,12 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(IntDir)\Lgi9nop.pdb"
+				ProgramDatabaseFile="$(IntDir)\Lgi9x32nop.pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary="$(OutDir)\Lgi9nop.lib"
+				ImportLibrary="$(OutDir)\Lgi9x32nop.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"

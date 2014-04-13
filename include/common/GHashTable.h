@@ -2,6 +2,7 @@
 #define _GHashTbl_H_
 
 #include <ctype.h>
+#include "GMem.h"
 #include "GArray.h"
 #include "GString.h"
 #include "LgiClass.h"

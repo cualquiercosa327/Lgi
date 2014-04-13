@@ -10,7 +10,6 @@
 #ifdef _WINDOWS
 #include <winsock2.h>
 #include <shlobj.h>
-#include "GRegKey.h"
 #else
 #include <unistd.h>
 #endif
@@ -19,8 +18,10 @@
 #include "GToken.h"
 #include "GCapabilities.h"
 
-#ifdef LINUX
+#if defined(LINUX)
 #include "LgiWinManGlue.h"
+#elif defined(_WINDOWS)
+#include "GRegKey.h"
 #endif
 
 #if defined POSIX

@@ -81,10 +81,10 @@
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Debug8\libntlmd.pdb"
+				ProgramDatabaseFile="$(OutDir)\libntlm9.pdb"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary="../../../../../lib/libntlm8d.lib"
+				ImportLibrary="../../../../../lib/libntlm9d.lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -266,10 +266,10 @@
 				OutputFile="../../../../../lib/libntlm9.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				ProgramDatabaseFile=".\Release8\libntlm.pdb"
+				ProgramDatabaseFile="$(OutDir)\libntlm9.pdb"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary="../../../../../lib/libntlm8.lib"
+				ImportLibrary="../../../../../lib/libntlm9.lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -450,10 +450,10 @@
 				OutputFile="../../../../../lib/libntlm9.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				ProgramDatabaseFile=".\Release8\libntlm.pdb"
+				ProgramDatabaseFile="$(OutDir)\libntlm9.pdb"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary="../../../../../lib/libntlm8.lib"
+				ImportLibrary="../../../../../lib/libntlm9.lib"
 				TargetMachine="1"
 			/>
 			<Tool

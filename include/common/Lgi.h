@@ -223,8 +223,10 @@
 #define HAS_SHARED_OBJECT_SKIN				0
 #define HAS_LIBGSASL						0
 
+
 // My includes
 #include "LgiInc.h"							// Xp
+
 
 #include "LgiOsDefs.h"						// Platform specific 
 #include "LgiMsgs.h"						// Xp

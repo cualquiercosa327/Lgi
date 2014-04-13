@@ -10,6 +10,7 @@
 
 class GVariant;
 #include "LgiInterfaces.h"
+#include "GMem.h"
 #include "GArray.h"
 
 /// API for reading and writing properties in objects.

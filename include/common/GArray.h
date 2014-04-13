@@ -11,6 +11,10 @@
 
 #define GARRAY_MIN_SIZE			16
 
+#if defined(LGI_CHECK_MALLOC) && !defined(LGI_MEM_DEBUG)
+#error "Include GMem.h first"
+#endif
+
 /// \brief Growable type-safe array.
 /// \ingroup Base
 ///

@@ -17,6 +17,7 @@
 
 #include "GMutex.h"
 #include "LgiOsClasses.h"
+#include "GMem.h"
 #include "GArray.h"
 #include "LgiCommon.h"
 #include "GXmlTree.h"

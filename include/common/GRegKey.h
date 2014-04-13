@@ -3,6 +3,7 @@
 
 /// Registry access class
 #include "GContainers.h"
+
 class LgiClass GRegKey
 {
 	HKEY k, Root;

@@ -22,6 +22,7 @@
 #include <sys/time.h>
 #endif
 
+#include "GMem.h"
 #include "GArray.h"
 #include "LgiClass.h"
 

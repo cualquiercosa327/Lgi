@@ -182,12 +182,12 @@ int main(int Args, char **Arg)
 
 #if defined(LGI_MEM_DEBUG) && !defined(LGI_STATIC)
 
-void *operator new(unsigned int size)
+void *operator new(size_t size)
 {
 	return lgi_malloc(size);
 }
 
-void *operator new[](unsigned int size)
+void *operator new[](size_t size)
 {
 	return lgi_malloc(size);
 }

@@ -1204,7 +1204,9 @@ bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
 					}
 				}
 
-				if (Position.Valid())
+				if (Position.Valid() &&
+					Position.x1 >= 0 &&
+					Position.y1 >= 0)
 				    Pos = Position;
 				Wp->rcNormalPosition = Pos;
 				#if DEBUG_WINDOW_PLACEMENT

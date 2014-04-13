@@ -4,6 +4,7 @@
 #define _LGI_INTERFACES_H_
 
 // Includes
+#include "GMem.h"
 #include "GArray.h"
 #include "LgiOsDefs.h"
 #include "GColour.h"

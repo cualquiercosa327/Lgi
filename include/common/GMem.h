@@ -40,7 +40,7 @@ LgiFunc bool LgiCanReadMemory
 /// \returns true on success.
 LgiFunc bool LgiDumpMemoryStats(char *filename);
 
-#if (!defined(_MSC_VER) || _MSC_VER != 1310) && defined(WIN32) && !defined(WIN64)
+#if (!defined(_MSC_VER) || _MSC_VER != 1310) && (defined(WIN32) || defined(WIN64))
 
 // Set this to '1' to switch on memory tracking, else '0'.
 #if 0 // defined(_DEBUG)

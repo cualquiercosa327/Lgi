@@ -5,6 +5,7 @@
 
 #if GDI_LEAK_DETECT
 
+#include "GMem.h"
 #include "GArray.h"
 
 enum HndType

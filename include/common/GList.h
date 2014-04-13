@@ -6,8 +6,9 @@
 #define __GLIST2_H
 
 // Includes
-#include "GPopup.h"
+#include "GMem.h"
 #include "GArray.h"
+#include "GPopup.h"
 #include "GDisplayString.h"
 #include "GCss.h"
 
