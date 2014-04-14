@@ -19,7 +19,7 @@ public:
     virtual ~GCapabilityClient();
     
 	/// Call this when you need to fulfill an external dependency.
-    bool NeedsCapability(const char *Name);
+    bool NeedsCapability(const char *Name, const char *Param = NULL);
 
     /// Call this to register a target that can install dependencies.
     void Register(GCapabilityTarget *t);
@@ -36,7 +36,7 @@ public:
     virtual ~GCapabilityTarget();
     
     /// This is called to install a dependency.
-    virtual bool NeedsCapability(const char *Name) = 0;
+    virtual bool NeedsCapability(const char *Name, const char *Param) = 0;
     
     /// This is called after the dependcy is installed.
     virtual void OnInstall(CapsHash *Caps, bool Status) = 0;

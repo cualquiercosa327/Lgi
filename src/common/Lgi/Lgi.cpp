@@ -2037,10 +2037,10 @@ HBRUSH GViewFill::GetBrush()
 #endif
 
 //////////////////////////////////////////////////////////////////////
-bool GCapabilityClient::NeedsCapability(const char *Name)
+bool GCapabilityClient::NeedsCapability(const char *Name, const char *Param)
 {
     for (int i=0; i<Targets.Length(); i++)
-        Targets[i]->NeedsCapability(Name);
+        Targets[i]->NeedsCapability(Name, Param);
     return Targets.Length() > 0;
 }
 
