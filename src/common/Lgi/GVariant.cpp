@@ -1116,6 +1116,26 @@ char *GVariant::CastString()
 			return Str();
 			break;
 		}
+		case GV_HASHTABLE:
+		{
+			GStringPipe p(256);
+
+			p.Print("{");
+			
+			char *k;
+			bool First = true;
+			for (GVariant *v = (GVariant*)Value.Hash->First(&k);
+				v;
+				v = (GVariant*)Value.Hash->Next(&k))
+			{
+				p.Print("%s%s = %s", First ? "" : ", ", k, v->CastString());
+				First = false;
+			}
+			p.Print("}");
+			OwnStr(p.NewStr());
+			return Str();
+			break;
+		}
 		case GV_DOMREF:
 		{
 			static GVariant v;

@@ -617,7 +617,10 @@ bool SystemFunctions::Print(GVariant *Ret, ArgumentArray &Args)
 		GVariant v = *Args[n];
 		char *f = v.CastString();
 		if (!f)
+		{
+			Out->Write("NULL", 4);
 			continue;
+		}
 
 		#if 1
 		int Len = strlen(f);

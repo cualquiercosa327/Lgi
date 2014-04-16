@@ -1,0 +1,70 @@
+// This script will test all the object functions
+// fret@memecode.com
+#include "../resdefs.h"
+
+// Global methods
+	s = New("list");
+	if (!s)
+		return false;
+	Print("s: ", s.Type(), "\n");
+
+	Delete(s);
+	Print("s: ", s, "\n");
+
+	lst = New("list");
+	Print("lst: ", lst, "\n");
+	hash = New("hashtable");
+	Print("hash: ", hash, "\n");
+	
+// obj.Add
+	lst.Add(123);
+	lst.Add(456);
+	lst.Add(789);
+	if (lst.Length != 3)
+		return false;
+	
+	if (lst[0] != 123 ||
+		lst[1] != 456 ||
+		lst[2] != 789)
+		return false;
+
+	hash.Add(123, "first");
+	hash.Add(456, "second");
+	hash.Add(789, "third");
+	if (hash.Length != 3)
+		return false;
+
+	Print("lst: ", lst, "\n");
+	Print("hash: ", hash, "\n");
+
+// obj.HasKey
+	if (lst.HasKey(-3) ||
+		lst.HasKey(3))
+		return false;
+	if (!lst.HasKey(0) &&
+		!lst.HasKey(1) &&
+		!lst.HasKey(2))
+		return false;
+
+	if (!hash.HasKey("first") &&
+		!hash.HasKey("third") &&
+		hash.HasKey("someotherkey"))
+		return false;
+
+// obj.Delete
+	lst.Delete(1);
+	hash.Delete("second");
+	Print("lst: ", lst, "\n");
+	Print("hash: ", hash, "\n");
+	if (lst.Length != 2 ||
+		hash.Length != 2)
+		return false;
+
+	lst.Delete(4);
+	hash.Delete("missingkey");
+	if (lst.Length != 2 ||
+		hash.Length != 2)
+		return false;
+
+Print("All tests passed.\n");
+return true;
