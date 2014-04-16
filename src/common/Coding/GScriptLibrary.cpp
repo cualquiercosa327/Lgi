@@ -29,6 +29,9 @@ char16 sReturn[]	= { 'r','e','t','u','r','n',0 };
 char16 sInclude[]	= { 'i','n','c','l','u','d','e',0 };
 char16 sDefine[]	= { 'd','e','f','i','n','e',0 };
 char16 sStruct[]	= { 's','t','r','u','c','t',0 };
+char16 sTrue[]		= { 't','r','u','e',0 };
+char16 sFalse[]		= { 'f','a','l','s','e',0 };
+char16 sNull[]		= { 'n','u','l','l',0 };
 
 char16 sHash[]				= { '#', 0 };
 char16 sPeriod[]			= { '.', 0 };

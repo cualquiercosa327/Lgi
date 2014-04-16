@@ -85,6 +85,9 @@ extern char16 sReturn[];
 extern char16 sInclude[];
 extern char16 sDefine[];
 extern char16 sStruct[];
+extern char16 sTrue[];
+extern char16 sFalse[];
+extern char16 sNull[];
 
 extern char16 sHash[];
 extern char16 sPeriod[];

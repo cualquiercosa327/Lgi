@@ -1,4 +1,0 @@
-c = New("list");
-c.Add(123);
-c.Add(456);
-Print(c.Type(), "=", c, "\n");

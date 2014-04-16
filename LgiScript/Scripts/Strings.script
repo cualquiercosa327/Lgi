@@ -1,0 +1,26 @@
+// This script will test all the string functions
+// fret@memecode.com
+#include "../resdefs.h"
+
+s = LoadString(IDS_TEST_STRING);
+if (s != "This is a test")
+	return false;
+
+s = FormatSize(123456);
+if (s != "120 K")
+	return false;
+
+s = Sprintf("%x", 0xffaa);
+if (s != "ffaa")
+	return false;
+
+s = "Test string";
+if (s.Find("str") != 5)
+	return false;
+if (s.Find("asd") != -1)
+	return false;
+if (s.Find("Str") != -1)
+	return false;
+
+Print("All tests passed.\n");
+return true;

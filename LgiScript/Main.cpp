@@ -43,7 +43,7 @@ public:
 	{
 		char p[MAX_PATH];
 		LgiMakePath(p, sizeof(p), SrcFile, "..");
-		LgiMakePath(p, sizeof(p), SrcFile, FileName);
+		LgiMakePath(p, sizeof(p), p, FileName);
 		if (FileExists(p))
 		{
 			return ::ReadTextFile(p);

@@ -8,6 +8,20 @@
 
 int GFunctionInfo::_Infos = 0;
 
+enum GExpTokens
+{
+	NoToken,
+	StartRdBracket,
+	EndRdBracket,
+	Comma,
+	SemiColon,
+	StartSqBracket,
+	EndSqBracket,
+	ConstTrue,
+	ConstFalse,
+	ConstNull,
+};
+
 struct LinkFixup
 {
 	int Tok;
@@ -45,6 +59,7 @@ struct Node
 	// -or-
 	bool Constant;
 	int Tok;
+	GExpTokens ConstTok;
 	// -or-
 	GFunc *ContextFunc;
 	GArray<NodeExp> Args;
@@ -64,6 +79,7 @@ struct Node
 		ScriptFunc = 0;
 		Constant = false;
 		Tok = -1;
+		ConstTok = NoToken;
 		Reg.Empty();
 		ArrayIdx.Empty();
 	}
@@ -75,11 +91,12 @@ struct Node
 		Tok = t;
 	}
 
-	void SetConst(int t)
+	void SetConst(int t, GExpTokens e)
 	{
 		Init();
 		Constant = true;
 		Tok = t;
+		ConstTok = e;
 	}
 
 	void SetContextFunction(GFunc *m, int tok)
@@ -291,18 +308,29 @@ public:
 	GArray<GVariables*> Scopes;
 	GArray<LinkFixup> Fixups;
 	GHashTbl<char16*, char16*> Defines;
+	GHashTbl<char16*, GExpTokens> ExpTok;
 
 	#ifdef _DEBUG
 	GArray<GVariant> RegAllocators;
 	#endif
 
-	GCompilerPriv(SystemFunctions *sf)
+	GCompilerPriv(SystemFunctions *sf) : ExpTok(0, false)
 	{
 		Ctx = 0;
 		Code = 0;
 		Log = 0;
 		Script = 0;
 		Regs = 0;
+		
+		ExpTok.Add(sStartRdBracket, StartRdBracket);
+		ExpTok.Add(sEndRdBracket, EndRdBracket);
+		ExpTok.Add(sComma, Comma);
+		ExpTok.Add(sSemiColon, SemiColon);
+		ExpTok.Add(sStartSqBracket, StartSqBracket);
+		ExpTok.Add(sEndSqBracket, EndSqBracket);
+		ExpTok.Add(sTrue, ConstTrue);
+		ExpTok.Add(sFalse, ConstFalse);
+		ExpTok.Add(sNull, ConstNull);
 
 		GHostFunc *f = sf->GetCommands();
 		for (int i=0; f[i].Method; i++)
@@ -330,19 +358,20 @@ public:
 
 	bool OnError(int Tok, const char *Msg, ...)
 	{
-		if (Log)
-		{
-			char Buf[512];
-			va_list Arg;
-			va_start(Arg, Msg);
-			#ifndef WIN32
-			#define _vsnprintf vsnprintf
-			#endif
-			_vsnprintf(Buf, sizeof(Buf)-1, Msg, Arg);
-			Log->Print("CompileError:%s - %s\n", Lines[Tok], Buf);
-			va_end(Arg);
-		}
-		return false;
+		if (!Log)
+			return false;
+
+		char Buf[512];
+		va_list Arg;
+		va_start(Arg, Msg);
+		#ifndef WIN32
+		#define _vsnprintf vsnprintf
+		#endif
+		_vsnprintf(Buf, sizeof(Buf)-1, Msg, Arg);
+		Log->Print("CompileError:%s - %s\n", Lines[Tok], Buf);
+		va_end(Arg);
+
+		return true;
 	}
 
 	void DebugInfo(int Tok)
@@ -603,6 +632,14 @@ public:
 		r.Scope = SCOPE_GLOBAL;
 		r.Index = Code->Globals.Length();
 		Code->Globals[r.Index] = d;
+	}
+
+	/// Allocate a constant bool
+	void AllocConst(GVarRef &r, bool b)
+	{
+		r.Scope = SCOPE_GLOBAL;
+		r.Index = Code->Globals.Length();
+		Code->Globals[r.Index] = b;
 	}
 
 	/// Allocate a constant int
@@ -1024,28 +1061,49 @@ public:
 			else if (n.IsConst())
 			{
 				// Constant
-				char16 *t = Tokens[n.Tok];
-
-				if (*t == '\"' || *t == '\'')
+				switch (n.ConstTok)
 				{
-					// string
-					int Len = StrlenW(t);
-					AllocConst(n.Reg, t + 1, Len - 2);
-				}
-				else if (StrchrW(t, '.'))
-				{
-					// double
-					AllocConst(n.Reg, atof(t));
-				}
-				else if (t[0] == '0' && tolower(t[1]) == 'x')
-				{
-					// hex integer
-					AllocConst(n.Reg, htoi(t + 2));
-				}
-				else
-				{
-					// decimal integer
-					AllocConst(n.Reg, atoi(t));
+					case ConstTrue:
+					{
+						AllocConst(n.Reg, true);
+						break;
+					}
+					case ConstFalse:
+					{
+						AllocConst(n.Reg, false);
+						break;
+					}
+					case ConstNull:
+					{
+						AllocNull(n.Reg);
+						break;
+					}
+					default:
+					{
+						char16 *t = Tokens[n.Tok];
+						if (*t == '\"' || *t == '\'')
+						{
+							// string
+							int Len = StrlenW(t);
+							AllocConst(n.Reg, t + 1, Len - 2);
+						}
+						else if (StrchrW(t, '.'))
+						{
+							// double
+							AllocConst(n.Reg, atof(t));
+						}
+						else if (t[0] == '0' && tolower(t[1]) == 'x')
+						{
+							// hex integer
+							AllocConst(n.Reg, htoi(t + 2));
+						}
+						else
+						{
+							// decimal integer
+							AllocConst(n.Reg, atoi(t));
+						}
+						break;
+					}
 				}
 			}
 			else if (n.IsContextFunc())
@@ -1165,7 +1223,8 @@ public:
 			bool PrevIsOp = true;
 			while ((t = Tokens[Cur]))
 			{
-				if (StricmpW(t, sStartRdBracket) == 0)
+				GExpTokens Tok = ExpTok.Find(t);
+				if (Tok == StartRdBracket)
 				{
 					Cur++;
 
@@ -1173,20 +1232,23 @@ public:
 						return false;
 					PrevIsOp = false;
 				}
-				else if (StricmpW(t, sEndRdBracket) == 0)
+				else if (Tok == EndRdBracket)
 				{
 					if (Depth > 0)
 						Cur++;
 					break;
 				}
-				else if (StricmpW(t, sComma) == 0 ||
-						 StricmpW(t, sSemiColon) == 0)
+				else if (Tok == Comma || Tok == SemiColon)
 				{
 					break;
 				}
-				else if (Depth == 0 && StricmpW(t, sEndSqBracket) == 0)
+				else if (Depth == 0 && Tok == EndSqBracket)
 				{
 					break;
+				}
+				else if (Tok == ConstTrue || Tok == ConstFalse || Tok == ConstNull)
+				{
+					n.New().SetConst(Cur++, Tok);
 				}
 				else
 				{
@@ -1362,7 +1424,7 @@ public:
 						}
 						else
 						{
-							n.New().SetConst(Cur);
+							n.New().SetConst(Cur, NoToken);
 						}
 					}
 
@@ -1709,8 +1771,6 @@ public:
 			if (StricmpW(t, sSemiColon) == 0)
 			{
 				Cur++;
-				if (!MoreThanOne)
-					break;
 			}
 			else if (!StricmpW(t, sReturn))
 			{
@@ -1748,6 +1808,9 @@ public:
 				if (!DoExpression(Cur, 0))
 					return false;
 			}
+
+			if (!MoreThanOne)
+				break;
 		}
 
 		return true;
@@ -2576,7 +2639,8 @@ GCompiledCode *GCompiler::Compile(GScriptContext *Context, char *FileName, char 
 	d->Code = Previous ? Previous : new GCompiledCode;
 	if (d->Code)
 	{
-		if (!d->Lex(Script, FileName) ||
+		bool LexResult = d->Lex(Script, FileName);
+		if (!LexResult ||
 			!d->Compile())
 		{
 			if (!Previous)
@@ -2603,12 +2667,10 @@ public:
 	GViewI *Parent;
 	GScriptContext *Context;
 	GCompiledCode *Code;
-	GStringPipe Log;
 
 	GScriptEnginePrivate2()
 	{
 		Code = 0;
-		SetLog(&Log);
 	}
 
 	~GScriptEnginePrivate2()
@@ -2619,7 +2681,6 @@ public:
 	void Empty()
 	{
 		DeleteObj(Code);
-		Log.Empty();
 	}
 };
 
@@ -2647,7 +2708,7 @@ void GScriptEngine2::Empty()
 bool GScriptEngine2::Compile(char *Script, bool Add)
 {
 	GCompiler Comp(d);
-	d->Code = Comp.Compile(d->Context, 0, Script, &d->Log, d->Code);
+	d->Code = Comp.Compile(d->Context, 0, Script, d->GetLog(), d->Code);
 	return d->Code != 0;
 }
 
@@ -2672,11 +2733,11 @@ GExecutionStatus GScriptEngine2::RunTemporary(char *Script)
 	{
 		GCompiledCode Temp(*d->Code);
 		GCompiler Comp(d);
-		GCompiledCode *Code = Comp.Compile(d->Context, 0, Script, &d->Log, &Temp);
+		GCompiledCode *Code = Comp.Compile(d->Context, 0, Script, d->GetLog(), &Temp);
 		if (Code)
 		{
 			GVirtualMachine Vm(d->Context);
-			Status = Vm.Execute(Code, &d->Log);
+			Status = Vm.Execute(Code, d->GetLog());
 		}
 	}
 
@@ -2720,7 +2781,7 @@ bool GScriptEngine2::CallMethod(const char *Method, GVariant *Ret, ArgumentArray
 		return false;
 
 	GVirtualMachine Vm(d->Context);
-	return Vm.ExecuteFunction(d->Code, i, Args, Ret, &d->Log);
+	return Vm.ExecuteFunction(d->Code, i, Args, Ret, d->GetLog());
 }
 
 void GScriptEngine2::DumpVariables()

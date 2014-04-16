@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<resources Offset="1">
+	<string-group Name="_Dialog Symbols_">
+		<String Ref="2" Cid="2" Define="IDD_TEST" en="Test Dialog" />
+		<String Ref="3" Cid="3" Define="IDC_3" />
+		<String Ref="4" Cid="-1" Define="IDC_STATIC" en="Edit:" />
+		<String Ref="5" Cid="5" Define="IDC_EDIT" />
+		<String Ref="6" Cid="-1" Define="IDC_STATIC" en="Combo:" />
+		<String Ref="7" Cid="7" Define="IDC_COMBO" />
+		<String Ref="8" Cid="8" Define="IDC_CHECKBOX" en="Checkbox" />
+		<String Ref="9" Cid="9" Define="IDC_GROUP" en="Group:" />
+		<String Ref="10" Cid="10" Define="IDC_ONE" en="One" />
+		<String Ref="11" Cid="11" Define="IDC_TWO" en="Two" />
+		<String Ref="12" Cid="12" Define="IDC_THREE" en="Three" />
+		<String Ref="13" Cid="13" Define="IDC_LIST" />
+		<String Ref="14" Cid="14" Define="IDC_TREE" />
+		<String Ref="15" Cid="15" Define="IDC_PROGRESS" />
+		<String Ref="16" Cid="1" Define="IDOK" en="Ok" />
+	</string-group>
+	<string-group Name="General">
+		<String Ref="1" Cid="500" Define="IDS_TEST_STRING" en="This is a test" />
+	</string-group>
+	<Dialog pos="7,7,497,395" ref="2">
+		<TableLayout pos="7,7,475,356" ref="3" cols="0.500,0.500" rows="0.167,0.167,0.167,0.167,0.167,0.167">
+			<tr>
+				<td>
+					<StaticText pos="14,14,111,34" ref="4" />
+				</td>
+				<td>
+					<EditBox Pos="251,14,348,34" ref="5" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<StaticText pos="14,76,104,96" ref="6" />
+				</td>
+				<td>
+					<ComboBox pos="251,73,355,93" ref="7" />
+				</td>
+			</tr>
+			<tr>
+				<td />
+				<td>
+					<CheckBox pos="244,132,355,152" ref="8" />
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2">
+					<Group pos="14,168,447,209" ref="9">
+						<RadioBox pos="35,21,118,34" ref="10" />
+						<RadioBox pos="140,21,223,41" ref="11" />
+						<RadioBox pos="259,21,349,41" ref="12" />
+					</Group>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<ListView pos="14,231,209,265" ref="13" />
+				</td>
+				<td>
+					<TreeView pos="238,231,433,272" ref="14" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<Progress pos="21,294,174,314" ref="15" />
+				</td>
+				<td>
+					<Button pos="280,301,363,321" ref="16" />
+				</td>
+			</tr>
+		</TableLayout>
+	</Dialog>
+</resources>
