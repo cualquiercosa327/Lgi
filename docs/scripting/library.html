@@ -2,6 +2,22 @@
 <head>
 	<link href="scripting.css" rel="stylesheet" type="text/css">
 	<title>Lgi Scripting Library</title>
+	<style>
+		pre {
+			border: 1px solid green;
+			background: #f0f8f0;
+			color: green;
+			padding: .5em;
+			margin-left: 2em;
+		}
+		.output {
+			border: 1px solid gray;
+			background: #f0f0f0;
+			color: gray;
+			padding: .5em;
+			margin-left: 2em;
+		}
+	</style>
 </head>
 <body>
 
@@ -19,124 +35,124 @@
 		<table class=idx>
 			<tr>
 				<td>
-						<h5>String handling:</h5>
-						<a href="#Strchr">Strchr</a><br>
-						<a href="#Strstr">Strstr</a><br>
-						<a href="#Strcmp">Strcmp</a><br>
-						<a href="#Substr">Substr</a><br>
-						<a href="#LoadString">LoadString</a><br>
-						<a href="#FormatSize">FormatSize</a><br>
-						<a href="#Sprintf">Sprintf</a><br>
-						<a href="#Tokenize">Tokenize</a><br>
 				<td>
-						<h5>Containers/Objects:</h5>
-						<a href="#NewHashTable">NewHashTable</a><br>
-						<a href="#NewList">NewList</a><br>
-						<a href="#DeleteElement">DeleteElement</a><br>
-						<a href="#New">New</a><br>
-						<a href="#Delete">Delete</a><br>
+						Strings
 				<td>
-						<h5>Files:</h5>
-						<a href="#ReadTextFile">ReadTextFile</a><br>
-						<a href="#WriteTextFile">WriteTextFile</a><br>
-						<a href="#SelectFiles">SelectFiles</a><br>
-						<a href="#ListFiles">ListFiles</a><br>
-						<a href="#DeleteFile">DeleteFile</a><br>
+						Containers
 				<td>
-						<h5>Time:</h5>
-						<a href="#Sleep">Sleep</a><br>
-						<a href="#ClockTick">ClockTick</a><br>
-						<a href="#Now">Now</a><br>
+						Files
 				<td>
-						<h5>General:</h5>
-						<a href="#Execute">Execute</a><br>
-						<a href="#System">System</a><br>
-						<a href="#GetInputDlg">GetInputDlg</a><br>
+						Dates and Time
+				<td>
+						Bitmaps
+				<td>
+						User Interface
+				<td>
+						General
+			<tr>
+				<td>
+					Global functions:
+				<td>
+					<a href="#LoadString">LoadString</a><br>
+					<a href="#FormatSize">FormatSize</a><br>
+					<a href="#Sprintf">Sprintf</a><br>
+					<a href="#Print">Print</a><br>
+				<td>
+					<a href="#New">New</a><br>
+					<a href="#Delete">Delete</a><br>
+				<td>
+					<a href="#ReadTextFile">ReadTextFile</a><br>
+					<a href="#WriteTextFile">WriteTextFile</a><br>
+					<a href="#SelectFiles">SelectFiles</a><br>
+					<a href="#ListFiles">ListFiles</a><br>
+					<a href="#DeleteFile">DeleteFile</a><br>
+				<td>
+					<a href="#Sleep">Sleep</a><br>
+					<a href="#ClockTick">ClockTick</a><br>
+					<a href="#Now">Now</a><br>
+				<td>
+					<a href="#CreateBitmap">CreateBitmap</a><br>
+				<td>
+					<a href="#GetInputDlg">GetInputDlg</a><br>
+					<a href="#GetViewById">GetViewById</a><br>
+				<td>
+					<a href="#Execute">Execute</a><br>
+					<a href="#System">System</a><br>
+					<a href="#OsVersion">OsVersion</a><br>
+			<tr>
+				<td>
+					Object Members:
+				<td>
+					<a href="#find">obj.Find</a><br>
+					<a href="#split">obj.Split</a><br>
+					<a href="#join">obj.Join</a><br>
+					<a href="#upper">obj.Upper</a><br>
+					<a href="#lower">obj.Lower</a><br>
+					<a href="#sub">obj.Sub</a><br>
+				<td>
+					<a href="#add">obj.Add</a><br>
+					<a href="#haskey">obj.HasKey</a><br>
+					<a href="#objDelete">obj.Delete</a><br>
+				<td>
+					<a href="#open">obj.Open</a><br>
+					<a href="#read">obj.Read</a><br>
+					<a href="#write">obj.Write</a><br>
+					<a href="#pos">obj.Pos</a><br>
+					<a href="#close">obj.Close</a><br>
+				<td>
+					<a href="#year">obj.Year</a><br>
+					<a href="#month">obj.Month</a><br>
+					<a href="#day">obj.Day</a><br>
+					<a href="#hour">obj.Hour</a><br>
+					<a href="#minute">obj.Minute</a><br>
+					<a href="#second">obj.Second</a><br>
+					<a href="#milli">obj.Milli</a><br>
+					<a href="#u64">obj.Int</a><br>
+					<br>
+					<a href="#date">obj.Date</a><br>
+					<a href="#time">obj.Time</a><br>
+					<a href="#datetime">obj.DateTime</a><br>
+				<td>
+					<a href="#x">obj.x</a><br>
+					<a href="#y">obj.y</a><br>
+					<a href="#bits">obj.Bits</a><br>
+					<a href="#colourspace">obj.ColourSpace</a><br>
+					<a href="#palette">obj.Palette</a><br>
+					<a href="#load">obj.Load</a><br>
+					<a href="#save">obj.Save</a><br>
+				<td>
+					<a href="#handle">obj.Handle</a><br>
+					<a href="#id">obj.Id</a><br>
+					<a href="#name">obj.Name</a><br>
+					<a href="#value">obj.Value</a><br>
+					<a href="#enabled">obj.Enabled</a><br>
+					<a href="#foreground">obj.Foreground</a><br>
+					<a href="#background">obj.Background</a><br>
+				<td>
+					<a href="#type">obj.Type</a><br>
+					<a href="#length">obj.Length</a><br>
 		</table>
-
-		<h4>string <a name="Strchr">Strchr</a>(str, ch[, len]);</h4>
-			<div>
-				Finds a unicode character in a string.
-				<br><br>
-				Arguments:
-				<ul>
-					<li> str - the string to search in
-					<li> ch - the character to find
-					<li> [Optional] len - the maximum length in 'str' to search
-				</ul>
-				<br>
-				Returns:
-				<ul>
-					<li> The remainder of the string starting with the character found or NULL if not found.
-				</ul>				
-			</div>
-
-		<h4>string <a name="Strstr">Strstr</a>(str1, str2[, case_insensitive[, len]]);</h4>
-			<div>
-				Finds a string in another string.
-				<br><br>
-				Arguments:
-				<ul>
-					<li> str1 - the string to search in
-					<li> str2 - the string to search for
-					<li> [Optional] case_insensitive - true if you want case sensitivity (default: false)
-					<li> [Optional] len - the maximum length in 'str' to search (default: the whole of 'str1')
-				</ul>
-				<br>
-				Returns:
-				<ul>
-					<li> The remainder of the string starting with the string found or NULL if not found.
-				</ul>				
-			</div>
-
-		<h4>int <a name="Strcmp">Strcmp</a>(str1, str2[, case_insensitive[, len]]);</h4>
-			<div>
-				Compares 2 strings.
-				<br><br>
-				Arguments:
-				<ul>
-					<li> str1 - the first string to compare
-					<li> str2 - the second string to compare
-					<li> [Optional] case_insensitive - true if you want case sensitivity (default: false)
-					<li> [Optional] len - the maximum length in characters to compare (default: the whole strings)
-				</ul>
-				<br>
-				Returns:
-				<ul>
-					<li> zero if the strings are the same, non-zero if they are not.
-				</ul>				
-			</div>
-
-		<h4>string <a name="Substr">Substr</a>(str, start[, len]);</h4>
-			<div>
-				Returns a part of another string.
-				<br><br>
-				Arguments:
-				<ul>
-					<li> str - the whole string
-					<li> start - the zero based character index of the sub string you want
-					<li> [Optional] len - the length of the substring (default: the rest of the string)
-				</ul>
-				<br>
-				Returns:
-				<ul>
-					<li> part of the string.
-				</ul>				
-			</div>
 
 		<h4>string <a name="LoadString">LoadString</a>(id);</h4>
 			<div>
-				Loads a string from the resource file.
+				Loads a string from the resource file. The strings have to be stored in a Lgi resource file and
+				loaded at runtime by the current application. There is a 
+				<a href="http://www.memecode.com/lgires.php">graphical editor</a> for the resource files.
 				<br><br>
 				Arguments:
 				<ul>
-					<li> id - the string's id.
+					<li> id - the string's id as an integer.
 				</ul>
 				<br>
 				Returns:
 				<ul>
 					<li> A string or NULL on failure.
 				</ul>
+				<br>
+				Example:
+				<pre>c = LoadString(186);
+Print(c, "\n");</pre>
+				<pre class=output>Enter offset:</pre>
 			</div>
 
 		<h4>string <a name="FormatSize">FormatSize</a>(bytes);</h4>
@@ -152,11 +168,16 @@
 				<ul>
 					<li> A string containing the size description.
 				</ul>
+				<br>
+				Example:
+				<pre>c = FormatSize(345674211);
+Print(c, "\n");</pre>
+				<pre class=output>329.66 M</pre>
 			</div>
 
 		<h4>string <a name="Sprintf">Sprintf</a>(format[, args, ...]);</h4>
 			<div>
-				Formats a string.
+				Formats a string. Not available on the mac platform.
 				<br><br>
 				Arguments:
 				<ul>
@@ -168,106 +189,291 @@
 				<ul>
 					<li> A formatted string.
 				</ul>
+				<br>
+				Example:
+				<pre>c = Sprintf("Format: %i, %i, %s, 0x%x\n", 345, 11, "StringArg", 0x1234fa);
+Print(c);</pre>
+				<pre class=output>Format: 345, 11, StringArg, 0x1234af</pre>
 			</div>
 
-		<h4>list <a name="Tokenize">Tokenize</a>(string, delimiter);</h4>
+		<h4>void <a name="Print">Print</a>(item1[, item2, ...]);</h4>
 			<div>
-				Splits a string up into segments according to the delimiter specified.
+				Prints variables on the console, if available. No new line is explicitly printed, you have to add
+				"\n" to your arguments to move to the next line.
 				<br><br>
 				Arguments:
 				<ul>
-					<li> string - the string to split.
-					<li> delimiter - the delimiter character, only the first character is used.
-				</ul>
-				<br>
-				Returns:
-				<ul>
-					<li> A list of strings, possibly empty.
-				</ul>
-			</div>
-
-		<h4>hashtable <a name="NewHashTable">NewHashTable</a>();</h4>
-			<div>
-				Returns an empty hash table object.
-				<br><br>
-				Arguments:
-				<ul>
-					<li> (none)
-				</ul>
-				<br>
-				Returns:
-				<ul>
-					<li> a hash table object.
-				</ul>
-				<br>
-				See also <a href="http://www.memecode.com/xyz/view.php?id=6108">this</a> page on container 
-				type handling.
-			</div>
-
-		<h4>list <a name="NewList">NewList</a>();</h4>
-			<div>
-				Returns an empty list object.
-				<br><br>
-				Arguments:
-				<ul>
-					<li> (none)
-				</ul>
-				<br>
-				Returns:
-				<ul>
-					<li> a list object.
-				</ul>
-				<br>
-				See also <a href="http://www.memecode.com/xyz/view.php?id=6108">this</a> page on container 
-				type handling.
-			</div>
-
-		<h4>bool <a name="DeleteElement">DeleteElement</a>(container, index);</h4>
-			<div>
-				Returns an empty list object.
-				<br><br>
-				Arguments:
-				<ul>
-					<li> container - the list or hashtable container to delete from
-					<li> index - the index of the element, if 'container' is a list, then specify the
-						integer index of the element to delete. If it's a hash table, specific the
-						key of the element to delete as a string.
-				</ul>
-				<br>
-				Returns:
-				<ul>
-					<li> non-zero if successful, zero on error.
-				</ul>
-			</div>
-
-		<h4>object <a name="New">New</a>(object);</h4>
-			<div>
-				Creates a custom object.
-				<br><br>
-				Arguments:
-				<ul>
-					<li> object - the name of the object.
-				</ul>
-				<br>
-				Returns:
-				<ul>
-					<li> A new object.
-				</ul>
-			</div>
-
-		<h4>void <a name="Delete">Delete</a>(object);</h4>
-			<div>
-				Deletes a custom object.
-				<br><br>
-				Arguments:
-				<ul>
-					<li> object - the ptr of the object to delete.
+					<li> itemN - The object to print. Non string objects will be converted to string if possible.
 				</ul>
 				<br>
 				Returns:
 				<ul>
 					<li> Nothing.
 				</ul>
+			</div>
+
+		<h4>int <a name="find">obj.Find</a>(sub_string[, start[, end]]);</h4>
+			<div>
+				Finds a the position of a sub-string.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> sub_string - The string to find. The search is case sensitive.
+					<li> [optional] start - The start index of the area to search.
+					<li> [optional] end - The end index of the area to search.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> The location of the sub-string or -1 if not found.
+				</ul>
+				<br>
+				Example:
+				<pre>c = "A string to search";
+Print(c.Find("to"), "\n");
+Print(c.Find("missing"), "\n");</pre>
+				<pre class=output>9
+-1</pre>
+			</div>
+
+		<h4>list <a name="split">obj.Split</a>(separator[, max_split]);</h4>
+			<div>
+				Splits a string into parts based on a separator.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> separator - The string to use as a separator between the parts.
+					<li> [optional] max_splits - The maximum number of splits to make.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> A list of strings. Could be empty if the input is also empty.
+				</ul>
+				<br>
+				Example:
+				<pre>c = "123, 456, 879";
+p = c.split(",");
+for (i=0; i&lt;p.Length; i++)
+{
+    Print("[", i, "]='", p[i].Strip(), "'\n");
+}</pre>
+				<pre class=output>[0]='123'
+[1]='456'
+[2]='879'</pre>
+			</div>
+
+		<h4>string <a name="join">obj.Join</a>(list);</h4>
+			<div>
+				Joins a list of objects into a single string separated by the 'obj' string.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> list - The objects to be joined.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> A string concatenation of all the source objects.
+				</ul>
+				<br>
+				Example:
+				<pre>c = New("list");
+c.Add(123);
+c.Add(456);
+c.Add(789);
+p = ", ";
+r = p.Join(c);
+Print(r, "\n");</pre>
+				<pre class=output>123, 456, 789</pre>
+			</div>
+
+		<h4>string <a name="upper">obj.Upper</a>();</h4>
+			<div>
+				Makes an upper case version of 'obj'.
+				<br><br>
+				Returns:
+				<ul>
+					<li> An upper case string.
+				</ul>
+				<br>
+				Example:
+				<pre>c = "A string";
+Print(c.Upper(), "\n");</pre>
+				<pre class=output>A STRING</pre>
+			</div>
+
+		<h4>string <a name="lower">obj.Lower</a>();</h4>
+			<div>
+				Makes a lower case version of 'obj'.
+				<br><br>
+				Returns:
+				<ul>
+					<li> An lower case string.
+				</ul>
+				<br>
+				Example:
+				<pre>c = "A string";
+Print(c.Lower(), "\n");</pre>
+				<pre class=output>a string</pre>
+			</div>
+
+		<h4>string <a name="sub">obj.Sub</a>(start[, end]);</h4>
+			<div>
+				Returns part of the string 'obj'.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> start - The start of the sub-string.
+					<li> [optional] end - The end of the sub-string. If not supplied the end of 
+						the source string is used.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> A string.
+				</ul>
+				<br>
+				Example:
+				<pre>c = "A string";
+Print(c.Sub(2, 5), "\n");
+Print(c.Sub(4), "\n");</pre>
+				<pre class=output>str
+ring</pre>
+			</div>
+
+		<h4>object <a name="New">New</a>(object);</h4>
+			<div>
+				Creates a new object.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> object - the name of the object. Can be a built in type of a custom defined type.
+						<ul>
+							<li> "List" - creates a list.
+							<li> "HashTable" - creates a hash table.
+							<li> "Bitmap" - creates a memory surface to draw on.
+							<li> "File" - creates a file object.
+							<li> "DateTime" - creates a date/time object.
+							<li> &lt;custom_type_name&gt; - Some custom type defined in script.
+						</ul>
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> The new object or NULL on failure.
+				</ul>
+				<br>
+				Example:
+				<pre>c = New("DateTime");
+c.Date = "1/4/2014";
+Print(c.Type(), ": ", c, "\n");</pre>
+				<pre class=output>DateTime: 1/04/2014 12:00:00a</pre>
+			</div>
+
+		<h4>void <a name="Delete">Delete</a>(object);</h4>
+			<div>
+				Will set any object to NULL. Must be used with custom types
+				before they go out of scope otherwise they will leak memory.
+				But also works on any other type of object, like lists, hashtables 
+				or basic strings and ints.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> object - the object to delete.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> Nothing.
+				</ul>
+			</div>
+
+		<h4>void <a name="add">obj.Add</a>(object[, key]);</h4>
+			<div>
+				Adds 'object1' to a container. Depending on the object type:
+				<ul>
+					<li> List: the key is an optional integer index. If not supplied the object is appended to the end.
+					<li> HashTable: the key is NOT optional and specifies the key under which to store the object.
+				</ul>
+				<br>
+				Arguments:
+				<ul>
+					<li> object - the object to add.
+					<li> key - the location to store the object.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> Nothing.
+				</ul>
+				<br>
+				Example:
+				<pre>c = New("list");
+c.Add("first");
+c.Add("second");
+Print(c, "\n");
+Print(c.Length, "\n");</pre>
+				<pre class=output>{first, second}
+2</pre>
+			</div>
+
+		<h4>bool <a name="haskey">obj.HasKey</a>(key);</h4>
+			<div>
+				Returns true of the container has something stored at 'key':
+				<br>
+				Arguments:
+				<ul>
+					<li> key - the location to store the object.
+						<ul>
+							<li> List: the key is an integer index.
+							<li> HashTable: the key is a string.
+						</ul>
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> TRUE if the object exists.
+				</ul>
+				<br>
+				Example:
+				<pre>c = New("hashtable");
+c.Add(23, "first");
+c.Add(345, "second");
+Print(c.HasKey("asd"), "\n");
+Print(c.HasKey("first"), "\n");</pre>
+				<pre class=output>0
+1</pre>
+			</div>
+
+		<h4>void <a name="objDelete">obj.Delete</a>(key);</h4>
+			<div>
+				Removes and deletes an object from the container
+				<br><br>
+				Arguments:
+				<ul>
+					<li> key - the location of the object:
+					<ul>
+						<li> List: the key is an integer index. If it's out of range, nothing happens.
+						<li> HashTable: the key is string. If the key isn't present nothing happens.
+					</ul>
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> Nothing.
+				</ul>
+				<br>
+				Example:
+				<pre>c = New("hashtable");
+c.Add(123, "first");
+c.Add(456, "second");
+Print(c.Length, "\n");
+c.Delete("first");
+Print(c.Length, "\n");
+</pre>
+				<pre class=output>2
+1</pre>
 			</div>
 
 		<h4>string <a name="ReadTextFile">ReadTextFile</a>(filename);</h4>
@@ -317,6 +523,19 @@
 				<ul>
 					<li> list of filenames.
 				</ul>
+				<br>
+				Example:
+				<pre>files = SelectFiles(Parent, "*.png", "C:\\Users\\matthew\\Desktop", 1);
+if (files)
+{
+    for (i=0; i&lt;files.Length; i++)
+    {
+        Print(files[i], "\n");
+    }
+}</pre>
+				<pre class=output>C:\Users\matthew\Desktop\2channel.png
+C:\Users\matthew\Desktop\19.Poster_1.png
+C:\Users\matthew\Desktop\payment.png</pre>
 			</div>
 
 		<h4>list <a name="ListFiles">ListFiles</a>(folder_path[, pattern]);</h4>
@@ -348,6 +567,87 @@
 				Returns:
 				<ul>
 					<li> True if the file is deleted.
+				</ul>
+			</div>
+
+		<h4>bool <a name="open">obj.Open</a>(path[, mode]);</h4>
+			<div>
+				Opens a file.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> path - The path to the file to open.
+					<li> [optional] mode - Type of access:
+					<ul>
+						<li> "r" - Read access (the default).
+						<li> "w" - Write access.
+						<li> "rw" - Read and write access.
+					</ul>
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> True if the file is openned.
+				</ul>
+			</div>
+
+		<h4>object <a name="read">obj.Read</a>(length[, type]);</h4>
+			<div>
+				Reads content from a file at the current location.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> length - The bytes to read.
+					<li> type - The type of the data:
+					<ul>
+						<li> 0: string data (the default).
+						<li> 1: integer data.
+					</ul>
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> The data read as the indicated type, or NULL if the read failed.
+				</ul>
+			</div>
+
+		<h4>int <a name="write">obj.Write</a>(object);</h4>
+			<div>
+				Writes the object to the file.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> object - the object to write.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> The bytes written.
+				</ul>
+			</div>
+
+		<h4>int <a name="pos">obj.Pos</a>([new_position]);</h4>
+			<div>
+				Gets or sets the current file position.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> [optional] new_position - A new file position.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> The current file position.
+				</ul>
+			</div>
+
+		<h4>void <a name="close">obj.Close</a>();</h4>
+			<div>
+				Closes a file.
+				<br><br>
+				Returns:
+				<ul>
+					<li> Nothing.
 				</ul>
 			</div>
 
@@ -397,35 +697,159 @@
 				</ul>
 			</div>
 
-		<h4>string <a name="Execute">Execute</a>(executable, arguments);</h4>
+		<h4>int <a name="year">obj.Year</a>;</h4>
 			<div>
-				Executes a process, waits for it to finish, and then returns the stdout as a string.
+				Sets or gets the year part of a date/time object.
+			</div>
+
+		<h4>int <a name="month">obj.Month</a>;</h4>
+			<div>
+				Sets or gets the month part of a date/time object.
+			</div>
+
+		<h4>int <a name="day">obj.Day</a>;</h4>
+			<div>
+				Sets or gets the day part of a date/time object.
+			</div>
+
+		<h4>int <a name="hour">obj.Hour</a>;</h4>
+			<div>
+				Sets or gets the hour part of a date/time object.
+			</div>
+
+		<h4>int <a name="minute">obj.Minute</a>;</h4>
+			<div>
+				Sets or gets the minute part of a date/time object.
+			</div>
+
+		<h4>int <a name="second">obj.Second</a>;</h4>
+			<div>
+				Sets or gets the second part of a date/time object.
+			</div>
+
+		<h4>int <a name="milli">obj.Milli</a>;</h4>
+			<div>
+				Sets or gets the millisecond part of a date/time object.
+			</div>
+
+		<h4>int <a name="u64">obj.Int</a>;</h4>
+			<div>
+				Sets or gets the int64 version of a date/time object. This is compatible
+				with a range of operating system APIs.
+			</div>
+
+		<h4>int <a name="date">obj.Date</a>;</h4>
+			<div>
+				Sets or gets the date part of the object. Typically this is in the form 'day/month/year'
+				in the current locale of the operating system.
+			</div>
+
+		<h4>int <a name="time">obj.Time</a>;</h4>
+			<div>
+				Sets or gets the time part of the object. Typically this is in the form 'hour:minute:second'
+				in the current locale of the operating system.
+			</div>
+
+		<h4>int <a name="datetime">obj.DateTime</a>;</h4>
+			<div>
+				Sets or gets both the date and time parts of the object as a string.
+			</div>
+
+		<h4>object <a name="CreateBitmap">CreateBitmap</a>(x, y[, colour_space]);</h4>
+			<div>
+				Creates a bitmap in memory with the specified dimensions and colour space.
 				<br><br>
 				Arguments:
 				<ul>
-					<li> executable - The path to the executable.
-					<li> arguments - Arguments to pass to the executable.
+					<li> x - The width in pixels.
+					<li> y - The height in pixels.
+					<li> [optional] colour_space - The image's colour space.
+						The default being the same as the screen.
+						Possible values are taken from the GColourSpace enum in Lgi but in string form, ie:
+						<ul>
+							<li> "CsIndex8" - Creates a 8 bit indexed image with a palette.
+							<li> "CsRgb16" - An rgb image with 5 red, 6 green and 5 blue bits per pixel.
+							<li> "CsRgb24" - An rgb image with 8 bits per component.
+							<li> "CsRgba32" - An rgba image with 8 bits per component.
+						</ul>
+						Some special values are available for the supported system colour spaces:
+						<ul>
+							<li> "System15BitColourSpace" - The system supported 15 bits/pixel colour space.
+							<li> "System16BitColourSpace" - The system supported 16 bits/pixel colour space.
+							<li> "System24BitColourSpace" - The system supported 24 bits/pixel colour space.
+							<li> "System32BitColourSpace" - The system supported 32 bits/pixel colour space.
+						</ul>
+						Not every system will support all colour spaces. Unsupported colour space images
+						can't be placed on the screen directly. They have to be converted to a compatible
+						colour space first.
 				</ul>
 				<br>
 				Returns:
 				<ul>
-					<li> A string containing what the process wrote to stdout.
+					<li> A memory bitmap object or NULL on failure.
+				</ul>
+				<br>
+				Example:
+				<pre>c = CreateBitmap(320, 240);
+Print(c.Type(), ": ", c.x, ", ", c.y, ", ", c.Bits, ", ", c.ColourSpace, "\n");</pre>
+				<pre class=output>Surface: 320, 240, 32, 1211639896</pre>
+				The colourspace '1211639896' decimal is '0x48382858' in hex. Each byte is a component description, the
+				high nibble is the colour type (defined in Lgi as the GComponentType enum), and the 
+				lower nibble is the number of bits (and zero = 16 bits).
+			</div>
+
+		<h4>int <a name="x">obj.X</a>;</h4>
+			<div>
+				The width of the image in pixels (read only).
+			</div>
+
+		<h4>int <a name="y">obj.Y</a>;</h4>
+			<div>
+				The height of the image in pixels (read only).
+			</div>
+
+		<h4>int <a name="bits">obj.Bits</a>;</h4>
+			<div>
+				The number of bits per pixel (read only).
+			</div>
+
+		<h4>colour_space <a name="colourspace">obj.ColourSpace</a>;</h4>
+			<div>
+				The colour space of the image (read only). This is a integer value that maps to a GColourSpace enum.
+			</div>
+
+		<h4>list <a name="palette">obj.Palette</a>;</h4>
+			<div>
+				The palette of the image. Use array indexing to set or get the individual palette entries.
+			</div>
+
+		<h4>bool <a name="load">obj.Load</a>(filename);</h4>
+			<div>
+				Loads an image from a file. Only filters that are compiled into the executable are supported.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> filename - The path to the image file.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> TRUE if the file was loaded.
 				</ul>
 			</div>
 
-		<h4>bool <a name="System">System</a>(executable, arguments);</h4>
+		<h4>bool <a name="save">obj.Save</a>(filename);</h4>
 			<div>
-				Executes a process and doesn't wait for it to finish.
+				Soads an image to a file. Only filters that are compiled into the executable are supported.
 				<br><br>
 				Arguments:
 				<ul>
-					<li> executable - The path to the executable.
-					<li> arguments - Arguments to pass to the executable.
+					<li> filename - The path to the image file.
 				</ul>
 				<br>
 				Returns:
 				<ul>
-					<li> A string containing what the process wrote to stdout.
+					<li> TRUE if the file was saved.
 				</ul>
 			</div>
 
@@ -447,6 +871,153 @@
 					<li> A string containing what the user entered.
 				</ul>
 			</div>
+
+		<h4>object <a name="GetViewById">GetViewById</a>(parent, id);</h4>
+			<div>
+				Gets the child view by it's id.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> parent - The parent window.
+					<li> id - The id of the child.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> A view reference, or NULL if not found.
+				</ul>
+			</div>
+
+		<h4>int <a name="handle">obj.Handle</a>;</h4>
+			<div>
+				The operating system handle for the view (read only).
+			</div>
+
+		<h4>int <a name="id">obj.Id</a>;</h4>
+			<div>
+				The control ID for the view.
+			</div>
+
+		<h4>string <a name="name">obj.Name</a>;</h4>
+			<div>
+				The textual name assocaited with the view.
+			</div>
+
+		<h4>int64 <a name="value">obj.Value</a>;</h4>
+			<div>
+				The numerical value assocaited with the view.
+			</div>
+
+		<h4>bool <a name="enabled">obj.Enabled</a>;</h4>
+			<div>
+				This sets or gets the enabled/disable state of the view.
+			</div>
+
+		<h4>colour <a name="foreground">obj.Foreground</a>;</h4>
+			<div>
+				Gets or sets the CSS foreground colour for the view.
+			</div>
+
+		<h4>colour <a name="background">obj.Background</a>;</h4>
+			<div>
+				Gets or sets the CSS background colour for the view.
+			</div>
+
+		<h4>string <a name="Execute">Execute</a>(executable[, arguments]);</h4>
+			<div>
+				Executes a process and waits for it to finish.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> executable - The path to the executable.
+					<li> [optional] arguments - Arguments to pass to the executable.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> A string containing what the process wrote to stdout.
+				</ul>
+			</div>
+
+		<h4>bool <a name="System">System</a>(executable[, arguments]);</h4>
+			<div>
+				Executes a process and doesn't wait for it to finish.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> executable - The path to the executable.
+					<li> [optional] arguments - Arguments to pass to the executable.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> TRUE if the process was started.
+				</ul>
+			</div>
+
+		<h4>list <a name="OsVersion">OsVersion</a>();</h4>
+			<div>
+				Returns the current OS version as 3 integers in a list.
+				<br><br>
+				Returns: The OS version:
+				<blockquote><table cellpadding=5>
+					<tr><td>Windows XP				<td>{5, 1, 0}
+					<tr><td>Windows Vista			<td>{6, 0, 0}
+					<tr><td>Windows 7					<td>{6, 1, 0}
+					<tr><td>Windows 8					<td>{6, 2, 0}
+					<tr><td>Mac OS X 10.8.2		<td>{10, 8, 2}
+					<tr><td>Ubuntu 13.04			<td>{3, 8, 8} (i.e. the kernel version)
+				</table></blockquote>
+				<br>
+				Example:
+				<pre>Print(OsVersion(), "\n");</pre>
+				<pre class=output>{6, 1, 0}</pre>
+			</div>
+
+		<h4>string <a name="type">obj.Type</a>;</h4>
+			<div>
+				Gets the type of the object as a string.
+				<br><br>
+				Returns:
+				<ul>
+					<li> A string.
+				</ul>
+				<br>
+				Example:
+				<pre>c = New("list");
+Print(c.Type(), "\n");</pre>
+				<pre class=output>List</pre>
+			</div>
+
+		<h4>int <a name="length">obj.Length</a>;</h4>
+			<div>
+				Gets the length of an object. The meaning of that depends on the context of what type it is:
+				<ul>
+					<li> List or HashTable: number of objects in the container.
+					<li> String: The number of bytes.
+					<li> File: The length of the file in bytes.
+					<li> Bitmap: Number of pixels.
+					<li> View: Number of child views.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> A integer or NULL if not applicable.
+				</ul>
+				<br>
+				Example:
+				<pre>c = "This is a string.";
+Print(c.Length, "\n");
+
+c = New("list");
+c.Add(123);
+c.Add(456);
+Print(c.Length, "\n");
+</pre>
+				<pre class=output>17
+2</pre>
+			</div>
+
 
 	</div>
 

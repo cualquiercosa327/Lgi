@@ -74,8 +74,8 @@
 		</table>
 		
 		<h2>Objects</h2>
-		Some variant types allow the referencing of object members via the '.' operator. The available members depends
-		on the variant type:
+		Some variant types allow the referencing of object members or methods via the '.' operator. 
+		The available members depends on the variant type:
 		<ul>
 			<li>DOM:
 				<ul>
@@ -87,10 +87,24 @@
 					<li>Length - the length of the string in bytes (strings are utf-8).
 					<li>Int - the string as an int (atoi).
 					<li>Float - the string as a double (atof).
+					<li>Split(&lt;separator&gt;[, &lt;max_split&gt;]) - Splits the string into a list.
+					<li>Join(&lt;list&gt;) - Joins all the elements in 'list' using the string as a separator.
+					<li>Find(&lt;sub-string&gt;[, &lt;start&gt;[, &lt;end&gt;]]) - Finds a sub-string.
+					<li>Strip() - Removes all leading and trailing whitespace.
+					<li>Upper() - Converts all alpha characters to upper case.
+					<li>Lower() - Converts all alpha characters to lower case.
 				</ul>
-			<li>List and HashTable:
+			<li>List:
 				<ul>
 					<li>Length - the number of objects in the container.
+					<li>Add(&lt;element&gt;) - Add a new element to the end of the list.
+					<li>Delete(&lt;index&gt;) - Deletes the entry at 'index'.
+				</ul>
+			<li>HashTable:
+				<ul>
+					<li>Length - the number of objects in the container.
+					<li>Add(&lt;key&gt;, &lt;element&gt;) - Add a new element using the string 'key'.
+					<li>Delete(&lt;key&gt;) - Deletes the element at using the string 'key'.
 				</ul>
 			<li>DateTime:
 				<ul>
@@ -109,6 +123,7 @@
 					<li>x - The width in pixels.
 					<li>y - The height in pixels.
 					<li>Bits - The bit depth.
+					<li>ColourSpace - The surface's colour space (a GColourSpace variable as a uint32)
 				</ul>
 
 		</ul>
