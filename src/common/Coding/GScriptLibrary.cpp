@@ -157,81 +157,6 @@ bool SystemFunctions::LoadString(GVariant *Ret, ArgumentArray &Args)
 	return true;	
 }
 
-/*
-bool SystemFunctions::Strchr(GVariant *Ret, ArgumentArray &Args)
-{
-	if (Args.Length() < 2)
-		return false;
-
-	*Ret = -1;
-
-	char *str = Args[0]->CastString();
-	char *ch = Args[1]->CastString();
-	// int str_len = Args.Length() > 2 ? Args[2]->CastInt32() : -1;
-	bool rev = Args.Length() >= 3 ? Args[2]->CastBool() : false;
-	if (str && ch)
-	{
-		GUtf8Ptr Str(str);
-		GUtf8Ptr Ch(ch);
-		uint32 c = Ch;
-
-		int n = 0;
-		for (uint32 s = Str; s; s = Str++, n++)
-		{
-			if (c == s)
-			{
-				*Ret = n;
-				if (!rev)
-					break;
-			}
-		}
-	}
-
-	return true;
-}
-
-bool SystemFunctions::Strstr(GVariant *Ret, ArgumentArray &Args)
-{
-	if (Args.Length() >= 2)
-	{
-		char *str1 = (char*) Args[0]->CastString();
-		char *str2 = (char*) Args[1]->CastString();
-		int case_insensitive =	Args.Length() > 2 ? Args[2]->CastInt32() : true;
-		int str_len =			Args.Length() > 3 ? Args[3]->CastInt32() : -1;
-
-		if (str1 && str2)
-		{
-			char *r = 0;
-
-			if (str_len >= 0)
-			{
-				if (case_insensitive)
-					r = strnistr(str1, str2, str_len);
-				else
-					r = strnstr(str1, str2, str_len);
-
-			}
-			else
-			{
-				if (case_insensitive)
-					r = stristr(str1, str2);
-				else
-					r = strstr(str1, str2);
-			}
-
-			if (r)
-				*Ret = (int)(r - str1);
-			else
-				*Ret = -1;
-		}
-		else *Ret = -1;
-
-		return true;
-	}
-	return false;
-}
-*/
-
 bool SystemFunctions::Sprintf(GVariant *Ret, ArgumentArray &Args)
 {
 	#if defined(MAC)
@@ -320,172 +245,6 @@ bool SystemFunctions::Sprintf(GVariant *Ret, ArgumentArray &Args)
 	return true;
 	#endif
 }
-
-/*
-bool SystemFunctions::Strcmp(GVariant *Ret, ArgumentArray &Args)
-{
-	if (Args.Length() >= 2)
-	{
-		char *a = Args[0]->CastString();
-		char *b = Args[1]->CastString();
-		int case_insensitive =	Args.Length() > 2 ? Args[2]->CastInt32() : true;
-		int str_len =			Args.Length() > 3 ? Args[3]->CastInt32() : -1;
-
-		if (a && b)
-		{
-			if (str_len > 0)
-			{
-				if (case_insensitive)
-					*Ret = strnicmp(a, b, str_len);
-				else
-					*Ret = strncmp(a, b, str_len);
-			}
-			else
-			{
-				if (case_insensitive)
-					*Ret = stricmp(a, b);
-				else
-					*Ret = strcmp(a, b);
-			}
-
-			return true;
-		}
-	}
-
-	return false;
-}
-
-bool SystemFunctions::Substr(GVariant *Ret, ArgumentArray &Args)
-{
-	// Substr(Str, Start, Len)
-	if (Args.Length() >= 2)
-	{
-		uint8 *str = (uint8*) Args[0]->CastString();
-		int start = Args[1]->CastInt32();
-		int len = Args.Length() > 2 ? Args[2]->CastInt32() : -1;
-		if (str)
-		{
-			uint32 ch;
-			int slen = strlen((char*) str);
-			while (start > 0 && (ch = LgiUtf8To32(str, slen)) != 0)
-			{
-				start--;
-			}
-
-			if (len < 0)
-			{
-				*Ret = (char*)str;
-			}
-			else
-			{
-				uint8 *end = str;
-				while (len > 0 && (ch = LgiUtf8To32(end, slen)) != 0)
-				{
-					len--;
-				}
-				Ret->Empty();
-				Ret->Type = GV_STRING;
-				Ret->Value.String = NewStr((char*)str, end - str);
-			}
-			return true;
-		}
-	}
-
-	return false;
-}
-
-bool SystemFunctions::Tokenize(GVariant *Ret, ArgumentArray &Args)
-{
-	if (Args.Length() < 2)
-		return false;
-
-	char *Start = Args[0]->CastString();
-	char *Delim = Args[1]->CastString();
-	if (!Start || !Delim)
-		return false;
-
-	GUtf8Ptr s(Start);
-	GUtf8Ptr Delimiter(Delim);
-	uint32 d = Delimiter;
-
-	Ret->SetList();
-
-	uint32 i;
-	while ((i = s))
-	{
-		if (i == d)
-		{
-			char *Cur = (char*)s.GetPtr();
-			GVariant *v = new GVariant;
-			if (!v) return false;
-			if (Start && Cur > Start)
-			{
-				v->OwnStr(NewStr(Start, Cur - Start));
-			}
-			Ret->Value.Lst->Insert(v);
-			Start = 0;
-		}
-		else if (!Start)
-			Start = (char*)s.GetPtr();
-		s++;
-	}
-
-	char *Cur = (char*)s.GetPtr();
-	if (Cur > Start)
-	{
-		GVariant *v = new GVariant;
-		if (!v) return false;
-		v->OwnStr(NewStr(Start, Cur - Start));
-		Ret->Value.Lst->Insert(v);
-	}
-
-	return true;
-}
-
-bool SystemFunctions::NewHashTable(GVariant *Ret, ArgumentArray &Args)
-{
-	bool CaseSen = Args.Length() == 1 ? Args[0]->CastInt32() != 0 : true;
-	Ret->SetHashTable(new GHashTable(0, CaseSen), false);
-	return true;
-}
-
-bool SystemFunctions::NewList(GVariant *Ret, ArgumentArray &Args)
-{
-	Ret->SetList(0);
-	return true;
-}
-
-bool SystemFunctions::DeleteElement(GVariant *Ret, ArgumentArray &Args)
-{
-	if (Args.Length() == 2)
-	{
-		switch (Args[0]->Type)
-		{
-			default: break;
-			case GV_HASHTABLE:
-			{
-				char *Key = Args[1]->CastString();
-				if (Key)
-				{
-					return Args[0]->Value.Hash->Delete(Key);
-				}
-				break;
-			}
-			case GV_LIST:
-			{
-				int32 Idx = Args[1]->CastInt32();
-				if (Idx >= 0 && Idx < Args[0]->Value.Lst->Length())
-				{
-					return Args[0]->Value.Lst->Delete(Idx);
-				}
-				break;
-			}
-		}
-	}
-
-	return false;
-}
-*/
 
 bool SystemFunctions::ReadTextFile(GVariant *Ret, ArgumentArray &Args)
 {
@@ -818,6 +577,63 @@ bool SystemFunctions::DeleteFile(GVariant *Ret, ArgumentArray &Args)
 	return true;
 }
 
+bool SystemFunctions::CurrentScript(GVariant *Ret, ArgumentArray &Args)
+{
+	if (Engine &&
+		Engine->GetCurrentCode())
+	{
+		*Ret = Engine->GetCurrentCode()->GetFileName();
+		return true;
+	}
+	return false;
+}
+
+bool SystemFunctions::PathExists(GVariant *Ret, ArgumentArray &Args)
+{
+	if (Args.Length() == 0)
+		return false;
+		
+	GDirectory d;
+	if (d.First(Args[0]->CastString()))
+	{
+		if (d.IsDir())
+			*Ret = 2;
+		else
+			*Ret = 1;
+	}
+	else
+	{
+		*Ret = 0;
+	}
+	
+	return true;		
+}
+
+bool SystemFunctions::PathJoin(GVariant *Ret, ArgumentArray &Args)
+{
+	char p[MAX_PATH] = "";
+	for (int i=0; i<Args.Length(); i++)
+	{
+		char *s = Args[i]->CastString();
+		if (i)
+			LgiMakePath(p, sizeof(p), p, s);
+		else
+			strsafecpy(p, s, sizeof(p));
+	}
+	
+	if (*p)
+		*Ret = p;
+	else
+		Ret->Empty();
+	return true;
+}
+
+bool SystemFunctions::PathSep(GVariant *Ret, ArgumentArray &Args)
+{
+	*Ret = DIR_STR;
+	return true;
+}
+
 bool SystemFunctions::ListFiles(GVariant *Ret, ArgumentArray &Args)
 {
 	if (Args.Length() < 1)
@@ -932,6 +748,12 @@ bool SystemFunctions::System(GVariant *Ret, ArgumentArray &Args)
 	return true;
 }
 
+bool SystemFunctions::OsName(GVariant *Ret, ArgumentArray &Args)
+{
+	*Ret = LgiGetOsName();
+	return true;
+}
+
 bool SystemFunctions::OsVersion(GVariant *Ret, ArgumentArray &Args)
 {
 	Ret->Empty();
@@ -967,6 +789,11 @@ GHostFunc SystemLibrary[] =
 	DefFn(ListFiles),
 	DefFn(DeleteFile),
 
+	DefFn(CurrentScript),
+	DefFn(PathJoin),
+	DefFn(PathExists),
+	DefFn(PathSep),
+
 	// Time	
 	DefFn(ClockTick),
 	DefFn(Sleep),
@@ -982,6 +809,7 @@ GHostFunc SystemLibrary[] =
 	// System
 	DefFn(Execute),
 	DefFn(System),
+	DefFn(OsName),
 	DefFn(OsVersion),
 
 	// End of list marker

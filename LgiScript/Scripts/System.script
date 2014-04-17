@@ -1,0 +1,40 @@
+// This script will test all the string functions
+// fret@memecode.com
+
+// Global methods
+	os = OsName();
+	if (!os)
+		return false;
+	Print("Os: ", os, "\n");
+
+	ver = OsVersion();
+	Print("Version: ", ver, "\n");
+	
+	if (os.Lower().Find("win") >= 0)
+	{
+		out = Execute("C:\\Windows\\System32\\where.exe", "cmd");
+		Print("Execute: ", out);
+
+		out = System("C:\\Windows\\System32\\where.exe", "cmd");
+		Print("System: ", out, "\n");
+	}
+
+// Object methods
+	Print("Os.Type()=", os.Type(), "\n");
+	if (os.Type() != "String")
+		return false;
+
+	Print("Ver.Type()=", ver.Type(), "\n");
+	if (ver.Type() != "List")
+		return false;
+
+	if (ver.Length() != 3)
+		return false;
+
+	script = CurrentScript();
+	Print("CurScript: ", script, "\n");
+	if (!script)
+		return false;
+
+Print("All tests passed.\n");
+return true;

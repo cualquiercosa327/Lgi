@@ -260,7 +260,11 @@ GDragColumn::GDragColumn(GList *list, int col)
 		#if WIN32NATIVE
 		
 		GArray<int> Ver;
-		bool Layered = LgiGetOs(&Ver) == LGI_OS_WINNT && Ver[0] >= 5;
+		bool Layered = (
+							LgiGetOs(&Ver) == LGI_OS_WIN32 ||
+							LgiGetOs(&Ver) == LGI_OS_WIN64
+						) &&
+						Ver[0] >= 5;
 		SetStyle(WS_POPUP);
 		SetExStyle(GetExStyle() | WS_EX_TOOLWINDOW);
 		if (Layered)

@@ -258,10 +258,10 @@ public:
 	}
 
 	/// Add a file/line reference for the next token
-	void Add(char *FileName, int Line)
+	void Add(const char *FileName, int Line)
 	{
 		const char *Empty = "";
-		char *d = FileName ? strrchr(FileName, DIR_CHAR) : 0;
+		const char *d = FileName ? strrchr((char*)FileName, DIR_CHAR) : 0;
 		if (d) FileName = d + 1;
 
 		if (!r.Length())
@@ -512,7 +512,7 @@ public:
 	}
 
 	/// Convert the source from one big string into an array of tokens
-	bool Lex(char *Source, char *FileName)
+	bool Lex(char *Source, const char *FileName)
 	{
 		char16 *w = LgiNewUtf8To16(Source);
 		if (w)
@@ -2613,7 +2613,7 @@ GCompiler::~GCompiler()
 	DeleteObj(d);
 }
 
-GCompiledCode *GCompiler::Compile(GScriptContext *Context, char *FileName, char *Script, GStream *Log, GCompiledCode *Previous)
+GCompiledCode *GCompiler::Compile(GScriptContext *Context, const char *FileName, char *Script, GStream *Log, GCompiledCode *Previous)
 {
 	if (!Context || !Script)
 		return 0;
@@ -2705,10 +2705,10 @@ void GScriptEngine2::Empty()
 	d->Empty();
 }
 
-bool GScriptEngine2::Compile(char *Script, bool Add)
+bool GScriptEngine2::Compile(char *Script, const char *FileName, bool Add)
 {
 	GCompiler Comp(d);
-	d->Code = Comp.Compile(d->Context, 0, Script, d->GetLog(), d->Code);
+	d->Code = Comp.Compile(d->Context, FileName, Script, d->GetLog(), d->Code);
 	return d->Code != 0;
 }
 

@@ -882,7 +882,15 @@ bool LgiToWindowsCursor(LgiCursor Cursor)
 		case LCUR_PointingHand:
 		{
 			GArray<int> Ver;
-			if (LgiGetOs(&Ver) == LGI_OS_WINNT &&
+			int Os = LgiGetOs(&Ver);
+			if
+			(
+				(
+					Os == LGI_OS_WIN32
+					||
+					Os == LGI_OS_WIN64
+				)
+				&&
 				Ver[0] >= 5)
 			{
 				#ifndef IDC_HAND

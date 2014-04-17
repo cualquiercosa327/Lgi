@@ -221,7 +221,11 @@ public:
 		GHashTbl<int, char*> Fn;
 		for (int m=0; m<Code->Methods.Length(); m++)
 		{
-			Fn.Add(Code->Methods[m]->StartAddr, Code->Methods[m]->Name.Str());
+			GFunctionInfo *Info = Code->Methods[m];
+			if (Info->StartAddr)
+				Fn.Add(Info->StartAddr, Info->Name.Str());
+			else
+				LgiAssert(!"Method not defined.");
 		}
 
 		int OldLineNum = 0;

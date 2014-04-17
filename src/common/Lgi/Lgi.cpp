@@ -224,7 +224,7 @@ int LgiGetOs
 	GArray<int> *Ver
 )
 {
-	#if defined WIN32
+	#if defined(WIN32) || defined(WIN64)
 
 	static int Os = LGI_OS_UNKNOWN;
 	static int Version = 0, Revision = 0;
@@ -237,8 +237,21 @@ int LgiGetOs
 
 		Version = v.dwMajorVersion;
 		Revision = v.dwMinorVersion;
+		
+		#ifdef WIN32
+		BOOL IsWow64 = FALSE;
+		IsWow64Process(GetCurrentProcess(), &IsWow64);
+		#endif
 
-		Os = (v.dwPlatformId == VER_PLATFORM_WIN32_NT) ? LGI_OS_WINNT : LGI_OS_WIN9X;
+		Os = (v.dwPlatformId == VER_PLATFORM_WIN32_NT)
+			?
+			#ifdef WIN32
+			(IsWow64 ? LGI_OS_WIN64 : LGI_OS_WIN32)
+			#else
+			LGI_OS_WIN64
+			#endif
+			:
+			LGI_OS_WIN9X;
 	}
 
 	if (Ver)
@@ -320,20 +333,15 @@ int LgiGetOs
 
 const char *LgiGetOsName()
 {
-	const char *Str[] =
+	const char *Str[LGI_OS_MAX] =
 	{
 		"Unknown",
+		"Win9x",
 		"Win32",
-		"Win32",
-		"BeOS",
+		"Win64",
+		"Haiku",
 		"Linux",
-		"AtheOS",
-		"MacOS9",
 		"MacOSX",
-		0,
-		0,
-		0,
-		0
 	};
 
 	return Str[LgiGetOs()];

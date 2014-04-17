@@ -76,7 +76,7 @@ public:
 			return false;
 		}
 		
-		if (!Eng.Compile(Src))
+		if (!Eng.Compile(Src, File))
 		{
 			printf("Error: Compilation failed '%s'.\n", SrcFile.Get());
 			return false;

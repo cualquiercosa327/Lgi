@@ -40,7 +40,7 @@
 				<td>
 						Containers
 				<td>
-						Files
+						File System
 				<td>
 						Dates and Time
 				<td>
@@ -66,6 +66,10 @@
 					<a href="#SelectFiles">SelectFiles</a><br>
 					<a href="#ListFiles">ListFiles</a><br>
 					<a href="#DeleteFile">DeleteFile</a><br>
+					<br>
+					<a href="#PathExists">PathExists</a><br>
+					<a href="#PathJoin">PathJoin</a><br>
+					<a href="#PathSep">PathSep</a><br>
 				<td>
 					<a href="#Sleep">Sleep</a><br>
 					<a href="#ClockTick">ClockTick</a><br>
@@ -73,12 +77,16 @@
 				<td>
 					<a href="#CreateBitmap">CreateBitmap</a><br>
 				<td>
+					<a href="#LoadDialog">LoadDialog</a><br>
 					<a href="#GetInputDlg">GetInputDlg</a><br>
 					<a href="#GetViewById">GetViewById</a><br>
 				<td>
 					<a href="#Execute">Execute</a><br>
 					<a href="#System">System</a><br>
+					<a href="#OsName">OsName</a><br>
 					<a href="#OsVersion">OsVersion</a><br>
+					<br>
+					<a href="#CurrentScript">CurrentScript</a><br>
 			<tr>
 				<td>
 					Object Members:
@@ -570,6 +578,57 @@ C:\Users\matthew\Desktop\payment.png</pre>
 				</ul>
 			</div>
 
+		<h4>string <a name="CurrentScript">CurrentScript</a>();</h4>
+			<div>
+				Returns:
+				<ul>
+					<li> the current script file and it's path.
+				</ul>
+			</div>
+
+		<h4>int <a name="PathExists">PathExists</a>(path);</h4>
+			<div>
+				Queries the file system to see if a path exists as a file
+				or folder.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> path - The path to the query.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> 0 - If the path <b>doesn't exist</b>.
+					<li> 1 - If the path is a <b>file</b>.
+					<li> 2 - If the path is a <b>folder</b>.
+				</ul>
+			</div>
+
+		<h4>string <a name="PathJoin">PathJoin</a>(path1[, path2[, ...]]);</h4>
+			<div>
+				Joins a whole lot of path fragments together, evaluating relative parts
+				as needed.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> path1 - The base path.
+					<li> path2 - A relative path segment.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> The complete normalised path.
+				</ul>
+			</div>
+
+		<h4>string <a name="PathSep">PathSep</a>();</h4>
+			<div>
+				Returns:
+				<ul>
+					<li> The path separator character for the current platform. ("\" on windows, "/" otherwise)
+				</ul>
+			</div>
+
 		<h4>bool <a name="open">obj.Open</a>(path[, mode]);</h4>
 			<div>
 				Opens a file.
@@ -853,6 +912,22 @@ Print(c.Type(), ": ", c.x, ", ", c.y, ", ", c.Bits, ", ", c.ColourSpace, "\n");<
 				</ul>
 			</div>
 
+		<h4>view <a name="LoadDialog">LoadDialog</a>(parent_wnd, dialog_id);</h4>
+			<div>
+				Loads a dialog from a resource file.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> parent_wnd - The handle of the parent window.
+					<li> dialog_id - The id of the dialog from "resdefs.h".
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> A view object.
+				</ul>
+			</div>
+
 		<h4>string <a name="GetInputDlg">GetInputDlg</a>(parent_wnd, initial_value, msg, title, is_password);</h4>
 			<div>
 				Asks the user for input using a dialog.
@@ -953,6 +1028,22 @@ Print(c.Type(), ": ", c.x, ", ", c.y, ", ", c.Bits, ", ", c.ColourSpace, "\n");<
 				<ul>
 					<li> TRUE if the process was started.
 				</ul>
+			</div>
+
+		<h4>string <a name="OsName">OsName</a>();</h4>
+			<div>
+				Returns the current OS name:
+				<ul>
+					<li> Win32
+					<li> Win64
+					<li> MacOSX
+					<li> Linux
+					<li> Haiku
+				</ul>
+				<br>
+				Example:
+				<pre>Print(OsName(), "\n");</pre>
+				<pre class=output>Win64</pre>
 			</div>
 
 		<h4>list <a name="OsVersion">OsVersion</a>();</h4>

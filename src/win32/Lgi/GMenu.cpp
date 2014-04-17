@@ -30,7 +30,11 @@ public:
 		int Os = LgiGetOs(&Ver);
 		if
 		(
-			Os == LGI_OS_WINNT
+			(
+				Os == LGI_OS_WIN32
+				||
+				Os == LGI_OS_WIN64
+			)		
 			&&
 			(
 				Ver[0] > 5

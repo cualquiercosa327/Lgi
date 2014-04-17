@@ -260,33 +260,40 @@ LgiFunc void							_lgi_assert(bool b, const char *test, const char *file, int l
 #define TestFlag(i, f)					(((i) & (f)) != 0)
 
 // Defines
+/// Enum of all the operating systems we might be running on.
+enum LgiOs
+{
+	/// \brief Unknown OS
+	/// \sa LgiGetOs
+	LGI_OS_UNKNOWN = 0,
 
-/// \brief Unknown OS
-/// \sa LgiGetOs
-#define LGI_OS_UNKNOWN					0
-/// \brief Windows 95, 98[se] or ME. (95 isnt't really supported but mostly works anyway)
-/// \sa LgiGetOs
-#define LGI_OS_WIN9X					1
-/// \brief Windows NT, 2k, XP or later. (Supported)
-/// \sa LgiGetOs
-#define LGI_OS_WINNT					2
-/// \brief BeOS r5. (Used to be supported)
-/// \sa LgiGetOs
-#define LGI_OS_BEOS						3
-/// \brief Linux. (Kernels v2.4 and up supported)
-/// \sa LgiGetOs
-#define LGI_OS_LINUX					4
-/// \brief Atheos. (Not supported)
-/// \sa LgiGetOs
-#define LGI_OS_ATHEOS					5
-/// \brief Mac OS-9. (Not supported)
-/// \sa LgiGetOs
-#define LGI_OS_MAC_OS_9					6
-/// \brief Mac OS-X. (Don't do it! Think of Be, Inc!)
-/// \sa LgiGetOs
-#define LGI_OS_MAC_OS_X					7
-/// One higher than the maximum OS define
-#define LGI_OS_MAX						8
+	/// \brief Windows 95, 98[se] or ME. (Not supported)
+	/// \sa LgiGetOs
+	LGI_OS_WIN9X,
+
+	/// \brief 32bit NT, 2k, XP, Vista, 7, 8 or later. (XP and later supported)
+	/// \sa LgiGetOs
+	LGI_OS_WIN32,
+
+	/// \brief 64bit NT, 2k, XP, Vista, 7, 8 or later. (XP and later supported)
+	/// \sa LgiGetOs
+	LGI_OS_WIN64,
+
+	/// \brief BeOS/Haiku. (Somewhat supported)
+	/// \sa LgiGetOs
+	LGI_OS_HAIKU,
+
+	/// \brief Linux. (Kernels v2.4 and up supported)
+	/// \sa LgiGetOs
+	LGI_OS_LINUX,
+
+	/// \brief There was an Atheos port at one point. (Not supported)
+	/// \sa LgiGetOs
+	LGI_OS_MAC_OS_X,
+
+	/// One higher than the maximum OS define
+	LGI_OS_MAX,
+};
 
 // System Colours
 

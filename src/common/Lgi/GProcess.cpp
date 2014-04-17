@@ -349,7 +349,7 @@ bool GProcess::Terminate()
 	#endif
 }
 
-bool GNativeString::WinNT = LgiGetOs() == LGI_OS_WINNT;
+bool GNativeString::WinNT = LgiGetOs() == LGI_OS_WIN32 || LgiGetOs() == LGI_OS_WIN64;
 
 bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool Wait, GStream *In, GStream *Out, int Priority)
 {

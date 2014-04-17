@@ -515,7 +515,7 @@ public:
 	~GCompiler();
 
 	/// Compile the source into byte code.
-	GCompiledCode *Compile(GScriptContext *Context, char *FileName, char *Script, GStream *Log = 0, GCompiledCode *previous = 0);
+	GCompiledCode *Compile(GScriptContext *Context, const char *FileName, char *Script, GStream *Log = 0, GCompiledCode *previous = 0);
 };
 
 /// This class is the VM for the byte language
@@ -612,6 +612,14 @@ public:
 		bool ListFiles(GVariant *Ret, ArgumentArray &Args);
 		/// Deletes a file
 		bool DeleteFile(GVariant *Ret, ArgumentArray &Args);
+		/// Gets the current script path.
+		bool CurrentScript(GVariant *Ret, ArgumentArray &Args);
+		/// Finds out if a path exists.
+		bool PathExists(GVariant *Ret, ArgumentArray &Args);
+		/// Joins path segments together.
+		bool PathJoin(GVariant *Ret, ArgumentArray &Args);
+		/// Returns the current OS path separator.
+		bool PathSep(GVariant *Ret, ArgumentArray &Args);
 
 	// Time
 		/// Sleeps a number of milliseconds
@@ -639,38 +647,10 @@ public:
 		/// Executes a command and doesn't wait for it to return:
 		/// Bool System(String Application, String CmdLine);
 		bool System(GVariant *Ret, ArgumentArray &Args);
+		/// Gets the operating system name.
+		bool OsName(GVariant *Ret, ArgumentArray &Args);
 		/// Gets the operating system version.
 		bool OsVersion(GVariant *Ret, ArgumentArray &Args);
-
-	#if 0 // Deprecated
-	// Container access
-		/// Creates an empty hash table
-		bool NewHashTable(GVariant *Ret, ArgumentArray &Args);
-		/// Creates an empty list variable
-		bool NewList(GVariant *Ret, ArgumentArray &Args);
-		/// Deletes an element out of an array or hash table
-		bool DeleteElement(GVariant *Ret, ArgumentArray &Args);
-		/// Break a string into tokens
-		bool Tokenize(GVariant *Ret, ArgumentArray &Args);
-		/// int Strchr(string, char[, string_length][, reverse]);
-		/// \returns the position of 'char' in 'string' or -1 if 'string' doesn't contain 'char'. You may 
-		///			 optionally supply a max number of chars to search.
-		bool Strchr(GVariant *Ret, ArgumentArray &Args);
-		/// int Strstr(string1, string2, case_insensitive, string_length);
-		/// \returns the position of 'string2' in 'string1' or -1 if 'string1' doesn't contain 'string2'. You may 
-		///			 optionally supply a max number of chars to search.
-		bool Strstr(GVariant *Ret, ArgumentArray &Args);
-		/// int Strcmp(string1, string2, case_insensitive, string_length);
-		/// \returns a comparision of 'string1' and 'string2'. You can optionally make it case insensitive by 
-		///			 seting the 'case_insensitive' flag.
-		bool Strcmp(GVariant *Ret, ArgumentArray &Args);
-		/// String Substr(string, start[, length]);
-		/// \returns a sub-segment of 'string'.
-		bool Substr(GVariant *Ret, ArgumentArray &Args);
-		/// Loads a string from the resource file (.lr8)
-		/// i.e. LoadString(1102) where 1102 is the id of the string in the applications .lr8 file
-		/// Basically a wrapper around LgiLoadString
-	#endif
 };
 
 #endif

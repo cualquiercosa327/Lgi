@@ -183,7 +183,7 @@ public:
 	bool SetConsole(GStream *t);
 
 	void Empty();
-	bool Compile(char *Script, bool Add = false);
+	bool Compile(char *Script, const char *FileName, bool Add = false);
 	GExecutionStatus Run();
 	GExecutionStatus RunTemporary(char *Script);
 	bool EvaluateExpression(GVariant *Result, GDom *VariableSource, char *Expression);

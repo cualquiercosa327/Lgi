@@ -114,8 +114,8 @@ GFontSystem::GFontSystem()
 	int Os = LgiGetOs();
 
 	d->SubSupport =	(Os == LGI_OS_LINUX) ||
-					(Os == LGI_OS_WIN9X) ||
-					(Os == LGI_OS_WINNT); //  && Rev == 0);  // WinXP does it's own glyph substitution
+					(Os == LGI_OS_WIN64) ||
+					(Os == LGI_OS_WIN32); //  && Rev == 0);  // WinXP does it's own glyph substitution
 	d->DefaultGlyphSub = d->SubSupport;
 	d->CheckedConfig = false;
 	d->FontTableLoaded = false;
@@ -592,7 +592,8 @@ GFont *GFontSystem::GetGlyph(int u, GFont *UserFont)
 					// avoid certain bad fonts.
 					List<const char> Ascend, Descend;
 					
-					if (LgiGetOs() == LGI_OS_WINNT)
+					if (LgiGetOs() == LGI_OS_WIN32 ||
+						LgiGetOs() == LGI_OS_WIN64)
 					{
 						Ascend.Insert("Microsoft Sans Serif");
 						Ascend.Insert("Arial Unicode MS");
@@ -602,10 +603,6 @@ GFont *GFontSystem::GetGlyph(int u, GFont *UserFont)
 						Descend.Insert("Bookworm");
 						Descend.Insert("Christmas Tree");
 						Descend.Insert("MingLiU");
-					}
-					else if (LgiGetOs() == LGI_OS_WIN9X)
-					{
-						Ascend.Insert("MingLiU");
 					}
 					
 					if (LgiGetOs() == LGI_OS_LINUX)

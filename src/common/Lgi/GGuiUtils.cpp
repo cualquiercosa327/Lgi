@@ -318,8 +318,9 @@ void LgiInitColours()
 	#endif
 
 	// Tweak
-	if (LgiGetOs() == LGI_OS_WINNT ||
-		LgiGetOs() == LGI_OS_WIN9X)
+	if (LgiGetOs() == LGI_OS_WIN32
+		||
+		LgiGetOs() == LGI_OS_WIN64)
 	{
 		// Win32 doesn't seem to get this right, so we just tweak it here
 		#define MixComp(a)		( (a(_LgiColours[7])+a(_LgiColours[9])) / 2 )
