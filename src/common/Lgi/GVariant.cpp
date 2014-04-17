@@ -479,10 +479,18 @@ GVariant &GVariant::operator =(GVariant const &i)
 		}
 		case GV_GSURFACE:
 		{
-		    Value.Surface = i.Value.Surface;
-		    if (Value.Surface.Own &&
-		        Value.Surface.Ptr)
-		        Value.Surface.Ptr->AddRef();
+			Value.Surface = i.Value.Surface;
+			if (Value.Surface.Own &&
+				Value.Surface.Ptr)
+				Value.Surface.Ptr->AddRef();
+			break;
+		}
+		case GV_GFILE:
+		{
+			Value.File = i.Value.File;
+			if (Value.File.Own &&
+				Value.File.Ptr)
+				Value.File.Ptr->AddRef();
 			break;
 		}
 		default:

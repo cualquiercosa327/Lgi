@@ -58,6 +58,12 @@ enum ObjectParts
 	ContainerAdd,
 	ContainerDelete,
 	ContainerHasKey,
+	
+	FileOpen,
+	FileRead,
+	FileWrite,
+	FilePos,
+	FileClose,
 };
 
 class GVirtualMachinePriv
@@ -112,6 +118,12 @@ public:
 		ObjParts.Add("Add", ContainerAdd);
 		ObjParts.Add("Delete", ContainerDelete);
 		ObjParts.Add("HasKey", ContainerHasKey);
+
+		ObjParts.Add("Open", FileOpen);
+		ObjParts.Add("Read", FileRead);
+		ObjParts.Add("Write", FileWrite);
+		ObjParts.Add("Pos", FilePos);
+		ObjParts.Add("Close", FileClose);
 	}
 
 	void DumpVariant(GStream *Log, GVariant &v)
@@ -2157,6 +2169,40 @@ public:
 									Dst->Empty();
 									if (Log)
 										Log->Print("%p IDomCall warning: Unexpected string member %s (%s:%i).\n",
+													CurrentScriptAddress,
+													sName,
+													_FL);
+									Status = ScriptWarning;
+									break;
+								}
+							}
+							break;
+						}
+						case GV_GFILE:
+						{
+							ObjectParts p = ObjParts.Find(sName);
+							switch (p)
+							{
+								case ObjLength:
+									break;
+								case ObjType:
+									*Dst = "File";
+									break;
+								case FileOpen:
+									break;
+								case FileClose:
+									break;
+								case FileRead:
+									break;
+								case FileWrite:
+									break;
+								case FilePos:
+									break;
+								default:
+								{
+									Dst->Empty();
+									if (Log)
+										Log->Print("%p IDomCall warning: Unexpected file member %s (%s:%i).\n",
 													CurrentScriptAddress,
 													sName,
 													_FL);

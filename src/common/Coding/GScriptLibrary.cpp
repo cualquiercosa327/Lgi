@@ -594,7 +594,7 @@ bool SystemFunctions::PathExists(GVariant *Ret, ArgumentArray &Args)
 		return false;
 		
 	GDirectory d;
-	if (d.First(Args[0]->CastString()))
+	if (d.First(Args[0]->CastString(), NULL))
 	{
 		if (d.IsDir())
 			*Ret = 2;

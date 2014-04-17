@@ -558,8 +558,30 @@ C:\Users\matthew\Desktop\payment.png</pre>
 				<br>
 				Returns:
 				<ul>
-					<li> list of filenames.
-				</ul>
+					<li> list of file descriptors. You can access relavant meta-data using the fields:
+						<ul>
+							<li> Name: the file's name.
+							<li> Size: the size in bytes.
+							<li> Modified: the date modified.
+							<li> Folder: True if the entry is a folder.
+						</ul>
+				</li>
+				<br>
+				Example:
+				<pre>files = ListFiles(".");
+if (files)
+{
+    for (i=0; i&lt;files.Length; i++)
+    {
+        Print(files[i].Name, " is ", files[i].Size, " bytes\n");
+    }
+}</pre>
+				<pre class=output>FileSystem.asm is 1080 bytes
+FileSystem.script is 936 bytes
+Object.script is 1320 bytes
+Strings.script is 1440 bytes
+System.script is 837 bytes</pre>
+
 			</div>
 
 

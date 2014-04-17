@@ -1,0 +1,58 @@
+// This script will test all the string functions
+// fret@memecode.com
+
+// Global methods
+	s = "Test file content";
+	p = PathJoin(CurrentScript(), "..", "test-file.txt");
+	dir = PathJoin(p, "..");
+
+	Print("Path: ", p, "\n");
+	if (!WriteTextFile(p, s))
+		return false;
+	
+	c = ReadTextFile(p);
+	Print(s.Length, "=", c.Length, "\n");
+	if (!c || c != s)
+		return false;
+
+	if (PathExists(p) != 1)
+	{
+		Print("Error: PathExists failed for file.\n");
+		return false;
+	}
+	if (PathExists(dir) != 2)
+	{
+		Print("Error: PathExists failed for folder.\n");
+		return false;
+	}	
+
+	if (!DeleteFile(p))
+	{
+		Print("Error: DeleteFile(", p, ") failed.\n");
+		return false;
+	}
+
+	if (PathExists(p))
+		return false;
+	
+	files = ListFiles(dir);
+	for (i=0; i<files.Length; i++)
+	{
+		Print(files[i].Name, " is ", files[i].size, " bytes\n");
+	}
+
+// Object methods
+	f = New("file");
+	if (!f)
+	{
+		Print("Error: can't create file.\n");
+		return false;
+	}
+	if (!f.Open(CurrentScript(), "r"))
+	{
+		Print("Error: can't open file.\n");
+		return false;
+	}
+
+Print("All tests passed.\n");
+return true;
