@@ -1071,7 +1071,8 @@ public:
 	{
 		#ifdef WIN32
 		GArray<int> Ver;
-		if (LgiGetOs(&Ver) == LGI_OS_WINNT &&
+		int Os = LgiGetOs(&Ver);
+		if ((Os == LGI_OS_WIN32 || Os == LGI_OS_WIN64) &&
 			Ver[0] >= 5)
 		{
 			return MAKEINTRESOURCE(32649); // hand
