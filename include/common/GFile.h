@@ -431,6 +431,11 @@ public:
 	GFileOps();
 	#undef GFilePre
 	#undef GFilePost
+
+	// GDom impl
+	bool GetVariant(const char *Name, GVariant &Value, char *Array = NULL);
+	bool SetVariant(const char *Name, GVariant &Value, char *Array = NULL);
+	bool CallMethod(const char *Name, GVariant *ReturnValue, GArray<GVariant*> &Args);
 };
 
 // Functions

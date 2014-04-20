@@ -49,4 +49,70 @@ public:
 	);
 };
 
+/// This is a global map between strings and enum values for fast lookup of
+/// object properties inside the SetVariant, GetVariant and CallMethod handlers.
+enum GDomProperty
+{
+	ObjNone,
+	
+	// Common
+	ObjLength,
+	ObjType,
+	ObjName,
+	
+	// Types
+	TypeList,
+	TypeHashTable,
+	TypeFile,
+	TypeSurface,
+	TypeDateTime,
+
+	// GDateTime
+	DateNone,
+	DateYear,
+	DateMonth,
+	DateDay,
+	DateHour,
+	DateMin,
+	DateSec,
+	DateDate, // "yyyymmdd"
+	DateTime, // "hhmmss"
+	DateDateTime, // "yyyymmdd hhmmss"
+	DateInt64,
+
+	// GVariant string
+	StrJoin,
+	StrSplit,
+	StrFind,
+	StrRfind,
+	StrLower,
+	StrUpper,
+	StrStrip,
+	StrInt,
+	StrDouble,
+	StrSub,
+	
+	// GSurface
+	SurfaceX,
+	SurfaceY,
+	SurfaceBits,
+	SurfaceColourSpace,
+	
+	// List, GHashTbl
+	ContainerAdd,
+	ContainerDelete,
+	ContainerHasKey,
+	
+	// GFile
+	FileOpen,
+	FileRead,
+	FileWrite,
+	FilePos,
+	FileClose,
+	FileModified,
+	FileFolder,
+};
+
+LgiFunc GDomProperty GStringToProp(const char *Str);
+
 #endif

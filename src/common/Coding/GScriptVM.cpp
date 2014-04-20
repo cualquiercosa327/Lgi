@@ -21,50 +21,6 @@
 /// string. These enumeration values allow the executer to look up a string
 /// member reference via a hash table in O(1) time and then do another O(1)
 /// jump via a switch to the code that handles the member.
-enum ObjectParts
-{
-	ObjNone,
-	
-	ObjLength,
-	ObjType,
-
-	DateNone,
-	DateYear,
-	DateMonth,
-	DateDay,
-	DateHour,
-	DateMin,
-	DateSec,
-	DateDate, // "yyyymmdd"
-	DateTime, // "hhmmss"
-	DateDateTime, // "yyyymmdd hhmmss"
-
-	StrJoin,
-	StrSplit,
-	StrFind,
-	StrRfind,
-	StrLower,
-	StrUpper,
-	StrStrip,
-	StrInt,
-	StrDouble,
-	StrSub,
-	
-	SurfaceX,
-	SurfaceY,
-	SurfaceBits,
-	SurfaceColourSpace,
-	
-	ContainerAdd,
-	ContainerDelete,
-	ContainerHasKey,
-	
-	FileOpen,
-	FileRead,
-	FileWrite,
-	FilePos,
-	FileClose,
-};
 
 class GVirtualMachinePriv
 {
@@ -79,51 +35,11 @@ class GVirtualMachinePriv
 public:
 	GStream *Log;
 	GScriptContext *Context;
-	GHashTbl<const char*, ObjectParts> ObjParts;
 
-	GVirtualMachinePriv(GScriptContext *context) : ObjParts(0, false)
+	GVirtualMachinePriv(GScriptContext *context)
 	{
 		Log = 0;
 		Context = context;
-
-		ObjParts.Add("Length", ObjLength);
-		ObjParts.Add("Type", ObjType);
-		
-		ObjParts.Add("Year", DateYear);
-		ObjParts.Add("Month", DateMonth);
-		ObjParts.Add("Day", DateDay);
-		ObjParts.Add("Hour", DateHour);
-		ObjParts.Add("Minute", DateMin);
-		ObjParts.Add("Second", DateSec);
-		ObjParts.Add("Date", DateDate);
-		ObjParts.Add("Time", DateTime);
-		ObjParts.Add("DateTime", DateDateTime);
-
-		ObjParts.Add("Join", StrJoin);
-		ObjParts.Add("Split", StrSplit);
-		ObjParts.Add("Find", StrFind);
-		ObjParts.Add("Rfind", StrRfind);
-		ObjParts.Add("Lower", StrLower);
-		ObjParts.Add("Upper", StrUpper);
-		ObjParts.Add("Strip", StrStrip);
-		ObjParts.Add("Int", StrInt);
-		ObjParts.Add("Double", StrDouble);
-		ObjParts.Add("Sub", StrSub);
-		
-		ObjParts.Add("X", SurfaceX);
-		ObjParts.Add("Y", SurfaceY);
-		ObjParts.Add("Bits", SurfaceBits);
-		ObjParts.Add("ColourSpace", SurfaceColourSpace);
-
-		ObjParts.Add("Add", ContainerAdd);
-		ObjParts.Add("Delete", ContainerDelete);
-		ObjParts.Add("HasKey", ContainerHasKey);
-
-		ObjParts.Add("Open", FileOpen);
-		ObjParts.Add("Read", FileRead);
-		ObjParts.Add("Write", FileWrite);
-		ObjParts.Add("Pos", FilePos);
-		ObjParts.Add("Close", FileClose);
 	}
 
 	void DumpVariant(GStream *Log, GVariant &v)
@@ -1468,21 +1384,21 @@ public:
 						}
 						case GV_LIST:
 						{
-							ObjectParts p = ObjParts.Find(sName);
+							GDomProperty p = GStringToProp(sName);
 							if (p == ObjLength)
 								(*Dst) = (int)Dom->Value.Lst->Length();
 							break;
 						}
 						case GV_HASHTABLE:
 						{
-							ObjectParts p = ObjParts.Find(sName);
+							GDomProperty p = GStringToProp(sName);
 							if (p == ObjLength)
 								(*Dst) = (int)Dom->Value.Hash->Length();
 							break;
 						}
 						case GV_STRING:
 						{
-							ObjectParts p = ObjParts.Find(sName);
+							GDomProperty p = GStringToProp(sName);
 							switch (p)
 							{
 								case ObjLength:
@@ -1516,7 +1432,7 @@ public:
 						}
 						case GV_DATETIME:
 						{
-							ObjectParts p = ObjParts.Find(sName);
+							GDomProperty p = GStringToProp(sName);
 							switch (p)
 							{
 								case DateYear:
@@ -1558,6 +1474,13 @@ public:
 									(*Dst) = s;
 									break;
 								}
+								case DateInt64:
+								{
+									uint64 i = 0;
+									Dom->Value.Date->Get(i);
+									*Dst = (int64)i;
+									break;
+								}
 								default:
 								{
 									Dst->Empty();
@@ -1585,7 +1508,7 @@ public:
 								break;
 							}
 
-							ObjectParts p = ObjParts.Find(sName);
+							GDomProperty p = GStringToProp(sName);
 							switch (p)
 							{
 								case SurfaceX:
@@ -1681,7 +1604,7 @@ public:
 						}
 						case GV_DATETIME:
 						{
-							ObjectParts p = ObjParts.Find(sName);
+							GDomProperty p = GStringToProp(sName);
 							switch (p)
 							{
 								case DateYear:
@@ -1711,6 +1634,9 @@ public:
 								case DateDateTime:
 									Dom->Value.Date->Set(Value->Str());
 									break;
+								case DateInt64:
+									Dom->Value.Date->Set(Value->CastInt64());
+									break;
 								default:
 									if (Log)
 										Log->Print("%p IDomSet warning: Unexpected datetime member %s (%s:%i).\n",
@@ -1724,7 +1650,7 @@ public:
 						}
 						case GV_STRING:
 						{
-							ObjectParts p = ObjParts.Find(sName);
+							GDomProperty p = GStringToProp(sName);
 							switch (p)
 							{
 								case ObjLength:
@@ -1827,7 +1753,7 @@ public:
 						{
 							LgiAssert(Dom->Value.Lst);
 							
-							ObjectParts p = ObjParts.Find(sName);
+							GDomProperty p = GStringToProp(sName);
 							switch (p)
 							{
 								case ObjLength:
@@ -1902,7 +1828,7 @@ public:
 						{
 							LgiAssert(Dom->Value.Hash);
 							
-							ObjectParts p = ObjParts.Find(sName);
+							GDomProperty p = GStringToProp(sName);
 							switch (p)
 							{
 								case ObjLength:
@@ -1984,7 +1910,7 @@ public:
 								break;
 							}
 
-							ObjectParts p = ObjParts.Find(sName);
+							GDomProperty p = GStringToProp(sName);
 							switch (p)
 							{
 								case ObjLength:
@@ -2180,25 +2106,11 @@ public:
 						}
 						case GV_GFILE:
 						{
-							ObjectParts p = ObjParts.Find(sName);
-							switch (p)
+							GFile *f = Dom->Value.File.Ptr;
+							if (f)
 							{
-								case ObjLength:
-									break;
-								case ObjType:
-									*Dst = "File";
-									break;
-								case FileOpen:
-									break;
-								case FileClose:
-									break;
-								case FileRead:
-									break;
-								case FileWrite:
-									break;
-								case FilePos:
-									break;
-								default:
+								bool b = f->CallMethod(sName, Dst, Arg);
+								if (!b)
 								{
 									Dst->Empty();
 									if (Log)
@@ -2222,7 +2134,7 @@ public:
 								Type = t;
 							}
 							
-							ObjectParts p = ObjParts.Find(sName);
+							GDomProperty p = GStringToProp(sName);
 							if (p == ObjType)
 							{
 								*Dst = Type;

@@ -372,6 +372,10 @@
 				Name="Test Scripts"
 				>
 				<File
+					RelativePath=".\Scripts\DateTime.script"
+					>
+				</File>
+				<File
 					RelativePath=".\Scripts\FileSystem.script"
 					>
 				</File>

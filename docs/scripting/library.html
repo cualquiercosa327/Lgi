@@ -75,7 +75,7 @@
 					<a href="#ClockTick">ClockTick</a><br>
 					<a href="#Now">Now</a><br>
 				<td>
-					<a href="#CreateBitmap">CreateBitmap</a><br>
+					<a href="#CreateSurface">CreateSurface</a><br>
 				<td>
 					<a href="#LoadDialog">LoadDialog</a><br>
 					<a href="#GetInputDlg">GetInputDlg</a><br>
@@ -360,7 +360,7 @@ ring</pre>
 						<ul>
 							<li> "List" - creates a list.
 							<li> "HashTable" - creates a hash table.
-							<li> "Bitmap" - creates a memory surface to draw on.
+							<li> "Surface" - creates a memory surface (bitmap) to draw on.
 							<li> "File" - creates a file object.
 							<li> "DateTime" - creates a date/time object.
 							<li> &lt;custom_type_name&gt; - Some custom type defined in script.
@@ -561,7 +561,7 @@ C:\Users\matthew\Desktop\payment.png</pre>
 					<li> list of file descriptors. You can access relavant meta-data using the fields:
 						<ul>
 							<li> Name: the file's name.
-							<li> Size: the size in bytes.
+							<li> Length: the size in bytes.
 							<li> Modified: the date modified.
 							<li> Folder: True if the entry is a folder.
 						</ul>
@@ -573,7 +573,7 @@ if (files)
 {
     for (i=0; i&lt;files.Length; i++)
     {
-        Print(files[i].Name, " is ", files[i].Size, " bytes\n");
+        Print(files[i].Name, " is ", files[i].Length, " bytes\n");
     }
 }</pre>
 				<pre class=output>FileSystem.asm is 1080 bytes
@@ -692,13 +692,28 @@ System.script is 837 bytes</pre>
 				</ul>
 			</div>
 
-		<h4>int <a name="write">obj.Write</a>(object);</h4>
+		<h4>int <a name="write">obj.Write</a>(object[, length]);</h4>
 			<div>
 				Writes the object to the file.
 				<br><br>
 				Arguments:
 				<ul>
 					<li> object - the object to write.
+					<li> length - [optional] number of bytes to write.<br>
+						If specified and the object is:
+						<ul>
+							<li> an <b>integer</b>: valid values are 1, 2, 4, or 8 up to the maximum size of the
+								actual variable.
+							<li> a <b>string</b>: any value from 1 through to the length of the string including the
+								NULL in bytes (not characters).
+						</ul>
+						If not specified and the object is:
+						<ul>
+							<li> an <b>integer</b>: all the integer's bytes are written in the
+								native order of the CPU (little-endian for supported platforms).
+								For GV_INT32 4 bytes are written, for GV_INT64 8 bytes are written.
+							<li> a <b>string</b>: all the string's bytes up to, but not including, the NULL.
+						</ul>
 				</ul>
 				<br>
 				Returns:
@@ -763,7 +778,7 @@ System.script is 837 bytes</pre>
 			</div>
 
 
-		<h4>int64 <a name="Now">Now</a>();</h4>
+		<h4>datetime <a name="Now">Now</a>();</h4>
 			<div>
 				Returns the current date time.
 				<br><br>
@@ -813,7 +828,7 @@ System.script is 837 bytes</pre>
 				Sets or gets the millisecond part of a date/time object.
 			</div>
 
-		<h4>int <a name="u64">obj.Int</a>;</h4>
+		<h4>int <a name="u64">obj.DateInt64</a>;</h4>
 			<div>
 				Sets or gets the int64 version of a date/time object. This is compatible
 				with a range of operating system APIs.
@@ -836,7 +851,7 @@ System.script is 837 bytes</pre>
 				Sets or gets both the date and time parts of the object as a string.
 			</div>
 
-		<h4>object <a name="CreateBitmap">CreateBitmap</a>(x, y[, colour_space]);</h4>
+		<h4>object <a name="CreateSurface">CreateSurface</a>(x, y[, colour_space]);</h4>
 			<div>
 				Creates a bitmap in memory with the specified dimensions and colour space.
 				<br><br>

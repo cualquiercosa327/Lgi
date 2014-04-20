@@ -250,7 +250,7 @@ public:
 			if (Tok >= n.Start && Tok < n.Start + n.Lines.Length())
 			{
 				static char fl[256];
-				sprintf(fl, "%s:%i", n.File.Str(), n.Lines[Tok - n.Start]);
+				sprintf_s(fl, sizeof(fl), "%s:%i", n.File.Str(), n.Lines[Tok - n.Start]);
 				return fl;
 			}
 		}

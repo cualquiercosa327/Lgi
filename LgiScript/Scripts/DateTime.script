@@ -1,0 +1,33 @@
+// This script will test all the date time functions
+// fret@memecode.com
+
+// Global methods
+	start = ClockTick();
+	Sleep(500);
+	ms = ClockTick() - start;
+	Print("Slept for ", ms, " ms\n");
+	if (ms < 490)
+		return false;
+
+	n = Now();
+	if (!n)
+		return false;
+	
+	Print("Now: ", n.DateTime, "\n");
+
+// Object methods
+	n.Year = n.Year + 1;
+	n.Month = n.Month + 1;
+	n.Day = n.Day + 1;
+	n.Hour = n.Hour + 1;
+	n.Minute = n.Minute + 1;
+	n.Second = n.Second + 1;
+	Print("Date: ", n.Date, "\n");
+	Print("Time: ", n.Time, "\n");
+	Print("Both: ", n.DateTime, "\n");
+	
+	n = Now();
+	Print("DateInt64: ", n.DateInt64, "\n");
+
+Print("All tests passed.\n");
+return true;

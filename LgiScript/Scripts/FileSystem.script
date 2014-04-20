@@ -1,4 +1,4 @@
-// This script will test all the string functions
+// This script will test all the file system functions
 // fret@memecode.com
 
 // Global methods
@@ -38,7 +38,7 @@
 	files = ListFiles(dir);
 	for (i=0; i<files.Length; i++)
 	{
-		Print(files[i].Name, " is ", files[i].size, " bytes\n");
+		Print(files[i].Name, " is ", files[i].Length, " bytes\n");
 	}
 
 // Object methods
@@ -53,6 +53,13 @@
 		Print("Error: can't open file.\n");
 		return false;
 	}
+	content = f.Read();
+	len = content.Length;
+	if (len <= 0)
+		return false;
+	
+	lines = content.Split("\n");
+	Print("Read file got ", lines.Length, " lines in ", len, " bytes\n");
 
 Print("All tests passed.\n");
 return true;

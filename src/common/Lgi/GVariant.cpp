@@ -937,6 +937,7 @@ bool GVariant::CastBool()
 	switch (Type)
 	{
 		default:
+			LgiAssert(0);
 			break;
 		case GV_INT32:
 			return Value.Int != 0;
@@ -947,29 +948,31 @@ bool GVariant::CastBool()
 		case GV_DOUBLE:
 			return Value.Dbl != 0.0;
 		case GV_BINARY:
-			return Value.Binary.Data != 0;
+			return Value.Binary.Data != NULL;
 		case GV_LIST:
-			return Value.Lst != 0;
+			return Value.Lst != NULL;
 		case GV_DOM:
-			return Value.Dom != 0;
+			return Value.Dom != NULL;
 		case GV_DOMREF:
-			return Value.DomRef.Dom != 0;
+			return Value.DomRef.Dom != NULL;
 		case GV_VOID_PTR:
-			return Value.Ptr != 0;
+			return Value.Ptr != NULL;
 		case GV_GVIEW:
-			return Value.View != 0;
+			return Value.View != NULL;
 		case GV_GMOUSE:
-			return Value.Mouse != 0;
+			return Value.Mouse != NULL;
 		case GV_GKEY:
-			return Value.Key != 0;
+			return Value.Key != NULL;
 		case GV_DATETIME:
-			return Value.Date != 0;
+			return Value.Date != NULL;
 		case GV_HASHTABLE:
-			return Value.Hash != 0;
+			return Value.Hash != NULL;
 		case GV_OPERATOR:
 			return Value.Op != OpNull;
 		case GV_CUSTOM:
 			return Value.Custom.Dom != 0 && Value.Custom.Data != 0;
+		case GV_GFILE:
+			return Value.File.Ptr != NULL;
 
 		// As far as I understand this is the behavour in Python, which I'm using for
 		// a reference to what the "correct" thing to do here is. Basically it's treating
@@ -1357,6 +1360,75 @@ GDom *GDom::ResolveObject(const char *Var, char *Name, char *Array)
 ResolveDone:
 	t.DeleteArrays();
 	return Object;
+}
+
+struct GDomPropMap : public GHashTbl<const char *, GDomProperty>
+{
+	GDomPropMap() : GHashTbl<const char *, GDomProperty>(0, false, NULL, ObjNone)
+	{
+		Define("Length", ObjLength);
+		Define("Type", ObjType);
+		Define("Name", ObjName);
+
+		Define("List", TypeList);
+		Define("Table", TypeHashTable);
+		Define("File", TypeFile);
+		Define("Surface", TypeSurface);
+		
+		Define("Year", DateYear);
+		Define("Month", DateMonth);
+		Define("Day", DateDay);
+		Define("Hour", DateHour);
+		Define("Minute", DateMin);
+		Define("Second", DateSec);
+		Define("Date", DateDate);
+		Define("Time", DateTime);
+		Define("DateTime", DateDateTime);
+		Define("DateInt64", DateInt64);
+
+		Define("Join", StrJoin);
+		Define("Split", StrSplit);
+		Define("Find", StrFind);
+		Define("Rfind", StrRfind);
+		Define("Lower", StrLower);
+		Define("Upper", StrUpper);
+		Define("Strip", StrStrip);
+		Define("Int", StrInt);
+		Define("Double", StrDouble);
+		Define("Sub", StrSub);
+		
+		Define("X", SurfaceX);
+		Define("Y", SurfaceY);
+		Define("Bits", SurfaceBits);
+		Define("ColourSpace", SurfaceColourSpace);
+
+		Define("Add", ContainerAdd);
+		Define("Delete", ContainerDelete);
+		Define("HasKey", ContainerHasKey);
+
+		Define("Open", FileOpen);
+		Define("Read", FileRead);
+		Define("Write", FileWrite);
+		Define("Pos", FilePos);
+		Define("Close", FileClose);
+		Define("Modified", FileModified);
+		Define("Folder", FileFolder);
+	}
+	
+	void Define(const char *s, GDomProperty p)
+	{
+		#if defined(_DEBUG)
+		GDomProperty e = Find(s);
+		LgiAssert(e == ObjNone);
+		#endif
+		Add(s, p);
+	} 
+	
+} DomPropMap;
+
+GDomProperty GStringToProp(const char *Str)
+{
+	return DomPropMap.Find(Str);
 }
 
 bool GDom::GetValue(const char *Var, GVariant &Value)

@@ -454,59 +454,64 @@ bool SystemFunctions::New(GVariant *Ret, ArgumentArray &Args)
 	if (!Engine || Args.Length() != 1 || !Args[0])
 		return false;
 
-	const char *ObjName = Args[0]->CastString();
-	if (!ObjName)
-		return false;
-	
-	if (!stricmp(ObjName, "list"))
-	{
-		Ret->SetList();
-	}
-	else if (!stricmp(ObjName, "hashtable"))
-	{
-		Ret->SetHashTable();
-	}
-	else if (!stricmp(ObjName, "bitmap"))
-	{
-		Ret->Empty();
-		Ret->Type = GV_GSURFACE;
-		if (Ret->Value.Surface.Ptr = new GMemDC)
+	GDomProperty Type = GStringToProp(Args[0]->CastString());
+	switch (Type)
+	{	
+		case TypeList:
 		{
-			Ret->Value.Surface.Ptr->AddRef();
-			Ret->Value.Surface.Own = true;
-		}		
-	}
-	else if (!stricmp(ObjName, "file"))
-	{
-		Ret->Empty();
-		Ret->Type = GV_GFILE;
-		if (Ret->Value.File.Ptr = new GFile)
-		{
-			Ret->Value.File.Ptr->AddRef();
-			Ret->Value.File.Own = true;
+			Ret->SetList();
+			break;
 		}
-	}
-	else if (!stricmp(ObjName, "datetime"))
-	{
-		Ret->Empty();
-		Ret->Type = GV_DATETIME;
-		Ret->Value.Date = new GDateTime;
-	}
-	else
-	{
-		Ret->Empty();
-
-		GCompiledCode *c = Engine->GetCurrentCode();
-		if (!c)
-			return false;
-
-		GAutoWString o(LgiNewUtf8To16(Args[0]->CastString()));
-		GTypeDef *t = c->GetType(o);
-		if (t)
+		case TypeHashTable:
 		{
-			Ret->Type = GV_CUSTOM;
-			Ret->Value.Custom.Dom = t;
-			Ret->Value.Custom.Data = new char[t->Sizeof()];
+			Ret->SetHashTable();
+			break;
+		}
+		case TypeSurface:
+		{
+			Ret->Empty();
+			Ret->Type = GV_GSURFACE;
+			if (Ret->Value.Surface.Ptr = new GMemDC)
+			{
+				Ret->Value.Surface.Ptr->AddRef();
+				Ret->Value.Surface.Own = true;
+			}
+			break;
+		}
+		case TypeFile:
+		{
+			Ret->Empty();
+			Ret->Type = GV_GFILE;
+			if (Ret->Value.File.Ptr = new GFile)
+			{
+				Ret->Value.File.Ptr->AddRef();
+				Ret->Value.File.Own = true;
+			}
+			break;
+		}
+		case TypeDateTime:
+		{
+			Ret->Empty();
+			Ret->Type = GV_DATETIME;
+			Ret->Value.Date = new GDateTime;
+			break;
+		}
+		default:
+		{
+			Ret->Empty();
+
+			GCompiledCode *c = Engine->GetCurrentCode();
+			if (!c)
+				return false;
+
+			GAutoWString o(LgiNewUtf8To16(Args[0]->CastString()));
+			GTypeDef *t = c->GetType(o);
+			if (t)
+			{
+				Ret->Type = GV_CUSTOM;
+				Ret->Value.Custom.Dom = t;
+				Ret->Value.Custom.Data = new char[t->Sizeof()];
+			}
 		}
 	}
 
@@ -551,15 +556,24 @@ public:
 
 	bool GetVariant(const char *Var, GVariant &Value, char *Arr = 0)
 	{
-		if (!stricmp(Var, "Name"))
-			Value = Name;
-		if (!stricmp(Var, "Folder"))
-			Value = Folder;
-		if (!stricmp(Var, "Modified"))
-			Value = &Modified;
-		if (!stricmp(Var, "Size"))
-			Value = Size;
-		else return false;
+		GDomProperty p = GStringToProp(Var);
+		switch (p)
+		{
+			case ObjName:
+				Value = Name;
+				break;
+			case ObjLength:
+				Value = Size;
+				break;
+			case FileFolder:
+				Value = Folder;
+				break;
+			case FileModified:
+				Value = &Modified;
+				break;
+			default:
+				return false;
+		}
 		return true;
 	}
 };
