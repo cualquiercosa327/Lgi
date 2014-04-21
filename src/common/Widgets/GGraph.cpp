@@ -338,9 +338,9 @@ struct GGraphPriv
 				{
 					if (v.Value.Date->Hours() ||
 						v.Value.Date->Minutes())
-						v.Value.Date->Get(s);
+						v.Value.Date->Get(s, sizeof(s));
 					else
-						v.Value.Date->GetDate(s);
+						v.Value.Date->GetDate(s, sizeof(s));
 					break;
 				}
 				case GV_INT64:
