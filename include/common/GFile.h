@@ -181,10 +181,10 @@ public:
 	virtual int GetType();
 
 	/// Converts a string to the 64-bit value returned from the date functions.
-	bool ConvertToTime(char *Str, uint64 Time);
+	bool ConvertToTime(char *Str, int SLen, uint64 Time);
 
 	/// Converts the 64-bit value returned from the date functions to a string.
-	bool ConvertToDate(char *Str, uint64 Time);
+	bool ConvertToDate(char *Str, int SLen, uint64 Time);
 };
 
 /// Describes a volume connected to the system

@@ -1161,25 +1161,25 @@ char *GVariant::CastString()
 		}
 		case GV_INT32:
 		{
-			sprintf(i, "%i", Value.Int);
+			sprintf_s(i, sizeof(i), "%i", Value.Int);
 			*this = i;
 			return Str();
 		}
 		case GV_DOUBLE:
 		{
-			sprintf(i, "%f", Value.Dbl);
+			sprintf_s(i, sizeof(i), "%f", Value.Dbl);
 			*this = i;
 			return Str();
 		}
 		case GV_BOOL:
 		{
-			sprintf(i, "%i", Value.Bool);
+			sprintf_s(i, sizeof(i), "%i", Value.Bool);
 			*this = i;
 			return Str();
 		}
 		case GV_INT64:
 		{
-			sprintf(i, LGI_PrintfInt64, Value.Int64);
+			sprintf_s(i, sizeof(i), LGI_PrintfInt64, Value.Int64);
 			*this = i;
 			return Str();
 		}
@@ -1193,7 +1193,7 @@ char *GVariant::CastString()
 			if (Value.Date)
 			{
 				char s[64];
-				Value.Date->Get(s);
+				Value.Date->Get(s, sizeof(s));
 				*this = s;
 				return Str();
 			}

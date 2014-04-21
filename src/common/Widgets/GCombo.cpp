@@ -304,7 +304,7 @@ void GCombo::DoMenu()
 							if (!m || n != ci)
 							{
 								char Name[16];
-								sprintf(Name, "%i...", n = ci);
+								sprintf_s(Name, sizeof(Name), "%i...", n = ci);
 								m = RClick->AppendSub(Name);
 							}
 						}
@@ -314,7 +314,7 @@ void GCombo::DoMenu()
 							if (!m || dbl != cd)
 							{
 								char Name[16];
-								sprintf(Name, "%f", dbl = cd);
+								sprintf_s(Name, sizeof(Name), "%f", dbl = cd);
 								char *e = Name+strlen(Name)-1;
 								while (e > Name && e[0] == '0') *e-- = 0;
 								strcat(Name, "...");
@@ -326,7 +326,7 @@ void GCombo::DoMenu()
 							if (!m || f != *c)
 							{
 								char Name[16];
-								sprintf(Name, "%c...", f = *c);
+								sprintf_s(Name, sizeof(Name), "%c...", f = *c);
 								m = RClick->AppendSub(Name);
 							}
 						}

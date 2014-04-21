@@ -626,7 +626,7 @@ void SvRecordset::Write()
 		{
 			SvField *Nxt = F.Next();
 			char *Name = Fld->Name();
-			f.Write(s, sprintf(s, "\"%s\"", Name));
+			f.Write(s, sprintf_s(s, sizeof(s), "\"%s\"", Name));
 			if (Nxt) f.Write((void*)",", 1);
 			Fld = Nxt;
 		}

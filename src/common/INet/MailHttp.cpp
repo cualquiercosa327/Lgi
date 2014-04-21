@@ -321,7 +321,7 @@ bool MailPhp::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Pa
 		strcpy(d->Uri, RemoteHost);
 
 		char *e = d->Uri + strlen(d->Uri);
-		sprintf(e, "?token=%i", Token);
+		sprintf_s(e, sizeof(d->Uri)-(e-d->Uri), "?token=%i", Token);
 		
 		char *m = 0;
 		GStringPipe Text;
@@ -575,7 +575,7 @@ bool MailPhp::GetSizes(GArray<int> &Sizes)
 	return Sizes.Length() == d->Msgs.Length();
 }
 
-bool MailPhp::GetUid(int Message, char *Id)
+bool MailPhp::GetUid(int Message, char *Id, int IdLen)
 {
 	Msg *m = d->Msgs[Message];
 	return m ? m->Uid : 0;
@@ -604,7 +604,7 @@ char *MailPhp::GetHeaders(int Message)
 			d->HeadersRetreived = true;
 
 			char *e = d->Uri + strlen(d->Uri);
-			sprintf(e, "?top=1");
+			sprintf_s(e, sizeof(d->Uri)-(e-d->Uri), "?top=1");
 
 			GStringPipe Text;
 			if (Get(new GSocket, d->Uri, Text, false))

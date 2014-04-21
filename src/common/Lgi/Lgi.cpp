@@ -310,7 +310,7 @@ int LgiGetOs
 		else if (Gestalt(gestaltSystemVersion, &i) == noErr)
 		{
 			char s[10];
-			sprintf(s, "%x", (int)i);
+			sprintf_s(s, sizeof(s), "%x", (int)i);
 			char *e = s + strlen(s) - 1;
 			char a[3] = { e[-1], 0 };
 			char b[3] = { e[0], 0 };
@@ -1269,10 +1269,10 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 					#ifdef LINUX
 					WindowManager wm = LgiGetWindowManager();
 					if (wm == WM_Gnome)
-						sprintf(Dst, "%s/.gnome-desktop", pw->pw_dir);
+						sprintf_s(Dst, sizeof(Dst), "%s/.gnome-desktop", pw->pw_dir);
 					else
 					#endif
-						sprintf(Dst, "%s/Desktop", pw->pw_dir);
+						sprintf_s(Dst, sizeof(Dst), "%s/Desktop", pw->pw_dir);
 						
 					Status = true;
 				}
@@ -1438,7 +1438,7 @@ bool LgiGetExeFile(char *Dst, int DstSize)
 			}
 
 			char m[256];
-			sprintf(m, "GetModuleFileName failed err: %08.8X", GetLastError());
+			sprintf_s(m, sizeof(m), "GetModuleFileName failed err: %08.8X", GetLastError());
 			MessageBox(0, m, "LgiGetExeFile Error", MB_OK);
 			LgiExitApp();
 		}
@@ -1479,7 +1479,7 @@ bool LgiGetExeFile(char *Dst, int DstSize)
 			std::string p;
 			if (AppPath.GetPath(&p) == 0)
 			{
-				sprintf(Dst, "%s%s%s", p.c_str(), DIR_STR, LgiApp->_AppFile);
+				sprintf_s(Dst, DstSize, "%s%s%s", p.c_str(), DIR_STR, LgiApp->_AppFile);
 				return true;
 			}
 		}
@@ -1503,7 +1503,7 @@ bool LgiGetExeFile(char *Dst, int DstSize)
 				
 				// Next try the map file method
 				char ProcFile[256];
-				sprintf(ProcFile, "/proc/%i/maps", getpid());
+				sprintf_s(ProcFile, sizeof(ProcFile), "/proc/%i/maps", getpid());
 				int fd = open(ProcFile, O_RDONLY);
 
 				if (fd >= 0)
@@ -1537,7 +1537,7 @@ bool LgiGetExeFile(char *Dst, int DstSize)
 				{
 					// Non proc system (like cygwin for example)
 					// char Cmd[256];
-					// sprintf(Cmd, "ps | grep \"%i\"", getpid());
+					// sprintf_s(Cmd, sizeof(Cmd), "ps | grep \"%i\"", getpid());
 					
 					GStringPipe Ps;
 					GProcess p;
@@ -1669,7 +1669,9 @@ char *LgiFindFile(const char *Name)
 		{
 			if (strcmp(p[i], "build") == 0)
 				break;
-			sprintf(Exe+strlen(Exe), "/%s", p[i]);
+			
+			int len = strlen(Exe);
+			sprintf_s(Exe+len, sizeof(Exe)-len, "/%s", p[i]);
 
 			#if DEBUG_FIND_FILE
 			printf("%s:%i - Exe='%s'\n", __FILE__, __LINE__, Exe);
@@ -1814,7 +1816,7 @@ int LgiIsReleaseBuild()
  	#endif
 }
 
-void LgiFormatSize(char *Str, uint64 Size)
+void LgiFormatSize(char *Str, int SLen, uint64 Size)
 {
 	int64 K = 1024;
 	int64 M = K * K;
@@ -1826,26 +1828,26 @@ void LgiFormatSize(char *Str, uint64 Size)
 	}
 	else if (Size < K)
 	{
-		sprintf(Str, "%u bytes", (int)Size);
+		sprintf_s(Str, SLen, "%u bytes", (int)Size);
 	}
 	else if (Size < 10 * K)
 	{
 		double d = (double)(int64)Size;
-		sprintf(Str, "%.2f K", d / K);
+		sprintf_s(Str, SLen, "%.2f K", d / K);
 	}
 	else if (Size < M)
 	{
-		sprintf(Str, "%u K", (int) (Size / K));
+		sprintf_s(Str, SLen, "%u K", (int) (Size / K));
 	}
 	else if (Size < G)
 	{
 		double d = (double)(int64)Size;
-		sprintf(Str, "%.2f M", d / M);
+		sprintf_s(Str, SLen, "%.2f M", d / M);
 	}
 	else
 	{
 		double d = (double)(int64)Size;
-		sprintf(Str, "%.2f G", d / G);
+		sprintf_s(Str, SLen, "%.2f G", d / G);
 	}
 }
 

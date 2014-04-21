@@ -75,13 +75,13 @@ void MonthView::SelectCell(int x, int y)
 
 char *MonthView::Title()
 {
-	sprintf(Buf, "%s %i", FullMonthNames[Cursor.Month()-1], Cursor.Year());
+	sprintf_s(Buf, sizeof(Buf), "%s %i", FullMonthNames[Cursor.Month()-1], Cursor.Year());
 	return Buf;
 }
 
 char *MonthView::Day(bool FromCursor)
 {
-	sprintf(Buf, "%i", FromCursor ? Cursor.Day() : Cell.Day());
+	sprintf_s(Buf, sizeof(Buf), "%i", FromCursor ? Cursor.Day() : Cell.Day());
 	return Buf;
 }
 
@@ -89,11 +89,11 @@ char *MonthView::Date(bool FromCursor)
 {
 	if (FromCursor)
 	{
-		Cursor.GetDate(Buf);
+		Cursor.GetDate(Buf, sizeof(Buf));
 	}
 	else
 	{
-		Cell.GetDate(Buf);
+		Cell.GetDate(Buf, sizeof(Buf));
 	}
 	return Buf;
 }

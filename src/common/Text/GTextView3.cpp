@@ -3064,7 +3064,7 @@ void GTextView3::DoContextMenu(GMouse &m)
 		case IDM_INDENT_SIZE:
 		{
 			char s[32];
-			sprintf(s, "%i", IndentSize);
+			sprintf_s(s, sizeof(s), "%i", IndentSize);
 			GInput i(this, s, "Indent Size:", "Text");
 			if (i.DoModal())
 			{
@@ -3075,7 +3075,7 @@ void GTextView3::DoContextMenu(GMouse &m)
 		case IDM_TAB_SIZE:
 		{
 			char s[32];
-			sprintf(s, "%i", TabSize);
+			sprintf_s(s, sizeof(s), "%i", TabSize);
 			GInput i(this, s, "Tab Size:", "Text");
 			if (i.DoModal())
 			{
@@ -4498,7 +4498,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 		if (GetNotify())
 		{
 			char s[256];
-			sprintf(s, "Pour:%i Style:%i Paint:%i ms", _PourTime, _StyleTime, _PaintTime);
+			sprintf_s(s, sizeof(s), "Pour:%i Style:%i Paint:%i ms", _PourTime, _StyleTime, _PaintTime);
 			GMessage m = CreateMsg(DEBUG_TIMES_MSG, 0, (int)s);
 			GetNotify()->OnEvent(&m);
 		}

@@ -268,7 +268,7 @@ char *GRect::GetStr()
 	static int Cur = 0;
 	
 	char *b = Str[Cur];
-	sprintf(b, "%i,%i,%i,%i", x1, y1, x2, y2);	
+	sprintf_s(b, 48, "%i,%i,%i,%i", x1, y1, x2, y2);	
 	Cur++;
 	if (Cur >= BUFFERS)
 		Cur = 0;

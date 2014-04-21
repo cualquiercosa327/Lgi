@@ -446,8 +446,8 @@ void FileTransferProgress::Value(int64 v)
 			if (StatusInfo[_STATUS_POSITION])
 			{
 				char a[64], b[64], Str[128];
-				LgiFormatSize(a, Val);
-				LgiFormatSize(b, High);
+				LgiFormatSize(a, sizeof(a), Val);
+				LgiFormatSize(b, sizeof(b), High);
 				sprintf(Str, "%s of %s", a, b);
 				StatusInfo[_STATUS_POSITION]->Name(Str);
 			}

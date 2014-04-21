@@ -199,7 +199,7 @@ public:
 			GToken t(Uri, "\\/");
 			int Ch;
 			if (*Uri != '#' && Last)
-				sprintf(Buf, "%.*s", Last - Cur, Cur);
+				sprintf_s(Buf, sizeof(Buf), "%.*s", Last - Cur, Cur);
 			else
 				strsafecpy(Buf, Cur, sizeof(Buf));
 
@@ -217,9 +217,15 @@ public:
 						*End = 0;
 				}
 				else if (t[i][0] == '#')
-					sprintf(Buf+strlen(Buf), "%s", t[i]);
+				{
+					int len = strlen(Buf);
+					sprintf_s(Buf+len, sizeof(Buf)-len, "%s", t[i]);
+				}
 				else
-					sprintf(Buf+strlen(Buf), "%c%s", Sep, t[i]);
+				{
+					int len = strlen(Buf);
+					sprintf_s(Buf+len, sizeof(Buf)-len, "%c%s", Sep, t[i]);
+				}
 			}
 
 			Uri = Buf;
@@ -441,7 +447,7 @@ bool GBrowser::SetUri(const char *Uri)
 		char s[MAX_PATH];
 		if (DirExists(Uri))
 		{
-			sprintf(s, "%s%cindex.html", Uri, DIR_CHAR);
+			sprintf_s(s, sizeof(s), "%s%cindex.html", Uri, DIR_CHAR);
 			Uri = s;
 		}
 

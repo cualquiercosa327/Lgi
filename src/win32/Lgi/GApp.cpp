@@ -279,7 +279,7 @@ DumpTime("priv");
 	if (ProductName && ProductVer)
 	{
 		char s[256];
-		sprintf(s, "%s-%s", ProductName.Get(), ProductVer.Get());
+		sprintf_s(s, sizeof(s), "%s-%s", ProductName.Get(), ProductVer.Get());
 		d->ProductId.Reset(NewStr(s));
 	}
 
@@ -879,7 +879,7 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 					
 					#if 0
 					char m[256];
-					sprintf(m, "Msg=%i hwnd=%p %i,%i\n", Msg.message, Msg.hwnd, Msg.wParam, Msg.lParam);
+					sprintf_s(m, sizeof(m), "Msg=%i hwnd=%p %i,%i\n", Msg.message, Msg.hwnd, Msg.wParam, Msg.lParam);
 					OutputDebugStringA(m);
 					#endif
 					

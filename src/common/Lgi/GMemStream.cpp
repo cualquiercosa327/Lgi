@@ -293,7 +293,7 @@ int GTempStream::Write(const void *Buffer, int Size, int Flags)
 		int i=0;
 		do
 		{
-			sprintf(f, "GTempStream-%x.tmp", ((NativeInt)this)+i++);
+			sprintf_s(f, sizeof(f), "GTempStream-%x.tmp", ((NativeInt)this)+i++);
 			
 			char *t = TmpFolder;
 			if (!TmpFolder)

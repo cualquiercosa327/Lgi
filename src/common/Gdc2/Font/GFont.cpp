@@ -1322,14 +1322,14 @@ bool GFontType::DoUI(GView *Parent)
 	void *i = &Info;
 	#else
 	char i[128];
-	sprintf(i, "%s,%i", Info.Face(), Info.PointSize());
+	sprintf_s(i, sizeof(i), "%s,%i", Info.Face(), Info.PointSize());
 	#endif
 
 	GFontSelect Dlg(Parent, i);
 	if (Dlg.DoModal() == IDOK)
 	{
 		#ifdef WIN32
-		Dlg.Serialize(i, true);
+		Dlg.Serialize(i, sizeof(Info), true);
 		#else
 		if (Dlg.Face) Info.Face(Dlg.Face);
 		Info.PointSize(Dlg.Size);
@@ -1341,11 +1341,11 @@ bool GFontType::DoUI(GView *Parent)
 	return Status;
 }
 
-bool GFontType::GetDescription(char *Str)
+bool GFontType::GetDescription(char *Str, int SLen)
 {
 	if (Str && GetFace())
 	{
-		sprintf(Str, "%s, %i pt", GetFace(), GetPointSize());
+		sprintf_s(Str, SLen, "%s, %i pt", GetFace(), GetPointSize());
 		return true;
 	}
 
@@ -1380,7 +1380,7 @@ bool GFontType::Serialize(ObjProperties *Options, char *OptName, bool Write)
 		if (Write)
 		{
 			char Temp[128];
-			sprintf(Temp, "%s,%i pt", Info.Face(), Info.PointSize());
+			sprintf_s(Temp, sizeof(Temp), "%s,%i pt", Info.Face(), Info.PointSize());
 			Status = Options->Set(OptName, Temp);
 		}
 		else
@@ -1440,7 +1440,7 @@ bool GFontType::Serialize(GDom *Options, const char *OptName, bool Write)
 		if (Write)
 		{
 			char Temp[128];
-			sprintf(Temp, "%s,%i pt", Info.Face(), Info.PointSize());
+			sprintf_s(Temp, sizeof(Temp), "%s,%i pt", Info.Face(), Info.PointSize());
 			Status = Options->SetValue(OptName, v = Temp);
 		}
 		else

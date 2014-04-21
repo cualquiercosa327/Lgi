@@ -27,7 +27,7 @@ public:
 		if (Dest && ErrorDescription)
 		{
 			char Str[256];
-			sprintf(Str, "[Data] %s", ErrorDescription);
+			sprintf_s(Str, sizeof(Str), "[Data] %s", ErrorDescription);
 			Dest->OnInformation(Str);
 		}
 	}
@@ -37,7 +37,7 @@ public:
 		if (Dest && s)
 		{
 			char Str[256];
-			sprintf(Str, "[Data] %s", s);
+			sprintf_s(Str, sizeof(Str), "[Data] %s", s);
 			Dest->OnInformation(Str);
 		}
 	}
@@ -458,7 +458,7 @@ bool IHttp::Request
 		{
 			// Basic authentication
 			char Raw[128];
-			sprintf(Raw, "%s:%s", AuthUser, AuthPassword);
+			sprintf_s(Raw, sizeof(Raw), "%s:%s", AuthUser, AuthPassword);
 			char Base64[128];
 			ZeroObj(Base64);
 			ConvertBinaryToBase64(Base64, sizeof(Base64)-1, (uchar*)Raw, strlen(Raw));

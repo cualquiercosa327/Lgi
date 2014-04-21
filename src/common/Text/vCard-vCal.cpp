@@ -720,7 +720,7 @@ bool VCard::Export(GDataPropI *c, GStreamI *o)
 	Title = c->GetStr(FIELD_TITLE);
 	if (First || Last)
 	{
-		sprintf(s,
+		sprintf_s(s, sizeof(s),
 				"%s;%s;%s",
 				Last?Last:Empty,
 				First?First:Empty,
@@ -1104,7 +1104,8 @@ bool VCal::Export(GDataPropI *c, GStreamI *o)
 					strcpy(s, "ATTENDEE");
 					if (Name)
 					{
-						sprintf(s+strlen(s), ";CN=\"%s\"", Name);
+						int len = strlen(s);
+						sprintf_s(s+len, sizeof(s)-len, ";CN=\"%s\"", Name);
 					}
 					switch (Attend)
 					{
@@ -1127,7 +1128,8 @@ bool VCal::Export(GDataPropI *c, GStreamI *o)
 					}
 					if (Email)
 					{
-						sprintf(s+strlen(s), ":MAILTO=%s", Email);
+						int len = strlen(s)
+						sprintf_s(s+len, sizeof(s)-len, ":MAILTO=%s", Email);
 					}
 					strcat(s, "\r\n");
 					o->Push(s);

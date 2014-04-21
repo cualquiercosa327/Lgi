@@ -169,19 +169,19 @@ bool Prop::SerializeText(GFile &f, bool Write)
 		{
 			case OBJ_INT:
 			{
-				sprintf(Str, "%s=%i\r\n", Name, Value.Int);
+				sprintf_s(Str, sizeof(Str), "%s=%i\r\n", Name, Value.Int);
 				f.Write(Str, strlen(Str));
 				break;
 			}
 			case OBJ_FLOAT:
 			{
-				sprintf(Str, "%s=%e\r\n", Name, Value.Dbl);
+				sprintf_s(Str, sizeof(Str), "%s=%e\r\n", Name, Value.Dbl);
 				f.Write(Str, strlen(Str));
 				break;
 			}
 			case OBJ_STRING:
 			{
-				f.Write(Str, sprintf(Str, "%s=\"", Name));
+				f.Write(Str, sprintf_s(Str, sizeof(Str), "%s=\"", Name));
 				
 				for (char *s = Value.Cp; s && *s; s++)
 				{
@@ -219,11 +219,11 @@ bool Prop::SerializeText(GFile &f, bool Write)
 			}
 			case OBJ_BINARY:
 			{
-				sprintf(Str, "%s=B(%i,", Name, Size);
+				sprintf_s(Str, sizeof(Str), "%s=B(%i,", Name, Size);
 				f.Write(Str, strlen(Str));
 				for (int i=0; i<Size; i++)
 				{
-					sprintf(Str, "%2.2X", (uchar)Value.Cp[i]);
+					sprintf_s(Str, sizeof(Str), "%2.2X", (uchar)Value.Cp[i]);
 					f.Write(Str, 2);
 				}
 				f.Write((char*)")\r\n", 3);
@@ -1316,7 +1316,7 @@ void PrintObj(ObjProperties *p, int i)
 		while (p)
 		{
 			memset(Buf, ' ', sizeof(Buf));
-			sprintf(Buf+i, "%s", p->Name());
+			sprintf_s(Buf+i, sizeof(Buf)-i, "%s", p->Name());
 			puts(Buf);
 
 			i += 3;
@@ -1331,24 +1331,24 @@ void PrintObj(ObjProperties *p, int i)
 					{
 						case OBJ_INT:
 						{
-							sprintf(Buf+i, "int %s = %i", p->KeyName(), Val->Int);
+							sprintf_s(Buf+i, sizeof(Buf)-i, "int %s = %i", p->KeyName(), Val->Int);
 							break;
 						}
 
 						case OBJ_FLOAT:
 						{
-							sprintf(Buf+i, "double %s = %f", p->KeyName(), Val->Dbl);
+							sprintf_s(Buf+i, sizeof(Buf)-i, "double %s = %f", p->KeyName(), Val->Dbl);
 							break;
 						}
 
 						case OBJ_STRING:
 						{
-							sprintf(Buf+i, "char *%s = '%s'", p->KeyName(), Val->Cp);
+							sprintf_s(Buf+i, sizeof(Buf)-i, "char *%s = '%s'", p->KeyName(), Val->Cp);
 							break;
 						}
 						default:
 						{
-							sprintf(Buf+i, "<unknown key type>\n");
+							sprintf_s(Buf+i, sizeof(Buf)-i, "<unknown key type>\n");
 							break;
 						}
 					}

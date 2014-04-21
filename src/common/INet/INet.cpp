@@ -1422,7 +1422,8 @@ bool WhatsMyIp(GAutoString &Ip)
 		
 		uchar *a = (uchar*)&addr.sin_addr.s_addr;
 		char IpAddr[32];
-		sprintf(	IpAddr,
+		sprintf_s(	IpAddr,
+					sizeof(IpAddr),
 					"%i.%i.%i.%i",
 					a[0],
 					a[1],
@@ -1867,7 +1868,7 @@ GAutoString GUri::Encode(const char *s, const char *ExtraCharsToEncode)
 			if (*s == ' ' || (ExtraCharsToEncode && strchr(ExtraCharsToEncode, *s)))
 			{
 				char h[4];
-				sprintf(h, "%%%2.2X", (uint32)(uchar)*s++);
+				sprintf_s(h, sizeof(h), "%%%2.2X", (uint32)(uchar)*s++);
 				p.Write(h, 3);
 			}
 			else

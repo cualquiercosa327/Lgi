@@ -12,6 +12,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <stdlib.h>
+
 #include "GMem.h"
 #include "process.h"
 
@@ -392,7 +394,7 @@ bool LgiDumpMemoryStats(char *filename)
 						TotalBytes += b->Size;
 					}
 
-					sprintf(s, "%i bytes (%.1f MB) in %i blocks:\n\n", TotalBytes, (double)TotalBytes / 1024 / 1024, BlockCount);
+					sprintf_s(s, sizeof(s), "%i bytes (%.1f MB) in %i blocks:\n\n", TotalBytes, (double)TotalBytes / 1024 / 1024, BlockCount);
 					fwrite(s, 1, strlen(s), f);
 					OutputDebugString(s);
 
@@ -406,7 +408,8 @@ bool LgiDumpMemoryStats(char *filename)
 						{
 							Last = Now;
 							double Sec = (double)(Now-Start)/1000;
-							sprintf(s, "Dumping %.1f%%, %i of %i (%i/sec)\n",
+							sprintf_s(	s, sizeof(s),
+										"Dumping %.1f%%, %i of %i (%i/sec)\n",
 										(double)Current * 100 / BlockCount,
 										Current,
 										BlockCount,
@@ -415,27 +418,27 @@ bool LgiDumpMemoryStats(char *filename)
 						}
 
 						uint8 *Data = (uint8*)(b + 1);
-						char *Str = s + sprintf(s, "Block %p, %i bytes = {", b + 1, b->Size);
+						int ch = sprintf_s(s, sizeof(s), "Block %p, %i bytes = {", b + 1, b->Size);
 						for (int n=0; n<b->Size && n<16; n++)
 						{
 							if (Data[n] >= ' ' && Data[n] < 127)
 							{
-								Str += sprintf(Str, "'%c', ", Data[n]);
+								ch += sprintf_s(s+ch, sizeof(s)-ch, "'%c', ", Data[n]);
 							}
 							else
 							{
-								Str += sprintf(Str, "0x%02.2x, ", (int)Data[n]);
+								ch += sprintf_s(s+ch, sizeof(s)-ch, "0x%02.2x, ", (int)Data[n]);
 							}
 						}
 						if (b->Size > 16)
 						{
-							Str += sprintf(Str, "...}\n");
+							ch += sprintf_s(s+ch, sizeof(s)-ch, "...}\n");
 						}
 						else
 						{
-							Str += sprintf(Str, "}\n");
+							ch += sprintf_s(s+ch, sizeof(s)-ch, "}\n");
 						}
-						fwrite(s, 1, Str - s, f);
+						fwrite(s, 1, ch, f);
 
 						for (int i=0; b->Stack[i].Ip && i<MEM_STACK_SIZE; i++)
 						{
@@ -465,20 +468,20 @@ bool LgiDumpMemoryStats(char *filename)
 								{
 									if (SymGetLineFromAddr(hProcess, b->Stack[i].Ip, &symDisplacement, &Line))
 									{
-										sprintf(s, "\t%s %s:%i\n", mod, Line.FileName, Line.LineNumber);
+										sprintf_s(s, sizeof(s), "\t%s %s:%i\n", mod, Line.FileName, Line.LineNumber);
 									}
 									else
 									{
 										if (pSymbol->Name[0] == '$')
 											break;
 
-										sprintf(s, "\t%s %s+0x%x\n", mod, pSymbol->Name, symDisplacement);
+										sprintf_s(s, sizeof(s), "\t%s %s+0x%x\n", mod, pSymbol->Name, symDisplacement);
 										// dumpBuffer.Printf("%p: %s Offset: 0x%X (%hs)\n", caller, module, symDisplacement, pSymbol->Name);
 									}
 								}
 								else
 								{
-									sprintf(s, "\t%s 0x%x\n", mod, b->Stack[i].Ip);
+									sprintf_s(s, sizeof(s), "\t%s 0x%x\n", mod, b->Stack[i].Ip);
 								}
 
 								fwrite(s, 1, strlen(s), f);
@@ -615,7 +618,7 @@ public:
 			if (Max->Count)
 			{
 				char s[256];
-				sprintf(s, "Metrics: %s,%i Count: %i\n", Max->File, Max->Line, Max->Count);
+				sprintf_s(s, sizeof(s), "Metrics: %s,%i Count: %i\n", Max->File, Max->Line, Max->Count);
 				OutputDebugString(s);
 				Max->Count = 0;
 			}
@@ -684,7 +687,7 @@ struct _vmem_info
 	void Dump()
 	{
 		char s[256];
-		sprintf(s, "Leak: %s,%i (%i bytes, '", File, Line, Size);
+		sprintf_s(s, sizeof(s), "Leak: %s,%i (%i bytes, '", File, Line, Size);
 
 		char *Data = ((char*)(this+1)) + _VMEM_BUFFER;
 		char *e = s + strlen(s);
@@ -722,7 +725,7 @@ public:
 		char s[256];
 		if (_First)
 		{
-			sprintf(s, "Memory Leaks: %i (Max blocks %i)\n", _used, _max_used);
+			sprintf_s(s, sizeof(s), "Memory Leaks: %i (Max blocks %i)\n", _used, _max_used);
 			OutputDebugString(s);
 
 			int k=0;
@@ -736,7 +739,7 @@ public:
 		}
 		else
 		{
-			sprintf(s, "No Memory Leaks. (Max blocks %i)\n", _max_used);
+			sprintf_s(s, sizeof(s), "No Memory Leaks. (Max blocks %i)\n", _max_used);
 			OutputDebugString(s);
 		}
 	}

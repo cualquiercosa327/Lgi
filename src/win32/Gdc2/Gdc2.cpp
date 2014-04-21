@@ -429,7 +429,7 @@ bool GPalette::Save(GFile &F, int Format)
 		{
 			char Buf[256];
 
-			sprintf(Buf, "JASC-PAL\r\n%04.4X\r\n%i\r\n", GetSize(), GetSize());
+			sprintf_s(Buf, sizeof(Buf), "JASC-PAL\r\n%04.4X\r\n%i\r\n", GetSize(), GetSize());
 			F.Write(Buf, strlen(Buf));
 
 			for (int i=0; i<GetSize(); i++)
@@ -437,7 +437,7 @@ bool GPalette::Save(GFile &F, int Format)
 				GdcRGB *p = (*this)[i];
 				if (p)
 				{
-					sprintf(Buf, "%i %i %i\r\n", p->r, p->g, p->b);
+					sprintf_s(Buf, sizeof(Buf), "%i %i %i\r\n", p->r, p->g, p->b);
 					F.Write(Buf, strlen(Buf));
 				}
 			}

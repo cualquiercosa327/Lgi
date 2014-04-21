@@ -429,7 +429,7 @@ bool SystemFunctions::FormatSize(GVariant *Ret, ArgumentArray &Args)
 		return false;
 
 	char s[64];
-	LgiFormatSize(s, Args[0]->CastInt64());
+	LgiFormatSize(s, sizeof(s), Args[0]->CastInt64());
 	*Ret = s;
 	return true;
 }

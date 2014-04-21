@@ -27,8 +27,8 @@ bool GLibrary::Load(const char *File)
 
 	if (File)
 	{
-		char f[256];
-		strsafecpy(f, File, sizeof(f));
+		char f[MAX_PATH];
+		int ch = sprintf_s(f, sizeof(f), "%s", File);
 		
 		// check for default extension..
 		// if you specify no extension in the application this will correctly set
@@ -37,7 +37,7 @@ bool GLibrary::Load(const char *File)
 		char *Dot = strrchr(f, '.');
 		if (!Dot || strchr(Dot, DIR_CHAR))
 		{
-			sprintf(f+strlen(f), ".%s", LGI_LIBRARY_EXT);
+			ch += sprintf_s(f+ch, sizeof(f)-ch, ".%s", LGI_LIBRARY_EXT);
 		}
 
 		int Len = strlen(f) + 16;

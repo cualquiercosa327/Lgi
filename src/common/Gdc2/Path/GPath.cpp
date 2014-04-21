@@ -507,7 +507,7 @@ GRectF &GRectF::operator =(GPointF &p)
 char *GRectF::Describe()
 {
 	static char s[64];
-	sprintf(s, "%f,%f,%f,%f", x1, y1, x2, y2);
+	sprintf_s(s, sizeof(s), "%f,%f,%f,%f", x1, y1, x2, y2);
 	return s;
 }
 
@@ -1900,7 +1900,7 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 			if (n)
 			{
 				char s[256];
-				sprintf(s, "%i", n);
+				sprintf_s(s, sizeof(s), "%i", n);
 
 				/*
 				Debug.Fore(Rgb24(0x80, 0x80, 0x80));

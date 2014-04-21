@@ -298,7 +298,7 @@ void GControlTree::Item::OnPaint(ItemPaintCtx &Ctx)
 				}
 				else
 				{
-					sprintf(Disp = s, "%i", Value.CastInt32());
+					sprintf_s(Disp = s, sizeof(s), "%i", Value.CastInt32());
 					GDisplayString ds(SysBold, Disp);
 					ds.Draw(Ctx.pDC, p.x1 + 6, p.y1 + 2);
 				}

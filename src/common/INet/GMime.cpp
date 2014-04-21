@@ -53,12 +53,12 @@ MimeBoundary IsMimeBoundary(char *Boundary, char *Line)
 	return MimeData;
 }
 
-void CreateMimeBoundary(char *Buf)
+void CreateMimeBoundary(char *Buf, int BufLen)
 {
 	if (Buf)
 	{
 		static int Count = 1;
-		sprintf(Buf, "--%x-%x-%x--", (int)LgiCurrentTime(), (int)LgiGetCurrentThread(), Count++);
+		sprintf_s(Buf, BufLen, "--%x-%x-%x--", (int)LgiCurrentTime(), (int)LgiGetCurrentThread(), Count++);
 	}
 }
 
@@ -112,7 +112,7 @@ public:
 					 *s == '.' ||
 					 *s == '=')
 			{
-				sprintf(d, "=%2.2X", (uchar)*s);
+				sprintf_s(d, sizeof(Buf)-(d-Buf), "=%2.2X", (uchar)*s);
 				d += 3;
 				s++;
 			}
@@ -861,7 +861,7 @@ bool GMime::SetSub(const char *Field, const char *Sub, const char *Value, const 
 							char *v = NewValue(s);
 							if (stricmp(Name, Sub) != 0)
 							{
-								sprintf(Buf, ";\r\n\t%s=\"%s\"", Name, v);
+								sprintf_s(Buf, sizeof(Buf), ";\r\n\t%s=\"%s\"", Name, v);
 								p.Push(Buf);
 							}
 							DeleteArray(v);
@@ -874,7 +874,7 @@ bool GMime::SetSub(const char *Field, const char *Sub, const char *Value, const 
 				if (Value)
 				{
 					// Push the new sub field
-					sprintf(Buf, ";\r\n\t%s=\"%s\"", Sub, Value);
+					sprintf_s(Buf, sizeof(Buf), ";\r\n\t%s=\"%s\"", Sub, Value);
 					p.Push(Buf);
 				}
 
@@ -892,7 +892,7 @@ bool GMime::SetSub(const char *Field, const char *Sub, const char *Value, const 
 			if (Value)
 			{
 				// Set
-				sprintf(Buf, "%s;\r\n\t%s=\"%s\"", DefaultValue, Sub, Value);
+				sprintf_s(Buf, sizeof(Buf), "%s;\r\n\t%s=\"%s\"", DefaultValue, Sub, Value);
 				return Set(Field, Buf);
 			}
 			else
@@ -1095,7 +1095,7 @@ int GMime::GMimeText::GMimeEncode::Push(GStreamI *Dest, GStreamEnd *End)
 			{
 				// Create one
 				char b[256];
-				CreateMimeBoundary(b);
+				CreateMimeBoundary(b, sizeof(b));
 				Mime->SetBoundary(b);
 				Boundary = Mime->GetBoundary();
 			}
@@ -1236,7 +1236,7 @@ int GMime::GMimeText::GMimeEncode::Push(GStreamI *Dest, GStreamEnd *End)
 		{
 			for (int i=0; i<Mime->Children.Length(); i++)
 			{
-				sprintf(Buf, "\r\n\r\n--%s\r\n", Boundary);
+				sprintf_s(Buf, sizeof(Buf), "\r\n\r\n--%s\r\n", Boundary);
 				Dest->Write(Buf, strlen(Buf));
 
 				if (!Mime->Children[i]->Text.Encode.Push(Dest, End))
@@ -1247,7 +1247,7 @@ int GMime::GMimeText::GMimeEncode::Push(GStreamI *Dest, GStreamEnd *End)
 				Status = 1;
 			}
 
-			sprintf(Buf, "\r\n\r\n--%s--\r\n", Boundary);
+			sprintf_s(Buf, sizeof(Buf), "\r\n\r\n--%s--\r\n", Boundary);
 			Dest->Write(Buf, strlen(Buf));
 		}
 

@@ -803,7 +803,7 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 			{
 				// mb -> unicode
 				char Cp[32];
-				sprintf(Cp, ".%s", InInfo->Charset + 8);
+				sprintf_s(Cp, sizeof(Cp), ".%s", InInfo->Charset + 8);
 				setlocale(LC_ALL, Cp);
 
 				void *Start = Out;
@@ -826,7 +826,7 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 			{
 				// unicode -> mb
 				char Cp[32];
-				sprintf(Cp, ".%s", OutInfo->Charset + 8);
+				sprintf_s(Cp, sizeof(Cp), ".%s", OutInfo->Charset + 8);
 				setlocale(LC_ALL, Cp);
 
 				void *Start = Out;

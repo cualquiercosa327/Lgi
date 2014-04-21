@@ -543,7 +543,7 @@ public:
 			if (Desc)
 			{
 				char s[MAX_PATH];
-				sprintf(s, "%s (%.2s)", Desc, Drive);
+				sprintf_s(s, sizeof(s), "%s (%.2s)", Desc, Drive);
 				_Name = NewStr(s);
 			}
 			
@@ -1207,7 +1207,7 @@ typedef struct
 } DISKIO;
 
 /////////////////////////////////////////////////////////////////////////////////
-bool GDirectory::ConvertToTime(char *Str, uint64 Time)
+bool GDirectory::ConvertToTime(char *Str, int SLen, uint64 Time)
 {
 	if (Str)
 	{
@@ -1221,13 +1221,13 @@ bool GDirectory::ConvertToTime(char *Str, uint64 Time)
 			char AP = (Hour >= 12) ? 'a' : 'p';
 			Hour %= 12;
 			if (Hour == 0) Hour = 12;
-			sprintf(Str, "%i:%02.2i:%02.2i %c", Hour-1, s.wMinute, s.wSecond, AP);
+			sprintf_s(Str, SLen, "%i:%02.2i:%02.2i %c", Hour-1, s.wMinute, s.wSecond, AP);
 		}
 	}
 	return false;
 }
 
-bool GDirectory::ConvertToDate(char *Str, uint64 Time)
+bool GDirectory::ConvertToDate(char *Str, int SLen, uint64 Time)
 {
 	if (Str)
 	{
@@ -1237,7 +1237,7 @@ bool GDirectory::ConvertToDate(char *Str, uint64 Time)
 		t.dwLowDateTime = Time & 0xFFFFFFFF;
 		if (FileTimeToSystemTime(&t, &s))
 		{
-			sprintf(Str, "%i/%i/%i", s.wDay, s.wMonth, s.wYear);
+			sprintf_s(Str, SLen, "%i/%i/%i", s.wDay, s.wMonth, s.wYear);
 		}
 	}
 	return false;

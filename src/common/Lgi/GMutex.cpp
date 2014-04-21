@@ -8,11 +8,10 @@ char *SemPrint(OsSemaphore *s)
 {
 	static char Buf[256];
 	
-	char *c = Buf;
+	int ch = 0;
 	for (int i=0; i<sizeof(OsSemaphore); i++)
 	{
-		sprintf(c, "%2.2X,", ((uchar*)s)[i]);
-		c += 3;
+		ch += sprintf_s(Buf+ch, sizeof(Buf)-ch, "%2.2X,", ((uchar*)s)[i]);
 	}
 	
 	return Buf;
@@ -155,7 +154,7 @@ bool GMutex::Lock(const char *file, int line)
 				if (_Name && stricmp(_Name, "ScribeWnd") == 0)
 				{
 					char m[256];
-					sprintf(m, "Lock '%s' by 0x%x, count=%i\n", _Name, _Thread, _Count);
+					sprintf_s(m, sizeof(m), "Lock '%s' by 0x%x, count=%i\n", _Name, _Thread, _Count);
 					OutputDebugString(m);
 				}
 				*/

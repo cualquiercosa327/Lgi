@@ -228,7 +228,7 @@ bool MailIMap::Http(GSocketI *S,
 	GArray<char> Res;
 	int r;
 	int ContentLen = 0;
-	int HdrLen = 0;
+	uint32 HdrLen = 0;
 	while ((r = S->Read(Buf, sizeof(Buf))) > 0)
 	{
 		int Old = Res.Length();
@@ -472,7 +472,7 @@ char *EncodeImapString(char *s)
 				}
 			}
 
-			for (int i=0; i<Str.Length(); i++)
+			for (uint32 i=0; i<Str.Length(); i++)
 			{
 				Str[i] = (Str[i]>>8) | ((Str[i]&0xff)<<8);
 			}
@@ -574,13 +574,14 @@ void MailImapFolder::SetName(char *s)
 	if (s)
 	{
 		char Buf[256];
-		strcpy(Buf, Path?Path:(char*)"");
+		sprintf_s(Buf, sizeof(Buf), Path?Path:(char*)"");
 		DeleteArray(Path);
 
 		char *Last = strrchr(Buf, Sep);
 		if (Last)
 		{
-			strcpy(Last+1, s);
+			Last++;
+			sprintf_s(Last, sizeof(Buf)-(Last-Buf), s);
 			Path = NewStr(Buf);
 		}
 		else
@@ -693,7 +694,8 @@ bool MailIMap::WriteBuf(bool ObsurePass, const char *Buffer)
 				char *Sp = (char*)strrchr(Buffer, ' ');
 				if (Sp)
 				{
-					strcpy(Sp + 1, "********\r\n");
+					Sp++;
+					strcpy_s(Sp, sizeof(Buffer)-(Sp-Buffer), "********\r\n");
 				}
 			}
 
@@ -761,17 +763,17 @@ bool MailIMap::ReadResponse(int Cmd, GStringPipe *Out, bool Plus)
 				for (char *Dlg = Dialog[Pos]; !Done && Dlg; Dlg = Dialog.Next())
 				{
 					Pos++;
-					if (Cmd < 0 || (Plus && stricmp(Dlg, "+") == 0))
+					if (Cmd < 0 || (Plus && _stricmp(Dlg, "+") == 0))
 					{
 						Status = Done = true;
 					}
 
 					char Num[8];
-					sprintf(Num, "A%4.4i ", Cmd);
-					if (strnicmp(Dlg, Num, 6) == 0)
+					sprintf_s(Num, sizeof(Num), "A%4.4i ", Cmd);
+					if (_strnicmp(Dlg, Num, 6) == 0)
 					{
 						Done = true;
-						Status = strnicmp(Dlg+6, "OK", 2) == 0;
+						Status = _strnicmp(Dlg+6, "OK", 2) == 0;
 						if (!Status)
 							ServerMsg.Reset(NewStr(Dlg+6));
 					}
@@ -787,17 +789,22 @@ bool MailIMap::ReadResponse(int Cmd, GStringPipe *Out, bool Plus)
 	return Status;
 }
 
-void Hex(char *Out, uchar *In, int Len = -1)
+void Hex(char *Out, int OutLen, uchar *In, int InLen = -1)
 {
 	if (Out && In)
 	{
-		if (Len < 0)
-			Len = strlen((char*)In);
+		if (InLen < 0)
+			InLen = strlen((char*)In);
 
-		for (int i=0; i<Len; i++)
+		for (int i=0; i<InLen; i++)
 		{
-			sprintf(Out, "%2.2x", *In++);
-			Out += 2;
+			int ch = sprintf_s(Out, OutLen, "%2.2x", *In++);
+			if (ch > 0)
+			{
+				Out += ch;
+				OutLen -= ch;
+			}
+			else break;
 		}
 	}
 }
@@ -856,7 +863,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 		}
 
 		char Remote[256];
-		strcpy(Remote, RemoteHost);
+		strcpy_s(Remote, sizeof(Remote), RemoteHost);
 		char *Colon = strchr(Remote, ':');
 		if (Colon)
 		{
@@ -878,7 +885,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 
 			// check capability
 			int CapCmd = d->NextCmd++;
-			sprintf(Buf, "A%4.4i CAPABILITY\r\n", CapCmd);
+			sprintf_s(Buf, sizeof(Buf), "A%4.4i CAPABILITY\r\n", CapCmd);
 			if (WriteBuf())
 			{
 				if (ReadResponse(CapCmd))
@@ -887,16 +894,16 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 					{
 						GToken T(r, " ");
 						if (T.Length() > 1 &&
-							stricmp(T[1], "CAPABILITY") == 0)
+							_stricmp(T[1], "CAPABILITY") == 0)
 						{
-							for (int i=2; i<T.Length(); i++)
+							for (unsigned i=2; i<T.Length(); i++)
 							{
-								if (stricmp(T[i], "IMAP4") == 0 ||
-									stricmp(T[i], "IMAP4rev1") == 0)
+								if (_stricmp(T[i], "IMAP4") == 0 ||
+									_stricmp(T[i], "IMAP4rev1") == 0)
 								{
 									IMAP4Server = true;
 								}
-								if (strnicmp(T[i], "AUTH=", 5) == 0)
+								if (_strnicmp(T[i], "AUTH=", 5) == 0)
 								{
 									char *Type = T[i] + 5;
 									Auths.Insert(NewStr(Type));
@@ -943,7 +950,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 				if (TestFlag(Flags, MAIL_USE_STARTTLS))
 				{
 					int CapCmd = d->NextCmd++;
-					sprintf(Buf, "A%4.4i STARTTLS\r\n", CapCmd);
+					sprintf_s(Buf, sizeof(Buf), "A%4.4i STARTTLS\r\n", CapCmd);
 					if (WriteBuf())
 					{
 						if (ReadResponse(CapCmd))
@@ -984,7 +991,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 					if (!stricmp(AuthType, "GSSAPI"))
 					{
 						int AuthCmd = d->NextCmd++;
-						sprintf(Buf, "A%04.4i AUTHENTICATE GSSAPI\r\n", AuthCmd);
+						sprintf_s(Buf, sizeof(Buf), "A%04.4i AUTHENTICATE GSSAPI\r\n", AuthCmd);
 						if (WriteBuf() &&
 							ReadLine() &&
 							Buf[0] == '+')
@@ -1013,40 +1020,40 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 					}
 					else
 					#endif
-					if (stricmp(AuthType, "LOGIN") == 0 ||
-							 stricmp(AuthType, "OTP") == 0)
+					if (_stricmp(AuthType, "LOGIN") == 0 ||
+						_stricmp(AuthType, "OTP") == 0)
 					{
 						// clear text authentication
 						int AuthCmd = d->NextCmd++;
-						sprintf(Buf, "A%4.4i LOGIN %s %s\r\n", AuthCmd, User, Password);
+						sprintf_s(Buf, sizeof(Buf), "A%4.4i LOGIN %s %s\r\n", AuthCmd, User, Password);
 						if (WriteBuf(true))
 						{
 							LoggedIn = ReadResponse(AuthCmd);
 						}
 					}
-					else if (stricmp(AuthType, "PLAIN") == 0)
+					else if (_stricmp(AuthType, "PLAIN") == 0)
 					{
 						// plain auth type
 						char s[256];
 						char *e = s;
 						*e++ = 0;
-						strcpy(e, User);
+						strcpy_s(e, sizeof(s)-(e-s), User);
 						e += strlen(e);
 						e++;
-						strcpy(e, Password);
+						strcpy_s(e, sizeof(s)-(e-s), Password);
 						e += strlen(e);
 						*e++ = '\r';
 						*e++ = '\n';
 						int Len = e - s - 2;					
 
 						int AuthCmd = d->NextCmd++;
-						sprintf(Buf, "A%4.4i AUTHENTICATE PLAIN\r\n", AuthCmd);
+						sprintf_s(Buf, sizeof(Buf), "A%4.4i AUTHENTICATE PLAIN\r\n", AuthCmd);
 						if (WriteBuf())
 						{
 							if (ReadResponse(AuthCmd, 0, true))
 							{
 								int b = ConvertBinaryToBase64(Buf, sizeof(Buf), (uchar*)s, Len);
-								strcpy(Buf + b, "\r\n");
+								strcpy_s(Buf+b, sizeof(Buf)-b, "\r\n");
 
 								if (WriteBuf())
 								{
@@ -1056,7 +1063,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 						}						
 					}
 					#if (GPL_COMPATIBLE || defined(_LIBNTLM_H)) && defined(WIN32NATIVE)
-					else if (stricmp(AuthType, "NTLM") == 0)
+					else if (_stricmp(AuthType, "NTLM") == 0)
 					{
 						// NT Lan Man authentication
 						OSVERSIONINFO ver;
@@ -1071,13 +1078,13 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 						{
 							// Username is in the format: User[@Domain]
 							char UserDom[256];
-							strcpy(UserDom, User);
+							strcpy_s(UserDom, sizeof(UserDom), User);
 							char *Domain = strchr(UserDom, '@');
 							if (Domain)
 								*Domain++ = 0;
 
 							int AuthCmd = d->NextCmd++;
-							sprintf(Buf, "A%04.4i AUTHENTICATE NTLM\r\n", AuthCmd);
+							sprintf_s(Buf, sizeof(Buf), "A%04.4i AUTHENTICATE NTLM\r\n", AuthCmd);
 							if (WriteBuf())
 							{
 								if (ReadResponse(AuthCmd, 0, true))
@@ -1085,21 +1092,20 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 									tSmbNtlmAuthNegotiate	negotiate;              
 									tSmbNtlmAuthChallenge	challenge;
 									tSmbNtlmAuthResponse	response;
-									char tmpstr[32];
 
 									buildSmbNtlmAuthNegotiate(&negotiate, 0, 0);
 									if (NTLM_VER(&negotiate) == 2)
 									{
-										negotiate.v2.version.major = ver.dwMajorVersion;
-										negotiate.v2.version.minor = ver.dwMinorVersion;
-										negotiate.v2.version.buildNumber = ver.dwBuildNumber;
+										negotiate.v2.version.major = (uint8) ver.dwMajorVersion;
+										negotiate.v2.version.minor = (uint8) ver.dwMinorVersion;
+										negotiate.v2.version.buildNumber = (uint16) ver.dwBuildNumber;
 										negotiate.v2.version.ntlmRevisionCurrent = 0x0f;
 									}
 
 									ZeroObj(Buf);
 									int negotiateLen = SmbLength(&negotiate);
 									int c = ConvertBinaryToBase64(Buf, sizeof(Buf), (uchar*)&negotiate, negotiateLen);
-									strcpy(Buf + c, "\r\n");
+									strcpy_s(Buf+c, sizeof(Buf)-c, "\r\n");
 									WriteBuf();
 
 									/* read challange data from server, convert from base64 */
@@ -1113,7 +1119,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 										#if 1
 											ZeroObj(challenge);
 											char *Line = Dialog.First();
-											LgiAssert(Line);
+											LgiAssert(Line != NULL);
 											ChopNewLine(Line);
 											int LineLen = strlen(Line);
 											int challengeLen = sizeof(challenge);
@@ -1145,9 +1151,9 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 																(uint8*)&time);
 										if (NTLM_VER(&response) == 2)
 										{
-											response.v2.version.major = ver.dwMajorVersion;
-											response.v2.version.minor = ver.dwMinorVersion;
-											response.v2.version.buildNumber = ver.dwBuildNumber;
+											response.v2.version.major = (uint8) ver.dwMajorVersion;
+											response.v2.version.minor = (uint8) ver.dwMinorVersion;
+											response.v2.version.buildNumber = (uint16) ver.dwBuildNumber;
 											response.v2.version.ntlmRevisionCurrent = 0x0f;
 										}
 										
@@ -1180,10 +1186,10 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 						ClearDialog();
 					}
 					#endif
-					else if (stricmp(AuthType, "DIGEST-MD5") == 0)
+					else if (_stricmp(AuthType, "DIGEST-MD5") == 0)
 					{
 						int AuthCmd = d->NextCmd++;
-						sprintf(Buf, "A%4.4i AUTHENTICATE DIGEST-MD5\r\n", AuthCmd);
+						sprintf_s(Buf, sizeof(Buf), "A%4.4i AUTHENTICATE DIGEST-MD5\r\n", AuthCmd);
 						if (WriteBuf())
 						{
 							if (ReadResponse(AuthCmd))
@@ -1232,7 +1238,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 									int32 CnonceI[2] = { LgiRand(), LgiRand() };
 									char Cnonce[32];
 									if (TestCnonce)
-										strcpy(Cnonce, TestCnonce);
+										strcpy_s(Cnonce, sizeof(Cnonce), TestCnonce);
 									else
 										Cnonce[ConvertBinaryToBase64(Cnonce, sizeof(Cnonce), (uchar*)&CnonceI, sizeof(CnonceI))] = 0;
 									s = strchr(Cnonce, '=');
@@ -1241,14 +1247,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 									int Nc = 1;
 									char *Realm = Map.Find("realm");
 									char DigestUri[256];
-									if (Realm)
-									{
-										sprintf(DigestUri, "imap/%s", Realm);
-									}
-									else
-									{
-										sprintf(DigestUri, "imap/%s", RemoteHost);
-									}
+									sprintf_s(DigestUri, sizeof(DigestUri), "imap/%s", Realm ? Realm : RemoteHost);
 
 									GStringPipe p;
 									p.Print("username=\"%s\"", User);
@@ -1278,46 +1277,38 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 									// Calculate A1
 									char a1[256];
 									uchar md5[16];
-									sprintf(Buf, "%s:%s:%s", User, Realm ? Realm : (char*)"", Password);
+									sprintf_s(Buf, sizeof(Buf), "%s:%s:%s", User, Realm ? Realm : (char*)"", Password);
 									MDStringToDigest((uchar*)a1, Buf);
 									char *Authzid = Map.Find("authzid");
-									char *a1end = a1 + 16;
+									int ch = 16;
 									if (Authzid)
-									{										
-										a1end += sprintf(a1end, ":%s:%s:%s", Nonce, Cnonce, Authzid);
-									}
+										ch += sprintf_s(a1+ch, sizeof(a1)-ch, ":%s:%s:%s", Nonce, Cnonce, Authzid);
 									else
-									{
-										a1end += sprintf(a1end, ":%s:%s", Nonce, Cnonce);
-									}
-									MDStringToDigest(md5, a1, a1end - a1);
+										ch += sprintf_s(a1+ch, sizeof(a1)-ch, ":%s:%s", Nonce, Cnonce);
+									MDStringToDigest(md5, a1, ch);
 									char a1hex[256];
-									Hex(a1hex, (uchar*)md5, sizeof(md5));
+									Hex(a1hex, sizeof(a1hex), (uchar*)md5, sizeof(md5));
 
 									// Calculate 
 									char a2[256];
-									if (Qop && (stricmp(Qop, "auth-int") == 0 || stricmp(Qop, "auth-conf") == 0))
-									{
-										sprintf(a2, "AUTHENTICATE:%s:00000000000000000000000000000000", DigestUri);
-									}
+									if (Qop && (_stricmp(Qop, "auth-int") == 0 || _stricmp(Qop, "auth-conf") == 0))
+										sprintf_s(a2, sizeof(a2), "AUTHENTICATE:%s:00000000000000000000000000000000", DigestUri);
 									else
-									{
-										sprintf(a2, "AUTHENTICATE:%s", DigestUri);
-									}
+										sprintf_s(a2, sizeof(a2), "AUTHENTICATE:%s", DigestUri);
 									MDStringToDigest(md5, a2);
 									char a2hex[256];
-									Hex(a2hex, (uchar*)md5, sizeof(md5));
+									Hex(a2hex, sizeof(a2hex), (uchar*)md5, sizeof(md5));
 
 									// Calculate the final response
-									sprintf(Buf, "%s:%s:%8.8i:%s:%s:%s", a1hex, Nonce, Nc, Cnonce, Qop, a2hex);
+									sprintf_s(Buf, sizeof(Buf), "%s:%s:%8.8i:%s:%s:%s", a1hex, Nonce, Nc, Cnonce, Qop, a2hex);
 									MDStringToDigest(md5, Buf);
-									Hex(Buf, (uchar*)md5, sizeof(md5));
+									Hex(Buf, sizeof(Buf), (uchar*)md5, sizeof(md5));
 									p.Print(",response=%s", Buf);
 									if ((s = p.NewStr()))
 									{
 										int Chars = ConvertBinaryToBase64(Buf, sizeof(Buf) - 4, (uchar*)s, strlen(s));
 										LgiAssert(Chars < sizeof(Buf));
-										strcpy(Buf + Chars, "\r\n");
+										strcpy_s(Buf+Chars, sizeof(Buf)-Chars, "\r\n");
 										
 										if (WriteBuf() && Read())
 										{
@@ -1326,7 +1317,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 												if (Dlg[0] == '+' && Dlg[1] == ' ')
 												{
 													Log(Dlg, MAIL_RECEIVE_COLOUR);
-													strcpy(Buf, "\r\n");
+													strcpy_s(Buf, sizeof(Buf), "\r\n");
 													if (WriteBuf())
 													{
 														LoggedIn = ReadResponse(AuthCmd);
@@ -1346,7 +1337,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 							}
 						}
 					}
-					else if (!stricmp(AuthType, "XOAUTH"))
+					else if (!_stricmp(AuthType, "XOAUTH"))
 					{
 						GAutoPtr<GSocketI> Ssl(dynamic_cast<GSocketI*>(Socket->Clone()));
 						if (Ssl)
@@ -1355,7 +1346,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 							GAutoString Hdr, Body;
 							int StatusCode = 0;
 							char Url[256];
-							sprintf(Url, "http://mail.google.com/mail/b/%s/imap/", User);
+							sprintf_s(Url, sizeof(Url), "http://mail.google.com/mail/b/%s/imap/", User);
 							if (Http(Ssl, &Hdr, &Body, &StatusCode, "POST", Url, 0, 0))
 							{
 								bool Status = true;
@@ -1420,7 +1411,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 					else
 					{
 						char s[256];
-						sprintf(s, "Warning: Unsupport auth type '%s'", AuthType);
+						sprintf_s(s, sizeof(s), "Warning: Unsupport auth type '%s'", AuthType);
 						Log(s, MAIL_ERROR_COLOUR);
 					}
 				}
@@ -1431,7 +1422,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 
 					// Ask server for it's heirarchy (folder) separator.
 					int Cmd = d->NextCmd++;
-					sprintf(Buf, "A%4.4i LIST \"\" \"\"\r\n", Cmd);
+					sprintf_s(Buf, sizeof(Buf), "A%4.4i LIST \"\" \"\"\r\n", Cmd);
 					if (WriteBuf())
 					{
 						ClearDialog();
@@ -1453,9 +1444,9 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 
 								if (t.Length() >= 5 &&
 									strcmp(t[0], "*") == 0 &&
-									stricmp(t[1], "list") == 0)
+									_stricmp(t[1], "list") == 0)
 								{
-									for (int i=2; i<t.Length(); i++)
+									for (unsigned i=2; i<t.Length(); i++)
 									{
 										s = t[i];
 										if (strlen(s) == 1)
@@ -1473,7 +1464,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 				else
 				{
 					char Str[300];
-					sprintf(Str,
+					sprintf_s(Str, sizeof(Str),
 							"Authentication failed, types available:\n%s",
 							(strlen(AuthTypeStr)>0) ? AuthTypeStr : "(none)");
 
@@ -1501,7 +1492,7 @@ bool MailIMap::Close()
 		}
 		
 		int Cmd = d->NextCmd++;
-		sprintf(Buf, "A%4.4i LOGOUT\r\n", Cmd);
+		sprintf_s(Buf, sizeof(Buf), "A%4.4i LOGOUT\r\n", Cmd);
 		if (WriteBuf())
 		{
 			Status = true;
@@ -1534,13 +1525,13 @@ char *MailIMap::GetSelectedFolder()
 
 bool MailIMap::SelectFolder(const char *Path, GHashTbl<const char*,int> *Values)
 {
-	int Status = 0;
+	bool Status = false;
 
 	if (Socket && Lock(_FL))
 	{
 		int Cmd = d->NextCmd++;
 		char *Enc = EncodePath(Path);
-		sprintf(Buf, "A%4.4i SELECT \"%s\"\r\n", Cmd, Enc);
+		sprintf_s(Buf, sizeof(Buf), "A%4.4i SELECT \"%s\"\r\n", Cmd, Enc);
 		DeleteArray(Enc);
 		if (WriteBuf())
 		{
@@ -1556,17 +1547,17 @@ bool MailIMap::SelectFolder(const char *Path, GHashTbl<const char*,int> *Values)
 					for (char *Dlg = Dialog.First(); Dlg; Dlg=Dialog.Next())
 					{
 						GToken t(Dlg, " []");
-						if (!stricmp(t[0], "*") && t.Length() > 2)
+						if (!_stricmp(t[0], "*") && t.Length() > 2)
 						{
-							if (stricmp(t[2], "exists") == 0)
+							if (_stricmp(t[2], "exists") == 0)
 							{
 								Values->Add(t[2], atoi(t[1]));
 							}
-							else if (stricmp(t[2], "recent") == 0)
+							else if (_stricmp(t[2], "recent") == 0)
 							{
 								Values->Add(t[2], atoi(t[1]));
 							}
-							else if (stricmp(t[2], "unseen") == 0)
+							else if (_stricmp(t[2], "unseen") == 0)
 							{
 								Values->Add(t[2], atoi(t[3]));
 							}
@@ -1628,9 +1619,9 @@ char *MailIMap::SequenceToString(GArray<int> *Seq)
 
 	GStringPipe p;			
 	int Last = 0;
-	for (int s=0; s<Seq->Length(); )
+	for (unsigned s=0; s<Seq->Length(); )
 	{
-		int e = s;
+		unsigned e = s;
 		while (e<Seq->Length()-1 && (*Seq)[e] == (*Seq)[e+1]-1)
 			e++;
 
@@ -1680,7 +1671,7 @@ bool MailIMap::Fetch(bool ByUid, char *Seq, const char *Parts, FetchCallback Cal
 	if (Lock(_FL))
 	{
 		int Cmd = d->NextCmd++;
-		if (snprintf(Buf, sizeof(Buf), "A%4.4i %sFETCH %s (%s)\r\n", Cmd, ByUid ? "UID " : "", Seq, Parts) > 0 &&
+		if (sprintf_s(Buf, sizeof(Buf), "A%4.4i %sFETCH %s (%s)\r\n", Cmd, ByUid ? "UID " : "", Seq, Parts) > 0 &&
 			WriteBuf())
 		{
 			ClearDialog();
@@ -1729,7 +1720,7 @@ bool MailIMap::Fetch(bool ByUid, char *Seq, const char *Parts, FetchCallback Cal
 						char *Name = b + Ranges[1].Start;
 						Name[Ranges[1].Len()] = 0;
 
-						if (stricmp(Name, "FETCH"))
+						if (_stricmp(Name, "FETCH"))
 						{
 							// Not the response we're looking for, save it in the untagged data.
 							/*
@@ -1743,7 +1734,7 @@ bool MailIMap::Fetch(bool ByUid, char *Seq, const char *Parts, FetchCallback Cal
 						{
 							// Process ranges into a hash table
 							GHashTbl<const char*, char*> Parts;
-							for (int i=2; i<Ranges.Length()-1; i += 2)
+							for (unsigned i=2; i<Ranges.Length()-1; i += 2)
 							{
 								char *Name = b + Ranges[i].Start;
 								Name[Ranges[i].Len()] = 0;							
@@ -1784,7 +1775,7 @@ bool MailIMap::Fetch(bool ByUid, char *Seq, const char *Parts, FetchCallback Cal
 								char *r = t[0];
 								if (*r == 'A')
 								{
-									bool Status = !stricmp(t[1], "Ok");
+									bool Status = !_stricmp(t[1], "Ok");
 									int Response = atoi(r + 1);
 									Log(Line, Status ? MAIL_RECEIVE_COLOUR : MAIL_ERROR_COLOUR);
 									if (Response == Cmd)
@@ -1821,7 +1812,7 @@ bool MailIMap::GetParts(int Message, GStreamI &Out, const char *Parts, char **Fl
 	if (Parts)
 	{
 		int Cmd = d->NextCmd++;
-		sprintf(Buf, "A%4.4i FETCH %i (%s)\r\n", Cmd, Message+1, Parts);
+		sprintf_s(Buf, sizeof(Buf), "A%4.4i FETCH %i (%s)\r\n", Cmd, Message+1, Parts);
 		if (WriteBuf())
 		{
 			ClearDialog();
@@ -1840,7 +1831,7 @@ bool MailIMap::GetParts(int Message, GStreamI &Out, const char *Parts, char **Fl
 			/////////////////////////////////
 			// Debug
 			char Size[64];
-			LgiFormatSize(Size, Buf.GetSize());
+			LgiFormatSize(Size, sizeof(Size), Buf.GetSize());
 			// LgiTrace("ReadResponse time %i for %s\n", (int) (LgiCurrentTime() - Start), Size);
 			/////////////////////////////////
 
@@ -1879,7 +1870,7 @@ bool MailIMap::GetParts(int Message, GStreamI &Out, const char *Parts, char **Fl
 							char *Field = LgiTokStr((const char*&)s);
 							if (!Field) break;
 
-							if (stricmp(Field, "Flags") == 0)
+							if (_stricmp(Field, "Flags") == 0)
 							{
 								char *Start = strchr(s, '(');
 								if (Start)
@@ -1983,7 +1974,7 @@ bool MailIMap::Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks
 
 	if (Lock(_FL))
 	{
-		for (int i=0; i<Trans.Length(); i++)
+		for (unsigned i=0; i<Trans.Length(); i++)
 		{
 			char *Flags = 0;
 			if ((Trans[i]->Status = GetParts(Trans[i]->Index, *Trans[i]->Stream, "FLAGS RFC822.HEADER BODY[TEXT]", &Flags)))
@@ -2023,10 +2014,10 @@ bool MailIMap::Append(char *Folder, ImapMailFlags *Flags, char *Msg, GAutoString
 		}
 
 		// Append on the end of the mailbox
-		int c = sprintf(Buf, "A%4.4i APPEND \"%s\"", Cmd, Path.Get());
+		int c = sprintf_s(Buf, sizeof(Buf), "A%4.4i APPEND \"%s\"", Cmd, Path.Get());
 		if (Flag)
-			c += sprintf(Buf+c, " (%s)", Flag.Get());
-		c += sprintf(Buf+c, " {%i}\r\n", Len);
+			c += sprintf_s(Buf+c, sizeof(Buf)-c, " (%s)", Flag.Get());
+		c += sprintf_s(Buf+c, sizeof(Buf)-c, " {%i}\r\n", Len);
 		
 		if (WriteBuf() && Read())
 		{
@@ -2075,7 +2066,7 @@ bool MailIMap::Append(char *Folder, ImapMailFlags *Flags, char *Msg, GAutoString
 				if ((Status = ReadResponse(Cmd)))
 				{
 					char Tmp[16];
-					sprintf(Tmp, "A%4.4i", Cmd);
+					sprintf_s(Tmp, sizeof(Tmp), "A%4.4i", Cmd);
 					for (char *Line = Dialog.First(); Line; Line = Dialog.Next())
 					{
 						GAutoString c = ImapBasicTokenize(Line);
@@ -2087,7 +2078,7 @@ bool MailIMap::Append(char *Folder, ImapMailFlags *Flags, char *Msg, GAutoString
 							while ((a = ImapBasicTokenize(Line)).Get())
 							{
 								GToken t(a, " ");
-								if (t.Length() > 2 && !stricmp(t[0], "APPENDUID"))
+								if (t.Length() > 2 && !_stricmp(t[0], "APPENDUID"))
 								{
 									NewUid.Reset(NewStr(t[2]));
 									break;
@@ -2112,7 +2103,7 @@ bool MailIMap::Delete(int Message)
 	if (Socket && Lock(_FL))
 	{
 		int Cmd = d->NextCmd++;
-		sprintf(Buf, "A%4.4i STORE %i FLAGS (\\deleted)\r\n", Cmd, Message+1);
+		sprintf_s(Buf, sizeof(Buf), "A%4.4i STORE %i FLAGS (\\deleted)\r\n", Cmd, Message+1);
 		if (WriteBuf())
 		{
 			ClearDialog();
@@ -2134,7 +2125,7 @@ int MailIMap::Sizeof(int Message)
 		const  char *Tag = "RFC822.SIZE";
 
 		int Cmd = d->NextCmd++;
-		sprintf(Buf, "A%4.4i FETCH %i (%s)\r\n", Cmd, Message+1, Tag);
+		sprintf_s(Buf, sizeof(Buf), "A%4.4i FETCH %i (%s)\r\n", Cmd, Message+1, Tag);
 		if (WriteBuf())
 		{
 			ClearDialog();
@@ -2160,7 +2151,7 @@ int MailIMap::Sizeof(int Message)
 	return Status;
 }
 
-bool MailIMap::GetUid(int Message, char *Id)
+bool MailIMap::GetUid(int Message, char *Id, int IdLen)
 {
 	bool Status = false;
 	
@@ -2171,7 +2162,7 @@ bool MailIMap::GetUid(int Message, char *Id)
 			char *s = Uid.ItemAt(Message);
 			if (s && Id)
 			{
-				strcpy(Id, s);
+				strcpy_s(Id, IdLen, s);
 				Status = true;
 			}
 		}
@@ -2191,7 +2182,7 @@ bool MailIMap::FillUidList()
 		if (Uid.Length() == 0)
 		{
 			int Cmd = d->NextCmd++;
-			sprintf(Buf, "A%4.4i UID SEARCH ALL\r\n", Cmd);
+			sprintf_s(Buf, sizeof(Buf), "A%4.4i UID SEARCH ALL\r\n", Cmd);
 			if (WriteBuf())
 			{
 				ClearDialog();
@@ -2202,7 +2193,7 @@ bool MailIMap::FillUidList()
 						GToken T(d, " ");
 						if (T[1] && strcmp(T[1], "SEARCH") == 0)
 						{
-							for (int i=2; i<T.Length(); i++)
+							for (unsigned i=2; i<T.Length(); i++)
 							{
 								Uid.Insert(NewStr(T[i]));
 							}
@@ -2247,12 +2238,12 @@ bool MailIMap::GetUidList(List<char> &Id)
 
 bool MailIMap::GetFolders(List<MailImapFolder> &Folders)
 {
-	int Status = 0;
+	bool Status = false;
 
 	if (Socket && Lock(_FL))
 	{
 		int Cmd = d->NextCmd++;
-		sprintf(Buf, "A%4.4i LIST \"\" \"*\"\r\n", Cmd);
+		sprintf_s(Buf, sizeof(Buf), "A%4.4i LIST \"\" \"*\"\r\n", Cmd);
 		if (WriteBuf())
 		{
 			ClearDialog();
@@ -2273,7 +2264,7 @@ bool MailIMap::GetFolders(List<MailImapFolder> &Folders)
 					if (t.Length() >= 5)
 					{
 						if (strcmp(t[0], "*") == 0 &&
-							stricmp(t[1], "LIST") == 0)
+							_stricmp(t[1], "LIST") == 0)
 						{
 							char *Folder = t[t.Length()-1];
 
@@ -2326,7 +2317,7 @@ bool MailIMap::CreateFolder(MailImapFolder *f)
 	{
 		int Cmd = d->NextCmd++;
 		char *Enc = EncodePath(f->GetPath());
-		sprintf(Buf, "A%4.4i CREATE \"%s\"\r\n", Cmd, Enc);
+		sprintf_s(Buf, sizeof(Buf), "A%4.4i CREATE \"%s\"\r\n", Cmd, Enc);
 		DeleteArray(Enc);
 		if (WriteBuf())
 		{
@@ -2380,10 +2371,10 @@ bool MailIMap::DeleteFolder(char *Path)
 	{
 		// Close the current folder if required.
 		if (d->Current &&
-			stricmp(Path, d->Current) == 0)
+			_stricmp(Path, d->Current) == 0)
 		{
 			int Cmd = d->NextCmd++;
-			sprintf(Buf, "A%4.4i CLOSE\r\n", Cmd);
+			sprintf_s(Buf, sizeof(Buf), "A%4.4i CLOSE\r\n", Cmd);
 			if (WriteBuf())
 			{
 				ClearDialog();
@@ -2395,7 +2386,7 @@ bool MailIMap::DeleteFolder(char *Path)
 		// Delete the folder
 		int Cmd = d->NextCmd++;
 		char *NativePath = EncodePath(Path);
-		sprintf(Buf, "A%4.4i DELETE \"%s\"\r\n", Cmd, NativePath);
+		sprintf_s(Buf, sizeof(Buf), "A%4.4i DELETE \"%s\"\r\n", Cmd, NativePath);
 		DeleteArray(NativePath);
 		if (WriteBuf())
 		{
@@ -2418,7 +2409,7 @@ bool MailIMap::RenameFolder(char *From, char *To)
 		int Cmd = d->NextCmd++;
 		char *f = EncodeImapString(From);
 		char *t = EncodeImapString(To);
-		sprintf(Buf, "A%4.4i RENAME \"%s\" \"%s\"\r\n", Cmd, f, t);
+		sprintf_s(Buf, sizeof(Buf), "A%4.4i RENAME \"%s\" \"%s\"\r\n", Cmd, f, t);
 		DeleteArray(f);
 		DeleteArray(t);
 		if (WriteBuf())
@@ -2441,7 +2432,7 @@ bool MailIMap::SetFolderFlags(MailImapFolder *f)
 	{
 		/*
 		int Cmd = d->NextCmd++;
-		sprintf(Buf, "A%4.4i RENAME \"%s\" \"%s\"\r\n", Cmd);
+		sprintf_s(Buf, sizeof(Buf), "A%4.4i RENAME \"%s\" \"%s\"\r\n", Cmd);
 		if (WriteBuf())
 		{
 			ClearDialog();
@@ -2467,7 +2458,7 @@ bool MailIMap::SetFlagsByUid(GArray<char*> &Uids, const char *Flags)
 		p.Print("A%04.4i UID STORE ", Cmd);
 		if (Uids.Length())
 		{
-			for (int i=0; i<Uids.Length(); i++)
+			for (unsigned i=0; i<Uids.Length(); i++)
 			{
 				p.Print("%s%s", i?",":"", Uids[i]);
 			}
@@ -2504,7 +2495,7 @@ bool MailIMap::CopyByUid(GArray<char*> &InUids, char *DestFolder)
 
 		GStringPipe p(1024);
 		p.Print("A%04.4i UID COPY ", Cmd);
-		for (int i=0; i<InUids.Length(); i++)
+		for (unsigned i=0; i<InUids.Length(); i++)
 		{
 			if (i) p.Write((char*)",", 1);
 			p.Write(InUids[i], strlen(InUids[i]));
@@ -2531,7 +2522,7 @@ bool MailIMap::ExpungeFolder()
 	if (Lock(_FL))
 	{
 		int Cmd = d->NextCmd++;
-		sprintf(Buf, "A%4.4i EXPUNGE\r\n", Cmd);
+		sprintf_s(Buf, sizeof(Buf), "A%4.4i EXPUNGE\r\n", Cmd);
 
 		if (WriteBuf())
 		{
@@ -2552,7 +2543,7 @@ bool MailIMap::Search(bool Uids, GArray<GAutoString> &SeqNumbers, const char *Fi
 	if (ValidStr(Filter) && Lock(_FL))
 	{
 		int Cmd = d->NextCmd++;
-		sprintf(Buf, "A%4.4i %sSEARCH %s\r\n", Cmd, Uids?"UID ":"", Filter);
+		sprintf_s(Buf, sizeof(Buf), "A%4.4i %sSEARCH %s\r\n", Cmd, Uids?"UID ":"", Filter);
 		if (WriteBuf())
 		{
 			ClearDialog();
@@ -2565,7 +2556,7 @@ bool MailIMap::Search(bool Uids, GArray<GAutoString> &SeqNumbers, const char *Fi
 
 					d++;
 					GAutoString s(Tok(d));
-					if (!s || stricmp(s, "Search"))
+					if (!s || _stricmp(s, "Search"))
 						continue;
 
 					while (s.Reset(Tok(d)))
@@ -2592,7 +2583,7 @@ bool MailIMap::Status(char *Path, int *Recent)
 		GAutoString Dest(EncodePath(Path));
 
 		int Cmd = d->NextCmd++;
-		sprintf(Buf, "A%4.4i STATUS %s (RECENT)\r\n", Cmd, Dest.Get());
+		sprintf_s(Buf, sizeof(Buf), "A%4.4i STATUS %s (RECENT)\r\n", Cmd, Dest.Get());
 		if (WriteBuf())
 		{
 			ClearDialog();
@@ -2610,15 +2601,15 @@ bool MailIMap::Status(char *Path, int *Recent)
 					if (Cmd &&
 						Folder &&
 						Fields &&
-						!stricmp(Cmd, "status") &&
-						!stricmp(Folder, Dest))
+						!_stricmp(Cmd, "status") &&
+						!_stricmp(Folder, Dest))
 					{
 						char *f = Fields;
 						GAutoString Field = ImapBasicTokenize(f);
 						GAutoString Value = ImapBasicTokenize(f);
 						if (Field &&
 							Value &&
-							!stricmp(Field, "recent"))
+							!_stricmp(Field, "recent"))
 						{
 							*Recent = atoi(Value);
 							Status = true;
@@ -2643,7 +2634,7 @@ bool MailIMap::Poll(int *Recent, GArray<GAutoString> *New)
 	if (Lock(_FL))
 	{
 		int Cmd = d->NextCmd++;
-		sprintf(Buf, "A%4.4i NOOP\r\n", Cmd);
+		sprintf_s(Buf, sizeof(Buf), "A%4.4i NOOP\r\n", Cmd);
 		if (WriteBuf())
 		{
 			ClearDialog();
@@ -2681,7 +2672,7 @@ bool MailIMap::StartIdle()
 	if (Lock(_FL))
 	{
 		int Cmd = d->NextCmd++;
-		sprintf(Buf, "A%4.4i IDLE\r\n", Cmd);
+		sprintf_s(Buf, sizeof(Buf), "A%4.4i IDLE\r\n", Cmd);
 		Status = WriteBuf();
 		Unlock();
 	}

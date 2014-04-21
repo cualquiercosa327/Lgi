@@ -187,7 +187,7 @@ void GProgressPane::Value(int64 v)
 			PerSec = 0;
 		}
 		
-		sprintf(Str, "@ %.2f %s / sec", PerSec * Scale, (Type) ? Type : "");
+		sprintf_s(Str, sizeof(Str), "@ %.2f %s / sec", PerSec * Scale, (Type) ? Type : "");
 		Rate->Name(Str);
 	}
 
@@ -195,14 +195,14 @@ void GProgressPane::Value(int64 v)
 	{
 		if (Scale == 1.0)
 		{
-			sprintf(Str, "%.0f of %.0f %s",
+			sprintf_s(Str, sizeof(Str), "%.0f of %.0f %s",
 				Val * Scale,
 				(High - Low) * Scale,
 				(Type) ? Type : "");
 		}
 		else
 		{
-			sprintf(Str, "%.1f of %.1f %s",
+			sprintf_s(Str, sizeof(Str), "%.1f of %.1f %s",
 				(double)Val * Scale,
 				(double)(High - Low) * Scale,
 				(Type) ? Type : "");

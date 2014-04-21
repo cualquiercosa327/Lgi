@@ -145,7 +145,7 @@ bool LgiStringRes::Read(GXmlTag *t, ResFileFormat Format)
 			// Lang = LangFind(0, CurLang, 0);
 		}
 		else if (LgiStringRes::CurLang->OldId &&
-				sprintf(Name, "Text(%i)", LgiStringRes::CurLang->OldId) &&
+				sprintf_s(Name, sizeof(Name), "Text(%i)", LgiStringRes::CurLang->OldId) &&
 				(n = t->GetAttr(Name)) &&
 				strlen(n) > 0)
 		{
@@ -396,7 +396,7 @@ LgiTrace("%s:%i - FullPath='%s'\n", _FL, FullPath);
 		LgiGetExeFile(Exe, sizeof(Exe));
 
 		// Prepare data
-		sprintf(Msg,
+		sprintf_s(Msg, sizeof(Msg),
 				LgiLoadString(L_ERROR_RES_NO_LR8_FILE,
 								"Couldn't find the file '%s' required to run this application\n(Exe='%s')"),
 				File,

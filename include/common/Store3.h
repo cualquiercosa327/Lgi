@@ -67,24 +67,24 @@ void ParseIdList(char *In, List<char> &Out);
 #define FIELD_PROFILE_IMAP_SELECT	-102
 
 #define GDATA_INT_PROP(name, id) \
-	int Get##name() { LgiAssert(Object); return Object ? Object->GetInt(id) : 0; } \
-	bool Set##name(int val) { LgiAssert(Object); return Object ? Object->SetInt(id, val) : false; }
+	int Get##name() { LgiAssert(Object != NULL); return Object ? Object->GetInt(id) : 0; } \
+	bool Set##name(int val) { LgiAssert(Object != NULL); return Object ? Object->SetInt(id, val) : false; }
 
 #define GDATA_ENUM_PROP(name, id, type) \
-	type Get##name() { LgiAssert(Object); return (type) (Object ? Object->GetInt(id) : 0); } \
-	bool Set##name(type val) { LgiAssert(Object); return Object ? Object->SetInt(id, (int)val) : false; }
+	type Get##name() { LgiAssert(Object != NULL); return (type) (Object ? Object->GetInt(id) : 0); } \
+	bool Set##name(type val) { LgiAssert(Object != NULL); return Object ? Object->SetInt(id, (int)val) : false; }
 
 #define GDATA_STR_PROP(name, id) \
-	char *Get##name() { LgiAssert(Object); return Object ? Object->GetStr(id) : 0; } \
-	bool Set##name(const char *val) { LgiAssert(Object); return Object ? Object->SetStr(id, val) : false; }
+	char *Get##name() { LgiAssert(Object != NULL); return Object ? Object->GetStr(id) : 0; } \
+	bool Set##name(const char *val) { LgiAssert(Object != NULL); return Object ? Object->SetStr(id, val) : false; }
 
 #define GDATA_DATE_PROP(name, id) \
-	GDateTime *Get##name() { LgiAssert(Object); return (Object ? Object->GetDate(id) : 0); } \
-	bool Set##name(GDateTime *val) { LgiAssert(Object); return Object ? Object->SetDate(id, val) : false; }
+	GDateTime *Get##name() { LgiAssert(Object != NULL); return (Object ? Object->GetDate(id) : 0); } \
+	bool Set##name(GDateTime *val) { LgiAssert(Object != NULL); return Object ? Object->SetDate(id, val) : false; }
 
 #define GDATA_PERM_PROP(name, id) \
-	ScribePerm Get##name() { LgiAssert(Object); return (ScribePerm) (Object ? Object->GetInt(id) : 0); } \
-	bool Set##name(ScribePerm val) { LgiAssert(Object); return Object ? Object->SetInt(id, val) : false; }
+	ScribePerm Get##name() { LgiAssert(Object != NULL); return (ScribePerm) (Object ? Object->GetInt(id) : 0); } \
+	bool Set##name(ScribePerm val) { LgiAssert(Object != NULL); return Object ? Object->SetInt(id, val) : false; }
 
 
 /// This defines the possible outcomes of calling a function.

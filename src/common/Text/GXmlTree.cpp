@@ -204,7 +204,7 @@ bool GXmlTree::EncodeEntities(GStreamI *to, char *start, int len, const char *ex
 				default:
 				{
 					char Ent[32];
-					sprintf(Ent, "&#%i;", (uchar)*e);
+					sprintf_s(Ent, sizeof(Ent), "&#%i;", (uchar)*e);
 					to->Write(Ent, strlen(Ent));
 					break;
 				}
@@ -526,28 +526,28 @@ bool GXmlTag::SetVariant(const char *Name, GVariant &Value, char *Array)
 			case GV_BOOL:
 			{
 				char i[32];
-				sprintf(i, "%i", Value.Value.Bool);
+				sprintf_s(i, sizeof(i), "%i", Value.Value.Bool);
 				SetAttr(Name, i);
 				break;
 			}
 			case GV_INT32:
 			{
 				char i[32];
-				sprintf(i, "%i", Value.Value.Int);
+				sprintf_s(i, sizeof(i), "%i", Value.Value.Int);
 				SetAttr(Name, i);
 				break;
 			}
 			case GV_INT64:
 			{
 				char i[32];
-				sprintf(i, LGI_PrintfInt64, Value.Value.Int64);
+				sprintf_s(i, sizeof(i), LGI_PrintfInt64, Value.Value.Int64);
 				SetAttr(Name, i);
 				break;
 			}
 			case GV_DOUBLE:
 			{
 				char i[32];
-				sprintf(i, "%f", Value.Value.Dbl);
+				sprintf_s(i, sizeof(i), "%f", Value.Value.Dbl);
 				SetAttr(Name, i);
 				break;
 			}
@@ -734,7 +734,7 @@ bool GXmlTag::SetAttr(const char *n, int Value)
 	if (a)
 	{
 		char s[32];
-		sprintf(s, "%i", Value);
+		sprintf_s(s, sizeof(s), "%i", Value);
 		a->Value = Allocator->Alloc(s);
 		return true;
 	}
@@ -749,7 +749,7 @@ bool GXmlTag::SerializeAttr(const char *Attr, int &Int)
 		if (Write)
 		{
 			char s[256];
-			sprintf(s, "%i", Int);
+			sprintf_s(s, sizeof(s), "%i", Int);
 			a->Value = Allocator->Alloc(s);
 			return a->Value != 0;
 		}
@@ -797,7 +797,7 @@ bool GXmlTag::SerializeAttr(const char *Attr, double &Dbl)
 		if (Write)
 		{
 			char s[256];
-			sprintf(s, "%f", Dbl);
+			sprintf_s(s, sizeof(s), "%f", Dbl);
 			a->Value = Allocator->Alloc(s);
 			return a->Value != 0;
 		}
@@ -1291,7 +1291,7 @@ bool GXmlTree::Read(GXmlTag *Root, GStreamI *File, GXmlFactory *Factory)
 									}
 
 									char s[256];
-									sprintf(s, "Mismatched '%s' tag, got '%s' instead (Line %i).\n", t->Tag, Current->Tag, Lines);
+									sprintf_s(s, sizeof(s), "Mismatched '%s' tag, got '%s' instead (Line %i).\n", t->Tag, Current->Tag, Lines);
 									printf("%s:%i - XmlTree error %s\n", _FL, s);
 									d->Error = NewStr(s);
 									Status = false;

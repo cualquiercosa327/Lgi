@@ -358,7 +358,7 @@ bool GDragDropSource::CreateFileDrop(GVariant *OutputData, GMouse &m, List<char>
 		for (char *f=Files.First(); f; f=Files.Next())
 		{
 			char s[256];
-			sprintf(s, "file:%s", f);
+			sprintf_s(s, sizeof(s), "file:%s", f);
 			if (p.GetSize()) p.Push("\n");
 			p.Push(s);
 		}

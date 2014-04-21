@@ -29,7 +29,7 @@ int GTimeDropDown::OnNotify(GViewI *Ctrl, int Flags)
 		ts.SetTime(a);
 		
 		char s[256];
-		ts.Get(s);
+		ts.Get(s, sizeof(s));
 		DateSrc->Name(s);
 	}
 	
@@ -82,7 +82,7 @@ void GTimeDropDown::SetDate(char *d)
 		New.SetTime(d);
 			
 		char Buf[256];
-		New.Get(Buf);
+		New.Get(Buf, sizeof(Buf));
 
 		n->Name(Buf);
 
@@ -156,11 +156,11 @@ GTimePopup::GTimePopup(GView *owner) : GPopup(owner)
 			{
 				if (Dt.GetFormat() & GDTF_24HOUR)
 				{
-					sprintf(s, "%i:00", Time);
+					sprintf_s(s, sizeof(s), "%i:00", Time);
 				}
 				else
 				{
-					sprintf(s, "%i:00 %c", Time, t < 12 ? 'a' : 'p');
+					sprintf_s(s, sizeof(s), "%i:00 %c", Time, t < 12 ? 'a' : 'p');
 				}
 				i->SetText(s);
 				Times->Insert(i);
@@ -170,11 +170,11 @@ GTimePopup::GTimePopup(GView *owner) : GPopup(owner)
 			{
 				if (Dt.GetFormat() & GDTF_24HOUR)
 				{
-					sprintf(s, "%i:30", Time);
+					sprintf_s(s, sizeof(s), "%i:30", Time);
 				}
 				else
 				{
-					sprintf(s, "%i:30 %c", Time, t < 12 ? 'a' : 'p');
+					sprintf_s(s, sizeof(s), "%i:30 %c", Time, t < 12 ? 'a' : 'p');
 				}
 				i->SetText(s);
 				Times->Insert(i);

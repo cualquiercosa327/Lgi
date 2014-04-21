@@ -174,7 +174,7 @@ int64 GText::Value()
 void GText::Value(int64 i)
 {
 	char Str[32];
-	sprintf(Str, LGI_PrintfInt64, i);
+	sprintf_s(Str, sizeof(Str), LGI_PrintfInt64, i);
 	Name(Str);
 }
 

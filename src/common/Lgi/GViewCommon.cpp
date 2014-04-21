@@ -1895,7 +1895,7 @@ void GView::_Dump(int Depth)
 	memset(Sp, ' ', Depth << 2);
 	Sp[Depth<<2] = 0;
 	char s[256];
-	sprintf(s, "%s%p::%s %s (_View=%p)\n", Sp, this, GetClass(), GetPos().GetStr(), _View);
+	sprintf_s(s, sizeof(s), "%s%p::%s %s (_View=%p)\n", Sp, this, GetClass(), GetPos().GetStr(), _View);
 	LgiTrace(s);
 	List<GViewI>::I i = Children.Start();
 	for (GViewI *c = *i; c; c = *++i)
@@ -1922,7 +1922,8 @@ GViewFactory::GViewFactory()
 	#if defined(MAC) || defined(LINUX) || defined(BEOS)
 	// This is a terrible way of doing it... but I don't have a better solution ATM. :(
 	LgiGetTempPath(FactoryFile, sizeof(FactoryFile));
-	sprintf(FactoryFile+strlen(FactoryFile), "/LgiFactoryFile.%i", getpid());
+	int len = strlen(FactoryFile);
+	sprintf_s(FactoryFile+len, sizeof(FactoryFile)-len, "/LgiFactoryFile.%i", getpid());
 	if (!FileExists(FactoryFile))
 	{
 		GFile file;
@@ -1931,7 +1932,7 @@ GViewFactory::GViewFactory()
 	}
 	#elif defined(_WINDOWS)
 	char Name[256];
-	sprintf(Name, "LgiFactoryEvent.%i", GetCurrentProcessId());
+	sprintf_s(Name, sizeof(Name), "LgiFactoryEvent.%i", GetCurrentProcessId());
 	HANDLE h = CreateEvent(NULL, false, false, Name);
 	DWORD err = GetLastError();
 	if (err != ERROR_ALREADY_EXISTS)

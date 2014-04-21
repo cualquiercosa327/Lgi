@@ -255,7 +255,7 @@ int GDateDropDown::OnNotify(GViewI *Wnd, int Flags)
 	{
 		char s[256];
 		GDateTime Ts = Drop->Get();
-		Ts.Get(s);
+		Ts.Get(s, sizeof(s));
 		SetDate(s);
 	}
 	
@@ -304,7 +304,7 @@ void GDateDropDown::SetDate(char *d)
 		New.SetDate(d);
 			
 		char Buf[256];
-		New.Get(Buf);
+		New.Get(Buf, sizeof(Buf));
 
 		n->Name(Buf);
 

@@ -68,10 +68,11 @@ LONG __stdcall GApp::_ExceptionFilter(LPEXCEPTION_POINTERS e, char *ProductId)
 	if (!DirExists(p))
 		FileDev->CreateFolder(p);
 
+	int len = strlen(p);
 	if (ProductId)
-		sprintf(p+strlen(p), "%s%s-crash.dmp", DIR_STR, ProductId);
+		sprintf_s(p+len, sizeof(p)-len, "%s%s-crash.dmp", DIR_STR, ProductId);
 	else
-		sprintf(p+strlen(p), "%scrash-dump.dmp", DIR_STR);
+		sprintf_s(p+len, sizeof(p)-len, "%scrash-dump.dmp", DIR_STR);
 
 	LgiTrace("GApp::_ExceptionFilter, Crash dump path '%s'\n", p);
 	

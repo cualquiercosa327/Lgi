@@ -69,7 +69,9 @@ public:
 		/// The parent window
 		GView *Parent,
 		/// The initial font information, or NULL if not available
-		void *Init = 0
+		void *Init = NULL,
+		/// Buffer length of Init
+		int InitLen = 0
 	);
 	~GFontSelect();
 
@@ -79,7 +81,7 @@ public:
 	///
 	/// Currently on Windows that is a LOGFONT structure and on all
 	/// other platforms it's a char buffer of at least 256 chars.
-	bool Serialize(void *Data, bool Write);
+	bool Serialize(void *Data, int DataLen, bool Write);
 };
 
 #endif

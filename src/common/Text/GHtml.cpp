@@ -1510,9 +1510,9 @@ _DumpColour(GCss::ColorDef c)
 	if (Cur == 4) Cur = 0;
 
 	if (c.Type == GCss::ColorInherit)
-		strcpy(b, "Inherit");
+		strsafecpy(b, "Inherit", 32);
 	else
-		sprintf(b, "%2.2x,%2.2x,%2.2x(%2.2x)", R32(c.Rgb32),G32(c.Rgb32),B32(c.Rgb32),A32(c.Rgb32));
+		sprintf_s(b, 32, "%2.2x,%2.2x,%2.2x(%2.2x)", R32(c.Rgb32),G32(c.Rgb32),B32(c.Rgb32),A32(c.Rgb32));
 
 	return b;
 }
@@ -2774,7 +2774,7 @@ void GTag::SetStyle()
 		case TAG_H1:
 		{
 			char s[32];
-			sprintf(s, "%ipt", (int)((float)Html->DefFont()->PointSize() * FntMul[5]));
+			sprintf_s(s, sizeof(s), "%ipt", (int)((float)Html->DefFont()->PointSize() * FntMul[5]));
 			FontSize(Len(s));
 			FontWeight(FontWeightBold);
 			break;
@@ -2782,7 +2782,7 @@ void GTag::SetStyle()
 		case TAG_H2:
 		{
 			char s[32];
-			sprintf(s, "%ipt", (int)((float)Html->DefFont()->PointSize() * FntMul[4]));
+			sprintf_s(s, sizeof(s), "%ipt", (int)((float)Html->DefFont()->PointSize() * FntMul[4]));
 			FontSize(Len(s));
 			FontWeight(FontWeightBold);
 			break;
@@ -2790,7 +2790,7 @@ void GTag::SetStyle()
 		case TAG_H3:
 		{
 			char s[32];
-			sprintf(s, "%ipt", (int)((float)Html->DefFont()->PointSize() * FntMul[3]));
+			sprintf_s(s, sizeof(s), "%ipt", (int)((float)Html->DefFont()->PointSize() * FntMul[3]));
 			FontSize(Len(s));
 			FontWeight(FontWeightBold);
 			break;
@@ -2798,7 +2798,7 @@ void GTag::SetStyle()
 		case TAG_H4:
 		{
 			char s[32];
-			sprintf(s, "%ipt", (int)((float)Html->DefFont()->PointSize() * FntMul[2]));
+			sprintf_s(s, sizeof(s), "%ipt", (int)((float)Html->DefFont()->PointSize() * FntMul[2]));
 			FontSize(Len(s));
 			FontWeight(FontWeightBold);
 			break;
@@ -2806,7 +2806,7 @@ void GTag::SetStyle()
 		case TAG_H5:
 		{
 			char s[32];
-			sprintf(s, "%ipt", (int)((float)Html->DefFont()->PointSize() * FntMul[1]));
+			sprintf_s(s, sizeof(s), "%ipt", (int)((float)Html->DefFont()->PointSize() * FntMul[1]));
 			FontSize(Len(s));
 			FontWeight(FontWeightBold);
 			break;
@@ -2814,7 +2814,7 @@ void GTag::SetStyle()
 		case TAG_H6:
 		{
 			char s[32];
-			sprintf(s, "%ipt", (int)((float)Html->DefFont()->PointSize() * FntMul[0]));
+			sprintf_s(s, sizeof(s), "%ipt", (int)((float)Html->DefFont()->PointSize() * FntMul[0]));
 			FontSize(Len(s));
 			FontWeight(FontWeightBold);
 			break;
@@ -3786,7 +3786,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 
 								char p[32];
 								const char *s = p;
-								sprintf(p, "%.1f%%", Percents[Percents.Length()-1]);
+								sprintf_s(p, sizeof(p), "%.1f%%", Percents[Percents.Length()-1]);
 								t->Width().Parse(s);
 							}
 
@@ -4702,7 +4702,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 						{
 							int Index = Parent->Children.IndexOf(this);
 							char Txt[32];
-							sprintf(Txt, "%i. ", Index + 1);
+							sprintf_s(Txt, sizeof(Txt), "%i. ", Index + 1);
 							PreText(LgiNewUtf8To16(Txt));
 							break;
 						}
@@ -6964,7 +6964,7 @@ void GHtml::OnMouseClick(GMouse &m)
 							if (Source && LgiGetSystemPath(LSP_TEMP, Path, sizeof(Path)))
 							{
 								char f[32];
-								sprintf(f, "_%i.html", LgiRand(1000000));
+								sprintf_s(f, sizeof(f), "_%i.html", LgiRand(1000000));
 								LgiMakePath(Path, sizeof(Path), Path, f);
 								
 								GFile F;
@@ -7406,7 +7406,7 @@ bool GHtml::GetFormattedContent(const char *MimeType, GAutoString &Out, GArray<G
 					!Img->Get("cid", Cid))
 				{
 					char id[256];
-					sprintf(id, "%x.%x", (unsigned)LgiCurrentTime(), (unsigned)LgiRand());
+					sprintf_s(id, sizeof(id), "%x.%x", (unsigned)LgiCurrentTime(), (unsigned)LgiRand());
 					Img->Set("cid", id);
 					Img->Get("cid", Cid);
 				}
@@ -7677,7 +7677,7 @@ void GCellStore::Dump()
 			GTag *t = Get(x, y);
 			char s[256] = "";
 			if (t)
-				sprintf(s, "%i,%i-%i,%i", t->Cell.x, t->Cell.y, t->Span.x, t->Span.y);
+				sprintf_s(s, sizeof(s), "%i,%i-%i,%i", t->Cell.x, t->Cell.y, t->Span.x, t->Span.y);
 			LgiTrace("%-10s", s);
 		}
 		LgiTrace("\n");

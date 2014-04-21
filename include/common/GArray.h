@@ -444,7 +444,7 @@ public:
 		// Make room
 		if (Length(len + 1))
 		{
-			if (Index < len - 1)
+			if (Index >= 0 && (int)Index < len - 1)
 			{
 				// Shift elements after insert point up one
 				memmove(p + Index + 1, p + Index, (len - Index - 1) * sizeof(Type) );

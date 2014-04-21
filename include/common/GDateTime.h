@@ -183,15 +183,15 @@ public:
 
 	/// Gets the date and time as a string
 	/// \sa GDateTime::GetFormat()
-	void Get(char *Str);
+	void Get(char *Str, int SLen);
 	/// Gets the data and time as a 64 bit int (os specific)
 	bool Get(uint64 &s);
 	/// Gets just the date as a string
 	/// \sa GDateTime::GetFormat()
-	void GetDate(char *Str);
+	void GetDate(char *Str, int SLen);
 	/// Gets just the time as a string
 	/// \sa GDateTime::GetFormat()
-	void GetTime(char *Str);
+	void GetTime(char *Str, int SLen);
 
 	/// Sets the date and time to the system clock
 	void SetNow();

@@ -81,7 +81,7 @@ bool LgiIsProcess(OsProcessId Pid)
 	#elif defined(LINUX)
 
 		char ProcPath[256];
-		sprintf(ProcPath, "/proc/%i", Pid);
+		sprintf_s(ProcPath, sizeof(ProcPath), "/proc/%i", Pid);
 		Status = DirExists(ProcPath);
 	
 	#elif defined BEOS
@@ -359,7 +359,7 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 	char _exe[256];
 	if (!LgiGetExtension((char*)Exe))
 	{
-		sprintf(_exe, "%s.exe", Exe);
+		sprintf_s(_exe, sizeof(_exe), "%s.exe", Exe);
 		Exe = _exe;
 	}
 	#endif
@@ -405,7 +405,7 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 		Buf += Delim;
 		Buf += Space;
 		Buf += NArgs;
-		// sprintf(Buf, "%s%s%s %s", Delim, NExe, Delim, NArgs ? NArgs : (char*)"");
+		// sprintf_s(Buf, sizeof(Buf), "%s%s%s %s", Delim, NExe, Delim, NArgs ? NArgs : (char*)"");
 		
 		#ifdef WIN32
 

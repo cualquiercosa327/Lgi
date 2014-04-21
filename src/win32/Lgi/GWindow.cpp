@@ -1252,7 +1252,7 @@ bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
 		    Position = GetPos();
 		}
 		
-		sprintf(s, "State=%i;Pos=%s", State, Position.GetStr());
+		sprintf_s(s, sizeof(s), "State=%i;Pos=%s", State, Position.GetStr());
 
 		GVariant v = s;
 		if (!Store->SetValue(FieldName, v))

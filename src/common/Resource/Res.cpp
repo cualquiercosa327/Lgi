@@ -830,7 +830,7 @@ LgiFunc char *_LgiGenLangLookup()
 			{
 				if (Lang->OldId)
 				{
-					sprintf(s, "\tcase %i:\n\t\treturn LgiLanguageTable + %i;\n", Lang->OldId, n);
+					sprintf_s(s, sizeof(s), "\tcase %i:\n\t\treturn LgiLanguageTable + %i;\n", Lang->OldId, n);
 					Old.Push(s);
 				}
 
@@ -843,7 +843,7 @@ LgiFunc char *_LgiGenLangLookup()
 		{
 			GLanguage *t;
 
-			sprintf(s,
+			sprintf_s(s, sizeof(s),
 					"\tcase '%c':\n"
 					"\t{\n", i);
 			p.Push(s);
@@ -858,10 +858,10 @@ LgiFunc char *_LgiGenLangLookup()
 					for (k=1; t->Id[k]; k++)
 					{
 						if (k > 1) p.Push(" AND ");
-						sprintf(s, "Id[%i] == '%c'", k, t->Id[k]);
+						sprintf_s(s, sizeof(s), "Id[%i] == '%c'", k, t->Id[k]);
 						p.Push(s);
 					}
-					sprintf(s,
+					sprintf_s(s, sizeof(s),
 							" AND Id[%i] == 0)\n"
 							"\t\t\treturn LgiLanguageTable + %i;\n",
 							k,
@@ -877,7 +877,7 @@ LgiFunc char *_LgiGenLangLookup()
 			{
 				if (strlen(t->Id) == 2)
 				{
-					sprintf(s,
+					sprintf_s(s, sizeof(s),
 							"\t\t\tcase '%c':\n"
 							"\t\t\t\treturn LgiLanguageTable + %i;\n",
 							t->Id[1],
@@ -1308,7 +1308,7 @@ void ResObjectImpl::WriteStrRef(GXmlTag *t)
 	if (Ref >= 0)
 	{
 		char s[32];
-		sprintf(s, "%i", Ref);
+		sprintf_s(s, sizeof(s), "%i", Ref);
 		t->SetAttr("ref", s);
 	}
 }
@@ -1564,7 +1564,7 @@ ResObjectImpl::SStatus ResTableLayout::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 					char CellName[32];
 					GDom *Cell = 0;
 					v = (void*) &Cell;
-					sprintf(CellName, "cell[%i,%i]", x, y);
+					sprintf_s(CellName, sizeof(CellName), "cell[%i,%i]", x, y);
 					if (d->SetValue(CellName, v))
 					{
 						GRect Span(x, y, x + ColSpan - 1, y + RowSpan - 1);
@@ -1665,7 +1665,7 @@ ResObjectImpl::SStatus ResTableLayout::Res_Write(GXmlTag *t)
 				for (int x=0; x<Cx; )
 				{
 					char a[32];
-					sprintf(a, "cell[%i,%i]", x, y);
+					sprintf_s(a, sizeof(a), "cell[%i,%i]", x, y);
 					if (d->GetValue(a, v) &&
 						v.Type == GV_DOM)
 					{

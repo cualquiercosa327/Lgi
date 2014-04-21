@@ -973,7 +973,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 								img->Set("src", Html->d->EmojiImg);
 
 								char css[256];
-								sprintf(css, "x-rect: rect(%i,%i,%i,%i);", rc.y1, rc.x2, rc.y2, rc.x1);
+								sprintf_s(css, sizeof(css), "x-rect: rect(%i,%i,%i,%i);", rc.y1, rc.x2, rc.y2, rc.x1);
 								img->Set("style", css);
 								img->SetStyle();
 							}

@@ -373,14 +373,14 @@ bool GMru::Serialize(GDom *Store, const char *Prefix, bool Write)
 					GAutoString Stored;
 					if (SerializeEntry(NULL, &e->Raw, &Stored)) // Convert Raw -> Stored
 					{
-						sprintf(Key, "%s.Item%i", Prefix, Idx++);
+						sprintf_s(Key, sizeof(Key), "%s.Item%i", Prefix, Idx++);
 						Store->SetValue(Key, v = Stored.Get());
 					}
 					else LgiAssert(0);
 				}
 			}
 
-			sprintf(Key, "%s.Items", Prefix);
+			sprintf_s(Key, sizeof(Key), "%s.Items", Prefix);
 			Store->SetValue(Key, v = (int)Idx);
 		}
 		else
@@ -390,13 +390,13 @@ bool GMru::Serialize(GDom *Store, const char *Prefix, bool Write)
 
 			// read our keys in
 			char Key[64];
-			sprintf(Key, "%s.Items", Prefix);
+			sprintf_s(Key, sizeof(Key), "%s.Items", Prefix);
 			GVariant i;
 			if (Store->GetValue(Key, i))
 			{
 				for (int n=0; n<i.CastInt32(); n++)
 				{
-					sprintf(Key, "%s.Item%i", Prefix, n);
+					sprintf_s(Key, sizeof(Key), "%s.Item%i", Prefix, n);
 
 					GVariant File;
 					if (Store->GetValue(Key, File))

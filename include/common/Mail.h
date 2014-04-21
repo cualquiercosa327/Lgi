@@ -72,7 +72,7 @@ struct MailProtocolError
 class MailProtocolProgress
 {
 public:
-	int Start;
+	uint64 Start;
 	int Value;
 	int Range;
 
@@ -166,7 +166,7 @@ public:
 	~AddressDescriptor();
 	void _Delete();
 
-	void Print(char *Str);
+	void Print(char *Str, int Len);
 	int Sizeof()
 	{
 		return	SizeofStr(Name) +
@@ -387,21 +387,21 @@ struct ImapMailFlags
 
 	char *Get()
 	{
-		char s[256] = "", *c = s;
+		char s[256] = "";
+		int ch = 0;
 
-		if (ImapAnswered) c += sprintf(c, "\\answered ");
-		if (ImapDeleted) c += sprintf(c, "\\deleted ");
-		if (ImapDraft) c += sprintf(c, "\\draft ");
-		if (ImapFlagged) c += sprintf(c, "\\flagged ");
-		if (ImapRecent) c += sprintf(c, "\\recent ");
-		if (ImapSeen) c += sprintf(c, "\\seen ");
+		if (ImapAnswered) ch += sprintf_s(s+ch, sizeof(s)-ch, "\\answered ");
+		if (ImapDeleted) ch += sprintf_s(s+ch, sizeof(s)-ch, "\\deleted ");
+		if (ImapDraft) ch += sprintf_s(s+ch, sizeof(s)-ch, "\\draft ");
+		if (ImapFlagged) ch += sprintf_s(s+ch, sizeof(s)-ch, "\\flagged ");
+		if (ImapRecent) ch += sprintf_s(s+ch, sizeof(s)-ch, "\\recent ");
+		if (ImapSeen) ch += sprintf_s(s+ch, sizeof(s)-ch, "\\seen ");
 
-		if (c == s)
-			return 0;
+		if (ch == 0)
+			return NULL;
 
-		LgiAssert(c < s + sizeof(s));
-		c--;
-		*c = 0;
+		LgiAssert(ch < sizeof(s));
+		s[--ch] = 0;
 		return NewStr(s);
 	}
 
@@ -597,7 +597,7 @@ public:
 	/// Gets the size of all the messages on the server
 	virtual bool GetSizes(GArray<int> &Sizes) { return false; }
 	/// Gets the unique identifier of the message
-	virtual bool GetUid(int Message, char *Id) = 0;
+	virtual bool GetUid(int Message, char *Id, int IdLen) = 0;
 	/// Gets the unique identifiers of a list of messages
 	virtual bool GetUidList(List<char> &Id) = 0;
 	/// Gets the headers associated with a given message
@@ -674,7 +674,7 @@ public:
 	bool Delete(int Message);
 	int Sizeof(int Message);
 	bool GetSizes(GArray<int> &Sizes);
-	bool GetUid(int Message, char *Id);
+	bool GetUid(int Message, char *Id, int IdLen);
 	bool GetUidList(List<char> &Id);
 	char *GetHeaders(int Message);
 };
@@ -697,7 +697,7 @@ public:
 	bool Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks = 0);
 	bool Delete(int Message);
 	int Sizeof(int Message);
-	bool GetUid(int Message, char *Id);
+	bool GetUid(int Message, char *Id, int IdLen);
 	bool GetUidList(List<char> &Id);
 	char *GetHeaders(int Message);
 };
@@ -723,7 +723,7 @@ public:
 	bool Delete(int Message);
 	int Sizeof(int Message);
 	bool GetSizes(GArray<int> &Sizes);
-	bool GetUid(int Message, char *Id);
+	bool GetUid(int Message, char *Id, int IdLen);
 	bool GetUidList(List<char> &Id);
 	char *GetHeaders(int Message);
 	void SetProxy(char *Server, int Port);
@@ -809,7 +809,7 @@ public:
 	int GetMessages();
 	bool Delete(int Message);
 	int Sizeof(int Message);
-	bool GetUid(int Message, char *Id);
+	bool GetUid(int Message, char *Id, int IdLen);
 	bool GetUidList(List<char> &Id);
 	char *GetHeaders(int Message);
 	char *SequenceToString(GArray<int> *Seq);

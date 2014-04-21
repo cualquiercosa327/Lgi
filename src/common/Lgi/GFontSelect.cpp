@@ -26,7 +26,7 @@
 
 int FontSizes[] = { 8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 48, 72, 100, 0 };
 
-GFontSelect::GFontSelect(GView *Parent, void *Init)
+GFontSelect::GFontSelect(GView *Parent, void *Init, int InitLen)
 {
 	// Initialize
 	Face = 0;
@@ -38,7 +38,7 @@ GFontSelect::GFontSelect(GView *Parent, void *Init)
 	if (Init)
 	{
 		// Process initialization data
-		Serialize(Init, false);
+		Serialize(Init, InitLen, false);
 	}
 
 	SetParent(Parent);
@@ -69,7 +69,7 @@ GFontSelect::GFontSelect(GView *Parent, void *Init)
 	for (int *s=FontSizes; *s; s++, n++)
 	{
 		char Str[32];
-		sprintf(Str, "%i", *s);
+		sprintf_s(Str, sizeof(Str), "%i", *s);
 		Ctrl8->Insert(Str);
 
 		if (*s == Size)
@@ -218,17 +218,18 @@ void GFontSelect::UiToThis()
 	Italic = Ctrl5->Value();
 }
 
-bool GFontSelect::Serialize(void *Data, bool Write)
+bool GFontSelect::Serialize(void *Data, int DataLen, bool Write)
 {
 	if (Write) // Dialog -> Data
 	{
 		#ifdef WIN32
 
 		LOGFONT *Fnt = (LOGFONT*) Data;
+
+		if (sizeof(*Fnt) > DataLen)
+			return false;
 		if (Face)
-		{
 			strcpy(Fnt->lfFaceName, Face);
-		}
 		Fnt->lfHeight = WinPointToHeight(Size);
 		Fnt->lfWeight = Bold ? FW_BOLD : FW_NORMAL;
 		Fnt->lfUnderline = Underline;
@@ -237,7 +238,7 @@ bool GFontSelect::Serialize(void *Data, bool Write)
 		#else
 		
 		char *Fnt = (char*)Data;
-		sprintf(Fnt,
+		sprintf_s(Fnt, DataLen,
 				"%s,%i,%s%s%s",
 				Face,
 				Size,

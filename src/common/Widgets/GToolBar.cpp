@@ -917,9 +917,9 @@ void GToolButton::Layout()
 		}
 		else if (t.Length() == 3)
 		{
-			sprintf(Buf, "%s %s", t[0], t[1]);
+			sprintf_s(Buf, sizeof(Buf), "%s %s", t[0], t[1]);
 			GDisplayString *d1 = new GDisplayString(Par->d->Font, Buf);
-			sprintf(Buf, "%s %s", t[1], t[2]);
+			sprintf_s(Buf, sizeof(Buf), "%s %s", t[1], t[2]);
 			GDisplayString *d2 = new GDisplayString(Par->d->Font, Buf);
 			if (d1 && d2)
 			{

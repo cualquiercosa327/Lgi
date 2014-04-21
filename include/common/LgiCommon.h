@@ -119,6 +119,8 @@ LgiFunc void LgiFormatSize
 (
 	/// Output string
 	char *Str,
+	/// Output string buffer length
+	int SLen,
 	/// Input size in bytes
 	uint64 Size
 );

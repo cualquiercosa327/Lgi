@@ -1456,21 +1456,21 @@ public:
 								case DateDate:
 								{
 									char s[32];
-									Dom->Value.Date->GetDate(s);
+									Dom->Value.Date->GetDate(s, sizeof(s));
 									(*Dst) = s;
 									break;
 								}
 								case DateTime:
 								{
 									char s[32];
-									Dom->Value.Date->GetTime(s);
+									Dom->Value.Date->GetTime(s, sizeof(s));
 									(*Dst) = s;
 									break;
 								}
 								case DateDateTime:
 								{
 									char s[32];
-									Dom->Value.Date->Get(s);
+									Dom->Value.Date->Get(s, sizeof(s));
 									(*Dst) = s;
 									break;
 								}

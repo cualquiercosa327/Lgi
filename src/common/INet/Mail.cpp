@@ -391,7 +391,7 @@ char *DecodeRfc2047(char *Str)
 		}
 
 		Temp.Write((uchar*) "", 1);
-		int Len = Temp.GetSize();
+		size_t Len = (size_t)Temp.GetSize();
 		char *r = new char[Len+1];
 		if (r)
 		{
@@ -426,7 +426,7 @@ char *EncodeRfc2047(char *Str, const char *CodePage, List<char> *CharsetPrefs, i
 		bool Base64 = false;
 		const char *DestCp = "utf-8";
 		int Len = strlen(Str);;
-		if (stricmp(CodePage, "utf-8") == 0)
+		if (_stricmp(CodePage, "utf-8") == 0)
 		{
 			DestCp = LgiDetectCharset(Str, Len, CharsetPrefs);
 		}
@@ -446,7 +446,7 @@ char *EncodeRfc2047(char *Str, const char *CodePage, List<char> *CharsetPrefs, i
 		{
 			// encode the word
 			char Prefix[64];
-			int Ch = sprintf(Prefix, "=?%s?%c?", DestCp, Base64 ? 'B' : 'Q');
+			int Ch = sprintf_s(Prefix, sizeof(Prefix), "=?%s?%c?", DestCp, Base64 ? 'B' : 'Q');
 			p.Write(Prefix, Ch);
 			LineLength += Ch;
 
@@ -488,7 +488,7 @@ char *EncodeRfc2047(char *Str, const char *CodePage, List<char> *CharsetPrefs, i
 						}
 
 						char Temp[16];
-						Ch = sprintf(Temp, "=%2.2X", (uchar)*w);
+						Ch = sprintf_s(Temp, sizeof(Temp), "=%2.2X", (uchar)*w);
 						p.Write(Temp, Ch);
 						LineLength += Ch;
 					}
@@ -883,7 +883,8 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
 	    return;
 
     // Look for the highest scoring part... that'll be the email address.
-    int MaxScore = -1, i;
+    int MaxScore = -1;
+    uint32 i;
 	for (i=0; i<Parts.Length(); i++)
     {
         MailAddrPart *p = Parts[i];
@@ -1061,10 +1062,10 @@ FileDescriptor::FileDescriptor(char *data, int64 len)
 	Size = len;
 	OwnEmbeded = false;
 
-	Data = data ? new uchar[Size] : 0;
+	Data = data ? new uchar[(size_t)Size] : 0;
 	if (Data)
 	{
-		memcpy(Data, data, Size);
+		memcpy(Data, data, (size_t)Size);
 	}
 }
 
@@ -1117,7 +1118,7 @@ GStreamI *FileDescriptor::GotoObject()
 
 int FileDescriptor::Sizeof()
 {
-	return Size;
+	return (int)Size;
 }
 
 uchar *FileDescriptor::GetData()
@@ -1191,7 +1192,7 @@ bool FileDescriptor::Decode(char *ContentType,
 				if (Data)
 				{
 					Size = MimeDataLen;
-					memcpy(Data, MimeData, Size);
+					memcpy(Data, MimeData, (size_t)Size);
 					Status = true;
 				}
 				break;
@@ -1254,10 +1255,10 @@ bool FileDescriptor::Decode(char *ContentType,
 				}
 
 				Size = BufferLen_64ToBin(OutCount);
-				Data = new uchar[Size];
+				Data = new uchar[(size_t)Size];
 				if (Data)
 				{
-					int Converted = ConvertBase64ToBinary(Data, Size, Base64, OutCount);
+					int Converted = ConvertBase64ToBinary(Data, (int)Size, Base64, OutCount);
 					Status = Converted <= Size && Converted >= Size - 3;
 					if (Status)
 					{
@@ -1300,22 +1301,25 @@ void AddressDescriptor::_Delete()
 	DeleteArray(Addr);
 }
 
-void AddressDescriptor::Print(char *Str)
+void AddressDescriptor::Print(char *Str, int Len)
 {
-	if (Str)
+	if (!Str)
 	{
-		if (Addr && Name)
-		{
-			sprintf(Str, "%s (%s)", Addr, Name);
-		}
-		else if (Addr)
-		{
-			strcpy(Str, Addr);
-		}
-		else if (Name)
-		{
-			sprintf(Str, "(%s)", Name);
-		}
+		LgiAssert(0);
+		return;
+	}
+
+	if (Addr && Name)
+	{
+		sprintf_s(Str, Len, "%s (%s)", Addr, Name);
+	}
+	else if (Addr)
+	{
+		strcpy_s(Str, Len, Addr);
+	}
+	else if (Name)
+	{
+		sprintf_s(Str, Len, "(%s)", Name);
 	}
 }
 
@@ -1365,7 +1369,7 @@ bool MailProtocol::Error(const char *file, int line, const char *msg, ...)
 	char s[1024];
 	va_list a;
 	va_start(a, msg);
-	vsprintf(s, msg, a);
+	vsprintf_s(s, sizeof(s), msg, a);
 	va_end(a);
 
 	Log(s, MAIL_ERROR_COLOUR);
@@ -1388,8 +1392,8 @@ bool MailProtocol::Write(const char *Buf, bool LogWrite)
 	bool Status = false;
 	if (Socket)
 	{
-		const char *p = (Buf) ? Buf : Buffer;
-		Status = Socket->Write(p, strlen(p), 0);
+		const char *p = Buf ? Buf : Buffer;
+		Status = Socket->Write(p, strlen(p), 0) > 0;
 		
 		if (LogWrite)
 		{
@@ -1444,7 +1448,7 @@ bool MailSmtp::Open(GSocketI *S,
 		Error(_FL, "No remote SMTP host.\n");
 	else
 	{
-		strcpy(Str, RemoteHost);
+		strcpy_s(Str, sizeof(Str), RemoteHost);
 		char *Colon = strchr(Str, ':');
 		if (Colon)
 		{
@@ -1486,7 +1490,7 @@ bool MailSmtp::Open(GSocketI *S,
 
 				// Rfc 2554 ESMTP authentication
 				SmtpHello:
-				sprintf(Buffer, "EHLO %s\r\n", (ValidNonWSStr(LocalDomain)) ? LocalDomain : "default");
+				sprintf_s(Buffer, sizeof(Buffer), "EHLO %s\r\n", (ValidNonWSStr(LocalDomain)) ? LocalDomain : "default");
 				VERIFY_RET_VAL(Write(0, true));
 				bool HasSmtpExtensions = ReadReply("250", &Str);
 
@@ -1500,7 +1504,7 @@ bool MailSmtp::Open(GSocketI *S,
 				if (Response)
 				{
 					GToken Lines(Response, "\n");
-					for (int i=0; i<Lines.Length(); i++)
+					for (uint32 i=0; i<Lines.Length(); i++)
 					{
 						char *l = Lines[i];
 						char *AuthStr = strstr(l, "AUTH");
@@ -1508,7 +1512,7 @@ bool MailSmtp::Open(GSocketI *S,
 						{
 							// walk through AUTH types
 							GToken Types(AuthStr + 4, " ,;");
-							for (int a=0; a<Types.Length(); a++)
+							for (uint32 a=0; a<Types.Length(); a++)
 							{
 								TheirAuthTypes.Add(Types[a], true);
 							}
@@ -1523,7 +1527,7 @@ bool MailSmtp::Open(GSocketI *S,
 
 				if (SupportsStartTLS && TestFlag(Flags, MAIL_USE_STARTTLS))
 				{
-					strcpy(Buffer, "STARTTLS\r\n");
+					strsafecpy(Buffer, "STARTTLS\r\n", sizeof(Buffer));
 					VERIFY_RET_VAL(Write(0, true));
 					VERIFY_RET_VAL(ReadReply("220", &Str));
 
@@ -1603,20 +1607,17 @@ bool MailSmtp::Open(GSocketI *S,
 					
 					if (!Authed && TheirAuthTypes.Find("PLAIN"))
 					{
-						uchar Tmp[256];
+						char Tmp[256];
 						ZeroObj(Tmp);
-						char *a = (char*)Tmp + 1;
-						strcpy(a, UserName);
-						a += strlen(UserName) + 1;
-						strcpy(a, Password);
-						a += strlen(Password);
-						int Len = a-(char*)Tmp;
+						int ch = 1;
+						ch += sprintf_s(Tmp+ch, sizeof(Tmp)-ch, "%s", UserName) + 1;
+						ch += sprintf_s(Tmp+ch, sizeof(Tmp)-ch, "%s", Password) + 1;
 
 						char B64[256];
 						ZeroObj(B64);
-						ConvertBinaryToBase64(B64, sizeof(B64), Tmp, Len);
+						ConvertBinaryToBase64(B64, sizeof(B64), (uint8*)Tmp, ch);
 
-						sprintf(Buffer, "AUTH PLAIN %s\r\n", B64);
+						sprintf_s(Buffer, sizeof(Buffer), "AUTH PLAIN %s\r\n", B64);
 						VERIFY_RET_VAL(Write(0, true));
 						if (ReadReply("235"))
 						{
@@ -1633,14 +1634,14 @@ bool MailSmtp::Open(GSocketI *S,
 						}
 						else
 						{
-							strcpy(Buffer, LgiLoadString(L_ERROR_ESMTP_UNSUPPORTED_AUTHS,
-														"The server doesn't support any compatible authentication types:\n\t"));
+							int ch = sprintf_s(	Buffer, sizeof(Buffer),
+												LgiLoadString(	L_ERROR_ESMTP_UNSUPPORTED_AUTHS,
+																"The server doesn't support any compatible authentication types:\n\t"));
 							
 							const char *a = 0;
 							for (bool p = TheirAuthTypes.First(&a); p; p = TheirAuthTypes.Next(&a))
 							{
-								int Bytes = strlen(Buffer);
-								snprintf(Buffer + Bytes, sizeof(Buffer) - Bytes, "%s ", a);
+								ch += sprintf_s(Buffer+ch, sizeof(Buffer)-ch, "%s ", a);
 							}
 							ServerMsg.Reset(NewStr(Buffer));
 						}
@@ -1654,7 +1655,7 @@ bool MailSmtp::Open(GSocketI *S,
 					NormalLogin:
 					// Normal SMTP login
 					// send HELO message
-					sprintf(Buffer, "HELO %s\r\n", (ValidNonWSStr(LocalDomain)) ? LocalDomain : "default");
+					sprintf_s(Buffer, sizeof(Buffer), "HELO %s\r\n", (ValidNonWSStr(LocalDomain)) ? LocalDomain : "default");
 					VERIFY_RET_VAL(Write(0, true));
 					VERIFY_RET_VAL(ReadReply("250"));
 
@@ -1716,14 +1717,14 @@ bool MailSmtp::WriteText(const char *Str)
 		// send the final string
 		int Size = Str-Start;
 		if (Str[-1] == '\r') Size--;
-		Temp.Write((uchar*) Start, Size);
+		Temp.Write((uchar*) Start, (int)Size);
 
-		Size = Temp.GetSize();
-		char *Data = new char[Size];
+		Size = (int)Temp.GetSize();
+		char *Data = new char[(size_t)Size];
 		if (Data)
 		{
 			Temp.Read((uchar*) Data, Size);
-			Status = Socket->Write(Data, Size, 0);
+			Status = Socket->Write(Data, (int)Size, 0) == Size;
 			DeleteArray(Data);
 		}
 	}
@@ -1758,9 +1759,9 @@ char *CreateAddressTag(List<AddressDescriptor> &l, int Type, List<char> *Charset
 			{
 				// Multiple address format
 				GToken t(a->Addr, ",");
-				for (int i=0; i<t.Length(); i++)
+				for (uint32 i=0; i<t.Length(); i++)
 				{
-					sprintf(Buffer, "<%s>", t[i]);
+					sprintf_s(Buffer, sizeof(Buffer), "<%s>", t[i]);
 					if (i < t.Length()-1) strcat(Buffer, ",\r\n\t");
 					StrBuf.Push(Buffer);
 					Buffer[0] = 0;
@@ -1778,16 +1779,16 @@ char *CreateAddressTag(List<AddressDescriptor> &l, int Type, List<char> *Charset
 				}
 
 				if (strchr(Name, '\"'))
-				    sprintf(Buffer, "'%s' <%s>", Name, a->Addr);
+				    sprintf_s(Buffer, sizeof(Buffer), "'%s' <%s>", Name, a->Addr);
 				else
-				    sprintf(Buffer, "\"%s\" <%s>", Name, a->Addr);
+				    sprintf_s(Buffer, sizeof(Buffer), "\"%s\" <%s>", Name, a->Addr);
 
 				DeleteArray(Mem);
 			}
 			else if (a->Addr)
 			{
 				// Just addr
-				sprintf(Buffer, "<%s>", a->Addr);
+				sprintf_s(Buffer, sizeof(Buffer), "<%s>", a->Addr);
 			}
 
 			if (NextA) strcat(Buffer, ",\r\n\t");
@@ -1829,7 +1830,7 @@ public:
 		if (p)
 		{
 			p->Start = LgiCurrentTime();
-			p->Range = Size;
+			p->Range = (int)Size;
 			return Size;
 		}
 
@@ -1858,7 +1859,7 @@ bool MailSmtp::SendToFrom(List<AddressDescriptor> &To, AddressDescriptor *From, 
 		// send MAIL message
 		if (From && ValidStr(From->Addr))
 		{
-			sprintf(Buffer, "MAIL FROM: <%s>\r\n", From->Addr);
+			sprintf_s(Buffer, sizeof(Buffer), "MAIL FROM: <%s>\r\n", From->Addr);
 		}
 		else
 		{
@@ -1878,9 +1879,9 @@ bool MailSmtp::SendToFrom(List<AddressDescriptor> &To, AddressDescriptor *From, 
 			if (ValidStr(Addr))
 			{
 				GToken Parts(Addr, ",");
-				for (int p=0; p<Parts.Length(); p++)
+				for (unsigned p=0; p<Parts.Length(); p++)
 				{
-					sprintf(Buffer, "RCPT TO: <%s>\r\n", Parts[p]);
+					sprintf_s(Buffer, sizeof(Buffer), "RCPT TO: <%s>\r\n", Parts[p]);
 					VERIFY_RET_VAL(Write(0, true));
 					a->Status = ReadReply("25", 0, Err);
 					AddrOk &= a->Status != 0; // at least one address is ok
@@ -1899,7 +1900,7 @@ bool MailSmtp::SendToFrom(List<AddressDescriptor> &To, AddressDescriptor *From, 
 GStringPipe *MailSmtp::SendData(MailProtocolError *Err)
 {
 	// send DATA message
-	sprintf(Buffer, "DATA\r\n");
+	sprintf_s(Buffer, sizeof(Buffer), "DATA\r\n");
 	VERIFY_RET_VAL(Write(0, true));
 	VERIFY_RET_VAL(ReadReply("354", 0, Err));
 
@@ -1968,7 +1969,7 @@ bool MailSmtp::Close()
 	if (Socket)
 	{
 		// send QUIT message
-		sprintf(Buffer, "QUIT\r\n");
+		sprintf_s(Buffer, sizeof(Buffer), "QUIT\r\n");
 		VERIFY_RET_VAL(Write(0, true));
 		VERIFY_RET_VAL(ReadReply("221"));
 		
@@ -2066,7 +2067,7 @@ public:
 		do
 		{
 			char n[32];
-			sprintf(n, "%u.mail", LgiRand());
+			sprintf_s(n, sizeof(n), "%u.mail", LgiRand());
 			LgiMakePath(File, sizeof(File), Path, n);
 		}
 		while (FileExists(File));
@@ -2080,7 +2081,7 @@ public:
 			{
 				a->Status = true;
 				GToken Addrs(a->Addr, ",");
-				for (int n=0; n<Addrs.Length(); n++, i++)
+				for (unsigned n=0; n<Addrs.Length(); n++, i++)
 				{
 					if (i) F.Print(",");
 					F.Print("<%s>", Addrs[n]);
@@ -2224,34 +2225,20 @@ bool MailReceiveFolder::Open(GSocketI *S, char *RemoteHost, int Port, char *User
 	// Argument check
 	if (!DirExists(d->Path))
 		return false;
+	
 	GDirectory Dir;
 
 	// Loop through files, looking for email
-	for (bool b = Dir.First(d->Path, "*.*"); b; b = Dir.Next())
+	for (int b = Dir.First(d->Path, LGI_ALL_FILES); b; b = Dir.Next())
 	{
-		if
-		(
-			!Dir.IsDir()
-			&&
-			(
-				MatchStr("*.eml", Dir.GetName())
-				||
-				MatchStr("*.mail", Dir.GetName())
-			)
-		)
+		if (!Dir.IsDir())
 		{
-			for (bool b = Dir.First(d->Path, LGI_ALL_FILES); b; b = Dir.Next())
+			if (MatchStr("*.eml", Dir.GetName()) ||
+				MatchStr("*.mail", Dir.GetName()))
 			{
-				if (!Dir.IsDir())
-				{
-					if (MatchStr("*.eml", Dir.GetName()) ||
-						MatchStr("*.mail", Dir.GetName()))
-					{
-						char p[300];
-						Dir.Path(p, sizeof(p));
-						d->Mail.Insert(new MailItem(p));
-					}
-				}
+				char p[300];
+				Dir.Path(p, sizeof(p));
+				d->Mail.Insert(new MailItem(p));
 			}
 		}
 	}
@@ -2274,7 +2261,7 @@ bool MailReceiveFolder::Receive(GArray<MailTransaction*> &Trans, MailCallbacks *
 {
 	bool Status = false;
 
-	for (int i=0; i<Trans.Length(); i++)
+	for (unsigned i=0; i<Trans.Length(); i++)
 	{
 		MailTransaction *t = Trans[i];
 		if (t && t->Stream)
@@ -2321,13 +2308,13 @@ int MailReceiveFolder::Sizeof(int Message)
 	MailItem *m = d->Mail[Message];
 	if (m)
 	{
-		return LgiFileSize(m->File);
+		return (int)LgiFileSize(m->File);
 	}
 
 	return 0;
 }
 
-bool MailReceiveFolder::GetUid(int Message, char *Id)
+bool MailReceiveFolder::GetUid(int Message, char *Id, int IdLen)
 {
 	if (Id)
 	{
@@ -2358,7 +2345,7 @@ bool MailReceiveFolder::GetUidList(List<char> &Id)
 	for (int i=0; i<d->Mail.Length(); i++)
 	{
 		char Uid[256];
-		if (GetUid(i, Uid))
+		if (GetUid(i, Uid, sizeof(Uid)))
 		{
 			Status = true;
 			Id.Insert(NewStr(Uid));
@@ -2490,7 +2477,7 @@ bool MailPop3::ReadReply()
 
 bool MailPop3::ListCmd(const char *Cmd, GHashTbl<const char*, bool> &Results)
 {
-	sprintf(Buffer, "%s\r\n", Cmd);
+	sprintf_s(Buffer, sizeof(Buffer), "%s\r\n", Cmd);
 	if (!Write(0, true))
 		return false;
 
@@ -2507,7 +2494,7 @@ bool MailPop3::ListCmd(const char *Cmd, GHashTbl<const char*, bool> &Results)
 		return false;
 
 	GToken t(Buffer, "\r\n");
-	for (int i=1; i<t.Length()-1; i++)
+	for (unsigned i=1; i<t.Length()-1; i++)
 	{
 		Results.Add(t[i], true);
 	}
@@ -2538,7 +2525,7 @@ bool MailPop3::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *P
 				Port = POP3_PORT;
 		}
 
-		strcpy(Str, RemoteHost);
+		strcpy_s(Str, sizeof(Str), RemoteHost);
 		char *Colon = strchr(Str, ':');
 		if (Colon)
 		{
@@ -2566,7 +2553,7 @@ bool MailPop3::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *P
 				Socket->Open(Server, Port) &&
 				ReadReply())
 			{
-				bool NoAPOP = Cookie ? stristr(Cookie, "NoAPOP") : 0;
+				bool NoAPOP = Cookie ? stristr(Cookie, "NoAPOP") != NULL : 0;
 				if (!NoAPOP)
 				{
 					char *s = strchr(Buffer + 3, '<');
@@ -2591,7 +2578,7 @@ bool MailPop3::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *P
 
 					if (TestFlag(Flags, MAIL_USE_STARTTLS))
 					{
-						strcpy(Buffer, "STARTTLS\r\n");
+						strcpy_s(Buffer, sizeof(Buffer), "STARTTLS\r\n");
 						VERIFY_RET_VAL(Write(0, true));
 						VERIFY_RET_VAL(ReadReply());
 
@@ -2614,16 +2601,15 @@ bool MailPop3::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *P
 
 						// append password
 						char Key[256];
-						strcpy(Key, Apop);
-						strcat(Key, pass);
+						sprintf_s(Key, "%s%s", Apop, pass);
 
 						ZeroObj(Digest);
 						MDStringToDigest(Digest, Key);
 						for (int i = 0; i < 16; i++)
-							sprintf(HexDigest + (i*2), "%2.2x", Digest[i]);
+							sprintf_s(HexDigest + (i*2), 3, "%2.2x", Digest[i]);
 						HexDigest[32] = 0;
 
-						sprintf(Buffer, "APOP %s %s\r\n", user, HexDigest);
+						sprintf_s(Buffer, sizeof(Buffer), "APOP %s %s\r\n", user, HexDigest);
 						VERIFY_ONERR(Write(0, true));
 						Authed = ReadReply();
 
@@ -2645,7 +2631,7 @@ bool MailPop3::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *P
 						{
 							if (AuthTypes.Find("GSSAPI"))
 							{
-								sprintf(Buffer, "AUTH GSSAPI\r\n");
+								sprintf_s(Buffer, sizeof(Buffer), "AUTH GSSAPI\r\n");
 								VERIFY_ONERR(Write(0, true));
 								VERIFY_ONERR(ReadReply());
 
@@ -2656,11 +2642,11 @@ bool MailPop3::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *P
 					else if (!SecurityError && !Authed)
 					{
 						// have to use non-key method
-						sprintf(Buffer, "USER %s\r\n", user);
+						sprintf_s(Buffer, sizeof(Buffer), "USER %s\r\n", user);
 						VERIFY_ONERR(Write(0, true));
 						VERIFY_ONERR(ReadReply());
 
-						sprintf(Buffer, "PASS %s\r\n", pass);
+						sprintf_s(Buffer, sizeof(Buffer), "PASS %s\r\n", pass);
 						VERIFY_ONERR(Write(0, false));
 						Log("PASS *******", MAIL_SEND_COLOUR);
 
@@ -2726,7 +2712,7 @@ bool MailPop3::Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks
 	if (Trans.Length() > 0 &&
 		Socket)
 	{
-		for (int n = 0; n<Trans.Length(); n++)
+		for (unsigned n = 0; n<Trans.Length(); n++)
 		{
 			int Message = Trans[n]->Index;
 			GStreamI *Msg = Trans[n]->Stream;
@@ -2738,7 +2724,7 @@ bool MailPop3::Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks
 				if (Transfer || Callbacks)
 				{
 					// get message size
-					sprintf(Buffer, "LIST %i\r\n", Message + 1);
+					sprintf_s(Buffer, sizeof(Buffer), "LIST %i\r\n", Message + 1);
 					VERIFY_RET_VAL(Write(0, true));
 					VERIFY_RET_VAL(ReadReply());
 
@@ -2771,11 +2757,11 @@ bool MailPop3::Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks
 				{
 					if (Action == DownloadAll)
 					{
-						sprintf(Buffer, "RETR %i\r\n", Message + 1);
+						sprintf_s(Buffer, sizeof(Buffer), "RETR %i\r\n", Message + 1);
 					}
 					else
 					{
-						sprintf(Buffer, "TOP %i %i\r\n", Message + 1, TopLines);
+						sprintf_s(Buffer, sizeof(Buffer), "TOP %i %i\r\n", Message + 1, TopLines);
 					}
 					VERIFY_RET_VAL(Write(0, true));
 
@@ -2865,7 +2851,7 @@ bool MailPop3::Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks
 									int EndPos = End.IsEnd(Buffer, r);
 									if (EndPos >= 0)
 									{
-										int Actual = EndPos - DataPos - 3;
+										int Actual = EndPos - (int)DataPos - 3;
 										if (Actual > 0)
 										{
 											int w = Msg->Write(Buffer, Actual);
@@ -2939,7 +2925,7 @@ bool MailPop3::GetSizes(GArray<int> &Sizes)
 {
 	if (Socket)
 	{
-		strcpy(Buffer, (char*)"LIST\r\n");
+		strcpy_s(Buffer, sizeof(Buffer), (char*)"LIST\r\n");
 		VERIFY_RET_VAL(Write(0, true));
 
 		char *s = 0;
@@ -2947,7 +2933,7 @@ bool MailPop3::GetSizes(GArray<int> &Sizes)
 		{
 			GToken l(s, "\r\n");
 			DeleteArray(s);
-			for (int i=0; i<l.Length(); i++)
+			for (unsigned i=0; i<l.Length(); i++)
 			{
 				char *sp = strrchr(l[i], ' ');
 				if (sp)
@@ -2966,7 +2952,7 @@ int MailPop3::Sizeof(int Message)
 	int Size = 0;
 	if (Socket)
 	{
-		sprintf(Buffer, "LIST %i\r\n", Message + 1);
+		sprintf_s(Buffer, sizeof(Buffer), "LIST %i\r\n", Message + 1);
 		VERIFY_RET_VAL(Write(0, true));
 		VERIFY_RET_VAL(ReadReply());
 
@@ -2988,7 +2974,7 @@ bool MailPop3::Delete(int Message)
 {
 	if (Socket)
 	{
-		sprintf(Buffer, "DELE %i\r\n", Message + 1);
+		sprintf_s(Buffer, sizeof(Buffer), "DELE %i\r\n", Message + 1);
 		VERIFY_RET_VAL(Write(0, true));
 		VERIFY_RET_VAL(ReadReply());
 
@@ -2998,11 +2984,11 @@ bool MailPop3::Delete(int Message)
 	return false;
 }
 
-bool MailPop3::GetUid(int Index, char *Id)
+bool MailPop3::GetUid(int Index, char *Id, int IdLen)
 {
 	if (Socket && Id)
 	{
-		sprintf(Buffer, "UIDL %i\r\n", Index + 1);
+		sprintf_s(Buffer, sizeof(Buffer), "UIDL %i\r\n", Index + 1);
 		VERIFY_RET_VAL(Write(0, true));
 		VERIFY_RET_VAL(ReadReply());
 
@@ -3021,7 +3007,7 @@ bool MailPop3::GetUid(int Index, char *Id)
 					}
 				}
 				
-				strcpy(Id, Space+1);
+				strcpy_s(Id, IdLen, Space+1);
 				return true;
 			}
 		}
@@ -3037,14 +3023,14 @@ bool MailPop3::GetUidList(List<char> &Id)
 	{
 		char *Str = 0;
 
-		sprintf(Buffer, "UIDL\r\n");
+		sprintf_s(Buffer, sizeof(Buffer), "UIDL\r\n");
 		VERIFY_RET_VAL(Write(0, true));
 		VERIFY_RET_VAL(ReadMultiLineReply(Str));
 		if (Str)
 		{
 			Status = true;
 			GToken T(Str, "\r\n");
-			for (int i=0; i<T.Length(); i++)
+			for (unsigned i=0; i<T.Length(); i++)
 			{
 				char *s = T[i];
 				if (s && *s != '.')
@@ -3069,7 +3055,7 @@ char *MailPop3::GetHeaders(int Message)
 	char *Header = 0;
 	if (Socket)
 	{
-		sprintf(Buffer, "TOP %i 0\r\n", Message + 1);
+		sprintf_s(Buffer, sizeof(Buffer), "TOP %i 0\r\n", Message + 1);
 		if (Write(0, true))
 		{
 			ReadMultiLineReply(Header);
@@ -3107,7 +3093,7 @@ bool MailPop3::ReadMultiLineReply(char *&Str)
 					else break;
 				}
 
-				int Len = Temp.GetSize();
+				int Len = (int)Temp.GetSize();
 				Str = new char[Len+1];
 				if (Str)
 				{
@@ -3268,7 +3254,7 @@ int MailMessage::EncodeBase64(GStreamI &Out, GStreamI &In)
 	char *OutBuf = new char[BufSize];
 	if (InBuf && OutBuf)
 	{
-		int InLen = In.GetSize(); // file remaining to read
+		int InLen = (int)In.GetSize(); // file remaining to read
 		int InUsed = 0;
 		int InDone = 0;
 		int OutUsed = 0;
@@ -3348,7 +3334,7 @@ int MailMessage::EncodeQuotedPrintable(GStreamI &Out, GStreamI &In)
 {
 	int Status = 0;
 	char OutBuf[100], InBuf[1024];
-	char *o = OutBuf;
+	int ch = 0;
 	int InLen;
 
 	// Read the input data one chunk at a time
@@ -3359,12 +3345,12 @@ int MailMessage::EncodeQuotedPrintable(GStreamI &Out, GStreamI &In)
 		{
 			if (*s == '\n')
 			{
-				strcpy(o, "\r\n");
-				int w = Out.Write(OutBuf, o-OutBuf+2);
+				ch += sprintf_s(OutBuf+ch, sizeof(OutBuf)-ch, "\r\n");
+				int w = Out.Write(OutBuf, ch);
 				if (w <= 0)
 					break;
 
-				o = OutBuf;
+				ch = 0;
 				Status += w;
 			}
 			else if (*s == '.')
@@ -3376,43 +3362,42 @@ int MailMessage::EncodeQuotedPrintable(GStreamI &Out, GStreamI &In)
 				// hex encode it if it falls at the start of the line.
 				// Otherwise allow it through unencoded.
 
-				if (o == OutBuf)
+				if (ch == 0)
 				{
-					sprintf(o, "=%2.2X", (uchar)*s);
-					o += 3;
+					ch += sprintf_s(OutBuf+ch, sizeof(OutBuf)-ch, "=%2.2X", (uchar)*s);
 				}
 				else
 				{
-					*o++ = *s;
+					OutBuf[ch++] = *s;
 				}
 			}
 			else if (*s & 0x80 || *s == '=')
 			{
 				// Require hex encoding of 8-bit chars and the equals itself.
-				sprintf(o, "=%2.2X", (uchar)*s);
-				o += 3;
+				ch += sprintf_s(OutBuf+ch, sizeof(OutBuf)-ch, "=%2.2X", (uchar)*s);
 			}
 			else if (*s != '\r')
 			{
-				*o++ = *s;
+				OutBuf[ch++] = *s;
 			}
 			s++;
 
-			if (o-OutBuf > 73)
+			if (ch > 73)
 			{
 				// time for a new line.
-				strcpy(o, "=\r\n");
-				int w = Out.Write(OutBuf, o - OutBuf + 3);
+				ch += sprintf_s(OutBuf+ch, sizeof(OutBuf)-ch, "=\r\n");
+				int w = Out.Write(OutBuf, ch);
 				if (w <= 0)
 					break;
-				o = OutBuf;
+				
+				ch = 0;
 				Status += w;
 			}
 		}
 	}
 
-	strcpy(o, "\r\n");
-	int w = Out.Write(OutBuf, o-OutBuf+2);
+	ch += sprintf_s(OutBuf+ch, sizeof(OutBuf)-ch, "\r\n");
+	int w = Out.Write(OutBuf, ch);
 	if (w > 0)
 		Status += w;
 
@@ -3562,7 +3547,7 @@ public:
 			}
 		}
 
-		return w;
+		return (int)w;
 	}
 };
 
@@ -3573,7 +3558,7 @@ bool MailMessage::Encode(GStreamI &Out, GStream *HeadersSink, MailProtocol *Prot
 	bool Status = EncodeHeaders(p, Protocol, Mime);
 	if (Status)
 	{
-		int Len = p.GetSize();
+		int Len = (int)p.GetSize();
 		char *Headers = p.NewStr();
 		if (HeadersSink)
 		{
@@ -3634,7 +3619,7 @@ bool MailMessage::EncodeHeaders(GStreamI &Out, MailProtocol *Protocol, bool Mime
 	GDateTime Dt;
 	int TimeZone = Dt.SystemTimeZone();
 	Dt.SetNow();
-	sprintf(Buffer,
+	sprintf_s(Buffer, sizeof(Buffer),
 			"Date: %s, %i %s %i %i:%2.2i:%2.2i %s%2.2d%2.2d\r\n",
 			Weekday[Dt.DayOfWeek()],
 			Dt.Day(),
@@ -3651,7 +3636,7 @@ bool MailMessage::EncodeHeaders(GStreamI &Out, MailProtocol *Protocol, bool Mime
 	if (Protocol && Protocol->ProgramName)
 	{
 		// X-Mailer:
-		sprintf(Buffer, "X-Mailer: %s\r\n", Protocol->ProgramName);
+		sprintf_s(Buffer, sizeof(Buffer), "X-Mailer: %s\r\n", Protocol->ProgramName);
 		Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
 	}
 
@@ -3675,14 +3660,14 @@ bool MailMessage::EncodeHeaders(GStreamI &Out, MailProtocol *Protocol, bool Mime
 	if (Priority != MAIL_PRIORITY_NORMAL)
 	{
 		// X-Priority:
-		sprintf(Buffer, "X-Priority: %i\r\n", Priority);
+		sprintf_s(Buffer, sizeof(Buffer), "X-Priority: %i\r\n", Priority);
 		Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
 	}
 
 	if (MarkColour >= 0)
 	{
 		// X-Color (HTML Colour Ref for email marking)
-		sprintf(Buffer,
+		sprintf_s(Buffer, sizeof(Buffer), 
 			"X-Color: #%2.2X%2.2X%2.2X\r\n",
 			R24(MarkColour),
 			G24(MarkColour),
@@ -3702,7 +3687,7 @@ bool MailMessage::EncodeHeaders(GStreamI &Out, MailProtocol *Protocol, bool Mime
 			}			
 		}
 		
-		int Ch = sprintf(Buffer, "Message-ID: %s\r\n", MessageID.Get());
+		int Ch = sprintf_s(Buffer, sizeof(Buffer), "Message-ID: %s\r\n", MessageID.Get());
 		Status &= Out.Write(Buffer, Ch) > 0;
 	}
 
@@ -3721,7 +3706,7 @@ bool MailMessage::EncodeHeaders(GStreamI &Out, MailProtocol *Protocol, bool Mime
 		else
 			Ref = References;
 
-		sprintf(Buffer, "References: <%s>\r\n", Ref);
+		sprintf_s(Buffer, sizeof(Buffer), "References: <%s>\r\n", Ref);
 		Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
 	}
 
@@ -3743,23 +3728,19 @@ bool MailMessage::EncodeHeaders(GStreamI &Out, MailProtocol *Protocol, bool Mime
 	// From:
 	if (From && From->Addr)
 	{
-		strcpy(Buffer, "From: ");
+		int ch = sprintf_s(Buffer, sizeof(Buffer), "From: ");
 
 		char *Nme = EncodeRfc2047(NewStr(From->Name), 0, &Protocol->CharsetPrefs);
 		if (Nme)
 		{
 			if (strchr(Nme, '\"'))
-			{
-				sprintf(Buffer + strlen(Buffer), "'%s' ", Nme);
-			}
+				ch += sprintf_s(Buffer+ch, sizeof(Buffer)-ch, "'%s' ", Nme);
 			else
-			{
-				sprintf(Buffer + strlen(Buffer), "\"%s\" ", Nme);
-			}
+				ch += sprintf_s(Buffer+ch, sizeof(Buffer)-ch, "\"%s\" ", Nme);
 			DeleteArray(Nme);
 		}
 
-		sprintf(Buffer + strlen(Buffer), "<%s>\r\n", From->Addr);
+		ch += sprintf_s(Buffer+ch, sizeof(Buffer)-ch, "<%s>\r\n", From->Addr);
 	}
 	else
 	{
@@ -3772,44 +3753,40 @@ bool MailMessage::EncodeHeaders(GStreamI &Out, MailProtocol *Protocol, bool Mime
 	if (Reply &&
 		ValidStr(Reply->Addr))
 	{
-		strcpy(Buffer, "Reply-To: ");
+		int ch = sprintf_s(Buffer, sizeof(Buffer), "Reply-To: ");
 
 		char *Nme = EncodeRfc2047(NewStr(Reply->Name), 0, &Protocol->CharsetPrefs);
 		if (Nme)
 		{
 			if (strchr(Nme, '\"'))
-			{
-				sprintf(Buffer + strlen(Buffer), "'%s' ", Nme);
-			}
+				ch += sprintf_s(Buffer+ch, sizeof(Buffer)-ch, "'%s' ", Nme);
 			else
-			{
-				sprintf(Buffer + strlen(Buffer), "\"%s\" ", Nme);
-			}
+				ch += sprintf_s(Buffer+ch, sizeof(Buffer)-ch, "\"%s\" ", Nme);
 			DeleteArray(Nme);
 		}
 
-		sprintf(Buffer+strlen(Buffer), "<%s>\r\n", Reply->Addr);
+		ch += sprintf_s(Buffer+ch, sizeof(Buffer)-ch, "<%s>\r\n", Reply->Addr);
 
 		Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
 	}
 
 	// Subject:
 	char *Subj = EncodeRfc2047(NewStr(Subject), 0, &Protocol->CharsetPrefs, 9);
-	sprintf(Buffer, "Subject: %s\r\n", (Subj) ? Subj : "");
+	sprintf_s(Buffer, sizeof(Buffer), "Subject: %s\r\n", (Subj) ? Subj : "");
 	Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
 	DeleteArray(Subj);
 
 	// DispositionNotificationTo
 	if (DispositionNotificationTo)
 	{
-		strcpy(Buffer, "Disposition-Notification-To:");
+		int ch = sprintf_s(Buffer, sizeof(Buffer), "Disposition-Notification-To:");
 		char *Nme = EncodeRfc2047(NewStr(From->Name), 0, &Protocol->CharsetPrefs);
 		if (Nme)
 		{
-			sprintf(Buffer + strlen(Buffer), " \"%s\"", Nme);
+			ch += sprintf_s(Buffer+ch, sizeof(Buffer)-ch, " \"%s\"", Nme);
 			DeleteArray(Nme);
 		}
-		sprintf(Buffer + strlen(Buffer), " <%s>\r\n", From->Addr);
+		ch += sprintf_s(Buffer+ch, sizeof(Buffer)-ch, " <%s>\r\n", From->Addr);
 		Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
 	}
 
@@ -3826,19 +3803,19 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 		bool MultiPart = ((Text ? 1 : 0) + (Html ? 1 : 0) + FileDesc.Length()) > 1;
 		bool MultipartAlternate = ValidStr(Text) && ValidStr(Html);
 		bool MultipartMixed = FileDesc.Length() > 0;
-		int Now = LgiCurrentTime();
+		uint64 Now = LgiCurrentTime();
 
 		char Separator[256];
-		sprintf(Separator, "----=_NextPart_%8.8X.%8.8X", Now, (unsigned)LgiGetCurrentThread());
+		sprintf_s(Separator, sizeof(Separator), "----=_NextPart_%8.8X.%8.8X", (uint32)Now, (unsigned)LgiGetCurrentThread());
 
-		sprintf(Buffer, "MIME-Version: 1.0\r\n");
+		sprintf_s(Buffer, sizeof(Buffer), "MIME-Version: 1.0\r\n");
 		Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
 		
 		char StrMultipartAlternative[] = "multipart/alternative";
 		if (MultiPart)
 		{
 			char *Type = MultipartMixed ? (char*)"multipart/mixed" : StrMultipartAlternative;
-			sprintf(Buffer, "Content-Type: %s;\r\n\tboundary=\"%s\"\r\n", Type, Separator);
+			sprintf_s(Buffer, sizeof(Buffer), "Content-Type: %s;\r\n\tboundary=\"%s\"\r\n", Type, Separator);
 			Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
 		}
 
@@ -3848,19 +3825,19 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 
 			if (MultiPart)
 			{
-				sprintf(Buffer, "\r\n--%s\r\n", Separator);
+				sprintf_s(Buffer, sizeof(Buffer), "\r\n--%s\r\n", Separator);
 				Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
 
 				if (MultipartMixed && MultipartAlternate)
 				{
-					sprintf(AlternateBoundry, "----=_NextPart_%8.8X.%8.8X", (uint32)++Now, (uint32)LgiGetCurrentThread());
-					sprintf(Buffer,
+					sprintf_s(AlternateBoundry, sizeof(AlternateBoundry), "----=_NextPart_%8.8X.%8.8X", (uint32)++Now, (uint32)LgiGetCurrentThread());
+					sprintf_s(Buffer, sizeof(Buffer),
 							"Content-Type: %s;\r\n\tboundary=\"%s\"\r\n",
 							StrMultipartAlternative,
 							AlternateBoundry);
 					Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
 
-					sprintf(Buffer, "\r\n--%s\r\n", AlternateBoundry);
+					sprintf_s(Buffer, sizeof(Buffer), "\r\n--%s\r\n", AlternateBoundry);
 					Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
 				}
 			}
@@ -3874,7 +3851,7 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 				char *Txt = Text, *Mem = 0;
 				
 				// Detect charset
-				if (!TextCharset || stricmp(TextCharset, "utf-8") == 0)
+				if (!TextCharset || _stricmp(TextCharset, "utf-8") == 0)
 				{
 					Cs = LgiDetectCharset(Text, -1, Protocol ? &Protocol->CharsetPrefs : 0);
 					if (Cs)
@@ -3886,7 +3863,7 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 					Cs = TextCharset;
 				
 				// Content type
-				sprintf(Buffer,
+				sprintf_s(Buffer, sizeof(Buffer),
 						"Content-Type: text/plain; charset=\"%s\"\r\n",
 						Cs ? Cs : "us-ascii");
 				Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
@@ -3934,19 +3911,19 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 			// Break alternate part
 			if (AlternateBoundry[0])
 			{
-				sprintf(Buffer, "--%s\r\n", AlternateBoundry);
+				sprintf_s(Buffer, sizeof(Buffer), "--%s\r\n", AlternateBoundry);
 				Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
 			}
 			else if (MultipartAlternate)
 			{
-				sprintf(Buffer, "--%s\r\n", Separator);
+				sprintf_s(Buffer, sizeof(Buffer), "--%s\r\n", Separator);
 				Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
 			}
 
 			if (ValidStr(Html))
 			{
 				// Content type
-				sprintf(Buffer,
+				sprintf_s(Buffer, sizeof(Buffer), 
 						"Content-Type: text/html; charset=\"%s\"\r\n",
 						TextCharset ? TextCharset : "us-ascii");
 				Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
@@ -3977,7 +3954,7 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 			if (AlternateBoundry[0])
 			{
 				// End alternate part
-				sprintf(Buffer, "\r\n--%s--\r\n", AlternateBoundry);
+				sprintf_s(Buffer, sizeof(Buffer), "\r\n--%s--\r\n", AlternateBoundry);
 				Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
 			}
 		}
@@ -4001,7 +3978,7 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 			// write a MIME segment for this attachment
 			if (MultiPart)
 			{
-				sprintf(Buffer, "--%s\r\n", Separator);
+				sprintf_s(Buffer, sizeof(Buffer), "--%s\r\n", Separator);
 				Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
 			}
 
@@ -4027,7 +4004,7 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 				*d = 0;
 
 				char *FName = EncodeRfc2047(NewStr(FileName), 0, &Protocol->CharsetPrefs);
-				sprintf(Buffer,
+				sprintf_s(Buffer, sizeof(Buffer), 
 						"Content-Type: %s; name=\"%s\"\r\n"
 						"Content-Disposition: attachment\r\n",
 						FileDes->GetMimeType() ? FileDes->GetMimeType() : "application/x-zip-compressed",
@@ -4037,11 +4014,11 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 
 				if (FileDes->GetContentId())
 				{
-					sprintf(Buffer, "Content-Id: %s\r\n", FileDes->GetContentId());
+					sprintf_s(Buffer, sizeof(Buffer), "Content-Id: %s\r\n", FileDes->GetContentId());
 					Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
 				}
 
-				sprintf(Buffer, "Content-Transfer-Encoding: base64\r\n\r\n");
+				sprintf_s(Buffer, sizeof(Buffer), "Content-Transfer-Encoding: base64\r\n\r\n");
 				Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
 				Status &= F ? EncodeBase64(Out, *F) > 0 : false;
 			}
@@ -4055,14 +4032,14 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 		if (MultiPart)
 		{
 			// write final separator
-			sprintf(Buffer, "--%s--\r\n\r\n", Separator);
+			sprintf_s(Buffer, sizeof(Buffer), "--%s--\r\n\r\n", Separator);
 			Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
 		}
 	}
 	else
 	{
 		// send content type
-		sprintf(Buffer, "Content-Type: text/plain; charset=\"%s\"\r\n", TextCharset ? TextCharset : "us-ascii");
+		sprintf_s(Buffer, sizeof(Buffer), "Content-Type: text/plain; charset=\"%s\"\r\n", TextCharset ? TextCharset : "us-ascii");
 		Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
 
 		if (Is8Bit(Text))

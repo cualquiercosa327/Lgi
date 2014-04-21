@@ -280,7 +280,7 @@ public:
 	bool DoUI(GView *Parent);
 	
 	/// Describe the font to the user as a string
-	bool GetDescription(char *Str);
+	bool GetDescription(char *Str, int SLen);
 	
 	/// Read/Write the font def to storage
 	// bool Serialize(ObjProperties *Options, char *OptName, bool Write);
