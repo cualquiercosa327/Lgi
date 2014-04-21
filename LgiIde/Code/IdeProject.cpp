@@ -195,12 +195,12 @@ public:
 			}
 			case 2:
 			{
-				LgiFormatSize(buf, e->Size);
+				LgiFormatSize(buf, sizeof(buf), e->Size);
 				return buf;
 			}
 			case 3:
 			{
-				e->Date.Get(buf);
+				e->Date.Get(buf, sizeof(buf));
 				return buf;
 			}
 		}
@@ -1713,7 +1713,7 @@ public:
 			{
 				char Size[32];
 				int64 FSize = LgiFileSize(Path);
-				LgiFormatSize(Size, FSize);
+				LgiFormatSize(Size, sizeof(Size), FSize);
 				char Msg[512];
 				sprintf(Msg, "Source Code:\n\n\t%s\n\nSize: %s (%i bytes)", Path.Get(), Size, (int32)FSize);
 			

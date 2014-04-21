@@ -1390,7 +1390,7 @@ public:
 				Font.GetSystemFont("Fixed");
 			}			
 			char s[256];
-			if (Font.GetDescription(s))
+			if (Font.GetDescription(s, sizeof(s)))
 			{
 				SetCtrlName(IDC_FONT, s);
 			}
@@ -1418,7 +1418,7 @@ public:
 				if (Font.DoUI(this))
 				{
 					char s[256];
-					if (Font.GetDescription(s))
+					if (Font.GetDescription(s, sizeof(s)))
 					{
 						SetCtrlName(IDC_FONT, s);
 					}
