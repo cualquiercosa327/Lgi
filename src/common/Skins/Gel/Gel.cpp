@@ -28,16 +28,10 @@
 
 #ifdef WIN32
 // Wine can't handle 32 bit DIB sections... :(
-#define OsDefaultBitDepth	24
+#define OsDefaultCs			System24BitColourSpace
 #else
 // 32bit is marginally faster to render to.
-#define OsDefaultBitDepth	32
-#endif
-
-#ifdef MAC
-#define BitDepth			32
-#else
-#define BitDepth			24 // (GdcD->GetBits() >= 24 ? GdcD->GetBits() : OsDefaultBitDepth)
+#define OsDefaultCs			System32BitColourSpace
 #endif
 
 #define CUSTOM_COLOURS		0
@@ -234,7 +228,7 @@ class GelSkin : public GSkinEngine
 	GMemDC *DrawCtrl(GViewI *Ctrl, int Flags, bool Round)
 	{
 		GMemDC *Mem = new GMemDC;
-		if (Mem && Mem->Create(14, 14, BitDepth))
+		if (Mem && Mem->Create(14, 14, OsDefaultCs))
 		{
 			// blank out background
 			GCss::ColorDef Back;
@@ -586,7 +580,7 @@ public:
 	void OnPaint_GButton(GButton *Ctrl, GSkinState *State)
 	{
 		GMemDC Mem;
-		if (Mem.Create(Ctrl->X(), Ctrl->Y(), BitDepth))
+		if (Mem.Create(Ctrl->X(), Ctrl->Y(), OsDefaultCs))
 		{
 			// Font
 			if (Ctrl->GetFont() == SysFont)
@@ -656,7 +650,7 @@ public:
 	{
 		// Setup memory context
 		GRect r = State->Rect;
-		GMemDC Mem(r.X(), r.Y(), BitDepth);
+		GMemDC Mem(r.X(), r.Y(), OsDefaultCs);
 		if (Mem[0])
 		{
 			r.Offset(-r.x1, -r.y1);		
@@ -685,7 +679,7 @@ public:
 	void OnPaint_GCombo(GCombo *Ctrl, GSkinState *State)
 	{
 		GMemDC Mem;
-		if (Mem.Create(Ctrl->X(), Ctrl->Y(), BitDepth))
+		if (Mem.Create(Ctrl->X(), Ctrl->Y(), OsDefaultCs))
 		{
 			// Font
 			if (Ctrl->GetFont() == SysFont)

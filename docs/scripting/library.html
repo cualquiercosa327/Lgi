@@ -851,33 +851,40 @@ System.script is 837 bytes</pre>
 				Sets or gets both the date and time parts of the object as a string.
 			</div>
 
-		<h4>object <a name="CreateSurface">CreateSurface</a>(x, y[, colour_space]);</h4>
+		<h4>object <a name="CreateSurface">CreateSurface</a>(x, y[, pixel_type]);</h4>
 			<div>
-				Creates a bitmap in memory with the specified dimensions and colour space.
+				Creates a bitmap in memory with the specified dimensions and bit depth or colour space.
 				<br><br>
 				Arguments:
 				<ul>
 					<li> x - The width in pixels.
 					<li> y - The height in pixels.
-					<li> [optional] colour_space - The image's colour space.
-						The default being the same as the screen.
-						Possible values are taken from the GColourSpace enum in Lgi but in string form, ie:
+					<li> [optional] pixel_type - The type of pixel.<br>
+						The default will be the same as the screen if you don't specify it at all.
+						Otherwise you can use:
 						<ul>
-							<li> "CsIndex8" - Creates a 8 bit indexed image with a palette.
-							<li> "CsRgb16" - An rgb image with 5 red, 6 green and 5 blue bits per pixel.
-							<li> "CsRgb24" - An rgb image with 8 bits per component.
-							<li> "CsRgba32" - An rgba image with 8 bits per component.
+							<li> an <b>integer</b>: which specifies the bits per pixel.<br>
+								The exact colour space will be determined to be one of the System##BitColourSpace 
+								values.
+							<li> a <b>string</b>: which specifies the exact colour space. <br>
+								Possible values are taken from the GColourSpace enum in Lgi but in string form, ie:
+								<ul>
+									<li> "CsIndex8" - Creates a 8 bit indexed image with a palette.
+									<li> "CsRgb16" - An rgb image with 5 red, 6 green and 5 blue bits per pixel.
+									<li> "CsRgb24" - An rgb image with 8 bits per component.
+									<li> "CsRgba32" - An rgba image with 8 bits per component.
+								</ul>
+								Some special values are available for the supported system colour spaces:
+								<ul>
+									<li> "System15BitColourSpace" - The system supported 15 bits/pixel colour space.
+									<li> "System16BitColourSpace" - The system supported 16 bits/pixel colour space.
+									<li> "System24BitColourSpace" - The system supported 24 bits/pixel colour space.
+									<li> "System32BitColourSpace" - The system supported 32 bits/pixel colour space.
+								</ul>
+								Not every system will support all colour spaces. Unsupported colour space images
+								can't be placed on the screen directly. They have to be converted to a compatible
+								colour space first.
 						</ul>
-						Some special values are available for the supported system colour spaces:
-						<ul>
-							<li> "System15BitColourSpace" - The system supported 15 bits/pixel colour space.
-							<li> "System16BitColourSpace" - The system supported 16 bits/pixel colour space.
-							<li> "System24BitColourSpace" - The system supported 24 bits/pixel colour space.
-							<li> "System32BitColourSpace" - The system supported 32 bits/pixel colour space.
-						</ul>
-						Not every system will support all colour spaces. Unsupported colour space images
-						can't be placed on the screen directly. They have to be converted to a compatible
-						colour space first.
 				</ul>
 				<br>
 				Returns:

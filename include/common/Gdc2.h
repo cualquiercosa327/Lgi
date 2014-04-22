@@ -858,8 +858,9 @@ public:
 		int x = 0,
 		/// The height
 		int y = 0,
-		/// The bit depth of the pixels
-		int bits = 0
+		/// The colour space to use. CsNone will default to the 
+		/// current screen colour space.
+		GColourSpace cs = CsNone
 	);
 	GMemDC(GSurface *pDC);
 	virtual ~GMemDC();
@@ -920,6 +921,7 @@ public:
 	bool SupportsAlphaCompositing();
 	
 	bool Create(int x, int y, int Bits, int LineLen = 0, bool KeepData = false);
+	bool Create(int x, int y, GColourSpace Cs, int LineLen = 0, bool KeepData = false);
 	void Blt(int x, int y, GSurface *Src, GRect *a = NULL);
 	void StretchBlt(GRect *d, GSurface *Src, GRect *s = NULL);
 

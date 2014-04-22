@@ -40,7 +40,7 @@ public:
 	}
 };
 
-GMemDC::GMemDC(int x, int y, int bits)
+GMemDC::GMemDC(int x, int y, GColourSpace cs)
 {
 	d = new GMemDCPrivate;
 	ColourSpace = CsNone;
@@ -48,9 +48,9 @@ GMemDC::GMemDC(int x, int y, int bits)
 	hDC = 0;
 	pMem = 0;
 
-	if (x && y && bits)
+	if (x > 0 && y > 0)
 	{
-		Create(x, y, bits);
+		Create(x, y, cs);
 	}
 }
 
@@ -244,6 +244,40 @@ bool GMemDC::SupportsAlphaCompositing()
 
 bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 {
+	GColourSpace cs = GdcD->GetColourSpace();
+	switch (Bits)
+	{
+		case 8:
+			cs = CsIndex8;
+			break;
+		case 15:
+			cs = System15BitColourSpace;
+			break;
+		case 16:
+			cs = System16BitColourSpace;
+			break;
+		case 24:
+			cs = System24BitColourSpace;
+			break;
+		case 32:
+			cs = System32BitColourSpace;
+			break;
+		case 48:
+			cs = CsRgb48;
+			break;
+		case 64:
+			cs = CsRgba64;
+			break;
+		default:
+			LgiAssert(0);
+			break;
+	}
+
+	return Create(x, y, cs, LineLen, KeepData);
+}
+
+bool GMemDC::Create(int x, int y, GColourSpace Cs, int LineLen, bool KeepData)
+{
 	bool Status = FALSE;
 	HBITMAP hOldBmp = hBmp;
 	BITMAPINFO *OldInfo = d->Info;
@@ -256,6 +290,7 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 	d->Info = NULL;
 	pMem = NULL;
 
+	int Bits = GColourSpaceToBits(Cs);
 	if (Bits == 15)
 		Bits = 16;
 

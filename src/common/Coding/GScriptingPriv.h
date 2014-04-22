@@ -631,7 +631,7 @@ public:
 
 	// Bitmaps
 		/// Creates a memory context
-		bool CreateBitmap(GVariant *Ret, ArgumentArray &Args);
+		bool CreateSurface(GVariant *Ret, ArgumentArray &Args);
 
 	// User interface
 		/// Gets an input string from the user

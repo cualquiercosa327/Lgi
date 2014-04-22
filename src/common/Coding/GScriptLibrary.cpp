@@ -667,7 +667,7 @@ bool SystemFunctions::ListFiles(GVariant *Ret, ArgumentArray &Args)
 	return true;
 }
 
-bool SystemFunctions::CreateBitmap(GVariant *Ret, ArgumentArray &Args)
+bool SystemFunctions::CreateSurface(GVariant *Ret, ArgumentArray &Args)
 {
 	Ret->Empty();
 
@@ -676,17 +676,28 @@ bool SystemFunctions::CreateBitmap(GVariant *Ret, ArgumentArray &Args)
 
 	int x = Args[0]->CastInt32();
 	int y = Args[1]->CastInt32();
-	int Bits = GdcD->GetBits();
+	GColourSpace Cs = CsNone;
+
 	if (Args.Length() > 2)
 	{
-		if (Args[2]->IsInt())
-			Bits = Args[2]->CastInt32();
+		GVariant *Type = Args[2];
+		const char *c;
+		if (Type->IsInt())
+		{
+			// Bit depth... convert to default Colour Space.
+			Cs = GBitsToColourSpace(Type->CastInt32());
+		}
+		else if ((c = Type->Str()))
+		{
+			// Parse string colour space def
+			Cs = GStringToColourSpace(Type->Str());
+		}
 	}
 
-	if (Bits <= 0)
-		return false;
+	if (!Cs) // Catch all error cases and make it the default screen depth.
+		Cs = GdcD->GetColourSpace();
 
-	if (Ret->Value.Surface.Ptr = new GMemDC(x, y, Bits))
+	if (Ret->Value.Surface.Ptr = new GMemDC(x, y, Cs))
 	{
 		Ret->Type = GV_GSURFACE;
 		Ret->Value.Surface.Own = true;
@@ -814,7 +825,7 @@ GHostFunc SystemLibrary[] =
 	DefFn(Now),
 
 	// Images
-	DefFn(CreateBitmap),
+	DefFn(CreateSurface),
 
 	// UI
 	DefFn(GetInputDlg),

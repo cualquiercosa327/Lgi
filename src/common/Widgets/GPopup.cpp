@@ -919,7 +919,7 @@ void GDropDown::OnPaint(GSurface *pDC)
 	if (GApp::SkinEngine &&
 		TestFlag(GApp::SkinEngine->GetFeatures(), GSKIN_BUTTON))
 	{
-		GMemDC Mem(r.X(), r.Y(), 24);
+		GMemDC Mem(r.X(), r.Y(), System24BitColourSpace);
 
 		GCss::ColorDef f;
 		if (GetCss())

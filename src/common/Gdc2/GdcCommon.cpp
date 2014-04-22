@@ -602,6 +602,142 @@ int GColourSpaceToBits(GColourSpace ColourSpace)
 	return bits;
 }
 
+GColourSpace GStringToColourSpace(const char *c)
+{
+	if (!c)
+		return CsNone;
+
+	if (!_strnicmp(c, "Cs", 2))
+	{
+		// "Cs" style colour space
+		c += 2;
+		
+		const char *n = c;
+		while (*n && !IsDigit(*n))
+			n++;
+		int Depth = ::atoi(n);
+		
+		if (!_strnicmp(c, "Index", 5))
+		{
+			if (Depth == 8)
+				return CsIndex8;
+		}
+		else
+		{
+			GArray<GComponentType> Comp;
+			while (*c)
+			{
+				switch (tolower(*c))
+				{
+					case 'r':
+						Comp.Add(CtRed);
+						break;
+					case 'g':
+						Comp.Add(CtGreen);
+						break;
+					case 'b':
+						Comp.Add(CtBlue);
+						break;
+					case 'a':
+						Comp.Add(CtAlpha);
+						break;
+					case 'x':
+						Comp.Add(CtPad);
+						break;
+					case 'c':
+						Comp.Add(CtCyan);
+						break;
+					case 'm':
+						Comp.Add(CtMagenta);
+						break;
+					case 'y':
+						Comp.Add(CtYellow);
+						break;
+					case 'k':
+						Comp.Add(CtBlack);
+						break;
+					case 'h':
+						Comp.Add(CtHue);
+						break;
+					case 'l':
+						Comp.Add(CtLuminance);
+						break;
+					case 's':
+						Comp.Add(CtSaturation);
+						break;
+				}
+				c++;
+			}
+			
+			GColourSpaceBits a;
+			ZeroObj(a);
+			if (Comp.Length() == 3)
+			{
+				a.Bits.Type2 = Comp[0];
+				a.Bits.Type3 = Comp[1];
+				a.Bits.Type4 = Comp[2];
+				if (Depth == 24)
+				{
+					a.Bits.Size2 = 
+						a.Bits.Size3 = 
+						a.Bits.Size4 = 8;
+				}
+				else if (Depth == 16)
+				{
+					a.Bits.Size2 = 5;
+					a.Bits.Size3 = 6;
+					a.Bits.Size4 = 5;
+				}
+				else if (Depth == 15)
+				{
+					a.Bits.Size2 = 5;
+					a.Bits.Size3 = 5;
+					a.Bits.Size4 = 5;
+				}
+				else if (Depth == 48)
+				{
+				}
+				else return CsNone;
+			}
+			else if (Comp.Length() == 4)
+			{
+				a.Bits.Type1 = Comp[0];
+				a.Bits.Type2 = Comp[1];
+				a.Bits.Type3 = Comp[2];
+				a.Bits.Type4 = Comp[3];
+				if (Depth == 32)
+				{
+					a.Bits.Size1 = 
+						a.Bits.Size2 = 
+						a.Bits.Size3 = 
+						a.Bits.Size4 = 8;
+				}
+				else if (Depth == 64)
+				{
+					a.Bits.Size1 = 
+						a.Bits.Size2 = 
+						a.Bits.Size3 = 
+						a.Bits.Size4 = 0;
+				}
+				else return CsNone;
+			}
+			
+			GColourSpace Cs = (GColourSpace)a.All;
+			return Cs;
+		}
+	}
+	else if (!_strnicmp(c, "System", 6))
+	{
+		// "System" colour space
+		c += 6;
+		int Depth = ::atoi(c);
+		if (Depth)
+			return GBitsToColourSpace(Depth);
+	}
+	
+	return CsNone;
+}
+
 GColourSpace GBitsToColourSpace(int Bits)
 {
 	switch (Bits)

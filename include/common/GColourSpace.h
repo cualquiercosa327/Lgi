@@ -191,14 +191,14 @@ union GColourSpaceBits
 {
 	uint32 All;
 	struct {
-		uint32 Type1 : 4;
-		uint32 Size1 : 4;
-		uint32 Type2 : 4;
-		uint32 Size2 : 4;
-		uint32 Type3 : 4;
-		uint32 Size3 : 4;
-		uint32 Type4 : 4;
 		uint32 Size4 : 4;
+		uint32 Type4 : 4;
+		uint32 Size3 : 4;
+		uint32 Type3 : 4;
+		uint32 Size2 : 4;
+		uint32 Type2 : 4;
+		uint32 Size1 : 4;
+		uint32 Type1 : 4;
 	} Bits;
 };
 
@@ -217,6 +217,9 @@ LgiFunc bool GColourSpaceHasAlpha(GColourSpace Cs);
 /// Converts a bit-depth into the default colour space for that depth. Used mostly
 /// in interfacing old bit-depth based code to newer colour space code.
 LgiFunc GColourSpace GBitsToColourSpace(int Bits);
+
+/// Converts a string representation into a colour space.
+LgiFunc GColourSpace GStringToColourSpace(const char *c);
 
 #ifdef __GTK_H__
 /// Converts a GTK visual to a Lgi colour space.
