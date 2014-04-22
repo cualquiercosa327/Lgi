@@ -188,7 +188,7 @@ public:
 			Back.x2 += 40;
 		}
 		
-		GMemDC Mem(X(), Y(), 32);
+		GMemDC Mem(X(), Y(), System32BitColourSpace);
 		GColour MemBackground(LC_MED, 24);
 		Mem.Colour(MemBackground);
 		Mem.Rectangle();

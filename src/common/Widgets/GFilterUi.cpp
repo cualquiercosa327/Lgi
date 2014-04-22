@@ -584,7 +584,7 @@ void GFilterItem::_PaintText(GSurface *pDC, COLOUR Fore, COLOUR Back)
 	GRect *Pos = _GetRect(TreeItemText);
 
 	// Create a memory context
-	GMemDC Buf(Pos->X(), Pos->Y(), 32);
+	GMemDC Buf(Pos->X(), Pos->Y(), System32BitColourSpace);
 	Buf.Colour(LC_WORKSPACE, 24);
 	Buf.Rectangle(0);
 
@@ -1158,7 +1158,7 @@ void GFilterView::OnPaint(GSurface *pDC)
 
 	if (d->ShowLegend)
 	{
-		GMemDC Buf(d->Info.X(), d->Info.Y(), 32);
+		GMemDC Buf(d->Info.X(), d->Info.Y(), System32BitColourSpace);
 
 		Buf.Colour(LC_MED, 24);
 		Buf.Rectangle(0, 0, Buf.X()-1, Buf.Y()-2);

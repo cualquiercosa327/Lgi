@@ -2217,7 +2217,7 @@ void GTag::SetImage(const char *Uri, GSurface *Img)
 			GRect r = XSubRect();
 			if (r.Valid())
 			{
-				GAutoPtr<GSurface> t(new GMemDC(r.X(), r.Y(), Image->GetBits()));
+				GAutoPtr<GSurface> t(new GMemDC(r.X(), r.Y(), Image->GetColourSpace()));
 				if (t)
 				{
 					t->Blt(0, 0, Image, &r);
@@ -5294,7 +5294,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 						Size.y != Image->Y())
 					{
 						ImageResized = true;
-						GAutoPtr<GSurface> r(new GMemDC(Size.x, Size.y, Image->GetBits()));
+						GAutoPtr<GSurface> r(new GMemDC(Size.x, Size.y, Image->GetColourSpace()));
 						if (r)
 						{
 							if (Image->Palette())

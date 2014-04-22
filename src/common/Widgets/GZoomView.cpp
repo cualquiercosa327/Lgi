@@ -33,12 +33,12 @@ struct ZoomTile : public GMemDC
 {
 	bool Dirty;
 	
-	int MapBits(int Bits)
+	GColourSpace MapBits(int Bits)
 	{
 		if (Bits > 32)
-			return Bits >> 1;
+			Bits >>= 1;
 		
-		return Bits;
+		return GBitsToColourSpace(Bits);
 	}
 	
 	ZoomTile(int Size, int Bits) : GMemDC(Size, Size, MapBits(Bits))

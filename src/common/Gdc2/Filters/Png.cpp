@@ -1039,7 +1039,7 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 				GMemDC *pTemp = 0;
 				if (pDC->AlphaDC() && HasTransparency)
 				{
-					pTemp = new GMemDC(pDC->X(), pDC->Y(), 32);
+					pTemp = new GMemDC(pDC->X(), pDC->Y(), System32BitColourSpace);
 					if (pTemp)
 					{
 						pTemp->Colour(0);

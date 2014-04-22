@@ -219,7 +219,7 @@ void GToolTabBar::OnPaint(GSurface *pScreen)
 	GRect r = GetClient();
 
 	#ifdef WIN32
-	GMemDC Mem(r.X(), r.Y(), GdcD->GetBits());
+	GMemDC Mem(r.X(), r.Y(), GdcD->GetColourSpace());
 	GSurface *pDC = &Mem;
 	#else
 	GSurface *pDC = pScreen;
