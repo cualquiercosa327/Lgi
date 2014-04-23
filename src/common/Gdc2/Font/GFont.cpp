@@ -1954,12 +1954,12 @@ GAutoString GFont::ConvertToUnicode(char16 *Input, int Len)
 				if (*c < 256 && WinSymbolToUnicode[*c])
 				{
 					p.Write(WinSymbolToUnicode + *c, sizeof(char16));
-					c++;
 				}
 				else
 				{
 					p.Write(c, sizeof(char16));
 				}
+				c++;
 			}
 			
 			GAutoWString w(p.NewStrW());
