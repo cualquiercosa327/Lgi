@@ -1139,7 +1139,8 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 	while (*s && *s != '}')
 	{
 		// Parse the prop name out
-		SkipWhite(s);
+		while (*s && !IsAlpha(*s) && !strchr("-_", *s))
+			s++;
 
 		char Prop[64], *p = Prop, *end = Prop + sizeof(Prop) - 1;
 		if (!*s)
