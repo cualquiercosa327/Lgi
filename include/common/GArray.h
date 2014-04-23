@@ -444,12 +444,12 @@ public:
 		// Make room
 		if (Length(len + 1))
 		{
-			if (Index >= 0 && (int)Index < len - 1)
+			if (Index >= 0 && (uint32)Index < len - 1)
 			{
 				// Shift elements after insert point up one
 				memmove(p + Index + 1, p + Index, (len - Index - 1) * sizeof(Type) );
 			}
-			else if (Index >= len)
+			else
 			{
 				// Add at the end, not after the end...
 				Index = len - 1;

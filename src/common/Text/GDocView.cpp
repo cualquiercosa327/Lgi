@@ -90,18 +90,18 @@ char16 *ConvertToCrLf(char16 *Text)
 }
 
 //////////////////////////////////////////////////////////////////////////////////
-bool LgiDetectLinks(GArray<GLinkInfo> &Links, char16 *Text, int Size)
+bool LgiDetectLinks(GArray<GLinkInfo> &Links, char16 *Text, int TextCharLen)
 {
 	if (!Text)
 		return false;
 
-	if (Size < 0)
-		Size = StrlenW(Text);
+	if (TextCharLen < 0)
+		TextCharLen = StrlenW(Text);
 
 	static char16 Http[] = {'h', 't', 't', 'p', ':', '/', '/', 0 };
 	static char16 Https[] = {'h', 't', 't', 'p', 's', ':', '/', '/', 0};
 
-	for (int64 i=0; i<Size; i++)
+	for (int64 i=0; i<TextCharLen; i++)
 	{
 		switch (Text[i])
 		{
@@ -114,8 +114,8 @@ bool LgiDetectLinks(GArray<GLinkInfo> &Links, char16 *Text, int Size)
 					// find end
 					char16 *s = Text + i;
 					char16 *e = s + 6;
-					for ( ; (SubtractPtr(e, Text) < Size) && 
-							UrlChar(*e); e++);
+					for ( ; (e -  Text < TextCharLen) && UrlChar(*e); e++)
+						;
 					
 					while
 					(
@@ -153,7 +153,7 @@ bool LgiDetectLinks(GArray<GLinkInfo> &Links, char16 *Text, int Size)
 					bool FoundDot = false;
 					char16 *Start = Text + i + 1;
 					char16 *e = Start;
-					for ( ; (SubtractPtr(e, Text) < Size) && 
+					for ( ; (SubtractPtr(e, Text) < TextCharLen) && 
 							EmailChar(*e); e++)
 					{
 						if (*e == '.') FoundDot = true;
@@ -188,7 +188,7 @@ GDocumentEnv::LoadType GDefaultDocumentEnv::GetContent(LoadJob *&j)
 	char *FullPath = NULL;
 	char *FileName = NULL;
 	GUri u(j->Uri);
-	if (u.Protocol && !stricmp(u.Protocol, "file"))
+	if (u.Protocol && !_stricmp(u.Protocol, "file"))
 		FileName = u.Path;
 	else
 		FileName = j->Uri;

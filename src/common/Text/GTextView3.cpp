@@ -2001,7 +2001,7 @@ bool GTextView3::Open(const char *Name, const char *CharSet)
 	if (f.Open(Name, O_READ|O_SHARE))
 	{
 		DeleteArray(Text);
-		int64 Bytes = f.GetSize();
+		size_t Bytes = (size_t)f.GetSize();
 		SetCursor(0, false);
 		
 		char *c8 = new char[Bytes + 4];
@@ -2801,9 +2801,9 @@ int GTextView3::WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState)
 {
 	for (char *s = Formats.First(); s; )
 	{
-		if (!stricmp(s, "text/uri-list") ||
-			!stricmp(s, "text/html") ||
-			!stricmp(s, "UniformResourceLocatorW"))
+		if (!_stricmp(s, "text/uri-list") ||
+			!_stricmp(s, "text/html") ||
+			!_stricmp(s, "UniformResourceLocatorW"))
 		{
 			s = Formats.Next();
 		}
@@ -2821,9 +2821,9 @@ int GTextView3::WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState)
 
 int GTextView3::OnDrop(char *Format, GVariant *Data, GdcPt2 Pt, int KeyState)
 {
-	if (!stricmp(Format, "text/uri-list") ||
-		!stricmp(Format, "text/html") ||
-		!stricmp(Format, "UniformResourceLocatorW"))
+	if (!_stricmp(Format, "text/uri-list") ||
+		!_stricmp(Format, "text/html") ||
+		!_stricmp(Format, "UniformResourceLocatorW"))
 	{
 		if (Data->IsBinary())
 		{
@@ -2860,7 +2860,7 @@ bool GTextView3::OnMouseWheel(double l)
 {
 	if (VScroll)
 	{
-		int NewPos = VScroll->Value() + (int) l;
+		int NewPos = (int)VScroll->Value() + (int) l;
 		NewPos = limit(NewPos, 0, GetLines());
 		VScroll->Value(NewPos);
 		Invalidate();
@@ -2880,7 +2880,7 @@ int GTextView3::HitText(int x, int y)
 	if (Text)
 	{
 		bool Down = y >= 0;
-		int64 Y = (VScroll) ? VScroll->Value() : 0;
+		int Y = (VScroll) ? (int)VScroll->Value() : 0;
 		GTextLine *l = Line.ItemAt(Y);
 		y += (l) ? l->r.y1 : 0;
 
@@ -3755,7 +3755,6 @@ bool GTextView3::OnKey(GKey &k)
 					}
 					else
 					{
-						Jump_EndOfLine:
 						GTextLine *l = GetLine(Cursor);
 						if (l)
 						{
@@ -3776,7 +3775,6 @@ bool GTextView3::OnKey(GKey &k)
 					}
 					else
 					{
-						Jump_StartOfLine:
 						GTextLine *l = GetLine(Cursor);
 						if (l)
 						{
@@ -3802,7 +3800,6 @@ bool GTextView3::OnKey(GKey &k)
 			}
 			case VK_PAGEUP:
 			{
-				GTextView3_PageUp:
 				if (k.Down())
 				{
 					GTextLine *l = GetLine(Cursor);
@@ -3823,7 +3820,6 @@ bool GTextView3::OnKey(GKey &k)
 			}
 			case VK_PAGEDOWN:
 			{
-				GTextView3_PageDown:
 				if (k.Down())
 				{
 					GTextLine *l = GetLine(Cursor);
@@ -4124,7 +4120,7 @@ int GTextView3::TextWidth(GFont *f, char16 *s, int Len, int x, int Origin)
 
 int GTextView3::ScrollYLine()
 {
-	return (VScroll) ? VScroll->Value() : 0;
+	return (VScroll) ? (int)VScroll->Value() : 0;
 }
 
 int GTextView3::ScrollYPixel()
@@ -4327,7 +4323,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 							GDisplayString Ds(	NextStyle->Font,
 												MapText(Text + (l->Start + Done),
 														Block,
-														RtlTrailingSpace),
+														RtlTrailingSpace != 0),
 												Block + RtlTrailingSpace);
 							Ds.ShowVisibleTab(ShowWhiteSpace);
 							Ds.SetTabOrigin(TabOri);
@@ -4353,7 +4349,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 						GDisplayString Ds(	Font,
 											MapText(Text + (l->Start + Done),
 													Block,
-													RtlTrailingSpace),
+													RtlTrailingSpace != 0),
 											Block + RtlTrailingSpace);
 						Ds.ShowVisibleTab(ShowWhiteSpace);
 						Ds.SetTabOrigin(TabOri);

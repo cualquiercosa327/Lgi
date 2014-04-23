@@ -64,7 +64,7 @@ struct GLinkInfo
 };
 
 /// Detects links in text, returning their location and type
-extern bool LgiDetectLinks(GArray<GLinkInfo> &Links, char16 *Text, int Size = -1);
+extern bool LgiDetectLinks(GArray<GLinkInfo> &Links, char16 *Text, int TextCharLen = -1);
 
 // Call back class to handle viewer events
 class GDocView;

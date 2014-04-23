@@ -110,7 +110,7 @@ char *strnistr(char *a, const char *b, int n)
 /// This exists to get rid of false positives when running Dr Memory.
 /// The vs2005 clib causes memory errors by accessing bytes after the NULL.
 
-char *strchar(const char *a, char ch)
+char *strchar(const char *a, int ch)
 {
 	if (!a)
 		return NULL;

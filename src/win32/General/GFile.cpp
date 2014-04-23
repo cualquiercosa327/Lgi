@@ -963,7 +963,7 @@ bool GFileSystem::RemoveFolder(char *PathName, bool Recurse)
 	return true;
 }
 
-bool GFileSystem::SetCurrentDirectory(char *PathName)
+bool GFileSystem::SetCurrentFolder(char *PathName)
 {
 	bool Status = false;
 	
@@ -989,7 +989,7 @@ bool GFileSystem::SetCurrentDirectory(char *PathName)
 	return Status;
 }
 
-bool GFileSystem::GetCurrentDirectory(char *PathName, int Length)
+bool GFileSystem::GetCurrentFolder(char *PathName, int Length)
 {
 	bool Status = false;
 

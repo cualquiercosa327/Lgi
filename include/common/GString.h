@@ -93,7 +93,7 @@ LgiFunc char *stristr
 
 	/// Find character in string function
 	#define strchr strchar
-	LgiFunc char *strchar(const char *a, char ch);
+	LgiFunc char *strchar(const char *a, int ch);
 
 	/// Append to a string
 	#define strcat strconcat

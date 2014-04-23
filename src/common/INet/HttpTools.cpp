@@ -30,7 +30,7 @@ GXmlTag *GetFormField(GXmlTag *Form, char *Field)
 						Matches.Add(x);
 					}
 				}
-				else if (stricmp(Name, Field) == 0)
+				else if (_stricmp(Name, Field) == 0)
 				{
 					Matches.Add(x);
 				}
@@ -91,7 +91,7 @@ GXmlTag *ExtractForms(char *Html, GStream *Log)
 			{
 				for (GXmlTag *c = x->Children.First(); c; c = x->Children.Next())
 				{
-					if (c->Tag && stricmp(c->Tag, "form") == 0)
+					if (c->Tag && _stricmp(c->Tag, "form") == 0)
 					{
 						if (!f)
 						{
@@ -113,7 +113,7 @@ GXmlTag *ExtractForms(char *Html, GStream *Log)
 										if (*c == ' ')
 										{
 											char h[6];
-											sprintf(h, "%%%2.2X", (uint8)*c);
+											sprintf_s(h, sizeof(h), "%%%2.2X", (uint8)*c);
 											p.Push(h);
 										}
 										else p.Push(c, 1);
@@ -131,7 +131,7 @@ GXmlTag *ExtractForms(char *Html, GStream *Log)
 									{ char *s = c->GetAttr(name); \
 									if (s) i->SetAttr(name, s); }
 
-									if (c->Tag && stricmp(c->Tag, "input") == 0)
+									if (c->Tag && _stricmp(c->Tag, "input") == 0)
 									{
 										GXmlTag *i = new GXmlTag("Input");
 										if (i)
@@ -144,7 +144,7 @@ GXmlTag *ExtractForms(char *Html, GStream *Log)
 										}
 									}
 
-									if (c->Tag && stricmp(c->Tag, "select") == 0)
+									if (c->Tag && _stricmp(c->Tag, "select") == 0)
 									{
 										GXmlTag *i = new GXmlTag("Select");
 										if (i)
@@ -153,9 +153,9 @@ GXmlTag *ExtractForms(char *Html, GStream *Log)
 
 											CopyAttr("name");
 
-											while (c && !c->Tag || stricmp(c->Tag, "/select") != 0)
+											while (c && !c->Tag || _stricmp(c->Tag, "/select") != 0)
 											{
-												if (c->Tag && stricmp(c->Tag, "option") == 0)
+												if (c->Tag && _stricmp(c->Tag, "option") == 0)
 												{
 													GXmlTag *o = new GXmlTag("Option");
 													if (o)
@@ -172,7 +172,7 @@ GXmlTag *ExtractForms(char *Html, GStream *Log)
 										}
 									}
 																			
-									if (c->Tag && stricmp(c->Tag, "/form") == 0)
+									if (c->Tag && _stricmp(c->Tag, "/form") == 0)
 									{
 										break;
 									}
@@ -201,7 +201,7 @@ void XmlToStream(GStream *s, GXmlTag *x, char *Style)
 		if (Style) t.SetStyleFile(Style, "text/xsl");
 		t.Write(x, &p);
 
-		int Len = p.GetSize();
+		int Len = (int)p.GetSize();
 		char *Xml = p.NewStr();
 		if (Xml)
 		{
@@ -279,10 +279,10 @@ char *WebPage::GetCharSet()
 			List<GXmlTag>::I it = t->Children.Start();
 			for (GXmlTag *c = *it; !Charset && c; c = *++it)
 			{
-				if (c->Tag && stricmp(c->Tag, "meta") == 0)
+				if (c->Tag && _stricmp(c->Tag, "meta") == 0)
 				{
 					char *http_equiv = c->GetAttr("http-equiv");
-					if (http_equiv && stricmp(http_equiv, "Content-Type") == 0)
+					if (http_equiv && _stricmp(http_equiv, "Content-Type") == 0)
 					{
 						char *Value = c->GetAttr("Content");
 						if (Value)
@@ -335,10 +335,10 @@ char *WebPage::GetFormValue(char *field)
 	{
 		for (GXmlTag *t = x->Children.First(); t; t = x->Children.Next())
 		{
-			if (t->Tag && stricmp(t->Tag, "input") == 0)
+			if (t->Tag && _stricmp(t->Tag, "input") == 0)
 			{
 				char *Name = t->GetAttr("name");
-				if (Name && stricmp(Name, field) == 0)
+				if (Name && _stricmp(Name, field) == 0)
 				{
 					return t->GetAttr("Value");
 				}
@@ -372,7 +372,7 @@ GXmlTag *FormPost::GetField(char *n)
 				}
 				else
 				{
-					if (stricmp(Name, n) == 0)
+					if (_stricmp(Name, n) == 0)
 						return t;
 				}
 			}
@@ -396,7 +396,7 @@ char *FormPost::EncodeFields(GStream *Debug, char *RealFields, bool EncodePlus)
 	if (RealFields)
 	{
 		GToken t(RealFields, "\n");
-		for (int i=0; i<t.Length(); i++)
+		for (unsigned i=0; i<t.Length(); i++)
 		{
 			char *v = strchr(t[i], '=');
 			if (v)
@@ -415,7 +415,7 @@ char *FormPost::EncodeFields(GStream *Debug, char *RealFields, bool EncodePlus)
 		}
 	}
 
-	for (int i=0; i<Values.Length(); i++)
+	for (unsigned i=0; i<Values.Length(); i++)
 	{
 		FormValue *v = &Values[i];
 		if (v->Value && v->Field)
@@ -449,7 +449,7 @@ char *FormPost::EncodeFields(GStream *Debug, char *RealFields, bool EncodePlus)
 					char *Value = (char*) Real.Find(v->Field);
 					if (Value)
 					{
-						if (stricmp(Value, v->Value) != 0)
+						if (_stricmp(Value, v->Value) != 0)
 						{
 							Debug->Print("\tValues for '%s' different: '%s' = '%s'\n", v->Field.Get(), Value, v->Value.Get());
 						}
@@ -480,7 +480,7 @@ char *FormPost::EncodeFields(GStream *Debug, char *RealFields, bool EncodePlus)
 		for (GXmlTag *t = Form->Children.First(); t; t = Form->Children.Next())
 		{
 			char *Type = t->GetAttr("type");
-			if (Type && stricmp(Type, "image") == 0)
+			if (Type && _stricmp(Type, "image") == 0)
 				continue;
 
 			char *Name = t->GetAttr("name");
@@ -514,7 +514,7 @@ bool Match(char *a, char *b)
 		}
 		else
 		{
-			return stricmp(a, b) == 0;
+			return _stricmp(a, b) == 0;
 		}
 	}
 
@@ -532,7 +532,7 @@ bool FormPost::Set(char *field, char *value, GStream *Log, bool AllowCreate)
 		{
 			if (f->Tag)
 			{
-				if (stricmp(f->Tag, "Input") == 0)
+				if (_stricmp(f->Tag, "Input") == 0)
 				{
 					char *Nm = f->GetAttr("Name");
 					FormValue *v = Nm ? Get(Nm) : 0;
@@ -542,7 +542,7 @@ bool FormPost::Set(char *field, char *value, GStream *Log, bool AllowCreate)
 						Status = true;
 					}
 				}
-				else if (stricmp(f->Tag, "Select") == 0)
+				else if (_stricmp(f->Tag, "Select") == 0)
 				{
 					char *Nm = f->GetAttr("Name");
 					if (Nm && Match(Nm, field))
@@ -630,7 +630,7 @@ FormValue *FormPost::Get(char *Field, bool Create)
 	char *Ast = strchr(Field, '*');
 
 	GArray<FormValue*> Matches;
-	for (int i=0; i<Values.Length(); i++)
+	for (unsigned i=0; i<Values.Length(); i++)
 	{
 		if (Ast)
 		{
@@ -639,7 +639,7 @@ FormValue *FormPost::Get(char *Field, bool Create)
 		}
 		else
 		{
-			if (stricmp(Values[i].Field, Field) == 0)
+			if (_stricmp(Values[i].Field, Field) == 0)
 				Matches.Add(&Values[i]);
 		}
 	}
@@ -800,11 +800,11 @@ char *HttpTools::Post(char *uri, char *headers, char *body, GStream *Log, GViewI
 		GProxyUri Proxy;
 		if (Proxy.Host)
 		{
-			Open = s.Open(Proxy.Host, Proxy.Port);
+			Open = s.Open(Proxy.Host, Proxy.Port) != 0;
 		}
 		else
 		{
-			Open = s.Open(u.Host, u.Port ? u.Port : 80);
+			Open = s.Open(u.Host, u.Port ? u.Port : 80) != 0;
 		}
 
 		if (Open)
@@ -846,7 +846,7 @@ char *HttpTools::Post(char *uri, char *headers, char *body, GStream *Log, GViewI
 			char *h = p.NewStr();
 			if (h)
 			{
-				int w = s.Write(h, Len, 0);
+				int w = s.Write(h, (int)Len, 0);
 				if (w == Len)
 				{
 					w = s.Write(body, ContentLen, 0);
@@ -947,7 +947,7 @@ void CookieJar::Set(char *Headers)
 			if (*s == ':')
 			{
 				int Len = s - Hdr;
-				bool IsCookie = Len == MatchLen && strnicmp(Hdr, Match, Len) == 0;
+				bool IsCookie = Len == MatchLen && _strnicmp(Hdr, Match, Len) == 0;
 
 				s++;
 				while (*s && strchr(Ws, *s)) s++;
@@ -1110,7 +1110,7 @@ GSurface *GetHttpImage(char *Uri)
 					do
 					{
 						LgiGetTempPath(n, sizeof(n));
-						sprintf(r, "_%x", LgiRand());
+						sprintf_s(r, sizeof(r), "_%x", LgiRand());
 						LgiMakePath(n, sizeof(n), n, r);
 					}
 					while(FileExists(n));

@@ -288,8 +288,8 @@ public:
 		bool Recurse = false
 	);
 	
-	bool SetCurrentDirectory(char *PathName);
-	bool GetCurrentDirectory(char *PathName, int Length);
+	bool SetCurrentFolder(char *PathName);
+	bool GetCurrentFolder(char *PathName, int Length);
 
 	/// Moves a file to a new location. Only works on the same device.
 	bool Move(char *OldName, char *NewName);
