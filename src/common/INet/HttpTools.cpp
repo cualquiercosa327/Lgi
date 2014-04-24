@@ -701,11 +701,12 @@ char *HttpTools::Fetch(char *uri, GStream *Log, GViewI *Dump, CookieJar *Cookies
 
 		GProxyUri Proxy;
 		if (Proxy.Host)
-		{
 			h.SetProxy(Proxy.Host, Proxy.Port);
-		}
 
 		GUri u(uri);
+		if (!u.Port)
+			u.Port = HTTP_PORT;
+
 		GAutoPtr<GSocketI> Sock(new GSocket);
 		if (h.Open(Sock, u.Host))
 		{

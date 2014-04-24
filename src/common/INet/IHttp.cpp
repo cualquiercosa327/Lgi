@@ -386,9 +386,9 @@ bool IHttp::Request
 		return false;
 
 	HttpRequestType ReqType = HttpNone;
-	if (!stricmp(Type, "GET"))
+	if (!_stricmp(Type, "GET"))
 		ReqType = HttpGet;
-	else if (!stricmp(Type, "POST"))
+	else if (!_stricmp(Type, "POST"))
 		ReqType = HttpPost;
 	else
 		return false;
@@ -396,7 +396,7 @@ bool IHttp::Request
 	// Generate the request string
 	GStringPipe Cmd;
 	GUri u(Uri);
-	bool IsHTTPS = u.Protocol && !stricmp(u.Protocol, "https");
+	bool IsHTTPS = u.Protocol && !_stricmp(u.Protocol, "https");
 	GAutoString EncPath = u.Encode(u.Path ? u.Path : (char*)"/"), Mem;
 	char s[1024];
 	GLinePrefix EndHeaders("\r\n");
@@ -541,18 +541,18 @@ bool IHttp::Request
 				else
 				{
 					GAutoString sTransferEncoding(InetGetHeaderField(h, "Transfer-Encoding"));
-					IsChunked = sTransferEncoding && !stricmp(sTransferEncoding, "chunked");
+					IsChunked = sTransferEncoding && !_stricmp(sTransferEncoding, "chunked");
 				}
 				GAutoString sContentEncoding(InetGetHeaderField(h, "Content-Encoding"));
 				ContentEncoding Encoding = EncodeRaw;
-				if (sContentEncoding && !stricmp(sContentEncoding, "gzip"))
+				if (sContentEncoding && !_stricmp(sContentEncoding, "gzip"))
 				{
 					Encoding = EncodeGZip;
 					if (OutEncoding) *OutEncoding = Encoding;
 				}
 
 				int HttpStatus = 0;
-				if (strnicmp(h, "HTTP/", 5) == 0)
+				if (_strnicmp(h, "HTTP/", 5) == 0)
 				{
 					HttpStatus = atoi(h + 9);
 					if (ProtocolStatus)
