@@ -38,6 +38,8 @@
 
 
 GHashTbl<const char*, GCss::PropType> GCss::Lut(0, false);
+GHashTbl<int, GCss::PropType> GCss::ParentProp;
+
 const char *GCss::PropName(PropType p)
 {
 	const char *s;
@@ -179,11 +181,7 @@ GCss::GCss() : Props(0, false, PropNull)
 		Lut.Add("font-style", PropFontStyle);
 		Lut.Add("font-variant", PropFontVariant);
 		Lut.Add("font-weight", PropFontWeight);
-		Lut.Add("background", PropBackgroundColor);
-		Lut.Add("background-color", PropBackgroundColor);
-		Lut.Add("background-image", PropBackgroundImage);
-		Lut.Add("background-repeat", PropBackgroundRepeat);
-		Lut.Add("background-attachment", PropBackgroundAttachment);
+
 		Lut.Add("z-index", PropZIndex);
 		Lut.Add("width", PropWidth);
 		Lut.Add("min-width", PropMinWidth);
@@ -205,19 +203,72 @@ GCss::GCss() : Props(0, false, PropNull)
 		Lut.Add("padding-right", PropPaddingRight);
 		Lut.Add("padding-bottom", PropPaddingBottom);
 		Lut.Add("padding-left", PropPaddingLeft);
-		Lut.Add("border", PropBorder);
-		Lut.Add("border-top", PropBorderTop);
-		Lut.Add("border-right", PropBorderRight);
-		Lut.Add("border-bottom", PropBorderBottom);
-		Lut.Add("border-left", PropBorderLeft);
-		Lut.Add("line-height", PropLineHeight);
-		Lut.Add("vertical-align", PropVerticalAlign);
+
+		Lut.Add("background", PropBackground);
+		Lut.Add("background-color", PropBackgroundColor);
+		Lut.Add("background-image", PropBackgroundImage);
+		Lut.Add("background-repeat", PropBackgroundRepeat);
+		Lut.Add("background-attachment", PropBackgroundAttachment);
 		Lut.Add("background-x", PropBackgroundX);
 		Lut.Add("background-y", PropBackgroundY);
+		Lut.Add("background-position", PropBackgroundPos);
+
+		Lut.Add("border", PropBorder);
+
+		Lut.Add("border-top", PropBorderTop);
+		Lut.Add("border-top-color", PropBorderTopColor);
+		Lut.Add("border-top-style", PropBorderTopStyle);
+		Lut.Add("border-top-width", PropBorderTopWidth);
+
+		Lut.Add("border-right", PropBorderRight);
+		Lut.Add("border-right-color", PropBorderRightColor);
+		Lut.Add("border-right-style", PropBorderRightStyle);
+		Lut.Add("border-right-width", PropBorderRightWidth);
+
+		Lut.Add("border-bottom", PropBorderBottom);
+		Lut.Add("border-bottom-color", PropBorderBottomColor);
+		Lut.Add("border-bottom-style", PropBorderBottomStyle);
+		Lut.Add("border-bottom-width", PropBorderBottomWidth);
+
+		Lut.Add("border-left", PropBorderLeft);
+		Lut.Add("border-left-color", PropBorderLeftColor);
+		Lut.Add("border-left-style", PropBorderLeftStyle);
+		Lut.Add("border-left-width", PropBorderLeftWidth);
+
+		Lut.Add("line-height", PropLineHeight);
+		Lut.Add("vertical-align", PropVerticalAlign);
 		Lut.Add("clip", PropClip);
 		Lut.Add("x-rect", PropXSubRect);
 		Lut.Add("color", PropColor);
 		Lut.Add("font-family", PropFontFamily);
+	}
+	
+	if (ParentProp.Length() == 0)
+	{
+		ParentProp.Add(PropBorderTopColor, PropBorderTop);
+		ParentProp.Add(PropBorderTopStyle, PropBorderTop);
+		ParentProp.Add(PropBorderTopWidth, PropBorderTop);
+
+		ParentProp.Add(PropBorderLeftColor, PropBorderLeft);
+		ParentProp.Add(PropBorderLeftStyle, PropBorderLeft);
+		ParentProp.Add(PropBorderLeftWidth, PropBorderLeft);
+
+		ParentProp.Add(PropBorderRightColor, PropBorderRight);
+		ParentProp.Add(PropBorderRightStyle, PropBorderRight);
+		ParentProp.Add(PropBorderRightWidth, PropBorderRight);
+
+		ParentProp.Add(PropBorderBottomColor, PropBorderBottom);
+		ParentProp.Add(PropBorderBottomStyle, PropBorderBottom);
+		ParentProp.Add(PropBorderBottomWidth, PropBorderBottom);
+
+		/*
+		ParentProp.Add(PropBackgroundColor, PropBackground);
+		ParentProp.Add(PropBackgroundImage, PropBackground);
+		ParentProp.Add(PropBackgroundRepeat, PropBackground);
+		ParentProp.Add(PropBackgroundAttachment, PropBackground);
+		ParentProp.Add(PropBackgroundX, PropBackground);
+		ParentProp.Add(PropBackgroundY, PropBackground);
+		*/
 	}
 }
 
@@ -1132,6 +1183,21 @@ bool GCss::ParseFontWeight(PropType PropId, const char *&s)
 	return true;
 }
 
+bool GCss::ParseBackgroundRepeat(const char *&s)
+{
+	RepeatType *w = (RepeatType*)Props.Find(PropBackgroundRepeat);
+	if (!w) Props.Add(PropBackgroundRepeat, w = new RepeatType);
+
+	     if (ParseWord(s, "inherit")) *w = RepeatInherit;
+	else if (ParseWord(s, "repeat-x")) *w = RepeatX;
+	else if (ParseWord(s, "repeat-y")) *w = RepeatY;
+	else if (ParseWord(s, "no-repeat")) *w = RepeatNone;
+	else if (ParseWord(s, "repeat")) *w = RepeatBoth;
+	else return false;
+	
+	return true;
+}
+
 bool GCss::Parse(const char *&s, ParsingStyle Type)
 {
 	if (!s) return false;
@@ -1254,14 +1320,7 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 					}
 					case PropBackgroundRepeat:
 					{
-						RepeatType *w = (RepeatType*)Props.Find(PropId);
-						if (!w) Props.Add(PropId, w = new RepeatType);
-
-						     if (ParseWord(s, "inherit")) *w = RepeatInherit;
-						else if (ParseWord(s, "repeat-x")) *w = RepeatX;
-						else if (ParseWord(s, "repeat-y")) *w = RepeatY;
-						else if (ParseWord(s, "no-repeat")) *w = RepeatNone;
-						else if (ParseWord(s, "repeat")) *w = RepeatBoth;
+						ParseBackgroundRepeat(s);
 						break;
 					}
 					case PropListStyle:
@@ -1327,6 +1386,28 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 						else if (ParseWord(s, "visible")) *w = VisibilityVisible;
 						else if (ParseWord(s, "hidden")) *w = VisibilityHidden;
 						else if (ParseWord(s, "collapse")) *w = VisibilityCollapse;
+						break;
+					}
+					case PropBorderTopStyle:
+					case PropBorderRightStyle:
+					case PropBorderBottomStyle:
+					case PropBorderLeftStyle:
+					{
+						GCss::PropType Parent = ParentProp.Find(PropId);
+						if (Parent)
+						{
+							BorderDef *b = (BorderDef*) Props.Find(Parent);
+							if (!b && (b = new BorderDef))
+								Props.Add(Parent, b);
+							if (b)
+							{
+								if (!b->ParseStyle(s))
+								{
+									if (Type == ParseStrict)
+										LgiAssert(!"Colour parsing failed.");
+								}
+							}
+						}
 						break;
 					}
 					case PropFont:
@@ -1410,100 +1491,202 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 				}
 				
 				bool Mismatch = false;
-				if (PropId == PropPadding)
+				switch (PropId)
 				{
-					if (Lengths.Length() == 4)
+					case PropBorderTopWidth:
+					case PropBorderRightWidth:
+					case PropBorderBottomWidth:
+					case PropBorderLeftWidth:
 					{
-						StoreProp(PropPaddingTop, Lengths[0], true);
-						StoreProp(PropPaddingRight, Lengths[1], true);
-						StoreProp(PropPaddingBottom, Lengths[2], true);
-						StoreProp(PropPaddingLeft, Lengths[3], true);
+						GCss::PropType Parent = ParentProp.Find(PropId);
+						if (Parent)
+						{
+							BorderDef *b = (BorderDef*) Props.Find(Parent);
+							if (!b && (b = new BorderDef))
+								Props.Add(Parent, b);
+							
+							if (b && Lengths.Length() == 1)
+							{
+								*((GCss::Len*&)b) = *Lengths[0];
+							}
+							else LgiAssert(0);
+						}
+						break;
 					}
-					else if (Lengths.Length() == 3)
+					case PropPadding:
 					{
-						StoreProp(PropPaddingTop, Lengths[0], true);
-						StoreProp(PropPaddingLeft, Lengths[1], false);
-						StoreProp(PropPaddingRight, Lengths[1], true);
-						StoreProp(PropPaddingBottom, Lengths[2], true);
+						if (Lengths.Length() == 4)
+						{
+							StoreProp(PropPaddingTop, Lengths[0], true);
+							StoreProp(PropPaddingRight, Lengths[1], true);
+							StoreProp(PropPaddingBottom, Lengths[2], true);
+							StoreProp(PropPaddingLeft, Lengths[3], true);
+						}
+						else if (Lengths.Length() == 3)
+						{
+							StoreProp(PropPaddingTop, Lengths[0], true);
+							StoreProp(PropPaddingLeft, Lengths[1], false);
+							StoreProp(PropPaddingRight, Lengths[1], true);
+							StoreProp(PropPaddingBottom, Lengths[2], true);
+						}
+						else if (Lengths.Length() == 2)
+						{
+							StoreProp(PropPaddingTop, Lengths[0], false);
+							StoreProp(PropPaddingBottom, Lengths[0], true);
+							StoreProp(PropPaddingRight, Lengths[1], false);
+							StoreProp(PropPaddingLeft, Lengths[1], true);
+						}
+						else if (Lengths.Length() == 1)
+						{
+							StoreProp(PropPadding, Lengths[0], true);
+							DeleteProp(PropPaddingLeft);
+							DeleteProp(PropPaddingTop);
+							DeleteProp(PropPaddingRight);
+							DeleteProp(PropPaddingBottom);
+						}
+						else Mismatch = true;
+						if (!Mismatch)
+						{
+							Lengths.Length(0);
+							OnChange(PropPadding);
+						}
+						break;
 					}
-					else if (Lengths.Length() == 2)
+					case PropMargin:
 					{
-						StoreProp(PropPaddingTop, Lengths[0], false);
-						StoreProp(PropPaddingBottom, Lengths[0], true);
-						StoreProp(PropPaddingRight, Lengths[1], false);
-						StoreProp(PropPaddingLeft, Lengths[1], true);
+						if (Lengths.Length() == 4)
+						{
+							StoreProp(PropMarginTop, Lengths[0], true);
+							StoreProp(PropMarginRight, Lengths[1], true);
+							StoreProp(PropMarginBottom, Lengths[2], true);
+							StoreProp(PropMarginLeft, Lengths[3], true);
+						}
+						else if (Lengths.Length() == 3)
+						{
+							StoreProp(PropMarginTop, Lengths[0], true);
+							StoreProp(PropMarginLeft, Lengths[1], false);
+							StoreProp(PropMarginRight, Lengths[1], true);
+							StoreProp(PropMarginBottom, Lengths[2], true);
+						}
+						else if (Lengths.Length() == 2)
+						{
+							StoreProp(PropMarginTop, Lengths[0], false);
+							StoreProp(PropMarginBottom, Lengths[0], true);
+							StoreProp(PropMarginRight, Lengths[1], false);
+							StoreProp(PropMarginLeft, Lengths[1], true);
+						}
+						else if (Lengths.Length() == 1)
+						{
+							StoreProp(PropMargin, Lengths[0], true);
+							DeleteProp(PropMarginTop);
+							DeleteProp(PropMarginBottom);
+							DeleteProp(PropMarginRight);
+							DeleteProp(PropMarginLeft);
+						}
+						else Mismatch = true;
+						if (!Mismatch)
+						{
+							Lengths.Length(0);
+							OnChange(PropMargin);
+						}
 					}
-					else if (Lengths.Length() == 1)
+					default:
 					{
-						StoreProp(PropPadding, Lengths[0], true);
-						DeleteProp(PropPaddingLeft);
-						DeleteProp(PropPaddingTop);
-						DeleteProp(PropPaddingRight);
-						DeleteProp(PropPaddingBottom);
-					}
-					else Mismatch = true;
-					if (!Mismatch)
-					{
-						Lengths.Length(0);
-						OnChange(PropPadding);
+						LgiAssert(ParentProp.Find(PropId) == PropNull);
+						
+						if (Lengths.Length() > 0)
+						{
+							StoreProp(PropId, Lengths[0], true);
+							Lengths.DeleteAt(0);
+							OnChange(PropId);
+						}
+						break;
 					}
 				}
-				else if (PropId == PropMargin)
-				{
-					if (Lengths.Length() == 4)
-					{
-						StoreProp(PropMarginTop, Lengths[0], true);
-						StoreProp(PropMarginRight, Lengths[1], true);
-						StoreProp(PropMarginBottom, Lengths[2], true);
-						StoreProp(PropMarginLeft, Lengths[3], true);
-					}
-					else if (Lengths.Length() == 3)
-					{
-						StoreProp(PropMarginTop, Lengths[0], true);
-						StoreProp(PropMarginLeft, Lengths[1], false);
-						StoreProp(PropMarginRight, Lengths[1], true);
-						StoreProp(PropMarginBottom, Lengths[2], true);
-					}
-					else if (Lengths.Length() == 2)
-					{
-						StoreProp(PropMarginTop, Lengths[0], false);
-						StoreProp(PropMarginBottom, Lengths[0], true);
-						StoreProp(PropMarginRight, Lengths[1], false);
-						StoreProp(PropMarginLeft, Lengths[1], true);
-					}
-					else if (Lengths.Length() == 1)
-					{
-						StoreProp(PropMargin, Lengths[0], true);
-						DeleteProp(PropMarginTop);
-						DeleteProp(PropMarginBottom);
-						DeleteProp(PropMarginRight);
-						DeleteProp(PropMarginLeft);
-					}
-					else Mismatch = true;
-					if (!Mismatch)
-					{
-						Lengths.Length(0);
-						OnChange(PropMargin);
-					}
-				}
-				else if (Lengths.Length() > 0)
-				{
-					StoreProp(PropId, Lengths[0], true);
-					Lengths.DeleteAt(0);
-					OnChange(PropId);
-				}
+				
 				Lengths.DeleteObjects();
+				break;
+			}
+			case TypeBackground:
+			{
+				while (*s && !strchr(";}", *s))
+				{
+					const char *Start = s;
+
+					ImageDef Img;
+					if (Img.Parse(s))
+					{
+						BackgroundImage(Img);
+						continue;;
+					}
+					
+					Len x, y;
+					if (x.Parse(s))
+					{
+						y.Parse(s);
+						BackgroundX(x);
+						BackgroundY(y);
+						continue;
+					}
+
+					if (ParseBackgroundRepeat(s))
+					{
+						continue;
+					}
+
+					ColorDef Color;
+					if (Color.Parse(s) || OnUnhandledColor(&Color, s))
+					{
+						BackgroundColor(Color);
+						continue;
+					}				
+					
+					SkipWhite(s);
+					while (*s && *s != ';' && !IsWhite(*s))
+						s++;
+						
+					if (Start == s)
+					{
+						LgiAssert(!"Parsing hang.");
+						break;
+					}
+				}
 				break;
 			}
 			case TypeColor:
 			{
 				GAutoPtr<ColorDef> t(new ColorDef);
-				if (t->Parse(s) ||
-					OnUnhandledColor(t, s))
+				if (t->Parse(s) || OnUnhandledColor(t, s))
 				{
-					ColorDef *e = (ColorDef*)Props.Find(PropId);
-					if (e) *e = *t;
-					else Props.Add(PropId, t.Release());
+					switch (PropId)
+					{
+						case PropBorderTopColor:
+						case PropBorderRightColor:
+						case PropBorderBottomColor:
+						case PropBorderLeftColor:
+						{
+							GCss::PropType Parent = ParentProp.Find(PropId);
+							if (Parent)
+							{
+								BorderDef *b = (BorderDef*) Props.Find(Parent);
+								if (!b && (b = new BorderDef))
+									Props.Add(Parent, b);
+								if (b)
+									b->Color = *t;
+							}
+							else LgiAssert(0);
+							break;
+						}
+						default:
+						{					
+							LgiAssert(ParentProp.Find(PropId) == PropNull);
+							
+							ColorDef *e = (ColorDef*)Props.Find(PropId);
+							if (e) *e = *t;
+							else Props.Add(PropId, t.Release());
+							break;
+						}
+					}
 				}
 				else if (Type == ParseStrict)
 					LgiAssert(!"Parsing failed.");
@@ -1588,6 +1771,8 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 			{
 				if (Type == ParseStrict)
 					LgiAssert(!"Unsupported property type.");
+				else
+					LgiTrace("%s:%i - Unsupported CSS property: %s\n", _FL, Prop);
 				break;
 			}
 		}
@@ -1846,6 +2031,10 @@ bool GCss::ImageDef::Parse(const char *&s)
 	{
 		Type = ImageInherit;
 	}
+	else if (ParseWord(s, "none"))
+	{
+		Type = ImageNone;
+	}
 	else if (!strnicmp(s, "url(", 4))
 	{
 		s += 4;
@@ -1904,6 +2093,21 @@ bool GCss::BorderDef::Parse(const char *&s)
 	if (!*s || *s == ';')
 		return true;
 
+	if (!ParseStyle(s))
+		return false;
+
+	SkipWhite(s);
+	if (!*s || *s == ';')
+		return true;
+
+	if (!Color.Parse(s))
+		return false;
+
+	return true;
+}
+
+bool GCss::BorderDef::ParseStyle(const char *&s)
+{
 	GAutoString Pat(ParseString(s));
 	if (!Pat)
 		return false;
@@ -1918,9 +2122,6 @@ bool GCss::BorderDef::Parse(const char *&s)
 	else if (!stricmp(Pat, "Inset")) Style = BorderInset;
 	else if (!stricmp(Pat, "Outset")) Style = BorderOutset;
 	else Style = BorderSolid;
-
-	if (!Color.Parse(s))
-		return false;
 
 	return true;
 }

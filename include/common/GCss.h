@@ -30,6 +30,7 @@ public:
 		TypeLen,
 		TypeGRect,
 		TypeColor,
+		TypeBackground,
 		TypeImage,
 		TypeBorder,
 		TypeStrings,
@@ -42,7 +43,7 @@ public:
 		PropNull = 0,
 
 		// Enum based props
-		PropDisplay = TypeEnum<<8,	// DisplayType
+		PropDisplay = TypeEnum << 8,// DisplayType
 		PropFloat,					// FloatType
 		PropPosition,				// PositionType
 		PropOverflow,				// OverflowType
@@ -59,9 +60,13 @@ public:
 		PropFont,
 		PropListStyle,
 		PropBorderCollapse,			// BorderCollapseType
+		PropBorderTopStyle,
+		PropBorderRightStyle,
+		PropBorderBottomStyle,
+		PropBorderLeftStyle,
 
 		// Length based props
-		PropZIndex = TypeLen<<8,
+		PropZIndex = TypeLen << 8,
 		PropWidth,
 		PropMinWidth,
 		PropMaxWidth,
@@ -87,31 +92,42 @@ public:
 		PropFontSize,
 		PropBackgroundX,
 		PropBackgroundY,
+		PropBackgroundPos,
 		PropTextAlign,
 		PropBorderSpacing,
+		PropBorderLeftWidth,
+		PropBorderTopWidth,
+		PropBorderRightWidth,
+		PropBorderBottomWidth,
 		Prop_CellPadding, // not real CSS, but used by GHtml2 to store 'cellpadding'
 
 		// GRect based props
 		PropClip = TypeGRect<<8,
 		PropXSubRect,
 
+		// Background meta style
+		PropBackground = TypeBackground << 8,
+
 		// ColorDef based
-		PropColor = TypeColor<<8,
-		PropBackground,
+		PropColor = TypeColor << 8,
 		PropBackgroundColor,
+		PropBorderTopColor,
+		PropBorderRightColor,
+		PropBorderBottomColor,
+		PropBorderLeftColor,
 
 		// ImageDef based
-		PropBackgroundImage = TypeImage<<8,
+		PropBackgroundImage = TypeImage << 8,
 		
 		// BorderDef based
-		PropBorder = TypeBorder <<8,
+		PropBorder = TypeBorder << 8,
 		PropBorderTop,
 		PropBorderRight,
 		PropBorderBottom,
 		PropBorderLeft,
 
 		// StringsDef based
-		PropFontFamily = TypeStrings<<8,
+		PropFontFamily = TypeStrings << 8,
 	};
 
 	enum BorderCollapseType {
@@ -387,6 +403,8 @@ public:
 		}
 		
 		bool Parse(const char *&s);
+		bool ParseStyle(const char *&s);
+		
 		BorderDef &operator =(const BorderDef &b)
 		{
 			Style = b.Style;
@@ -399,6 +417,7 @@ public:
 
 	enum ImageType {
 		ImageInherit,
+		ImageNone,
 		ImageUri,
 		ImageOwn,
 		ImageRef,
@@ -1011,6 +1030,7 @@ public:
 	Accessor(BackgroundAttachment, AttachmentType, AttachmentInherit, PropNull);
 	Accessor(BackgroundX, Len, Len(), PropNull);
 	Accessor(BackgroundY, Len, Len(), PropNull);
+	Accessor(BackgroundPos, Len, Len(), PropNull);
 	
 	void Empty();
 	void DeleteProp(PropType p);
@@ -1051,12 +1071,16 @@ public:
 protected:
 	inline void DeleteProp(PropType p, void *Ptr);
 	GHashTbl<int, void*> Props;
+
 	static GHashTbl<const char*, PropType> Lut;
+	static GHashTbl<int, PropType> ParentProp;
+
 	static const char *PropName(PropType p);
 
 	bool ParseFontStyle(PropType p, const char *&s);
 	bool ParseFontVariant(PropType p, const char *&s);
 	bool ParseFontWeight(PropType p, const char *&s);
+	bool ParseBackgroundRepeat(const char *&s);
 	virtual bool OnUnhandledColor(ColorDef *def, const char *&s) { return false; }
 
 	template<typename T>
