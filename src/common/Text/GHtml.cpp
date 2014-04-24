@@ -640,6 +640,18 @@ public:
 					return X();
 				break;
 			}
+			case GCss::SizeSmall:
+			{
+				return 1; // px
+			}
+			case GCss::SizeMedium:
+			{
+				return 2; // px
+			}
+			case GCss::SizeLarge:
+			{
+				return 3; // px
+			}
 		}
 
 		return 0;
@@ -686,6 +698,18 @@ public:
 				LgiAssert(Html);
 				int TotalY = Html ? Html->Y() : 0;
 				return (int) (((double)l.Value * TotalY) / 100);
+			}
+			case GCss::SizeSmall:
+			{
+				return 1; // px
+			}
+			case GCss::SizeMedium:
+			{
+				return 2; // px
+			}
+			case GCss::SizeLarge:
+			{
+				return 3; // px
 			}
 			default:
 			{
