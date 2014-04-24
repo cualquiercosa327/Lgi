@@ -1455,7 +1455,7 @@ public:
 				
 				#ifdef _DEBUG
 				char s[256];
-				sprintf(s, "%s:%i", file, line);
+				sprintf_s(s, sizeof(s), "%s:%i", file, line);
 				RegAllocators[i] = s;
 				#endif
 				return true;

@@ -348,14 +348,15 @@ SSL_locking_function(int mode, int n, const char *file, int line)
 		if (!Library->Locks[n])
 		{
 			#ifdef SSL_DEBUG_LOCKING
-			sprintf(Buf, "SSL[%i] create\n", n);
+			sprintf_s(Buf, sizeof(Buf), "SSL[%i] create\n", n);
 			OutputDebugStr(Buf);
 			#endif
 			Library->Locks[n] = new GMutex;
 		}
 
 		#ifdef SSL_DEBUG_LOCKING
-	    sprintf(Buf, "SSL[%i] lock=%i, unlock=%i, read=%i, write=%i (mode=0x%x, count=%i, thread=0x%x)\n", n,
+	    sprintf_s(Buf, sizeof(Buf),
+			"SSL[%i] lock=%i, unlock=%i, read=%i, write=%i (mode=0x%x, count=%i, thread=0x%x)\n", n,
 			TestFlag(mode, CRYPTO_LOCK),
 			TestFlag(mode, CRYPTO_UNLOCK),
 			TestFlag(mode, CRYPTO_READ),

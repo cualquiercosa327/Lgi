@@ -447,14 +447,17 @@ bool StorageItemImpl::SerializeObject(GSubFilePtr &f, bool Write)
 							Error = errno;
 							#endif
 
-							sprintf(Msg+strlen(Msg), LgiLoadString(L_STORE_OS_ERR, "OS error code: %u (0x%x)\n"), Error, Error);
+							int Len = strlen(Msg);
+							sprintf_s(Msg+Len, sizeof(Msg)-Len, LgiLoadString(L_STORE_OS_ERR, "OS error code: %u (0x%x)\n"), Error, Error);
 						}
 
 						if (CurrentPos != Header->DataLoc + Header->DataSize)
 						{
 							int Written = CurrentPos;
 							int Diff = Written - Header->DataSize;
-							sprintf(Msg+strlen(Msg),
+
+							int Len = strlen(Msg);
+							sprintf_s(Msg+Len, sizeof(Msg)-Len,
 									LgiLoadString(	L_STORE_MISMATCH,
 													"Object write size mismatch:\n"
 													"\tHeader: %u\n"
@@ -1212,7 +1215,7 @@ namespace Storage2
 
 			// Fall back
 			static char Buf[64];
-			sprintf(Buf, "0x%X", Type);
+			sprintf_s(Buf, sizeof(Buf), "0x%X", Type);
 			return Buf;
 		}
 
@@ -1249,7 +1252,7 @@ namespace Storage2
 			StorageItemImpl *Item1 = a->Dir ? a->Dir : a->Object;
 			if (Item1)
 			{
-				sprintf(Item1Desc,
+				sprintf_s(Item1Desc, sizeof(Item1Desc),
 						"Item 1:\n"
 						"\tType: %s\n"
 						"\tStart: %u, Len: %u\n"
@@ -1262,7 +1265,7 @@ namespace Storage2
 			StorageItemImpl *Item2 = b->Dir ? b->Dir : b->Object;
 			if (Item2)
 			{
-				sprintf(Item2Desc,
+				sprintf_s(Item2Desc, sizeof(Item2Desc),
 						"Item 2:\n"
 						"\tType: %s\n"
 						"\tStart: %u, Len: %lu\n"
@@ -1278,8 +1281,8 @@ namespace Storage2
 			GLayout *Wnd = dynamic_cast<GLayout*>(_Ui);
 			char Msg[512], KeepItem1[32], KeepItem2[32];
 
-			sprintf(KeepItem1, Store2_LgiLoadString(IDC_STORE2_KEEP), 1);
-			sprintf(KeepItem2, Store2_LgiLoadString(IDC_STORE2_KEEP), 2);
+			sprintf_s(KeepItem1, sizeof(KeepItem1), Store2_LgiLoadString(IDC_STORE2_KEEP), 1);
+			sprintf_s(KeepItem2, sizeof(KeepItem2), Store2_LgiLoadString(IDC_STORE2_KEEP), 2);
 
 			/*
 			An object overlap has been found. This error is caused\n
@@ -1293,7 +1296,7 @@ namespace Storage2
 			Would you like to:
 			*/
 			const char *Fmt = Store2_LgiLoadString(IDS_STORE2_ERROR_COMPACT);
-			sprintf(Msg,
+			sprintf_s(Msg, sizeof(Msg),
 					Fmt,
 					(uint32)b->Start,
 					(uint32)(b->Start + b->Length),
@@ -1904,7 +1907,7 @@ bool StorageKitImpl::Compact(Progress *p, bool Interactive, StorageValidator *va
 			if (!Buf)
 			{
 				// memory allocation error
-				sprintf(Msg, "Failed to allocate memory: %u bytes.", BufLen);
+				sprintf_s(Msg, sizeof(Msg), "Failed to allocate memory: %u bytes.", BufLen);
 			}
 			else
 			{
@@ -1943,14 +1946,14 @@ bool StorageKitImpl::Compact(Progress *p, bool Interactive, StorageValidator *va
 									else
 									{
 										// write failed
-										sprintf(Msg, "Failed to write to file: %u bytes at position %u.", Chunk, At);
+										sprintf_s(Msg, sizeof(Msg), "Failed to write to file: %u bytes at position %u.", Chunk, At);
 										break;
 									}
 								}
 								else
 								{
 									// read failed
-									sprintf(Msg, "Failed to read from file: %u bytes at position "LGI_PrintfInt64".", Chunk, Next->Start);
+									sprintf_s(Msg, sizeof(Msg), "Failed to read from file: %u bytes at position "LGI_PrintfInt64".", Chunk, Next->Start);
 									break;
 								}
 							}
@@ -2002,7 +2005,7 @@ bool StorageKitImpl::Compact(Progress *p, bool Interactive, StorageValidator *va
 						char Size[64];
 						int Change = OldSize - File->GetSize();
 						LgiFormatSize(Size, sizeof(Size), Change);
-						sprintf(Msg, "Compact complete, %s was recovered.", Size);
+						sprintf_s(Msg, sizeof(Msg), "Compact complete, %s was recovered.", Size);
 					}
 
 					if (RemoveSpace &&
