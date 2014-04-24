@@ -167,7 +167,7 @@ public:
 				}
 				else
 				{
-					Log->Log(Buf, MAIL_RECEIVE_COLOUR);
+					Log->Log(Buf, GSocketI::SocketMsgReceive);
 				}
 			}
 		}
@@ -197,7 +197,7 @@ public:
 		{
 			if (!strchr("\r\n", Buf[0]))
 			{
-				Log->Log(Buf, MAIL_SEND_COLOUR);
+				Log->Log(Buf, GSocketI::SocketMsgSend);
 			}
 		}
 	}
@@ -342,7 +342,7 @@ bool MailPhp::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Pa
 			{
 				for (int Line=0; Line<Lines.Length(); Line++)
 				{
-					Log(Lines[Line] + 7, MAIL_ERROR_COLOUR);
+					Log(Lines[Line] + 7, GSocketI::SocketMsgError);
 				}
 			}
 			else if (Lines.Length() > 1)
@@ -392,26 +392,26 @@ bool MailPhp::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Pa
 					}
 				}
 			}
-			else Log("Empty index page returned.", MAIL_ERROR_COLOUR);
+			else Log("Empty index page returned.", GSocketI::SocketMsgError);
 
 			DeleteArray(m);
 			
 			if (!PopOverHttp)
 			{
-				Log("Page is not a PopOverHttp index.", MAIL_ERROR_COLOUR);
+				Log("Page is not a PopOverHttp index.", GSocketI::SocketMsgError);
 			}
 			if (!GotToken)
 			{
-				Log("Missing or invalid token. Is your PopOverHttp page broken?", MAIL_ERROR_COLOUR);
+				Log("Missing or invalid token. Is your PopOverHttp page broken?", GSocketI::SocketMsgError);
 			}
 
 			return	PopOverHttp &&
 					GotToken &&
 					d->Messages == d->Msgs.Length();
 		}
-		else Log("No PopOverHttp index page.", MAIL_ERROR_COLOUR);
+		else Log("No PopOverHttp index page.", GSocketI::SocketMsgError);
 	}
-	else Log("No remote host.", MAIL_ERROR_COLOUR);
+	else Log("No remote host.", GSocketI::SocketMsgError);
 
 	return false;
 }

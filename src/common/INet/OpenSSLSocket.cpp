@@ -456,16 +456,15 @@ SslSocket::SslSocket(GStreamI *logger, GCapabilityClient *caps, bool sslonconnec
 		#ifdef WIN32
 		if (Library->IsOk())
 		{
-			char n[256];
+			char n[MAX_PATH];
+			char s[MAX_PATH];
 			if (GetModuleFileNameA(Library->LibSSL::Handle(), n, sizeof(n)))
 			{
-				char s[256];
 				sprintf_s(s, sizeof(s), "Using '%s'", n);
 				OnInformation(s);
 			}
 			if (GetModuleFileNameA(Library->LibEAY::Handle(), n, sizeof(n)))
 			{
-				char s[256];
 				sprintf_s(s, sizeof(s), "Using '%s'", n);
 				OnInformation(s);
 			}
@@ -544,7 +543,7 @@ bool SslSocket::GetVariant(const char *Name, GVariant &Val, char *Arr)
 	return false;
 }
 
-void SslSocket::Log(const char *Str, MsgType Type)
+void SslSocket::Log(const char *Str, SocketMsgType Type)
 {
 	if (d->Logger && ValidStr(Str))
 	{
@@ -561,7 +560,7 @@ void SslSocket::Error(const char *file, int line, const char *Msg)
 
 	char Buf[512];
 	sprintf_s(Buf, sizeof(Buf), "Error: %s:%i - %s\n", Part ? Part + 1 : file, line, Msg);
-	Log(Buf, MsgError);
+	Log(Buf, SocketMsgError);
 }
 
 OsSocket SslSocket::Handle(OsSocket Set)
@@ -1144,7 +1143,7 @@ void SslSocket::OnError(int ErrorCode, const char *ErrorDescription)
 	char s[MAX_PATH];
 DebugTrace("%s:%i - OnError=%i,%s\n", _FL, ErrorCode, ErrorDescription);
 	sprintf_s(s, sizeof(s), "Error %i: %s\n", ErrorCode, ErrorDescription);
-	Log(s, MsgError);
+	Log(s, SocketMsgError);
 }
 
 void SslSocket::OnInformation(const char *Str)
@@ -1156,7 +1155,7 @@ void SslSocket::OnInformation(const char *Str)
 		e--;
 	*e++ = '\n';
 	*e++ = 0;
-	Log(s, MsgInfo);
+	Log(s, SocketMsgInfo);
 
 DebugTrace("%s:%i - OnInfo=%s", _FL, s);
 }

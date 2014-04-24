@@ -112,6 +112,16 @@ enum GSocketLogTypes
 class GSocketI : virtual public GStreamI
 {
 public:
+	enum SocketMsgType
+	{
+		SocketMsgNone,
+		SocketMsgInfo,
+		SocketMsgSend,
+		SocketMsgReceive,
+		SocketMsgWarning,
+		SocketMsgError,
+	};
+
 	virtual ~GSocketI() {}
 
 	/// Returns the actual socket (as defined by the OS)

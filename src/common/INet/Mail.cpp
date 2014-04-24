@@ -1343,7 +1343,7 @@ MailProtocol::~MailProtocol()
 	DeleteArray(ExtraOutgoingHeaders);
 }
 
-void MailProtocol::Log(const char *Str, COLOUR c)
+void MailProtocol::Log(const char *Str, GSocketI::SocketMsgType type)
 {
 	if (Logger && Str)
 	{
@@ -1360,7 +1360,7 @@ void MailProtocol::Log(const char *Str, COLOUR c)
 		*o++ = '\n';
 		*o = 0;
 
-		Logger->Write(s, o - s, c);
+		Logger->Write(s, o - s, type);
 	}
 }
 
@@ -1372,7 +1372,7 @@ bool MailProtocol::Error(const char *file, int line, const char *msg, ...)
 	vsprintf_s(s, sizeof(s), msg, a);
 	va_end(a);
 
-	Log(s, MAIL_ERROR_COLOUR);
+	Log(s, GSocketI::SocketMsgError);
 	LgiTrace("%s:%i - Error: %s", file, line, s);
 	return false;
 }
@@ -1397,7 +1397,7 @@ bool MailProtocol::Write(const char *Buf, bool LogWrite)
 		
 		if (LogWrite)
 		{
-			Log(p, MAIL_SEND_COLOUR);
+			Log(p, GSocketI::SocketMsgSend);
 		}
 	}
 	return Status;
@@ -1477,7 +1477,7 @@ bool MailSmtp::Open(GSocketI *S,
 
 			char Msg[256];
 			sprintf_s(Msg, sizeof(Msg), "Connecting to %s:%i...", Server.Get(), Port);
-			Log(Msg, MAIL_INFO_COLOUR);
+			Log(Msg, GSocketI::SocketMsgInfo);
 	
 			if (!Socket->Open(Server, Port))
 				Error(_FL, "Failed to connect socket to %s:%i\n", Server.Get(), Port);
@@ -2025,7 +2025,7 @@ bool MailSmtp::ReadReply(const char *Str, GStringPipe *Pipe, MailProtocolError *
 						}
 
 						// Log
-						Log(Start, atoi(Start) >= 400 ? MAIL_ERROR_COLOUR : MAIL_RECEIVE_COLOUR);
+						Log(Start, atoi(Start) >= 400 ? GSocketI::SocketMsgError : GSocketI::SocketMsgReceive);
 
 						// exit loop
 						Pos = sizeof(Buffer);
@@ -2033,7 +2033,7 @@ bool MailSmtp::ReadReply(const char *Str, GStringPipe *Pipe, MailProtocolError *
 					}
 					else
 					{
-						Log(Start, MAIL_RECEIVE_COLOUR);
+						Log(Start, GSocketI::SocketMsgReceive);
 
 						// more lines follow
 						Start = Eol;
@@ -2463,7 +2463,7 @@ bool MailPop3::ReadReply()
 		char *Cr = strchr(Buffer, '\r');
 		if (Cr) *Cr = 0;
 		if (ValidStr(Buffer))
-			Log(Buffer, (Status) ? MAIL_RECEIVE_COLOUR : MAIL_ERROR_COLOUR);
+			Log(Buffer, (Status) ? GSocketI::SocketMsgReceive : GSocketI::SocketMsgError);
 		if (Cr) *Cr = '\r';
 
 		if (!Status)
@@ -2648,7 +2648,7 @@ bool MailPop3::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *P
 
 						sprintf_s(Buffer, sizeof(Buffer), "PASS %s\r\n", pass);
 						VERIFY_ONERR(Write(0, false));
-						Log("PASS *******", MAIL_SEND_COLOUR);
+						Log("PASS *******", GSocketI::SocketMsgSend);
 
 						Authed = ReadReply();
 					}
@@ -2800,7 +2800,7 @@ bool MailPop3::Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks
 								Ok = Buffer[0] == '+';
 								if (Ok)
 								{
-									Log(Buffer, MAIL_RECEIVE_COLOUR);	
+									Log(Buffer, GSocketI::SocketMsgReceive);
 
 									// The Buffer was zero'd at the beginning garrenteeing
 									// NULL termination
@@ -2820,7 +2820,7 @@ bool MailPop3::Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks
 								}
 								else
 								{
-									Log(Buffer, MAIL_ERROR_COLOUR);	
+									Log(Buffer, GSocketI::SocketMsgError);
 									Finished = true;								
 								}
 								break;

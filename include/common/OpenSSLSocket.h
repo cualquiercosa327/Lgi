@@ -18,14 +18,8 @@ class SslSocket :
 	BIO *Bio;
 	SSL *Ssl;
 
-	enum MsgType
-	{
-		MsgInfo,
-		MsgError,
-	};
-
 	// Local stuff
-	virtual void Log(const char *Str, MsgType Type);
+	virtual void Log(const char *Str, SocketMsgType Type);
 	void Error(const char *file, int line, const char *Msg);
 	GStream *GetLogStream();
 

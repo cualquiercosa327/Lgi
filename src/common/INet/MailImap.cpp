@@ -699,13 +699,13 @@ bool MailIMap::WriteBuf(bool ObsurePass, const char *Buffer)
 				}
 			}
 
-			Log(Buffer, MAIL_SEND_COLOUR);
+			Log(Buffer, GSocketI::SocketMsgSend);
 
 			return true;
 		}
-		else Log("Failed to write data to socket.", MAIL_ERROR_COLOUR);
+		else Log("Failed to write data to socket.", GSocketI::SocketMsgError);
 	}
-	else Log("Not connected.", MAIL_ERROR_COLOUR);
+	else Log("Not connected.", GSocketI::SocketMsgError);
 
 	return false;
 }
@@ -779,7 +779,7 @@ bool MailIMap::ReadResponse(int Cmd, GStringPipe *Out, bool Plus)
 					}
 					
 					if (d->Logging)
-						Log(Dlg, MAIL_RECEIVE_COLOUR);
+						Log(Dlg, GSocketI::SocketMsgReceive);
 				}
 			}
 			else break;
@@ -827,7 +827,7 @@ bool MailIMap::ReadLine()
 	}
 	while (!stristr(Buf, "\r\n"));
 
-	Log(Buf, MAIL_RECEIVE_COLOUR);
+	Log(Buf, GSocketI::SocketMsgReceive);
 	return true;
 }
 
@@ -916,12 +916,12 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 
 					ClearDialog();
 				}
-				else Log("Read CAPABILITY response failed", MAIL_ERROR_COLOUR);
+				else Log("Read CAPABILITY response failed", GSocketI::SocketMsgError);
 			}
-			else Log("Write CAPABILITY cmd failed", MAIL_ERROR_COLOUR);
+			else Log("Write CAPABILITY cmd failed", GSocketI::SocketMsgError);
 
 			if (!IMAP4Server)
-				Log("CAPABILITY says not an IMAP4Server", MAIL_ERROR_COLOUR);
+				Log("CAPABILITY says not an IMAP4Server", GSocketI::SocketMsgError);
 			else
 			{
 				char *DefaultAuthType = 0;
@@ -966,7 +966,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 					else LgiAssert(0);
 					if (TlsError)
 					{
-						Log("STARTTLS failed", MAIL_ERROR_COLOUR);
+						Log("STARTTLS failed", GSocketI::SocketMsgError);
 					}
 				}
 
@@ -1072,7 +1072,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 						if (!GetVersionEx(&ver))
 						{
 							DWORD err = GetLastError();
-							Log("Couldn't get OS version", MAIL_ERROR_COLOUR);
+							Log("Couldn't get OS version", GSocketI::SocketMsgError);
 						}
 						else
 						{
@@ -1316,7 +1316,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 											{
 												if (Dlg[0] == '+' && Dlg[1] == ' ')
 												{
-													Log(Dlg, MAIL_RECEIVE_COLOUR);
+													Log(Dlg, GSocketI::SocketMsgReceive);
 													strcpy_s(Buf, sizeof(Buf), "\r\n");
 													if (WriteBuf())
 													{
@@ -1325,7 +1325,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 												}
 												else
 												{
-													Log(Dlg, MAIL_ERROR_COLOUR);
+													Log(Dlg, GSocketI::SocketMsgError);
 													break;
 												}
 											}
@@ -1399,7 +1399,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 									p.Print("A%04.4i AUTHENTICATE XOAUTH %s\r\n", AuthCmd, B64.Get());
 									GAutoString Cmd(p.NewStr());
 									int w = Socket->Write(Cmd, strlen(Cmd));
-									Log(Cmd, MAIL_SEND_COLOUR);
+									Log(Cmd, GSocketI::SocketMsgSend);
 									if (w > 0)
 									{
 										LoggedIn = ReadResponse(AuthCmd);							
@@ -1412,7 +1412,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 					{
 						char s[256];
 						sprintf_s(s, sizeof(s), "Warning: Unsupport auth type '%s'", AuthType);
-						Log(s, MAIL_ERROR_COLOUR);
+						Log(s, GSocketI::SocketMsgWarning);
 					}
 				}
 
@@ -1777,14 +1777,14 @@ bool MailIMap::Fetch(bool ByUid, char *Seq, const char *Parts, FetchCallback Cal
 								{
 									bool Status = !_stricmp(t[1], "Ok");
 									int Response = atoi(r + 1);
-									Log(Line, Status ? MAIL_RECEIVE_COLOUR : MAIL_ERROR_COLOUR);
+									Log(Line, Status ? GSocketI::SocketMsgReceive : GSocketI::SocketMsgError);
 									if (Response == Cmd)
 									{
 										Done = true;
 										break;
 									}
 								}
-								else Log(&Buf[0], MAIL_ERROR_COLOUR);
+								else Log(&Buf[0], GSocketI::SocketMsgError);
 							}
 							else
 							{
@@ -1935,7 +1935,7 @@ bool MailIMap::GetParts(int Message, GStreamI &Out, const char *Parts, char **Fl
 				char *Last = Dialog.Last();
 				if (Last)
 				{
-					Log(Last, MAIL_RECEIVE_COLOUR);
+					Log(Last, GSocketI::SocketMsgReceive);
 				}
 			}
 
@@ -2696,7 +2696,7 @@ bool MailIMap::OnIdle(int Timeout, GArray<Untagged> &Resp)
 		while ((Dlg = Dialog.First()))
 		{
 			Dialog.Delete(Dlg);
-			Log(Dlg, MAIL_RECEIVE_COLOUR);
+			Log(Dlg, GSocketI::SocketMsgReceive);
 
 			if (Dlg[0] == '*' &&
 				Dlg[1] == ' ')

@@ -272,7 +272,7 @@ protected:
 public:
 	// Logging
 	GStreamI *Logger;
-	void Log(const char *Str, COLOUR c);
+	void Log(const char *Str, GSocketI::SocketMsgType type);
 
 	// Task Progress
 	MailProtocolProgress *Items;
