@@ -33,8 +33,8 @@ class GDomI
 public:
 	virtual ~GDomI() {}
 
-	virtual bool GetValue(const char *Var, GVariant &Value) { return false; }
-	virtual bool SetValue(const char *Var, GVariant &Value) { return false; }
+	virtual bool GetValue(const char *Var, class GVariant &Value) { return false; }
+	virtual bool SetValue(const char *Var, class GVariant &Value) { return false; }
 };
 
 /// Stream interface class
@@ -495,6 +495,16 @@ public:
 protected:
 	virtual bool OnViewMouse(GView *v, GMouse &m) = 0;
 	virtual bool OnViewKey(GView *v, GKey &k) = 0;
+};
+
+class GMemoryPoolI
+{
+public:
+	virtual ~GMemoryPoolI() {}
+
+	virtual void *Alloc(size_t Size) = 0;
+	virtual void Free(void *Ptr) = 0;
+	virtual void Empty() = 0;
 };
 
 #endif
