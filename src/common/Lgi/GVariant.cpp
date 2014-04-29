@@ -214,6 +214,8 @@ bool GVariant::operator ==(GVariant &v)
 			return Value.Surface.Ptr == v.Value.Surface.Ptr;
 		case GV_GVIEW:
 			return Value.View == v.Value.View;
+		case GV_GFILE:
+			return Value.File.Ptr == v.Value.File.Ptr;
 		case GV_GMOUSE:
 			return Value.Mouse == v.Value.Mouse;
 		case GV_GKEY:

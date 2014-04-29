@@ -200,14 +200,14 @@ public:
 	}
 };
 
-GMemDC::GMemDC(int x, int y, int bits)
+GMemDC::GMemDC(int x, int y, GColourSpace cs)
 {
 	d = new GMemDCPrivate;
 	pMem = 0;
 
-	if (x && y && bits)
+	if (x && y && cs)
 	{
-		Create(x, y, bits);
+		Create(x, y, cs);
 	}
 }
 
@@ -306,12 +306,18 @@ bool GMemDC::Unlock()
 
 bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 {
+    return Create(x, y, GBitsToColourSpace(Bits), LineLen, KeepData);
+}
+
+bool GMemDC::Create(int x, int y, GColourSpace Cs, int LineLen, bool KeepData)
+{
 	bool Status = false;
 
 	d->Empty();
 	
-	if (x > 0 && y > 0 && Bits > 0)
+	if (x > 0 && y > 0 && Cs != CsNone)
 	{
+        int Bits = GColourSpaceToBits(Cs);
 		if (Bits <= 8)
 		{
 			d->Cs = CGColorSpaceCreateDeviceGray();

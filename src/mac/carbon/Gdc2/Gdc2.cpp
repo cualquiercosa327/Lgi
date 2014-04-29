@@ -565,7 +565,7 @@ bool GGlobalColour::AddBitmap(GImageList *il)
 			d->Cache.Insert(s);
 
 			// Cache the disabled alpha blending bitmap
-			s = new GMemDC(il->X(), il->Y(), 24);
+			s = new GMemDC(il->X(), il->Y(), System24BitColourSpace);
 			if (s)
 			{
 				s->Op(GDC_ALPHA);

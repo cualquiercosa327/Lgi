@@ -153,7 +153,9 @@ GXmlTag *ExtractForms(char *Html, GStream *Log)
 
 											CopyAttr("name");
 
-											while (c && !c->Tag || _stricmp(c->Tag, "/select") != 0)
+											while ((c && !c->Tag)
+                                                   ||
+                                                   stricmp(c->Tag, "/select") != 0)
 											{
 												if (c->Tag && _stricmp(c->Tag, "option") == 0)
 												{
@@ -310,7 +312,7 @@ GXmlTag *WebPage::GetRoot(GStream *Log)
 	if (!Parsed && Html)
 	{
 		GXmlTree t(GXT_NO_DOM);
-		if (Parsed = new GXmlTag)
+		if ((Parsed = new GXmlTag))
 		{
 			GStringPipe p;
 			p.Push(Html);
@@ -435,9 +437,9 @@ char *FormPost::EncodeFields(GStream *Debug, char *RealFields, bool EncodePlus)
 					p.Push("&");
 
 				char *a;
-				while (a = strchr(v->Field, ' '))
+				while ((a = strchr(v->Field, ' ')))
 					*a = '+';
-				while (a = strchr(v->Value, ' '))
+				while ((a = strchr(v->Value, ' ')))
 					*a = '+';
 
 				StrFormEncode(p, v->Field, false);
@@ -921,7 +923,7 @@ char *EndCookie(char *s)
 void CookieJar::Set(char *Cookie, char *Value)
 {
 	char *s;
-	if (s = (char*)Find(Cookie))
+	if ((s = (char*)Find(Cookie)))
 	{
 		DeleteArray(s);
 		Delete(Cookie);
@@ -956,7 +958,7 @@ void CookieJar::Set(char *Headers)
 				if (IsCookie)
 				{
 					char *e;
-					while (e = EndCookie(s))
+					while ((e = EndCookie(s)))
 					{
 						char *Cookie = NewStr(s, e - s);
 						if (Cookie)
@@ -1123,7 +1125,7 @@ GSurface *GetHttpImage(char *Uri)
 						c.Copy(&Data, &f);
 						f.Close();
 
-						if (Img = LoadDC(n))
+						if ((Img = LoadDC(n)))
 						{
 							// LgiTrace("Read uri '%s'\n", __FILE__, __LINE__, Uri);
 						}

@@ -982,12 +982,12 @@ bool GFileSystem::RemoveFolder(char *PathName, bool Recurse)
 	return rmdir(PathName) == 0;
 }
 
-bool GFileSystem::SetCurrentDirectory(char *PathName)
+bool GFileSystem::SetCurrentFolder(char *PathName)
 {
 	return chdir(PathName) == 0;
 }
 
-bool GFileSystem::GetCurrentDirectory(char *PathName, int Length)
+bool GFileSystem::GetCurrentFolder(char *PathName, int Length)
 {
 	return getcwd(PathName, Length) != 0;
 }
@@ -1058,25 +1058,25 @@ int LeapYear(int year)
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-bool GDirectory::ConvertToTime(char *Str, uint64 Time)
+bool GDirectory::ConvertToTime(char *Str, int SLen, uint64 Time)
 {
 	time_t k = Time;
 	struct tm *t = localtime(&k);
 	if (t)
 	{
-		strftime(Str, 256, "%I:%M:%S", t);
+		strftime(Str, SLen, "%I:%M:%S", t);
 		return true;
 	}
 	return false;
 }
 
-bool GDirectory::ConvertToDate(char *Str, uint64 Time)
+bool GDirectory::ConvertToDate(char *Str, int SLen, uint64 Time)
 {
 	time_t k = Time;
 	struct tm *t = localtime(&k);
 	if (t)
 	{
-		strftime(Str, 256, "%d/%m/%y", t);
+		strftime(Str, SLen, "%d/%m/%y", t);
 		return true;
 	}
 	return false;
