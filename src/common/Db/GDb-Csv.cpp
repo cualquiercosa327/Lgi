@@ -695,7 +695,7 @@ GDbField &SvRecordset::operator [](const char *Name)
 	{
 		for (GDbField *f=F.First(); f; f=F.Next())
 		{
-			if (f->Name() && stricmp(Name, f->Name()) == 0)
+			if (f->Name() && _stricmp(Name, f->Name()) == 0)
 			{
 				return *f;
 			}

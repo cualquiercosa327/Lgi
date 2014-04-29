@@ -815,7 +815,7 @@ public:
 				
 				for (; CombIdx >= 0; CombIdx--)
 				{
-					if (CombIdx >= Sel->Combs.Length())
+					if (CombIdx >= (int)Sel->Combs.Length())
 						break;
 
 					StartIdx = Sel->Combs[CombIdx];
@@ -923,17 +923,17 @@ public:
 			// Check all the classes
 			GArray<const char *> Classes;
 			Context->GetClasses(Classes, Obj);
-			for (int i=0; i<Classes.Length(); i++)
+			for (unsigned i=0; i<Classes.Length(); i++)
 			{
 				if ((s = ClassMap.Find(Classes[i])))
 					Maps.Add(s);
 			}
 
 			// Now from the list of possibles, do the actual checking of selectors...
-			for (int i=0; i<Maps.Length(); i++)
+			for (unsigned i=0; i<Maps.Length(); i++)
 			{
 				GCss::SelArray *s = Maps[i];
-				for (int i=0; i<s->Length(); i++)
+				for (unsigned i=0; i<s->Length(); i++)
 				{
 					GCss::Selector *Sel = (*s)[i];
 					

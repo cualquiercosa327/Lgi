@@ -274,7 +274,7 @@ public:
 		{
 			int Last = r.Length()-1;
 			char *LastFile = r[Last].File.Str();
-			if (stricmp(LastFile?LastFile:Empty, FileName?FileName:Empty) != 0)
+			if (_stricmp(LastFile?LastFile:Empty, FileName?FileName:Empty) != 0)
 			{
 				// File changed...
 				Range &n = r.New();

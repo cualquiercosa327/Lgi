@@ -126,14 +126,14 @@ public:
 		{
 			if (u.Protocol)
 			{
-				if (!stricmp(u.Protocol, "file"))
+				if (!_stricmp(u.Protocol, "file"))
 				{
 					if (!u.Path)
 						return false;
 
 					IsFile = true;
 				}
-				else if (!stricmp(u.Protocol, "http"))
+				else if (!_stricmp(u.Protocol, "http"))
 				{
 					IsHttp = true;
 				}
@@ -209,9 +209,9 @@ public:
 
 			for (int i=0; i<t.Length(); i++)
 			{
-				if (!stricmp(t[i], "."))
+				if (!_stricmp(t[i], "."))
 					;
-				else if (!stricmp(t[i], ".."))
+				else if (!_stricmp(t[i], ".."))
 				{
 					if ((End = strrchr(Buf, Sep)))
 						*End = 0;
@@ -230,8 +230,8 @@ public:
 
 			Uri = Buf;
 		}
-		else if (!stricmp(u.Protocol, "mailto") ||
-				 !stricmp(u.Protocol, "http"))
+		else if (!_stricmp(u.Protocol, "mailto") ||
+				 !_stricmp(u.Protocol, "http"))
 		{
 			LgiExecute(Uri);
 			return true;
@@ -266,14 +266,14 @@ public:
 				(
 					Ext &&
 					(
-						!stricmp(Ext, "jpg") ||
-						!stricmp(Ext, "jpeg") ||
-						!stricmp(Ext, "gif") ||
-						!stricmp(Ext, "png") ||
-						!stricmp(Ext, "tif") ||
-						!stricmp(Ext, "tiff") ||
-						!stricmp(Ext, "bmp") ||
-						!stricmp(Ext, "ico")
+						!_stricmp(Ext, "jpg") ||
+						!_stricmp(Ext, "jpeg") ||
+						!_stricmp(Ext, "gif") ||
+						!_stricmp(Ext, "png") ||
+						!_stricmp(Ext, "tif") ||
+						!_stricmp(Ext, "tiff") ||
+						!_stricmp(Ext, "bmp") ||
+						!_stricmp(Ext, "ico")
 					)
 				)
 				{

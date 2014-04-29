@@ -153,7 +153,7 @@ public:
 	/// \returns the first object (NOT thread-safe)
 	virtual T Next() = 0;
 	/// \returns the number of items in the collection
-	virtual int Length() = 0;
+	virtual uint32 Length() = 0;
 	/// \returns the 'nth' item in the collection
 	virtual T operator [](int idx) = 0;
 	/// \returns the index of the given item in the collection
@@ -546,16 +546,16 @@ public:
 	TPub *First()
 	{
 		Cur = 0;
-		return a.Length() > Cur ? a[Cur] : 0;
+		return (int)a.Length() > Cur ? a[Cur] : 0;
 	}
 	
 	TPub *Next()
 	{
 		Cur++;
-		return a.Length() > Cur ? a[Cur] : 0;
+		return (int)a.Length() > Cur ? a[Cur] : 0;
 	}
 	
-	int Length()
+	uint32 Length()
 	{
 		return a.Length();
 	}

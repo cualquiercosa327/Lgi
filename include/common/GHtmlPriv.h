@@ -171,7 +171,7 @@ public:
 		int _Write(const void *Ptr, int Bytes)
 		{
 			// Check if we have enough space to store the string..
-			int Total = CharsOnLine + Bytes;
+			unsigned Total = CharsOnLine + Bytes;
 			if (Buf.Length() < Total)
 			{
 				// Extend the memory buffer

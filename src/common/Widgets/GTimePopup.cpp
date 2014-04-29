@@ -299,7 +299,7 @@ class GTimePopupFactory : public GViewFactory
 	GView *NewView(const char *Class, GRect *Pos, const char *Text)
 	{
 		if (Class &&
-			stricmp(Class, "GTimeDropDown") == 0)
+			_stricmp(Class, "GTimeDropDown") == 0)
 		{
 			return new GTimeDropDown;
 		}

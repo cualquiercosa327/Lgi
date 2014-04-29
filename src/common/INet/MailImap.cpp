@@ -988,7 +988,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 
 					// Do auth
 					#if HAS_LIBGSASL
-					if (!stricmp(AuthType, "GSSAPI"))
+					if (!_stricmp(AuthType, "GSSAPI"))
 					{
 						int AuthCmd = d->NextCmd++;
 						sprintf_s(Buf, sizeof(Buf), "A%04.4i AUTHENTICATE GSSAPI\r\n", AuthCmd);

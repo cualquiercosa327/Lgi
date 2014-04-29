@@ -312,7 +312,7 @@ bool TnefReadIndex(GStreamI *Tnef, GArray<TnefFileInfo*> &Index)
 				}
 			}
 
-			for (int i=0; i<Index.Length(); i++)
+			for (unsigned i=0; i<Index.Length(); i++)
 			{
 				TnefFileInfo *fi = Index[i];
 				if (!fi->Name ||
@@ -345,7 +345,7 @@ bool TnefExtract(GStreamI *Tnef, GStream *Out, TnefFileInfo *File)
 			int64 i;
 			for (i=0; i<File->Size; )
 			{
-				int Block = min(sizeof(Buf), File->Size - i);
+				int Block = min(sizeof(Buf), (int)(File->Size - i));
 				int r = Tnef->Read(Buf, Block);
 				if (r > 0)
 				{

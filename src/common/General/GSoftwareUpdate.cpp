@@ -66,7 +66,7 @@ struct GSoftwareUpdatePriv
 			{
 				GUri Uri(d->UpdateUri);
 				char Dir[256];
-				snprintf(Dir, sizeof(Dir)-1, "%s?name=%s&os=%s&betas=%i", Uri.Path, (char*)d->Name, LgiGetOsName(), IncBetas);
+				sprintf_s(Dir, sizeof(Dir), "%s?name=%s&os=%s&betas=%i", Uri.Path, (char*)d->Name, LgiGetOsName(), IncBetas);
 				DeleteArray(Uri.Path);
 				Uri.Path = NewStr(Dir);
 
@@ -371,7 +371,7 @@ bool GSoftwareUpdate::ApplyUpdate(UpdateInfo &Info, bool DownloadOnly, GViewI *W
 		char *Ext = LgiGetExtension(Tmp);
 		if (Ext)
 		{
-			if (!stricmp(Ext, "exe"))
+			if (!_stricmp(Ext, "exe"))
 			{
 				// Execute to install...
 				LgiExecute(Tmp);
@@ -384,7 +384,7 @@ bool GSoftwareUpdate::ApplyUpdate(UpdateInfo &Info, bool DownloadOnly, GViewI *W
 				LgiGetExePath(Path, sizeof(Path));
 				LgiMakePath(Path, sizeof(Path), Path, File);
 
-				if (!stricmp(Ext, "dll"))
+				if (!_stricmp(Ext, "dll"))
 				{
 					// Copy to local folder...
 					if (!FileDev->Copy(Tmp, Path))
@@ -392,7 +392,7 @@ bool GSoftwareUpdate::ApplyUpdate(UpdateInfo &Info, bool DownloadOnly, GViewI *W
 						d->SetError(L_ERROR_COPY_FAILED, "Failed to copy file from temp folder to local folder.");
 					}
 				}
-				else if (!stricmp(Ext, "gz"))
+				else if (!_stricmp(Ext, "gz"))
 				{
 					// Unpack to local folder...
 				}

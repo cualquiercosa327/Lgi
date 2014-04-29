@@ -154,7 +154,7 @@ bool Prop::operator ==(const char *n)
 	bool Status = false;
 	if (Name && n)
 	{
-		Status = stricmp(Name, n) == 0;
+		Status = _stricmp(Name, n) == 0;
 	}
 	return Status;
 }
@@ -332,7 +332,7 @@ bool Prop::SerializeText(GFile &f, bool Write)
 						}
 						case OBJ_BINARY:
 						{
-							if (strnicmp(Equal, "B(", 2) == 0)
+							if (_strnicmp(Equal, "B(", 2) == 0)
 							{
 								Equal += 2;
 								char *Comma = strchr(Equal, ',');
@@ -981,7 +981,7 @@ bool ObjProperties::Serialize(GFile &f, bool Write)
 
 int Prop_Compare(Prop *a, Prop *b, NativeInt data)
 {
-	return stricmp(a->Name, b->Name);
+	return _stricmp(a->Name, b->Name);
 }
 
 bool ObjProperties::SerializeText(GFile &f, bool Write)
@@ -1008,7 +1008,7 @@ bool ObjProperties::SerializeText(GFile &f, bool Write)
 		char Str[256];
 		f.ReadStr(Str, sizeof(Str));
 
-		if (strnicmp(s, Str, strlen(s))==0)
+		if (_strnicmp(s, Str, strlen(s))==0)
 		{
 			while (!f.Eof())
 			{
@@ -1488,7 +1488,7 @@ bool ObjTree::SerializeObj(GFile &f, bool Write)
 								else
 								{
 									// int
-									if (strnicmp(s, "0x", 2) == 0)
+									if (_strnicmp(s, "0x", 2) == 0)
 									{
 										// hex
 										char NumToHex[] = "0123456789ABCDEFabcdef";

@@ -94,7 +94,7 @@ int GFlowRect::Start()
 
 class Btn : public GLayout
 {
-	int Val;
+	int64 Val;
 	int Icon;
 	GImageList *Img;
 	int HasLeft;
@@ -196,7 +196,7 @@ public:
 		GSkinEngine *s = LgiApp->SkinEngine;
 		if (s)
 		{
-			s->DrawBtn(&Mem, Back, Val, Enabled());
+			s->DrawBtn(&Mem, Back, Val != 0, Enabled());
 		}
 		else
 		{
@@ -219,7 +219,7 @@ public:
 		else if (Img)
 		{
 			GRect r(0, 0, Img->TileX()-1, Img->TileY()-1);
-			r.Offset(((X()-Img->TileX())>>1)+Val, ((Y()-Img->TileY())>>1)+Val);
+			r.Offset(((X()-Img->TileX())>>1)+(int)Val, ((Y()-Img->TileY())>>1)+(int)Val);
 			Mem.Colour(Rgb24(255, 0, 0), 24);
 			if (HasLeft && !HasRight)
 			{
@@ -281,7 +281,7 @@ struct Block : public GRect
 	int StartOffset()
 	{
 		int Chars = 0;
-		for (int i = t->PreText() ? 1 : 0; i<t->TextPos.Length(); i++)
+		for (unsigned i = t->PreText() ? 1 : 0; i<t->TextPos.Length(); i++)
 		{
 			GFlowRect *r = t->TextPos[i];
 			
@@ -299,7 +299,7 @@ struct Block : public GRect
 	int EndOffset()
 	{
 		int Chars = 0;
-		for (int i = t->PreText() ? 1 : 0; i<t->TextPos.Length(); i++)
+		for (unsigned i = t->PreText() ? 1 : 0; i<t->TextPos.Length(); i++)
 		{
 			GFlowRect *r = t->TextPos[i];
 			if (r == fr)
@@ -325,7 +325,7 @@ class HtmlEdit : public Html1::GHtml, public GDefaultDocumentEnv
 	{
 		// Creates a block for each run of text we know about. This is then used for doing
 		// cursoring around.
-		for (int n=0; n<t->TextPos.Length(); n++)
+		for (unsigned n=0; n<t->TextPos.Length(); n++)
 		{
 			GFlowRect *Tr = t->TextPos[n];
 			
@@ -354,7 +354,7 @@ class HtmlEdit : public Html1::GHtml, public GDefaultDocumentEnv
 		}
 
 		// Run through children
-		for (int i=0; i<t->Children.Length(); i++)
+		for (unsigned i=0; i<t->Children.Length(); i++)
 		{
 			GTag *c = ToTag(t->Children[i]);
 			BlockTag(c);
@@ -373,7 +373,7 @@ class HtmlEdit : public Html1::GHtml, public GDefaultDocumentEnv
 		// Gets the next block below the x,y point. Usually used when the user
 		// cursors down.
 		Block *Close = 0;
-		for (int i=0; i<Blocks.Length(); i++)
+		for (unsigned i=0; i<Blocks.Length(); i++)
 		{
 			Block *b = &Blocks[i];
 			if (!b->Overlap(x, y) &&
@@ -408,7 +408,7 @@ class HtmlEdit : public Html1::GHtml, public GDefaultDocumentEnv
 		// Gets the next block above the x,y point. Usually used when the user
 		// cursors up.
 		Block *Close = 0;
-		for (int i=0; i<Blocks.Length(); i++)
+		for (unsigned i=0; i<Blocks.Length(); i++)
 		{
 			Block *b = &Blocks[i];
 			if (b->y2 < y)
@@ -442,7 +442,7 @@ class HtmlEdit : public Html1::GHtml, public GDefaultDocumentEnv
 		// Gets the next block to the left of the x,y point. Usually used when the user
 		// cursors left.
 		Block *Close = 0;
-		for (int i=0; i<Blocks.Length(); i++)
+		for (unsigned i=0; i<Blocks.Length(); i++)
 		{
 			Block *b = &Blocks[i];
 			if (!b->Overlap(x, y))
@@ -485,7 +485,7 @@ class HtmlEdit : public Html1::GHtml, public GDefaultDocumentEnv
 		// Gets the next block to the right of the x,y point. Usually used when the user
 		// cursors right.
 		Block *Close = 0;
-		for (int i=0; i<Blocks.Length(); i++)
+		for (unsigned i=0; i<Blocks.Length(); i++)
 		{
 			Block *b = &Blocks[i];
 			if (!b->Overlap(x, y))
@@ -579,7 +579,7 @@ public:
 					char *bf = b->Font->Face();
 					if (af && bf)
 					{
-						Status = stricmp(af, bf) == 0;
+						Status = _stricmp(af, bf) == 0;
 						Status &= a->Font->PointSize() == b->Font->PointSize();
 						Status &= a->Font->Bold() == b->Font->Bold();
 						Status &= a->Font->Underline() == b->Font->Underline();
@@ -604,13 +604,13 @@ public:
 
 			// Look through direct children and remove unneccessary complexity
 			GArray<GTag*> t;
-			for (int i=0; i<Tag->Children.Length(); i++)
+			for (unsigned i=0; i<Tag->Children.Length(); i++)
 			{
 				GTag *c = ToTag(Tag->Children[i]);
 				t.Add(c);
 			}
 			
-			for (int i=0; i<t.Length()-1; i++)
+			for (unsigned i=0; i<t.Length()-1; i++)
 			{
 				GTag *a = t[i];
 				GTag *b = t[i+1];
@@ -728,7 +728,7 @@ public:
 
 			for (GTag *t = Min; t; t = NextTag(t))
 			{
-				if (t->Tag && !stricmp(t->Tag, e))
+				if (t->Tag && !_stricmp(t->Tag, e))
 				{
 					if (out)
 						out->Add(t);
@@ -742,7 +742,7 @@ public:
 		}
 		else if (Cursor)
 		{
-			if (Cursor->Tag && !stricmp(Cursor->Tag, e))
+			if (Cursor->Tag && !_stricmp(Cursor->Tag, e))
 			{
 				if (out)
 					out->Add(Cursor);
@@ -760,7 +760,7 @@ public:
 			return false;
 
 		bool CursorFirst = IsCursorFirst();
-		GTag *MinTag, *MaxTag, *t;
+		GTag *MinTag, *MaxTag;
 		int MinIdx, MaxIdx;
 		if (CursorFirst)
 		{
@@ -869,7 +869,7 @@ public:
 	{
 		GArray<GCss::FontWeightType> Types;
 		HasStyle(GCss::PropFontWeight, Types);
-		for (int i=0; i<Types.Length(); i++)
+		for (unsigned i=0; i<Types.Length(); i++)
 		{
 			if (Types[i] != GCss::FontWeightNormal &&
 				Types[i] != GCss::FontWeightInherit &&
@@ -886,7 +886,7 @@ public:
 	{
 		GArray<GCss::FontStyleType> Types;
 		HasStyle(GCss::PropFontStyle, Types);
-		for (int i=0; i<Types.Length(); i++)
+		for (unsigned i=0; i<Types.Length(); i++)
 		{
 			if (Types[i] == GCss::FontStyleItalic)
 				return true;
@@ -899,7 +899,7 @@ public:
 	{
 		GArray<GCss::TextDecorType> Types;
 		HasStyle(GCss::PropTextDecoration, Types);
-		for (int i=0; i<Types.Length(); i++)
+		for (unsigned i=0; i<Types.Length(); i++)
 		{
 			if (Types[i] == GCss::TextDecorUnderline)
 				return true;
@@ -922,7 +922,7 @@ public:
 				GCss s;
 				GArray<GTag*> Tags;
 				DoUpdate = StylizeSelection(s, &Tags, "a");
-				for (int i=0; i<Tags.Length(); i++)
+				for (unsigned i=0; i<Tags.Length(); i++)
 				{
 					Tags[i]->Set("href", Uri);
 					Tags[i]->SetStyle();
@@ -954,7 +954,7 @@ public:
 			GArray<GTag*> Anchors;
 			if (HasElement("a", &Anchors))
 			{
-				for (int i=0; i<Anchors.Length(); i++)
+				for (unsigned i=0; i<Anchors.Length(); i++)
 				{
 					GTag *t = Anchors[i];
 					
@@ -1076,7 +1076,7 @@ public:
 				t = t->GetTagByName("body");
 			if (t)
 			{
-				for (int i=0; i<t->Children.Length(); i++)
+				for (unsigned i=0; i<t->Children.Length(); i++)
 				{
 					GTag *c = ToTag(t->Children[i]);
 					if (CanHaveText(c->TagId))
@@ -1088,7 +1088,7 @@ public:
 				}
 			}
 
-			LgiAssert(Cursor);
+			LgiAssert(Cursor != NULL);
 		}
 
 		return Cursor;
@@ -1146,7 +1146,7 @@ public:
 		{
 			GFlowRect *Inside = 0;
 			char16 *End = Base + StrlenW(Base);
-			for (int i=0; i<t->TextPos.Length(); i++)
+			for (unsigned i=0; i<t->TextPos.Length(); i++)
 			{
 				GFlowRect *f = t->TextPos[i];
 				
@@ -1171,7 +1171,7 @@ public:
 				Rects.Add(Inside);
 
 				// Iterate over the current tags block of text
-				for (int i=0; i<t->TextPos.Length(); i++)
+				for (unsigned i=0; i<t->TextPos.Length(); i++)
 				{
 					GFlowRect *f = t->TextPos[i];
 					if (f != Inside && f->OverlapY(Inside))
@@ -1186,7 +1186,7 @@ public:
 				for (b = PrevTag(t); b && Added > 0; b = PrevTag(b))
 				{
 					Added = 0;
-					for (int i=0; i<b->TextPos.Length(); i++)
+					for (unsigned i=0; i<b->TextPos.Length(); i++)
 					{
 						GFlowRect *f = b->TextPos[i];
 						
@@ -1203,7 +1203,7 @@ public:
 				for (b = NextTag(t); b && Added > 0; b = NextTag(b))
 				{
 					Added = 0;
-					for (int i=0; i<b->TextPos.Length(); i++)
+					for (unsigned i=0; i<b->TextPos.Length(); i++)
 					{
 						GFlowRect *f = b->TextPos[i];
 						if (f->OverlapY(Inside))
@@ -1260,7 +1260,7 @@ public:
 				int64 Pos = VScroll->Value();
 				GRect Client = GetClient();
 				GRect c = GetCursorPos();
-				c.Offset(0, -Pos * LineY);
+				c.Offset(0, -(int)Pos * LineY);
 
 				// LgiTrace("cli=%s c=%s\n", Client.GetStr(), c.GetStr());
 				if (c.y1 < 0)
@@ -1624,7 +1624,7 @@ public:
 					}
 
 					// Process deletes
-					for (int i=0; i<PostDelete.Length(); )
+					for (unsigned i=0; i<PostDelete.Length(); )
 					{
 						if (!DeleteTag(PostDelete[i], &PostDelete))
 						{
@@ -2203,7 +2203,7 @@ public:
 			return false;
 		}
 
-		for (int i=0; i<t->Children.Length(); i++)
+		for (unsigned i=0; i<t->Children.Length(); i++)
 		{
 			GTag *c = ToTag(t->Children[i]);
 			if (!CheckTree(c, Ok))
@@ -2283,7 +2283,6 @@ public:
 			GTag *t;
 			int cy;
 			DbgDs *ds;
-			COLOUR c;
 			
 			for (cy = y, t = PrevTag(Cursor); t && cy > 0; t = PrevTag(t))
 			{
@@ -2331,7 +2330,7 @@ public:
 			pDC->Rectangle(0, 0, pDC->X(), cy-1);
 
 			cy = (pDC->Y() / 2 - 10) - (SysFont->GetHeight() * CursorLine);
-			for (int i=0; i<Inf.Length(); i++)
+			for (unsigned i=0; i<Inf.Length(); i++)
 			{
 				DbgInf *Line = Inf[i];
 				int x = Line->Depth * 12;
@@ -2345,7 +2344,7 @@ public:
 					pDC->Line(lx, cy, lx, cy2); 
 				}
 
-				for (int n=0; n<Line->Ds.Length(); n++)
+				for (unsigned n=0; n<Line->Ds.Length(); n++)
 				{
 					DbgDs *ds = Line->Ds[n];
 					SysFont->Colour(ds->c, LC_WORKSPACE);
@@ -2429,9 +2428,9 @@ public:
 		(
 			t->Tag &&
 			(
-				!stricmp(t->Tag, "b") ||
-				!stricmp(t->Tag, "i") ||
-				!stricmp(t->Tag, "u")
+				!_stricmp(t->Tag, "b") ||
+				!_stricmp(t->Tag, "i") ||
+				!_stricmp(t->Tag, "u")
 			)
 		)
 		{
@@ -2455,7 +2454,7 @@ public:
 			}
 		}
 
-		for (int i=0; i<t->Children.Length(); i++)
+		for (unsigned i=0; i<t->Children.Length(); i++)
 		{
 			GTag *c = ToTag(t->Children[i]);
 			PrepareForEdit(c);
@@ -2747,7 +2746,7 @@ class GHtmlEdit_Factory : public GViewFactory
 {
 	GView *NewView(const char *Class, GRect *Pos, const char *Text)
 	{
-		if (stricmp(Class, "GHtmlEdit") == 0)
+		if (_stricmp(Class, "GHtmlEdit") == 0)
 		{
 			return new GHtmlEdit;
 		}

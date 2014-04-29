@@ -65,11 +65,11 @@ public:
 
 	bool GetVariant(const char *n, GVariant &v, char *a)
 	{
-		if (!stricmp(n, LGI_FILTER_TYPE))
+		if (!_stricmp(n, LGI_FILTER_TYPE))
 		{
 			v = "Gif";
 		}
-		else if (!stricmp(n, LGI_FILTER_EXTENSIONS))
+		else if (!_stricmp(n, LGI_FILTER_EXTENSIONS))
 		{
 			v = "GIF";
 		}
@@ -259,7 +259,7 @@ int GdcGif::out_line(uchar *pixels, int linewidth, int interlaced, int BitDepth)
 
 	if (Meter)
 	{
-		int a = Meter->Value() * 100 / pDC->Y();
+		int a = (int)Meter->Value() * 100 / pDC->Y();
 		int b = lines * 100 / pDC->Y();
 		if (abs(a-b) > 5)
 		{
@@ -308,7 +308,7 @@ short GdcGif::get_next_code()
 						return(x);
 					}
 
-					byte_buff[i] = x;
+					byte_buff[i] = (uchar)x;
 				}
 			}
 		}
@@ -340,7 +340,7 @@ short GdcGif::get_next_code()
 						return(x);
 					}
 
-					byte_buff[i] = x;
+					byte_buff[i] = (uchar)x;
 				}
 			}
 		}
@@ -459,7 +459,7 @@ short GdcGif::decoder(int BitDepth, uchar interlaced)
 			 * of the line, we have to send the buffer to the out_line()
 			 * routine...
 			 */
-			*bufptr++ = c;
+			*bufptr++ = (uchar)c;
 
 			if (--bufcnt == 0)
 			{
@@ -496,7 +496,7 @@ short GdcGif::decoder(int BitDepth, uchar interlaced)
 				}
 
 				code = oc;
-				*sp++ = fc;
+				*sp++ = (uchar)fc;
 			}
 
 			/* Here we scan back along the linked list of prefixes, pushing
@@ -520,10 +520,10 @@ short GdcGif::decoder(int BitDepth, uchar interlaced)
 			 * suffix and prefix...  I'm not certain if this is correct...
 			 * it might be more proper to overwrite the last code...
 			 */
-			*sp++ = code;
+			*sp++ = (uchar)code;
 			if (slot < top_slot)
 			{
-				suffix[slot] = fc = code;
+				suffix[slot] = (uchar)(fc = code);
 				prefix[slot++] = oc;
 				oc = c;
 			}
@@ -769,7 +769,7 @@ GFilter::IoStatus GdcGif::ReadImage(GSurface *pdc, GStream *in)
 
 						while (BlockSize)
 						{
-							int NewPos = s->GetPos() + BlockSize;
+							int64 NewPos = s->GetPos() + BlockSize;
 							if (s->SetPos(NewPos) != NewPos ||
 								!Read(s, &BlockSize, sizeof(BlockSize)))
 								break;
@@ -996,7 +996,7 @@ GFilter::IoStatus GdcGif::WriteImage(GStream *Out, GSurface *pDC)
 	{
 		uchar Buf[256];
 		// write data out
-		while ((Len = Encode.GetSize()) > 0)
+		while ((Len = (int)Encode.GetSize()) > 0)
 		{
 			int l = min(Len, 255);
 			if (Encode.Read(Buf, l))

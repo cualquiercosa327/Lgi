@@ -155,7 +155,7 @@ class GColourFactory : public GViewFactory
 	GView *NewView(const char *Class, GRect *Pos, const char *Text)
 	{
 		if (Class &&
-			stricmp(Class, "GColourSelect") == 0)
+			_stricmp(Class, "GColourSelect") == 0)
 		{
 			return new GColourSelect;
 		}

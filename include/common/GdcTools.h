@@ -35,7 +35,7 @@ public:
 				else
 					out = pow(in, 1.0 / 2.4) * 1.055 - 0.055;
 
-				Lut[i] = (uint16) (out * Mul + 0.0000001);
+				Lut[i] = (T) (out * Mul + 0.0000001);
 			}
 		}
 		else if (From == RgbLutSRGB && To == RgbLutLinear)

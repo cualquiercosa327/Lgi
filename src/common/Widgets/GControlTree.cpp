@@ -52,7 +52,7 @@ void GControlTree::Item::OnVisible(bool v)
 
 GControlTree::Item *GControlTree::Item::Find(const char *opt)
 {
-	if (Opt && !stricmp(Opt, opt))
+	if (Opt && !_stricmp(Opt, opt))
 	{
 		return this;
 	}
@@ -196,7 +196,7 @@ void GControlTree::Item::Select(bool b)
 						{
 							int Idx = -1;
 
-							for (int i=0; i<Enum->Length(); i++)
+							for (unsigned i=0; i<Enum->Length(); i++)
 							{
 								EnumValue &e = (*Enum)[i];
 								Cbo->Insert(e.Name);
@@ -280,7 +280,7 @@ void GControlTree::Item::OnPaint(ItemPaintCtx &Ctx)
 				char s[32], *Disp = 0;
 				if (Enum)
 				{
-					for (int i=0; i<Enum->Length(); i++)
+					for (unsigned i=0; i<Enum->Length(); i++)
 					{
 						EnumValue &e = (*Enum)[i];
 						if (e.Value == Value)
@@ -378,13 +378,13 @@ GControlTree::Item *GControlTree::Resolve(bool Create, const char *Path, GVarian
 	if (t.Length() > 0)
 	{
 		GTreeNode *Cur = this;
-		for (int i=0; i<t.Length(); i++)
+		for (unsigned i=0; i<t.Length(); i++)
 		{
 			GTreeItem *Match = 0;
 			for (GTreeItem *c = Cur->GetChild(); c; c = c->GetNext())
 			{
 				char *s = c->GetText();
-				if (s && stricmp(t[i], s) == 0)
+				if (s && _stricmp(t[i], s) == 0)
 				{
 					Match = c;
 					break;
@@ -439,24 +439,24 @@ void GControlTree::ReadTree(GXmlTag *t, GTreeNode *n)
 	{
 		int StrRef = c->GetAsInt("ref");
 		LgiStringRes *Str = d->Factory->StrFromRef(StrRef);
-		LgiAssert(Str);
+		LgiAssert(Str != NULL);
 
 		char *Type = c->GetAttr("ControlType");
 		GVariantType iType = GV_NULL;
 		int Flags = 0;
 		if (Type)
 		{
-			if (!stricmp(Type, "string"))
+			if (!_stricmp(Type, "string"))
 				iType = GV_STRING;
-			else if (!stricmp(Type, "file"))
+			else if (!_stricmp(Type, "file"))
 			{
 				iType = GV_STRING;
 				Flags |= GControlTree::Item::TYPE_FILE;
 			}
-			else if (!stricmp(Type, "bool"))
+			else if (!_stricmp(Type, "bool"))
 				iType = GV_BOOL;
-			else if (!stricmp(Type, "int") ||
-					 !stricmp(Type, "enum"))
+			else if (!_stricmp(Type, "int") ||
+					 !_stricmp(Type, "enum"))
 				iType = GV_INT32;
 		}
 
@@ -476,7 +476,7 @@ bool GControlTree::SetVariant(const char *Name, GVariant &Value, char *Array)
 	if (!Name)
 		return false;
 
-	if (!stricmp(Name, "Tree"))
+	if (!_stricmp(Name, "Tree"))
 	{
 		if (Value.Type != GV_DOM)
 			return false;
@@ -493,7 +493,7 @@ bool GControlTree::SetVariant(const char *Name, GVariant &Value, char *Array)
 			
 		d->Factory = 0;
 	}
-	else if (!stricmp(Name, "LgiFactory"))
+	else if (!_stricmp(Name, "LgiFactory"))
 	{
 	    d->Factory = dynamic_cast<LgiResources*>((ResFactory*)Value.CastVoidPtr());
 	}
@@ -531,7 +531,7 @@ class GControlTree_Factory : public GViewFactory
 {
 	GView *NewView(const char *Class, GRect *Pos, const char *Text)
 	{
-		if (stricmp(Class, "GControlTree") == 0)
+		if (_stricmp(Class, "GControlTree") == 0)
 		{
 			return new GControlTree;
 		}

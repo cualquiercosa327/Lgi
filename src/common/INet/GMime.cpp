@@ -648,7 +648,7 @@ char *GMime::StartOfField(char *s, const char *Field)
 				int fLen = s-f;
 				if (*s++ == ':' &&
 					fLen == FieldLen &&
-					strnicmp(f, Field, FieldLen) == 0)
+					_strnicmp(f, Field, FieldLen) == 0)
 				{
 					return f;
 					break;
@@ -806,7 +806,7 @@ char *GMime::GetSub(const char *Field, const char *Sub)
 				SkipWs(s);
 				if (*s++ == '=')
 				{
-					bool Found = SubLen == NameLen && strnicmp(Name, Sub, NameLen) == 0;
+					bool Found = SubLen == NameLen && _strnicmp(Name, Sub, NameLen) == 0;
 					SkipWs(s);
 					Status = NewValue(s, Found);
 					if (Found) break;
@@ -859,7 +859,7 @@ bool GMime::SetSub(const char *Field, const char *Sub, const char *Value, const 
 						if (*s++ == '=')
 						{
 							char *v = NewValue(s);
-							if (stricmp(Name, Sub) != 0)
+							if (_stricmp(Name, Sub) != 0)
 							{
 								sprintf_s(Buf, sizeof(Buf), ";\r\n\t%s=\"%s\"", Name, v);
 								p.Push(Buf);
@@ -969,11 +969,11 @@ int GMime::GMimeText::GMimeDecode::Parse(GStringPipe *Source, ParentState *State
 			GStream *Decoder = 0;
 			if (Encoding)
 			{
-				if (stricmp(Encoding, MimeQuotedPrintable) == 0)
+				if (_stricmp(Encoding, MimeQuotedPrintable) == 0)
 				{
 					Decoder = new GMimeQuotedPrintableDecode(Mime->DataStore);
 				}
-				else if (stricmp(Encoding, MimeBase64) == 0)
+				else if (_stricmp(Encoding, MimeBase64) == 0)
 				{
 					Decoder = new GMimeBase64Decode(Mime->DataStore);
 				}
@@ -1187,11 +1187,11 @@ int GMime::GMimeText::GMimeEncode::Push(GStreamI *Dest, GStreamEnd *End)
 		GStream *Encoder = 0;
 		if (Encoding)
 		{
-			if (stricmp(Encoding, MimeQuotedPrintable) == 0)
+			if (_stricmp(Encoding, MimeQuotedPrintable) == 0)
 			{
 				Encoder = new GMimeQuotedPrintableEncode(Dest);
 			}
-			else if (stricmp(Encoding, MimeBase64) == 0)
+			else if (_stricmp(Encoding, MimeBase64) == 0)
 			{
 				Encoder = new GMimeBase64Encode(Dest);
 			}

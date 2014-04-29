@@ -118,7 +118,7 @@ namespace Html1
 class GHtmlPrivate
 {
 public:
-	GHashTbl<const char*, bool> Loading;
+	GHashTbl<const char*, GTag*> Loading;
 	GHtmlStaticInst Inst;
 	bool CursorVis;
 	GRect CursorPos;
@@ -263,7 +263,7 @@ public:
 			for (f=Fonts.First(); f; f=Fonts.Next())
 			{
 				if (f->Face() &&
-					stricmp(f->Face(), Face[0]) == 0 &&
+					_stricmp(f->Face(), Face[0]) == 0 &&
 					f->Bold() == IsBold &&
 					f->Italic() == IsItalic &&
 					f->Underline() == IsUnderline)
@@ -318,7 +318,7 @@ public:
 				if (abs(Diff) <= 1)
 				{
 					Fonts.Insert(f = Tmp.Release());
-					LgiAssert(f->Face());
+					LgiAssert(f->Face() != NULL);
 					return f;
 				}
 
@@ -340,7 +340,7 @@ public:
 			for (f=Fonts.First(); f; f=Fonts.Next())
 			{
 				if (f->Face() &&
-					stricmp(f->Face(), Face[0]) == 0 &&
+					_stricmp(f->Face(), Face[0]) == 0 &&
 					f->PointSize() == Pt &&
 					f->Bold() == IsBold &&
 					f->Italic() == IsItalic &&
@@ -445,7 +445,7 @@ public:
 
 			// Not already cached
 			Fonts.Insert(f);
-			LgiAssert(f->Face());
+			LgiAssert(f->Face() != NULL);
 			return f;
 		}
 
@@ -695,7 +695,7 @@ public:
 			}
 			case GCss::LenPercent:
 			{
-				LgiAssert(Html);
+				LgiAssert(Html != NULL);
 				int TotalY = Html ? Html->Y() : 0;
 				return (int) (((double)l.Value * TotalY) / 100);
 			}
@@ -735,7 +735,7 @@ static bool ParseDistance(char *s, float &d, char *units = 0)
 	if (!IsDigit(*s) && !strchr("-.", *s))
 		return false;
 
-	d = atof(s);
+	d = (float)atof(s);
 
 	while (*s && (IsDigit(*s) || strchr("-.", *s))) s++;
 	while (*s && IsWhiteSpace(*s)) s++;
@@ -857,7 +857,7 @@ float GLength::Get(GFlowRegion *Flow, GFont *Font, bool Lock)
 		}
 	}
 
-	double FlowX = Flow ? Flow->X() : d;
+	float FlowX = Flow ? Flow->X() : d;
 	return PrevAbs = min(FlowX, d);
 }
 
@@ -884,7 +884,7 @@ void GLine::Set(char *s)
 	LineStyle = -1;
 	char *Style = 0;
 
-	for (int i=0; i<t.Length(); i++)
+	for (unsigned i=0; i<t.Length(); i++)
 	{
 		char *c = t[i];
 		if
@@ -896,10 +896,10 @@ void GLine::Set(char *s)
 		{
 			GHtmlParser::ParseColour(c, Colour);
 		}
-		else if (strnicmp(c, "rgb(", 4) == 0)
+		else if (_strnicmp(c, "rgb(", 4) == 0)
 		{
 			char Buf[256];
-			strcpy(Buf, c);
+			strcpy_s(Buf, sizeof(Buf), c);
 			while (!strchr(c, ')') &&
 					(c = t[++i]))
 			{
@@ -911,18 +911,18 @@ void GLine::Set(char *s)
 		{
 			GLength::Set(c);
 		}
-		else if (stricmp(c, "none") == 0)
+		else if (_stricmp(c, "none") == 0)
 		{
 			Style = 0;
 		}
-		else if (	stricmp(c, "dotted") == 0 ||
-					stricmp(c, "dashed") == 0 ||
-					stricmp(c, "solid") == 0 ||
-					stricmp(c, "float") == 0 ||
-					stricmp(c, "groove") == 0 ||
-					stricmp(c, "ridge") == 0 ||
-					stricmp(c, "inset") == 0 ||
-					stricmp(c, "outse") == 0)
+		else if (	_stricmp(c, "dotted") == 0 ||
+					_stricmp(c, "dashed") == 0 ||
+					_stricmp(c, "solid") == 0 ||
+					_stricmp(c, "float") == 0 ||
+					_stricmp(c, "groove") == 0 ||
+					_stricmp(c, "ridge") == 0 ||
+					_stricmp(c, "inset") == 0 ||
+					_stricmp(c, "outse") == 0)
 		{
 			Style = c;
 		}
@@ -932,7 +932,7 @@ void GLine::Set(char *s)
 		}
 	}
 
-	if (Style && stricmp(Style, "dotted") == 0)
+	if (Style && _stricmp(Style, "dotted") == 0)
 	{
 		switch ((int)d)
 		{
@@ -1229,7 +1229,7 @@ bool GTag::SetVariant(const char *Name, GVariant &Value, char *Array)
 	if (!Name)
 		return false;
 
-	if (!stricmp(Name, "innerHTML"))
+	if (!_stricmp(Name, "innerHTML"))
 	{
 		// Clear out existing tags..
 		Children.DeleteObjects();
@@ -1353,7 +1353,7 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 		const char *a;
 		for (char *v = Attr.First(&a); v; v = Attr.Next(&a))
 		{
-			if (stricmp(a, "style"))
+			if (_stricmp(a, "style"))
 				p.Print(" %s=\"%s\"", a, v);
 		}
 	}
@@ -1372,7 +1372,7 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 		}
 
 		bool Last = IsBlock(Display());
-		for (int i=0; i<Children.Length(); i++)
+		for (unsigned i=0; i<Children.Length(); i++)
 		{
 			GTag *c = ToTag(Children[i]);
 			c->CreateSource(p, Parent ? Depth+1 : 0, Last);
@@ -1517,7 +1517,7 @@ void GTag::CopyClipboard(GBytePipe &p, bool &InSelection)
 		}
 	}
 
-	for (int i=0; i<Children.Length(); i++)
+	for (unsigned i=0; i<Children.Length(); i++)
 	{
 		GTag *c = ToTag(Children[i]);
 		c->CopyClipboard(p, InSelection);
@@ -1549,7 +1549,7 @@ void GTag::_Dump(GStringPipe &Buf, int Depth)
 	Tab[Depth] = 0;
 
 	char Trs[1024] = "";
-	for (int i=0; i<TextPos.Length(); i++)
+	for (unsigned i=0; i<TextPos.Length(); i++)
 	{
 		GFlowRect *Tr = TextPos[i];
 		
@@ -1568,14 +1568,14 @@ void GTag::_Dump(GStringPipe &Buf, int Depth)
 		}
 
 		int Len = strlen(Trs);
-		snprintf(Trs+Len, sizeof(Trs)-Len-1, "Tr(%i,%i %ix%i '%s') ", Tr->x1, Tr->y1, Tr->X(), Tr->Y(), Utf8.Get());
+		sprintf_s(Trs+Len, sizeof(Trs)-Len, "Tr(%i,%i %ix%i '%s') ", Tr->x1, Tr->y1, Tr->X(), Tr->Y(), Utf8.Get());
 	}
 	
 	const char *Empty = "";
 	char *ElementName = TagId == CONTENT ? (char*)"Content" :
 				(TagId == ROOT ? (char*)"Root" : Tag);
 
-	snprintf(s, sizeof(s)-1,
+	sprintf_s(s, sizeof(s),
 			"%s%s(%p)%s%s%s (%i) Pos=%i,%i Size=%i,%i Color=%s/%s %s\r\n",
 			Tab,
 			ElementName,
@@ -1594,7 +1594,7 @@ void GTag::_Dump(GStringPipe &Buf, int Depth)
 			Trs);
 	Buf.Push(s);
 
-	for (int i=0; i<Children.Length(); i++)
+	for (unsigned i=0; i<Children.Length(); i++)
 	{
 		GTag *t = ToTag(Children[i]);
 		t->_Dump(Buf, Depth+1);
@@ -1602,7 +1602,7 @@ void GTag::_Dump(GStringPipe &Buf, int Depth)
 
 	if (Children.Length())
 	{
-		snprintf(s, sizeof(s)-1, "%s/%s\r\n", Tab, ElementName);
+		sprintf_s(s, sizeof(s), "%s/%s\r\n", Tab, ElementName);
 		Buf.Push(s);
 	}
 }
@@ -1623,7 +1623,7 @@ GAutoString GTag::DescribeElement()
 	int ch = sprintf_s(s, sizeof(s), "%s", Tag ? Tag.Get() : "CONTENT");
 	if (HtmlId)
 		ch += sprintf_s(s+ch, sizeof(s)-ch, "#%s", HtmlId);
-	for (int i=0; i<Class.Length(); i++)
+	for (unsigned i=0; i<Class.Length(); i++)
 		ch += sprintf_s(s+ch, sizeof(s)-ch, ".%s", Class[i]);
 	return GAutoString(NewStr(s));
 }
@@ -1799,7 +1799,7 @@ bool GTag::OnMouseClick(GMouse &m)
 			if (Class.Length())
 			{
 				p.Print("Class(es): ");
-				for (int i=0; i<Class.Length(); i++)
+				for (unsigned i=0; i<Class.Length(); i++)
 				{
 					p.Print("%s%s", i?", ":"", Class[i]);
 				}
@@ -1812,7 +1812,7 @@ bool GTag::OnMouseClick(GMouse &m)
 			p.Print("Pos: %i,%i   Size: %i,%i\n\n", Pos.x, Pos.y, Size.x, Size.y);
 			p.Print("Style:\n", Style.Get());
 			GToken s(Style, "\n");
-			for (int i=0; i<s.Length(); i++)
+			for (unsigned i=0; i<s.Length(); i++)
 				p.Print("    %s\n", s[i]);
 			
 			p.Print("\nParent tags:\n");
@@ -1825,7 +1825,7 @@ bool GTag::OnMouseClick(GMouse &m)
 				{
 					Tmp.Print("#%s", t->HtmlId);
 				}
-				for (int i=0; i<t->Class.Length(); i++)
+				for (unsigned i=0; i<t->Class.Length(); i++)
 				{
 					Tmp.Print(".%s", t->Class[i]);
 				}
@@ -1911,12 +1911,12 @@ GTag *GTag::GetAnchor(char *Name)
 		return 0;
 
 	const char *n;
-	if (IsAnchor(0) && Get("name", n) && n && !stricmp(Name, n))
+	if (IsAnchor(0) && Get("name", n) && n && !_stricmp(Name, n))
 	{
 		return this;
 	}
 
-	for (int i=0; i<Children.Length(); i++)
+	for (unsigned i=0; i<Children.Length(); i++)
 	{
 		GTag *t = ToTag(Children[i]);
 		GTag *Result = t->GetAnchor(Name);
@@ -1930,12 +1930,12 @@ GTag *GTag::GetTagByName(const char *Name)
 {
 	if (Name)
 	{
-		if (Tag && stricmp(Tag, Name) == 0)
+		if (Tag && _stricmp(Tag, Name) == 0)
 		{
 			return this;
 		}
 
-		for (int i=0; i<Children.Length(); i++)
+		for (unsigned i=0; i<Children.Length(); i++)
 		{
 			GTag *t = ToTag(Children[i]);
 			GTag *Result = t->GetTagByName(Name);
@@ -2052,7 +2052,7 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, int Depth, bool DebugLog)
 	}
 	else if (TextPos.Length())
 	{
-		for (int i=0; i<TextPos.Length(); i++)
+		for (unsigned i=0; i<TextPos.Length(); i++)
 		{
 			GFlowRect *Tr = TextPos[i];
 			if (!Tr)
@@ -2114,7 +2114,7 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, int Depth, bool DebugLog)
 		}
 	}
 
-	for (int i=0; i<Children.Length(); i++)
+	for (unsigned i=0; i<Children.Length(); i++)
 	{
 		GTag *t = ToTag(Children[i]);
 		if (t->Pos.x >= 0 &&
@@ -2184,7 +2184,7 @@ void GTag::CollectFormValues(GHashTbl<const char*,char*> &f)
 		}
 	}
 
-	for (int i=0; i<Children.Length(); i++)
+	for (unsigned i=0; i<Children.Length(); i++)
 	{
 		GTag *t = ToTag(Children[i]);
 		t->CollectFormValues(f);
@@ -2196,7 +2196,7 @@ GTag *GTag::FindCtrlId(int Id)
 	if (Ctrl && Ctrl->GetId() == Id)
 		return this;
 
-	for (int i=0; i<Children.Length(); i++)
+	for (unsigned i=0; i<Children.Length(); i++)
 	{
 		GTag *t = ToTag(Children[i]);
 		GTag *f = t->FindCtrlId(Id);
@@ -2213,7 +2213,7 @@ void GTag::Find(int TagType, GArray<GTag*> &Out)
 	{
 		Out.Add(this);
 	}
-	for (int i=0; i<Children.Length(); i++)
+	for (unsigned i=0; i<Children.Length(); i++)
 	{
 		GTag *t = ToTag(Children[i]);
 		t->Find(TagType, Out);
@@ -2250,7 +2250,7 @@ void GTag::SetImage(const char *Uri, GSurface *Img)
 			}
 		}		
 
-		for (int i=0; i<Children.Length(); i++)
+		for (unsigned i=0; i<Children.Length(); i++)
 		{
 			GTag *t = ToTag(Children[i]);
 			t->MinContent = 0;
@@ -2269,7 +2269,7 @@ void GTag::LoadImage(const char *Uri)
 	GDocumentEnv::LoadJob *j = Html->Environment->NewJob();
 	if (j)
 	{
-		LgiAssert(Html);
+		LgiAssert(Html != NULL);
 		j->Uri.Reset(NewStr(Uri));
 		j->View = Html;
 		j->UserData = this;
@@ -2295,7 +2295,7 @@ void GTag::LoadImages()
 		LoadImage(Uri);
 	}
 
-	for (int i=0; i<Children.Length(); i++)
+	for (unsigned i=0; i<Children.Length(); i++)
 	{
 		GTag *t = ToTag(Children[i]);
 		t->LoadImages();
@@ -2322,7 +2322,7 @@ void GTag::ImageLoaded(char *uri, GSurface *Img, int &Used)
 		}
 	}
 
-	for (int i=0; i<Children.Length(); i++)
+	for (unsigned i=0; i<Children.Length(); i++)
 	{
 		GTag *t = ToTag(Children[i]);
 		t->ImageLoaded(uri, Img, Used);
@@ -2347,7 +2347,7 @@ struct GTagElementCallback : public GCss::ElementCallback<GTag>
 	
 	bool GetClasses(GArray<const char *> &Classes, GTag *obj) 
 	{
-		for (int i=0; i<obj->Class.Length(); i++)
+		for (unsigned i=0; i<obj->Class.Length(); i++)
 			Classes.Add(obj->Class[i]);
 		return true;
 	}
@@ -2360,7 +2360,7 @@ struct GTagElementCallback : public GCss::ElementCallback<GTag>
 	GArray<GTag*> GetChildren(GTag *obj)
 	{
 		GArray<GTag*> c;
-		for (int i=0; i<obj->Children.Length(); i++)
+		for (unsigned i=0; i<obj->Children.Length(); i++)
 			c.Add(ToTag(obj->Children[i]));
 		return c;
 	}
@@ -2375,7 +2375,7 @@ void GTag::Restyle()
 	GTagElementCallback Context;
 	if (Html->CssStore.Match(Styles, &Context, this))
 	{
-		for (int i=0; i<Styles.Length(); i++)
+		for (unsigned i=0; i<Styles.Length(); i++)
 		{
 			GCss::Selector *s = Styles[i];
 			if (s)
@@ -2456,12 +2456,12 @@ void GTag::SetStyle()
 				Get("type", Type) &&
 				Get("href", Href))
 			{
-				if (!stricmp(Type, "text/css"))
+				if (!_stricmp(Type, "text/css"))
 				{
 					GDocumentEnv::LoadJob *j = Html->Environment->NewJob();
 					if (j)
 					{
-						LgiAssert(Html);
+						LgiAssert(Html != NULL);
 						GTag *t = this;
 						
 						j->Uri.Reset(NewStr(Href));
@@ -2476,7 +2476,7 @@ void GTag::SetStyle()
 							GStreamI *s = j->GetStream();							
 							if (s)
 							{
-								uint64 Len = s->GetSize();
+								int Len = (int)s->GetSize();
 								if (Len > 0)
 								{
 									GAutoString a(new char[Len+1]);
@@ -2503,7 +2503,7 @@ void GTag::SetStyle()
 
 			if (Get("Type", s))
 			{
-				if (stricmp(s, "cite") == 0)
+				if (_stricmp(s, "cite") == 0)
 				{
 					BorderLeft(BorderDef("1px solid blue"));
 					PaddingLeft(Len("0.5em"));
@@ -2632,15 +2632,15 @@ void GTag::SetStyle()
 	}
 	if (Get("align", s))
 	{
-		if (stricmp(s, "left") == 0) TextAlign(Len(AlignLeft));
-		else if (stricmp(s, "right") == 0) TextAlign(Len(AlignRight));
-		else if (stricmp(s, "center") == 0) TextAlign(Len(AlignCenter));
+		if (_stricmp(s, "left") == 0) TextAlign(Len(AlignLeft));
+		else if (_stricmp(s, "right") == 0) TextAlign(Len(AlignRight));
+		else if (_stricmp(s, "center") == 0) TextAlign(Len(AlignCenter));
 	}
 	if (Get("valign", s))
 	{
-		if (stricmp(s, "top") == 0) VerticalAlign(Len(VerticalTop));
-		else if (stricmp(s, "middle") == 0) VerticalAlign(Len(VerticalMiddle));
-		else if (stricmp(s, "bottom") == 0) VerticalAlign(Len(VerticalBottom));
+		if (_stricmp(s, "top") == 0) VerticalAlign(Len(VerticalTop));
+		else if (_stricmp(s, "middle") == 0) VerticalAlign(Len(VerticalMiddle));
+		else if (_stricmp(s, "bottom") == 0) VerticalAlign(Len(VerticalBottom));
 	}
 
 	switch (TagId)
@@ -2659,7 +2659,7 @@ void GTag::SetStyle()
 
 			const char *s;
 			if (Get("http-equiv", s) &&
-				stricmp(s, "Content-Type") == 0)
+				_stricmp(s, "Content-Type") == 0)
 			{
 				const char *ContentType;
 				if (Get("content", ContentType))
@@ -2675,7 +2675,7 @@ void GTag::SetStyle()
 				}
 			}
 
-			if (Get("name", s) && stricmp(s, "charset") == 0 && Get("content", s))
+			if (Get("name", s) && _stricmp(s, "charset") == 0 && Get("content", s))
 			{
 				Cs.Reset(NewStr(s));
 			}
@@ -2687,8 +2687,8 @@ void GTag::SetStyle()
 			if (Cs)
 			{
 				if (Cs &&
-					stricmp(Cs, "utf-16") != 0 &&
-					stricmp(Cs, "utf-32") != 0 &&
+					_stricmp(Cs, "utf-16") != 0 &&
+					_stricmp(Cs, "utf-32") != 0 &&
 					LgiGetCsInfo(Cs))
 				{
 					Html->SetCharset(Cs);
@@ -2912,12 +2912,12 @@ void GTag::SetStyle()
 			
 			if (Get("type", Type))
 			{
-				if (!stricmp(Type, "password")) CtrlType = CtrlPassword;
-				else if (!stricmp(Type, "email")) CtrlType = CtrlEmail;
-				else if (!stricmp(Type, "text")) CtrlType = CtrlText;
-				else if (!stricmp(Type, "button")) CtrlType = CtrlButton;
-				else if (!stricmp(Type, "submit")) CtrlType = CtrlSubmit;
-				else if (!stricmp(Type, "hidden")) CtrlType = CtrlHidden;
+				if (!_stricmp(Type, "password")) CtrlType = CtrlPassword;
+				else if (!_stricmp(Type, "email")) CtrlType = CtrlEmail;
+				else if (!_stricmp(Type, "text")) CtrlType = CtrlText;
+				else if (!_stricmp(Type, "button")) CtrlType = CtrlButton;
+				else if (!_stricmp(Type, "submit")) CtrlType = CtrlSubmit;
+				else if (!_stricmp(Type, "hidden")) CtrlType = CtrlHidden;
 
 				DeleteObj(Ctrl);
 				if (CtrlType == CtrlEmail ||
@@ -2995,7 +2995,7 @@ char16 *GTag::CleanText(const char *s, int Len, const char *SourceCs,  bool Conv
 	bool DocAndCsTheSame = false;
 	if (Html->DocCharSet && Html->Charset)
 	{
-		DocAndCsTheSame = stricmp(Html->DocCharSet, Html->Charset) == 0;
+		DocAndCsTheSame = _stricmp(Html->DocCharSet, Html->Charset) == 0;
 	}
 
 	if (SourceCs)
@@ -3050,7 +3050,7 @@ char16 *GTag::CleanText(const char *s, int Len, const char *SourceCs,  bool Conv
 									) &&
 									(p - n) < 31)
 							{
-								*p++ = *i++;
+								*p++ = (char)*i++;
 							}
 						}
 						else
@@ -3058,7 +3058,7 @@ char16 *GTag::CleanText(const char *s, int Len, const char *SourceCs,  bool Conv
 							// Decimal number
 							while (*i && IsDigit(*i) && (p - n) < 31)
 							{
-								*p++ = *i++;
+								*p++ = (char)*i++;
 							}
 						}
 						*p++ = 0;
@@ -3282,7 +3282,7 @@ bool GTag::ConvertToText(TextConvertState &State)
 	
 	State.Depth += DepthInc;
 	
-	for (int i=0; i<Children.Length(); i++)
+	for (unsigned i=0; i<Children.Length(); i++)
 	{
 		GTag *c = ToTag(Children[i]);
 		c->ConvertToText(State);
@@ -3306,7 +3306,7 @@ bool GTag::ConvertToText(TextConvertState &State)
 				if (Get("href", Href) &&
 					ValidStrW(Txt))
 				{
-					if (strnicmp(Href, "mailto:", 7) == 0)
+					if (_strnicmp(Href, "mailto:", 7) == 0)
 						Href += 7;
 						
 					int HrefLen = strlen(Href);
@@ -3405,7 +3405,7 @@ void GTag::ZeroTableElements()
 		MinContent = 0;
 		MaxContent = 0;
 
-		for (int i=0; i<Children.Length(); i++)
+		for (unsigned i=0; i<Children.Length(); i++)
 		{
 			GTag *t = ToTag(Children[i]);
 			t->ZeroTableElements();
@@ -3589,7 +3589,7 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 		}
 	}
 
-	for (int i = 0; i < Children.Length(); i++)
+	for (unsigned i = 0; i < Children.Length(); i++)
 	{
 		GTag *c = ToTag(Children[i]);
 		uint16 Width = 0;
@@ -3656,7 +3656,7 @@ template <class T>
 T Sum(GArray<T> &a)
 {
 	T s = 0;
-	for (int i=0; i<a.Length(); i++)
+	for (unsigned i=0; i<a.Length(); i++)
 		s += a[i];
 	return s;
 }
@@ -3729,7 +3729,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 							!t->MinContent &&
 							!t->MaxContent)
 						{
-							if (FixedCol.Length() < x)
+							if ((int)FixedCol.Length() < x)
 							{
 								FixedCol[x] = false;
 							}
@@ -3805,7 +3805,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 							if (Total > 100.0)
 							{
 								// Yarrrrh. The web be full of incongruity.
-								float Sub = Total - 100.0;
+								float Sub = Total - 100.0f;
 								Percents[Percents.Length()-1] -= Sub;
 
 								char p[32];
@@ -3913,7 +3913,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 								if (Unfixed.Length())
 								{
 									int Add = Total / Unfixed.Length();
-									for (i=0; i<Unfixed.Length(); i++)
+									for (unsigned i=0; i<Unfixed.Length(); i++)
 									{
 										int a = i ? Add : Total - (Add * (Unfixed.Length() - 1));
 										
@@ -3953,7 +3953,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 								if (Unfixed.Length())
 								{
 									int Add = Total / Unfixed.Length();
-									for (i=0; i<Unfixed.Length(); i++)
+									for (unsigned i=0; i<Unfixed.Length(); i++)
 									{
 										int a = i ? Add : Total - (Add * (Unfixed.Length() - 1));
 
@@ -4250,7 +4250,7 @@ GRect GTag::ChildBounds()
 {
 	GRect b(0, 0, -1, -1);
 
-	for (int i=0; i<Children.Length(); i++)
+	for (unsigned i=0; i<Children.Length(); i++)
 	{
 		GTag *t = ToTag(Children[i]);
 		if (i)
@@ -4301,7 +4301,7 @@ GRect GArea::Bounds()
 {
 	GRect n(0, 0, -1, -1);
 
-	for (int i=0; i<Length(); i++)
+	for (unsigned i=0; i<Length(); i++)
 	{
 		GFlowRect *r = (*this)[i];
 		if (r)
@@ -4501,7 +4501,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 			Flow->Indent(f, MarginLeft(), MarginTop(), MarginRight(), MarginBottom(), true);
 
 			// Flow children
-			for (int i=0; i<Children.Length(); i++)
+			for (unsigned i=0; i<Children.Length(); i++)
 			{
 				GTag *t = ToTag(Children[i]);
 				t->OnFlow(&Temp);
@@ -4789,7 +4789,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 	}
 
 	// Flow children
-	for (int i=0; i<Children.Length(); i++)
+	for (unsigned i=0; i<Children.Length(); i++)
 	{
 		GTag *t = ToTag(Children[i]);
 
@@ -4983,7 +4983,7 @@ bool GTag::PeekTag(char *s, char *tag)
 			Html->ParseName(++s, &t);
 			if (t)
 			{
-				Status = stricmp(t, tag) == 0;
+				Status = _stricmp(t, tag) == 0;
 			}
 
 			DeleteArray(t);
@@ -5114,7 +5114,7 @@ void GTag::OnPaintBorder(GSurface *pDC, GRect *Px)
 		}
 		case DispInline:
 		{
-			for (int i=0; i<TextPos.Length(); i++)
+			for (unsigned i=0; i<TextPos.Length(); i++)
 			{
 				r.New() = *(TextPos[i]);
 			}
@@ -5125,7 +5125,7 @@ void GTag::OnPaintBorder(GSurface *pDC, GRect *Px)
 	if (Px)
 		Px->ZOff(0, 0);
 
-	for (int i=0; i<r.Length(); i++)
+	for (unsigned i=0; i<r.Length(); i++)
 	{
 		GRect &rc = r[i];
 		
@@ -5476,7 +5476,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 				}
 				else
 				{
-					for (int i=0; i<TextPos.Length(); i++)
+					for (unsigned i=0; i<TextPos.Length(); i++)
 					{
 						pDC->Rectangle(TextPos[i]);
 					}
@@ -5540,7 +5540,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 					GRect CursorPos;
 					CursorPos.ZOff(-1, -1);
 
-					for (int i=0; i<TextPos.Length(); i++)
+					for (unsigned i=0; i<TextPos.Length(); i++)
 					{
 						GFlowRect *Tr = TextPos[i];
 						int Start = Tr->Text - Text();
@@ -5649,7 +5649,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 					FontColour(InSelection);
 
 					int Base = GetTextStart();
-					for (int i=0; i<TextPos.Length(); i++)
+					for (unsigned i=0; i<TextPos.Length(); i++)
 					{
 						GFlowRect *Tr = TextPos[i];
 						int Pos = (Tr->Text - Text()) - Base;
@@ -5698,7 +5698,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 				{
 					FontColour(InSelection);
 
-					for (int i=0; i<TextPos.Length(); i++)
+					for (unsigned i=0; i<TextPos.Length(); i++)
 					{
 						GFlowRect *Tr = TextPos[i];
 						GDisplayString ds(f, Tr->Text, Tr->Len);
@@ -5730,7 +5730,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 	}
 	#endif
 
-	for (int i=0; i<Children.Length(); i++)
+	for (unsigned i=0; i<Children.Length(); i++)
 	{
 		GTag *t = ToTag(Children[i]);
 		pDC->SetOrigin(Px - t->Pos.x, Py - t->Pos.y);
@@ -5869,8 +5869,6 @@ void GHtml::ParseDocument(const char *Doc)
 
 		if (IsHtml)
 		{
-			GTag *c;
-
 			Parse(Tag, Doc);
 
 			// Add body tag if not specified...
@@ -5894,7 +5892,7 @@ void GHtml::ParseDocument(const char *Doc)
 				if ((Body = new GTag(this, Html)))
 					Body->SetTag("body");
 					
-				for (int i=0; i<Html->Children.Length(); i++)
+				for (unsigned i=0; i<Html->Children.Length(); i++)
 				{
 					GTag *t = ToTag(Html->Children[i]);
 					if (t->TagId != TAG_HEAD)
@@ -6075,7 +6073,7 @@ GMessage::Result GHtml::OnEvent(GMessage *Msg)
 			
 			if (JobSem.Lock(_FL))
 			{
-				for (int i=0; i<JobSem.Jobs.Length(); i++)
+				for (unsigned i=0; i<JobSem.Jobs.Length(); i++)
 				{
 					GDocumentEnv::LoadJob *j = JobSem.Jobs[i];
 					GDocView *Me = this;
@@ -6101,7 +6099,7 @@ GMessage::Result GHtml::OnEvent(GMessage *Msg)
 								GStreamI *s = j->GetStream();
 								if (s)
 								{
-									int64 Size = s->GetSize();
+									int Size = (int)s->GetSize();
 									GAutoString Style(new char[Size+1]);
 									int rd = s->Read(Style, Size);
 									if (rd > 0)
@@ -6178,7 +6176,7 @@ GdcPt2 GHtml::Layout()
 		d->Content.y = f.y2;
 
 		// Set up scroll box
-		int Sy = f.y2 > Y();
+		bool Sy = f.y2 > Y();
 		int LineY = GetFont()->GetHeight();
 
 		uint64 Now = LgiCurrentTime();
@@ -6239,7 +6237,7 @@ void GHtml::OnPaint(GSurface *ScreenDC)
 			if (VScroll)
 			{
 				int LineY = GetFont()->GetHeight();
-				int Vs = VScroll->Value();
+				int Vs = (int)VScroll->Value();
 				pDC->SetOrigin(0, Vs * LineY);
 			}
 
@@ -6470,7 +6468,7 @@ char *GHtml::GetSelection()
 		bool InSelection = false;
 		Tag->CopyClipboard(p, InSelection);
 
-		int Len = p.GetSize();
+		int Len = (int)p.GetSize();
 		if (Len > 0)
 		{
 			char16 *t = (char16*)p.New(sizeof(char16));
@@ -6494,9 +6492,9 @@ bool GHtml::SetVariant(const char *Name, GVariant &Value, char *Array)
 {
 	if (!Name)
 		return false;
-	if (!stricmp(Name, "ShowImages"))
+	if (!_stricmp(Name, "ShowImages"))
 	{
-		SetLoadImages(Value.CastInt32());
+		SetLoadImages(Value.CastInt32() != 0);
 	}
 	else return false;
 	
@@ -6530,7 +6528,7 @@ static bool FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User)
 void BuildTagList(GArray<GTag*> &t, GTag *Tag)
 {
 	t.Add(Tag);
-	for (int i=0; i<Tag->Children.Length(); i++)
+	for (unsigned i=0; i<Tag->Children.Length(); i++)
 	{
 		GTag *c = ToTag(Tag->Children[i]);
 		BuildTagList(t, c);
@@ -6579,7 +6577,7 @@ bool GHtml::OnSubmitForm(GTag *Form)
 	GHashTbl<const char*,char*> f(0, false);
 	Form->CollectFormValues(f);
 	bool Status = false;
-	if (!stricmp(Method, "post"))
+	if (!_stricmp(Method, "post"))
 	{
 		GStringPipe p(256);
 		const char *Field;
@@ -6599,7 +6597,7 @@ bool GHtml::OnSubmitForm(GTag *Form)
 		GAutoPtr<const char, true> Data(p.NewStr());
 		Status = Environment->OnPostForm(this, Action, Data);
 	}
-	else if (!stricmp(Method, "get"))
+	else if (!_stricmp(Method, "get"))
 	{
 		Status = Environment->OnNavigate(this, Action);
 	}
@@ -6633,7 +6631,7 @@ bool GHtml::OnFind(GFindReplaceCommon *Params)
 		GArray<GTag*> Tags;
 		BuildTagList(Tags, Tag);
 		int Start = Tags.IndexOf(Cursor);
-		for (int i=1; i<Tags.Length(); i++)
+		for (unsigned i=1; i<Tags.Length(); i++)
 		{
 			int Idx = (Start + i) % Tags.Length();
 			GTag *s = Tags[Idx];
@@ -6745,7 +6743,7 @@ bool GHtml::OnKey(GKey &k)
 			}
 			case VK_HOME:
 			{
-				Dy = VScroll ? -VScroll->Value() : 0;
+				Dy = (int) (VScroll ? -VScroll->Value() : 0);
 				Status = true;
 				break;
 			}
@@ -6755,7 +6753,7 @@ bool GHtml::OnKey(GKey &k)
 				{
 					int64 Low, High;
 					VScroll->Limits(Low, High);
-					Dy = (High - Page) - VScroll->Value();
+					Dy = (int) ((High - Page) - VScroll->Value());
 				}
 				Status = true;
 				break;
@@ -6774,7 +6772,7 @@ bool GHtml::OnKey(GKey &k)
 
 int GHtml::ScrollY()
 {
-	return GetFont()->GetHeight() * (VScroll ? VScroll->Value() : 0);
+	return GetFont()->GetHeight() * (VScroll ? (int)VScroll->Value() : 0);
 }
 
 void GHtml::OnMouseClick(GMouse &m)
@@ -7372,10 +7370,10 @@ GDom *ElementById(GTag *t, char *id)
 	if (t && id)
 	{
 		const char *i;
-		if (t->Get("id", i) && stricmp(i, id) == 0)
+		if (t->Get("id", i) && _stricmp(i, id) == 0)
 			return t;
 
-		for (int i=0; i<t->Children.Length(); i++)
+		for (unsigned i=0; i<t->Children.Length(); i++)
 		{
 			GTag *c = ToTag(t->Children[i]);
 			GDom *n = ElementById(c, id);
@@ -7409,7 +7407,7 @@ bool GHtml::GetFormattedContent(const char *MimeType, GAutoString &Out, GArray<G
 		return false;
 	}
 
-	if (!stricmp(MimeType, "text/html"))
+	if (!_stricmp(MimeType, "text/html"))
 	{
 		// We can handle this type...
 		GArray<GTag*> Imgs;
@@ -7419,7 +7417,7 @@ bool GHtml::GetFormattedContent(const char *MimeType, GAutoString &Out, GArray<G
 			Tag->Find(TAG_IMG, Imgs);
 
 			// Give them CID's if they don't already have them
-			for (int i=0; i<Imgs.Length(); i++)
+			for (unsigned i=0; i<Imgs.Length(); i++)
 			{
 				GTag *Img = Imgs[i];
 				if (!Img)
@@ -7455,7 +7453,7 @@ bool GHtml::GetFormattedContent(const char *MimeType, GAutoString &Out, GArray<G
 		// Export the HTML, including the CID's from the first step
 		Out.Reset(NewStr(Name()));
 	}
-	else if (!stricmp(MimeType, "text/plain"))
+	else if (!_stricmp(MimeType, "text/plain"))
 	{
 		// Convert DOM tree down to text instead...
 		GStringPipe p(512);
@@ -7523,7 +7521,7 @@ class GHtml_Factory : public GViewFactory
 {
 	GView *NewView(const char *Class, GRect *Pos, const char *Text)
 	{
-		if (stricmp(Class, "GHtml") == 0)
+		if (_stricmp(Class, "GHtml") == 0)
 		{
 			return new GHtml(-1, 0, 0, 100, 100, new GDefaultDocumentEnv);
 		}
@@ -7544,7 +7542,7 @@ GCellStore::GCellStore(GTag *Table)
 	GTag *FakeCell = 0;
 
 	GTag *r;
-	for (int i=0; i<Table->Children.Length(); i++)
+	for (unsigned i=0; i<Table->Children.Length(); i++)
 	{
 		r = ToTag(Table->Children[i]);
 		if (r->Display() == GCss::DispNone)
@@ -7558,7 +7556,7 @@ GCellStore::GCellStore(GTag *Table)
 		else if (r->TagId == TAG_TBODY)
 		{
 			int Index = Table->Children.IndexOf(r);			
-			for (int n=0; n<r->Children.Length(); n++)
+			for (unsigned n=0; n<r->Children.Length(); n++)
 			{
 				GTag *t = ToTag(r->Children[n]);
 				Table->Children.AddAt(++Index, t);
@@ -7601,7 +7599,7 @@ GCellStore::GCellStore(GTag *Table)
 				}
 				else
 				{
-					LgiAssert(FakeCell);
+					LgiAssert(FakeCell != NULL);
 					FakeCell->Attach(r);
 				}
 				i = Idx - 1;
@@ -7610,13 +7608,13 @@ GCellStore::GCellStore(GTag *Table)
 	}
 
 	FakeCell = NULL;
-	for (int n=0; n<Table->Children.Length(); n++)
+	for (unsigned n=0; n<Table->Children.Length(); n++)
 	{
 		GTag *r = ToTag(Table->Children[n]);
 		if (r->TagId == TAG_TR)
 		{
 			int x = 0;
-			for (int i=0; i<r->Children.Length(); i++)
+			for (unsigned i=0; i<r->Children.Length(); i++)
 			{
 				GTag *cell = ToTag(r->Children[i]);
 				if (cell->TagId != TAG_TD)
@@ -7713,10 +7711,10 @@ void GCellStore::Dump()
 void GCellStore::GetAll(List<GTag> &All)
 {
 	GHashTbl<void*, bool> Added;
-	for (int y=0; y<c.Length(); y++)
+	for (unsigned y=0; y<c.Length(); y++)
 	{
 		CellArray &a = c[y];
-		for (int x=0; x<a.Length(); x++)
+		for (unsigned x=0; x<a.Length(); x++)
 		{
 			GTag *t = a[x];
 			if (t && !Added.Find(t))
@@ -7733,19 +7731,19 @@ void GCellStore::GetSize(int &x, int &y)
 	x = 0;
 	y = c.Length();
 
-	for (int i=0; i<c.Length(); i++)
+	for (unsigned i=0; i<c.Length(); i++)
 	{
-		x = max(x, c[i].Length());
+		x = max(x, (int) c[i].Length());
 	}
 }
 
 GTag *GCellStore::Get(int x, int y)
 {
-	if (y >= c.Length())
+	if (y >= (int) c.Length())
 		return NULL;
 	
 	CellArray &a = c[y];
-	if (x >= a.Length())
+	if (x >= (int) a.Length())
 		return NULL;
 	
 	return a[x];
@@ -7772,7 +7770,7 @@ void GTagHit::Dump(const char *Desc)
 {
 	GArray<GTag*> d, n;
 	GTag *t = Direct;
-	int i;
+	unsigned i;
 	for (i=0; i<3 && t; t = ToTag(t->Parent), i++)
 	{
 		d.AddAt(0, t);

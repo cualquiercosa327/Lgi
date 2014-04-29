@@ -205,7 +205,7 @@ public:
 	bool SetValue(char *Which, GVariant &What)
 	{
 		int r = S->SetValue(Which, What);
-		if (T && stricmp(Which, GSocket_TransferSize) == 0)
+		if (T && _stricmp(Which, GSocket_TransferSize) == 0)
 		{
 			T->Range = What.CastInt32();
 		}
@@ -253,7 +253,7 @@ bool MailPhp::Get(GSocketI *S, char *Uri, GStream &Out, bool MailTransfer)
 	if (S && Uri)
 	{
 		char *Start = Uri;
-		if (strnicmp(Start, "http://", 7) == 0)
+		if (_strnicmp(Start, "http://", 7) == 0)
 			Start += 7;
 		
 		char *s = strchr(Start, '/');
@@ -283,7 +283,7 @@ bool MailPhp::Get(GSocketI *S, char *Uri, GStream &Out, bool MailTransfer)
 					if (Buf.Peek((uchar*)Start, sizeof(Start)))
 					{
 						Start[sizeof(Start)-1] = 0;
-						if (stricmp(Start, "Error:") == 0)
+						if (_stricmp(Start, "Error:") == 0)
 						{
 							return false;
 						}
@@ -338,7 +338,7 @@ bool MailPhp::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Pa
 			bool GotToken = false;
 
 			GToken Lines(m, "\r\n");
-			if (strnicmp(m, "error:", 6) == 0)
+			if (_strnicmp(m, "error:", 6) == 0)
 			{
 				for (int Line=0; Line<Lines.Length(); Line++)
 				{
@@ -376,15 +376,15 @@ bool MailPhp::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Pa
 								}
 							}
 						}
-						else if (stricmp(Var, "protocol") == 0)
+						else if (_stricmp(Var, "protocol") == 0)
 						{
 							PopOverHttp = stristr(Val, "popoverhttp") != 0;
 						}
-						else if (stricmp(Var, "messages") == 0)
+						else if (_stricmp(Var, "messages") == 0)
 						{
 							d->Messages = atoi(Val);
 						}
-						else if (stricmp(Var, "token") == 0)
+						else if (_stricmp(Var, "token") == 0)
 						{
 							int Tok = atoi(Val);
 							GotToken = Tok == Token;

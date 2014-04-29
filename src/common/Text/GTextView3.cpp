@@ -3755,6 +3755,9 @@ bool GTextView3::OnKey(GKey &k)
 					}
 					else
 					{
+						#ifdef MAC
+						Jump_EndOfLine:
+						#endif
 						GTextLine *l = GetLine(Cursor);
 						if (l)
 						{
@@ -3775,6 +3778,9 @@ bool GTextView3::OnKey(GKey &k)
 					}
 					else
 					{
+						#ifdef MAC
+						Jump_StartOfLine:
+						#endif
 						GTextLine *l = GetLine(Cursor);
 						if (l)
 						{
@@ -3800,6 +3806,9 @@ bool GTextView3::OnKey(GKey &k)
 			}
 			case VK_PAGEUP:
 			{
+				#ifdef MAC
+				GTextView3_PageUp:
+				#endif
 				if (k.Down())
 				{
 					GTextLine *l = GetLine(Cursor);
@@ -3820,6 +3829,9 @@ bool GTextView3::OnKey(GKey &k)
 			}
 			case VK_PAGEDOWN:
 			{
+				#ifdef MAC
+				GTextView3_PageDown:
+				#endif
 				if (k.Down())
 				{
 					GTextLine *l = GetLine(Cursor);

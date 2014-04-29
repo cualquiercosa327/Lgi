@@ -79,7 +79,7 @@ public:
 	{
 		z = zlib;
 		f = 0;
-		LgiAssert(z);
+		LgiAssert(z != NULL);
 	}
 
 	~GZlibFile()
@@ -131,7 +131,7 @@ public:
 		if (!IsOpen())
 			return -1;
 
-		return z->gzseek(f, Pos, SEEK_SET);
+		return z->gzseek(f, (long)Pos, SEEK_SET);
 	}
 	
 	int Read(void *Buffer, int Size, int Flags = 0)

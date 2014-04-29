@@ -251,7 +251,7 @@ bool IHttp::GetFile(char *File, GStream &Out, int Format, int *ProtocolStatus, i
 			{
 				GToken R(Response, " \t");
 				if (R.Length() >= 2 &&
-					strnicmp(R[0], "http/", 5) == 0)
+					_strnicmp(R[0], "http/", 5) == 0)
 				{
 					Code = atoi(R[1]);
 					if (ProtocolStatus)

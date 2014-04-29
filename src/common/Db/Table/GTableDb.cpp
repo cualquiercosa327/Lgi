@@ -175,7 +175,7 @@ bool GTableDb::Field::operator !=(const Field &b)
 	return	Id != b.Id ||
 			!Name ||
 			!b.Name ||
-			stricmp(Name, b.Name) != 0 ||
+			_stricmp(Name, b.Name) != 0 ||
 			Type != b.Type;
 }
 
@@ -540,7 +540,7 @@ bool GTableDb::Open(const char *BaseFolder)
 				if (!tbl)
 					tbl = new Table(d, t[0]);
 				if (tbl && Dir.Path(p, sizeof(p)))
-					tbl->AddFile(p, atoi(t[1]), !stricmp(t[2], "index"));
+					tbl->AddFile(p, atoi(t[1]), !_stricmp(t[2], "index"));
 			}
 		}
 	}
@@ -570,7 +570,7 @@ GTableDb::Table *GTableDb::GetTable(const char *Name)
 
 	for (int i=0; i<d->Tables.Length(); i++)
 	{
-		if (!stricmp(Name, d->Tables[i]->Name()))
+		if (!_stricmp(Name, d->Tables[i]->Name()))
 			return d->Tables[i];
 	}
 	

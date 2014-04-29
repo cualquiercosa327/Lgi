@@ -30,7 +30,7 @@ bool IsVar(char *field, const char *s)
 	return _stricmp(field, s) == 0;
 }
 #else
-#define IsVar(field, str) (field != 0 && stricmp(field, str) == 0)
+#define IsVar(field, str) (field != 0 && _stricmp(field, str) == 0)
 #endif
 
 char *DeEscape(char *s, bool QuotedPrintable)
@@ -856,8 +856,8 @@ bool VCal::Import(GDataPropI *c, GStreamI *In)
 	{
 		if (IsCal)
 		{
-		    if (stricmp(Field, "end") == 0 &&
-			    stricmp(Data, "vcalendar") == 0)
+		    if (_stricmp(Field, "end") == 0 &&
+			    _stricmp(Data, "vcalendar") == 0)
 		    {
 		        IsCal = false;
 		        break;
@@ -865,8 +865,8 @@ bool VCal::Import(GDataPropI *c, GStreamI *In)
 		    
 		    if (IsEvent)
 		    {
-		        if (stricmp(Field, "end") == 0 &&
-			        stricmp(Data, SectionType) == 0)
+		        if (_stricmp(Field, "end") == 0 &&
+			        _stricmp(Data, SectionType) == 0)
 		        {
 		            Status = true;
 			        break;
@@ -911,15 +911,15 @@ bool VCal::Import(GDataPropI *c, GStreamI *In)
 				{
 					char *n = Data;
 
-					if (stricmp(n, "TENTATIVE") == 0)
+					if (_stricmp(n, "TENTATIVE") == 0)
 					{
 						c->SetInt(FIELD_CAL_SHOW_TIME_AS, 1);
 					}
-					else if (stricmp(n, "BUSY") == 0)
+					else if (_stricmp(n, "BUSY") == 0)
 					{
 						c->SetInt(FIELD_CAL_SHOW_TIME_AS, 2);
 					}
-					else if (stricmp(n, "OUT") == 0)
+					else if (_stricmp(n, "OUT") == 0)
 					{
 						c->SetInt(FIELD_CAL_SHOW_TIME_AS, 3);
 					}
@@ -944,15 +944,15 @@ bool VCal::Import(GDataPropI *c, GStreamI *In)
 						{
 							a->SetStr(FIELD_ATTENDEE_NAME, Name);
 							a->SetStr(FIELD_ATTENDEE_EMAIL, e);
-							if (stricmp(Role, "CHAIR") == 0)
+							if (_stricmp(Role, "CHAIR") == 0)
 							{
 								a->SetStr(FIELD_ATTENDEE_ATTENDENCE, 1);
 							}
-							else if (stricmp(Role, "REQ-PARTICIPANT") == 0)
+							else if (_stricmp(Role, "REQ-PARTICIPANT") == 0)
 							{
 								a->SetStr(FIELD_ATTENDEE_ATTENDENCE, 2);
 							}
-							else if (stricmp(Role, "OPT-PARTICIPANT") == 0)
+							else if (_stricmp(Role, "OPT-PARTICIPANT") == 0)
 							{
 								a->SetStr(FIELD_ATTENDEE_ATTENDENCE, 3);
 							}
@@ -963,24 +963,24 @@ bool VCal::Import(GDataPropI *c, GStreamI *In)
 			}
 		    else if
 		    (
-		        stricmp(Field, "begin") == 0
+		        _stricmp(Field, "begin") == 0
 			    &&
 			    (
-				    stricmp(Data, "vevent") == 0
+				    _stricmp(Data, "vevent") == 0
 				    ||
-				    stricmp(Data, "vtodo") == 0
+				    _stricmp(Data, "vtodo") == 0
 			    )
 		    )
 		    {
 		        IsEvent = true;
 		        SectionType.Reset(NewStr(Data));
 
-				int Type = stricmp(Data, "vtodo") == 0 ? 1 : 0;
+				int Type = _stricmp(Data, "vtodo") == 0 ? 1 : 0;
 				c->SetInt(FIELD_CAL_TYPE, Type);
 		    }
 		}
-		else if (stricmp(Field, "begin") == 0 &&
-			stricmp(Data, "vcalendar") == 0)
+		else if (_stricmp(Field, "begin") == 0 &&
+			_stricmp(Data, "vcalendar") == 0)
 		{
 		    IsCal = true;
 		}

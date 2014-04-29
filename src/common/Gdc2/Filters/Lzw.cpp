@@ -111,7 +111,7 @@ public:
 				{
 					if (Pipe)
 					{
-						int Size = Pipe->GetSize();
+						int Size = (int)Pipe->GetSize();
 						int Len = min(InBufSize, Size);
 						int r = Pipe->Read(InBuf, Len);
 						BitsLeft += r * 8;
@@ -362,7 +362,7 @@ public:
 	{
 		bool Status = false;
 		short index, WaitingCode;
-		int InputLen = In->GetSize();
+		int InputLen = (int)In->GetSize();
 
 		// Allocate encoder tables.
 		uchar *packet = new uchar[256];
@@ -461,7 +461,7 @@ public:
 				{
 					hash_code[k] = NextCode++;
 					hash_prefix[k] = WaitingCode;
-					hash_suffix[k] = index;
+					hash_suffix[k] = (uchar)index;
 				}
 				else
 				{

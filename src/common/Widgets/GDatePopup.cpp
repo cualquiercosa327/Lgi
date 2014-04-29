@@ -349,7 +349,7 @@ class GDatePopupFactory : public GViewFactory
 	GView *NewView(const char *Class, GRect *Pos, const char *Text)
 	{
 		if (Class &&
-			stricmp(Class, "GDateDropDown") == 0)
+			_stricmp(Class, "GDateDropDown") == 0)
 		{
 			return new GDateDropDown;
 		}

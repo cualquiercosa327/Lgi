@@ -38,12 +38,12 @@ GHtmlElement *GHtmlParser::GetOpenTag(const char *Tag)
 		{
 			if (t->Tag)
 			{
-				if (stricmp(t->Tag, Tag) == 0)
+				if (_stricmp(t->Tag, Tag) == 0)
 				{
 					return t;
 				}
 
-				if (stricmp(t->Tag, "table") == 0)
+				if (_stricmp(t->Tag, "table") == 0)
 				{
 					// stop looking... we don't close tags outside
 					// the table from inside.
@@ -354,7 +354,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 				s += 2;
 				while (*s && IsWhiteSpace(*s)) s++;
 
-				if (strnicmp(s, "xml:namespace", 13) == 0)
+				if (_strnicmp(s, "xml:namespace", 13) == 0)
 				{
 					// Ignore Outlook generated HTML tag
 					char *e = strchr(s, '/');
@@ -459,7 +459,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 				}
 
 				bool IsEndIf = false;
-				if (!stricmp(Cond, "if"))
+				if (!_stricmp(Cond, "if"))
 				{
 					if (!IsFirst)
 					{
@@ -478,7 +478,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 					Elem->Info = GetTagInfo(Elem->Tag);					
 					Elem->Display(GCss::DispNone);
 				}
-				else if (!stricmp(Cond, "endif"))
+				else if (!_stricmp(Cond, "endif"))
 				{
 					IsEndIf = true;
 				}
@@ -525,7 +525,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 					}
 					#endif
 
-					if (stricmp("th", Elem->Tag) == 0)
+					if (_stricmp("th", Elem->Tag) == 0)
 					{
 						Elem->Tag.Reset(NewStr("td"));
 					}
@@ -547,7 +547,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 								}
 
 								if (e->Tag &&
-									!stricmp(e->Tag, Elem->Tag))
+									!_stricmp(e->Tag, Elem->Tag))
 								{
 									AlreadyOpen = true;
 									
@@ -677,7 +677,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 						for (int i=0; i<T.Length(); i++)
 						{
 							if (Elem->Parent->Tag &&
-								stricmp(Elem->Parent->Tag, T[i]) == 0)
+								_stricmp(Elem->Parent->Tag, T[i]) == 0)
 							{
 								Reattach = 0;
 								break;
@@ -698,14 +698,14 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 								{
 									if (t->Tag)
 									{
-										if (stricmp(t->Tag, Elem->Tag) == 0)
+										if (_stricmp(t->Tag, Elem->Tag) == 0)
 										{
 											CloseTag(t);
 											t = OpenTags.Current();
 											if (!t) t = OpenTags.Last();
 										}
 
-										if (t && t->Tag && stricmp(t->Tag, Reattach) == 0)
+										if (t && t->Tag && _stricmp(t->Tag, Reattach) == 0)
 										{
 											Last = t;
 											break;
@@ -1049,7 +1049,7 @@ char16 *GHtmlParser::CleanText(const char *s, int Len, bool ConversionAllowed, b
 		bool DocAndCsTheSame = false;
 		if (DocCharSet && View->GetCharset())
 		{
-			DocAndCsTheSame = stricmp(DocCharSet, View->GetCharset()) == 0;
+			DocAndCsTheSame = _stricmp(DocCharSet, View->GetCharset()) == 0;
 		}
 
 		if (DocCharSet &&
@@ -1271,7 +1271,7 @@ bool GHtmlParser::ParseColour(const char *s, GCss::ColorDef &c)
 			c.Rgb32 = Rgb24To32(m);
 			return true;
 		}
-		else if (!strnicmp(s, "rgb", 3))
+		else if (!_strnicmp(s, "rgb", 3))
 		{
 			s += 3;
 			SkipWhiteSpace(s);
