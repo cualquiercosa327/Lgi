@@ -241,7 +241,7 @@ public:
 	struct LgiClass GDstInfo
 	{
 		/// Timestamp where the DST timezone changes to 'Offset'
-		int64 UtcTimeStamp;
+		uint64 UtcTimeStamp;
 		/// The new offset in minutes (e.g. 600 = +10 hours)
 		int Offset;
 

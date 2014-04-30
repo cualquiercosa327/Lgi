@@ -674,7 +674,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 					{
 						GToken T(Elem->Info->ReattachTo, ",");
 						const char *Reattach = Elem->Info->ReattachTo;
-						for (int i=0; i<T.Length(); i++)
+						for (unsigned i=0; i<T.Length(); i++)
 						{
 							if (Elem->Parent->Tag &&
 								_stricmp(Elem->Parent->Tag, T[i]) == 0)
@@ -748,8 +748,8 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 										uint64 Len = s->GetSize();
 										if (Len > 0)
 										{
-											GAutoString a(new char[Len+1]);
-											int r = s->Read(a, Len);
+											GAutoString a(new char[(size_t)Len+1]);
+											int r = s->Read(a, (int)Len);
 											a[r] = 0;
 											
 											GHtmlElement *Child = CreateElement(Elem);
@@ -1100,7 +1100,7 @@ char16 *GHtmlParser::CleanText(const char *s, int Len, bool ConversionAllowed, b
 										) &&
 										(p - n) < 31)
 								{
-									*p++ = *i++;
+									*p++ = (char)*i++;
 								}
 								*p = 0;
 								Ch = htoi(n);
@@ -1110,7 +1110,7 @@ char16 *GHtmlParser::CleanText(const char *s, int Len, bool ConversionAllowed, b
 								// Decimal number
 								while (*i && IsDigit(*i) && (p - n) < 31)
 								{
-									*p++ = *i++;
+									*p++ = (char)*i++;
 								}
 								*p = 0;
 								Ch = atoi(n);

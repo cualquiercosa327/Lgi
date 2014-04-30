@@ -26,7 +26,7 @@ class GVirtualMachinePriv
 {
 	struct StackFrame
 	{
-		int CurrentFrameSize;
+		uint32 CurrentFrameSize;
 		int PrevFrameStart;
 		int ReturnIp;
 		GVariant *ReturnValue;
@@ -138,7 +138,7 @@ public:
 		uint8 *e = c.u8 + Code->ByteCode.Length();
 
 		GStream &f = *log;
-		for (int k=0; k<Code->Globals.Length(); k++)
+		for (unsigned k=0; k<Code->Globals.Length(); k++)
 		{
 			f.Print("G%i = ", k);
 			DumpVariant(&f, Code->Globals[k]);
@@ -147,7 +147,7 @@ public:
 		f.Print("\n");
 
 		GHashTbl<int, char*> Fn;
-		for (int m=0; m<Code->Methods.Length(); m++)
+		for (unsigned m=0; m<Code->Methods.Length(); m++)
 		{
 			GFunctionInfo *Info = Code->Methods[m];
 			if (Info->StartAddr)
@@ -532,10 +532,10 @@ public:
 	    char Obj[MAX_PATH];
 		if (SourceFileName)
 		{
-		    strsafecpy(Obj, SourceFileName, sizeof(Obj));
+		    strcpy_s(Obj, sizeof(Obj), SourceFileName);
 		    char *Ext = LgiGetExtension(Obj);
 		    if (Ext)
-		        strcpy(Ext, "asm");
+		        strcpy_s(Ext, sizeof(Obj)-(Ext-Obj), "asm");
 		    else
 		        strcat(Obj, ".asm");
 		}
@@ -601,7 +601,7 @@ public:
 			if (Args)
 			{
 				// Put the arguments of the function call into the local array
-				for (int i=0; i<Args->Length(); i++)
+				for (unsigned i=0; i<Args->Length(); i++)
 				{
 					Locals[LocalsBase+i] = *(*Args)[i];
 				}
@@ -899,7 +899,7 @@ public:
 						#endif
 
 						Arg[i] = Resolve();
-						LgiAssert(Arg[i]);
+						LgiAssert(Arg[i] != NULL);
 					}
 
 					#if LOG_ASM
@@ -1153,7 +1153,7 @@ public:
 					GVariant *Src = Resolve();
 					if (Src->Type == GV_NULL || Dst->Type == GV_NULL)
 					{
-						if (Src->Type == GV_NULL ^ Dst->Type == GV_NULL)
+						if ((Src->Type == GV_NULL) ^ (Dst->Type == GV_NULL))
 							*Dst = (Src->Type == GV_NULL ? Dst : Src)->CastVoidPtr() != 0;
 						else
 							*Dst = false;
@@ -1726,7 +1726,7 @@ public:
 					GVariant *Args = Resolve();
 					GArray<GVariant*> Arg;
 					Arg.Length(Args->CastInt32());
-					for (int i=0; i<Arg.Length(); i++)
+					for (unsigned i=0; i<Arg.Length(); i++)
 					{
 						Arg[i] = Resolve();
 					}
@@ -1751,7 +1751,7 @@ public:
 						}
 						case GV_LIST:
 						{
-							LgiAssert(Dom->Value.Lst);
+							LgiAssert(Dom->Value.Lst != NULL);
 							
 							GDomProperty p = GStringToProp(sName);
 							switch (p)
@@ -1781,7 +1781,7 @@ public:
 								}
 								case ContainerDelete:
 								{
-									for (int i=0; i<Arg.Length(); i++)
+									for (unsigned i=0; i<Arg.Length(); i++)
 									{
 										GVariant *Idx = Arg[i];
 										if (Idx)
@@ -1826,7 +1826,7 @@ public:
 						}
 						case GV_HASHTABLE:
 						{
-							LgiAssert(Dom->Value.Hash);
+							LgiAssert(Dom->Value.Hash != NULL);
 							
 							GDomProperty p = GStringToProp(sName);
 							switch (p)
@@ -1880,7 +1880,7 @@ public:
 									if (Arg.Length() > 0 && Arg[0])
 									{
 										char *Key = Arg[0]->Str();
-										*Dst = (bool) Dom->Value.Hash->Find(Key) != NULL;
+										*Dst = (bool) (Dom->Value.Hash->Find(Key) != NULL);
 									}
 									else
 									{
@@ -2042,14 +2042,18 @@ public:
 								{
 									if (Dst != Dom)
 										*Dst = Dom->CastString();
-									strlwr(Dst->Str());
+									
+									int Len = strlen(Dst->Str());
+									_strlwr_s(Dst->Str(), Len + 1);
 									break;
 								}
 								case StrUpper:
 								{
 									if (Dst != Dom)
 										*Dst = Dom->CastString();
-									strupr(Dst->Str());
+
+									int Len = strlen(Dst->Str());
+									_strupr_s(Dst->Str(), Len + 1);
 									break;
 								}
 								case StrStrip:

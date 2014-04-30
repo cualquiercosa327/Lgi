@@ -605,7 +605,7 @@ void GHtmlElement::Detach()
 
 bool GHtmlElement::HasChild(GHtmlElement *c)
 {
-	for (int i=0; i<Children.Length(); i++)
+	for (unsigned i=0; i<Children.Length(); i++)
 	{
 		if (Children[i] == c)
 			return true;

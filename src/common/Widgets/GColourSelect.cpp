@@ -34,7 +34,7 @@ public:
 			GDisplayString ds(SysFont, (char*)LgiLoadString(L_COLOUR_NONE, "No Colour"));
 			ds.Draw(pDC, r.x1 + 2, r.y1 + 2);
 
-			for (int i=0; i<Colour->Presets.Length(); i++)
+			for (unsigned i=0; i<Colour->Presets.Length(); i++)
 			{
 				int y = r.y1 + ((i+1) * Ly);
 				COLOUR p32 = Colour->Presets[i];

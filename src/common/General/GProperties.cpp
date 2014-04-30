@@ -636,7 +636,7 @@ bool ObjProperties::Set(const char *Name, const char *n)
 			c->Value.Cp = new char[c->Size+1];
 			if (c->Value.Cp)
 			{
-				strcpy(c->Value.Cp, n);
+				strcpy_s(c->Value.Cp, c->Size+1, n);
 				return true;
 			}
 		}
@@ -1063,7 +1063,7 @@ ObjProperties *ObjProperties::FindLeaf(char *n)
 	char Str[128];
 	ObjProperties *p = Leaf;
 
-	strcpy(Str, n);
+	strcpy_s(Str, sizeof(Str), n);
 	char *Dot = strchr(Str, '.');
 	char *Token = Str;
 	char *NextToken = 0;
@@ -1139,7 +1139,7 @@ ObjProperties *ObjTree::GetLeaf(char *Name, bool Create)
 			}
 			else
 			{
-				strcpy(Token, Start);
+				strcpy_s(Token, sizeof(Token), Start);
 			}
 
 			if (!(*pp))
@@ -1191,11 +1191,11 @@ ObjProperties *ObjTree::GetLeaf(char *Name, bool Create)
 	return NULL;
 }
 
-char *StrSnip(char *d, char *s)
+char *StrSnip(char *d, int dlen, char *s)
 {
 	if (s)
 	{
-		strcpy(d, s);
+		strcpy_s(d, dlen, s);
 		for (int i=strlen(d)-1; i>=0; i--)
 		{
 			if (d[i] == '.')
@@ -1212,7 +1212,7 @@ char *StrSnip(char *d, char *s)
 bool ObjTree::Set(char *Name, int n)
 {
 	char Buf[256];
-	char *Key = StrSnip(Buf, Name);
+	char *Key = StrSnip(Buf, sizeof(Buf), Name);
 	if (Key)
 	{
 		ObjProperties *Obj = GetLeaf(Buf, true);
@@ -1228,7 +1228,7 @@ bool ObjTree::Set(char *Name, int n)
 bool ObjTree::Set(char *Name, double n)
 {
 	char Buf[256];
-	char *Key = StrSnip(Buf, Name);
+	char *Key = StrSnip(Buf, sizeof(Buf), Name);
 	if (Key)
 	{
 		ObjProperties *Obj = GetLeaf(Buf, true);
@@ -1244,7 +1244,7 @@ bool ObjTree::Set(char *Name, double n)
 bool ObjTree::Set(char *Name, char *n)
 {
 	char Buf[256];
-	char *Key = StrSnip(Buf, Name);
+	char *Key = StrSnip(Buf, sizeof(Buf), Name);
 	if (Key)
 	{
 		ObjProperties *Obj = GetLeaf(Buf, true);
@@ -1260,7 +1260,7 @@ bool ObjTree::Set(char *Name, char *n)
 bool ObjTree::Get(char *Name, int &n)
 {
 	char Buf[256];
-	char *Key = StrSnip(Buf, Name);
+	char *Key = StrSnip(Buf, sizeof(Buf), Name);
 	if (Key)
 	{
 		ObjProperties *Obj = GetLeaf(Buf);
@@ -1276,7 +1276,7 @@ bool ObjTree::Get(char *Name, int &n)
 bool ObjTree::Get(char *Name, double &n)
 {
 	char Buf[256];
-	char *Key = StrSnip(Buf, Name);
+	char *Key = StrSnip(Buf, sizeof(Buf), Name);
 	if (Key)
 	{
 		ObjProperties *Obj = GetLeaf(Buf);
@@ -1292,7 +1292,7 @@ bool ObjTree::Get(char *Name, double &n)
 bool ObjTree::Get(char *Name, char *&n)
 {
 	char Buf[256];
-	char *Key = StrSnip(Buf, Name);
+	char *Key = StrSnip(Buf, sizeof(Buf), Name);
 	if (Key)
 	{
 		ObjProperties *Obj = GetLeaf(Buf);
@@ -1495,7 +1495,7 @@ bool ObjTree::SerializeObj(GFile &f, bool Write)
 										int Len = 0;
 										
 										s += 2;
-										strupr(s);
+										_strupr_s(s, strlen(s));
 										for (;s[Len] && strchr(NumToHex, s[Len]); Len++);
 										Len--;
 

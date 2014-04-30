@@ -194,8 +194,8 @@ int GSubFilePtr::Read(void *Buffer, int Size, int Flags)
 	{
 		if (SaveState())
 		{
-			int Remaining = Len - Pos;
-			int RdSize = Sub ? min(Remaining, Size) : Size;
+			int64 Remaining = Len - Pos;
+			uint32 RdSize = (int) (Sub ? min(Remaining, Size) : Size);
 			Status = File->Read(Buffer, RdSize, Flags);
 			RestoreState();
 		}

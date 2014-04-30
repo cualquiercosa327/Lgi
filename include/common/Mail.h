@@ -514,7 +514,7 @@ typedef MailSrcStatus (*MailSrcCallback)
 	/// The currently executing transaction
 	MailTransaction *Trans,
 	/// The size of the email about to be downloaded
-	int64 Size,
+	uint64 Size,
 	/// If DownloadTop is returned, you can set the number of lines to retreive here
 	int *LinesToDownload,
 	/// The data cookie passed into MailSource::Receive

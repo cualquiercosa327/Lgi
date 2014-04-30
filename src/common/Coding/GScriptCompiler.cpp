@@ -152,7 +152,7 @@ GCompiledCode &GCompiledCode::operator =(GCompiledCode &c)
 
 GFunctionInfo *GCompiledCode::GetMethod(const char *Name, bool Create)
 {
-	for (int i=0; i<Methods.Length(); i++)
+	for (unsigned i=0; i<Methods.Length(); i++)
 	{
 		if (!strcmp(Methods[i]->Name.Str(), Name))
 			return Methods[i];
@@ -244,10 +244,10 @@ public:
 	/// Gets the file/line at a given token
 	char *operator [](int Tok)
 	{
-		for (int i=0; i<r.Length(); i++)
+		for (unsigned i=0; i<r.Length(); i++)
 		{
 			Range &n = r[i];
-			if (Tok >= n.Start && Tok < n.Start + n.Lines.Length())
+			if (Tok >= n.Start && Tok < n.Start + (int)n.Lines.Length())
 			{
 				static char fl[256];
 				sprintf_s(fl, sizeof(fl), "%s:%i", n.File.Str(), n.Lines[Tok - n.Start]);
@@ -367,7 +367,7 @@ public:
 		#ifndef WIN32
 		#define _vsnprintf vsnprintf
 		#endif
-		_vsnprintf(Buf, sizeof(Buf)-1, Msg, Arg);
+		vsprintf_s(Buf, sizeof(Buf), Msg, Arg);
 		Log->Print("CompileError:%s - %s\n", Lines[Tok], Buf);
 		va_end(Arg);
 
@@ -499,7 +499,7 @@ public:
 			p.u8 = &Code->ByteCode[Len];
 			*p.u8++ = Op;
 
-			for (int i=0; i<Args.Length(); i++)
+			for (unsigned i=0; i<Args.Length(); i++)
 			{
 				if (!Args[i].Valid())
 					AllocNull(Args[i]);
@@ -679,7 +679,7 @@ public:
 		r.Scope = SCOPE_GLOBAL;
 		r.Index = Code->Globals.Length();
 
-		for (int i=0; i<Code->Globals.Length(); i++)
+		for (unsigned i=0; i<Code->Globals.Length(); i++)
 		{
 			if (Code->Globals[i].Type == GV_STRING)
 			{
@@ -712,7 +712,7 @@ public:
 		r.Scope = SCOPE_GLOBAL;
 		r.Index = Code->Globals.Length();
 
-		for (int i=0; i<Code->Globals.Length(); i++)
+		for (unsigned i=0; i<Code->Globals.Length(); i++)
 		{
 			if (Code->Globals[i].Type == GV_STRING)
 			{
@@ -866,7 +866,7 @@ public:
 			}
 
 			// Do all the DOM "get" instructions
-			int p;
+			unsigned p;
 			for (p=0; p<n.Variable.Length() - 2; p++)
 			{
 				GVarRef Idx;
@@ -991,7 +991,7 @@ public:
 				}
 
 				// Load DOM parts...
-				for (int p=1; p<n.Variable.Length(); p++)
+				for (unsigned p=1; p<n.Variable.Length(); p++)
 				{
 					GVarRef Name, Arr;
 					GArray<GVarRef> Args;
@@ -1009,7 +1009,7 @@ public:
 					}
 					else if (Part.Call)
 					{
-						for (int i=0; i<Part.Args.Length(); i++)
+						for (unsigned i=0; i<Part.Args.Length(); i++)
 						{
 							GVarRef &a = Args.New();
 							if (!AsmExpression(&a, *Part.Args[i]))
@@ -1112,8 +1112,7 @@ public:
 				if (AllocReg(n.Reg, _FL))
 				{
 					GArray<GVarRef> a;
-					int i;
-					for (i=0; i<n.Args.Length(); i++)
+					for (unsigned i=0; i<n.Args.Length(); i++)
 					{
 						if (!AsmExpression(&a[i], n.Args[i]))
 						{
@@ -1131,14 +1130,14 @@ public:
 					*p.fn++ = n.ContextFunc;
 					*p.r++ = n.Reg;
 					*p.u16++ = n.Args.Length();
-					for (i=0; i<n.Args.Length(); i++)
+					for (unsigned i=0; i<n.Args.Length(); i++)
 					{
 						*p.r++ = a[i];
 					}
 					LgiAssert(p.u8 == Start + Size);
 
 					// Deallocate argument registers
-					for (i=0; i<a.Length(); i++)
+					for (unsigned i=0; i<a.Length(); i++)
 					{
 						DeallocReg(a[i]);
 					}
@@ -1151,8 +1150,7 @@ public:
 				if (AllocReg(n.Reg, _FL))
 				{
 					GArray<GVarRef> a;
-					int i;
-					for (i=0; i<n.Args.Length(); i++)
+					for (unsigned i=0; i<n.Args.Length(); i++)
 					{
 						if (!AsmExpression(&a[i], n.Args[i]))
 						{
@@ -1194,14 +1192,14 @@ public:
 
 					*p.r++ = n.Reg;
 					*p.u16++ = n.Args.Length();
-					for (i=0; i<n.Args.Length(); i++)
+					for (unsigned i=0; i<n.Args.Length(); i++)
 					{
 						*p.r++ = a[i];
 					}
 					LgiAssert(p.u8 == Start + Size);
 
 					// Deallocate argument registers
-					for (i=0; i<a.Length(); i++)
+					for (unsigned i=0; i<a.Length(); i++)
 					{
 						DeallocReg(a[i]);
 					}
@@ -1215,7 +1213,7 @@ public:
 	}
 
 	/// Parse expression into a node tree
-	bool Expression(int &Cur, GArray<Node> &n, int Depth = 0)
+	bool Expression(uint32 &Cur, GArray<Node> &n, int Depth = 0)
 	{
 		if (Cur >= 0 && Cur < Tokens.Length())
 		{
@@ -1465,7 +1463,7 @@ public:
 		#ifdef _DEBUG
 		if (Log)
 		{
-			for (int n=0; n<RegAllocators.Length(); n++)
+			for (unsigned n=0; n<RegAllocators.Length(); n++)
 			{
 				char *a = RegAllocators[n].Str();
 				if (a)
@@ -1516,7 +1514,7 @@ public:
 	char *DumpExp(GArray<Node> &n)
 	{
 		GStringPipe e;
-		for (int i=0; i<n.Length(); i++)
+		for (unsigned i=0; i<n.Length(); i++)
 		{
 			if (n[i].Op)
 			{
@@ -1560,7 +1558,7 @@ public:
 	)
 	{
 		// Resolve any sub-expressions and store their values
-		for (int i = 0; i < n.Length(); i++)
+		for (unsigned i = 0; i < n.Length(); i++)
 		{
 			if (!n[i].IsVar() &&
 				n[i].Child.Length())
@@ -1579,7 +1577,7 @@ public:
 			int OpIdx = -1;
 			int Prec = -1;
 			int Ops = 0;
-			for (int i=0; i<n.Length(); i++)
+			for (unsigned i=0; i<n.Length(); i++)
 			{
 				if (n[i].Op)
 				{
@@ -1747,7 +1745,7 @@ public:
 	}
 
 	/// Parses and assembles an expression
-	bool DoExpression(int &Cur, GVarRef *Result)
+	bool DoExpression(uint32 &Cur, GVarRef *Result)
 	{
 		GArray<Node> n;
 		if (Expression(Cur, n))
@@ -1760,7 +1758,7 @@ public:
 	}
 
 	/// Parses statements
-	bool DoStatements(int &Cur, bool MoreThanOne = true)
+	bool DoStatements(uint32 &Cur, bool MoreThanOne = true)
 	{
 		while (Cur < Tokens.Length())
 		{
@@ -1817,7 +1815,7 @@ public:
 	}
 
 	/// Parses if/else if/else construct
-	bool DoIf(int &Cur)
+	bool DoIf(uint32 &Cur)
 	{
 		Cur++;
 		char16 *t = GetTok(Cur);
@@ -1943,7 +1941,7 @@ public:
 					int32 *Ptr = (int32*)&Code->ByteCode[JzOffset];
 					int CurLen = Code->ByteCode.Length();
 					*Ptr = CurLen - JzOffset - sizeof(int32);
-					LgiAssert(*Ptr);
+					LgiAssert(*Ptr != 0);
 				}
 				return true;
 			}
@@ -1964,7 +1962,7 @@ public:
 		int JzOffset;
 
 	public:
-		GJumpZero(GCompilerPriv *d, int &Cur, GVarRef &r)
+		GJumpZero(GCompilerPriv *d, uint32 &Cur, GVarRef &r)
 		{
 			// Create jump instruction to jump over the body if the expression evaluates to false
 			Comp = d;
@@ -1983,7 +1981,7 @@ public:
 	};
 
 	/// Parses while construct
-	bool DoWhile(int &Cur)
+	bool DoWhile(uint32 &Cur)
 	{
 		Cur++;
 		char16 *t = GetTok(Cur);
@@ -2050,7 +2048,7 @@ public:
 	}
 
 	/// Parses for construct
-	bool DoFor(int &Cur)
+	bool DoFor(uint32 &Cur)
 	{
 		/*
 			For loop asm structure:
@@ -2180,7 +2178,7 @@ public:
 	}
 
 	/// Compiles return construct
-	bool DoReturn(int &Cur)
+	bool DoReturn(uint32 &Cur)
 	{
 		GVarRef ReturnValue;
 		char16 *t;
@@ -2207,7 +2205,7 @@ public:
 	}
 
 	// Compile a method definition
-	bool DoFunction(int &Cur)
+	bool DoFunction(uint32 &Cur)
 	{
 		bool Status = false;
 		bool LastInstIsReturn = false;
@@ -2263,7 +2261,7 @@ public:
 			// Setup new scope
 			GVariables LocalScope(SCOPE_LOCAL);
 			Scopes.Add(&LocalScope);
-			for (int i=0; i<f->Params.Length(); i++)
+			for (unsigned i=0; i<f->Params.Length(); i++)
 			{
 				LocalScope.Var(f->Params[i].Str(), true);
 			}
@@ -2319,7 +2317,7 @@ public:
 	}
 
 	/// Compiles struct construct
-	bool DoStruct(int &Cur)
+	bool DoStruct(uint32 &Cur)
 	{
 		bool Status = false;
 		GHashTbl<const char*, GVariantType> Types;
@@ -2496,7 +2494,7 @@ public:
 		return OnError(Cur, "Unexpected EOF.");
 	}
 
-	bool DoExtern(int &Cur)
+	bool DoExtern(uint32 &Cur)
 	{
 		return false;
 	}
@@ -2504,7 +2502,7 @@ public:
 	/// Compiler entry point
 	bool Compile()
 	{
-		int Cur = 0;
+		uint32 Cur = 0;
 		int JumpLoc = 0;
 
 		// Setup the global scope
@@ -2577,7 +2575,7 @@ public:
 		}
 
 		// Do link time fixups...
-		for (int i=0; i<Fixups.Length(); i++)
+		for (unsigned i=0; i<Fixups.Length(); i++)
 		{
 			LinkFixup &f = Fixups[i];
 			if (f.Func->StartAddr)
@@ -2781,7 +2779,8 @@ bool GScriptEngine2::CallMethod(const char *Method, GVariant *Ret, ArgumentArray
 		return false;
 
 	GVirtualMachine Vm(d->Context);
-	return Vm.ExecuteFunction(d->Code, i, Args, Ret, d->GetLog());
+	GExecutionStatus Status = Vm.ExecuteFunction(d->Code, i, Args, Ret, d->GetLog());
+	return Status != ScriptError;
 }
 
 void GScriptEngine2::DumpVariables()

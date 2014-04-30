@@ -175,7 +175,7 @@ bool SystemFunctions::Sprintf(GVariant *Ret, ArgumentArray &Args)
 	GArray<UNativeInt> Params;
 	va_list a;
 
-	int i = 1;
+	unsigned i = 1;
 	for (char *f = Fmt; *f; f++)
 	{
 		if (f[0] == '%' && f[1] != '%')
@@ -239,7 +239,7 @@ bool SystemFunctions::Sprintf(GVariant *Ret, ArgumentArray &Args)
 	#endif
 
 	char Buf[1024];
-	_vsnprintf(Buf, sizeof(Buf), Fmt, a);
+	vsprintf_s(Buf, sizeof(Buf), Fmt, a);
 	*Ret = Buf;
 
 	return true;
@@ -318,7 +318,7 @@ bool SystemFunctions::SelectFiles(GVariant *Ret, ArgumentArray &Args)
 		s.Parent(CastGView(*Args[0]));
 	
 	GToken t(Args.Length() > 1 ? Args[1]->CastString() : 0, ",;:");
-	for (int i=0; i<t.Length(); i++)
+	for (unsigned i=0; i<t.Length(); i++)
 	{
 		char *c = t[i];
 		char *sp = strrchr(c, ' ');
@@ -341,7 +341,7 @@ bool SystemFunctions::SelectFiles(GVariant *Ret, ArgumentArray &Args)
 	s.Type("All Files", LGI_ALL_FILES);
 
 	s.InitialDir(Args.Length() > 2 ? Args[2]->CastString() : 0);
-	s.MultiSelect(Args.Length() > 3 ? Args[3]->CastInt32() : true);
+	s.MultiSelect(Args.Length() > 3 ? Args[3]->CastInt32() != 0 : true);
 
 	if (s.Open())
 	{
@@ -368,7 +368,7 @@ bool SystemFunctions::Print(GVariant *Ret, ArgumentArray &Args)
 {
 	GStream *Out = Log ? Log : (Engine ? Engine->GetConsole() : NULL);
 
-	for (int n=0; Out && n<Args.Length(); n++)
+	for (unsigned n=0; Out && n<Args.Length(); n++)
 	{
 		if (!Args[n])
 			continue;
@@ -626,7 +626,7 @@ bool SystemFunctions::PathExists(GVariant *Ret, ArgumentArray &Args)
 bool SystemFunctions::PathJoin(GVariant *Ret, ArgumentArray &Args)
 {
 	char p[MAX_PATH] = "";
-	for (int i=0; i<Args.Length(); i++)
+	for (unsigned i=0; i<Args.Length(); i++)
 	{
 		char *s = Args[i]->CastString();
 		if (i)
@@ -656,7 +656,7 @@ bool SystemFunctions::ListFiles(GVariant *Ret, ArgumentArray &Args)
 	Ret->SetList();
 	GDirectory d;
 	char *Pattern = Args.Length() > 1 ? Args[1]->CastString() : 0;
-	for (bool b=d.First(Args[0]->CastString()); b; b=d.Next())
+	for (int b=d.First(Args[0]->CastString()); b; b=d.Next())
 	{
 		if (!Pattern || MatchStr(Pattern, d.GetName()))
 		{

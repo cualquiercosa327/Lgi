@@ -56,7 +56,7 @@ struct Png48
 
 struct Png64
 {
-	uint64 r, g, b, a;
+	uint16 r, g, b, a;
 };
 
 
@@ -502,9 +502,9 @@ void Read64_32(Out *o, In *i, int Len)
 
 	while (i < e)
 	{
-		o->r = i->r;
-		o->g = i->g;
-		o->b = i->b;
+		o->r = i->r >> 8;
+		o->g = i->g >> 8;
+		o->b = i->b >> 8;
 		o->a = 255;
 		o++;
 		i++;
@@ -694,7 +694,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 					for (int y=0; y<pDC->Y(); y++)
 					{
 						uchar *Scan = (*pDC)[y];
-						LgiAssert(Scan);
+						LgiAssert(Scan != NULL);
 
 						GColourSpace OutCs = pDC->GetColourSpace();
 						switch (RequestBits)

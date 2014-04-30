@@ -422,7 +422,7 @@ public:
 		int old = len;
 		if (Length(len + a.Length()))
 		{
-			for (int i=0; i<a.Length(); i++, old++)
+			for (unsigned i=0; i<a.Length(); i++, old++)
 				p[old] = a[i];
 		}
 	}

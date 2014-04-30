@@ -67,7 +67,7 @@ public:
 	GButton *Stop;
 	GButton *Search;
 	GArray<GAutoString> History;
-	int CurHistory;
+	uint32 CurHistory;
 	bool Loading;
 	GBrowser::GBrowserEvents *Events;
 	IHttp Http;
@@ -91,7 +91,7 @@ public:
 
 	void LoadStream(GStream *s)
 	{
-		int64 len = s->GetSize();
+		int len = (int) s->GetSize();
 		GArray<char> txt;
 		txt.Length(len);
 		s->Read(&txt[0], len);
@@ -188,7 +188,7 @@ public:
 		if (!u.Protocol)
 		{
 			// Relative link?
-			char *Cur = History[CurHistory], *c;
+			char *Cur = History[CurHistory];
 			if (strchr(Cur, '\\'))
 				Sep = '\\';
 			else
@@ -197,7 +197,6 @@ public:
 			// Trim off filename...
 			char *Last = strrchr(Cur, Sep);
 			GToken t(Uri, "\\/");
-			int Ch;
 			if (*Uri != '#' && Last)
 				sprintf_s(Buf, sizeof(Buf), "%.*s", Last - Cur, Cur);
 			else
@@ -207,7 +206,7 @@ public:
 			if (*End == Sep)
 				*End = 0;
 
-			for (int i=0; i<t.Length(); i++)
+			for (unsigned i=0; i<t.Length(); i++)
 			{
 				if (!_stricmp(t[i], "."))
 					;
@@ -618,7 +617,8 @@ GMessage::Result GBrowser::OnEvent(GMessage *m)
 		}
 		case M_BUSY:
 		{
-			if ((d->Loading = MsgA(m)))
+			d->Loading = MsgA(m) != 0;
+			if (d->Loading)
 				SetCtrlName(IDC_REFRESH_STOP, "Stop");
 			else
 				SetCtrlName(IDC_REFRESH_STOP, "Refresh");

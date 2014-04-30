@@ -385,13 +385,13 @@ bool StorageItemImpl::SerializeObject(GSubFilePtr &f, bool Write)
 			if (Write)
 			{
 				// check size is big enough
-				int Size = Object->Sizeof();
+				uint32 Size = Object->Sizeof();
 				if (Size != Header->DataSize)
 				{
 					// change required
 					if (Size > Header->DataSize)
 					{
-						Header->DataLoc = f.GetSize();
+						Header->DataLoc = (uint32)f.GetSize();
 					}
 					Header->DataSize = Size;
 					HeaderDirty = true;
@@ -412,8 +412,8 @@ bool StorageItemImpl::SerializeObject(GSubFilePtr &f, bool Write)
 					// ask object to read/write itself
 					Status = Object->Serialize(f, Write);
 
-					// unresticted the file
-					int64 CurrentPos = f.GetPos();
+					// unrestricted the file
+					uint32 CurrentPos = (uint32)f.GetPos();
 					f.ClearSub();
 
 					// Check the output
@@ -423,7 +423,7 @@ bool StorageItemImpl::SerializeObject(GSubFilePtr &f, bool Write)
 					}
 					else
 					{
-						// Trucate object to however much it did manage to write 
+						// Truncate object to however much it did manage to write 
 						// out, for integrity's sake
 						Header->DataSize = CurrentPos;
 						HeaderDirty = true;
@@ -472,7 +472,8 @@ bool StorageItemImpl::SerializeObject(GSubFilePtr &f, bool Write)
 
 						LgiTrace("%s", Msg);
 
-						strcpy(	Msg + strlen(Msg),
+						int Len = strlen(Msg);
+						strcpy_s(Msg + Len, sizeof(Msg) - Len,
 								LgiLoadString(L_STORE_RESTART, "\nYou should restart the application and then report this problem.\n"
 								"Ignore all furthur such errors for this session?"));
 						if (LgiMsg(0, Msg, "Storage2 Error", MB_YESNO) == IDYES)
@@ -562,7 +563,7 @@ StorageItem *StorageItemImpl::GetChild()
 			if (Dir)
 			{
 				// Seek to directory
-				bool GotLoc = Tree->File->SetPos(Header->DirLoc);
+				bool GotLoc = Tree->File->SetPos(Header->DirLoc) == Header->DirLoc;
 				LgiAssert(GotLoc);
 				if (GotLoc)
 				{
@@ -603,7 +604,7 @@ StorageItem *StorageItemImpl::GetChild()
 						// Now allocate a list of children items
 						StorageItemImpl *Last = 0;
 						bool ChildHeaderDirty = false; // default setting for Item->HeaderDirty
-						for (int i=0; i<Header->DirCount; i++)
+						for (unsigned i=0; i<Header->DirCount; i++)
 						{
 							// Swap bytes
 							Dir[i].SwapBytes();
@@ -649,7 +650,7 @@ StorageItem *StorageItemImpl::GetChild()
 									}
 									else
 									{
-										LgiAssert(Last);
+										LgiAssert(Last != NULL);
 										Last->Next = Item;
 										Item->Prev = Last;
 									}
@@ -690,7 +691,7 @@ bool StorageItemImpl::IncDirSize()
 			if (Header->DirCount >= Header->DirAlloc)
 			{
 				// dir needs to grow
-				Header->DirLoc = Tree->File->GetSize();
+				Header->DirLoc = (uint32) Tree->File->GetSize();
 				Header->DirAlloc += STORE_DIR_ALLOC;
 
 				ReallocateDir = true;
@@ -752,7 +753,7 @@ bool StorageItemImpl::DirChange()
 			}
 
 			// push header out to disk
-			bool GotPos = Tree->File->SetPos(Header->DirLoc);
+			bool GotPos = Tree->File->SetPos(Header->DirLoc) == Header->DirLoc;
 			LgiAssert(GotPos);
 			if (GotPos)
 			{
@@ -814,7 +815,7 @@ StorageItem *StorageItemImpl::CreateChild(StorageObj *Obj)
 
 			// add new child at the start
 			Child = new StorageItemImpl(Dir);
-			LgiAssert(Child);
+			LgiAssert(Child != NULL);
 			if (!Child)
 			{
 				// The unlock would normal by performed by DirChange
@@ -850,7 +851,7 @@ StorageItem *StorageItemImpl::CreateSub(StorageObj *Obj)
 		{
 			// add new child
 			New = new StorageItemImpl(Dir + Header->DirCount);
-			LgiAssert(New);
+			LgiAssert(New != NULL);
 			if (!New)
 			{
 				Tree->Unlock();
@@ -893,7 +894,7 @@ StorageItem *StorageItemImpl::CreateSub(StorageObj *Obj)
 	return New;
 }
 
-bool StorageItemImpl::InsertSub(StorageItem *ObjVirtual, int At)
+bool StorageItemImpl::InsertSub(StorageItem *ObjVirtual, uint32 At)
 {
 	StorageItemImpl *Obj = (StorageItemImpl*) ObjVirtual;
 
@@ -1110,7 +1111,7 @@ bool StorageItemImpl::DeleteChild(StorageItem *ObjVirtual)
 		LgiAssert(HeaderPtrOk);
 		if (HeaderPtrOk)
 		{
-			int Index = Obj->Header - Dir;
+			uint32 Index = Obj->Header - Dir;
 
 			if (!Obj->Temp)
 			{
@@ -1701,7 +1702,7 @@ StorageItem *Storage2::StorageKitImpl::CreateRoot(StorageObj *Obj)
 
 				Root->Tree = this;
 				Root->HeaderDirty = true;
-				Root->StoreLoc = File->GetSize();
+				Root->StoreLoc = (uint32) File->GetSize();
 				Root->Object = Obj;
 				StorageObj_SetDirty(Root->Object, true);
 				Root->Header->Type = Obj->Type();
@@ -1795,7 +1796,7 @@ bool StorageKitImpl::DeleteItem(StorageItem *Item)
 	return Status;
 }
 
-bool StorageKitImpl::_ValidLoc(uint64 Loc)
+bool StorageKitImpl::_ValidLoc(int64 Loc)
 {
 	if (File)
 	{
@@ -1900,7 +1901,7 @@ bool StorageKitImpl::Compact(Progress *p, bool Interactive, StorageValidator *va
 		if (!p || !p->Cancel())
 		{
 			// remove space between the objects
-			int OldSize = File->GetSize();
+			int64 OldSize = File->GetSize();
 			Block *Next = 0;
 			int BufLen = 1 << 20;
 			char *Buf = new char[BufLen];
@@ -1924,7 +1925,7 @@ bool StorageKitImpl::Compact(Progress *p, bool Interactive, StorageValidator *va
 						{
 							// some space exists between this object and the next,
 							// lets remove it eh?
-							uint32 NewPos = b->Start + b->Length;
+							uint32 NewPos = (uint32)(b->Start + b->Length);
 							
 							// Move all the data in the object in 1mb (or less) chunks.
 							uint32 i; // this holds the number of bytes moved
@@ -2138,7 +2139,7 @@ bool StorageKitImpl::AttachItem(StorageItem *ItemVirtual, StorageItem *ToVirtual
 				if (!Item->Parent ||
 					SeparateItem(Item))
 				{
-					int At = 0;
+					uint32 At = 0;
 					for (StorageItemImpl *i=To; i; i=i->Prev)
 					{
 						At++;
@@ -2159,7 +2160,7 @@ bool StorageKitImpl::AttachItem(StorageItem *ItemVirtual, StorageItem *ToVirtual
 				if (!Item->Parent ||
 					SeparateItem(Item))
 				{
-					int At = 0;
+					uint32 At = 0;
 					for (StorageItemImpl *i=To; i; i=i->Prev)
 					{
 						At++;

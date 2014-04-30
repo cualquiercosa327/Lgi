@@ -128,8 +128,9 @@ public:
 			if (d-Buf > 73)
 			{
 				// time for a new line.
-				strcpy(d, "=\r\n");
-				d += 3;
+				*d++ = '=';
+				*d++ = '\r';
+				*d++ = '\n';
 
 				int Len = d-Buf;
 				if (Out->Write(Buf, Len) < Len)
@@ -225,7 +226,7 @@ public:
 	{
 		uchar b[100];
 
-		int Len = Buf.GetSize();
+		int Len = (int)Buf.GetSize();
 		LgiAssert(Len < sizeof(b));
 		int r = Buf.Read(b, Len);
 		if (r)
@@ -297,7 +298,7 @@ public:
 		// While there is at least one run of base64 (4 bytes) convert it to text
 		// and write it to the output stream
 		int Size;
-		while ((Size = Buf.GetSize()) > 3)
+		while ((Size = (int)Buf.GetSize()) > 3)
 		{
 			Size &= ~3;
 
@@ -420,7 +421,7 @@ char *GMime::GetFileName()
 
 bool GMime::Insert(GMime *m, int Pos)
 {
-	LgiAssert(m);
+	LgiAssert(m != NULL);
 	if (!m)
 		return false;
 	
@@ -450,7 +451,7 @@ void GMime::Remove()
 	}
 }
 
-GMime *GMime::operator[](int i)
+GMime *GMime::operator[](uint32 i)
 {
 	if (i < 0 || i >= Children.Length())
 		return 0;
@@ -534,7 +535,7 @@ bool GMime::SetData(bool OwnStream, GStreamI *d, int Pos, int Size, GMutex *l)
 	{
 		OwnDataStore = OwnStream;
 		DataPos = Pos;
-		DataSize = Size >= 0 ? Size : d->GetSize();
+		DataSize = Size >= 0 ? Size : (int)d->GetSize();
 		DataLock = l;
 		DataStore = d;
 	}
@@ -982,7 +983,7 @@ int GMime::GMimeText::GMimeDecode::Parse(GStringPipe *Source, ParentState *State
 
 			// Read in the rest of the MIME segment
 			bool Done = false;
-			int StartPos = Mime->DataStore->GetPos();
+			int64 StartPos = Mime->DataStore->GetPos();
 			while (!Done)
 			{
 				// Process existing lines
@@ -1176,7 +1177,7 @@ int GMime::GMimeText::GMimeEncode::Push(GStreamI *Dest, GStreamEnd *End)
 
 		// Write the headers
 		GToken h(Mime->Headers, MimeEol);
-		for (int i=0; i<h.Length(); i++)
+		for (unsigned i=0; i<h.Length(); i++)
 		{
 			Dest->Write(h[i], strlen(h[i]));
 			Dest->Write(MimeEol, 2);
@@ -1234,7 +1235,7 @@ int GMime::GMimeText::GMimeEncode::Push(GStreamI *Dest, GStreamEnd *End)
 		// Write children
 		if (Mime->Children.Length() && Boundary)
 		{
-			for (int i=0; i<Mime->Children.Length(); i++)
+			for (unsigned i=0; i<Mime->Children.Length(); i++)
 			{
 				sprintf_s(Buf, sizeof(Buf), "\r\n\r\n--%s\r\n", Boundary);
 				Dest->Write(Buf, strlen(Buf));
@@ -1318,7 +1319,7 @@ void GMime::GMimeBinary::GMimeRead::Empty()
 // Object -> Dest
 int64 GMime::GMimeBinary::GMimeWrite::GetSize()
 {
-	int Size = 0;
+	int64 Size = 0;
 
 	if (Mime)
 	{
@@ -1327,7 +1328,7 @@ int64 GMime::GMimeBinary::GMimeWrite::GetSize()
 				(Mime->DataStore ? Mime->DataSize : 0); // Data
 
 		// Children
-		for (int i=0; i<Mime->Children.Length(); i++)
+		for (unsigned i=0; i<Mime->Children.Length(); i++)
 		{
 			Size += Mime->Children[i]->Binary.Write.GetSize();
 		}
@@ -1382,7 +1383,7 @@ int GMime::GMimeBinary::GMimeWrite::Push(GStreamI *Dest, GStreamEnd *End)
 				}
 			}
 
-			for (int i=0; i<Mime->Children.Length(); i++)
+			for (unsigned i=0; i<Mime->Children.Length(); i++)
 			{
 				Mime->Children[i]->Binary.Write.Push(Dest, End);
 			}

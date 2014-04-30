@@ -71,7 +71,7 @@ public:
 	bool Insert(GMime *m, int pos = -1);
 	void Remove();
 	int Length() { return Children.Length(); }
-	GMime *operator[](int i);
+	GMime *operator[](uint32 i);
 	void DeleteChildren() { Children.DeleteObjects(); }
 
 	void Empty();

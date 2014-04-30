@@ -231,7 +231,7 @@ class LgiClass GTempStream : public GProxyStream
 protected:
 	class GMemStream *Mem;
 	class GFile *Tmp;
-	char *TmpFolder;
+	GAutoString TmpFolder;
 
 public:
 	GTempStream(char *TmpFolder = 0, int maxMemSize = 1 << 20);
@@ -240,6 +240,12 @@ public:
 	int GetMaxMemSize() { return MaxMemSize; }
 	int Write(const void *Buffer, int Size, int Flags = 0);
 	void Empty();
+	
+	GTempStream &operator =(const GTempStream &ts)
+	{
+		LgiAssert(0);
+		return *this;
+	}
 };
 
 #endif

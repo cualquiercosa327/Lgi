@@ -94,7 +94,7 @@ namespace Storage2
 		StorageItem *CreateNext(StorageObj *Obj);
 		StorageItem *CreateChild(StorageObj *Obj);
 		StorageItem *CreateSub(StorageObj *Obj);
-		bool InsertSub(StorageItem *Obj, int At = -1);
+		bool InsertSub(StorageItem *Obj, uint32 At = -1);
 		bool DeleteChild(StorageItem *Obj);
 		bool DeleteAllChildren();
 
@@ -162,7 +162,7 @@ namespace Storage2
 		StorageItemHeader RootHeader;
 		StorageItemImpl *Root;
 
-		bool _ValidLoc(uint64 Loc);
+		bool _ValidLoc(int64 Loc);
 		bool _Serialize(GFile &f, bool Write);
 		
 	public:

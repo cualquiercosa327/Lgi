@@ -209,7 +209,7 @@ public:
 		{
 			T->Range = What.CastInt32();
 		}
-		return r;
+		return r != 0;
 	}
 
 	int Write(const void *Buffer, int Size, int Flags = 0)
@@ -317,8 +317,8 @@ bool MailPhp::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Pa
 		DeleteArray(d->UserPass);
 		d->UserPass = NewStr(Password);
 
-		int Token = LgiCurrentTime();
-		strcpy(d->Uri, RemoteHost);
+		uint64 Token = LgiCurrentTime();
+		strcpy_s(d->Uri, sizeof(d->Uri), RemoteHost);
 
 		char *e = d->Uri + strlen(d->Uri);
 		sprintf_s(e, sizeof(d->Uri)-(e-d->Uri), "?token=%i", Token);
@@ -340,14 +340,14 @@ bool MailPhp::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Pa
 			GToken Lines(m, "\r\n");
 			if (_strnicmp(m, "error:", 6) == 0)
 			{
-				for (int Line=0; Line<Lines.Length(); Line++)
+				for (unsigned Line=0; Line<Lines.Length(); Line++)
 				{
 					Log(Lines[Line] + 7, GSocketI::SocketMsgError);
 				}
 			}
 			else if (Lines.Length() > 1)
 			{
-				for (int Line=0; Line<Lines.Length(); Line++)
+				for (unsigned Line=0; Line<Lines.Length(); Line++)
 				{
 					char *Var = Lines[Line];
 					char *Val = strchr(Var, ':');
@@ -470,7 +470,7 @@ bool MailPhp::Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks)
 
 	Cmd.Push(d->Uri);
 	Cmd.Print("?time=%i&msg=", LgiCurrentTime());
-	for (int i=0; i<Trans.Length(); i++)
+	for (unsigned i=0; i<Trans.Length(); i++)
 	{
 		if (i) Cmd.Push(",");
 		Cmd.Print("%i", Trans[i]->Index + 1);
@@ -503,7 +503,7 @@ bool MailPhp::Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks)
 			*Out = 0;
 
 			char *s = All;
-			int i = 0;
+			unsigned i = 0;
 			for (char *e = strstr(s, PopOverHttpSep); s && e; i++)
 			{
 				MailTransaction *t = Trans[i];
@@ -578,7 +578,11 @@ bool MailPhp::GetSizes(GArray<int> &Sizes)
 bool MailPhp::GetUid(int Message, char *Id, int IdLen)
 {
 	Msg *m = d->Msgs[Message];
-	return m ? m->Uid : 0;
+	if (!m)
+		return false;
+	
+	strcpy_s(Id, IdLen, m->Uid);
+	return true;
 }
 
 bool MailPhp::GetUidList(List<char> &Id)

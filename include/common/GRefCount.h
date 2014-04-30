@@ -62,7 +62,7 @@ public:
 	
 	T *operator->() const
 	{
-		LgiAssert(Ptr);
+		LgiAssert(Ptr != NULL);
 		return Ptr;
 	}
 

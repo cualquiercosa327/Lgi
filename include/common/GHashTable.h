@@ -94,6 +94,11 @@ class GHashTbl
             return i;
         }
         
+        int64 New(int64 i)
+        {
+            return i;
+        }
+        
         void *New(void *i)
         {
             return i;
@@ -214,7 +219,7 @@ class GHashTbl
 	// Type specific implementations
 
 		// char
-			uint Hash(char *s) { return LgiHash<uint, uchar>((uchar*)s, 0, Case); }
+			uint32 Hash(char *s) { return LgiHash<uint, uchar>((uchar*)s, 0, Case); }
 			char *CopyKey(char *a) { return NewStr(a); }
 			int SizeKey(char *a) { return strlen(a) + 1; }
 			void FreeKey(char *&a)
@@ -228,7 +233,7 @@ class GHashTbl
 			}
 
 		// const char
-			uint Hash(const char *s) { return LgiHash<uint, uchar>((uchar*)s, 0, Case); }
+			uint32 Hash(const char *s) { return LgiHash<uint, uchar>((uchar*)s, 0, Case); }
 			char *CopyKey(const char *a) { return NewStr(a); }
 			int SizeKey(const char *a) { return strlen(a) + 1; }
 			void FreeKey(const char *&a)
@@ -242,7 +247,7 @@ class GHashTbl
 			}
 	
 		// char16
-			uint Hash(char16 *s) { return LgiHash<uint, char16>(s, 0, Case); }
+			uint32 Hash(char16 *s) { return LgiHash<uint, char16>(s, 0, Case); }
 			char16 *CopyKey(char16 *a) { return NewStrW(a); }
 			int SizeKey(char16 *a) { return StrlenW(a) + 1; }
 			void FreeKey(char16 *&a)
@@ -259,7 +264,7 @@ class GHashTbl
 			}
 
 		// int
-			uint Hash(int s) { return s; }
+			uint32 Hash(int s) { return s; }
 			int CopyKey(int a) { return a; }
 			int SizeKey(int a) { return sizeof(a); }
 			void FreeKey(int &a) { memcpy(&a, &NullKey, sizeof(a)); }
@@ -269,7 +274,7 @@ class GHashTbl
 			}
 
 		// int64
-			uint Hash(int64 s) { return s; }
+			uint32 Hash(int64 s) { return (uint32)s; }
 			int64 CopyKey(int64 a) { return a; }
 			int SizeKey(int64 a) { return sizeof(a); }
 			void FreeKey(int64 &a) { memcpy(&a, &NullKey, sizeof(a)); }
@@ -279,7 +284,7 @@ class GHashTbl
 			}
 
 		// uint64
-			uint Hash(uint64 s) { return s; }
+			uint32 Hash(uint64 s) { return s; }
 			uint64 CopyKey(uint64 a) { return a; }
 			int SizeKey(uint64 a) { return sizeof(a); }
 			void FreeKey(uint64 &a) { memcpy(&a, &NullKey, sizeof(a)); }
@@ -289,7 +294,7 @@ class GHashTbl
 			}
 
 		// void*
-			uint Hash(void *s) { return ((NativeInt)s)/31; }
+			uint32 Hash(void *s) { return ((NativeInt)s)/31; }
 			void *CopyKey(void *a) { return a; }
 			int SizeKey(void *a) { return sizeof(a); }
 			void FreeKey(void *&a) { memcpy(&a, &NullKey, sizeof(a)); }
@@ -768,7 +773,7 @@ public:
 		int64 KeySize = 0;
 		if (Pool)
 		{
-			for (int i=0; i<Pools.Length(); i++)
+			for (unsigned i=0; i<Pools.Length(); i++)
 			{
 				KeyPool<Key> *p = Pools[i];
 				KeySize += sizeof(*p) + p->Size;

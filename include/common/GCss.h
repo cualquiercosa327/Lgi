@@ -690,7 +690,7 @@ public:
 		{
 			const char *Element = Context->GetElement(Obj);
 			
-			for (int n = PartIdx; n<Sel->Parts.Length(); n++)
+			for (unsigned n = PartIdx; n<Sel->Parts.Length(); n++)
 			{
 				GCss::Selector::Part &p = Sel->Parts[n];
 				switch (p.Type)
@@ -698,7 +698,7 @@ public:
 					case GCss::Selector::SelType:
 					{
 						const char *Tag = Context->GetElement(Obj);
-						if (!Tag || stricmp(Tag, p.Value))
+						if (!Tag || _stricmp(Tag, p.Value))
 							return false;
 						break;
 					}
@@ -723,7 +723,7 @@ public:
 							return false;
 
 						GAutoString Val(NewStr(e + 1));
-						if (stricmp(Val, TagVal))
+						if (_stricmp(Val, TagVal))
 							return false;
 						break;
 					}
@@ -738,9 +738,9 @@ public:
 							return false;
 
 						bool Match = false;
-						for (int i=0; i<Class.Length(); i++)
+						for (unsigned i=0; i<Class.Length(); i++)
 						{
-							if (!stricmp(Class[i], p.Value))
+							if (!_stricmp(Class[i], p.Value))
 							{
 								Match = true;
 								break;
@@ -758,7 +758,7 @@ public:
 					case GCss::Selector::SelID:
 					{
 						const char *Id = Context->GetAttr(Obj, "id");
-						if (!Id || stricmp(Id, p.Value))
+						if (!Id || _stricmp(Id, p.Value))
 							return false;
 						break;
 					}
@@ -768,9 +768,9 @@ public:
 						if
 						(
 							(
-								!stricmp(Element, "a")
+								!_stricmp(Element, "a")
 								&&
-								p.Value && !stricmp(p.Value, "link")
+								p.Value && !_stricmp(p.Value, "link")
 								&&
 								(Href = Context->GetAttr(Obj, "href")) != NULL
 							)
@@ -803,7 +803,7 @@ public:
 		{
 			bool Complex = Sel->Combs.Length() > 0;
 			int CombIdx = Complex ? Sel->Combs.Length() - 1 : 0;
-			int StartIdx = (Complex) ? Sel->Combs[CombIdx] + 1 : 0;
+			uint32 StartIdx = (Complex) ? Sel->Combs[CombIdx] + 1 : 0;
 			
 			bool Match = MatchSimpleSelector(Sel, StartIdx, Context, Obj);
 			if (!Match)

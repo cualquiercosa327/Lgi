@@ -253,7 +253,7 @@ GTempStream::GTempStream(char *tmp, int maxMemSize) : GProxyStream(0)
 {
 	s = &Null;
 	MaxMemSize = maxMemSize;
-	TmpFolder = NewStr(tmp);
+	TmpFolder.Reset(NewStr(tmp));
 	Tmp = 0;
 	Mem = 0;
 }
@@ -261,7 +261,6 @@ GTempStream::GTempStream(char *tmp, int maxMemSize) : GProxyStream(0)
 GTempStream::~GTempStream()
 {
 	Empty();
-	DeleteArray(TmpFolder);
 }
 
 void GTempStream::Empty()
