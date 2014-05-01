@@ -2043,8 +2043,7 @@ public:
 									if (Dst != Dom)
 										*Dst = Dom->CastString();
 									
-									int Len = strlen(Dst->Str());
-									_strlwr_s(Dst->Str(), Len + 1);
+									strlwr(Dst->Str());
 									break;
 								}
 								case StrUpper:
@@ -2052,8 +2051,7 @@ public:
 									if (Dst != Dom)
 										*Dst = Dom->CastString();
 
-									int Len = strlen(Dst->Str());
-									_strupr_s(Dst->Str(), Len + 1);
+									strupr(Dst->Str());
 									break;
 								}
 								case StrStrip:

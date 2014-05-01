@@ -2753,7 +2753,7 @@ GVariant *GScriptEngine2::Var(char16 *name, bool create)
 	if (!d->Code)
 		d->Code = new GCompiledCode;
 	if (!d->Code)
-		return 0;
+		return NULL;
 
 	GVariant v(name), Null;
 	return d->Code->Set(v.Str(), Null);

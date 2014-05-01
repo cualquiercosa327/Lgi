@@ -1619,13 +1619,13 @@ GAutoWString GTag::DumpW()
 
 GAutoString GTag::DescribeElement()
 {
-	char s[256];
-	int ch = sprintf_s(s, sizeof(s), "%s", Tag ? Tag.Get() : "CONTENT");
+	GStringPipe s(256);
+	s.Print("%s", Tag ? Tag.Get() : "CONTENT");
 	if (HtmlId)
-		ch += sprintf_s(s+ch, sizeof(s)-ch, "#%s", HtmlId);
+		s.Print("#%s", HtmlId);
 	for (unsigned i=0; i<Class.Length(); i++)
-		ch += sprintf_s(s+ch, sizeof(s)-ch, ".%s", Class[i]);
-	return GAutoString(NewStr(s));
+		s.Print(".%s", Class[i]);
+	return GAutoString(s.NewStr());
 }
 
 GFont *GTag::NewFont()

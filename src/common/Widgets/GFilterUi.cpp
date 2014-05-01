@@ -488,8 +488,8 @@ char *GFilterItem::GetField()
 
 int GFilterItem::GetOp()
 {
-	if (d->OpCbo) return d->OpCbo->Value();
-
+	if (d->OpCbo != NULL)
+		return (int)d->OpCbo->Value();
 	return d->Op;
 }
 
@@ -824,7 +824,7 @@ void GFilterItem::ShowControls(bool s)
 									&Ops,
 									d->Data->CallbackData) > 0)
 			{
-				for (int i=0; i<Ops.Length(); i++)
+				for (unsigned i=0; i<Ops.Length(); i++)
 					d->OpCbo->Insert(Ops[i]);
 
 				Ops.DeleteArrays();
@@ -839,7 +839,7 @@ void GFilterItem::ShowControls(bool s)
 		EndEdit(FieldBtn, FieldEd, Field);
 		if (d->OpCbo)
 		{
-			d->Op = d->OpCbo->Value();
+			d->Op = (int)d->OpCbo->Value();
 			DeleteObj(d->OpCbo);
 		}
 		EndEdit(ValueBtn, ValueEd, Value);

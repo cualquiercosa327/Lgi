@@ -757,7 +757,7 @@ bool VCard::Export(GDataPropI *c, GStreamI *o)
 	if ((Alt = c->GetStr(FIELD_ALT_EMAIL)))
 	{
 		GToken t(Alt, ",");
-		for (int i=0; i<t.Length(); i++)
+		for (unsigned i=0; i<t.Length(); i++)
 		{
 			WriteField(*o, "email", &Inet, t[i]);
 		}
@@ -779,7 +779,7 @@ bool VCard::Export(GDataPropI *c, GStreamI *o)
 
 	if (Street || Suburb || PostCode || State || Country)
 	{
-		snprintf(s, sizeof(s)-1,
+		sprintf_s(s, sizeof(s),
 				";;%s;%s;%s;%s;%s",
 				Street?Street:Empty,
 				Suburb?Suburb:Empty,
@@ -798,7 +798,7 @@ bool VCard::Export(GDataPropI *c, GStreamI *o)
 	Country = c->GetStr(FIELD_WORK_COUNTRY);
 	if (Street || Suburb || PostCode || State || Country)
 	{
-		snprintf(s, sizeof(s)-1,
+		sprintf_s(s, sizeof(s),
 				";;%s;%s;%s;%s;%s",
 				Street?Street:Empty,
 				Suburb?Suburb:Empty,

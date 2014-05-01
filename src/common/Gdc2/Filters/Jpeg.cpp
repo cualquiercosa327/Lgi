@@ -538,11 +538,12 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 	
 	if (Props)
 	{
-		char s[256];
-		int ch = sprintf_s(s, sizeof(s), "Sub-sampling: ");
+		GStringPipe s(256);
+		s.Print("Sub-sampling: ");
 		for (int i=0; i<cinfo.comps_in_scan; i++)
-			ch += sprintf_s(s + ch, sizeof(s) - ch, "%s%ix%i", i ? "_" : "", cinfo.comp_info[i].h_samp_factor, cinfo.comp_info[i].v_samp_factor);
-		Props->SetValue(LGI_FILTER_INFO, v = s);
+			s.Print("%s%ix%i", i ? "_" : "", cinfo.comp_info[i].h_samp_factor, cinfo.comp_info[i].v_samp_factor);
+		GAutoString ss(s.NewStr());
+		Props->SetValue(LGI_FILTER_INFO, v = ss.Get());
 	}
 
 	int Bits = cinfo.num_components * 8;

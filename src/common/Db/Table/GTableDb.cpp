@@ -69,16 +69,16 @@ GBlockArray::~GBlockArray()
 
 GBlockArray::Block *GBlockArray::New()
 {
-	int MaxId = 0, i;
+	uint32 MaxId = 0;
 	GArray<bool> Has;
-	for (i=0; i<b.Length(); i++)
+	for (unsigned i=0; i<b.Length(); i++)
 	{
 		MaxId = max(b[i]->Id, MaxId);
 		Has[b[i]->Id] = true;
 	}
 	
 	Block *n = NULL;
-	for (i=0; i<Has.Length(); i++)
+	for (unsigned i=0; i<Has.Length(); i++)
 	{
 		if (!Has[i])
 		{
@@ -193,7 +193,7 @@ bool GTableDb::CompareSchema(Schema &a, Schema &b)
 	if (a.Length() != b.Length())
 		return false;
 	
-	for (int i=0; i<a.Length(); i++)
+	for (unsigned i=0; i<a.Length(); i++)
 	{
 		if (a[i] != b[i])
 			return false;
@@ -205,7 +205,7 @@ bool GTableDb::CompareSchema(Schema &a, Schema &b)
 bool GTableDb::CopySchema(Schema &dest, Schema &src)
 {
 	dest.Length(0);
-	for (int i=0; i<src.Length(); i++)
+	for (unsigned i=0; i<src.Length(); i++)
 	{
 		dest.New() = src[i];
 	}
@@ -225,7 +225,7 @@ void GTableDbPriv::Msg(char *Fmt, ...)
 		char buffer[512];
 		va_list arg;
 		va_start(arg, Fmt);
-		int Ch = vsprintf(buffer, Fmt, arg);
+		int Ch = vsprintf_s(buffer, sizeof(buffer), Fmt, arg);
 		va_end(arg);
 
 		if (Ch > 0)
@@ -529,7 +529,7 @@ bool GTableDb::Open(const char *BaseFolder)
 	GHashTbl<char*, Table*> Tables;
 	
 	char p[MAX_PATH];
-	for (bool b = Dir.First(BaseFolder); b; b = Dir.Next())
+	for (int b = Dir.First(BaseFolder); b; b = Dir.Next())
 	{
 		if (!Dir.IsDir())
 		{
@@ -568,7 +568,7 @@ GTableDb::Table *GTableDb::GetTable(const char *Name)
 	if (!Name)
 		return NULL;
 
-	for (int i=0; i<d->Tables.Length(); i++)
+	for (unsigned i=0; i<d->Tables.Length(); i++)
 	{
 		if (!_stricmp(Name, d->Tables[i]->Name()))
 			return d->Tables[i];
@@ -608,7 +608,7 @@ bool RunTableDbTest(GStream *Log)
 		LgiAssert(p.s8 - Flds == sizeof(Flds) - 1);
 		
 		p.s8 = &Mem[0];
-		for (int i=0; i<sc.Length(); i++)
+		for (unsigned i=0; i<sc.Length(); i++)
 			if (!sc[i].Serialize(p, true))
 				return false;
 		LgiAssert(p.s8 - &Mem[0] == sizeof(Flds) - 1);

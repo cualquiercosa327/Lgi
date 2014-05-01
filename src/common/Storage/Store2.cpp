@@ -1931,7 +1931,7 @@ bool StorageKitImpl::Compact(Progress *p, bool Interactive, StorageValidator *va
 							uint32 i; // this holds the number of bytes moved
 							for (i=0; i<Next->Length; )
 							{
-								uint32 Chunk = min(BufLen, Next->Length - i);
+								uint32 Chunk = min((uint32)BufLen, (uint32)Next->Length - i);
 								
 								File->SetPos((uint64)Next->Start + i);
 								if (File->Read(Buf, Chunk) == Chunk)
@@ -2004,7 +2004,7 @@ bool StorageKitImpl::Compact(Progress *p, bool Interactive, StorageValidator *va
 						Status = true;
 						
 						char Size[64];
-						int Change = OldSize - File->GetSize();
+						uint32 Change = (uint32)(OldSize - File->GetSize());
 						LgiFormatSize(Size, sizeof(Size), Change);
 						sprintf_s(Msg, sizeof(Msg), "Compact complete, %s was recovered.", Size);
 					}

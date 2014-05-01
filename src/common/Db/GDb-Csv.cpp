@@ -463,7 +463,7 @@ void SvRecordset::Read()
 		
 		int MaxBufSize = 5 << 20;
 		GArray<char> Buffer;
-		Buffer.Length(min(f.GetSize(), MaxBufSize));
+		Buffer.Length(min((int32) f.GetSize(), MaxBufSize));
 		char *Buf = &Buffer[0];
 
 		int Used = f.Read(Buf, Buffer.Length());
@@ -580,7 +580,7 @@ void SvRecordset::Read()
 					for (int n=0; n<r->Fields; n++)
 					{
 						char Name[32];
-						snprintf(Name, sizeof(Name), "Field%i", n);
+						sprintf_s(Name, sizeof(Name), "Field%i", n);
 						GAutoString a(NewStr(Name));
 						F.Insert(new SvField(this, n, a));
 					}
@@ -793,24 +793,24 @@ bool SvRecordset::MoveFirst()
 
 	if (Cur)
 	{
-		return Cur->First();
+		return Cur->First() != NULL;
 	}
 
-	return 0;
+	return false;
 }
 
 bool SvRecordset::MoveNext()
 {
 	Cancel();
 
-	return Cur ? Cur->Next() : 0;
+	return Cur ? Cur->Next() != NULL : false;
 }
 
 bool SvRecordset::MovePrev()
 {
 	Cancel();
 
-	return Cur ? Cur->Prev() : 0;
+	return Cur ? Cur->Prev() != NULL : false;
 }
 
 bool SvRecordset::MoveLast()
@@ -824,10 +824,10 @@ bool SvRecordset::MoveLast()
 
 	if (Cur)
 	{
-		return Cur->Last();
+		return Cur->Last() != NULL;
 	}
 
-	return 0;
+	return false;
 }
 
 int SvRecordset::SeekRecord(int i)
