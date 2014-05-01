@@ -56,7 +56,7 @@ int GStreamPrintf(GStreamI *Stream, int Flags, const char *Format, va_list &Arg)
 				if (!Buf)
 					break;
 
-				int c = _vsnprintf(Buf, Size, Format, Arg);
+				int c = vsnprintf(Buf, Size, Format, Arg);
 				if (c > 0)
 				{
 					Stream->Write(Buf, Chars = c, Flags);

@@ -21,6 +21,8 @@ public:
 	OsProcessId GetId();
 	/// \returns the value the process exited with
 	int ExitValue();
+	/// \returns the any error code
+	uint32 GetErrorCode();
 	/// Stops the process right now, use with care
 	bool Terminate();
 	/// \returns true if still running, else false.

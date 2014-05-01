@@ -108,13 +108,15 @@ public:
 	OsProcess Pid;
 	OsProcessId ProcessId;
 	ulong ExitValue;
+	uint32 ErrorCode;
 	char *Exe;
 	
 	GProcessPrivate()
 	{
 		Pid = 0;
 		ProcessId = 0;
-		Exe = 0;
+		Exe = NULL;
+		ErrorCode = 0;
 		ExitValue = STILL_ACTIVE;
 	}
 	
@@ -142,6 +144,11 @@ OsProcess GProcess::Handle()
 OsProcessId GProcess::GetId()
 {
 	return d->ProcessId;
+}
+
+uint32 GProcess::GetErrorCode()
+{
+	return d->ErrorCode;
 }
 
 int GProcess::ExitValue()
@@ -550,8 +557,7 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 
 				if (!Ok)
 				{
-					DWORD e = GetLastError();
-					int asd=0;
+					d->ErrorCode = GetLastError();
 				}
 
 				SetStdHandle(STD_INPUT_HANDLE, hSaveStdin);

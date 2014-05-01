@@ -753,12 +753,24 @@ bool SystemFunctions::Execute(GVariant *Ret, ArgumentArray &Args)
 
 	GProcess e;
 	GStringPipe p;
-	bool Status = e.Run(Args[0]->CastString(), Args[1]->CastString(), 0, true, 0, &p);
+	char *Exe = Args[0]->CastString();
+	char *Arguments = Args[1]->CastString();
+	bool Status = e.Run(Exe, Arguments, 0, true, 0, &p);
 	if (Status)
 	{
 		GAutoString o(p.NewStr());
 		*Ret = o;
-	}	
+	}
+	else
+	{
+		uint32 ErrCode = e.GetErrorCode();
+		GAutoString ErrMsg = LgiErrorCodeToString(ErrCode);
+		if (ErrMsg)
+			Engine->GetConsole()->Print("Error: Execute(\"%s\",\"%s\") failed with '%s'\n", Exe, Arguments, ErrMsg.Get());
+		else
+			Engine->GetConsole()->Print("Error: Execute(\"%s\",\"%s\") failed with '0x%x'\n", Exe, Arguments, ErrCode);
+	}
+	
 	return Status;
 }
 
