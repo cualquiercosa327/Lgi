@@ -284,14 +284,7 @@ DumpTime("priv");
 	}
 
     InitializeCriticalSection(&StackTraceSync);
-	#if 1 // ndef _DEBUG
-	
-	/*
-	char p[MAX_PATH];
-	LgiGetSystemPath(LSP_APP_ROOT, p, sizeof(p));
-	LgiTrace("LSP_APP_ROOT='%s'\n", p);
-	*/
-	
+	#if !defined(_DEBUG)
 	_PrevExceptionHandler = SetUnhandledExceptionFilter(_ExceptionFilter_Redir);
 	#endif
 

@@ -941,6 +941,8 @@ bool GVariant::CastBool()
 		default:
 			LgiAssert(0);
 			break;
+		case GV_NULL:
+			return false;
 		case GV_INT32:
 			return Value.Int != 0;
 		case GV_INT64:
