@@ -263,6 +263,14 @@ GTempStream::~GTempStream()
 	Empty();
 }
 
+int64 GTempStream::GetSize()
+{
+	if (s == (GStreamI*)&Null)
+		return 0;
+	
+	return s->GetSize();
+}
+
 void GTempStream::Empty()
 {
 	DeleteObj(Mem);

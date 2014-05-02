@@ -240,6 +240,7 @@ public:
 	int GetMaxMemSize() { return MaxMemSize; }
 	int Write(const void *Buffer, int Size, int Flags = 0);
 	void Empty();
+	int64 GetSize();
 	
 	GTempStream &operator =(const GTempStream &ts)
 	{
