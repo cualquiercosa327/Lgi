@@ -471,7 +471,7 @@ bool SystemFunctions::New(GVariant *Ret, ArgumentArray &Args)
 		{
 			Ret->Empty();
 			Ret->Type = GV_GSURFACE;
-			if (Ret->Value.Surface.Ptr = new GMemDC)
+			if ((Ret->Value.Surface.Ptr = new GMemDC))
 			{
 				Ret->Value.Surface.Ptr->AddRef();
 				Ret->Value.Surface.Own = true;
@@ -482,7 +482,7 @@ bool SystemFunctions::New(GVariant *Ret, ArgumentArray &Args)
 		{
 			Ret->Empty();
 			Ret->Type = GV_GFILE;
-			if (Ret->Value.File.Ptr = new GFile)
+			if ((Ret->Value.File.Ptr = new GFile))
 			{
 				Ret->Value.File.Ptr->AddRef();
 				Ret->Value.File.Own = true;
@@ -697,7 +697,7 @@ bool SystemFunctions::CreateSurface(GVariant *Ret, ArgumentArray &Args)
 	if (!Cs) // Catch all error cases and make it the default screen depth.
 		Cs = GdcD->GetColourSpace();
 
-	if (Ret->Value.Surface.Ptr = new GMemDC(x, y, Cs))
+	if ((Ret->Value.Surface.Ptr = new GMemDC(x, y, Cs)))
 	{
 		Ret->Type = GV_GSURFACE;
 		Ret->Value.Surface.Own = true;

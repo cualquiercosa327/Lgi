@@ -28,17 +28,65 @@ char *strncpy_s(char *dest, size_t dest_size, const char *src, size_t src_size)
 
 char *strcpy_s(char *dest, size_t dest_size, const char *src)
 {
-	if (dest && src)
+	if (!dest || !src)
+		return NULL;
+
+	char *Start = dest;
+
+	// Copy the string
+	while (*src && dest_size > 1)
 	{
-		char *end = dest + dest_size - 1;
-		while (dest < end && *src)
-		{
-			*dest++ = *src++;
-		}
-		*dest++ = 0;
+		*dest++ = *src++;
+		dest_size--;
 	}
 	
-	return dest;
+	// NULL terminate
+	if (dest_size > 0)
+	{
+		*dest++ = 0;
+		dest_size--;
+	}
+	
+	// Assert if we ran out of buffer.
+	if (*src != 0)
+		LgiAssert(!"Buffer too small");
+	
+	return Start;
+}
+
+char *strcat_s(char *dest, size_t dest_size, const char *src)
+{
+	if (!dest || !src)
+		return NULL;
+	
+	char *Start = dest;
+	
+	// Scan over the existing string
+	while (*dest && dest_size > 0)
+	{
+		dest++;
+		dest_size--;
+	}
+
+	// Write as much as we can
+	while (*src && dest_size > 1)
+	{
+		*dest++ = *src++;
+		dest_size--;
+	}
+	
+	// NULL terminate...
+	if (dest_size > 0)
+	{
+		*dest++ = NULL;
+		dest_size--;
+	}
+	
+	// Assert if we ran out of buffer.
+	if (*src != 0)
+		LgiAssert(!"Buffer too small");
+	
+	return Start;
 }
 
 #endif

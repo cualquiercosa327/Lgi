@@ -1635,7 +1635,7 @@ public:
 									Dom->Value.Date->Set(Value->Str());
 									break;
 								case DateInt64:
-									Dom->Value.Date->Set(Value->CastInt64());
+									Dom->Value.Date->Set((uint64)Value->CastInt64());
 									break;
 								default:
 									if (Log)
@@ -1938,7 +1938,7 @@ public:
 											{
 												GVariant Tmp = *v;
 												p.Print("%s", Tmp.CastString());
-												while (v = Lst->Next())
+												while ((v = Lst->Next()))
 												{
 													Tmp = *v;
 													p.Print("%s%s", Sep, Tmp.CastString());

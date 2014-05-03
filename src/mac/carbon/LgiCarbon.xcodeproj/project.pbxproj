@@ -41,6 +41,7 @@
 		3446E32808D0E9D6005024EB /* 24Bit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3446E32308D0E9D6005024EB /* 24Bit.cpp */; };
 		3446E32908D0E9D6005024EB /* 32Bit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3446E32408D0E9D6005024EB /* 32Bit.cpp */; };
 		3446E32B08D0E9E4005024EB /* Alpha.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3446E32A08D0E9E4005024EB /* Alpha.cpp */; };
+		344AC3E31915AC25003FFE7E /* GFileCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344AC3E21915AC25003FFE7E /* GFileCommon.cpp */; };
 		344AF36008E0322F004ED88C /* GToken.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344AF35E08E0322F004ED88C /* GToken.cpp */; };
 		344AF36108E0322F004ED88C /* GXmlTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344AF35F08E0322F004ED88C /* GXmlTree.cpp */; };
 		344AF36308E03284004ED88C /* GDateTime.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344AF36208E03284004ED88C /* GDateTime.cpp */; };
@@ -204,6 +205,7 @@
 		3446E32308D0E9D6005024EB /* 24Bit.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = 24Bit.cpp; path = ../../common/Gdc2/24Bit.cpp; sourceTree = "<group>"; };
 		3446E32408D0E9D6005024EB /* 32Bit.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = 32Bit.cpp; path = ../../common/Gdc2/32Bit.cpp; sourceTree = "<group>"; };
 		3446E32A08D0E9E4005024EB /* Alpha.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Alpha.cpp; path = ../../common/Gdc2/Alpha.cpp; sourceTree = "<group>"; };
+		344AC3E21915AC25003FFE7E /* GFileCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GFileCommon.cpp; path = ../../common/General/GFileCommon.cpp; sourceTree = "<group>"; };
 		344AF35E08E0322F004ED88C /* GToken.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GToken.cpp; path = ../../common/Text/GToken.cpp; sourceTree = "<group>"; };
 		344AF35F08E0322F004ED88C /* GXmlTree.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GXmlTree.cpp; path = ../../common/Text/GXmlTree.cpp; sourceTree = "<group>"; };
 		344AF36208E03284004ED88C /* GDateTime.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GDateTime.cpp; path = ../../common/General/GDateTime.cpp; sourceTree = "<group>"; };
@@ -606,6 +608,7 @@
 			children = (
 				34766827093F207D00623A44 /* GFile.h */,
 				344B738608D840CF00D49457 /* GFile.cpp */,
+				344AC3E21915AC25003FFE7E /* GFileCommon.cpp */,
 			);
 			name = File;
 			sourceTree = "<group>";
@@ -1017,6 +1020,7 @@
 				343E950D1751C6090085611D /* GThreadEvent.cpp in Sources */,
 				344CD2D4176C75B9008A716C /* GCssTools.cpp in Sources */,
 				3476333318E2D12300766FC4 /* GColour.cpp in Sources */,
+				344AC3E31915AC25003FFE7E /* GFileCommon.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1061,7 +1065,7 @@
 				MACH_O_TYPE = mh_dylib;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = Lgi;
-				SDKROOT = macosx10.7;
+				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.6.sdk";
 				SYMROOT = build;
 				WRAPPER_EXTENSION = framework;
 			};
@@ -1092,7 +1096,7 @@
 				MACH_O_TYPE = mh_dylib;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = Lgi;
-				SDKROOT = macosx10.7;
+				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.6.sdk";
 				SYMROOT = build;
 				WRAPPER_EXTENSION = framework;
 			};
@@ -1113,7 +1117,7 @@
 					"-DMAC",
 					"-DLGI_LIBRARY",
 				);
-				SDKROOT = macosx10.7;
+				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.6.sdk";
 				STRIP_INSTALLED_PRODUCT = NO;
 				SYMROOT = ./build;
 				USER_HEADER_SEARCH_PATHS = "../../../include/common ../../../include/mac/carbon ../../../include/posix";
@@ -1133,7 +1137,7 @@
 					"-DMAC",
 					"-DLGI_LIBRARY",
 				);
-				SDKROOT = macosx10.7;
+				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.6.sdk";
 				SYMROOT = ./build;
 				USER_HEADER_SEARCH_PATHS = "../../../include/common ../../../include/mac/carbon ../../../include/posix";
 				VALID_ARCHS = i386;

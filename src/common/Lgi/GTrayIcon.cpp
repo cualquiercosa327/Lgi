@@ -202,7 +202,7 @@ bool GTrayIcon::Load(const TCHAR *Str)
 		{
 			if (GdcD->GetBits() != i->GetBits())
 			{
-				GSurface *n = new GMemDC(i->X(), i->Y(), GdcD->GetBits());
+				GSurface *n = new GMemDC(i->X(), i->Y(), GdcD->GetColourSpace());
 				if (n)
 				{
 					n->Colour(0);

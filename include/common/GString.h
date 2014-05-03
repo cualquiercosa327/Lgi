@@ -39,6 +39,7 @@ LgiFunc char *strnchr
 #if defined(MAC)
 LgiFunc char *strncpy_s(char *dest, size_t dest_size, const char *src, size_t src_size);
 LgiFunc char *strcpy_s(char *dest, size_t dest_size, const char *src);
+LgiFunc char *strcat_s(char *dest, size_t dest_size, const char *src);
 #else
 /// \brief Search for a substring in another string.
 ///

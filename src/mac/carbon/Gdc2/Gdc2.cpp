@@ -673,6 +673,7 @@ public:
 	int ScrX;
 	int ScrY;
 	int ScrBits;
+	GColourSpace Cs;
 
 	// Palette
 	double GammaCorrection;
@@ -708,19 +709,41 @@ public:
 		CGRect r = CGDisplayBounds(ScreenId);
 		ScrX = (int)r.size.width;
 		ScrY = (int)r.size.height;
-		// ScrBits = CGDisplayBitsPerPixel(ScreenId);
         
         CGDisplayModeRef mode = CGDisplayCopyDisplayMode(CGMainDisplayID());
         
         CFStringRef pixEnc = CGDisplayModeCopyPixelEncoding(mode);
-        if(CFStringCompare(pixEnc, CFSTR(IO32BitDirectPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo)
+        if (CFStringCompare(pixEnc,
+							CFSTR(IO32BitDirectPixels),
+							kCFCompareCaseInsensitive) == kCFCompareEqualTo)
+		{
             ScrBits = 32;
-        else if(CFStringCompare(pixEnc, CFSTR(IO16BitDirectPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo)
+			Cs = System32BitColourSpace;
+		}
+        else if (CFStringCompare(pixEnc,
+								CFSTR(IO16BitDirectPixels),
+								kCFCompareCaseInsensitive) == kCFCompareEqualTo)
+		{
             ScrBits = 16;
-        else if(CFStringCompare(pixEnc, CFSTR(IO8BitIndexedPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo)
+			Cs = System16BitColourSpace;
+		}
+        else if (CFStringCompare(pixEnc,
+								CFSTR(IO8BitIndexedPixels),
+								kCFCompareCaseInsensitive) == kCFCompareEqualTo)
+		{
             ScrBits = 8;
+			Cs = CsIndex8;
+		}
         else
+		{
             LgiAssert(0);
+		}
+		
+		char PixEnc[256];
+		if (CFStringGetCString(pixEnc, PixEnc, sizeof(PixEnc), kCFStringEncodingUTF8))
+		{
+			printf("Cs = '%s'\n", PixEnc);
+		}
         
 		// Palette information
 		GammaCorrection = 1.0;
@@ -814,6 +837,11 @@ GGlobalColour *GdcDevice::GetGlobalColour()
 int GdcDevice::GetBits()
 {
 	return d->ScrBits;
+}
+
+GColourSpace GdcDevice::GetColourSpace()
+{
+	return d->Cs;
 }
 
 int GdcDevice::X()

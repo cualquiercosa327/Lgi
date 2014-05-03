@@ -2601,7 +2601,7 @@ bool MailPop3::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *P
 
 						// append password
 						char Key[256];
-						sprintf_s(Key, "%s%s", Apop, pass);
+						sprintf_s(Key, sizeof(Key), "%s%s", Apop, pass);
 
 						ZeroObj(Digest);
 						MDStringToDigest(Digest, Key);

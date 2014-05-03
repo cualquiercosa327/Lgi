@@ -574,14 +574,14 @@ void MailImapFolder::SetName(char *s)
 	if (s)
 	{
 		char Buf[256];
-		sprintf_s(Buf, sizeof(Buf), Path?Path:(char*)"");
+		strcpy_s(Buf, sizeof(Buf), Path?Path:(char*)"");
 		DeleteArray(Path);
 
 		char *Last = strrchr(Buf, Sep);
 		if (Last)
 		{
 			Last++;
-			sprintf_s(Last, sizeof(Buf)-(Last-Buf), s);
+			strcpy_s(Last, sizeof(Buf)-(Last-Buf), s);
 			Path = NewStr(Buf);
 		}
 		else

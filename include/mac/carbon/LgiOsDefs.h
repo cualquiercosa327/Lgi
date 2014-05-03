@@ -113,6 +113,8 @@ LgiFunc void LgiSleep(int i);
 #define LGI_PrintfInt64				"%lli"
 #define atoi64						atoll
 #define sprintf_s					snprintf
+#define vsprintf_s					vsnprintf
+#define swprintf_s					swnprintf
 #define LGI_IllegalFileNameChars	"/" // FIXME: what other characters should be in here?
 
 // Window flags

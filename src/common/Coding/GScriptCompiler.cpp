@@ -1215,7 +1215,7 @@ public:
 	/// Parse expression into a node tree
 	bool Expression(uint32 &Cur, GArray<Node> &n, int Depth = 0)
 	{
-		if (Cur >= 0 && Cur < Tokens.Length())
+		if (Cur < Tokens.Length())
 		{
 			char16 *t;
 			bool PrevIsOp = true;
