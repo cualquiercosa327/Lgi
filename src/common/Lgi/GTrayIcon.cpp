@@ -406,7 +406,7 @@ void GTrayIcon::Value(int64 v)
 		
 		#ifdef COCOA
 		#else
-		GSurface *t = d->Icon[d->Val];
+		GSurface *t = d->Val >= 0 ? d->Icon[d->Val] : NULL;
 		if (t)
 		{
 			CGContextRef c = BeginCGContextForApplicationDockTile();

@@ -68,6 +68,11 @@ GEdit::~GEdit()
 	DeleteObj(d);
 }
 
+void GEdit::SetEmptyText(const char *EmptyText)
+{
+	LgiAssert(!"Impl me.");
+}
+
 void GEdit::SendNotify(int Data)
 {
 	if (Data == GTVN_DOC_CHANGED)

@@ -453,7 +453,7 @@ void GMime::Remove()
 
 GMime *GMime::operator[](uint32 i)
 {
-	if (i < 0 || i >= Children.Length())
+	if (i >= Children.Length())
 		return 0;
 
 	return Children[i];

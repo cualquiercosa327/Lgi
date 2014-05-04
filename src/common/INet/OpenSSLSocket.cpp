@@ -230,6 +230,8 @@ public:
 		GArray<int> Ver;
 		GArray<int> MinimumVer = ParseSslVersion(MinimumVersion);
 		GToken t;
+		int Len = 0;
+		const char *v = NULL;
 
 		if (!IsLoaded())
 		{
@@ -242,12 +244,12 @@ public:
 		ERR_load_BIO_strings();
 		OpenSSL_add_all_algorithms();
 		
-	    int Len = CRYPTO_num_locks();
+	    Len = CRYPTO_num_locks();
 	    Locks.Length(Len);
 	    CRYPTO_set_locking_callback(SSL_locking_function);
 	    CRYPTO_set_id_callback(SSL_id_function);
 
-		const char *v = SSLeay_version(SSLEAY_VERSION);
+		v = SSLeay_version(SSLEAY_VERSION);
 		if (!v)
 		{
 			Err.Print("%s:%i - SSLeay_version failed.\n", _FL);
