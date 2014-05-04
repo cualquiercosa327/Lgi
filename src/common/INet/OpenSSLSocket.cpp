@@ -204,6 +204,16 @@ bool operator >(SslVer &a, SslVer &b)
 	return CompareSslVersion(a, b) > 0;
 }
 
+static const char *FileLeaf(const char *f)
+{
+	const char *l = strrchr(f, DIR_CHAR);
+	return l ? l + 1 : f;
+}
+
+#undef _FL
+#define _FL FileLeaf(__FILE__), __LINE__
+
+
 class OpenSSL :
 	#ifdef _WINDOWS
 	public LibEAY,
@@ -223,7 +233,7 @@ public:
             #endif
             ;
     }
-    
+	
     bool InitLibrary()
     {
 		GStringPipe Err;
