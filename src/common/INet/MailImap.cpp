@@ -21,6 +21,9 @@
 #include "gsasl.h"
 #endif
 
+static const char *sRfc822Header	= "RFC822.HEADER";
+static const char *sRfc822Size		= "RFC822.SIZE";
+
 #define Ws(s)			while (*s && strchr(WhiteSpace, *s)) s++
 #define SkipWhite(s)	while ((s - Buffer) < Used && strchr(" \t", *s)) s++;
 #define SkipNonWhite(s) while ((s - Buffer) < Used && !strchr(WhiteSpace, *s)) s++;
@@ -740,23 +743,26 @@ bool MailIMap::Read(GStreamI *Out)
 				}
 			}
 		}
-		else break;
+		else
+		{
+			// LgiTrace("%s:%i - Socket->Read failed: %i\n", _FL, r);
+			break;
+		}
 	}
 
 	return Lines > 0;
 }
 
-bool MailIMap::ReadResponse(int Cmd, GStringPipe *Out, bool Plus)
+bool MailIMap::ReadResponse(int Cmd, bool Plus)
 {
 	bool Done = false;
 	bool Status = false;
 	if (Socket)
 	{
-		int64 Last = LgiCurrentTime();
 		int Pos = Dialog.Length();
 		while (!Done)
 		{
-			if (Read(Out))
+			if (Read(NULL))
 			{
 				COLOUR c = MAIL_RECEIVE_COLOUR;
 
@@ -782,7 +788,11 @@ bool MailIMap::ReadResponse(int Cmd, GStringPipe *Out, bool Plus)
 						Log(Dlg, GSocketI::SocketMsgReceive);
 				}
 			}
-			else break;
+			else
+			{
+				// LgiTrace("%s:%i - 'Read' failed.\n", _FL);
+				break;
+			}
 		}
 	}
 
@@ -1050,7 +1060,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 						sprintf_s(Buf, sizeof(Buf), "A%4.4i AUTHENTICATE PLAIN\r\n", AuthCmd);
 						if (WriteBuf())
 						{
-							if (ReadResponse(AuthCmd, 0, true))
+							if (ReadResponse(AuthCmd, true))
 							{
 								int b = ConvertBinaryToBase64(Buf, sizeof(Buf), (uchar*)s, Len);
 								strcpy_s(Buf+b, sizeof(Buf)-b, "\r\n");
@@ -1087,7 +1097,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 							sprintf_s(Buf, sizeof(Buf), "A%04.4i AUTHENTICATE NTLM\r\n", AuthCmd);
 							if (WriteBuf())
 							{
-								if (ReadResponse(AuthCmd, 0, true))
+								if (ReadResponse(AuthCmd, true))
 								{
 									tSmbNtlmAuthNegotiate	negotiate;              
 									tSmbNtlmAuthChallenge	challenge;
@@ -1549,17 +1559,20 @@ bool MailIMap::SelectFolder(const char *Path, GHashTbl<const char*,int> *Values)
 						GToken t(Dlg, " []");
 						if (!_stricmp(t[0], "*") && t.Length() > 2)
 						{
-							if (_stricmp(t[2], "exists") == 0)
+							char *key = t[2];
+							char *sValue = t[1];
+							int iValue = atoi(sValue);
+							if (_stricmp(key, "exists") == 0)
 							{
-								Values->Add(t[2], atoi(t[1]));
+								Values->Add(key, iValue);
 							}
-							else if (_stricmp(t[2], "recent") == 0)
+							else if (_stricmp(key, "recent") == 0)
 							{
-								Values->Add(t[2], atoi(t[1]));
+								Values->Add(key, iValue);
 							}
-							else if (_stricmp(t[2], "unseen") == 0)
+							else if (_stricmp(key, "unseen") == 0)
 							{
-								Values->Add(t[2], atoi(t[3]));
+								Values->Add(key, iValue);
 							}
 						}
 					}
@@ -1583,10 +1596,14 @@ int MailIMap::GetMessages(const char *Path)
 
 	if (Socket && Lock(_FL))
 	{
-		GHashTbl<const char*,int> f;
+		GHashTbl<const char*,int> f(0, false, NULL, -1);
 		if (SelectFolder(Path, &f))
 		{
-			Status = f.Find("exists");
+			int Exists = f.Find("exists");
+			if (Exists >= 0)
+				Status = Exists;
+			else
+				LgiTrace("%s:%i - Failed to get 'exists' value.\n", _FL);
 		}
 		
 		Unlock();
@@ -1598,18 +1615,6 @@ int MailIMap::GetMessages(const char *Path)
 int MailIMap::GetMessages()
 {
 	return GetMessages("INBOX");
-}
-
-char *MailIMap::GetHeaders(int Message)
-{
-	GStringPipe Text;
-	if (Lock(_FL))
-	{
-		GetParts(Message, Text, "RFC822.HEADER");
-		Unlock();
-	}
-	
-	return Text.NewStr();
 }
 
 char *MailIMap::SequenceToString(GArray<int> *Seq)
@@ -1805,6 +1810,7 @@ bool MailIMap::Fetch(bool ByUid, char *Seq, const char *Parts, FetchCallback Cal
 	return Status;
 }
 
+/* Deprecated in favor of ::Fetch
 bool MailIMap::GetParts(int Message, GStreamI &Out, const char *Parts, char **Flags)
 {
 	bool Status = false;
@@ -1826,6 +1832,7 @@ bool MailIMap::GetParts(int Message, GStreamI &Out, const char *Parts, char **Fl
 			int64 Start = LgiCurrentTime();
 			/////////////////////////////////
 			
+			LgiTrace("Starting GetParts ReadResponse msg='%i'\n", Message);
 			bool ReadOk = ReadResponse(Cmd, &Buf);
 			
 			/////////////////////////////////
@@ -1945,28 +1952,89 @@ bool MailIMap::GetParts(int Message, GStreamI &Out, const char *Parts, char **Fl
 
 	return Status;
 }
-
-/*
-bool MailIMap::ReceiveFlags(MailMessage *Msg)
-{
-	bool Status = false;
-
-	if (Msg && d->Flags)
-	{
-		MailImapMsg *p = (MailImapMsg*)Msg->Private;
-		if (!p)
-			Msg->Private = p = new MailImapMsg;
-		if (p)
-		{
-			p->Set(d->Flags);
-			Status = true;
-		}
-	}
-	DeleteArray(d->Flags);
-
-	return Status;
-}
 */
+
+bool IMapHeadersCallback(MailIMap *Imap, char *Msg, GHashTbl<const char*, char*> &Parts, void *UserData)
+{
+	char *s = Parts.Find(sRfc822Header);
+	if (s)
+	{
+		Parts.Delete(sRfc822Header);
+
+		GAutoString *Hdrs = (GAutoString*)UserData;
+		Hdrs->Reset(s);
+	}
+	
+	Parts.DeleteArrays();
+	return true;
+}
+
+char *MailIMap::GetHeaders(int Message)
+{
+	GAutoString Text;
+	
+	if (Lock(_FL))
+	{
+		char Seq[64];
+		sprintf_s(Seq, sizeof(Seq), "%i", Message + 1);
+
+		Fetch(	false,
+				Seq,
+				sRfc822Header,
+				IMapHeadersCallback,
+				&Text,
+				NULL);
+		
+		Unlock();
+	}
+	
+	return Text.Release();
+}
+
+struct ReceiveCallbackState
+{
+	MailTransaction *Trans;
+	MailCallbacks *Callbacks;
+};
+
+static bool IMapReceiveCallback(MailIMap *Imap, char *Msg, GHashTbl<const char*, char*> &Parts, void *UserData)
+{
+	ReceiveCallbackState *State = (ReceiveCallbackState*) UserData;
+	char *Flags = Parts.Find("FLAGS");
+	if (Flags)
+	{
+		State->Trans->Imap.Set(Flags);
+	}
+	
+	char *Hdrs = Parts.Find(sRfc822Header);
+	if (Hdrs)
+	{
+		int Len = strlen(Hdrs);
+		State->Trans->Stream->Write(Hdrs, Len);
+	}
+
+	char *Body = Parts.Find("BODY[TEXT]");
+	if (Body)
+	{
+		int Len = strlen(Body);
+		State->Trans->Stream->Write(Body, Len);
+	}
+	
+	State->Trans->Status = Hdrs != NULL || Body != NULL;
+	if (Imap->Items)
+		Imap->Items->Value++;
+	
+	Parts.DeleteArrays();
+
+	if (State->Callbacks)
+	{
+		bool Ret = State->Callbacks->OnReceive(State->Trans, State->Callbacks->CallbackData);
+		if (!Ret)
+			return false;
+	}
+
+	return true;
+}
 
 bool MailIMap::Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks)
 {
@@ -1974,20 +2042,37 @@ bool MailIMap::Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks
 
 	if (Lock(_FL))
 	{
+		int Errors = 0;
+		ReceiveCallbackState State;
+		State.Callbacks = Callbacks;
+		
 		for (unsigned i=0; i<Trans.Length(); i++)
 		{
-			char *Flags = 0;
-			if ((Trans[i]->Status = GetParts(Trans[i]->Index, *Trans[i]->Stream, "FLAGS RFC822.HEADER BODY[TEXT]", &Flags)))
-			{
-				Trans[i]->Imap.Set(Flags);
-				DeleteArray(Flags);
-				
-				if (Callbacks)
-				{
-					Callbacks->OnReceive(Trans[i], Callbacks->CallbackData);
-				}
+			State.Trans = Trans[i];			
+			State.Trans->Status = false;
 
+			char Seq[64];
+			sprintf_s(Seq, sizeof(Seq), "%i", State.Trans->Index + 1);
+			
+			Fetch
+			(
+				false,
+				Seq,
+				"FLAGS RFC822.HEADER BODY[TEXT]",
+				IMapReceiveCallback,
+				&State,
+				NULL
+			);
+
+			if (State.Trans->Status)
+			{
 				Status = true;
+			}
+			else if (Errors++ > 5)
+			{
+				// Yeah... not feelin' it
+				Status = false;
+				break;
 			}
 		}
 		Unlock();
@@ -2122,10 +2207,8 @@ int MailIMap::Sizeof(int Message)
 
 	if (Socket && Lock(_FL))
 	{
-		const  char *Tag = "RFC822.SIZE";
-
 		int Cmd = d->NextCmd++;
-		sprintf_s(Buf, sizeof(Buf), "A%4.4i FETCH %i (%s)\r\n", Cmd, Message+1, Tag);
+		sprintf_s(Buf, sizeof(Buf), "A%4.4i FETCH %i (%s)\r\n", Cmd, Message+1, sRfc822Size);
 		if (WriteBuf())
 		{
 			ClearDialog();
@@ -2135,10 +2218,10 @@ int MailIMap::Sizeof(int Message)
 				char *d = Dialog.First();
 				if (d)
 				{
-					char *t = strstr(d, Tag);
+					char *t = strstr(d, sRfc822Size);
 					if (t)
 					{
-						t += strlen(Tag) + 1;
+						t += strlen(sRfc822Size) + 1;
 						Status = atoi(t);
 					}
 				}
@@ -2149,6 +2232,26 @@ int MailIMap::Sizeof(int Message)
 	}
 
 	return Status;
+}
+
+bool ImapSizeCallback(MailIMap *Imap, char *Msg, GHashTbl<const char*, char*> &Parts, void *UserData)
+{
+	GArray<int> *Sizes = (GArray<int>*) UserData;
+	int Index = atoi(Msg);
+	if (Index < 1)
+		return false;
+
+	char *Sz = Parts.Find(sRfc822Size);
+	if (!Sz)
+		return false;
+
+	(*Sizes)[Index - 1] = atoi(Sz);
+	return true;
+}
+
+bool MailIMap::GetSizes(GArray<int> &Sizes)
+{
+	return Fetch(false, "1:*", sRfc822Size, ImapSizeCallback, &Sizes);	
 }
 
 bool MailIMap::GetUid(int Message, char *Id, int IdLen)

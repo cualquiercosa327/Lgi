@@ -987,84 +987,118 @@ int SslSocket::Write(const void *Data, int Len, int Flags)
 	GMutex::Auto Lck(&Lock, _FL);
 
 	if (!Library)
-		return -1;
-
-	if (Bio)
 	{
-		int r = 0;
-		if (d->UseSSLrw)
+		DebugTrace("%s:%i - Library is NULL\n", _FL);
+		return -1;
+	}
+
+	if (!Bio)
+	{
+		DebugTrace("%s:%i - BIO is NULL\n", _FL);
+		return -1;
+	}
+
+	int r = 0;
+	if (d->UseSSLrw)
+	{
+		if (Ssl)
 		{
-			if (Ssl)
+			uint64 Start = LgiCurrentTime();
+			int To = GetTimeout();
+
+			while (HasntTimedOut())
 			{
-
-				uint64 Start = LgiCurrentTime();
-				int To = GetTimeout();
-
-				while (HasntTimedOut())
+				r = Library->SSL_write(Ssl, Data, Len);
+				if (r < 0)
 				{
-					r = Library->SSL_write(Ssl, Data, Len);
-DebugTrace("%s:%i - SSL_write(%p,%i)=%i\n", _FL, Data, Len, r);
-					if (r < 0)
-						LgiSleep(10);
-					else
-					{
-						OnWrite((const char*)Data, r);
-						break;
-					}
+					LgiSleep(10);
+				}
+				else
+				{
+					DebugTrace("%s:%i - SSL_write(%p,%i)=%i\n", _FL, Data, Len, r);
+					OnWrite((const char*)Data, r);
+					break;
 				}
 			}
-			else
+
+			if (r < 0)
 			{
-				r = -1;
+				DebugTrace("%s:%i - SSL_write failed (timeout=%i, %ims)\n",
+							_FL,
+							To,
+							(int) (LgiCurrentTime() - Start));
 			}
 		}
 		else
 		{
-			uint64 Start = LgiCurrentTime();
-			int To = GetTimeout();
-			while (HasntTimedOut())
-			{
-				r = Library->BIO_write(Bio, Data, Len);
-DebugTrace("%s:%i - BIO_write(%p,%i)=%i\n", _FL, Data, Len, r);
-				if (r < 0)
-					LgiSleep(10);
-				else
-				{
-					OnWrite((const char*)Data, r);
-					break;
-				}
-			}			
+			r = -1;
+			DebugTrace("%s:%i - No SSL\n", _FL);
 		}
-		
-		if (r > 0)
+	}
+	else
+	{
+		uint64 Start = LgiCurrentTime();
+		int To = GetTimeout();
+		while (HasntTimedOut())
 		{
-			GStream *l = GetLogStream();
-			if (l)
-				l->Write(Data, r);
-		}
-		
-		if (Ssl)
-		{
+			r = Library->BIO_write(Bio, Data, Len);
+			DebugTrace("%s:%i - BIO_write(%p,%i)=%i\n", _FL, Data, Len, r);
 			if (r < 0)
 			{
-				int Err = Library->SSL_get_error(Ssl, r);
-				char Buf[256];
-				char *e = Library->ERR_error_string(Err, Buf);
-				if (e)
-				{
-					OnError(Err, e);
-				}
+				LgiSleep(10);
 			}
-			
-			if (r <= 0)
+			else
 			{
-				Close();
+				OnWrite((const char*)Data, r);
+				break;
+			}
+		}			
+
+		if (r < 0)
+		{
+			DebugTrace("%s:%i - BIO_write failed (timeout=%i, %ims)\n",
+						_FL,
+						To,
+						(int) (LgiCurrentTime() - Start));
+		}
+	}
+	
+	if (r > 0)
+	{
+		GStream *l = GetLogStream();
+		if (l)
+			l->Write(Data, r);
+	}
+	
+	if (Ssl)
+	{
+		if (r < 0)
+		{
+			int Err = Library->SSL_get_error(Ssl, r);
+			char Buf[256] = "";
+			char *e = Library->ERR_error_string(Err, Buf);
+
+			DebugTrace("%s:%i - ::Write error %i, %s\n",
+						_FL,
+						Err,
+						e);
+
+			if (e)
+			{
+				OnError(Err, e);
 			}
 		}
-		return r;
+		
+		if (r <= 0)
+		{
+			DebugTrace("%s:%i - ::Write closing %i\n",
+						_FL,
+						r);
+			Close();
+		}
 	}
 
-	return -1;
+	return r;
 }
 
 int SslSocket::Read(void *Data, int Len, int Flags)
@@ -1086,7 +1120,7 @@ int SslSocket::Read(void *Data, int Len, int Flags)
 				while (HasntTimedOut())
 				{
 					r = Library->SSL_read(Ssl, Data, Len);
-DebugTrace("%s:%i - SSL_read(%s,%i)=%i\n", _FL, Data, Len, r);
+DebugTrace("%s:%i - SSL_read(%p,%i)=%i\n", _FL, Data, Len, r);
 					if (r < 0)
 						LgiSleep(10);
 					else
@@ -1112,7 +1146,7 @@ DebugTrace("%s:%i - SSL_read(%s,%i)=%i\n", _FL, Data, Len, r);
 					LgiSleep(10);
 				else
 				{
-DebugTrace("%s:%i - BIO_read(%s,%i)=%i\n", _FL, Data, Len, r);
+DebugTrace("%s:%i - BIO_read(%p,%i)=%i\n", _FL, Data, Len, r);
 					OnRead((char*)Data, r);
 					break;
 				}

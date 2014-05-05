@@ -467,47 +467,57 @@ void LgiTrace(const char *Msg, ...)
 		char Buffer[2049] = "";
 		#ifdef LGI_TRACE_TO_FILE
 		GFile f;
-		static int CanWriteToExeLocation = -1;
+		static char LogPath[MAX_PATH] = "";
 		
-		if (CanWriteToExeLocation == 0)
+		if (LogPath[0] == 0)
 		{
-			ResetToAppRoot:
-			LgiGetSystemPath(LSP_APP_ROOT, Buffer, sizeof(Buffer));
-			if (!DirExists(Buffer))
-				FileDev->CreateFolder(Buffer);
-			LgiMakePath(Buffer, sizeof(Buffer), Buffer, "trace.txt");
-			f.Open(Buffer, O_WRITE);
-		}
-		else if (LgiGetExeFile(Buffer, sizeof(Buffer)))
-		{
-			#ifdef MAC
-			char *Dir = strrchr(Buffer, DIR_CHAR);
-			if (Dir)
+			if (LgiGetExeFile(LogPath, sizeof(LogPath)))
 			{
-				char Part[256];
-				strsafecpy(Part, Dir+1, sizeof(Part));
-				Buffer[0] = 0;
-				LgiMakePath(Buffer, sizeof(Buffer), Buffer, "~/Library/Logs");
-				LgiMakePath(Buffer, sizeof(Buffer), Buffer, Dir+1);
-				strsafecat(Buffer, ".txt", sizeof(Buffer));
+				#ifdef MAC
+				char *Dir = strrchr(Buffer, DIR_CHAR);
+				if (Dir)
+				{
+					char Part[256];
+					strsafecpy(Part, Dir+1, sizeof(Part));
+					Buffer[0] = 0;
+					LgiMakePath(Buffer, sizeof(Buffer), Buffer, "~/Library/Logs");
+					LgiMakePath(Buffer, sizeof(Buffer), Buffer, Dir+1);
+					strsafecat(Buffer, ".txt", sizeof(Buffer));
+				}
+				else
+				#endif
+				{
+					char *Dot = strrchr(Buffer, '.');
+					if (Dot && !strchr(Dot, DIR_CHAR))
+						strcpy(Dot+1, "txt");
+					else
+						strcat(Buffer, ".txt");
+				}
+				
+				if (f.Open(Buffer, O_WRITE))
+				{
+					f.Close();
+				}
+				else
+				{
+					char Leaf[64];
+					char *Dir = strrchr(LogPath, DIR_CHAR);
+					if (Dir)
+					{
+						strcpy_s(Leaf, sizeof(Leaf), Dir + 1);
+						LgiGetSystemPath(LSP_APP_ROOT, LogPath, sizeof(LogPath));
+						if (!DirExists(LogPath))
+							FileDev->CreateFolder(LogPath);
+						LgiMakePath(LogPath, sizeof(LogPath), LogPath, Leaf);
+					}
+					else goto OnError;
+				}
 			}
 			else
-			#endif
 			{
-				char *Dot = strrchr(Buffer, '.');
-				if (Dot && !strchr(Dot, DIR_CHAR))
-					strcpy(Dot+1, "txt");
-				else
-					strcat(Buffer, ".txt");
-			}
-			bool Status = f.Open(Buffer, O_WRITE);
-			if (CanWriteToExeLocation < 0)
-			{
-				CanWriteToExeLocation = Status != 0;
-				if (!CanWriteToExeLocation)
-				{
-					goto ResetToAppRoot;
-				}
+				// Well what to do now? I give up
+				OnError:
+				strcpy_s(LogPath, sizeof(LogPath), "trace.txt");
 			}
 		}
 		#endif
@@ -518,7 +528,7 @@ void LgiTrace(const char *Msg, ...)
 		va_end(Arg);
 
 		#ifdef LGI_TRACE_TO_FILE
-		if (f.IsOpen())
+		if (f.Open(LogPath, O_WRITE))
 		{
 			f.Seek(0, SEEK_END);
 			f.Write(Buffer, strlen(Buffer));

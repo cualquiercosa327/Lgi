@@ -770,7 +770,7 @@ protected:
 	void ClearUid();
 	bool FillUidList();
 	bool WriteBuf(bool ObsurePass = false, const char *Buffer = 0);
-	bool ReadResponse(int Cmd = -1, GStringPipe *Out = 0, bool Plus = false);
+	bool ReadResponse(int Cmd = -1, bool Plus = false);
 	bool Read(GStreamI *Out = 0);
 	bool ReadLine();
 
@@ -783,7 +783,19 @@ public:
 		int Id;
 	};
 
-	typedef bool (*FetchCallback)(class MailIMap *Imap, char *Msg, GHashTbl<const char*, char*> &Parts, void *UserData);
+	/// This callback is used to notify the application using this object of IMAP fetch responses.
+	/// \returns true if the application wants to continue reading and has taken ownership of the strings in "Parts".
+	typedef bool (*FetchCallback)
+	(
+		/// The IMAP object
+		class MailIMap *Imap,
+		/// The message sequence number
+		char *Msg,
+		/// The fetch parts (which the callee needs to own if returning true)
+		GHashTbl<const char*, char*> &Parts,
+		/// The user data passed to the Fetch function
+		void *UserData
+	);
 
 	// Object
 	MailIMap();
@@ -805,10 +817,11 @@ public:
 
 	// Commands available while connected
 	bool Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks = 0);
-	bool GetParts(int Message, GStreamI &Out, const char *Parts, char **Flags = 0);
+	// bool GetParts(int Message, GStreamI &Out, const char *Parts, char **Flags = 0);
 	int GetMessages();
 	bool Delete(int Message);
 	int Sizeof(int Message);
+	bool GetSizes(GArray<int> &Sizes);
 	bool GetUid(int Message, char *Id, int IdLen);
 	bool GetUidList(List<char> &Id);
 	char *GetHeaders(int Message);
