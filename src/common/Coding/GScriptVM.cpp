@@ -7,7 +7,7 @@
 #define TIME_INSTRUCTIONS		0
 #define POST_EXECUTE_STATE		0
 
-// #define BREAK_POINT				0x00000060
+// #define BREAK_POINT				0x0000001F
 #define Resolve() \
 	&Scope[c.r->Scope][c.r->Index]; c.r++
 

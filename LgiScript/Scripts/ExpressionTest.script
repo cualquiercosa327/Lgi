@@ -1,0 +1,15 @@
+
+
+
+function Func()
+{
+	Id = NULL;
+	if (!Id) // This was turning 'Id' to 'true' instead of using a register.
+		return Id;
+
+	return "Success";	
+}
+
+
+t = Func();
+Print("t=", t);

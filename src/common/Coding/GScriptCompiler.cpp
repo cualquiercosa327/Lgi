@@ -1610,7 +1610,7 @@ public:
 				if (TokenToVarRef(a))
 				{
 					GVarRef Reg;
-					if (a.Reg.Scope == SCOPE_GLOBAL)
+					if (a.Reg.Scope != SCOPE_REGISTER)
 					{
 						if (AllocReg(Reg, _FL))
 						{

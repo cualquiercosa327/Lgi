@@ -2,8 +2,10 @@
 #include "GCss.h"
 #include "LgiCommon.h"
 
-#define IsWhite(s)		((s) && strchr(WhiteSpace, (s)) != NULL)
-#define SkipWhite(s) 	while (IsWhite(*s)) s++;
+#define DEBUG_CSS_LOGGING		0
+
+#define IsWhite(s)				((s) && strchr(WhiteSpace, (s)) != NULL)
+#define SkipWhite(s) 			while (IsWhite(*s)) s++;
 
 #undef IsNumeric
 #define IsNumeric(s) \
@@ -1764,15 +1766,25 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 					else Props.Add(PropId, Img.Release());
 				}
 				else if (Type == ParseStrict)
+				{
 					LgiAssert(!"Failed to parse Image definition");
+					return false;
+				}
 				break;
 			}
 			default:
 			{
 				if (Type == ParseStrict)
+				{
 					LgiAssert(!"Unsupported property type.");
+					return false;
+				}
 				else
+				{
+					#if DEBUG_CSS_LOGGING
 					LgiTrace("%s:%i - Unsupported CSS property: %s\n", _FL, Prop);
+					#endif
+				}
 				break;
 			}
 		}
@@ -2160,7 +2172,9 @@ bool GCss::Selector::TokString(GAutoString &a, const char *&s)
 	
 	if (e <= s)
 	{
+		#if DEBUG_CSS_LOGGING
 		LgiTrace("Stuck at '%s'\n", e);
+		#endif
 		LgiAssert(!"Failed to tokenise string.");
 		return false;
 	}
