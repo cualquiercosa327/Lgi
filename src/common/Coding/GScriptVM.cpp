@@ -1187,10 +1187,10 @@ public:
 					GVariant *Dst = Resolve();
 					GVariant *Src = Resolve();
 					
-					if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
-						*Dst = Dst->CastDouble() < Src->CastDouble();
-					else if (Src->Type == GV_DATETIME || Dst->Type == GV_DATETIME)
+					if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
 						*Dst = *Dst->Value.Date < *Src->Value.Date;
+					else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
+						*Dst = Dst->CastDouble() < Src->CastDouble();
 					else if (Src->Type == GV_STRING)
 					{
 						char *d = Dst->Str();
@@ -1216,10 +1216,10 @@ public:
 					GVariant *Dst = Resolve();
 					GVariant *Src = Resolve();
 					
-					if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
-						*Dst = Dst->CastDouble() <= Src->CastDouble();
-					else if (Src->Type == GV_DATETIME || Dst->Type == GV_DATETIME)
+					if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
 						*Dst = *Dst->Value.Date <= *Src->Value.Date;
+					else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
+						*Dst = Dst->CastDouble() <= Src->CastDouble();
 					else if (Src->Type == GV_STRING)
 					{
 						char *d = Dst->Str();
