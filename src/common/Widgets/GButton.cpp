@@ -281,7 +281,14 @@ void GButton::OnPaint(GSurface *pDC)
 {
 	#if defined MAC && !defined COCOA
 
-	pDC->Colour(LC_MED, 24);	
+	GColour Background(LC_MED, 24);
+	if (GetCss())
+	{
+		GCss::ColorDef Bk = GetCss()->BackgroundColor();
+		if (Bk.Type == GCss::ColorRgb)
+			Background.Set(Bk.Rgb32, 32);
+	}
+	pDC->Colour(Background);
 	pDC->Rectangle();
 
 	GRect c = GetClient();
