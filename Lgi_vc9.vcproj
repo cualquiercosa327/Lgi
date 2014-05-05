@@ -864,6 +864,10 @@
 						RelativePath=".\include\common\GFile.h"
 						>
 					</File>
+					<File
+						RelativePath=".\src\common\General\GFileCommon.cpp"
+						>
+					</File>
 				</Filter>
 				<Filter
 					Name="Process"

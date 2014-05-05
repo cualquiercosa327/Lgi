@@ -7,6 +7,7 @@
 //
 
 #include "Lgi.h"
+#include "GVariant.h"
 
 bool GFile::GetVariant(const char *Name, GVariant &Value, char *Array)
 {
