@@ -166,7 +166,7 @@ bool GFile::CallMethod(const char *Name, GVariant *Dst, GArray<GVariant*> &Arg)
 			else if (RdLen > 0)
 			{
 				// String type
-				if (Dst->Value.String = new char[RdLen + 1])
+				if ((Dst->Value.String = new char[RdLen + 1]))
 				{
 					int r = Read(Dst->Value.String, RdLen);
 					if (r > 0)

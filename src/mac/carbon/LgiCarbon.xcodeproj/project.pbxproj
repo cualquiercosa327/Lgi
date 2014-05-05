@@ -24,6 +24,7 @@
 		342CE46211FDAB57000B1F3C /* LgiRes.h in Headers */ = {isa = PBXBuildFile; fileRef = 342CE46111FDAB57000B1F3C /* LgiRes.h */; };
 		342D52FB0F0CBE0A002A1C7C /* GFileSelect.h in Headers */ = {isa = PBXBuildFile; fileRef = 342D52FA0F0CBE0A002A1C7C /* GFileSelect.h */; };
 		342D78F111FAD1AF005BADBD /* GStream.h in Headers */ = {isa = PBXBuildFile; fileRef = 342D78F011FAD1AF005BADBD /* GStream.h */; };
+		3433784B19178B09007A4DC5 /* GColourSpace.h in Headers */ = {isa = PBXBuildFile; fileRef = 3433784A19178B09007A4DC5 /* GColourSpace.h */; };
 		34372AD00C46E0290090CDC9 /* GDocView.h in Headers */ = {isa = PBXBuildFile; fileRef = 34372ACF0C46E0290090CDC9 /* GDocView.h */; };
 		343BF8420B58A110008AFE75 /* GMenu.h in Headers */ = {isa = PBXBuildFile; fileRef = 343BF8410B58A110008AFE75 /* GMenu.h */; };
 		343E950D1751C6090085611D /* GThreadEvent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 343E950C1751C6090085611D /* GThreadEvent.cpp */; };
@@ -188,6 +189,7 @@
 		342CE46111FDAB57000B1F3C /* LgiRes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LgiRes.h; path = ../../../include/common/LgiRes.h; sourceTree = "<group>"; };
 		342D52FA0F0CBE0A002A1C7C /* GFileSelect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GFileSelect.h; path = ../../../include/common/GFileSelect.h; sourceTree = "<group>"; };
 		342D78F011FAD1AF005BADBD /* GStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GStream.h; path = ../../../include/common/GStream.h; sourceTree = "<group>"; };
+		3433784A19178B09007A4DC5 /* GColourSpace.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GColourSpace.h; path = ../../../include/common/GColourSpace.h; sourceTree = "<group>"; };
 		34372ACF0C46E0290090CDC9 /* GDocView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GDocView.h; path = ../../../include/common/GDocView.h; sourceTree = "<group>"; };
 		343BF8410B58A110008AFE75 /* GMenu.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GMenu.h; path = ../../../include/common/GMenu.h; sourceTree = "<group>"; };
 		343E950C1751C6090085611D /* GThreadEvent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GThreadEvent.cpp; path = ../../common/Lgi/GThreadEvent.cpp; sourceTree = "<group>"; };
@@ -387,13 +389,13 @@
 			isa = PBXGroup;
 			children = (
 				344B736A08D83F0700D49457 /* Core */,
-				34B954810939DCA400477A2D /* Network */,
 				34D2CCA808F118020009968C /* Dialogs */,
-				34D2CC5008F0FB510009968C /* Widgets */,
-				344B738308D8409900D49457 /* Text */,
 				3446E2CE08D0E59E005024EB /* Graphics */,
 				34CDDADF08C5DF4A005EAAC7 /* Headers */,
 				3416C25A09676DA200DD79DC /* Headers (Mac) */,
+				34B954810939DCA400477A2D /* Network */,
+				344B738308D8409900D49457 /* Text */,
+				34D2CC5008F0FB510009968C /* Widgets */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -454,10 +456,18 @@
 			name = Css;
 			sourceTree = "<group>";
 		};
+		3433784D19178B33007A4DC5 /* Colour */ = {
+			isa = PBXGroup;
+			children = (
+				3433784A19178B09007A4DC5 /* GColourSpace.h */,
+				3476333218E2D12300766FC4 /* GColour.cpp */,
+			);
+			name = Colour;
+			sourceTree = "<group>";
+		};
 		3446E2CE08D0E59E005024EB /* Graphics */ = {
 			isa = PBXGroup;
 			children = (
-				3476333218E2D12300766FC4 /* GColour.cpp */,
 				3446E2B508D0E4AF005024EB /* Gdc2.cpp */,
 				344B738008D8406900D49457 /* GdcCommon.cpp */,
 				3446E2B608D0E4AF005024EB /* GMemDC.cpp */,
@@ -467,6 +477,7 @@
 				3446E2CF08D0E5C2005024EB /* Gdc2.h */,
 				34F45B9D18C161E40040FD99 /* GPixelRops.h */,
 				3446E31F08D0E9BB005024EB /* Applicators */,
+				3433784D19178B33007A4DC5 /* Colour */,
 				344D1B1108F4A2F900228075 /* Filters */,
 				344B738208D8408500D49457 /* Font */,
 				34B28AEE143FA6860023662F /* Path */,
@@ -853,6 +864,7 @@
 				34A11A7E167534A500FCC5D7 /* GMutex.h in Headers */,
 				347CB600172A97D600AC3EA6 /* GTableLayout.h in Headers */,
 				34F45B9E18C161E40040FD99 /* GPixelRops.h in Headers */,
+				3433784B19178B09007A4DC5 /* GColourSpace.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
