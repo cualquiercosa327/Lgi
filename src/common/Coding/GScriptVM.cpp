@@ -165,7 +165,7 @@ public:
 				f.Print("%s:\n", Meth);
 			}
 
-			int LineNum = Code->Debug.Find(c.u8 - Base);
+			int LineNum = Code->ObjectToSourceAddress(CurrentScriptAddress);
 			if (LineNum >= 0 && LineNum != OldLineNum)
 			{
 				f.Print("  %i:\n", OldLineNum = LineNum);
@@ -537,7 +537,7 @@ public:
 		    if (Ext)
 		        strcpy_s(Ext, sizeof(Obj)-(Ext-Obj), "asm");
 		    else
-		        strcat(Obj, ".asm");
+		        strcat_s(Obj, sizeof(Obj), ".asm");
 		}
 		else
 		{
@@ -553,16 +553,25 @@ public:
 		}
 		
 		{
-			GFile f;
-			if (f.Open(Obj, O_WRITE))
+			GDirectory SrcD, ObjD;
+			bool OutOfDate = true;
+			if (SrcD.First(SourceFileName, NULL) != 0 && ObjD.First(Obj, NULL) != 0)
 			{
-				f.SetSize(0);
-				GExecutionStatus Decomp = Decompile(Context, Code, &f);
-				f.Close();
-				if (Decomp != ScriptSuccess)
+				OutOfDate = ObjD.GetLastWriteTime() < SrcD.GetLastWriteTime();
+			}			
+			if (OutOfDate)
+			{			
+				GFile f;
+				if (f.Open(Obj, O_WRITE))
 				{
-					LgiAssert(!"Decompilation failed.");
-					return ScriptError;
+					f.SetSize(0);
+					GExecutionStatus Decomp = Decompile(Context, Code, &f);
+					f.Close();
+					if (Decomp != ScriptSuccess)
+					{
+						LgiAssert(!"Decompilation failed.");
+						return ScriptError;
+					}
 				}
 			}
 		}
@@ -877,7 +886,8 @@ public:
 					GHostFunc *Meth = dynamic_cast<GHostFunc*>(*c.fn++);
 					if (!Meth)
 					{
-						Log->Print("%p ICallMethod error: No method struct.\n", CurrentScriptAddress - 1);
+						Log->Print(	"%s ICallMethod error: No method struct.\n",
+									Code->AddrToSourceRef(CurrentScriptAddress - sizeof(Meth)));
 						SetScriptError;
 						break;
 					}
@@ -909,7 +919,9 @@ public:
 					if (!(Meth->Context->*(Meth->Func))(Ret, Arg))
 					{
 						if (Log)
-							Log->Print("%p ICallMethod error: Method '%s' failed.\n", CurrentScriptAddress, Meth->Method);
+							Log->Print(	"%s ICallMethod error: Method '%s' failed.\n",
+										Code->AddrToSourceRef(CurrentScriptAddress),
+										Meth->Method);
 						SetScriptError;
 					}
 					break;
@@ -919,7 +931,8 @@ public:
 					uint32 FuncAddr = *c.u32++;
 					if (!FuncAddr)
 					{
-						Log->Print("%p ICallScript error: Script function call invalid addr '0'.\n", CurrentScriptAddress);
+						Log->Print(	"%s ICallScript error: Script function call invalid addr '0'.\n",
+									Code->AddrToSourceRef(CurrentScriptAddress - sizeof(FuncAddr)));
 						SetScriptError;
 						break;
 					}
@@ -1061,7 +1074,9 @@ public:
 						default:
 						{
 							if (Log)
-								Log->Print("%p IArrayGet warning: Can't array deref variant type %i\n", CurrentScriptAddress, Var->Type);
+								Log->Print(	"%s IArrayGet warning: Can't array deref variant type %i\n",
+											Code->AddrToSourceRef(CurrentScriptAddress),
+											Var->Type);
 							Status = ScriptWarning;
 							break;
 						}
@@ -1103,7 +1118,9 @@ public:
 						default:
 						{
 							if (Log)
-								Log->Print("%p IArraySet warning: Can't refer variant type '%s'\n", GVariant::TypeToString(Var->Type));
+								Log->Print(	"%s IArraySet warning: Can't dereference type '%s'\n",
+											Code->AddrToSourceRef(CurrentScriptAddress),
+											GVariant::TypeToString(Var->Type));
 							Status = ScriptWarning;
 							break;
 						}
@@ -1121,10 +1138,11 @@ public:
 
 					GVariant *Dst = Resolve();
 					GVariant *Src = Resolve();
-					if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
-						*Dst = Dst->CastDouble() == Src->CastDouble();
-					else if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
+
+					if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
 						*Dst = *Dst->Value.Date == *Src->Value.Date;
+					else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
+						*Dst = Dst->CastDouble() == Src->CastDouble();
 					else if (Src->Type == GV_STRING || Dst->Type == GV_STRING)
 					{
 						char *d = Dst->Str();
@@ -1158,10 +1176,10 @@ public:
 						else
 							*Dst = false;
 					}
+					else if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
+						*Dst = *Dst->Value.Date != *Src->Value.Date;
 					else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
 						*Dst = Dst->CastDouble() != Src->CastDouble();
-					else if (Src->Type == GV_DATETIME || Dst->Type == GV_DATETIME)
-						*Dst = *Dst->Value.Date != *Src->Value.Date;
 					else if (Src->Type == GV_STRING)
 					{
 						char *d = Dst->Str();
@@ -1245,10 +1263,10 @@ public:
 					GVariant *Dst = Resolve();
 					GVariant *Src = Resolve();
 					
-					if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
-						*Dst = Dst->CastDouble() > Src->CastDouble();
-					else if (Src->Type == GV_DATETIME || Dst->Type == GV_DATETIME)
+					if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
 						*Dst = *Dst->Value.Date > *Src->Value.Date;
+					else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
+						*Dst = Dst->CastDouble() > Src->CastDouble();
 					else if (Dst->Type == GV_STRING && Src->Type == GV_STRING)
 					{
 						char *d = Dst->Str();
@@ -1274,10 +1292,10 @@ public:
 					GVariant *Dst = Resolve();
 					GVariant *Src = Resolve();
 					
-					if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
-						*Dst = Dst->CastDouble() >= Src->CastDouble();
-					else if (Src->Type == GV_DATETIME || Dst->Type == GV_DATETIME)
+					if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
 						*Dst = *Dst->Value.Date >= *Src->Value.Date;
+					else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
+						*Dst = Dst->CastDouble() >= Src->CastDouble();
 					else if (Src->Type == GV_STRING)
 					{
 						char *d = Dst->Str();
@@ -1302,7 +1320,7 @@ public:
 
 					GVariant *Dst = Resolve();
 					GVariant *Src = Resolve();
-					*Dst = Dst->CastInt32() && Src->CastInt32();
+					*Dst = (Dst->CastInt32() != 0) && (Src->CastInt32() != 0);
 					break;
 				}
 				case IOr:
@@ -1316,7 +1334,7 @@ public:
 
 					GVariant *Dst = Resolve();
 					GVariant *Src = Resolve();
-					*Dst = Dst->CastInt32() || Src->CastInt32();
+					*Dst = (Dst->CastInt32() != 0) || (Src->CastInt32() != 0);
 					break;
 				}
 				case INot:
@@ -1360,16 +1378,23 @@ public:
 					switch (Dom->Type)
 					{
 						case GV_DOM:
+						case GV_GFILE:
 						{
+							GDom *dom = Dom->CastDom();
+							LgiAssert(dom != NULL);
 							if (Arr->Type == GV_STRING)
-								Dom->Value.Dom->GetVariant(sName, *Dst, Arr->Str());
+							{
+								dom->GetVariant(sName, *Dst, Arr->Str());
+							}
 							else if (Arr->Type != GV_NULL)
 							{
 								GVariant ArrayTemp = *Arr;
-								Dom->Value.Dom->GetVariant(sName, *Dst, ArrayTemp.CastString());
+								dom->GetVariant(sName, *Dst, ArrayTemp.CastString());
 							}
 							else
-								Dom->Value.Dom->GetVariant(sName, *Dst, 0);
+							{
+								dom->GetVariant(sName, *Dst, NULL);
+							}
 							break;
 						}
 						case GV_CUSTOM:
@@ -1420,10 +1445,9 @@ public:
 								{
 									Dst->Empty();
 									if (Log)
-										Log->Print("%p IDomGet warning: Unexpected string member %s (%s:%i).\n",
-													CurrentScriptAddress,
-													sName,
-													_FL);
+										Log->Print("%s IDomGet warning: Unexpected string member '%s'.\n",
+													Code->AddrToSourceRef(CurrentScriptAddress),
+													sName);
 									Status = ScriptWarning;
 									break;
 								}
@@ -1485,10 +1509,9 @@ public:
 								{
 									Dst->Empty();
 									if (Log)
-										Log->Print("%p IDomGet warning: Unexpected datetime member %s (%s:%i).\n",
-													CurrentScriptAddress,
-													sName,
-													_FL);
+										Log->Print("%s IDomGet warning: Unexpected datetime member %s.\n",
+													Code->AddrToSourceRef(CurrentScriptAddress),
+													sName);
 									Status = ScriptWarning;
 									break;
 								}
@@ -1501,8 +1524,8 @@ public:
 							{
 								Dst->Empty();
 								if (Log)
-									Log->Print("%p IDomGet warning: No surface pointer (%s:%i).\n",
-												CurrentScriptAddress,
+									Log->Print("%s IDomGet warning: No surface pointer.\n",
+												Code->AddrToSourceRef(CurrentScriptAddress),
 												_FL);
 								Status = ScriptWarning;
 								break;
@@ -1535,10 +1558,9 @@ public:
 								{
 									Dst->Empty();
 									if (Log)
-										Log->Print("%p IDomGet warning: Unexpected surface member %s (%s:%i).\n",
-													CurrentScriptAddress,
-													sName,
-													_FL);
+										Log->Print("%s IDomGet warning: Unexpected surface member %s.\n",
+													Code->AddrToSourceRef(CurrentScriptAddress),
+													sName);
 									Status = ScriptWarning;
 									break;
 								}
@@ -1548,10 +1570,9 @@ public:
 						default:
 						{
 							if (Log)
-								Log->Print("%p IDomGet warning: Unexpected type %s (%s:%i).\n",
-											CurrentScriptAddress,
-											GVariant::TypeToString(Dom->Type),
-											_FL);
+								Log->Print("%s IDomGet warning: Unexpected type %s.\n",
+											Code->AddrToSourceRef(CurrentScriptAddress),
+											GVariant::TypeToString(Dom->Type));
 							Status = ScriptWarning;
 							break;
 						}
@@ -1578,9 +1599,8 @@ public:
 					if (!sName)
 					{
 						if (Log)
-							Log->Print("%p IDomSet error: No name string (%s:%i).\n",
-										CurrentScriptAddress,
-										_FL);
+							Log->Print("%s IDomSet error: No name string.\n",
+										Code->AddrToSourceRef(CurrentScriptAddress));
 						SetScriptError;
 						break;
 					}
@@ -1588,8 +1608,11 @@ public:
 					switch (Dom->Type)
 					{
 						case GV_DOM:
-						{					
-							Dom->Value.Dom->SetVariant(sName, *Value, Arr->Str());
+						case GV_GFILE:
+						{
+							GDom *dom = Dom->CastDom();
+							LgiAssert(dom);
+							dom->SetVariant(sName, *Value, Arr->Str());
 							break;
 						}
 						case GV_CUSTOM:
@@ -1639,10 +1662,9 @@ public:
 									break;
 								default:
 									if (Log)
-										Log->Print("%p IDomSet warning: Unexpected datetime member %s (%s:%i).\n",
-													CurrentScriptAddress,
-													sName,
-													_FL);
+										Log->Print("%s IDomSet warning: Unexpected datetime member %s.\n",
+													Code->AddrToSourceRef(CurrentScriptAddress),
+													sName);
 									Status = ScriptWarning;
 									break;
 							}
@@ -1686,10 +1708,9 @@ public:
 								default:
 								{
 									if (Log)
-										Log->Print("%p IDomSet warning: Unexpected string member %s (%s:%i).\n",
-													CurrentScriptAddress,
-													sName,
-													_FL);
+										Log->Print("%s IDomSet warning: Unexpected string member %s.\n",
+													Code->AddrToSourceRef(CurrentScriptAddress),
+													sName);
 									Status = ScriptWarning;
 									break;
 								}
@@ -1699,10 +1720,9 @@ public:
 						default:
 						{
 							if (Log)
-								Log->Print("%p IDomSet warning: Unexpected type %i (%s:%i).\n",
-											CurrentScriptAddress,
-											Dom->Type,
-											_FL);
+								Log->Print("%s IDomSet warning: Unexpected type %s.\n",
+											Code->AddrToSourceRef(CurrentScriptAddress),
+											GVariant::TypeToString(Dom->Type));
 							Status = ScriptWarning;
 							break;
 						}
@@ -1741,11 +1761,20 @@ public:
 					switch (Dom->Type)
 					{
 						case GV_DOM:
+						case GV_GFILE:
 						{
-							bool Ret = Dom->Value.Dom->CallMethod(sName, Dst, Arg);
+							GDom *dom = Dom->CastDom();
+							LgiAssert(dom != NULL);
+
+							bool Ret = dom->CallMethod(sName, Dst, Arg);
 							if (!Ret)
 							{
 								Dst->Empty();
+								if (Log)
+									Log->Print("%s IDomCall warning: %s(...) failed.\n",
+												Code->AddrToSourceRef(CurrentScriptAddress),
+												sName);
+								Status = ScriptWarning;
 							}
 							break;
 						}
@@ -1814,10 +1843,9 @@ public:
 								{
 									Dst->Empty();
 									if (Log)
-										Log->Print("%p IDomCall warning: Unexpected list member %s (%s:%i).\n",
-													CurrentScriptAddress,
-													sName,
-													_FL);
+										Log->Print(	"%s IDomCall warning: Unexpected list member '%s'.\n",
+													Code->AddrToSourceRef(CurrentScriptAddress),
+													sName);
 									Status = ScriptWarning;
 									break;
 								}
@@ -1892,10 +1920,9 @@ public:
 								{
 									Dst->Empty();
 									if (Log)
-										Log->Print("%p IDomCall warning: Unexpected hashtable member %s (%s:%i).\n",
-													CurrentScriptAddress,
-													sName,
-													_FL);
+										Log->Print("%s IDomCall warning: Unexpected hashtable member '%s'.\n",
+													Code->AddrToSourceRef(CurrentScriptAddress),
+													sName);
 									Status = ScriptWarning;
 									break;
 								}
@@ -2106,26 +2133,6 @@ public:
 							}
 							break;
 						}
-						case GV_GFILE:
-						{
-							GFile *f = Dom->Value.File.Ptr;
-							if (f)
-							{
-								bool b = f->CallMethod(sName, Dst, Arg);
-								if (!b)
-								{
-									Dst->Empty();
-									if (Log)
-										Log->Print("%p IDomCall warning: Unexpected file member %s (%s:%i).\n",
-													CurrentScriptAddress,
-													sName,
-													_FL);
-									Status = ScriptWarning;
-									break;
-								}
-							}
-							break;
-						}
 						default:
 						{
 							const char *Type = GVariant::TypeToString(Dom->Type);
@@ -2146,10 +2153,9 @@ public:
 								Dst->Empty();
 								if (Log)
 								{
-									Log->Print("%p IDomCall warning: Unexpected type '%s' (%s:%i).\n",
-												CurrentScriptAddress,
-												Type,
-												_FL);
+									Log->Print("%s IDomCall warning: Unexpected type %s.\n",
+												Code->AddrToSourceRef(CurrentScriptAddress),
+												Type);
 								}
 								Status = ScriptWarning;
 							}

@@ -376,6 +376,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\Scripts\ExpressionTest.script"
+					>
+				</File>
+				<File
 					RelativePath=".\Scripts\FileSystem.script"
 					>
 				</File>

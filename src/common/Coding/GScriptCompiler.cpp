@@ -173,6 +173,35 @@ GFunctionInfo *GCompiledCode::GetMethod(const char *Name, bool Create)
 	return 0;
 }
 
+int GCompiledCode::ObjectToSourceAddress(int ObjAddr)
+{
+	return Debug.Find(ObjAddr);
+}
+
+const char *GCompiledCode::AddrToSourceRef(int ObjAddr)
+{
+	static char Status[256];
+	int Addr = ObjAddr;
+	int LineNum = ObjectToSourceAddress(Addr);
+	
+	// Search for the start of the instruction...
+	while (Addr > 0 && LineNum < 0)
+		LineNum = ObjectToSourceAddress(--Addr);
+
+	char *Dir = FileName ? strrchr(FileName, DIR_CHAR) : NULL;
+	int PathLen = Dir ? Dir - FileName : 0;
+
+	if (LineNum >= 0)
+		sprintf_s(	Status, sizeof(Status),
+					"%s:%i",
+					FileName ? (PathLen > 24 ? Dir + 1 : FileName.Get()) : "(untitled)",
+					LineNum);
+	else
+		sprintf_s(Status, sizeof(Status), "0x%x", ObjAddr);
+	
+	return Status;
+}
+
 GVariant *GCompiledCode::Set(char *Name, GVariant &v)
 {
 	int i = Globals.Var(Name, true);

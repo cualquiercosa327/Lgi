@@ -331,6 +331,7 @@ public:
 
 	/// Size of the byte code
 	int Length() { return ByteCode.Length(); }
+	/// Assignment operator
 	GCompiledCode &operator =(GCompiledCode &c);
 	/// Gets a method defined in the code
 	GFunctionInfo *GetMethod(const char *Name, bool Create = false);
@@ -338,10 +339,14 @@ public:
 	GVariant *Set(char *Name, GVariant &v);
 	/// Gets the definition of a struct or custom type
 	GTypeDef *GetType(char16 *Name) { return Types.Find(Name); }
-    /// Sets the file name this code was compiled from
-   	void SetFileName(const char *f) { FileName.Reset(NewStr(f)); }
-    /// Gets the file name this code was compiled from
-   	const char *GetFileName() { return FileName; }
+	/// Sets the file name this code was compiled from
+	void SetFileName(const char *f) { FileName.Reset(NewStr(f)); }
+	/// Gets the file name this code was compiled from
+	const char *GetFileName() { return FileName; }
+	/// Gets the source line number associated with an address
+	int ObjectToSourceAddress(int ObjAddr);
+	/// Turns an object address into a FileName:LineNumber string.
+	const char *AddrToSourceRef(int ObjAddr);
 };
 
 class GCompileTools

@@ -929,9 +929,11 @@ GDom *GVariant::CastDom()
 			return Value.Dom;
 		case GV_DOMREF:
 			return Value.DomRef.Dom;
+		case GV_GFILE:
+			return Value.File.Ptr;
 	}
 
-	return 0;
+	return NULL;
 }
 
 bool GVariant::CastBool()
