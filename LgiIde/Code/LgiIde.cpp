@@ -1204,7 +1204,7 @@ IdeDoc *AppWnd::FindOpenFile(char *FileName)
 					if (*f == '.')
 						LgiMakePath(Path, sizeof(Path), Base, f);
 					else
-						strsafecpy(Path, f, sizeof(Path));
+						strcpy_s(Path, sizeof(Path), f);
 
 					if (stricmp(Path, FileName) == 0)
 						return i;

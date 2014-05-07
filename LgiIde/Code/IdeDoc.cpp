@@ -674,7 +674,7 @@ public:
 		if (Dir) File = Dir + 1;
 		#endif
 		
-		strsafecpy(n, File ? File : Untitled, sizeof(n));
+		strcpy_s(n, sizeof(n), File ? File : Untitled);
 		if (Edit->IsDirty())
 		{
 			strcat(n, " (changed)");
@@ -822,7 +822,7 @@ void IdeDoc::OnTitleClick(GMouse &m)
 		IdeProject *p = GetProject();
 		if (Fn)
 		{
-			strsafecpy(Full, Fn, sizeof(Full));
+			strcpy_s(Full, sizeof(Full), Fn);
 			if (LgiIsRelativePath(Fn) && p)
 			{
 				GAutoString Base = p->GetBasePath();

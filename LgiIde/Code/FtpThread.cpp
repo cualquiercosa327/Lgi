@@ -318,7 +318,7 @@ int FtpThread::Main()
 							if (u.Path)
 							{
 								char p[256];
-								strsafecpy(p, u.Path, sizeof(p));
+								strcpy_s(p, sizeof(p), u.Path);
 								char *d = strrchr(p, '/');
 								if (d) *d = 0;
 
@@ -365,7 +365,7 @@ int FtpThread::Main()
 							if (u.Path)
 							{
 								char p[256];
-								strsafecpy(p, u.Path, sizeof(p));
+								strcpy_s(p, sizeof(p), u.Path);
 								char *d = strrchr(p, '/');
 								if (d) *d = 0;
 

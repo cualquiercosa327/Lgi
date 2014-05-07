@@ -2897,7 +2897,7 @@ bool AppWnd::SaveLgi(char *FileName)
 	if (FileExists(FileName))
 	{
 		char Bak[MAX_PATH];
-		strsafecpy(Bak, FileName, sizeof(Bak));
+		strcpy_s(Bak, sizeof(Bak), FileName);
 		char *e = LgiGetExtension(Bak);
 		if (e)
 		{

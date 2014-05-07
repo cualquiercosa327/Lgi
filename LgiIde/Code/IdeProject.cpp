@@ -2232,7 +2232,7 @@ bool IdeProject::GetExePath(char *Path, int Len)
 		}
 		else
 		{
-			strsafecpy(Path, PExe, Len);
+			strcpy_s(Path, Len, PExe);
 		}
 		
 		return true;
@@ -2511,7 +2511,7 @@ GAutoString IdeProject::GetFullPath()
 	}
 
 	char p[MAX_PATH];
-	strsafecpy(p, proj->GetFileName(), sizeof(p)); // Copy the base path
+	strcpy_s(p, sizeof(p), proj->GetFileName()); // Copy the base path
 	if (sections.Length() > 0)
 		LgiTrimDir(p); // Trim off the filename
 	for (int i=0; i<sections.Length(); i++) // For each relative section
@@ -2765,7 +2765,7 @@ void IdeProject::OnMouseClick(GMouse &m)
 				if (proj)
 				{
 					char p[MAX_PATH];
-					strsafecpy(p, proj->GetFileName(), sizeof(p));
+					strcpy_s(p, sizeof(p), proj->GetFileName());
 					for (int i=0; i<sections.Length(); i++)
 					{
 						LgiMakePath(p, sizeof(p), p, sections[i]);
@@ -3029,7 +3029,7 @@ GAutoString IdeProject::GetTargetName(IdePlatform Platform)
 		{
 			// Generate the target executable name
 			char Target[MAX_PATH];
-			strsafecpy(Target, s + 1, sizeof(Target));
+			strcpy_s(Target, sizeof(Target), s + 1);
 			s = strrchr(Target, '.');
 			if (s) *s = 0;
 			strlwr(Target);
@@ -3060,19 +3060,19 @@ bool IdeProject::GetTargetFile(char *Buf, int BufSize)
 		{
 			if (!stricmp(TargetType, "Executable"))
 			{
-				strsafecpy(Buf, Target, BufSize);
+				strcpy_s(Buf, BufSize, Target);
 				Status = true;
 			}
 			else if (!stricmp(TargetType, "DynamicLibrary"))
 			{
 				char t[MAX_PATH];
-				strsafecpy(t, Target, sizeof(t));
+				strcpy_s(t, sizeof(t), Target);
 				char *ext = LgiGetExtension(t);
 				if (!ext)
 					sprintf(t + strlen(t), ".%s", LGI_LIBRARY_EXT);
 				else if (stricmp(ext, LGI_LIBRARY_EXT))
 					strcpy(ext, LGI_LIBRARY_EXT);
-				strsafecpy(Buf, t, BufSize);
+				strcpy_s(Buf, BufSize, t);
 				Status = true;
 			}
 			else if (!stricmp(TargetType, "StaticLibrary"))
@@ -3212,7 +3212,7 @@ bool IdeProject::GetDependencies(const char *SourceFile, GArray<char*> &IncPaths
 		char p[MAX_PATH];
 		if (!RelativePath(p, i))
 		{
-			strsafecpy(p, i, sizeof(p));
+			strcpy_s(p, sizeof(p), i);
 		}
 		ToUnixPath(p);
 		Files.Add(NewStr(p));
@@ -3326,9 +3326,9 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 			else
 			{
 				char PlatformCap[32];
-				strsafecpy(	PlatformCap,
-							Platform == PlatformHaiku ? "BEOS" : PlatformName,
-							sizeof(PlatformCap));
+				strcpy_s(	PlatformCap,
+							sizeof(PlatformCap),
+							Platform == PlatformHaiku ? "BEOS" : PlatformName);
 				strupr(PlatformCap);
 				
 				ExtraLinkFlags = "";
@@ -3402,7 +3402,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 					if (Target)
 					{
 						char t[MAX_PATH];
-						strsafecpy(t, Target, sizeof(t));
+						strcpy_s(t, sizeof(t), Target);
 						if (!strnicmp(t, "lib", 3))
 							memmove(t, t + 3, strlen(t + 3) + 1);
 						char *dot = strrchr(t, '.');
@@ -3470,7 +3470,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 							}						
 
 							char Path[256];
-							strsafecpy(Path, n->GetFileName(), sizeof(Path));
+							strcpy_s(Path, sizeof(Path), n->GetFileName());
 
 							LgiTrimDir(Path);
 						
@@ -3563,7 +3563,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 									char Rel[MAX_PATH] = "";
 									if (!RelativePath(Rel, DepBase))
 									{
-										strsafecpy(Rel, DepBase, sizeof(Rel));
+										strcpy_s(Rel, sizeof(Rel), DepBase);
 									}
 									ToUnixPath(Rel);
 									
@@ -3721,7 +3721,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 								char Rel[MAX_PATH];
 								if (!RelativePath(Rel, Src))
 								{
-						 			strsafecpy(Rel, Src, sizeof(Rel));
+						 			strcpy_s(Rel, sizeof(Rel), Src);
 								}
 								
 								m.Print("%s.o : %s ", Part, ToUnixPath(Rel));
@@ -3770,19 +3770,19 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 								if (LgiIsRelativePath(Src))
 								{
 									LgiMakePath(Full, sizeof(Full), Base, Src);
-									strsafecpy(Rel, Src, sizeof(Rel));
+									strcpy_s(Rel, sizeof(Rel), Src);
 								}
 								else
 								{
-									strsafecpy(Full, Src, sizeof(Full));
+									strcpy_s(Full, sizeof(Full), Src);
 									GAutoString a = LgiMakeRelativePath(Base, Src);
 									if (a)
 									{
-										strsafecpy(Rel, a, sizeof(Rel));
+										strcpy_s(Rel, sizeof(Rel), a);
 									}
 									else
 									{
-										strsafecpy(Rel, a, sizeof(Rel));
+										strcpy_s(Rel, sizeof(Rel), a);
 										printf("%s:%i - Failed to make relative path '%s' '%s'\n",
 											_FL,
 											Base.Get(), Src);
