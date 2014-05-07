@@ -905,7 +905,7 @@ void GToolButton::Layout()
 	{
 		// Write each word centered on a different line
 		char Buf[256];
-		strsafecpy(Buf, s, sizeof(Buf));
+		strcpy_s(Buf, sizeof(Buf), s);
 
 		GToken t(Buf, " ");
 		if (t.Length() < 3)

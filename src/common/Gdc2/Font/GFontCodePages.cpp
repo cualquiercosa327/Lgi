@@ -1477,7 +1477,7 @@ GCharset *GCharsetSystem::GetCsInfo(const char *Cp)
 	{
 		// Lookup the charset in the hash table
 		char l[256];
-		strsafecpy(l, Cp, sizeof(l));
+		strcpy_s(l, sizeof(l), Cp);
 		strlwr(l);
 
 		if (!stricmp(l, "utf-8"))

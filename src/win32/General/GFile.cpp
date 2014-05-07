@@ -1003,7 +1003,7 @@ bool GFileSystem::GetCurrentFolder(char *PathName, int Length)
 				char *n = LgiFromNativeCp(s);
 				if (n)
 				{
-					strsafecpy(PathName, n, Length);
+					strcpy_s(PathName, Length, n);
 					Status = true;
 					DeleteArray(n);
 				}
@@ -1022,7 +1022,7 @@ bool GFileSystem::GetCurrentFolder(char *PathName, int Length)
 				char *s = LgiNewUtf16To8(w);
 				if (s)
 				{
-					strsafecpy(PathName, s, Length);
+					strcpy_s(PathName, Length, s);
 					DeleteArray(s);
 					Status = true;
 				}
@@ -1338,7 +1338,7 @@ int GDirectory::First(const char *Name, const char *Pattern)
 					char *utf = LgiFromNativeCp(n);
 					if (utf)
 					{
-						strsafecpy(d->BasePath, utf, sizeof(d->BasePath));
+						strcpy_s(d->BasePath, sizeof(d->BasePath), utf);
 						DeleteArray(utf);
 					}
 				}
@@ -1361,7 +1361,7 @@ int GDirectory::First(const char *Name, const char *Pattern)
 					char *utf = LgiNewUtf16To8(w);
 					if (utf)
 					{
-						strsafecpy(d->BasePath, utf, sizeof(d->BasePath));
+						strcpy_s(d->BasePath, sizeof(d->BasePath), utf);
 						DeleteArray(utf);
 					}
 				}
@@ -1377,7 +1377,7 @@ int GDirectory::First(const char *Name, const char *Pattern)
 			}
 			else
 			{
-				strsafecpy(Str, d->BasePath, sizeof(Str));
+				strcpy_s(Str, sizeof(Str), d->BasePath);
 			}
 
 			if (GFileSystem::Win9x)

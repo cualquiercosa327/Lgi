@@ -61,7 +61,7 @@
 /// between 2 GDateTime objects.
 ///
 /// \ingroup Time
-class LgiClass GDateTime
+class LgiClass GDateTime : public GDom
 {
 	/// 1 - DaysInMonth
 	int16 _Day;
@@ -300,6 +300,11 @@ public:
 		Set(ts);
 		return *this;
 	}
+	
+	// GDom interface
+	bool GetVariant(const char *Name, class GVariant &Value, char *Array = NULL);
+	bool SetVariant(const char *Name, class GVariant &Value, char *Array = NULL);
+	bool CallMethod(const char *Name, class GVariant *ReturnValue, GArray<class GVariant*> &Args);
 };
 
 /// Time zone information

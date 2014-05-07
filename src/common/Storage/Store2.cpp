@@ -437,7 +437,7 @@ bool StorageItemImpl::SerializeObject(GSubFilePtr &f, bool Write)
 						char Msg[512];
 						uint Error = 0;
 
-						strsafecpy(Msg, LgiLoadString(L_STORE_WRITE_ERR, "Storage failed to write the object to disk:\n\n"), sizeof(Msg));
+						strcpy_s(Msg, sizeof(Msg), LgiLoadString(L_STORE_WRITE_ERR, "Storage failed to write the object to disk:\n\n"));
 
 						if (!Status)
 						{

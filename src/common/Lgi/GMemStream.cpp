@@ -277,7 +277,7 @@ void GTempStream::Empty()
 	if (Tmp)
 	{
 		char s[MAX_PATH];
-		strsafecpy(s, Tmp->GetName(), sizeof(s));
+		strcpy_s(s, sizeof(s), Tmp->GetName());
 		DeleteObj(Tmp);
 		FileDev->Delete(s, false);
 	}

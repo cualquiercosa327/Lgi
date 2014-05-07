@@ -366,7 +366,7 @@ int IFtp::ReadLine(char *Msg, int MsgSize)
 						char *Sp = strchr(s, ' ');
 						if (Sp)
 						{
-							strsafecpy(Msg, Sp + 1, MsgSize);
+							strcpy_s(Msg, MsgSize, Sp + 1);
 						}
 					}
 				}
@@ -719,7 +719,7 @@ bool IFtp::ListDir(List<IFtpEntry> *Dir)
 			GBytePipe Buf;
 
 			// List command
-			strsafecpy(d->OutBuf, "LIST", sizeof(d->OutBuf));
+			strcpy_s(d->OutBuf, sizeof(d->OutBuf), "LIST");
 			if (LongList || ShowHidden) strcat(d->OutBuf, " -");
 			if (LongList) strcat(d->OutBuf, "l");
 			if (ShowHidden) strcat(d->OutBuf, "a");

@@ -1527,7 +1527,7 @@ bool MailSmtp::Open(GSocketI *S,
 
 				if (SupportsStartTLS && TestFlag(Flags, MAIL_USE_STARTTLS))
 				{
-					strsafecpy(Buffer, "STARTTLS\r\n", sizeof(Buffer));
+					strcpy_s(Buffer, sizeof(Buffer), "STARTTLS\r\n");
 					VERIFY_RET_VAL(Write(0, true));
 					VERIFY_RET_VAL(ReadReply("220", &Str));
 

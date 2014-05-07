@@ -479,7 +479,7 @@ bool GDocApp<OptionsFmt>::_SaveFile(char *File)
 	}
 	else
 	{
-		strsafecpy(RealPath, File, sizeof(RealPath));
+		strcpy_s(RealPath, sizeof(RealPath), File);
 	}
 
 	bool Status = GMru::_SaveFile(RealPath);
@@ -522,7 +522,7 @@ void GDocApp<OptionsFmt>::SetCurFile(char *f)
 		}
 		else
 		{
-			strsafecpy(s, d->AppName, sizeof(s));
+			strcpy_s(s, sizeof(s), d->AppName);
 		}
 
 		Name(s);

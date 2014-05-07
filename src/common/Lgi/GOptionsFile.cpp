@@ -44,7 +44,7 @@ bool GOptionsFile::SetMode(PortableType Mode, const char *BaseName)
 
 	LgiMakePath(FullPath, sizeof(FullPath), FullPath, BaseName ? BaseName : (char*)"Options");
 	if (!LgiGetExtension(FullPath))
-		strsafecat(FullPath, ".xml", sizeof(FullPath));
+		strcat_s(FullPath, sizeof(FullPath), ".xml");
 	File.Reset(NewStr(FullPath));
 	Dirty = !FileExists(File);
 

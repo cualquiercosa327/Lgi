@@ -1379,21 +1379,33 @@ public:
 					{
 						case GV_DOM:
 						case GV_GFILE:
+						case GV_DATETIME:
 						{
 							GDom *dom = Dom->CastDom();
 							LgiAssert(dom != NULL);
+							bool Ret;
 							if (Arr->Type == GV_STRING)
 							{
-								dom->GetVariant(sName, *Dst, Arr->Str());
+								Ret = dom->GetVariant(sName, *Dst, Arr->Str());
 							}
 							else if (Arr->Type != GV_NULL)
 							{
 								GVariant ArrayTemp = *Arr;
-								dom->GetVariant(sName, *Dst, ArrayTemp.CastString());
+								Ret = dom->GetVariant(sName, *Dst, ArrayTemp.CastString());
 							}
 							else
 							{
-								dom->GetVariant(sName, *Dst, NULL);
+								Ret = dom->GetVariant(sName, *Dst, NULL);
+							}
+							if (!Ret)
+							{
+								Dst->Empty();
+								if (Log)
+									Log->Print("%s IDomGet warning: Unexpected %s member '%s'.\n",
+												Code->AddrToSourceRef(CurrentScriptAddress),
+												GVariant::TypeToString(Dom->Type),
+												sName);
+								Status = ScriptWarning;
 							}
 							break;
 						}
@@ -1446,70 +1458,6 @@ public:
 									Dst->Empty();
 									if (Log)
 										Log->Print("%s IDomGet warning: Unexpected string member '%s'.\n",
-													Code->AddrToSourceRef(CurrentScriptAddress),
-													sName);
-									Status = ScriptWarning;
-									break;
-								}
-							}
-							break;
-						}
-						case GV_DATETIME:
-						{
-							GDomProperty p = GStringToProp(sName);
-							switch (p)
-							{
-								case DateYear:
-									(*Dst) = Dom->Value.Date->Year();
-									break;
-								case DateMonth:
-									(*Dst) = Dom->Value.Date->Month();
-									break;
-								case DateDay:
-									(*Dst) = Dom->Value.Date->Day();
-									break;
-								case DateHour:
-									(*Dst) = Dom->Value.Date->Hours();
-									break;
-								case DateMin:
-									(*Dst) = Dom->Value.Date->Minutes();
-									break;
-								case DateSec:
-									(*Dst) = Dom->Value.Date->Seconds();
-									break;
-								case DateDate:
-								{
-									char s[32];
-									Dom->Value.Date->GetDate(s, sizeof(s));
-									(*Dst) = s;
-									break;
-								}
-								case DateTime:
-								{
-									char s[32];
-									Dom->Value.Date->GetTime(s, sizeof(s));
-									(*Dst) = s;
-									break;
-								}
-								case DateDateTime:
-								{
-									char s[32];
-									Dom->Value.Date->Get(s, sizeof(s));
-									(*Dst) = s;
-									break;
-								}
-								case DateInt64:
-								{
-									uint64 i = 0;
-									Dom->Value.Date->Get(i);
-									*Dst = (int64)i;
-									break;
-								}
-								default:
-								{
-									Dst->Empty();
-									if (Log)
-										Log->Print("%s IDomGet warning: Unexpected datetime member %s.\n",
 													Code->AddrToSourceRef(CurrentScriptAddress),
 													sName);
 									Status = ScriptWarning;
@@ -1609,10 +1557,20 @@ public:
 					{
 						case GV_DOM:
 						case GV_GFILE:
+						case GV_DATETIME:
 						{
 							GDom *dom = Dom->CastDom();
-							LgiAssert(dom);
-							dom->SetVariant(sName, *Value, Arr->Str());
+							LgiAssert(dom != NULL);
+							bool Ret = dom->SetVariant(sName, *Value, Arr->Str());
+							if (!Ret)
+							{
+								if (Log)
+									Log->Print("%s IDomSet warning: Unexpected %s member '%s'.\n",
+												Code->AddrToSourceRef(CurrentScriptAddress),
+												GVariant::TypeToString(Dom->Type),
+												sName);
+								Status = ScriptWarning;
+							}
 							break;
 						}
 						case GV_CUSTOM:
@@ -1622,51 +1580,6 @@ public:
 							{
 								Type->Object = Dom->Value.Custom.Data;
 								Type->SetVariant(sName, *Value, Arr->Str());
-							}
-							break;
-						}
-						case GV_DATETIME:
-						{
-							GDomProperty p = GStringToProp(sName);
-							switch (p)
-							{
-								case DateYear:
-									Dom->Value.Date->Year(Value->CastInt32());
-									break;
-								case DateMonth:
-									Dom->Value.Date->Month(Value->CastInt32());
-									break;
-								case DateDay:
-									Dom->Value.Date->Day(Value->CastInt32());
-									break;
-								case DateHour:
-									Dom->Value.Date->Hours(Value->CastInt32());
-									break;
-								case DateMin:
-									Dom->Value.Date->Minutes(Value->CastInt32());
-									break;
-								case DateSec:
-									Dom->Value.Date->Seconds(Value->CastInt32());
-									break;
-								case DateDate:
-									Dom->Value.Date->SetDate(Value->Str());
-									break;
-								case DateTime:
-									Dom->Value.Date->SetTime(Value->Str());
-									break;
-								case DateDateTime:
-									Dom->Value.Date->Set(Value->Str());
-									break;
-								case DateInt64:
-									Dom->Value.Date->Set((uint64)Value->CastInt64());
-									break;
-								default:
-									if (Log)
-										Log->Print("%s IDomSet warning: Unexpected datetime member %s.\n",
-													Code->AddrToSourceRef(CurrentScriptAddress),
-													sName);
-									Status = ScriptWarning;
-									break;
 							}
 							break;
 						}

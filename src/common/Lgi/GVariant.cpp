@@ -931,6 +931,8 @@ GDom *GVariant::CastDom()
 			return Value.DomRef.Dom;
 		case GV_GFILE:
 			return Value.File.Ptr;
+		case GV_DATETIME:
+			return Value.Date;
 	}
 
 	return NULL;
@@ -1293,16 +1295,16 @@ GDom *GDom::ResolveObject(const char *Var, char *Name, char *Array)
 			if (ArrEnd)
 			{
 				*ArrEnd = 0;
-				strsafecpy(Index, ArrStart, sizeof(Index));
+				strcpy_s(Index, sizeof(Index), ArrStart);
 			}
 		}
-		strsafecpy(Base, Obj, sizeof(Base));
+		strcpy_s(Base, sizeof(Base), Obj);
 
 		// Process parts
 		if (i == t.Length()-1)
 		{
-			strsafecpy(Name, Base, 256);
-			strsafecpy(Array, Index, 256);
+			strcpy_s(Name, 256, Base);
+			strcpy_s(Array, 256, Index);
 			
 			char *e = Name + strlen(Name) - 1;
 			while (e > Name && strchr(" \t\r\n", *e))

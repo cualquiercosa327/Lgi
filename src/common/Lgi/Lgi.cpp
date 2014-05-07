@@ -478,11 +478,11 @@ void LgiTrace(const char *Msg, ...)
 				if (Dir)
 				{
 					char Part[256];
-					strsafecpy(Part, Dir+1, sizeof(Part));
+					strcpy_s(Part, sizeof(Part), Dir+1);
 					Buffer[0] = 0;
 					LgiMakePath(Buffer, sizeof(Buffer), Buffer, "~/Library/Logs");
 					LgiMakePath(Buffer, sizeof(Buffer), Buffer, Dir+1);
-					strsafecat(Buffer, ".txt", sizeof(Buffer));
+					strcat_s(Buffer, sizeof(Buffer), ".txt");
 				}
 				else
 				#endif
@@ -694,7 +694,7 @@ bool LgiMakePath(char *Str, int StrSize, const char *Path, const char *File)
 	{
 		if (Str != Path)
 		{
-			strsafecpy(Str, Path, StrSize);
+			strcpy_s(Str, StrSize, Path);
 		}
 
 		char Dir[] = { '/', '\\', 0 };
@@ -811,7 +811,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 						GAutoString u8(LgiNewUtf16To8(ptr));
 						if (u8)
 						{
-							strsafecpy(Dst, u8, DstSize);
+							strcpy_s(Dst, DstSize, u8);
 							Status = true;
 						}
 						CoTaskMemFree(ptr);
@@ -824,7 +824,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 					char *p = k.GetStr("{374DE290-123F-4565-9164-39C4925E467B}");
 					if (DirExists(p))
 					{
-						strsafecpy(Dst, p, DstSize);
+						strcpy_s(Dst, DstSize, p);
 						Status = true;
 					}
 				}
@@ -863,7 +863,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 				GAutoString f(GetWindowsFolder(CSIDL_PERSONAL));
 				if (f)
 				{
-					strsafecpy(Dst, f, DstSize);
+					strcpy_s(Dst, DstSize, f);
 					Status = true;
 				}
 
@@ -882,7 +882,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 				GAutoString f(GetWindowsFolder(CSIDL_MYMUSIC));
 				if (f)
 				{
-					strsafecpy(Dst, f, DstSize);
+					strcpy_s(Dst, DstSize, f);
 					Status = true;
 				}
 				
@@ -896,7 +896,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 					GAutoString a = FSRefPath(Ref);
 					if (a)
 					{
-						strsafecpy(Dst, a, DstSize);
+						strcpy_s(Dst, DstSize, a);
 						return true;
 					}
 				}				
@@ -916,7 +916,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 				GAutoString f(GetWindowsFolder(CSIDL_MYVIDEO));
 				if (f)
 				{
-					strsafecpy(Dst, f, DstSize);
+					strcpy_s(Dst, DstSize, f);
 					Status = true;
 				}
 
@@ -930,7 +930,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 					GAutoString a = FSRefPath(Ref);
 					if (a)
 					{
-						strsafecpy(Dst, a, DstSize);
+						strcpy_s(Dst, DstSize, a);
 						return true;
 					}
 				}
@@ -1050,7 +1050,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 				char p[MAX_PATH];
 				if (GetWindowsDirectory(p, sizeof(p)) > 0)
 				{
-					strsafecpy(Dst, p, DstSize);
+					strcpy_s(Dst, DstSize, p);
 					Status = true;
 				}
 
@@ -1064,14 +1064,14 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 					GAutoString u = FSRefPath(Ref);
 					if (u)
 					{
-						strsafecpy(Dst, u, DstSize);
+						strcpy_s(Dst, DstSize, u);
 						Status = true;
 					}
 				}
 
 				#else
 
-				strsafecpy(Dst, "/boot", DstSize); // it'll do for now...
+				strcpy_s(Dst, DstSize, "/boot"); // it'll do for now...
 				Status = true;
 
 				#endif
@@ -1084,19 +1084,19 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 				char p[MAX_PATH];
 				if (GetSystemDirectory(p, sizeof(p)) > 0)
 				{
-					strsafecpy(Dst, p, DstSize);
+					strcpy_s(Dst, DstSize, p);
 					Status = true;
 				}
 
 				
 				#elif defined MAC
 				
-				strsafecpy(Dst, "/Library", DstSize);
+				strcpy_s(Dst, DstSize, "/Library");
 				Status = true;
 
 				#else
 
-				strsafecpy(Dst, "/lib", DstSize); // it'll do for now...
+				strcpy_s(Dst, DstSize, "/lib"); // it'll do for now...
 				Status = true;
 
 				#endif
@@ -1114,7 +1114,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 						char *utf = LgiToNativeCp(t);
 						if (utf)
 						{
-							strsafecpy(Dst, utf, DstSize);
+							strcpy_s(Dst, DstSize, utf);
 							DeleteArray(utf);
 							Status = true;
 						}
@@ -1128,7 +1128,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 						char *utf = LgiNewUtf16To8(t);
 						if (utf)
 						{
-							strsafecpy(Dst, utf, DstSize);
+							strcpy_s(Dst, DstSize, utf);
 							DeleteArray(utf);
 							Status = true;
 						}
@@ -1145,7 +1145,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 					GAutoString u = FSRefPath(Ref);
 					if (u)
 					{
-						strsafecpy(Dst, u, DstSize);
+						strcpy_s(Dst, DstSize, u);
 						Status = true;
 					}
 					else LgiTrace("%s:%i - FSRefPath failed.\n", _FL);
@@ -1153,7 +1153,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 
 				#else
 
-				strsafecpy(Dst, "/tmp", DstSize); // it'll do for now...
+				strcpy_s(Dst, DstSize, "/tmp"); // it'll do for now...
 				Status = true;
 
 				#endif
@@ -1166,7 +1166,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 				GAutoString f(GetWindowsFolder(CSIDL_COMMON_APPDATA));
 				if (f)
 				{
-					strsafecpy(Dst, f, DstSize);
+					strcpy_s(Dst, DstSize, f);
 					Status = true;
 				}
 				
@@ -1180,19 +1180,19 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 					GAutoString u = FSRefPath(Ref);
 					if (u)
 					{
-						strsafecpy(Dst, u, DstSize);
+						strcpy_s(Dst, DstSize, u);
 						Status = true;
 					}
 				}
 
 				#elif defined LINUX
 
-				strsafecpy(Dst, "/usr", DstSize);
+				strcpy_s(Dst, DstSize, "/usr");
 				Status = true;
 
 				#elif defined BEOS
 
-				strsafecpy(Dst, "/boot/apps", DstSize);
+				strcpy_s(Dst, DstSize, "/boot/apps");
 				Status = true;
 
 				#endif
@@ -1204,7 +1204,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 				GAutoString f(GetWindowsFolder(CSIDL_APPDATA));
 				if (f)
 				{
-					strsafecpy(Dst, f, DstSize);
+					strcpy_s(Dst, DstSize, f);
 					Status = true;
 				}
 
@@ -1218,14 +1218,14 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 					GAutoString u = FSRefPath(Ref);
 					if (u)
 					{
-						strsafecpy(Dst, u, DstSize);
+						strcpy_s(Dst, DstSize, u);
 						Status = true;
 					}
 				}
 
 				#elif defined LINUX
 
-				strsafecpy(Dst, "/usr", DstSize);
+				strcpy_s(Dst, DstSize, "/usr");
 				Status = true;
 
 				#endif
@@ -1237,7 +1237,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 				GAutoString f(GetWindowsFolder(CSIDL_LOCAL_APPDATA));
 				if (f)
 				{
-					strsafecpy(Dst, f, DstSize);
+					strcpy_s(Dst, DstSize, f);
 					Status = true;
 				}
 				#else
@@ -1252,7 +1252,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 				GAutoString f(GetWindowsFolder(CSIDL_DESKTOPDIRECTORY));
 				if (f)
 				{
-					strsafecpy(Dst, f, DstSize);
+					strcpy_s(Dst, DstSize, f);
 					Status = true;
 				}
 
@@ -1266,7 +1266,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 					GAutoString u = FSRefPath(Ref);
 					if (u)
 					{
-						strsafecpy(Dst, u, DstSize);
+						strcpy_s(Dst, DstSize, u);
 						Status = true;
 					}
 				}
@@ -1289,7 +1289,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 
 				#elif defined BEOS
 
-				strsafecpy(Dst, "/boot/home/Desktop", DstSize);
+				strcpy_s(Dst, DstSize, "/boot/home/Desktop");
 				Status = true;
 				
 				#endif
@@ -1306,7 +1306,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 				GAutoString f(GetWindowsFolder(CSIDL_PROFILE));
 				if (f)
 				{
-					strsafecpy(Dst, f, DstSize);
+					strcpy_s(Dst, DstSize, f);
 					Status = true;
 				}
 
@@ -1315,13 +1315,13 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 				struct passwd *pw = getpwuid(getuid());
 				if (pw)
 				{
-					strsafecpy(Dst, pw->pw_dir, DstSize);
+					strcpy_s(Dst, DstSize, pw->pw_dir);
 					Status = true;
 				}
 
 				#elif defined BEOS
 
-				strsafecpy(Dst, "/boot/home", DstSize);
+				strcpy_s(Dst, DstSize, "/boot/home");
 				Status = true;
 
 				#endif
@@ -1357,7 +1357,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 								if (s)
 								{
 									// Store it..
-									strsafecpy(KdeTrash, s, sizeof(KdeTrash));
+									strcpy_s(KdeTrash, sizeof(KdeTrash), s);
 									DeleteArray(s);
 
 									// Clear out any crap at the end...
@@ -1379,7 +1379,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 						}
 						if (ValidStr(KdeTrash))
 						{
-							strsafecpy(Dst, KdeTrash, DstSize);
+							strcpy_s(Dst, DstSize, KdeTrash);
 							Status = true;
 						}
 						break;
@@ -1401,7 +1401,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 					GAutoString u = FSRefPath(Ref);
 					if (u)
 					{
-						strsafecpy(Dst, u, DstSize);
+						strcpy_s(Dst, DstSize, u);
 						Status = true;
 					}
 				}
@@ -1437,7 +1437,7 @@ bool LgiGetExeFile(char *Dst, int DstSize)
 				if (e)
 				{
 					strlwr(e);
-					strsafecpy(Dst, e, DstSize);
+					strcpy_s(Dst, DstSize, e);
 					DeleteArray(e);
 					return true;
 				}
@@ -1460,7 +1460,7 @@ bool LgiGetExeFile(char *Dst, int DstSize)
 				char *e = LgiNewUtf16To8(Exe);
 				if (e)
 				{
-					strsafecpy(Dst, e, DstSize);
+					strcpy_s(Dst, DstSize, e);
 					DeleteArray(e);
 					return true;
 				}
@@ -1476,7 +1476,7 @@ bool LgiGetExeFile(char *Dst, int DstSize)
 			BPath p;
 			if (e.GetPath(&p) == B_OK)
 			{
-				strsafecpy(Dst, p.Path(), DstSize);
+				strcpy_s(Dst, DstSize, p.Path());
 				return true;
 			}
 		}
@@ -1533,7 +1533,7 @@ bool LgiGetExeFile(char *Dst, int DstSize)
 							if (e)
 							{
 								*e = 0;
-								strsafecpy(ExePathCache, s, sizeof(ExePathCache));
+								strcpy_s(ExePathCache, sizeof(ExePathCache), s);
 								Status = true;
 							}
 						}
@@ -1574,7 +1574,7 @@ bool LgiGetExeFile(char *Dst, int DstSize)
 
 									if (LinePid == getpid())
 									{
-										strsafecpy(ExePathCache, t[t.Length()-1], sizeof(ExePathCache));
+										strcpy_s(ExePathCache, sizeof(ExePathCache), t[t.Length()-1]);
 										Status = true;
 									}
 								}
@@ -1590,7 +1590,7 @@ bool LgiGetExeFile(char *Dst, int DstSize)
 
 		if (Status)
 		{
-			strsafecpy(Dst, ExePathCache, DstSize);
+			strcpy_s(Dst, DstSize, ExePathCache);
 		}
 		
 		return Status;
@@ -1609,7 +1609,7 @@ bool LgiGetExeFile(char *Dst, int DstSize)
 				GAutoString u = FSRefPath(fs);
 				if (!e)
 				{
-					strsafecpy(Dst, u, DstSize);
+					strcpy_s(Dst, DstSize, u);
 					Status = true;
 				}
 				else
@@ -1834,7 +1834,7 @@ void LgiFormatSize(char *Str, int SLen, uint64 Size)
 
 	if (Size == 1)
 	{
-		strsafecpy(Str, "1 byte", Size);
+		strcpy_s(Str, Size, "1 byte");
 	}
 	else if (Size < K)
 	{

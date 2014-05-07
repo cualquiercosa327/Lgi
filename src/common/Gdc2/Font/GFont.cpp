@@ -1495,7 +1495,7 @@ public:
 	{
 		ZeroObj(Face);
 		Size = -1;
-		strsafecpy(DefFace, defface, sizeof(DefFace));
+		strcpy_s(DefFace, sizeof(DefFace), defface);
 		DefSize = defsize;
 	}
 	
@@ -1508,7 +1508,7 @@ public:
 			int s;
 			if (_GetSystemFont(Type, f, sizeof(f), s))
 			{
-				strsafecpy(Face, f, sizeof(Face));
+				strcpy_s(Face, sizeof(Face), f);
 				Size = s;
 			}
 			else
@@ -1577,7 +1577,7 @@ bool GFontType::GetSystemFont(const char *Which)
 			const char *fam = Gtk::pango_font_description_get_family(s->font_desc);
 			if (fam)
 			{
-				strsafecpy(DefFont, fam, sizeof(DefFont));
+				strcpy_s(DefFont, sizeof(DefFont), fam);
 			}
 			else printf("%s:%i - pango_font_description_get_family failed.\n", _FL);
 

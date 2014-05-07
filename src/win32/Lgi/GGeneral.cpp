@@ -30,7 +30,7 @@ bool LgiCheckFile(char *Path, int PathSize)
 				// check destination of link
 				if (FileExists(Link))
 				{
-					strsafecpy(Path, Link, PathSize);
+					strcpy_s(Path, PathSize, Link);
 					return true;
 				}
 			}
@@ -97,7 +97,7 @@ bool LgiGetFileMimeType(const char *File, char *Mime, int BufLen)
 					!stricmp(Dot, ".dsw") == 0 &&
 					!stricmp(Dot, ".dsp") == 0)
 				{
-					strsafecpy(Mime, Ct, BufLen);
+					strcpy_s(Mime, BufLen, Ct);
 					Status = true;
 				}
 				else
@@ -112,7 +112,7 @@ bool LgiGetFileMimeType(const char *File, char *Mime, int BufLen)
 						char *Ext = Type.GetStr("Extension");
 						if (Ext && stricmp(Ext, Dot) == 0)
 						{
-							strsafecpy(Mime, k, BufLen);
+							strcpy_s(Mime, BufLen, k);
 							Status = true;
 							break;
 						}
@@ -135,7 +135,7 @@ bool LgiGetFileMimeType(const char *File, char *Mime, int BufLen)
 		{
 			// no extension?
 			// no registry entry for file type?
-			strsafecpy(Mime, "application/octet-stream", BufLen);
+			strcpy_s(Mime, BufLen, "application/octet-stream");
 			Status = true;
 		}
 	}
@@ -218,8 +218,8 @@ bool _GetApps_Add(GArray<GAppInfo*> &Apps, char *In)
 			{
 				char e[MAX_PATH];
 				char *d = strrchr(a->Path, DIR_CHAR);
-				if (d) strsafecpy(e, d + 1, sizeof(e));
-				else strsafecpy(e, a->Path, sizeof(e));
+				if (d) strcpy_s(e, sizeof(e), d + 1);
+				else strcpy_s(e, sizeof(e), a->Path);
 				d = strchr(e, '.');
 				if (d) *d = 0;
 				e[0] = toupper(e[0]);
@@ -306,7 +306,7 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 			char *EndPart = strrchr((char*)Mime, '/');
 			if (EndPart && EndPart[1] == '.')
 			{
-				strsafecpy(Ext, EndPart, sizeof(Ext));
+				strcpy_s(Ext, sizeof(Ext), EndPart);
 
 				// This is a hack to get around file types without a MIME database entry
 				// but do have a .ext entry. LgiGetFileMimeType knows about the hack too.
@@ -339,7 +339,7 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 				GRegKey MimeEntry(false, "HKEY_CLASSES_ROOT\\MIME\\Database\\Content Type\\%s", Mime);
 				char *e = MimeEntry.GetStr("Extension");
 				if (e)
-					strsafecpy(Ext, e, sizeof(Ext));
+					strcpy_s(Ext, sizeof(Ext), e);
 				if (Ext[0])
 				{
 					// Get list of "Open With" apps
@@ -428,7 +428,7 @@ bool LgiGetAppForMimeType(const char *Mime, char *AppPath, int BufSize)
 		Status = LgiGetAppsForMimeType(Mime, Apps, 1);
 		if (Status)
 		{
-			strsafecpy(AppPath, Apps[0]->Path, BufSize);
+			strcpy_s(AppPath, BufSize, Apps[0]->Path);
 			Apps.DeleteObjects();
 		}
 	}

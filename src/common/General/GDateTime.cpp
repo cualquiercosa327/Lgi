@@ -762,7 +762,7 @@ bool GDateTime::Set(const char *Str)
 	if (Str)
 	{
 		char Local[256];
-		strsafecpy(Local, Str, sizeof(Local));
+		strcpy_s(Local, sizeof(Local), Str);
 		char *Sep = strchr(Local, ' ');
 		if (Sep)
 		{
@@ -1642,3 +1642,108 @@ bool GDateTime::Decode(const char *In)
 	return Status;
 }
 
+bool GDateTime::GetVariant(const char *Name, class GVariant &Dst, char *Array)
+{
+	GDomProperty p = GStringToProp(Name);
+	switch (p)
+	{
+		case DateYear:
+			Dst = Year();
+			break;
+		case DateMonth:
+			Dst = Month();
+			break;
+		case DateDay:
+			Dst = Day();
+			break;
+		case DateHour:
+			Dst = Hours();
+			break;
+		case DateMin:
+			Dst = Minutes();
+			break;
+		case DateSec:
+			Dst = Seconds();
+			break;
+		case DateDate:
+		{
+			char s[32];
+			GetDate(s, sizeof(s));
+			Dst = s;
+			break;
+		}
+		case DateTime:
+		{
+			char s[32];
+			GetTime(s, sizeof(s));
+			Dst = s;
+			break;
+		}
+		case DateDateTime:
+		{
+			char s[32];
+			Get(s, sizeof(s));
+			Dst = s;
+			break;
+		}
+		case DateInt64:
+		{
+			uint64 i = 0;
+			Get(i);
+			Dst = (int64)i;
+			break;
+		}
+		default:
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+bool GDateTime::SetVariant(const char *Name, class GVariant &Value, char *Array)
+{
+	GDomProperty p = GStringToProp(Name);
+	switch (p)
+	{
+		case DateYear:
+			Year(Value.CastInt32());
+			break;
+		case DateMonth:
+			Month(Value.CastInt32());
+			break;
+		case DateDay:
+			Day(Value.CastInt32());
+			break;
+		case DateHour:
+			Hours(Value.CastInt32());
+			break;
+		case DateMin:
+			Minutes(Value.CastInt32());
+			break;
+		case DateSec:
+			Seconds(Value.CastInt32());
+			break;
+		case DateDate:
+			SetDate(Value.Str());
+			break;
+		case DateTime:
+			SetTime(Value.Str());
+			break;
+		case DateDateTime:
+			Set(Value.Str());
+			break;
+		case DateInt64:
+			Set((uint64)Value.CastInt64());
+			break;
+		default:
+			return false;
+	}
+	
+	return true;
+}
+
+bool GDateTime::CallMethod(const char *Name, class GVariant *ReturnValue, GArray<class GVariant*> &Args)
+{
+	return false;
+}

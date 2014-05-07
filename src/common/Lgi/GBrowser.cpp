@@ -200,7 +200,7 @@ public:
 			if (*Uri != '#' && Last)
 				sprintf_s(Buf, sizeof(Buf), "%.*s", Last - Cur, Cur);
 			else
-				strsafecpy(Buf, Cur, sizeof(Buf));
+				strcpy_s(Buf, sizeof(Buf), Cur);
 
 			char *End = Buf + strlen(Buf) - 1;
 			if (*End == Sep)

@@ -38,8 +38,6 @@ LgiFunc char *strnchr
 
 #if defined(MAC)
 LgiFunc char *strncpy_s(char *dest, size_t dest_size, const char *src, size_t src_size);
-LgiFunc char *strcpy_s(char *dest, size_t dest_size, const char *src);
-LgiFunc char *strcat_s(char *dest, size_t dest_size, const char *src);
 #else
 /// \brief Search for a substring in another string.
 ///
@@ -102,40 +100,41 @@ LgiFunc char *stristr
 
 #endif
 
-// LgiFunc int stricmp(char *a, char *b);
 #ifndef WIN32NATIVE
-LgiFunc int strnicmp(const char *a, const char *b, int i);
-#endif
 
+LgiFunc int strnicmp(const char *a, const char *b, int i);
 
 /// \brief Safe string copy
 ///
 /// This function should be used anytime the size of the destination
 /// buffer is known when using strcpy. It will truncate the resultant
 /// string to fit in the output buffer, properly NULL terminating it.
-LgiFunc char *strsafecpy
+LgiFunc char *strcpy_s
 (
 	/// The destination string buffer
 	char *dst,
-	/// The string to append to 'dst'
-	const char *src,
 	/// The size in bytes of 'dst'
-	size_t len
+	size_t len,
+	/// The string to append to 'dst'
+	const char *src
 );
+
 /// \brief Safe string append
 ///
 /// This function should be used anytime the size of the destination
 /// buffer is known when using strcat. It will truncate the resultant
 /// string to fit in the output buffer, properly NULL terminating it.
-LgiFunc char *strsafecat
+LgiFunc char *strcat_s
 (
 	/// The destination string buffer
 	char *dst,
-	/// The string to append to 'dst'
-	const char *src,
 	/// The size in bytes of 'dst'
-	size_t len
+	size_t len,
+	/// The string to append to 'dst'
+	const char *src
 );
+#endif
+
 /// \brief Converts a hex string into a integer.
 ///
 /// Stops scanning when it hits a NULL or a non-hex character. Accepts

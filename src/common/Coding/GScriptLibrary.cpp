@@ -632,7 +632,7 @@ bool SystemFunctions::PathJoin(GVariant *Ret, ArgumentArray &Args)
 		if (i)
 			LgiMakePath(p, sizeof(p), p, s);
 		else
-			strsafecpy(p, s, sizeof(p));
+			strcpy_s(p, sizeof(p), s);
 	}
 	
 	if (*p)

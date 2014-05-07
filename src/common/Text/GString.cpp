@@ -252,7 +252,8 @@ char *stristr(const char *a, const char *b)
 	return NULL;
 }
 
-char *strsafecpy(char *dst, const char *src, size_t len)
+#ifndef WIN32NATIVE
+char *strcpy_s(char *dst, size_t len, const char *src)
 {
 	char *d = dst;
 
@@ -270,7 +271,7 @@ char *strsafecpy(char *dst, const char *src, size_t len)
 	return d;
 }
 
-char *strsafecat(char *dst, const char *src, size_t len)
+char *strcat_s(char *dst, size_t len, const char *src)
 {
 	char *d = dst;
 
@@ -295,6 +296,7 @@ char *strsafecat(char *dst, const char *src, size_t len)
 	
 	return d;
 }
+#endif
 
 int strcmp(char *a, char *b)
 {

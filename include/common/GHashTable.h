@@ -110,7 +110,7 @@ class GHashTbl
 		    if (Used < Size - Len)
 		    {
 			    char *p = Mem + Used;
-			    strsafecpy(p, s, Len);
+			    strcpy_s(p, Len, s);
 			    Used += Len;
 			    return p;
 		    }
@@ -123,7 +123,7 @@ class GHashTbl
 		    if (Used < Size - Len)
 		    {
 			    char *p = Mem + Used;
-			    strsafecpy(p, s, Len);
+			    strcpy_s(p, Len, s);
 			    Used += Len;
 			    return p;
 		    }

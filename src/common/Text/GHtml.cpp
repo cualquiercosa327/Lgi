@@ -1534,7 +1534,7 @@ _DumpColour(GCss::ColorDef c)
 	if (Cur == 4) Cur = 0;
 
 	if (c.Type == GCss::ColorInherit)
-		strsafecpy(b, "Inherit", 32);
+		strcpy_s(b, 32, "Inherit");
 	else
 		sprintf_s(b, 32, "%2.2x,%2.2x,%2.2x(%2.2x)", R32(c.Rgb32),G32(c.Rgb32),B32(c.Rgb32),A32(c.Rgb32));
 
@@ -7035,7 +7035,7 @@ void GHtml::OnMouseClick(GMouse &m)
 															if (Result == GDocumentEnv::LoadImmediate)
 															{
 																if (j->Filename)
-																	strsafecpy(File, j->Filename, sizeof(File));
+																	strcpy_s(File, sizeof(File), j->Filename);
 															}
 															DeleteObj(j);
 														}

@@ -135,7 +135,7 @@ bool LgiStringRes::Read(GXmlTag *t, ResFileFormat Format)
 
 		const char *Cp = LgiStringRes::CodePage;
 		char Name[256];
-		strsafecpy(Name, LgiStringRes::CurLang->Id, sizeof(Name));
+		strcpy_s(Name, sizeof(Name), LgiStringRes::CurLang->Id);
 		n = 0;
 		
 		if ((n = t->GetAttr(Name)) &&
@@ -297,14 +297,7 @@ LgiTrace("%s:%i - Filename='%s'\n", _FL, FileName);
 LgiTrace("%s:%i - f='%s'\n", _FL, f);
 #endif
 
-			if (f)
-			{
-				strsafecpy(File, f + 1, sizeof(File));
-			}
-			else
-			{
-				strsafecpy(File, FileName, sizeof(File));
-			}
+			strcpy_s(File, sizeof(File), f ? f + 1 : FileName);
 
 #if DEBUG_RES_FILE
 LgiTrace("%s:%i - File='%s'\n", _FL, File);
@@ -333,7 +326,7 @@ LgiTrace("%s:%i - Str='%s'\n", _FL, Str);
 					}
 					#endif
 
-					strsafecpy(File, f, sizeof(File));
+					strcpy_s(File, sizeof(File), f);
 				}
 
 #if DEBUG_RES_FILE
