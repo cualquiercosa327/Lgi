@@ -519,7 +519,8 @@ public:
 	{
 		GExecutionStatus Status = ScriptSuccess;
 		
-		Log = log;
+		Context->SetLog(Log = log);
+		
 		LgiAssert(sizeof(GVarRef) == 4);
 
 		GPtr c;

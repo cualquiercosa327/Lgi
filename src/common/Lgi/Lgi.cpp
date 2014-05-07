@@ -2088,18 +2088,34 @@ GCapabilityTarget::~GCapabilityTarget()
 /////////////////////////////////////////////////////////////////////
 GProfile::GProfile(const char *Name)
 {
+	MinMs = -1;
 	Add(Name);
 }
 
 GProfile::~GProfile()
 {
 	Add("End");
+	
+	if (MinMs > 0)
+	{
+		uint64 TotalMs = s.Last().Time - s[0].Time;
+		if (TotalMs < MinMs)
+		{
+			return;
+		}
+	}
+	
 	for (int i=0; i<s.Length()-1; i++)
 	{
 		Sample &a = s[i];
 		Sample &b = s[i+1];
-		LgiTrace("%s = %i ms\n", a.Name, (int)(b.Time - a.Time));
+		LgiTrace("%s%s = %i ms\n", i ? "    " : "", a.Name, (int)(b.Time - a.Time));
 	}
+}
+
+void GProfile::HideResultsIfBelow(int Ms)
+{
+	MinMs = Ms;
 }
 
 void GProfile::Add(const char *Name)

@@ -1830,10 +1830,13 @@ class LgiClass GProfile
 	};
 	
 	GArray<Sample> s;
+	int MinMs;
 	
 public:
 	GProfile(const char *Name);
 	virtual ~GProfile();
+	
+	void HideResultsIfBelow(int Ms);
 	virtual void Add(const char *Name);
 };
 
