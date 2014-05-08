@@ -15,13 +15,6 @@
 #define SetScriptError			c.u8 = e; LgiAssert(0); Status = ScriptError
 #define CurrentScriptAddress	(c.u8 - Base)
 
-
-
-/// During execution the code needs to look up various object members via
-/// string. These enumeration values allow the executer to look up a string
-/// member reference via a hash table in O(1) time and then do another O(1)
-/// jump via a switch to the code that handles the member.
-
 class GVirtualMachinePriv
 {
 	struct StackFrame
@@ -533,7 +526,9 @@ public:
 	{
 		GExecutionStatus Status = ScriptSuccess;
 		
-		Context->SetLog(Log = log);
+		Log = log;
+		if (Context)
+			Context->SetLog(Log);
 		
 		LgiAssert(sizeof(GVarRef) == 4);
 
@@ -1530,7 +1525,7 @@ public:
 						{
 							GDom *dom = Dom->CastDom();
 							LgiAssert(dom != NULL);
-							bool Ret = dom->SetVariant(sName, *Value, Arr->Str());
+							bool Ret = dom->SetVariant(sName, *Value, CastArrayIndex(Arr));
 							if (!Ret)
 							{
 								if (Log)
@@ -1545,7 +1540,7 @@ public:
 						case GV_DATETIME:
 						{
 							LgiAssert(Dom->Value.Date != NULL);
-							bool Ret = Dom->Value.Date->SetVariant(sName, *Value, Arr->Str());
+							bool Ret = Dom->Value.Date->SetVariant(sName, *Value, CastArrayIndex(Arr));
 							if (!Ret)
 							{
 								if (Log)

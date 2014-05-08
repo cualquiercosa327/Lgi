@@ -538,7 +538,7 @@ public:
 		/// [In] The code to execute
 		GCompiledCode *Code,
 		/// [Optional] Log file for execution
-		GStream *Log = 0
+		GStream *Log = NULL
 	);
 
 	/// Execute just one method and return
@@ -553,7 +553,7 @@ public:
 		/// [Out] The return value of the function
 		GVariant *Ret,
 		/// [Optional] Log file for execution
-		GStream *Log = 0
+		GStream *Log = NULL
 	);
 };
 
@@ -562,15 +562,15 @@ class SystemFunctions : public GScriptContext
 {
 	GScriptEngine *Engine;
 	GStream *Log;
+	#ifdef WIN32NATIVE
+	HANDLE Brk;
+	#endif
 
 	GView *CastGView(GVariant &v);
 
 public:
-	SystemFunctions()
-	{
-		Engine = NULL;
-		Log = NULL;
-	}
+	SystemFunctions();
+	~SystemFunctions();
 
 	GStream *GetLog();
 	bool SetLog(GStream *log);

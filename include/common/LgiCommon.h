@@ -338,6 +338,37 @@ LgiFunc int LgiIsReleaseBuild();
 /// Registers an active x control
 LgiFunc bool RegisterActiveXControl(const char *Dll);
 
+enum HWBRK_TYPE
+{
+	HWBRK_TYPE_CODE,
+	HWBRK_TYPE_READWRITE,
+	HWBRK_TYPE_WRITE,
+};
+
+enum HWBRK_SIZE
+{
+	HWBRK_SIZE_1,
+	HWBRK_SIZE_2,
+	HWBRK_SIZE_4,
+	HWBRK_SIZE_8,
+};
+
+/// Set a hardware breakpoint.
+LgiFunc HANDLE SetHardwareBreakpoint
+(
+	/// Use GetCurrentThread()
+	HANDLE hThread,
+	/// Type of breakpoint
+	HWBRK_TYPE Type,
+	/// Size of breakpoint
+	HWBRK_SIZE Size,
+	/// The pointer to the data to break on
+	void *s
+);
+
+/// Deletes a hardware breakpoint
+LgiFunc bool RemoveHardwareBreakpoint(HANDLE hBrk);
+
 #elif defined LINUX
 
 /// Window managers

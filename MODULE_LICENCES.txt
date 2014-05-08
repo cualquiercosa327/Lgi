@@ -44,6 +44,11 @@ src/win32/INet/MibAccess.*
 	License: "Free software: no warranty; use anywhere is ok;"
 	Inclusion: Win32 releases only.
 
+src/win32/Lgi/GGeneral.cpp (SetHardwareBreakpoint/RemoveHardwareBreakpoint functions)
+	Author: Michael Chourdakis
+	License: Code Project Open License (CPOL) 1.02
+	Inclusion: Win32 releases only.
+	
 src/common/INet/libntlm-0.4.2/*
 	Author: Grant Edwards, Andrew Tridgell, Frediano Ziglio
 	License: LGPL v2
