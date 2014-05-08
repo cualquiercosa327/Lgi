@@ -32,6 +32,20 @@ class GVirtualMachinePriv
 		GVariant *ReturnValue;
 	};
 
+	GVariant ArrayTemp;
+	
+	char *CastArrayIndex(GVariant *Idx)	
+	{
+		if (Idx == NULL || Idx->Type == GV_NULL)
+			return NULL;
+
+		if (Idx->Type == GV_STRING)
+			return Idx->Str();
+		
+		ArrayTemp = *Idx;
+		return ArrayTemp.CastString();
+	}
+
 public:
 	GStream *Log;
 	GScriptContext *Context;
@@ -1380,24 +1394,27 @@ public:
 					{
 						case GV_DOM:
 						case GV_GFILE:
-						case GV_DATETIME:
+						case GV_GSURFACE:
 						{
 							GDom *dom = Dom->CastDom();
 							LgiAssert(dom != NULL);
-							bool Ret;
-							if (Arr->Type == GV_STRING)
+							bool Ret = dom->GetVariant(sName, *Dst, CastArrayIndex(Arr));
+							if (!Ret)
 							{
-								Ret = dom->GetVariant(sName, *Dst, Arr->Str());
+								Dst->Empty();
+								if (Log)
+									Log->Print("%s IDomGet warning: Unexpected %s member '%s'.\n",
+												Code->AddrToSourceRef(CurrentScriptAddress),
+												GVariant::TypeToString(Dom->Type),
+												sName);
+								Status = ScriptWarning;
 							}
-							else if (Arr->Type != GV_NULL)
-							{
-								GVariant ArrayTemp = *Arr;
-								Ret = dom->GetVariant(sName, *Dst, ArrayTemp.CastString());
-							}
-							else
-							{
-								Ret = dom->GetVariant(sName, *Dst, NULL);
-							}
+							break;
+						}
+						case GV_DATETIME:
+						{
+							LgiAssert(Dom->Value.Date != NULL);
+							bool Ret = Dom->Value.Date->GetVariant(sName, *Dst, CastArrayIndex(Arr));
 							if (!Ret)
 							{
 								Dst->Empty();
@@ -1467,55 +1484,6 @@ public:
 							}
 							break;
 						}
-						case GV_GSURFACE:
-						{
-							if (!Dom->Value.Surface.Ptr)
-							{
-								Dst->Empty();
-								if (Log)
-									Log->Print("%s IDomGet warning: No surface pointer.\n",
-												Code->AddrToSourceRef(CurrentScriptAddress),
-												_FL);
-								Status = ScriptWarning;
-								break;
-							}
-
-							GDomProperty p = GStringToProp(sName);
-							switch (p)
-							{
-								case SurfaceX:
-								{
-									(*Dst) = Dom->Value.Surface.Ptr->X();
-									break;
-								}
-								case SurfaceY:
-								{
-									(*Dst) = Dom->Value.Surface.Ptr->Y();
-									break;
-								}
-								case SurfaceBits:
-								{
-									(*Dst) = Dom->Value.Surface.Ptr->GetBits();
-									break;
-								}
-								case SurfaceColourSpace:
-								{
-									(*Dst) = Dom->Value.Surface.Ptr->GetColourSpace();
-									break;
-								}
-								default:
-								{
-									Dst->Empty();
-									if (Log)
-										Log->Print("%s IDomGet warning: Unexpected surface member %s.\n",
-													Code->AddrToSourceRef(CurrentScriptAddress),
-													sName);
-									Status = ScriptWarning;
-									break;
-								}
-							}
-							break;
-						}
 						default:
 						{
 							if (Log)
@@ -1558,11 +1526,26 @@ public:
 					{
 						case GV_DOM:
 						case GV_GFILE:
-						case GV_DATETIME:
+						case GV_GSURFACE:
 						{
 							GDom *dom = Dom->CastDom();
 							LgiAssert(dom != NULL);
 							bool Ret = dom->SetVariant(sName, *Value, Arr->Str());
+							if (!Ret)
+							{
+								if (Log)
+									Log->Print("%s IDomSet warning: Unexpected %s member '%s'.\n",
+												Code->AddrToSourceRef(CurrentScriptAddress),
+												GVariant::TypeToString(Dom->Type),
+												sName);
+								Status = ScriptWarning;
+							}
+							break;
+						}
+						case GV_DATETIME:
+						{
+							LgiAssert(Dom->Value.Date != NULL);
+							bool Ret = Dom->Value.Date->SetVariant(sName, *Value, Arr->Str());
 							if (!Ret)
 							{
 								if (Log)
@@ -1676,11 +1659,26 @@ public:
 					{
 						case GV_DOM:
 						case GV_GFILE:
+						case GV_GSURFACE:
 						{
 							GDom *dom = Dom->CastDom();
 							LgiAssert(dom != NULL);
-
 							bool Ret = dom->CallMethod(sName, Dst, Arg);
+							if (!Ret)
+							{
+								Dst->Empty();
+								if (Log)
+									Log->Print("%s IDomCall warning: %s(...) failed.\n",
+												Code->AddrToSourceRef(CurrentScriptAddress),
+												sName);
+								Status = ScriptWarning;
+							}
+							break;
+						}
+						case GV_DATETIME:
+						{
+							LgiAssert(Dom->Value.Date != NULL);
+							bool Ret = Dom->Value.Date->CallMethod(sName, Dst, Arg);
 							if (!Ret)
 							{
 								Dst->Empty();

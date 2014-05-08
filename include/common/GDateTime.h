@@ -61,7 +61,8 @@
 /// between 2 GDateTime objects.
 ///
 /// \ingroup Time
-class LgiClass GDateTime : public GDom
+class LgiClass GDateTime // This class can't have a virtual table, because it's used in 
+						 // GArray's which initialize with all zero bytes.
 {
 	/// 1 - DaysInMonth
 	int16 _Day;
@@ -301,7 +302,12 @@ public:
 		return *this;
 	}
 	
-	// GDom interface
+	/// GDom interface.
+	///
+	/// Even though we don't inherit from a GDom class this class supports the same
+	/// interface for ease of use. Currently there are cases where GDateTime is used
+	/// in GArray's which don't implement calling a constructor (they init with all
+	/// zeros).
 	bool GetVariant(const char *Name, class GVariant &Value, char *Array = NULL);
 	bool SetVariant(const char *Name, class GVariant &Value, char *Array = NULL);
 	bool CallMethod(const char *Name, class GVariant *ReturnValue, GArray<class GVariant*> &Args);

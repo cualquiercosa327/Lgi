@@ -367,7 +367,7 @@ public:
 #define OrgRgn(r)		r.Offset(-OriginX, -OriginY)
 
 /// Base class API for graphics operations
-class LgiClass GSurface : public GRefCount
+class LgiClass GSurface : public GRefCount, public GDom
 {
 	friend class GFilter;
 	friend class GView;
@@ -626,6 +626,11 @@ public:
 		/// The bounds of the filled area or NULL if you don't care
 		GRect *Bounds = NULL
 	);
+
+	// GDom interface
+	bool GetVariant(const char *Name, GVariant &Value, char *Array = NULL);
+	bool SetVariant(const char *Name, GVariant &Value, char *Array = NULL);
+	bool CallMethod(const char *Name, GVariant *ReturnValue, GArray<GVariant*> &Args);
 };
 
 /// \brief An implemenation of GSurface to draw onto the screen.

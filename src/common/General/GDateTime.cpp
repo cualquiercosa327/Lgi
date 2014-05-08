@@ -1745,5 +1745,14 @@ bool GDateTime::SetVariant(const char *Name, class GVariant &Value, char *Array)
 
 bool GDateTime::CallMethod(const char *Name, class GVariant *ReturnValue, GArray<class GVariant*> &Args)
 {
-	return false;
+	switch (GStringToProp(Name))
+	{
+		case DateSetNow:
+			SetNow();
+			break;
+		default:
+			return false;
+	}
+
+	return true;
 }

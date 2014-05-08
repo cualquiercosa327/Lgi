@@ -79,6 +79,7 @@ enum GDomProperty
 	DateTime, // "hhmmss"
 	DateDateTime, // "yyyymmdd hhmmss"
 	DateInt64,
+	DateSetNow,
 
 	// GVariant string
 	StrJoin,

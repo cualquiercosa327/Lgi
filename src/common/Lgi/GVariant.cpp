@@ -931,8 +931,8 @@ GDom *GVariant::CastDom()
 			return Value.DomRef.Dom;
 		case GV_GFILE:
 			return Value.File.Ptr;
-		case GV_DATETIME:
-			return Value.Date;
+		case GV_GSURFACE:
+			return Value.Surface.Ptr;
 	}
 
 	return NULL;
@@ -1393,6 +1393,7 @@ struct GDomPropMap : public GHashTbl<const char *, GDomProperty>
 		Define("Time", DateTime);
 		Define("DateTime", DateDateTime);
 		Define("DateInt64", DateInt64);
+		Define("SetNow", DateSetNow);
 
 		Define("Join", StrJoin);
 		Define("Split", StrSplit);

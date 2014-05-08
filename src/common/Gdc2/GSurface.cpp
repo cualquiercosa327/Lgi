@@ -17,6 +17,7 @@
 #include "Gdc2.h"
 #include "GdiLeak.h"
 #include "GPalette.h"
+#include "GVariant.h"
 
 #define LINE_SOLID				0xFFFFFFFF
 
@@ -1621,4 +1622,47 @@ void GSurface::Palette(GPalette *pPal, bool bOwnIt)
 	{
 		pApp->SetSurface(pMem, pPalette, (pAlphaDC) ? pAlphaDC->pMem : 0);
 	}
+}
+
+bool GSurface::GetVariant(const char *Name, GVariant &Dst, char *Array)
+{
+	switch (GStringToProp(Name))
+	{
+		case SurfaceX:
+		{
+			Dst = X();
+			break;
+		}
+		case SurfaceY:
+		{
+			Dst = Y();
+			break;
+		}
+		case SurfaceBits:
+		{
+			Dst = GetBits();
+			break;
+		}
+		case SurfaceColourSpace:
+		{
+			Dst = GetColourSpace();
+			break;
+		}
+		default:
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool GSurface::SetVariant(const char *Name, GVariant &Value, char *Array)
+{
+	return false;
+}
+
+bool GSurface::CallMethod(const char *Name, GVariant *ReturnValue, GArray<GVariant*> &Args)
+{
+	return false;
 }
