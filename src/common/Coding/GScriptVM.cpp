@@ -41,12 +41,10 @@ class GVirtualMachinePriv
 
 public:
 	GStream *Log;
-	GScriptContext *Context;
 
-	GVirtualMachinePriv(GScriptContext *context)
+	GVirtualMachinePriv()
 	{
-		Log = 0;
-		Context = context;
+		Log = NULL;
 	}
 
 	void DumpVariant(GStream *Log, GVariant &v)
@@ -526,10 +524,18 @@ public:
 	{
 		GExecutionStatus Status = ScriptSuccess;
 		
-		Log = log;
-		if (Context)
-			Context->SetLog(Log);
+		if (!Code)
+			return ScriptError;
 		
+		if (log)
+			Log = log;
+		else if (Code->SysContext && Code->SysContext->GetLog())
+			Log = Code->SysContext->GetLog();
+		else if (Code->UserContext && Code->UserContext->GetLog())
+			Log = Code->UserContext->GetLog();
+		else
+			LgiTrace("%s:%i - Execution without a log?\n", _FL);
+			
 		LgiAssert(sizeof(GVarRef) == 4);
 
 		GPtr c;
@@ -551,7 +557,7 @@ public:
 		}
 		else
 		{
-		    GAutoString DataPath = Context->GetDataFolder();
+		    GAutoString DataPath = Code->UserContext->GetDataFolder();
 		    if (!DataPath)
 		    {
 			    char p[256];
@@ -575,7 +581,7 @@ public:
 				if (f.Open(Obj, O_WRITE))
 				{
 					f.SetSize(0);
-					GExecutionStatus Decomp = Decompile(Context, Code, &f);
+					GExecutionStatus Decomp = Decompile(Code->UserContext, Code, &f);
 					f.Close();
 					if (Decomp != ScriptSuccess)
 					{
@@ -2126,9 +2132,9 @@ public:
 	}
 };
 
-GVirtualMachine::GVirtualMachine(GScriptContext *Context)
+GVirtualMachine::GVirtualMachine()
 {
-	d = new GVirtualMachinePriv(Context);
+	d = new GVirtualMachinePriv;
 }
 
 GVirtualMachine::~GVirtualMachine()
@@ -2138,7 +2144,7 @@ GVirtualMachine::~GVirtualMachine()
 
 GExecutionStatus GVirtualMachine::Execute(GCompiledCode *Code, GStream *Log)
 {
-	if (!d->Context || !Code)
+	if (!Code)
 		return ScriptError;
 
 	return d->Execute(Code, Log, 0, 0, 0);
@@ -2146,7 +2152,7 @@ GExecutionStatus GVirtualMachine::Execute(GCompiledCode *Code, GStream *Log)
 
 GExecutionStatus GVirtualMachine::ExecuteFunction(GCompiledCode *Code, GFunctionInfo *Func, ArgumentArray &Args, GVariant *Ret, GStream *Log)
 {
-	if (!d->Context || !Code)
+	if (!Code)
 		return ScriptError;
 
 	return d->Execute(Code, Log, Func, &Args, Ret);

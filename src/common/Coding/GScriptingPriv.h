@@ -316,6 +316,7 @@ class GCompiledCode
 {
 	friend class GCompilerPriv;
 	friend class GVirtualMachinePriv;
+	friend class GCompiler;
 
 	GVariables Globals;
 	GArray<uint8> ByteCode;
@@ -323,6 +324,8 @@ class GCompiledCode
 	GHashTbl<char16*, GTypeDef*> Types;
 	GHashTbl<int, int> Debug;
 	GAutoString FileName;
+	SystemFunctions *SysContext;
+	GScriptContext *UserContext;
 
 public:
 	GCompiledCode();
@@ -520,7 +523,14 @@ public:
 	~GCompiler();
 
 	/// Compile the source into byte code.
-	GCompiledCode *Compile(GScriptContext *Context, const char *FileName, char *Script, GStream *Log = 0, GCompiledCode *previous = 0);
+	GCompiledCode *Compile
+	(
+		GScriptContext *UserContext,
+		SystemFunctions *SysContext,
+		const char *FileName,
+		char *Script,
+		GCompiledCode *previous = NULL
+	);
 };
 
 /// This class is the VM for the byte language
@@ -529,7 +539,7 @@ class GVirtualMachine : public GScriptUtils
 	class GVirtualMachinePriv *d;
 
 public:
-	GVirtualMachine(GScriptContext *Context);
+	GVirtualMachine();
 	~GVirtualMachine();
 
 	/// Executes the whole script starting at the top

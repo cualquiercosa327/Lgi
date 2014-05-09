@@ -136,17 +136,10 @@ SystemFunctions::SystemFunctions()
 {
 	Engine = NULL;
 	Log = NULL;
-	#ifdef _DEBUG
-	Brk = NULL;
-	#endif	
 }
 
 SystemFunctions::~SystemFunctions()
 {
-	#ifdef _DEBUG
-	if (Brk)
-		RemoveHardwareBreakpoint(Brk);
-	#endif	
 }
 
 GStream *SystemFunctions::GetLog()
@@ -158,12 +151,6 @@ bool SystemFunctions::SetLog(GStream *log)
 {
 	LgiAssert(Log == NULL);
 	Log = log;
-	#ifdef _DEBUG
-	Brk = SetHardwareBreakpoint(GetCurrentThread(),
-								HWBRK_TYPE_WRITE,
-								sizeof(Log) == 4 ? HWBRK_SIZE_4 : HWBRK_SIZE_8,
-								&Log);
-	#endif	
 	return true;
 }
 

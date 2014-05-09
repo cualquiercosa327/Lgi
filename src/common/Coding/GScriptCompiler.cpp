@@ -128,6 +128,8 @@ struct Node
 
 GCompiledCode::GCompiledCode() : Globals(SCOPE_GLOBAL), Debug(0, true, -1, -1)
 {
+	SysContext = NULL;
+	UserContext = NULL;
 }
 
 GCompiledCode::GCompiledCode(GCompiledCode &copy) : Globals(SCOPE_GLOBAL), Debug(0, true, -1, -1)
@@ -2640,14 +2642,28 @@ GCompiler::~GCompiler()
 	DeleteObj(d);
 }
 
-GCompiledCode *GCompiler::Compile(GScriptContext *Context, const char *FileName, char *Script, GStream *Log, GCompiledCode *Previous)
+GCompiledCode *GCompiler::Compile
+(
+	GScriptContext *UserContext,
+	SystemFunctions *SysContext,
+	const char *FileName,
+	char *Script, 
+	GCompiledCode *Previous
+)
 {
-	if (!Context || !Script)
-		return 0;
+	if (!UserContext || !SysContext || !Script)
+		return NULL;
 
 	GStringPipe p;
-	d->Log = Log ? Log : &p;
-	if ((d->Ctx = Context))
+	
+	if (SysContext->GetLog())
+		d->Log = SysContext->GetLog();
+	else if (UserContext->GetLog())
+		d->Log = UserContext->GetLog();
+	else
+		d->Log = &p;
+
+	if ((d->Ctx = UserContext))
 	{
 		GHostFunc *Cmd = d->Ctx->GetCommands();
 		while (Cmd && Cmd->Func && Cmd->Method)
@@ -2666,6 +2682,9 @@ GCompiledCode *GCompiler::Compile(GScriptContext *Context, const char *FileName,
 	d->Code = Previous ? Previous : new GCompiledCode;
 	if (d->Code)
 	{
+		d->Code->UserContext = UserContext;
+		d->Code->SysContext = SysContext;
+		
 		bool LexResult = d->Lex(Script, FileName);
 		if (!LexResult ||
 			!d->Compile())
@@ -2685,19 +2704,21 @@ GCompiledCode *GCompiler::Compile(GScriptContext *Context, const char *FileName,
 	return Status;
 }
 
-
 //////////////////////////////////////////////////////////////////////
-class GScriptEnginePrivate2 :
-	public SystemFunctions
+class GScriptEnginePrivate2
 {
 public:
 	GViewI *Parent;
-	GScriptContext *Context;
+	SystemFunctions *SysContext;
+	GScriptContext *UserContext;
 	GCompiledCode *Code;
 
 	GScriptEnginePrivate2()
 	{
-		Code = 0;
+		SysContext = NULL;
+		UserContext = NULL;
+		Parent = NULL;
+		Code = NULL;
 	}
 
 	~GScriptEnginePrivate2()
@@ -2711,19 +2732,23 @@ public:
 	}
 };
 
-GScriptEngine2::GScriptEngine2(GViewI *parent, GScriptContext *context)
+GScriptEngine2::GScriptEngine2(GViewI *parent, SystemFunctions *SysContext, GScriptContext *UserContext)
 {
 	d = new GScriptEnginePrivate2;
 	d->Parent = parent;
-	d->Context = context;
-	d->SetEngine(this);
-	d->Context->SetEngine(this);
+
+	d->SysContext = SysContext;
+	if (d->SysContext)
+		d->SysContext->SetEngine(this);
+
+	d->UserContext = UserContext;
+	if (d->UserContext)
+		d->UserContext->SetEngine(this);
 }
 
 GScriptEngine2::~GScriptEngine2()
 {
-	d->SetEngine(0);
-	d->Context->SetEngine(0);
+	d->UserContext->SetEngine(0);
 	DeleteObj(d);
 }
 
@@ -2734,8 +2759,15 @@ void GScriptEngine2::Empty()
 
 bool GScriptEngine2::Compile(char *Script, const char *FileName, bool Add)
 {
-	GCompiler Comp(d);
-	d->Code = Comp.Compile(d->Context, FileName, Script, d->GetLog(), d->Code);
+	if (!Script)
+	{
+		LgiAssert(!"Param error");
+		return false;
+	}
+
+	GCompiler Comp(d->SysContext);
+	d->Code = Comp.Compile(d->UserContext, d->SysContext, FileName, Script, d->Code);
+	
 	return d->Code != 0;
 }
 
@@ -2745,8 +2777,8 @@ GExecutionStatus GScriptEngine2::Run()
 
 	if (d->Code)
 	{
-		GVirtualMachine Vm(d->Context);
-		Status = Vm.Execute(d->Code, d->GetLog());
+		GVirtualMachine Vm;
+		Status = Vm.Execute(d->Code);
 	}
 
 	return Status;
@@ -2759,12 +2791,12 @@ GExecutionStatus GScriptEngine2::RunTemporary(char *Script)
 	if (Script && d->Code)
 	{
 		GCompiledCode Temp(*d->Code);
-		GCompiler Comp(d);
-		GCompiledCode *Code = Comp.Compile(d->Context, 0, Script, d->GetLog(), &Temp);
+		GCompiler Comp(d->SysContext);
+		GCompiledCode *Code = Comp.Compile(d->UserContext, d->SysContext, NULL, Script, &Temp);
 		if (Code)
 		{
-			GVirtualMachine Vm(d->Context);
-			Status = Vm.Execute(Code, d->GetLog());
+			GVirtualMachine Vm;
+			Status = Vm.Execute(Code);
 		}
 	}
 
@@ -2790,12 +2822,24 @@ GVariant *GScriptEngine2::Var(char16 *name, bool create)
 
 GStream *GScriptEngine2::GetConsole()
 {
-	return d->GetLog();
+	if (d->SysContext && d->SysContext->GetLog())
+		return d->SysContext->GetLog();
+
+	if (d->UserContext && d->UserContext->GetLog())
+		return d->UserContext->GetLog();
+
+	return NULL;
 }
 
 bool GScriptEngine2::SetConsole(GStream *t)
 {
-	return d->SetLog(t);
+	if (d->SysContext)
+		d->SysContext->SetLog(t);
+
+	if (d->UserContext)
+		d->UserContext->SetLog(t);
+
+	return d->SysContext != NULL || d->UserContext != NULL;
 }
 
 bool GScriptEngine2::CallMethod(const char *Method, GVariant *Ret, ArgumentArray &Args)
@@ -2807,8 +2851,8 @@ bool GScriptEngine2::CallMethod(const char *Method, GVariant *Ret, ArgumentArray
 	if (!i)
 		return false;
 
-	GVirtualMachine Vm(d->Context);
-	GExecutionStatus Status = Vm.ExecuteFunction(d->Code, i, Args, Ret, d->GetLog());
+	GVirtualMachine Vm;
+	GExecutionStatus Status = Vm.ExecuteFunction(d->Code, i, Args, Ret, NULL);
 	return Status != ScriptError;
 }
 

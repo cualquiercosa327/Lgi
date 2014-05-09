@@ -125,7 +125,7 @@ public:
 	virtual void Empty() NotImplmented
 
 	/// Compile a script, required before you can run a script
-	virtual bool Compile(char *Script, bool Add = false) NotImplmentedRet(false)
+	virtual bool Compile(char *Script, const char *FileName, bool Add = false) NotImplmentedRet(false)
 	
 	/// Run a previously compiled script
 	virtual GExecutionStatus Run() NotImplmentedRet(ScriptError)
@@ -158,7 +158,7 @@ public:
 	~GScriptEngine1();
 
 	void Empty();
-	bool Compile(char *Script, bool Add = false);
+	bool Compile(char *Script, const char *FileName, bool Add = false);
 	GExecutionStatus Run();
 	GExecutionStatus RunTemporary(char *Script);
 	bool EvaluateExpression(GVariant *Result, GDom *VariableSource, char *Expression);
@@ -176,7 +176,7 @@ class GScriptEngine2 : public GScriptEngine
 	GCompiledCode *GetCurrentCode();
 
 public:
-	GScriptEngine2(GViewI *parent, GScriptContext *context);
+	GScriptEngine2(GViewI *parent, SystemFunctions *SysContext, GScriptContext *UserContext);
 	~GScriptEngine2();
 
 	GStream *GetConsole();
