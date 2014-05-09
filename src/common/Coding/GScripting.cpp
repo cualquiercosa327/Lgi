@@ -1143,7 +1143,7 @@ void GScriptEngine1::Empty()
 	d->Empty();
 }
 
-bool GScriptEngine1::Compile(char *Script, bool Add)
+bool GScriptEngine1::Compile(char *Script, const char *FileName, bool Add)
 {
 	bool Status = false;
 
