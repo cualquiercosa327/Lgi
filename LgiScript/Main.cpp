@@ -15,6 +15,7 @@ class App : public GApp, public GScriptContext
 	GScriptEngine *Engine;
 	GAutoString SrcFile;
 	ConsoleLog Log;
+	SystemFunctions SysContext;
 	
 public:
 	int Status;
@@ -66,7 +67,7 @@ public:
 			return false;
 		}
 		
-		GScriptEngine2 Eng(NULL, this);
+		GScriptEngine2 Eng(NULL, &SysContext, this);
 		Eng.SetConsole(&Log);
 
 		GAutoString Src(::ReadTextFile(SrcFile));
