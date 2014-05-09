@@ -7,7 +7,6 @@
 class GScriptContext;
 class GScriptEngine;
 class GScriptEnginePrivate;
-class GCompiledCode;
 
 typedef GArray<GVariant*> ArgumentArray;
 typedef bool (GScriptContext::*ScriptCmd)(GVariant *Ret, ArgumentArray &Args);
@@ -72,6 +71,59 @@ struct GHostFunc : public GFunc
 	GExecutionStatus Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Args);
 };
 
+class GFunctionInfo : public GRefCount
+{
+	friend class GVirtualMachinePriv;
+	friend class GCompilerPriv;
+	
+	static int _Infos;
+
+	int StartAddr;
+	int FrameSize;
+	GVariant Name;
+	GArray<GVariant> Params;
+
+public:
+	GFunctionInfo(const char *name)
+	{
+		StartAddr = 0;
+		FrameSize = 0;
+		if (name)
+			Name = name;
+	}
+
+	~GFunctionInfo()
+	{
+	}
+	
+	char *GetName()
+	{
+		return Name.Str();
+	}
+
+	GFunctionInfo &operator =(GFunctionInfo &f)
+	{
+		StartAddr = f.StartAddr;
+		FrameSize = f.FrameSize;
+		Name = f.Name;
+		for (unsigned i=0; i<f.Params.Length(); i++)
+		{
+			Params[i] = f.Params[i];
+		}
+		return *this;
+	}
+};
+
+class GScriptObj
+{
+public:
+	virtual ~GScriptObj() {}
+
+	virtual const char *GetFileName() = 0;
+	virtual GFunctionInfo *GetMethod(const char *Name, bool Create = false) = 0;
+	virtual class GTypeDef *GetType(char16 *Name) = 0;
+};
+
 class GScriptUtils
 {
 public:
@@ -109,7 +161,7 @@ class GScriptEngine
 	friend class SystemFunctions;
 
 protected:
-	virtual GCompiledCode *GetCurrentCode() { return 0; }
+	virtual GScriptObj *GetCurrentCode() { return NULL; }
 
 public:
 	virtual ~GScriptEngine() {}
@@ -173,10 +225,10 @@ class GScriptEngine2 : public GScriptEngine
 {
 	class GScriptEnginePrivate2 *d;
 
-	GCompiledCode *GetCurrentCode();
+	GScriptObj *GetCurrentCode();
 
 public:
-	GScriptEngine2(GViewI *parent, SystemFunctions *SysContext, GScriptContext *UserContext);
+	GScriptEngine2(GViewI *parent, GScriptContext *UserContext);
 	~GScriptEngine2();
 
 	GStream *GetConsole();

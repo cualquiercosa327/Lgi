@@ -156,18 +156,16 @@ GFunctionInfo *GCompiledCode::GetMethod(const char *Name, bool Create)
 {
 	for (unsigned i=0; i<Methods.Length(); i++)
 	{
-		if (!strcmp(Methods[i]->Name.Str(), Name))
+		if (!strcmp(Methods[i]->GetName(), Name))
 			return Methods[i];
 	}
 
 	if (Create)
 	{
-		GAutoRefPtr<GFunctionInfo> n(new GFunctionInfo)	;
+		GAutoRefPtr<GFunctionInfo> n(new GFunctionInfo(Name));
 		if (n)
 		{
-			n->Name = Name;
 			Methods.Add(n);
-
 			return n;
 		}
 	}
@@ -334,7 +332,7 @@ public:
 	GArray<char16*> Tokens;	
 	TokenRanges Lines;	
 	char16 *Script;
-	GHashTable Methods;
+	GHashTbl<char*, GFunc*> Methods;
 	int Regs;
 	GArray<GVariables*> Scopes;
 	GArray<LinkFixup> Fixups;
@@ -345,7 +343,7 @@ public:
 	GArray<GVariant> RegAllocators;
 	#endif
 
-	GCompilerPriv(SystemFunctions *sf) : ExpTok(0, false)
+	GCompilerPriv() : ExpTok(0, false)
 	{
 		Ctx = 0;
 		Code = 0;
@@ -362,13 +360,6 @@ public:
 		ExpTok.Add(sTrue, ConstTrue);
 		ExpTok.Add(sFalse, ConstFalse);
 		ExpTok.Add(sNull, ConstNull);
-
-		GHostFunc *f = sf->GetCommands();
-		for (int i=0; f[i].Method; i++)
-		{
-			f[i].Context = sf;
-			Methods.Add(f[i].Method, &f[i]);
-		}
 	}
 
 	~GCompilerPriv()
@@ -1294,7 +1285,7 @@ public:
 
 						GVariant m;
 						m = t;
-						GFunc *f = (GFunc*)Methods.Find(m.Str());
+						GFunc *f = Methods.Find(m.Str());
 						GFunctionInfo *sf = 0;
 						char16 *Next;
 						if (f)
@@ -2632,9 +2623,9 @@ public:
 	}
 };
 
-GCompiler::GCompiler(SystemFunctions *sf)
+GCompiler::GCompiler()
 {
-	d = new GCompilerPriv(sf);
+	d = new GCompilerPriv;
 }
 
 GCompiler::~GCompiler()
@@ -2644,8 +2635,8 @@ GCompiler::~GCompiler()
 
 GCompiledCode *GCompiler::Compile
 (
-	GScriptContext *UserContext,
 	SystemFunctions *SysContext,
+	GScriptContext *UserContext,
 	const char *FileName,
 	char *Script, 
 	GCompiledCode *Previous
@@ -2663,19 +2654,29 @@ GCompiledCode *GCompiler::Compile
 	else
 		d->Log = &p;
 
-	if ((d->Ctx = UserContext))
+	d->Methods.Empty();
+	if (SysContext)
 	{
-		GHostFunc *Cmd = d->Ctx->GetCommands();
-		while (Cmd && Cmd->Func && Cmd->Method)
+		GHostFunc *f = SysContext->GetCommands();
+		for (int i=0; f[i].Method; i++)
 		{
-			Cmd->Context = d->Ctx;
+			f[i].Context = SysContext;
+			d->Methods.Add(f[i].Method, &f[i]);
+		}
+	}
+
+	d->Ctx = UserContext;
+	if (d->Ctx)
+	{
+		GHostFunc *f = d->Ctx->GetCommands();
+		for (int i=0; f[i].Method; i++)
+		{
+			f[i].Context = d->Ctx;
 			
-			if (!d->Methods.Find(Cmd->Method))
-				d->Methods.Add(Cmd->Method, Cmd);
+			if (!d->Methods.Find(f[i].Method))
+				d->Methods.Add(f[i].Method, f+i);
 			else
 				LgiAssert(!"Conflicting name of method in application's context.");
-			
-			Cmd++;
 		}
 	}
 
@@ -2709,13 +2710,12 @@ class GScriptEnginePrivate2
 {
 public:
 	GViewI *Parent;
-	SystemFunctions *SysContext;
+	SystemFunctions SysContext;
 	GScriptContext *UserContext;
 	GCompiledCode *Code;
 
 	GScriptEnginePrivate2()
 	{
-		SysContext = NULL;
 		UserContext = NULL;
 		Parent = NULL;
 		Code = NULL;
@@ -2732,14 +2732,10 @@ public:
 	}
 };
 
-GScriptEngine2::GScriptEngine2(GViewI *parent, SystemFunctions *SysContext, GScriptContext *UserContext)
+GScriptEngine2::GScriptEngine2(GViewI *parent, GScriptContext *UserContext)
 {
 	d = new GScriptEnginePrivate2;
 	d->Parent = parent;
-
-	d->SysContext = SysContext;
-	if (d->SysContext)
-		d->SysContext->SetEngine(this);
 
 	d->UserContext = UserContext;
 	if (d->UserContext)
@@ -2765,8 +2761,11 @@ bool GScriptEngine2::Compile(char *Script, const char *FileName, bool Add)
 		return false;
 	}
 
-	GCompiler Comp(d->SysContext);
-	d->Code = Comp.Compile(d->UserContext, d->SysContext, FileName, Script, d->Code);
+	if (!Add)
+		DeleteObj(d->Code);
+
+	GCompiler Comp;
+	d->Code = Comp.Compile(&d->SysContext, d->UserContext, FileName, Script, d->Code);
 	
 	return d->Code != 0;
 }
@@ -2791,8 +2790,8 @@ GExecutionStatus GScriptEngine2::RunTemporary(char *Script)
 	if (Script && d->Code)
 	{
 		GCompiledCode Temp(*d->Code);
-		GCompiler Comp(d->SysContext);
-		GCompiledCode *Code = Comp.Compile(d->UserContext, d->SysContext, NULL, Script, &Temp);
+		GCompiler Comp;
+		GCompiledCode* Code = Comp.Compile(&d->SysContext, d->UserContext, NULL, Script, &Temp);
 		if (Code)
 		{
 			GVirtualMachine Vm;
@@ -2822,8 +2821,8 @@ GVariant *GScriptEngine2::Var(char16 *name, bool create)
 
 GStream *GScriptEngine2::GetConsole()
 {
-	if (d->SysContext && d->SysContext->GetLog())
-		return d->SysContext->GetLog();
+	if (d->SysContext.GetLog())
+		return d->SysContext.GetLog();
 
 	if (d->UserContext && d->UserContext->GetLog())
 		return d->UserContext->GetLog();
@@ -2833,13 +2832,12 @@ GStream *GScriptEngine2::GetConsole()
 
 bool GScriptEngine2::SetConsole(GStream *t)
 {
-	if (d->SysContext)
-		d->SysContext->SetLog(t);
+	d->SysContext.SetLog(t);
 
 	if (d->UserContext)
 		d->UserContext->SetLog(t);
 
-	return d->SysContext != NULL || d->UserContext != NULL;
+	return true;
 }
 
 bool GScriptEngine2::CallMethod(const char *Method, GVariant *Ret, ArgumentArray &Args)
@@ -2860,7 +2858,7 @@ void GScriptEngine2::DumpVariables()
 {
 }
 
-GCompiledCode *GScriptEngine2::GetCurrentCode()
+GScriptObj *GScriptEngine2::GetCurrentCode()
 {
 	return d->Code;
 }

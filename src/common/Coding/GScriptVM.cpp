@@ -2150,12 +2150,13 @@ GExecutionStatus GVirtualMachine::Execute(GCompiledCode *Code, GStream *Log)
 	return d->Execute(Code, Log, 0, 0, 0);
 }
 
-GExecutionStatus GVirtualMachine::ExecuteFunction(GCompiledCode *Code, GFunctionInfo *Func, ArgumentArray &Args, GVariant *Ret, GStream *Log)
+GExecutionStatus GVirtualMachine::ExecuteFunction(GScriptObj *Code, GFunctionInfo *Func, ArgumentArray &Args, GVariant *Ret, GStream *Log)
 {
-	if (!Code)
+	GCompiledCode *Cc = dynamic_cast<GCompiledCode*>(Code);
+	if (!Cc)
 		return ScriptError;
 
-	return d->Execute(Code, Log, Func, &Args, Ret);
+	return d->Execute(Cc, Log, Func, &Args, Ret);
 }
 
 ////////////////////////////////////////////////////////////////////

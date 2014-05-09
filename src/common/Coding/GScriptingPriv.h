@@ -109,7 +109,7 @@ extern const char *InstToString(GInstruction i);
 			- global variable
 			- register (0 .. MAX_REGISTER - 1)
 
-		Thus a variable reference encodes 2 peices of information, first the scope of
+		Thus a variable reference encodes 2 pieces of information, first the scope of
 		the reference (as above) and secondly the index into that scope. Scopes are
 		stored as arrays of variables.
 
@@ -233,40 +233,6 @@ public:
 	}
 };
 
-struct GFunctionInfo : public GRefCount
-{
-	static int _Infos;
-
-	int StartAddr;
-	int FrameSize;
-	GVariant Name;
-	GArray<GVariant> Params;
-
-	GFunctionInfo()
-	{
-		StartAddr = 0;
-		FrameSize = 0;
-		// LgiTrace("%p::GFunctionInfo %i\n", this, ++_Infos);
-	}
-
-	~GFunctionInfo()
-	{
-		// LgiTrace("%p::~GFunctionInfo %i\n", this, --_Infos);
-	}
-
-	GFunctionInfo &operator =(GFunctionInfo &f)
-	{
-		StartAddr = f.StartAddr;
-		FrameSize = f.FrameSize;
-		Name = f.Name;
-		for (unsigned i=0; i<f.Params.Length(); i++)
-		{
-			Params[i] = f.Params[i];
-		}
-		return *this;
-	}
-};
-
 class GTypeDef : public GDom
 {
 	friend class GCompilerPriv;
@@ -312,7 +278,7 @@ public:
 };
 
 /// Container of compiled byte code
-class GCompiledCode
+class GCompiledCode : public GScriptObj
 {
 	friend class GCompilerPriv;
 	friend class GVirtualMachinePriv;
@@ -515,18 +481,14 @@ class GCompiler : public GScriptUtils
 
 public:
 	/// Constructor
-	GCompiler
-	(
-		/// The system library functions
-		SystemFunctions *sf
-	);
+	GCompiler();
 	~GCompiler();
 
 	/// Compile the source into byte code.
 	GCompiledCode *Compile
 	(
-		GScriptContext *UserContext,
 		SystemFunctions *SysContext,
+		GScriptContext *UserContext,
 		const char *FileName,
 		char *Script,
 		GCompiledCode *previous = NULL
@@ -555,7 +517,7 @@ public:
 	GExecutionStatus ExecuteFunction
 	(
 		/// [In] The code to execute
-		GCompiledCode *Code,
+		GScriptObj *Code,
 		/// [In] The function to execute
 		GFunctionInfo *Func,
 		/// [In] The function's arguments

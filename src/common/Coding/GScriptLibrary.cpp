@@ -511,7 +511,7 @@ bool SystemFunctions::New(GVariant *Ret, ArgumentArray &Args)
 		{
 			Ret->Empty();
 
-			GCompiledCode *c = Engine->GetCurrentCode();
+			GScriptObj *c = Engine->GetCurrentCode();
 			if (!c)
 				return false;
 
