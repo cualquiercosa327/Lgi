@@ -276,10 +276,6 @@
 						>
 					</File>
 					<File
-						RelativePath="..\src\common\Coding\GScripting.cpp"
-						>
-					</File>
-					<File
 						RelativePath="..\include\common\GScripting.h"
 						>
 					</File>

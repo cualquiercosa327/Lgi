@@ -15,7 +15,6 @@ class App : public GApp, public GScriptContext
 	GScriptEngine *Engine;
 	GAutoString SrcFile;
 	ConsoleLog Log;
-	SystemFunctions SysContext;
 	
 public:
 	int Status;
@@ -67,7 +66,7 @@ public:
 			return false;
 		}
 		
-		GScriptEngine2 Eng(NULL, &SysContext, this);
+		GScriptEngine2 Eng(NULL, NULL);
 		Eng.SetConsole(&Log);
 
 		GAutoString Src(::ReadTextFile(SrcFile));
@@ -77,13 +76,14 @@ public:
 			return false;
 		}
 		
-		if (!Eng.Compile(Src, File))
+		GAutoPtr<GScriptObj> Obj;
+		if (!Eng.Compile(Obj, NULL, Src, File))
 		{
 			printf("Error: Compilation failed '%s'.\n", SrcFile.Get());
 			return false;
 		}
 		
-		GExecutionStatus s = Eng.Run();
+		GExecutionStatus s = Eng.Run(Obj);
 		if (s == ScriptError)
 		{
 			printf("Error: Execution failed '%s'.\n", SrcFile.Get());

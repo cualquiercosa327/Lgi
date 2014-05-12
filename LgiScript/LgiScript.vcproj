@@ -344,10 +344,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\src\common\Coding\GScripting.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\src\common\Coding\GScriptLibrary.cpp"
 					>
 				</File>
