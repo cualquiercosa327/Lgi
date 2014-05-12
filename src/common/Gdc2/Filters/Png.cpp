@@ -280,14 +280,15 @@ public:
 	*/
 };
 
-static LibPng *CurrentLibPng = 0;
+static GAutoPtr<LibPng> CurrentLibPng;
 
-class GdcPng : public GFilter, public LibPng
+class GdcPng : public GFilter
 {
 	static char PngSig[];
 	friend void PNGAPI LibPngError(png_structp Png, png_const_charp Msg);
 	friend void PNGAPI LibPngWarning(png_structp Png, png_const_charp Msg);
 
+	LibPng *Lib;
 	int Pos;
 	uchar *PrevScanLine;
 	GSurface *pDC;
@@ -297,7 +298,7 @@ class GdcPng : public GFilter, public LibPng
 	jmp_buf Here;
 
 public:
-	GdcPng();
+	GdcPng(LibPng *lib);
 	~GdcPng();
 
     const char *GetComponentName() { return "libpng"; }
@@ -341,15 +342,19 @@ class GdcPngFactory : public GFilterFactory
 
 	GFilter *NewObject()
 	{
-		return new GdcPng;
+		if (!CurrentLibPng)
+			CurrentLibPng.Reset(new LibPng);
+		return new GdcPng(CurrentLibPng);
 	}
+	
 } PngFactory;
 
 // Class impl
 char GdcPng::PngSig[] = { (char)137, 'P', 'N', 'G', '\r', '\n', (char)26, '\n', 0 };
 
-GdcPng::GdcPng()
+GdcPng::GdcPng(LibPng *lib)
 {
+	Lib = lib;
 	Parent = 0;
 	Pos = 0;
 	PrevScanLine = 0;
@@ -604,7 +609,6 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 {
 	GFilter::IoStatus Status = IoError;
 
-    CurrentLibPng = this;
 	Pos = 0;
 	pDC = pDeviceContext;
 	DeleteArray(PrevScanLine);
@@ -617,7 +621,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 		Parent = (GView*)v.Value.Ptr;
 	}
 
-	if (!IsLoaded())
+	if (!Lib->IsLoaded())
 	{
 		if (Props)
 			Props->SetValue(LGI_FILTER_ERROR, v = "Can't load libpng");
@@ -631,7 +635,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 		return Status;
 	}
 
-	png_structp png_ptr = png_create_read_struct(	PNG_LIBPNG_VER_STRING,
+	png_structp png_ptr = Lib->png_create_read_struct(	PNG_LIBPNG_VER_STRING,
 													(void*)this,
 													LibPngError,
 													LibPngWarning);
@@ -642,10 +646,10 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 	}
 	else
 	{
-		png_infop info_ptr = png_create_info_struct(png_ptr);
+		png_infop info_ptr = Lib->png_create_info_struct(png_ptr);
 		if (info_ptr)
 		{
-			png_set_read_fn(png_ptr, In, LibPngRead);
+			Lib->png_set_read_fn(png_ptr, In, LibPngRead);
 
 			#if 0 // What was this for again?
 			int off = (char*)&png_ptr->io_ptr - (char*)png_ptr;
@@ -659,24 +663,24 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 			}
 			#endif
 
-			png_read_png(png_ptr, info_ptr, 0, 0);
-			png_bytepp Scan0 = png_get_rows(png_ptr, info_ptr);
+			Lib->png_read_png(png_ptr, info_ptr, 0, 0);
+			png_bytepp Scan0 = Lib->png_get_rows(png_ptr, info_ptr);
 			if (Scan0)
 			{
-			    int BitDepth = png_get_bit_depth(png_ptr, info_ptr);
+			    int BitDepth = Lib->png_get_bit_depth(png_ptr, info_ptr);
 				int FinalBits = BitDepth == 16 ? 8 : BitDepth;
-				int ColourType = png_get_color_type(png_ptr, info_ptr);
-				int Channels = png_get_channels(png_ptr, info_ptr);
+				int ColourType = Lib->png_get_color_type(png_ptr, info_ptr);
+				int Channels = Lib->png_get_channels(png_ptr, info_ptr);
 				int RequestBits = FinalBits * Channels;
 				
-				if (!pDC->Create(	png_get_image_width(png_ptr, info_ptr),
-									png_get_image_height(png_ptr, info_ptr),
+				if (!pDC->Create(	Lib->png_get_image_width(png_ptr, info_ptr),
+									Lib->png_get_image_height(png_ptr, info_ptr),
 									ColourType == PNG_COLOR_TYPE_GRAY_ALPHA ? 8 : max(RequestBits, 8)))
 				{
 					printf("%s:%i - GMemDC::Create(%i, %i, %i) failed.\n",
 							_FL,
-							png_get_image_width(png_ptr, info_ptr),
-							png_get_image_height(png_ptr, info_ptr),
+							Lib->png_get_image_width(png_ptr, info_ptr),
+							Lib->png_get_image_height(png_ptr, info_ptr),
 							RequestBits);
 				}
 				else
@@ -690,7 +694,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 				
 					// Copy in the scanlines
 					int ActualBits = pDC->GetBits();
-					int ScanLen = png_get_image_width(png_ptr, info_ptr) * ActualBits / 8;
+					int ScanLen = Lib->png_get_image_width(png_ptr, info_ptr) * ActualBits / 8;
 					for (int y=0; y<pDC->Y(); y++)
 					{
 						uchar *Scan = (*pDC)[y];
@@ -747,7 +751,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 									#define Read24Case(name, bits) \
 										case Cs##name: \
 										{ \
-											if (png_get_bit_depth(png_ptr, info_ptr) == 16) \
+											if (Lib->png_get_bit_depth(png_ptr, info_ptr) == 16) \
 												Read64_##bits((G##name*)Scan, (Png48*)Scan0[y], pDC->X()); \
 											else \
 												Read32_##bits((G##name*)Scan, (Png24*)Scan0[y], pDC->X()); \
@@ -785,7 +789,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 									#define Read32Case(name, bits) \
 										case Cs##name: \
 										{ \
-											if (png_get_bit_depth(png_ptr, info_ptr) == 16) \
+											if (Lib->png_get_bit_depth(png_ptr, info_ptr) == 16) \
 												ReadAlpha64_##bits((G##name*)Scan, (Png64*)Scan0[y], pDC->X()); \
 											else \
 												ReadAlpha32_##bits((G##name*)Scan, (Png32*)Scan0[y], pDC->X()); \
@@ -829,7 +833,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 						// Copy in the palette
 						png_colorp pal;
 						int num_pal = 0;
-						if (png_get_PLTE(png_ptr, info_ptr, &pal, &num_pal) == PNG_INFO_PLTE)
+						if (Lib->png_get_PLTE(png_ptr, info_ptr, &pal, &num_pal) == PNG_INFO_PLTE)
 						{
 						    GPalette *Pal = new GPalette(0, num_pal);
 						    if (Pal)
@@ -848,12 +852,12 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 						    }
 						}
 
-						if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
+						if (Lib->png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
 						{
 						    png_bytep trans_alpha;
 						    png_color_16p trans_color;
 						    int num_trans;
-                            if (png_get_tRNS(png_ptr, info_ptr, &trans_alpha, &num_trans, &trans_color))
+                            if (Lib->png_get_tRNS(png_ptr, info_ptr, &trans_alpha, &num_trans, &trans_color))
 							{
 								pDC->HasAlpha(true);
 								GSurface *Alpha = pDC->AlphaDC();
@@ -901,16 +905,14 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 		int CompressionType = 0;
 		png_charp ColProf = 0;
 		png_uint_32 ColProfLen = 0;
-		if (png_get_iCCP(png_ptr, info_ptr, &ProfName, &CompressionType, &ColProf, &ColProfLen) && Props)
+		if (Lib->png_get_iCCP(png_ptr, info_ptr, &ProfName, &CompressionType, &ColProf, &ColProfLen) && Props)
 		{
 			v.SetBinary(ColProfLen, ColProf);
 			Props->SetValue(LGI_FILTER_COLOUR_PROF, v);
 		}
 
-		png_destroy_read_struct(&png_ptr, 0, 0);
+		Lib->png_destroy_read_struct(&png_ptr, 0, 0);
 	}
-
-	CurrentLibPng = 0;
 
 	return Status;
 }
@@ -926,11 +928,9 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 
 	if (!pDC)
 		return GFilter::IoError;
-    if (!IsLoaded())
+    if (!Lib->IsLoaded())
         return GFilter::IoComponentMissing;	
 	
-	CurrentLibPng = this;
-
 	// Work out whether the image has transparency
 	if (pDC->GetBits() == 32)
 	{
@@ -1015,13 +1015,13 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 		}
 
 		// setup
-		png_structp png_ptr = png_create_write_struct(	PNG_LIBPNG_VER_STRING,
+		png_structp png_ptr = Lib->png_create_write_struct(	PNG_LIBPNG_VER_STRING,
 														(void*)this,
 														LibPngError,
 														LibPngWarning);
 		if (png_ptr)
 		{
-			png_infop info_ptr = png_create_info_struct(png_ptr);
+			png_infop info_ptr = Lib->png_create_info_struct(png_ptr);
 			if (info_ptr)
 			{
 				Out->SetSize(0);
@@ -1029,7 +1029,7 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 				PngWriteInfo WriteInfo;
 				WriteInfo.s = Out;
 				WriteInfo.m = Meter;
-				png_set_write_fn(png_ptr, &WriteInfo, LibPngWrite, 0);
+				Lib->png_set_write_fn(png_ptr, &WriteInfo, LibPngWrite, 0);
 				
 				// png_set_write_status_fn(png_ptr, write_row_callback);
 
@@ -1106,7 +1106,7 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
                     ColourType = PNG_COLOR_TYPE_RGB;
                 }
 
-                png_set_IHDR(png_ptr,
+                Lib->png_set_IHDR(png_ptr,
                             info_ptr,
                             pDC->X(), pDC->Y(),
                             8,
@@ -1117,7 +1117,7 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
                             
 				if (ColProfile.Type == GV_BINARY)
 				{
-					png_set_iCCP(png_ptr,
+					Lib->png_set_iCCP(png_ptr,
 								info_ptr,
 								(char*)"ColourProfile",
 								NULL,
@@ -1154,7 +1154,7 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 							        }
 							    }
 							    
-                                png_set_PLTE(png_ptr,
+                                Lib->png_set_PLTE(png_ptr,
                                             info_ptr,
                                             PngPal,
                                             Colours);
@@ -1181,7 +1181,7 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 								Trans[n] = Back == n ? 0 : 255;
 							}
 							
-                            png_set_tRNS(png_ptr,
+                            Lib->png_set_tRNS(png_ptr,
                                         info_ptr,
                                         Trans,
                                         CountOf(Trans),
@@ -1381,8 +1381,8 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 						row[y] = TempBits + (TempLine * y);
 					}
 					
-					png_set_rows(png_ptr, info_ptr, row);
-					png_write_png(png_ptr, info_ptr, 0, 0);
+					Lib->png_set_rows(png_ptr, info_ptr, row);
+					Lib->png_write_png(png_ptr, info_ptr, 0, 0);
 
 					Status = IoSuccess;
 
@@ -1394,11 +1394,10 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 			}
 
 			CleanUp:
-			png_destroy_write_struct(&png_ptr, &info_ptr);
+			Lib->png_destroy_write_struct(&png_ptr, &info_ptr);
 		}
 	}
 
-	CurrentLibPng = 0;
 	return Status;
 }
 

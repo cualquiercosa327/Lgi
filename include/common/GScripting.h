@@ -119,6 +119,8 @@ class GScriptObj
 public:
 	virtual ~GScriptObj() {}
 
+	virtual uint32 Length() = 0;
+	virtual GVariant *Set(char *Name, GVariant &v) = 0;
 	virtual const char *GetFileName() = 0;
 	virtual GFunctionInfo *GetMethod(const char *Name, bool Create = false) = 0;
 	virtual class GTypeDef *GetType(char16 *Name) = 0;
@@ -142,7 +144,6 @@ public:
 	virtual ~GScriptContext() {}
 	
 	virtual GHostFunc *GetCommands() = 0;
-	virtual void SetEngine(GScriptEngine *Eng) = 0;
 	virtual char *GetIncludeFile(char *FileName) = 0;
 	virtual GAutoString GetDataFolder() { return GAutoString(); }
 	virtual GStream *GetLog() { return NULL; }
@@ -198,34 +199,10 @@ public:
 	virtual void DumpVariables() NotImplmented
 };
 
-/// Old interpreter scripting engine
-class GScriptEngine1 : public GScriptEngine
-{
-	friend class GScriptEval;
-
-	GScriptEnginePrivate *d;
-
-public:
-	GScriptEngine1(GViewI *parent, GScriptContext *context);
-	~GScriptEngine1();
-
-	void Empty();
-	bool Compile(char *Script, const char *FileName, bool Add = false);
-	GExecutionStatus Run();
-	GExecutionStatus RunTemporary(char *Script);
-	bool EvaluateExpression(GVariant *Result, GDom *VariableSource, char *Expression);
-	GVariant *Var(char16 *name, bool create = true);
-	GStringPipe *GetTerm();
-	bool CallMethod(const char *Method, GVariant *Ret, ArgumentArray &Args);
-	void DumpVariables();
-};
-
 /// New compiler/byte code/VM scripting engine
-class GScriptEngine2 : public GScriptEngine
+class GScriptEngine2
 {
 	class GScriptEnginePrivate2 *d;
-
-	GScriptObj *GetCurrentCode();
 
 public:
 	GScriptEngine2(GViewI *parent, GScriptContext *UserContext);
@@ -234,14 +211,13 @@ public:
 	GStream *GetConsole();
 	bool SetConsole(GStream *t);
 
-	void Empty();
-	bool Compile(char *Script, const char *FileName, bool Add = false);
-	GExecutionStatus Run();
-	GExecutionStatus RunTemporary(char *Script);
+	GScriptObj *CreateObj();
+	bool Compile(GAutoPtr<GScriptObj> &Obj, GScriptContext *UserContext, char *Script, const char *FileName = NULL);
+	GExecutionStatus Run(GScriptObj *Obj);
+	GExecutionStatus RunTemporary(GScriptObj *Obj, char *Script);
 	bool EvaluateExpression(GVariant *Result, GDom *VariableSource, char *Expression);
-	GVariant *Var(char16 *name, bool create = true);
-	bool CallMethod(const char *Method, GVariant *Ret, ArgumentArray &Args);
-	void DumpVariables();
+	bool CallMethod(GScriptObj *Obj, const char *Method, GVariant *Ret, ArgumentArray &Args);
+	GScriptContext *GetSystemContext();
 };
 
 #endif

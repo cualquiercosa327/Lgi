@@ -151,11 +151,11 @@ public:
 		}
 		f.Print("\n");
 
-		GHashTbl<int, char*> Fn;
+		GHashTbl<int, char*> Fn(0, false, -1, NULL);
 		for (unsigned m=0; m<Code->Methods.Length(); m++)
 		{
 			GFunctionInfo *Info = Code->Methods[m];
-			if (Info->StartAddr)
+			if (Info->StartAddr >= 0)
 				Fn.Add(Info->StartAddr, Info->Name.Str());
 			else
 				LgiAssert(!"Method not defined.");
@@ -329,8 +329,8 @@ public:
 				case ICallScript:
 				{
 					uchar *Instr = c.u8;
-					uint32 FuncAddr = *c.u32++;
-					if (!FuncAddr)
+					int32 FuncAddr = *c.i32++;
+					if (FuncAddr < 0)
 					{
 						Log->Print("%p ICallScript error: Script function call invalid addr (0).\n", CurrentScriptAddress - 4);
 						SetScriptError;
@@ -520,7 +520,7 @@ public:
 		return Status;
 	}
 
-	GExecutionStatus Execute(GCompiledCode *Code, GStream *log, GFunctionInfo *Func, ArgumentArray *Args, GVariant *Ret)
+	GExecutionStatus Execute(GCompiledCode *Code, uint32 StartOffset, GStream *log, GFunctionInfo *Func, ArgumentArray *Args, GVariant *Ret)
 	{
 		GExecutionStatus Status = ScriptSuccess;
 		
@@ -634,6 +634,10 @@ public:
 
 			// Set IP to start of function
 			c.u8 = Base + Func->StartAddr;
+		}
+		else if (StartOffset > 0)
+		{
+			c.u8 = Base + StartOffset;
 		}
 
 		while (c.u8 < e)
@@ -944,10 +948,10 @@ public:
 				}
 				case ICallScript:
 				{
-					uint32 FuncAddr = *c.u32++;
-					if (!FuncAddr)
+					int32 FuncAddr = *c.i32++;
+					if (FuncAddr < 0)
 					{
-						Log->Print(	"%s ICallScript error: Script function call invalid addr '0'.\n",
+						Log->Print(	"%s ICallScript error: Script function call invalid addr.\n",
 									Code->AddrToSourceRef(CurrentScriptAddress - sizeof(FuncAddr)));
 						SetScriptError;
 						break;
@@ -2142,12 +2146,12 @@ GVirtualMachine::~GVirtualMachine()
 	DeleteObj(d);
 }
 
-GExecutionStatus GVirtualMachine::Execute(GCompiledCode *Code, GStream *Log)
+GExecutionStatus GVirtualMachine::Execute(GCompiledCode *Code, uint32 StartOffset, GStream *Log)
 {
 	if (!Code)
 		return ScriptError;
 
-	return d->Execute(Code, Log, 0, 0, 0);
+	return d->Execute(Code, StartOffset, Log, NULL, NULL, NULL);
 }
 
 GExecutionStatus GVirtualMachine::ExecuteFunction(GScriptObj *Code, GFunctionInfo *Func, ArgumentArray &Args, GVariant *Ret, GStream *Log)
@@ -2156,7 +2160,7 @@ GExecutionStatus GVirtualMachine::ExecuteFunction(GScriptObj *Code, GFunctionInf
 	if (!Cc)
 		return ScriptError;
 
-	return d->Execute(Cc, Log, Func, &Args, Ret);
+	return d->Execute(Cc, 0, Log, Func, &Args, Ret);
 }
 
 ////////////////////////////////////////////////////////////////////

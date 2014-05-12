@@ -290,7 +290,7 @@ class GCompiledCode : public GScriptObj
 	GHashTbl<char16*, GTypeDef*> Types;
 	GHashTbl<int, int> Debug;
 	GAutoString FileName;
-	SystemFunctions *SysContext;
+	GScriptContext *SysContext;
 	GScriptContext *UserContext;
 
 public:
@@ -299,7 +299,7 @@ public:
 	~GCompiledCode();
 
 	/// Size of the byte code
-	int Length() { return ByteCode.Length(); }
+	uint32 Length() { return ByteCode.Length(); }
 	/// Assignment operator
 	GCompiledCode &operator =(GCompiledCode &c);
 	/// Gets a method defined in the code
@@ -485,13 +485,13 @@ public:
 	~GCompiler();
 
 	/// Compile the source into byte code.
-	GCompiledCode *Compile
+	bool Compile
 	(
-		SystemFunctions *SysContext,
+		GAutoPtr<GScriptObj> &Code,
+		GScriptContext *SysContext,
 		GScriptContext *UserContext,
 		const char *FileName,
-		char *Script,
-		GCompiledCode *previous = NULL
+		char *Script
 	);
 };
 
@@ -509,6 +509,8 @@ public:
 	(
 		/// [In] The code to execute
 		GCompiledCode *Code,
+		/// [In] The instruction to start at... [defaults to the start of script)
+		uint32 StartOffset = 0,
 		/// [Optional] Log file for execution
 		GStream *Log = NULL
 	);
