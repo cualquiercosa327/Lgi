@@ -14,14 +14,13 @@ public:
 
 private:
 	friend class GJpegOptions;
-	class GdcJpegPriv *d;
+	class LibJpeg *d;
 
 	GFilter::IoStatus _Write(GStream *Out, GSurface *pDC, int Quality, SubSampleMode SubSample, GdcPt2 Dpi);
 
 public:
 	GdcJpeg();
-	~GdcJpeg();
-
+	
     const char *GetComponentName() { return "libjpeg"; }
 	Format GetFormat() { return FmtJpeg; }
 	int GetCapabilites() { return FILTER_CAP_READ | FILTER_CAP_WRITE; }

@@ -27,21 +27,18 @@
 #include <setjmp.h>
 #include "GLibraryUtils.h"
 
-#if 1
-
 #define JPEGLIB d->
 
 // JPEG
-class GdcJpegPriv : public GLibrary
+class LibJpeg : public GLibrary
 {
 public:
-	GdcJpegPriv() :
+	LibJpeg() :
 		GLibrary
 		(
-			#if defined(MAC) || defined(LINUX)
 			"libjpeg"
-			#else
-				"libjpeg9"
+			#if defined(_WINDOWS)
+				"9"
 				#ifdef WIN64
 				"x64"
 				#else
@@ -78,18 +75,7 @@ public:
 
 };
 
-#else
-
-#define JPEGLIB ::
-
-class GdcJpegPriv
-{
-public:
-    bool IsLoaded() { return true; }
-};
-
-#endif
-
+GAutoPtr<LibJpeg> JpegLibrary;
 
 #include <stdio.h>
 #include <string.h>
@@ -128,6 +114,8 @@ class GdcJpegFactory : public GFilterFactory
 
 	GFilter *NewObject()
 	{
+		if (!JpegLibrary)
+			JpegLibrary.Reset(new LibJpeg);
 		return new GdcJpeg;
 	}
 
@@ -321,12 +309,7 @@ void j_term_source(j_decompress_ptr cinfo)
 
 GdcJpeg::GdcJpeg()
 {
-	d = new GdcJpegPriv;
-}
-
-GdcJpeg::~GdcJpeg()
-{
-	DeleteObj(d);
+	d = JpegLibrary;
 }
 
 typedef GRgb24 JpegRgb;
