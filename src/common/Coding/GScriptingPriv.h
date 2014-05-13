@@ -309,7 +309,7 @@ public:
 	/// Gets the definition of a struct or custom type
 	GTypeDef *GetType(char16 *Name) { return Types.Find(Name); }
 	/// Sets the file name this code was compiled from
-	void SetFileName(const char *f) { FileName.Reset(NewStr(f)); }
+	void SetFileName(const char *f) { if (f != FileName) FileName.Reset(NewStr(f)); }
 	/// Gets the file name this code was compiled from
 	const char *GetFileName() { return FileName; }
 	/// Gets the source line number associated with an address

@@ -148,6 +148,7 @@ GCompiledCode &GCompiledCode::operator =(GCompiledCode &c)
 	Types = c.Types;
 	Debug = c.Debug;
 	Methods = c.Methods;
+	FileName.Reset(NewStr(c.FileName));
 
 	return *this;
 }
@@ -2774,7 +2775,7 @@ GExecutionStatus GScriptEngine2::RunTemporary(GScriptObj *Obj, char *Script)
 		uint32 TempLen = Temp->Length();
 		
 		GCompiler Comp;
-		if (Comp.Compile(Temp, &d->SysContext, d->UserContext, NULL, Script))
+		if (Comp.Compile(Temp, &d->SysContext, d->UserContext, Temp->GetFileName(), Script))
 		{
 			GVirtualMachine Vm;
 			Status = Vm.Execute(dynamic_cast<GCompiledCode*>(Temp.Get()), TempLen);
