@@ -2708,12 +2708,6 @@ void GTag::SetStyle()
 			{
        		    FontSize(Len(LenPt, (float)f->PointSize()));
 			}
-
-			const char *Back;
-			if (Get("background", Back) && Html->Environment)
-			{
-				LoadImage(Back);
-			}
 			break;
 		}
 		case TAG_HEAD:
@@ -2945,6 +2939,16 @@ void GTag::SetStyle()
 			}
 			break;
 		}
+	}
+
+	if (IsBlock(Display()))
+	{
+		GCss::ImageDef bk = BackgroundImage();
+		if (bk.Type == GCss::ImageUri &&
+			ValidStr(bk.Uri))
+		{
+			LoadImage(bk.Uri);
+		} 
 	}
 	
 	if (Ctrl)
@@ -6088,7 +6092,7 @@ GMessage::Result GHtml::OnEvent(GMessage *Msg)
 						if (Tag->HasChild(r))
 						{
 							// Process the returned data...
-							if (r->TagId == TAG_IMG && j->pDC)
+							if (j->pDC)
 							{
 								r->SetImage(j->Uri, j->pDC.Release());
 								ViewWidth = 0;

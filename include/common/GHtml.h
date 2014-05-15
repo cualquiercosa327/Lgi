@@ -55,7 +55,7 @@ protected:
 	struct GJobSem : public GMutex
 	{
     	// Data that has to be accessed under Lock
-	    GArray<GDocumentEnv::LoadJob*> Jobs;	    
+	    GArray<GDocumentEnv::LoadJob*> Jobs;
 	    GJobSem() : GMutex("GJobSem") {}
 	} JobSem;
 

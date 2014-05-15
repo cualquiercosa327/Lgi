@@ -121,6 +121,8 @@ public:
 		
 		// BorderDef based
 		PropBorder = TypeBorder << 8,
+		PropBorderStyle,
+		PropBorderColor,
 		PropBorderTop,
 		PropBorderRight,
 		PropBorderBottom,
@@ -1042,6 +1044,15 @@ public:
 	GCss &operator =(const GCss &c) { CopyStyle(c); return *this; }
 	void *PropAddress(PropType p) { return Props.Find(p); }
 	GAutoString ToString();
+
+	template<typename T>
+	T *GetOrCreate(T *&ptr, int PropId)
+	{
+		ptr = (T*)Props.Find(PropId);
+		if (!ptr)
+			Props.Add(PropId, ptr = new T);
+		return ptr;
+	}
 
     // Inheritance calculation
     typedef GArray<void*> PropArray;

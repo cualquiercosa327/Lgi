@@ -216,6 +216,8 @@ GCss::GCss() : Props(0, false, PropNull)
 		Lut.Add("background-position", PropBackgroundPos);
 
 		Lut.Add("border", PropBorder);
+		Lut.Add("border-style", PropBorderStyle);
+		Lut.Add("border-color", PropBorderColor);
 
 		Lut.Add("border-top", PropBorderTop);
 		Lut.Add("border-top-color", PropBorderTopColor);
@@ -1491,6 +1493,8 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 						break;
 					}
 				}
+
+				SkipWhite(s);
 				
 				bool Mismatch = false;
 				switch (PropId)
@@ -1708,19 +1712,46 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 			}
 			case TypeBorder:
 			{
-				GAutoPtr<BorderDef> t(new BorderDef);
-				if (t->Parse(s))
+				if (PropId == PropBorderStyle)
 				{
-					if (PropId == PropBorder)
+					GCss::BorderDef b;
+					if (b.ParseStyle(s))
 					{
-						CopyPropOnSave(BorderDef, PropBorderLeft);
-						CopyPropOnSave(BorderDef, PropBorderRight);
-						CopyPropOnSave(BorderDef, PropBorderTop);
-						ReleasePropOnSave(BorderDef, PropBorderBottom);
+						GCss::BorderDef *db;
+						GetOrCreate(db, PropBorderLeft)->Style = b.Style;
+						GetOrCreate(db, PropBorderRight)->Style = b.Style;
+						GetOrCreate(db, PropBorderTop)->Style = b.Style;
+						GetOrCreate(db, PropBorderBottom)->Style = b.Style;
 					}
-					else
+				}
+				else if (PropId == PropBorderColor)
+				{
+					ColorDef c;
+					if (c.Parse(s))
 					{
-						ReleasePropOnSave(BorderDef, PropId);
+						GCss::BorderDef *db;
+						GetOrCreate(db, PropBorderLeft)->Color = c;
+						GetOrCreate(db, PropBorderRight)->Color = c;
+						GetOrCreate(db, PropBorderTop)->Color = c;
+						GetOrCreate(db, PropBorderBottom)->Color = c;
+					}
+				}
+				else
+				{				
+					GAutoPtr<BorderDef> t(new BorderDef);
+					if (t->Parse(s))
+					{
+						if (PropId == PropBorder)
+						{
+							CopyPropOnSave(BorderDef, PropBorderLeft);
+							CopyPropOnSave(BorderDef, PropBorderRight);
+							CopyPropOnSave(BorderDef, PropBorderTop);
+							ReleasePropOnSave(BorderDef, PropBorderBottom);
+						}
+						else
+						{
+							ReleasePropOnSave(BorderDef, PropId);
+						}
 					}
 				}
 				break;
