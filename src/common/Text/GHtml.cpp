@@ -2266,6 +2266,9 @@ void GTag::SetImage(const char *Uri, GSurface *Img)
 void GTag::LoadImage(const char *Uri)
 {
 	#if 1
+	if (!Html->Environment)
+		return;
+
 	GDocumentEnv::LoadJob *j = Html->Environment->NewJob();
 	if (j)
 	{

@@ -213,7 +213,7 @@ class LgiClass GFilterFactory
 	) = 0;
 	/// Override to return an new (heap alloced) instance of your filter.
 	virtual GFilter *NewObject() = 0;
-
+	
 public:
 	GFilterFactory();
 	virtual ~GFilterFactory();

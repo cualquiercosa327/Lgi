@@ -29,23 +29,23 @@
 
 #define JPEGLIB d->
 
+const char sLibrary[] = 
+	"libjpeg"
+	#if defined(_WINDOWS)
+		"9"
+		#ifdef WIN64
+		"x64"
+		#else
+		"x32"
+		#endif
+	#endif
+	;
+
 // JPEG
 class LibJpeg : public GLibrary
 {
 public:
-	LibJpeg() :
-		GLibrary
-		(
-			"libjpeg"
-			#if defined(_WINDOWS)
-				"9"
-				#ifdef WIN64
-				"x64"
-				#else
-				"x32"
-				#endif
-			#endif
-		)
+	LibJpeg() : GLibrary(sLibrary)
 	{
 		#if 0 // def _DEBUG
 		char File[256];
@@ -454,7 +454,7 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 	GFilter::IoStatus Status = IoError;
 	GVariant v;
 	
-	if (!d->IsLoaded())
+	if (!d->IsLoaded() && !d->Load(sLibrary))
 	{
 		if (Props)
 			Props->SetValue(LGI_FILTER_ERROR, v = "libjpeg library isn't installed or wasn't usable.");
@@ -768,7 +768,7 @@ void j_term_destination(j_compress_ptr cinfo)
 GFilter::IoStatus GdcJpeg::WriteImage(GStream *Out, GSurface *pDC)
 {
 	GVariant v;
-	if (!d->IsLoaded())
+	if (!d->IsLoaded() && !d->Load(sLibrary))
 	{
 		if (Props)
 			Props->SetValue(LGI_FILTER_ERROR, v = "libjpeg library isn't installed or wasn't usable.");

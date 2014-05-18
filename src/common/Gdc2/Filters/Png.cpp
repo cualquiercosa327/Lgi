@@ -59,29 +59,28 @@ struct Png64
 	uint16 r, g, b, a;
 };
 
+const char sLibrary[] =
+	#if defined(MAC) || defined(LINUX)
+		"libpng"
+	#else
+		#if defined(__CYGWIN__)
+			"cygpng12"
+		#else
+			"libpng9"
+			#if defined(WIN64)
+			"x64"
+			#else
+			"x32"
+			#endif
+		#endif
+	#endif
+	;
 
 // Library interface
 class LibPng : public GLibrary
 {
 public:
-	LibPng() :
-		GLibrary
-		(
-			#if defined(MAC) || defined(LINUX)
-				"libpng"
-			#else
-				#if defined(__CYGWIN__)
-					"cygpng12"
-				#else
-					"libpng9"
-					#if defined(WIN64)
-					"x64"
-					#else
-					"x32"
-					#endif
-				#endif
-			#endif
-		)
+	LibPng() : GLibrary(sLibrary)
 	{
 		if (!IsLoaded())
 		{
@@ -621,7 +620,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 		Parent = (GView*)v.Value.Ptr;
 	}
 
-	if (!Lib->IsLoaded())
+	if (!Lib->IsLoaded() && !Lib->Load(sLibrary))
 	{
 		if (Props)
 			Props->SetValue(LGI_FILTER_ERROR, v = "Can't load libpng");
@@ -928,7 +927,7 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 
 	if (!pDC)
 		return GFilter::IoError;
-    if (!Lib->IsLoaded())
+    if (!Lib->IsLoaded() && !Lib->Load(sLibrary))
         return GFilter::IoComponentMissing;	
 	
 	// Work out whether the image has transparency
