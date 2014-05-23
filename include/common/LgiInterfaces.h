@@ -125,7 +125,7 @@ public:
 	virtual ~GSocketI() {}
 
 	/// Returns the actual socket (as defined by the OS)
-	virtual OsSocket Handle(OsSocket Set = INVALID_SOCKET) = 0;
+	virtual OsSocket Handle(OsSocket Set = INVALID_SOCKET) { return INVALID_SOCKET; }
 
 	// Host/Port meta data
 		/// Returns the IP at this end of the socket
@@ -177,9 +177,9 @@ public:
 
 // Server
 
-	/// Listens on a given port for an incomming connection.
+	/// Listens on a given port for an incoming connection.
 	virtual bool Listen(int Port = 0) { return false; }
-	/// Accepts an incomming connection and connects the socket you pass in to the remote host.
+	/// Accepts an incoming connection and connects the socket you pass in to the remote host.
 	virtual bool Accept(GSocketI *c) { return false; }
 
 

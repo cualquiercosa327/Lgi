@@ -50,8 +50,8 @@ public:
 	bool IsWritable(int TimeoutMs = 0);
 	bool IsBlocking() { return false; }
 
-	bool SetVariant(const char *Name, GVariant &Val, char *Arr);
-	bool GetVariant(const char *Name, GVariant &Val, char *Arr = 0);
+	bool SetVariant(const char *Name, GVariant &Val, char *Arr = NULL);
+	bool GetVariant(const char *Name, GVariant &Val, char *Arr = NULL);
 
 	GStreamI *Clone();
 };

@@ -11,9 +11,22 @@
 class Zlib : public GLibrary
 {
 public:
-	Zlib() : GLibrary("zlib")
+	const char *Name()
 	{
+		return	"zlib"
+				#ifdef WIN32NATIVE
+					"9"
+					#if WIN64
+					"x64"
+					#else
+					"x32"
+					#endif
+				#endif
+				;
 	}
+
+	Zlib() : GLibrary(Name()) {}
+	bool Reload() { return Load(Name()); }
 
 	DynFunc0(const char *, zlibVersion);
 	DynFunc2(int, deflate, z_streamp, strm, int, flush);
