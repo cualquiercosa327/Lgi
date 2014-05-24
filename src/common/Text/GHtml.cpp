@@ -20,7 +20,7 @@
 #include "GDisplayString.h"
 #include "GPalette.h"
 
-#define DEBUG_TABLE_LAYOUT			0
+#define DEBUG_TABLE_LAYOUT			1
 #define DEBUG_RESTYLE				0
 #define DEBUG_TAG_BY_POS			0
 #define DEBUG_SELECTION				0
@@ -3556,7 +3556,7 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 			else
 			{
 				GdcPt2 s;
-				GCellStore c(this);
+				GHtmlTableLayout c(this);
 				c.GetSize(s.x, s.y);
 
 				// Auto layout table
@@ -3670,8 +3670,6 @@ T Sum(GArray<T> &a)
 
 void GTag::LayoutTable(GFlowRegion *f)
 {
-	GdcPt2 s;
-
 	if (!Cells)
 	{
 		#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
@@ -3680,320 +3678,396 @@ void GTag::LayoutTable(GFlowRegion *f)
 			int asd=0;
 		}
 		#endif
-		Cells = new GCellStore(this);
+		Cells = new GHtmlTableLayout(this);
 		#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 		if (Cells && Debug)
 			Cells->Dump();
 		#endif
 	}
 	if (Cells)
+		Cells->LayoutTable(f);
+}
+
+void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
+{
+	GdcPt2 s;
+
+	GetSize(s.x, s.y);
+	if (s.x == 0 || s.y == 0)
 	{
-		Cells->GetSize(s.x, s.y);
-		if (s.x == 0 || s.y == 0)
-		{
-			return;
-		}
+		return;
+	}
 
-		ZeroTableElements();
-		Len BdrSpacing = BorderSpacing();
-		int CellSpacing = BdrSpacing.IsValid() ? (int)BdrSpacing.Value : 0;
-		GCss::Len Wid = Width();
-		int AvailableX = f->ResolveX(Wid, Font, false);
-		
-		if (MaxWidth().IsValid())
-		{
-		    int m = f->ResolveX(MaxWidth(), Font, false);
-		    if (m < AvailableX)
-		        AvailableX = m;
-		}
-		
-		GCss::Len Border = BorderLeft();
-		int BorderX1 = Border.IsValid() ? f->ResolveX(Border, Font, false) : 0;
-		Border = BorderRight();
-		int BorderX2 = Border.IsValid() ? f->ResolveX(Border, Font, false) : 0;
-		#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
-		if (Debug)
-			LgiTrace("AvailableX=%i, BorderX1=%i, BorderX2=%i\n", AvailableX, BorderX1, BorderX2);
-		#endif
+	GFont *Font = Table->Font;
+	Table->ZeroTableElements();
+	GCss::Len BdrSpacing = Table->BorderSpacing();
+	int CellSpacing = BdrSpacing.IsValid() ? (int)BdrSpacing.Value : 0;
+	GCss::Len Wid = Table->Width();
+	int AvailableX = f->ResolveX(Wid, Font, false);
 
-		// The col and row sizes
-		GArray<int> MinCol, MaxCol, MaxRow;
-		GArray<bool> FixedCol;
-		
-		// Size detection pass
-		int y;
-		for (y=0; y<s.y; y++)
+	MinCol.Length(0);
+	MaxCol.Length(0);
+	MaxRow.Length(0);
+	FixedCol.Length(0);
+	
+	GCss::Len MaxWidth = Table->MaxWidth();
+	if (MaxWidth.IsValid())
+	{
+	    int m = f->ResolveX(MaxWidth, Font, false);
+	    if (m < AvailableX)
+	        AvailableX = m;
+	}
+	
+	GCss::Len Border = Table->BorderLeft();
+	int BorderX1 = Border.IsValid() ? f->ResolveX(Border, Font, false) : 0;
+	Border = Table->BorderRight();
+	int BorderX2 = Border.IsValid() ? f->ResolveX(Border, Font, false) : 0;
+	#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
+	if (Table->Debug)
+		LgiTrace("AvailableX=%i, BorderX1=%i, BorderX2=%i\n", AvailableX, BorderX1, BorderX2);
+	#endif
+
+	// Size detection pass
+	int y;
+	for (y=0; y<s.y; y++)
+	{
+		for (int x=0; x<s.x; )
 		{
-			for (int x=0; x<s.x; )
+			GTag *t = Get(x, y);
+			if (t)
 			{
-				GTag *t = Cells->Get(x, y);
-				if (t)
+				if (t->Cell.x == x && t->Cell.y == y)
 				{
-					if (t->Cell.x == x && t->Cell.y == y)
+					GCss::Len Wid = t->Width();
+					if (!t->Width().IsDynamic() &&
+						!t->MinContent &&
+						!t->MaxContent)
 					{
-						Len Wid = t->Width();
-						if (!t->Width().IsDynamic() &&
-							!t->MinContent &&
-							!t->MaxContent)
+						if ((int)FixedCol.Length() < x)
 						{
-							if ((int)FixedCol.Length() < x)
-							{
-								FixedCol[x] = false;
-							}
-							
-							if (!t->GetWidthMetrics(t->MinContent, t->MaxContent))
-							{
-								t->MinContent = 16;
-								t->MaxContent = 16;
-							}
-							
-							if (t->Width().IsValid())
-							{
-								int RequestedWidth = f->ResolveX(t->Width(), GetFont(), false);
-								t->MinContent = max(t->MinContent, RequestedWidth);
-								t->MaxContent = max(t->MaxContent, RequestedWidth);
-								FixedCol[x] = true;
-							}
-							
-							#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
-							if (Debug)
-								LgiTrace("Content[%i,%i] min=%i max=%i\n", x, y, t->MinContent, t->MaxContent);
-							#endif
+							FixedCol[x] = false;
 						}
-
-						if (t->Span.x == 1)
+						
+						if (!t->GetWidthMetrics(t->MinContent, t->MaxContent))
 						{
-							MinCol[x] = max(MinCol[x], t->MinContent);
-							MaxCol[x] = max(MaxCol[x], t->MaxContent);
+							t->MinContent = 16;
+							t->MaxContent = 16;
 						}
+						
+						if (t->Width().IsValid())
+						{
+							int RequestedWidth = f->ResolveX(t->Width(), Font, false);
+							t->MinContent = max(t->MinContent, RequestedWidth);
+							t->MaxContent = max(t->MaxContent, RequestedWidth);
+							FixedCol[x] = true;
+						}
+						
+						#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
+						if (Table->Debug)
+							LgiTrace("Content[%i,%i] min=%i max=%i\n", x, y, t->MinContent, t->MaxContent);
+						#endif
 					}
-					
-					x += t->Span.x;
-				}
-				else break;
-			}
-		}
-		
-		// How much space used so far?
-		int TotalX = BorderX1 + BorderX2 + CellSpacing;
-		int x;
-		for (x=0; x<s.x; x++)
-		{
-			TotalX += MinCol[x] + CellSpacing;
-		}
 
-		#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
-		if (Debug)
-			LgiTrace("Detect: TotalX=%i\n", TotalX);
-		#endif
-		
-		// Process dynamic width cells
-		GArray<float> Percents;
-		for (y=0; y<s.y; y++)
+					if (t->Span.x == 1)
+					{
+						MinCol[x] = max(MinCol[x], t->MinContent);
+						MaxCol[x] = max(MaxCol[x], t->MaxContent);
+					}
+				}
+				
+				x += t->Span.x;
+			}
+			else break;
+		}
+	}
+	
+	// How much space used so far?
+	int TotalX = BorderX1 + BorderX2 + CellSpacing;
+	int x;
+	for (x=0; x<s.x; x++)
+	{
+		TotalX += MinCol[x] + CellSpacing;
+	}
+
+	#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
+	if (Table->Debug)
+		LgiTrace("Detect: TotalX=%i\n", TotalX);
+	#endif
+	
+	// Process dynamic width cells
+	GArray<float> Percents;
+	for (y=0; y<s.y; y++)
+	{
+		for (int x=0; x<s.x; )
 		{
-			for (int x=0; x<s.x; )
+			GTag *t = Get(x, y);
+			if (t)
 			{
-				GTag *t = Cells->Get(x, y);
-				if (t)
+				if (t->Cell.x == x && t->Cell.y == y)
 				{
-					if (t->Cell.x == x && t->Cell.y == y)
-					{
-						if (t->Width().IsDynamic() &&
-							!t->MinContent &&
-							!t->MaxContent)
-						{	
-							Len w = t->Width();
-							if (w.Type == LenPercent)
-							{
-								Percents[t->Cell.x] = max(w.Value, Percents[t->Cell.x]);
-							}
-							
-							float Total = Sum<float>(Percents);
-							if (Total > 100.0)
-							{
-								// Yarrrrh. The web be full of incongruity.
-								float Sub = Total - 100.0f;
-								Percents[Percents.Length()-1] -= Sub;
-
-								char p[32];
-								const char *s = p;
-								sprintf_s(p, sizeof(p), "%.1f%%", Percents[Percents.Length()-1]);
-								t->Width().Parse(s);
-							}
-
-							t->GetWidthMetrics(t->MinContent, t->MaxContent);
-							
-							int x = w.IsValid() ? f->ResolveX(w, Font, false) : 0;
-							//t->MinContent = max(x, t->MinContent);
-							t->MaxContent = max(x, t->MaxContent);
-							
-							#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
-							if (Debug)
-								LgiTrace("DynWidth [%i,%i] = %i->%i\n", t->Cell.x, t->Cell.y, t->MinContent, t->MaxContent);
-							#endif
-						}
-						else
+					if (t->Width().IsDynamic() &&
+						!t->MinContent &&
+						!t->MaxContent)
+					{	
+						GCss::Len w = t->Width();
+						if (w.Type == GCss::LenPercent)
 						{
-							uint16 Min = t->MinContent;
-							uint16 Max = t->MaxContent;
-							t->GetWidthMetrics(Min, Max);
-							if (Min > t->MinContent)
-								t->MinContent = Min;
-							if (Min > t->MaxContent)
-								t->MaxContent = Min;
+							Percents[t->Cell.x] = max(w.Value, Percents[t->Cell.x]);
+						}
+						
+						float Total = Sum<float>(Percents);
+						if (Total > 100.0)
+						{
+							// Yarrrrh. The web be full of incongruity.
+							float Sub = Total - 100.0f;
+							Percents[Percents.Length()-1] -= Sub;
+
+							char p[32];
+							const char *s = p;
+							sprintf_s(p, sizeof(p), "%.1f%%", Percents[Percents.Length()-1]);
+							t->Width().Parse(s);
 						}
 
-						if (t->Span.x == 1)
-						{
-							MinCol[x] = max(MinCol[x], t->MinContent);
-							MaxCol[x] = max(MaxCol[x], t->MaxContent);
-						}
+						t->GetWidthMetrics(t->MinContent, t->MaxContent);
+						
+						int x = w.IsValid() ? f->ResolveX(w, Font, false) : 0;
+						//t->MinContent = max(x, t->MinContent);
+						t->MaxContent = max(x, t->MaxContent);
+						
+						#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
+						if (Table->Debug)
+							LgiTrace("DynWidth [%i,%i] = %i->%i\n", t->Cell.x, t->Cell.y, t->MinContent, t->MaxContent);
+						#endif
 					}
-					
-					x += t->Span.x;
+					else
+					{
+						uint16 Min = t->MinContent;
+						uint16 Max = t->MaxContent;
+						t->GetWidthMetrics(Min, Max);
+						if (Min > t->MinContent)
+							t->MinContent = Min;
+						if (Min > t->MaxContent)
+							t->MaxContent = Min;
+					}
+
+					if (t->Span.x == 1)
+					{
+						MinCol[x] = max(MinCol[x], t->MinContent);
+						MaxCol[x] = max(MaxCol[x], t->MaxContent);
+					}
 				}
-				else break;
+				
+				x += t->Span.x;
 			}
+			else break;
 		}
+	}
 
-		TotalX = BorderX1 + BorderX2 + CellSpacing;
-		for (x=0; x<s.x; x++)
-		{
-			TotalX += MinCol[x] + CellSpacing;
-		}
+	TotalX = BorderX1 + BorderX2 + CellSpacing;
+	for (x=0; x<s.x; x++)
+	{
+		TotalX += MinCol[x] + CellSpacing;
+	}
 
-		#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
-		if (Debug)
-			LgiTrace("Dynamic: TotalX=%i\n", TotalX);
-		
-		#define DumpCols() \
-		if (Debug) \
+	#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
+	if (Table->Debug)
+		LgiTrace("Dynamic: TotalX=%i\n", TotalX);
+	
+	#define DumpCols() \
+	if (Table->Debug) \
+	{ \
+		LgiTrace("%s:%i - Columns TotalX=%i AvailableX=%i\n", _FL, TotalX, AvailableX); \
+		for (int i=0; i<MinCol.Length(); i++) \
 		{ \
-			LgiTrace("%s:%i - Columns TotalX=%i AvailableX=%i\n", _FL, TotalX, AvailableX); \
-			for (int i=0; i<MinCol.Length(); i++) \
-			{ \
-				LgiTrace("\t[%i] = %i/%i\n", i, MinCol[i], MaxCol[i]); \
-			} \
-		}
+			LgiTrace("\t[%i] = %i/%i\n", i, MinCol[i], MaxCol[i]); \
+		} \
+	}
 
-		DumpCols();
-		#else
-		#define DumpCols()
-		#endif
+	DumpCols();
+	#else
+	#define DumpCols()
+	#endif
 
-		// Process spanned cells
-		if (TotalX < AvailableX)
+	// Process spanned cells
+	if (TotalX < AvailableX)
+	{
+		for (y=0; y<s.y; y++)
 		{
-			for (y=0; y<s.y; y++)
+			for (int x=0; x<s.x; )
 			{
-				for (int x=0; x<s.x; )
+				GTag *t = Get(x, y);
+				if (t && t->Cell.x == x && t->Cell.y == y)
 				{
-					GTag *t = Cells->Get(x, y);
-					if (t && t->Cell.x == x && t->Cell.y == y)
+					if (t->Span.x > 1 || t->Span.y > 1)
 					{
-						if (t->Span.x > 1 || t->Span.y > 1)
+						int i;
+						int ColMin = -CellSpacing;
+						int ColMax = -CellSpacing;
+						for (i=0; i<t->Span.x; i++)
 						{
-							int i;
-							int ColMin = -CellSpacing;
-							int ColMax = -CellSpacing;
-							for (i=0; i<t->Span.x; i++)
-							{
-								ColMin += MinCol[x + i] + CellSpacing;
-								ColMax += MaxCol[x + i] + CellSpacing;
-							}
+							ColMin += MinCol[x + i] + CellSpacing;
+							ColMax += MaxCol[x + i] + CellSpacing;
+						}
 
-							// Generate an array of unfixed column indexes
-							GArray<int> Unfixed;
-							for (i = 0; i < t->Span.x; i++)
+						// Generate an array of unfixed column indexes
+						GArray<int> UnfixedGrowable, Unfixed;
+						for (i = 0; i < t->Span.x; i++)
+						{
+							int Idx = x + i;
+							if (!FixedCol[Idx])
 							{
-								if (!FixedCol[x+i])
-								{
-									Unfixed[Unfixed.Length()] = x + i;
-								}
-							}
-							
-							// Bump out minimums
-							if (ColMin < t->MinContent)
-							{
-								int Total = t->MinContent - ColMin;
-
-								if (Unfixed.Length())
-								{
-									int Add = Total / Unfixed.Length();
-									for (unsigned i=0; i<Unfixed.Length(); i++)
-									{
-										int a = i ? Add : Total - (Add * (Unfixed.Length() - 1));
-										
-										MinCol[Unfixed[i]] = MinCol[Unfixed[i]] + a;
-										TotalX += a;
-									}
-								}
+								if (MinCol[Idx] < MaxCol[Idx])
+									UnfixedGrowable.Add(Idx);
 								else
+									Unfixed.Add(Idx);
+							}
+						}
+						
+						// Bump out minimums
+						if (ColMin < t->MinContent)
+						{
+							/*
+							At this point we need to distribute 't->MinContent' between this cell's
+							spanned columns. Suitable columns are:
+							- those that have MinCol < MaxCol
+							- aren't fixed
+							However failing that we can use Unfixed columns.								
+							*/
+							int Total = t->MinContent - ColMin;
+
+							if (Unfixed.Length())
+							{
+								int Add = Total / Unfixed.Length();
+								for (unsigned i=0; i<Unfixed.Length(); i++)
 								{
-									int Add = Total / t->Span.x;
-									for (i=0; i<t->Span.x; i++)
-									{
-										int a = i ? Add : Total - (Add * (t->Span.x - 1));
-										MinCol[x + i] = MinCol[x + i] + a;
-										TotalX += a;
-									}
+									int a = i ? Add : Total - (Add * (Unfixed.Length() - 1));
+									
+									MinCol[Unfixed[i]] = MinCol[Unfixed[i]] + a;
+									TotalX += a;
 								}
 							}
-
-							// Bump out maximums
-							if (t->MaxContent > ColMin)
+							else
 							{
-								int MaxAdd = t->MaxContent - ColMin;
-								int MaxAvail = AvailableX > TotalX ? AvailableX - TotalX : 0;
-								int Total = min(MaxAdd, MaxAvail);
-								
-								/*
-								printf("bumpmax %i,%i mincol=%i add=%i avail=%i total=%i Unfixed=%i\n",
-									x, y,
-									ColMin,
-									MaxAdd,
-									MaxAvail,
-									Total,
-									Unfixed.Length());
-								*/
-
-								if (Unfixed.Length())
+								int Add = Total / t->Span.x;
+								for (i=0; i<t->Span.x; i++)
 								{
-									int Add = Total / Unfixed.Length();
-									for (unsigned i=0; i<Unfixed.Length(); i++)
-									{
-										int a = i ? Add : Total - (Add * (Unfixed.Length() - 1));
-
-										MinCol[Unfixed[i]] = MinCol[Unfixed[i]] + a;
-										TotalX += a;
-									}
-								}
-								else
-								{
-									int Add = Total / t->Span.x;
-									for (i=0; i<t->Span.x; i++)
-									{
-										int a = i ? Add : Total - (Add * (t->Span.x - 1));
-										MinCol[x + i] = MinCol[x + i] + a;
-										TotalX += a;
-									}
+									int a = i ? Add : Total - (Add * (t->Span.x - 1));
+									MinCol[x + i] = MinCol[x + i] + a;
+									TotalX += a;
 								}
 							}
 						}
 
-						x += t->Span.x;
+						// Bump out maximums
+						if (t->MaxContent > ColMin)
+						{
+							int MaxAdd = t->MaxContent - ColMin;
+							int MaxAvail = AvailableX > TotalX ? AvailableX - TotalX : 0;
+							int Total = min(MaxAdd, MaxAvail);
+							
+							if (Unfixed.Length())
+							{
+								int Add = Total / Unfixed.Length();
+								for (unsigned i=0; i<Unfixed.Length(); i++)
+								{
+									int a = i ? Add : Total - (Add * (Unfixed.Length() - 1));
+
+									MinCol[Unfixed[i]] = MinCol[Unfixed[i]] + a;
+									TotalX += a;
+								}
+							}
+							else
+							{
+								int Add = Total / t->Span.x;
+								for (i=0; i<t->Span.x; i++)
+								{
+									int a = i ? Add : Total - (Add * (t->Span.x - 1));
+									MinCol[x + i] = MinCol[x + i] + a;
+									TotalX += a;
+								}
+							}
+						}
 					}
-					else break;
+
+					x += t->Span.x;
 				}
+				else break;
+			}
+		}
+	}
+
+	DumpCols();
+	
+	// Deallocate space if overused
+	if (TotalX > AvailableX)
+	{
+		// Take some from the largest column
+		int Largest = 0;
+		for (int i=0; i<s.x; i++)
+		{
+			if (MinCol[i] > MinCol[Largest])
+			{
+				Largest = i;
+			}
+		}
+		int Take = TotalX - AvailableX;
+		if (Take < MinCol[Largest])
+		{
+			MinCol[Largest] = MinCol[Largest] - Take;
+			TotalX -= Take;
+		}
+	}
+
+	DumpCols();
+
+	// Allocate any unused but available space...
+	if (TotalX < AvailableX)
+	{
+		// Some available space still
+		// printf("Alloc unused space, Total=%i Available=%i\n", TotalX, AvailableX);
+
+		// Allocate to columns that fully fit
+		int LaidOut = 0;
+		for (int x=0; x<s.x; x++)
+		{
+			int NeedsX = MaxCol[x] - MinCol[x];
+			// printf("Max-Min: %i-%i = %i\n", MaxCol[x], MinCol[x], NeedsX);
+			if (NeedsX > 0 && NeedsX < AvailableX - TotalX)
+			{
+				MinCol[x] = MinCol[x] + NeedsX;
+				TotalX += NeedsX;
+				LaidOut++;
 			}
 		}
 
-		DumpCols();
-		
-		// Deallocate space if overused
-		if (TotalX > AvailableX)
+		// Allocate to columns that still need room
+		int RemainingCols = s.x - LaidOut;
+		if (RemainingCols > 0)
 		{
-			// Take some from the largest column
+			int SpacePerCol = (AvailableX - TotalX) / RemainingCols;
+			if (SpacePerCol > 0)
+			{
+				for (int x=0; x<s.x; x++)
+				{
+					int NeedsX = MaxCol[x] - MinCol[x];
+					if (NeedsX > 0)
+					{
+						MinCol[x] = MinCol[x] + SpacePerCol;
+						TotalX += SpacePerCol;
+					}
+				}
+			}
+		}
+		
+		#if 1
+		if (TotalX < AvailableX)
+		#else
+		if (TotalX < AvailableX && Width().IsValid())
+		#endif
+		{
+			// Force allocation of space
+
+			// Add some to the largest column
 			int Largest = 0;
 			for (int i=0; i<s.x; i++)
 			{
@@ -4002,255 +4076,188 @@ void GTag::LayoutTable(GFlowRegion *f)
 					Largest = i;
 				}
 			}
-			int Take = TotalX - AvailableX;
-			if (Take < MinCol[Largest])
-			{
-				MinCol[Largest] = MinCol[Largest] - Take;
-				TotalX -= Take;
-			}
+			int Add = AvailableX - TotalX;
+			MinCol[Largest] = MinCol[Largest] + Add;
+			TotalX += Add;
 		}
+	}
 
-		DumpCols();
+	DumpCols();
 
-		// Allocate any unused but available space...
-		if (TotalX < AvailableX)
+	// Allocate remaining space if explicit table width
+	if (Table->Width().IsValid() &&
+		TotalX < AvailableX)
+	{
+		int Add = (AvailableX - TotalX) / s.x;
+		for (int x=0; x<s.x; x++)
 		{
-			// Some available space still
-			// printf("Alloc unused space, Total=%i Available=%i\n", TotalX, AvailableX);
+			MinCol[x] = MinCol[x] + Add;
+			TotalX += Add;
+		}
+	}
 
-			// Allocate to columns that fully fit
-			int LaidOut = 0;
-			for (int x=0; x<s.x; x++)
+	DumpCols();
+	
+	// Layout cell contents to get the height of all the cells
+	for (y=0; y<s.y; y++)
+	{
+		for (int x=0; x<s.x; )
+		{
+			GTag *t = Get(x, y);
+			if (t)
 			{
-				int NeedsX = MaxCol[x] - MinCol[x];
-				// printf("Max-Min: %i-%i = %i\n", MaxCol[x], MinCol[x], NeedsX);
-				if (NeedsX > 0 && NeedsX < AvailableX - TotalX)
+				if (t->Cell.x == x && t->Cell.y == y)
 				{
-					MinCol[x] = MinCol[x] + NeedsX;
-					TotalX += NeedsX;
-					LaidOut++;
-				}
-			}
-
-			// Allocate to columns that still need room
-			int RemainingCols = s.x - LaidOut;
-			if (RemainingCols > 0)
-			{
-				int SpacePerCol = (AvailableX - TotalX) / RemainingCols;
-				if (SpacePerCol > 0)
-				{
-					for (int x=0; x<s.x; x++)
+					GRect Box(0, 0, -CellSpacing, 0);
+					for (int i=0; i<t->Span.x; i++)
 					{
-						int NeedsX = MaxCol[x] - MinCol[x];
-						if (NeedsX > 0)
-						{
-							MinCol[x] = MinCol[x] + SpacePerCol;
-							TotalX += SpacePerCol;
-						}
+						Box.x2 += MinCol[x+i] + CellSpacing;
 					}
-				}
-			}
-			
-			#if 1
-			if (TotalX < AvailableX)
-			#else
-			if (TotalX < AvailableX && Width().IsValid())
-			#endif
-			{
-				// Force allocation of space
-
-				// Add some to the largest column
-				int Largest = 0;
-				for (int i=0; i<s.x; i++)
-				{
-					if (MinCol[i] > MinCol[Largest])
+					
+					GCss::Len Ht = t->Height();
+					GFlowRegion r(Table->Html, Box);
+					int Rx = r.X();
+					t->OnFlow(&r);
+					
+					if (Ht.IsValid() &&
+						Ht.Type != GCss::LenPercent)
 					{
-						Largest = i;
-					}
-				}
-				int Add = AvailableX - TotalX;
-				MinCol[Largest] = MinCol[Largest] + Add;
-				TotalX += Add;
-			}
-		}
+						int h = f->ResolveY(Ht, Font, false);
+						t->Size.y = max(h, t->Size.y);
 
-		DumpCols();
-
-		// Allocate remaining space if explicit table width
-		if (Width().IsValid() &&
-			TotalX < AvailableX)
-		{
-			int Add = (AvailableX - TotalX) / s.x;
-			for (int x=0; x<s.x; x++)
-			{
-				MinCol[x] = MinCol[x] + Add;
-				TotalX += Add;
-			}
-		}
-
-		DumpCols();
-		
-		// Layout cell contents to get the height of all the cells
-		for (y=0; y<s.y; y++)
-		{
-			for (int x=0; x<s.x; )
-			{
-				GTag *t = Cells->Get(x, y);
-				if (t)
-				{
-					if (t->Cell.x == x && t->Cell.y == y)
-					{
-						GRect Box(0, 0, -CellSpacing, 0);
-						for (int i=0; i<t->Span.x; i++)
-						{
-							Box.x2 += MinCol[x+i] + CellSpacing;
-						}
-						
-						GCss::Len Ht = t->Height();
-						GFlowRegion r(Html, Box);
-						int Rx = r.X();
-						t->OnFlow(&r);
-						
-						if (Ht.IsValid() &&
-							Ht.Type != LenPercent)
-						{
-							int h = f->ResolveY(Ht, GetFont(), false);
-							t->Size.y = max(h, t->Size.y);
-
-							DistributeSize(MaxRow, y, t->Span.y, t->Size.y, CellSpacing);
-						}
-
-						#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
-						if (Debug)
-							LgiTrace("[%i,%i]=%i,%i Rx=%i\n", t->Cell.x, t->Cell.y, t->Size.x, t->Size.y, Rx);
-						#endif
+						DistributeSize(MaxRow, y, t->Span.y, t->Size.y, CellSpacing);
 					}
 
-					x += t->Span.x;
+					#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
+					if (Table->Debug)
+						LgiTrace("[%i,%i]=%i,%i Rx=%i\n", t->Cell.x, t->Cell.y, t->Size.x, t->Size.y, Rx);
+					#endif
 				}
-				else break;
+
+				x += t->Span.x;
 			}
+			else break;
 		}
+	}
 
-		// Calculate row height
-		for (y=0; y<s.y; y++)
+	// Calculate row height
+	for (y=0; y<s.y; y++)
+	{
+		for (int x=0; x<s.x; )
 		{
-			for (int x=0; x<s.x; )
+			GTag *t = Get(x, y);
+			if (t)
 			{
-				GTag *t = Cells->Get(x, y);
-				if (t)
+				if (t->Cell.x == x && t->Cell.y == y)
 				{
-					if (t->Cell.x == x && t->Cell.y == y)
+					GCss::Len Ht = t->Height();
+					if (!(Ht.IsValid() && Ht.Type != GCss::LenPercent))
 					{
-						GCss::Len Ht = t->Height();
-						if (!(Ht.IsValid() && Ht.Type != LenPercent))
-						{
-							DistributeSize(MaxRow, y, t->Span.y, t->Size.y, CellSpacing);
-						}
+						DistributeSize(MaxRow, y, t->Span.y, t->Size.y, CellSpacing);
 					}
-
-					x += t->Span.x;
 				}
-				else break;
-			}			
-		}
-		
-		// Cell positioning
-		int LeftMargin = (int) (BorderLeft().Value + CellSpacing);
-		int Cx = LeftMargin;
-		int Cy = (int) (BorderTop().Value + CellSpacing);
-		
-		for (y=0; y<s.y; y++)
-		{
-			GTag *Prev = 0;
-			for (int x=0; x<s.x; )
-			{
-				GTag *t = Cells->Get(x, y);
-				if (!t && Prev)
-				{
-					// Add missing cell
-					GTag *Row = ToTag(Prev->Parent);
-					if (Row && Row->TagId == TAG_TR)
-					{
-						t = new GTag(Html, Row);
-						if (t)
-						{
-							t->TagId = TAG_TD;
-							t->Tag.Reset(NewStr("td"));
-							t->Info = Html->GetTagInfo(t->Tag);
-							t->Cell.x = x;
-							t->Cell.y = y;
-							t->Span.x = 1;
-							t->Span.y = 1;
-							t->BackgroundColor(ColorDef(DefaultMissingCellColour));
 
-							Cells->Set(this);
-						}
-						else break;
+				x += t->Span.x;
+			}
+			else break;
+		}			
+	}
+	
+	// Cell positioning
+	int LeftMargin = (int) (Table->BorderLeft().Value + CellSpacing);
+	int Cx = LeftMargin;
+	int Cy = (int) (Table->BorderTop().Value + CellSpacing);
+	
+	for (y=0; y<s.y; y++)
+	{
+		GTag *Prev = 0;
+		for (int x=0; x<s.x; )
+		{
+			GTag *t = Get(x, y);
+			if (!t && Prev)
+			{
+				// Add missing cell
+				GTag *Row = ToTag(Prev->Parent);
+				if (Row && Row->TagId == TAG_TR)
+				{
+					t = new GTag(Table->Html, Row);
+					if (t)
+					{
+						t->TagId = TAG_TD;
+						t->Tag.Reset(NewStr("td"));
+						t->Info = Table->Html->GetTagInfo(t->Tag);
+						t->Cell.x = x;
+						t->Cell.y = y;
+						t->Span.x = 1;
+						t->Span.y = 1;
+						t->BackgroundColor(GCss::ColorDef(DefaultMissingCellColour));
+
+						Set(Table);
 					}
 					else break;
 				}
-				if (t)
+				else break;
+			}
+			if (t)
+			{
+				if (t->Cell.x == x && t->Cell.y == y)
 				{
-					if (t->Cell.x == x && t->Cell.y == y)
+					t->Pos.x = Cx;
+					t->Pos.y = Cy;
+					t->Size.x = -CellSpacing;
+					for (int i=0; i<t->Span.x; i++)
 					{
-						t->Pos.x = Cx;
-						t->Pos.y = Cy;
-						t->Size.x = -CellSpacing;
-						for (int i=0; i<t->Span.x; i++)
-						{
-							int w = MinCol[x + i] + CellSpacing;
-							t->Size.x += w;
-							Cx += w;
-						}
-						t->Size.y = -CellSpacing;						
-						for (int n=0; n<t->Span.y; n++)
-						{
-							t->Size.y += MaxRow[y+n] + CellSpacing;
-						}
-						
-						Size.x = max(Cx + (int)BorderRight().Value, Size.x);
+						int w = MinCol[x + i] + CellSpacing;
+						t->Size.x += w;
+						Cx += w;
 					}
-					else
+					t->Size.y = -CellSpacing;						
+					for (int n=0; n<t->Span.y; n++)
 					{
-						Cx += t->Size.x + CellSpacing;
+						t->Size.y += MaxRow[y+n] + CellSpacing;
 					}
 					
-					x += t->Span.x;
+					Table->Size.x = max(Cx + (int)Table->BorderRight().Value, Table->Size.x);
 				}
-				else break;
-				Prev = t;
+				else
+				{
+					Cx += t->Size.x + CellSpacing;
+				}
+				
+				x += t->Span.x;
 			}
-			
-			Cx = LeftMargin;
-			Cy += MaxRow[y] + CellSpacing;
+			else break;
+			Prev = t;
 		}
-
-		DumpCols();
-
-		switch (XAlign ? XAlign : ToTag(Parent)->GetAlign(true))
-		{
-			case AlignCenter:
-			{
-				int Ox = (f->X()-Size.x) >> 1;
-				Pos.x = f->x1 + max(Ox, 0);
-				break;
-			}
-			case AlignRight:
-			{
-				Pos.x = f->x2 - Size.x;
-				break;
-			}
-			default:
-			{
-				Pos.x = f->x1;
-				break;
-			}
-		}
-		Pos.y = f->y1;
-
-		Size.y = Cy + (int)BorderBottom().Value;
+		
+		Cx = LeftMargin;
+		Cy += MaxRow[y] + CellSpacing;
 	}
+
+	DumpCols();
+
+	switch (Table->XAlign ? Table->XAlign : ToTag(Table->Parent)->GetAlign(true))
+	{
+		case GCss::AlignCenter:
+		{
+			int Ox = (f->X()-Table->Size.x) >> 1;
+			Table->Pos.x = f->x1 + max(Ox, 0);
+			break;
+		}
+		case GCss::AlignRight:
+		{
+			Table->Pos.x = f->x2 - Table->Size.x;
+			break;
+		}
+		default:
+		{
+			Table->Pos.x = f->x1;
+			break;
+		}
+	}
+	Table->Pos.y = f->y1;
+
+	Table->Size.y = Cy + (int)Table->BorderBottom().Value;
 }
 
 GRect GTag::ChildBounds()
@@ -7539,8 +7546,9 @@ class GHtml_Factory : public GViewFactory
 } GHtml_Factory;
 
 //////////////////////////////////////////////////////////////////////
-GCellStore::GCellStore(GTag *Table)
+GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 {
+	Table = table;
 	if (!Table)
 		return;
 
@@ -7679,7 +7687,7 @@ GCellStore::GCellStore(GTag *Table)
 	}
 }
 
-void GCellStore::Dump()
+void GHtmlTableLayout::Dump()
 {
 	int Sx, Sy;
 	GetSize(Sx, Sy);
@@ -7715,7 +7723,7 @@ void GCellStore::Dump()
 	LgiTrace("\n");
 }
 
-void GCellStore::GetAll(List<GTag> &All)
+void GHtmlTableLayout::GetAll(List<GTag> &All)
 {
 	GHashTbl<void*, bool> Added;
 	for (unsigned y=0; y<c.Length(); y++)
@@ -7733,7 +7741,7 @@ void GCellStore::GetAll(List<GTag> &All)
 	}
 }
 
-void GCellStore::GetSize(int &x, int &y)
+void GHtmlTableLayout::GetSize(int &x, int &y)
 {
 	x = 0;
 	y = c.Length();
@@ -7744,7 +7752,7 @@ void GCellStore::GetSize(int &x, int &y)
 	}
 }
 
-GTag *GCellStore::Get(int x, int y)
+GTag *GHtmlTableLayout::Get(int x, int y)
 {
 	if (y >= (int) c.Length())
 		return NULL;
@@ -7756,7 +7764,7 @@ GTag *GCellStore::Get(int x, int y)
 	return a[x];
 }
 
-bool GCellStore::Set(GTag *t)
+bool GHtmlTableLayout::Set(GTag *t)
 {
 	if (!t)
 		return false;
