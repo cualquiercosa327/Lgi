@@ -68,7 +68,11 @@ public:
 			FileDev->SetCurrentFolder(old);
 			#endif
 		}
-	}
+
+        #ifdef MAC
+		Load("/opt/local/lib/" SSL_LIBRARY);
+        #endif
+    }
 
 	DynFunc0(int, SSL_library_init);
 	DynFunc1(int, SSL_open, SSL*, s);
@@ -888,8 +892,6 @@ bool SslSocket::Listen(int Port)
 
 bool SslSocket::IsReadable(int TimeoutMs)
 {
-	ulong Val = 0;
-	
 	// Assign to local var to avoid a thread changing it
 	// on us between the validity check and the select.
 	// Which is important because a socket value of -1
@@ -920,8 +922,6 @@ bool SslSocket::IsReadable(int TimeoutMs)
 
 bool SslSocket::IsWritable(int TimeoutMs)
 {
-	ulong Val = 0;
-	
 	// Assign to local var to avoid a thread changing it
 	// on us between the validity check and the select.
 	// Which is important because a socket value of -1

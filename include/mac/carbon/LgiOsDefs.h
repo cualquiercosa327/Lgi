@@ -79,7 +79,7 @@ public:
 #define MsgCode(msg)				(msg->m)
 #define MsgA(msg)					(msg->a)
 #define MsgB(msg)					(msg->b)
-LgiFunc GMessage CreateMsg(int m, int a = 0, int b = 0);
+extern GMessage CreateMsg(int m, int a = 0, int b = 0);
 #define _stricmp					strcasecmp
 #define _strnicmp					strncasecmp
 
