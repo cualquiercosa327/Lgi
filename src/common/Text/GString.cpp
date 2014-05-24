@@ -252,52 +252,6 @@ char *stristr(const char *a, const char *b)
 	return NULL;
 }
 
-#ifndef WIN32NATIVE
-char *strcpy_s(char *dst, size_t len, const char *src)
-{
-	char *d = dst;
-
-	if (dst && src && len > 0)
-	{
-		while (*src && len > 1)
-		{
-			*dst++ = *src++;
-			len--;
-		}
-		
-		*dst++ = 0;
-	}
-	
-	return d;
-}
-
-char *strcat_s(char *dst, size_t len, const char *src)
-{
-	char *d = dst;
-
-	if (dst && src && len > 0)
-	{
-		// Seek past the dst string
-		while (*dst && len > 1)
-		{
-			dst++;
-			len--;
-		}
-		
-		// Copy the source onto the end
-		while (*src && len > 1)
-		{
-			*dst++ = *src++;
-			len--;
-		}
-		
-		*dst++ = 0;
-	}
-	
-	return d;
-}
-#endif
-
 int strcmp(char *a, char *b)
 {
 	int c = -1;

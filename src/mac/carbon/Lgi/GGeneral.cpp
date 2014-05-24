@@ -177,7 +177,7 @@ bool LgiGetFileMimeType(const char *File, char *Mime, int BufLen)
 	if (!m)
 		return false;
 
-	strsafecpy(Mime, m, BufLen);
+	strcpy_s(Mime, BufLen, m);
 	return true;
 }
 
@@ -267,7 +267,7 @@ bool LgiGetAppForMimeType(const char *Mime, char *AppPath, int BufSize)
 		Status = LgiGetAppsForMimeType(Mime, Apps, 1);
 		if (Status)
 		{
-			strsafecpy(AppPath, Apps[0]->Path, BufSize);
+			strcpy_s(AppPath, BufSize, Apps[0]->Path);
 		}
 	}
 	return Status;
