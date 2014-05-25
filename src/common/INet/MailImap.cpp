@@ -891,7 +891,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 		if (Socket->Open(Remote, Port))
 		{
 			bool IMAP4Server = false;
-			List<char> Auths;
+			GArray<char*> Auths;
 
 			// check capability
 			int CapCmd = d->NextCmd++;
@@ -916,7 +916,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 								if (_strnicmp(T[i], "AUTH=", 5) == 0)
 								{
 									char *Type = T[i] + 5;
-									Auths.Insert(NewStr(Type));
+									Auths.Add(NewStr(Type));
 								}
 
 								d->Capability.Add(T[i]);
@@ -934,25 +934,25 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 				Log("CAPABILITY says not an IMAP4Server", GSocketI::SocketMsgError);
 			else
 			{
-				char *DefaultAuthType = 0;
+				char *DefaultAuthType = NULL;
 				bool TryAllAuths = Auths.Length() == 0 &&
 									!(Flags & (MAIL_USE_PLAIN | MAIL_USE_LOGIN | MAIL_USE_NTLM));
 
 				if (TryAllAuths)
 				{
-					Auths.Insert(NewStr("DIGEST-MD5"));
+					Auths.Add(NewStr("DIGEST-MD5"));
 				}
 				if (TestFlag(Flags, MAIL_USE_PLAIN) || TryAllAuths)
 				{
-					Auths.Insert(DefaultAuthType = NewStr("PLAIN"), 0);
+					Auths.AddAt(0, DefaultAuthType = NewStr("PLAIN"));
 				}
 				if (TestFlag(Flags, MAIL_USE_LOGIN) || TryAllAuths)
 				{
-					Auths.Insert(DefaultAuthType = NewStr("LOGIN"), 0);
+					Auths.AddAt(0, DefaultAuthType = NewStr("LOGIN"));
 				}
 				if (TestFlag(Flags, MAIL_USE_NTLM) || TryAllAuths)
 				{
-					Auths.Insert(DefaultAuthType = NewStr("NTLM"), 0);
+					Auths.AddAt(0, DefaultAuthType = NewStr("NTLM"));
 				}
 
 				// SSL
@@ -983,9 +983,10 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 				// login
 				bool LoggedIn = false;
 				char AuthTypeStr[256] = "";
-				char *AuthType = 0;
-				for (AuthType=Auths.First(); !TlsError && AuthType && !LoggedIn; AuthType=Auths.Next())
+				for (unsigned i=0; i<Auths.Length() && !TlsError && !LoggedIn; i++)
 				{
+					char *AuthType = Auths[i];
+
 					if (DefaultAuthType != AuthType)
 					{
 						// put a string of auth types together
@@ -1347,6 +1348,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 							}
 						}
 					}
+					/*
 					else if (!_stricmp(AuthType, "XOAUTH"))
 					{
 						GAutoPtr<GSocketI> Ssl(dynamic_cast<GSocketI*>(Socket->Clone()));
@@ -1418,6 +1420,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 							}
 						}
 					}
+					*/
 					else
 					{
 						char s[256];
