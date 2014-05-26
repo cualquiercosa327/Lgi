@@ -4006,66 +4006,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 		{
 			int asd=0;
 		}
-
-		// Allocate any remaining space...
-		int RemainingPx = AvailableX - TotalX;
-		GArray<int> Growable, NonGrowable;
-		int GrowablePx = 0;
-		for (int x=0; x<s.x; x++)
-		{
-			int DiffPx = MaxCol[x] - MinCol[x];
-			if (DiffPx > 0)
-			{
-				GrowablePx += DiffPx;
-				Growable.Add(x);
-			}
-			else
-			{
-				NonGrowable.Add(x);
-			}
-		}
-		if (GrowablePx < RemainingPx && TableWidth.IsValid())
-		{
-			// Add the non-growable columns as well
-			Growable.Add(NonGrowable);
-		}
-		
-		if (Growable.Length())
-		{
-			// Some growable columns...
-			int Added = 0;
-			for (int i=0; i<Growable.Length(); i++)
-			{
-				int x = Growable[i];
-				bool Last = i == Growable.Length() - 1;
-				if (Last)
-				{
-					MinCol[x] += RemainingPx - Added;
-				}
-				else
-				{
-					int DiffPx = MaxCol[x] - MinCol[x];
-					int AddPx = 0;
-					if (GrowablePx < RemainingPx)
-					{
-						AddPx = DiffPx;
-					}
-					else if (DiffPx > 0)
-					{
-						double Ratio = (double)DiffPx / GrowablePx;
-						AddPx = Ratio * RemainingPx;
-					}
-					else
-					{
-						AddPx = RemainingPx / Growable.Length();
-					}
-										
-					MinCol[x] += AddPx;
-					Added += AddPx;
-				}
-			}
-		}
-
+		AllocatePx(0, s.x, AvailableX);
 		DumpCols("AfterRemainingAlloc");
 	}
 	
