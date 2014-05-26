@@ -37,10 +37,12 @@ int Cmp0(ImgColour **a, ImgColour **b)
 {
 	return (*a)->c[0] - (*b)->c[0];
 }
+
 int Cmp1(ImgColour **a, ImgColour **b)
 {
 	return (*a)->c[1] - (*b)->c[1];
 }
+
 int Cmp2(ImgColour **a, ImgColour **b)
 {
 	return (*a)->c[2] - (*b)->c[2];
@@ -165,7 +167,6 @@ int HueSort(GColour *a, GColour *b)
 int LumaSort(GColour *a, GColour *b)
 {
 	GColour A = *a;
-	// GColour B = *b;
 	return A.GetL() - b->GetL();
 }
 

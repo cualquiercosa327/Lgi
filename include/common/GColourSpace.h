@@ -43,8 +43,10 @@ enum GColourSpace
 	CsNone = 0,
 
 	// uint8 types
-	CsIndex8 = GDC_COLOUR_SPACE_1(CtIndex, 8),
-	CsAlpha8 = GDC_COLOUR_SPACE_1(CtAlpha, 8),
+	CsIndex1 = GDC_COLOUR_SPACE_1(CtIndex, 1), // Monochrome
+	CsIndex4 = GDC_COLOUR_SPACE_1(CtIndex, 4), // 16 colour
+	CsIndex8 = GDC_COLOUR_SPACE_1(CtIndex, 8), // 256 colour
+	CsAlpha8 = GDC_COLOUR_SPACE_1(CtAlpha, 8), // Alpha channel only
 
 	// uint16 types
 	CsRgb15 = GDC_COLOUR_SPACE_3(CtRed, 5, CtGreen, 5, CtBlue, 5),

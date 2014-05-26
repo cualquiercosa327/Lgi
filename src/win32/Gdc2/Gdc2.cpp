@@ -811,16 +811,16 @@ public:
 				ColourSpace = CsIndex8;
 				break;
 			case 15:
-				ColourSpace = CsRgb15;
+				ColourSpace = System15BitColourSpace;
 				break;
 			case 16:
-				ColourSpace = CsRgb16;
+				ColourSpace = System16BitColourSpace;
 				break;
 			case 24:
-				ColourSpace = CsBgr24;
+				ColourSpace = System24BitColourSpace;
 				break;
 			case 32:
-				ColourSpace = CsArgb32;
+				ColourSpace = System32BitColourSpace;
 				break;
 			default:
 				LgiAssert(!"Unknown colour space.");

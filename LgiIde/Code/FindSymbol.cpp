@@ -724,6 +724,8 @@ void FindSymbolSystem::OnProject()
 	}
 
 	d->TagsDirty = true;
+	
+	#if 0
 	if (!d->Thread)
 	{
 		d->Thread.Reset(new FindSymbolThread(d));
@@ -731,6 +733,7 @@ void FindSymbolSystem::OnProject()
 		d->Sync.Signal();
 		#endif
 	}
+	#endif
 }
 
 FindSymResult FindSymbolSystem::OpenSearchDlg(GViewI *Parent)

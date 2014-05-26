@@ -113,7 +113,7 @@ public:
 	void FlowText(GTag *Tag, GFlowRegion *c, GFont *Font, int LineHeight, char16 *Text, GCss::LengthType Align);
 };
 
-class GHtmlTableLayout
+struct GHtmlTableLayout
 {
 	typedef GArray<GTag*> CellArray;
 	GArray<CellArray> c;
@@ -123,7 +123,6 @@ class GHtmlTableLayout
 	GArray<int> MinCol, MaxCol, MaxRow;
 	GArray<bool> FixedCol;
 
-public:
 	GHtmlTableLayout(GTag *table);
 
 	void GetSize(int &x, int &y);
@@ -138,7 +137,7 @@ public:
 
 class GTag : public GHtmlElement
 {
-	friend class GHtmlTableLayout;
+	friend struct GHtmlTableLayout;
 	
 public:
 	enum HtmlControlType

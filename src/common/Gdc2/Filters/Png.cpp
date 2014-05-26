@@ -127,7 +127,7 @@ public:
 	DynFunc2(	int,
 				png_destroy_info_struct,
 				png_structp, png_ptr,
-				png_infop, info_ptr);
+				png_infopp, info_ptr);
 
 	DynFunc3(	int,
 				png_destroy_read_struct,
@@ -898,6 +898,8 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 			{
 				printf("%s:%i - png_get_rows failed.\n", _FL);
 			}
+
+			Lib->png_destroy_info_struct(png_ptr, &info_ptr);
 		}
 
 		png_charp ProfName = 0;
@@ -1389,10 +1391,12 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 
 				DeleteArray(TempBits);
 				DeleteObj(pTemp);
+				
+				Lib->png_destroy_info_struct(png_ptr, &info_ptr);
 			}
 
 			CleanUp:
-			Lib->png_destroy_write_struct(&png_ptr, &info_ptr);
+			Lib->png_destroy_write_struct(&png_ptr, NULL);
 		}
 	}
 

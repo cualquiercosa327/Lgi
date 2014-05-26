@@ -36,7 +36,7 @@ public:
 	
 	~GMemDCPrivate()
 	{
-		DeleteObj(Info);
+		DeleteArray(((char*&)Info));
 	}
 };
 
@@ -287,87 +287,104 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int LineLen, bool KeepData)
 	DeleteObj(pAlphaDC);
 
 	hBmp = NULL;
-	d->Info = NULL;
 	pMem = NULL;
-
-	int Bits = GColourSpaceToBits(Cs);
-	if (Bits == 15)
-		Bits = 16;
+	d->Info = NULL;
 
 	if (x > 0 && y > 0)
 	{
-		if (Bits == 8 || Bits == 16 || Bits == 24 || Bits == 32)
+		int Bits = GColourSpaceToBits(Cs);
+		int Colours = Bits <= 8 ? 1 << Bits : 0;
+		int SizeOf = sizeof(BITMAPINFO)+(2*sizeof(RGBQUAD))+(sizeof(RGBQUAD)*Colours);
+		d->Info = (PBITMAPINFO) new char[SizeOf];
+		if (d->Info)
 		{
-			int Colours = 1 << min(Bits, 8);
-			int SizeOf = sizeof(BITMAPINFO)+(sizeof(RGBQUAD)*Colours);
-			d->Info = (PBITMAPINFO) new char[SizeOf];
-			if (d->Info)
+			LineLen = max((((x * Bits) + 31) / 32) * 4, LineLen);
+
+			d->Info->bmiHeader.biSize = sizeof(d->Info->bmiHeader);
+			d->Info->bmiHeader.biWidth = x;
+			d->Info->bmiHeader.biHeight = d->UpsideDown ? y : -y;
+			d->Info->bmiHeader.biPlanes = 1;
+			d->Info->bmiHeader.biSizeImage = LineLen * y;
+			d->Info->bmiHeader.biXPelsPerMeter = 3000;
+			d->Info->bmiHeader.biYPelsPerMeter = 3000;
+			d->Info->bmiHeader.biClrUsed = 0;
+			d->Info->bmiHeader.biClrImportant = 0;
+
+			uint32 *BitFeilds = (uint32*) d->Info->bmiColors;
+			switch (Cs)
 			{
-				LineLen = max((((x * Bits) + 31) / 32) * 4, LineLen);
-
-				d->Info->bmiHeader.biSize = sizeof(d->Info->bmiHeader);
-				d->Info->bmiHeader.biWidth = x;
-				d->Info->bmiHeader.biHeight = d->UpsideDown ? y : -y;
-				d->Info->bmiHeader.biPlanes = 1;
-				d->Info->bmiHeader.biBitCount = Bits;
-				d->Info->bmiHeader.biCompression = (Bits == 16 || Bits == 32) ? BI_BITFIELDS : BI_RGB;
-				d->Info->bmiHeader.biSizeImage = LineLen * y;
-				d->Info->bmiHeader.biXPelsPerMeter = 3000;
-				d->Info->bmiHeader.biYPelsPerMeter = 3000;
-				d->Info->bmiHeader.biClrUsed = 0;
-				d->Info->bmiHeader.biClrImportant = 0;
-
-				switch (Bits)
+				case CsIndex1:
+				case CsIndex4:
+				case CsIndex8:
 				{
-					case 8:
-					{
-						ColourSpace = CsIndex8;
-						break;
-					}
-					case 15:
-					{
-						ColourSpace = CsRgb15;
-						break;
-					}
-					case 16:
-					{
-						int *BitFeilds = (int*) d->Info->bmiColors;
-						BitFeilds[0] = 0xF800;
-						BitFeilds[1] = 0x07E0;
-						BitFeilds[2] = 0x001F;
-						ColourSpace = CsBgr16;
-						break;
-					}
-					case 24:
-					{
-						ColourSpace = CsBgr24;
-						break;
-					}
-					case 32:
-					{
-						int *BitFeilds = (int*) d->Info->bmiColors;
-						BitFeilds[0] = 0x00FF0000;
-						BitFeilds[1] = 0x0000FF00;
-						BitFeilds[2] = 0x000000FF;
-						ColourSpace = CsBgra32;
-						break;
-					}
-					default:
-					{
-						LgiAssert(!"Unknown colour space.");
-						break;
-					}
-				}
+					ColourSpace = Cs;
 
+					d->Info->bmiHeader.biBitCount = Bits;
+					d->Info->bmiHeader.biCompression = BI_RGB;
+					break;
+				}
+				case System15BitColourSpace:
+				{
+					ColourSpace = Cs;
+
+					BitFeilds[0] = 0x7C00;
+					BitFeilds[1] = 0x03E0;
+					BitFeilds[2] = 0x001F;
+
+					d->Info->bmiHeader.biBitCount = 16;
+					d->Info->bmiHeader.biCompression = BI_BITFIELDS;
+					break;
+				}
+				case System16BitColourSpace:
+				{
+					ColourSpace = Cs;
+
+					BitFeilds[0] = 0xF800;
+					BitFeilds[1] = 0x07E0;
+					BitFeilds[2] = 0x001F;
+
+					d->Info->bmiHeader.biBitCount = 16;
+					d->Info->bmiHeader.biCompression = BI_BITFIELDS;
+					break;
+				}
+				case System24BitColourSpace:
+				{
+					ColourSpace = Cs;
+
+					d->Info->bmiHeader.biBitCount = 24;
+					d->Info->bmiHeader.biCompression = BI_RGB;
+					break;
+				}
+				case System32BitColourSpace:
+				{
+					ColourSpace = Cs;
+
+					BitFeilds[0] = 0x00FF0000;
+					BitFeilds[1] = 0x0000FF00;
+					BitFeilds[2] = 0x000000FF;
+
+					d->Info->bmiHeader.biBitCount = 32;
+					d->Info->bmiHeader.biCompression = BI_BITFIELDS;
+					break;
+				}
+				default:
+				{
+					// Non-native colour space support...
+					break;
+				}
+			}
+			
+			if (ColourSpace)
+			{
+				// Native colour space support...
 				HDC hDC = GetDC(NULL);
 				if (hDC)
 				{
-					if (Bits == 8 && GdcD->GetBits())
+					if (Colours > 0 && GdcD->GetBits())
 					{
 						PALETTEENTRY Pal[256];
-						int Cols = 1 << Bits;
-						GetSystemPaletteEntries(hDC, 0, Cols, Pal);
-						for (int i=0; i<Cols; i++)
+						GetSystemPaletteEntries(hDC, 0, Colours, Pal);
+						for (int i=0; i<Colours; i++)
 						{
 							d->Info->bmiColors[i].rgbReserved = 0;
 							d->Info->bmiColors[i].rgbRed = Pal[i].peRed;
@@ -408,45 +425,45 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int LineLen, bool KeepData)
 
 				ReleaseDC(NULL, hDC);
 			}
-		}
-		else
-		{
-			ColourSpace = CsNone;
-			switch (Bits)
+			else
 			{
-				case 48:
-					#ifdef WIN32
-					ColourSpace = CsBgr48;
-					#else
-					ColourSpace = CsRgb48;
-					#endif
-					break;
-				case 64:
-					#ifdef WIN32
-					ColourSpace = CsBgra64;
-					#else
-					ColourSpace = CsRgba64;
-					#endif
-					break;
-				default:
-					LgiAssert(!"Unknown bitdepth.");
-					break;
-			}
-
-			if (ColourSpace)
-			{
-				// Non-native image data
-				pMem = new GBmpMem;
-				if (pMem)
+				// Non-native colour space support...
+				switch (Bits)
 				{
-					pMem->x = x;
-					pMem->y = y;
-					pMem->Line = ((x * Bits + 31) / 32) << 2;
-					pMem->Cs = ColourSpace;
-					pMem->Flags = GDC_OWN_MEMORY;
-					pMem->Base = new uchar[pMem->y * pMem->Line];
-					
-					Status = pMem->Base != NULL;
+					case 48:
+						#ifdef WIN32
+						ColourSpace = CsBgr48;
+						#else
+						ColourSpace = CsRgb48;
+						#endif
+						break;
+					case 64:
+						#ifdef WIN32
+						ColourSpace = CsBgra64;
+						#else
+						ColourSpace = CsRgba64;
+						#endif
+						break;
+					default:
+						LgiAssert(!"Unknown bitdepth.");
+						break;
+				}
+
+				if (ColourSpace)
+				{
+					// Non-native image data
+					pMem = new GBmpMem;
+					if (pMem)
+					{
+						pMem->x = x;
+						pMem->y = y;
+						pMem->Line = ((x * Bits + 31) / 32) << 2;
+						pMem->Cs = ColourSpace;
+						pMem->Flags = GDC_OWN_MEMORY;
+						pMem->Base = new uchar[pMem->y * pMem->Line];
+						
+						Status = pMem->Base != NULL;
+					}
 				}
 			}
 		}

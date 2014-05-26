@@ -3688,6 +3688,13 @@ void GTag::LayoutTable(GFlowRegion *f)
 		Cells->LayoutTable(f);
 }
 
+DeclGArrayCompare(GrowableCmp, int, GHtmlTableLayout*)
+{
+	int a_grow = param->MaxCol[*a] - param->MinCol[*a];
+	int b_grow = param->MaxCol[*b] - param->MinCol[*b];
+	return a_grow - b_grow;
+}
+
 void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 {
 	GdcPt2 s;
@@ -3698,7 +3705,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 		return;
 	}
 
-	GFont *Font = Table->Font;
+	GFont *Font = Table->GetFont();
 	Table->ZeroTableElements();
 	GCss::Len BdrSpacing = Table->BorderSpacing();
 	int CellSpacing = BdrSpacing.IsValid() ? (int)BdrSpacing.Value : 0;
@@ -3759,7 +3766,8 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 							int RequestedWidth = f->ResolveX(t->Width(), Font, false);
 							t->MinContent = max(t->MinContent, RequestedWidth);
 							t->MaxContent = max(t->MaxContent, RequestedWidth);
-							FixedCol[x] = true;
+							if (t->Span.x == 1)
+								FixedCol[x] = true;
 						}
 						
 						#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
@@ -3934,6 +3942,71 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 							However failing that we can use Unfixed columns.								
 							*/
 							int Total = t->MinContent - ColMin;
+							
+							if (Table->Debug)
+							{
+								int asd=0;
+							}
+
+							if (UnfixedGrowable.Length())
+							{
+								int GrowPx = 0;
+								int PxAdded = 0;
+
+								UnfixedGrowable.Sort(GrowableCmp, this);
+								for (int i=0; i<UnfixedGrowable.Length(); i++)
+								{
+									int Col = UnfixedGrowable[i];
+									GrowPx += MaxCol[Col] - MinCol[Col];
+								}
+
+								if (GrowPx > Total)
+								{
+									// We have to be smart about the allocation
+									for (int i=0; i<UnfixedGrowable.Length(); i++)
+									{
+										int Col = UnfixedGrowable[i];
+										bool LastCol = i == UnfixedGrowable.Length() - 1;
+										int Diff = MaxCol[Col] - MinCol[Col];
+										if (LastCol)
+										{
+											int RemainingPx = Total - PxAdded;
+											int Px = min(RemainingPx, Diff);
+											PxAdded += Px;
+											MinCol[Col] += Px;
+										}
+										else
+										{
+											double Ratio = (double)Diff / Total;
+											if (Ratio < 0.3)
+											{
+												// Smaller columns can go to their Max size
+												PxAdded += Diff;
+												MinCol[Col] = MaxCol[Col];
+											}
+											else
+											{
+												// Larger columns will only get some extra pixels
+												int RemainingPx = Total - PxAdded;
+												int RemainingCol = UnfixedGrowable.Length() - i;
+												LgiAssert(0);
+											}
+										}
+									}
+								}
+								else
+								{
+									// We can allocate all the pixels
+									for (int i=0; i<UnfixedGrowable.Length(); i++)
+									{
+										int Col = UnfixedGrowable[i];
+										PxAdded += MaxCol[Col] - MinCol[Col];
+										MinCol[Col] = MaxCol[Col];
+									}
+								}
+								
+								Total -= PxAdded;
+							}
 
 							if (Unfixed.Length())
 							{

@@ -471,6 +471,33 @@ public:
 		qsort(p, len, sizeof(Type), (qsort_compare)Compare);
 	}
 
+	// Sorts the array with a comparison function
+	#ifdef _MSC_VER
+	
+	#define DeclGArrayCompare(func_name, type, user_type) \
+		int func_name(user_type param, type *a, type *b)
+	
+	template<typename T>
+	void Sort(int (*Compare)(T *user_param, Type*, Type*), T *user_param)
+	{
+		typedef int (*qsort_s_compare)(void *, const void *, const void *);
+		qsort_s(p, len, sizeof(Type), (qsort_s_compare)Compare, user_param);
+	}
+	
+	#else
+	
+	#define DeclGArrayCompare(func_name, type, user_type) \
+		int func_name(type *a, type *b, user_type param)
+	
+	template<typename T>
+	void Sort(int (*Compare)(Type*, Type*, T *user_param), T *user_param)
+	{
+		typedef int (*qsort_r_compare)(const void *, const void *, void *);
+		qsort_r(p, len, sizeof(Type), (qsort_r_compare)Compare, user_param);
+	}
+	
+	#endif
+
 	/// \returns a reference to a new object on the end of the array
 	Type &New()
 	{
