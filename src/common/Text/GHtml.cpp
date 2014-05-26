@@ -3741,7 +3741,7 @@ void GHtmlTableLayout::AllocatePx(int StartCol, int Cols, int MinPx)
 	{
 		// Some growable columns...
 		int Added = 0;
-		for (int i=0; i<Growable.Length(); i++)
+		for (unsigned i=0; i<Growable.Length(); i++)
 		{
 			int x = Growable[i];
 			bool Last = i == Growable.Length() - 1;
@@ -3760,7 +3760,7 @@ void GHtmlTableLayout::AllocatePx(int StartCol, int Cols, int MinPx)
 				else if (DiffPx > 0)
 				{
 					double Ratio = (double)DiffPx / GrowablePx;
-					AddPx = Ratio * RemainingPx;
+					AddPx = (int) (Ratio * RemainingPx);
 				}
 				else
 				{
@@ -3894,7 +3894,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 		if (Table->Debug) \
 		{ \
 			LgiTrace("%s Ln%i - TotalX=%i AvailableX=%i\n", msg, __LINE__, TotalX, AvailableX); \
-			for (int i=0; i<MinCol.Length(); i++) \
+			for (unsigned i=0; i<MinCol.Length(); i++) \
 				LgiTrace("\t[%i] = %i/%i\n", i, MinCol[i], MaxCol[i]); \
 		}
 
