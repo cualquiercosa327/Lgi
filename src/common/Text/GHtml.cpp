@@ -3824,10 +3824,12 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 		LgiTrace("AvailableX=%i, BorderX1=%i, BorderX2=%i\n", AvailableX, BorderX1, BorderX2);
 	#endif
 
+	#ifdef _DEBUG
 	if (Table->Debug)
 	{
 		int asd=0;
 	}
+	#endif
 
 	// Size detection pass
 	GArray<float> Percents;
@@ -3904,10 +3906,12 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 
 	DumpCols("AfterSingleCells");
 
+	#ifdef _DEBUG
 	if (Table->Debug)
 	{
 		int asd=0;
 	}
+	#endif
 
 	// Process spanned cells
 	for (y=0; y<s.y; y++)
@@ -3951,10 +3955,12 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	TotalX = GetTotalX();
 	DumpCols("AfterSpannedCells");
 
+	#ifdef _DEBUG
 	if (Table->Debug)
 	{
 		int asd=0;
 	}
+	#endif
 	
 	// Do minimum column size from CSS values
 	for (int x=0; x<s.x; x++)
@@ -3974,10 +3980,12 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	TotalX = GetTotalX();
 	DumpCols("AfterCssSizes");
 	
+	#ifdef _DEBUG
 	if (Table->Debug)
 	{
 		int asd=0;
 	}
+	#endif
 	
 	if (TotalX > AvailableX)
 	{
@@ -4002,10 +4010,6 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	}
 	else if (TotalX < AvailableX)
 	{
-		if (Table->Debug)
-		{
-			int asd=0;
-		}
 		AllocatePx(0, s.x, AvailableX);
 		DumpCols("AfterRemainingAlloc");
 	}
