@@ -118,6 +118,13 @@ struct GHtmlTableLayout
 	typedef GArray<GTag*> CellArray;
 	GArray<CellArray> c;
 	GTag *Table;
+	GdcPt2 s;
+	GCss::Len TableWidth;
+	
+	// Various pixels sizes
+	int AvailableX;
+	int CellSpacing;
+	int BorderX1, BorderX2;
 
 	// The col and row sizes
 	GArray<int> MinCol, MaxCol, MaxRow;
@@ -129,7 +136,9 @@ struct GHtmlTableLayout
 	void GetAll(List<GTag> &All);
 	GTag *Get(int x, int y);
 	bool Set(GTag *t);
-	
+
+	int GetTotalX(int StartCol = 0, int Cols = -1);
+	void AllocatePx(int StartCol, int Cols, int MinPx);
 	void LayoutTable(GFlowRegion *f);
 	
 	void Dump();

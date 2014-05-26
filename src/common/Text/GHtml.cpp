@@ -3695,10 +3695,99 @@ DeclGArrayCompare(GrowableCmp, int, GHtmlTableLayout*)
 	return a_grow - b_grow;
 }
 
+void GHtmlTableLayout::AllocatePx(int StartCol, int Cols, int MinPx)
+{
+	// Get the existing size of the column set
+	int TotalX = GetTotalX(StartCol, Cols);
+	
+	// Calculate the maximum space we have for this column set
+	int AvailPx = AvailableX - BorderX1 - BorderX2;
+	for (int x=0; x<StartCol; x++)
+		AvailPx -= MinCol[x];
+	for (int x = StartCol + Cols; x < s.x; x++)
+		AvailPx -= MinCol[x];
+	
+	// Check there is more space?
+	if (TotalX >= AvailPx)
+	{
+		// No more space... so bail
+		return;
+	}
+
+	// Allocate any remaining space...
+	int RemainingPx = AvailPx - TotalX;
+	GArray<int> Growable, NonGrowable;
+	int GrowablePx = 0;
+	for (int x=0; x<s.x; x++)
+	{
+		int DiffPx = MaxCol[x] - MinCol[x];
+		if (DiffPx > 0)
+		{
+			GrowablePx += DiffPx;
+			Growable.Add(x);
+		}
+		else if (MinCol[x] > 0)
+		{
+			NonGrowable.Add(x);
+		}
+	}
+	if (GrowablePx < RemainingPx && TableWidth.IsValid())
+	{
+		// Add the non-growable columns as well
+		Growable.Add(NonGrowable);
+	}
+	
+	if (Growable.Length())
+	{
+		// Some growable columns...
+		int Added = 0;
+		for (int i=0; i<Growable.Length(); i++)
+		{
+			int x = Growable[i];
+			bool Last = i == Growable.Length() - 1;
+			if (Last)
+			{
+				MinCol[x] += RemainingPx - Added;
+			}
+			else
+			{
+				int DiffPx = MaxCol[x] - MinCol[x];
+				int AddPx = 0;
+				if (GrowablePx < RemainingPx)
+				{
+					AddPx = DiffPx;
+				}
+				else if (DiffPx > 0)
+				{
+					double Ratio = (double)DiffPx / GrowablePx;
+					AddPx = Ratio * RemainingPx;
+				}
+				else
+				{
+					AddPx = RemainingPx / Growable.Length();
+				}
+									
+				MinCol[x] += AddPx;
+				Added += AddPx;
+			}
+		}
+	}
+}
+
+int GHtmlTableLayout::GetTotalX(int StartCol, int Cols)
+{
+	if (Cols < 0)
+		Cols = s.x;
+	
+	int TotalX = BorderX1 + BorderX2 + CellSpacing;
+	for (int x=StartCol; x<Cols; x++)
+		TotalX += MinCol[x] + CellSpacing;
+	
+	return TotalX;
+}
+
 void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 {
-	GdcPt2 s;
-
 	GetSize(s.x, s.y);
 	if (s.x == 0 || s.y == 0)
 	{
@@ -3713,11 +3802,11 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	SizeCol.Length(0);
 	
 	GCss::Len BdrSpacing = Table->BorderSpacing();
-	int CellSpacing = BdrSpacing.IsValid() ? (int)BdrSpacing.Value : 0;
+	CellSpacing = BdrSpacing.IsValid() ? (int)BdrSpacing.Value : 0;
 
 	// Resolve total table width.
-	GCss::Len TableWidth = Table->Width();
-	int AvailableX = f->ResolveX(TableWidth, Font, false);
+	TableWidth = Table->Width();
+	AvailableX = f->ResolveX(TableWidth, Font, false);
 	GCss::Len MaxWidth = Table->MaxWidth();
 	if (MaxWidth.IsValid())
 	{
@@ -3727,9 +3816,9 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	}
 	
 	GCss::Len Border = Table->BorderLeft();
-	int BorderX1 = Border.IsValid() ? f->ResolveX(Border, Font, false) : 0;
+	BorderX1 = Border.IsValid() ? f->ResolveX(Border, Font, false) : 0;
 	Border = Table->BorderRight();
-	int BorderX2 = Border.IsValid() ? f->ResolveX(Border, Font, false) : 0;
+	BorderX2 = Border.IsValid() ? f->ResolveX(Border, Font, false) : 0;
 	#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 	if (Table->Debug)
 		LgiTrace("AvailableX=%i, BorderX1=%i, BorderX2=%i\n", AvailableX, BorderX1, BorderX2);
@@ -3753,7 +3842,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 				if (t->Cell.x == x && t->Cell.y == y)
 				{
 					GCss::Len Wid = t->Width();
-					if (Wid.IsValid())
+					if (Wid.IsValid() && t->Span.x == 1)
 					{
 						if (Wid.Type == GCss::LenPercent)
 							Percents[x] = Wid.Value;
@@ -3798,25 +3887,27 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	}
 	
 	// How much space used so far?
-	int TotalX = BorderX1 + BorderX2 + CellSpacing;
-	for (int x=0; x<s.x; x++)
-		TotalX += MinCol[x] + CellSpacing;
+	int TotalX = GetTotalX();
 
 	#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
-	#define DumpCols() \
+	#define DumpCols(msg) \
 		if (Table->Debug) \
 		{ \
-			LgiTrace("%s:%i - Columns TotalX=%i AvailableX=%i\n", _FL, TotalX, AvailableX); \
+			LgiTrace("%s Ln%i - TotalX=%i AvailableX=%i\n", msg, __LINE__, TotalX, AvailableX); \
 			for (int i=0; i<MinCol.Length(); i++) \
-			{ \
 				LgiTrace("\t[%i] = %i/%i\n", i, MinCol[i], MaxCol[i]); \
-			} \
 		}
 
-	DumpCols();
 	#else
-	#define DumpCols()
+	#define DumpCols(msg)
 	#endif
+
+	DumpCols("AfterSingleCells");
+
+	if (Table->Debug)
+	{
+		int asd=0;
+	}
 
 	// Process spanned cells
 	for (y=0; y<s.y; y++)
@@ -3836,9 +3927,17 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 						ColMin += MinCol[x + i] + CellSpacing;
 						ColMax += MaxCol[x + i] + CellSpacing;
 					}
+					
+					GCss::Len Width = t->Width();
+					if (Width.IsValid())
+					{
+						int Px = f->ResolveX(Width, Font, false);
+						t->MinContent = max(t->MinContent, Px);
+						t->MaxContent = max(t->MaxContent, Px);
+					}
 
 					if (t->MinContent > ColMin)
-						DistributeSize(MinCol, t->Cell.x, t->Span.x, t->MinContent, CellSpacing);
+						AllocatePx(t->Cell.x, t->Span.x, t->MinContent);
 					if (t->MaxContent > ColMax)
 						DistributeSize(MaxCol, t->Cell.x, t->Span.x, t->MaxContent, CellSpacing);
 				}
@@ -3849,10 +3948,13 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 		}
 	}
 
-	TotalX = BorderX1 + BorderX2 + CellSpacing;
-	for (int x=0; x<s.x; x++)
-		TotalX += MinCol[x] + CellSpacing;
-	DumpCols();
+	TotalX = GetTotalX();
+	DumpCols("AfterSpannedCells");
+
+	if (Table->Debug)
+	{
+		int asd=0;
+	}
 	
 	// Do minimum column size from CSS values
 	for (int x=0; x<s.x; x++)
@@ -3869,10 +3971,13 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 		}
 	}	
 
-	TotalX = BorderX1 + BorderX2 + CellSpacing;
-	for (int x=0; x<s.x; x++)
-		TotalX += MinCol[x] + CellSpacing;
-	DumpCols();
+	TotalX = GetTotalX();
+	DumpCols("AfterCssSizes");
+	
+	if (Table->Debug)
+	{
+		int asd=0;
+	}
 	
 	if (TotalX > AvailableX)
 	{
@@ -3893,7 +3998,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 			TotalX -= Take;
 		}
 
-		DumpCols();
+		DumpCols("AfterSpaceDealloc");
 	}
 	else if (TotalX < AvailableX)
 	{
@@ -3960,9 +4065,9 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 				}
 			}
 		}
-	}
 
-	DumpCols();
+		DumpCols("AfterRemainingAlloc");
+	}
 	
 	// Layout cell horizontally and then flow the contents to get 
 	// the height of all the cells
@@ -4107,8 +4212,6 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 		Cx = LeftMargin;
 		Cy += MaxRow[y] + CellSpacing;
 	}
-
-	DumpCols();
 
 	switch (Table->XAlign ? Table->XAlign : ToTag(Table->Parent)->GetAlign(true))
 	{
