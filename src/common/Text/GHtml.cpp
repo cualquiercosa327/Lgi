@@ -3707,22 +3707,23 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 
 	GFont *Font = Table->GetFont();
 	Table->ZeroTableElements();
-	GCss::Len BdrSpacing = Table->BorderSpacing();
-	int CellSpacing = BdrSpacing.IsValid() ? (int)BdrSpacing.Value : 0;
-	GCss::Len Wid = Table->Width();
-	int AvailableX = f->ResolveX(Wid, Font, false);
-
 	MinCol.Length(0);
 	MaxCol.Length(0);
 	MaxRow.Length(0);
-	FixedCol.Length(0);
+	SizeCol.Length(0);
 	
+	GCss::Len BdrSpacing = Table->BorderSpacing();
+	int CellSpacing = BdrSpacing.IsValid() ? (int)BdrSpacing.Value : 0;
+
+	// Resolve total table width.
+	GCss::Len TableWidth = Table->Width();
+	int AvailableX = f->ResolveX(TableWidth, Font, false);
 	GCss::Len MaxWidth = Table->MaxWidth();
 	if (MaxWidth.IsValid())
 	{
-	    int m = f->ResolveX(MaxWidth, Font, false);
-	    if (m < AvailableX)
-	        AvailableX = m;
+	    int Px = f->ResolveX(MaxWidth, Font, false);
+	    if (Px < AvailableX)
+	        AvailableX = Px;
 	}
 	
 	GCss::Len Border = Table->BorderLeft();
@@ -3734,7 +3735,13 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 		LgiTrace("AvailableX=%i, BorderX1=%i, BorderX2=%i\n", AvailableX, BorderX1, BorderX2);
 	#endif
 
+	if (Table->Debug)
+	{
+		int asd=0;
+	}
+
 	// Size detection pass
+	GArray<float> Percents;
 	int y;
 	for (y=0; y<s.y; y++)
 	{
@@ -3746,35 +3753,36 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 				if (t->Cell.x == x && t->Cell.y == y)
 				{
 					GCss::Len Wid = t->Width();
-					if (!t->Width().IsDynamic() &&
-						!t->MinContent &&
-						!t->MaxContent)
+					if (Wid.IsValid())
 					{
-						if ((int)FixedCol.Length() < x)
-						{
-							FixedCol[x] = false;
-						}
+						if (Wid.Type == GCss::LenPercent)
+							Percents[x] = Wid.Value;
 						
-						if (!t->GetWidthMetrics(t->MinContent, t->MaxContent))
+						if (SizeCol[x].IsValid())
 						{
-							t->MinContent = 16;
-							t->MaxContent = 16;
+							int OldPx = f->ResolveX(SizeCol[x], Font, false);
+							int NewPx = f->ResolveX(Wid, Font, false);
+							if (NewPx > OldPx)
+							{
+								SizeCol[x] = Wid;
+							}
 						}
-						
-						if (t->Width().IsValid())
+						else
 						{
-							int RequestedWidth = f->ResolveX(t->Width(), Font, false);
-							t->MinContent = max(t->MinContent, RequestedWidth);
-							t->MaxContent = max(t->MaxContent, RequestedWidth);
-							if (t->Span.x == 1)
-								FixedCol[x] = true;
+							SizeCol[x] = Wid;
 						}
-						
-						#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
-						if (Table->Debug)
-							LgiTrace("Content[%i,%i] min=%i max=%i\n", x, y, t->MinContent, t->MaxContent);
-						#endif
 					}
+					
+					if (!t->GetWidthMetrics(t->MinContent, t->MaxContent))
+					{
+						t->MinContent = 16;
+						t->MaxContent = 16;
+					}
+					
+					#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
+					if (Table->Debug)
+						LgiTrace("Content[%i,%i] min=%i max=%i\n", x, y, t->MinContent, t->MaxContent);
+					#endif
 
 					if (t->Span.x == 1)
 					{
@@ -3791,105 +3799,19 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	
 	// How much space used so far?
 	int TotalX = BorderX1 + BorderX2 + CellSpacing;
-	int x;
-	for (x=0; x<s.x; x++)
-	{
+	for (int x=0; x<s.x; x++)
 		TotalX += MinCol[x] + CellSpacing;
-	}
 
 	#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
-	if (Table->Debug)
-		LgiTrace("Detect: TotalX=%i\n", TotalX);
-	#endif
-	
-	// Process dynamic width cells
-	GArray<float> Percents;
-	for (y=0; y<s.y; y++)
-	{
-		for (int x=0; x<s.x; )
-		{
-			GTag *t = Get(x, y);
-			if (t)
-			{
-				if (t->Cell.x == x && t->Cell.y == y)
-				{
-					if (t->Width().IsDynamic() &&
-						!t->MinContent &&
-						!t->MaxContent)
-					{	
-						GCss::Len w = t->Width();
-						if (w.Type == GCss::LenPercent)
-						{
-							Percents[t->Cell.x] = max(w.Value, Percents[t->Cell.x]);
-						}
-						
-						float Total = Sum<float>(Percents);
-						if (Total > 100.0)
-						{
-							// Yarrrrh. The web be full of incongruity.
-							float Sub = Total - 100.0f;
-							Percents[Percents.Length()-1] -= Sub;
-
-							char p[32];
-							const char *s = p;
-							sprintf_s(p, sizeof(p), "%.1f%%", Percents[Percents.Length()-1]);
-							t->Width().Parse(s);
-						}
-
-						t->GetWidthMetrics(t->MinContent, t->MaxContent);
-						
-						int x = w.IsValid() ? f->ResolveX(w, Font, false) : 0;
-						//t->MinContent = max(x, t->MinContent);
-						t->MaxContent = max(x, t->MaxContent);
-						
-						#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
-						if (Table->Debug)
-							LgiTrace("DynWidth [%i,%i] = %i->%i\n", t->Cell.x, t->Cell.y, t->MinContent, t->MaxContent);
-						#endif
-					}
-					else
-					{
-						uint16 Min = t->MinContent;
-						uint16 Max = t->MaxContent;
-						t->GetWidthMetrics(Min, Max);
-						if (Min > t->MinContent)
-							t->MinContent = Min;
-						if (Min > t->MaxContent)
-							t->MaxContent = Min;
-					}
-
-					if (t->Span.x == 1)
-					{
-						MinCol[x] = max(MinCol[x], t->MinContent);
-						MaxCol[x] = max(MaxCol[x], t->MaxContent);
-					}
-				}
-				
-				x += t->Span.x;
-			}
-			else break;
-		}
-	}
-
-	TotalX = BorderX1 + BorderX2 + CellSpacing;
-	for (x=0; x<s.x; x++)
-	{
-		TotalX += MinCol[x] + CellSpacing;
-	}
-
-	#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
-	if (Table->Debug)
-		LgiTrace("Dynamic: TotalX=%i\n", TotalX);
-	
 	#define DumpCols() \
-	if (Table->Debug) \
-	{ \
-		LgiTrace("%s:%i - Columns TotalX=%i AvailableX=%i\n", _FL, TotalX, AvailableX); \
-		for (int i=0; i<MinCol.Length(); i++) \
+		if (Table->Debug) \
 		{ \
-			LgiTrace("\t[%i] = %i/%i\n", i, MinCol[i], MaxCol[i]); \
-		} \
-	}
+			LgiTrace("%s:%i - Columns TotalX=%i AvailableX=%i\n", _FL, TotalX, AvailableX); \
+			for (int i=0; i<MinCol.Length(); i++) \
+			{ \
+				LgiTrace("\t[%i] = %i/%i\n", i, MinCol[i], MaxCol[i]); \
+			} \
+		}
 
 	DumpCols();
 	#else
@@ -3897,183 +3819,64 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	#endif
 
 	// Process spanned cells
-	if (TotalX < AvailableX)
+	for (y=0; y<s.y; y++)
 	{
-		for (y=0; y<s.y; y++)
+		for (int x=0; x<s.x; )
 		{
-			for (int x=0; x<s.x; )
+			GTag *t = Get(x, y);
+			if (t && t->Cell.x == x && t->Cell.y == y)
 			{
-				GTag *t = Get(x, y);
-				if (t && t->Cell.x == x && t->Cell.y == y)
+				if (t->Span.x > 1 || t->Span.y > 1)
 				{
-					if (t->Span.x > 1 || t->Span.y > 1)
+					int i;
+					int ColMin = -CellSpacing;
+					int ColMax = -CellSpacing;
+					for (i=0; i<t->Span.x; i++)
 					{
-						int i;
-						int ColMin = -CellSpacing;
-						int ColMax = -CellSpacing;
-						for (i=0; i<t->Span.x; i++)
-						{
-							ColMin += MinCol[x + i] + CellSpacing;
-							ColMax += MaxCol[x + i] + CellSpacing;
-						}
-
-						// Generate an array of unfixed column indexes
-						GArray<int> UnfixedGrowable, Unfixed;
-						for (i = 0; i < t->Span.x; i++)
-						{
-							int Idx = x + i;
-							if (!FixedCol[Idx])
-							{
-								if (MinCol[Idx] < MaxCol[Idx])
-									UnfixedGrowable.Add(Idx);
-								else
-									Unfixed.Add(Idx);
-							}
-						}
-						
-						// Bump out minimums
-						if (ColMin < t->MinContent)
-						{
-							/*
-							At this point we need to distribute 't->MinContent' between this cell's
-							spanned columns. Suitable columns are:
-							- those that have MinCol < MaxCol
-							- aren't fixed
-							However failing that we can use Unfixed columns.								
-							*/
-							int Total = t->MinContent - ColMin;
-							
-							if (Table->Debug)
-							{
-								int asd=0;
-							}
-
-							if (UnfixedGrowable.Length())
-							{
-								int GrowPx = 0;
-								int PxAdded = 0;
-
-								UnfixedGrowable.Sort(GrowableCmp, this);
-								for (int i=0; i<UnfixedGrowable.Length(); i++)
-								{
-									int Col = UnfixedGrowable[i];
-									GrowPx += MaxCol[Col] - MinCol[Col];
-								}
-
-								if (GrowPx > Total)
-								{
-									// We have to be smart about the allocation
-									for (int i=0; i<UnfixedGrowable.Length(); i++)
-									{
-										int Col = UnfixedGrowable[i];
-										bool LastCol = i == UnfixedGrowable.Length() - 1;
-										int Diff = MaxCol[Col] - MinCol[Col];
-										if (LastCol)
-										{
-											int RemainingPx = Total - PxAdded;
-											int Px = min(RemainingPx, Diff);
-											PxAdded += Px;
-											MinCol[Col] += Px;
-										}
-										else
-										{
-											double Ratio = (double)Diff / Total;
-											if (Ratio < 0.3)
-											{
-												// Smaller columns can go to their Max size
-												PxAdded += Diff;
-												MinCol[Col] = MaxCol[Col];
-											}
-											else
-											{
-												// Larger columns will only get some extra pixels
-												int RemainingPx = Total - PxAdded;
-												int RemainingCol = UnfixedGrowable.Length() - i;
-												LgiAssert(0);
-											}
-										}
-									}
-								}
-								else
-								{
-									// We can allocate all the pixels
-									for (int i=0; i<UnfixedGrowable.Length(); i++)
-									{
-										int Col = UnfixedGrowable[i];
-										PxAdded += MaxCol[Col] - MinCol[Col];
-										MinCol[Col] = MaxCol[Col];
-									}
-								}
-								
-								Total -= PxAdded;
-							}
-
-							if (Unfixed.Length())
-							{
-								int Add = Total / Unfixed.Length();
-								for (unsigned i=0; i<Unfixed.Length(); i++)
-								{
-									int a = i ? Add : Total - (Add * (Unfixed.Length() - 1));
-									
-									MinCol[Unfixed[i]] = MinCol[Unfixed[i]] + a;
-									TotalX += a;
-								}
-							}
-							else
-							{
-								int Add = Total / t->Span.x;
-								for (i=0; i<t->Span.x; i++)
-								{
-									int a = i ? Add : Total - (Add * (t->Span.x - 1));
-									MinCol[x + i] = MinCol[x + i] + a;
-									TotalX += a;
-								}
-							}
-						}
-
-						// Bump out maximums
-						if (t->MaxContent > ColMin)
-						{
-							int MaxAdd = t->MaxContent - ColMin;
-							int MaxAvail = AvailableX > TotalX ? AvailableX - TotalX : 0;
-							int Total = min(MaxAdd, MaxAvail);
-							
-							if (Unfixed.Length())
-							{
-								int Add = Total / Unfixed.Length();
-								for (unsigned i=0; i<Unfixed.Length(); i++)
-								{
-									int a = i ? Add : Total - (Add * (Unfixed.Length() - 1));
-
-									MinCol[Unfixed[i]] = MinCol[Unfixed[i]] + a;
-									TotalX += a;
-								}
-							}
-							else
-							{
-								int Add = Total / t->Span.x;
-								for (i=0; i<t->Span.x; i++)
-								{
-									int a = i ? Add : Total - (Add * (t->Span.x - 1));
-									MinCol[x + i] = MinCol[x + i] + a;
-									TotalX += a;
-								}
-							}
-						}
+						ColMin += MinCol[x + i] + CellSpacing;
+						ColMax += MaxCol[x + i] + CellSpacing;
 					}
 
-					x += t->Span.x;
+					if (t->MinContent > ColMin)
+						DistributeSize(MinCol, t->Cell.x, t->Span.x, t->MinContent, CellSpacing);
+					if (t->MaxContent > ColMax)
+						DistributeSize(MaxCol, t->Cell.x, t->Span.x, t->MaxContent, CellSpacing);
 				}
-				else break;
+
+				x += t->Span.x;
 			}
+			else break;
 		}
 	}
 
+	TotalX = BorderX1 + BorderX2 + CellSpacing;
+	for (int x=0; x<s.x; x++)
+		TotalX += MinCol[x] + CellSpacing;
 	DumpCols();
 	
-	// Deallocate space if overused
+	// Do minimum column size from CSS values
+	for (int x=0; x<s.x; x++)
+	{
+		GCss::Len w = SizeCol[x];
+		if (w.IsValid())
+		{
+			int Px = f->ResolveX(w, Font, false);
+			if (Px > MinCol[x])
+			{
+				TotalX += Px - MinCol[x];
+				MinCol[x] = Px;
+			}
+		}
+	}	
+
+	TotalX = BorderX1 + BorderX2 + CellSpacing;
+	for (int x=0; x<s.x; x++)
+		TotalX += MinCol[x] + CellSpacing;
+	DumpCols();
+	
 	if (TotalX > AvailableX)
 	{
+		// Deallocate space if overused
 		// Take some from the largest column
 		int Largest = 0;
 		for (int i=0; i<s.x; i++)
@@ -4089,91 +3892,83 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 			MinCol[Largest] = MinCol[Largest] - Take;
 			TotalX -= Take;
 		}
+
+		DumpCols();
 	}
-
-	DumpCols();
-
-	// Allocate any unused but available space...
-	if (TotalX < AvailableX)
+	else if (TotalX < AvailableX)
 	{
-		// Some available space still
-		// printf("Alloc unused space, Total=%i Available=%i\n", TotalX, AvailableX);
-
-		// Allocate to columns that fully fit
-		int LaidOut = 0;
-		for (int x=0; x<s.x; x++)
+		if (Table->Debug)
 		{
-			int NeedsX = MaxCol[x] - MinCol[x];
-			// printf("Max-Min: %i-%i = %i\n", MaxCol[x], MinCol[x], NeedsX);
-			if (NeedsX > 0 && NeedsX < AvailableX - TotalX)
-			{
-				MinCol[x] = MinCol[x] + NeedsX;
-				TotalX += NeedsX;
-				LaidOut++;
-			}
+			int asd=0;
 		}
 
-		// Allocate to columns that still need room
-		int RemainingCols = s.x - LaidOut;
-		if (RemainingCols > 0)
+		// Allocate any remaining space...
+		int RemainingPx = AvailableX - TotalX;
+		GArray<int> Growable, NonGrowable;
+		int GrowablePx = 0;
+		for (int x=0; x<s.x; x++)
 		{
-			int SpacePerCol = (AvailableX - TotalX) / RemainingCols;
-			if (SpacePerCol > 0)
+			int DiffPx = MaxCol[x] - MinCol[x];
+			if (DiffPx > 0)
 			{
-				for (int x=0; x<s.x; x++)
-				{
-					int NeedsX = MaxCol[x] - MinCol[x];
-					if (NeedsX > 0)
-					{
-						MinCol[x] = MinCol[x] + SpacePerCol;
-						TotalX += SpacePerCol;
-					}
-				}
+				GrowablePx += DiffPx;
+				Growable.Add(x);
 			}
+			else
+			{
+				NonGrowable.Add(x);
+			}
+		}
+		if (GrowablePx < RemainingPx && TableWidth.IsValid())
+		{
+			// Add the non-growable columns as well
+			Growable.Add(NonGrowable);
 		}
 		
-		#if 1
-		if (TotalX < AvailableX)
-		#else
-		if (TotalX < AvailableX && Width().IsValid())
-		#endif
+		if (Growable.Length())
 		{
-			// Force allocation of space
-
-			// Add some to the largest column
-			int Largest = 0;
-			for (int i=0; i<s.x; i++)
+			// Some growable columns...
+			int Added = 0;
+			for (int i=0; i<Growable.Length(); i++)
 			{
-				if (MinCol[i] > MinCol[Largest])
+				int x = Growable[i];
+				bool Last = i == Growable.Length() - 1;
+				if (Last)
 				{
-					Largest = i;
+					MinCol[x] += RemainingPx - Added;
+				}
+				else
+				{
+					int DiffPx = MaxCol[x] - MinCol[x];
+					int AddPx = 0;
+					if (GrowablePx < RemainingPx)
+					{
+						AddPx = DiffPx;
+					}
+					else if (DiffPx > 0)
+					{
+						double Ratio = (double)DiffPx / GrowablePx;
+						AddPx = Ratio * RemainingPx;
+					}
+					else
+					{
+						AddPx = RemainingPx / Growable.Length();
+					}
+										
+					MinCol[x] += AddPx;
+					Added += AddPx;
 				}
 			}
-			int Add = AvailableX - TotalX;
-			MinCol[Largest] = MinCol[Largest] + Add;
-			TotalX += Add;
-		}
-	}
-
-	DumpCols();
-
-	// Allocate remaining space if explicit table width
-	if (Table->Width().IsValid() &&
-		TotalX < AvailableX)
-	{
-		int Add = (AvailableX - TotalX) / s.x;
-		for (int x=0; x<s.x; x++)
-		{
-			MinCol[x] = MinCol[x] + Add;
-			TotalX += Add;
 		}
 	}
 
 	DumpCols();
 	
-	// Layout cell contents to get the height of all the cells
+	// Layout cell horizontally and then flow the contents to get 
+	// the height of all the cells
 	for (y=0; y<s.y; y++)
 	{
+		int XPos = CellSpacing;
 		for (int x=0; x<s.x; )
 		{
 			GTag *t = Get(x, y);
@@ -4181,10 +3976,16 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 			{
 				if (t->Cell.x == x && t->Cell.y == y)
 				{
+					t->Pos.x = XPos;
+					t->Size.x = -CellSpacing;
+					
 					GRect Box(0, 0, -CellSpacing, 0);
 					for (int i=0; i<t->Span.x; i++)
 					{
-						Box.x2 += MinCol[x+i] + CellSpacing;
+						int ColSize = MinCol[x + i] + CellSpacing;
+						t->Size.x += ColSize;
+						XPos += ColSize;
+						Box.x2 += ColSize;
 					}
 					
 					GCss::Len Ht = t->Height();

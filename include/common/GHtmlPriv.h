@@ -121,7 +121,7 @@ struct GHtmlTableLayout
 
 	// The col and row sizes
 	GArray<int> MinCol, MaxCol, MaxRow;
-	GArray<bool> FixedCol;
+	GArray<GCss::Len> SizeCol;
 
 	GHtmlTableLayout(GTag *table);
 
