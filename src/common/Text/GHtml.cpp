@@ -3455,13 +3455,14 @@ GTag *GTag::GetTableCell(int x, int y)
 bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 {
 	bool Status = true;
+	int MarginPx = 0;
 
 	// Break the text into words and measure...
 	if (Text())
 	{
 		int MinContent = 0;
 		int MaxContent = 0;
-		
+
 		GFont *f = GetFont();
 		if (f)
 		{
@@ -3477,13 +3478,19 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 				// Find size of the word
 				int Len = e - s;
 				GDisplayString ds(f, s, Len);
-				int X = ds.X();
-				MinContent = max(MinContent, X);
-				MaxContent += MaxContent ? X + 4 : X;
+				MinContent = max(MinContent, ds.X());
 				
 				// Move to the next word.
 				s = (*e) ? e + 1 : 0;
 			}
+
+			GDisplayString ds(f, Text());
+			MaxContent = ds.X();
+		}
+
+		if (Debug)
+		{
+			LgiTrace("GetWidthMetrics Font=%p Sz=%i,%i\n", f, MinContent, MaxContent);
 		}
 		
 		Min = max(Min, MinContent);
@@ -3537,10 +3544,8 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 				GCss::Len PLeft = PaddingLeft();
 				GCss::Len PRight = PaddingRight();
 				
-				int Add = (int)(PLeft.ToPx()  +
+				MarginPx = (int)(PLeft.ToPx()  +
 								PRight.ToPx() );
-				Min += Add;
-				Max += Add;
 			}
 			break;
 		}
@@ -3616,21 +3621,8 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 		Max = max(Max, Width);
 	}
 
-	/*
-	switch (TagId)
-	{
-		default: break;
-		case TAG_TD:
-		{
-			GCss::Len PLeft = PaddingLeft();
-			GCss::Len PRight = PaddingRight();
-			int Add = (int) (PLeft.ToPx() + PRight.ToPx());
-			Min += Add;
-			Max += Add;
-			break;
-		}
-	}
-	*/
+	Min += MarginPx;
+	Max += MarginPx;
 	
 	return Status;
 }
@@ -3716,9 +3708,9 @@ void GHtmlTableLayout::AllocatePx(int StartCol, int Cols, int MinPx)
 
 	// Allocate any remaining space...
 	int RemainingPx = AvailPx - TotalX;
-	GArray<int> Growable, NonGrowable;
+	GArray<int> Growable, NonGrowable, SizeInherit;
 	int GrowablePx = 0;
-	for (int x=0; x<s.x; x++)
+	for (int x=StartCol; x<StartCol+Cols; x++)
 	{
 		int DiffPx = MaxCol[x] - MinCol[x];
 		if (DiffPx > 0)
@@ -3730,45 +3722,97 @@ void GHtmlTableLayout::AllocatePx(int StartCol, int Cols, int MinPx)
 		{
 			NonGrowable.Add(x);
 		}
+		
+		if (SizeCol[x].Type == GCss::LenInherit)
+			SizeInherit.Add(x);
 	}
 	if (GrowablePx < RemainingPx && TableWidth.IsValid())
 	{
-		// Add the non-growable columns as well
-		Growable.Add(NonGrowable);
+		// Add any suitable non-growable columns as well
+		for (int i=0; i<NonGrowable.Length(); i++)
+		{
+			int Col = NonGrowable[i];
+			
+			GCss::Len c = SizeCol[Col];
+			if (c.Type != GCss::LenPercent && c.IsDynamic())
+				Growable.Add(Col);
+		}
+		
+		if (Growable.Length() == 0)
+		{
+			// Still nothing to grow... so just pick the largest column
+			int Largest = -1;
+			for (int i=StartCol; i<StartCol+Cols; i++)
+			{
+				if (Largest < 0 || MinCol[i] > MinCol[Largest])
+					Largest = i;
+			}
+			Growable.Add(Largest);
+		}
 	}
 	
 	if (Growable.Length())
 	{
 		// Some growable columns...
 		int Added = 0;
+
+		// Reasonably increase the size of the columns...
 		for (unsigned i=0; i<Growable.Length(); i++)
 		{
 			int x = Growable[i];
-			bool Last = i == Growable.Length() - 1;
-			if (Last)
+			int DiffPx = MaxCol[x] - MinCol[x];
+			int AddPx = 0;
+			if (GrowablePx < RemainingPx && DiffPx > 0)
 			{
-				MinCol[x] += RemainingPx - Added;
+				AddPx = DiffPx;
+			}
+			else if (DiffPx > 0)
+			{
+				double Ratio = (double)DiffPx / GrowablePx;
+				AddPx = (int) (Ratio * RemainingPx);
 			}
 			else
 			{
-				int DiffPx = MaxCol[x] - MinCol[x];
-				int AddPx = 0;
-				if (GrowablePx < RemainingPx)
+				AddPx = RemainingPx / Growable.Length();
+			}
+								
+			MinCol[x] += AddPx;
+			Added += AddPx;
+		}
+
+		if (Added < RemainingPx)
+		{
+			// Still more to add, so
+			if (SizeInherit.Length())
+			{
+				Growable = SizeInherit;
+			}
+			else
+			{
+				int Largest = -1;
+				for (unsigned i=0; i<Growable.Length(); i++)
 				{
-					AddPx = DiffPx;
+					int x = Growable[i];
+					if (Largest < 0 || MinCol[x] > MinCol[Largest])
+						Largest = x;
 				}
-				else if (DiffPx > 0)
+				Growable.Length(1);
+				Growable[0] = Largest;
+			}
+
+			int AddPx = (RemainingPx - Added) / Growable.Length();
+			for (unsigned i=0; i<Growable.Length(); i++)
+			{
+				int x = Growable[i];
+				if (i == Growable.Length() - 1)
 				{
-					double Ratio = (double)DiffPx / GrowablePx;
-					AddPx = (int) (Ratio * RemainingPx);
+					MinCol[x] += RemainingPx - Added;
 				}
 				else
 				{
-					AddPx = RemainingPx / Growable.Length();
+					MinCol[x] += AddPx;
+					Added += AddPx;
 				}
-									
-				MinCol[x] += AddPx;
-				Added += AddPx;
 			}
 		}
 	}
@@ -3864,6 +3908,11 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 						}
 					}
 					
+					if (t->Debug)
+					{
+						int asd=0;
+					}
+					
 					if (!t->GetWidthMetrics(t->MinContent, t->MaxContent))
 					{
 						t->MinContent = 16;
@@ -3940,6 +3989,11 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 						t->MaxContent = max(t->MaxContent, Px);
 					}
 
+					if (Table->Debug)
+					{
+						int asd=0;
+					}
+
 					if (t->MinContent > ColMin)
 						AllocatePx(t->Cell.x, t->Span.x, t->MinContent);
 					if (t->MaxContent > ColMax)
@@ -4010,6 +4064,11 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	}
 	else if (TotalX < AvailableX)
 	{
+		if (Table->Debug)
+		{
+			int asd=0;
+		}
+		
 		AllocatePx(0, s.x, AvailableX);
 		DumpCols("AfterRemainingAlloc");
 	}
@@ -4028,6 +4087,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 				{
 					t->Pos.x = XPos;
 					t->Size.x = -CellSpacing;
+					XPos -= CellSpacing;
 					
 					GRect Box(0, 0, -CellSpacing, 0);
 					for (int i=0; i<t->Span.x; i++)
@@ -4041,6 +4101,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 					GCss::Len Ht = t->Height();
 					GFlowRegion r(Table->Html, Box);
 					int Rx = r.X();
+					
 					t->OnFlow(&r);
 					
 					if (Ht.IsValid() &&
@@ -4720,7 +4781,9 @@ void GTag::OnFlow(GFlowRegion *Flow)
 			}
 
 			// Flow in the rest of the text...
-			TextPos.FlowText(this, Flow, f, LineHeightCache, Text(), GetAlign(true));
+			char16 *Txt = Text();
+			GCss::LengthType Align = GetAlign(true);
+			TextPos.FlowText(this, Flow, f, LineHeightCache, Txt, Align);
 		}
 	}
 
