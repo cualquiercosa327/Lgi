@@ -3488,10 +3488,12 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 			MaxContent = ds.X();
 		}
 
+		#ifdef _DEBUG
 		if (Debug)
 		{
 			LgiTrace("GetWidthMetrics Font=%p Sz=%i,%i\n", f, MinContent, MaxContent);
 		}
+		#endif
 		
 		Min = max(Min, MinContent);
 		Max = max(Max, MaxContent);
@@ -3707,6 +3709,7 @@ void GHtmlTableLayout::AllocatePx(int StartCol, int Cols, int MinPx)
 	}
 
 	// Allocate any remaining space...
+	bool HasToFillAllAvailable = TableWidth.IsValid();
 	int RemainingPx = AvailPx - TotalX;
 	GArray<int> Growable, NonGrowable, SizeInherit;
 	int GrowablePx = 0;
@@ -3726,10 +3729,10 @@ void GHtmlTableLayout::AllocatePx(int StartCol, int Cols, int MinPx)
 		if (SizeCol[x].Type == GCss::LenInherit)
 			SizeInherit.Add(x);
 	}
-	if (GrowablePx < RemainingPx && TableWidth.IsValid())
+	if (GrowablePx < RemainingPx && HasToFillAllAvailable)
 	{
 		// Add any suitable non-growable columns as well
-		for (int i=0; i<NonGrowable.Length(); i++)
+		for (unsigned i=0; i<NonGrowable.Length(); i++)
 		{
 			int Col = NonGrowable[i];
 			
@@ -3780,7 +3783,7 @@ void GHtmlTableLayout::AllocatePx(int StartCol, int Cols, int MinPx)
 			Added += AddPx;
 		}
 
-		if (Added < RemainingPx)
+		if (Added < RemainingPx && HasToFillAllAvailable)
 		{
 			// Still more to add, so
 			if (SizeInherit.Length())
@@ -3980,10 +3983,12 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 						t->MaxContent = max(t->MaxContent, Px);
 					}
 
+					#ifdef _DEBUG
 					if (Table->Debug)
 					{
 						int asd=0;
 					}
+					#endif
 
 					if (t->MinContent > ColMin)
 						AllocatePx(t->Cell.x, t->Span.x, t->MinContent);
@@ -4017,7 +4022,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	}	
 	if (PercentSum > 100.0)
 	{
-		float Ratio = PercentSum / 100.0;
+		float Ratio = PercentSum / 100.0f;
 		for (int i=0; i<s.x; i++)
 		{
 			if (SizeCol[i].Type == GCss::LenPercent)
@@ -4085,14 +4090,15 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	}
 	else if (TotalX < AvailableX)
 	{
+		#ifdef _DEBUG
 		if (Table->Debug)
 		{
 			int asd=0;
 		}
+		#endif
 		
 		AllocatePx(0, s.x, AvailableX);
 		DumpCols("AfterRemainingAlloc");
-
 	}
 
 	// Layout cell horizontally and then flow the contents to get 
@@ -5206,6 +5212,9 @@ static void FillRectWithImage(GSurface *pDC, GRect *r, GSurface *Image, GCss::Re
 {
 	int Px = 0, Py = 0;
 	int Old = pDC->Op(GDC_ALPHA);
+
+	if (!Image)
+		return;
 
 	switch (Repeat)
 	{
