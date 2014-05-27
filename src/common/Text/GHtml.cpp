@@ -20,7 +20,7 @@
 #include "GDisplayString.h"
 #include "GPalette.h"
 
-#define DEBUG_TABLE_LAYOUT			1
+#define DEBUG_TABLE_LAYOUT			0
 #define DEBUG_RESTYLE				0
 #define DEBUG_TAG_BY_POS			0
 #define DEBUG_SELECTION				0
@@ -3876,7 +3876,6 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	#endif
 
 	// Size detection pass
-	GArray<float> Percents;
 	int y;
 	for (y=0; y<s.y; y++)
 	{
@@ -3890,9 +3889,6 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 					GCss::Len Wid = t->Width();
 					if (Wid.IsValid() && t->Span.x == 1)
 					{
-						if (Wid.Type == GCss::LenPercent)
-							Percents[x] = Wid.Value;
-						
 						if (SizeCol[x].IsValid())
 						{
 							int OldPx = f->ResolveX(SizeCol[x], Font, false);
@@ -3906,11 +3902,6 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 						{
 							SizeCol[x] = Wid;
 						}
-					}
-					
-					if (t->Debug)
-					{
-						int asd=0;
 					}
 					
 					if (!t->GetWidthMetrics(t->MinContent, t->MaxContent))
@@ -4015,24 +4006,54 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 		int asd=0;
 	}
 	#endif
+
+	// Sometimes the webpage specifies too many percentages:
+	// Scale them all.	
+	float PercentSum = 0.0f;
+	for (int i=0; i<s.x; i++)
+	{
+		if (SizeCol[i].Type == GCss::LenPercent)
+			PercentSum += SizeCol[i].Value;
+	}	
+	if (PercentSum > 100.0)
+	{
+		float Ratio = PercentSum / 100.0;
+		for (int i=0; i<s.x; i++)
+		{
+			if (SizeCol[i].Type == GCss::LenPercent)
+				SizeCol[i].Value /= Ratio;
+		}
+	}
 	
 	// Do minimum column size from CSS values
-	for (int x=0; x<s.x; x++)
+	if (TotalX < AvailableX)
 	{
-		GCss::Len w = SizeCol[x];
-		if (w.IsValid())
+		for (int x=0; x<s.x; x++)
 		{
-			int Px = f->ResolveX(w, Font, false);
-			if (Px > MinCol[x])
+			GCss::Len w = SizeCol[x];
+			if (w.IsValid())
 			{
-				TotalX += Px - MinCol[x];
-				MinCol[x] = Px;
+				int Px = f->ResolveX(w, Font, false);
+				
+				if (w.Type == GCss::LenPercent)
+				{
+					MaxCol[x] = Px;
+				}
+				else if (Px > MinCol[x])
+				{
+					int RemainingPx = AvailableX - TotalX;
+					int AddPx = Px - MinCol[x];
+					AddPx = min(RemainingPx, AddPx);
+					
+					TotalX += AddPx;
+					MinCol[x] += AddPx;
+				}
 			}
 		}
-	}	
+	}
 
 	TotalX = GetTotalX();
-	DumpCols("AfterCssSizes");
+	DumpCols("AfterCssNonPercentageSizes");
 	
 	#ifdef _DEBUG
 	if (Table->Debug)
@@ -4071,8 +4092,9 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 		
 		AllocatePx(0, s.x, AvailableX);
 		DumpCols("AfterRemainingAlloc");
+
 	}
-	
+
 	// Layout cell horizontally and then flow the contents to get 
 	// the height of all the cells
 	for (y=0; y<s.y; y++)
