@@ -166,64 +166,188 @@ void GBox::OnPaint(GSurface *pDC)
 	}
 }
 
+struct BoxRange
+{
+	int Min, Max;
+	GCss::Len Size;
+	GViewI *View;
+	
+	BoxRange()
+	{
+		Min = Max = 0;
+		View = NULL;
+	}
+};
+
 void GBox::OnPosChange()
 {
 	GCssTools tools(GetCss(), GetFont());
 	GRect content = tools.ApplyMargin(GetClient());
 	GetSpacer(0);
-	
+
 	GAutoPtr<GViewIterator> views(IterateViews());
 	int Cur = 0, Idx = 0;
+	int AvailablePx = d->GetBox(content);
+	if (AvailablePx <= 0)
+		return;
+
+	GArray<BoxRange> Sizes;
+
+	int SpacerPx = 0;
+
+	int FixedPx = 0;
+	int FixedChildren = 0;
+	
+	int PercentPx = 0;
+	int PercentChildren = 0;
+	float PercentCount = 0.0f;
+	
+	int AutoChildren = 0;
+
+	if (_Debug)
+	{
+		int asd=0;
+	}
+
+	// Do first pass over children and find their sizes
 	for (GViewI *c = views->First(); c; c = views->Next(), Idx++)
 	{
-		// Get the size of the control according to CSS or failing that it's existing size
-		GCss::Len size;
 		GCss *css = c->GetCss();
+		BoxRange &box = Sizes.New();
+		
+		box.View = c;
+		
+		// Get any available CSS size
 		if (css)
 		{
 			if (IsVertical())
-				size = css->Height();
+				box.Size = css->Height();
 			else
-				size = css->Width();
+				box.Size = css->Width();
 		}
-		if (!size.IsValid())
+
+		// Work out some min and max values		
+		if (box.Size.IsValid())
 		{
-			size.Type = GCss::LenPx;
-			size.Value = (float) d->GetBox(c->GetPos());
+			if (box.Size.Type == GCss::LenPercent)
+			{
+				box.Max = box.Size.ToPx(AvailablePx, GetFont());
+				PercentPx += box.Max;
+				PercentCount += box.Size.Value;
+				PercentChildren++;
+			}
+			else if (box.Size.IsDynamic())
+			{
+				AutoChildren++;
+			}
+			else
+			{
+				// Fixed children get first crack at the space
+				box.Min
+					= box.Max
+					= box.Size.ToPx(AvailablePx, GetFont());
+				FixedPx += box.Min;
+				FixedChildren++;
+			}
 		}
-		
-		// Convert to px
-		int size_px;
+		else AutoChildren++;
+
+		// Allocate area for spacers in the Fixed portion
 		if (Idx < Children.Length() - 1)
-			size_px = size.ToPx(d->GetBox(content), GetFont());
-		else
-			size_px = d->GetBox(content) - Cur;
-		
+		{
+			Spacer &s = d->Spacers[Idx];
+			SpacerPx += s.SizePx;
+		}
+	}
+
+	// Convert all the percentage sizes to px
+	int RemainingPx = AvailablePx - SpacerPx - FixedPx;
+	for (int i=0; i<Sizes.Length(); i++)
+	{
+		BoxRange &box = Sizes[i];
+		if (box.Size.Type == GCss::LenPercent)
+		{
+			if (PercentPx > RemainingPx)
+			{
+				if (AutoChildren > 0 || PercentChildren > 1)
+				{
+					// Well... ah... we better leave _some_ space for them.
+					int AutoPx = 16 * AutoChildren;
+					float Ratio = ((float)RemainingPx - AutoPx) / PercentPx;
+					int Px = (int) (box.Max * Ratio);
+					box.Size.Type = GCss::LenPx;
+					box.Size.Value = (float) Px;
+					RemainingPx -= Px;
+				}
+				else
+				{
+					// We can just take all the space...
+					box.Size.Type = GCss::LenPx;
+					box.Size.Value = (float) RemainingPx;
+					RemainingPx = 0;
+				}
+			}
+			else
+			{
+				box.Size.Type = GCss::LenPx;
+				box.Size.Value = (float) box.Max;
+				RemainingPx -= box.Max;
+			}
+		}
+	}
+
+	// Convert auto children to px
+	int AutoPx = AutoChildren > 0 ? RemainingPx / AutoChildren : 0;
+	for (int i=0; i<Sizes.Length(); i++)
+	{
+		BoxRange &box = Sizes[i];
+		if (box.Size.Type != GCss::LenPx)
+		{
+			box.Size.Type = GCss::LenPx;
+			if (AutoChildren > 1)
+			{
+				box.Size.Value = (float) AutoPx;
+				RemainingPx -= AutoPx;
+			}
+			else
+			{
+				box.Size.Value = (float) RemainingPx;
+				RemainingPx = 0;
+			}
+			AutoChildren--;
+		}
+	}
+	
+	for (int i=0; i<Sizes.Length(); i++)
+	{
+		BoxRange &box = Sizes[i];
+		LgiAssert(box.Size.Type == GCss::LenPx);
+		int Px = (int) (box.Size.Value + 0.01);
+
 		// Allocate space for view
 		GRect viewPos = content;
 		if (d->Vertical)
 		{
 			viewPos.y1 = Cur;
-			viewPos.y2 = Cur + size_px - 1;
+			viewPos.y2 = Cur + Px - 1;
 		}
 		else
 		{
 			viewPos.x1 = Cur;
-			viewPos.x2 = Cur + size_px - 1;
+			viewPos.x2 = Cur + Px - 1;
 		}
-		// LgiTrace("[%i]=%s\n", Idx, viewPos.GetStr());
-		c->SetPos(viewPos);
+		box.View->SetPos(viewPos);
 		#ifdef WIN32
 		// This forces the update, otherwise the child's display lags till the
 		// mouse is released *rolls eyes*
-		c->Invalidate((GRect*)NULL, true);
+		box.View->Invalidate((GRect*)NULL, true);
 		#endif
-		Cur += size_px;
+		Cur += Px;
 		
 		// Allocate area for spacer
-		if (Idx < Children.Length() - 1)
+		if (i < Sizes.Length() - 1)
 		{
-			Spacer &s = d->Spacers[Idx];
+			Spacer &s = d->Spacers[i];
 			s.Pos = content;
 			if (d->Vertical)
 			{
@@ -235,7 +359,6 @@ void GBox::OnPosChange()
 				s.Pos.x1 = Cur;
 				s.Pos.x2 = Cur + s.SizePx - 1;
 			}
-			// LgiTrace("...%s\n", s.Pos.GetStr());
 			Cur += s.SizePx;
 		}
 	}

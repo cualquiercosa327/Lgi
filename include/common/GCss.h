@@ -332,7 +332,11 @@ public:
 
 		bool Parse(const char *&s, PropType Prop = PropNull, ParsingStyle Type = ParseStrict);
 		bool IsValid() { return Type != LenInherit; }
-		bool IsDynamic() { return Type == LenPercent || Type == LenInherit || Type == SizeSmaller || Type == SizeLarger; }
+		bool IsDynamic() { return	Type == LenPercent ||
+									Type == LenInherit ||
+									Type == LenAuto ||
+									Type == SizeSmaller ||
+									Type == SizeLarger; }
 		bool operator !=(Len &l) { return Type != l.Type || Value != l.Value; }
 		bool ToString(GStream &p);
 		int ToPx(int Box = 0, GFont *Font = 0, int Dpi = 96);
