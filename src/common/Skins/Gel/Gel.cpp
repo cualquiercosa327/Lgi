@@ -609,14 +609,20 @@ public:
 				int tx = (Ctrl->X()-sx) >> 1;
 				int ty = (Ctrl->Y()-sy) >> 1;
 				
-				COLOUR TextCol = GREY24;
+				GCss::ColorDef TextCol(GREY32(255));
+				if (Ctrl->GetCss())
+				{
+					GCss::ColorDef c = Ctrl->GetCss()->Color();
+					if (c.Type != GCss::ColorInherit)
+						TextCol = c;
+				}
 				int Off = Ctrl->Value() ? 1 : 0;
 
 				GFont *f = Text->GetFont();
 				f->Transparent(true);
 				if (Ctrl->Enabled())
 				{
-					f->Colour(TextCol, LC_MED);
+					f->Colour(GColour(TextCol.Rgb32, 32), GColour(LC_MED, 24));
 					Text->Draw(Out, tx+Off, ty+Off+BTN_TEXT_OFFSET_Y);
 				}
 				else

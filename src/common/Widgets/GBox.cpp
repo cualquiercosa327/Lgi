@@ -204,11 +204,6 @@ void GBox::OnPosChange()
 	
 	int AutoChildren = 0;
 
-	if (_Debug)
-	{
-		int asd=0;
-	}
-
 	// Do first pass over children and find their sizes
 	for (GViewI *c = views->First(); c; c = views->Next(), Idx++)
 	{
