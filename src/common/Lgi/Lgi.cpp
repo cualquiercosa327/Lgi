@@ -1768,8 +1768,10 @@ char *LgiFindFile(const char *Name)
 	return Result;
 }
 
+#if defined WIN32
 static LARGE_INTEGER Freq = {0};
 static bool CurTimeInit = false;
+#endif
 
 uint64 LgiCurrentTime()
 {
