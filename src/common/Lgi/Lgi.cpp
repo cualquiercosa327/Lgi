@@ -1768,30 +1768,31 @@ char *LgiFindFile(const char *Name)
 	return Result;
 }
 
+static LARGE_INTEGER Freq = {0};
+static bool CurTimeInit = false;
+
 uint64 LgiCurrentTime()
 {
 	#if defined WIN32
 
-	static LARGE_INTEGER freq = {0};
-	static bool Init = false;
-	if (!Init)
+	if (!CurTimeInit)
 	{
-		Init = true;
-		if (!QueryPerformanceFrequency(&freq))
-			freq.QuadPart = 0;
+		CurTimeInit = true;
+		if (!QueryPerformanceFrequency(&Freq))
+			Freq.QuadPart = 0;
 	}
 
-	if (freq.QuadPart)
+	if (Freq.QuadPart)
 	{
 		// Return performance counter in ms
 		LARGE_INTEGER i;
 		if (QueryPerformanceCounter(&i))
 		{
-			return i.QuadPart * 1000 / freq.QuadPart;
+			return i.QuadPart * 1000 / Freq.QuadPart;
 		}
 
 		// Now what?? Give up and go back to tick count I guess.
-		freq.QuadPart = 0;
+		Freq.QuadPart = 0;
 	}
 
 	// Fall back for systems without a performance counter.
@@ -1813,6 +1814,47 @@ uint64 LgiCurrentTime()
 	timeval tv;
 	gettimeofday(&tv, 0);
 	return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
+
+	#endif
+}
+
+uint64 LgiMicroTime()
+{
+	#if defined WIN32
+
+	if (!CurTimeInit)
+	{
+		CurTimeInit = true;
+		if (!QueryPerformanceFrequency(&Freq))
+			Freq.QuadPart = 0;
+	}
+	if (Freq.QuadPart)
+	{
+		// Return performance counter in ms
+		LARGE_INTEGER i;
+		if (QueryPerformanceCounter(&i))
+		{
+			return i.QuadPart * 1000000 / Freq.QuadPart;
+		}
+	}
+	return 0;
+
+	#elif defined BEOS
+
+	LgiAssert(!"Not impl.");
+	return 0;
+
+	#elif defined MAC && !defined COCOA
+	
+	UnsignedWide t;
+	Microseconds(&t);
+	return ((uint64)t.hi << 32) | t.lo;
+
+	#else
+
+	timeval tv;
+	gettimeofday(&tv, 0);
+	return (tv.tv_sec * 1000000) + tv.tv_usec;
 
 	#endif
 }

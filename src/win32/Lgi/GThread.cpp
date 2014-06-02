@@ -133,10 +133,11 @@ void GThread::Create(GThread *Thread, OsThread &hThread, uint &ThreadId)
 
 bool GThread::IsExited()
 {
+	if (State == THREAD_INIT)
+		return true;
+
 	bool Alive1 = ExitCode() == STILL_ACTIVE;
-	
 	#ifdef _DEBUG
-	
 	DWORD w = ::WaitForSingleObject(hThread, 0);
 	// LgiTrace("%p Wait=%i Alive=%i\n", hThread, w, Alive1);
 
@@ -146,7 +147,6 @@ bool GThread::IsExited()
 		State = THREAD_EXITED;
 		return true;
 	}
-
 	#endif
 
 	if (!Alive1)
