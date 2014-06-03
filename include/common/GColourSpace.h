@@ -186,7 +186,7 @@ struct GHls32 {
 };
 
 struct GCmyk32 {
-	uint8 c, m, k, y;
+	uint8 c, m, y, k;
 };
 
 union GColourSpaceBits

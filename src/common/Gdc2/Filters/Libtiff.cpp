@@ -389,6 +389,47 @@ void TiffProcess32(D *d, S *s, int width)
 	}
 }
 
+template<typename D, typename S>
+void CmykToRgb24(D *d, S *s, int width)
+{
+	D *end = d + width;
+	while (d < end)
+	{
+		double C = (double) s->c / 255.0;
+		double M = (double) s->m / 255.0;
+		double Y = (double) s->y / 255.0;
+		double K = (double) s->k / 255.0;
+
+		d->r = (int) ((1.0 - min(1, C * (1.0 - K) + K)) * 255.0);
+		d->g = (int) ((1.0 - min(1, M * (1.0 - K) + K)) * 255.0);
+		d->b = (int) ((1.0 - min(1, Y * (1.0 - K) + K)) * 255.0);
+		
+		d++;
+		s++;
+	}
+}
+
+template<typename D, typename S>
+void CmykToRgb32(D *d, S *s, int width)
+{
+	D *end = d + width;
+	while (d < end)
+	{
+		double C = (double) s->c / 255.0;
+		double M = (double) s->m / 255.0;
+		double Y = (double) s->y / 255.0;
+		double K = (double) s->k / 255.0;
+		
+		d->r = (int) ((1.0 - min(1, C * (1.0 - K) + K)) * 255.0);
+		d->g = (int) ((1.0 - min(1, M * (1.0 - K) + K)) * 255.0);
+		d->b = (int) ((1.0 - min(1, Y * (1.0 - K) + K)) * 255.0);
+		d->a = 255;
+		
+		d++;
+		s++;
+	}
+}
+
 GFilter::IoStatus GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 {
 	GVariant v;
@@ -551,6 +592,8 @@ GFilter::IoStatus GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 							GRgb24 *b = &Buf[0];
 							LgiAssert(Lib->TIFFScanlineSize(tif) == Buf.Length() * sizeof(Buf[0]));
 
+							LgiAssert(Photometric == PHOTOMETRIC_RGB); // we don't support anything else yet.
+
 							for (unsigned y=0; y<img.height; y++)
 							{
 								uint8 *d = (*pDC)[y];
@@ -587,44 +630,74 @@ GFilter::IoStatus GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 						}
 						case 32:
 						{
-							GArray<GRgba32> Buf;
+							GArray<uint32> Buf;
 							Buf.Length(img.width);
-							GRgba32 *b = &Buf[0];
+							uint32 *b = &Buf[0];
 							LgiAssert(Lib->TIFFScanlineSize(tif) == Buf.Length() * sizeof(Buf[0]));
+							GColourSpace DestCs = pDC->GetColourSpace();
 
 							for (unsigned y=0; y<img.height; y++)
 							{
 								uint8 *d = (*pDC)[y];
 								Lib->TIFFReadScanline(tif, (t::tdata_t)b, y, 0);
-					            
-								switch (pDC->GetColourSpace())
+
+								if (Photometric == PHOTOMETRIC_SEPARATED)
 								{
-									#define TiffCase(name, bits) \
-										case Cs##name: TiffProcess##bits((G##name*)d, b, pDC->X()); break
-									
-									TiffCase(Rgb24, 24);
-									TiffCase(Bgr24, 24);
-									TiffCase(Xrgb32, 24);
-									TiffCase(Rgbx32, 24);
-									TiffCase(Xbgr32, 24);
-									TiffCase(Bgrx32, 24);
+									switch (DestCs)
+									{
+										#define TiffCase(name, bits) \
+											case Cs##name: CmykToRgb##bits((G##name*)d, (GCmyk32*)b, pDC->X()); break
 
-									TiffCase(Rgba32, 32);
-									TiffCase(Bgra32, 32);
-									TiffCase(Argb32, 32);
-									TiffCase(Abgr32, 32);
+										TiffCase(Rgb24, 24);
+										TiffCase(Bgr24, 24);
+										TiffCase(Rgbx32, 24);
+										TiffCase(Bgrx32, 24);
+										TiffCase(Xrgb32, 24);
+										TiffCase(Xbgr32, 24);
+										TiffCase(Rgba32, 32);
+										TiffCase(Bgra32, 32);
+										TiffCase(Argb32, 32);
+										TiffCase(Abgr32, 32);
+										
+										#undef TiffCase
 
-									#undef TiffCase
-
-									default:
-										LgiAssert(!"impl me.");
-										break;
+										default:
+											LgiAssert(!"impl me.");
+											break;
+									}
 								}
+								else if (Photometric == PHOTOMETRIC_RGB)
+								{
+									switch (DestCs)
+									{
+										#define TiffCase(name, bits) \
+											case Cs##name: TiffProcess##bits((G##name*)d, (GRgba32*)b, pDC->X()); break
+										
+										TiffCase(Rgb24, 24);
+										TiffCase(Bgr24, 24);
+										TiffCase(Xrgb32, 24);
+										TiffCase(Rgbx32, 24);
+										TiffCase(Xbgr32, 24);
+										TiffCase(Bgrx32, 24);
+
+										TiffCase(Rgba32, 32);
+										TiffCase(Bgra32, 32);
+										TiffCase(Argb32, 32);
+										TiffCase(Abgr32, 32);
+
+										#undef TiffCase
+
+										default:
+											LgiAssert(!"impl me.");
+											break;
+									}
+								}
+								else LgiAssert(0);
 
 								if (Meter && (y % 32) == 0)
 									Meter->Value(y);
 							}
-							break;
+							break;						
 						}
 						case 48:
 						{
@@ -673,7 +746,7 @@ GFilter::IoStatus GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 								switch (pDC->GetColourSpace())
 								{
 									#define TiffCase64(name, bits) \
-										case Cs##name: TiffProcess##bits((G##name*)d, b, pDC->X()); break
+										case Cs##name: TiffProcess##bits((G##name*)d, (GRgba32*)b, pDC->X()); break
 									
 									TiffCase64(Rgba64, 32);
 									TiffCase64(Bgra64, 32);
