@@ -731,7 +731,7 @@ bool MailIMap::Read(GStreamI *Out)
 					*e-- = 0;
 
 				Lines++;
-				COLOUR c = MAIL_RECEIVE_COLOUR;
+
 				if (Out)
 				{
 					Out->Write(Buffer, strlen(Buffer));
@@ -764,8 +764,6 @@ bool MailIMap::ReadResponse(int Cmd, bool Plus)
 		{
 			if (Read(NULL))
 			{
-				COLOUR c = MAIL_RECEIVE_COLOUR;
-
 				for (char *Dlg = Dialog[Pos]; !Done && Dlg; Dlg = Dialog.Next())
 				{
 					Pos++;
@@ -1019,15 +1017,15 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 								rc = gsasl_client_start(ctx, AuthType, &sess);
 								if (rc != GSASL_OK)
 								{
-									Log("gsasl_client_start failed", MAIL_ERROR_COLOUR);
+									Log("gsasl_client_start failed", GSocketI::SocketMsgError);
 								}
 
 								// gsasl_step(ctx, 
 								gsasl_done(ctx);
 							}
-							else Log("gsasl_init failed", MAIL_ERROR_COLOUR);
+							else Log("gsasl_init failed", GSocketI::SocketMsgError);
 						}						
-						else Log("AUTHENTICATE GSSAPI failed", MAIL_ERROR_COLOUR);
+						else Log("AUTHENTICATE GSSAPI failed", GSocketI::SocketMsgError);
 					}
 					else
 					#endif
