@@ -82,7 +82,8 @@ public:
 			{
 			    Txt.Add(w.Release());
 			    Sem.Unlock();
-				PostEvent(M_LOG);
+				if (Handle())
+					PostEvent(M_LOG);
 			}
 		}
 		return Size;

@@ -487,14 +487,14 @@ void LgiTrace(const char *Msg, ...)
 				else
 				#endif
 				{
-					char *Dot = strrchr(Buffer, '.');
+					char *Dot = strrchr(LogPath, '.');
 					if (Dot && !strchr(Dot, DIR_CHAR))
 						strcpy(Dot+1, "txt");
 					else
-						strcat(Buffer, ".txt");
+						strcat(LogPath, ".txt");
 				}
 				
-				if (f.Open(Buffer, O_WRITE))
+				if (f.Open(LogPath, O_WRITE))
 				{
 					f.Close();
 				}
