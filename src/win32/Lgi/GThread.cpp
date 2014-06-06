@@ -93,6 +93,7 @@ GThread::GThread(const char *name)
 	ThreadId = 0;
 	ReturnValue = 0;
 	DeleteOnExit = false;
+	Priority = ThreadPriorityNormal;
 	Name = name;
 	Create(this, hThread, ThreadId);
 }
@@ -166,6 +167,19 @@ void GThread::Run()
 		if (hThread != INVALID_HANDLE_VALUE)
 		{
 			State = THREAD_INIT;
+		}
+		
+		switch (Priority)
+		{
+			case ThreadPriorityIdle:
+				SetThreadPriority(hThread, THREAD_PRIORITY_IDLE);
+				break;
+			case ThreadPriorityHigh:
+				SetThreadPriority(hThread, THREAD_PRIORITY_HIGHEST);
+				break;
+			case ThreadPriorityRealtime:
+				SetThreadPriority(hThread, THREAD_PRIORITY_TIME_CRITICAL);
+				break;
 		}
 	}
 

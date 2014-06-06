@@ -16,12 +16,21 @@ public:
 	    THREAD_EXITED = 4,
 	    THREAD_ERROR = 5
     };
+    
+    enum ThreadPriority
+    {
+		ThreadPriorityIdle,
+		ThreadPriorityNormal,
+		ThreadPriorityHigh,
+		ThreadPriorityRealtime,
+    };
 
 protected:
 	ThreadState State;
 	int ReturnValue;
 	OsThread hThread;
 	const char *Name;
+	ThreadPriority Priority;
 
 	#if defined WIN32
 
