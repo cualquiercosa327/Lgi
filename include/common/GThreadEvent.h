@@ -6,8 +6,7 @@ class LgiClass GThreadEvent : public GBase
 	uint32 LastError;
 	#if defined(WIN32NATIVE)
 	HANDLE Event;
-	#elif defined(MAC)
-	#elif defined(LINUX)
+	#elif defined(MAC) || defined(LINUX)
 	pthread_cond_t Cond;
 	pthread_mutex_t Mutex;
 	#endif

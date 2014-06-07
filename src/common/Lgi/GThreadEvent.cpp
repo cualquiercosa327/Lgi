@@ -1,8 +1,9 @@
 #include "Lgi.h"
 #include "GThreadEvent.h"
 
-#if defined(LINUX)
+#if defined(POSIX)
 #include <errno.h>
+#include <sys/time.h>
 #endif
 
 #define DEBUG_THREADING	0
@@ -17,15 +18,20 @@ GThreadEvent::GThreadEvent(const char *name)
 		LastError = GetLastError();
 	else
 		LgiAssert(!"Failed to create event.");
-	#elif defined(MAC)
-	// NSCondition?
-	#elif defined(LINUX)
-    pthread_mutexattr_t  mattr;
-
-    pthread_cond_init(&Cond, NULL);
-    pthread_mutexattr_init(&mattr);
-    pthread_mutexattr_settype(&mattr, PTHREAD_MUTEX_RECURSIVE);
-    pthread_mutex_init(&Mutex, &mattr);
+	#elif defined(POSIX)
+	pthread_mutexattr_t  mattr;
+    int e = pthread_cond_init(&Cond, NULL);
+	if (e)
+		printf("%s:%i - pthread_cond_init failed %i\n", _FL, e);
+    e = pthread_mutexattr_init(&mattr);
+	if (e)
+		printf("%s:%i - pthread_mutexattr_init failed %i\n", _FL, e);
+    e = pthread_mutexattr_settype(&mattr, PTHREAD_MUTEX_RECURSIVE);
+	if (e)
+		printf("%s:%i - pthread_mutexattr_settype failed %i\n", _FL, e);
+    e = pthread_mutex_init(&Mutex, &mattr);
+	if (e)
+		printf("%s:%i - pthread_mutex_init failed %i\n", _FL, e);
 	#endif
 }
 
@@ -33,8 +39,7 @@ GThreadEvent::~GThreadEvent()
 {
 	#if defined(WIN32NATIVE)
 	CloseHandle(Event);
-	#elif defined(MAC)
-	#elif defined(LINUX)
+	#elif defined(POSIX)
     pthread_cond_destroy(&Cond);
     pthread_mutex_destroy(&Mutex);
 	#endif
@@ -44,8 +49,7 @@ bool GThreadEvent::IsOk()
 {
 	#if defined(WIN32NATIVE)
 	return Event != NULL;
-	#elif defined(MAC)
-	#elif defined(LINUX)
+	#elif defined(POSIX)
 	return true;
 	#endif
 }
@@ -56,15 +60,23 @@ bool GThreadEvent::Signal()
 	if (Event)
 		SetEvent(Event);
 	else
+	{
 		LgiAssert(!"No event handle");
-	#elif defined(MAC)
-	#elif defined(LINUX)
-    pthread_mutex_lock(&Mutex);
-    pthread_cond_signal(&Cond);    /* signal SendThread */
-    pthread_mutex_unlock(&Mutex);
+		return false;
+	}
+	#elif defined(POSIX)
+    int e = pthread_mutex_lock(&Mutex);
+	if (e)
+		printf("%s:%i - pthread_mutex_lock failed %i\n", _FL, e);
+    e = pthread_cond_signal(&Cond);    /* signal SendThread */
+	if (e)
+		printf("%s:%i - pthread_cond_signal failed %i\n", _FL, e);
+    e = pthread_mutex_unlock(&Mutex);
+	if (e)
+		printf("%s:%i - pthread_mutex_unlock failed %i\n", _FL, e);
 	#endif
 	
-	return false;
+	return true;
 }
 
 GThreadEvent::WaitStatus GThreadEvent::Wait(int32 Timeout)
@@ -81,9 +93,11 @@ GThreadEvent::WaitStatus GThreadEvent::Wait(int32 Timeout)
 			LastError = GetLastError();
 			return WaitError;
 	}
-	#elif defined(MAC)
-	#elif defined(LINUX)
-	pthread_mutex_lock(&Mutex);
+	#elif defined(POSIX)
+	int e = pthread_mutex_lock(&Mutex);
+	if (e)
+		printf("%s:%i - pthread_mutex_lock failed %i\n", _FL, e);
+
 	int result;
 	if (Timeout < 0)
 	{
@@ -91,10 +105,20 @@ GThreadEvent::WaitStatus GThreadEvent::Wait(int32 Timeout)
 	}
 	else
 	{
-		timespec to = {Timeout / 1000, (Timeout % 1000) * 10000000 };
+		timeval tv;
+		gettimeofday(&tv, NULL);
+
+		timespec to;
+		to.tv_sec = tv.tv_sec + (Timeout / 1000);
+		to.tv_nsec = (tv.tv_usec + ((Timeout % 1000) * 1000)) * 1000;
+
 		result = pthread_cond_timedwait(&Cond, &Mutex, &to);
 	}
-	pthread_mutex_unlock(&Mutex);
+	
+	e = pthread_mutex_unlock(&Mutex);
+	if (e)
+		printf("%s:%i - pthread_mutex_unlock failed %i\n", _FL, e);
+
 	if (result == ETIMEDOUT)
 		return WaitTimeout;
 	else if (result == 0)

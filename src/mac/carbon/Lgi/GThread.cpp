@@ -40,6 +40,7 @@ GThread::GThread(const char *name)
 	ReturnValue = -1;
 	hThread = 0;
 	DeleteOnExit = false;
+	Priority = ThreadPriorityNormal;
 }
 
 GThread::~GThread()
@@ -70,8 +71,32 @@ void GThread::Run()
 		int e;
 		if (!(e = pthread_create(&hThread, NULL, ThreadEntryPoint, (void*)this)))
 		{
-			Creates++;
 			State = THREAD_RUNNING;
+			Creates++;
+
+			if (Priority != ThreadPriorityNormal)
+			{
+				int policy;
+				sched_param param;
+				e = pthread_getschedparam(hThread, &policy, &param);
+				int min_pri = sched_get_priority_min(policy);
+				int max_pri = sched_get_priority_max(policy);
+				switch (Priority)
+				{
+					case ThreadPriorityIdle:
+						param.sched_priority = min_pri;
+						break;
+					case ThreadPriorityNormal:
+						break;
+					case ThreadPriorityHigh:
+						param.sched_priority = max_pri;
+						break;
+					case ThreadPriorityRealtime:
+						param.sched_priority = max_pri;
+						break;
+				}
+				e = pthread_setschedparam(hThread, policy, &param);
+			}
 		}
 		else
 		{
@@ -83,7 +108,8 @@ void GThread::Run()
 				case EPERM: Err = "EPERM"; break;
 				case ENOMEM: Err = "ENOMEM"; break;
 			}
-			printf("%s,%i - pthread_create failed with the error %i (%s) (After %i creates)\n", __FILE__, __LINE__, e, Err, Creates);
+			printf(	"%s,%i - pthread_create failed with the error %i (%s) (After %i creates)\n",
+					_FL, e, Err, Creates);
 			
 			State = THREAD_EXITED;
 		}
