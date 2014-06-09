@@ -88,7 +88,13 @@ public:
 			char s[256];
 			_getcwd(s, sizeof(s));
 
+			#ifdef _MSC_VER
+			char path[MAX_PATH] = "";
+			size_t sz;
+			getenv_s(&sz, path, sizeof(path), "path");
+			#else
 			char *path = getenv("path");
+			#endif
 			int pathlen = (int)strlen(path);
 			
 			int len = pathlen + (int)strlen(s) + 256;
