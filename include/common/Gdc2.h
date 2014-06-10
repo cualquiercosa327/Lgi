@@ -444,6 +444,7 @@ public:
 
 	// Creation
 	virtual bool Create(int x, int y, int Bits, int LineLen = 0, bool KeepData = false) { return false; }
+	virtual bool Create(int x, int y, GColourSpace Cs, int LineLen = 0, bool KeepData = false) { return false; }
 	virtual void Update(int Flags) {}
 
 	// Alpha channel	

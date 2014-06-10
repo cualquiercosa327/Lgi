@@ -294,7 +294,7 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int LineLen, bool KeepData)
 	{
 		int Bits = GColourSpaceToBits(Cs);
 		int Colours = Bits <= 8 ? 1 << Bits : 0;
-		int SizeOf = sizeof(BITMAPINFO)+(2*sizeof(RGBQUAD))+(sizeof(RGBQUAD)*Colours);
+		int SizeOf = sizeof(BITMAPINFO)+(2*sizeof(uint32))+(sizeof(RGBQUAD)*Colours);
 		d->Info = (PBITMAPINFO) new char[SizeOf];
 		if (d->Info)
 		{
@@ -418,8 +418,9 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int LineLen, bool KeepData)
 					}
 					else
 					{
-						DWORD Error = GetLastError();
+						#if 1
 						LgiAssert(!"Create bmp failed.");
+						#endif
 					}
 				}
 

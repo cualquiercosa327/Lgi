@@ -5780,7 +5780,6 @@ GHtml::GHtml(int id, int x, int y, int cx, int cy, GDocumentEnv *e)
 	d = new GHtmlPrivate;
 	SetReadOnly(true);
 	ViewWidth = -1;
-	MemDC = 0;
 	SetId(id);
 	GRect r(x, y, x+cx, y+cy);
 	SetPos(r);
@@ -5835,7 +5834,6 @@ void GHtml::_Delete()
 	Source.Reset();
 	DeleteObj(Tag);
 	DeleteObj(FontCache);
-	DeleteObj(MemDC);
 }
 
 GFont *GHtml::DefFont()
@@ -6245,11 +6243,14 @@ void GHtml::OnPaint(GSurface *ScreenDC)
 		if (!MemDC ||
 			(MemDC->X() < Client.X() || MemDC->Y() < Client.Y()))
 		{
-			DeleteObj(MemDC);
-			MemDC = new GMemDC;
-			if (MemDC && !MemDC->Create(Client.X() + 10, Client.Y() + 10, 32)) // GdcD->GetBits()
+			if (MemDC.Reset(new GMemDC))
 			{
-				DeleteObj(MemDC);
+				int Sx = Client.X() + 10;
+				int Sy = Client.Y() + 10;
+				if (!MemDC->Create(Sx, Sy, System32BitColourSpace))
+				{
+					MemDC.Reset();
+				}
 			}
 		}
 		#endif

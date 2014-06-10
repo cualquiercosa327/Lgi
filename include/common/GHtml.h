@@ -49,7 +49,7 @@ protected:
 	GCss::Store			CssStore;
 	
 	// Display
-	GSurface			*MemDC;
+	GAutoPtr<GSurface>	MemDC;
 
 	// This lock is separate from the window lock to avoid deadlocks.
 	struct GJobSem : public GMutex
