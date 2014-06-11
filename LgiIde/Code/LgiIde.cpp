@@ -870,7 +870,7 @@ public:
 		GVariant v;
 		if (Write)
 		{
-			GBytePipe p;
+			GMemQueue p;
 			for (char *s = Lst->First(); s; s = Lst->Next())
 			{
 				p.Write((uchar*)s, strlen(s)+1);

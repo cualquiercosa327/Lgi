@@ -187,7 +187,7 @@ char *InetRemoveField(char *Headers, const char *Field)
 			{
 				if (_strnicmp(s, Field, eName - s) == 0)
 				{
-					GBytePipe Out;
+					GMemQueue Out;
 
 					// found header... push headers before this one
 					Out.Write((uchar*)Headers, (int) (s - Headers));

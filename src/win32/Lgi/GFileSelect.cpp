@@ -49,7 +49,7 @@ class GFileSelectPrivate
 
 	char16 *TypeStrW()
 	{
-		GBytePipe p;
+		GMemQueue p;
 
 		for (GFileType *Type = TypeList.First(); Type; Type = TypeList.Next())
 		{

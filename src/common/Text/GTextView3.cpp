@@ -2668,7 +2668,7 @@ bool GTextView3::OnMultiLineTab(bool In)
 
 	Min = SeekLine(Min, StartLine);
 
-	GBytePipe p;
+	GMemQueue p;
 	int Ls = 0, i;
 	for (i=Min; i<Max && i<Size; i=SeekLine(i, NextLine))
 	{

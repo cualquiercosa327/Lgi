@@ -217,7 +217,7 @@ public:
 
 class GMimeBase64Encode : public GCoderStream
 {
-	GBytePipe Buf;
+	GMemQueue Buf;
 
 public:
 	GMimeBase64Encode(GStreamI *o) : GCoderStream(o) {}
@@ -304,7 +304,7 @@ public:
 
 			char t[256];
 			int r = min(sizeof(t), Size);
-			if ((r = Buf.GBytePipe::Read((uchar*)t, r)) > 0)
+			if ((r = Buf.GMemQueue::Read((uchar*)t, r)) > 0)
 			{
 				uchar b[256];
 				int w = ConvertBase64ToBinary(b, sizeof(b), t, r);

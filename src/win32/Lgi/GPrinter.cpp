@@ -140,23 +140,23 @@ bool GPrinter::Serialize(char *&Str, bool Write)
 		GMem DevNames(d->Info.hDevNames);
 		DEVMODE *Mode = (DEVMODE*) DevMode.Lock();
 		DEVNAMES *Names = (DEVNAMES*) DevNames.Lock();
-		GBytePipe Temp;
+		GMemQueue Temp;
 		int32 m;
 
 		// Dlg
 		m = MAGIC_PRINTDLG;
-		Temp.Push(m);
+		Temp.Write(&m, sizeof(m));
 		m = sizeof(d->Info);
-		Temp.Push(m);
+		Temp.Write(&m, sizeof(m));
 		Temp.Write((uchar*)&d->Info, m);
 
 		// Mode
 		if (Mode)
 		{
 			m = MAGIC_DEVMODE;
-			Temp.Push(m);
+			Temp.Write(&m, sizeof(m));
 			m = DevMode.GetSize();
-			Temp.Push(m);
+			Temp.Write(&m, sizeof(m));
 			Temp.Write((uchar*) Mode, m);
 		}
 
@@ -164,9 +164,9 @@ bool GPrinter::Serialize(char *&Str, bool Write)
 		if (Names)
 		{
 			m = MAGIC_DEVNAMES;
-			Temp.Push(m);
+			Temp.Write(&m, sizeof(m));
 			m = DevNames.GetSize();
-			Temp.Push(m);
+			Temp.Write(&m, sizeof(m));
 			Temp.Write((uchar*) Names, m);
 		}
 
@@ -200,7 +200,7 @@ bool GPrinter::Serialize(char *&Str, bool Write)
 		if (Str)
 		{
 			// Convert to binary
-			GBytePipe Temp;
+			GMemQueue Temp;
 
 			int Base64Len = strlen(Str);
 			int BinaryLen = BufferLen_64ToBin(Base64Len);
@@ -216,8 +216,8 @@ bool GPrinter::Serialize(char *&Str, bool Write)
 					int Type = 0;
 					int Size = 0;
 
-					if (Temp.Pop(Type) &&
-						Temp.Pop(Size))
+					if (Temp.Read(&Type, sizeof(Type)) &&
+						Temp.Read(&Size, sizeof(Size)))
 					{
 						switch (Type)
 						{

@@ -277,7 +277,7 @@ char *DecodeRfc2047(char *Str)
 {
 	if (Str && strstr(Str, "=?"))
 	{
-		GBytePipe Temp;
+		GMemQueue Temp;
 		char *s = Str;
 		while (*s)
 		{
@@ -1696,7 +1696,7 @@ bool MailSmtp::WriteText(const char *Str)
 	bool Status = false;
 	if (Str)
 	{
-		GBytePipe Temp;
+		GMemQueue Temp;
 
 		const char *Start = Str;
 		while (*Str)
@@ -3070,7 +3070,7 @@ bool MailPop3::ReadMultiLineReply(char *&Str)
 	bool Status = false;
 	if (Socket)
 	{
-		GBytePipe Temp;
+		GMemQueue Temp;
 		int ReadLen = Socket->Read(Buffer, sizeof(Buffer), 0);
 		if (ReadLen > 0 && Buffer[0] == '+')
 		{

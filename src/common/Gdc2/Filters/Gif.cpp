@@ -956,7 +956,7 @@ GFilter::IoStatus GdcGif::WriteImage(GStream *Out, GSurface *pDC)
 	c = 8;
 	Out->Write(&c, 1); // Min code size
 
-	GBytePipe Encode, Pixels;
+	GMemQueue Encode, Pixels;
 
 	// Get input ready
 	int Len = (pDC->X() * pDC->GetBits() + 7) / 8;

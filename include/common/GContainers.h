@@ -263,7 +263,7 @@ public:
 /// PreAlloc size to the constructor. This can reduce the number of blocks
 /// of memory being used (and their associated alloc/free time and
 /// tracking overhead) in high volume situations.
-class LgiClass GBytePipe : public GStream
+class LgiClass GMemQueue : public GStream
 {
 protected:
 	/// Data block. These can contain a mix of 3 types of data:
@@ -306,21 +306,20 @@ protected:
 
 public:
 	/// Constructor
-	GBytePipe
+	GMemQueue
 	(
 		/// Sets the block size, which means allocating ahead and then joining
 		/// together smaller inserts into 1 continuous block.
 		int PreAlloc = 0
 	);
-	/// Desructor
-	virtual ~GBytePipe();
+	/// Destructor
+	virtual ~GMemQueue();
 
-	GBytePipe &operator =(GBytePipe &p);
+	GMemQueue &operator =(GMemQueue &p);
 
-	/// Returns true if the container is empty
-	virtual bool IsEmpty() { return Mem.Length() == 0; }
 	/// Empties the container freeing any memory used.
 	virtual void Empty();
+	
 	/// Returns a dynamically allocated block that contains all the data in the container
 	/// in a continuous block.
 	virtual void *New
@@ -330,6 +329,7 @@ public:
 		/// or adding buffer space on the end of the block returned.
 		int AddBytes = 0
 	);
+	
 	/// Reads data from the start of the container without removing it from
 	/// the que. Returns the bytes copied.
 	virtual int64 Peek
@@ -339,6 +339,17 @@ public:
 		/// Bytes to look at
 		int Size
 	);
+
+	/// Gets the total bytes in the container
+	int64 GetSize();
+	
+	/// Reads bytes off the start of the container
+	int Read(void *Buffer, int Size, int Flags = 0);
+	
+	/// Writes bytes to the end of the container
+	int Write(const void *Buffer, int Size, int Flags = 0);
+
+	#if 0
 	/// Reads data from the start of the container without removing it from
 	/// the que. Returns the bytes copied.
 	virtual int64 Peek
@@ -348,16 +359,12 @@ public:
 		/// Bytes to look at
 		int Size
 	);
+
 	/// Looks for a sub-string in the buffered data
 	/// \returns the index of the start of the string or -1 if not found
-	int StringAt(char *Str);
-
-	/// Gets the total bytes in the container
-	int64 GetSize();
-	/// Reads bytes off the start of the container
-	int Read(void *Buffer, int Size, int Flags = 0);
-	/// Writes bytes to the end of the container
-	int Write(const void *Buffer, int Size, int Flags = 0);
+	int Find(char *Str);
+	/// Returns true if the container is empty
+	virtual bool IsEmpty() { return Mem.Length() == 0; }
 
 	/// Reads a 2 byte integer from the start
 	int Pop(short &i);
@@ -372,10 +379,11 @@ public:
 	int Push(int i)					{ return Write((uchar*)&i, sizeof(i)); }
 	/// Writes a double to the end
 	int Push(double i)				{ return Write((uchar*)&i, sizeof(i)); }
+	#endif
 };
 
 /// A version of GBytePipe for strings. Adds some special handling for strings.
-class LgiClass GStringPipe : public GBytePipe
+class LgiClass GStringPipe : public GMemQueue
 {
 public:
 	/// Constructs the object
@@ -383,39 +391,15 @@ public:
 	(
 		/// Number of bytes to allocate per block.
 		int PreAlloc = -1
-	) : GBytePipe(PreAlloc) {}
+	) : GMemQueue(PreAlloc) {}
 	
 	~GStringPipe() {}
 
-	/// Removes a utf-8 line of text from the container
-	virtual int Pop
-	(
-		/// The output buffer
-		char *Str,
-		/// The size of the buffer
-		int BufSize
-	);
-	/// Inserts a utf-8 string into the container
-	virtual int Push
-	(
-		/// The string
-		const char *Str,
-		/// The length in bytes
-		int Chars = -1
-	);
-	/// Inserts a wide char string into the container
-	virtual int Push
-	(
-		/// The string
-		const char16 *Str,
-		/// The length in characters
-		int Chars = -1
-	);
-
-	/// Creates a null terminated utf-8 string out of the classes contents
-	char *NewStr();
-	/// Creates a null terminated wide character string out of the classes contents
-	char16 *NewStrW();
+	virtual int Pop(char *Str, int Chars);
+	virtual int Push(const char *Str, int Chars = -1);
+	virtual int Push(const char16 *Str, int Chars = -1);
+	char *NewStr() { return (char*)New(sizeof(char)); }
+	char16 *NewStrW() { return (char16*)New(sizeof(char16)); }
 };
 
 #endif

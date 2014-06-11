@@ -387,7 +387,7 @@ public:
 	void SetTag(const char *Tag);
 	void GetTagByPos(GTagHit &TagHit, int x, int y, int Depth, bool DebugLog = false);
 	GTag *GetTagByName(const char *Name);
-	void CopyClipboard(GBytePipe &p, bool &InSelection);
+	void CopyClipboard(GMemQueue &p, bool &InSelection);
 	GTag *IsAnchor(GAutoString *Uri);
 	bool CreateSource(GStringPipe &p, int Depth = 0, bool LastWasBlock = true);
 	void Find(int TagType, GArray<GTag*> &Tags);

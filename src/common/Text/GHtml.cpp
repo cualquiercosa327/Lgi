@@ -1443,7 +1443,7 @@ COLOUR GTag::_Colour(bool f)
 	return GT_TRANSPARENT;
 }
 
-void GTag::CopyClipboard(GBytePipe &p, bool &InSelection)
+void GTag::CopyClipboard(GMemQueue &p, bool &InSelection)
 {
 	int Min = -1;
 	int Max = -1;
@@ -6495,7 +6495,7 @@ char *GHtml::GetSelection()
 
 	if (Cursor && Selection)
 	{
-		GBytePipe p;
+		GMemQueue p;
 		bool InSelection = false;
 		Tag->CopyClipboard(p, InSelection);
 

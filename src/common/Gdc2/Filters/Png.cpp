@@ -291,7 +291,7 @@ class GdcPng : public GFilter
 	int Pos;
 	uchar *PrevScanLine;
 	GSurface *pDC;
-	GBytePipe DataPipe;
+	GMemQueue DataPipe;
 
 	GView *Parent;
 	jmp_buf Here;

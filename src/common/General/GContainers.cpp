@@ -996,17 +996,17 @@ bool DLinkIterator::HasItem(void *p)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-GBytePipe::GBytePipe(int prealloc)
+GMemQueue::GMemQueue(int prealloc)
 {
 	PreAlloc = prealloc;
 }
 
-GBytePipe::~GBytePipe()
+GMemQueue::~GMemQueue()
 {
 	Empty();
 }
 
-GBytePipe &GBytePipe::operator=(GBytePipe &p)
+GMemQueue &GMemQueue::operator=(GMemQueue &p)
 {
 	Empty();
 
@@ -1025,7 +1025,7 @@ GBytePipe &GBytePipe::operator=(GBytePipe &p)
 	return *this;
 }
 
-void GBytePipe::Empty()
+void GMemQueue::Empty()
 {
 	for (Block *b = Mem.First(); b; b = Mem.First())
 	{
@@ -1034,7 +1034,7 @@ void GBytePipe::Empty()
 	}
 }
 
-int64 GBytePipe::GetSize()
+int64 GMemQueue::GetSize()
 {
 	int Size = 0;
 	for (Block *b = Mem.First(); b; b = Mem.Next())
@@ -1044,7 +1044,8 @@ int64 GBytePipe::GetSize()
 	return Size;
 }
 
-int GBytePipe::StringAt(char *Str)
+#if 0
+int GMemQueue::Find(char *Str)
 {
 	if (Str)
 	{
@@ -1139,7 +1140,7 @@ int GBytePipe::StringAt(char *Str)
 	return -1;
 }
 
-int64 GBytePipe::Peek(GStreamI *Str, int Size)
+int64 GMemQueue::Peek(GStreamI *Str, int Size)
 {
 	int64 Status = 0;
 
@@ -1161,7 +1162,42 @@ int64 GBytePipe::Peek(GStreamI *Str, int Size)
 	return Status;
 }
 
-int64 GBytePipe::Peek(uchar *Ptr, int Size)
+int GMemQueue::Pop(short &i)
+{
+	short n;
+	if (Read((uchar*) &n, sizeof(n)))
+	{
+		i = n;
+		return sizeof(n);
+	}
+	return 0;
+}
+
+int GMemQueue::Pop(int &i)
+{
+	int n;
+	if (Read((uchar*) &n, sizeof(n)))
+	{
+		i = n;
+		return sizeof(n);
+	}
+	return 0;
+}
+
+int GMemQueue::Pop(double &i)
+{
+	double n;
+	if (Read((uchar*) &n, sizeof(n)))
+	{
+		i = n;
+		return sizeof(n);
+	}
+	return 0;
+}
+
+#endif
+
+int64 GMemQueue::Peek(uchar *Ptr, int Size)
 {
 	int64 Status = 0;
 
@@ -1184,7 +1220,7 @@ int64 GBytePipe::Peek(uchar *Ptr, int Size)
 	return Status;
 }
 
-void *GBytePipe::New(int AddBytes)
+void *GMemQueue::New(int AddBytes)
 {
 	int64 Len = GetSize();
 	uchar *Data = Len > 0 ? new uchar[Len+AddBytes] : 0;
@@ -1200,7 +1236,7 @@ void *GBytePipe::New(int AddBytes)
 	return Data;
 }
 
-int GBytePipe::Read(void *Ptr, int Size, int Flags)
+int GMemQueue::Read(void *Ptr, int Size, int Flags)
 {
 	int Status = 0;
 
@@ -1230,42 +1266,15 @@ int GBytePipe::Read(void *Ptr, int Size, int Flags)
 	return Status;
 }
 
-int GBytePipe::Pop(short &i)
-{
-	short n;
-	if (Read((uchar*) &n, sizeof(n)))
-	{
-		i = n;
-		return sizeof(n);
-	}
-	return 0;
-}
-
-int GBytePipe::Pop(int &i)
-{
-	int n;
-	if (Read((uchar*) &n, sizeof(n)))
-	{
-		i = n;
-		return sizeof(n);
-	}
-	return 0;
-}
-
-int GBytePipe::Pop(double &i)
-{
-	double n;
-	if (Read((uchar*) &n, sizeof(n)))
-	{
-		i = n;
-		return sizeof(n);
-	}
-	return 0;
-}
-
-int GBytePipe::Write(const void *Ptr, int Size, int Flags)
+int GMemQueue::Write(const void *Ptr, int Size, int Flags)
 {
 	int Status = 0;
+
+	/*
+	char m[256];
+	sprintf_s(m, sizeof(m), "%p::Write(%p, %i, %i)\n", this, Ptr, Size, Flags);
+	OutputDebugStringA(m);
+	*/
 
 	if (Ptr && Size > 0)
 	{
@@ -1382,134 +1391,3 @@ int GStringPipe::Push(const char16 *Str, int Len)
 	}
 	return 0;
 }
-
-/*
-bool GStringPipe::Printf(char *Str, ...)
-{
-	bool Status = false;
-
-	if (Str)
-	{
-		va_list Arg;
-		va_start(Arg, Str);
-		#ifdef WIN32
-		// Stupid windows can't tell me how many bytes I need to
-		// allocate for the buffer, so I just keep increasing the
-		// size until it works.
-		for (int i=256; i <= (1 << 20); i <<= 2)
-		{
-			char *Buf = new char[i];
-			if (Buf)
-			{
-				int Len = vsnprintf(Buf, i, Str, Arg);
-				if (Len >= 0)
-				{
-					Status = Push(Buf, Len);
-					DeleteArray(Buf);
-					break;
-				}
-
-				DeleteArray(Buf);
-			}
-		}
-		#else
-		int Len = vsnprintf(0, 0, Str, Arg);
-		if (Len > 0)
-		{
-			char *Buf = new char[Len+1];
-			if (Buf)
-			{
-				vsprintf(Buf, Str, Arg);
-				Status = Push(Buf, Len);
-				DeleteArray(Buf);
-			}
-		}
-		else
-		{
-			LgiAssert(0);
-		}
-		#endif
-		va_end(Arg);
-	}
-
-	return Status;
-}
-
-bool GStringPipe::Printf(char16 *Str, ...)
-{
-	bool Status = false;
-	
-	if (Str)
-	{
-		va_list Arg;
-		va_start(Arg, Str);
-
-		#if defined(LINUX) || defined(BEOS) || defined(MAC)	|| defined(__GNUC__)
-
-			char *Format = LgiNewUtf16To8(Str);
-			if (Format)
-			{
-				int Len = vsnprintf(0, 0, Format, Arg);
-				if (Len > 0)
-				{
-					char *Buf = new char[Len+1];
-					if (Buf)
-					{
-						vsprintf(Buf, Format, Arg);
-						Status = Push(Buf, Len);
-						DeleteArray(Buf);
-					}
-				}
-				else
-				{
-					LgiAssert(0);
-				}
-				
-				DeleteArray(Format);
-			}
-		
-		#elif defined(WIN32)
-		
-			// Stupid windows can't tell me how many bytes I need to
-			// allocate for the buffer, so I just keep increasing the
-			// size until it works.
-			for (int i=256; i <= (1 << 20); i <<= 2)
-			{
-				char16 *Buf = new char16[i];
-				if (Buf)
-				{
-					int Len = vsnwprintf(Buf, i, Str, Arg);
-					if (Len >= 0)
-					{
-						Status = Push(Buf, Len);
-						DeleteArray(Buf);
-						break;
-					}
-
-					DeleteArray(Buf);
-				}
-			}
-
-		#else
-
-			#error "Impl. Me"
-
-		#endif
-
-		va_end(Arg);
-	}
-
-	return Status;
-}
-*/
-
-char *GStringPipe::NewStr()
-{
-	return (char*)New(1);
-}
-
-char16 *GStringPipe::NewStrW()
-{
-	return (char16*)New(sizeof(char16));
-}
-

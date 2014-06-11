@@ -991,7 +991,7 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 
 void *LgiNewConvertCp(const char *OutCp, const void *In, const char *InCp, int InLen)
 {
-	GBytePipe b;
+	GMemQueue b;
 
 	if (OutCp && In && InCp)
 	{

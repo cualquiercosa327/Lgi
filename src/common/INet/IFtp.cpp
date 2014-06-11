@@ -716,7 +716,7 @@ bool IFtp::ListDir(List<IFtpEntry> *Dir)
 			IsOpen() &&
 			SetupData(true))
 		{
-			GBytePipe Buf;
+			GMemQueue Buf;
 
 			// List command
 			strcpy_s(d->OutBuf, sizeof(d->OutBuf), "LIST");

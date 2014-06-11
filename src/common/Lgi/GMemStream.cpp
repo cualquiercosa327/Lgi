@@ -59,7 +59,7 @@ GMemStream::GMemStream(GStreamI *Src, int64 Start, int64 len)
 			else
 			{
 				char Buf[512];
-				GBytePipe p(4 << 10);
+				GMemQueue p(4 << 10);
 				int r;
 				while ((r = Src->Read(Buf, sizeof(Buf))) > 0)
 				{
