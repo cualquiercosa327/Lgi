@@ -214,47 +214,6 @@ public:
 	I End() { return I(this, -1); }
 };
 
-#if 0
-///	Templated iterator for using List<type> with a type safe API.
-template <class Type>
-class Iterator : public DLinkIterator
-{
-public:
-	/// Constructor
-	Iterator
-	(
-		/// The list to iterate.
-		DLinkList *l
-	) : DLinkIterator(l) {}
-	/// Constructor
-	Iterator
-	(
-		/// Source iterator
-		const Iterator<Type> &it
-	) : DLinkIterator(it) {}
-
-	/// Destructor
-	~Iterator() {}
-
-	/// Return the pointer at 'Index'
-	Type *operator [](int Index) { return (Type*) (* (DLinkIterator*)this)[Index]; }
-	/// Return the first pointer
-	Type *First() { return (Type*) DLinkIterator::First(); }
-	/// Return the first pointer
-	Type *Last() { return (Type*) DLinkIterator::Last(); }
-	/// Return the next pointer
-	Type *Next() { return (Type*) DLinkIterator::Next(); }
-	/// Return the previous pointer
-	Type *Prev() { return (Type*) DLinkIterator::Prev(); }
-	/// Return the current pointer
-	Type *Current() { return (Type*) DLinkIterator::Current(); }
-	/// Return true if the pointer is in the list
-	bool HasItem(Type *p) { return DLinkIterator::HasItem((Type*)p); }
-	/// Return the index of the pointer if it's in the list, otherwise -1.
-	int IndexOf(Type *p) { return DLinkIterator::IndexOf((Type*)p); }
-};
-#endif
-
 /// \brief Data storage class.
 ///
 /// Allows data to be buffered in separate memory
@@ -400,6 +359,123 @@ public:
 	virtual int Push(const char16 *Str, int Chars = -1);
 	char *NewStr() { return (char*)New(sizeof(char)); }
 	char16 *NewStrW() { return (char16*)New(sizeof(char16)); }
+};
+
+#define GMEMFILE_BLOCKS		8
+class LgiClass GMemFile : public GStream
+{
+	struct Block
+	{
+		size_t Offset;
+		size_t Used;
+		uint8 Data[1];
+	};
+
+	// The current file pointer
+	uint64 CurPos;
+	
+	/// The block index of the current pointer
+	int CurBlock;
+	
+	/// Number of blocks in use
+	int Blocks;
+	
+	/// Data payload of blocks
+	int BlockSize;
+
+	/// Some blocks are built into the struct, no memory alloc needed.
+	Block *Local[GMEMFILE_BLOCKS];
+	
+	// Buf if they run out we can alloc some more.
+	GArray<Block*> Extra;
+
+	Block *GetLast()
+	{
+		if (Blocks == 0)
+			return NULL;
+
+		if (Blocks < GMEMFILE_BLOCKS)
+			return Local[Blocks-1];
+		
+		LgiAssert(Extra.Length() > Blocks - GMEMFILE_BLOCKS);
+		return Extra[Blocks - GMEMFILE_BLOCKS - 1];
+	}
+	
+	Block *Create()
+	{
+		Block *b = new char[sizeof(Block)+BlockSize-1];
+		if (!b)
+			return NULL;
+		
+		b->Used = 0;
+		b->Offset = Blocks * BlockSize;
+		
+		if (Blocks < GMEMFILE_BLOCKS)
+			Local[Blocks++] = b;
+		else
+			Extra.Add(b);
+
+		return b;
+	}
+
+public:
+	GMemFile(int BlkSize = 256)
+	{
+		CurPos = 0;
+		CurBlock = 0;
+		Blocks = 0;
+		BlockSize = BlkSize;
+		ZeroObj(Local);
+	}
+
+	~GMemFile()
+	{
+		Empty();
+	}
+	
+	void Empty()
+	{
+		CurPos = 0;
+		CurBlock = 0;
+		for (int i=0; i<GMEMFILE_BLOCKS; i++)
+			DeleteArray( ((char*&)Local[i]) );
+		for (int i=0; i<Extra.Length(); i++)
+			DeleteArray( ((char*&)Extra[i]) );
+	}
+	
+	int Write(const void *Ptr, int Size, int Flags = 0)
+	{
+		if (!Ptr || Size < 1)
+			return 0;
+	
+		uint8 *p = (uint8*) Ptr;
+		int len = Size;
+		
+		Block *b = GetLast();
+		if (b && b->Used < BlockSize)
+		{
+			// Any more space in the last block?
+			int Remaining = BlockSize - b->Used;
+			int Common = min(Remaining, Size);
+			if (Common > 0)
+			{
+				memcpy(b->Data + b->Used, p, Common);
+				p += Common;
+				len -= Common;
+			}
+		}
+		
+		while (len > 0)
+		{
+			b = Create();
+			if (!b)
+				break;
+			
+			
+		}
+		
+		return Size - len;
+	}
 };
 
 #endif
