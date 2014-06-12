@@ -199,7 +199,7 @@ class GVariables : public GArray<GVariant>
 {
 	friend class GVirtualMachinePriv;
 
-	GHashTbl<char*,int> Lut;
+	GHashTbl<const char*,int> Lut;
 
 public:
 	int Scope;
@@ -211,7 +211,7 @@ public:
 		NullIndex = -1;
 	}
 
-	int Var(char *n, bool create = false)
+	int Var(const char *n, bool create = false)
 	{
 		int p = Lut.Find(n);
 		if (p)
@@ -305,7 +305,7 @@ public:
 	/// Gets a method defined in the code
 	GFunctionInfo *GetMethod(const char *Name, bool Create = false);
 	/// Sets a global variable
-	GVariant *Set(char *Name, GVariant &v);
+	GVariant *Set(const char *Name, GVariant &v);
 	/// Gets the definition of a struct or custom type
 	GTypeDef *GetType(char16 *Name) { return Types.Find(Name); }
 	/// Sets the file name this code was compiled from

@@ -203,7 +203,7 @@ const char *GCompiledCode::AddrToSourceRef(int ObjAddr)
 	return Status;
 }
 
-GVariant *GCompiledCode::Set(char *Name, GVariant &v)
+GVariant *GCompiledCode::Set(const char *Name, GVariant &v)
 {
 	int i = Globals.Var(Name, true);
 	if (i >= 0)

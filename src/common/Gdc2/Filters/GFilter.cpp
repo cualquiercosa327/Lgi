@@ -97,7 +97,7 @@ public:
 
 class GdcBmpFactory : public GFilterFactory
 {
-	bool CheckFile(char *File, int Access, uchar *Hint)
+	bool CheckFile(const char *File, int Access, const uchar *Hint)
 	{
 		return (File) ? stristr(File, ".bmp") != 0 : false;
 	}
@@ -693,7 +693,7 @@ public:
 
 class GdcIcoFactory : public GFilterFactory
 {
-	bool CheckFile(char *File, int Access, uchar *Hint)
+	bool CheckFile(const char *File, int Access, const uchar *Hint)
 	{
 		return (File) ? stristr(File, ".ico") != 0 : false;
 	}
@@ -1656,7 +1656,7 @@ GFilterFactory::~GFilterFactory()
 	}
 }
 
-GFilter *GFilterFactory::New(char *File, int Access, uchar *Hint)
+GFilter *GFilterFactory::New(const char *File, int Access, const uchar *Hint)
 {
 	GFilterFactory *i = First;
 	while (i)

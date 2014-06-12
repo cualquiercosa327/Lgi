@@ -204,12 +204,12 @@ class LgiClass GFilterFactory
 	(
 		/// The filename, useful for extension checking.
 		/// \sa LgiGetExtension.
-		char *File,
+		const char *File,
 		/// The access mode that is desired, either #FILTER_CAP_READ or #FILTER_CAP_WRITE.
 		int Access,
 		/// The first 16 bytes of the file, or NULL if not available. Useful for checking
 		/// magic numbers etc.
-		uchar *Hint
+		const uchar *Hint
 	) = 0;
 	/// Override to return an new (heap alloced) instance of your filter.
 	virtual GFilter *NewObject() = 0;
@@ -218,7 +218,7 @@ public:
 	GFilterFactory();
 	virtual ~GFilterFactory();
 
-	static GFilter *New(char *File, int Access, uchar *Hint);
+	static GFilter *New(const char *File, int Access, const uchar *Hint);
 	static GFilter *NewAt(int i);
 	static int GetItems();
 };

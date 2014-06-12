@@ -835,7 +835,7 @@ public:
 		/// True if 'Seq' is a UID, otherwise it's a sequence
 		bool ByUid,
 		/// The sequence number or UID
-		char *Seq,
+		const char *Seq,
 		/// The parts to retrieve
 		const char *Parts,
 		/// Data is returned to the caller via this callback function

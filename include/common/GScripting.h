@@ -120,7 +120,7 @@ public:
 	virtual ~GScriptObj() {}
 
 	virtual uint32 Length() = 0;
-	virtual GVariant *Set(char *Name, GVariant &v) = 0;
+	virtual GVariant *Set(const char *Name, GVariant &v) = 0;
 	virtual const char *GetFileName() = 0;
 	virtual GFunctionInfo *GetMethod(const char *Name, bool Create = false) = 0;
 	virtual class GTypeDef *GetType(char16 *Name) = 0;
