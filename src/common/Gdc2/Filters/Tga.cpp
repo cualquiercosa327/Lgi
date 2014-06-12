@@ -128,7 +128,7 @@ public:
 
 class GdcTgaFactory : public GFilterFactory
 {
-	bool CheckFile(char *File, int Access, uchar *Hint)
+	bool CheckFile(const char *File, int Access, const uchar *Hint)
 	{
 		return (Access == FILTER_CAP_READ && File) ? stristr(File, ".tga") != 0 : false;
 	}

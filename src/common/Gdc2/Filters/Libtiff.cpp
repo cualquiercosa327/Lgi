@@ -110,7 +110,7 @@ public:
 // Object Factory
 class GdcTiffFactory : public GFilterFactory
 {
-	bool CheckFile(char *File, int Access, uchar *Hint)
+	bool CheckFile(const char *File, int Access, const uchar *Hint)
 	{
 		if (Access == FILTER_CAP_READ ||
 			Access == FILTER_CAP_WRITE)

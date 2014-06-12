@@ -95,7 +95,7 @@ GAutoPtr<LibJpeg> JpegLibrary;
 /////////////////////////////////////////////////////////////////////
 class GdcJpegFactory : public GFilterFactory
 {
-	bool CheckFile(char *File, int Access, uchar *Hint)
+	bool CheckFile(const char *File, int Access, const uchar *Hint)
 	{
 		if (Hint)
 		{
