@@ -449,6 +449,44 @@ void Ycc32(	T *d,
 	}
 }
 
+template<typename D, typename S>
+void CmykToRgb24(D *d, S *s, int width)
+{
+	D *end = d + width;
+	while (d < end)
+	{
+		int k = s->k;
+
+		d->r = s->c * k / 255;
+		d->g = s->m * k / 255;
+		d->b = s->y * k / 255;
+		
+		d++;
+		s++;
+	}
+}
+
+template<typename D, typename S>
+void CmykToRgb32(D *d, S *s, int width)
+{
+	D *end = d + width;
+	while (d < end)
+	{
+		int k = s->k;
+		int c = s->c * k;
+		int m = s->m * k;
+		int y = s->y * k;
+
+		d->r = c / 255;
+		d->g = m / 255;
+		d->b = y / 255;
+		d->a = 255;
+		
+		d++;
+		s++;
+	}
+}
+
 GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 {
 	GFilter::IoStatus Status = IoError;
@@ -631,25 +669,29 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 									break;
 								}
 
-								GPixelPtr ptr;
-								ptr.u8 = Ptr;
 								LgiAssert(pDC->GetBits() == 32);
 								
-								for (int x=0; x<pDC->X(); x++)
+								switch (pDC->GetColourSpace())
 								{
-									/*
-									double C = (double) ptr.c32->c / 255;
-									double M = (double) ptr.c32->m / 255;
-									double Y = (double) ptr.c32->y / 255;
-									double K = (double) ptr.c32->k / 255;
+									#define CmykCase(name, bits) \
+										case Cs##name: CmykToRgb##bits((G##name*)Ptr, (GCmyk32*)Ptr, pDC->X()); break
 
-									ptr.p32->r = (uint8) ((1.0 - min(1, C * (1.0 - K) + K)) * 255);
-									ptr.p32->g = (uint8) ((1.0 - min(1, M * (1.0 - K) + K)) * 255);
-									ptr.p32->b = (uint8) ((1.0 - min(1, Y * (1.0 - K) + K)) * 255);
-									ptr.p32->a = 255;
+									CmykCase(Rgb24, 24);
+									CmykCase(Bgr24, 24);
+									CmykCase(Rgbx32, 24);
+									CmykCase(Bgrx32, 24);
+									CmykCase(Xrgb32, 24);
+									CmykCase(Xbgr32, 24);
+									CmykCase(Rgba32, 32);
+									CmykCase(Bgra32, 32);
+									CmykCase(Argb32, 32);
+									CmykCase(Abgr32, 32);
+									
+									#undef CmykCase
 
-									ptr.p32++;
-									*/
+									default:
+										LgiAssert(!"impl me.");
+										break;
 								}
 								break;
 							}

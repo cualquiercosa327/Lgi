@@ -374,8 +374,6 @@ class LgiClass GMemFile : public GStream
 	// The current file pointer
 	uint64 CurPos;
 	
-	/// The block index of the current pointer
-	int CurBlock;
 	
 	/// Number of blocks in use
 	int Blocks;
@@ -389,93 +387,23 @@ class LgiClass GMemFile : public GStream
 	// Buf if they run out we can alloc some more.
 	GArray<Block*> Extra;
 
-	Block *GetLast()
-	{
-		if (Blocks == 0)
-			return NULL;
-
-		if (Blocks < GMEMFILE_BLOCKS)
-			return Local[Blocks-1];
-		
-		LgiAssert(Extra.Length() > Blocks - GMEMFILE_BLOCKS);
-		return Extra[Blocks - GMEMFILE_BLOCKS - 1];
-	}
-	
-	Block *Create()
-	{
-		Block *b = new char[sizeof(Block)+BlockSize-1];
-		if (!b)
-			return NULL;
-		
-		b->Used = 0;
-		b->Offset = Blocks * BlockSize;
-		
-		if (Blocks < GMEMFILE_BLOCKS)
-			Local[Blocks++] = b;
-		else
-			Extra.Add(b);
-
-		return b;
-	}
+	Block *Get(int Index);
+	bool FreeBlock(Block *b);
+	Block *GetLast() { return Get(Blocks-1); }
+	Block *Create();
+	int CurBlock() { return (int) (CurPos / BlockSize); }
 
 public:
-	GMemFile(int BlkSize = 256)
-	{
-		CurPos = 0;
-		CurBlock = 0;
-		Blocks = 0;
-		BlockSize = BlkSize;
-		ZeroObj(Local);
-	}
-
-	~GMemFile()
-	{
-		Empty();
-	}
+	GMemFile(int BlkSize = 256);
+	~GMemFile();
 	
-	void Empty()
-	{
-		CurPos = 0;
-		CurBlock = 0;
-		for (int i=0; i<GMEMFILE_BLOCKS; i++)
-			DeleteArray( ((char*&)Local[i]) );
-		for (int i=0; i<Extra.Length(); i++)
-			DeleteArray( ((char*&)Extra[i]) );
-	}
-	
-	int Write(const void *Ptr, int Size, int Flags = 0)
-	{
-		if (!Ptr || Size < 1)
-			return 0;
-	
-		uint8 *p = (uint8*) Ptr;
-		int len = Size;
-		
-		Block *b = GetLast();
-		if (b && b->Used < BlockSize)
-		{
-			// Any more space in the last block?
-			int Remaining = BlockSize - b->Used;
-			int Common = min(Remaining, Size);
-			if (Common > 0)
-			{
-				memcpy(b->Data + b->Used, p, Common);
-				p += Common;
-				len -= Common;
-			}
-		}
-		
-		while (len > 0)
-		{
-			b = Create();
-			if (!b)
-				break;
-			
-			
-		}
-		
-		return Size - len;
-	}
+	void Empty();
+	int64 GetSize();
+	int64 SetSize(int64 Size);
+	int64 GetPos();
+	int64 SetPos(int64 Pos);
+	int Read(void *Ptr, int Size, int Flags = 0);
+	int Write(const void *Ptr, int Size, int Flags = 0);
 };
 
 #endif

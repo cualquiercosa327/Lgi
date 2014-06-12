@@ -1391,3 +1391,262 @@ int GStringPipe::Push(const char16 *Str, int Len)
 	}
 	return 0;
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+GMemFile::GMemFile(int BlkSize)
+{
+	CurPos = 0;
+	Blocks = 0;
+	BlockSize = BlkSize < 16 ? 16 : BlkSize;
+	ZeroObj(Local);
+}
+
+GMemFile::~GMemFile()
+{
+	Empty();
+}
+
+GMemFile::Block *GMemFile::Get(int Index)
+{
+	if (Blocks == 0 || Index < 0)
+		return NULL;
+
+	if (Index < GMEMFILE_BLOCKS)
+		return Local[Index];
+	
+	if (Index - GMEMFILE_BLOCKS >= Extra.Length())
+	{
+		LgiAssert(!"Index beyond last block");
+		return NULL;
+	}
+
+	return Extra[Index - GMEMFILE_BLOCKS];
+}
+
+GMemFile::Block *GMemFile::Create()
+{
+	Block *b = (Block*) malloc(sizeof(Block)+BlockSize-1);
+	if (!b)
+		return NULL;
+	
+	b->Used = 0;
+	b->Offset = Blocks * BlockSize;
+	
+	if (Blocks < GMEMFILE_BLOCKS)
+		Local[Blocks] = b;
+	else
+		Extra.Add(b);
+
+	Blocks++;
+	return b;
+}
+
+void GMemFile::Empty()
+{
+	CurPos = 0;
+	for (int i=0; i<GMEMFILE_BLOCKS; i++)
+		free(Local[i]);
+	for (int i=0; i<Extra.Length(); i++)
+		free(Extra[i]);
+}
+
+int64 GMemFile::GetSize()
+{
+	if (this == NULL)
+		return -1;
+	if (Blocks == 0)
+		return 0;
+
+	Block *b = GetLast();
+	int64 Sz = (Blocks - 1) * BlockSize;
+	return Sz + b->Used;	
+}
+
+bool GMemFile::FreeBlock(Block *b)
+{
+	if (!b)
+		return false;
+	
+	int Idx = b->Offset / BlockSize;
+	if (Idx < GMEMFILE_BLOCKS)
+	{
+		// Local block
+		if (Local[Idx] != b ||
+			Idx < Blocks-1)
+		{
+			LgiAssert(!"Block index error.");
+			return false;
+		}
+		
+		free(b);
+		Local[Idx] = NULL;		
+		Blocks--;
+		return true;
+	}
+
+	// Extra block
+	int Off = Idx - GMEMFILE_BLOCKS;
+	if (Off != Extra.Length() - 1)
+	{
+		LgiAssert(!"Block index error.");
+		return false;
+	}
+	
+	free(b);
+	Extra.DeleteAt(Off, true);
+	Blocks--;
+	return true;
+}
+
+int64 GMemFile::SetSize(int64 Size)
+{
+	if (Size <= 0)
+	{
+		Empty();
+	}
+	else
+	{
+		int64 CurSize = GetSize();
+		if (Size > CurSize)
+		{
+			// Increase size...
+			int64 Diff = Size - CurSize;
+			Block *b = GetLast();
+			if (b->Used < BlockSize)
+			{
+				// Add size to last incomplete block
+				int Remaining = BlockSize - b->Used;
+				int Add = min(Diff, Remaining);
+				b->Used += Add;
+				Diff -= Add;
+			}
+			while (Diff > 0)
+			{
+				// Add new blocks to cover the size...
+				int Add = min(BlockSize, Diff);
+				b = Create();
+				b->Used = Add;
+				Diff -= Add;
+			}
+		}
+		else
+		{
+			// Decrease size...
+			uint64 Diff = CurSize - Size;
+			while (Diff > 0 && Blocks > 0)
+			{
+				Block *b = GetLast();
+				if (!b)
+					break;
+
+				int Sub = min(b->Used, Diff);
+				b->Used -= Sub;
+				Diff -= Sub;
+				if (b->Used == 0)
+					FreeBlock(b);
+			}
+		}
+	}
+	
+	return GetSize();
+}
+
+int64 GMemFile::GetPos()
+{
+	return CurPos;
+}
+
+int64 GMemFile::SetPos(int64 Pos)
+{
+	if (Pos <= 0)
+		return CurPos = 0; // Off the start of the structure
+	
+	int BlockIndex = Pos / BlockSize;
+	if (BlockIndex >= Blocks)
+		return CurPos = GetSize(); // Off the end of the structure
+	
+	if (BlockIndex >= 0 && BlockIndex < Blocks - 1)
+		return CurPos = Pos; // Inside a full block
+	
+	Block *Last = GetLast();
+	uint64 Offset = Pos - Last->Offset;
+	if (Offset >= Last->Used)
+		return CurPos = Last->Offset + Last->Used; // End of last block
+	
+	return CurPos = Pos; // Inside the last block
+}
+
+int GMemFile::Read(void *Ptr, int Size, int Flags)
+{
+	if (!Ptr || Size < 1)
+		return 0;
+	
+	uint8 *p = (uint8*) Ptr;
+	uint8 *end = p + Size;
+	while (p < end)
+	{
+		int Cur = CurBlock();
+		if (Cur >= Blocks)
+			break;
+		Block *b = Get(Cur);
+		
+		// Where are we in the current block?
+		int BlkOffset = CurPos - b->Offset;
+		LgiAssert(b && BlkOffset >= 0 && BlkOffset <= b->Used);
+		int Remaining = b->Used - BlkOffset;
+		if (Remaining > 0)
+		{
+			int Common = min(Remaining, end - p);
+			memcpy(p, b->Data + BlkOffset, Common);
+			CurPos += Common;
+			p += Common;
+		}
+		else break;
+		
+		LgiAssert(p <= end);
+		if (p >= end)	// End of read buffer reached?
+			break;		// Exit loop
+	}	
+	
+	return p - (uint8*) Ptr;
+}
+
+int GMemFile::Write(const void *Ptr, int Size, int Flags)
+{
+	if (!Ptr || Size < 1)
+		return 0;
+
+	uint8 *p = (uint8*) Ptr;
+	int len = Size;
+	
+	Block *b = GetLast();
+	if (b && b->Used < BlockSize)
+	{
+		// Any more space in the last block?
+		int Remaining = BlockSize - b->Used;
+		int Common = min(Remaining, Size);
+		if (Common > 0)
+		{
+			memcpy(b->Data + b->Used, p, Common);
+			p += Common;
+			len -= Common;
+			b->Used += Common;
+		}
+	}
+
+	// Store remaining data into new blocks		
+	while (len > 0)
+	{
+		b = Create();
+		if (!b)
+			break;
+		
+		int Common = min(BlockSize, len);
+		memcpy(b->Data, p, Common);
+		b->Used = Common;
+		p += Common;
+		len -= Common;
+	}
+	
+	return Size - len;
+}
