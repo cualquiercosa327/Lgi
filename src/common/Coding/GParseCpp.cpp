@@ -1,3 +1,5 @@
+#include <wchar.h>
+
 #include "Lgi.h"
 #include "GParseCpp.h"
 #include "GThreadEvent.h"
@@ -7,7 +9,11 @@
 #include "GXmlTree.h"
 
 #define CheckToken(t)	if (!t) { Error = true; break; }
+#ifdef WINDOWS
 #define Debug			__asm int 3
+#else
+#define Debug			assert(0)
+#endif
 
 enum LoopState
 {
@@ -475,7 +481,6 @@ struct GSourceScope : public GHashTbl<char16*, GSymbol*>
 	{
 		if (Find(k))
 		{
-			Debug
 			return false;
 		}
 		
@@ -829,6 +834,7 @@ GAutoWString GCppParserWorker::GetSymbolName(GArray<char16*> &in, bool IsEnum)
 						{
 							if (--Depth <= 0)
 								break;
+
 						}
 					}
 
@@ -1449,7 +1455,11 @@ GSourceFile *GCppParserWorker::ParseCpp(const char *Path)
 									// Unnamed enum
 									static int Idx = 1;
 									char16 Buf[256];
+									#ifdef WINDOWS
 									swprintf_s(Buf, CountOf(Buf), L"UnnamedEnum%i", Idx++);
+									#else
+									swprintf(Buf, CountOf(Buf), L"UnnamedEnum%i", Idx++);
+									#endif
 
 									if (CurrentScope()->Find(SymName))
 									{

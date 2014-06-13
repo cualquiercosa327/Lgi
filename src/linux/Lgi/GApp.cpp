@@ -651,7 +651,7 @@ bool GApp::GetOption(const char *Option, char *Dest, int DestLen)
 		{
 			if (DestLen > 0)
 			{
-				strsafecpy(Dest, Buf, DestLen);
+				strcpy_s(Dest, DestLen, Buf);
 			}
 			else return false;
 		}

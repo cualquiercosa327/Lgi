@@ -1532,7 +1532,7 @@ public:
 							if (Term)
 							{
 								char s[256];
-								strsafecpy(s, Format, sizeof(s));
+								strcpy_s(s, sizeof(s), Format);
 								
 								char *o = s + strlen(s), *i = Path;
 								*o++ = '\"';
@@ -2346,7 +2346,7 @@ public:
 				if (Proj->GetExecutable())
 				{
 					char Path[256];
-					strsafecpy(Path, Exe, sizeof(Path));
+					strcpy_s(Path, sizeof(Path), Exe);
 					LgiTrimDir(Path);
 									
 					char *Term = 0;

@@ -43,6 +43,9 @@ Inc = \
 Depends =	GDateTime.o \
 			GDragAndDrop.o \
 			GFile.o \
+			GFileCommon.o \
+			GFileSelect.o \
+			GColour.o \
 			GExeCheck.o \
 			GApp.o \
 			GGeneral.o \
@@ -74,7 +77,6 @@ Depends =	GDateTime.o \
 			GTrayIcon.o \
 			Lgi.o \
 			LgiMsg.o \
-			GFileSelect.o \
 			GAlert.o \
 			GFindReplace.o \
 			GFontSelect.o \
@@ -182,6 +184,10 @@ GFile.o : ./src/linux/General/GFile.cpp ./include/common/LgiDefs.h \
 	./include/common/Gdc2.h \
 	./include/common/LgiCommon.h \
 	./include/common/GString.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GFileCommon.o : ./src/common/General/GFileCommon.cpp ./include/common/LgiDefs.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -332,6 +338,10 @@ GPath.o : ./src/common/Gdc2/Path/GPath.cpp ./include/common/Lgi.h \
 	./include/common/GPath.h \
 	./include/common/GdiLeak.h \
 	./include/common/GDisplayString.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GColour.o : ./src/common/Gdc2/GColour.cpp ./include/common/Lgi.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 

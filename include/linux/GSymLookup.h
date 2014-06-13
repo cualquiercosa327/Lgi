@@ -89,7 +89,7 @@ public:
 			*/
 			{
 				int CopyLen = strlen(Sym[i]);
-				strsafecpy(buf, Sym[i], buflen);
+				strcpy_s(buf, buflen, Sym[i]);
 				buflen -= CopyLen;
 				buf += CopyLen;
 			}

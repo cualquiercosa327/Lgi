@@ -233,10 +233,17 @@ public:
                 png_structp, png_ptr,
                 png_infop, info_ptr);
 
+	#if PNG_LIBPNG_VER <= 10242
+	DynFunc2(   png_byte,
+				png_get_color_type,
+				png_structp, png_ptr,
+				png_infop, info_ptr);
+	#else
 	DynFunc2(   png_byte,
 				png_get_color_type,
 				png_const_structp, png_ptr,
 				png_const_infop, info_ptr);
+	#endif
 
     DynFunc2(   png_byte,
                 png_get_bit_depth,

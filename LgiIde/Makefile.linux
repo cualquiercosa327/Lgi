@@ -60,7 +60,8 @@ Depends =	FtpThread.o \
 			GMdi.o \
 			GTextView3.o \
 			LgiMain.o \
-			Png.o
+			Png.o \
+			GParseCpp.o
 
 # Target
 # Executable target
@@ -318,6 +319,10 @@ SysCharSupport.o : ./Code/SysCharSupport.cpp ../include/common/Lgi.h \
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GLexCpp.o : ../src/common/Coding/GLexCpp.cpp ../include/common/GLexCpp.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GParseCpp.o : ../src/common/Coding/GParseCpp.cpp ../include/common/GLexCpp.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 

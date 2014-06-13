@@ -48,11 +48,11 @@ public:
 	}
 };
 
-GMemDC::GMemDC(int x, int y, int bits)
+GMemDC::GMemDC(int x, int y, GColourSpace cs)
 {
 	d = new GMemDCPrivate;
-	if (bits > 0)
-		Create(x, y, bits);
+	if (cs != CsNone)
+		Create(x, y, cs);
 }
 
 GMemDC::GMemDC(GSurface *pDC)
@@ -167,75 +167,12 @@ void GMemDC::Empty()
 
 bool GMemDC::Lock()
 {
-	bool Status = false;
-
-	/*
-	// Converts a server pixmap to a local bitmap
-	if (d->Pix)
-	{
-		Status = d->ConvertToBmp();
-		pMem->Base = d->Bmp->Addr(0);
-
-		int NewOp = (pApp) ? Op() : GDC_SET;
-
-		if ( (Flags & GDC_OWN_APPLICATOR) &&
-			!(Flags & GDC_CACHED_APPLICATOR))
-		{
-			DeleteObj(pApp);
-		}
-
-		for (int i=0; i<GDC_CACHE_SIZE; i++)
-		{
-			DeleteObj(pAppCache[i]);
-		}
-
-		if (NewOp < GDC_CACHE_SIZE && !DrawOnAlpha())
-		{
-			pApp = (pAppCache[NewOp]) ? pAppCache[NewOp] : pAppCache[NewOp] = CreateApplicator(NewOp);
-			Flags &= ~GDC_OWN_APPLICATOR;
-			Flags |= GDC_CACHED_APPLICATOR;
-		}
-		else
-		{
-			pApp = CreateApplicator(NewOp, pMem->Bits);
-			Flags &= ~GDC_CACHED_APPLICATOR;
-			Flags |= GDC_OWN_APPLICATOR;
-		}
-
-		LgiAssert(pApp);
-	}
-	*/
-	
-	return Status;
+	return false;
 }
 
 bool GMemDC::Unlock()
 {
-	bool Status = false;
-
-	/*
-	// Converts the local image to a server pixmap
-	if (d->Bmp)
-	{
-		Status = d->ConvertToPix();
-		
-		if (Status)
-		{
-			for (int i=0; i<GDC_CACHE_SIZE; i++)
-			{
-				if (pAppCache[i] && pAppCache[i] == pApp) pApp = 0;
-				DeleteObj(pAppCache[i]);
-			}
-			DeleteObj(pApp);
-			
-			pMem->Base = 0;
-			
-			Status = true;
-		}
-	}
-	*/
-
-	return Status;
+	return false;
 }
 
 void GMemDC::SetOrigin(int x, int y)
@@ -244,6 +181,11 @@ void GMemDC::SetOrigin(int x, int y)
 	UnTranslate();
 	GSurface::SetOrigin(x, y);
 	Translate();
+}
+
+bool GMemDC::Create(int x, int y, GColourSpace Cs, int LineLen, bool KeepData)
+{
+	return Create(x, y, GColourSpaceToBits(Cs), LineLen, KeepData);
 }
 
 bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)

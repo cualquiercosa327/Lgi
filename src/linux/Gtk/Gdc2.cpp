@@ -7,6 +7,7 @@
 #include <math.h>
 
 #include "Lgi.h"
+#include "GPalette.h"
 
 #define LGI_PI				3.141592654
 #define LGI_RAD				(360/(2*LGI_PI))
@@ -78,9 +79,9 @@ void GPalette::Set(uchar *pPal, int s)
 		{
 			for (int i=0; i<s; i++)
 			{
-				Data[i].R = *pPal++;
-				Data[i].G = *pPal++;
-				Data[i].B = *pPal++;
+				Data[i].r = *pPal++;
+				Data[i].g = *pPal++;
+				Data[i].b = *pPal++;
 			}
 		}
 
@@ -119,9 +120,9 @@ void GPalette::SwapRAndB()
 	{
 		for (int i=0; i<GetSize(); i++)
 		{
-			uchar n = (*this)[i]->R;
-			(*this)[i]->R = (*this)[i]->B;
-			(*this)[i]->B = n;
+			uchar n = (*this)[i]->r;
+			(*this)[i]->r = (*this)[i]->b;
+			(*this)[i]->b = n;
 		}
 	}
 
@@ -191,9 +192,9 @@ int GPalette::MatchRgb(COLOUR Rgb)
 
 		for (int i = 0; i < Size; i++)
 		{
-			rdist = Entry[i].R - r;
-			gdist = Entry[i].G - g;
-			bdist = Entry[i].B - b;
+			rdist = Entry[i].r - r;
+			gdist = Entry[i].g - g;
+			bdist = Entry[i].b - b;
 			curdist = squares[rdist] + squares[gdist] + squares[bdist];
 
 			if (curdist < mindist)
@@ -216,10 +217,10 @@ void GPalette::CreateGreyScale()
 
 	for (int i=0; i<256; i++)
 	{
-		p->R = i;
-		p->G = i;
-		p->B = i;
-		p->Flags = 0;
+		p->r = i;
+		p->g = i;
+		p->b = i;
+		p->a = 0;
 		p++;
 	}
 }
@@ -235,10 +236,10 @@ void GPalette::CreateCube()
 		{
 			for (int b=0; b<6; b++)
 			{
-				p->R = r * 51;
-				p->G = g * 51;
-				p->B = b * 51;
-				p->Flags = 0;
+				p->r = r * 51;
+				p->g = g * 51;
+				p->b = b * 51;
+				p->a = 0;
 				p++;
 			}
 		}
@@ -246,9 +247,9 @@ void GPalette::CreateCube()
 
 	for (int i=216; i<256; i++)
 	{
-		(*this)[i]->R = 0;
-		(*this)[i]->G = 0;
-		(*this)[i]->B = 0;
+		(*this)[i]->r = 0;
+		(*this)[i]->g = 0;
+		(*this)[i]->b = 0;
 	}
 }
 
@@ -293,9 +294,9 @@ bool GPalette::Load(GFile &F)
 			GdcRGB *p = (*this)[i];
 			if (p)
 			{
-				p->R = atoi(strtok(Buf, " "));
-				p->G = atoi(strtok(NULL, " "));
-				p->B = atoi(strtok(NULL, " "));
+				p->r = atoi(strtok(Buf, " "));
+				p->g = atoi(strtok(NULL, " "));
+				p->b = atoi(strtok(NULL, " "));
 
 			}
 
@@ -328,7 +329,7 @@ bool GPalette::Save(GFile &F, int Format)
 				GdcRGB *p = (*this)[i];
 				if (p)
 				{
-					sprintf(Buf, "%i %i %i\r\n", p->R, p->G, p->B);
+					sprintf(Buf, "%i %i %i\r\n", p->r, p->g, p->b);
 					F.Write(Buf, strlen(Buf));
 				}
 			}
@@ -350,9 +351,9 @@ bool GPalette::operator ==(GPalette &p)
 
 		for (int i=0; i<GetSize(); i++)
 		{
-			if (	a->R != b->R ||
-				a->G != b->G ||
-				a->B != b->B)
+			if (a->r != b->r ||
+				a->g != b->g ||
+				a->b != b->b)
 			{
 				return false;
 			}
@@ -680,7 +681,11 @@ COLOUR GdcDevice::GetColour(COLOUR Rgb24, GSurface *pDC)
 					}
 					else
 					{
-						(*d->pSysPal)[Current]->Set(R24(Rgb24), G24(Rgb24), B24(Rgb24));
+						GdcRGB *p = (*d->pSysPal)[Current];
+						p->r = R24(Rgb24);
+						p->g = G24(Rgb24);
+						p->b = B24(Rgb24);
+						
 						C = Current++;
 						if (Current == 255) Current = 1;
 					}
