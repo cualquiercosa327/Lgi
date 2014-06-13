@@ -43,10 +43,8 @@ Inc = \
 Depends =	GDateTime.o \
 			GDragAndDrop.o \
 			GFile.o \
-			GFileCommon.o \
-			GFileSelect.o \
-			GColour.o \
 			GExeCheck.o \
+			GFileCommon.o \
 			GApp.o \
 			GGeneral.o \
 			GPrinter.o \
@@ -77,11 +75,13 @@ Depends =	GDateTime.o \
 			GTrayIcon.o \
 			Lgi.o \
 			LgiMsg.o \
+			GFileSelect.o \
 			GAlert.o \
 			GFindReplace.o \
 			GFontSelect.o \
 			GInput.o \
 			Gdc2.o \
+			GColour.o \
 			GColourReduce.o \
 			GdcCommon.o \
 			GdcTools.o \
@@ -187,11 +187,12 @@ GFile.o : ./src/linux/General/GFile.cpp ./include/common/LgiDefs.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GFileCommon.o : ./src/common/General/GFileCommon.cpp ./include/common/LgiDefs.h
+GExeCheck.o : ./src/common/General/GExeCheck.cpp ./include/common/Lgi.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GExeCheck.o : ./src/common/General/GExeCheck.cpp ./include/common/Lgi.h
+GFileCommon.o : ./src/common/General/GFileCommon.cpp ./include/common/Lgi.h \
+	./include/common/GVariant.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -341,10 +342,6 @@ GPath.o : ./src/common/Gdc2/Path/GPath.cpp ./include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GColour.o : ./src/common/Gdc2/GColour.cpp ./include/common/Lgi.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
 GMemStream.o : ./src/common/Lgi/GMemStream.cpp ./include/common/Lgi.h \
 	./include/common/GStream.h
 	@echo $(<F) [$(Build)]
@@ -400,11 +397,11 @@ GTrayIcon.o : ./src/common/Lgi/GTrayIcon.cpp ./include/common/Lgi.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-Lgi.o : ./src/common/Lgi/Lgi.cpp ./include/common/GRegKey.h \
-	./include/common/Lgi.h \
+Lgi.o : ./src/common/Lgi/Lgi.cpp ./include/common/Lgi.h \
 	./include/common/GToken.h \
 	./include/common/GCapabilities.h \
 	./include/linux/Gtk/LgiWinManGlue.h \
+	./include/common/GRegKey.h \
 	./include/common/GProcess.h \
 	./include/win32/GSymLookup.h \
 	./include/linux/GSymLookup.h \
@@ -473,20 +470,30 @@ GInput.o : ./src/common/Lgi/GInput.cpp ./include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-Gdc2.o : ./src/linux/Gtk/Gdc2.cpp ./include/common/Lgi.h
+Gdc2.o : ./src/linux/Gtk/Gdc2.cpp ./include/common/Lgi.h \
+	./include/common/GPalette.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GColourReduce.o : ./src/common/Gdc2/Tools/GColourReduce.cpp ./include/common/Gdc2.h
+GColour.o : ./src/common/Gdc2/GColour.cpp ./include/common/Lgi.h \
+	./include/common/GPalette.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GdcCommon.o : ./src/common/Gdc2/GdcCommon.cpp ./include/common/Lgi.h
+GColourReduce.o : ./src/common/Gdc2/Tools/GColourReduce.cpp ./include/common/Gdc2.h \
+	./include/common/GPalette.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GdcCommon.o : ./src/common/Gdc2/GdcCommon.cpp ./include/common/Lgi.h \
+	./include/common/GPalette.h \
+	./include/common/GPixelRops.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GdcTools.o : ./src/common/Gdc2/Tools/GdcTools.cpp ./include/common/Gdc2.h \
-	./include/common/GdcTools.h
+	./include/common/GdcTools.h \
+	./include/common/GPalette.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -502,6 +509,7 @@ GDisplayString.o : ./src/common/Gdc2/Font/GDisplayString.cpp ./include/common/Lg
 GFont.o : ./src/common/Gdc2/Font/GFont.cpp ./include/common/Lgi.h \
 	./include/common/GVariant.h \
 	./include/common/GFontSelect.h \
+	./include/common/GDisplayString.h \
 	./include/common/GdiLeak.h \
 	./include/common/GUtf8.h
 	@echo $(<F) [$(Build)]
@@ -532,27 +540,35 @@ GFontSystem.o : ./src/common/Gdc2/Font/GFontSystem.cpp ./include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-15Bit.o : ./src/common/Gdc2/15Bit.cpp ./include/common/Gdc2.h
+15Bit.o : ./src/common/Gdc2/15Bit.cpp ./include/common/Gdc2.h \
+	./include/common/GPalette.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-16Bit.o : ./src/common/Gdc2/16Bit.cpp ./include/common/Gdc2.h
+16Bit.o : ./src/common/Gdc2/16Bit.cpp ./include/common/Gdc2.h \
+	./include/common/GPalette.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-24Bit.o : ./src/common/Gdc2/24Bit.cpp ./include/common/Gdc2.h
+24Bit.o : ./src/common/Gdc2/24Bit.cpp ./include/common/Gdc2.h \
+	./include/common/GPalette.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-32Bit.o : ./src/common/Gdc2/32Bit.cpp ./include/common/Gdc2.h
+32Bit.o : ./src/common/Gdc2/32Bit.cpp ./include/common/Gdc2.h \
+	./include/common/GPalette.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-8Bit.o : ./src/common/Gdc2/8Bit.cpp ./include/common/Gdc2.h
+8Bit.o : ./src/common/Gdc2/8Bit.cpp ./include/common/Gdc2.h \
+	./include/common/GPalette.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-Alpha.o : ./src/common/Gdc2/Alpha.cpp ./include/common/Gdc2.h
+Alpha.o : ./src/common/Gdc2/Alpha.cpp ./include/common/Gdc2.h \
+	./include/common/GPath.h \
+	./include/common/GPixelRops.h \
+	./include/common/GPalette.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -561,6 +577,7 @@ GFilter.o : ./src/common/Gdc2/Filters/GFilter.cpp ./include/common/Gdc2.h \
 	./include/common/GVariant.h \
 	./include/common/GClipBoard.h \
 	./include/common/GToken.h \
+	./include/common/GPalette.h \
 	./include/common/Lgi.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -585,7 +602,9 @@ GScreenDC.o : ./src/linux/Gtk/GScreenDC.cpp ./include/common/Lgi.h
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GSurface.o : ./src/common/Gdc2/GSurface.cpp ./include/common/Gdc2.h \
-	./include/common/GdiLeak.h
+	./include/common/GdiLeak.h \
+	./include/common/GPalette.h \
+	./include/common/GVariant.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -673,7 +692,8 @@ GDocView.o : ./src/common/Text/GDocView.cpp ./include/common/Lgi.h \
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GProgress.o : ./src/common/Widgets/GProgress.cpp ./include/common/Lgi.h \
-	./include/common/GProgress.h
+	./include/common/GProgress.h \
+	./include/common/GCss.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -780,14 +800,16 @@ GTextLabel.o : ./src/common/Widgets/GTextLabel.cpp ./include/common/Lgi.h \
 GToolBar.o : ./src/common/Widgets/GToolBar.cpp ./include/common/Lgi.h \
 	./include/common/GToken.h \
 	./include/common/GVariant.h \
-	./include/common/GDisplayString.h
+	./include/common/GDisplayString.h \
+	./include/common/GPalette.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GTree.o : ./src/common/Widgets/GTree.cpp ./include/common/Lgi.h \
 	./include/common/GTree.h \
 	./include/common/GScrollBar.h \
-	./include/common/GDisplayString.h
+	./include/common/GDisplayString.h \
+	./include/common/GPalette.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -895,19 +917,34 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ./include/common/GDocView.h : ./include/common/GVariant.h
 
-./include/common/LgiCommon.h : ./include/common/GArray.h \
+./include/common/LgiCommon.h : ./include/common/GMem.h \
+	./include/common/GArray.h \
 	./include/common/LgiClass.h
 
-./include/common/GArray.h : ./include/common/LgiDefs.h \
-	./include/common/GMem.h
+./include/common/GArray.h : ./include/common/LgiDefs.h
 
 ./include/linux/GSymLookup.h : ./include/common/GProcess.h
 
 ./include/common/GProcess.h : ./include/common/GStream.h
 
-./include/common/GList.h : ./include/common/GPopup.h \
+./include/common/GList.h : ./include/common/GMem.h \
 	./include/common/GArray.h \
-	./include/common/GDisplayString.h
+	./include/common/GPopup.h \
+	./include/common/GDisplayString.h \
+	./include/common/GCss.h
+
+./include/common/GCss.h : ./include/common/LgiInc.h \
+	./include/linux/Gtk/LgiOsDefs.h \
+	./include/common/GMem.h \
+	./include/common/Gdc2.h \
+	./include/common/GAutoPtr.h \
+	./include/common/GString.h \
+	./include/common/GHashTable.h
+
+./include/common/GHashTable.h : ./include/common/GMem.h \
+	./include/common/GArray.h \
+	./include/common/GString.h \
+	./include/common/LgiClass.h
 
 ./include/common/Res.h : ./include/common/GXmlTree.h
 
@@ -915,7 +952,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ./include/common/GFile.h : ./include/common/GMem.h \
 	./include/common/GStream.h \
-	./include/common/GArray.h
+	./include/common/GArray.h \
+	./include/common/GRefCount.h
 
 ./include/linux/Gtk/LgiWinManGlue.h : ./include/common/LgiDefs.h \
 	./include/common/GMem.h \
@@ -940,6 +978,7 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ./include/common/LgiClasses.h : ./include/common/GMutex.h \
 	./include/linux/Gtk/LgiOsClasses.h \
+	./include/common/GMem.h \
 	./include/common/GArray.h \
 	./include/common/LgiCommon.h \
 	./include/common/GXmlTree.h \
@@ -955,16 +994,13 @@ md5.o : ./src/common/Hash/md5/md5.c
 	./include/common/GInput.h \
 	./include/common/GPrinter.h
 
-./include/common/LgiCommon.h : ./include/common/GArray.h \
+./include/common/LgiCommon.h : ./include/common/GMem.h \
+	./include/common/GArray.h \
 	./include/common/LgiClass.h
 
 ./include/common/GXmlTree.h : ./include/common/GHashTable.h \
 	./include/common/GRefCount.h \
 	./include/common/GDom.h
-
-./include/common/GHashTable.h : ./include/common/GArray.h \
-	./include/common/GString.h \
-	./include/common/LgiClass.h
 
 ./include/common/GMem.h : ./include/common/LgiInc.h \
 	./include/linux/Gtk/LgiOsDefs.h
@@ -995,8 +1031,7 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ./include/common/Res.h : ./include/common/GXmlTree.h
 
-./include/common/GArray.h : ./include/common/LgiDefs.h \
-	./include/common/GMem.h
+./include/common/GArray.h : ./include/common/LgiDefs.h
 
 ./include/common/GPath.h : ./include/common/GMatrix.h
 
@@ -1009,7 +1044,9 @@ md5.o : ./src/common/Hash/md5/md5.c
 	./include/common/Core.h \
 	./include/common/GContainers.h \
 	./include/common/GCapabilities.h \
+	./include/common/GRefCount.h \
 	./include/common/GLibrary.h \
+	./include/common/GColourSpace.h \
 	./include/common/GRect.h \
 	./include/common/GFont.h \
 	./include/common/GColour.h \
@@ -1019,6 +1056,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 	./include/linux/Gtk/LgiOsClasses.h \
 	./include/common/GColour.h \
 	./include/common/GCapabilities.h
+
+./include/common/GColour.h : ./include/common/GColourSpace.h
 
 ./include/common/GTextView3.h : ./include/common/GDocView.h \
 	./include/common/GUndo.h \
@@ -1035,11 +1074,14 @@ md5.o : ./src/common/Hash/md5/md5.c
 	./include/common/LgiInc.h
 
 ./include/common/GString.h : ./include/common/LgiInc.h \
-	./include/common/LgiDefs.h
+	./include/common/LgiDefs.h \
+	./include/linux/Gtk/LgiOsDefs.h
 
-./include/common/GList.h : ./include/common/GPopup.h \
+./include/common/GList.h : ./include/common/GMem.h \
 	./include/common/GArray.h \
-	./include/common/GDisplayString.h
+	./include/common/GPopup.h \
+	./include/common/GDisplayString.h \
+	./include/common/GCss.h
 
 ./include/common/GDataDlg.h : ./include/common/GProperties.h \
 	./include/common/GScrollBar.h \
@@ -1059,12 +1101,18 @@ md5.o : ./src/common/Hash/md5/md5.c
 ./include/common/GCapabilities.h : ./include/common/GHashTable.h
 
 ./include/common/GDom.h : ./include/common/LgiInterfaces.h \
+	./include/common/GMem.h \
 	./include/common/GArray.h
 
-./include/common/LgiInterfaces.h : ./include/common/GArray.h \
-	./include/linux/Gtk/LgiOsDefs.h
+./include/common/LgiInterfaces.h : ./include/common/GMem.h \
+	./include/common/GArray.h \
+	./include/linux/Gtk/LgiOsDefs.h \
+	./include/common/GColour.h
 
 ./include/common/GThread.h : ./include/common/GMutex.h
+
+./include/common/GPalette.h : ./include/common/GColourSpace.h \
+	./include/common/GFile.h
 
 ./include/common/GCss.h : ./include/common/LgiInc.h \
 	./include/linux/Gtk/LgiOsDefs.h \
@@ -1077,14 +1125,6 @@ md5.o : ./src/common/Hash/md5/md5.c
 ./include/common/LgiRes.h : ./include/common/Res.h \
 	./include/common/GContainers.h \
 	./include/common/GCss.h
-
-./include/common/GCss.h : ./include/common/LgiInc.h \
-	./include/linux/Gtk/LgiOsDefs.h \
-	./include/common/GMem.h \
-	./include/common/Gdc2.h \
-	./include/common/GAutoPtr.h \
-	./include/common/GString.h \
-	./include/common/GHashTable.h
 
 ./include/common/GContainers.h : ./include/common/LgiInc.h \
 	./include/linux/Gtk/LgiOsDefs.h \
@@ -1105,7 +1145,9 @@ md5.o : ./src/common/Hash/md5/md5.c
 	./include/common/Core.h \
 	./include/common/GContainers.h \
 	./include/common/GCapabilities.h \
+	./include/common/GRefCount.h \
 	./include/common/GLibrary.h \
+	./include/common/GColourSpace.h \
 	./include/common/GRect.h \
 	./include/common/GFont.h \
 	./include/common/GColour.h \
@@ -1114,7 +1156,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 ./include/common/GMru.h : ./include/common/GProperties.h
 
 ./include/common/GString.h : ./include/common/LgiInc.h \
-	./include/common/LgiDefs.h
+	./include/common/LgiDefs.h \
+	./include/linux/Gtk/LgiOsDefs.h
 
 ./include/common/GDragAndDrop.h : ./include/common/GVariant.h \
 	./include/common/GCom.h
@@ -1140,7 +1183,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ./include/common/GFile.h : ./include/common/GMem.h \
 	./include/common/GStream.h \
-	./include/common/GArray.h
+	./include/common/GArray.h \
+	./include/common/GRefCount.h
 
 ./include/common/GCom.h : ./include/common/GContainers.h
 
