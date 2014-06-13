@@ -81,11 +81,11 @@ public:
 
 	ZipLocalHeader *Find(char *File)
 	{
-		for (int i=0; File AND i<Files.Length(); i++)
+		for (int i=0; File && i<Files.Length(); i++)
 		{
 			ZipLocalHeader *h = Files[i];
-			if (h AND
-				h->FileName AND
+			if (h &&
+				h->FileName &&
 				stricmp(h->FileName, File) == 0)
 			{
 				return h;
@@ -103,7 +103,7 @@ class GZipDir : public GDirectory
 
 	ZipLocalHeader *c()
 	{
-		if (Cur >= 0 AND Files AND Cur < Files->Length())
+		if (Cur >= 0 && Files && Cur < Files->Length())
 		{
 			return (*Files)[Cur];
 		}
@@ -140,7 +140,7 @@ public:
 		ZipLocalHeader *h = c();
 		if (h)
 		{
-			strsafecpy(s, h->FileName, BufSize);
+			strcpy_s(s, BufSize, h->FileName);
 			return true;
 		}
 		return false;

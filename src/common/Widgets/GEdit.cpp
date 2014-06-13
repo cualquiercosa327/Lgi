@@ -20,13 +20,13 @@ public:
 
 static _OsFontType SysFontType;
 
-
 class GEditPrivate
 {
 public:
 	bool FocusOnCreate;
 	bool Multiline;
 	bool Password;
+	GAutoString EmptyTxt;
 	
 	GEditPrivate()
 	{
@@ -70,7 +70,8 @@ GEdit::~GEdit()
 
 void GEdit::SetEmptyText(const char *EmptyText)
 {
-	LgiAssert(!"Impl me.");
+	d->EmptyTxt.Reset(NewStr(EmptyText));
+	Invalidate();
 }
 
 void GEdit::SendNotify(int Data)

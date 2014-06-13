@@ -547,6 +547,8 @@ typedef enum {
 
 /////////////////////////////////////////////////////////////////////////////////////
 // Externs
+#define vsprintf_s		vsnprintf
+#define swprintf_s		swprintf
 #ifndef WIN32 // __CYGWIN__
 // LgiFunc char *strnistr(char *a, char *b, int n);
 #define _strnicmp strncasecmp // LgiFunc int _strnicmp(char *a, char *b, int i);
