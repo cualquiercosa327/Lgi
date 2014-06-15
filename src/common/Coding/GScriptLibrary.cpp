@@ -462,7 +462,7 @@ bool SystemFunctions::Now(GVariant *Ret, ArgumentArray &Args)
 
 bool SystemFunctions::New(GVariant *Ret, ArgumentArray &Args)
 {
-	if (!Engine || Args.Length() != 1 || !Args[0])
+	if (Args.Length() != 1 || !Args[0])
 		return false;
 
 	GDomProperty Type = GStringToProp(Args[0]->CastString());
@@ -511,7 +511,7 @@ bool SystemFunctions::New(GVariant *Ret, ArgumentArray &Args)
 		{
 			Ret->Empty();
 
-			GScriptObj *c = Engine->GetCurrentCode();
+			GScriptObj *c = Engine ? Engine->GetCurrentCode() : NULL;
 			if (!c)
 				return false;
 

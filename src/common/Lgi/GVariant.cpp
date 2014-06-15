@@ -1379,7 +1379,7 @@ struct GDomPropMap : public GHashTbl<const char *, GDomProperty>
 		Define("Name", ObjName);
 
 		Define("List", TypeList);
-		Define("Table", TypeHashTable);
+		Define("HashTable", TypeHashTable);
 		Define("File", TypeFile);
 		Define("Surface", TypeSurface);
 		
