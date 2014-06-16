@@ -170,13 +170,6 @@ bool SystemFunctions::LoadString(GVariant *Ret, ArgumentArray &Args)
 
 bool SystemFunctions::Sprintf(GVariant *Ret, ArgumentArray &Args)
 {
-	#if defined(MAC)
-
-	#warning "SystemFunctions::Sprintf not supported."
-	return false;
-
-	#else
-
 	if (Args.Length() < 1)
 		return false;
 	char *Fmt = Args[0]->Str();
@@ -254,7 +247,6 @@ bool SystemFunctions::Sprintf(GVariant *Ret, ArgumentArray &Args)
 	*Ret = Buf;
 
 	return true;
-	#endif
 }
 
 bool SystemFunctions::ReadTextFile(GVariant *Ret, ArgumentArray &Args)
