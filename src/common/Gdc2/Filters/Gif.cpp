@@ -573,6 +573,64 @@ short GdcGif::decoder(int BitDepth, uchar interlaced)
 	return(ret);
 }
 
+union LogicalScreenBits
+{
+	uint8 u8;
+	
+	struct
+	{
+		uint8 GlobalColorTable : 1;
+		uint8 ColourRes : 3;
+		uint8 SortFlag : 1;
+		uint8 TableSize : 3;
+	};
+};
+
+union LocalColourBits
+{
+	uint8 u8;
+	
+	struct
+	{
+		uint8 TableBits : 3;
+		uint8 Reserved : 2;
+		uint8 SortFlag : 1;
+		uint8 Interlaced : 1;
+		uint8 LocalColorTable : 1;
+	};
+};
+
+union GfxCtrlExtBits
+{
+	uint8 u8;
+	
+	struct
+	{
+		uint8 Transparent : 1;
+		uint8 UserInput : 1;
+		uint8 DisposalMethod : 3;
+		uint8 Reserved : 3;
+	};
+};
+
+bool GifLoadPalette(GStream *s, GSurface *pDC, int TableBits)
+{
+	GRgb24 Rgb[256];
+
+	int Colours = 1 << (TableBits + 1);
+	int Bytes = Colours * sizeof(Rgb[0]);
+	memset(Rgb, 0xFF, sizeof(Rgb));
+	if (s->Read(Rgb, Bytes) != Bytes)
+		return false;
+
+	GPalette *Pal = new GPalette((uint8*)Rgb, 256);
+	if (!Pal)
+		return false;
+		
+	pDC->Palette(Pal);
+	return true;
+}
+
 GFilter::IoStatus GdcGif::ReadImage(GSurface *pdc, GStream *in)
 {
 	GFilter::IoStatus Status = IoError;
@@ -591,42 +649,25 @@ GFilter::IoStatus GdcGif::ReadImage(GSurface *pdc, GStream *in)
 		else
 		{
 			bool Transparent = false;
-			uchar ImgCode;
+			LogicalScreenBits LogBits;
 			uchar interlace = false;
 			uint16 LogicalX = 0;
 			uint16 LogicalY = 0;
 			uint8 BackgroundColour = 0;
 			uint8 PixelAspectRatio = 0;
 
+
 			// read header
 			Read(s, &LogicalX, sizeof(LogicalX));
 			Read(s, &LogicalY, sizeof(LogicalY));
-			Read(s, &ImgCode, sizeof(ImgCode));
-			int bits = (ImgCode & 0x07) + 1;
+			Read(s, &LogBits.u8, sizeof(LogBits.u8));
+			int Bits = LogBits.ColourRes + 1;
 			Read(s, &BackgroundColour, sizeof(BackgroundColour));
 			Read(s, &PixelAspectRatio, sizeof(PixelAspectRatio));
 
-			if (ImgCode & 0x80)
+			if (LogBits.GlobalColorTable)
 			{
-				uchar PalData[768];
-
-				int size = (1 << bits) * 3;
-				memset(PalData, 0xFF, sizeof(PalData));
-				s->Read(PalData, size);
-
-				/*
-				printf("%s:%i - Size=%i {%02.2x,%02.2x,%02.2x %02.2x,%02.2x,%02.2x %02.2x,%02.2x,%02.2x}\n",
-					__FILE__, __LINE__, size,
-					PalData[0], PalData[1], PalData[2],
-					PalData[3], PalData[4], PalData[5], 
-					PalData[6], PalData[7], PalData[8]);
-				*/
-
-				GPalette *Pal = new GPalette(PalData, size / 3);
-				if (Pal)
-				{
-					pDC->Palette(Pal);
-				}
+				GifLoadPalette(s, pDC, LogBits.TableSize);
 			}
 
 			// Start reading the block stream
@@ -652,36 +693,22 @@ GFilter::IoStatus GdcGif::ReadImage(GSurface *pdc, GStream *in)
 					{
 						// Image Descriptor
 						uint16 x1, y1, sx, sy;
-						uint8 Flags;
+						LocalColourBits LocalBits;
 
 						Rd(x1);
 						Rd(y1);
 						Rd(sx);
 						Rd(sy);
-						Rd(Flags);
+						Rd(LocalBits.u8);
 
-						linewidth = sx; //(sx * bits + 7) / 8;
-						interlace = (Flags & 0x40) != 0;
+						linewidth = sx;
+						interlace = LocalBits.Interlaced != 0;
 
 						if (pDC->Create(sx, sy, 8))
 						{
-							if (Flags & 0x80)
+							if (LocalBits.LocalColorTable)
 							{
-								uchar PalData[768];
-
-								int size = (1 << ((Flags & 7) + 1)) * 3;
-								memset(PalData, 0xFF, sizeof(PalData));
-								if (s->Read(PalData, size) != size)
-								{
-									Done = true;
-									break;
-								}
-
-								GPalette *Pal = new GPalette(PalData, size / 3);
-								if (Pal)
-								{
-									pDC->Palette(Pal);
-								}
+								GifLoadPalette(s, pDC, LocalBits.TableBits);
 							}
 
 							// Progress
@@ -692,7 +719,7 @@ GFilter::IoStatus GdcGif::ReadImage(GSurface *pdc, GStream *in)
 							}
 
 							// Decode image
-							decoder(bits, interlace);
+							decoder(Bits, interlace);
 							if (ProcessedScanlines == pDC->Y())
 							    Status = IoSuccess;
 							
@@ -728,7 +755,7 @@ GFilter::IoStatus GdcGif::ReadImage(GSurface *pdc, GStream *in)
 					{
 						uint8 GraphicControlLabel;
 						uint8 BlockSize;
-						uint8 PackedFields;
+						GfxCtrlExtBits ExtBits;
 						uint16 Delay;
 
 						Rd(GraphicControlLabel);
@@ -738,10 +765,10 @@ GFilter::IoStatus GdcGif::ReadImage(GSurface *pdc, GStream *in)
 						{
 							case 0xF9:
 							{
-								Rd(PackedFields);
+								Rd(ExtBits.u8);
 								Rd(Delay);
 								Rd(BackgroundColour);
-								Transparent = (PackedFields & 0x80) != 0;
+								Transparent = ExtBits.Transparent != 0;
 								break;
 							}
 							default:

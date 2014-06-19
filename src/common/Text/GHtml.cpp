@@ -5348,10 +5348,16 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 						Size.y != Image->Y())
 					{
 						ImageResized = true;
-						GAutoPtr<GSurface> r(new GMemDC(Size.x, Size.y, Image->GetColourSpace()));
+						
+						GColourSpace Cs = Image->GetColourSpace();
+						if (Cs == CsIndex8 &&
+							Image->AlphaDC())
+							Cs = System32BitColourSpace;
+						
+						GAutoPtr<GSurface> r(new GMemDC(Size.x, Size.y, Cs));
 						if (r)
 						{
-							if (Image->Palette())
+							if (Cs == CsIndex8)
 								r->Palette(new GPalette(Image->Palette()));
 							ResampleDC(r, Image);
 							Image = r;
