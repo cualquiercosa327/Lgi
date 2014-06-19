@@ -579,10 +579,10 @@ union LogicalScreenBits
 	
 	struct
 	{
-		uint8 GlobalColorTable : 1;
-		uint8 ColourRes : 3;
-		uint8 SortFlag : 1;
 		uint8 TableSize : 3;
+		uint8 SortFlag : 1;
+		uint8 ColourRes : 3;
+		uint8 GlobalColorTable : 1;
 	};
 };
 
