@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<resources Offset="1">
+	<string-group Name="_Dialog Symbols_">
+		<String Ref="6" Cid="6" Define="IDD_COMPARE" en="Compare Folders" />
+		<String Ref="7" Cid="7" Define="IDC_TABLE" />
+		<String Ref="8" Cid="8" Define="IDC_LEFT" />
+		<String Ref="9" Cid="9" Define="IDC_RIGHT" />
+		<String Ref="10" Cid="10" Define="IDC_COMPARE" en="Compare" />
+		<String Ref="11" Cid="2" Define="IDCANCEL" en="Cancel" />
+		<String Ref="12" Cid="12" Define="IDC_LIST" />
+		<String Ref="13" Cid="13" Define="IDC_13" en="Left" />
+		<String Ref="14" Cid="14" Define="IDC_14" en="Right" />
+		<String Ref="15" Cid="15" Define="IDC_15" en="Result" />
+	</string-group>
+	<Dialog pos="7,7,1249,767" ref="6">
+		<TableLayout pos="7,7,1224,713" ref="7" Style="padding: 4px;" cols="1.000" rows="0.057,0.057,0.842,0.044">
+			<tr>
+				<td>
+					<ComboBox pos="21,1,209,28" ref="8" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<ComboBox pos="21,40,209,67" ref="9" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<ListView pos="21,86,426,631" ref="12">
+						<Column ref="13" width="135" />
+						<Column ref="14" width="155" />
+						<Column ref="15" width="50" />
+					</ListView>
+				</td>
+			</tr>
+			<tr>
+				<td align="Max">
+					<Button pos="119,664,202,691" ref="10" />
+					<Button pos="231,664,314,691" ref="11" />
+				</td>
+			</tr>
+		</TableLayout>
+	</Dialog>
+	<menu Name="IDM_MENU">
+		<string-group Name="&lt;untitled&gt;">
+			<String Ref="1" Cid="500" Define="IDM_FILE" en="&File" />
+			<String Ref="2" Cid="501" Define="IDM_SAVE_IMGS" en="Save To Images" />
+			<String Ref="3" Cid="502" Define="IDM_MENU_502" />
+			<String Ref="4" Cid="503" Define="IDM_EXIT" en="E&xit" />
+			<String Ref="5" Cid="504" Define="IDM_COMPARE_IMAGES" en="Compare Images" />
+		</string-group>
+		<submenu Ref="1">
+			<menuitem Ref="2" Shortcut="F5" />
+			<menuitem Ref="5" Shortcut="F6" />
+			<menuitem Sep="1" />
+			<menuitem Ref="4" />
+		</submenu>
+	</menu>
+</resources>

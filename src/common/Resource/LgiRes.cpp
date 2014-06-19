@@ -1532,10 +1532,17 @@ bool GMenu::Load(GView *w, const char *Res, const char *TagList)
 
 LgiResources *LgiGetResObj(bool Warn, const char *filename)
 {
-	if (_ResourceOwner.Length() == 0)
+	// Look for existing file?
+	for (int i=0; i<_ResourceOwner.Length(); i++)
 	{
-		new LgiResources(filename, Warn);
+		LgiResources *r = _ResourceOwner[i];
+		if (r && r->GetFileName())
+		{
+			if (!_stricmp(filename, r->GetFileName()))
+				return r;
+		}
 	}
 
-	return _ResourceOwner[0];
+	// Load the new file...
+	return new LgiResources(filename, Warn);
 }
