@@ -1159,6 +1159,7 @@ void GZoomView::SetViewport(ViewportInfo i)
 		int Factor = d->Factor();
 
 		int Dx, Dy;
+		/*
 		if (d->GetZoom() > 0)
 		{
 			// Scale up
@@ -1172,6 +1173,7 @@ void GZoomView::SetViewport(ViewportInfo i)
 			Dy = Src->Y() / Factor;
 		}
 		else
+		*/
 		{
 			// 1:1
 			Dx = Src->X();
