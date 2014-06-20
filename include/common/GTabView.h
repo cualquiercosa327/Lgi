@@ -79,16 +79,37 @@ class LgiClass GTabPage :
 	public ResObject
 {
 	friend class GTabView;
+	bool Attach(GViewI *parent);
 
 	// Vars
 	GTabView *TabCtrl;
 	GRect TabPos;
 
-	// Methods
+	/// Draws the tab part of the control (in the parent's context)
 	void PaintTab(GSurface *pDC, bool Selected);
-	bool Attach(GViewI *parent);
+	
+	/// Gets the width of the content in the tab
+	virtual int GetTabPx();
+	
+	/// True if the tab has a button
+	bool Button;
+
+	/// The location of the button (set during OnPaint)
+	GRect BtnPos;
+
+	/// This is called when the user clicks the button
+	virtual void OnButtonClick(GMouse &m);
+
+	/// This draws the button (should only draw within 'BtnPos')
+	virtual void OnButtonPaint(GSurface *pDC);
 
 public:
+	enum NotifyType
+	{
+		TabPage_BtnNone,
+		TabPage_BtnClick
+	};
+
 	GTabPage(const char *name);
 	~GTabPage();
 
@@ -96,6 +117,8 @@ public:
 
 	char *Name();
 	bool Name(const char *n);
+	bool HasButton();
+	void HasButton(bool b);
 	GTabView *GetTabControl() { return TabCtrl; }
 
 	GMessage::Result OnEvent(GMessage *Msg);

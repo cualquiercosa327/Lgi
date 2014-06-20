@@ -30,6 +30,7 @@ enum CmpCtrls
 	IDC_C_VIEW,
 	
 	IDC_TAB_VIEW,
+	IDC_TAB_PAGE,
 };
 
 #ifdef DIFF_CENTER
@@ -301,12 +302,12 @@ class CompareView : public GLayout
 	GZoomViewCallback *Callback;
 	GEdit *AName, *BName, *CName;
 	GAutoPtr<GSurface> A, B, C;
-	GZoomView *AView, *BView, *CView;
+	CmpZoomView *AView, *BView, *CView;
 	GArray<ThreadLoader*> Threads;
 	GStatusBar *Status;
 	GStatusPane *Pane[3];
 	bool DraggingView;	
-	GdcPt2 DocPos;
+	GPointF DocPos;
 	
 public:
 	CompareView(GZoomViewCallback *callback, const char *FileA = NULL, const char *FileB = NULL)
@@ -338,13 +339,13 @@ public:
 		CName->Sunken(false);
 		CName->Enabled(false);
 
-		AddView(AView = new GZoomView(Callback));
+		AddView(AView = new CmpZoomView(Callback, this));
 		AView->SetId(IDC_A_VIEW);
 		AView->Name("AView");
-		AddView(BView = new GZoomView(Callback));
+		AddView(BView = new CmpZoomView(Callback, this));
 		BView->SetId(IDC_B_VIEW);
 		BView->Name("BView");
-		AddView(CView = new GZoomView(Callback));
+		AddView(CView = new CmpZoomView(Callback, this));
 		CView->SetId(IDC_C_VIEW);
 		CView->Name("CView");
 
@@ -661,8 +662,10 @@ public:
 		zv->Capture(DraggingView = m.Down());
 		if (m.Down())
 		{
-			DocPos.x = m.x;
-			DocPos.y = m.y;
+			GZoomView *zv = dynamic_cast<GZoomView*>(m.Target);
+			if (!zv->Convert(DocPos, m.x, m.y))
+				LgiAssert(0);
+
 			zv->Focus(true);
 		}
 	}
@@ -676,15 +679,15 @@ public:
 			if (vp.Zoom < 0)
 			{
 				// scaling down
-				vp.Sx = (DocPos.x / Factor) - m.x;
-				vp.Sy = (DocPos.y / Factor) - m.y;
+				vp.Sx = DocPos.x - (Factor * m.x);
+				vp.Sy = DocPos.y - (Factor * m.y);
 				
 			}
 			else if (vp.Zoom > 0)
 			{
 				// scaling up
-				vp.Sx = (DocPos.x * Factor) - m.x;
-				vp.Sy = (DocPos.y * Factor) - m.y;
+				vp.Sx = DocPos.x - (m.x / Factor);
+				vp.Sy = DocPos.y - (m.y / Factor);
 			}
 			else
 			{
@@ -729,9 +732,13 @@ public:
 				int diffa = bp.a - ap.a;
 				#define PercentDiff(c) \
 					diff##c, (ap.c ? (double)abs(diff##c) * 100 / ap.c : (diff##c ? 100.0 : 0.0))
+
+				GZoomView *zv = dynamic_cast<GZoomView*>(m.Target);
+				GPointF Doc;
+				zv->Convert(Doc, m.x, m.y);
 				
-				int ch = sprintf_s(s, sizeof(s), "Mouse: %i, %i  Tile: %i (%i, %i)  Diff: %i(%.1f%%),%i(%.1f%%),%i(%.1f%%)",
-					m.x, m.y,
+				int ch = sprintf_s(s, sizeof(s), "Mouse: %.1f, %.1f  Tile: %i (%i, %i)  Diff: %i(%.1f%%),%i(%.1f%%),%i(%.1f%%)",
+					Doc.x, Doc.y,
 					Tile, Tx, Ty,
 					PercentDiff(r),
 					PercentDiff(g),
@@ -872,6 +879,12 @@ ImageCompareDlg::ImageCompareDlg(GView *p, const char *OutPath)
 	MoveToCenter();
 	Name("Image Compare");
 
+	if (!Attach(0))
+	{
+		delete this;
+		return;
+	}
+
 	GAutoString ResFile(LgiFindFile("ImageComparison.lr8"));
 	LgiAssert(ResFile);
 	if (ResFile)
@@ -915,6 +928,9 @@ ImageCompareDlg::ImageCompareDlg(GView *p, const char *OutPath)
 			}
 		}
 	}
+
+	AttachChildren();
+	Visible(true);
 }
 
 ImageCompareDlg::~ImageCompareDlg()
@@ -952,6 +968,9 @@ int ImageCompareDlg::OnNotify(GViewI *Ctrl, int Flags)
 					GTabPage *t = d->tabs->Append(Leaf ? Leaf + 1 : left);
 					if (t)
 					{
+						t->HasButton(true);
+						t->SetId(IDC_TAB_PAGE);
+						
 						CompareView *cv = new CompareView(d, left, right);
 						t->Append(cv);
 						d->tabs->Value(Len);
@@ -963,7 +982,7 @@ int ImageCompareDlg::OnNotify(GViewI *Ctrl, int Flags)
 		}
 		case IDCANCEL:
 		{
-			EndModal();
+			Quit();
 			break;
 		}
 		case IDC_COMPARE:
@@ -994,6 +1013,14 @@ int ImageCompareDlg::OnNotify(GViewI *Ctrl, int Flags)
 			Left.DeleteArrays();
 			d->lst->ResizeColumnsToContent();
 			d->Thread.Reset(new CompareThread(d->lst));
+			break;
+		}
+		case IDC_TAB_PAGE:
+		{
+			if (Flags == GTabPage::TabPage_BtnClick)
+			{
+				delete Ctrl;
+			}
 			break;
 		}
 	}

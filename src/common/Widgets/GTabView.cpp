@@ -32,7 +32,8 @@
 #undef TOOL_VHIGH
 #endif
 
-
+#define CLOSE_BTN_SIZE		8
+#define CLOSE_BTN_GAP		8
 #define TOOL_VLOW	GetSysColor(COLOR_3DDKSHADOW)
 #define TOOL_LOW	GetSysColor(COLOR_3DSHADOW)
 #define TOOL_HIGH	GetSysColor(COLOR_3DLIGHT)
@@ -144,6 +145,15 @@ int GTabView::TabY()
 
 void GTabView::OnChildrenChanged(GViewI *Wnd, bool Attaching)
 {
+	if (!Attaching)
+	{
+		TabIterator c(Children);
+		if (d->Current >= c.Length())
+			d->Current = c.Length() - 1;
+
+		if (Handle())
+			Invalidate();
+	}
 }
 
 #if WIN32NATIVE
@@ -347,8 +357,6 @@ GRect &GTabView::GetTabClient()
 
 void GTabView::OnMouseClick(GMouse &m)
 {
-	// m.Trace("GTabView::OnMouseClick");
-
 	if (m.Down())
 	{
 		if (m.Left())
@@ -369,9 +377,20 @@ void GTabView::OnMouseClick(GMouse &m)
 				TabIterator it(Children);
 				for (int i=0; i<it.Length(); i++)
 				{
-					if (it[i]->TabPos.Overlap(m.x, m.y))
+					GTabPage *p = it[i];
+					if (p->TabPos.Overlap(m.x, m.y))
 					{
-						Hit = i;
+						if (p->HasButton() &&
+							p->BtnPos.Overlap(m.x, m.y))
+						{
+							p->OnButtonClick(m);
+							// The tab can delete itself after this event
+							return;
+						}
+						else
+						{						
+							Hit = i;
+						}
 						break;
 					}
 				}
@@ -491,9 +510,7 @@ void GTabView::OnPaint(GSurface *pDC)
 			}
 			else
 			{
-				char *Text = p->Name();
-				GDisplayString ds(p->GetFont(), Text);
-				int Wid = ds.X() + 13;
+				int Wid = p->GetTabPx();
 				p->TabPos.ZOff(Wid, TabY()-3);
 				p->TabPos.Offset(x, 2);
 				
@@ -613,8 +630,10 @@ GTabPage::GTabPage(const char *name) : ResObject(Res_Tab)
 	GRect r(0, 0, 1000, 1000);
 	SetPos(r);
 	Name(name);
+	Button = false;
 	TabCtrl = 0;
 	TabPos.ZOff(-1, -1);
+	BtnPos.ZOff(-1, -1);
 
 	#if defined BEOS
 	if (Handle())
@@ -631,7 +650,55 @@ GTabPage::GTabPage(const char *name) : ResObject(Res_Tab)
 
 GTabPage::~GTabPage()
 {
-	int asd=0;
+}
+
+int GTabPage::GetTabPx()
+{
+	char *Text = Name();
+	GDisplayString ds(GetFont(), Text);
+	int Px = ds.X() + 13;
+	if (Button)
+		Px += CLOSE_BTN_GAP + CLOSE_BTN_SIZE;
+	return Px;
+}
+
+bool GTabPage::HasButton()
+{
+	return Button;
+}
+
+void GTabPage::HasButton(bool b)
+{
+	Button = b;
+	if (GetParent())
+		GetParent()->Invalidate();
+}
+
+void GTabPage::OnButtonClick(GMouse &m)
+{
+	if (GetId() > 0)
+		SendNotify(TabPage_BtnClick);
+}
+
+void GTabPage::OnButtonPaint(GSurface *pDC)
+{
+	// The default is a close button
+	pDC->Colour(LC_LOW, 24);
+	pDC->Line(BtnPos.x1, BtnPos.y1, BtnPos.x2, BtnPos.y2);
+	pDC->Line(BtnPos.x2, BtnPos.y1, BtnPos.x1, BtnPos.y2);
+}
+
+char *GTabPage::Name()
+{
+	return GBase::Name();
+}
+
+bool GTabPage::Name(const char *name)
+{
+	bool Status = GView::Name(name);
+	if (GetParent())
+		GetParent()->Invalidate();
+	return Status;
 }
 
 void GTabPage::PaintTab(GSurface *pDC, bool Selected)
@@ -680,6 +747,7 @@ void GTabPage::PaintTab(GSurface *pDC, bool Selected)
 	pDC->Set(r.x1, r.y1);
 	pDC->Set(r.x2, r.y1);
 	
+	int Cx = r.x1 + 8;
 	char *t = Name();
 	if (t)
 	{
@@ -688,18 +756,28 @@ void GTabPage::PaintTab(GSurface *pDC, bool Selected)
 		f->Colour(LC_TEXT, LC_MED);
 		f->Transparent(true);
 		
-		int x = r.x1 + ((r.X()-ds.X())/2), y = r.y1 + ((r.Y()-ds.Y())/2);
-		ds.Draw(pDC, x, y);
+		int y = r.y1 + ((r.Y()-ds.Y())/2);
+		ds.Draw(pDC, Cx, y);
 		
 		if (TabCtrl->Focus() && Selected)
 		{
-			r.Set(x, y, x+ds.X(), y+ds.Y());
+			r.Set(Cx, y, Cx+ds.X(), y+ds.Y());
 			r.Size(-2, -1);
 			r.y1++;
 			pDC->Colour(LC_LOW, 24);
 			pDC->Box(&r);
 		}
+
+		Cx += ds.X() + CLOSE_BTN_GAP;
 	}
+	
+	if (Button)
+	{
+		BtnPos.ZOff(CLOSE_BTN_SIZE-1, CLOSE_BTN_SIZE-1);
+		BtnPos.Offset(Cx, r.y1 + ((r.Y()-BtnPos.Y()) / 2));
+		OnButtonPaint(pDC);
+	}
+	else BtnPos.ZOff(-1, -1);
 }
 
 bool GTabPage::Attach(GViewI *parent)
@@ -727,18 +805,6 @@ bool GTabPage::Attach(GViewI *parent)
 		}
 	}
 
-	return Status;
-}
-
-char *GTabPage::Name()
-{
-	return GBase::Name();
-}
-
-bool GTabPage::Name(const char *name)
-{
-	bool Status = GView::Name(name);
-	if (GetParent()) GetParent()->Invalidate();
 	return Status;
 }
 

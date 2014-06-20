@@ -1006,6 +1006,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\common\GTabView.h"
+					>
+				</File>
+				<File
 					RelativePath=".\src\common\Widgets\GTextLabel.cpp"
 					>
 				</File>
