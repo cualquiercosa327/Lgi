@@ -245,7 +245,7 @@ void GTabView::Value(int64 i)
 			Old->Visible(false);
 		}
 
-		d->Current = i;
+		d->Current = min(i, it.Length()-1);
 		OnPosChange();
 
 		GTabPage *p = it[d->Current];
@@ -334,12 +334,17 @@ bool GTabView::Delete(GTabPage *Page)
 	{
 		if (Index == d->Current)
 		{
-			Page->Detach();
+			Status = Page->Detach();
+			LgiAssert(Status);
+		}
+		else
+		{
+			Status = DelView(Page);
+			LgiAssert(Status);
 		}
 		
-		bool b = DelView(Page);
-		LgiAssert(b);
-		Status = false;
+		delete Page;
+		Value(Index);
 	}
 	
 	return Status;
@@ -683,9 +688,19 @@ void GTabPage::OnButtonClick(GMouse &m)
 void GTabPage::OnButtonPaint(GSurface *pDC)
 {
 	// The default is a close button
-	pDC->Colour(LC_LOW, 24);
-	pDC->Line(BtnPos.x1, BtnPos.y1, BtnPos.x2, BtnPos.y2);
-	pDC->Line(BtnPos.x2, BtnPos.y1, BtnPos.x1, BtnPos.y2);
+	GColour Low(LC_LOW, 24);
+	GColour Mid(LC_MED, 24);
+	Mid = Mid.Mix(Low);
+	
+	pDC->Colour(Mid);
+	pDC->Line(BtnPos.x1, BtnPos.y1+1, BtnPos.x2-1, BtnPos.y2);
+	pDC->Line(BtnPos.x1+1, BtnPos.y1, BtnPos.x2, BtnPos.y2-1);
+	pDC->Line(BtnPos.x1, BtnPos.y2-1, BtnPos.x2-1, BtnPos.y1);
+	pDC->Line(BtnPos.x1+1, BtnPos.y2, BtnPos.x2, BtnPos.y1+1);
+
+	pDC->Colour(Low);
+	pDC->Line(BtnPos.x1+1, BtnPos.y1+1, BtnPos.x2-1, BtnPos.y2-1);
+	pDC->Line(BtnPos.x2-1, BtnPos.y1+1, BtnPos.x1+1, BtnPos.y2-1);
 }
 
 char *GTabPage::Name()

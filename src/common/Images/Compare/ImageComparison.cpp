@@ -1019,7 +1019,17 @@ int ImageCompareDlg::OnNotify(GViewI *Ctrl, int Flags)
 		{
 			if (Flags == GTabPage::TabPage_BtnClick)
 			{
-				delete Ctrl;
+				GTabPage *p = dynamic_cast<GTabPage*>(Ctrl);
+				LgiAssert(p);
+				if (p)
+				{
+					GTabView *v = p->GetTabControl();
+					LgiAssert(v);
+					if (v)
+					{
+						v->Delete(p);
+					}
+				}
 			}
 			break;
 		}

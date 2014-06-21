@@ -105,6 +105,7 @@ public:
 		};
 		
 		// View data
+		GDocumentEnv *Env;
 		GDocView *View;
 		void *UserData;
 		uint32 UserUid;
@@ -122,9 +123,10 @@ public:
 
 		LoadJob(GThreadTarget *o) : GThreadJob(o)
 		{
-			View = 0;
+			View = NULL;
+			Env = NULL;
 			UserUid = 0;
-			UserData = 0;
+			UserData = NULL;
 			Pref = FmtNone;
 		}
 		
