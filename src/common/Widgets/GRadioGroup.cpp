@@ -38,7 +38,6 @@ public:
 };
 
 int GRadioGroupPrivate::NextId = 10000;
-
 GRadioGroup::GRadioGroup(int id, int x, int y, int cx, int cy, const char *name, int Init)
 	: ResObject(Res_Group)
 {
@@ -291,6 +290,11 @@ public:
 	bool Over;
 	GDisplayString *Txt;
 
+    #if defined MAC && !defined COCOA
+	ThemeButtonDrawInfo Cur;
+    #endif
+
+
 	GRadioButtonPrivate()
 	{
 		Txt = 0;
@@ -308,13 +312,20 @@ public:
 	}
 };
 
+int GRadioButton::PadXPx = 30;
+#ifdef MAC
+int GRadioButton::PadYPx = 8;
+#else
+int GRadioButton::PadYPx = 4;
+#endif
+
 GRadioButton::GRadioButton(int id, int x, int y, int cx, int cy, const char *name)
 	: ResObject(Res_RadioBox)
 {
 	d = new GRadioButtonPrivate;
 	Name(name);
-	if (cx < 0 && d->Txt) cx = d->Txt->X() + 26;
-	if (cy < 0 && d->Txt) cy = d->Txt->Y() + 4;
+	if (cx < 0 && d->Txt) cx = d->Txt->X() + PadXPx;
+	if (cy < 0 && d->Txt) cy = d->Txt->Y() + PadYPx;
 
 	GRect r(x, y, x+cx, y+cy);
 	SetPos(r);
@@ -369,11 +380,11 @@ bool GRadioButton::OnLayout(GViewLayoutInfo &Inf)
     {
         Inf.Width.Min =
             Inf.Width.Max =
-            d->Txt ? 20 + d->Txt->X() : 30;
+            (d->Txt ? d->Txt->X() : 10) + PadXPx;
     }
     else
     {
-		int y = d->Txt ? d->Txt->Y() : SysFont->GetHeight();
+		int y = (d->Txt ? d->Txt->Y() : SysFont->GetHeight()) + PadYPx;
         Inf.Height.Min = max(Inf.Height.Min, y);
         Inf.Height.Max = max(Inf.Height.Max, y);
     }
@@ -495,6 +506,14 @@ bool GRadioButton::OnKey(GKey &k)
 			Status = true;
 			break;
 		}
+        case ' ':
+        {
+            if (k.Down())
+            {
+                Value(1);
+            }
+            return true;
+        }
 	}
 
 	if (Move)
@@ -553,21 +572,73 @@ void GRadioButton::OnPaint(GSurface *pDC)
 		bool e = Enabled();
 		if (d->Txt)
 		{
-			GRect t = r;
-			t.x1 = c.x2 + 1;
-			
 			int Off = e ? 0 : 1;
 			SysFont->Colour(e ? LC_TEXT : LC_LIGHT, LC_MED);
-			SysFont->Transparent(false);
-			d->Txt->Draw(pDC, t.x1 + 5 + Off, t.y1 + Off, &t);
+            
+            GRect p;
+            p.ZOff(d->Txt->X()-1, d->Txt->Y()-1);
+            p.Offset(c.x2 + 11, (r.Y() - d->Txt->Y()) >> 1);
+            if (Focus())
+            {
+                pDC->Colour(LC_LOW, 24);
+                GRect f = p;
+                f.Size(-2, -2);
+                pDC->Box(&f);
+            }
+
+            SysFont->Transparent(true);
+			d->Txt->Draw(pDC, p.x1 + Off, p.y1 + Off);
 
 			if (!e)
 			{
-				SysFont->Transparent(true);
 				SysFont->Colour(LC_LOW, LC_MED);
-				d->Txt->Draw(pDC, t.x1 + 5, t.y1, &t);
+				d->Txt->Draw(pDC, p.x1, p.y1);
 			}
 		}
+
+        #if defined MAC && !defined COCOA
+
+        #if 1
+        GColour Background(LC_MED, 24);
+        if (GetCss())
+        {
+            GCss::ColorDef Bk = GetCss()->BackgroundColor();
+            if (Bk.Type == GCss::ColorRgb)
+                Background.Set(Bk.Rgb32, 32);
+        }
+        pDC->Colour(Background);
+        pDC->Rectangle(&c);
+        #endif
+
+        GRect cli = GetClient();
+        for (GViewI *v = this; v && !v->Handle(); v = v->GetParent())
+        {
+            GRect p = v->GetPos();
+            cli.Offset(p.x1, p.y1);
+        }
+        
+        Rect Bounds = { c.y1+4, c.x1, c.y2-1, c.x2-1 };
+        ThemeButtonDrawInfo Info;
+        Info.state = d->Val ? kThemeStatePressed : (Enabled() ? kThemeStateActive : kThemeStateInactive);
+        Info.value = d->Val ? kThemeButtonOn : kThemeButtonOff;
+        Info.adornment = Focus() ? kThemeAdornmentFocus : kThemeAdornmentNone;
+
+        GLabelData User;
+        User.Ctrl = this;
+        User.pDC = pDC;
+        User.r.y1 = 2;
+        User.Justification = teJustCenter;
+        OSStatus err = DrawThemeButton(&Bounds,
+                                    kThemeRadioButton,
+                                    &Info,
+                                    &d->Cur,
+                                    0,
+                                    LgiLabelUPP ? LgiLabelUPP : LgiLabelUPP = NewThemeButtonDrawUPP(LgiLabelProc),
+                                    (UInt32)&User);
+        
+        d->Cur = Info;
+        
+        #else
 
 		// Draw border
 		pDC->Colour(LC_LOW, 24);
@@ -607,6 +678,8 @@ void GRadioButton::OnPaint(GSurface *pDC)
 			pDC->Rectangle(c.x1+4, c.y1+5, c.x1+8, c.y1+7);
 			pDC->Rectangle(c.x1+5, c.y1+4, c.x1+7, c.y1+8);
 		}
+        
+        #endif
 	}
 }
 

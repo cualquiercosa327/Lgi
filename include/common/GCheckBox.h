@@ -14,6 +14,8 @@ class LgiClass GCheckBox :
 	class GCheckBoxPrivate *d;
 
 public:
+    static int PadXPx, PadYPx;
+
 	/// Constructor
 	GCheckBox
 	(

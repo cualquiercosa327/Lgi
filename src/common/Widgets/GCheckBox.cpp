@@ -15,6 +15,10 @@ public:
 	GDisplayString *Txt;
 	GRect ValuePos;
 
+    #if defined MAC && !defined COCOA
+	ThemeButtonDrawInfo Cur;
+    #endif
+
 	GCheckBoxPrivate()
 	{
 		Val = 0;
@@ -37,13 +41,20 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Check box
+int GCheckBox::PadXPx = 30;
+#ifdef MAC
+int GCheckBox::PadYPx = 8;
+#else
+int GCheckBox::PadYPx = 0;
+#endif
+
 GCheckBox::GCheckBox(int id, int x, int y, int cx, int cy, const char *name, int InitState) :
 	ResObject(Res_CheckBox)
 {
 	d = new GCheckBoxPrivate;
-	Name(name);
-	if (cx < 0 && d->Txt) cx = d->Txt->X() + 26;
-	if (cy < 0 && d->Txt) cy = max(d->Txt->Y(), 16);
+    Name(name);
+	if (cx < 0 && d->Txt) cx = d->Txt->X() + PadXPx;
+	if (cy < 0 && d->Txt) cy = max(d->Txt->Y(), 16) + PadYPx;
 
 	d->Val = InitState;
 	GRect r(x, y, x+cx, y+cy);
@@ -63,12 +74,14 @@ bool GCheckBox::OnLayout(GViewLayoutInfo &Inf)
     {
         Inf.Width.Min =
             Inf.Width.Max =
-            d->Txt ? 20 + d->Txt->X() : 30;
+            (d->Txt ? d->Txt->X() : 0) + PadXPx;
     }
     else
     {
         Inf.Height.Min =
-            Inf.Height.Max = d->Txt ? d->Txt->Y() : SysFont->GetHeight();
+            Inf.Height.Max =
+//                (d->Txt ? d->Txt->Y() : GetFont()->GetHeight()) + PadYPx;
+                GetFont()->GetHeight() + PadYPx;
     }
     return true;    
 }
@@ -190,23 +203,18 @@ void GCheckBox::OnMouseExit(GMouse &m)
 
 bool GCheckBox::OnKey(GKey &k)
 {
-	if (!k.IsChar)
-	{
-		switch (k.vkey)
-		{
-			case ' ':
-			case VK_RETURN:
-			{
-				if (!k.Down())
-				{
-					Value(!Value());
-				}
+    switch (k.vkey)
+    {
+        case ' ':
+        {
+            if (!k.Down())
+            {
+                Value(!Value());
+            }
 
-				return true;
-				break;
-			}
-		}
-	}
+            return true;
+        }
+    }
 	
 	return false;
 }
@@ -218,7 +226,7 @@ void GCheckBox::OnFocus(bool f)
 
 void GCheckBox::OnPaint(GSurface *pDC)
 {
-	if (GApp::SkinEngine &&
+    if (GApp::SkinEngine &&
 		TestFlag(GApp::SkinEngine->GetFeatures(), GSKIN_CHECKBOX))
 	{
 		GSkinState State;
@@ -230,7 +238,7 @@ void GCheckBox::OnPaint(GSurface *pDC)
 	}
 	else
 	{
-		bool e = Enabled();
+		bool en = Enabled();
 		GFont *f = GetFont();
 
 		GRect r(0, 0, X()-1, Y()-1);
@@ -245,19 +253,20 @@ void GCheckBox::OnPaint(GSurface *pDC)
 		{
 			GRect t = r;
 			t.x1 = d->ValuePos.x2 + 1;
-			f->Colour(LC_TEXT, LC_MED);
+            f->Colour(LC_TEXT, LC_MED);
 			f->Transparent(false);
 
-			if (Enabled())
+            GRect p;
+            p.ZOff(d->Txt->X()-1, d->Txt->Y()-1);
+            p.Offset(t.x1 + 10, t.y1 + ((t.Y() - d->Txt->Y()) >> 1) - 1);
+			if (en)
 			{
-				d->Txt->Draw(pDC, t.x1 + 5, t.y1 - 1, &t);
+				d->Txt->Draw(pDC, p.x1, p.y1, &t);
 
 				if (Focus() && ValidStr(Name()))
 				{
-					GRect f(t.x1 + 3, t.y1, t.x1 + 7 + d->Txt->X(), t.y1 + d->Txt->Y());
-					GRect c = GetClient();
-					f.Bound(&c);
-					
+                    GRect f = p;
+                    f.Size(-2, -2);
 					pDC->Colour(LC_LOW, 24);
 					pDC->Box(&f);
 				}
@@ -265,15 +274,59 @@ void GCheckBox::OnPaint(GSurface *pDC)
 			else
 			{
 				f->Colour(LC_LIGHT, LC_MED);
-				d->Txt->Draw(pDC, t.x1 + 6, t.y1, &t);
+				d->Txt->Draw(pDC, p.x1 + 1, p.y1 + 1, &t);
 				
 				f->Transparent(true);
 				f->Colour(LC_LOW, LC_MED);
-				d->Txt->Draw(pDC, t.x1 + 5, t.y1 - 1, &t);
+				d->Txt->Draw(pDC, p.x1, p.y1, &t);
 			}
 		}
 
-		LgiWideBorder(pDC, d->ValuePos, SUNKEN);
+        #if defined MAC && !defined COCOA
+
+        #if 1
+        GColour Background(LC_MED, 24);
+        if (GetCss())
+        {
+            GCss::ColorDef Bk = GetCss()->BackgroundColor();
+            if (Bk.Type == GCss::ColorRgb)
+                Background.Set(Bk.Rgb32, 32);
+        }
+        pDC->Colour(Background);
+        pDC->Rectangle(&d->ValuePos);
+        #endif
+
+        GRect c = GetClient();
+        for (GViewI *v = this; v && !v->Handle(); v = v->GetParent())
+        {
+            GRect p = v->GetPos();
+            c.Offset(p.x1, p.y1);
+        }
+        
+        Rect Bounds = { d->ValuePos.y1+4, d->ValuePos.x1, d->ValuePos.y2-1, d->ValuePos.x2-1 };
+        ThemeButtonDrawInfo Info;
+        Info.state = d->Val ? kThemeStatePressed : (Enabled() ? kThemeStateActive : kThemeStateInactive);
+        Info.value = d->Val ? kThemeButtonOn : kThemeButtonOff;
+        Info.adornment = Focus() ? kThemeAdornmentFocus : kThemeAdornmentNone;
+
+        GLabelData User;
+        User.Ctrl = this;
+        User.pDC = pDC;
+        User.r.y1 = 2;
+        User.Justification = teJustCenter;
+        OSStatus e = DrawThemeButton(&Bounds,
+                                    kThemeCheckBox,
+                                    &Info,
+                                    &d->Cur,
+                                    0,
+                                    LgiLabelUPP ? LgiLabelUPP : LgiLabelUPP = NewThemeButtonDrawUPP(LgiLabelProc),
+                                    (UInt32)&User);
+        
+        d->Cur = Info;
+        
+        #else
+    
+        LgiWideBorder(pDC, d->ValuePos, SUNKEN);
 		pDC->Colour(d->Over || !e ? LC_MED : LC_WORKSPACE, 24);
 		pDC->Rectangle(&d->ValuePos);
 		pDC->Colour(e ? LC_TEXT : LC_LOW, 24);
@@ -301,6 +354,8 @@ void GCheckBox::OnPaint(GSurface *pDC)
 			pDC->Line(d->ValuePos.x1+1, d->ValuePos.y2-2, d->ValuePos.x2-2, d->ValuePos.y1+1);
 			pDC->Line(d->ValuePos.x1+2, d->ValuePos.y2-1, d->ValuePos.x2-1, d->ValuePos.y1+2);
 		}
+        
+        #endif
 	}
 }
 

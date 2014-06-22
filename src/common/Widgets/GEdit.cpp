@@ -142,6 +142,19 @@ void GEdit::Password(bool m)
 	SetObscurePassword(d->Password = m);
 }
 
+void GEdit::OnPaint(GSurface *pDC)
+{
+    GTextView3::OnPaint(pDC);
+    if (!ValidStr(Name()) && d->EmptyTxt && !Focus())
+    {
+        GFont *f = GetFont();
+        GDisplayString ds(f, d->EmptyTxt);
+        f->Colour(LC_MED, LC_WORKSPACE);
+        f->Transparent(true);
+        ds.Draw(pDC, 2, 2);
+    }
+}
+
 bool GEdit::OnKey(GKey &k)
 {
 	if

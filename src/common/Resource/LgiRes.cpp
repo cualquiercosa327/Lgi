@@ -1188,6 +1188,7 @@ bool GLgiRes::LoadFromResource(int Resource, GViewI *Parent, GRect *Pos, GAutoSt
 			return true;
 	}
 
+
 	return false;
 }
 

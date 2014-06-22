@@ -32,14 +32,15 @@
 #undef TOOL_VHIGH
 #endif
 
-#define CLOSE_BTN_SIZE		8
-#define CLOSE_BTN_GAP		8
 #define TOOL_VLOW	GetSysColor(COLOR_3DDKSHADOW)
 #define TOOL_LOW	GetSysColor(COLOR_3DSHADOW)
 #define TOOL_HIGH	GetSysColor(COLOR_3DLIGHT)
 #define TOOL_VHIGH	GetSysColor(COLOR_3DHILIGHT)
 
 #endif
+
+#define CLOSE_BTN_SIZE		8
+#define CLOSE_BTN_GAP		8
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 class GTabViewPrivate

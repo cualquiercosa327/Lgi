@@ -89,6 +89,7 @@ public:
 	void OnEnter(GKey &k);
 	void SendNotify(int Data);
 	bool OnLayout(GViewLayoutInfo &Inf) { return false; }
+    void OnPaint(GSurface *pDC);
 	#endif
 };
 

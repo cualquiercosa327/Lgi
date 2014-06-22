@@ -13,6 +13,8 @@
 		340FEA9F096E375600E534D5 /* GToolTabBar.h in Headers */ = {isa = PBXBuildFile; fileRef = 340FEA9D096E375600E534D5 /* GToolTabBar.h */; };
 		3413BBC21349EC6900AE15B0 /* GXmlTree.h in Headers */ = {isa = PBXBuildFile; fileRef = 3413BBC11349EC6900AE15B0 /* GXmlTree.h */; };
 		3416C27B096775AF00DD79DC /* GRect.h in Headers */ = {isa = PBXBuildFile; fileRef = 3416C27A096775AF00DD79DC /* GRect.h */; };
+		341B7C491956D3AA00AAA225 /* GCheckBox.h in Headers */ = {isa = PBXBuildFile; fileRef = 341B7C481956D3AA00AAA225 /* GCheckBox.h */; };
+		341B7C4B1956E08500AAA225 /* GRadioGroup.h in Headers */ = {isa = PBXBuildFile; fileRef = 341B7C4A1956E08500AAA225 /* GRadioGroup.h */; };
 		341BE43F123ED1E6009BF203 /* md5.h in Headers */ = {isa = PBXBuildFile; fileRef = 341BE43E123ED1E6009BF203 /* md5.h */; };
 		341BE442123ED1F1009BF203 /* sha1.c in Sources */ = {isa = PBXBuildFile; fileRef = 341BE440123ED1F1009BF203 /* sha1.c */; };
 		341BE443123ED1F1009BF203 /* sha1.h in Headers */ = {isa = PBXBuildFile; fileRef = 341BE441123ED1F1009BF203 /* sha1.h */; };
@@ -177,6 +179,8 @@
 		340FEA9D096E375600E534D5 /* GToolTabBar.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GToolTabBar.h; path = ../../../include/common/GToolTabBar.h; sourceTree = "<group>"; };
 		3413BBC11349EC6900AE15B0 /* GXmlTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GXmlTree.h; path = ../../../include/common/GXmlTree.h; sourceTree = "<group>"; };
 		3416C27A096775AF00DD79DC /* GRect.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GRect.h; path = ../../../include/common/GRect.h; sourceTree = "<group>"; };
+		341B7C481956D3AA00AAA225 /* GCheckBox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GCheckBox.h; path = ../../../include/common/GCheckBox.h; sourceTree = "<group>"; };
+		341B7C4A1956E08500AAA225 /* GRadioGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GRadioGroup.h; path = ../../../include/common/GRadioGroup.h; sourceTree = "<group>"; };
 		341BE43E123ED1E6009BF203 /* md5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = md5.h; path = ../../common/Hash/md5/md5.h; sourceTree = "<group>"; };
 		341BE440123ED1F1009BF203 /* sha1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sha1.c; path = ../../common/Hash/sha1/sha1.c; sourceTree = "<group>"; };
 		341BE441123ED1F1009BF203 /* sha1.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sha1.h; path = ../../common/Hash/sha1/sha1.h; sourceTree = "<group>"; };
@@ -712,44 +716,46 @@
 		34D2CC5008F0FB510009968C /* Widgets */ = {
 			isa = PBXGroup;
 			children = (
+				3429212A1087D55900578ECC /* Css */,
 				344D1B1608F4A36300228075 /* GBitmap.cpp */,
 				346BF43A193AAD02000C2030 /* GBox.cpp */,
 				344D1B1708F4A36300228075 /* GButton.cpp */,
 				344D1B1808F4A36300228075 /* GCheckBox.cpp */,
+				341B7C481956D3AA00AAA225 /* GCheckBox.h */,
 				344D1B1908F4A36300228075 /* GCombo.cpp */,
+				34CEBFE60DDC5EF800DE0E0B /* GCombo.h */,
 				34983C1208F5482D0054868C /* GDocView.cpp */,
+				34372ACF0C46E0290090CDC9 /* GDocView.h */,
 				344D1B1A08F4A36300228075 /* GEdit.cpp */,
+				3478B20912E6F87200936EFA /* GEdit.h */,
 				34D979D01150F0E100CE462B /* GLayout.cpp */,
 				344D1B1B08F4A36300228075 /* GList.cpp */,
+				34E51DAF0D2EFCCB0021AA08 /* GList.h */,
 				344D1B1C08F4A36300228075 /* GPanel.cpp */,
 				34D2CC4E08F0FB490009968C /* GPopup.cpp */,
+				34A8A3BC1303408000CAA8DF /* GPopup.h */,
 				344D1B1D08F4A36300228075 /* GProgress.cpp */,
 				344D1B1E08F4A36300228075 /* GProgressDlg.cpp */,
 				344D1B1408F4A33400228075 /* GRadioGroup.cpp */,
+				341B7C4A1956E08500AAA225 /* GRadioGroup.h */,
 				34DA5CB60DE0DE930050C7E4 /* GScrollBar.cpp */,
+				345F4B9E0F058D4F0015A7EE /* GScrollBar.h */,
+				344D1B0508F4A26300228075 /* GSlider.h */,
 				344D1B1F08F4A36300228075 /* GSplitter.cpp */,
 				344D1B2008F4A36300228075 /* GStatusBar.cpp */,
 				344D1B2108F4A36300228075 /* GTableLayout.cpp */,
+				347CB5FF172A97D600AC3EA6 /* GTableLayout.h */,
 				344D1B2208F4A36300228075 /* GTabView.cpp */,
 				344D1B2308F4A36300228075 /* GTextLabel.cpp */,
 				34983C1308F5482D0054868C /* GTextView3.cpp */,
+				34463F2411FBE25E009BB91F /* GTextView3.h */,
 				3444A36012275BDD004ADADE /* GToolBar.cpp */,
+				340FEA9D096E375600E534D5 /* GToolTabBar.h */,
 				34983C1608F5484C0054868C /* GToolTip.cpp */,
 				344D1B2508F4A36300228075 /* GTree.cpp */,
-				34D2CCEC08F11BEF0009968C /* GWidgets.cpp */,
-				34CEBFE60DDC5EF800DE0E0B /* GCombo.h */,
-				34372ACF0C46E0290090CDC9 /* GDocView.h */,
-				3478B20912E6F87200936EFA /* GEdit.h */,
-				34E51DAF0D2EFCCB0021AA08 /* GList.h */,
-				34A8A3BC1303408000CAA8DF /* GPopup.h */,
-				345F4B9E0F058D4F0015A7EE /* GScrollBar.h */,
-				344D1B0508F4A26300228075 /* GSlider.h */,
-				347CB5FF172A97D600AC3EA6 /* GTableLayout.h */,
-				34463F2411FBE25E009BB91F /* GTextView3.h */,
-				340FEA9D096E375600E534D5 /* GToolTabBar.h */,
 				34F2E6590E1849D300E8DA6A /* GTree.h */,
+				34D2CCEC08F11BEF0009968C /* GWidgets.cpp */,
 				345C1EC80B46017000E80FF1 /* LgiWidgets.h */,
-				3429212A1087D55900578ECC /* Css */,
 				34DA5C2C0DE0339E0050C7E4 /* Mac Native */,
 			);
 			name = Widgets;
@@ -852,6 +858,8 @@
 				347CB600172A97D600AC3EA6 /* GTableLayout.h in Headers */,
 				34F45B9E18C161E40040FD99 /* GPixelRops.h in Headers */,
 				3433784B19178B09007A4DC5 /* GColourSpace.h in Headers */,
+				341B7C491956D3AA00AAA225 /* GCheckBox.h in Headers */,
+				341B7C4B1956E08500AAA225 /* GRadioGroup.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

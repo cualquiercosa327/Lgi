@@ -74,9 +74,11 @@ bool LgiIsProcess(OsProcessId Pid)
 	
 	#elif defined(MAC)
 	
-		int r = !kill(Pid, 0);
-		printf("Kill %i = %i\n", Pid, r);
-		return r > 0;
+		// int r = !kill(Pid, 0);
+		
+        ProcessSerialNumber psn;
+        OSStatus e = GetProcessForPID(Pid, &psn);
+		return e == 0;
 
 	#elif defined(LINUX)
 

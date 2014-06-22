@@ -474,15 +474,15 @@ void LgiTrace(const char *Msg, ...)
 			if (LgiGetExeFile(LogPath, sizeof(LogPath)))
 			{
 				#ifdef MAC
-				char *Dir = strrchr(Buffer, DIR_CHAR);
+				char *Dir = strrchr(LogPath, DIR_CHAR);
 				if (Dir)
 				{
 					char Part[256];
 					strcpy_s(Part, sizeof(Part), Dir+1);
-					Buffer[0] = 0;
-					LgiMakePath(Buffer, sizeof(Buffer), Buffer, "~/Library/Logs");
-					LgiMakePath(Buffer, sizeof(Buffer), Buffer, Dir+1);
-					strcat_s(Buffer, sizeof(Buffer), ".txt");
+                    LogPath[0] = 0;
+					LgiMakePath(LogPath, sizeof(LogPath), LogPath, "~/Library/Logs");
+					LgiMakePath(LogPath, sizeof(LogPath), LogPath, Dir+1);
+					strcat_s(LogPath, sizeof(LogPath), ".txt");
 				}
 				else
 				#endif
@@ -1702,7 +1702,7 @@ char *LgiFindFile(const char *Name)
 			"..",
 			"Code",
 			#ifdef MAC
-			"Contents/Resources",
+			"./Contents/Resources",
 			#else
 			"Resources",
 			#endif
