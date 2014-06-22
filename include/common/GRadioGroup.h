@@ -53,8 +53,6 @@ class LgiClass GRadioButton :
 	class GRadioButtonPrivate *d;
 
 public:
-    static int PadXPx, PadYPx;
-
 	GRadioButton(int id, int x, int y, int cx, int cy, const char *name);
 	~GRadioButton();
 

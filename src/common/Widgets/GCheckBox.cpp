@@ -41,11 +41,11 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Check box
-int GCheckBox::PadXPx = 30;
+static int PadXPx = 30;
 #ifdef MAC
-int GCheckBox::PadYPx = 8;
+static int PadYPx = 8;
 #else
-int GCheckBox::PadYPx = 0;
+static int PadYPx = 0;
 #endif
 
 GCheckBox::GCheckBox(int id, int x, int y, int cx, int cy, const char *name, int InitState) :
@@ -327,9 +327,9 @@ void GCheckBox::OnPaint(GSurface *pDC)
         #else
     
         LgiWideBorder(pDC, d->ValuePos, SUNKEN);
-		pDC->Colour(d->Over || !e ? LC_MED : LC_WORKSPACE, 24);
+		pDC->Colour(d->Over || !en ? LC_MED : LC_WORKSPACE, 24);
 		pDC->Rectangle(&d->ValuePos);
-		pDC->Colour(e ? LC_TEXT : LC_LOW, 24);
+		pDC->Colour(en ? LC_TEXT : LC_LOW, 24);
 
 		if (d->Three && d->Val == 2)
 		{

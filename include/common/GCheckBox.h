@@ -5,7 +5,7 @@
 #ifndef _GCHECK_BOX_H_
 #define _GCHECK_BOX_H_
 
-/// A checkbox to allow the user to select a boolean setting, i.e. a non-mutually exclusive option. For
+/// A check box to allow the user to select a boolean setting, i.e. a non-mutually exclusive option. For
 /// mutually exclusive options see GRadioButton.
 class LgiClass GCheckBox :
 	public GView,
@@ -14,8 +14,6 @@ class LgiClass GCheckBox :
 	class GCheckBoxPrivate *d;
 
 public:
-    static int PadXPx, PadYPx;
-
 	/// Constructor
 	GCheckBox
 	(

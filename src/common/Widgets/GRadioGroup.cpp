@@ -312,11 +312,11 @@ public:
 	}
 };
 
-int GRadioButton::PadXPx = 30;
+static int PadXPx = 30;
 #ifdef MAC
-int GRadioButton::PadYPx = 8;
+static int PadYPx = 8;
 #else
-int GRadioButton::PadYPx = 4;
+static int PadYPx = 4;
 #endif
 
 GRadioButton::GRadioButton(int id, int x, int y, int cx, int cy, const char *name)

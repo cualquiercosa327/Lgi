@@ -1515,7 +1515,10 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 							{
 								*((GCss::Len*&)b) = *Lengths[0];
 							}
-							else LgiAssert(0);
+							else if (Type == ParseStrict)
+							{
+								LgiAssert(0);
+							}
 						}
 						break;
 					}
