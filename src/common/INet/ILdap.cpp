@@ -16,7 +16,7 @@
 #include "Lgi.h"
 #include "ILdap.h"
 
-void _do_nothing(char *s, ...) {}
+void _do_nothing(const char *s, ...) {}
 #define Ldap_Trace _do_nothing
 
 ////////////////////////////////////////////////////////////////
@@ -113,8 +113,8 @@ ILdapEntry *ILdap::RetreiveOne(char *Name, char *Base, bool Recursive)
 									false,
 									&Msg);
 
-		bool SizeExceeded = Result == LDAP_SIZELIMIT_EXCEEDED;
-		bool TimeExceeded = Result == LDAP_TIMELIMIT_EXCEEDED;
+		// bool SizeExceeded = Result == LDAP_SIZELIMIT_EXCEEDED;
+		// bool TimeExceeded = Result == LDAP_TIMELIMIT_EXCEEDED;
 
 		switch (Result)
 		{
@@ -122,7 +122,7 @@ ILdapEntry *ILdap::RetreiveOne(char *Name, char *Base, bool Recursive)
 			case LDAP_SIZELIMIT_EXCEEDED:
 			case LDAP_TIMELIMIT_EXCEEDED:
 			{
-				int Entries = ldap_count_entries(Ldap, Msg);
+				// int Entries = ldap_count_entries(Ldap, Msg);
 
 				for (LDAPMessage *m = ldap_first_entry(Ldap, Msg);
 					m;
@@ -177,7 +177,24 @@ ILdapEntry *ILdap::RetreiveOne(char *Name, char *Base, bool Recursive)
 	return 0;
 }
 
-bool ILdap::RetreiveList(List<ILdapEntry> &Lst, char *Base, bool Recursive)
+/*
+LDAP_F( int )
+ldap_search_ext_s LDAP_P((
+	LDAP			*ld,
+	LDAP_CONST char	*base,
+	int				scope,
+	LDAP_CONST char	*filter,
+	char			**attrs,
+	int				attrsonly,
+	LDAPControl		**serverctrls,
+	LDAPControl		**clientctrls,
+	struct timeval	*timeout,
+	int				sizelimit,
+	LDAPMessage		**res ));
+
+*/
+
+bool ILdap::RetreiveList(List<ILdapEntry> &Lst, const char *Base, bool Recursive)
 {
 	bool Status = false;
 	if (Ldap)
@@ -185,23 +202,27 @@ bool ILdap::RetreiveList(List<ILdapEntry> &Lst, char *Base, bool Recursive)
 		for (char Start='A'; Start<='Z'; Start++)
 		{
 			// create a filter string
-			char Str[256] = "";
-			char *Attr[] = { "objectClass", "cn", "rfc822Mailbox", "mail", 0 };
+			char Filter[256] = "";
+			const char *Attr[] = { "objectClass", "cn", "rfc822Mailbox", "mail", 0 };
 
-			sprintf(Str, "(&(objectclass=person)(cn=%c*))", Start);
+			sprintf_s(Filter, sizeof(Filter), "(&(objectclass=person)(cn=%c*))", Start);
 
 			// call a sync search
 			LDAPMessage *Msg = 0;
-			int Result = ldap_search_s(	Ldap,
-										Base ? Base : "",
-										Recursive ? LDAP_SCOPE_SUBTREE : LDAP_SCOPE_ONELEVEL,
-										Str,
-										Attr,
-										false,
-										&Msg);
-			
-			bool SizeExceeded = Result == LDAP_SIZELIMIT_EXCEEDED;
-			bool TimeExceeded = Result == LDAP_TIMELIMIT_EXCEEDED;
+			int Result = ldap_search_ext_s(	Ldap,
+                                            Base ? Base : "",
+                                            Recursive ? LDAP_SCOPE_SUBTREE : LDAP_SCOPE_ONELEVEL,
+                                            Filter,
+                                            (char**)Attr,
+                                            false, // attrsonly
+                                            NULL, // serverctrls
+                                            NULL, // clientctrls
+                                            NULL, // timeout
+                                            0, // sizelimit
+                                            &Msg);
+                
+			// bool SizeExceeded = Result == LDAP_SIZELIMIT_EXCEEDED;
+			// bool TimeExceeded = Result == LDAP_TIMELIMIT_EXCEEDED;
 
 			switch (Result)
 			{
@@ -209,8 +230,7 @@ bool ILdap::RetreiveList(List<ILdapEntry> &Lst, char *Base, bool Recursive)
 				case LDAP_SIZELIMIT_EXCEEDED:
 				case LDAP_TIMELIMIT_EXCEEDED:
 				{
-					int Entries = ldap_count_entries(Ldap, Msg);
-
+					// int Entries = ldap_count_entries(Ldap, Msg);
 					// Ldap_Trace("ldap_search_s('%s'), ldap_count_entries=%i\n", Str, Entries);
 
 					for (LDAPMessage *m = ldap_first_entry(Ldap, Msg);
