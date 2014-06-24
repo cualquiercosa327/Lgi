@@ -1702,12 +1702,12 @@ int GFilterFactory::GetItems()
 //////////////////////////////////////////////////////////////////////////
 
 /// Legacy wrapper that calls the new method
-GSurface *LoadDC(char *Name, bool UseOSLoader)
+GSurface *LoadDC(const char *Name, bool UseOSLoader)
 {
     return GdcD->Load(Name, UseOSLoader);
 }
 
-GSurface *GdcDevice::Load(char *Name, bool UseOSLoader)
+GSurface *GdcDevice::Load(const char *Name, bool UseOSLoader)
 {
 	GAutoPtr<GSurface> pDC;
 
@@ -1760,7 +1760,7 @@ GSurface *GdcDevice::Load(char *Name, bool UseOSLoader)
 
 		#elif WIN32NATIVE && defined(_MSC_VER)
 		
-		char *Ext = LgiGetExtension(Name);
+		char *Ext = LgiGetExtension((char*)Name);
 		if (Ext && stricmp(Ext, "gif") && stricmp(Ext, "png"))
 		{
 			IImgCtx *Ctx = 0;
@@ -1965,12 +1965,12 @@ GSurface *GdcDevice::Load(char *Name, bool UseOSLoader)
 	return pDC.Release();
 }
 
-bool WriteDC(char *Name, GSurface *pDC)
+bool WriteDC(const char *Name, GSurface *pDC)
 {
     return GdcD->Save(Name, pDC);
 }
 
-bool GdcDevice::Save(char *Name, GSurface *pDC)
+bool GdcDevice::Save(const char *Name, GSurface *pDC)
 {
 	bool Status = false;
 

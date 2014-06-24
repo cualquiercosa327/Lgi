@@ -1108,7 +1108,7 @@ public:
     GSurface *Load
     (
         /// The full path of the file
-        char *FileName,
+        const char *FileName,
     	/// [Optional] Enable OS based loaders
         bool UseOSLoader = true
     );
@@ -1117,7 +1117,7 @@ public:
     bool Save
     (
         /// The file to write to
-        char *Name,
+        const char *Name,
         /// The pixels to store
         GSurface *pDC
     );
@@ -1167,11 +1167,11 @@ LgiFunc GSurface *ConvertDC
 
 /// Wrapper around GdcDevice::Load
 /// \deprecated Use GdcDevice::Load directly in new code.
-LgiFunc GSurface *LoadDC(char *Name, bool UseOSLoader = true);
+LgiFunc GSurface *LoadDC(const char *Name, bool UseOSLoader = true);
 
 /// Wrapper around GdcDevice::Save
 /// \deprecated Use GdcDevice::Save directly in new code.
-LgiFunc bool WriteDC(char *Name, GSurface *pDC);
+LgiFunc bool WriteDC(const char *Name, GSurface *pDC);
 
 /// Converts a colour to a different bit depth
 LgiFunc COLOUR CBit(int DstBits, COLOUR c, int SrcBits = 24, GPalette *Pal = 0);

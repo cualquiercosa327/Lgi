@@ -39,6 +39,7 @@
 
 #endif
 
+#define TAB_MARGIN_X		6
 #define CLOSE_BTN_SIZE		8
 #define CLOSE_BTN_GAP		8
 
@@ -662,7 +663,7 @@ int GTabPage::GetTabPx()
 {
 	char *Text = Name();
 	GDisplayString ds(GetFont(), Text);
-	int Px = ds.X() + 13;
+	int Px = ds.X() + (TAB_MARGIN_X << 1);
 	if (Button)
 		Px += CLOSE_BTN_GAP + CLOSE_BTN_SIZE;
 	return Px;
@@ -763,7 +764,7 @@ void GTabPage::PaintTab(GSurface *pDC, bool Selected)
 	pDC->Set(r.x1, r.y1);
 	pDC->Set(r.x2, r.y1);
 	
-	int Cx = r.x1 + 8;
+	int Cx = r.x1 + TAB_MARGIN_X;
 	char *t = Name();
 	if (t)
 	{
