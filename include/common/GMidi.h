@@ -1,15 +1,15 @@
 #ifndef _GMIDI_H_
 #define _GMIDI_H_
 
-#if defined(WIN32)
+#if defined(_WINDOWS)
 	#if _MSC_VER >= 1400
 	typedef DWORD_PTR MIDI_TYPE;
 	#else
 	typedef DWORD MIDI_TYPE;
 	#endif
-#endif
-#if defined(WIN32)
-#include "mmsystem.h"
+    #include "mmsystem.h"
+#elif defined(MAC)
+    #include <CoreMidi/MIDIServices.h>
 #endif
 
 #define MIDI_SYSEX_START	0xf0
@@ -34,6 +34,11 @@ protected:
 
 	// Arrays of device names
 	GArray<GAutoString> In, Out;
+    
+    #ifdef MAC
+    friend void MidiNotify(const MIDINotification *message, void *refCon);
+    virtual void OnMidiNotify(const MIDINotification *message);
+    #endif
 
 public:	
 	GMidi();

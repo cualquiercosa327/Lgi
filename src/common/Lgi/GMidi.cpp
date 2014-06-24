@@ -1,12 +1,9 @@
 #include "Lgi.h"
 #include "GMidi.h"
-#if defined(MAC)
-#include <MIDIServices.h>
-#endif
 
 #define MIDI_MIRROR_IN_TO_OUT		0
 
-#ifdef WIN32
+#ifdef _WINDOWS
 #define M_MIDI_IN	(M_USER + 2000)
 class GMidiNotifyWnd : public GWindow
 {
@@ -36,27 +33,30 @@ struct GMidiPriv
 	GMidi *Midi;
 	
 	#if defined(MAC)
-	MIDIClientRef Client;
-	MIDIPortRef InPort, OutPort;
-	GArray<MIDIDeviceRef> Devs;
-	GArray<MIDIEndpointRef> Srcs, Dsts;
-	MIDIEndpointRef Dst;
-	#elif defined(WIN32)
-	HMIDIIN hIn;
-	HMIDIOUT hOut;
-	MIDIHDR InHdr;
-	char InBuf[2 << 10];
-	GMidiNotifyWnd Notify;
+        MIDIClientRef Client;
+        MIDIPortRef InPort, OutPort;
+        GArray<MIDIDeviceRef> Devs;
+        GArray<MIDIEndpointRef> Srcs, Dsts;
+        MIDIEndpointRef Dst;
+	#elif defined(_WINDOWS)
+        HMIDIIN hIn;
+        HMIDIOUT hOut;
+        MIDIHDR InHdr;
+        char InBuf[2 << 10];
+        GMidiNotifyWnd Notify;
 	#endif
 	
-	GMidiPriv(GMidi *m) : Notify(m)
+	GMidiPriv(GMidi *m)
+        #ifdef _WINDOWS
+        : Notify(m)
+        #endif
 	{
 		Midi = m;
 
 		#if defined(MAC)
 		Client = 0;
 		Dst = 0;
-		#elif defined(WIN32)
+		#elif defined(_WINDOWS)
 		hIn = 0;
 		hOut = 0;
 		#endif
@@ -91,13 +91,13 @@ GAutoString PrintMIDIObjectInfo(MIDIObjectRef o)
 #ifdef MAC
 void MidiNotify(const MIDINotification *message, void *refCon)
 {
-	App *a = (App*)refCon;
+	GMidi *a = (GMidi*)refCon;
 	a->OnMidiNotify(message);
 }
 
 void MidiRead(const MIDIPacketList *pktlist, void *readProcRefCon, void *srcConnRefCon)
 {
-	App *a = (App*)readProcRefCon;
+	GMidi *a = (GMidi*)readProcRefCon;
 	if (a)
 	{
 		MIDIPacket *packet = (MIDIPacket*)pktlist->packet;
@@ -109,12 +109,12 @@ void MidiRead(const MIDIPacketList *pktlist, void *readProcRefCon, void *srcConn
 	}
 }
 
-void App::OnMidiNotify(const MIDINotification *message)
+void GMidi::OnMidiNotify(const MIDINotification *message)
 {
 	printf("MIDI notify: %li\n", message->messageID);
 }
 
-#elif defined(WIN32)
+#elif defined(_WINDOWS)
 
 void CALLBACK MidiOutProc(HMIDIOUT hmo, UINT wMsg, MIDI_TYPE dwInstance, MIDI_TYPE wParam, MIDI_TYPE lParam)
 {
@@ -216,10 +216,10 @@ GMidi::GMidi() : GMutex("GMidi")
 	for (int i = 0; i < Devs; i++)
 	{
 		MIDIDeviceRef dev = MIDIGetDevice(i);
-		Devs[i] = dev;
+		d->Devs[i] = dev;
 		GAutoString a = PrintMIDIObjectInfo(dev);
-		In->Insert(a);
-		Out->Insert(a);
+		In.New().Reset(NewStr(a));
+		Out.New().Reset(NewStr(a));
 
 		int nEnt = MIDIDeviceGetNumberOfEntities(dev);
 		// printf("Device %d has %d entities:\n", i, nEnt);
@@ -233,7 +233,7 @@ GMidi::GMidi() : GMutex("GMidi")
 			for (int k = 0; k < nSources; ++k)
 			{
 				MIDIEndpointRef sep = MIDIEntityGetSource(ent, k);
-				Srcs[i] = sep;
+				d->Srcs[i] = sep;
 				// printf("    ");
 				// PrintMIDIObjectInfo(sep);
 			}
@@ -243,20 +243,14 @@ GMidi::GMidi() : GMutex("GMidi")
 			for (int l = 0; l < nDestinations; ++l)
 			{
 				MIDIEndpointRef dep = MIDIEntityGetDestination(ent, l);
-				Dsts[i] = dep;
+				d->Dsts[i] = dep;
 				// printf("    ");
 				// PrintMIDIObjectInfo(dep);
 			}
 		}
 	}
 	
-	if (In && Out)
-	{
-		In->Value(5);
-		Out->Value(5);
-	}
-
-	#elif defined(WIN32)
+	#elif defined(_WINDOWS)
 
 	UINT InDevs = midiInGetNumDevs();
 	UINT OutDevs = midiOutGetNumDevs();
@@ -302,8 +296,8 @@ GMidi::~GMidi()
 bool GMidi::IsMidiOpen()
 {
 	#if defined(MAC)
-	return Client != 0;
-	#elif defined(WIN32)
+	return d->Client != 0;
+	#elif defined(_WINDOWS)
 	return d->hIn != 0;
 	#endif
 }
@@ -348,7 +342,7 @@ int GMidi::GetMidiPacketSize(uint8 *ptr, int len)
 	return 0;
 }
 
-#ifdef WIN32
+#ifdef _WINDOWS
 void GMidi::ParseMidi()
 {
 	if (Lock(_FL))
@@ -388,7 +382,7 @@ void GMidi::StoreMidi(uint8 *ptr, int len)
 		MidiIn.Add(ptr, len);
 		Unlock();
 		
-		#ifdef WIN32
+		#ifdef _WINDOWS
 		d->Notify.PostEvent(M_MIDI_IN);
 		#endif
 	}
@@ -409,7 +403,7 @@ bool GMidi::Connect(int InIdx, int OutIdx, GAutoString *ErrorMsg)
 	#ifdef MAC
 	
 	CFStringRef Name = CFSTR("AxeFoot");
-	OSStatus e = MIDIClientCreate(Name, MidiNotify, this, &Client);
+	OSStatus e = MIDIClientCreate(Name, MidiNotify, this, &d->Client);
 	if (e)
 	{
 	    if (GetLog())
@@ -417,7 +411,7 @@ bool GMidi::Connect(int InIdx, int OutIdx, GAutoString *ErrorMsg)
 	}
 	else
 	{
-		e = MIDIInputPortCreate(Client, CFSTR("AxeFootInput"), MidiRead, this, &InPort);
+		e = MIDIInputPortCreate(d->Client, CFSTR("AxeFootInput"), MidiRead, this, &d->InPort);
 		if (e)
 		{
 		    if (GetLog())
@@ -425,7 +419,7 @@ bool GMidi::Connect(int InIdx, int OutIdx, GAutoString *ErrorMsg)
 		}
 		else
 		{
-			e = MIDIOutputPortCreate(Client, CFSTR("AxeFootOutput"), &OutPort);
+			e = MIDIOutputPortCreate(d->Client, CFSTR("AxeFootOutput"), &d->OutPort);
 			if (e)
 			{
 			    if (GetLog())
@@ -433,13 +427,10 @@ bool GMidi::Connect(int InIdx, int OutIdx, GAutoString *ErrorMsg)
 			}
 			else
 			{
-				int InIdx = In->Value();
-				int OutIdx = Out->Value();
+				MIDIEndpointRef Src = d->Srcs[InIdx];
+				d->Dst = d->Dsts[OutIdx];
 
-				MIDIEndpointRef Src = Srcs[InIdx];
-				Dst = Dsts[OutIdx];
-
-				e = MIDIPortConnectSource(InPort, Src, this);
+				e = MIDIPortConnectSource(d->InPort, Src, this);
 				if (e)
 				{
 				    if (GetLog())
@@ -454,7 +445,7 @@ bool GMidi::Connect(int InIdx, int OutIdx, GAutoString *ErrorMsg)
 		}
 	}
 
-	#elif defined(WIN32)
+	#elif defined(_WINDOWS)
 
 	MMRESULT r = midiOutOpen(&d->hOut, OutIdx, (MIDI_TYPE)MidiOutProc, (MIDI_TYPE)this, CALLBACK_FUNCTION);
 	if (r != MMSYSERR_NOERROR)
@@ -508,12 +499,12 @@ bool GMidi::Connect(int InIdx, int OutIdx, GAutoString *ErrorMsg)
 void GMidi::CloseMidi()
 {
 	#if defined(MAC)
-	if (Client)
+	if (d->Client)
 	{
-		MIDIClientDispose(Client);
-		Client = 0;
+		MIDIClientDispose(d->Client);
+		d->Client = 0;
 	}
-	#elif defined(WIN32)
+	#elif defined(_WINDOWS)
 	if (d->hIn)
 	{
 		midiInReset(d->hIn);
@@ -542,7 +533,7 @@ void GMidi::SendMidi(uint8 *ptr, int len, bool quiet)
 	LgiAssert(ptr != NULL);
 	if (!ptr)
 		return;
-	#if defined(WIN32)
+	#if defined(_WINDOWS)
 	if (d->hOut)
 	{
 		if (len <= 3)
@@ -580,14 +571,14 @@ void GMidi::SendMidi(uint8 *ptr, int len, bool quiet)
 		}
 	}
 	#else
-	if (OutPort)
+	if (d->OutPort)
 	{
 		struct MIDIPacketList p;
 		p.numPackets = 1;
 		p.packet[0].timeStamp = 0;
 		p.packet[0].length = len;
 		memcpy(p.packet[0].data, ptr, len);
-		OSStatus e = MIDISend(OutPort, Dst, &p);
+		OSStatus e = MIDISend(d->OutPort, d->Dst, &p);
 		if (e)
 		{
 		    if (GetLog())

@@ -314,7 +314,7 @@ bool GHtmlParser::Parse(GHtmlElement *Root, const char *Doc)
 {
 	SourceData.Empty();
 	CurrentSrc = Doc;
-	char *Cur = ParseHtml(Root, (char*)Doc, 0);
+	ParseHtml(Root, (char*)Doc, 0);
 	if (CurrentSrc)
 		SourceData.Write(CurrentSrc, strlen(CurrentSrc));	
 	Source.Reset(SourceData.NewStr());

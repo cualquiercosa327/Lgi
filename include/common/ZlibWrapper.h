@@ -13,14 +13,16 @@ class Zlib : public GLibrary
 public:
 	const char *Name()
 	{
-		return	"zlib"
-				#ifdef WIN32NATIVE
-					"9"
+		return
+				#ifdef _WINDOWS
+                    "zlib9"
 					#if WIN64
 					"x64"
 					#else
 					"x32"
 					#endif
+                #else
+                    "libz"
 				#endif
 				;
 	}
