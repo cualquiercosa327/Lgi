@@ -1495,7 +1495,7 @@ bool ObjTree::SerializeObj(GFile &f, bool Write)
 										int Len = 0;
 										
 										s += 2;
-										strupr(s);
+										StrUpr(s);
 										for (;s[Len] && strchr(NumToHex, s[Len]); Len++);
 										Len--;
 

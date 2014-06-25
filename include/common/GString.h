@@ -22,6 +22,27 @@ LgiExtern char WhiteSpace[];
 #endif
 
 // Functions
+template<typename Char>
+Char *StrLwr(Char *c)
+{
+	for (Char *s = c; s && *s; s++)
+	{
+		if (*s >= 'A' && *s < 'Z')
+			*s = *s - 'A' + 'a';
+	}
+	return c;
+}
+
+template<typename Char>
+Char *StrUpr(Char *c)
+{
+	for (Char *s = c; s && *s; s++)
+	{
+		if (*s >= 'a' && *s < 'z')
+			*s = *s - 'a' + 'A';
+	}
+	return c;
+}
 
 // 8 bit strings
 

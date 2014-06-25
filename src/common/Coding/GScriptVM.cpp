@@ -1987,7 +1987,7 @@ public:
 									if (Dst != Dom)
 										*Dst = Dom->CastString();
 									
-									strlwr(Dst->Str());
+									StrLwr(Dst->Str());
 									break;
 								}
 								case StrUpper:
@@ -1995,7 +1995,7 @@ public:
 									if (Dst != Dom)
 										*Dst = Dom->CastString();
 
-									strupr(Dst->Str());
+									StrUpr(Dst->Str());
 									break;
 								}
 								case StrStrip:
