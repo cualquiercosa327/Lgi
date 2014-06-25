@@ -26,6 +26,7 @@ class GKey;
 class GWindow;
 class GViewFill;
 class GView;
+class GVariant;
 
 // Classes
 class GDomI
@@ -33,8 +34,9 @@ class GDomI
 public:
 	virtual ~GDomI() {}
 
-	virtual bool GetValue(const char *Var, class GVariant &Value) { return false; }
-	virtual bool SetValue(const char *Var, class GVariant &Value) { return false; }
+	virtual bool GetValue(const char *Var, GVariant &Value) { return false; }
+	virtual bool SetValue(const char *Var, GVariant &Value) { return false; }
+	virtual bool CallMethod(const char *MethodName, GVariant *ReturnValue, GArray<GVariant*> &Args) { return false; }
 };
 
 /// Stream interface class

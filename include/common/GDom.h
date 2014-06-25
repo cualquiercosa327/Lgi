@@ -27,7 +27,6 @@ protected:
 	virtual bool _OnAccess(bool Start) { return true; }
 	virtual bool GetVariant(const char *Name, GVariant &Value, char *Array = 0) { return false; }
 	virtual bool SetVariant(const char *Name, GVariant &Value, char *Array = 0) { return false; }
-	virtual bool CallMethod(const char *Name, GVariant *ReturnValue, GArray<GVariant*> &Args) { return false; }
 
 public:
 	/// Gets an object's property
