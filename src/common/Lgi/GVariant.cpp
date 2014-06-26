@@ -1446,8 +1446,6 @@ bool GDom::GetValue(const char *Var, GVariant &Value)
 
 	if (Var)
 	{
-		// GMutex *Sem = dynamic_cast<GMutex*>(this);
-		// LgiTrace("%s:%i - Get_OnAccess(1) '%s' %i\n", _FL, Var, Sem?Sem->GetCount():-1);
 		if (_OnAccess(true))
 		{
 			char Name[256] = "", Arr[256] = "";
@@ -1466,7 +1464,6 @@ bool GDom::GetValue(const char *Var, GVariant &Value)
 				}
 			}
 
-			// LgiTrace("%s:%i - Get_OnAccess(0) '%s'\n", _FL, Var);
 			_OnAccess(false);
 		}
 		else
@@ -1486,7 +1483,6 @@ bool GDom::SetValue(const char *Var, GVariant &Value)
 	if (Var)
 	{
 		// GMutex *Sem = dynamic_cast<GMutex*>(this);
-		// LgiTrace("%s:%i - Set_OnAccess(1) '%s' %i\n", _FL, Var, Sem?Sem->GetCount():-1);
 		if (_OnAccess(true))
 		{
 			char Name[256], Arr[256] = "";
@@ -1502,7 +1498,6 @@ bool GDom::SetValue(const char *Var, GVariant &Value)
 				}
 			}
 
-			// LgiTrace("%s:%i - Set_OnAccess(0) '%s'\n", _FL, Var);
 			_OnAccess(false);
 		}
 		else
