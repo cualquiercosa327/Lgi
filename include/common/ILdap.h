@@ -12,6 +12,8 @@
 #define __ILDAP_H
 
 #include "INet.h"
+
+#define LDAP_DEPRECATED 1
 #include "lber.h"
 #include "ldap.h"
 //#include "ldapconfig.h"
