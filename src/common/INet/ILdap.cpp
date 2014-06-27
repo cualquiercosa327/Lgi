@@ -194,7 +194,7 @@ ldap_search_ext_s LDAP_P((
 
 */
 
-bool ILdap::RetreiveList(List<ILdapEntry> &Lst, const char *Base, bool Recursive)
+bool ILdap::RetreiveList(List<ILdapEntry> &Lst, const char *BaseDn, const char *BindDn, bool Recursive)
 {
 	bool Status = false;
 	if (Ldap)
@@ -210,7 +210,7 @@ bool ILdap::RetreiveList(List<ILdapEntry> &Lst, const char *Base, bool Recursive
 			// call a sync search
 			LDAPMessage *Msg = 0;
 			int Result = ldap_search_ext_s(	Ldap,
-                                            Base ? Base : "",
+                                            BaseDn ? BaseDn : "",
                                             Recursive ? LDAP_SCOPE_SUBTREE : LDAP_SCOPE_ONELEVEL,
                                             Filter,
                                             (char**)Attr,

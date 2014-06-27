@@ -53,7 +53,7 @@ public:
 	bool Close();
 
 	ILdapEntry *RetreiveOne(char *Name, char *Base = 0, bool Recursive = true);
-	bool RetreiveList(List<ILdapEntry> &Entries, const char *Base = NULL, bool Recursive = true);
+	bool RetreiveList(List<ILdapEntry> &Entries, const char *BaseDn, const char *BindDn, bool Recursive = true);
 };
 
 #endif
