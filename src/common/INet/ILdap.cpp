@@ -76,8 +76,7 @@ bool ILdap::Open(int Version, char *RemoteServer, int Port, char *BindDn, char *
 		ldap_set_option(Ldap, LDAP_OPT_DEREF, &Opt_Deref);
 		ldap_set_option(Ldap, LDAP_OPT_PROTOCOL_VERSION, &Opt_ProtocolVer);
 
-		
-		if (ValidStr(User) && ValidStr(Pass))
+		if (ValidStr(BindDn) && ValidStr(Pass))
 		{
 			int Result = ldap_simple_bind_s(Ldap, BindDn, Pass);
 			if (Result != LDAP_SUCCESS)
