@@ -1882,7 +1882,7 @@ void LgiFormatSize(char *Str, int SLen, uint64 Size)
 
 	if (Size == 1)
 	{
-		strcpy_s(Str, Size, "1 byte");
+		strcpy_s(Str, SLen, "1 byte");
 	}
 	else if (Size < K)
 	{
