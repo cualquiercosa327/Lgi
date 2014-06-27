@@ -14,6 +14,7 @@
 #include <stdio.h>
 
 #include "Lgi.h"
+#include "GVariant.h"
 #include "ILdap.h"
 
 void _do_nothing(const char *s, ...) {}
@@ -65,7 +66,7 @@ void ILdap::SetRestart(bool i)
 	Opt_Restart = i;
 }
 
-bool ILdap::Open(int Version, char *RemoteServer, int Port, char *User, char *Pass)
+bool ILdap::Open(int Version, char *RemoteServer, int Port, char *BindDn, char *Pass)
 {
 	Ldap = ldap_open(RemoteServer, Port ? Port : LDAP_PORT);
 	if (Ldap)
@@ -75,10 +76,17 @@ bool ILdap::Open(int Version, char *RemoteServer, int Port, char *User, char *Pa
 		ldap_set_option(Ldap, LDAP_OPT_DEREF, &Opt_Deref);
 		ldap_set_option(Ldap, LDAP_OPT_PROTOCOL_VERSION, &Opt_ProtocolVer);
 
-		if (ldap_simple_bind_s(Ldap, User, Pass) == LDAP_SUCCESS )
+		
+		if (ValidStr(User) && ValidStr(Pass))
 		{
-			return true;
+			int Result = ldap_simple_bind_s(Ldap, BindDn, Pass);
+			if (Result != LDAP_SUCCESS)
+			{
+				return false;
+			}
 		}
+		
+		return true;
 	}
 
 	return false;
@@ -95,6 +103,7 @@ bool ILdap::Close()
 	return false;
 }
 
+/*
 ILdapEntry *ILdap::RetreiveOne(char *Name, char *Base, bool Recursive)
 {
 	if (Ldap && Name)
@@ -176,6 +185,7 @@ ILdapEntry *ILdap::RetreiveOne(char *Name, char *Base, bool Recursive)
 
 	return 0;
 }
+*/
 
 /*
 LDAP_F( int )
@@ -194,111 +204,113 @@ ldap_search_ext_s LDAP_P((
 
 */
 
-bool ILdap::RetreiveList(List<ILdapEntry> &Lst, const char *BaseDn, const char *BindDn, bool Recursive)
+bool ILdap::Search(GDom *Results, const char *BaseDn, const char *UserFilter, const char *Search, bool Recursive)
 {
 	bool Status = false;
 	if (Ldap)
 	{
-		for (char Start='A'; Start<='Z'; Start++)
+		// create a filter string
+		char Filter[256] = "";
+		const char *Attr[] = { "objectClass", "cn", "rfc822Mailbox", "mail", 0 };
+
+		sprintf_s(Filter, sizeof(Filter), "(&(objectclass=person)(cn=%s*))", Search);
+
+		// call a sync search
+		LDAPMessage *Msg = 0;
+		int Result = ldap_search_ext_s(	Ldap,
+                                        BaseDn ? BaseDn : "",
+                                        Recursive ? LDAP_SCOPE_SUBTREE : LDAP_SCOPE_ONELEVEL,
+                                        Filter,
+                                        (char**)Attr,
+                                        false, // attrsonly
+                                        NULL, // serverctrls
+                                        NULL, // clientctrls
+                                        NULL, // timeout
+                                        0, // sizelimit
+                                        &Msg);
+            
+		// bool SizeExceeded = Result == LDAP_SIZELIMIT_EXCEEDED;
+		// bool TimeExceeded = Result == LDAP_TIMELIMIT_EXCEEDED;
+
+		switch (Result)
 		{
-			// create a filter string
-			char Filter[256] = "";
-			const char *Attr[] = { "objectClass", "cn", "rfc822Mailbox", "mail", 0 };
-
-			sprintf_s(Filter, sizeof(Filter), "(&(objectclass=person)(cn=%c*))", Start);
-
-			// call a sync search
-			LDAPMessage *Msg = 0;
-			int Result = ldap_search_ext_s(	Ldap,
-                                            BaseDn ? BaseDn : "",
-                                            Recursive ? LDAP_SCOPE_SUBTREE : LDAP_SCOPE_ONELEVEL,
-                                            Filter,
-                                            (char**)Attr,
-                                            false, // attrsonly
-                                            NULL, // serverctrls
-                                            NULL, // clientctrls
-                                            NULL, // timeout
-                                            0, // sizelimit
-                                            &Msg);
-                
-			// bool SizeExceeded = Result == LDAP_SIZELIMIT_EXCEEDED;
-			// bool TimeExceeded = Result == LDAP_TIMELIMIT_EXCEEDED;
-
-			switch (Result)
+			case LDAP_SUCCESS:
+			case LDAP_SIZELIMIT_EXCEEDED:
+			case LDAP_TIMELIMIT_EXCEEDED:
 			{
-				case LDAP_SUCCESS:
-				case LDAP_SIZELIMIT_EXCEEDED:
-				case LDAP_TIMELIMIT_EXCEEDED:
-				{
-					// int Entries = ldap_count_entries(Ldap, Msg);
-					// Ldap_Trace("ldap_search_s('%s'), ldap_count_entries=%i\n", Str, Entries);
+				// int Entries = ldap_count_entries(Ldap, Msg);
+				// Ldap_Trace("ldap_search_s('%s'), ldap_count_entries=%i\n", Str, Entries);
 
-					for (LDAPMessage *m = ldap_first_entry(Ldap, Msg);
-						m;
-						m = ldap_next_entry(Ldap, m))
+				GArray<GVariant*> Args;
+				for (LDAPMessage *m = ldap_first_entry(Ldap, Msg);
+					m;
+					m = ldap_next_entry(Ldap, m))
+				{
+					// objectClass: groupOfNames
+					// objectClass: organizationalPerson
+					
+					char **Type = ldap_get_values(Ldap, m, "objectClass");
+					char **Name = ldap_get_values(Ldap, m, "cn");
+					char **Email = ldap_get_values(Ldap, m, "rfc822Mailbox");
+					char **Email2 = ldap_get_values(Ldap, m, "mail");
+
+					// Ldap_Trace("ldap_get_values, Type=%p, Name=%p, Email=%p, Email2=%p\n", Type, Name, Email, Email2);
+					if (Type && Name && (Email || Email2) )
 					{
-						// objectClass: groupOfNames
-						// objectClass: organizationalPerson
-						
-						char **Type = ldap_get_values(Ldap, m, "objectClass");
-						char **Name = ldap_get_values(Ldap, m, "cn");
-						char **Email = ldap_get_values(Ldap, m, "rfc822Mailbox");
-						char **Email2 = ldap_get_values(Ldap, m, "mail");
+						Ldap_Trace(	"real values, Type=%s, Name=%s, Email=%s, Email2=%s",
+									*Type,
+									*Name,
+									Email ? *Email : 0,
+									Email2 ? *Email2 : 0);
 
-						// Ldap_Trace("ldap_get_values, Type=%p, Name=%p, Email=%p, Email2=%p\n", Type, Name, Email, Email2);
-
-						if (Type && Name && (Email || Email2) )
+						ILdapEntry *e = new ILdapEntry;
+						if (e)
 						{
-							Ldap_Trace(	"real values, Type=%s, Name=%s, Email=%s, Email2=%s",
-										*Type,
-										*Name,
-										Email ? *Email : 0,
-										Email2 ? *Email2 : 0);
-
-							ILdapEntry *e = new ILdapEntry;
-							if (e)
+							e->Type = LDAP_ENTRY_PERSON;
+							for (int t=0; Type[t]; t++)
 							{
-								e->Type = LDAP_ENTRY_PERSON;
-								for (int t=0; Type[t]; t++)
+								if (stricmp(Type[t], "groupOfNames") == 0)
 								{
-									if (stricmp(Type[t], "groupOfNames") == 0)
-									{
-										e->Type = LDAP_ENTRY_GROUP;
-										break;
-									}
+									e->Type = LDAP_ENTRY_GROUP;
+									break;
 								}
-
-								if (Name)
-								{
-									e->Name = NewStr(Name[0]);
-								}
-
-								if (Email)
-								{
-									e->Email = NewStr(Email[0]);
-								}
-								else if (Email2)
-								{
-									e->Email = NewStr(Email2[0]);
-								}
-
-								Lst.Insert(e);
-								Status = true;
 							}
-						}
 
-						ldap_value_free(Type);
-						ldap_value_free(Name);
-						ldap_value_free(Email);
-						ldap_value_free(Email2);
+							if (Name)
+							{
+								e->Name = NewStr(Name[0]);
+							}
+
+							if (Email)
+							{
+								e->Email = NewStr(Email[0]);
+							}
+							else if (Email2)
+							{
+								e->Email = NewStr(Email2[0]);
+							}
+
+							Args.Add(new GVariant(e));
+							Status = true;
+						}
 					}
-					break;
+
+					ldap_value_free(Type);
+					ldap_value_free(Name);
+					ldap_value_free(Email);
+					ldap_value_free(Email2);
 				}
-				default:
+				
+				if (Args.Length())
 				{
-					Ldap_Trace("%s:%i - error: ldap_search_s=%i\n", __FILE__, __LINE__, Result);
-					break;
+					Results->CallMethod(NULL, NULL, Args);
 				}
+				break;
+			}
+			default:
+			{
+				Ldap_Trace("%s:%i - error: ldap_search_s=%i\n", __FILE__, __LINE__, Result);
+				break;
 			}
 		}
 	}

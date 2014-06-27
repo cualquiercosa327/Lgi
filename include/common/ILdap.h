@@ -21,7 +21,7 @@
 #define LDAP_ENTRY_PERSON			0x0001
 #define LDAP_ENTRY_GROUP			0x0002
 
-class ILdapEntry
+class ILdapEntry : public GDomI
 {
 public:
 	char *Name;
@@ -49,11 +49,10 @@ public:
 	void SetDeref(int i);
 	void SetRestart(bool i);
 
-	bool Open(int Version, char *RemoteServer, int Port = LDAP_PORT, char *User = 0, char *Pass = 0);
+	bool Open(int Version, char *RemoteServer, int Port = LDAP_PORT, char *BindDn = NULL, char *Pass = NULL);
 	bool Close();
 
-	ILdapEntry *RetreiveOne(char *Name, char *Base = 0, bool Recursive = true);
-	bool RetreiveList(List<ILdapEntry> &Entries, const char *BaseDn, const char *BindDn, bool Recursive = true);
+	bool Search(GDom *Results, const char *BaseDn, const char *UserFilter, const char *Search, bool Recursive = true);
 };
 
 #endif
