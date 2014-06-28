@@ -18,6 +18,7 @@
 #include "GViewPriv.h"
 #include "GUtf8.h"
 #include "GCss.h"
+#include "GPopup.h"
 
 #define ADJ_LEFT					1
 #define ADJ_RIGHT					2
@@ -1786,7 +1787,8 @@ bool GView::Attach(GViewI *parent)
 			d->Parent->AddView(this);
 		}
 		
-		d->Parent->OnChildrenChanged(this, true);
+        if (!dynamic_cast<GPopup*>(this))
+            d->Parent->OnChildrenChanged(this, true);
 		return true;
 	}
 	
@@ -1833,7 +1835,8 @@ bool GView::Detach()
 				_FL, GetClass(), this, d->Parent->GetClass(), d->Parent, D);
 		}
 
-		d->Parent->OnChildrenChanged(this, false);
+        if (!dynamic_cast<GPopup*>(this))
+            d->Parent->OnChildrenChanged(this, false);
 		d->Parent = 0;
 	}
 

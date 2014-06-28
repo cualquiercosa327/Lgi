@@ -1829,6 +1829,11 @@ bool GWindow::SetPos(GRect &p, bool Repaint)
 
 void GWindow::OnChildrenChanged(GViewI *Wnd, bool Attaching)
 {
+    if (dynamic_cast<GPopup*>(Wnd))
+    {
+        printf("%s:%i - Ignoring GPopup in OnChildrenChanged handler.\n", _FL);
+        return;
+    }
 	Pour();
 }
 

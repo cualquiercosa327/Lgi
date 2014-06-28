@@ -497,7 +497,8 @@ void GPopup::TakeFocus(bool Take)
 bool GPopup::SetPos(GRect &p, bool Repaint)
 {
 	GdcPt2 o(0, 0);
-	if (GetWindow()) GetWindow()->PointToScreen(o);
+	if (GetWindow())
+        GetWindow()->PointToScreen(o);
 	GRect r = p;
 	r.Offset(-o.x, -o.y);
 	return GView::SetPos(r, Repaint);
@@ -508,7 +509,8 @@ GRect &GPopup::GetPos()
 	static GRect p;
 	p = GView::GetPos();
 	GdcPt2 o(0, 0);
-	if (GetWindow()) GetWindow()->PointToScreen(o);
+	if (GetWindow())
+        GetWindow()->PointToScreen(o);
 	// p.Offset(o.x, o.y);
 	return p;
 }
@@ -591,7 +593,7 @@ bool GPopup::Attach(GViewI *p)
 					HIViewRef f = HIViewGetFirstSubview(p);
 					if (f != _View)
 					{
-						HIViewSetZOrder(_View, kHIViewZOrderAbove, 	f);
+						HIViewSetZOrder(_View, kHIViewZOrderAbove, f);
 					}
 					
 					AttachChildren();

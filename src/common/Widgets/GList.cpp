@@ -455,19 +455,23 @@ GItemEdit::GItemEdit(GView *parent, GItem *item, int index, int SelStart, int Se
 	_BorderSize = 0;
 	Sunken(false);
 	Raised(false);
-	SetParent(parent);
 	
 	GdcPt2 p;
+	SetParent(parent);
 	GetParent()->PointToScreen(p);
 
 	GRect r = d->Item->GetPos(d->Index);
+    #ifndef _WINDOWS
+	r.Offset(p.x, p.y);
+    #else
 	r.Offset(p.x-1, p.y);
-	// r.x2 += 2;
+    #endif
 	r.y2 += 2;
-	SetPos(r);
 
 	if (Attach(parent))
 	{
+        SetPos(r);
+
 		d->Edit = new GItemEditBox(this, r.X(), r.Y(), d->Item->GetText(d->Index));
 		if (d->Edit)
 		{
