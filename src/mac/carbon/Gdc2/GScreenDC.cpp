@@ -109,6 +109,18 @@ GView *GScreenDC::GetView()
 	return d->View;
 }
 
+void GScreenDC::PushState()
+{
+	if (d->Ctx)
+        CGContextSaveGState(d->Ctx);
+}
+
+void GScreenDC::PopState()
+{
+	if (d->Ctx)
+        CGContextRestoreGState(d->Ctx);
+}
+
 void GScreenDC::SetClient(GRect *c)
 {
 	// 'c' is in absolute coordinates
@@ -172,14 +184,14 @@ void GScreenDC::SetOrigin(int x, int y)
 {
 	if (d->Ctx && (OriginX != 0 || OriginY != 0))
 	{
-		CGContextTranslateCTM(d->Ctx, -OriginX, -OriginY);
+		CGContextTranslateCTM(d->Ctx, OriginX, OriginY);
 	}
 
 	GSurface::SetOrigin(x, y);
 
 	if (d->Ctx)
 	{
-		CGContextTranslateCTM(d->Ctx, x, y);
+		CGContextTranslateCTM(d->Ctx, -x, -y);
 	}
 }
 

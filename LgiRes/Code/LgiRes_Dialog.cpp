@@ -3402,7 +3402,7 @@ void ResDialog::DrawSelection(GSurface *pDC)
     if (Selection.Length() == 0)
         return;
 
-    pDC->SetOrigin(0, 0);
+    //pDC->SetOrigin(0, 0);
     
 	// Draw selection
 	for (ResDialogCtrl *Ctrl = Selection.First(); Ctrl; Ctrl = Selection.Next())
@@ -3436,6 +3436,10 @@ void ResDialog::_Paint(GSurface *pDC, int Ox, int Oy)
 			pMemDC->Create(c.X(), c.Y(), GdcD->GetBits()))
 		#endif
 		{
+            #ifdef MAC
+            GScreenDC *Scr = dynamic_cast<GScreenDC*>(pDC);
+            if (Scr) Scr->PushState();
+            #endif
 			// Draw client
 			pMemDC->Colour(LC_WORKSPACE, 24);
 			// pMemDC->Colour(Rgb24(0, 128, 0), 24);
@@ -3449,6 +3453,9 @@ void ResDialog::_Paint(GSurface *pDC, int Ox, int Oy)
 			
 			if (GetParent())
 			{
+                #ifdef MAC
+                if (Scr) Scr->PopState();
+                #endif
 				// Draw selection
 				DrawSelection(pMemDC);
 			}
