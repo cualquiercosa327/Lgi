@@ -2040,7 +2040,7 @@ int GWindow::OnDrop(char *Format, GVariant *Data, GdcPt2 Pt, int KeyState)
 					{
 						char h[3] = { in[1], in[2], 0 };
 						*out++ = htoi(h);
-						i += 3;
+						in += 3;
 					}
 					else
 					{
