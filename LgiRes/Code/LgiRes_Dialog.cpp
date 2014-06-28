@@ -1222,7 +1222,7 @@ CtrlRadio::CtrlRadio(ResDialog *dlg, GXmlTag *load) :
 		#endif
 		))
 	{
-		int Len = ((Bmp->X()*Bmp->GetBits())+31)/32*4;
+		int Len = ((Bmp->X()*24)+31)/32*4;
 		for (int y=0; y<Bmp->Y(); y++)
 		{
 			for (int x=0; x<Bmp->X(); x++)
@@ -3399,6 +3399,11 @@ GView *ResDialog::CreateUI()
 
 void ResDialog::DrawSelection(GSurface *pDC)
 {
+    if (Selection.Length() == 0)
+        return;
+
+    pDC->SetOrigin(0, 0);
+    
 	// Draw selection
 	for (ResDialogCtrl *Ctrl = Selection.First(); Ctrl; Ctrl = Selection.Next())
 	{

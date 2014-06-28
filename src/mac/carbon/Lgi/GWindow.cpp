@@ -1119,6 +1119,11 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 					{
 						if (v->GetWindow()->HandleViewMouse(v, m))
 						{
+                            if (!stricmp(m.Target->GetClass(), "CtrlDlg"))
+                            {
+                                int asd=0;
+                            }
+                            
 							m.ToView();
 							GView *v = m.Target->GetGView();
 							if (v)

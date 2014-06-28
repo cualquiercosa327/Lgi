@@ -225,22 +225,20 @@ GViewProc
 
 #define GViewSubClassName			CFSTR("com.memecode.lgiview")
 
-// bool GViewPrivate::CursorSet = false;
 HIObjectClassRef GViewPrivate::BaseClass = 0;
-// GView *GViewPrivate::LastCursor = 0;
 
 GViewPrivate::GViewPrivate()
 {
 	TabStop = false;
 	// CursorId = 0;
-	Parent = 0;
-	ParentI = 0;
-	Notify = 0;
+	Parent = NULL;
+	ParentI = NULL;
+	Notify = NULL;
 	CtrlId = -1;
 	DropTarget = 0;
-	Font = 0;
+	Font = NULL;
 	FontOwn = false;
-	Popup = 0;
+	Popup = NULL;
 	Pulse = 0;
 		
 	static bool First = true;
@@ -825,11 +823,14 @@ void GView::PointToView(GdcPt2 &p)
 	// Find offset to window
 	while (c && c != c->GetWindow())
 	{
-		GView *gv = c->GetGView();
-		GRect cli = gv ? gv->GView::GetClient(false) : c->GetClient(false);
-		GRect pos = c->GetPos(); 
+		// GView *gv = c->GetGView();
+		// GRect cli = gv ? gv->GView::GetClient(false) : c->GetClient(false);
+		GRect cli = c->GetClient(false);
+		GRect pos = c->GetPos();
+
 		Ox += pos.x1 + cli.x1;
 		Oy += pos.y1 + cli.y1;
+
 		c = c->GetParent();
 	}
 	

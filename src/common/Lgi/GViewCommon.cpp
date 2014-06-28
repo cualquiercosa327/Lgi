@@ -170,7 +170,7 @@ GWindow *GView::GetWindow()
 {
 	if (!_Window)
 	{
-		for (GView *w = d->GetParent(); w; w = w->d->GetParent())
+		for (GView *w = d->GetParent(); w; w = w->d ? w->d->GetParent() : NULL)
 		{
 			if (w->_Window)
 			{
@@ -1437,19 +1437,23 @@ GViewI *GView::WindowFromPoint(int x, int y, bool Debug)
 		if (CPos.Overlap(x, y) && c->Visible())
 		{
 			GRect CClient;
-			#ifdef MAC
-			CClient.ZOff(0, 0);
-			#else
 			CClient = c->GetClient(false);
-			#endif
 
+            int Ox = CPos.x1 + CClient.x1;
+            int Oy = CPos.y1 + CClient.y1;
 			if (Debug)
 			{
-				printf("%s%s Pos=%s Client=%s m(%i,%i)\n", Tabs, c->GetClass(), CPos.GetStr(), CClient.GetStr(), x, y);
+				printf("%s%s Pos=%s Client=%s m(%i,%i)->(%i,%i)\n",
+                    Tabs,
+                    c->GetClass(),
+                    CPos.GetStr(),
+                    CClient.GetStr(),
+                    x, y,
+                    x - Ox, y - Oy);
 			}
 
 			Debug_Depth++;
-			GViewI *Child = c->WindowFromPoint(x - CPos.x1 - CClient.x1, y - CPos.y1 - CClient.y1, Debug);
+			GViewI *Child = c->WindowFromPoint(x - Ox, y - Oy, Debug);
 			Debug_Depth--;
 			if (Child)
 			{

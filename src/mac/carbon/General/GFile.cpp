@@ -1581,7 +1581,7 @@ int64 GFile::GetSize()
 	#if LINUX64
 	int64 Ret = lseek64(d->hFile, 0, SEEK_END);
 	#else
-	int64 Ret = lseek(d->hFile, 0, SEEK_END);
+	off_t Ret = lseek(d->hFile, 0, SEEK_END);
 	#endif
 	SetPos(Here);
 	return Ret;
