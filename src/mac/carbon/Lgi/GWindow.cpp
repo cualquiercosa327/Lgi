@@ -322,6 +322,9 @@ printf("DragTrack GetDragMouse=%i tracking=%p (%i)\n", e, tracking, tracking ? *
 	{
 		LastCopy = IsCopy;
 		
+        /* Fixme: This is crashing on 10.8. Probably because the lifetime of the graphic
+                  is too short? Should try moving the image into a more permanent location?
+                  
 		GAutoPtr<CGImg> Img;
 		SysFont->Fore(Rgb24(0xff, 0xff, 0xff));
 		SysFont->Transparent(true);
@@ -342,6 +345,7 @@ printf("DragTrack GetDragMouse=%i tracking=%p (%i)\n", e, tracking, tracking ? *
 				if (e) printf("%s:%i - SetDragImageWithCGImage failed with %i\n", _FL, e);
 			}
 		}
+        */
 	}
 	
 	GViewI *v = WindowFromPoint(p.x, p.y);
@@ -486,7 +490,7 @@ printf("\tTarget(%s) not accepting these formats.\n", gv?gv->GetClass():"(none)"
 				{
 					GVariant Data;
 					
-					#if 1
+					#if 0
 					for (char *r=Formats.First(); r; r=Formats.Next())
 						printf("'%s'\n", r);
 					#endif
@@ -1390,6 +1394,8 @@ bool GWindow::HandleViewMouse(GView *v, GMouse &m)
 	#ifdef MAC
 	if (m.Down())
 	{
+        #if 0
+
 		GAutoPtr<GViewIterator> it(IterateViews());
 		for (GViewI *n = it->Last(); n; n = it->Prev())
 		{
@@ -1405,6 +1411,31 @@ bool GWindow::HandleViewMouse(GView *v, GMouse &m)
 			}
 			else break;
 		}
+
+        #else
+
+        bool ParentPopup = false;
+        GViewI *p = m.Target;
+        while (p->GetParent())
+        {
+			if (dynamic_cast<GPopup*>(p))
+            {
+                ParentPopup = true;
+                break;
+            }
+            p = p->GetParent();
+        }
+		if (!ParentPopup)
+		{
+            for (int i=0; i<GPopup::CurrentPopups.Length(); i++)
+            {
+                GPopup *pu = GPopup::CurrentPopups[i];
+                if (pu->Visible())
+                    pu->Visible(false);
+            }
+		}
+
+        #endif
 	}
 	#endif
 
@@ -2076,6 +2107,25 @@ bool GWindow::UnregisterHook(GView *Target)
 		return true;
 	}
 	return false;
+}
+
+GViewI *GWindow::WindowFromPoint(int x, int y, bool Debug)
+{
+    for (int i=0; i<GPopup::CurrentPopups.Length(); i++)
+    {
+        GPopup *p = GPopup::CurrentPopups[i];
+        if (p->Visible())
+        {
+            GRect r = p->GetPos();
+            if (r.Overlap(x, y))
+            {
+                // printf("WindowFromPoint got %s click (%i,%i)\n", p->GetClass(), x, y);
+                return p->WindowFromPoint(x - r.x1, y - r.y1, Debug);
+            }
+        }
+    }
+
+    return GView::WindowFromPoint(x, y, Debug);
 }
 
 int GWindow::OnCommand(int Cmd, int Event, OsView SrcCtrl)

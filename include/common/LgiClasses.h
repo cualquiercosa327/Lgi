@@ -1380,6 +1380,7 @@ public:
 	OSErr HandlerCallback(DragTrackingMessage *tracking, DragRef theDrag);
 	#endif
 	int OnCommand(int Cmd, int Event, OsView Wnd);
+	GViewI *WindowFromPoint(int x, int y, bool Debug = false);
 	virtual void OnFrontSwitch(bool b);
 	
 	#elif defined __GTK_H__
