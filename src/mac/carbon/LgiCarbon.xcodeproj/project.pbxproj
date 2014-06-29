@@ -87,6 +87,7 @@
 		344D1B3208F4A36300228075 /* GTabView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344D1B2208F4A36300228075 /* GTabView.cpp */; };
 		344D1B3308F4A36300228075 /* GTextLabel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344D1B2308F4A36300228075 /* GTextLabel.cpp */; };
 		344D1B3508F4A36300228075 /* GTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344D1B2508F4A36300228075 /* GTree.cpp */; };
+		344E922D19602E1B000074D2 /* GThreadEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 344E922C19602E1B000074D2 /* GThreadEvent.h */; };
 		345C1BF30B3F4AFF00E80FF1 /* LgiClass.h in Headers */ = {isa = PBXBuildFile; fileRef = 345C1BF20B3F4AFF00E80FF1 /* LgiClass.h */; };
 		345C1EC90B46017000E80FF1 /* LgiWidgets.h in Headers */ = {isa = PBXBuildFile; fileRef = 345C1EC80B46017000E80FF1 /* LgiWidgets.h */; };
 		345F4B9F0F058D4F0015A7EE /* GScrollBar.h in Headers */ = {isa = PBXBuildFile; fileRef = 345F4B9E0F058D4F0015A7EE /* GScrollBar.h */; };
@@ -253,6 +254,7 @@
 		344D1B2208F4A36300228075 /* GTabView.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GTabView.cpp; path = ../../common/Widgets/GTabView.cpp; sourceTree = "<group>"; };
 		344D1B2308F4A36300228075 /* GTextLabel.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GTextLabel.cpp; path = ../../common/Widgets/GTextLabel.cpp; sourceTree = "<group>"; };
 		344D1B2508F4A36300228075 /* GTree.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GTree.cpp; path = ../../common/Widgets/GTree.cpp; sourceTree = "<group>"; };
+		344E922C19602E1B000074D2 /* GThreadEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GThreadEvent.h; path = ../../../include/common/GThreadEvent.h; sourceTree = "<group>"; };
 		345C1BF20B3F4AFF00E80FF1 /* LgiClass.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LgiClass.h; path = ../../../include/common/LgiClass.h; sourceTree = "<group>"; };
 		345C1EC80B46017000E80FF1 /* LgiWidgets.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LgiWidgets.h; path = ../../../include/common/LgiWidgets.h; sourceTree = "<group>"; };
 		345ECABC0FB1A74700C8BFA8 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = /Developer/SDKs/MacOSX10.4u.sdk/System/Library/Frameworks/SystemConfiguration.framework; sourceTree = "<absolute>"; };
@@ -647,6 +649,7 @@
 		345F9C4108F0FAA9007DAFE2 /* Threads */ = {
 			isa = PBXGroup;
 			children = (
+				344E922C19602E1B000074D2 /* GThreadEvent.h */,
 				343E950C1751C6090085611D /* GThreadEvent.cpp */,
 				34A11A7D167534A500FCC5D7 /* GMutex.h */,
 				34A11A7B1675349900FCC5D7 /* GMutex.cpp */,
@@ -860,6 +863,7 @@
 				3433784B19178B09007A4DC5 /* GColourSpace.h in Headers */,
 				341B7C491956D3AA00AAA225 /* GCheckBox.h in Headers */,
 				341B7C4B1956E08500AAA225 /* GRadioGroup.h in Headers */,
+				344E922D19602E1B000074D2 /* GThreadEvent.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
