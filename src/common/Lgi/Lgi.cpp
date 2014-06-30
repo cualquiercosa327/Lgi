@@ -546,6 +546,7 @@ void LgiTrace(const char *Msg, ...)
 	}
 }
 
+#ifndef LGI_STATIC
 #define STACK_SIZE 12
 
 void LgiStackTrace(const char *Msg, ...)
@@ -597,6 +598,7 @@ void LgiStackTrace(const char *Msg, ...)
 		#endif
 	}
 }
+#endif
 
 bool LgiTrimDir(char *Path)
 {
@@ -990,6 +992,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 			}
 			case LSP_APP_ROOT:
 			{
+				#ifndef LGI_STATIC
 				if (!LgiApp)
 				{
 					LgiAssert(0);
@@ -1038,6 +1041,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 					Status = true;
 				}
 				else
+				#endif
 				{
 					LgiAssert(0);
 				}

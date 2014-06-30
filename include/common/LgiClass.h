@@ -54,8 +54,10 @@ public:
 /// Writes a debug statement to a file in the executables directory
 LgiFunc void LgiTrace(const char *Format, ...);
 
+#ifndef LGI_STATIC
 /// Same as LgiTrace but writes a stack trace as well
 LgiFunc void LgiStackTrace(const char *Format, ...);
+#endif
 
 /// General user interface event
 class LgiClass GUiEvent

@@ -303,6 +303,8 @@ public:
 	bool CastBool();
 	/// Returns the pointer if available.
 	void *CastVoidPtr();
+	/// Returns a GView
+	GView *CastView() { return Type == GV_GVIEW ? Value.View : NULL; }
 };
 
 #endif

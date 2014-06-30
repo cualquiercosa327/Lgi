@@ -480,7 +480,9 @@ public:
 						Table != 0;
 		if (!Status)
 		{
+			#ifndef LGI_STATIC
 			LgiStackTrace("%s:%i - this=%p Table=%p Used=%i Size=%i\n", _FL, this, Table, Used, Size);
+			#endif
 			LgiAssert(0);
 		}		
 		return Status;

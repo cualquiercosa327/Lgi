@@ -369,6 +369,7 @@ LgiFunc const char *LgiDetectCharset
 	List<char> *Prefs = 0
 );
 
+#ifndef LGI_STATIC
 /// Overall font system class
 class LgiClass GFontSystem : public GCapabilityClient
 {
@@ -432,6 +433,7 @@ public:
 	/// Converts a string into a stream using iconv
 	int IconvConvert(const char *OutCs, GStreamI *Out, const char *InCs, const char *&In, int InLen);
 };
+#endif
 
 #ifdef LINUX
 extern bool _GetSystemFont(char *FontType, char *Font, int FontBufSize, int &PointSize);

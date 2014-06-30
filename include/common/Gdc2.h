@@ -666,6 +666,8 @@ public:
 		
 		GScreenDC(GWindow *wnd, void *Param = 0);
 		GRect GetPos();
+        void PushState();
+        void PopState();
 		
 		#elif defined(__GTK_H__)
 		

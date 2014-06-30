@@ -894,6 +894,10 @@ void _lgi_assert(bool b, const char *test, const char *file, int line)
 		else
 		{
 			Asserting = true;
+			
+			#ifdef LGI_STATIC
+			assert(b);
+			#else
 			printf("%s:%i - Assert failed:\n%s\n", file, line, test);
 
 			#ifdef _DEBUG
@@ -926,6 +930,7 @@ void _lgi_assert(bool b, const char *test, const char *file, int line)
 				}
 			}
 
+			#endif
 			#endif
 
 			Asserting = false;

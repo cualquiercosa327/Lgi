@@ -867,6 +867,7 @@ AppWnd::AppWnd() :
 AppWnd::~AppWnd()
 {
 	OnResourceSelect(NULL);
+    Objs->Empty();
 	_Destroy();
 }
 

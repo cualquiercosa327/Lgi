@@ -1214,7 +1214,7 @@ bool GXmlTree::Read(GXmlTag *Root, GStreamI *File, GXmlFactory *Factory)
 		GAutoRefPtr<GXmlAlloc> Allocator(new XmlPoolAlloc);
 		Root->Allocator = Allocator;
 
-		int Len = File->GetSize();
+		int64 Len = File->GetSize();
 		if (Len > 0)
 		{
 			char *Str = new char[Len+1];

@@ -634,9 +634,11 @@ bool GCharset::IsAvailable()
 	if (Type != CpIconv)
 		return true;
 
+	#ifndef LGI_STATIC
 	GFontSystem *FontSys = GFontSystem::Inst();
 	if (FontSys)
 		return FontSys->HasIconv(true);
+	#endif // LGI_STATIC
 
 	return false;
 }
@@ -849,9 +851,13 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 			if (InInfo->Type == CpIconv ||
 				OutInfo->Type == CpIconv)
 			{
+				#ifndef LGI_STATIC
 				GFontSystem *Fs = GFontSystem::Inst();
 				if (Fs)
 					return Fs->IconvConvert(OutInfo->GetIconvName(), (char*)Out, OutLen, InInfo->GetIconvName(), (const char*&)In, InLen);
+				#else
+				LgiAssert(!"No iconv in static build");
+				#endif
 			}
 			else
 			{
@@ -1019,6 +1025,7 @@ void *LgiNewConvertCp(const char *OutCp, const void *In, const char *InCp, int I
 			if (InInfo->Type == CpIconv ||
 				OutInfo->Type == CpIconv)
 			{
+				#ifndef LGI_STATIC
 				GFontSystem *Fs = GFontSystem::Inst();
 				if (Fs)
 				{
@@ -1028,6 +1035,9 @@ void *LgiNewConvertCp(const char *OutCp, const void *In, const char *InCp, int I
 						goto BufConvert;
 					}
 				}
+				#else
+				LgiAssert(!"No inconv in static build");
+				#endif
 			}
 			else
 			{
