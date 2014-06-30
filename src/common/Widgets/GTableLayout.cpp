@@ -295,13 +295,30 @@ int LayoutTextCtrl(GView *v, int Offset, int Width)
 		char *e = t + strlen(t);
 		for (char *s = t; s && *s; )
 		{
-			GDisplayString d(f, s, min(1000, e - s));
+			// Find the end of the line...
+			int MaxLine = 0;
+			while (*s && s[MaxLine] != '\n' && MaxLine < 1000)
+				MaxLine++;
+			if (!MaxLine)
+			{
+				if (s[MaxLine] == '\n')
+				{
+					s++;
+					Ht += y;
+					continue;
+				}
+				break;
+			}
+
+			// Create a string to measure...
+			GDisplayString d(f, s, MaxLine);
 			if (!(const OsChar*)d)
 			{
 				LgiAssert(0);
 				break;
 			}
 
+			// Find break point
 			int Ch = d.CharAt(Width);
 			if (Ch < 0)
 			{
