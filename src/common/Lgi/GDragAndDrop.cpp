@@ -534,18 +534,17 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 			*/
 			
 			e = TrackDrag(Drag, &Event, 0);
-			if (e)
+			if (e == dragNotAcceptedErr)
 			{
-				printf("%s:%i - TrackDrag failed with %i\n", _FL, e);
-				
-				if (e == dragNotAcceptedErr)
+				printf("%s:%i - error 'dragNotAcceptedErr', formats were:\n", _FL);
+				for (char *f = Formats.First(); f; f = Formats.Next())
 				{
-					printf("%s:%i - error 'dragNotAcceptedErr', formats were:\n", _FL);
-					for (char *f = Formats.First(); f; f = Formats.Next())
-					{
-						printf("\t'%s'\n", f);
-					}
+					printf("\t'%s'\n", f);
 				}
+			}
+            else if (e)
+            {
+                printf("%s:%i - TrackDrag failed with %i\n", _FL, e);
 			}
 		}
 		else printf("%s:%i - No formats to drag.\n", _FL);

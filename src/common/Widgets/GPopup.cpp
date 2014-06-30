@@ -4,9 +4,12 @@
 #include "GSkinEngine.h"
 #include "GDisplayString.h"
 
-#define POPUP_DELETE		1
-#define POPUP_VISIBLE		2
-#define POPUP_HIDE			3
+enum PopupNotifications
+{
+    POPUP_DELETE = 1,
+    POPUP_VISIBLE,
+    POPUP_HIDE,
+};
 
 /////////////////////////////////////////////////////////////////////////////////////
 #ifndef WH_MOUSE_LL
@@ -22,75 +25,6 @@ using namespace Gtk;
 class GMouseHookPrivate *HookPrivate = 0;
 #include "LgiWidget.h"
 		
-OsView WindowFromPoint(int x, int y)
-{
-	/*
-	OsView Root = XcbScreen()->root;
-
-	OsView w1 = Root;
-	OsView w2 = Root;
-	int x1 = x, y1 = y, x2, y2;
-	xcb_translate_coordinates_reply_t *r;
-
-	// LgiTrace("WindowFromPoint(%i,%i)\n", x, y);
-	while (r = xcb_translate_coordinates_reply(	XcbConn(),
-												xcb_translate_coordinates(XcbConn(), w1, w2, x1, y1),
-												0))
-	{
-		// LgiTrace("\t%x,%x,%x %i,%i->%i,%i\n", w1,w2,r->child,x1,y1,r->dst_x, r->dst_y);
-		if (r->child == 0)
-		{
-			return w2;
-		}
-
-		w1 = w2;
-		w2 = r->child;
-		x1 = r->dst_x;
-		y1 = r->dst_y;
-	}
-	*/
-	
-	return 0;
-}
-
-bool GetWindowRect(OsView Wnd, GRect &rc)
-{
-	/*
-	xcb_get_geometry_cookie_t c =
-		xcb_get_geometry(XcbConn(), Wnd);
-	xcb_get_geometry_reply_t *r =
-		xcb_get_geometry_reply(XcbConn(), c, 0);
-	if (r)
-	{
-		rc.Set(r->x, r->y, r->x+r->width-1, r->y+r->height-1);
-		return true;
-	}
-	*/
-
-	return false;
-}
-
-bool ScreenToClient(OsView Wnd, GdcPt2 &p)
-{
-	/*
-	xcb_translate_coordinates_reply_t *r;
-	if (r = xcb_translate_coordinates_reply(XcbConn(),
-											xcb_translate_coordinates(XcbConn(),
-												Wnd,
-												XcbScreen()->root,
-												p.x,
-												p.y),
-											0))
-	{
-		p.x += r->dst_x;
-		p.y += r->dst_y;
-		return true;
-	}
-	*/
-
-	return false;
-}
-
 bool IsWindow(OsView Wnd)
 {
 	// Do any available validation of the Wnd we can here
@@ -489,7 +423,7 @@ public:
 	}
 };
 
-#ifdef __GTK_H__
+#ifndef _WINDOWS
 ::GArray<GPopup*> GPopup::CurrentPopups;
 #endif
 
@@ -501,6 +435,8 @@ GPopup::GPopup(GView *owner)
 
     #ifdef __GTK_H__
     Wnd = NULL;
+    #endif
+    #ifndef _WINDOWS
     CurrentPopups.Add(this);
     #endif
 
@@ -519,7 +455,7 @@ GPopup::GPopup(GView *owner)
 
 GPopup::~GPopup()
 {
-    #ifdef __GTK_H__
+    #ifndef _WINDOWS
 	CurrentPopups.Delete(this);
 	#endif
 	SendNotify(POPUP_DELETE);
@@ -561,7 +497,8 @@ void GPopup::TakeFocus(bool Take)
 bool GPopup::SetPos(GRect &p, bool Repaint)
 {
 	GdcPt2 o(0, 0);
-	if (GetWindow()) GetWindow()->PointToScreen(o);
+	if (GetWindow())
+        GetWindow()->PointToScreen(o);
 	GRect r = p;
 	r.Offset(-o.x, -o.y);
 	return GView::SetPos(r, Repaint);
@@ -572,7 +509,8 @@ GRect &GPopup::GetPos()
 	static GRect p;
 	p = GView::GetPos();
 	GdcPt2 o(0, 0);
-	if (GetWindow()) GetWindow()->PointToScreen(o);
+	if (GetWindow())
+        GetWindow()->PointToScreen(o);
 	// p.Offset(o.x, o.y);
 	return p;
 }
@@ -951,7 +889,9 @@ void GDropDown::OnPaint(GSurface *pDC)
 		}
 	}
 
-	int Cx = r.x2 - 7;
+    int ArrowWidth = 5;
+    double Aspect = (double)r.X() / r.Y();
+	int Cx = Aspect < 1.2 ? r.x1 + ((r.X() - ArrowWidth) >> 1) : r.x2 - (ArrowWidth << 1);
 	int Cy = r.y1 + ((r.Y() - 3) >> 1);
 	pDC->Colour(Enabled() && Popup ? LC_TEXT : LC_LOW, 24);
 	if (IsOpen())
@@ -961,7 +901,7 @@ void GDropDown::OnPaint(GSurface *pDC)
 	}
 	for (int i=0; i<3; i++)
 	{
-		pDC->Line(Cx+i, Cy+i, Cx+5-i, Cy+i);
+		pDC->Line(Cx+i, Cy+i, Cx+ArrowWidth-i, Cy+i);
 	}
 
 	char *Nm = Name();
@@ -1038,7 +978,7 @@ void GDropDown::OnMouseClick(GMouse &m)
 
 int GDropDown::OnNotify(GViewI *c, int f)
 {
-	if (c == Popup)
+	if (c == (GViewI*)Popup)
 	{
 		switch (f)
 		{

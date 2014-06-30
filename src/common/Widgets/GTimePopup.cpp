@@ -33,7 +33,7 @@ int GTimeDropDown::OnNotify(GViewI *Ctrl, int Flags)
 		DateSrc->Name(s);
 	}
 	
-	return 0;
+	return GDropDown::OnNotify(Ctrl, Flags);
 }
 
 void GTimeDropDown::OnChildrenChanged(GViewI *Wnd, bool Attaching)

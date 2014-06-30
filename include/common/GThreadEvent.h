@@ -1,14 +1,23 @@
 #ifndef _GTHREADEVENT_H_
 #define _GTHREADEVENT_H_
 
+#ifdef MAC
+    #define USE_SEM         1
+#endif
+#if USE_SEM
+    #include <semaphore.h>
+#endif
+
 class LgiClass GThreadEvent : public GBase
 {
 	uint32 LastError;
 	#if defined(WIN32NATIVE)
-	HANDLE Event;
-	#elif defined(MAC) || defined(LINUX)
-	pthread_cond_t Cond;
-	pthread_mutex_t Mutex;
+        HANDLE Event;
+    #elif USE_SEM
+        sem_t *Sem;
+	#elif defined(POSIX)
+        pthread_cond_t Cond;
+        pthread_mutex_t Mutex;
 	#endif
 
 public:

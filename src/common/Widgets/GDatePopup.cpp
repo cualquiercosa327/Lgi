@@ -259,7 +259,7 @@ int GDateDropDown::OnNotify(GViewI *Wnd, int Flags)
 		SetDate(s);
 	}
 	
-	return 0;
+	return GDropDown::OnNotify(Wnd, Flags);
 }
 
 void GDateDropDown::OnChildrenChanged(GViewI *Wnd, bool Attaching)
