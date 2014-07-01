@@ -297,7 +297,7 @@ int LayoutTextCtrl(GView *v, int Offset, int Width)
 		{
 			// Find the end of the line...
 			int MaxLine = 0;
-			while (*s && s[MaxLine] != '\n' && MaxLine < 1000)
+			while (s[MaxLine] && s[MaxLine] != '\n' && MaxLine < 1000)
 				MaxLine++;
 			if (!MaxLine)
 			{

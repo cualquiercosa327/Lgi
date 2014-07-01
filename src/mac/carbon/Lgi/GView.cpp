@@ -855,17 +855,26 @@ bool GView::GetMouse(GMouse &m, bool ScreenCoords)
 {
 	if (_View || !GetParent())
 	{
+        #if 0
 		Point p;
 		::GetMouse(&p);
+        int MouseX = p.h;
+        int MouseY = p.v;
+        #else
+        HIPoint p;
+        HIGetMousePosition(kHICoordSpaceScreenPixel, NULL, &p);
+        int MouseX = (int)p.x;
+        int MouseY = (int)p.y;
+        #endif
 		
 		if (ScreenCoords)
 		{
-			m.x = p.h;
-			m.y	= p.v;
+			m.x = MouseX;
+			m.y	= MouseY;
 		}
 		else
 		{
-			GdcPt2 n(p.h, p.v);
+			GdcPt2 n(MouseX, MouseY);
 			PointToView(n);
 			m.x = n.x;
 			m.y = n.y;

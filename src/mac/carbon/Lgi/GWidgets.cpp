@@ -372,6 +372,7 @@ void LgiLabelProc(	const Rect *r,
 			rc.top += d->r.y1;
 			// rc.right -= 20;
 
+			#if 1
 			DrawThemeTextBox(	s,
 								kThemeSmallSystemFont,
 								info->state,
@@ -379,6 +380,14 @@ void LgiLabelProc(	const Rect *r,
 								&rc,
 								d->Justification,
 								d->pDC->Handle());
+			#else
+			// FIXME: port to HIThemeDrawTextBox
+			HIThemeDrawTextBox( CFTypeRef            inString,
+								const HIRect *       inBounds,
+								HIThemeTextInfo *    inTextInfo,
+								CGContextRef         inContext,
+								HIThemeOrientation   inOrientation
+			#endif
 			CFRelease(s);
 		}
 	}
