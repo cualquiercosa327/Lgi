@@ -764,14 +764,14 @@ bool SystemFunctions::Execute(GVariant *Ret, ArgumentArray &Args)
 		GAutoString o(p.NewStr());
 		*Ret = o;
 	}
-	else
+	else if (Log)
 	{
 		uint32 ErrCode = e.GetErrorCode();
 		GAutoString ErrMsg = LgiErrorCodeToString(ErrCode);
 		if (ErrMsg)
-			Engine->GetConsole()->Print("Error: Execute(\"%s\",\"%s\") failed with '%s'\n", Exe, Arguments, ErrMsg.Get());
+			Log->Print("Error: Execute(\"%s\",\"%s\") failed with '%s'\n", Exe, Arguments, ErrMsg.Get());
 		else
-			Engine->GetConsole()->Print("Error: Execute(\"%s\",\"%s\") failed with '0x%x'\n", Exe, Arguments, ErrCode);
+			Log->Print("Error: Execute(\"%s\",\"%s\") failed with '0x%x'\n", Exe, Arguments, ErrCode);
 	}
 	
 	return Status;
