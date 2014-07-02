@@ -21,13 +21,14 @@ public:
 		LgiAssert(_Count == 0);
 	}
 
-	void AddRef()
+	virtual void AddRef()
 	{
 		_Count++;
 	}
 
-	bool DelRef()
+	virtual bool DecRef()
 	{
+		LgiAssert(_Count > 0);
 		if (--_Count == 0)
 		{
 			delete this;
@@ -70,8 +71,8 @@ public:
 	{
 		if (Ptr)
 		{
-			Ptr->DelRef();
-			Ptr = 0;
+			Ptr->DecRef();
+			Ptr = NULL;
 		}
 	}
 
