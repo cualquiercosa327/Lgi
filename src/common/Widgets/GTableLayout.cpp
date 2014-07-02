@@ -292,12 +292,12 @@ int LayoutTextCtrl(GView *v, int Offset, int Width)
 	{
 		int y = f->GetHeight();
 
-		char *e = t + strlen(t);
+		char *end = t + strlen(t);
 		for (char *s = t; s && *s; )
 		{
 			// Find the end of the line...
 			int MaxLine = 0;
-			while (*s && s[MaxLine] != '\n' && MaxLine < 1000)
+			while (s[MaxLine] && s[MaxLine] != '\n' && MaxLine < 1000)
 				MaxLine++;
 			if (!MaxLine)
 			{
@@ -311,6 +311,7 @@ int LayoutTextCtrl(GView *v, int Offset, int Width)
 			}
 
 			// Create a string to measure...
+			LgiAssert(s + MaxLine <= end);
 			GDisplayString d(f, s, MaxLine);
 			if (!(const OsChar*)d)
 			{
@@ -326,7 +327,7 @@ int LayoutTextCtrl(GView *v, int Offset, int Width)
 				break;
 			}
 
-			e = LgiSeekUtf8(s, Ch);
+			char *e = LgiSeekUtf8(s, Ch);
 			while (	*e &&
 					*e != '\n' &&
 					e > s)
