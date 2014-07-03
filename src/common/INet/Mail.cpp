@@ -1842,7 +1842,7 @@ public:
 		char *Ptr = (char*)InPtr;
 		char *e = Ptr + Size;
 		
-		while (true)
+		while (Ptr < e)
 		{
 			int w = s->Write(Ptr, e - Ptr, 0);
 			if (w > 0)
