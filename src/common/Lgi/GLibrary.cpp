@@ -49,11 +49,12 @@ bool GLibrary::Load(const char *File)
 			
 			#if defined WIN32
 
+			SetErrorMode(SEM_NOOPENFILEERRORBOX | SEM_FAILCRITICALERRORS);
 			if (LgiGetOs() == LGI_OS_WIN9X)
 			{
 				GAutoString a(LgiToNativeCp(f));
 				if (a)
-					hLib = LoadLibrary(a);
+					hLib = LoadLibraryA(a);
 			}
 			else
 			{
@@ -63,6 +64,7 @@ bool GLibrary::Load(const char *File)
 					hLib = LoadLibraryW(w);
 				}
 			}
+			SetErrorMode(0);
 
 			#ifdef _DEBUG
 			if (!hLib)
@@ -71,41 +73,6 @@ bool GLibrary::Load(const char *File)
 				int asd=0;
 			}
 			#endif
-
-			/*
-			#elif defined BEOS
-
-			dlopen(FileName);
-			hLib = load_add_on(FileName);
-			printf("load_add_on(%s)=%i\n", FileName, hLib);
-			if (hLib < 0)
-			{
-				char p[MAX_PATH];
-				if (LgiMakePath(p, sizeof(p), "/boot/system/lib", FileName))
-				{
-					if (FileExists(p))
-					{
-						char *dot = strrchr(p, '.');
-						if (dot) *dot = 0;
-						hLib = load_add_on(FileName);
-						printf("...load_add_on(%s)=%i\n", p, hLib);
-					}
-				}
-			}
-			
-			if (hLib < 0)
-			{
-				// printf("%s:%i - Failed to load '%s'\n", _FL, FileName);
-				return false;
-			}
-			
-			#if 1
-			image_info info;
-			status_t st = get_image_info(hLib, &info);
-			printf("Loaded '%s'\n", info.name);
-			#endif
-			return true;
-			*/
 
 			#elif defined(LINUX) || defined(MAC) || defined(BEOS)
 			

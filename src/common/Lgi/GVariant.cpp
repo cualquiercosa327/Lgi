@@ -740,7 +740,7 @@ void GVariant::Empty()
 		    if (Value.Surface.Own &&
 		        Value.Surface.Ptr)
 		    {
-				Value.Surface.Ptr->DelRef();
+				Value.Surface.Ptr->DecRef();
 				Value.Surface.Ptr = NULL;
 		    }
 		    break;
@@ -750,7 +750,7 @@ void GVariant::Empty()
 			if (Value.File.Ptr &&
 				Value.File.Own)
 			{
-				Value.File.Ptr->DelRef();
+				Value.File.Ptr->DecRef();
 				Value.File.Ptr = NULL;
 			}
 			break;

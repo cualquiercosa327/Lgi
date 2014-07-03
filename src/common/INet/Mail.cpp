@@ -1837,16 +1837,25 @@ public:
 		return -1;
 	}
 
-	int Write(const void *Ptr, int Size, int Flags)
+	int Write(const void *InPtr, int Size, int Flags)
 	{
-		int w = s->Write((char*)Ptr, Size, 0);
-
-		if (p && p->Range && w > 0)
+		char *Ptr = (char*)InPtr;
+		char *e = Ptr + Size;
+		
+		while (true)
 		{
-			p->Value += w;
+			int w = s->Write(Ptr, e - Ptr, 0);
+			if (w > 0)
+			{
+				Ptr += w;
+
+				if (p && p->Range && w > 0)
+					p->Value += w;
+			}
+			else break;
 		}
 
-		return w;
+		return Ptr - (char*)InPtr;
 	}
 };
 
@@ -3580,6 +3589,10 @@ bool MailMessage::Encode(GStreamI &Out, GStream *HeadersSink, MailProtocol *Prot
 				{
 					Buf->Flush();
 					Status = Buf->Status;
+					if (!Status)
+					{
+						LgiTrace("%s:%i - Buffer status failed.\n", _FL);
+					}
 				}
 				else
 				{
