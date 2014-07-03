@@ -323,7 +323,6 @@ public:
 ///		* false - mail store is read/write
 ///		* true - mail store is read only
 /// - FIELD_VERSION, existing return values are:
-///		* 2 - a 'mail2' Scribe data store.
 ///		* 3 - a 'mail3' Scribe sqlite database.
 ///		* 10 - the Scribe IMAP implementation.
 ///		If you are create a new mail store use, values above 10 for your implementation
@@ -467,18 +466,6 @@ public:
 	virtual StoreTrans StartTransaction() { return StoreTrans(0); }
 };
 
-/// Open a mail2 file
-/// \return a valid ptr or NULL on failure
-extern GDataStoreI *OpenMail2
-(
-	/// The file to open
-	char *Mail2Folders,
-	/// Event interface,
-	GDataEventsI *Callback,
-	/// true if you want to create a new mail2 file.
-	bool Create = false
-);
-
 /// Open a mail3 folder
 /// \return a valid ptr or NULL on failure
 extern GDataStoreI *OpenMail3
@@ -487,7 +474,7 @@ extern GDataStoreI *OpenMail3
 	char *Mail3Folder,
 	/// Event interface,
 	GDataEventsI *Callback,
-	/// true if you want to create a new mail2 file.
+	/// true if you want to create a new mail3 file.
 	bool Create = false
 );
 
