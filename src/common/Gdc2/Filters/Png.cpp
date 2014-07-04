@@ -32,8 +32,6 @@
 #include "png.h"
 #endif
 
-#if HAS_LIBPNG_ZLIB
-
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -634,17 +632,16 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
         return GFilter::IoComponentMissing;
 	}
 
+	png_structp png_ptr = NULL;
 	if (setjmp(Here))
 	{
-		if (Props)
-			Props->SetValue(LGI_FILTER_ERROR, v = "setjmp failed");
 		return Status;
 	}
 
-	png_structp png_ptr = Lib->png_create_read_struct(	PNG_LIBPNG_VER_STRING,
-													(void*)this,
-													LibPngError,
-													LibPngWarning);
+	png_ptr = Lib->png_create_read_struct(	PNG_LIBPNG_VER_STRING,
+											(void*)this,
+											LibPngError,
+											LibPngWarning);
 	if (!png_ptr)
 	{
 		if (Props)
@@ -726,6 +723,24 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 										Mask = 0x80;
 									}
 								}
+								break;
+							}
+							case 4:
+							{
+								uchar *i = Scan0[y];
+								uchar *o = Scan;
+								for (int x=0; x<pDC->X(); x++)
+								{
+									if (x & 1)
+										*o++ = *i++ & 0xf;
+									else
+										*o++ = (*i >> 4) & 0xf;
+								}
+								break;
+							}
+							case 8:
+							{
+								memcpy(Scan, Scan0[y], ScanLen);
 								break;
 							}
 							case 16:
@@ -828,7 +843,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 							}
 							default:
 							{
-								memcpy(Scan, Scan0[y], ScanLen);
+								LgiAssert(0);
 								break;
 							}
 						}
@@ -1409,5 +1424,3 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 
 	return Status;
 }
-
-#endif // HAS_LIBPNG_ZLIB

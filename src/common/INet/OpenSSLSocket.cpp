@@ -605,6 +605,9 @@ int SslSocket::Open(const char *HostAddr, int Port)
 	GMutex::Auto Lck(&Lock, _FL);
 
 DebugTrace("%s:%i - SslSocket::Open(%s,%i)\n", _FL, HostAddr, Port);
+	
+	LgiAssert(Library != NULL); // Um you forget to call 'StartSSL(GAutoString &ErrorMsg)'
+
 	if (Library &&
 		Library->IsOk() &&
 		HostAddr)

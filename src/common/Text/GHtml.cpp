@@ -5342,19 +5342,40 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 			
 			if (Image)
 			{
-				if ((Width().IsValid() || Height().IsValid()) && !ImageResized)
+				GCss::Len w = Width();
+				GCss::Len h = Height();
+				
+				if ((w.IsValid() || h.IsValid()) && !ImageResized)
 				{
 					if (Size.x != Image->X() ||
 						Size.y != Image->Y())
 					{
 						ImageResized = true;
+						int Nx, Ny;
+						double Aspect = (double)Image->X() / Image->Y();
+						if (w.IsValid() && h.IsValid())
+						{
+							Nx = Size.x;
+							Ny = Size.y;
+						}
+						else if (w.IsValid())
+						{
+							Nx = Size.x;
+							Ny = (int) (Size.x / Aspect);
+						}
+						else if (h.IsValid())
+						{
+							Ny = Size.y;
+							Nx = (int) (Size.y * Aspect);
+						}
+						else LgiAssert(0);
 						
 						GColourSpace Cs = Image->GetColourSpace();
 						if (Cs == CsIndex8 &&
 							Image->AlphaDC())
 							Cs = System32BitColourSpace;
 						
-						GAutoPtr<GSurface> r(new GMemDC(Size.x, Size.y, Cs));
+						GAutoPtr<GSurface> r(new GMemDC(Nx, Ny, Cs));
 						if (r)
 						{
 							if (Cs == CsIndex8)
@@ -6111,9 +6132,10 @@ GMessage::Result GHtml::OnEvent(GMessage *Msg)
 				{
 					GDocumentEnv::LoadJob *j = JobSem.Jobs[i];
 					GDocView *Me = this;
+					int MyUid = GetDocumentUid();
 					
 					if (j->View == Me &&
-						j->UserUid == GetDocumentUid() &&
+						j->UserUid == MyUid &&
 						j->UserData != NULL)
 					{
 						Html1::GTag *r = static_cast<Html1::GTag*>(j->UserData);
