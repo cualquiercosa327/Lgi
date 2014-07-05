@@ -82,7 +82,7 @@ GCombo::GCombo(int id, int x, int y, int cx, int cy, const char *name) :
 	Name(name);
 	SetTabStop(true);
 
-	#if WIN32NATIVE
+	#if WINNATIVE
 	SetDlgCode(DLGC_WANTARROWS);
 	SetStyle(GetStyle() | WS_CHILD | WS_VISIBLE);
 	#endif

@@ -89,7 +89,7 @@ class LgiClass GSubMenu :
 	friend class MenuItemImpl;
 	friend class MenuImpl;
 
-	#if !WIN32NATIVE
+	#if !WINNATIVE
 	OsSubMenu Info;
 	#endif
 
@@ -100,7 +100,7 @@ class LgiClass GSubMenu :
 	int *_ContextMenuId;
 	bool IsContext(GMenuItem *Item);
 	void OnDeactivate();
-	#elif defined(WIN32NATIVE)
+	#elif defined(WINNATIVE)
 	HWND TrackHandle;
 	#elif defined(BEOS)
 	void		_CopyMenu(BMenu *To, GSubMenu *From);

@@ -29,7 +29,7 @@ GDisplayString::GDisplayString(GFont *f, const char *s, int l, GSurface *pdc)
 	pDC = pdc;
 	Font = f;
 	
-	#if defined(MAC) || WIN32NATIVE
+	#if defined(MAC) || WINNATIVE
 	Str = LgiNewUtf8To16(s, l);
 	len = Str ? StrlenW(Str) : 0;
 	#else
@@ -77,7 +77,7 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc)
 	pDC = pdc;
 	Font = f;
 
-    #if defined(MAC) || WIN32NATIVE	
+    #if defined(MAC) || WINNATIVE	
 	Str = NewStrW(s, len = l);
 	len = Str ? StrlenW(Str) : 0;
 	#else
@@ -321,7 +321,7 @@ void GDisplayString::Layout()
 		ATSUSetTransientFontMatching(Hnd, true);
 	}
 	
-	#elif defined WIN32NATIVE
+	#elif defined WINNATIVE
 	
 	int sx, sy, i = 0;
 	if (!Font->Handle()) Font->Create();
@@ -535,7 +535,7 @@ void GDisplayString::TruncateWithDots(int Width)
 {
     Layout();
     
-	#if WIN32NATIVE
+	#if WINNATIVE
 	
 	if (Width < X() + 8)
 	{
@@ -622,7 +622,7 @@ void GDisplayString::Length(int New)
 {
     Layout();
 
-	#if WIN32NATIVE
+	#if WINNATIVE
 	
 	if (New < len)
 	{
@@ -757,7 +757,7 @@ int GDisplayString::CharAt(int Px)
 	
 	#if defined(BEOS)
 	if (Font && Font->Handle())
-	#elif defined(WIN32NATIVE)
+	#elif defined(WINNATIVE)
 	GFontSystem *Sys = GFontSystem::Inst();
 	if (Info.Length() && Font && Sys)
 	#endif
@@ -1119,7 +1119,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 		}
 	}
 	
-	#elif defined WIN32NATIVE
+	#elif defined WINNATIVE
 	
 	if (Info.Length() && pDC && Font)
 	{

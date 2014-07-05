@@ -100,7 +100,7 @@ GTabView::GTabView(int id, int x, int y, int cx, int cy, const char *name, int I
 	SetTabStop(true);
 	SetPourLargest(true);
 
-	#if WIN32NATIVE
+	#if WINNATIVE
 	SetDlgCode(DLGC_WANTARROWS);
 	#elif defined BEOS
 	Handle()->SetFlags(	Handle()->Flags() |
@@ -158,7 +158,7 @@ void GTabView::OnChildrenChanged(GViewI *Wnd, bool Attaching)
 	}
 }
 
-#if WIN32NATIVE
+#if WINNATIVE
 GViewI *GTabView::FindControl(HWND hCtrl)
 {
 	GViewI *Ctrl = 0;
@@ -649,7 +649,7 @@ GTabPage::GTabPage(const char *name) : ResObject(Res_Tab)
 		Handle()->SetResizingMode(B_FOLLOW_ALL_SIDES);
 		Handle()->SetFlags(Handle()->Flags() & ~B_NAVIGABLE);
 	}
-	#elif WIN32NATIVE
+	#elif WINNATIVE
 	SetStyle(GetStyle() | WS_CLIPCHILDREN);
 	CreateClassW32(GetClass(), 0, CS_HREDRAW | CS_VREDRAW);
 	#endif

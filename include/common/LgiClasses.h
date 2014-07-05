@@ -106,7 +106,7 @@ public:
 #endif
 
 /////////////////////////////////////////////////////////////////////////////////
-#if WIN32NATIVE
+#if WINNATIVE
 typedef DWORD						OsProcessId;
 #else
 typedef int							OsProcessId;
@@ -515,7 +515,7 @@ protected:
 	
 	virtual void	_Paint(GSurface *pDC = 0, int Ox = 0, int Oy = 0);
 
-	#if !WIN32NATIVE
+	#if !WINNATIVE
 
 	GView *&PopupChild();
 	virtual bool	_Mouse(GMouse &m, bool Move);
@@ -1214,7 +1214,7 @@ class LgiClass GWindow :
 	bool _QuitOnClose;
 
 protected:
-	#if WIN32NATIVE
+	#if WINNATIVE
 
 	GRect OldPos;
 	GWindow *_Dialog;
@@ -1350,7 +1350,7 @@ public:
 	/// Called when a URL is sent to the window
 	virtual void OnUrl(const char *Url) {};
 
-	#if !WIN32NATIVE
+	#if !WINNATIVE
 	
 	bool Attach(GViewI *p);
 

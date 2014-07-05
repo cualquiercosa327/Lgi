@@ -13,7 +13,7 @@
 
 #define DEBUG_CAPTURE	0
 
-#if WIN32NATIVE
+#if WINNATIVE
 #define GViewFlags d->WndStyle
 #else
 #define GViewFlags WndFlags
@@ -383,12 +383,12 @@ void GView::OnNcPaint(GSurface *pDC, GRect &r)
 {
 	int Border = Sunken() || Raised() ? _BorderSize : 0;
 	if (
-		#if 0 // WIN32NATIVE
+		#if 0 // WINNATIVE
 		!_View &&
 		#endif	
 		Border == 2)
 	{
-		#if WIN32NATIVE
+		#if WINNATIVE
 		if (d->IsThemed)
 			DrawThemeBorder(pDC, r);
 		else
@@ -425,7 +425,7 @@ void GView::_Paint(GSurface *pDC, int Ox, int Oy)
 	bool HasClient = false;
 	GRect r(0, 0, Pos.X()-1, Pos.Y()-1);
 
-	#if WIN32NATIVE
+	#if WINNATIVE
 	if (!_View)
 	#endif
 	{
@@ -820,7 +820,7 @@ bool GView::HandleCapture(GView *Wnd, bool c)
 			#if defined __GTK_H__
 			ThreadCheck();
 			gtk_grab_add(_View);
-			#elif WIN32NATIVE
+			#elif WINNATIVE
 			d->hPrevCapture = SetCapture(_View);
 			#elif defined MAC
 			#endif
@@ -882,7 +882,7 @@ bool GView::Capture(bool c)
 
 bool GView::Enabled()
 {
-	#if WIN32NATIVE
+	#if WINNATIVE
 	if (_View)
 		return IsWindowEnabled(_View);
 	#else
@@ -897,7 +897,7 @@ void GView::Enabled(bool i)
 
 	if (_View)
 	{
-		#if WIN32NATIVE
+		#if WINNATIVE
 		EnableWindow(_View, i);
 		#elif defined MAC && !defined COCOA
 		if (i)
@@ -918,7 +918,7 @@ void GView::Enabled(bool i)
 
 bool GView::Visible()
 {
-	#if WIN32NATIVE
+	#if WINNATIVE
 
 	if (_View)
 
@@ -942,7 +942,7 @@ void GView::Visible(bool v)
 
 	if (_View)
 	{
-		#if WIN32NATIVE
+		#if WINNATIVE
 		ShowWindow(_View, (v) ? SW_SHOWNORMAL : SW_HIDE);
 		#elif defined(BEOS)
 		if (v)
@@ -995,7 +995,7 @@ bool GView::Focus()
 			// printf("%s::Focus() not active\n", GetClass());
 		}
 	}
-	#elif defined(WIN32NATIVE)
+	#elif defined(WINNATIVE)
 	if (_View)
 	{
 		HWND hFocus = GetFocus();
@@ -1034,7 +1034,7 @@ void GView::Focus(bool i)
 
 	if (_View)
 	{
-		#if WIN32NATIVE
+		#if WINNATIVE
 
 			if (i)
 			{
@@ -1097,7 +1097,7 @@ bool GView::DropTarget(bool t)
 	if (t) SetFlag(GViewFlags, GWF_DROP_TARGET);
 	else ClearFlag(GViewFlags, GWF_DROP_TARGET);
 
-	#if WIN32NATIVE
+	#if WINNATIVE
 	if (_View)
 	{
 		if (t)
@@ -1135,7 +1135,7 @@ bool GView::DropTarget(bool t)
 
 bool GView::Sunken()
 {
-	#if WIN32NATIVE
+	#if WINNATIVE
 	return TestFlag(d->WndExStyle, WS_EX_CLIENTEDGE);
 	#else
 	return TestFlag(GViewFlags, GWF_SUNKEN);
@@ -1144,7 +1144,7 @@ bool GView::Sunken()
 
 void GView::Sunken(bool i)
 {
-	#if WIN32NATIVE
+	#if WINNATIVE
 	if (i) SetFlag(d->WndExStyle, WS_EX_CLIENTEDGE);
 	else ClearFlag(d->WndExStyle, WS_EX_CLIENTEDGE);
 	if (_View)
@@ -1162,7 +1162,7 @@ void GView::Sunken(bool i)
 
 bool GView::Flat()
 {
-	#if WIN32NATIVE
+	#if WINNATIVE
 	return	!TestFlag(d->WndExStyle, WS_EX_CLIENTEDGE) &&
 			!TestFlag(d->WndExStyle, WS_EX_WINDOWEDGE);
 	#else
@@ -1173,7 +1173,7 @@ bool GView::Flat()
 
 void GView::Flat(bool i)
 {
-	#if WIN32NATIVE
+	#if WINNATIVE
 	ClearFlag(d->WndExStyle, (WS_EX_CLIENTEDGE|WS_EX_WINDOWEDGE));
 	#else
 	ClearFlag(GViewFlags, (GWF_RAISED|GWF_SUNKEN));
@@ -1182,7 +1182,7 @@ void GView::Flat(bool i)
 
 bool GView::Raised()
 {
-	#if WIN32NATIVE
+	#if WINNATIVE
 	return TestFlag(d->WndExStyle, WS_EX_WINDOWEDGE);
 	#else
 	return TestFlag(GViewFlags, GWF_RAISED);
@@ -1191,7 +1191,7 @@ bool GView::Raised()
 
 void GView::Raised(bool i)
 {
-	#if WIN32NATIVE
+	#if WINNATIVE
 	if (i) SetFlag(d->WndExStyle, WS_EX_WINDOWEDGE);
 	else ClearFlag(d->WndExStyle, WS_EX_WINDOWEDGE);
 	#else
@@ -1214,7 +1214,7 @@ void GView::SetId(int i)
 {
 	d->CtrlId = i;
 
-	#if WIN32NATIVE
+	#if WINNATIVE
 	if (_View)
 		SetWindowLong(_View, GWL_ID, d->CtrlId);
 	#elif defined __GTK_H__
@@ -1224,7 +1224,7 @@ void GView::SetId(int i)
 
 bool GView::GetTabStop()
 {
-	#if WIN32NATIVE
+	#if WINNATIVE
 	return TestFlag(d->WndStyle, WS_TABSTOP);
 	#else
 	return d->TabStop;
@@ -1233,7 +1233,7 @@ bool GView::GetTabStop()
 
 void GView::SetTabStop(bool b)
 {
-	#if WIN32NATIVE
+	#if WINNATIVE
 	if (b)
 		SetFlag(d->WndStyle, WS_TABSTOP);
 	else
@@ -1352,7 +1352,7 @@ void GView::SetFont(GFont *Font, bool OwnIt)
 		
 		GFont *Old = d->Font;
 		d->Font = Font;
-		#if WIN32NATIVE
+		#if WINNATIVE
 		if (_View)
 			SendMessage(_View, WM_SETFONT, (WPARAM) (Font ? Font->Handle() : 0), 0);
 		#endif
@@ -1476,7 +1476,7 @@ GViewI *GView::WindowFromPoint(int x, int y, bool Debug)
 
 bool GView::InThread()
 {
-	#if WIN32NATIVE
+	#if WINNATIVE
 	HWND Hnd = _View;
 	for (GViewI *p = GetParent(); p && !Hnd; p = p->GetParent())
 	{
@@ -1496,7 +1496,7 @@ bool GView::PostEvent(int Cmd, GMessage::Param a, GMessage::Param b)
 {
 	if (_View)
 	{
-		#if WIN32NATIVE
+		#if WINNATIVE
 		return PostMessage(_View, Cmd, a, b);
 		#else
 		bool Ret = LgiPostEvent(_View, Cmd, a, b);
@@ -1567,7 +1567,7 @@ bool GView::Name(const char *n)
 
 	if (_View)
 	{
-		#if WIN32NATIVE
+		#if WINNATIVE
 		if (IsWin9x)
 		{
 			char *Temp = LgiToNativeCp(n);
@@ -1589,7 +1589,7 @@ bool GView::Name(const char *n)
 
 char *GView::Name()
 {
-	#if WIN32NATIVE
+	#if WINNATIVE
 	if (_View)
 	{
 		if (IsWin9x)
@@ -1632,7 +1632,7 @@ bool GView::NameW(const char16 *n)
 {
 	GBase::NameW(n);
 
-	#if WIN32NATIVE
+	#if WINNATIVE
 	if (_View && n)
 	{
 		char16 *Txt = GBase::NameW();
@@ -1658,7 +1658,7 @@ bool GView::NameW(const char16 *n)
 
 char16 *GView::NameW()
 {
-	#if WIN32NATIVE
+	#if WINNATIVE
 	if (_View)
 	{
 		if (IsWin9x)
@@ -1788,7 +1788,7 @@ void GView::MoveOnScreen()
 	GRect Screen(0, 0, -1, -1);
 
 	if (
-		#if WIN32NATIVE
+		#if WINNATIVE
 		!IsZoomed(Handle()) &&
 		!IsIconic(Handle()) &&
 		#endif
@@ -1874,7 +1874,7 @@ GdcPt2 &GView::GetWindowBorderSize()
 
 	ZeroObj(s);
 
-	#if WIN32NATIVE
+	#if WINNATIVE
 	if (_View)
 	{
 		RECT Wnd, Client;
@@ -1914,7 +1914,7 @@ void GView::_Dump(int Depth)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #if defined(MAC) || defined(LINUX) || defined(BEOS)
 static char FactoryFile[MAX_PATH];
-#elif defined(_WINDOWS)
+#elif defined(WINDOWS)
 static HANDLE FactoryEvent;
 #else
 #error "Not impl"
@@ -1934,7 +1934,7 @@ GViewFactory::GViewFactory()
 		file.Open(FactoryFile, O_WRITE);
 		AllFactories = new GArray<GViewFactory*>;
 	}
-	#elif defined(_WINDOWS)
+	#elif defined(WINDOWS)
 	char Name[256];
 	sprintf_s(Name, sizeof(Name), "LgiFactoryEvent.%i", GetCurrentProcessId());
 	HANDLE h = CreateEvent(NULL, false, false, Name);

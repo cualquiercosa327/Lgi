@@ -127,7 +127,7 @@ GMdiChild::GMdiChild()
 	GdcPt2 m(100, d->Fy + 8);
 	SetMinimumSize(m);
 
-	#if WIN32NATIVE
+	#if WINNATIVE
 	SetStyle(GetStyle() | WS_CLIPSIBLINGS);
 	#endif
 }
@@ -578,7 +578,7 @@ void GMdiChild::Raise()
 			gdk_window_raise(wnd);
 		else
 			LgiAssert(0);
-		#elif WIN32NATIVE
+		#elif WINNATIVE
 		SetWindowPos(Handle(), HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 		#else
 		#error "Impl me."
@@ -619,7 +619,7 @@ void GMdiChild::Lower()
 			gdk_window_lower(wnd);
 		else
 			LgiAssert(0);
-		#elif WIN32NATIVE
+		#elif WINNATIVE
 		SetWindowPos(Handle(), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 		#else
 		#error "Impl me."

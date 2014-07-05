@@ -73,14 +73,14 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdS
 #endif
 {
 	int Status = 0;
-	#if !_CONSOLE && WIN32NATIVE
+	#if !_CONSOLE && WINNATIVE
 	_lgi_app_instance = hInstance;
 	#endif
 	if (_BuildCheck())
 	{
 		char16 *CL = (char16*)GetCommandLineW();
 
-    	#if WIN32NATIVE
+    	#if WINNATIVE
 		OsAppArguments AppArgs;
 		#if !_CONSOLE
 		AppArgs.hInstance = hInstance;

@@ -48,7 +48,7 @@ class LgiClass GDisplayString
 	
 	Gtk::PangoLayout *Hnd;
 	
-	#elif defined(WIN32NATIVE) || defined(BEOS)
+	#elif defined(WINNATIVE) || defined(BEOS)
 	
 	class CharInfo
 	{

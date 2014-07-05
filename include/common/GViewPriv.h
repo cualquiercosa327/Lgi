@@ -1,7 +1,7 @@
 #ifndef _GVIEW_PRIV_
 #define _GVIEW_PRIV_
 
-#if WIN32NATIVE
+#if WINNATIVE
 	#if !defined(_WIN32_WINNT) || _WIN32_WINNT < 0x501
 		#undef _WIN32_WINNT
 		#define _WIN32_WINNT 0x501
@@ -33,7 +33,7 @@ public:
 	GViewI *operator [](int Idx);
 };
 
-#if !WIN32NATIVE
+#if !WINNATIVE
 class GPulseThread : public GThread
 {
 	GView *View;
@@ -108,7 +108,7 @@ public:
 	GAutoPtr<GCss>  Css;
 
 	// OS Specific
-	#if WIN32NATIVE
+	#if WINNATIVE
 
 		static OsView	hPrevCapture;
 		int				WndStyle;				// Win32 hWnd Style

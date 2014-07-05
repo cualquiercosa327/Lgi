@@ -66,7 +66,7 @@ GAlert::GAlert(	GViewI *parent,
 
 void GAlert::SetAppModal()
 {
-    #if WIN32NATIVE
+    #if WINNATIVE
     SetExStyle(GetExStyle() | WS_EX_TOPMOST);
     #elif !defined(_MSC_VER)
     #warning "Impl me."

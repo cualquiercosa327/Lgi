@@ -24,7 +24,7 @@ public:
 	int Val;			// which icon is currently visible
 	bool Visible;
 
-	#if WIN32NATIVE
+	#if WINNATIVE
 	
 	int TrayCreateMsg;
 	int MyId;
@@ -94,7 +94,7 @@ public:
 		Val = 0;
 		Visible = false;
 		
-		#if WIN32NATIVE
+		#if WINNATIVE
 		
 		ZeroObj(TrayIcon);
 		MyId = 0;
@@ -126,7 +126,7 @@ public:
 	
 	~GTrayIconPrivate()
 	{
-		#if WIN32NATIVE
+		#if WINNATIVE
 		for (int n=0; n<Icon.Length(); n++)
 		{
 			DeleteObject(Icon[n]);
@@ -169,7 +169,7 @@ GTrayIcon::~GTrayIcon()
 
 bool GTrayIcon::Load(const TCHAR *Str)
 {
-	#if WIN32NATIVE
+	#if WINNATIVE
 	
 	HICON i = ::LoadIcon(LgiProcessInst(), Str);
 	if (i)
@@ -228,7 +228,7 @@ bool GTrayIcon::Load(const TCHAR *Str)
 
 bool GTrayIcon::Visible()
 {
-	#if WIN32NATIVE
+	#if WINNATIVE
 	return d->TrayIcon.a.cbSize != 0;
 	#else
 	return d->Visible;
@@ -241,7 +241,7 @@ void GTrayIcon::Visible(bool v)
 	{
 		if (v)
 		{
-			#if WIN32NATIVE
+			#if WINNATIVE
 			
 			static int Id = 1;
 			HICON Cur = d->Icon[d->Val];
@@ -308,7 +308,7 @@ void GTrayIcon::Visible(bool v)
 		}
 		else
 		{
-			#if WIN32NATIVE
+			#if WINNATIVE
 			
 			if (IsWin9x)
 			{
@@ -352,7 +352,7 @@ void GTrayIcon::Value(int64 v)
 	{
 		d->Val = v;
 		
-		#if WIN32NATIVE
+		#if WINNATIVE
 		
 		if (Visible())
 		{
@@ -460,7 +460,7 @@ void GTrayIcon::Value(int64 v)
 
 GMessage::Result GTrayIcon::OnEvent(GMessage *Message)
 {
-	#if WIN32NATIVE
+	#if WINNATIVE
 	
 	if (MsgCode(Message) == M_TRAY_NOTIFY &&
 		MsgA(Message) == d->MyId)

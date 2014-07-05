@@ -38,7 +38,7 @@ public:
 	// Bitmap
 	bool Bitmap(GSurface *pDC, bool AutoEmpty = true);
 	GSurface *Bitmap();
-	#if WIN32NATIVE
+	#if WINNATIVE
 	GSurface *ConvertFromPtr(void *Ptr);
 	#endif
 

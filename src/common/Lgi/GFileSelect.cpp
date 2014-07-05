@@ -182,7 +182,7 @@ public:
 				Icons = new GImageList(16, 16, pDC);
 				if (Icons)
 				{
-					#if WIN32NATIVE
+					#if WINNATIVE
 					Icons->Create(pDC->X(), pDC->Y(), pDC->GetBits());
 					#endif
 				}
@@ -271,7 +271,7 @@ public:
 
 		if (Focus())
 		{
-			#if WIN32NATIVE
+			#if WINNATIVE
 			RECT r = c;
 			DrawFocusRect(pDC->Handle(), &r);
 			#endif

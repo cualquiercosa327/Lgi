@@ -318,7 +318,7 @@ LgiTrace("%s:%i - Str='%s'\n", _FL, Str);
 				{
 					f++;
 					
-					#ifdef _WINDOWS
+					#ifdef WINDOWS
 					char *Period = strrchr(f, '.');
 					if (Period)
 					{
@@ -1429,7 +1429,7 @@ bool GMenuLoader::Load(LgiMenuRes *MenuRes, GXmlTag *Tag, ResFileFormat Format, 
 	{
 		if (stricmp(Tag->Tag, "menu") == 0)
 		{
-			#if WIN32NATIVE
+			#if WINNATIVE
 			if (!Info)
 			{
 				Info = ::CreateMenu();
@@ -1437,7 +1437,7 @@ bool GMenuLoader::Load(LgiMenuRes *MenuRes, GXmlTag *Tag, ResFileFormat Format, 
 			#endif
 		}
 
-		#if WIN32NATIVE
+		#if WINNATIVE
 		if (Info)
 		#endif
 		{
@@ -1518,7 +1518,7 @@ bool GMenu::Load(GView *w, const char *Res, const char *TagList)
 		{
 			if (stricmp(m->Name(), Res) == 0)
 			{
-				#if WIN32NATIVE
+				#if WINNATIVE
 				Status = GSubMenu::Load(m, m->Tag, r->GetFormat(), &Tags);
 				#else
 				Status = GMenuLoader::Load(m, m->Tag, r->GetFormat(), &Tags);

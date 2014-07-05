@@ -5,7 +5,7 @@
 
 #include "GVariant.h"
 
-#if WIN32NATIVE
+#if WINNATIVE
 
 #include <shlobj.h>
 #include "GCom.h"
@@ -31,7 +31,7 @@ LgiFunc const char *GtkGetDndFormat(int Type);
 
 /// A drag source class
 class LgiClass GDragDropSource
-#if WIN32NATIVE
+#if WINNATIVE
 	: public IDropSource, public IEnumFORMATETC
 #endif
 {
@@ -40,7 +40,7 @@ class LgiClass GDragDropSource
 protected:
 	class GDndSourcePriv *d;
 	
-	#if WIN32NATIVE
+	#if WINNATIVE
 	int Index;
 
 	// IUnknown
@@ -116,7 +116,7 @@ public:
 
 /// A drag target class
 class LgiClass GDragDropTarget
-#if WIN32NATIVE
+#if WINNATIVE
 	: public IDropTarget
 #endif
 {
@@ -130,7 +130,7 @@ private:
 	LONG Refs;
 	#endif
 
-	#if WIN32NATIVE
+	#if WINNATIVE
 	// IUnknown
 	ULONG STDMETHODCALLTYPE AddRef();
 	ULONG STDMETHODCALLTYPE Release();
@@ -145,7 +145,7 @@ private:
 	#endif
 
 protected:
-	#if WIN32NATIVE
+	#if WINNATIVE
 	// Data elements
 	IDataObject *DataObject;
 

@@ -5,13 +5,13 @@
 #ifndef _GEDIT_H_
 #define _GEDIT_H_
 
-#if !WIN32NATIVE
+#if !WINNATIVE
 #include "GTextView3.h"
 #endif
 
 /// An edit box allowing the user to enter text
 class LgiClass GEdit :
-	#if WIN32NATIVE
+	#if WINNATIVE
 	public GControl,
 	public ResObject
 	#else
@@ -21,7 +21,7 @@ class LgiClass GEdit :
 protected:
 	class GEditPrivate *d;
 
-	#if WIN32NATIVE
+	#if WINNATIVE
 	void OnCreate();
 
 	GAutoWString	SysName();
@@ -77,7 +77,7 @@ public:
 
 	bool OnKey(GKey &k);
 	
-	#if WIN32NATIVE
+	#if WINNATIVE
 	GMessage::Result OnEvent(GMessage *Msg);
 	void OnFocus(bool f);
 	char *Name();

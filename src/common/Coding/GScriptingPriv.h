@@ -536,7 +536,7 @@ class SystemFunctions : public GScriptContext
 {
 	GScriptEngine *Engine;
 	GStream *Log;
-	#ifdef WIN32NATIVE
+	#ifdef WINNATIVE
 	HANDLE Brk;
 	#endif
 

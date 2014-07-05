@@ -11,7 +11,7 @@
 class LgiClass GThreadEvent : public GBase
 {
 	uint32 LastError;
-	#if defined(WIN32NATIVE)
+	#if defined(WINNATIVE)
         HANDLE Event;
     #elif USE_SEM
         sem_t *Sem;

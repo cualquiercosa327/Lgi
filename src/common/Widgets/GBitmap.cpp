@@ -66,7 +66,7 @@ GBitmap::GBitmap(int id, int x, int y, char *FileName, bool Async)
 	pDC = 0;
 	pThread = 0;
 
-	#if WIN32NATIVE
+	#if WINNATIVE
 	SetStyle(WS_CHILD | WS_VISIBLE);
 	#endif
 

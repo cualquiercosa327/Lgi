@@ -19,7 +19,7 @@ class LgiClass GPopup :
     Gtk::GtkWidget *Wnd;
     #endif
 
-    #ifndef _WINDOWS
+    #ifndef WINDOWS
     static GArray<GPopup*> CurrentPopups;
     #endif
 

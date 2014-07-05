@@ -7,7 +7,7 @@
     #include <errno.h>
 #endif
 
-#ifndef _WINDOWS
+#ifndef WINDOWS
     
     #include <sys/time.h>
 
@@ -35,7 +35,7 @@ GThreadEvent::GThreadEvent(const char *name)
 {
 	Name(name);
 
-	#if defined(_WINDOWS)
+	#if defined(WINDOWS)
 	
         Event = CreateEventA(NULL, false, false, name);
         if (Event)
@@ -81,7 +81,7 @@ GThreadEvent::GThreadEvent(const char *name)
 
 GThreadEvent::~GThreadEvent()
 {
-	#if defined(_WINDOWS)
+	#if defined(WINDOWS)
 
         CloseHandle(Event);
 
@@ -107,7 +107,7 @@ GThreadEvent::~GThreadEvent()
 
 bool GThreadEvent::IsOk()
 {
-	#if defined(_WINDOWS)
+	#if defined(WINDOWS)
 
         return Event != NULL;
 
@@ -124,7 +124,7 @@ bool GThreadEvent::IsOk()
 
 bool GThreadEvent::Signal()
 {
-	#if defined(_WINDOWS)
+	#if defined(WINDOWS)
 
         if (Event)
             SetEvent(Event);
@@ -172,7 +172,7 @@ bool GThreadEvent::Signal()
 
 GThreadEvent::WaitStatus GThreadEvent::Wait(int32 Timeout)
 {
-	#if defined(_WINDOWS)
+	#if defined(WINDOWS)
 
         DWORD Status = WaitForSingleObject(Event, Timeout < 0 ? INFINITE : Timeout);
         switch (Status)

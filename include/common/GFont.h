@@ -183,7 +183,7 @@ class LgiClass GFont :
 	char16 *_ToUnicode(char *In, int &Len);
 	bool GetOwnerUnderline();
 
-	#if defined(WIN32NATIVE)
+	#if defined(WINNATIVE)
 	friend class GDisplayString;
 
 	void _Measure(int &x, int &y, OsChar *Str, int Len);

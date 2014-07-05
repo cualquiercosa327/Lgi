@@ -60,7 +60,7 @@ GSplitter::GSplitter()
 	SetPourLargest(true);
 	_BorderSize = 1;
 
-	#if WIN32NATIVE
+	#if WINNATIVE
 	d->OverBar = false;
 	d->Cursor = 0;
 	d->OldCursor = 0;

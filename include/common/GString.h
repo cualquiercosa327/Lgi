@@ -121,7 +121,7 @@ LgiFunc char *stristr
 
 #endif
 
-#ifndef WIN32NATIVE
+#ifndef WINNATIVE
 
 LgiFunc int strnicmp(const char *a, const char *b, int i);
 

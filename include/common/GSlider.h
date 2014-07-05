@@ -10,7 +10,7 @@ class LgiClass GSlider :
 	public GControl,
 	public ResObject
 {
-	#if WIN32NATIVE
+	#if WINNATIVE
 	uint32 Style();
 	int SysOnNotify(int Code);
 	#endif

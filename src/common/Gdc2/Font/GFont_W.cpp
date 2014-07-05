@@ -16,7 +16,7 @@
 #include <math.h>
 
 #include "Lgi.h"
-#if WIN32NATIVE
+#if WINNATIVE
 #include "GFontSelect.h"
 #include "GdiLeak.h"
 

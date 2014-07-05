@@ -278,7 +278,7 @@ protected:
 	#if defined BEOS
 	bigtime_t Sys_LastClick;
 	void MouseClickEvent(bool Down);
-	#elif WIN32NATIVE
+	#elif WINNATIVE
 	bool *SetOnDelete;
 	GWin32Class *SubClass;
 	#endif
@@ -286,7 +286,7 @@ protected:
 	GdcPt2 SizeOfStr(const char *Str);
 
 public:
-	#if WIN32NATIVE
+	#if WINNATIVE
 	GControl(char *SubClassName = 0);
 	#else
 	GControl(OsView view = 0);

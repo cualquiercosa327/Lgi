@@ -19,7 +19,7 @@
 #include "winsock2.h"
 #include "ShellAPI.h"
 #define WIN32GTK                    1
-#define WIN32NATIVE                 0
+#define WINNATIVE					0
 #else
 #define _MULTI_THREADED
 #include <pthread.h>

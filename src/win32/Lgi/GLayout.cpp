@@ -20,7 +20,7 @@ GLayout::GLayout() : GView(0)
 	VScroll = 0;
 	HScroll = 0;
 
-    #if WIN32NATIVE
+    #if WINNATIVE
 	SetExStyle(GetExStyle() | WS_EX_CONTROLPARENT);
 	#endif
 }

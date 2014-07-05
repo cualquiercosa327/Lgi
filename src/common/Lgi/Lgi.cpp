@@ -7,7 +7,7 @@
 #include <ctype.h>
 #include <fcntl.h>
 
-#ifdef _WINDOWS
+#ifdef WINDOWS
 #include <winsock2.h>
 #include <shlobj.h>
 #else
@@ -20,7 +20,7 @@
 
 #if defined(LINUX)
 #include "LgiWinManGlue.h"
-#elif defined(_WINDOWS)
+#elif defined(WINDOWS)
 #include "GRegKey.h"
 #endif
 
@@ -89,7 +89,7 @@ GAutoString FSRefPath(FSRef &fs)
 
 bool LgiPostEvent(OsView Wnd, int Event, GMessage::Param a, GMessage::Param b)
 {
-	#if WIN32NATIVE
+	#if WINNATIVE
 
 	return PostMessage(Wnd, Event, a, b);
 
@@ -450,7 +450,7 @@ bool LgiRecursiveFileSearch(const char *Root,
 
 void LgiTrace(const char *Msg, ...)
 {
-	#if defined _INC_MALLOC && WIN32NATIVE
+	#if defined _INC_MALLOC && WINNATIVE
 	if (_heapchk() != _HEAPOK)
 	{
 		return;
@@ -1251,7 +1251,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 			}
 			case LSP_DESKTOP:
 			{
-				#if defined(_WINDOWS) && defined(_MSC_VER)
+				#if defined(WINDOWS) && defined(_MSC_VER)
 
 				GAutoString f(GetWindowsFolder(CSIDL_DESKTOPDIRECTORY));
 				if (f)

@@ -13,9 +13,20 @@
 
 #pragma warning(disable : 4251 4275)
 
-#define WIN32GTK                    0
-#define WIN32NATIVE                 1
-
+#define WIN32GTK					0
+#define WINNATIVE					1
+#ifndef WINDOWS
+	#error "Define WINDOWS in your project"
+#endif
+#ifdef _WIN64
+	#ifndef WIN64
+		#define WIN64				1
+	#endif
+#else
+	#ifndef WIN32
+		#define WIN32				1
+	#endif
+#endif
 
 #include <string.h>
 #include "LgiInc.h"
@@ -34,10 +45,6 @@
 
 //////////////////////////////////////////////////////////////////
 // Typedefs
-#ifndef _WINDOWS
-#define _WINDOWS			1
-#endif
-
 typedef HWND				OsWindow;
 typedef HWND				OsView;
 typedef HANDLE				OsThread;

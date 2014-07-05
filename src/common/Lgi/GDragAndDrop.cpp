@@ -60,7 +60,7 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
-#if WIN32NATIVE
+#if WINNATIVE
 int MapW32FlagsToLgi(int W32Flags)
 {
 	int f = 0;
@@ -267,7 +267,7 @@ HRESULT GDataObject::QueryGetData(FORMATETC *pFormatEtc)
 GDragDropSource::GDragDropSource()
 {
 	d = new GDndSourcePriv;
-	#if WIN32NATIVE
+	#if WINNATIVE
 	Index = 0;
 	#endif
 
@@ -283,7 +283,7 @@ bool GDragDropSource::CreateFileDrop(GVariant *OutputData, GMouse &m, List<char>
 {
 	if (OutputData && Files.First())
 	{
-		#if WIN32NATIVE
+		#if WINNATIVE
 		
 		int Size = sizeof(DROPFILES) + ((IsWin9x) ? sizeof(char) : sizeof(char16));
 
@@ -414,7 +414,7 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 	if (!SourceWnd)
 		return -1;
 
-	#if WIN32NATIVE
+	#if WINNATIVE
 
 	DWORD dwEffect = 0;
 	Reset();
@@ -612,7 +612,7 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
     return -1;
 }
 
-#if WIN32NATIVE
+#if WINNATIVE
 ULONG STDMETHODCALLTYPE
 GDragDropSource::AddRef()
 {
@@ -784,7 +784,7 @@ GDragDropTarget::GDragDropTarget()
 	DragDropLength = 0;
 	To = 0;
 
-	#if WIN32NATIVE
+	#if WINNATIVE
 	Refs = 0;
 	DataObject = 0;
 	#endif
@@ -820,7 +820,7 @@ void GDragDropTarget::SetWindow(GView *to)
 	}
 }
 
-#if WIN32NATIVE
+#if WINNATIVE
 ULONG STDMETHODCALLTYPE GDragDropTarget::AddRef()
 {
 	return InterlockedIncrement(&Refs); 

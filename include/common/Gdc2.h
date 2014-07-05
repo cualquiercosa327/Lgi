@@ -394,7 +394,7 @@ protected:
 	uint32			LineMask;
 	uint32			LineReset;
 
-	#if WIN32NATIVE
+	#if WINNATIVE
 	OsPainter	hDC;
 	OsBitmap	hBmp;
 	#elif defined __GTK_H__
@@ -647,7 +647,7 @@ public:
 	virtual ~GScreenDC();
 
 	// OS Sepcific
-	#if WIN32NATIVE
+	#if WINNATIVE
 
 		GScreenDC(GViewI *view);
 		GScreenDC(HWND hwnd);
@@ -873,7 +873,7 @@ public:
 	GMemDC(GSurface *pDC);
 	virtual ~GMemDC();
 
-	#if WIN32NATIVE
+	#if WINNATIVE
 	
 		HDC StartDC();
 		void EndDC();

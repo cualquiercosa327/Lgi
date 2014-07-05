@@ -13,7 +13,7 @@
 
 bool GKey::IsContextMenu()
 {
-	#if WIN32NATIVE
+	#if WINNATIVE
 	return !IsChar && vkey == VK_CONTEXTKEY;
 	#else
 	return false;
@@ -107,7 +107,7 @@ COLOUR ColTo24(Gtk::GdkColor &c)
 }
 #endif
 
-#if defined(_WINDOWS)
+#if defined(WINDOWS)
 static uint32 ConvertWinColour(uint32 c)
 {
 	return Rgb24(GetRValue(c), GetGValue(c), GetBValue(c));
@@ -245,7 +245,7 @@ void LgiInitColours()
 	_LgiColours[i++] = LookupColour("selected_fg_color", White); // LC_NON_FOCUS_SEL_FORE
 	LgiAssert(i == LC_MAXIMUM);
 
-	#elif defined(_WINDOWS)
+	#elif defined(WINDOWS)
 
 	_LgiColours[i++] = ConvertWinColour(GetSysColor(COLOR_3DDKSHADOW)); // LC_SHADOW
 	_LgiColours[i++] = ConvertWinColour(GetSysColor(COLOR_3DSHADOW)); // LC_LOW
@@ -365,7 +365,7 @@ COLOUR LgiColour
 	return i<LC_MAXIMUM ? _LgiColours[i] : 0;
 }
 
-#if WIN32NATIVE
+#if WINNATIVE
 
 #if !defined(DM_POSITION)
 #define DM_POSITION         0x00000020L
@@ -392,7 +392,7 @@ union DEVMODEU
 
 bool LgiGetDisplays(::GArray<GDisplayInfo*> &Displays, GRect *AllDisplays)
 {
-	#if WIN32NATIVE
+	#if WINNATIVE
 	if (AllDisplays)
 		AllDisplays->ZOff(-1, -1);
 
@@ -515,7 +515,7 @@ void GetChildrenList(GViewI *w, List<GViewI> &l)
 		{
 			for (GViewI *v = it->First(); v; v = it->Next())
 			{
-				#if WIN32NATIVE
+				#if WINNATIVE
 				int Style = GetWindowLong(v->Handle(), GWL_STYLE);
 				if (TestFlag(Style, WS_VISIBLE) &&
 					!TestFlag(Style, WS_DISABLED))

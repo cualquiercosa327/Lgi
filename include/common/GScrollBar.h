@@ -20,7 +20,7 @@ class LgiClass GScrollBar :
 protected:
 	class GScrollBarPrivate *d;
 
-	#if WIN32NATIVE
+	#if WINNATIVE
 	GViewI *GetMyView();
 	void Update();
 	void SetParentFlag(bool Bool);
@@ -58,7 +58,7 @@ public:
 	/// Returns true if the range is valid
 	bool Valid();
 
-	#if WIN32NATIVE
+	#if WINNATIVE
 	bool SetPos(GRect &p, bool Repaint = false);
 	void SetParent(GViewI *p);
 	bool Invalidate(GRect *r = NULL, bool Repaint = false, bool NonClient = false);

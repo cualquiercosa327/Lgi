@@ -1,7 +1,7 @@
 #ifndef __DROP_FILES__
 #define __DROP_FILES__
 
-#if WIN32NATIVE
+#if WINNATIVE
 #include <Shlobj.h>
 #elif defined LINUX
 #include "GToken.h"
@@ -15,7 +15,7 @@ class GDropFiles : public GArray<char*>
 public:
     GDropFiles(GVariant &v)
     {
-		#if WIN32NATIVE
+		#if WINNATIVE
 		DROPFILES *Df = v.IsBinary() && v.Value.Binary.Length >= sizeof(DROPFILES) ? (DROPFILES*)v.Value.Binary.Data : 0;
 		if (Df)
 		{

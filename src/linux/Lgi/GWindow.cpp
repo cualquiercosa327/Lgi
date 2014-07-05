@@ -1227,11 +1227,11 @@ void GWindow::OnTrayClick(GMouse &m)
 		OnTrayMenu(RClick);
 		if (GetMouse(m, true))
 		{
-			#if WIN32NATIVE
+			#if WINNATIVE
 			SetForegroundWindow(Handle());
 			#endif
 			int Result = RClick.Float(this, m.x, m.y);
-			#if WIN32NATIVE
+			#if WINNATIVE
 			PostMessage(Handle(), WM_NULL, 0, 0);
 			#endif
 			OnTrayMenuResult(Result);

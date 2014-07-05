@@ -26,7 +26,7 @@
 //
 #include "iconv.h"
 
-#if defined(_WINDOWS)
+#if defined(WINDOWS)
 typedef const char IconvChar;
 #else
 typedef char IconvChar;
@@ -61,7 +61,7 @@ public:
 	#endif
 
 	#if HAS_ICONV
-	#ifdef _WINDOWS
+	#ifdef WINDOWS
 
 	DynFunc2(iconv_t,	libiconv_open, const char*, tocode, const char*, fromcode);
 	DynFunc5(size_t,	libiconv, iconv_t, cd, IconvChar**, inbuf, size_t*, inbytesleft, char**, outbuf, size_t*, outbytesleft);
@@ -184,7 +184,7 @@ void GFontSystem::SetDefaultGlyphSub(bool i)
 		d->DefaultGlyphSub = i;
 }
 
-#ifdef _WINDOWS
+#ifdef WINDOWS
 int CALLBACK _EnumFonts(ENUMLOGFONT FAR *lpelf,
 						NEWTEXTMETRIC FAR *lpntm,
 						int FontType,
@@ -209,7 +209,7 @@ bool GFontSystem::EnumerateFonts(List<const char> &Fonts)
 {
 	if (!AllFonts.First())
 	{
-		#if defined _WINDOWS
+		#if defined WINDOWS
 
 		HDC hDC = CreateCompatibleDC(NULL);
 		if (hDC)

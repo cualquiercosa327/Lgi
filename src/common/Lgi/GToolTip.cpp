@@ -4,7 +4,7 @@
 #include <commctrl.h>
 #endif
 
-#if !WIN32NATIVE
+#if !WINNATIVE
 #include "GDisplayString.h"
 
 class NativeTip : public GView
@@ -174,7 +174,7 @@ class GToolTipPrivate
 public:
 	int NextUid;
 	
-	#if !WIN32NATIVE
+	#if !WINNATIVE
 	List<NativeTip> Tips;
 	GViewI *Parent;
 	GThread *Thread;
@@ -183,7 +183,7 @@ public:
 	GToolTipPrivate()
 	{
 		NextUid = 1;
-		#if !WIN32NATIVE
+		#if !WINNATIVE
 		Parent = 0;
 		Thread = 0;
 		#endif
@@ -191,7 +191,7 @@ public:
 
 	~GToolTipPrivate()
 	{
-		#if !WIN32NATIVE
+		#if !WINNATIVE
 		DeleteObj(Thread);
 		Tips.DeleteObjects();
 		#endif
@@ -212,7 +212,7 @@ int GToolTip::NewTip(char *Name, GRect &Pos)
 {
 	int Status = 0;
 
-	#if WIN32NATIVE
+	#if WINNATIVE
 
 	if (_View && Name && GetParent())
 	{
@@ -262,7 +262,7 @@ int GToolTip::NewTip(char *Name, GRect &Pos)
 
 void GToolTip::DeleteTip(int Id)
 {
-	#if WIN32NATIVE
+	#if WINNATIVE
 
 	if (GetParent())
 	{
@@ -293,7 +293,7 @@ void GToolTip::DeleteTip(int Id)
 
 bool GToolTip::Attach(GViewI *p)
 {
-	#if WIN32NATIVE
+	#if WINNATIVE
 
 	if (!_View && p)
 	{

@@ -887,7 +887,7 @@ GTree::GTree(int id, int x, int y, int cx, int cy, const char *name) :
 	EditLabels = false;
 	MultipleSelect = false;
 
-	#if WIN32NATIVE
+	#if WINNATIVE
 	SetStyle(GetStyle() | WS_CHILD | WS_VISIBLE | WS_TABSTOP);
 	#endif
 	SetTabStop(true);

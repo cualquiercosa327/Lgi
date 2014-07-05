@@ -334,7 +334,7 @@ GRadioButton::GRadioButton(int id, int x, int y, int cx, int cy, const char *nam
 	d->Over = false;
 	SetTabStop(true);
 
-	#if WIN32NATIVE
+	#if WINNATIVE
 	SetDlgCode(GetDlgCode() | DLGC_WANTARROWS);
 	#endif
 }

@@ -101,7 +101,7 @@ GSurface::~GSurface()
 
 OsBitmap GSurface::GetBitmap()
 {
-	#if WIN32NATIVE
+	#if WINNATIVE
 	return hBmp;
 	#else
 	return 0;
@@ -110,7 +110,7 @@ OsBitmap GSurface::GetBitmap()
 
 OsPainter GSurface::Handle()
 {
-	#if WIN32NATIVE
+	#if WINNATIVE
 	return hDC;
 	#else
 	return 0;
@@ -1350,7 +1350,7 @@ bool GSurface::DrawOnAlpha(bool Draw)
 		pMem = pAlphaDC->pMem;
 		pAlphaDC->pMem = Temp;
 		
-    	#if WIN32NATIVE
+    	#if WINNATIVE
 		OsBitmap hTmp = hBmp;
 		hBmp = pAlphaDC->hBmp;
 		pAlphaDC->hBmp = hTmp;

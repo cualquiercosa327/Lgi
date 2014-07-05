@@ -911,7 +911,7 @@ AppWnd::AppWnd()
 	Name(AppName);
 	SetQuitOnClose(true);
 
-	#if WIN32NATIVE
+	#if WINNATIVE
 	CreateClassW32(AppName, LoadIcon(LgiProcessInst(), MAKEINTRESOURCE(IDI_APP)));
 	#endif
 	if (Attach(0))

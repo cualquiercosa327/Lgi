@@ -20,7 +20,7 @@ typedef GRgba32 GdcRGB;
 class LgiClass GPalette
 {
 protected:
-	#if WIN32NATIVE
+	#if WINNATIVE
 	HPALETTE	hPal;
 	LOGPALETTE	*Data;
 	#else
@@ -33,7 +33,7 @@ public:
 	GPalette();
 	virtual ~GPalette();
 
-	#if WIN32NATIVE
+	#if WINNATIVE
 	HPALETTE Handle() { return hPal; }
 	#endif
 

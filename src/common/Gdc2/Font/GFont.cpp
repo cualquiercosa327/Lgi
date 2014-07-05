@@ -753,7 +753,7 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 		GTypeFace::d->_PtSize = height;
 	}
 
-	#if WIN32NATIVE
+	#if WINNATIVE
 
 	if (d->hFont)
 	{

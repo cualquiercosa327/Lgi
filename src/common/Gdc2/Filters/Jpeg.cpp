@@ -31,7 +31,7 @@
 
 const char sLibrary[] = 
 	"libjpeg"
-	#if defined(_WINDOWS)
+	#if defined(WINDOWS)
 		"9"
 		#ifdef WIN64
 		"x64"

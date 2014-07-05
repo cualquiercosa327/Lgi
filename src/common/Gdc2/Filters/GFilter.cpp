@@ -1758,7 +1758,7 @@ GSurface *GdcDevice::Load(const char *Name, bool UseOSLoader)
 			CFRelease(FileUrl);
 		}
 
-		#elif WIN32NATIVE && defined(_MSC_VER)
+		#elif WINNATIVE && defined(_MSC_VER)
 		
 		char *Ext = LgiGetExtension((char*)Name);
 		if (Ext && stricmp(Ext, "gif") && stricmp(Ext, "png"))
@@ -1875,7 +1875,7 @@ GSurface *GdcDevice::Load(const char *Name, bool UseOSLoader)
 		}
 	}
 	
-	#if WIN32NATIVE
+	#if WINNATIVE
 	if (!pDC)
 	{
 		// a resource... lock and load gentlemen

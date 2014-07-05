@@ -1071,7 +1071,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 							}
 						}						
 					}
-					#if (GPL_COMPATIBLE || defined(_LIBNTLM_H)) && defined(WIN32NATIVE)
+					#if (GPL_COMPATIBLE || defined(_LIBNTLM_H)) && defined(WINNATIVE)
 					else if (_stricmp(AuthType, "NTLM") == 0)
 					{
 						// NT Lan Man authentication

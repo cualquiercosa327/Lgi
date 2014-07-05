@@ -53,7 +53,7 @@ static bool IsWindow(OsView Wnd)
 
 uint32 LgiGetViewPid(OsView View)
 {
-	#if WIN32NATIVE
+	#if WINNATIVE
 	DWORD hWndProcess = 0;
 	GetWindowThreadProcessId(View, &hWndProcess);
 	return hWndProcess;
@@ -221,7 +221,7 @@ public:
 					// Mouse moved...
 					OsView hOver = 0;
 
-					#if WIN32NATIVE
+					#if WINNATIVE
 
 					POINT WinPt = { m.x, m.y };
 					hOver = WindowFromPoint(WinPt);
@@ -307,7 +307,7 @@ public:
 						hWndProcess = LgiGetViewPid(hMouseOver);
 					}
 
-					#if WIN32NATIVE
+					#if WINNATIVE
 					if (hWndProcess == hProcess)
 					{
 						// This code makes sure that non-LGI windows generate mouse move events
@@ -423,7 +423,7 @@ public:
 	}
 };
 
-#ifndef _WINDOWS
+#ifndef WINDOWS
 ::GArray<GPopup*> GPopup::CurrentPopups;
 #endif
 
@@ -436,7 +436,7 @@ GPopup::GPopup(GView *owner)
     #ifdef __GTK_H__
     Wnd = NULL;
     #endif
-    #ifndef _WINDOWS
+    #ifndef WINDOWS
     CurrentPopups.Add(this);
     #endif
 
@@ -455,7 +455,7 @@ GPopup::GPopup(GView *owner)
 
 GPopup::~GPopup()
 {
-    #ifndef _WINDOWS
+    #ifndef WINDOWS
 	CurrentPopups.Delete(this);
 	#endif
 	SendNotify(POPUP_DELETE);
@@ -614,7 +614,7 @@ bool GPopup::Attach(GViewI *p)
 	else p = GetParent();
 	if (p)
 	{
-		#if WIN32NATIVE
+		#if WINNATIVE
 
 		SetStyle(WS_POPUP);
 		GView::Attach(GetParent());
@@ -781,7 +781,7 @@ void GPopup::Visible(bool i)
 
 		SendNotify(POPUP_HIDE);
 
-		#if WIN32NATIVE
+		#if WINNATIVE
 		// This is required to re-focus the owner.
 		// If the popup or a child window gets focus at some point. The
 		// owner doesn't get focus when we close... weird I know.
@@ -880,7 +880,7 @@ void GDropDown::OnPaint(GSurface *pDC)
 		pDC->Rectangle(&r);
 		if (Focus())
 		{
-			#if WIN32NATIVE
+			#if WINNATIVE
 			DrawFocusRect(pDC->Handle(), &((RECT)r));
 			#else
 			pDC->Colour(LC_LOW, 24);

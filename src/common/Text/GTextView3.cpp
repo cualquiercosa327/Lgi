@@ -306,7 +306,7 @@ GTextView3::GTextView3(	int Id,
 
 	// default options
 	Dirty = false;
-	#if WIN32NATIVE
+	#if WINNATIVE
 	CrLf = true;
 	SetDlgCode(DLGC_WANTALLKEYS);
 	#else
@@ -487,7 +487,7 @@ void GTextView3::SetReadOnly(bool i)
 {
 	GDocView::SetReadOnly(i);
 
-	#if WIN32NATIVE
+	#if WINNATIVE
 	SetDlgCode(i ? DLGC_WANTARROWS : DLGC_WANTALLKEYS);
 	#endif
 }
@@ -576,7 +576,7 @@ void GTextView3::OnFontChange()
 			Underline->Create();
 		}
 
-		#if WIN32NATIVE // Set the IME font.
+		#if WINNATIVE // Set the IME font.
 		HIMC hIMC = ImmGetContext(Handle());
 		if (hIMC)
 		{
@@ -4458,7 +4458,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 							pOut->Rectangle(&c);
 						}
 
-						#if WIN32NATIVE
+						#if WINNATIVE
 						HIMC hIMC = ImmGetContext(Handle());
 						if (hIMC)
 						{

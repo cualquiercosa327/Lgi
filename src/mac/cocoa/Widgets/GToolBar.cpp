@@ -111,7 +111,7 @@ GImageList::GImageList(int x, int y, GSurface *pDC)
 	d->Sx = x;
 	d->Sy = y;
 
-	#if WIN32NATIVE
+	#if WINNATIVE
 
 	/*
 	if (LgiGetOs() != LGI_OS_WIN9X)
@@ -431,7 +431,7 @@ void GImageList::Draw(GSurface *pDest, int Dx, int Dy, int Image, int Flags)
 			}
 			else
 			{
-				#if WIN32NATIVE
+				#if WINNATIVE
 
 				BOOL Status = false;
 				if (GdcD->AlphaBlend &&

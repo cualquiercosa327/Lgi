@@ -130,7 +130,7 @@ int LgiMsg(GViewI *Parent, const char *Str, const char *Title, int Type, ...)
 		}
 	}
 	
-	#elif WIN32NATIVE
+	#elif WINNATIVE
 
 	if (Str)
 	{

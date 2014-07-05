@@ -22,7 +22,7 @@
 #ifndef _LIBNTLM_H
 # define _LIBNTLM_H
 
-#if defined(_WINDOWS)
+#if defined(WINDOWS)
 	#ifdef LIBNTLM_EXPORTS
 		#define LIBEXTERN extern __declspec(dllexport)
 	#else

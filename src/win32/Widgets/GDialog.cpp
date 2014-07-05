@@ -22,7 +22,7 @@ struct GDialogPriv
 	bool IsModal, _Resizable;
 	int ModalStatus;
 
-	#if WIN32NATIVE
+	#if WINNATIVE
     #if USE_DIALOGBOXINDIRECTPARAM
 	GMem *Mem;
     #else

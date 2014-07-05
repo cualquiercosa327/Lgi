@@ -35,13 +35,13 @@ public:
 };
 
 GEdit::GEdit(int id, int x, int y, int cx, int cy, const char *name) :
-	#if WIN32NATIVE
+	#if WINNATIVE
 	ResObject(Res_EditBox)
 	#else
 	GTextView3(id, x, y, cx, cy, &SysFontType)
 	#endif
 {
-	#if !WIN32NATIVE
+	#if !WINNATIVE
 	_ObjName = Res_EditBox;
 	SetUrlDetect(false);
 	SetWrapType(TEXTED_WRAP_NONE);

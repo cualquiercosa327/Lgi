@@ -257,7 +257,7 @@ GDragColumn::GDragColumn(GList *list, int col)
 		r.y2 = List->Y()-1;
 		List->Invalidate(&r, true);
 
-		#if WIN32NATIVE
+		#if WINNATIVE
 		
 		GArray<int> Ver;
 		bool Layered = (
@@ -289,7 +289,7 @@ GDragColumn::GDragColumn(GList *list, int col)
 
 		Attach(0);
 
-		#if WIN32NATIVE
+		#if WINNATIVE
 		
 		if (Layered)
 		{
@@ -461,7 +461,7 @@ GItemEdit::GItemEdit(GView *parent, GItem *item, int index, int SelStart, int Se
 	GetParent()->PointToScreen(p);
 
 	GRect r = d->Item->GetPos(d->Index);
-    #ifndef _WINDOWS
+    #ifndef WINDOWS
 	r.Offset(p.x, p.y);
     #else
 	r.Offset(p.x-1, p.y);
@@ -1492,7 +1492,7 @@ GList::GList(int id, int x, int y, int cx, int cy, const char *name)
 	Sunken(true);
 	Name("GList");
 
-	#if WIN32NATIVE
+	#if WINNATIVE
 	SetStyle(GetStyle() | WS_TABSTOP);
 	SetDlgCode(DLGC_WANTARROWS);
 	Cursor = 0;

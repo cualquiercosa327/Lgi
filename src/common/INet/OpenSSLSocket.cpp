@@ -10,7 +10,7 @@
 */
 
 #include <stdio.h>
-#ifndef _WINDOWS
+#ifndef WINDOWS
 #include <unistd.h>
 #endif
 
@@ -219,7 +219,7 @@ static const char *FileLeaf(const char *f)
 
 
 class OpenSSL :
-	#ifdef _WINDOWS
+	#ifdef WINDOWS
 	public LibEAY,
 	#endif
 	public LibSSL
@@ -232,7 +232,7 @@ public:
     bool IsLoaded()
     {
         return LibSSL::IsLoaded()
-            #ifdef _WINDOWS
+            #ifdef WINDOWS
             && LibEAY::IsLoaded()
             #endif
             ;
