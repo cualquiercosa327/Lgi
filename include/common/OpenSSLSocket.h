@@ -24,6 +24,8 @@ class SslSocket :
 	GStream *GetLogStream();
 
 public:
+	static bool DebugLogging;
+
 	SslSocket(GStreamI *logger = NULL, GCapabilityClient *caps = NULL, bool SslOnConnect = false, bool RawLFCheck = false);
 	~SslSocket();
 

@@ -4,7 +4,7 @@
 **      DATE:           24/9/2004
 **      DESCRIPTION:    Open SSL wrapper socket
 **
-**      Copyright (C) 2004, Matthew Allen
+**      Copyright (C) 2004-2014, Matthew Allen
 **              fret@memecode.com
 **
 */
@@ -35,13 +35,19 @@
 static const char*
 	MinimumVersion				= "1.0.1g";
 
-#if 0
-#define DebugTrace				LgiTrace
-#else
 void DebugTrace(const char *fmt, ...)
 {
+	if (SslSocket::DebugLogging)
+	{
+		char Buffer[512];
+		va_list Arg;
+		va_start(Arg, fmt);
+		int Ch = vsprintf_s(Buffer, sizeof(Buffer), fmt, Arg);
+		va_end(Arg);
+		
+		LgiTrace("%s", Buffer);
+	}
 }
-#endif
 
 void
 SSL_locking_function(int mode, int n, const char *file, int line);
@@ -70,7 +76,10 @@ public:
 		}
 
         #ifdef MAC
-		Load("/opt/local/lib/" SSL_LIBRARY);
+        if (!IsLoaded())
+        {
+			Load("/opt/local/lib/" SSL_LIBRARY);
+		}
         #endif
     }
 
@@ -307,6 +316,7 @@ public:
 
 	OnError:
 		ErrorMsg.Reset(Err.NewStr());
+		DebugTrace("%s", ErrorMsg.Get());
 		return false;
     }
 
@@ -400,6 +410,7 @@ SSL_id_function()
 bool StartSSL(GAutoString &ErrorMsg)
 {
 	static GMutex Lock;
+	
 	if (Lock.Lock(_FL))
 	{
 		if (!Library)
@@ -456,6 +467,8 @@ struct SslSocketPriv
 		LogFormat = 0;
 	}
 };
+
+bool SslSocket::DebugLogging = false;
 
 SslSocket::SslSocket(GStreamI *logger, GCapabilityClient *caps, bool sslonconnect, bool RawLFCheck)
 {
@@ -606,8 +619,6 @@ int SslSocket::Open(const char *HostAddr, int Port)
 
 DebugTrace("%s:%i - SslSocket::Open(%s,%i)\n", _FL, HostAddr, Port);
 	
-	LgiAssert(Library != NULL); // Um you forget to call 'StartSSL(GAutoString &ErrorMsg)'
-
 	if (Library &&
 		Library->IsOk() &&
 		HostAddr)
