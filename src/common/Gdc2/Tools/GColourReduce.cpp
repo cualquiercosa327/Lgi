@@ -74,7 +74,7 @@ struct Box
 		LgiAssert(End >= Start);
 		
 		Cols.Length(End - Start + 1);
-		for (int i=0; i<Cols.Length(); i++)
+		for (unsigned i=0; i<Cols.Length(); i++)
 		{
 			Cols[i] = c[Start + i];
 		}
@@ -91,7 +91,7 @@ struct Box
 			f[d] = 0;
 		}
 
-		for (int i=0; i<Cols.Length(); i++)
+		for (unsigned i=0; i<Cols.Length(); i++)
 		{
 			ImgColour *col = Cols[i];
 			for (int d=0; d<DIMENSIONS; d++)
@@ -117,10 +117,10 @@ struct Box
 		}
 		Pixels += Cols[0]->count;
 
-		for (int n=0; n<Cols.Length(); n++)
+		for (unsigned n=0; n<Cols.Length(); n++)
 		{
 			ImgColour *c = Cols[n];
-			LgiAssert(c);
+			LgiAssert(c != NULL);
 			for (int i=0; i<DIMENSIONS; i++)
 			{
 				r[i].Min = min(r[i].Min, c->c[i]);
@@ -199,10 +199,10 @@ class GPaletteReduce
 	int TableSize;
 	ImgColour *Col;
 	int ColUsed;
-	int DestSize;
+	unsigned DestSize;
 	
 public:
-	GPaletteReduce(GPalette *Out, GSurface *In, int destSize)
+	GPaletteReduce(GPalette *Out, GSurface *In, unsigned destSize)
 	{
 		TableSize = TABLE_SIZE;
 		ColUsed = 0;
@@ -355,7 +355,7 @@ public:
 	bool Reduce(GPalette *Out)
 	{
 		// remove unused colours
-		int Cols = 0, i;
+		unsigned Cols = 0, i;
 		for (i=0; i<TABLE_SIZE; i++)
 		{
 			if (Col[i].count != 0)
@@ -387,7 +387,7 @@ public:
 			{
 				// Find largest box...
 				int MaxBox = -1;
-				for (int i=0; i<Boxes.Length(); i++)
+				for (unsigned i=0; i<Boxes.Length(); i++)
 				{
 					if
 					(
@@ -410,12 +410,12 @@ public:
 				if (b->Sort(Index, MaxEdge.Dimension))
 				{
 					// Find the median by picking an arbitrary mid-point
-					int Pos = Index.Length() >> 1;
+					unsigned Pos = Index.Length() >> 1;
 					if (Index.Length() > 2)
 					{
 						int LowerSum = 0;
 						int UpperSum = 0;
-						for (int i=0; i<Index.Length(); i++)
+						for (unsigned i=0; i<Index.Length(); i++)
 						{
 							if (i < Pos)
 								LowerSum += Index[i]->count;
@@ -471,7 +471,7 @@ public:
 			}
 			
 			GArray<GColour> Colours;
-			for (int i=0; i<Boxes.Length(); i++)
+			for (unsigned i=0; i<Boxes.Length(); i++)
 			{
 				Box *in = Boxes[i];
 				int avg[DIMENSIONS];
@@ -484,7 +484,7 @@ public:
 			Colours.Sort(LumaSort);
 			
 			Out->SetSize(DestSize);
-			for (int i=0; i<Colours.Length(); i++)
+			for (unsigned i=0; i<Colours.Length(); i++)
 			{
 				GColour &in = Colours[i];
 				GdcRGB *out = (*Out)[i];
@@ -598,10 +598,8 @@ bool GReduceBitDepth(GSurface *pDC, int Bits, GPalette *Pal, GReduceOptions *Red
 
 		if (pDC->Create(pTemp->X(), pTemp->Y(), pTemp->GetBits()))
 		{
-			if (pTemp->Palette())
-			{
-				pDC->Palette(new GPalette(pTemp->Palette()));
-			}
+			if (Pal)
+				pDC->Palette(new GPalette(Pal));
 			pDC->Blt(0, 0, pTemp);
 			Status = true;
 		}
