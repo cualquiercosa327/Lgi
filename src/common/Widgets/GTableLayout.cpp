@@ -1441,11 +1441,12 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 	InLayout = false;
 }
 
-GTableLayout::GTableLayout() : ResObject(Res_Table)
+GTableLayout::GTableLayout(int id) : ResObject(Res_Table)
 {
 	d = new GTableLayoutPrivate(this);
 	SetPourLargest(true);
 	Name("GTableLayout");
+	SetId(id);
 }
 
 GTableLayout::~GTableLayout()

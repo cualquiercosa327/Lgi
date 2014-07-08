@@ -35,7 +35,7 @@ class LgiClass GTableLayout :
 public:
     static int CellSpacing;
 
-	GTableLayout();
+	GTableLayout(int id = -1);
 	~GTableLayout();
 
 	const char *GetClass() { return "GTableLayout"; }
