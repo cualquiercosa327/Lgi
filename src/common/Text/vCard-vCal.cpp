@@ -996,7 +996,7 @@ bool VCal::Export(GDataPropI *c, GStreamI *o)
 	if (!c || !o)
 		return false;
 
-	int Type = c->GetInt(FIELD_CAL_TYPE);
+	int64 Type = c->GetInt(FIELD_CAL_TYPE);
 	char *TypeStr = Type == 1 ? (char*)"VTODO" : (char*)"VEVENT";
 
 	o->Push((char*)"BEGIN:VCALENDAR\r\n");
@@ -1019,7 +1019,7 @@ bool VCal::Export(GDataPropI *c, GStreamI *o)
 		OutputStr(FIELD_CAL_LOCATION, "LOCATION");
 		OutputStr(FIELD_CAL_NOTES, "DESCRIPTION");
 
-		int ShowAs;
+		int64 ShowAs;
 		if ((ShowAs = c->GetInt(FIELD_CAL_SHOW_TIME_AS)))
 		{
 			switch (ShowAs)
@@ -1070,11 +1070,11 @@ bool VCal::Export(GDataPropI *c, GStreamI *o)
 					Dt->Hours(), Dt->Minutes(), Dt->Seconds());
 		}
 
-		int AlarmAction;
+		int64 AlarmAction;
 		int AlarmTime;
 		if ((AlarmAction = c->GetInt(FIELD_CAL_REMINDER_ACTION)) &&
 			AlarmAction &&
-			(AlarmTime = c->GetInt(FIELD_CAL_REMINDER_TIME)))
+			(AlarmTime = (int)c->GetInt(FIELD_CAL_REMINDER_TIME)))
 		{
 			o->Push((char*)"BEGIN:VALARM\r\n");
 			GStreamPrint(o, "TRIGGER:%sPT%iM\r\n", (AlarmTime<0) ? "-" : "", abs(AlarmTime));
