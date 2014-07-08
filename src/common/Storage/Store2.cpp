@@ -346,7 +346,7 @@ bool StorageItemImpl::SerializeHeader(GFile &f, bool Write)
 						printf("%s:%i - Header->Serialize failed at file offset 0x%x .\n", _FL, StoreLoc);
 					}
 
-					#if defined(_DEBUG) && defined(_WINDOWS)
+					#if defined(_DEBUG) && defined(WINDOWS)
 					if (!Status)
 					{
 						// write failed!!

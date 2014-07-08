@@ -1,7 +1,7 @@
 #ifndef _GMIDI_H_
 #define _GMIDI_H_
 
-#if defined(_WINDOWS)
+#if defined(WINDOWS)
 	#if _MSC_VER >= 1400
 	typedef DWORD_PTR MIDI_TYPE;
 	#else

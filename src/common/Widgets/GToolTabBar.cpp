@@ -16,7 +16,7 @@
 GToolTab::GToolTab() : GToolButton(16, 16)
 {
 	First = true;
-	#ifdef _WINDOWS
+	#ifdef WINDOWS
 	SetClassW32("GToolTab");
 	#endif
 }

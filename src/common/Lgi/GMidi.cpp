@@ -3,7 +3,7 @@
 
 #define MIDI_MIRROR_IN_TO_OUT		0
 
-#ifdef _WINDOWS
+#ifdef WINDOWS
 #define M_MIDI_IN	(M_USER + 2000)
 class GMidiNotifyWnd : public GWindow
 {
@@ -38,7 +38,7 @@ struct GMidiPriv
         GArray<MIDIDeviceRef> Devs;
         GArray<MIDIEndpointRef> Srcs, Dsts;
         MIDIEndpointRef Dst;
-	#elif defined(_WINDOWS)
+	#elif defined(WINDOWS)
         HMIDIIN hIn;
         HMIDIOUT hOut;
         MIDIHDR InHdr;
@@ -47,7 +47,7 @@ struct GMidiPriv
 	#endif
 	
 	GMidiPriv(GMidi *m)
-        #ifdef _WINDOWS
+        #ifdef WINDOWS
         : Notify(m)
         #endif
 	{
@@ -56,7 +56,7 @@ struct GMidiPriv
 		#if defined(MAC)
 		Client = 0;
 		Dst = 0;
-		#elif defined(_WINDOWS)
+		#elif defined(WINDOWS)
 		hIn = 0;
 		hOut = 0;
 		#endif
@@ -114,7 +114,7 @@ void GMidi::OnMidiNotify(const MIDINotification *message)
 	printf("MIDI notify: %li\n", message->messageID);
 }
 
-#elif defined(_WINDOWS)
+#elif defined(WINDOWS)
 
 void CALLBACK MidiOutProc(HMIDIOUT hmo, UINT wMsg, MIDI_TYPE dwInstance, MIDI_TYPE wParam, MIDI_TYPE lParam)
 {
@@ -250,7 +250,7 @@ GMidi::GMidi() : GMutex("GMidi")
 		}
 	}
 	
-	#elif defined(_WINDOWS)
+	#elif defined(WINDOWS)
 
 	UINT InDevs = midiInGetNumDevs();
 	UINT OutDevs = midiOutGetNumDevs();
@@ -297,7 +297,7 @@ bool GMidi::IsMidiOpen()
 {
 	#if defined(MAC)
 	return d->Client != 0;
-	#elif defined(_WINDOWS)
+	#elif defined(WINDOWS)
 	return d->hIn != 0;
 	#endif
 }
@@ -342,7 +342,7 @@ int GMidi::GetMidiPacketSize(uint8 *ptr, int len)
 	return 0;
 }
 
-#ifdef _WINDOWS
+#ifdef WINDOWS
 void GMidi::ParseMidi()
 {
 	if (Lock(_FL))
@@ -382,7 +382,7 @@ void GMidi::StoreMidi(uint8 *ptr, int len)
 		MidiIn.Add(ptr, len);
 		Unlock();
 		
-		#ifdef _WINDOWS
+		#ifdef WINDOWS
 		d->Notify.PostEvent(M_MIDI_IN);
 		#endif
 	}
@@ -445,7 +445,7 @@ bool GMidi::Connect(int InIdx, int OutIdx, GAutoString *ErrorMsg)
 		}
 	}
 
-	#elif defined(_WINDOWS)
+	#elif defined(WINDOWS)
 
 	MMRESULT r = midiOutOpen(&d->hOut, OutIdx, (MIDI_TYPE)MidiOutProc, (MIDI_TYPE)this, CALLBACK_FUNCTION);
 	if (r != MMSYSERR_NOERROR)
@@ -504,7 +504,7 @@ void GMidi::CloseMidi()
 		MIDIClientDispose(d->Client);
 		d->Client = 0;
 	}
-	#elif defined(_WINDOWS)
+	#elif defined(WINDOWS)
 	if (d->hIn)
 	{
 		midiInReset(d->hIn);
@@ -533,7 +533,7 @@ void GMidi::SendMidi(uint8 *ptr, int len, bool quiet)
 	LgiAssert(ptr != NULL);
 	if (!ptr)
 		return;
-	#if defined(_WINDOWS)
+	#if defined(WINDOWS)
 	if (d->hOut)
 	{
 		if (len <= 3)

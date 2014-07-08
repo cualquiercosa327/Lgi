@@ -14,7 +14,7 @@ public:
 	const char *Name()
 	{
 		return
-				#ifdef _WINDOWS
+				#ifdef WINDOWS
                     "zlib9"
 					#if WIN64
 					"x64"
