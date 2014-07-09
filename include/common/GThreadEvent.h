@@ -1,7 +1,7 @@
 #ifndef _GTHREADEVENT_H_
 #define _GTHREADEVENT_H_
 
-#ifdef MAC
+#if defined(MAC) || defined(LINUX)
     #define USE_SEM         1
 #endif
 #if USE_SEM

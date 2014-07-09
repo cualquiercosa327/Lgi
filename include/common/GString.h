@@ -3,7 +3,7 @@
 #ifndef GSTRING_H
 #define GSTRING_H
 
-#include "LgiInc.h"
+// #include "LgiInc.h"
 #include "LgiDefs.h"
 #include "LgiOsDefs.h"
 

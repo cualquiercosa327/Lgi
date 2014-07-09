@@ -267,7 +267,7 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir, GAutoString
 	{
 		bool IsUrl = false;
 
-		char App[400] = "";
+		char App[MAX_PATH] = "";
 		if (strnicmp(File, "http://", 7) == 0 ||
 			strnicmp(File, "https://", 8) == 0)
 		{
@@ -320,7 +320,7 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir, GAutoString
 					char Mime[256];
 					if (LgiGetFileMimeType(File, Mime, sizeof(Mime)))
 					{
-						printf("LgiGetFileMimeType(%s)=%s\n", File, Mime);
+						// printf("LgiGetFileMimeType(%s)=%s\n", File, Mime);
 						
 						if (stricmp(Mime, "application/x-executable") == 0 ||
 							stricmp(Mime, "application/x-shellscript") == 0)
@@ -335,7 +335,7 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir, GAutoString
 							// got the mime type
 							if (!LgiGetAppForMimeType(Mime, App, sizeof(App)))
 							{
-								printf("%s:%i: LgiExecute - LgiGetAppForMimeType failed to return the app for '%s'\n", __FILE__, __LINE__, File);
+								// printf("%s:%i: LgiExecute - LgiGetAppForMimeType failed to return the app for '%s'\n", _FL, File);
 								goto TreatAsExe;
 							}
 						}
@@ -349,9 +349,11 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir, GAutoString
 					}
 				}
 			}
-			else
+			else if (Error)
 			{
-				printf("LgiExecute: '%s' doesn't exist.\n", File);
+				char m[MAX_PATH];
+				sprintf_s(m, sizeof(m), "'%s' doesn't exist.\n", File);
+				Error->Reset(NewStr(m));
 			}
 		}
 

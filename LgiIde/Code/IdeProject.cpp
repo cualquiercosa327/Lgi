@@ -548,8 +548,10 @@ class ProjectNode : public IdeCommon, public GDragDropSource, public FtpCallback
 				{
 					Doc->SetProject(Project);
 					
-					Doc->GetEdit()->SetIndentSize(Project->d->Settings.GetInt(ProjEditorIndentSize));
-					Doc->GetEdit()->SetTabSize(Project->d->Settings.GetInt(ProjEditorTabSize));
+					int i = Project->d->Settings.GetInt(ProjEditorIndentSize);
+					Doc->GetEdit()->SetIndentSize(i > 0 ? i : 4);
+					i = Project->d->Settings.GetInt(ProjEditorTabSize);
+					Doc->GetEdit()->SetTabSize(i > 0 ? i : 4);
 					Doc->GetEdit()->SetHardTabs(Project->d->Settings.GetInt(ProjEditorUseHardTabs));
 					Doc->GetEdit()->SetShowWhiteSpace(Project->d->Settings.GetInt(ProjEditorShowWhiteSpace));
 					Doc->GetEdit()->Invalidate();
@@ -1211,9 +1213,11 @@ public:
 									if (Doc->GetEdit()->Open(FullPath))
 									{
 										Doc->SetProject(Project);
-
-										Doc->GetEdit()->SetIndentSize(Project->d->Settings.GetInt(ProjEditorIndentSize));
-										Doc->GetEdit()->SetTabSize(Project->d->Settings.GetInt(ProjEditorTabSize));
+										
+										int i = Project->d->Settings.GetInt(ProjEditorIndentSize);
+										Doc->GetEdit()->SetIndentSize(i > 0 ? i : 4);
+										i = Project->d->Settings.GetInt(ProjEditorTabSize);
+										Doc->GetEdit()->SetTabSize(i > 0 ? i : 4);
 										Doc->GetEdit()->SetHardTabs(Project->d->Settings.GetInt(ProjEditorUseHardTabs));
 										Doc->GetEdit()->SetShowWhiteSpace(Project->d->Settings.GetInt(ProjEditorShowWhiteSpace));
 

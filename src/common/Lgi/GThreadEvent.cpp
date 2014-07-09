@@ -3,7 +3,8 @@
 
 #if USE_SEM
     #define SEM_NULL -1
-#elif defined(POSIX)
+#endif
+#ifdef LINUX
     #include <errno.h>
 #endif
 

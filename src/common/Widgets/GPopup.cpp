@@ -35,6 +35,21 @@ bool IsWindow(OsView Wnd)
 	#endif
 }
 
+OsView WindowFromPoint(int x, int y)
+{
+	return NULL;
+}
+
+bool GetWindowRect(OsView Wnd, GRect &rc)
+{
+	return false;
+}
+
+bool ScreenToClient(OsView Wnd, GdcPt2 &p)
+{
+	return false;
+}
+
 #elif defined MAC
 
 bool IsWindow(OsView v)
