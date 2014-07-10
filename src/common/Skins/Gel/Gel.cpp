@@ -871,9 +871,19 @@ public:
 			GRect t(Mem->X(), 0, Ctrl->X()-1, Ctrl->Y()-1);
 			if (t.Valid())
 			{
+				int y = 0;
+				if (State->Text)
+				{
+					GDisplayString *ds = *State->Text;
+					if (ds && t.Y() > ds->Y())
+					{
+						y = (t.Y() - ds->Y()) >> 1;
+					}					
+				}
+				
 				DrawText(State->pScreen,
 						State->Text ? *State->Text : 0,
-						Mem->X() + 4, 0,
+						Mem->X() + 4, y,
 						t,
 						Flags & Btn_Enabled,
 						Ctrl);
