@@ -94,6 +94,11 @@ class GHashTbl
             return i;
         }
         
+        int New(unsigned i)
+        {
+            return i;
+        }
+        
         int64 New(int64 i)
         {
             return i;
@@ -269,6 +274,16 @@ class GHashTbl
 			int SizeKey(int a) { return sizeof(a); }
 			void FreeKey(int &a) { memcpy(&a, &NullKey, sizeof(a)); }
 			bool CmpKey(int a, int b)
+			{
+				return a == b;
+			}
+
+		// unsigned
+			uint32 Hash(unsigned s) { return s; }
+			int CopyKey(unsigned a) { return a; }
+			int SizeKey(unsigned a) { return sizeof(a); }
+			void FreeKey(unsigned &a) { memcpy(&a, &NullKey, sizeof(a)); }
+			bool CmpKey(unsigned a, unsigned b)
 			{
 				return a == b;
 			}
