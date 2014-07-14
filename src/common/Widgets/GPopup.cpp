@@ -138,13 +138,10 @@ public:
 		{
 			#ifdef MAC
 			
-			printf("MouseHook: wait...\n");
-			
 			// Wait for the down click...
 			GThreadEvent::WaitStatus s = Event.Wait();
 			if (!Loop || s != GThreadEvent::WaitSignaled)
 			{
-				printf("Leaving mouse hook loop\n");
 				break;
 			}
 			
@@ -158,21 +155,27 @@ public:
 				Cur.x = (int)p.x;
 				Cur.y = (int)p.y;
 				Cur.SetModifer(GetCurrentKeyModifiers());
-				Cur.SetButton(GetCurrentButtonState());
+				Cur.SetButton(GetCurrentEventButtonState());
+				Cur.Down(Cur.Left() || Cur.Right() || Cur.Middle());
 				
 				// Cur.Trace("Cur");
 				
 				if (!Cur.Down() && Prev.Down())
 				{
 					// Up click...
-					printf("Mouse hook up click.\n");
+					if (ViewHandle)
+					{
+						printf("Mouse hook up click.\n");
+						LgiPostEvent(ViewHandle, M_MOUSE_TRACK_UP, 0, 0);
+					}
+					else
+						printf("%s:%i - No mouse hook view for up click.\n", _FL);
 				}
 				
 				Prev = Cur;
-				LgiSleep(50);
+				LgiSleep(30);
 			}
-			while (Cur.Down());
-			printf("Exit loop\n");
+			while (Loop && Cur.Down());
 
 			#else
 			
@@ -419,7 +422,6 @@ void GMouseHook::TrackClick(GView *v)
 {
 	#ifdef MAC
 	d->ViewHandle = v ? v->Handle() : NULL;
-	printf("Signaling...\n");
 	d->Event.Signal();
 	#endif
 }

@@ -1219,6 +1219,11 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 				
 				v->OnEvent(&m);
 				
+				if (m.m == M_MOUSE_TRACK_UP)
+				{
+					if (GView::GetCapture
+				}
+				
 				result = noErr;
 			}
 			break;
@@ -1420,15 +1425,8 @@ bool GWindow::HandleViewMouse(GView *v, GMouse &m)
 
         #endif
 		
-		if (m.Down() && !m.IsMove() && LgiApp)
+		if (!m.IsMove() && LgiApp)
 		{
-			static int Count = 0;
-			Count++;
-			if (Count == 2)
-			{
-				int asd=0;
-			}
-			m.Trace("TrackClick.");
 			GMouseHook *mh = LgiApp->GetMouseHook();
 			if (mh)
 				mh->TrackClick(v);

@@ -108,10 +108,10 @@ public:
 	void SetModifer(uint32 modifierKeys)
 	{
 		#ifdef MAC
-		if (modifierKeys & cmdKey) System(true);
-		if (modifierKeys & shiftKey) Shift(true);
-		if (modifierKeys & optionKey) Alt(true);
-		if (modifierKeys & controlKey) Ctrl(true);
+		System(modifierKeys & cmdKey);
+		Shift(modifierKeys & shiftKey);
+		Alt(modifierKeys & optionKey);
+		Ctrl(modifierKeys & controlKey);
 		#endif
 	}
 };
@@ -233,10 +233,9 @@ public:
 	void SetButton(uint32 Btn)
 	{
 		#ifdef MAC
-		Down(Btn != 0);
-		if (Btn == kEventMouseButtonPrimary) Left(true);
-		else if (Btn == kEventMouseButtonSecondary) Right(true);
-		else if (Btn == kEventMouseButtonTertiary) Middle(true);
+		Left(Btn == kEventMouseButtonPrimary);
+		Right(Btn == kEventMouseButtonSecondary);
+		Middle(Btn == kEventMouseButtonTertiary);
 		#endif
 	}
 };

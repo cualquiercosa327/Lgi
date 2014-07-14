@@ -214,6 +214,7 @@ LgiFunc void LgiSleep(int i);
 #define M_PASTE						(M_USER+111)
 #define M_PULSE						(M_USER+112)
 #define M_DELETE					(M_USER+113)
+#define M_MOUSE_TRACK_UP			(M_USER+114)
 
 /// GThreadWork object completed
 ///
