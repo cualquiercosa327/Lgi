@@ -40,7 +40,7 @@
 
 #undef CellSpacing
 #define DefaultCellSpacing			0
-#define DefaultCellPadding			3
+#define DefaultCellPadding			1
 
 #ifdef MAC
 #define MinimumPointSize			9
@@ -2546,6 +2546,8 @@ void GTag::SetStyle()
 		}
 		case TAG_TABLE:
 		{
+			Len l;
+
 			if (Get("border", s))
 			{
 				BorderDef b;
@@ -2557,6 +2559,25 @@ void GTag::SetStyle()
 					BorderBottom(b);
 				}
 			}
+
+			if (Get("cellspacing", s) &&
+				l.Parse(s, PropBorderSpacing, ParseRelaxed))
+			{
+				BorderSpacing(l);
+			}
+
+			if (Get("cellpadding", s) &&
+				l.Parse(s, Prop_CellPadding, ParseRelaxed))
+			{
+				_CellPadding(l);
+			}
+
+			if (Get("align", s))
+			{
+				Len l;
+				if (l.Parse(s))
+					XAlign = l.Type;
+			}
 			break;
 		}
 		case TAG_TD:
@@ -2564,10 +2585,12 @@ void GTag::SetStyle()
 			GTag *Table = GetTable();
 			if (Table)
 			{
-				const char *s = "1px";
 				Len l = Table->_CellPadding();
 				if (!l.IsValid())
-					l.Parse(s, PropPadding);
+				{
+					l.Type = GCss::LenPx;
+					l.Value = DefaultCellPadding;
+				}
 				PaddingLeft(l);
 				PaddingRight(l);
 				PaddingTop(l);
@@ -2725,29 +2748,6 @@ void GTag::SetStyle()
 			{
 				LgiAssert(ValidStr(Type.GetFace()));
 				FontFamily(StringsDef(Type.GetFace()));
-			}
-			break;
-		}
-		case TAG_TABLE:
-		{
-			Len l;
-			const char *s;
-			if (Get("cellspacing", s) &&
-				l.Parse(s, PropBorderSpacing, ParseRelaxed))
-			{
-				BorderSpacing(l);
-			}
-			if (Get("cellpadding", s) &&
-				l.Parse(s, Prop_CellPadding, ParseRelaxed))
-			{
-				_CellPadding(l);
-			}
-
-			if (Get("align", s))
-			{
-				Len l;
-				if (l.Parse(s))
-					XAlign = l.Type;
 			}
 			break;
 		}
@@ -3452,10 +3452,11 @@ GTag *GTag::GetTableCell(int x, int y)
 
 // This function gets the largest and smallest piece of content
 // in this cell and all it's children.
-bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
+bool GTag::GetWidthMetrics(GTag *Table, uint16 &Min, uint16 &Max)
 {
 	bool Status = true;
 	int MarginPx = 0;
+	int LineWidth = 0;
 
 	// Break the text into words and measure...
 	if (Text())
@@ -3485,7 +3486,7 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 			}
 
 			GDisplayString ds(f, Text());
-			MaxContent = ds.X();
+			LineWidth = MaxContent = ds.X();
 		}
 
 		#ifdef _DEBUG
@@ -3576,7 +3577,7 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 						if (t)
 						{
 							uint16 a = 0, b = 0;
-							if (t->GetWidthMetrics(a, b))
+							if (t->GetWidthMetrics(Table, a, b))
 							{
 								ColMin[x] = max(ColMin[x], a);
 								ColMax[x] = max(ColMax[x], b);
@@ -3603,13 +3604,12 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 		}
 	}
 
-	int LineWidth = Max;
 	for (unsigned i = 0; i < Children.Length(); i++)
 	{
 		GTag *c = ToTag(Children[i]);
 		uint16 TagMax = 0;
 		
-		Status &= c->GetWidthMetrics(Min, TagMax);
+		Status &= c->GetWidthMetrics(Table, Min, TagMax);
 		LineWidth += TagMax;
 		if (c->TagId == TAG_BR)
 		{
@@ -3727,14 +3727,17 @@ void GHtmlTableLayout::AllocatePx(int StartCol, int Cols, int MinPx)
 	}
 	if (GrowablePx < RemainingPx && HasToFillAllAvailable)
 	{
-		// Add any suitable non-growable columns as well
-		for (unsigned i=0; i<NonGrowable.Length(); i++)
+		if (Growable.Length() == 0)
 		{
-			int Col = NonGrowable[i];
-			
-			GCss::Len c = SizeCol[Col];
-			if (c.Type != GCss::LenPercent && c.IsDynamic())
-				Growable.Add(Col);
+			// Add any suitable non-growable columns as well
+			for (unsigned i=0; i<NonGrowable.Length(); i++)
+			{
+				int Col = NonGrowable[i];
+				
+				GCss::Len c = SizeCol[Col];
+				if (c.Type != GCss::LenPercent && c.IsDynamic())
+					Growable.Add(Col);
+			}
 		}
 		
 		if (Growable.Length() == 0)
@@ -3903,7 +3906,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 						}
 					}
 					
-					if (!t->GetWidthMetrics(t->MinContent, t->MaxContent))
+					if (!t->GetWidthMetrics(Table, t->MinContent, t->MaxContent))
 					{
 						t->MinContent = 16;
 						t->MaxContent = 16;
@@ -4008,7 +4011,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	}
 	#endif
 
-	// Sometimes the webpage specifies too many percentages:
+	// Sometimes the web page specifies too many percentages:
 	// Scale them all.	
 	float PercentSum = 0.0f;
 	for (int i=0; i<s.x; i++)

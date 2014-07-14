@@ -287,7 +287,7 @@ protected:
 	GTag *HasOpenTag(char *t);
 	GTag *PrevTag();
 	GRect ChildBounds();
-	bool GetWidthMetrics(uint16 &Min, uint16 &Max);
+	bool GetWidthMetrics(GTag *Table, uint16 &Min, uint16 &Max);
 	void LayoutTable(GFlowRegion *f);
 	void BoundParents();
 	bool PeekTag(char *s, char *tag);

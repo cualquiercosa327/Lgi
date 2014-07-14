@@ -1886,21 +1886,14 @@ bool GCss::Len::Parse(const char *&s, PropType Prop, ParsingStyle ParseType)
 			return false;
 		else if (ParseType == ParseRelaxed)
 		{
-			if (Value > 0)
+			if (Prop == PropLineHeight)
 			{
-				if (Prop == PropLineHeight)
-				{
-					Type = LenPercent;
-					Value *= 100;
-				}
-				else
-				{
-					Type = LenPx;
-				}
+				Type = LenPercent;
+				Value *= 100;
 			}
 			else
 			{
-				Type = LenInherit;
+				Type = LenPx;
 			}
 		}
 		else
