@@ -523,10 +523,7 @@ bool GView::_Mouse(GMouse &m, bool Move)
 			}
 			else
 			{
-				if (!Wnd || Wnd->HandleViewMouse(Target, m))
-				{
-					Target->OnMouseClick(m);
-				}
+				Target->OnMouseClick(m);
 			}
 		}
 		else return false;
@@ -855,17 +852,10 @@ bool GView::GetMouse(GMouse &m, bool ScreenCoords)
 {
 	if (_View || !GetParent())
 	{
-        #if 0
-		Point p;
-		::GetMouse(&p);
-        int MouseX = p.h;
-        int MouseY = p.v;
-        #else
         HIPoint p;
         HIGetMousePosition(kHICoordSpaceScreenPixel, NULL, &p);
         int MouseX = (int)p.x;
         int MouseY = (int)p.y;
-        #endif
 		
 		if (ScreenCoords)
 		{
@@ -879,6 +869,9 @@ bool GView::GetMouse(GMouse &m, bool ScreenCoords)
 			m.x = n.x;
 			m.y = n.y;
 		}
+
+		m.SetModifer(GetCurrentKeyModifiers());
+		m.SetButton(GetCurrentButtonState());
 
 		m.ViewCoords = !ScreenCoords;
 		m.Target = this;

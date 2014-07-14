@@ -90,6 +90,10 @@ bool GLibrary::Load(const char *File)
 				#endif
 				if (!hLib)
 				{
+					char *e = dlerror();
+					if (!stristr(e, "No such file or directory"))
+						printf("GLibrary::Load(\"%s\") failed.\n\t%s\n", File, e);
+
 					GToken t("/opt/local/lib", ":");
 					printf("DYLD_LIBRARY_PATH=%i paths\n", t.Length());
 					for (int i=0; i<t.Length(); i++)

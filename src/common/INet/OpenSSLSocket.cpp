@@ -57,8 +57,23 @@ SSL_id_function();
 class LibSSL : public GLibrary
 {
 public:
-	LibSSL() : GLibrary(SSL_LIBRARY)
+	LibSSL()
 	{
+		#ifndef WINDOWS
+		char Exe[MAX_PATH];
+		if (LgiGetExeFile(Exe, sizeof(Exe)))
+		{
+			LgiMakePath(Exe, sizeof(Exe), Exe, "Contents/MacOS/libcrypto.dylib");
+			if (FileExists(Exe))
+			{
+				Load(Exe);
+			}
+		}
+		#endif
+
+		if (!IsLoaded())
+			Load(SSL_LIBRARY);
+
 		if (!IsLoaded())
 		{
 			char p[300];
@@ -72,6 +87,11 @@ public:
 			Load(SSL_LIBRARY);
 			#ifdef WIN32
 			FileDev->SetCurrentFolder(old);
+			#endif
+
+			#ifdef MAC
+			if (!IsLoaded())
+				Load("/opt/local/lib/" SSL_LIBRARY);
 			#endif
 		}
 
@@ -506,8 +526,9 @@ SslSocket::SslSocket(GStreamI *logger, GCapabilityClient *caps, bool sslonconnec
 	    caps->NeedsCapability("openssl", ErrMsg);
 	}
 	else
-	{		    
+	{
 		OnError(0, "Can't load or find OpenSSL library.");
+		LgiAssert(!"No OpenSSL library.");
 	}
 }
 

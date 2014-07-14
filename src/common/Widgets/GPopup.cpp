@@ -3,6 +3,7 @@
 #include "GPopup.h"
 #include "GSkinEngine.h"
 #include "GDisplayString.h"
+#include "GThreadEvent.h"
 
 enum PopupNotifications
 {
@@ -85,18 +86,21 @@ public:
 	bool Loop;
 	OsView hMouseOver;
 	List<GPopup> Popups;
+	#ifdef MAC
+	OsView ViewHandle;
+	GThreadEvent Event;
+	#endif
 
 	GMouseHookPrivate() : GMutex("MouseHookLock"), GThread("MouseHook")
 	{
 		Loop = false;
 		hMouseOver = 0;
 
-		#ifdef XWIN
-		HookPrivate = this;
-		// XWidget::DestroyNotifyHandlers[0] = XWinDestroyHandler;
+		#ifdef MAC
+		ViewHandle = NULL;
 		#endif
-		
-		#if defined(MAC) || defined(LINUX)
+
+		#if defined(LINUX)
 		LgiTrace("Mouse hook thread not running! (FIXME)\n");
 		#else
 		Loop = true;
@@ -109,16 +113,15 @@ public:
 		if (Loop)
 		{
 			Loop = false;
+			#ifdef MAC
+			Event.Signal();
+			#endif
+			
 			while (!IsExited())
 			{
 				LgiSleep(10);
 			}
 		}
-
-		#ifdef XWIN
-		// XWidget::DestroyNotifyHandlers[0] = 0;
-		HookPrivate = 0;
-		#endif
 	}
 	
 	void PostEvent(OsView h, int c, int a, int b)
@@ -133,6 +136,46 @@ public:
 
 		while (Loop)
 		{
+			#ifdef MAC
+			
+			printf("MouseHook: wait...\n");
+			
+			// Wait for the down click...
+			GThreadEvent::WaitStatus s = Event.Wait();
+			if (!Loop || s != GThreadEvent::WaitSignaled)
+			{
+				printf("Leaving mouse hook loop\n");
+				break;
+			}
+			
+			// Now loop for events...
+			GMouse Cur, Prev;
+			Prev.Down(true);
+			do
+			{
+				HIPoint p;
+				HIGetMousePosition(kHICoordSpaceScreenPixel, NULL, &p);
+				Cur.x = (int)p.x;
+				Cur.y = (int)p.y;
+				Cur.SetModifer(GetCurrentKeyModifiers());
+				Cur.SetButton(GetCurrentButtonState());
+				
+				// Cur.Trace("Cur");
+				
+				if (!Cur.Down() && Prev.Down())
+				{
+					// Up click...
+					printf("Mouse hook up click.\n");
+				}
+				
+				Prev = Cur;
+				LgiSleep(50);
+			}
+			while (Cur.Down());
+			printf("Exit loop\n");
+
+			#else
+			
 			if (LockWithTimeout(500, _FL))
 			{
 				GMouse m;
@@ -172,7 +215,7 @@ public:
 							// This is a bit of a hack to prevent GPopup's with open context menus from
 							// closing when the user clicks on the context menu.
 							//
-							// FIXME: Linux/BeOS/Mac
+							// FIXME: Linux/BeOS
 
 							// Scan the window under the mouse up the parent tree
 							POINT p = { m.x, m.y };
@@ -354,6 +397,7 @@ public:
 			}
 
 			LgiSleep(40);
+			#endif
 		}
 
 		return 0;
@@ -369,6 +413,15 @@ GMouseHook::~GMouseHook()
 {
 	d->Lock(_FL);
 	DeleteObj(d);
+}
+
+void GMouseHook::TrackClick(GView *v)
+{
+	#ifdef MAC
+	d->ViewHandle = v ? v->Handle() : NULL;
+	printf("Signaling...\n");
+	d->Event.Signal();
+	#endif
 }
 
 bool GMouseHook::OnViewKey(GView *v, GKey &k)

@@ -77,16 +77,19 @@ public:
 };
 
 /// Mouse hook grabs mouse events from the OS
+class GPopup;
 class GMouseHook
 {
 	class GMouseHookPrivate *d;
+	
 public:
 	GMouseHook();
 	~GMouseHook();
 
-	void RegisterPopup(class GPopup *p);
-	void UnregisterPopup(class GPopup *p);
+	void RegisterPopup(GPopup *p);
+	void UnregisterPopup(GPopup *p);
 	bool OnViewKey(GView *v, GKey &k);
+	void TrackClick(GView *v);
 
 	#ifdef WIN32
 	static LRESULT CALLBACK MouseProc(int Code, WPARAM a, LPARAM b);

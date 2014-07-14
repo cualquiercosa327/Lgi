@@ -822,7 +822,6 @@ bool GView::HandleCapture(GView *Wnd, bool c)
 			gtk_grab_add(_View);
 			#elif WINNATIVE
 			d->hPrevCapture = SetCapture(_View);
-			#elif defined MAC
 			#endif
 
 			Status = true;
@@ -845,7 +844,6 @@ bool GView::HandleCapture(GView *Wnd, bool c)
 				gtk_grab_remove(_View);
 				#elif defined WIN32
 				ReleaseCapture();
-				#elif defined MAC
 				#endif
 
 				#if DEBUG_CAPTURE

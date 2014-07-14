@@ -1090,17 +1090,10 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 					m.ViewCoords = false;
 					m.x = Pt.h; // - Client.left;
 					m.y = Pt.v; // - Client.top;
-
-					if (modifierKeys & 0x100) m.System(true);
-					if (modifierKeys & 0x200) m.Shift(true);
-					if (modifierKeys & 0x800) m.Alt(true);
-					if (modifierKeys & 0x1000) m.Ctrl(true);
-
+					m.SetModifer(modifierKeys);
 					m.Down(eventKind == kEventMouseDown);
 					m.Double(m.Down() && Clicks > 1);
-					if (Btn == kEventMouseButtonPrimary) m.Left(true);
-					else if (Btn == kEventMouseButtonSecondary) m.Right(true);
-					else if (Btn == kEventMouseButtonTertiary) m.Middle(true);
+					m.SetButton(Btn);
 					
 					#if 0
 					printf("Client=%i,%i,%i,%i Pt=%i,%i\n",
@@ -1156,20 +1149,10 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 					m.ViewCoords = false;
 					m.x = Pt.h;
 					m.y = Pt.v;
-
-					if (modifierKeys & 0x100) m.System(true);
-					if (modifierKeys & 0x200) m.Shift(true);
-					if (modifierKeys & 0x800) m.Alt(true);
-					if (modifierKeys & 0x1000) m.Ctrl(true);
-
+					m.SetModifer(modifierKeys);
 					m.Down(eventKind == kEventMouseDragged);
 					if (m.Down())
-					{
-						UInt32 Btn = GetCurrentEventButtonState();
-						if (Btn == kEventMouseButtonPrimary) m.Left(true);
-						else if (Btn == kEventMouseButtonSecondary) m.Right(true);
-						else if (Btn == kEventMouseButtonTertiary) m.Middle(true);
-					}
+						m.SetButton(GetCurrentEventButtonState());
 					
 					#if 0
 					printf("move %i,%i down=%i, left=%i right=%i middle=%i, ctrl=%i alt=%i shift=%i Double=%i\n",
@@ -1436,6 +1419,20 @@ bool GWindow::HandleViewMouse(GView *v, GMouse &m)
 		}
 
         #endif
+		
+		if (m.Down() && !m.IsMove() && LgiApp)
+		{
+			static int Count = 0;
+			Count++;
+			if (Count == 2)
+			{
+				int asd=0;
+			}
+			m.Trace("TrackClick.");
+			GMouseHook *mh = LgiApp->GetMouseHook();
+			if (mh)
+				mh->TrackClick(v);
+		}
 	}
 	#endif
 

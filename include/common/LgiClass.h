@@ -104,6 +104,16 @@ public:
 		return Ctrl();
 		#endif
 	}
+	
+	void SetModifer(uint32 modifierKeys)
+	{
+		#ifdef MAC
+		if (modifierKeys & cmdKey) System(true);
+		if (modifierKeys & shiftKey) Shift(true);
+		if (modifierKeys & optionKey) Alt(true);
+		if (modifierKeys & controlKey) Ctrl(true);
+		#endif
+	}
 };
 
 /// All the information related to a keyboard event
@@ -219,6 +229,16 @@ public:
 
 	/// \returns true if this event should show a context menu
 	bool IsContextMenu();
+	
+	void SetButton(uint32 Btn)
+	{
+		#ifdef MAC
+		Down(Btn != 0);
+		if (Btn == kEventMouseButtonPrimary) Left(true);
+		else if (Btn == kEventMouseButtonSecondary) Right(true);
+		else if (Btn == kEventMouseButtonTertiary) Middle(true);
+		#endif
+	}
 };
 
 #include "GAutoPtr.h"

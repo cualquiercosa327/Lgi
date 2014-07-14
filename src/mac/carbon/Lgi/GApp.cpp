@@ -619,53 +619,6 @@ GApp::~GApp()
 	TheApp = 0;
 }
 
-/*
-const char *GApp::GetName()
-{
-	if (d->Name)
-		return d->Name;
-	
-	if (d->Mime)
-	{
-		char *i = strchr(d->Mime, '/');
-		if (i)
-		{
-			static char s[128];
-			i++;
-			if (ToLower(i[0]) == 'x' && i[1] == '-')
-				i += 2;
-			char *o = s;
-			bool First = true;
-			while (*i && o < s + sizeof(s) - 1)
-			{
-				if (*i != '-')
-				{
-					if (First)
-					{
-						*o++ = ToUpper(*i);
-						First = false;
-					}
-					else
-						*o++ = *i;
-				}
-				else First = true;
-				i++;
-			}
-			*o = 0;
-			
-			return s;
-		}
-	}
-	
-	return 0;
-}
-
-void GApp::SetName(const char *Name)
-{
-	d->Name.Reset(NewStr(Name));
-}
-*/
-
 GApp *GApp::ObjInstance()
 {
 	return TheApp;
