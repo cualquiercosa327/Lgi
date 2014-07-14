@@ -3603,25 +3603,21 @@ bool GTag::GetWidthMetrics(uint16 &Min, uint16 &Max)
 		}
 	}
 
+	int LineWidth = Max;
 	for (unsigned i = 0; i < Children.Length(); i++)
 	{
 		GTag *c = ToTag(Children[i]);
-		uint16 Width = 0;
-
-		uint16 x = 0;
-		Status &= c->GetWidthMetrics(Min, x);
+		uint16 TagMax = 0;
+		
+		Status &= c->GetWidthMetrics(Min, TagMax);
+		LineWidth += TagMax;
 		if (c->TagId == TAG_BR)
 		{
-			Max = max(Max, Width);
-			Width = 0;
+			Max = max(Max, LineWidth);
+			LineWidth = 0;
 		}
-		else
-		{
-			Width += x;
-		}
-
-		Max = max(Max, Width);
 	}
+	Max = max(Max, LineWidth);
 
 	Min += MarginPx;
 	Max += MarginPx;
@@ -5302,15 +5298,14 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 		}
 		case TAG_BODY:
 		{
+			COLOUR b = GetBack();
+			if (b != GT_TRANSPARENT)
+			{
+				pDC->Colour(b, 32);
+				pDC->Rectangle(Pos.x, Pos.y, Pos.x+Size.x, Pos.y+Size.y);
+			}
 			if (Image)
 			{
-				COLOUR b = GetBack();
-				if (b != GT_TRANSPARENT)
-				{
-					pDC->Colour(b, 32);
-					// pDC->Rectangle(Pos.x, Pos.y, Pos.x+Size.x, Pos.y+Size.y);
-				}
-
 				GRect r;
 				r.ZOff(Size.x-1, Size.y-1);
 				FillRectWithImage(pDC, &r, Image, BackgroundRepeat());
@@ -6280,6 +6275,14 @@ void GHtml::OnPaint(GSurface *ScreenDC)
 					MemDC.Reset();
 				}
 			}
+		}
+		if (MemDC)
+		{
+			MemDC->ClipRgn(NULL);
+			#if 0//def _DEBUG
+			MemDC->Colour(GColour(255, 0, 255));
+			MemDC->Rectangle();
+			#endif
 		}
 		#endif
 
