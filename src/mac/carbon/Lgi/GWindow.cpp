@@ -1221,7 +1221,7 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 				
 				if (m.m == M_MOUSE_TRACK_UP)
 				{
-					if (GView::GetCapture
+					printf("M_MOUSE_TRACK_UP\n");
 				}
 				
 				result = noErr;

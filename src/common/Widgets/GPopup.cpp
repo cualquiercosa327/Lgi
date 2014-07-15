@@ -164,10 +164,7 @@ public:
 				{
 					// Up click...
 					if (ViewHandle)
-					{
-						printf("Mouse hook up click.\n");
 						LgiPostEvent(ViewHandle, M_MOUSE_TRACK_UP, 0, 0);
-					}
 					else
 						printf("%s:%i - No mouse hook view for up click.\n", _FL);
 				}
