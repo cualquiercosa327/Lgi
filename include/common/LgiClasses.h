@@ -962,6 +962,7 @@ public:
 	/// Called when the view position changes
 	void OnPosChange();
 	/// Called on a top level window when something requests to close the window
+	/// \returns true if it's ok to continue shutting down.
 	bool OnRequestClose
 	(
 		/// True if the operating system is shutting down.

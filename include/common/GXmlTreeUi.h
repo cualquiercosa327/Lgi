@@ -4,14 +4,12 @@
 #ifndef _GXML_TREE_UI_H_
 #define _GXML_TREE_UI_H_
 
-#include "GXmlTree.h"
 #include "GVariant.h"
 #include "GList.h"
 
-
 /// This class allows you to serialize data between the user interface and a
-/// GXmlTag instance. Useful for storing user visible application settings in
-/// XML.
+/// GDom instance. Useful for storing user visible application settings in
+/// XML or an optons file.
 class GXmlToUi
 {
 	class GXmlToUiPriv *d;
