@@ -97,6 +97,7 @@ public:
 	virtual bool Close() = 0;
 	virtual bool IsOpen() = 0;
 	virtual void Noop() = 0;
+	virtual void GetHost(GAutoString *Host, int *Port) = 0;
 
 	// Directory
 	virtual bool GetDir(GAutoString &Dir) = 0;
@@ -178,6 +179,8 @@ public:
 	
 	/// Opens a new command connection to a remote server
 	FtpOpenStatus Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Password);
+	/// Returns the host and port
+	void GetHost(GAutoString *Host, int *Port);
 	/// Closes the currently active connection
 	bool Close();
 	/// \returns true if the connection is open and active

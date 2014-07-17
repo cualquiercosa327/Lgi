@@ -28,6 +28,9 @@ public:
 	GAutoPtr<GSocketI> Data;	// get data
 	GFile *F;
 	char *Charset;
+	
+	GAutoString Host;
+	int Port;
 
 	IFtpPrivate()
 	{
@@ -35,6 +38,7 @@ public:
 		InBuf[0] = 0;
 		CurMode = FT_Unknown;
 		F = 0;
+		Port = 0;
 	}
 
 	~IFtpPrivate()
@@ -433,6 +437,12 @@ bool IFtp::IsOpen()
 	return Socket ? Socket->IsOpen() : false;
 }
 
+void IFtp::GetHost(GAutoString *Host, int *Port)
+{
+	Host->Reset(NewStr(d->Host));
+	*Port = d->Port;
+}
+
 FtpOpenStatus IFtp::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Password)
 {
 	FtpOpenStatus Status = FO_ConnectFailed;
@@ -444,6 +454,9 @@ FtpOpenStatus IFtp::Open(GSocketI *S, char *RemoteHost, int Port, char *User, ch
 
 		if (!Port)
 			Port = 21;
+
+		d->Host.Reset(NewStr(RemoteHost));
+		d->Port = Port;
 
 		if (Socket && Socket->Open(RemoteHost, Port))
 		{

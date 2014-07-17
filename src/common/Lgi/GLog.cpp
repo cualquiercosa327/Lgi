@@ -104,7 +104,8 @@ int RLogView::OnNotify(GViewI *Ctrl, int Flags)
 		// show new data
 		Invalidate();
 		#ifdef WIN32
-		UpdateWindow(Handle());
+		if (InThread())
+			UpdateWindow(Handle());
 		#endif
 	}
 	else if (Ctrl->GetId() == IDC_VSCROLL ||
