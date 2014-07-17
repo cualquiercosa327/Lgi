@@ -1732,6 +1732,21 @@ bool MailSmtp::WriteText(const char *Str)
 	return Status;
 }
 
+char *StripChars(char *Str, const char *Chars = "\r\n")
+{
+	char *i = Str;
+	char *o = Str;
+	while (*i)
+	{
+		if (strchr(Chars, *i))
+			i++;
+		else
+			*o++ = *i++;
+	}
+	*o++ = 0;
+	return Str;
+}
+
 char *CreateAddressTag(List<AddressDescriptor> &l, int Type, List<char> *CharsetPrefs)
 {
 	char *Result = 0;
@@ -1754,6 +1769,9 @@ char *CreateAddressTag(List<AddressDescriptor> &l, int Type, List<char> *Charset
 		{
 			AddressDescriptor *NextA = Addr.Next();
 			char Buffer[256] = "";
+			
+			StripChars(a->Name);
+			StripChars(a->Addr);
 
 			if (a->Addr && strchr(a->Addr, ','))
 			{
