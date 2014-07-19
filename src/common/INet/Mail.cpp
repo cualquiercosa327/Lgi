@@ -1734,16 +1734,20 @@ bool MailSmtp::WriteText(const char *Str)
 
 char *StripChars(char *Str, const char *Chars = "\r\n")
 {
-	char *i = Str;
-	char *o = Str;
-	while (*i)
+	if (Str)
 	{
-		if (strchr(Chars, *i))
-			i++;
-		else
-			*o++ = *i++;
+		char *i = Str;
+		char *o = Str;
+		while (*i)
+		{
+			if (strchr(Chars, *i))
+				i++;
+			else
+				*o++ = *i++;
+		}
+		*o++ = 0;
 	}
-	*o++ = 0;
+
 	return Str;
 }
 
