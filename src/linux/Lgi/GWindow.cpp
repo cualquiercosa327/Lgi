@@ -800,11 +800,11 @@ void GWindow::OnPosChange()
 {
 	GView::OnPosChange();
 
-	if (d->Sx != X() ||	d->Sy != Y())
+	//if (d->Sx != X() ||	d->Sy != Y())
 	{
 		Pour();
-		d->Sx = X();
-		d->Sy = Y();
+		//d->Sx = X();
+		//d->Sy = Y();
 	}
 }
 
