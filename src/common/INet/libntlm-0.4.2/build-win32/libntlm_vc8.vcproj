@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="9.00"
 	Name="libntlm"
 	ProjectGUID="{F97AAACA-BF41-46B8-B534-A1639589A1A3}"
 	RootNamespace="libntlm"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -52,7 +53,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..,..\build-win32,..\lib,..\..\..\..\..\include\common"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;LIBNTLM_EXPORTS;LGI_STATIC"
+				PreprocessorDefinitions="WIN32;_DEBUG;WINDOWS;_USRDLL;LIBNTLM_EXPORTS;LGI_STATIC"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -76,12 +77,14 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="../../../../../lib/libntlm8d.dll"
+				OutputFile="../../../../../lib/libntlm9d.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\$(IntDir)\libntlmd.pdb"
-				ImportLibrary="../../../../../lib/libntlm8d.lib"
+				ProgramDatabaseFile=".\$(IntDir)\libntlm9d.pdb"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
+				ImportLibrary="../../../../../lib/libntlm9d.lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -103,9 +106,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -175,6 +175,8 @@
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(IntDir)\libntlm.pdb"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary="../../../../../lib/libntlm64d.lib"
 				TargetMachine="17"
 			/>
@@ -197,9 +199,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -241,7 +240,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..,..\build-win32,..\lib,..\..\..\..\..\include\common"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBNTLM_EXPORTS;LGI_STATIC"
+				PreprocessorDefinitions="WIN32;NDEBUG;WINDOWS;_USRDLL;LIBNTLM_EXPORTS;LGI_STATIC"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -264,11 +263,13 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="../../../../../lib/libntlm8.dll"
+				OutputFile="../../../../../lib/libntlm9.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				ProgramDatabaseFile=".\Release8\libntlm.pdb"
-				ImportLibrary="../../../../../lib/libntlm8.lib"
+				ProgramDatabaseFile=".\Release8\libntlm9.pdb"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
+				ImportLibrary="../../../../../lib/libntlm9.lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -290,9 +291,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -361,6 +359,8 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				ProgramDatabaseFile="$(IntDir)\libntlm.pdb"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary="../../../../../lib/libntlm64.lib"
 				TargetMachine="17"
 			/>
@@ -383,9 +383,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -450,11 +447,13 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="../../../../../lib/libntlm8nop.dll"
+				OutputFile="../../../../../lib/libntlm9nop.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				ProgramDatabaseFile=".\Release8\libntlm.pdb"
-				ImportLibrary="../../../../../lib/libntlm8.lib"
+				ProgramDatabaseFile=".\Release8\libntlm9nop.pdb"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
+				ImportLibrary="../../../../../lib/libntlm9nop.lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -476,9 +475,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -547,6 +543,8 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				ProgramDatabaseFile="$(IntDir)\libntlm.pdb"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary="../../../../../lib/libntlm64.lib"
 				TargetMachine="17"
 			/>
@@ -569,9 +567,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"

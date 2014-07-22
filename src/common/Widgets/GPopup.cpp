@@ -490,7 +490,7 @@ public:
 	}
 };
 
-#ifndef WINDOWS
+#if !WINNATIVE
 ::GArray<GPopup*> GPopup::CurrentPopups;
 #endif
 
@@ -503,7 +503,7 @@ GPopup::GPopup(GView *owner)
     #ifdef __GTK_H__
     Wnd = NULL;
     #endif
-    #ifndef WINDOWS
+    #if !WINNATIVE
     CurrentPopups.Add(this);
     #endif
 
@@ -522,7 +522,7 @@ GPopup::GPopup(GView *owner)
 
 GPopup::~GPopup()
 {
-    #ifndef WINDOWS
+    #if !WINNATIVE
 	CurrentPopups.Delete(this);
 	#endif
 	SendNotify(POPUP_DELETE);

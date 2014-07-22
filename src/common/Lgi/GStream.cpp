@@ -37,8 +37,7 @@ int GStreamPrintf(GStreamI *Stream, int Flags, const char *Format, va_list &Arg)
 		if (lgi_vscprintf)
 		{
 			// WinXP and up...
-			va_copy(Cpy, Arg);
-			Chars = lgi_vscprintf(Format, Cpy);
+			Chars = lgi_vscprintf(Format, Arg);
 			if (Chars > 0)
 			{
 				GAutoString Buf(new char[Chars+1]);
@@ -60,8 +59,7 @@ int GStreamPrintf(GStreamI *Stream, int Flags, const char *Format, va_list &Arg)
 				if (!Buf)
 					break;
 
-				va_copy(Cpy, Arg);
-				int c = vsnprintf(Buf, Size, Format, Cpy);
+				int c = vsnprintf(Buf, Size, Format, Arg);
 				if (c > 0)
 				{
 					Stream->Write(Buf, Chars = c, Flags);

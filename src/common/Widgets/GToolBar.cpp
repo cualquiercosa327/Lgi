@@ -608,7 +608,7 @@ void GImageList::Draw(GSurface *pDest, int Dx, int Dy, int Image, GColour Backgr
 				}
 				else
 				{
-					GMemDC Buf(d->Sx, d->Sy, 32);
+					GMemDC Buf(d->Sx, d->Sy, System32BitColourSpace);
 					Buf.Colour(Background);
 					Buf.Rectangle();
 					Buf.Op(GDC_ALPHA);
