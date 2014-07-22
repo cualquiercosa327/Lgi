@@ -500,9 +500,13 @@ extern GDataStoreI *OpenImap
 	/// Various flags that control the type of connection made:
 	/// \sa #MAIL_SSL, #MAIL_SECURE_AUTH
 	int ConnectFlags,
+	/// The callback into the app window
 	GDataEventsI *Callback,
+	/// The capability installer (for OpenSSL requirement)
 	GCapabilityClient *caps,
+	/// The output log
 	GStream *Log,
+	/// The account ID number used to generate the cache location
 	int AccoundId = 0
 );
 
