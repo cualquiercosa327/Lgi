@@ -345,7 +345,9 @@ bool GWindow::HandleViewMouse(GView *v, GMouse &m)
 		{
 			for (int i=0; i<GPopup::CurrentPopups.Length(); i++)
 			{
-				GPopup::CurrentPopups[i]->Visible(false);
+				GPopup *p = GPopup::CurrentPopups[i];
+				if (p->Visible())
+					p->Visible(false);
 			}
 		}
 	}

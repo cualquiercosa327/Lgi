@@ -3,6 +3,8 @@
 #ifndef _MAIL_STORE_H_
 #define _MAIL_STORE_H_
 
+#include "Mail.h"
+
 /*
 	Handling of attachments in the Store3 API
 	-----------------------------------------
@@ -493,6 +495,7 @@ extern GDataStoreI *OpenImap
 	int ConnectFlags,
 	GDataEventsI *Callback,
 	GCapabilityClient *caps,
+	MailProtocolProgress *prog[2],
 	GStream *Log,
 	int AccoundId = 0
 );

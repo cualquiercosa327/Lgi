@@ -1129,7 +1129,7 @@ bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
 		if (Store->GetValue(FieldName, v) && v.Str())
 		{
 			GRect Position(0, 0, -1, -1);
-			int State = 0;
+			GWindowZoom State = GZoomNormal;
 
 			GToken t(v.Str(), ";");
 			for (int i=0; i<t.Length(); i++)
@@ -1141,7 +1141,7 @@ bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
 					*Value++ = 0;
 
 					if (stricmp(Var, "State") == 0)
-						State = atoi(Value);
+						State = (GWindowZoom)atoi(Value);
 					else if (stricmp(Var, "Pos") == 0)
 					{
 					    GRect r;
@@ -1159,12 +1159,12 @@ bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
 				Show == SW_SHOWMINNOACTIVE ||
 				Show == SW_MINIMIZE)
 			{
-				State = -1;
+				State = GZoomMin;
 			}
 			else if (Show == SW_SHOWMAXIMIZED ||
 					 Show == SW_MAXIMIZE)
 			{
-				State = 1;
+				State = GZoomMax;
 			}
 
 			WINDOWPLACEMENT *Wp = new WINDOWPLACEMENT;
@@ -1174,11 +1174,11 @@ bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
 				Wp->length = sizeof(*Wp);
 				if (Visible())
 				{
-					if (State > 0)
+					if (State == GZoomMax)
 					{
 						Wp->showCmd = SW_SHOWMAXIMIZED;
 					}
-					else if (State < 0)
+					else if (State == GZoomMin)
 					{
 						Wp->showCmd = SW_MINIMIZE;
 					}
@@ -1190,18 +1190,7 @@ bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
 				else
 				{
 					Wp->showCmd = SW_HIDE;
-					if (State > 0)
-					{
-						d->Show = GZoomMax;
-					}
-					else if (State < 0)
-					{
-						d->Show = GZoomMin;
-					}
-					else
-					{
-						d->Show = GZoomNormal;
-					}
+					d->Show = State;
 				}
 
 				if (Position.Valid() &&
@@ -1230,12 +1219,7 @@ bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
 	else
 	{
 		char s[256];
-		int State = 0;
-		if (IsZoomed(Handle()))
-			State = 1;
-		else if (IsIconic(Handle()))
-			State = -1;
-
+		GWindowZoom State = GetZoom();
 		GRect Position;
 		
 		if (Handle())
