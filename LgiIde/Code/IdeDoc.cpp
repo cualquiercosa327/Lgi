@@ -74,7 +74,7 @@ public:
 		}
 
 		GRect f = HeaderBtn;
-		LgiThinBorder(pDC, f, RAISED);
+		LgiThinBorder(pDC, f, DefaultRaisedEdge);
 		SysFont->Transparent(true);
 		{
 			GDisplayString ds(SysFont, "h");
@@ -82,7 +82,7 @@ public:
 		}
 
 		f = FuncBtn;
-		LgiThinBorder(pDC, f, RAISED);
+		LgiThinBorder(pDC, f, DefaultRaisedEdge);
 		SysFont->Transparent(true);
 		{
 			GDisplayString ds(SysFont, "{ }");
@@ -90,7 +90,7 @@ public:
 		}
 
 		f = SymBtn;
-		LgiThinBorder(pDC, f, RAISED);
+		LgiThinBorder(pDC, f, DefaultRaisedEdge);
 		SysFont->Transparent(true);
 		{
 			GDisplayString ds(SysFont, "s");

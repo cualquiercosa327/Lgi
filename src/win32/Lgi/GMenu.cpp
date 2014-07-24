@@ -511,7 +511,7 @@ void GMenuItem::_Paint(GSurface *pDC, int Flags)
 			GRect rgn = r;
 			if (Selected)
 			{
-				LgiThinBorder(pDC, rgn, SUNKEN);
+				LgiThinBorder(pDC, rgn, DefaultSunkenEdge);
 				Fore = LC_MENU_TEXT;
 				x++;
 				y++;

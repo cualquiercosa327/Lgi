@@ -200,7 +200,7 @@ public:
 		}
 		else
 		{
-			LgiWideBorder(&Mem, Back, Val ? SUNKEN : RAISED);
+			LgiWideBorder(&Mem, Back, Val ? DefaultSunkenEdge : DefaultRaisedEdge);
 		}
 
 		if (HasLeft && Val)

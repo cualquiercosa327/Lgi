@@ -169,12 +169,6 @@ typedef SOCKET						OsSocket;
 #define MK_MIDDLE					MK_MBUTTON
 #define MK_CTRL						MK_CONTROL
 	
-// Edge types
-#define SUNKEN						1
-#define RAISED						2
-#define CHISEL						3
-#define FLAT						4
-
 // Stupid mouse wheel defines don't work. hmmm
 #define WM_MOUSEWHEEL				0x020A
 #define WHEEL_DELTA					120

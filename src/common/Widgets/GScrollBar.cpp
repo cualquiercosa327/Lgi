@@ -1,10 +1,6 @@
 #include "Lgi.h"
 #include "GScrollBar.h"
 
-LgiFunc COLOUR LgiColour(int Colour);
-LgiFunc void LgiThinBorder(GSurface *pDC, GRect &r, int Type);
-LgiFunc void LgiWideBorder(GSurface *pDC, GRect &r, int Type);
-
 #define DrawBorder(dc, r, edge) LgiWideBorder(dc, r, edge)
 // #define DrawBorder(dc, r, edge) LgiThinBorder(dc, r, edge)
 
@@ -113,14 +109,14 @@ public:
 	{
 		// left/up button
 		GRect r = Sub;
-		DrawBorder(pDC, r, IsOver() == BTN_SUB ? SUNKEN : RAISED);
+		DrawBorder(pDC, r, IsOver() == BTN_SUB ? DefaultSunkenEdge : DefaultRaisedEdge);
 		pDC->Colour(LC_MED, 24);
 		pDC->Rectangle(&r);
 		DrawIcon(pDC, r, false, IsValid() ? LC_BLACK : LC_LOW);
 
 		// right/down
 		r = Add;
-		DrawBorder(pDC, r, IsOver() == BTN_ADD ? SUNKEN : RAISED);
+		DrawBorder(pDC, r, IsOver() == BTN_ADD ? DefaultSunkenEdge : DefaultRaisedEdge);
 		pDC->Colour(LC_MED, 24);
 		pDC->Rectangle(&r);
 		DrawIcon(pDC, r, true, IsValid() ? LC_BLACK : LC_LOW);
@@ -139,7 +135,7 @@ public:
 
 			// slide button
 			r = Slide;
-			DrawBorder(pDC, r, RAISED); // IsOver() == BTN_SLIDE ? SUNKEN : RAISED);
+			DrawBorder(pDC, r, DefaultRaisedEdge); // IsOver() == BTN_SLIDE ? SUNKEN : RAISED);
 			pDC->Colour(LC_MED, 24);
 			if (r.Valid()) pDC->Rectangle(&r);
 		}

@@ -203,6 +203,13 @@ GScreenDC::~GScreenDC()
 	DeleteObj(d);
 }
 
+bool GScreenDC::GetClient(GRect *c)
+{
+	if (!c) return false;
+	*c = d->Client;
+	return true;
+}
+
 void GScreenDC::SetClient(GRect *c)
 {
 	if (c)

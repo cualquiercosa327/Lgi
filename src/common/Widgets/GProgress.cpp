@@ -74,7 +74,7 @@ GMessage::Param GProgress::OnEvent(GMessage *Msg)
 void GProgress::OnPaint(GSurface *pDC)
 {
 	GRect r(0, 0, X()-1, Y()-1);
-	LgiThinBorder(pDC, r, SUNKEN);
+	LgiThinBorder(pDC, r, DefaultSunkenEdge);
 
 	if (High != 0)
 	{

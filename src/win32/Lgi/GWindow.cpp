@@ -848,6 +848,7 @@ GMessage::Result GWindow::OnEvent(GMessage *Msg)
 			}
 			break;
 		}
+		#if 1
 		case WM_SIZE:
 		{
 			if (Visible())
@@ -873,13 +874,16 @@ GMessage::Result GWindow::OnEvent(GMessage *Msg)
 				}
 				if (z != d->Show)
 				{
-					OnZoom(d->Show = z);
+					SetZoom(z);
+					OnZoom(z);
 				}
 			}
 
 			Status = GView::OnEvent(Msg);
 			break;
 		}
+		#endif
+		#if 0
 		case WM_ACTIVATE:
 		{
 			// This is a hack to make Windows set the focus of a child
@@ -930,6 +934,7 @@ GMessage::Result GWindow::OnEvent(GMessage *Msg)
 			*/
 			break;
 		}
+		#endif
 		case WM_CREATE:
 		{
 			Pour();

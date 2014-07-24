@@ -340,7 +340,7 @@ void GButton::OnPaint(GSurface *pDC)
 			pDC->Box(&r);
 			r.Size(1, 1);
 		}
-		LgiWideBorder(pDC, r, d->Pressed ? SUNKEN : RAISED);
+		LgiWideBorder(pDC, r, d->Pressed ? DefaultSunkenEdge : DefaultRaisedEdge);
 
 		if (d->Txt)
 		{

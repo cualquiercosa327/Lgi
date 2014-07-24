@@ -161,6 +161,22 @@ void GDisplayString::Layout()
 		}
 	}
 
+	#if 0
+
+	Gtk::PangoAttrList *attrs = Gtk::pango_attr_list_new();
+	if (Font->Underline())
+	{
+		Gtk::PangoAttribute *attr = Gtk::pango_attr_underline_new(Gtk::PANGO_UNDERLINE_SINGLE);
+		Gtk::pango_attr_list_insert(attrs, attr);
+	}
+	Gtk::PangoAttribute *attr = Gtk::pango_attr_fallback_new(true);
+	Gtk::pango_attr_list_insert(attrs, attr);
+
+	Gtk::pango_layout_set_attributes(Hnd, attrs);
+	Gtk::pango_attr_list_unref(attrs);
+
+	#else
+	
 	if (Font->Underline())
 	{
 		Gtk::PangoAttrList *attrs = Gtk::pango_attr_list_new();
@@ -169,6 +185,8 @@ void GDisplayString::Layout()
 		Gtk::pango_layout_set_attributes(Hnd, attrs);
 		Gtk::pango_attr_list_unref(attrs);
 	}
+	
+	#endif
 
 	Gtk::pango_layout_set_text(Hnd, Str, len);
 	
@@ -535,7 +553,15 @@ void GDisplayString::TruncateWithDots(int Width)
 {
     Layout();
     
-	#if WINNATIVE
+	#if defined __GTK_H__
+	    
+	if (Hnd)
+	{
+		Gtk::pango_layout_set_ellipsize(Hnd, Gtk::PANGO_ELLIPSIZE_END);
+		Gtk::pango_layout_set_width(Hnd, Width * PANGO_SCALE);
+	}
+    
+	#elif WINNATIVE
 	
 	if (Width < X() + 8)
 	{
@@ -597,7 +623,7 @@ void GDisplayString::TruncateWithDots(int Width)
 			}
 		}
 	}
-	
+
 	#endif
 }
 
@@ -875,6 +901,26 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 
 	int Ox = 0, Oy = 0;
 	pDC->GetOrigin(Ox, Oy);
+	
+	#if 1
+	GRect Client;
+	if (pDC->GetClient(&Client) && Client.Valid())
+	{
+		#if 0
+		Gtk::cairo_set_source_rgb(cr, 1.0, 0.0, 1.0);
+		Gtk::cairo_new_path(cr);
+		Gtk::cairo_rectangle(cr, Client.x1, Client.y1, Client.X(), Client.Y());
+		Gtk::cairo_fill(cr);
+		#endif
+
+		#if 1
+		Gtk::cairo_rectangle(cr, Client.x1, Client.y1, Client.X(), Client.Y());
+		Gtk::cairo_clip(cr);
+		Gtk::cairo_new_path(cr);
+		#endif
+	}
+	#endif
+	
 	GColour b = Font->Back();
 	
 	Gtk::cairo_set_source_rgb(cr,
@@ -884,9 +930,11 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 
 	if (!Font->Transparent() && r)
 	{
+		#if 1
 		Gtk::cairo_new_path(cr);
 		Gtk::cairo_rectangle(cr, r->x1 - Ox, r->y1 - Oy, r->X(), r->Y());
 		Gtk::cairo_fill(cr);
+		#endif
 	}
 
 	cairo_translate(cr, px-Ox, py-Oy);
@@ -900,7 +948,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 	if (Hnd)
 	{
 	    GColour f = Font->Fore();
-	    Gtk::cairo_set_source_rgb(cr,
+	    Gtk::cairo_set_source_rgb(	cr,
 								    (double)f.r()/255.0,
 								    (double)f.g()/255.0,
 								    (double)f.b()/255.0);
@@ -908,6 +956,10 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 	}
 	
 	cairo_identity_matrix(cr);
+	if (Client.Valid())
+	{
+		Gtk::cairo_reset_clip(cr);
+	}
 	
 	#elif defined(BEOS)
 

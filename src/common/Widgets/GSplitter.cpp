@@ -364,7 +364,7 @@ void GSplitter::OnPaint(GSurface *pDC)
 	{
 		if (d->BorderA)
 		{
-			LgiWideBorder(pDC, r, SUNKEN);
+			LgiWideBorder(pDC, r, DefaultSunkenEdge);
 		}
 
 		if (d->ViewA)
@@ -398,7 +398,7 @@ void GSplitter::OnPaint(GSurface *pDC)
 	{
 		if (d->BorderB)
 		{
-			LgiWideBorder(pDC, r, SUNKEN);
+			LgiWideBorder(pDC, r, DefaultSunkenEdge);
 		}
 
 		if (d->ViewB)

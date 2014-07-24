@@ -77,7 +77,7 @@ void LgiDrawBox(GSurface *pDC, GRect &r, bool Sunken, bool Fill)
 	pDC->Line(r.x1, r.y1, r.x2, r.y1);
 }
 
-void LgiWideBorder(GSurface *pDC, GRect &r, int Type)
+void LgiWideBorder(GSurface *pDC, GRect &r, LgiEdge Type)
 {
 	if (!pDC) return;
 	COLOUR Old = pDC->Colour();
@@ -85,11 +85,12 @@ void LgiWideBorder(GSurface *pDC, GRect &r, int Type)
 	COLOUR Low = LC_LOW;
 	COLOUR High = LC_HIGH;
 	COLOUR VHigh = LC_LIGHT;
-
+	
 	switch (Type)
 	{
-		case SUNKEN:
+		case EdgeXpSunken:
 		{
+			// XP theme
 			pDC->Colour(Low, 24);
 			pDC->Line(r.x1, r.y1, r.x2-1, r.y1);
 			pDC->Line(r.x1, r.y1, r.x1, r.y2-1);
@@ -107,7 +108,7 @@ void LgiWideBorder(GSurface *pDC, GRect &r, int Type)
 			pDC->Line(r.x2, r.y2, r.x1, r.y2);
 			break;
 		}
-		case RAISED:
+		case EdgeXpRaised:
 		{
 			pDC->Colour(VHigh, 24);
 			pDC->Line(r.x1, r.y1, r.x2-1, r.y1);
@@ -126,7 +127,7 @@ void LgiWideBorder(GSurface *pDC, GRect &r, int Type)
 			pDC->Line(r.x2, r.y2, r.x1, r.y2);
 			break;
 		}
-		case CHISEL:
+		case EdgeXpChisel:
 		{
 			pDC->Colour(Low, 24);
 			pDC->Line(r.x1, r.y1, r.x2-1, r.y1);
@@ -145,20 +146,104 @@ void LgiWideBorder(GSurface *pDC, GRect &r, int Type)
 			pDC->Line(r.x2, r.y2, r.x1, r.y2);
 			break;
 		}
+		case EdgeWin7Sunken:
+		case EdgeWin7FocusSunken:
+		{
+			bool Focus = Type == EdgeWin7FocusSunken;
+			
+			// Win7 theme
+			GColour Ws(LC_WORKSPACE, 24);
+			GColour Corner1, Corner2, Corner3, Corner4, Corner5;
+			GColour Top, Left, Right, Bottom;
+			if (Focus)
+			{
+				Corner1.Rgb(0xad, 0xc4, 0xd7);
+				Corner2.Rgb(0x5c, 0x93, 0xbc);
+				Corner3.Rgb(0xc6, 0xde, 0xee);
+				Corner4.Rgb(0xda, 0xe4, 0xed);
+				Corner5.Rgb(0xc6, 0xde, 0xee);
+				
+				Left.Rgb(0xb5, 0xcf, 0xe7);
+				Top.Rgb(0x3d, 0x7b, 0xad);
+				Right.Rgb(0xa4, 0xc9, 0xe3);
+				Bottom.Rgb(0xb7, 0xd9, 0xed);
+			}
+			else
+			{
+				Corner1.Rgb(0xd6, 0xd7, 0xd9);
+				Corner2.Rgb(0xbb, 0xbd, 0xc2);
+				Corner3.Rgb(0xe9, 0xec, 0xf0);
+				Corner4.Rgb(0xeb, 0xeb, 0xee);
+				Corner5.Rgb(0xe9, 0xec, 0xf0);
+				
+				Left.Rgb(0xe2, 0xe3, 0xea);
+				Top.Rgb(0xab, 0xad, 0xb3);
+				Right.Rgb(0xdb, 0xdf, 0xe6);
+				Bottom.Rgb(0xe3, 0xe9, 0xef);
+			}
+			
+			// Top corners
+			pDC->Colour(Corner1);
+			pDC->Set(r.x1, r.y1);
+			pDC->Set(r.x2, r.y1);
+			pDC->Colour(Corner2);
+			pDC->Set(r.x1+1, r.y1);
+			pDC->Set(r.x2-1, r.y1);
+			pDC->Colour(Corner3);
+			pDC->Set(r.x1+1, r.y1+1);
+			pDC->Set(r.x2-1, r.y1+1);
+
+			// Bottom corners.
+			pDC->Colour(Corner4);
+			pDC->Set(r.x1, r.y2);
+			pDC->Set(r.x2, r.y2);
+			pDC->Colour(Corner5);
+			pDC->Set(r.x1+1, r.y2-1);
+			pDC->Set(r.x2-1, r.y2-1);
+			
+			// Left edge
+			pDC->Colour(Left);
+			pDC->Line(r.x1, r.y1+1, r.x1, r.y2-1);
+			pDC->Colour(Ws);
+			pDC->Line(r.x1+1, r.y1+2, r.x1+1, r.y2-2);
+			
+			// Top edge
+			pDC->Colour(Top);
+			pDC->Line(r.x1+2, r.y1, r.x2-2, r.y1);
+			pDC->Colour(Ws);
+			pDC->Line(r.x1+2, r.y1+1, r.x2-2, r.y1+1);
+			
+			// Right edge
+			pDC->Colour(Right);
+			pDC->Line(r.x2, r.y1+1, r.x2, r.y2-1);	
+			pDC->Colour(Ws);
+			pDC->Line(r.x2-1, r.y1+2, r.x2-1, r.y2-2);	
+
+			// Bottom edge
+			pDC->Colour(Bottom);
+			pDC->Line(r.x1+1, r.y2, r.x2-1, r.y2);
+			pDC->Colour(Ws);
+			pDC->Line(r.x1+2, r.y2-1, r.x2-2, r.y2-1);
+			break;
+		}
+		default:
+		{
+			return;
+		}	
 	}
 
 	r.Size(2, 2);
 	pDC->Colour(Old);
 }
 
-void LgiThinBorder(GSurface *pDC, GRect &r, int Type)
+void LgiThinBorder(GSurface *pDC, GRect &r, LgiEdge Type)
 {
 	if (!pDC) return;
 	COLOUR Old = pDC->Colour();
 
 	switch (Type)
 	{
-		case SUNKEN:
+		case EdgeXpSunken:
 		{
 			pDC->Colour(LC_LIGHT, 24);
 			pDC->Line(r.x2, r.y2, r.x2, r.y1);
@@ -171,7 +256,7 @@ void LgiThinBorder(GSurface *pDC, GRect &r, int Type)
 			r.Size(1, 1);
 			break;
 		}
-		case RAISED:
+		case EdgeXpRaised:
 		{
 			pDC->Colour(LC_LOW, 24);
 			pDC->Line(r.x2, r.y2, r.x2, r.y1);

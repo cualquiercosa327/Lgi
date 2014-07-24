@@ -1737,8 +1737,8 @@ LgiFunc COLOUR LgiColour(int Colour);
 
 // Graphics
 LgiFunc void LgiDrawBox(GSurface *pDC, GRect &r, bool Sunken, bool Fill);
-LgiFunc void LgiWideBorder(GSurface *pDC, GRect &r, int Type);
-LgiFunc void LgiThinBorder(GSurface *pDC, GRect &r, int Type);
+LgiFunc void LgiWideBorder(GSurface *pDC, GRect &r, LgiEdge Type);
+LgiFunc void LgiThinBorder(GSurface *pDC, GRect &r, LgiEdge Type);
 LgiFunc void LgiFlatBorder(GSurface *pDC, GRect &r, int Width = -1);
 
 // Helpers

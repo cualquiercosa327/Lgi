@@ -345,6 +345,21 @@ enum LgiOs
 
 #define LC_MAXIMUM						23
 
+// Edge types
+enum LgiEdge
+{
+	EdgeNone,
+	EdgeXpSunken,
+	EdgeXpRaised,
+	EdgeXpChisel,
+	EdgeXpFlat,
+	EdgeWin7FocusSunken,
+	EdgeWin7Sunken,
+};
+
+#define DefaultSunkenEdge			EdgeWin7Sunken
+#define DefaultRaisedEdge			EdgeXpRaised
+
 // Cursors
 enum LgiCursor
 {

@@ -611,7 +611,7 @@ public:
 	void OnPaint(GSurface *pDC)
 	{
 		GRect c = GetClient();
-		LgiThinBorder(pDC, c, SUNKEN);
+		LgiThinBorder(pDC, c, DefaultSunkenEdge);
 	}
 };
 
@@ -4283,10 +4283,10 @@ void ResFrame::OnPaint(GSurface *pDC)
 {
 	// Draw nice frame
 	GRect r(0, 0, X()-1, Y()-1);
-	LgiThinBorder(pDC, r, RAISED);
+	LgiThinBorder(pDC, r, DefaultRaisedEdge);
 	pDC->Colour(LC_MED, 24);
 	LgiFlatBorder(pDC, r, 4);
-	LgiWideBorder(pDC, r, SUNKEN);
+	LgiWideBorder(pDC, r, DefaultSunkenEdge);
 
 	// Set the child to the client area
 	Child->Wnd()->SetPos(r);

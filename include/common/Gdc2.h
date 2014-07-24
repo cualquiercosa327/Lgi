@@ -440,7 +440,8 @@ public:
 
 	virtual OsBitmap GetBitmap();
 	virtual OsPainter Handle();
-	virtual void SetClient(GRect *c) { }
+	virtual void SetClient(GRect *c) {}
+	virtual bool GetClient(GRect *c) { return false; }
 
 	// Creation
 	virtual bool Create(int x, int y, int Bits, int LineLen = 0, bool KeepData = false) { return false; }
@@ -702,6 +703,7 @@ public:
 
 	GRect ClipRgn();
 	GRect ClipRgn(GRect *Rgn);
+	bool GetClient(GRect *c);
 	void SetClient(GRect *c);
 
 	COLOUR Colour();

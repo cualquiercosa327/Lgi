@@ -1228,7 +1228,7 @@ void GView::DrawThemeBorder(GSurface *pDC, GRect &r)
 	}
 	else
 	{
-		LgiWideBorder(pDC, r, Sunken() ? SUNKEN : RAISED);
+		LgiWideBorder(pDC, r, Sunken() ? DefaultSunkenEdge : DefaultRaisedEdge);
 		d->IsThemed = false;
 	}
 }

@@ -919,7 +919,7 @@ void CtrlDlg::_Paint(GSurface *pDC, int Ox, int Oy)
 
 	// Draw the border
 	GRect r(0, 0, View()->X()-1, View()->Y()-1);
-	LgiWideBorder(pDC, r, RAISED);
+	LgiWideBorder(pDC, r, DefaultRaisedEdge);
 	pDC->Colour(LC_MED, 24);
 	LgiFlatBorder(pDC, r, 1);
 
@@ -1019,7 +1019,7 @@ void CtrlEditbox::OnPaint(GSurface *pDC)
 	Client = r;
 	
 	// Draw the ctrl
-	LgiWideBorder(pDC, r, SUNKEN);
+	LgiWideBorder(pDC, r, DefaultSunkenEdge);
 	pDC->Colour(Enabled() ? LC_WORKSPACE : LC_MED, 24);
 	pDC->Rectangle(&r);
 
@@ -1089,7 +1089,7 @@ void CtrlCheckbox::OnPaint(GSurface *pDC)
 	GRect r(0, 0, 12, 12);
 	
 	// Draw the ctrl
-	LgiWideBorder(pDC, r, SUNKEN);
+	LgiWideBorder(pDC, r, DefaultSunkenEdge);
 	pDC->Colour(LC_WORKSPACE, 24);
 	pDC->Rectangle(&r);
 
@@ -1133,7 +1133,7 @@ void CtrlButton::OnPaint(GSurface *pDC)
 	char *Text = Str->Get();
 	
 	// Draw the ctrl
-	LgiWideBorder(pDC, r, RAISED);
+	LgiWideBorder(pDC, r, DefaultRaisedEdge);
 	SysFont->Fore(LC_TEXT);
 
 	if (ValidStr(Text))
@@ -1176,7 +1176,7 @@ void CtrlGroup::OnPaint(GSurface *pDC)
 	
 	// Draw the ctrl
 	r.y1 += 5;
-	LgiWideBorder(pDC, r, CHISEL);
+	LgiWideBorder(pDC, r, EdgeXpChisel);
 	r.y1 -= 5;
 	SysFont->Fore(LC_TEXT);
 	SysFont->Back(LC_MED);
@@ -1433,7 +1433,7 @@ void CtrlTabs::OnPaint(GSurface *pDC)
 	Client.ZOff(X()-1, Y()-1);
 	Client.y1 = Title.y2;
 	GRect r = Client;
-	LgiWideBorder(pDC, r, RAISED);
+	LgiWideBorder(pDC, r, DefaultRaisedEdge);
 
 	// Draw the tabs
 	int i = 0;
@@ -1911,7 +1911,7 @@ void CtrlList::OnPaint(GSurface *pDC)
 	GRect r(0, 0, X()-1, Y()-1);
 
 	// Draw the ctrl
-	LgiWideBorder(pDC, r, SUNKEN);
+	LgiWideBorder(pDC, r, DefaultSunkenEdge);
 	Title = r;
 	Title.y2 = Title.y1 + 15;
 	Client = r;
@@ -1930,7 +1930,7 @@ void CtrlList::OnPaint(GSurface *pDC)
 		x = r.x2 + 1;
 		if (r.Valid())
 		{
-			LgiWideBorder(pDC, r, RAISED);
+			LgiWideBorder(pDC, r, DefaultRaisedEdge);
 
 			SysFont->Fore(LC_TEXT);
 			SysFont->Back(LC_MED);
@@ -1946,7 +1946,7 @@ void CtrlList::OnPaint(GSurface *pDC)
 	GRect Client(x, Title.y1, Title.x2, Title.y2);
 	if (Client.Valid())
 	{
-		LgiWideBorder(pDC, Client, RAISED);
+		LgiWideBorder(pDC, Client, DefaultRaisedEdge);
 		pDC->Colour(LC_MED, 24);;
 		pDC->Rectangle(&Client);
 	}
@@ -1969,7 +1969,7 @@ void CtrlComboBox::OnPaint(GSurface *pDC)
 	Client = r;
 	
 	// Draw the ctrl
-	LgiWideBorder(pDC, r, SUNKEN);
+	LgiWideBorder(pDC, r, DefaultSunkenEdge);
 	
 	// Allocate space
 	GRect e = r;
@@ -1982,7 +1982,7 @@ void CtrlComboBox::OnPaint(GSurface *pDC)
 	pDC->Rectangle(&e);
 
 	// Draw drap down
-	LgiWideBorder(pDC, d, RAISED);
+	LgiWideBorder(pDC, d, DefaultRaisedEdge);
 	pDC->Colour(LC_MED, 24);
 	pDC->Rectangle(&d);
 
@@ -2040,8 +2040,8 @@ void CtrlScrollBar::OnPaint(GSurface *pDC)
 	}
 
 	// Buttons
-	LgiWideBorder(pDC, a, RAISED);
-	LgiWideBorder(pDC, c, RAISED);
+	LgiWideBorder(pDC, a, DefaultRaisedEdge);
+	LgiWideBorder(pDC, c, DefaultRaisedEdge);
 	pDC->Colour(LC_MED, 24);
 	pDC->Rectangle(&a);
 	pDC->Rectangle(&c);
@@ -2083,7 +2083,7 @@ void CtrlTree::OnPaint(GSurface *pDC)
 	GRect r(0, 0, X()-1, Y()-1);
 	Client = r;
 
-	LgiWideBorder(pDC, r, SUNKEN);
+	LgiWideBorder(pDC, r, DefaultSunkenEdge);
 	pDC->Colour(Rgb24(255, 255, 255), 24);
 	pDC->Rectangle(&r);
 	SysFont->Colour(0, 0xffffff);
@@ -2108,7 +2108,7 @@ void CtrlBitmap::OnPaint(GSurface *pDC)
 	GRect r(0, 0, X()-1, Y()-1);
 	Client = r;
 
-	LgiWideBorder(pDC, r, SUNKEN);
+	LgiWideBorder(pDC, r, DefaultSunkenEdge);
 	pDC->Colour(Rgb24(255, 255, 255), 24);
 	pDC->Rectangle(&r);
 	pDC->Colour(0, 24);
@@ -2132,7 +2132,7 @@ void CtrlProgress::OnPaint(GSurface *pDC)
 	GRect r(0, 0, X()-1, Y()-1);
 	Client = r;
 
-	LgiWideBorder(pDC, r, SUNKEN);
+	LgiWideBorder(pDC, r, DefaultSunkenEdge);
 
 	COLOUR Flat = Rgb24(0x7f, 0x7f, 0x7f);
 	COLOUR White = Rgb24(0xff, 0xff, 0xff);
@@ -2168,7 +2168,7 @@ void CtrlCustom::OnPaint(GSurface *pDC)
 	GRect r(0, 0, X()-1, Y()-1);
 	Client = r;
 
-	LgiWideBorder(pDC, r, SUNKEN);
+	LgiWideBorder(pDC, r, DefaultSunkenEdge);
 
 	COLOUR White = Rgb24(0xff, 0xff, 0xff);
 

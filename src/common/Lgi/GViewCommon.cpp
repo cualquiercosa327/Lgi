@@ -388,16 +388,22 @@ void GView::OnNcPaint(GSurface *pDC, GRect &r)
 		#endif	
 		Border == 2)
 	{
+		LgiEdge e;
+		if (Sunken())
+			e = Focus() ? EdgeWin7FocusSunken : DefaultSunkenEdge;
+		else
+			e = DefaultRaisedEdge;
+
 		#if WINNATIVE
 		if (d->IsThemed)
 			DrawThemeBorder(pDC, r);
 		else
 		#endif
-			LgiWideBorder(pDC, r, Sunken() ? SUNKEN : RAISED);
+			LgiWideBorder(pDC, r, e);
 	}
 	else if (Border == 1)
 	{
-		LgiThinBorder(pDC, r, Sunken() ? SUNKEN : RAISED);
+		LgiThinBorder(pDC, r, Sunken() ? DefaultSunkenEdge : DefaultRaisedEdge);
 	}
 }
 

@@ -942,7 +942,7 @@ void GDropDown::OnPaint(GSurface *pDC)
 	}
 	else
 	{
-		LgiWideBorder(pDC, r, IsOpen() ? SUNKEN : RAISED);
+		LgiWideBorder(pDC, r, IsOpen() ? DefaultSunkenEdge : DefaultRaisedEdge);
 		pDC->Colour(LC_MED, 24);
 		pDC->Rectangle(&r);
 		if (Focus())

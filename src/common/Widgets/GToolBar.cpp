@@ -966,7 +966,7 @@ void GToolButton::OnPaint(GSurface *pDC)
 			if (Down)
 			{
 				// Sunken if the button is pressed
-				LgiThinBorder(pDC, p, SUNKEN);
+				LgiThinBorder(pDC, p, DefaultSunkenEdge);
 				pDC->Colour(Background, 24);
 				pDC->Box(&p);
 			}

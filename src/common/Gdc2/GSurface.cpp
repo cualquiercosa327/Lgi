@@ -27,7 +27,7 @@ void GSurface::Init()
 	pMem = NULL;
 	pAlphaDC = 0;
 	Flags = 0;
-	Clip.ZOff(0, 0);
+	Clip.ZOff(-1, -1);
 	pPalette = NULL;
 	pApp = NULL;
 	ColourSpace = CsNone;

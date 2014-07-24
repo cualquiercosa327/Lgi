@@ -58,9 +58,9 @@ GRect GCssTools::PaintBorderAndPadding(GSurface *pDC, GRect &in)
 		{
 			int Px = b.ToPx(Content.X(), Font);
 			if (Px == 1)
-				LgiThinBorder(pDC, Content, SUNKEN);
+				LgiThinBorder(pDC, Content, DefaultSunkenEdge);
 			else if (Px == 2)
-				LgiWideBorder(pDC, Content, SUNKEN);
+				LgiWideBorder(pDC, Content, DefaultSunkenEdge);
 			else
 				LgiAssert(!"Unsupported sunken border width");
 			break;
@@ -69,9 +69,9 @@ GRect GCssTools::PaintBorderAndPadding(GSurface *pDC, GRect &in)
 		{
 			int Px = b.ToPx(Content.X(), Font);
 			if (Px == 1)
-				LgiThinBorder(pDC, Content, RAISED);
+				LgiThinBorder(pDC, Content, DefaultRaisedEdge);
 			else if (Px == 2)
-				LgiWideBorder(pDC, Content, RAISED);
+				LgiWideBorder(pDC, Content, DefaultRaisedEdge);
 			else
 				LgiAssert(!"Unsupported raised border width");
 			break;

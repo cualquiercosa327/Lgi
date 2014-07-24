@@ -489,7 +489,7 @@ void GTabView::OnPaint(GSurface *pDC)
 		GRect r = GetTabClient();
 
 		r.Size(-2, -2);
-		LgiWideBorder(pDC, r, RAISED);
+		LgiWideBorder(pDC, r, DefaultRaisedEdge);
 
 		pDC->Colour(LC_MED, 24);
 		pDC->Rectangle(0, 0, X()-1, d->TabClient.y1-3);
@@ -558,7 +558,7 @@ void GTabView::OnPaint(GSurface *pDC)
 		if (d->LeftBtn.Valid())
 		{
 			r = d->LeftBtn;
-			LgiWideBorder(pDC, r, RAISED);
+			LgiWideBorder(pDC, r, DefaultRaisedEdge);
 
 			int x = r.x1 + (r.X() >> 1) + 1;
 			int y = r.y1 + (r.Y() >> 1) - 1;
@@ -571,7 +571,7 @@ void GTabView::OnPaint(GSurface *pDC)
 		if (d->RightBtn.Valid())
 		{
 			r = d->RightBtn;
-			LgiWideBorder(pDC, r, RAISED);
+			LgiWideBorder(pDC, r, DefaultRaisedEdge);
 
 			int x = r.x1 + (r.X() >> 1) - 2;
 			int y = r.y1 + (r.Y() >> 1) - 1;

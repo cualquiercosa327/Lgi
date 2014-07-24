@@ -21,7 +21,7 @@ public:
 	void OnPaint(GSurface *pDC)
 	{
 		GRect r = GetClient();
-		LgiWideBorder(pDC, r, RAISED);
+		LgiWideBorder(pDC, r, DefaultRaisedEdge);
 		pDC->Colour(LC_MED, 24);
 		pDC->Rectangle(&r);
 

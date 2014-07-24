@@ -991,12 +991,12 @@ void GListColumn::OnPaint(GSurface *pDC, GRect &Rgn)
 		{
 			if (d->Down)
 			{
-				LgiThinBorder(pDC, r, SUNKEN);
+				LgiThinBorder(pDC, r, DefaultSunkenEdge);
 				LgiFlatBorder(pDC, r, 1);
 			}
 			else
 			{
-				LgiWideBorder(pDC, r, RAISED);
+				LgiWideBorder(pDC, r, DefaultRaisedEdge);
 			}
 			
 			OnPaint_Content(pDC, r, true);
@@ -3488,7 +3488,7 @@ void GList::OnPaint(GSurface *pDC)
 				}
 				else
 				{
-					LgiWideBorder(ColDC, cr, RAISED);
+					LgiWideBorder(ColDC, cr, DefaultRaisedEdge);
 					ColDC->Colour(LC_MED, 24);
 					ColDC->Rectangle(&cr);
 				}

@@ -1076,6 +1076,8 @@ int SslSocket::Write(const void *Data, int Len, int Flags)
 		int To = GetTimeout();
 		while (HasntTimedOut())
 		{
+			if (!Library)
+				break;
 			r = Library->BIO_write(Bio, Data, Len);
 			DebugTrace("%s:%i - BIO_write(%p,%i)=%i\n", _FL, Data, Len, r);
 			if (r < 0)

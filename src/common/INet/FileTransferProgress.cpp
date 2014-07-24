@@ -86,7 +86,7 @@ void GPaneThrottle::OnPaint(GSurface *pDC)
 	int x, y;
 	pDC->GetOrigin(x, y);
 
-	LgiThinBorder(pDC, r, SUNKEN);
+	LgiThinBorder(pDC, r, DefaultSunkenEdge);
 	pDC->Colour(LC_MED, 24);
 	pDC->Rectangle(r.x1, r.y1, r.x1+THROTTLE_TEXT_WIDTH, r.y2);
 
@@ -254,7 +254,7 @@ void GPaneHistory::OnPaint(GSurface *pDC)
 {
 	GRect r(0, 0, X()-1, Y()-1);
 
-	LgiThinBorder(pDC, r, SUNKEN);
+	LgiThinBorder(pDC, r, DefaultSunkenEdge);
 	pDC->Colour(LC_MED, 24);
 	pDC->Rectangle(r.x1, r.y1, r.x1+HISTORY_TEXT_WIDTH, r.y2);
 

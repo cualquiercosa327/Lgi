@@ -144,6 +144,15 @@ Gtk::GdkDrawable *GScreenDC::GetDrawable()
   return 0;
 }
 
+bool GScreenDC::GetClient(GRect *c)
+{
+	if (!c)
+		return false;
+
+	*c = d->Client;
+	return true;
+}
+
 void GScreenDC::SetClient(GRect *c)
 {
 	if (c)
@@ -152,17 +161,20 @@ void GScreenDC::SetClient(GRect *c)
 
         GdkRectangle r = {c->x1, c->y1, c->X(), c->Y()};
         gdk_gc_set_clip_rectangle(d->gc, &r);
+
+		OriginX = -c->x1;
+		OriginY = -c->y1;	
 	}
 	else
 	{
+		OriginX = 0;
+		OriginY = 0;	
+
 		d->Client.ZOff(-1, -1);
 
         GdkRectangle r = {0, 0, X(), Y()};
         gdk_gc_set_clip_rectangle(d->gc, &r);
 	}
-	
-	OriginX = -d->Client.x1;
-	OriginY = -d->Client.y1;
 }
 
 GRect *GScreenDC::GetClient()

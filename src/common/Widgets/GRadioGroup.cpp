@@ -256,7 +256,7 @@ void GRadioGroup::OnPaint(GSurface *pDC)
 
 		int y = d->Txt ? d->Txt->Y() : 12;
 		GRect b(0, y/2, X()-1, Y()-1);
-		LgiWideBorder(pDC, b, CHISEL);
+		LgiWideBorder(pDC, b, EdgeXpChisel);
 
 		if (d->Txt)
 		{

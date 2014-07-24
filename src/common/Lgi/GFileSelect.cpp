@@ -262,7 +262,7 @@ public:
 		GRect c = GetClient();
 		GColour Background(LC_MED, 24);
 		c.Offset(-c.x1, -c.y1);
-		LgiWideBorder(pDC, c, Down ? SUNKEN : RAISED);
+		LgiWideBorder(pDC, c, Down ? DefaultSunkenEdge : DefaultRaisedEdge);
 		pDC->Colour(Background);
 		pDC->Rectangle(&c);
 		

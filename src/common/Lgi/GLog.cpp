@@ -234,7 +234,7 @@ void RLogView::OnNcPaint(GSurface *pDC)
 		pDC->Colour(LC_MED, 24);
 		if (Sunken() || Raised())
 		{
-			LgiWideBorder(pDC, r, Sunken() ? SUNKEN : RAISED);
+			LgiWideBorder(pDC, r, Sunken() ? DefaultSunkenEdge : DefaultRaisedEdge);
 		}
 	}
 }
