@@ -1063,7 +1063,6 @@ protected:
 	
 	#if defined(XPLATFORM_GLAYOUT)
 	void AttachScrollBars();
-	void OnCreate();
 	bool _SetScrollBars(bool x, bool y);
 	#endif
 	#if defined(MAC) && !XPLATFORM_GLAYOUT
@@ -1110,7 +1109,8 @@ public:
 	bool Attach(GViewI *p);
 	bool Detach();
 	GRect &GetClient(bool InClientSpace = true);
-
+	void OnCreate();
+	
 	#if defined(MAC) && !XPLATFORM_GLAYOUT
 
 	bool Invalidate(GRect *r = NULL, bool Repaint = false, bool NonClient = false);

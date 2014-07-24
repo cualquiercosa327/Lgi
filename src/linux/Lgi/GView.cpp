@@ -831,6 +831,9 @@ bool GView::Attach(GViewI *parent)
 	bool Status = false;
 
 	SetParent(parent);
+	GView *Parent = d->GetParent();
+	_Window = Parent ? Parent->_Window : this;
+	
 	if (!_View)
 	{
 		_View = lgi_widget_new(this, Pos.X(), Pos.Y(), false);
@@ -884,7 +887,8 @@ bool GView::Attach(GViewI *parent)
 
 	if (d->Parent && !d->Parent->HasView(this))
 	{
-		d->Parent->AddView(this);
+		if (!d->Parent->HasView(this))
+			d->Parent->AddView(this);
 		d->Parent->OnChildrenChanged(this, true);
 	}
 	

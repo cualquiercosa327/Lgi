@@ -244,6 +244,8 @@ void LgiThinBorder(GSurface *pDC, GRect &r, LgiEdge Type)
 	switch (Type)
 	{
 		case EdgeXpSunken:
+		case EdgeWin7FocusSunken:
+		case EdgeWin7Sunken:
 		{
 			pDC->Colour(LC_LIGHT, 24);
 			pDC->Line(r.x2, r.y2, r.x2, r.y1);
@@ -269,8 +271,13 @@ void LgiThinBorder(GSurface *pDC, GRect &r, LgiEdge Type)
 			r.Size(1, 1);
 			break;
 		}
+		default:
+		{
+			LgiAssert(0);
+			break;
+		}
 	}
-
+	
 	pDC->Colour(Old);
 }
 
