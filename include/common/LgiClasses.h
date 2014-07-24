@@ -1063,6 +1063,7 @@ protected:
 	
 	#if defined(XPLATFORM_GLAYOUT)
 	void AttachScrollBars();
+	void OnCreate();
 	bool _SetScrollBars(bool x, bool y);
 	#endif
 	#if defined(MAC) && !XPLATFORM_GLAYOUT

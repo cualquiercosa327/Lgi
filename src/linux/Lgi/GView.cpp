@@ -490,8 +490,10 @@ bool GView::SetPos(GRect &p, bool Repaint)
 {
 	ThreadCheck();
 	
+	/*
 	if (p == Pos)
 		return true;
+	*/
 
 	Pos = p;
 

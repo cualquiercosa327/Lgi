@@ -476,7 +476,7 @@ void GDialog::Quit(bool DontDelete)
 	if (d->IsModal)
 		EndModal(0);
 	else
-		EndModeless(0);
+		GView::Quit(DontDelete);
 }
 
 void GDialog::OnPosChange()

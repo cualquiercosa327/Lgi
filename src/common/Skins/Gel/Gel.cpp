@@ -708,7 +708,7 @@ public:
 			int n = 22;
 			COLOUR TextCol = GREY24;
 			
-			if (Ctrl->X() > 16)
+			if (Ctrl->X() > 32)
 			{
 				GDisplayString *Text = State->Text ? *State->Text : 0;
 				if (Text)

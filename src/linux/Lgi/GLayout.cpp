@@ -109,6 +109,12 @@ bool GLayout::Detach()
 	return GView::Detach();
 }
 
+void GLayout::OnCreate()
+{
+	AttachScrollBars();
+	OnPosChange();
+}
+
 void GLayout::AttachScrollBars()
 {
 	if (HScroll && !HScroll->IsAttached())
@@ -195,26 +201,28 @@ int GLayout::OnNotify(GViewI *c, int f)
 void GLayout::OnPosChange()
 {
 	GRect r = GView::GetClient();
-	// int Edge = (Sunken() || Raised()) ? _BorderSize : 0;
-	// r.Offset(Edge, Edge);
 	GRect v(r.x2-SCROLL_BAR_SIZE+1, r.y1, r.x2, r.y2);
 	GRect h(r.x1, r.y2-SCROLL_BAR_SIZE+1, r.x2, r.y2);
-	
 	if (VScroll && HScroll)
 	{
 		h.x2 = v.x1 - 1;
 		v.y2 = h.y1 - 1;
 	}
 	
+	if (GetId() == 1001)
+	{
+		LgiTrace("Layout %i: cli=%s, v=%s, h=%s\n", GetId(), r.GetStr(), v.GetStr(), h.GetStr());
+	}
+	
 	if (VScroll)
 	{
+		VScroll->Visible(true);
 		VScroll->SetPos(v, true);
-		if (VScroll) VScroll->Visible(true);
 	}
 	if (HScroll)
 	{
+		HScroll->Visible(true);
 		HScroll->SetPos(h, true);
-		if (HScroll) HScroll->Visible(true);
 	}
 }
 
