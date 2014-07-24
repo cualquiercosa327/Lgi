@@ -598,27 +598,30 @@ GWindowZoom GWindow::GetZoom()
 
 void GWindow::SetZoom(GWindowZoom i)
 {
-	ThreadCheck();
-
-	switch (i)
+	if (Wnd)
 	{
-		case GZoomMin:
+		ThreadCheck();
+
+		switch (i)
 		{
-			gtk_window_iconify(Wnd);
-			break;
-		}
-		case GZoomNormal:
-		{
-			gtk_window_deiconify(Wnd);
-			gtk_window_unmaximize(Wnd);
-			break;
-		}
-		case GZoomMax:
-		{
-			gtk_window_unmaximize(Wnd);
-			break;
-		}
-	}	
+			case GZoomMin:
+			{
+				gtk_window_iconify(Wnd);
+				break;
+			}
+			case GZoomNormal:
+			{
+				gtk_window_deiconify(Wnd);
+				gtk_window_unmaximize(Wnd);
+				break;
+			}
+			case GZoomMax:
+			{
+				gtk_window_unmaximize(Wnd);
+				break;
+			}
+		}	
+	}
 }
 
 GViewI *GWindow::GetDefault()

@@ -347,6 +347,11 @@ GTextView3::GTextView3(	int Id,
 		}
 		else printf("%s:%i - failed to create font.\n", __FILE__, __LINE__);
 	}
+	if (!Font)
+	{
+		LgiTrace("%s:%i - Failed to create font, FontType=%p\n", _FL, FontType);
+		Font = SysFont;
+	}
 	if (Font)
 	{
 		// Font->PointSize(Font->PointSize() + 2);
@@ -4142,7 +4147,7 @@ int GTextView3::ScrollYPixel()
 
 void GTextView3::OnPaint(GSurface *pDC)
 {
-	// LgiTrace("GTextView3::OnPaint par=%s\n", GetParent() ? GetParent()->Name() : "(none)");
+	// LgiTrace("GTextView3::%i OnPaint Focus=%i\n", GetId(), Focus());
 
 	#if LGI_EXCEPTIONS
 	try

@@ -12,7 +12,7 @@
 class _OsFontType : public GFontType
 {
 public:
-	GFont *Create(int Param = 0)
+	GFont *Create(NativeInt Param = 0)
 	{
 		return SysFont;
 	}

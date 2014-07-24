@@ -902,24 +902,13 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 	int Ox = 0, Oy = 0;
 	pDC->GetOrigin(Ox, Oy);
 	
-	#if 1
 	GRect Client;
 	if (pDC->GetClient(&Client) && Client.Valid())
 	{
-		#if 0
-		Gtk::cairo_set_source_rgb(cr, 1.0, 0.0, 1.0);
-		Gtk::cairo_new_path(cr);
-		Gtk::cairo_rectangle(cr, Client.x1, Client.y1, Client.X(), Client.Y());
-		Gtk::cairo_fill(cr);
-		#endif
-
-		#if 1
 		Gtk::cairo_rectangle(cr, Client.x1, Client.y1, Client.X(), Client.Y());
 		Gtk::cairo_clip(cr);
 		Gtk::cairo_new_path(cr);
-		#endif
 	}
-	#endif
 	
 	GColour b = Font->Back();
 	
@@ -930,11 +919,9 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 
 	if (!Font->Transparent() && r)
 	{
-		#if 1
 		Gtk::cairo_new_path(cr);
 		Gtk::cairo_rectangle(cr, r->x1 - Ox, r->y1 - Oy, r->X(), r->Y());
 		Gtk::cairo_fill(cr);
-		#endif
 	}
 
 	cairo_translate(cr, px-Ox, py-Oy);

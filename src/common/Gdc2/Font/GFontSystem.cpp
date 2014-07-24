@@ -238,7 +238,21 @@ bool GFontSystem::EnumerateFonts(List<const char> &Fonts)
 
 		#elif defined __GTK_H__
 
-		
+	    Gtk::PangoFontFamily ** families;
+	    int n_families;
+	    Gtk::PangoFontMap * fontmap;
+
+	    fontmap = Gtk::pango_cairo_font_map_get_default();
+	    Gtk::pango_font_map_list_families (fontmap, & families, & n_families);
+	    for (int i = 0; i < n_families; i++)
+	    {
+	        Gtk::PangoFontFamily * family = families[i];
+	        const char * family_name;
+
+	        family_name = Gtk::pango_font_family_get_name (family);
+	        AllFonts.Insert(NewStr(family_name));
+	    }
+	    Gtk::g_free (families);
 
 		#elif defined XWIN
 

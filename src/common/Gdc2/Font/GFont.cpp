@@ -1441,6 +1441,9 @@ bool GFontType::Serialize(GDom *Options, const char *OptName, bool Write)
 		{
 			char Temp[128];
 			sprintf_s(Temp, sizeof(Temp), "%s,%i pt", Info.Face(), Info.PointSize());
+			
+			printf("FontTypeSer setting '%s' = '%s'\n", OptName, Temp);
+			
 			Status = Options->SetValue(OptName, v = Temp);
 		}
 		else
@@ -1451,8 +1454,11 @@ bool GFontType::Serialize(GDom *Options, const char *OptName, bool Write)
 				if (Comma)
 				{
 					*Comma++ = 0;
+					int PtSize = atoi(Comma);
+					
 					Info.Face(v.Str());
-					Info.PointSize(atoi(Comma));
+					Info.PointSize(PtSize);
+					printf("FontTypeSer getting '%s' = '%s' pt %i\n", OptName, v.Str(), PtSize);
 					Status = true;
 				}
 			}
@@ -1556,10 +1562,10 @@ bool GFontType::GetSystemFont(const char *Which)
 	// Convert windows font height into points
 	int Height = WinHeightToPoint(info.lfMessageFont.lfHeight);
 
-	#elif defined LINUX
+	#elif defined __GTK_H__
 
 	// Define some defaults.. in case the system settings aren't there
-	char DefFont[256] =
+	static char DefFont[64] =
 	#ifdef __CYGWIN__
 		"Luxi Sans";
 	#else
@@ -1595,6 +1601,8 @@ bool GFontType::GetSystemFont(const char *Which)
 			g_object_unref(s);
 		}
 		else printf("%s:%i - gtk_style_new failed.\n", _FL);
+		
+		First = false;
 	}
 	
 	#endif
@@ -1889,7 +1897,7 @@ bool GFontType::GetSystemFont(const char *Which)
 		LgiAssert(!"Invalid param supplied.");
 	}
 	
-	// printf("GetSystemFont(%s) %s,%i\n", Which, Info.Face(), Info.Height());
+	// printf("GetSystemFont(%s)=%i %s,%i\n", Which, Status, Info.Face(), Info.PointSize());
 	return Status;
 }
 

@@ -144,7 +144,7 @@
 			<Node File="./src/common/Lgi/Lgi.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Lgi/LgiMsg.cpp" Type="2" Platforms="15" />
 		</Node>
-		<Node Name="Dialogs" Type="1" Platforms="15" Open="0">
+		<Node Name="Dialogs" Type="1" Platforms="15" Open="1">
 			<Node Name="Xp" Type="1" Platforms="15" Open="0">
 				<Node File="./src/common/Lgi/GFileSelect.cpp" Type="2" Platforms="14" />
 			</Node>
@@ -176,7 +176,7 @@
 				<Node File="./src/common/Gdc2/Tools/GdcTools.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GFilter.h" Type="3" Platforms="15" />
 			</Node>
-			<Node Name="Font" Type="1" Platforms="15" Open="0">
+			<Node Name="Font" Type="1" Platforms="15" Open="1">
 				<Node File="./src/common/Gdc2/Font/GDisplayString.cpp" Type="2" Platforms="15" />
 				<Node File="./src/common/Gdc2/Font/GFont.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GFont.h" Type="3" Platforms="15" />
@@ -257,13 +257,8 @@
 			<Node File="./src/common/Text/GXmlTree.cpp" Type="2" Platforms="15" />
 			<Node File="./include/common/GXmlTree.h" Type="3" Platforms="15" />
 		</Node>
-		<Node Name="Widgets" Type="1" Platforms="15" Open="0">
+		<Node Name="Widgets" Type="1" Platforms="15" Open="1">
 			<Node Name="Common" Type="1" Platforms="15" Open="1">
-				<Node File="./src/common/Widgets/GEdit.cpp" Type="2" Platforms="14" />
-				<Node File="./src/common/Text/GDocView.cpp" Type="2" Platforms="14" />
-				<Node File="./src/common/Widgets/GProgress.cpp" Type="2" Platforms="14" />
-				<Node File="./src/common/Widgets/GScrollBar.cpp" Type="2" Platforms="14" />
-				<Node File="./src/common/Text/GTextView3.cpp" Type="2" Platforms="14" />
 				<Node File="./src/common/Widgets/GBitmap.cpp" Type="2" Platforms="15" />
 				<Node File="./src/common/Widgets/GButton.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GButton.h" Type="3" Platforms="15" />
@@ -271,6 +266,8 @@
 				<Node File="./include/common/GCheckBox.h" Type="3" Platforms="15" />
 				<Node File="./src/common/Widgets/GCombo.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GCombo.h" Type="3" Platforms="15" />
+				<Node File="./src/common/Text/GDocView.cpp" Type="2" Platforms="14" />
+				<Node File="./src/common/Widgets/GEdit.cpp" Type="2" Platforms="14" />
 				<Node File="./include/common/GEdit.h" Type="3" Platforms="15" />
 				<Node File="./src/common/Widgets/GList.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GList.h" Type="3" Platforms="15" />
@@ -279,16 +276,19 @@
 				<Node File="./src/common/Widgets/GPanel.cpp" Type="2" Platforms="15" />
 				<Node File="./src/common/Widgets/GPopup.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GPopup.h" Type="3" Platforms="15" />
+				<Node File="./src/common/Widgets/GProgress.cpp" Type="2" Platforms="14" />
 				<Node File="./include/common/GProgress.h" Type="3" Platforms="15" />
 				<Node File="./src/common/Widgets/GProgressDlg.cpp" Type="2" Platforms="15" />
 				<Node File="./src/common/Widgets/GRadioGroup.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GRadioGroup.h" Type="3" Platforms="15" />
+				<Node File="./src/common/Widgets/GScrollBar.cpp" Type="2" Platforms="14" />
 				<Node File="./include/common/GScrollBar.h" Type="3" Platforms="15" />
 				<Node File="./src/common/Widgets/GStatusBar.cpp" Type="2" Platforms="15" />
 				<Node File="./src/common/Widgets/GTabView.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GTabView.h" Type="3" Platforms="15" />
 				<Node File="./src/common/Widgets/GTextLabel.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GTextLabel.h" Type="3" Platforms="15" />
+				<Node File="./src/common/Text/GTextView3.cpp" Type="2" Platforms="14" />
 				<Node File="./src/common/Widgets/GToolBar.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GToolBar.h" Type="3" Platforms="15" />
 				<Node File="./src/common/Widgets/GTree.cpp" Type="2" Platforms="15" />
@@ -301,20 +301,20 @@
 				<Node File="./include/common/GCssTools.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Haiku" Type="1" Platforms="15" Open="0">
-				<Node File=".\src\beos\Lgi\GLayout.cpp" Type="2" Platforms="8" />
-				<Node File=".\src\beos\Lgi\GWidgets.cpp" Type="2" Platforms="8" />
+				<Node File="./src/beos/Lgi/GLayout.cpp" Type="2" Platforms="8" />
+				<Node File="./src/beos/Lgi/GWidgets.cpp" Type="2" Platforms="8" />
 			</Node>
 			<Node Name="Linux" Type="1" Platforms="15" Open="0">
 				<Node File="./src/linux/Lgi/GLayout.cpp" Type="2" Platforms="2" />
 				<Node File="./src/linux/Lgi/GWidgets.cpp" Type="2" Platforms="2" />
 			</Node>
 			<Node Name="Win32" Type="1" Platforms="15" Open="0">
-				<Node File=".\src\win32\Widgets\GEdit.cpp" Type="2" Platforms="1" />
-				<Node File=".\src\win32\Widgets\GDialog.cpp" Type="2" Platforms="1" />
-				<Node File=".\src\win32\Widgets\GSlider.cpp" Type="2" Platforms="1" />
-				<Node File=".\src\win32\Lgi\GLayout.cpp" Type="2" Platforms="1" />
-				<Node File=".\src\win32\Widgets\GProgress.cpp" Type="2" Platforms="1" />
-				<Node File=".\src\win32\Lgi\GScrollBar.cpp" Type="2" Platforms="1" />
+				<Node File="./src/win32/Widgets/GEdit.cpp" Type="2" Platforms="1" />
+				<Node File="./src/win32/Widgets/GDialog.cpp" Type="2" Platforms="1" />
+				<Node File="./src/win32/Widgets/GSlider.cpp" Type="2" Platforms="1" />
+				<Node File="./src/win32/Lgi/GLayout.cpp" Type="2" Platforms="1" />
+				<Node File="./src/win32/Widgets/GProgress.cpp" Type="2" Platforms="1" />
+				<Node File="./src/win32/Lgi/GScrollBar.cpp" Type="2" Platforms="1" />
 			</Node>
 			<Node Name="Layout" Type="1" Platforms="15" Open="0">
 				<Node File="./src/common/Widgets/GBox.cpp" Type="2" Platforms="15" />
@@ -371,6 +371,8 @@
 			<Compiler>
 				<Windows>MingW</Windows>
 			</Compiler>
+			<Executable />
+			<Arguments />
 		</General>
 		<Build>
 			<IncludePaths>
@@ -450,6 +452,7 @@ textencoding</Release>
 					<Release>lgi</Release>
 				</Linux>
 			</TargetName>
+			<LibraryPaths />
 		</Build>
 		<Editor>
 			<TabSize>
@@ -465,5 +468,6 @@ textencoding</Release>
 				<All>1</All>
 			</UseHardTabs>
 		</Editor>
+		<Advanced />
 	</Settings>
 </Project>

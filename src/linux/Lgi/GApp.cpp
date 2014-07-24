@@ -1140,7 +1140,7 @@ static gboolean
 GlibPostMessage(GlibEventParams *p)
 {
     GDK_THREADS_ENTER();
-    // printf("GListPostMessage: %p / %s\n", p->w, 	G_OBJECT_TYPE_NAME(p->w));
+    // printf("GListPostMessage: %p(%p) / %s\n", p->w, p->e, G_OBJECT_TYPE_NAME(p->w));
     gtk_propagate_event(p->w, p->e);
     gdk_event_free(p->e);
     DeleteObj(p);
@@ -1160,7 +1160,7 @@ bool GMessage::Send(GtkWidget *Wnd)
 	    p->e = gdk_event_new(GDK_CLIENT_EVENT);
 	    *p->e = *Event;
 
-	    // printf("Sending to %p / %s\n", p->w, G_OBJECT_TYPE_NAME(Wnd));
+	    // printf("Sending %p to %p / %s\n", p->e, p->w, G_OBJECT_TYPE_NAME(Wnd));
 	    
 	    g_idle_add((GSourceFunc)GlibPostMessage, p);
 	    Status = true;
