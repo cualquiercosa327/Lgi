@@ -555,55 +555,84 @@ void GMemDC::Blt(int x, int y, GSurface *Src, GRect *a)
 
 	if (Src->IsScreen())
 	{
-		if (Src)
+		GRect b;
+		GRect Bounds(0, 0, GdcD->X()-1, GdcD->Y()-1);
+		if (a)
 		{
-			GRect b;
-			if (a)
+			b = *a;
+			b.Bound(&Bounds);
+		}
+		else
+		{
+			b = Bounds;
+		}
+
+		int RowOp;
+		switch (Op())
+		{
+			case GDC_SET:
 			{
-				b = *a;
+				RowOp = SRCCOPY;
+				break;
 			}
-			else
+			case GDC_AND:
 			{
-				b.ZOff(Src->X()-1, Src->Y()-1);
+				RowOp = SRCAND;
+				break;
 			}
-
-			int RowOp;
-
-			switch (Op())
+			case GDC_OR:
 			{
-				case GDC_SET:
+				RowOp = SRCPAINT;
+				break;
+			}
+			case GDC_XOR:
+			{
+				RowOp = SRCINVERT;
+				break;
+			}
+			default:
+			{
+				return;
+			}
+		}
+
+		HDC hSrcDC = GetWindowDC(GetDesktopWindow());
+		if (hSrcDC)
+		{
+			// Get the screen DC and blt from there to our own memory
+			HDC hDstDC = StartDC();
+			BitBlt(hDstDC, x, y, b.X(), b.Y(), hSrcDC, b.x1, b.y1, RowOp);
+
+			// Overlay any effects between the screen and cursor layers...
+			OnCaptureScreen();
+
+			// Do we need to capture the cursor as well?
+			if (TestFlag(Flags, GDC_CAPTURE_CURSOR))
+			{
+				// Capture the cursor as well..
+				CURSORINFO ci;
+				ZeroObj(ci);
+				ci.cbSize = sizeof(ci);
+				GetCursorInfo(&ci);
+				if (ci.flags == CURSOR_SHOWING)
 				{
-					RowOp = SRCCOPY;
-					break;
-				}
-				case GDC_AND:
-				{
-					RowOp = SRCAND;
-					break;
-				}
-				case GDC_OR:
-				{
-					RowOp = SRCPAINT;
-					break;
-				}
-				case GDC_XOR:
-				{
-					RowOp = SRCINVERT;
-					break;
-				}
-				default:
-				{
-					return;
+					HICON hicon = CopyIcon(ci.hCursor);
+					ICONINFO icInfo;
+					ZeroObj(icInfo);
+					if (GetIconInfo(hicon, &icInfo))
+					{
+						int cx = ci.ptScreenPos.x - ((int)icInfo.xHotspot);
+						int cy = ci.ptScreenPos.y - ((int)icInfo.yHotspot);
+
+						DrawIcon(hDstDC, cx - b.x1, cy - b.y1, hicon);
+					}
+					
+					DestroyIcon(hicon);
 				}
 			}
 
-			HDC hDestDC = StartDC();
-			HDC hSrcDC = Src->StartDC();
-
-			BitBlt(hDestDC, x, y, b.X(), b.Y(), hSrcDC, b.x1, b.y1, RowOp);
-			
-			Src->EndDC();
 			EndDC();
+			ReleaseDC(0, hSrcDC);
 		}
 	}
 	else

@@ -1410,6 +1410,7 @@ struct GDomPropMap : public GHashTbl<const char *, GDomProperty>
 		Define("Y", SurfaceY);
 		Define("Bits", SurfaceBits);
 		Define("ColourSpace", SurfaceColourSpace);
+		Define("IncludeCursor", SurfaceIncludeCursor);
 
 		Define("Add", ContainerAdd);
 		Define("Delete", ContainerDelete);

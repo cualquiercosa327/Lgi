@@ -1648,6 +1648,11 @@ bool GSurface::GetVariant(const char *Name, GVariant &Dst, char *Array)
 			Dst = GetColourSpace();
 			break;
 		}
+		case SurfaceIncludeCursor:
+		{
+			Dst = TestFlag(Flags, GDC_CAPTURE_CURSOR);
+			break;
+		}
 		default:
 		{
 			return false;
@@ -1659,6 +1664,18 @@ bool GSurface::GetVariant(const char *Name, GVariant &Dst, char *Array)
 
 bool GSurface::SetVariant(const char *Name, GVariant &Value, char *Array)
 {
+	switch (GStringToProp(Name))
+	{
+		case SurfaceIncludeCursor:
+		{
+			if (Value.CastInt32())
+				SetFlag(Flags, GDC_CAPTURE_CURSOR);
+			else
+				ClearFlag(Flags, GDC_CAPTURE_CURSOR);
+			break;
+		}
+	}
+	
 	return false;
 }
 

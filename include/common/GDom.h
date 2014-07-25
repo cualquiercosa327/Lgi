@@ -97,6 +97,7 @@ enum GDomProperty
 	SurfaceY,
 	SurfaceBits,
 	SurfaceColourSpace,
+	SurfaceIncludeCursor,
 	
 	// List, GHashTbl
 	ContainerAdd,

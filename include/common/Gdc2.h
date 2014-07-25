@@ -133,18 +133,16 @@
 #define GDC_PROMOTE_ON_LOAD			3
 #define GDC_MAX_OPTION				4
 
-//	Flags
-// Surface
+// GSurface Flags
 #define GDC_OWN_MEMORY				0x0001
 #define GDC_ON_SCREEN				0x0002
 #define GDC_ALPHA_CHANNEL			0x0004
 #define GDC_UPDATED_PALETTE			0x0008
-
-// BaseDC
-#define GDC_OWN_APPLICATOR			0x0001
-#define GDC_CACHED_APPLICATOR		0x0002
-#define GDC_OWN_PALETTE				0x0004
-#define GDC_DRAW_ON_ALPHA			0x0008
+#define GDC_CAPTURE_CURSOR			0x0010
+#define GDC_OWN_APPLICATOR			0x0020
+#define GDC_CACHED_APPLICATOR		0x0040
+#define GDC_OWN_PALETTE				0x0080
+#define GDC_DRAW_ON_ALPHA			0x0100
 
 // Region types
 #define GDC_RGN_NONE				0	// No clipping
@@ -859,6 +857,11 @@ protected:
 	#if defined WIN32
 	PBITMAPINFO	GetInfo();
 	#endif
+	
+	// This is called between capturing the screen and overlaying the
+	// cursor in GMemDC::Blt(x, y, ScreenDC, Src). It can be used to
+	// overlay effects between the screen and cursor layers.
+	virtual void OnCaptureScreen() {}
 
 public:
 	/// Creates a memory bitmap
