@@ -51,6 +51,8 @@ public:
 GScreenDC::GScreenDC()
 {
 	d = new GScreenPrivate;
+	d->x = GdcD->X();
+	d->y = GdcD->Y();
 }
 
 GScreenDC::GScreenDC(OsView View)

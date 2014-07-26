@@ -195,31 +195,25 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 
 	Empty();
 	
+	GdkVisual Fallback;
 	GdkVisual *Vis = gdk_visual_get_system();
 	if (Bits == 8)
 	{
 		GdkVisual *Vis8 = gdk_visual_get_best_with_depth(8);
 		if (Vis8)
 		{
+			// Yay an 8 bit visual!
 		    Vis = Vis8;
 		}
 		else
 		{
-		    /*
-	        GList *lst = gdk_list_visuals();
-	        if (lst)
-	        {
-	            for (GList *t = lst; t; t = t->next)
-	            {
-	                GdkVisual *v = (GdkVisual*)t->data;
-	                if (v->depth == Bits)
-	                {
-	                    int asd=0;
-	                }
-	            }
-	            g_list_free(lst);
-	        }
-	        */
+			// No no no... you are going to try and create an 8 bit image
+			// whether you like it or not.
+			ZeroObj(Fallback);
+	        Vis = &Fallback;
+	        Fallback.type = GDK_VISUAL_PSEUDO_COLOR;
+	        Fallback.depth = 8;
+	        Fallback.colormap_size = 256;
 	    }
 	}
 	
@@ -229,9 +223,11 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 							y);
 	if (!d->Img)
 	{
-	    LgiAssert(!"Failed to create image.");
-		LgiTrace("%s:%i - Error: failed to create image (%i,%i,%i)\n", _FL, x, y, Bits);
-		return false;
+		/* In cases where gdk_image_new doesn't support the visual format we need
+		   (say 8 bit images) then it will fail and return NULL. Thats OK so long
+		   as we don't need to Blt to the screen. Lgi can operate on the image
+		   anyway using it's built in drawing functionality. */
+		int asd=0;
 	}
 
 	if (!pMem)
@@ -241,10 +237,24 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 
 	pMem->x = x;
 	pMem->y = y;
-	pMem->Line = d->Img->bpl;
 	pMem->Flags = 0;
-	pMem->Base = (uchar*)d->Img->mem;
-	pMem->Cs = ColourSpace = GdkVisualToColourSpace(d->Img->visual, d->Img->bits_per_pixel);
+	if (d->Img)
+	{
+		// Use the GdkImage memory
+		pMem->Line = d->Img->bpl;
+		pMem->Base = (uchar*)d->Img->mem;
+		pMem->Cs = GdkVisualToColourSpace(d->Img->visual, d->Img->bits_per_pixel);
+	}
+	else
+	{
+		// Generate our own memory
+		pMem->Line = (((pMem->x * Bits) + 31) / 32) << 2;
+		pMem->Base = new uchar[pMem->y * pMem->Line];
+		pMem->Cs = GBitsToColourSpace(Bits);
+		pMem->Flags |= GDC_OWN_MEMORY;
+	}
+	
+	ColourSpace = pMem->Cs;
 
 	#if 0
 	printf("GMemDC::Create(%i,%i,%i) gdk_image_new(vis=%i,%i,%i,%i) img(%i,%i,%p) cs=%x\n",
@@ -320,7 +330,34 @@ void GMemDC::Blt(int x, int y, GSurface *Src, GRect *a)
 		if (pMem->Base)
 		{
 			// Screen -> Memory
-			Status = true;
+			GdkWindow *root_window = gdk_get_default_root_window();
+			if (root_window)
+			{
+				gint x_orig, y_orig;
+				gint width, height;
+
+				gdk_drawable_get_size(root_window, &width, &height);      
+				gdk_window_get_origin(root_window, &x_orig, &y_orig);
+				gdk_drawable_copy_to_image(	root_window,
+											d->Img,
+											br.SrcClip.x1,
+											br.SrcClip.y1,
+											x,
+											y,
+											br.SrcClip.X(),
+											br.SrcClip.Y());
+				
+				// Call the capture screen handler to draw anything between the screen and
+				// cursor layers
+				OnCaptureScreen();
+				
+				if (TestFlag(Flags, GDC_CAPTURE_CURSOR))
+				{
+					// Capture the cursor as well...
+				}
+				
+				Status = true;
+			}
 		}
 		
 		if (!Status)

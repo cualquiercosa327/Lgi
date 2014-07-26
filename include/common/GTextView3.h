@@ -24,7 +24,7 @@ class GTextView3;
 
 /// Unicode text editor control.
 class
-#ifdef MAC
+#if defined(MAC) || defined(__GTK_H__)
 LgiClass
 #endif
 	GTextView3 :

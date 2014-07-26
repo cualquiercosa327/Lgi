@@ -430,19 +430,19 @@ public:
 		Gtk::gint Screens = Gtk::gdk_display_get_n_screens(Dsp);
 		for (Gtk::gint i=0; i<Screens; i++)
 		{
-	            Gtk::GdkScreen *Scr = Gtk::gdk_display_get_screen(Dsp, i);
-	            if (Scr)
-	            {
-		        ScrX = Gtk::gdk_screen_get_width(Scr);
-		        ScrY = Gtk::gdk_screen_get_height(Scr);
-		        Gtk::GdkVisual *Vis = Gtk::gdk_screen_get_system_visual(Scr);
-		        if (Vis)
-		        {
-		            ScrBits = Vis->depth;
-		            ScrColourSpace = GdkVisualToColourSpace(Vis, Vis->depth);
-		        }
-		    }
-	        }
+			Gtk::GdkScreen *Scr = Gtk::gdk_display_get_screen(Dsp, i);
+			if (Scr)
+			{
+				ScrX = Gtk::gdk_screen_get_width(Scr);
+				ScrY = Gtk::gdk_screen_get_height(Scr);
+				Gtk::GdkVisual *Vis = Gtk::gdk_screen_get_system_visual(Scr);
+				if (Vis)
+				{
+					ScrBits = Vis->depth;
+					ScrColourSpace = GdkVisualToColourSpace(Vis, Vis->depth);
+				}
+			}
+		}
 		
 		printf("Screen: %i x %i @ %i bpp (%s)\n", ScrX, ScrY, ScrBits, GColourSpaceToString(ScrColourSpace));
 
