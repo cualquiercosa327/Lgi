@@ -150,30 +150,42 @@ pascal OSErr TestProc(const AppleEvent *ae, AppleEvent *reply, SRefCon handlerRe
 int main(int Args, char **Arg)
 {
 	int Status = 0;
+	OsAppArguments AppArgs(Args, Arg);
 	
 	#ifdef MAC
-	#if 0
-	LgiTrace("Args=%i\n", Args);
-	for (int i=0; i<Args; i++)
-		LgiTrace("\t[%i]='%s'\n", i, Arg[i]);
-	#endif
 	
-	OSStatus e;
+		#if 0
+		LgiTrace("Args=%i\n", Args);
+		for (int i=0; i<Args; i++)
+			LgiTrace("\t[%i]='%s'\n", i, Arg[i]);
+		#endif
+		
+		// Setup apple event handlers
+		OSStatus e = AEInstallEventHandler(	kInternetEventClass,
+									kAEGetURL,
+									NewAEEventHandlerUPP(TestProc),
+									0,
+									false);
+		if (e) LgiTrace("%s:%i - AEInstallEventHandler = %i\n", _FL, e);
 	
-	// Setup apple event handlers
-	e = AEInstallEventHandler(	kInternetEventClass,
-								kAEGetURL,
-								NewAEEventHandlerUPP(TestProc),
-								0,
-								false);
-	if (e) LgiTrace("%s:%i - AEInstallEventHandler = %i\n", _FL, e);
+	#elif 1 && defined(__GTK_H__) && defined(_DEBUG)
+	
+		// This turns on fatal GKT warnings all the time... 
+		// Useful for debugging.
+		GArray<char*> a;
+		for (int i=0; i<AppArgs.Args; i++)
+			a[i] = AppArgs.Arg[i];
+		a.Add("--g-fatal-warnings");
+		AppArgs.Arg = &a[0];
+		AppArgs.Args = a.Length();
+		
 	#endif
 	
 	if (_BuildCheck())
 	{
-		OsAppArguments AppArgs(Args, Arg);
 		Status = LgiMain(AppArgs);
 	}
+	else LgiTrace("%s:%i - _BuildCheck failed.\n", _FL);
 
 	return Status;
 }

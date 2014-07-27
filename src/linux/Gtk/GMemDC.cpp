@@ -207,20 +207,19 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 		}
 		else
 		{
-			// No no no... you are going to try and create an 8 bit image
-			// whether you like it or not.
-			ZeroObj(Fallback);
-	        Vis = &Fallback;
-	        Fallback.type = GDK_VISUAL_PSEUDO_COLOR;
-	        Fallback.depth = 8;
-	        Fallback.colormap_size = 256;
+			Vis = NULL;
 	    }
 	}
 	
-	d->Img = gdk_image_new(	GDK_IMAGE_FASTEST,
-							Vis,
-							x,
-							y);
+	if (Vis)
+	{
+		d->Img = gdk_image_new(	GDK_IMAGE_FASTEST,
+								Vis,
+								x,
+								y);
+	}
+	else d->Img = NULL;
+
 	if (!d->Img)
 	{
 		/* In cases where gdk_image_new doesn't support the visual format we need

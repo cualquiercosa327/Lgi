@@ -265,6 +265,7 @@ public:
     bool IsResizeable();
     void IsResizeable(bool r);
 	Gtk::gboolean OnGtkEvent(Gtk::GtkWidget *widget, Gtk::GdkEvent *event);
+	bool SetupDialog(bool Modal);
 	#endif
 };
 

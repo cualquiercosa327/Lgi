@@ -183,13 +183,8 @@ gboolean GDialog::OnGtkEvent(GtkWidget *widget, GdkEvent *event)
 	return true;
 }
 
-int GDialog::DoModal(OsView OverrideParent)
+bool GDialog::SetupDialog(bool Modal)
 {
-	d->ModalStatus = -1;
-
-	if (GetParent())
-		gtk_window_set_transient_for(GTK_WINDOW(Wnd), GetParent()->WindowHandle());
-
 	if (GBase::Name())
 		gtk_window_set_title(GTK_WINDOW(Wnd), GBase::Name());
 
@@ -240,9 +235,7 @@ int GDialog::DoModal(OsView OverrideParent)
 	
 	OnCreate();
 	AttachChildren();
-	d->IsModal = true;
 	GView *gv = this;
-	// printf("Setting up dialog event, Wnd=%p, gvi=%p, this=%p\n", Wnd, gvi, this);
 
 	g_signal_connect(	G_OBJECT(Wnd),
 						"delete_event",
@@ -275,7 +268,22 @@ int GDialog::DoModal(OsView OverrideParent)
 	}
 
 	gtk_widget_show(GTK_WIDGET(Wnd));
+
+	return true;
+}
+
+int GDialog::DoModal(OsView OverrideParent)
+{
+	d->ModalStatus = -1;
+
+	if (GetParent())
+		gtk_window_set_transient_for(GTK_WINDOW(Wnd), GetParent()->WindowHandle());
+
+	d->IsModal = true;
+	SetupDialog(true);
+	
 	gtk_main();
+	
 	return d->ModalStatus;
 }
 
@@ -311,12 +319,13 @@ void GDialog::EndModal(int Code)
 int GDialog::DoModeless()
 {
 	d->IsModal = false;
-	if (Attach(0))
-	{
-		AttachChildren();
-		Visible(true);
-	}
+	SetupDialog(false);
 	return 0;
+}
+
+void GDialog::EndModeless(int Code)
+{
+	Quit(Code);
 }
 
 extern GButton *FindDefault(GView *w);
@@ -330,10 +339,6 @@ GMessage::Param GDialog::OnEvent(GMessage *Msg)
 	return GView::OnEvent(Msg);
 }
 
-void GDialog::EndModeless(int Code)
-{
-	Quit(Code);
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 GControl::GControl(OsView view) : GView(view)

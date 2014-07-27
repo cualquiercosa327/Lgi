@@ -545,6 +545,8 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 		}
 		
 		Gtk::gtk_main();
+		
+		int asd=0;
 	}
 	else
 	{
@@ -829,11 +831,10 @@ GAutoString GApp::GetFileMimeType(const char *File)
 				s += 2;
 				
 				char *e = s;
-				while (*e && (isalpha(*e) OR strchr("-_/", *e))) e++;
+				while (*e && (isalpha(*e) || strchr("-_/", *e))) e++;
 				*e = 0;
 				
-				strcpy(Mime, s);
-				Status = true;
+				Status.Reset(NewStr(s));
 			}
 			DeleteArray(Out);
 		}
@@ -870,128 +871,6 @@ bool GApp::GetAppsForMimeType(char *Mime, GArray<GAppInfo*> &Apps)
 	LgiGetAppsForMimeType(AltMime, Apps);
 	
 	return Apps.Length() > 0;
-
-	/*
-	if (!d->MimeToApp.Length())
-	{
-		// printf("%s:%i - Building MimeToApp.\n", __FILE__, __LINE__);
-
-		GToken Paths;
-		if (_GetKdePaths(Paths, "apps"))
-		{
-			// No default... look in the apps dir
-			List<char> f, e;
-			e.Insert("*.desktop");
-			for (int i=0; i<Paths.Length(); i++)
-			{
-				LgiRecursiveFileSearch(Paths[i], &e, &f);
-			}
-
-			for (char *File=f.First(); File; File=f.Next())
-			{
-				if (stristr(File, "kde-cervisia"))
-				{
-					continue;
-				}
-				
-				char *DesktopFile = ReadTextFile(File);
-				if (DesktopFile)
-				{
-					char MimeTypes[512];
-					char AppPath[256] = "";
-
-					// this is an app that supports the MimeTypes...
-					if (_GetIniField("Desktop Entry", "MimeType", DesktopFile, MimeTypes, sizeof(MimeTypes)) &&
-						_GetIniField("Desktop Entry", "Exec", DesktopFile, AppPath, sizeof(AppPath)))
-					{
-						// look through the types..
-						GToken t(MimeTypes, ";");
-						for (int i=0; i<t.Length(); i++)
-						{
-							// Fliter out invalid mime types
-							if (strchr(t[i], '/'))
-							{
-								// Check for existing app array
-								AppArray *Group = (AppArray*) d->MimeToApp.Find(t[i]);
-								if (!Group)
-								{
-									// Not there so create it...
-									d->MimeToApp.Add(t[i], Group = new AppArray);
-								}									
-								if (Group)
-								{
-									// Check the application is not in the array already
-									bool Has = false;
-									for (int n=0; n<Group->Length(); n++)
-									{
-										GAppInfo *Existing = (*Group)[n];
-										if (Existing && Existing->Path)
-										{
-											char *a = strchr(AppPath, ' ');
-											int alen = a ? (int)a-(int)AppPath : strlen(AppPath);
-
-											char *b = strchr(Existing->Path, ' ');
-											int blen = b ? (int)b-(int)Existing->Path : strlen(Existing->Path);
-
-											if (alen == blen &&
-												strncmp(AppPath, Existing->Path, alen) == 0)
-											{
-												Has = true;
-												break;
-											}
-										}
-									}
-									
-									if (!Has)
-									{
-										// It's not, so add it...
-										GAppInfo *a = new GAppInfo;
-										if (a)
-										{
-											(*Group)[Group->Length()] = a;											
-											a->Path = NewStr(AppPath);
-											
-											char s[256];
-											
-											// store the user visible name
-											if (_GetIniField("Desktop Entry", "Name", DesktopFile, s, sizeof(s)))
-											{
-												a->Name = NewStr(s);
-											}
-											
-											// store the icon file...
-											if (_GetIniField("Desktop Entry", "Icon", DesktopFile, s, sizeof(s)))
-											{
-												a->Icon = NewStr(s);
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-
-					DeleteArray(DesktopFile);
-				}
-			}
-		}
-		else
-		{
-			printf("LgiGetAppForMimeType: Couldn't get apps path(s)\n");
-		}
-	}
-	
-	AppArray *p = (AppArray*)d->MimeToApp.Find(Mime);
-	if (p)
-	{
-		for (int i=0; i<p->Length(); i++)
-		{
-			Apps[i] = (*p)[i];
-		}
-		
-		return true;
-	}
-	*/
 }
 
 #ifdef LINUX

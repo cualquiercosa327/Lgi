@@ -15,7 +15,7 @@ endif
 BuildDir = $(Build)
 
 Flags = -fPIC -w -fno-inline -fpermissive
-Defs = -DLINUX -D_REENTRANT -D_FILE_OFFSET_BITS=64 -DLGI_LIBRARY
+Defs = -DLINUX -D_REENTRANT -D_FILE_OFFSET_BITS=64 -DLGI_LIBRARY -DHAS_FILE_CMD=1
 
 ifeq ($(Build),Debug)
 	Defs += -D_DEBUG
@@ -114,23 +114,23 @@ Depends =	GDateTime.o \
 			GToken.o \
 			GUtf8.o \
 			GXmlTree.o \
-			GEdit.o \
-			GDocView.o \
-			GProgress.o \
-			GScrollBar.o \
-			GTextView3.o \
 			GBitmap.o \
 			GButton.o \
 			GCheckBox.o \
 			GCombo.o \
+			GDocView.o \
+			GEdit.o \
 			GList.o \
 			GPanel.o \
 			GPopup.o \
+			GProgress.o \
 			GProgressDlg.o \
 			GRadioGroup.o \
+			GScrollBar.o \
 			GStatusBar.o \
 			GTabView.o \
 			GTextLabel.o \
+			GTextView3.o \
 			GToolBar.o \
 			GTree.o \
 			GCss.o \
@@ -677,40 +677,6 @@ GXmlTree.o : ./src/common/Text/GXmlTree.cpp ./include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GEdit.o : ./src/common/Widgets/GEdit.cpp ./include/common/Lgi.h \
-	./include/common/GEdit.h \
-	./include/common/GClipBoard.h \
-	./include/common/GDisplayString.h \
-	./include/common/GTextView3.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-GDocView.o : ./src/common/Text/GDocView.cpp ./include/common/Lgi.h \
-	./include/common/GDocView.h \
-	./include/common/INet.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-GProgress.o : ./src/common/Widgets/GProgress.cpp ./include/common/Lgi.h \
-	./include/common/GProgress.h \
-	./include/common/GCss.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-GScrollBar.o : ./src/common/Widgets/GScrollBar.cpp ./include/common/Lgi.h \
-	./include/common/GScrollBar.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-GTextView3.o : ./src/common/Text/GTextView3.cpp ./include/common/Lgi.h \
-	./include/common/GTextView3.h \
-	./include/common/GInput.h \
-	./include/common/GScrollBar.h \
-	./include/common/GClipBoard.h \
-	./include/common/GDisplayString.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
 GBitmap.o : ./src/common/Widgets/GBitmap.cpp ./include/common/Lgi.h \
 	./include/common/GBitmap.h \
 	./include/common/GTableLayout.h
@@ -739,6 +705,20 @@ GCombo.o : ./src/common/Widgets/GCombo.cpp ./include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
+GDocView.o : ./src/common/Text/GDocView.cpp ./include/common/Lgi.h \
+	./include/common/GDocView.h \
+	./include/common/INet.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GEdit.o : ./src/common/Widgets/GEdit.cpp ./include/common/Lgi.h \
+	./include/common/GEdit.h \
+	./include/common/GClipBoard.h \
+	./include/common/GDisplayString.h \
+	./include/common/GTextView3.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
 GList.o : ./src/common/Widgets/GList.cpp ./include/common/Lgi.h \
 	./include/common/GSkinEngine.h \
 	./include/common/GList.h \
@@ -758,7 +738,14 @@ GPopup.o : ./src/common/Widgets/GPopup.cpp ./include/common/Lgi.h \
 	./include/common/GPopup.h \
 	./include/common/GSkinEngine.h \
 	./include/common/GDisplayString.h \
+	./include/common/GThreadEvent.h \
 	./include/linux/Gtk/LgiWidget.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GProgress.o : ./src/common/Widgets/GProgress.cpp ./include/common/Lgi.h \
+	./include/common/GProgress.h \
+	./include/common/GCss.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -778,6 +765,11 @@ GRadioGroup.o : ./src/common/Widgets/GRadioGroup.cpp ./include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
+GScrollBar.o : ./src/common/Widgets/GScrollBar.cpp ./include/common/Lgi.h \
+	./include/common/GScrollBar.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
 GStatusBar.o : ./src/common/Widgets/GStatusBar.cpp ./include/common/Lgi.h \
 	./include/common/GDisplayString.h
 	@echo $(<F) [$(Build)]
@@ -793,6 +785,15 @@ GTabView.o : ./src/common/Widgets/GTabView.cpp ./include/common/Lgi.h \
 GTextLabel.o : ./src/common/Widgets/GTextLabel.cpp ./include/common/Lgi.h \
 	./include/common/GTextLabel.h \
 	./include/common/GUtf8.h \
+	./include/common/GDisplayString.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GTextView3.o : ./src/common/Text/GTextView3.cpp ./include/common/Lgi.h \
+	./include/common/GTextView3.h \
+	./include/common/GInput.h \
+	./include/common/GScrollBar.h \
+	./include/common/GClipBoard.h \
 	./include/common/GDisplayString.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -1073,8 +1074,7 @@ md5.o : ./src/common/Hash/md5/md5.c
 ./include/linux/Gtk/LgiOsDefs.h : ./include/common/LgiDefs.h \
 	./include/common/LgiInc.h
 
-./include/common/GString.h : ./include/common/LgiInc.h \
-	./include/common/LgiDefs.h \
+./include/common/GString.h : ./include/common/LgiDefs.h \
 	./include/linux/Gtk/LgiOsDefs.h
 
 ./include/common/GList.h : ./include/common/GMem.h \
@@ -1155,8 +1155,7 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ./include/common/GMru.h : ./include/common/GProperties.h
 
-./include/common/GString.h : ./include/common/LgiInc.h \
-	./include/common/LgiDefs.h \
+./include/common/GString.h : ./include/common/LgiDefs.h \
 	./include/linux/Gtk/LgiOsDefs.h
 
 ./include/common/GDragAndDrop.h : ./include/common/GVariant.h \

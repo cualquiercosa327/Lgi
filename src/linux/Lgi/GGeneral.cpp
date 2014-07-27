@@ -193,6 +193,66 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 {
 	bool Status = false;
 
+	#if 1
+
+	char Args[256];
+	sprintf(Args, "query default %s", Mime);
+	GProcess p;
+	GStringPipe Output;
+	if (p.Run("xdg-mime", Args, 0, true, 0, &Output))
+	{
+		GAutoString o(Output.NewStr());
+		char *e = o + strlen(o);
+		while (e > o && strchr(" \t\r\n", e[-1]))
+			*(--e) = 0;
+		
+		char p[MAX_PATH];
+		if (LgiMakePath(p, sizeof(p), "/usr/share/applications", o))
+		{
+			if (FileExists(p))
+			{
+				GAutoString txt(ReadTextFile(p));
+				if (txt)
+				{
+					GAppInfo *ai = new GAppInfo;
+					Apps.Add(ai);
+					
+					GToken t(txt, "\n");
+					for (int i=0; i<t.Length(); i++)
+					{
+						char *Var = t[i];
+						char *Value = strchr(Var, '=');
+						if (Value)
+						{
+							*Value++ = 0;
+							if (stricmp(Var, "Exec"))
+							{
+								GAutoString exe(TrimStr(Value));
+								char *sp = strchr(exe, ' ');
+								if (sp)
+									ai->Path.Reset(NewStr(exe, sp-exe));
+								else
+									ai->Path = exe;
+								
+								Status = true;
+							}
+							else if (stricmp(Var, "Name"))
+							{
+								ai->Name.Reset(TrimStr(Value));
+							}
+						}
+					}
+				}
+				else LgiTrace("%s:%i - Can't read from '%s'\n", _FL, p);
+			}
+			else LgiTrace("%s:%i - '%s' doesn't exist.", _FL, p);
+		}
+		else LgiTrace("%s:%i - Failed to create path.\n", _FL);
+	}
+	else LgiTrace("%s:%i - Failed to execute xdg-mime\n", _FL);
+	
+	#else
+
 	GLibrary *WmLib = LgiApp->GetWindowManagerLib();
 	if (WmLib)
 	{
@@ -214,6 +274,8 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 	{
 		printf("%s:%i - GetWindowManagerLib failed\n", _FL);
 	}
+
+	#endif
 
 	return Status;
 }
@@ -317,7 +379,7 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir, GAutoString
 				else // if (!InPath)
 				{
 					// look up the type...
-					char Mime[256];
+					char Mime[256] = "";
 					if (LgiGetFileMimeType(File, Mime, sizeof(Mime)))
 					{
 						// printf("LgiGetFileMimeType(%s)=%s\n", File, Mime);
@@ -345,7 +407,7 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir, GAutoString
 						// printf("LgiExecute: LgiGetFileMimeType failed to return a mime type for '%s'\n", File);
 						
 						// If a file can't be typed it's most likely an executable.
-						goto TreatAsExe;
+						// goto TreatAsExe;
 					}
 				}
 			}
