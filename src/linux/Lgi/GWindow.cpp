@@ -28,6 +28,7 @@ public:
 	GKey LastKey;
 	::GArray<HookInfo> Hooks;
 	bool SnapToEdge;
+	GAutoString Icon;
 	
 	// Zoom state
 	GdkWindowState State;
@@ -107,6 +108,29 @@ GWindow::~GWindow()
 	DeleteObj(Menu);
 	DeleteObj(d);
 	DeleteObj(_Lock);
+}
+
+bool GWindow::SetIcon(const char *FileName)
+{
+	if (Wnd)
+	{
+		GAutoString a;
+		if (!FileExists(FileName))
+		{
+			if (a.Reset(LgiFindFile(FileName)))
+				FileName = a;
+		}
+		
+		GError *error = NULL;
+		Gtk::GdkPixbuf *pixbuf = Gtk::gdk_pixbuf_new_from_file(FileName, &error);
+		if (pixbuf)
+		{
+			Gtk::gtk_window_set_icon(Wnd, pixbuf);
+		}
+		else LgiTrace("%s:%i - gdk_pixbuf_new_from_file(%s) failed.\n", _FL, FileName);
+	}
+	
+	return d->Icon.Reset(NewStr(FileName));
 }
 
 bool GWindow::GetSnapToEdge()
@@ -787,6 +811,11 @@ void GWindow::OnChildrenChanged(GViewI *Wnd, bool Attaching)
 
 void GWindow::OnCreate()
 {
+	if (d->Icon)
+	{
+		SetIcon(d->Icon);
+		d->Icon.Reset();
+	}
 }
 
 void GWindow::_Paint(GSurface *pDC, int Ox, int Oy)

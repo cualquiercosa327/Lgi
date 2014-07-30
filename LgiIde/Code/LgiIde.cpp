@@ -912,7 +912,9 @@ AppWnd::AppWnd()
 	SetQuitOnClose(true);
 
 	#if WINNATIVE
-	CreateClassW32(AppName, LoadIcon(LgiProcessInst(), MAKEINTRESOURCE(IDI_APP)));
+	SetIcon(MAKEINTRESOURCE(IDI_APP));
+	#elif defined(__GTK_H__)
+	SetIcon("Icon64.png");
 	#endif
 	if (Attach(0))
 	{

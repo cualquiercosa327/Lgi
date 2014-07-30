@@ -1,8 +1,8 @@
 #include "Lgi.h"
 #include "GScrollBar.h"
 
-#define DrawBorder(dc, r, edge) LgiWideBorder(dc, r, edge)
-// #define DrawBorder(dc, r, edge) LgiThinBorder(dc, r, edge)
+// #define DrawBorder(dc, r, edge) LgiWideBorder(dc, r, edge)
+#define DrawBorder(dc, r, edge) LgiThinBorder(dc, r, edge)
 
 #define BTN_NONE			0
 #define BTN_SUB				1
@@ -48,7 +48,7 @@ public:
 	void DrawIcon(GSurface *pDC, GRect &r, bool Add, COLOUR c)
 	{
 		pDC->Colour(c, 24);
-		int IconSize = max(r.X(), r.Y()) * 2 / 5;
+		int IconSize = max(r.X(), r.Y()) * 2 / 6;
 		int Cx = r.x1 + (r.X() >> 1);
 		int Cy = r.y1 + (r.Y() >> 1);
 		int Off = (IconSize >> 1) * (Add ? 1 : -1);

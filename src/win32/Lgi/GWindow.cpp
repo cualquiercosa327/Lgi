@@ -107,6 +107,11 @@ GWindow::~GWindow()
 	DeleteObj(d);
 }
 
+bool GWindow::SetIcon(const char *Icon)
+{
+	return CreateClassW32(AppName, LoadIcon(LgiProcessInst(), (LPTSTR*)Icon);
+}
+
 GViewI *GWindow::GetFocus()
 {
 	return d->Focus;

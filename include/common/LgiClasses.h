@@ -1275,6 +1275,9 @@ public:
 	/// Set the menu object.
 	void SetMenu(GMenu *m) { Menu = m; }
 	
+	/// Set the window's icon
+	bool SetIcon(const char *FileName);
+	
 	/// Gets the "quit on close" setting.
 	bool GetQuitOnClose() { return _QuitOnClose; }
 

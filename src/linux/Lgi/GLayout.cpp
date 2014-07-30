@@ -209,11 +209,6 @@ void GLayout::OnPosChange()
 		v.y2 = h.y1 - 1;
 	}
 	
-	if (GetId() == 1001)
-	{
-		LgiTrace("Layout %i: cli=%s, v=%s, h=%s\n", GetId(), r.GetStr(), v.GetStr(), h.GetStr());
-	}
-	
 	if (VScroll)
 	{
 		VScroll->Visible(true);
