@@ -109,7 +109,7 @@ GWindow::~GWindow()
 
 bool GWindow::SetIcon(const char *Icon)
 {
-	return CreateClassW32(AppName, LoadIcon(LgiProcessInst(), (LPTSTR*)Icon);
+	return CreateClassW32(LgiApp->Name(), LoadIcon(LgiProcessInst(), (LPCSTR)Icon));
 }
 
 GViewI *GWindow::GetFocus()

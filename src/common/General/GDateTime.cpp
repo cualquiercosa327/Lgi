@@ -710,7 +710,7 @@ bool GDateTime::Get(uint64 &s)
 	if ((b1 = SystemTimeToFileTime(&System, &Local)) &&
 		(b2 = LocalFileTimeToFileTime(&Local, &Utc)))
 	{
-		s = ((int64)Utc.dwHighDateTime << 32) | Utc.dwLowDateTime;
+		s = ((uint64)Utc.dwHighDateTime << 32) | Utc.dwLowDateTime;
 		Status = true;
 	}
 	else
@@ -1411,6 +1411,8 @@ void GDateTime::AddMonths(int Months)
 	while (1);
 
 	_Month = m;
+	if (_Day > DaysInMonth())
+		_Day = DaysInMonth();
 }
 
 int GDateTime::MonthFromName(const char *Name)
