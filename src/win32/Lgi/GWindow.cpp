@@ -12,6 +12,7 @@
 #define DEBUG_WINDOW_PLACEMENT				0
 #define DEBUG_HANDLE_VIEW_KEY				0
 #define DEBUG_HANDLE_VIEW_MOUSE				0
+#define DEBUG_SERIALIZE_STATE				0
 
 extern bool In_SetWindowPos;
 
@@ -853,7 +854,6 @@ GMessage::Result GWindow::OnEvent(GMessage *Msg)
 			}
 			break;
 		}
-		#if 1
 		case WM_SIZE:
 		{
 			if (Visible())
@@ -879,16 +879,13 @@ GMessage::Result GWindow::OnEvent(GMessage *Msg)
 				}
 				if (z != d->Show)
 				{
-					SetZoom(z);
-					OnZoom(z);
+					OnZoom(d->Show = z);
 				}
 			}
 
 			Status = GView::OnEvent(Msg);
 			break;
 		}
-		#endif
-		#if 0
 		case WM_ACTIVATE:
 		{
 			// This is a hack to make Windows set the focus of a child
@@ -939,7 +936,6 @@ GMessage::Result GWindow::OnEvent(GMessage *Msg)
 			*/
 			break;
 		}
-		#endif
 		case WM_CREATE:
 		{
 			Pour();
@@ -1133,6 +1129,9 @@ bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
 	if (!Store || !FieldName)
 		return false;
 
+	#if DEBUG_SERIALIZE_STATE
+	LgiTrace("GWindow::SerializeState(%p, %s, %i)\n", Store, FieldName, Load);
+	#endif
 	if (Load)
 	{
 		GVariant v;
@@ -1140,6 +1139,10 @@ bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
 		{
 			GRect Position(0, 0, -1, -1);
 			GWindowZoom State = GZoomNormal;
+
+			#if DEBUG_SERIALIZE_STATE
+			LgiTrace("\t::SerializeState:%i v=%s\n", __LINE__, v.Str());
+			#endif
 
 			GToken t(v.Str(), ";");
 			for (int i=0; i<t.Length(); i++)
@@ -1162,6 +1165,10 @@ bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
 				}
 				else return false;
 			}
+
+			#if DEBUG_SERIALIZE_STATE
+			LgiTrace("\t::SerializeState:%i State=%i, Pos=%s\n", __LINE__, State, Position.GetStr());
+			#endif
 
 			// Apply any shortcut override
 			int Show = LgiApp->GetShow();
@@ -1208,7 +1215,7 @@ bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
 					Position.y1 >= 0)
 				    Pos = Position;
 				Wp->rcNormalPosition = Pos;
-				#if DEBUG_WINDOW_PLACEMENT
+				#if DEBUG_SERIALIZE_STATE
 				LgiTrace("%s:%i - SetWindowPlacement, pos=%s, show=%i\n", __FILE__, __LINE__, Pos.GetStr(), Wp->showCmd);
 				#endif
 				SetWindowPlacement(Handle(), Wp);
@@ -1247,6 +1254,10 @@ bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
 		}
 		
 		sprintf_s(s, sizeof(s), "State=%i;Pos=%s", State, Position.GetStr());
+
+		#if DEBUG_SERIALIZE_STATE
+		LgiTrace("\t::SerializeState:%i s='%s'\n", __LINE__, s);
+		#endif
 
 		GVariant v = s;
 		if (!Store->SetValue(FieldName, v))

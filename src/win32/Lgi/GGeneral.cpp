@@ -886,7 +886,10 @@ void _lgi_assert(bool b, const char *test, const char *file, int line)
 
 	if (!b)
 	{
-		if (Asserting)
+		#ifdef LGI_STATIC
+		assert(b);
+		#else
+		if (Asserting || !LgiApp)
 		{
 			// Woah boy...
 			assert(0);
@@ -895,9 +898,6 @@ void _lgi_assert(bool b, const char *test, const char *file, int line)
 		{
 			Asserting = true;
 			
-			#ifdef LGI_STATIC
-			assert(b);
-			#else
 			printf("%s:%i - Assert failed:\n%s\n", file, line, test);
 
 			#ifdef _DEBUG
@@ -931,10 +931,10 @@ void _lgi_assert(bool b, const char *test, const char *file, int line)
 			}
 
 			#endif
-			#endif
 
 			Asserting = false;
 		}
+		#endif
 	}
 }
 
