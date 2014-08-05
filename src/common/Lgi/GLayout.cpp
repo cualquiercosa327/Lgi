@@ -95,6 +95,10 @@ void GLayout::SetScrollPos(int x, int y)
 	}
 }
 
+void GLayout::OnCreate()
+{
+}
+
 bool GLayout::Attach(GViewI *p)
 {
 	bool Status = GView::Attach(p);

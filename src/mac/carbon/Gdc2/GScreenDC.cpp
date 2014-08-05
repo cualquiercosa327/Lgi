@@ -121,6 +121,15 @@ void GScreenDC::PopState()
         CGContextRestoreGState(d->Ctx);
 }
 
+bool GScreenDC::GetClient(GRect *c)
+{
+	if (!c)
+		return false;
+	
+	*c = d->Rc;
+	return true;
+}
+
 void GScreenDC::SetClient(GRect *c)
 {
 	// 'c' is in absolute coordinates
