@@ -52,6 +52,7 @@ typedef ZoomTile *SuperTilePtr;
 class GZoomViewPriv // : public GThread, public GMutex
 {
 	int Zoom;
+	GAutoPtr<GMemDC> TileCache;
 
 public:
 	/// If this is true, then we own the pDC object.
@@ -143,8 +144,8 @@ public:
 			// Scaling up (zooming in)
 			s.x1 *= f;
 			s.y1 *= f;
-			s.x2 *= f;
-			s.y2 *= f;
+			s.x2 = ((s.x2 + 1) * f) - 1;
+			s.y2 = ((s.y2 + 1) * f) - 1;
 		}
 		
 		return s;
@@ -520,18 +521,18 @@ public:
 					break;
 				}
 					
-				#define ScaleUpCase(type, bits) \
+				#define ScaleDownCase(type, bits) \
 					case Cs##type: \
 						ScaleDown##bits(Dst->GetColourSpace(), (*Dst)[y], (G##type*) (*Src)[yy] + Sx, Ex - Sx, Factor); \
 						break;
 
-				ScaleUpCase(Rgbx32, 24);
-				ScaleUpCase(Xrgb32, 24);
-				ScaleUpCase(Bgrx32, 24);
-				ScaleUpCase(Xbgr32, 24);
+				ScaleDownCase(Rgbx32, 24);
+				ScaleDownCase(Xrgb32, 24);
+				ScaleDownCase(Bgrx32, 24);
+				ScaleDownCase(Xbgr32, 24);
 
-				ScaleUpCase(Rgb24, 24);
-				ScaleUpCase(Bgr24, 24);
+				ScaleDownCase(Rgb24, 24);
+				ScaleDownCase(Bgr24, 24);
 					
 				case System32BitColourSpace:
 				{
@@ -652,7 +653,20 @@ public:
 		}
 	}
 
-	void ScaleUp(GSurface *Dst, GSurface *Src, int Sx, int Sy, int Factor)
+	/// Scale pixels up into a tile
+	void ScaleUp
+	(
+		/// The tile to write to
+		GSurface *Dst,
+		/// The source bitmap we are displaying
+		GSurface *Src,
+		/// X offset into source for tile's data
+		int Sx,
+		/// Y offset into source
+		int Sy,
+		/// The scaling factor to apply
+		int Factor
+	)
 	{
 		COLOUR Dark = GdcD->GetColour(Rgb24(128, 128, 128), Dst);
 		COLOUR Light = GdcD->GetColour(Rgb24(192, 192, 192), Dst);
@@ -665,25 +679,49 @@ public:
 		LgiAssert(Dst->X() % Factor == 0);
 		
 		Pal32 pal[256];
-		if (Src->GetColourSpace() == CsIndex8)
+		switch (Src->GetColourSpace())
 		{
-			GPalette *inPal = Src->Palette();
-			for (int i=0; i<256; i++)
+			case CsIndex8:
 			{
-				GdcRGB *rgb = inPal ? (*inPal)[i] : NULL;
-				if (rgb)
+				GPalette *inPal = Src->Palette();
+				for (int i=0; i<256; i++)
 				{
-					pal[i].p32.r = rgb->r;
-					pal[i].p32.g = rgb->g;
-					pal[i].p32.b = rgb->b;
+					GdcRGB *rgb = inPal ? (*inPal)[i] : NULL;
+					if (rgb)
+					{
+						pal[i].p32.r = rgb->r;
+						pal[i].p32.g = rgb->g;
+						pal[i].p32.b = rgb->b;
+					}
+					else
+					{
+						pal[i].p32.r = i;
+						pal[i].p32.g = i;
+						pal[i].p32.b = i;
+					}
+					pal[i].p32.a = 255;
 				}
-				else
+				break;
+			}
+			case System32BitColourSpace:
+			{
+				if (Callback && (!TileCache || TileCache->X() != TileSize || TileCache->Y() != TileSize))
 				{
-					pal[i].p32.r = i;
-					pal[i].p32.g = i;
-					pal[i].p32.b = i;
+					TileCache.Reset(new GMemDC(TileSize, TileSize, System32BitColourSpace));
 				}
-				pal[i].p32.a = 255;
+				
+				if (TileCache)
+				{
+					GRect s;
+					s.ZOff(TileSize-1, TileSize-1);
+					s.Offset(Sx, Sy);
+					
+					GdcPt2 off(Sx, Sy);
+					Callback->DrawBackground(TileCache, off, NULL);
+					TileCache->Op(GDC_ALPHA);
+					TileCache->Blt(0, 0, Src, &s);
+				}
+				break;
 			}
 		}
 		
@@ -811,9 +849,18 @@ public:
 				}
 				case System32BitColourSpace:
 				{
-					System32BitPixel *src = (System32BitPixel*) (*Src)[SrcY];
-					System32BitPixel *end = src + EndX;
-					src += Sx;
+					System32BitPixel *src, *end;
+					if (TileCache)
+					{
+						src = (System32BitPixel*) (*TileCache)[y];
+						end = src + (EndX - Sx);
+					}
+					else
+					{
+						src = (System32BitPixel*) (*Src)[SrcY];
+						end = src + EndX;
+						src += Sx;
+					}
 					
 					if (HasGrid)
 					{
@@ -1000,7 +1047,8 @@ public:
 			if (Callback)
             {
                 GRect r = Dst->Bounds();
-				Callback->DrawBackground(Dst, &r);
+                GdcPt2 off(x, y);
+				Callback->DrawBackground(Dst, off, &r);
             }
 			else
 			{
@@ -1590,9 +1638,9 @@ void GZoomView::OnPaint(GSurface *pDC)
 						// Work out how much image is in the tile
 						GRect img = r;
 						if (img.x2 >= ScaledDocSize.X())
-							img.x2 = ScaledDocSize.X() - 1;
+							img.x2 = ScaledDocSize.X();
 						if (img.y2 >= ScaledDocSize.Y())
-							img.y2 = ScaledDocSize.Y() - 1;
+							img.y2 = ScaledDocSize.Y();
 						
 						// Work out the image pixels in tile co-ords
 						GRect tile_source(0, 0, img.X()-1, img.Y()-1);

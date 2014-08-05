@@ -859,7 +859,7 @@ struct ImageCompareDlgPriv : public GZoomViewCallback
 		tabs = NULL;
 	}
 
-	void DrawBackground(GSurface *Dst, GRect *Where)
+	void DrawBackground(GSurface *Dst, GdcPt2 Offset, GRect *Where)
 	{
 		Dst->Colour(LC_WORKSPACE, 24);
 		Dst->Rectangle(Where);

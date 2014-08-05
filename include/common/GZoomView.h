@@ -21,7 +21,7 @@ public:
 	
 	#undef DefOption
 	
-	virtual void DrawBackground(GSurface *Dst, GRect *Where) = 0;
+	virtual void DrawBackground(GSurface *Dst, GdcPt2 Offset, GRect *Where = NULL) = 0;
 	virtual void SetStatusText(const char *Msg, int Pane = 0) {}
 };
 
