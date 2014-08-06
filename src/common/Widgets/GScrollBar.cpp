@@ -4,12 +4,21 @@
 // #define DrawBorder(dc, r, edge) LgiWideBorder(dc, r, edge)
 #define DrawBorder(dc, r, edge) LgiThinBorder(dc, r, edge)
 
-#define BTN_NONE			0
-#define BTN_SUB				1
-#define BTN_SLIDE			2
-#define BTN_ADD				3
-#define BTN_PAGE_SUB		4
-#define BTN_PAGE_ADD		5
+#ifdef MAC
+#define MAC_SKIN		1
+#else
+#define MAC_SKIN		0
+#endif
+
+enum ScrollZone
+{
+	BTN_NONE,
+	BTN_SUB,
+	BTN_SLIDE,
+	BTN_ADD,
+	BTN_PAGE_SUB,
+	BTN_PAGE_ADD,
+};
 
 class GScrollBarPrivate
 {
@@ -284,11 +293,56 @@ public:
 
 	int OnHit(int x, int y)
 	{
+		#if MAC_SKIN
+		
+		HIThemeTrackDrawInfo Info;
+		GRect Client = Widget->GetClient();
+		HIRect Rc = Client;
+		Info.version = 0;
+		Info.kind = kThemeScrollBarMedium;
+		Info.bounds = Rc;
+		Info.min = Min;
+		Info.max = Max - Page;
+		Info.value = Value;
+		Info.reserved = 0;
+		Info.attributes =	(Widget->Vertical() ? 0 : kThemeTrackHorizontal) |
+							(Widget->Focus() ? kThemeTrackHasFocus : 0) |
+							kThemeTrackShowThumb;
+		Info.enableState = Widget->Enabled() ? kThemeTrackActive : kThemeTrackDisabled;
+		Info.filler1 = 0;
+		Info.trackInfo.scrollbar.viewsize = Page;
+		Info.trackInfo.scrollbar.pressState = false;
+
+		HIPoint pt = {x, y};
+
+		ControlPartCode part;
+
+		Boolean b = HIThemeHitTestTrack(&Info, &pt, &part);
+		if (b)
+		{
+			switch (part)
+			{
+				case kAppearancePartUpButton:	return BTN_SUB;
+				case kAppearancePartDownButton:	return BTN_ADD;
+				case 129:						return BTN_SLIDE;
+				case kControlPageUpPart:		return BTN_PAGE_SUB;
+				case kControlPageDownPart:		return BTN_PAGE_ADD;
+				default:
+					printf("%s:%i - Unknown scroll bar hittest value: %i\n", _FL, part);
+					break;
+			}
+		}
+		
+		#else
+		
 		if (Sub.Overlap(x, y)) return BTN_SUB;
 		if (Slide.Overlap(x, y)) return BTN_SLIDE;
 		if (Add.Overlap(x, y)) return BTN_ADD;
 		if (PageSub.Overlap(x, y)) return BTN_PAGE_SUB;
 		if (PageAdd.Overlap(x, y)) return BTN_PAGE_ADD;
+		
+		#endif
+		
 		return BTN_NONE;
 	}
 
@@ -410,7 +464,38 @@ bool GScrollBar::Attach(GViewI *p)
 
 void GScrollBar::OnPaint(GSurface *pDC)
 {
+	#if MAC_SKIN
+
+	#if 0
+	pDC->Colour(GColour(255, 0, 255));
+	pDC->Rectangle();
+	#endif
+	
+	HIThemeTrackDrawInfo Info;
+	GRect Client = GetClient();
+	HIRect Rc = Client;
+	Info.version = 0;
+	Info.kind = kThemeScrollBarMedium;
+	Info.bounds = Rc;
+	Info.min = d->Min;
+	Info.max = d->Max - d->Page;
+	Info.value = d->Value;
+	Info.reserved = 0;
+	Info.attributes =	(Vertical() ? 0 : kThemeTrackHorizontal) |
+						(Focus() ? kThemeTrackHasFocus : 0) |
+						kThemeTrackShowThumb;
+	Info.enableState = Enabled() ? kThemeTrackActive : kThemeTrackDisabled;
+	Info.filler1 = 0;
+	Info.trackInfo.scrollbar.viewsize = d->Page;
+	Info.trackInfo.scrollbar.pressState = false;
+	CGContextRef Cr = pDC->Handle();
+	OSStatus e = HIThemeDrawTrack(&Info, NULL, Cr, kHIThemeOrientationNormal);
+	if (e)
+		printf("%s:%i - HIThemeDrawTrack failed with %li\n", _FL, e);
+	
+	#else
 	d->OnPaint(pDC);
+	#endif
 }
 
 void GScrollBar::OnPosChange()

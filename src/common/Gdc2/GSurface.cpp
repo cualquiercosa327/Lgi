@@ -1674,6 +1674,8 @@ bool GSurface::SetVariant(const char *Name, GVariant &Value, char *Array)
 				ClearFlag(Flags, GDC_CAPTURE_CURSOR);
 			break;
 		}
+		default:
+			break;
 	}
 	
 	return false;

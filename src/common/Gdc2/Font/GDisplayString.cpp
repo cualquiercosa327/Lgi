@@ -1085,7 +1085,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 					if (r)
 					{
 						CGRect rect = *r;
-						rect.origin.y -= rect.size.height;
+						// rect.origin.y -= rect.size.height;
 						rect.size.width += 1.0;
 						rect.size.height += 1.0;
 						#if 1

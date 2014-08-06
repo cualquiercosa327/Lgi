@@ -193,9 +193,9 @@ public:
 	{
 		CGRect r;
 		r.origin.x = x1;
-		r.origin.y = y2;
-		r.size.width = x2 - x1;
-		r.size.height = y2 - y1;
+		r.origin.y = y1;
+		r.size.width = x2 - x1 + 1;
+		r.size.height = y2 - y1 + 1;
 		return r;
 	}
 	#endif

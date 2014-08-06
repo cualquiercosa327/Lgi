@@ -1458,7 +1458,7 @@ bool GFontType::Serialize(GDom *Options, const char *OptName, bool Write)
 					
 					Info.Face(v.Str());
 					Info.PointSize(PtSize);
-					printf("FontTypeSer getting '%s' = '%s' pt %i\n", OptName, v.Str(), PtSize);
+					// printf("FontTypeSer getting '%s' = '%s' pt %i\n", OptName, v.Str(), PtSize);
 					Status = true;
 				}
 			}

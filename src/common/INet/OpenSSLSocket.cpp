@@ -59,11 +59,11 @@ class LibSSL : public GLibrary
 public:
 	LibSSL()
 	{
-		#ifndef WINDOWS
+		#ifdef MAC
 		char Exe[MAX_PATH];
 		if (LgiGetExeFile(Exe, sizeof(Exe)))
 		{
-			LgiMakePath(Exe, sizeof(Exe), Exe, "Contents/MacOS/libcrypto.dylib");
+			LgiMakePath(Exe, sizeof(Exe), Exe, "Contents/MacOS/libssl.dylib");
 			if (FileExists(Exe))
 			{
 				Load(Exe);
@@ -87,11 +87,6 @@ public:
 			Load(SSL_LIBRARY);
 			#ifdef WIN32
 			FileDev->SetCurrentFolder(old);
-			#endif
-
-			#ifdef MAC
-			if (!IsLoaded())
-				Load("/opt/local/lib/" SSL_LIBRARY);
 			#endif
 		}
 
