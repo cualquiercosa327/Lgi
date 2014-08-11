@@ -369,19 +369,19 @@ public:
 				if (Ctrls[i].Edit)
 				{
 					char *Val = Ctrls[i].Edit->Name();
-					LgiTrace("Saving edit setting '%s': '%s'\n", Path, Val);
+					// LgiTrace("Saving edit setting '%s': '%s'\n", Path, Val);
 					t->SetContent(Val);
 				}
 				else if (Ctrls[i].Chk)
 				{
 					int64 Val = Ctrls[i].Chk->Value();
-					LgiTrace("Saving bool setting '%s': "LGI_PrintfInt64"\n", Path, Val);
+					// LgiTrace("Saving bool setting '%s': "LGI_PrintfInt64"\n", Path, Val);
 					t->SetContent((int)Val);
 				}
 				else if (Ctrls[i].Cbo)
 				{
 					char *Val = Ctrls[i].Cbo->Name();
-					LgiTrace("Saving enum setting '%s': '%s'\n", Path, Val);
+					// LgiTrace("Saving enum setting '%s': '%s'\n", Path, Val);
 					t->SetContent(Val);
 				}
 				else LgiAssert(0);

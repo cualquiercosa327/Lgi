@@ -12,10 +12,12 @@
 char *Untitled = "[untitled]";
 static char *White = " \r\t\n";
 
-#define IDC_EDIT		100
-#define isword(s)		(s && (isdigit(s) || isalpha(s) || (s) == '_') )
-#define iswhite(s)		(s && strchr(White, s) != 0)
-#define skipws(s)		while (iswhite(*s)) s++;
+#define USE_OLD_FIND_DEFN	1
+
+#define IDC_EDIT			100
+#define isword(s)			(s && (isdigit(s) || isalpha(s) || (s) == '_') )
+#define iswhite(s)			(s && strchr(White, s) != 0)
+#define skipws(s)			while (iswhite(*s)) s++;
 
 GAutoPtr<GDocFindReplaceParams> GlobalFindReplace;
 
@@ -237,19 +239,25 @@ void EditTray::OnMouseClick(GMouse &m)
 				GAutoWString sw(LgiNewUtf8To16(s));
 				if (sw)
 				{
-					/*
+					#if USE_OLD_FIND_DEFN
 					List<DefnInfo> Matches;
 					Doc->FindDefn(sw, Ctrl->NameW(), Matches);
-					*/
+					#else
 					GArray<FindSymResult> Matches;
 					Doc->GetApp()->FindSymbol(s, Matches);
+					#endif
 
 					GSubMenu *s = new GSubMenu;
 					if (s)
 					{
 						// Construct the menu
 						int n=1;
-						// for (DefnInfo *Def = Matches.First(); Def; Def = Matches.Next())
+						
+						#if USE_OLD_FIND_DEFN
+						for (DefnInfo *Def = Matches.First(); Def; Def = Matches.Next())
+						{
+						}
+						#else
 						for (int i=0; i<Matches.Length(); i++)
 						{
 							FindSymResult &Res = Matches[i];
@@ -258,6 +266,8 @@ void EditTray::OnMouseClick(GMouse &m)
 							sprintf(m, "%s (%s:%i)", Res.Symbol.Get(), d ? d + 1 : Res.File.Get(), Res.Line);
 							s->AppendItem(m, n++, true);
 						}
+						#endif
+
 						if (!Matches.Length())
 						{
 							s->AppendItem("(none)", 0, false);
@@ -269,22 +279,27 @@ void EditTray::OnMouseClick(GMouse &m)
 						int Goto = s->Float(this, p.x, p.y, true);
 						if (Goto)
 						{
-							FindSymResult &Def = Matches[Goto-1];
+							#if USE_OLD_FIND_DEFN
+							DefnInfo *Def = Matches[Goto-1];
+							#else
+							FindSymResult *Def = &Matches[Goto-1];
+							#endif
 							{
 								// Open the selected symbol
 								if (Doc->GetProject() &&
 									Doc->GetProject()->GetApp())
 								{
 									AppWnd *App = Doc->GetProject()->GetApp();
-									IdeDoc *Doc = App->OpenFile(Def.File);
+									IdeDoc *Doc = App->OpenFile(Def->File);
 
 									if (Doc)
 									{
-										Doc->GetEdit()->GotoLine(Def.Line);
+										Doc->GetEdit()->GotoLine(Def->Line);
 									}
 									else
 									{
-										printf("%s:%i - Couldn't open doc '%s'\n", _FL, Def.File.Get());
+										char *f = Def->File;
+										printf("%s:%i - Couldn't open doc '%s'\n", _FL, f);
 									}
 								}
 								else
