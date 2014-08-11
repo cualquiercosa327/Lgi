@@ -3401,7 +3401,7 @@ bool GTextView3::OnKey(GKey &k)
 				if (GetReadOnly())
 					break;
 
-				if (k.Down())
+				if (k.Down() && k.IsChar)
 				{
 					OnEnter(k);
 				}

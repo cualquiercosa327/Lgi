@@ -1264,7 +1264,7 @@ public:
 	
 	bool OnKey(GKey &k)
 	{
-		if (k.Down() && !k.IsChar)
+		if (k.Down() && k.IsChar)
 		{
 			if (k.vkey == VK_RETURN)
 			{

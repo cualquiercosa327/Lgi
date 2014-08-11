@@ -163,6 +163,7 @@ public:
 	bool HasChild(GHtmlElement *Child);
 
 	// Virtuals
+	virtual bool Get(const char *attr, const char *&val) { return false; }
 	virtual void Set(const char *attr, const char *val) {}
 	virtual void SetStyle() {}
 	virtual GAutoString DescribeElement() = 0;
