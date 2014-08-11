@@ -509,8 +509,8 @@ lgi_widget_size_allocate(GtkWidget *widget, GtkAllocation *allocation)
 					child_allocation.y += widget->allocation.y;
 				}
 
-				child_allocation.width = child_requisition.width;
-				child_allocation.height = child_requisition.height;
+				child_allocation.width = max(child_requisition.width, 1);
+				child_allocation.height = max(child_requisition.height, 1);
 				gtk_widget_size_allocate(c.w, &child_allocation);
 			}
 		}
