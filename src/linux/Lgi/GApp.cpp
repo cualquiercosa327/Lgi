@@ -1015,14 +1015,80 @@ struct GlibEventParams
     GdkEvent *e;
 };
 
+bool GlibWidgetSearch(GtkWidget *p, GtkWidget *w, int depth = 0)
+{
+	/*
+	char indent[256];
+	int ch = depth * 2;
+	memset(indent, ' ', ch);
+	indent[ch] = 0;
+
+	printf("%s%p, %p\n", indent, p, w);
+	*/
+	
+	if (p == w)
+		return true;
+
+	if (GTK_IS_CONTAINER(p))
+	{
+		int n = 0;
+		Gtk::GList *top = gtk_container_get_children(GTK_CONTAINER(p));
+		Gtk::GList *i = top;
+		while (i)
+		{
+			// printf("%s[%i]=%s\n", indent, n, gtk_widget_get_name((GtkWidget*)i->data));
+
+			if (i->data == w)
+				return true;
+			else if (GlibWidgetSearch(i->data, w, depth + 1))
+				return true;
+
+			i = i->next;
+			n++;
+		}
+		g_list_free(top);
+	}
+	else if (GTK_IS_BIN(p))
+	{
+	    GtkWidget *child = gtk_bin_get_child(GTK_BIN(p));
+	    if (child)
+	    {
+			// printf("%schild=%s\n", indent, gtk_widget_get_name(child));
+			if (child == w)
+				return true;
+			else if (GlibWidgetSearch(child, w, depth + 1))
+				return true;
+		}
+    }
+    else
+    {
+		// printf("%sUnknown=%s\n", indent, gtk_widget_get_name(p));
+	}
+
+	return false;
+}
+
 static gboolean 
 GlibPostMessage(GlibEventParams *p)
 {
     GDK_THREADS_ENTER();
-    // printf("GListPostMessage: %p(%p) / %s\n", p->w, p->e, G_OBJECT_TYPE_NAME(p->w));
+
+	#if 1
+	GtkWindow *w = NULL;
+	if (p->e->client.window)
+		gdk_window_get_user_data(p->e->client.window, (gpointer*)&w);
+	
+	if (w && GlibWidgetSearch(GTK_WIDGET(w), p->w))
+	    gtk_propagate_event(p->w, p->e);
+	else
+		printf("%s:%i - Failed to find widget(%p) for PostMessage.\n", _FL, w);
+	#else
     gtk_propagate_event(p->w, p->e);
+	#endif
+	
     gdk_event_free(p->e);
     DeleteObj(p);
+
     GDK_THREADS_LEAVE();
 
     return FALSE;
@@ -1038,14 +1104,25 @@ bool GMessage::Send(GtkWidget *Wnd)
 	    p->w = Wnd;
 	    p->e = gdk_event_new(GDK_CLIENT_EVENT);
 	    *p->e = *Event;
-
-	    // printf("Sending %p to %p / %s\n", p->e, p->w, G_OBJECT_TYPE_NAME(Wnd));
 	    
-	    g_idle_add((GSourceFunc)GlibPostMessage, p);
-	    Status = true;
+    	p->e->client.window = gtk_widget_get_parent_window(Wnd);
+    	if (!p->e->client.window)
+	    	p->e->client.window = gtk_widget_get_window(Wnd);
+	    
+	    if (p->e->client.window)
+	    {
+	    	g_object_ref(p->e->client.window); // gdk_event_free will unref the window
+			// printf("Sending %p to %p / %s\n", p->e, p->w, G_OBJECT_TYPE_NAME(Wnd));			
+		    g_idle_add((GSourceFunc)GlibPostMessage, p);
+		    Status = true;
+	    }
+	    else
+	    {
+	    	printf("GMessage::Send error: %s not attached.\n", G_OBJECT_TYPE_NAME(Wnd));
+	    }
 	}
 	else LgiAssert(!"No Event or Wnd");
-	
+
 	return Status;
 }
 

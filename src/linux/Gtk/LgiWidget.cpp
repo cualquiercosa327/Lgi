@@ -358,10 +358,10 @@ static gboolean lgi_widget_key_event(GtkWidget *wid, GdkEventKey *e)
         if (w)
         {
             if (!w->HandleViewKey(v, k) &&
-                (k.vkey == GDK_Tab || k.vkey == GDK_ISO_Left_Tab) &&
+                (k.vkey == VK_TAB || k.vkey == GDK_ISO_Left_Tab) &&
                 k.Down())
             {
-                // Do tab between controls
+            	// Do tab between controls
                 ::GArray<GViewI*> a;
                 BuildTabStops(w, a);
                 int idx = a.IndexOf((GViewI*)v);
