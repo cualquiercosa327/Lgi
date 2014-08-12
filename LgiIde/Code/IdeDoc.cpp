@@ -256,6 +256,10 @@ void EditTray::OnMouseClick(GMouse &m)
 						#if USE_OLD_FIND_DEFN
 						for (DefnInfo *Def = Matches.First(); Def; Def = Matches.Next())
 						{
+							char m[512];
+							char *d = strrchr(Def->File, DIR_CHAR);
+							sprintf(m, "%s (%s:%i)", Def->Name, d ? d + 1 : Def->File, Def->Line);
+							s->AppendItem(m, n++, true);
 						}
 						#else
 						for (int i=0; i<Matches.Length(); i++)
@@ -1157,7 +1161,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 
 						char16 r = *s;
 						*s = 0;
-						DefnInfo *Defn = new DefnInfo(DefnDefine, FileName, Hash, Line);
+						DefnInfo *Defn = new DefnInfo(DefnDefine, FileName, Hash, Line + 1);
 						*s = r;
 						if (Defn)
 						{
@@ -1277,26 +1281,6 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 								// bool InArgs = false;
 								for (char16 *In = Buf; *In; In++)
 								{
-									/*
-									if (InArgs)
-									{
-										if (strchr(" \t\r\n", *In))
-										{
-											while (strchr(" \t\r\n", *In)) In++;
-											*Out++ = ' ';
-											In--;
-											continue;
-										}
-									}
-									else
-									{
-										if (*In == '(')
-										{
-											InArgs = true;
-										}
-									}
-									*/
-
 									if (*In == '\r' || *In == '\n' || *In == '\t' || *In == ' ')
 									{
 										*Out++ = ' ';
@@ -1364,7 +1348,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 								// cache f(n) def
 								if (LimitTo == DefnNone || LimitTo == DefnFunc)
 								{
-									DefnInfo *Defn = new DefnInfo(DefnFunc, FileName, Buf, Line);
+									DefnInfo *Defn = new DefnInfo(DefnFunc, FileName, Buf, Line + 1);
 									if (Defn)
 									{
 										Defns.Insert(Defn);
@@ -1488,7 +1472,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 							{
 								if (LimitTo == DefnNone || LimitTo == DefnTypedef)
 								{
-									DefnInfo *Defn = new DefnInfo(DefnTypedef, FileName, Typedef, Line);
+									DefnInfo *Defn = new DefnInfo(DefnTypedef, FileName, Typedef, Line + 1);
 									if (Defn)
 									{
 										Defns.Insert(Defn);
@@ -1531,7 +1515,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 											break;
 										}
 										else if (StrcmpW(t, StrOpenBracket) == 0 ||
-											StrcmpW(t, StrColon) == 0)
+												 StrcmpW(t, StrColon) == 0)
 										{
 											DeleteArray(CurClassDecl);
 											CurClassDecl = Tok.Last();
@@ -1541,7 +1525,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 											{
 												char16 r = *Last;
 												*Last = 0;
-												DefnInfo *Defn = new DefnInfo(DefnClass, FileName, Start, Line);
+												DefnInfo *Defn = new DefnInfo(DefnClass, FileName, Start, Line + 1);
 												*Last = r;
 												if (Defn)
 												{

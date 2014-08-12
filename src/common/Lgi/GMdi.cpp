@@ -726,7 +726,7 @@ void GMdiParent::OnPaint(GSurface *pDC)
 			}
 		}
 		pDC->Colour(Edge);
-		pDC->HLine(r.x1 + OffX, r.x2, r.y1);
+		pDC->HLine(r.x1 + OffX - 1, r.x2, r.y1);
 		pDC->VLine(r.x2, r.y1, r.y2);
 
 		r.Size(1, 1);
