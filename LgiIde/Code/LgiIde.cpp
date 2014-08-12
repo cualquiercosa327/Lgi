@@ -457,6 +457,7 @@ public:
 	GSubMenu *WindowsMenu;
 	GSubMenu *CreateMakefileMenu;
 	FindSymbolSystem FindSym;
+	GArray<GAutoString> SystemIncludePaths;
 	
 	// Find in files
 	FindInFilesThread *Finder;
@@ -835,17 +836,21 @@ public:
 
 	IdeDoc *IsFileOpen(char *File)
 	{
-		if (File)
+		if (!File)
 		{
-			for (IdeDoc *Doc = Docs.First(); Doc; Doc = Docs.Next())
+			printf("%s:%i - No input File?\n", _FL);
+			return NULL;
+		}
+		
+		for (IdeDoc *Doc = Docs.First(); Doc; Doc = Docs.Next())
+		{
+			if (Doc->IsFile(File))
 			{
-				if (Doc->IsFile(File))
-				{
-					return Doc;
-				}
+				return Doc;
 			}
 		}
 
+		printf("%s:%i - '%s' not found in %i docs.\n", _FL, File, Docs.Length());
 		return 0;
 	}
 
@@ -1229,9 +1234,14 @@ IdeDoc *AppWnd::OpenFile(char *FileName, NodeSource *Src)
 	IdeDoc *Doc = 0;
 	
 	char *File = Src ? Src->GetFileName() : FileName;
+
+printf("File='%s' Src=%p\n", File, Src);
+
 	if (Src || FileExists(File))
 	{
 		Doc = d->IsFileOpen(File);
+
+printf("Doc=%p\n", Doc);
 
 		if (!Doc)
 		{
@@ -1979,6 +1989,49 @@ bool AppWnd::FindSymbol(const char *Sym, GArray<FindSymResult> &Results)
 	return Results.Length() > 0;
 }
 
+bool AppWnd::GetSystemIncludePaths(GArray<char*> &Paths)
+{
+	if (d->SystemIncludePaths.Length() == 0)
+	{
+		#if defined(LINUX)
+		/*
+		GProcess p;
+		GStringPipe in, out;
+		if (p.Run("gcc", "-v -x c++ -E -", NULL, true, &in, &out))
+		{
+			char Buf[512];
+			bool InIncludeList = false;
+			while (out.Pop(Buf, sizeof(Buf)))
+			{
+				if (stristr(Buf, "#include"))
+				{
+					InIncludeList = true;
+				}
+				else if (stristr(Buf, "End of search"))
+				{
+					InIncludeList = false;
+				}
+				else if (InIncludeList)
+				{
+					printf("Buf='%s'\n", Buf);
+					d->SystemIncludePaths.New().Reset(TrimStr(Buf));
+				}
+			}
+		}
+		*/
+		#else
+		LgiAssert(!"Not impl");
+		#endif
+	}
+	
+	for (int i=0; i<d->SystemIncludePaths.Length(); i++)
+	{
+		Paths.Add(NewStr(d->SystemIncludePaths[i]));
+	}
+	
+	return true;
+}
+
 class Worker : public GThread
 {
 	GStream *s;
@@ -2098,9 +2151,9 @@ int LgiMain(OsAppArguments &AppArgs)
 	if (a.IsOk())
 	{	
 		a.AppWnd = new AppWnd;
-		// a.AppWnd = new Ps;
 		a.Run();
 	}
 
 	return 0;
 }
+

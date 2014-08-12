@@ -595,7 +595,7 @@ gboolean PopupEvent(GtkWidget *widget, GdkEvent *event, GPopup *This)
 		}
 		case GDK_DESTROY:
 		{
-			LgiTrace("PopupEvent.Destroy\n");
+			// LgiTrace("PopupEvent.Destroy\n");
 			delete This;
 			return TRUE;
 		}
@@ -605,26 +605,26 @@ gboolean PopupEvent(GtkWidget *widget, GdkEvent *event, GPopup *This)
 			This->Pos.Set(c->x, c->y, c->x+c->width-1, c->y+c->height-1);
 			This->OnPosChange();
 			
-			LgiTrace("PopupEvent.Config\n");
+			// LgiTrace("PopupEvent.Config\n");
 			return FALSE;
 			break;
 		}
 		case GDK_FOCUS_CHANGE:
 		{
-			LgiTrace("PopupEvent.Focus(%i)\n", event->focus_change.in);
+			// LgiTrace("PopupEvent.Focus(%i)\n", event->focus_change.in);
 			This->OnFocus(event->focus_change.in);
 			break;
 		}
 		case GDK_CLIENT_EVENT:
 		{
 			GMessage m(event);
-			LgiTrace("PopupEvent.Client\n");
+			// LgiTrace("PopupEvent.Client\n");
 			This->OnEvent(&m);
 			break;
 		}
 		case GDK_BUTTON_PRESS:
 		{
-			LgiTrace("PopupEvent.Button\n");
+			// LgiTrace("PopupEvent.Button\n");
 			break;
 		}
 		case GDK_EXPOSE:
@@ -635,7 +635,7 @@ gboolean PopupEvent(GtkWidget *widget, GdkEvent *event, GPopup *This)
 		}
 		default:
 		{
-			LgiTrace("Unhandled PopupEvent type %i\n", event->type);
+			// LgiTrace("Unhandled PopupEvent type %i\n", event->type);
 			break;
 		}
 	}

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project>
-	<Node Name="Source Files" Type="1" Platforms="15" Open="0">
-		<Node Name="Core" Type="1" Platforms="15" Open="0">
+	<Node Name="Source Files" Type="1" Platforms="15" Open="1">
+		<Node Name="Core" Type="1" Platforms="15" Open="1">
 			<Node Name="DateTime" Type="1" Platforms="15" Open="0">
 				<Node File=".\src\common\General\GDateTime.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GDateTime.h" Type="3" Platforms="15" />
@@ -11,11 +11,11 @@
 				<Node File=".\src\common\Lgi\GDragAndDrop.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GDragAndDrop.h" Type="3" Platforms="15" />
 			</Node>
-			<Node Name="File" Type="1" Platforms="15" Open="0">
+			<Node Name="File" Type="1" Platforms="15" Open="1">
 				<Node Name="Haiku" Type="1" Platforms="15" Open="0">
 					<Node File="./src/beos/General/GFile.cpp" Type="2" Platforms="8" />
 				</Node>
-				<Node Name="Linux" Type="1" Platforms="15" Open="0">
+				<Node Name="Linux" Type="1" Platforms="15" Open="1">
 					<Node File="./src/linux/General/GFile.cpp" Type="2" Platforms="2" />
 				</Node>
 				<Node Name="Win32" Type="1" Platforms="15" Open="0">
@@ -25,7 +25,7 @@
 				<Node File="./include/common/GFile.h" Type="3" Platforms="15" />
 				<Node File="./src/common/General/GFileCommon.cpp" Type="2" Platforms="15" />
 			</Node>
-			<Node Name="Interface" Type="1" Platforms="15" Open="1">
+			<Node Name="Interface" Type="1" Platforms="15" Open="0">
 				<Node Name="Win32" Type="1" Platforms="15" Open="0">
 					<Node File="./src/win32/Lgi/GApp.cpp" Type="2" Platforms="1" />
 					<Node File="./src/win32/Lgi/GGeneral.cpp" Type="2" Platforms="1" />
@@ -96,8 +96,8 @@
 				</Node>
 				<Node File="./include/common/GMenu.h" Type="3" Platforms="15" />
 			</Node>
-			<Node Name="Process" Type="1" Platforms="15" Open="0">
-				<Node File=".\src\common\Lgi\GProcess.cpp" Type="2" Platforms="15" />
+			<Node Name="Process" Type="1" Platforms="15" Open="1">
+				<Node File="./src/common/Lgi/GProcess.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GProcess.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Resources" Type="1" Platforms="15" Open="0">
@@ -341,16 +341,16 @@
 			<Node File="./include/common/GMime.h" Type="3" Platforms="15" />
 		</Node>
 	</Node>
-	<Node Name="Headers" Type="1" Platforms="15" Open="0">
+	<Node Name="Headers" Type="1" Platforms="15" Open="1">
 		<Node Name="Linux" Type="1" Platforms="15" Open="1">
 			<Node File="./include/linux/Gtk/LgiOsDefs.h" Type="3" Platforms="2" />
 		</Node>
 		<Node Name="Win" Type="1" Platforms="15" Open="0">
 			<Node File="./include/win32/LgiOsDefs.h" Type="3" Platforms="1" />
 		</Node>
-		<Node File=".\include\common\LgiClasses.h" Type="3" Platforms="15" />
-		<Node File=".\include\common\LgiInc.h" Type="3" Platforms="15" />
-		<Node File=".\include\common\LgiInterfaces.h" Type="3" Platforms="15" />
+		<Node File="./include/common/LgiClasses.h" Type="3" Platforms="15" />
+		<Node File="./include/common/LgiInc.h" Type="3" Platforms="15" />
+		<Node File="./include/common/LgiInterfaces.h" Type="3" Platforms="15" />
 	</Node>
 	<Settings>
 		<General>
@@ -370,12 +370,13 @@ HAS_FILE_CMD=1</Release>
 					<Debug>WIN32NATIVE</Debug>
 					<Release>WIN32NATIVE</Release>
 				</Windows>
+				<Linux />
 			</Defines>
 			<Compiler>
 				<Windows>MingW</Windows>
 			</Compiler>
 			<Executable>
-				<Windows />
+				<Linux />
 			</Executable>
 			<Arguments>
 				<All />
@@ -462,7 +463,7 @@ textencoding</Release>
 			</TargetName>
 			<LibraryPaths>
 				<All />
-				<Windows />
+				<Linux />
 			</LibraryPaths>
 		</Build>
 		<Editor>

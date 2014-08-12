@@ -164,6 +164,7 @@ public:
 	IdeDoc *FindOpenFile(char *FileName);
 	IdeDoc *GotoReference(char *File, int Line);
 	bool FindSymbol(const char *Syn, GArray<FindSymResult> &Results);
+	bool GetSystemIncludePaths(GArray<char*> &Paths);
 };
 
 #include "IdeDoc.h"

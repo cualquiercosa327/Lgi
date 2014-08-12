@@ -646,6 +646,7 @@ bool DocEdit::OnMenu(GDocView *View, int Id)
 class IdeDocPrivate : public NodeView
 {
 	GAutoString FileName;
+	GAutoString Buffer;
 
 public:
 	IdeDoc *Doc;
@@ -734,17 +735,48 @@ public:
 
 	bool IsFile(char *File)
 	{
+		GAutoString Mem;
+		char *f = NULL;
+		
 		if (nSrc)
 		{
-			GAutoString f = nSrc->GetFullPath();
-			return f ? stricmp(File, f) == 0 : false;
+			Mem = nSrc->GetFullPath();
+			f = Mem;
 		}
-		else if (FileName)
+		else
 		{
-			return stricmp(File, FileName) == 0;
+			f = FileName;
 		}
 
-		return false;
+		if (!f)
+			return false;
+
+		GToken doc(f, DIR_STR);
+		GToken in(File, DIR_STR);
+		int in_pos = in.Length() - 1;
+		int doc_pos = doc.Length() - 1;
+		while (in_pos >= 0 && doc_pos >= 0)
+		{
+			char *i = in[in_pos--];
+			char *d = doc[doc_pos--];
+			if (!i || !d)
+			{
+				return false;
+			}
+			
+			if (!strcmp(i, ".") ||
+				!strcmp(i, ".."))
+			{
+				continue;
+			}
+			
+			if (stricmp(i, d))
+			{
+				return false;
+			}
+		}
+		
+		return true;
 	}
 	
 	char *GetLocalFile()
@@ -754,7 +786,8 @@ public:
 			if (nSrc->IsWeb())
 				return nSrc->GetLocalCache();
 			
-			return nSrc->GetFileName();
+			Buffer = nSrc->GetFullPath();
+			return Buffer;
 		}
 		
 		return FileName;
@@ -1077,12 +1110,24 @@ GTextView3 *IdeDoc::GetEdit()
 
 bool IdeDoc::BuildIncludePaths(GArray<char*> &Paths, IdePlatform Platform)
 {
-	if (GetProject())
+	if (!GetProject())
 	{
-		return GetProject()->BuildIncludePaths(Paths, true, Platform);
+		printf("%s:%i - GetProject failed.\n", _FL);
+		return false;
 	}
 	
-	return false;
+
+	bool Status = GetProject()->BuildIncludePaths(Paths, true, Platform);
+	if (Status)
+	{
+		GetApp()->GetSystemIncludePaths(Paths);
+	}
+	else
+	{
+		printf("%s:%i - GetProject()->BuildIncludePaths failed.\n", _FL);
+	}
+	
+	return Status;
 }
 
 bool IdeDoc::BuildHeaderList(char16 *Cpp, GArray<char*> &Headers, GArray<char*> &IncPaths)
@@ -1607,16 +1652,36 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 {
 	if (Symbol && Source)
 	{
+		printf("FindDefn(%S)\n", Symbol);
+	
 		GArray<char*> Paths;
 		GArray<char*> Headers;
-		if (BuildIncludePaths(Paths, PlatformCurrent) &&
-			BuildHeaderList(Source, Headers, Paths))
+
+		if (!BuildIncludePaths(Paths, PlatformCurrent))
+		{
+			printf("%s:%i - BuildIncludePaths failed.\n", _FL);
+			return false;
+		}
+
+		char Local[MAX_PATH];
+		strcpy_s(Local, sizeof(Local), GetFileName());
+		LgiTrimDir(Local);
+		Paths.Add(NewStr(Local));
+
+		if (!BuildHeaderList(Source, Headers, Paths))
+		{
+			printf("%s:%i - BuildHeaderList failed.\n", _FL);
+			return false;
+		}
+
 		{
 			List<DefnInfo> Defns;
 
 			for (int i=0; i<Headers.Length(); i++)
 			{
 				char *h = Headers[i];
+				printf("h='%s'\n", h);
+				
 				char *c8 = ReadTextFile(h);
 				if (c8)
 				{
@@ -1625,7 +1690,7 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 					if (c16)
 					{
 						List<DefnInfo> Defns;
-						if (BuildDefnList(h, c16, Defns, DefnNone, stristr(h, "/tgl.h") != 0 ))
+						if (BuildDefnList(h, c16, Defns, DefnNone, false /* debug */))
 						{
 							for (DefnInfo *Def=Defns.First(); Def; )
 							{

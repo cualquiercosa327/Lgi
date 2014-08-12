@@ -85,7 +85,16 @@ bool BuildHeaderList(char *Cpp, GArray<char*> &Headers, GArray<char*> &IncPaths,
 						}
 						else
 						{
-							// printf("%s:%i - didn't find '%s'\n", __FILE__, __LINE__, Short);
+							static bool First = true;
+							printf("%s:%i - didn't find '%s'%s\n", _FL, Short, First?" in:":"");
+							if (First)
+							{
+								First = false;
+								for (int i=0; i<IncPaths.Length(); i++)
+								{
+									printf("    '%s'\n", IncPaths[i]);
+								}
+							}
 						}
 						DeleteArray(Short);
 					}
