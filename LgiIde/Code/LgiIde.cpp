@@ -1989,36 +1989,44 @@ bool AppWnd::FindSymbol(const char *Sym, GArray<FindSymResult> &Results)
 	return Results.Length() > 0;
 }
 
-bool AppWnd::GetSystemIncludePaths(GArray<char*> &Paths)
+#include "GSubProcess.h"
+bool AppWnd::GetSystemIncludePaths(::GArray<char*> &Paths)
 {
 	if (d->SystemIncludePaths.Length() == 0)
 	{
 		#if defined(LINUX)
-		/*
-		GProcess p;
-		GStringPipe in, out;
-		if (p.Run("gcc", "-v -x c++ -E -", NULL, true, &in, &out))
+		// echo | gcc -v -x c++ -E -
+		GSubProcess sp1("echo");
+		GSubProcess sp2("gcc", "-v -x c++ -E -");
+		sp1.Connect(&sp2);
+		sp1.Start(true, false);
+		
+		char Buf[256];
+		int r;
+
+		GStringPipe p;
+		while ((r = sp1.Read(Buf, sizeof(Buf))) > 0)
 		{
-			char Buf[512];
-			bool InIncludeList = false;
-			while (out.Pop(Buf, sizeof(Buf)))
+			p.Write(Buf, r);
+		}
+
+		bool InIncludeList = false;
+		while (p.Pop(Buf, sizeof(Buf)))
+		{
+			if (stristr(Buf, "#include"))
 			{
-				if (stristr(Buf, "#include"))
-				{
-					InIncludeList = true;
-				}
-				else if (stristr(Buf, "End of search"))
-				{
-					InIncludeList = false;
-				}
-				else if (InIncludeList)
-				{
-					printf("Buf='%s'\n", Buf);
-					d->SystemIncludePaths.New().Reset(TrimStr(Buf));
-				}
+				InIncludeList = true;
+			}
+			else if (stristr(Buf, "End of search"))
+			{
+				InIncludeList = false;
+			}
+			else if (InIncludeList)
+			{
+				GAutoString a(TrimStr(Buf));
+				d->SystemIncludePaths.New() = a;
 			}
 		}
-		*/
 		#else
 		LgiAssert(!"Not impl");
 		#endif
@@ -2032,124 +2040,12 @@ bool AppWnd::GetSystemIncludePaths(GArray<char*> &Paths)
 	return true;
 }
 
-class Worker : public GThread
-{
-	GStream *s;
-	uint8 *Result;
-	char Ip[32];
-
-public:
-	Worker(GStream *str, int x, int y, uint8 *r) : GThread("Worker")
-	{
-		s = str;
-		Result = r;
-		sprintf(Ip, "192.168.%i.%i", x, y);
-		DeleteOnExit = true;
-		Run();
-	}
-
-	int Main()
-	{
-		GSocket sock;
-		sock.SetTimeout(5000);
-		// s->Print("Opening '%s'\n", Ip);
-		if (sock.Open(Ip, 80))
-		{
-			s->Print("%s\n", Ip);
-		}
-
-		*Result = 2;
-		return 0;
-	}
-};
-
-class Owner : public GThread, public GNetwork
-{
-	GStream *s;
-	GArray<uint8> Results;
-
-public:
-	Owner(GStream *str) : GThread("Owner")
-	{
-		s = str;
-		Results.Length(256*256);
-		memset(&Results[0], 0, Results.Length());
-		Run();
-	}
-
-	int Working()
-	{
-		int c = 0;
-		for (int i=0; i<Results.Length(); i++)
-		{
-			if (Results[i] == 1)
-				c++;
-		}
-		return c;
-	}
-
-	int Main()
-	{
-		int64 Start = LgiCurrentTime();
-		for (int x=0; x<255; x++)
-		{
-			for (int y=0; y<255; y++)
-			{
-				while (Working() >= 500)
-				{
-					LgiSleep(2);
-				}
-
-				int Idx = (x << 8) + y;
-				Results[Idx] = 1;
-				new Worker(s, x, y, &Results[Idx]);
-
-				int64 Now = LgiCurrentTime();
-				if (Now - Start > 10000)
-				{
-					Start = Now;
-					s->Print("Doing 192.168.%i.%i...\n", x, y);
-				}
-			}
-		}
-		return 0;
-	}
-};
-
-#include "GTextLog.h"
-class Ps : public GWindow
-{
-	GTextLog *t;
-
-public:
-	Ps()
-	{
-		GRect r(0, 0, 1000, 800);
-		
-		t = 0;		
-		SetPos(r);
-		MoveToCenter();
-		SetQuitOnClose(true);
-		if (Attach(0))
-		{
-			if (t = new GTextLog(100))
-			{
-				t->SetPourLargest(true);
-				t->Attach(this);
-			}
-
-			Visible(true);
-			new Owner(t);
-		}
-	}
-};
-
 int LgiMain(OsAppArguments &AppArgs)
 {
 	printf("LgiIde v%.2f\n", LgiIdeVer);
 	GApp a(AppArgs, "LgiIde");
 	if (a.IsOk())
-	{	
+	{
 		a.AppWnd = new AppWnd;
 		a.Run();
 	}

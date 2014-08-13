@@ -229,8 +229,8 @@
 // My includes
 #include "LgiInc.h"							// Xp
 
-
 #include "LgiOsDefs.h"						// Platform specific 
+
 #include "LgiMsgs.h"						// Xp
 #include "LgiDefs.h"						// Xp
 #include "GMem.h"                           // Platform specific 
