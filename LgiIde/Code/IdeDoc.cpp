@@ -1115,7 +1115,6 @@ bool IdeDoc::BuildIncludePaths(GArray<char*> &Paths, IdePlatform Platform)
 		printf("%s:%i - GetProject failed.\n", _FL);
 		return false;
 	}
-	
 
 	bool Status = GetProject()->BuildIncludePaths(Paths, true, Platform);
 	if (Status)

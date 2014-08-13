@@ -11,6 +11,7 @@
 #include "GListItemCheckBox.h"
 #include "FtpThread.h"
 #include "GClipBoard.h"
+#include "GDropFiles.h"
 
 extern char *Untitled;
 
@@ -2939,7 +2940,47 @@ bool IdeProject::BuildIncludePaths(GArray<char*> &Paths, bool Recurse, IdePlatfo
 		GAutoString IncludePaths = ToNativePath(AllIncludes);
 		if (IncludePaths)
 		{
-			GToken Inc(IncludePaths, (char*)",;\r\n");
+			GAutoString Base = p->GetBasePath();
+			
+			GArray<GAutoString> Inc;
+			GToken Parts(IncludePaths, (char*)",;\r\n");
+			for (int i=0; i<Parts.Length(); i++)
+			{
+				char *Path = Parts[i];
+				while (*Path && strchr(WhiteSpace, &Path))
+					Path++;
+				
+				if (*Path == '`')
+				{
+					// Run config app to get the full path list...
+					GAutoString a(TrimStr(Path, "`"));
+					char *Args = strchr(a, ' ');
+					if (Args)
+						*Args++ = 0;
+					GProcess p;
+					GStringPipe Out;
+					if (p.Run(a, Args, NULL, true, NULL, &Out))
+					{
+						a.Reset(Out.NewStr());
+						GToken t(a, " ");
+						for (int i=0; i<t.Length(); i++)
+						{
+							char *inc = t[i];
+							if (inc[0] == '-' ||
+								inc[1] == 'I')
+							{
+								Inc.New().Reset(NewStr(inc + 2));
+							}
+						}
+					}
+				}
+				else
+				{
+					// Add path literal
+					Inc.New().Reset(NewStr(Path));
+				}
+			}
+			
 			for (int i=0; i<Inc.Length(); i++)
 			{
 				char *Path = Inc[i];
@@ -2955,7 +2996,6 @@ bool IdeProject::BuildIncludePaths(GArray<char*> &Paths, bool Recurse, IdePlatfo
 					)
 				)
 				{
-					GAutoString Base = p->GetBasePath();
 					LgiMakePath(Buf, sizeof(Buf), Base, Path);
 					Full = Buf;
 				}
@@ -3887,7 +3927,10 @@ int IdeTree::WillAccept(List<char> &Formats, GdcPt2 p, int KeyState)
 {
 	for (char *f=Formats.First(); f; )
 	{
-		if (stricmp(f, NODE_DROP_FORMAT) == 0)
+		printf("WillAccept='%s'\n", f);
+		
+		if (stricmp(f, NODE_DROP_FORMAT) == 0 ||
+			stricmp(f, LGI_FileDropFormat) == 0)
 		{
 			f = Formats.Next();
 		}
@@ -3931,53 +3974,62 @@ int IdeTree::OnDrop(char *Format, GVariant *Data, GdcPt2 Pt, int KeyState)
 {
 	SelectDropTarget(0);
 
-	if (Hit &&
-		Data &&
-		Format &&
-		stricmp(Format, NODE_DROP_FORMAT) == 0 &&
-		Data->Type == GV_BINARY &&
-		Data->Value.Binary.Length == sizeof(ProjectNode*))
+	if (!Hit || !Data || !Format)
+		return DROPEFFECT_NONE;
+	
+	if (stricmp(Format, NODE_DROP_FORMAT) == 0)
 	{
-		ProjectNode *Src = ((ProjectNode**)Data->Value.Binary.Data)[0];
-		if (Src)
+		if (Data->Type == GV_BINARY && Data->Value.Binary.Length == sizeof(ProjectNode*))
 		{
-			ProjectNode *Folder = dynamic_cast<ProjectNode*>(Hit);
-			while (Folder && Folder->GetType() > NodeDir)
+			ProjectNode *Src = ((ProjectNode**)Data->Value.Binary.Data)[0];
+			if (Src)
 			{
-				Folder = dynamic_cast<ProjectNode*>(Folder->GetParent());
-			}
-
-			IdeCommon *Dst = dynamic_cast<IdeCommon*>(Folder?Folder:Hit);
-			if (Dst)
-			{
-				// Check this folder is not a child of the src
-				for (IdeCommon *n=Dst; n; n=dynamic_cast<IdeCommon*>(n->GetParent()))
+				ProjectNode *Folder = dynamic_cast<ProjectNode*>(Hit);
+				while (Folder && Folder->GetType() > NodeDir)
 				{
-					if (n == Src)
+					Folder = dynamic_cast<ProjectNode*>(Folder->GetParent());
+				}
+
+				IdeCommon *Dst = dynamic_cast<IdeCommon*>(Folder?Folder:Hit);
+				if (Dst)
+				{
+					// Check this folder is not a child of the src
+					for (IdeCommon *n=Dst; n; n=dynamic_cast<IdeCommon*>(n->GetParent()))
 					{
-						return DROPEFFECT_NONE;
+						if (n == Src)
+						{
+							return DROPEFFECT_NONE;
+						}
 					}
-				}
 
-				// Detach
-				GTreeItem *i = dynamic_cast<GTreeItem*>(Src);
-				i->Detach();
-				if (Src->GXmlTag::Parent)
-				{
-					LgiAssert(Src->GXmlTag::Parent->Children.HasItem(Src));
-					Src->GXmlTag::Parent->Children.Delete(Src);
+					// Detach
+					GTreeItem *i = dynamic_cast<GTreeItem*>(Src);
+					i->Detach();
+					if (Src->GXmlTag::Parent)
+					{
+						LgiAssert(Src->GXmlTag::Parent->Children.HasItem(Src));
+						Src->GXmlTag::Parent->Children.Delete(Src);
+					}
+					
+					// Attach
+					Src->GXmlTag::Parent = Dst;
+					Dst->Children.Insert(Src);
+					Dst->Insert(Src);
+					
+					// Dirty
+					Src->GetProject()->SetDirty();
 				}
-				
-				// Attach
-				Src->GXmlTag::Parent = Dst;
-				Dst->Children.Insert(Src);
-				Dst->Insert(Src);
-				
-				// Dirty
-				Src->GetProject()->SetDirty();
+			
+				return DROPEFFECT_MOVE;
 			}
-		
-			return DROPEFFECT_MOVE;
+		}
+	}
+	else if (stricmp(Format, LGI_FileDropFormat))
+	{
+		GDropFiles Df(*Data);
+		for (int i=0; i<Df.Length(); i++)
+		{
+			printf("[%i]=%s\n", i, Df[i]);
 		}
 	}
 

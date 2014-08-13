@@ -850,7 +850,7 @@ public:
 			}
 		}
 
-		printf("%s:%i - '%s' not found in %i docs.\n", _FL, File, Docs.Length());
+		// printf("%s:%i - '%s' not found in %i docs.\n", _FL, File, Docs.Length());
 		return 0;
 	}
 
@@ -1234,14 +1234,9 @@ IdeDoc *AppWnd::OpenFile(char *FileName, NodeSource *Src)
 	IdeDoc *Doc = 0;
 	
 	char *File = Src ? Src->GetFileName() : FileName;
-
-printf("File='%s' Src=%p\n", File, Src);
-
 	if (Src || FileExists(File))
 	{
 		Doc = d->IsFileOpen(File);
-
-printf("Doc=%p\n", Doc);
 
 		if (!Doc)
 		{
