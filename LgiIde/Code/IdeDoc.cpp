@@ -1680,8 +1680,6 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 			for (int i=0; i<Headers.Length(); i++)
 			{
 				char *h = Headers[i];
-				printf("h='%s'\n", h);
-				
 				char *c8 = ReadTextFile(h);
 				if (c8)
 				{

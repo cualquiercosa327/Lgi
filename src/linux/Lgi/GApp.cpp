@@ -1073,7 +1073,7 @@ GlibPostMessage(GlibEventParams *p)
 {
     GDK_THREADS_ENTER();
 
-	#if 1
+	#if 0
 	GtkWindow *w = NULL;
 	if (p->e->client.window)
 		gdk_window_get_user_data(p->e->client.window, (gpointer*)&w);
