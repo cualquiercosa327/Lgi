@@ -575,7 +575,7 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 	if (pDC->Create(cinfo.image_width, cinfo.image_height, Bits))
 	{
 		// zero out bitmap
-		pDC->Colour(0, 24);
+		pDC->Colour(0, Bits);
 		pDC->Rectangle();
 
 		// Progress
