@@ -1145,471 +1145,472 @@ bool IdeDoc::BuildHeaderList(char16 *Cpp, GArray<char*> &Headers, GArray<char*> 
 
 bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, DefnType LimitTo, bool Debug)
 {
-	if (Cpp)
+	if (!Cpp)
+		return false;
+
+	static char16 StrClass[]		= {'c', 'l', 'a', 's', 's', 0};
+	static char16 StrStruct[]		= {'s', 't', 'r', 'u', 'c', 't', 0};
+	static char16 StrOpenBracket[]	= {'{', 0};
+	static char16 StrColon[]		= {':', 0};
+	static char16 StrSemiColon[]	= {';', 0};
+	static char16 StrDefine[]		= {'d', 'e', 'f', 'i', 'n', 'e', 0};
+	static char16 StrExtern[]		= {'e', 'x', 't', 'e', 'r', 'n', 0};
+	static char16 StrTypedef[]		= {'t', 'y', 'p', 'e', 'd', 'e', 'f', 0};
+	static char16 StrC[]			= {'\"', 'C', '\"', 0};
+	
+	char16 *s = Cpp;
+	char16 *LastDecl = s;
+	int Depth = 0;
+	int Line = 0;
+	int CaptureLevel = 0;
+	int InClass = false;	// true if we're in a class definition			
+	char16 *CurClassDecl = 0;
+	bool FnEmit = false;	// don't emit functions between a f(n) and the next '{'
+							// they are only parent class initializers
+
+	while (s && *s)
 	{
-		static char16 StrClass[]		= {'c', 'l', 'a', 's', 's', 0};
-		static char16 StrStruct[]		= {'s', 't', 'r', 'u', 'c', 't', 0};
-		static char16 StrOpenBracket[]	= {'{', 0};
-		static char16 StrColon[]		= {':', 0};
-		static char16 StrSemiColon[]	= {';', 0};
-		static char16 StrDefine[]		= {'d', 'e', 'f', 'i', 'n', 'e', 0};
-		static char16 StrExtern[]		= {'e', 'x', 't', 'e', 'r', 'n', 0};
-		static char16 StrTypedef[]		= {'t', 'y', 'p', 'e', 'd', 'e', 'f', 0};
-		static char16 StrC[]			= {'\"', 'C', '\"', 0};
-		
-		char16 *s = Cpp;
-		char16 *LastDecl = s;
-		int Depth = 0;
-		int Line = 0;
-		int CaptureLevel = 0;
-		int InClass = false;	// true if we're in a class definition			
-		char16 *CurClassDecl = 0;
-		bool FnEmit = false;	// don't emit functions between a f(n) and the next '{'
-								// they are only parent class initializers
+		// skip ws
+		while (*s && strchr(" \t\r", *s)) s++;
 
-		while (s && *s)
+		// tackle decl
+		switch (*s)
 		{
-			// skip ws
-			while (*s && strchr(" \t\r", *s)) s++;
-
-			// tackle decl
-			switch (*s)
+			case 0:
+				break;
+			case '\n':
 			{
-				case 0:
-					break;
-				case '\n':
-				{
-					Line ++;
-					s++;
-					break;
-				}
-				case '#':
-				{
-					char16 *Hash = s;
-					
-					s++;
-					if
+				Line ++;
+				s++;
+				break;
+			}
+			case '#':
+			{
+				char16 *Hash = s;
+				
+				s++;
+				if
+				(
 					(
-						(
-							LimitTo == DefnNone
-							||
-							LimitTo == DefnDefine
-						)
-						&&
-						StrncmpW(StrDefine, s, 6) == 0
+						LimitTo == DefnNone
+						||
+						LimitTo == DefnDefine
 					)
-					{
-						s += 6;
-						defnskipws(s);
-						LexCpp(s, LexNoReturn);
-
-						char16 r = *s;
-						*s = 0;
-						DefnInfo *Defn = new DefnInfo(DefnDefine, FileName, Hash, Line + 1);
-						*s = r;
-						if (Defn)
-						{
-							Defns.Insert(Defn);
-						}
-					}
-					
-					while (*s)
-					{
-						if (*s == '\n')
-						{
-							// could be end of # command
-							char Last = (s[-1] == '\r') ? s[-2] : s[-1];
-							if (Last != '\\') break;
-							Line++;
-						}
-
-						s++;
-						LastDecl = s;
-					}
-					break;
-				}
-				case '\"':
-				case '\'':
+					&&
+					StrncmpW(StrDefine, s, 6) == 0
+				)
 				{
-					char16 Delim = *s;
+					s += 6;
+					defnskipws(s);
+					LexCpp(s, LexNoReturn);
+
+					char16 r = *s;
+					*s = 0;
+					DefnInfo *Defn = new DefnInfo(DefnDefine, FileName, Hash, Line + 1);
+					*s = r;
+					if (Defn)
+					{
+						Defns.Insert(Defn);
+					}
+				}
+				
+				while (*s)
+				{
+					if (*s == '\n')
+					{
+						// could be end of # command
+						char Last = (s[-1] == '\r') ? s[-2] : s[-1];
+						if (Last != '\\') break;
+						Line++;
+					}
+
+					s++;
+					LastDecl = s;
+				}
+				break;
+			}
+			case '\"':
+			case '\'':
+			{
+				char16 Delim = *s;
+				s++;
+				while (*s)
+				{
+					if (*s == Delim) { s++; break; }
+					if (*s == '\\') s++;
+					if (*s == '\n') Line++;
+					s++;
+				}
+				break;
+			}
+			case '{':
+			{
+				s++;
+				Depth++;
+				FnEmit = false;
+				break;
+			}
+			case ';':
+			{
+				s++;
+				LastDecl = s;
+				
+				if (Depth == 0)
+				{
+					if (InClass)
+					{
+						InClass = false;
+						CaptureLevel = 0;
+						DeleteArray(CurClassDecl);
+					}
+				}
+				break;
+			}
+			case '}':
+			{
+				s++;
+				if (Depth > 0) Depth--;
+				LastDecl = s;
+				break;
+			}
+			case '/':
+			{
+				s++;
+				if (*s == '/')
+				{
+					// one line comment
+					while (*s && *s != '\n') s++;
+					LastDecl = s;
+				}
+				else if (*s == '*')
+				{
+					// multi line comment
 					s++;
 					while (*s)
 					{
-						if (*s == Delim) { s++; break; }
-						if (*s == '\\') s++;
+						if (s[0] == '*' && s[1] == '/')
+						{
+							s += 2;
+							break;
+						}
+
 						if (*s == '\n') Line++;
 						s++;
 					}
-					break;
-				}
-				case '{':
-				{
-					s++;
-					Depth++;
-					FnEmit = false;
-					break;
-				}
-				case ';':
-				{
-					s++;
 					LastDecl = s;
+				}
+				break;
+			}
+			case '(':
+			{
+				s++;
+				if (Depth == CaptureLevel && !FnEmit && LastDecl)
+				{
+					// function?
 					
-					if (Depth == 0)
+					// find start:
+					char16 *Start = LastDecl;
+					skipws(Start);
+					
+					// find end
+					char16 *End = StrchrW(Start, ')');
+					if (End)
 					{
-						if (InClass)
-						{
-							InClass = false;
-							CaptureLevel = 0;
-							DeleteArray(CurClassDecl);
-						}
-					}
-					break;
-				}
-				case '}':
-				{
-					s++;
-					if (Depth > 0) Depth--;
-					LastDecl = s;
-					break;
-				}
-				case '/':
-				{
-					s++;
-					if (*s == '/')
-					{
-						// one line comment
-						while (*s && *s != '\n') s++;
-						LastDecl = s;
-					}
-					else if (*s == '*')
-					{
-						// multi line comment
-						s++;
-						while (*s)
-						{
-							if (s[0] == '*' && s[1] == '/')
-							{
-								s += 2;
-								break;
-							}
+						End++;
 
-							if (*s == '\n') Line++;
-							s++;
-						}
-						LastDecl = s;
-					}
-					break;
-				}
-				case '(':
-				{
-					s++;
-					if (Depth == CaptureLevel && !FnEmit && LastDecl)
-					{
-						// function?
-						
-						// find start:
-						char16 *Start = LastDecl;
-						skipws(Start);
-						
-						// find end
-						char16 *End = StrchrW(Start, ')');
-						if (End)
+						char16 *Buf = NewStrW(Start, End-Start);
+						if (Buf)
 						{
-							End++;
-
-							char16 *Buf = NewStrW(Start, End-Start);
-							if (Buf)
+							// remove new-lines
+							char16 *Out = Buf;
+							// bool InArgs = false;
+							for (char16 *In = Buf; *In; In++)
 							{
-								// remove new-lines
-								char16 *Out = Buf;
-								// bool InArgs = false;
-								for (char16 *In = Buf; *In; In++)
+								if (*In == '\r' || *In == '\n' || *In == '\t' || *In == ' ')
 								{
-									if (*In == '\r' || *In == '\n' || *In == '\t' || *In == ' ')
-									{
-										*Out++ = ' ';
-										skipws(In);
-										In--;
-									}
-									else if (In[0] == '/' && In[1] == '/')
-									{
-										In = StrchrW(In, '\n');
-										if (!In) break;
-									}
-									else
-									{
-										*Out++ = *In;
-									}
+									*Out++ = ' ';
+									skipws(In);
+									In--;
 								}
-								*Out++ = 0;
-
-								if (CurClassDecl)
+								else if (In[0] == '/' && In[1] == '/')
 								{
-									char16 Str[1024];
-									ZeroObj(Str);
+									In = StrchrW(In, '\n');
+									if (!In) break;
+								}
+								else
+								{
+									*Out++ = *In;
+								}
+							}
+							*Out++ = 0;
+
+							if (CurClassDecl)
+							{
+								char16 Str[1024];
+								ZeroObj(Str);
+								
+								StrcpyW(Str, Buf);
+								char16 *b = StrchrW(Str, '(');
+								if (b)
+								{
+									// Skip whitespace between name and '('
+									while
+									(
+										b > Str
+										&&
+										strchr(" \t\r\n", b[-1])																									
+									)
+									{
+										b--;
+									}
+
+									// Skip over to the start of the name..
+									while
+									(
+										b > Str
+										&&
+										b[-1] != '*'
+										&&
+										b[-1] != '&'
+										&&
+										!strchr(" \t\r\n", b[-1])																									
+									)
+									{
+										b--;
+									}
 									
-									StrcpyW(Str, Buf);
-									char16 *b = StrchrW(Str, '(');
-									if (b)
-									{
-										// Skip whitespace between name and '('
-										while
-										(
-											b > Str
-											&&
-											strchr(" \t\r\n", b[-1])																									
-										)
-										{
-											b--;
-										}
-
-										// Skip over to the start of the name..
-										while
-										(
-											b > Str
-											&&
-											b[-1] != '*'
-											&&
-											b[-1] != '&'
-											&&
-											!strchr(" \t\r\n", b[-1])																									
-										)
-										{
-											b--;
-										}
-										
-										int ClsLen = StrlenW(CurClassDecl);
-										memmove(b + ClsLen + 2, b, sizeof(*b) * (StrlenW(b)+1));
-										memcpy(b, CurClassDecl, sizeof(*b) * ClsLen);
-										b += ClsLen;
-										*b++ = ':';
-										*b++ = ':';
-										DeleteArray(Buf);
-										Buf = NewStrW(Str);
-									}
+									int ClsLen = StrlenW(CurClassDecl);
+									memmove(b + ClsLen + 2, b, sizeof(*b) * (StrlenW(b)+1));
+									memcpy(b, CurClassDecl, sizeof(*b) * ClsLen);
+									b += ClsLen;
+									*b++ = ':';
+									*b++ = ':';
+									DeleteArray(Buf);
+									Buf = NewStrW(Str);
 								}
-
-								// cache f(n) def
-								if (LimitTo == DefnNone || LimitTo == DefnFunc)
-								{
-									DefnInfo *Defn = new DefnInfo(DefnFunc, FileName, Buf, Line + 1);
-									if (Defn)
-									{
-										Defns.Insert(Defn);
-									}
-								}
-								DeleteArray(Buf);
-								
-								skipws(End);
-								FnEmit = *End != ';';
 							}
+
+							// cache f(n) def
+							if (LimitTo == DefnNone || LimitTo == DefnFunc)
+							{
+								DefnInfo *Defn = new DefnInfo(DefnFunc, FileName, Buf, Line + 1);
+								if (Defn)
+								{
+									Defns.Insert(Defn);
+								}
+							}
+							DeleteArray(Buf);
+							
+							while (*End && *End != ';')
+								End++;
+							FnEmit = *End != ';';
 						}
 					}
-					break;
 				}
-				default:
+				break;
+			}
+			default:
+			{
+				if (isalpha(*s) || isdigit(*s) || *s == '_')
 				{
-					if (isalpha(*s) || isdigit(*s) || *s == '_')
+					char16 *Start = s;
+					
+					s++;
+					while (	isalpha(*s) ||
+							isdigit(*s) ||
+							*s == '_' ||
+							*s == ':' ||
+							*s == '.' ||
+							*s == '~')
 					{
-						char16 *Start = s;
-						
 						s++;
-						while (	isalpha(*s) ||
-								isdigit(*s) ||
-								*s == '_' ||
-								*s == ':' ||
-								*s == '.' ||
-								*s == '~')
+					}
+					
+					int TokLen = s - Start;
+					if (TokLen == 6 && StrncmpW(StrExtern, Start, 6) == 0)
+					{
+						// extern "C" block
+						char16 *t = LexCpp(s, LexStrdup); // "C"
+						if (t && StrcmpW(t, StrC) == 0)
 						{
-							s++;
+							defnskipws(s);
+							if (*s == '{')
+							{
+								Depth--;
+							}
+						}
+						DeleteArray(t);
+					}
+					else if (TokLen == 7 && StrncmpW(StrTypedef, Start, 7) == 0)
+					{
+						// Typedef
+						GStringPipe p;
+						char16 *i;
+						for (i = Start; i && *i;)
+						{
+							switch (*i)
+							{
+								case ' ':
+								case '\t':
+								{
+									p.Push(Start, i - Start);
+									
+									defnskipws(i);
+
+									char16 sp[] = {' ', 0};
+									p.Push(sp);
+
+									Start = i;
+									break;
+								}
+								case '\n':
+									Line++;
+									// fall thru
+								case '\r':
+								{
+									p.Push(Start, i - Start);
+									i++;
+									Start = i;
+									break;
+								}
+								case '{':
+								{
+									p.Push(Start, i - Start);
+									
+									int Depth = 1;
+									i++;
+									while (*i && Depth > 0)
+									{
+										switch (*i)
+										{
+											case '{':
+												Depth++;
+												break;
+											case '}':
+												Depth--;
+												break;
+											case '\n':
+												Line++;
+												break;
+										}
+										i++;
+									}
+									Start = i;
+									break;
+								}
+								case ';':
+								{
+									p.Push(Start, i - Start);
+									s = i;
+									i = 0;
+									break;
+								}
+								default:
+								{
+									i++;
+									break;
+								}
+							}
 						}
 						
-						int TokLen = s - Start;
-						if (TokLen == 6 && StrncmpW(StrExtern, Start, 6) == 0)
+						char16 *Typedef = p.NewStrW();
+						if (Typedef)
 						{
-							// extern "C" block
-							char16 *t = LexCpp(s, LexStrdup); // "C"
-							if (t && StrcmpW(t, StrC) == 0)
+							if (LimitTo == DefnNone || LimitTo == DefnTypedef)
 							{
-								defnskipws(s);
-								if (*s == '{')
+								DefnInfo *Defn = new DefnInfo(DefnTypedef, FileName, Typedef, Line + 1);
+								if (Defn)
 								{
-									Depth--;
+									Defns.Insert(Defn);
 								}
 							}
-							DeleteArray(t);
+							DeleteArray(Typedef);
 						}
-						else if (TokLen == 7 && StrncmpW(StrTypedef, Start, 7) == 0)
-						{
-							// Typedef
-							GStringPipe p;
-							char16 *i;
-							for (i = Start; i && *i;)
-							{
-								switch (*i)
-								{
-									case ' ':
-									case '\t':
-									{
-										p.Push(Start, i - Start);
-										
-										defnskipws(i);
-
-										char16 sp[] = {' ', 0};
-										p.Push(sp);
-
-										Start = i;
-										break;
-									}
-									case '\n':
-										Line++;
-										// fall thru
-									case '\r':
-									{
-										p.Push(Start, i - Start);
-										i++;
-										Start = i;
-										break;
-									}
-									case '{':
-									{
-										p.Push(Start, i - Start);
-										
-										int Depth = 1;
-										i++;
-										while (*i && Depth > 0)
-										{
-											switch (*i)
-											{
-												case '{':
-													Depth++;
-													break;
-												case '}':
-													Depth--;
-													break;
-												case '\n':
-													Line++;
-													break;
-											}
-											i++;
-										}
-										Start = i;
-										break;
-									}
-									case ';':
-									{
-										p.Push(Start, i - Start);
-										s = i;
-										i = 0;
-										break;
-									}
-									default:
-									{
-										i++;
-										break;
-									}
-								}
-							}
-							
-							char16 *Typedef = p.NewStrW();
-							if (Typedef)
-							{
-								if (LimitTo == DefnNone || LimitTo == DefnTypedef)
-								{
-									DefnInfo *Defn = new DefnInfo(DefnTypedef, FileName, Typedef, Line + 1);
-									if (Defn)
-									{
-										Defns.Insert(Defn);
-									}
-								}
-								DeleteArray(Typedef);
-							}
-						}
-						else if
+					}
+					else if
+					(
 						(
-							(
-								TokLen == 5
-								&&
-								StrncmpW(StrClass, Start, 5) == 0
-							)
-							||
-							(
-								TokLen == 6
-								&&
-								StrncmpW(StrStruct, Start, 6) == 0
-							)
+							TokLen == 5
+							&&
+							StrncmpW(StrClass, Start, 5) == 0
 						)
+						||
+						(
+							TokLen == 6
+							&&
+							StrncmpW(StrStruct, Start, 6) == 0
+						)
+					)
+					{
+						// Class or Struct
+						if (Depth == 0)
 						{
-							// Class or Struct
-							if (Depth == 0)
+							InClass = true;
+							CaptureLevel = 1;
+							
+							char16 *n = Start + 5, *t;
+							List<char16> Tok;
+							
+							while (n && *n)
 							{
-								InClass = true;
-								CaptureLevel = 1;
-								
-								char16 *n = Start + 5, *t;
-								List<char16> Tok;
-								
-								while (n && *n)
+								char16 *Last = n;
+								if (t = LexCpp(n, LexStrdup))
 								{
-									char16 *Last = n;
-									if (t = LexCpp(n, LexStrdup))
+									if (StrcmpW(t, StrSemiColon) == 0)
 									{
-										if (StrcmpW(t, StrSemiColon) == 0)
+										break;
+									}
+									else if (StrcmpW(t, StrOpenBracket) == 0 ||
+											 StrcmpW(t, StrColon) == 0)
+									{
+										DeleteArray(CurClassDecl);
+										CurClassDecl = Tok.Last();
+										Tok.Delete(CurClassDecl);
+										
+										if (LimitTo == DefnNone || LimitTo == DefnClass)
 										{
-											break;
-										}
-										else if (StrcmpW(t, StrOpenBracket) == 0 ||
-												 StrcmpW(t, StrColon) == 0)
-										{
-											DeleteArray(CurClassDecl);
-											CurClassDecl = Tok.Last();
-											Tok.Delete(CurClassDecl);
-											
-											if (LimitTo == DefnNone || LimitTo == DefnClass)
+											char16 r = *Last;
+											*Last = 0;
+											DefnInfo *Defn = new DefnInfo(DefnClass, FileName, Start, Line + 1);
+											*Last = r;
+											if (Defn)
 											{
-												char16 r = *Last;
-												*Last = 0;
-												DefnInfo *Defn = new DefnInfo(DefnClass, FileName, Start, Line + 1);
-												*Last = r;
-												if (Defn)
-												{
-													Defns.Insert(Defn);
-												}
+												Defns.Insert(Defn);
 											}
-											break;
 										}
-										else
-										{
-											Tok.Insert(t);
-										}
+										break;
 									}
 									else
 									{
-										printf("%s:%i - LexCpp failed at %s:%i.\n", __FILE__, __LINE__, FileName, Line);
-										break;
+										Tok.Insert(t);
 									}
 								}
-								Tok.DeleteArrays();
+								else
+								{
+									printf("%s:%i - LexCpp failed at %s:%i.\n", __FILE__, __LINE__, FileName, Line);
+									break;
+								}
 							}
-						}
-						
-						if (s[-1] == ':')
-						{
-							LastDecl = s;
+							Tok.DeleteArrays();
 						}
 					}
-					else
+					
+					if (s[-1] == ':')
 					{
-						s++;
+						LastDecl = s;
 					}
-
-					break;
 				}
+				else
+				{
+					s++;
+				}
+
+				break;
 			}
 		}
-		
-		DeleteArray(CurClassDecl);
 	}
+	
+	DeleteArray(CurClassDecl);
 
 	return Defns.First() != 0;
 }
@@ -1649,113 +1650,116 @@ bool MatchSymbol(DefnInfo *Def, char16 *Symbol)
 
 bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 {
-	if (Symbol && Source)
+	if (!Symbol || !Source)
 	{
-		#if DEBUG_FIND_DEFN
-		GStringPipe Dbg;
-		printf("FindDefn(%S)\n", Symbol);
-		#endif
-	
-		GArray<char*> Paths;
-		GArray<char*> Headers;
+		LgiTrace("%s:%i - Arg error.\n", _FL);
+		return false;
+	}
 
-		if (!BuildIncludePaths(Paths, PlatformCurrent))
+	#if DEBUG_FIND_DEFN
+	GStringPipe Dbg;
+	printf("FindDefn(%S)\n", Symbol);
+	#endif
+
+	GArray<char*> Paths;
+	GArray<char*> Headers;
+
+	if (!BuildIncludePaths(Paths, PlatformCurrent))
+	{
+		printf("%s:%i - BuildIncludePaths failed.\n", _FL);
+		// return false;
+	}
+
+	char Local[MAX_PATH];
+	strcpy_s(Local, sizeof(Local), GetFileName());
+	LgiTrimDir(Local);
+	Paths.Add(NewStr(Local));
+
+	if (!BuildHeaderList(Source, Headers, Paths))
+	{
+		printf("%s:%i - BuildHeaderList failed.\n", _FL);
+		// return false;
+	}
+
+	{
+		List<DefnInfo> Defns;
+		
+		for (int i=0; i<Headers.Length(); i++)
 		{
-			printf("%s:%i - BuildIncludePaths failed.\n", _FL);
-			return false;
-		}
-
-		char Local[MAX_PATH];
-		strcpy_s(Local, sizeof(Local), GetFileName());
-		LgiTrimDir(Local);
-		Paths.Add(NewStr(Local));
-
-		if (!BuildHeaderList(Source, Headers, Paths))
-		{
-			printf("%s:%i - BuildHeaderList failed.\n", _FL);
-			return false;
-		}
-
-		{
-			List<DefnInfo> Defns;
-			
-			for (int i=0; i<Headers.Length(); i++)
+			char *h = Headers[i];
+			char *c8 = ReadTextFile(h);
+			if (c8)
 			{
-				char *h = Headers[i];
-				char *c8 = ReadTextFile(h);
-				if (c8)
+				char16 *c16 = LgiNewUtf8To16(c8);
+				DeleteArray(c8);
+				if (c16)
 				{
-					char16 *c16 = LgiNewUtf8To16(c8);
-					DeleteArray(c8);
-					if (c16)
+					List<DefnInfo> Defns;
+					if (BuildDefnList(h, c16, Defns, DefnNone, stristr(h, "pango-layout.h") != 0 ))
 					{
-						List<DefnInfo> Defns;
-						if (BuildDefnList(h, c16, Defns, DefnNone, stristr(h, "pango-layout.h") != 0 ))
+						bool Found = false;
+						for (DefnInfo *Def=Defns.First(); Def; )
 						{
-							bool Found = false;
-							for (DefnInfo *Def=Defns.First(); Def; )
+							if (MatchSymbol(Def, Symbol))
 							{
-								if (MatchSymbol(Def, Symbol))
-								{
-									Matches.Insert(Def);
-									Defns.Delete(Def);
-									Def = Defns.Current();
-									Found = true;
-								}
-								else
-								{
-									Def = Defns.Next();
-								}
+								Matches.Insert(Def);
+								Defns.Delete(Def);
+								Def = Defns.Current();
+								Found = true;
 							}
-							
-							Defns.DeleteObjects();
-							
-							#if DEBUG_FIND_DEFN
-							if (!Found)
-								Dbg.Print("Not in '%s'\n", h);
-							#endif
+							else
+							{
+								Def = Defns.Next();
+							}
 						}
 						
-						DeleteArray(c16);
+						Defns.DeleteObjects();
+						
+						#if DEBUG_FIND_DEFN
+						if (!Found)
+							Dbg.Print("Not in '%s'\n", h);
+						#endif
 					}
+					
+					DeleteArray(c16);
 				}
-			}
-
-			if (BuildDefnList(GetFileName(), Source, Defns, DefnNone))
-			{
-				bool Found = false;
-				for (DefnInfo *Def=Defns.First(); Def; )
-				{
-					if (MatchSymbol(Def, Symbol))
-					{
-						Matches.Insert(Def);
-						Defns.Delete(Def);
-						Def = Defns.Current();
-					}
-					else
-					{
-						Def = Defns.Next();
-					}
-				}
-				Defns.DeleteObjects();
-
-				#if DEBUG_FIND_DEFN
-				if (!Found)
-					Dbg.Print("Not in current file.\n");
-				#endif
 			}
 		}
-		
-		Paths.DeleteArrays();
-		Headers.DeleteArrays();
 
-		#if DEBUG_FIND_DEFN
+		if (BuildDefnList(GetFileName(), Source, Defns, DefnNone))
 		{
-			GAutoString a(Dbg.NewStr());
-			if (a) printf("%s", a.Get());
+			bool Found = false;
+			for (DefnInfo *Def=Defns.First(); Def; )
+			{
+				if (MatchSymbol(Def, Symbol))
+				{
+					Matches.Insert(Def);
+					Defns.Delete(Def);
+					Def = Defns.Current();
+				}
+				else
+				{
+					Def = Defns.Next();
+				}
+			}
+			Defns.DeleteObjects();
+
+			#if DEBUG_FIND_DEFN
+			if (!Found)
+				Dbg.Print("Not in current file.\n");
+			#endif
 		}
-		#endif
 	}
+	
+	Paths.DeleteArrays();
+	Headers.DeleteArrays();
+
+	#if DEBUG_FIND_DEFN
+	{
+		GAutoString a(Dbg.NewStr());
+		if (a) printf("%s", a.Get());
+	}
+	#endif
 	
 	return Matches.Length() > 0;
 }

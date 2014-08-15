@@ -2029,6 +2029,70 @@ bool AppWnd::GetSystemIncludePaths(::GArray<char*> &Paths)
 				d->SystemIncludePaths.New() = a;
 			}
 		}
+		#elif defined(WINNATIVE)
+		char p[MAX_PATH];
+		LgiGetSystemPath(LSP_USER_DOCUMENTS, p, sizeof(p));
+		LgiMakePath(p, sizeof(p), p, "Visual Studio 2008\\Settings\\CurrentSettings.xml");
+		if (FileExists(p))
+		{
+			GFile f;
+			if (f.Open(p, O_READ))
+			{
+				GXmlTree t;
+				GXmlTag r;
+				if (t.Read(&r, &f))
+				{
+					GXmlTag *Opts = r.GetTag("ToolsOptions");
+					if (Opts)
+					{
+						GXmlTag *Projects = NULL;
+						char *Name;
+						for (GXmlTag *c = Opts->Children.First(); c; c = Opts->Children.Next())
+						{
+							if (c->IsTag("ToolsOptionsCategory") &&
+								(Name = c->GetAttr("Name")) &&
+								!stricmp(Name, "Projects"))
+							{
+								Projects = c;
+								break;
+							}
+						}
+
+						GXmlTag *VCDirectories = NULL;
+						for (GXmlTag *c = Projects ? Projects->Children.First() : NULL;
+							c;
+							c = Projects->Children.Next())
+						{
+							if (c->IsTag("ToolsOptionsSubCategory") &&
+								(Name = c->GetAttr("Name")) &&
+								!stricmp(Name, "VCDirectories"))
+							{
+								VCDirectories = c;
+								break;
+							}
+						}
+
+						for (GXmlTag *prop = VCDirectories ? VCDirectories->Children.First() : NULL;
+							prop;
+							prop = VCDirectories->Children.Next())
+						{
+							if (prop->IsTag("PropertyValue") &&
+								(Name = prop->GetAttr("Name")) &&
+								!stricmp(Name, "IncludeDirectories"))
+							{
+								char *Bar = strchr(prop->Content, '|');
+								GToken t(Bar ? Bar + 1 : prop->Content, ";");
+								for (int i=0; i<t.Length(); i++)
+								{
+									char *s = t[i];
+									d->SystemIncludePaths.New().Reset(NewStr(s));
+								}
+							}
+						}
+					}
+				}
+			}
+		}		
 		#else
 		LgiAssert(!"Not impl");
 		#endif
