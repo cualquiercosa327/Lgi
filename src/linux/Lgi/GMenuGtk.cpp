@@ -186,7 +186,16 @@ bool GSubMenu::RemoveItem(GMenuItem *Item)
 bool GSubMenu::IsContext(GMenuItem *Item)
 {
 	if (!_ContextMenuId)
-		return false;
+	{
+		GMenuItem *i = GetParent();
+		GSubMenu *s = i ? i->GetParent() : NULL;
+		if (s)
+			// Walk up the chain of menus to find the top...
+			return s->IsContext(Item);
+		else
+			// Ok we got to the top
+			return false;
+	}
 	
 	*_ContextMenuId = Item->Id();
 	Gtk::gtk_main_quit();
@@ -335,6 +344,7 @@ static void MenuItemCallback(GMenuItem *Item)
 			GMenu *m = Item->GetMenu();
 			if (m)
 			{
+				// Attached to a mean, so send an event to the window
 				GViewI *w = m->WindowHandle();
 				if (w)
 				{
@@ -342,7 +352,10 @@ static void MenuItemCallback(GMenuItem *Item)
 				}
 				else LgiAssert(!"No window for menu to send to");
 			}
-			else LgiAssert(!"Menuitem not attached to menu");
+			else
+			{
+				// Could be just a popup menu... in which case do nothing.				
+			}
 		}
 	}
 }

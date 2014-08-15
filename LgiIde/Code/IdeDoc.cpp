@@ -115,6 +115,12 @@ public:
 	void OnMouseClick(GMouse &m);
 };
 
+char *Leaf(char *Path)
+{
+	char *d = strrchr(Path, DIR_CHAR);
+	return d ? d + 1 : Path;
+}
+
 void EditTray::OnMouseClick(GMouse &m)
 {
 	if (m.Left() && m.Down())
@@ -135,7 +141,7 @@ void EditTray::OnMouseClick(GMouse &m)
 					if (s)
 					{
 						// Construct the menu
-						int n=1;
+						GHashTbl<char*, int> Map;
 						int DisplayLines = GdcD->Y() / SysFont->GetHeight();
 						if (Headers.Length() > (0.7 * DisplayLines))
 						{
@@ -145,11 +151,13 @@ void EditTray::OnMouseClick(GMouse &m)
 							for (int i=0; i<Headers.Length(); i++)
 							{
 								char *h = Headers[i];
-								char *f = strrchr(h, DIR_CHAR);
-								char *Name = f ? f + 1 : h;
-								if (IsAlpha(*Name))
+								char *f = Leaf(h);
+								
+								Map.Add(h, i + 1);
+								
+								if (IsAlpha(*f))
 								{
-									int Idx = tolower(*Name) - 'a';
+									int Idx = tolower(*f) - 'a';
 									Letters[Idx].Add(h);
 								}
 								else
@@ -157,25 +165,34 @@ void EditTray::OnMouseClick(GMouse &m)
 									Other.Add(h);
 								}
 							}
+							
 							for (int i=0; i<CountOf(Letters); i++)
 							{
-								if (Letters[i].Length() > 0)
+								if (Letters[i].Length() > 1)
 								{
-									char *h = Letters[i][0];
-									char *f = strrchr(h, DIR_CHAR);
+									char *First = Leaf(Letters[i][0]);
+									char *Last = Leaf(Letters[i].Last());
 
 									char Title[256];
-									sprintf_s(Title, sizeof(Title), "%s...", f ? f + 1 : h);
+									sprintf_s(Title, sizeof(Title), "%s - %s", First, Last);
 									GSubMenu *sub = s->AppendSub(Title);
 									if (sub)
 									{
 										for (int n=0; n<Letters[i].Length(); n++)
 										{
 											char *h = Letters[i][n];
-											char *f = strrchr(h, DIR_CHAR);
-											sub->AppendItem(f ? f + 1 : h, n++, true);
+											int Id = Map.Find(h);
+											LgiAssert(Id > 0);
+											sub->AppendItem(Leaf(h), Id, true);
 										}
 									}
+								}
+								else if (Letters[i].Length() == 1)
+								{
+									char *h = Letters[i][0];
+									int Id = Map.Find(h);
+									LgiAssert(Id > 0);
+									s->AppendItem(Leaf(h), Id, true);
 								}
 							}
 
@@ -184,8 +201,9 @@ void EditTray::OnMouseClick(GMouse &m)
 								for (int n=0; n<Other.Length(); n++)
 								{
 									char *h = Other[n];
-									char *f = strrchr(h, DIR_CHAR);
-									s->AppendItem(f ? f + 1 : h, n++, true);
+									int Id = Map.Find(h);
+									LgiAssert(Id > 0);
+									s->AppendItem(Leaf(h), Id, true);
 								}
 							}
 						}
@@ -194,8 +212,9 @@ void EditTray::OnMouseClick(GMouse &m)
 							for (int i=0; i<Headers.Length(); i++)
 							{
 								char *h = Headers[i];
-								char *f = strrchr(h, DIR_CHAR);
-								s->AppendItem(f ? f + 1 : h, n++, true);
+								int Id = Map.Find(h);
+								LgiAssert(Id > 0);
+								s->AppendItem(Leaf(h), Id, true);
 							}
 
 							if (!Headers.Length())
@@ -1761,7 +1780,7 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 				if (c16)
 				{
 					List<DefnInfo> Defns;
-					if (BuildDefnList(h, c16, Defns, DefnNone, stristr(h, "pango-layout.h") != 0 ))
+					if (BuildDefnList(h, c16, Defns, DefnNone, false ))
 					{
 						bool Found = false;
 						for (DefnInfo *Def=Defns.First(); Def; )
