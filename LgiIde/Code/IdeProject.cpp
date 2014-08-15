@@ -2052,6 +2052,11 @@ public:
 				char *MakePath = NewStr(Makefile);
 				if (MakePath)
 				{
+					GVariant Jobs;
+					if (!Proj->GetApp()->GetOptions()->GetValue(OPT_Jobs, Jobs) ||
+						Jobs.CastInt32() < 1)
+						Jobs = 2;
+					
 					GStringPipe a;
 					char *d = MakePath + strlen(MakePath);
 					while (d > MakePath && *d != '/' && *d != '\\')
@@ -2059,11 +2064,11 @@ public:
 					if (d > MakePath)
 					{
 						*d++ = 0;
-						a.Print("-j 4 -C \"%s\" -f \"%s\"", MakePath, d);
+						a.Print("-j %i -C \"%s\" -f \"%s\"", Jobs.CastInt32(), MakePath, d);
 					}
 					else
 					{
-						a.Print("-j 4 -f \"%s\"", MakePath);
+						a.Print("-j %i -f \"%s\"", Jobs.CastInt32(), MakePath);
 					}
 
 					if (Args)
@@ -2947,7 +2952,7 @@ bool IdeProject::BuildIncludePaths(GArray<char*> &Paths, bool Recurse, IdePlatfo
 			for (int i=0; i<Parts.Length(); i++)
 			{
 				char *Path = Parts[i];
-				while (*Path && strchr(WhiteSpace, &Path))
+				while (*Path && strchr(WhiteSpace, *Path))
 					Path++;
 				
 				if (*Path == '`')

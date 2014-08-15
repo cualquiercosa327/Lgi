@@ -1401,6 +1401,12 @@ public:
 			{
 				SetCtrlName(IDC_FONT, s);
 			}
+
+			GVariant v;
+			if (App->GetOptions()->GetValue(OPT_Jobs, v))
+				SetCtrlValue(IDC_JOBS, v.CastInt32());
+			else
+				SetCtrlValue(IDC_JOBS, 2);
 			
 			DoModal();
 		}
@@ -1412,7 +1418,9 @@ public:
 		{
 			case IDOK:
 			{
+				GVariant v;
 				Font.Serialize(App->GetOptions(), OPT_EditorFont, true);
+				App->GetOptions()->SetValue(OPT_Jobs, v = GetCtrlValue(IDC_JOBS));
 			}
 			case IDCANCEL:
 			{
@@ -1421,7 +1429,6 @@ public:
 			}
 			case IDC_SET_FONT:
 			{
-				printf("IDC_SET_FONT %s %i\n", c->Name(), c->GetId());
 				if (Font.DoUI(this))
 				{
 					char s[256];

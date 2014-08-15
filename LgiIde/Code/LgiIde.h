@@ -57,6 +57,7 @@
 #define BUILD_TYPE_RELEASE		1
 
 #define OPT_EditorFont			"EdFont"
+#define OPT_Jobs				"Jobs"
 
 //////////////////////////////////////////////////////////////////////
 // Platform stuff

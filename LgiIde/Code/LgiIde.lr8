@@ -154,6 +154,8 @@
 		<String Ref="208" Cid="180" Define="IDC_TABLE" />
 		<String Ref="209" Cid="-1" Define="IDC_STATIC" en="Search for setting:" />
 		<String Ref="210" Cid="2" Define="IDCANCEL" en="Cancel" />
+		<String Ref="212" Cid="-1" Define="IDC_STATIC" en="Concurrent jobs:" />
+		<String Ref="213" Cid="213" Define="IDC_JOBS" />
 	</string-group>
 	<style name="General">.fixed {
 	width: 18px;
@@ -318,23 +320,32 @@
 		<Button pos="336,364,405,384" ref="119" />
 		<Button pos="413,364,482,384" ref="120" />
 	</Dialog>
-	<Dialog pos="7,7,418,126" ref="63">
-		<TableLayout pos="7,7,391,90" ref="75" cols="0.333,0.333,0.333" rows="0.500,0.500">
+	<Dialog pos="7,7,294,134" ref="63">
+		<TableLayout pos="7,7,272,97" ref="75" cols="0.333,0.333,0.333" rows="0.333,0.333,0.333">
 			<tr>
-				<td>
-					<StaticText pos="0,0,76,13" ref="65" />
+				<td valign="Center">
+					<StaticText pos="0,7,70,20" ref="65" />
 				</td>
 				<td>
-					<EditBox Pos="124,0,237,20" ref="66" />
+					<EditBox Pos="84,4,154,24" ref="66" />
 				</td>
 				<td>
-					<Button pos="301,7,321,27" ref="67" />
+					<Button pos="221,2,241,22" ref="67" />
 				</td>
 			</tr>
 			<tr>
+				<td valign="Center">
+					<StaticText pos="0,30,70,50" ref="212" />
+				</td>
+				<td>
+					<EditBox Pos="84,30,154,50" ref="213" />
+				</td>
+				<td />
+			</tr>
+			<tr>
 				<td colspan="3" align="Max">
-					<Button pos="196,42,265,62" ref="68" />
-					<Button pos="280,42,349,62" ref="176" />
+					<Button pos="148,56,217,76" ref="68" />
+					<Button pos="148,56,217,76" ref="176" />
 				</td>
 			</tr>
 		</TableLayout>
