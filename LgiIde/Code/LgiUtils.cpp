@@ -40,6 +40,12 @@ bool BuildHeaderList(char *Cpp, GArray<char*> &Headers, GArray<char*> &IncPaths,
 			// preprocessor instruction
 			if (strncmp(++c, Include, 7) == 0)
 			{
+				/*
+				char *nl = strchr(c, '\n');
+				if (nl) printf("%.*s\n", nl-c, c);
+				else printf("%s\n", c);
+				*/
+
 				char *s = c + 7;
 				skipws(s);
 				if (*s == '\"' || *s == '<')
@@ -47,7 +53,7 @@ bool BuildHeaderList(char *Cpp, GArray<char*> &Headers, GArray<char*> &IncPaths,
 					char d = (*s == '\"') ? '\"' : '>';					
 					char *e = strchr(++s, d);
 					char *Short = NewStr(s, e - s);
-
+					
 					if (Short)
 					{
 						char *File = FindHeader(Short, IncPaths);

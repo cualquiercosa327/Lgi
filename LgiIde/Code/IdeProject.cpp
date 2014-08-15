@@ -3493,9 +3493,10 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 					for (int i=0; i<Paths.Length(); i++)
 					{
 						char *p = Paths[i];
-						if (!Inc.Find(p))
+						GAutoString pn = ToNativePath(p);
+						if (!Inc.Find(pn))
 						{
-							Inc.Add(p);
+							Inc.Add(pn);
 						}
 					}
 				}
@@ -3531,9 +3532,10 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 							
 							if (stricmp(Rel, ".") != 0)
 							{
-								if (!Inc.Find(Rel))
+								GAutoString RelN = ToNativePath(Rel);
+								if (!Inc.Find(RelN))
 								{
-									Inc.Add(Rel);
+									Inc.Add(RelN);
 								}
 							}
 						}

@@ -19,6 +19,8 @@
 
 #define LgiIdeVer				0.0
 
+#define DEBUG_FIND_DEFN			0
+
 #define M_APPEND_TEXT			(M_USER+1)
 #define M_BUILD_ERR				(M_USER+2)
 
@@ -58,8 +60,6 @@
 
 #define OPT_EditorFont			"EdFont"
 #define OPT_Jobs				"Jobs"
-
-#define DEBUG_FIND_DEFN			1
 
 //////////////////////////////////////////////////////////////////////
 // Platform stuff

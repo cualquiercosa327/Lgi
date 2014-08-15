@@ -67,8 +67,10 @@
 		<Build>
 			<IncludePaths>
 				<All>
-					<Debug>..\include\common</Debug>
-					<Release>..\include\common</Release>
+					<Debug>.\Code
+..\include\common</Debug>
+					<Release>.\Code
+..\include\common</Release>
 				</All>
 				<Windows>
 					<Debug>..\include\win32

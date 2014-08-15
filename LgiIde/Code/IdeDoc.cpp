@@ -123,7 +123,7 @@ void EditTray::OnMouseClick(GMouse &m)
 		{
 			// Header list button
 			GArray<char*> Paths;
-			if (Doc->BuildIncludePaths(Paths, PlatformCurrent))
+			if (Doc->BuildIncludePaths(Paths, PlatformCurrent, false))
 			{
 				GArray<char*> Headers;
 				if (Doc->BuildHeaderList(Ctrl->NameW(), Headers, Paths))
@@ -136,15 +136,72 @@ void EditTray::OnMouseClick(GMouse &m)
 					{
 						// Construct the menu
 						int n=1;
-						for (int i=0; i<Headers.Length(); i++)
+						int DisplayLines = GdcD->Y() / SysFont->GetHeight();
+						if (Headers.Length() > (0.7 * DisplayLines))
 						{
-							char *h = Headers[i];
-							char *f = strrchr(h, DIR_CHAR);
-							s->AppendItem(f ? f + 1 : h, n++, true);
+							GArray<char*> Letters[26];
+							GArray<char*> Other;
+							
+							for (int i=0; i<Headers.Length(); i++)
+							{
+								char *h = Headers[i];
+								char *f = strrchr(h, DIR_CHAR);
+								char *Name = f ? f + 1 : h;
+								if (IsAlpha(*Name))
+								{
+									int Idx = tolower(*Name) - 'a';
+									Letters[Idx].Add(h);
+								}
+								else
+								{
+									Other.Add(h);
+								}
+							}
+							for (int i=0; i<CountOf(Letters); i++)
+							{
+								if (Letters[i].Length() > 0)
+								{
+									char *h = Letters[i][0];
+									char *f = strrchr(h, DIR_CHAR);
+
+									char Title[256];
+									sprintf_s(Title, sizeof(Title), "%s...", f ? f + 1 : h);
+									GSubMenu *sub = s->AppendSub(Title);
+									if (sub)
+									{
+										for (int n=0; n<Letters[i].Length(); n++)
+										{
+											char *h = Letters[i][n];
+											char *f = strrchr(h, DIR_CHAR);
+											sub->AppendItem(f ? f + 1 : h, n++, true);
+										}
+									}
+								}
+							}
+
+							if (Other.Length() > 0)
+							{
+								for (int n=0; n<Other.Length(); n++)
+								{
+									char *h = Other[n];
+									char *f = strrchr(h, DIR_CHAR);
+									s->AppendItem(f ? f + 1 : h, n++, true);
+								}
+							}
 						}
-						if (!Headers.Length())
+						else
 						{
-							s->AppendItem("(none)", 0, false);
+							for (int i=0; i<Headers.Length(); i++)
+							{
+								char *h = Headers[i];
+								char *f = strrchr(h, DIR_CHAR);
+								s->AppendItem(f ? f + 1 : h, n++, true);
+							}
+
+							if (!Headers.Length())
+							{
+								s->AppendItem("(none)", 0, false);
+							}
 						}
 						
 						// Show the menu
@@ -1108,7 +1165,7 @@ GTextView3 *IdeDoc::GetEdit()
 	return d->Edit;
 }
 
-bool IdeDoc::BuildIncludePaths(GArray<char*> &Paths, IdePlatform Platform)
+bool IdeDoc::BuildIncludePaths(GArray<char*> &Paths, IdePlatform Platform, bool IncludeSysPaths)
 {
 	if (!GetProject())
 	{
@@ -1119,7 +1176,8 @@ bool IdeDoc::BuildIncludePaths(GArray<char*> &Paths, IdePlatform Platform)
 	bool Status = GetProject()->BuildIncludePaths(Paths, true, Platform);
 	if (Status)
 	{
-		GetApp()->GetSystemIncludePaths(Paths);
+		if (IncludeSysPaths)
+			GetApp()->GetSystemIncludePaths(Paths);
 	}
 	else
 	{
@@ -1612,6 +1670,14 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 	
 	DeleteArray(CurClassDecl);
 
+	if (Debug)
+	{
+		for (DefnInfo *def = Defns.First(); def; def = Defns.Next())
+		{
+			printf("    def=%s:%i %s\n", def->File, def->Line, def->Name);
+		}
+	}
+	
 	return Defns.First() != 0;
 }
 
@@ -1664,7 +1730,7 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 	GArray<char*> Paths;
 	GArray<char*> Headers;
 
-	if (!BuildIncludePaths(Paths, PlatformCurrent))
+	if (!BuildIncludePaths(Paths, PlatformCurrent, true))
 	{
 		printf("%s:%i - BuildIncludePaths failed.\n", _FL);
 		// return false;
