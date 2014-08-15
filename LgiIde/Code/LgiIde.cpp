@@ -2106,6 +2106,40 @@ bool AppWnd::GetSystemIncludePaths(::GArray<char*> &Paths)
 	return true;
 }
 
+/*
+class Test : public GWindow
+{
+public:
+	Test()
+	{
+		GRect r(100, 100, 900, 700);
+		SetPos(r);
+		Name("Test");
+		SetQuitOnClose(true);
+		
+		if (Attach(0))
+		{
+			Visible(true);
+		}
+	}
+	
+	void OnPaint(GSurface *pDC)
+	{
+		pDC->Colour(LC_WORKSPACE, 24);
+		pDC->Rectangle();
+		
+		for (int i=0; i<6; i++)
+		{
+			GDisplayString d1(SysFont, "test1");
+			d1.Draw(pDC, 10, 10+(i*45));
+
+			GDisplayString d2(SysBold, "test2");
+			d2.Draw(pDC, 10, 30+(i*45));
+		}
+	}
+};
+*/
+
 int LgiMain(OsAppArguments &AppArgs)
 {
 	printf("LgiIde v%.2f\n", LgiIdeVer);
@@ -2113,6 +2147,7 @@ int LgiMain(OsAppArguments &AppArgs)
 	if (a.IsOk())
 	{
 		a.AppWnd = new AppWnd;
+		// a.AppWnd = new Test;
 		a.Run();
 	}
 

@@ -144,7 +144,8 @@ void GDisplayString::Layout()
 		LgiTrace("%s:%i - Not utf8\n", _FL);
 
 	Gtk::pango_context_set_font_description(GFontSystem::Inst()->GetContext(), Font->Handle());
-
+	// printf("Layout sys=%i bold=%i, hnd=%p, Str='%.20s'\n", Font==SysFont, Font==SysBold, Font->Handle(), Str);
+	
 	if (Font->TabSize())
 	{
 		int Len = 32;
@@ -161,22 +162,6 @@ void GDisplayString::Layout()
 		}
 	}
 
-	#if 0
-
-	Gtk::PangoAttrList *attrs = Gtk::pango_attr_list_new();
-	if (Font->Underline())
-	{
-		Gtk::PangoAttribute *attr = Gtk::pango_attr_underline_new(Gtk::PANGO_UNDERLINE_SINGLE);
-		Gtk::pango_attr_list_insert(attrs, attr);
-	}
-	Gtk::PangoAttribute *attr = Gtk::pango_attr_fallback_new(true);
-	Gtk::pango_attr_list_insert(attrs, attr);
-
-	Gtk::pango_layout_set_attributes(Hnd, attrs);
-	Gtk::pango_attr_list_unref(attrs);
-
-	#else
-	
 	if (Font->Underline())
 	{
 		Gtk::PangoAttrList *attrs = Gtk::pango_attr_list_new();
@@ -186,8 +171,6 @@ void GDisplayString::Layout()
 		Gtk::pango_attr_list_unref(attrs);
 	}
 	
-	#endif
-
 	Gtk::pango_layout_set_text(Hnd, Str, len);
 	
 	int px, py;
@@ -195,8 +178,6 @@ void GDisplayString::Layout()
 	
 	x = (px + PANGO_SCALE - 1) / PANGO_SCALE;
 	y = (py + PANGO_SCALE - 1) / PANGO_SCALE;
-	
-	// printf("Layout '%s' = %i,%i\n", Str, x, y);
 	
 	#elif defined MAC && !defined COCOA
 	
@@ -892,12 +873,15 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 
 	#if defined __GTK_H__
 	
+	Gtk::pango_context_set_font_description(GFontSystem::Inst()->GetContext(), Font->Handle());
 	Gtk::cairo_t *cr = pDC->GetCairo();
 	if (!cr)
 	{
 		LgiAssert(!"Can't get cairo.");
 		return;
 	}
+
+	// printf("Draw %i,%i sys=%i bold=%i, hnd=%p, Str='%.20s'\n", px, py, 	Font==SysFont, Font==SysBold, Font->Handle(), Str);
 
 	int Ox = 0, Oy = 0;
 	pDC->GetOrigin(Ox, Oy);
