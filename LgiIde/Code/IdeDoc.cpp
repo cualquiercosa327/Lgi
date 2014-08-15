@@ -1651,7 +1651,10 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 {
 	if (Symbol && Source)
 	{
+		#if DEBUG_FIND_DEFN
+		GStringPipe Dbg;
 		printf("FindDefn(%S)\n", Symbol);
+		#endif
 	
 		GArray<char*> Paths;
 		GArray<char*> Headers;
@@ -1675,7 +1678,7 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 
 		{
 			List<DefnInfo> Defns;
-
+			
 			for (int i=0; i<Headers.Length(); i++)
 			{
 				char *h = Headers[i];
@@ -1687,8 +1690,9 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 					if (c16)
 					{
 						List<DefnInfo> Defns;
-						if (BuildDefnList(h, c16, Defns, DefnNone, false /* debug */))
+						if (BuildDefnList(h, c16, Defns, DefnNone, stristr(h, "pango-layout.h") != 0 ))
 						{
+							bool Found = false;
 							for (DefnInfo *Def=Defns.First(); Def; )
 							{
 								if (MatchSymbol(Def, Symbol))
@@ -1696,6 +1700,7 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 									Matches.Insert(Def);
 									Defns.Delete(Def);
 									Def = Defns.Current();
+									Found = true;
 								}
 								else
 								{
@@ -1704,6 +1709,11 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 							}
 							
 							Defns.DeleteObjects();
+							
+							#if DEBUG_FIND_DEFN
+							if (!Found)
+								Dbg.Print("Not in '%s'\n", h);
+							#endif
 						}
 						
 						DeleteArray(c16);
@@ -1713,6 +1723,7 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 
 			if (BuildDefnList(GetFileName(), Source, Defns, DefnNone))
 			{
+				bool Found = false;
 				for (DefnInfo *Def=Defns.First(); Def; )
 				{
 					if (MatchSymbol(Def, Symbol))
@@ -1727,12 +1738,23 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 					}
 				}
 				Defns.DeleteObjects();
+
+				#if DEBUG_FIND_DEFN
+				if (!Found)
+					Dbg.Print("Not in current file.\n");
+				#endif
 			}
-			
 		}
 		
 		Paths.DeleteArrays();
 		Headers.DeleteArrays();
+
+		#if DEBUG_FIND_DEFN
+		{
+			GAutoString a(Dbg.NewStr());
+			if (a) printf("%s", a.Get());
+		}
+		#endif
 	}
 	
 	return Matches.Length() > 0;

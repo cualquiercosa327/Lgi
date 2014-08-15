@@ -918,7 +918,7 @@ AppWnd::AppWnd()
 
 	#if WINNATIVE
 	SetIcon(MAKEINTRESOURCE(IDI_APP));
-	#elif defined(__GTK_H__)
+	#else
 	SetIcon("Icon64.png");
 	#endif
 	if (Attach(0))

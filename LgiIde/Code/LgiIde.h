@@ -59,6 +59,8 @@
 #define OPT_EditorFont			"EdFont"
 #define OPT_Jobs				"Jobs"
 
+#define DEBUG_FIND_DEFN			1
+
 //////////////////////////////////////////////////////////////////////
 // Platform stuff
 enum IdePlatform

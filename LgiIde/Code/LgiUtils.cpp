@@ -85,7 +85,7 @@ bool BuildHeaderList(char *Cpp, GArray<char*> &Headers, GArray<char*> &IncPaths,
 						}
 						else
 						{
-							#if 0
+							#if DEBUG_FIND_DEFN
 							static bool First = true;
 							printf("%s:%i - didn't find '%s'%s\n", _FL, Short, First?" in:":"");
 							if (First)
