@@ -339,7 +339,7 @@ public:
 			SetCtrlName(IDC_MSG, m);
 			
 			GCombo *c;
-			if (p->GetViewById(IDC_TYPE, c))
+			if (GetViewById(IDC_TYPE, c))
 			{
 				c->Insert("None");
 				c->Insert("Folder");
