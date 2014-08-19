@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project>
-	<Node Name="Source Files" Type="1" Platforms="15" Open="1">
+	<Node Name="Source Files" Type="1" Platforms="15" Open="0">
 		<Node Name="Core" Type="1" Platforms="15" Open="0">
 			<Node Name="DateTime" Type="1" Platforms="15" Open="0">
 				<Node File=".\src\common\General\GDateTime.cpp" Type="2" Platforms="15" />
@@ -177,13 +177,13 @@
 				<Node File="./include/common/GFilter.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Font" Type="1" Platforms="15" Open="1">
-				<Node File="./src/common/Gdc2/Font/GDisplayString.cpp" Type="2" Platforms="15" />
-				<Node File="./src/common/Gdc2/Font/GFont.cpp" Type="2" Platforms="15" />
-				<Node File="./include/common/GFont.h" Type="3" Platforms="15" />
-				<Node File="./src/common/Gdc2/Font/GFont_A.cpp" Type="2" Platforms="15" />
-				<Node File="./src/common/Gdc2/Font/GFont_W.cpp" Type="2" Platforms="15" />
-				<Node File="./src/common/Gdc2/Font/GFontCodePages.cpp" Type="2" Platforms="15" />
-				<Node File="./src/common/Gdc2/Font/GFontSystem.cpp" Type="2" Platforms="15" />
+				<Node File=".\src\common\Gdc2\Font\GDisplayString.cpp" Type="2" Platforms="15" />
+				<Node File=".\src\common\Gdc2\Font\GFont.cpp" Type="2" Platforms="15" />
+				<Node File=".\include\common\GFont.h" Type="3" Platforms="15" />
+				<Node File=".\src\common\Gdc2\Font\GFont_A.cpp" Type="2" Platforms="15" />
+				<Node File=".\src\common\Gdc2\Font\GFont_W.cpp" Type="2" Platforms="15" />
+				<Node File=".\src\common\Gdc2\Font\GFontCodePages.cpp" Type="2" Platforms="15" />
+				<Node File=".\src\common\Gdc2\Font\GFontSystem.cpp" Type="2" Platforms="15" />
 			</Node>
 			<Node Name="Applicators" Type="1" Platforms="15" Open="0">
 				<Node File="./src/common/Gdc2/15Bit.cpp" Type="2" Platforms="15" />
@@ -343,14 +343,14 @@
 	</Node>
 	<Node Name="Headers" Type="1" Platforms="15" Open="1">
 		<Node Name="Linux" Type="1" Platforms="15" Open="1">
-			<Node File="./include/linux/Gtk/LgiOsDefs.h" Type="3" Platforms="2" />
+			<Node File=".\include\linux\Gtk\LgiOsDefs.h" Type="3" Platforms="2" />
 		</Node>
 		<Node Name="Win" Type="1" Platforms="15" Open="0">
 			<Node File="./include/win32/LgiOsDefs.h" Type="3" Platforms="1" />
 		</Node>
-		<Node File="./include/common/LgiClasses.h" Type="3" Platforms="15" />
-		<Node File="./include/common/LgiInc.h" Type="3" Platforms="15" />
-		<Node File="./include/common/LgiInterfaces.h" Type="3" Platforms="15" />
+		<Node File=".\include\common\LgiClasses.h" Type="3" Platforms="15" />
+		<Node File=".\include\common\LgiInc.h" Type="3" Platforms="15" />
+		<Node File=".\include\common\LgiInterfaces.h" Type="3" Platforms="15" />
 	</Node>
 	<Settings>
 		<General>
@@ -370,13 +370,12 @@ HAS_FILE_CMD=1</Release>
 					<Debug>WIN32NATIVE</Debug>
 					<Release>WIN32NATIVE</Release>
 				</Windows>
-				<Linux />
 			</Defines>
 			<Compiler>
 				<Windows>MingW</Windows>
 			</Compiler>
 			<Executable>
-				<Linux />
+				<Windows />
 			</Executable>
 			<Arguments>
 				<All />
@@ -463,7 +462,7 @@ textencoding</Release>
 			</TargetName>
 			<LibraryPaths>
 				<All />
-				<Linux />
+				<Windows />
 			</LibraryPaths>
 		</Build>
 		<Editor>

@@ -1219,6 +1219,7 @@ bool IdeDoc::BuildHeaderList(char16 *Cpp, GArray<char*> &Headers, GArray<char*> 
 }
 
 #define defnskipws(s)		while (iswhite(*s)) { if (*s == '\n') Line++; s++; }
+#define defnskipsym(s)		while (isalpha(*s) || isdigit(*s) || strchr("_:.~", *s)) { s++; }
 
 bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, DefnType LimitTo, bool Debug)
 {
@@ -1227,6 +1228,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 
 	static char16 StrClass[]		= {'c', 'l', 'a', 's', 's', 0};
 	static char16 StrStruct[]		= {'s', 't', 'r', 'u', 'c', 't', 0};
+	static char16 StrEnum[]		    = {'e', 'n', 'u', 'm', 0};
 	static char16 StrOpenBracket[]	= {'{', 0};
 	static char16 StrColon[]		= {':', 0};
 	static char16 StrSemiColon[]	= {';', 0};
@@ -1242,6 +1244,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 	int CaptureLevel = 0;
 	int InClass = false;	// true if we're in a class definition			
 	char16 *CurClassDecl = 0;
+	bool IsEnum = 0;
 	bool FnEmit = false;	// don't emit functions between a f(n) and the next '{'
 							// they are only parent class initializers
 
@@ -1348,6 +1351,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 				s++;
 				if (Depth > 0) Depth--;
 				LastDecl = s;
+				IsEnum = false;
 				break;
 			}
 			case '/':
@@ -1493,15 +1497,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 					char16 *Start = s;
 					
 					s++;
-					while (	isalpha(*s) ||
-							isdigit(*s) ||
-							*s == '_' ||
-							*s == ':' ||
-							*s == '.' ||
-							*s == '~')
-					{
-						s++;
-					}
+					defnskipsym(s);
 					
 					int TokLen = s - Start;
 					if (TokLen == 6 && StrncmpW(StrExtern, Start, 6) == 0)
@@ -1619,7 +1615,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 						)
 					)
 					{
-						// Class or Struct
+						// Class / Struct
 						if (Depth == 0)
 						{
 							InClass = true;
@@ -1664,11 +1660,52 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 								}
 								else
 								{
-									printf("%s:%i - LexCpp failed at %s:%i.\n", __FILE__, __LINE__, FileName, Line);
+									LgiTrace("%s:%i - LexCpp failed at %s:%i.\n", _FL, FileName, Line);
 									break;
 								}
 							}
 							Tok.DeleteArrays();
+						}
+					}
+					else if
+					(
+						TokLen == 4
+						&&
+						StrncmpW(StrEnum, Start, 4) == 0
+					)
+					{
+						IsEnum = true;
+						Start += 4;
+						defnskipws(s);
+						
+						char16 *t = LexCpp(s, LexStrdup);
+						if (t)
+						{
+							DefnInfo *Defn = new DefnInfo(DefnEnum, FileName, t, Line + 1);
+							if (Defn)
+								Defns.Insert(Defn);
+						}
+					}
+					else if (IsEnum)
+					{
+						char16 r = *s;
+						*s = 0;
+						DefnInfo *Defn = new DefnInfo(DefnDefine, FileName, Start, Line + 1);
+						*s = r;						
+						if (Defn)
+							Defns.Insert(Defn);
+						defnskipws(s);
+						if (*s == '=')
+						{
+							s++;
+							while (true)
+							{
+								defnskipws(s);
+								defnskipsym(s);
+								if (*s == 0 || *s == ',' || *s == '}')
+									break;
+								s++;
+							}
 						}
 					}
 					
@@ -1811,7 +1848,8 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 			}
 		}
 
-		if (BuildDefnList(GetFileName(), Source, Defns, DefnNone))
+		char *FileName = GetFileName();
+		if (BuildDefnList(FileName, Source, Defns, DefnNone))
 		{
 			bool Found = false;
 			for (DefnInfo *Def=Defns.First(); Def; )
