@@ -60,14 +60,15 @@ int PlatformCtrlId[] =
 
 enum NodeType
 {
-	NodeNone		= 0,
-	NodeDir			= 1,
-	NodeSrc			= 2,
-	NodeHeader		= 3,
-	NodeDependancy	= 4,
-	NodeResources	= 5,
-	NodeGraphic		= 6,
-	NodeWeb			= 7
+	NodeNone,
+	NodeDir,
+	NodeSrc,
+	NodeHeader,
+	NodeDependancy,
+	NodeResources,
+	NodeGraphic,
+	NodeWeb,
+	NodeText,
 };
 
 char SourcePatterns[] = "*.c;*.h;*.cpp;*.java;*.d;*.php;*.html;*.css";
@@ -348,8 +349,10 @@ public:
 				c->Insert("Dependency");
 				c->Insert("Resource");
 				c->Insert("Graphic");
+				c->Insert("Text");
 				c->Value(Type);
 			}
+			else LgiTrace("%s:%i - Failed to get Type combo.\n", _FL);
 
 			for (int i=0; PlatformNames[i]; i++)
 			{
@@ -815,6 +818,10 @@ public:
 							 stricmp(Ext, "css") == 0)
 					{
 						Type = NodeWeb;
+					}
+					else if (stricmp(Ext, "txt") == 0)
+					{
+						Type = NodeText;
 					}
 				}
 			}
@@ -1588,12 +1595,18 @@ public:
 						Type == NodeGraphic
 						||
 						Type == NodeWeb
+						||
+						Type == NodeText
 					)
 					&&
 					ValidStr(File)
 				)
 				{
 					Open();
+				}
+				else
+				{
+					LgiTrace("%s:%i - Unknown file type '%i'\n", _FL, Type);
 				}
 			}
 		}

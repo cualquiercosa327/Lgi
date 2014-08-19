@@ -209,9 +209,11 @@ public:
 		if (t)
 		{
 			t->Sunken(true);
-			t->Insert(Root = new Dependency(File));
+			
+			Root = new Dependency(File);
 			if (Root)
 			{
+				t->Insert(Root);
 				Root->Expanded(true);
 			}
 			
@@ -1816,7 +1818,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 				}
 				else
 				{
-					LgiMsg(this, "COuldn't find '%s'\n", AppName, MB_OK, Exe);
+					LgiMsg(this, "Couldn't find '%s'\n", AppName, MB_OK, Exe ? Exe : "<project_executable_undefined>");
 				}
 			}			
 			break;

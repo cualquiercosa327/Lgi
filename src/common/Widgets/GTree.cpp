@@ -78,7 +78,7 @@ public:
 	
 	GTreeItemPrivate()
 	{
-		Ds = 0;
+		Ds = NULL;
 		Pos.ZOff(-1, -1);
 		Open = false;
 		Selected = false;
@@ -96,8 +96,8 @@ public:
 //////////////////////////////////////////////////////////////////////////////
 GTreeNode::GTreeNode()
 {
-	Parent = 0;
-	Tree = 0;
+	Parent = NULL;
+	Tree = NULL;
 }
 
 GTreeNode::~GTreeNode()
@@ -118,9 +118,12 @@ GTreeItem *GTreeNode::Insert(GTreeItem *Obj, int Idx)
 {
 	LgiAssert(Obj != this);
 
-	if (Obj && Obj->Tree)
+	if (Obj)
 	{
-		Obj->Remove();
+		if (Obj->Tree)
+		{
+			Obj->Remove();
+		}
 	}
 	
 	GTreeItem *NewObj = (Obj) ? Obj : new GTreeItem;
@@ -175,7 +178,8 @@ void GTreeNode::Remove()
 	int y = 0;
 	if (Parent)
 	{
-		if (Item() && Item()->IsRoot())
+		GTreeItem *i = Item();
+		if (i && i->IsRoot())
 		{
 			GRect *p = Pos();
 			GTreeItem *Prev = GetPrev();

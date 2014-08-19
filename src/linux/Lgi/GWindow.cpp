@@ -112,9 +112,9 @@ GWindow::~GWindow()
 
 bool GWindow::SetIcon(const char *FileName)
 {
+	GAutoString a;
 	if (Wnd)
 	{
-		GAutoString a;
 		if (!FileExists(FileName))
 		{
 			if (a.Reset(LgiFindFile(FileName)))
@@ -130,7 +130,9 @@ bool GWindow::SetIcon(const char *FileName)
 		else LgiTrace("%s:%i - gdk_pixbuf_new_from_file(%s) failed.\n", _FL, FileName);
 	}
 	
-	return d->Icon.Reset(NewStr(FileName));
+	if (FileName != d->Icon)
+		 d->Icon.Reset(NewStr(FileName));
+	return d->Icon != NULL;
 }
 
 bool GWindow::GetSnapToEdge()

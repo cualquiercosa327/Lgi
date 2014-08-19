@@ -51,7 +51,10 @@
 				<Linux>Makefile.linux</Linux>
 			</Makefile>
 			<Executable>
-				<Linux />
+				<Linux>
+					<Debug>./lgiide</Debug>
+					<Release>./lgiide</Release>
+				</Linux>
 			</Executable>
 			<Arguments>
 				<All />
