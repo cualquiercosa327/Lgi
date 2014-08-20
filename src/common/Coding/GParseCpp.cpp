@@ -654,7 +654,7 @@ void GCppParserWorker::Msg(MsgType Type, char *Fmt, ...)
 	#ifdef WIN32
 	char Buf[256];
 	vsnprintf_s(Buf, sizeof(Buf), _TRUNCATE, Fmt, Arg);
-	OutputDebugString(Buf);
+	OutputDebugStringA(Buf);
 	#else
 	vprintf(Fmt, Arg);
 	#endif
