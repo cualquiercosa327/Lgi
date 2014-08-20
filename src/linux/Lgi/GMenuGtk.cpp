@@ -15,6 +15,7 @@
 #include "GDisplayString.h"
 
 using namespace Gtk;
+typedef ::GMenuItem LgiMenuItem;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 GSubMenu::GSubMenu(const char *name, bool Popup)
@@ -34,7 +35,7 @@ GSubMenu::~GSubMenu()
 {
 	while (Items.Length())
 	{
-		::GMenuItem *i = Items.First();
+		LgiMenuItem *i = Items.First();
 		LgiAssert(i->Parent == this);
 		DeleteObj(i);
 	}
@@ -55,14 +56,14 @@ int GSubMenu::Length()
 	return Items.Length();
 }
 
-::GMenuItem *GSubMenu::ItemAt(int Id)
+LgiMenuItem *GSubMenu::ItemAt(int Id)
 {
 	return Items.ItemAt(Id);
 }
 
-::GMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Where, const char *Shortcut)
+LgiMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Where, const char *Shortcut)
 {
-	::GMenuItem *i = new ::GMenuItem(Menu, this, Str, Where < 0 ? Items.Length() : Where, Shortcut);
+	LgiMenuItem *i = new LgiMenuItem(Menu, this, Str, Where < 0 ? Items.Length() : Where, Shortcut);
 	if (i)
 	{
 		i->Id(Id);
@@ -85,9 +86,9 @@ int GSubMenu::Length()
 	return 0;
 }
 
-::GMenuItem *GSubMenu::AppendSeparator(int Where)
+LgiMenuItem *GSubMenu::AppendSeparator(int Where)
 {
-	::GMenuItem *i = new ::GMenuItem;
+	LgiMenuItem *i = new LgiMenuItem;
 	if (i)
 	{
 		i->Parent = this;
@@ -113,7 +114,7 @@ int GSubMenu::Length()
 GSubMenu *GSubMenu::AppendSub(const char *Str, int Where)
 {
 	GBase::Name(Str);
-	::GMenuItem *i = new ::GMenuItem(Menu, this, Str, Where < 0 ? Items.Length() : Where, NULL);
+	LgiMenuItem *i = new LgiMenuItem(Menu, this, Str, Where < 0 ? Items.Length() : Where, NULL);
 	if (i)
 	{
 		i->Id(-1);
@@ -154,7 +155,7 @@ GSubMenu *GSubMenu::AppendSub(const char *Str, int Where)
 void GSubMenu::ClearHandle()
 {
 	Info = NULL;
-	for (::GMenuItem *i = Items.First(); i; i = Items.Next())
+	for (LgiMenuItem *i = Items.First(); i; i = Items.Next())
 	{
 		i->ClearHandle();
 	}
@@ -162,7 +163,7 @@ void GSubMenu::ClearHandle()
 
 void GSubMenu::Empty()
 {
-	::GMenuItem *i;
+	LgiMenuItem *i;
 	while (i = Items.First())
 	{
 		RemoveItem(i);
@@ -175,7 +176,7 @@ bool GSubMenu::RemoveItem(int i)
 	return RemoveItem(Items.ItemAt(i));
 }
 
-bool GSubMenu::RemoveItem(::GMenuItem *Item)
+bool GSubMenu::RemoveItem(LgiMenuItem *Item)
 {
 	if (Item && Items.HasItem(Item))
 	{
@@ -185,11 +186,11 @@ bool GSubMenu::RemoveItem(::GMenuItem *Item)
 	return false;
 }
 
-bool GSubMenu::IsContext(::GMenuItem *Item)
+bool GSubMenu::IsContext(LgiMenuItem *Item)
 {
 	if (!_ContextMenuId)
 	{
-		::GMenuItem *i = GetParent();
+		LgiMenuItem *i = GetParent();
 		GSubMenu *s = i ? i->GetParent() : NULL;
 		if (s)
 			// Walk up the chain of menus to find the top...
@@ -257,7 +258,7 @@ int GSubMenu::Float(GView *From, int x, int y, bool Left)
 
 GSubMenu *GSubMenu::FindSubMenu(int Id)
 {
-	for (::GMenuItem *i = Items.First(); i; i = Items.Next())
+	for (LgiMenuItem *i = Items.First(); i; i = Items.Next())
 	{
 		GSubMenu *Sub = i->Sub();
 
@@ -279,9 +280,9 @@ GSubMenu *GSubMenu::FindSubMenu(int Id)
 	return 0;
 }
 
-::GMenuItem *GSubMenu::FindItem(int Id)
+LgiMenuItem *GSubMenu::FindItem(int Id)
 {
-	for (::GMenuItem *i = Items.First(); i; i = Items.Next())
+	for (LgiMenuItem *i = Items.First(); i; i = Items.Next())
 	{
 		GSubMenu *Sub = i->Sub();
 
@@ -336,7 +337,7 @@ static GAutoString MenuItemParse(const char *s)
 	return GAutoString(NewStr(buf));
 }
 
-static void MenuItemCallback(::GMenuItem *Item)
+static void MenuItemCallback(LgiMenuItem *Item)
 {
 	if (!Item->Sub())
 	{
@@ -362,7 +363,7 @@ static void MenuItemCallback(::GMenuItem *Item)
 	}
 }
 
-::GMenuItem::GMenuItem()
+LgiMenuItem::GMenuItem()
 {
 	Info = GtkCast(Gtk::gtk_separator_menu_item_new(), gtk_menu_item, GtkMenuItem);
 	Child = NULL;
@@ -375,7 +376,7 @@ static void MenuItemCallback(::GMenuItem *Item)
 	_Id = 0;
 }
 
-::GMenuItem::GMenuItem(::GMenu *m, GSubMenu *p, const char *txt, int Pos, const char *shortcut)
+LgiMenuItem::GMenuItem(::GMenu *m, GSubMenu *p, const char *txt, int Pos, const char *shortcut)
 {
 	GAutoString Txt = MenuItemParse(txt);
 	GBase::Name(txt);
@@ -401,7 +402,7 @@ static void MenuItemCallback(::GMenuItem *Item)
 	ScanForAccel();
 }
 
-::GMenuItem::~GMenuItem()
+LgiMenuItem::~GMenuItem()
 {
 	if (Info)
 		Remove();
@@ -504,7 +505,7 @@ Gtk::gint LgiKeyToGtkKey(int Key, const char *ShortCut)
 	return 0;
 }
 
-bool ::GMenuItem::ScanForAccel()
+bool LgiMenuItem::ScanForAccel()
 {
 	if (!Menu)
 		return false;
@@ -623,19 +624,19 @@ bool ::GMenuItem::ScanForAccel()
 	return false;
 }
 
-GSubMenu *::GMenuItem::GetParent()
+GSubMenu *LgiMenuItem::GetParent()
 {
 	return Parent;
 }
 
-void ::GMenuItem::ClearHandle()
+void LgiMenuItem::ClearHandle()
 {
 	Info = NULL;
 	if (Child)
 		Child->ClearHandle();
 }
 
-bool ::GMenuItem::Remove()
+bool LgiMenuItem::Remove()
 {
 	if (!Parent)
 	{
@@ -658,12 +659,12 @@ bool ::GMenuItem::Remove()
 	return true;
 }
 
-void ::GMenuItem::Id(int i)
+void LgiMenuItem::Id(int i)
 {
 	_Id = i;
 }
 
-void ::GMenuItem::Separator(bool s)
+void LgiMenuItem::Separator(bool s)
 {
 	if (s)
 	{
@@ -708,7 +709,7 @@ gtk_container_get_child_index(GtkContainer *c, GtkWidget *child)
 	return Idx.Index;
 }
 
-bool ::GMenuItem::Replace(Gtk::GtkWidget *newWid)
+bool LgiMenuItem::Replace(Gtk::GtkWidget *newWid)
 {
 	if (!newWid || !Info)
 	{
@@ -749,7 +750,7 @@ bool ::GMenuItem::Replace(Gtk::GtkWidget *newWid)
 	return Info != NULL;
 }
 
-void ::GMenuItem::Icon(int i)
+void LgiMenuItem::Icon(int i)
 {
 	_Icon = i;
 	
@@ -799,15 +800,12 @@ void ::GMenuItem::Icon(int i)
 				}
 				
 				// Init to blank, then blt the pixels across...
-				IconImg->Colour(0, IconImg->GetBits());
+				IconImg->Colour(LC_MED, 24);
 				IconImg->Rectangle();
 				GRect r(0, 0, lst->TileX()-1, lst->TileY()-1);
 				r.Offset(lst->TileX() * _Icon, 0);
+				IconImg->Op(GDC_ALPHA);
 				IconImg->Blt(0, 0, lst, &r);
-				// printf("Blt from %s\n", r.GetStr());
-				
-				IconImg->Colour(GColour(255, 0, 0));
-				IconImg->Line(0, 0, IconImg->X()-1, IconImg->Y()-1);
 				
 				// Get the sub-image of the icon
 				GdkImage *img = IconImg->GetImage();
@@ -836,7 +834,7 @@ void ::GMenuItem::Icon(int i)
 	}
 }
 
-void ::GMenuItem::Checked(bool c)
+void LgiMenuItem::Checked(bool c)
 {
 	if (c)
 		SetFlag(_Flags, ODS_CHECKED);
@@ -879,7 +877,7 @@ void ::GMenuItem::Checked(bool c)
 	}
 }
 
-bool ::GMenuItem::Name(const char *n)
+bool LgiMenuItem::Name(const char *n)
 {
 	bool Status = GBase::Name(n);	
 	
@@ -896,7 +894,7 @@ bool ::GMenuItem::Name(const char *n)
 	return Status;
 }
 
-void ::GMenuItem::Enabled(bool e)
+void LgiMenuItem::Enabled(bool e)
 {
 	if (e)
 		ClearFlag(_Flags, ODS_DISABLED);
@@ -909,60 +907,60 @@ void ::GMenuItem::Enabled(bool e)
  	}
 }
 
-void ::GMenuItem::Focus(bool f)
+void LgiMenuItem::Focus(bool f)
 {
 }
 
-void ::GMenuItem::Sub(GSubMenu *s)
+void LgiMenuItem::Sub(GSubMenu *s)
 {
 	Child = s;
 }
 
-void ::GMenuItem::Visible(bool i)
+void LgiMenuItem::Visible(bool i)
 {
 }
 
-int ::GMenuItem::Id()
+int LgiMenuItem::Id()
 {
 	return _Id;
 }
 
-char *::GMenuItem::Name()
+char *LgiMenuItem::Name()
 {
 	return GBase::Name();
 }
 
-bool ::GMenuItem::Separator()
+bool LgiMenuItem::Separator()
 {
 	return _Id == -2;
 }
 
-bool ::GMenuItem::Checked()
+bool LgiMenuItem::Checked()
 {
 	return TestFlag(_Flags, ODS_CHECKED);
 }
 
-bool ::GMenuItem::Enabled()
+bool LgiMenuItem::Enabled()
 {
 	return !TestFlag(_Flags, ODS_DISABLED);
 }
 
-bool ::GMenuItem::Visible()
+bool LgiMenuItem::Visible()
 {
 	return true;
 }
 
-bool ::GMenuItem::Focus()
+bool LgiMenuItem::Focus()
 {
 	return 0;
 }
 
-GSubMenu *::GMenuItem::Sub()
+GSubMenu *LgiMenuItem::Sub()
 {
 	return Child;
 }
 
-int ::GMenuItem::Icon()
+int LgiMenuItem::Icon()
 {
 	return _Icon;
 }
@@ -1076,8 +1074,6 @@ bool ::GMenu::Detach()
 	return Status;
 }
 
-typedef ::GMenuItem LgiMenuItem;
-
 bool ::GMenu::OnKey(GView *v, GKey &k)
 {
 	if (k.Down())
@@ -1098,7 +1094,7 @@ bool ::GMenu::OnKey(GView *v, GKey &k)
 		{
 			bool Hide = false;
 			
-			for (::GMenuItem *s=Items.First(); s; s=Items.Next())
+			for (LgiMenuItem *s=Items.First(); s; s=Items.Next())
 			{
 				if (!s->Separator())
 				{
