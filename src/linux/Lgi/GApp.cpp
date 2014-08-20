@@ -963,6 +963,7 @@ OsApplication::OsApplication(int Args, char **Arg)
     Inst = this;
     d = new OsApplicationPriv;	
 	
+	XInitThreads();
     gtk_init(&Args, &Arg);
 }
 

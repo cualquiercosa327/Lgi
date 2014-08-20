@@ -250,7 +250,6 @@ class LgiClass GMenuItem :
 	friend class GSubMenu;
 	friend class GMenu;
 	friend class GView;
-	friend class LgiMenuItem;
 	friend class SubMenuImpl;
 	friend class MenuItemImpl;
 	friend class MenuImpl;
@@ -283,13 +282,17 @@ protected:
 	GMenuItem		*MatchShortcut(GKey &k);
 	#else
 	int				_Id;
-	bool			_Check;
-	bool			_Enabled;	
+	int				_Flags;
 	#endif
 
+	#if defined(__GTK_H__)
+	GAutoPtr<GMemDC> IconImg;
+	bool Replace(Gtk::GtkWidget *newWid);
+	#else
 	virtual void _Measure(GdcPt2 &Size);
 	virtual void _Paint(GSurface *pDC, int Flags);
 	virtual void _PaintText(GSurface *pDC, int x, int y, int Width);
+	#endif
 
 	void OnAttach(bool Attach);
 	void ClearHandle();
