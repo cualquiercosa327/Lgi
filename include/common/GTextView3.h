@@ -37,7 +37,11 @@ LgiClass
 	friend bool Text_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User);
 
 public:
-	class GStyle
+	class
+	#if defined(MAC) || defined(__GTK_H__)
+	LgiClass
+	#endif
+	GStyle
 	{
 		friend class GUrl;
 

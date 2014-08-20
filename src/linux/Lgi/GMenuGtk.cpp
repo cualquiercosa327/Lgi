@@ -792,7 +792,7 @@ void ::GMenuItem::Icon(int i)
 			else
 			{
 				// Create sub-image of the icon
-				if (!IconImg.Reset(new GMemDC(lst->TileX(), lst->TileY(), 32)))
+				if (!IconImg.Reset(new GMemDC(lst->TileX(), lst->TileY(), System32BitColourSpace)))
 				{
 					LgiTrace("%s:%i - Couldn't create icon image.\n", _FL);
 					return;

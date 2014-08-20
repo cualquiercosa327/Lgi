@@ -963,7 +963,9 @@ OsApplication::OsApplication(int Args, char **Arg)
     Inst = this;
     d = new OsApplicationPriv;	
 	
+	#ifdef __GNUC__
 	XInitThreads();
+	#endif
     gtk_init(&Args, &Arg);
 }
 
@@ -1041,7 +1043,7 @@ bool GlibWidgetSearch(GtkWidget *p, GtkWidget *w, int depth = 0)
 
 			if (i->data == w)
 				return true;
-			else if (GlibWidgetSearch(i->data, w, depth + 1))
+			else if (GlibWidgetSearch((GtkWidget*)i->data, w, depth + 1))
 				return true;
 
 			i = i->next;
