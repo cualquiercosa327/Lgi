@@ -291,7 +291,7 @@
 					Name="Drag and Drop"
 					>
 					<File
-						RelativePath=".\src\common\Lgi\GDragAndDrop.cpp"
+						RelativePath=".\src\linux\Lgi\GDragAndDrop.cpp"
 						>
 					</File>
 					<File

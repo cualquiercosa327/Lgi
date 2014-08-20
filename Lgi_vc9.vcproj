@@ -709,7 +709,7 @@
 						>
 					</File>
 					<File
-						RelativePath=".\src\common\Lgi\GDragAndDrop.cpp"
+						RelativePath=".\src\win32\Lgi\GDragAndDrop.cpp"
 						>
 					</File>
 					<File
