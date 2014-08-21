@@ -3945,9 +3945,12 @@ void IdeTree::OnDragExit()
 
 int IdeTree::WillAccept(List<char> &Formats, GdcPt2 p, int KeyState)
 {
+	static bool First = true;
+	
 	for (char *f=Formats.First(); f; )
 	{
-		printf("WillAccept='%s'\n", f);
+		if (First)
+			printf("    WillAccept='%s'\n", f);
 		
 		if (stricmp(f, NODE_DROP_FORMAT) == 0 ||
 			stricmp(f, LGI_FileDropFormat) == 0)
@@ -3961,31 +3964,42 @@ int IdeTree::WillAccept(List<char> &Formats, GdcPt2 p, int KeyState)
 			f = Formats.Current();
 		}
 	}
+	
+	First = false;
 		
 	if (Formats.Length() > 0)
 	{
 		Hit = ItemAtPoint(p.x, p.y);
 		if (Hit)
 		{
-			IdeCommon *Src = dynamic_cast<IdeCommon*>(Selection());
-			IdeCommon *Dst = dynamic_cast<IdeCommon*>(Hit);
-			if (Src && Dst)
+			if (!stricmp(Formats.First(), LGI_FileDropFormat))
 			{
-				// Check this folder is not a child of the src
-				for (IdeCommon *n=Dst; n; n=dynamic_cast<IdeCommon*>(n->GetParent()))
+				SelectDropTarget(Hit);
+				return DROPEFFECT_LINK;
+			}
+			else
+			{
+				IdeCommon *Src = dynamic_cast<IdeCommon*>(Selection());
+				IdeCommon *Dst = dynamic_cast<IdeCommon*>(Hit);
+				if (Src && Dst)
 				{
-					if (n == Src)
+					// Check this folder is not a child of the src
+					for (IdeCommon *n=Dst; n; n=dynamic_cast<IdeCommon*>(n->GetParent()))
 					{
-						return DROPEFFECT_NONE;
+						if (n == Src)
+						{
+							return DROPEFFECT_NONE;
+						}
 					}
 				}
-			}
 
-			// Valid target
-			SelectDropTarget(Hit);
-			return DROPEFFECT_MOVE;
+				// Valid target
+				SelectDropTarget(Hit);
+				return DROPEFFECT_MOVE;
+			}
 		}
 	}
+	else printf("%s:%i - No valid drop formats.\n", _FL);
 
 	return DROPEFFECT_NONE;
 }

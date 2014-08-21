@@ -662,7 +662,7 @@ public:
 	void Focus(bool f);
 	
 	/// true if this view is a drop target
-	bool DropTarget();
+	GDragDropTarget *DropTarget();
 	
 	/// Sets the drop target state of this view
 	bool DropTarget(bool t);

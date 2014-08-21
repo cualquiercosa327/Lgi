@@ -1089,9 +1089,9 @@ GDragDropTarget	*&GView::DropTargetPtr()
 	return d->DropTarget;
 }
 
-bool GView::DropTarget()
+GDragDropTarget *GView::DropTarget()
 {
-	return d->DropTarget != 0;
+	return d->DropTarget;
 }
 
 bool GView::DropTarget(bool t)

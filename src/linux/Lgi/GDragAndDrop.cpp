@@ -180,101 +180,6 @@ GDragDropTarget::~GDragDropTarget()
 	Formats.DeleteArrays();
 }
 
-gboolean
-GtkOnDragDrop(	GtkWidget *widget,
-				GdkDragContext *context,
-				gint x, gint y,
-				guint time,
-				gpointer userdata)
-{
-	printf("GtkOnDragDrop\n");
-	Gtk::GList *Types = gdk_drag_context_list_targets(context);
-	if (!Types)
-		return false;
-	
-	GdkAtom TargetType = (GdkAtom)Types->data;
-	if (!TargetType)
-		return false;
-
-	// Request the data...
-	gtk_drag_get_data
-	(
-		widget,
-		context,
-		TargetType,
-		time
-	);
-	
-	return true;
-}
-
-gboolean
-GtkOnDragMotion(GtkWidget *widget,
-				GdkDragContext *context,
-				gint x, gint y,
-				guint time,
-				gpointer userdata)
-{
-	GDragDropTarget *Target = (GDragDropTarget*)userdata;
-	printf("GtkOnDragMotion\n");
-
-	List<char> Formats;
-	for (Gtk::GList *Types = gdk_drag_context_list_targets(context); Types; Types = Types->next)
-	{
-		gchar *Type = gdk_atom_name((GdkAtom)Types->data);
-		if (Type)
-			Formats.Insert(NewStr(Type));
-	}
-	
-	GdcPt2 p(x, y);
-	int Result = Target->WillAccept(Formats, p, 0);
-
-	Formats.DeleteArrays();
-
-	if (Result != DROPEFFECT_NONE)
-	{
-		GdkDragAction action = DropEffectToAction(Result);
-		gdk_drag_status(context, action, time);
-	}
-
-	return Result != DROPEFFECT_NONE;
-}
-
-void
-GtkOnDragDataReceived(	GtkWidget *w,
-						GdkDragContext *context,
-						int x, int y,
-                        GtkSelectionData *data,
-                        guint info,
-                        guint time,
-                        gpointer userdata)
-{
-	GDragDropTarget *Target = (GDragDropTarget*)userdata;
-	printf("GtkOnDragDataReceived\n");
-	
-	gchar *Type = gdk_atom_name(gtk_selection_data_get_data_type(data));
-	GdcPt2 p(x, y);
-	gint Len = gtk_selection_data_get_length(data);
-	const guchar *Ptr = gtk_selection_data_get_data(data);
-	if (Ptr && Len > 0)
-	{
-		::GVariant Data;
-		Data.SetBinary(Len, (void*)Ptr);		
-		int Status = Target->OnDrop(Type, &Data, p, 0);
-		int asd=0;
-	}
-}
-
-void
-GtkOnDragLeave(	GtkWidget *widget,
-				GdkDragContext *context,
-				guint time,
-				gpointer userdata)
-{
-	GDragDropTarget *ddt = (GDragDropTarget*)userdata;
-	printf("GtkOnDragLeave ddt=%p\n", ddt);
-}
-
 void GDragDropTarget::SetWindow(GView *to)
 {
 	bool Status = false;
@@ -287,20 +192,20 @@ void GDragDropTarget::SetWindow(GView *to)
 		{
 			GtkWidget *w = to->Handle();
 			
+			#if 0
 			printf("Installing DND handles on %s, Status=%i\n", to->GetClass(), Status);
 			
    			g_signal_connect(w, "drag-motion",			G_CALLBACK(GtkOnDragMotion),		this);
-			/*
 			g_signal_connect(w, "drag-drop",			G_CALLBACK(GtkOnDragDrop),			this);
 			g_signal_connect(w, "drag-data-received",	G_CALLBACK(GtkOnDragDataReceived), 	this);
 			g_signal_connect(w, "drag-leave",			G_CALLBACK(GtkOnDragLeave),		 	this);
-			*/
+			#endif
 
    			OnDragInit(Status);
 		}
 		else
 		{
-			printf("%s:%i - Error\n", __FILE__, __LINE__);
+			LgiTrace("%s:%i - No view handle\n", _FL);
 		}
 	}
 }

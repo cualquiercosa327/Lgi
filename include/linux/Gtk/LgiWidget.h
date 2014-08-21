@@ -17,6 +17,7 @@ struct _LgiWidget
 	GViewI *target;
 	int w, h;
 	bool pour_largest;
+	bool drag_over_widget;
 	
 	struct ChildInfo
 	{

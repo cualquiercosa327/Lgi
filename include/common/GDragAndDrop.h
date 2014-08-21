@@ -25,6 +25,7 @@
 #ifdef __GTK_H__
 LgiFunc int GtkGetDndType(const char *Format);
 LgiFunc const char *GtkGetDndFormat(int Type);
+LgiFunc Gtk::GdkDragAction DropEffectToAction(int DropEffect);
 #endif
 
 //////////////////////////////////////////////////////////////////////////////

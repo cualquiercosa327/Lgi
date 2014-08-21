@@ -386,16 +386,12 @@ static void
 lgi_widget_drag_end(GtkWidget *widget, GdkDragContext *drag_context)
 {
 	LgiTrace("lgi_widget_drag_end\n");
-	/*
-	LgiWidget *p = LGI_WIDGET(widget);
-    GView *v = dynamic_cast<GView*>(p->target);
-    */
 }
 
 static void
 lgi_widget_drag_data_get(GtkWidget          *widget,
-						GdkDragContext     *context,
-						GtkSelectionData   *selection_data,
+						GdkDragContext      *context,
+						GtkSelectionData    *selection_data,
 						guint               info,
 						guint               time_)
 {
@@ -412,20 +408,75 @@ lgi_widget_drag_data_delete(GtkWidget	       *widget,
 static void
 lgi_widget_drag_leave(GtkWidget	       *widget,
 				    GdkDragContext     *context,
-				    guint               time_)
+				    guint               time)
 {
-	LgiTrace("lgi_widget_drag_leave\n");
+	LgiWidget *v = LGI_WIDGET(widget);
+	if (!v || !v->target)
+	{
+		printf("%s:%i - LGI_WIDGET failed.\n", _FL);
+		return false;
+	}
+	
+	GDragDropTarget *Target = v->target->DropTarget();
+	if (!Target)
+	{
+		printf("%s:%i - View '%s' doesn't have drop target.\n", _FL, v->target->GetClass());
+		return false;
+	}
+
+	v->drag_over_widget = false;
+	Target->OnDragExit();
 }
 
 static gboolean
-lgi_widget_drag_motion(GtkWidget	       *widget,
+lgi_widget_drag_motion(GtkWidget	   *widget,
 				    GdkDragContext     *context,
 				    gint                x,
 				    gint                y,
 				    guint               time_)
 {
-	LgiTrace("lgi_widget_drag_motion\n");
-	return false;
+	LgiWidget *v = LGI_WIDGET(widget);
+	if (!v || !v->target)
+	{
+		printf("%s:%i - LGI_WIDGET failed.\n", _FL);
+		return false;
+	}
+	
+	GDragDropTarget *Target = v->target->DropTarget();
+	if (!Target)
+	{
+		printf("%s:%i - View '%s' doesn't have drop target.\n", _FL, v->target->GetClass());
+		return false;
+	}
+	
+	List<char> Formats;
+	for (Gtk::GList *Types = gdk_drag_context_list_targets(context); Types; Types = Types->next)
+	{
+		gchar *Type = gdk_atom_name((GdkAtom)Types->data);
+		if (Type)
+			Formats.Insert(NewStr(Type));
+	}
+	
+	if (!v->drag_over_widget)
+	{
+		v->drag_over_widget = true;
+		Target->OnDragEnter();
+	}
+	
+	GdcPt2 p(x, y);
+	int Result = Target->WillAccept(Formats, p, 0);
+
+	Formats.DeleteArrays();
+
+	printf("lgi_widget_drag_motion %i,%i = %i\n", p.x, p.y, Result);
+
+	if (Result != DROPEFFECT_NONE)
+	{
+		GdkDragAction action = DropEffectToAction(Result);
+		gdk_drag_status(context, action, time);
+	}
+
+	return Result != DROPEFFECT_NONE;
 }
 
 static gboolean
@@ -436,19 +487,66 @@ lgi_widget_drag_drop(GtkWidget	       *widget,
 					guint               time_)
 {
 	LgiTrace("lgi_widget_drag_drop\n");
-	return false;
-}
+
+	Gtk::GList *Types = gdk_drag_context_list_targets(context);
+	if (!Types)
+		return false;
+	
+	GdkAtom TargetType = (GdkAtom)Types->data;
+	if (!TargetType)
+		return false;
+
+	// Request the data...
+	gtk_drag_get_data
+	(
+		widget,
+		context,
+		TargetType,
+		time
+	);
+	
+	return true;}
 
 static void
-lgi_widget_drag_data_received(GtkWidget          *widget,
+lgi_widget_drag_data_received(GtkWidget        *widget,
 							GdkDragContext     *context,
 							gint                x,
 							gint                y,
-							GtkSelectionData   *selection_data,
+							GtkSelectionData   *data,
 							guint               info,
-							guint               time_)
+							guint               time)
 {
 	LgiTrace("lgi_widget_drag_data_received\n");
+
+	LgiWidget *v = LGI_WIDGET(widget);
+	if (!v || !v->target)
+	{
+		printf("%s:%i - LGI_WIDGET failed.\n", _FL);
+		return;
+	}
+	
+	GDragDropTarget *Target = v->target->DropTarget();
+	if (!Target)
+	{
+		printf("%s:%i - View '%s' doesn't have drop target.\n", _FL, v->target->GetClass());
+		return;
+	}
+	
+	gchar *Type = gdk_atom_name(gtk_selection_data_get_data_type(data));
+	GdcPt2 p(x, y);
+	gint Len = gtk_selection_data_get_length(data);
+	const guchar *Ptr = gtk_selection_data_get_data(data);
+	if (!Ptr || Len <= 0)
+	{
+		printf("%s:%i - gtk_selection_data_get_[data/len] failed.\n", _FL);
+		return;
+	}
+
+	::GVariant Data;
+	Data.SetBinary(Len, (void*)Ptr);		
+	
+	// Give the data to the App
+	Target->OnDrop(Type, &Data, p, 0);
 }
 
 static void
@@ -737,5 +835,6 @@ lgi_widget_init(LgiWidget *w)
 	w->w = 0;
 	w->h = 0;
 	w->pour_largest = false;
+	w->drag_over_widget = false;
 }
 
