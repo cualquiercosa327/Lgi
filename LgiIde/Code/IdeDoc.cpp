@@ -1854,7 +1854,7 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 			bool Found = false;
 			for (DefnInfo *Def=Defns.First(); Def; )
 			{
-				printf("Def = %s,%i %s\n", Def->File, Def->Line, Def->Name);
+				// printf("Def = %s,%i %s\n", Def->File, Def->Line, Def->Name);
 				
 				if (MatchSymbol(Def, Symbol))
 				{

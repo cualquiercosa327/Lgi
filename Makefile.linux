@@ -171,9 +171,8 @@ GDateTime.o : ./src/common/General/GDateTime.cpp ./include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GDragAndDrop.o : ./src/common/Lgi/GDragAndDrop.cpp ./include/common/Lgi.h \
-	./include/common/GDragAndDrop.h \
-	./include/common/INet.h
+GDragAndDrop.o : ./src/linux/Lgi/GDragAndDrop.cpp ./include/common/Lgi.h \
+	./include/common/GDragAndDrop.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 

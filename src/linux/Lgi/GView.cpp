@@ -882,6 +882,7 @@ bool GView::Attach(GViewI *parent)
 		}
 
 		OnCreate();
+		OnAttach();
 		Status = true;
 	}
 

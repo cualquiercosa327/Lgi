@@ -792,7 +792,17 @@ void LgiMenuItem::Icon(int i)
 			}
 			else
 			{
-				// Create sub-image of the icon
+				// Attempt to read the background colour from the theme settings...
+				// Default back to LC_MED if we can't get it.
+				GColour Back;				
+				GdkColor colour;
+				GtkStyle *style = gtk_rc_get_style(GTK_WIDGET(Info));
+				if (gtk_style_lookup_color(style, "bg_color", &colour))
+					Back.Set(colour.red>>8, colour.green>>8, colour.blue>>8);
+				else
+					Back.Set(LC_MED, 24);
+    
+   				// Create sub-image of the icon
 				if (!IconImg.Reset(new GMemDC(lst->TileX(), lst->TileY(), System32BitColourSpace)))
 				{
 					LgiTrace("%s:%i - Couldn't create icon image.\n", _FL);
@@ -800,7 +810,7 @@ void LgiMenuItem::Icon(int i)
 				}
 				
 				// Init to blank, then blt the pixels across...
-				IconImg->Colour(LC_MED, 24);
+				IconImg->Colour(Back);
 				IconImg->Rectangle();
 				GRect r(0, 0, lst->TileX()-1, lst->TileY()-1);
 				r.Offset(lst->TileX() * _Icon, 0);

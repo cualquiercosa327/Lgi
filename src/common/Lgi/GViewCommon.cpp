@@ -1131,7 +1131,35 @@ bool GView::DropTarget(bool t)
 		Wnd->SetDragHandlers(t);
 		if (!d->DropTarget)
 			d->DropTarget = t ? Wnd : 0;
-	}	
+	}
+	#elif defined __GTK_H__
+	if (_View)
+	{
+		if (t)
+		{
+			Gtk::GtkTargetEntry targets[] =
+			{
+				{ "STRING",							0, 0 },
+				{ "text/plain",						0, 0 },
+				{ "text/uri-list",					0, 0 },
+				{ "application/x-rootwindow-drop",	0, 0 },
+			};
+
+			Gtk::gtk_drag_dest_set(	_View,
+									Gtk::GTK_DEST_DEFAULT_ALL,
+									targets,
+									CountOf(targets),
+									Gtk::GDK_ACTION_DEFAULT);
+			
+			printf("%s called gtk_drag_dest_set\n", GetClass());
+		}
+		else
+		{
+			Gtk::gtk_drag_dest_unset(_View);
+		}
+		
+		Status = true;
+	}
 	#endif
 
 	return Status;

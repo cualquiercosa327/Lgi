@@ -18,6 +18,8 @@
 static int NextDndType = 600;
 static GHashTbl<const char*, int> DndTypes(0, false, NULL, -1);
 
+using namespace Gtk;
+
 int GtkGetDndType(const char *Format)
 {
 	int Type = DndTypes.Find(Format);
@@ -60,7 +62,7 @@ GDragDropSource::~GDragDropSource()
 	DeleteObj(d);
 }
 
-bool GDragDropSource::CreateFileDrop(GVariant *OutputData, GMouse &m, List<char> &Files)
+bool GDragDropSource::CreateFileDrop(::GVariant *OutputData, GMouse &m, List<char> &Files)
 {
 	if (OutputData && Files.First())
 	{
@@ -120,7 +122,7 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 		return -1;
 	}
 	
-	GArray<Gtk::GtkTargetEntry> e;
+	::GArray<GtkTargetEntry> e;
 	for (char *f = Formats.First(); f; f = Formats.Next())
 	{
 		Gtk::GtkTargetEntry &entry = e.New();
@@ -159,6 +161,57 @@ GDragDropTarget::~GDragDropTarget()
 	Formats.DeleteArrays();
 }
 
+gboolean
+GtkOnDragDrop(	GtkWidget *widget,
+				GdkDragContext *context,
+				gint x, gint y,
+				guint time,
+				gpointer userdata)
+{
+	GDragDropTarget *ddt = (GDragDropTarget*)userdata;
+	printf("GtkOnDragDrop ddt=%p\n", ddt);
+
+	return false;
+}
+
+gboolean
+GtkOnDragMotion(GtkWidget *widget,
+				GdkDragContext *context,
+				gint x, gint y,
+				GtkSelectionData *seld,
+				guint ttype,
+				guint time,
+				gpointer userdata)
+{
+	GDragDropTarget *ddt = (GDragDropTarget*)userdata;
+	printf("GtkOnDragMotion ddt=%p\n", ddt);
+
+	return false;
+}
+
+void
+GtkOnDragDataReceived(	GtkWidget *w,
+						GdkDragContext *context,
+						int x, int y,
+                        GtkSelectionData *seldata,
+                        guint info,
+                        guint time,
+                        gpointer userdata)
+{
+	GDragDropTarget *ddt = (GDragDropTarget*)userdata;
+	printf("GtkOnDragDataReceived ddt=%p\n", ddt);
+}
+
+void
+GtkOnDragLeave(	GtkWidget *widget,
+				GdkDragContext *context,
+				guint time,
+				gpointer userdata)
+{
+	GDragDropTarget *ddt = (GDragDropTarget*)userdata;
+	printf("GtkOnDragLeave ddt=%p\n", ddt);
+}
+
 void GDragDropTarget::SetWindow(GView *to)
 {
 	bool Status = false;
@@ -169,7 +222,16 @@ void GDragDropTarget::SetWindow(GView *to)
 		Status = To->DropTarget(true);
 		if (To->Handle())
 		{
-			OnDragInit(Status);
+			GtkWidget *w = to->Handle();
+			
+			printf("Installing DND handles on %s, Status=%i\n", to->GetClass(), Status);
+			
+			g_signal_connect(w, "drag-drop",			G_CALLBACK(GtkOnDragDrop),			this);
+   			g_signal_connect(w, "drag-motion",			G_CALLBACK(GtkOnDragMotion),		this);
+			g_signal_connect(w, "drag-data-received",	G_CALLBACK(GtkOnDragDataReceived), 	this);
+			g_signal_connect(w, "drag-leave",			G_CALLBACK(GtkOnDragLeave),		 	this);
+
+   			OnDragInit(Status);
 		}
 		else
 		{

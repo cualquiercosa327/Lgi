@@ -207,7 +207,6 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../src/common/Lgi/GCss.cpp \
 	../src/common/Lgi/GCssTools.cpp \
 	../src/common/Lgi/GDataDlg.cpp \
-	../src/common/Lgi/GDragAndDrop.cpp \
 	../src/common/Lgi/GFileSelect.cpp \
 	../src/common/Lgi/GFindReplace.cpp \
 	../src/common/Lgi/GFontSelect.cpp \
@@ -268,6 +267,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../src/linux/Gtk/LgiWidget.cpp \
 	../src/linux/Lgi/GApp.cpp \
 	../src/linux/Lgi/GClipBoard.cpp \
+	../src/linux/Lgi/GDragAndDrop.cpp \
 	../src/linux/Lgi/GGeneral.cpp \
 	../src/linux/Lgi/GLayout.cpp \
 	../src/linux/Lgi/GMenuGtk.cpp \
