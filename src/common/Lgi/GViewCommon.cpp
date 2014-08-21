@@ -1146,12 +1146,15 @@ bool GView::DropTarget(bool t)
 			};
 
 			Gtk::gtk_drag_dest_set(	_View,
-									Gtk::GTK_DEST_DEFAULT_ALL,
+									(Gtk::GtkDestDefaults)0,
+									#if 1
+									NULL,
+									0,
+									#else
 									targets,
 									CountOf(targets),
+									#endif
 									Gtk::GDK_ACTION_DEFAULT);
-			
-			printf("%s called gtk_drag_dest_set\n", GetClass());
 		}
 		else
 		{

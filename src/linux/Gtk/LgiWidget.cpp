@@ -102,8 +102,6 @@ static gboolean lgi_widget_click(GtkWidget *widget, GdkEventButton *ev)
                     ev->type == GDK_2BUTTON_PRESS ||
                     ev->type == GDK_3BUTTON_PRESS;
 
-    // LgiTrace("click %i,%i,%i,%i,%i,%i,%s,%i,%i\n", ev->axes, ev->button, ev->device, ev->send_event, ev->state, ev->time, BtnDown?"down":"up", ev->x, ev->y);
-
 	LgiWidget *p = LGI_WIDGET(widget);
     GView *v = dynamic_cast<GView*>(p->target);
     if (v)
@@ -124,7 +122,12 @@ static gboolean lgi_widget_click(GtkWidget *widget, GdkEventButton *ev)
         m.Shift((ev->state & GDK_SHIFT_MASK) != 0);
         m.Ctrl((ev->state & GDK_CONTROL_MASK) != 0);
 
-		// LgiTrace("%s::OnMouseClick %i,%i\n", v->GetClass(), m.x, m.y);
+		#if 0
+		char s[256];
+		sprintf_s(s, sizeof(s), "%s::MouseClick", v->GetClass());
+		m.Trace(s);
+		#endif
+
         v->_Mouse(m, false);
     }    
     return TRUE;
@@ -136,7 +139,6 @@ static gboolean lgi_widget_motion(GtkWidget *widget, GdkEventMotion *ev)
     GView *v = dynamic_cast<GView*>(p->target);
     if (v)
     {
-        // LgiTrace("motion %i,%i,%i,%i,%x,%i,%i,%i,%i\n", ev->axes, ev->device, ev->is_hint, ev->send_event, ev->state, ev->time, ev->type, ev->x, ev->y);
         GMouse m;
         m.Target = v;
         m.x = ev->x;
@@ -146,9 +148,15 @@ static gboolean lgi_widget_motion(GtkWidget *widget, GdkEventMotion *ev)
         m.Middle(ev->state & 0x200);
         m.Right(ev->state & 0x400);
 
-		// m.Trace("Move");
+		#if 0
+		char s[256];
+		sprintf_s(s, sizeof(s), "%s::MouseMove", v->GetClass());
+		m.Trace(s);
+		#endif
+        
         v->_Mouse(m, true);
-    }    
+    }
+    
     return TRUE;
 }
 
@@ -207,25 +215,9 @@ static gboolean lgi_widget_focus_event(GtkWidget *wid, GdkEventFocus *e)
 	LgiWidget *p = LGI_WIDGET(wid);
     GView *v = dynamic_cast<GView*>(p->target);
     if (v)
-    {
-		/*
-		char buf[1024];
-		int ch = 0;
-		::GArray<GViewI*> a;
-		for (GViewI *i = v; i; i = i->GetParent())
-		{
-			a.Add(i);
-		}
-		for (int n=a.Length()-1; n>=0; n--)
-		{
-			ch += sprintf_s(buf + ch, sizeof(buf) - ch, "> %s \"%-.8s\" ", a[n]->GetClass(), a[n]->Name());
-		}
-		LgiTrace("%s : focus=%i\n", buf, e->in);
-		*/
-		
         v->OnFocus(e->in);
-    }
-    else LgiAssert(0);
+    else
+		LgiAssert(0);
     
 	return TRUE;
 }

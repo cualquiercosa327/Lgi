@@ -21,6 +21,24 @@ static GHashTbl<const char*, int> DndTypes(0, false, NULL, -1);
 typedef Gtk::GList GnuList;
 using namespace Gtk;
 
+GdkDragAction DropEffectToAction(int DropEffect)
+{
+	GdkDragAction action = GDK_ACTION_DEFAULT;
+	switch (DropEffect)
+	{
+		case DROPEFFECT_COPY:
+			action = GDK_ACTION_COPY;
+			break;
+		case DROPEFFECT_MOVE:
+			action = GDK_ACTION_MOVE;
+			break;
+		case DROPEFFECT_LINK:
+			action = GDK_ACTION_LINK;
+			break;
+	}
+	return action;
+}
+
 int GtkGetDndType(const char *Format)
 {
 	int Type = DndTypes.Find(Format);
@@ -169,38 +187,37 @@ GtkOnDragDrop(	GtkWidget *widget,
 				guint time,
 				gpointer userdata)
 {
-	GDragDropTarget *Target = (GDragDropTarget*)userdata;
-	GdkAtom TargetType = NULL;
-	for (Gtk::GList *Types = gdk_drag_context_list_targets(context); Types; Types = Types->next)
-	{
-		TargetType = (GdkAtom)Types->data;
-		break;
-	}
+	printf("GtkOnDragDrop\n");
+	Gtk::GList *Types = gdk_drag_context_list_targets(context);
+	if (!Types)
+		return false;
 	
-	if (TargetType)
-	{
-		gtk_drag_get_data
-		(
-			widget,
-			context,
-			TargetType,
-			time
-		);
-		
-		return true;
-	}
+	GdkAtom TargetType = (GdkAtom)Types->data;
+	if (!TargetType)
+		return false;
 
-	return false;
+	// Request the data...
+	gtk_drag_get_data
+	(
+		widget,
+		context,
+		TargetType,
+		time
+	);
+	
+	return true;
 }
 
 gboolean
 GtkOnDragMotion(GtkWidget *widget,
 				GdkDragContext *context,
 				gint x, gint y,
-				guint t,
+				guint time,
 				gpointer userdata)
 {
 	GDragDropTarget *Target = (GDragDropTarget*)userdata;
+	printf("GtkOnDragMotion\n");
+
 	List<char> Formats;
 	for (Gtk::GList *Types = gdk_drag_context_list_targets(context); Types; Types = Types->next)
 	{
@@ -213,6 +230,12 @@ GtkOnDragMotion(GtkWidget *widget,
 	int Result = Target->WillAccept(Formats, p, 0);
 
 	Formats.DeleteArrays();
+
+	if (Result != DROPEFFECT_NONE)
+	{
+		GdkDragAction action = DropEffectToAction(Result);
+		gdk_drag_status(context, action, time);
+	}
 
 	return Result != DROPEFFECT_NONE;
 }
@@ -227,6 +250,8 @@ GtkOnDragDataReceived(	GtkWidget *w,
                         gpointer userdata)
 {
 	GDragDropTarget *Target = (GDragDropTarget*)userdata;
+	printf("GtkOnDragDataReceived\n");
+	
 	gchar *Type = gdk_atom_name(gtk_selection_data_get_data_type(data));
 	GdcPt2 p(x, y);
 	gint Len = gtk_selection_data_get_length(data);
@@ -264,10 +289,12 @@ void GDragDropTarget::SetWindow(GView *to)
 			
 			printf("Installing DND handles on %s, Status=%i\n", to->GetClass(), Status);
 			
-			g_signal_connect(w, "drag-drop",			G_CALLBACK(GtkOnDragDrop),			this);
    			g_signal_connect(w, "drag-motion",			G_CALLBACK(GtkOnDragMotion),		this);
+			/*
+			g_signal_connect(w, "drag-drop",			G_CALLBACK(GtkOnDragDrop),			this);
 			g_signal_connect(w, "drag-data-received",	G_CALLBACK(GtkOnDragDataReceived), 	this);
 			g_signal_connect(w, "drag-leave",			G_CALLBACK(GtkOnDragLeave),		 	this);
+			*/
 
    			OnDragInit(Status);
 		}
