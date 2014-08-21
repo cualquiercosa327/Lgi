@@ -1084,13 +1084,19 @@ void GView::Focus(bool i)
 	}
 }
 
-GDragDropTarget	*&GView::DropTargetPtr()
+GDragDropSource *GView::DropSource(GDragDropSource *Set)
 {
-	return d->DropTarget;
+	if (Set)
+		d->DropSource = Set;
+
+	return d->DropSource;
 }
 
-GDragDropTarget *GView::DropTarget()
+GDragDropTarget *GView::DropTarget(GDragDropTarget *Set)
 {
+	if (Set)
+		d->DropTarget = Set;
+
 	return d->DropTarget;
 }
 

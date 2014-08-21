@@ -404,7 +404,8 @@ public:
 	virtual void Visible(bool v) = 0;
 	virtual bool Focus() = 0;
 	virtual void Focus(bool f) = 0;
-	virtual class GDragDropTarget *DropTarget() = 0;
+	virtual class GDragDropSource *DropSource(GDragDropSource *Set = NULL) = 0;
+	virtual class GDragDropTarget *DropTarget(GDragDropTarget *Set = NULL) = 0;
 	virtual bool DropTarget(bool t) = 0;
 	virtual bool Sunken() = 0;
 	virtual void Sunken(bool i) = 0;

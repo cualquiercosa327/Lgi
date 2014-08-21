@@ -432,8 +432,6 @@ class LgiClass GView : virtual public GViewI, virtual public GBase
 protected:
 	class GViewPrivate	*d;
 
-	class GDragDropTarget *&DropTargetPtr();
-
 	OsView				_View; // OS specific handle to view object
 	GView				*_Window;
 	GMutex				*_Lock;
@@ -661,8 +659,11 @@ public:
 	/// Sets the keyboard focus state on the view.
 	void Focus(bool f);
 	
-	/// true if this view is a drop target
-	GDragDropTarget *DropTarget();
+	/// Get/Set the drop source
+	GDragDropSource *DropSource(GDragDropSource *Set = NULL);
+
+	/// Get/Set the drop target
+	GDragDropTarget *DropTarget(GDragDropTarget *Set = NULL);
 	
 	/// Sets the drop target state of this view
 	bool DropTarget(bool t);

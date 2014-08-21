@@ -89,6 +89,7 @@ class GViewPrivate
 public:
 	// General
 	int				CtrlId;
+	GDragDropSource	*DropSource;
 	GDragDropTarget	*DropTarget;
 	bool			IsThemed;
 

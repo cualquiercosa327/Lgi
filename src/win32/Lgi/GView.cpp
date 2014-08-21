@@ -41,7 +41,8 @@ GViewPrivate::GViewPrivate()
 	WndClass = 0;
 	WndDlgCode = 0;
 	TimerId = 0;
-	DropTarget = 0;
+	DropTarget = NULL;
+	DropSource = NULL;
 	Parent = 0;
 	ParentI = 0;
 	Notify = 0;
