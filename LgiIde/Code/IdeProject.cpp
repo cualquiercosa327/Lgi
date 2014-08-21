@@ -3990,14 +3990,17 @@ int IdeTree::WillAccept(List<char> &Formats, GdcPt2 p, int KeyState)
 	return DROPEFFECT_NONE;
 }
 
-int IdeTree::OnDrop(char *Format, GVariant *Data, GdcPt2 Pt, int KeyState)
+int IdeTree::OnDrop(char *Format, GVariant *Data, GdcPt2 p, int KeyState)
 {
 	SelectDropTarget(0);
+
+	if (!Hit)
+		Hit = ItemAtPoint(p.x, p.y);
 
 	if (!Hit || !Data || !Format)
 		return DROPEFFECT_NONE;
 	
-	if (stricmp(Format, NODE_DROP_FORMAT) == 0)
+	if (!stricmp(Format, NODE_DROP_FORMAT))
 	{
 		if (Data->Type == GV_BINARY && Data->Value.Binary.Length == sizeof(ProjectNode*))
 		{
@@ -4044,7 +4047,7 @@ int IdeTree::OnDrop(char *Format, GVariant *Data, GdcPt2 Pt, int KeyState)
 			}
 		}
 	}
-	else if (stricmp(Format, LGI_FileDropFormat))
+	else if (!stricmp(Format, LGI_FileDropFormat))
 	{
 		GDropFiles Df(*Data);
 		for (int i=0; i<Df.Length(); i++)

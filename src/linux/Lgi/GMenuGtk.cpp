@@ -798,7 +798,7 @@ void LgiMenuItem::Icon(int i)
 				GdkColor colour;
 				GtkStyle *style = gtk_rc_get_style(GTK_WIDGET(Info));
 				if (gtk_style_lookup_color(style, "bg_color", &colour))
-					Back.Set(colour.red>>8, colour.green>>8, colour.blue>>8);
+					Back.Rgb(colour.red>>8, colour.green>>8, colour.blue>>8);
 				else
 					Back.Set(LC_MED, 24);
     

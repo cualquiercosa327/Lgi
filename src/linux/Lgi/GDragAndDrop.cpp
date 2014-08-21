@@ -18,6 +18,7 @@
 static int NextDndType = 600;
 static GHashTbl<const char*, int> DndTypes(0, false, NULL, -1);
 
+typedef Gtk::GList GnuList;
 using namespace Gtk;
 
 int GtkGetDndType(const char *Format)
@@ -168,8 +169,26 @@ GtkOnDragDrop(	GtkWidget *widget,
 				guint time,
 				gpointer userdata)
 {
-	GDragDropTarget *ddt = (GDragDropTarget*)userdata;
-	printf("GtkOnDragDrop ddt=%p\n", ddt);
+	GDragDropTarget *Target = (GDragDropTarget*)userdata;
+	GdkAtom TargetType = NULL;
+	for (Gtk::GList *Types = gdk_drag_context_list_targets(context); Types; Types = Types->next)
+	{
+		TargetType = (GdkAtom)Types->data;
+		break;
+	}
+	
+	if (TargetType)
+	{
+		gtk_drag_get_data
+		(
+			widget,
+			context,
+			TargetType,
+			time
+		);
+		
+		return true;
+	}
 
 	return false;
 }
@@ -178,28 +197,47 @@ gboolean
 GtkOnDragMotion(GtkWidget *widget,
 				GdkDragContext *context,
 				gint x, gint y,
-				GtkSelectionData *seld,
-				guint ttype,
-				guint time,
+				guint t,
 				gpointer userdata)
 {
-	GDragDropTarget *ddt = (GDragDropTarget*)userdata;
-	printf("GtkOnDragMotion ddt=%p\n", ddt);
+	GDragDropTarget *Target = (GDragDropTarget*)userdata;
+	List<char> Formats;
+	for (Gtk::GList *Types = gdk_drag_context_list_targets(context); Types; Types = Types->next)
+	{
+		gchar *Type = gdk_atom_name((GdkAtom)Types->data);
+		if (Type)
+			Formats.Insert(NewStr(Type));
+	}
+	
+	GdcPt2 p(x, y);
+	int Result = Target->WillAccept(Formats, p, 0);
 
-	return false;
+	Formats.DeleteArrays();
+
+	return Result != DROPEFFECT_NONE;
 }
 
 void
 GtkOnDragDataReceived(	GtkWidget *w,
 						GdkDragContext *context,
 						int x, int y,
-                        GtkSelectionData *seldata,
+                        GtkSelectionData *data,
                         guint info,
                         guint time,
                         gpointer userdata)
 {
-	GDragDropTarget *ddt = (GDragDropTarget*)userdata;
-	printf("GtkOnDragDataReceived ddt=%p\n", ddt);
+	GDragDropTarget *Target = (GDragDropTarget*)userdata;
+	gchar *Type = gdk_atom_name(gtk_selection_data_get_data_type(data));
+	GdcPt2 p(x, y);
+	gint Len = gtk_selection_data_get_length(data);
+	const guchar *Ptr = gtk_selection_data_get_data(data);
+	if (Ptr && Len > 0)
+	{
+		::GVariant Data;
+		Data.SetBinary(Len, (void*)Ptr);		
+		int Status = Target->OnDrop(Type, &Data, p, 0);
+		int asd=0;
+	}
 }
 
 void

@@ -40,7 +40,7 @@ public:
 				}
 			}
 		}
-		#elif defined LINUX
+		#elif defined __GTK_H__
 		if (v.IsBinary())
 		{
 			GToken Uri(	(char*)v.Value.Binary.Data,
@@ -54,6 +54,10 @@ public:
 
 				// Remove leading 'File:'
 				if (strnicmp(File, "file:", 5) == 0) File += 5;
+				#ifdef WIN32
+				while (*File == '/')
+					File++;
+				#endif
 
 				// Decode URI
 				char *in = File, *out = File;
