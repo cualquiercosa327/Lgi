@@ -17,6 +17,8 @@
 
 #include <errno.h>
 
+#define DEBUG_GET_APPS_FOR_MIMETYPE			0
+
 ////////////////////////////////////////////////////////////////
 // Local helper functions
 bool _lgi_check_file(char *Path)
@@ -193,15 +195,28 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 {
 	bool Status = false;
 
-	#if 1
-
 	char Args[256];
 	sprintf(Args, "query default %s", Mime);
 	GProcess p;
 	GStringPipe Output;
+
+	GLanguage *CurLang = LgiGetLanguageId();	
+	char LangName[64];
+	sprintf_s(LangName, sizeof(LangName), "Name[%s]", CurLang ? CurLang->Id : "en");
+
+	#if DEBUG_GET_APPS_FOR_MIMETYPE
+	printf("LgiGetAppsForMimeType('%s', ..., %i)\nRunning 'xdg-mime %s'\n",
+		Mime, Limit, Args);
+	#endif
+
 	if (p.Run("xdg-mime", Args, 0, true, 0, &Output))
 	{
 		GAutoString o(Output.NewStr());
+
+		#if DEBUG_GET_APPS_FOR_MIMETYPE
+		printf("Output:\n%s\n", o.Get());
+		#endif
+
 		char *e = o + strlen(o);
 		while (e > o && strchr(" \t\r\n", e[-1]))
 			*(--e) = 0;
@@ -212,6 +227,12 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 			if (FileExists(p))
 			{
 				GAutoString txt(ReadTextFile(p));
+				GAutoString Section;
+
+				#if DEBUG_GET_APPS_FOR_MIMETYPE
+				printf("Reading '%s', got %i bytes\n", p, strlen(txt));
+				#endif
+
 				if (txt)
 				{
 					GAppInfo *ai = new GAppInfo;
@@ -221,27 +242,49 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 					for (int i=0; i<t.Length(); i++)
 					{
 						char *Var = t[i];
-						char *Value = strchr(Var, '=');
-						if (Value)
+
+						#if DEBUG_GET_APPS_FOR_MIMETYPE
+						printf("    '%s'\n", Var);
+						#endif
+						
+						if (*Var == '[')
 						{
-							*Value++ = 0;
-							if (stricmp(Var, "Exec"))
+							Var++;
+							char *End = strchr(Var, ']');
+							if (End)
 							{
-								GAutoString exe(TrimStr(Value));
-								char *sp = strchr(exe, ' ');
-								if (sp)
-									ai->Path.Reset(NewStr(exe, sp-exe));
-								else
-									ai->Path = exe;
-								
-								Status = true;
-							}
-							else if (stricmp(Var, "Name"))
+								Section.Reset(NewStr(Var, End - Var));
+							}							
+						}
+						else if (!Section || !stricmp(Section, "Desktop Entry"))
+						{
+							char *Value = strchr(Var, '=');
+							if (Value)
 							{
-								ai->Name.Reset(TrimStr(Value));
+								*Value++ = 0;
+								if (!stricmp(Var, "Exec"))
+								{
+									GAutoString exe(TrimStr(Value));
+									char *sp = strchr(exe, ' ');
+									if (sp)
+										ai->Path.Reset(NewStr(exe, sp-exe));
+									else
+										ai->Path = exe;
+									
+									Status = true;
+								}
+								else if (!stricmp(Var, "Name") ||
+										!stricmp(Var, LangName))
+								{
+									ai->Name.Reset(TrimStr(Value));
+								}
 							}
 						}
 					}
+
+					#if DEBUG_GET_APPS_FOR_MIMETYPE
+					printf("    ai='%s' '%s'\n", ai->Name.Get(), ai->Path.Get());
+					#endif
 				}
 				else LgiTrace("%s:%i - Can't read from '%s'\n", _FL, p);
 			}
@@ -250,32 +293,6 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 		else LgiTrace("%s:%i - Failed to create path.\n", _FL);
 	}
 	else LgiTrace("%s:%i - Failed to execute xdg-mime\n", _FL);
-	
-	#else
-
-	GLibrary *WmLib = LgiApp->GetWindowManagerLib();
-	if (WmLib)
-	{
-		Proc_LgiWmMimeToApps WmMimeToApps = (Proc_LgiWmMimeToApps) WmLib->GetAddress("LgiWmMimeToApps");
-		if (WmMimeToApps)
-		{
-			Status = WmMimeToApps(Mime, Apps, Limit);
-			if (!Status)
-			{
-				printf("%s:%i - WmMimeToApps failed\n", _FL);
-			}
-		}
-		else
-		{
-			printf("%s:%i - Entry point doesn't exist\n", _FL);
-		}
-	}
-	else
-	{
-		printf("%s:%i - GetWindowManagerLib failed\n", _FL);
-	}
-
-	#endif
 
 	return Status;
 }
