@@ -1678,8 +1678,8 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 						Start += 4;
 						defnskipws(s);
 						
-						char16 *t = LexCpp(s, LexStrdup);
-						if (t)
+						GAutoWString t(LexCpp(s, LexStrdup));
+						if (t && isalpha(*t))
 						{
 							DefnInfo *Defn = new DefnInfo(DefnEnum, FileName, t, Line + 1);
 							if (Defn)
@@ -1690,7 +1690,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 					{
 						char16 r = *s;
 						*s = 0;
-						DefnInfo *Defn = new DefnInfo(DefnDefine, FileName, Start, Line + 1);
+						DefnInfo *Defn = new DefnInfo(DefnEnumValue, FileName, Start, Line + 1);
 						*s = r;						
 						if (Defn)
 							Defns.Insert(Defn);

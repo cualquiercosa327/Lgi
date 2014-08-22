@@ -978,7 +978,7 @@ bool GMdiParent::Detach()
 void GMdiParent::OnChildrenChanged(GViewI *Wnd, bool Attaching)
 {
 	#if MDI_TAB_STYLE
-	if (!d->InOnPosChange && Attaching)
+	if (!d->InOnPosChange /*&& Attaching*/)
 	{
 		d->Tabs.ZOff(-1, -1);
 		OnPosChange();

@@ -11,6 +11,7 @@ enum DefnType
 	DefnFunc,
 	DefnClass,
 	DefnEnum,
+	DefnEnumValue,
 	DefnTypedef,
 };
 

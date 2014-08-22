@@ -510,10 +510,15 @@ public:
 
 	void ViewMsg(char *File, int Line, char *Context)
 	{
-		char *Full = 0;
+		GAutoString Full;
+
+		if (!LgiIsRelativePath(File))
+		{
+			Full.Reset(NewStr(File));
+		}
 
 		char *ContextPath = 0;
-		if (Context)
+		if (Context && !Full)
 		{
 			char *Dir = strrchr(Context, DIR_CHAR);
 			for (IdeProject *p=Projects.First(); p && !ContextPath; p=Projects.Next())
@@ -529,7 +534,7 @@ public:
 				LgiMakePath(p, sizeof(p), ContextPath, File);
 				if (FileExists(p))
 				{
-					Full = NewStr(p);
+					Full.Reset(NewStr(p));
 				}
 			}
 			else
@@ -550,7 +555,7 @@ public:
 					LgiMakePath(Path, sizeof(Path), Base, File);
 					if (FileExists(Path))
 					{
-						Full = NewStr(Path);
+						Full.Reset(NewStr(Path));
 						break;
 					}
 				}
@@ -562,14 +567,14 @@ public:
 			char *Dir = dirchar(File, true);
 			for (IdeProject *p=Projects.First(); p && !Full; p=Projects.Next())
 			{
-				Full = p->FindFullPath(Dir?Dir+1:File);
+				Full.Reset(p->FindFullPath(Dir?Dir+1:File));
 			}
 			
 			if (!Full)
 			{
 				if (FileExists(File))
 				{
-					Full = NewStr(File);
+					Full.Reset(NewStr(File));
 				}
 			}
 		}
@@ -577,7 +582,6 @@ public:
 		if (Full)
 		{
 			IdeDoc *Doc = App->GotoReference(Full, Line);			
-			DeleteArray(Full);
 		}
 	}
 	
