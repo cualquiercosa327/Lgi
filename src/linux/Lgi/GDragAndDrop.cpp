@@ -186,7 +186,7 @@ void GDragDropTarget::SetWindow(GView *to)
 	To = to;
 	if (To)
 	{
-		To->DropTargetPtr() = this;
+		To->DropTarget(this);
 		Status = To->DropTarget(true);
 		if (To->Handle())
 		{
