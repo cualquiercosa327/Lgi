@@ -385,7 +385,7 @@ GMenuItem::GMenuItem()
 	Parent = NULL;
 	_Icon = -1;
 	_Id = 0;
-	_Check = false;
+	_Flags = 0;
 }
 
 GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, const char *Str, int Pos, const char *Shortcut)
@@ -398,7 +398,7 @@ GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, const char *Str, int Pos, const char
 	Child = NULL;
 	_Icon = -1;
 	_Id = 0;
-	_Check = false;
+	_Flags = 0;
 	d->Shortcut.Reset(NewStr(Shortcut));
 	Name(Str);
 }
@@ -898,10 +898,13 @@ void GMenuItem::Separator(bool s)
 
 void GMenuItem::Checked(bool c)
 {
-	_Check = c;
+	if (c)
+		SetFlag(_Flags, ODS_CHECKED);
+	else
+		ClearFlag(_Flags, ODS_CHECKED);
 	if (Parent)
 	{
-		CheckMenuItem(Parent->Info, Info, _Check);
+		CheckMenuItem(Parent->Info, Info, c);
 	}
 }
 
@@ -1060,7 +1063,7 @@ bool GMenuItem::Separator()
 
 bool GMenuItem::Checked()
 {
-	return _Check;
+	return TestFlag(_Flags, ODS_CHECKED);
 }
 
 bool GMenuItem::Enabled()

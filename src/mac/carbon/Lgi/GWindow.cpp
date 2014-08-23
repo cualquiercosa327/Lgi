@@ -429,7 +429,7 @@ printf("\tGView=%p\n", gv);
 
 			while (gv)
 			{
-				Target = gv->DropTargetPtr();
+				Target = gv->DropTarget();
 				if (Target)
 				{
 					// See if this target is accepting the data...
