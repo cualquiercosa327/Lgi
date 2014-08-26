@@ -176,15 +176,15 @@ public:
 
 			#else
 			
+			GMouse m;
+			v.GetMouse(m, true);
+
 			if (LockWithTimeout(500, _FL))
 			{
-				GMouse m;
-				v.GetMouse(m, true);
-
 				if (m.Down() && !Old.Down()) 
 				{
 					// Down click....
-					int64 Now = LgiCurrentTime();
+					uint64 Now = LgiCurrentTime();
 					GPopup *Over = 0;
 					GPopup *w;
 					for (w = Popups.First(); w; w = Popups.Next())
@@ -198,11 +198,12 @@ public:
 					
 					for (w = Popups.First(); w; w = Popups.Next())
 					{
-						#if 0
-						LgiTrace("Popup loop %i,%i,%i\n",
-							w != Over,
+						#if 1
+						LgiTrace("PopupLoop: Over=%p w=%p, w->Vis=%i, Time=%i\n",
+							Over,
+							w,
 							w->Visible(),
-							w->Start < Now - 100);
+							(int) (Now - w->Start));
 						#endif
 							
 						if (w != Over &&
@@ -219,29 +220,35 @@ public:
 
 							// Scan the window under the mouse up the parent tree
 							POINT p = { m.x, m.y };
+							bool HasPopupInParents = false;
 							for (HWND hnd = WindowFromPoint(p); hnd; hnd = ::GetParent(hnd))
 							{
 								// Is this a popup?
 								ULONG Style = GetWindowLong(hnd, GWL_STYLE);
-								if (!TestFlag(Style, WS_POPUP))
+								if (TestFlag(Style, WS_POPUP))
 								{
 									// No it's a normal window, so close the popup
-									LgiTrace("Popup: Got a click on a WS_POPUP\n");
-									break;
-								}
-
-								// Are we over a popup?
-								RECT rc;
-								GetWindowRect(hnd, &rc);
-								GRect gr = rc;
-								if (gr.Overlap(m.x, m.y))
-								{
-									// Yes, so don't close it
-									LgiTrace("Popup: Got a click on a GPopup\n");
-									Close = false;
+									HasPopupInParents = true;
 									break;
 								}
 							}
+							
+							Close = !HasPopupInParents;
+							
+							/*
+							// Are we over a popup?
+							RECT rc;
+							GetWindowRect(hnd, &rc);
+							GRect gr = rc;
+							if (gr.Overlap(m.x, m.y))
+							{
+								// Yes, so don't close it
+								LgiTrace("Popup: Got a click on a GPopup\n");
+								Close = false;
+								break;
+							}
+							*/
+
 							#elif defined LINUX
 							/*
 							for (GViewI *v = Over; v; )
@@ -265,136 +272,137 @@ public:
 							*/
 							#endif
 
+							LgiTrace("    Close=%i\n", Close);
 							if (Close)
 							{
-								w->Visible(false);
+								LgiTrace("Sending M_SET_VISIBLE(%i) to %s\n", false, w->GetClass());
+								w->PostEvent(M_SET_VISIBLE, false);
 							}
 						}
 					}
 				}
-
-				if (m.x != Old.x ||
-					m.y != Old.y)
-				{
-					// Mouse moved...
-					OsView hOver = 0;
-
-					#if WINNATIVE
-
-					POINT WinPt = { m.x, m.y };
-					hOver = WindowFromPoint(WinPt);
-
-					RECT WinRect;
-					GetClientRect(hOver, &WinRect);
-					ScreenToClient(hOver, &WinPt);
-					GRect rc = WinRect;
-					GdcPt2 p(WinPt.x, WinPt.y);
-
-					#elif defined __GTK_H__
-					
-					hOver = WindowFromPoint(m.x, m.y);
-					GRect rc;
-					GdcPt2 p(m.x, m.y);
-					if (hOver)
-					{
-						if (!GetWindowRect(hOver, rc))
-						{
-							LgiTrace("No Rect for over\n");
-						}
-						if (!ScreenToClient(hOver, p))
-						{
-							LgiTrace("No conversion for point.\n");
-						}
-					}
-					else
-					{
-						// LgiTrace("No hOver\n");
-					}
-					
-					#elif defined(MAC) || defined(BEOS)
-					
-					// FIXME
-					GdcPt2 p(0, 0);
-					GRect rc(0, 0, -1, -1);
-					// LgiAssert(0);
-					
-					#else
-					#error "Not Impl."
-					#endif
-
-					// is the mouse inside the client area?
-					bool Inside = ! (p.x < 0 ||
-										p.y < 0 ||
-										p.x >= rc.X() ||
-										p.y >= rc.Y());
-					
-					OsView hWnd = (Inside) ? hOver : 0;
-
-					uint32 hProcess = LgiProcessId();
-					uint32 hWndProcess = 0;
-					if (hWnd != hMouseOver)
-					{
-						// Window has changed
-						if (hMouseOver && IsWindow(hMouseOver))
-						{
-							// Window is LOSING mouse
-							// Using 'post' because send can cause a deadlock.
-							hWndProcess = LgiGetViewPid(hMouseOver);
-							if (hWndProcess == hProcess)
-							{
-								PostEvent(hMouseOver, M_MOUSEEXIT, 0, MAKELONG((short) p.x, (short) p.y));
-							}
-						}
-
-						// Set current window
-						hMouseOver = hWnd;
-
-						if (hMouseOver && IsWindow(hMouseOver))
-						{
-							// Window is GETTING mouse
-							// Using 'post' because send can cause a deadlock.
-							hWndProcess = LgiGetViewPid(hMouseOver);
-							if (hWndProcess == hProcess)
-							{
-								PostEvent(hMouseOver, M_MOUSEENTER, Inside, MAKELONG((short) p.x, (short) p.y));
-							}
-						}
-					}
-					else
-					{
-						hWndProcess = LgiGetViewPid(hMouseOver);
-					}
-
-					#if WINNATIVE
-					if (hWndProcess == hProcess)
-					{
-						// This code makes sure that non-LGI windows generate mouse move events
-						// for the mouse hook system...
-
-						// First find the parent LGI window
-						HWND hWnd = hMouseOver;
-						GViewI *v = 0;
-						while (hWnd && !(v = GWindowFromHandle(hMouseOver)))
-						{
-							HWND w = ::GetParent(hWnd);
-							if (w)
-								hWnd = w;
-							else break;
-						}
-
-						// Get the window...
-						GWindow *w = v ? v->GetWindow() : 0;
-
-						// Post the event to the window
-						PostEvent(w ? w->Handle() : hWnd, M_HANDLEMOUSEMOVE, MAKELONG((short) p.x, (short) p.y), (LPARAM)hMouseOver);
-					}
-					#endif
-				}
-
-				Old = m;
 
 				Unlock();
 			}
+
+			if (m.x != Old.x ||
+				m.y != Old.y)
+			{
+				// Mouse moved...
+				OsView hOver = 0;
+
+				#if WINNATIVE
+
+				POINT WinPt = { m.x, m.y };
+				hOver = WindowFromPoint(WinPt);
+
+				RECT WinRect;
+				GetClientRect(hOver, &WinRect);
+				ScreenToClient(hOver, &WinPt);
+				GRect rc = WinRect;
+				GdcPt2 p(WinPt.x, WinPt.y);
+
+				#elif defined __GTK_H__
+				
+				hOver = WindowFromPoint(m.x, m.y);
+				GRect rc;
+				GdcPt2 p(m.x, m.y);
+				if (hOver)
+				{
+					if (!GetWindowRect(hOver, rc))
+					{
+						LgiTrace("No Rect for over\n");
+					}
+					if (!ScreenToClient(hOver, p))
+					{
+						LgiTrace("No conversion for point.\n");
+					}
+				}
+				else
+				{
+					// LgiTrace("No hOver\n");
+				}
+				
+				#elif defined(MAC) || defined(BEOS)
+				
+				// Not implemented.
+				
+				#else
+
+				#error "Not Impl."
+
+				#endif
+
+				// is the mouse inside the client area?
+				bool Inside = ! (p.x < 0 ||
+								p.y < 0 ||
+								p.x >= rc.X() ||
+								p.y >= rc.Y());
+				
+				OsView hWnd = (Inside) ? hOver : 0;
+
+				uint32 hProcess = LgiProcessId();
+				uint32 hWndProcess = 0;
+				if (hWnd != hMouseOver)
+				{
+					// Window has changed
+					if (hMouseOver && IsWindow(hMouseOver))
+					{
+						// Window is LOSING mouse
+						// Using 'post' because send can cause a deadlock.
+						hWndProcess = LgiGetViewPid(hMouseOver);
+						if (hWndProcess == hProcess)
+						{
+							PostEvent(hMouseOver, M_MOUSEEXIT, 0, MAKELONG((short) p.x, (short) p.y));
+						}
+					}
+
+					// Set current window
+					hMouseOver = hWnd;
+
+					if (hMouseOver && IsWindow(hMouseOver))
+					{
+						// Window is GETTING mouse
+						// Using 'post' because send can cause a deadlock.
+						hWndProcess = LgiGetViewPid(hMouseOver);
+						if (hWndProcess == hProcess)
+						{
+							PostEvent(hMouseOver, M_MOUSEENTER, Inside, MAKELONG((short) p.x, (short) p.y));
+						}
+					}
+				}
+				else
+				{
+					hWndProcess = LgiGetViewPid(hMouseOver);
+				}
+
+				#if WINNATIVE
+				if (hWndProcess == hProcess)
+				{
+					// This code makes sure that non-LGI windows generate mouse move events
+					// for the mouse hook system...
+
+					// First find the parent LGI window
+					HWND hWnd = hMouseOver;
+					GViewI *v = 0;
+					while (hWnd && !(v = GWindowFromHandle(hMouseOver)))
+					{
+						HWND w = ::GetParent(hWnd);
+						if (w)
+							hWnd = w;
+						else break;
+					}
+
+					// Get the window...
+					GWindow *w = v ? v->GetWindow() : 0;
+
+					// Post the event to the window
+					PostEvent(w ? w->Handle() : hWnd, M_HANDLEMOUSEMOVE, MAKELONG((short) p.x, (short) p.y), (LPARAM)hMouseOver);
+				}
+				#endif
+			}
+
+			Old = m;
 
 			LgiSleep(40);
 			#endif
@@ -553,6 +561,25 @@ GPopup::~GPopup()
 
 	Children.DeleteObjects();
 	DeleteObj(d);
+}
+
+GMessage::Param GPopup::OnEvent(GMessage *Msg)
+{
+	switch (MsgCode(Msg))
+	{
+		case WM_DESTROY:
+		{
+			LgiTrace("Popup Destroyed.\n");
+			break;
+		}
+		case M_SET_VISIBLE:
+		{
+			Visible(Msg->a);
+			break;
+		}
+	}
+	
+	return GView::OnEvent(Msg);
 }
 
 void GPopup::TakeFocus(bool Take)
@@ -777,7 +804,10 @@ bool GPopup::Attach(GViewI *p)
 
 void GPopup::Visible(bool i)
 {
+	bool HadFocus = false;
 	bool Was = GView::Visible();
+
+	// LgiStackTrace("GPopup::Visible(%i)\n", i);
 
 	#if defined __GTK_H__
 	if (i && !Wnd)
@@ -803,20 +833,38 @@ void GPopup::Visible(bool i)
 	#else
 	if (!Handle() && i)
 	{
-		#ifdef WIN32
+		#if WINNATIVE
 		SetStyle(WS_POPUP);
 		#endif
 		GView::Attach(0);
 	}
+
+	if (!_Window && Owner)
+	{
+		_Window = Owner->GetWindow();
+	}
 	
 	AttachChildren();
-	
+
 	#ifdef WIN32
-	if (d->TakeFocus)
+	// See if we or a child window has the focus...
+	for (HWND hWnd = GetFocus(); hWnd; hWnd = ::GetParent(hWnd))
+	{
+		if (hWnd == Handle())
+		{
+			HadFocus = true;
+			break;
+		}
+	}
+	
+	LgiTrace("%s HasFocus=%i\n", GetClass(), HadFocus);
+	
+	if (d->TakeFocus || !i)
 		GView::Visible(i);
 	else
-		ShowWindow(Handle(), SW_SHOWNOACTIVATE);
+		ShowWindow(Handle(), SW_SHOWNA);
 	#else
+	HadFocus = Focus();
 	GView::Visible(i);
 	#endif
 	#endif
@@ -848,13 +896,18 @@ void GPopup::Visible(bool i)
 
 		SendNotify(POPUP_HIDE);
 
+		/*
 		#if WINNATIVE
 		// This is required to re-focus the owner.
 		// If the popup or a child window gets focus at some point. The
 		// owner doesn't get focus when we close... weird I know.
-		if (Owner)
+		if (Owner && HadFocus)
+		{
+			LgiTrace("%s Setting owner focus %s\n", GetClass(), Owner->GetClass());
 			Owner->Focus(true);
+		}
 		#endif
+		*/
 	}
 	#endif
 }

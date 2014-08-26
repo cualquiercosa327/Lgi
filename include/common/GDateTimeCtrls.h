@@ -16,6 +16,8 @@ public:
 	GTimePopup(GView *owner);
 	~GTimePopup();
 
+	const char *GetClass() { return "GTimePopup"; }
+
 	void SetTime(GDateTime *t);
 	GAutoString GetTime();
 
@@ -63,6 +65,8 @@ class GDatePopup : public GPopup
 public:
 	GDatePopup(GView *owner);
 	~GDatePopup();
+
+	const char *GetClass() { return "GDatePopup"; }
 
 	GDateTime Get();
 	void Set(GDateTime &Ts);

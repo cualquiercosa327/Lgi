@@ -235,6 +235,7 @@ LRESULT CALLBACK GWin32Class::Redir(HWND hWnd, UINT m, WPARAM a, LPARAM b)
 	if (Wnd)
 	{
 		GMessage Msg(m, a, b);
+		Msg.hWnd = hWnd;
 		return Wnd->OnEvent(&Msg);
 	}
 
@@ -284,6 +285,7 @@ LRESULT CALLBACK GWin32Class::SubClassRedir(HWND hWnd, UINT m, WPARAM a, LPARAM 
 	if (Wnd)
 	{
 		GMessage Msg(m, a, b);
+		Msg.hWnd = hWnd;
 		GMessage::Result Status = Wnd->OnEvent(&Msg);
 		return Status;
 	}
@@ -679,7 +681,8 @@ bool GView::Attach(GViewI *p)
 
 	SetParent(p);
 	GView *Parent = d->GetParent();
-	_Window = Parent ? Parent->_Window : this;
+	if (Parent && !_Window)
+		_Window = Parent->_Window;
 
     const char *ClsName = GetClassW32();
     if (!ClsName)
@@ -1749,7 +1752,8 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				}
 				else
 				{
-					LgiAssert(!"Should this ever actually happen?");				
+					// This can happen in popup sub-trees of views. Where the focus
+					// is tracked separately from the main GWindow.
 					OnFocus(true);
 					Invalidate((GRect*)NULL, false, true);
 				}
@@ -2093,82 +2097,6 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				int KeyFlags = _lgi_get_key_flags();
 				HWND hwnd = _View;
 
-				#if !OLD_WM_CHAR_MODE
-				if (Msg->a == VK_MENU)
-				{
-					int Code = (Msg->b & 0xc0000000) >> 29;
-					if (Code != 2)
-					{
-						if (Code)
-						{
-							// Up
-							int Code = atoi(AltCode);
-							if (Code)
-							{
-								char *Cs;
-								if (AltCode[0] == '0')
-									Cs = "windows-1252";
-								else
-									Cs = "us-ascii";
-								
-								char16 u = 0;
-								if (Code < 256)
-								{
-									uchar c = Code;
-									int Len = 1;
-									uchar *Ch = &c;
-									LgiBufConvertCp(&u, LGI_WideCharset, sizeof(u), (void*&)Ch, Cs, Len);
-								}
-								else u = Code;
-
-								if (u)
-								{
-									GKey Key(0, 0);
-									Key.c16 = u;
-									Key.Flags = KeyFlags;
-									Key.Data = Msg->b;
-									Key.Down(true);
-									Key.IsChar = true;
-
-									GWindow *Wnd = GetWindow();
-									if (Wnd)
-									{
-										Wnd->HandleViewKey(this, Key);
-									}
-									else
-									{
-										OnKey(Key);
-									}
-								}
-							}
-						}
-						else
-						{
-							// Down
-							AltCode[0] = 0;
-						}
-					}
-				}
-				else if (IsDown && (KeyFlags & LGI_EF_ALT) != 0)
-				{
-					int Num = -1;
-					if (Msg->a >= VK_NUMPAD0 && Msg->a <= VK_NUMPAD9)
-						Num = Msg->a - VK_NUMPAD0;
-					else if (Msg->a >= '0' && Msg->a <= '9')
-						Num = Msg->a - '0';
-
-					if (Num >= 0)
-					{
-						int e = strlen(AltCode);
-						if (e < sizeof(AltCode) - 1)
-						{
-							AltCode[e++] = Num + '0';
-							AltCode[e] = 0;
-						}
-					}
-				}
-				#endif
-
 				if (SysOnKey(this, Msg))
 				{
 					// LgiTrace("SysOnKey true, Msg=0x%x\n", Msg->Msg);
@@ -2190,10 +2118,15 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 					}
 
 					#if 0
-					LgiTrace("KEYDOWN 0x%x(%c) v=0x%x cas=%i:%i:%i\\n",
-						Key.c16, Key.c16>=' '?Key.c16:'.',
-						Msg->a,
-						Key.Ctrl(), Key.Alt(), Key.Shift());
+					for (HWND hWnd = Msg->hWnd; hWnd; hWnd = ::GetParent(hWnd))
+						LgiTrace("%p < ", hWnd);
+					LgiTrace("\n");
+					
+					for (GViewI *v = this; v; v = v->GetParent())
+						LgiTrace("%p,%s,%i < ", v->Handle(), v->GetClass(), IsWindowVisible(v->Handle()));
+					LgiTrace("\n");
+
+					Key.Trace("WM_KEY");
 					#endif
 
 					if (Key.c16 == VK_TAB && ConsumeTabKey)
@@ -2217,30 +2150,6 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 							OnKey(Key);
 						}
 					}
-
-					#if !OLD_WM_CHAR_MODE
-					// Keydown -> Char, because TranslateMessage is broken
-					if (Key.c16 &&
-						(Key.IsChar = IsKeyChar(Key, Msg->a)) != 0)
-					{
-						#if 0
-						LgiTrace("CHAR 0x%x(%c) v=0x%x cas=%i:%i:%i\\n",
-							Key.c16, Key.c16>=' '?Key.c16:'.',
-							Msg->a,
-							Key.Ctrl(), Key.Alt(), Key.Shift());
-						#endif
-
-						GWindow *Wnd = GetWindow();
-						if (Wnd)
-						{
-							Wnd->HandleViewKey(this, Key);
-						}
-						else
-						{
-							OnKey(Key);
-						}
-					}
-					#endif
 				}
 
 				if (!IsDialog)

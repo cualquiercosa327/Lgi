@@ -13,6 +13,7 @@
 #define DEBUG_HANDLE_VIEW_KEY				0
 #define DEBUG_HANDLE_VIEW_MOUSE				0
 #define DEBUG_SERIALIZE_STATE				0
+#define DEBUG_SETFOCUS						0
 
 extern bool In_SetWindowPos;
 
@@ -75,6 +76,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////
 GWindow::GWindow() : GView(0)
 {
+	_Window = this;
 	d = new GWindowPrivate;
 	Menu = 0;
 	_Dialog = NULL;
@@ -91,7 +93,6 @@ GWindow::GWindow() : GView(0)
 	Visible(false);
 
 	_Default = 0;
-	_Window = this;
 	_Lock = new GMutex("GWindow");
 	_QuitOnClose = false;
 }
@@ -118,8 +119,6 @@ GViewI *GWindow::GetFocus()
 	return d->Focus;
 }
 
-#define DEBUG_SETFOCUS 0
-
 static GAutoString DescribeView(GViewI *v)
 {
 	if (!v)
@@ -138,6 +137,16 @@ static GAutoString DescribeView(GViewI *v)
 		ch += sprintf_s(s + ch, sizeof(s) - ch, ">%s", v->GetClass());
 	}
 	return GAutoString(NewStr(s));
+}
+
+static bool HasParentPopup(GViewI *v)
+{
+	for (; v; v = v->GetParent())
+	{
+		if (dynamic_cast<GPopup*>(v))
+			return true;
+	}
+	return false;
 }
 
 void GWindow::SetFocus(GViewI *ctrl, FocusType type)
@@ -160,8 +169,9 @@ void GWindow::SetFocus(GViewI *ctrl, FocusType type)
 				// The main GWindow is getting focus.
 				// Check if we can re-focus the previous child focus...
 				GView *v = d->Focus->GetGView();
-				if (v)
+				if (v && !HasParentPopup(v))
 				{
+					// We should never return focus to a popup, or it's child.
 					if (!(v->WndFlags & GWF_FOCUS))
 					{
 						// Yes, the child view doesn't think it has focus...

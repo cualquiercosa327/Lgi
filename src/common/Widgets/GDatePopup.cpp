@@ -5,6 +5,7 @@
 
 GDatePopup::GDatePopup(GView *owner) : GPopup(owner)
 {
+	SetNotify(owner);
 	SetParent(owner);
 	Owner = owner;
 	
@@ -153,10 +154,13 @@ void GDatePopup::OnMouseClick(GMouse &m)
 	{
 		if (Date.Overlap(m.x, m.y))
 		{
-			if (Owner)
+			GViewI *n = GetNotify() ? GetNotify() : GetParent();
+			if (n)
 			{
-				Owner->SendNotify(M_CHANGE);
-				// Popup->SetDate(Mv.Date(true));
+				char s[64];
+				Mv.Get().GetDate(s, sizeof(s));
+				n->Name(s);
+				n->SendNotify(M_CHANGE);
 			}
 			Visible(false);
 			return;

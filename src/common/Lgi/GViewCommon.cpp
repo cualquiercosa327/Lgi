@@ -170,6 +170,7 @@ GWindow *GView::GetWindow()
 {
 	if (!_Window)
 	{
+		// Walk up parent list and find someone who has a window
 		for (GView *w = d->GetParent(); w; w = w->d ? w->d->GetParent() : NULL)
 		{
 			if (w->_Window)

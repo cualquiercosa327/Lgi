@@ -66,6 +66,7 @@ typedef int (__stdcall *p_vscprintf)(const char *format, va_list argptr);
 class LgiClass GMessage
 {
 public:
+	HWND hWnd;
 	int Msg;
 	WPARAM a;
 	LPARAM b;
@@ -75,6 +76,7 @@ public:
 
 	GMessage()
 	{
+		hWnd = 0;
 		Msg = 0;
 		a = 0;
 		b = 0;
@@ -82,6 +84,7 @@ public:
 
 	GMessage(int M, WPARAM A = 0, LPARAM B = 0)
 	{
+		hWnd = 0;
 		Msg = M;
 		a = A;
 		b = B;
@@ -256,6 +259,9 @@ typedef SOCKET						OsSocket;
 
 	// Log message back to GUI thread
 	#define M_LOG_TEXT					(M_USER+0x100c)
+	
+	// Set the visibility of the window
+	#define M_SET_VISIBLE				(M_USER+0x100d)
 
 	/// GThreadWork object completed
 	///

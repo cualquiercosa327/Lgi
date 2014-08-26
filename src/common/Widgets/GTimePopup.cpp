@@ -235,9 +235,13 @@ int GTimePopup::OnNotify(GViewI *c, int f)
 				char *t = Sel->GetText(0);
 				if (t)
 				{
-					Name(t);
-					SendNotify(M_CHANGE);
-					Visible(false);
+					GViewI *n = GetNotify();
+					if (n)
+					{
+						n->Name(t);
+						n->SendNotify(M_CHANGE);
+						Visible(false);
+					}
 				}
 			}
 		}
