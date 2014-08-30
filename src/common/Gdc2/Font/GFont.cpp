@@ -1441,9 +1441,6 @@ bool GFontType::Serialize(GDom *Options, const char *OptName, bool Write)
 		{
 			char Temp[128];
 			sprintf_s(Temp, sizeof(Temp), "%s,%i pt", Info.Face(), Info.PointSize());
-			
-			printf("FontTypeSer setting '%s' = '%s'\n", OptName, Temp);
-			
 			Status = Options->SetValue(OptName, v = Temp);
 		}
 		else

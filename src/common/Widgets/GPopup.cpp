@@ -567,6 +567,7 @@ GMessage::Param GPopup::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{
+		#if WINNATIVE
 		case WM_DESTROY:
 		{
 			LgiTrace("Popup Destroyed.\n");
@@ -577,6 +578,7 @@ GMessage::Param GPopup::OnEvent(GMessage *Msg)
 			Visible(Msg->a);
 			break;
 		}
+		#endif
 	}
 	
 	return GView::OnEvent(Msg);
