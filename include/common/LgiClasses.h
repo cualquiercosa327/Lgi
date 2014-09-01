@@ -792,13 +792,6 @@ public:
     /// Sets the CSS foreground or background colour
 	bool SetColour(GColour &c, bool Fore);
 
-	/// Moves a top level window on screen.
-	void MoveOnScreen();
-	/// Moves a top level to the center of the screen
-	void MoveToCenter();
-	/// Moves a top level window to where the mouse is
-	void MoveToMouse();
-
 	/// The class' name. Should be overriden in child classes to return the
 	/// right class name. Mostly used for debugging, but in the win32 port it
 	/// is also the default WIN32 class name passed to RegisterClass() in 
@@ -1302,17 +1295,14 @@ public:
 	/// Raises the window to the top of the stack.
 	void Raise();
 
-	void OnPosChange();
-	GMessage::Result OnEvent(GMessage *Msg);
-	void OnPaint(GSurface *pDC);
-	bool HandleViewMouse(GView *v, GMouse &m);
-	bool HandleViewKey(GView *v, GKey &k);
-	bool OnRequestClose(bool OsShuttingDown);
-	bool Obscured();
-	bool Visible();
-	void Visible(bool i);
-	bool IsActive();
-	GRect &GetPos();
+	/// Moves a top level window on screen.
+	void MoveOnScreen();
+	/// Moves a top level to the center of the screen
+	void MoveToCenter();
+	/// Moves a top level window to where the mouse is
+	void MoveToMouse();
+	/// Moves the window to somewhere on the same screen as 'wnd'
+	bool MoveSameScreen(GViewI *wnd);
 
 	// Focus setting
 	GViewI *GetFocus();
@@ -1338,6 +1328,24 @@ public:
 
 	/// Unregisters a hook target
 	bool UnregisterHook(GView *Target);
+
+	/// Gets the default view
+	GViewI *GetDefault();
+	/// Sets the default view
+	void SetDefault(GViewI *v);
+
+	/// Saves/loads the window's state, e.g. position, minimized/maximized etc
+	bool SerializeState
+	(
+		/// The data store for reading/writing
+		GDom *Store,
+		/// The field name to use for storing settings under
+		const char *FieldName,
+		/// TRUE if loading the settings into the window, FALSE if saving to the store.
+		bool Load
+	);
+
+	////////////////////// Events ///////////////////////////////
 	
 	/// Called when the window zoom state changes.
 	virtual void OnZoom(GWindowZoom Action) {}
@@ -1355,6 +1363,19 @@ public:
 	
 	/// Called when a URL is sent to the window
 	virtual void OnUrl(const char *Url) {};
+
+	///////////////// Implementation ////////////////////////////
+	void OnPosChange();
+	GMessage::Result OnEvent(GMessage *Msg);
+	void OnPaint(GSurface *pDC);
+	bool HandleViewMouse(GView *v, GMouse &m);
+	bool HandleViewKey(GView *v, GKey &k);
+	bool OnRequestClose(bool OsShuttingDown);
+	bool Obscured();
+	bool Visible();
+	void Visible(bool i);
+	bool IsActive();
+	GRect &GetPos();
 
 	#if !WINNATIVE
 	
@@ -1394,22 +1415,6 @@ public:
 	void OnMap(bool m);
 	
 	#endif
-
-	/// Gets the default view
-	GViewI *GetDefault();
-	/// Sets the default view
-	void SetDefault(GViewI *v);
-
-	/// Saves/loads the window's state, e.g. position, minimized/maximized etc
-	bool SerializeState
-	(
-		/// The data store for reading/writing
-		GDom *Store,
-		/// The field name to use for storing settings under
-		const char *FieldName,
-		/// TRUE if loading the settings into the window, FALSE if saving to the store.
-		bool Load
-	);
 };
 
 ////////////////////////////////////////////////////////////////////////////

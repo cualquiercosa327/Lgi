@@ -245,6 +245,8 @@ public:
 			return LoadError;
 
 		char *Uri = History[CurHistory];
+		GUri BaseUri(Uri);
+		
 		GUri u(j->Uri);
 		char *LoadFileName = 0;
 		if (u.Protocol)
@@ -256,7 +258,7 @@ public:
 		if (LoadFileName)
 		{
 			char p[MAX_PATH];
-			LgiMakePath(p, sizeof(p), Uri, "..");
+			LgiMakePath(p, sizeof(p), BaseUri.Path ? BaseUri.Path : Uri, "..");
 			LgiMakePath(p, sizeof(p), p, LoadFileName);
 			if (FileExists(p))
 			{
@@ -389,7 +391,7 @@ int GBrowserThread::Main()
 	return false;
 }
 
-GBrowser::GBrowser(const char *Title, char *Uri)
+GBrowser::GBrowser(GViewI *owner, const char *Title, char *Uri)
 {
 	d = new GBrowserPriv(this);
 	d->Back = 0;
@@ -401,9 +403,9 @@ GBrowser::GBrowser(const char *Title, char *Uri)
 	d->Stop = 0;
 	Name(Title?Title:(char*)"Browser");
 
-	GRect r(0, 0, 800, 600);
+	GRect r(0, 0, 1000, 800);
 	SetPos(r);
-	MoveToCenter();
+	MoveSameScreen(owner);
 
 	if (Attach(0))
 	{

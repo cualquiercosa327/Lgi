@@ -512,6 +512,15 @@ void LgiTrace(const char *Msg, ...)
 					}
 					else goto OnError;
 				}
+				
+				#if 0
+				GFile tmp;
+				if (tmp.Open("c:\\temp\\log.txt", O_WRITE))
+				{
+					tmp.SetSize(0);
+					tmp.Write(LogPath, strlen(LogPath));
+				}
+				#endif
 			}
 			else
 			{

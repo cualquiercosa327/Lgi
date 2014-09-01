@@ -458,9 +458,6 @@ public:
 	virtual bool GetMouse(GMouse &m, bool ScreenCoords = false) = 0;
 
 	// Helper
-	virtual void MoveOnScreen() = 0;
-	virtual void MoveToCenter() = 0;
-	virtual void MoveToMouse() = 0;
 	virtual GViewI *FindControl(OsView hnd) = 0;
 	virtual GViewI *FindControl(int Id) = 0;
 	virtual int64 GetCtrlValue(int Id) = 0;
