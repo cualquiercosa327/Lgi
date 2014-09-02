@@ -154,7 +154,9 @@ struct GBgrx32 {
 	uint8 b, g, r, pad;
 };
 
+#ifdef WIN32
 #pragma pack(push, 2)
+#endif
 struct GRgb48 {
 	uint16 r, g, b;
 };
@@ -178,7 +180,9 @@ struct GArgb64 {
 struct GAbgr64 {
 	uint16 a, b, g, r;
 };
+#ifdef WIN32
 #pragma pack(pop)
+#endif
 
 struct GHls32 {
 	uint16 h;
@@ -203,6 +207,10 @@ union GColourSpaceBits
 		uint32 Type1 : 4;
 	} Bits;
 };
+
+#ifdef WIN32
+#pragma pack(pop)
+#endif
 
 /// Converts a colour space into a string for debugging/reporting.
 LgiFunc const char *GColourSpaceToString(GColourSpace cs);
