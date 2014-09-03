@@ -949,10 +949,11 @@ public:
 				case ICallScript:
 				{
 					int32 FuncAddr = *c.i32++;
-					if (FuncAddr < 0)
+					if (FuncAddr < 0 || (uint32)FuncAddr >= Code->ByteCode.Length())
 					{
-						Log->Print(	"%s ICallScript error: Script function call invalid addr.\n",
-									Code->AddrToSourceRef(CurrentScriptAddress - sizeof(FuncAddr)));
+						Log->Print(	"%s ICallScript error: Script function call invalid addr '%p'.\n",
+									Code->AddrToSourceRef(CurrentScriptAddress - sizeof(FuncAddr)),
+									FuncAddr);
 						SetScriptError;
 						break;
 					}
