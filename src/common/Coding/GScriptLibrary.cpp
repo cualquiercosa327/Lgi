@@ -136,6 +136,10 @@ SystemFunctions::SystemFunctions()
 {
 	Engine = NULL;
 	Log = NULL;
+
+	#ifdef WINNATIVE
+	Brk = NULL;
+	#endif
 }
 
 SystemFunctions::~SystemFunctions()

@@ -381,9 +381,6 @@ public:
 
 	bool OnError(int Tok, const char *Msg, ...)
 	{
-		if (!Log)
-			return false;
-
 		char Buf[512];
 		va_list Arg;
 		va_start(Arg, Msg);
@@ -394,7 +391,7 @@ public:
 		Log->Print("CompileError:%s - %s\n", Lines[Tok], Buf);
 		va_end(Arg);
 
-		return true;
+		return false;
 	}
 
 	void DebugInfo(int Tok)
@@ -2616,7 +2613,10 @@ public:
 											f.Args,
 											f.Func->Params.Length());
 			}
-			else return OnError(f.Tok, "Function '%s' not defined.", f.Func->Name.Str());
+			else
+			{
+				return OnError(f.Tok, "Function '%s' not defined.", f.Func->Name.Str());
+			}
 		}
 		Fixups.Length(0);
 
