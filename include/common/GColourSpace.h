@@ -209,7 +209,7 @@ union GColourSpaceBits
 };
 
 #ifdef WIN32
-#pragma pack(pop)
+#pragma pack(pop, before_pack)
 #endif
 
 /// Converts a colour space into a string for debugging/reporting.

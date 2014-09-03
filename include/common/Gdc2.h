@@ -171,10 +171,6 @@
 // Look up tables
 #define Div255Lut					(GdcDevice::GetInst()->GetDiv255())
 
-#ifdef WIN32
-#pragma pack(pop, before_pack)
-#endif
-
 //				Classes
 class GFilter;
 class GSurface;
