@@ -120,14 +120,29 @@ bool GWindow::SetIcon(const char *FileName)
 			if (a.Reset(LgiFindFile(FileName)))
 				FileName = a;
 		}
-		
-		GError *error = NULL;
-		Gtk::GdkPixbuf *pixbuf = Gtk::gdk_pixbuf_new_from_file(FileName, &error);
-		if (pixbuf)
+
+		if (!FileExists(FileName))
 		{
-			Gtk::gtk_window_set_icon(Wnd, pixbuf);
+			LgiTrace("%s:%i - SetIcon failed to find '%s'\n", _FL);
+			return false;
 		}
-		else LgiTrace("%s:%i - gdk_pixbuf_new_from_file(%s) failed.\n", _FL, FileName);
+		else
+		{		
+			GError *error = NULL;
+			Gtk::GdkPixbuf *pixbuf = Gtk::gdk_pixbuf_new_from_file(FileName, &error);
+			if (pixbuf)
+			{
+				printf("Calling gtk_window_set_icon with '%s' (%ix%i, %ich, %ibytes/line)\n",
+					FileName,
+					gdk_pixbuf_get_width(pixbuf),
+					gdk_pixbuf_get_height(pixbuf),
+					gdk_pixbuf_get_n_channels(pixbuf),
+					gdk_pixbuf_get_rowstride(pixbuf));
+					
+				Gtk::gtk_window_set_icon(Wnd, pixbuf);
+			}
+			else LgiTrace("%s:%i - gdk_pixbuf_new_from_file(%s) failed.\n", _FL, FileName);
+		}
 	}
 	
 	if (FileName != d->Icon)
@@ -326,6 +341,13 @@ bool GWindow::Attach(GViewI *p)
 		
 		OnCreate();
 		Pour();
+
+		// Add icon
+		if (d->Icon)
+		{
+			SetIcon(d->Icon);
+			d->Icon.Reset();
+		}
 		
 		// Setup default button...
 		if (!_Default)
@@ -813,11 +835,6 @@ void GWindow::OnChildrenChanged(GViewI *Wnd, bool Attaching)
 
 void GWindow::OnCreate()
 {
-	if (d->Icon)
-	{
-		SetIcon(d->Icon);
-		d->Icon.Reset();
-	}
 }
 
 void GWindow::_Paint(GSurface *pDC, int Ox, int Oy)
@@ -1274,3 +1291,24 @@ void GWindow::OnTrayClick(GMouse &m)
 		}
 	}
 }
+
+bool GWindow::MoveSameScreen(GViewI *wnd)
+{
+	if (!wnd)
+	{
+		LgiAssert(0);
+		return false;
+	}
+	
+	GRect p = wnd->GetPos();
+	int cx = p.x1 + (p.X() >> 2);
+	int cy = p.y1 + (p.Y() >> 2);
+	
+	GRect np = GetPos();
+	np.Offset(cx - np.x1, cy - np.y1);
+	SetPos(np);
+	
+	MoveOnScreen();
+	return true;
+}
+
