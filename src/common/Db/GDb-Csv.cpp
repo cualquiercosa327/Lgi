@@ -13,6 +13,7 @@
 #include "Lgi.h"
 #include "GDb.h"
 #include "GToken.h"
+#include "GTextFile.h"
 
 ///////////////////////////////////////////////////////////////////
 // Forward decl
@@ -196,7 +197,7 @@ public:
 		if (r) *this = *r;
 	}
 
-	SvRecord(SvRecordset *rs, char *&In)
+	SvRecord(SvRecordset *rs, char16 *In)
 	{
 		Rs = rs;
 		RawLen = 0;
@@ -204,8 +205,8 @@ public:
 		Data = 0;
 
 		int Flds = 1;
-		char *Start = In;
-		char Sep = Rs->GetSep();
+		char16 *Start = In;
+		char16 Sep = Rs->GetSep();
 		for (RawLen=0; In[RawLen]; )
 		{
 			if (In[RawLen] == Sep)
@@ -233,7 +234,7 @@ public:
 		{
 			In += RawLen;
 			while (*In == '\r' || *In == '\n') In++;
-			Raw.Reset(NewStr(Start, RawLen));
+			Raw.Reset(LgiNewUtf16To8(Start, RawLen));
 
 			if (Raw && SetFields(Flds))
 			{
@@ -442,119 +443,17 @@ void SvRecordset::Empty()
 	R.DeleteObjects();
 }
 
-enum EncodingType
-{
-	Unknown,
-	Utf8,
-	Utf16BE,
-	Utf16LE,
-	Utf32BE,
-	Utf32LE,
-};
-
 void SvRecordset::Read()
 {
 	Empty();
 
-	GFile f;
+	GTextFile f;
 	if (f.Open(FileName, O_READ|O_SHARE))
 	{
-		EncodingType Type = Unknown;
-		
-		int MaxBufSize = 5 << 20;
-		GArray<char> Buffer;
-		Buffer.Length(min((int32) f.GetSize(), MaxBufSize));
-		char *Buf = &Buffer[0];
-
-		int Used = f.Read(Buf, Buffer.Length());
-		char *Cur = Buf;
-		char *End = Buf + Used;
-
-		if (Used > 2 &&
-			Cur[0] == 0xEF &&
-			Cur[1] == 0xBB &&
-			Cur[2] == 0xBF)
+		GArray<char16> Line;
+		while (f.GetLine(Line))
 		{
-			Type = Utf8;
-			Cur += 3;
-		}
-		else if (Used > 1 &&
-				 Cur[0] == 0xFE &&
-				 Cur[1] == 0xFF)
-		{
-			Type = Utf16BE;
-			Cur += 2;
-		}
-		else if (Used > 1 &&
-				 Cur[0] == 0xFF &&
-				 Cur[1] == 0xFE)
-		{
-			Type = Utf16LE;
-			Cur += 2;
-		}
-		else if (Used > 3 &&
-				 Cur[0] == 0x00 &&
-				 Cur[1] == 0x00 &&
-				 Cur[2] == 0xFE &&
-				 Cur[3] == 0xFF)
-		{
-			Type = Utf32BE;
-			Cur += 4;
-		}
-		else if (Used > 3 &&
-				 Cur[0] == 0xFF &&
-				 Cur[1] == 0xFE &&
-				 Cur[2] == 0x00 &&
-				 Cur[3] == 0x00)
-		{
-			Type = Utf32LE;
-			Cur += 4;
-		}
-
-		while (Used > 0)
-		{
-			// Find end of line...
-			char *Eol = Cur; 
-			while (Eol < End && *Eol != '\n')
-				Eol++;
-			
-			int LineLen = Eol - Cur;
-			LgiTrace("Pos=%i, Len=%i\n", Cur - Buf, LineLen);
-			
-			if (Eol >= End)
-			{
-				// Is there any more data to read??
-				
-				// Move the existing partial line to the start of the memory buffer...
-				Used = Eol - Cur;
-				memmove(Buf, Cur, Used);
-				Cur = Buf;
-				
-				// Read in more data to try and fill the buffer
-				int Remaining = Buffer.Length() - Used;
-				LgiAssert(Remaining > 0);
-				int64 FilePos = f.GetPos();
-				int64 FileSize = f.GetSize();
-				int r = f.Read(Buf + Used, Remaining);
-				if (r <= 0)
-				{
-					LgiAssert(FilePos == FileSize);
-					break; // End of file
-				}
-				
-				Used += r;
-				End = Buf + Used;
-
-				// Find end of line again
-				char *Eol = Cur;
-				while (Eol < End && *Eol != '\n')
-					Eol++;
-				
-				if (Eol >= End)
-					break;
-			}
-
-			SvRecord *r = new SvRecord(this, Cur);
+			SvRecord *r = new SvRecord(this, &Line[0]);
 			if (!Cur)
 			{
 				break;
@@ -592,22 +491,6 @@ void SvRecordset::Read()
 			{
 				R.Insert(r);
 			}
-
-			/*
-
-					First = false;
-				}
-				else
-				{
-					char *t = Buf;
-					R.Insert(new SvRecord(this, t));
-					if (!t)
-					{
-						break;
-					}
-				}
-			}
-			*/
 		}
 	}
 }
