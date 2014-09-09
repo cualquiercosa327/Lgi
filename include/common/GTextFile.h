@@ -1,6 +1,8 @@
 #ifndef _TEXT_FILE_H_
 #define _TEXT_FILE_H_
 
+#include "GUtf8.h"
+
 class GTextFile : public GFile
 {
 public:
@@ -15,15 +17,16 @@ public:
 	};
 
 protected:
-	int Used, BytePos;
+	int Used;
+	GPointer Pos;
 	EncodingType Type;
-	GArray<char> Buf;
+	GArray<uint8> Buf;
 
 public:
 	GTextFile()
 	{
 		Used = 0;
-		BytePos = 0;
+		Pos.u8 = NULL;
 		Type = Unknown;
 	}
 	
@@ -32,55 +35,55 @@ public:
 		return Type;
 	}
 
-	template<typename T>
-	int GetLine(GArray<T> &Out)
+	bool FillBuffer()
 	{
 		if (!Buf.Length())
 		{
 			Buf.Length(4 << 10);
 			
 			Used = Read(&Buf[0], Buf.Length());
-			char *Cur = &Buf[0];
-			char *End = Cur + Used;
+			if (Used <= 0)
+				return false;
 
-			if (Used > 2 && Cur[0] == 0xEF && Cur[1] == 0xBB && Cur[2] == 0xBF)
+			Pos.u8 = &Buf[0];
+			uint8 *End = Pos.u8 + Used;
+
+			if (Used > 2 && Pos.u8[0] == 0xEF && Pos.u8[1] == 0xBB && Pos.u8[2] == 0xBF)
 			{
 				Type = Utf8;
-				BytePos += 3;
+				Pos.u8 += 3;
 			}
-			else if (Used > 1 && Cur[0] == 0xFE && Cur[1] == 0xFF)
+			else if (Used > 1 && Pos.u8[0] == 0xFE && Pos.u8[1] == 0xFF)
 			{
 				Type = Utf16BE;
-				BytePos += 2;
+				Pos.u8 += 2;
 			}
-			else if (Used > 1 && Cur[0] == 0xFF && Cur[1] == 0xFE)
+			else if (Used > 1 && Pos.u8[0] == 0xFF && Pos.u8[1] == 0xFE)
 			{
 				Type = Utf16LE;
-				BytePos += 2;
+				Pos.u8 += 2;
 			}
-			else if (Used > 3 && Cur[0] == 0x00 && Cur[1] == 0x00 && Cur[2] == 0xFE && Cur[3] == 0xFF)
+			else if (Used > 3 && Pos.u8[0] == 0x00 && Pos.u8[1] == 0x00 && Pos.u8[2] == 0xFE && Pos.u8[3] == 0xFF)
 			{
 				Type = Utf32BE;
-				BytePos += 4;
+				Pos.u8 += 4;
 			}
-			else if (Used > 3 && Cur[0] == 0xFF && Cur[1] == 0xFE && Cur[2] == 0x00 && Cur[3] == 0x00)
+			else if (Used > 3 && Pos.u8[0] == 0xFF && Pos.u8[1] == 0xFE && Pos.u8[2] == 0x00 && Pos.u8[3] == 0x00)
 			{
 				Type = Utf32LE;
-				BytePos += 4;
+				Pos.u8 += 4;
 			}
 			else
 			{
 				// try and detect the char type
 				int u8 = 0, u16 = 0, u32 = 0;
-				GPointer p;
-				p.s8 = Cur;
 				for (int i=0; i<min(Used, 256); i++)
 				{
-					if (p.u8 + i < (uint8*)End && p.u8[i] == ',')
+					if (Pos.u8 + i < (uint8*)End && Pos.u8[i] == ',')
 						u8++;
-					if (p.u16 + i < (uint16*)(End-1) && p.u16[i] == ',')
+					if (Pos.u16 + i < (uint16*)(End-1) && Pos.u16[i] == ',')
 						u16++;
-					if (p.u32 + i < (uint32*)(End-3) && p.u32[i] == ',')
+					if (Pos.u32 + i < (uint32*)(End-3) && Pos.u32[i] == ',')
 						u32++;
 				}
 				if (u32 > 5)
@@ -91,8 +94,94 @@ public:
 					Type = Utf8;
 			}
 		}
+		else
+		{
+			// Move any existing data down to the start of the buffer
+			int BytePos = Pos.u8 - &Buf[0];
+			int Remaining = Used - BytePos;
+			if (Remaining > 0)
+			{
+				memmove(&Buf[0], &Buf[BytePos], Remaining);
+				Used = Remaining;
+			}
+			else
+			{
+				Used = 0;
+			}
+			Pos.u8 = &Buf[0];
+			
+			// Now read some more data into the free space
+			Remaining = Buf.Length() - Used;
+			LgiAssert(Remaining > 0);
+			int Rd = Read(&Buf[Used], Remaining);
+			if (Rd <= 0)
+				return 0;
+			
+			Used += Rd;			
+		}
 		
-		return Out.Length();
+		return true;
+	}
+	
+	template<typename T>
+	int GetLine(GArray<T> &Out)
+	{
+		uint8 *End = NULL;
+		
+		int OutPos = 0;
+		if (Buf.Length())
+			End = &Buf[0] + Used;
+		
+		while (true)
+		{
+			if (!End || End - Pos.u8 < sizeof(T))
+			{
+				if (!FillBuffer())
+					break;
+				End = &Buf[0] + Used;
+			}
+
+			if (End - Pos.u8 < sizeof(T))
+				break;
+			
+			T ch = 0;
+			switch (Type)
+			{
+				case Utf16BE:
+					LgiAssert(sizeof(ch) == 2);
+					ch = LgiSwap16(*Pos.u16);
+					Pos.u16++;
+					break;
+				case Utf16LE:
+					LgiAssert(sizeof(ch) == 2);
+					ch = *Pos.u16++;
+					break;
+				case Utf32BE:
+					LgiAssert(sizeof(ch) == 4);
+					ch = LgiSwap32(*Pos.u32);
+					Pos.u32++;
+					break;
+				case Utf32LE:
+					LgiAssert(sizeof(ch) == 4);
+					ch = *Pos.u32++;
+					break;
+				default: // Utf8
+				{
+					int len = End - Pos.u8;
+					ch = LgiUtf8To32(Pos.u8, len);
+					break;
+				}
+			}
+			
+			if (ch == '\r')
+				continue;
+			if (ch == 0 || ch == '\n')
+				break;
+			Out[OutPos++] = ch;
+		}
+		
+		Out[OutPos] = 0; // NULL terminate				
+		return OutPos;
 	}
 };
 

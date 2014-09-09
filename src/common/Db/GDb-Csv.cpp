@@ -453,12 +453,7 @@ void SvRecordset::Read()
 		GArray<char16> Line;
 		while (f.GetLine(Line))
 		{
-			SvRecord *r = new SvRecord(this, &Line[0]);
-			if (!Cur)
-			{
-				break;
-			}
-			
+			SvRecord *r = new SvRecord(this, &Line[0]);			
 			if (F.Length() == 0)
 			{
 				if (HasHeaders)
