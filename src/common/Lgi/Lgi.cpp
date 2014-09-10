@@ -448,6 +448,81 @@ bool LgiRecursiveFileSearch(const char *Root,
 #define _vsnprintf vsnprintf
 #endif
 
+static GStreamI *_LgiTraceStream = NULL;
+
+void LgiTraceSetStream(GStreamI *stream)
+{
+	_LgiTraceStream = stream;
+}
+
+bool LgiTraceGetFilePath(char *LogPath, int BufLen)
+{
+	if (!LogPath)
+		return false;
+
+	if (LgiGetExeFile(LogPath, BufLen))
+	{
+		#ifdef MAC
+		char *Dir = strrchr(LogPath, DIR_CHAR);
+		if (Dir)
+		{
+			char Part[256];
+			strcpy_s(Part, sizeof(Part), Dir+1);
+            LogPath[0] = 0;
+			LgiMakePath(LogPath, BufLen, LogPath, "~/Library/Logs");
+			LgiMakePath(LogPath, BufLen, LogPath, Dir+1);
+			strcat_s(LogPath, BufLen, ".txt");
+		}
+		else
+		#endif
+		{
+			char *Dot = strrchr(LogPath, '.');
+			if (Dot && !strchr(Dot, DIR_CHAR))
+				strcpy(Dot+1, "txt");
+			else
+				strcat(LogPath, ".txt");
+		}
+
+		GFile f;		
+		if (f.Open(LogPath, O_WRITE))
+		{
+			f.Close();
+		}
+		else
+		{
+			char Leaf[64];
+			char *Dir = strrchr(LogPath, DIR_CHAR);
+			if (Dir)
+			{
+				strcpy_s(Leaf, sizeof(Leaf), Dir + 1);
+				LgiGetSystemPath(LSP_APP_ROOT, LogPath, BufLen);
+				if (!DirExists(LogPath))
+					FileDev->CreateFolder(LogPath);
+				LgiMakePath(LogPath, BufLen, LogPath, Leaf);
+			}
+			else goto OnError;
+		}
+		
+		#if 0
+		GFile tmp;
+		if (tmp.Open("c:\\temp\\log.txt", O_WRITE))
+		{
+			tmp.SetSize(0);
+			tmp.Write(LogPath, strlen(LogPath));
+		}
+		#endif
+	}
+	else
+	{
+		// Well what to do now? I give up
+		OnError:
+		strcpy_s(LogPath, BufLen, "trace.txt");
+		return false;
+	}
+	
+	return true;
+}
+
 void LgiTrace(const char *Msg, ...)
 {
 	#if defined _INC_MALLOC && WINNATIVE
@@ -469,65 +544,9 @@ void LgiTrace(const char *Msg, ...)
 		GFile f;
 		static char LogPath[MAX_PATH] = "";
 		
-		if (LogPath[0] == 0)
+		if (!_LgiTraceStream && LogPath[0] == 0)
 		{
-			if (LgiGetExeFile(LogPath, sizeof(LogPath)))
-			{
-				#ifdef MAC
-				char *Dir = strrchr(LogPath, DIR_CHAR);
-				if (Dir)
-				{
-					char Part[256];
-					strcpy_s(Part, sizeof(Part), Dir+1);
-                    LogPath[0] = 0;
-					LgiMakePath(LogPath, sizeof(LogPath), LogPath, "~/Library/Logs");
-					LgiMakePath(LogPath, sizeof(LogPath), LogPath, Dir+1);
-					strcat_s(LogPath, sizeof(LogPath), ".txt");
-				}
-				else
-				#endif
-				{
-					char *Dot = strrchr(LogPath, '.');
-					if (Dot && !strchr(Dot, DIR_CHAR))
-						strcpy(Dot+1, "txt");
-					else
-						strcat(LogPath, ".txt");
-				}
-				
-				if (f.Open(LogPath, O_WRITE))
-				{
-					f.Close();
-				}
-				else
-				{
-					char Leaf[64];
-					char *Dir = strrchr(LogPath, DIR_CHAR);
-					if (Dir)
-					{
-						strcpy_s(Leaf, sizeof(Leaf), Dir + 1);
-						LgiGetSystemPath(LSP_APP_ROOT, LogPath, sizeof(LogPath));
-						if (!DirExists(LogPath))
-							FileDev->CreateFolder(LogPath);
-						LgiMakePath(LogPath, sizeof(LogPath), LogPath, Leaf);
-					}
-					else goto OnError;
-				}
-				
-				#if 0
-				GFile tmp;
-				if (tmp.Open("c:\\temp\\log.txt", O_WRITE))
-				{
-					tmp.SetSize(0);
-					tmp.Write(LogPath, strlen(LogPath));
-				}
-				#endif
-			}
-			else
-			{
-				// Well what to do now? I give up
-				OnError:
-				strcpy_s(LogPath, sizeof(LogPath), "trace.txt");
-			}
+			LgiTraceGetFilePath(LogPath, sizeof(LogPath));
 		}
 		#endif
 
@@ -537,12 +556,18 @@ void LgiTrace(const char *Msg, ...)
 		va_end(Arg);
 
 		#ifdef LGI_TRACE_TO_FILE
-		if (f.Open(LogPath, O_WRITE))
+		GStreamI *Output = NULL;
+		if (_LgiTraceStream)
+			Output = _LgiTraceStream;
+		else if (f.Open(LogPath, O_WRITE))
 		{
 			f.Seek(0, SEEK_END);
-			f.Write(Buffer, strlen(Buffer));
-			f.Close();
+			Output = &f;
 		}
+		if (Output)
+			Output->Write(Buffer, strlen(Buffer));
+		if (!_LgiTraceStream)
+			f.Close();
 		#endif
 
 

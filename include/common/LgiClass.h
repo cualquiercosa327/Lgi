@@ -51,11 +51,24 @@ public:
 
 #define AssignFlag(f, bit, to) if (to) f |= bit; else f &= ~(bit)
 
-/// Writes a debug statement to a file in the executables directory
+/// Sets the output stream for the LgiTrace statement. By default the stream output
+/// is to <app_name>.txt in the executables folder or $LSP_APP_ROOT\<app_name>.txt if
+/// that is not writable. If the stream is set to something then normal file output is
+/// directed to the specified stream instead.
+LgiFunc void LgiTraceSetStream(class GStreamI *stream);
+
+/// Gets the log file path
+LgiFunc bool LgiTraceGetFilePath(char *LogPath, int BufLen);
+
+/// Writes a debug statement to a output stream, or if not defined with LgiTraceSetStream
+/// then to a log file (see LgiTraceSetStream for details)
+///
+/// Default path is ./<app_name>.txt relative to the executable.
+/// Fallback path is LgiGetSystemPath(LSP_APP_ROOT).
 LgiFunc void LgiTrace(const char *Format, ...);
 
 #ifndef LGI_STATIC
-/// Same as LgiTrace but writes a stack trace as well
+/// Same as LgiTrace but writes a stack trace as well.
 LgiFunc void LgiStackTrace(const char *Format, ...);
 #endif
 
