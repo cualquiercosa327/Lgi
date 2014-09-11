@@ -52,6 +52,7 @@ Depends =	GDateTime.o \
 			GWindow.o \
 			LgiWidget.o \
 			GViewCommon.o \
+			GWindowCommon.o \
 			GLibrary.o \
 			GMem.o \
 			GProperties.o \
@@ -254,6 +255,10 @@ GViewCommon.o : ./src/common/Lgi/GViewCommon.cpp ./include/common/Lgi.h \
 	./include/common/GTableLayout.h \
 	./include/common/GButton.h \
 	./include/common/GCss.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GWindowCommon.o : ./src/common/Lgi/GWindowCommon.cpp ./include/common/Lgi.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 

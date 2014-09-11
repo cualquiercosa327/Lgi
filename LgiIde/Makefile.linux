@@ -226,6 +226,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../src/common/Lgi/GTrayIcon.cpp \
 	../src/common/Lgi/GVariant.cpp \
 	../src/common/Lgi/GViewCommon.cpp \
+	../src/common/Lgi/GWindowCommon.cpp \
 	../src/common/Lgi/Lgi.cpp \
 	../src/common/Lgi/LgiMsg.cpp \
 	../src/common/Lgi/LgiRand.cpp \

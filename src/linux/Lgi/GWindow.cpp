@@ -1292,23 +1292,3 @@ void GWindow::OnTrayClick(GMouse &m)
 	}
 }
 
-bool GWindow::MoveSameScreen(GViewI *wnd)
-{
-	if (!wnd)
-	{
-		LgiAssert(0);
-		return false;
-	}
-	
-	GRect p = wnd->GetPos();
-	int cx = p.x1 + (p.X() >> 2);
-	int cy = p.y1 + (p.Y() >> 2);
-	
-	GRect np = GetPos();
-	np.Offset(cx - np.x1, cy - np.y1);
-	SetPos(np);
-	
-	MoveOnScreen();
-	return true;
-}
-

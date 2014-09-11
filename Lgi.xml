@@ -26,26 +26,6 @@
 				<Node File="./src/common/General/GFileCommon.cpp" Type="2" Platforms="15" />
 			</Node>
 			<Node Name="Interface" Type="1" Platforms="15" Open="1">
-				<Node Name="Win32" Type="1" Platforms="15" Open="0">
-					<Node File="./src/win32/Lgi/GApp.cpp" Type="2" Platforms="1" />
-					<Node File="./src/win32/Lgi/GGeneral.cpp" Type="2" Platforms="1" />
-					<Node File="./src/win32/Lgi/GPrinter.cpp" Type="2" Platforms="1" />
-					<Node File="./src/win32/Lgi/GView.cpp" Type="2" Platforms="1" />
-					<Node File="./src/win32/Lgi/GWindow.cpp" Type="2" Platforms="1" />
-					<Node File="./src/win32/Lgi/LgiException.cpp" Type="2" Platforms="1" />
-				</Node>
-				<Node Name="Linux" Type="1" Platforms="15" Open="1">
-					<Node Name="Headers" Type="1" Platforms="15" Open="0">
-						<Node File="./include/linux/Gtk/LgiOsClasses.h" Type="3" Platforms="2" />
-						<Node File="./include/linux/Gtk/LgiOsDefs.h" Type="3" Platforms="2" />
-					</Node>
-					<Node File="./src/linux/Lgi/GApp.cpp" Type="2" Platforms="2" />
-					<Node File="./src/linux/Lgi/GGeneral.cpp" Type="2" Platforms="2" />
-					<Node File="./src/linux/Lgi/GPrinter.cpp" Type="2" Platforms="2" />
-					<Node File="./src/linux/Lgi/GView.cpp" Type="2" Platforms="2" />
-					<Node File="./src/linux/Lgi/GWindow.cpp" Type="2" Platforms="2" />
-					<Node File="./src/linux/Gtk/LgiWidget.cpp" Type="2" Platforms="2" />
-				</Node>
 				<Node Name="Haiku" Type="1" Platforms="15" Open="0">
 					<Node Name="Headers" Type="1" Platforms="15" Open="0">
 						<Node File=".\include\beos\LgiOsClasses.h" Type="3" Platforms="8" />
@@ -57,8 +37,29 @@
 					<Node File="./src/beos/Lgi/GView.cpp" Type="2" Platforms="8" />
 					<Node File="./src/beos/Lgi/GWindow.cpp" Type="2" Platforms="8" />
 				</Node>
+				<Node Name="Linux" Type="1" Platforms="15" Open="0">
+					<Node Name="Headers" Type="1" Platforms="15" Open="0">
+						<Node File="./include/linux/Gtk/LgiOsClasses.h" Type="3" Platforms="2" />
+						<Node File="./include/linux/Gtk/LgiOsDefs.h" Type="3" Platforms="2" />
+					</Node>
+					<Node File="./src/linux/Lgi/GApp.cpp" Type="2" Platforms="2" />
+					<Node File="./src/linux/Lgi/GGeneral.cpp" Type="2" Platforms="2" />
+					<Node File="./src/linux/Lgi/GPrinter.cpp" Type="2" Platforms="2" />
+					<Node File="./src/linux/Lgi/GView.cpp" Type="2" Platforms="2" />
+					<Node File="./src/linux/Lgi/GWindow.cpp" Type="2" Platforms="2" />
+					<Node File="./src/linux/Gtk/LgiWidget.cpp" Type="2" Platforms="2" />
+				</Node>
+				<Node Name="Win32" Type="1" Platforms="15" Open="0">
+					<Node File="./src/win32/Lgi/GApp.cpp" Type="2" Platforms="1" />
+					<Node File="./src/win32/Lgi/GGeneral.cpp" Type="2" Platforms="1" />
+					<Node File="./src/win32/Lgi/GPrinter.cpp" Type="2" Platforms="1" />
+					<Node File="./src/win32/Lgi/GView.cpp" Type="2" Platforms="1" />
+					<Node File="./src/win32/Lgi/GWindow.cpp" Type="2" Platforms="1" />
+					<Node File="./src/win32/Lgi/LgiException.cpp" Type="2" Platforms="1" />
+				</Node>
 				<Node File="./src/common/Lgi/GViewCommon.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GViewPriv.h" Type="3" Platforms="15" />
+				<Node File="./src/common/Lgi/GWindowCommon.cpp" Type="2" Platforms="15" />
 			</Node>
 			<Node Name="Libraries" Type="1" Platforms="15" Open="0">
 				<Node File="./src/common/Lgi/GLibrary.cpp" Type="2" Platforms="15" />
