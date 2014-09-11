@@ -888,7 +888,7 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 
 					#ifdef _DEBUG
 					int64 Now = LgiCurrentTime();
-					if (Now - Last > 1000)
+					if (Now - Last > 10000)
 					{
 						LgiTrace("%s:%i - Msg Loop Blocked: %i ms (Msg: 0x%.4x)\n",
 							_FL, (int) (Now - Last), Msg.message);
