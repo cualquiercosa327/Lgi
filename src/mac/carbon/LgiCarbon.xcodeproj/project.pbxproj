@@ -101,6 +101,7 @@
 		34766832093F20EE00623A44 /* GThread.h in Headers */ = {isa = PBXBuildFile; fileRef = 34766831093F20EE00623A44 /* GThread.h */; };
 		347677640FE5BB2800E2E445 /* md5.c in Sources */ = {isa = PBXBuildFile; fileRef = 347677630FE5BB2800E2E445 /* md5.c */; };
 		3478B20A12E6F87200936EFA /* GEdit.h in Headers */ = {isa = PBXBuildFile; fileRef = 3478B20912E6F87200936EFA /* GEdit.h */; };
+		3479DB1019C1AAA800E0D1E5 /* GWindowCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3479DB0E19C1AAA800E0D1E5 /* GWindowCommon.cpp */; };
 		347CB600172A97D600AC3EA6 /* GTableLayout.h in Headers */ = {isa = PBXBuildFile; fileRef = 347CB5FF172A97D600AC3EA6 /* GTableLayout.h */; };
 		3489C3EA0DD1C4DB0095F0E1 /* GMru.h in Headers */ = {isa = PBXBuildFile; fileRef = 3489C3E90DD1C4DB0095F0E1 /* GMru.h */; };
 		3493304A0F60CE440092EAE8 /* GViewCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349330490F60CE440092EAE8 /* GViewCommon.cpp */; };
@@ -268,6 +269,7 @@
 		34766831093F20EE00623A44 /* GThread.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GThread.h; path = ../../../include/common/GThread.h; sourceTree = "<group>"; };
 		347677630FE5BB2800E2E445 /* md5.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = md5.c; path = ../../common/Hash/md5/md5.c; sourceTree = "<group>"; };
 		3478B20912E6F87200936EFA /* GEdit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GEdit.h; path = ../../../include/common/GEdit.h; sourceTree = "<group>"; };
+		3479DB0E19C1AAA800E0D1E5 /* GWindowCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GWindowCommon.cpp; path = ../../common/Lgi/GWindowCommon.cpp; sourceTree = "<group>"; };
 		347CB5FF172A97D600AC3EA6 /* GTableLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GTableLayout.h; path = ../../../include/common/GTableLayout.h; sourceTree = SOURCE_ROOT; };
 		3489C3E90DD1C4DB0095F0E1 /* GMru.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GMru.h; path = ../../../include/common/GMru.h; sourceTree = "<group>"; };
 		349330490F60CE440092EAE8 /* GViewCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GViewCommon.cpp; path = ../../common/Lgi/GViewCommon.cpp; sourceTree = "<group>"; };
@@ -553,6 +555,7 @@
 				34983C2208F548DF0054868C /* GTrayIcon.cpp */,
 				345F9C2208F0F622007DAFE2 /* GView.cpp */,
 				349330490F60CE440092EAE8 /* GViewCommon.cpp */,
+				3479DB0E19C1AAA800E0D1E5 /* GWindowCommon.cpp */,
 				34D2CCAB08F1183F0009968C /* GWindow.cpp */,
 				344B737A08D8401600D49457 /* Lgi.cpp */,
 				34983C2308F548DF0054868C /* LgiRand.cpp */,
@@ -1029,6 +1032,7 @@
 				3476333318E2D12300766FC4 /* GColour.cpp in Sources */,
 				344AC3E31915AC25003FFE7E /* GFileCommon.cpp in Sources */,
 				346BF43B193AAD02000C2030 /* GBox.cpp in Sources */,
+				3479DB1019C1AAA800E0D1E5 /* GWindowCommon.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
