@@ -666,6 +666,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\common\Lgi\GWindowCommon.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\common\Lgi\Lgi.cpp"
 					>
 				</File>
