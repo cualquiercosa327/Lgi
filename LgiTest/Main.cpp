@@ -1,6 +1,26 @@
 #include "Lgi.h"
 #include "GEdit.h"
 
+#include "GStringClass.h"
+
+void GStringTest()
+{
+	GString a("This<TD>is<TD>a<TD>test");
+	int idx = a.RFind("<TD>");
+	GString f = a(8,10);
+	GString end = a(-5, -1);
+	
+	GString sep(", ");
+	GString::Array parts = GString("This is a test").Split(" ");
+	GString joined = sep.Join(parts);
+	
+	GString src("  asdwer   ");
+	GString left = src.LStrip();
+	GString right = src.RStrip();
+	GString both = src.Strip();
+	
+}
+
 class App : public GWindow
 {
 	GEdit *e;
@@ -33,6 +53,7 @@ int LgiMain(OsAppArguments &AppArgs)
 	GApp a(AppArgs, "Lgi Test");
 	if (a.IsOk())
 	{
+		GStringTest();
 		a.AppWnd = new App;
 		a.Run();
 	}

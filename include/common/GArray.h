@@ -267,7 +267,7 @@ public:
 		
 		return p[i];
 	}
-	
+
 	/// Delete all the entries as if they are pointers to objects
 	void DeleteObjects()
 	{
