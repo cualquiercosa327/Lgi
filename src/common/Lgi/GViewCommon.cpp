@@ -1969,7 +1969,7 @@ GViewFactory::~GViewFactory()
 			DeleteObj(AllFactories);
 			#if defined(MAC) || defined(LINUX) || defined(BEOS)
 			unlink(FactoryFile);
-			#elif defined(WINDOWS)
+			#elif defined(WIN32NATIVE)
 			CloseHandle(FactoryEvent);
 			#endif
 		}
