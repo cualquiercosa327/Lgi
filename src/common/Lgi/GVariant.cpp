@@ -1423,6 +1423,7 @@ struct GDomPropMap : public GHashTbl<const char *, GDomProperty>
 		Define("Close", FileClose);
 		Define("Modified", FileModified);
 		Define("Folder", FileFolder);
+		Define("Encoding", FileEncoding);
 	}
 	
 	void Define(const char *s, GDomProperty p)

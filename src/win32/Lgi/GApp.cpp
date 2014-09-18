@@ -922,7 +922,7 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 				if (Now - Last > 1000)
 				{
 					LgiTrace("%s:%i - Msg Loop Blocked: %i ms (Msg: %i)\n",
-						__FILE__, __LINE__,
+						_FL,
 						(int) (Now - Last), Msg.message);
 				}
 				#endif

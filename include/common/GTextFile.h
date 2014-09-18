@@ -17,17 +17,22 @@ public:
 	};
 
 protected:
+	bool First;
 	int Used;
 	GPointer Pos;
 	EncodingType Type;
 	GArray<uint8> Buf;
+	GAutoString Charset;
 
 public:
-	GTextFile()
+	GTextFile(const char *charset = NULL)
 	{
+		First = true;
 		Used = 0;
 		Pos.u8 = NULL;
 		Type = Unknown;
+		if (charset)
+			Charset.Reset(NewStr(charset));
 	}
 	
 	EncodingType GetType()
@@ -35,66 +40,131 @@ public:
 		return Type;
 	}
 
+	bool GetVariant(const char *Name, GVariant &Value, char *Array = NULL)
+	{
+		if (GStringToProp(Name) == FileEncoding)
+		{
+			Value = (int)Type;
+			return true;
+		}
+		
+		return GFile::GetVariant(Name, Value, Array);
+	}
+	
+	int Read(void *Buffer, int Size, int Flags = 0)
+	{
+		int Rd = GFile::Read(Buffer, Size, Flags);
+		if (First)
+		{
+			if (Rd < 4)
+				LgiAssert(!"Initial read is too small");
+			else
+			{
+				First = false;
+
+				uint8 *buf = (uint8*)Buffer;
+				uint8 *start = buf;
+				if (Used > 2 && buf[0] == 0xEF && buf[1] == 0xBB && buf[2] == 0xBF)
+				{
+					Type = Utf8;
+					start += 3;
+				}
+				else if (Used > 1 && buf[0] == 0xFE && buf[1] == 0xFF)
+				{
+					Type = Utf16BE;
+					start += 2;
+				}
+				else if (Used > 1 && buf[0] == 0xFF && buf[1] == 0xFE)
+				{
+					Type = Utf16LE;
+					start += 2;
+				}
+				else if (Used > 3 && buf[0] == 0x00 && buf[1] == 0x00 && buf[2] == 0xFE && buf[3] == 0xFF)
+				{
+					Type = Utf32BE;
+					start += 4;
+				}
+				else if (Used > 3 && buf[0] == 0xFF && buf[1] == 0xFE && buf[2] == 0x00 && buf[3] == 0x00)
+				{
+					Type = Utf32LE;
+					start += 4;
+				}
+				else
+				{
+					// Try and detect the char type
+					#define Detect(c) ((c) == ' ' || (c) == '\n')
+
+					uint8 *end = buf + Rd;
+					
+					// Check for utf-8 first...
+					GUtf8Ptr utf(buf);
+					bool InvalidUtf = false;
+					while (utf.GetPtr() < end)
+					{
+						if (utf++ < 0)
+						{
+							InvalidUtf = true;
+							break;
+						}
+					}
+					
+					if (!InvalidUtf)
+					{
+						Type = Utf8;
+					}
+					else
+					{
+						// Check for utf16 or utf32?
+						GPointer p;
+						p.u8 = buf;
+						bool HasNull = false;
+
+						int u16 = 0, u32 = 0;
+						for (int i=0; i<min(Used, 1024); i++)
+						{
+							if (p.u16 + i < (uint16*)(end-1))
+							{
+								if (p.u16[i] == 0)
+									HasNull = true;
+								else if (Detect(p.u16[i]))
+									u16++;
+							}							
+							if (p.u32 + i < (uint32*)(end-3))
+							{
+								if (Detect(p.u32[i]))
+									u32++;
+							}
+						}
+						
+						if (HasNull && u16 > 5)
+							Type = Utf16LE;
+						else
+							Type = Utf32LE;
+					}
+				}
+				
+				int bytes = start - buf;
+				if (bytes > 0 && bytes <= Rd)
+				{
+					// Remove byte order mark from the buffer
+					memmove(buf, start, Rd - bytes);
+					Rd -= bytes;
+				}
+			}
+		}
+		
+		return Rd;
+	}
+
 	bool FillBuffer()
 	{
 		if (!Buf.Length())
 		{
 			Buf.Length(4 << 10);
-			
-			Used = Read(&Buf[0], Buf.Length());
-			if (Used <= 0)
-				return false;
-
-			Pos.u8 = &Buf[0];
-			uint8 *End = Pos.u8 + Used;
-
-			if (Used > 2 && Pos.u8[0] == 0xEF && Pos.u8[1] == 0xBB && Pos.u8[2] == 0xBF)
-			{
-				Type = Utf8;
-				Pos.u8 += 3;
-			}
-			else if (Used > 1 && Pos.u8[0] == 0xFE && Pos.u8[1] == 0xFF)
-			{
-				Type = Utf16BE;
-				Pos.u8 += 2;
-			}
-			else if (Used > 1 && Pos.u8[0] == 0xFF && Pos.u8[1] == 0xFE)
-			{
-				Type = Utf16LE;
-				Pos.u8 += 2;
-			}
-			else if (Used > 3 && Pos.u8[0] == 0x00 && Pos.u8[1] == 0x00 && Pos.u8[2] == 0xFE && Pos.u8[3] == 0xFF)
-			{
-				Type = Utf32BE;
-				Pos.u8 += 4;
-			}
-			else if (Used > 3 && Pos.u8[0] == 0xFF && Pos.u8[1] == 0xFE && Pos.u8[2] == 0x00 && Pos.u8[3] == 0x00)
-			{
-				Type = Utf32LE;
-				Pos.u8 += 4;
-			}
-			else
-			{
-				// try and detect the char type
-				int u8 = 0, u16 = 0, u32 = 0;
-				for (int i=0; i<min(Used, 256); i++)
-				{
-					if (Pos.u8 + i < (uint8*)End && Pos.u8[i] == ',')
-						u8++;
-					if (Pos.u16 + i < (uint16*)(End-1) && Pos.u16[i] == ',')
-						u16++;
-					if (Pos.u32 + i < (uint32*)(End-3) && Pos.u32[i] == ',')
-						u32++;
-				}
-				if (u32 > 5)
-					Type = Utf32LE;
-				else if (u16 > 5)
-					Type = Utf16LE;
-				else
-					Type = Utf8;
-			}
+			Used = Read(Pos.u8 = &Buf[0], Buf.Length());
 		}
-		else
+		
+		if (Buf.Length())
 		{
 			// Move any existing data down to the start of the buffer
 			int BytePos = Pos.u8 - &Buf[0];

@@ -14,13 +14,12 @@
 
 // Stand-alone functions
 
-/// Convert a single utf-8 char to utf-32
-inline uint32 LgiUtf8To32(uint8 *&i, int &Len)
+/// Convert a single utf-8 char to utf-32 or returns -1 on error.
+inline int32 LgiUtf8To32(uint8 *&i, int &Len)
 {
-	uint32 Out = 0;
+	int32 Out = 0;
 
-	#define InvalidUtf()		{ Len--; i++; return 0xFFFD; }
-	// #define InvalidUtf()		;
+	#define InvalidUtf()		{ Len--; i++; return -1; }
 
 	if (Len > 0)
 	{
@@ -105,8 +104,7 @@ inline uint32 LgiUtf8To32(uint8 *&i, int &Len)
 				else InvalidUtf()
 			}
 		}
-		else
-			InvalidUtf()
+		else InvalidUtf()
 	}
 
 	return Out;
@@ -239,22 +237,26 @@ protected:
 	uint8 *Ptr;
 
 public:
-	GUtf8Ptr(char *p = 0);
+	GUtf8Ptr(void *p = 0);
 
 	/// Assign a new pointer to the string
 	GUtf8Ptr &operator =(char *s) { Ptr = (uint8*)s; return *this; }
 	/// Assign a new pointer to the string
 	GUtf8Ptr &operator =(uint8 *s) { Ptr = s; return *this; }
-	/// \returns the current character in the string
-	operator uint32();
+	/// \returns the current character in the string or -1 on error.
+	operator int32();
 	/// Seeks 1 character forward
-	uint32 operator ++(const int n);
+	/// \returns current character or -1 on error
+	int32 operator ++(const int n);
 	/// Seeks 1 character backward
-	uint32 operator --(const int n);
+	/// \returns current character or -1 on error
+	int32 operator --(const int n);
 	/// Seeks 'n' characters forward
-	uint32 operator +=(const int n);
+	/// \returns current character or -1 on error
+	int32 operator +=(const int n);
 	/// Seeks 'n' characters backward
-	uint32 operator -=(const int n);
+	/// \returns current character or -1 on error
+	int32 operator -=(const int n);
 
 	/// Gets the bytes between the cur pointer and the end of the buffer or string.
 	int GetBytes();

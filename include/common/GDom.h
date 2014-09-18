@@ -112,6 +112,7 @@ enum GDomProperty
 	FileClose,
 	FileModified,
 	FileFolder,
+	FileEncoding,
 };
 
 LgiFunc GDomProperty GStringToProp(const char *Str);

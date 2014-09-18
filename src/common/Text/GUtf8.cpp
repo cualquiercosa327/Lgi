@@ -2,12 +2,12 @@
 #include "GUtf8.h"
 
 /////////////////////////////////////////////////////////////////////////////
-GUtf8Ptr::GUtf8Ptr(char *p)
+GUtf8Ptr::GUtf8Ptr(void *p)
 {
 	Ptr = (uint8*)p;
 }
 
-GUtf8Ptr::operator uint32()
+GUtf8Ptr::operator int32()
 {
 	uint8 *p = Ptr;
 	int l = 6;
@@ -20,7 +20,7 @@ void GUtf8Ptr::Add(char16 c)
 	LgiUtf32To8(c, Ptr, l);
 }
 
-uint32 GUtf8Ptr::operator++(const int n)
+int32 GUtf8Ptr::operator++(const int n)
 {
 	if (IsUtf8_Lead(*Ptr))
 	{
@@ -49,7 +49,7 @@ uint32 GUtf8Ptr::operator++(const int n)
 	return *this;
 }
 
-uint32 GUtf8Ptr::operator--(const int n)
+int32 GUtf8Ptr::operator--(const int n)
 {
 	Ptr--;
 	if (IsUtf8_Trail(*Ptr))
@@ -71,7 +71,7 @@ uint32 GUtf8Ptr::operator--(const int n)
 	return *this;
 }
 
-uint32 GUtf8Ptr::operator += (int n)
+int32 GUtf8Ptr::operator += (int n)
 {
 	while (*Ptr && n-- > 0)
 	{
@@ -81,7 +81,7 @@ uint32 GUtf8Ptr::operator += (int n)
 	return *this;
 }
 
-uint32 GUtf8Ptr::operator-=(int n)
+int32 GUtf8Ptr::operator-=(int n)
 {
 	while (*Ptr && n-- > 0)
 	{
