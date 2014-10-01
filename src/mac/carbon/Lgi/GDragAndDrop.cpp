@@ -12,6 +12,7 @@
 
 #include "Lgi.h"
 #include "GDragAndDrop.h"
+#include "GDisplayString.h"
 #ifdef MAC
 #include "INet.h"
 #endif
@@ -40,6 +41,9 @@ class GDndSourcePriv
 {
 public:
 	GAutoString CurrentFormat;
+	GSurface *ExternImg;
+	GRect ExternSubRgn;
+	
 	#if defined(MAC) && !defined(COCOA)
 	GAutoPtr<CGImg> Img;
 	#endif
@@ -50,6 +54,8 @@ public:
 	GDndSourcePriv()
 	{
 		Ctx = NULL;
+		ExternImg = NULL;
+		ExternSubRgn.ZOff(-1, -1);
 	}
 	
 	~GDndSourcePriv()
@@ -277,6 +283,17 @@ GDragDropSource::GDragDropSource()
 GDragDropSource::~GDragDropSource()
 {
 	DeleteObj(d);
+}
+
+bool GDragDropSource::SetIcon(GSurface *Img, GRect *SubRgn)
+{
+	d->ExternImg = Img;
+	if (SubRgn)
+		d->ExternSubRgn = *SubRgn;
+	else
+		d->ExternSubRgn.ZOff(-1, -1);
+
+	return true;
 }
 
 bool GDragDropSource::CreateFileDrop(GVariant *OutputData, GMouse &m, List<char> &Files)
@@ -509,19 +526,34 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 				}
 			}
 			
-			/*
+			GMemDC m;
+			
+			if (d->ExternImg)
+			{
+				GRect r = d->ExternSubRgn;
+				if (!r.Valid())
+				{
+					r = d->ExternImg->Bounds();
+				}
+				
+				if (m.Create(r.X(), r.Y(), System32BitColourSpace))
+				{
+					m.Blt(0, 0, d->ExternImg, &r);
+					d->Img.Reset(new CGImg(&m));
+				}
+			}
+			else
 			{
 				SysFont->Fore(Rgb24(0xff, 0xff, 0xff));
 				SysFont->Transparent(true);
 				GDisplayString s(SysFont, "+");
 
-				GMemDC m;
 				if (m.Create(s.X() + 12, s.Y() + 2, 32))
 				{
 					m.Colour(Rgb32(0x30, 0, 0xff));
 					m.Rectangle();
-					d->Img.Reset(new CGImg(&m));
 					s.Draw(&m, 6, 0);
+					d->Img.Reset(new CGImg(&m));
 				}
 			}
 			
@@ -531,7 +563,6 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 				e = SetDragImageWithCGImage(Drag, *d->Img, &Offset, kDragDarkerTranslucency);
 				if (e) printf("%s:%i - SetDragImageWithCGImage failed with %i\n", _FL, e);
 			}
-			*/
 			
 			e = TrackDrag(Drag, &Event, 0);
 			if (e == dragNotAcceptedErr)

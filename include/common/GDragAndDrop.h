@@ -67,6 +67,17 @@ public:
 	GDragDropSource();
 	~GDragDropSource();
 
+	/// Sets the icon used to show what is being dragged.
+	bool SetIcon
+	(
+		/// The image to show. The caller should retain the object in memory
+		/// until after the drag.
+		GSurface *Img,
+		/// If only a portion of the image is needed set this to the part to
+		/// use. Otherwise NULL means use the whole image.
+		GRect *SubRgn = NULL
+	);
+
 	/// Start a drag operation
 	/// \returns The operation that took effect: #DROPEFFECT_NONE, #DROPEFFECT_COPY etc. 
 	int Drag(GView *SourceWnd, int Effect);

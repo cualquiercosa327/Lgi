@@ -318,11 +318,11 @@ bool FileExists(const char *FileName, char *CorrectCase)
 		{
 			Status = true;
 		}
-		else
+		else if (strlen(FileName) < MAX_PATH)
 		{
 			// Look for altenate case by enumerating the directory
-			char d[256];
-			strcpy(d, FileName);
+			char d[MAX_PATH];
+			strcpy_s(d, sizeof(d), FileName);
 			char *e = strrchr(d, DIR_CHAR);
 			if (e)
 			{

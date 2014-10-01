@@ -607,19 +607,23 @@ void GDisplayString::TruncateWithDots(int Width)
 	
 	#else
 	
-	ATSULineTruncation truc = kATSUTruncateEnd;
-	ATSUTextMeasurement width = Width << 16;
+	if (Str)
+	{
+		ATSULineTruncation truc = kATSUTruncateEnd;
+		ATSUTextMeasurement width = Width << 16;
 
-	ATSUAttributeTag        tags[] = {kATSULineWidthTag, kATSULineTruncationTag};
-	ByteCount               sizes[] = {sizeof(width), sizeof(truc)};
-	ATSUAttributeValuePtr   values[] = {&width, &truc};
+		ATSUAttributeTag        tags[] = {kATSULineWidthTag, kATSULineTruncationTag};
+		ByteCount               sizes[] = {sizeof(width), sizeof(truc)};
+		ATSUAttributeValuePtr   values[] = {&width, &truc};
 
-	OSStatus e = ATSUSetLayoutControls(	Hnd,
-										CountOf(tags),
-										tags,
-										sizes,
-										values);
-	if (e) printf("%s:%i - ATSUSetLayoutControls failed (e=%i)\n", _FL, (int)e);
+		OSStatus e = ATSUSetLayoutControls(	Hnd,
+											CountOf(tags),
+											tags,
+											sizes,
+											values);
+		if (e)
+			printf("%s:%i - ATSUSetLayoutControls failed (e=%i)\n", _FL, (int)e);
+	}
 	
 	#endif
 }
