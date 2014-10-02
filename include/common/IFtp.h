@@ -173,6 +173,7 @@ public:
 	Progress *GetMeter() { return Meter; }
 	void SetMeter(Progress *m) { Meter = m; }
 	bool GetAuthed() { return Authenticated; }
+	const char *GetError();
 
 	/// Returns the socket used for the command connection.
 	GSocketI *Handle() { return Socket; }

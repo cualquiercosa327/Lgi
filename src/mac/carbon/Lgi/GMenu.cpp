@@ -1258,7 +1258,7 @@ bool GAccelerator::Match(GKey &k)
 {
 	int Press = (uint) k.c16;
 	
-	#if 1
+	#if 0
 	printf("GAccelerator::Match %i(%c)%s%s%s = %i(%c)%s%s%s\n",
 		Press,
 		Press>=' '?Press:'.',

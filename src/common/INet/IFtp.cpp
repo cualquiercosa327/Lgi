@@ -28,6 +28,7 @@ public:
 	GAutoPtr<GSocketI> Data;	// get data
 	GFile *F;
 	char *Charset;
+	GAutoString ErrBuf;
 	
 	GAutoString Host;
 	int Port;
@@ -61,77 +62,6 @@ int LookupMonth(char *m)
 	}
 	return 1;
 }
-
-///////////////////////////////////////////////////////////////////
-/*
-class ILogProxy : public GSocket
-{
-	GSocketI *Dest;
-	IFtpDataPipe *Pipe;
-	Progress *Meter;
-
-public:
-	ILogProxy(GSocketI *dest, IFtpDataPipe *pipe, Progress *meter)
-	{
-		Dest = dest;
-		Pipe = pipe;
-		Meter = meter;
-	}
-
-	int SetParameter(int Param, int Value)
-	{
-		return 0;
-	}
-
-	int Write(char *Data, int Len, int Flags)
-	{
-		if (Pipe)
-		{
-			return Pipe->WritePipe(this, Data, Len, Flags);
-		}
-
-		return GSocket::Write(Data, Len, Flags);
-	}
-
-	int Read(char *Data, int Len, int Flags)
-	{
-		if (Pipe)
-		{
-			return Pipe->ReadPipe(this, Data, Len, Flags);
-		}
-
-		return GSocket::Read(Data, Len, Flags);
-	}
-
-	void OnError(int ErrorCode, char *ErrorDescription)
-	{
-		if (Dest && ErrorCode > 0 && ErrorDescription)
-		{
-			char Str[256];
-			sprintf(Str, "[Data] %s", ErrorDescription);
-			Dest->OnInformation(Str);
-		}
-	}
-
-	void OnInformation(char *s)
-	{
-		if (Dest && s)
-		{
-			char Str[256];
-			sprintf(Str, "[Data] %s", s);
-			Dest->OnInformation(Str);
-		}
-	}
-
-	void OnDisconnect()
-	{
-		if (Dest)
-		{
-			Dest->OnInformation("[Data] Disconnect");
-		}
-	}
-};
-*/
 
 ///////////////////////////////////////////////////////////////////
 IFtpEntry::IFtpEntry()
@@ -284,7 +214,7 @@ IFtpEntry::~IFtpEntry()
 // #define VERIFY(i, ret) if (i != ret) { Close(); return 0; }
 // #define VERIFY_RANGE(i, range) if (((i)/100) != range) { Close(); return 0; }
 
-#define Verify(i, ret) { int Code = i; if (Code != ret) throw Code; }
+#define Verify(i, ret) { int Code = i; if (Code != (ret)) throw Code; }
 #define VerifyRange(i, range) { int Code = i; if ((Code/100) != range) throw Code; }
 
 IFtp::IFtp(/* FtpSocketFactory sockFactory, void *factoryParam */)
@@ -309,6 +239,11 @@ IFtp::IFtp(/* FtpSocketFactory sockFactory, void *factoryParam */)
 IFtp::~IFtp()
 {
 	DeleteObj(d);
+}
+
+const char *IFtp::GetError()
+{
+	return d->ErrBuf;
 }
 
 char *IFtp::ToFtpCs(char *s)
@@ -377,7 +312,7 @@ int IFtp::ReadLine(char *Msg, int MsgSize)
 			}
 
 			d->In.Delete(s);
-			DeleteArray(s);
+			d->ErrBuf.Reset(s);
 			
 			if (i)
 			{
