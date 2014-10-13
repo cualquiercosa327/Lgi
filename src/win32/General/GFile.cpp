@@ -8,6 +8,8 @@
 **		fret@memecode.com
 */
 
+#define DIR_PATH_SIZE	512
+
 /****************************** Includes ************************************************************************************/
 #include <winsock2.h>
 #include <shlobj.h>
@@ -251,7 +253,7 @@ bool ResolveShortcut(const char *LinkFile, char *Path, int Len)
 	HWND hwnd = NULL;
 	HRESULT hres;
 	IShellLink* psl;
-	char szGotPath[MAX_PATH] = "";
+	char szGotPath[DIR_PATH_SIZE] = "";
 	WIN32_FIND_DATA wfd;
 
 	CoInitialize(0);
@@ -264,9 +266,9 @@ bool ResolveShortcut(const char *LinkFile, char *Path, int Len)
 		hres = psl->QueryInterface(IID_IPersistFile, (void**) &ppf);
 		if (SUCCEEDED(hres))
 		{
-			char16 wsz[MAX_PATH];
+			char16 wsz[DIR_PATH_SIZE];
 
-			MultiByteToWideChar(CP_ACP, 0, LinkFile, -1, wsz, MAX_PATH);
+			MultiByteToWideChar(CP_ACP, 0, LinkFile, -1, wsz, DIR_PATH_SIZE);
 
 			char16 *l = StrrchrW(wsz, '.');
 			if (l && StricmpW(l, L".lnk"))
@@ -280,7 +282,7 @@ bool ResolveShortcut(const char *LinkFile, char *Path, int Len)
 				hres = psl->Resolve(hwnd, SLR_ANY_MATCH);
 				if (SUCCEEDED(hres))
 				{
-					hres = psl->GetPath(szGotPath, MAX_PATH, (WIN32_FIND_DATA *)&wfd, SLGP_SHORTPATH );
+					hres = psl->GetPath(szGotPath, DIR_PATH_SIZE, (WIN32_FIND_DATA *)&wfd, SLGP_SHORTPATH );
 
 					if (SUCCEEDED(hres) && strlen(szGotPath) > 0)
 					{
@@ -471,7 +473,7 @@ public:
 			}
 		}
 		
-		char p[MAX_PATH];
+		char p[DIR_PATH_SIZE];
 		if (Id)
 		{
 			_Path = GetWindowsFolder(Id);
@@ -484,7 +486,7 @@ public:
 
 	GWin32Volume(const char *Drive)
 	{
-		char VolName[MAX_PATH], System[MAX_PATH];
+		char VolName[DIR_PATH_SIZE], System[DIR_PATH_SIZE];
 		DWORD MaxPath;
 
 		IsRoot = false;
@@ -492,7 +494,7 @@ public:
 		if (type != DRIVE_UNKNOWN &&
 			type != DRIVE_NO_ROOT_DIR)
 		{
-			char Buf[MAX_PATH];
+			char Buf[DIR_PATH_SIZE];
 			char *Desc = 0;
 			switch (type)
 			{
@@ -542,7 +544,7 @@ public:
 
 			if (Desc)
 			{
-				char s[MAX_PATH];
+				char s[DIR_PATH_SIZE];
 				sprintf_s(s, sizeof(s), "%s (%.2s)", Desc, Drive);
 				_Name = NewStr(s);
 			}
@@ -934,7 +936,7 @@ bool GFileSystem::RemoveFolder(char *PathName, bool Recurse)
 		{
 			do
 			{
-				char Str[MAX_PATH];
+				char Str[DIR_PATH_SIZE];
 				if (Dir.Path(Str, sizeof(Str)))
 				{
 					if (Dir.IsDir())
@@ -1248,7 +1250,7 @@ bool GDirectory::ConvertToDate(char *Str, int SLen, uint64 Time)
 /////////////////////////////////////////////////////////////////////////////////
 struct GDirectoryPriv
 {
-	char			BasePath[MAX_PATH];
+	char			BasePath[DIR_PATH_SIZE];
 	GAutoString     Utf;
 	HANDLE			Handle;
 	union
@@ -1331,7 +1333,7 @@ int GDirectory::First(const char *Name, const char *Pattern)
 				char *path = LgiToNativeCp(Name);
 				if (path)
 				{
-					char n[MAX_PATH] = "";
+					char n[DIR_PATH_SIZE] = "";
 					GetFullPathName(path, sizeof(n), n, NULL);
 					DeleteArray(path);
 					
@@ -1348,7 +1350,7 @@ int GDirectory::First(const char *Name, const char *Pattern)
 				char16 *p = LgiNewUtf8To16(Name);
 				if (p)
 				{
-					char16 w[MAX_PATH];
+					char16 w[DIR_PATH_SIZE];
 					w[0] = 0;
 					DWORD Chars = GetFullPathNameW(p, CountOf(w), w, NULL);
 					if (Chars == 0)
@@ -1367,7 +1369,7 @@ int GDirectory::First(const char *Name, const char *Pattern)
 				}
 			}
 
-			char Str[MAX_PATH];
+			char Str[DIR_PATH_SIZE];
 			if (Pattern)
 			{
 				if (!LgiMakePath(Str, sizeof(Str), d->BasePath, Pattern))

@@ -477,8 +477,8 @@ public:
 	#define DeclGArrayCompare(func_name, type, user_type) \
 		int func_name(user_type param, type *a, type *b)
 	
-	template<typename T>
-	void Sort(int (*Compare)(T *user_param, Type*, Type*), T *user_param)
+	template<typename T, typename U>
+	void Sort(int (*Compare)(U user_param, T, T), U user_param)
 	{
 		typedef int (*qsort_s_compare)(void *, const void *, const void *);
 		qsort_s(p, len, sizeof(Type), (qsort_s_compare)Compare, user_param);
