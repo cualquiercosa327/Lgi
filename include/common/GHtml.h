@@ -149,6 +149,7 @@ public:
 	bool OnFind(class GFindReplaceCommon *Params);
 	virtual bool OnSubmitForm(GTag *Form);
 	virtual void OnCursorChanged() {}
+	virtual void OnLoad();
 };
 
 }

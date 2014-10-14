@@ -25,6 +25,8 @@
 #define DEBUG_TAG_BY_POS			0
 #define DEBUG_SELECTION				0
 
+#define DOCUMENT_LOAD_IMAGES		1
+
 #define LUIS_DEBUG					0
 #define CRASH_TRACE					0
 #ifdef MAC
@@ -131,6 +133,7 @@ public:
 	bool IsParsing;
 	int NextCtrlId;
 	uint64 SetScrollTime;
+	int DeferredLoads;
 	
 	// Find settings
 	GAutoWString FindText;
@@ -145,6 +148,7 @@ public:
 		SetScrollTime = 0;
 		CursorVis = false;
 		CursorPos.ZOff(-1, -1);
+		DeferredLoads = 0;
 
 		char EmojiPng[MAX_PATH];
 		#ifdef MAC
@@ -2265,7 +2269,7 @@ void GTag::SetImage(const char *Uri, GSurface *Img)
 
 void GTag::LoadImage(const char *Uri)
 {
-	#if 1
+	#if DOCUMENT_LOAD_IMAGES
 	if (!Html->Environment)
 		return;
 
@@ -2283,6 +2287,11 @@ void GTag::LoadImage(const char *Uri)
 		{
 			SetImage(Uri, j->pDC.Release());
 		}
+		else if (Result == GDocumentEnv::LoadDeferred)
+		{
+			Html->d->DeferredLoads++;
+		}
+				
 		DeleteObj(j);
 	}
 	#endif
@@ -2490,6 +2499,10 @@ void GTag::SetStyle()
 								}
 							}
 							else LgiAssert(!"Not impl.");
+						}
+						else if (Result == GDocumentEnv::LoadDeferred)
+						{
+							Html->d->DeferredLoads++;
 						}
 
 						DeleteObj(j);
@@ -5836,6 +5849,7 @@ void GHtml::_New()
 	#endif
 
 	d->Content.x = d->Content.y = 0;
+	d->DeferredLoads = 0;
 	Tag = 0;
 	DocCharSet.Reset();
 
@@ -6044,18 +6058,6 @@ bool GHtml::Name(const char *s)
 {
 	SetDocumentUid(GetDocumentUid()+1);
 
-	#if 0
-	GFile Out;
-	if (s && Out.Open("~\\Desktop\\html-input.html", O_WRITE))
-	{
-		Out.SetSize(0);
-		Out.Write(s, strlen(s));
-		Out.Close();
-	}
-	#endif
-
-	// LgiAssert(LgiApp->GetGuiThread() == LgiGetCurrentThread());
-
 	_Delete();
 	_New();
 
@@ -6076,19 +6078,15 @@ bool GHtml::Name(const char *s)
 		DeleteArray(t);
 	}
 
-	#if 0
-	GFile f;
-	f.Open("c:\\temp\\broken.html", O_WRITE);
-	{
-		f.Write(Source, strlen(Source));
-		f.Close();
-	}
-	#endif
-
 	// Parse
 	d->IsParsing = true;
 	ParseDocument(s);
 	d->IsParsing = false;
+
+	if (d->DeferredLoads == 0)
+	{
+		OnLoad();
+	}
 
 	Invalidate();	
 
@@ -6171,6 +6169,15 @@ GMessage::Result GHtml::OnEvent(GMessage *Msg)
 				}
 				JobSem.Jobs.DeleteObjects();
 				JobSem.Unlock();
+			}
+			
+			if (d->DeferredLoads > 0)
+			{
+				d->DeferredLoads--;
+				if (d->DeferredLoads == 0)
+				{
+					OnLoad();
+				}
 			}
 
 			if (Update)
@@ -7102,6 +7109,11 @@ void GHtml::OnMouseClick(GMouse &m)
 																if (j->Filename)
 																	strcpy_s(File, sizeof(File), j->Filename);
 															}
+															else if (Result == GDocumentEnv::LoadDeferred)
+															{
+																d->DeferredLoads++;
+															}
+															
 															DeleteObj(j);
 														}
 													}
@@ -7205,6 +7217,11 @@ void GHtml::OnMouseClick(GMouse &m)
 			#endif
 		}
 	}
+}
+
+void GHtml::OnLoad()
+{
+	SendNotify(GTVN_DOC_LOADED);
 }
 
 GTag *GHtml::GetTagByPos(int x, int y, int *Index, GdcPt2 *LocalCoords, bool DebugLog)

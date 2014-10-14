@@ -312,6 +312,11 @@ bool GDragDropSource::CreateFileDrop(GVariant *OutputData, GMouse &m, List<char>
 	return false;
 }
 
+bool GDragDropSource::SetIcon(GSurface *Img, GRect *SubRgn)
+{
+	return false;
+}
+
 int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 {
 	LgiAssert(SourceWnd);

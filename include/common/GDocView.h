@@ -29,6 +29,8 @@ enum GDocViewNotify
 	GTVN_FIXED_WIDTH_CHANGED		= 0x10,
 	/// GView::OnNotify flag: the show images setting has changed
 	GTVN_SHOW_IMGS_CHANGED			= 0x20,
+	/// The view has loaded all it's referenced content
+	GTVN_DOC_LOADED					= 0x100,
 };
 
 // Util macros
