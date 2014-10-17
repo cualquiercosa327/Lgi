@@ -166,10 +166,10 @@ public:
 		
 		if (Buf.Length())
 		{
-			// Move any existing data down to the start of the buffer
+			// Move any consumed data down to the start of the buffer
 			int BytePos = Pos.u8 - &Buf[0];
 			int Remaining = Used - BytePos;
-			if (Remaining > 0)
+			if (BytePos > 0)
 			{
 				memmove(&Buf[0], &Buf[BytePos], Remaining);
 				Used = Remaining;

@@ -198,7 +198,7 @@ public:
 					
 					for (w = Popups.First(); w; w = Popups.Next())
 					{
-						#if 1
+						#if 0
 						LgiTrace("PopupLoop: Over=%p w=%p, w->Vis=%i, Time=%i\n",
 							Over,
 							w,
@@ -272,10 +272,10 @@ public:
 							*/
 							#endif
 
-							LgiTrace("    Close=%i\n", Close);
+							// LgiTrace("    Close=%i\n", Close);
 							if (Close)
 							{
-								LgiTrace("Sending M_SET_VISIBLE(%i) to %s\n", false, w->GetClass());
+								// LgiTrace("Sending M_SET_VISIBLE(%i) to %s\n", false, w->GetClass());
 								w->PostEvent(M_SET_VISIBLE, false);
 							}
 						}
@@ -570,7 +570,7 @@ GMessage::Param GPopup::OnEvent(GMessage *Msg)
 		#if WINNATIVE
 		case WM_DESTROY:
 		{
-			LgiTrace("Popup Destroyed.\n");
+			// LgiTrace("Popup Destroyed.\n");
 			break;
 		}
 		case M_SET_VISIBLE:
@@ -859,7 +859,7 @@ void GPopup::Visible(bool i)
 		}
 	}
 	
-	LgiTrace("%s HasFocus=%i\n", GetClass(), HadFocus);
+	// LgiTrace("%s HasFocus=%i\n", GetClass(), HadFocus);
 	
 	if (d->TakeFocus || !i)
 		GView::Visible(i);
