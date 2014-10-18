@@ -49,7 +49,7 @@ public:
 	virtual char *Name() = 0;
 
 	// Fields
-	virtual GDbField &operator [](int Index) = 0;
+	virtual GDbField &operator [](unsigned Index) = 0;
 	virtual GDbField &operator [](const char *Name) = 0;
 	virtual GDbField *InsertField(	const char *Name,
 									int Type,

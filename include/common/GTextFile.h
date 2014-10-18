@@ -50,7 +50,7 @@ public:
 		
 		return GFile::GetVariant(Name, Value, Array);
 	}
-	
+		
 	int Read(void *Buffer, int Size, int Flags = 0)
 	{
 		int Rd = GFile::Read(Buffer, Size, Flags);
@@ -100,12 +100,14 @@ public:
 					GUtf8Ptr utf(buf);
 					bool InvalidUtf = false;
 					while (utf.GetPtr() < end)
-					{
-						if (utf++ < 0)
+					{						
+						int32 u = utf;
+						if (u < 0)
 						{
 							InvalidUtf = true;
 							break;
 						}
+						utf++;
 					}
 					
 					if (!InvalidUtf)
@@ -120,7 +122,7 @@ public:
 						bool HasNull = false;
 
 						int u16 = 0, u32 = 0;
-						for (int i=0; i<min(Used, 1024); i++)
+						for (int i=0; i<min(Rd, 1024); i++)
 						{
 							if (p.u16 + i < (uint16*)(end-1))
 							{
@@ -161,7 +163,8 @@ public:
 		if (!Buf.Length())
 		{
 			Buf.Length(4 << 10);
-			Used = Read(Pos.u8 = &Buf[0], Buf.Length());
+			Pos.u8 = &Buf[0];
+			Used = 0;
 		}
 		
 		if (Buf.Length())
@@ -169,7 +172,7 @@ public:
 			// Move any consumed data down to the start of the buffer
 			int BytePos = Pos.u8 - &Buf[0];
 			int Remaining = Used - BytePos;
-			if (BytePos > 0)
+			if (BytePos > 0 && Remaining > 0)
 			{
 				memmove(&Buf[0], &Buf[BytePos], Remaining);
 				Used = Remaining;

@@ -55,9 +55,9 @@ class SvRecordset : public GDbRecordset
 	SvDb *Parent;
 
 	GAutoString FileName;
-	List<SvField> F;
-	List<SvRecord> R;
-	GAutoPtr<List<SvRecord>::I> Cur;
+	GArray<SvField*> F;
+	GArray<SvRecord*> R;
+	unsigned Cur;
 	SvRecord *Temp;
 	SvRecord *New;
 	bool Dirty;
@@ -73,7 +73,7 @@ public:
 	~SvRecordset();
 
 	char *Name();
-	GDbField &operator [](int Index);
+	GDbField &operator [](unsigned Index);
 	GDbField &operator [](const char *Name);
 	GDbField *InsertField(const char *Name, int Type, int Len, int Index);
 	bool DeleteField(GDbField *Fld);
@@ -234,7 +234,7 @@ public:
 		{
 			In += RawLen;
 			while (*In == '\r' || *In == '\n') In++;
-			Raw.Reset(LgiNewUtf16To8(Start, RawLen));
+			Raw.Reset(LgiNewUtf16To8(Start, RawLen * sizeof(char16)));
 
 			if (Raw && SetFields(Flds))
 			{
@@ -464,7 +464,7 @@ void SvRecordset::Read()
 						char *Name = r->Data[i];
 						GAutoString Field(TrimStr(Name, " \r\t\n\""));
 						if (Field)
-							F.Insert(new SvField(this, i, Field));
+							F.Add(new SvField(this, i, Field));
 					}
 					
 					DeleteObj(r);
@@ -476,15 +476,15 @@ void SvRecordset::Read()
 						char Name[32];
 						sprintf_s(Name, sizeof(Name), "Field%i", n);
 						GAutoString a(NewStr(Name));
-						F.Insert(new SvField(this, n, a));
+						F.Add(new SvField(this, n, a));
 					}
 					
-					R.Insert(r);
+					R.Add(r);
 				}
 			}
 			else
 			{
-				R.Insert(r);
+				R.Add(r);
 			}
 		}
 	}
@@ -500,13 +500,11 @@ void SvRecordset::Write()
 		f.SetSize(0);
 
 		// Headers
-		for (SvField *Fld = F.First(); Fld; )
+		for (unsigned Idx = 0; Idx < F.Length(); Idx++)
 		{
-			SvField *Nxt = F.Next();
+			SvField *Fld = F[Idx];
 			char *Name = Fld->Name();
-			f.Write(s, sprintf_s(s, sizeof(s), "\"%s\"", Name));
-			if (Nxt) f.Write((void*)",", 1);
-			Fld = Nxt;
+			f.Write(s, sprintf_s(s, sizeof(s), "%s\"%s\"", Idx ? "," : "", Name));
 		}
 		f.Write((void*)EOL_SEQUENCE, NewLine);
 	
@@ -514,7 +512,7 @@ void SvRecordset::Write()
 		for (bool b = MoveFirst(); b; b = MoveNext())
 		{
 			GVariant v;
-			for (int i=0; i<F.Length(); i++)
+			for (unsigned i=0; i<F.Length(); i++)
 			{
 				if (i)
 				{
@@ -552,14 +550,15 @@ void SvRecordset::Write()
 SvRecord *SvRecordset::Record()
 {
 	if (Temp) return Temp;
-	if (New) return New;
-	if (Cur) return **Cur;
-	return 0;
+	if (New) return New;	
+	if (Cur < R.Length())
+		return R[Cur];
+	return NULL;
 }
 
 static GDbField Null;
 
-GDbField &SvRecordset::operator [](int Index)
+GDbField &SvRecordset::operator [](unsigned Index)
 {
 	if (Index >= 0 && Index < F.Length())
 		return *F[Index];
@@ -571,8 +570,9 @@ GDbField &SvRecordset::operator [](const char *Name)
 {
 	if (Name)
 	{
-		for (GDbField *f=F.First(); f; f=F.Next())
+		for (unsigned i=0; i<F.Length(); i++)
 		{
+			GDbField *f = F[i];
 			if (f->Name() && _stricmp(Name, f->Name()) == 0)
 			{
 				return *f;
@@ -593,7 +593,7 @@ GDbField *SvRecordset::InsertField(const char *Name, int Type, int Length, int I
 	SvField *f = new SvField(this, Index, n);
 	if (f)
 	{
-		F.Insert(f, Index);
+		F.AddAt(Index, f);
 	}
 	return f;
 }
@@ -610,7 +610,7 @@ int SvRecordset::Fields()
 
 bool SvRecordset::End()
 {
-	return !Cur || !Cur->Current();
+	return Cur > R.Length();
 }
 
 bool SvRecordset::AddNew()
@@ -623,9 +623,9 @@ bool SvRecordset::AddNew()
 bool SvRecordset::Edit()
 {
 	Update();
-	if (Cur && **Cur)
+	if (Cur < R.Length())
 	{
-		Temp = new SvRecord(this, **Cur);
+		Temp = new SvRecord(this, R[Cur]);
 	}
 	return Temp != 0;
 }
@@ -634,7 +634,7 @@ bool SvRecordset::Update()
 {
 	if (Temp)
 	{
-		SvRecord *c = Cur ? **Cur : 0;
+		SvRecord *c = Cur < R.Length() ? R[Cur] : NULL;
 		if (c)
 		{
 			*c = *Temp;
@@ -645,7 +645,7 @@ bool SvRecordset::Update()
 	}
 	else if (New)
 	{
-		R.Insert(New);
+		R.Add(New);
 		New = 0;
 		Dirty = true;
 		return true;
@@ -663,71 +663,48 @@ void SvRecordset::Cancel()
 bool SvRecordset::MoveFirst()
 {
 	Cancel();
-
-	if (!Cur)
-	{
-		Cur.Reset(new List<SvRecord>::I(R.Start()));
-	}
-
-	if (Cur)
-	{
-		return Cur->First() != NULL;
-	}
-
-	return false;
+	Cur = 0;
+	return R.Length() > 0;
 }
 
 bool SvRecordset::MoveNext()
 {
 	Cancel();
-
-	return Cur ? Cur->Next() != NULL : false;
+	Cur++;
+	return Cur < R.Length();
 }
 
 bool SvRecordset::MovePrev()
 {
 	Cancel();
-
-	return Cur ? Cur->Prev() != NULL : false;
+	
+	if (Cur == 0)
+		return false;
+	Cur--;
+	return Cur < R.Length();
 }
 
 bool SvRecordset::MoveLast()
 {
 	Cancel();
 
-	if (!Cur)
-	{
-		Cur.Reset(new List<SvRecord>::I(R.Start()));
-	}
-
-	if (Cur)
-	{
-		return Cur->Last() != NULL;
-	}
-
-	return false;
+	if (R.Length() == 0)
+		return false;
+	
+	Cur = R.Length()-1;
+	return true;
 }
 
 int SvRecordset::SeekRecord(int i)
 {
 	Cancel();
-
-	if (!Cur)
-	{
-		Cur.Reset(new List<SvRecord>::I(R.Start()));
-	}
-
-	if (Cur && (*Cur)[i])
-	{
-		return true;
-	}
-	
-	return false;
+	Cur = i;
+	return Cur < R.Length();
 }
 
 int SvRecordset::RecordIndex()
 {
-	return Cur ? R.IndexOf(**Cur) : -1;
+	return Cur;
 }
 
 int SvRecordset::Records()
@@ -737,7 +714,7 @@ int SvRecordset::Records()
 
 bool SvRecordset::DeleteRecord()
 {
-	return 0;
+	return false;
 }
 
 char SvRecordset::GetSep()
