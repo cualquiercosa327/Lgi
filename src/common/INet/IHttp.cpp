@@ -92,7 +92,7 @@ void IHttp::SetAuth(char *User, char *Pass)
 	AuthPassword = NewStr(Pass);
 }
 
-bool IHttp::Open(GAutoPtr<GSocketI> S, char *RemoteHost, int Port)
+bool IHttp::Open(GAutoPtr<GSocketI> S, const char *RemoteHost, int Port)
 {
 	Close();
 	Socket = S;
@@ -372,7 +372,7 @@ enum HttpRequestType
 bool IHttp::Request
 (
 	const char *Type,
-	char *Uri,
+	const char *Uri,
 	int *ProtocolStatus,
 	const char *InHeaders,
 	GStreamI *InBody,

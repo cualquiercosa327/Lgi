@@ -203,32 +203,35 @@ int GEndOfLine::IsEnd(void *s, int Len)
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-int GCopyStreamer::Copy(GStreamI *Source, GStreamI *Dest, GStreamEnd *End)
+int64 GCopyStreamer::Copy(GStreamI *Source, GStreamI *Dest, GStreamEnd *End)
 {
-	int Bytes = 0;
+	if (!Source || !Dest || !Buf)
+		return -1;
+
+	int64 Bytes = 0;
 	int r, w, e = -1;
+	StartTime = LgiCurrentTime();
 
-	if (Source && Dest)
+	while (e < 0)
 	{
-		char Buf[4 << 10];
-		while (e < 0)
+		if ((r = Source->Read(Buf, Size)) > 0)
 		{
-			if ((r = Source->Read(Buf, sizeof(Buf))) > 0)
+			if (End)
 			{
-				if (End)
-				{
-					e = End->IsEnd(Buf, r);
-				}
+				e = End->IsEnd(Buf, r);
+			}
 
-				if ((w = Dest->Write(Buf, e >= 0 ? min(e, r) : r)) > 0)
-				{
-					Bytes += w;
-				}
-				else break;
+			if ((w = Dest->Write(Buf, e >= 0 ? min(e, r) : r)) > 0)
+			{
+				Bytes += w;
+				Total += w;
 			}
 			else break;
 		}
+		else break;
 	}
+	
+	EndTime = LgiCurrentTime();
 
 	return Bytes;
 }

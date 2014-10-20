@@ -90,9 +90,10 @@ public:
 /// Generic streaming operator
 class LgiClass GStreamer
 {
-	int StartTime;
-	int EndTime;
-	int Total;
+protected:
+	uint64 StartTime;
+	uint64 EndTime;
+	uint64 Total;
 	int Size;
 	char *Buf;
 
@@ -126,10 +127,10 @@ public:
 };
 
 /// API to read from source and then write to a destination
-class LgiClass GCopyStreamer
+class LgiClass GCopyStreamer : public GStreamer
 {
 public:
-	virtual int Copy(GStreamI *Source, GStreamI *Dest, GStreamEnd *End = 0);
+	virtual int64 Copy(GStreamI *Source, GStreamI *Dest, GStreamEnd *End = 0);
 };
 
 /// In memory stream for storing sub-streams or memory blocks

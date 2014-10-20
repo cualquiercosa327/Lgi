@@ -98,7 +98,8 @@ public:
 				{
 					case IDM_NEW_CHILD:
 					{
-						Insert(new CtNode(d, Str->UpdateWnd, 0));
+						// Insert at the start... user can use "next" for positions other than the start.
+						Insert(new CtNode(d, Str->UpdateWnd, 0), 0);
 						Expanded(true);
 						break;
 					}

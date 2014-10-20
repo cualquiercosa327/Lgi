@@ -45,14 +45,14 @@ public:
 	char *GetHeaders() { return Headers; }
 	
 	// Connection
-	bool Open(GAutoPtr<GSocketI> S, char *RemoteHost, int Port = 0);
+	bool Open(GAutoPtr<GSocketI> S, const char *RemoteHost, int Port = 0);
 	bool Close();
 	bool IsOpen();
 	GSocketI *GetSocket() { return Socket; }
 
 	// General
 	bool Request(	const char *Type,
-					char *Uri,
+					const char *Uri,
 					int *ProtocolStatus,
 					const char *InHeaders,
 					GStreamI *InBody,
@@ -60,7 +60,7 @@ public:
 					GStreamI *OutHeaders,
 					ContentEncoding *OutEncoding);
 
-	bool Get(		char *Uri,
+	bool Get(		const char *Uri,
 					const char *InHeaders,
 					int *ProtocolStatus,
 					GStreamI *Out,
