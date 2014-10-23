@@ -92,6 +92,9 @@ public:
 
 	// Type of sampling to use
 	GZoomView::SampleMode SampleMode;
+	
+	// Default zooming behaviour
+	GZoomView::DefaultZoomMode DefaultZoom;
 
 	// Threading stuff
 	enum WorkerMode
@@ -118,6 +121,7 @@ public:
 		pDC = NULL;
 		
 		SampleMode = GZoomView::SampleNearest;
+		DefaultZoom = GZoomView::ZoomFitBothAxis;
 	}
 	
 	~GZoomViewPriv()
@@ -230,15 +234,42 @@ public:
 			GRect c = View->GetClient();
 			int z;
 
-			for (z=-20; z<=0; z++)
+			bool Loop = true;
+			for (z=-20; Loop && z<=0; z++)
 			{
 				float s = ZoomToScale(z);
 				int x = (int) (s * pDC->X());
 				int y = (int) (s * pDC->Y());
-				if (x >= c.X() || y >= c.Y())
+				
+				switch (DefaultZoom)
 				{
-					z--;
-					break;
+					case GZoomView::ZoomFitBothAxis:
+					{
+						if (x >= c.X() || y >= c.Y())
+						{
+							z--;
+							Loop = false;
+						}
+						break;
+					}
+					case GZoomView::ZoomFitX:
+					{
+						if (x >= c.X())
+						{
+							z--;
+							Loop = false;
+						}
+						break;
+					}
+					case GZoomView::ZoomFitY:
+					{
+						if (y >= c.Y())
+						{
+							z--;
+							Loop = false;
+						}
+						break;
+					}
 				}
 			}
 			
@@ -1189,6 +1220,16 @@ GZoomView::ViewportInfo GZoomView::GetViewport()
 	return v;
 }
 
+void GZoomView::SetDefaultZoomMode(DefaultZoomMode m)
+{
+	d->DefaultZoom = m;
+}
+
+GZoomView::DefaultZoomMode GZoomView::GetDefaultZoomMode()
+{
+	return d->DefaultZoom;
+}
+
 void GZoomView::SetSampleMode(SampleMode sm)
 {
 	d->SampleMode = sm;
@@ -1696,7 +1737,7 @@ class GZoomViewFactory : public GViewFactory
 public:
 	GView *NewView(const char *Class, GRect *Pos, const char *Text)
 	{
-		if (!stricmp(Class, "GZoomView"))
+		if (!_stricmp(Class, "GZoomView"))
 			return new GZoomView(NULL);
 		
 		return NULL;

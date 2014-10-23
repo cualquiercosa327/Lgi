@@ -6121,6 +6121,7 @@ GMessage::Result GHtml::OnEvent(GMessage *Msg)
 		case M_JOBS_LOADED:
 		{
 			bool Update = false;
+			int InitDeferredLoads = d->DeferredLoads;
 			
 			if (JobSem.Lock(_FL))
 			{
@@ -6135,6 +6136,9 @@ GMessage::Result GHtml::OnEvent(GMessage *Msg)
 						j->UserData != NULL)
 					{
 						Html1::GTag *r = static_cast<Html1::GTag*>(j->UserData);
+						
+						if (d->DeferredLoads > 0)
+							d->DeferredLoads--;
 						
 						// Check the tag is still in our tree...
 						if (Tag->HasChild(r))
@@ -6171,13 +6175,11 @@ GMessage::Result GHtml::OnEvent(GMessage *Msg)
 				JobSem.Unlock();
 			}
 			
-			if (d->DeferredLoads > 0)
+			if (InitDeferredLoads > 0 && d->DeferredLoads <= 0)
 			{
-				d->DeferredLoads--;
-				if (d->DeferredLoads == 0)
-				{
-					OnLoad();
-				}
+				LgiAssert(d->DeferredLoads == 0);
+				d->DeferredLoads = 0;
+				OnLoad();
 			}
 
 			if (Update)

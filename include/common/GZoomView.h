@@ -51,6 +51,17 @@ public:
 		SampleAverage,
 		SampleMax,
 	};
+	
+	enum DefaultZoomMode
+	{
+		ZoomFitBothAxis,
+		ZoomFitX,
+		ZoomFitY,
+		/* Not implemented yet...
+		ZoomFitLongest,
+		ZoomFitShortest,
+		*/
+	};
 
 	// Notifications
 	enum NotifyEvents
@@ -67,6 +78,8 @@ public:
 	ViewportInfo GetViewport();
 	void SetViewport(ViewportInfo i);
 	void SetSampleMode(SampleMode sm);
+	void SetDefaultZoomMode(DefaultZoomMode m);
+	DefaultZoomMode GetDefaultZoomMode();
 
 	// Subclass
 	void SetSurface(GSurface *dc, bool own);

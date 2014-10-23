@@ -832,6 +832,13 @@ GFilter::IoStatus GdcJpeg::WriteImage(GStream *Out, GSurface *pDC)
 		Dpi.x = DpiX.CastInt32();
 		Dpi.y = DpiY.CastInt32();
 	}
+	else
+	{
+		Quality = 80;
+		SubSample = Sample_1x1_1x1_1x1;
+		Dpi.x = 300;
+		Dpi.y = 300;
+	}
 
 	return _Write(Out, pDC, Quality.CastInt32(), (SubSampleMode)SubSample.CastInt32(), Dpi);
 }
