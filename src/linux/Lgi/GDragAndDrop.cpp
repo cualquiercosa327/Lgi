@@ -81,6 +81,11 @@ GDragDropSource::~GDragDropSource()
 	DeleteObj(d);
 }
 
+bool GDragDropSource::SetIcon(GSurface *Img, GRect *SubRgn)
+{
+	return false;
+}
+
 bool GDragDropSource::CreateFileDrop(::GVariant *OutputData, GMouse &m, List<char> &Files)
 {
 	if (OutputData && Files.First())
