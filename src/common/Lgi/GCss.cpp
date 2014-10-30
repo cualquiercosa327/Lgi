@@ -2572,7 +2572,7 @@ bool GCss::Store::Parse(const char *&c, int Depth)
 		{
 			SkipWhiteSpace(c);
 			
-			if (Cur->IsAtMedia())
+			if (Cur && Cur->IsAtMedia())
 			{
 				// At media rules, so create a child store and put all the rules in there...
 				if (Cur->Children.Reset(new GCss::Store))
