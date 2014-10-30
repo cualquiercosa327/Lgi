@@ -554,6 +554,8 @@ public:
 			return true;
 		}
 	};
+	
+	class Store;
 
 	/// This class parses and stores a selector. The job of matching selectors and
 	/// hashing them is still the responsibility of the calling library. If an application
@@ -622,6 +624,7 @@ public:
 		GArray<int> Combs;
 		char *Style;
 		GAutoString Raw;
+		GAutoPtr<class Store> Children;
 
 		Selector() { Style = NULL; }
 		bool TokString(GAutoString &a, const char *&s);
@@ -629,6 +632,7 @@ public:
 		GAutoString Print();
 		bool Parse(const char *&s);
 		int GetSimpleIndex() { return Combs.Length() ? Combs[Combs.Length()-1] + 1 : 0; }
+		bool IsAtMedia();
 		
 		Selector &operator =(const Selector &s);
 	};
@@ -902,7 +906,7 @@ public:
 		}
 
 		/// Parse general CSS into selectors.		
-		bool Parse(const char *&s);
+		bool Parse(const char *&s, int Depth = 0);
 
 		/// Use to finding matching selectors for an element.
 		template<typename T>

@@ -2240,6 +2240,15 @@ GAutoString GCss::Selector::Print()
 	return GAutoString(p.NewStr());
 }
 
+bool GCss::Selector::IsAtMedia()
+{
+	if (Parts.Length() <= 0)
+		return false;
+	
+	Part &p = Parts[0];
+	return p.Type == SelMedia && p.Media != MediaNull;
+}
+
 bool GCss::Selector::Parse(const char *&s)
 {
 	if (!s)
@@ -2498,7 +2507,7 @@ bool GCss::Store::Dump(GStream &out)
 	return true;
 }
 
-bool GCss::Store::Parse(const char *&c)
+bool GCss::Store::Parse(const char *&c, int Depth)
 {
 	if (!c)
 		return false;
@@ -2517,10 +2526,17 @@ bool GCss::Store::Parse(const char *&c)
 		if (!strncmp(c, "-->", 3))
 			break;
 
+		SkipWhiteSpace(c);
+		if (*c == '}' && Depth > 0)
+		{
+			c++;
+			return true;
+		}
+
 		// read selector
 		GArray<GCss::Selector*> Selectors;
 		GCss::Selector *Cur = new GCss::Selector;
-
+		
 		if (Cur->Parse(c))
 			Selectors.Add(Cur);
 		else
@@ -2555,62 +2571,75 @@ bool GCss::Store::Parse(const char *&c)
 		if (*c++ == '{')
 		{
 			SkipWhiteSpace(c);
-
-			const char *Start = c;
-			while (*c && *c != '}') c++;
-			char *Style = NewStr(Start, c - Start);
-			Styles.Add(Style);
-			c++;
 			
-			for (int i=0; i<Selectors.Length(); i++)
+			if (Cur->IsAtMedia())
 			{
-				GCss::Selector *s = Selectors[i];
-				s->Style = Style;
-				
-				int n = s->GetSimpleIndex();
-				if (n >= s->Parts.Length())
+				// At media rules, so create a child store and put all the rules in there...
+				if (Cur->Children.Reset(new GCss::Store))
 				{
-					char err[256];
-					sprintf_s(err, sizeof(err), "ErrSimpleIndex %i>=%i @ '%.80s'", n, s->Parts.Length(), c);
-					Error.Reset(NewStr(err));
-					LgiAssert(!"Part index too high.");
-					return false;
+					if (!Cur->Children->Parse(c, Depth + 1))
+						return false;
 				}
-				GCss::Selector::Part &p = s->Parts[n];
+			}
+			else
+			{
+				// Normal rule...
+				const char *Start = c;
+				while (*c && *c != '}') c++;
+				char *Style = NewStr(Start, c - Start);
+				Styles.Add(Style);
+				c++;
 				
-				switch (p.Type)
+				for (int i=0; i<Selectors.Length(); i++)
 				{
-					case GCss::Selector::SelType:
+					GCss::Selector *s = Selectors[i];
+					s->Style = Style;
+					
+					int n = s->GetSimpleIndex();
+					if (n >= s->Parts.Length())
 					{
-						if (p.Value)
-						{
-							SelArray *a = TypeMap.Get(p.Value);
-							a->Add(s);
-						}
-						break;
+						char err[256];
+						sprintf_s(err, sizeof(err), "ErrSimpleIndex %i>=%i @ '%.80s'", n, s->Parts.Length(), c);
+						Error.Reset(NewStr(err));
+						LgiAssert(!"Part index too high.");
+						return false;
 					}
-					case GCss::Selector::SelClass:
+					GCss::Selector::Part &p = s->Parts[n];
+					
+					switch (p.Type)
 					{
-						if (p.Value)
+						case GCss::Selector::SelType:
 						{
-							SelArray *a = ClassMap.Get(p.Value);
-							a->Add(s);
+							if (p.Value)
+							{
+								SelArray *a = TypeMap.Get(p.Value);
+								a->Add(s);
+							}
+							break;
 						}
-						break;
-					}
-					case GCss::Selector::SelID:
-					{
-						if (p.Value)
+						case GCss::Selector::SelClass:
 						{
-							SelArray *a = IdMap.Get(p.Value);
-							a->Add(s);
+							if (p.Value)
+							{
+								SelArray *a = ClassMap.Get(p.Value);
+								a->Add(s);
+							}
+							break;
 						}
-						break;
-					}
-					default:
-					{
-						Other.Add(s);
-						break;
+						case GCss::Selector::SelID:
+						{
+							if (p.Value)
+							{
+								SelArray *a = IdMap.Get(p.Value);
+								a->Add(s);
+							}
+							break;
+						}
+						default:
+						{
+							Other.Add(s);
+							break;
+						}
 					}
 				}
 			}
