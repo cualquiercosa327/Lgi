@@ -1619,6 +1619,7 @@ void GTree::SelectDropTarget(GTreeItem *Item)
 		GTreeItem *Old = d->DropTarget;
 		
 		d->DropTarget = Item;
+		printf("    Setting DropTarget = %p\n", d->DropTarget);
 		if (Old)
 		{
 			Old->Update();
