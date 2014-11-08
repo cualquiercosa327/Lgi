@@ -431,7 +431,6 @@ printf("\tGView=%p\n", gv);
 						TmpFormats.Insert(NewStr(s));
 					}
 					
-					printf("WillAccept msg=0x%x\n", tracking ? *tracking : 0);
 					if (Target->WillAccept(TmpFormats, Pt, 0))
 					{
 						TmpFormats.DeleteArrays();
@@ -457,7 +456,6 @@ printf("\tTarget(%s) not accepting these formats.\n", gv?gv->GetClass():"(none)"
 			{
 				if (tracking)
 				{
-					// printf("Tracking = %04.4s\n", tracking);
 					if (*tracking == kDragTrackingLeaveHandler)
 					{
 						// noop
@@ -465,18 +463,15 @@ printf("\tTarget(%s) not accepting these formats.\n", gv?gv->GetClass():"(none)"
 					else if (*tracking == kDragTrackingLeaveWindow)
 					{
 						MatchingTarget->OnDragExit();
-						// printf("OnDragExit\n");
 					}
 					else
 					{											
 						if (*tracking == kDragTrackingEnterWindow)
 						{
 							MatchingTarget->OnDragEnter();
-							// printf("OnDragEnter\n");
 						}
 
 						MatchingTarget->WillAccept(Formats, Pt, 0);
-						// printf("WillAccept=%i\n", Effect);
 					}
 				}
 				else // drop
@@ -597,6 +592,29 @@ printf("\tTarget(%s) not accepting these formats.\n", gv?gv->GetClass():"(none)"
 					MatchingTarget->OnDragExit();
 				}
 			}
+
+			#if 0
+			// When there is no drop target
+			if (gv = v->GetGView())
+			{
+				static GView *Last = 0;
+				if (gv != Last)
+				{
+					Last = gv;
+					while (gv)
+					{
+						Target = gv->DropTargetPtr();
+						if (!Target)
+						{
+							printf("\t%p %s %.20s\n", gv, gv->GetClassName(), gv->Name());
+							GViewI *p = gv->GetParent();
+							gv = p ? p->GetGView() : 0;
+						}
+						else break;
+					}
+				}
+			}
+			#endif
 		}
 		else LgiTrace("%s:%i - No view.\n", _FL);
 	}

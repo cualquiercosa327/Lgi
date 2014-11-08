@@ -38,6 +38,7 @@ struct GMidiPriv
         GArray<MIDIDeviceRef> Devs;
         GArray<MIDIEndpointRef> Srcs, Dsts;
         MIDIEndpointRef Dst;
+		GArray<uint8> Data;
 	#elif defined(WINDOWS)
         HMIDIIN hIn;
         HMIDIOUT hOut;
@@ -100,11 +101,45 @@ void MidiRead(const MIDIPacketList *pktlist, void *readProcRefCon, void *srcConn
 	GMidi *a = (GMidi*)readProcRefCon;
 	if (a)
 	{
+		GArray<uint8> *d = &a->d->Data;
+		
+		// Collect all data from the input stream
 		MIDIPacket *packet = (MIDIPacket*)pktlist->packet;
 		for (unsigned int j = 0; j < pktlist->numPackets; j++)
 		{
-			a->OnMidiIn(packet->data, packet->length);
+			for (unsigned i=0; i<packet->length; i++)
+				d->Add(packet->data[i]);
 			packet = MIDIPacketNext(packet);
+		}
+
+		// Parse into full MIDI packets
+		int Len;
+		while
+		(
+			(
+				Len = a->GetMidiPacketSize( &(*d)[0], d->Length() )
+			)
+			> 0
+		)
+		{
+			// Send full packet to the app
+			a->OnMidiIn(&(*d)[0], Len);
+			
+			// Remove the message from the buffer
+			if (d->Length() > Len)
+			{
+				int Remaining = d->Length() - Len;
+				if (Remaining > 0)
+				{
+					memmove(&(*d)[0], &d[Len], Remaining);
+					d->Length(Remaining);
+				}
+			}
+			else
+			{
+				d->Length(0);
+				break;
+			}
 		}
 	}
 }
@@ -438,6 +473,7 @@ bool GMidi::Connect(int InIdx, int OutIdx, GAutoString *ErrorMsg)
 				}
 				else
 				{
+					Status = true;
 				    if (GetLog())
 					    GetLog()->Print("Created midi client ok.\n");
 				}

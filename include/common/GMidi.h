@@ -21,7 +21,7 @@ class GMidi : public GMutex
 
 	void OnError(char *Func, GAutoString *Error, uint32 Code, char *File, int Line);
 
-	#ifdef WIN32
+	#if defined WIN32
 	friend class GMidiNotifyWnd;
 	friend void CALLBACK MidiInProc(HMIDIIN hmi, UINT wMsg, MIDI_TYPE dwInstance, MIDI_TYPE dwParam1, MIDI_TYPE dwParam2);
 	void StoreMidi(uint8 *ptr, int len);
@@ -37,6 +37,7 @@ protected:
     
     #ifdef MAC
     friend void MidiNotify(const MIDINotification *message, void *refCon);
+	friend void MidiRead(const MIDIPacketList *pktlist, void *readProcRefCon, void *srcConnRefCon);
     virtual void OnMidiNotify(const MIDINotification *message);
     #endif
 
