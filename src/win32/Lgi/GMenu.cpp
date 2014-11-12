@@ -1072,13 +1072,13 @@ bool GMenu::OnKey(GView *v, GKey &k)
 				if (!i || i->Enabled())
 				{
 					Window->OnCommand(a->GetId(), 0, 0);
-					return false;
+					return true;
 				}
 			}
 		}
 	}
 
-	return true;
+	return false;
 }
 
 int GMenu::_OnEvent(GMessage *Msg)
@@ -1185,9 +1185,9 @@ bool GAccelerator::Match(GKey &k)
 	{
 		if
 		(
-			(TestFlag(Flags, LGI_EF_CTRL) ^ k.Ctrl() == 0) &&
-			(TestFlag(Flags, LGI_EF_ALT) ^ k.Alt() == 0) &&
-			(TestFlag(Flags, LGI_EF_SHIFT) ^ k.Shift() == 0) &&
+			(Ctrl() ^ k.Ctrl() == 0) &&
+			(Alt() ^ k.Alt() == 0) &&
+			(Shift() ^ k.Shift() == 0) &&
 			(!TestFlag(Flags, LGI_EF_IS_CHAR) || k.IsChar) &&
 			(!TestFlag(Flags, LGI_EF_IS_NOT_CHAR) || !k.IsChar)
 		)

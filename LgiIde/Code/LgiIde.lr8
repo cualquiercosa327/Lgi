@@ -697,6 +697,9 @@
 			<String Ref="197" Cid="561" Define="IDM_MENU_561" />
 			<String Ref="198" Cid="562" Define="IDM_GOTO_SYMBOL" en="Goto Symbol" />
 			<String Ref="211" Cid="565" Define="IDM_MAKEFILE_PLATFORMS" en="(error)" />
+			<String Ref="214" Cid="566" Define="IDM_MENU_566" />
+			<String Ref="215" Cid="567" Define="IDM_PREV_LOCATION" en="Previous Location" />
+			<String Ref="216" Cid="568" Define="IDM_NEXT_LOCATION" en="Next Location" />
 		</string-group>
 		<submenu Ref="175">
 			<menuitem Ref="174" Shortcut="Ctrl+N" />
@@ -730,6 +733,9 @@
 			<menuitem Ref="154" Shortcut="F3" />
 			<menuitem Ref="153" Shortcut="Ctrl+H" />
 			<menuitem Ref="152" Shortcut="Ctrl+Shift+F" />
+			<menuitem Sep="1" />
+			<menuitem Ref="215" Shortcut="Alt+Left" />
+			<menuitem Ref="216" Shortcut="Alt+Right" />
 			<menuitem Sep="1" />
 			<menuitem Ref="198" Shortcut="Alt+G" />
 			<menuitem Ref="34" Shortcut="Shift+Alt+S" />

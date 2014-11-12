@@ -148,3 +148,6 @@
 #define IDC_SETTINGS							563
 #define IDC_DETAIL								564
 #define IDM_MAKEFILE_PLATFORMS					565
+#define IDM_MENU_566							566
+#define IDM_PREV_LOCATION						567
+#define IDM_NEXT_LOCATION						568

@@ -293,7 +293,7 @@ void EditTray::OnMouseClick(GMouse &m)
 						DefnInfo *Info = Funcs[Goto-1];
 						if (Info)
 						{
-							Ctrl->GotoLine(Info->Line + 1);
+							Ctrl->SetLine(Info->Line + 1);
 						}
 					}
 					
@@ -374,7 +374,7 @@ void EditTray::OnMouseClick(GMouse &m)
 
 									if (Doc)
 									{
-										Doc->GetEdit()->GotoLine(Def->Line);
+										Doc->GetEdit()->SetLine(Def->Line);
 									}
 									else
 									{
@@ -412,11 +412,13 @@ void EditTray::OnMouseClick(GMouse &m)
 class DocEdit : public GTextView3, public GDocumentEnv
 {
 	IdeDoc *Doc;
+	int CurLine;
 
 public:
 	DocEdit(IdeDoc *d, GFontType *f) : GTextView3(IDC_EDIT, 0, 0, 100, 100, f)
 	{
 		Doc = d;
+		CurLine = -1;
 		if (!GlobalFindReplace)
 		{
 			GlobalFindReplace.Reset(CreateFindReplaceParams());
@@ -464,6 +466,20 @@ public:
 	~DocEdit()
 	{
 		SetEnv(0);
+	}
+
+	void SetCursor(int i, bool Select, bool ForceFullUpdate = false)
+	{
+		GTextView3::SetCursor(i, Select, ForceFullUpdate);
+		
+		if (IsAttached())
+		{
+			int Line = GetLine();
+			if (Line != CurLine)
+			{
+				Doc->OnLineChange(CurLine = Line);
+			}
+		}
 	}
 	
 	bool OnMenu(GDocView *View, int Id);
@@ -938,6 +954,11 @@ enum
 	IDM_BROWSE,
 	IDM_PROPERTIES
 };
+
+void IdeDoc::OnLineChange(int Line)
+{
+	d->App->OnLocationChange(d->GetLocalFile(), Line);
+}
 
 void IdeDoc::OnTitleClick(GMouse &m)
 {

@@ -30,7 +30,6 @@
 #define IDM_WINDOWS				1200
 #define IDM_MAKEFILE_BASE		1300
 
-
 //////////////////////////////////////////////////////////////////////////////////////////
 char AppName[] = "LgiIde";
 
@@ -442,6 +441,18 @@ public:
 };
 */
 
+struct FileLoc
+{
+	GAutoString File;
+	int Line;
+	
+	void Set(const char *f, int l)
+	{
+		File.Reset(NewStr(f));
+		Line = l;
+	}
+};
+
 class AppWndPrivate
 {
 public:
@@ -461,6 +472,28 @@ public:
 	FindSymbolSystem FindSym;
 	GArray<GAutoString> SystemIncludePaths;
 	
+	// Cursor history tracking
+	int HistoryLoc;
+	GArray<FileLoc> CursorHistory;
+	bool InHistorySeek;
+	
+	void SeekHistory(int Direction)
+	{
+		if (CursorHistory.Length())
+		{
+			InHistorySeek = true;
+			
+			HistoryLoc += Direction;
+			if (HistoryLoc < 0) HistoryLoc = 0;
+			if (HistoryLoc >= CursorHistory.Length()) HistoryLoc = CursorHistory.Length() - 1;
+
+			FileLoc &Loc = CursorHistory[HistoryLoc];
+			App->GotoReference(Loc.File, Loc.Line);
+
+			InHistorySeek = false;
+		}
+	}
+	
 	// Find in files
 	FindInFilesThread *Finder;
 	
@@ -475,6 +508,8 @@ public:
 		Options(GOptionsFile::DesktopMode, AppName),
 		FindSym(a)
 	{
+		HistoryLoc = 0;
+		InHistorySeek = false;
 		WindowsMenu = 0;
 		App = a;
 		Sp = 0;
@@ -1164,6 +1199,19 @@ bool AppWnd::OnRequestClose(bool IsClose)
 	return GWindow::OnRequestClose(IsClose);
 }
 
+void AppWnd::OnLocationChange(const char *File, int Line)
+{
+	if (!d->InHistorySeek)
+	{
+		// Destroy any history after the current...
+		d->HistoryLoc++;
+		d->CursorHistory.Length(d->HistoryLoc);
+		
+		// Add new entry
+		d->CursorHistory.New().Set(File, Line);
+	}
+}
+
 void AppWnd::OnFile(char *File, bool IsProject)
 {
 	d->OnFile(File, IsProject);
@@ -1194,7 +1242,7 @@ IdeDoc *AppWnd::GotoReference(char *File, int Line)
 	IdeDoc *Doc = OpenFile(File);
 	if (Doc)
 	{
-		Doc->GetEdit()->GotoLine(Line);
+		Doc->GetEdit()->SetLine(Line);
 	}
 	return Doc;			
 }
@@ -1679,6 +1727,16 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		case IDM_FIND_REFERENCES:
 		{
 			LgiMsg(this, "Not implemented yet.", AppName);
+			break;
+		}
+		case IDM_PREV_LOCATION:
+		{
+			d->SeekHistory(-1);
+			break;
+		}
+		case IDM_NEXT_LOCATION:
+		{
+			d->SeekHistory(1);
 			break;
 		}
 		

@@ -183,7 +183,7 @@ protected:
 	GUndo UndoQue;
 
 	// private methods
-	GTextLine *GetLine(int Offset, int *Index = 0);
+	GTextLine *GetTextLine(int Offset, int *Index = 0);
 	int SeekLine(int Start, GTextViewSeek Where);
 	int TextWidth(GFont *f, char16 *s, int Len, int x, int Origin);
 	int ScrollYLine();
@@ -292,7 +292,8 @@ public:
 	// Action Processing	
 	bool ClearDirty(bool Ask, char *FileName = 0);
 	void UpdateScrollBars(bool Reset = false);
-	void GotoLine(int Line);
+	int GetLine();
+	void SetLine(int Line);
 	GDocFindReplaceParams *CreateFindReplaceParams();
 	void SetFindReplaceParams(GDocFindReplaceParams *Params);
 

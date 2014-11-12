@@ -148,17 +148,10 @@ public:
 	IdeDoc *NewDocWnd(char *FileName, NodeSource *Src);
 	IdeProject *OpenProject(char *FileName, IdeProject *ParentProj, bool Create = false, bool Dep = false);
 	IdeProject *RootProject();
-	int OnCommand(int Cmd, int Event, OsView Wnd);
-	void OnDocDestroy(IdeDoc *Doc);
-	void OnProjectDestroy(IdeProject *Proj);
-	void OnFile(char *File, bool IsProject = false);
 	IdeDoc *TopDoc();
 	IdeDoc *FocusDoc();
-	bool OnRequestClose(bool IsClose);
 	void AppendOutput(char *Txt, int Channel);
 	void UpdateState(int Debugging = -1, int Building = -1);
-	void OnFindFinished();
-	GMessage::Result OnEvent(GMessage *m);
 	void OnReceiveFiles(GArray<char*> &Files);
 	int GetBuildMode();
 	GTree *GetTree();
@@ -168,6 +161,16 @@ public:
 	IdeDoc *GotoReference(char *File, int Line);
 	bool FindSymbol(const char *Syn, GArray<FindSymResult> &Results);
 	bool GetSystemIncludePaths(GArray<char*> &Paths);
+	
+	// Events
+	void OnLocationChange(const char *File, int Line);
+	int OnCommand(int Cmd, int Event, OsView Wnd);
+	void OnDocDestroy(IdeDoc *Doc);
+	void OnProjectDestroy(IdeProject *Proj);
+	void OnFile(char *File, bool IsProject = false);
+	void OnFindFinished();
+	bool OnRequestClose(bool IsClose);
+	GMessage::Result OnEvent(GMessage *m);
 };
 
 #include "IdeDoc.h"

@@ -636,7 +636,7 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 		}
 		
 		// Get the line of the change
-		GTextLine *Current = GetLine(Start, &CurrentLine);
+		GTextLine *Current = GetTextLine(Start, &CurrentLine);
 		
 		LgiAssert(Current != 0);
 		LgiAssert(CurrentLine >= 0);
@@ -1395,7 +1395,7 @@ bool GTextView3::Delete(int At, int Len)
 			else
 			{
 				int Index;
-				GTextLine *Cur = GetLine(At, &Index);
+				GTextLine *Cur = GetTextLine(At, &Index);
 				if (Cur)
 				{
 					GTextLine *Prev = Line[Index-1];
@@ -1429,7 +1429,7 @@ bool GTextView3::Delete(int At, int Len)
 			if (WrapType == TEXTED_WRAP_REFLOW)
 			{
 				int Index;
-				GTextLine *Cur = GetLine(At, &Index);
+				GTextLine *Cur = GetTextLine(At, &Index);
 				if (Cur)
 				{
 					GTextLine *Repaint = 0;
@@ -1484,7 +1484,7 @@ void GTextView3::DeleteSelection(char16 **Cut)
 	}
 }
 
-GTextView3::GTextLine *GTextView3::GetLine(int Offset, int *Index)
+GTextView3::GTextLine *GTextView3::GetTextLine(int Offset, int *Index)
 {
 	int i = 0;
 	for (GTextLine *l=Line.First(); l; l=Line.Next(), i++)
@@ -1667,7 +1667,7 @@ void GTextView3::GetTextExtent(int &x, int &y)
 void GTextView3::PositionAt(int &x, int &y, int Index)
 {
 	int FromIndex = 0;
-	GTextLine *From = GetLine(Index < 0 ? Cursor : Index, &FromIndex);
+	GTextLine *From = GetTextLine(Index < 0 ? Cursor : Index, &FromIndex);
 	if (From)
 	{
 		x = Cursor - From->Start;
@@ -1728,13 +1728,13 @@ void GTextView3::SetCursor(int i, bool Select, bool ForceFullUpdate)
 	}
 
 	int FromIndex = 0;
-	GTextLine *From = GetLine(Cursor, &FromIndex);
+	GTextLine *From = GetTextLine(Cursor, &FromIndex);
 
 	Cursor = i;
 
 	// check the cursor is on the screen
 	int ToIndex = 0;
-	GTextLine *To = GetLine(Cursor, &ToIndex);
+	GTextLine *To = GetTextLine(Cursor, &ToIndex);
 	if (VScroll && To)
 	{
 		GRect Client = GetClient();
@@ -1802,8 +1802,8 @@ void GTextView3::SetCursor(int i, bool Select, bool ForceFullUpdate)
 			End = max(s, e);
 		}
 
-		GTextLine *SLine = GetLine(Start);
-		GTextLine *ELine = GetLine(End);
+		GTextLine *SLine = GetTextLine(Start);
+		GTextLine *ELine = GetTextLine(End);
 		GRect u;
 		if (SLine && ELine)
 		{
@@ -2249,7 +2249,14 @@ bool GTextView3::DoCase(bool Upper)
 	return true;
 }
 
-void GTextView3::GotoLine(int i)
+int GTextView3::GetLine()
+{
+	int Idx = 0;
+	GTextLine *t = GetTextLine(Cursor, &Idx);
+	return Idx + 1;
+}
+
+void GTextView3::SetLine(int i)
 {
 	GTextLine *l = Line.ItemAt(i - 1);
 	if (l)
@@ -2266,7 +2273,7 @@ bool GTextView3::DoGoto()
 	if (Dlg.DoModal() == IDOK &&
 		Dlg.Str)
 	{
-		GotoLine(atoi(Dlg.Str));
+		SetLine(atoi(Dlg.Str));
 	}
 
 	return true;
@@ -3216,7 +3223,7 @@ void GTextView3::OnMouseMove(GMouse &m)
 int GTextView3::GetColumn()
 {
 	int x = 0;
-	GTextLine *l = GetLine(Cursor);
+	GTextLine *l = GetTextLine(Cursor);
 	if (l)
 	{
 		for (int i=l->Start; i<Cursor; i++)
@@ -3314,7 +3321,7 @@ bool GTextView3::OnKey(GKey &k)
 							}
 						}
 						
-						GTextLine *l = GetLine(Cursor);
+						GTextLine *l = GetTextLine(Cursor);
 						int Len = (l) ? l->Len : 0;
 						
 						if (l && k.c16 == VK_TAB && (!HardTabs || IndentSize != TabSize))
@@ -3342,7 +3349,7 @@ bool GTextView3::OnKey(GKey &k)
 									for (int n=0; n<Add; n++) Sp[n] = ' ';
 									if (Insert(Cursor, Sp, Add))
 									{
-										l = GetLine(Cursor);
+										l = GetTextLine(Cursor);
 										int NewLen = (l) ? l->Len : 0;
 										SetCursor(Cursor + Add, false, Len != NewLen - 1);
 									}
@@ -3358,7 +3365,7 @@ bool GTextView3::OnKey(GKey &k)
 								k.Shift() &&
 								Cursor > 0)
 							{
-								l = GetLine(Cursor);
+								l = GetTextLine(Cursor);
 								if (Cursor > l->Start)
 								{
 									if (Text[Cursor-1] == '\t')
@@ -3386,7 +3393,7 @@ bool GTextView3::OnKey(GKey &k)
 							}
 							else if (In && Insert(Cursor, &In, 1))
 							{
-								l = GetLine(Cursor);
+								l = GetTextLine(Cursor);
 								int NewLen = (l) ? l->Len : 0;
 								SetCursor(Cursor + 1, false, Len != NewLen - 1);
 							}
@@ -3553,6 +3560,9 @@ bool GTextView3::OnKey(GKey &k)
 			}
 			case VK_LEFT:
 			{
+				if (k.Alt())
+					return false;
+
 				if (k.Down())
 				{
 					if (SelStart >= 0 &&
@@ -3626,6 +3636,9 @@ bool GTextView3::OnKey(GKey &k)
 			}
 			case VK_RIGHT:
 			{
+				if (k.Alt())
+					return false;
+
 				if (k.Down())
 				{
 					if (SelStart >= 0 &&
@@ -3696,6 +3709,9 @@ bool GTextView3::OnKey(GKey &k)
 			}
 			case VK_UP:
 			{
+				if (k.Alt())
+					return false;
+
 				if (k.Down())
 				{
 					#ifdef MAC
@@ -3703,7 +3719,7 @@ bool GTextView3::OnKey(GKey &k)
 						goto GTextView3_PageUp;
 					#endif
 					
-					GTextLine *l = GetLine(Cursor);
+					GTextLine *l = GetTextLine(Cursor);
 					if (l)
 					{
 						GTextLine *Prev = Line.Prev();
@@ -3724,6 +3740,9 @@ bool GTextView3::OnKey(GKey &k)
 			}
 			case VK_DOWN:
 			{
+				if (k.Alt())
+					return false;
+
 				if (k.Down())
 				{
 					#ifdef MAC
@@ -3731,7 +3750,7 @@ bool GTextView3::OnKey(GKey &k)
 						goto GTextView3_PageDown;
 					#endif
 
-					GTextLine *l = GetLine(Cursor);
+					GTextLine *l = GetTextLine(Cursor);
 					if (l)
 					{
 						GTextLine *Next = Line.Next();
@@ -3763,7 +3782,7 @@ bool GTextView3::OnKey(GKey &k)
 						#ifdef MAC
 						Jump_EndOfLine:
 						#endif
-						GTextLine *l = GetLine(Cursor);
+						GTextLine *l = GetTextLine(Cursor);
 						if (l)
 						{
 							SetCursor(l->Start + l->Len, k.Shift());
@@ -3786,7 +3805,7 @@ bool GTextView3::OnKey(GKey &k)
 						#ifdef MAC
 						Jump_StartOfLine:
 						#endif
-						GTextLine *l = GetLine(Cursor);
+						GTextLine *l = GetTextLine(Cursor);
 						if (l)
 						{
 							char16 *Line = Text + l->Start;
@@ -3816,7 +3835,7 @@ bool GTextView3::OnKey(GKey &k)
 				#endif
 				if (k.Down())
 				{
-					GTextLine *l = GetLine(Cursor);
+					GTextLine *l = GetTextLine(Cursor);
 					if (l)
 					{
 						int DisplayLines = Y() / LineY;
@@ -3839,7 +3858,7 @@ bool GTextView3::OnKey(GKey &k)
 				#endif
 				if (k.Down())
 				{
-					GTextLine *l = GetLine(Cursor);
+					GTextLine *l = GetTextLine(Cursor);
 					if (l)
 					{
 						int DisplayLines = Y() / LineY;
@@ -4089,7 +4108,7 @@ void GTextView3::OnEnter(GKey &k)
 
 	char16 InsertStr[256] = {'\n', 0};
 
-	GTextLine *CurLine = GetLine(Cursor);
+	GTextLine *CurLine = GetTextLine(Cursor);
 	if (CurLine && AutoIndent)
 	{
 		int WsLen = 0;

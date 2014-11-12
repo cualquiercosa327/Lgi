@@ -358,9 +358,8 @@ public:
 };
 
 /// Encapsulates a keyboard shortcut
-class LgiClass GAccelerator
+class LgiClass GAccelerator : public GUiEvent
 {
-	int Flags;
 	int Key;
 	int Id;
 
