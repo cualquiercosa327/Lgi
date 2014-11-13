@@ -293,6 +293,18 @@
 					</File>
 				</Filter>
 			</Filter>
+			<Filter
+				Name="Process"
+				>
+				<File
+					RelativePath="..\include\common\GProcess.h"
+					>
+				</File>
+				<File
+					RelativePath="..\include\common\GSubProcess.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"

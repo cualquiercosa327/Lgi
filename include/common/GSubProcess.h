@@ -1,8 +1,8 @@
 /**
 	\file
-	\brief Unix sub-process wrapper.
+	\brief Sub-process wrapper.
 
-	This class runs one or more unix style sub-processes chained together by pipes.
+	This class runs one or more sub-processes chained together by pipes.
 	
 	Example:
 	
@@ -21,62 +21,113 @@
 #ifndef _SUB_PROCESS_H_
 #define _SUB_PROCESS_H_
 
-#if !defined(WIN32)
-
+#ifdef __GTK_H__
 namespace Gtk {
+#endif
+#ifdef POSIX
 #include <errno.h>
 #include <signal.h>
 #include <sys/wait.h>
+#endif
+#ifdef __GTK_H__
 }
-
 using namespace Gtk;
+#endif
 
 class GSubProcess : public GStreamI
 {
 public:
+	#if defined(WIN32)
+	typedef HANDLE PipeHandle;
+	#define NULL_PIPE NULL
+	#define ClosePipe CloseHandle
+	#else
+	typedef int PipeHandle;
+	#define NULL_PIPE -1
+	#define ClosePipe close
+	#endif
+
 	union Pipe
 	{
-		int Handles[2];
+		PipeHandle Handles[2];
 		struct
 		{
-			int Read;
-			int Write;
+			PipeHandle Read;
+			PipeHandle Write;
 		};
 		
 		Pipe()
 		{
-			Read = Write = -1;
+			Read = Write = NULL_PIPE;
 		}
 		
-		bool Create()
+		bool Create
+		(
+			#ifdef WIN32
+			LPSECURITY_ATTRIBUTES pAttr
+			#else
+			void *UnusedParam
+			#endif
+		)
 		{
-			return pipe(Handles) != -1;
+			#if defined(WIN32)
+			return CreatePipe(&Read, &Write, pAttr, 0);
+			#else
+			return pipe(Handles) != NULL_PIPE;
+			#endif
 		}
 		
 		void Close()
 		{
-			close(Read);
-			close(Write);
+			if (Read != NULL_PIPE)
+			{
+				ClosePipe(Read);
+				Read = NULL_PIPE;
+			}
+			if (Write != NULL_PIPE)
+			{
+				ClosePipe(Write);
+				Write = NULL_PIPE;
+			}
 		}
 	};
 
 protected:
 	GAutoString Exe;
 	::GArray<char*> Args;
+
+	#if defined(POSIX)
 	pid_t ChildPid;
 	Pipe Io;
-	GSubProcess *Parent, *Child;
 
 	void Dupe(int Old, int New)
 	{
 		while ((dup2(Old, New) == -1) && (errno == EINTR))
 			;
 	}
+	#elif defined(WIN32)
+	DWORD ChildPid;
+	HANDLE ChildHnd;
+
+	void Dupe(PipeHandle Old, PipeHandle &New)
+	{
+		DuplicateHandle(GetCurrentProcess(), Old,
+						GetCurrentProcess(), &New,
+						0, false, DUPLICATE_SAME_ACCESS);
+	}
+	#endif
+
+	GSubProcess *Parent, *Child;
 
 public:
 	GSubProcess(const char *exe, const char *args = NULL)
 	{
+		#if defined(POSIX)
 		ChildPid = -1;
+		#elif defined(WIN32)
+		ChildPid = NULL;
+		ChildHnd = NULL;
+		#endif
 		Parent = Child = NULL;
 		Exe.Reset(NewStr(exe));
 		Args.Add(Exe);
@@ -90,7 +141,9 @@ public:
 	
 	~GSubProcess()
 	{
+		#ifdef POSIX
 		close(Io.Read);
+		#endif
 		if (Child)
 		{
 			LgiAssert(Child->Parent == this);
@@ -116,18 +169,29 @@ public:
 	{
 		// Find the end of the process list
 		::GArray<GSubProcess*> p;
-		::GArray<Pipe> Pipes;
 		for (GSubProcess *s=this; s; s=s->Child)
 		{
 			LgiAssert(!s->Child || s->Child->Parent == s);
 			p.Add(s);
 		}
 		int Kids = p.Length() + 1;
+
+		#ifdef WIN32
+		SECURITY_ATTRIBUTES Attr;
+		Attr.nLength = sizeof(SECURITY_ATTRIBUTES);
+		Attr.bInheritHandle = true;
+		Attr.lpSecurityDescriptor = NULL;
+		#else
+		int Attr = 0;
+		#endif		
+		
+		::GArray<Pipe> Pipes;
 		Pipes.Length(Kids);
-		Pipes[0].Create();
-		
+		Pipes[0].Create(&Attr);
+
 		// printf("Start %i processes... pipe[0]=%i,%i\n", p.Length(), Pipes[0].Read, Pipes[0].Write);
-		
+
+		#if defined(POSIX)
 		for (int i=1; i<Kids; i++)
 		{
 			Pipes[i].Create();
@@ -190,27 +254,80 @@ public:
 			close(Pipes.Last().Read);
 		
 		// printf("Final Handles %i, %i\n", Io.Read, Io.Write);
+		
+		#elif defined(WIN32)
+		
+		GAutoWString WExe(LgiNewUtf8To16(Exe));
+		char16 WArg[512];
+		int Ch = 0;
+		for (int i=0; i<Args.Length(); i++)
+		{
+			char *a = Args[i];
+			GAutoWString aw(LgiNewUtf8To16(a));
+			
+			if (i)
+			{
+				WArg[Ch++] = ' ';
+			}
+			
+			if (strchr(a, ' '))
+				Ch += swprintf_s(WArg+Ch, CountOf(WArg)-Ch, L"\"%s\"", aw.Get());
+			else
+				Ch += swprintf_s(WArg+Ch, CountOf(WArg)-Ch, L"%s", aw.Get());
+		}
+		
+		STARTUPINFOW Info;
+		ZeroObj(Info);
+		Info.cb = sizeof(Info);
+		
+		PROCESS_INFORMATION ProcInfo;
+		ZeroObj(ProcInfo);
+
+		if (CreateProcessW(	WExe,
+							WArg,
+							&Attr,	// lpProcessAttributes
+							NULL,	// lpThreadAttributes
+							TRUE,	// bInheritHandles
+							0,		// dwCreationFlags
+							NULL,	// lpEnvironment
+							NULL,	// lpCurrentDirectory
+							&Info,	// lpStartupInfo
+							&ProcInfo))
+		{
+			ChildPid = ProcInfo.dwProcessId;
+			ChildHnd = ProcInfo.hProcess;
+		}		
+		#endif
 	}
 	
 	int Wait()
 	{
 		int Status = -1;
+		#ifdef POSIX
 		if (ChildPid != -1)
 			waitpid(ChildPid, &Status, NULL);
+		#else
+		#endif
 		return Status;
    	}
 	
 	int Read(void *Buf, int Size, int Flags = 0)
 	{
+		#ifdef POSIX
 		return read(Io.Read, Buf, Size);
+		#else
+		return -1;
+		#endif
 	}
 	
 	int Write(const void *Buf, int Size, int Flags = 0)
 	{
+		#ifdef POSIX
 		return write(Io.Write, Buf, Size);
+		#else
+		return -1;
+		#endif
 	}
 };
-
-#endif
 
 #endif

@@ -1,3 +1,10 @@
+/*
+	Process related functions and classes.
+
+	FYI: There is an alternative class with better streaming: GSubProcess
+		 (in include\common\GSubProcess.h)
+*/
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
