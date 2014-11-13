@@ -305,6 +305,18 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="Debugger"
+				>
+				<File
+					RelativePath=".\Code\GDebugger.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Code\GDebugger.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"

@@ -2269,7 +2269,7 @@ int LgiMain(OsAppArguments &AppArgs)
 	GApp a(AppArgs, "LgiIde");
 	if (a.IsOk())
 	{
-		Test();
+		// Test();
 		
 		a.AppWnd = new AppWnd;
 		// a.AppWnd = new Test;
