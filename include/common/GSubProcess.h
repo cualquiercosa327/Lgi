@@ -95,6 +95,7 @@ public:
 protected:
 	GAutoString Exe;
 	::GArray<char*> Args;
+	GAutoString InitialFolder;
 
 	#if defined(POSIX)
 	pid_t ChildPid;
@@ -108,12 +109,13 @@ protected:
 	#elif defined(WIN32)
 	DWORD ChildPid;
 	HANDLE ChildHnd;
+	Pipe ChildOutput, ChildInput;
 
-	void Dupe(PipeHandle Old, PipeHandle &New)
+	bool Dupe(PipeHandle Old, PipeHandle &New)
 	{
-		DuplicateHandle(GetCurrentProcess(), Old,
-						GetCurrentProcess(), &New,
-						0, false, DUPLICATE_SAME_ACCESS);
+		return DuplicateHandle(	GetCurrentProcess(), Old,
+								GetCurrentProcess(), &New,
+								0, false, DUPLICATE_SAME_ACCESS);
 	}
 	#endif
 
@@ -156,6 +158,11 @@ public:
 		}
 	}
 	
+	void SetInitFolder(const char *f)
+	{
+		InitialFolder.Reset(NewStr(f));
+	}
+	
 	void Connect(GSubProcess *child)
 	{
 		Child = child;
@@ -185,13 +192,13 @@ public:
 		int Attr = 0;
 		#endif		
 		
+		// printf("Start %i processes... pipe[0]=%i,%i\n", p.Length(), Pipes[0].Read, Pipes[0].Write);
+
+		#if defined(POSIX)
 		::GArray<Pipe> Pipes;
 		Pipes.Length(Kids);
 		Pipes[0].Create(&Attr);
 
-		// printf("Start %i processes... pipe[0]=%i,%i\n", p.Length(), Pipes[0].Read, Pipes[0].Write);
-
-		#if defined(POSIX)
 		for (int i=1; i<Kids; i++)
 		{
 			Pipes[i].Create();
@@ -257,10 +264,41 @@ public:
 		
 		#elif defined(WIN32)
 		
-		GAutoWString WExe(LgiNewUtf8To16(Exe));
+		GAutoWString WExe;
+		if (FileExists(Exe))
+		{
+			WExe.Reset(LgiNewUtf8To16(Exe));
+		}
+		else
+		{
+			char *Ext = LgiGetExtension(Exe);
+			bool HasExt = Ext && stricmp(Ext, "exe") == 0;
+			
+			GToken p(getenv("PATH"), LGI_PATH_SEPARATOR);
+			for (int i=0; i<p.Length(); i++)
+			{
+				char s[MAX_PATH];
+				LgiMakePath(s, sizeof(s), p[i], Exe);
+				if (FileExists(s))
+				{
+					WExe.Reset(LgiNewUtf8To16(s));
+					break;
+				}
+				if (!HasExt)
+				{
+					strcat_s(s, sizeof(s), ".exe");
+					if (FileExists(s))
+					{
+						WExe.Reset(LgiNewUtf8To16(s));
+						break;
+					}
+				}
+			}
+		}		
+		
 		char16 WArg[512];
 		int Ch = 0;
-		for (int i=0; i<Args.Length(); i++)
+		for (int i=1; i<Args.Length(); i++)
 		{
 			char *a = Args[i];
 			GAutoWString aw(LgiNewUtf8To16(a));
@@ -276,27 +314,60 @@ public:
 				Ch += swprintf_s(WArg+Ch, CountOf(WArg)-Ch, L"%s", aw.Get());
 		}
 		
-		STARTUPINFOW Info;
-		ZeroObj(Info);
-		Info.cb = sizeof(Info);
+		HANDLE OldStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+		HANDLE OldStdin = GetStdHandle(STD_INPUT_HANDLE);
+		HANDLE DupeRd = NULL, DupeWr;
 		
-		PROCESS_INFORMATION ProcInfo;
-		ZeroObj(ProcInfo);
-
-		if (CreateProcessW(	WExe,
-							WArg,
-							&Attr,	// lpProcessAttributes
-							NULL,	// lpThreadAttributes
-							TRUE,	// bInheritHandles
-							0,		// dwCreationFlags
-							NULL,	// lpEnvironment
-							NULL,	// lpCurrentDirectory
-							&Info,	// lpStartupInfo
-							&ProcInfo))
+		if (ChildOutput.Create(&Attr) &&
+			ChildInput.Create(&Attr) &&
+			SetStdHandle(STD_OUTPUT_HANDLE, ChildOutput.Write) && Dupe(ChildOutput.Read, DupeRd) &&
+			SetStdHandle(STD_INPUT_HANDLE,  ChildInput.Read)   && Dupe(ChildInput.Write, DupeWr))
 		{
-			ChildPid = ProcInfo.dwProcessId;
-			ChildHnd = ProcInfo.hProcess;
-		}		
+			CloseHandle(ChildOutput.Read);
+			ChildOutput.Read = DupeRd;
+			
+			CloseHandle(ChildInput.Write);
+			ChildInput.Write = DupeWr;
+
+			STARTUPINFOW Info;
+			ZeroObj(Info);
+			Info.cb = sizeof(Info);
+			
+			PROCESS_INFORMATION ProcInfo;
+			ZeroObj(ProcInfo);
+
+			Info.dwFlags = STARTF_USESTDHANDLES;
+			Info.hStdOutput = ChildOutput.Write;
+			Info.hStdError = ChildOutput.Write;
+			Info.hStdInput = ChildInput.Read;
+			GAutoWString WInitialFolder(LgiNewUtf8To16(InitialFolder));
+
+			if (CreateProcessW(	WExe,
+								WArg,
+								&Attr,				// lpProcessAttributes
+								NULL,				// lpThreadAttributes
+								TRUE,				// bInheritHandles
+								CREATE_NO_WINDOW,	// dwCreationFlags
+								NULL,				// lpEnvironment
+								WInitialFolder,		// lpCurrentDirectory
+								&Info,				// lpStartupInfo
+								&ProcInfo))
+			{
+				ChildPid = ProcInfo.dwProcessId;
+				ChildHnd = ProcInfo.hProcess;
+			}
+			else
+			{
+				DWORD Err = GetLastError();
+				int asd=0;
+			}
+			
+			CloseHandle(ChildOutput.Write);
+			CloseHandle(ChildInput.Read);
+		}
+
+		SetStdHandle(STD_OUTPUT_HANDLE, OldStdout);
+		SetStdHandle(STD_INPUT_HANDLE, OldStdin);
 		#endif
 	}
 	
@@ -306,7 +377,18 @@ public:
 		#ifdef POSIX
 		if (ChildPid != -1)
 			waitpid(ChildPid, &Status, NULL);
-		#else
+		#elif defined(WIN32)
+		if (ChildHnd)
+		{
+			DWORD r = WaitForSingleObject(ChildHnd, INFINITE);
+			if (r == WAIT_OBJECT_0)
+			{
+				if (GetExitCodeProcess(ChildHnd, &r))
+				{
+					Status = r;
+				}
+			}
+		}
 		#endif
 		return Status;
    	}
@@ -315,8 +397,11 @@ public:
 	{
 		#ifdef POSIX
 		return read(Io.Read, Buf, Size);
-		#else
-		return -1;
+		#else		
+		DWORD Rd = -1;
+		if (!ReadFile(ChildOutput.Read, Buf, Size, &Rd, NULL))
+			return -1;
+		return Rd;
 		#endif
 	}
 	
@@ -325,7 +410,10 @@ public:
 		#ifdef POSIX
 		return write(Io.Write, Buf, Size);
 		#else
-		return -1;
+		DWORD Wr = -1;
+		if (!WriteFile(ChildInput.Write, Buf, Size, &Wr, NULL))
+			return -1;
+		return Wr;
 		#endif
 	}
 };

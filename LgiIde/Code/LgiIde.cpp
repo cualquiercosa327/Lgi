@@ -2236,12 +2236,41 @@ public:
 };
 */
 
+#include "GSubProcess.h"
+void Test()
+{
+	int r;
+
+	#if 1
+	// Basic test
+	GSubProcess p1("grep", "-i tiff *.csv");
+	p1.SetInitFolder("c:\\Users\\matthew");
+	p1.Start(true, false);
+	#else
+	// More complex test
+	GSubProcess p1("dir");
+	GSubProcess p2("grep", "test");
+	p1.Connect(&p2);
+	p1.Start(true, false);
+	#endif
+
+	char Buf[256];
+	while ((r = p1.Read(Buf, sizeof(Buf))) > 0)
+	{
+		// So something with 'Buf'
+		Buf[r] = 0;
+		LgiTrace("Buf='%s'\n", Buf);
+	}
+}
+
 int LgiMain(OsAppArguments &AppArgs)
 {
 	printf("LgiIde v%.2f\n", LgiIdeVer);
 	GApp a(AppArgs, "LgiIde");
 	if (a.IsOk())
 	{
+		Test();
+		
 		a.AppWnd = new AppWnd;
 		// a.AppWnd = new Test;
 		a.Run();
