@@ -15,16 +15,11 @@
 #include "FtpThread.h"
 #include "GClipBoard.h"
 #include "FindSymbol.h"
+#include "GBox.h"
+#include "GTextLog.h"
+#include "GEdit.h"
 
 #define IDM_SAVE				102
-#define IDM_BREAKPOINT			313
-#define IDM_RESTART				314
-#define IDM_KILL				315
-#define IDM_STEP_INTO			316
-#define IDM_STEP_OVER			317
-#define IDM_STEP_OUT			318
-#define IDM_RUN_TO				319
-
 #define IDM_RECENT_FILE			1000
 #define IDM_RECENT_PROJECT		1100
 #define IDM_WINDOWS				1200
@@ -263,35 +258,90 @@ class IdeOutput : public GPanel
 public:
 	GTabView *Tab;
 	GTabPage *Build;
+	GTabPage *Output;
 	GTabPage *Debug;
 	GTabPage *Find;
 	GTabPage *Ftp;
 	GList *FtpLog;
 	GTextView3 *Txt[3];
 	GArray<char> Buf[3];
+	GFont Small;
+	GBox *DebugBox;
+	GBox *DebugLog;
+	GList *Locals, *Watch;
+	GEdit *DebugEdit;
+	GTextLog *DebuggerLog;
 
 	IdeOutput() : GPanel("Panel", 200, true)
 	{
-		Build = Debug = Find = Ftp = 0;
+		Build = Output = Debug = Find = Ftp = 0;
 		FtpLog = 0;
+		DebugBox = NULL;
+		Locals = NULL;
+		Watch = NULL;
+		DebugLog = NULL;
+		DebugEdit = NULL;
+		DebuggerLog = NULL;
+
+		Small = *SysFont;
+		Small.PointSize(Small.PointSize()-2);
+		Small.Create((GFontType*)0);
 
 		Alignment(GV_EDGE_BOTTOM);
-		Children.Insert(Tab=new GTabView(100, 18, 3, 200, 200, "Output"));
+		Children.Insert(Tab = new GTabView(100, 18, 3, 200, 200, "Output"));
 		if (Tab)
 		{
 			Build = Tab->Append("Build");
-			Debug = Tab->Append("Output");
+			Output = Tab->Append("Output");
 			Find = Tab->Append("Find");
 			Ftp = Tab->Append("Ftp");
+			Debug = Tab->Append("Debug");
+
+			Tab->SetFont(&Small);
+			Build->SetFont(&Small);
+			Output->SetFont(&Small);
+			Find->SetFont(&Small);
+			Ftp->SetFont(&Small);
+			Debug->SetFont(&Small);
 			
 			if (Build)
 				Build->Append(Txt[0] = new GTextView3(101, 0, 0, 100, 100));
-			if (Debug)
-				Debug->Append(Txt[1] = new GTextView3(102, 0, 0, 100, 100));
+			if (Output)
+				Output->Append(Txt[1] = new GTextView3(102, 0, 0, 100, 100));
 			if (Find)
 				Find->Append(Txt[2] = new GTextView3(103, 0, 0, 100, 100));
 			if (Ftp)
 				Ftp->Append(FtpLog = new GList(104, 0, 0, 100, 100));
+			if (Debug)
+			{
+				Debug->Append(DebugBox = new GBox);
+				if (DebugBox)
+				{
+					DebugBox->SetVertical(false);
+					if (Locals = new GList(IDC_LOCALS_LIST, 0, 0, 100, 100, "Locals List"))
+					{
+						Locals->GetCss(true)->Width(GCss::Len("300px"));
+						DebugBox->AddView(Locals);
+						Locals->AddColumn("Local", 100);
+						Locals->AddColumn("Value", 200);
+					}
+					if (Watch = new GList(IDC_WATCH_LIST, 0, 0, 100, 100, "Watch List"))
+					{
+						Watch->GetCss(true)->Width(GCss::Len("300px"));
+						DebugBox->AddView(Watch);
+						Watch->AddColumn("Watch Var", 100);
+						Watch->AddColumn("Value", 200);
+					}
+					if (DebugLog = new GBox)
+					{
+						DebugLog->SetVertical(true);
+						DebugBox->AddView(DebugLog);
+						DebugLog->AddView(DebuggerLog = new GTextLog(IDC_DEBUGGER_LOG));
+						DebugLog->AddView(DebugEdit = new GEdit(IDC_DEBUG_EDIT, 0, 0, 60, 20));
+						DebugEdit->GetCss(true)->Height(GCss::Len(GCss::LenPx, SysFont->GetHeight() + 8));
+					}
+				}
+			}
 
 			if (FtpLog)
 			{
@@ -1009,19 +1059,17 @@ AppWnd::AppWnd()
 			Tools->AppendButton("Compile", IDM_COMPILE, TBT_PUSH, true, CMD_COMPILE);
 			Tools->AppendButton("Build", IDM_BUILD, TBT_PUSH, true, CMD_BUILD);
 			Tools->AppendButton("Stop", IDM_STOP_BUILD, TBT_PUSH, true, CMD_STOP_BUILD);
-			Tools->AppendButton("Execute", IDM_EXECUTE, TBT_PUSH, true, CMD_EXECUTE);
+			// Tools->AppendButton("Execute", IDM_EXECUTE, TBT_PUSH, true, CMD_EXECUTE);
 			
-			/*
-			Tools->AppendButton("Debug", IDM_DEBUG, TBT_PUSH, true, CMD_DEBUG);
-			Tools->AppendButton("Breakpoint", IDM_BREAKPOINT, TBT_PUSH, true, CMD_BREAKPOINT);
 			Tools->AppendSeparator();
-			Tools->AppendButton("Restart", IDM_RESTART, TBT_PUSH, true, CMD_RESTART);
-			Tools->AppendButton("Kill", IDM_KILL, TBT_PUSH, true, CMD_KILL);
+			Tools->AppendButton("Debug", IDM_START_DEBUG, TBT_PUSH, true, CMD_DEBUG);
+			Tools->AppendButton("Pause", IDM_PAUSE_DEBUG, TBT_PUSH, true, CMD_PAUSE);
+			Tools->AppendButton("Restart", IDM_RESTART_DEBUGGING, TBT_PUSH, true, CMD_RESTART);
+			Tools->AppendButton("Kill", IDM_STOP_DEBUG, TBT_PUSH, true, CMD_KILL);
 			Tools->AppendButton("Step Into", IDM_STEP_INTO, TBT_PUSH, true, CMD_STEP_INTO);
 			Tools->AppendButton("Step Over", IDM_STEP_OVER, TBT_PUSH, true, CMD_STEP_OVER);
 			Tools->AppendButton("Step Out", IDM_STEP_OUT, TBT_PUSH, true, CMD_STEP_OUT);
 			Tools->AppendButton("Run To", IDM_RUN_TO, TBT_PUSH, true, CMD_RUN_TO);
-			*/
 
 			Tools->AppendSeparator();
 			Tools->AppendButton("Find In Files", IDM_FIND_IN_FILES, TBT_PUSH, true, CMD_FIND_IN_FILES);
@@ -1129,11 +1177,13 @@ void AppWnd::UpdateState(int Debugging, int Building)
 	SetCtrlEnabled(IDM_COMPILE, !d->Building);
 	SetCtrlEnabled(IDM_BUILD, !d->Building);
 	SetCtrlEnabled(IDM_STOP_BUILD, d->Building);
-	SetCtrlEnabled(IDM_EXECUTE, !d->Building);
-	SetCtrlEnabled(IDM_DEBUG, !d->Building);
-	SetCtrlEnabled(IDM_BREAKPOINT, !d->Building);
-	SetCtrlEnabled(IDM_RESTART, d->Debugging);
-	SetCtrlEnabled(IDM_KILL, d->Debugging);
+	SetCtrlEnabled(IDM_RUN, !d->Building);
+	// SetCtrlEnabled(IDM_TOGGLE_BREAKPOINT, !d->Building);
+	
+	SetCtrlEnabled(IDM_START_DEBUG, !d->Debugging && !d->Building);
+	SetCtrlEnabled(IDM_PAUSE_DEBUG, d->Debugging);
+	SetCtrlEnabled(IDM_RESTART_DEBUGGING, d->Debugging);
+	SetCtrlEnabled(IDM_STOP_DEBUG, d->Debugging);
 	SetCtrlEnabled(IDM_STEP_INTO, d->Debugging);
 	SetCtrlEnabled(IDM_STEP_OVER, d->Debugging);
 	SetCtrlEnabled(IDM_STEP_OUT, d->Debugging);
@@ -1818,7 +1868,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			}
 			break;
 		}
-		case IDM_EXECUTE:
+		case IDM_RUN:
 		{
 			SaveAll();
 			IdeProject *p = RootProject();
@@ -1838,7 +1888,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			}
 			break;
 		}		
-		case IDM_DEBUG:
+		case IDM_START_DEBUG:
 		{
 			SaveAll();
 			IdeProject *p = RootProject();
@@ -1846,6 +1896,51 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			{
 				p->Execute(ExeDebug);
 			}
+			break;
+		}
+		case IDM_ATTACH_TO_PROCESS:
+		{
+			LgiAssert(!"Impl me.");
+			break;
+		}
+		case IDM_STOP_DEBUG:
+		{
+			LgiAssert(!"Impl me.");
+			break;
+		}
+		case IDM_PAUSE_DEBUG:
+		{
+			LgiAssert(!"Impl me.");
+			break;
+		}
+		case IDM_RESTART_DEBUGGING:
+		{
+			LgiAssert(!"Impl me.");
+			break;
+		}
+		case IDM_RUN_TO:
+		{
+			LgiAssert(!"Impl me.");
+			break;
+		}
+		case IDM_STEP_INTO:
+		{
+			LgiAssert(!"Impl me.");
+			break;
+		}
+		case IDM_STEP_OVER:
+		{
+			LgiAssert(!"Impl me.");
+			break;
+		}
+		case IDM_STEP_OUT:
+		{
+			LgiAssert(!"Impl me.");
+			break;
+		}
+		case IDM_TOGGLE_BREAKPOINT:
+		{
+			LgiAssert(!"Impl me.");
 			break;
 		}
 		case IDM_BUILD:

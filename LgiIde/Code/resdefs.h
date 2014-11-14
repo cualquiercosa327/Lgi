@@ -111,7 +111,7 @@
 #define IDM_BUILD_ALL							526
 #define IDM_NEXT_MSG							527
 #define IDM_DEBUG_MODE							528
-#define IDM_EXECUTE								529
+#define IDM_RUN									529
 #define IDM_DEPENDS								530
 #define IDM_TAB_TO_SP							531
 #define IDM_SP_TO_TAB							532
@@ -124,7 +124,6 @@
 #define IDM_FIND_IN_FILES						539
 #define IDM_CREATE_MAKEFILE						540
 #define IDM_RELEASE_MODE						541
-#define IDM_DEBUG								542
 #define IDM_VALGRIND							543
 #define IDC_PLATFORMS							544
 #define IDD_PROJECT_SETTINGS					545
@@ -151,3 +150,15 @@
 #define IDM_MENU_566							566
 #define IDM_PREV_LOCATION						567
 #define IDM_NEXT_LOCATION						568
+#define IDM_START_DEBUG							570
+#define IDM_PAUSE_DEBUG							571
+#define IDM_STOP_DEBUG							572
+#define IDM_MENU_573							573
+#define IDM_ATTACH_TO_PROCESS					574
+#define IDM_STEP_INTO							575
+#define IDM_STEP_OVER							576
+#define IDM_STEP_OUT							577
+#define IDM_MENU_578							578
+#define IDM_TOGGLE_BREAKPOINT					579
+#define IDM_RESTART_DEBUGGING					581
+#define IDM_RUN_TO								582

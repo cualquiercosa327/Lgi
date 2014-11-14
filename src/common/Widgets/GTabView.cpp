@@ -142,7 +142,7 @@ GTabPage *GTabView::GetCurrent()
 
 int GTabView::TabY()
 {
-	return max(16, GetFont()->GetHeight()) + 4;
+	return GetFont()->GetHeight() + 4;
 }
 
 void GTabView::OnChildrenChanged(GViewI *Wnd, bool Attaching)

@@ -33,27 +33,38 @@
 #define ICON_GRAPHIC			6
 #define ICON_WEB				7
 
-#define CMD_NEW					0
-#define CMD_OPEN				1
-#define CMD_SAVE				2
-#define CMD_CUT					3
-#define CMD_COPY				4
-#define CMD_PASTE				5
-#define CMD_COMPILE				6
-#define CMD_BUILD				7
-#define CMD_STOP_BUILD			8
-#define CMD_EXECUTE				9
-#define CMD_DEBUG				10
-#define CMD_BREAKPOINT			11
-#define CMD_RESTART				12
-#define CMD_KILL				13
-#define CMD_STEP_INTO			14
-#define CMD_STEP_OVER			15
-#define CMD_STEP_OUT			16
-#define CMD_RUN_TO				17
-#define CMD_FIND_IN_FILES		18
-#define CMD_SEARCH				19
-#define CMD_SAVE_ALL			20
+enum IdeIcon
+{
+	CMD_NEW,
+	CMD_OPEN,
+	CMD_SAVE,
+	CMD_CUT,
+	CMD_COPY,
+	CMD_PASTE,
+	CMD_COMPILE,
+	CMD_BUILD,
+	CMD_STOP_BUILD,
+	CMD_EXECUTE,
+	CMD_DEBUG,
+	CMD_PAUSE,
+	CMD_KILL,
+	CMD_RESTART,
+	CMD_RUN_TO,
+	CMD_STEP_INTO,
+	CMD_STEP_OVER,
+	CMD_STEP_OUT,
+	CMD_FIND_IN_FILES,
+	CMD_SEARCH,
+	CMD_SAVE_ALL,
+};
+
+enum IdeControls
+{
+	IDC_WATCH_LIST	= 500,
+	IDC_LOCALS_LIST,
+	IDC_DEBUG_EDIT,
+	IDC_DEBUGGER_LOG
+};
 
 #define BUILD_TYPE_DEBUG		0
 #define BUILD_TYPE_RELEASE		1

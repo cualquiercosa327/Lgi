@@ -678,8 +678,7 @@
 			<String Ref="139" Cid="526" Define="IDM_BUILD_ALL" en="Build &All" />
 			<String Ref="138" Cid="538" Define="IDM_STOP_BUILD" en="Stop Build" />
 			<String Ref="137" Cid="527" Define="IDM_NEXT_MSG" en="Next Message" />
-			<String Ref="136" Cid="542" Define="IDM_DEBUG" en="&Debug" />
-			<String Ref="135" Cid="529" Define="IDM_EXECUTE" en="&Run" />
+			<String Ref="135" Cid="529" Define="IDM_RUN" en="&Run" />
 			<String Ref="134" Cid="543" Define="IDM_VALGRIND" en="&Valgrind" />
 			<String Ref="133" en="&Tools" />
 			<String Ref="132" Cid="530" Define="IDM_DEPENDS" en="Show Target &Dependencies" />
@@ -700,6 +699,20 @@
 			<String Ref="214" Cid="566" Define="IDM_MENU_566" />
 			<String Ref="215" Cid="567" Define="IDM_PREV_LOCATION" en="Previous Location" />
 			<String Ref="216" Cid="568" Define="IDM_NEXT_LOCATION" en="Next Location" />
+			<String Ref="217" en="&Debug" />
+			<String Ref="218" Cid="570" Define="IDM_START_DEBUG" en="&Start Debugging" />
+			<String Ref="219" Cid="571" Define="IDM_PAUSE_DEBUG" en="&Pause Debugging" />
+			<String Ref="220" Cid="572" Define="IDM_STOP_DEBUG" en="S&top Debugging" />
+			<String Ref="221" Cid="573" Define="IDM_MENU_573" />
+			<String Ref="222" Cid="574" Define="IDM_ATTACH_TO_PROCESS" en="&Attach To Process" />
+			<String Ref="223" Cid="575" Define="IDM_STEP_INTO" en="Step &Into" />
+			<String Ref="224" Cid="576" Define="IDM_STEP_OVER" en="Step &Over" />
+			<String Ref="225" Cid="577" Define="IDM_STEP_OUT" en="Step O&ut" />
+			<String Ref="226" Cid="578" Define="IDM_MENU_578" />
+			<String Ref="227" Cid="579" Define="IDM_TOGGLE_BREAKPOINT" en="To&ggle Breakpoint" />
+			<String Ref="228" Cid="529" Define="IDM_RUN" en="Start &Without Debugging" />
+			<String Ref="229" Cid="581" Define="IDM_RESTART_DEBUGGING" en="Restart Debugging" />
+			<String Ref="230" Cid="582" Define="IDM_RUN_TO" en="Run To Current Location" />
 		</string-group>
 		<submenu Ref="175">
 			<menuitem Ref="174" Shortcut="Ctrl+N" />
@@ -762,9 +775,23 @@
 			<menuitem Ref="138" />
 			<menuitem Ref="137" Shortcut="F4" />
 			<menuitem Sep="1" />
-			<menuitem Ref="136" Shortcut="F5" />
 			<menuitem Ref="135" Shortcut="Ctrl+F5" />
 			<menuitem Ref="134" Shortcut="Ctrl+Shift+V" />
+		</submenu>
+		<submenu Ref="217">
+			<menuitem Ref="218" Shortcut="F5" />
+			<menuitem Ref="228" Shortcut="Ctrl+F5" />
+			<menuitem Ref="222" />
+			<menuitem Ref="219" />
+			<menuitem Ref="220" Shortcut="Shift+F5" />
+			<menuitem Ref="229" Shortcut="Ctrl+Shift+F5" />
+			<menuitem Ref="230" Shortcut="Ctrl+F10" />
+			<menuitem Sep="1" />
+			<menuitem Ref="223" Shortcut="F11" />
+			<menuitem Ref="224" Shortcut="F10" />
+			<menuitem Ref="225" Shortcut="Shift+F11" />
+			<menuitem Sep="1" />
+			<menuitem Ref="227" Shortcut="F9" />
 		</submenu>
 		<submenu Ref="133">
 			<menuitem Ref="132" />
