@@ -5,6 +5,7 @@
 #include "GDragAndDrop.h"
 #include "GTree.h"
 #include "GOptionsFile.h"
+#include "GDebugger.h"
 
 #define NODE_DROP_FORMAT			"Ide.ProjectNode"
 
@@ -18,6 +19,7 @@ enum ExeAction
 	ExeValgrind
 };
 
+class AppWnd;
 class IdeProject;
 class IdeCommon : public GTreeItem, public GXmlTag
 {
@@ -92,13 +94,39 @@ public:
 	bool Set(ProjSetting Setting, int Value, IdePlatform Platform = PlatformCurrent);
 };
 
+class GDebugContext : public GDebugEvents
+{
+	class GDebugContextPriv *d;
+	
+public:
+	GList *Watch;
+	GList *Locals;
+	class GTextLog *DebuggerLog;
+	
+	// Object
+	GDebugContext(AppWnd *App, class IdeProject *Proj, const char *Exe, const char *Args);
+	virtual ~GDebugContext();
+	
+	// Ui events...
+	bool OnCommand(int Cmd);
+	void OnUserCommand(const char *Cmd);
+	GMessage::Param OnEvent(GMessage *m);
+	
+	// Debugger events...
+	void OnChildLoaded(bool Loaded);
+	void OnRunState(bool Running);
+	void OnFileLine(const char *File, int Line);
+	void OnDebugLog(const char *Txt, int Bytes);
+	void OnError(int Code, const char *Str);
+};
+
 class IdeProject : public GXmlFactory, public IdeCommon
 {
 	friend class ProjectNode;
 	class IdeProjectPrivate *d;
 
 public:
-	IdeProject(class AppWnd *App);
+	IdeProject(AppWnd *App);
 	~IdeProject();
 
 	bool IsWeb() { return false; }
@@ -121,9 +149,9 @@ public:
 	bool RelativePath(char *Out, char *In);
 	void Build(bool All);
 	void Clean();
-	void Execute(ExeAction Act = ExeRun);
+	GDebugContext *Execute(ExeAction Act = ExeRun);
 	char *FindFullPath(const char *File, class ProjectNode **Node = NULL);
-	bool InProject(char *FullPath, bool Open, class IdeDoc **Doc = 0);
+	bool InProject(const char *FullPath, bool Open, class IdeDoc **Doc = 0);
 	const char *GetFileComment();
 	const char *GetFunctionComment();
 	bool CreateMakefile(IdePlatform Platform);

@@ -14,6 +14,19 @@ protected:
     GMutex Sem;
     GArray<char16*> Txt;
 
+	void ProcessTxt()
+	{
+	    if (Sem.Lock(_FL))
+	    {
+	        for (uint32 i=0; i<Txt.Length(); i++)
+	        {
+			    Add(Txt[i]);
+			}
+			Txt.Length(0);
+			Sem.Unlock();
+		}
+	}
+
 public:
 	GTextLog(int id) : GTextView3(id, 0, 0, 2000, 1000)
 	{
@@ -29,6 +42,11 @@ public:
 	        Txt.DeleteArrays();
 	        Sem.Unlock();
 	    }
+	}
+	
+	void OnCreate()
+	{
+		ProcessTxt();
 	}
 
 	void Add(char16 *w)
@@ -93,15 +111,7 @@ public:
 	{
 		if (MsgCode(m) == M_LOG)
 		{
-		    if (Sem.Lock(_FL))
-		    {
-		        for (uint32 i=0; i<Txt.Length(); i++)
-		        {
-				    Add(Txt[i]);
-				}
-				Txt.Length(0);
-				Sem.Unlock();
-			}
+			ProcessTxt();
 		}
 
 		return GTextView3::OnEvent(m);

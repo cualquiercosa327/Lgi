@@ -33,6 +33,7 @@ namespace Gtk {
 }
 using namespace Gtk;
 #endif
+#include "GToken.h"
 
 class GSubProcess : public GStreamI
 {
@@ -109,6 +110,7 @@ protected:
 	#elif defined(WIN32)
 	DWORD ChildPid;
 	HANDLE ChildHnd;
+	DWORD ExitValue;
 	Pipe ChildOutput, ChildInput;
 
 	bool Dupe(PipeHandle Old, PipeHandle &New)
@@ -129,6 +131,7 @@ public:
 		#elif defined(WIN32)
 		ChildPid = NULL;
 		ChildHnd = NULL;
+		ExitValue = 0;
 		#endif
 		Parent = Child = NULL;
 		Exe.Reset(NewStr(exe));
@@ -158,6 +161,27 @@ public:
 		}
 	}
 	
+	bool IsRunning()
+	{
+		#if defined(POSIX)
+		LgiAssert(0);		
+		return true;
+		#elif defined(WIN32)
+		if (!GetExitCodeProcess(ChildHnd, &ExitValue))
+			return false;
+
+		if (ExitValue != STILL_ACTIVE)
+		{
+			ChildPid = 0;
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+		#endif
+	}
+	
 	void SetInitFolder(const char *f)
 	{
 		InitialFolder.Reset(NewStr(f));
@@ -172,8 +196,10 @@ public:
 		}
 	}
 	
-	void Start(bool ReadAccess, bool WriteAccess)
+	bool Start(bool ReadAccess, bool WriteAccess)
 	{
+		bool Status = false;
+		
 		// Find the end of the process list
 		::GArray<GSubProcess*> p;
 		for (GSubProcess *s=this; s; s=s->Child)
@@ -199,6 +225,7 @@ public:
 		Pipes.Length(Kids);
 		Pipes[0].Create(&Attr);
 
+		Status = true;
 		for (int i=1; i<Kids; i++)
 		{
 			Pipes[i].Create();
@@ -238,7 +265,8 @@ public:
 				execvp(sp->Exe, &sp->Args[0]);
 			
 				printf("%s:%i - execvp failed.\n", _FL);
-				_exit(1);
+				Status = false;
+				break;
 			}
 		}
 		
@@ -355,6 +383,7 @@ public:
 			{
 				ChildPid = ProcInfo.dwProcessId;
 				ChildHnd = ProcInfo.hProcess;
+				Status = true;
 			}
 			else
 			{
@@ -369,6 +398,8 @@ public:
 		SetStdHandle(STD_OUTPUT_HANDLE, OldStdout);
 		SetStdHandle(STD_INPUT_HANDLE, OldStdin);
 		#endif
+		
+		return Status;
 	}
 	
 	int Wait()
@@ -403,6 +434,20 @@ public:
 			return -1;
 		return Rd;
 		#endif
+	}
+	
+	int Peek()
+	{
+		#ifdef POSIX
+		LgiAssert(!"Impl me.");
+		#else		
+		DWORD Rd = 0, Avail = 0;
+		char Buf[32];
+		if (PeekNamedPipe(ChildOutput.Read, Buf, sizeof(Buf), &Rd, &Avail, NULL))
+			return Rd;
+		
+		return 0;
+		#endif	
 	}
 	
 	int Write(const void *Buf, int Size, int Flags = 0)

@@ -1,6 +1,7 @@
 //
 //	Cross platform LGI functions
 //
+#define _WIN32_WINNT 0x501
 
 #include <time.h>
 #include <stdio.h>

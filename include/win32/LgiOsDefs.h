@@ -299,4 +299,14 @@ LgiFunc int FormatToInt(char *s);
 LgiFunc char *FormatToStr(int f);
 extern bool LgiToWindowsCursor(LgiCursor Cursor);
 
+#ifdef __GNUC__
+#define strcpy_s strncpy
+#define strcat_s strncat
+#define vsnprintf_s vsnprintf
+#define swprintf_s snwprintf
+#if !defined(_TRUNCATE)
+#define _TRUNCATE ((size_t)-1)
+#endif
+#endif
+
 #endif

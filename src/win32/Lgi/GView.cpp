@@ -1239,7 +1239,7 @@ void GView::DrawThemeBorder(GSurface *pDC, GRect &r)
 #else
 void GView::DrawThemeBorder(GSurface *pDC, GRect &r)
 {
-	LgiWideBorder(pDC, r, SUNKEN);
+	LgiWideBorder(pDC, r, DefaultSunkenEdge);
 }
 #endif
 

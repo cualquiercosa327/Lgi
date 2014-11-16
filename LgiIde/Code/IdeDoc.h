@@ -69,7 +69,7 @@ class IdeDoc : public GMdiChild
 	class IdeDocPrivate *d;
 
 public:
-	IdeDoc(class AppWnd *a, NodeSource *src, char *file);
+	IdeDoc(class AppWnd *a, NodeSource *src, const char *file);
 	~IdeDoc();
 
 	AppWnd *GetApp();
@@ -86,7 +86,7 @@ public:
 	GTextView3 *GetEdit();
 	void OnPosChange();
 	void OnPaint(GSurface *pDC);
-	bool IsFile(char *File);
+	bool IsFile(const char *File);
 
 	// Source tools
 	bool BuildIncludePaths(GArray<char*> &Paths, IdePlatform Platform, bool IncludeSysPaths);

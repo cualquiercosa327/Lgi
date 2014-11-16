@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project TabSize="4" IndentSize="4" UseTabs="1" Makefile="./Makefile.linux" Exe="./lgiide" ShowWhitespace="0" IncludePaths=".\Code&#10;..\include\common&#10;..\include\linux\X&#10;" BuildType="0" TargetType="0" TargetName="lgiide" Compiler="0">
 	<Node Name="Source Files" Type="1" Platforms="15" Open="1">
+		<Node Name="Debugger" Type="1" Platforms="15" Open="0">
+			<Node File=".\Code\GDebugContext.cpp" Type="2" Platforms="15" />
+			<Node File=".\Code\GDebugger.cpp" Type="2" Platforms="15" />
+			<Node File=".\Code\GDebugger.h" Type="3" Platforms="15" />
+		</Node>
 		<Node Name="Ftp" Type="1" Platforms="15" Open="0">
 			<Node File="./Code/FtpThread.cpp" Type="2" Platforms="15" />
 			<Node File=".\Code\FtpThread.h" Type="3" Platforms="15" />
@@ -32,7 +37,7 @@
 		<Node File=".\Code\SpaceTabConv.cpp" Type="2" Platforms="15" />
 		<Node File=".\Code\SpaceTabConv.h" Type="3" Platforms="15" />
 	</Node>
-	<Node Name="Lgi" Type="1" Platforms="15" Open="1">
+	<Node Name="Lgi" Type="1" Platforms="15" Open="0">
 		<Node File="..\src\common\Text\GDocView.cpp" Type="2" Platforms="15" />
 		<Node File="..\src\common\Lgi\GMdi.cpp" Type="2" Platforms="15" />
 		<Node File="..\src\common\Text\GTextView3.cpp" Type="2" Platforms="15" />
@@ -47,7 +52,7 @@
 	<Settings>
 		<General>
 			<Makefile>
-				<Windows>.\Makefile.win32</Windows>
+				<Windows>.\Makefile.windows</Windows>
 				<Linux>Makefile.linux</Linux>
 			</Makefile>
 			<Executable>
@@ -55,14 +60,22 @@
 					<Debug>./lgiide</Debug>
 					<Release>./lgiide</Release>
 				</Linux>
-				<Windows />
+				<Windows>
+					<Debug>LgiIde.exe</Debug>
+					<Release>LgiIde.exe</Release>
+				</Windows>
 			</Executable>
 			<Arguments>
 				<All />
 			</Arguments>
 			<Defines>
+				<Windows>
+					<Debug>WINDOWS
+WINNATIVE</Debug>
+					<Release>WINDOWS
+WINNATIVE</Release>
+				</Windows>
 				<All />
-				<Windows />
 			</Defines>
 			<Compiler>
 				<Windows>MingW</Windows>
@@ -72,9 +85,11 @@
 			<IncludePaths>
 				<All>
 					<Debug>.\Code
-..\include\common</Debug>
+..\include\common
+..\..\..\..\CodeLib\libpng</Debug>
 					<Release>.\Code
-..\include\common</Release>
+..\include\common
+..\..\..\..\CodeLib\libpng</Release>
 				</All>
 				<Windows>
 					<Debug>..\include\win32

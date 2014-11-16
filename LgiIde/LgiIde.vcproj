@@ -309,6 +309,10 @@
 				Name="Debugger"
 				>
 				<File
+					RelativePath=".\Code\GDebugContext.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\Code\GDebugger.cpp"
 					>
 				</File>

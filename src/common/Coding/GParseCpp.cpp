@@ -9,7 +9,7 @@
 #include "GXmlTree.h"
 
 #define CheckToken(t)	if (!t) { Error = true; break; }
-#ifdef WINDOWS
+#if defined(WINDOWS) && defined(_MSC_VER)
 #define Debug			__asm int 3
 #else
 #define Debug			assert(0)
@@ -653,7 +653,11 @@ void GCppParserWorker::Msg(MsgType Type, char *Fmt, ...)
 	va_start(Arg, Fmt);
 	#ifdef WIN32
 	char Buf[256];
+	#ifdef _MSC_VER
 	vsnprintf_s(Buf, sizeof(Buf), _TRUNCATE, Fmt, Arg);
+	#else
+	vsnprintf(Buf, sizeof(Buf), Fmt, Arg);
+	#endif
 	OutputDebugStringA(Buf);
 	#else
 	vprintf(Fmt, Arg);
@@ -702,11 +706,14 @@ void GCppParserWorker::InitScopes()
 	
 	#ifdef WIN32
 	char16 buf[256];
+	GSymbol *s;
 
-	GSymbol *s = Scopes[0]->Define(L"_MSC_VER", SymDefineValue, _FL);
+	#ifdef _MSC_VER
+	s = Scopes[0]->Define(L"_MSC_VER", SymDefineValue, _FL);
 	int ch = swprintf_s(buf, CountOf(buf), L"%i", _MSC_VER);
 	s->Tokens.Add(GeneralPool.Alloc(buf, ch));
 	s->File = "none";
+	#endif
 
 	s = Scopes[0]->Define(L"WIN32", SymDefineValue, _FL);
 	s->File = "none";
@@ -1455,7 +1462,7 @@ GSourceFile *GCppParserWorker::ParseCpp(const char *Path)
 									// Unnamed enum
 									static int Idx = 1;
 									char16 Buf[256];
-									#ifdef WINDOWS
+									#ifdef _MSC_VER
 									swprintf_s(Buf, CountOf(Buf), L"UnnamedEnum%i", Idx++);
 									#else
 									swprintf(Buf, CountOf(Buf), L"UnnamedEnum%i", Idx++);

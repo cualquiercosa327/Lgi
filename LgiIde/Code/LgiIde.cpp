@@ -337,6 +337,7 @@ public:
 						DebugLog->SetVertical(true);
 						DebugBox->AddView(DebugLog);
 						DebugLog->AddView(DebuggerLog = new GTextLog(IDC_DEBUGGER_LOG));
+						DebuggerLog->SetFont(&Small);
 						DebugLog->AddView(DebugEdit = new GEdit(IDC_DEBUG_EDIT, 0, 0, 60, 20));
 						DebugEdit->GetCss(true)->Height(GCss::Len(GCss::LenPx, SysFont->GetHeight() + 8));
 					}
@@ -522,6 +523,9 @@ public:
 	FindSymbolSystem FindSym;
 	GArray<GAutoString> SystemIncludePaths;
 	
+	// Debugging
+	GDebugContext *DbgContext;
+	
 	// Cursor history tracking
 	int HistoryLoc;
 	GArray<FileLoc> CursorHistory;
@@ -531,16 +535,12 @@ public:
 	{
 		if (CursorHistory.Length())
 		{
-			InHistorySeek = true;
-			
 			HistoryLoc += Direction;
 			if (HistoryLoc < 1) HistoryLoc = 1;
 			if (HistoryLoc > CursorHistory.Length()) HistoryLoc = CursorHistory.Length();
 
 			FileLoc &Loc = CursorHistory[HistoryLoc-1];
-			App->GotoReference(Loc.File, Loc.Line);
-
-			InHistorySeek = false;
+			App->GotoReference(Loc.File, Loc.Line, false);
 		}
 	}
 	
@@ -564,6 +564,7 @@ public:
 		App = a;
 		Sp = 0;
 		Tree = 0;
+		DbgContext = NULL;
 		Finder = 0;
 		Output = 0;
 		Debugging = false;
@@ -873,7 +874,7 @@ public:
 		}
 	}
 	
-	void OnFile(char *File, bool IsProject = false)
+	void OnFile(const char *File, bool IsProject = false)
 	{
 		if (File)
 		{
@@ -925,7 +926,7 @@ public:
 		}
 	}
 
-	IdeDoc *IsFileOpen(char *File)
+	IdeDoc *IsFileOpen(const char *File)
 	{
 		if (!File)
 		{
@@ -1169,6 +1170,15 @@ void AppWnd::OnReceiveFiles(GArray<char*> &Files)
 	Raise();
 }
 
+void AppWnd::OnRunState(bool Running)
+{
+	SetCtrlEnabled(IDM_PAUSE_DEBUG, Running);
+	SetCtrlEnabled(IDM_STEP_INTO, !Running);
+	SetCtrlEnabled(IDM_STEP_OVER, !Running);
+	SetCtrlEnabled(IDM_STEP_OUT, !Running);
+	SetCtrlEnabled(IDM_RUN_TO, !Running);
+}
+
 void AppWnd::UpdateState(int Debugging, int Building)
 {
 	if (Debugging >= 0) d->Debugging = Debugging;
@@ -1299,7 +1309,7 @@ void AppWnd::OnFile(char *File, bool IsProject)
 	d->OnFile(File, IsProject);
 }
 
-IdeDoc *AppWnd::NewDocWnd(char *FileName, NodeSource *Src)
+IdeDoc *AppWnd::NewDocWnd(const char *FileName, NodeSource *Src)
 {
 	IdeDoc *Doc = new IdeDoc(this, Src, 0);
 	if (Doc)
@@ -1319,13 +1329,20 @@ IdeDoc *AppWnd::NewDocWnd(char *FileName, NodeSource *Src)
 	return Doc;
 }
 
-IdeDoc *AppWnd::GotoReference(char *File, int Line)
+IdeDoc *AppWnd::GotoReference(const char *File, int Line, bool WithHistory)
 {
+	if (!WithHistory)
+		d->InHistorySeek = true;
+
 	IdeDoc *Doc = OpenFile(File);
 	if (Doc)
 	{
 		Doc->GetEdit()->SetLine(Line);
 	}
+
+	if (!WithHistory)
+		d->InHistorySeek = true;
+
 	return Doc;			
 }
 
@@ -1364,12 +1381,12 @@ IdeDoc *AppWnd::FindOpenFile(char *FileName)
 	return 0;
 }
 
-IdeDoc *AppWnd::OpenFile(char *FileName, NodeSource *Src)
+IdeDoc *AppWnd::OpenFile(const char *FileName, NodeSource *Src)
 {
 	static bool DoingProjectFind = false;
 	IdeDoc *Doc = 0;
 	
-	char *File = Src ? Src->GetFileName() : FileName;
+	const char *File = Src ? Src->GetFileName() : FileName;
 	if (Src || FileExists(File))
 	{
 		Doc = d->IsFileOpen(File);
@@ -1502,6 +1519,12 @@ GMessage::Result AppWnd::OnEvent(GMessage *m)
 			char *Text = (char*) MsgA(m);
 			AppendOutput(Text, MsgB(m));
 			DeleteArray(Text);
+			break;
+		}
+		default:
+		{
+			if (d->DbgContext)
+				d->DbgContext->OnEvent(m);
 			break;
 		}
 	}
@@ -1894,53 +1917,38 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			IdeProject *p = RootProject();
 			if (p)
 			{
-				p->Execute(ExeDebug);
+				if (d->DbgContext = p->Execute(ExeDebug))
+				{
+					d->DbgContext->DebuggerLog = d->Output->DebuggerLog;
+					d->DbgContext->Watch = d->Output->Watch;
+					d->DbgContext->Locals = d->Output->Locals;
+					
+					d->DbgContext->OnCommand(IDM_START_DEBUG);
+					
+					d->Output->Tab->Value(5);
+				}
 			}
 			break;
 		}
 		case IDM_ATTACH_TO_PROCESS:
+		case IDM_PAUSE_DEBUG:
+		case IDM_RESTART_DEBUGGING:
+		case IDM_RUN_TO:
+		case IDM_STEP_INTO:
+		case IDM_STEP_OVER:
+		case IDM_STEP_OUT:
+		case IDM_TOGGLE_BREAKPOINT:
 		{
-			LgiAssert(!"Impl me.");
+			if (d->DbgContext)
+				d->DbgContext->OnCommand(Cmd);
 			break;
 		}
 		case IDM_STOP_DEBUG:
 		{
-			LgiAssert(!"Impl me.");
-			break;
-		}
-		case IDM_PAUSE_DEBUG:
-		{
-			LgiAssert(!"Impl me.");
-			break;
-		}
-		case IDM_RESTART_DEBUGGING:
-		{
-			LgiAssert(!"Impl me.");
-			break;
-		}
-		case IDM_RUN_TO:
-		{
-			LgiAssert(!"Impl me.");
-			break;
-		}
-		case IDM_STEP_INTO:
-		{
-			LgiAssert(!"Impl me.");
-			break;
-		}
-		case IDM_STEP_OVER:
-		{
-			LgiAssert(!"Impl me.");
-			break;
-		}
-		case IDM_STEP_OUT:
-		{
-			LgiAssert(!"Impl me.");
-			break;
-		}
-		case IDM_TOGGLE_BREAKPOINT:
-		{
-			LgiAssert(!"Impl me.");
+			if (d->DbgContext && d->DbgContext->OnCommand(Cmd))
+			{
+				DeleteObj(d->DbgContext);
+			}
 			break;
 		}
 		case IDM_BUILD:

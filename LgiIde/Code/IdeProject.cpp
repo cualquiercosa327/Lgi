@@ -12,6 +12,7 @@
 #include "FtpThread.h"
 #include "GClipBoard.h"
 #include "GDropFiles.h"
+#include "GSubProcess.h"
 
 extern char *Untitled;
 
@@ -1961,7 +1962,13 @@ class BuildThread : public GThread, public GStream
 	BuildThread **Me;
 	GAutoString Makefile;
 	GAutoString Args;
-	GAutoString Compiler;
+
+	enum CompilerType
+	{
+		VisualStudio,
+		MingW,
+		Gcc
+	} Compiler;
 
 public:
 	BuildThread(IdeProject *proj, BuildThread **ptr, char *mf, char *args = 0) : GThread("BuildThread")
@@ -1972,7 +1979,14 @@ public:
 
 		Makefile.Reset(NewStr(mf));
 		Args.Reset(NewStr(args));
-		Compiler.Reset(NewStr(Proj->GetSettings()->GetStr(ProjCompiler)));
+
+		GAutoString Comp(NewStr(Proj->GetSettings()->GetStr(ProjCompiler)));
+		if (!stricmp(Comp, "VisualStudio"))
+			Compiler = VisualStudio;
+		else if (!stricmp(Comp, "MingW"))
+			Compiler = MingW;
+		else
+			Compiler = Gcc;		
 		
 		if (Proj->GetApp())
 		{
@@ -1995,7 +2009,7 @@ public:
 		char Exe[256] = "";
 		GToken p(getenv("PATH"), LGI_PATH_SEPARATOR);
 		
-		if (!stricmp(Compiler, "VisualStudio"))
+		if (Compiler == VisualStudio)
 		{
 			for (int i=0; i<p.Length(); i++)
 			{
@@ -2009,7 +2023,7 @@ public:
 		}
 		else
 		{
-			if (!stricmp(Compiler, "mingw"))
+			if (Compiler == MingW)
 			{
 				// Have a look in the default spot first...
 				char *Def = "C:\\MinGW\\msys\\1.0\\bin\\make.exe";
@@ -2044,54 +2058,76 @@ public:
 		return 0;
 	}
 	
+	GAutoString WinToMingWPath(const char *path)
+	{
+		GToken t(path, "\\");
+		GStringPipe a(256);
+		for (int i=0; i<t.Length(); i++)
+		{
+			char *p = t[i];
+			char *colon = strchr(p, ':');
+			if (colon)
+			{
+				*colon = 0;
+				StrLwr(p);
+			}
+			a.Print("/%s", p);				
+		}
+		return GAutoString(a.NewStr());
+	}
+	
 	int Main()
 	{
-		GProcess Make;
 		char *Err = 0;
 		
 		char *Exe = FindExe();
 		if (Exe)
 		{
 			bool Status = false;
+			GAutoString MakePath(NewStr(Makefile));
+			GVariant Jobs;
+			if (!Proj->GetApp()->GetOptions()->GetValue(OPT_Jobs, Jobs) || Jobs.CastInt32() < 1)
+				Jobs = 2;
 
-			if (!stricmp(Compiler, "VisualStudio"))
+			if (Compiler == VisualStudio)
 			{
 				char a[256];
 				sprintf(a, "\"%s\" /make \"All - Win32 Debug\"", Makefile.Get());
+				GProcess Make;
 				Status = Make.Run(Exe, a, 0, true, 0, this);
 			}
 			else
 			{
-				char *MakePath = NewStr(Makefile);
-				if (MakePath)
+				GStringPipe a;
+				char InitDir[MAX_PATH];
+				LgiMakePath(InitDir, sizeof(InitDir), MakePath, "..");
+				
+				if (Compiler == MingW)
 				{
-					GVariant Jobs;
-					if (!Proj->GetApp()->GetOptions()->GetValue(OPT_Jobs, Jobs) ||
-						Jobs.CastInt32() < 1)
-						Jobs = 2;
-					
-					GStringPipe a;
-					char *d = MakePath + strlen(MakePath);
-					while (d > MakePath && *d != '/' && *d != '\\')
-						d--;
-					if (d > MakePath)
-					{
-						*d++ = 0;
-						a.Print("-j %i -C \"%s\" -f \"%s\"", Jobs.CastInt32(), MakePath, d);
-					}
-					else
-					{
-						a.Print("-j %i -f \"%s\"", Jobs.CastInt32(), MakePath);
-					}
+					char *Dir = strrchr(MakePath, DIR_CHAR);
+					a.Print("/C \"%s\" -f \"%s\"", Exe, Dir ? Dir + 1 : MakePath.Get());
+					Exe = "C:\\Windows\\System32\\cmd.exe";
+				}
+				else
+				{
+					a.Print("-j %i -f \"%s\"", Jobs.CastInt32(), MakePath.Get());
+				}
 
-					if (Args)
-						a.Print(" %s", Args.Get());
-					char *Temp = a.NewStr();
+				if (Args)
+					a.Print(" %s", Args.Get());
+				GAutoString Temp(a.NewStr());
 
-					Status = Make.Run(Exe, Temp, 0, true, 0, this);
+				GSubProcess SubProc(Exe, Temp);
+				SubProc.SetInitFolder(InitDir);
+				
+				Status = SubProc.Start(true, false);
 
-					DeleteArray(Temp);
-					DeleteArray(MakePath);
+				// Read all the output					
+				char Buf[256];
+				int rd;
+				while ( (rd = SubProc.Read(Buf, sizeof(Buf))) > 0 )
+				{
+					Write(Buf, rd);
 				}
 			}
 
@@ -2435,18 +2471,26 @@ public:
 	}
 };
 
-void IdeProject::Execute(ExeAction Act)
+GDebugContext *IdeProject::Execute(ExeAction Act)
 {
 	GAutoString Base = GetBasePath();
 	if (d->Settings.GetStr(ProjExe) &&
 		Base)
 	{
-		char e[256];
+		char e[MAX_PATH];
 		if (GetExePath(e, sizeof(e)))
 		{
 			if (FileExists(e))
 			{
-				new ExecuteThread(this, e, d->Settings.GetStr(ProjArgs), Base, Act);
+				const char *Args = d->Settings.GetStr(ProjArgs);
+				if (Act == ExeDebug)
+				{
+					return new GDebugContext(d->App, this, e, Args);
+				}
+				else
+				{
+					new ExecuteThread(this, e, Args, Base, Act);
+				}
 			}
 			else
 			{
@@ -2454,6 +2498,8 @@ void IdeProject::Execute(ExeAction Act)
 			}
 		}
 	}
+	
+	return NULL;
 }
 
 void IdeProject::Build(bool All)
@@ -2820,7 +2866,7 @@ char *IdeProject::FindFullPath(const char *File, class ProjectNode **Node)
 	return Full;		
 }
 
-bool IdeProject::InProject(char *FullPath, bool Open, IdeDoc **Doc)
+bool IdeProject::InProject(const char *FullPath, bool Open, IdeDoc **Doc)
 {
 	ProjectNode *n = 0;
 

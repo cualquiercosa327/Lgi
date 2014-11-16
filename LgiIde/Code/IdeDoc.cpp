@@ -748,7 +748,7 @@ public:
 	DocEdit *Edit;
 	EditTray *Tray;
 	
-	IdeDocPrivate(IdeDoc *d, AppWnd *a, NodeSource *src, char *file) : NodeView(src)
+	IdeDocPrivate(IdeDoc *d, AppWnd *a, NodeSource *src, const char *file) : NodeView(src)
 	{
 		IsDirty = false;
 		App = a;
@@ -825,7 +825,7 @@ public:
 		return NewStr(FileName);
 	}
 
-	bool IsFile(char *File)
+	bool IsFile(const char *File)
 	{
 		GAutoString Mem;
 		char *f = NULL;
@@ -934,7 +934,7 @@ public:
 	}
 };
 
-IdeDoc::IdeDoc(AppWnd *a, NodeSource *src, char *file)
+IdeDoc::IdeDoc(AppWnd *a, NodeSource *src, const char *file)
 {
 	d = new IdeDocPrivate(this, a, src, file);
 	d->UpdateName();
@@ -1058,7 +1058,7 @@ AppWnd *IdeDoc::GetApp()
 	return d->App;
 }
 
-bool IdeDoc::IsFile(char *File)
+bool IdeDoc::IsFile(const char *File)
 {
 	return File ? d->IsFile(File) : false;
 }

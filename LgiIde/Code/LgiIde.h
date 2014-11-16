@@ -155,8 +155,8 @@ public:
 
 	void SaveAll();
 	void CloseAll();
-	IdeDoc *OpenFile(char *FileName, NodeSource *Src = 0);
-	IdeDoc *NewDocWnd(char *FileName, NodeSource *Src);
+	IdeDoc *OpenFile(const char *FileName, NodeSource *Src = 0);
+	IdeDoc *NewDocWnd(const char *FileName, NodeSource *Src);
 	IdeProject *OpenProject(char *FileName, IdeProject *ParentProj, bool Create = false, bool Dep = false);
 	IdeProject *RootProject();
 	IdeDoc *TopDoc();
@@ -169,7 +169,7 @@ public:
 	GOptionsFile *GetOptions();
 	GList *GetFtpLog();
 	IdeDoc *FindOpenFile(char *FileName);
-	IdeDoc *GotoReference(char *File, int Line);
+	IdeDoc *GotoReference(const char *File, int Line, bool WithHistory = true);
 	bool FindSymbol(const char *Syn, GArray<FindSymResult> &Results);
 	bool GetSystemIncludePaths(GArray<char*> &Paths);
 	
@@ -182,6 +182,7 @@ public:
 	void OnFindFinished();
 	bool OnRequestClose(bool IsClose);
 	GMessage::Result OnEvent(GMessage *m);
+	void OnRunState(bool Running);
 };
 
 #include "IdeDoc.h"

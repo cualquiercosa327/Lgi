@@ -8,7 +8,11 @@ class GDebugEvents
 public:
 	virtual ~GDebugEvents() {}
 	
-	virtual void OnRunStateChange(bool Running) = 0;
+	virtual void OnChildLoaded(bool Loaded) = 0;
+	virtual void OnRunState(bool Running) = 0;
+	virtual void OnFileLine(const char *File, int Line) = 0;
+	virtual void OnDebugLog(const char *Txt, int Bytes) = 0;
+	virtual void OnError(int Code, const char *Str) = 0;
 };
 
 class GDebugger
@@ -31,13 +35,25 @@ public:
 	virtual ~GDebugger() {}
 	
 	virtual bool Load(GDebugEvents *EventHandler, const char *Exe, const char *Args, const char *InitDir) = 0;
-	virtual bool GetRunning() = 0;
-	virtual bool SetRuning(bool Run) = 0;
+	virtual bool Restart() = 0;
+	virtual bool Unload() = 0;
+
 	virtual bool SetBreakPoint(BreakPoint *bp) = 0;
 	virtual bool GetBreakPoints(GArray<BreakPoint> &bps) = 0;
-	virtual bool GetVariables(GArray<Variable> &vars) = 0;
+
+	virtual bool GetVariables(bool Locals, GArray<Variable> &vars) = 0;
+
 	virtual bool GetLocation(GAutoString &File, int &Line) = 0;
 	virtual bool SetLocation(const char *File, int Line) = 0;
+
+	virtual bool GetRunning() = 0;
+	virtual bool SetRuning(bool Run) = 0;
+	virtual bool StepInto() = 0;
+	virtual bool StepOver() = 0;
+	virtual bool StepOut() = 0;
+	virtual bool Break() = 0;
+	
+	virtual bool UserCommand(const char *Cmd) = 0;
 };
 
 extern GDebugger *CreateGdbDebugger();
