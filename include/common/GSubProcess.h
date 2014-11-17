@@ -97,6 +97,64 @@ protected:
 	GAutoString Exe;
 	::GArray<char*> Args;
 	GAutoString InitialFolder;
+	
+	struct Variable
+	{
+		GAutoString Var, Val;
+	};
+	bool EnvironmentChanged;
+	GArray<Variable> Environment;
+	uint32 ErrorCode;
+	
+	Variable *GetEnvVar(const char *Var, bool Create = false)
+	{
+		if (Environment.Length() == 0)
+		{
+			// Read all variables in
+			LPWCH e = GetEnvironmentStringsW();
+			if (e)
+			{
+				char16 *s = e;
+				while (*s)
+				{
+					char16 *eq = StrchrW(s, '=');
+					if (!eq)
+						break;
+
+					int NameChars = eq - s;
+					if (NameChars > 0)
+					{					
+						Variable &v = Environment.New();
+						v.Var.Reset(LgiNewUtf16To8(s, sizeof(char16)*(eq-s)));
+						eq++;
+						v.Val.Reset(LgiNewUtf16To8(eq));
+					}
+					
+					eq += StrlenW(eq);
+					s = eq + 1;
+				}
+				
+				FreeEnvironmentStringsW(e);
+			}
+		}
+		
+		for (int i=0; i<Environment.Length(); i++)
+		{
+			if (!_stricmp(Environment[i].Var, Var))
+			{
+				return &Environment[i];
+			}
+		}
+		
+		if (Create)
+		{
+			Variable &v = Environment.New();
+			v.Var.Reset(NewStr(Var));
+			return &v;
+		}
+		
+		return NULL;
+	}
 
 	#if defined(POSIX)
 	pid_t ChildPid;
@@ -133,9 +191,11 @@ public:
 		ChildHnd = NULL;
 		ExitValue = 0;
 		#endif
+		ErrorCode = 0;
 		Parent = Child = NULL;
 		Exe.Reset(NewStr(exe));
 		Args.Add(Exe);
+		EnvironmentChanged = false;
 		
 		char *s;
 		while (s = LgiTokStr(args))
@@ -182,10 +242,83 @@ public:
 		#endif
 	}
 	
+	uint32 GetErrorCode()
+	{
+		return ErrorCode;
+	}
+	
 	void SetInitFolder(const char *f)
 	{
 		InitialFolder.Reset(NewStr(f));
 	}
+
+	const char *GetEnvironment(const char *Var)
+	{
+		Variable *v = GetEnvVar(Var);
+		return v ? v->Val.Get() : NULL;
+	}
+	
+	bool SetEnvironment(const char *Var, const char *Value)
+	{	
+		Variable *v = GetEnvVar(Var, true);
+		if (!v)
+			return false;
+		
+		bool IsPath = !_stricmp(Var, "PATH");
+
+		GStringPipe a;
+		const char *s = Value;
+		while (*s)
+		{
+			char *n = strchr(s, '%');
+			char *e = n ? strchr(n + 1, '%') : NULL;
+			if (n && e)
+			{
+				a.Write(s, n-s);
+				
+				n++;
+				int bytes = e - n;				
+				char Name[128];	
+				if (bytes > sizeof(Name) - 1) bytes = sizeof(Name)-1;			
+				memcpy(Name, n, bytes);
+				Name[bytes] = 0;
+				
+				const char *existing = GetEnvironment(Name);
+				if (existing)
+				{
+					a.Write(existing, strlen(existing));
+				}
+
+				s = e + 1;
+			}
+			else
+			{
+				a.Write(s, strlen(s));
+				break;
+			}
+		}
+		
+		v->Val.Reset(a.NewStr());
+		if (IsPath)
+		{
+			// Remove missing paths from the list
+			GToken t(v->Val, LGI_PATH_SEPARATOR);
+			GStringPipe p;
+			for (int i=0; i<t.Length(); i++)
+			{
+				char *Dir = t[i];
+				if (DirExists(Dir))
+					p.Print("%s%s", p.GetSize() ? LGI_PATH_SEPARATOR : "", Dir);
+				else
+					LgiTrace("%s:%i - Removing missing path '%s'\n", _FL, Dir);
+			}
+			v->Val.Reset(p.NewStr());
+		}
+		
+		EnvironmentChanged = true;
+		
+		return true;
+	}	
 	
 	void Connect(GSubProcess *child)
 	{
@@ -370,13 +503,29 @@ public:
 			Info.hStdInput = ChildInput.Read;
 			GAutoWString WInitialFolder(LgiNewUtf8To16(InitialFolder));
 
+			GAutoWString WEnv;
+			if (EnvironmentChanged)
+			{
+				GMemQueue q(256);
+				for (int i=0; i<Environment.Length(); i++)
+				{
+					Variable &v = Environment[i];
+					GAutoWString Var(LgiNewUtf8To16(v.Var));
+					GAutoWString Val(LgiNewUtf8To16(v.Val));
+					q.Write(Var, sizeof(char16)*(StrlenW(Var)));
+					q.Write(L"=", sizeof(char16));
+					q.Write(Val, sizeof(char16)*(StrlenW(Val)+1));
+				}
+				WEnv.Reset((char16*)q.New(4));
+			}
+
 			if (CreateProcessW(	WExe,
 								WArg,
 								&Attr,				// lpProcessAttributes
 								NULL,				// lpThreadAttributes
 								TRUE,				// bInheritHandles
-								CREATE_NO_WINDOW,	// dwCreationFlags
-								NULL,				// lpEnvironment
+								CREATE_NO_WINDOW|CREATE_UNICODE_ENVIRONMENT, // dwCreationFlags
+								WEnv,				// lpEnvironment
 								WInitialFolder,		// lpCurrentDirectory
 								&Info,				// lpStartupInfo
 								&ProcInfo))
@@ -387,8 +536,9 @@ public:
 			}
 			else
 			{
-				DWORD Err = GetLastError();
-				int asd=0;
+				ErrorCode = GetLastError();
+				LgiTrace("%s:%i - CreateProces('%S', '%S'...) failed with %i\n",
+					_FL, WExe.Get(), WArg, ErrorCode);
 			}
 			
 			CloseHandle(ChildOutput.Write);

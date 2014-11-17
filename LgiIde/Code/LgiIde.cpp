@@ -263,7 +263,7 @@ public:
 	GTabPage *Find;
 	GTabPage *Ftp;
 	GList *FtpLog;
-	GTextView3 *Txt[3];
+	GTextLog *Txt[3];
 	GArray<char> Buf[3];
 	GFont Small;
 	GBox *DebugBox;
@@ -305,11 +305,11 @@ public:
 			Debug->SetFont(&Small);
 			
 			if (Build)
-				Build->Append(Txt[0] = new GTextView3(101, 0, 0, 100, 100));
+				Build->Append(Txt[AppWnd::BuildTab] = new GTextLog(IDC_BUILD_LOG));
 			if (Output)
-				Output->Append(Txt[1] = new GTextView3(102, 0, 0, 100, 100));
+				Output->Append(Txt[AppWnd::OutputTab] = new GTextLog(IDC_OUTPUT_LOG));
 			if (Find)
-				Find->Append(Txt[2] = new GTextView3(103, 0, 0, 100, 100));
+				Find->Append(Txt[AppWnd::FindTab] = new GTextLog(IDC_FIND_LOG));
 			if (Ftp)
 				Ftp->Append(FtpLog = new GList(104, 0, 0, 100, 100));
 			if (Debug)
@@ -438,7 +438,7 @@ public:
 			for (int n=0; n<CountOf(Txt); n++)
 			{
 				if (Txt[n])
-					Txt[n]->SetPos(c);
+					Txt[n]->GView::SetPos(c);
 			}
 
 			FtpLog->SetPos(c);
@@ -1509,7 +1509,7 @@ GMessage::Result AppWnd::OnEvent(GMessage *m)
 			char *Msg = (char*)MsgB(m);
 			if (Msg)
 			{
-				LgiMsg(this, "Build Error: %s", AppName, MB_OK, Msg);
+				d->Output->Txt[AppWnd::BuildTab]->Print("Build Error: %s\n", Msg);
 				DeleteArray(Msg);
 			}
 			break;

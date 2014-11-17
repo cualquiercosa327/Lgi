@@ -2079,6 +2079,7 @@ public:
 	int Main()
 	{
 		char *Err = 0;
+		char ErrBuf[256];
 		
 		char *Exe = FindExe();
 		if (Exe)
@@ -2095,6 +2096,12 @@ public:
 				sprintf(a, "\"%s\" /make \"All - Win32 Debug\"", Makefile.Get());
 				GProcess Make;
 				Status = Make.Run(Exe, a, 0, true, 0, this);
+
+				if (!Status)
+				{
+					Err = "Running make failed";
+					LgiTrace("%s,%i - %s.\n", _FL, Err);
+				}
 			}
 			else
 			{
@@ -2106,6 +2113,7 @@ public:
 				{
 					char *Dir = strrchr(MakePath, DIR_CHAR);
 					a.Print("/C \"%s\" -f \"%s\"", Exe, Dir ? Dir + 1 : MakePath.Get());
+					// a.Print("/C set");
 					Exe = "C:\\Windows\\System32\\cmd.exe";
 				}
 				else
@@ -2119,22 +2127,35 @@ public:
 
 				GSubProcess SubProc(Exe, Temp);
 				SubProc.SetInitFolder(InitDir);
+				if (Compiler == MingW)
+					SubProc.SetEnvironment("PATH", "c:\\MingW\\bin;C:\\MinGW\\msys\\1.0\\bin;%PATH%");
 				
-				Status = SubProc.Start(true, false);
-
-				// Read all the output					
-				char Buf[256];
-				int rd;
-				while ( (rd = SubProc.Read(Buf, sizeof(Buf))) > 0 )
+				if (Status = SubProc.Start(true, false))
 				{
-					Write(Buf, rd);
+					// Read all the output					
+					char Buf[256];
+					int rd;
+					while ( (rd = SubProc.Read(Buf, sizeof(Buf))) > 0 )
+					{
+						Write(Buf, rd);
+					}
 				}
-			}
-
-			if (!Status)
-			{
-				Err = "Running make failed";
-				LgiTrace("%s,%i - %s.\n", __FILE__, __LINE__, Err);
+				else
+				{
+					// Create a nice error message.
+					GAutoString ErrStr = LgiErrorCodeToString(SubProc.GetErrorCode());
+					if (ErrStr)
+					{
+						char *e = ErrStr + strlen(ErrStr);
+						while (e > ErrStr && strchr(" \t\r\n.", e[-1]))
+							*(--e) = 0;
+					}
+					
+					sprintf_s(ErrBuf, sizeof(ErrBuf), "Running make failed with %i (%s)\n",
+						SubProc.GetErrorCode(),
+						ErrStr.Get());
+					Err = ErrBuf;
+				}
 			}
 		}
 		else

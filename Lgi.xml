@@ -348,7 +348,7 @@
 		</Node>
 	</Node>
 	<Node Name="Headers" Type="1" Platforms="15" Open="1">
-		<Node Name="Linux" Type="1" Platforms="15" Open="1">
+		<Node Name="Linux" Type="1" Platforms="15" Open="0">
 			<Node File=".\include\linux\Gtk\LgiOsDefs.h" Type="3" Platforms="2" />
 		</Node>
 		<Node Name="Win" Type="1" Platforms="15" Open="1">

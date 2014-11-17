@@ -63,7 +63,10 @@ enum IdeControls
 	IDC_WATCH_LIST	= 500,
 	IDC_LOCALS_LIST,
 	IDC_DEBUG_EDIT,
-	IDC_DEBUGGER_LOG
+	IDC_DEBUGGER_LOG,
+	IDC_BUILD_LOG,
+	IDC_OUTPUT_LOG,
+	IDC_FIND_LOG,
 };
 
 #define BUILD_TYPE_DEBUG		0
@@ -150,6 +153,15 @@ class AppWnd : public GWindow
 	class AppWndPrivate *d;
 
 public:
+	enum Channels
+	{
+		BuildTab,
+		OutputTab,
+		FindTab,
+		FtpTab,
+		DebugTab,
+	};
+
 	AppWnd();
 	~AppWnd();
 
