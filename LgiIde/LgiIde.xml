@@ -124,7 +124,10 @@ WINNATIVE</Release>
 				<All />
 			</Libraries>
 			<LibraryPaths>
-				<All />
+				<All>
+					<Debug>..\Debug</Debug>
+					<Release>..\Release</Release>
+				</All>
 				<Windows />
 			</LibraryPaths>
 			<TargetType>
