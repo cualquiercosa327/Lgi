@@ -304,6 +304,7 @@ extern bool LgiToWindowsCursor(LgiCursor Cursor);
 #define strcat_s strncat
 #define vsnprintf_s vsnprintf
 #define swprintf_s snwprintf
+#define vsprintf_s vsnprintf
 #if !defined(_TRUNCATE)
 #define _TRUNCATE ((size_t)-1)
 #endif
