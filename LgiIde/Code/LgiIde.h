@@ -193,6 +193,7 @@ public:
 	void OnFile(char *File, bool IsProject = false);
 	void OnFindFinished();
 	bool OnRequestClose(bool IsClose);
+	int OnNotify(GViewI *Ctrl, int Flags);
 	GMessage::Result OnEvent(GMessage *m);
 	void OnRunState(bool Running);
 };

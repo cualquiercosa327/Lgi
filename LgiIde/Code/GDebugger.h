@@ -3,7 +3,7 @@
 
 #include "GVariant.h"
 
-class GDebugEvents
+class GDebugEvents : public GStream
 {
 public:
 	virtual ~GDebugEvents() {}
@@ -11,7 +11,6 @@ public:
 	virtual void OnChildLoaded(bool Loaded) = 0;
 	virtual void OnRunState(bool Running) = 0;
 	virtual void OnFileLine(const char *File, int Line) = 0;
-	virtual void OnDebugLog(const char *Txt, int Bytes) = 0;
 	virtual void OnError(int Code, const char *Str) = 0;
 };
 

@@ -113,10 +113,10 @@ public:
 	GMessage::Param OnEvent(GMessage *m);
 	
 	// Debugger events...
+	int Write(const void *Ptr, int Size, int Flags = 0);
 	void OnChildLoaded(bool Loaded);
 	void OnRunState(bool Running);
 	void OnFileLine(const char *File, int Line);
-	void OnDebugLog(const char *Txt, int Bytes);
 	void OnError(int Code, const char *Str);
 };
 

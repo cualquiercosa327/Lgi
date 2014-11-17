@@ -8,6 +8,8 @@ class Gdb : public GDebugger, public GThread
 	GAutoPtr<GSubProcess> Sp;
 	GAutoString Exe, Args, InitDir;
 	bool Running;
+	bool AtPrompt;
+	char Line[256], *LinePtr;
 	
 	enum ThreadState
 	{
@@ -26,8 +28,34 @@ class Gdb : public GDebugger, public GThread
 			int Ch = vsprintf_s(Buf, sizeof(Buf), Fmt, Arg);
 			va_end(Arg);
 			
-			Events->OnDebugLog(Buf, Ch);
+			Events->Write(Buf, Ch);
 		}
+	}
+	
+	void OnRead(const char *Ptr, int Bytes)
+	{
+		Events->Write(Ptr, Bytes);
+		LgiTrace("Wrote %i bytes to log.\n", Bytes);
+		
+		// Check for prompt
+		const char *End = Ptr + Bytes;
+		char *LineEnd = Line + sizeof(Line) - 1;
+		while (Ptr < End)
+		{
+			if (*Ptr == '\n')
+			{
+				LinePtr = Line;
+			}
+			else if (LinePtr < LineEnd)
+			{
+				*LinePtr++ = *Ptr;
+			}
+
+			Ptr++;
+		}
+		*LinePtr = 0;
+		
+		AtPrompt = !_stricmp(Line, "(gdb) ");
 	}
 		
 	int Main()
@@ -39,7 +67,7 @@ class Gdb : public GDebugger, public GThread
 		if (!Sp.Reset(new GSubProcess(Path, Args)))
 			return false;
 
-		Log("Starting: %s %s\n", Path, s);
+		// Log("Starting: %s %s\n", Path, s);
 		
 		if (InitDir)
 			Sp->SetInitFolder(InitDir);
@@ -48,52 +76,86 @@ class Gdb : public GDebugger, public GThread
 			return -1;
 			
 		State = Looping;
-		char Buf[256];
+		char Buf[512];
 		while (State == Looping && Sp->IsRunning())
 		{
+			#if 1
+			#ifdef _DEBUG
+			ZeroObj(Buf);
+			#endif
+			int Rd = Sp->Read(Buf, sizeof(Buf));
+			if (Rd > 0)
+			{
+				OnRead(Buf, Rd);
+			}
+			#else
 			int Pk = Sp->Peek();
 			if (Pk > 0)
 			{
 				int Rd = Sp->Read(Buf, sizeof(Buf));
 				if (Rd > 0)
 				{
-					Events->OnDebugLog(Buf, Rd);
+					Events->Write(Buf, Rd);
 				}
 			}
 			else
 			{			
 				LgiSleep(20);
 			}
+			#endif
 		}
 
 		Log("Debugger exited.\n");
 		return 0;
 	}
-	
-	bool Cmd(const char *c)
+
+	bool WaitPrompt()
 	{
 		if (State == Init)
 		{
 			uint64 Start = LgiCurrentTime();
-			while (State == Init && LgiCurrentTime() - Start < 2000)
+			while (State == Init /*&& LgiCurrentTime() - Start < 2000*/)
 			{
-				LgiSleep(10);				
+				LgiSleep(1);
 			}
-			
-			if (!Sp)
+			/*
+			if (State == Init)
 			{
 				LgiAssert(0);
 				return false;
 			}
+			*/
+			
+			LgiTrace("Waited %I64ims for Looping state...\n", LgiCurrentTime() - Start);
 		}
 
-		char str[256];
-		int ch = sprintf_s(str, sizeof(str), "%s\r", c);
-		int Wr = Sp->Write(str, ch);
-		if (Wr > 0)
+		uint64 Start = LgiCurrentTime();
+		while (!AtPrompt /*&& LgiCurrentTime() - Start < 2000*/)
 		{
-			Events->OnDebugLog(str, Wr);
+			LgiSleep(1);
 		}
+
+		/*
+		if (!AtPrompt)
+		{
+			LgiAssert(0);
+			return false;
+		}
+		*/
+
+		LgiTrace("Waited %I64ims for AtPrompt...\n", LgiCurrentTime() - Start);
+		return true;
+	}
+	
+	bool Cmd(const char *c)
+	{
+		if (!WaitPrompt())
+			return false;
+
+		char str[256];
+		int ch = sprintf_s(str, sizeof(str), "%s\n", c);
+		Events->Write(str, ch);
+		int Wr = Sp->Write(str, ch);
 		
 		return Wr == ch;
 	}
@@ -103,6 +165,8 @@ public:
 	{
 		Events = NULL;
 		State = Init;
+		AtPrompt = false;
+		LinePtr = Line;
 	}
 	
 	~Gdb()
@@ -221,10 +285,11 @@ public:
 		return false;
 	}
 
-	bool UserCommand(const char *Cmd)
+	bool UserCommand(const char *cmd)
 	{
-		LgiAssert(0);
-		return false;
+		char c[256];
+		sprintf_s(c, sizeof(c), "%s\n", cmd);
+		return Cmd(c);
 	}
 };
 

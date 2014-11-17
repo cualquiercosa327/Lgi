@@ -86,8 +86,10 @@ bool GDebugContext::OnCommand(int Cmd)
 	{
 		case IDM_START_DEBUG:
 		{
+			/*
 			if (d->Db)
 				d->Db->SetRuning(true);
+			*/
 			break;
 		}
 		case IDM_ATTACH_TO_PROCESS:
@@ -167,10 +169,15 @@ void GDebugContext::OnFileLine(const char *File, int Line)
 		d->App->GotoReference(File, Line);
 }
 
-void GDebugContext::OnDebugLog(const char *Txt, int Bytes)
+int GDebugContext::Write(const void *Ptr, int Size, int Flags)
 {
-	if (DebuggerLog && Txt)
-		DebuggerLog->Write(Txt, Bytes);
+	if (DebuggerLog && Ptr)
+	{
+		// LgiTrace("Write '%.*s'\n", Size, Ptr);
+		return DebuggerLog->Write(Ptr, Size, 0);
+	}
+		
+	return -1;
 }
 
 void GDebugContext::OnError(int Code, const char *Str)

@@ -1603,6 +1603,28 @@ public:
 	}
 };
 
+int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
+{
+	switch (Ctrl->GetId())
+	{
+		case IDC_DEBUG_EDIT:
+		{
+			if (Flags == VK_RETURN)
+			{
+				char *Cmd = Ctrl->Name();
+				if (Cmd)
+				{
+					d->DbgContext->OnUserCommand(Cmd);
+					Ctrl->Name(NULL);
+				}
+			}
+			break;
+		}
+	}
+	
+	return 0;
+}
+
 int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 {
 	switch (Cmd)
@@ -1925,7 +1947,8 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 					
 					d->DbgContext->OnCommand(IDM_START_DEBUG);
 					
-					d->Output->Tab->Value(5);
+					d->Output->Tab->Value(AppWnd::DebugTab);
+					d->Output->DebugEdit->Focus(true);
 				}
 			}
 			break;
