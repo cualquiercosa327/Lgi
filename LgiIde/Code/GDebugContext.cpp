@@ -40,7 +40,26 @@ public:
 				for (int i=0; i<Stack.Length(); i++)
 				{
 					GListItem *it = new GListItem;
-					it->SetText(Stack[i], 1);
+					char *f = Stack[i];
+					if (*f == '#')
+					{
+						char *Sp = strchr(++f, ' ');
+						if (Sp)
+						{
+							*Sp++ = 0;
+							it->SetText(f, 0);
+							it->SetText(Sp, 1);
+						}
+						else
+						{
+							it->SetText(Stack[i], 1);
+						}
+					}
+					else
+					{					
+						it->SetText(Stack[i], 1);
+					}
+					
 					Ctx->CallStack->Insert(it);
 				}
 				
@@ -104,6 +123,34 @@ GMessage::Param GDebugContext::OnEvent(GMessage *m)
 	}
 	
 	return 0;
+}
+
+bool GDebugContext::ParseFrameReference(const char *Frame, GAutoString &File, int &Line)
+{
+	if (!Frame)
+		return false;
+	
+	const char *At = NULL, *s = Frame;
+	while (s = stristr(s, "at"))
+	{
+		At = s;
+		s += 2;
+	}
+
+	if (!At)
+		return false;
+
+	At += 3;
+	if (!File.Reset(LgiTokStr(At)))
+		return false;
+	
+	char *Colon = strchr(File, ':');
+	if (!Colon)
+		return false;
+
+	*Colon++ = 0;
+	Line = atoi(Colon);
+	return Line > 0;
 }
 
 bool GDebugContext::OnCommand(int Cmd)

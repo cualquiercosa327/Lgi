@@ -161,7 +161,7 @@ class Gdb : public GDebugger, public GThread
 		return true;
 	}
 	
-	bool Cmd(const char *c)
+	bool Cmd(const char *c, GStream *Output = NULL)
 	{
 		if (!WaitPrompt())
 			return false;
@@ -169,9 +169,21 @@ class Gdb : public GDebugger, public GThread
 		char str[256];
 		int ch = sprintf_s(str, sizeof(str), "%s\n", c);
 		Events->Write(str, ch);
+
+		OutStream = Output;
+
 		int Wr = Sp->Write(str, ch);
+		if (Wr != ch)
+			return false;
+
+		if (Output)
+		{		
+			AtPrompt = false;
+			WaitPrompt();
+			OutStream = NULL;
+		}
 		
-		return Wr == ch;
+		return true;
 	}
 	
 public:
@@ -210,41 +222,32 @@ public:
 	bool GetCallStack(GArray<GAutoString> &Stack)
 	{
 		GStringPipe Bt;
-		
-		if (!WaitPrompt())
+		if (!Cmd("bt", &Bt))
 			return false;
 
-		OutStream = &Bt;
-		bool Result = Cmd("bt");
-		AtPrompt = false;
-		WaitPrompt();
-		OutStream = NULL;
-
-		if (Result)
-		{		
-			GAutoString a(Bt.NewStr());
-			GToken Lines(a, "\n");
-			for (int i=0; i<Lines.Length(); i++)
+		GAutoString a(Bt.NewStr());
+		GToken Lines(a, "\n");
+		for (int i=0; i<Lines.Length(); i++)
+		{
+			char *l = Lines[i];
+			if (stristr(l, sPrompt))
+				Events->Write(l, strlen(l));
+			else if (*l == '#')
+				Stack.New().Reset(NewStr(l));
+			else if (Stack.Length() > 0)
 			{
-				char *l = Lines[i];
-				if (stristr(l, sPrompt))
-					Events->Write(l, strlen(l));
-				else if (*l == '#')
-					Stack.New().Reset(NewStr(l));
-				else if (Stack.Length() > 0)
-				{
-					// Append to the last line..
-					GAutoString &Prev = Stack.Last();
-					char *End = Prev + strlen(Prev);
-					while (End > Prev && strchr(WhiteSpace, End[-1]))
-						*(--End) = 0;
-					char s[512];
-					sprintf_s(s, sizeof(s), "%s%s", Prev.Get(), l);
-					Prev.Reset(NewStr(s));
-				}
+				// Append to the last line..
+				GAutoString &Prev = Stack.Last();
+				char *End = Prev + strlen(Prev);
+				while (End > Prev && strchr(WhiteSpace, End[-1]))
+					*(--End) = 0;
+				char s[512];
+				sprintf_s(s, sizeof(s), "%s%s", Prev.Get(), l);
+				Prev.Reset(NewStr(s));
 			}
 		}
-		return Result;
+		
+		return true;
 	}
 
 	bool Restart()

@@ -187,6 +187,7 @@ public:
 	IdeDoc *GotoReference(const char *File, int Line, bool WithHistory = true);
 	bool FindSymbol(const char *Syn, GArray<FindSymResult> &Results);
 	bool GetSystemIncludePaths(GArray<char*> &Paths);
+	class GDebugContext *GetDebugContext();
 	
 	// Events
 	void OnLocationChange(const char *File, int Line);

@@ -256,6 +256,7 @@ public:
 class IdeOutput : public GPanel
 {
 public:
+	AppWnd *App;
 	GTabView *Tab;
 	GTabPage *Build;
 	GTabPage *Output;
@@ -274,8 +275,9 @@ public:
 	GEdit *DebugEdit;
 	GTextLog *DebuggerLog;
 
-	IdeOutput() : GPanel("Panel", 200, true)
+	IdeOutput(AppWnd *app) : GPanel("Panel", 200, true)
 	{
+		App = app;
 		Build = Output = Debug = Find = Ftp = 0;
 		FtpLog = 0;
 		DebugBox = NULL;
@@ -363,6 +365,7 @@ public:
 								CallStack->AddColumn("", 20);
 								CallStack->AddColumn("Call Stack", 1000);
 								CallStack->SetPourLargest(true);
+								CallStack->MultiSelect(false);
 
 								Page->Append(CallStack);
 							}
@@ -417,23 +420,6 @@ public:
 	{
 	}
 	
-	int OnNotify(GViewI *Ctrl, int Flags)
-	{
-		switch (Ctrl->GetId())
-		{
-			case IDC_CALL_STACK:
-			{
-				if (Flags == M_CHANGE)
-				{
-					DebugTab->Value(2);
-				}
-				break;
-			}
-		}
-		
-		return GView::OnNotify(Ctrl, Flags);
-	}
-
 	void OnCreate()
 	{
 		SetPulse(1000);
@@ -515,38 +501,6 @@ int DocSorter(IdeDoc *a, IdeDoc *b, int d)
 	
 	return 0;
 }
-
-/*
-class Options : public GDialog
-{
-	AppWnd *App;
-	
-public:
-	Options(AppWnd *a)
-	{
-		SetParent(App = a);
-		if (LoadFromResource(IDD_OPTIONS))
-		{
-			MoveToCenter();
-		}
-	}
-
-	int OnNotify(GViewI *c, int f)
-	{
-		switch (c->GetId())
-		{
-			case IDOK:
-			case IDCANCEL:
-			{
-				EndModal(c->GetId() == IDOK);
-				break;
-			}
-		}
-		
-		return 0;
-	}
-};
-*/
 
 struct FileLoc
 {
@@ -650,10 +604,8 @@ public:
 		DeleteObj(Icons);
 	}
 
-	void ViewMsg(char *File, int Line, char *Context)
+	bool FindSource(GAutoString &Full, char *File, char *Context)
 	{
-		GAutoString Full;
-
 		if (!LgiIsRelativePath(File))
 		{
 			Full.Reset(NewStr(File));
@@ -681,7 +633,7 @@ public:
 			}
 			else
 			{
-				printf("%s:%i - Context '%s' not found in project.\n", __FILE__, __LINE__, Context);
+				printf("%s:%i - Context '%s' not found in project.\n", _FL, Context);
 			}
 		}
 
@@ -721,7 +673,13 @@ public:
 			}
 		}
 		
-		if (Full)
+		return ValidStr(Full);
+	}
+
+	void ViewMsg(char *File, int Line, char *Context)
+	{
+		GAutoString Full;
+		if (FindSource(Full, File, Context))
 		{
 			IdeDoc *Doc = App->GotoReference(Full, Line);			
 		}
@@ -1134,7 +1092,7 @@ AppWnd::AppWnd()
 			Tools->Attach(this);
 		}
 		
-		d->Output = new IdeOutput;
+		d->Output = new IdeOutput(this);
 		if (d->Output)
 		{
 			if (Tools)
@@ -1198,6 +1156,11 @@ AppWnd::~AppWnd()
 	
 	LgiApp->AppWnd = 0;
 	DeleteObj(d);
+}
+
+GDebugContext *AppWnd::GetDebugContext()
+{
+	return d->DbgContext;
 }
 
 void AppWnd::OnReceiveFiles(GArray<char*> &Files)
@@ -1672,6 +1635,35 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 				{
 					d->DbgContext->OnUserCommand(Cmd);
 					Ctrl->Name(NULL);
+				}
+			}
+			break;
+		}
+		case IDC_CALL_STACK:
+		{
+			if (Flags == M_CHANGE)
+			{
+				if (d->Output->DebugTab)
+					d->Output->DebugTab->Value(2);
+			}
+			else if (Flags == GLIST_NOTIFY_SELECT)
+			{
+				if (d->Output->CallStack && d->DbgContext)
+				{
+					GListItem *item = d->Output->CallStack->GetSelected();
+					if (item)
+					{
+						GAutoString File;
+						int Line;
+						if (d->DbgContext->ParseFrameReference(item->GetText(1), File, Line))
+						{
+							GAutoString Full;
+							if (d->FindSource(Full, File, NULL))
+							{
+								GotoReference(Full, Line, false);
+							}
+						}
+					}
 				}
 			}
 			break;

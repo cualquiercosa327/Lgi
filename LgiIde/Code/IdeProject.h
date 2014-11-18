@@ -103,10 +103,13 @@ public:
 	GList *Locals;
 	GList *CallStack;
 	class GTextLog *DebuggerLog;
-	
+
 	// Object
 	GDebugContext(AppWnd *App, class IdeProject *Proj, const char *Exe, const char *Args);
 	virtual ~GDebugContext();
+
+	// Impl
+	bool ParseFrameReference(const char *Frame, GAutoString &File, int &Line);
 	
 	// Ui events...
 	bool OnCommand(int Cmd);
