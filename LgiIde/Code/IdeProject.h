@@ -101,6 +101,7 @@ class GDebugContext : public GDebugEvents
 public:
 	GList *Watch;
 	GList *Locals;
+	GList *CallStack;
 	class GTextLog *DebuggerLog;
 	
 	// Object
@@ -118,6 +119,7 @@ public:
 	void OnRunState(bool Running);
 	void OnFileLine(const char *File, int Line);
 	void OnError(int Code, const char *Str);
+	void OnCrash(int Code);
 };
 
 class IdeProject : public GXmlFactory, public IdeCommon

@@ -6,6 +6,7 @@
 enum DebugMessages
 {
 	M_RUN_STATE = M_USER + 100,
+	M_ON_CRASH,
 };
 
 class GDebugContextPriv
@@ -26,6 +27,26 @@ public:
 	
 	~GDebugContextPriv()
 	{
+	}
+
+	void UpdateCallStack()
+	{
+		if (Db && Ctx->CallStack)
+		{
+			GArray<GAutoString> Stack;
+			if (Db->GetCallStack(Stack))
+			{
+				Ctx->CallStack->Empty();
+				for (int i=0; i<Stack.Length(); i++)
+				{
+					GListItem *it = new GListItem;
+					it->SetText(Stack[i], 1);
+					Ctx->CallStack->Insert(it);
+				}
+				
+				Ctx->CallStack->SendNotify(M_CHANGE);
+			}
+		}
 	}
 	
 	void Log(const char *Fmt, ...)
@@ -75,6 +96,11 @@ GMessage::Param GDebugContext::OnEvent(GMessage *m)
 {
 	switch (m->Msg)
 	{
+		case M_ON_CRASH:
+		{
+			d->UpdateCallStack();
+			break;
+		}
 	}
 	
 	return 0;
@@ -184,4 +210,9 @@ void GDebugContext::OnError(int Code, const char *Str)
 {
 	if (DebuggerLog)
 		DebuggerLog->Print("Error(%i): %s\n", Code, Str);
+}
+
+void GDebugContext::OnCrash(int Code)
+{
+	d->App->PostEvent(M_ON_CRASH);
 }

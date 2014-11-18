@@ -266,9 +266,11 @@ public:
 	GTextLog *Txt[3];
 	GArray<char> Buf[3];
 	GFont Small;
+
+	GTabView *DebugTab;
 	GBox *DebugBox;
 	GBox *DebugLog;
-	GList *Locals, *Watch;
+	GList *Locals, *Watch, *CallStack;
 	GEdit *DebugEdit;
 	GTextLog *DebuggerLog;
 
@@ -282,6 +284,7 @@ public:
 		DebugLog = NULL;
 		DebugEdit = NULL;
 		DebuggerLog = NULL;
+		CallStack = NULL;
 
 		Small = *SysFont;
 		Small.PointSize(Small.PointSize()-2);
@@ -318,20 +321,56 @@ public:
 				if (DebugBox)
 				{
 					DebugBox->SetVertical(false);
-					if (Locals = new GList(IDC_LOCALS_LIST, 0, 0, 100, 100, "Locals List"))
+					
+					if (DebugTab = new GTabView(IDC_DEBUG_TAB))
 					{
-						Locals->GetCss(true)->Width(GCss::Len("300px"));
-						DebugBox->AddView(Locals);
-						Locals->AddColumn("Local", 100);
-						Locals->AddColumn("Value", 200);
+						DebugTab->SetFont(&Small);
+						DebugBox->AddView(DebugTab);
+
+						GTabPage *Page;
+						if (Page = DebugTab->Append("Locals"))
+						{
+							Page->SetFont(&Small);
+							if (Locals = new GList(IDC_LOCALS_LIST, 0, 0, 100, 100, "Locals List"))
+							{
+								Locals->SetFont(&Small);
+								Locals->AddColumn("Local", 80);
+								Locals->AddColumn("Value", 1000);
+								Locals->SetPourLargest(true);
+
+								Page->Append(Locals);
+							}
+						}
+						if (Page = DebugTab->Append("Watch"))
+						{
+							Page->SetFont(&Small);
+							if (Watch = new GList(IDC_WATCH_LIST, 0, 0, 100, 100, "Watch List"))
+							{
+								Watch->SetFont(&Small);
+								Watch->AddColumn("Watch Var", 80);
+								Watch->AddColumn("Value", 1000);
+								Watch->SetPourLargest(true);
+
+								Page->Append(Watch);
+							}
+						}
+						if (Page = DebugTab->Append("Call Stack"))
+						{
+							Page->SetFont(&Small);
+							if (CallStack = new GList(IDC_CALL_STACK, 0, 0, 100, 100, "Call Stack"))
+							{
+								CallStack->SetFont(&Small);
+								CallStack->AddColumn("", 20);
+								CallStack->AddColumn("Call Stack", 1000);
+								CallStack->SetPourLargest(true);
+
+								Page->Append(CallStack);
+							}
+						}
+
+						// CallStack->GetCss(true)->Width(GCss::Len("270px"));
 					}
-					if (Watch = new GList(IDC_WATCH_LIST, 0, 0, 100, 100, "Watch List"))
-					{
-						Watch->GetCss(true)->Width(GCss::Len("300px"));
-						DebugBox->AddView(Watch);
-						Watch->AddColumn("Watch Var", 100);
-						Watch->AddColumn("Value", 200);
-					}
+					
 					if (DebugLog = new GBox)
 					{
 						DebugLog->SetVertical(true);
@@ -376,6 +415,23 @@ public:
 
 	~IdeOutput()
 	{
+	}
+	
+	int OnNotify(GViewI *Ctrl, int Flags)
+	{
+		switch (Ctrl->GetId())
+		{
+			case IDC_CALL_STACK:
+			{
+				if (Flags == M_CHANGE)
+				{
+					DebugTab->Value(2);
+				}
+				break;
+			}
+		}
+		
+		return GView::OnNotify(Ctrl, Flags);
 	}
 
 	void OnCreate()
@@ -1944,6 +2000,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 					d->DbgContext->DebuggerLog = d->Output->DebuggerLog;
 					d->DbgContext->Watch = d->Output->Watch;
 					d->DbgContext->Locals = d->Output->Locals;
+					d->DbgContext->CallStack = d->Output->CallStack;
 					
 					d->DbgContext->OnCommand(IDM_START_DEBUG);
 					

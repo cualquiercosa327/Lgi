@@ -2301,7 +2301,7 @@ bool IdeProject::GetExePath(char *Path, int Len)
 	const char *PExe = d->Settings.GetStr(ProjExe);
 	if (PExe)
 	{
-		if (PExe[0] == '.')
+		if (LgiIsRelativePath(PExe))
 		{
 			GAutoString Base = GetBasePath();
 			if (Base)

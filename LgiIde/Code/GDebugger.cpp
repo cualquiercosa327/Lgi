@@ -2,6 +2,8 @@
 #include "GDebugger.h"
 #include "GSubProcess.h"
 
+const char sPrompt[] = "(gdb) ";
+
 class Gdb : public GDebugger, public GThread
 {
 	GDebugEvents *Events;
@@ -10,6 +12,7 @@ class Gdb : public GDebugger, public GThread
 	bool Running;
 	bool AtPrompt;
 	char Line[256], *LinePtr;
+	GStream *OutStream;
 	
 	enum ThreadState
 	{
@@ -32,10 +35,20 @@ class Gdb : public GDebugger, public GThread
 		}
 	}
 	
+	void OnLine()
+	{
+		if (stristr(Line, "received signal SIGSEGV"))
+		{
+			Events->OnCrash(0);
+		}
+	}
+	
 	void OnRead(const char *Ptr, int Bytes)
 	{
-		Events->Write(Ptr, Bytes);
-		LgiTrace("Wrote %i bytes to log.\n", Bytes);
+		if (OutStream)
+			OutStream->Write(Ptr, Bytes);
+		else
+			Events->Write(Ptr, Bytes);
 		
 		// Check for prompt
 		const char *End = Ptr + Bytes;
@@ -44,6 +57,8 @@ class Gdb : public GDebugger, public GThread
 		{
 			if (*Ptr == '\n')
 			{
+				*LinePtr = 0;
+				OnLine();
 				LinePtr = Line;
 			}
 			else if (LinePtr < LineEnd)
@@ -54,17 +69,31 @@ class Gdb : public GDebugger, public GThread
 			Ptr++;
 		}
 		*LinePtr = 0;
-		
-		AtPrompt = !_stricmp(Line, "(gdb) ");
+
+		int Ch = LinePtr - Line;
+		int Offset = max(Ch - 6, 0);
+		AtPrompt = !_stricmp(Line + Offset, sPrompt);
+		if (AtPrompt)
+		{
+			if (Running ^ !AtPrompt)
+			{
+				Running = !AtPrompt;
+				Events->OnRunState(Running);
+			}
+		}
 	}
-		
+	
 	int Main()
 	{
 		char s[MAX_PATH];
 		const char *Shell = "C:\\Windows\\System32\\cmd.exe";
 		const char *Path = "C:\\MinGW\\bin\\gdb.exe";
-		sprintf_s(s, sizeof(s), "\"%s\"", Exe.Get());		
-		if (!Sp.Reset(new GSubProcess(Path, Args)))
+		if (ValidStr(Args))
+			sprintf_s(s, sizeof(s), "\"%s\"", Exe.Get());
+		else
+			sprintf_s(s, sizeof(s), "\"%s\" -- %s", Exe.Get(), Args.Get());
+		
+		if (!Sp.Reset(new GSubProcess(Path, s)))
 			return false;
 
 		// Log("Starting: %s %s\n", Path, s);
@@ -74,35 +103,22 @@ class Gdb : public GDebugger, public GThread
 		
 		if (!Sp->Start(true, true))
 			return -1;
-			
+		
 		State = Looping;
-		char Buf[512];
+		char Buf[513];
 		while (State == Looping && Sp->IsRunning())
 		{
-			#if 1
 			#ifdef _DEBUG
 			ZeroObj(Buf);
 			#endif
-			int Rd = Sp->Read(Buf, sizeof(Buf));
+			int Rd = Sp->Read(Buf, sizeof(Buf)-1);
 			if (Rd > 0)
 			{
 				OnRead(Buf, Rd);
-			}
-			#else
-			int Pk = Sp->Peek();
-			if (Pk > 0)
-			{
-				int Rd = Sp->Read(Buf, sizeof(Buf));
-				if (Rd > 0)
-				{
-					Events->Write(Buf, Rd);
-				}
-			}
-			else
-			{			
-				LgiSleep(20);
-			}
-			#endif
+				#ifdef _DEBUG
+				// LgiTrace("Read(%i)='%.*s'\n", Rd, Rd, Buf);
+				#endif
+			}			
 		}
 
 		Log("Debugger exited.\n");
@@ -130,18 +146,16 @@ class Gdb : public GDebugger, public GThread
 		}
 
 		uint64 Start = LgiCurrentTime();
-		while (!AtPrompt /*&& LgiCurrentTime() - Start < 2000*/)
+		while (!AtPrompt && LgiCurrentTime() - Start < 2000)
 		{
 			LgiSleep(1);
 		}
 
-		/*
 		if (!AtPrompt)
 		{
-			LgiAssert(0);
+			Log("Error: Not at prompt...\n");
 			return false;
 		}
-		*/
 
 		LgiTrace("Waited %I64ims for AtPrompt...\n", LgiCurrentTime() - Start);
 		return true;
@@ -167,6 +181,7 @@ public:
 		State = Init;
 		AtPrompt = false;
 		LinePtr = Line;
+		OutStream = NULL;
 	}
 	
 	~Gdb()
@@ -190,6 +205,46 @@ public:
 		Running = false;
 		Run();
 		return true;
+	}
+
+	bool GetCallStack(GArray<GAutoString> &Stack)
+	{
+		GStringPipe Bt;
+		
+		if (!WaitPrompt())
+			return false;
+
+		OutStream = &Bt;
+		bool Result = Cmd("bt");
+		AtPrompt = false;
+		WaitPrompt();
+		OutStream = NULL;
+
+		if (Result)
+		{		
+			GAutoString a(Bt.NewStr());
+			GToken Lines(a, "\n");
+			for (int i=0; i<Lines.Length(); i++)
+			{
+				char *l = Lines[i];
+				if (stristr(l, sPrompt))
+					Events->Write(l, strlen(l));
+				else if (*l == '#')
+					Stack.New().Reset(NewStr(l));
+				else if (Stack.Length() > 0)
+				{
+					// Append to the last line..
+					GAutoString &Prev = Stack.Last();
+					char *End = Prev + strlen(Prev);
+					while (End > Prev && strchr(WhiteSpace, End[-1]))
+						*(--End) = 0;
+					char s[512];
+					sprintf_s(s, sizeof(s), "%s%s", Prev.Get(), l);
+					Prev.Reset(NewStr(s));
+				}
+			}
+		}
+		return Result;
 	}
 
 	bool Restart()

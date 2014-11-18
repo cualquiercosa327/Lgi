@@ -626,7 +626,7 @@ void GListColumn::Name(const char *n)
 	DeleteArray(d->cName);
 	DeleteObj(d->Txt);
 	d->cName = NewStr(n);
-	d->Txt = new GDisplayString(SysFont, (char*)n);
+	d->Txt = new GDisplayString(d->Parent ? d->Parent->GetFont() : SysFont, (char*)n);
 	if (d->Parent)
 	{
 		d->Parent->Invalidate(&d->Parent->ColumnHeader);
@@ -856,8 +856,9 @@ void GListColumn::OnPaint_Content(GSurface *pDC, GRect &r, bool FillBackground)
 		}
 		else if (ValidStr(d->cName) && d->Txt)
 		{
-			SysFont->Transparent(!FillBackground);
-			SysFont->Colour(LC_TEXT, LC_MED);
+			GFont *f = d->Parent ? d->Parent->GetFont() : SysFont;
+			f->Transparent(!FillBackground);
+			f->Colour(LC_TEXT, LC_MED);
 			d->Txt->Draw(pDC, r.x1 + Off + 3, r.y1 + Off, &r);
 
 			if (d->cMark)
@@ -1289,7 +1290,8 @@ void GListItem::OnMeasure(GMeasureInfo *Info)
 			Info->x = 22 + (s ? s->X() : 0);
 		}
 		
-		Info->y = max(16, SysFont->GetHeight() + 2); // the default height
+		GFont *f = Parent ? Parent->GetFont() : SysFont;
+		Info->y = max(16, f->GetHeight() + 2); // the default height
 	}
 }
 
@@ -3198,13 +3200,14 @@ void GList::Pour()
 
 	// Layout all the elements
 	GRect Client = GetClient();
+	GFont *Font = GetFont();
 
 	if (d->Mode == GListDetails)
 	{
 		if (ColumnHeaders)
 		{
 			ColumnHeader = Client;
-			ColumnHeader.y2 = ColumnHeader.y1 + SysFont->GetHeight() + 4;
+			ColumnHeader.y2 = ColumnHeader.y1 + Font->GetHeight() + 4;
 			ItemsPos = Client;
 			ItemsPos.y1 = ColumnHeader.y2 + 1;
 		}

@@ -67,6 +67,9 @@ enum IdeControls
 	IDC_BUILD_LOG,
 	IDC_OUTPUT_LOG,
 	IDC_FIND_LOG,
+	IDC_CALL_STACK,
+	IDC_DEBUG_TAB
+	
 };
 
 #define BUILD_TYPE_DEBUG		0

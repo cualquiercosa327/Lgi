@@ -499,7 +499,7 @@ public:
 
 			Info.dwFlags = STARTF_USESTDHANDLES;
 			Info.hStdOutput = ChildOutput.Write;
-			Info.hStdError = ChildOutput.Write;
+			// Info.hStdError = ChildOutput.Write;
 			Info.hStdInput = ChildInput.Read;
 			GAutoWString WInitialFolder(LgiNewUtf8To16(InitialFolder));
 

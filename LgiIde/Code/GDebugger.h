@@ -12,6 +12,7 @@ public:
 	virtual void OnRunState(bool Running) = 0;
 	virtual void OnFileLine(const char *File, int Line) = 0;
 	virtual void OnError(int Code, const char *Str) = 0;
+	virtual void OnCrash(int Code) = 0;
 };
 
 class GDebugger
@@ -36,6 +37,8 @@ public:
 	virtual bool Load(GDebugEvents *EventHandler, const char *Exe, const char *Args, const char *InitDir) = 0;
 	virtual bool Restart() = 0;
 	virtual bool Unload() = 0;
+	
+	virtual bool GetCallStack(GArray<GAutoString> &Stack) = 0;
 
 	virtual bool SetBreakPoint(BreakPoint *bp) = 0;
 	virtual bool GetBreakPoints(GArray<BreakPoint> &bps) = 0;

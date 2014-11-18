@@ -13,7 +13,6 @@ protected:
     bool RemoveReturns;
     GMutex Sem;
     GArray<char16*> Txt;
-    bool CreatedState;
 
 	void ProcessTxt()
 	{
@@ -32,7 +31,6 @@ public:
 	GTextLog(int id) : GTextView3(id, 0, 0, 2000, 1000)
 	{
 	    RemoveReturns = true;
-	    CreatedState = false;
 		Sunken(true);
 		SetPourLargest(true);
 	}
@@ -49,7 +47,6 @@ public:
 	void OnCreate()
 	{
 		ProcessTxt();
-		CreatedState = true;
 	}
 
 	void Add(char16 *w)
@@ -78,7 +75,7 @@ public:
 		    Len = StrlenW(w);
 		}
 		
-		LgiTrace("Insert '%.*S' at %i\n", Len, w, Size);
+		// LgiTrace("Insert '%.*S' at %i\n", Len, w, Size);
 		Insert(Size, w, Len);
 		DeleteArray(w);
 		Invalidate();
@@ -98,17 +95,11 @@ public:
 		{
 			if (Sem.LockWithTimeout(200, _FL))
 			{
-				bool NeedsEvent = !InThread() || !CreatedState;
-				if (NeedsEvent)
-					Txt.Add(w.Release());
-				else
-					Add(w.Release());
-				
+				Txt.Add(w.Release());
 			    Sem.Unlock();
-				
-				if (NeedsEvent)
-					PostEvent(M_LOG);
 			}
+			if (Handle())
+				PostEvent(M_LOG);
 		}
 		return Size;
 	}
