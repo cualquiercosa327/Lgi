@@ -125,6 +125,11 @@ GMessage::Param GDebugContext::OnEvent(GMessage *m)
 	return 0;
 }
 
+bool GDebugContext::SetFrame(int Frame)
+{
+	return d->Db ? d->Db->SetFrame(Frame) : false;
+}
+
 bool GDebugContext::ParseFrameReference(const char *Frame, GAutoString &File, int &Line)
 {
 	if (!Frame)

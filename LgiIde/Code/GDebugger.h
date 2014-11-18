@@ -39,6 +39,8 @@ public:
 	virtual bool Unload() = 0;
 	
 	virtual bool GetCallStack(GArray<GAutoString> &Stack) = 0;
+	virtual bool GetFrame(int &Frame, GAutoString &File, int &Line) = 0;
+	virtual bool SetFrame(int Frame) = 0;
 
 	virtual bool SetBreakPoint(BreakPoint *bp) = 0;
 	virtual bool GetBreakPoints(GArray<BreakPoint> &bps) = 0;

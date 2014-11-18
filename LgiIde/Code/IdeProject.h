@@ -110,6 +110,7 @@ public:
 
 	// Impl
 	bool ParseFrameReference(const char *Frame, GAutoString &File, int &Line);
+	bool SetFrame(int Frame);
 	
 	// Ui events...
 	bool OnCommand(int Cmd);

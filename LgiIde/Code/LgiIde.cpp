@@ -1648,6 +1648,7 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 			}
 			else if (Flags == GLIST_NOTIFY_SELECT)
 			{
+				// This takes the user to a given call stack reference
 				if (d->Output->CallStack && d->DbgContext)
 				{
 					GListItem *item = d->Output->CallStack->GetSelected();
@@ -1661,6 +1662,10 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 							if (d->FindSource(Full, File, NULL))
 							{
 								GotoReference(Full, Line, false);
+								
+								char *sFrame = item->GetText(0);
+								if (sFrame && IsDigit(*sFrame))
+									d->DbgContext->SetFrame(atoi(sFrame));
 							}
 						}
 					}

@@ -13,6 +13,7 @@ class Gdb : public GDebugger, public GThread
 	bool AtPrompt;
 	char Line[256], *LinePtr;
 	GStream *OutStream;
+	int CurFrame;
 	
 	enum ThreadState
 	{
@@ -194,6 +195,7 @@ public:
 		AtPrompt = false;
 		LinePtr = Line;
 		OutStream = NULL;
+		CurFrame = 0;
 	}
 	
 	~Gdb()
@@ -245,6 +247,26 @@ public:
 				sprintf_s(s, sizeof(s), "%s%s", Prev.Get(), l);
 				Prev.Reset(NewStr(s));
 			}
+		}
+		
+		return true;
+	}
+
+	bool GetFrame(int &Frame, GAutoString &File, int &Line)
+	{
+		LgiAssert(0);
+		return false;
+	}
+	
+	bool SetFrame(int Frame)
+	{
+		if (CurFrame != Frame)
+		{
+			CurFrame = Frame;
+			
+			char c[256];
+			sprintf_s(c, sizeof(c), "frame %i", Frame);
+			return Cmd(c);
 		}
 		
 		return true;
@@ -346,7 +368,7 @@ public:
 	bool UserCommand(const char *cmd)
 	{
 		char c[256];
-		sprintf_s(c, sizeof(c), "%s\n", cmd);
+		sprintf_s(c, sizeof(c), "%s", cmd);
 		return Cmd(c);
 	}
 };
