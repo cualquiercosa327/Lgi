@@ -114,7 +114,7 @@ GDebugContext::~GDebugContext()
 
 GMessage::Param GDebugContext::OnEvent(GMessage *m)
 {
-	switch (m->Msg)
+	switch (MsgCode(m))
 	{
 		case M_ON_CRASH:
 		{

@@ -1,6 +1,7 @@
 #include "Lgi.h"
 #include "GDebugger.h"
 #include "GSubProcess.h"
+#include "GToken.h"
 
 const char sPrompt[] = "(gdb) ";
 

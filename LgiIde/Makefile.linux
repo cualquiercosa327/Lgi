@@ -15,7 +15,7 @@ endif
 BuildDir = $(Build)
 
 Flags = -fPIC -w -fno-inline -fpermissive
-Defs = -DLINUX -D_REENTRANT -D_FILE_OFFSET_BITS=64
+Defs = -DLINUX -D_REENTRANT -D_FILE_OFFSET_BITS=64 -DPOSIX
 
 ifeq ($(Build),Debug)
 	Defs += -D_DEBUG
@@ -27,6 +27,7 @@ endif
 
 # Libraries
 Libs = \
+	-L../Debug \
 	`pkg-config --libs gtk+-2.0` \
 	-static-libgcc \
 	-llgi$(Tag) \
@@ -34,6 +35,7 @@ Libs = \
 
 # Includes
 Inc = \
+	-I../../../../CodeLib/libpng \
 	-I../include/common \
 	-I../include/linux \
 	-I../include/linux/Gtk \
@@ -41,7 +43,10 @@ Inc = \
 	`pkg-config --cflags gtk+-2.0`
 
 # Dependencies
-Depends =	FtpThread.o \
+Depends =	GDebugContext.o \
+			GDebugger.o \
+			GSubProcess.o \
+			FtpThread.o \
 			IFtp.o \
 			FindInFiles.o \
 			FindSymbol.o \
@@ -836,6 +841,26 @@ clean :
 	rm -f $(BuildDir)/*.o $(Target).
 	@echo Cleaned $(BuildDir)
 
+GDebugContext.o : ./Code/GDebugContext.cpp ../include/common/Lgi.h \
+	./Code/LgiIde.h \
+	./Code/IdeProject.h \
+	../include/common/GTextLog.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GDebugger.o : ./Code/GDebugger.cpp ../include/common/Lgi.h \
+	./Code/GDebugger.h \
+	../include/common/GSubProcess.h \
+	../include/common/GToken.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GSubProcess.o : ../src/common/Lgi/GSubProcess.cpp ../include/common/Lgi.h \
+	../include/common/GSubProcess.h \
+	../include/common/GToken.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
 FtpThread.o : ./Code/FtpThread.cpp ../include/common/Lgi.h \
 	./Code/FtpThread.h
 	@echo $(<F) [$(Build)]
@@ -917,7 +942,8 @@ IdeProject.o : ./Code/IdeProject.cpp ../include/common/Lgi.h \
 	../include/common/GListItemCheckBox.h \
 	./Code/FtpThread.h \
 	../include/common/GClipBoard.h \
-	../include/common/GDropFiles.h
+	../include/common/GDropFiles.h \
+	../include/common/GSubProcess.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -946,6 +972,12 @@ LgiIde.o : ./Code/LgiIde.cpp ../include/common/Lgi.h \
 	./Code/FtpThread.h \
 	../include/common/GClipBoard.h \
 	./Code/FindSymbol.h \
+	../include/common/GBox.h \
+	../include/common/GTextLog.h \
+	../include/common/GEdit.h \
+	../include/common/GTableLayout.h \
+	../include/common/GTextLabel.h \
+	../include/common/GCombo.h \
 	../include/common/GSubProcess.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -1027,6 +1059,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/linux/Gtk/LgiOsDefs.h \
 	../include/common/GString.h
 
+./Code/GDebugger.h : ../include/common/GVariant.h
+
 ../include/common/GDisplayString.h : /usr/include/pango-1.0/pango/pango.h \
 	/usr/include/pango-1.0/pango/pangocairo.h
 
@@ -1098,7 +1132,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ./Code/IdeProject.h : ../include/common/GXmlTree.h \
 	../include/common/GDragAndDrop.h \
 	../include/common/GTree.h \
-	../include/common/GOptionsFile.h
+	../include/common/GOptionsFile.h \
+	./Code/GDebugger.h
 
 ../../../../../../usr/include/libpng12/png.h : /usr/include/libpng12/pngconf.h
 
@@ -1126,6 +1161,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../include/common/GXmlTree.h : ../include/common/GHashTable.h \
 	../include/common/GRefCount.h \
 	../include/common/GDom.h
+
+./Code/GDebugger.h : ../include/common/GVariant.h
 
 ../../../../../../usr/include/pango-1.0/pango/pango.h : /usr/include/pango-1.0/pango/pango-attributes.h \
 	/usr/include/pango-1.0/pango/pango-bidi-type.h \
@@ -1603,7 +1640,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ./Code/IdeProject.h : ../include/common/GXmlTree.h \
 	../include/common/GDragAndDrop.h \
 	../include/common/GTree.h \
-	../include/common/GOptionsFile.h
+	../include/common/GOptionsFile.h \
+	./Code/GDebugger.h
 
 ../include/common/LgiClass.h : ../include/common/LgiInc.h \
 	../include/common/LgiDefs.h \
@@ -2806,6 +2844,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GArray.h \
 	../include/common/GRefCount.h
 
+../include/common/GTextLog.h : ../include/common/GTextView3.h
+
 ../include/common/GCom.h : ../include/common/GContainers.h
 
 ../../../../../../usr/include/glib-2.0/gio/gioscheduler.h : /usr/include/glib-2.0/gio/giotypes.h
@@ -3168,6 +3208,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 VPATH=%.cpp \
 	./Code \
 	../include/common \
+	../../../../CodeLib/libpng \
 	../include/linux \
 	../include/linux/Gtk \
 	./thread \
