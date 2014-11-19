@@ -90,6 +90,7 @@ GDebugContext::GDebugContext(AppWnd *App, IdeProject *Proj, const char *Exe, con
 	Watch = NULL;
 	Locals = NULL;
 	DebuggerLog = NULL;
+	ObjectDump = NULL;
 
 	d = new GDebugContextPriv(this);
 	d->App = App;
@@ -128,6 +129,94 @@ GMessage::Param GDebugContext::OnEvent(GMessage *m)
 bool GDebugContext::SetFrame(int Frame)
 {
 	return d->Db ? d->Db->SetFrame(Frame) : false;
+}
+
+bool GDebugContext::DumpObject(const char *Var)
+{
+	if (!d->Db || !Var || !ObjectDump)
+		return false;
+	
+	ObjectDump->Name(NULL);
+	return d->Db->PrintObject(Var, ObjectDump);
+}
+
+bool GDebugContext::UpdateLocals()
+{
+	if (!Locals || !d->Db)
+		return false;
+
+	GArray<GDebugger::Variable> Vars;
+	if (!d->Db->GetVariables(true, Vars, true))
+		return false;
+	
+	Locals->Empty();
+	for (int i=0; i<Vars.Length(); i++)
+	{
+		GDebugger::Variable &v = Vars[i];
+		GListItem *it = new GListItem;
+		if (it)
+		{
+			switch (v.Scope)
+			{
+				default:
+				case GDebugger::Variable::Local:
+					it->SetText("local", 0);
+					break;
+				case GDebugger::Variable::Global:
+					it->SetText("global", 0);
+					break;
+				case GDebugger::Variable::Arg:
+					it->SetText("arg", 0);
+					break;
+			}
+
+			char s[256];
+			switch (v.Value.Type)
+			{
+				case GV_BOOL:
+					it->SetText(v.Type ? v.Type : "bool", 1);
+					sprintf_s(s, sizeof(s), "%s", v.Value.Value.Bool ? "true" : "false");
+					break;
+				case GV_INT32:
+					it->SetText(v.Type ? v.Type : "int32", 1);
+					sprintf_s(s, sizeof(s), "%i (0x%x)", v.Value.Value.Int, v.Value.Value.Int);
+					break;
+				case GV_INT64:
+					it->SetText(v.Type ? v.Type : "int64", 1);
+					sprintf_s(s, sizeof(s), LGI_PrintfInt64, v.Value.Value.Int64);
+					break;
+				case GV_DOUBLE:
+					it->SetText(v.Type ? v.Type : "double", 1);
+					sprintf_s(s, sizeof(s), "%f", v.Value.Value.Dbl);
+					break;
+				case GV_STRING:
+					it->SetText(v.Type ? v.Type : "string", 1);
+					sprintf_s(s, sizeof(s), "%s", v.Value.Value.String);
+					break;
+				case GV_WSTRING:
+					it->SetText(v.Type ? v.Type : "wstring", 1);
+					sprintf_s(s, sizeof(s), "%S", v.Value.Value.WString);
+					break;
+				case GV_VOID_PTR:
+					it->SetText(v.Type ? v.Type : "void*", 1);
+					sprintf_s(s, sizeof(s), "0x%p", v.Value.Value.Ptr);
+					break;
+				default:
+					sprintf_s(s, sizeof(s), "notimp(%s)", GVariant::TypeToString(v.Value.Type));
+					it->SetText(v.Type ? v.Type : s, 1);
+					s[0] = 0;
+					break;
+			}
+
+			it->SetText(v.Name, 2);
+			it->SetText(s, 3);
+			Locals->Insert(it);
+		}
+	}
+	
+	Locals->ResizeColumnsToContent();
+	
+	return true;
 }
 
 bool GDebugContext::ParseFrameReference(const char *Frame, GAutoString &File, int &Line)

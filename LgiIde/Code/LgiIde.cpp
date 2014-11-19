@@ -272,6 +272,7 @@ public:
 	GBox *DebugBox;
 	GBox *DebugLog;
 	GList *Locals, *Watch, *CallStack;
+	GTextLog *ObjectDump, *MemoryDump;
 	GEdit *DebugEdit;
 	GTextLog *DebuggerLog;
 
@@ -287,6 +288,8 @@ public:
 		DebugEdit = NULL;
 		DebuggerLog = NULL;
 		CallStack = NULL;
+		ObjectDump = NULL;
+		MemoryDump = NULL;
 
 		Small = *SysFont;
 		Small.PointSize(Small.PointSize()-2);
@@ -336,11 +339,23 @@ public:
 							if (Locals = new GList(IDC_LOCALS_LIST, 0, 0, 100, 100, "Locals List"))
 							{
 								Locals->SetFont(&Small);
-								Locals->AddColumn("Local", 80);
+								Locals->AddColumn("", 30);
+								Locals->AddColumn("Type", 50);
+								Locals->AddColumn("Name", 50);
 								Locals->AddColumn("Value", 1000);
 								Locals->SetPourLargest(true);
 
 								Page->Append(Locals);
+							}
+						}
+						if (Page = DebugTab->Append("Object"))
+						{
+							Page->SetFont(&Small);
+							if (ObjectDump = new GTextLog(IDC_OBJECT_DUMP))
+							{
+								ObjectDump->SetFont(&Small);
+								ObjectDump->SetPourLargest(true);
+								Page->Append(ObjectDump);
 							}
 						}
 						if (Page = DebugTab->Append("Watch"))
@@ -354,6 +369,16 @@ public:
 								Watch->SetPourLargest(true);
 
 								Page->Append(Watch);
+							}
+						}
+						if (Page = DebugTab->Append("Memory"))
+						{
+							Page->SetFont(&Small);
+							if (MemoryDump = new GTextLog(IDC_MEMORY_DUMP))
+							{
+								MemoryDump->SetFont(&Small);
+								MemoryDump->SetPourLargest(true);
+								Page->Append(MemoryDump);
 							}
 						}
 						if (Page = DebugTab->Append("Call Stack"))
@@ -1639,12 +1664,47 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 			}
 			break;
 		}
+		case IDC_DEBUG_TAB:
+		{
+			switch (Ctrl->Value())
+			{
+				case AppWnd::LocalsTab:
+				{
+					// Locals tab
+					if (d->DbgContext)
+						d->DbgContext->UpdateLocals();
+					break;
+				}
+				default:
+					break;
+			}
+			break;
+		}
+		case IDC_LOCALS_LIST:
+		{
+			if (d->Output->Locals && Flags == GLIST_NOTIFY_DBL_CLICK)
+			{
+				GListItem *it = d->Output->Locals->GetSelected();
+				if (it)
+				{
+					char *Var = it->GetText(2);
+					if (Var)
+					{
+						if (d->Output->DebugTab)
+							d->Output->DebugTab->Value(AppWnd::ObjectTab);
+							
+						d->DbgContext->DumpObject(Var);
+					}
+				}
+			}
+			break;
+		}
 		case IDC_CALL_STACK:
 		{
 			if (Flags == M_CHANGE)
 			{
 				if (d->Output->DebugTab)
-					d->Output->DebugTab->Value(2);
+					d->Output->DebugTab->Value(AppWnd::CallStackTab);
 			}
 			else if (Flags == GLIST_NOTIFY_SELECT)
 			{
@@ -1998,6 +2058,8 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 					d->DbgContext->Watch = d->Output->Watch;
 					d->DbgContext->Locals = d->Output->Locals;
 					d->DbgContext->CallStack = d->Output->CallStack;
+					d->DbgContext->ObjectDump = d->Output->ObjectDump;
+					d->DbgContext->MemoryDump = d->Output->MemoryDump;
 					
 					d->DbgContext->OnCommand(IDM_START_DEBUG);
 					

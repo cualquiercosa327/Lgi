@@ -68,8 +68,9 @@ enum IdeControls
 	IDC_OUTPUT_LOG,
 	IDC_FIND_LOG,
 	IDC_CALL_STACK,
-	IDC_DEBUG_TAB
-	
+	IDC_DEBUG_TAB,
+	IDC_OBJECT_DUMP,
+	IDC_MEMORY_DUMP
 };
 
 #define BUILD_TYPE_DEBUG		0
@@ -163,6 +164,15 @@ public:
 		FindTab,
 		FtpTab,
 		DebugTab,
+	};
+
+	enum DebugTabs
+	{
+		LocalsTab,
+		ObjectTab,
+		WatchTab,
+		MemoryTab,
+		CallStackTab,
 	};
 
 	AppWnd();

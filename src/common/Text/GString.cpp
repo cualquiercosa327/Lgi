@@ -470,9 +470,12 @@ bool MatchStr(const char *Template, const char *Data)
 			(*Data == 0);
 }
 
-int htoi(const char *a)
+uint32 htoi(const char *a)
 {
-	int Status = 0;
+	uint32 Status = 0;
+
+	if (a[0] == '0' && (a[1] == 'x' || a[1] == 'X'))
+		a += 2;
 
 	for (; a && *a; a++)
 	{
@@ -497,9 +500,12 @@ int htoi(const char *a)
 	return Status;
 }
 
-int64 htoi64(const char *a)
+uint64 htoi64(const char *a)
 {
-	int64 Status = 0;
+	uint64 Status = 0;
+
+	if (a[0] == '0' && (a[1] == 'x' || a[1] == 'X'))
+		a += 2;
 
 	for (; a && *a; a++)
 	{

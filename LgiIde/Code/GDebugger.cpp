@@ -20,7 +20,7 @@ class Gdb : public GDebugger, public GThread
 		Init,
 		Looping,
 		Exiting,
-	} State;
+	}	State;
 
 	void Log(const char *Fmt, ...)
 	{
@@ -228,7 +228,7 @@ public:
 			return false;
 
 		GAutoString a(Bt.NewStr());
-		GToken Lines(a, "\n");
+		GToken Lines(a, "\r\n");
 		for (int i=0; i<Lines.Length(); i++)
 		{
 			char *l = Lines[i];
@@ -322,10 +322,121 @@ public:
 		return false;
 	}
 	
-	bool GetVariables(bool Locals, GArray<Variable> &vars)
+	void ParseVariables(const char *a, GArray<Variable> &vars, GDebugger::Variable::ScopeType scope, bool Detailed)
 	{
-		LgiAssert(0);
-		return false;
+		GToken t(a, "\r\n");
+		for (int i=0; i<t.Length(); i++)
+		{
+			char *line = t[i];
+			char *val = strchr(line, '=');
+			if (val)
+			{
+				*val++ = 0;
+				while (*val && strchr(WhiteSpace, *val)) val++;
+				
+				Variable &v = vars.New();
+				v.Scope = scope;
+				v.Name.Reset(TrimStr(line));
+				if (!strnicmp(val, "0x", 2))
+				{
+					v.Value.Type = GV_VOID_PTR;
+					v.Value.Value.Ptr = (void*) htoi(val);
+				}
+				else if (IsDigit(*val))
+				{
+					int64 tmp = atoi64(val);
+					if (tmp & 0xffffffff00000000L)
+						v.Value = tmp;
+					else
+						v.Value = (int)tmp;
+				}
+				else
+				{
+					v.Value.OwnStr(TrimStr(val));
+				}
+				
+				if (Detailed)
+				{
+					GStringPipe p;
+					char c[256];
+					sprintf_s(c, sizeof(c), "p %s", v.Name.Get());
+					if (Cmd(c, &p))
+					{
+						GAutoString tmp(p.NewStr());
+						for (char *s = tmp; s && *s; )
+						{
+							if (*s == '\"')
+							{
+								char *e = strchr(++s, '\"');
+								if (!e)
+									break;
+								
+								v.Value.OwnStr(NewStr(s, e - s));
+								break;
+							}
+							else if (*s == '(' && !v.Type)
+							{
+								char *e = strchr(++s, ')');
+								if (!e)
+									break;
+
+								if (strnicmp(s, "gdb", 3))
+									v.Type.Reset(NewStr(s, e - s));
+								s = e + 1;
+								continue;
+							}						
+							
+							s = LgiSkipDelim(s, WhiteSpace, true);
+							s = LgiSkipDelim(s, WhiteSpace);						
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	bool GetVariables(bool Locals, GArray<Variable> &vars, bool Detailed)
+	{
+		GStringPipe p(256);
+
+		if (!Cmd("info args", &p))
+			return false;
+
+		GAutoString a(p.NewStr());
+		ParseVariables(a, vars, Variable::Arg, Detailed);
+
+		if (!Cmd("info locals", &p))
+			return false;
+		
+		a.Reset(p.NewStr());
+		ParseVariables(a, vars, Variable::Local, Detailed);
+		return true;
+	}
+
+	bool PrintObject(const char *Var, GStream *Output)
+	{
+		if (!Var || !Output)
+			return false;
+	
+		char c[256];
+		sprintf_s(c, sizeof(c), "p *%s", Var);
+		
+		GMemQueue q;
+		if (!Cmd(c, &q))
+			return false;
+		
+		GAutoString a(q.New(1));
+		if (!a)
+			return false;
+			
+		int Depth = 0;
+		for (char *s = a; *s; s++)
+		{
+			if (*s == '{')
+				Depth++;
+		}
+	
+		return true;
 	}
 	
 	bool GetLocation(GAutoString &File, int &Line)

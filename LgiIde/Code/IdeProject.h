@@ -102,6 +102,8 @@ public:
 	GList *Watch;
 	GList *Locals;
 	GList *CallStack;
+	class GTextLog *ObjectDump;
+	class GTextLog *MemoryDump;
 	class GTextLog *DebuggerLog;
 
 	// Object
@@ -111,6 +113,8 @@ public:
 	// Impl
 	bool ParseFrameReference(const char *Frame, GAutoString &File, int &Line);
 	bool SetFrame(int Frame);
+	bool UpdateLocals();
+	bool DumpObject(const char *Var);
 	
 	// Ui events...
 	bool OnCommand(int Cmd);

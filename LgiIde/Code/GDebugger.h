@@ -28,7 +28,15 @@ public:
 	
 	struct Variable
 	{
+		enum ScopeType
+		{
+			Local,
+			Arg,
+			Global
+		}	Scope;
+		
 		GAutoString Name;
+		GAutoString Type;
 		GVariant Value;
 	};
 	
@@ -45,7 +53,8 @@ public:
 	virtual bool SetBreakPoint(BreakPoint *bp) = 0;
 	virtual bool GetBreakPoints(GArray<BreakPoint> &bps) = 0;
 
-	virtual bool GetVariables(bool Locals, GArray<Variable> &vars) = 0;
+	virtual bool GetVariables(bool Locals, GArray<Variable> &vars, bool Detailed) = 0;
+	virtual bool PrintObject(const char *Var, GStream *Output) = 0;
 
 	virtual bool GetLocation(GAutoString &File, int &Line) = 0;
 	virtual bool SetLocation(const char *File, int Line) = 0;

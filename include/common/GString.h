@@ -160,7 +160,7 @@ LgiFunc char *strcat_s
 ///
 /// Stops scanning when it hits a NULL or a non-hex character. Accepts
 /// input characters in the ranges 0-9, a-f and A-F.
-LgiFunc int htoi
+LgiFunc uint32 htoi
 (
 	/// The string of hex characters
 	const char *a
@@ -169,7 +169,7 @@ LgiFunc int htoi
 ///
 /// Stops scanning when it hits a NULL or a non-hex character. Accepts
 /// input characters in the ranges 0-9, a-f and A-F.
-LgiFunc int64 htoi64
+LgiFunc uint64 htoi64
 (
 	/// The string of hex characters
 	const char *a

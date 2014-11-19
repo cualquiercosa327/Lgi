@@ -23,9 +23,22 @@ bool LgiIsNumber(char *p)
 	return false;
 }
 
-char *LgiSkipDelim(char *p, const char *Delimiter)
+char *LgiSkipDelim(char *p, const char *Delimiter, bool NotDelim)
 {
-	while (p && *p && strchr(Delimiter, *p)) p++;
+	if (!p)
+		return NULL;
+	
+	if (NotDelim)
+	{
+		while (*p && !strchr(Delimiter, *p))
+			p++;
+	}
+	else
+	{
+		while (*p && strchr(Delimiter, *p))
+			p++;
+	}
+	
 	return p;
 }
 
