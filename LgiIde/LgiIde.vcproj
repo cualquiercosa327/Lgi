@@ -320,6 +320,10 @@
 					RelativePath=".\Code\GDebugger.h"
 					>
 				</File>
+				<File
+					RelativePath="..\src\common\Lgi\GSubProcess.cpp"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter

@@ -74,7 +74,7 @@ void GSubProcess::Pipe::Close()
 	}
 }
 
-GSubProcess::GSubProcess(const char *exe, const char *args = NULL)
+GSubProcess::GSubProcess(const char *exe, const char *args)
 {
 	#if defined(POSIX)
 	ChildPid = -1;
@@ -113,7 +113,7 @@ GSubProcess::~GSubProcess()
 	}
 }
 
-GSubProcess::Variable *GSubProcess::GetEnvVar(const char *Var, bool Create = false)
+GSubProcess::Variable *GSubProcess::GetEnvVar(const char *Var, bool Create)
 {
 	if (Environment.Length() == 0)
 	{
@@ -536,7 +536,7 @@ int GSubProcess::Wait()
 	return Status;
 }
 
-int GSubProcess::Read(void *Buf, int Size, int Flags = 0)
+int GSubProcess::Read(void *Buf, int Size, int Flags)
 {
 	#ifdef POSIX
 	return Gtk::read(Io.Read, Buf, Size);
@@ -562,7 +562,7 @@ int GSubProcess::Peek()
 	#endif	
 }
 
-int GSubProcess::Write(const void *Buf, int Size, int Flags = 0)
+int GSubProcess::Write(const void *Buf, int Size, int Flags)
 {
 	#ifdef POSIX
 	return Gtk::write(Io.Write, Buf, Size);
