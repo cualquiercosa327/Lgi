@@ -425,15 +425,48 @@ public:
 		if (!Cmd(c, &q))
 			return false;
 		
-		GAutoString a(q.New(1));
+		GAutoString a((char*)q.New(1));
 		if (!a)
 			return false;
 			
 		int Depth = 0;
+		char *Start = NULL;
+		char Spaces[256];
+		memset(Spaces, ' ', sizeof(Spaces));
+		int IndentShift = 2;
+
+		#define Emit() \
+			if (Start) \
+			{ \
+				int bytes = s - Start; \
+				char *last = s-1; while (last > Start && strchr(WhiteSpace, *last)) last--; \
+				Output->Print("%.*s%.*s%s\n", Depth<<IndentShift, Spaces, bytes, Start, *last == '=' ? "" : ";"); \
+				Start = NULL; \
+			}
+		
 		for (char *s = a; *s; s++)
 		{
 			if (*s == '{')
+			{
+				Emit();
+				Output->Print("%.*s%c\n", Depth<<IndentShift, Spaces, *s);
 				Depth++;
+			}
+			else if (*s == '}')
+			{
+				Emit();
+				Depth--;
+				Output->Print("%.*s%c\n", Depth<<IndentShift, Spaces, *s);
+			}
+			else if (*s == ',')
+			{
+				Emit();
+			}
+			else if (!strchr(WhiteSpace, *s))
+			{
+				if (Start == NULL)
+					Start = s;
+			}
 		}
 	
 		return true;

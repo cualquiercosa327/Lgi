@@ -18,6 +18,9 @@
 #include "GBox.h"
 #include "GTextLog.h"
 #include "GEdit.h"
+#include "GTableLayout.h"
+#include "GTextLabel.h"
+#include "GCombo.h"
 
 #define IDM_SAVE				102
 #define IDM_RECENT_FILE			1000
@@ -273,6 +276,7 @@ public:
 	GBox *DebugLog;
 	GList *Locals, *Watch, *CallStack;
 	GTextLog *ObjectDump, *MemoryDump;
+	GTableLayout *MemTable;
 	GEdit *DebugEdit;
 	GTextLog *DebuggerLog;
 
@@ -290,6 +294,7 @@ public:
 		CallStack = NULL;
 		ObjectDump = NULL;
 		MemoryDump = NULL;
+		MemTable = NULL;
 
 		Small = *SysFont;
 		Small.PointSize(Small.PointSize()-2);
@@ -374,11 +379,48 @@ public:
 						if (Page = DebugTab->Append("Memory"))
 						{
 							Page->SetFont(&Small);
-							if (MemoryDump = new GTextLog(IDC_MEMORY_DUMP))
+							
+							if (MemTable = new GTableLayout(IDC_MEMORY_TABLE));
 							{
-								MemoryDump->SetFont(&Small);
-								MemoryDump->SetPourLargest(true);
-								Page->Append(MemoryDump);
+								GCombo *cbo;
+							
+								int x = 0, y = 0;
+								GLayoutCell *c = MemTable->GetCell(x++, y);
+								if (c)
+								{
+									c->VerticalAlign(GCss::VerticalMiddle);
+									c->Add(new GText(IDC_STATIC, 0, 0, -1, -1, "Address:"));
+								}
+								c = MemTable->GetCell(x++, y);
+								if (c) c->Add(new GEdit(IDC_MEM_ADDR, 0, 0, 60, 20));
+								c = MemTable->GetCell(x++, y);
+								if (c)
+								{
+									c->Add(cbo = new GCombo(IDC_MEM_SIZE, 0, 0, 60, 20));
+									cbo->Insert("1 byte");
+									cbo->Insert("2 byte");
+									cbo->Insert("4 byte");
+									cbo->Insert("8 byte");
+								}
+								c = MemTable->GetCell(x++, y);
+								if (c)
+								{
+									c->VerticalAlign(GCss::VerticalMiddle);
+									c->Add(new GText(IDC_STATIC, 0, 0, -1, -1, "Page width:"));
+								}
+								c = MemTable->GetCell(x++, y++);
+								if (c) c->Add(new GEdit(IDC_MEM_ROW_LEN, 0, 0, 60, 20));
+
+								x = 0;
+								c = MemTable->GetCell(x++, y, true, 5);
+								if (MemoryDump = new GTextLog(IDC_MEMORY_DUMP))
+								{
+									MemoryDump->SetFont(&Small);
+									MemoryDump->SetPourLargest(true);
+									c->Add(MemoryDump);
+								}
+
+								Page->Append(MemTable);
 							}
 						}
 						if (Page = DebugTab->Append("Call Stack"))
