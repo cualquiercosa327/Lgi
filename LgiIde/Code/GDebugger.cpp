@@ -7,14 +7,19 @@ const char sPrompt[] = "(gdb) ";
 
 class Gdb : public GDebugger, public GThread
 {
+	typedef GArray<GAutoString> StrArray;
+
 	GDebugEvents *Events;
 	GAutoPtr<GSubProcess> Sp;
 	GAutoString Exe, Args, InitDir;
 	bool Running;
 	bool AtPrompt;
 	char Line[256], *LinePtr;
-	GStream *OutStream;
 	int CurFrame;
+
+	// Various output modes.
+	GStream *OutStream;
+	StrArray *OutLines;
 	
 	enum ThreadState
 	{
@@ -37,8 +42,16 @@ class Gdb : public GDebugger, public GThread
 		}
 	}
 	
-	void OnLine()
+	void OnLine(const char *Start, int Length)
 	{
+		// Send output
+		if (OutLines)
+			OutLines->New().Reset(NewStr(Start, Length));
+		else if (OutStream)
+			OutStream->Write(Start, Length);
+		else
+			Events->Write(Start, Length + 1 /* the new line */);
+
 		if (stristr(Line, "received signal SIGSEGV"))
 		{
 			Events->OnCrash(0);
@@ -47,16 +60,17 @@ class Gdb : public GDebugger, public GThread
 	
 	void OnRead(const char *Ptr, int Bytes)
 	{
-		// Check for prompt
+		// Parse output into lines
 		const char *p = Ptr;
 		const char *End = p + Bytes;
-		char *LineEnd = Line + sizeof(Line) - 1;
+		char *LineEnd = Line + sizeof(Line) - 2;
 		while (p < End)
 		{
 			if (*p == '\n')
 			{
+				*LinePtr++ = *p;
 				*LinePtr = 0;
-				OnLine();
+				OnLine(Line, LinePtr - Line);
 				LinePtr = Line;
 			}
 			else if (LinePtr < LineEnd)
@@ -69,26 +83,29 @@ class Gdb : public GDebugger, public GThread
 		*LinePtr = 0;
 
 		// Check for prompt
-		int Ch = LinePtr - Line;
-		int Offset = max(Ch - 6, 0);
-		AtPrompt = !_stricmp(Line + Offset, sPrompt);
-		if (AtPrompt)
+		int bytes = LinePtr - Line;
+		if (bytes > 0)
 		{
-			if (Running ^ !AtPrompt)
+			if (bytes == 6)
 			{
-				Running = !AtPrompt;
-				Events->OnRunState(Running);
+				AtPrompt = !_strnicmp(Line, sPrompt, bytes);
+				if (AtPrompt)
+				{
+					if (Running ^ !AtPrompt)
+					{
+						Running = !AtPrompt;
+						Events->OnRunState(Running);
+					}
+					
+					if (OutStream)
+						OutStream = NULL;
+					if (OutLines)
+						OutLines = NULL;
+				}
 			}
 			
-			if (OutStream)
-				OutStream = NULL;
+			Events->Write(Line, bytes);
 		}
-
-		// Send output to stream
-		if (OutStream)
-			OutStream->Write(Ptr, Bytes);
-		else
-			Events->Write(Ptr, Bytes);
 	}
 	
 	int Main()
@@ -175,7 +192,7 @@ class Gdb : public GDebugger, public GThread
 		char str[256];
 		int ch = sprintf_s(str, sizeof(str), "%s\n", c);
 		Events->Write(str, ch);
-
+		LinePtr = Line;
 		OutStream = Output;
 
 		int Wr = Sp->Write(str, ch);
@@ -200,6 +217,7 @@ public:
 		AtPrompt = false;
 		LinePtr = Line;
 		OutStream = NULL;
+		OutLines = NULL;
 		CurFrame = 0;
 	}
 	
