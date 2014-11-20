@@ -438,6 +438,14 @@ public:
 		return true;
 	}
 
+	bool GetRegisters(GStream *Out)
+	{
+		if (!Out)
+			return false;
+		
+		return Cmd("info registers", Out);
+	}
+
 	bool PrintObject(const char *Var, GStream *Output)
 	{
 		if (!Var || !Output)

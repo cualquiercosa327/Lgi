@@ -105,6 +105,7 @@ public:
 	class GTextLog *ObjectDump;
 	class GTextLog *MemoryDump;
 	class GTextLog *DebuggerLog;
+	class GTextLog *Registers;
 
 	// Object
 	GDebugContext(AppWnd *App, class IdeProject *Proj, const char *Exe, const char *Args);
@@ -114,6 +115,7 @@ public:
 	bool ParseFrameReference(const char *Frame, GAutoString &File, int &Line);
 	bool SetFrame(int Frame);
 	bool UpdateLocals();
+	bool UpdateRegisters();
 	bool DumpObject(const char *Var);
 	
 	// Ui events...

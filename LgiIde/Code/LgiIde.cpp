@@ -277,7 +277,7 @@ public:
 	GBox *DebugBox;
 	GBox *DebugLog;
 	GList *Locals, *Watch, *CallStack;
-	GTextLog *ObjectDump, *MemoryDump;
+	GTextLog *ObjectDump, *MemoryDump, *Registers;
 	GTableLayout *MemTable;
 	GEdit *DebugEdit;
 	GTextLog *DebuggerLog;
@@ -297,6 +297,7 @@ public:
 		ObjectDump = NULL;
 		MemoryDump = NULL;
 		MemTable = NULL;
+		Registers = NULL;
 
 		Small = *SysFont;
 		Small.PointSize(Small.PointSize()-2);
@@ -480,7 +481,16 @@ public:
 							}
 						}
 
-						// CallStack->GetCss(true)->Width(GCss::Len("270px"));
+						if (Page = DebugTab->Append("Registers"))
+						{
+							Page->SetFont(&Small);
+							if (Registers = new GTextLog(IDC_REGISTERS))
+							{
+								Registers->SetFont(&Small);
+								Registers->SetPourLargest(true);
+								Page->Append(Registers);
+							}
+						}
 					}
 					
 					if (DebugLog = new GBox)
@@ -1798,6 +1808,11 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 						d->DbgContext->UpdateLocals();
 					break;
 				}
+				case AppWnd::RegistersTab:
+				{
+					if (d->DbgContext)
+						d->DbgContext->UpdateRegisters();
+				}
 				default:
 					break;
 			}
@@ -2184,6 +2199,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 					d->DbgContext->Locals = d->Output->Locals;
 					d->DbgContext->CallStack = d->Output->CallStack;
 					d->DbgContext->ObjectDump = d->Output->ObjectDump;
+					d->DbgContext->Registers = d->Output->Registers;
 					d->DbgContext->MemoryDump = d->Output->MemoryDump;
 					
 					d->DbgContext->OnCommand(IDM_START_DEBUG);

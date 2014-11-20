@@ -95,6 +95,7 @@ GDebugContext::GDebugContext(AppWnd *App, IdeProject *Proj, const char *Exe, con
 	Locals = NULL;
 	DebuggerLog = NULL;
 	ObjectDump = NULL;
+	Registers = NULL;
 
 	d = new GDebugContextPriv(this);
 	d->App = App;
@@ -142,6 +143,14 @@ bool GDebugContext::DumpObject(const char *Var)
 	
 	ObjectDump->Name(NULL);
 	return d->Db->PrintObject(Var, ObjectDump);
+}
+
+bool GDebugContext::UpdateRegisters()
+{
+	if (!d->Db || !Registers)
+		return false;
+	
+	return d->Db->GetRegisters(Registers);
 }
 
 bool GDebugContext::UpdateLocals()

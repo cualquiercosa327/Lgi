@@ -76,7 +76,8 @@ enum IdeControls
 	IDC_MEM_ADDR,
 	IDC_MEM_SIZE,
 	IDC_MEM_ROW_LEN,
-	IDC_MEM_HEX
+	IDC_MEM_HEX,
+	IDC_REGISTERS
 };
 
 #define BUILD_TYPE_DEBUG		0
@@ -181,6 +182,7 @@ public:
 		WatchTab,
 		MemoryTab,
 		CallStackTab,
+		RegistersTab
 	};
 
 	AppWnd();
