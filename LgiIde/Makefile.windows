@@ -43,6 +43,7 @@ Inc = \
 # Dependencies
 Depends =	GDebugContext.o \
 			GDebugger.o \
+			GSubProcess.o \
 			FtpThread.o \
 			IFtp.o \
 			FindInFiles.o \
@@ -258,7 +259,14 @@ GDebugContext.o : ./Code/GDebugContext.cpp ../include/common/Lgi.h \
 
 GDebugger.o : ./Code/GDebugger.cpp ../include/common/Lgi.h \
 	./Code/GDebugger.h \
-	../include/common/GSubProcess.h
+	../include/common/GSubProcess.h \
+	../include/common/GToken.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GSubProcess.o : ../src/common/Lgi/GSubProcess.cpp ../include/common/Lgi.h \
+	../include/common/GSubProcess.h \
+	../include/common/GToken.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -376,6 +384,10 @@ LgiIde.o : ./Code/LgiIde.cpp ../include/common/Lgi.h \
 	../include/common/GBox.h \
 	../include/common/GTextLog.h \
 	../include/common/GEdit.h \
+	../include/common/GTableLayout.h \
+	../include/common/GTextLabel.h \
+	../include/common/GCombo.h \
+	../include/common/GCheckBox.h \
 	../include/common/GSubProcess.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -431,8 +443,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 	../include/common/GVariant.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-../include/common/GSubProcess.h : ../include/common/GToken.h
 
 ../include/common/GString.h : ../include/common/LgiDefs.h \
 	../include/win32/LgiOsDefs.h

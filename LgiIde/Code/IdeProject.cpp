@@ -2112,13 +2112,16 @@ public:
 				if (Compiler == MingW)
 				{
 					char *Dir = strrchr(MakePath, DIR_CHAR);
+					#if 1
 					a.Print("/C \"%s\" -f \"%s\"", Exe, Dir ? Dir + 1 : MakePath.Get());
-					// a.Print("/C set");
+					#else
+					a.Print("/C set");
+					#endif
 					Exe = "C:\\Windows\\System32\\cmd.exe";
 				}
 				else
 				{
-					a.Print("-j %i -f \"%s\"", Jobs.CastInt32(), MakePath.Get());
+					a.Print("-f \"%s\"", MakePath.Get());
 				}
 
 				if (Args)
@@ -2139,6 +2142,9 @@ public:
 					{
 						Write(Buf, rd);
 					}
+					
+					uint32 ex = SubProc.GetExitValue();
+					Print("Make exited with %i (0x%x)\n", ex, ex);
 				}
 				else
 				{

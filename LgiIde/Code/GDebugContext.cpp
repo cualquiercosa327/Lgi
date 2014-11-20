@@ -17,12 +17,16 @@ public:
 	IdeProject *Proj;
 	GAutoPtr<GDebugger> Db;
 	GAutoString Exe, Args;
+	
+	NativeInt MemDumpStart;
+	GArray<uint8> MemDump;
 
 	GDebugContextPriv(GDebugContext *ctx)
 	{
 		Ctx = ctx;
 		App = NULL;
 		Proj = NULL;
+		MemDumpStart = 0;
 	}
 	
 	~GDebugContextPriv()
@@ -174,31 +178,31 @@ bool GDebugContext::UpdateLocals()
 			switch (v.Value.Type)
 			{
 				case GV_BOOL:
-					it->SetText(v.Type ? v.Type : "bool", 1);
+					it->SetText(v.Type ? v.Type.Get() : "bool", 1);
 					sprintf_s(s, sizeof(s), "%s", v.Value.Value.Bool ? "true" : "false");
 					break;
 				case GV_INT32:
-					it->SetText(v.Type ? v.Type : "int32", 1);
+					it->SetText(v.Type ? v.Type.Get() : "int32", 1);
 					sprintf_s(s, sizeof(s), "%i (0x%x)", v.Value.Value.Int, v.Value.Value.Int);
 					break;
 				case GV_INT64:
-					it->SetText(v.Type ? v.Type : "int64", 1);
+					it->SetText(v.Type ? v.Type.Get() : "int64", 1);
 					sprintf_s(s, sizeof(s), LGI_PrintfInt64, v.Value.Value.Int64);
 					break;
 				case GV_DOUBLE:
-					it->SetText(v.Type ? v.Type : "double", 1);
+					it->SetText(v.Type ? v.Type.Get() : "double", 1);
 					sprintf_s(s, sizeof(s), "%f", v.Value.Value.Dbl);
 					break;
 				case GV_STRING:
-					it->SetText(v.Type ? v.Type : "string", 1);
+					it->SetText(v.Type ? v.Type.Get() : "string", 1);
 					sprintf_s(s, sizeof(s), "%s", v.Value.Value.String);
 					break;
 				case GV_WSTRING:
-					it->SetText(v.Type ? v.Type : "wstring", 1);
+					it->SetText(v.Type ? v.Type.Get() : "wstring", 1);
 					sprintf_s(s, sizeof(s), "%S", v.Value.Value.WString);
 					break;
 				case GV_VOID_PTR:
-					it->SetText(v.Type ? v.Type : "void*", 1);
+					it->SetText(v.Type ? v.Type.Get() : "void*", 1);
 					sprintf_s(s, sizeof(s), "0x%p", v.Value.Value.Ptr);
 					break;
 				default:
@@ -253,10 +257,8 @@ bool GDebugContext::OnCommand(int Cmd)
 	{
 		case IDM_START_DEBUG:
 		{
-			/*
 			if (d->Db)
 				d->Db->SetRuning(true);
-			*/
 			break;
 		}
 		case IDM_ATTACH_TO_PROCESS:
@@ -318,6 +320,99 @@ void GDebugContext::OnUserCommand(const char *Cmd)
 {
 	if (d->Db)
 		d->Db->UserCommand(Cmd);
+}
+
+void GDebugContext::FormatMemoryDump(int WordSize, int Width, bool InHex)
+{
+	if (MemoryDump)
+	{
+		if (d->MemDump.Length() == 0)
+			MemoryDump->Name("No data.");
+		else
+		{
+			if (!Width)
+				Width = 16 / WordSize;			
+			if (!WordSize)
+				WordSize = 1;
+
+			// Format output to the mem dump window
+			GStringPipe p;
+			int LineBytes = WordSize * Width;
+			
+			GPointer ptr;
+			ptr.u8 = &d->MemDump[0];
+			
+			for (NativeInt i = 0; i < d->MemDump.Length(); i += LineBytes)
+			{
+				GPointer Start = ptr;
+				int DisplayBytes = min(d->MemDump.Length() - i, LineBytes);
+				int DisplayWords = DisplayBytes / WordSize;			
+				NativeInt iAddr = d->MemDumpStart + i;
+				p.Print("%p  ", iAddr);
+				for (int n=0; n<DisplayWords; n++)
+				{
+					switch (WordSize)
+					{
+						default:
+							if (InHex)
+								p.Print("%02X ", *ptr.u8++);
+							else
+								p.Print("%4u ", *ptr.u8++);
+							break;
+						case 2:
+							if (InHex)
+								p.Print("%04X ", *ptr.u16++);
+							else
+								p.Print("%7u ", *ptr.u16++);
+							break;
+						case 4:
+							if (InHex)
+								p.Print("%08X ", *ptr.u32++);
+							else
+								p.Print("%10u ", *ptr.u32++);
+							break;
+						case 8:
+							if (InHex)
+								#ifdef WIN32
+								p.Print("%016I64X ", *ptr.u64++);
+								#else
+								p.Print("%016LX ", *ptr.u64++);
+								#endif
+							else
+								#ifdef WIN32
+								p.Print("%17I64u ", *ptr.u64++);
+								#else
+								p.Print("%17Lu ", *ptr.u64++);
+								#endif
+							break;
+					}
+				}
+				
+				p.Print("  ", iAddr);
+				// p.Print("%.*s", DisplayBytes, Start.s8);
+				p.Print("\n");
+			}
+			
+			GAutoString a(p.NewStr());
+			MemoryDump->Name(a);
+		}
+	}
+}
+
+void GDebugContext::OnMemoryDump(const char *Addr, int WordSize, int Width, bool IsHex)
+{
+	if (MemoryDump && d->Db)
+	{
+		MemoryDump->Name(NULL);
+
+		GAutoString sAddr(TrimStr(Addr));
+		d->MemDumpStart = htoi64(sAddr);
+		
+		if (d->Db->ReadMemory(d->MemDumpStart, 1024, d->MemDump))
+		{
+			FormatMemoryDump(WordSize, Width, IsHex);
+		}
+	}
 }
 
 void GDebugContext::OnChildLoaded(bool Loaded)

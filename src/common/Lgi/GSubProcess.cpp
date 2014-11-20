@@ -56,7 +56,7 @@ bool GSubProcess::Pipe::Create
 	#if defined(WIN32)
 	return CreatePipe(&Read, &Write, pAttr, 0);
 	#else
-	return Gtk::pipe(Handles) != NULL_PIPE;
+	return pipe(Handles) != NULL_PIPE;
 	#endif
 }
 
@@ -99,7 +99,7 @@ GSubProcess::GSubProcess(const char *exe, const char *args)
 GSubProcess::~GSubProcess()
 {
 	#ifdef POSIX
-	Gtk::close(Io.Read);
+	close(Io.Read);
 	#endif
 	if (Child)
 	{
@@ -209,6 +209,14 @@ uint32 GSubProcess::GetErrorCode()
 	return ErrorCode;
 }
 
+uint32 GSubProcess::GetExitValue()
+{
+	#ifdef WIN32
+	GetExitCodeProcess(ChildHnd, &ExitValue);
+	#endif
+	return ExitValue;	
+}
+
 void GSubProcess::SetInitFolder(const char *f)
 {
 	InitialFolder.Reset(NewStr(f));
@@ -291,7 +299,7 @@ void GSubProcess::Connect(GSubProcess *child)
 	}
 }
 
-bool GSubProcess::Start(bool ReadAccess, bool WriteAccess)
+bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdout)
 {
 	bool Status = false;
 	
@@ -327,7 +335,7 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess)
 		// printf("%i) pipe[%i]=%i,%i\n", i, i, Pipes[i].Read, Pipes[i].Write);
 		
 		GSubProcess *sp = p[i-1];
-		sp->ChildPid = Gtk::fork();
+		sp->ChildPid = fork();
 
 		if (sp->ChildPid == -1)
 		{
@@ -349,15 +357,15 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess)
 			// printf("%i) Child init %i->'%s'->%i\n", i, in.Read, sp->Exe.Get(), out.Write);
 
 			Dupe(in.Read, STDIN_FILENO);
-			Gtk::close(in.Write);
+			close(in.Write);
 
 			Dupe(out.Write, STDOUT_FILENO);
 			Dupe(out.Write, STDERR_FILENO);
-			Gtk::close(out.Read);
+			close(out.Read);
 			
 			// Execute the child
 			sp->Args.Add(NULL);
-			Gtk::execvp(sp->Exe, &sp->Args[0]);
+			execvp(sp->Exe, &sp->Args[0]);
 		
 			printf("%s:%i - execvp failed.\n", _FL);
 			Status = false;
@@ -370,18 +378,18 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess)
 	{
 		Pipes[j].Close();
 	}
-	Gtk::close(Pipes[0].Read);
-	Gtk::close(Pipes.Last().Write);
+	close(Pipes[0].Read);
+	close(Pipes.Last().Write);
 
 	// Set the input and output pipes for this sub-process.
 	if (WriteAccess)
 		Io.Write = Pipes[0].Write;
 	else
-		Gtk::close(Pipes[0].Write);
+		close(Pipes[0].Write);
 	if (ReadAccess)
 		Io.Read  = Pipes.Last().Read;
 	else
-		Gtk::close(Pipes.Last().Read);
+		close(Pipes.Last().Read);
 	
 	// printf("Final Handles %i, %i\n", Io.Read, Io.Write);
 	
@@ -461,8 +469,9 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess)
 
 		Info.dwFlags = STARTF_USESTDHANDLES;
 		Info.hStdOutput = ChildOutput.Write;
-		// Info.hStdError = ChildOutput.Write;
 		Info.hStdInput = ChildInput.Read;
+		if (MapStderrToStdout)
+			Info.hStdError = ChildOutput.Write;
 		GAutoWString WInitialFolder(LgiNewUtf8To16(InitialFolder));
 
 		GAutoWString WEnv;
@@ -539,7 +548,7 @@ int GSubProcess::Wait()
 int GSubProcess::Read(void *Buf, int Size, int Flags)
 {
 	#ifdef POSIX
-	return Gtk::read(Io.Read, Buf, Size);
+	return read(Io.Read, Buf, Size);
 	#else		
 	DWORD Rd = -1;
 	if (!ReadFile(ChildOutput.Read, Buf, Size, &Rd, NULL))
@@ -565,7 +574,7 @@ int GSubProcess::Peek()
 int GSubProcess::Write(const void *Buf, int Size, int Flags)
 {
 	#ifdef POSIX
-	return Gtk::write(Io.Write, Buf, Size);
+	return write(Io.Write, Buf, Size);
 	#else
 	DWORD Wr = -1;
 	if (!WriteFile(ChildInput.Write, Buf, Size, &Wr, NULL))

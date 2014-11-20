@@ -21,6 +21,7 @@
 #include "GTableLayout.h"
 #include "GTextLabel.h"
 #include "GCombo.h"
+#include "GCheckBox.h"
 
 #define IDM_SAVE				102
 #define IDM_RECENT_FILE			1000
@@ -270,6 +271,7 @@ public:
 	GTextLog *Txt[3];
 	GArray<char> Buf[3];
 	GFont Small;
+	GFont Fixed;
 
 	GTabView *DebugTab;
 	GBox *DebugBox;
@@ -299,6 +301,19 @@ public:
 		Small = *SysFont;
 		Small.PointSize(Small.PointSize()-2);
 		Small.Create((GFontType*)0);
+		
+		GFontType Type;
+		if (Type.GetSystemFont("Fixed"))
+		{
+			Type.SetPointSize(SysFont->PointSize()-1);
+			Fixed.Create(&Type);
+		}
+		else
+		{
+			Fixed.PointSize(SysFont->PointSize()-1);
+			Fixed.Face("Courier");
+			Fixed.Create();			
+		}		
 
 		Alignment(GV_EDGE_BOTTOM);
 		Children.Insert(Tab = new GTabView(100, 18, 3, 200, 200, "Output"));
@@ -358,7 +373,7 @@ public:
 							Page->SetFont(&Small);
 							if (ObjectDump = new GTextLog(IDC_OBJECT_DUMP))
 							{
-								ObjectDump->SetFont(&Small);
+								ObjectDump->SetFont(&Fixed);
 								ObjectDump->SetPourLargest(true);
 								Page->Append(ObjectDump);
 							}
@@ -383,39 +398,66 @@ public:
 							if (MemTable = new GTableLayout(IDC_MEMORY_TABLE));
 							{
 								GCombo *cbo;
+								GCheckBox *chk;
+								GText *txt;
+								GEdit *ed;
+								MemTable->SetFont(&Small);
 							
 								int x = 0, y = 0;
 								GLayoutCell *c = MemTable->GetCell(x++, y);
 								if (c)
 								{
 									c->VerticalAlign(GCss::VerticalMiddle);
-									c->Add(new GText(IDC_STATIC, 0, 0, -1, -1, "Address:"));
+									c->Add(txt = new GText(IDC_STATIC, 0, 0, -1, -1, "Address:"));
+									txt->SetFont(&Small);
 								}
-								c = MemTable->GetCell(x++, y);
-								if (c) c->Add(new GEdit(IDC_MEM_ADDR, 0, 0, 60, 20));
 								c = MemTable->GetCell(x++, y);
 								if (c)
 								{
+									c->PaddingRight(GCss::Len("1em"));
+									c->Add(ed = new GEdit(IDC_MEM_ADDR, 0, 0, 60, 20));
+									ed->SetFont(&Small);
+								}								
+								c = MemTable->GetCell(x++, y);
+								if (c)
+								{
+									c->PaddingRight(GCss::Len("1em"));
 									c->Add(cbo = new GCombo(IDC_MEM_SIZE, 0, 0, 60, 20));
+									cbo->SetFont(&Small);
 									cbo->Insert("1 byte");
-									cbo->Insert("2 byte");
-									cbo->Insert("4 byte");
-									cbo->Insert("8 byte");
+									cbo->Insert("2 bytes");
+									cbo->Insert("4 bytes");
+									cbo->Insert("8 bytes");
 								}
 								c = MemTable->GetCell(x++, y);
 								if (c)
 								{
 									c->VerticalAlign(GCss::VerticalMiddle);
-									c->Add(new GText(IDC_STATIC, 0, 0, -1, -1, "Page width:"));
+									c->Add(txt = new GText(IDC_STATIC, 0, 0, -1, -1, "Page width:"));
+									txt->SetFont(&Small);
 								}
-								c = MemTable->GetCell(x++, y++);
-								if (c) c->Add(new GEdit(IDC_MEM_ROW_LEN, 0, 0, 60, 20));
+								c = MemTable->GetCell(x++, y);
+								if (c)
+								{
+									c->PaddingRight(GCss::Len("1em"));
+									c->Add(ed = new GEdit(IDC_MEM_ROW_LEN, 0, 0, 60, 20));
+									ed->SetFont(&Small);
+								}
+								c = MemTable->GetCell(x++, y);								
+								if (c)
+								{
+									c->VerticalAlign(GCss::VerticalMiddle);
+									c->Add(chk = new GCheckBox(IDC_MEM_HEX, 0, 0, -1, -1, "Show Hex"));
+									chk->SetFont(&Small);
+									chk->Value(true);
+								}
 
+								int cols = x;
 								x = 0;
-								c = MemTable->GetCell(x++, y, true, 5);
+								c = MemTable->GetCell(x++, ++y, true, cols);
 								if (MemoryDump = new GTextLog(IDC_MEMORY_DUMP))
 								{
-									MemoryDump->SetFont(&Small);
+									MemoryDump->SetFont(&Fixed);
 									MemoryDump->SetPourLargest(true);
 									c->Add(MemoryDump);
 								}
@@ -1689,13 +1731,26 @@ public:
 	}
 };
 
+void AppWnd::UpdateMemoryDump()
+{
+	if (d->DbgContext)
+	{
+		char *sWord = GetCtrlName(IDC_MEM_SIZE);
+		int iWord = sWord ? atoi(sWord) : 1;
+		int64 RowLen = GetCtrlValue(IDC_MEM_ROW_LEN);
+		bool InHex = GetCtrlValue(IDC_MEM_HEX) != 0;
+		
+		d->DbgContext->FormatMemoryDump(iWord, RowLen, InHex);
+	}
+}
+
 int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 {
 	switch (Ctrl->GetId())
 	{
 		case IDC_DEBUG_EDIT:
 		{
-			if (Flags == VK_RETURN)
+			if (Flags == VK_RETURN && d->DbgContext)
 			{
 				char *Cmd = Ctrl->Name();
 				if (Cmd)
@@ -1704,6 +1759,32 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 					Ctrl->Name(NULL);
 				}
 			}
+			break;
+		}
+		case IDC_MEM_ADDR:
+		{
+			if (Flags == VK_RETURN && d->DbgContext)
+			{
+				char *s = Ctrl->Name();
+				if (s)
+				{
+					char *sWord = GetCtrlName(IDC_MEM_SIZE);
+					int iWord = sWord ? atoi(sWord) : 1;
+					d->DbgContext->OnMemoryDump(s, iWord, GetCtrlValue(IDC_MEM_ROW_LEN), GetCtrlValue(IDC_MEM_HEX) != 0);
+				}
+			}
+			break;
+		}
+		case IDC_MEM_ROW_LEN:
+		{
+			if (Flags == VK_RETURN)
+				UpdateMemoryDump();
+			break;
+		}
+		case IDC_MEM_HEX:
+		case IDC_MEM_SIZE:
+		{
+			UpdateMemoryDump();
 			break;
 		}
 		case IDC_DEBUG_TAB:
@@ -1724,7 +1805,9 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 		}
 		case IDC_LOCALS_LIST:
 		{
-			if (d->Output->Locals && Flags == GLIST_NOTIFY_DBL_CLICK)
+			if (d->Output->Locals &&
+				Flags == GLIST_NOTIFY_DBL_CLICK &&
+				d->DbgContext)
 			{
 				GListItem *it = d->Output->Locals->GetSelected();
 				if (it)

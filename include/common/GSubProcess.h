@@ -96,8 +96,9 @@ public:
 	// Process lifecycle	
 	bool IsRunning();
 	uint32 GetErrorCode();
+	uint32 GetExitValue();
 	void Connect(GSubProcess *child);
-	bool Start(bool ReadAccess, bool WriteAccess);
+	bool Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdout = true);
 	int Wait();
 	
 	// IO

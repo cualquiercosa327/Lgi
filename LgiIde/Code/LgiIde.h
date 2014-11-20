@@ -61,7 +61,7 @@ enum IdeIcon
 enum IdeControls
 {
 	IDC_STATIC = -1,
-	IDC_WATCH_LIST = 500,
+	IDC_WATCH_LIST = 700,
 	IDC_LOCALS_LIST,
 	IDC_DEBUG_EDIT,
 	IDC_DEBUGGER_LOG,
@@ -76,6 +76,7 @@ enum IdeControls
 	IDC_MEM_ADDR,
 	IDC_MEM_SIZE,
 	IDC_MEM_ROW_LEN,
+	IDC_MEM_HEX
 };
 
 #define BUILD_TYPE_DEBUG		0
@@ -160,6 +161,8 @@ public:
 class AppWnd : public GWindow
 {
 	class AppWndPrivate *d;
+
+	void UpdateMemoryDump();
 
 public:
 	enum Channels

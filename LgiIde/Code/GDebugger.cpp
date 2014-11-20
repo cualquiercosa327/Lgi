@@ -47,17 +47,13 @@ class Gdb : public GDebugger, public GThread
 	
 	void OnRead(const char *Ptr, int Bytes)
 	{
-		if (OutStream)
-			OutStream->Write(Ptr, Bytes);
-		else
-			Events->Write(Ptr, Bytes);
-		
 		// Check for prompt
-		const char *End = Ptr + Bytes;
+		const char *p = Ptr;
+		const char *End = p + Bytes;
 		char *LineEnd = Line + sizeof(Line) - 1;
-		while (Ptr < End)
+		while (p < End)
 		{
-			if (*Ptr == '\n')
+			if (*p == '\n')
 			{
 				*LinePtr = 0;
 				OnLine();
@@ -65,13 +61,14 @@ class Gdb : public GDebugger, public GThread
 			}
 			else if (LinePtr < LineEnd)
 			{
-				*LinePtr++ = *Ptr;
+				*LinePtr++ = *p;
 			}
 
-			Ptr++;
+			p++;
 		}
 		*LinePtr = 0;
 
+		// Check for prompt
 		int Ch = LinePtr - Line;
 		int Offset = max(Ch - 6, 0);
 		AtPrompt = !_stricmp(Line + Offset, sPrompt);
@@ -82,7 +79,16 @@ class Gdb : public GDebugger, public GThread
 				Running = !AtPrompt;
 				Events->OnRunState(Running);
 			}
+			
+			if (OutStream)
+				OutStream = NULL;
 		}
+
+		// Send output to stream
+		if (OutStream)
+			OutStream->Write(Ptr, Bytes);
+		else
+			Events->Write(Ptr, Bytes);
 	}
 	
 	int Main()
@@ -98,12 +104,10 @@ class Gdb : public GDebugger, public GThread
 		if (!Sp.Reset(new GSubProcess(Path, s)))
 			return false;
 
-		// Log("Starting: %s %s\n", Path, s);
-		
 		if (InitDir)
 			Sp->SetInitFolder(InitDir);
 		
-		if (!Sp->Start(true, true))
+		if (!Sp->Start(true, true, false))
 			return -1;
 		
 		State = Looping;
@@ -182,7 +186,7 @@ class Gdb : public GDebugger, public GThread
 		{		
 			AtPrompt = false;
 			WaitPrompt();
-			OutStream = NULL;
+			LgiAssert(OutStream == NULL);
 		}
 		
 		return true;
@@ -233,10 +237,10 @@ public:
 		for (int i=0; i<Lines.Length(); i++)
 		{
 			char *l = Lines[i];
-			if (stristr(l, sPrompt))
-				Events->Write(l, strlen(l));
-			else if (*l == '#')
+			if (*l == '#')
+			{
 				Stack.New().Reset(NewStr(l));
+			}
 			else if (Stack.Length() > 0)
 			{
 				// Append to the last line..
@@ -470,6 +474,45 @@ public:
 			}
 		}
 	
+		return true;
+	}
+
+	bool ReadMemory(NativeInt Addr, int Length, GArray<uint8> &OutBuf)
+	{
+		GStringPipe p;
+		char c[256];
+		int words = Length >> 2;
+		int bytes = Length % 4;
+		sprintf_s(c, sizeof(c), "x/%iw 0x%p", words, Addr);
+		if (!Cmd(c, &p))
+			return false;
+		
+		if (!OutBuf.Length(words << 2))
+			return false;
+		
+		uint32 *buf = (uint32*) &(OutBuf)[0];
+		uint32 *out = buf;
+		
+		GAutoString a(p.NewStr());
+		GToken t(a, "\r\n");
+		for (int i=0; i<t.Length(); i++)
+		{
+			char *l = t[i];
+			char *s = strchr(l, ':');
+			if (!s)
+				continue;
+			
+			s++;
+			while (*s)
+			{
+				while (*s && strchr(WhiteSpace, *s)) s++;
+				uint32 word = atoi(s);
+				*out++ = word;
+				while (*s && !strchr(WhiteSpace, *s)) s++;
+			}
+		}
+		
+		OutBuf.Length((out - buf) << 2);		
 		return true;
 	}
 	
