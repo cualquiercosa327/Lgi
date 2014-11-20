@@ -46,11 +46,11 @@ class Gdb : public GDebugger, public GThread
 	{
 		// Send output
 		if (OutLines)
-			OutLines->New().Reset(NewStr(Start, Length));
+			OutLines->New().Reset(NewStr(Start, Length - 1));
 		else if (OutStream)
 			OutStream->Write(Start, Length);
 		else
-			Events->Write(Start, Length + 1 /* the new line */);
+			Events->Write(Start, Length);
 
 		if (stristr(Line, "received signal SIGSEGV"))
 		{
@@ -89,6 +89,7 @@ class Gdb : public GDebugger, public GThread
 			if (bytes == 6)
 			{
 				AtPrompt = !_strnicmp(Line, sPrompt, bytes);
+				// LgiTrace("%I64i: AtPrompt=%i\n", LgiCurrentTime(), AtPrompt);
 				if (AtPrompt)
 				{
 					if (Running ^ !AtPrompt)
@@ -101,10 +102,10 @@ class Gdb : public GDebugger, public GThread
 						OutStream = NULL;
 					if (OutLines)
 						OutLines = NULL;
+
+					Events->Write(Line, bytes);
 				}
 			}
-			
-			Events->Write(Line, bytes);
 		}
 	}
 	
@@ -137,10 +138,10 @@ class Gdb : public GDebugger, public GThread
 			int Rd = Sp->Read(Buf, sizeof(Buf)-1);
 			if (Rd > 0)
 			{
-				OnRead(Buf, Rd);
 				#ifdef _DEBUG
-				// LgiTrace("Read(%i)='%.*s'\n", Rd, Rd, Buf);
+				// LgiTrace("%I64i: %p,%p Read(%i)='%.*s'\n", LgiCurrentTime(), OutLines, OutStream, Rd, Rd, Buf);
 				#endif
+				OnRead(Buf, Rd);
 			}			
 		}
 
@@ -184,26 +185,29 @@ class Gdb : public GDebugger, public GThread
 		return true;
 	}
 	
-	bool Cmd(const char *c, GStream *Output = NULL)
+	bool Cmd(const char *c, GStream *Output = NULL, StrArray *Arr = NULL)
 	{
 		if (!WaitPrompt())
 			return false;
 
 		char str[256];
 		int ch = sprintf_s(str, sizeof(str), "%s\n", c);
+
+		// LgiTrace("%I64i: Cmd=%s\n", LgiCurrentTime(), str);
 		Events->Write(str, ch);
 		LinePtr = Line;
 		OutStream = Output;
+		OutLines = Arr;		
+		AtPrompt = false;
 
 		int Wr = Sp->Write(str, ch);
 		if (Wr != ch)
 			return false;
 
-		if (Output)
+		if (OutStream || OutLines)
 		{		
-			AtPrompt = false;
 			WaitPrompt();
-			LgiAssert(OutStream == NULL);
+			LgiAssert(OutStream == NULL && OutLines == NULL);
 		}
 		
 		return true;
@@ -246,15 +250,13 @@ public:
 
 	bool GetCallStack(GArray<GAutoString> &Stack)
 	{
-		GStringPipe Bt;
-		if (!Cmd("bt", &Bt))
+		StrArray Bt;
+		if (!Cmd("bt", NULL, &Bt))
 			return false;
 
-		GAutoString a(Bt.NewStr());
-		GToken Lines(a, "\r\n");
-		for (int i=0; i<Lines.Length(); i++)
+		for (int i=0; i<Bt.Length(); i++)
 		{
-			char *l = Lines[i];
+			char *l = Bt[i];
 			if (*l == '#')
 			{
 				Stack.New().Reset(NewStr(l));
@@ -497,25 +499,24 @@ public:
 
 	bool ReadMemory(NativeInt Addr, int Length, GArray<uint8> &OutBuf)
 	{
-		GStringPipe p;
+		StrArray Out;
 		char c[256];
 		int words = Length >> 2;
 		int bytes = Length % 4;
 		sprintf_s(c, sizeof(c), "x/%iw 0x%p", words, Addr);
-		if (!Cmd(c, &p))
+		if (!Cmd(c, NULL, &Out))
 			return false;
 		
 		if (!OutBuf.Length(words << 2))
 			return false;
 		
 		uint32 *buf = (uint32*) &(OutBuf)[0];
-		uint32 *out = buf;
+		uint32 *ptr = buf;
+		uint32 *end = ptr + (OutBuf.Length() / sizeof(*buf));
 		
-		GAutoString a(p.NewStr());
-		GToken t(a, "\r\n");
-		for (int i=0; i<t.Length(); i++)
+		for (int i=0; i<Out.Length() && ptr < end; i++)
 		{
-			char *l = t[i];
+			char *l = Out[i];
 			char *s = strchr(l, ':');
 			if (!s)
 				continue;
@@ -525,12 +526,15 @@ public:
 			{
 				while (*s && strchr(WhiteSpace, *s)) s++;
 				uint32 word = atoi(s);
-				*out++ = word;
+				*ptr++ = word;
 				while (*s && !strchr(WhiteSpace, *s)) s++;
+				
+				if (ptr >= end)
+					break;
 			}
 		}
 		
-		OutBuf.Length((out - buf) << 2);		
+		OutBuf.Length((ptr - buf) << 2);		
 		return true;
 	}
 	
