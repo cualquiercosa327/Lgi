@@ -112,7 +112,6 @@ class GHashTbl
 	    char *New(char *s)
 	    {
 		    size_t Len = strlen(s) + 1;
-		    printf("Used=%i, Len=%i, Size=%i\n", Used, Len, Size);
 		    if (Used < Size - Len)
 		    {
 			    char *p = Mem + Used;
