@@ -306,6 +306,10 @@ public:
 			PtSize = Size.Value;
 			if (PtSize < MinimumPointSize)
 				PtSize = MinimumPointSize;
+			
+			int BestPxDiff = 10000;
+			GAutoPtr<GFont> BestFont;
+			
 			do
 			{
 				GAutoPtr<GFont> Tmp(new GFont);
@@ -319,11 +323,23 @@ public:
 				
 				int ActualHeight = PxHeight(Tmp);
 				Diff = ActualHeight - RequestPx;
-				if (abs(Diff) <= 1)
+				if (Diff == 0)
 				{
-					Fonts.Insert(f = Tmp.Release());
-					LgiAssert(f->Face() != NULL);
-					return f;
+					// Best possible font size.
+					BestFont = Tmp;
+					BestPxDiff = Diff;
+					break;
+				}
+				else if (abs(Diff) < BestPxDiff)
+				{
+					// Getting better... keep going
+					BestFont = Tmp;
+					BestPxDiff = Diff;
+				}
+				else
+				{
+					// Getting worse now... stop
+					break;
 				}
 
 				if (Diff > 0)
@@ -337,6 +353,10 @@ public:
 					PtSize++;
 			}
 			while (PtSize > MinimumPointSize && PtSize < 100);
+
+			Fonts.Insert(f = BestFont.Release());
+			LgiAssert(f->Face() != NULL);
+			return f;
 		}
 		else if (Size.Type == GCss::LenPt)
 		{
