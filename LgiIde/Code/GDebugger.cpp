@@ -16,6 +16,7 @@ class Gdb : public GDebugger, public GThread
 	bool AtPrompt;
 	char Line[256], *LinePtr;
 	int CurFrame;
+	bool SetAsmType;
 
 	// Various output modes.
 	GStream *OutStream;
@@ -193,7 +194,6 @@ class Gdb : public GDebugger, public GThread
 		char str[256];
 		int ch = sprintf_s(str, sizeof(str), "%s\n", c);
 
-		// LgiTrace("%I64i: Cmd=%s\n", LgiCurrentTime(), str);
 		Events->Write(str, ch);
 		LinePtr = Line;
 		OutStream = Output;
@@ -223,6 +223,7 @@ public:
 		OutStream = NULL;
 		OutLines = NULL;
 		CurFrame = 0;
+		SetAsmType = false;
 	}
 	
 	~Gdb()
@@ -245,6 +246,7 @@ public:
 		InitDir.Reset(NewStr(initDir));
 		Running = false;
 		Run();
+		
 		return true;
 	}
 
@@ -318,6 +320,12 @@ public:
 	{
 		if (Run)
 		{
+			if (!SetAsmType)
+			{
+				SetAsmType = true;
+				Cmd("set disassembly-flavor intel");
+			}
+			
 			if (Cmd("r"))
 			{
 				Running = true;

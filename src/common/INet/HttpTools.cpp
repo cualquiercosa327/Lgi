@@ -155,7 +155,7 @@ GXmlTag *ExtractForms(char *Html, GStream *Log)
 
 											while ((c && !c->Tag)
                                                    ||
-                                                   stricmp(c->Tag, "/select") != 0)
+                                                   _stricmp(c->Tag, "/select") != 0)
 											{
 												if (c->Tag && _stricmp(c->Tag, "option") == 0)
 												{

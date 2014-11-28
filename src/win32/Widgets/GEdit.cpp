@@ -341,7 +341,6 @@ void GEdit::OnCreate()
 
 void GEdit::OnFocus(bool f)
 {
-	// LgiTrace("GEdit::OnFocus(%i) d->EmptyText=%p\n", f, d->EmptyText.Get());
 	if (d->EmptyText)
 		SysEmptyText();
 }
@@ -360,6 +359,23 @@ bool GEdit::OnKey(GKey &k)
 		{
 			return true;
 		}
+	}
+	
+	if
+	(
+		!k.IsChar &&
+		k.Ctrl() &&
+		(
+			tolower(k.c16) == 'x' ||
+			tolower(k.c16) == 'c' ||
+			tolower(k.c16) == 'v'
+		)
+	)
+	{
+		// This makes sure any menu items labeled Ctrl+x, Ctrl+c and 
+		// Ctrl+v don't fire as WELL as the built in windows clipboard
+		// handlers.
+		return true;
 	}
 
 	return false;
