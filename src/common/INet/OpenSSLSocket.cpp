@@ -51,8 +51,23 @@ SSL_id_function();
 class LibSSL : public GLibrary
 {
 public:
-	LibSSL() : GLibrary(SSL_LIBRARY)
+	LibSSL()
 	{
+		#ifdef MAC
+		char Exe[MAX_PATH];
+		if (LgiGetExeFile(Exe, sizeof(Exe)))
+		{
+			LgiMakePath(Exe, sizeof(Exe), Exe, "Contents/MacOS/libssl.dylib");
+			if (FileExists(Exe))
+			{
+				Load(Exe);
+			}
+		}
+		#endif
+
+		if (!IsLoaded())
+			Load(SSL_LIBRARY);
+
 		if (!IsLoaded())
 		{
 			char p[300];
@@ -70,7 +85,10 @@ public:
 		}
 
         #ifdef MAC
-		Load("/opt/local/lib/" SSL_LIBRARY);
+        if (!IsLoaded())
+        {
+			Load("/opt/local/lib/" SSL_LIBRARY);
+		}
         #endif
     }
 
@@ -175,12 +193,16 @@ SslVer ParseSslVersion(const char *v)
 			while (*c && IsDigit(*c))
 				c++;
 		}
+		
 		if (IsAlpha(*c))
 		{
-			int sub = ToLower(*c) - 'a';
-			out.Add(sub);
-			c++;
-			LgiAssert(*c == 0);
+			int Idx = 0;
+			while (IsAlpha(*c))
+			{
+				Idx += ToLower(*c) - 'a';
+				c++;
+			}
+			out.Add(Idx);
 		}
 	}
 	return out;
@@ -1041,6 +1063,8 @@ int SslSocket::Write(const void *Data, int Len, int Flags)
 		int To = GetTimeout();
 		while (HasntTimedOut())
 		{
+			if (!Library)
+				break;
 			r = Library->BIO_write(Bio, Data, Len);
 			DebugTrace("%s:%i - BIO_write(%p,%i)=%i\n", _FL, Data, Len, r);
 			if (r < 0)

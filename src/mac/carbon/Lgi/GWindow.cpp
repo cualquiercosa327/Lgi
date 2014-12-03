@@ -34,6 +34,7 @@ public:
 	DragReceiveHandlerUPP ReceiveHandler;
 	uint64 LastMinimize;
 	bool CloseRequestDone;
+	uint64 LastDragDrop;
 
 	GMenu *EmptyMenu;
 	
@@ -45,6 +46,7 @@ public:
 		InitVisible = false;
 		LastMinimize = 0;
 		Wnd = wnd;
+		LastDragDrop = 0;
 		TrackingHandler = 0;
 		ReceiveHandler = 0;
 		DeleteWhenDone = false;
@@ -321,31 +323,21 @@ printf("DragTrack GetDragMouse=%i tracking=%p (%i)\n", e, tracking, tracking ? *
 	if ((tracking && *tracking == kDragTrackingEnterHandler) || IsCopy != LastCopy)
 	{
 		LastCopy = IsCopy;
-		
-        /* Fixme: This is crashing on 10.8. Probably because the lifetime of the graphic
-                  is too short? Should try moving the image into a more permanent location?
-                  
-		GAutoPtr<CGImg> Img;
-		SysFont->Fore(Rgb24(0xff, 0xff, 0xff));
-		SysFont->Transparent(true);
-		GDisplayString s(SysFont, IsCopy?(char*)"Copy":(char*)"Move");
-
-		GMemDC m;
-		if (m.Create(s.X() + 12, s.Y() + 2, 32))
-		{
-			m.Colour(Rgb32(0x30, 0, 0xff));
-			m.Rectangle();
-			Img.Reset(new CGImg(&m));
-			s.Draw(&m, 6, 0);
-
-			HIPoint Offset = { 16, 16 };
-			if (Img)
-			{
-				e = SetDragImageWithCGImage(theDrag, *Img, &Offset, kDragDarkerTranslucency);
-				if (e) printf("%s:%i - SetDragImageWithCGImage failed with %i\n", _FL, e);
-			}
-		}
-        */
+	}
+	
+	uint64 Now = LgiCurrentTime();
+	if
+	(
+		d->LastDragDrop != 0 &&
+		Now - d->LastDragDrop < 1000 &&
+		tracking != NULL &&
+		(*tracking == kDragTrackingLeaveWindow || *tracking == kDragTrackingLeaveHandler)
+	)
+	{
+		/* Normally Lgi apps don't get WillAccept events after the drop. MacOSX likes to send a
+		   kDragTrackingLeaveWindow and kDragTrackingLeaveHandler after the drop, so just
+		   mask them out here. */
+		return Status;
 	}
 	
 	GViewI *v = WindowFromPoint(p.x, p.y);
@@ -464,7 +456,6 @@ printf("\tTarget(%s) not accepting these formats.\n", gv?gv->GetClass():"(none)"
 			{
 				if (tracking)
 				{
-					// printf("Tracking = %04.4s\n", tracking);
 					if (*tracking == kDragTrackingLeaveHandler)
 					{
 						// noop
@@ -472,29 +463,29 @@ printf("\tTarget(%s) not accepting these formats.\n", gv?gv->GetClass():"(none)"
 					else if (*tracking == kDragTrackingLeaveWindow)
 					{
 						MatchingTarget->OnDragExit();
-						// printf("OnDragExit\n");
 					}
 					else
 					{											
 						if (*tracking == kDragTrackingEnterWindow)
 						{
 							MatchingTarget->OnDragEnter();
-							// printf("OnDragEnter\n");
 						}
 
 						MatchingTarget->WillAccept(Formats, Pt, 0);
-						// printf("WillAccept=%i\n", Effect);
 					}
 				}
 				else // drop
 				{
 					GVariant Data;
+					d->LastDragDrop = LgiCurrentTime();
 					
 					#if 0
 					for (char *r=Formats.First(); r; r=Formats.Next())
 						printf("'%s'\n", r);
 					#endif
 					
+					MatchingTarget->OnDragExit();
+
 					int Effect = MatchingTarget->WillAccept(Formats, Pt, 0);
 					if (Effect)
 					{
@@ -627,7 +618,7 @@ printf("\tTarget(%s) not accepting these formats.\n", gv?gv->GetClass():"(none)"
 			}
 			#endif
 		}
-		else printf("%s:%i - No view.\n", _FL);
+		else LgiTrace("%s:%i - No view.\n", _FL);
 	}
 	
 	return Status;

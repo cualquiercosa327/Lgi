@@ -69,6 +69,8 @@ struct GSoftwareUpdatePriv
 				sprintf_s(Dir, sizeof(Dir), "%s?name=%s&os=%s&betas=%i", Uri.Path, (char*)d->Name, LgiGetOsName(), IncBetas);
 				DeleteArray(Uri.Path);
 				Uri.Path = NewStr(Dir);
+				
+				printf("Dir='%s'\n", Dir);
 
 				GAutoString GetUri = Uri.GetUri();
 				

@@ -66,6 +66,8 @@ public:
 	GDragDropSource();
 	~GDragDropSource();
 
+	bool SetIcon(GSurface *Img, GRect *SubRgn = NULL);
+	
 	/// Start a drag operation
 	/// \returns The operation that took effect: #DROPEFFECT_NONE, #DROPEFFECT_COPY etc. 
 	int Drag(GView *SourceWnd, int Effect);
