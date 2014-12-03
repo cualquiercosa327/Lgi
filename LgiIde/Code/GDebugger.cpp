@@ -116,9 +116,9 @@ class Gdb : public GDebugger, public GThread
 		const char *Shell = "C:\\Windows\\System32\\cmd.exe";
 		const char *Path = "C:\\MinGW\\bin\\gdb.exe";
 		if (ValidStr(Args))
-			sprintf_s(s, sizeof(s), "\"%s\"", Exe.Get());
-		else
 			sprintf_s(s, sizeof(s), "\"%s\" -- %s", Exe.Get(), Args.Get());
+		else
+			sprintf_s(s, sizeof(s), "\"%s\"", Exe.Get());
 		
 		if (!Sp.Reset(new GSubProcess(Path, s)))
 			return false;
