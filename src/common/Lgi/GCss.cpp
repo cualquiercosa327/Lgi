@@ -833,6 +833,11 @@ bool GCss::InheritResolve(PropMap &Contrib)
 			        {
 			            switch (Cur->Type)
 			            {
+							case LenAuto:
+							{
+								i = 0;
+								break;
+							}
 			                case SizeSmaller:
 			                {
 			                    switch (Mine->Type)
