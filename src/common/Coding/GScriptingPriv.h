@@ -53,6 +53,7 @@
 	_i(IArraySet,			74,					"ArraySet") \
 	_i(IRet,				75,					"Return") \
 	_i(IDomCall,			76,					"DomCall") \
+	_i(IBreak,				77,					"Break") \
 
 enum GInstruction {
 	AllInstructions
@@ -501,9 +502,9 @@ class GVirtualMachine : public GScriptUtils
 	class GVirtualMachinePriv *d;
 
 public:
-	GVirtualMachine();
+	GVirtualMachine(GVmDebuggerCallback *callback = NULL);
 	~GVirtualMachine();
-
+	
 	/// Executes the whole script starting at the top
 	GExecutionStatus Execute
 	(
@@ -529,6 +530,14 @@ public:
 		/// [Optional] Log file for execution
 		GStream *Log = NULL
 	);
+
+	// Debugging commands
+	bool StepInto();
+	bool StepOver();
+	bool StepOut();
+	bool BreakExecution();
+	bool Run(bool Start);
+	bool BreakPoint(const char *File, int Line, bool Add);
 };
 
 /// Scripting engine system functions

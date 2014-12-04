@@ -418,10 +418,10 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 			}
 			case CsIndex8:
 			{
-				GRgb24 sc[256];
+				System24BitPixel sc[256];
 				CreatePaletteLut(sc, SPal);
 				
-				GRgb24 dc[256];
+				System24BitPixel dc[256];
 				CreatePaletteLut(dc, DPal);
 
 				for (int y=0; y<Src->y; y++)
@@ -436,7 +436,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 					for (int x=0; x<Src->x; x++)
 					{
 						uchar a = lookup[*sa];
-						GRgb24 *src = sc + *s;
+						System24BitPixel *src = sc + *s;
 
 						if (a == 255)
 						{
@@ -447,7 +447,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 						else if (a)
 						{
 							uchar o = 0xff - a;
-							GRgb24 *dst = dc + *d;
+							System24BitPixel *dst = dc + *d;
 							r = DivLut[(dst->r * o) + (src->r * a)];
 							g = DivLut[(dst->g * o) + (src->g * a)];
 							b = DivLut[(dst->b * o) + (src->b * a)];
@@ -464,7 +464,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 			}
 			case System15BitColourSpace:
 			{
-				GRgb24 dc[256];
+				System24BitPixel dc[256];
 				CreatePaletteLut(dc, DPal);
 				if (!Lut) Lut = DPal->MakeLut(15);
 
@@ -485,7 +485,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 						else if (a)
 						{
 							uchar o = 255 - a;
-							GRgb24 *dst = dc + *d;
+							System24BitPixel *dst = dc + *d;
 							int r = DivLut[(dst->r * o) + (Rc15(*s) * a)];
 							int g = DivLut[(dst->g * o) + (Gc15(*s) * a)];
 							int b = DivLut[(dst->b * o) + (Bc15(*s) * a)];
@@ -502,7 +502,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 			}
 			case System16BitColourSpace:
 			{
-				GRgb24 dc[256];
+				System24BitPixel dc[256];
 				CreatePaletteLut(dc, DPal);
 				if (!Lut) Lut = DPal->MakeLut(15);
 
@@ -523,7 +523,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 						else if (a)
 						{
 							uchar o = 255 - a;
-							GRgb24 *dst = dc + *d;
+							System24BitPixel *dst = dc + *d;
 							int r = DivLut[(dst->r * o) + (Rc16(*s) * a)];
 							int g = DivLut[(dst->g * o) + (Gc16(*s) * a)];
 							int b = DivLut[(dst->b * o) + (Bc16(*s) * a)];
@@ -577,7 +577,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 			}
 			case System32BitColourSpace:
 			{
-				GRgb24 dc[256];
+				System24BitPixel dc[256];
 				CreatePaletteLut(dc, DPal, 255);
 				if (!Lut) Lut = DPal->MakeLut(15);
 
@@ -597,7 +597,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 						else if (a)
 						{
 							uchar o = 255 - a;
-							GRgb24 *dst = dc + *d;
+							System24BitPixel *dst = dc + *d;
 							int r = DivLut[(dst->r * o) + (s->r * a)];
 							int g = DivLut[(dst->g * o) + (s->g * a)];
 							int b = DivLut[(dst->b * o) + (s->b * a)];
@@ -644,10 +644,10 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				else if (alpha)
 				{
-					GRgb24 sc[256];
+					System24BitPixel sc[256];
 					CreatePaletteLut(sc, SPal, alpha);
 					
-					GRgb24 dc[256];
+					System24BitPixel dc[256];
 					CreatePaletteLut(dc, DPal, oma);
 
 					if (!Lut) Lut = DPal->MakeLut(15);
@@ -659,8 +659,8 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 
 						for (int x=0; x<Src->x; x++, s++, d++)
 						{
-							GRgb24 *src = sc + *s;
-							GRgb24 *dst = dc + *d;
+							System24BitPixel *src = sc + *s;
+							System24BitPixel *dst = dc + *d;
 							int r = src->r + dst->r;
 							int g = src->g + dst->g;
 							int b = src->b + dst->b;
@@ -674,7 +674,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 			}
 			case System15BitColourSpace:
 			{
-				GRgb24 dc[256];
+				System24BitPixel dc[256];
 				CreatePaletteLut(dc, DPal, oma);
 				
 				if (!Lut) Lut = DPal->MakeLut(15);
@@ -687,7 +687,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 
 					while (d < e)
 					{
-						GRgb24 *dst = dc + *d;
+						System24BitPixel *dst = dc + *d;
 						int r = dst->r + DivLut[Rc15(*s) * alpha];
 						int g = dst->g + DivLut[Gc15(*s) * alpha];
 						int b = dst->b + DivLut[Bc15(*s) * alpha];
@@ -701,7 +701,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 			}
 			case System16BitColourSpace:
 			{
-				GRgb24 dc[256];
+				System24BitPixel dc[256];
 				CreatePaletteLut(dc, DPal, oma);
 				
 				if (!Lut) Lut = DPal->MakeLut(15);
@@ -713,7 +713,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 
 					for (int x=0; x<Src->x; x++, s++, d++)
 					{
-						GRgb24 *dst = dc + *d;
+						System24BitPixel *dst = dc + *d;
 						int r = dst->r + DivLut[Rc16(*s) * alpha];
 						int g = dst->g + DivLut[Gc16(*s) * alpha];
 						int b = dst->b + DivLut[Bc16(*s) * alpha];
@@ -754,7 +754,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 			}
 			case System32BitColourSpace:
 			{
-				GRgb24 dc[256];
+				System24BitPixel dc[256];
 				CreatePaletteLut(dc, DPal);
 				if (!Lut) Lut = DPal->MakeLut(15);
 
@@ -769,7 +769,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 						uchar a = lookup[s->a];
 						if (a)
 						{
-							GRgb24 *dst = dc + *d;
+							System24BitPixel *dst = dc + *d;
 							uchar o = 255 - a;
 							int r = lookup[s->r] + DivLut[dst->r * o];
 							int g = lookup[s->g] + DivLut[dst->g * o];
@@ -860,7 +860,7 @@ bool GdcApp15Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 			}
 			case CsIndex8:
 			{
-				GRgb24 c[256];
+				System24BitPixel c[256];
 				CreatePaletteLut(c, SPal, 255);
 				
 				for (int y=0; y<Src->y; y++)
@@ -875,12 +875,12 @@ bool GdcApp15Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 						uchar a = lookup[*sa++];
 						if (a == 255)
 						{
-							GRgb24 *src = c + *s;
+							System24BitPixel *src = c + *s;
 							*d = Rgb15(src->r, src->g, src->b);
 						}
 						else if (a)
 						{
-							GRgb24 *src = c + *s;
+							System24BitPixel *src = c + *s;
 							uchar o = 255 - a;
 							*d = Rgb15(	DivLut[(o * Rc15(*d)) + (a * src->r)],
 										DivLut[(o * Gc15(*d)) + (a * src->g)],
@@ -1042,7 +1042,7 @@ bool GdcApp15Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 			}
 			case CsIndex8:
 			{
-				GRgb24 c[256];
+				System24BitPixel c[256];
 				if (alpha) CreatePaletteLut(c, SPal, alpha);
 				
 				for (int y=0; y<Src->y; y++)
@@ -1051,7 +1051,7 @@ bool GdcApp15Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 					ushort *e = d + Src->x;
 					uchar *s = Src->Base + (Src->Line * y);
 
-					GRgb24 *Src; 
+					System24BitPixel *Src; 
 					if (alpha == 255)
 					{
 						// copy
@@ -1262,7 +1262,7 @@ bool GdcApp16Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 			}
 			case CsIndex8:
 			{
-				GRgb24 c[256];
+				System24BitPixel c[256];
 				CreatePaletteLut(c, SPal, 255);
 
 				for (int y=0; y<Src->y; y++)
@@ -1278,12 +1278,12 @@ bool GdcApp16Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 
 						if (a == 255)
 						{
-							GRgb24 *src = c + *s;
+							System24BitPixel *src = c + *s;
 							*d = Rgb16(src->r, src->g, src->b);
 						}
 						else if (a)
 						{
-							GRgb24 *src = c + *s;
+							System24BitPixel *src = c + *s;
 							uchar o = 255 - a;
 							int r = DivLut[(Rc16(*d) * o) + (src->r * a)];
 							int g = DivLut[(Gc16(*d) * o) + (src->g * a)];
@@ -1447,7 +1447,7 @@ bool GdcApp16Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 			{
 				// this code uses the input bitmap as a mask to say where
 				// to draw the current colour at the given alpha value
-				GRgb24 c[256];
+				System24BitPixel c[256];
 				CreatePaletteLut(c, SPal, alpha);
 
 				for (int y=0; y<Src->y; y++)
@@ -1457,7 +1457,7 @@ bool GdcApp16Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 
 					for (int x=0; x<Src->x; x++, d++, s++)
 					{
-						GRgb24 *src = c + *s;
+						System24BitPixel *src = c + *s;
 						int r = src->r + DivLut[Rc16(*d) * oma];
 						int g = src->g + DivLut[Gc16(*d) * oma];
 						int b = src->b + DivLut[Bc16(*d) * oma];
@@ -1593,7 +1593,7 @@ bool GdcApp16Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 #define Setup24()	\
-	GRgb24 *p = (GRgb24*)Ptr; \
+	System24BitPixel *p = (System24BitPixel*)Ptr; \
 	uchar *DivLut = Div255Lut; \
 	int r = R24(c) * alpha; \
 	int g = G24(c) * alpha; \
@@ -1617,7 +1617,7 @@ void GdcApp24Alpha::VLine(int height)
 	while (height--)
 	{
 		Comp24();
-		p = (GRgb24*) (Ptr += Dest->Line);
+		p = (System24BitPixel*) (Ptr += Dest->Line);
 	}
 }
 
@@ -1633,7 +1633,7 @@ void GdcApp24Alpha::Rectangle(int x, int y)
 			p++;
 		}
 
-		p = (GRgb24*) (Ptr += Dest->Line);
+		p = (System24BitPixel*) (Ptr += Dest->Line);
 	}
 }
 
@@ -1658,7 +1658,7 @@ bool GdcApp24Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 			}
 			case CsIndex8:
 			{
-				GRgb24 c[256];
+				System24BitPixel c[256];
 				CreatePaletteLut(c, SPal, 255);
 
 				for (int y=0; y<Src->y; y++)
@@ -1666,7 +1666,7 @@ bool GdcApp24Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 					uchar *s = Src->Base + (y * Src->Line);
 					uchar *e = s + Src->x;
 					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
-					GRgb24 *d = (GRgb24*) Ptr;
+					System24BitPixel *d = (System24BitPixel*) Ptr;
 
 					while (s < e)
 					{
@@ -1675,12 +1675,12 @@ bool GdcApp24Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 
 						if (a == 255)
 						{
-							GRgb24 *src = c + *s;
+							System24BitPixel *src = c + *s;
 							*d = *src;
 						}
 						else if (a)
 						{
-							GRgb24 *src = c + *s;
+							System24BitPixel *src = c + *s;
 							d->r = DivLut[(o * d->r) + (a * src->r)];
 							d->g = DivLut[(o * d->g) + (a * src->g)];
 							d->b = DivLut[(o * d->b) + (a * src->b)];
@@ -1701,7 +1701,7 @@ bool GdcApp24Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 					ushort *s = (ushort*) (Src->Base + (y * Src->Line));
 					ushort *e = s + Src->x;
 					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
-					GRgb24 *d = (GRgb24*) Ptr;
+					System24BitPixel *d = (System24BitPixel*) Ptr;
 
 					while (s < e)
 					{
@@ -1736,7 +1736,7 @@ bool GdcApp24Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 					ushort *s = (ushort*) (Src->Base + (y * Src->Line));
 					ushort *e = s + Src->x;
 					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
-					GRgb24 *d = (GRgb24*) Ptr;
+					System24BitPixel *d = (System24BitPixel*) Ptr;
 
 					while (s < e)
 					{
@@ -1805,7 +1805,7 @@ bool GdcApp24Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 					System32BitPixel *s = (System32BitPixel*) (Src->Base + (y * Src->Line));
 					System32BitPixel *e = s + Src->x;
 					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
-					GRgb24 *d = (GRgb24*) Ptr;
+					System24BitPixel *d = (System24BitPixel*) Ptr;
 
 					while (s < e)
 					{
@@ -1845,18 +1845,18 @@ bool GdcApp24Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 			}
 			case CsIndex8:
 			{
-				GRgb24 c[256];
+				System24BitPixel c[256];
 				CreatePaletteLut(c, SPal, alpha);
 
 				for (int y=0; y<Src->y; y++)
 				{
 					uchar *s = Src->Base + (y * Src->Line);
 					uchar *e = s + Src->x;
-					GRgb24 *d = (GRgb24*) Ptr;
+					System24BitPixel *d = (System24BitPixel*) Ptr;
 
 					while (s < e)
 					{
-						GRgb24 *src = c + *s++;
+						System24BitPixel *src = c + *s++;
 						d->r = src->r + DivLut[d->r * oma];
 						d->g = src->g + DivLut[d->g * oma];
 						d->b = src->b + DivLut[d->b * oma];
@@ -1873,7 +1873,7 @@ bool GdcApp24Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				{
 					ushort *s = (ushort*) (Src->Base + (y * Src->Line));
 					ushort *e = s + Src->x;
-					GRgb24 *d = (GRgb24*) Ptr;
+					System24BitPixel *d = (System24BitPixel*) Ptr;
 
 					while (s < e)
 					{
@@ -1894,7 +1894,7 @@ bool GdcApp24Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				for (int y=0; y<Src->y; y++)
 				{
 					ushort *s = (ushort*) (Src->Base + (y * Src->Line));
-					GRgb24 *d = (GRgb24*) Ptr;
+					System24BitPixel *d = (System24BitPixel*) Ptr;
 
 					if (alpha == 255)
 					{
@@ -1930,7 +1930,7 @@ bool GdcApp24Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				for (int y=0; y<Src->y; y++)
 				{
 					GBgr24 *s = (GBgr24*) (Src->Base + (y * Src->Line));
-					GBgr24 *d = (GBgr24*) Ptr;
+					System24BitPixel *d = (System24BitPixel*) Ptr;
 
 					if (alpha == 255)
 					{
@@ -1958,7 +1958,7 @@ bool GdcApp24Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				for (int y=0; y<Src->y; y++)
 				{
 					GBgr48 *s = (GBgr48*) (Src->Base + (y * Src->Line));
-					GBgr24 *d = (GBgr24*) Ptr;
+					System24BitPixel *d = (System24BitPixel*) Ptr;
 
 					if (alpha == 255)
 					{
@@ -1994,7 +1994,7 @@ bool GdcApp24Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				for (int y=0; y<Src->y; y++)
 				{
 					System32BitPixel *s = (System32BitPixel*) (Src->Base + (y * Src->Line));
-					GRgb24 *d = (GRgb24*) Ptr;
+					System24BitPixel *d = (System24BitPixel*) Ptr;
 
 					if (alpha == 255)
 					{
@@ -2118,14 +2118,14 @@ bool GdcApp32Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 			}
 			case CsIndex8:
 			{
-				GRgb24 c[256];
+				System24BitPixel c[256];
 				CreatePaletteLut(c, SPal);
 
 				for (int y=0; y<Src->y; y++)
 				{
 					uchar *s = (uchar*) (Src->Base + (y * Src->Line));
 					uchar *sa = (uchar*) (SrcAlpha->Base + (y * SrcAlpha->Line));
-					GRgb24 *sc;
+					System24BitPixel *sc;
 					System32BitPixel *d = (System32BitPixel*) Ptr;
 					uchar a, o;
 
@@ -2314,13 +2314,13 @@ bool GdcApp32Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 			}
 			case CsIndex8:
 			{
-				GRgb24 c[256];
+				System24BitPixel c[256];
 				CreatePaletteLut(c, SPal, alpha);
 
 				for (int y=0; y<Src->y; y++)
 				{
 					uchar *s = (uchar*) (Src->Base + (y * Src->Line));
-					GRgb24 *sc;
+					System24BitPixel *sc;
 					System32BitPixel *d = (System32BitPixel*) Ptr;
 
 					if (alpha == 255)

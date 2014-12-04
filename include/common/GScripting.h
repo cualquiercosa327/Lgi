@@ -220,5 +220,41 @@ public:
 	GScriptContext *GetSystemContext();
 };
 
+class GVirtualMachine;
+
+class GVmDebugger : public GDom
+{
+public:
+	/// Called to update the debugger UI to the new current execution position
+	virtual void OnPosition(const char *File, int Line) = 0;
+	/// Called when an error occurs executing the script
+	virtual void OnError(const char *Msg) = 0;
+	/// Called when execution starts or ends
+	virtual void OnRun(bool Running) = 0;
+};
+
+class GVmDebuggerCallback : public GDom
+{
+public:
+	/// Start a debugger instance to handle the execution in 'Vm'
+	virtual GVmDebugger *AttachVm(GVirtualMachine *Vm, const char *Script, const char *Assembly) = 0;
+};
+
+/// Debugger for vm script
+class GVmDebuggerWnd : public GWindow, public GVmDebugger
+{
+	struct GScriptVmDebuggerPriv *d;
+
+public:
+	GVmDebuggerWnd(GView *Parent, GVirtualMachine *Vm, const char *Script, const char *Assembly);
+	~GVmDebuggerWnd();
+
+	void OnPosition(const char *File, int Line);
+	void OnError(const char *Msg);
+	void OnRun(bool Running);
+	int OnNotify(GViewI *Ctrl, int Flags);
+	GMessage::Param OnEvent(GMessage *Msg);
+};
+
 #endif
 
