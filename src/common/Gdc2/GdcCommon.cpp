@@ -837,9 +837,9 @@ GColourSpace GBitsToColourSpace(int Bits)
 		case 8:
 			return CsIndex8;
 		case 15:
-			return CsRgb15;
+			return System15BitColourSpace;
 		case 16:
-			return CsRgb16;
+			return System16BitColourSpace;
 		case 24:
 			return System24BitColourSpace;
 		case 32:
