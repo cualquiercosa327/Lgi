@@ -429,6 +429,9 @@ case ICallScript:
 	// Set IP to start of function
 	Sf.ReturnIp = CurrentScriptAddress;
 	c.u8 = Base + FuncAddr;
+	
+	if (StepType == RunStepInto)
+		Loop = false;
 	#endif
 
 	#if VM_DECOMP
@@ -477,6 +480,9 @@ case IRet:
 	{
 		ExitScriptExecution;
 	}
+	
+	if (StepType == RunStepOut)
+		Loop = false;
 	#endif
 	break;
 }
