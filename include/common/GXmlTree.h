@@ -28,17 +28,9 @@ public:
 
 	virtual void *Alloc(size_t Size) = 0;
 	virtual void Free(void *Ptr) = 0;
-
-	char *Alloc(const char *s, int len = -1)
-	{
-		if (!s) return 0;
-		if (len < 0) len = (int)strlen(s);
-		char *p = (char*) Alloc(len+1);
-		if (!p) return 0;
-		memcpy(p, s, len);
-		p[len] = 0;
-		return p;
-	}
+	
+	// Helper allocator for strings
+	char *Alloc(const char *s, int len = -1);
 };
 
 /// Xml attribute, a named value.

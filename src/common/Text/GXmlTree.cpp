@@ -13,6 +13,18 @@ static char GXmlHeader[] = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
 int _Pools = 0;
 int _Normals = 0;
 
+char *GXmlAlloc::Alloc(const char *s, int len)
+{
+	if (!s) return 0;
+	if (len < 0) len = (int)strlen(s);
+	int bytes = len + 1;
+	char *p = (char*) Alloc(LGI_ALLOC_ALIGN(bytes));
+	if (!p) return 0;
+	memcpy(p, s, len);
+	p[len] = 0;
+	return p;
+}
+
 class XmlPoolAlloc : public GXmlAlloc
 {
 	struct Block

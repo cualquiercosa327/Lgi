@@ -19,6 +19,14 @@
 typedef unsigned char bool;
 #endif
 
+#if defined(MAC)
+	/// Aligns alloc to minimum block size
+	#define LGI_ALLOC_ALIGN(bytes) ( (bytes) % 8 ? (bytes) + (8 - ((bytes) % 8)) : (bytes) )
+#else
+	/// Aligns alloc to minimum block size
+	#define LGI_ALLOC_ALIGN(bytes) (bytes)
+#endif
+
 /// \returns true if heap is ok.
 LgiFunc bool LgiCheckHeap();
 

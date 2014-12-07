@@ -114,97 +114,88 @@ public:
 
 //////////////////////////////////////////////////////////////////
 // Defines
-#define MsgCode(m)					(m->Msg)
-#define MsgA(m)						(m->a)
-#define MsgB(m)						(m->b)
-#define CreateMsg(m, a, b)			GMessage(m, a, b)
-#define IsWin9x						(GApp::Win9x)
-#define DefaultOsView(t)			NULL
+#define MsgCode(m)						(m->Msg)
+#define MsgA(m)							(m->a)
+#define MsgB(m)							(m->b)
+#define CreateMsg(m, a, b)				GMessage(m, a, b)
+#define IsWin9x							(GApp::Win9x)
+#define DefaultOsView(t)				NULL
 
 #if defined(__GNUC__)
-#define stricmp						strcasecmp
-#define strnicmp					strncasecmp
+#define stricmp							strcasecmp
+#define strnicmp						strncasecmp
 #endif
 
 // Key redefs
-#define VK_PAGEUP					VK_PRIOR
-#define VK_PAGEDOWN					VK_NEXT
-#define VK_BACKSPACE				VK_BACK
+#define VK_PAGEUP						VK_PRIOR
+#define VK_PAGEDOWN						VK_NEXT
+#define VK_BACKSPACE					VK_BACK
 
 // Sleep the current thread
 LgiFunc void LgiSleep(DWORD i);
 
 // Process
-typedef DWORD						OsProcessId;
-LgiExtern HINSTANCE					_lgi_app_instance;
-#define LgiProcessInst()			_lgi_app_instance
-extern p_vscprintf					lgi_vscprintf;
+typedef DWORD							OsProcessId;
+LgiExtern HINSTANCE						_lgi_app_instance;
+#define LgiProcessInst()				_lgi_app_instance
+extern p_vscprintf						lgi_vscprintf;
 
 // Threads
-typedef DWORD						OsThreadId;
-typedef CRITICAL_SECTION			OsSemaphore;
-#define LgiGetCurrentThread()		GetCurrentThreadId()
+typedef DWORD							OsThreadId;
+typedef CRITICAL_SECTION				OsSemaphore;
+#define LgiGetCurrentThread()			GetCurrentThreadId()
 
 // Socket/Network
-#define ValidSocket(s)				((s) != INVALID_SOCKET)
-typedef SOCKET						OsSocket;
+#define ValidSocket(s)					((s) != INVALID_SOCKET)
+typedef SOCKET							OsSocket;
 
 // Run the message loop to process any pending messages
-#define LgiYield()					GApp::ObjInstance()->Run(false)
+#define LgiYield()						GApp::ObjInstance()->Run(false)
 
-#ifdef _MSC_VER
-#define snprintf					_snprintf
-//#define vsnprintf					_vsnprintf
-#define vsnwprintf					_vsnwprintf
-#endif
-#define atoi64						_atoi64
+#define LGI_GViewMagic					0x14412662
+#define LGI_FileDropFormat				"CF_HDROP"
+#define LGI_WideCharset					"ucs-2"
+#define LGI_PrintfInt64					"%I64i"
+#define LGI_IllegalFileNameChars		"\t\r\n/\\:*?\"<>|"
 
-#define K_CHAR						0x0
-
-#define LGI_GViewMagic				0x14412662
-#define LGI_FileDropFormat			"CF_HDROP"
-#define LGI_WideCharset				"ucs-2"
-#define LGI_PrintfInt64				"%I64i"
-#define LGI_IllegalFileNameChars	"\t\r\n/\\:*?\"<>|"
-
-#define MK_LEFT						MK_LBUTTON
-#define MK_RIGHT					MK_RBUTTON
-#define MK_MIDDLE					MK_MBUTTON
-#define MK_CTRL						MK_CONTROL
+#define MK_LEFT							MK_LBUTTON
+#define MK_RIGHT						MK_RBUTTON
+#define MK_MIDDLE						MK_MBUTTON
+#define MK_CTRL							MK_CONTROL
 	
 // Stupid mouse wheel defines don't work. hmmm
-#define WM_MOUSEWHEEL				0x020A
-#define WHEEL_DELTA					120
+#define WM_MOUSEWHEEL					0x020A
+#define WHEEL_DELTA						120
 #ifndef SPI_GETWHEELSCROLLLINES
-#define SPI_GETWHEELSCROLLLINES		104
+#define SPI_GETWHEELSCROLLLINES			104
 #endif
 
 // Window flags
-#define GWF_VISIBLE					WS_VISIBLE
-#define GWF_DISABLED				WS_DISABLED
-#define GWF_BORDER					WS_BORDER
-#define GWF_TABSTOP					WS_TABSTOP
-#define GWF_FOCUS					0x00000001
-#define GWF_OVER					0x00000002
-#define GWF_DROP_TARGET				0x00000004
-#define GWF_SUNKEN					0x00000008
-#define GWF_FLAT					0x00000010
-#define GWF_RAISED					0x00000020
-#define GWF_DIALOG					0x00000040
-#define GWF_DESTRUCTOR				0x00000080
-#define GWF_QUIT_WND				0x00000100
-#define GWF_SYS_BORDER				0x00000200 // ask the system to draw the border
+#define GWF_VISIBLE						WS_VISIBLE
+#define GWF_DISABLED					WS_DISABLED
+#define GWF_BORDER						WS_BORDER
+#define GWF_TABSTOP						WS_TABSTOP
+#define GWF_FOCUS						0x00000001
+#define GWF_OVER						0x00000002
+#define GWF_DROP_TARGET					0x00000004
+#define GWF_SUNKEN						0x00000008
+#define GWF_FLAT						0x00000010
+#define GWF_RAISED						0x00000020
+#define GWF_DIALOG						0x00000040
+#define GWF_DESTRUCTOR					0x00000080
+#define GWF_QUIT_WND					0x00000100
+#define GWF_SYS_BORDER					0x00000200 // ask the system to draw the border
 
 // Widgets
-#define DialogToPixelX(i)			(((i)*Bx)/4)
-#define DialogToPixelY(i)			(((i)*By)/8)
-#define PixelToDialogX(i)			(((i)*4)/Bx)
-#define PixelToDialogY(i)			(((i)*8)/By)
+#define DialogToPixelX(i)				(((i)*Bx)/4)
+#define DialogToPixelY(i)				(((i)*By)/8)
+#define PixelToDialogX(i)				(((i)*4)/Bx)
+#define PixelToDialogY(i)				(((i)*8)/By)
 
-#define DIALOG_X					1.56
-#define DIALOG_Y					1.85
-#define CTRL_X						1.50
-#define CTRL_Y						1.64
+#define DIALOG_X						1.56
+#define DIALOG_Y						1.85
+#define CTRL_X							1.50
+#define CTRL_Y							1.64
 
 // Messages
 
@@ -270,16 +261,13 @@ typedef SOCKET						OsSocket;
 	// #define M_GTHREADWORK_COMPELTE		(M_USER+0x100c)
 
 // Directories
-#define DIR_CHAR					'\\'
-#define DIR_STR						"\\"
-#define EOL_SEQUENCE				"\r\n"
+#define DIR_CHAR						'\\'
+#define DIR_STR							"\\"
+#define EOL_SEQUENCE					"\r\n"
 
-#define IsSlash(c)					(((c)=='/')||((c)=='\\'))
-#define IsQuote(c)					(((c)=='\"')||((c)=='\''))
-
-#define LGI_PATH_SEPARATOR			";"
-#define LGI_ALL_FILES				"*.*"
-#define LGI_LIBRARY_EXT				"dll"
+#define LGI_PATH_SEPARATOR				";"
+#define LGI_ALL_FILES					"*.*"
+#define LGI_LIBRARY_EXT					"dll"
 
 /////////////////////////////////////////////////////////////////////////////////////
 // Typedefs
@@ -298,6 +286,13 @@ LgiFunc int FormatToInt(char *s);
 /// Convert a Os dependant integer d'n'd format to a string.
 LgiFunc char *FormatToStr(int f);
 extern bool LgiToWindowsCursor(LgiCursor Cursor);
+
+#ifdef _MSC_VER
+#define snprintf					_snprintf
+//#define vsnprintf					_vsnprintf
+#define vsnwprintf					_vsnwprintf
+#endif
+#define atoi64						_atoi64
 
 #ifdef __GNUC__
 #define strcpy_s strncpy
