@@ -532,6 +532,7 @@ public:
 	);
 
 	// Debugging commands
+	GVmDebugger *OpenDebugger();
 	bool StepInto();
 	bool StepOver();
 	bool StepOut();

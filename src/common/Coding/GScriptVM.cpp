@@ -41,9 +41,6 @@ class GVirtualMachinePriv
 		return ArrayTemp.CastString();
 	}
 
-	GVmDebuggerCallback *DbgCallback;
-	GVmDebugger *Debugger;
-
 public:
 	enum RunType
 	{
@@ -63,11 +60,14 @@ public:
 	GArray<StackFrame> Frames;
 	RunType StepType;
 	bool Loop;
+	GVmDebuggerCallback *DbgCallback;
+	GVmDebugger *Debugger;
 
 	GVirtualMachinePriv(GVmDebuggerCallback *Callback)
 	{
 		Log = NULL;
 		Code = NULL;
+		Debugger = NULL;
 		DbgCallback = Callback;
 	}
 
@@ -442,6 +442,49 @@ GExecutionStatus GVirtualMachine::ExecuteFunction(GScriptObj *Code, GFunctionInf
 	return d->Run(GVirtualMachinePriv::RunContinue);
 }
 
+GVmDebugger *GVirtualMachine::OpenDebugger()
+{
+	if (!d->Debugger)
+	{
+		if (!d->DbgCallback)
+			return NULL;
+		
+		d->Debugger = d->DbgCallback->AttachVm(this, NULL, NULL);
+	}
+	
+	return d->Debugger;
+}
+
+bool GVirtualMachine::StepInto()
+{
+	return false;
+}
+
+bool GVirtualMachine::StepOver()
+{
+	return false;
+}
+
+bool GVirtualMachine::StepOut()
+{
+	return false;
+}
+
+bool GVirtualMachine::BreakExecution()
+{
+	return false;
+}
+
+bool GVirtualMachine::Run(bool Start)
+{
+	return false;
+}
+
+bool GVirtualMachine::BreakPoint(const char *File, int Line, bool Add)
+{
+	return false;
+}
+
 ////////////////////////////////////////////////////////////////////
 bool GTypeDef::GetVariant(const char *Name, GVariant &Value, char *Arr)
 {
@@ -571,9 +614,13 @@ GInlineBmp DbgIcons = {128, 16, 16, IconsData};
 
 struct GScriptVmDebuggerPriv
 {
-	GView *Parent;
+	// Current script
+	bool OwnVm;
 	GVirtualMachine *Vm;
 	GAutoString Script, Assembly;
+
+	// Ui
+	GView *Parent;
 	GBox *Main;
 	GTabView *Tabs;
 	GTextLog *Text;
@@ -583,6 +630,7 @@ struct GScriptVmDebuggerPriv
 
 	GScriptVmDebuggerPriv()
 	{
+		OwnVm = false;
 		Main = NULL;
 		Tabs = NULL;
 		Log = NULL;
@@ -631,7 +679,12 @@ GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVirtualMachine *Vm, const char *S
 	if (Attach(NULL))
 	{
 		AddView(d->Tools = new GToolBar);
-		d->Tools->SetImageList(new GImageList(16, 16, DbgIcons.Create()), 16, 16, true);
+		
+		uint16 *Px = (uint16*) DbgIcons.Data;
+		GImageList *il = new GImageList(16, 16, DbgIcons.Create(*Px));
+		if (il)
+			d->Tools->SetImageList(il, 16, 16, true);
+
 		d->Tools->AppendButton("Run", IDC_RUN);		
 		d->Tools->AppendButton("Pause", IDC_PAUSE);
 		d->Tools->AppendButton("Stop", IDC_STOP);
@@ -649,12 +702,15 @@ GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVirtualMachine *Vm, const char *S
 		
 		GTabPage *p = d->Tabs->Append("Locals");
 		p->Append(d->Locals = new GList(IDC_LOCALS, 0, 0, 100, 100));
+		d->Locals->SetPourLargest(true);
 		
 		p = d->Tabs->Append("Globals");
 		p->Append(d->Globals = new GList(IDC_GLOBALS, 0, 0, 100, 100));
+		d->Globals->SetPourLargest(true);
 		
 		p = d->Tabs->Append("Stack");
 		p->Append(d->Stack = new GList(IDC_STACK, 0, 0, 100, 100));
+		d->Stack->SetPourLargest(true);
 		
 		p = d->Tabs->Append("Log");
 		p->Append(d->Log = new GTextLog(IDC_LOG));
@@ -667,6 +723,11 @@ GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVirtualMachine *Vm, const char *S
 GVmDebuggerWnd::~GVmDebuggerWnd()
 {
 	delete d;
+}
+
+void GVmDebuggerWnd::OwnVm(bool Own)
+{
+	d->OwnVm = Own;
 }
 
 void GVmDebuggerWnd::OnPosition(const char *File, int Line)

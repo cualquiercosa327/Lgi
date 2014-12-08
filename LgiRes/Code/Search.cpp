@@ -348,6 +348,27 @@ public:
 		}
 		return r;
 	}
+
+	Result *Test(ResMenuItem *mi)
+	{
+		Result *r = Test(mi->GetStr());
+		if (r)
+			return r;
+		
+		if (ValidStr(Text) && mi->Shortcut())
+		{
+			if (stristr(mi->Shortcut(), Text))
+			{
+				if (r = new Result(App, mi->GetStr(), InLang))
+				{
+					r->Menu = mi;
+					return r;
+				}				
+			}
+		}
+		
+		return NULL;
+	}
 };
 
 Results::Results(AppWnd *app, Search *params)
@@ -423,7 +444,7 @@ Results::Results(AppWnd *app, Search *params)
 					r->IsMenu()->EnumItems(Items);
 					for (ResMenuItem *c = Items.First(); c && d->Searching; c = Items.Next())
 					{
-						Result *Res = d->Test(c->GetStr());
+						Result *Res = d->Test(c);
 						if (Res)
 						{
 							Res->Menu = c;

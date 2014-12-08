@@ -457,7 +457,7 @@ void GImageList::Draw(GSurface *pDest, int Dx, int Dy, int Image, GColour Backgr
 
 				BOOL Status = false;
 				
-				if (pDest->GetBits() <= 24)
+				if (GetBits() <= 24)
 				{
 					// No source alpha, have to do colour keying manually.
 					GMemDC Tmp;

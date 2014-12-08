@@ -225,6 +225,7 @@ class GVirtualMachine;
 class GVmDebugger : public GDom
 {
 public:
+	virtual void OwnVm(bool Own) = 0;
 	/// Called to update the debugger UI to the new current execution position
 	virtual void OnPosition(const char *File, int Line) = 0;
 	/// Called when an error occurs executing the script
@@ -249,6 +250,7 @@ public:
 	GVmDebuggerWnd(GView *Parent, GVirtualMachine *Vm, const char *Script, const char *Assembly);
 	~GVmDebuggerWnd();
 
+	void OwnVm(bool Own);
 	void OnPosition(const char *File, int Line);
 	void OnError(const char *Msg);
 	void OnRun(bool Running);

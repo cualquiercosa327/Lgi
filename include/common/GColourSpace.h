@@ -287,6 +287,8 @@ typedef union
 	GHls32  *hls32;
 	GCmyk32 *cmyk32;
 	
+	System15BitPixel *s15;
+	System16BitPixel *s16;
 	System24BitPixel *s24;
 	System32BitPixel *s32;
 

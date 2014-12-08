@@ -1150,7 +1150,7 @@ public:
 	uint32 *Data;
 
 	/// Creates a memory DC of the image.
-	GSurface *Create();
+	GSurface *Create(uint32 TransparentPx = 0xffffffff);
 };
 
 // file filter support

@@ -853,7 +853,7 @@ GColourSpace GBitsToColourSpace(int Bits)
 }
 
 ////////////////////////////////////////////////////////////////////////
-GSurface *GInlineBmp::Create()
+GSurface *GInlineBmp::Create(uint32 TransparentPx)
 {
 	GSurface *pDC = new GMemDC;
 	if (pDC->Create(X, Y, 32))
@@ -878,10 +878,20 @@ GSurface *GInlineBmp::Create()
 						
 						uint16 a = n >> 16;
 						a = LgiSwap16(a);
-						d->r = Rc16(a);
-						d->g = Gc16(a);
-						d->b = Bc16(a);
-						d->a = 255;
+						if (TransparentPx == a)
+						{
+							d->r = 0;
+							d->g = 0;
+							d->b = 0;
+							d->a = 0;
+						}
+						else
+						{
+							d->r = Rc16(a);
+							d->g = Gc16(a);
+							d->b = Bc16(a);
+							d->a = 255;
+						}
 						d++;
 						
 						if (d >= e)
@@ -889,10 +899,20 @@ GSurface *GInlineBmp::Create()
 
 						uint16 b = n & 0xffff;
 						b = LgiSwap16(b);
-						d->r = Rc16(b);
-						d->g = Gc16(b);
-						d->b = Bc16(b);
-						d->a = 255;
+						if (TransparentPx == b)
+						{
+							d->r = 0;
+							d->g = 0;
+							d->b = 0;
+							d->a = 0;
+						}
+						else
+						{
+							d->r = Rc16(b);
+							d->g = Gc16(b);
+							d->b = Bc16(b);
+							d->a = 255;
+						}
 						d++;
 					}
 					break;
@@ -905,7 +925,10 @@ GSurface *GInlineBmp::Create()
 					uint16 *end = in + X;
 					while (in < end)
 					{
-						*out = Rgb16To32(*in);						
+						if (*in == TransparentPx)
+							*out = 0;
+						else
+							*out = Rgb16To32(*in);						
 						in++;
 						out++;
 					}
@@ -914,15 +937,32 @@ GSurface *GInlineBmp::Create()
 				#endif
 				case 24:
 				{
+					register uint8 r, g, b;
+					r = R24(TransparentPx);
+					g = R24(TransparentPx);
+					b = B24(TransparentPx);
+					
 					System32BitPixel *out = (System32BitPixel*)(*pDC)[y];
 					System32BitPixel *end = out + X;
 					System24BitPixel *in = (System24BitPixel*)addr;
 					while (out < end)
 					{
-						out->r = in->r;
-						out->g = in->g;
-						out->b = in->b;
-						out->a = 255;
+						if (in->r == r &&
+							in->g == g &&
+							in->b == b)
+						{
+							out->r = 0;
+							out->g = 0;
+							out->b = 0;
+							out->a = 0;
+						}
+						else
+						{
+							out->r = in->r;
+							out->g = in->g;
+							out->b = in->b;
+							out->a = 255;
+						}
 						out++;
 						in++;
 					}
