@@ -57,6 +57,19 @@ public:
 		char Exe[MAX_PATH];
 		if (LgiGetExeFile(Exe, sizeof(Exe)))
 		{
+			// Modify $LD_LIBRARY_PATH to include the path to the libraries
+			char NewLdLibPath[MAX_PATH];
+			LgiMakePath(NewLdLibPath, sizeof(NewLdLibPath), Exe, "Contents/MacOS");
+			char *ExistingLibPath = getenv("LD_LIBRARY_PATH");
+			bool HasMyPath = false;
+			if (ExistingLibPath)
+			{
+			}
+			if (!HasMyPath)
+			{
+			}
+			
+			// Now attempt to load the libraries
 			LgiMakePath(Exe, sizeof(Exe), Exe, "Contents/MacOS/libssl.dylib");
 			if (FileExists(Exe))
 			{

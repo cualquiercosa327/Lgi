@@ -52,7 +52,6 @@
 		344AF39008E04707004ED88C /* GVariant.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344AF38F08E04707004ED88C /* GVariant.cpp */; };
 		344AF39608E0476A004ED88C /* GApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344AF39508E0476A004ED88C /* GApp.cpp */; };
 		344AF3A108E048C2004ED88C /* GProcess.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344AF3A008E048C2004ED88C /* GProcess.cpp */; };
-		344AF3AF08E049CA004ED88C /* GXml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344AF3AE08E049CA004ED88C /* GXml.cpp */; };
 		344AF3C308E04A94004ED88C /* LgiDefs.h in Headers */ = {isa = PBXBuildFile; fileRef = 344AF3C208E04A94004ED88C /* LgiDefs.h */; };
 		344AF3C908E04B32004ED88C /* GProperties.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344AF3C808E04B32004ED88C /* GProperties.cpp */; };
 		344AF3CC08E04B63004ED88C /* GLibrary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344AF3CB08E04B63004ED88C /* GLibrary.cpp */; };
@@ -219,7 +218,6 @@
 		344AF38F08E04707004ED88C /* GVariant.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GVariant.cpp; path = ../../common/Lgi/GVariant.cpp; sourceTree = "<group>"; };
 		344AF39508E0476A004ED88C /* GApp.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GApp.cpp; path = Lgi/GApp.cpp; sourceTree = "<group>"; };
 		344AF3A008E048C2004ED88C /* GProcess.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GProcess.cpp; path = ../../common/Lgi/GProcess.cpp; sourceTree = "<group>"; };
-		344AF3AE08E049CA004ED88C /* GXml.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GXml.cpp; path = ../../common/Text/GXml.cpp; sourceTree = "<group>"; };
 		344AF3C208E04A94004ED88C /* LgiDefs.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LgiDefs.h; path = ../../../include/common/LgiDefs.h; sourceTree = "<group>"; };
 		344AF3C808E04B32004ED88C /* GProperties.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GProperties.cpp; path = ../../common/General/GProperties.cpp; sourceTree = "<group>"; };
 		344AF3CB08E04B63004ED88C /* GLibrary.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GLibrary.cpp; path = ../../common/Lgi/GLibrary.cpp; sourceTree = "<group>"; };
@@ -337,7 +335,7 @@
 		34F45B9D18C161E40040FD99 /* GPixelRops.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GPixelRops.h; path = ../../../include/common/GPixelRops.h; sourceTree = "<group>"; };
 		34F96DA90DB9B82B009C64B8 /* GDragAndDrop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GDragAndDrop.h; path = ../../../include/common/GDragAndDrop.h; sourceTree = "<group>"; };
 		8DC2EF5A0486A6940098B216 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		8DC2EF5B0486A6940098B216 /* Lgi.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = Lgi.framework; path = ../Release/Lgi.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		8DC2EF5B0486A6940098B216 /* Lgi.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Lgi.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -585,7 +583,6 @@
 				3413BBC11349EC6900AE15B0 /* GXmlTree.h */,
 				34B4A52F0C059A2100CDD0D1 /* GUtf8.cpp */,
 				34B9545C0939DB5A00477A2D /* GString.h */,
-				344AF3AE08E049CA004ED88C /* GXml.cpp */,
 				344AF35E08E0322F004ED88C /* GToken.cpp */,
 				344AF35F08E0322F004ED88C /* GXmlTree.cpp */,
 				34CDDAEA08C5DFB1005EAAC7 /* GString.cpp */,
@@ -961,7 +958,6 @@
 				344AF39008E04707004ED88C /* GVariant.cpp in Sources */,
 				344AF39608E0476A004ED88C /* GApp.cpp in Sources */,
 				344AF3A108E048C2004ED88C /* GProcess.cpp in Sources */,
-				344AF3AF08E049CA004ED88C /* GXml.cpp in Sources */,
 				344AF3C908E04B32004ED88C /* GProperties.cpp in Sources */,
 				344AF3CC08E04B63004ED88C /* GLibrary.cpp in Sources */,
 				344AF3DD08E04C75004ED88C /* GObject.cpp in Sources */,
@@ -1077,7 +1073,7 @@
 				MACH_O_TYPE = mh_dylib;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = Lgi;
-				SDKROOT = macosx10.7;
+				SDKROOT = macosx;
 				SYMROOT = build;
 				WRAPPER_EXTENSION = framework;
 			};
@@ -1108,7 +1104,8 @@
 				MACH_O_TYPE = mh_dylib;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = Lgi;
-				SDKROOT = macosx10.7;
+				SDKROOT = macosx;
+				STRIP_INSTALLED_PRODUCT = YES;
 				SYMROOT = build;
 				WRAPPER_EXTENSION = framework;
 			};
@@ -1121,6 +1118,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				INSTALL_PATH = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
@@ -1129,7 +1127,7 @@
 					"-DMAC",
 					"-DLGI_LIBRARY",
 				);
-				SDKROOT = macosx10.7;
+				SDKROOT = macosx;
 				STRIP_INSTALLED_PRODUCT = NO;
 				SYMROOT = ./build;
 				USER_HEADER_SEARCH_PATHS = "../../../include/common ../../../include/mac/carbon ../../../include/posix";
@@ -1143,6 +1141,7 @@
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				INSTALL_PATH = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
@@ -1150,7 +1149,7 @@
 					"-DMAC",
 					"-DLGI_LIBRARY",
 				);
-				SDKROOT = macosx10.7;
+				SDKROOT = macosx;
 				SYMROOT = ./build;
 				USER_HEADER_SEARCH_PATHS = "../../../include/common ../../../include/mac/carbon ../../../include/posix";
 				VALID_ARCHS = i386;

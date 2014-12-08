@@ -1225,7 +1225,9 @@ int64 GMemQueue::Peek(uchar *Ptr, int Size)
 void *GMemQueue::New(int AddBytes)
 {
 	int64 Len = GetSize();
-	uchar *Data = Len > 0 ? new uchar[Len+AddBytes] : 0;
+	int Bytes = Len+AddBytes;
+	Bytes = LGI_ALLOC_ALIGN(Bytes);
+	uchar *Data = Len > 0 ? new uchar[Bytes] : 0;
 	if (Data)
 	{
 		Read(Data, Len);

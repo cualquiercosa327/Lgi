@@ -1043,7 +1043,7 @@ public:
 						AllocNull(Arr);
 					}
 
-					GVarRef Dst;
+					GVarRef Dst = { SCOPE_REGISTER, -1 };
 					if (n.Reg.IsReg())
 					{
 						Dst = n.Reg;

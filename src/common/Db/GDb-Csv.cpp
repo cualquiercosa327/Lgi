@@ -464,11 +464,11 @@ void SvRecordset::Read()
 		int MaxBufSize = 5 << 20;
 		GArray<char> Buffer;
 		Buffer.Length(min((int32) f.GetSize(), MaxBufSize));
-		char *Buf = &Buffer[0];
+		uint8 *Buf = (uint8*)&Buffer[0];
 
 		int Used = f.Read(Buf, Buffer.Length());
-		char *Cur = Buf;
-		char *End = Buf + Used;
+		uint8 *Cur = Buf;
+		uint8 *End = Buf + Used;
 
 		if (Used > 2 &&
 			Cur[0] == 0xEF &&
@@ -514,7 +514,7 @@ void SvRecordset::Read()
 		while (Used > 0)
 		{
 			// Find end of line...
-			char *Eol = Cur; 
+			uint8 *Eol = Cur; 
 			while (Eol < End && *Eol != '\n')
 				Eol++;
 			
@@ -546,7 +546,7 @@ void SvRecordset::Read()
 				End = Buf + Used;
 
 				// Find end of line again
-				char *Eol = Cur;
+				uint8 *Eol = Cur;
 				while (Eol < End && *Eol != '\n')
 					Eol++;
 				
@@ -554,7 +554,7 @@ void SvRecordset::Read()
 					break;
 			}
 
-			SvRecord *r = new SvRecord(this, Cur);
+			SvRecord *r = new SvRecord(this, (char *&)Cur);
 			if (!Cur)
 			{
 				break;

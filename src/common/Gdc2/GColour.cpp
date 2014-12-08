@@ -251,9 +251,7 @@ uint32 GColour::c32()
 		else
 		{
 			while (hls.h >= 360)
-				hls.h -= 360;			
-			while (hls.h < 0)
-				hls.h += 360;
+				hls.h -= 360;
 		
 			double fHue = (double) hls.h, fM1, fM2;
 			double fLightness = ((double) hls.l) / 255.0;
