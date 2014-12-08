@@ -21,9 +21,9 @@ typedef		unsigned long				ulong;
 
 #ifndef BEOS
 	/// 8-bit signed int type (size safe, garenteed to be 8 bits)
-	typedef		char						int8;
+	typedef		char					int8;
 	/// 8-bit unsigned int type (size safe, garenteed to be 8 bits)
-	typedef		unsigned char				uint8;
+	typedef		unsigned char			uint8;
 #else
 	#include <AppKit.h>
 #endif
@@ -35,9 +35,9 @@ typedef		unsigned short				uint16;
 
 #ifndef BEOS
 	/// 32-bit signed int type (size safe, garenteed to be 32 bits)
-	typedef		int							int32;
+	typedef		int						int32;
 	/// 32-bit unsigned int type (size safe, garenteed to be 32 bits)
-	typedef		unsigned int				uint32;
+	typedef		unsigned int			uint32;
 #endif
 
 #ifdef _MSC_VER
@@ -235,13 +235,15 @@ typedef union
 #define NULL							0
 #endif
 
+// Slashes and quotes
+#define IsSlash(c)						(((c)=='/')||((c)=='\\'))
+#define IsQuote(c)						(((c)=='\"')||((c)=='\''))
+
 // Some objectish ones
 #define ZeroObj(obj)					memset(&obj, 0, sizeof(obj))
 #ifndef CountOf
 #define CountOf(array)					(sizeof(array)/sizeof(array[0]))
 #endif
-#define StrEmpty(s)						(s)[0] = 0
-#define IsStrEmpty(s)					((!s) || ((s)[0] == 0))
 
 #ifndef MEMORY_DEBUG
 

@@ -371,7 +371,8 @@ char *NewStr(const char *s, NativeInt Len)
 	if (s)
 	{
 		if (Len < 0) Len = strlen(s);
-		char *Ret = new char[Len+1];
+		int Bytes = Len + 1;
+		char *Ret = new char[LGI_ALLOC_ALIGN(Bytes)];
 		if (Ret)
 		{
 			if (Len > 0) memcpy(Ret, s, Len);

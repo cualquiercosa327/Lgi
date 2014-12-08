@@ -1013,7 +1013,9 @@ GMemQueue &GMemQueue::operator=(GMemQueue &p)
 	PreAlloc = p.PreAlloc;
 	for (Block *b = p.Mem.First(); b; b = p.Mem.Next())
 	{
-		Block *n = (Block*) malloc(sizeof(Block) + b->Size);
+		int Alloc = sizeof(Block) + b->Size;
+		Alloc = LGI_ALLOC_ALIGN(Alloc);
+		Block *n = (Block*) malloc(Alloc);
 		if (n)
 		{
 			memcpy(n, b, sizeof(Block) + b->Size);
@@ -1297,14 +1299,15 @@ int GMemQueue::Write(const void *Ptr, int Size, int Flags)
 
 		if (Size > 0)
 		{
-			int Alloc = max(PreAlloc, Size);
-
-			Block *b = (Block*) malloc(sizeof(Block) + Alloc);
+			int Bytes = max(PreAlloc, Size);
+			int Alloc = sizeof(Block) + Bytes;
+			Alloc = LGI_ALLOC_ALIGN(Alloc);
+			Block *b = (Block*) malloc(Alloc);
 			if (b)
 			{
 				void *p = b->Ptr();
 				memcpy(p, Ptr, Size);
-				b->Size = Alloc;
+				b->Size = Bytes;
 				b->Used = Size;
 				b->Next = 0;
 				Mem.Insert(b);
@@ -1425,7 +1428,9 @@ GMemFile::Block *GMemFile::Get(int Index)
 
 GMemFile::Block *GMemFile::Create()
 {
-	Block *b = (Block*) malloc(sizeof(Block)+BlockSize-1);
+	int Alloc = sizeof(Block) + BlockSize - 1;
+	Alloc = LGI_ALLOC_ALIGN(Alloc);
+	Block *b = (Block*) malloc(Alloc);
 	if (!b)
 		return NULL;
 	
