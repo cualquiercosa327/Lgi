@@ -286,6 +286,8 @@ protected:
 	#endif
 
 	#if defined(__GTK_H__)
+	friend void MenuItemCallback(GMenuItem *Item);
+	bool InSetCheck;
 	GAutoPtr<GMemDC> IconImg;
 	bool Replace(Gtk::GtkWidget *newWid);
 	#else

@@ -339,7 +339,7 @@ static GAutoString MenuItemParse(const char *s)
 
 static void MenuItemCallback(LgiMenuItem *Item)
 {
-	if (!Item->Sub())
+	if (!Item->Sub() && !Item->InSetCheck)
 	{
 		GSubMenu *Parent = Item->GetParent();
 		if (!Parent || !Parent->IsContext(Item))
@@ -369,6 +369,7 @@ LgiMenuItem::GMenuItem()
 	Child = NULL;
 	Menu = NULL;
 	Parent = NULL;
+	InSetCheck = false;
 	
 	Position = -1;
 	
@@ -853,6 +854,8 @@ void LgiMenuItem::Checked(bool c)
 
 	if (Info)
 	{
+		InSetCheck = true;
+		
 		// Is the item a checked menu item?
 		if (!GTK_IS_CHECK_MENU_ITEM(Info) && c)
 		{
@@ -884,6 +887,8 @@ void LgiMenuItem::Checked(bool c)
 				Gtk::gtk_check_menu_item_set_active(chk, c);
 			}
 		}
+		
+		InSetCheck = false;
 	}
 }
 

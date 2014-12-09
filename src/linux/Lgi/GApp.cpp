@@ -1018,16 +1018,18 @@ struct GlibEventParams
     GdkEvent *e;
 };
 
-bool GlibWidgetSearch(GtkWidget *p, GtkWidget *w, int depth = 0)
+bool GlibWidgetSearch(GtkWidget *p, GtkWidget *w, bool Debug, int depth = 0)
 {
-	/*
-	char indent[256];
-	int ch = depth * 2;
-	memset(indent, ' ', ch);
-	indent[ch] = 0;
+	char indent[256] = "";
 
-	printf("%s%p, %p\n", indent, p, w);
-	*/
+	if (Debug)
+	{	
+		int ch = depth * 2;
+		memset(indent, ' ', ch);
+		indent[ch] = 0;
+
+		printf("%sGlibWidgetSearch: %p, %p\n", indent, p, w);
+	}
 	
 	if (p == w)
 		return true;
@@ -1039,11 +1041,12 @@ bool GlibWidgetSearch(GtkWidget *p, GtkWidget *w, int depth = 0)
 		Gtk::GList *i = top;
 		while (i)
 		{
-			// printf("%s[%i]=%s\n", indent, n, gtk_widget_get_name((GtkWidget*)i->data));
+			if (Debug)
+				printf("%s[%i]=%s\n", indent, n, gtk_widget_get_name((GtkWidget*)i->data));
 
 			if (i->data == w)
 				return true;
-			else if (GlibWidgetSearch((GtkWidget*)i->data, w, depth + 1))
+			else if (GlibWidgetSearch((GtkWidget*)i->data, w, Debug, depth + 1))
 				return true;
 
 			i = i->next;
@@ -1056,16 +1059,17 @@ bool GlibWidgetSearch(GtkWidget *p, GtkWidget *w, int depth = 0)
 	    GtkWidget *child = gtk_bin_get_child(GTK_BIN(p));
 	    if (child)
 	    {
-			// printf("%schild=%s\n", indent, gtk_widget_get_name(child));
+	    	if (Debug)
+				printf("%schild=%s\n", indent, gtk_widget_get_name(child));
 			if (child == w)
 				return true;
-			else if (GlibWidgetSearch(child, w, depth + 1))
+			else if (GlibWidgetSearch(child, w, Debug, depth + 1))
 				return true;
 		}
     }
-    else
+    else if (Debug)
     {
-		// printf("%sUnknown=%s\n", indent, gtk_widget_get_name(p));
+		printf("%sUnknown=%s\n", indent, gtk_widget_get_name(p));
 	}
 
 	return false;
@@ -1081,10 +1085,29 @@ GlibPostMessage(GlibEventParams *p)
 	if (p->e->client.window)
 		gdk_window_get_user_data(p->e->client.window, (gpointer*)&w);
 	
-	if (w && GlibWidgetSearch(GTK_WIDGET(w), p->w))
+	if (!w)
+	{
+		// Window must of been destroyed...
+	}
+	else if (GlibWidgetSearch(GTK_WIDGET(w), p->w, false))
+	{
 	    gtk_propagate_event(p->w, p->e);
+	}
 	else
+	{
 		printf("%s:%i - Failed to find widget(%p) for PostMessage.\n", _FL, w);
+		
+		static int Count = 0;
+		if (Count++ < 5)
+		{
+			GlibWidgetSearch(GTK_WIDGET(w), p->w, true);
+		}
+		if (Count > 20)
+		{
+			printf("%s:%i - Too many widget not found errors.\n", _FL);
+			LgiExitApp();
+		}
+	}
 	#else
     gtk_propagate_event(p->w, p->e);
 	#endif
