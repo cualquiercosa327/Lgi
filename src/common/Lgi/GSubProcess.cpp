@@ -344,6 +344,11 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 		}
 		else if (sp->ChildPid == 0)
 		{
+			if (InitialFolder)
+			{
+				chdir(InitialFolder);
+			}
+
 			// Close irrelevant pipes
 			for (int j = 0; j < i-1; j++)
 			{

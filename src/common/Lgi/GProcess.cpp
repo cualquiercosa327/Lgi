@@ -627,7 +627,7 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 			}
 		}
 
-		#else // Linux/BeOS etc
+		#else // Linux/Mac etc
 		
 		struct Pipe
 		{

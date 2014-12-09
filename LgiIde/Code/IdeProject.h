@@ -160,7 +160,7 @@ public:
 	void Empty();
 	GAutoString GetMakefile();
 	bool GetExePath(char *Path, int Len);
-	bool RelativePath(char *Out, char *In);
+	bool RelativePath(char *Out, char *In, bool Debug = false);
 	void Build(bool All);
 	void Clean();
 	GDebugContext *Execute(ExeAction Act = ExeRun);

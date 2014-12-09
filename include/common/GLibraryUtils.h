@@ -9,7 +9,7 @@
 #endif
 */
 
-#define BreakPoint	LgiAssert(0);
+#define MissingDynImport	LgiAssert(0);
 
 #ifndef CALL_TYPE
 #define CALL_TYPE			// __stdcall
@@ -24,7 +24,7 @@
 		{												\
 			return p();									\
 		}												\
-		BreakPoint										\
+		MissingDynImport								\
 		return 0;										\
 	}
 
@@ -37,7 +37,7 @@
 		{												\
 			return p(argname);							\
 		}												\
-		BreakPoint										\
+		MissingDynImport								\
 		return 0;										\
 	}
 
@@ -50,7 +50,7 @@
 		{												\
 			return p(argname1, argname2);				\
 		}												\
-		BreakPoint										\
+		MissingDynImport								\
 		return 0;										\
 	}
 
@@ -69,7 +69,7 @@
 		{												\
 			return p(argname1, argname2, argname3);		\
 		}												\
-		BreakPoint										\
+		MissingDynImport								\
 		return 0;										\
 	}
 
@@ -92,7 +92,7 @@
 			return p(argname1, argname2,				\
 					 argname3, argname4);				\
 		}												\
-		BreakPoint										\
+		MissingDynImport								\
 		return 0;										\
 	}
 
@@ -119,7 +119,7 @@
 					 argname3, argname4,				\
 					 argname5);							\
 		}												\
-		BreakPoint										\
+		MissingDynImport								\
 		return 0;										\
 	}
 
@@ -149,7 +149,7 @@
 					 argname3, argname4,				\
 					 argname5, argname6);				\
 		}												\
-		BreakPoint										\
+		MissingDynImport								\
 		return 0;										\
 	}
 
@@ -191,7 +191,7 @@
 					 argname7, argname8,				\
 					 argname9);				            \
 		}												\
-		BreakPoint										\
+		MissingDynImport								\
 		return 0;										\
 	}
 
@@ -235,7 +235,7 @@
 					 argname7, argname8,				\
 					 argname9, argname10);				\
 		}												\
-		BreakPoint										\
+		MissingDynImport								\
 		return 0;										\
 	}
 

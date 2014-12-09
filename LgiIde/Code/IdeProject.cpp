@@ -2234,19 +2234,19 @@ bool IdeProject::GetChildProjects(List<IdeProject> &c)
 	return c.First() != 0;
 }
 
-bool IdeProject::RelativePath(char *Out, char *In)
+bool IdeProject::RelativePath(char *Out, char *In, bool Debug)
 {
 	if (Out && In)
 	{
 		GAutoString Base = GetBasePath();
 		if (Base)
 		{
-			// printf(	"XmlBase='%s'\n     In='%s'\n", Base, In);
+if (Debug) printf("XmlBase='%s'\n     In='%s'\n", Base.Get(), In);
 			
 			GToken b(Base, DIR_STR);
 			GToken i(In, DIR_STR);
 			
-			// printf("Len %i-%i\n", b.Length(), i.Length());
+if (Debug) printf("Len %i-%i\n", b.Length(), i.Length());
 			
 			int ILen = i.Length() + (DirExists(In) ? 0 : 1);
 			int Max = min(b.Length(), ILen);
@@ -2259,21 +2259,21 @@ bool IdeProject::RelativePath(char *Out, char *In)
 				#define StrCompare strcmp
 				#endif
 				
-				// printf("Cmd '%s'-'%s'\n", b[Common], i[Common]);
+if (Debug) printf("Cmd '%s'-'%s'\n", b[Common], i[Common]);
 				if (StrCompare(b[Common], i[Common]) != 0)
 				{
 					break;
 				}
 			}
 			
-			// printf("Common=%i\n", Common);
+if (Debug) printf("Common=%i\n", Common);
 			if (Common > 0)
 			{
 				if (Common < b.Length())
 				{
 					Out[0] = 0;
 					int Back = b.Length() - Common;
-					// printf("Back=%i\n", Back);
+if (Debug) printf("Back=%i\n", Back);
 					for (int n=0; n<Back; n++)
 					{
 						strcat(Out, "..");
@@ -3676,7 +3676,11 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 
 					// Write out the target stuff
 					m.Print("# Target\n");
+
+					GHashTable DepFiles;
+
 					const char *TargetType = d->Settings.GetStr(ProjTargetType, NULL, Platform);
+					printf("TargetType=%s\n", TargetType);
 					if (TargetType)
 					{
 						if (!stricmp(TargetType, "Executable"))
@@ -3686,6 +3690,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 									
 							GStringPipe Rules;
 							IdeProject *Dep;
+							printf("Deps=%i\n", Deps.Length());
 							for (Dep=Deps.First(); Dep; Dep=Deps.Next())
 							{
 								// Get dependency to create it's own makefile...
@@ -3695,6 +3700,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 								char t[MAX_PATH] = "";
 								GAutoString DepBase = Dep->GetBasePath();
 								GAutoString Base = GetBasePath();
+								
 								if (DepBase && Base && Dep->GetTargetFile(t, sizeof(t)))
 								{
 									char Rel[MAX_PATH] = "";
@@ -3720,6 +3726,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 									AllDeps.Sort(StrSort);
 
 									Rules.Print("%s : ", Buf);
+									printf("AllDeps.Length()=%i\n", AllDeps.Length());
 									for (int i=0; i<AllDeps.Length(); i++)
 									{
 										if (i)
@@ -3729,6 +3736,10 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 										char *f = RelativePath(Rel, AllDeps[i]) ? Rel : AllDeps[i];
 										ToUnixPath(f);
 										Rules.Print("%s", f);
+										
+										// Add these dependencies to this makefiles dep list
+										if (!DepFiles.Find(f))
+											DepFiles.Add(f);
 									}
 									
 									AllDeps.DeleteArrays();
@@ -3838,7 +3849,6 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 					}
 
 					// Create dependency tree, starting with all the source files.
-					GHashTable Deps;
 					for (int idx=0; idx<Files.Length(); idx++)
 					{
 						ProjectNode *n = Files[idx];
@@ -3870,8 +3880,10 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 									{
 										if (i) m.Print(" \\\n\t");
 										m.Print("%s", SrcDeps[i]);
-										if (!Deps.Find(SrcDeps[i]))
-											Deps.Add(SrcDeps[i]);
+										if (!DepFiles.Find(SrcDeps[i]))
+										{
+											DepFiles.Add(SrcDeps[i]);
+										}
 									}
 									SrcDeps.DeleteArrays();
 								}
@@ -3896,70 +3908,77 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 					{
 						Done = true;
 						char *Src;
-						for (void *b=Deps.First(&Src); b; b=Deps.Next(&Src))
+						for (void *b=DepFiles.First(&Src); b; b=DepFiles.Next(&Src))
 						{
-							if (!Processed.Find(Src))
+							if (Processed.Find(Src))
+								continue;
+
+							if (stristr(Src, "GBitmap.h"))
+								printf("Processing GBitmap.h\n");
+
+							Done = false;
+							Processed.Add(Src);
+							
+							char Full[MAX_PATH], Rel[MAX_PATH];
+							if (LgiIsRelativePath(Src))
 							{
-								Done = false;
-								Processed.Add(Src);
-								
-								char Full[MAX_PATH], Rel[MAX_PATH];
-								if (LgiIsRelativePath(Src))
+								LgiMakePath(Full, sizeof(Full), Base, Src);
+								strcpy_s(Rel, sizeof(Rel), Src);
+							}
+							else
+							{
+								strcpy_s(Full, sizeof(Full), Src);
+								GAutoString a = LgiMakeRelativePath(Base, Src);
+								if (a)
 								{
-									LgiMakePath(Full, sizeof(Full), Base, Src);
-									strcpy_s(Rel, sizeof(Rel), Src);
+									strcpy_s(Rel, sizeof(Rel), a);
 								}
 								else
 								{
-									strcpy_s(Full, sizeof(Full), Src);
-									GAutoString a = LgiMakeRelativePath(Base, Src);
-									if (a)
-									{
-										strcpy_s(Rel, sizeof(Rel), a);
-									}
-									else
-									{
-										strcpy_s(Rel, sizeof(Rel), a);
-										printf("%s:%i - Failed to make relative path '%s' '%s'\n",
-											_FL,
-											Base.Get(), Src);
-									}
+									strcpy_s(Rel, sizeof(Rel), a);
+									printf("%s:%i - Failed to make relative path '%s' '%s'\n",
+										_FL,
+										Base.Get(), Src);
 								}
-								
-								char *c8 = ReadTextFile(Full);
-								if (c8)
-								{
-									GArray<char*> Headers;
-									if (BuildHeaderList(c8, Headers, IncPaths, false))
-									{
-										m.Print("%s : ", Rel);
-
-										for (int n=0; n<Headers.Length(); n++)
-										{
-											char *i = Headers[n];
-											
-											if (n) m.Print(" \\\n\t");
-											
-											char Rel[256];
-											if (!RelativePath(Rel, i))
-											{
-						 						strcpy(Rel, i);
-											}
-											m.Print("%s", ToUnixPath(Rel));
-											
-											if (!Deps.Find(i))
-											{
-												Deps.Add(i);
-											}
-										}
-										Headers.DeleteArrays();
-
-										m.Print("\n\n");
-									}									
-									DeleteArray(c8);
-								}
-								break;
 							}
+							
+							char *c8 = ReadTextFile(Full);
+							if (c8)
+							{
+								GArray<char*> Headers;
+								if (BuildHeaderList(c8, Headers, IncPaths, false))
+								{
+									m.Print("%s : ", Rel);
+
+									for (int n=0; n<Headers.Length(); n++)
+									{
+										char *i = Headers[n];
+										
+										if (n) m.Print(" \\\n\t");
+										
+										char Rel[256];
+										if (!RelativePath(Rel, i))
+										{
+					 						strcpy(Rel, i);
+										}
+										m.Print("%s", ToUnixPath(Rel));
+										
+										if (!DepFiles.Find(i))
+										{
+											DepFiles.Add(i);
+										}
+									}
+									Headers.DeleteArrays();
+
+									m.Print("\n\n");
+								}
+								else LgiTrace("%s:%i - Error: BuildHeaderList failed for '%s'\n", _FL, Full);
+								
+								DeleteArray(c8);
+							}
+							else LgiTrace("%s:%i - Error: Failed to read '%s'\n", _FL, Full);
+							
+							break;
 						}
 					}
 

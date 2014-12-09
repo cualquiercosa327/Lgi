@@ -137,15 +137,19 @@ void GDisplayString::Layout()
     
 	#if defined __GTK_H__
 	
-	if (!Hnd)
+	if (!Hnd || !Font->Handle())
+	{
+		// LgiTrace("%s:%i - Missing handle: %p,%p\n", _FL, Hnd, Font->Handle());
 		return;
+	}
 
 	if (!LgiIsUtf8(Str))
+	{
 		LgiTrace("%s:%i - Not utf8\n", _FL);
+		return;
+	}
 
 	Gtk::pango_context_set_font_description(GFontSystem::Inst()->GetContext(), Font->Handle());
-	// printf("Layout sys=%i bold=%i, hnd=%p, Str='%.20s'\n", Font==SysFont, Font==SysBold, Font->Handle(), Str);
-	
 	if (Font->TabSize())
 	{
 		int Len = 32;

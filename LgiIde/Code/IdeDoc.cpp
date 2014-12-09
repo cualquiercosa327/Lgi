@@ -1229,14 +1229,11 @@ bool IdeDoc::BuildIncludePaths(GArray<char*> &Paths, IdePlatform Platform, bool 
 
 bool IdeDoc::BuildHeaderList(char16 *Cpp, GArray<char*> &Headers, GArray<char*> &IncPaths)
 {
-	bool Status = false;
-	char *c8 = LgiNewUtf16To8(Cpp);
-	if (c8)
-	{
-		Status = ::BuildHeaderList(c8, Headers, IncPaths, true);
-		DeleteArray(c8);
-	}
-	return Status;
+	GAutoString c8(LgiNewUtf16To8(Cpp));
+	if (!c8)
+		return false;
+
+	return ::BuildHeaderList(c8, Headers, IncPaths, true);
 }
 
 #define defnskipws(s)		while (iswhite(*s)) { if (*s == '\n') Line++; s++; }
