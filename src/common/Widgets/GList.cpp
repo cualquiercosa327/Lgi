@@ -3214,6 +3214,7 @@ void GList::Pour()
 		else
 		{
 			ItemsPos = Client;
+			ColumnHeader.ZOff(-1, -1);
 		}
 		
 		int n = 0;

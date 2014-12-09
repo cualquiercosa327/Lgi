@@ -2121,7 +2121,10 @@ public:
 				}
 				else
 				{
-					a.Print("-f \"%s\"", MakePath.Get());
+					if (Jobs.CastInt32())
+						a.Print("-j %i -f \"%s\"", Jobs.CastInt32(), MakePath.Get());
+					else
+						a.Print("-f \"%s\"", MakePath.Get());
 				}
 
 				if (Args)

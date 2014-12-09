@@ -917,6 +917,10 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 		Gtk::cairo_clip(cr);
 		Gtk::cairo_new_path(cr);
 	}
+	else
+	{
+		Client.ZOff(-1, -1);
+	}
 	
 	GColour b = Font->Back();
 	
