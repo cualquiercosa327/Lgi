@@ -1121,20 +1121,20 @@ case IDomCall:
 {
 	#if VM_DECOMP
 	if (Log)
-		Log->Print("%p %s = %s->DomCall(%s, %s, ....)\n",
+		Log->Print("%p %s = %s->DomCall(%s, ",
 					CurrentScriptAddress - 1,
 					c.r[0].GetStr(),
 					c.r[1].GetStr(),
-					c.r[2].GetStr(),
-					c.r[3].GetStr());
+					c.r[2].GetStr());
 	#endif
 
 	GResolveRef Dst = Resolve();
 	GResolveRef Dom = Resolve();
 	GResolveRef Name = Resolve();
-	GResolveRef Args = Resolve();
 
 	#ifdef VM_EXECUTE
+
+	GResolveRef Args = Resolve();
 
 	GArray<GVariant*> Arg;
 	Arg.Length(Args->CastInt32());
@@ -1569,6 +1569,34 @@ case IDomCall:
 			break;
 		}
 	}
+
+	#else
+
+	GVariant *Count = NULL;
+	switch (c.r->Scope)
+	{
+		case SCOPE_GLOBAL:
+			Count = &Code->Globals[c.r->Index];
+			c.r++;
+			break;
+		default:
+			LgiAssert(0);
+			return ScriptError;
+	}
+	
+	int Args = Count->CastInt32();
+	for (int i=0; i<Args; i++)
+	{
+		#if VM_DECOMP
+		if (Log)
+			Log->Print("%s%s", i ? ", " : "", c.r->GetStr());
+		#endif
+		c.r++;
+	}
+	#if VM_DECOMP
+	if (Log)
+		Log->Print(")\n");
+	#endif
 
 	#endif
 	break;
