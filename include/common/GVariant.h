@@ -235,6 +235,7 @@ public:
 	GVariant &operator =(class GKey *k);
 
 	bool operator ==(GVariant &v);
+	bool operator !=(GVariant &v) { return !(*this == v); }
 
 	/// Sets the value to a DOM variable reference
 	bool SetDomRef(GDom *obj, char *name);
