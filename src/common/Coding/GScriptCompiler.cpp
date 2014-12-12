@@ -1131,6 +1131,8 @@ public:
 				// Method call, create byte codes to put func value into n.Reg
 				if (AllocReg(n.Reg, _FL))
 				{
+					DebugInfo(n.Tok);
+
 					GArray<GVarRef> a;
 					for (unsigned i=0; i<n.Args.Length(); i++)
 					{
@@ -1169,6 +1171,8 @@ public:
 				// Call to a script function, create byte code to call function
 				if (AllocReg(n.Reg, _FL))
 				{
+					DebugInfo(n.Tok);
+
 					GArray<GVarRef> a;
 					for (unsigned i=0; i<n.Args.Length(); i++)
 					{
@@ -1778,7 +1782,7 @@ public:
 	}
 
 	/// Parses statements
-	bool DoStatements(uint32 &Cur, bool MoreThanOne = true)
+	bool DoStatements(uint32 &Cur, bool *LastWasReturn, bool MoreThanOne = true)
 	{
 		while (Cur < Tokens.Length())
 		{
@@ -1795,6 +1799,8 @@ public:
 				Cur++;
 				if (!DoReturn(Cur))
 					return false;
+				if (LastWasReturn)
+					*LastWasReturn = true;
 			}
 			else if (!StricmpW(t, sEndCurlyBracket) ||
 					 !StricmpW(t, sFunction))
@@ -1805,26 +1811,36 @@ public:
 			{
 				if (!DoIf(Cur))
 					return false;
+				if (LastWasReturn)
+					*LastWasReturn = false;
 			}
 			else if (!StricmpW(t, sFor))
 			{
 				if (!DoFor(Cur))
 					return false;
+				if (LastWasReturn)
+					*LastWasReturn = false;
 			}
 			else if (!StricmpW(t, sWhile))
 			{
 				if (!DoWhile(Cur))
 					return false;
+				if (LastWasReturn)
+					*LastWasReturn = false;
 			}
 			else if (!StricmpW(t, sExtern))
 			{
 				if (!DoExtern(Cur))
 					return false;
+				if (LastWasReturn)
+					*LastWasReturn = false;
 			}
 			else
 			{
 				if (!DoExpression(Cur, 0))
 					return false;
+				if (LastWasReturn)
+					*LastWasReturn = false;
 			}
 
 			if (!MoreThanOne)
@@ -1877,7 +1893,7 @@ public:
 							Cur++;
 							break;
 						}
-						else if (!DoStatements(Cur))
+						else if (!DoStatements(Cur, NULL))
 						{
 							return false;
 						}
@@ -1887,7 +1903,7 @@ public:
 				else
 				{
 					// Single statement
-					if (!DoStatements(Cur, false))
+					if (!DoStatements(Cur, NULL, false))
 						return false;
 				}
 
@@ -1930,7 +1946,7 @@ public:
 									Cur++;
 									break;
 								}
-								else if (!DoStatements(Cur))
+								else if (!DoStatements(Cur, NULL))
 								{
 									return false;
 								}
@@ -1939,7 +1955,7 @@ public:
 						else
 						{
 							// Single statement
-							if (!DoStatements(Cur, false))
+							if (!DoStatements(Cur, NULL, false))
 								return false;
 						}
 
@@ -2044,7 +2060,7 @@ public:
 						Cur++;
 						break;
 					}
-					else if (!DoStatements(Cur))
+					else if (!DoStatements(Cur, NULL))
 					{
 						return false;
 					}
@@ -2053,7 +2069,7 @@ public:
 			else
 			{
 				// Single statement
-				DoStatements(Cur, false);
+				DoStatements(Cur, NULL, false);
 			}
 
 			// Jump to condition evaluation at 'ConditionStart'
@@ -2171,7 +2187,7 @@ public:
 						Cur++;
 						break;
 					}
-					else if (!DoStatements(Cur))
+					else if (!DoStatements(Cur, NULL))
 					{
 						return false;
 					}
@@ -2202,6 +2218,7 @@ public:
 	{
 		GVarRef ReturnValue;
 		char16 *t;
+		int StartTok = Cur;
 
 		GArray<Node> Exp;
 		if (!Expression(Cur, Exp))
@@ -2219,8 +2236,8 @@ public:
 			return OnError(Cur, "Expecting ';' after return expression.");
 		}
 
+		Asm1(StartTok, IRet, ReturnValue);
 		Cur++;
-		Asm1(Cur, IRet, ReturnValue);
 		return true;
 	}
 
@@ -2290,16 +2307,6 @@ public:
 			Cur++;
 			while ((t = GetTok(Cur)))
 			{
-				// Return statement?
-				if ((LastInstIsReturn = (!StricmpW(t, sReturn))))
-				{
-					Cur++;
-					if (!DoReturn(Cur))
-						return false;
-					if (!(t = GetTok(Cur)))
-						return OnError(Cur, "Unexpected EOF.");
-				}
-
 				// End of the function?
 				if (!StricmpW(t, sEndCurlyBracket))
 				{
@@ -2313,9 +2320,7 @@ public:
 				}
 				
 				// Parse statment in the body
-				if (DoStatements(Cur))
-					LastInstIsReturn = false;
-				else
+				if (!DoStatements(Cur, &LastInstIsReturn))
 					return OnError(Cur, "Can't compile function body.");
 			}
 			
@@ -2579,7 +2584,7 @@ public:
 					JumpLoc = 0;
 				}
 
-				if (!DoStatements(Cur))
+				if (!DoStatements(Cur, NULL))
 				{
 					return OnError(Cur, "Statement compilation failed.");
 				}
@@ -2640,7 +2645,7 @@ bool GCompiler::Compile
 	GScriptContext *SysContext,
 	GScriptContext *UserContext,
 	const char *FileName,
-	char *Script
+	const char *Script
 )
 {
 	if (!UserContext || !SysContext || !Script)
@@ -2692,7 +2697,7 @@ bool GCompiler::Compile
 		d->Code->SysContext = SysContext;
 		d->Code->SetFileName(FileName);
 		
-		bool LexResult = d->Lex(Script, FileName);
+		bool LexResult = d->Lex((char*)Script, FileName);
 		if (LexResult)
 		{
 			Status = d->Compile();

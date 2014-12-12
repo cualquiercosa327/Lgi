@@ -314,7 +314,7 @@ case ICallMethod:
 	#ifdef VM_DECOMP
 	if (Log)
 	{
-		Log->Print("\t%p Call: %s = %s(",
+		Log->Print("%p Call: %s = %s(",
 				CurrentScriptAddress - sizeof(Meth),
 				c.r[0].GetStr(),
 				Meth->Method);
@@ -429,9 +429,6 @@ case ICallScript:
 	// Set IP to start of function
 	Sf.ReturnIp = CurrentScriptAddress;
 	c.u8 = Base + FuncAddr;
-	
-	if (StepType == RunStepInto)
-		Loop = false;
 	#endif
 
 	#if VM_DECOMP
@@ -444,7 +441,7 @@ case IRet:
 {
 	#if VM_DECOMP
 	if (Log)
-		Log->Print("\t%p Ret %s\n", CurrentScriptAddress - 1, c.r[0].GetStr());
+		Log->Print("%p Ret %s\n", CurrentScriptAddress - 1, c.r[0].GetStr());
 	#endif
 
 	GResolveRef ReturnValue = Resolve();
@@ -480,9 +477,6 @@ case IRet:
 	{
 		ExitScriptExecution;
 	}
-	
-	if (StepType == RunStepOut)
-		Loop = false;
 	#endif
 	break;
 }

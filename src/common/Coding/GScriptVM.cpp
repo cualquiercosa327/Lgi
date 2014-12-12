@@ -7,6 +7,7 @@
 #include "GTextLog.h"
 #include "GList.h"
 #include "GToolBar.h"
+#include "GToken.h"
 
 #define TIME_INSTRUCTIONS		0
 #define POST_EXECUTE_STATE		0
@@ -59,7 +60,6 @@ public:
 	GVariant *Scope[3];
 	GArray<StackFrame> Frames;
 	RunType StepType;
-	bool Loop;
 	GVmDebuggerCallback *DbgCallback;
 	GVmDebugger *Debugger;
 
@@ -270,19 +270,34 @@ public:
 			{
 				OutOfDate = ObjD.GetLastWriteTime() < SrcD.GetLastWriteTime();
 			}			
-			if (OutOfDate)
-			{			
+			if (OutOfDate || Debugger)
+			{
 				GFile f;
-				if (f.Open(Obj, O_WRITE))
+				GStringPipe p;
+				GStream *Out = NULL;
+			
+				if (Debugger)
+				{
+					Out = &p;
+				}
+				else if (f.Open(Obj, O_WRITE))
 				{
 					f.SetSize(0);
-					GExecutionStatus Decomp = Decompile(Code->UserContext, Code, &f);
-					f.Close();
-					if (Decomp != ScriptSuccess)
-					{
-						LgiAssert(!"Decompilation failed.");
-						return ScriptError;
-					}
+					Out = &f;
+				}
+
+				GExecutionStatus Decomp = Decompile(Code->UserContext, Code, Out);
+				f.Close();
+				if (Decomp != ScriptSuccess)
+				{
+					LgiAssert(!"Decompilation failed.");
+					return ScriptError;
+				}
+
+				if (Debugger)
+				{
+					GAutoString a(p.NewStr());
+					Debugger->SetSource(a);
 				}
 			}
 		}
@@ -333,7 +348,7 @@ public:
 		{
 			c.u8 = Base + StartOffset;
 		}
-
+		
 		return Status;
 	}
 	
@@ -343,64 +358,88 @@ public:
 		
 		uint8 *Base = &Code->ByteCode[0];
 		uint8 *e = Base + Code->ByteCode.Length();
-		Loop = true;
-		StepType = Type;
 		
-		while (Loop && c.u8 < e)
+		if (Type == RunContinue)
 		{
-			#if TIME_INSTRUCTIONS
-			uint8 TimedOpCode = *c.u8;
-			QueryPerformanceCounter(&start);
-			#endif
-
-			switch (*c.u8++)
+			// Unconstrained execution
+			while (c.u8 < e)
 			{
-				#define VM_EXECUTE 1
-				#include "Instructions.h"
-				#undef VM_EXECUTE
-			}
-			
-			#if TIME_INSTRUCTIONS
-			QueryPerformanceCounter(&end);
-			int Ticks = end.QuadPart - start.QuadPart;
-			int64 i = Timings.Find(TimedOpCode);
-			Timings.Add(TimedOpCode, i + Ticks);
-			i = TimingFreq.Find(TimedOpCode);
-			TimingFreq.Add(TimedOpCode, i + 1);
-			#endif
-		}
+				#if TIME_INSTRUCTIONS
+				uint8 TimedOpCode = *c.u8;
+				QueryPerformanceCounter(&start);
+				#endif
 
-		if (Log)
-		{
-			#if TIME_INSTRUCTIONS
-			Log->Print("\nTimings:\n");
-			Log->Print("%-20s%-10s%-10s%-10s\n", "Instr", "Total", "Freq", "Ave");
-			int Op;
-			for (int64 t=Timings.First(&Op); t; t=Timings.Next(&Op))
-			{
-				int Frq = TimingFreq.Find(Op);
-				int MilliSec = t * 1000000 / freq.QuadPart;
-				Log->Print("%-20s%-10i%-10i%-10i\n", InstToString((GInstruction)Op), MilliSec, Frq, MilliSec / Frq);
-			}
-			Log->Print("\n");
-			#endif
-
-			#if POST_EXECUTE_STATE
-			Log->Print("Stack:\n");
-			char *v;
-			for (void *i=Code->Globals.Lut.First(&v); i; i=Code->Globals.Lut.Next(&v))
-			{
-				int Idx = (int)i - 1;
-				if (Idx >= 0 && Idx < Code->Globals.Length())
+				switch (*c.u8++)
 				{
-					Log->Print("%s = ", v);
-					DumpVariant(Log, Code->Globals[Idx]);
-					Log->Print("\n");
+					#define VM_EXECUTE 1
+					#include "Instructions.h"
+					#undef VM_EXECUTE
+				}
+				
+				#if TIME_INSTRUCTIONS
+				QueryPerformanceCounter(&end);
+				int Ticks = end.QuadPart - start.QuadPart;
+				int64 i = Timings.Find(TimedOpCode);
+				Timings.Add(TimedOpCode, i + Ticks);
+				i = TimingFreq.Find(TimedOpCode);
+				TimingFreq.Add(TimedOpCode, i + 1);
+				#endif
+			}
+
+			if (Log)
+			{
+				#if TIME_INSTRUCTIONS
+				Log->Print("\nTimings:\n");
+				Log->Print("%-20s%-10s%-10s%-10s\n", "Instr", "Total", "Freq", "Ave");
+				int Op;
+				for (int64 t=Timings.First(&Op); t; t=Timings.Next(&Op))
+				{
+					int Frq = TimingFreq.Find(Op);
+					int MilliSec = t * 1000000 / freq.QuadPart;
+					Log->Print("%-20s%-10i%-10i%-10i\n", InstToString((GInstruction)Op), MilliSec, Frq, MilliSec / Frq);
+				}
+				Log->Print("\n");
+				#endif
+
+				#if POST_EXECUTE_STATE
+				Log->Print("Stack:\n");
+				char *v;
+				for (void *i=Code->Globals.Lut.First(&v); i; i=Code->Globals.Lut.Next(&v))
+				{
+					int Idx = (int)i - 1;
+					if (Idx >= 0 && Idx < Code->Globals.Length())
+					{
+						Log->Print("%s = ", v);
+						DumpVariant(Log, Code->Globals[Idx]);
+						Log->Print("\n");
+					}
+				}
+				Log->Print("\nRegisters:\n");
+				DumpVariables(Reg, MAX_REGISTER);
+				#endif
+			}
+		}
+		else
+		{
+			// Stepping through code
+			GHashTbl<int, int> &Debug = Code->Debug;
+			int Line = Debug.Find(CurrentScriptAddress);
+
+			while (c.u8 < e)
+			{
+				switch (*c.u8++)
+				{
+					#define VM_EXECUTE 1
+					#include "Instructions.h"
+					#undef VM_EXECUTE
+				}
+				
+				int NewLine = Debug.Find(CurrentScriptAddress);
+				if (NewLine && NewLine != Line)
+				{
+					break;
 				}
 			}
-			Log->Print("\nRegisters:\n");
-			DumpVariables(Reg, MAX_REGISTER);
-			#endif
 		}
 		
 		return Status;
@@ -417,13 +456,13 @@ GVirtualMachine::~GVirtualMachine()
 	DeleteObj(d);
 }
 
-GExecutionStatus GVirtualMachine::Execute(GCompiledCode *Code, uint32 StartOffset, GStream *Log)
+GExecutionStatus GVirtualMachine::Execute(GCompiledCode *Code, uint32 StartOffset, GStream *Log, bool StartImmediately)
 {
 	if (!Code)
 		return ScriptError;
 
 	GExecutionStatus s = d->Setup(Code, StartOffset, Log, NULL, NULL, NULL);
-	if (s != ScriptSuccess)
+	if (s != ScriptSuccess || !StartImmediately)
 		return s;
 
 	return d->Run(GVirtualMachinePriv::RunContinue);
@@ -617,11 +656,14 @@ struct GScriptVmDebuggerPriv
 	// Current script
 	bool OwnVm;
 	GVirtualMachine *Vm;
+	GVmDebuggerCallback *Callback;
 	GAutoString Script, Assembly;
 
 	// Ui
 	GView *Parent;
 	GBox *Main;
+	GBox *Sub;
+	GList *SourceLst;
 	GTabView *Tabs;
 	GTextLog *Text;
 	GList *Locals, *Globals, *Stack;
@@ -639,6 +681,8 @@ struct GScriptVmDebuggerPriv
 		Globals = NULL;
 		Stack = NULL;
 		Tools = NULL;
+		SourceLst = NULL;
+		Callback = NULL;
 	}
 };
 
@@ -646,6 +690,7 @@ enum DbgCtrls
 {
 	IDC_TABS = 300,
 	IDC_BOX,
+	IDC_BOX2,
 	IDC_TEXT,
 	IDC_LOCALS,
 	IDC_GLOBALS,
@@ -659,13 +704,15 @@ enum DbgCtrls
 	IDC_STEP_INTO,
 	IDC_STEP_OVER,
 	IDC_STEP_OUT,
+	IDC_SOURCE_LST,
 };
 
-GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVirtualMachine *Vm, const char *Script, const char *Assembly)
+GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVirtualMachine *Vm, const char *Script, const char *Assembly)
 {
 	d = new GScriptVmDebuggerPriv;
 	d->Parent = Parent;
 	d->Vm = Vm;
+	d->Callback = Callback;
 	d->Script.Reset(NewStr(Script));
 	d->Assembly.Reset(NewStr(Assembly));
 	
@@ -694,9 +741,17 @@ GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVirtualMachine *Vm, const char *S
 		d->Tools->AppendButton("Step Over", IDC_STEP_OVER);
 		d->Tools->AppendButton("Step Out", IDC_STEP_OUT);
 		
-		AddView(d->Main = new GBox(IDC_BOX));
+		AddView(d->Main = new GBox(IDC_BOX));		
 		d->Main->SetVertical(true);
-		d->Main->AddView(d->Text = new GTextLog(IDC_TEXT));
+		
+		d->Main->AddView(d->Sub = new GBox(IDC_BOX2));
+		d->Sub->SetVertical(false);
+		
+		d->Sub->AddView(d->SourceLst = new GList(IDC_SOURCE_LST, 0, 0, 100, 100));
+		d->SourceLst->GetCss(true)->Width(GCss::Len("200px"));
+		d->SourceLst->AddColumn("Source", 200);
+		d->Sub->AddView(d->Text = new GTextLog(IDC_TEXT));
+		
 		d->Main->AddView(d->Tabs = new GTabView(IDC_TABS));
 		d->Tabs->GetCss(true)->Height(GCss::Len("150px"));
 		
@@ -717,6 +772,28 @@ GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVirtualMachine *Vm, const char *S
 		
 		AttachChildren();
 		Visible(true);
+		
+		{
+			char p[MAX_PATH];
+			LgiGetExePath(p, sizeof(p));
+			LgiMakePath(p, sizeof(p), p, "../Scripts");
+			GDirectory dir;
+			for (int b = dir.First(p); b; b = dir.Next())
+			{
+				if (!dir.IsDir())
+				{
+					char *n = dir.GetName();
+					if (stristr(n, ".script") &&
+						dir.Path(p, sizeof(p)))
+					{
+						GListItem *it = new GListItem;
+						it->SetText(dir.GetName(), 0);
+						it->SetText(p, 1);
+						d->SourceLst->Insert(it);
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -728,6 +805,108 @@ GVmDebuggerWnd::~GVmDebuggerWnd()
 void GVmDebuggerWnd::OwnVm(bool Own)
 {
 	d->OwnVm = Own;
+}
+
+struct CodeBlock
+{
+	unsigned Line;
+	GAutoString Labels;
+	GAutoString Asm;
+	GAutoString Source;
+};
+
+void GVmDebuggerWnd::SetSource(const char *Mixed)
+{
+	#if 1
+	GStringPipe Glob(256);
+	GStringPipe Tmp(256);
+	GArray<CodeBlock> Blocks;
+	CodeBlock *Cur = &Blocks.New();
+
+	// Parse the mixed source
+	GToken t(Mixed, "\n");
+	bool InGlobals = true;
+	bool InAsm = true;
+	
+	for (unsigned i=0; i<t.Length(); i++)
+	{
+		char *l = t[i];
+		if (InGlobals)
+		{
+			if (*l == 'G')
+			{
+				Glob.Print("%s\n", l);
+				continue;
+			}
+
+			InGlobals = false;
+		}
+
+		bool IsAsm = IsDigit(*l);
+		if (IsAsm ^ InAsm)
+		{
+			if (InAsm)
+			{
+				// Asm -> Code
+				Cur->Asm.Reset(Tmp.NewStr());
+				Cur = &Blocks.New();
+			}
+			else
+			{
+				// Code -> Asm
+				Cur->Labels.Reset(Tmp.NewStr());
+			}
+			InAsm = IsAsm;
+		}
+		
+		Tmp.Print("%s\n", l);
+		if (!InAsm && !Cur->Line)
+		{
+			while (*l == ' ') l++;
+			if (IsDigit(*l))
+				Cur->Line = atoi(l);
+		}
+	}
+	if (InAsm)
+		Cur->Asm.Reset(Tmp.NewStr());
+	else
+		Cur->Labels.Reset(Tmp.NewStr());
+
+	Tmp.Empty();
+	
+	GStringPipe Txt;
+	GToken Src(d->Script, "\n");
+	unsigned CurLine = 1;
+	for (unsigned i=0; i<Blocks.Length(); i++)
+	{
+		CodeBlock &b = Blocks[i];
+		if (b.Line > 0)
+		{
+			while (CurLine <= b.Line)
+			{
+				Tmp.Print("%i: %s\n", CurLine, Src[CurLine-1]);
+				CurLine++;
+			}
+			
+			b.Source.Reset(Tmp.NewStr());
+		}
+
+		if (b.Source && b.Asm)
+			Txt.Print("%s%s", b.Source.Get(), b.Asm.Get());
+		else if (b.Source || b.Asm)
+			Txt.Print("%s", b.Source ? b.Source.Get() : b.Asm.Get());
+	}
+	while (CurLine <= Src.Length())
+	{
+		Txt.Print("%i: %s\n", CurLine, Src[CurLine-1]);
+		CurLine++;
+	}
+	
+	GAutoString a(Txt.NewStr());
+	d->Text->Name(a);
+	#else
+	d->Text->Name(Mixed);
+	#endif
 }
 
 void GVmDebuggerWnd::OnPosition(const char *File, int Line)
@@ -742,8 +921,52 @@ void GVmDebuggerWnd::OnRun(bool Running)
 {
 }
 
+void GVmDebuggerWnd::LoadFile(const char *File)
+{
+	if (!d->Vm || !d->Callback)
+	{
+		LgiAssert(0);
+		return;
+	}
+
+	d->Script.Reset(ReadTextFile(File));
+	GAutoPtr<GScriptObj> Obj;
+	if (d->Callback->CompileScript(Obj, File, d->Script))
+	{
+		GCompiledCode *Code = dynamic_cast<GCompiledCode*>(Obj.Get());
+		if (Code)
+		{
+			GExecutionStatus s = d->Vm->Execute(Code, 0, d->Log, false);
+			if (s != ScriptError)
+			{
+				
+			}
+		}
+	}
+}
+
 int GVmDebuggerWnd::OnNotify(GViewI *Ctrl, int Flags)
 {
+	switch (Ctrl->GetId())
+	{
+		case IDC_SOURCE_LST:
+		{
+			if (Flags != GLIST_NOTIFY_DBL_CLICK)
+				break;
+
+			GListItem *it = d->SourceLst->GetSelected();
+			if (!it)
+				break;
+
+			char *full = it->GetText(1);
+			if (!FileExists(full))
+				break;
+
+			LoadFile(full);
+			break;
+		}
+	}
+
 	return GWindow::OnNotify(Ctrl, Flags);
 }
 

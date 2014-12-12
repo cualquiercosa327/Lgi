@@ -492,7 +492,7 @@ public:
 		GScriptContext *SysContext,
 		GScriptContext *UserContext,
 		const char *FileName,
-		char *Script
+		const char *Script
 	);
 };
 
@@ -513,7 +513,9 @@ public:
 		/// [In] The instruction to start at... [defaults to the start of script)
 		uint32 StartOffset = 0,
 		/// [Optional] Log file for execution
-		GStream *Log = NULL
+		GStream *Log = NULL,
+		/// Start the script execution straight away?
+		bool StartImmediately = true
 	);
 
 	/// Execute just one method and return

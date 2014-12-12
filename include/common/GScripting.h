@@ -225,13 +225,18 @@ class GVirtualMachine;
 class GVmDebugger : public GDom
 {
 public:
+	/// Set the VM ownership flag.
 	virtual void OwnVm(bool Own) = 0;
-	/// Called to update the debugger UI to the new current execution position
-	virtual void OnPosition(const char *File, int Line) = 0;
-	/// Called when an error occurs executing the script
-	virtual void OnError(const char *Msg) = 0;
-	/// Called when execution starts or ends
-	virtual void OnRun(bool Running) = 0;
+	/// Set the source and asm
+	virtual void SetSource(const char *Mixed) = 0;
+	
+	// Events
+		/// Called to update the debugger UI to the new current execution position
+		virtual void OnPosition(const char *File, int Line) = 0;
+		/// Called when an error occurs executing the script
+		virtual void OnError(const char *Msg) = 0;
+		/// Called when execution starts or ends
+		virtual void OnRun(bool Running) = 0;
 };
 
 class GVmDebuggerCallback : public GDom
@@ -239,6 +244,8 @@ class GVmDebuggerCallback : public GDom
 public:
 	/// Start a debugger instance to handle the execution in 'Vm'
 	virtual GVmDebugger *AttachVm(GVirtualMachine *Vm, const char *Script, const char *Assembly) = 0;
+	/// Compile a new script
+	virtual bool CompileScript(GAutoPtr<GScriptObj> &Output, const char *FileName, const char *Source) = 0;
 };
 
 /// Debugger for vm script
@@ -247,15 +254,17 @@ class GVmDebuggerWnd : public GWindow, public GVmDebugger
 	struct GScriptVmDebuggerPriv *d;
 
 public:
-	GVmDebuggerWnd(GView *Parent, GVirtualMachine *Vm, const char *Script, const char *Assembly);
+	GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVirtualMachine *Vm, const char *Script, const char *Assembly);
 	~GVmDebuggerWnd();
 
 	void OwnVm(bool Own);
 	void OnPosition(const char *File, int Line);
 	void OnError(const char *Msg);
 	void OnRun(bool Running);
+	void SetSource(const char *Mixed);
 	int OnNotify(GViewI *Ctrl, int Flags);
 	GMessage::Param OnEvent(GMessage *Msg);
+	void LoadFile(const char *File);
 };
 
 #endif
