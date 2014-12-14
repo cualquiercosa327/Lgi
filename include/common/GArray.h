@@ -471,30 +471,42 @@ public:
 		qsort(p, len, sizeof(Type), (qsort_compare)Compare);
 	}
 
-	// Sorts the array with a comparison function
+	// Sorts the array with a comparison function (can I get a standard here?)
 	#ifdef _MSC_VER
 	
-	#define DeclGArrayCompare(func_name, type, user_type) \
-		int func_name(user_type param, type *a, type *b)
+		#define DeclGArrayCompare(func_name, type, user_type) \
+			int func_name(user_type *param, type *a, type *b)
+		
+		template<typename U>
+		void Sort(int (*Compare)(U *user_param, *Type, *Type), U *user_param)
+		{
+			typedef int (*qsort_s_compare)(void *, const void *, const void *);
+			qsort_s(p, len, sizeof(Type), (qsort_s_compare)Compare, user_param);
+		}
 	
-	template<typename T, typename U>
-	void Sort(int (*Compare)(U user_param, T, T), U user_param)
-	{
-		typedef int (*qsort_s_compare)(void *, const void *, const void *);
-		qsort_s(p, len, sizeof(Type), (qsort_s_compare)Compare, user_param);
-	}
+	#elif defined MAC
+
+		#define DeclGArrayCompare(func_name, type, user_type) \
+			int func_name(user_type *param, type *a, type *b)
+		
+		template<typename U>
+		void Sort(int (*Compare)(U *user_param, Type*, Type*), U *user_param)
+		{
+			typedef int (*qsort_r_compare)(void *, const void *, const void *);
+			qsort_r(p, len, sizeof(Type), user_param, (qsort_r_compare)Compare);
+		}
 	
-	#else
+	#else // POSIX?
 	
-	#define DeclGArrayCompare(func_name, type, user_type) \
-		int func_name(type *a, type *b, user_type param)
-	
-	template<typename T>
-	void Sort(int (*Compare)(Type*, Type*, T *user_param), T *user_param)
-	{
-		typedef int (*qsort_r_compare)(const void *, const void *, void *);
-		qsort_r(p, len, sizeof(Type), (qsort_r_compare)Compare, user_param);
-	}
+		#define DeclGArrayCompare(func_name, type, user_type) \
+			int func_name(type *a, type *b, user_type param)
+		
+		template<typename T>
+		void Sort(int (*Compare)(Type*, Type*, T *user_param), T *user_param)
+		{
+			typedef int (*qsort_r_compare)(const void *, const void *, void *);
+			qsort_r(p, len, sizeof(Type), (qsort_r_compare)Compare, user_param);
+		}
 	
 	#endif
 

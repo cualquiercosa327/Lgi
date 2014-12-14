@@ -560,7 +560,7 @@ static GDbField Null;
 
 GDbField &SvRecordset::operator [](unsigned Index)
 {
-	if (Index >= 0 && Index < F.Length())
+	if (Index < F.Length())
 		return *F[Index];
 
 	return Null;

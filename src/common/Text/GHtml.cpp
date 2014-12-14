@@ -3711,12 +3711,14 @@ void GTag::LayoutTable(GFlowRegion *f)
 		Cells->LayoutTable(f);
 }
 
+/*
 DeclGArrayCompare(GrowableCmp, int, GHtmlTableLayout*)
 {
 	int a_grow = param->MaxCol[*a] - param->MinCol[*a];
 	int b_grow = param->MaxCol[*b] - param->MinCol[*b];
 	return a_grow - b_grow;
 }
+*/
 
 void GHtmlTableLayout::AllocatePx(int StartCol, int Cols, int MinPx)
 {
