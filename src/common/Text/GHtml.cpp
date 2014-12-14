@@ -306,6 +306,8 @@ public:
 			int BestPxDiff = 10000;
 			GAutoPtr<GFont> BestFont;
 			
+			RetryGetPx:
+			
 			do
 			{
 				GAutoPtr<GFont> Tmp(new GFont);
@@ -315,7 +317,13 @@ public:
 				Tmp->Underline(IsUnderline);
 				
 				if (!Tmp->Create(Face[0], (int)PtSize))
-					break;
+				{
+					// Probably missing font... try the system face
+					DeleteArray(Face[0]);
+					Face[0] = NewStr(SysFont->Face());
+					if (!Tmp->Create(Face[0], (int)PtSize))
+						break;
+				}
 				
 				int ActualHeight = PxHeight(Tmp);
 				Diff = ActualHeight - RequestPx;
@@ -350,8 +358,19 @@ public:
 			}
 			while (PtSize > MinimumPointSize && PtSize < 100);
 
-			Fonts.Insert(f = BestFont.Release());
-			LgiAssert(f->Face() != NULL);
+			f = BestFont.Release();
+			if (f && f->Face())
+			{
+				Fonts.Insert(f);
+			}
+			else
+			{
+				LgiAssert(0);
+				#ifdef _DEBUG
+				goto RetryGetPx;
+				#endif
+			}
+			
 			return f;
 		}
 		else if (Size.Type == GCss::LenPt)

@@ -1246,6 +1246,7 @@ public:
 				{
 					Cur++;
 
+					LgiAssert(n.Length() > 0);
 					if (!Expression(Cur, n[n.Length()].Child, Depth + 1))
 						return false;
 					PrevIsOp = false;
@@ -1375,7 +1376,7 @@ public:
 							while ((t = GetTok(Cur+1)))
 							{
 								// Get the last variable part...
-								Node::VariablePart &vp = Var.Variable[Var.Variable.Length()-1];
+								Node::VariablePart &vp = Var.Variable.Last();
 
 								// Check for array index...
 								if (StricmpW(t, sStartSqBracket) == 0)
@@ -1768,6 +1769,7 @@ public:
 	bool DoExpression(uint32 &Cur, GVarRef *Result)
 	{
 		GArray<Node> n;
+		
 		if (Expression(Cur, n))
 		{
 			bool Status = AsmExpression(Result, n);

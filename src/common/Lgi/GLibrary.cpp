@@ -90,6 +90,7 @@ bool GLibrary::Load(const char *File)
 				#endif
 				if (!hLib)
 				{
+					#if 0
 					GToken t("/opt/local/lib", ":");
 					printf("DYLD_LIBRARY_PATH=%i paths\n", t.Length());
 					for (int i=0; i<t.Length(); i++)
@@ -113,6 +114,7 @@ bool GLibrary::Load(const char *File)
 						}
 
 					}
+					#endif
 
 					if (!hLib)
 					{

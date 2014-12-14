@@ -57,20 +57,48 @@ public:
 		char Exe[MAX_PATH];
 		if (LgiGetExeFile(Exe, sizeof(Exe)))
 		{
+			#if 0 // This doesn't appear to actually work :(
 			// Modify $LD_LIBRARY_PATH to include the path to the libraries
 			char NewLdLibPath[MAX_PATH];
 			LgiMakePath(NewLdLibPath, sizeof(NewLdLibPath), Exe, "Contents/MacOS");
-			char *ExistingLibPath = getenv("LD_LIBRARY_PATH");
+			
+			const char *EnvVar = "LD_LIBRARY_PATH";
+			char *ExistingLibPath = getenv(EnvVar);
 			bool HasMyPath = false;
 			if (ExistingLibPath)
 			{
+				GToken t(ExistingLibPath, LGI_PATH_SEPARATOR);
+				for (int i=0; i<t.Length(); i++)
+				{
+					char *p = t[i];
+					if (!stricmp(p, NewLdLibPath))
+					{
+						HasMyPath = true;
+						break;
+					}
+				}
 			}
 			if (!HasMyPath)
 			{
+				GStringPipe p;
+				if (ValidStr(ExistingLibPath))
+					p.Print("%s%s%s", ExistingLibPath, LGI_PATH_SEPARATOR, NewLdLibPath);
+				else
+					p.Print("%s", NewLdLibPath);
+				GAutoString a(p.NewStr());
+				if (a)
+				{
+					int r = setenv(EnvVar, a, true);
+					
+					ExistingLibPath = getenv(EnvVar);
+					
+					int asd=0;
+				}
 			}
+			#endif
 			
 			// Now attempt to load the libraries
-			LgiMakePath(Exe, sizeof(Exe), Exe, "Contents/MacOS/libssl.dylib");
+			LgiMakePath(Exe, sizeof(Exe), Exe, "Contents/MacOS/libssl.1.0.0.dylib");
 			if (FileExists(Exe))
 			{
 				Load(Exe);
