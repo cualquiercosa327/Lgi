@@ -478,7 +478,7 @@ public:
 			int func_name(user_type *param, type *a, type *b)
 		
 		template<typename U>
-		void Sort(int (*Compare)(U *user_param, *Type, *Type), U *user_param)
+		void Sort(int (*Compare)(U *user_param, Type*, Type*), U *user_param)
 		{
 			typedef int (*qsort_s_compare)(void *, const void *, const void *);
 			qsort_s(p, len, sizeof(Type), (qsort_s_compare)Compare, user_param);
