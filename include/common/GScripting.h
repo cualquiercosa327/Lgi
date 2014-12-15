@@ -71,6 +71,7 @@ struct GExternFunc : public GFunc
 	{
 		int Ptr;
 		bool Unsigned;
+		bool Out;
 		int ArrayLen;
 		GVariantType Base;
 	};

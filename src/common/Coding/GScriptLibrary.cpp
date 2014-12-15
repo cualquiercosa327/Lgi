@@ -462,10 +462,25 @@ bool SystemFunctions::Now(GVariant *Ret, ArgumentArray &Args)
 
 bool SystemFunctions::New(GVariant *Ret, ArgumentArray &Args)
 {
-	if (Args.Length() != 1 || !Args[0])
+	if (Args.Length() != 1 || !Args[0] || !Ret)
 		return false;
 
-	GDomProperty Type = GStringToProp(Args[0]->CastString());
+	Ret->Empty();
+	char *sType = Args[0]->CastString();
+	if (!sType)
+		return false;
+
+	if (IsDigit(*sType))
+	{
+		// Binary block
+		int Bytes = ::atoi(sType);
+		if (!Bytes)
+			return false;
+		
+		return Ret->SetBinary(Bytes, new char[Bytes], true);
+	}
+
+	GDomProperty Type = GStringToProp(sType);
 	switch (Type)
 	{	
 		case TypeList:

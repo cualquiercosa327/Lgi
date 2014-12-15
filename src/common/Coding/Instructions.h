@@ -143,6 +143,7 @@ case IPlusEquals:
 				break;
 			case GV_STRING:
 				ss = Src->Str();
+				break;
 			default:
 				SrcTmp = *Src;
 				ss = SrcTmp.CastString();
@@ -302,7 +303,7 @@ case IPreDec:
 }
 case ICallMethod:
 {
-	GHostFunc *Meth = dynamic_cast<GHostFunc*>(*c.fn++);
+	GFunc *Meth = *c.fn++;
 	if (!Meth)
 	{
 		Log->Print(	"%s ICallMethod error: No method struct.\n",
@@ -315,7 +316,7 @@ case ICallMethod:
 	if (Log)
 	{
 		Log->Print("%p Call: %s = %s(",
-				CurrentScriptAddress - sizeof(Meth),
+				CurrentScriptAddress - sizeof(Meth) - 1,
 				c.r[0].GetStr(),
 				Meth->Method);
 	}
@@ -349,14 +350,30 @@ case ICallMethod:
 	#endif
 	
 	#if VM_EXECUTE
-	if (!(Meth->Context->*(Meth->Func))(Ret, Arg))
+	GHostFunc *Hf = dynamic_cast<GHostFunc*>(Meth);
+	if (Hf)
 	{
-		if (Log)
-			Log->Print(	"%s ICallMethod error: Method '%s' failed.\n",
-						Code->AddrToSourceRef(CurrentScriptAddress),
-						Meth->Method);
-		SetScriptError;
-	}		
+		if (!(Hf->Context->*(Hf->Func))(Ret, Arg))
+		{
+			if (Log)
+				Log->Print(	"%s ICallMethod error: Method '%s' failed.\n",
+							Code->AddrToSourceRef(CurrentScriptAddress),
+							Meth->Method);
+			SetScriptError;
+		}		
+	}
+	else
+	{
+		// Fixme
+		if (!Meth->Call(NULL, Ret, Arg))
+		{
+			if (Log)
+				Log->Print(	"%s ICallMethod error: Method '%s' failed.\n",
+							Code->AddrToSourceRef(CurrentScriptAddress),
+							Meth->Method);
+			SetScriptError;
+		}
+	}
 	#endif
 	break;
 }
@@ -929,6 +946,13 @@ case IDomGet:
 					(*Dst) = (int)Dom->Value.Hash->Length();
 				break;
 			}
+			case GV_BINARY:
+			{
+				GDomProperty p = GStringToProp(sName);
+				if (p == ObjLength)
+					(*Dst) = Dom->Value.Binary.Length;
+				break;
+			}
 			case GV_STRING:
 			{
 				GDomProperty p = GStringToProp(sName);
@@ -1327,6 +1351,17 @@ case IDomCall:
 					Status = ScriptWarning;
 					break;
 				}
+			}
+			break;
+		}
+		case GV_BINARY:
+		{
+			GDomProperty p = GStringToProp(sName);
+			switch (p)
+			{
+				case ObjLength:
+					*Dst = Dom->Value.Binary.Length;
+					break;
 			}
 			break;
 		}

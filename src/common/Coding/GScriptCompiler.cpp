@@ -2360,6 +2360,8 @@ public:
 	GExternFunc::ExternType ParseExternType(GArray<const char16*> &Strs)
 	{
 		GExternFunc::ExternType Type;
+		
+		Type.Out = false;
 		Type.Ptr = 0;
 		Type.ArrayLen = 1;
 		Type.Base = GV_NULL;
@@ -2371,6 +2373,8 @@ public:
 			const char16 *t = Strs[i];
 			if (!StricmpW(t, L"*"))
 				Type.Ptr++;
+			else if (!StricmpW(t, L"_out_"))
+				Type.Out = true;
 			else if (!StricmpW(t, sStartSqBracket))
 				InArray = true;
 			else if (!StricmpW(t, sEndSqBracket))
