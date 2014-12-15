@@ -326,6 +326,8 @@ class GCompilerPriv :
 	public GCompileTools,
 	public GScriptUtils
 {
+	GHashTbl<const char*, GVariantType> Types;
+
 public:
 	GScriptContext *Ctx;
 	GCompiledCode *Code;
@@ -361,6 +363,26 @@ public:
 		ExpTok.Add(sTrue, ConstTrue);
 		ExpTok.Add(sFalse, ConstFalse);
 		ExpTok.Add(sNull, ConstNull);
+
+		Types.Add("int32", GV_INT32);
+		Types.Add("int", GV_INT32);
+		Types.Add("int64", GV_INT64);
+		Types.Add("bool", GV_BOOL);
+		Types.Add("boolean", GV_BOOL);
+		Types.Add("double", GV_DOUBLE);
+		Types.Add("float", GV_DOUBLE);
+		Types.Add("char", GV_STRING);
+		Types.Add("GDom", GV_DOM);
+		Types.Add("void", GV_VOID_PTR);
+		Types.Add("GDateTime", GV_DATETIME);
+		Types.Add("GHashTable", GV_HASHTABLE);
+		Types.Add("GOperator", GV_OPERATOR);
+		Types.Add("GView", GV_GVIEW);
+		Types.Add("GMouse", GV_GMOUSE);
+		Types.Add("GKey", GV_GKEY);
+		// Types.Add("binary", GV_BINARY);
+		// Types.Add("List", GV_LIST);
+		// Types.Add("GDom&", GV_DOMREF);
 	}
 
 	~GCompilerPriv()
@@ -1549,7 +1571,7 @@ public:
 			}
 			else if (n[i].ContextFunc)
 			{
-				e.Print(" %s(...)", n[i].ContextFunc->Method);
+				e.Print(" %s(...)", n[i].ContextFunc->Method.Get());
 			}
 			else if (n[i].ScriptFunc)
 			{
@@ -2334,31 +2356,124 @@ public:
 	UnexpectedFuncEof:
 		return OnError(Cur, "Unexpected EOF in function.");
 	}
+	
+	GExternFunc::ExternType ParseExternType(GArray<const char16*> &Strs)
+	{
+		GExternFunc::ExternType Type;
+		Type.Ptr = 0;
+		Type.ArrayLen = 1;
+		Type.Base = GV_NULL;
+		Type.Unsigned = false;
+		
+		bool InArray = false;
+		for (unsigned i=0; i<Strs.Length(); i++)
+		{
+			const char16 *t = Strs[i];
+			if (!StricmpW(t, L"*"))
+				Type.Ptr++;
+			else if (!StricmpW(t, sStartSqBracket))
+				InArray = true;
+			else if (!StricmpW(t, sEndSqBracket))
+				InArray = false;
+			else if (IsDigit(*t))
+			{
+				if (InArray)
+					Type.ArrayLen = AtoiW(t);
+			}
+			else
+			{
+				GAutoString u(LgiNewUtf16To8(t));
+				GVariantType tok_type = Types.Find(u);
+				if (tok_type != GV_NULL)
+				{
+					Type.Base = tok_type;
+				}
+			}
+		}
+		
+		if (Type.Ptr && Type.Base == GV_NULL)
+			Type.Base = GV_VOID_PTR;
+		
+		Strs.Length(0);
+		return Type;
+	}
+
+	bool DoExtern(uint32 &Cur)
+	{
+		GArray<const char16*> Tok;
+		const char16 *t;
+		while (t = GetTok(Cur))
+		{
+			if (!StricmpW(t, sStartRdBracket))
+			{
+				Cur++;
+				break;
+			}
+			else Tok.Add(t);
+			Cur++;
+		}
+		
+		if (Tok.Length() < 3)
+		{
+			return OnError(Cur, "Not enough tokens in extern decl.");
+		}
+		
+		// First token is library name
+		GExternFunc *e = new GExternFunc;
+		if (!e)
+			return OnError(Cur, "Alloc error.");
+		
+		Code->Externs.Add(e);
+		e->Type = ExternFunc;
+		GAutoWString LibName(TrimStrW(Tok[0], L"\'\""));
+		e->Lib.Reset(LgiNewUtf16To8(LibName));
+		Tok.DeleteAt(0, true);
+
+		e->Method.Reset(LgiNewUtf16To8(Tok.Last()));
+		Tok.DeleteAt(Tok.Length()-1, true);
+
+		if (!ValidStr(e->Method))
+		{
+			Code->Externs.Length(Code->Externs.Length()-1);
+			return OnError(Cur, "Failed to get extern method name.");
+		}
+		
+		// Parse return type
+		e->ReturnType = ParseExternType(Tok);
+
+		// Parse argument types
+		Tok.Length(0);
+		while (t = GetTok(Cur))
+		{
+			if (!StricmpW(t, sEndRdBracket))
+			{
+				e->ArgType.New() = ParseExternType(Tok);
+				Cur++;
+				break;
+			}
+			else if (!StricmpW(t, sComma))
+			{
+				e->ArgType.New() = ParseExternType(Tok);
+			}
+			else Tok.Add(t);
+			Cur++;
+		}
+		
+		if (t = GetTok(Cur))
+		{
+			if (StricmpW(t, sSemiColon))
+				return OnError(Cur, "Expecting ';' in extern decl.");
+			Cur++;
+		}
+		
+		Methods.Add(e->Method, e);
+		return true;
+	}
 
 	/// Compiles struct construct
 	bool DoStruct(uint32 &Cur)
 	{
 		bool Status = false;
-		GHashTbl<const char*, GVariantType> Types;
-		Types.Add("int32", GV_INT32);
-		Types.Add("int", GV_INT32);
-		Types.Add("int64", GV_INT64);
-		Types.Add("bool", GV_BOOL);
-		Types.Add("boolean", GV_BOOL);
-		Types.Add("double", GV_DOUBLE);
-		Types.Add("float", GV_DOUBLE);
-		Types.Add("char", GV_STRING);
-		Types.Add("GDom", GV_DOM);
-		Types.Add("void", GV_VOID_PTR);
-		Types.Add("GDateTime", GV_DATETIME);
-		Types.Add("GHashTable", GV_HASHTABLE);
-		Types.Add("GOperator", GV_OPERATOR);
-		Types.Add("GView", GV_GVIEW);
-		Types.Add("GMouse", GV_GMOUSE);
-		Types.Add("GKey", GV_GKEY);
-		// Types.Add("binary", GV_BINARY);
-		// Types.Add("List", GV_LIST);
-		// Types.Add("GDom&", GV_DOMREF);
 
 		// Parse struct name and setup a type
 		char16 *t;
@@ -2513,11 +2628,6 @@ public:
 		return OnError(Cur, "Unexpected EOF.");
 	}
 
-	bool DoExtern(uint32 &Cur)
-	{
-		return false;
-	}
-
 	/// Compiler entry point
 	bool Compile()
 	{
@@ -2567,6 +2677,11 @@ public:
 			else if (!StricmpW(t, sEndCurlyBracket))
 			{
 				return OnError(Cur, "Not expecting '}'.");
+			}
+			else if (!StricmpW(t, sExtern))
+			{
+				if (!DoExtern(++Cur))
+					return false;
 			}
 			else
 			{

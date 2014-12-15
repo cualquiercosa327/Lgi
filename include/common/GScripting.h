@@ -35,17 +35,16 @@ enum GFuncType
 struct GFunc
 {
 	GFuncType Type;
-	char *Method;
+	GAutoString Method;
 
 	GFunc(const char *m = 0, GFuncType t = NullFunc)
 	{
 		Type = t;
-		Method = NewStr(m);
+		Method.Reset(NewStr(m));
 	}
 
 	virtual ~GFunc()
 	{
-		DeleteArray(Method);
 	}
 
 	virtual GExecutionStatus Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Args) = 0;
@@ -54,19 +53,31 @@ struct GFunc
 struct GHostFunc : public GFunc
 {
 	GScriptContext *Context;
-	char *Args;
+	GAutoString Args;
 	ScriptCmd Func;
 	
 	GHostFunc(const char *method, const char *args, ScriptCmd proc) : GFunc(method, HostFunc)
 	{
-		Args = NewStr(args);
+		Args.Reset(NewStr(args));
 		Func = proc;
 	}
 
-	~GHostFunc()
+	GExecutionStatus Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Args);
+};
+
+struct GExternFunc : public GFunc
+{
+	struct ExternType
 	{
-		DeleteArray(Args);
-	}
+		int Ptr;
+		bool Unsigned;
+		int ArrayLen;
+		GVariantType Base;
+	};
+
+	GAutoString Lib;
+	ExternType ReturnType;
+	GArray<ExternType> ArgType;
 
 	GExecutionStatus Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Args);
 };

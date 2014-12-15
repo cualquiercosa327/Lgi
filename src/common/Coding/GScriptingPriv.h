@@ -288,6 +288,7 @@ class GCompiledCode : public GScriptObj
 	GVariables Globals;
 	GArray<uint8> ByteCode;
 	GArray< GAutoRefPtr<GFunctionInfo> > Methods;
+	GArray<GExternFunc*> Externs;
 	GHashTbl<char16*, GTypeDef*> Types;
 	GHashTbl<int, int> Debug;
 	GAutoString FileName;

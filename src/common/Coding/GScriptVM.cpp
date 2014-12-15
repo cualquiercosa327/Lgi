@@ -18,6 +18,11 @@
 #define SetScriptError			c.u8 = e; LgiAssert(0); Status = ScriptError
 #define CurrentScriptAddress	(c.u8 - Base)
 
+GExecutionStatus GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Args)
+{
+	return ScriptError;
+}
+
 struct CodeBlock
 {
 	unsigned SrcLine;
