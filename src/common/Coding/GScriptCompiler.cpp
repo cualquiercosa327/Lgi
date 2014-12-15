@@ -539,14 +539,8 @@ public:
 		{
 			int Line = 1;
 			char16 *s = w, *t, *prev = w;
-			while ((t = LexCpp(s, LexStrdup)))
+			while ((t = LexCpp(s, LexStrdup, NULL, &Line)))
 			{
-				while (prev < s)
-				{
-					if (*prev++ == '\n')
-						Line++;
-				}
-
 				if (*t == '#')
 				{
 					int Len;
