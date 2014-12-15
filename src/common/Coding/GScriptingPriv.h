@@ -539,7 +539,8 @@ public:
 	bool StepOver();
 	bool StepOut();
 	bool BreakExecution();
-	bool Run(bool Start);
+	bool Continue();
+	bool Stop();
 	bool BreakPoint(const char *File, int Line, bool Add);
 };
 

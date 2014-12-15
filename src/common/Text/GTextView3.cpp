@@ -4292,8 +4292,9 @@ void GTextView3::OnPaint(GSurface *pDC)
 				}
 				else
 				{
-					GColour c = l->c.IsValid() ? l->c : Fore;
-					Font->Colour(c, Back);
+					GColour fore = l->c.IsValid() ? l->c : Fore;
+					GColour back = l->Back.IsValid() ? l->Back : Back;
+					Font->Colour(fore, back);
 				}
 
 				// draw text
@@ -4351,7 +4352,9 @@ void GTextView3::OnPaint(GSurface *pDC)
 						{
 							// draw styled text
 							if (NextStyle->c.IsValid())
-								NextStyle->Font->Colour(NextStyle->c, Back);
+							{
+								NextStyle->Font->Colour(NextStyle->c, l->Back.IsValid() ? l->Back : Back);
+							}
 							NextStyle->Font->Transparent(false);
 
 							LgiAssert(l->Start + Done >= 0);
@@ -4373,8 +4376,9 @@ void GTextView3::OnPaint(GSurface *pDC)
 									pOut->Set(Tr.x1+i, Tr.y2-(i%2));
 							}
 
-							GColour c = l->c.IsValid() ? l->c : Fore;
-							NextStyle->Font->Colour(c, Back);
+							GColour fore = l->c.IsValid() ? l->c : Fore;
+							GColour back = l->Back.IsValid() ? l->Back : Back;
+							NextStyle->Font->Colour(fore, back);
 						}
 					}
 					else
@@ -4411,8 +4415,9 @@ void GTextView3::OnPaint(GSurface *pDC)
 						}
 						else
 						{
-							GColour c = l->c.IsValid() ? l->c : Fore;
-							Font->Colour(c, Back);
+							GColour fore = l->c.IsValid() ? l->c : Fore;
+							GColour back = l->Back.IsValid() ? l->Back : Back;
+							Font->Colour(fore, back);
 						}
 						NextSelection = (NextSelection == SelMin) ? SelMax : -1;
 					}

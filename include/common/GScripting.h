@@ -232,7 +232,7 @@ public:
 	
 	// Events
 		/// Called to update the debugger UI to the new current execution position
-		virtual void OnPosition(const char *File, int Line) = 0;
+		virtual void OnAddress(int Addr) = 0;
 		/// Called when an error occurs executing the script
 		virtual void OnError(const char *Msg) = 0;
 		/// Called when execution starts or ends
@@ -258,7 +258,7 @@ public:
 	~GVmDebuggerWnd();
 
 	void OwnVm(bool Own);
-	void OnPosition(const char *File, int Line);
+	void OnAddress(int Addr);
 	void OnError(const char *Msg);
 	void OnRun(bool Running);
 	void SetSource(const char *Mixed);

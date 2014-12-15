@@ -133,6 +133,7 @@ protected:
 		int Len;		// length of text
 		GRect r;		// Screen location
 		GColour c;		// Colour of line... transparent = default colour
+		GColour Back;	// Background colour or transparent
 
 		GTextLine()
 		{
