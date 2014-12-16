@@ -18,6 +18,8 @@
 #define SetScriptError			c.u8 = e; LgiAssert(0); Status = ScriptError
 #define CurrentScriptAddress	(c.u8 - Base)
 
+extern "C" uint64 __cdecl CallExtern64(void *FuncAddr, NativeInt *Ret, uint32 Args, void *Arg);
+
 GExecutionStatus GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Args)
 {
 	if (!Lib || !Method)
@@ -94,7 +96,11 @@ GExecutionStatus GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentA
 			{
 				case GV_INT32:
 				{
+					#if defined(_WIN64)
+					*Ptr.s64++ = v->CastInt32();
+					#else
 					*Ptr.s32++ = v->CastInt32();
+					#endif
 					break;
 				}
 				case GV_INT64:
@@ -126,33 +132,38 @@ GExecutionStatus GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentA
 			Log->Print("Error: Extern library '%s' has no method '%s'.\n", Lib.Get(), Method.Get());
 		return ScriptError;
 	}
+	
+	uint32 a = Ptr.ni - &Val[0];
+	NativeInt r = 0;
 
 	#if defined(_MSC_VER)
-	uint32 a = Ptr.ni - &Val[0];
-	NativeInt b = (NativeInt) (Ptr.ni - 1);
-	#endif
-	uint32 r = 0;
-
-	#if defined(_MSC_VER) && !defined(_WIN64)
-	_asm
-	{
-		mov ecx, a
-		mov ebx, b
-	}
-	label1:
-	_asm
-	{
-		push [ebx]
-		sub ebx, 4
-		loop label1
-		
-		mov ebx, c
-		call ebx
-		mov r, eax
-	}
+		#if defined(_WIN64)
+			// 64bit... boooo no inline asm!
+			void *b = &Val[0];
+			r = CallExtern64(c, &r, a, b);
+		#else
+			// 32bit... yay inline asm!
+			void *b = Ptr.ni - 1;
+			_asm
+			{
+				mov ecx, a
+				mov ebx, b
+			}
+			label1:
+			_asm
+			{
+				push [ebx]
+				sub ebx, 4
+				loop label1
+				
+				mov ebx, c
+				call ebx
+				mov r, eax
+			}
+		#endif
 	#else
-	// Not implemented
-	LgiAssert(0);
+		// Not implemented, gcc???
+		LgiAssert(0);
 	#endif
 
 	if (Ret) (*Ret) = (int) r;
@@ -1000,6 +1011,7 @@ GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVi
 		MoveSameScreen(Parent);
 	else
 		MoveToCenter();
+	Name("Script Debugger");
 	
 	if (Attach(NULL))
 	{
@@ -1294,8 +1306,12 @@ int GVmDebuggerWnd::OnNotify(GViewI *Ctrl, int Flags)
 		}
 		case IDC_RESTART:
 		{
-			if (d->Vm)
-				d->Vm->Stop();
+			if (d->Vm && d->Obj)
+			{
+				GCompiledCode *Code = dynamic_cast<GCompiledCode*>(d->Obj.Get());
+				if (Code)
+					d->Vm->Execute(Code, 0, d->Log, false);
+			}
 			break;
 		}
 		case IDC_GOTO:
