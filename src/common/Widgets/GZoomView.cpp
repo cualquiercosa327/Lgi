@@ -712,6 +712,11 @@ public:
 		Pal32 pal[256];
 		switch (Src->GetColourSpace())
 		{
+			default:
+			{
+				LgiAssert(0);
+				break;
+			}
 			case CsIndex8:
 			{
 				GPalette *inPal = Src->Palette();

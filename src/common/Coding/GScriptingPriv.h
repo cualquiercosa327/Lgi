@@ -89,6 +89,7 @@ extern char16 sStruct[];
 extern char16 sTrue[];
 extern char16 sFalse[];
 extern char16 sNull[];
+extern char16 sOutParam[];
 
 extern char16 sHash[];
 extern char16 sPeriod[];

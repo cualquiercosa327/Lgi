@@ -32,6 +32,7 @@ char16 sStruct[]	= { 's','t','r','u','c','t',0 };
 char16 sTrue[]		= { 't','r','u','e',0 };
 char16 sFalse[]		= { 'f','a','l','s','e',0 };
 char16 sNull[]		= { 'n','u','l','l',0 };
+char16 sOutParam[]  = { '_','o','u','t','_',0};
 
 char16 sHash[]				= { '#', 0 };
 char16 sPeriod[]			= { '.', 0 };

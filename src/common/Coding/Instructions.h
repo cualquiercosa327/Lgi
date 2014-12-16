@@ -318,7 +318,7 @@ case ICallMethod:
 		Log->Print("%p Call: %s = %s(",
 				CurrentScriptAddress - sizeof(Meth) - 1,
 				c.r[0].GetStr(),
-				Meth->Method);
+				Meth->Method.Get());
 	}
 	#endif
 	
@@ -358,7 +358,7 @@ case ICallMethod:
 			if (Log)
 				Log->Print(	"%s ICallMethod error: Method '%s' failed.\n",
 							Code->AddrToSourceRef(CurrentScriptAddress),
-							Meth->Method);
+							Meth->Method.Get());
 			SetScriptError;
 		}		
 	}
@@ -370,7 +370,7 @@ case ICallMethod:
 			if (Log)
 				Log->Print(	"%s ICallMethod error: Method '%s' failed.\n",
 							Code->AddrToSourceRef(CurrentScriptAddress),
-							Meth->Method);
+							Meth->Method.Get());
 			SetScriptError;
 		}
 	}
@@ -1359,6 +1359,8 @@ case IDomCall:
 			GDomProperty p = GStringToProp(sName);
 			switch (p)
 			{
+				default:
+					break;
 				case ObjLength:
 					*Dst = Dom->Value.Binary.Length;
 					break;

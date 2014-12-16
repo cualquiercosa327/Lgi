@@ -3,6 +3,7 @@
 #include "GScripting.h"
 #include "GScriptingPriv.h"
 #include "GLexCpp.h"
+#include "GString.h"
 
 #define GetTok(c) ((c) < Tokens.Length() ? Tokens[c] : NULL)
 
@@ -2371,9 +2372,9 @@ public:
 		for (unsigned i=0; i<Strs.Length(); i++)
 		{
 			const char16 *t = Strs[i];
-			if (!StricmpW(t, L"*"))
+			if (t[0] == '*' && t[1] == 0)
 				Type.Ptr++;
-			else if (!StricmpW(t, L"_out_"))
+			else if (!StricmpW(t, sOutParam))
 				Type.Out = true;
 			else if (!StricmpW(t, sStartSqBracket))
 				InArray = true;
@@ -2406,7 +2407,7 @@ public:
 	{
 		GArray<const char16*> Tok;
 		const char16 *t;
-		while (t = GetTok(Cur))
+		while ((t = GetTok(Cur)))
 		{
 			if (!StricmpW(t, sStartRdBracket))
 			{
@@ -2429,7 +2430,8 @@ public:
 		
 		Code->Externs.Add(e);
 		e->Type = ExternFunc;
-		GAutoWString LibName(TrimStrW(Tok[0], L"\'\""));
+		char16 sQuotes[] = {'\'','\"',0};
+		GAutoWString LibName(TrimStrW(Tok[0], sQuotes));
 		e->Lib.Reset(LgiNewUtf16To8(LibName));
 		Tok.DeleteAt(0, true);
 
@@ -2447,7 +2449,7 @@ public:
 
 		// Parse argument types
 		Tok.Length(0);
-		while (t = GetTok(Cur))
+		while ((t = GetTok(Cur)))
 		{
 			if (!StricmpW(t, sEndRdBracket))
 			{
@@ -2463,7 +2465,7 @@ public:
 			Cur++;
 		}
 		
-		if (t = GetTok(Cur))
+		if ((t = GetTok(Cur)))
 		{
 			if (StricmpW(t, sSemiColon))
 				return OnError(Cur, "Expecting ';' in extern decl.");

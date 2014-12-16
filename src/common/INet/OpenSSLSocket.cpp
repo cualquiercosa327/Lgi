@@ -199,12 +199,16 @@ SslVer ParseSslVersion(const char *v)
 			while (*c && IsDigit(*c))
 				c++;
 		}
+		
 		if (IsAlpha(*c))
 		{
-			int sub = ToLower(*c) - 'a';
-			out.Add(sub);
-			c++;
-			LgiAssert(*c == 0);
+			int Idx = 0;
+			while (IsAlpha(*c))
+			{
+				Idx += ToLower(*c) - 'a';
+				c++;
+			}
+			out.Add(Idx);
 		}
 	}
 	return out;

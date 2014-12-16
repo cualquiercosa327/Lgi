@@ -56,6 +56,14 @@ struct GHostFunc : public GFunc
 	GAutoString Args;
 	ScriptCmd Func;
 	
+	GHostFunc(const GHostFunc &f)
+	{
+		Context = f.Context;
+		Args.Reset(NewStr(f.Args));
+		Method.Reset(NewStr(f.Method));
+		Func = f.Func;
+	}
+	
 	GHostFunc(const char *method, const char *args, ScriptCmd proc) : GFunc(method, HostFunc)
 	{
 		Args.Reset(NewStr(args));
