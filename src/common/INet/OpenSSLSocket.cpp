@@ -69,6 +69,11 @@ public:
 				Load(Exe);
 			}
 		}
+
+        if (!IsLoaded())
+        {
+			Load("/opt/local/lib/" SSL_LIBRARY);
+		}
 		#endif
 
 		if (!IsLoaded())
@@ -89,13 +94,6 @@ public:
 			FileDev->SetCurrentFolder(old);
 			#endif
 		}
-
-        #ifdef MAC
-        if (!IsLoaded())
-        {
-			Load("/opt/local/lib/" SSL_LIBRARY);
-		}
-        #endif
     }
 
 	DynFunc0(int, SSL_library_init);
