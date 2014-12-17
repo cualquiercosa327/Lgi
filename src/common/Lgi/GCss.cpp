@@ -2130,9 +2130,17 @@ bool GCss::BorderDef::Parse(const char *&s)
 	if (!s)
 		return false;
 
+	const char *Start = NULL;
 	while (*s && *s != ';')
 	{
 		SkipWhite(s);
+		if (Start == s)
+		{
+			LgiAssert(0);
+			return false;
+		}
+		Start = s;
+		
 		if (Len::Parse(s, PropBorder, ParseRelaxed))
 			continue;
 
@@ -2150,20 +2158,18 @@ bool GCss::BorderDef::Parse(const char *&s)
 
 bool GCss::BorderDef::ParseStyle(const char *&s)
 {
-	GAutoString Pat(ParseString(s));
-	if (!Pat)
-		return false;
-
-	if (!stricmp(Pat, "Hidden")) Style = BorderHidden;
-	else if (!stricmp(Pat, "Solid")) Style = BorderSolid;
-	else if (!stricmp(Pat, "Dotted")) Style = BorderDotted;
-	else if (!stricmp(Pat, "Dashed")) Style = BorderDashed;
-	else if (!stricmp(Pat, "Double")) Style = BorderDouble;
-	else if (!stricmp(Pat, "Groove")) Style = BorderGroove;
-	else if (!stricmp(Pat, "Ridge")) Style = BorderRidge;
-	else if (!stricmp(Pat, "Inset")) Style = BorderInset;
-	else if (!stricmp(Pat, "Outset")) Style = BorderOutset;
-	else Style = BorderSolid;
+	if (ParseWord(s, "Hidden")) Style = BorderHidden;
+	else if (ParseWord(s, "Solid")) Style = BorderSolid;
+	else if (ParseWord(s, "Dotted")) Style = BorderDotted;
+	else if (ParseWord(s, "Dashed")) Style = BorderDashed;
+	else if (ParseWord(s, "Double")) Style = BorderDouble;
+	else if (ParseWord(s, "Groove")) Style = BorderGroove;
+	else if (ParseWord(s, "Ridge")) Style = BorderRidge;
+	else if (ParseWord(s, "Inset")) Style = BorderInset;
+	else if (ParseWord(s, "Outset")) Style = BorderOutset;
+	else if (ParseWord(s, "None")) Style = BorderNone;
+	else if (ParseWord(s, "!important")) Important = false;
+	else return false;
 
 	return true;
 }

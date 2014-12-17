@@ -394,10 +394,12 @@ public:
 	{
 		ColorDef Color;
 		BorderStyle Style;
+		bool Important;
 
 		BorderDef(const char *init = 0)
 		{
 			Style = BorderNone;
+			Important = true;
 			if (init)
 				Parse(init);
 		}
@@ -406,6 +408,7 @@ public:
 		{
 			Color = db.Color;
 			Style = db.Style;
+			Important = db.Important;
 		}
 		
 		bool Parse(const char *&s);
@@ -417,6 +420,7 @@ public:
 			Color = b.Color;
 			Type = b.Type;
 			Value = b.Value;
+			Important = b.Important;
 			return *this;
 		}
 	};
