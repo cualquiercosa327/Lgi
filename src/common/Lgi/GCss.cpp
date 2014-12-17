@@ -2130,22 +2130,20 @@ bool GCss::BorderDef::Parse(const char *&s)
 	if (!s)
 		return false;
 
-	if (!Len::Parse(s, PropBorder, ParseRelaxed))
+	while (*s && *s != ';')
+	{
+		SkipWhite(s);
+		if (Len::Parse(s, PropBorder, ParseRelaxed))
+			continue;
+
+		if (ParseStyle(s))
+			continue;
+
+		if (Color.Parse(s))
+			continue;
+			
 		return false;
-
-	SkipWhite(s);
-	if (!*s || *s == ';')
-		return true;
-
-	if (!ParseStyle(s))
-		return false;
-
-	SkipWhite(s);
-	if (!*s || *s == ';')
-		return true;
-
-	if (!Color.Parse(s))
-		return false;
+	}
 
 	return true;
 }

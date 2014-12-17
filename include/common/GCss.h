@@ -1018,6 +1018,7 @@ public:
 	Accessor(BorderBottom, BorderDef, BorderDef(), PropBorder);
 	Accessor(BorderLeft, BorderDef, BorderDef(), PropBorder);
 	Accessor(BorderSpacing, Len, Len(), PropNull); // 'cellspacing'
+	Accessor(BorderCollapse, BorderCollapseType, CollapseInherit, PropBorderCollapse);
 	Accessor(_CellPadding, Len, Len(), PropNull); // 'cellpadding' (not CSS)
 
 	Accessor(Overflow, OverflowType, OverflowInherit, PropNull);

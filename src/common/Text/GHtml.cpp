@@ -735,6 +735,22 @@ public:
 			{
 				return 3; // px
 			}
+			case GCss::AlignLeft:
+			case GCss::AlignRight:
+			case GCss::AlignCenter:
+			case GCss::AlignJustify:
+			case GCss::VerticalBaseline:
+			case GCss::VerticalSub:
+			case GCss::VerticalSuper:
+			case GCss::VerticalTop:
+			case GCss::VerticalTextTop:
+			case GCss::VerticalMiddle:
+			case GCss::VerticalBottom:
+			case GCss::VerticalTextBottom:
+			{
+				// Meaningless in this context
+				break;
+			}
 			default:
 			{
 				LgiAssert(!"Not supported.");
@@ -3575,13 +3591,17 @@ bool GTag::GetWidthMetrics(GTag *Table, uint16 &Min, uint16 &Max)
 			}
 			else
 			{
-				// GCss::Len MLeft = MarginLeft();
-				// GCss::Len MRight = MarginRight();
+				GCss::BorderDef BLeft = BorderLeft();
+				GCss::BorderDef BRight = BorderRight();
 				GCss::Len PLeft = PaddingLeft();
 				GCss::Len PRight = PaddingRight();
 				
 				MarginPx = (int)(PLeft.ToPx()  +
-								PRight.ToPx() );
+								PRight.ToPx()  + 
+								BLeft.ToPx());
+				
+				if (Table->BorderCollapse() == GCss::CollapseCollapse)
+					MarginPx += BRight.ToPx();
 			}
 			break;
 		}
