@@ -2763,14 +2763,14 @@ bool GCompiler::Compile
 	const char *Script
 )
 {
-	if (!UserContext || !SysContext || !Script)
+	if (!Script)
 		return NULL;
 
 	GStringPipe p;
 	
-	if (SysContext->GetLog())
+	if (SysContext && SysContext->GetLog())
 		d->Log = SysContext->GetLog();
-	else if (UserContext->GetLog())
+	else if (UserContext && UserContext->GetLog())
 		d->Log = UserContext->GetLog();
 	else
 		d->Log = &p;
@@ -2907,8 +2907,26 @@ GExecutionStatus GScriptEngine2::RunTemporary(GScriptObj *Obj, char *Script)
 
 bool GScriptEngine2::EvaluateExpression(GVariant *Result, GDom *VariableSource, char *Expression)
 {
-	LgiAssert(0);
-	return 0;
+	if (!Result || !VariableSource || !Expression)
+	{
+		LgiAssert(!"Param error");
+		return false;
+	}
+
+	GStringPipe p;
+	p.Print("return %s;", Expression);
+	GAutoString a(p.NewStr());
+	
+	GCompiler Comp;
+	GAutoPtr<GScriptObj> Obj;
+	if (!Comp.Compile(Obj, NULL, NULL, NULL, a))
+		return false;
+	
+	GVirtualMachine Vm;
+	GCompiledCode *Code = dynamic_cast<GCompiledCode*>(Obj.Get());
+	GExecutionStatus s = Vm.Execute(Code, 0, NULL, true, Result);
+	
+	return s != ScriptError;
 }
 
 GStream *GScriptEngine2::GetConsole()

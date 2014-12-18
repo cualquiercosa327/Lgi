@@ -517,7 +517,9 @@ public:
 		/// [Optional] Log file for execution
 		GStream *Log = NULL,
 		/// Start the script execution straight away?
-		bool StartImmediately = true
+		bool StartImmediately = true,
+		/// Optional return value
+		GVariant *Return = NULL
 	);
 
 	/// Execute just one method and return

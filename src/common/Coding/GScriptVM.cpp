@@ -451,7 +451,9 @@ public:
 		}
 		else
 		{
-		    GAutoString DataPath = Code->UserContext->GetDataFolder();
+		    GAutoString DataPath;
+		    if (Code->UserContext)
+				DataPath = Code->UserContext->GetDataFolder();
 		    if (!DataPath)
 		    {
 			    char p[256];
@@ -515,20 +517,19 @@ public:
 		Scope[2] = &Code->Globals[0];
 
 		// Calling a function only, not the whole script
+		StackFrame &Sf = Frames.New();
+		Sf.ReturnIp = e - c.u8;
+		Sf.PrevFrameStart = 0;
+		Sf.ReturnValue = Ret;
+
 		if (Func)
 		{
-			uint16 Frame = Func->FrameSize;
-
 			// Set up stack for function call
-			StackFrame &Sf = Frames.New();
-			Sf.CurrentFrameSize = Frame;
-			Sf.PrevFrameStart = 0;
-			Sf.ReturnIp = e - c.u8;
-			Sf.ReturnValue = Ret;
+			Sf.CurrentFrameSize = Func->FrameSize;
 
 			int LocalsBase = Locals.Length();
 			Locals.SetFixedLength(false);
-			Locals.Length(LocalsBase + Frame);
+			Locals.Length(LocalsBase + Func->FrameSize);
 			Scope[1] = &Locals[LocalsBase];
 			Locals.SetFixedLength();
 
@@ -544,9 +545,12 @@ public:
 			// Set IP to start of function
 			c.u8 = Base + Func->StartAddr;
 		}
-		else if (StartOffset > 0)
+		else
 		{
-			c.u8 = Base + StartOffset;
+			// Executing body of script
+			Sf.CurrentFrameSize = 0;
+			if (StartOffset > 0)
+				c.u8 = Base + StartOffset;
 		}
 		
 		return Status;
@@ -682,12 +686,12 @@ GVirtualMachine::~GVirtualMachine()
 	DeleteObj(d);
 }
 
-GExecutionStatus GVirtualMachine::Execute(GCompiledCode *Code, uint32 StartOffset, GStream *Log, bool StartImmediately)
+GExecutionStatus GVirtualMachine::Execute(GCompiledCode *Code, uint32 StartOffset, GStream *Log, bool StartImmediately, GVariant *Return)
 {
 	if (!Code)
 		return ScriptError;
 
-	GExecutionStatus s = d->Setup(Code, StartOffset, Log, NULL, NULL, NULL);
+	GExecutionStatus s = d->Setup(Code, StartOffset, Log, NULL, NULL, Return);
 	if (s != ScriptSuccess || !StartImmediately)
 		return s;
 
