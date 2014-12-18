@@ -348,6 +348,28 @@
 				Name="Scripting"
 				>
 				<File
+					RelativePath="..\src\common\Coding\ExternCall.asm"
+					>
+					<FileConfiguration
+						Name="Debug|x64"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							CommandLine="cd $(IntDir)&#x0D;&#x0A;&quot;C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\bin\x86_amd64\ml64.exe&quot; $(InputPath) /c"
+							Outputs="$(IntDir)\$(InputName).obj"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|x64"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							CommandLine="cd $(IntDir)&#x0D;&#x0A;&quot;C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\bin\x86_amd64\ml64.exe&quot; $(InputPath) /c"
+							Outputs="$(IntDir)\$(InputName).obj"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\common\Coding\GLexCpp.cpp"
 					>
 				</File>

@@ -472,7 +472,7 @@ public:
 	}
 
 	// Sorts the array with a comparison function (can I get a standard here?)
-	#ifdef _MSC_VER
+	#if defined(_MSC_VER)
 	
 		#define DeclGArrayCompare(func_name, type, user_type) \
 			int func_name(user_type *param, type *a, type *b)
@@ -484,7 +484,7 @@ public:
 			qsort_s(p, len, sizeof(Type), (qsort_s_compare)Compare, user_param);
 		}
 	
-	#elif defined MAC
+	#elif defined(MAC)
 
 		#define DeclGArrayCompare(func_name, type, user_type) \
 			int func_name(user_type *param, type *a, type *b)
@@ -499,7 +499,7 @@ public:
 	#else // POSIX?
 	
 		#define DeclGArrayCompare(func_name, type, user_type) \
-			int func_name(type *a, type *b, user_type param)
+			int func_name(type *a, type *b, user_type *param)
 		
 		template<typename T>
 		void Sort(int (*Compare)(Type*, Type*, T *user_param), T *user_param)
