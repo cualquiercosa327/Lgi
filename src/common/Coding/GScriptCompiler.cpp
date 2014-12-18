@@ -2913,20 +2913,31 @@ bool GScriptEngine2::EvaluateExpression(GVariant *Result, GDom *VariableSource, 
 		return false;
 	}
 
+	// Create trivial script to evaluate the expression
 	GStringPipe p;
 	p.Print("return %s;", Expression);
 	GAutoString a(p.NewStr());
 	
+	// Compile the script
 	GCompiler Comp;
 	GAutoPtr<GScriptObj> Obj;
 	if (!Comp.Compile(Obj, NULL, NULL, NULL, a))
+	{
+		LgiAssert(0);
 		return false;
+	}
 	
+	// Execute the script
 	GVirtualMachine Vm;
 	GCompiledCode *Code = dynamic_cast<GCompiledCode*>(Obj.Get());
 	GExecutionStatus s = Vm.Execute(Code, 0, NULL, true, Result);
+	if (s == ScriptError)
+	{
+		LgiAssert(0);
+		return false;
+	}
 	
-	return s != ScriptError;
+	return true;
 }
 
 GStream *GScriptEngine2::GetConsole()
