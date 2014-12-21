@@ -1,4 +1,5 @@
 #include "Lgi.h"
+#include "GDragAndDrop.h"
 
 #define DEBUG_KEY_EVENT		0
 
@@ -414,14 +415,14 @@ lgi_widget_drag_leave(GtkWidget	       *widget,
 	if (!v || !v->target)
 	{
 		printf("%s:%i - LGI_WIDGET failed.\n", _FL);
-		return false;
+		return;
 	}
 	
 	GDragDropTarget *Target = v->target->DropTarget();
 	if (!Target)
 	{
 		printf("%s:%i - View '%s' doesn't have drop target.\n", _FL, v->target->GetClass());
-		return false;
+		return;
 	}
 
 	v->drag_over_widget = false;
@@ -473,7 +474,7 @@ lgi_widget_drag_motion(GtkWidget	   *widget,
 	if (Result != DROPEFFECT_NONE)
 	{
 		GdkDragAction action = DropEffectToAction(Result);
-		gdk_drag_status(context, action, time);
+		gdk_drag_status(context, action, time_);
 	}
 
 	return Result != DROPEFFECT_NONE;
@@ -502,7 +503,7 @@ lgi_widget_drag_drop(GtkWidget	       *widget,
 		widget,
 		context,
 		TargetType,
-		time
+		time_
 	);
 	
 	return true;}

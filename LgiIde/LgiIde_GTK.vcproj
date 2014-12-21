@@ -271,6 +271,26 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="Debugging"
+				>
+				<File
+					RelativePath=".\Code\GDebugContext.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Code\GDebugger.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Code\GDebugger.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\common\Lgi\GSubProcess.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"

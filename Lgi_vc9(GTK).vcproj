@@ -264,6 +264,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\common\Lgi\GWindowCommon.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\common\Lgi\Lgi.cpp"
 					>
 				</File>
@@ -527,6 +531,10 @@
 				>
 				<File
 					RelativePath=".\src\common\Widgets\GBitmap.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\common\Widgets\GBox.cpp"
 					>
 				</File>
 				<File
