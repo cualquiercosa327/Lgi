@@ -49,7 +49,7 @@ public:
 	{
 		#if 0 // def _DEBUG
 		char File[256];
-		GetModuleFileName(Handle(), File, sizeof(File));
+		GetModuleFileNameA(Handle(), File, sizeof(File));
 		LgiTrace("%s:%i - JPEG: %s\n", _FL, File);
 		#endif
 	}

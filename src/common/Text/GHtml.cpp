@@ -25,6 +25,7 @@
 #define DEBUG_TAG_BY_POS			0
 #define DEBUG_SELECTION				0
 
+#define ENABLE_IMAGE_RESIZING		1
 #define DOCUMENT_LOAD_IMAGES		1
 
 #define LUIS_DEBUG					0
@@ -5406,6 +5407,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 				GCss::Len w = Width();
 				GCss::Len h = Height();
 				
+				#if ENABLE_IMAGE_RESIZING
 				if ((w.IsValid() || h.IsValid()) && !ImageResized)
 				{
 					if (Size.x != Image->X() ||
@@ -5446,6 +5448,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 						}
 					}
 				}
+				#endif
 
 				int Old = pDC->Op(GDC_ALPHA);
 				pDC->Blt(0, 0, Image);

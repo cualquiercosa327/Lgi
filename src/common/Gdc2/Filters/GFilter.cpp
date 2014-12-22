@@ -1711,173 +1711,242 @@ GSurface *GdcDevice::Load(const char *Name, bool UseOSLoader)
 {
 	GAutoPtr<GSurface> pDC;
 
-	if (UseOSLoader)
-	{
-		#if defined MAC && !defined COCOA
-		
-		CFURLRef FileUrl = CFURLCreateFromFileSystemRepresentation(0, (const UInt8*)Name, strlen(Name), false);
-		if (!FileUrl)
-			printf("%s:%i - CFURLCreateFromFileSystemRepresentation failed.\n", _FL);
-		else
-		{
-			CGImageSourceRef Src = CGImageSourceCreateWithURL(FileUrl, 0);
-			if (!Src)
-				printf("%s:%i - CGImageSourceCreateWithURL failed.\n", _FL);
-			else
-			{
-				CGImageRef Img = CGImageSourceCreateImageAtIndex(Src, 0, 0);
-				if (!Img)
-					printf("%s:%i - CGImageSourceCreateImageAtIndex failed.\n", _FL);
-				else
-				{
-					size_t x = CGImageGetWidth(Img);
-					size_t y = CGImageGetHeight(Img);
-					size_t bits = CGImageGetBitsPerPixel(Img);
-					
-					if (pDC.Reset(new GMemDC) &&
-						pDC->Create(x, y, 32))
-					{
-						pDC->Colour(0);
-						pDC->Rectangle();
-						
-						CGRect r = {{0, 0}, {x, y}};
-						CGContextDrawImage(pDC->Handle(), r, Img);
-					}
-					else
-					{
-						printf("%s:%i - pMemDC->Create failed.\n", _FL);
-						pDC.Reset();
-					}
-					
-					CGImageRelease(Img);
-				}
-				
-				CFRelease(Src);
-			}
-
-			CFRelease(FileUrl);
-		}
-
-		#elif WINNATIVE && defined(_MSC_VER)
-		
-		char *Ext = LgiGetExtension((char*)Name);
-		if (Ext && stricmp(Ext, "gif") && stricmp(Ext, "png"))
-		{
-			IImgCtx *Ctx = 0;
-			HRESULT hr = CoCreateInstance(CLSID_IImgCtx, NULL, CLSCTX_INPROC_SERVER, IID_IImgCtx, (LPVOID*)&Ctx);
-			if (SUCCEEDED(hr))
-			{
-				GVariant Fn = Name;
-				hr = Ctx->Load(Fn.WStr(), 0);
-				if (SUCCEEDED(hr))
-				{
-					SIZE  Size = { -1, -1 };
-					ULONG State = 0;
-					int64 Start = LgiCurrentTime();
-					while (LgiCurrentTime() - Start < 3000) // just in case it gets stuck....
-					{
-						hr = Ctx->GetStateInfo(&State, &Size, false);
-						if (SUCCEEDED(hr))
-						{
-							if ((State & IMGLOAD_COMPLETE) || (State & IMGLOAD_STOPPED) || (State & IMGLOAD_ERROR))
-							{
-								break;
-							}
-							else
-							{
-								LgiSleep(10);
-							}
-						}
-						else break;
-					}
-
-					if (Size.cx > 0 &&
-						Size.cy > 0 &&
-						pDC.Reset(new GMemDC))
-					{
-						if (pDC->Create(Size.cx, Size.cy, 24))
-						{
-							HDC hDC = pDC->StartDC();
-							if (hDC)
-							{
-								RECT rc = { 0, 0, pDC->X(), pDC->Y() };
-								Ctx->Draw(hDC, &rc);
-								pDC->EndDC();
-							}
-
-							if (pDC->GetBits() == 32)
-							{
-								// Make opaque
-								int Op = pDC->Op(GDC_OR);
-								pDC->Colour(Rgba32(0, 0, 0, 255), 32);
-								pDC->Rectangle();
-								pDC->Op(GDC_SET);
-							}
-						}
-						else pDC.Reset();
-					}
-				}
-
-				Ctx->Release();
-			}
-		}
-
-		#endif
-
-		if (pDC)
-			return pDC.Release();
-	}
-
 	if (FileExists(Name))
 	{
 		GFile File;
-		if (File.Open(Name, O_READ))
+		GFilter::IoStatus FilterStatus = GFilter::IoError;
+		if (!File.Open(Name, O_READ))
 		{
-			int64 Size = File.GetSize();
-			if (Size > 0)
+			LgiTrace("%s:%i - Couldn't open '%s' for reading.\n", _FL, Name);
+			return NULL;
+		}
+
+		int64 Size = File.GetSize();
+		if (Size <= 0)
+		{
+			return NULL;
+		}
+
+		GAutoPtr<uchar, true> Hint(new uchar[16]);
+		memset(Hint, 0, 16);
+		if (File.Read(Hint, 16) == 0)
+		{
+			Hint.Reset(0);
+		}
+
+		File.SetPos(0);
+
+		GAutoPtr<GFilter> Filter(GFilterFactory::New(Name, FILTER_CAP_READ, Hint));
+		if (Filter &&
+			pDC.Reset(new GMemDC))
+		{
+			FilterStatus = Filter->ReadImage(pDC, &File);
+			if (FilterStatus != GFilter::IoSuccess)
 			{
-				GAutoPtr<uchar, true> Hint(new uchar[16]);
-				memset(Hint, 0, 16);
-				if (File.Read(Hint, 16) == 0)
+				pDC.Reset();
+				LgiTrace("%s:%i - Filter couldn't cope with '%s'.\n", _FL, Name);
+			}
+		}
+
+		if (UseOSLoader && !pDC)
+		{
+			#if defined MAC && !defined COCOA
+			
+			CFURLRef FileUrl = CFURLCreateFromFileSystemRepresentation(0, (const UInt8*)Name, strlen(Name), false);
+			if (!FileUrl)
+				printf("%s:%i - CFURLCreateFromFileSystemRepresentation failed.\n", _FL);
+			else
+			{
+				CGImageSourceRef Src = CGImageSourceCreateWithURL(FileUrl, 0);
+				if (!Src)
+					printf("%s:%i - CGImageSourceCreateWithURL failed.\n", _FL);
+				else
 				{
-					Hint.Reset(0);
+					CGImageRef Img = CGImageSourceCreateImageAtIndex(Src, 0, 0);
+					if (!Img)
+						printf("%s:%i - CGImageSourceCreateImageAtIndex failed.\n", _FL);
+					else
+					{
+						size_t x = CGImageGetWidth(Img);
+						size_t y = CGImageGetHeight(Img);
+						size_t bits = CGImageGetBitsPerPixel(Img);
+						
+						if (pDC.Reset(new GMemDC) &&
+							pDC->Create(x, y, 32))
+						{
+							pDC->Colour(0);
+							pDC->Rectangle();
+							
+							CGRect r = {{0, 0}, {x, y}};
+							CGContextDrawImage(pDC->Handle(), r, Img);
+						}
+						else
+						{
+							printf("%s:%i - pMemDC->Create failed.\n", _FL);
+							pDC.Reset();
+						}
+						
+						CGImageRelease(Img);
+					}
+					
+					CFRelease(Src);
 				}
 
-				File.SetPos(0);
+				CFRelease(FileUrl);
+			}
 
-				GAutoPtr<GFilter> Filter(GFilterFactory::New(Name, FILTER_CAP_READ, Hint));
-				if (Filter &&
-					pDC.Reset(new GMemDC))
+			#elif WINNATIVE && defined(_MSC_VER)
+			
+			char *Ext = LgiGetExtension((char*)Name);
+			if (Ext && stricmp(Ext, "gif") && stricmp(Ext, "png"))
+			{
+				IImgCtx *Ctx = 0;
+				HRESULT hr = CoCreateInstance(CLSID_IImgCtx, NULL, CLSCTX_INPROC_SERVER, IID_IImgCtx, (LPVOID*)&Ctx);
+				if (SUCCEEDED(hr))
 				{
-					GFilter::IoStatus s = Filter->ReadImage(pDC, &File);
-					if (s != GFilter::IoSuccess)
+					GVariant Fn = Name;
+					hr = Ctx->Load(Fn.WStr(), 0);
+					if (SUCCEEDED(hr))
 					{
-						pDC.Reset();
-						LgiTrace("%s:%i - Filter couldn't cope with '%s'.\n", _FL, Name);
-					}
-					if (s == GFilter::IoComponentMissing)
-					{
-						const char *c = Filter->GetComponentName();
-						LgiAssert(c);
-						if (c)
+						SIZE  Size = { -1, -1 };
+						ULONG State = 0;
+						int64 Start = LgiCurrentTime();
+						while (LgiCurrentTime() - Start < 3000) // just in case it gets stuck....
 						{
-							GToken t(c, ",");
-							for (int i=0; i<t.Length(); i++)
-								NeedsCapability(t[i]);
+							hr = Ctx->GetStateInfo(&State, &Size, false);
+							if (SUCCEEDED(hr))
+							{
+								if ((State & IMGLOAD_COMPLETE) || (State & IMGLOAD_STOPPED) || (State & IMGLOAD_ERROR))
+								{
+									break;
+								}
+								else
+								{
+									LgiSleep(10);
+								}
+							}
+							else break;
+						}
+
+						if (Size.cx > 0 &&
+							Size.cy > 0 &&
+							pDC.Reset(new GMemDC))
+						{
+							if (pDC->Create(Size.cx, Size.cy, 24))
+							{
+								HDC hDC = pDC->StartDC();
+								if (hDC)
+								{
+									RECT rc = { 0, 0, pDC->X(), pDC->Y() };
+									Ctx->Draw(hDC, &rc);
+									pDC->EndDC();
+								}
+
+								if (pDC->GetBits() == 32)
+								{
+									// Make opaque
+									int Op = pDC->Op(GDC_OR);
+									pDC->Colour(Rgba32(0, 0, 0, 255), 32);
+									pDC->Rectangle();
+									pDC->Op(GDC_SET);
+								}
+							}
+							else pDC.Reset();
+						}
+					}
+
+					Ctx->Release();
+				}
+			}
+
+			#endif
+
+			if (pDC)
+				return pDC.Release();
+		}
+
+		if (FilterStatus == GFilter::IoComponentMissing)
+		{
+			const char *c = Filter->GetComponentName();
+			LgiAssert(c);
+			if (c)
+			{
+				GToken t(c, ",");
+				for (int i=0; i<t.Length(); i++)
+					NeedsCapability(t[i]);
+			}
+		}
+
+		#ifndef WIN32
+		if (pDC)
+		{
+			int PromoteTo = GdcD->GetOption(GDC_PROMOTE_ON_LOAD);
+			
+			if (PromoteTo > 0 &&
+				PromoteTo != pDC->GetBits())
+			{
+				GAutoPtr<GSurface> pOld;;
+				GPalette *pPal = pDC->Palette();
+
+				pOld = pDC;
+				pDC.Reset(new GMemDC);
+				if (pOld &&
+					pDC &&
+					pDC->Create(pOld->X(), pOld->Y(), PromoteTo))
+				{
+					pDC->Blt(0, 0, pOld);
+					pOld.Reset();
+				}
+			}
+			#ifdef BEOS
+			else if (pDC->GetBits() == 8)
+			{
+				// Create remap table
+				color_map *Map = (color_map*) system_colors();
+				GPalette *Palette = pDC->Palette();
+				if (Map && Palette)
+				{
+					char ReMap[256];
+					for (int i=0; i<256; i++)
+					{
+						GdcRGB *p = (*Palette)[i];
+						if (p)
+						{
+							COLOUR c = Rgb15(p->R, p->G, p->B);
+							ReMap[i] = Map->index_map[c];
+
+							p->R = Map->color_list[i].red;
+							p->G = Map->color_list[i].green;
+							p->B = Map->color_list[i].blue;
+						}
+						else
+						{
+							ReMap[i] = 0;
+						}
+					}
+
+					// Remap colours to BeOS palette
+					for (int y=0; y<pDC->Y(); y++)
+					{
+						uchar *d = (*pDC)[y];
+						if (d)
+						{
+							for (int x=0; x<pDC->X(); x++)
+							{
+								d[x] = ReMap[d[x]];
+							}
 						}
 					}
 				}
 			}
+			#endif
 		}
-		else
-		{
-			LgiTrace("%s:%i - Couldn't open '%s' for reading.\n", _FL, Name);
-		}
+		#endif
 	}
-	
-	#if WINNATIVE
-	if (!pDC)
+	else
 	{
+		// Loading non-file resource...
+		#if WINNATIVE
 		// a resource... lock and load gentlemen
 		HRSRC hRsrc = FindResource(NULL, Name, RT_BITMAP);
 		if (hRsrc)
@@ -1895,72 +1964,8 @@ GSurface *GdcDevice::Load(const char *Name, bool UseOSLoader)
 				}
 			}
 		}
-	}
-	#else
-	if (pDC)
-	{
-		int PromoteTo = GdcD->GetOption(GDC_PROMOTE_ON_LOAD);
-		
-		if (PromoteTo > 0 &&
-			PromoteTo != pDC->GetBits())
-		{
-			GAutoPtr<GSurface> pOld;;
-			GPalette *pPal = pDC->Palette();
-
-			pOld = pDC;
-			pDC.Reset(new GMemDC);
-			if (pOld &&
-				pDC &&
-				pDC->Create(pOld->X(), pOld->Y(), PromoteTo))
-			{
-				pDC->Blt(0, 0, pOld);
-				pOld.Reset();
-			}
-		}
-		#ifdef BEOS
-		else if (pDC->GetBits() == 8)
-		{
-			// Create remap table
-			color_map *Map = (color_map*) system_colors();
-			GPalette *Palette = pDC->Palette();
-			if (Map && Palette)
-			{
-				char ReMap[256];
-				for (int i=0; i<256; i++)
-				{
-					GdcRGB *p = (*Palette)[i];
-					if (p)
-					{
-						COLOUR c = Rgb15(p->R, p->G, p->B);
-						ReMap[i] = Map->index_map[c];
-
-						p->R = Map->color_list[i].red;
-						p->G = Map->color_list[i].green;
-						p->B = Map->color_list[i].blue;
-					}
-					else
-					{
-						ReMap[i] = 0;
-					}
-				}
-
-				// Remap colours to BeOS palette
-				for (int y=0; y<pDC->Y(); y++)
-				{
-					uchar *d = (*pDC)[y];
-					if (d)
-					{
-						for (int x=0; x<pDC->X(); x++)
-						{
-							d[x] = ReMap[d[x]];
-						}
-					}
-				}
-			}
-		}
 		#endif
 	}
-	#endif
 
 	return pDC.Release();
 }
