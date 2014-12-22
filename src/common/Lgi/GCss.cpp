@@ -2255,7 +2255,7 @@ bool GCss::Selector::IsAtMedia()
 		return false;
 	
 	Part &p = Parts[0];
-	return p.Type == SelMedia && p.Media != MediaNull;
+	return p.Type == SelMedia;
 }
 
 bool GCss::Selector::Parse(const char *&s)

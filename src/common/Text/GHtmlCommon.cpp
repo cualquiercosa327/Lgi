@@ -25,7 +25,7 @@ static GHtmlElemInfo TagInfo[] =
 	{TAG_DIV,			"div",			0,			GHtmlElemInfo::TI_BLOCK},
 	{TAG_SPAN,			"span",			0,			GHtmlElemInfo::TI_NONE},
 	{TAG_CENTER,		"center",		0,			GHtmlElemInfo::TI_NONE},
-	{TAG_META,			"meta",			0,			GHtmlElemInfo::TI_NONE},
+	{TAG_META,			"meta",			0,			GHtmlElemInfo::TI_NEVER_CLOSES},
 	{TAG_TBODY,			"tbody",		0,			GHtmlElemInfo::TI_NONE},
 	{TAG_STYLE,			"style",		0,			GHtmlElemInfo::TI_NONE},
 	{TAG_SCRIPT,		"script",		0,			GHtmlElemInfo::TI_NONE},
