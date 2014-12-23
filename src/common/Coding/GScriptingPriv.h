@@ -197,44 +197,6 @@ union GPtr
 
 class SystemFunctions;
 
-class GVariables : public GArray<GVariant>
-{
-	friend class GVirtualMachinePriv;
-
-	GHashTbl<const char*,int> Lut;
-
-public:
-	int Scope;
-	int NullIndex;
-
-	GVariables(int scope)
-	{
-		Scope = scope;
-		NullIndex = -1;
-	}
-
-	int Var(const char *n, bool create = false)
-	{
-		int p = Lut.Find(n);
-		if (p)
-		{
-			return p - 1;
-		}
-
-		if (create)
-		{
-			int Len = Length();
-
-			Lut.Add(n, Len + 1);
-			Length(Len + 1);
-
-			return Len;
-		}
-
-		return -1;
-	}
-};
-
 class GTypeDef : public GDom
 {
 	friend class GCompilerPriv;
@@ -277,48 +239,6 @@ public:
 	int Sizeof() { return Size; }
 	bool GetVariant(const char *Name, GVariant &Value, char *Arr = 0);
 	bool SetVariant(const char *Name, GVariant &Value, char *Arr = 0);
-};
-
-/// Container of compiled byte code
-class GCompiledCode : public GScriptObj
-{
-	friend class GCompilerPriv;
-	friend class GVirtualMachinePriv;
-	friend class GCompiler;
-
-	GVariables Globals;
-	GArray<uint8> ByteCode;
-	GArray< GAutoRefPtr<GFunctionInfo> > Methods;
-	GArray<GExternFunc*> Externs;
-	GHashTbl<char16*, GTypeDef*> Types;
-	GHashTbl<int, int> Debug;
-	GAutoString FileName;
-	GScriptContext *SysContext;
-	GScriptContext *UserContext;
-
-public:
-	GCompiledCode();
-	GCompiledCode(GCompiledCode &copy);
-	~GCompiledCode();
-
-	/// Size of the byte code
-	uint32 Length() { return ByteCode.Length(); }
-	/// Assignment operator
-	GCompiledCode &operator =(GCompiledCode &c);
-	/// Gets a method defined in the code
-	GFunctionInfo *GetMethod(const char *Name, bool Create = false);
-	/// Sets a global variable
-	GVariant *Set(const char *Name, GVariant &v);
-	/// Gets the definition of a struct or custom type
-	GTypeDef *GetType(char16 *Name) { return Types.Find(Name); }
-	/// Sets the file name this code was compiled from
-	void SetFileName(const char *f) { if (f != FileName) FileName.Reset(NewStr(f)); }
-	/// Gets the file name this code was compiled from
-	const char *GetFileName() { return FileName; }
-	/// Gets the source line number associated with an address
-	int ObjectToSourceAddress(int ObjAddr);
-	/// Turns an object address into a FileName:LineNumber string.
-	const char *AddrToSourceRef(int ObjAddr);
 };
 
 class GCompileTools
@@ -490,11 +410,12 @@ public:
 	/// Compile the source into byte code.
 	bool Compile
 	(
-		GAutoPtr<GScriptObj> &Code,
+		GAutoPtr<GCompiledCode> &Code,
 		GScriptContext *SysContext,
 		GScriptContext *UserContext,
 		const char *FileName,
-		const char *Script
+		const char *Script,
+		GDom *Args
 	);
 };
 
@@ -526,7 +447,7 @@ public:
 	GExecutionStatus ExecuteFunction
 	(
 		/// [In] The code to execute
-		GScriptObj *Code,
+		GCompiledCode *Code,
 		/// [In] The function to execute
 		GFunctionInfo *Func,
 		/// [In] The function's arguments

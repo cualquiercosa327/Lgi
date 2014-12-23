@@ -5,7 +5,7 @@
 #include "GVariant.h"
 
 class GScriptContext;
-class GScriptEngine;
+// class GScriptEngine;
 class GScriptEnginePrivate;
 
 typedef GArray<GVariant*> ArgumentArray;
@@ -134,18 +134,6 @@ public:
 	}
 };
 
-class GScriptObj
-{
-public:
-	virtual ~GScriptObj() {}
-
-	virtual uint32 Length() = 0;
-	virtual GVariant *Set(const char *Name, GVariant &v) = 0;
-	virtual const char *GetFileName() = 0;
-	virtual GFunctionInfo *GetMethod(const char *Name, bool Create = false) = 0;
-	virtual class GTypeDef *GetType(char16 *Name) = 0;
-};
-
 class GScriptUtils
 {
 public:
@@ -176,67 +164,125 @@ public:
 	// Where you return true if successful or false on error.
 };
 
-/// A scripting engine interface
-class GScriptEngine
+class GVariables : public GArray<GVariant>
 {
-	friend class SystemFunctions;
+	friend class GVirtualMachinePriv;
 
-protected:
-	virtual GScriptObj *GetCurrentCode() { return NULL; }
+	GHashTbl<const char*,int> Lut;
 
 public:
-	virtual ~GScriptEngine() {}
+	int Scope;
+	int NullIndex;
 
-	#define NotImplmented { LgiAssert(!"Not implemented"); }
-	#define NotImplmentedRet(c) { LgiAssert(!"Not implemented"); return c; }
+	GVariables(int scope)
+	{
+		Scope = scope;
+		NullIndex = -1;
+	}
 
-	/// Get the terminal output
-	virtual GStream *GetConsole() NotImplmentedRet(NULL)
-	virtual bool SetConsole(GStream *s) NotImplmentedRet(false)
+	int Var(const char *n, bool create = false)
+	{
+		int p = Lut.Find(n);
+		if (p)
+		{
+			return p - 1;
+		}
 
-	/// Empty the object of all current script and variables
-	virtual void Empty() NotImplmented
+		if (create)
+		{
+			int Len = Length();
 
-	/// Compile a script, required before you can run a script
-	virtual bool Compile(char *Script, const char *FileName, bool Add = false) NotImplmentedRet(false)
+			Lut.Add(n, Len + 1);
+			Length(Len + 1);
+
+			return Len;
+		}
+
+		return -1;
+	}
+};
+
+/// A block of compile byte code
+class GCompiledCode
+{
+	friend class GCompilerPriv;
+	friend class GVirtualMachinePriv;
+	friend class GCompiler;
+
+	/// The global variables
+	GVariables Globals;
 	
-	/// Run a previously compiled script
-	virtual GExecutionStatus Run() NotImplmentedRet(ScriptError)
+	/// The byte code of all the instructions
+	GArray<uint8> ByteCode;
+	
+	/// All the methods defined in the byte code and their arguments.
+	GArray< GAutoRefPtr<GFunctionInfo> > Methods;
+	
+	/// All the externs defined in the code.
+	GArray<GExternFunc*> Externs;
+	
+	/// All the user types defined
+	GHashTbl<char16*, class GTypeDef*> Types;
+	
+	/// The original script filename
+	GAutoString FileName;
+	
+	/// The system context (all the system functions)
+	GScriptContext *SysContext;
+	
+	/// Any user context (application functions)
+	GScriptContext *UserContext;
 
-	/// Compile and run a script in one step
-	virtual GExecutionStatus RunTemporary(char *Script) NotImplmentedRet(ScriptError)
+	/// Debug info to map instruction address back to source line numbers
+	GHashTbl<int, int> Debug;
 
-	/// Evaluate a single expression
-	virtual bool EvaluateExpression(GVariant *Result, GDom *VariableSource, char *Expression) NotImplmentedRet(false)
+public:
+	GCompiledCode();
+	GCompiledCode(GCompiledCode &copy);
+	~GCompiledCode();
 
-	/// Create a variable
-	virtual GVariant *Var(char16 *name, bool create = true) NotImplmentedRet(NULL)
-
-	/// Call a method with the given parameters.
-	virtual bool CallMethod(const char *Method, GVariant *Ret, ArgumentArray &Args) NotImplmentedRet(false)
-
-	/// Dump the stack variables to the terminal
-	virtual void DumpVariables() NotImplmented
+	/// Size of the byte code
+	uint32 Length() { return ByteCode.Length(); }
+	/// Assignment operator
+	GCompiledCode &operator =(GCompiledCode &c);
+	/// Gets a method defined in the code
+	GFunctionInfo *GetMethod(const char *Name, bool Create = false);
+	/// Sets a global variable
+	GVariant *Set(const char *Name, GVariant &v);
+	/// Gets the definition of a struct or custom type
+	GTypeDef *GetType(char16 *Name) { return Types.Find(Name); }
+	/// Sets the file name this code was compiled from
+	void SetFileName(const char *f) { if (f != FileName) FileName.Reset(NewStr(f)); }
+	/// Gets the file name this code was compiled from
+	const char *GetFileName() { return FileName; }
+	/// Gets the source line number associated with an address
+	int ObjectToSourceAddress(int ObjAddr);
+	/// Turns an object address into a FileName:LineNumber string.
+	const char *AddrToSourceRef(int ObjAddr);
 };
 
 /// New compiler/byte code/VM scripting engine
-class GScriptEngine2
+class GScriptEngine
 {
-	class GScriptEnginePrivate2 *d;
+	class GScriptEnginePrivate *d;
 
 public:
-	GScriptEngine2(GViewI *parent, GScriptContext *UserContext);
-	~GScriptEngine2();
+	GScriptEngine(GViewI *parent, GScriptContext *UserContext);
+	~GScriptEngine();
 
 	GStream *GetConsole();
 	bool SetConsole(GStream *t);
 
-	GScriptObj *CreateObj();
-	bool Compile(GAutoPtr<GScriptObj> &Obj, GScriptContext *UserContext, char *Script, const char *FileName = NULL);
-	GExecutionStatus Run(GScriptObj *Obj);
-	GExecutionStatus RunTemporary(GScriptObj *Obj, char *Script);
+	GCompiledCode *GetCurrentCode();
+	bool Compile(	GAutoPtr<GCompiledCode> &Obj,
+					GScriptContext *UserContext,
+					char *Script,
+					const char *FileName = NULL,
+					GDom *Args = NULL);
+	GExecutionStatus Run(GCompiledCode *Obj);
+	GExecutionStatus RunTemporary(GCompiledCode *Obj, char *Script);
 	bool EvaluateExpression(GVariant *Result, GDom *VariableSource, char *Expression);
-	bool CallMethod(GScriptObj *Obj, const char *Method, GVariant *Ret, ArgumentArray &Args);
+	bool CallMethod(GCompiledCode *Obj, const char *Method, GVariant *Ret, ArgumentArray &Args);
 	GScriptContext *GetSystemContext();
 };
 
@@ -265,7 +311,7 @@ public:
 	/// Start a debugger instance to handle the execution in 'Vm'
 	virtual GVmDebugger *AttachVm(GVirtualMachine *Vm, const char *Script, const char *Assembly) = 0;
 	/// Compile a new script
-	virtual bool CompileScript(GAutoPtr<GScriptObj> &Output, const char *FileName, const char *Source) = 0;
+	virtual bool CompileScript(GAutoPtr<GCompiledCode> &Output, const char *FileName, const char *Source) = 0;
 };
 
 /// Debugger for vm script

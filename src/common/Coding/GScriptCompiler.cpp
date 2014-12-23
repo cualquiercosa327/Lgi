@@ -342,6 +342,8 @@ public:
 	GArray<LinkFixup> Fixups;
 	GHashTbl<char16*, char16*> Defines;
 	GHashTbl<char16*, GExpTokens> ExpTok;
+	GDom *ScriptArgs;
+	GVarRef ScriptArgsRef;
 
 	#ifdef _DEBUG
 	GArray<GVariant> RegAllocators;
@@ -354,6 +356,8 @@ public:
 		Log = 0;
 		Script = 0;
 		Regs = 0;
+		ScriptArgs = NULL;
+		ScriptArgsRef.Empty();
 		
 		ExpTok.Add(sStartRdBracket, StartRdBracket);
 		ExpTok.Add(sEndRdBracket, EndRdBracket);
@@ -1002,9 +1006,37 @@ public:
 			if (n.IsVar())
 			{
 				// Variable
-				GVarRef v = FindVariable(n.Variable[0].Name, true);
+				bool HasScriptArgs = Scopes.Length() <= 1 && ScriptArgs != NULL;
+				GVarRef v = FindVariable(n.Variable[0].Name, !HasScriptArgs);
 				if (v.Index < 0)
-					return false;
+				{
+					if (HasScriptArgs)
+					{
+						if (AllocReg(v, _FL))
+						{
+							char16 *VarName = GetTok((unsigned)n.Tok);
+
+							if (!ScriptArgsRef.Valid())
+							{
+								// Setup the global variable to address the script argument variable
+								ScriptArgsRef.Scope = SCOPE_GLOBAL;
+								ScriptArgsRef.Index = Code->Globals.Length();
+								
+								GVariant &v = Code->Globals[ScriptArgsRef.Index];
+								v.Type = GV_DOM;
+								v.Value.Dom = ScriptArgs;								
+							}
+							
+							GVarRef Name, Null;
+							AllocConst(Name, VarName, -1);
+							AllocNull(Null);
+							
+							Asm4(n.Tok, IDomGet, v, ScriptArgsRef, Name, Null);
+						}
+						else return false;
+					}
+					else return false;
+				}
 
 				n.Reg = v;
 
@@ -1634,10 +1666,33 @@ public:
 
 			if (OpIdx < 0)
 			{
-				GVariant e;
-				e.Type = GV_STRING;
-				e.Value.String = DumpExp(n);
-				return OnError(n[0].Tok, "No operator found in expression '%s'.", e.Str());
+				// Is there a negative integer in the node list?
+				// The lexer can turn 'n-2' into {'n', '-2'}. At which
+				// point the operator has been lost. We can recreate it here
+				// though.
+				for (unsigned i=1; i<n.Length(); i++)
+				{
+					if (n[i].IsConst())
+					{
+						char16 *t = GetTok((unsigned)n[i].Tok);
+						if (*t == '-')
+						{
+							Node Addition;
+							Addition.SetOp(OpPlus, n[i].Tok);
+							n.AddAt(i, Addition);
+							OpIdx = i;
+							break;
+						}
+					}
+				}
+				
+				if (OpIdx < 0)
+				{
+					GVariant e;
+					e.Type = GV_STRING;
+					e.Value.String = DumpExp(n);
+					return OnError(n[0].Tok, "No operator found in expression '%s'.", e.Str());
+				}
 			}
 			
 			// Evaluate
@@ -2756,11 +2811,12 @@ GCompiler::~GCompiler()
 
 bool GCompiler::Compile
 (
-	GAutoPtr<GScriptObj> &Code,
+	GAutoPtr<GCompiledCode> &Code,
 	GScriptContext *SysContext,
 	GScriptContext *UserContext,
 	const char *FileName,
-	const char *Script
+	const char *Script,
+	GDom *Args
 )
 {
 	if (!Script)
@@ -2815,6 +2871,7 @@ bool GCompiler::Compile
 		bool LexResult = d->Lex((char*)Script, FileName);
 		if (LexResult)
 		{
+			d->ScriptArgs = Args;
 			Status = d->Compile();
 		}
 	}
@@ -2824,38 +2881,40 @@ bool GCompiler::Compile
 }
 
 //////////////////////////////////////////////////////////////////////
-class GScriptEnginePrivate2
+class GScriptEnginePrivate
 {
 public:
 	GViewI *Parent;
 	SystemFunctions SysContext;
 	GScriptContext *UserContext;
+	GCompiledCode *Code;
 
-	GScriptEnginePrivate2()
+	GScriptEnginePrivate()
 	{
 		UserContext = NULL;
 		Parent = NULL;
+		Code = NULL;
 	}
 };
 
-GScriptEngine2::GScriptEngine2(GViewI *parent, GScriptContext *UserContext)
+GScriptEngine::GScriptEngine(GViewI *parent, GScriptContext *UserContext)
 {
-	d = new GScriptEnginePrivate2;
+	d = new GScriptEnginePrivate;
 	d->Parent = parent;
 	d->UserContext = UserContext;
 }
 
-GScriptEngine2::~GScriptEngine2()
+GScriptEngine::~GScriptEngine()
 {
 	DeleteObj(d);
 }
 
-GScriptObj *GScriptEngine2::CreateObj()
+GCompiledCode *GScriptEngine::GetCurrentCode()
 {
-	return new GCompiledCode;
+	return d->Code;
 }
 
-bool GScriptEngine2::Compile(GAutoPtr<GScriptObj> &Obj, GScriptContext *UserContext, char *Script, const char *FileName)
+bool GScriptEngine::Compile(GAutoPtr<GCompiledCode> &Obj, GScriptContext *UserContext, char *Script, const char *FileName, GDom *Args)
 {
 	if (!Script)
 	{
@@ -2868,44 +2927,49 @@ bool GScriptEngine2::Compile(GAutoPtr<GScriptObj> &Obj, GScriptContext *UserCont
 						&d->SysContext,
 						UserContext ? UserContext : d->UserContext,
 						FileName,
-						Script);
+						Script,
+						Args);
 }
 
-GExecutionStatus GScriptEngine2::Run(GScriptObj *Obj)
+GExecutionStatus GScriptEngine::Run(GCompiledCode *Obj)
 {
 	GExecutionStatus Status = ScriptError;
 
-	GCompiledCode *Code = dynamic_cast<GCompiledCode*>(Obj);
-	if (Code)
+	d->Code = Obj;
+	if (d->Code)
 	{
 		GVirtualMachine Vm;
-		Status = Vm.Execute(Code);
+		Status = Vm.Execute(d->Code);
+		d->Code = NULL;
 	}
 
 	return Status;
 }
 
-GExecutionStatus GScriptEngine2::RunTemporary(GScriptObj *Obj, char *Script)
+GExecutionStatus GScriptEngine::RunTemporary(GCompiledCode *Obj, char *Script)
 {
 	GExecutionStatus Status = ScriptError;
 	GCompiledCode *Code = dynamic_cast<GCompiledCode*>(Obj);
 	if (Script && Code)
 	{
-		GAutoPtr<GScriptObj> Temp(new GCompiledCode(*Code));
+		GAutoPtr<GCompiledCode> Temp(new GCompiledCode(*Code));
 		uint32 TempLen = Temp->Length();
+		d->Code = Temp;
 		
 		GCompiler Comp;
-		if (Comp.Compile(Temp, &d->SysContext, d->UserContext, Temp->GetFileName(), Script))
+		if (Comp.Compile(Temp, &d->SysContext, d->UserContext, Temp->GetFileName(), Script, NULL))
 		{
 			GVirtualMachine Vm;
 			Status = Vm.Execute(dynamic_cast<GCompiledCode*>(Temp.Get()), TempLen);
 		}
+		
+		d->Code = NULL;
 	}
 
 	return Status;
 }
 
-bool GScriptEngine2::EvaluateExpression(GVariant *Result, GDom *VariableSource, char *Expression)
+bool GScriptEngine::EvaluateExpression(GVariant *Result, GDom *VariableSource, char *Expression)
 {
 	if (!Result || !VariableSource || !Expression)
 	{
@@ -2920,8 +2984,8 @@ bool GScriptEngine2::EvaluateExpression(GVariant *Result, GDom *VariableSource, 
 	
 	// Compile the script
 	GCompiler Comp;
-	GAutoPtr<GScriptObj> Obj;
-	if (!Comp.Compile(Obj, NULL, NULL, NULL, a))
+	GAutoPtr<GCompiledCode> Obj;
+	if (!Comp.Compile(Obj, NULL, NULL, NULL, a, VariableSource))
 	{
 		LgiAssert(0);
 		return false;
@@ -2940,7 +3004,7 @@ bool GScriptEngine2::EvaluateExpression(GVariant *Result, GDom *VariableSource, 
 	return true;
 }
 
-GStream *GScriptEngine2::GetConsole()
+GStream *GScriptEngine::GetConsole()
 {
 	if (d->SysContext.GetLog())
 		return d->SysContext.GetLog();
@@ -2951,7 +3015,7 @@ GStream *GScriptEngine2::GetConsole()
 	return NULL;
 }
 
-bool GScriptEngine2::SetConsole(GStream *t)
+bool GScriptEngine::SetConsole(GStream *t)
 {
 	d->SysContext.SetLog(t);
 
@@ -2961,7 +3025,7 @@ bool GScriptEngine2::SetConsole(GStream *t)
 	return true;
 }
 
-bool GScriptEngine2::CallMethod(GScriptObj *Obj, const char *Method, GVariant *Ret, ArgumentArray &Args)
+bool GScriptEngine::CallMethod(GCompiledCode *Obj, const char *Method, GVariant *Ret, ArgumentArray &Args)
 {
 	GCompiledCode *Code = dynamic_cast<GCompiledCode*>(Obj);
 	if (!Code || !Method)
@@ -2976,7 +3040,7 @@ bool GScriptEngine2::CallMethod(GScriptObj *Obj, const char *Method, GVariant *R
 	return Status != ScriptError;
 }
 
-GScriptContext *GScriptEngine2::GetSystemContext()
+GScriptContext *GScriptEngine::GetSystemContext()
 {
 	return &d->SysContext;
 }

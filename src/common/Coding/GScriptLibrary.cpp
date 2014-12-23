@@ -527,7 +527,7 @@ bool SystemFunctions::New(GVariant *Ret, ArgumentArray &Args)
 		{
 			Ret->Empty();
 
-			GScriptObj *c = Engine ? Engine->GetCurrentCode() : NULL;
+			GCompiledCode *c = Engine ? Engine->GetCurrentCode() : NULL;
 			if (!c)
 				return false;
 
@@ -683,7 +683,9 @@ bool SystemFunctions::ListFiles(GVariant *Ret, ArgumentArray &Args)
 	Ret->SetList();
 	GDirectory d;
 	char *Pattern = Args.Length() > 1 ? Args[1]->CastString() : 0;
-	for (int b=d.First(Args[0]->CastString()); b; b=d.Next())
+	
+	char *Folder = Args[0]->CastString();
+	for (int b=d.First(Folder); b; b=d.Next())
 	{
 		if (!Pattern || MatchStr(Pattern, d.GetName()))
 		{

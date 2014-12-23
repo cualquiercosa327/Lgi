@@ -698,7 +698,7 @@ GExecutionStatus GVirtualMachine::Execute(GCompiledCode *Code, uint32 StartOffse
 	return d->Run(GVirtualMachinePriv::RunContinue);
 }
 
-GExecutionStatus GVirtualMachine::ExecuteFunction(GScriptObj *Code, GFunctionInfo *Func, ArgumentArray &Args, GVariant *Ret, GStream *Log)
+GExecutionStatus GVirtualMachine::ExecuteFunction(GCompiledCode *Code, GFunctionInfo *Func, ArgumentArray &Args, GVariant *Ret, GStream *Log)
 {
 	GCompiledCode *Cc = dynamic_cast<GCompiledCode*>(Code);
 	if (!Cc)
@@ -932,7 +932,7 @@ struct GScriptVmDebuggerPriv
 	GArray<CodeBlock> Blocks;
 	int CurrentAddr;
 	GArray<bool> LineIsAsm;
-	GAutoPtr<GScriptObj> Obj;
+	GAutoPtr<GCompiledCode> Obj;
 
 	// Ui
 	GView *Parent;
