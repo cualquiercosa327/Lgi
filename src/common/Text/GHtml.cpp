@@ -626,7 +626,7 @@ public:
 		{
 			default:
 			case GCss::LenInherit:
-				return X();
+				return IsMargin ? 0 : X();
 			case GCss::LenPx:
 				return min((int)l.Value, X());
 			case GCss::LenPt:
@@ -1160,11 +1160,7 @@ GRect *GFlowRegion::LineBounds()
 
 void GFlowRegion::Insert(GFlowRect *Tr)
 {
-	if (Tr)
-	{
-		Line.Insert(Tr);
-		// y2 = max(y2, Tr->y2);
-	}
+	if (Tr) Line.Insert(Tr);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -2558,7 +2554,7 @@ void GTag::SetStyle()
 			{
 				if (_stricmp(s, "cite") == 0)
 				{
-					BorderLeft(BorderDef("1px solid blue"));
+					BorderLeft(BorderDef(this, "1px solid blue"));
 					PaddingLeft(Len("0.5em"));
 					
 					ColorDef Def;
@@ -2601,7 +2597,7 @@ void GTag::SetStyle()
 			if (Get("border", s))
 			{
 				BorderDef b;
-				if (b.Parse(s))
+				if (b.Parse(this, s))
 				{
 					BorderLeft(b);
 					BorderRight(b);
@@ -4514,7 +4510,7 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, int LineHeight, 
 
 		GDisplayString ds2(Font, Tr->Text, Tr->Len);
 		Tr->x2 = ds2.X();
-		Tr->y2 = LineHeight; // ds2.Y();
+		Tr->y2 = LineHeight - 1; // ds2.Y();
 		if (Wrap)
 		{
 			Flow->cx = Flow->x1;
@@ -4545,6 +4541,41 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, int LineHeight, 
 
 		if (Tr->Len == 0)
 			break;
+	}
+}
+
+/// This method centers the text in the area given to the tag. Used for inline block elements.
+void GTag::CenterText()
+{
+	if (!Parent)
+		return;
+
+	// Find the size of the text elements.
+	int ContentPx = 0;
+	for (int i=0; i<TextPos.Length(); i++)
+	{
+		GFlowRect *fr = TextPos[i];
+		ContentPx += fr->X();
+	}
+	
+	GFont *f = GetFont();
+	int ParentPx = ToTag(Parent)->Size.x;
+	int AvailPx = Size.x;
+
+	// Remove the border and padding from the content area
+	AvailPx -= BorderLeft().ToPx(ParentPx, f);
+	AvailPx -= BorderRight().ToPx(ParentPx, f);
+	AvailPx -= PaddingLeft().ToPx(ParentPx, f);
+	AvailPx -= PaddingRight().ToPx(ParentPx, f);
+	if (AvailPx > ContentPx)
+	{
+		// Now offset all the regions to the right
+		int OffPx = (AvailPx - ContentPx) >> 1;
+		for (int i=0; i<TextPos.Length(); i++)
+		{
+			GFlowRect *fr = TextPos[i];
+			fr->Offset(OffPx, 0);
+		}
 	}
 }
 
@@ -4768,11 +4799,11 @@ void GTag::OnFlow(GFlowRegion *Flow)
 			Flow->x2 = Size.x;
 			Flow->cx = 0;
 			
-			Flow->cx += Flow->ResolveX(BorderLeft(), GetFont(), false);
-			Flow->y1 += Flow->ResolveY(BorderTop(), GetFont(), false);
+			Flow->cx += Flow->ResolveX(BorderLeft(), GetFont(), true);
+			Flow->y1 += Flow->ResolveY(BorderTop(), GetFont(), true);
 			
-			Flow->cx += Flow->ResolveX(PaddingLeft(), GetFont(), false);
-			Flow->y1 += Flow->ResolveY(PaddingTop(), GetFont(), false);
+			Flow->cx += Flow->ResolveX(PaddingLeft(), GetFont(), true);
+			Flow->y1 += Flow->ResolveY(PaddingTop(), GetFont(), true);
 		}
 	}
 
@@ -4954,9 +4985,12 @@ void GTag::OnFlow(GFlowRegion *Flow)
 		}
 		else
 		{
-			Flow->cx += Flow->ResolveX(PaddingRight(), GetFont(), false);
-			Flow->cx += Flow->ResolveX(BorderRight(), GetFont(), false);
-			Size.x = Flow->cx;
+			GCss::Len Wid = Width();
+			int WidPx = Wid.IsValid() ? Flow->ResolveX(Wid, GetFont(), false) : 0;
+			
+			Flow->cx += Flow->ResolveX(PaddingRight(), GetFont(), true);
+			Flow->cx += Flow->ResolveX(BorderRight(), GetFont(), true);
+			Size.x = max(WidPx, Flow->cx);
 			Flow->cx += Flow->ResolveX(MarginRight(), GetFont(), true);
 			Flow->x1 = BlockInlineX[0] - Pos.x;
 			Flow->cx = BlockInlineX[1] + Flow->cx - Pos.x;
@@ -4970,10 +5004,12 @@ void GTag::OnFlow(GFlowRegion *Flow)
 			}
 			else
 			{
-				Flow->y2 += Flow->ResolveX(PaddingBottom(), GetFont(), false);
-				Flow->y2 += Flow->ResolveX(BorderBottom(), GetFont(), false);
+				Flow->y2 += Flow->ResolveX(PaddingBottom(), GetFont(), true);
+				Flow->y2 += Flow->ResolveX(BorderBottom(), GetFont(), true);
 				Size.y = Flow->y2 - Flow->y1 + 1;
 			}
+			
+			CenterText();
 		}
 	}
 	else

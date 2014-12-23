@@ -295,6 +295,7 @@ protected:
 	char *NextTag(char *s);
 	void ZeroTableElements();
 	bool OnUnhandledColor(GCss::ColorDef *def, const char *&s);
+	void CenterText();
 	
 	COLOUR _Colour(bool Fore);
 	COLOUR GetFore() { return _Colour(true); }

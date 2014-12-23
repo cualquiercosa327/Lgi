@@ -396,12 +396,12 @@ public:
 		BorderStyle Style;
 		bool Important;
 
-		BorderDef(const char *init = 0)
+		BorderDef(GCss *css = 0, const char *init = 0)
 		{
 			Style = BorderNone;
 			Important = true;
 			if (init)
-				Parse(init);
+				Parse(css, init);
 		}
 
 		BorderDef(const BorderDef &db) : Len(db)
@@ -411,7 +411,7 @@ public:
 			Important = db.Important;
 		}
 		
-		bool Parse(const char *&s);
+		bool Parse(GCss *Css, const char *&s);
 		bool ParseStyle(const char *&s);
 		
 		BorderDef &operator =(const BorderDef &b)

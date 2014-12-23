@@ -1747,7 +1747,7 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 				else
 				{				
 					GAutoPtr<BorderDef> t(new BorderDef);
-					if (t->Parse(s))
+					if (t->Parse(this, s))
 					{
 						if (PropId == PropBorder)
 						{
@@ -2125,7 +2125,7 @@ GCss::ImageDef &GCss::ImageDef::operator =(const ImageDef &o)
 	return *this;
 }
 
-bool GCss::BorderDef::Parse(const char *&s)
+bool GCss::BorderDef::Parse(GCss *Css, const char *&s)
 {
 	if (!s)
 		return false;
@@ -2143,14 +2143,22 @@ bool GCss::BorderDef::Parse(const char *&s)
 		
 		if (Len::Parse(s, PropBorder, ParseRelaxed))
 			continue;
-
+			
 		if (ParseStyle(s))
 			continue;
 
 		if (Color.Parse(s))
 			continue;
-			
-		return false;
+		
+		// Ok running out of ideas here....
+		
+		// Is it a weird colour?
+		if (Css && Css->OnUnhandledColor(&Color, s))
+			continue;
+
+		// Unknown token... try and parse over it?
+		while (*s && *s != ';' && !strchr(WhiteSpace, *s))
+			s++;
 	}
 
 	return true;
