@@ -103,8 +103,8 @@ bool GWindow::MoveSameScreen(GViewI *wnd)
 	}
 	
 	GRect p = wnd->GetPos();
-	int cx = p.x1 + (p.X() >> 2);
-	int cy = p.y1 + (p.Y() >> 2);
+	int cx = p.x1 + (p.X() >> 4);
+	int cy = p.y1 + (p.Y() >> 4);
 	
 	GRect np = GetPos();
 	np.Offset(cx - np.x1, cy - np.y1);

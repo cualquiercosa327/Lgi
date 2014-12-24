@@ -8,6 +8,8 @@
 #include "GList.h"
 #include "GToolBar.h"
 #include "GToken.h"
+#include "GTableLayout.h"
+#include "GTextLabel.h"
 
 #define TIME_INSTRUCTIONS		0
 #define POST_EXECUTE_STATE		0
@@ -219,14 +221,6 @@ struct CodeBlock
 
 class GVirtualMachinePriv
 {
-	struct StackFrame
-	{
-		uint32 CurrentFrameSize;
-		int PrevFrameStart;
-		int ReturnIp;
-		GVariant *ReturnValue;
-	};
-
 	GVariant ArrayTemp;
 	
 	char *CastArrayIndex(GVariant *Idx)	
@@ -242,6 +236,14 @@ class GVirtualMachinePriv
 	}
 
 public:
+	struct StackFrame
+	{
+		uint32 CurrentFrameSize;
+		int PrevFrameStart;
+		int ReturnIp;
+		GVariant *ReturnValue;
+	};
+
 	enum RunType
 	{
 		RunContinue,
@@ -268,6 +270,7 @@ public:
 		Code = NULL;
 		Debugger = NULL;
 		DbgCallback = Callback;
+		ZeroObj(Scope);
 	}
 
 	void DumpVariant(GStream *Log, GVariant &v)
@@ -437,6 +440,11 @@ public:
 		uint8 *Base = c.u8 = &Code->ByteCode[0];
 		uint8 *e = c.u8 + Code->ByteCode.Length();
 
+		Scope[SCOPE_REGISTER] = Reg;
+		Scope[SCOPE_LOCAL] = NULL;
+		Scope[SCOPE_GLOBAL] = &Code->Globals[0];
+
+
 		#if 1
 		const char *SourceFileName = Code->GetFileName();
 	    char Obj[MAX_PATH];
@@ -511,10 +519,6 @@ public:
 		GHashTbl<int, int64> Timings;
 		GHashTbl<int, int> TimingFreq;
 		#endif
-
-		Scope[0] = Reg;
-		Scope[1] = NULL;
-		Scope[2] = &Code->Globals[0];
 
 		// Calling a function only, not the whole script
 		StackFrame &Sf = Frames.New();
@@ -891,12 +895,14 @@ GInlineBmp DbgIcons = {128, 16, 16, IconsData};
 
 enum DbgCtrls
 {
+	IDC_STATIC = -1,
 	IDC_TABS = 300,
 	IDC_BOX,
 	IDC_BOX2,
 	IDC_TEXT,
 	IDC_LOCALS,
 	IDC_GLOBALS,
+	IDC_REGISTERS,
 	IDC_STACK,
 	IDC_LOG,
 	IDC_RUN,
@@ -908,6 +914,8 @@ enum DbgCtrls
 	IDC_STEP_OVER,
 	IDC_STEP_OUT,
 	IDC_SOURCE_LST,
+	IDC_BREAK_POINT,
+	IDC_VARS_TBL
 };
 
 struct GScriptVmDebuggerPriv;
@@ -941,9 +949,10 @@ struct GScriptVmDebuggerPriv
 	GList *SourceLst;
 	GTabView *Tabs;
 	GDebugView *Text;
-	GList *Locals, *Globals, *Stack;
+	GList *Locals, *Globals, *Registers, *Stack;
 	GTextLog *Log;
 	GToolBar *Tools;
+	GTableLayout *VarsTbl;
 
 	GScriptVmDebuggerPriv()
 	{
@@ -955,10 +964,12 @@ struct GScriptVmDebuggerPriv
 		Text = NULL;
 		Locals = NULL;
 		Globals = NULL;
+		Registers = NULL;
 		Stack = NULL;
 		Tools = NULL;
 		SourceLst = NULL;
 		Callback = NULL;
+		VarsTbl = NULL;
 	}
 };
 
@@ -1033,6 +1044,23 @@ GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVi
 	
 	if (Attach(NULL))
 	{
+		if ((Menu = new GMenu))
+		{
+			Menu->Attach(this);
+			GSubMenu *s = Menu->AppendSub("Debug");
+			s->AppendItem("Run", IDC_RUN, true, -1, "Ctrl+F5");
+			s->AppendItem("Pause", IDC_PAUSE, true, -1, NULL);
+			s->AppendItem("Stop", IDC_STOP, true, -1, "Ctrl+Break");
+			s->AppendItem("Restart", IDC_RESTART, true, -1, NULL);
+			s->AppendItem("Goto", IDC_GOTO, true, -1, NULL);
+			s->AppendSeparator();
+			s->AppendItem("Step Into", IDC_STEP_INTO, true, -1, "F11");
+			s->AppendItem("Step Over", IDC_STEP_OVER, true, -1, "F10");
+			s->AppendItem("Step Out", IDC_STEP_OUT, true, -1, "Shift+F11");
+			s->AppendSeparator();
+			s->AppendItem("Breakpoint", IDC_BREAK_POINT, true, -1, "F9");
+		}
+		
 		AddView(d->Tools = new GToolBar);
 		
 		uint16 *Px = (uint16*) DbgIcons.Data;
@@ -1045,6 +1073,7 @@ GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVi
 		d->Tools->AppendButton("Stop", IDC_STOP);
 		d->Tools->AppendButton("Restart", IDC_RESTART);
 		d->Tools->AppendButton("Goto", IDC_GOTO);
+		d->Tools->AppendSeparator();
 		d->Tools->AppendButton("Step Into", IDC_STEP_INTO);
 		d->Tools->AppendButton("Step Over", IDC_STEP_OVER);
 		d->Tools->AppendButton("Step Out", IDC_STEP_OUT);
@@ -1061,16 +1090,33 @@ GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVi
 		d->Sub->AddView(d->Text = new GDebugView(d));
 		
 		d->Main->AddView(d->Tabs = new GTabView(IDC_TABS));
-		d->Tabs->GetCss(true)->Height(GCss::Len("150px"));
+		d->Tabs->GetCss(true)->Height(GCss::Len("250px"));
 		
-		GTabPage *p = d->Tabs->Append("Locals");
-		p->Append(d->Locals = new GList(IDC_LOCALS, 0, 0, 100, 100));
-		d->Locals->SetPourLargest(true);
+		GTabPage *p = d->Tabs->Append("Variables");
+		p->Append(d->VarsTbl = new GTableLayout(IDC_VARS_TBL));		
 		
-		p = d->Tabs->Append("Globals");
-		p->Append(d->Globals = new GList(IDC_GLOBALS, 0, 0, 100, 100));
-		d->Globals->SetPourLargest(true);
-		
+		int x = 0, y = 0;
+		GLayoutCell *c = d->VarsTbl->GetCell(x++, y);
+		c->Add(new GText(IDC_STATIC, 0, 0, -1, -1, "Globals:"));
+		c = d->VarsTbl->GetCell(x++, y);
+		c->Add(new GText(IDC_STATIC, 0, 0, -1, -1, "Locals:"));
+		c = d->VarsTbl->GetCell(x++, y);
+		c->Add(new GText(IDC_STATIC, 0, 0, -1, -1, "Registers:"));
+
+		x = 0; y++;
+		c = d->VarsTbl->GetCell(x++, y);
+		c->Add(d->Globals = new GList(IDC_GLOBALS, 0, 0, 100, 100));
+		d->Globals->AddColumn("Name",100);
+		d->Globals->AddColumn("Value",400);
+		c = d->VarsTbl->GetCell(x++, y);
+		c->Add(d->Locals = new GList(IDC_LOCALS, 0, 0, 100, 100));
+		d->Locals->AddColumn("Name",100);
+		d->Locals->AddColumn("Value",400);
+		c = d->VarsTbl->GetCell(x++, y);
+		c->Add(d->Registers = new GList(IDC_REGISTERS, 0, 0, 100, 100));
+		d->Registers->AddColumn("Name",100);
+		d->Registers->AddColumn("Value",400);
+
 		p = d->Tabs->Append("Stack");
 		p->Append(d->Stack = new GList(IDC_STACK, 0, 0, 100, 100));
 		d->Stack->SetPourLargest(true);
@@ -1254,6 +1300,41 @@ void GVmDebuggerWnd::SetSource(const char *Mixed)
 	#endif
 }
 
+void GVmDebuggerWnd::UpdateVariables(GList *Lst, GVariant *Arr, int Len, char Prefix)
+{
+	if (!d->Vm || !Lst || !Arr)
+		return;
+
+	List<GListItem> all;
+	Lst->GetAll(all);
+	
+	GListItem *it;
+	for (int i=0; i<Len; i++)
+	{
+		GVariant *v = Arr + i;
+		GStringPipe p(64);
+		d->Vm->d->DumpVariant(&p, *v);
+		GAutoString a(p.NewStr());
+		char nm[32];
+		sprintf_s(nm, sizeof(nm), "%c%i", Prefix, i);
+		
+		if (i >= all.Length())
+		{
+			it = new GListItem;
+			all.Insert(it);
+			Lst->Insert(it);
+		}
+		it = i < all.Length() ? all[i] : NULL;
+		if (it)
+		{
+			it->SetText(nm, 0);
+			it->SetText(a, 1);
+		}
+	}
+	
+	Lst->ResizeColumnsToContent();
+}
+
 void GVmDebuggerWnd::OnAddress(int Addr)
 {
 	d->CurrentAddr = Addr;
@@ -1261,6 +1342,28 @@ void GVmDebuggerWnd::OnAddress(int Addr)
 	{
 		d->Text->PourText(0, d->Text->GetSize());
 		d->Text->Invalidate();
+	}
+	
+	if (d->Tabs->Value() == 0)
+	{
+		UpdateVariables(d->Globals,
+						d->Vm->d->Scope[SCOPE_GLOBAL],
+						d->Obj->Globals.Length(),
+						'G');
+		if (d->Vm->d->Frames.Length())
+		{
+			GVirtualMachinePriv::StackFrame &frm = d->Vm->d->Frames.Last();
+			UpdateVariables(d->Locals,
+						d->Vm->d->Scope[SCOPE_LOCAL],
+						frm.CurrentFrameSize,
+						'L');
+		}
+		else d->Locals->Empty();
+		
+		UpdateVariables(d->Registers,
+						d->Vm->d->Scope[SCOPE_REGISTER],
+						MAX_REGISTER,
+						'R');
 	}
 }
 
@@ -1296,26 +1399,10 @@ void GVmDebuggerWnd::LoadFile(const char *File)
 	}
 }
 
-int GVmDebuggerWnd::OnNotify(GViewI *Ctrl, int Flags)
+int GVmDebuggerWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 {
-	switch (Ctrl->GetId())
+	switch (Cmd)
 	{
-		case IDC_SOURCE_LST:
-		{
-			if (Flags != GLIST_NOTIFY_DBL_CLICK)
-				break;
-
-			GListItem *it = d->SourceLst->GetSelected();
-			if (!it)
-				break;
-
-			char *full = it->GetText(1);
-			if (!FileExists(full))
-				break;
-
-			LoadFile(full);
-			break;
-		}
 		case IDC_RUN:
 		{
 			if (d->Vm)
@@ -1368,6 +1455,31 @@ int GVmDebuggerWnd::OnNotify(GViewI *Ctrl, int Flags)
 		}
 	}
 
+	return GWindow::OnCommand(Cmd, Event, Wnd);
+}
+
+int GVmDebuggerWnd::OnNotify(GViewI *Ctrl, int Flags)
+{
+	switch (Ctrl->GetId())
+	{
+		case IDC_SOURCE_LST:
+		{
+			if (Flags != GLIST_NOTIFY_DBL_CLICK)
+				break;
+
+			GListItem *it = d->SourceLst->GetSelected();
+			if (!it)
+				break;
+
+			char *full = it->GetText(1);
+			if (!FileExists(full))
+				break;
+
+			LoadFile(full);
+			break;
+		}
+	}
+	
 	return GWindow::OnNotify(Ctrl, Flags);
 }
 

@@ -422,6 +422,7 @@ public:
 /// This class is the VM for the byte language
 class GVirtualMachine : public GScriptUtils
 {
+	friend class GVmDebuggerWnd;
 	class GVirtualMachinePriv *d;
 
 public:

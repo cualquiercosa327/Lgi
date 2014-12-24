@@ -208,6 +208,7 @@ class GCompiledCode
 	friend class GCompilerPriv;
 	friend class GVirtualMachinePriv;
 	friend class GCompiler;
+	friend class GVmDebuggerWnd;
 
 	/// The global variables
 	GVariables Globals;
@@ -293,6 +294,10 @@ class GVmDebugger : public GDom
 public:
 	/// Set the VM ownership flag.
 	virtual void OwnVm(bool Own) = 0;
+	/// Makes the debugger the owner of the compiled code
+	virtual void OwnCompiledCode(GAutoPtr<GCompiledCode> Cc) = 0;
+	/// Gets the code owned by the debugger
+	virtual GCompiledCode *GetCode() = 0;
 	/// Set the source and asm
 	virtual void SetSource(const char *Mixed) = 0;
 	
@@ -319,6 +324,8 @@ class GVmDebuggerWnd : public GWindow, public GVmDebugger
 {
 	struct GScriptVmDebuggerPriv *d;
 
+	void UpdateVariables(GList *Lst, GVariant *Arr, int Len, char Prefix);
+
 public:
 	GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVirtualMachine *Vm, const char *Script, const char *Assembly);
 	~GVmDebuggerWnd();
@@ -329,9 +336,12 @@ public:
 	void OnRun(bool Running);
 	void SetSource(const char *Mixed);
 	int OnNotify(GViewI *Ctrl, int Flags);
+	int OnCommand(int Cmd, int Event, OsView Wnd);
 	GMessage::Param OnEvent(GMessage *Msg);
 	void LoadFile(const char *File);
 	GStream *GetLog();
+	void OwnCompiledCode(GAutoPtr<GCompiledCode> Cc);
+	GCompiledCode *GetCode();
 };
 
 #endif
