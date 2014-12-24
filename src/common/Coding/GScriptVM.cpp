@@ -1120,6 +1120,16 @@ void GVmDebuggerWnd::OwnVm(bool Own)
 	d->OwnVm = Own;
 }
 
+void GVmDebuggerWnd::OwnCompiledCode(GAutoPtr<GCompiledCode> Cc)
+{
+	d->Obj = Cc;
+}
+
+GCompiledCode *GVmDebuggerWnd::GetCode()
+{
+	return d->Obj;
+}
+
 void GVmDebuggerWnd::SetSource(const char *Mixed)
 {
 	#if 1
