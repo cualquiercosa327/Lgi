@@ -1061,6 +1061,10 @@ int32 GVariant::CastInt32()
 			}
 			break;
 		}
+		case GV_LIST:
+			return Value.Lst != 0;
+		case GV_HASHTABLE:
+			return Value.Hash != 0;
 	}
 	
 	return 0;
