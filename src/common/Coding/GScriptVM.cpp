@@ -711,14 +711,14 @@ GExecutionStatus GVirtualMachine::ExecuteFunction(GCompiledCode *Code, GFunction
 	return d->Run(GVirtualMachinePriv::RunContinue);
 }
 
-GVmDebugger *GVirtualMachine::OpenDebugger()
+GVmDebugger *GVirtualMachine::OpenDebugger(const char *Script)
 {
 	if (!d->Debugger)
 	{
 		if (!d->DbgCallback)
 			return NULL;
 		
-		d->Debugger = d->DbgCallback->AttachVm(this, NULL, NULL);
+		d->Debugger = d->DbgCallback->AttachVm(this, Script, NULL);
 	}
 	
 	return d->Debugger;
@@ -1108,6 +1108,11 @@ GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVi
 GVmDebuggerWnd::~GVmDebuggerWnd()
 {
 	delete d;
+}
+
+GStream *GVmDebuggerWnd::GetLog()
+{
+	return d->Log;
 }
 
 void GVmDebuggerWnd::OwnVm(bool Own)

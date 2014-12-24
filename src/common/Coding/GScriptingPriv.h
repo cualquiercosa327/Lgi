@@ -459,7 +459,7 @@ public:
 	);
 
 	// Debugging commands
-	GVmDebugger *OpenDebugger();
+	GVmDebugger *OpenDebugger(const char *Script = NULL);
 	bool StepInto();
 	bool StepOver();
 	bool StepOut();

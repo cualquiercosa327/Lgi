@@ -5,8 +5,8 @@
 #include "GVariant.h"
 
 class GScriptContext;
-// class GScriptEngine;
 class GScriptEnginePrivate;
+class GVmDebuggerCallback;
 
 typedef GArray<GVariant*> ArgumentArray;
 typedef bool (GScriptContext::*ScriptCmd)(GVariant *Ret, ArgumentArray &Args);
@@ -267,7 +267,7 @@ class GScriptEngine
 	class GScriptEnginePrivate *d;
 
 public:
-	GScriptEngine(GViewI *parent, GScriptContext *UserContext);
+	GScriptEngine(GViewI *parent, GScriptContext *UserContext, GVmDebuggerCallback *Callback);
 	~GScriptEngine();
 
 	GStream *GetConsole();
@@ -331,6 +331,7 @@ public:
 	int OnNotify(GViewI *Ctrl, int Flags);
 	GMessage::Param OnEvent(GMessage *Msg);
 	void LoadFile(const char *File);
+	GStream *GetLog();
 };
 
 #endif

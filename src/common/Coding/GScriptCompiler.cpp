@@ -2888,20 +2888,23 @@ public:
 	SystemFunctions SysContext;
 	GScriptContext *UserContext;
 	GCompiledCode *Code;
+	GVmDebuggerCallback *Callback;
 
 	GScriptEnginePrivate()
 	{
 		UserContext = NULL;
 		Parent = NULL;
 		Code = NULL;
+		Callback = NULL;
 	}
 };
 
-GScriptEngine::GScriptEngine(GViewI *parent, GScriptContext *UserContext)
+GScriptEngine::GScriptEngine(GViewI *parent, GScriptContext *UserContext, GVmDebuggerCallback *Callback)
 {
 	d = new GScriptEnginePrivate;
 	d->Parent = parent;
 	d->UserContext = UserContext;
+	d->Callback = Callback;
 }
 
 GScriptEngine::~GScriptEngine()
@@ -2938,7 +2941,7 @@ GExecutionStatus GScriptEngine::Run(GCompiledCode *Obj)
 	d->Code = Obj;
 	if (d->Code)
 	{
-		GVirtualMachine Vm;
+		GVirtualMachine Vm(d->Callback);
 		Status = Vm.Execute(d->Code);
 		d->Code = NULL;
 	}
@@ -2959,7 +2962,7 @@ GExecutionStatus GScriptEngine::RunTemporary(GCompiledCode *Obj, char *Script)
 		GCompiler Comp;
 		if (Comp.Compile(Temp, &d->SysContext, d->UserContext, Temp->GetFileName(), Script, NULL))
 		{
-			GVirtualMachine Vm;
+			GVirtualMachine Vm(d->Callback);
 			Status = Vm.Execute(dynamic_cast<GCompiledCode*>(Temp.Get()), TempLen);
 		}
 		
@@ -2992,7 +2995,7 @@ bool GScriptEngine::EvaluateExpression(GVariant *Result, GDom *VariableSource, c
 	}
 	
 	// Execute the script
-	GVirtualMachine Vm;
+	GVirtualMachine Vm(d->Callback);
 	GCompiledCode *Code = dynamic_cast<GCompiledCode*>(Obj.Get());
 	GExecutionStatus s = Vm.Execute(Code, 0, NULL, true, Result);
 	if (s == ScriptError)
@@ -3035,7 +3038,7 @@ bool GScriptEngine::CallMethod(GCompiledCode *Obj, const char *Method, GVariant 
 	if (!i)
 		return false;
 
-	GVirtualMachine Vm;
+	GVirtualMachine Vm(d->Callback);
 	GExecutionStatus Status = Vm.ExecuteFunction(Code, i, Args, Ret, NULL);
 	return Status != ScriptError;
 }

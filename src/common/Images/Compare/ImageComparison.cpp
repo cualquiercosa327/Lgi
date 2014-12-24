@@ -10,11 +10,9 @@
 #include "GTabView.h"
 #include "resdefs.h"
 
-
-#define M_LOAD				(M_USER + 2000)
 #define DIFF_LARGE_8BIT		(10)
 #define DIFF_LARGE_16BIT	(DIFF_LARGE_8BIT << 8)
-//#define DIFF_CENTER			(1<<7)
+#define M_LOAD				(M_USER + 2000)
 
 #define OPT_CompareLeft		"CmpLeft"
 #define OPT_CompareRight	"CmpRight"
@@ -679,21 +677,21 @@ public:
 			if (vp.Zoom < 0)
 			{
 				// scaling down
-				vp.Sx = DocPos.x - (Factor * m.x);
-				vp.Sy = DocPos.y - (Factor * m.y);
+				vp.Sx = (int) (DocPos.x - (Factor * m.x));
+				vp.Sy = (int) (DocPos.y - (Factor * m.y));
 				
 			}
 			else if (vp.Zoom > 0)
 			{
 				// scaling up
-				vp.Sx = DocPos.x - (m.x / Factor);
-				vp.Sy = DocPos.y - (m.y / Factor);
+				vp.Sx = (int) (DocPos.x - (m.x / Factor));
+				vp.Sy = (int) (DocPos.y - (m.y / Factor));
 			}
 			else
 			{
 				// 1:1
-				vp.Sx = DocPos.x - m.x;
-				vp.Sy = DocPos.y - m.y;
+				vp.Sx = (int) (DocPos.x - m.x);
+				vp.Sy = (int) (DocPos.y - m.y);
 			}
 			
 			AView->SetViewport(vp);

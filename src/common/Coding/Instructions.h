@@ -64,9 +64,10 @@ case IJump:
 {
 	#if VM_DECOMP
 	if (Log)
-		Log->Print("%p Jump by 0x%x\n",
+		Log->Print("%p Jump by %i (to 0x%x)\n",
 			CurrentScriptAddress - 1,
-			c.i32[0]);
+			c.i32[0],
+			CurrentScriptAddress + 4 + c.i32[0]);
 	#endif
 
 	int32 Jmp = *c.i32++;
