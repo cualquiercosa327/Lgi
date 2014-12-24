@@ -207,7 +207,7 @@ GExecutionStatus GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentA
 struct CodeBlock
 {
 	unsigned SrcLine;
-	int AsmAddr;
+	GArray<int> AsmAddr;
 	unsigned ViewLine;
 
 	GAutoString Source;
@@ -980,11 +980,11 @@ void GDebugView::PourText(int Start, int Len)
 	for (unsigned i=0; i<d->Blocks.Length(); i++)
 	{
 		CodeBlock &b = d->Blocks[i];
-		if (b.AsmAddr >= 0)
+		for (unsigned n=0; n<b.AsmAddr.Length(); n++)
 		{
-			if (d->CurrentAddr == b.AsmAddr)
+			if (d->CurrentAddr == b.AsmAddr[n])
 			{
-				CurLine = b.ViewLine + b.SrcLines - 2;
+				CurLine = b.ViewLine + b.SrcLines + n - 1;
 				break;
 			}
 		}
@@ -1138,7 +1138,6 @@ void GVmDebuggerWnd::SetSource(const char *Mixed)
 	
 	d->Blocks.Length(0);
 	CodeBlock *Cur = &d->Blocks.New();
-	Cur->AsmAddr = -1;
 
 	// Parse the mixed source
 	GToken t(Mixed, "\n");
@@ -1169,7 +1168,6 @@ void GVmDebuggerWnd::SetSource(const char *Mixed)
 				// Asm -> Code
 				Cur->Asm.Reset(Tmp.NewStr());
 				Cur = &d->Blocks.New();
-				Cur->AsmAddr = -1;
 			}
 			else
 			{
@@ -1183,8 +1181,7 @@ void GVmDebuggerWnd::SetSource(const char *Mixed)
 		if (InAsm)
 		{
 			Cur->AsmLines++;
-			if (Cur->AsmAddr < 0)
-				Cur->AsmAddr = htoi(l);
+			Cur->AsmAddr.Add(htoi(l));
 		}
 		else if (!Cur->SrcLine)
 		{
