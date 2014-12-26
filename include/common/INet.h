@@ -246,6 +246,8 @@ public:
 	bool GetUdp();
 	/// Set UPD mode
 	void SetUdp(bool b);
+	/// Makes the socket able to broadcast
+	void SetBroadcast();
 	/// Read UPD packet
 	int ReadUdp(void *Buffer, int Size, int Flags, uint32 *Ip = 0, uint16 *Port = 0);
 	/// Write UPD packet

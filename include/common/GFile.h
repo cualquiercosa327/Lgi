@@ -93,6 +93,7 @@ typedef int								OsFile;
 #define FA_VOLUME						0x0008
 #define FA_DIRECTORY					0x0010
 #define FA_ARCHIVE						0x0020
+#define FA_COMPUTER						0x0040
 
 /////////////////////////////////////////////////////////////////////
 // Abstract classes

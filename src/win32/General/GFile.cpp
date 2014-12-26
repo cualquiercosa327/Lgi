@@ -1303,108 +1303,109 @@ bool GDirectory::Path(char *s, int BufLen)
 	return Status;
 }
 
-int GDirectory::First(const char *Name, const char *Pattern)
+int GDirectory::First(const char *InName, const char *Pattern)
 {
 	Close();
 
-// LgiTrace("First '%s' '%s'\n", Name, Pattern);
-
     d->Utf.Reset();
 
-	if (Name)
+	if (!InName)
+		return false;
+
+	char Name[MAX_PATH];
+	strcpy_s(Name, sizeof(Name), InName);
+
+	if (IsAlpha(Name[0]) &&
+		Name[1] == ':' &&
+		strlen(Name) <= 3)
 	{
-		if (IsAlpha(Name[0]) &&
-			Name[1] == ':' &&
-			strlen(Name) <= 3)
+		// raw drive
+		if (!strchr(Name, DIR_CHAR))
 		{
-			// raw drive
-			if (!strchr(Name, DIR_CHAR))
-			{
-				strcat((char*)Name, DIR_STR);
-			}
+			strcat((char*)Name, DIR_STR);
 		}
+	}
 
-		// dir
-		if (GFileSystem::Win9x)
+	// dir
+	if (GFileSystem::Win9x)
+	{
+		char *path = LgiToNativeCp(Name);
+		if (path)
 		{
-			char *path = LgiToNativeCp(Name);
-			if (path)
+			char n[DIR_PATH_SIZE] = "";
+			GetFullPathName(path, sizeof(n), n, NULL);
+			DeleteArray(path);
+			
+			char *utf = LgiFromNativeCp(n);
+			if (utf)
 			{
-				char n[DIR_PATH_SIZE] = "";
-				GetFullPathName(path, sizeof(n), n, NULL);
-				DeleteArray(path);
-				
-				char *utf = LgiFromNativeCp(n);
-				if (utf)
-				{
-					strcpy_s(d->BasePath, sizeof(d->BasePath), utf);
-					DeleteArray(utf);
-				}
+				strcpy_s(d->BasePath, sizeof(d->BasePath), utf);
+				DeleteArray(utf);
 			}
 		}
-		else
+	}
+	else
+	{
+		char16 *p = LgiNewUtf8To16(Name);
+		if (p)
 		{
-			char16 *p = LgiNewUtf8To16(Name);
-			if (p)
+			char16 w[DIR_PATH_SIZE];
+			w[0] = 0;
+			DWORD Chars = GetFullPathNameW(p, CountOf(w), w, NULL);
+			if (Chars == 0)
 			{
-				char16 w[DIR_PATH_SIZE];
-				w[0] = 0;
-				DWORD Chars = GetFullPathNameW(p, CountOf(w), w, NULL);
-				if (Chars == 0)
-				{
-					DWORD e = GetLastError();
-					StrcpyW(w, p);
-				}
-				DeleteArray(p);
+				DWORD e = GetLastError();
+				StrcpyW(w, p);
+			}
+			DeleteArray(p);
 
-				char *utf = LgiNewUtf16To8(w);
-				if (utf)
-				{
-					strcpy_s(d->BasePath, sizeof(d->BasePath), utf);
-					DeleteArray(utf);
-				}
+			char *utf = LgiNewUtf16To8(w);
+			if (utf)
+			{
+				strcpy_s(d->BasePath, sizeof(d->BasePath), utf);
+				DeleteArray(utf);
 			}
 		}
+	}
 
-		char Str[DIR_PATH_SIZE];
-		if (Pattern)
+	char Str[DIR_PATH_SIZE];
+	if (Pattern)
+	{
+		if (!LgiMakePath(Str, sizeof(Str), d->BasePath, Pattern))
 		{
-			if (!LgiMakePath(Str, sizeof(Str), d->BasePath, Pattern))
-			{
-				return false;
-			}
+			return false;
 		}
-		else
-		{
-			strcpy_s(Str, sizeof(Str), d->BasePath);
-		}
+	}
+	else
+	{
+		strcpy_s(Str, sizeof(Str), d->BasePath);
+	}
 
-		if (GFileSystem::Win9x)
+	if (GFileSystem::Win9x)
+	{
+		char *s = LgiToNativeCp(Str);
+		if (s)
 		{
-			char *s = LgiToNativeCp(Str);
-			if (s)
-			{
-				d->Handle = FindFirstFile(s, &d->Data.a);
-				DeleteArray(s);
-			}
+			d->Handle = FindFirstFile(s, &d->Data.a);
+			DeleteArray(s);
 		}
-		else
+	}
+	else
+	{
+		char16 *s = LgiNewUtf8To16(Str);
+		if (s)
 		{
-			char16 *s = LgiNewUtf8To16(Str);
-			if (s)
-			{
-				d->Handle = FindFirstFileW(s, &d->Data.w);
-				DeleteArray(s);
-			}
+			d->Handle = FindFirstFileW(s, &d->Data.w);
+			DeleteArray(s);
 		}
+	}
 
-		if (d->Handle != INVALID_HANDLE_VALUE)
+	if (d->Handle != INVALID_HANDLE_VALUE)
+	{
+		while (	stricmp(GetName(), ".") == 0 ||
+				stricmp(GetName(), "..") == 0)
 		{
-			while (	stricmp(GetName(), ".") == 0 ||
-					stricmp(GetName(), "..") == 0)
-			{
-				if (!Next()) return false;
-			}
+			if (!Next()) return false;
 		}
 	}
 

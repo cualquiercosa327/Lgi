@@ -31,6 +31,7 @@
 #define DEBUG_CONNECT			0
 #define ETIMEOUT				400
 #define PROTO_UDP				0x100
+#define PROTO_BROADCAST			0x200
 
 #if defined WIN32
 
@@ -1222,8 +1223,20 @@ bool GSocket::GetUdp()
 
 void GSocket::SetUdp(bool b)
 {
-	if (b) SetFlag(d->Flags, PROTO_UDP);
+	if (b)
+	{
+		SetFlag(d->Flags, PROTO_UDP);
+		if (!ValidSocket(d->Socket))
+		{
+			d->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+		}
+	}
 	else ClearFlag(d->Flags, PROTO_UDP);
+}
+
+void GSocket::SetBroadcast()
+{
+	SetFlag(d->Flags, PROTO_BROADCAST);
 }
 
 int GSocket::ReadUdp(void *Buffer, int Size, int Flags, uint32 *Ip, uint16 *Port)
@@ -1268,6 +1281,12 @@ int GSocket::WriteUdp(void *Buffer, int Size, int Flags, uint32 Ip, uint16 Port)
 		d->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 		if (!ValidSocket(d->Socket))
 			return -1;
+
+		if (d->Flags & PROTO_BROADCAST)
+		{
+			int enabled = 1;
+			setsockopt(Handle(), SOL_SOCKET, SO_BROADCAST, (char*)&enabled, sizeof(enabled));
+		}
 	}
 
 	sockaddr_in a;
