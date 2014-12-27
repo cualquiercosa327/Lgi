@@ -25,6 +25,9 @@
 #ifdef MAC
 #include <SystemConfiguration/SCDynamicStoreCopySpecific.h>
 #include <SystemConfiguration/SCSchemaDefinitions.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <ifaddrs.h>
 #endif
 
 #define USE_BSD_SOCKETS			1
@@ -173,7 +176,24 @@ bool GNetwork::EnumInterfaces(List<char> &Lst)
 				Status = true;
 			}
 		}
-	}	
+	}
+	#else
+	// Posix
+	struct ifaddrs *addrs = NULL;
+	int r = getifaddrs(&addrs);
+	if (r == 0)
+	{
+		for (ifaddrs *a = addrs; a; a = a->ifa_next)
+		{
+			if (a->ifa_addr->sa_family == AF_INET)
+			{
+				int asd=0;
+			}
+		}
+		
+		freeifaddrs(addrs);
+	}
+	
 	#endif
 
 	return Status;

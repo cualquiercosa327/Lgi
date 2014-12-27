@@ -1175,7 +1175,7 @@ int GDirectory::First(const char *Name, const char *Pattern)
 			d->De = readdir(d->Dir);
 			if (d->De)
 			{
-				char s[256];
+				char s[512];
 				LgiMakePath(s, sizeof(s), d->BasePath, GetName());
 				lstat(s, &d->Stat);
 
@@ -1201,7 +1201,7 @@ int GDirectory::Next()
 	{
 		if ((d->De = readdir(d->Dir)))
 		{
-			char s[256];
+			char s[512];
 			LgiMakePath(s, sizeof(s), d->BasePath, GetName());			
 			lstat(s, &d->Stat);
 			if (!d->Ignore())
