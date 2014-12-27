@@ -187,13 +187,20 @@ bool GNetwork::EnumInterfaces(List<char> &Lst)
 		{
 			if (a->ifa_addr->sa_family == AF_INET)
 			{
-				int asd=0;
+				sockaddr_in *in = (sockaddr_in*)a->ifa_addr;
+				char str[32];
+				uint8 *ip = (uint8*)&in->sin_addr.s_addr;
+				sprintf_s(	str, sizeof(str),
+							"%i.%i.%i.%i",
+							ip[0], ip[1], ip[2], ip[3]);
+				Lst.Insert(NewStr(str));
+
+				Status = true;
 			}
 		}
 		
 		freeifaddrs(addrs);
-	}
-	
+	}	
 	#endif
 
 	return Status;
