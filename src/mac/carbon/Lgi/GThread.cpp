@@ -36,7 +36,7 @@ void *ThreadEntryPoint(void *i)
 
 GThread::GThread(const char *name)
 {
-	State = THREAD_ASLEEP;
+	State = THREAD_INIT;
 	ReturnValue = -1;
 	hThread = 0;
 	DeleteOnExit = false;

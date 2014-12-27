@@ -1256,6 +1256,11 @@ void GSocket::SetUdp(bool b)
 		if (!ValidSocket(d->Socket))
 		{
 			d->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+			if (d->Flags & PROTO_BROADCAST)
+			{
+				int enabled = 1;
+				setsockopt(Handle(), SOL_SOCKET, SO_BROADCAST, (char*)&enabled, sizeof(enabled));
+			}
 		}
 	}
 	else ClearFlag(d->Flags, PROTO_UDP);
