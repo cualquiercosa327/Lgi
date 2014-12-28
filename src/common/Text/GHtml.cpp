@@ -5462,11 +5462,6 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 				#if ENABLE_IMAGE_RESIZING
 				if ((w.IsValid() || h.IsValid()) && !ImageResized)
 				{
-					if (Debug)
-					{
-						int asd=0;
-					}
-					
 					if (Size.x != Image->X() ||
 						Size.y != Image->Y())
 					{
