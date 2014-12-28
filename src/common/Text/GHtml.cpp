@@ -1053,8 +1053,8 @@ GCss::LengthType GTag::GetAlign(bool x)
 		
 		if (x)
 		{
-			if (TagId == TAG_TD && XAlign)
-				l.Type = XAlign;
+			if (TagId == TAG_TD && Cell && Cell->XAlign)
+				l.Type = Cell->XAlign;
 			else
 				l = TextAlign();
 		}
@@ -1178,18 +1178,15 @@ GTag::GTag(GHtml *h, GHtmlElement *p) :
 		Parent->Children.Add(this);
 	
 	ImageResized = false;
-	XAlign = GCss::LenInherit;
 	Cursor = -1;
 	Selection = -1;
 	Font = 0;
 	LineHeightCache = -1;
 	HtmlId = NULL;
 	// TableBorder = 0;
-	Cells = 0;
+	Cell = NULL;
 	TagId = CONTENT;
 	Info = 0;
-	MinContent = 0;
-	MaxContent = 0;
 	Pos.x = Pos.y = 0;
 
 	#ifdef _DEBUG
@@ -1215,7 +1212,7 @@ GTag::~GTag()
 	DeleteObj(Ctrl);
 	Attr.DeleteArrays();
 
-	DeleteObj(Cells);
+	DeleteObj(Cell);
 }
 
 void GTag::OnChange(PropType Prop)
@@ -2290,8 +2287,11 @@ void GTag::SetImage(const char *Uri, GSurface *Img)
 		for (unsigned i=0; i<Children.Length(); i++)
 		{
 			GTag *t = ToTag(Children[i]);
-			t->MinContent = 0;
-			t->MaxContent = 0;
+			if (t->Cell)
+			{
+				t->Cell->MinContent = 0;
+				t->Cell->MaxContent = 0;
+			}
 		}
 	}
 	else
@@ -2311,7 +2311,7 @@ void GTag::LoadImage(const char *Uri)
 	{
 		LgiAssert(Html != NULL);
 		j->Uri.Reset(NewStr(Uri));
-		j->View = Html;
+		j->Env = Html->Environment;
 		j->UserData = this;
 		j->UserUid = Html->GetDocumentUid();
 
@@ -2510,7 +2510,7 @@ void GTag::SetStyle()
 						GTag *t = this;
 						
 						j->Uri.Reset(NewStr(Href));
-						j->View = Html;
+						j->Env = Html->Environment;
 						j->UserData = t;
 						j->UserUid = Html->GetDocumentUid();
 						// j->Pref = GDocumentEnv::LoadJob::FmtFilename;
@@ -2580,19 +2580,15 @@ void GTag::SetStyle()
 				c.Rgb32 = Rgb32(0, 0, 255);
 				Color(c);
 				TextDecoration(TextDecorUnderline);
-
-				/* FIXME
-				if (s = Html->CssMap.Find("a"))
-					SetCssStyle(s);
-				if (s = Html->CssMap.Find("a:link"))
-					SetCssStyle(s);
-				*/
 			}
 			break;
 		}
 		case TAG_TABLE:
 		{
 			Len l;
+
+			if (!Cell)
+				Cell = new TblCell;
 
 			if (Get("border", s))
 			{
@@ -2622,12 +2618,15 @@ void GTag::SetStyle()
 			{
 				Len l;
 				if (l.Parse(s))
-					XAlign = l.Type;
+					Cell->XAlign = l.Type;
 			}
 			break;
 		}
 		case TAG_TD:
 		{
+			if (!Cell)
+				Cell = new TblCell;
+
 			GTag *Table = GetTable();
 			if (Table)
 			{
@@ -2801,25 +2800,20 @@ void GTag::SetStyle()
 			break;
 		case TAG_TD:
 		{
+			LgiAssert(Cell);
+			
 			const char *s;
 			if (Get("colspan", s))
-				Span.x = atoi(s);
+				Cell->Span.x = atoi(s);
 			else
-				Span.x = 1;
+				Cell->Span.x = 1;
 			if (Get("rowspan", s))
-				Span.y = atoi(s);
+				Cell->Span.y = atoi(s);
 			else
-				Span.y = 1;
+				Cell->Span.y = 1;
 			
-			Span.x = max(Span.x, 1);
-			Span.y = max(Span.y, 1);
-			
-			if (Get("align", s))
-			{
-				Len l;
-				if (l.Parse(s))
-					XAlign = l.Type;
-			}
+			Cell->Span.x = max(Cell->Span.x, 1);
+			Cell->Span.y = max(Cell->Span.y, 1);
 			
 			if (Display() == DispInline ||
 				Display() == DispInlineBlock)
@@ -3455,8 +3449,11 @@ void GTag::ZeroTableElements()
 	{
 		Size.x = 0;
 		Size.y = 0;
-		MinContent = 0;
-		MaxContent = 0;
+		if (Cell)
+		{
+			Cell->MinContent = 0;
+			Cell->MaxContent = 0;
+		}
 
 		for (unsigned i=0; i<Children.Length(); i++)
 		{
@@ -3470,9 +3467,9 @@ GdcPt2 GTag::GetTableSize()
 {
 	GdcPt2 s(0, 0);
 	
-	if (Cells)
+	if (Cell && Cell->Cells)
 	{
-		Cells->GetSize(s.x, s.y);
+		Cell->Cells->GetSize(s.x, s.y);
 	}
 
 	return s;
@@ -3482,15 +3479,16 @@ GTag *GTag::GetTableCell(int x, int y)
 {
 	GTag *t = this;
 	while (	t &&
-			!t->Cells &&
+			!t->Cell &&
+			!t->Cell->Cells &&
 			t->Parent)
 	{
 		t = ToTag(t->Parent);
 	}
 	
-	if (t && t->Cells)
+	if (t && t->Cell && t->Cell->Cells)
 	{
-		return t->Cells->Get(x, y);
+		return t->Cell->Cells->Get(x, y);
 	}
 
 	return 0;
@@ -3633,7 +3631,7 @@ bool GTag::GetWidthMetrics(GTag *Table, uint16 &Min, uint16 &Max)
 								ColMax[x] = max(ColMax[x], b);
 							}
 							
-							x += t->Span.x;
+							x += t->Cell->Span.x;
 						}
 						else break;
 					}
@@ -3710,7 +3708,7 @@ T Sum(GArray<T> &a)
 
 void GTag::LayoutTable(GFlowRegion *f)
 {
-	if (!Cells)
+	if (!Cell->Cells)
 	{
 		#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 		if (Debug)
@@ -3718,14 +3716,14 @@ void GTag::LayoutTable(GFlowRegion *f)
 			int asd=0;
 		}
 		#endif
-		Cells = new GHtmlTableLayout(this);
+		Cell->Cells = new GHtmlTableLayout(this);
 		#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 		if (Cells && Debug)
 			Cells->Dump();
 		#endif
 	}
-	if (Cells)
-		Cells->LayoutTable(f);
+	if (Cell->Cells)
+		Cell->Cells->LayoutTable(f);
 }
 
 /*
@@ -3938,30 +3936,45 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 			GTag *t = Get(x, y);
 			if (t)
 			{
-				if (t->Cell.x == x && t->Cell.y == y)
+				t->Cell->BorderPx.x1 = f->ResolveX(t->BorderLeft(), Font, true);
+				t->Cell->BorderPx.y1 = f->ResolveX(t->BorderTop(), Font, true);
+				t->Cell->BorderPx.x2 = f->ResolveX(t->BorderRight(), Font, true);
+				t->Cell->BorderPx.y2 = f->ResolveX(t->BorderBottom(), Font, true);
+
+				t->Cell->PaddingPx.x1 = f->ResolveX(t->PaddingLeft(), Font, true);
+				t->Cell->PaddingPx.y1 = f->ResolveX(t->PaddingTop(), Font, true);
+				t->Cell->PaddingPx.x2 = f->ResolveX(t->PaddingRight(), Font, true);
+				t->Cell->PaddingPx.y2 = f->ResolveX(t->PaddingBottom(), Font, true);
+
+				if (t->Cell->Pos.x == x && t->Cell->Pos.y == y)
 				{
-					GCss::Len Wid = t->Width();
-					if (Wid.IsValid() && t->Span.x == 1)
+					int BoxPx = t->Cell->BorderPx.x1 +
+								t->Cell->BorderPx.x2 +
+								t->Cell->PaddingPx.x1 +
+								t->Cell->PaddingPx.x2;
+
+					GCss::Len Content = t->Width();
+					if (Content.IsValid() && t->Cell->Span.x == 1)
 					{
 						if (SizeCol[x].IsValid())
 						{
 							int OldPx = f->ResolveX(SizeCol[x], Font, false);
-							int NewPx = f->ResolveX(Wid, Font, false);
+							int NewPx = f->ResolveX(Content, Font, false);
 							if (NewPx > OldPx)
 							{
-								SizeCol[x] = Wid;
+								SizeCol[x] = Content;
 							}
 						}
 						else
 						{
-							SizeCol[x] = Wid;
+							SizeCol[x] = Content;
 						}
 					}
 					
-					if (!t->GetWidthMetrics(Table, t->MinContent, t->MaxContent))
+					if (!t->GetWidthMetrics(Table, t->Cell->MinContent, t->Cell->MaxContent))
 					{
-						t->MinContent = 16;
-						t->MaxContent = 16;
+						t->Cell->MinContent = 16;
+						t->Cell->MaxContent = 16;
 					}
 					
 					#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
@@ -3969,14 +3982,14 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 						LgiTrace("Content[%i,%i] min=%i max=%i\n", x, y, t->MinContent, t->MaxContent);
 					#endif
 
-					if (t->Span.x == 1)
+					if (t->Cell->Span.x == 1)
 					{
-						MinCol[x] = max(MinCol[x], t->MinContent);
-						MaxCol[x] = max(MaxCol[x], t->MaxContent);
+						MinCol[x] = max(MinCol[x], t->Cell->MinContent + BoxPx);
+						MaxCol[x] = max(MaxCol[x], t->Cell->MaxContent + BoxPx);
 					}
 				}
 				
-				x += t->Span.x;
+				x += t->Cell->Span.x;
 			}
 			else break;
 		}
@@ -4013,14 +4026,14 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 		for (int x=0; x<s.x; )
 		{
 			GTag *t = Get(x, y);
-			if (t && t->Cell.x == x && t->Cell.y == y)
+			if (t && t->Cell->Pos.x == x && t->Cell->Pos.y == y)
 			{
-				if (t->Span.x > 1 || t->Span.y > 1)
+				if (t->Cell->Span.x > 1 || t->Cell->Span.y > 1)
 				{
 					int i;
 					int ColMin = -CellSpacing;
 					int ColMax = -CellSpacing;
-					for (i=0; i<t->Span.x; i++)
+					for (i=0; i<t->Cell->Span.x; i++)
 					{
 						ColMin += MinCol[x + i] + CellSpacing;
 						ColMax += MaxCol[x + i] + CellSpacing;
@@ -4030,8 +4043,8 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 					if (Width.IsValid())
 					{
 						int Px = f->ResolveX(Width, Font, false);
-						t->MinContent = max(t->MinContent, Px);
-						t->MaxContent = max(t->MaxContent, Px);
+						t->Cell->MinContent = max(t->Cell->MinContent, Px);
+						t->Cell->MaxContent = max(t->Cell->MaxContent, Px);
 					}
 
 					#ifdef _DEBUG
@@ -4041,13 +4054,13 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 					}
 					#endif
 
-					if (t->MinContent > ColMin)
-						AllocatePx(t->Cell.x, t->Span.x, t->MinContent);
-					if (t->MaxContent > ColMax)
-						DistributeSize(MaxCol, t->Cell.x, t->Span.x, t->MaxContent, CellSpacing);
+					if (t->Cell->MinContent > ColMin)
+						AllocatePx(t->Cell->Pos.x, t->Cell->Span.x, t->Cell->MinContent);
+					if (t->Cell->MaxContent > ColMax)
+						DistributeSize(MaxCol, t->Cell->Pos.x, t->Cell->Span.x, t->Cell->MaxContent, CellSpacing);
 				}
 
-				x += t->Span.x;
+				x += t->Cell->Span.x;
 			}
 			else break;
 		}
@@ -4162,14 +4175,14 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 			GTag *t = Get(x, y);
 			if (t)
 			{
-				if (t->Cell.x == x && t->Cell.y == y)
+				if (t->Cell->Pos.x == x && t->Cell->Pos.y == y)
 				{
 					t->Pos.x = XPos;
 					t->Size.x = -CellSpacing;
 					XPos -= CellSpacing;
 					
 					GRect Box(0, 0, -CellSpacing, 0);
-					for (int i=0; i<t->Span.x; i++)
+					for (int i=0; i<t->Cell->Span.x; i++)
 					{
 						int ColSize = MinCol[x + i] + CellSpacing;
 						t->Size.x += ColSize;
@@ -4189,7 +4202,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 						int h = f->ResolveY(Ht, Font, false);
 						t->Size.y = max(h, t->Size.y);
 
-						DistributeSize(MaxRow, y, t->Span.y, t->Size.y, CellSpacing);
+						DistributeSize(MaxRow, y, t->Cell->Span.y, t->Size.y, CellSpacing);
 					}
 
 					#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
@@ -4198,7 +4211,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 					#endif
 				}
 
-				x += t->Span.x;
+				x += t->Cell->Span.x;
 			}
 			else break;
 		}
@@ -4212,16 +4225,16 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 			GTag *t = Get(x, y);
 			if (t)
 			{
-				if (t->Cell.x == x && t->Cell.y == y)
+				if (t->Cell->Pos.x == x && t->Cell->Pos.y == y)
 				{
 					GCss::Len Ht = t->Height();
 					if (!(Ht.IsValid() && Ht.Type != GCss::LenPercent))
 					{
-						DistributeSize(MaxRow, y, t->Span.y, t->Size.y, CellSpacing);
+						DistributeSize(MaxRow, y, t->Cell->Span.y, t->Size.y, CellSpacing);
 					}
 				}
 
-				x += t->Span.x;
+				x += t->Cell->Span.x;
 			}
 			else break;
 		}			
@@ -4250,10 +4263,13 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 						t->TagId = TAG_TD;
 						t->Tag.Reset(NewStr("td"));
 						t->Info = Table->Html->GetTagInfo(t->Tag);
-						t->Cell.x = x;
-						t->Cell.y = y;
-						t->Span.x = 1;
-						t->Span.y = 1;
+						if ((t->Cell = new GTag::TblCell))
+						{
+							t->Cell->Pos.x = x;
+							t->Cell->Pos.y = y;
+							t->Cell->Span.x = 1;
+							t->Cell->Span.y = 1;
+						}
 						t->BackgroundColor(GCss::ColorDef(DefaultMissingCellColour));
 
 						Set(Table);
@@ -4264,19 +4280,19 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 			}
 			if (t)
 			{
-				if (t->Cell.x == x && t->Cell.y == y)
+				if (t->Cell->Pos.x == x && t->Cell->Pos.y == y)
 				{
 					t->Pos.x = Cx;
 					t->Pos.y = Cy;
 					t->Size.x = -CellSpacing;
-					for (int i=0; i<t->Span.x; i++)
+					for (int i=0; i<t->Cell->Span.x; i++)
 					{
 						int w = MinCol[x + i] + CellSpacing;
 						t->Size.x += w;
 						Cx += w;
 					}
 					t->Size.y = -CellSpacing;						
-					for (int n=0; n<t->Span.y; n++)
+					for (int n=0; n<t->Cell->Span.y; n++)
 					{
 						t->Size.y += MaxRow[y+n] + CellSpacing;
 					}
@@ -4288,7 +4304,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 					Cx += t->Size.x + CellSpacing;
 				}
 				
-				x += t->Span.x;
+				x += t->Cell->Span.x;
 			}
 			else break;
 			Prev = t;
@@ -4298,7 +4314,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 		Cy += MaxRow[y] + CellSpacing;
 	}
 
-	switch (Table->XAlign ? Table->XAlign : ToTag(Table->Parent)->GetAlign(true))
+	switch (Table->Cell->XAlign ? Table->Cell->XAlign : ToTag(Table->Parent)->GetAlign(true))
 	{
 		case GCss::AlignCenter:
 		{
@@ -5446,6 +5462,11 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 				#if ENABLE_IMAGE_RESIZING
 				if ((w.IsValid() || h.IsValid()) && !ImageResized)
 				{
+					if (Debug)
+					{
+						int asd=0;
+					}
+					
 					if (Size.x != Image->X() ||
 						Size.y != Image->Y())
 					{
@@ -5561,10 +5582,10 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 				#if 1
 				GRegion c(r);
 				
-				if (Cells)
+				if (Cell->Cells)
 				{
 					List<GTag> AllTd;
-					Cells->GetAll(AllTd);
+					Cell->Cells->GetAll(AllTd);
 					for (GTag *t=AllTd.First(); t; t=AllTd.Next())
 					{
 						r.Set(0, 0, t->Size.x-1, t->Size.y-1);
@@ -6220,8 +6241,7 @@ GMessage::Result GHtml::OnEvent(GMessage *Msg)
 					GDocView *Me = this;
 					int MyUid = GetDocumentUid();
 					
-					if (j->View == Me &&
-						j->UserUid == MyUid &&
+					if (j->UserUid == MyUid &&
 						j->UserData != NULL)
 					{
 						Html1::GTag *r = static_cast<Html1::GTag*>(j->UserData);
@@ -7190,7 +7210,7 @@ void GHtml::OnMouseClick(GMouse &m)
 														if (j)
 														{
 															j->Uri.Reset(NewStr(cid));
-															j->View = this;
+															j->Env = Environment;
 															j->Pref = GDocumentEnv::LoadJob::FmtFilename;
 															j->UserUid = GetDocumentUid();
 
@@ -7759,8 +7779,11 @@ GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 					{
 						FakeCell->Tag.Reset(NewStr("td"));
 						FakeCell->TagId = TAG_TD;
-						FakeCell->Span.x = 1;
-						FakeCell->Span.y = 1;
+						if ((FakeCell->Cell = new GTag::TblCell))
+						{
+							FakeCell->Cell->Span.x = 1;
+							FakeCell->Cell->Span.y = 1;
+						}
 					}
 				}
 
@@ -7799,8 +7822,11 @@ GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 						FakeCell = new GTag(Table->Html, NULL);
 						FakeCell->Tag.Reset(NewStr("td"));
 						FakeCell->TagId = TAG_TD;
-						FakeCell->Span.x = 1;
-						FakeCell->Span.y = 1;
+						if ((FakeCell->Cell = new GTag::TblCell))
+						{
+							FakeCell->Cell->Span.x = 1;
+							FakeCell->Cell->Span.y = 1;
+						}
 						
 						// Join the fake TD into the TR
 						r->Children[i] = FakeCell;
@@ -7833,10 +7859,10 @@ GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 						x++;
 					}
 
-					cell->Cell.x = x;
-					cell->Cell.y = y;
+					cell->Cell->Pos.x = x;
+					cell->Cell->Pos.y = y;
 					Set(cell);
-					x += cell->Span.x;
+					x += cell->Cell->Span.x;
 				}
 			}
 
@@ -7873,7 +7899,7 @@ void GHtmlTableLayout::Dump()
 			GTag *t = Get(x, y);
 			char s[256] = "";
 			if (t)
-				sprintf_s(s, sizeof(s), "%i,%i-%i,%i", t->Cell.x, t->Cell.y, t->Span.x, t->Span.y);
+				sprintf_s(s, sizeof(s), "%i,%i-%i,%i", t->Cell->Pos.x, t->Cell->Pos.y, t->Cell->Span.x, t->Cell->Span.y);
 			LgiTrace("%-10s", s);
 		}
 		LgiTrace("\n");
@@ -7928,12 +7954,12 @@ bool GHtmlTableLayout::Set(GTag *t)
 	if (!t)
 		return false;
 
-	for (int y=0; y<t->Span.y; y++)
+	for (int y=0; y<t->Cell->Span.y; y++)
 	{
-		for (int x=0; x<t->Span.x; x++)
+		for (int x=0; x<t->Cell->Span.x; x++)
 		{
 			// LgiAssert(!c[y][x]);
-			c[t->Cell.y + y][t->Cell.x + x] = t;
+			c[t->Cell->Pos.y + y][t->Cell->Pos.x + x] = t;
 		}
 	}
 

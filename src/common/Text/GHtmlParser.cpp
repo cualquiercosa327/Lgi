@@ -753,7 +753,6 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 							if (j)
 							{
 								j->Uri.Reset(Src.ReleaseStr());
-								j->View = View;
 								j->Env = View->GetEnv();
 								j->UserData = this;
 								j->UserUid = View ? View->GetDocumentUid() : 0;

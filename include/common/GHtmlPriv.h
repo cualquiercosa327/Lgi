@@ -329,11 +329,31 @@ public:
 	void ImageLoaded(char *uri, GSurface *img, int &Used);
 
 	// Table stuff
-	GdcPt2 Cell;
-	GdcPt2 Span;
-	uint16 MinContent, MaxContent;
-	GCss::LengthType XAlign;
-	GHtmlTableLayout *Cells;
+	struct TblCell
+	{
+		GdcPt2 Pos;
+		GdcPt2 Span;
+		GRect BorderPx;
+		GRect PaddingPx;
+		uint16 MinContent, MaxContent;
+		GCss::LengthType XAlign;
+		GHtmlTableLayout *Cells;
+		
+		TblCell()
+		{
+			Cells = NULL;
+			MinContent = 0;
+			MaxContent = 0;
+			XAlign = GCss::LenInherit;
+		}
+		
+		~TblCell()
+		{
+			DeleteObj(Cells);
+		}
+		
+	}	*Cell;
+
 	#ifdef _DEBUG
 	int Debug;
 	#endif
