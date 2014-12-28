@@ -480,11 +480,29 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 				}
 				else if (!_stricmp(Cond, "endif"))
 				{
-					IsEndIf = true;
+					GHtmlElement *MatchingIf = NULL;
+					List<GHtmlElement>::I it = OpenTags.End();
+					for (GHtmlElement *e = *it; e; e = *--it)
+					{
+						if (e->TagId == CONDITIONAL &&
+							e->Tag &&
+							!_stricmp(e->Tag, "if"))
+						{
+							MatchingIf = e;
+							break;
+						}
+					}
+					if (MatchingIf)
+					{
+						MatchingIf->WasClosed = true;
+						IsEndIf = true;
+					}
 				}
 				DeleteArray(Cond);
-				if (*s == ']') s++;
-				if (*s == '>') s++;
+				while (*s && *s != '>')
+					s++;
+				if (*s == '>')
+					s++;
 				if (IsEndIf)
 					return s;
 			}
@@ -806,6 +824,10 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 				// End tag
 				char *PreTag = s;
 				s += 2;
+				if (s - CurrentSrc > 24000)
+				{
+					int asd=0;
+				}
 
 				// This code segment detects out of order HTML tags
 				// and skips them. If we didn't do this then the parser
@@ -881,7 +903,10 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 					}
 				}
 				else
-					LgiAssert(!"This should not happen?");
+				{
+					// Error case happens with borked HTML
+					s = EndBracket + 1;
+				}
 
 				if (Elem->Parent)
 				{

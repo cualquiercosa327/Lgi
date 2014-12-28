@@ -4552,7 +4552,7 @@ void GTag::CenterText()
 
 	// Find the size of the text elements.
 	int ContentPx = 0;
-	for (int i=0; i<TextPos.Length(); i++)
+	for (unsigned i=0; i<TextPos.Length(); i++)
 	{
 		GFlowRect *fr = TextPos[i];
 		ContentPx += fr->X();
@@ -4571,7 +4571,7 @@ void GTag::CenterText()
 	{
 		// Now offset all the regions to the right
 		int OffPx = (AvailPx - ContentPx) >> 1;
-		for (int i=0; i<TextPos.Length(); i++)
+		for (unsigned i=0; i<TextPos.Length(); i++)
 		{
 			GFlowRect *fr = TextPos[i];
 			fr->Offset(OffPx, 0);
