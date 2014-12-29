@@ -24,7 +24,6 @@ Global
 		{967AF7EF-7C17-4FCC-997E-BED17F886F07}.Release|Win32.Build.0 = Release|Win32
 		{967AF7EF-7C17-4FCC-997E-BED17F886F07}.Release|x64.ActiveCfg = Release|Win32
 		{967AF7EF-7C17-4FCC-997E-BED17F886F07}.ReleaseNoOptimize|Win32.ActiveCfg = Release|Win32
-		{967AF7EF-7C17-4FCC-997E-BED17F886F07}.ReleaseNoOptimize|Win32.Build.0 = Release|Win32
 		{967AF7EF-7C17-4FCC-997E-BED17F886F07}.ReleaseNoOptimize|x64.ActiveCfg = Release|Win32
 		{95DF9CA4-6D37-4A85-A648-80C2712E0DA1}.Debug|Win32.ActiveCfg = Debug|Win32
 		{95DF9CA4-6D37-4A85-A648-80C2712E0DA1}.Debug|Win32.Build.0 = Debug|Win32
@@ -33,7 +32,6 @@ Global
 		{95DF9CA4-6D37-4A85-A648-80C2712E0DA1}.Release|Win32.Build.0 = Release|Win32
 		{95DF9CA4-6D37-4A85-A648-80C2712E0DA1}.Release|x64.ActiveCfg = Release|x64
 		{95DF9CA4-6D37-4A85-A648-80C2712E0DA1}.ReleaseNoOptimize|Win32.ActiveCfg = ReleaseNoOptimize|Win32
-		{95DF9CA4-6D37-4A85-A648-80C2712E0DA1}.ReleaseNoOptimize|Win32.Build.0 = ReleaseNoOptimize|Win32
 		{95DF9CA4-6D37-4A85-A648-80C2712E0DA1}.ReleaseNoOptimize|x64.ActiveCfg = ReleaseNoOptimize|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution

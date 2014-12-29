@@ -66,7 +66,7 @@ public:
 			return false;
 		}
 		
-		GScriptEngine2 Eng(NULL, NULL);
+		GScriptEngine Eng(NULL, NULL, NULL);
 		Eng.SetConsole(&Log);
 
 		GAutoString Src(::ReadTextFile(SrcFile));
@@ -76,7 +76,7 @@ public:
 			return false;
 		}
 		
-		GAutoPtr<GScriptObj> Obj;
+		GAutoPtr<GCompiledCode> Obj;
 		if (!Eng.Compile(Obj, NULL, Src, File))
 		{
 			printf("Error: Compilation failed '%s'.\n", SrcFile.Get());
