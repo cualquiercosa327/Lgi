@@ -310,6 +310,7 @@ public:
 			
 			int BestPxDiff = 10000;
 			GAutoPtr<GFont> BestFont;
+			int FaceIdx = 0;
 			
 			do
 			{
@@ -319,8 +320,19 @@ public:
 				Tmp->Italic(IsItalic);
 				Tmp->Underline(IsUnderline);
 				
-				if (!Tmp->Create(Face[0], (int)PtSize))
-					break;
+				if (FaceIdx >= Face.Length() ||
+					!Tmp->Create(Face[FaceIdx], (int)PtSize))
+				{
+					if (FaceIdx < Face.Length())
+					{
+						FaceIdx++;
+						continue;
+					}
+					else if (!Tmp->Create(SysFont->Face(), (int)PtSize))
+					{
+						break;
+					}
+				}
 				
 				int ActualHeight = PxHeight(Tmp);
 				Diff = ActualHeight - RequestPx;
@@ -356,7 +368,7 @@ public:
 			while (PtSize > MinimumPointSize && PtSize < 100);
 
 			Fonts.Insert(f = BestFont.Release());
-			LgiAssert(f->Face() != NULL);
+			LgiAssert(f && f->Face() != NULL);
 			return f;
 		}
 		else if (Size.Type == GCss::LenPt)
