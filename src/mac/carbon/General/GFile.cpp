@@ -1315,7 +1315,7 @@ const uint64 GDirectory::GetLastWriteTime()
 
 const uint64 GDirectory::GetSize()
 {
-	return (uint32)d->Stat.st_size;
+	return d->Stat.st_size;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
