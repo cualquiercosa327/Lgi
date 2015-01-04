@@ -2313,7 +2313,7 @@ void GTag::LoadImage(const char *Uri)
 	{
 		LgiAssert(Html != NULL);
 		j->Uri.Reset(NewStr(Uri));
-		j->View = Html;
+		j->Env = Html->Environment;
 		j->UserData = this;
 		j->UserUid = Html->GetDocumentUid();
 
@@ -2507,7 +2507,7 @@ void GTag::SetStyle()
 						GTag *t = this;
 						
 						j->Uri.Reset(NewStr(Href));
-						j->View = Html;
+						j->Env = Html->Environment;
 						j->UserData = t;
 						j->UserUid = Html->GetDocumentUid();
 						// j->Pref = GDocumentEnv::LoadJob::FmtFilename;
@@ -2573,13 +2573,6 @@ void GTag::SetStyle()
 				c.Rgb32 = Rgb32(0, 0, 255);
 				Color(c);
 				TextDecoration(TextDecorUnderline);
-
-				/* FIXME
-				if (s = Html->CssMap.Find("a"))
-					SetCssStyle(s);
-				if (s = Html->CssMap.Find("a:link"))
-					SetCssStyle(s);
-				*/
 			}
 			break;
 		}
@@ -2595,6 +2588,25 @@ void GTag::SetStyle()
 					BorderTop(b);
 					BorderBottom(b);
 				}
+			}
+
+			GCss::Len l;
+			if (Get("cellspacing", s) &&
+				l.Parse(s, PropBorderSpacing, ParseRelaxed))
+			{
+				BorderSpacing(l);
+			}
+
+			if (Get("cellpadding", s) &&
+				l.Parse(s, Prop_CellPadding, ParseRelaxed))
+			{
+				_CellPadding(l);
+			}
+
+			if (Get("align", s))
+			{
+				if (l.Parse(s))
+					XAlign = l.Type;
 			}
 			break;
 		}
@@ -6151,8 +6163,7 @@ GMessage::Result GHtml::OnEvent(GMessage *Msg)
 					GDocumentEnv::LoadJob *j = JobSem.Jobs[i];
 					GDocView *Me = this;
 					
-					if (j->View == Me &&
-						j->UserUid == GetDocumentUid() &&
+					if (j->UserUid == GetDocumentUid() &&
 						j->UserData != NULL)
 					{
 						Html1::GTag *r = static_cast<Html1::GTag*>(j->UserData);
@@ -7103,7 +7114,7 @@ void GHtml::OnMouseClick(GMouse &m)
 														if (j)
 														{
 															j->Uri.Reset(NewStr(cid));
-															j->View = this;
+															j->Env = Environment;
 															j->Pref = GDocumentEnv::LoadJob::FmtFilename;
 															j->UserUid = GetDocumentUid();
 

@@ -32,9 +32,19 @@ void GDocumentEnv::OnDone(GAutoPtr<GThreadJob> j)
 	{
 		if (Lock(_FL))
 		{
-			if (Viewers.HasItem(ld->View))
+			GDocView *View = NULL;
+			for (int i=0; i<Viewers.Length(); i++)
 			{
-				ld->View->OnContent(ld);
+				if (Viewers[i]->GetDocumentUid() == ld->UserUid)
+				{
+					View = Viewers[i];
+					break;
+				}
+			}
+			
+			if (View)
+			{
+				View->OnContent(ld);
 				j.Release();
 			}
 			Unlock();
