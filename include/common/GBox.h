@@ -25,6 +25,10 @@ public:
 	bool IsVertical();
 	void SetVertical(bool v);
 	Spacer *GetSpacer(int i);
+	GViewI *GetViewAt(int i);
+	bool SetViewAt(uint32 i, GViewI *v);
+	int64 Value();
+	void Value(int64 i);
 	
 	void OnCreate();
 	void OnPaint(GSurface *pDC);
@@ -32,6 +36,8 @@ public:
 	void OnMouseClick(GMouse &m);
 	bool OnViewMouse(GView *v, GMouse &m);
 	void OnMouseMove(GMouse &m);
+	void OnChildrenChanged(GViewI *Wnd, bool Attaching);
+	GMessage::Param OnEvent(GMessage *Msg);
 	bool Pour(GRegion &r);
 	LgiCursor GetCursor(int x, int y);
 
