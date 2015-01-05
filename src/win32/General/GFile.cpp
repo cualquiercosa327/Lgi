@@ -1312,7 +1312,7 @@ int GDirectory::First(const char *InName, const char *Pattern)
 	if (!InName)
 		return false;
 
-	char Name[MAX_PATH];
+	char Name[DIR_PATH_SIZE];
 	strcpy_s(Name, sizeof(Name), InName);
 
 	if (IsAlpha(Name[0]) &&
