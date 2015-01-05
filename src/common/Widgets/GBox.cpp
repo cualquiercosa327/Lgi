@@ -7,6 +7,11 @@
 #define DEFAULT_MINIMUM_SIZE_PX		5
 #define ACTIVE_SPACER_SIZE_PX		9
 
+enum GBoxMessages
+{
+	M_CHILDREN_CHANGED = M_USER + 0x2000
+};
+
 struct GBoxPriv
 {
 public:
@@ -95,6 +100,48 @@ GBox::Spacer *GBox::GetSpacer(int idx)
 	}
 	
 	return idx >= 0 && idx < d->Spacers.Length() ? &d->Spacers[idx] : NULL;
+}
+
+GViewI *GBox::GetViewAt(int i)
+{
+	return Children[i];
+}
+
+bool GBox::SetViewAt(uint32 i, GViewI *v)
+{
+	if (!v || i > Children.Length())
+	{
+		return false;
+	}
+
+	if (v->GetParent())
+		v->Detach();
+	
+	v->Visible(true);
+
+	bool Status;
+	if (i < Children.Length())
+	{
+		// Remove existing view..
+		GViewI *existing = Children[i];
+		if (existing == v)
+			return true;
+		if (existing)
+			existing->Detach();
+		Status = AddView(v, i);
+		
+	}
+	else
+	{
+		Status = AddView(v);
+	}
+	
+	if (Status)
+	{
+		AttachChildren();
+	}
+	
+	return Status;
 }
 
 void GBox::OnCreate()
@@ -465,6 +512,43 @@ void GBox::OnMouseMove(GMouse &m)
 	}
 }
 
+void GBox::OnChildrenChanged(GViewI *Wnd, bool Attaching)
+{
+	#if 1
+	LgiTrace("GBox::OnChildrenChanged(%s, %i)\n", Wnd ? Wnd->GetClass() : NULL, Attaching);
+	for (int i=0; i<Children.Length(); i++)
+		LgiTrace("	[%i]=%s hnd=%p vis=%i\n", i, Children[i]->GetClass(), Children[i]->Handle(), Children[i]->Visible());
+	#endif
+	
+	if (Handle())
+		PostEvent(M_CHILDREN_CHANGED);
+}
+
+int64 GBox::Value()
+{
+	GViewI *v = Children.First();
+	if (!v) return 0;
+	GCss *css = v->GetCss();
+	if (!css) return 0;
+	GCss::Len l = d->Vertical ? css->Height() : css->Width();
+	if (l.Type != GCss::LenPx)
+		return 0;
+	return (int64)l.Value;
+}
+
+void GBox::Value(int64 i)
+{
+	GViewI *v = Children.First();
+	if (!v) return;
+	GCss *css = v->GetCss(true);
+	if (!css) return;
+	if (d->Vertical)
+		css->Height(GCss::Len(GCss::LenPx, (float)i));
+	else
+		css->Width(GCss::Len(GCss::LenPx, (float)i));
+	OnPosChange();
+}
+
 LgiCursor GBox::GetCursor(int x, int y)
 {
 	Spacer *Over = d->HitTest(x, y);
@@ -498,4 +582,14 @@ bool GBox::SetSize(int ViewIndex, GCss::Len Size)
 	
 	c->Width(Size);
 	return true;
+}
+
+GMessage::Param GBox::OnEvent(GMessage *Msg)
+{
+	if (MsgCode(Msg) == M_CHILDREN_CHANGED)
+	{
+		OnPosChange();
+	}
+	
+	return GView::OnEvent(Msg);
 }
