@@ -120,6 +120,7 @@
 		34983C2908F548DF0054868C /* GTrayIcon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34983C2208F548DF0054868C /* GTrayIcon.cpp */; };
 		34983C2A08F548DF0054868C /* LgiRand.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34983C2308F548DF0054868C /* LgiRand.cpp */; };
 		34983C2E08F5492E0054868C /* GPassword.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34983C2D08F5492E0054868C /* GPassword.cpp */; };
+		349A251F1A5E3FBC00F4263E /* Lgi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8DC2EF5B0486A6940098B216 /* Lgi.framework */; };
 		34A11A7A1675347500FCC5D7 /* GThreadCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34A11A791675347500FCC5D7 /* GThreadCommon.cpp */; };
 		34A11A7C1675349900FCC5D7 /* GMutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34A11A7B1675349900FCC5D7 /* GMutex.cpp */; };
 		34A11A7E167534A500FCC5D7 /* GMutex.h in Headers */ = {isa = PBXBuildFile; fileRef = 34A11A7D167534A500FCC5D7 /* GMutex.h */; };
@@ -346,6 +347,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				34B9505B0939DA3000477A2D /* Carbon.framework in Frameworks */,
+				349A251F1A5E3FBC00F4263E /* Lgi.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

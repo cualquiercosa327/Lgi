@@ -202,14 +202,14 @@ public:
 
 	void Load(char *File)
 	{
-		GHashTable Except(0, false);
-		Except.Add("GString.cpp");
-		Except.Add("GVariant.cpp");
-		Except.Add("GContainers.cpp");
-		Except.Add("GContainers.h");
-		Except.Add("GFile.cpp");
-		Except.Add("Mail.h");
-		Except.Add("GArray.h");
+		GHashTbl<const char*, bool> Except(0, false);
+		Except.Add("GString.cpp", true);
+		Except.Add("GVariant.cpp", true);
+		Except.Add("GContainers.cpp", true);
+		Except.Add("GContainers.h", true);
+		Except.Add("GFile.cpp", true);
+		Except.Add("Mail.h", true);
+		Except.Add("GArray.h", true);
 
 		GFile f;
 		if (!f.Open(File, O_READ))

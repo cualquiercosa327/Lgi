@@ -9,8 +9,8 @@
 #include "GClipBoard.h"
 #include "GDisplayString.h"
 
-char *Untitled = "[untitled]";
-static char *White = " \r\t\n";
+const char *Untitled = "[untitled]";
+static const char *White = " \r\t\n";
 
 #define USE_OLD_FIND_DEFN	1
 
@@ -652,7 +652,7 @@ bool DocEdit::OnMenu(GDocView *View, int Id)
 						int OpenBracketIndex = -1;							
 						
 						// Parse from cursor to the end of the function defn
-						while (s = LexCpp(p, LexStrdup))
+						while ((s = LexCpp(p, LexStrdup)))
 						{
 							if (StricmpW(s, OpenBrac) == 0)
 							{
@@ -674,7 +674,7 @@ bool DocEdit::OnMenu(GDocView *View, int Id)
 							{
 								// Get a list of parameter names
 								List<char> Params;
-								for (int i = OpenBracketIndex+1; p = Tokens[i]; i++)
+								for (int i = OpenBracketIndex+1; (p = Tokens[i]); i++)
 								{
 									char16 Comma[] = { ',', 0 };
 									if (StricmpW(p, Comma) == 0 ||
@@ -1651,7 +1651,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 							while (n && *n)
 							{
 								char16 *Last = n;
-								if (t = LexCpp(n, LexStrdup))
+								if ((t = LexCpp(n, LexStrdup)))
 								{
 									if (StrcmpW(t, StrSemiColon) == 0)
 									{

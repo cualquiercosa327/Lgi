@@ -50,7 +50,7 @@ public:
 			}
 			
 			char *t;
-			while (t = strchr(Name, '\t'))
+			while ((t = strchr(Name, '\t')))
 			{
 				*t = ' ';
 			}

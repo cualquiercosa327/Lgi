@@ -39,7 +39,7 @@ public:
 
 	FtpCmd(FtpCommand c, FtpCallback *cb);
 	~FtpCmd();
-	void Error(char *e);
+	void Error(const char *e);
 };
 
 class FtpThread : public GThread

@@ -3,7 +3,7 @@
 #include "Lgi.h"
 #include "LgiIde.h"
 
-static char *White = " \r\t\n";
+static const char *White = " \r\t\n";
 #define iswhite(s)		(s && strchr(White, s) != 0)
 #define isword(s)		(s && (isdigit(s) || isalpha(s) || (s) == '_') )
 #define skipws(s)		while (iswhite(*s)) s++;

@@ -153,6 +153,11 @@ bool &GWindow::CloseRequestDone()
 	return d->CloseRequestDone;
 }
 
+bool GWindow::SetIcon(const char *FileName)
+{
+	return false;
+}
+
 GViewI *GWindow::GetFocus()
 {
 	return d->Focus;

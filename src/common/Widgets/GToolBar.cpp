@@ -977,7 +977,11 @@ void GToolButton::OnPaint(GSurface *pDC)
 				p.Size(1, 1);
 			}
 
-			GRect IconPos(0, 0, Par->d->ImgList->TileX()-1, Par->d->ImgList->TileY()-1);
+			GRect IconPos;
+			if (Par->d->ImgList)
+				IconPos.Set(0, 0, Par->d->ImgList->TileX()-1, Par->d->ImgList->TileY()-1);
+			else
+				IconPos.ZOff(-1, -1);
 			GRegion Unpainted(p);
 			
 			// Center the icon

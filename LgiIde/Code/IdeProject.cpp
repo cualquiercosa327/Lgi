@@ -79,7 +79,7 @@ char *ToUnixPath(char *s)
 	if (s)
 	{
 		char *c;
-		while (c = strchr(s, '\\'))
+		while ((c = strchr(s, '\\')))
 		{
 			*c = '/';
 		}
@@ -836,7 +836,7 @@ public:
 		return Name;
 	}
 
-	void SetName(char *f)
+	void SetName(const char *f)
 	{
 		DeleteArray(Name);
 		Name = NewStr(f);
@@ -862,6 +862,8 @@ public:
 
 		switch (Type)
 		{
+			default:
+				break;
 			case NodeSrc:
 				return ICON_SOURCE;
 			case NodeNone:
@@ -897,7 +899,7 @@ public:
 				char Other = '\\';
 				#endif
 				char *s;
-				while (s = strchr(File, Other))
+				while ((s = strchr(File, Other)))
 				{
 					*s = DIR_CHAR;
 				}
@@ -1971,7 +1973,7 @@ class BuildThread : public GThread, public GStream
 	} Compiler;
 
 public:
-	BuildThread(IdeProject *proj, BuildThread **ptr, char *mf, char *args = 0) : GThread("BuildThread")
+	BuildThread(IdeProject *proj, BuildThread **ptr, char *mf, const char *args = 0) : GThread("BuildThread")
 	{
 		Proj = proj;
 		*(Me = ptr) = this;
@@ -2026,7 +2028,7 @@ public:
 			if (Compiler == MingW)
 			{
 				// Have a look in the default spot first...
-				char *Def = "C:\\MinGW\\msys\\1.0\\bin\\make.exe";
+				const char *Def = "C:\\MinGW\\msys\\1.0\\bin\\make.exe";
 				if (FileExists(Def))
 				{
 					return NewStr(Def);
@@ -2078,10 +2080,10 @@ public:
 	
 	int Main()
 	{
-		char *Err = 0;
+		const char *Err = 0;
 		char ErrBuf[256];
 		
-		char *Exe = FindExe();
+		const char *Exe = FindExe();
 		if (Exe)
 		{
 			bool Status = false;
@@ -2136,7 +2138,7 @@ public:
 				if (Compiler == MingW)
 					SubProc.SetEnvironment("PATH", "c:\\MingW\\bin;C:\\MinGW\\msys\\1.0\\bin;%PATH%");
 				
-				if (Status = SubProc.Start(true, false))
+				if ((Status = SubProc.Start(true, false)))
 				{
 					// Read all the output					
 					char Buf[256];
@@ -2670,7 +2672,7 @@ bool IdeProject::OpenFile(char *FileName)
 		{
 			GXmlTree x;
 			GXmlTag r;
-			if (Status = x.Read(&r, &f))
+			if ((Status = x.Read(&r, &f)))
 			{
 				OnOpen(&r);
 				d->App->GetTree()->Insert(this);
@@ -2761,7 +2763,7 @@ int IdeProject::GetImage(int Flags)
 void IdeProject::Empty()
 {
 	GXmlTag *t;
-	while (t = Children.First())
+	while ((t = Children.First()))
 	{
 		ProjectNode *n = dynamic_cast<ProjectNode*>(t);
 		if (n)
@@ -2902,7 +2904,7 @@ bool IdeProject::InProject(const char *FullPath, bool Open, IdeDoc **Doc)
 
 	ForAllProjectNodes(c)
 	{
-		if (n = c->FindFile(FullPath, 0))
+		if ((n = c->FindFile(FullPath, 0)))
 		{
 			break;
 		}
@@ -3371,7 +3373,7 @@ static bool RenameMakefileForPlatform(GAutoString &MakeFile, IdePlatform Platfor
 		char mk[MAX_PATH];
 		*Dot = 0;
 		sprintf_s(mk, sizeof(mk), "%s%s", MakeFile.Get(), PlatformNames[Platform]);
-		if (Dot = strrchr(mk, '.'))
+		if ((Dot = strrchr(mk, '.')))
 			strlwr(Dot);
 		MakeFile.Reset(NewStr(mk));
 	}
@@ -3385,7 +3387,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 	const char *PlatformLibraryExt = NULL;
 	const char *PlatformStaticLibExt = NULL;
 	const char *PlatformExeExt = "";
-	char *LinkerFlags;
+	const char *LinkerFlags;
 	if (Platform == PlatformWin32)
 		LinkerFlags = ",--enable-auto-import";
 	else
@@ -3450,8 +3452,8 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 					"endif\n",
 					BuildModeName);
 			
-			char *ExtraLinkFlags = NULL;
-			char *ExeFlags = NULL;
+			const char *ExtraLinkFlags = NULL;
+			const char *ExeFlags = NULL;
 			if (Platform == PlatformWin32)
 			{
 				ExtraLinkFlags = "";

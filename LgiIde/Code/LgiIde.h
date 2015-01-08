@@ -147,7 +147,7 @@ protected:
 public:
 	NodeView(NodeSource *s)
 	{
-		if (nSrc = s)
+		if ((nSrc = s))
 		{
 			nSrc->nView = this;
 		}

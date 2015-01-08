@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <wchar.h>
 
 #include "Lgi.h"
@@ -14,6 +15,11 @@
 #else
 #define Debug			assert(0)
 #endif
+
+static const char16 sRoundBracketStart[] = { '(', 0 };
+static const char16 sRoundBracketEnd[] = { ')', 0 };
+static const char16 sDefined[] = {'d','e','f','i','n','e','d',0};
+static const char16 sCpp[] = {'_','_','c','p','l','u','s','p','l','u','s',0};
 
 enum LoopState
 {
@@ -561,7 +567,7 @@ public:
 	int Evaluate(GArray<char16*> &Exp);
 	void DoWork(WorkUnit *wk);
 	int Main();
-	void Msg(MsgType Type, char *Fmt, ...);
+	void Msg(MsgType Type, const char *Fmt, ...);
 };
 
 struct GCppParserPriv
@@ -647,7 +653,7 @@ GCppParserWorker::~GCppParserWorker()
 	IncludePathFiles.DeleteArrays();
 }
 
-void GCppParserWorker::Msg(MsgType Type, char *Fmt, ...)
+void GCppParserWorker::Msg(MsgType Type, const char *Fmt, ...)
 {
 	va_list Arg;
 	va_start(Arg, Fmt);
@@ -740,7 +746,7 @@ struct RoundBracket
 			char16 *t = a[i];
 			if (CmpToken(t, "__declspec"))
 			{
-				while (t = a[++i])
+				while ((t = a[++i]))
 				{
 					if (CmpToken(t, ")"))
 						break;
@@ -801,7 +807,7 @@ GAutoWString GCppParserWorker::GetSymbolName(GArray<char16*> &in, bool IsEnum)
 						Msg(MsgError, "%s:%i - unexpected token.\n", _FL);
 						break;
 					}
-					while (t = a[++i])
+					while ((t = a[++i]))
 					{
 						if (CmpToken(t, ")"))
 						{
@@ -815,7 +821,7 @@ GAutoWString GCppParserWorker::GetSymbolName(GArray<char16*> &in, bool IsEnum)
 				}
 			}
 		}
-		else if (sym = Resolve(t))
+		else if ((sym = Resolve(t)))
 		{
 			if (sym->Type == SymDefineValue ||
 				sym->Type == SymDefineFunction)
@@ -831,7 +837,7 @@ GAutoWString GCppParserWorker::GetSymbolName(GArray<char16*> &in, bool IsEnum)
 					}
 					
 					int Depth = 1;
-					while (t = a[++i])
+					while ((t = a[++i]))
 					{
 						if (CmpToken(t, "("))
 						{
@@ -977,11 +983,11 @@ int FindMatchingBracket(GArray<char16*> &Exp, int Start)
 	for (int i = Start + 1; i<Exp.Length(); i++)
 	{
 		char16 *t = Exp[i];
-		if (!StrcmpW(t, L"("))
+		if (!StrcmpW(t, sRoundBracketStart))
 		{
 			Depth++;
 		}
-		else if (!StrcmpW(t, L")"))
+		else if (!StrcmpW(t, sRoundBracketEnd))
 		{
 			if (--Depth == 0)
 				return i;
@@ -999,18 +1005,18 @@ int GCppParserWorker::Evaluate(GArray<char16*> &Exp)
 	for (int i=0; i<Exp.Length(); i++)
 	{
 		char16 *t = Exp[i];
-		if (!StricmpW(t, L"defined"))
+		if (!StricmpW(t, sDefined))
 		{
 			t = Exp[++i];
 			CheckToken(t);
 			char16 *Define = t;
-			if (!StricmpW(t, L"("))
+			if (!StricmpW(t, sRoundBracketStart))
 			{
 				Define = Exp[++i];
 				CheckToken(Define);
 				t = Exp[++i];
 				CheckToken(t);
-				if (StricmpW(t, L")"))
+				if (StricmpW(t, sRoundBracketEnd))
 				{
 					Error = true;
 					break;
@@ -1055,7 +1061,7 @@ int GCppParserWorker::Evaluate(GArray<char16*> &Exp)
 			else
 			{
 				char16 *Next = i < Exp.Length() - 1 ? Exp[i + 1] : NULL;
-				if (Next && !StrcmpW(Next, L"("))
+				if (Next && !StrcmpW(Next, sRoundBracketStart))
 				{
 					// Macro call
 					int End = FindMatchingBracket(Exp, i + 1);
@@ -1410,7 +1416,7 @@ GSourceFile *GCppParserWorker::ParseCpp(const char *Path)
 	char16 *t;
 
 	PreprocessBlock *blk;
-	while (blk = sf->Current())
+	while ((blk = sf->Current()))
 	{
 		if (blk->Type != SourceBlock)
 		{
@@ -1461,11 +1467,13 @@ GSourceFile *GCppParserWorker::ParseCpp(const char *Path)
 								{
 									// Unnamed enum
 									static int Idx = 1;
-									char16 Buf[256];
 									#ifdef _MSC_VER
+									char16 Buf[256];
 									swprintf_s(Buf, CountOf(Buf), L"UnnamedEnum%i", Idx++);
 									#else
-									swprintf(Buf, CountOf(Buf), L"UnnamedEnum%i", Idx++);
+									char Tmp[256];
+									sprintf_s(Tmp, CountOf(Tmp), "UnnamedEnum%i", Idx++);
+									GAutoWString Buf(LgiNewUtf8To16(Tmp));
 									#endif
 
 									if (CurrentScope()->Find(SymName))
@@ -1610,7 +1618,7 @@ GSymbol *GCppParserWorker::ParseDecl(GSourceFile *sf, char16 *t)
 	if (CmpToken(t, "template"))
 	{
 		Temp.Add(t);
-		while (t = blk->NextToken())
+		while ((t = blk->NextToken()))
 		{
 			Temp.Add(t);
 			if (CmpToken(t, ">"))
@@ -1755,7 +1763,7 @@ GSymbol *GCppParserWorker::ParseTypedef(GSourceFile *sf)
 
 	sym->Tokens.Add(t);
 	
-	while (t = blk->NextToken())
+	while ((t = blk->NextToken()))
 	{
 		if (CmpToken(t, ";"))
 			break;
@@ -1814,7 +1822,7 @@ GSymbol *GCppParserWorker::ParseUserType(GSourceFile *sf, char16 *t)
 		{
 			sf->Lex(*blk);
 			
-			while (t = blk->NextToken())
+			while ((t = blk->NextToken()))
 			{
 				if (CmpToken(t, "{"))
 				{
@@ -1889,7 +1897,7 @@ GSymbol *GCppParserWorker::ParseUserType(GSourceFile *sf, char16 *t)
 								def->File = sf->Path;
 								def->Line = blk->GetLine();
 								
-								while (t = blk->NextToken())
+								while ((t = blk->NextToken()))
 								{
 									if (CmpToken(t, ","))
 										break;
@@ -2013,7 +2021,7 @@ bool HasNonWhiteSpace(char16 *Start, char16 *End)
 			return true;
 		}
 		
-		*Start++;
+		Start++;
 	}
 	return false;
 }
@@ -2213,7 +2221,7 @@ bool GCppParserWorker::ParsePreprocessor(GSourceFile *sf)
 			{
 				LgiMakePath(p, sizeof(p), sf->Path, "..");
 				LgiMakePath(p, sizeof(p), p, FileName8);
-				if (Exists = FileExists(p))
+				if ((Exists = FileExists(p)))
 					IncPath = p;
 			}
 			
@@ -2267,8 +2275,7 @@ void GCppParserWorker::DoWork(WorkUnit *wk)
 
 				if (!stricmp(ext, "cpp"))
 				{
-					const char16 *CppDef = L"__cplusplus";
-					Scopes[0]->Define((char16*)CppDef, SymDefineValue, _FL);
+					Scopes[0]->Define((char16*)sCpp, SymDefineValue, _FL);
 				}	
 
 				ParseCpp(w->Source[i]);

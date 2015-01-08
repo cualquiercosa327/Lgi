@@ -86,20 +86,22 @@ static const char **GetEnumValues(ProjSetting s)
 
 struct SettingInfo
 {
+	struct BitFlags
+	{
+		uint32 MultiLine : 1;
+		uint32 CrossPlatform : 1;
+		uint32 PlatformSpecific : 1;
+		uint32 ConfigSpecific : 1;
+		uint32 Enum : 1;
+	};
+	
 	ProjSetting Setting;
 	int Type;
 	const char *Name;
 	const char *Category;
 	union {
 		uint32 Flags;
-		struct BitFlags
-		{
-			uint32 MultiLine : 1;
-			uint32 CrossPlatform : 1;
-			uint32 PlatformSpecific : 1;
-			uint32 ConfigSpecific : 1;
-			uint32 Enum : 1;
-		} Flag;
+		BitFlags Flag;
 	};
 };
 
@@ -600,6 +602,8 @@ void IdeProjectSettings::InitAllSettings(bool ClearCurrent)
 		GXmlTag *t = NULL;
 		switch (i->Setting)
 		{
+			default:
+				break;
 			case ProjMakefile:
 			{
 				char s[64];

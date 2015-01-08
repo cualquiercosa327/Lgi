@@ -519,7 +519,7 @@ public:
 		char c[256];
 		int words = Length >> 2;
 		int bytes = Length % 4;
-		sprintf_s(c, sizeof(c), "x/%iw 0x%p", words, Addr);
+		sprintf_s(c, sizeof(c), "x/%iw 0x%p", words, (void*)Addr);
 		if (!Cmd(c, NULL, &Out))
 			return false;
 		

@@ -109,7 +109,7 @@ public:
 		}
 	}
 	
-	char *Find(char *Paths, char *e)
+	char *Find(const char *Paths, char *e)
 	{
 		GToken Path(Paths, LGI_PATH_SEPARATOR);
 		for (int p=0; p<Path.Length(); p++)
@@ -348,16 +348,16 @@ public:
 				{
 					DebugBox->SetVertical(false);
 					
-					if (DebugTab = new GTabView(IDC_DEBUG_TAB))
+					if ((DebugTab = new GTabView(IDC_DEBUG_TAB)))
 					{
 						DebugTab->SetFont(&Small);
 						DebugBox->AddView(DebugTab);
 
 						GTabPage *Page;
-						if (Page = DebugTab->Append("Locals"))
+						if ((Page = DebugTab->Append("Locals")))
 						{
 							Page->SetFont(&Small);
-							if (Locals = new GList(IDC_LOCALS_LIST, 0, 0, 100, 100, "Locals List"))
+							if ((Locals = new GList(IDC_LOCALS_LIST, 0, 0, 100, 100, "Locals List")))
 							{
 								Locals->SetFont(&Small);
 								Locals->AddColumn("", 30);
@@ -369,20 +369,20 @@ public:
 								Page->Append(Locals);
 							}
 						}
-						if (Page = DebugTab->Append("Object"))
+						if ((Page = DebugTab->Append("Object")))
 						{
 							Page->SetFont(&Small);
-							if (ObjectDump = new GTextLog(IDC_OBJECT_DUMP))
+							if ((ObjectDump = new GTextLog(IDC_OBJECT_DUMP)))
 							{
 								ObjectDump->SetFont(&Fixed);
 								ObjectDump->SetPourLargest(true);
 								Page->Append(ObjectDump);
 							}
 						}
-						if (Page = DebugTab->Append("Watch"))
+						if ((Page = DebugTab->Append("Watch")))
 						{
 							Page->SetFont(&Small);
-							if (Watch = new GList(IDC_WATCH_LIST, 0, 0, 100, 100, "Watch List"))
+							if ((Watch = new GList(IDC_WATCH_LIST, 0, 0, 100, 100, "Watch List")))
 							{
 								Watch->SetFont(&Small);
 								Watch->AddColumn("Watch Var", 80);
@@ -392,11 +392,11 @@ public:
 								Page->Append(Watch);
 							}
 						}
-						if (Page = DebugTab->Append("Memory"))
+						if ((Page = DebugTab->Append("Memory")))
 						{
 							Page->SetFont(&Small);
 							
-							if (MemTable = new GTableLayout(IDC_MEMORY_TABLE));
+							if ((MemTable = new GTableLayout(IDC_MEMORY_TABLE)))
 							{
 								GCombo *cbo;
 								GCheckBox *chk;
@@ -456,7 +456,7 @@ public:
 								int cols = x;
 								x = 0;
 								c = MemTable->GetCell(x++, ++y, true, cols);
-								if (MemoryDump = new GTextLog(IDC_MEMORY_DUMP))
+								if ((MemoryDump = new GTextLog(IDC_MEMORY_DUMP)))
 								{
 									MemoryDump->SetFont(&Fixed);
 									MemoryDump->SetPourLargest(true);
@@ -466,10 +466,10 @@ public:
 								Page->Append(MemTable);
 							}
 						}
-						if (Page = DebugTab->Append("Call Stack"))
+						if ((Page = DebugTab->Append("Call Stack")))
 						{
 							Page->SetFont(&Small);
-							if (CallStack = new GList(IDC_CALL_STACK, 0, 0, 100, 100, "Call Stack"))
+							if ((CallStack = new GList(IDC_CALL_STACK, 0, 0, 100, 100, "Call Stack")))
 							{
 								CallStack->SetFont(&Small);
 								CallStack->AddColumn("", 20);
@@ -481,10 +481,10 @@ public:
 							}
 						}
 
-						if (Page = DebugTab->Append("Registers"))
+						if ((Page = DebugTab->Append("Registers")))
 						{
 							Page->SetFont(&Small);
-							if (Registers = new GTextLog(IDC_REGISTERS))
+							if ((Registers = new GTextLog(IDC_REGISTERS)))
 							{
 								Registers->SetFont(&Small);
 								Registers->SetPourLargest(true);
@@ -493,7 +493,7 @@ public:
 						}
 					}
 					
-					if (DebugLog = new GBox)
+					if ((DebugLog = new GBox))
 					{
 						DebugLog->SetVertical(true);
 						DebugBox->AddView(DebugLog);
@@ -556,7 +556,7 @@ public:
 				char *Utf = &Buf[Channel][0];
 				if (!LgiIsUtf8(Utf, Size))
 				{
-					printf("Ch %i not utf len=%i\n", Channel, Size);
+					printf("Ch %i not utf len="LGI_PrintfInt64"\n", Channel, Size);
 					continue;
 				}
 				
@@ -946,7 +946,7 @@ public:
 
 	void UpdateMenus()
 	{
-		static char *None = "(none)";
+		static const char *None = "(none)";
 
 		if (!App->GetMenu())
 			return; // This happens in GTK during window destruction
@@ -994,7 +994,7 @@ public:
 			int n=0;
 			for (IdeDoc *d=Docs.First(); d; d=Docs.Next())
 			{
-				char *File = d->GetFileName();
+				const char *File = d->GetFileName();
 				if (!File) File = "(untitled)";
 				char *Dir = strrchr(File, DIR_CHAR);
 				WindowsMenu->AppendItem(Dir?Dir+1:File, IDM_WINDOWS+n++, true);
@@ -1095,7 +1095,7 @@ public:
 		return 0;
 	}
 
-	void SerializeStringList(char *Opt, List<char> *Lst, bool Write)
+	void SerializeStringList(const char *Opt, List<char> *Lst, bool Write)
 	{
 		GVariant v;
 		if (Write)
@@ -2192,7 +2192,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			IdeProject *p = RootProject();
 			if (p)
 			{
-				if (d->DbgContext = p->Execute(ExeDebug))
+				if ((d->DbgContext = p->Execute(ExeDebug)))
 				{
 					d->DbgContext->DebuggerLog = d->Output->DebuggerLog;
 					d->DbgContext->Watch = d->Output->Watch;

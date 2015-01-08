@@ -32,7 +32,7 @@ FindInFiles::~FindInFiles()
 	DeleteObj(Params);
 }
 
-void SerializeHistory(GHistory *h, char *opt, GOptionsFile *p, bool Write)
+void SerializeHistory(GHistory *h, const char *opt, GOptionsFile *p, bool Write)
 {
 	if (h && p)
 	{
@@ -46,7 +46,7 @@ void SerializeHistory(GHistory *h, char *opt, GOptionsFile *p, bool Write)
 				if (b.GetSize()) b.Push("|");
 				b.Push(s);
 			}
-			if (s = b.NewStr())
+			if ((s = b.NewStr()))
 			{
 				p->SetValue(opt, v = s);
 				DeleteArray(s);

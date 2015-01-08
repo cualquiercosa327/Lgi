@@ -238,7 +238,7 @@ bool GDebugContext::ParseFrameReference(const char *Frame, GAutoString &File, in
 		return false;
 	
 	const char *At = NULL, *s = Frame;
-	while (s = stristr(s, "at"))
+	while ((s = stristr(s, "at")))
 	{
 		At = s;
 		s += 2;

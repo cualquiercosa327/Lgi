@@ -90,7 +90,7 @@ GSubProcess::GSubProcess(const char *exe, const char *args)
 	EnvironmentChanged = false;
 	
 	char *s;
-	while (s = LgiTokStr(args))
+	while ((s = LgiTokStr(args)))
 	{
 		Args.Add(s);
 	}

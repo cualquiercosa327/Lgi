@@ -10,7 +10,7 @@ class Line : public GListItem
 	COLOUR c;
 
 public:
-	Line(char *s, COLOUR col)
+	Line(const char *s, COLOUR col)
 	{
 		SetText(s);
 		c = col;
@@ -154,7 +154,7 @@ FtpCmd::~FtpCmd()
 	Dir.DeleteObjects();
 }
 
-void FtpCmd::Error(char *e)
+void FtpCmd::Error(const char *e)
 {
 	if (Watch)
 	{
