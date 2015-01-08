@@ -4,7 +4,11 @@
 #include <commctrl.h>
 #endif
 
-#if !WINNATIVE
+#ifdef MAC
+#include <Carbon/Carbon.h>
+#endif
+
+#if NATIVE_TIPS
 #include "GDisplayString.h"
 
 class NativeTip : public GView
@@ -173,8 +177,10 @@ class GToolTipPrivate
 {
 public:
 	int NextUid;
-	
-	#if !WINNATIVE
+
+	#if defined(MAC)
+	HMHelpContentRec Tag;
+	#elif NATIVE_TIPS
 	List<NativeTip> Tips;
 	GViewI *Parent;
 	GThread *Thread;
@@ -183,7 +189,8 @@ public:
 	GToolTipPrivate()
 	{
 		NextUid = 1;
-		#if !WINNATIVE
+		#if defined(MAC)
+		#elif NATIVE_TIPS
 		Parent = 0;
 		Thread = 0;
 		#endif
@@ -191,7 +198,7 @@ public:
 
 	~GToolTipPrivate()
 	{
-		#if !WINNATIVE
+		#if NATIVE_TIPS
 		DeleteObj(Thread);
 		Tips.DeleteObjects();
 		#endif
@@ -212,7 +219,20 @@ int GToolTip::NewTip(char *Name, GRect &Pos)
 {
 	int Status = 0;
 
-	#if WINNATIVE
+	#if defined(MAC)
+
+	HMSetHelpTagsDisplayed(true);
+
+	if (Name)
+	{
+		d->Tag.version = kMacHelpVersion;
+		d->Tag.tagSide = kHMDefaultSide;
+		d->Tag.content[kHMMinimumContentIndex].contentType = kHMCFStringLocalizedContent;
+		d->Tag.content[kHMMinimumContentIndex].u.tagCFString = CFStringCreateWithCString(NULL, Name, kCFStringEncodingUTF8);
+		d->Tag.absHotRect = Pos;
+	}
+	
+	#elif WINNATIVE
 
 	if (_View && Name && GetParent())
 	{
@@ -231,7 +251,7 @@ int GToolTip::NewTip(char *Name, GRect &Pos)
 		DeleteArray(ti.lpszText);
 	}
 	
-	#elif !defined(MAC)
+	#elif NATIVE_TIPS
 	
 	if (ValidStr(Name) && d->Parent)
 	{
@@ -262,7 +282,11 @@ int GToolTip::NewTip(char *Name, GRect &Pos)
 
 void GToolTip::DeleteTip(int Id)
 {
-	#if WINNATIVE
+	#if defined(MAC)
+	
+	
+	
+	#elif WINNATIVE
 
 	if (GetParent())
 	{
@@ -276,7 +300,7 @@ void GToolTip::DeleteTip(int Id)
 		SendMessage(_View, TTM_DELTOOL, 0, (LPARAM) &ti);
 	}
 	
-	#else
+	#elif NATIVE_TIPS
 	
 	for (NativeTip *t = d->Tips.First(); t; t = d->Tips.Next())
 	{
@@ -293,9 +317,43 @@ void GToolTip::DeleteTip(int Id)
 
 bool GToolTip::Attach(GViewI *p)
 {
-	#if WINNATIVE
+	#if defined(MAC)
+	
+	if (!p)
+	{
+		LgiTrace("%s:%i - Error: no parent for tip.\n", _FL);
+		return false;
+	}
 
-	if (!_View && p)
+	GWindow *w = p->GetWindow();
+	if (!w)
+	{
+		LgiTrace("%s:%i - Error: no window to attach tip to.\n", _FL);
+		return false;
+	}
+	
+	GdcPt2 pt(0, 0);
+	for (GViewI *v = p; v && v != (GViewI*)w; v = v->GetParent())
+	{
+		GRect r = v->GetPos();
+		pt.x += r.x1;
+		pt.y += r.y1;
+	}
+	
+	d->Tag.absHotRect.left += pt.x;
+	d->Tag.absHotRect.top += pt.y;
+	d->Tag.absHotRect.right += pt.x;
+	d->Tag.absHotRect.bottom += pt.y;
+	
+	HMSetWindowHelpContent(w->WindowHandle(), &d->Tag);
+	HMDisplayTag(&d->Tag);
+	
+	#elif WINNATIVE
+
+	if (!p)
+		return false;
+
+	if (!_View)
 	{
 		SetParent(p);
 
@@ -307,21 +365,22 @@ bool GToolTip::Attach(GViewI *p)
 								NULL,
 								NULL);
 
-		if (_View)
-		{
-			SetWindowPos(		_View,
-								HWND_TOPMOST,
-								0, 0, 0, 0,
-								SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-			return true;
-		}
 	}
+
+	if (!_View)
+		return false;
+
+	SetWindowPos(		_View,
+						HWND_TOPMOST,
+						0, 0, 0, 0,
+						SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 	
-	#else
+	#elif NATIVE_TIPS
 	
 	d->Parent = p;
+	return false;
 
 	#endif
 
-	return false;
+	return true;
 }

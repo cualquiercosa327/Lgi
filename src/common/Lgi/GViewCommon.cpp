@@ -360,7 +360,7 @@ int GView::OnNotify(GViewI *Ctrl, int Flags)
 	{
 		Script->OnNotify(Ctrl, Flags);
 	}
-	else if (Ctrl && d->Parent)
+	else if (Ctrl && d && d->Parent)
 	{
 		// default behaviour is just to pass the 
 		// notification up to the parent
