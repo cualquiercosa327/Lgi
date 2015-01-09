@@ -187,38 +187,59 @@ bool GDebugContext::UpdateLocals()
 			switch (v.Value.Type)
 			{
 				case GV_BOOL:
+				{
 					it->SetText(v.Type ? v.Type.Get() : "bool", 1);
 					sprintf_s(s, sizeof(s), "%s", v.Value.Value.Bool ? "true" : "false");
 					break;
+				}
 				case GV_INT32:
+				{
 					it->SetText(v.Type ? v.Type.Get() : "int32", 1);
 					sprintf_s(s, sizeof(s), "%i (0x%x)", v.Value.Value.Int, v.Value.Value.Int);
 					break;
+				}
 				case GV_INT64:
+				{
 					it->SetText(v.Type ? v.Type.Get() : "int64", 1);
 					sprintf_s(s, sizeof(s), LGI_PrintfInt64, v.Value.Value.Int64);
 					break;
+				}
 				case GV_DOUBLE:
+				{
 					it->SetText(v.Type ? v.Type.Get() : "double", 1);
 					sprintf_s(s, sizeof(s), "%f", v.Value.Value.Dbl);
 					break;
+				}
 				case GV_STRING:
+				{
 					it->SetText(v.Type ? v.Type.Get() : "string", 1);
 					sprintf_s(s, sizeof(s), "%s", v.Value.Value.String);
 					break;
+				}
 				case GV_WSTRING:
+				{
 					it->SetText(v.Type ? v.Type.Get() : "wstring", 1);
+					#ifdef MAC
+					GAutoString tmp(LgiNewUtf16To8(v.Value.Value.WString));
+					sprintf_s(s, sizeof(s), "%s", tmp.Get());
+					#else
 					sprintf_s(s, sizeof(s), "%S", v.Value.Value.WString);
+					#endif
 					break;
+				}
 				case GV_VOID_PTR:
+				{
 					it->SetText(v.Type ? v.Type.Get() : "void*", 1);
 					sprintf_s(s, sizeof(s), "0x%p", v.Value.Value.Ptr);
 					break;
+				}
 				default:
+				{
 					sprintf_s(s, sizeof(s), "notimp(%s)", GVariant::TypeToString(v.Value.Type));
 					it->SetText(v.Type ? v.Type : s, 1);
 					s[0] = 0;
 					break;
+				}
 			}
 
 			it->SetText(v.Name, 2);

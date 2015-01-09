@@ -6,6 +6,7 @@
 #include "GSkinEngine.h"
 #include "GCombo.h"
 #include "GDisplayString.h"
+#include "GUtf8.h"
 
 #define COMBO_HEIGHT			20
 
@@ -294,10 +295,11 @@ void GCombo::DoMenu()
 				{
 					int n = 0;
 					double dbl = 0;
-					char f = 0;
+					char16 f = 0;
 					GSubMenu *m = 0;
 					for (; c; c = d->Items.Next(), i++)
 					{
+						GUtf8Ptr u(c);
 						if (d->Sub == GV_INT32)
 						{
 							int ci = atoi(c);
@@ -323,11 +325,16 @@ void GCombo::DoMenu()
 						}
 						else
 						{
-							if (!m || f != *c)
+							if (!m || f != u)
 							{
-								char Name[16];
-								sprintf_s(Name, sizeof(Name), "%c...", f = *c);
-								m = RClick->AppendSub(Name);
+								char16 Name[16], *n = Name;
+								*n++ = (f = u);
+								*n++ = '.';
+								*n++ = '.';
+								*n++ = '.';
+								*n++ = 0;
+								GAutoString a(LgiNewUtf16To8(Name));
+								m = RClick->AppendSub(a);
 							}
 						}
 

@@ -179,22 +179,42 @@ GSubMenu *GSubMenu::AppendSub(const char *Str, int Where)
 				
 				Str = i->Name();
 				s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)Str, strlen(Str), kCFStringEncodingUTF8, false);
-				e = SetMenuTitleWithCFString(i->Child->Info, s);
-				if (e) printf("%s:%i - SetMenuTitleWithCFString failed (e=%i)\n", __FILE__, __LINE__, (int)e);
-				#if DEBUG_INFO
-				else printf("SetMenuTitleWithCFString(%p, %s)\n", i->Child->Info, Str);
-				#endif
-				CFRelease(s);
+				if (s)
+				{
+					e = SetMenuTitleWithCFString(i->Child->Info, s);
+					if (e) printf("%s:%i - SetMenuTitleWithCFString failed (e=%i)\n", __FILE__, __LINE__, (int)e);
+					#if DEBUG_INFO
+					else printf("SetMenuTitleWithCFString(%p, %s)\n", i->Child->Info, Str);
+					#endif
+					CFRelease(s);
+				}
+				else
+				{
+					int ad=0;
+				}
 				
 				i->Info = Items.IndexOf(i) + 1;
 				s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)Str, strlen(Str), kCFStringEncodingUTF8, false);
-				e = InsertMenuItemTextWithCFString(Info, s, i->Info - 1, 0, 0);
-				CFRelease(s);
-				if (e) printf("%s:%i - Error: AppendMenuItemTextWithCFString(%p)=%i\n", __FILE__, __LINE__, Parent->Parent->Info, Parent->Info);
+				if (s)
+				{
+					e = InsertMenuItemTextWithCFString(Info, s, i->Info - 1, 0, 0);
+					CFRelease(s);
+				}
+				if (e)
+					printf("%s:%i - Error: AppendMenuItemTextWithCFString(%p)=%i\n",
+							_FL,
+							Parent && Parent->Parent ? Parent->Parent->Info : NULL,
+							Parent ? Parent->Info : NULL);
 				else
 				{
 					e = SetMenuItemHierarchicalMenu(Info, i->Info, i->Child->Info);	
-					if (e) printf("%s:%i - Error: SetMenuItemHierarchicalMenu(%p, %i, %p) = %i\n", __FILE__, __LINE__, Parent->Parent->Info, Parent->Info, Info, (int)e);
+					if (e)
+						printf("%s:%i - Error: SetMenuItemHierarchicalMenu(%p, %i, %p) = %i\n",
+								_FL,
+								Parent && Parent->Parent ? Parent->Parent->Info : NULL,
+								Parent ? Parent->Info : NULL,
+								Info,
+								(int)e);
 				}
 			}
 		}

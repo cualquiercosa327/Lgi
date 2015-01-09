@@ -627,6 +627,28 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
+			case CsRgbx32:
+			{
+				for (int y=0; y<Src->y; y++)
+				{
+					GRgbx32 *s = (GRgbx32*) ((char*)Src->Base + (y * Src->Line));
+					System32BitPixel *d = Ptr.p;
+					System32BitPixel *e = d + Src->x;
+					
+					while (d < e)
+					{
+						d->r = s->r;
+						d->g = s->g;
+						d->b = s->b;
+						d->a = 255;
+						d++;
+						s++;
+					}
+
+					Ptr.u8 += Dest->Line;
+				}
+				break;
+			}
 			case System32BitColourSpace:
 			{
 				uchar *s = Src->Base;

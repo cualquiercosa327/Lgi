@@ -140,13 +140,6 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				349A252E1A5E434A00F4263E /* IFtp.cpp */,
-				349A24F81A5E3D1D00F4263E /* FindInFiles.cpp */,
-				349A24FA1A5E3D1D00F4263E /* FindSymbol.cpp */,
-				349A24FC1A5E3D1D00F4263E /* FtpThread.cpp */,
-				349A24FE1A5E3D1D00F4263E /* GDebugContext.cpp */,
-				349A24FF1A5E3D1D00F4263E /* GDebugger.cpp */,
-				349A25011A5E3D1D00F4263E /* GHistory.cpp */,
 				349A25031A5E3D1D00F4263E /* IdeDoc.cpp */,
 				349A25051A5E3D1D00F4263E /* IdeProject.cpp */,
 				349A25071A5E3D1D00F4263E /* IdeProjectSettings.cpp */,
@@ -155,15 +148,13 @@
 				349A250B1A5E3D1D00F4263E /* MemDumpViewer.cpp */,
 				349A250C1A5E3D1D00F4263E /* SpaceTabConv.cpp */,
 				349A250E1A5E3D1D00F4263E /* SysCharSupport.cpp */,
-				349A24F91A5E3D1D00F4263E /* FindInFiles.h */,
-				349A24FB1A5E3D1D00F4263E /* FindSymbol.h */,
-				349A24FD1A5E3D1D00F4263E /* FtpThread.h */,
-				349A25001A5E3D1D00F4263E /* GDebugger.h */,
-				349A25021A5E3D1D00F4263E /* GHistory.h */,
 				349A25041A5E3D1D00F4263E /* IdeDoc.h */,
 				349A25061A5E3D1D00F4263E /* IdeProject.h */,
 				349A250D1A5E3D1D00F4263E /* SpaceTabConv.h */,
 				32DBCF6D0370B57F00C91783 /* LgiIde_Prefix.pch */,
+				349A25351A5E483B00F4263E /* Debugger */,
+				349A25361A5E485800F4263E /* Find */,
+				349A25341A5E482500F4263E /* Ftp */,
 				34B7EA6B0A64B4DE00657E69 /* Lgi */,
 				349A25221A5E3FFD00F4263E /* Source */,
 			);
@@ -208,6 +199,39 @@
 				349A25231A5E401100F4263E /* GLexCpp.cpp */,
 			);
 			name = Source;
+			sourceTree = "<group>";
+		};
+		349A25341A5E482500F4263E /* Ftp */ = {
+			isa = PBXGroup;
+			children = (
+				349A24FD1A5E3D1D00F4263E /* FtpThread.h */,
+				349A24FC1A5E3D1D00F4263E /* FtpThread.cpp */,
+				349A252E1A5E434A00F4263E /* IFtp.cpp */,
+			);
+			name = Ftp;
+			sourceTree = "<group>";
+		};
+		349A25351A5E483B00F4263E /* Debugger */ = {
+			isa = PBXGroup;
+			children = (
+				349A24FE1A5E3D1D00F4263E /* GDebugContext.cpp */,
+				349A24FF1A5E3D1D00F4263E /* GDebugger.cpp */,
+				349A25001A5E3D1D00F4263E /* GDebugger.h */,
+			);
+			name = Debugger;
+			sourceTree = "<group>";
+		};
+		349A25361A5E485800F4263E /* Find */ = {
+			isa = PBXGroup;
+			children = (
+				349A25011A5E3D1D00F4263E /* GHistory.cpp */,
+				349A25021A5E3D1D00F4263E /* GHistory.h */,
+				349A24F81A5E3D1D00F4263E /* FindInFiles.cpp */,
+				349A24F91A5E3D1D00F4263E /* FindInFiles.h */,
+				349A24FA1A5E3D1D00F4263E /* FindSymbol.cpp */,
+				349A24FB1A5E3D1D00F4263E /* FindSymbol.h */,
+			);
+			name = Find;
 			sourceTree = "<group>";
 		};
 		34B7EA6B0A64B4DE00657E69 /* Lgi */ = {
