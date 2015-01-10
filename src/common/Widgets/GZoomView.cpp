@@ -1250,7 +1250,7 @@ void GZoomView::SetViewport(ViewportInfo i)
 	if (Src)
 	{
 		GRect c = GetClient();    
-		int Factor = d->Factor();
+		// int Factor = d->Factor();
 
 		int Dx, Dy;
 		/*

@@ -185,144 +185,65 @@ void GDisplayString::Layout()
 	
 	#elif defined MAC && !defined COCOA
 	
-	if (Hnd && Str)
+	if (!Hnd || !Str)
+		return;
+
+	OSStatus e = ATSUSetTextPointerLocation(Hnd, Str, 0, len, len);
+	if (e)
 	{
-		OSStatus e = ATSUSetTextPointerLocation(Hnd, Str, 0, len, len);
-		if (e)
-		{
-			GAutoString a(LgiNewUtf16To8(Str));
-			printf("%s:%i - ATSUSetTextPointerLocation failed with errorcode %i (%s)\n", _FL, (int)e, a.Get());
-		}
-		else
-		{
-			e = ATSUSetRunStyle(Hnd, Font->Handle(), 0, len);
-			if (e)
-			{
-				GAutoString a(LgiNewUtf16To8(Str));
-				printf("%s:%i - ATSUSetRunStyle failed with errorcode %i (%s)\n", _FL, (int)e, a.Get());
-			}
-			else
-			{
-				ATSUTextMeasurement fTextBefore;
-				ATSUTextMeasurement fTextAfter;
-
-				if (pDC)
-				{
-					OsPainter dc = pDC->Handle();
-					ATSUAttributeTag        theTags[1] = {kATSUCGContextTag};
-					ByteCount               theSizes[1] = {sizeof(CGContextRef), };
-					ATSUAttributeValuePtr   theValues[1] = {&dc};
-
-					e = ATSUSetLayoutControls(Hnd, 1, theTags, theSizes, theValues);
-					if (e) printf("%s:%i - ATSUSetLayoutControls failed (e=%i)\n", __FILE__, __LINE__, (int)e);
-				}
-
-				#if 0
-				
-				OSStatus e;
-				if (Font->d->fAscent == 0)
-				{
-					e = ATSUGetUnjustifiedBounds(Hnd,
-												kATSUFromTextBeginning,
-												kATSUToTextEnd,
-												&fTextBefore,
-												&fTextAfter,
-												&Font->d->fAscent,
-												&Font->d->fDescent);
-					if (e) printf("ATSUGetUnjustifiedBounds failed with %i\n", e);
-				}
-				
-				Rect r;
-				e = ATSUMeasureTextImage(	Hnd,
-											kATSUFromTextBeginning,
-											kATSUToTextEnd, 
-											0,
-											0,
-											&r);
-				if (e) printf("ATSUMeasureTextImage failed with %i\n", e);
-				else
-				{
-					x = r.right - r.left;
-					y = (Font->d->fAscent + Font->d->fDescent) >> 16;
-					
-					fAscent = Font->d->fAscent;
-					fDescent = Font->d->fDescent;
-					
-					if (!x)
-					{
-						char16 sp[2] = {' ', 0};
-						if (StricmpW(Str, sp) == 0)
-						{
-							x = 5;
-						}
-					}
-					
-					// printf("r=%i,%i,%i,%i a=%i d=%i\n", r.left, r.top, r.right, r.bottom, fAscent, fDescent);
-				}
-				#elif 0
-				{
-					ATSTrapezoid t[1];
-					ItemCount tlen = 0;
-					e = ATSUGetGlyphBounds(	Hnd,
-											0,
-											0,
-											kATSUFromTextBeginning,
-											kATSUToTextEnd,
-											kATSUseDeviceOrigins,
-											1,
-											t,
-											&tlen);
-					if (e)
-					{
-						printf("%s:%i - ATSUGetGlyphBounds failed with errorcode %i (%S)\n", __FILE__, __LINE__, e, Str);
-					}
-					else
-					{
-						x = (t[0].upperRight.x - t[0].upperLeft.x) >> 16;
-						y = (t[0].lowerLeft.y - t[0].upperLeft.y) >> 16;
-						
-						fAscent = -(t[0].upperLeft.y);
-						fDescent = t[0].lowerLeft.y;
-						
-						#if 0
-						printf("str='%p' x=%i y=%i (%g,%g,%g,%g) %i,%i\n", Str, x, y,
-							(double)t[0].upperRight.x/0x10000, (double)t[0].upperLeft.x/0x10000,
-							(double)t[0].lowerLeft.y/0x10000, (double)t[0].upperLeft.y/0x10000,
-							fAscent >> 16, fDescent >> 16);
-						#endif
-					}
-				}
-				#else
-				e = ATSUGetUnjustifiedBounds(	Hnd,
-												kATSUFromTextBeginning,
-												kATSUToTextEnd,
-												&fTextBefore,
-												&fTextAfter,
-												&fAscent,
-												&fDescent);
-				if (e)
-				{
-					GAutoString a(LgiNewUtf16To8(Str));
-					printf("%s:%i - ATSUGetUnjustifiedBounds failed with errorcode %i (%s)\n", __FILE__, __LINE__, (int)e, a.Get());
-				}
-				else
-				{
-					x = (fTextAfter - fTextBefore + 0xffff) >> 16;
-					y = (fAscent + fDescent) >> 16;
-					
-					#if 0
-					printf("str='%p' x=%i y=%i (%g,%g,%g,%g) %i,%i\n", Str, x, y,
-						(double)fTextBefore/0x10000, (double)fTextAfter/0x10000, (double)fAscent/0x10000, (double)fDescent/0x10000,
-						fAscent >> 16, fDescent >> 16);
-					#endif
-				}
-				#endif
-			
-			}
-		}
-
-		ATSUSetTransientFontMatching(Hnd, true);
+		GAutoString a(LgiNewUtf16To8(Str));
+		printf("%s:%i - ATSUSetTextPointerLocation failed with errorcode %i (%s)\n", _FL, (int)e, a.Get());
+		return;
 	}
+
+	e = ATSUSetRunStyle(Hnd, Font->Handle(), 0, len);
+	if (e)
+	{
+		GAutoString a(LgiNewUtf16To8(Str));
+		printf("%s:%i - ATSUSetRunStyle failed with errorcode %i (%s)\n", _FL, (int)e, a.Get());
+		return;
+	}
+
+	ATSUTextMeasurement fTextBefore;
+	ATSUTextMeasurement fTextAfter;
+
+	if (pDC)
+	{
+		OsPainter dc = pDC->Handle();
+		ATSUAttributeTag        theTags[1] = {kATSUCGContextTag};
+		ByteCount               theSizes[1] = {sizeof(CGContextRef)};
+		ATSUAttributeValuePtr   theValues[1] = {&dc};
+
+		e = ATSUSetLayoutControls(Hnd, 1, theTags, theSizes, theValues);
+		if (e) printf("%s:%i - ATSUSetLayoutControls failed (e=%i)\n", _FL, (int)e);
+	}
+	
+	ATSUTab Tabs[32];
+	for (int i=0; i<CountOf(Tabs); i++)
+	{
+		Tabs[i].tabPosition = (i * Font->TabSize()) << 16;
+		Tabs[i].tabType = kATSULeftTab;
+	}
+	e = ATSUSetTabArray(Hnd, Tabs, CountOf(Tabs));
+	if (e) printf("%s:%i - ATSUSetTabArray failed (e=%i)\n", _FL, (int)e);
+
+	e = ATSUGetUnjustifiedBounds(	Hnd,
+									kATSUFromTextBeginning,
+									kATSUToTextEnd,
+									&fTextBefore,
+									&fTextAfter,
+									&fAscent,
+									&fDescent);
+	if (e)
+	{
+		GAutoString a(LgiNewUtf16To8(Str));
+		printf("%s:%i - ATSUGetUnjustifiedBounds failed with errorcode %i (%s)\n", _FL, (int)e, a.Get());
+		return;
+	}
+
+	x = (fTextAfter - fTextBefore + 0xffff) >> 16;
+	y = (fAscent + fDescent) >> 16;
+	ATSUSetTransientFontMatching(Hnd, true);
 	
 	#elif defined WINNATIVE
 	

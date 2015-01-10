@@ -38,7 +38,6 @@ GExecutionStatus GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentA
 		return ScriptError;
 	}
 
-	GExecutionStatus Status = ScriptError;
 	GArray<NativeInt> Val;
 	GArray<char*> Mem;
 	bool UnsupportedArg = false;
@@ -653,7 +652,7 @@ public:
 		else
 		{
 			// Stepping through code
-			GHashTbl<int, int> &Debug = Code->Debug;
+			// GHashTbl<int, int> &Debug = Code->Debug;
 			int Line = NearestLine(CurrentScriptAddress);
 
 			while (c.u8 < e)
@@ -1004,9 +1003,8 @@ void GDebugView::PourText(int Start, int Len)
 	unsigned Idx = 0;
 	for (GTextLine *l=Line.First(); l; l=Line.Next(), Idx++)
 	{
-		int n=0;
-		char16 *t = Text + l->Start;
-		char16 *e = t + l->Len;
+		// char16 *t = Text + l->Start;
+		// char16 *e = t + l->Len;
 
 		if (CurLine == Idx)
 		{

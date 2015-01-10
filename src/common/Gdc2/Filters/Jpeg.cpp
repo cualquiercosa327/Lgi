@@ -518,6 +518,10 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 	if (setjmp(jerr.setjmp_buffer))
 	{
 		const char *msg = cinfo.err->jpeg_message_table[cinfo.err->msg_code];
+		if (Props)
+		{
+			Props->SetValue(LGI_FILTER_ERROR, v = msg);
+		}
 	
 		JPEGLIB jpeg_destroy_decompress(&cinfo);
 		return Status;

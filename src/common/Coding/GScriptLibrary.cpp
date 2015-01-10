@@ -825,7 +825,7 @@ bool SystemFunctions::OsVersion(GVariant *Ret, ArgumentArray &Args)
 	Ret->Empty();
 
 	GArray<int> Ver;
-	int Os = LgiGetOs(&Ver);
+	LgiGetOs(&Ver);
 	Ret->SetList();
 	for (int i=0; i<3; i++)
 		Ret->Value.Lst->Insert(new GVariant(Ver[i]));

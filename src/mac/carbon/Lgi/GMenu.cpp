@@ -188,10 +188,6 @@ GSubMenu *GSubMenu::AppendSub(const char *Str, int Where)
 					#endif
 					CFRelease(s);
 				}
-				else
-				{
-					int ad=0;
-				}
 				
 				i->Info = Items.IndexOf(i) + 1;
 				s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)Str, strlen(Str), kCFStringEncodingUTF8, false);
