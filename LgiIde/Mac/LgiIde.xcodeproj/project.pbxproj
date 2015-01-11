@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3412BAC51A6256E60096412F /* icons.png in Resources */ = {isa = PBXBuildFile; fileRef = 3412BAC41A6256E60096412F /* icons.png */; };
 		342D773A11FA48B6005BADBD /* GControlTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 342D773911FA48B6005BADBD /* GControlTree.cpp */; };
 		342D774A11FA4929005BADBD /* LgiMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 342D774911FA4929005BADBD /* LgiMain.cpp */; };
 		349A250F1A5E3D1D00F4263E /* FindInFiles.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A24F81A5E3D1D00F4263E /* FindInFiles.cpp */; };
@@ -66,6 +67,7 @@
 		1870340FFE93FCAF11CA0CD7 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/main.nib; sourceTree = "<group>"; };
 		20286C33FDCF999611CA2CEA /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		32DBCF6D0370B57F00C91783 /* LgiIde_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LgiIde_Prefix.pch; sourceTree = "<group>"; };
+		3412BAC41A6256E60096412F /* icons.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = icons.png; path = ../Code/icons.png; sourceTree = "<group>"; };
 		342D773911FA48B6005BADBD /* GControlTree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GControlTree.cpp; path = ../../src/common/Widgets/GControlTree.cpp; sourceTree = SOURCE_ROOT; };
 		342D774911FA4929005BADBD /* LgiMain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiMain.cpp; path = ../../src/common/Lgi/LgiMain.cpp; sourceTree = SOURCE_ROOT; };
 		349A24F11A5E3C5C00F4263E /* LgiCarbon.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = LgiCarbon.xcodeproj; path = ../../src/mac/carbon/LgiCarbon.xcodeproj; sourceTree = "<group>"; };
@@ -164,6 +166,7 @@
 		20286C2CFDCF999611CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				3412BAC41A6256E60096412F /* icons.png */,
 				349A25321A5E440100F4263E /* cmds.png */,
 				349A25091A5E3D1D00F4263E /* LgiIde.lr8 */,
 				8D0C4E960486CD37000505A6 /* Info.plist */,
@@ -320,6 +323,7 @@
 				8D0C4E8E0486CD37000505A6 /* main.nib in Resources */,
 				349A25191A5E3D1D00F4263E /* LgiIde.lr8 in Resources */,
 				349A25331A5E440100F4263E /* cmds.png in Resources */,
+				3412BAC51A6256E60096412F /* icons.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -381,28 +381,31 @@ GImageList::GImageList(int x, int y, GSurface *pDC)
 		uint8 kg = G32(Key);
 		uint8 kb = B32(Key);
 		
-		for (int y=0; y<Y(); y++)
+		if (pDC->GetBits() < 32 || A32(Key) != 0)
 		{
-			System32BitPixel *p = (System32BitPixel*) ((*this)[y]);
-			System32BitPixel *e = p + X();
-			while (p < e)
+			for (int y=0; y<Y(); y++)
 			{
-				if (p->r == kr &&
-					p->g == kg &&
-					p->b == kb)
+				System32BitPixel *p = (System32BitPixel*) ((*this)[y]);
+				System32BitPixel *e = p + X();
+				while (p < e)
 				{
-					p->a = 0;
-					p->b = 0;
-					p->g = 0;
-					p->r = 0;
+					if (p->r == kr &&
+						p->g == kg &&
+						p->b == kb)
+					{
+						p->a = 0;
+						p->b = 0;
+						p->g = 0;
+						p->r = 0;
+					}
+					else
+					{
+						p->a = 255;
+					}
+					p++;
 				}
-				else
-				{
-					p->a = 255;
-				}
-				p++;
 			}
-		}		
+		}
 		
 		#endif
 	}
