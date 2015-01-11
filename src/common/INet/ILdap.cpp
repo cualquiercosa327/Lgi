@@ -10,7 +10,7 @@
 **		API doc URL:
 **			http://docs.iplanet.com/docs/manuals/dirsdk/csdk30/functi99.htm#2215851
 */
-
+#define LDAP_DEPRECATED 1
 #include <stdio.h>
 
 #include "Lgi.h"
