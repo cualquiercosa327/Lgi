@@ -210,11 +210,11 @@ void GDisplayString::Layout()
 	if (pDC)
 	{
 		OsPainter dc = pDC->Handle();
-		ATSUAttributeTag        theTags[1] = {kATSUCGContextTag};
-		ByteCount               theSizes[1] = {sizeof(CGContextRef)};
-		ATSUAttributeValuePtr   theValues[1] = {&dc};
+		ATSUAttributeTag        Tags[1] = {kATSUCGContextTag};
+		ByteCount               Sizes[1] = {sizeof(CGContextRef)};
+		ATSUAttributeValuePtr   Values[1] = {&dc};
 
-		e = ATSUSetLayoutControls(Hnd, 1, theTags, theSizes, theValues);
+		e = ATSUSetLayoutControls(Hnd, 1, Tags, Sizes, Values);
 		if (e) printf("%s:%i - ATSUSetLayoutControls failed (e=%i)\n", _FL, (int)e);
 	}
 	
@@ -979,35 +979,40 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 	if (Hnd && pDC && len > 0)
 	{
 		OSStatus e;
-		OsPainter dc = pDC->Handle();
-		ATSUAttributeTag        theTags[1] = {kATSUCGContextTag};
-		ByteCount               theSizes[1] = {sizeof(CGContextRef)};
-		ATSUAttributeValuePtr   theValues[1] = {&dc};
+		OsPainter				dc = pDC->Handle();
+		ATSUAttributeTag        Tags[1] = {kATSUCGContextTag};
+		ByteCount               Sizes[1] = {sizeof(CGContextRef)};
+		ATSUAttributeValuePtr   Values[1] = {&dc};
 
-		e = ATSUSetLayoutControls(Hnd, 1, theTags, theSizes, theValues);
+		e = ATSUSetLayoutControls(Hnd, 1, Tags, Sizes, Values);
 		if (e)
 		{
-			printf("%s:%i - ATSUSetLayoutControls failed (e=%i)\n", __FILE__, __LINE__, (int)e);
+			printf("%s:%i - ATSUSetLayoutControls failed (e=%i)\n", _FL, (int)e);
 		}
 		else
 		{
 			// Set style attr
 			ATSURGBAlphaColor c;
-			c.red = (double) Font->Fore().r() / 255.0;
-			c.green = (double) Font->Fore().g() / 255.0;
-			c.blue = (double) Font->Fore().b() / 255.0;
+			GColour Fore = Font->Fore();
+			c.red   = (double) Fore.r() / 255.0;
+			c.green = (double) Fore.g() / 255.0;
+			c.blue  = (double) Fore.b() / 255.0;
 			c.alpha = 1.0;
 			
 			ATSUAttributeTag Tags[]			= {kATSURGBAlphaColorTag};
 			ATSUAttributeValuePtr Values[]	= {&c};
 			ByteCount Lengths[]				= {sizeof(c)};
 			
-		
-			if (!(e = ATSUSetAttributes(Font->Handle(),
-										CountOf(Tags),
-										Tags,
-										Lengths,
-										Values)))
+			e = ATSUSetAttributes(  Font->Handle(),
+									CountOf(Tags),
+									Tags,
+									Lengths,
+									Values);
+			if (e)
+			{
+				printf("%s:%i - Error setting font attr (e=%i)\n", _FL, (int)e);
+			}
+			else
 			{
 				int y = (pDC->Y() - py + Oy);
 
@@ -1031,7 +1036,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 					CGContextTranslateCTM(pDC->Handle(), 0, pDC->Y()-1);
 					CGContextScaleCTM(pDC->Handle(), 1.0, -1.0);
 
-					e = ATSUDrawText(Hnd, kATSUFromTextBeginning, kATSUToTextEnd, (px - Ox) << 16, (y << 16) - fAscent);
+					e = ATSUDrawText(Hnd, kATSUFromTextBeginning, kATSUToTextEnd, Long2Fix(px - Ox), Long2Fix(y) - fAscent);
 
 					CGContextRestoreGState(pDC->Handle());
 				}
@@ -1046,15 +1051,10 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 						rect.origin.y = pDC->Y() - rect.origin.y + Oy;
 						rect.size.width += 1.0;
 						rect.size.height += 1.0;
-						#if 1
 						CGContextClipToRect(pDC->Handle(), rect);
-						#else
-						CGContextSetLineWidth(pDC->Handle(), 1.0);
-						CGContextStrokeRect(pDC->Handle(), rect);
-						#endif
 					}
 					
-					e = ATSUDrawText(Hnd, kATSUFromTextBeginning, kATSUToTextEnd, (px - Ox) << 16, (y << 16) - fAscent);
+					e = ATSUDrawText(Hnd, kATSUFromTextBeginning, kATSUToTextEnd, Long2Fix(px - Ox), Long2Fix(y) - fAscent);
 					
 					if (r)
 						CGContextRestoreGState(pDC->Handle());
@@ -1062,31 +1062,8 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 				if (e)
 				{
 					GAutoString a(LgiNewUtf16To8(Str));
-					printf("%s:%i - ATSUDrawText failed with %i, len=%i, str=%.20s\n", __FILE__, __LINE__, (int)e, len, a.Get());
+					printf("%s:%i - ATSUDrawText failed with %i, len=%i, str=%.20s\n", _FL, (int)e, len, a.Get());
 				}
-				else
-				{
-					/*
-					_draw_layout++;
-					int64 Now = LgiCurrentTime();
-					if (_last == 0)
-						_last = Now;
-					else if (Now > _last + 1000)
-					{
-						int ms = Now - _last;
-						printf("ms=%i create=%i layout=%i draw=%i\n",
-							ms, _create_style, _create_layout, _draw_layout);
-						_create_style = 0;
-						_create_layout = 0;
-						_draw_layout = 0;
-						_last = Now;
-					}
-					*/
-				}
-			}
-			else
-			{
-				printf("%s:%i - Error setting font attr (e=%i)\n", __FILE__, __LINE__, (int)e);
 			}
 		}
 	}

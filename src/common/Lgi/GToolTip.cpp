@@ -319,6 +319,7 @@ bool GToolTip::Attach(GViewI *p)
 {
 	#if defined(MAC)
 	
+	/*
 	if (!p)
 	{
 		LgiTrace("%s:%i - Error: no parent for tip.\n", _FL);
@@ -347,6 +348,7 @@ bool GToolTip::Attach(GViewI *p)
 	
 	HMSetWindowHelpContent(w->WindowHandle(), &d->Tag);
 	HMDisplayTag(&d->Tag);
+	*/
 	
 	#elif WINNATIVE
 

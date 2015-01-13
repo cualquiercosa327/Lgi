@@ -565,7 +565,7 @@ public:
 		if (w)
 		{
 			int Line = 1;
-			char16 *s = w, *t, *prev = w;
+			char16 *s = w, *t;
 			while ((t = LexCpp(s, LexStrdup, NULL, &Line)))
 			{
 				if (*t == '#')

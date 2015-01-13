@@ -27,7 +27,6 @@ public:
 	GArray<GMruEntry*> Items;
 	GSubMenu *Parent;
 	GFileType *SelectedType;
-	GFileSelect Select;
 
 	GMruPrivate()	
 	{
@@ -269,17 +268,17 @@ void GMru::RemoveFile(char *FileName, bool Update)
 	}
 }
 
-void GMru::DoFileDlg(bool Open)
+void GMru::DoFileDlg(GFileSelect &Select, bool Open)
 {
-	GetFileTypes(&d->Select, false);
-	d->Select.ShowReadOnly(Open);
-	if (Open ? d->Select.Open() : d->Select.Save())
+	GetFileTypes(&Select, false);
+	Select.ShowReadOnly(Open);
+	if (Open ? Select.Open() : Select.Save())
 	{
-		d->SelectedType = d->Select.TypeAt(d->Select.SelectedType());
+		d->SelectedType = Select.TypeAt(Select.SelectedType());
 		if (Open)
-			_OpenFile(d->Select.Name(), d->Select.ReadOnly());
+			_OpenFile(Select.Name(), Select.ReadOnly());
 		else
-			_SaveFile(d->Select.Name());
+			_SaveFile(Select.Name());
 	}
 }
 
@@ -288,29 +287,30 @@ void GMru::OnCommand(int Cmd)
 	GViewI *Wnd = d->Parent->GetMenu() ? d->Parent->GetMenu()->WindowHandle() : 0;
 	if (Wnd)
 	{
-		d->Select.Parent(Wnd);
-		d->Select.ClearTypes();
+		GFileSelect Select;
+		Select.Parent(Wnd);
+		Select.ClearTypes();
 		d->SelectedType = 0;
 		
 		if (_GetCurFile())
 		{
 			if (FileExists(_GetCurFile()))
-				d->Select.Name(_GetCurFile());
+				Select.Name(_GetCurFile());
 			
 			char Path[256];
 			strcpy_s(Path, sizeof(Path), _GetCurFile());
 			LgiTrimDir(Path);
 			if (DirExists(Path))
-				d->Select.InitialDir(Path);
+				Select.InitialDir(Path);
 		}
 
 		if (Cmd == IDM_OPEN)
 		{
-			DoFileDlg(true);
+			DoFileDlg(Select, true);
 		}
 		else if (Cmd == IDM_SAVEAS)
 		{
-			DoFileDlg(false);
+			DoFileDlg(Select, false);
 		}
 	}
 
