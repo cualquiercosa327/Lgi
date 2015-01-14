@@ -68,7 +68,7 @@
 static char WordDelim[]	=			".,<>/?[]{}()*&^%$#@!+|\'\"";
 static char16 WhiteW[] =			{' ', '\t', '\r', '\n', 0};
 
-
+#if 0
 static char DefaultCss[] = {
 "a				{ color: blue; text-decoration: underline; }"
 "body			{ margin: 8px; }"
@@ -91,6 +91,7 @@ static char DefaultCss[] = {
 "h5, h6, b,"
 "strong          { font-weight: bolder; }"
 };
+#endif
 
 #define IsBlock(d)		((d) == DispBlock)
 
@@ -1494,11 +1495,6 @@ void GTag::CopyClipboard(GMemQueue &p, bool &InSelection)
 	int Min = -1;
 	int Max = -1;
 
-	if (Cursor >= 0 || Selection >= 0)
-	{
-		int asd=0;
-	}
-	
 	if (Cursor >= 0 && Selection >= 0)
 	{
 		Min = min(Cursor, Selection);
@@ -2468,7 +2464,7 @@ void GTag::SetStyle()
 	{
 		if ((Debug = atoi(s)))
 		{
-			int asd=0;
+			printf("Debug Tag\n");
 		}
 	}
 	#endif
@@ -2699,12 +2695,6 @@ void GTag::SetStyle()
 		if (l.Parse(s, PropWidth, ParseRelaxed))
 		{
 			Width(l);
-			
-			Len tmp = Width();
-			if (tmp.Value == 0.0 && tmp.Type == LenPx)
-			{
-				int asd= 0;
-			}
 		}
 	}
 	if (Get("height", s))
@@ -3935,7 +3925,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	#ifdef _DEBUG
 	if (Table->Debug)
 	{
-		int asd=0;
+		printf("Table Debug\n");
 	}
 	#endif
 
@@ -4028,7 +4018,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	#ifdef _DEBUG
 	if (Table->Debug)
 	{
-		int asd=0;
+		printf("TableDebug\n");
 	}
 	#endif
 
@@ -4059,13 +4049,6 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 						t->Cell->MaxContent = max(t->Cell->MaxContent, Px);
 					}
 
-					#ifdef _DEBUG
-					if (Table->Debug)
-					{
-						int asd=0;
-					}
-					#endif
-
 					if (t->Cell->MinContent > ColMin)
 						AllocatePx(t->Cell->Pos.x, t->Cell->Span.x, t->Cell->MinContent);
 					if (t->Cell->MaxContent > ColMax)
@@ -4080,13 +4063,6 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 
 	TotalX = GetTotalX();
 	DumpCols("AfterSpannedCells");
-
-	#ifdef _DEBUG
-	if (Table->Debug)
-	{
-		int asd=0;
-	}
-	#endif
 
 	// Sometimes the web page specifies too many percentages:
 	// Scale them all.	
@@ -4136,13 +4112,6 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	TotalX = GetTotalX();
 	DumpCols("AfterCssNonPercentageSizes");
 	
-	#ifdef _DEBUG
-	if (Table->Debug)
-	{
-		int asd=0;
-	}
-	#endif
-	
 	if (TotalX > AvailableX)
 	{
 		// Deallocate space if overused
@@ -4166,13 +4135,6 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	}
 	else if (TotalX < AvailableX)
 	{
-		#ifdef _DEBUG
-		if (Table->Debug)
-		{
-			int asd=0;
-		}
-		#endif
-		
 		AllocatePx(0, s.x, AvailableX);
 		DumpCols("AfterRemainingAlloc");
 	}
@@ -4204,7 +4166,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 					
 					GCss::Len Ht = t->Height();
 					GFlowRegion r(Table->Html, Box);
-					int Rx = r.X();
+					// int Rx = r.X();
 					
 					t->OnFlow(&r);
 					
@@ -4623,13 +4585,6 @@ void GTag::OnFlow(GFlowRegion *Flow)
 	Size.x = 0;
 	Size.y = 0;
 
-	#ifdef _DEBUG
-	if (Debug)
-	{
-		int asd=0;
-	}
-	#endif
-	
 	switch (TagId)
 	{
 		default: break;
@@ -5390,13 +5345,6 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 	int Px, Py;
 	pDC->GetOrigin(Px, Py);
 
-	#ifdef _DEBUG
-	if (Debug)
-	{
-		int asd=0;
-	}
-	#endif
-
 	switch (TagId)
 	{
 		case TAG_INPUT:
@@ -6001,12 +5949,11 @@ void GHtml::OnAddStyle(const char *MimeType, const char *Styles)
 {
 	if (Styles)
 	{
-		bool LogCss = false;
-		
 		const char *c = Styles;
 		bool Status = CssStore.Parse(c);
 
 		#ifdef _DEBUG
+		bool LogCss = false;
 		if (!Status)
 		{
 			char p[MAX_PATH];
@@ -6245,7 +6192,6 @@ GMessage::Result GHtml::OnEvent(GMessage *Msg)
 				for (unsigned i=0; i<JobSem.Jobs.Length(); i++)
 				{
 					GDocumentEnv::LoadJob *j = JobSem.Jobs[i];
-					GDocView *Me = this;
 					int MyUid = GetDocumentUid();
 					
 					if (j->UserUid == MyUid &&
@@ -6387,10 +6333,10 @@ void GHtml::OnPaint(GSurface *ScreenDC)
 	try
 	{
 	#endif
-		GRect Client = GetClient();
-		GRect p = GetPos();
+		// GRect p = GetPos();
 
 		#if GHTML_USE_DOUBLE_BUFFER
+		GRect Client = GetClient();
 		if (!MemDC ||
 			(MemDC->X() < Client.X() || MemDC->Y() < Client.Y()))
 		{
