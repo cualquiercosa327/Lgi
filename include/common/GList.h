@@ -11,54 +11,7 @@
 #include "GPopup.h"
 #include "GDisplayString.h"
 #include "GCss.h"
-
-// GList notification flags
-
-/// Item inserted
-/// \sa GList, GView::OnNotify
-#define GLIST_NOTIFY_INSERT			0
-/// Item deleted
-/// \sa GList, GView::OnNotify
-#define GLIST_NOTIFY_DELETE			1
-/// Item selected
-/// \sa GList, GView::OnNotify
-#define GLIST_NOTIFY_SELECT			2
-/// Item clicked
-/// \sa GList, GView::OnNotify
-#define GLIST_NOTIFY_CLICK			3
-/// Item double clicked
-/// \sa GList, GView::OnNotify
-#define GLIST_NOTIFY_DBL_CLICK		4
-/// Item changed
-/// \sa GList, GView::OnNotify
-#define GLIST_NOTIFY_CHANGE			5
-/// Column changed
-/// \sa GList, GView::OnNotify
-#define GLIST_NOTIFY_COLS_CHANGE	6
-/// Column sized
-/// \sa GList, GView::OnNotify
-#define GLIST_NOTIFY_COLS_SIZE		7
-/// Column clicks
-/// \sa GList, GView::OnNotify
-#define GLIST_NOTIFY_COLS_CLICK		8
-/// Backspace pressed
-/// \sa GList, GView::OnNotify
-#define GLIST_NOTIFY_BACKSPACE		9
-/// Return/Enter pressed
-/// \sa GList, GView::OnNotify
-#define GLIST_NOTIFY_RETURN			13
-/// Delete pressed
-/// \sa GList, GView::OnNotify
-#define GLIST_NOTIFY_DEL_KEY		14
-/// Escape pressed
-/// \sa GList, GView::OnNotify
-#define GLIST_NOTIFY_ESC_KEY		15
-/// Items dropped on the control
-#define GLIST_NOTIFY_ITEMS_DROPPED	16
-/// Sent when the control requests a context menu 
-/// outside of the existing items, i.e. in the blank
-/// space below the items.
-#define GLIST_NOTIFY_CONTEXT_MENU	17
+#include "GItemContainer.h"
 
 // Messages
 #define WM_END_EDIT_LABEL			(WM_USER+0x556)
@@ -76,225 +29,11 @@ enum GListMode
 	GListSpacial,
 };
 
-/// Class for measuring the size of a GItem based object.
-class LgiClass GMeasureInfo
-{
-public:
-	/// The width (generally not used)
-	int x;
-	/// The height
-	int y;
-};
-
-/// Base class for items in widget containers
-class LgiClass GItem : virtual public GEventsI
-{
-    GAutoPtr<GCss> Css;
-    
-public:
-	/// Painting context
-	struct ItemPaintCtx : public GRect
-	{
-		/// The surface to draw on
-		GSurface *pDC;
-
-		/// Current foreground colour (24bit)
-		COLOUR Fore;
-		/// Current background colour (24bit)
-		COLOUR Back;
-	};
-
-    GItem &operator =(GItem &i)
-    {
-		if (i.GetCss())
-		{
-			GCss *c = GetCss(true);
-			if (c)
-			{
-				*c = *i.GetCss();
-			}
-		}
-        return *this;
-    }
-
-	// Events
-	
-	/// Called when the item is selected
-	virtual void OnSelect() {}
-	/// Called when the item is clicked
-	virtual void OnMouseClick(GMouse &m) {}
-	/// Called when the item needs painting
-	virtual void OnPaint(ItemPaintCtx &Ctx) = 0;
-	/// Called when the item is dragged
-	virtual bool OnBeginDrag(GMouse &m) { return false; }
-	/// Called when the owning container needs to know the size of the item
-	virtual void OnMeasure(GMeasureInfo *Info) {}
-	/// Called when the item is inserted into a new container
-	virtual void OnInsert() {}
-	/// Called when the item is removed from it's container
-	virtual void OnRemove() {}
-
-	// Methods
-
-	/// Call to tell the container that the data displayed by the item has changed
-	virtual void Update() {}
-	/// Moves the item onscreen
-	virtual void ScrollTo() {}
-	/// Shows a editable label above the item allowing the user to change the value associated with the column 'Col'
-	virtual GView *EditLabel(int Col = -1) { return 0; }
-	/// Event called when the edit label ends
-	virtual void OnEditLabelEnd() {}
-
-	// Data
-
-	/// True if the item is selected
-	virtual bool Select() { return false; }
-	/// Select/Deselect the item
-	virtual void Select(bool b) {}
-	/// Gets the text associated with the column 'Col'
-	virtual char *GetText(int Col=0) { return 0; }
-	/// Sets the text associated with the column 'Col'
-	virtual bool SetText(const char *s, int Col=0) { return false; }
-	/// Gets the icon index
-	virtual int GetImage(int Flags = 0) { return -1; }
-	/// Sets the icon index
-	virtual void SetImage(int Col) {}
-	/// Gets the position
-	virtual GRect *GetPos(int Col = -1) { return 0; }
-	/// Gets the font for the item
-	virtual GFont *GetFont() { return 0; }
-	
-	/// Reads / writes list item to XML
-	virtual bool XmlIo(class GXmlTag *Tag, bool Write) { return false; }
-
-	bool OnScriptEvent(GViewI *Ctrl) { return false; }
-	GMessage::Result OnEvent(GMessage *Msg) { return 0; }
-	void OnMouseEnter(GMouse &m) {}
-	void OnMouseExit(GMouse &m) {}
-	void OnMouseMove(GMouse &m) {}
-	bool OnMouseWheel(double Lines) { return false; }
-	bool OnKey(GKey &k) { return false; }
-	void OnAttach() {}
-	void OnCreate() {}
-	void OnDestroy() {}
-	void OnFocus(bool f) {}
-	void OnPulse() {}
-	void OnPosChange() {}
-	bool OnRequestClose(bool OsShuttingDown) { return false; }
-	int OnHitTest(int x, int y) { return 0; }
-	void OnChildrenChanged(GViewI *Wnd, bool Attaching) {}
-	int OnNotify(GViewI *Ctrl, int Flags) { return 0; }
-	int OnCommand(int Cmd, int Event, OsView Wnd) { return 0; }
-	void OnPaint(GSurface *pDC) { LgiAssert(0); }
-
-	// Style access
-	GCss *GetCss(bool Create = false)
-	{
-		if (!Css && Create) Css.Reset(new GCss);
-		return Css;
-	}
-	
-	bool SetCssStyle(const char *CssStyle)
-	{
-		if (!Css && ValidStr(CssStyle)) Css.Reset(new GCss);
-		if (!Css) return false;
-		return Css->Parse(CssStyle, GCss::ParseRelaxed);		
-	}
-};
-
-/// The popup label for GItem's
-class GItemEdit : public GPopup
-{
-	class GItemEditPrivate *d;
-
-public:
-	GItemEdit(GView *parent, GItem *item, int index, int selstart, int selend);
-	~GItemEdit();
-	
-	void OnPaint(GSurface *pDC);
-	int OnNotify(GViewI *v, int f);
-	void Visible(bool i);
-	GMessage::Result OnEvent(GMessage *Msg);
-};
-
-/// No marking
-/// \sa GListColumn::Mark
-#define GLI_MARK_NONE				0
-/// Up arrow mark
-/// \sa GListColumn::Mark
-#define GLI_MARK_UP_ARROW			1
-/// Down arrow mark
-/// \sa GListColumn::Mark
-#define GLI_MARK_DOWN_ARROW			2
-
-/// List view column
-class LgiClass GListColumn
-	: public ResObject
-{
-	class GListColumnPrivate *d;
-	friend class GDragColumn;
-	friend class GListItem;
-	friend class GList;
-
-public:
-	GListColumn(GList *parent, const char *name, int width);
-	virtual ~GListColumn();
-
-	// properties
-	
-	/// Sets the text
-	void Name(const char *n);
-	/// Gets the text
-	char *Name();
-	/// Sets the width
-	void Width(int i);
-	/// Gets the width
-	int Width();
-	/// Sets the type of content in the header. Use one of #GIC_ASK_TEXT, #GIC_OWNER_DRAW, #GIC_ASK_IMAGE.
-	///
-	/// Is this used??
-	void Type(int i);
-	/// Gets the type of content.
-	int Type();
-	/// Sets the marking, one of #GLI_MARK_NONE, #GLI_MARK_UP_ARROW or #GLI_MARK_DOWN_ARROW
-	void Mark(int i);
-	/// Gets the marking, one of #GLI_MARK_NONE, #GLI_MARK_UP_ARROW or #GLI_MARK_DOWN_ARROW
-	int Mark();
-	/// Sets the icon to display
-	void Icon(GSurface *i, bool Own = true);
-	/// Gets the icon displayed
-	GSurface *Icon();
-	/// True if clicked
-	int Value();
-	
-	/// Sets the index into the parent containers GImageList
-	void Image(int i);
-	/// Gets the index into the parent containers GImageList
-	int Image();
-	/// true if resizable
-	bool Resizable();
-	/// Sets whether the user can resize the column
-	void Resizable(bool i);
-
-	/// Returns the index of the column if attached to a list
-	int GetIndex();
-	/// Returns the size of the content in this column
-	int GetContentSize();
-	/// Returns the list
-	GList *GetList();
-
-	/// Paint the column header.
-	void OnPaint(GSurface *pDC, GRect &r);
-
-	/// Draws the just the icon, text and mark.
-	void OnPaint_Content(GSurface *pDC, GRect &r, bool FillBackground); 
-};
-
 class LgiClass GListItemPainter
 {
 public:
 	// Overridable
-	virtual void OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GListColumn *c) = 0;
+	virtual void OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GItemColumn *c) = 0;
 };
 
 class LgiClass GListItemColumn : public GBase, public GItem, public GListItemPainter
@@ -328,7 +67,7 @@ class LgiClass GListItem : public GItem, public GListItemPainter
 {
 	friend class GList;
 	friend class GListItemColumn;
-	friend class GListColumn;
+	friend class GItemColumn;
 
 	void OnEditLabelEnd();
 
@@ -403,10 +142,10 @@ public:
 	
 	// Events;
 	void OnMouseClick(GMouse &m);
-	void OnMeasure(GMeasureInfo *Info);
+	void OnMeasure(GdcPt2 *Info);
 	void OnPaint(GSurface *pDC) { LgiAssert(0); }
 	void OnPaint(GItem::ItemPaintCtx &Ctx);
-	void OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GListColumn *c);
+	void OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GItemColumn *c);
 
 	// Overridable
 	virtual int Compare(GListItem *To, int Field) { return 0; }
@@ -465,13 +204,12 @@ public:
 
 /// List widget
 class LgiClass GList :
-	public GLayout,
 	public GItemContainer,
 	public ResObject,
 	public GListItems
 {
 	friend class GListItem;
-	friend class GListColumn;
+	friend class GItemColumn;
 	friend class GListItemColumn;
 
 	#ifdef WIN32
@@ -482,11 +220,9 @@ protected:
 	class GListPrivate *d;
 
 	// Contents
-	List<GListColumn> Columns;
 	int Keyboard; // index of the item with keyboard focus
 
 	// Flags
-	bool ColumnHeaders;
 	bool EditLabels;
 	bool GridLines;
 	bool MultiItemSelect;
@@ -496,12 +232,10 @@ protected:
 
 	// Drawing locations
 	GRect ItemsPos;
-	GRect ColumnHeader;
 	GRect ScrollX, ScrollY;
 	int FirstVisible;
 	int LastVisible;
 	int CompletelyVisible;
-	GListColumn *IconCol;
 
 	// Misc
 	bool GetUpdateRegion(GListItem *i, GRegion &r);
@@ -510,7 +244,6 @@ protected:
 	void Pour();
 	void UpdateScrollBars();
 	void KeyScroll(int iTo, int iFrom, bool SelectItems);
-	int HitColumn(int x, int y, GListColumn *&Resize, GListColumn *&Over);
 
 public:
 	/// Constructor
@@ -559,14 +292,6 @@ public:
 		/// The item selected
 		GArray<GListItem*> &Items
 	);
-	/// Called when a column is clicked
-	virtual void OnColumnClick
-	(
-		/// The index of the column
-		int Col,
-		/// The mouse parameters at the time
-		GMouse &m
-	);
 	/// Called when a column is dragged somewhere
 	virtual void OnColumnDrag
 	(
@@ -580,7 +305,7 @@ public:
 	virtual bool OnColumnReindex
 	(
 		/// The column dropped
-		GListColumn *Col,
+		GItemColumn *Col,
 		/// The old index
 		int OldIndex,
 		/// The new index
@@ -604,42 +329,6 @@ public:
 	bool OnMouseWheel(double Lines);
 	void OnFocus(bool b);
 	void OnPulse();
-
-	// Columns
-	
-	/// Adds a column to the list
-	GListColumn *AddColumn
-	(
-		/// The text for the column or NULL for no text
-		const char *Name,
-		/// The width of the column
-		int Width = 50,
-		/// The index to insert at, or -1 to append to the end
-		int Where = -1
-	);
-	/// Adds a preexisting column to the control
-	bool AddColumn
-	(
-		/// The column object. The object once added is owned by the GList
-		GListColumn *Col,
-		/// The location to insert or -1 to append
-		int Where = -1
-	);
-	/// Deletes a column from the GList
-	bool DeleteColumn(GListColumn *Col);
-	/// Deletes all the columns of the GList
-	void EmptyColumns();
-	/// Returns the column at index 'Index'
-	GListColumn *ColumnAt(int Index) { return Columns.ItemAt(Index); }
-	/// Returns the column at horizontal offset 'x', or -1 if none matches.
-	int ColumnAtX(int X, GListColumn **Col = 0, int *Offset = 0);
-	/// Returns the number of columns
-	int GetColumns() { return Columns.Length(); }
-	/// Starts a column d'n'd operation with the column at index 'Index'
-	/// \sa OnColumnReindex is called when the user drops the column
-	void DragColumn(int Index);
-	/// Returns the last column click info
-	bool GetColumnClickInfo(int &Col, GMouse &m);
 
 	// Properties
 	
@@ -739,6 +428,9 @@ public:
 	virtual void RemoveAll();
 	/// Resizes all the columns to their content, allowing a little extra space for visual effect
 	void ResizeColumnsToContent(int Border = DEFAULT_COLUMN_SPACING);
+
+	// Impl
+	int GetContentSize(int ColumnIdx);
 };
 
 #endif

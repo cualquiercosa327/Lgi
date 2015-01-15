@@ -64,8 +64,10 @@ public:
 
 class GTreeItemPrivate
 {
+	GArray<GDisplayString*> Ds;
+
 public:
-	GDisplayString *Ds;
+	GTreeItem *Item;
 	GRect Pos;
 	GRect Thumb;
 	GRect Text;
@@ -76,8 +78,9 @@ public:
 	bool Last;
 	int Depth;
 	
-	GTreeItemPrivate()
+	GTreeItemPrivate(GTreeItem *it)
 	{
+		Item = it;
 		Ds = NULL;
 		Pos.ZOff(-1, -1);
 		Open = false;
@@ -89,7 +92,22 @@ public:
 
 	~GTreeItemPrivate()
 	{
-		DeleteObj(Ds);
+		Ds.DeleteObjects();
+	}
+
+	GDisplayString *GetDs(int Col)
+	{
+		if (!Ds[Col])
+		{
+			GFont *f = Item->GetTree() ? Item->GetTree()->GetFont() : SysFont;		
+			Ds[Col] = new GDisplayString(f, Item->GetText(Col));
+		}
+		return Ds[Col];
+	}
+	
+	void ClearDs()
+	{
+		Ds.DeleteObjects();
 	}
 };
 
@@ -271,7 +289,7 @@ GTreeItem *GTreeNode::GetNext()
 //////////////////////////////////////////////////////////////////////////////
 GTreeItem::GTreeItem()
 {
-	d = new GTreeItemPrivate;
+	d = new GTreeItemPrivate(this);
 	Str = 0;
 	Sys_Image = -1;
 }
@@ -445,17 +463,15 @@ void GTreeItem::_PaintText(GSurface *pDC, COLOUR Fore, COLOUR Back)
 	char *Text = GetText();
 	if (Text)
 	{
-		if (!d->Ds)
-		{
-			d->Ds = new GDisplayString(Tree->GetFont(), Text);
-		}
+		GDisplayString *Ds = d->GetDs(0);
 
 		int Tab = SysFont->TabSize();
 		SysFont->TabSize(0);
 		SysFont->Transparent(false);
 		SysFont->Colour(Fore, Back);
 		
-		d->Ds->Draw(pDC, d->Text.x1 + 2, d->Text.y1 + 1, &d->Text);
+		if (Ds)
+			Ds->Draw(pDC, d->Text.x1 + 2, d->Text.y1 + 1, &d->Text);
 		
 		SysFont->TabSize(Tab);
 	}
@@ -482,16 +498,13 @@ void GTreeItem::_Pour(GdcPt2 *Limit, int Depth, bool Visible)
 		if (!Height)
 		    Height = 16;
 
-		if (!d->Ds)
-		{
-			d->Ds = new GDisplayString(Tree->GetFont(), GetText());
-		}
+		GDisplayString *Ds = d->GetDs(0);
 
 		d->Pos.ZOff(	(TREE_BLOCK*d->Depth) +	// trunk
 						TREE_BLOCK +			// node
 						IconX +					// icon if present
 						TextSize.x,				// text if present
-						max(Height, d->Ds->Y())-1);
+						(Ds ? max(Height, Ds->Y()) : Height) - 1);
 		d->Pos.Offset(0, Limit->y);
 
 		Limit->x = max(Limit->x, d->Pos.x2 + 1);
@@ -546,7 +559,7 @@ void GTreeItem::Update()
 	{
 		GRect p = d->Pos;
 		p.x2 = 1000;
-		DeleteObj(d->Ds);
+		d->ClearDs();
 		Tree->_Update(&p, TreeUpdateNow);
 	}
 }
@@ -1045,7 +1058,7 @@ void GTree::OnItemSelect(GTreeItem *Item)
 	if (Item)
 	{
 		Item->OnSelect();
-		SendNotify(GLIST_NOTIFY_SELECT);
+		SendNotify(GITEM_NOTIFY_SELECT);
 	}
 }
 
@@ -1596,6 +1609,15 @@ void GTree::OnPulse()
 			}
 		}
 	}
+}
+
+int GTree::GetContentSize(int ColumnIdx)
+{
+	for (GTreeItem *i = Items.First(); i; i=Items.Next())
+	{
+	}
+	
+	return 0;
 }
 
 void GTree::OnDragEnter()

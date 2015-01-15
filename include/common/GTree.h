@@ -5,7 +5,7 @@
 #ifndef __GTREE2_H
 #define __GTREE2_H
 
-#include "GList.h"
+#include "GItemContainer.h"
 
 enum GTreeItemRect
 {
@@ -131,9 +131,8 @@ public:
 
 /// A tree control.
 class LgiClass GTree :
-	public GLayout,
-	public ResObject,
 	public GItemContainer,
+	public ResObject,
 	public GTreeNode
 {
 	friend class GTreeItem;
@@ -187,6 +186,7 @@ public:
 	int OnNotify(GViewI *Ctrl, int Flags);
 	GMessage::Result OnEvent(GMessage *Msg);
 	void OnPulse();
+	int GetContentSize(int ColumnIdx);
 
 	/// Add a item to the tree
 	GTreeItem *Insert(GTreeItem *Obj = 0, int Pos = -1);

@@ -40,6 +40,7 @@
 
 #include "GXmlTree.h"
 #include "Res.h"
+#include "GImageList.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 // Menu wrappers
@@ -80,8 +81,8 @@ class LgiClass GSubMenu :
 	public GBase,
 	public GTarget,
 	// public GFlags,
-	public GMenuLoader,
-	public GItemContainer
+	public GMenuLoader
+	// , public GItemContainer
 {
 	friend class GMenuItem;
 	friend class GMenu;
@@ -418,7 +419,8 @@ if (Menu)
 */
 
 class LgiClass GMenu :
-	public GSubMenu
+	public GSubMenu,
+	public GImageListOwner
 {
 	friend class GSubMenu;
 	friend class GMenuItem;

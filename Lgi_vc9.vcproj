@@ -934,15 +934,11 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\common\GImageList.h"
+					>
+				</File>
+				<File
 					RelativePath=".\src\win32\Lgi\GLayout.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\common\Widgets\GList.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\include\common\GList.h"
 					>
 				</File>
 				<File
@@ -1029,14 +1025,6 @@
 					RelativePath=".\include\common\GToolBar.h"
 					>
 				</File>
-				<File
-					RelativePath=".\src\common\Widgets\GTree.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\include\common\GTree.h"
-					>
-				</File>
 				<Filter
 					Name="Css"
 					>
@@ -1074,6 +1062,34 @@
 					</File>
 					<File
 						RelativePath=".\include\common\GTableLayout.h"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="Container"
+					>
+					<File
+						RelativePath=".\src\common\Widgets\GItemContainer.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\include\common\GItemContainer.h"
+						>
+					</File>
+					<File
+						RelativePath=".\src\common\Widgets\GList.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\include\common\GList.h"
+						>
+					</File>
+					<File
+						RelativePath=".\src\common\Widgets\GTree.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\include\common\GTree.h"
 						>
 					</File>
 				</Filter>

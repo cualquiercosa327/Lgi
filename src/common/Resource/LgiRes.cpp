@@ -800,7 +800,7 @@ ResObject *LgiResources::CreateObject(GXmlTag *t, ResObject *Parent)
 
 void LgiResources::Res_SetPos(ResObject *Obj, int x1, int y1, int x2, int y2)
 {
-	GListColumn *Col = dynamic_cast<GListColumn*>(Obj);
+	GItemColumn *Col = dynamic_cast<GItemColumn*>(Obj);
 	if (Col)
 	{
 		Col->Width(x2-x1);
@@ -963,7 +963,7 @@ bool LgiResources::Res_SetStrRef(ResObject *Obj, int Ref, ResReadCtx *Ctx)
 	}
 	else if (Obj)
 	{
-		GListColumn *Col = dynamic_cast<GListColumn*>(Obj);
+		GItemColumn *Col = dynamic_cast<GItemColumn*>(Obj);
 		if (Col)
 		{
 			Col->Name(s->Str);
@@ -1038,7 +1038,7 @@ void LgiResources::Res_Append(ResObject *Obj, ResObject *Parent)
 {
 	if (Obj && Parent)
 	{
-		GListColumn *Col = dynamic_cast<GListColumn*>(Obj);
+		GItemColumn *Col = dynamic_cast<GItemColumn*>(Obj);
 		GList *Lst = dynamic_cast<GList*>(Parent);
 		if (Lst && Col)
 		{

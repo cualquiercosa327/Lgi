@@ -1124,45 +1124,6 @@ public:
 	GViewI *FindControl(int Id);
 };
 
-/// Client draws the content.
-#define GIC_OWNER_DRAW				0x01
-/// Column header is text.
-#define GIC_ASK_TEXT				0x02
-/// Column header is an image.
-#define GIC_ASK_IMAGE				0x04
-/// Not used.
-#define GIC_OWN_LIST				0x08
-/// Drag is over the control
-#define GIC_IN_DRAG_OP				0x10
-
-class LgiClass GItemContainer
-{
-protected:
-	int Flags;
-	GImageList *ImageList;
-
-public:
-	GItemContainer();
-	virtual ~GItemContainer();
-
-	// Props
-	bool OwnerDraw() { return TestFlag(Flags, GIC_OWNER_DRAW); }
-	void OwnerDraw(bool b) { if (b) SetFlag(Flags, GIC_OWNER_DRAW); else ClearFlag(Flags, GIC_OWNER_DRAW); }
-	bool AskText() { return TestFlag(Flags, GIC_ASK_TEXT); }
-	void AskText(bool b) { if (b) SetFlag(Flags, GIC_ASK_TEXT); else ClearFlag(Flags, GIC_ASK_TEXT); }
-	bool AskImage() { return TestFlag(Flags, GIC_ASK_IMAGE); }
-	void AskImage(bool b) { if (b) SetFlag(Flags, GIC_ASK_IMAGE); else ClearFlag(Flags, GIC_ASK_IMAGE); }
-	bool InsideDragOp() { return TestFlag(Flags, GIC_IN_DRAG_OP); }
-	void InsideDragOp(bool b) { if (b) SetFlag(Flags, GIC_IN_DRAG_OP); else ClearFlag(Flags, GIC_IN_DRAG_OP); }
-
-	// Image List
-	GImageList *GetImageList() { return ImageList; }
-	bool SetImageList(GImageList *List, bool Own = true);
-	bool LoadImageList(char *File, int x, int y);
-	bool OwnList() { return TestFlag(Flags, GIC_OWN_LIST); }
-	void OwnList(bool b) { if (b) SetFlag(Flags, GIC_OWN_LIST); else ClearFlag(Flags, GIC_OWN_LIST); }
-};
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Menus
 #include "GMenu.h"

@@ -24,7 +24,7 @@ public:
 		GListItemColumn::Value(value);
 	}
 
-	void OnPaintColumn(ItemPaintCtx &r, int i, GListColumn *Col)
+	void OnPaintColumn(ItemPaintCtx &r, int i, GItemColumn *Col)
 	{
 		GSurface *pDC = r.pDC;
 		GRect c(0, 0, 10, 10);
@@ -85,7 +85,7 @@ public:
 				}
 			}
 
-			GetList()->SendNotify(GLIST_NOTIFY_CHANGE);
+			GetList()->SendNotify(GITEM_NOTIFY_CHANGE);
 		}
 	}
 };

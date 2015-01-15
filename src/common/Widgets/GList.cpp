@@ -19,14 +19,6 @@
 #include "GScrollBar.h"
 #include "GDisplayString.h"
 
-#define DRAG_NONE						0
-#define SELECT_ITEMS					1
-#define RESIZE_COLUMN					2
-#define DRAG_COLUMN						3
-#define CLICK_COLUMN					4
-#define TOGGLE_ITEMS					5
-#define CLICK_ITEM						6
-
 // Number of pixels you have to move the mouse until a drag is initiated.
 #define DRAG_THRESHOLD					4
 
@@ -38,50 +30,10 @@
 #define DOUBLE_BUFFER_PAINT				0
 #define DOUBLE_BUFFER_COLUMN_DRAWING	0
 
-// Colours
-#define DragColumnColour				LC_LOW
-
-#if defined(WIN32)
-#if !defined(WS_EX_LAYERED)
-#define WS_EX_LAYERED					0x80000
-#endif
-#if !defined(LWA_ALPHA)
-#define LWA_ALPHA						2
-#endif
-typedef BOOL (__stdcall *_SetLayeredWindowAttributes)(HWND hwnd, COLORREF crKey, BYTE bAlpha, DWORD dwFlags);
-#endif
-
 #define ForAllItems(Var)				List<GListItem>::I it = Items.Start(); for (GListItem *Var = *it; it.In(); it++, Var = *it)
 #define ForAllItemsReverse(Var)			Iterator<GListItem> ItemIter(&Items); for (GListItem *Var = ItemIter.Last(); Var; Var = ItemIter.Prev())
 #define VisibleItems()					CompletelyVisible // (LastVisible - FirstVisible + 1)
 #define MaxScroll()						max(Items.Length() - CompletelyVisible, 0)
-
-////////////////////////////////////////////////////////////////////////////////////////////
-#define DRAG_COL_ALPHA					0xc0
-#define LINUX_TRANS_COL					0
-
-class GDragColumn : public GWindow
-{
-	GList *List;
-	GListColumn *Col;
-	int Index;
-	int Offset;
-	GdcPt2 ListScrPos;
-	
-	#ifdef LINUX
-	GSurface *Back;
-	#endif
-
-public:
-	int GetOffset() { return Offset; }
-	int GetIndex() { return Index; }
-	GListColumn *GetColumn() { return Col; }
-
-	GDragColumn(GList *list, int col);
-	~GDragColumn();
-
-	void OnPaint(GSurface *pScreen);
-};
 
 class GListPrivate
 {
@@ -103,19 +55,13 @@ public:
 	bool NoSelectEvent;
 
 	// Drag'n'drop
-	GDragColumn *DragCol;
 	GdcPt2 DragStart;
-	int DragMode;
 	int DragData;
 	
 	// Kayboard search
 	int KeyLast;
 	char16 *KeyBuf;
 	
-	// Column click
-	int ColClick;
-	GMouse ColMouse;	
-
 	// Editing label
 	GView *Edit;
 	
@@ -123,14 +69,11 @@ public:
 	GListPrivate()
 	{
 		Edit = 0;
-		DragCol = 0;
-		DragMode = 0;
 		DragData = 0;
 		KeyBuf = 0;
 		DeleteFlag = 0;
 		Columns = 0;
 		VisibleColumns = 0;
-		ColClick = -1;
 		Mode = GListDetails;
 		NoSelectEvent = false;
 	}
@@ -142,53 +85,7 @@ public:
 		{
 			*DeleteFlag = true;
 		}
-		DeleteObj(DragCol);
 		DeleteArray(KeyBuf);
-	}
-};
-
-class GListColumnPrivate
-{
-public:
-	GRect Pos;
-	bool Down;
-	bool Drag;
-
-	GList *Parent;
-	char *cName;
-	GDisplayString *Txt;
-	int cWidth;
-	int cType;
-	GSurface *cIcon;
-	int cImage;
-	int cMark;
-	bool OwnIcon;
-	bool CanResize;
-
-	GListColumnPrivate(GList *parent)
-	{
-		Parent = parent;
-		Txt = 0;
-		cName = 0;
-		cWidth = 0;
-		cIcon = 0;
-		cType = GIC_ASK_TEXT;
-		cImage = -1;
-		cMark = GLI_MARK_NONE;
-		Down = false;
-		OwnIcon = false;
-		CanResize = true;
-		Drag = false;
-	}
-
-	~GListColumnPrivate()
-	{
-		DeleteArray(cName);
-		if (OwnIcon)
-		{
-			DeleteObj(cIcon);
-		}
-		DeleteObj(Txt);
 	}
 };
 
@@ -236,148 +133,6 @@ public:
 		Display.Length(0);
 	}
 };
-
-/////////////////////////////////////////////////////////////////////////////////////////
-GDragColumn::GDragColumn(GList *list, int col)
-{
-	List = list;
-	Index = col;
-	Offset = 0;
-	#ifdef LINUX
-	Back = 0;
-	#endif
-	Col = List->ColumnAt(Index);
-	if (Col)
-	{
-		Col->d->Down = false;
-		Col->d->Drag = true;
-
-		GRect r = Col->d->Pos;
-		r.y1 = 0;
-		r.y2 = List->Y()-1;
-		List->Invalidate(&r, true);
-
-		#if WINNATIVE
-		
-		GArray<int> Ver;
-		bool Layered = (
-							LgiGetOs(&Ver) == LGI_OS_WIN32 ||
-							LgiGetOs(&Ver) == LGI_OS_WIN64
-						) &&
-						Ver[0] >= 5;
-		SetStyle(WS_POPUP);
-		SetExStyle(GetExStyle() | WS_EX_TOOLWINDOW);
-		if (Layered)
-		{
-			SetExStyle(GetExStyle() | WS_EX_LAYERED | WS_EX_TRANSPARENT);
-		}
-		
-		#elif defined XWIN
-		
-		Back = new GMemDC;
-		if (Back && Back->Create(List->X(), List->Y(), GdcD->GetBits()))
-		{
-			List->OnPaint(Back);
-		}
-
-		//XSetWindowAttributes a;
-		//a.override_redirect = true;
-		//a.save_under = false; // true;
-		// XChangeWindowAttributes(Handle()->XDisplay(), Handle()->handle(), CWSaveUnder | CWOverrideRedirect, &a);
-		
-		#endif
-
-		Attach(0);
-
-		#if WINNATIVE
-		
-		if (Layered)
-		{
-			SetWindowLong(Handle(), GWL_EXSTYLE, GetWindowLong(Handle(), GWL_EXSTYLE) | WS_EX_LAYERED);
-
-			GLibrary User32("User32");
-			_SetLayeredWindowAttributes SetLayeredWindowAttributes = (_SetLayeredWindowAttributes)User32.GetAddress("SetLayeredWindowAttributes");
-			if (SetLayeredWindowAttributes)
-			{
-				if (!SetLayeredWindowAttributes(Handle(), 0, DRAG_COL_ALPHA, LWA_ALPHA))
-				{
-					DWORD Err = GetLastError();
-				}
-			}
-		}
-		
-		#endif
-
-		GMouse m;
-		List->GetMouse(m);
-		Offset = m.x - r.x1;
-
-		List->PointToScreen(ListScrPos);
-		r.Offset(ListScrPos.x, ListScrPos.y);
-
-		SetPos(r);
-		Visible(true);
-	}
-}
-
-GDragColumn::~GDragColumn()
-{
-	Visible(false);
-
-	if (Col)
-	{
-		Col->d->Drag = false;
-	}
-
-	List->Invalidate();
-}
-
-#if LINUX_TRANS_COL
-void GDragColumn::OnPosChange()
-{
-	Invalidate();
-}
-#endif
-
-void GDragColumn::OnPaint(GSurface *pScreen)
-{
-	#if LINUX_TRANS_COL
-	GSurface *Buf = new GMemDC(X(), Y(), GdcD->GetBits());
-	GSurface *pDC = new GMemDC(X(), Y(), GdcD->GetBits());
-	#else
-	GSurface *pDC = pScreen;
-	#endif
-	
-	pDC->SetOrigin(Col->d->Pos.x1, 0);
-	if (Col) Col->d->Drag = false;
-	List->OnPaint(pDC);
-	if (Col) Col->d->Drag = true;
-	pDC->SetOrigin(0, 0);
-	
-	#if LINUX_TRANS_COL
-	if (Buf && pDC)
-	{
-		GRect p = GetPos();
-		
-		// Fill the buffer with the background
-		Buf->Blt(ListScrPos.x - p.x1, 0, Back);
-
-		// Draw painted column over the back with alpha
-		Buf->Op(GDC_ALPHA);
-		GApplicator *App = Buf->Applicator();
-		if (App)
-		{
-			App->SetVar(GAPP_ALPHA_A, DRAG_COL_ALPHA);
-		}
-		Buf->Blt(0, 0, pDC);
-
-		// Put result on the screen
-		pScreen->Blt(0, 0, Buf);
-	}
-	DeleteObj(Buf);
-	DeleteObj(pDC);
-	#endif
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 #define M_END_POPUP			(M_USER+0x1500)
@@ -576,437 +331,6 @@ GMessage::Result GItemEdit::OnEvent(GMessage *Msg)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-// List column
-GListColumn::GListColumn(GList *parent, const char *name, int width)
-	: ResObject(Res_Column)
-{
-	d = new GListColumnPrivate(parent);
-	d->cWidth = width;
-	if (name)
-		Name(name);
-}
-
-GListColumn::~GListColumn()
-{
-	if (d->Drag)
-	{
-		d->Parent->DragColumn(-1);
-	}
-
-	DeleteObj(d);
-}
-
-GList *GListColumn::GetList()
-{
-	return d->Parent;
-}
-
-void GListColumn::Image(int i)
-{
-	d->cImage = i;
-}
-
-int GListColumn::Image()
-{
-	return d->cImage;
-}
-
-bool GListColumn::Resizable()
-{
-	return d->CanResize;
-}
-
-void GListColumn::Resizable(bool i)
-{
-	d->CanResize = i;
-}
-
-void GListColumn::Name(const char *n)
-{
-	DeleteArray(d->cName);
-	DeleteObj(d->Txt);
-	d->cName = NewStr(n);
-	d->Txt = new GDisplayString(d->Parent ? d->Parent->GetFont() : SysFont, (char*)n);
-	if (d->Parent)
-	{
-		d->Parent->Invalidate(&d->Parent->ColumnHeader);
-	}
-}
-
-char *GListColumn::Name()
-{
-	return d->cName;
-}
-
-int GListColumn::GetIndex()
-{
-	if (d->Parent)
-	{
-		return d->Parent->Columns.IndexOf(this);
-	}
-
-	return -1;
-}
-
-int GListColumn::GetContentSize()
-{
-	int Max = 0;
-
-	if (d->Parent)
-	{
-		int Index = GetIndex();
-
-		for (List<GListItem>::I Items = d->Parent->Items.Start(); Items.In(); Items++)
-		{
-			GListItem *i = *Items;
-			GDisplayString *s = i->d->Display[Index];
-			GDisplayString *Mem = 0;
-			
-			// If no cached string, create it for the list item
-			if (!s || s->IsTruncated())
-			{
-				GFont *f = i->GetFont();
-				if (!f) f = d->Parent->GetFont();
-				if (!f) f = SysFont;
-
-				char *Text = i->d->Str[Index] ? i->d->Str[Index] : i->GetText(Index);
-				if (s && s->IsTruncated())
-				{
-					s = Mem = new GDisplayString(f, Text?Text:(char*)"");
-				}
-				else
-				{
-					s = i->d->Display[Index] = new GDisplayString(f, Text?Text:(char*)"");
-				}
-			}
-
-			// Measure it
-			if (s)
-			{
-				Max = max(Max, s->X());
-			}
-			
-			DeleteObj(Mem);
-		}
-		
-		// Measure the heading too
-		GFont *f = d->Parent->GetFont();
-		LgiAssert(f);
-		if (f)
-		{
-			GDisplayString h(d->Parent->GetFont(), d->cName);
-			int Hx = h.X() + (d->cMark ? 10 : 0);
-			Max = max(Max, Hx);
-		}
-	}
-
-	return Max;
-}
-
-void GListColumn::Width(int i)
-{
-	if (d->cWidth != i)
-	{
-		d->cWidth = i;
-		
-		// If we are attached to a list...
-		if (d->Parent)
-		{
-			int MyIndex = GetIndex();
-
-			// Clear all the cached strings for this column
-			for (List<GListItem>::I it=d->Parent->Items.Start(); it.In(); it++)
-			{
-				DeleteObj((*it)->d->Display[MyIndex]);
-			}
-
-			if (d->Parent->IsAttached())
-			{
-				// Update the screen from this column across
-				GRect Up = d->Parent->GetClient();
-				Up.x1 = d->Pos.x1;
-				d->Parent->Invalidate(&Up);
-			}
-		}
-
-		// Notify listener
-		GViewI *n = d->Parent->GetNotify() ? d->Parent->GetNotify() : d->Parent->GetParent();
-		if (n)
-		{
-			n->OnNotify(d->Parent, GLIST_NOTIFY_COLS_SIZE);
-		}
-	}
-}
-
-int GListColumn::Width()
-{
-	return d->cWidth;
-}
-
-void GListColumn::Mark(int i)
-{
-	d->cMark = i;
-	if (d->Parent)
-	{
-		d->Parent->Invalidate(&d->Parent->ColumnHeader);
-	}
-}
-
-int GListColumn::Mark()
-{
-	return d->cMark;
-}
-
-void GListColumn::Type(int i)
-{
-	d->cType = i;
-	if (d->Parent)
-	{
-		d->Parent->Invalidate(&d->Parent->ColumnHeader);
-	}
-}
-
-int GListColumn::Type()
-{
-	return d->cType;
-}
-
-void GListColumn::Icon(GSurface *i, bool Own)
-{
-	if (d->OwnIcon)
-	{
-		DeleteObj(d->cIcon);
-	}
-	d->cIcon = i;
-	d->OwnIcon = Own;
-
-	if (d->Parent)
-	{
-		d->Parent->Invalidate(&d->Parent->ColumnHeader);
-	}
-}
-
-GSurface *GListColumn::Icon()
-{
-	return d->cIcon;
-}
-
-int GListColumn::Value()
-{
-	return d->Down;
-}
-
-void GListColumn::OnPaint_Content(GSurface *pDC, GRect &r, bool FillBackground)
-{
-	if (!d->Drag)
-	{
-		int Off = d->Down ? 1 : 0;
-		int Mx = r.x1 + 8, My = r.y1 + ((r.Y() - 8) / 2);
-		if (d->cIcon)
-		{
-			if (FillBackground)
-			{
-				pDC->Colour(LC_MED, 24);
-				pDC->Rectangle(&r);
-			}
-
-			int x = (r.X()-d->cIcon->X()) / 2;
-			
-			pDC->Blt(	r.x1 + x + Off,
-						r.y1 + ((r.Y()-d->cIcon->Y())/2) + Off,
-						d->cIcon);
-
-			if (d->cMark)
-			{
-				Mx += x + d->cIcon->X() + 4;
-			}
-		}
-		else if (d->cImage >= 0 && d->Parent)
-		{
-			GColour Background(LC_MED, 24);
-			if (FillBackground)
-			{
-				pDC->Colour(Background);
-				pDC->Rectangle(&r);
-			}
-			
-			if (d->Parent->ImageList)
-			{
-				GRect *b = d->Parent->ImageList->GetBounds();
-				int x = r.x1;
-				int y = r.y1;
-				if (b)
-				{
-					b += d->cImage;
-					x = r.x1 + ((r.X()-b->X()) / 2) - b->x1;
-					y = r.y1 + ((r.Y()-b->Y()) / 2) - b->y1;
-				}				
-				
-				d->Parent->ImageList->Draw(pDC,
-											x + Off,
-											y + Off,
-											d->cImage,
-											Background);
-			}
-
-			if (d->cMark)
-			{
-				Mx += d->Parent->ImageList->TileX() + 4;
-			}
-		}
-		else if (ValidStr(d->cName) && d->Txt)
-		{
-			GFont *f = d->Parent ? d->Parent->GetFont() : SysFont;
-			f->Transparent(!FillBackground);
-			f->Colour(LC_TEXT, LC_MED);
-			d->Txt->Draw(pDC, r.x1 + Off + 3, r.y1 + Off, &r);
-
-			if (d->cMark)
-			{
-				Mx += d->Txt->X();
-			}
-		}
-		else
-		{
-			if (FillBackground)
-			{
-				pDC->Colour(LC_MED, 24);
-				pDC->Rectangle(&r);
-			}
-		}
-
-		#define ARROW_SIZE	9
-		pDC->Colour(LC_TEXT, 24);
-		Mx += Off;
-		My += Off - 1;
-
-		switch (d->cMark)
-		{
-			case GLI_MARK_UP_ARROW:
-			{
-				pDC->Line(Mx + 2, My, Mx + 2, My + ARROW_SIZE - 1);
-				pDC->Line(Mx, My + 2, Mx + 2, My);
-				pDC->Line(Mx + 2, My, Mx + 4, My + 2);
-				break;
-			}
-			case GLI_MARK_DOWN_ARROW:
-			{
-				pDC->Line(Mx + 2, My, Mx + 2, My + ARROW_SIZE - 1);
-				pDC->Line(	Mx,
-							My + ARROW_SIZE - 3,
-							Mx + 2,
-							My + ARROW_SIZE - 1);
-				pDC->Line(	Mx + 2,
-							My + ARROW_SIZE - 1,
-							Mx + 4,
-							My + ARROW_SIZE - 3);
-				break;
-			}
-		}
-	}
-}
-
-void ColumnPaint(void *UserData, GSurface *pDC, GRect &r, bool FillBackground)
-{
-	((GListColumn*)UserData)->OnPaint_Content(pDC, r, FillBackground);
-}
-
-void GListColumn::OnPaint(GSurface *pDC, GRect &Rgn)
-{
-	GRect r = Rgn;
-
-	if (d->Drag)
-	{
-		pDC->Colour(DragColumnColour, 24);
-		pDC->Rectangle(&r);
-	}
-	else
-	{
-		int Off = d->Down ? 1 : 0;
-
-		#ifdef MAC
-
-		GArray<GColourStop> Stops;
-		GRect j(r.x1, r.y1, r.x2-1, r.y2-1); 
-		if (d->cMark)
-		{
-			// pDC->Colour(Rgb24(0, 0x4e, 0xc1), 24);
-			// pDC->Line(r.x1, r.y1, r.x2, r.y1);
-
-			Stops[0].Pos = 0.0;
-			Stops[0].Colour = Rgb32(0xd0, 0xe2, 0xf5);
-			Stops[1].Pos = 2.0 / (r.Y() - 2);
-			Stops[1].Colour = Rgb32(0x98, 0xc1, 0xe9);
-			Stops[2].Pos = 0.5;
-			Stops[2].Colour = Rgb32(0x86, 0xba, 0xe9);
-			Stops[3].Pos = 0.51;
-			Stops[3].Colour = Rgb32(0x68, 0xaf, 0xea);
-			Stops[4].Pos = 1.0;
-			Stops[4].Colour = Rgb32(0xbb, 0xfc, 0xff);
-			
-			LgiFillGradient(pDC, j, true, Stops);
-			
-			pDC->Colour(Rgb24(0x66, 0x93, 0xc0), 24);
-			pDC->Line(r.x1, r.y2, r.x2, r.y2);
-			pDC->Line(r.x2, r.y1, r.x2, r.y2);
-		}
-		else
-		{
-			// pDC->Colour(Rgb24(160, 160, 160), 24);
-			// pDC->Line(r.x1, r.y1, r.x2, r.y1);
-			
-			Stops[0].Pos = 0.0;
-			Stops[0].Colour = Rgb32(255, 255, 255);
-			Stops[1].Pos = 0.5;
-			Stops[1].Colour = Rgb32(241, 241, 241);
-			Stops[2].Pos = 0.51;
-			Stops[2].Colour = Rgb32(233, 233, 233);
-			Stops[3].Pos = 1.0;
-			Stops[3].Colour = Rgb32(255, 255, 255);
-			
-			LgiFillGradient(pDC, j, true, Stops);
-			
-			pDC->Colour(Rgb24(178, 178, 178), 24);
-			pDC->Line(r.x1, r.y2, r.x2, r.y2);
-			pDC->Line(r.x2, r.y1, r.x2, r.y2);
-		}
-
-		GRect n = r;
-		n.Size(2, 2);
-		OnPaint_Content(pDC, n, false);
-
-		#else
-		if (GApp::SkinEngine)
-		{
-			GSkinState State;
-			
-			State.pScreen = pDC;			
-			State.Text = &d->Txt;
-			State.Rect = Rgn;
-			State.Value = Value();
-			State.Enabled = GetList()->Enabled();
-
-			GApp::SkinEngine->OnPaint_ListColumn(ColumnPaint, this, &State);
-		}
-		else
-		{
-			if (d->Down)
-			{
-				LgiThinBorder(pDC, r, DefaultSunkenEdge);
-				LgiFlatBorder(pDC, r, 1);
-			}
-			else
-			{
-				LgiWideBorder(pDC, r, DefaultRaisedEdge);
-			}
-			
-			OnPaint_Content(pDC, r, true);
-		}	
-		#endif	
-	}
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////
 GListItemColumn::GListItemColumn(GListItem *item, int col)
 {
 	_Column = col;
@@ -1157,7 +481,7 @@ GRect *GListItem::GetPos(int Col)
 	{
 		if (Col >= 0)
 		{
-			GListColumn *Column = 0;
+			GItemColumn *Column = 0;
 
 			int Cx = Parent->GetImageList() ? 16 : 0;
 			for (int c=0; c<Col; c++)
@@ -1248,7 +572,7 @@ void GListItem::Update()
 		{
 			d->EmptyDisplay();
 
-			GMeasureInfo Info;
+			GdcPt2 Info;
 			OnMeasure(&Info);
 
 			GRect r = Pos;
@@ -1275,7 +599,7 @@ void GListItem::Update()
 	}
 }
 
-void GListItem::OnMeasure(GMeasureInfo *Info)
+void GListItem::OnMeasure(GdcPt2 *Info)
 {
 	if (Info)
 	{
@@ -1332,14 +656,14 @@ GDisplayString *GListItem::GetDs(int Col, int FitTo)
 	return d->Display[Col];
 }
 
-void GListItem::OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GListColumn *c)
+void GListItem::OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GItemColumn *c)
 {
 	GSurface *&pDC = Ctx.pDC;
 	if (pDC && c)
 	{
 		GRect ng = Ctx; // non-grid area
 
-		if (c->d->Drag)
+		if (c->InDrag())
 		{
 			pDC->Colour(DragColumnColour, 24);
 			pDC->Rectangle(&ng);
@@ -1386,16 +710,16 @@ void GListItem::OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GListColumn *c)
 				pDC->Rectangle(&ng);
 
 				if (c->Type() == GIC_ASK_IMAGE &&
-					Parent->ImageList)
+					Parent->GetImageList())
 				{
 					int Img = GetImage();
 					if (Img >= 0)
 					{
-					    int CenterY = Ctx.y1 + ((Ctx.Y() - Parent->ImageList->TileY()) >> 1);
+					    int CenterY = Ctx.y1 + ((Ctx.Y() - Parent->GetImageList()->TileY()) >> 1);
 					    LgiAssert(CenterY >= 0);
 					    
 					    GColour Bk(Background, 24);
-						Parent->ImageList->Draw(pDC, Ctx.x1+1, CenterY, Img, Bk);
+						Parent->GetImageList()->Draw(pDC, Ctx.x1+1, CenterY, Img, Bk);
 					}
 				}
 			}
@@ -1443,8 +767,10 @@ void GListItem::OnPaint(GItem::ItemPaintCtx &Ctx)
 	// draw columns
 	GListItemColumn *h = d->Cols.First();
 	GItem::ItemPaintCtx ColCtx = Ctx;
-	for (GListColumn *c = Parent->Columns.First(); c; c = Parent->Columns.Next(), i++)
+	
+	for (int i=0; i<Parent->Columns.Length(); i++)
 	{
+		GItemColumn *c = Parent->Columns[i];
 		if (Parent->GetMode() == GListColumns)
 			ColCtx.Set(x, Ctx.y1, Ctx.x2, Ctx.y2);
 		else
@@ -1484,11 +810,8 @@ GList::GList(int id, int x, int y, int cx, int cy, const char *name)
 	GridLines = false;
 	FirstVisible = -1;
 	LastVisible = -1;
-	ColumnHeaders = true;
-	ColumnHeader.ZOff(-1, -1);
 	EditLabels = false;
 	MultiItemSelect = true;
-	IconCol = 0;
 	CompletelyVisible = 0;
 	Keyboard = -1;
 	Sunken(true);
@@ -1584,48 +907,10 @@ void GList::OnItemSelect(GArray<GListItem*> &It)
 	}
 
 	// Notify selection change
-	SendNotify(GLIST_NOTIFY_SELECT);
+	SendNotify(GITEM_NOTIFY_SELECT);
 }
 
-GListColumn *GList::AddColumn(const char *Name, int Width, int Where)
-{
-	GListColumn *c = 0;
-
-	if (Lock(_FL))
-	{
-		c = new GListColumn(this, Name, Width);
-		if (c)
-		{
-			Columns.Insert(c, Where);
-			UpdateAllItems();
-			SendNotify(GLIST_NOTIFY_COLS_CHANGE);
-		}
-		Unlock();
-	}
-
-	return c;
-}
-
-bool GList::AddColumn(GListColumn *Col, int Where)
-{
-	bool Status = false;
-
-	if (Col && Lock(_FL))
-	{
-		Status = Columns.Insert(Col, Where);
-		if (Status)
-		{
-			UpdateAllItems();
-			SendNotify(GLIST_NOTIFY_COLS_CHANGE);
-		}
-
-		Unlock();
-	}
-
-	return Status;
-}
-
-bool GList::DeleteColumn(GListColumn *Col)
+bool GItemContainer::DeleteColumn(GItemColumn *Col)
 {
 	bool Status = false;
 
@@ -1638,7 +923,7 @@ bool GList::DeleteColumn(GListColumn *Col)
 			DeleteObj(Col);
 			UpdateAllItems();
 
-			SendNotify(GLIST_NOTIFY_COLS_CHANGE);
+			SendNotify(GITEM_NOTIFY_COLS_CHANGE);
 			Status = true;
 		}
 
@@ -1646,58 +931,6 @@ bool GList::DeleteColumn(GListColumn *Col)
 	}
 
 	return Status;
-}
-
-void GList::DragColumn(int Index)
-{
-	DeleteObj(d->DragCol);
-
-	if (Index >= 0)
-	{
-		d->DragCol = new GDragColumn(this, Index);
-		if (d->DragCol)
-		{
-			Capture(true);
-			d->DragMode = DRAG_COLUMN;
-		}
-	}
-}
-
-int GList::ColumnAtX(int x, GListColumn **Col, int *Offset)
-{
-	GListColumn *Column = 0;
-	if (!Col) Col = &Column;
-
-	int Cx = GetImageList() ? 16 : 0;
-	int c;
-	for (c=0; (*Col = Columns.ItemAt(c)); c++)
-	{
-		if (x >= Cx && x < Cx + (*Col)->Width())
-		{
-			break;
-		}
-		Cx += (*Col)->Width();
-	}
-
-	if (*Col)
-	{
-		if (Offset)
-		{
-			*Offset = Cx;
-		}
-
-		return c;
-	}
-
-	return -1;
-}
-
-void GList::EmptyColumns()
-{
-	Columns.DeleteObjects();
-	DeleteObj(IconCol);
-	Invalidate(&ColumnHeader);
-	SendNotify(GLIST_NOTIFY_COLS_CHANGE);
 }
 
 GMessage::Result GList::OnEvent(GMessage *Msg)
@@ -1890,23 +1123,23 @@ bool GList::OnKey(GKey &k)
 					if (!k.IsChar)
 					#endif
 					{
-						SendNotify(GLIST_NOTIFY_RETURN);
+						SendNotify(GITEM_NOTIFY_RETURN);
 					}
 					break;
 				}
 				case VK_BACKSPACE:
 				{
-					SendNotify(GLIST_NOTIFY_BACKSPACE);
+					SendNotify(GITEM_NOTIFY_BACKSPACE);
 					break;
 				}
 				case VK_ESCAPE:
 				{
-					SendNotify(GLIST_NOTIFY_ESC_KEY);
+					SendNotify(GITEM_NOTIFY_ESC_KEY);
 					break;
 				}
 				case VK_DELETE:
 				{
-					SendNotify(GLIST_NOTIFY_DEL_KEY);
+					SendNotify(GITEM_NOTIFY_DEL_KEY);
 					break;					
 				}
 				case VK_UP:
@@ -2122,11 +1355,12 @@ bool GList::OnKey(GKey &k)
 							{
 								int Col = 0;
 								bool Ascend = true;
-								for (GListColumn *c = Columns.First(); c; c = Columns.Next())
+								for (int i=0; i<Columns.Length(); i++)
 								{
+									GItemColumn *c = Columns[i];
 									if (c->Mark())
 									{
-										Col = Columns.IndexOf(c);
+										Col = i;
 										if (c->Mark() == GLI_MARK_UP_ARROW)
 										{
 											Ascend = false;
@@ -2172,46 +1406,9 @@ bool GList::OnKey(GKey &k)
 	return Status;
 }
 
-int GList::HitColumn(int x, int y, GListColumn *&Resize, GListColumn *&Over)
-{
-	int Index = -1;
-
-	Resize = 0;
-	Over = 0;
-
-	if (ColumnHeaders &&
-		ColumnHeader.Overlap(x, y))
-	{
-		// Clicked on a column heading
-		int cx = ColumnHeader.x1 + ((IconCol) ? IconCol->Width() : 0);
-		int n = 0;
-		for (GListColumn *c = Columns.First(); c; c = Columns.Next(), n++)
-		{
-			cx += c->Width();
-			if (abs(x-cx) < 5)
-			{
-				if (c->Resizable())
-				{
-					Resize = c;
-					Index = n;
-					break;
-				}
-			}
-			else if (c->d->Pos.Overlap(x, y))
-			{
-				Over = c;
-				Index = n;
-				break;
-			}
-		}
-	}
-
-	return Index;
-}
-
 LgiCursor GList::GetCursor(int x, int y)
 {
-	GListColumn *Resize, *Over;
+	GItemColumn *Resize, *Over;
 	HitColumn(x, y, Resize, Over);
 	if (Resize)
 		return LCUR_SizeHor;
@@ -2227,7 +1424,7 @@ void GList::OnMouseClick(GMouse &m)
 		{
 			Focus(true);
 
-			d->DragMode = DRAG_NONE;
+			DragMode = DRAG_NONE;
 			d->DragStart.x = m.x;
 			d->DragStart.y = m.y;
 
@@ -2235,7 +1432,7 @@ void GList::OnMouseClick(GMouse &m)
 				ColumnHeader.Overlap(m.x, m.y))
 			{
 				// Clicked on a column heading
-				GListColumn *Resize, *Over;
+				GItemColumn *Resize, *Over;
 				int Index = HitColumn(m.x, m.y, Resize, Over);
 
 				if (Resize)
@@ -2246,19 +1443,19 @@ void GList::OnMouseClick(GMouse &m)
 					}
 					else
 					{
-						d->DragMode = RESIZE_COLUMN;
+						DragMode = RESIZE_COLUMN;
 						d->DragData = Columns.IndexOf(Resize);
 						Capture(true);
 					}
 				}
 				else
 				{
-					d->DragMode = CLICK_COLUMN;
+					DragMode = CLICK_COLUMN;
 					d->DragData = Columns.IndexOf(Over);
 					if (Over)
 					{
-						Over->d->Down = true;
-						Invalidate(&Over->d->Pos);
+						Over->Value(true);
+						Invalidate(&Over->GetPos());
 						Capture(true);
 					}
 				}
@@ -2311,13 +1508,13 @@ void GList::OnMouseClick(GMouse &m)
 							// Start d'n'd watcher pulse...
 							SetPulse(100);
 							Capture(true);
-							d->DragMode = CLICK_ITEM;
+							DragMode = CLICK_ITEM;
 						}
 						
 						if (!IsCapturing())
 						{
 							// If capture failed then we reset the dragmode...
-							d->DragMode = DRAG_NONE;
+							DragMode = DRAG_NONE;
 						}
 					}
 				}
@@ -2388,14 +1585,14 @@ void GList::OnMouseClick(GMouse &m)
 
 						if (!m.Modifier() && Items.First())
 						{
-							d->DragMode = SELECT_ITEMS;
+							DragMode = SELECT_ITEMS;
 							SetPulse(100);
 							Capture(true);
 						}
 
 						if (SelectionChanged)
 						{
-							SendNotify(GLIST_NOTIFY_SELECT);
+							SendNotify(GITEM_NOTIFY_SELECT);
 						}
 					}
 
@@ -2405,27 +1602,29 @@ void GList::OnMouseClick(GMouse &m)
 				if (!HandlerHung)
 				{
 					if (m.IsContextMenu())
-						SendNotify(GLIST_NOTIFY_CONTEXT_MENU);
+						SendNotify(GITEM_NOTIFY_CONTEXT_MENU);
 					else if (m.Double())
-						SendNotify(GLIST_NOTIFY_DBL_CLICK);
+						SendNotify(GITEM_NOTIFY_DBL_CLICK);
 					else
-						SendNotify(GLIST_NOTIFY_CLICK);
+						SendNotify(GITEM_NOTIFY_CLICK);
 				}
 			}
 		}
 		else // Up Click
 		{
-			switch (d->DragMode)
+			switch (DragMode)
 			{
 				case CLICK_COLUMN:
 				{
-					GListColumn *c = Columns.ItemAt(d->DragData);
+					GItemColumn *c = Columns[d->DragData];
 					if (c)
 					{
-						c->d->Down = false;
-						Invalidate(&c->d->Pos);
+						c->Value(false);
+						
+						GRect cpos = c->GetPos();
+						Invalidate(&cpos);
 
-						if (c->d->Pos.Overlap(m.x, m.y))
+						if (cpos.Overlap(m.x, m.y))
 						{
 							OnColumnClick(Columns.IndexOf(c), m);
 						}
@@ -2476,40 +1675,40 @@ void GList::OnMouseClick(GMouse &m)
 				case DRAG_COLUMN:
 				{
 					// End column drag
-					if (d->DragCol)
+					if (DragCol)
 					{
-						GRect DragPos = d->DragCol->GetPos();
+						GRect DragPos = DragCol->GetPos();
 						GdcPt2 p(DragPos.x1 + (DragPos.X()/2), 0);
 						PointToView(p);
 
-						int OldIndex = d->DragCol->GetIndex();
+						int OldIndex = DragCol->GetIndex();
 						int Best = 100000000, NewIndex = OldIndex, i=0, delta;
-						GListColumn *Col = 0;
-						for (Col = Columns.First(); Col; Col = Columns.Next(), i++)
+						for (i=0; i<Columns.Length(); i++)
 						{
-							delta = abs(p.x - Col->d->Pos.x1);
+							GItemColumn *Col = Columns[i];
+							delta = abs(p.x - Col->GetPos().x1);
 							if (delta < Best)
 							{
 								Best = delta;
 								NewIndex = i - (i > OldIndex ? 1 : 0);
 							}
 						}
-						delta = abs(p.x - Columns.Last()->d->Pos.x2);
+						delta = abs(p.x - Columns.Last()->GetPos().x2);
 						if (delta < Best)
 						{
 							NewIndex = i;
 						}
 
-						Col = d->DragCol->GetColumn();
+						GItemColumn *Col = DragCol->GetColumn();
 						if (OldIndex != NewIndex &&
 							OnColumnReindex(Col, OldIndex, NewIndex))
 						{
 							Columns.Delete(Col);
-							Columns.Insert(Col, NewIndex);
+							Columns.AddAt(NewIndex, Col);
 							UpdateAllItems();
 						}
 
-						DeleteObj(d->DragCol);
+						DeleteObj(DragCol);
 					}
 
 					Invalidate();
@@ -2528,7 +1727,7 @@ void GList::OnMouseClick(GMouse &m)
 				Capture(false);
 			}
 
-			d->DragMode = DRAG_NONE;
+			DragMode = DRAG_NONE;
 		}
 
 		Unlock();
@@ -2546,7 +1745,7 @@ void GList::OnPulse()
 
 			if (m.y < 0 || m.y >= Y())
 			{
-				switch (d->DragMode)
+				switch (DragMode)
 				{
 					case SELECT_ITEMS:
 					{
@@ -2560,7 +1759,7 @@ void GList::OnPulse()
 							int n = FirstVisible - 1;
 							for (GListItem *i = Items[n]; i; i=Items.Prev(), n--)
 							{
-								GMeasureInfo Info;
+								GdcPt2 Info;
 								i->OnMeasure(&Info);
 								if (Space > Info.y)
 								{
@@ -2586,7 +1785,7 @@ void GList::OnPulse()
 							int n = LastVisible + 1;
 							for (GListItem *i = Items[n]; i; i=Items.Next(), n++)
 							{
-								GMeasureInfo Info;
+								GdcPt2 Info;
 								i->OnMeasure(&Info);
 								if (Space > Info.y)
 								{
@@ -2627,7 +1826,7 @@ void GList::OnPulse()
 		}
 		else
 		{
-			d->DragMode = DRAG_NONE;
+			DragMode = DRAG_NONE;
 			SetPulse();
 		}
 
@@ -2639,35 +1838,35 @@ void GList::OnMouseMove(GMouse &m)
 {
 	if (Lock(_FL))
 	{
-		switch (d->DragMode)
+		switch (DragMode)
 		{
 			case DRAG_COLUMN:
 			{
-				if (d->DragCol)
+				if (DragCol)
 				{
 					GdcPt2 p;
 					PointToScreen(p);
 
-					GRect r = d->DragCol->GetPos();
+					GRect r = DragCol->GetPos();
 					r.Offset(-p.x, -p.y); // to view co-ord
 
-					r.Offset(m.x - d->DragCol->GetOffset() - r.x1, 0);
+					r.Offset(m.x - DragCol->GetOffset() - r.x1, 0);
 					if (r.x1 < 0) r.Offset(-r.x1, 0);
 					if (r.x2 > X()-1) r.Offset((X()-1)-r.x2, 0);
 
 					r.Offset(p.x, p.y); // back to screen co-ord
-					d->DragCol->SetPos(r, true);
-					r = d->DragCol->GetPos();
+					DragCol->SetPos(r, true);
+					r = DragCol->GetPos();
 				}
 				break;
 			}
 			case RESIZE_COLUMN:
 			{
-				GListColumn *c = Columns.ItemAt(d->DragData);
+				GItemColumn *c = Columns[d->DragData];
 				if (c)
 				{
 					int OldWidth = c->Width();
-					int NewWidth = m.x - c->d->Pos.x1;
+					int NewWidth = m.x - c->GetPos().x1;
 
 					c->Width(max(NewWidth, 4));
 				}
@@ -2676,7 +1875,7 @@ void GList::OnMouseMove(GMouse &m)
 			case CLICK_COLUMN:
 			{
 				bool Update = false;
-				GListColumn *c = Columns.ItemAt(d->DragData);
+				GItemColumn *c = Columns[d->DragData];
 				if (c)
 				{
 					if (abs(m.x - d->DragStart.x) > DRAG_THRESHOLD ||
@@ -2686,11 +1885,11 @@ void GList::OnMouseMove(GMouse &m)
 					}
 					else
 					{
-						bool Over = c->d->Pos.Overlap(m.x, m.y);
-						if (m.Down() && Over != c->d->Down)
+						bool Over = c->GetPos().Overlap(m.x, m.y);
+						if (m.Down() && Over != c->Value())
 						{
-							c->d->Down = Over;
-							Invalidate(&c->d->Pos);
+							c->Value(Over);
+							Invalidate(&c->GetPos());
 						}
 					}
 				}
@@ -2767,7 +1966,7 @@ void GList::OnMouseMove(GMouse &m)
 						abs(d->DragStart.y-m.y) > DRAG_THRESHOLD))
 					{
 						OnItemBeginDrag(Cur, m);
-						d->DragMode = DRAG_NONE;
+						DragMode = DRAG_NONE;
 						Capture(false);
 					}
 				}
@@ -2953,7 +2152,7 @@ bool GList::Insert(List<GListItem> &l, int Index, bool Update)
 			Invalidate();
 
 			// Notify
-			SendNotify(GLIST_NOTIFY_INSERT);
+			SendNotify(GITEM_NOTIFY_INSERT);
 		}
 	}
 
@@ -3029,7 +2228,7 @@ bool GList::Remove(GListItem *i)
 					OnItemSelect(s);
 				}
 
-				Note->OnNotify(this, GLIST_NOTIFY_DELETE);
+				Note->OnNotify(this, GITEM_NOTIFY_DELETE);
 			}
 
 			Status = true;
@@ -3106,7 +2305,7 @@ void GList::Empty()
 		Items.Empty();
 		
 		FirstVisible = LastVisible = -1;
-		d->DragMode = DRAG_NONE;
+		DragMode = DRAG_NONE;
 
 		if (VScroll)
 		{
@@ -3138,7 +2337,7 @@ void GList::RemoveAll()
 		}
 		Items.Empty();
 		FirstVisible = LastVisible = -1;
-		d->DragMode = DRAG_NONE;
+		DragMode = DRAG_NONE;
 
 		if (VScroll)
 		{
@@ -3241,7 +2440,7 @@ void GList::Pour()
 			}
 			else
 			{
-				GMeasureInfo Info;
+				GdcPt2 Info;
 				
 				i->OnMeasure(&Info);
 				if (i->Pos.Valid() && Info.y != i->Pos.Y())
@@ -3295,7 +2494,7 @@ void GList::Pour()
 		int n = 0;
 		ForAllItems(i)
 		{
-			GMeasureInfo Info;
+			GdcPt2 Info;
 			i->OnMeasure(&Info);
 
 			if (d->Columns <= ScrollX ||
@@ -3395,124 +2594,17 @@ void GList::OnPaint(GSurface *pDC)
 		// Check icon column status then draw
 		if (AskImage() && !IconCol)
 		{
-			IconCol = new GListColumn(this, 0, 18);
+			IconCol.Reset(new GItemColumn(this, 0, 18));
 			if (IconCol)
 			{
 				IconCol->Resizable(false);
 				IconCol->Type(GIC_ASK_IMAGE);
 			}
 		}
-		else if (!AskImage() && IconCol) DeleteObj(IconCol);
+		else if (!AskImage())
+			IconCol.Reset();
 
-		// Draw column headings
-		if (ColumnHeaders && ColumnHeader.Valid())
-		{
-			GSurface *ColDC = pDC;
-			GRect cr = ColumnHeader;
-			int cx = cr.x1;
-
-			#if DOUBLE_BUFFER_COLUMN_DRAWING
-			GMemDC Bmp;
-			if (!pDC->SupportsAlphaCompositing())
-			{
-				if (Bmp.Create(ColumnHeader.X(), ColumnHeader.Y(), 32))
-				{
-					ColDC = &Bmp;
-					Bmp.Op(GDC_ALPHA);
-				}
-				else
-				{
-					ColDC = pDC;
-				}
-
-				printf("GList::OnPaint ***START*** %s %i\n",
-					GColourSpaceToString(ColDC->GetColourSpace()), ColDC->SupportsAlphaCompositing());
-			}
-			else
-			#else
-			{
-				ColDC = pDC;
-				pDC->ClipRgn(&cr);
-			}
-			#endif
-			
-			// Draw columns
-			if (IconCol)
-			{
-				cr.x1 = cx;
-				cr.x2 = cr.x1 + IconCol->Width() - 1;
-				IconCol->d->Pos = cr;
-				IconCol->OnPaint(ColDC, cr);
-				cx += IconCol->Width();
-			}
-
-			// Draw other columns
-			for (GListColumn *c = Columns.First(); c; c = Columns.Next())
-			{
-				cr.x1 = cx;
-				cr.x2 = cr.x1 + c->Width() - 1;
-				c->d->Pos = cr;
-				c->OnPaint(ColDC, cr);
-				cx += c->Width();
-			}
-
-			// Draw ending peice
-			cr.x1 = cx;
-			cr.x2 = ColumnHeader.x2 + 2;
-
-			if (cr.Valid())
-			{
-				#ifdef MAC
-				GArray<GColourStop> Stops;
-				GRect j(cr.x1, cr.y1, cr.x2-1, cr.y2-1); 
-				// ColDC->Colour(Rgb24(160, 160, 160), 24);
-				// ColDC->Line(r.x1, r.y1, r.x2, r.y1);
-					
-				Stops[0].Pos = 0.0;
-				Stops[0].Colour = Rgb32(255, 255, 255);
-				Stops[1].Pos = 0.5;
-				Stops[1].Colour = Rgb32(241, 241, 241);
-				Stops[2].Pos = 0.51;
-				Stops[2].Colour = Rgb32(233, 233, 233);
-				Stops[3].Pos = 1.0;
-				Stops[3].Colour = Rgb32(255, 255, 255);
-				
-				LgiFillGradient(ColDC, j, true, Stops);
-				
-				ColDC->Colour(Rgb24(178, 178, 178), 24);
-				ColDC->Line(cr.x1, cr.y2, cr.x2, cr.y2);
-				#else
-				if (GApp::SkinEngine)
-				{
-					GSkinState State;
-					State.pScreen = ColDC;
-					State.Rect = cr;
-					State.Enabled = Enabled();
-					GApp::SkinEngine->OnPaint_ListColumn(0, 0, &State);
-				}
-				else
-				{
-					LgiWideBorder(ColDC, cr, DefaultRaisedEdge);
-					ColDC->Colour(LC_MED, 24);
-					ColDC->Rectangle(&cr);
-				}
-				#endif
-			}
-
-			#if DOUBLE_BUFFER_COLUMN_DRAWING
-			printf("GList::OnPaint ***END*** %s %i\n",
-				GColourSpaceToString(ColDC->GetColourSpace()), ColDC->SupportsAlphaCompositing());
-
-			if (!pDC->SupportsAlphaCompositing())
-			{
-				pDC->Blt(ColumnHeader.x1, ColumnHeader.y1, &Bmp);
-			}
-			else
-			#endif
-			{
-				pDC->ClipRgn(0);
-			}
-		}
+		PaintColumnHeadings(pDC);
 
 		#if GLIST_ONPAINT_PROFILE
 		t2 = LgiCurrentTime();
@@ -3657,19 +2749,19 @@ void GList::UpdateAllItems()
 	Invalidate();
 }
 
-void GList::OnColumnClick(int Col, GMouse &m)
+void GItemContainer::OnColumnClick(int Col, GMouse &m)
 {
-	d->ColClick = Col;
-	d->ColMouse = m;
-	SendNotify(GLIST_NOTIFY_COLS_CLICK);
+	ColClick = Col;
+	ColMouse = m;
+	SendNotify(GITEM_NOTIFY_COLS_CLICK);
 }
 
-bool GList::GetColumnClickInfo(int &Col, GMouse &m)
+bool GItemContainer::GetColumnClickInfo(int &Col, GMouse &m)
 {
-	if (d->ColClick >= 0)
+	if (ColClick >= 0)
 	{
-		Col = d->ColClick;
-		m = d->ColMouse;
+		Col = ColClick;
+		m = ColMouse;
 		return true;
 	}
 	
@@ -3680,8 +2772,9 @@ void GList::ResizeColumnsToContent(int Border)
 {
 	if (Lock(_FL))
 	{
-		for (GListColumn *c=Columns.First(); c; c=Columns.Next())
+		for (int i=0; i<Columns.Length(); i++)
 		{
+			GItemColumn *c = Columns[i];
 			if (c->Resizable())
 			{
 				c->Width(c->GetContentSize() + Border);
@@ -3691,4 +2784,55 @@ void GList::ResizeColumnsToContent(int Border)
 	}
 
 	Invalidate();
+}
+
+int GList::GetContentSize(int Index)
+{
+	int Max = 0;
+
+	for (List<GListItem>::I It = Items.Start(); It.In(); It++)
+	{
+		GListItem *i = *It;
+		GDisplayString *s = i->d->Display[Index];
+		GDisplayString *Mem = 0;
+		
+		// If no cached string, create it for the list item
+		if (!s || s->IsTruncated())
+		{
+			GFont *f = i->GetFont();
+			if (!f) f = GetFont();
+			if (!f) f = SysFont;
+
+			char *Text = i->d->Str[Index] ? i->d->Str[Index] : i->GetText(Index);
+			if (s && s->IsTruncated())
+			{
+				s = Mem = new GDisplayString(f, Text?Text:(char*)"");
+			}
+			else
+			{
+				s = i->d->Display[Index] = new GDisplayString(f, Text?Text:(char*)"");
+			}
+		}
+
+		// Measure it
+		if (s)
+		{
+			Max = max(Max, s->X());
+		}
+		
+		DeleteObj(Mem);
+	}
+	
+	// Measure the heading too
+	GItemColumn *Col = Columns[Index];
+	GFont *f = GetFont();
+	LgiAssert(f);
+	if (f)
+	{
+		GDisplayString h(f, Col->Name());
+		int Hx = h.X() + (Col->Mark() ? 10 : 0);
+		Max = max(Max, Hx);
+	}
+
+	return Max;
 }
