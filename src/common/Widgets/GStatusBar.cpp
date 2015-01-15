@@ -129,19 +129,19 @@ bool GStatusPane::Name(const char *n)
 {
 	bool Status = false;
 
-	char *l = Name();
-	if (!n ||
-		!l ||
-		strcmp(l, n) != 0)
+	if (Lock(_FL))
 	{
-		if (Lock(_FL))
+		char *l = Name();
+		if (!n ||
+			!l ||
+			strcmp(l, n) != 0)
 		{
 			Status = GBase::Name(n);
 			GRect p(0, 0, X()-1, Y()-1);
 			p.Size(1, 1);
 			Invalidate(&p);
-			Unlock();
 		}
+		Unlock();
 	}
 
 	return Status;
@@ -149,30 +149,31 @@ bool GStatusPane::Name(const char *n)
 
 void GStatusPane::OnPaint(GSurface *pDC)
 {
+	GAutoString t;
 	if (Lock(_FL))
 	{
-		GRect r = GetClient();
-		char *t = Name();
-		if (ValidStr(t))
-		{
-			int TabSize = SysFont->TabSize();
-
-			SysFont->TabSize(0);
-			SysFont->Colour(LC_TEXT, LC_MED);
-			SysFont->Transparent(false);
-
-			GDisplayString ds(SysFont, t);
-			ds.Draw(pDC, 1, (r.Y()-ds.Y())/2, &r);
-			
-			SysFont->TabSize(TabSize);
-		}
-		else
-		{
-			pDC->Colour(LC_MED, 24);
-			pDC->Rectangle(&r);
-		}
-		
+		t.Reset(NewStr(Name()));
 		Unlock();
+	}
+
+	GRect r = GetClient();
+	if (ValidStr(t))
+	{
+		int TabSize = SysFont->TabSize();
+
+		SysFont->TabSize(0);
+		SysFont->Colour(LC_TEXT, LC_MED);
+		SysFont->Transparent(false);
+
+		GDisplayString ds(SysFont, t);
+		ds.Draw(pDC, 1, (r.Y()-ds.Y())/2, &r);
+		
+		SysFont->TabSize(TabSize);
+	}
+	else
+	{
+		pDC->Colour(LC_MED, 24);
+		pDC->Rectangle(&r);
 	}
 }
 
