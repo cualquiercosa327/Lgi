@@ -227,7 +227,7 @@ int GTimePopup::OnNotify(GViewI *c, int f)
 {
 	if (c->GetId() == 100 && !Ignore)
 	{
-		if (f == GLIST_NOTIFY_CLICK || f == GLIST_NOTIFY_RETURN)
+		if (f == GITEM_NOTIFY_CLICK || f == GITEM_NOTIFY_RETURN)
 		{
 			GListItem *Sel = Times->GetSelected();
 			if (Sel)
@@ -245,7 +245,7 @@ int GTimePopup::OnNotify(GViewI *c, int f)
 				}
 			}
 		}
-		else if (f == GLIST_NOTIFY_ESC_KEY)
+		else if (f == GITEM_NOTIFY_ESC_KEY)
 		{
 			Visible(false);
 		}

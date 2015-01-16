@@ -1455,7 +1455,8 @@ void GList::OnMouseClick(GMouse &m)
 					if (Over)
 					{
 						Over->Value(true);
-						Invalidate(&Over->GetPos());
+						GRect r = Over->GetPos();
+						Invalidate(&r);
 						Capture(true);
 					}
 				}
@@ -1889,7 +1890,8 @@ void GList::OnMouseMove(GMouse &m)
 						if (m.Down() && Over != c->Value())
 						{
 							c->Value(Over);
-							Invalidate(&c->GetPos());
+							GRect r = c->GetPos();
+							Invalidate(&r);
 						}
 					}
 				}

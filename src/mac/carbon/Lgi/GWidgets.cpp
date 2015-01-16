@@ -319,33 +319,6 @@ void GSlider::OnMouseMove(GMouse &m)
 	}
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////
-GItemContainer::GItemContainer()
-{
-	Flags = 0;
-	ImageList = 0;
-}
-
-GItemContainer::~GItemContainer()
-{
-	if (OwnList())
-	{
-		DeleteObj(ImageList);
-	}
-	else
-	{
-		ImageList = 0;
-	}
-}
-
-bool GItemContainer::SetImageList(GImageList *list, bool Own)
-{
-	ImageList = list;
-	OwnList(Own);
-	AskImage(true);
-	return ImageList != NULL;
-}
-
 //////////////////////////////////////////////////////////////////////////////////////////////
 ThemeButtonDrawUPP LgiLabelUPP = 0;
 

@@ -295,7 +295,7 @@ protected:
 	int Flags;
 	GArray<GItemColumn*> Columns;
 	int DragMode;
-	GDragColumn *DragCol;
+	class GDragColumn *DragCol;
 	GAutoPtr<GItemColumn> IconCol;
 	bool ColumnHeaders;
 	GRect ColumnHeader;

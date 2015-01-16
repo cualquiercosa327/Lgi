@@ -81,8 +81,8 @@ class LgiClass GSubMenu :
 	public GBase,
 	public GTarget,
 	// public GFlags,
-	public GMenuLoader
-	// , public GItemContainer
+	public GMenuLoader,
+	public GImageListOwner
 {
 	friend class GMenuItem;
 	friend class GMenu;
@@ -419,8 +419,7 @@ if (Menu)
 */
 
 class LgiClass GMenu :
-	public GSubMenu,
-	public GImageListOwner
+	public GSubMenu
 {
 	friend class GSubMenu;
 	friend class GMenuItem;
