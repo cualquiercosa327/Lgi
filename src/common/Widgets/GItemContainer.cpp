@@ -63,6 +63,7 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////
 GItemContainer::GItemContainer()
 {
+	Flags = 0;
 	DragMode = 0;
 	DragCol = NULL;
 	ColClick = -1;
@@ -507,7 +508,7 @@ void GItemColumn::Resizable(bool i)
 
 bool GItemColumn::InDrag()
 {
-	return d->Drag != NULL;
+	return d->Drag;
 }
 
 GRect GItemColumn::GetPos()

@@ -1088,7 +1088,7 @@ bool GDirectory::ConvertToDate(char *Str, int SLen, uint64 Time)
 class GDirectoryPriv
 {
 public:
-	char			BasePath[256];
+	char			BasePath[512];
 	DIR				*Dir;
 	struct dirent	*De;
 	struct stat		Stat;
@@ -1096,10 +1096,10 @@ public:
 
 	GDirectoryPriv()
 	{	
-		Dir = 0;
-		De = 0;
+		Dir = NULL;
+		De = NULL;
 		BasePath[0] = 0;
-		Pattern = 0;
+		Pattern = NULL;
 	}
 	
 	~GDirectoryPriv()
@@ -1147,7 +1147,7 @@ int GDirectory::First(const char *Name, const char *Pattern)
 
 	if (Name)
 	{
-		strcpy(d->BasePath, Name);
+		strcpy_s(d->BasePath, sizeof(d->BasePath), Name);
 		if (!Pattern || stricmp(Pattern, LGI_ALL_FILES) == 0)
 		{
 			struct stat S;
