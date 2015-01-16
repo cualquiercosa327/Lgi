@@ -349,7 +349,7 @@ public:
 	void EmptyColumns();
 	
 	/// Returns the column at index 'Index'
-	GItemColumn *ColumnAt(int i) { return i < Columns.Length() ? Columns[i] : NULL; }
+	GItemColumn *ColumnAt(unsigned i) { return i < Columns.Length() ? Columns[i] : NULL; }
 	
 	/// Returns the column at horizontal offset 'x', or -1 if none matches.
 	int ColumnAtX(int X, GItemColumn **Col = 0, int *Offset = 0);

@@ -996,7 +996,7 @@ public:
 			{
 				const char *File = d->GetFileName();
 				if (!File) File = "(untitled)";
-				char *Dir = strrchr(File, DIR_CHAR);
+				char *Dir = strrchr((char*)File, DIR_CHAR);
 				WindowsMenu->AppendItem(Dir?Dir+1:File, IDM_WINDOWS+n++, true);
 			}
 			

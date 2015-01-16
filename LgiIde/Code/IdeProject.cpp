@@ -14,7 +14,7 @@
 #include "GDropFiles.h"
 #include "GSubProcess.h"
 
-extern char *Untitled;
+extern const char *Untitled;
 
 #define IDM_INSERT					100
 #define IDM_NEW_FOLDER				101
@@ -911,7 +911,7 @@ public:
 			else return File;
 		}
 
-		return Name ? Name : Untitled;
+		return Name ? Name : (char*)Untitled;
 	}
 
 	void OnExpand(bool b)
@@ -2752,7 +2752,7 @@ char *IdeProject::GetText(int Col)
 		return s ? s + 1 : d->FileName;
 	}
 
-	return Untitled;
+	return (char*)Untitled;
 }
 
 int IdeProject::GetImage(int Flags)
