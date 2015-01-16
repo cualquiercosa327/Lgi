@@ -332,10 +332,6 @@ public:
 
 	// Properties
 	
-	/// Returns whether display of column headers is switched on
-	bool ShowColumnHeader() { return ColumnHeaders; }
-	/// Turns on display of column headers
-	void ShowColumnHeader(bool Show) { ColumnHeaders = Show; }
 	/// Returns whether the user can edit labels
 	bool AllowEditLabels() { return EditLabels; }
 	/// Sets whether the user can edit labels

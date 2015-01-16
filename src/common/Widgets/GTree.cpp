@@ -1396,6 +1396,17 @@ void GTree::OnPosChange()
 void GTree::OnPaint(GSurface *pDC)
 {
 	GRect r = GetClient();
+	GFont *f = GetFont();
+	if (ShowColumnHeader())
+	{
+		ColumnHeader.ZOff(r.X()-1, f->GetHeight() + 4);
+		PaintColumnHeadings(pDC);
+		r.y1 = ColumnHeader.y2 + 1;
+	}
+	else
+	{
+		ColumnHeader.ZOff(-1, -1);
+	}
 
 	d->IconTextGap = GetFont()->GetHeight() / 6;
 

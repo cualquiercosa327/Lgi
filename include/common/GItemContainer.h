@@ -293,16 +293,15 @@ class LgiClass GItemContainer :
 	
 protected:
 	int Flags;
-	GArray<GItemColumn*> Columns;
 	int DragMode;
-	class GDragColumn *DragCol;
-	GAutoPtr<GItemColumn> IconCol;
 	bool ColumnHeaders;
 	GRect ColumnHeader;
-
-	// Column click
 	int ColClick;
 	GMouse ColMouse;	
+
+	GArray<GItemColumn*> Columns;
+	GAutoPtr<GItemColumn> IconCol;
+	class GDragColumn *DragCol;
 
 	void PaintColumnHeadings(GSurface *pDC);
 
@@ -320,8 +319,12 @@ public:
 	bool InsideDragOp() { return TestFlag(Flags, GIC_IN_DRAG_OP); }
 	void InsideDragOp(bool b) { if (b) SetFlag(Flags, GIC_IN_DRAG_OP); else ClearFlag(Flags, GIC_IN_DRAG_OP); }
 
-	// Columns
-	
+	/// Returns whether display of column headers is switched on
+	bool ShowColumnHeader() { return ColumnHeaders; }
+
+	/// Turns on display of column headers
+	void ShowColumnHeader(bool Show) { ColumnHeaders = Show; }
+		
 	/// Adds a column to the list
 	GItemColumn *AddColumn
 	(

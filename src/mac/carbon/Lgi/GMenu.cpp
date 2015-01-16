@@ -658,7 +658,7 @@ void GMenuItem::_Paint(GSurface *pDC, int Flags)
 			_PaintText(pDC, x, y, r.X());
 		}
 
-		GImageList *ImgLst = Menu ? Menu->GetImageList() : NULL;
+		GImageList *ImgLst = (Menu && Menu->GetImageList()) ? Menu->GetImageList() : Parent ? Parent->GetImageList() : 0;
 
 		// Draw icon/check mark
 		if (Checked && IconX > 0)
@@ -991,7 +991,7 @@ void GMenuItem::Icon(int i)
 	
 	if (Parent && Parent->Info && Info)
 	{
-		GImageList *Lst = Menu ? Menu->GetImageList() : NULL;
+		GImageList *Lst = Menu ? Menu->GetImageList() : Parent->GetImageList();
 		if (!Lst)
 			return;
 
