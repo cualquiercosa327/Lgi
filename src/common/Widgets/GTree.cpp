@@ -28,6 +28,8 @@ public:
 	bool			LayoutDirty;
 	GdcPt2			Limit;
 	GdcPt2			LastClick;
+	GdcPt2			DragStart;
+	int				DragData;
 	GMemDC			*IconCache;
 	bool			InPour;
 	int64			DropSelectTime;
@@ -453,7 +455,8 @@ void GTreeItem::_Remove()
 
 void GTreeItem::_PourText(GdcPt2 &Size)
 {
-	GDisplayString ds(SysFont, GetText());
+	GFont *f = Tree ? Tree->GetFont() : SysFont;
+	GDisplayString ds(f, GetText());
 	Size.x = ds.X() + 4;
 	Size.y = 0;
 }
@@ -464,16 +467,20 @@ void GTreeItem::_PaintText(GSurface *pDC, COLOUR Fore, COLOUR Back)
 	if (Text)
 	{
 		GDisplayString *Ds = d->GetDs(0);
+		GFont *f = Tree ? Tree->GetFont() : SysFont;
 
-		int Tab = SysFont->TabSize();
-		SysFont->TabSize(0);
-		SysFont->Transparent(false);
-		SysFont->Colour(Fore, Back);
+		int Tab = f->TabSize();
+		f->TabSize(0);
+		f->Transparent(false);
+		f->Colour(Fore, Back);
 		
 		if (Ds)
+		{
+			Ds->TruncateWithDots(d->Text.X());
 			Ds->Draw(pDC, d->Text.x1 + 2, d->Text.y1 + 1, &d->Text);
+		}
 		
-		SysFont->TabSize(Tab);
+		f->TabSize(Tab);
 	}
 	else
 	{
@@ -518,7 +525,7 @@ void GTreeItem::_Pour(GdcPt2 *Limit, int Depth, bool Visible)
 	GTreeItem *n;
 	for (GTreeItem *i=Items.First(); i; i=n)
 	{
-		n=Items.Next();
+		n = Items.Next();
 		i->d->Last = n == 0;
 		i->_Pour(Limit, Depth+1, d->Open && d->Visible);
 	}
@@ -653,7 +660,10 @@ void GTreeItem::_MouseClick(GMouse &m)
 			Expanded(!Expanded());
 		}
 
-		if (d->Text.Overlap(m.x, m.y) ||
+		GRect rText = d->Text;
+		rText.x2 = d->Pos.x2;
+
+		if (rText.Overlap(m.x, m.y) ||
 			d->Icon.Overlap(m.x, m.y))
 		{
 			Select(true);
@@ -676,6 +686,9 @@ void GTreeItem::OnPaint(ItemPaintCtx &Ctx)
 	pDC->Rectangle(0, d->Pos.y1, (d->Depth*TREE_BLOCK)+TREE_BLOCK, d->Pos.y2);
 
 	// draw trunk
+	GRect Pos = d->Pos;
+	Pos.x2 = Pos.x1 + Ctx.ColPx[0] - 1;
+
 	int x = 0;
 	COLOUR Lines = LC_MED;
 	pDC->Colour(Lines, 24);
@@ -685,7 +698,7 @@ void GTreeItem::OnPaint(ItemPaintCtx &Ctx)
 		{
 			if (Tree->d->LineFlags[0] & (1 << i))
 			{
-				pDC->Line(x + 8, d->Pos.y1, x + 8, d->Pos.y2);
+				pDC->Line(x + 8, Pos.y1, x + 8, Pos.y2);
 			}
 			x += TREE_BLOCK;
 		}
@@ -696,7 +709,7 @@ void GTreeItem::OnPaint(ItemPaintCtx &Ctx)
 	}
 
 	// draw node
-	int cy = d->Pos.y1 + (d->Pos.Y() >> 1);
+	int cy = Pos.y1 + (Pos.Y() >> 1);
 	if (Items.Length() > 0)
 	{
 		d->Thumb.ZOff(8, 8);
@@ -767,7 +780,7 @@ void GTreeItem::OnPaint(ItemPaintCtx &Ctx)
 			if (Parent || IndexOf() > 0)
 			{
 				// draw line to item above
-				pDC->Line(x + 8, d->Pos.y1, x + 8, d->Thumb.y1-1);
+				pDC->Line(x + 8, Pos.y1, x + 8, d->Thumb.y1-1);
 			}
 
 			// draw line to leaf beside
@@ -776,7 +789,7 @@ void GTreeItem::OnPaint(ItemPaintCtx &Ctx)
 			if (!d->Last)
 			{
 				// draw line to item below
-				pDC->Line(x + 8, d->Thumb.y2+1, x + 8, d->Pos.y2);
+				pDC->Line(x + 8, d->Thumb.y2+1, x + 8, Pos.y2);
 			}
 		}
 	}
@@ -786,11 +799,11 @@ void GTreeItem::OnPaint(ItemPaintCtx &Ctx)
 		pDC->Colour(LC_MED, 24);
 		if (d->Last)
 		{
-			pDC->Rectangle(x + 8, d->Pos.y1, x + 8, cy);
+			pDC->Rectangle(x + 8, Pos.y1, x + 8, cy);
 		}
 		else
 		{
-			pDC->Rectangle(x + 8, d->Pos.y1, x + 8, d->Pos.y2);
+			pDC->Rectangle(x + 8, Pos.y1, x + 8, Pos.y2);
 		}
 
 		pDC->Rectangle(x + 8, cy, x + (TREE_BLOCK-1), cy);
@@ -802,8 +815,8 @@ void GTreeItem::OnPaint(ItemPaintCtx &Ctx)
 	GImageList *Lst = Tree->GetImageList();
 	if (Image >= 0 && Lst)
 	{
-		d->Icon.ZOff(Lst->TileX() + Tree->d->IconTextGap - 1, d->Pos.Y() - 1);
-		d->Icon.Offset(x, d->Pos.y1);
+		d->Icon.ZOff(Lst->TileX() + Tree->d->IconTextGap - 1, Pos.Y() - 1);
+		d->Icon.Offset(x, Pos.y1);
 
 		GColour Background(LC_WORKSPACE, 24);
 		pDC->Colour(Background);
@@ -823,36 +836,39 @@ void GTreeItem::OnPaint(ItemPaintCtx &Ctx)
 		else
 		{
 			// flickers...
-			int Pos = d->Icon.y1 + ((Lst->TileY()-d->Pos.Y()) >> 1);
+			int Px = d->Icon.y1 + ((Lst->TileY()-Pos.Y()) >> 1);
 			pDC->Rectangle(&d->Icon);
-			Tree->GetImageList()->Draw(pDC, d->Icon.x1, Pos, Image, Background);
+			Tree->GetImageList()->Draw(pDC, d->Icon.x1, Px, Image, Background);
 		}
 
 		x += d->Icon.X();
 	}
 
 	// text
-	char *Text = GetText();
-	if (Text)
+	GdcPt2 TextSize;
+	_PourText(TextSize);
+	d->Text.ZOff(Ctx.ColPx[0] - x - 1, Pos.Y()-1);
+	d->Text.Offset(x, Pos.y1);
+	_PaintText(pDC, Ctx.Fore, Ctx.Back);
+	x = Pos.x2 + 1;
+
+	for (int i=1; i<Ctx.Columns; i++)
 	{
-		GdcPt2 TextSize;
-		_PourText(TextSize);
-
-		d->Text.ZOff(TextSize.x, d->Pos.Y()-1);
-		d->Text.Offset(x, d->Pos.y1);
-
-		_PaintText(pDC, Ctx.Fore, Ctx.Back);
-		d->Pos.x2 = d->Text.x2;
+		GRect r(x, Pos.y1, x + Ctx.ColPx[i] - 1, Pos.y2);
+		GDisplayString *ds = d->GetDs(i);
+		if (ds)
+		{
+			GFont *f = ds->GetFont();
+			f->Colour(Ctx.Fore, Ctx.Back);
+			ds->Draw(Ctx.pDC, r.x1, r.y1 + 2, &r);
+		}
+		
+		x = r.x2 + 1;
 	}
-	else
-	{
-		d->Text.ZOff(0, d->Pos.Y()-1);
-		d->Text.Offset(x, d->Pos.y1);
-	}
-
+	
 	// background after text
 	pDC->Colour(LC_WORKSPACE, 24);
-	pDC->Rectangle(d->Text.x2, d->Pos.y1, max(Tree->X(), Tree->d->Limit.x), d->Pos.y2);
+	pDC->Rectangle(x, Pos.y1, max(Tree->X(), Tree->d->Limit.x), Pos.y2);
 
 	// children
 	if (d->Open)
@@ -904,6 +920,7 @@ GTree::GTree(int id, int x, int y, int cx, int cy, const char *name) :
 	EditLabels = false;
 	MultipleSelect = false;
 	ColumnHeaders = false;
+	rItems.ZOff(-1, -1);
 
 	#if WINNATIVE
 	SetStyle(GetStyle() | WS_CHILD | WS_VISIBLE | WS_TABSTOP);
@@ -1038,7 +1055,8 @@ void GTree::_OnSelect(GTreeItem *Item)
 void GTree::_Pour()
 {
 	d->InPour = true;
-	d->Limit.x = d->Limit.y = 0;
+	d->Limit.x = rItems.x1;
+	d->Limit.y = rItems.y1;
 
 	GTreeItem *n;
 	for (GTreeItem *i=Items.First(); i; i=n)
@@ -1345,45 +1363,139 @@ bool GTree::OnMouseWheel(double Lines)
 
 void GTree::OnMouseClick(GMouse &m)
 {
-	GRect c = GetClient();
-
-	m.x -= c.x1;
-	m.y -= c.y1;
-
 	if (m.Down())
 	{
-		Focus(true);
-	}
-	if (m.Down())
-	{
-		Capture(true);
-		d->LastClick.x = m.x;
-		d->LastClick.y = m.y;
+		DragMode = DRAG_NONE;
+		if (ColumnHeaders &&
+			ColumnHeader.Overlap(m.x, m.y))
+		{
+			d->DragStart.x = m.x;
+			d->DragStart.y = m.y;
+
+			// Clicked on a column heading
+			GItemColumn *Resize, *Over;
+			int Index = HitColumn(m.x, m.y, Resize, Over);
+
+			if (Resize)
+			{
+				if (m.Double())
+				{
+					Resize->Width(Resize->GetContentSize() + DEFAULT_COLUMN_SPACING);
+				}
+				else
+				{
+					DragMode = RESIZE_COLUMN;
+					d->DragData = Columns.IndexOf(Resize);
+					Capture(true);
+				}
+			}
+			/*
+			else
+			{
+				DragMode = CLICK_COLUMN;
+				d->DragData = Columns.IndexOf(Over);
+				if (Over)
+				{
+					Over->Value(true);
+					GRect r = Over->GetPos();
+					Invalidate(&r);
+					Capture(true);
+				}
+			}
+			*/
+		}
+		else if (rItems.Overlap(m.x, m.y))
+		{
+			Focus(true);
+			Capture(true);
+			d->LastClick.x = m.x;
+			d->LastClick.y = m.y;
+
+			d->LastHit = ItemAtPoint(m.x, m.y);
+			if (d->LastHit)
+			{
+				GdcPt2 c = _ScrollPos();
+				m.x += c.x;
+				m.y += c.y;
+				d->LastHit->_MouseClick(m);
+			}
+		}
 	}
 	else if (IsCapturing())
 	{
 		Capture(false);
-	}
 
-	d->LastHit = ItemAtPoint(m.x, m.y);
-	if (d->LastHit)
-	{
-		GdcPt2 c = _ScrollPos();
-		m.x += c.x;
-		m.y += c.y;
-		d->LastHit->_MouseClick(m);
+		if (rItems.Overlap(m.x, m.y))
+		{
+			d->LastClick.x = m.x;
+			d->LastClick.y = m.y;
+
+			d->LastHit = ItemAtPoint(m.x, m.y);
+			if (d->LastHit)
+			{
+				GdcPt2 c = _ScrollPos();
+				m.x += c.x;
+				m.y += c.y;
+				d->LastHit->_MouseClick(m);
+			}
+		}
 	}
 }
 
 void GTree::OnMouseMove(GMouse &m)
 {
-	if (IsCapturing())
+	if (!IsCapturing())
+		return;
+
+	switch (DragMode)
 	{
-		if (abs(d->LastClick.x - m.x) > DRAG_THRESHOLD ||
-			abs(d->LastClick.y - m.y) > DRAG_THRESHOLD)
+		/*
+		case DRAG_COLUMN:
 		{
-			OnItemBeginDrag(d->LastHit, m.Flags);
-			Capture(false);
+			if (DragCol)
+			{
+				GdcPt2 p;
+				PointToScreen(p);
+
+				GRect r = DragCol->GetPos();
+				r.Offset(-p.x, -p.y); // to view co-ord
+
+				r.Offset(m.x - DragCol->GetOffset() - r.x1, 0);
+				if (r.x1 < 0) r.Offset(-r.x1, 0);
+				if (r.x2 > X()-1) r.Offset((X()-1)-r.x2, 0);
+
+				r.Offset(p.x, p.y); // back to screen co-ord
+				DragCol->SetPos(r, true);
+				r = DragCol->GetPos();
+			}
+			break;
+		}
+		*/
+		case RESIZE_COLUMN:
+		{
+			GItemColumn *c = Columns[d->DragData];
+			if (c)
+			{
+				int OldWidth = c->Width();
+				int NewWidth = m.x - c->GetPos().x1;
+
+				c->Width(max(NewWidth, 4));
+				Invalidate();
+			}
+			break;
+		}
+		default:
+		{
+			if (rItems.Overlap(m.x, m.y))
+			{
+				if (abs(d->LastClick.x - m.x) > DRAG_THRESHOLD ||
+					abs(d->LastClick.y - m.y) > DRAG_THRESHOLD)
+				{
+					OnItemBeginDrag(d->LastHit, m.Flags);
+					Capture(false);
+				}
+			}
+			break;
 		}
 	}
 }
@@ -1396,13 +1508,19 @@ void GTree::OnPosChange()
 
 void GTree::OnPaint(GSurface *pDC)
 {
-	GRect r = GetClient();
+	#if 0 // def _DEBUG
+	pDC->Colour(GColour(255, 0, 255));
+	pDC->Rectangle();
+	#endif
+
+
+	rItems = GetClient();
 	GFont *f = GetFont();
 	if (ShowColumnHeader())
 	{
-		ColumnHeader.ZOff(r.X()-1, f->GetHeight() + 4);
+		ColumnHeader.ZOff(rItems.X()-1, f->GetHeight() + 4);
 		PaintColumnHeadings(pDC);
-		r.y1 = ColumnHeader.y2 + 1;
+		rItems.y1 = ColumnHeader.y2 + 1;
 	}
 	else
 	{
@@ -1448,11 +1566,24 @@ void GTree::OnPaint(GSurface *pDC)
 	GdcPt2 s = _ScrollPos();
 	int Ox, Oy;
 	pDC->GetOrigin(Ox, Oy);
-	pDC->SetOrigin(Ox + (s.x - r.x1), Oy + (s.y - r.y1));
+	pDC->SetOrigin(Ox + s.x, Oy + s.y);
 
 	// selection colour
+	GArray<int> ColPx;
 	GItem::ItemPaintCtx Ctx;
 	Ctx.pDC = pDC;
+	if (Columns.Length() > 0)
+	{
+		Ctx.Columns = Columns.Length();
+		for (int i=0; i<Columns.Length(); i++)
+			ColPx[i] = Columns[i]->Width();
+	}
+	else
+	{
+		Ctx.Columns = 1;
+		ColPx[0] = rItems.X();
+	}
+	Ctx.ColPx = &ColPx[0];	
 	COLOUR SelFore = Focus() ? LC_FOCUS_SEL_FORE : LC_NON_FOCUS_SEL_FORE;
 	COLOUR SelBack = Focus() ? LC_FOCUS_SEL_BACK : LC_NON_FOCUS_SEL_BACK;
 
@@ -1480,11 +1611,11 @@ void GTree::OnPaint(GSurface *pDC)
 	}
 
 	pDC->SetOrigin(Ox, Oy);
-	if (d->Limit.y-s.y < r.Y())
+	if (d->Limit.y-s.y < rItems.Y())
 	{
 		// paint after items
 		pDC->Colour(LC_WORKSPACE, 24);
-		pDC->Rectangle(r.x1, r.y1 + d->Limit.y - s.y, r.x2, r.y2);
+		pDC->Rectangle(rItems.x1, d->Limit.y - s.y, rItems.x2, rItems.y2);
 	}
 }
 
@@ -1625,11 +1756,22 @@ void GTree::OnPulse()
 
 int GTree::GetContentSize(int ColumnIdx)
 {
+	LgiAssert(!"Impl me.");
 	for (GTreeItem *i = Items.First(); i; i=Items.Next())
 	{
 	}
 	
 	return 0;
+}
+
+LgiCursor GTree::GetCursor(int x, int y)
+{
+	GItemColumn *Resize, *Over;
+	HitColumn(x, y, Resize, Over);
+	if (Resize)
+		return LCUR_SizeHor;
+	
+	return LCUR_Normal;
 }
 
 void GTree::OnDragEnter()

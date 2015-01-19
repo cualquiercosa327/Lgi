@@ -54,6 +54,17 @@ public:
 	int IndexOf();
 	/// \returns number of child.
 	int GetItems();
+	
+	/// Sorts the child items
+	template<typename T>
+	bool Sort(int (*Compare)(GTreeItem*, GTreeItem*, T user_param), T user_param)
+	{
+		if (!Compare)
+			return false;
+		
+		Items.Sort(Compare, user_param);
+		return true;
+	}
 
 	virtual bool Expanded() { return false; }
 	virtual void Expanded(bool b) {}
@@ -155,6 +166,8 @@ protected:
 	bool EditLabels;
 	bool MultipleSelect;
 	
+	GRect rItems;
+	
 	GdcPt2 _ScrollPos();
 	GTreeItem *GetAdjacent(GTreeItem *From, bool Down);
 	void OnDragEnter();
@@ -187,6 +200,7 @@ public:
 	GMessage::Result OnEvent(GMessage *Msg);
 	void OnPulse();
 	int GetContentSize(int ColumnIdx);
+	LgiCursor GetCursor(int x, int y);
 
 	/// Add a item to the tree
 	GTreeItem *Insert(GTreeItem *Obj = 0, int Pos = -1);

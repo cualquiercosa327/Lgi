@@ -16,9 +16,6 @@
 // Messages
 #define WM_END_EDIT_LABEL			(WM_USER+0x556)
 
-// Constants
-#define DEFAULT_COLUMN_SPACING		12
-
 //////////////////////////////////////////////////////////////////////////////
 
 /// View modes for the list control

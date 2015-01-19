@@ -72,6 +72,11 @@ public:
 		COLOUR Fore;
 		/// Current background colour (24bit)
 		COLOUR Back;
+		
+		/// Number of columns
+		int Columns;
+		/// Width of each column
+		int *ColPx;
 	};
 
     GItem &operator =(GItem &i)
@@ -284,6 +289,7 @@ public:
 #define CLICK_COLUMN				4
 #define TOGGLE_ITEMS				5
 #define CLICK_ITEM					6
+#define DEFAULT_COLUMN_SPACING		12
 
 class LgiClass GItemContainer :
 	public GLayout,
