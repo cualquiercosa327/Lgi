@@ -1821,7 +1821,7 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 		case IDC_LOCALS_LIST:
 		{
 			if (d->Output->Locals &&
-				Flags == GLIST_NOTIFY_DBL_CLICK &&
+				Flags == GITEM_NOTIFY_DBL_CLICK &&
 				d->DbgContext)
 			{
 				GListItem *it = d->Output->Locals->GetSelected();
@@ -1846,7 +1846,7 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 				if (d->Output->DebugTab)
 					d->Output->DebugTab->Value(AppWnd::CallStackTab);
 			}
-			else if (Flags == GLIST_NOTIFY_SELECT)
+			else if (Flags == GITEM_NOTIFY_SELECT)
 			{
 				// This takes the user to a given call stack reference
 				if (d->Output->CallStack && d->DbgContext)

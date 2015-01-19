@@ -21,7 +21,7 @@ public:
 		DeleteObj(pDC);
 	}
 
-	void OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GListColumn *c)
+	void OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GItemColumn *c)
 	{
 		GListItem::OnPaintColumn(Ctx, i, c);
 
@@ -31,7 +31,7 @@ public:
 		}
 	}
 
-	void OnMeasure(GMeasureInfo *Info)
+	void OnMeasure(GdcPt2 *Info)
 	{
 		GListItem::OnMeasure(Info);
 		if (pDC)

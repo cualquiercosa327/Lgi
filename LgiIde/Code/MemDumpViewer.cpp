@@ -4,6 +4,7 @@
 #include "GToken.h"
 #include "GEdit.h"
 #include "GProgressDlg.h"
+#include "GList.h"
 
 #define IDC_LIST 100
 
@@ -169,7 +170,7 @@ public:
 			{
 				switch (f)
 				{
-					case GLIST_NOTIFY_SELECT:
+					case GITEM_NOTIFY_SELECT:
 					{
 						GListItem *s = Lst->GetSelected();
 						if (s)
@@ -182,7 +183,7 @@ public:
 						}
 						break;
 					}
-					case GLIST_NOTIFY_COLS_CLICK:
+					case GITEM_NOTIFY_COLS_CLICK:
 					{
 						int Col;
 						GMouse m;

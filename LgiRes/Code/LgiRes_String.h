@@ -14,6 +14,7 @@
 
 #include "GXml.h"
 #include "Res.h"
+#include "GList.h"
 
 ////////////////////////////////////////////////////////////////
 class ResStringGroup;

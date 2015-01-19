@@ -942,7 +942,7 @@ int ImageCompareDlg::OnNotify(GViewI *Ctrl, int Flags)
 	{
 		case IDC_LIST:
 		{
-			if (Flags == GLIST_NOTIFY_DBL_CLICK)
+			if (Flags == GITEM_NOTIFY_DBL_CLICK)
 			{
 				GListItem *s = d->lst->GetSelected();
 				if (s)

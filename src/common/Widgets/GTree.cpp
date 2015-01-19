@@ -903,6 +903,7 @@ GTree::GTree(int id, int x, int y, int cx, int cy, const char *name) :
 	LinesAtRoot = true;
 	EditLabels = false;
 	MultipleSelect = false;
+	ColumnHeaders = false;
 
 	#if WINNATIVE
 	SetStyle(GetStyle() | WS_CHILD | WS_VISIBLE | WS_TABSTOP);

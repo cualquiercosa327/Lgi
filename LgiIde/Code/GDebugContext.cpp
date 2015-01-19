@@ -2,6 +2,7 @@
 #include "LgiIde.h"
 #include "IdeProject.h"
 #include "GTextLog.h"
+#include "GList.h"
 
 enum DebugMessages
 {
