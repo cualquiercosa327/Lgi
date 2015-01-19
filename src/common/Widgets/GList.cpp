@@ -1870,6 +1870,7 @@ void GList::OnMouseMove(GMouse &m)
 					int NewWidth = m.x - c->GetPos().x1;
 
 					c->Width(max(NewWidth, 4));
+					Invalidate();
 				}
 				break;
 			}
