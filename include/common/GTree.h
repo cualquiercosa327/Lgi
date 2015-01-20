@@ -26,6 +26,7 @@ protected:
 
 	virtual GTreeItem *Item() { return 0; }
 	virtual GRect *Pos() { return 0; }
+	virtual void _ClearDs(int Col);
 	void _Visible(bool v);
 
 public:
@@ -82,7 +83,7 @@ protected:
 
 	// Private methods
 	void _RePour();
-	void _Pour(GdcPt2 *Limit, int Depth, bool Visible);
+	void _Pour(GdcPt2 *Limit, int ColumnPx, int Depth, bool Visible);
 	void _Remove();
 	void _MouseClick(GMouse &m);
 	void _SetTreePtr(GTree *t);
@@ -94,6 +95,8 @@ protected:
 
 	virtual void _PourText(GdcPt2 &Size);
 	virtual void _PaintText(GSurface *pDC, COLOUR Fore, COLOUR Back);
+	void _ClearDs(int Col);
+	virtual void OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GItemColumn *c);
 
 protected:
 	char *Str;

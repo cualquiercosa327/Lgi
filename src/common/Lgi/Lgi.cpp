@@ -1909,11 +1909,51 @@ int LgiIsReleaseBuild()
  	#endif
 }
 
+bool LgiIsVolumeRoot(const char *Path)
+{
+	if (!Path)
+		return false;
+	
+	#ifdef WIN32
+		if
+		(
+			IsAlpha(Path[0])
+			&&
+			Path[1] == ':'
+			&&
+			(
+				(Path[2] == 0)
+				||
+				(Path[2] == '\\' && Path[3] == 0)
+			)
+		)
+		{
+			return true;
+		}
+	#else
+		GToken t(Path, DIR_STR);
+		if (t.Length() == 0)
+			return true;
+		#ifdef MAC
+			if (!stricmp(t[0], "Volumes") &&
+				t.Length() == 2)
+				return true;
+		#else
+			if (!stricmp(t[0], "mnt") &&
+				t.Length() == 2)
+				return true;
+		#endif
+	#endif
+	
+	return false;
+}
+
 void LgiFormatSize(char *Str, int SLen, uint64 Size)
 {
 	int64 K = 1024;
 	int64 M = K * K;
 	int64 G = K * M;
+	int64 T = K * G;
 
 	if (Size == 1)
 	{
@@ -1926,21 +1966,26 @@ void LgiFormatSize(char *Str, int SLen, uint64 Size)
 	else if (Size < 10 * K)
 	{
 		double d = (double)(int64)Size;
-		sprintf_s(Str, SLen, "%.2f K", d / K);
+		sprintf_s(Str, SLen, "%.2f KiB", d / K);
 	}
 	else if (Size < M)
 	{
-		sprintf_s(Str, SLen, "%u K", (int) (Size / K));
+		sprintf_s(Str, SLen, "%u KiB", (int) (Size / K));
 	}
 	else if (Size < G)
 	{
 		double d = (double)(int64)Size;
-		sprintf_s(Str, SLen, "%.2f M", d / M);
+		sprintf_s(Str, SLen, "%.2f MiB", d / M);
+	}
+	else if (Size < T)
+	{
+		double d = (double)(int64)Size;
+		sprintf_s(Str, SLen, "%.2f GiB", d / G);
 	}
 	else
 	{
 		double d = (double)(int64)Size;
-		sprintf_s(Str, SLen, "%.2f G", d / G);
+		sprintf_s(Str, SLen, "%.2f TiB", d / T);
 	}
 }
 

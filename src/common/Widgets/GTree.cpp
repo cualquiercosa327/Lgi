@@ -97,19 +97,31 @@ public:
 		Ds.DeleteObjects();
 	}
 
-	GDisplayString *GetDs(int Col)
+	GDisplayString *GetDs(int Col, int FixPx)
 	{
 		if (!Ds[Col])
 		{
 			GFont *f = Item->GetTree() ? Item->GetTree()->GetFont() : SysFont;		
 			Ds[Col] = new GDisplayString(f, Item->GetText(Col));
+			if (Ds[Col] && FixPx > 0)
+			{
+				Ds[Col]->TruncateWithDots(FixPx);
+			}
 		}
 		return Ds[Col];
 	}
 	
-	void ClearDs()
+	void ClearDs(int Col = -1)
 	{
-		Ds.DeleteObjects();
+		if (Col >= 0)
+		{
+			delete Ds[Col];
+			Ds[Col] = NULL;
+		}
+		else
+		{
+			Ds.DeleteObjects();
+		}
 	}
 };
 
@@ -131,6 +143,15 @@ void GTreeNode::_Visible(bool v)
 		LgiAssert(i != this);
 		i->OnVisible(v);
 		i->_Visible(v);
+	}
+}
+
+void GTreeNode::_ClearDs(int Col)
+{
+	List<GTreeItem>::I it = Items.Start();
+	for (GTreeItem *c = *it; c; c = *++it)
+	{
+		c->_ClearDs(Col);
 	}
 }
 
@@ -466,7 +487,7 @@ void GTreeItem::_PaintText(GSurface *pDC, COLOUR Fore, COLOUR Back)
 	char *Text = GetText();
 	if (Text)
 	{
-		GDisplayString *Ds = d->GetDs(0);
+		GDisplayString *Ds = d->GetDs(0, d->Text.X());
 		GFont *f = Tree ? Tree->GetFont() : SysFont;
 
 		int Tab = f->TabSize();
@@ -475,10 +496,7 @@ void GTreeItem::_PaintText(GSurface *pDC, COLOUR Fore, COLOUR Back)
 		f->Colour(Fore, Back);
 		
 		if (Ds)
-		{
-			Ds->TruncateWithDots(d->Text.X());
 			Ds->Draw(pDC, d->Text.x1 + 2, d->Text.y1 + 1, &d->Text);
-		}
 		
 		f->TabSize(Tab);
 	}
@@ -489,7 +507,7 @@ void GTreeItem::_PaintText(GSurface *pDC, COLOUR Fore, COLOUR Back)
 	}
 }
 
-void GTreeItem::_Pour(GdcPt2 *Limit, int Depth, bool Visible)
+void GTreeItem::_Pour(GdcPt2 *Limit, int ColumnPx, int Depth, bool Visible)
 {
 	d->Visible = Visible;
 	d->Depth = Depth;
@@ -505,13 +523,9 @@ void GTreeItem::_Pour(GdcPt2 *Limit, int Depth, bool Visible)
 		if (!Height)
 		    Height = 16;
 
-		GDisplayString *Ds = d->GetDs(0);
+		GDisplayString *Ds = d->GetDs(0, 0);
 
-		d->Pos.ZOff(	(TREE_BLOCK*d->Depth) +	// trunk
-						TREE_BLOCK +			// node
-						IconX +					// icon if present
-						TextSize.x,				// text if present
-						(Ds ? max(Height, Ds->Y()) : Height) - 1);
+		d->Pos.ZOff(ColumnPx - 1, (Ds ? max(Height, Ds->Y()) : Height) - 1);
 		d->Pos.Offset(0, Limit->y);
 
 		Limit->x = max(Limit->x, d->Pos.x2 + 1);
@@ -527,8 +541,14 @@ void GTreeItem::_Pour(GdcPt2 *Limit, int Depth, bool Visible)
 	{
 		n = Items.Next();
 		i->d->Last = n == 0;
-		i->_Pour(Limit, Depth+1, d->Open && d->Visible);
+		i->_Pour(Limit, ColumnPx, Depth+1, d->Open && d->Visible);
 	}
+}
+
+void GTreeItem::_ClearDs(int Col)
+{
+	d->ClearDs(Col);	
+	GTreeNode::_ClearDs(Col);
 }
 
 char *GTreeItem::GetText(int i)
@@ -661,7 +681,7 @@ void GTreeItem::_MouseClick(GMouse &m)
 		}
 
 		GRect rText = d->Text;
-		rText.x2 = d->Pos.x2;
+		rText.x2 = 2000;
 
 		if (rText.Overlap(m.x, m.y) ||
 			d->Icon.Overlap(m.x, m.y))
@@ -844,7 +864,7 @@ void GTreeItem::OnPaint(ItemPaintCtx &Ctx)
 		x += d->Icon.X();
 	}
 
-	// text
+	// text: first column
 	GdcPt2 TextSize;
 	_PourText(TextSize);
 	d->Text.ZOff(Ctx.ColPx[0] - x - 1, Pos.Y()-1);
@@ -852,18 +872,12 @@ void GTreeItem::OnPaint(ItemPaintCtx &Ctx)
 	_PaintText(pDC, Ctx.Fore, Ctx.Back);
 	x = Pos.x2 + 1;
 
+	// text: other columns
 	for (int i=1; i<Ctx.Columns; i++)
 	{
-		GRect r(x, Pos.y1, x + Ctx.ColPx[i] - 1, Pos.y2);
-		GDisplayString *ds = d->GetDs(i);
-		if (ds)
-		{
-			GFont *f = ds->GetFont();
-			f->Colour(Ctx.Fore, Ctx.Back);
-			ds->Draw(Ctx.pDC, r.x1, r.y1 + 2, &r);
-		}
-		
-		x = r.x2 + 1;
+		Ctx.Set(x, Pos.y1, x + Ctx.ColPx[i] - 1, Pos.y2);
+		OnPaintColumn(Ctx, i, Tree->Columns[i]);
+		x = Ctx.x2 + 1;
 	}
 	
 	// background after text
@@ -900,6 +914,17 @@ void GTreeItem::OnPaint(ItemPaintCtx &Ctx)
 		Tree->d->LineFlags[0] &= ~(1 << d->Depth);
 	}
 }
+
+void GTreeItem::OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GItemColumn *c)
+{
+	GDisplayString *ds = d->GetDs(i, Ctx.ColPx[i]);
+	if (ds)
+	{
+		GFont *f = ds->GetFont();
+		f->Colour(Ctx.Fore, Ctx.Back);
+		ds->Draw(Ctx.pDC, Ctx.x1, Ctx.y1 + 2, &Ctx);
+	}
+}		
 
 //////////////////////////////////////////////////////////////////////////////
 GTree::GTree(int id, int x, int y, int cx, int cy, const char *name) :
@@ -1058,12 +1083,23 @@ void GTree::_Pour()
 	d->Limit.x = rItems.x1;
 	d->Limit.y = rItems.y1;
 
+	int ColumnPx = 0;
+	if (Columns.Length())
+	{
+		for (int i=0; i<Columns.Length(); i++)
+			ColumnPx += Columns[i]->Width();
+	}
+	else
+	{
+		ColumnPx = GetClient().X();
+	}
+
 	GTreeItem *n;
 	for (GTreeItem *i=Items.First(); i; i=n)
 	{
 		n = Items.Next();
 		i->d->Last = n == 0;
-		i->_Pour(&d->Limit, 0, true);
+		i->_Pour(&d->Limit, ColumnPx, 0, true);
 	}
 
 	_UpdateScrollBars();
@@ -1480,6 +1516,7 @@ void GTree::OnMouseMove(GMouse &m)
 				int NewWidth = m.x - c->GetPos().x1;
 
 				c->Width(max(NewWidth, 4));
+				_ClearDs(d->DragData);
 				Invalidate();
 			}
 			break;

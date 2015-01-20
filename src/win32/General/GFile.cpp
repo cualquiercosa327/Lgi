@@ -585,7 +585,7 @@ public:
 			char Str[512];
 			if (GetLogicalDriveStrings(sizeof(Str), Str) > 0)
 			{
-				for (char *d=Str; *d; d+=strlen(d)+1)
+				for (char *d = Str; *d; d += strlen(d) + 1)
 				{
 					GWin32Volume *v = new GWin32Volume(d);
 					if (v)

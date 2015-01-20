@@ -125,6 +125,9 @@ LgiFunc void LgiFormatSize
 	uint64 Size
 );
 
+/// \returns true if the path is a volume root.
+LgiFunc bool LgiIsVolumeRoot(const char *Path);
+
 /// Converts a string from URI encoding (ala %20 -> ' ')
 /// \returns a dynamically allocated string or NULL on error
 /// \ingroup Text
