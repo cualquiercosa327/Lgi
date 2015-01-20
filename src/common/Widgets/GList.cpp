@@ -2771,24 +2771,6 @@ bool GItemContainer::GetColumnClickInfo(int &Col, GMouse &m)
 	return false;	
 }
 
-void GList::ResizeColumnsToContent(int Border)
-{
-	if (Lock(_FL))
-	{
-		for (int i=0; i<Columns.Length(); i++)
-		{
-			GItemColumn *c = Columns[i];
-			if (c->Resizable())
-			{
-				c->Width(c->GetContentSize() + Border);
-			}
-		}
-		Unlock();
-	}
-
-	Invalidate();
-}
-
 int GList::GetContentSize(int Index)
 {
 	int Max = 0;

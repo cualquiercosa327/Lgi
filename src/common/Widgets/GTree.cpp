@@ -18,6 +18,8 @@
 #define TreeUpdateNow		true
 #endif
 
+#define ForAll(Items)		List<GTreeItem>::I it = Items.Start(); for (GTreeItem *c = *it; c; c = *++it)
+
 //////////////////////////////////////////////////////////////////////////////
 // Private class definitions for binary compatibility
 class GTreePrivate
@@ -67,6 +69,7 @@ public:
 class GTreeItemPrivate
 {
 	GArray<GDisplayString*> Ds;
+	GArray<uint32> ColPx;
 
 public:
 	GTreeItem *Item;
@@ -90,6 +93,7 @@ public:
 		Visible = false;
 		Last = false;
 		Depth = 0;
+		Text.ZOff(-1, -1);
 	}
 
 	~GTreeItemPrivate()
@@ -103,9 +107,13 @@ public:
 		{
 			GFont *f = Item->GetTree() ? Item->GetTree()->GetFont() : SysFont;		
 			Ds[Col] = new GDisplayString(f, Item->GetText(Col));
-			if (Ds[Col] && FixPx > 0)
+			if (Ds[Col])
 			{
-				Ds[Col]->TruncateWithDots(FixPx);
+				ColPx[Col] = Ds[Col]->X();
+				if (FixPx > 0)
+				{
+					Ds[Col]->TruncateWithDots(FixPx);
+				}
 			}
 		}
 		return Ds[Col];
@@ -122,6 +130,19 @@ public:
 		{
 			Ds.DeleteObjects();
 		}
+	}
+
+	int GetColumnPx(int Col)
+	{
+		int BasePx = 0;
+		
+		GetDs(Col, 0);
+		if (Col == 0)
+		{
+			BasePx = (Depth + 1) * TREE_BLOCK;
+		}
+		
+		return ColPx[Col] + BasePx;
 	}
 };
 
@@ -363,6 +384,20 @@ GTreeItem::~GTreeItem()
 	{
 		t->_UpdateBelow(y);
 	}
+}
+
+int GTreeItem::GetColumnSize(int Col)
+{
+	int Px = d->GetColumnPx(Col);
+	if (Expanded())
+	{
+		ForAll(Items)
+		{
+			int ChildPx = c->GetColumnSize(Col);
+			Px = max(ChildPx, Px);
+		}
+	}
+	return Px;
 }
 
 GRect *GTreeItem::Pos()
@@ -1417,6 +1452,7 @@ void GTree::OnMouseClick(GMouse &m)
 				if (m.Double())
 				{
 					Resize->Width(Resize->GetContentSize() + DEFAULT_COLUMN_SPACING);
+					Invalidate();
 				}
 				else
 				{
@@ -1793,12 +1829,15 @@ void GTree::OnPulse()
 
 int GTree::GetContentSize(int ColumnIdx)
 {
-	LgiAssert(!"Impl me.");
+	int MaxPx = 0;
+	
 	for (GTreeItem *i = Items.First(); i; i=Items.Next())
 	{
+		int ItemPx = i->GetColumnSize(ColumnIdx);
+		MaxPx = max(ItemPx, MaxPx);
 	}
 	
-	return 0;
+	return MaxPx;
 }
 
 LgiCursor GTree::GetCursor(int x, int y)
@@ -1928,3 +1967,4 @@ void GTree::SetVisualStyle(ThumbStyle Btns, bool JoiningLines)
 	d->JoiningLines = JoiningLines;
 	Invalidate();
 }
+

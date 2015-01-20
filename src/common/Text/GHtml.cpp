@@ -311,7 +311,7 @@ public:
 			
 			int BestPxDiff = 10000;
 			GAutoPtr<GFont> BestFont;
-			int FaceIdx = 0;
+			uint32 FaceIdx = 0;
 			
 			do
 			{
@@ -2802,7 +2802,7 @@ void GTag::SetStyle()
 			break;
 		case TAG_TD:
 		{
-			LgiAssert(Cell);
+			LgiAssert(Cell != NULL);
 			
 			const char *s;
 			if (Get("colspan", s))

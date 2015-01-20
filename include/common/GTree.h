@@ -97,6 +97,7 @@ protected:
 	virtual void _PaintText(GSurface *pDC, COLOUR Fore, COLOUR Back);
 	void _ClearDs(int Col);
 	virtual void OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GItemColumn *c);
+	int GetColumnSize(int Col);
 
 protected:
 	char *Str;
@@ -237,6 +238,7 @@ public:
 		TreePlus,
 		TreeTriangle
 	};
+
 	void SetVisualStyle(ThumbStyle Btns, bool JoiningLines);
 };
 

@@ -317,6 +317,24 @@ int GItemContainer::HitColumn(int x, int y, GItemColumn *&Resize, GItemColumn *&
 	return Index;
 }
 
+void GItemContainer::ResizeColumnsToContent(int Border)
+{
+	if (Lock(_FL))
+	{
+		for (int i=0; i<Columns.Length(); i++)
+		{
+			GItemColumn *c = Columns[i];
+			if (c->Resizable())
+			{
+				c->Width(c->GetContentSize() + Border);
+			}
+		}
+		Unlock();
+	}
+
+	Invalidate();
+}
+
 //////////////////////////////////////////////////////////////////////////////
 GDragColumn::GDragColumn(GItemContainer *list, int col)
 {

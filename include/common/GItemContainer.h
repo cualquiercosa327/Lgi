@@ -386,6 +386,9 @@ public:
 
 	virtual void UpdateAllItems() = 0;
 	virtual int GetContentSize(int ColumnIdx) = 0;
+
+	/// Resizes all the columns to their content, allowing a little extra space for visual effect
+	virtual void ResizeColumnsToContent(int Border = DEFAULT_COLUMN_SPACING);
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////

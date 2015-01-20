@@ -419,8 +419,6 @@ public:
 	virtual void Empty();
 	/// Removes all references to externally owned items. Doesn't delete objects.
 	virtual void RemoveAll();
-	/// Resizes all the columns to their content, allowing a little extra space for visual effect
-	void ResizeColumnsToContent(int Border = DEFAULT_COLUMN_SPACING);
 
 	// Impl
 	int GetContentSize(int ColumnIdx);
