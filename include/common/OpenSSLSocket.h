@@ -23,7 +23,11 @@ class SslSocket :
 	void Error(const char *file, int line, const char *Msg);
 	GStream *GetLogStream();
 
+	void PrintInfo(const char *Fmt, ...);
+
 public:
+	static bool DebugLogging;
+
 	SslSocket(GStreamI *logger = NULL, GCapabilityClient *caps = NULL, bool SslOnConnect = false, bool RawLFCheck = false);
 	~SslSocket();
 

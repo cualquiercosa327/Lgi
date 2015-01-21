@@ -35,13 +35,7 @@
 static const char*
 	MinimumVersion				= "1.0.1g";
 
-#if 0
-#define DebugTrace				LgiTrace
-#else
-void DebugTrace(const char *fmt, ...)
-{
-}
-#endif
+#define DebugTrace				PrintInfo
 
 void
 SSL_locking_function(int mode, int n, const char *file, int line);
@@ -520,6 +514,8 @@ struct SslSocketPriv
 	}
 };
 
+bool SslSocket::DebugLogging = false;
+
 SslSocket::SslSocket(GStreamI *logger, GCapabilityClient *caps, bool sslonconnect, bool RawLFCheck)
 {
 	d = new SslSocketPriv;
@@ -580,6 +576,22 @@ int SslSocket::GetTimeout()
 void SslSocket::SetTimeout(int ms)
 {
 	d->Timeout = ms;
+}
+
+void SslSocket::PrintInfo(const char *Fmt, ...)
+{
+	if (!DebugLogging)
+		return;
+
+	char Buf[512];
+	va_list Arg;
+	va_start(Arg, Fmt);
+	int Ch = vsprintf_s(Buf, sizeof(Buf), Fmt, Arg);
+	va_end(Arg);
+	if (Ch > 0)
+	{
+		OnInformation(Buf);
+	}
 }
 
 void SslSocket::SetLogger(GStreamI *logger)
@@ -1268,7 +1280,5 @@ void SslSocket::OnInformation(const char *Str)
 	*e++ = '\n';
 	*e++ = 0;
 	Log(s, SocketMsgInfo);
-
-DebugTrace("%s:%i - OnInfo=%s", _FL, s);
 }
 
