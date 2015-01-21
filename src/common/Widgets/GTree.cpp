@@ -517,7 +517,7 @@ void GTreeItem::_PourText(GdcPt2 &Size)
 	Size.y = 0;
 }
 
-void GTreeItem::_PaintText(GSurface *pDC, COLOUR Fore, COLOUR Back)
+void GTreeItem::_PaintText(GItem::ItemPaintCtx &Ctx)
 {
 	char *Text = GetText();
 	if (Text)
@@ -528,17 +528,33 @@ void GTreeItem::_PaintText(GSurface *pDC, COLOUR Fore, COLOUR Back)
 		int Tab = f->TabSize();
 		f->TabSize(0);
 		f->Transparent(false);
-		f->Colour(Fore, Back);
+		f->Colour(Ctx.Fore, Ctx.Back);
 		
 		if (Ds)
-			Ds->Draw(pDC, d->Text.x1 + 2, d->Text.y1 + 1, &d->Text);
+		{
+			Ds->Draw(Ctx.pDC, d->Text.x1 + 2, d->Text.y1 + 1, &d->Text);
+			if (Ctx.x2 > d->Text.x2)
+			{
+				GRect r = Ctx;
+				r.x1 = d->Text.x2 + 1;
+				if (Ctx.Columns > 1)
+					Ctx.pDC->Colour(Ctx.Back);
+				else
+					Ctx.pDC->Colour(LC_WORKSPACE);
+				Ctx.pDC->Rectangle(&r);
+			}
+		}
+		else
+		{
+			Ctx.pDC->Colour(Ctx.Back);
+		}
 		
 		f->TabSize(Tab);
 	}
 	else
 	{
-		pDC->Colour(Back, 24);
-		pDC->Rectangle(&d->Text);
+		Ctx.pDC->Colour(Ctx.Back);
+		Ctx.pDC->Rectangle(&Ctx);
 	}
 }
 
@@ -902,9 +918,11 @@ void GTreeItem::OnPaint(ItemPaintCtx &Ctx)
 	// text: first column
 	GdcPt2 TextSize;
 	_PourText(TextSize);
-	d->Text.ZOff(Ctx.ColPx[0] - x - 1, Pos.Y()-1);
+	d->Text.ZOff(TextSize.x-1, Pos.Y()-1);
 	d->Text.Offset(x, Pos.y1);
-	_PaintText(pDC, Ctx.Fore, Ctx.Back);
+	(GRect&)Ctx = d->Text;
+	Ctx.x2 = Ctx.ColPx[0] - 1;
+	_PaintText(Ctx);
 	x = Pos.x2 + 1;
 
 	// text: other columns
@@ -935,13 +953,14 @@ void GTreeItem::OnPaint(ItemPaintCtx &Ctx)
 
 			// Foreground
 			GCss::ColorDef Fill = i->GetCss(true)->Color();
-			Ctx.Fore = Fill.Type == GCss::ColorRgb ? Rgb32To24(Fill.Rgb32) : (IsSelected ? SelFore : LC_TEXT);
+			Ctx.Fore.Set(Fill.Type == GCss::ColorRgb ? Rgb32To24(Fill.Rgb32) : (IsSelected ? SelFore : LC_TEXT), 24);
 
 			// Background	
 			Fill = i->GetCss()->BackgroundColor();
-			Ctx.Back =	Fill.Type == GCss::ColorRgb ?
+			Ctx.Back.Set(Fill.Type == GCss::ColorRgb ?
 						Rgb32To24(Fill.Rgb32) :
-						(IsSelected ? SelBack : LC_WORKSPACE);
+						(IsSelected ? SelBack : LC_WORKSPACE),
+						24);
 
 			i->OnPaint(Ctx);
 		}
@@ -957,7 +976,7 @@ void GTreeItem::OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GItemColumn *c)
 	{
 		GFont *f = ds->GetFont();
 		f->Colour(Ctx.Fore, Ctx.Back);
-		ds->Draw(Ctx.pDC, Ctx.x1, Ctx.y1 + 2, &Ctx);
+		ds->Draw(Ctx.pDC, Ctx.x1 + 2, Ctx.y1 + 1, &Ctx);
 	}
 }		
 
@@ -1581,11 +1600,10 @@ void GTree::OnPosChange()
 
 void GTree::OnPaint(GSurface *pDC)
 {
-	#if 0 // def _DEBUG
+	#if 0 // coverage testing...
 	pDC->Colour(GColour(255, 0, 255));
 	pDC->Rectangle();
 	#endif
-
 
 	rItems = GetClient();
 	GFont *f = GetFont();
@@ -1674,11 +1692,11 @@ void GTree::OnPaint(GSurface *pDC)
 
 		// Foreground
 		GCss::ColorDef Fill = i->GetCss(true)->Color();
-		Ctx.Fore = Fill.Type == GCss::ColorRgb ? Rgb32To24(Fill.Rgb32) : (IsSelected ? SelFore : LC_TEXT);
+		Ctx.Fore.Set(Fill.Type == GCss::ColorRgb ? Rgb32To24(Fill.Rgb32) : (IsSelected ? SelFore : LC_TEXT), 24);
 
 		// Background	
 		Fill = i->GetCss()->BackgroundColor();
-		Ctx.Back =	Fill.Type == GCss::ColorRgb ? Rgb32To24(Fill.Rgb32) : (IsSelected ? SelBack : LC_WORKSPACE);
+		Ctx.Back.Set(Fill.Type == GCss::ColorRgb ? Rgb32To24(Fill.Rgb32) : (IsSelected ? SelBack : LC_WORKSPACE), 24);
 
 		i->OnPaint(Ctx);
 	}

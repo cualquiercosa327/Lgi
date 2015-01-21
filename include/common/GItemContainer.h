@@ -69,9 +69,9 @@ public:
 		GSurface *pDC;
 
 		/// Current foreground colour (24bit)
-		COLOUR Fore;
+		GColour Fore;
 		/// Current background colour (24bit)
-		COLOUR Back;
+		GColour Back;
 		
 		/// Number of columns
 		int Columns;

@@ -93,7 +93,7 @@ class LogEntry
 {
 public:
 	char *Text;
-	COLOUR c;
+	GColour c;
 
 	LogEntry(const char *t, int len, COLOUR col);
 	~LogEntry();

@@ -94,7 +94,7 @@ protected:
 	GRect *Pos();
 
 	virtual void _PourText(GdcPt2 &Size);
-	virtual void _PaintText(GSurface *pDC, COLOUR Fore, COLOUR Back);
+	virtual void _PaintText(GItem::ItemPaintCtx &Ctx);
 	void _ClearDs(int Col);
 	virtual void OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GItemColumn *c);
 	int GetColumnSize(int Col);

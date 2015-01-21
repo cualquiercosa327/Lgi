@@ -670,7 +670,7 @@ void GListItem::OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GItemColumn *c)
 		}
 		else
 		{
-			COLOUR Background = Ctx.Back;
+			GColour Background = Ctx.Back;
 			GCss::ColorDef ForeFill;
 			if (GetCss())
 				ForeFill = GetCss()->Color();
@@ -679,7 +679,7 @@ void GListItem::OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GItemColumn *c)
 				c->Mark() &&
 				!d->Selected)
 			{
-				Background = GdcMixColour(0, Background, (double)1/32);
+				Background = GdcMixColour(GColour(0, 24), Background, (double)1/32);
 			}
 
 			if (GridLines())
@@ -695,18 +695,18 @@ void GListItem::OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GItemColumn *c)
 				{
 					Ds->GetFont()->TabSize(0);
 					Ds->GetFont()->Transparent(false);
-					Ds->GetFont()->Colour(ForeFill.Type == GCss::ColorRgb ? Rgb32To24(ForeFill.Rgb32) : Ctx.Fore, Background);
+					Ds->GetFont()->Colour(ForeFill.Type == GCss::ColorRgb ? GColour(ForeFill.Rgb32, 32) : Ctx.Fore, Background);
 					Ds->Draw(pDC, Ctx.x1+1, Ctx.y1+1, &ng);
 				}
 				else
 				{
-					pDC->Colour(Background, 24);
+					pDC->Colour(Background);
 					pDC->Rectangle(&ng);
 				}
 			}
 			else
 			{
-				pDC->Colour(Background, 24);
+				pDC->Colour(Background);
 				pDC->Rectangle(&ng);
 
 				if (c->Type() == GIC_ASK_IMAGE &&
@@ -718,8 +718,7 @@ void GListItem::OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GItemColumn *c)
 					    int CenterY = Ctx.y1 + ((Ctx.Y() - Parent->GetImageList()->TileY()) >> 1);
 					    LgiAssert(CenterY >= 0);
 					    
-					    GColour Bk(Background, 24);
-						Parent->GetImageList()->Draw(pDC, Ctx.x1+1, CenterY, Img, Bk);
+						Parent->GetImageList()->Draw(pDC, Ctx.x1+1, CenterY, Img, Background);
 					}
 				}
 			}
@@ -746,11 +745,11 @@ void GListItem::OnPaint(GItem::ItemPaintCtx &Ctx)
 	{
 		GCss::ColorDef Fill = GetCss()->Color();
 		if (Fill.Type == GCss::ColorRgb)
-			Ctx.Fore = Rgb32To24(Fill.Rgb32);
+			Ctx.Fore.Set(Fill.Rgb32, 32);
 		
 		Fill = GetCss()->BackgroundColor();
 		if (Fill.Type == GCss::ColorRgb)
-			Ctx.Back = Rgb32To24(Fill.Rgb32);
+			Ctx.Back.Set(Fill.Rgb32, 32);
 	}
 
 	// Icon?
@@ -791,7 +790,7 @@ void GListItem::OnPaint(GItem::ItemPaintCtx &Ctx)
 	// after columns
 	if (x <= Ctx.x2)
 	{
-		Ctx.pDC->Colour(Ctx.Back, 24);
+		Ctx.pDC->Colour(Ctx.Back);
 		Ctx.pDC->Rectangle(x, Ctx.y1, Ctx.x2, Ctx.y2);
 	}
 }
@@ -2641,13 +2640,13 @@ void GList::OnPaint(GSurface *pDC)
 				{
 					if ((LastSelected = i->Select()))
 					{
-						Ctx.Fore = SelFore;
-						Ctx.Back = SelBack;
+						Ctx.Fore.Set(SelFore, 24);
+						Ctx.Back.Set(SelBack, 24);
 					}
 					else
 					{
-						Ctx.Fore = LC_TEXT;
-						Ctx.Back = Back;
+						Ctx.Fore.Set(LC_TEXT, 24);
+						Ctx.Back.Set(Back, 24);
 					}
 				}
 
@@ -2656,14 +2655,14 @@ void GList::OnPaint(GSurface *pDC)
 					Fill = i->GetCss()->Color();
 					if (Fill.Type == GCss::ColorRgb)
 					{
-						Ctx.Fore = Rgb32To24(Fill.Rgb32);
+						Ctx.Fore.Set(Fill.Rgb32, 32);
 						LastSelected = -1;
 					}
 					
 					Fill = i->GetCss()->BackgroundColor();
 					if (Fill.Type == GCss::ColorRgb)
 					{
-						Ctx.Fore = Rgb32To24(Fill.Rgb32);
+						Ctx.Fore.Set(Fill.Rgb32, 32);
 						LastSelected = -1;
 					}
 				}

@@ -579,7 +579,7 @@ void GFilterItem::_PourText(GdcPt2 &Size)
 	}
 }
 
-void GFilterItem::_PaintText(GSurface *pDC, COLOUR Fore, COLOUR Back)
+void GFilterItem::_PaintText(GItem::ItemPaintCtx &Ctx)
 {
 	GRect *Pos = _GetRect(TreeItemText);
 
@@ -736,7 +736,7 @@ void GFilterItem::_PaintText(GSurface *pDC, COLOUR Fore, COLOUR Back)
 			Buf.Op(GDC_SET);
 
 			SysFont->Transparent(true);
-			SysFont->Colour(LC_TEXT, Back);
+			SysFont->Colour(GColour(LC_TEXT, 24), Ctx.Back);
 			d->Data->dsNot->Draw(&Buf, d->NotBtn.x2 + 3, d->NotBtn.y1);
 
 			ShowControls(Select());
@@ -793,7 +793,7 @@ void GFilterItem::_PaintText(GSurface *pDC, COLOUR Fore, COLOUR Back)
 	}
 
 	// Blt result to the screen
-	pDC->Blt(Pos->x1, Pos->y1, &Buf);
+	Ctx.pDC->Blt(Pos->x1, Pos->y1, &Buf);
 }
 
 void GFilterItem::ShowControls(bool s)

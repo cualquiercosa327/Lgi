@@ -39,7 +39,7 @@ class GFilterItem : public GTreeItem
 
 protected:
 	void _PourText(GdcPt2 &Size);
-	void _PaintText(GSurface *pDC, COLOUR Fore, COLOUR Back);
+	void _PaintText(GItem::ItemPaintCtx &Ctx);
 	void ShowControls(bool s);
 
 public:
