@@ -1440,6 +1440,7 @@ void GList::OnMouseClick(GMouse &m)
 					if (m.Double())
 					{
 						Resize->Width(Resize->GetContentSize() + DEFAULT_COLUMN_SPACING);
+						Invalidate();
 					}
 					else
 					{

@@ -310,38 +310,36 @@ char *strlwr(char *a)
 
 char *TrimStr(const char *s, const char *Delim)
 {
-	if (s)
+	if (!s)
+		return NULL;
+	
+	const char *Start = s;
+	while (*Start && strchr(Delim, *Start))
 	{
-		const char *Start = s;
-		while (*Start && strchr(Delim, *Start))
-		{
-			Start++;
-		}
-
-		size_t StartLen = strlen(Start);
-		if (StartLen > 0)
-		{
-			const char *End = Start + strlen(Start) - 1;
-			while (*End && End > Start && strchr(Delim, *End))
-			{
-				End--;
-			}
-
-			if (*Start)
-			{
-				size_t Len = (End - Start) + 1;
-				char *n = new char[Len+1];
-				if (n)
-				{
-					memcpy(n, Start, Len);
-					n[Len] = 0;
-					return n;
-				}
-			}
-		}
+		Start++;
 	}
 
-	return NULL;
+	size_t StartLen = strlen(Start);
+	if (StartLen == 0)
+		return NULL;
+
+	const char *End = Start + strlen(Start) - 1;
+	while (*End && End > Start && strchr(Delim, *End))
+	{
+		End--;
+	}
+
+	if (*Start == 0)
+		return NULL;
+
+	size_t Len = (End - Start) + 1;
+	char *n = new char[Len+1];
+	if (!n)
+		return NULL;
+
+	memcpy(n, Start, Len);
+	n[Len] = 0;
+	return n;
 }
 
 bool ValidStr(const char *s)
