@@ -753,6 +753,26 @@ public:
 				}
 				break;
 			}
+			case System24BitColourSpace:
+			{
+				if (Callback && (!TileCache || TileCache->X() != TileSize || TileCache->Y() != TileSize))
+				{
+					TileCache.Reset(new GMemDC(TileSize, TileSize, System32BitColourSpace));
+				}
+				
+				if (TileCache)
+				{
+					GRect s;
+					s.ZOff(TileSize-1, TileSize-1);
+					s.Offset(Sx, Sy);
+					
+					GdcPt2 off(Sx, Sy);
+					Callback->DrawBackground(TileCache, off, NULL);
+					TileCache->Op(GDC_ALPHA);
+					TileCache->Blt(0, 0, Src, &s);
+				}
+				break;
+			}
 			case System32BitColourSpace:
 			{
 				if (Callback && (!TileCache || TileCache->X() != TileSize || TileCache->Y() != TileSize))
@@ -1265,37 +1285,21 @@ void GZoomView::SetViewport(ViewportInfo i)
 	{
 		GRect c = GetClient();    
 		int Factor = d->Factor();
+		int Fmin1 = Factor - 1;
 
-		int Dx, Dy;
-		if (d->GetZoom() > 0)
-		{
-			// Scale up
-			Dx = Src->X() * Factor;
-			Dy = Src->Y() * Factor;
-		}
-		else if (d->GetZoom() < 0)
-		{
-			// Scale down
-			Dx = Src->X() / Factor;
-			Dy = Src->Y() / Factor;
-		}
-		else
-		{
-			// 1:1
-			Dx = Src->X();
-			Dy = Src->Y();
-		}
-		
-		SetScrollBars(Dx > c.X(), Dy > c.Y());
+		GdcPt2 DocSize(Src->X(), Src->Y());		
+		GdcPt2 DocClientSize(c.X(), c.Y());
+		DocClientSize = d->ScreenToDoc(DocClientSize);
+		SetScrollBars(DocSize.x > DocClientSize.x, DocSize.y > DocClientSize.y);
 
 		if (HScroll)
 		{
-			HScroll->SetLimits(0, Dx);
-			HScroll->SetPage(c.X());
+			HScroll->SetLimits(0, DocSize.x);
+			HScroll->SetPage(DocClientSize.x);
 			
 			if (i.Sx < 0)
 				i.Sx = 0;
-			int Max = Dx - c.X();
+			int Max = DocSize.x - DocClientSize.x;
 			if (i.Sx > Max)
 				i.Sx = Max;
 			
@@ -1303,12 +1307,12 @@ void GZoomView::SetViewport(ViewportInfo i)
 		}
 		if (VScroll)
 		{
-			VScroll->SetLimits(0, Dy);
-			VScroll->SetPage(c.Y());
+			VScroll->SetLimits(0, DocSize.y);
+			VScroll->SetPage(DocClientSize.y);
 
 			if (i.Sy < 0)
 				i.Sy = 0;
-			int Max = Dy - c.Y();
+			int Max = DocSize.y - DocClientSize.y;
 			if (i.Sy > Max)
 				i.Sy = Max;
 
@@ -1594,7 +1598,7 @@ int GZoomView::OnNotify(GViewI *v, int f)
 		case IDC_VSCROLL:
 		case IDC_HSCROLL:
 		{
-			Update(0);
+			Invalidate();
 			#ifdef WIN32
 			UpdateWindow(Handle());
 			#endif

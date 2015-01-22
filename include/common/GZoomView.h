@@ -41,7 +41,7 @@ public:
 		/// == 0 then the image is 1:1
 		/// > 0 then the image is scale up by (zoom - 1) times
 		int Zoom;
-		/// The current scroll offsets
+		/// The current scroll offsets in document coordinates (not screen space)
 		int Sx, Sy;
 	};
 	
