@@ -77,6 +77,7 @@ protected:
 	// Methods
 	bool GridLines();
 	GDisplayString *GetDs(int Col, int FitTo = -1);
+	void ClearDs(int Col);
 
 public:
 	// Application defined, defaults to 0
@@ -241,6 +242,7 @@ protected:
 	void Pour();
 	void UpdateScrollBars();
 	void KeyScroll(int iTo, int iFrom, bool SelectItems);
+	void ClearDs(int Col);
 
 public:
 	/// Constructor

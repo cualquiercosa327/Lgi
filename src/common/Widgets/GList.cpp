@@ -656,6 +656,18 @@ GDisplayString *GListItem::GetDs(int Col, int FitTo)
 	return d->Display[Col];
 }
 
+void GListItem::ClearDs(int Col)
+{
+	if (Col >= 0)
+	{
+		DeleteObj(d->Display[Col]);
+	}
+	else
+	{
+		d->Display.DeleteObjects();
+	}
+}
+
 void GListItem::OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GItemColumn *c)
 {
 	GSurface *&pDC = Ctx.pDC;
@@ -989,6 +1001,14 @@ GListItem *GList::HitItem(int x, int y, int *Index)
 	}
 
 	return NULL;
+}
+
+void GList::ClearDs(int Col)
+{
+	ForAllItems(i)
+	{
+		i->ClearDs(Col);
+	}
 }
 
 void GList::KeyScroll(int iTo, int iFrom, bool SelectItems)
@@ -1439,6 +1459,7 @@ void GList::OnMouseClick(GMouse &m)
 					if (m.Double())
 					{
 						Resize->Width(Resize->GetContentSize() + DEFAULT_COLUMN_SPACING);
+						ClearDs(Index);
 						Invalidate();
 					}
 					else
@@ -1870,6 +1891,7 @@ void GList::OnMouseMove(GMouse &m)
 					int NewWidth = m.x - c->GetPos().x1;
 
 					c->Width(max(NewWidth, 4));
+					ClearDs(d->DragData);
 					Invalidate();
 				}
 				break;
