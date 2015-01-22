@@ -114,7 +114,7 @@ GRect &GControlTree::Item::GetRect()
 {
 	static GRect r;
 	r.ZOff(-1, -1);
-	GRect *p = Pos();
+	GRect *p = _GetRect(TreeItemText);
 	if (p)
 	{
 		bool HasBrowse = (Flags & TYPE_FILE) != 0;
