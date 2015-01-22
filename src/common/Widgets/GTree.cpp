@@ -732,7 +732,8 @@ void GTreeItem::_MouseClick(GMouse &m)
 		}
 
 		GRect rText = d->Text;
-		rText.x2 = 2000;
+		if (Tree && Tree->Columns.Length() > 0)
+			rText.x2 = Tree->X();
 
 		if (rText.Overlap(m.x, m.y) ||
 			d->Icon.Overlap(m.x, m.y))
