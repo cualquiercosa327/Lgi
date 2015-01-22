@@ -442,6 +442,35 @@ public:
 		// ImageViewTarget *App = View->GetApp();
 		uchar *DivLut = Div255Lut;
 
+		Pal32 pal[256];
+		if (Src->GetColourSpace() == CsIndex8)
+		{
+			GPalette *inPal = Src->Palette();
+			for (int i=0; i<256; i++)
+			{
+				GdcRGB *rgb = inPal ? (*inPal)[i] : NULL;
+				if (rgb)
+				{
+					pal[i].p32.r = rgb->r;
+					pal[i].p32.g = rgb->g;
+					pal[i].p32.b = rgb->b;
+				}
+				else
+				{
+					pal[i].p32.r = i;
+					pal[i].p32.g = i;
+					pal[i].p32.b = i;
+				}
+
+				pal[i].p32.a = 255;
+			}
+
+			#ifdef _DEBUG
+			Dst->Colour(GColour(255, 0, 255));
+			Dst->Rectangle();
+			#endif
+		}
+
 		// Now copy the right pixels over using the selected sampling method...
 		for (int y=0; y<Dst->Y(); y++)
 		{
@@ -457,27 +486,6 @@ public:
 			{
 				case CsIndex8:
 				{
-					Pal32 pal[256];
-					GPalette *inPal = Src->Palette();
-					for (int i=0; i<256; i++)
-					{
-						GdcRGB *rgb = inPal ? (*inPal)[i] : NULL;
-						if (rgb)
-						{
-							pal[i].p32.r = rgb->r;
-							pal[i].p32.g = rgb->g;
-							pal[i].p32.b = rgb->b;
-						}
-						else
-						{
-							pal[i].p32.r = i;
-							pal[i].p32.g = i;
-							pal[i].p32.b = i;
-						}
-
-						pal[i].p32.a = 255;
-					}
-					
 					if (SampleMode == GZoomView::SampleNearest)
 					{
 						uint8 *src = (*Src)[yy];
@@ -493,34 +501,40 @@ public:
 							src += Factor;
 						}
 					}
-					/*
 					else if (SampleMode == GZoomView::SampleMax)
 					{
 						uint8 *s[32];
 						LgiAssert(Factor < 32);
 						for (int f=0; f<Factor; f++)
 						{
-							s[f] = (*Src)[yy + f] + Rgn.x1;
+							s[f] = (*Src)[yy + f];
+							if (s[f])
+								s[f] += Sx;
 						}
+						uint8 *scan_end = s[0] + (Ex - Sx);
 						
-						for (int xx=0; xx<Cache->X(); xx++)
+						uint32 *dst_start = (uint32*) (*Dst)[y];
+						uint32 *dst = dst_start;
+						while (s[0] < scan_end)
 						{
-							*dst = 0;
+							register uint8 val = 0;
 							
-							for (int oy=0; oy<Factor; oy++)
+							for (int oy=0; oy<Factor && s[oy]; oy++)
 							{
-								uint8 *&src = s[oy];
-								uint8 *e = src + Factor;
-								while (src < e)
+								register uint8 *src = s[oy];
+								register uint8 *px_end = src + Factor;
+								while (src < px_end)
 								{
-									*dst = max(*dst, *src++);
+									if (*src > val)
+										val = *src;
+									src++;
 								}
+								s[oy] = src;
 							}
 							
-							dst++;
+							*dst++ = pal[val].u32;
 						}
 					}
-					*/
 					else
 					{
 						LgiAssert(!"Impl me.");
