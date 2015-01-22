@@ -7,13 +7,13 @@ static FtpThread *Ftp = 0;
 
 class Line : public GListItem
 {
-	COLOUR c;
+	GColour c;
 
 public:
 	Line(const char *s, COLOUR col)
 	{
 		SetText(s);
-		c = col;
+		c.Set(col, 24);
 	}
 
 	void OnPaint(GItem::ItemPaintCtx &Ctx)
