@@ -61,7 +61,7 @@ public:
 	GStreamI *Clone();
 };
 
-extern bool StartSSL(GAutoString &ErrorMsg);
+extern bool StartSSL(GAutoString &ErrorMsg, SslSocket *Sock);
 extern void EndSSL();
 
 #endif

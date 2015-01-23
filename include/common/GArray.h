@@ -198,7 +198,7 @@ public:
 	/// where the array is const.
 	const Type &ItemAt(int i) const
 	{
-		if (i >= 0 && i < len)
+		if (i >= 0 && (uint32)i < len)
 			return p[i];
 
 		static Type t;
