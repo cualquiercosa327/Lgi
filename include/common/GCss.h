@@ -304,6 +304,11 @@ public:
 		AttachmentFixed,
 	};
 
+	#define _FloatAbs(a) \
+		(((a) < 0.0f) ? -(a) : (a))
+	#define FloatIsEqual(a, b) \
+		(_FloatAbs(a - b) < 0.0001)
+
 	struct LgiClass Len
 	{
 		LengthType Type;
@@ -337,7 +342,8 @@ public:
 									Type == LenAuto ||
 									Type == SizeSmaller ||
 									Type == SizeLarger; }
-		bool operator !=(Len &l) { return Type != l.Type || Value != l.Value; }
+		bool operator ==(const Len &l) { return Type == l.Type && FloatIsEqual(Value, l.Value); }
+		bool operator !=(const Len &l) { return !(*this == l); }
 		bool ToString(GStream &p);
 		int ToPx(int Box = 0, GFont *Font = 0, int Dpi = 96);
 	};
@@ -346,6 +352,12 @@ public:
 	{
 		float Pos;
 		uint32 Rgb32;
+		
+		bool operator ==(const ColorStop &c)
+		{
+			return FloatIsEqual(Pos, c.Pos) && Rgb32 == c.Rgb32;
+		}
+		bool operator !=(const ColorStop &c) { return !(*this == c); }
 	};
 
 	struct LgiClass ColorDef
@@ -362,11 +374,6 @@ public:
 
 		bool IsValid() { return Type != ColorInherit; }
 		bool Parse(const char *&s);
-		bool operator !=(ColorDef &c)
-		{
-			return	Type != c.Type ||
-					Rgb32 != c.Rgb32;
-		}
 		ColorDef &operator =(const ColorDef &c)
 		{
 			Type = c.Type;
@@ -374,6 +381,22 @@ public:
 			Stops = c.Stops;
 			return *this;
 		}
+		bool operator ==(const ColorDef &c)
+		{
+			if (Type != c.Type)
+				return false;
+			if (Type == ColorRgb)
+				return Rgb32 == c.Rgb32;
+			if (Stops.Length() != c.Stops.Length())
+				return false;
+			for (uint32 i=0; i<Stops.Length(); i++)
+			{
+				if (Stops[i] != c.Stops.ItemAt(i))
+					return false;
+			}
+			return true;
+		}
+		bool operator !=(const ColorDef &c) { return !(*this == c); }
 		bool ToString(GStream &p);
 	};
 

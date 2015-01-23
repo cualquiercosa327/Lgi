@@ -193,7 +193,18 @@ public:
 		LgiAssert(len > 0);
 		return p[len-1];
 	}
-	
+
+	/// This can be used instead of the [] operator in situations
+	/// where the array is const.
+	const Type &ItemAt(int i) const
+	{
+		if (i >= 0 && i < len)
+			return p[i];
+
+		static Type t;
+		return t;
+	}		
+
 	/// \brief Returns a reference a given entry.
 	///
 	/// If the entry is off the end of the array and "fixed" is false,

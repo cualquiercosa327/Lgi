@@ -22,7 +22,7 @@
 
 #define DEBUG_TABLE_LAYOUT			0
 #define DEBUG_RESTYLE				0
-#define DEBUG_TAG_BY_POS			1
+#define DEBUG_TAG_BY_POS			0
 #define DEBUG_SELECTION				0
 
 #define ENABLE_IMAGE_RESIZING		1
@@ -1378,12 +1378,11 @@ static bool TextToStream(GStream &Out, char16 *Text)
 
 bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 {
-	// char *t8 = LgiNewUtf16To8(Text());
 	char *Tabs = new char[Depth+1];
 	memset(Tabs, '\t', Depth);
 	Tabs[Depth] = 0;
 
-	if (Tag)
+	if (ValidStr(Tag))
 	{
 		if (IsBlock(Display()))
 		{
@@ -1393,21 +1392,71 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 		{
 			p.Print("<%s", Tag.Get());
 		}
-	}
 
-	if (Attr.Length())
-	{
-		const char *a;
-		for (char *v = Attr.First(&a); v; v = Attr.Next(&a))
+		if (Attr.Length())
 		{
-			if (_stricmp(a, "style"))
-				p.Print(" %s=\"%s\"", a, v);
+			const char *a;
+			for (char *v = Attr.First(&a); v; v = Attr.Next(&a))
+			{
+				if (_stricmp(a, "style"))
+					p.Print(" %s=\"%s\"", a, v);
+			}
 		}
-	}
-	if (Props.Length())
-	{
-		GAutoString s = ToString();
-		p.Print(" style=\"%s\"", s.Get());
+		if (Props.Length())
+		{
+			GCss *Css = this;
+			GCss Tmp;
+			#define DelProp(p) \
+				if (Css == this) { Tmp = *Css; Css = &Tmp; } \
+				Css->DeleteProp(p);
+			
+			// Clean out any default CSS properties where we can...
+			GHtmlElemInfo *i = GHtmlStatic::Inst->GetTagInfo(Tag);
+			if (i)
+			{
+				if (Props.Find(PropDisplay)
+					&&
+					(
+						(!i->Block() && Display() == DispInline)
+						||
+						(i->Block() && Display() == DispBlock)
+					))
+				{
+					DelProp(PropDisplay);
+				}
+				if (TagId == TAG_A)
+				{
+					GCss::ColorDef Blue(Rgb32(0, 0, 255));
+					if (Props.Find(PropColor) && Color() == Blue)
+						DelProp(PropColor);
+					if (Props.Find(PropTextDecoration) && TextDecoration() == GCss::TextDecorUnderline)
+						DelProp(PropTextDecoration)
+				}
+				else if (TagId == TAG_BODY)
+				{
+					GCss::Len FivePx(GCss::LenPx, 5.0f);
+					if (Props.Find(PropPaddingLeft) && PaddingLeft() == FivePx)
+						DelProp(PropPaddingLeft)
+					if (Props.Find(PropPaddingTop) && PaddingTop() == FivePx)
+						DelProp(PropPaddingTop)
+					if (Props.Find(PropPaddingRight) && PaddingRight() == FivePx)
+						DelProp(PropPaddingRight)
+				}
+			}
+			
+			// Convert CSS props to a string and emit them...
+			GAutoString s = Css->ToString();
+			if (ValidStr(s))
+			{			
+				// Clean off any trailing whitespace...
+				char *e = s ? s + strlen(s) : NULL;
+				while (e && strchr(WhiteSpace, e[-1]))
+					*--e = 0;
+				
+				// Print them to the tags attributes...
+				p.Print(" style=\"%s\"", s.Get());
+			}
+		}
 	}
 
 	if (Children.Length())
@@ -1430,12 +1479,11 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 		{
 			if (IsBlock(Display()))
 			{
-				p.Print("\n%s</%s>\n", Tabs, Tag.Get());
+				if (Children.Length())
+					p.Print("\n%s", Tabs);
 			}
-			else
-			{
-				p.Print("</%s>", Tag.Get());
-			}
+
+			p.Print("</%s>", Tag.Get());
 		}
 	}
 	else if (Tag)
