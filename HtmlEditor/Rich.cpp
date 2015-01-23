@@ -12,17 +12,8 @@ enum Ctrls
 
 char Src[] =
 	"<br>\n"
-	"<br>\n"
-	"<br>\n"
-	"<br>\n"
-	"<br>\n"
-	"<br>\n"
-	"<br>\n"
-	"<br>\n"
-	"<br>\n"
-	"<br>\n"
-	"--<br>\n"
-	"Matthew Allen\n";
+	"--<br>"
+	"<a href=\"http://web/~matthew\">Matthew Allen</a>";
 
 #else
 
@@ -96,9 +87,9 @@ public:
 
 	int OnNotify(GViewI *c, int f)
 	{
-		if (c->GetId() == IDC_EDITOR AND f == GTVN_DOC_CHANGED)
+		if (c->GetId() == IDC_EDITOR && f == GTVN_DOC_CHANGED)
 		{
-			if (Txt AND Edit)
+			if (Txt && Edit)
 			{
 				Txt->Name(Edit->Name());
 			}
@@ -110,7 +101,7 @@ public:
 
 int LgiMain(OsAppArguments &AppArgs)
 {
-	GApp a("app", AppArgs);
+	GApp a(AppArgs, "RichEditTest");
 	a.AppWnd = new App;
 	a.Run();
 	return 0;

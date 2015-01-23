@@ -23,6 +23,7 @@ struct GTagHit
 	GTag *NearestText;	// Nearest tag with text
 	int Near;			// How close in px was the position to NearestText.
 						// 0 if a direct hit, >0 is near miss, -1 if invalid.
+	bool NearSameRow;	// True if 'NearestText' on the same row as click.
 	GdcPt2 LocalCoords;	// The position in local co-ords of the tag
 
 	GFlowRect *Block;	// Text block hit
@@ -32,6 +33,7 @@ struct GTagHit
 	{
 		Direct = NULL;
 		NearestText = NULL;
+		NearSameRow = false;
 		Block = 0;
 		Near = -1;
 		Index = -1;

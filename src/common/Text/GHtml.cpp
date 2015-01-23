@@ -22,7 +22,7 @@
 
 #define DEBUG_TABLE_LAYOUT			0
 #define DEBUG_RESTYLE				0
-#define DEBUG_TAG_BY_POS			0
+#define DEBUG_TAG_BY_POS			1
 #define DEBUG_SELECTION				0
 
 #define ENABLE_IMAGE_RESIZING		1
@@ -2100,13 +2100,29 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, int Depth, bool DebugLog)
 			if (!Tr)
 				break;
 			
+			bool SameRow = y >= Tr->y1 && y <= Tr->y2;			
 			int Near = IsNearRect(Tr, x, y);
 			if (Near >= 0 && Near < 100)
 			{
-				if (!TagHit.NearestText ||
-					Near < TagHit.Near)
+				if
+				(
+					!TagHit.NearestText
+					||
+					(
+						SameRow
+						&&
+						!TagHit.NearSameRow
+					)
+					||
+					(
+						SameRow == TagHit.NearSameRow
+						&&
+						Near < TagHit.Near
+					)
+				)
 				{
 					TagHit.NearestText = this;
+					TagHit.NearSameRow = SameRow;
 					TagHit.Block = Tr;
 					TagHit.Near = Near;
 					TagHit.Index = NearestChar(Tr, x, y);
@@ -6477,7 +6493,7 @@ GTag *GHtml::PrevTag(GTag *t)
 			// Prev?
 			GTag *pp = ToTag(p->Parent);
 			int Idx = pp->Children.IndexOf(p);
-			GTag *Prev = ToTag(pp->Children[Idx - 1]);
+			GTag *Prev = Idx > 0 ? ToTag(pp->Children[Idx - 1]) : NULL;
 			if (Prev)
 			{
 				GTag *Last = GetLastChild(Prev);
@@ -6499,7 +6515,7 @@ GTag *GHtml::NextTag(GTag *t)
 	// listed via recursion using "in order".
 
 	// Does this have a child tag?
-	if (t->Children.First())
+	if (t->Children.Length()>0)
 	{
 		return ToTag(t->Children.First());
 	}
@@ -6814,7 +6830,7 @@ bool GHtml::OnFind(GFindReplaceCommon *Params)
 bool GHtml::OnKey(GKey &k)
 {
 	bool Status = false;
-	
+
 	if (k.Down())
 	{
 		int Dy = 0;
@@ -6977,29 +6993,26 @@ void GHtml::OnMouseClick(GMouse &m)
 					SendNotify(GTVN_SELECTION_CHANGED);
 				}
 			}
-			else
+			else if (Hit.NearestText)
 			{
 				d->WordSelectMode = false;
 				UnSelectAll();
-				
-				if (Hit.NearestText && Hit.Near < 5)
-				{
-					Cursor = Hit.NearestText;
-					Cursor->Cursor = Hit.Index;
 
-					#if DEBUG_SELECTION
-					LgiTrace("StartSelect Near='%20S' Idx=%i\n", Hit.NearestText->Text(), Hit.Index);
-					#endif
-				}
-				else
-				{
-					#if DEBUG_SELECTION
-					LgiTrace("StartSelect no text hit %p, %p\n", Cursor, Selection);
-					#endif
-				}
-				
+				Cursor = Hit.NearestText;
+				Cursor->Cursor = Hit.Index;
+
+				#if DEBUG_SELECTION
+				LgiTrace("StartSelect Near='%20S' Idx=%i\n", Hit.NearestText->Text(), Hit.Index);
+				#endif
+
 				OnCursorChanged();
 				SendNotify(GTVN_SELECTION_CHANGED);
+			}
+			else
+			{
+				#if DEBUG_SELECTION
+				LgiTrace("StartSelect no text hit %p, %p\n", Cursor, Selection);
+				#endif
 			}
 		}
 

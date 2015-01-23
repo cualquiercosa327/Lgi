@@ -13,7 +13,9 @@
 class SslSocket :
 	public GSocketI, virtual public GDom
 {
+	friend class OpenSSL;
 	struct SslSocketPriv *d;
+	
 	GMutex Lock;
 	BIO *Bio;
 	SSL *Ssl;
@@ -22,6 +24,7 @@ class SslSocket :
 	virtual void Log(const char *Str, SocketMsgType Type);
 	void Error(const char *file, int line, const char *Msg);
 	GStream *GetLogStream();
+	void DebugTrace(const char *fmt, ...);
 
 public:
 	static bool DebugLogging;

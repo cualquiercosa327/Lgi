@@ -35,20 +35,6 @@
 static const char*
 	MinimumVersion				= "1.0.1g";
 
-void DebugTrace(const char *fmt, ...)
-{
-	if (SslSocket::DebugLogging)
-	{
-		char Buffer[512];
-		va_list Arg;
-		va_start(Arg, fmt);
-		int Ch = vsprintf_s(Buffer, sizeof(Buffer), fmt, Arg);
-		va_end(Arg);
-		
-		LgiTrace("%s", Buffer);
-	}
-}
-
 void
 SSL_locking_function(int mode, int n, const char *file, int line);
 unsigned long
@@ -264,7 +250,7 @@ public:
             ;
     }
 	
-    bool InitLibrary()
+    bool InitLibrary(SslSocket *sock)
     {
 		GStringPipe Err;
 		GArray<int> Ver;
@@ -333,7 +319,7 @@ public:
 
 	OnError:
 		ErrorMsg.Reset(Err.NewStr());
-		DebugTrace("%s", ErrorMsg.Get());
+		sock->DebugTrace("%s", ErrorMsg.Get());
 		return false;
     }
 
@@ -352,7 +338,7 @@ public:
 		Locks.DeleteObjects();
 	}
 
-	bool IsOk()
+	bool IsOk(SslSocket *sock)
 	{
 	    bool Loaded =
     		#ifdef WIN32
@@ -371,7 +357,7 @@ public:
 		Loaded = Load(SSL_LIBRARY);
 	    #endif
 	    if (Loaded)
-	        InitLibrary();
+	        InitLibrary(sock);
 	    return Loaded;
 	}
 };
@@ -424,7 +410,7 @@ SSL_id_function()
 	return (unsigned long) LgiGetCurrentThread();
 }
 
-bool StartSSL(GAutoString &ErrorMsg)
+bool StartSSL(GAutoString &ErrorMsg, SslSocket *sock)
 {
 	static GMutex Lock;
 	
@@ -433,7 +419,7 @@ bool StartSSL(GAutoString &ErrorMsg)
 		if (!Library)
 		{
 			Library = new OpenSSL;
-			if (Library && !Library->InitLibrary())
+			if (Library && !Library->InitLibrary(sock))
 			{
 				ErrorMsg = Library->ErrorMsg;
 				DeleteObj(Library);
@@ -498,10 +484,10 @@ SslSocket::SslSocket(GStreamI *logger, GCapabilityClient *caps, bool sslonconnec
 	d->Logger = logger;
 	
 	GAutoString ErrMsg;
-	if (StartSSL(ErrMsg))
+	if (StartSSL(ErrMsg, this))
 	{
 		#ifdef WIN32
-		if (Library->IsOk())
+		if (Library->IsOk(this))
 		{
 			char n[MAX_PATH];
 			char s[MAX_PATH];
@@ -638,7 +624,7 @@ int SslSocket::Open(const char *HostAddr, int Port)
 DebugTrace("%s:%i - SslSocket::Open(%s,%i)\n", _FL, HostAddr, Port);
 	
 	if (Library &&
-		Library->IsOk() &&
+		Library->IsOk(this) &&
 		HostAddr)
 	{
 		char h[256];
@@ -1227,6 +1213,20 @@ DebugTrace("%s:%i - OnError=%i,%s\n", _FL, ErrorCode, ErrorDescription);
 	Log(s, SocketMsgError);
 }
 
+void SslSocket::DebugTrace(const char *fmt, ...)
+{
+	if (DebugLogging)
+	{
+		char Buffer[512];
+		va_list Arg;
+		va_start(Arg, fmt);
+		int Ch = vsprintf_s(Buffer, sizeof(Buffer), fmt, Arg);
+		va_end(Arg);
+		
+		OnInformation(Buffer);
+	}
+}
+
 void SslSocket::OnInformation(const char *Str)
 {
 	char s[MAX_PATH];
@@ -1237,7 +1237,5 @@ void SslSocket::OnInformation(const char *Str)
 	*e++ = '\n';
 	*e++ = 0;
 	Log(s, SocketMsgInfo);
-
-DebugTrace("%s:%i - OnInfo=%s", _FL, s);
 }
 

@@ -198,25 +198,32 @@ public:
 	///
 	/// If the entry is off the end of the array and "fixed" is false,
 	/// it will grow to make it valid.
-	Type &operator [](uint32 i)
+	Type &operator [](int i)
 	{
 		static Type t;
+
+		if (i < 0)
+		{
+			LgiAssert(!"Invalid index...");
+			return t;
+		}
+		
 		if
 		(
-			(fixed && i >= len)
+			(fixed && (uint32)i >= len)
 		)
 		{
 			ZeroObj(t);
-			if (fixed && i >= len)
+			if (fixed && (uint32)i >= len)
 				LgiAssert(!"Attempt to enlarged fixed array.");
 			return t;
 		}
 		
-		if (i >= alloc)
+		if (i >= (int)alloc)
 		{
 			// increase array length
-			uint nalloc = max(alloc, GARRAY_MIN_SIZE);
-			while (nalloc <= i)
+			uint32 nalloc = max(alloc, GARRAY_MIN_SIZE);
+			while (nalloc <= (uint32)i)
 			{
 				nalloc <<= 1;
 			}
@@ -260,7 +267,7 @@ public:
 		}
 
 		// adjust length of the the array
-		if (i + 1 > len)
+		if ((uint32)i + 1 > len)
 		{
 			len = i + 1;
 		}

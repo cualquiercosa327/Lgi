@@ -23,6 +23,8 @@
 
 #define	TAB_STOP					0
 
+#define DEBUG_CURSOR_POS			0
+
 #define SubtractPtr(a, b)			( (((int)(a))-((int)(b))) / sizeof(*a) )
 
 using namespace Html1;
@@ -540,20 +542,24 @@ public:
 		SetEnv(this);
 		Sunken(true);
 		SetTabStop(true);
-		Name("<html><body></body></html>");
+		
+		GAutoString n(NewStr("<html><body></body></html>"));
+		Name(n);
 	}
+
+	const char *GetClass() { return "HtmlEdit"; }
 
 	void OnDocumentChange()
 	{
 		SendNotify(GTVN_DOC_CHANGED);
 	}
 
-	#ifdef _DEBUG
 	// Draw a red box around the cursor for debugging.
 	void OnPaint(GSurface *pDC)
 	{
 		GHtml::OnPaint(pDC);
 
+		#if DEBUG_CURSOR_POS
 		int LineY = GetFont()->GetHeight();
 		int sx, sy;
 		GetScrollPos(sx, sy);
@@ -562,8 +568,8 @@ public:
 		c.Size(-1, -1);
 		pDC->Colour(Rgb24(255, 0, 0), 24);
 		pDC->Box(&c);
+		#endif
 	}
-	#endif
 
 	bool IsSameStyle(GTag *a, GTag *b)
 	{
@@ -1947,11 +1953,6 @@ public:
 		return true;
 	}
 
-	bool Copy()
-	{
-		return false;
-	}
-
 	bool Paste()
 	{
 		GClipBoard c(this);
@@ -2689,11 +2690,6 @@ void GHtmlEdit::OnPaint(GSurface *pDC)
 {
 	pDC->Colour(LC_MED, 24);
 	pDC->Rectangle();
-
-	/*
-	pDC->Colour(Rgb24(255, 0, 0), 24);
-	pDC->Box(0, 0, 300, 25);
-	*/
 }
 
 char *GHtmlEdit::Name()
