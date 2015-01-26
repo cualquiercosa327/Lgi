@@ -55,10 +55,10 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				RuntimeTypeInfo="true"
-				PrecompiledHeaderFile=".\Debug/Rich.pch"
-				AssemblerListingLocation=".\Debug/"
-				ObjectFile=".\Debug/"
-				ProgramDataBaseFileName=".\Debug/"
+				PrecompiledHeaderFile="$(IntDir)\Rich.pch"
+				AssemblerListingLocation="$(IntDir)\"
+				ObjectFile="$(IntDir)\"
+				ProgramDataBaseFileName="$(IntDir)\"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 			/>
@@ -76,11 +76,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib imm32.lib"
-				OutputFile=".\Debug/Rich.exe"
+				OutputFile="$(IntDir)\Rich.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Debug/Rich.pdb"
+				ProgramDatabaseFile="$(IntDir)\Rich.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -98,7 +98,7 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\Debug/Rich.bsc"
+				OutputFile="$(IntDir)\Rich.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -151,10 +151,10 @@
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				RuntimeTypeInfo="true"
-				PrecompiledHeaderFile=".\Release/Rich.pch"
-				AssemblerListingLocation=".\Release/"
-				ObjectFile=".\Release/"
-				ProgramDataBaseFileName=".\Release/"
+				PrecompiledHeaderFile="$(IntDir)\Rich.pch"
+				AssemblerListingLocation="$(IntDir)\"
+				ObjectFile="$(IntDir)\"
+				ProgramDataBaseFileName="$(IntDir)\"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -171,10 +171,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib imm32.lib"
-				OutputFile=".\Release/Rich.exe"
+				OutputFile="$(IntDir)\Rich.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				ProgramDatabaseFile=".\Release/Rich.pdb"
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(IntDir)\Rich.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -192,7 +193,7 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\Release/Rich.bsc"
+				OutputFile="$(IntDir)\Rich.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"

@@ -1178,6 +1178,48 @@ bool GZoomView::OnLayout(GViewLayoutInfo &Inf)
 	return true;
 }
 
+void GZoomView::UpdateScrollBars(GdcPt2 *MaxScroll, bool ResetPos)
+{
+	GSurface *Src = d->pDC;
+	if (!Src)
+	{
+		SetScrollBars(false, false);
+		return;
+	}
+	
+	GRect c = GetClient();    
+	int Factor = d->Factor();
+	int Fmin1 = Factor - 1;
+
+	GdcPt2 DocSize(Src->X(), Src->Y());		
+	GdcPt2 DocClientSize(c.X(), c.Y());
+	DocClientSize = d->ScreenToDoc(DocClientSize);
+	SetScrollBars(DocSize.x > DocClientSize.x, DocSize.y > DocClientSize.y);
+
+	if (HScroll)
+	{
+		HScroll->SetLimits(0, DocSize.x);
+		HScroll->SetPage(DocClientSize.x);
+		if (ResetPos) HScroll->Value(0);
+	}
+	if (VScroll)
+	{
+		VScroll->SetLimits(0, DocSize.y);
+		VScroll->SetPage(DocClientSize.y);
+		if (ResetPos) VScroll->Value(0);
+	}
+	if (MaxScroll)
+	{
+		MaxScroll->x = DocSize.x - DocClientSize.x;
+		MaxScroll->y = DocSize.y - DocClientSize.y;
+	}
+}
+
+void GZoomView::OnPosChange()
+{
+	UpdateScrollBars();
+}
+
 void GZoomView::SetSurface(GSurface *dc, bool own)
 {
 	if (d->OwnDC)
@@ -1238,8 +1280,8 @@ void GZoomView::Update(GRect *Where)
 void GZoomView::Reset()
 {
 	d->EmptyTiles();
-	SetScrollBars(false, false);
 	d->SetDefaultZoom();
+	UpdateScrollBars(NULL, true);
 	Invalidate();
 }
 
@@ -1283,39 +1325,22 @@ void GZoomView::SetViewport(ViewportInfo i)
 	GSurface *Src = d->pDC;
 	if (Src)
 	{
-		GRect c = GetClient();    
-		int Factor = d->Factor();
-		int Fmin1 = Factor - 1;
-
-		GdcPt2 DocSize(Src->X(), Src->Y());		
-		GdcPt2 DocClientSize(c.X(), c.Y());
-		DocClientSize = d->ScreenToDoc(DocClientSize);
-		SetScrollBars(DocSize.x > DocClientSize.x, DocSize.y > DocClientSize.y);
-
+		GdcPt2 MaxScroll;
+		UpdateScrollBars(&MaxScroll);
 		if (HScroll)
 		{
-			HScroll->SetLimits(0, DocSize.x);
-			HScroll->SetPage(DocClientSize.x);
-			
 			if (i.Sx < 0)
 				i.Sx = 0;
-			int Max = DocSize.x - DocClientSize.x;
-			if (i.Sx > Max)
-				i.Sx = Max;
-			
+			if (i.Sx > MaxScroll.x)
+				i.Sx = MaxScroll.x;
 			HScroll->Value(i.Sx);
 		}
 		if (VScroll)
 		{
-			VScroll->SetLimits(0, DocSize.y);
-			VScroll->SetPage(DocClientSize.y);
-
 			if (i.Sy < 0)
 				i.Sy = 0;
-			int Max = DocSize.y - DocClientSize.y;
-			if (i.Sy > Max)
-				i.Sy = Max;
-
+			if (i.Sy > MaxScroll.y)
+				i.Sy = MaxScroll.y;
 			VScroll->Value(i.Sy);
 		}
 		

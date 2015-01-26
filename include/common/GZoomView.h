@@ -88,7 +88,7 @@ public:
 	void Reset();
 	int GetBlockSize();
 
-	// Events
+	// Events and Impl
 	void OnMouseClick(GMouse &m);
 	bool OnMouseWheel(double Lines);
 	void OnPulse();
@@ -96,6 +96,8 @@ public:
 	int OnNotify(GViewI *v, int f);
 	GMessage::Param OnEvent(GMessage *m);
 	bool OnLayout(GViewLayoutInfo &Inf);
+	void UpdateScrollBars(GdcPt2 *MaxScroll = NULL, bool ResetPos = false);
+	void OnPosChange();
 };
 
 #endif
