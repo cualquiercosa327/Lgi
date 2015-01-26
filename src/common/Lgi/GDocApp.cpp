@@ -425,10 +425,10 @@ bool GDocApp<OptionsFmt>::_LoadMenu(const char *Resource, const char *Tags)
 
 		if (_FileMenu)
 		{
-			_FileMenu->AppendItem("&Open\tCtrl+O", IDM_OPEN, true);
-			_FileMenu->AppendItem("&Save\tCtrl+S", IDM_SAVE, true);
+			_FileMenu->AppendItem("&Open", IDM_OPEN, true, -1, "Ctrl+O");
+			_FileMenu->AppendItem("&Save", IDM_SAVE, true, -1, "Ctrl+S");
 			_FileMenu->AppendItem("Save &As", IDM_SAVEAS, true);
-			_FileMenu->AppendItem("Close\tCtrl+W", IDM_CLOSE, true);
+			_FileMenu->AppendItem("Close", IDM_CLOSE, true, -1, "Ctrl+W");
 			_FileMenu->AppendSeparator();
 
 			GSubMenu *Recent = _FileMenu->AppendSub("Recent...");
@@ -439,7 +439,7 @@ bool GDocApp<OptionsFmt>::_LoadMenu(const char *Resource, const char *Tags)
 				GMru::Serialize(Options, "Mru", false);
 			}
 
-			_FileMenu->AppendItem("&Quit\tCtrl+Q", IDM_EXIT, true);
+			_FileMenu->AppendItem("&Quit", IDM_EXIT, true, -1, "Ctrl+Q");
 		}
 	}
 

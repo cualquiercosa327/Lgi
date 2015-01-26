@@ -99,7 +99,10 @@ GMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Where
 			Items.Insert(i, Where);
 			
 			Str = i->Name();
-			CFStringRef s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)Str, strlen(Str), kCFStringEncodingUTF8, false);
+			CFStringRef s = CFStringCreateWithBytes(kCFAllocatorDefault,
+													(UInt8*)Str, strlen(Str),
+													kCFStringEncodingUTF8,
+													false);
 			OSStatus e = AppendMenuItemTextWithCFString(Info, s, 0, 0, &i->Info);
 			if (e) printf("%s:%i - AppendMenuItemTextWithCFString failed (e=%i)\n", __FILE__, __LINE__, (int)e);
 			#if DEBUG_INFO
