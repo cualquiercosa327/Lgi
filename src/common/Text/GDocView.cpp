@@ -33,7 +33,7 @@ void GDocumentEnv::OnDone(GAutoPtr<GThreadJob> j)
 		if (Lock(_FL))
 		{
 			GDocView *View = NULL;
-			for (int i=0; i<Viewers.Length(); i++)
+			for (unsigned i=0; i<Viewers.Length(); i++)
 			{
 				if (Viewers[i]->GetDocumentUid() == ld->UserUid)
 				{
