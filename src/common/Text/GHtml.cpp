@@ -6642,41 +6642,47 @@ int GHtml::GetTagDepth(GTag *Tag)
 
 bool GHtml::IsCursorFirst()
 {
-	// Returns true if the cursor is before the selection point.
-	//
-	// There are 2 points in the selection, the start and the end, the
-	// cursor can be the start or the end, there selection is always the
-	// other end of the block.
-	if (Cursor && Selection)
+	return CompareTagPos(Cursor, Cursor->Cursor, Selection, Selection->Selection);
+}
+
+bool GHtml::CompareTagPos(GTag *a, int AIdx, GTag *b, int BIdx)
+{
+	// Returns true if the 'a' is before 'b' point.
+	if (!a || !b)
+		return false;
+
+	if (a == b)
 	{
-		if (Cursor == Selection)
+		return AIdx < BIdx;
+	}
+	else
+	{
+		int ADepth = GetTagDepth(a);
+		int BDepth = GetTagDepth(b);
+		bool BIsDeeper = BDepth > ADepth;
+		GTag *A = a;
+		GTag *B = b;
+		while (B && BDepth > ADepth)
 		{
-			return Cursor->Cursor < Selection->Selection;
+			B = ToTag(B->Parent);
+			BDepth--;
 		}
-		else
+		while (A && ADepth > BDepth)
 		{
-			int CDepth = GetTagDepth(Cursor);
-			int SDepth = GetTagDepth(Selection);
-			GTag *Cur = Cursor;
-			GTag *Sel = Selection;
-			while (Sel && SDepth > CDepth)
+			A = ToTag(A->Parent);
+			ADepth--;
+		}
+		if (A && B)
+		{
+			int AParentIdx = A->Parent ? A->Parent->Children.IndexOf(A) : 0;
+			int BParentIdx = B->Parent ? B->Parent->Children.IndexOf(B) : 0;
+			if (AParentIdx == BParentIdx)
 			{
-				Sel = ToTag(Sel->Parent);
-				SDepth--;
+				return BIsDeeper;
 			}
-			while (Cur && CDepth > SDepth)
+			else
 			{
-				Cur = ToTag(Cur->Parent);
-				CDepth--;
-			}
-			if (Cur && Sel)
-			{
-				int CIdx = Cur->Parent ? Cur->Parent->Children.IndexOf(Cur) : 0;
-				int SIdx = Sel->Parent ? Sel->Parent->Children.IndexOf(Sel) : 0;
-				if (CIdx < SIdx)
-				{
-					return true;
-				}
+				return AParentIdx < BParentIdx;
 			}
 		}
 	}

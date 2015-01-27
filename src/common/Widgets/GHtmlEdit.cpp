@@ -1535,6 +1535,114 @@ public:
 
 		return false;
 	}
+	
+	void ClearSelection()
+	{
+		if (Selection)
+		{
+			Selection->Selection = -1;
+			Selection = NULL;
+		}
+		if (Cursor)
+		{
+			Cursor->Cursor = -1;
+			Cursor = NULL;
+		}
+	}
+	
+	bool DeleteRange(GTag *FromTag, int FromIdx, GTag *ToTag, int ToIdx, bool MoveCursorToStart)
+	{
+		if (!FromTag || ToTag)
+		{
+			LgiAssert(0);
+			return false;
+		}
+		
+		if (FromTag->Text() &&
+			FromTag == ToTag)
+		{
+			// Delete range within one tag
+			int Offset = FromTag->GetTextStart();
+			
+			// Figure out the range of the text to delete...
+			int Start = min(ToIdx, FromIdx) + Offset;
+			int End = max(ToIdx, FromIdx) + Offset;
+			
+			// Shift the characters down, including the terminating NULL.
+			char16 *t = FromTag->Text();
+			int Chars = StrlenW(t + End);
+			memmove(t + Start, t + End, (Chars + 1) * sizeof(*t));
+			
+			if (MoveCursorToStart)
+			{
+				// Put the cursor at the start of the deletion range.
+				ClearSelection();				
+				Cursor = FromTag;
+				Cursor->Cursor = Start;
+			}
+		}
+		else
+		{
+			// Delete over multiple tags.			
+			bool FromFirst = CompareTagPos(Cursor, Cursor->Cursor, Selection, Selection->Selection);
+			GTag *First = FromFirst ? FromTag : ToTag;
+			GTag *Last = FromFirst ? ToTag : FromTag;
+			int &FirstMarker = FromFirst ? &Cursor->Cursor : &Selection->Selection;
+			int FirstMarkerValue = *FirstMarker;
+
+			// Delete from first marker to the end of that tag
+			int Offset = First->GetTextStart();
+			First->Text(NewStrW(First->Text() + Offset, *FirstMarker));
+			*FirstMarker = -1;
+
+			// Scan through to the end marker					
+			GTag *n = First;
+			GArray<GTag*> PostDelete;
+			while ((n = NextTag(n)))
+			{
+				if (n == Last)
+				{
+					// Last tag
+					Offset = n->GetTextStart();
+					int *LastMarker = CursorFirst ? &Selection->Selection : &Cursor->Cursor;
+					n->Text(NewStrW(n->Text() + Offset + *LastMarker));
+					*LastMarker = -1;
+					break;
+				}
+				else
+				{
+					// Intermediate tag
+					if (!PostDelete.HasItem(n))
+						PostDelete.Add(n);
+				}
+			}
+
+			// Don't delete a parent item of the selection or cursor...
+			for (n = Cursor; n; n = ToTag(n->Parent))
+			{
+				PostDelete.Delete(n);
+			}
+			for (n = Selection; n; n = ToTag(n->Parent))
+			{
+				PostDelete.Delete(n);
+			}
+
+			// Process deletes
+			for (unsigned i=0; i<PostDelete.Length(); )
+			{
+				if (!DeleteTag(PostDelete[i], &PostDelete))
+				{
+					break;
+				}
+			}
+
+			Selection = 0;
+			Cursor = First;
+			Cursor->Cursor = FirstMarkerValue;
+		}
+
+		return true;
+	}
 
 	void Delete(bool Backwards = false)
 	{
@@ -1547,101 +1655,13 @@ public:
 
 			if (Selection)
 			{
-				if (Cursor->Text() &&
-					Selection == Cursor)
+				Status = DeleteRange(Cursor, Cursor->Cursor,
+									Selection, Selection->Selection);
+				if (Status)
 				{
-					// Delete range within one tag
-					int Offset = Cursor->GetTextStart();
-					int OldLen = StrlenW(Cursor->Text());
-					int DelLen = abs(Cursor->Selection - Cursor->Cursor);
-					int NewLen = OldLen - DelLen;
-					char16 *NewTxt = new char16[NewLen+1];
-					if (NewTxt)
-					{
-						char16 *s = NewTxt;
-						int StartDel = min(Cursor->Selection, Cursor->Cursor) + Offset;
-						if (StartDel > 0)
-						{
-							memcpy(s, Cursor->Text(), sizeof(char16)*StartDel);
-							s += StartDel;
-						}
-						int EndDel = max(Cursor->Selection, Cursor->Cursor) + Offset;
-						if (EndDel < OldLen)
-						{
-							int Chars = OldLen-EndDel;
-							memcpy(s, Cursor->Text() + EndDel, sizeof(char16)*(Chars));
-							s += Chars;
-						}
-						*s++ = 0;
-
-						Cursor->Text(NewTxt);
-						Cursor->Selection = -1;
-						Cursor->Cursor = StartDel - Offset;
-						Selection = 0;
-
-						Status = true;
-					}
-				}
-				else
-				{
-					// Delete over multiple tags.
-					
-					bool CursorFirst = IsCursorFirst();
-					GTag *First = CursorFirst ? Cursor : Selection;
-					GTag *Last = CursorFirst ? Selection : Cursor;
-					int *FirstMarker = CursorFirst ? &Cursor->Cursor : &Selection->Selection;
-					int FirstMarkerValue = *FirstMarker;
-
-					// Delete from first marker to the end of that tag
-					int Offset = First->GetTextStart();
-					First->Text(NewStrW(First->Text() + Offset, *FirstMarker));
-					*FirstMarker = -1;
-
-					// Scan through to the end marker					
-					GTag *n = First;
-					GArray<GTag*> PostDelete;
-					while ((n = NextTag(n)))
-					{
-						if (n == Last)
-						{
-							// Last tag
-							Offset = n->GetTextStart();
-							int *LastMarker = CursorFirst ? &Selection->Selection : &Cursor->Cursor;
-							n->Text(NewStrW(n->Text() + Offset + *LastMarker));
-							*LastMarker = -1;
-							break;
-						}
-						else
-						{
-							// Intermediate tag
-							if (!PostDelete.HasItem(n))
-								PostDelete.Add(n);
-						}
-					}
-
-					// Don't delete a parent item of the selection or cursor...
-					for (n = Cursor; n; n = ToTag(n->Parent))
-					{
-						PostDelete.Delete(n);
-					}
-					for (n = Selection; n; n = ToTag(n->Parent))
-					{
-						PostDelete.Delete(n);
-					}
-
-					// Process deletes
-					for (unsigned i=0; i<PostDelete.Length(); )
-					{
-						if (!DeleteTag(PostDelete[i], &PostDelete))
-						{
-							break;
-						}
-					}
-
-					Selection = 0;
-					Cursor = First;
-					Cursor->Cursor = FirstMarkerValue;
-					Status = true;
+					Cursor->Cursor = min(Cursor->Cursor, Selection->Selection);
+					Selection->Selection = -1;
+					Selection = NULL;
 				}
 			}
 			else if (t->Text())

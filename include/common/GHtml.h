@@ -71,6 +71,7 @@ protected:
 	bool GetCursorVis();
 	GRect *GetCursorPos();
 	bool IsCursorFirst();
+	bool CompareTagPos(GTag *a, int AIdx, GTag *b, int BIdx);
 	int GetTagDepth(GTag *Tag);
 	GTag *PrevTag(GTag *t);
 	GTag *NextTag(GTag *t);
