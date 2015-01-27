@@ -1754,8 +1754,10 @@ public:
 					{
 						memmove(c, c + 1, (StrlenW(c + 1) + 1) * sizeof(*t->Text()));
 					}
-					if (!ValidStrW(t->Text()))
+					
+					if (!t->Text() || StrlenW(t->Text()) == 0)
 					{
+						// Tag is now empty...
 						t->Cursor = -1;
 						while ((Cursor = (Backwards ? PrevTag(Cursor) : NextTag(Cursor))))
 						{
