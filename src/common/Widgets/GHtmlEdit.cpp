@@ -1988,12 +1988,8 @@ public:
 				}
 				else if (k.c16 >= ' ')
 				{
-					char *utf = LgiNewUtf16To8(&k.c16, sizeof(k.c16));
-					if (utf)
-					{
-						Insert(utf);
-						DeleteArray(utf);
-					}
+					GAutoString utf(LgiNewUtf16To8(&k.c16, sizeof(k.c16)));
+					Insert(utf);
 				}
 			}
 			return true;

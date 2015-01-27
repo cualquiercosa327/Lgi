@@ -24,6 +24,7 @@
 #define DEBUG_RESTYLE				0
 #define DEBUG_TAG_BY_POS			0
 #define DEBUG_SELECTION				0
+#define DEBUG_TEXT_AREA				0
 
 #define ENABLE_IMAGE_RESIZING		1
 #define DOCUMENT_LOAD_IMAGES		1
@@ -4476,9 +4477,11 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, int LineHeight, 
 		GFlowRect *Tr = new GFlowRect;
 		Tr->Tag = Tag;
 		Tr->Text = Text;
-		Tr->x1 = Tr->x2 = Flow->cx;
+		Tr->x1 = Flow->cx;
+		Tr->x2 = Tr->x1 + 1;
 		Tr->y1 = Flow->y1;
 		Tr->y2 = Tr->y1 + Font->GetHeight();
+		LgiAssert(Tr->y2 >= Tr->y1);
 		Flow->y2 = max(Flow->y2, Tr->y2+1);
 		Add(Tr);
 		Flow->Insert(Tr);
@@ -4500,7 +4503,7 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, int LineHeight, 
 		#if 1 // I removed this at one stage but forget why.
 		
 		// Remove white space at start of line.
-		if (Flow->x1 == Flow->cx && *Text == ' ')
+		if (Tag->Html->GetReadOnly() && Flow->x1 == Flow->cx && *Text == ' ')
 		{
 			Text++;
 			if (!*Text)
@@ -4564,7 +4567,12 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, int LineHeight, 
 
 		GDisplayString ds2(Font, Tr->Text, Tr->Len);
 		Tr->x2 = ds2.X();
-		Tr->y2 = LineHeight - 1; // ds2.Y();
+		Tr->y2 = LineHeight > 0 ? LineHeight - 1 : 0;
+		if (LineHeight <= 0)
+		{
+			int asd=0;
+		}
+		
 		if (Wrap)
 		{
 			Flow->cx = Flow->x1;
@@ -4927,6 +4935,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 				}	
 				Final.InheritResolve(Map);
 				Map.DeleteObjects();
+
 				GCss::Len CssLineHeight = Final.LineHeight();    
 				if ((Font = GetFont()))
 				{
@@ -4935,19 +4944,32 @@ void GTag::OnFlow(GFlowRegion *Flow)
 						CssLineHeight.Type == GCss::LenNormal)
 					{
 						LineHeightCache = Font->GetHeight();
+						#if 1
+						if (LineHeightCache <= 0)
+						{
+							int asd=0;
+						}
+						#endif
 					}
 					else
 					{					
 						LineHeightCache = CssLineHeight.ToPx(Font->GetHeight(), Font);
+						#if 1
+						if (LineHeightCache <= 0)
+						{
+							int asd=0;
+						}
+						#endif
 					}
-					
-					#if 0
-					LgiAssert(LineHeightCache > 0);
-					if (LineHeightCache <= 0)
-						LineHeightCache = Font->GetHeight();
-					#endif
 				}
 			}
+
+			#if 1
+			if (LineHeightCache <= 0)
+			{
+				int asd=0;
+			}
+			#endif
 
 			// Flow in the rest of the text...
 			char16 *Txt = Text();
@@ -5688,29 +5710,37 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 			OnPaintBorder(pDC);
 
 			GFont *f = GetFont();
+			#ifdef _DEBUG
+			bool IsEditor = Html ? !Html->GetReadOnly() : false;
+			#else
+			bool IsEditor = false;
+			#endif
 			if (f && TextPos.Length())
 			{
 				int LineHtOff = 0;
-				if (LineHeightCache)
+				if (LineHeightCache >= 0)
 				{
 					Len PadTop = PaddingTop(), PadBot = PaddingBottom();
 					int AvailY = Size.y -
 								(PadTop.IsValid() ? PadTop.ToPx(Size.y, GetFont()) : 0) -
 								(PadBot.IsValid() ? PadBot.ToPx(Size.y, GetFont()) : 0);
 					int FontHt = f->GetHeight();
-					if (LineHeightCache > AvailY)
-						LineHeightCache = AvailY;
-						
-					LineHtOff = LineHeightCache > FontHt ? max(0, ((LineHeightCache - FontHt) >> 1) - 1) : 0;
+					int EffectiveLineHt = min(AvailY, LineHeightCache);						
+					LineHtOff = EffectiveLineHt > FontHt ? max(0, ((EffectiveLineHt - FontHt) >> 1) - 1) : 0;
 				}
 				
 				#define FontColour(s) \
-				f->Transparent(!s); \
-				if (s) \
-					f->Colour(LC_FOCUS_SEL_FORE, LC_FOCUS_SEL_BACK); \
-				else \
-					f->Colour(	fore != GT_TRANSPARENT ? Rgb32To24(fore) : Rgb32To24(DefaultTextColour), \
-								_back.Type != ColorInherit ? Rgb32To24(_back.Rgb32) : Rgb32To24(LC_WORKSPACE));
+					f->Transparent(!s && !IsEditor); \
+					if (s) \
+						f->Colour(LC_FOCUS_SEL_FORE, LC_FOCUS_SEL_BACK); \
+					else \
+					{ \
+						GColour bk(_back.Type != ColorInherit ? Rgb32To24(_back.Rgb32) : Rgb32To24(LC_WORKSPACE), 24);	\
+						if (IsEditor)																					\
+							bk = bk.Mix(GColour(0, 0, 0), 0.05f);														\
+						f->Colour(	fore != GT_TRANSPARENT ? Rgb32To24(fore) : Rgb32To24(DefaultTextColour),			\
+									bk.c24()); \
+					}
 
 				if (Html->HasSelection() &&
 					(Selection >= 0 || Cursor >= 0) &&
@@ -5797,9 +5827,14 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 
 							// Draw the text run
 							GDisplayString ds(f, Tr->Text + Done, c);
-							ds.Draw(pDC, x, Tr->y1 + LineHtOff);
+							ds.Draw(pDC, x, Tr->y1 + LineHtOff, IsEditor ? Tr : NULL);
 							x += ds.X();
 							Done += c;
+							
+							#if DEBUG_TEXT_AREA
+							pDC->Colour(GColour(255, 0, 0));
+							pDC->Box(Tr);
+							#endif
 
 							// Is this is end of the tag?
 							if (Tr->Len == Done)
@@ -5851,8 +5886,14 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 						GFlowRect *Tr = TextPos[i];
 						int Pos = (Tr->Text - Text()) - Base;
 
+						LgiAssert(Tr->y2 >= Tr->y1);
 						GDisplayString ds(f, Tr->Text, Tr->Len);
-						ds.Draw(pDC, Tr->x1, Tr->y1 + LineHtOff);
+						ds.Draw(pDC, Tr->x1, Tr->y1 + LineHtOff, IsEditor ? Tr : NULL);
+
+						#if DEBUG_TEXT_AREA
+						pDC->Colour(GColour(255, 0, 0));
+						pDC->Box(Tr);
+						#endif
 
 						if
 						(
@@ -5899,12 +5940,11 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 					{
 						GFlowRect *Tr = TextPos[i];
 						GDisplayString ds(f, Tr->Text, Tr->Len);
-						ds.Draw(pDC, Tr->x1, Tr->y1 + LineHtOff);
+						ds.Draw(pDC, Tr->x1, Tr->y1 + LineHtOff, IsEditor ? Tr : NULL);
 						
-						#if 0
-						int Y = ds.Y();
-						pDC->Colour(GColour(0, 0, 255));
-						pDC->Box(Tr->x1, Tr->y1 + LineHtOff, Tr->x2, Tr->y1 + LineHtOff + Y - 1);
+						#if DEBUG_TEXT_AREA
+						pDC->Colour(GColour(255, 0, 0));
+						pDC->Box(Tr);
 						#endif
 					}
 				}
