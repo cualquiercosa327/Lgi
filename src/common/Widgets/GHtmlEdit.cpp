@@ -335,7 +335,7 @@ class HtmlEdit : public Html1::GHtml, public GDefaultDocumentEnv
 			{
 				if (!ValidStrW(t->Text()))
 				{
-					Block *b = &Blocks[Blocks.Length()];
+					Block *b = &Blocks.New();
 					int x = t->AbsX();
 					int y = t->AbsY();
 					b->Set(x + Tr->x2, y + Tr->y1, x + Tr->x2 + 1, y + Tr->y2 - 1);
@@ -346,7 +346,7 @@ class HtmlEdit : public Html1::GHtml, public GDefaultDocumentEnv
 				continue;
 			}
 
-			Block *b = &Blocks[Blocks.Length()];
+			Block *b = &Blocks.New();
 			int x = t->AbsX();
 			int y = t->AbsY();
 			(GRect&)*b = (GRect&)*Tr;
@@ -1579,9 +1579,12 @@ public:
 			t[Offset + *FirstMarker] = 0;
 			*FirstMarker = -1;
 
+			GArray<GTag*> PostDelete;
+			if (!*t && !PostDelete.HasItem(First))
+				PostDelete.Add(First);
+
 			// Scan through to the end marker					
 			GTag *n = First;
-			GArray<GTag*> PostDelete;
 			while ((n = NextTag(n)))
 			{
 				if (n == Last)
@@ -1604,18 +1607,23 @@ public:
 						PostDelete.Add(n);
 				}
 			}
+			
+			// We can't delete both the first and last...
+			bool CursorToFirst = true;
+			if (PostDelete.HasItem(First))
+			{
+				// Is the last in there too?
+				if (PostDelete.HasItem(Last))
+					PostDelete.Delete(First); // use First as cursor
+				else
+					CursorToFirst = false; // use Last as cursor
+			}
 
-			// Don't delete a parent item of the First tag...
-			for (n = First; n; n = ToTag(n->Parent))
+			// Don't delete a parent item of the tag getting the cursor...
+			for (n = CursorToFirst ? First : Last; n; n = ToTag(n->Parent))
 			{
 				PostDelete.Delete(n);
 			}
-			/*
-			for (n = Selection; n; n = ToTag(n->Parent))
-			{
-				PostDelete.Delete(n);
-			}
-			*/
 
 			// Process deletes
 			for (unsigned i=0; i<PostDelete.Length(); )
@@ -1624,7 +1632,7 @@ public:
 					break;
 			}
 
-			Cursor = First;
+			Cursor = CursorFirst ? First : Last;
 			Cursor->Cursor = FirstMarkerValue;
 			Selection = NULL;
 		}
@@ -1680,35 +1688,38 @@ public:
 				GTag *Insert = t->TagId == CONTENT ? ToTag(t->Parent) : t;
 				int Idx = t->TagId == CONTENT && t->Parent ? t->Parent->Children.IndexOf(t) + 1 : 0;
 				int Base = t->GetTextStart();
-				int Chars = StrlenW(t->Text());
-				int After = Chars - Base - t->Cursor;
+				char16 *Txt = t->Text() + Base;
+				int Chars = StrlenW(Txt);
+				int After = Chars - t->Cursor;
 				if (After > 0)
 				{
 					if (Insert)
 					{
-						GTag *n = new GTag(t->Html, 0);
-						if (n)
-						{
-							n->TagId = CONTENT;
-							n->Text(NewStrW(t->Text() + Base + t->Cursor));
-							t->Text()[Base + t->Cursor] = 0;
-							Insert->Attach(n, Idx);
-
-							Cursor = n;
-							Cursor->Cursor = 0;
-						}
-						t->Cursor = -1;
-
+						// This goes onto the next line
+						GAutoWString NextLn(NewStrW(Txt + t->Cursor));
+						
+						// Truncate the existing line
+						Txt[t->Cursor] = 0;
+						
+						// Insert a <br> tag
+						GTag *n;
 						if ((n = new GTag(t->Html, 0)))
 						{
 							n->SetTag("br");
-							Insert->Attach(n, Idx);
+							Insert->Attach(n, Idx++);
 						}
+						
+						// Insert a new CONTENT tag with the next line
 						if ((n = new GTag(t->Html, 0)))
 						{
 							n->TagId = CONTENT;
-							n->Text(NewStrW(EmptyStr));
-							Insert->Attach(n, Idx);
+							n->Text(NextLn.Release());
+							Insert->Attach(n, Idx++);
+							
+							// Put cursor at the start
+							Cursor->Cursor = -1;
+							Cursor = n;
+							Cursor->Cursor = 0;
 						}
 
 						Status = true;
