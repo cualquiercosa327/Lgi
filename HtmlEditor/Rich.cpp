@@ -1,16 +1,22 @@
 #include "Lgi.h"
 #include "GHtmlEdit.h"
 #include "GTextView3.h"
+#include "GTree.h"
+#include "GTabView.h"
+#include "GBox.h"
 
 enum Ctrls
 {
 	IDC_EDITOR = 100,
 	IDC_HTML,
+	IDC_TABS,
+	IDC_TREE,
 };
 
 #if 1
 
 char Src[] =
+	"This is a test.<br>\n"
 	"<br>\n"
 	"--<br>"
 	"<a href=\"http://web/~matthew\">Matthew Allen</a>";
@@ -37,14 +43,18 @@ char Src[] =
 class App : public GWindow
 {
 	GHtmlEdit *Edit;
-	GSplitter *Split;
+	GBox *Split;
 	GTextView3 *Txt;
+	GTabView *Tabs;
+	GTree *Tree;
 
 public:
 	App()
 	{
 		Edit = 0;
 		Txt = 0;
+		Tabs = NULL;
+		Tree = NULL;
 		Name("Rich Text Testbed");
 		GRect r(0, 0, 1200, 800);
 		SetPos(r);
@@ -52,17 +62,13 @@ public:
 		SetQuitOnClose(true);
 		if (Attach(0))
 		{
-			Split = new GSplitter;
+			AddView(Split = new GBox);
 			if (Split)
 			{
-				Split->Value(GetClient().X()/2);
-				Split->Attach(this);
-
-				Edit = new GHtmlEdit;
+				Split->AddView(Edit = new GHtmlEdit);
 				if (Edit)
 				{
 					Edit->SetId(IDC_EDITOR);
-					Split->SetViewA(Edit, false);
 
 					#if 1
 					Edit->Name(Src);
@@ -73,13 +79,30 @@ public:
 					#endif
 				}
 
-				Txt = new GTextView3(IDC_HTML, 0, 0, 100, 100);
-				if (Txt)
+				Split->AddView(Tabs = new GTabView(IDC_TABS));
+				if (Tabs)
 				{
-					Split->SetViewB(Txt, true);
-				}	
+					GTabPage *p = Tabs->Append("Html Output");
+					if (p)
+					{
+						p->AddView(Txt = new GTextView3(IDC_HTML, 0, 0, 100, 100));
+						Txt->SetPourLargest(true);
+					}
+					
+					p = Tabs->Append("Node View");
+					if (p)
+					{
+						p->AddView(Tree = new GTree(IDC_TREE, 0, 0, 100, 100));
+						Tree->SetPourLargest(true);
+					}
+					
+					Tabs->Value(1);
+				}
+
+				Split->Value(GetClient().X()/2);
 			}
 
+			AttachChildren();
 			Pour();
 			Visible(true);
 		}
@@ -87,12 +110,19 @@ public:
 
 	int OnNotify(GViewI *c, int f)
 	{
-		if (c->GetId() == IDC_EDITOR && f == GTVN_DOC_CHANGED)
+		if (c->GetId() == IDC_EDITOR &&
+			#if 1
+			(f == GTVN_DOC_CHANGED || f == GTVN_CURSOR_CHANGED) &&
+			#else
+			(f == GTVN_DOC_CHANGED) &&
+			#endif
+			Edit)
 		{
-			if (Txt && Edit)
-			{
+			if (Txt)
 				Txt->Name(Edit->Name());
-			}
+			
+			if (Edit && Tree)
+				Edit->DumpNodes(Tree);
 		}
 
 		return 0;

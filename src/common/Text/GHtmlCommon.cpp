@@ -598,7 +598,7 @@ void GHtmlElement::Detach()
 {
 	if (Parent)
 	{
-		Parent->Children.Delete(this);
+		Parent->Children.Delete(this, true);
 		Parent = NULL;
 	}
 }

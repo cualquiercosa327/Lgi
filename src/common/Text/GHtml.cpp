@@ -6118,7 +6118,22 @@ void GHtml::ParseDocument(const char *Doc)
 					Body->SetTag("body");
 				
 				Html->Attach(Body);
-				Body->Attach(Tag);
+
+				if (Tag->Text())
+				{
+					GTag *Content = new GTag(this, Body);
+					if (Content)
+					{
+						Content->TagId = CONTENT;
+						Content->Text(NewStrW(Tag->Text()));
+					}
+				}
+				while (Tag->Children.Length())
+				{
+					GTag *t = ToTag(Tag->Children.First());
+					Body->Attach(t, Body->Children.Length());
+				}
+				DeleteObj(Tag);
 				
 				Tag = Html;
 			}
@@ -6603,7 +6618,7 @@ GTag *GHtml::NextTag(GTag *t)
 	// listed via recursion using "in order".
 
 	// Does this have a child tag?
-	if (t->Children.Length()>0)
+	if (t->Children.Length() > 0)
 	{
 		return ToTag(t->Children.First());
 	}
@@ -6617,7 +6632,8 @@ GTag *GHtml::NextTag(GTag *t)
 			{
 				GTag *pp = ToTag(p->Parent);
 				int Idx = pp->Children.IndexOf(p);
-				GTag *Next = ToTag(pp->Children[Idx + 1]);
+				
+				GTag *Next = pp->Children.Length() > Idx + 1 ? ToTag(pp->Children[Idx + 1]) : NULL;
 				if (Next)
 				{
 					return Next;
@@ -6642,6 +6658,8 @@ int GHtml::GetTagDepth(GTag *Tag)
 
 bool GHtml::IsCursorFirst()
 {
+	if (!Cursor || !Selection)
+		return false;
 	return CompareTagPos(Cursor, Cursor->Cursor, Selection, Selection->Selection);
 }
 

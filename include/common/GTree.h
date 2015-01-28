@@ -100,7 +100,7 @@ protected:
 	int GetColumnSize(int Col);
 
 protected:
-	char *Str;
+	GArray<GAutoString> Str;
 	int Sys_Image;
 
 public:
@@ -135,6 +135,8 @@ public:
 	void Expanded(bool b);
 	/// Scrolls the tree view so this node is visible.
 	void ScrollTo();
+	/// Gets the bounding box of the item.
+	GRect *GetPos(int Col = -1);
 
 	/// Called when the node expands/contracts to show or hide it's children.
 	virtual void OnExpand(bool b);

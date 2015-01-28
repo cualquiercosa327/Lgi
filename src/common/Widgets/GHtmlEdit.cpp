@@ -1285,149 +1285,150 @@ public:
 		}
 	}
 
-	void MoveCursor(int Dx, int Dy, bool Selecting = false)
+	bool MoveCursor(int Dx, int Dy, bool Selecting = false)
 	{
 		if (Blocks.Length() == 0)
 			BuildBlocks();
 
 		GTag *t = GetCur();
-		if (t)
+		if (!t)
+			return false;
+
+		GTag *NewCur = 0;
+		int NewPos = -1;
+		LgiAssert(t->Cursor >= 0);
+
+		int Base = t->GetTextStart();
+		char16 *Txt = t->Text() + Base;
+
+		int len = StrlenW(Txt);
+		if (Dx)
 		{
-			GTag *NewCur = 0;
-			int NewPos = -1;
-			LgiAssert(t->Cursor >= 0);
-
-			int Base = t->GetTextStart();
-			char16 *Txt = t->Text() + Base;
-
-			int len = StrlenW(Txt);
-			if (Dx)
+			if (Selection && !Selecting)
 			{
-				if (Selection && !Selecting)
+				// Deselecting the current selection, move the cursor
+				// to one of the selection block's ends.
+				int i = -1;
+				GTag *t = 0;
+				if (Dx < 0)
 				{
-					// Deselecting the current selection, move the cursor
-					// to one of the selection block's ends.
-					int i = -1;
-					GTag *t = 0;
-					if (Dx < 0)
+					if (IsCursorFirst())
 					{
-						if (IsCursorFirst())
-						{
-							t = Cursor;
-							i = Cursor->Cursor;
-						}
-						else
-						{
-							t = Selection;
-							i = Selection->Selection;
-						}
+						t = Cursor;
+						i = Cursor->Cursor;
 					}
 					else
 					{
-						if (IsCursorFirst())
-						{
-							t = Selection;
-							i = Selection->Selection;
-						}
-						else
-						{
-							t = Cursor;
-							i = Cursor->Cursor;
-						}
-					}
-
-					if (t)
-					{
-						Cursor->Cursor = -1;
-						Selection->Selection = -1;
-						Cursor = t;
-						Cursor->Cursor = i;
-						Selection = 0;
-
-						OnCursorChanged();
+						t = Selection;
+						i = Selection->Selection;
 					}
 				}
 				else
 				{
-					// Move along the current tag
-					int i = t->Cursor + Dx;
-					if (i >= 0)
+					if (IsCursorFirst())
 					{
-						if (i <= len)
+						t = Selection;
+						i = Selection->Selection;
+					}
+					else
+					{
+						t = Cursor;
+						i = Cursor->Cursor;
+					}
+				}
+
+				if (t)
+				{
+					Cursor->Cursor = -1;
+					Selection->Selection = -1;
+					Cursor = t;
+					Cursor->Cursor = i;
+					Selection = 0;
+
+					OnCursorChanged();
+				}
+			}
+			else
+			{
+				// Move along the current tag
+				int i = t->Cursor + Dx;
+				if (i >= 0)
+				{
+					if (i <= len)
+					{
+						NewCur = t;
+						NewPos = i;
+					}
+					else
+					{
+						// Run off the right edge
+						GRect *r = GetCursorPos();
+						Block *b = GetRight(r->x1, r->y1 + (r->Y() >> 1));
+						if (b)
 						{
-							NewCur = t;
-							NewPos = i;
+							NewCur = b->t;
+							NewPos = b->StartOffset();
 						}
 						else
 						{
-							// Run off the right edge
-							GRect *r = GetCursorPos();
-							Block *b = GetRight(r->x1, r->y1 + (r->Y() >> 1));
+							// No element to the right, so go down
+							b = GetBelow(r->x1, r->y1 + (r->Y() >> 1));
 							if (b)
 							{
 								NewCur = b->t;
 								NewPos = b->StartOffset();
 							}
-							else
-							{
-								// No element to the right, so go down
-								b = GetBelow(r->x1, r->y1 + (r->Y() >> 1));
-								if (b)
-								{
-									NewCur = b->t;
-									NewPos = b->StartOffset();
-								}
-							}
-						}
-					}
-					else
-					{
-						// Run off the left edge
-						GRect *r = GetCursorPos();
-						Block *b = GetLeft(r->x1, r->y1 + (r->Y() >> 1));
-						if (b)
-						{
-							NewCur = b->t;
-							NewPos = b->EndOffset();
 						}
 					}
 				}
-			}
-			else if (Dy)
-			{
-				GFont *f = t->GetFont();
-				if (f)
+				else
 				{
-					Block *b = 0;
+					// Run off the left edge
 					GRect *r = GetCursorPos();
-
-					if (Dy < 0)
-					{
-						b = GetAbove(r->x1, r->y1);
-					}
-					else
-					{
-						b = GetBelow(r->x1, r->y1 + (r->Y() >> 1));
-					}
-
+					Block *b = GetLeft(r->x1, r->y1 + (r->Y() >> 1));
 					if (b)
 					{
-						int Dx = r->x1 - b->x1;
-						int Char = 0;
-						if (b->fr)
-						{
-							GDisplayString Ds(f, b->fr->Text);
-							Ds.CharAt(b->fr->Len);
-						}
-						int Start = b->fr ? (b->fr->Text - b->t->TextPos[b->t->PreText() ? 1 : 0]->Text) : 0;
-						NewPos = Start + Char;
 						NewCur = b->t;
+						NewPos = b->EndOffset();
 					}
 				}
 			}
-
-			SetCursor(NewCur, NewPos, Selecting);
 		}
+		else if (Dy)
+		{
+			GFont *f = t->GetFont();
+			if (f)
+			{
+				Block *b = 0;
+				GRect *r = GetCursorPos();
+
+				if (Dy < 0)
+				{
+					b = GetAbove(r->x1, r->y1);
+				}
+				else
+				{
+					b = GetBelow(r->x1, r->y1 + (r->Y() >> 1));
+				}
+
+				if (b)
+				{
+					int Dx = r->x1 - b->x1;
+					int Char = 0;
+					if (b->fr)
+					{
+						GDisplayString Ds(f, b->fr->Text);
+						Ds.CharAt(b->fr->Len);
+					}
+					int Start = b->fr ? (b->fr->Text - b->t->TextPos[b->t->PreText() ? 1 : 0]->Text) : 0;
+					NewPos = Start + Char;
+					NewCur = b->t;
+				}
+			}
+		}
+
+		SetCursor(NewCur, NewPos, Selecting);
+		return true;
 	}
 
 	void OnMouseClick(GMouse &m)
@@ -1523,11 +1524,13 @@ public:
 			}
 
 			t->Text(0);
+
 			if (t->Parent)
-			{
-				t->Parent->Children.Delete(t);
-			}
-			if (Others) Others->Delete(t);
+				t->Parent->Children.Delete(t, true);
+
+			if (Others)
+				Others->Delete(t, true);
+
 			DeleteObj(t);
 
 			return true;
@@ -1536,63 +1539,44 @@ public:
 		return false;
 	}
 	
-	void ClearSelection()
+	bool DeleteSelection()
 	{
-		if (Selection)
-		{
-			Selection->Selection = -1;
-			Selection = NULL;
-		}
-		if (Cursor)
-		{
-			Cursor->Cursor = -1;
-			Cursor = NULL;
-		}
-	}
-	
-	bool DeleteRange(GTag *FromTag, int FromIdx, GTag *ToTag, int ToIdx, bool MoveCursorToStart)
-	{
-		if (!FromTag || ToTag)
-		{
-			LgiAssert(0);
+		if (!Cursor || !Selection)
 			return false;
-		}
-		
-		if (FromTag->Text() &&
-			FromTag == ToTag)
+
+		if (Cursor->Text() &&
+			Selection == Cursor)
 		{
 			// Delete range within one tag
-			int Offset = FromTag->GetTextStart();
+			int Offset = Cursor->GetTextStart();
+			char16 *t  = Cursor->Text();
+			int Start  = min(Cursor->Cursor, Selection->Selection) + Offset;
+			int End    = max(Cursor->Cursor, Selection->Selection) + Offset;
+			int Len    = StrlenW(t + End);
 			
-			// Figure out the range of the text to delete...
-			int Start = min(ToIdx, FromIdx) + Offset;
-			int End = max(ToIdx, FromIdx) + Offset;
-			
-			// Shift the characters down, including the terminating NULL.
-			char16 *t = FromTag->Text();
-			int Chars = StrlenW(t + End);
-			memmove(t + Start, t + End, (Chars + 1) * sizeof(*t));
-			
-			if (MoveCursorToStart)
-			{
-				// Put the cursor at the start of the deletion range.
-				ClearSelection();				
-				Cursor = FromTag;
-				Cursor->Cursor = Start;
-			}
+			// Move the characters down, including the terminating NULL
+			memmove(t + Start, t + End, (Len + 1) * sizeof(*t));
+
+			// Update cursor to the start of the range, and remove the selection point
+			Selection->Selection = -1;
+			Selection = NULL;
+			Cursor->Cursor = Start - Offset;
+
+			return true;
 		}
 		else
 		{
 			// Delete over multiple tags.			
-			bool FromFirst = CompareTagPos(Cursor, Cursor->Cursor, Selection, Selection->Selection);
-			GTag *First = FromFirst ? FromTag : ToTag;
-			GTag *Last = FromFirst ? ToTag : FromTag;
-			int &FirstMarker = FromFirst ? &Cursor->Cursor : &Selection->Selection;
+			bool CursorFirst     = IsCursorFirst();
+			GTag *First          = CursorFirst ? Cursor : Selection;
+			GTag *Last           = CursorFirst ? Selection : Cursor;
+			int *FirstMarker     = CursorFirst ? &Cursor->Cursor : &Selection->Selection;
 			int FirstMarkerValue = *FirstMarker;
 
 			// Delete from first marker to the end of that tag
 			int Offset = First->GetTextStart();
-			First->Text(NewStrW(First->Text() + Offset, *FirstMarker));
+			char16 *t = First->Text();
+			t[Offset + *FirstMarker] = 0;
 			*FirstMarker = -1;
 
 			// Scan through to the end marker					
@@ -1603,10 +1587,14 @@ public:
 				if (n == Last)
 				{
 					// Last tag
-					Offset = n->GetTextStart();
+					t = Last->Text() + n->GetTextStart();
 					int *LastMarker = CursorFirst ? &Selection->Selection : &Cursor->Cursor;
-					n->Text(NewStrW(n->Text() + Offset + *LastMarker));
+					int Len = StrlenW(t + *LastMarker) + 1;
+					memmove(t, t + *LastMarker, Len * sizeof(*t));
 					*LastMarker = -1;
+					
+					if (!*t && !PostDelete.HasItem(n))
+						PostDelete.Add(n);
 					break;
 				}
 				else
@@ -1617,30 +1605,30 @@ public:
 				}
 			}
 
-			// Don't delete a parent item of the selection or cursor...
-			for (n = Cursor; n; n = ToTag(n->Parent))
+			// Don't delete a parent item of the First tag...
+			for (n = First; n; n = ToTag(n->Parent))
 			{
 				PostDelete.Delete(n);
 			}
+			/*
 			for (n = Selection; n; n = ToTag(n->Parent))
 			{
 				PostDelete.Delete(n);
 			}
+			*/
 
 			// Process deletes
 			for (unsigned i=0; i<PostDelete.Length(); )
 			{
 				if (!DeleteTag(PostDelete[i], &PostDelete))
-				{
 					break;
-				}
 			}
 
-			Selection = 0;
 			Cursor = First;
 			Cursor->Cursor = FirstMarkerValue;
+			Selection = NULL;
 		}
-
+		
 		return true;
 	}
 
@@ -1655,161 +1643,13 @@ public:
 
 			if (Selection)
 			{
-				Status = DeleteRange(Cursor, Cursor->Cursor,
-									Selection, Selection->Selection);
-				if (Status)
-				{
-					Cursor->Cursor = min(Cursor->Cursor, Selection->Selection);
-					Selection->Selection = -1;
-					Selection = NULL;
-				}
+				Status = DeleteSelection();
 			}
 			else if (t->Text())
 			{
-				int s = t->GetTextStart();
-				int Len = StrlenW(t->Text() + s);
-				bool End = t->Cursor >= Len;
-				if (End && !Backwards)
+				if (MoveCursor(Backwards ? -1 : 1, 0, true))
 				{
-					GTag *n = t;
-					while ((n = NextTag(n)))
-					{
-						if (n->TagId == TAG_BR)
-						{
-							LgiAssert(n != Selection && n != Cursor);
-							n->Detach();
-							DeleteObj(n);
-							break;
-						}
-
-						if (IsEditable(n))
-							break;
-					}
-					if (n)
-					{
-						t->Cursor = -1;
-						Cursor = t = n;
-						if (t)
-						{
-							t->Cursor = 0;
-							
-							s = t->GetTextStart();
-							Len = StrlenW(t->Text() + s);
-							End = t->Cursor >= Len - 1;
-						}
-					}
-				}
-
-				if (Backwards)
-				{
-					if (t->Cursor > 0)
-					{
-						t->Cursor--;
-					}
-					else
-					{
-						GTag *n = PrevTag(t);
-
-						while (n)
-						{
-							if (n->TagId == CONTENT &&
-								n->Text() &&
-								StrlenW(n->Text()) == 0)
-							{
-								GTag *Del = n;
-								n = PrevTag(n);
-
-								LgiAssert(Del != Selection && Del != Cursor);
-								Del->Detach();
-								DeleteObj(Del);
-								continue;
-							}
-							else if (n->TagId == TAG_P ||
-									 n->TagId == TAG_BR)
-							{
-								LgiAssert(n != Selection && n != Cursor);
-								n->Detach();
-								DeleteObj(n);
-
-								if ((n = PrevTag(n)))
-								{
-									Cursor->Cursor = -1;
-									Cursor = n;
-									Cursor->Cursor = StrlenW(Cursor->Text());
-								}
-								break;
-							}
-
-							if (IsEditable(n))
-								break;
-
-							n = PrevTag(n);
-						}
-						if (n)
-						{
-							t->Cursor = -1;
-							Cursor = t = n;
-							if (t)
-							{
-								s = t->GetTextStart();
-								t->Cursor = StrlenW(t->Text()) - s - 1;
-								if (t->Cursor < 0)
-								{
-									t = 0;
-								}
-								else
-								{
-									Len = StrlenW(t->Text() + s);
-									End = t->Cursor >= Len - 1;
-								}
-							}
-						}
-					}
-				}
-
-				if (t)
-				{
-					char16 *c = t->Text() + t->Cursor + s;
-					if (*c)
-					{
-						memmove(c, c + 1, (StrlenW(c + 1) + 1) * sizeof(*t->Text()));
-					}
-					
-					if (!t->Text() || StrlenW(t->Text()) == 0)
-					{
-						// Tag is now empty...
-						t->Cursor = -1;
-						while ((Cursor = (Backwards ? PrevTag(Cursor) : NextTag(Cursor))))
-						{
-							if (Cursor->Text())
-								break;
-						}
-						if (Cursor)
-						{
-							if (Backwards)
-								Cursor->Cursor = StrlenW(Cursor->Text());
-							else
-								Cursor->Cursor = 0;
-						}
-
-						if (t->TagId == CONTENT)
-						{
-							GTag *a = NextTag(t);
-							if (a && a->TagId == TAG_BR)
-							{
-								LgiAssert(a != Selection && a != Cursor);
-								a->Detach();
-								DeleteObj(a);
-							}
-
-							LgiAssert(t != Selection && t != Cursor);
-							t->Detach();
-							DeleteObj(t);
-						}
-
-						OnCursorChanged();
-					}
-					Status = true;
+					Status = DeleteSelection();
 				}
 			}
 		}
@@ -2511,9 +2351,11 @@ public:
 };
 #endif
 
-GHtmlEdit::GHtmlEdit()
+GHtmlEdit::GHtmlEdit(int Id)
 {
 	d = new GHtmlEditPriv;
+	if (Id > 0)
+		SetId(Id);
 
 	// Setup the toolbar
 	Children.Insert(d->SelectStyle = new GCombo(IDC_STYLE, 0, 0, 80, TOOLBAR_HT, 0));
@@ -2753,6 +2595,90 @@ void GHtmlEdit::Sunken(bool i)
 {
 	if (d->e)
 		d->e->Sunken(i);
+}
+
+void DumpNode(GTag *Tag, GTreeItem *Item)
+{
+	static char s[512];
+	const char *TagName;
+	if (Tag->TagId == CONTENT)
+		TagName = "CONTENT";
+	else if (Tag->TagId == ROOT)
+		TagName = "ROOT";
+	else if (Tag->Tag)
+		TagName = Tag->Tag;
+	else
+		TagName = "NULL";
+
+	sprintf_s(s, sizeof(s), "%p %s", Tag, TagName);
+	Item->SetText(s, 0);
+
+	sprintf_s(s, sizeof(s), "%i,%i - %i,%i", Tag->Pos.x, Tag->Pos.y, Tag->Size.x, Tag->Size.y);
+	Item->SetText(s, 1);
+	
+	char16 *t = Tag->Text();
+	if (t)
+	{
+		int ch = sprintf_s(s, sizeof(s), "%i ", Tag->GetTextStart());
+		int i;
+		for (i=0; t[i] && ch < sizeof(s) - 16; i++)
+		{
+			if (Tag->Cursor == i)
+				ch += sprintf_s(s+ch, sizeof(s)-ch, "[cur]");
+			if (Tag->Selection == i)
+				ch += sprintf_s(s+ch, sizeof(s)-ch, "[sel]");
+			
+			if (t[i] == ' ')
+				ch += sprintf_s(s+ch, sizeof(s)-ch, ".");
+			else if (t[i] == '\n')
+				ch += sprintf_s(s+ch, sizeof(s)-ch, "\\n");
+			else if (t[i] == '\t')
+				ch += sprintf_s(s+ch, sizeof(s)-ch, "\\t");
+			else
+				ch += sprintf_s(s+ch, sizeof(s)-ch, "%C", t[i]);
+		}
+		if (Tag->Cursor == i)
+			ch += sprintf_s(s+ch, sizeof(s)-ch, "[cur]");
+		if (Tag->Selection == i)
+			ch += sprintf_s(s+ch, sizeof(s)-ch, "[sel]");
+		s[ch++] = 0;
+		Item->SetText(s, 2);
+	}
+	
+	for (unsigned i=0; i<Tag->Children.Length(); i++)
+	{
+		GTreeItem *ci = new GTreeItem;
+		if (ci)
+		{
+			Item->Insert(ci);
+			GTag *c = dynamic_cast<GTag*>(Tag->Children[i]);
+			if (c)
+				DumpNode(c, ci);
+			else
+				ci->SetText("NULL child");
+		}		
+	}
+	
+	Item->Expanded(true);
+}
+
+void GHtmlEdit::DumpNodes(GTree *Out)
+{
+	if (!Out) return;
+	
+	Out->Empty();
+	Out->ShowColumnHeader(true);
+	Out->AddColumn("Tag", 190);
+	Out->AddColumn("Pos", 80);
+	Out->AddColumn("Text", 280);
+	
+	GTag *RootTag = d->e->GetTag();
+	GTreeItem *RootItem = new GTreeItem;
+	if (RootTag && RootItem)
+	{
+		Out->Insert(RootItem);
+		DumpNode(RootTag, RootItem);
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////

@@ -2,6 +2,7 @@
 #define _RICH_EDIT_H_
 
 #include "GHtml.h"
+#include "GTree.h"
 
 class GHtmlEdit : public GDocView
 {
@@ -10,7 +11,7 @@ class GHtmlEdit : public GDocView
 	void SetIgnorePulse(bool b);
 
 public:
-	GHtmlEdit();
+	GHtmlEdit(int Id = -1);
 	~GHtmlEdit();
 
 	const char *GetClass() { return "GHtmlEdit"; }
@@ -25,6 +26,9 @@ public:
 	bool Name(const char *s);
 	bool Sunken();
 	void Sunken(bool i);
+	
+	// Debugging
+	void DumpNodes(GTree *Out);
 };
 
 #endif

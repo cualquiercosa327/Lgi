@@ -377,7 +377,6 @@ GTreeItem::~GTreeItem()
 
 	_Remove();
 	Items.DeleteObjects();
-	DeleteArray(Str);
 	DeleteObj(d);
 
 	if (t)
@@ -423,6 +422,11 @@ GRect *GTreeItem::_GetRect(GTreeItemRect Which)
 	}
 	
 	return 0;
+}
+
+GRect *GTreeItem::GetPos(int Col)
+{
+	return &d->Pos;
 }
 
 void GTreeItem::_RePour()
@@ -604,19 +608,16 @@ void GTreeItem::_ClearDs(int Col)
 
 char *GTreeItem::GetText(int i)
 {
-	return Str;
+	return Str[i];
 }
 
 bool GTreeItem::SetText(const char *s, int i)
 {
-	char *New = NewStr(s);
-	DeleteArray(Str);
-	Str = New;
+	if (!Str[i].Reset(NewStr(s)))
+		return false;
 
 	if (Tree)
-	{
 		Update();
-	}
 
 	return true;
 }
