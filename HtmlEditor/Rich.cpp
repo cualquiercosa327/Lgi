@@ -47,10 +47,12 @@ class App : public GWindow
 	GTextView3 *Txt;
 	GTabView *Tabs;
 	GTree *Tree;
+	uint64 LastChange;
 
 public:
 	App()
 	{
+		LastChange = 0;
 		Edit = 0;
 		Txt = 0;
 		Tabs = NULL;
@@ -105,6 +107,7 @@ public:
 			AttachChildren();
 			Pour();
 			Visible(true);
+			SetPulse(200);
 		}
 	}
 
@@ -118,14 +121,26 @@ public:
 			#endif
 			Edit)
 		{
+			LastChange = LgiCurrentTime();
+			Tree->Empty();
+		}
+
+		return 0;
+	}
+	
+	void OnPulse()
+	{
+		uint64 Now = LgiCurrentTime();
+		if (LastChange != 0 && Now - LastChange > 1500)
+		{
+			LastChange = 0;
+			
 			if (Txt)
 				Txt->Name(Edit->Name());
 			
 			if (Edit && Tree)
 				Edit->DumpNodes(Tree);
 		}
-
-		return 0;
 	}
 };
 

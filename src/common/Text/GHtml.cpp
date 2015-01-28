@@ -5710,7 +5710,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 			OnPaintBorder(pDC);
 
 			GFont *f = GetFont();
-			#ifdef _DEBUG
+			#if DEBUG_TEXT_AREA
 			bool IsEditor = Html ? !Html->GetReadOnly() : false;
 			#else
 			bool IsEditor = false;
@@ -5729,9 +5729,9 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 					LineHtOff = EffectiveLineHt > FontHt ? max(0, ((EffectiveLineHt - FontHt) >> 1) - 1) : 0;
 				}
 				
-				#define FontColour(s) \
-					f->Transparent(!s && !IsEditor); \
-					if (s) \
+				#define FontColour(InSelection) \
+					f->Transparent(!InSelection && !IsEditor); \
+					if (InSelection) \
 						f->Colour(LC_FOCUS_SEL_FORE, LC_FOCUS_SEL_BACK); \
 					else \
 					{ \
@@ -5827,15 +5827,18 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 
 							// Draw the text run
 							GDisplayString ds(f, Tr->Text + Done, c);
-							ds.Draw(pDC, x, Tr->y1 + LineHtOff, IsEditor ? Tr : NULL);
+							if (IsEditor)
+							{
+								GRect r(x, Tr->y1, x + ds.X() - 1, Tr->y2);
+								ds.Draw(pDC, x, Tr->y1 + LineHtOff, &r);
+							}
+							else
+							{
+								ds.Draw(pDC, x, Tr->y1 + LineHtOff);
+							}
 							x += ds.X();
 							Done += c;
 							
-							#if DEBUG_TEXT_AREA
-							pDC->Colour(GColour(255, 0, 0));
-							pDC->Box(Tr);
-							#endif
-
 							// Is this is end of the tag?
 							if (Tr->Len == Done)
 							{
@@ -5890,11 +5893,6 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 						GDisplayString ds(f, Tr->Text, Tr->Len);
 						ds.Draw(pDC, Tr->x1, Tr->y1 + LineHtOff, IsEditor ? Tr : NULL);
 
-						#if DEBUG_TEXT_AREA
-						pDC->Colour(GColour(255, 0, 0));
-						pDC->Box(Tr);
-						#endif
-
 						if
 						(
 							(
@@ -5941,11 +5939,6 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 						GFlowRect *Tr = TextPos[i];
 						GDisplayString ds(f, Tr->Text, Tr->Len);
 						ds.Draw(pDC, Tr->x1, Tr->y1 + LineHtOff, IsEditor ? Tr : NULL);
-						
-						#if DEBUG_TEXT_AREA
-						pDC->Colour(GColour(255, 0, 0));
-						pDC->Box(Tr);
-						#endif
 					}
 				}
 			}
