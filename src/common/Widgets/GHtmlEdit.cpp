@@ -336,217 +336,6 @@ class HtmlEdit : public Html1::GHtml, public GDefaultDocumentEnv
 	GTag *b;
 	GHtmlEdit *Edit;
 
-	/*
-	GArray<Block> Blocks;
-	void BlockTag(GTag *t)
-	{
-		// Creates a block for each run of text we know about. This is then used for doing
-		// cursoring around.
-		for (unsigned n=0; n<t->TextPos.Length(); n++)
-		{
-			GFlowRect *Tr = t->TextPos[n];
-			
-			if (t->PreText() && !n)
-			{
-				if (!ValidStrW(t->Text()))
-				{
-					Block *b = &Blocks.New();
-					int x = t->AbsX();
-					int y = t->AbsY();
-					b->Set(x + Tr->x2, y + Tr->y1, x + Tr->x2 + 1, y + Tr->y2 - 1);
-					b->t = t;
-					break;
-				}
-
-				continue;
-			}
-
-			Block *b = &Blocks.New();
-			int x = t->AbsX();
-			int y = t->AbsY();
-			(GRect&)*b = (GRect&)*Tr;
-			b->Offset(x, y);
-			b->t = t;
-			b->fr = Tr;
-		}
-
-		// Run through children
-		for (unsigned i=0; i<t->Children.Length(); i++)
-		{
-			GTag *c = ToTag(t->Children[i]);
-			BlockTag(c);
-		}
-	}
-
-	void BuildBlocks()
-	{
-		// Rebuild the block list from scratch.
-		Blocks.Length(0);
-		BlockTag(Tag);
-	}
-
-	Block *GetBelow(int x, int y)
-	{
-		// Gets the next block below the x,y point. Usually used when the user
-		// cursors down.
-		Block *Close = 0;
-		for (unsigned i=0; i<Blocks.Length(); i++)
-		{
-			Block *b = &Blocks[i];
-			if (!b->Overlap(x, y) &&
-				b->y1 > y)
-			{
-				if (!Close)
-				{
-					Close = b;
-				}
-				else
-				{
-					if (b->OverlapY(Close))
-					{
-						if (b->OverlapX(x) &&
-							!Close->OverlapX(x))
-						{
-							Close = b;
-						}
-					}
-					else if (b->y1 < Close->y1)
-					{
-						Close = b;
-					}
-				}
-			}
-		}
-		return Close;
-	}
-
-	Block *GetAbove(int x, int y)
-	{
-		// Gets the next block above the x,y point. Usually used when the user
-		// cursors up.
-		Block *Close = 0;
-		for (unsigned i=0; i<Blocks.Length(); i++)
-		{
-			Block *b = &Blocks[i];
-			if (b->y2 < y)
-			{
-				if (!Close)
-				{
-					Close = b;
-				}
-				else
-				{
-					if (b->OverlapY(Close))
-					{
-						if (b->OverlapX(x) &&
-							!Close->OverlapX(x))
-						{
-							Close = b;
-						}
-					}
-					else if (b->y1 > Close->y1)
-					{
-						Close = b;
-					}
-				}
-			}
-		}
-		return Close;
-	}
-
-	Block *GetLeft(int x, int y)
-	{
-		// Gets the next block to the left of the x,y point. Usually used when the user
-		// cursors left.
-		Block *Close = 0;
-		for (unsigned i=0; i<Blocks.Length(); i++)
-		{
-			Block *b = &Blocks[i];
-			if (!b->Overlap(x, y))
-			{
-				if (b->OverlapY(y))
-				{
-					if (b->x2 < x)
-					{
-						if (!Close || (b->x2 > Close->x2))
-						{
-							Close = b;
-						}
-					}
-				}
-				else if (b->y2 < y)
-				{
-					if (!Close)
-					{
-						Close = b;
-					}
-					else if (Close->OverlapY(b->y2))
-					{
-						if (b->x1 > Close->x2)
-						{
-							Close = b;
-						}
-					}
-					else if (b->y1 > Close->y2)
-					{
-						Close = b;
-					}
-				}
-			}
-		}
-		return Close;
-	}
-
-	Block *GetRight(int x, int y)
-	{
-		// Gets the next block to the right of the x,y point. Usually used when the user
-		// cursors right.
-		Block *Close = 0;
-		for (unsigned i=0; i<Blocks.Length(); i++)
-		{
-			Block *b = &Blocks[i];
-			if (!b->Overlap(x, y))
-			{
-				if (b->OverlapY(y))
-				{
-					// Same line
-					if (b->x1 > x)
-					{
-						// On the right
-						if (!Close || (b->x1 < Close->x1))
-						{
-							Close = b;
-						}
-					}
-				}
-				else if (b->y1 > y)
-				{
-					// Below
-					if (!Close)
-					{
-						Close = b;
-					}
-					else if (Close->OverlapY(b->y1))
-					{
-						// Close and b are on the same line
-						if (b->x2 < Close->x1)
-						{
-							// b is furthur left, which is what we want
-							Close = b;
-						}
-					}
-					else if (b->y2 < Close->y1)
-					{
-						// b is above Close
-						Close = b;
-					}
-				}
-			}
-		}
-		return Close;
-	}
-	*/
-
 	Block *FindBlock(Block::Direction Dir, int x, int y)
 	{
 		static Block Ret;
@@ -568,6 +357,8 @@ class HtmlEdit : public Html1::GHtml, public GDefaultDocumentEnv
 		}
 		
 		// Scan through all the children looking for suitable text rects...
+		Ret.t = NULL;
+		Ret.fr = NULL;
 		for (int i=0; i<t->Children.Length(); i++)
 		{
 			GTag *c = ToTag(t->Children[i]);
@@ -577,17 +368,68 @@ class HtmlEdit : public Html1::GHtml, public GDefaultDocumentEnv
 			{
 				GFlowRect *r = c->TextPos[n];
 				if (!r) continue;
-				
-				if (r->Overlap(LocalCoords.x, LocalCoords.y))
+
+				switch (Dir)
 				{
-					Ret.t = c;
-					Ret.fr = r;
-					return &Ret;
+					case Block::Left:
+					{
+						if (r->OverlapY(y) && r->x2 <= x)
+						{
+							// Left of current position... but is it nearest?
+							if (!Ret.fr || Ret.fr->x2 < r->x2)
+							{
+								Ret.t = c;
+								Ret.fr = r;
+							}
+						}
+						break;
+					}
+					case Block::Right:
+					{
+						if (r->OverlapY(y) && r->x1 > x)
+						{
+							// Left of current position... but is it nearest?
+							if (!Ret.fr || Ret.fr->x1 > r->x1)
+							{
+								Ret.t = c;
+								Ret.fr = r;
+							}
+						}
+						break;
+					}
+					case Block::Up:
+					{
+						if (r->y2 <= y)
+						{
+							if (!Ret.fr ||
+								r->y2 > Ret.fr->y2 ||
+								(r->OverlapY(Ret.fr) && r->x1 > Ret.fr->x1))
+							{
+								Ret.t = c;
+								Ret.fr = r;
+							}
+						}
+						break;
+					}
+					case Block::Down:
+					{
+						if (r->y1 >= y)
+						{
+							if (!Ret.fr ||
+								r->y1 < Ret.fr->y1 ||
+								(r->OverlapY(Ret.fr) && r->x2 < Ret.fr->x2))
+							{
+								Ret.t = c;
+								Ret.fr = r;
+							}
+						}
+						break;
+					}
 				}
 			}
 		}
 		
-		return NULL;
+		return Ret.t ? &Ret : NULL;
 	}
 
 public:
@@ -1453,6 +1295,15 @@ public:
 					{
 						NewCur = b->t;
 						NewPos = b->EndOffset();
+					}
+					else
+					{
+						b = FindBlock(Block::Up, r->x1, r->y1 + (r->Y() >> 1));
+						if (b)
+						{
+							NewCur = b->t;
+							NewPos = b->EndOffset();
+						}
 					}
 				}
 			}
