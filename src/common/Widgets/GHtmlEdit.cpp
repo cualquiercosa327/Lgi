@@ -351,8 +351,6 @@ class HtmlEdit : public Html1::GHtml, public GDefaultDocumentEnv
 		while (	t->Display() != GCss::DispBlock &&
 				t->Parent)
 		{
-			LocalCoords.x += t->Pos.x;
-			LocalCoords.y += t->Pos.y;
 			t = ToTag(t->Parent);
 		}
 		
@@ -386,7 +384,7 @@ class HtmlEdit : public Html1::GHtml, public GDefaultDocumentEnv
 					}
 					case Block::Right:
 					{
-						if (r->OverlapY(y) && r->x1 > x)
+						if (r->OverlapY(y) && r->x1 >= x)
 						{
 							// Left of current position... but is it nearest?
 							if (!Ret.fr || Ret.fr->x1 > r->x1)

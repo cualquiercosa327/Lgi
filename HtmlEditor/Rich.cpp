@@ -16,8 +16,8 @@ enum Ctrls
 #if 1
 
 char Src[] =
-	"This is a test.<br>\n"
-	"<br>\n"
+	"This is a test. A longer string for the purpose of inter-line cursor testing.<br>\n"
+	"A longer string for the <b>purpose</b> of inter-line cursor testing.<br>\n"
 	"--<br>"
 	"<a href=\"http://web/~matthew\">Matthew Allen</a>";
 
