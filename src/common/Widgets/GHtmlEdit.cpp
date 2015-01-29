@@ -272,8 +272,23 @@ public:
 
 struct Block : public GRect
 {
+	enum Direction
+	{
+		Unknown,
+		Left,
+		Up,
+		Right,
+		Down
+	};
+	
 	GTag *t;
 	GFlowRect *fr;
+
+	Block()
+	{
+		t = NULL;
+		fr = NULL;
+	}
 
 	bool OverlapX(int x) { return x >= x1 && x <= x2; }
 	bool OverlapY(int y) { return y >= y1 && y <= y2; }
@@ -316,13 +331,13 @@ struct Block : public GRect
 	}
 };
 
-#if 1
 class HtmlEdit : public Html1::GHtml, public GDefaultDocumentEnv
 {
 	GTag *b;
-	GArray<Block> Blocks;
 	GHtmlEdit *Edit;
 
+	/*
+	GArray<Block> Blocks;
 	void BlockTag(GTag *t)
 	{
 		// Creates a block for each run of text we know about. This is then used for doing
@@ -529,6 +544,50 @@ class HtmlEdit : public Html1::GHtml, public GDefaultDocumentEnv
 			}
 		}
 		return Close;
+	}
+	*/
+
+	Block *FindBlock(Block::Direction Dir, int x, int y)
+	{
+		static Block Ret;
+		
+		// Get the tag at the given position...
+		int Index;
+		GdcPt2 LocalCoords;
+		GTag *t = GetTagByPos(x, y, &Index, &LocalCoords, false);
+		if (!t)
+			return NULL;
+		
+		// Move up to block level element...
+		while (	t->Display() != GCss::DispBlock &&
+				t->Parent)
+		{
+			LocalCoords.x += t->Pos.x;
+			LocalCoords.y += t->Pos.y;
+			t = ToTag(t->Parent);
+		}
+		
+		// Scan through all the children looking for suitable text rects...
+		for (int i=0; i<t->Children.Length(); i++)
+		{
+			GTag *c = ToTag(t->Children[i]);
+			if (!c) continue;
+			
+			for (int n=0; n<c->TextPos.Length(); n++)
+			{
+				GFlowRect *r = c->TextPos[n];
+				if (!r) continue;
+				
+				if (r->Overlap(LocalCoords.x, LocalCoords.y))
+				{
+					Ret.t = c;
+					Ret.fr = r;
+					return &Ret;
+				}
+			}
+		}
+		
+		return NULL;
 	}
 
 public:
@@ -1114,8 +1173,10 @@ public:
 			// Reflow the page
 			ViewWidth = -1;
 
+			/*
 			// Rebuild the block list...
 			Blocks.Length(0);
+			*/
 		}
 
 		// Update the screen
@@ -1287,8 +1348,10 @@ public:
 
 	bool MoveCursor(int Dx, int Dy, bool Selecting = false)
 	{
+		/*
 		if (Blocks.Length() == 0)
 			BuildBlocks();
+		*/
 
 		GTag *t = GetCur();
 		if (!t)
@@ -1363,7 +1426,7 @@ public:
 					{
 						// Run off the right edge
 						GRect *r = GetCursorPos();
-						Block *b = GetRight(r->x1, r->y1 + (r->Y() >> 1));
+						Block *b = FindBlock(Block::Right, r->x2, r->y1 + (r->Y() >> 1));
 						if (b)
 						{
 							NewCur = b->t;
@@ -1372,7 +1435,7 @@ public:
 						else
 						{
 							// No element to the right, so go down
-							b = GetBelow(r->x1, r->y1 + (r->Y() >> 1));
+							b = FindBlock(Block::Down, r->x1, r->y1 + (r->Y() >> 1));
 							if (b)
 							{
 								NewCur = b->t;
@@ -1385,7 +1448,7 @@ public:
 				{
 					// Run off the left edge
 					GRect *r = GetCursorPos();
-					Block *b = GetLeft(r->x1, r->y1 + (r->Y() >> 1));
+					Block *b = FindBlock(Block::Left, r->x1, r->y1 + (r->Y() >> 1));
 					if (b)
 					{
 						NewCur = b->t;
@@ -1404,11 +1467,11 @@ public:
 
 				if (Dy < 0)
 				{
-					b = GetAbove(r->x1, r->y1);
+					b = FindBlock(Block::Up, r->x1, r->y1);
 				}
 				else
 				{
-					b = GetBelow(r->x1, r->y1 + (r->Y() >> 1));
+					b = FindBlock(Block::Down, r->x1, r->y1 + (r->Y() >> 1));
 				}
 
 				if (b)
@@ -2241,7 +2304,6 @@ public:
 	}
 	#endif
 };
-#endif
 
 class GHtmlEditPriv
 {

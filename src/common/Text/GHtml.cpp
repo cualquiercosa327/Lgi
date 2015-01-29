@@ -4474,6 +4474,8 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, int LineHeight, 
 	#if 1
 	if (!Tag->Html->GetReadOnly() && !*Text)
 	{
+		// Insert a text rect for this tag, even though it's empty.
+		// This allows the user to place the cursor on a blank line.
 		GFlowRect *Tr = new GFlowRect;
 		Tr->Tag = Tag;
 		Tr->Text = Text;
@@ -4483,6 +4485,8 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, int LineHeight, 
 		Tr->y2 = Tr->y1 + Font->GetHeight();
 		LgiAssert(Tr->y2 >= Tr->y1);
 		Flow->y2 = max(Flow->y2, Tr->y2+1);
+		Flow->cx = Tr->x2 + 1;
+
 		Add(Tr);
 		Flow->Insert(Tr);
 		return;				
@@ -4502,7 +4506,7 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, int LineHeight, 
 
 		#if 1 // I removed this at one stage but forget why.
 		
-		// Remove white space at start of line.
+		// Remove white space at start of line if not in edit mode..
 		if (Tag->Html->GetReadOnly() && Flow->x1 == Flow->cx && *Text == ' ')
 		{
 			Text++;
@@ -4944,32 +4948,13 @@ void GTag::OnFlow(GFlowRegion *Flow)
 						CssLineHeight.Type == GCss::LenNormal)
 					{
 						LineHeightCache = Font->GetHeight();
-						#if 1
-						if (LineHeightCache <= 0)
-						{
-							int asd=0;
-						}
-						#endif
 					}
 					else
 					{					
 						LineHeightCache = CssLineHeight.ToPx(Font->GetHeight(), Font);
-						#if 1
-						if (LineHeightCache <= 0)
-						{
-							int asd=0;
-						}
-						#endif
 					}
 				}
 			}
-
-			#if 1
-			if (LineHeightCache <= 0)
-			{
-				int asd=0;
-			}
-			#endif
 
 			// Flow in the rest of the text...
 			char16 *Txt = Text();
