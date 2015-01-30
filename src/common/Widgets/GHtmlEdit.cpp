@@ -335,6 +335,7 @@ class HtmlEdit : public Html1::GHtml, public GDefaultDocumentEnv
 {
 	GTag *b;
 	GHtmlEdit *Edit;
+	GArray<GTag*> OptimizeTags;
 
 	Block *FindBlock(Block::Direction Dir, int x, int y)
 	{
@@ -357,12 +358,12 @@ class HtmlEdit : public Html1::GHtml, public GDefaultDocumentEnv
 		// Scan through all the children looking for suitable text rects...
 		Ret.t = NULL;
 		Ret.fr = NULL;
-		for (int i=0; i<t->Children.Length(); i++)
+		for (unsigned i=0; i<t->Children.Length(); i++)
 		{
 			GTag *c = ToTag(t->Children[i]);
 			if (!c) continue;
 			
-			for (int n=0; n<c->TextPos.Length(); n++)
+			for (unsigned n=0; n<c->TextPos.Length(); n++)
 			{
 				GFlowRect *r = c->TextPos[n];
 				if (!r) continue;
@@ -501,24 +502,59 @@ public:
 		return Status;
 	}
 
+	bool OptimizeLine(GArray<GTag*> &t, int &Deletes)
+	{
+		bool Changed = false;
+		
+		Deletes = 0;
+		for (unsigned i=0; i<t.Length(); i++)
+		{
+			GTag *c = t[i];
+			if (c->TagId == CONTENT &&
+				!ValidStrW(c->Text()))
+			{
+				if (t.Length() > 1)
+				{
+					// Remove the blank tag
+					c->Detach();
+					Deletes++;
+					DeleteObj(c);
+				}
+			}
+		}
+		
+		return Changed;
+	}
+
 	void Optimize(GTag *Tag)
 	{
 		if (Tag)
 		{
 			bool Changed = false;
 
-			// Look through direct children and remove unneccessary complexity
-			GArray<GTag*> t;
-			for (unsigned i=0; i<Tag->Children.Length(); i++)
+			// Look through direct children and remove unnecessary complexity
+			GArray<GHtmlElement*> &t = Tag->Children;
+			GArray<GTag*> Line;			
+			int Deletes = 0;
+			for (unsigned i=0; i<t.Length(); i++)
 			{
-				GTag *c = ToTag(Tag->Children[i]);
-				t.Add(c);
-			}
-			
-			for (unsigned i=0; i<t.Length()-1; i++)
-			{
-				GTag *a = t[i];
-				GTag *b = t[i+1];
+				GTag *c = ToTag(t[i]);
+				if (!c)
+					break;
+				
+				if (c->Display() == GCss::DispBlock ||
+					c->TagId == TAG_BR)
+				{
+					Changed |= OptimizeLine(Line, Deletes);
+					Line.Length(0);
+					i -= Deletes;
+				}
+				else
+				{
+					Line.Add(c);
+				}
+				
+				/*
 				if (IsSameStyle(a, b))
 				{
 					int LenA = StrlenW(a->Text());
@@ -551,13 +587,25 @@ public:
 						Changed = true;
 					}
 				}
+				*/
 			}
+			
+			Changed |= OptimizeLine(Line, Deletes);
 
 			if (Changed)
 			{
 				ViewWidth = -1;
 			}
 		}
+	}
+
+	void Optimize()
+	{
+		for (unsigned i=0; i<OptimizeTags.Length(); i++)
+		{
+			Optimize(OptimizeTags[i]);
+		}
+		OptimizeTags.Length(0);
 	}
 
 	GTag *GetStyleInsertPoint(GTag *Cur, int *Idx)
@@ -1485,6 +1533,16 @@ public:
 			int *FirstMarker     = CursorFirst ? &Cursor->Cursor : &Selection->Selection;
 			int FirstMarkerValue = *FirstMarker;
 
+			int FirstDepth = GetTagDepth(First);
+			int LastDepth = GetTagDepth(Last);
+			GTag *Opt = NULL;
+			if (FirstDepth <= LastDepth)
+				Opt = First->GetBlockParent();
+			else
+				Opt = Last->GetBlockParent();
+			if (Opt)
+				OptimizeTags.Add(Opt);
+
 			// Delete from first marker to the end of that tag
 			int Offset = First->GetTextStart();
 			char16 *t = First->Text();
@@ -1492,8 +1550,6 @@ public:
 			*FirstMarker = -1;
 
 			GArray<GTag*> PostDelete;
-			if (!*t && !PostDelete.HasItem(First))
-				PostDelete.Add(First);
 
 			// Scan through to the end marker					
 			GTag *n = First;
@@ -1507,9 +1563,6 @@ public:
 					int Len = StrlenW(t + *LastMarker) + 1;
 					memmove(t, t + *LastMarker, Len * sizeof(*t));
 					*LastMarker = -1;
-					
-					if (!*t && !PostDelete.HasItem(n))
-						PostDelete.Add(n);
 					break;
 				}
 				else
@@ -1520,19 +1573,8 @@ public:
 				}
 			}
 			
-			// We can't delete both the first and last...
-			bool CursorToFirst = true;
-			if (PostDelete.HasItem(First))
-			{
-				// Is the last in there too?
-				if (PostDelete.HasItem(Last))
-					PostDelete.Delete(First); // use First as cursor
-				else
-					CursorToFirst = false; // use Last as cursor
-			}
-
 			// Don't delete a parent item of the tag getting the cursor...
-			for (n = CursorToFirst ? First : Last; n; n = ToTag(n->Parent))
+			for (n = First; n; n = ToTag(n->Parent))
 			{
 				PostDelete.Delete(n);
 			}
@@ -1544,7 +1586,7 @@ public:
 					break;
 			}
 
-			Cursor = CursorFirst ? First : Last;
+			Cursor = First;
 			Cursor->Cursor = FirstMarkerValue;
 			Selection = NULL;
 		}
@@ -1576,6 +1618,7 @@ public:
 
 		if (Status)
 		{
+			Optimize();
 			Update(true);
 			OnDocumentChange();
 		}

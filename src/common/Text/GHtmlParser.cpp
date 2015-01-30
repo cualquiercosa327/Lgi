@@ -823,6 +823,8 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 				// End tag
 				char *PreTag = s;
 				s += 2;
+				while (*s == '/')
+					s++;
 
 				// This code segment detects out of order HTML tags
 				// and skips them. If we didn't do this then the parser

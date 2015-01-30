@@ -13,7 +13,7 @@ enum Ctrls
 	IDC_TREE,
 };
 
-#if 1
+#if 0
 
 char Src[] =
 	"This is a test. A longer string for the purpose of inter-line cursor testing.<br>\n"
@@ -23,18 +23,15 @@ char Src[] =
 
 #else
 
-char Src[] =
+char Src[] =	
 	"<html>\n"
-	"<body style='font-size:18pt;'>\n"
-	"	First test. This is <b>bold</b>. This is a test. This is a test. This is a test.\n"
-	"	<ul>\n"
-	"		<li>This is a list item.\n"
-	"		<li>This is a list item.\n"
-	"		<li>This is a list item.\n"
-	"		<li>This is a list item.\n"
-	"	</ul>\n"
-	"	bbbbb bbbbbb bbbbbbb bbbbbbb bbbbbbb bbbbbb. This is a test. This is a test.\n"
-	"	This is a test. This is a test. This is a test. This is a test. This is a test.\n"
+	"<body style=\"font-size: 9pt;\">Hi Suzy,<br/>\n"
+	"<br/>\n"
+	"The aircon is a little warm in our area of the woods. There seems to be nothing coming out of the 2nd AC unit.<br/>\n"
+	"<br/>\n"
+	"Regards<br/>\n"
+	"--<br/>\n"
+	"<a href=\"http://web/~matthew\">Matthew Allen</a>\n"
 	"</body>\n"
 	"</html>";
 
