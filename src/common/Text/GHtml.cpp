@@ -6609,7 +6609,7 @@ GTag *GHtml::NextTag(GTag *t)
 			if (p->Parent)
 			{
 				GTag *pp = ToTag(p->Parent);
-				int Idx = pp->Children.IndexOf(p);
+				unsigned Idx = pp->Children.IndexOf(p);
 				
 				GTag *Next = pp->Children.Length() > Idx + 1 ? ToTag(pp->Children[Idx + 1]) : NULL;
 				if (Next)
@@ -7124,247 +7124,251 @@ void GHtml::OnMouseClick(GMouse &m)
 		if (!TagProcessedClick &&
 			m.IsContextMenu())
 		{
-			GSubMenu *RClick = new GSubMenu;
-			if (RClick)
+			GSubMenu RClick;
+
+			enum ContextMenuCmds
 			{
-				#define IDM_DUMP			100
-				#define IDM_COPY_SRC		101
-				#define IDM_VIEW_SRC		102
-				#define IDM_EXTERNAL		103
-				#define IDM_COPY			104
-				#define IDM_VIEW_IMAGES		105
-				#define IDM_CHARSET_BASE	1000
+				IDM_DUMP = 100,
+				IDM_COPY_SRC,
+				IDM_VIEW_SRC,
+				IDM_EXTERNAL,
+				IDM_COPY,
+				IDM_VIEW_IMAGES,
+			};
+			#define IDM_CHARSET_BASE	10000
 
-				RClick->AppendItem					(LgiLoadString(L_TEXTCTRL_COPY, "Copy"), IDM_COPY, HasSelection());
-				GMenuItem *Vs = RClick->AppendItem	(LgiLoadString(L_VIEW_SOURCE, "View Source"), IDM_VIEW_SRC, Source != 0);
-				RClick->AppendItem					(LgiLoadString(L_COPY_SOURCE, "Copy Source"), IDM_COPY_SRC, Source != 0);
-				GMenuItem *Load = RClick->AppendItem(LgiLoadString(L_VIEW_IMAGES, "View External Images"), IDM_VIEW_IMAGES, true);
-				if (Load) Load->Checked(GetLoadImages());
-				RClick->AppendItem					(LgiLoadString(L_VIEW_IN_DEFAULT_BROWSER, "View in Default Browser"), IDM_EXTERNAL, Source != 0);
-				GSubMenu *Cs = RClick->AppendSub	(LgiLoadString(L_CHANGE_CHARSET, "Change Charset"));
-				if (Cs)
+			RClick.AppendItem					(LgiLoadString(L_TEXTCTRL_COPY, "Copy"), IDM_COPY, HasSelection());
+			GMenuItem *Vs = RClick.AppendItem	(LgiLoadString(L_VIEW_SOURCE, "View Source"), IDM_VIEW_SRC, Source != 0);
+			RClick.AppendItem					(LgiLoadString(L_COPY_SOURCE, "Copy Source"), IDM_COPY_SRC, Source != 0);
+			GMenuItem *Load = RClick.AppendItem	(LgiLoadString(L_VIEW_IMAGES, "View External Images"), IDM_VIEW_IMAGES, true);
+			if (Load) Load->Checked(GetLoadImages());
+			RClick.AppendItem					(LgiLoadString(L_VIEW_IN_DEFAULT_BROWSER, "View in Default Browser"), IDM_EXTERNAL, Source != 0);
+			GSubMenu *Cs = RClick.AppendSub		(LgiLoadString(L_CHANGE_CHARSET, "Change Charset"));
+			if (Cs)
+			{
+				int n=0;
+				for (GCharset *c = LgiGetCsList(); c->Charset; c++, n++)
 				{
-					int n=0;
-					for (GCharset *c = LgiGetCsList(); c->Charset; c++, n++)
+					Cs->AppendItem(c->Charset, IDM_CHARSET_BASE + n, c->IsAvailable());
+				}
+			}
+			
+			#ifdef _DEBUG
+			RClick.AppendSeparator();
+			RClick.AppendItem("Dump", IDM_DUMP, Tag != 0);
+			#endif
+
+			if (Vs)
+			{
+				Vs->Checked(!IsHtml);
+			}
+			
+			if (OnContextMenuCreate(Hit, RClick) &&
+				GetMouse(m, true))
+			{
+				int Id = RClick.Float(this, m.x, m.y);
+				switch (Id)
+				{
+					case IDM_COPY:
 					{
-						Cs->AppendItem(c->Charset, IDM_CHARSET_BASE + n, c->IsAvailable());
+						Copy();
+						break;
 					}
-				}
-				
-				#ifdef _DEBUG
-				RClick->AppendSeparator();
-				RClick->AppendItem("Dump", IDM_DUMP, Tag != 0);
-				#endif
-
-				if (Vs)
-				{
-					Vs->Checked(!IsHtml);
-				}
-
-				if (GetMouse(m, true))
-				{
-					int Id = RClick->Float(this, m.x, m.y);
-					switch (Id)
+					case IDM_VIEW_SRC:
 					{
-						case IDM_COPY:
+						LgiCheckHeap();
+						if (Vs)
 						{
-							Copy();
-							break;
+							DeleteObj(Tag);
+							IsHtml = !IsHtml;
+							ParseDocument(Source);
 						}
-						case IDM_VIEW_SRC:
+						LgiCheckHeap();
+						break;
+					}
+					case IDM_COPY_SRC:
+					{
+						if (Source)
 						{
-							LgiCheckHeap();
-							if (Vs)
+							GClipBoard c(this);
+							if (Is8Bit(Source))
 							{
-								DeleteObj(Tag);
-								IsHtml = !IsHtml;
-								ParseDocument(Source);
+								GAutoWString w((char16*)LgiNewConvertCp(LGI_WideCharset, Source, DocCharSet ? DocCharSet : (char*)"windows-1252"));
+								if (w)
+									c.TextW(w);
 							}
-							LgiCheckHeap();
-							break;
+							else
+							{
+								c.Text(Source);
+							}
 						}
-						case IDM_COPY_SRC:
+						break;
+					}
+					case IDM_VIEW_IMAGES:
+					{
+						SetLoadImages(!GetLoadImages());
+						break;
+					}
+					case IDM_DUMP:
+					{
+						if (Tag)
 						{
-							if (Source)
+							GAutoWString s = Tag->DumpW();
+							if (s)
 							{
 								GClipBoard c(this);
-								if (Is8Bit(Source))
-								{
-									GAutoWString w((char16*)LgiNewConvertCp(LGI_WideCharset, Source, DocCharSet ? DocCharSet : (char*)"windows-1252"));
-									if (w)
-										c.TextW(w);
-								}
-								else
-								{
-									c.Text(Source);
-								}
+								c.TextW(s);
 							}
-							break;
 						}
-						case IDM_VIEW_IMAGES:
+						break;
+					}
+					case IDM_EXTERNAL:
+					{
+						char Path[256];
+						if (Source && LgiGetSystemPath(LSP_TEMP, Path, sizeof(Path)))
 						{
-							SetLoadImages(!GetLoadImages());
-							break;
-						}
-						case IDM_DUMP:
-						{
-							if (Tag)
+							char f[32];
+							sprintf_s(f, sizeof(f), "_%i.html", LgiRand(1000000));
+							LgiMakePath(Path, sizeof(Path), Path, f);
+							
+							GFile F;
+							if (F.Open(Path, O_WRITE))
 							{
-								GAutoWString s = Tag->DumpW();
-								if (s)
-								{
-									GClipBoard c(this);
-									c.TextW(s);
-								}
-							}
-							break;
-						}
-						case IDM_EXTERNAL:
-						{
-							char Path[256];
-							if (Source && LgiGetSystemPath(LSP_TEMP, Path, sizeof(Path)))
-							{
-								char f[32];
-								sprintf_s(f, sizeof(f), "_%i.html", LgiRand(1000000));
-								LgiMakePath(Path, sizeof(Path), Path, f);
+								GStringPipe Ex;
+								bool Error = false;
 								
-								GFile F;
-								if (F.Open(Path, O_WRITE))
+								F.SetSize(0);
+
+								for (char *s=Source; s && *s;)
 								{
-									GStringPipe Ex;
-									bool Error = false;
-									
-									F.SetSize(0);
-
-									for (char *s=Source; s && *s;)
+									char *cid = stristr(s, "cid:");
+									while (cid && !strchr("\'\"", cid[-1]))
 									{
-										char *cid = stristr(s, "cid:");
-										while (cid && !strchr("\'\"", cid[-1]))
-										{
-											cid = stristr(cid+1, "cid:");
-										}
+										cid = stristr(cid+1, "cid:");
+									}
 
-										if (cid)
+									if (cid)
+									{
+										char Delim = cid[-1];
+										char *e = strchr(cid, Delim);
+										if (e)
 										{
-											char Delim = cid[-1];
-											char *e = strchr(cid, Delim);
-											if (e)
+											*e = 0;
+											if (strchr(cid, '\n'))
 											{
-												*e = 0;
-												if (strchr(cid, '\n'))
-												{
-													*e = Delim;
-													Error = true;
-													break;
-												}
-												else
-												{
-													char File[MAX_PATH] = "";
-													if (Environment)
-													{
-														GDocumentEnv::LoadJob *j = Environment->NewJob();
-														if (j)
-														{
-															j->Uri.Reset(NewStr(cid));
-															j->Env = Environment;
-															j->Pref = GDocumentEnv::LoadJob::FmtFilename;
-															j->UserUid = GetDocumentUid();
-
-															GDocumentEnv::LoadType Result = Environment->GetContent(j);
-															if (Result == GDocumentEnv::LoadImmediate)
-															{
-																if (j->Filename)
-																	strcpy_s(File, sizeof(File), j->Filename);
-															}
-															else if (Result == GDocumentEnv::LoadDeferred)
-															{
-																d->DeferredLoads++;
-															}
-															
-															DeleteObj(j);
-														}
-													}
-													
-													*e = Delim;
-													Ex.Push(s, cid - s);
-													if (File[0])
-													{
-														char *d;
-														while ((d = strchr(File, '\\')))
-														{
-															*d = '/';
-														}
-														
-														Ex.Push("file:///");
-														Ex.Push(File);
-													}
-													s = e;
-												}
+												*e = Delim;
+												Error = true;
+												break;
 											}
 											else
 											{
-												Error = true;
-												break;
+												char File[MAX_PATH] = "";
+												if (Environment)
+												{
+													GDocumentEnv::LoadJob *j = Environment->NewJob();
+													if (j)
+													{
+														j->Uri.Reset(NewStr(cid));
+														j->Env = Environment;
+														j->Pref = GDocumentEnv::LoadJob::FmtFilename;
+														j->UserUid = GetDocumentUid();
+
+														GDocumentEnv::LoadType Result = Environment->GetContent(j);
+														if (Result == GDocumentEnv::LoadImmediate)
+														{
+															if (j->Filename)
+																strcpy_s(File, sizeof(File), j->Filename);
+														}
+														else if (Result == GDocumentEnv::LoadDeferred)
+														{
+															d->DeferredLoads++;
+														}
+														
+														DeleteObj(j);
+													}
+												}
+												
+												*e = Delim;
+												Ex.Push(s, cid - s);
+												if (File[0])
+												{
+													char *d;
+													while ((d = strchr(File, '\\')))
+													{
+														*d = '/';
+													}
+													
+													Ex.Push("file:///");
+													Ex.Push(File);
+												}
+												s = e;
 											}
 										}
 										else
 										{
-											Ex.Push(s);
+											Error = true;
 											break;
 										}
 									}
-
-									if (!Error)
+									else
 									{
-										GAutoString Final(Ex.NewStr());
-										if (Final)
+										Ex.Push(s);
+										break;
+									}
+								}
+
+								if (!Error)
+								{
+									GAutoString Final(Ex.NewStr());
+									if (Final)
+									{
+										F.Write(Final, strlen(Final));
+										F.Close();
+										
+										GAutoString Err;
+										if (!LgiExecute(Path, NULL, NULL, &Err))
 										{
-											F.Write(Final, strlen(Final));
-											F.Close();
-											
-											GAutoString Err;
-											if (!LgiExecute(Path, NULL, NULL, &Err))
-											{
-												LgiMsg(	this,
-														"Failed to open '%s'\n%s",
-														LgiApp ? LgiApp->Name() : GetClass(),
-														MB_OK,
-														Path,
-														Err.Get());
-											}
+											LgiMsg(	this,
+													"Failed to open '%s'\n%s",
+													LgiApp ? LgiApp->Name() : GetClass(),
+													MB_OK,
+													Path,
+													Err.Get());
 										}
 									}
 								}
 							}
-							break;
 						}
-						default:
+						break;
+					}
+					default:
+					{
+						if (Id >= IDM_CHARSET_BASE)
 						{
-							if (Id >= IDM_CHARSET_BASE)
+							GCharset *c = LgiGetCsList() + (Id - IDM_CHARSET_BASE);
+							if (c->Charset)
 							{
-								GCharset *c = LgiGetCsList() + (Id - IDM_CHARSET_BASE);
-								if (c->Charset)
-								{
-									Charset.Reset(NewStr(c->Charset));
-									OverideDocCharset = true;
+								Charset.Reset(NewStr(c->Charset));
+								OverideDocCharset = true;
 
-									char *Src = Source.Release();
-									_Delete();
-									_New();
-									Source.Reset(Src);
-									ParseDocument(Source);
+								char *Src = Source.Release();
+								_Delete();
+								_New();
+								Source.Reset(Src);
+								ParseDocument(Source);
 
-									Invalidate();
+								Invalidate();
 
-									SendNotify(GTVN_CODEPAGE_CHANGED);
-								}								
-							}
-							break;
+								SendNotify(GTVN_CODEPAGE_CHANGED);
+							}								
 						}
+						else
+						{
+							OnContextMenuCommand(Hit, Id);
+						}
+						break;
 					}
 				}
-
-				DeleteObj(RClick);
 			}
 		}
 	}

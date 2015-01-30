@@ -131,6 +131,11 @@ public:
 	char *StyleFile;
 	char *StyleType;
 
+	bool NoDom()
+	{
+		return TestFlag(Flags, GXT_NO_DOM);
+	}
+
 	GXmlTreePrivate()
 	{
 		Allocator = 0;
@@ -1381,19 +1386,10 @@ void GXmlTree::Output(GXmlTag *t, int Depth)
 	Tabs
 
 	// Test to see if the tag is valid
-	if (!t->Tag ||
-		strlen(t->Tag) < 1 ||
-		IsDigit(t->Tag[0]))
-	{
-		LgiAssert(!"Invalid element tag");
+	bool ValidTag = ValidStr(t->Tag) && !IsDigit(t->Tag[0]);
+	if (ValidTag)
+		GStreamPrint(d->File, "<%s", t->Tag);
 
-		// We do this so that the XML file we've already half written 
-		// is still valid after the write, even though it's wrong.
-		DeleteArray(t->Tag);
-		t->Tag = NewStr("error-invalid-tag");
-	}
-
-	GStreamPrint(d->File, "<%s", t->Tag);
 	for (int i=0; i<t->Attr.Length(); i++)
 	{
 		GXmlAttr &a = t->Attr[i];
@@ -1419,7 +1415,8 @@ void GXmlTree::Output(GXmlTag *t, int Depth)
 	GXmlTag *c = t->Children.First();
 	if (c || HasContent)
 	{
-		d->File->Write((char*)">", 1);
+		if (ValidTag)
+			d->File->Write(">", 1);
 		
 		if (HasContent)
 		{
@@ -1440,17 +1437,21 @@ void GXmlTree::Output(GXmlTag *t, int Depth)
 
 			for (; c; c=t->Children.Next())
 			{
-				Output(c, Depth + 1);
+				Output(c, Depth + (d->NoDom() ? 0 : 1));
 			}
 
 			Tabs
 		}
 	
-		GStreamPrint(d->File, "</%s>\n", t->Tag);
+		if (!d->NoDom())
+			GStreamPrint(d->File, "</%s>\n", t->Tag);
 	}
-	else
+	else if (ValidTag)
 	{
-		d->File->Write((char*)" />\n", 4);
+		if (d->NoDom())
+			d->File->Write(">\n", 2);
+		else
+			d->File->Write(" />\n", 4);
 	}
 	
 	#undef Tabs

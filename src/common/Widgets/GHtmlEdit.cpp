@@ -7,17 +7,24 @@
 #include "GClipBoard.h"
 #include "GDisplayString.h"
 
-#define IDC_STYLE					100
-#define IDC_FONT					101
-#define IDC_POINTSIZE				102
-#define IDC_BOLD					103
-#define IDC_ITALIC					104
-#define IDC_UNDERLINE				105
-#define IDC_MAKE_LINK				106
-#define IDC_FORE_COLOUR				107
-#define IDC_BACK_COLOUR				108
-#define IDC_DEBUG_WND				109
-#define IDC_HTML_EDIT				110
+enum HtmlEditIds {
+
+	// Controls
+	IDC_STYLE = 300,
+	IDC_FONT,
+	IDC_POINTSIZE,
+	IDC_BOLD,
+	IDC_ITALIC,
+	IDC_UNDERLINE,
+	IDC_MAKE_LINK,
+	IDC_FORE_COLOUR,
+	IDC_BACK_COLOUR,
+	IDC_DEBUG_WND,
+	IDC_HTML_EDIT,
+	
+	// Messages
+	IDM_COPY_ORIGINAL_SOURCE = 400
+};
 
 #define TOOLBAR_HT					18
 
@@ -432,6 +439,8 @@ class HtmlEdit : public Html1::GHtml, public GDefaultDocumentEnv
 	}
 
 public:
+	GAutoWString OriginalSrcW;
+	
 	HtmlEdit(GHtmlEdit *edit) : GHtml(100, 0, 0, 100, 100)
 	{
 		// Construct the basics
@@ -452,6 +461,22 @@ public:
 	void OnDocumentChange()
 	{
 		SendNotify(GTVN_DOC_CHANGED);
+	}
+
+	bool OnContextMenuCreate(struct GTagHit &Hit, GSubMenu &RClick)
+	{
+		RClick.AppendItem("Copy Original Source", IDM_COPY_ORIGINAL_SOURCE);
+		return true;
+	}
+	
+	void OnContextMenuCommand(struct GTagHit &Hit, int Cmd)
+	{
+		if (Cmd == IDM_COPY_ORIGINAL_SOURCE)
+		{
+			GClipBoard c(this);
+			if (OriginalSrcW)
+				c.TextW(OriginalSrcW, true);
+		}
 	}
 
 	// Draw a red box around the cursor for debugging.
@@ -2524,6 +2549,7 @@ char *GHtmlEdit::Name()
 
 bool GHtmlEdit::Name(const char *s)
 {
+	d->e->OriginalSrcW.Reset(LgiNewUtf8To16(s));
 	bool r = d->e->Name(s);
 	if (r)
 	{
