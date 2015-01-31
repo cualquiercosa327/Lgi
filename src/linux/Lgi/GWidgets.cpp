@@ -1062,6 +1062,7 @@ void GBitmap::OnMouseClick(GMouse &m)
 */
 
 ///////////////////////////////////////////////////////////////////////////////////////////
+/*
 GItemContainer::GItemContainer()
 {
 	Flags = 0;
@@ -1087,4 +1088,4 @@ bool GItemContainer::SetImageList(GImageList *list, bool Own)
 	AskImage(true);
 	return ImageList != NULL;
 }
-
+*/

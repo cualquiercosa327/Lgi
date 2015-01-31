@@ -121,6 +121,7 @@ Depends =	GDateTime.o \
 			GCombo.o \
 			GDocView.o \
 			GEdit.o \
+			GItemContainer.o \
 			GList.o \
 			GPanel.o \
 			GPopup.o \
@@ -244,6 +245,7 @@ GWindow.o : ./src/linux/Lgi/GWindow.cpp ./include/common/Lgi.h \
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 LgiWidget.o : ./src/linux/Gtk/LgiWidget.cpp ./include/common/Lgi.h \
+	./include/common/GDragAndDrop.h \
 	./include/linux/Gtk/LgiWidget.h \
 	/usr/include/gtk-2.0/gdk/gdkkeysyms.h
 	@echo $(<F) [$(Build)]
@@ -710,7 +712,8 @@ GCombo.o : ./src/common/Widgets/GCombo.cpp ./include/common/Lgi.h \
 	./include/common/GVariant.h \
 	./include/common/GSkinEngine.h \
 	./include/common/GCombo.h \
-	./include/common/GDisplayString.h
+	./include/common/GDisplayString.h \
+	./include/common/GUtf8.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -725,6 +728,13 @@ GEdit.o : ./src/common/Widgets/GEdit.cpp ./include/common/Lgi.h \
 	./include/common/GClipBoard.h \
 	./include/common/GDisplayString.h \
 	./include/common/GTextView3.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GItemContainer.o : ./src/common/Widgets/GItemContainer.cpp ./include/common/Lgi.h \
+	./include/common/GItemContainer.h \
+	./include/common/GDisplayString.h \
+	./include/common/GSkinEngine.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -1042,7 +1052,7 @@ md5.o : ./src/common/Hash/md5/md5.c
 ./include/common/GDragAndDrop.h : ./include/common/GVariant.h \
 	./include/common/GCom.h
 
-./include/common/GTree.h : ./include/common/GList.h
+./include/common/GTree.h : ./include/common/GItemContainer.h
 
 ./include/common/GSkinEngine.h : ./include/common/GList.h
 
@@ -1101,7 +1111,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 	./include/common/GArray.h \
 	./include/common/GPopup.h \
 	./include/common/GDisplayString.h \
-	./include/common/GCss.h
+	./include/common/GCss.h \
+	./include/common/GItemContainer.h
 
 ./include/common/GCss.h : ./include/common/LgiInc.h \
 	./include/linux/Gtk/LgiOsDefs.h \
@@ -1306,7 +1317,7 @@ md5.o : ./src/common/Hash/md5/md5.c
 	./include/common/GArray.h \
 	./include/common/LgiClass.h
 
-./include/common/GToolBar.h : 
+./include/common/GToolBar.h : ./include/common/GImageList.h
 
 ./include/common/LgiWidgets.h : 
 
@@ -1467,7 +1478,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 	./include/common/GArray.h \
 	./include/common/GPopup.h \
 	./include/common/GDisplayString.h \
-	./include/common/GCss.h
+	./include/common/GCss.h \
+	./include/common/GItemContainer.h
 
 ../../../../../usr/include/glib-2.0/glib/gversion.h : /usr/include/glib-2.0/glib/gtypes.h
 
@@ -2059,7 +2071,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 ./include/common/GScrollBar.h : 
 
 ./include/common/GMenu.h : ./include/common/GXmlTree.h \
-	./include/common/Res.h
+	./include/common/Res.h \
+	./include/common/GImageList.h
 
 ./include/common/Res.h : ./include/common/GXmlTree.h
 
@@ -2101,6 +2114,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 ../../../../../usr/include/glib-2.0/glib/gbookmarkfile.h : /usr/include/glib-2.0/glib/gerror.h
 
 ../../../../../usr/include/glib-2.0/glib/gutils.h : /usr/include/glib-2.0/glib/gtypes.h
+
+./include/common/GItemContainer.h : ./include/common/GPopup.h
 
 ../../../../../usr/include/glib-2.0/gio/gpollableinputstream.h : /usr/include/glib-2.0/gio/gio.h
 
@@ -2698,6 +2713,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/pango-1.0/pango/pango-item.h : /usr/include/pango-1.0/pango/pango-types.h
 
+./include/common/GImageList.h : 
+
 ../../../../../usr/include/glib-2.0/gio/gsubprocesslauncher.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../usr/include/glib-2.0/glib/gqueue.h : /usr/include/glib-2.0/glib/glist.h
@@ -3082,6 +3099,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/gtk-2.0/gdk/gdkgc.h : /usr/include/gtk-2.0/gdk/gdkcolor.h \
 	/usr/include/gtk-2.0/gdk/gdktypes.h
+
+./include/common/GItemContainer.h : ./include/common/GPopup.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkalignment.h : /usr/include/gtk-2.0/gtk/gtkbin.h
 

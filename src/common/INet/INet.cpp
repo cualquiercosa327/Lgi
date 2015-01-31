@@ -63,6 +63,7 @@
 	#include <netdb.h>
 	#include <errno.h>
     #include "LgiCommon.h"
+	#include <ifaddrs.h>
 	
 	#define SOCKET_ERROR -1
 	typedef hostent HostEnt;

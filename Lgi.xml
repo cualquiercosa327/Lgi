@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project>
-	<Node Name="Source Files" Type="1" Platforms="15" Open="0">
+	<Node Name="Source Files" Type="1" Platforms="15" Open="1">
 		<Node Name="Core" Type="1" Platforms="15" Open="1">
 			<Node Name="DateTime" Type="1" Platforms="15" Open="0">
 				<Node File=".\src\common\General\GDateTime.cpp" Type="2" Platforms="15" />
@@ -90,7 +90,7 @@
 				<Node File="./include/common/GHashTable.h" Type="3" Platforms="15" />
 				<Node File="./include/common/GMem.h" Type="3" Platforms="15" />
 			</Node>
-			<Node Name="Menus" Type="1" Platforms="15" Open="1">
+			<Node Name="Menus" Type="1" Platforms="15" Open="0">
 				<Node Name="Haiku" Type="1" Platforms="15" Open="0">
 					<Node File="./src/beos/Lgi/GMenu.cpp" Type="2" Platforms="8" />
 				</Node>
@@ -263,8 +263,8 @@
 			<Node File="./src/common/Text/GXmlTree.cpp" Type="2" Platforms="15" />
 			<Node File="./include/common/GXmlTree.h" Type="3" Platforms="15" />
 		</Node>
-		<Node Name="Widgets" Type="1" Platforms="15" Open="0">
-			<Node Name="Common" Type="1" Platforms="15" Open="1">
+		<Node Name="Widgets" Type="1" Platforms="15" Open="1">
+			<Node Name="Common" Type="1" Platforms="15" Open="0">
 				<Node File="./src/common/Widgets/GBitmap.cpp" Type="2" Platforms="15" />
 				<Node File="./src/common/Widgets/GButton.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GButton.h" Type="3" Platforms="15" />
@@ -275,6 +275,7 @@
 				<Node File="./src/common/Text/GDocView.cpp" Type="2" Platforms="14" />
 				<Node File="./src/common/Widgets/GEdit.cpp" Type="2" Platforms="14" />
 				<Node File="./include/common/GEdit.h" Type="3" Platforms="15" />
+				<Node File="./src/common/Widgets/GItemContainer.cpp" Type="2" Platforms="15" />
 				<Node File="./src/common/Widgets/GList.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GList.h" Type="3" Platforms="15" />
 				<Node File="./include/common/GListItemCheckBox.h" Type="3" Platforms="15" />
@@ -347,7 +348,7 @@
 			<Node File="./include/common/GMime.h" Type="3" Platforms="15" />
 		</Node>
 	</Node>
-	<Node Name="Headers" Type="1" Platforms="15" Open="1">
+	<Node Name="Headers" Type="1" Platforms="15" Open="0">
 		<Node Name="Linux" Type="1" Platforms="15" Open="0">
 			<Node File="./include/linux/Gtk/LgiOsDefs.h" Type="3" Platforms="2" />
 		</Node>
@@ -378,17 +379,12 @@ WINDOWS</Debug>
 					<Release>WINNATIVE
 WINDOWS</Release>
 				</Windows>
-				<Linux />
 			</Defines>
 			<Compiler>
 				<Windows>MingW</Windows>
 			</Compiler>
-			<Executable>
-				<Linux />
-			</Executable>
-			<Arguments>
-				<All />
-			</Arguments>
+			<Executable />
+			<Arguments />
 		</General>
 		<Build>
 			<IncludePaths>
@@ -450,7 +446,6 @@ be
 game
 textencoding</Release>
 				</Haiku>
-				<All />
 			</Libraries>
 			<TargetType>
 				<All>DynamicLibrary</All>
@@ -469,10 +464,7 @@ textencoding</Release>
 					<Release>lgi</Release>
 				</Linux>
 			</TargetName>
-			<LibraryPaths>
-				<All />
-				<Linux />
-			</LibraryPaths>
+			<LibraryPaths />
 		</Build>
 		<Editor>
 			<TabSize>
@@ -487,11 +479,7 @@ textencoding</Release>
 			<UseHardTabs>
 				<All>1</All>
 			</UseHardTabs>
-			<CommentFile />
-			<CommentFunction />
 		</Editor>
-		<Advanced>
-			<OtherMakefileRules />
-		</Advanced>
+		<Advanced />
 	</Settings>
 </Project>
