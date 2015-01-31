@@ -1460,7 +1460,7 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 		}
 	}
 
-	if (Children.Length())
+	if (Children.Length() || TagId == TAG_STYLE) // <style> tags always have </style>
 	{
 		if (Tag)
 		{

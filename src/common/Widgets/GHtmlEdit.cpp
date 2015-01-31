@@ -344,16 +344,16 @@ class HtmlEdit : public Html1::GHtml, public GDefaultDocumentEnv
 	GHtmlEdit *Edit;
 	GArray<GTag*> OptimizeTags;
 
-	Block *FindBlock(Block::Direction Dir, int x, int y)
+	Block FindBlock(Block::Direction Dir, int x, int y)
 	{
-		static Block Ret;
+		Block Ret;
 		
 		// Get the tag at the given position...
 		int Index;
 		GdcPt2 LocalCoords;
 		GTag *t = GetTagByPos(x, y, &Index, &LocalCoords, false);
 		if (!t)
-			return NULL;
+			return Ret;
 		
 		// Move up to block level element...
 		while (	t->Display() != GCss::DispBlock &&
@@ -363,79 +363,125 @@ class HtmlEdit : public Html1::GHtml, public GDefaultDocumentEnv
 		}
 		
 		// Scan through all the children looking for suitable text rects...
-		Ret.t = NULL;
-		Ret.fr = NULL;
 		for (unsigned i=0; i<t->Children.Length(); i++)
 		{
 			GTag *c = ToTag(t->Children[i]);
 			if (!c) continue;
 			
-			for (unsigned n=0; n<c->TextPos.Length(); n++)
+			if (c->Display() == GCss::DispBlock)
 			{
-				GFlowRect *r = c->TextPos[n];
-				if (!r) continue;
-
 				switch (Dir)
 				{
 					case Block::Left:
 					{
-						if (r->OverlapY(y) && r->x2 <= x)
-						{
-							// Left of current position... but is it nearest?
-							if (!Ret.fr || Ret.fr->x2 < r->x2)
-							{
-								Ret.t = c;
-								Ret.fr = r;
-							}
-						}
 						break;
 					}
 					case Block::Right:
 					{
-						if (r->OverlapY(y) && r->x1 >= x)
-						{
-							// Left of current position... but is it nearest?
-							if (!Ret.fr || Ret.fr->x1 > r->x1)
-							{
-								Ret.t = c;
-								Ret.fr = r;
-							}
-						}
 						break;
 					}
 					case Block::Up:
 					{
-						if (r->y2 <= y)
-						{
-							if (!Ret.fr ||
-								r->y2 > Ret.fr->y2 ||
-								(r->OverlapY(Ret.fr) && r->x1 > Ret.fr->x1))
-							{
-								Ret.t = c;
-								Ret.fr = r;
-							}
-						}
 						break;
 					}
 					case Block::Down:
 					{
-						if (r->y1 >= y)
+						int Cox = c->OverlapX(x);
+						int Rox = Ret.t ? Ret.t->OverlapX(x) : 0;
+						if
+						(
+							c->Pos.y > y
+							&&
+							(
+								!Ret.t
+								||
+								c->OverlapX(x) < Ret.t->OverlapX(x)
+							)
+						)
 						{
-							if (!Ret.fr ||
-								r->y1 < Ret.fr->y1 ||
-								(r->OverlapY(Ret.fr) && r->x2 < Ret.fr->x2))
+							for (GTag *cc = c; cc; cc = NextTag(cc))
 							{
-								Ret.t = c;
-								Ret.fr = r;
+								if (cc->TextPos.Length())
+								{
+									Ret.t = cc;
+									Ret.fr = cc->TextPos[0];
+									break;
+								}
 							}
 						}
 						break;
 					}
 				}
 			}
+			else
+			{			
+				for (unsigned n=0; n<c->TextPos.Length(); n++)
+				{
+					GFlowRect *r = c->TextPos[n];
+					if (!r) continue;
+
+					switch (Dir)
+					{
+						case Block::Left:
+						{
+							if (r->OverlapY(y) && r->x2 <= x)
+							{
+								// Left of current position... but is it nearest?
+								if (!Ret.fr || Ret.fr->x2 < r->x2)
+								{
+									Ret.t = c;
+									Ret.fr = r;
+								}
+							}
+							break;
+						}
+						case Block::Right:
+						{
+							if (r->OverlapY(y) && r->x1 >= x)
+							{
+								// Left of current position... but is it nearest?
+								if (!Ret.fr || Ret.fr->x1 > r->x1)
+								{
+									Ret.t = c;
+									Ret.fr = r;
+								}
+							}
+							break;
+						}
+						case Block::Up:
+						{
+							if (r->y2 <= y)
+							{
+								if (!Ret.fr ||
+									r->y2 > Ret.fr->y2 ||
+									(r->OverlapY(Ret.fr) && r->x1 > Ret.fr->x1))
+								{
+									Ret.t = c;
+									Ret.fr = r;
+								}
+							}
+							break;
+						}
+						case Block::Down:
+						{
+							if (r->y1 >= y)
+							{
+								if (!Ret.fr ||
+									r->y1 < Ret.fr->y1 ||
+									(r->OverlapY(Ret.fr) && r->x2 < Ret.fr->x2))
+								{
+									Ret.t = c;
+									Ret.fr = r;
+								}
+							}
+							break;
+						}
+					}
+				}
+			}
 		}
 		
-		return Ret.t ? &Ret : NULL;
+		return Ret;
 	}
 
 public:
@@ -1339,20 +1385,20 @@ public:
 					{
 						// Run off the right edge
 						GRect *r = GetCursorPos();
-						Block *b = FindBlock(Block::Right, r->x2, r->y1 + (r->Y() >> 1));
-						if (b)
+						Block b = FindBlock(Block::Right, r->x2, r->y1 + (r->Y() >> 1));
+						if (b.fr)
 						{
-							NewCur = b->t;
-							NewPos = b->StartOffset();
+							NewCur = b.t;
+							NewPos = b.StartOffset();
 						}
 						else
 						{
 							// No element to the right, so go down
 							b = FindBlock(Block::Down, r->x1, r->y1 + (r->Y() >> 1));
-							if (b)
+							if (b.fr)
 							{
-								NewCur = b->t;
-								NewPos = b->StartOffset();
+								NewCur = b.t;
+								NewPos = b.StartOffset();
 							}
 						}
 					}
@@ -1361,19 +1407,19 @@ public:
 				{
 					// Run off the left edge
 					GRect *r = GetCursorPos();
-					Block *b = FindBlock(Block::Left, r->x1, r->y1 + (r->Y() >> 1));
-					if (b)
+					Block b = FindBlock(Block::Left, r->x1, r->y1 + (r->Y() >> 1));
+					if (b.fr)
 					{
-						NewCur = b->t;
-						NewPos = b->EndOffset();
+						NewCur = b.t;
+						NewPos = b.EndOffset();
 					}
 					else
 					{
 						b = FindBlock(Block::Up, r->x1, r->y1 + (r->Y() >> 1));
-						if (b)
+						if (b.fr)
 						{
-							NewCur = b->t;
-							NewPos = b->EndOffset();
+							NewCur = b.t;
+							NewPos = b.EndOffset();
 						}
 					}
 				}
@@ -1384,7 +1430,7 @@ public:
 			GFont *f = t->GetFont();
 			if (f)
 			{
-				Block *b = 0;
+				Block b;
 				GRect *r = GetCursorPos();
 
 				if (Dy < 0)
@@ -1396,18 +1442,18 @@ public:
 					b = FindBlock(Block::Down, r->x1, r->y1 + (r->Y() >> 1));
 				}
 
-				if (b)
+				if (b.fr)
 				{
-					int Dx = r->x1 - b->x1;
+					int Dx = r->x1 - b.x1;
 					int Char = 0;
-					if (b->fr)
+					if (b.fr)
 					{
-						GDisplayString Ds(f, b->fr->Text);
-						Ds.CharAt(b->fr->Len);
+						GDisplayString Ds(f, b.fr->Text);
+						Ds.CharAt(b.fr->Len);
 					}
-					int Start = b->fr ? (b->fr->Text - b->t->TextPos[b->t->PreText() ? 1 : 0]->Text) : 0;
+					int Start = b.fr ? (b.fr->Text - b.t->TextPos[b.t->PreText() ? 1 : 0]->Text) : 0;
 					NewPos = Start + Char;
-					NewCur = b->t;
+					NewCur = b.t;
 				}
 			}
 		}

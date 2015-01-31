@@ -13,6 +13,8 @@ enum Ctrls
 	IDC_TREE,
 };
 
+#define SrcFileName	"Reply2Small.html"
+
 #if 0
 
 char Src[] =
@@ -69,12 +71,16 @@ public:
 				{
 					Edit->SetId(IDC_EDITOR);
 
-					#if 1
+					#ifndef SrcFileName
 					Edit->Name(Src);
 					#else
-					char *s = ReadTextFile("C:\\Documents and Settings\\matthew\\Desktop\\paypal.html");
-					Edit->Name(s);
-					DeleteArray(s);
+					char p[MAX_PATH];
+					LgiGetSystemPath(LSP_APP_INSTALL, p, sizeof(p));
+					LgiMakePath(p, sizeof(p), p, "Test");
+					LgiMakePath(p, sizeof(p), p, SrcFileName);
+					GAutoString html(ReadTextFile(p));
+					if (html)
+						Edit->Name(html);
 					#endif
 				}
 

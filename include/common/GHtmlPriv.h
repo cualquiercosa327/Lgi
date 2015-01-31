@@ -436,6 +436,8 @@ public:
 	int AbsY();
 	GRect GetRect(bool Client = true);
 	GCss::LengthType GetAlign(bool x);
+	int OverlapX(int x /* in parent coords*/) { int Cx = (Size.x>>1)+Pos.x; return abs(x - Cx); }
+	int OverlapY(int y /* in parent coords*/) { int Cy = (Size.y>>1)+Pos.y; return abs(y - Cy); }
 
 	// Tables
 	GTag *GetTableCell(int x, int y);
