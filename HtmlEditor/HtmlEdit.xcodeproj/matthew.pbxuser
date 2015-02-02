@@ -1,0 +1,156 @@
+// !$*UTF8*$!
+{
+	20286C28FDCF999611CA2CEA /* Project object */ = {
+		activeBuildConfigurationName = Debug;
+		activeExecutable = 34BFBB460D56ABC200927B3B /* I.Disk */;
+		activeTarget = 8D0C4E890486CD37000505A6 /* I.Disk */;
+		addToTargets = (
+			8D0C4E890486CD37000505A6 /* I.Disk */,
+		);
+		codeSenseManager = 34BFBB540D56ABD500927B3B /* Code sense */;
+		executables = (
+			34BFBB460D56ABC200927B3B /* I.Disk */,
+		);
+		perUserDictionary = {
+			PBXConfiguration.PBXFileTableDataSource3.PBXFileTableDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					497,
+					20,
+					48,
+					43,
+					43,
+					20,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXFileDataSource_FiletypeID,
+					PBXFileDataSource_Filename_ColumnID,
+					PBXFileDataSource_Built_ColumnID,
+					PBXFileDataSource_ObjectSize_ColumnID,
+					PBXFileDataSource_Errors_ColumnID,
+					PBXFileDataSource_Warnings_ColumnID,
+					PBXFileDataSource_Target_ColumnID,
+				);
+			};
+			PBXConfiguration.PBXTargetDataSource.PBXTargetDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					457,
+					60,
+					20,
+					48,
+					43,
+					43,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXFileDataSource_FiletypeID,
+					PBXFileDataSource_Filename_ColumnID,
+					PBXTargetDataSource_PrimaryAttribute,
+					PBXFileDataSource_Built_ColumnID,
+					PBXFileDataSource_ObjectSize_ColumnID,
+					PBXFileDataSource_Errors_ColumnID,
+					PBXFileDataSource_Warnings_ColumnID,
+				);
+			};
+			PBXPerProjectTemplateStateSaveDate = 368106534;
+			PBXWorkspaceStateSaveDate = 368106534;
+		};
+		sourceControlManager = 34BFBB530D56ABD500927B3B /* Source Control */;
+		userBuildSettings = {
+		};
+	};
+	34BFBB460D56ABC200927B3B /* I.Disk */ = {
+		isa = PBXExecutable;
+		activeArgIndices = (
+		);
+		argumentStrings = (
+		);
+		autoAttachOnCrash = 1;
+		breakpointsEnabled = 0;
+		configStateDict = {
+		};
+		customDataFormattersEnabled = 1;
+		dataTipCustomDataFormattersEnabled = 1;
+		dataTipShowTypeColumn = 1;
+		dataTipSortType = 0;
+		debuggerPlugin = GDBDebugging;
+		disassemblyDisplayState = 0;
+		dylibVariantSuffix = "";
+		enableDebugStr = 1;
+		environmentEntries = (
+		);
+		executableSystemSymbolLevel = 0;
+		executableUserSymbolLevel = 0;
+		libgmallocEnabled = 0;
+		name = I.Disk;
+		showTypeColumn = 0;
+		sourceDirectories = (
+		);
+	};
+	34BFBB530D56ABD500927B3B /* Source Control */ = {
+		isa = PBXSourceControlManager;
+		fallbackIsa = XCSourceControlManager;
+		isSCMEnabled = 0;
+		scmConfiguration = {
+			repositoryNamesForRoots = {
+				"" = "";
+			};
+		};
+		scmType = "";
+	};
+	34BFBB540D56ABD500927B3B /* Code sense */ = {
+		isa = PBXCodeSenseManager;
+		indexTemplatePath = "";
+	};
+	34BFBB560D56ABEC00927B3B /* iDisk.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {675, 17108}}";
+			sepNavSelRange = "{6342, 0}";
+			sepNavVisRange = "{0, 0}";
+			sepNavVisRect = "{{0, 4650}, {678, 263}}";
+			sepNavWindowFrame = "{{38, 80}, {873, 672}}";
+		};
+	};
+	34BFBB570D56ABEC00927B3B /* iDisk.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {658, 1196}}";
+			sepNavSelRange = "{1248, 0}";
+			sepNavVisRange = "{859, 601}";
+			sepNavWindowFrame = "{{200, 48}, {975, 730}}";
+		};
+	};
+	34BFBB580D56ABEC00927B3B /* Replicate.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {658, 7748}}";
+			sepNavSelRange = "{10400, 5}";
+			sepNavVisRange = "{10207, 352}";
+			sepNavVisRect = "{{0, 1374}, {678, 263}}";
+			sepNavWindowFrame = "{{242, 106}, {873, 672}}";
+		};
+	};
+	34BFBB940D56ADB800927B3B /* Gif.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {695, 12516}}";
+			sepNavSelRange = "{10559, 0}";
+			sepNavVisRange = "{10272, 615}";
+		};
+	};
+	8D0C4E890486CD37000505A6 /* I.Disk */ = {
+		activeExec = 0;
+		executables = (
+			34BFBB460D56ABC200927B3B /* I.Disk */,
+		);
+	};
+	8D0C4E960486CD37000505A6 /* Info.plist */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {834, 543}}";
+			sepNavSelRange = "{645, 0}";
+			sepNavVisRect = "{{0, 0}, {834, 543}}";
+			sepNavWindowFrame = "{{61, 59}, {873, 672}}";
+		};
+	};
+}

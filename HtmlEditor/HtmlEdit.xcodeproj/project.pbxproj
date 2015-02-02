@@ -1,0 +1,336 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		349A13611A7F7C1B000D4C67 /* LgiMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A13601A7F7C1B000D4C67 /* LgiMain.cpp */; };
+		349A13631A7F7C2A000D4C67 /* Rich.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A13621A7F7C2A000D4C67 /* Rich.cpp */; };
+		349A136D1A7F7CEF000D4C67 /* Lgi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 349A136C1A7F7C3E000D4C67 /* Lgi.framework */; };
+		349A136E1A7F7CF2000D4C67 /* Lgi.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 349A136C1A7F7C3E000D4C67 /* Lgi.framework */; };
+		349A13731A7F7D81000D4C67 /* GDocView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A136F1A7F7D81000D4C67 /* GDocView.cpp */; };
+		349A13741A7F7D81000D4C67 /* GHtml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A13701A7F7D81000D4C67 /* GHtml.cpp */; };
+		349A13751A7F7D81000D4C67 /* GHtmlCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A13711A7F7D81000D4C67 /* GHtmlCommon.cpp */; };
+		349A13761A7F7D81000D4C67 /* GHtmlParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A13721A7F7D81000D4C67 /* GHtmlParser.cpp */; };
+		349A13781A7F7D9D000D4C67 /* GHtmlEdit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A13771A7F7D9D000D4C67 /* GHtmlEdit.cpp */; };
+		349A137A1A7F7DB7000D4C67 /* GdcTools.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A13791A7F7DB7000D4C67 /* GdcTools.cpp */; };
+		8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20286C33FDCF999611CA2CEA /* Carbon.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		349A136B1A7F7C3E000D4C67 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3495283A1A65F1AD004E07EF /* LgiCarbon.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 8DC2EF5B0486A6940098B216;
+			remoteInfo = Lgi;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		348C9A0C134FCD05004A3886 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				349A136E1A7F7CF2000D4C67 /* Lgi.framework in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		20286C33FDCF999611CA2CEA /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
+		32DBCF6D0370B57F00C91783 /* HtmlEdit_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HtmlEdit_Prefix.pch; sourceTree = "<group>"; };
+		3495283A1A65F1AD004E07EF /* LgiCarbon.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = LgiCarbon.xcodeproj; path = ../src/mac/carbon/LgiCarbon.xcodeproj; sourceTree = "<group>"; };
+		349A13601A7F7C1B000D4C67 /* LgiMain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiMain.cpp; path = ../src/common/Lgi/LgiMain.cpp; sourceTree = "<group>"; };
+		349A13621A7F7C2A000D4C67 /* Rich.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Rich.cpp; sourceTree = "<group>"; };
+		349A136F1A7F7D81000D4C67 /* GDocView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GDocView.cpp; path = ../src/common/Text/GDocView.cpp; sourceTree = "<group>"; };
+		349A13701A7F7D81000D4C67 /* GHtml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GHtml.cpp; path = ../src/common/Text/GHtml.cpp; sourceTree = "<group>"; };
+		349A13711A7F7D81000D4C67 /* GHtmlCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GHtmlCommon.cpp; path = ../src/common/Text/GHtmlCommon.cpp; sourceTree = "<group>"; };
+		349A13721A7F7D81000D4C67 /* GHtmlParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GHtmlParser.cpp; path = ../src/common/Text/GHtmlParser.cpp; sourceTree = "<group>"; };
+		349A13771A7F7D9D000D4C67 /* GHtmlEdit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GHtmlEdit.cpp; path = ../src/common/Widgets/GHtmlEdit.cpp; sourceTree = "<group>"; };
+		349A13791A7F7DB7000D4C67 /* GdcTools.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GdcTools.cpp; path = ../src/common/Gdc2/Tools/GdcTools.cpp; sourceTree = "<group>"; };
+		4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
+		4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
+		8D0C4E960486CD37000505A6 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		8D0C4E970486CD37000505A6 /* HtmlEdit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HtmlEdit.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		8D0C4E910486CD37000505A6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */,
+				349A136D1A7F7CEF000D4C67 /* Lgi.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		195DF8CFFE9D517E11CA2CBB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				8D0C4E970486CD37000505A6 /* HtmlEdit.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		20286C29FDCF999611CA2CEA /* I.Disk */ = {
+			isa = PBXGroup;
+			children = (
+				20286C2AFDCF999611CA2CEA /* Sources */,
+				20286C2CFDCF999611CA2CEA /* Resources */,
+				20286C32FDCF999611CA2CEA /* External Frameworks and Libraries */,
+				195DF8CFFE9D517E11CA2CBB /* Products */,
+			);
+			name = I.Disk;
+			sourceTree = "<group>";
+		};
+		20286C2AFDCF999611CA2CEA /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				349A13771A7F7D9D000D4C67 /* GHtmlEdit.cpp */,
+				349A136F1A7F7D81000D4C67 /* GDocView.cpp */,
+				349A13701A7F7D81000D4C67 /* GHtml.cpp */,
+				349A13711A7F7D81000D4C67 /* GHtmlCommon.cpp */,
+				349A13721A7F7D81000D4C67 /* GHtmlParser.cpp */,
+				349A13621A7F7C2A000D4C67 /* Rich.cpp */,
+				32DBCF6D0370B57F00C91783 /* HtmlEdit_Prefix.pch */,
+				34BFBB7F0D56AD2500927B3B /* Lgi */,
+			);
+			name = Sources;
+			sourceTree = "<group>";
+		};
+		20286C2CFDCF999611CA2CEA /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				8D0C4E960486CD37000505A6 /* Info.plist */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		20286C32FDCF999611CA2CEA /* External Frameworks and Libraries */ = {
+			isa = PBXGroup;
+			children = (
+				3495283A1A65F1AD004E07EF /* LgiCarbon.xcodeproj */,
+				20286C33FDCF999611CA2CEA /* Carbon.framework */,
+				4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */,
+				4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */,
+			);
+			name = "External Frameworks and Libraries";
+			sourceTree = "<group>";
+		};
+		349A13681A7F7C3E000D4C67 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				349A136C1A7F7C3E000D4C67 /* Lgi.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		34BFBB7F0D56AD2500927B3B /* Lgi */ = {
+			isa = PBXGroup;
+			children = (
+				349A13791A7F7DB7000D4C67 /* GdcTools.cpp */,
+				349A13601A7F7C1B000D4C67 /* LgiMain.cpp */,
+			);
+			name = Lgi;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		8D0C4E890486CD37000505A6 /* HtmlEdit */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C0E91AC508A95435008D54AB /* Build configuration list for PBXNativeTarget "HtmlEdit" */;
+			buildPhases = (
+				8D0C4E8C0486CD37000505A6 /* Resources */,
+				8D0C4E8F0486CD37000505A6 /* Sources */,
+				8D0C4E910486CD37000505A6 /* Frameworks */,
+				348C9A0C134FCD05004A3886 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HtmlEdit;
+			productInstallPath = "$(HOME)/Applications";
+			productName = I.Disk;
+			productReference = 8D0C4E970486CD37000505A6 /* HtmlEdit.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		20286C28FDCF999611CA2CEA /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0460;
+			};
+			buildConfigurationList = C0E91AC908A95435008D54AB /* Build configuration list for PBXProject "HtmlEdit" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
+			mainGroup = 20286C29FDCF999611CA2CEA /* I.Disk */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 349A13681A7F7C3E000D4C67 /* Products */;
+					ProjectRef = 3495283A1A65F1AD004E07EF /* LgiCarbon.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				8D0C4E890486CD37000505A6 /* HtmlEdit */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		349A136C1A7F7C3E000D4C67 /* Lgi.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Lgi.framework;
+			remoteRef = 349A136B1A7F7C3E000D4C67 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXResourcesBuildPhase section */
+		8D0C4E8C0486CD37000505A6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		8D0C4E8F0486CD37000505A6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				349A13611A7F7C1B000D4C67 /* LgiMain.cpp in Sources */,
+				349A13631A7F7C2A000D4C67 /* Rich.cpp in Sources */,
+				349A13731A7F7D81000D4C67 /* GDocView.cpp in Sources */,
+				349A13741A7F7D81000D4C67 /* GHtml.cpp in Sources */,
+				349A13751A7F7D81000D4C67 /* GHtmlCommon.cpp in Sources */,
+				349A13761A7F7D81000D4C67 /* GHtmlParser.cpp in Sources */,
+				349A13781A7F7D9D000D4C67 /* GHtmlEdit.cpp in Sources */,
+				349A137A1A7F7DB7000D4C67 /* GdcTools.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		C0E91AC608A95435008D54AB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = ../Lgi/trunk/src/mac/carbon/build/Debug;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = HtmlEdit_Prefix.pch;
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(HOME)/Applications";
+				PRODUCT_NAME = HtmlEdit;
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		C0E91AC708A95435008D54AB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = ../Lgi/trunk/src/mac/carbon/build/Release;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = HtmlEdit_Prefix.pch;
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(HOME)/Applications";
+				PRODUCT_NAME = HtmlEdit;
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+		C0E91ACA08A95435008D54AB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				FRAMEWORK_SEARCH_PATHS = ../src/mac/carbon/build/Debug;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = (
+					"-DMAC",
+					"-D_DEBUG",
+				);
+				SDKROOT = macosx;
+				STRIP_INSTALLED_PRODUCT = NO;
+				USER_HEADER_SEARCH_PATHS = "../include/common ../include/mac/carbon";
+				VALID_ARCHS = i386;
+			};
+			name = Debug;
+		};
+		C0E91ACB08A95435008D54AB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				FRAMEWORK_SEARCH_PATHS = ../src/mac/carbon/build/Release;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = "-DMAC";
+				SDKROOT = macosx;
+				STRIP_INSTALLED_PRODUCT = NO;
+				USER_HEADER_SEARCH_PATHS = "../include/common ../include/mac/carbon";
+				VALID_ARCHS = i386;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		C0E91AC508A95435008D54AB /* Build configuration list for PBXNativeTarget "HtmlEdit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C0E91AC608A95435008D54AB /* Debug */,
+				C0E91AC708A95435008D54AB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C0E91AC908A95435008D54AB /* Build configuration list for PBXProject "HtmlEdit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C0E91ACA08A95435008D54AB /* Debug */,
+				C0E91ACB08A95435008D54AB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 20286C28FDCF999611CA2CEA /* Project object */;
+}
