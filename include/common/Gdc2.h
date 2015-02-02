@@ -203,6 +203,36 @@ public:
 				(y >= r.y1) &&
 				(y <= r.y2);
 	}
+	
+	GdcPt2 operator +(const GdcPt2 &p)
+	{
+		GdcPt2 r;
+		r.x = x + p.x;
+		r.y = y + p.y;
+		return r;
+	}
+
+	GdcPt2 &operator +=(const GdcPt2 &p)
+	{
+		x += p.x;
+		y += p.y;
+		return *this;
+	}
+
+	GdcPt2 operator -(const GdcPt2 &p)
+	{
+		GdcPt2 r;
+		r.x = x - p.x;
+		r.y = y - p.y;
+		return r;
+	}
+
+	GdcPt2 &operator -=(const GdcPt2 &p)
+	{
+		x -= p.x;
+		y -= p.y;
+		return *this;
+	}
 };
 
 /// 3d Point

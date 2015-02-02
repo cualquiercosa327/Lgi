@@ -302,6 +302,31 @@ struct Block : public GRect
 	bool OverlapX(Block *b) { return !(b->x2 < x1 || b->x1 > x2); }
 	bool OverlapY(Block *b) { return !(b->y2 < y1 || b->y1 > y2); }
 
+	int DistanceY(GTag *Ref, int y)
+	{
+		if (!t || !fr)
+		{
+			LgiAssert(0);
+			return -1;
+		}
+		int Ox = 0, Oy = 0;
+		for (GTag *p = t; p && p != Ref; p = ToTag(p->Parent))
+		{
+			if (p->Display() == GCss::DispBlock)
+			{
+				Ox += p->Pos.x;
+				Oy += p->Pos.y;
+			}
+		}
+		GRect r = *fr;
+		r.Offset(Ox, Oy);
+		if (y < r.y1)
+			return r.y1 - y;
+		else if (y > r.y2)
+			return y - r.y2;
+		return 0;
+	}
+
 	int StartOffset()
 	{
 		int Chars = 0;
@@ -344,6 +369,90 @@ class HtmlEdit : public Html1::GHtml, public GDefaultDocumentEnv
 	GHtmlEdit *Edit;
 	GArray<GTag*> OptimizeTags;
 
+	bool FindTextRect(GTag *t, Block::Direction Dir, Block &Blk, GdcPt2 BlkOff, int x, int y)
+	{
+		// Scan through all the children looking for suitable text rects...
+		for (unsigned i=0; i<t->Children.Length(); i++)
+		{
+			GTag *c = ToTag(t->Children[i]);
+			if (!c) continue;
+			
+			if (c->Display() == GCss::DispBlock)
+			{
+				GdcPt2 Off = BlkOff + c->Pos;
+				FindTextRect(c, Dir, Blk, Off, x, y);
+			}
+			else
+			{			
+				for (unsigned n=0; n<c->TextPos.Length(); n++)
+				{
+					GFlowRect *r = c->TextPos[n];
+					if (!r) continue;
+
+					switch (Dir)
+					{
+						case Block::Left:
+						{
+							if (r->OverlapY(y) && r->x2 <= x)
+							{
+								// Left of current position... but is it nearest?
+								if (!Blk.fr || Blk.fr->x2 < r->x2)
+								{
+									Blk.t = c;
+									Blk.fr = r;
+								}
+							}
+							break;
+						}
+						case Block::Right:
+						{
+							if (r->OverlapY(y) && r->x1 >= x)
+							{
+								// Left of current position... but is it nearest?
+								if (!Blk.fr || Blk.fr->x1 > r->x1)
+								{
+									Blk.t = c;
+									Blk.fr = r;
+								}
+							}
+							break;
+						}
+						case Block::Up:
+						{
+							if (r->y2 <= y)
+							{
+								if (!Blk.fr ||
+									r->y2 > Blk.fr->y2 ||
+									(r->OverlapY(Blk.fr) && r->x1 > Blk.fr->x1))
+								{
+									Blk.t = c;
+									Blk.fr = r;
+								}
+							}
+							break;
+						}
+						case Block::Down:
+						{
+							if (r->y1 >= y)
+							{
+								if (!Blk.fr ||
+									r->y1 < Blk.fr->y1 ||
+									(r->OverlapY(Blk.fr) && r->x2 < Blk.fr->x2))
+								{
+									Blk.t = c;
+									Blk.fr = r;
+								}
+							}
+							break;
+						}
+					}
+				}
+			}
+		}
+		
+		return true;
+	} 
+
 	Block FindBlock(Block::Direction Dir, int x, int y)
 	{
 		Block Ret;
@@ -362,124 +471,8 @@ class HtmlEdit : public Html1::GHtml, public GDefaultDocumentEnv
 			t = ToTag(t->Parent);
 		}
 		
-		// Scan through all the children looking for suitable text rects...
-		for (unsigned i=0; i<t->Children.Length(); i++)
-		{
-			GTag *c = ToTag(t->Children[i]);
-			if (!c) continue;
-			
-			if (c->Display() == GCss::DispBlock)
-			{
-				switch (Dir)
-				{
-					case Block::Left:
-					{
-						break;
-					}
-					case Block::Right:
-					{
-						break;
-					}
-					case Block::Up:
-					{
-						break;
-					}
-					case Block::Down:
-					{
-						int Cox = c->OverlapX(x);
-						int Rox = Ret.t ? Ret.t->OverlapX(x) : 0;
-						if
-						(
-							c->Pos.y > y
-							&&
-							(
-								!Ret.t
-								||
-								c->OverlapX(x) < Ret.t->OverlapX(x)
-							)
-						)
-						{
-							for (GTag *cc = c; cc; cc = NextTag(cc))
-							{
-								if (cc->TextPos.Length())
-								{
-									Ret.t = cc;
-									Ret.fr = cc->TextPos[0];
-									break;
-								}
-							}
-						}
-						break;
-					}
-				}
-			}
-			else
-			{			
-				for (unsigned n=0; n<c->TextPos.Length(); n++)
-				{
-					GFlowRect *r = c->TextPos[n];
-					if (!r) continue;
-
-					switch (Dir)
-					{
-						case Block::Left:
-						{
-							if (r->OverlapY(y) && r->x2 <= x)
-							{
-								// Left of current position... but is it nearest?
-								if (!Ret.fr || Ret.fr->x2 < r->x2)
-								{
-									Ret.t = c;
-									Ret.fr = r;
-								}
-							}
-							break;
-						}
-						case Block::Right:
-						{
-							if (r->OverlapY(y) && r->x1 >= x)
-							{
-								// Left of current position... but is it nearest?
-								if (!Ret.fr || Ret.fr->x1 > r->x1)
-								{
-									Ret.t = c;
-									Ret.fr = r;
-								}
-							}
-							break;
-						}
-						case Block::Up:
-						{
-							if (r->y2 <= y)
-							{
-								if (!Ret.fr ||
-									r->y2 > Ret.fr->y2 ||
-									(r->OverlapY(Ret.fr) && r->x1 > Ret.fr->x1))
-								{
-									Ret.t = c;
-									Ret.fr = r;
-								}
-							}
-							break;
-						}
-						case Block::Down:
-						{
-							if (r->y1 >= y)
-							{
-								if (!Ret.fr ||
-									r->y1 < Ret.fr->y1 ||
-									(r->OverlapY(Ret.fr) && r->x2 < Ret.fr->x2))
-								{
-									Ret.t = c;
-									Ret.fr = r;
-								}
-							}
-							break;
-						}
-					}
-				}
-			}
-		}
+		GdcPt2 z(0, 0);
+		FindTextRect(t, Dir, Ret, z, x, y);
 		
 		return Ret;
 	}
