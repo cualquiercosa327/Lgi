@@ -1677,8 +1677,12 @@ bool MailIMap::Fetch(bool ByUid, const char *Seq, const char *Parts, FetchCallba
 	if (Lock(_FL))
 	{
 		int Cmd = d->NextCmd++;
-		if (sprintf_s(Buf, sizeof(Buf), "A%4.4i %sFETCH %s (%s)\r\n", Cmd, ByUid ? "UID " : "", Seq, Parts) > 0 &&
-			WriteBuf())
+		GStringPipe p(256);
+		p.Print("A%4.4i %sFETCH ", Cmd, ByUid ? "UID " : "");
+		p.Write(Seq, strlen(Seq));
+		p.Print(" (%s)\r\n", Parts);
+		GAutoString WrBuf(p.NewStr());
+		if (WriteBuf(false, WrBuf))
 		{
 			ClearDialog();
 
