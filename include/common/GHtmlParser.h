@@ -49,6 +49,7 @@ public:
 	
 	// Virtual callbacks
 	virtual GHtmlElement *CreateElement(GHtmlElement *Parent) = 0;
+	virtual bool EvaluateCondition(const char *Cond) { return false; }
 };
 
 #endif // _GHTMLPARSER_H_

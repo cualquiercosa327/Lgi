@@ -142,6 +142,8 @@ public:
 	void OnContent(GDocumentEnv::LoadJob *Res);
 	bool GotoAnchor(char *Name);
 	GHtmlElement *CreateElement(GHtmlElement *Parent);
+	bool EvaluateCondition(const char *Cond);
+	bool GetVariant(const char *Name, GVariant &Value, char *Array = NULL);
 
 	// Javascript handlers
 	GDom *getElementById(char *Id);

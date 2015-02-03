@@ -475,8 +475,14 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 						s++;
 					Elem->Condition.Reset(NewStr(Start, s-Start));
 					Elem->Tag.Reset(NewStr("[if]"));
-					Elem->Info = GetTagInfo(Elem->Tag);					
-					Elem->Display(GCss::DispNone);
+					Elem->Info = GetTagInfo(Elem->Tag);
+					
+					if (!EvaluateCondition(Elem->Condition))
+						Elem->Display(GCss::DispNone);
+					else
+						Elem->Display(GCss::DispInline);
+					
+					OpenTags.Add(Elem);
 				}
 				else if (!_stricmp(Cond, "endif"))
 				{
@@ -486,7 +492,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 					{
 						if (e->TagId == CONDITIONAL &&
 							e->Tag &&
-							!_stricmp(e->Tag, "if"))
+							!_stricmp(e->Tag, "[if]"))
 						{
 							MatchingIf = e;
 							break;
@@ -496,6 +502,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 					{
 						MatchingIf->WasClosed = true;
 						IsEndIf = true;
+						OpenTags.Delete(MatchingIf);
 					}
 				}
 				DeleteArray(Cond);

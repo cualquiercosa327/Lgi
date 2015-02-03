@@ -2529,7 +2529,7 @@ void GTag::SetStyle()
 	{
 		if ((Debug = atoi(s)))
 		{
-			printf("Debug Tag\n");
+			LgiTrace("Debug Tag: %p '%s'\n", this, Tag ? Tag : "CONTENT");
 		}
 	}
 	#endif
@@ -4661,9 +4661,15 @@ void GTag::OnFlow(GFlowRegion *Flow)
 	Size.x = 0;
 	Size.y = 0;
 
+	if (Debug)
+	{
+		int as=0;
+	}
+
 	switch (TagId)
 	{
-		default: break;
+		default:
+			break;
 		case TAG_IFRAME:
 		{
 			GFlowRegion Temp = *Flow;
@@ -7734,6 +7740,71 @@ void GHtml::OnContent(GDocumentEnv::LoadJob *Res)
 GHtmlElement *GHtml::CreateElement(GHtmlElement *Parent)
 {
 	return new GTag(this, Parent);
+}
+
+bool GHtml::GetVariant(const char *Name, GVariant &Value, char *Array)
+{
+	if (!_stricmp(Name, "supportLists"))
+		Value = false;
+	else
+		return false;
+
+	return true;
+}
+
+bool GHtml::EvaluateCondition(const char *Cond)
+{
+	if (!Cond)
+		return true;
+	
+	GArray<char*> Str;
+	for (const char *c = Cond; *c; )
+	{
+		if (IsAlpha(*c))
+		{
+			Str.Add(LgiTokStr(c));
+		}
+		else if (IsWhiteSpace(*c))
+		{
+			c++;
+		}
+		else
+		{
+			const char *e = c;
+			while (*e && !IsWhiteSpace(*e) && !IsAlpha(*e))
+				e++;
+			Str.Add(NewStr(c, e - c));
+			LgiAssert(e > c);
+			if (e > c)
+				c = e;
+			else
+				break;
+		}
+	}
+
+	bool Result = true;
+	bool Not = false;
+	for (int i=0; i<Str.Length(); i++)
+	{
+		char *s = Str[i];
+		if (!_stricmp(s, "!"))
+			Not = true;
+		else
+		{
+			GVariant v;
+			if (GetValue(s, v))
+			{
+				Result = v.CastInt32() != 0;
+				if (Not) Result = !Result;
+			}
+			else LgiTrace("%s:%i - Unsupported variable '%s'\n", _FL, s);
+			Not = false;
+		}
+	}
+	
+	Str.DeleteArrays();
+	
+	return Result;
 }
 
 bool GHtml::GotoAnchor(char *Name)
