@@ -1604,7 +1604,7 @@ public:
 				Opt = First->GetBlockParent();
 			else
 				Opt = Last->GetBlockParent();
-			if (Opt)
+			if (Opt && !OptimizeTags.HasItem(Opt))
 				OptimizeTags.Add(Opt);
 
 			// Delete from first marker to the end of that tag

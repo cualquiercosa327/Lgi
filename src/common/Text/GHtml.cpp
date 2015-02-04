@@ -4661,11 +4661,6 @@ void GTag::OnFlow(GFlowRegion *Flow)
 	Size.x = 0;
 	Size.y = 0;
 
-	if (Debug)
-	{
-		int as=0;
-	}
-
 	switch (TagId)
 	{
 		default:
@@ -7757,6 +7752,11 @@ bool GHtml::EvaluateCondition(const char *Cond)
 	if (!Cond)
 		return true;
 	
+	// This is a really bad attempt at writing an expression evaluator.
+	// I could of course use the scripting language but that would pull
+	// in a fairly large dependency on the HTML control. However user
+	// apps that already have that could reimplement this virtual function
+	// if they feel like it.
 	GArray<char*> Str;
 	for (const char *c = Cond; *c; )
 	{
@@ -7784,7 +7784,7 @@ bool GHtml::EvaluateCondition(const char *Cond)
 
 	bool Result = true;
 	bool Not = false;
-	for (int i=0; i<Str.Length(); i++)
+	for (unsigned i=0; i<Str.Length(); i++)
 	{
 		char *s = Str[i];
 		if (!_stricmp(s, "!"))
