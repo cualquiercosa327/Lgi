@@ -1,10 +1,10 @@
 /*hdr
-**	FILE:			Region.cpp
+**	FILE:			GRect.cpp
 **	AUTHOR:			Matthew Allen
 **	DATE:			22/8/97
-**	DESCRIPTION:	GDC Region class
+**	DESCRIPTION:	Rectangle class
 **
-**	Copyright (C) 1997, Matthew Allen
+**	Copyright (C) 1997-2015, Matthew Allen
 **		fret@memecode.com
 */
 
@@ -13,6 +13,14 @@
 
 #include "Gdc2.h"
 #include "GToken.h"
+
+bool GdcPt2::Inside(GRect &r)
+{
+	return	(x >= r.x1) &&
+			(x <= r.x2) &&
+			(y >= r.y1) &&
+			(y <= r.y2);
+}
 
 GRect &GRect::operator =(const GRect &r)
 {

@@ -44,6 +44,8 @@
 
 #endif
 
+#include "GPoint.h"
+
 /// Rectangle class
 class LgiClass GRect
 {
@@ -222,6 +224,32 @@ public:
 	    return r;
 	}
 	#endif
+	
+	GRect operator +(const GdcPt2 &p)
+	{
+		GRect r = *this;
+		r.Offset(p.x, p.y);
+		return r;
+	}
+	
+	GRect &operator +=(const GdcPt2 &p)
+	{
+		Offset(p.x, p.y);
+		return *this;
+	}
+	
+	GRect operator -(const GdcPt2 &p)
+	{
+		GRect r = *this;
+		r.Offset(-p.x, -p.y);
+		return r;
+	}
+	
+	GRect &operator -=(const GdcPt2 &p)
+	{
+		Offset(-p.x, -p.y);
+		return *this;
+	}
 };
 
 LgiClass bool operator ==(GRect &a, GRect &b);

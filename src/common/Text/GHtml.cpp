@@ -4398,24 +4398,14 @@ GRect GTag::ChildBounds()
 	return b;
 }
 
-int GTag::AbsX()
+GdcPt2 GTag::AbsolutePos()
 {
-	int a = 0;
+	GdcPt2 p;
 	for (GTag *t=this; t; t=ToTag(t->Parent))
 	{
-		a += t->Pos.x;
+		p += t->Pos;
 	}
-	return a;
-}
-
-int GTag::AbsY()
-{
-	int a = 0;
-	for (GTag *t=this; t; t=ToTag(t->Parent))
-	{
-		a += t->Pos.y;
-	}
-	return a;
+	return p;
 }
 
 void GTag::SetSize(GdcPt2 &s)
@@ -6550,7 +6540,7 @@ GTag *GHtml::GetLastChild(GTag *t)
 	{
 		for (GTag *i = ToTag(t->Children.Last()); i; )
 		{
-			GTag *c = ToTag(i->Children.Last());
+			GTag *c = i->Children.Length() ? ToTag(i->Children.Last()) : NULL;
 			if (c)
 				i = c;
 			else

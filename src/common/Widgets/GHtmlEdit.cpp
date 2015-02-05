@@ -369,6 +369,14 @@ class HtmlEdit : public Html1::GHtml, public GDefaultDocumentEnv
 	GHtmlEdit *Edit;
 	GArray<GTag*> OptimizeTags;
 
+	float OverlapY(GRect &a, GRect &b)
+	{
+		int y1 = max(a.y1, b.y1);
+		int y2 = min(a.y2, b.y2);
+		int Px = y2 >= y1 ? y2-y1+1 : 0;
+		return Px>0 && b.Y()>0 ? (float)Px/b.Y() : 0.0f;
+	}
+
 	bool FindTextRect(GTag *t, Block::Direction Dir, Block &Blk, GdcPt2 BlkOff, int x, int y)
 	{
 		// Scan through all the children looking for suitable text rects...
@@ -1164,6 +1172,8 @@ public:
 		if (Base)
 		{
 			GFlowRect *Inside = 0;
+			GdcPt2 BaseOff = t->AbsolutePos();
+			GRect BasePos;
 			char16 *End = Base + StrlenW(Base);
 			for (unsigned i=0; i<t->TextPos.Length(); i++)
 			{
@@ -1176,24 +1186,27 @@ public:
 					{
 						// This flow rect is where the index is
 						Inside = f;
+						BasePos = *Inside;
+						BasePos += BaseOff;
 						break;
 					}
-				}
-				else
-				{
-					int asd=0;
 				}
 			}
 
 			if (Inside)
 			{
+				float OverlapThreshold = 0.8f;
 				Rects.Add(Inside);
 
 				// Iterate over the current tags block of text
 				for (unsigned i=0; i<t->TextPos.Length(); i++)
 				{
 					GFlowRect *f = t->TextPos[i];
-					if (f != Inside && f->OverlapY(Inside))
+					if (!f) break;
+					GRect pos = *f;
+					pos += BaseOff;
+					float Over = OverlapY(BasePos, pos);
+					if (f != Inside && Over > OverlapThreshold)
 					{
 						Rects.Add(f);
 					}
@@ -1205,11 +1218,15 @@ public:
 				for (b = PrevTag(t); b && Added > 0; b = PrevTag(b))
 				{
 					Added = 0;
+					
+					GdcPt2 Off = b->AbsolutePos();
 					for (unsigned i=0; i<b->TextPos.Length(); i++)
 					{
 						GFlowRect *f = b->TextPos[i];
-						
-						if (f->OverlapY(Inside))
+						GRect pos = *f;
+						pos += Off;
+						float Over = OverlapY(BasePos, pos);
+						if (Over > OverlapThreshold)
 						{
 							Rects.Add(f);
 							Added++;
@@ -1222,10 +1239,15 @@ public:
 				for (b = NextTag(t); b && Added > 0; b = NextTag(b))
 				{
 					Added = 0;
+					
+					GdcPt2 Off = b->AbsolutePos();
 					for (unsigned i=0; i<b->TextPos.Length(); i++)
 					{
 						GFlowRect *f = b->TextPos[i];
-						if (f->OverlapY(Inside))
+						GRect pos = *f;
+						pos += Off;
+						float Over = OverlapY(BasePos, pos);
+						if (Over > OverlapThreshold)
 						{
 							Rects.Add(f);
 							Added++;
@@ -1297,19 +1319,44 @@ public:
 			}
 		}
 	}
+	
+	bool NextTextTag(GTag *&OutTag, int &OutIdx, GTag *In)
+	{
+		for (GTag *n = NextTag(In); n; n = NextTag(n))
+		{
+			if (n->TextPos.Length() > 0)
+			{
+				OutTag = n;
+				OutIdx = 0;
+				return true;
+			}
+		}
+		
+		return false;
+	}
+
+	bool PrevTextTag(GTag *&OutTag, int &OutIdx, GTag *In)
+	{
+		for (GTag *n = PrevTag(In); n; n = PrevTag(n))
+		{
+			if (n->TextPos.Length() > 0)
+			{
+				OutTag = n;
+				OutIdx = StrlenW(n->Text());
+				return true;
+			}
+		}
+		
+		return false;
+	}
 
 	bool MoveCursor(int Dx, int Dy, bool Selecting = false)
 	{
-		/*
-		if (Blocks.Length() == 0)
-			BuildBlocks();
-		*/
-
 		GTag *t = GetCur();
 		if (!t)
 			return false;
 
-		GTag *NewCur = 0;
+		GTag *NewCur = NULL;
 		int NewPos = -1;
 		LgiAssert(t->Cursor >= 0);
 
@@ -1367,86 +1414,74 @@ public:
 			{
 				// Move along the current tag
 				int i = t->Cursor + Dx;
-				if (i >= 0)
+				if (i >= 0 && i <= len)
 				{
-					if (i <= len)
-					{
-						NewCur = t;
-						NewPos = i;
-					}
-					else
-					{
-						// Run off the right edge
-						GRect *r = GetCursorPos();
-						Block b = FindBlock(Block::Right, r->x2, r->y1 + (r->Y() >> 1));
-						if (b.fr)
-						{
-							NewCur = b.t;
-							NewPos = b.StartOffset();
-						}
-						else
-						{
-							// No element to the right, so go down
-							b = FindBlock(Block::Down, r->x1, r->y1 + (r->Y() >> 1));
-							if (b.fr)
-							{
-								NewCur = b.t;
-								NewPos = b.StartOffset();
-							}
-						}
-					}
+					NewCur = t;
+					NewPos = i;
 				}
-				else
+				else if (Dx > 0)
 				{
-					// Run off the left edge
-					GRect *r = GetCursorPos();
-					Block b = FindBlock(Block::Left, r->x1, r->y1 + (r->Y() >> 1));
-					if (b.fr)
-					{
-						NewCur = b.t;
-						NewPos = b.EndOffset();
-					}
-					else
-					{
-						b = FindBlock(Block::Up, r->x1, r->y1 + (r->Y() >> 1));
-						if (b.fr)
-						{
-							NewCur = b.t;
-							NewPos = b.EndOffset();
-						}
-					}
+					// Seek forward in the document
+					NextTextTag(NewCur, NewPos, t);
+				}
+				else if (Dx < 0)
+				{
+					// Seek backward in the document
+					PrevTextTag(NewCur, NewPos, t);
 				}
 			}
 		}
 		else if (Dy)
 		{
-			GFont *f = t->GetFont();
-			if (f)
+			GRect *CursorPos = GetCursorPos(); // doc coords
+			if (CursorPos)
 			{
-				Block b;
-				GRect *r = GetCursorPos();
-
-				if (Dy < 0)
+				int Idx;
+				if (Dy > 0)
 				{
-					b = FindBlock(Block::Up, r->x1, r->y1);
-				}
-				else
-				{
-					b = FindBlock(Block::Down, r->x1, r->y1 + (r->Y() >> 1));
-				}
-
-				if (b.fr)
-				{
-					int Dx = r->x1 - b.x1;
-					int Char = 0;
-					if (b.fr)
+					while (!NewCur && NextTextTag(t, Idx, t))
 					{
-						GDisplayString Ds(f, b.fr->Text);
-						Ds.CharAt(b.fr->Len);
+						GdcPt2 Off = t->AbsolutePos();
+						
+						Idx = 0;
+						for (int i=0; i<t->TextPos.Length(); i++)
+						{
+							GFlowRect *r = t->TextPos[i];
+							GRect rp = *r;
+							rp.Offset(Off.x, Off.y);
+							if (rp.y1 >= CursorPos->y2)
+							{
+								NewCur = t;
+								NewPos = Idx;
+								break;
+							}
+							
+							Idx += r->Len;
+						}
 					}
-					int Start = b.fr ? (b.fr->Text - b.t->TextPos[b.t->PreText() ? 1 : 0]->Text) : 0;
-					NewPos = Start + Char;
-					NewCur = b.t;
+				}
+				else if (Dy < 0)
+				{
+					while (!NewCur && PrevTextTag(t, Idx, t))
+					{
+						GdcPt2 Off = t->AbsolutePos();
+						
+						Idx = 0;
+						for (int i=t->TextPos.Length()-1; i>=0; i--)
+						{
+							GFlowRect *r = t->TextPos[i];
+							GRect rp = *r;
+							rp.Offset(Off.x, Off.y);
+							if (rp.y2 <= CursorPos->y1)
+							{
+								NewCur = t;
+								NewPos = Idx;
+								break;
+							}
+							
+							Idx += r->Len;
+						}
+					}
 				}
 			}
 		}

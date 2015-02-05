@@ -13,7 +13,7 @@ enum Ctrls
 	IDC_TREE,
 };
 
-#define SrcFileName	"Reply2Small.html"
+#define SrcFileName	"Reply2.html"
 
 #if 0
 

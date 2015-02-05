@@ -432,8 +432,9 @@ public:
 	// Positioning
 	int RelX() { return Pos.x + (int)MarginLeft().Value; }
 	int RelY() { return Pos.y + (int)MarginTop().Value; }
-	int AbsX();
-	int AbsY();
+	inline GdcPt2 AbsolutePos();
+	inline int AbsX() { return AbsolutePos().x; }
+	inline int AbsY() { return AbsolutePos().y; }
 	GRect GetRect(bool Client = true);
 	GCss::LengthType GetAlign(bool x);
 	int OverlapX(int x /* in parent coords*/) { int Cx = (Size.x>>1)+Pos.x; return abs(x - Cx); }
