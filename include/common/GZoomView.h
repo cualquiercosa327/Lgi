@@ -80,6 +80,7 @@ public:
 	void SetSampleMode(SampleMode sm);
 	void SetDefaultZoomMode(DefaultZoomMode m);
 	DefaultZoomMode GetDefaultZoomMode();
+	void ScrollToPoint(GdcPt2 DocCoord);
 
 	// Subclass
 	void SetSurface(GSurface *dc, bool own);

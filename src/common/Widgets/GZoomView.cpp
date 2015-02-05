@@ -1311,6 +1311,36 @@ GZoomView::DefaultZoomMode GZoomView::GetDefaultZoomMode()
 	return d->DefaultZoom;
 }
 
+void GZoomView::ScrollToPoint(GdcPt2 DocCoord)
+{
+	if (!d->pDC)
+		return;
+	if (HScroll)
+	{
+		int DocX = d->pDC->X();
+		int Page = HScroll->Page();
+		int MaxVal = DocX - (Page - 1);
+		int64 x1 = HScroll->Value();
+		int64 x2 = x1 + Page;
+		if (DocCoord.x < x1)
+			HScroll->Value(max(DocCoord.x, 0));
+		else if (DocCoord.x > x2)
+			HScroll->Value(min(DocCoord.x-Page+1, MaxVal));
+	}
+	if (VScroll)
+	{
+		int DocY = d->pDC->Y();
+		int Page = VScroll->Page();
+		int MaxVal = DocY - (Page - 1);
+		int64 y1 = VScroll->Value();
+		int64 y2 = y1 + Page;
+		if (DocCoord.y < y1)
+			VScroll->Value(max(DocCoord.y, 0));
+		else if (DocCoord.y > y2)
+			VScroll->Value(min(DocCoord.y-Page+1, MaxVal));
+	}
+}
+
 void GZoomView::SetSampleMode(SampleMode sm)
 {
 	d->SampleMode = sm;
