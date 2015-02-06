@@ -313,6 +313,7 @@ public:
 
 	// Heirarchy
 	GHtml *Html;
+	bool IsBlock() { return Display() == GCss::DispBlock; }
 	GTag *GetBlockParent(int *Idx = 0);
 	GFont *GetFont();
 

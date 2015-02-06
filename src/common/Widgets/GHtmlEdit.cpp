@@ -1320,10 +1320,29 @@ public:
 		}
 	}
 	
-	bool NextTextTag(GTag *&OutTag, int &OutIdx, GTag *In)
+	bool NextTextTag(GTag *&OutTag, int &OutIdx, GTag *In, int *Ch)
 	{
-		for (GTag *n = NextTag(In); n; n = NextTag(n))
+		GTag *n = In;
+		if (Ch) *Ch = 0;		
+		do
 		{
+			// Are we entering a block tag?
+			bool PrevBlock = n->Display() == GCss::DispBlock;
+			
+			// Move to the next tag
+			n = NextTag(n);
+			if (!n)
+				break;
+
+			bool ThisBlock = n->Display() == GCss::DispBlock;
+
+			if ((!PrevBlock && ThisBlock) ||
+				n->TagId == TAG_BR ||
+				n->TagId == TAG_IMG)
+			{
+				if (Ch) *Ch++; // End of block counts as a '\n'
+			}
+				
 			if (n->TextPos.Length() > 0)
 			{
 				OutTag = n;
@@ -1331,14 +1350,23 @@ public:
 				return true;
 			}
 		}
+		while (n);
 		
 		return false;
 	}
 
-	bool PrevTextTag(GTag *&OutTag, int &OutIdx, GTag *In)
+	bool PrevTextTag(GTag *&OutTag, int &OutIdx, GTag *In, int *Ch)
 	{
-		for (GTag *n = PrevTag(In); n; n = PrevTag(n))
+		GTag *n = In;
+		if (Ch) *Ch = 0;
+		while (n = PrevTag(n))
 		{
+			if (n->TagId == TAG_BR ||
+				n->TagId == TAG_IMG)
+			{
+				if (Ch) *Ch++;
+			}
+
 			if (n->TextPos.Length() > 0)
 			{
 				OutTag = n;
@@ -1413,22 +1441,66 @@ public:
 			else
 			{
 				// Move along the current tag
-				int i = t->Cursor + Dx;
-				if (i >= 0 && i <= len)
+				NewCur = t;
+				NewPos = t->Cursor;
+				while (Dx != 0)
 				{
-					NewCur = t;
-					NewPos = i;
-				}
-				else if (Dx > 0)
-				{
-					// Seek forward in the document
-					NextTextTag(NewCur, NewPos, t);
-				}
-				else if (Dx < 0)
-				{
-					// Seek backward in the document
-					PrevTextTag(NewCur, NewPos, t);
-				}
+					GTag *Start = NewCur;
+					if (Dx > 0)
+					{
+						if (NewPos < len)
+						{
+							NewPos++;
+							Dx--;
+						}
+						else
+						{
+							int Ch;
+							if (!NextTextTag(NewCur, NewPos, NewCur, &Ch))
+							{
+								// No more to search
+								NewCur = NULL;
+								NewPos = -1;
+								break;
+							}
+
+							if (Ch)
+							{
+								Dx--;
+							}
+					
+							Txt = NewCur ? NewCur->Text() : 0;
+							len = Txt ? StrlenW(Txt) : 0;
+						}
+					}
+					else if (Dx < 0)
+					{
+						if (NewPos > 0)
+						{
+							NewPos--;
+							Dx++;
+						}
+						else
+						{
+							int Ch;
+							if (!PrevTextTag(NewCur, NewPos, NewCur, &Ch))
+							{
+								// No more to search
+								NewCur = NULL;
+								NewPos = -1;
+								break;
+							}
+							
+							if (Ch)
+							{
+								Dx--;
+							}
+
+							Txt = NewCur ? NewCur->Text() : 0;
+							len = Txt ? StrlenW(Txt) : 0;
+						}
+					}
+				}				
 			}
 		}
 		else if (Dy)
@@ -1439,7 +1511,7 @@ public:
 				int Idx;
 				if (Dy > 0)
 				{
-					while (!NewCur && NextTextTag(t, Idx, t))
+					while (!NewCur && NextTextTag(t, Idx, t, NULL))
 					{
 						GdcPt2 Off = t->AbsolutePos();
 						
@@ -1462,7 +1534,7 @@ public:
 				}
 				else if (Dy < 0)
 				{
-					while (!NewCur && PrevTextTag(t, Idx, t))
+					while (!NewCur && PrevTextTag(t, Idx, t, NULL))
 					{
 						GdcPt2 Off = t->AbsolutePos();
 						
@@ -1568,17 +1640,31 @@ public:
 		}
 	}
 
-	bool DeleteTag(GTag *t, GArray<GTag*> *Others = 0)
+	bool DeleteTag(GTag *t, GArray<GTag*> &ToDelete, GTag *ReattachPoint)
 	{
 		if (t)
 		{
+			GTag *Parent = ToTag(ReattachPoint->Parent);
+			int Idx = Parent->Children.IndexOf(ReattachPoint);
+			
 			GTag *c;
 			while (	t->Children.Length() &&
 					(c = ToTag(t->Children.First())))
 			{
-				if (!DeleteTag(c, Others))
+				bool DelChild = ToDelete.HasItem(c);
+				if (DelChild)
 				{
-					return false;
+					// Delete the child as well...
+					if (!DeleteTag(c, ToDelete, ReattachPoint))
+					{
+						return false;
+					}
+				}
+				else
+				{
+					// Move child to our parent...
+					c->Detach();
+					Parent->Attach(c, ++Idx);
 				}
 			}
 
@@ -1587,8 +1673,7 @@ public:
 			if (t->Parent)
 				t->Parent->Children.Delete(t, true);
 
-			if (Others)
-				Others->Delete(t, true);
+			ToDelete.Delete(t, true);
 
 			DeleteObj(t);
 
@@ -1652,36 +1737,64 @@ public:
 
 			// Scan through to the end marker					
 			GTag *n = First;
-			while ((n = NextTag(n)))
+			do
 			{
-				if (n == Last)
+				bool PrevBlock = n->IsBlock();
+				n = NextTag(n);
+				if (n)
 				{
-					// Last tag
-					t = Last->Text() + n->GetTextStart();
-					int *LastMarker = CursorFirst ? &Selection->Selection : &Cursor->Cursor;
-					int Len = StrlenW(t + *LastMarker) + 1;
-					memmove(t, t + *LastMarker, Len * sizeof(*t));
-					*LastMarker = -1;
-					break;
-				}
-				else
-				{
-					// Intermediate tag
-					if (!PostDelete.HasItem(n))
-						PostDelete.Add(n);
+					if (n == Last)
+					{
+						bool ThisBlock = n->IsBlock();
+						
+						// Last tag
+						t = Last->Text() + n->GetTextStart();
+						int *LastMarker = CursorFirst ? &Selection->Selection : &Cursor->Cursor;
+						int Len = StrlenW(t + *LastMarker) + 1;
+						memmove(t, t + *LastMarker, Len * sizeof(*t));
+
+						if (*LastMarker == 0 && ThisBlock && !PrevBlock)
+						{
+							// This is an implied '\n' at the start of a block following a inline
+							// We need to delete that here
+							if (!PostDelete.HasItem(n))
+								PostDelete.Add(n);
+							
+							if (n->Text())
+							{
+								// Move the text into a CONTENT element
+								GTag *Cont = new GTag(n->Html, 0);
+								Cont->Text(n->Txt.Release());
+								Cont->TagId = CONTENT;
+								n->Attach(Cont, 0);
+							}						
+						}
+
+						*LastMarker = -1;						
+						break;
+					}
+					else
+					{
+						// Intermediate tag
+						if (!PostDelete.HasItem(n))
+							PostDelete.Add(n);
+					}
 				}
 			}
+			while (n);
 			
+			/*
 			// Don't delete a parent item of the tag getting the cursor...
 			for (n = First; n; n = ToTag(n->Parent))
 			{
 				PostDelete.Delete(n);
 			}
+			*/
 
 			// Process deletes
 			for (unsigned i=0; i<PostDelete.Length(); )
 			{
-				if (!DeleteTag(PostDelete[i], &PostDelete))
+				if (!DeleteTag(PostDelete[i], PostDelete, First))
 					break;
 			}
 

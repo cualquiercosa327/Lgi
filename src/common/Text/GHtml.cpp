@@ -6644,34 +6644,27 @@ bool GHtml::CompareTagPos(GTag *a, int AIdx, GTag *b, int BIdx)
 	}
 	else
 	{
-		int ADepth = GetTagDepth(a);
-		int BDepth = GetTagDepth(b);
-		bool BIsDeeper = BDepth > ADepth;
-		GTag *A = a;
-		GTag *B = b;
-		while (B && BDepth > ADepth)
+		GArray<GTag*> ATree, BTree;
+		for (GTag *t = a; t; t = ToTag(t->Parent))
+			ATree.AddAt(0, t);
+		for (GTag *t = b; t; t = ToTag(t->Parent))
+			BTree.AddAt(0, t);
+
+		int Depth = min(ATree.Length(), BTree.Length());
+		for (int i=0; i<Depth; i++)
 		{
-			B = ToTag(B->Parent);
-			BDepth--;
-		}
-		while (A && ADepth > BDepth)
-		{
-			A = ToTag(A->Parent);
-			ADepth--;
-		}
-		if (A && B)
-		{
-			int AParentIdx = A->Parent ? A->Parent->Children.IndexOf(A) : 0;
-			int BParentIdx = B->Parent ? B->Parent->Children.IndexOf(B) : 0;
-			if (AParentIdx == BParentIdx)
+			GTag *at = ATree[i];
+			GTag *bt = BTree[i];
+			if (at != bt)
 			{
-				return BIsDeeper;
+				LgiAssert(i > 0);
+				GTag *p = ATree[i-1];
+				LgiAssert(BTree[i-1] == p);
+				int ai = p->Children.IndexOf(at);
+				int bi = p->Children.IndexOf(bt);
+				return ai < bi;
 			}
-			else
-			{
-				return AParentIdx < BParentIdx;
-			}
-		}
+		}		
 	}
 
 	return false;
