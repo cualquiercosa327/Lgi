@@ -140,6 +140,7 @@ public:
 class GHtmlElement : public GDom, public GCss
 {
 	friend class GHtmlParser;
+	friend class HtmlEdit;
 
 protected:
 	GAutoWString Txt;

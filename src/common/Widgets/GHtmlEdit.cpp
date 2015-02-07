@@ -399,6 +399,8 @@ class HtmlEdit : public Html1::GHtml, public GDefaultDocumentEnv
 
 					switch (Dir)
 					{
+						default:
+							return false;
 						case Block::Left:
 						{
 							if (r->OverlapY(y) && r->x2 <= x)
@@ -1340,7 +1342,7 @@ public:
 				n->TagId == TAG_BR ||
 				n->TagId == TAG_IMG)
 			{
-				if (Ch) *Ch++; // End of block counts as a '\n'
+				if (Ch) (*Ch)++; // End of block counts as a '\n'
 			}
 				
 			if (n->TextPos.Length() > 0)
@@ -1359,12 +1361,12 @@ public:
 	{
 		GTag *n = In;
 		if (Ch) *Ch = 0;
-		while (n = PrevTag(n))
+		while ((n = PrevTag(n)))
 		{
 			if (n->TagId == TAG_BR ||
 				n->TagId == TAG_IMG)
 			{
-				if (Ch) *Ch++;
+				if (Ch) (*Ch)++;
 			}
 
 			if (n->TextPos.Length() > 0)
@@ -2813,7 +2815,7 @@ void DumpNode(GTag *Tag, GTreeItem *Item)
 			else if (t[i] == '\t')
 				ch += sprintf_s(s+ch, sizeof(s)-ch, "\\t");
 			else
-				ch += sprintf_s(s+ch, sizeof(s)-ch, "%C", t[i]);
+				ch += sprintf_s(s+ch, sizeof(s)-ch, "%C", (wchar_t)t[i]);
 		}
 		if (Tag->Cursor == i)
 			ch += sprintf_s(s+ch, sizeof(s)-ch, "[cur]");
