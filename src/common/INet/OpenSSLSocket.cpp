@@ -1223,19 +1223,34 @@ void SslSocket::DebugTrace(const char *fmt, ...)
 		int Ch = vsprintf_s(Buffer, sizeof(Buffer), fmt, Arg);
 		va_end(Arg);
 		
-		OnInformation(Buffer);
+		if (Ch > 0)
+			OnInformation(Buffer);
 	}
 }
 
 void SslSocket::OnInformation(const char *Str)
 {
-	char s[MAX_PATH];
-	strcpy_s(s, sizeof(s), Str);
-	char *e = s + strlen(s);
-	while (e > s && strchr("\r\n", e[-1]))
-		e--;
-	*e++ = '\n';
-	*e++ = 0;
-	Log(s, SocketMsgInfo);
+	while (Str && *Str)
+	{
+		GAutoString a;
+		const char *nl = Str;
+		while (*nl && *nl != '\n')
+			nl++;
+
+		int Len = nl - Str + 2;
+		a.Reset(new char[Len]);
+		char *o;
+		for (o = a; Str < nl; Str++)
+		{
+			if (*Str != '\r')
+				*o++ = *Str;
+		}
+		*o++ = '\n';
+		*o++ = 0;
+		LgiAssert((o-a) <= Len);
+				
+		
+		Log(a, SocketMsgInfo);
+	}
 }
 
