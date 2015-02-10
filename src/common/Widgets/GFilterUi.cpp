@@ -794,6 +794,13 @@ void GFilterItem::_PaintText(GItem::ItemPaintCtx &Ctx)
 
 	// Blt result to the screen
 	Ctx.pDC->Blt(Pos->x1, Pos->y1, &Buf);
+	
+	// Paint to the right of the item, filling the column.
+	if (Pos->x2 < Ctx.x2)
+	{
+		Ctx.pDC->Colour(LC_WORKSPACE, 24);
+		Ctx.pDC->Rectangle(Pos->x2 + 1, Ctx.y1, Ctx.x2, Ctx.y2);
+	}
 }
 
 void GFilterItem::ShowControls(bool s)
