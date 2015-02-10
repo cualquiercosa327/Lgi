@@ -1901,6 +1901,13 @@ public:
 					GTag *c;
 					if ((c = new GTag(this, 0)))
 					{
+						while (Insert->Parent && !Insert->IsBlock())
+						{
+							GTag *p = ToTag(Insert->Parent);
+							Idx = p->Children.IndexOf(Insert) + 1;
+							Insert = p;
+						}
+						
 						c->SetTag("br");
 						Insert->Attach(c, Idx++);
 
