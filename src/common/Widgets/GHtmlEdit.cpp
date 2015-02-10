@@ -1470,7 +1470,7 @@ public:
 
 							if (Ch)
 							{
-								Dx--;
+								Dx -= min(Dx, Ch);
 							}
 					
 							Txt = NewCur ? NewCur->Text() : 0;
@@ -1497,7 +1497,7 @@ public:
 							
 							if (Ch)
 							{
-								Dx--;
+								Dx += min(-Dx, Ch);
 							}
 
 							Txt = NewCur ? NewCur->Text() : 0;
@@ -1520,7 +1520,7 @@ public:
 						GdcPt2 Off = t->AbsolutePos();
 						
 						Idx = 0;
-						for (int i=0; i<t->TextPos.Length(); i++)
+						for (unsigned i=0; i<t->TextPos.Length(); i++)
 						{
 							GFlowRect *r = t->TextPos[i];
 							GRect rp = *r;
