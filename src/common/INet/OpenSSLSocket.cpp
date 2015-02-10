@@ -1249,8 +1249,9 @@ void SslSocket::OnInformation(const char *Str)
 		*o++ = 0;
 		LgiAssert((o-a) <= Len);
 				
-		
 		Log(a, SocketMsgInfo);
+		
+		Str = *nl ? nl + 1 : nl;
 	}
 }
 
