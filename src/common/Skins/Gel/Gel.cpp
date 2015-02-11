@@ -609,7 +609,7 @@ public:
 				int tx = (Ctrl->X()-sx) >> 1;
 				int ty = (Ctrl->Y()-sy) >> 1;
 				
-				GCss::ColorDef TextCol(GREY32(255));
+				GCss::ColorDef TextCol(GCss::ColorRgb, GREY32(255));
 				if (Ctrl->GetCss())
 				{
 					GCss::ColorDef c = Ctrl->GetCss()->Color();

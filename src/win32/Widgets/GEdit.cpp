@@ -510,7 +510,7 @@ bool GEdit::SysEmptyText()
 			d->NonEmptyColor = GetCss(true)->Color();
 			d->InEmptyMode = true;
 		}
-		GetCss()->Color(GCss::ColorDef(c.c32()));
+		GetCss()->Color(GCss::ColorDef(GCss::ColorRgb, c.c32()));
 		
 		bool Old = d->IgnoreNotify;
 		d->IgnoreNotify = true;

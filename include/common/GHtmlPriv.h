@@ -8,6 +8,7 @@
 
 namespace Html1
 {
+#define DefaultTextColour			Rgb32(0, 0, 0)
 
 //////////////////////////////////////////////////////////////////////////////////
 // Structs & Classes                                                            //
@@ -299,9 +300,9 @@ protected:
 	bool OnUnhandledColor(GCss::ColorDef *def, const char *&s);
 	void CenterText();
 	
-	COLOUR _Colour(bool Fore);
-	COLOUR GetFore() { return _Colour(true); }
-	COLOUR GetBack() { return _Colour(false); }
+	GColour _Colour(bool Fore);
+	COLOUR GetFore() { return _Colour(true).c24(); }
+	COLOUR GetBack() { return _Colour(false).c24(); }
 
 public:
 	// Object
@@ -438,8 +439,6 @@ public:
 	inline int AbsY() { return AbsolutePos().y; }
 	GRect GetRect(bool Client = true);
 	GCss::LengthType GetAlign(bool x);
-	int OverlapX(int x /* in parent coords*/) { int Cx = (Size.x>>1)+Pos.x; return abs(x - Cx); }
-	int OverlapY(int y /* in parent coords*/) { int Cy = (Size.y>>1)+Pos.y; return abs(y - Cy); }
 
 	// Tables
 	GTag *GetTableCell(int x, int y);

@@ -366,10 +366,10 @@ public:
 		uint32 Rgb32;
 		GArray<ColorStop> Stops;
 
-		ColorDef(int init = 0)
+		ColorDef(ColorType ct = ColorInherit, uint32 rgb32 = 0)
 		{
-			Type = init ? ColorRgb : ColorInherit;
-			Rgb32 = init;
+			Type = ct;
+			Rgb32 = rgb32;
 		}
 
 		bool IsValid() { return Type != ColorInherit; }

@@ -63,7 +63,6 @@
 #else
 #define DefaultTableBorder			GT_TRANSPARENT
 #endif
-#define DefaultTextColour			Rgb32(0, 0, 0)
 #define ShowNbsp					0
 
 static char WordDelim[]	=			".,<>/?[]{}()*&^%$#@!+|\'\"";
@@ -1425,23 +1424,46 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 				{
 					DelProp(PropDisplay);
 				}
-				if (TagId == TAG_A)
+				switch (TagId)
 				{
-					GCss::ColorDef Blue(Rgb32(0, 0, 255));
-					if (Props.Find(PropColor) && Color() == Blue)
-						DelProp(PropColor);
-					if (Props.Find(PropTextDecoration) && TextDecoration() == GCss::TextDecorUnderline)
-						DelProp(PropTextDecoration)
-				}
-				else if (TagId == TAG_BODY)
-				{
-					GCss::Len FivePx(GCss::LenPx, 5.0f);
-					if (Props.Find(PropPaddingLeft) && PaddingLeft() == FivePx)
-						DelProp(PropPaddingLeft)
-					if (Props.Find(PropPaddingTop) && PaddingTop() == FivePx)
-						DelProp(PropPaddingTop)
-					if (Props.Find(PropPaddingRight) && PaddingRight() == FivePx)
-						DelProp(PropPaddingRight)
+					case TAG_A:
+					{
+						GCss::ColorDef Blue(GCss::ColorRgb, Rgb32(0, 0, 255));
+						if (Props.Find(PropColor) && Color() == Blue)
+							DelProp(PropColor);
+						if (Props.Find(PropTextDecoration) && TextDecoration() == GCss::TextDecorUnderline)
+							DelProp(PropTextDecoration)
+						break;
+					}
+					case TAG_BODY:
+					{
+						GCss::Len FivePx(GCss::LenPx, 5.0f);
+						if (Props.Find(PropPaddingLeft) && PaddingLeft() == FivePx)
+							DelProp(PropPaddingLeft)
+						if (Props.Find(PropPaddingTop) && PaddingTop() == FivePx)
+							DelProp(PropPaddingTop)
+						if (Props.Find(PropPaddingRight) && PaddingRight() == FivePx)
+							DelProp(PropPaddingRight)
+						break;
+					}
+					case TAG_B:
+					{
+						if (Props.Find(PropFontWeight) && FontWeight() == GCss::FontWeightBold)
+							DelProp(PropFontWeight);
+						break;
+					}
+					case TAG_U:
+					{
+						if (Props.Find(PropTextDecoration) && TextDecoration() == GCss::TextDecorUnderline)
+							DelProp(PropTextDecoration);
+						break;
+					}
+					case TAG_I:
+					{
+						if (Props.Find(PropFontStyle) && FontStyle() == GCss::FontStyleItalic)
+							DelProp(PropFontStyle);
+						break;
+					}
 				}
 			}
 			
@@ -1514,29 +1536,39 @@ void GTag::SetTag(const char *NewTag)
 {
 	Tag.Reset(NewStr(NewTag));
 
-	if ((Info = Html->GetTagInfo(Tag)))
+	if (NewTag)
 	{
-		TagId = Info->Id;
-		Display(Info->Flags & GHtmlElemInfo::TI_BLOCK ? GCss::DispBlock : GCss::DispInline);
-		SetStyle();
+		Info = Html->GetTagInfo(Tag);
+		if (Info)
+		{
+			TagId = Info->Id;
+			Display(Info->Flags & GHtmlElemInfo::TI_BLOCK ? GCss::DispBlock : GCss::DispInline);
+		}
 	}
+	else
+	{
+		Info = NULL;
+		TagId = CONTENT;
+	}
+
+	SetStyle();
 }
 
-COLOUR GTag::_Colour(bool f)
+GColour GTag::_Colour(bool f)
 {
 	for (GTag *t = this; t; t = ToTag(t->Parent))
 	{
 		ColorDef c = f ? t->Color() : t->BackgroundColor();
 		if (c.Type != ColorInherit)
 		{
-			return c.Rgb32;
+			return GColour(c.Rgb32, 32);
 		}
 
 		if (!f && t->TagId == TAG_TABLE)
 			break;
 	}
 
-	return GT_TRANSPARENT;
+	return GColour();
 }
 
 void GTag::CopyClipboard(GMemQueue &p, bool &InSelection)
@@ -3314,7 +3346,7 @@ char *GTag::ParseText(char *Doc)
 				GTag *t = new GTag(Html, this);
 				if (t)
 				{
-					t->Color(ColorDef(LC_TEXT));
+					t->Color(ColorDef(ColorRgb, Rgb24To32(LC_TEXT)));
 					t->Text(Line);
 				}
 			}
@@ -4309,7 +4341,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 							t->Cell->Span.x = 1;
 							t->Cell->Span.y = 1;
 						}
-						t->BackgroundColor(GCss::ColorDef(DefaultMissingCellColour));
+						t->BackgroundColor(GCss::ColorDef(GCss::ColorRgb, DefaultMissingCellColour));
 
 						Set(Table);
 					}

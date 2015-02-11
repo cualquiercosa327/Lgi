@@ -369,6 +369,7 @@ bool GCss::ColorDef::ToString(GStream &p)
 	{
 		case ColorInherit:
 		{
+			p.Print("inherit");
 			break;
 		}
 		case ColorRgb:

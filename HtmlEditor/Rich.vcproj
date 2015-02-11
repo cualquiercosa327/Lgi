@@ -360,6 +360,10 @@
 				RelativePath="..\src\common\Text\GHtmlParser.cpp"
 				>
 			</File>
+			<File
+				RelativePath="..\include\common\GHtmlPriv.h"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

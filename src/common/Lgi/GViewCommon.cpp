@@ -1791,14 +1791,14 @@ bool GView::SetColour(GColour &c, bool Fore)
 	if (Fore)
 	{
 		if (c.IsValid())
-			css->Color(GCss::ColorDef(c.c32()));
+			css->Color(GCss::ColorDef(GCss::ColorRgb, c.c32()));
 		else
 			css->DeleteProp(GCss::PropColor);
 	}
 	else
 	{
 		if (c.IsValid())
-			css->BackgroundColor(GCss::ColorDef(c.c32()));
+			css->BackgroundColor(GCss::ColorDef(GCss::ColorRgb, c.c32()));
 		else
 			css->DeleteProp(GCss::PropBackgroundColor);
 	}

@@ -21,6 +21,7 @@ enum HtmlEditIds {
 	IDC_BACK_COLOUR,
 	IDC_DEBUG_WND,
 	IDC_HTML_EDIT,
+	IDC_CLEAR_FMT,
 	
 	// Messages
 	IDM_COPY_ORIGINAL_SOURCE = 400
@@ -368,6 +369,17 @@ class HtmlEdit : public Html1::GHtml, public GDefaultDocumentEnv
 	GTag *b;
 	GHtmlEdit *Edit;
 	GArray<GTag*> OptimizeTags;
+	
+	void OptTag(GHtmlElement *e)
+	{
+		GTag *t = ToTag(e);
+		for (GTag *p = t; p; p = ToTag(p->Parent))
+		{
+			if (OptimizeTags.HasItem(p))
+				return;
+		}
+		OptimizeTags.Add(t);
+	}
 
 	float OverlapY(GRect &a, GRect &b)
 	{
@@ -511,6 +523,7 @@ public:
 
 	void OnDocumentChange()
 	{
+		Source.Reset();
 		SendNotify(GTVN_DOC_CHANGED);
 	}
 
@@ -577,29 +590,67 @@ public:
 
 		return Status;
 	}
+	
+	int MergeContent(GArray<GTag*> &run)
+	{
+		if (run.Length() <= 1)
+			return 0;
+
+		GStringPipe p;
+		for (unsigned i=0; i<run.Length(); i++)
+		{
+			char16 *txt = run[i]->Text();
+			if (txt)
+			{
+				int len = StrlenW(txt);
+				p.Write(txt, len * sizeof(char16));
+			}
+			if (i)
+			{
+				run[i]->Detach();
+				delete run[i];
+			}
+		}
+		run[0]->Text(p.NewStrW());
+		
+		int ret = run.Length() - 1;
+		run.Length(0);
+		return ret;
+	}
 
 	bool OptimizeLine(GArray<GTag*> &t, int &Deletes)
 	{
-		bool Changed = false;
-		
 		Deletes = 0;
+		if (t.Length() < 2)
+			return false;
+		
+		GArray<GTag*> run;
 		for (unsigned i=0; i<t.Length(); i++)
 		{
 			GTag *c = t[i];
-			if (c->TagId == CONTENT &&
-				!ValidStrW(c->Text()))
+			if (c->TagId == CONTENT)
 			{
-				if (t.Length() > 1)
+				if (!ValidStrW(c->Text()))
 				{
 					// Remove the blank tag
 					c->Detach();
 					Deletes++;
 					DeleteObj(c);
+					i--;
 				}
+				else
+				{
+					run.Add(c);
+				}
+			}
+			else
+			{
+				Deletes += MergeContent(run);
 			}
 		}
 		
-		return Changed;
+		Deletes += MergeContent(run);
+		return Deletes > 0;
 	}
 
 	void Optimize(GTag *Tag)
@@ -629,41 +680,6 @@ public:
 				{
 					Line.Add(c);
 				}
-				
-				/*
-				if (IsSameStyle(a, b))
-				{
-					int LenA = StrlenW(a->Text());
-					int LenB = StrlenW(b->Text());
-					char16 *Txt = new char16[LenA + LenB + 1];
-					if (Txt)
-					{
-						if (a->Text())
-							StrcpyW(Txt, a->Text());
-						if (b->Text())
-							StrcpyW(Txt + LenA, b->Text());
-						a->Text(Txt);
-
-						if (b == Cursor &&
-							b->Cursor >= 0)
-						{
-							// Ah! We're about to delete the tag that the cursor points at...
-							// better move it:
-							a->Cursor = LenA + b->Cursor;
-							b->Cursor = -1;
-							Cursor = a;
-						}
-						
-						LgiAssert(b != Selection && b != Cursor);
-						b->Detach();
-						DeleteObj(b);
-						
-						t.DeleteAt(i + 1, true);
-						i--;						
-						Changed = true;
-					}
-				}
-				*/
 			}
 			
 			Changed |= OptimizeLine(Line, Deletes);
@@ -682,34 +698,6 @@ public:
 			Optimize(OptimizeTags[i]);
 		}
 		OptimizeTags.Length(0);
-	}
-
-	GTag *GetStyleInsertPoint(GTag *Cur, int *Idx)
-	{
-		if (Cur)
-		{
-			GTag *Prev = 0;
-			for (GTag *t = Cur; t; t = ToTag(t->Parent))
-			{
-				if (t->TagId == TAG_B ||
-					t->TagId == TAG_U ||
-					t->TagId == TAG_I ||
-					t->TagId == TAG_TD ||
-					t->Display() == GCss::DispBlock)
-				{
-					if (Idx)
-					{
-						*Idx = Prev ? t->Children.IndexOf(Prev) : 0;
-					}
-
-					return t;
-				}
-
-				Prev = t;
-			}
-		}
-
-		return 0;
 	}
 
 	template <typename T>
@@ -1728,8 +1716,8 @@ public:
 				Opt = First->GetBlockParent();
 			else
 				Opt = Last->GetBlockParent();
-			if (Opt && !OptimizeTags.HasItem(Opt))
-				OptimizeTags.Add(Opt);
+			if (Opt)
+				OptTag(Opt);
 
 			// Delete from first marker to the end of that tag
 			int Offset = First->GetTextStart();
@@ -1932,6 +1920,120 @@ public:
 			Update(true);
 			OnDocumentChange();
 		}
+	}
+	
+	bool HasStyle(GTag *t)
+	{
+		if (!t ||
+			t->TagId == TAG_TABLE ||
+			t->TagId == TAG_TR ||
+			t->TagId == TAG_TD)
+			return false;
+		
+		if (t->TagId == TAG_LINK ||
+			t->Color().Type > GCss::ColorTransparent ||
+			t->FontWeight() > GCss::FontWeightNormal ||
+			t->TextDecoration() > GCss::TextDecorNone ||
+			t->FontStyle() > GCss::FontStyleNormal)
+			return true;
+		
+		return false;
+	}
+	
+	bool ClearTagStyle(GTag *t)
+	{
+		if (!t || t->IsBlock()) return false;		
+		switch (t->TagId)
+		{
+			case CONTENT:
+			case TAG_A:
+			case TAG_B:
+			case TAG_I:
+			case TAG_U:
+				t->SetTag("span");
+				break;
+		}
+		return true;
+	}
+	
+	bool ClearCssStyle(GTag *t)
+	{
+		if (!t) return false;
+		
+		GColour c = t->_Colour(true);
+		if (c.IsValid())
+			t->Color(GCss::ColorDef(GCss::ColorRgb, DefaultTextColour));
+
+		if (t->BackgroundColor().Type > GCss::ColorInherit)
+			t->BackgroundColor(GCss::ColorDef());
+		
+		GFont *f = t->GetFont();
+		if (!f) return true;
+		
+		if (f->GetWeight() != FW_NORMAL)
+			t->FontWeight(GCss::FontWeightNormal);
+		
+		if (f->Underline())
+			t->TextDecoration(GCss::TextDecorNone);
+		
+		if (f->Italic())
+			t->FontStyle(GCss::FontStyleNormal);
+		
+		t->Font = NULL; // Force the display code to work out the font style again
+		return true;
+	}
+	
+	bool ClearFormatting()
+	{
+		if (Selection)
+		{
+			// Try and clear the styles across the selection
+			bool CursorFirst = IsCursorFirst();
+			GTag *t = CursorFirst ? Cursor : Selection;
+			int *edge = CursorFirst ? &Cursor->Cursor : &Selection->Selection;
+			GTag *end = CursorFirst ? Selection : Cursor;
+			
+			if (HasStyle(t))
+			{
+				int base = t->GetTextStart();
+				if (*edge > base)
+				{
+					// Split first tag into styled section and un-styled section
+					char16 *txt = t->Text() + base;
+					int idx = t->Parent->Children.IndexOf(t);
+					GTag *content = new GTag(this, NULL);
+					if (!content) return false;
+					content->Text(NewStrW(txt + *edge));
+					txt[*edge] = 0;
+					t->Parent->Attach(content, ++idx);
+				}
+				else
+				{
+					// Whole tag becoming un-styled...
+					ClearTagStyle(t);
+					ClearCssStyle(t);
+				}
+				
+				OptTag(t->Parent);
+			}
+
+			// Clear styling on all the middle tags...			
+			while ((t = NextTag(t)) && t != end)
+			{
+				ClearTagStyle(t);
+				ClearCssStyle(t);
+				OptTag(t->Parent);
+			}
+		}
+		else
+		{
+			// No selection, look for an inline style element at the current cursor
+		}
+		
+		Optimize();
+		Update(true);
+		OnDocumentChange();
+		return true;
 	}
 
 	bool Cut()
@@ -2435,6 +2537,7 @@ public:
 	Btn *ForeColour;
 	Btn *BackColour;
 	Btn *MakeLink;
+	Btn *ClearFmt;
 	#ifdef _DEBUG
 	GWindow *DebugWnd;
 	#endif
@@ -2451,6 +2554,7 @@ public:
 		SelectFont = 0;
 		SelectPtSize = 0;
 		MakeLink = 0;
+		ClearFmt = NULL;
 		ForeColour = 0;
 		BackColour = 0;
 		#ifdef _DEBUG
@@ -2470,19 +2574,6 @@ public:
 	{
 		if (!t)
 			return;
-
-		if
-		(
-			t->Tag &&
-			(
-				!_stricmp(t->Tag, "b") ||
-				!_stricmp(t->Tag, "i") ||
-				!_stricmp(t->Tag, "u")
-			)
-		)
-		{
-			t->SetTag("span");
-		}
 
 		if (t->TagId == TAG_BR)
 		{			
@@ -2592,9 +2683,11 @@ GHtmlEdit::GHtmlEdit(int Id)
 	Children.Insert(d->BackColour = new Btn(IDC_BACK_COLOUR, 4, false, d->Icons, 24));
 	d->BackColour->SpaceAfter = 8;
 	Children.Insert(d->MakeLink = new Btn(IDC_MAKE_LINK, 5, false, d->Icons, 24));
-
-	#ifdef _DEBUG
 	d->MakeLink->SpaceAfter = 8;
+	Children.Insert(d->ClearFmt = new Btn(IDC_CLEAR_FMT, false, "Clear"));
+
+	#if 0
+	d->ClearFmt->SpaceAfter = 8;
 	Children.Insert(new Btn(IDC_DEBUG_WND, false, "Debug"));
 	#endif
 
@@ -2655,6 +2748,11 @@ int GHtmlEdit::OnNotify(GViewI *c, int f)
 				if (i.DoModal())
 					d->e->MakeLink(i.Str);
 			}
+			break;
+		}
+		case IDC_CLEAR_FMT:
+		{
+			d->e->ClearFormatting();
 			break;
 		}
 		#ifdef _DEBUG
