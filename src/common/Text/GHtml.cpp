@@ -2873,11 +2873,13 @@ void GTag::SetStyle()
 				Html->SetBackColour(BackgroundColor().Rgb32);
 			}
 			
+			/*
 			GFont *f = GetFont();
 			if (FontSize().Type == LenInherit)
 			{
        		    FontSize(Len(LenPt, (float)f->PointSize()));
 			}
+			*/
 			break;
 		}
 		case TAG_HEAD:

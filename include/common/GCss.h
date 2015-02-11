@@ -643,6 +643,7 @@ public:
 			{
 				Type = s.Type;
 				Value.Reset(NewStr(s.Value));
+				Param.Reset(NewStr(s.Param));
 				return *this;
 			}
 		};
@@ -660,6 +661,7 @@ public:
 		bool Parse(const char *&s);
 		int GetSimpleIndex() { return Combs.Length() ? Combs[Combs.Length()-1] + 1 : 0; }
 		bool IsAtMedia();
+		bool ToString(GStream &p);
 		
 		Selector &operator =(const Selector &s);
 	};
@@ -934,6 +936,9 @@ public:
 
 		/// Parse general CSS into selectors.		
 		bool Parse(const char *&s, int Depth = 0);
+
+		/// Converts store back into string form
+		bool ToString(GStream &p);
 
 		/// Use to finding matching selectors for an element.
 		template<typename T>

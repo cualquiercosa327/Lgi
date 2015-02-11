@@ -121,6 +121,7 @@ class GXmlTreePrivate
 {
 public:
 	GXmlFactory *Factory;
+	GXmlTag *Current;
 	GStreamI *File;
 	char *Error;
 	int Flags;
@@ -145,6 +146,7 @@ public:
 		Flags = 0;
 		StyleFile = 0;
 		StyleType = 0;
+		Current = NULL;
 
 		Entities.Add("lt", '<');
 		Entities.Add("gt", '>');
@@ -1024,8 +1026,9 @@ ParsingStart:
 					char *End = strstr(t + 3, "-->");
 					if (End)
 					{
+						t += 3;
+						OnParseComment(Tag ? Tag : d->Current, t, End - t);
 						t = End + 2;
-
 						if (KeepWs)
 						{
 							Start = t;
@@ -1244,11 +1247,11 @@ bool GXmlTree::Read(GXmlTag *Root, GStreamI *File, GXmlFactory *Factory)
 					
 					char *Ptr = Str;
 					d->Factory = Factory;
+					d->Current = Root;
 					
-					GXmlTag *Current = Root;
 					Status = true;
 					bool First = true;
-					while (Current && Ptr && *Ptr)
+					while (d->Current && Ptr && *Ptr)
 					{
 						bool NoChildren;
 						
@@ -1292,12 +1295,12 @@ bool GXmlTree::Read(GXmlTag *Root, GStreamI *File, GXmlFactory *Factory)
 								}
 							}
 
-							if (t->Tag && t->Tag[0] == '/' && Current->Tag)
+							if (t->Tag && t->Tag[0] == '/' && d->Current->Tag)
 							{
 								// End tag
-								if (stricmp(t->Tag + 1, Current->Tag) == 0)
+								if (stricmp(t->Tag + 1, d->Current->Tag) == 0)
 								{
-									Current = Current->Parent;
+									d->Current = d->Current->Parent;
 								}
 								else
 								{
@@ -1308,7 +1311,7 @@ bool GXmlTree::Read(GXmlTag *Root, GStreamI *File, GXmlFactory *Factory)
 									}
 
 									char s[256];
-									sprintf_s(s, sizeof(s), "Mismatched '%s' tag, got '%s' instead (Line %i).\n", t->Tag, Current->Tag, Lines);
+									sprintf_s(s, sizeof(s), "Mismatched '%s' tag, got '%s' instead (Line %i).\n", t->Tag, d->Current->Tag, Lines);
 									printf("%s:%i - XmlTree error %s\n", _FL, s);
 									d->Error = NewStr(s);
 									Status = false;
@@ -1333,7 +1336,7 @@ bool GXmlTree::Read(GXmlTag *Root, GStreamI *File, GXmlFactory *Factory)
 
 							    GXmlTag *NewTag = t;
 							    if (t != Root)
-								    Current->InsertTag(t.Release());
+								    d->Current->InsertTag(t.Release());
 							    else
 							        t.Release();
 
@@ -1341,7 +1344,7 @@ bool GXmlTree::Read(GXmlTag *Root, GStreamI *File, GXmlFactory *Factory)
 									!NoChildren &&
 									!d->NoChildTags.Find(NewTag->Tag))
 								{
-									Current = NewTag;
+									d->Current = NewTag;
 								}
 							}
 						}

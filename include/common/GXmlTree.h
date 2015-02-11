@@ -172,6 +172,8 @@ class LgiClass GXmlTree
 
 protected:
 	GXmlTag *Parse(GXmlTag *Tag, GXmlAlloc *Alloc, char *&t, bool &NoChildren, bool InTypeDef);
+	virtual void OnParseComment(GXmlTag *Ref, const char *Comment, int Bytes) {}
+
 	void Output(GXmlTag *t, int Depth);
 
 public:
@@ -181,7 +183,7 @@ public:
 		/// \sa #GXT_NO_ENTITIES, #GXT_NO_PRETTY_WHITESPACE, #GXT_PRETTY_WHITESPACE, #GXT_KEEP_WHITESPACE and #GXT_NO_DOM
 		int Flags = 0
 	);
-	~GXmlTree();
+	virtual ~GXmlTree();
 	
 	/// Read an XML file into a DOM tree of GXmlTag objects from a stream.
 	bool Read

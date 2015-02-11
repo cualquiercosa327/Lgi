@@ -2267,6 +2267,56 @@ bool GCss::Selector::IsAtMedia()
 	return p.Type == SelMedia;
 }
 
+bool GCss::Selector::ToString(GStream &p)
+{
+	// Output the selector parts...
+	for (unsigned i=0; i<Parts.Length(); i++)
+	{
+		Part &pt = Parts[i];
+		switch (pt.Type)
+		{
+			case SelType:
+				p.Print("%s", pt.Value.Get());
+				break;
+			case SelUniversal:
+				p.Print("*");
+				break;
+			case SelAttrib:
+				p.Print("%s", pt.Value.Get());
+				break;
+			case SelClass:
+				p.Print(".%s", pt.Value.Get());
+				break;
+			case SelMedia:
+				p.Print("@%s", pt.Value.Get());
+				break;
+			case SelID:
+				p.Print("#%s", pt.Value.Get());
+				break;
+			case SelPseudo:
+				LgiAssert(0);
+				break;
+			case CombDesc:
+				LgiAssert(0);
+				break;
+			case CombChild:
+				LgiAssert(0);
+				break;
+			case CombAdjacent:
+				LgiAssert(0);
+				break;
+			default:
+				LgiAssert(0);
+				break;
+		}
+	}
+
+	// And now the rules...
+	p.Print(" {\n%s\n}\n", Style ? Style : "");
+	
+	return true;
+}
+
 bool GCss::Selector::Parse(const char *&s)
 {
 	if (!s)
@@ -2525,6 +2575,34 @@ bool GCss::Store::Dump(GStream &out)
 	return true;
 }
 
+bool GCss::Store::ToString(GStream &p)
+{
+	SelectorMap *Maps[] = {&TypeMap, &ClassMap, &IdMap, NULL};
+	for (int i=0; Maps[i]; i++)
+	{
+		SelectorMap *m = Maps[i];
+		for (SelArray *a = m->First(); a; a = m->Next())
+		{
+			for (unsigned n=0; n<a->Length(); n++)
+			{
+				GCss::Selector *sel = (*a)[n];
+				if (!sel->ToString(p))
+					return false;
+			}
+		}
+	}
+	
+	// Output all the other styles not in the maps...
+	for (unsigned n=0; n<Other.Length(); n++)
+	{
+		GCss::Selector *sel = Other[n];
+		if (!sel->ToString(p))
+			return false;
+	}
+	
+	return true;
+}
+
 bool GCss::Store::Parse(const char *&c, int Depth)
 {
 	if (!c)
@@ -2671,3 +2749,5 @@ bool GCss::Store::Parse(const char *&c, int Depth)
 
 	return true;
 }
+
+
