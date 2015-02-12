@@ -1386,7 +1386,7 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 	{
 		if (IsBlock(Display()))
 		{
-			p.Print("\n%s<%s", Tabs, Tag.Get());
+			p.Print("%s%s<%s", TagId != TAG_HTML ? "\n" : "", Tabs, Tag.Get());
 		}
 		else
 		{
@@ -6160,15 +6160,19 @@ void GHtml::ParseDocument(const char *Doc)
 			
 			if (Html && Body)
 			{
-				if (Tag->Text())
+				char16 *t = Tag->Text();
+				if (t)
 				{
-					GTag *Content = new GTag(this, 0);
-					if (Content)
+					if (ValidStrW(t))
 					{
-						Content->Text(NewStrW(Tag->Text()));
-						Tag->Text(0);
-						Body->Attach(Content, 0);
+						GTag *Content = new GTag(this, 0);
+						if (Content)
+						{
+							Content->Text(NewStrW(Tag->Text()));
+							Body->Attach(Content, 0);
+						}
 					}
+					Tag->Text(0);
 				}
 
 				#if 0 // Enabling this breaks the test file 'gw2.html'.
