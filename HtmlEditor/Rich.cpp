@@ -13,6 +13,7 @@ enum Ctrls
 	IDC_TREE,
 };
 
+#define LOAD_DOC 1
 #define SrcFileName	"Reply2.html"
 
 #if 0
@@ -71,6 +72,7 @@ public:
 				{
 					Edit->SetId(IDC_EDITOR);
 
+					#if LOAD_DOC
 					#ifndef SrcFileName
 					Edit->Name(Src);
 					#else
@@ -81,6 +83,7 @@ public:
 					GAutoString html(ReadTextFile(p));
 					if (html)
 						Edit->Name(html);
+					#endif
 					#endif
 				}
 

@@ -45,66 +45,6 @@ public:
 	virtual GMessage::Result OnEvent(GMessage *Msg) { return 0; }
 };
 
-#if 0
-/// Fill colour definition
-class LgiClass GViewFill
-{
-public:
-    enum FillType
-    {
-        None,
-	    Solid,
-	    RefBitmap,
-	    OwnBitmap,
-    };
-
-protected:
-	FillType Type;
-	GColour Col;
-	GSurface *pDC;
-	
-	#ifdef WIN32
-	HBRUSH hBrush;
-	#endif
-
-public:
-	GViewFill(GColour c);
-	GViewFill(COLOUR c, int Bits = -1);
-	GViewFill(GSurface *dc, bool Copy = true);
-	GViewFill(const GViewFill &f);
-	virtual ~GViewFill();
-
-    void Empty();
-
-    GViewFill &operator =(GColour col)
-    {
-        Empty();
-        Type = Solid;
-        Col = col;
-        return *this;
-    }
-    
-    void SetRgba32(int r, int g, int b, int a = 0xff)
-    {
-        Empty();
-        Type = Solid;
-        Col.Rgb(r, g, b, a);
-    }
-    
-	GColour GetFlat() const
-	{
-	    return Col;
-	}
-	
-	bool IsTransparent()
-	{
-	    return Type == Solid && Col.a() == 0;
-	}
-	
-	void Fill(GSurface *pDC, GRect *r = 0, GdcPt2 *Origin = 0);
-};
-#endif
-
 /////////////////////////////////////////////////////////////////////////////////
 #if WINNATIVE
 typedef DWORD						OsProcessId;

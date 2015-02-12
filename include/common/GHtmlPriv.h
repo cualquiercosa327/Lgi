@@ -299,6 +299,7 @@ protected:
 	void ZeroTableElements();
 	bool OnUnhandledColor(GCss::ColorDef *def, const char *&s);
 	void CenterText();
+	bool Serialize(GXmlTag *t, bool Write);
 	
 	GColour _Colour(bool Fore);
 	COLOUR GetFore() { return _Colour(true).c24(); }

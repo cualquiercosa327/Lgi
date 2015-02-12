@@ -22,6 +22,10 @@ enum HtmlEditIds {
 	IDC_DEBUG_WND,
 	IDC_HTML_EDIT,
 	IDC_CLEAR_FMT,
+	IDM_SAVE_CLIP,
+	IDM_SAVE_FILE,
+	IDM_RESTORE_CLIP,
+	IDM_RESTORE_FILE,
 	
 	// Messages
 	IDM_COPY_ORIGINAL_SOURCE = 400
@@ -529,18 +533,125 @@ public:
 
 	bool OnContextMenuCreate(struct GTagHit &Hit, GSubMenu &RClick)
 	{
+		RClick.AppendSeparator();
 		RClick.AppendItem("Copy Original Source", IDM_COPY_ORIGINAL_SOURCE);
+		
+		GSubMenu *s = RClick.AppendSub("Save State");
+		s->AppendItem("To Clipboard", IDM_SAVE_CLIP);
+		s->AppendItem("To File", IDM_SAVE_FILE);
+
+		s = RClick.AppendSub("Restore State");
+		s->AppendItem("From Clipboard", IDM_RESTORE_CLIP);
+		s->AppendItem("From File", IDM_RESTORE_FILE);
+
 		return true;
 	}
 	
 	void OnContextMenuCommand(struct GTagHit &Hit, int Cmd)
 	{
-		if (Cmd == IDM_COPY_ORIGINAL_SOURCE)
+		switch (Cmd)
 		{
-			GClipBoard c(this);
-			if (OriginalSrcW)
-				c.TextW(OriginalSrcW, true);
+			case IDM_COPY_ORIGINAL_SOURCE:
+			{
+				GClipBoard c(this);
+				if (OriginalSrcW)
+					c.TextW(OriginalSrcW, true);
+				break;
+			}
+			case IDM_SAVE_CLIP:
+			{
+				GStringPipe p;
+				if (Serialize(p, true))
+				{
+					GClipBoard c(this);
+					GAutoString a(p.NewStr());
+					c.Text(a);
+				}
+				break;
+			}
+			case IDM_SAVE_FILE:
+			{
+				GFileSelect s;
+				s.Name("html_editor_dump.xml");
+				s.Parent(this);
+				if (s.Save())
+				{
+					GFile f;
+					if (!f.Open(s.Name(), O_WRITE))
+					{
+						LgiMsg(this, "Failed to open '%s' for writing.", GetClass(), MB_OK, s.Name());
+						break;
+					}
+					Serialize(f, true);
+				}
+				break;
+			}
+			case IDM_RESTORE_CLIP:
+			{
+				GClipBoard c(this);
+				GAutoString a(c.Text());
+				if (a)
+				{
+					GMemStream mem(a, strlen(a), false);
+					Serialize(mem, false);
+				}
+				break;
+			}
+			case IDM_RESTORE_FILE:
+			{
+				GFileSelect s;
+				s.Name("html_editor_dump.xml");
+				s.Parent(this);
+				if (s.Open())
+				{
+					GFile f;
+					if (!f.Open(s.Name(), O_READ))
+					{
+						LgiMsg(this, "Failed to open '%s' for reading.", GetClass(), MB_OK, s.Name());
+						break;
+					}
+					Serialize(f, false);
+				}
+				break;
+			}
 		}
+	}
+	
+	bool Serialize(GStream &s, bool Write)
+	{
+		GXmlTree t;
+		GXmlTag r("e");
+		
+		if (Write)
+		{
+			// Doc -> stream
+			if (Tag)
+			{
+				if (!Tag->Serialize(&r, Write))
+					return false;
+			}
+			
+			return t.Write(&r, &s);
+		}
+		else
+		{
+			// Stream -> Doc: Clear existing data
+			_Delete();
+			_New();
+			Tag = new GTag(this, 0);
+			if (Tag)
+			{
+				if (!t.Read(&r, &s))
+					return false;
+				if (!Tag->Serialize(&r, Write))
+					return false;
+
+				ViewWidth = -1;
+				OnPosChange();
+			}
+		}
+		
+		return true;
 	}
 
 	// Draw a red box around the cursor for debugging.

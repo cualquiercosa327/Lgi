@@ -4634,6 +4634,130 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, int LineHeight, 
 	}
 }
 
+char16 htoi(char16 c)
+{
+	if (c >= '0' && c <= '9')
+		return c - '0';
+	if (c >= 'a' && c <= 'f')
+		return c - 'a' + 10;
+	if (c >= 'A' && c <= 'F')
+		return c - 'A' + 10;
+	LgiAssert(0);
+	return 0;
+}
+
+bool GTag::Serialize(GXmlTag *t, bool Write)
+{
+	GRect pos;
+	if (Write)
+	{
+		// Obj -> Tag
+		t->SetAttr("tag", Tag);
+		pos.ZOff(Size.x-1, Size.y-1);
+		pos.Offset(Pos.x, Pos.y);
+		t->SetAttr("pos", pos.GetStr());
+		t->SetAttr("tagid", TagId);		
+		if (Txt)
+		{
+			GStringPipe p(256);
+			for (char16 *c = Txt; *c; c++)
+			{
+				if (*c > ' ' &&
+					*c < 127 &&
+					!strchr("%<>\'\"", *c))
+					p.Print("%c", (char)*c);
+				else
+					p.Print("%%%.4x", *c);
+			}
+			t->Content = p.NewStr();
+		}
+		if (Props.Length())
+		{
+			GAutoString CssStyles = ToString();
+			LgiAssert(!strchr(CssStyles, '\"'));
+			t->SetAttr("style", CssStyles);
+		}
+		
+		for (unsigned i=0; i<Children.Length(); i++)
+		{
+			GXmlTag *child = new GXmlTag("e");
+			GTag *tag = ToTag(Children[i]);
+			if (!child || !tag)
+			{
+				LgiAssert(0);
+				return false;
+			}
+			t->InsertTag(child);
+			if (!tag->Serialize(child, Write))
+			{
+				return false;
+			}
+		}
+	}
+	else
+	{
+		// Tag -> Obj
+		Tag.Reset(NewStr(t->GetAttr("tag")));
+		TagId = (HtmlTag) t->GetAsInt("tagid");
+		pos.SetStr(t->GetAttr("pos"));
+		if (pos.Valid())
+		{
+			Pos.x = pos.x1;
+			Pos.y = pos.y1;
+			Size.x = pos.X();
+			Size.y = pos.Y();
+		}
+		if (ValidStr(t->Content))
+		{
+			GStringPipe p(256);
+			char *c = t->Content;
+			SkipWhiteSpace(c);
+			for (; *c && *c > ' '; c++)
+			{
+				char16 ch;
+				if (*c == '%')
+				{
+					ch = 0;
+					for (int i=0; i<4 && *c; i++)
+					{
+						ch <<= 4;
+						ch |= htoi(*++c);
+					}
+				}
+				else ch = *c;
+				p.Write(&ch, sizeof(ch));
+			}
+			Txt.Reset(p.NewStrW());
+		}
+		const char *Style = t->GetAttr("style");
+		if (Style)
+			Parse(Style, ParseRelaxed);
+		
+		for (unsigned i=0; i<t->Children.Length(); i++)
+		{
+			GXmlTag *child = t->Children[i];
+			if (child->IsTag("e"))
+			{
+				GTag *tag = new GTag(Html, NULL);
+				if (!tag)
+				{
+					LgiAssert(0);
+					return false;
+				}
+				
+				if (!tag->Serialize(child, Write))
+				{
+					return false;
+				}
+				
+				Attach(tag);
+			}
+		}
+	}
+	
+	return true;
+}
+
 /// This method centers the text in the area given to the tag. Used for inline block elements.
 void GTag::CenterText()
 {
@@ -7175,10 +7299,17 @@ void GHtml::OnMouseClick(GMouse &m)
 				}
 			}
 			
-			#ifdef _DEBUG
-			RClick.AppendSeparator();
-			RClick.AppendItem("Dump", IDM_DUMP, Tag != 0);
-			#endif
+			if (!GetReadOnly() || // Is editor
+				#ifdef _DEBUG
+				1
+				#else
+				0
+				#endif
+				)
+			{
+				RClick.AppendSeparator();
+				RClick.AppendItem("Dump Layout", IDM_DUMP, Tag != 0);
+			}
 
 			if (Vs)
 			{
