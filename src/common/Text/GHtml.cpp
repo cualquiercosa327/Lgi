@@ -58,12 +58,13 @@
 #define DefaultBodyMargin			"5px"
 #define DefaultImgSize				17
 #define DefaultMissingCellColour	GT_TRANSPARENT // Rgb32(0xf0,0xf0,0xf0)
-#ifdef _DEBUG
+#define ShowNbsp					0
+
+#if 0 // def _DEBUG
 #define DefaultTableBorder			Rgb32(0xf8, 0xf8, 0xf8)
 #else
 #define DefaultTableBorder			GT_TRANSPARENT
 #endif
-#define ShowNbsp					0
 
 static char WordDelim[]	=			".,<>/?[]{}()*&^%$#@!+|\'\"";
 static char16 WhiteW[] =			{' ', '\t', '\r', '\n', 0};
@@ -92,8 +93,6 @@ static char DefaultCss[] = {
 "strong          { font-weight: bolder; }"
 };
 #endif
-
-#define IsBlock(d)		((d) == DispBlock)
 
 template<typename T>
 void RemoveChars(T *str, T *remove_list)
@@ -250,7 +249,8 @@ public:
 		bool IsUnderline = Style->TextDecoration() == GCss::TextDecorUnderline;
 		double PtSize = 0.0;
 
-		if (Size.Type == GCss::LenInherit)
+		if (Size.Type == GCss::LenInherit ||
+			Size.Type == GCss::LenNormal)
 		{
 			Size.Type = GCss::LenPt;
 			Size.Value = (float)Default->PointSize();
@@ -410,10 +410,6 @@ public:
 			PtSize = Size.Value * Default->PointSize();
 			if (PtSize < MinimumPointSize)
 				PtSize = MinimumPointSize;
-		}
-		else if (Size.Type == GCss::LenNormal)
-		{
-			return Fonts.First();
 		}
 		else if (Size.Type == GCss::SizeXXSmall ||
 				Size.Type == GCss::SizeXSmall ||
@@ -1414,7 +1410,7 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 
 	if (ValidStr(Tag))
 	{
-		if (IsBlock(Display()))
+		if (IsBlock())
 		{
 			p.Print("%s%s<%s", TagId != TAG_HTML ? "\n" : "", Tabs, Tag.Get());
 		}
@@ -1520,17 +1516,17 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 			TextToStream(p, Text());
 		}
 
-		bool Last = IsBlock(Display());
+		bool Last = IsBlock();
 		for (unsigned i=0; i<Children.Length(); i++)
 		{
 			GTag *c = ToTag(Children[i]);
 			c->CreateSource(p, Parent ? Depth+1 : 0, Last);
-			Last = IsBlock(c->Display());
+			Last = c->IsBlock();
 		}
 
 		if (Tag)
 		{
-			if (IsBlock(Display()))
+			if (IsBlock())
 			{
 				if (Children.Length())
 					p.Print("\n%s", Tabs);
@@ -2034,7 +2030,7 @@ bool GTag::OnMouseClick(GMouse &m)
 
 GTag *GTag::GetBlockParent(int *Idx)
 {
-	if (IsBlock(Display()))
+	if (IsBlock())
 	{
 		if (Idx)
 			*Idx = 0;
@@ -2044,7 +2040,7 @@ GTag *GTag::GetBlockParent(int *Idx)
 
 	for (GTag *t = this; t; t = ToTag(t->Parent))
 	{
-		if (IsBlock(t->Parent->Display()))
+		if (ToTag(t->Parent)->IsBlock())
 		{
 			if (Idx)
 			{
@@ -2800,6 +2796,22 @@ void GTag::SetStyle()
 			MarginLeft(Len("16px"));
 			break;
 		}
+		case TAG_STRONG:
+		case TAG_B:
+		{
+			FontWeight(FontWeightBold);
+			break;
+		}
+		case TAG_I:
+		{
+			FontStyle(FontStyleItalic);
+			break;
+		}
+		case TAG_U:
+		{
+			TextDecoration(TextDecorUnderline);
+			break;
+		}
 	}
 
 	Get("id", HtmlId);
@@ -3037,22 +3049,6 @@ void GTag::SetStyle()
 				FontSize(Len(s));
 			break;
 		}
-		case TAG_STRONG:
-		case TAG_B:
-		{
-			FontWeight(FontWeightBold);
-			break;
-		}
-		case TAG_I:
-		{
-			FontStyle(FontStyleItalic);
-			break;
-		}
-		case TAG_U:
-		{
-			TextDecoration(TextDecorUnderline);
-			break;
-		}
 		case TAG_SELECT:
 		{
 			if (!Html->InThread())
@@ -3115,7 +3111,7 @@ void GTag::SetStyle()
 		}
 	}
 
-	if (IsBlock(Display()))
+	if (IsBlock())
 	{
 		GCss::ImageDef bk = BackgroundImage();
 		if (bk.Type == GCss::ImageUri &&
@@ -3468,7 +3464,7 @@ bool GTag::ConvertToText(TextConvertState &State)
 
 	State.Depth -= DepthInc;
 	
-	if (IsBlock(Display()))
+	if (IsBlock())
 	{
 		if (State.CharsOnLine)
 			State.NewLine();
@@ -4036,7 +4032,10 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	}
 	
 	TableBorder = f->ResolveBorder(Table, Font);
-	TablePadding = f->ResolvePadding(Table, Font);
+	if (Table->BorderCollapse() != GCss::CollapseCollapse)
+		TablePadding = f->ResolvePadding(Table, Font);
+	else
+		TablePadding.ZOff(0, 0);
 	
 	BorderX1 = TableBorder.x1 + TablePadding.x1;
 	BorderX2 = TableBorder.x2 + TablePadding.x2;
@@ -4395,7 +4394,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 						t->Size.y += MaxRow[y+n] + CellSpacing;
 					}
 					
-					Table->Size.x = max(Cx + (int)Table->BorderRight().Value, Table->Size.x);
+					Table->Size.x = max(Cx + BorderX2, Table->Size.x);
 				}
 				else
 				{
@@ -4834,6 +4833,13 @@ void GTag::OnFlow(GFlowRegion *Flow)
 	Size.x = 0;
 	Size.y = 0;
 	
+	#ifdef _DEBUG
+	if (Debug)
+	{
+		int asd=0;
+	}
+	#endif
+	
 	switch (TagId)
 	{
 		default:
@@ -5110,7 +5116,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 				GCss::PropMap Map;
 				GCss Final;
 				Map.Add(PropLineHeight, new GCss::PropArray);
-				for (GTag *t = this; t; t = ToTag(t->Parent))
+				for (GTag *t = this; t; t = t->TagId == TAG_TABLE ? NULL : ToTag(t->Parent))
 				{
 					if (!Final.InheritCollect(*t, Map))
 						break;
@@ -5594,6 +5600,13 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 	int Px, Py;
 	pDC->GetOrigin(Px, Py);
 
+	#ifdef _DEBUG
+	if (Debug)
+	{
+		int asd=0;
+	}
+	#endif
+	
 	switch (TagId)
 	{
 		case TAG_INPUT:
@@ -5873,18 +5886,18 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 			#endif
 			if (f && TextPos.Length())
 			{
-				int LineHtOff = 0;
-				if (LineHeightCache >= 0)
-				{
-					Len PadTop = PaddingTop(), PadBot = PaddingBottom();
-					int AvailY = Size.y -
-								(PadTop.IsValid() ? PadTop.ToPx(Size.y, GetFont()) : 0) -
-								(PadBot.IsValid() ? PadBot.ToPx(Size.y, GetFont()) : 0);
-					int FontHt = f->GetHeight();
-					int EffectiveLineHt = min(AvailY, LineHeightCache);						
-					LineHtOff = EffectiveLineHt > FontHt ? max(0, ((EffectiveLineHt - FontHt) >> 1) - 1) : 0;
-				}
+				// This is the non-display part of the font bounding box
+				int LeadingPx = (int)(f->Leading() + 0.5);
 				
+				// This is the displayable part of the font
+				int FontPx = f->GetHeight() - LeadingPx;
+				
+				// This is the pixel height we're aiming to fill
+				int EffectiveLineHt = LineHeightCache >= 0 ? max(FontPx, LineHeightCache) : FontPx;
+				
+				// This gets added to the y coord of each peice of text
+				int LineHtOff = ((EffectiveLineHt - FontPx + 1) >> 1) - LeadingPx;
+								
 				#define FontColour(InSelection) \
 					f->Transparent(!InSelection && !IsEditor); \
 					if (InSelection) \

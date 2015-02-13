@@ -482,11 +482,12 @@ void GdcApp32Set::Rectangle(int x, int y)
 #else
 	while (y--)
 	{
-		uint32 *p = Ptr.u32;
-		uint32 *e = p + x;
+		register uint32 *p = Ptr.u32;
+		register uint32 *e = p + x;
+		register uint32 fill = c;
 		while (p < e)
 		{
-			*p++ = c;
+			*p++ = fill;
 		}
 		Ptr.u8 += Dest->Line;
 	}
