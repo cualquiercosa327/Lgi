@@ -1452,6 +1452,8 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 				}
 				switch (TagId)
 				{
+					default:
+						break;
 					case TAG_A:
 					{
 						GCss::ColorDef Blue(GCss::ColorRgb, Rgb32(0, 0, 255));

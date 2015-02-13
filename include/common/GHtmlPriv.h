@@ -6,6 +6,8 @@
 #include "GUtf8.h"
 #include "GHtmlParser.h"
 
+class HtmlEdit;
+
 namespace Html1
 {
 #define DefaultTextColour			Rgb32(0, 0, 0)
@@ -151,6 +153,7 @@ struct GHtmlTableLayout
 class GTag : public GHtmlElement
 {
 	friend struct GHtmlTableLayout;
+	friend class HtmlEdit;
 	
 public:
 	enum HtmlControlType
@@ -266,8 +269,6 @@ public:
 	};
 
 protected:
-	friend class HtmlEdit;
-
 	/// A hash table of attributes.
 	///
 	/// All strings stored in here should be in UTF-8. Each string is allocated on the heap.

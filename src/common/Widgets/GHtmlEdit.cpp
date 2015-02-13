@@ -2056,6 +2056,8 @@ public:
 		if (!t || t->IsBlock()) return false;		
 		switch (t->TagId)
 		{
+			default:
+				break;
 			case CONTENT:
 			case TAG_A:
 			case TAG_B:
