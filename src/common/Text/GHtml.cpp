@@ -774,6 +774,36 @@ public:
 
 		return 0;
 	}
+
+	GRect ResolveMargin(GCss *Src, GFont *Font)
+	{
+		GRect r;
+		r.x1 = ResolveX(Src->MarginLeft(), Font, true);
+		r.y1 = ResolveY(Src->MarginTop(), Font, true);
+		r.x2 = ResolveX(Src->MarginRight(), Font, true);
+		r.y2 = ResolveY(Src->MarginBottom(), Font, true);
+		return r;
+	}
+
+	GRect ResolveBorder(GCss *Src, GFont *Font)
+	{
+		GRect r;
+		r.x1 = ResolveX(Src->BorderLeft(), Font, true);
+		r.y1 = ResolveY(Src->BorderTop(), Font, true);
+		r.x2 = ResolveX(Src->BorderRight(), Font, true);
+		r.y2 = ResolveY(Src->BorderBottom(), Font, true);
+		return r;
+	}
+
+	GRect ResolvePadding(GCss *Src, GFont *Font)
+	{
+		GRect r;
+		r.x1 = ResolveX(Src->PaddingLeft(), Font, true);
+		r.y1 = ResolveY(Src->PaddingTop(), Font, true);
+		r.x2 = ResolveX(Src->PaddingRight(), Font, true);
+		r.y2 = ResolveY(Src->PaddingBottom(), Font, true);
+		return r;
+	}
 };
 
 };
@@ -3827,15 +3857,6 @@ void GTag::LayoutTable(GFlowRegion *f)
 		Cell->Cells->LayoutTable(f);
 }
 
-/*
-DeclGArrayCompare(GrowableCmp, int, GHtmlTableLayout*)
-{
-	int a_grow = param->MaxCol[*a] - param->MinCol[*a];
-	int b_grow = param->MaxCol[*b] - param->MinCol[*b];
-	return a_grow - b_grow;
-}
-*/
-
 void GHtmlTableLayout::AllocatePx(int StartCol, int Cols, int MinPx)
 {
 	// Get the existing size of the column set
@@ -3929,6 +3950,7 @@ void GHtmlTableLayout::AllocatePx(int StartCol, int Cols, int MinPx)
 				AddPx = RemainingPx / Growable.Length();
 			}
 								
+			LgiAssert(AddPx >= 0);
 			MinCol[x] += AddPx;
 			Added += AddPx;
 		}
@@ -3966,6 +3988,7 @@ void GHtmlTableLayout::AllocatePx(int StartCol, int Cols, int MinPx)
 					MinCol[x] += AddPx;
 					Added += AddPx;
 				}
+				LgiAssert(MinCol[x] >= 0);
 			}
 		}
 	}
@@ -4012,10 +4035,12 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	        AvailableX = Px;
 	}
 	
-	GCss::Len Border = Table->BorderLeft();
-	BorderX1 = Border.IsValid() ? f->ResolveX(Border, Font, false) : 0;
-	Border = Table->BorderRight();
-	BorderX2 = Border.IsValid() ? f->ResolveX(Border, Font, false) : 0;
+	TableBorder = f->ResolveBorder(Table, Font);
+	TablePadding = f->ResolvePadding(Table, Font);
+	
+	BorderX1 = TableBorder.x1 + TablePadding.x1;
+	BorderX2 = TableBorder.x2 + TablePadding.x2;
+	
 	#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 	if (Table->Debug)
 		LgiTrace("AvailableX=%i, BorderX1=%i, BorderX2=%i\n", AvailableX, BorderX1, BorderX2);
@@ -4037,15 +4062,8 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 			GTag *t = Get(x, y);
 			if (t)
 			{
-				t->Cell->BorderPx.x1 = f->ResolveX(t->BorderLeft(), Font, true);
-				t->Cell->BorderPx.y1 = f->ResolveX(t->BorderTop(), Font, true);
-				t->Cell->BorderPx.x2 = f->ResolveX(t->BorderRight(), Font, true);
-				t->Cell->BorderPx.y2 = f->ResolveX(t->BorderBottom(), Font, true);
-
-				t->Cell->PaddingPx.x1 = f->ResolveX(t->PaddingLeft(), Font, true);
-				t->Cell->PaddingPx.y1 = f->ResolveX(t->PaddingTop(), Font, true);
-				t->Cell->PaddingPx.x2 = f->ResolveX(t->PaddingRight(), Font, true);
-				t->Cell->PaddingPx.y2 = f->ResolveX(t->PaddingBottom(), Font, true);
+				t->Cell->BorderPx = f->ResolveBorder(t, Font);
+				t->Cell->PaddingPx = f->ResolvePadding(t, Font);
 
 				if (t->Cell->Pos.x == x && t->Cell->Pos.y == y)
 				{
@@ -4240,6 +4258,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 
 	// Layout cell horizontally and then flow the contents to get 
 	// the height of all the cells
+	GArray<GRect> RowPad;
 	for (y=0; y<s.y; y++)
 	{
 		int XPos = CellSpacing;
@@ -4254,10 +4273,14 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 					t->Size.x = -CellSpacing;
 					XPos -= CellSpacing;
 					
+					RowPad[y].y1 = max(RowPad[y].y1, t->Cell->BorderPx.y1 + t->Cell->PaddingPx.y1);
+					RowPad[y].y2 = max(RowPad[y].y2, t->Cell->BorderPx.y2 + t->Cell->PaddingPx.y2);
+					
 					GRect Box(0, 0, -CellSpacing, 0);
 					for (int i=0; i<t->Cell->Span.x; i++)
 					{
 						int ColSize = MinCol[x + i] + CellSpacing;
+						LgiAssert(ColSize >= 0);
 						t->Size.x += ColSize;
 						XPos += ColSize;
 						Box.x2 += ColSize;
@@ -4314,9 +4337,8 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	}
 	
 	// Cell positioning
-	int LeftMargin = (int) (Table->BorderLeft().Value + CellSpacing);
-	int Cx = LeftMargin;
-	int Cy = (int) (Table->BorderTop().Value + CellSpacing);
+	int Cx = BorderX1;
+	int Cy = TableBorder.y1 + TablePadding.y1;
 	
 	for (y=0; y<s.y; y++)
 	{
@@ -4355,8 +4377,11 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 			{
 				if (t->Cell->Pos.x == x && t->Cell->Pos.y == y)
 				{
+					int RowPadOffset = RowPad[y].y1 - t->Cell->PaddingPx.y1;
+					
 					t->Pos.x = Cx;
-					t->Pos.y = Cy;
+					t->Pos.y = Cy + RowPadOffset;
+					
 					t->Size.x = -CellSpacing;
 					for (int i=0; i<t->Cell->Span.x; i++)
 					{
@@ -4383,7 +4408,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 			Prev = t;
 		}
 		
-		Cx = LeftMargin;
+		Cx = BorderX1;
 		Cy += MaxRow[y] + CellSpacing;
 	}
 
@@ -4406,9 +4431,9 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 			break;
 		}
 	}
+	
 	Table->Pos.y = f->y1;
-
-	Table->Size.y = Cy + (int)Table->BorderBottom().Value;
+	Table->Size.y = Cy + TablePadding.y2 + TableBorder.y2;
 }
 
 GRect GTag::ChildBounds()
@@ -4808,7 +4833,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 
 	Size.x = 0;
 	Size.y = 0;
-
+	
 	switch (TagId)
 	{
 		default:
@@ -4926,7 +4951,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 		case TAG_TABLE:
 		{
 			Flow->EndBlock();
-
+			
 			Flow->Indent(f, MarginLeft(), MarginTop(), MarginRight(), MarginBottom(), true);
 
 			LayoutTable(Flow);
@@ -4951,6 +4976,9 @@ void GTag::OnFlow(GFlowRegion *Flow)
 		}
 		
 		BlockFlowWidth = Flow->X();
+		
+		/*	This code breaks the 'staysz.html' test case.
+			What was its original purpose?
 		if (TagId == TAG_P)
 		{
 			if (!OldFlowMy && Text())
@@ -4958,6 +4986,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 				Flow->FinishLine(true);
 			}
 		}
+		*/
 
 		// Indent the margin...
 		Flow->Indent(f, MarginLeft(), MarginTop(), MarginRight(), MarginBottom(), true);
@@ -5428,7 +5457,7 @@ struct DrawBorder
 	}
 };
 
-void GTag::OnPaintBorder(GSurface *pDC, GRect *Px)
+void GTag::PaintBorder(GSurface *pDC, GRect *Px)
 {
 	GArray<GRect> r;
 
@@ -5579,7 +5608,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 				Sy *= LineY;
 				
 				GRect r(0, 0, Size.x-1, Size.y-1), Px;
-				OnPaintBorder(pDC, &Px);
+				PaintBorder(pDC, &Px);
 				if (!dynamic_cast<GButton*>(Ctrl))
 				{
 					r.x1 += Px.x1;
@@ -5745,20 +5774,20 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 				}
 			}
 
-			OnPaintBorder(pDC);
-
-			if (DefaultTableBorder != GT_TRANSPARENT)
+			// Draw border
+			PaintBorder(pDC);
+			
+			if (Cell && Cell->Cells)
 			{
-				GRect r((int)BorderLeft().Value,
-				        (int)BorderTop().Value,
-				        Size.x-(int)BorderRight().Value-1,
-				        Size.y-(int)BorderBottom().Value-1); 
-
-				#if 1
-				GRegion c(r);
-				
-				if (Cell->Cells)
+				GHtmlTableLayout *l = Cell->Cells;
+				if (DefaultTableBorder != GT_TRANSPARENT)
 				{
+					GRect r(l->TableBorder.x1 + l->TablePadding.x1,
+							l->TableBorder.y1 + l->TablePadding.y1,
+							Size.x - 1 - l->TableBorder.x2 - l->TablePadding.x2,
+							Size.y - 1 - l->TableBorder.y2 - l->TablePadding.y2);
+					GRegion c(r);
+					
 					List<GTag> AllTd;
 					Cell->Cells->GetAll(AllTd);
 					for (GTag *t=AllTd.First(); t; t=AllTd.Next())
@@ -5770,32 +5799,25 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 						}
 						c.Subtract(&r);
 					}
-				}
 
-				if (BackgroundColor().Type == ColorInherit)
-					pDC->Colour(DefaultTableBorder, 32);
-				else
-					pDC->Colour(BackgroundColor().Rgb32, 32);
-				
-				for (GRect *p=c.First(); p; p=c.Next())
-				{
-					pDC->Rectangle(p);
+					if (BackgroundColor().Type == ColorInherit)
+						pDC->Colour(DefaultTableBorder, 32);
+					else
+						pDC->Colour(BackgroundColor().Rgb32, 32);
+					
+					for (GRect *p=c.First(); p; p=c.Next())
+					{
+						pDC->Rectangle(p);
+					}
 				}
-				
-				#else
-				
-				pDC->Colour(DefaultTableBorder, 32);
-				pDC->Rectangle(&r);
-
-				#endif				
-			}
+			}			
 			break;
 		}
 		default:
 		{
-			ColorDef _back = BackgroundColor();
-			COLOUR fore = GetFore();
-			COLOUR back = (_back.Type == ColorInherit && Display() == DispBlock) ? GetBack() : _back.Rgb32;
+			// ColorDef _back = BackgroundColor();
+			GColour fore = _Colour(true);
+			GColour back = _Colour(false);
 
 			if (Display() == DispBlock && Html->Environment)
 			{
@@ -5809,19 +5831,19 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 					r.ZOff(Size.x-1, Size.y-1);
 					FillRectWithImage(pDC, &r, Img.Img, BackgroundRepeat());
 					
-					back = GT_TRANSPARENT;
+					back.Empty();
 				}
 			}
 
-			if (back != GT_TRANSPARENT)
+			if (!back.Transparent())
 			{
-				bool IsAlpha = A32(back) < 0xff;
+				bool IsAlpha = back.a() < 0xff;
 				int Op = GDC_SET;
 				if (IsAlpha)
 				{
 					Op = pDC->Op(GDC_ALPHA);
 				}
-				pDC->Colour(back, 32);
+				pDC->Colour(back);
 
 				if (Display() == DispBlock || Display() == DispInlineBlock)
 				{
@@ -5841,7 +5863,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 				}
 			}
 
-			OnPaintBorder(pDC);
+			PaintBorder(pDC);
 
 			GFont *f = GetFont();
 			#if DEBUG_TEXT_AREA
@@ -5869,11 +5891,11 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 						f->Colour(LC_FOCUS_SEL_FORE, LC_FOCUS_SEL_BACK); \
 					else \
 					{ \
-						GColour bk(_back.Type != ColorInherit ? Rgb32To24(_back.Rgb32) : Rgb32To24(LC_WORKSPACE), 24);	\
-						if (IsEditor)																					\
-							bk = bk.Mix(GColour(0, 0, 0), 0.05f);														\
-						f->Colour(	fore != GT_TRANSPARENT ? Rgb32To24(fore) : Rgb32To24(DefaultTextColour),			\
-									bk.c24()); \
+						GColour bk(back.Transparent() ? GColour(LC_WORKSPACE, 24) : back);			\
+						if (IsEditor)																\
+							bk = bk.Mix(GColour(0, 0, 0), 0.05f);									\
+						f->Colour(	!fore.Transparent() ? fore : GColour(DefaultTextColour, 32),	\
+									bk);															\
 					}
 
 				if (Html->HasSelection() &&

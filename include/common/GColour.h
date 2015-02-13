@@ -33,6 +33,7 @@ public:
 	GColourSpace GetColourSpace();
 	
 	bool IsValid();
+	void Empty();
 	bool Transparent();
 	/// Sets the colour to a rgb(a) value
 	void Rgb(int r, int g, int b, int a = 255);

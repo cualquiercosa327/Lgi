@@ -45,13 +45,18 @@ bool GColour::IsValid()
 	return space != CsNone;
 }
 
+void GColour::Empty()
+{
+	space = CsNone;
+}
+
 bool GColour::Transparent()
 {
 	if (space == System32BitColourSpace)
 		return rgb.a == 0;
 	else if (space == CsIndex8)
 		return !pal || index >= pal->GetSize();
-	return false;
+	return space == CsNone;
 }
 
 void GColour::Rgb(int r, int g, int b, int a)

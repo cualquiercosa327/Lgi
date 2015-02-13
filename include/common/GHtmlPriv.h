@@ -128,6 +128,7 @@ struct GHtmlTableLayout
 	int AvailableX;
 	int CellSpacing;
 	int BorderX1, BorderX2;
+	GRect TableBorder, TablePadding; // in Px
 
 	// The col and row sizes
 	GArray<int> MinCol, MaxCol, MaxRow;
@@ -403,7 +404,7 @@ public:
 	/// Positions the tag according to the flow region passed in
 	void OnFlow(GFlowRegion *Flow);
 	/// Paints the border of the tag
-	void OnPaintBorder(
+	void PaintBorder(
 		/// The surface to paint on
 		GSurface *pDC,
 		/// [Optional] The size of the border painted
