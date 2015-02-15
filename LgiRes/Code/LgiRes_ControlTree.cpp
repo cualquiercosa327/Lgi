@@ -62,7 +62,7 @@ public:
 		{
 			GCss::ColorDef c;
 			if (!Str || !Str->Get())
-				GetCss()->Color(GCss::ColorDef(Rgb32(0xbb, 0xbb, 0xbb)));
+				GetCss()->Color(GCss::ColorDef(GCss::ColorRgb, Rgb32(0xbb, 0xbb, 0xbb)));
 			else
 				GetCss()->DeleteProp(GCss::PropColor);
 		}

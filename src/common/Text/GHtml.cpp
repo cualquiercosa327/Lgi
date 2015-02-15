@@ -512,14 +512,17 @@ public:
 	int my;						// How much of the area above y2 was just margin
 	int max_cx;					// Max value of cx
 
-	GFlowRegion(GHtml *html)
+	bool InBody;
+
+	GFlowRegion(GHtml *html, bool inbody)
 	{
 		Html = html;
 		ScreenDpi = 96;
 		x1 = x2 = y1 = y2 = cx = my = max_cx = 0;
+		InBody = inbody;
 	}
 
-	GFlowRegion(GHtml *html, GRect r)
+	GFlowRegion(GHtml *html, GRect r, bool inbody)
 	{
 		Html = html;
 		ScreenDpi = 96;
@@ -527,6 +530,7 @@ public:
 		y1 = y2 = r.y1;
 		x2 = r.x2;
 		my = 0;
+		InBody = inbody;
 	}
 
 	GFlowRegion(GFlowRegion &r)
@@ -539,6 +543,7 @@ public:
 		y2 = r.y2;
 		max_cx = cx = r.cx;
 		my = r.my;
+		InBody = r.InBody; 
 	}
 
 	int X()
@@ -2186,7 +2191,7 @@ int GTag::NearestChar(GFlowRect *Tr, int x, int y)
 	return -1;
 }
 
-void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, int Depth, bool DebugLog)
+void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, int Depth, bool InBody, bool DebugLog)
 {
 	char DepthStr[256];
 	memset(DepthStr, ' ', Depth);
@@ -2195,13 +2200,13 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, int Depth, bool DebugLog)
 	if (TagId == TAG_IMG)
 	{
 		GRect img(0, 0, Size.x - 1, Size.y - 1);
-		if (img.Overlap(x, y))
+		if (InBody && img.Overlap(x, y))
 		{
 			TagHit.Direct = this;
 			TagHit.Block = 0;
 		}
 	}
-	else if (TextPos.Length())
+	else if (InBody && TextPos.Length())
 	{
 		for (unsigned i=0; i<TextPos.Length(); i++)
 		{
@@ -2262,7 +2267,8 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, int Depth, bool DebugLog)
 		x >= 0 &&
 		y >= 0 &&
 		x < Size.x &&
-		y < Size.y
+		y < Size.y &&
+		InBody
 	)
 	{
 		// Direct hit
@@ -2280,6 +2286,9 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, int Depth, bool DebugLog)
 				TagHit.Near);
 		}
 	}
+	
+	if (TagId == TAG_BODY)
+		InBody = true;
 
 	for (unsigned i=0; i<Children.Length(); i++)
 	{
@@ -2287,7 +2296,7 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, int Depth, bool DebugLog)
 		if (t->Pos.x >= 0 &&
 			t->Pos.y >= 0)
 		{
-			t->GetTagByPos(TagHit, x - t->Pos.x, y - t->Pos.y, Depth + 1, DebugLog);
+			t->GetTagByPos(TagHit, x - t->Pos.x, y - t->Pos.y, Depth + 1, InBody, DebugLog);
 		}
 	}
 }
@@ -4288,7 +4297,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 					}
 					
 					GCss::Len Ht = t->Height();
-					GFlowRegion r(Table->Html, Box);
+					GFlowRegion r(Table->Html, Box, true);
 					// int Rx = r.X();
 					
 					t->OnFlow(&r);
@@ -4759,7 +4768,7 @@ bool GTag::Serialize(GXmlTag *t, bool Write)
 		if (Style)
 			Parse(Style, ParseRelaxed);
 		
-		for (unsigned i=0; i<t->Children.Length(); i++)
+		for (int i=0; i<t->Children.Length(); i++)
 		{
 			GXmlTag *child = t->Children[i];
 			if (child->IsTag("e"))
@@ -4826,7 +4835,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 		return;
 
 	GFont *f = GetFont();
-	GFlowRegion Local(Html);
+	GFlowRegion Local(Html, true);
 	bool Restart = true;
 	int BlockFlowWidth = 0;
 	const char *ImgAltText = NULL;
@@ -4846,6 +4855,11 @@ void GTag::OnFlow(GFlowRegion *Flow)
 	{
 		default:
 			break;
+		case TAG_BODY:
+		{
+			Flow->InBody = true;
+			break;
+		}
 		case TAG_IFRAME:
 		{
 			GFlowRegion Temp = *Flow;
@@ -5110,7 +5124,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 			}
 		}
 
-		if (Text())
+		if (Text() && Flow->InBody)
 		{
 			// Setup the line height cache
 			if (LineHeightCache < 0)
@@ -5334,6 +5348,11 @@ void GTag::OnFlow(GFlowRegion *Flow)
 
 		Flow->y1 += Pos.y;
 		Flow->y2 += Pos.y;
+	}
+
+	if (TagId == TAG_BODY)
+	{
+		Flow->InBody = false;
 	}
 }
 
@@ -6579,7 +6598,7 @@ GdcPt2 GHtml::Layout()
 	if (Tag && ViewWidth != Client.X())
 	{
 		GRect Client = GetClient();
-		GFlowRegion f(this, Client);
+		GFlowRegion f(this, Client, false);
 
 		// Flow text, width is different
 		Tag->OnFlow(&f);
@@ -7654,7 +7673,7 @@ void GHtml::OnMouseMove(GMouse &m)
 
 	int Offset = ScrollY();
 	GTagHit Hit;
-	Tag->GetTagByPos(Hit, m.x, m.y + Offset, 0);
+	Tag->GetTagByPos(Hit, m.x, m.y + Offset, 0, false);
 	if (!Hit.Direct && !Hit.NearestText)
 		return;
 		

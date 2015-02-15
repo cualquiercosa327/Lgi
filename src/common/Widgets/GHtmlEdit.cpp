@@ -705,7 +705,11 @@ public:
 	int MergeContent(GArray<GTag*> &run)
 	{
 		if (run.Length() <= 1)
+		{
+			// Nothing to merge, reset for next run
+			run.Length(0);
 			return 0;
+		}
 
 		GStringPipe p;
 		for (unsigned i=0; i<run.Length(); i++)
@@ -2683,7 +2687,7 @@ public:
 		DeleteObj(Icons);
 	}
 
-	void PrepareForEdit(GTag *t)
+	void PrepareForEdit(GTag *t, bool InBody = false)
 	{
 		if (!t)
 			return;
@@ -2705,10 +2709,21 @@ public:
 			}
 		}
 
+		if (t->TagId == TAG_BODY)
+			InBody = true;
+
 		for (unsigned i=0; i<t->Children.Length(); i++)
 		{
 			GTag *c = ToTag(t->Children[i]);
-			PrepareForEdit(c);
+			if (!InBody && c->TagId == CONTENT)
+			{
+				c->Detach();
+				delete c;
+				i--;
+				continue;
+			}
+			
+			PrepareForEdit(c, t->TagId == TAG_BODY || InBody);
 		}
 	}
 };

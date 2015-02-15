@@ -413,7 +413,7 @@ public:
 	void OnPaint(GSurface *pDC, bool &InSelection);
 	void SetSize(GdcPt2 &s);
 	void SetTag(const char *Tag);
-	void GetTagByPos(GTagHit &TagHit, int x, int y, int Depth, bool DebugLog = false);
+	void GetTagByPos(GTagHit &TagHit, int x, int y, int Depth, bool InBody, bool DebugLog = false);
 	GTag *GetTagByName(const char *Name);
 	void CopyClipboard(GMemQueue &p, bool &InSelection);
 	GTag *IsAnchor(GAutoString *Uri);
