@@ -301,7 +301,7 @@ public:
 		c->Add(Ctrls[i].Text = new GText(IDC_TEXT_BASE + i, 0, 0, -1, -1, Path = d->BuildPath(Setting->Setting, PlatformSpecific, PlatformCurrent, Config)));
 		c = Tbl->GetCell(0, CellY + 1);
 		
-		GXmlTag *t = d->Editing.GetTag(Path);
+		GXmlTag *t = d->Editing.GetChildTag(Path);
 		if (Setting->Type == GV_STRING)
 		{
 			c->Add(Ctrls[i].Edit = new GEdit(IDC_EDIT_BASE + i, 0, 0, 60, 20));
@@ -361,7 +361,7 @@ public:
 					continue;
 				}
 
-				GXmlTag *t = d->Editing.GetTag(Path, true);
+				GXmlTag *t = d->Editing.GetChildTag(Path, true);
 				if (!t)
 				{
 					LgiAssert(0);
@@ -669,7 +669,7 @@ void IdeProjectSettings::InitAllSettings(bool ClearCurrent)
 				if (!i->Flag.PlatformSpecific)
 				{
 					p = d->BuildPath(i->Setting, false, PlatformCurrent, Cfg);
-					d->Active.GetTag(p, true);
+					d->Active.GetChildTag(p, true);
 					if (t && !t->Content && Default.Type != GV_NULL)
 						t->SetContent(Default.Str());
 				}
@@ -677,7 +677,7 @@ void IdeProjectSettings::InitAllSettings(bool ClearCurrent)
 				if (!i->Flag.CrossPlatform)
 				{
 					p = d->BuildPath(i->Setting, true, PlatformCurrent, Cfg);
-					d->Active.GetTag(p, true);
+					d->Active.GetChildTag(p, true);
 					if (t && !t->Content && Default.Type != GV_NULL)
 						t->SetContent(Default.Str());
 				}
@@ -688,7 +688,7 @@ void IdeProjectSettings::InitAllSettings(bool ClearCurrent)
 			if (!i->Flag.PlatformSpecific)
 			{
 				p = d->BuildPath(i->Setting, false, PlatformCurrent, -1);
-				t = d->Active.GetTag(p, true);
+				t = d->Active.GetChildTag(p, true);
 				if (t && !t->Content && Default.Type != GV_NULL)
 					t->SetContent(Default.Str());
 			}
@@ -696,7 +696,7 @@ void IdeProjectSettings::InitAllSettings(bool ClearCurrent)
 			if (!i->Flag.CrossPlatform)
 			{
 				p = d->BuildPath(i->Setting, true, PlatformCurrent, -1);
-				t = d->Active.GetTag(p, true);
+				t = d->Active.GetChildTag(p, true);
 				if (t && !t->Content && Default.Type != GV_NULL)
 					t->SetContent(Default.Str());
 			}
@@ -731,7 +731,7 @@ bool IdeProjectSettings::Serialize(GXmlTag *Parent, bool Write)
 		return false;
 	}
 
-	GXmlTag *t = Parent->GetTag(TagSettings, true);
+	GXmlTag *t = Parent->GetChildTag(TagSettings, true);
 	if (!t)
 	{
 		LgiAssert(!"Can't find settings tags?");
@@ -763,7 +763,7 @@ const char *IdeProjectSettings::GetStr(ProjSetting Setting, const char *Default,
 	int Bytes = 0;
 	if (!s->Flag.PlatformSpecific)
 	{
-		GXmlTag *t = d->Active.GetTag(d->BuildPath(Setting, false, Platform));
+		GXmlTag *t = d->Active.GetChildTag(d->BuildPath(Setting, false, Platform));
 		if (t && t->Content)
 		{
 			Strs.Add(t->Content);
@@ -772,7 +772,7 @@ const char *IdeProjectSettings::GetStr(ProjSetting Setting, const char *Default,
 	}
 	if (!s->Flag.CrossPlatform)
 	{
-		GXmlTag *t = d->Active.GetTag(d->BuildPath(Setting, true, Platform));
+		GXmlTag *t = d->Active.GetChildTag(d->BuildPath(Setting, true, Platform));
 		if (t && t->Content)
 		{
 			Strs.Add(t->Content);
@@ -808,7 +808,7 @@ int IdeProjectSettings::GetInt(ProjSetting Setting, int Default, IdePlatform Pla
 	
 	if (!s->Flag.PlatformSpecific)
 	{
-		GXmlTag *t = d->Active.GetTag(d->BuildPath(Setting, false, Platform));
+		GXmlTag *t = d->Active.GetChildTag(d->BuildPath(Setting, false, Platform));
 		if (t)
 		{
 			Status = t->Content ? atoi(t->Content) : 0;
@@ -816,7 +816,7 @@ int IdeProjectSettings::GetInt(ProjSetting Setting, int Default, IdePlatform Pla
 	}
 	else if (!s->Flag.CrossPlatform)
 	{
-		GXmlTag *t = d->Active.GetTag(d->BuildPath(Setting, true, Platform));
+		GXmlTag *t = d->Active.GetChildTag(d->BuildPath(Setting, true, Platform));
 		if (t)
 		{
 			Status = t->Content ? atoi(t->Content) : 0;
@@ -831,7 +831,7 @@ bool IdeProjectSettings::Set(ProjSetting Setting, const char *Value, IdePlatform
 {
 	bool Status = false;
 	char *path = d->BuildPath(Setting, true, Platform);
-	GXmlTag *t = d->Active.GetTag(path, true);
+	GXmlTag *t = d->Active.GetChildTag(path, true);
 	if (t)
 	{
 		t->SetContent(Value);
@@ -845,7 +845,7 @@ bool IdeProjectSettings::Set(ProjSetting Setting, int Value, IdePlatform Platfor
 {
 	bool Status = false;
 	char *path = d->BuildPath(Setting, true, Platform);
-	GXmlTag *t = d->Active.GetTag(path, true);
+	GXmlTag *t = d->Active.GetChildTag(path, true);
 	if (t)
 	{
 		t->SetContent(Value);

@@ -553,7 +553,7 @@ GXmlTag *GApp::GetConfig(const char *Tag)
 
 	if (Tag && d->Config)
 	{
-		return d->Config->GetTag(Tag);
+		return d->Config->GetChildTag(Tag);
 	}
 
 	return 0;
@@ -563,7 +563,7 @@ void GApp::SetConfig(GXmlTag *Tag)
 {
 	if (IsOk() && Tag)
 	{
-		GXmlTag *Old = GetConfig(Tag->Tag);
+		GXmlTag *Old = GetConfig(Tag->GetTag());
 		if (Old)
 		{
 			Old->RemoveTag();

@@ -1248,7 +1248,7 @@ ResObjectImpl::SStatus ResObjectImpl::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 
 	char *ObjName = Object->GetObjectName();
 	if (!stricmp(ObjName, "Slider") ||
-		!stricmp(Tag->Tag, ObjName))
+		!stricmp(Tag->GetTag(), ObjName))
 	{
 		Res_SetPos(Tag);
 		if (!Res_SetStrRef(Tag, &Ctx))
@@ -1268,8 +1268,7 @@ ResObjectImpl::SStatus ResObjectImpl::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 
 ResObjectImpl::SStatus ResObjectImpl::Res_Write(GXmlTag *t)
 {
-	DeleteArray(t->Tag);
-	t->Tag = NewStr(Object->GetObjectName());
+	t->SetTag(Object->GetObjectName());
 	WriteCommon(t);
 	return SOk;
 }
@@ -1451,7 +1450,7 @@ ResObjectImpl::SStatus ResDialogObj::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 		}
 		else
 		{
-			LgiTrace("%s:%i - failed the parse the '%s' tag.\n", t->Tag);
+			LgiTrace("%s:%i - failed the parse the '%s' tag.\n", t->GetTag());
 			LgiAssert(0);
 			return SError;
 		}
@@ -1462,8 +1461,7 @@ ResObjectImpl::SStatus ResDialogObj::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 
 ResObjectImpl::SStatus ResDialogObj::Res_Write(GXmlTag *t)
 {
-	DeleteArray(t->Tag);
-	t->Tag = NewStr(Res_Dialog);
+	t->SetTag(Res_Dialog);
 	WriteCommon(t);
 
 	List<ResObjectImpl> Children;
@@ -1541,12 +1539,12 @@ ResObjectImpl::SStatus ResTableLayout::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 			int x = 0, y = 0;
 			for (GXmlTag *Tr = Tag->Children.First(); Tr; Tr = Tag->Children.Next())
 			{
-				if (stricmp(Tr->Tag, "Tr") != 0)
+				if (stricmp(Tr->GetTag(), "Tr") != 0)
 					continue;
 
 				for (GXmlTag *Td = Tr->Children.First(); Td; Td = Tr->Children.Next())
 				{
-					if (stricmp(Td->Tag, "Td") != 0)
+					if (stricmp(Td->GetTag(), "Td") != 0)
 						continue;
 
 					while (UsedCell(x, y))
@@ -1636,7 +1634,7 @@ ResObjectImpl::SStatus ResTableLayout::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 
 ResObjectImpl::SStatus ResTableLayout::Res_Write(GXmlTag *t)
 {
-	t->Tag = NewStr(Res_Table);
+	t->SetTag(Res_Table);
 	
 	WriteCommon(t);
 
@@ -1753,7 +1751,7 @@ ResObjectImpl::SStatus ResEditBox::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 	bool Status = false;
 	if (Tag)
 	{
-		if (stricmp(Tag->Tag, Res_EditBox) == 0)
+		if (stricmp(Tag->GetTag(), Res_EditBox) == 0)
 		{
 			Status = true;
 
@@ -1770,7 +1768,7 @@ ResObjectImpl::SStatus ResEditBox::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 ResObjectImpl::SStatus ResEditBox::Res_Write(GXmlTag *t)
 {
 	Factory->Res_GetProperties(Object, t);
-	t->Tag = NewStr(Res_EditBox);
+	t->SetTag(Res_EditBox);
 	WriteCommon(t);
 
 	return SOk;
@@ -1808,7 +1806,7 @@ ResObjectImpl::SStatus ResGroup::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 
 ResObjectImpl::SStatus ResGroup::Res_Write(GXmlTag *t)
 {
-	t->Tag = NewStr(Res_Group);
+	t->SetTag(Res_Group);
 	WriteCommon(t);
 
 	List<ResObjectImpl> Children;
@@ -1869,7 +1867,7 @@ ResObjectImpl::SStatus ResTab::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 
 ResObjectImpl::SStatus ResTab::Res_Write(GXmlTag *t)
 {
-	t->Tag = NewStr(Res_Tab);
+	t->SetTag(Res_Tab);
 	WriteStrRef(t);
 
 	List<ResObjectImpl> Children;
@@ -1927,7 +1925,7 @@ ResObjectImpl::SStatus ResTabView::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 
 ResObjectImpl::SStatus ResTabView::Res_Write(GXmlTag *t)
 {
-	t->Tag = NewStr(Res_TabView);
+	t->SetTag(Res_TabView);
 	WriteCommon(t);
 	
 	List<ResObjectImpl> Items;
@@ -1970,7 +1968,7 @@ ResObjectImpl::SStatus ResColumn::Res_Write(GXmlTag *t)
 {
 	GRect Pos = Factory->Res_GetPos(Object);
 
-	t->Tag = NewStr(Res_Column);
+	t->SetTag(Res_Column);
 	WriteStrRef(t);
 	t->SetAttr("width", Pos.X());
 
@@ -1986,7 +1984,7 @@ ResObjectImpl::SStatus ResListView::Res_Read(GXmlTag *t, ResReadCtx &Ctx)
 		return SError;
 	}
 
-	if (!Object->GetObjectName() || stricmp(t->Tag, Object->GetObjectName()) != 0)
+	if (!Object->GetObjectName() || stricmp(t->GetTag(), Object->GetObjectName()) != 0)
 	{
 		LgiAssert(0);
 		return SError;
@@ -1998,7 +1996,7 @@ ResObjectImpl::SStatus ResListView::Res_Read(GXmlTag *t, ResReadCtx &Ctx)
 
 	for (GXmlTag *c = t->Children.First(); c; c = t->Children.Next())
 	{
-		if (stricmp(c->Tag, Res_Column) == 0)
+		if (stricmp(c->GetTag(), Res_Column) == 0)
 		{
 			ResObjectImpl *Col = CreateCtrl(c, Object);
 			if (Col && Col->Res_Read(c, Ctx))
@@ -2023,7 +2021,7 @@ ResObjectImpl::SStatus ResListView::Res_Read(GXmlTag *t, ResReadCtx &Ctx)
 
 ResObjectImpl::SStatus ResListView::Res_Write(GXmlTag *t)
 {
-	t->Tag = NewStr(Res_ListView);
+	t->SetTag(Res_ListView);
 	WriteCommon(t);
 
 
@@ -2066,7 +2064,7 @@ ResObjectImpl::SStatus ResCustom::Res_Write(GXmlTag *t)
 	char Tabs[256];
 	TabString(Tabs);
 
-	t->Tag = NewStr(Res_Custom);
+	t->SetTag(Res_Custom);
 	WriteCommon(t);
 	Factory->Res_GetProperties(Object, t);
 
@@ -2076,7 +2074,7 @@ ResObjectImpl::SStatus ResCustom::Res_Write(GXmlTag *t)
 /////////////////////////////////////////////////////////////
 ResObjectImpl::SStatus ResControlTree::Res_Read(GXmlTag *t, ResReadCtx &Ctx)
 {
-	if (!t || stricmp(t->Tag, Res_ControlTree))
+	if (!t || stricmp(t->GetTag(), Res_ControlTree))
 	{
 		LgiAssert(0);
 		return SError;
@@ -2100,8 +2098,7 @@ ResObjectImpl::SStatus ResControlTree::Res_Read(GXmlTag *t, ResReadCtx &Ctx)
 
 ResObjectImpl::SStatus ResControlTree::Res_Write(GXmlTag *t)
 {
-	DeleteArray(t->Tag);
-	t->Tag = NewStr(Object->GetObjectName());
+	t->SetTag(Object->GetObjectName());
 	WriteCommon(t);
 
 	LgiAssert(!t->GetAttr("id"));

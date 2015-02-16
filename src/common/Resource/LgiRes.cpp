@@ -101,7 +101,7 @@ bool LgiStringRes::Read(GXmlTag *t, ResFileFormat Format)
 {
 	if (LgiStringRes::CurLang &&
 		t &&
-		stricmp(t->Tag, "string") == 0)
+		stricmp(t->GetTag(), "string") == 0)
 	{
 		char *n = 0;
 		if ((n = t->GetAttr("Cid")) ||
@@ -650,35 +650,35 @@ public:
 ResObject *LgiResources::CreateObject(GXmlTag *t, ResObject *Parent)
 {
 	ResObject *Wnd = 0;
-	if (t && t->Tag)
+	if (t && t->GetTag())
 	{
 		char *Control = 0;
 		
-		if (stricmp(t->Tag, Res_StaticText) == 0)
+		if (stricmp(t->GetTag(), Res_StaticText) == 0)
 		{
 			Wnd = new GText(0, 0, 0, -1, -1, "");
 		}
-		else if (stricmp(t->Tag, Res_EditBox) == 0)
+		else if (stricmp(t->GetTag(), Res_EditBox) == 0)
 		{
 			Wnd = new GEdit(0, 0, 0, -1, -1, "");
 		}
-		else if (stricmp(t->Tag, Res_CheckBox) == 0)
+		else if (stricmp(t->GetTag(), Res_CheckBox) == 0)
 		{
 			Wnd = new GCheckBox(0, 0, 0, -1, -1, "");
 		}
-		else if (stricmp(t->Tag, Res_Button) == 0)
+		else if (stricmp(t->GetTag(), Res_Button) == 0)
 		{
 			Wnd = new GButton(0, 0, 0, -1, -1, "");
 		}
-		else if (stricmp(t->Tag, Res_Group) == 0)
+		else if (stricmp(t->GetTag(), Res_Group) == 0)
 		{
 			Wnd = new GRadioGroup(0, 0, 0, -1, -1, "");
 		}
-		else if (stricmp(t->Tag, Res_RadioBox) == 0)
+		else if (stricmp(t->GetTag(), Res_RadioBox) == 0)
 		{
 			Wnd = new GRadioButton(0, 0, 0, -1, -1, "");
 		}
-		else if (stricmp(t->Tag, Res_TabView) == 0)
+		else if (stricmp(t->GetTag(), Res_TabView) == 0)
 		{
 			GTabView *Tv = new GTabView(0, 10, 10, 100, 100, "GTabView");
 			Wnd = Tv;
@@ -688,11 +688,11 @@ ResObject *LgiResources::CreateObject(GXmlTag *t, ResObject *Parent)
 				Tv->SetPourChildren(false);
 			}
 		}
-		else if (stricmp(t->Tag, Res_Tab) == 0)
+		else if (stricmp(t->GetTag(), Res_Tab) == 0)
 		{
 			Wnd = new GTabPage(0);
 		}
-		else if (stricmp(t->Tag, Res_ListView) == 0)
+		else if (stricmp(t->GetTag(), Res_ListView) == 0)
 		{
 			GList *w;
 			Wnd = w = new GList(0, 0, 0, -1, -1, "");
@@ -701,7 +701,7 @@ ResObject *LgiResources::CreateObject(GXmlTag *t, ResObject *Parent)
 				w->Sunken(true);
 			}
 		}
-		else if (stricmp(t->Tag, Res_Column) == 0)
+		else if (stricmp(t->GetTag(), Res_Column) == 0)
 		{
 			if (Parent)
 			{
@@ -715,35 +715,35 @@ ResObject *LgiResources::CreateObject(GXmlTag *t, ResObject *Parent)
 				}
 			}
 		}
-		else if (stricmp(t->Tag, Res_ComboBox) == 0)
+		else if (stricmp(t->GetTag(), Res_ComboBox) == 0)
 		{
 			Wnd = new GCombo(0, 0, 0, 100, 20, "");
 		}
-		else if (stricmp(t->Tag, Res_Bitmap) == 0)
+		else if (stricmp(t->GetTag(), Res_Bitmap) == 0)
 		{
 			Wnd = new GBitmap(0, 0, 0, 0);
 		}
-		else if (stricmp(t->Tag, Res_Progress) == 0)
+		else if (stricmp(t->GetTag(), Res_Progress) == 0)
 		{
 			Wnd = new GProgress(0, 0, 0, -1, -1, "");
 		}
-		else if (stricmp(t->Tag, Res_Slider) == 0)
+		else if (stricmp(t->GetTag(), Res_Slider) == 0)
 		{
 			Wnd = new GSlider(0, 0, 0, -1, -1, "", false);
 		}
-		else if (stricmp(t->Tag, Res_ScrollBar) == 0)
+		else if (stricmp(t->GetTag(), Res_ScrollBar) == 0)
 		{
 			Wnd = new GScrollBar(0, 0, 0, 20, 100, "");
 		}
-		else if (stricmp(t->Tag, Res_Progress) == 0)
+		else if (stricmp(t->GetTag(), Res_Progress) == 0)
 		{
 			Wnd = new GProgress(0, 0, 0, 1, 1, "");
 		}
-		else if (stricmp(t->Tag, Res_TreeView) == 0)
+		else if (stricmp(t->GetTag(), Res_TreeView) == 0)
 		{
 			Wnd = new GTree(0, 0, 0, 1, 1, "");
 		}
-		else if (stricmp(t->Tag, Res_ControlTree) == 0)
+		else if (stricmp(t->GetTag(), Res_ControlTree) == 0)
 		{
 			GView *v = GViewFactory::Create("GControlTree");
 			if (!(Wnd = dynamic_cast<ResObject*>(v)))
@@ -751,7 +751,7 @@ ResObject *LgiResources::CreateObject(GXmlTag *t, ResObject *Parent)
 				DeleteObj(v);
 			}
 		}
-		else if (stricmp(t->Tag, Res_Custom) == 0)
+		else if (stricmp(t->GetTag(), Res_Custom) == 0)
 		{
 			Control = t->GetAttr("ctrl");
 			GView *v = GViewFactory::Create(Control);
@@ -770,7 +770,7 @@ ResObject *LgiResources::CreateObject(GXmlTag *t, ResObject *Parent)
 				}
 			}
 		}
-		else if (stricmp(t->Tag, Res_Table) == 0)
+		else if (stricmp(t->GetTag(), Res_Table) == 0)
 		{
 			Wnd = new GTableLayout;
 		}
@@ -779,7 +779,7 @@ ResObject *LgiResources::CreateObject(GXmlTag *t, ResObject *Parent)
 		{
 			printf(LgiLoadString(L_ERROR_RES_CREATE_OBJECT_FAILED,
 								"LgiResources::CreateObject(%s) failed. (Ctrl=%s)\n"),
-					t->Tag,
+					t->GetTag(),
 					Control);
 		}
 	}
@@ -1141,7 +1141,7 @@ LgiMenuRes::~LgiMenuRes()
 bool LgiMenuRes::Read(GXmlTag *t, ResFileFormat Format)
 {
 	Tag = t;
-	if (t && stricmp(t->Tag, "menu") == 0)
+	if (t && stricmp(t->GetTag(), "menu") == 0)
 	{
 		char *n;
 		if ((n = t->GetAttr("name")))
@@ -1151,7 +1151,7 @@ bool LgiMenuRes::Read(GXmlTag *t, ResFileFormat Format)
 
 		for (GXmlTag *c = t->Children.First(); c; c = t->Children.Next())
 		{
-			if (stricmp(c->Tag, "string-group") == 0)
+			if (stricmp(c->GetTag(), "string-group") == 0)
 			{
 				for (GXmlTag *i = c->Children.First(); i; i = c->Children.Next())
 				{
@@ -1382,7 +1382,7 @@ bool LgiResources::LoadDialog(int Resource, GViewI *Parent, GRect *Pos, GAutoStr
 														"Resource read error, tag: %s"),
 										"LgiResources::LoadDialog",
 										MB_OK,
-										t->Tag);
+										t->GetTag());
 								break;
 							}
 						}
@@ -1425,9 +1425,9 @@ bool GMenuLoader::Load(LgiMenuRes *MenuRes, GXmlTag *Tag, ResFileFormat Format, 
 {
 	bool Status = false;
 
-	if (Tag && Tag->Tag)
+	if (Tag && Tag->GetTag())
 	{
-		if (stricmp(Tag->Tag, "menu") == 0)
+		if (stricmp(Tag->GetTag(), "menu") == 0)
 		{
 			#if WINNATIVE
 			if (!Info)
@@ -1444,7 +1444,7 @@ bool GMenuLoader::Load(LgiMenuRes *MenuRes, GXmlTag *Tag, ResFileFormat Format, 
 			Status = true;
 			for (GXmlTag *t = Tag->Children.First(); t && Status; t = Tag->Children.Next())
 			{
-				if (stricmp(t->Tag, "submenu") == 0)
+				if (stricmp(t->GetTag(), "submenu") == 0)
 				{
 					LgiStringRes *Str = MenuRes->GetString(t);
 					if (Str && Str->Str)
@@ -1474,7 +1474,7 @@ bool GMenuLoader::Load(LgiMenuRes *MenuRes, GXmlTag *Tag, ResFileFormat Format, 
 						LgiAssert(0);
 					}
 				}
-				else if (stricmp(t->Tag, "menuitem") == 0)
+				else if (stricmp(t->GetTag(), "menuitem") == 0)
 				{
 					char *n = 0;
 					if ((n = t->GetAttr("sep")) && atoi(n) != 0)

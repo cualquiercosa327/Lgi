@@ -1853,7 +1853,7 @@ char *TagName(GXmlTag *t)
 	for (int i=0; i<Tags.Length(); i++)
 	{
 		if (i) strcat(Buf, ".");
-		strcat(Buf, Tags[i]->Tag);
+		strcat(Buf, Tags[i]->GetTag());
 	}
 	return Buf;
 }
@@ -1933,9 +1933,9 @@ public:
 	{
 		char s[1024];
 
-		if (stricmp(t1->Tag, t2->Tag) != 0)
+		if (stricmp(t1->GetTag(), t2->GetTag()) != 0)
 		{
-			sprintf(s, "Different Tag: '%s' <-> '%s'", t1->Tag, t2->Tag);
+			sprintf(s, "Different Tag: '%s' <-> '%s'", t1->GetTag(), t2->GetTag());
 			GListItem *i = new GListItem;
 			if (i)
 			{
@@ -2000,7 +2000,7 @@ public:
 			}
 		}
 
-		if (stricmp(t1->Tag, "string-group") == 0)
+		if (t1->IsTag("string-group"))
 		{
 			GXmlTag *t;
 			GArray<GXmlTag*> r1, r2;
@@ -2125,7 +2125,7 @@ void AppWnd::ImportLang()
 
 					for (t = Root->Children.First(); t; t = Root->Children.Next())
 					{
-						if (stricmp(t->Tag, "menu") == 0)
+						if (t->IsTag("menu"))
 						{
 							ResMenu *Menu = new ResMenu(this);
 							if (Menu && Menu->Read(t, Format))
@@ -2134,7 +2134,7 @@ void AppWnd::ImportLang()
 							}
 							else break;
 						}
-						else if (stricmp(t->Tag, "string-group") == 0)
+						else if (t->IsTag("string-group"))
 						{
 							ResStringGroup *g = new ResStringGroup(this);
 							if (g && g->Read(t, Format))
@@ -2492,19 +2492,19 @@ bool AppWnd::LoadLgi(char *FileName)
 						}
 
 						int RType = 0;
-						if (!stricmp(t->Tag, "dialog"))
+						if (t->IsTag("dialog"))
 						{
 							RType = TYPE_DIALOG;
 						}
-						else if (!stricmp(t->Tag, "string-group"))
+						else if (t->IsTag("string-group"))
 						{
 							RType = TYPE_STRING;
 						}
-						else if (!stricmp(t->Tag, "menu"))
+						else if (t->IsTag("menu"))
 						{
 							RType = TYPE_MENU;
 						}
-						else if (!stricmp(t->Tag, "style"))
+						else if (t->IsTag("style"))
 						{
 						    RType = TYPE_CSS;
 						}

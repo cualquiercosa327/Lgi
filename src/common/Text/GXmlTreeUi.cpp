@@ -260,7 +260,7 @@ bool GXmlToUi::Convert(GDom *Tag, GViewI *Ui, bool ToUI)
 				{
 					if (Xml)
 					{
-						GXmlTag *t = Xml->GetTag(Attr);
+						GXmlTag *t = Xml->GetChildTag(Attr);
 						if (!t) continue;
 						GList *Lst;
 						if (!Ui->GetViewById(Map->Id, Lst)) continue;
@@ -280,7 +280,7 @@ bool GXmlToUi::Convert(GDom *Tag, GViewI *Ui, bool ToUI)
 				{
 					if (Xml)
 					{
-						GXmlTag *t = Xml->GetTag(Attr);
+						GXmlTag *t = Xml->GetChildTag(Attr);
 						if (!t) continue;
 
 						GTree *Tree;
@@ -338,12 +338,12 @@ bool GXmlToUi::Convert(GDom *Tag, GViewI *Ui, bool ToUI)
 						case GV_LIST:
 						{
 							if (!Xml) break;
-							GXmlTag *Child = Xml->GetTag(Attr, true);
+							GXmlTag *Child = Xml->GetChildTag(Attr, true);
 							if (!Child) break;
 							GList *Lst = dynamic_cast<GList*>(c);
 							if (!Lst) break;
 							Child->Empty(true);
-							Child->Tag = NewStr(Attr);
+							Child->SetTag(Attr);
 
 							List<GListItem> All;
 							Lst->GetAll(All);
@@ -361,14 +361,14 @@ bool GXmlToUi::Convert(GDom *Tag, GViewI *Ui, bool ToUI)
 						case GV_CUSTOM: // GTree
 						{
 							if (!Xml) break;
-							GXmlTag *Child = Xml->GetTag(Attr, true);
+							GXmlTag *Child = Xml->GetChildTag(Attr, true);
 							
 							if (!Child) break;
 							GTree *Tree = dynamic_cast<GTree*>(c);
 							
 							if (!Tree) break;
 							Child->Empty(true);
-							Child->Tag = NewStr(Attr);
+							Child->SetTag(Attr);
 							
 							Map->SaveTree(Tree, Child);
 							break;

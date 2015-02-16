@@ -240,8 +240,7 @@ void WriteTree(GXmlTag *t, GTreeNode *n)
 	{
 		GXmlTag *h = new GXmlTag;
 		WriteTree(h, c);
-		DeleteArray(h->Tag);
-		h->Tag = NewStr("Control");
+		h->SetTag("Control");
 		t->InsertTag(h);
 	}
 }

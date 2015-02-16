@@ -2521,7 +2521,7 @@ bool AppWnd::GetSystemIncludePaths(::GArray<char*> &Paths)
 				GXmlTag r;
 				if (t.Read(&r, &f))
 				{
-					GXmlTag *Opts = r.GetTag("ToolsOptions");
+					GXmlTag *Opts = r.GetChildTag("ToolsOptions");
 					if (Opts)
 					{
 						GXmlTag *Projects = NULL;

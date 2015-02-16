@@ -2849,7 +2849,7 @@ void ResDialog::Paste()
 				GXmlTag *t;
 				for (t = Root.Children.First(); t; t = Root.Children.Next())
 				{
-					if (stricmp(t->Tag, "string") == 0)
+					if (t->IsTag("string"))
 					{
 						// string tag
 						LgiAssert(Symbols);
@@ -2889,7 +2889,7 @@ void ResDialog::Paste()
 				List<ResDialogCtrl> NewCtrls;
 				for (t = Root.Children.First(); t; t = Root.Children.Next())
 				{
-					if (stricmp(t->Tag, "string") != 0)
+					if (t->IsTag("string"))
 					{
 						// object (not string)
 						CreateSymbols = false;
@@ -3243,7 +3243,7 @@ ResDialogCtrl *ResDialog::CreateCtrl(GXmlTag *t)
 	{
 		for (LgiObjectName *o = NameMap; o->Type; o++)
 		{
-			if (stricmp(t->Tag, o->ResourceName) == 0)
+			if (t->IsTag(o->ResourceName))
 			{
 				return CreateCtrl(o->Type, t);
 			}

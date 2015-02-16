@@ -4,7 +4,7 @@
 void GOptionsFile::_Init()
 {
 	Dirty = false;
-	Tag = NewStr("Options");
+	Tag = Allocator->Alloc("Options");
 	if (Lock(_FL))
 	{
 		_Defaults();
@@ -151,7 +151,7 @@ bool GOptionsFile::CreateTag(const char *Name)
 
 	if (Name && Lock(_FL))
 	{
-		Status = GetTag(Name, true);
+		Status = GetChildTag(Name, true);
 		Unlock();
 	}
 
@@ -164,7 +164,7 @@ bool GOptionsFile::DeleteTag(const char *Name)
 
 	if (Name && Lock(_FL))
 	{
-		GXmlTag *t = GetTag(Name);
+		GXmlTag *t = GetChildTag(Name);
 		if (t)
 		{
 			t->RemoveTag();
@@ -183,7 +183,7 @@ GXmlTag *GOptionsFile::LockTag(const char *Name, const char *File, int Line)
 
 	if (Lock(File, Line))
 	{
-		t = Name ? GXmlTag::GetTag(Name) : this;
+		t = Name ? GXmlTag::GetChildTag(Name) : this;
 		if (!t)
 		{
 			Unlock();

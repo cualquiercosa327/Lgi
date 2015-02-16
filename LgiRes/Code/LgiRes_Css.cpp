@@ -119,8 +119,7 @@ bool ResCss::Write(GXmlTag *t, ResFileFormat Format)
     if (Ui)
         Ui->Save();
     
-    DeleteArray(t->Tag);
-    t->Tag = NewStr("style");
+    t->SetTag("style");
     t->SetAttr("name", Name());
     t->Content = NewStr(Style);
     return true;

@@ -15,7 +15,7 @@ int _Normals = 0;
 
 char *GXmlAlloc::Alloc(const char *s, int len)
 {
-	if (!s) return 0;
+	if (!s) return NULL;
 	if (len < 0) len = (int)strlen(s);
 	int bytes = len + 1;
 	char *p = (char*) Alloc(LGI_ALLOC_ALIGN(bytes));
@@ -318,33 +318,34 @@ char *GXmlTree::DecodeEntities(char *s, int len)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-int _GXmlTagInst = 0;
 
 GXmlTag::GXmlTag(const char *tag, GXmlAlloc *alloc)
 {
-_GXmlTagInst++;
-	Tag = NewStr(tag);
-	Write = 0;
-	Parent = 0;
-	Content = 0;
 	Allocator = alloc;
+	LgiAssert(Allocator);
+
+	Write = false;
+	Parent = NULL;
+	Content = NULL;
+
+	Tag = Allocator->Alloc(tag);
 }
 
 GXmlTag::GXmlTag(const GXmlTag &t)
 {
-_GXmlTagInst++;
 	Allocator = t.Allocator;
-	Tag = 0;
-	Write = 0;
-	Parent = 0;
-	Content = 0;
+	LgiAssert(Allocator);
+
+	Tag = NULL;
+	Write = false;
+	Parent = NULL;
+	Content = NULL;
 
 	Copy((GXmlTag&)t);
 }
 
 GXmlTag::~GXmlTag()
 {
-_GXmlTagInst--;
 	RemoveTag();
 	Empty(true);
 }
@@ -373,7 +374,7 @@ void GXmlTag::Empty(bool Deep)
 {
 	EmptyAttributes();
 	DeleteArray(Content);
-	DeleteArray(Tag);
+	Allocator->Free(Tag);
 	
 	if (Deep)
 		EmptyChildren();
@@ -385,7 +386,7 @@ bool GXmlTag::Copy(GXmlTag &t, bool Deep)
 	
 	Allocator = t.Allocator;
 	Content = NewStr(t.Content);
-	Tag = NewStr(t.Tag);
+	Tag = Allocator->Alloc(t.Tag);
 
 	Attr.Length(t.Attr.Length());
 	for (int i=0; i<t.Attr.Length(); i++)
@@ -420,12 +421,23 @@ GXmlTag &GXmlTag::operator =(GXmlTag &t)
 
 GXmlTag *GXmlTag::CreateTag(const char *Name, char *Content)
 {
-	GXmlTag *c = GetTag(Name, true);
+	GXmlTag *c = GetChildTag(Name, true);
 	if (c) c->Content = NewStr(Content);
 	return c;
 }
 
-GXmlTag *GXmlTag::GetTag(const char *Name, bool Create, const char *TagSeparator)
+const char *GXmlTag::GetTag()
+{
+	return Tag;
+}
+
+void GXmlTag::SetTag(const char *Str)
+{
+	Allocator->Free(Tag);
+	Tag = Allocator->Alloc(Str);
+}
+
+GXmlTag *GXmlTag::GetChildTag(const char *Name, bool Create, const char *TagSeparator)
 {
 	GToken p(Name, TagSeparator);
 
@@ -1175,7 +1187,7 @@ ParsingStart:
 				{	
 					Tag->Empty(false);
 					LgiAssert(Tag->Tag == NULL);
-					Tag->Tag = NewStr(TagName, t - TagName);
+					Tag->Tag = Tag->Allocator->Alloc(TagName, t - TagName);
 					NoChildren = Tag->Tag ? Tag->Tag[0] == '?' : false;
 					
 					Tag->ParseAttribute(this, Alloc, t, NoChildren, InTypeDef);

@@ -68,18 +68,22 @@ class LgiClass GXmlTag : virtual public GDom
 	void ParseAttribute(GXmlTree *Tree, GXmlAlloc *Alloc, char *&t, bool &NoChildren, bool &TypeDef);
 
 protected:
-	GAutoRefPtr<GXmlAlloc> Allocator;
-
 	bool Write;
 	GXmlAttr *_Attr(const char *Name, bool Write);
 	bool GetVariant(const char *Name, GVariant &Value, char *Array);
 	bool SetVariant(const char *Name, GVariant &Value, char *Array);
 
-public:
 	/// The name of the tag/element. This can be NULL in the case
-	/// that the element is purely content.
+	/// that the element is purely content. The memory is managed by 
+	/// 'Allocator' not the general heap. Do not "NewStr" something
+	/// and assign it to 'Tag'.
 	char *Tag;
-	/// Any content following the tag.
+
+public:
+	/// This allocator is responsible for all the string memory used by the Attributes and Tag
+	GAutoRefPtr<GXmlAlloc> Allocator;
+
+	/// Any content following the tag. Memory is owned by the heap. Use NewStr/DeleteArray.
 	char *Content;
 	/// The parent element/tag.
 	GXmlTag *Parent;
@@ -135,11 +139,16 @@ public:
 	bool SerializeAttr(const char *Attr, char *&Str);
 	/// Read/write a native C double into an attribute
 	bool SerializeAttr(const char *Attr, double &Dbl);
-		
+	
+	/// Gets the current tag
+	const char *GetTag();
+	/// Sets or removes the tag using the allocator
+	void SetTag(const char *Str = NULL);
+
 	/// Read/write all your native types in here
 	virtual bool Serialize() { return false; }
 	/// Returns a pointer to a child tag if present, or NULL if not.
-	GXmlTag *GetTag(const char *Name, bool Create = false, const char *TagSeparator = ".");
+	GXmlTag *GetChildTag(const char *Name, bool Create = false, const char *TagSeparator = ".");
 	/// Creates a sub tag if it doesn't already exist.
 	GXmlTag *CreateTag(const char *Name, char *Content = 0);
 	/// Inserts a child tag.

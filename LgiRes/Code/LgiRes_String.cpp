@@ -372,7 +372,7 @@ bool ResString::Test(ErrorCollection *e)
 
 bool ResString::Read(GXmlTag *t, ResFileFormat Format)
 {
-	if (t && stricmp(t->Tag, "string") == 0)
+	if (t && t->IsTag("string"))
 	{
 		char *n = 0;
 
@@ -462,7 +462,7 @@ bool ResString::Read(GXmlTag *t, ResFileFormat Format)
 
 bool ResString::Write(GXmlTag *t, ResFileFormat Format)
 {
-	t->Tag = NewStr("String");
+	t->SetTag("String");
 	t->SetAttr("Ref", Ref);
 	if (ValidStr(Define))
 	{
@@ -1435,7 +1435,7 @@ bool ResStringGroup::Write(GXmlTag *t, ResFileFormat Format)
 {
 	bool Status = true;
 
-	t->Tag = NewStr("string-group");
+	t->SetTag("string-group");
 	char *n = Format == XmlFile ? EncodeXml(Name()) : NewStr(Name());
 	t->SetAttr("Name", n);
 	DeleteArray(n);

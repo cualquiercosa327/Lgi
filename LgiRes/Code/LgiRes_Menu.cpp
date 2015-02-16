@@ -168,8 +168,8 @@ bool ResMenuItem::Read(GXmlTag *t, ResMenuItem *Parent)
 	bool Status = false;
 	if (t)
 	{
-		bool SubMenu = stricmp(t->Tag, "submenu") == 0;
-		bool MenuItem = stricmp(t->Tag, "menuitem") == 0;
+		bool SubMenu = t->IsTag("submenu");
+		bool MenuItem = t->IsTag("menuitem");
 
 		if (SubMenu || MenuItem)
 		{
@@ -232,7 +232,7 @@ bool ResMenuItem::Read(GXmlTag *t, ResMenuItem *Parent)
 bool ResMenuItem::Write(GXmlTag *t, int Tabs)
 {
 	bool SubMenu = GetChild() != 0;
-	t->Tag = NewStr(SubMenu ? (char*) "submenu" : (char*) "menuitem");
+	t->SetTag(SubMenu ? (char*) "submenu" : (char*) "menuitem");
 	if (Sep)
 	{
 		t->SetAttr("Sep", 1);
@@ -572,7 +572,7 @@ bool ResMenu::Read(GXmlTag *t, ResFileFormat Format)
 
 	for (GXmlTag *c = t->Children.First(); c; c = t->Children.Next())
 	{
-		if (stricmp(c->Tag, "string-group") == 0)
+		if (c->IsTag("string-group"))
 		{
 			if (Group)
 			{
@@ -588,8 +588,8 @@ bool ResMenu::Read(GXmlTag *t, ResFileFormat Format)
 				LgiAssert(!"No group to read.");
 			}
 		}
-		else if (!stricmp(c->Tag, "submenu") ||
-				 !stricmp(c->Tag, "menuitem"))
+		else if (c->IsTag("submenu") ||
+				 c->IsTag("menuitem"))
 		{
 			ResMenuItem *i = new ResMenuItem(this);
 			if (i && i->Read(c))
@@ -617,7 +617,7 @@ bool ResMenu::Write(GXmlTag *t, ResFileFormat Format)
 	bool Status = true;
 
 	// Write start tag
-	t->Tag = NewStr("menu");
+	t->SetTag("menu");
 	if (Name()) t->SetAttr("Name", Name());
 
 	// Write group
