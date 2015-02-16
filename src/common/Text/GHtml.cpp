@@ -2825,20 +2825,6 @@ void GTag::SetStyle()
 		}
 	}
 
-	Get("id", HtmlId);
-
-	if (Get("class", s))
-	{
-		Class.Parse(s);
-	}
-
-	Restyle();
-
-	if (Get("style", s))
-	{
-		SetCssStyle(s);
-	}
-
 	if (Get("width", s))
 	{
 		Len l;
@@ -2864,6 +2850,20 @@ void GTag::SetStyle()
 		if (_stricmp(s, "top") == 0) VerticalAlign(Len(VerticalTop));
 		else if (_stricmp(s, "middle") == 0) VerticalAlign(Len(VerticalMiddle));
 		else if (_stricmp(s, "bottom") == 0) VerticalAlign(Len(VerticalBottom));
+	}
+
+	Get("id", HtmlId);
+
+	if (Get("class", s))
+	{
+		Class.Parse(s);
+	}
+
+	Restyle();
+
+	if (Get("style", s))
+	{
+		SetCssStyle(s);
 	}
 
 	switch (TagId)
