@@ -248,7 +248,11 @@ void GDisplayString::Layout()
 	#elif defined WINNATIVE
 	
 	int sx, sy, i = 0;
-	if (!Font->Handle()) Font->Create();
+	if (!Font)
+		return;
+	if (!Font->Handle())
+		Font->Create();
+	
 	y = Font->GetHeight();
 
 	GFontSystem *Sys = GFontSystem::Inst();

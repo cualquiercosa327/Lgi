@@ -68,6 +68,9 @@ class LgiClass GXmlTag : virtual public GDom
 	void ParseAttribute(GXmlTree *Tree, GXmlAlloc *Alloc, char *&t, bool &NoChildren, bool &TypeDef);
 
 protected:
+	/// This allocator is responsible for all the string memory used by the Attributes and Tag
+	GAutoRefPtr<GXmlAlloc> Allocator;
+
 	bool Write;
 	GXmlAttr *_Attr(const char *Name, bool Write);
 	bool GetVariant(const char *Name, GVariant &Value, char *Array);
@@ -80,9 +83,6 @@ protected:
 	char *Tag;
 
 public:
-	/// This allocator is responsible for all the string memory used by the Attributes and Tag
-	GAutoRefPtr<GXmlAlloc> Allocator;
-
 	/// Any content following the tag. Memory is owned by the heap. Use NewStr/DeleteArray.
 	char *Content;
 	/// The parent element/tag.

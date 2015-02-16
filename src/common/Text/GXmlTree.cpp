@@ -96,13 +96,11 @@ public:
 	XmlNormalAlloc()
 	{
 		_Normals++;
-		//LgiTrace("%p::XmlNormalAlloc _Normals=%i\n", this, _Normals);
 	}
 
 	~XmlNormalAlloc()
 	{
 		_Normals--;
-		//LgiTrace("%p::~XmlNormalAlloc _Normals=%i\n", this, _Normals);
 	}
 
 	void *Alloc(size_t Size)
@@ -318,11 +316,20 @@ char *GXmlTree::DecodeEntities(char *s, int len)
 }
 
 //////////////////////////////////////////////////////////////////////////////
+class GTagHeapAllocator : public XmlNormalAlloc
+{
+public:
+	GTagHeapAllocator()
+	{
+		// As this is not heap allocated, make sure we don't get deleted by ref count.
+		AddRef();
+	}
+	
+} TagHeapAllocator;
 
 GXmlTag::GXmlTag(const char *tag, GXmlAlloc *alloc)
 {
-	Allocator = alloc;
-	LgiAssert(Allocator);
+	Allocator = alloc ? alloc : &TagHeapAllocator;
 
 	Write = false;
 	Parent = NULL;
@@ -374,7 +381,7 @@ void GXmlTag::Empty(bool Deep)
 {
 	EmptyAttributes();
 	DeleteArray(Content);
-	Allocator->Free(Tag);
+	SetTag(NULL);
 	
 	if (Deep)
 		EmptyChildren();
@@ -434,7 +441,9 @@ const char *GXmlTag::GetTag()
 void GXmlTag::SetTag(const char *Str)
 {
 	Allocator->Free(Tag);
-	Tag = Allocator->Alloc(Str);
+	Tag = NULL;
+	if (Str)
+		Tag = Allocator->Alloc(Str);
 }
 
 GXmlTag *GXmlTag::GetChildTag(const char *Name, bool Create, const char *TagSeparator)
