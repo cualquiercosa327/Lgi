@@ -91,7 +91,7 @@ GXmlTag *ExtractForms(char *Html, GStream *Log)
 			{
 				for (GXmlTag *c = x->Children.First(); c; c = x->Children.Next())
 				{
-					if (c->Tag && _stricmp(c->Tag, "form") == 0)
+					if (c->IsTag("form"))
 					{
 						if (!f)
 						{
@@ -131,7 +131,7 @@ GXmlTag *ExtractForms(char *Html, GStream *Log)
 									{ char *s = c->GetAttr(name); \
 									if (s) i->SetAttr(name, s); }
 
-									if (c->Tag && _stricmp(c->Tag, "input") == 0)
+									if (c->IsTag("input"))
 									{
 										GXmlTag *i = new GXmlTag("Input");
 										if (i)
@@ -144,7 +144,7 @@ GXmlTag *ExtractForms(char *Html, GStream *Log)
 										}
 									}
 
-									if (c->Tag && _stricmp(c->Tag, "select") == 0)
+									if (c->IsTag("select"))
 									{
 										GXmlTag *i = new GXmlTag("Select");
 										if (i)
@@ -153,11 +153,11 @@ GXmlTag *ExtractForms(char *Html, GStream *Log)
 
 											CopyAttr("name");
 
-											while ((c && !c->Tag)
+											while ((c && !c->GetTag())
                                                    ||
-                                                   _stricmp(c->Tag, "/select") != 0)
+                                                   _stricmp(c->GetTag(), "/select") != 0)
 											{
-												if (c->Tag && _stricmp(c->Tag, "option") == 0)
+												if (c->IsTag("option"))
 												{
 													GXmlTag *o = new GXmlTag("Option");
 													if (o)
@@ -174,7 +174,7 @@ GXmlTag *ExtractForms(char *Html, GStream *Log)
 										}
 									}
 																			
-									if (c->Tag && _stricmp(c->Tag, "/form") == 0)
+									if (c->IsTag("/form"))
 									{
 										break;
 									}
@@ -281,7 +281,7 @@ char *WebPage::GetCharSet()
 			List<GXmlTag>::I it = t->Children.Start();
 			for (GXmlTag *c = *it; !Charset && c; c = *++it)
 			{
-				if (c->Tag && _stricmp(c->Tag, "meta") == 0)
+				if (c->IsTag("meta"))
 				{
 					char *http_equiv = c->GetAttr("http-equiv");
 					if (http_equiv && _stricmp(http_equiv, "Content-Type") == 0)
@@ -337,7 +337,7 @@ char *WebPage::GetFormValue(char *field)
 	{
 		for (GXmlTag *t = x->Children.First(); t; t = x->Children.Next())
 		{
-			if (t->Tag && _stricmp(t->Tag, "input") == 0)
+			if (t->IsTag("input"))
 			{
 				char *Name = t->GetAttr("name");
 				if (Name && _stricmp(Name, field) == 0)
@@ -532,9 +532,9 @@ bool FormPost::Set(char *field, char *value, GStream *Log, bool AllowCreate)
 		GXmlTag *f = GetFormField(Form, field);
 		if (f)
 		{
-			if (f->Tag)
+			if (f->GetTag())
 			{
-				if (_stricmp(f->Tag, "Input") == 0)
+				if (f->IsTag("Input"))
 				{
 					char *Nm = f->GetAttr("Name");
 					FormValue *v = Nm ? Get(Nm) : 0;
@@ -544,7 +544,7 @@ bool FormPost::Set(char *field, char *value, GStream *Log, bool AllowCreate)
 						Status = true;
 					}
 				}
-				else if (_stricmp(f->Tag, "Select") == 0)
+				else if (f->IsTag("Select"))
 				{
 					char *Nm = f->GetAttr("Name");
 					if (Nm && Match(Nm, field))
@@ -600,9 +600,9 @@ bool FormPost::Set(char *field, char *value, GStream *Log, bool AllowCreate)
 						}
 					}
 				}
-				else if (Log) Log->Print("%s:%i - Unrecognised field '%s'\n", __FILE__, __LINE__, f->Tag);
+				else if (Log) Log->Print("%s:%i - Unrecognised field '%s'\n", _FL, f->GetTag());
 			}
-			else if (Log) Log->Print("%s:%i - Field has no tag\n", __FILE__, __LINE__);
+			else if (Log) Log->Print("%s:%i - Field has no tag\n", _FL);
 		}
 		else
 		{
@@ -615,13 +615,13 @@ bool FormPost::Set(char *field, char *value, GStream *Log, bool AllowCreate)
 			}
 			else if (Log)
 			{
-				Log->Print("%s:%i - Invalid field name '%s'\n", __FILE__, __LINE__, field);
+				Log->Print("%s:%i - Invalid field name '%s'\n", _FL, field);
 			}
 		}
 	}
 	else
 	{
-		if (Log) Log->Print("%s:%i - Invalid arguments trying to set '%s' = '%s'\n", __FILE__, __LINE__, field, value);
+		if (Log) Log->Print("%s:%i - Invalid arguments trying to set '%s' = '%s'\n", _FL, field, value);
 	}
 
 	return Status;
