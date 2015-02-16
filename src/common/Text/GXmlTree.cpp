@@ -316,20 +316,11 @@ char *GXmlTree::DecodeEntities(char *s, int len)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-class GTagHeapAllocator : public XmlNormalAlloc
-{
-public:
-	GTagHeapAllocator()
-	{
-		// As this is not heap allocated, make sure we don't get deleted by ref count.
-		AddRef();
-	}
-	
-} TagHeapAllocator;
+GAutoRefPtr<XmlNormalAlloc> TagHeapAllocator(new XmlNormalAlloc);
 
 GXmlTag::GXmlTag(const char *tag, GXmlAlloc *alloc)
 {
-	Allocator = alloc ? alloc : &TagHeapAllocator;
+	Allocator = alloc ? alloc : TagHeapAllocator;
 
 	Write = false;
 	Parent = NULL;
