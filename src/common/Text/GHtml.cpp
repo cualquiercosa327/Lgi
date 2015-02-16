@@ -5200,14 +5200,19 @@ void GTag::OnFlow(GFlowRegion *Flow)
 	if (Display() == DispBlock || Disp == DispInlineBlock)
 	{		
 		GCss::Len Ht = Height();
+		GCss::Len MaxHt = MaxHeight();
+		bool AcceptHt = TagId != TAG_TD || Ht.Type != LenPercent;
 		if (Ht.IsValid())
 		{
-			if (TagId != TAG_TD || Ht.Type != LenPercent)
-			{
-				int HtPx = Flow->ResolveY(Ht, GetFont(), false);
-				if (HtPx > Flow->y2)
-					Flow->y2 = HtPx;
-			}
+			int HtPx = Flow->ResolveY(Ht, GetFont(), false);
+			if (HtPx > Flow->y2)
+				Flow->y2 = HtPx;
+		}
+		if (MaxHt.IsValid() && AcceptHt)
+		{
+			int MaxHtPx = Flow->ResolveY(MaxHt, GetFont(), false);
+			if (MaxHtPx < Flow->y2)
+				Flow->y2 = MaxHtPx;
 		}
 
 		if (Disp == DispBlock)
@@ -6602,7 +6607,7 @@ GdcPt2 GHtml::Layout()
 
 		// Flow text, width is different
 		Tag->OnFlow(&f);
-		ViewWidth = Client.X();;
+		ViewWidth = Client.X();
 		d->Content.x = f.max_cx + 1;
 		d->Content.y = f.y2;
 
