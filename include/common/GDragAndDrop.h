@@ -60,9 +60,6 @@ protected:
 	HRESULT STDMETHODCALLTYPE GiveFeedback(DWORD dwEffect);
 	#endif
 
-	/// Creates a file drop
-	bool CreateFileDrop(GVariant *OutputData, GMouse &m, List<char> &Files);
-
 public:
 	GDragDropSource();
 	~GDragDropSource();
@@ -124,6 +121,9 @@ public:
 		List<char> &Formats
 	)
 	{ return false; }
+
+	/// Creates a file drop
+	bool CreateFileDrop(GVariant *OutputData, GMouse &m, List<char> &Files);
 };
 
 /// A drag target class

@@ -85,16 +85,32 @@ public:
 		}
 		else printf("GDropFiles: Type not binary.\n");
 		#elif defined MAC
-		char *s = v.Str();
-		if (s)
+		GArray<GVariant*> a;
+		if (v.Type == GV_LIST)
 		{
-			GUri u(s);
-			if (u.Protocol &&
-				stricmp(u.Protocol, "file") == 0 &&
-				u.Host &&
-				stricmp(u.Host, "localhost") == 0)
+			for (GVariant *f = v.Value.Lst->First(); f; f = v.Value.Lst->Next())
 			{
-				Add(NewStr(u.Path));
+				a.Add(f);
+			}
+		}
+		else
+		{
+			a.Add(&v);
+		}
+		
+		for (int i=0; i<a.Length(); i++)
+		{
+			char *s = a[i]->Str();
+			if (s)
+			{
+				GUri u(s);
+				if (u.Protocol &&
+					stricmp(u.Protocol, "file") == 0 &&
+					u.Host &&
+					stricmp(u.Host, "localhost") == 0)
+				{
+					Add(NewStr(u.Path));
+				}
 			}
 		}
 		#endif

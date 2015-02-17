@@ -27,6 +27,12 @@ public:
 	#if !defined(COCOA)
 	GAutoPtr<CGImg> Img;
 	#endif
+	
+	GDndSourcePriv()
+	{
+		ExternImg = NULL;
+		ExternSubRgn.ZOff(-1, -1);
+	}
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -56,16 +62,34 @@ bool GDragDropSource::CreateFileDrop(GVariant *OutputData, GMouse &m, List<char>
 {
 	if (OutputData && Files.First())
 	{
-		for (char *f=Files.First(); f; f=Files.Next())
+		if (Files.Length() == 1)
 		{
 			GUri u;
 			u.Protocol = NewStr("file");
 			u.Host = NewStr("localhost");
-			u.Path = NewStr(f);
+			u.Path = NewStr(Files.First());
 			OutputData->OwnStr(u.GetUri().Release());
-			
-			return true;
 		}
+		else
+		{
+			if (!OutputData->SetList())
+				return false;
+
+			for (char *f=Files.First(); f; f=Files.Next())
+			{
+				GUri u;
+				u.Protocol = NewStr("file");
+				u.Host = NewStr("localhost");
+				u.Path = NewStr(f);
+				GVariant *v = new GVariant;
+				if (!v)
+					return false;
+				v->OwnStr(u.GetUri().Release());
+				OutputData->Value.Lst->Insert(v);
+			}
+		}
+
+		return true;
 	}
 
 	return false;
@@ -121,34 +145,52 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 					t = LgiSwap32(t);
 					#endif
 					
-					GVariant v;
-					if (GetData(&v, f))
+					GVariant Data;
+					GArray<GVariant*> a;
+					if (GetData(&Data, f))
 					{
-						void *Data = 0;
-						int Size = 0;
-						
-						if (v.Type == GV_STRING)
+						if (Data.Type == GV_LIST)
 						{
-							Data = v.Str();
-							if (Data)
-								Size = strlen(v.Str());
+							for (GVariant *i=Data.Value.Lst->First(); i; i=Data.Value.Lst->Next())
+							{
+								a.Add(i);
+							}
 						}
-						else if (v.Type == GV_BINARY)
-						{
-							Data = v.Value.Binary.Data;
-							Size = v.Value.Binary.Length;
-						}
-						else printf("%s:%i - Unsupported drag flavour %i\n", _FL, v.Type);
+						else a.Add(&Data);
 						
-						if (Data)
+						for (int i=0; i<a.Length(); i++)
 						{
-							e = AddDragItemFlavor(Drag,
-												1000,
-												t,
-												Data,
-												Size,
-												flavorNotSaved);
-							if (e) printf("%s:%i - AddDragItemFlavor=%i\n", __FILE__, __LINE__, e);
+							void *Ptr = NULL;
+							int Size = 0;
+							GVariant *v = a[i];
+							
+							if (v->Type == GV_STRING)
+							{
+								Ptr = v->Str();
+								if (Ptr)
+									Size = strlen((char*)Ptr);
+							}
+							else if (v->Type == GV_BINARY)
+							{
+								Ptr = v->Value.Binary.Data;
+								Size = v->Value.Binary.Length;
+							}
+							else
+							{
+								printf("%s:%i - Unsupported drag flavour %i\n", _FL, v->Type);
+								LgiAssert(0);
+							}
+							
+							if (Ptr)
+							{
+								e = AddDragItemFlavor(Drag,
+													1000+i,
+													t,
+													Ptr,
+													Size,
+													flavorNotSaved);
+								if (e) printf("%s:%i - AddDragItemFlavor=%i\n", __FILE__, __LINE__, e);
+							}
 						}
 					}
 					else printf("%s:%i - GetData failed.\n", _FL);
