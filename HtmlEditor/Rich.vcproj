@@ -314,6 +314,10 @@
 					/>
 				</FileConfiguration>
 			</File>
+			<File
+				RelativePath=".\resource.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Editor"
@@ -362,6 +366,18 @@
 			</File>
 			<File
 				RelativePath="..\include\common\GHtmlPriv.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Resources"
+			>
+			<File
+				RelativePath=".\icon1.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\Rich.rc"
 				>
 			</File>
 		</Filter>

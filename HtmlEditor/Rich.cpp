@@ -4,6 +4,7 @@
 #include "GTree.h"
 #include "GTabView.h"
 #include "GBox.h"
+#include "resource.h"
 
 enum Ctrls
 {
@@ -14,7 +15,7 @@ enum Ctrls
 };
 
 #define LOAD_DOC 1
-#define SrcFileName	"Reply3.html"
+#define SrcFileName	"Reply2.html"
 
 #if 0
 
@@ -62,6 +63,8 @@ public:
 		SetPos(r);
 		MoveToCenter();
 		SetQuitOnClose(true);
+		SetIcon((const char*)IDI_APP);
+		
 		if (Attach(0))
 		{
 			AddView(Split = new GBox);

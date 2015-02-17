@@ -26,6 +26,7 @@ enum HtmlEditIds {
 	IDM_SAVE_FILE,
 	IDM_RESTORE_CLIP,
 	IDM_RESTORE_FILE,
+	IDM_REPORT_BUG,
 	
 	// Messages
 	IDM_COPY_ORIGINAL_SOURCE = 400
@@ -543,6 +544,9 @@ public:
 		s = RClick.AppendSub("Restore State");
 		s->AppendItem("From Clipboard", IDM_RESTORE_CLIP);
 		s->AppendItem("From File", IDM_RESTORE_FILE);
+		
+		RClick.AppendSeparator();
+		RClick.AppendItem("How to Report Editor Bugs", IDM_REPORT_BUG);
 
 		return true;
 	}
@@ -588,8 +592,11 @@ public:
 			}
 			case IDM_RESTORE_CLIP:
 			{
-				GClipBoard c(this);
-				GAutoString a(c.Text());
+				GAutoString a;
+				{
+					GClipBoard c(this);
+					a.Reset(c.Text());
+				}
 				if (a)
 				{
 					GMemStream mem(a, strlen(a), false);
@@ -612,6 +619,11 @@ public:
 					}
 					Serialize(f, false);
 				}
+				break;
+			}
+			case IDM_REPORT_BUG:
+			{
+				LgiExecute("http://www.memecode.com/scribe/tutorials/html-editor-bug-report");
 				break;
 			}
 		}

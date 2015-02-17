@@ -4687,8 +4687,8 @@ bool GTag::Serialize(GXmlTag *t, bool Write)
 	if (Write)
 	{
 		// Obj -> Tag
-		t->SetAttr("tag", Tag);
-		pos.ZOff(Size.x-1, Size.y-1);
+		if (Tag) t->SetAttr("tag", Tag);
+		pos.ZOff(Size.x, Size.y);
 		pos.Offset(Pos.x, Pos.y);
 		t->SetAttr("pos", pos.GetStr());
 		t->SetAttr("tagid", TagId);		
@@ -4712,6 +4712,18 @@ bool GTag::Serialize(GXmlTag *t, bool Write)
 			LgiAssert(!strchr(CssStyles, '\"'));
 			t->SetAttr("style", CssStyles);
 		}
+		if (Html->Cursor == this)
+		{
+			LgiAssert(Cursor >= 0);
+			t->SetAttr("cursor", Cursor);
+		}
+		else LgiAssert(Cursor < 0);
+		if (Html->Selection == this)
+		{
+			LgiAssert(Selection >= 0);
+			t->SetAttr("selection", Selection);
+		}
+		else LgiAssert(Selection < 0);
 		
 		for (unsigned i=0; i<Children.Length(); i++)
 		{
@@ -4739,8 +4751,8 @@ bool GTag::Serialize(GXmlTag *t, bool Write)
 		{
 			Pos.x = pos.x1;
 			Pos.y = pos.y1;
-			Size.x = pos.X();
-			Size.y = pos.Y();
+			Size.x = pos.x2;
+			Size.y = pos.y2;
 		}
 		if (ValidStr(t->Content))
 		{
@@ -4764,9 +4776,30 @@ bool GTag::Serialize(GXmlTag *t, bool Write)
 			}
 			Txt.Reset(p.NewStrW());
 		}
-		const char *Style = t->GetAttr("style");
-		if (Style)
-			Parse(Style, ParseRelaxed);
+		const char *s = t->GetAttr("style");
+		if (s)
+			Parse(s, ParseRelaxed);
+		s = t->GetAttr("cursor");
+		if (s)
+		{
+			LgiAssert(Html->Cursor == NULL);
+			Html->Cursor = this;
+			Cursor = atoi(s);
+			LgiAssert(Cursor >= 0);			
+		}
+		s = t->GetAttr("selection");
+		if (s)
+		{
+			LgiAssert(Html->Selection == NULL);
+			Html->Selection = this;
+			Selection = atoi(s);
+			LgiAssert(Selection >= 0);			
+		}
+		#ifdef _DEBUG
+		s = t->GetAttr("debug");
+		if (s && atoi(s) != 0)
+			Debug = true;
+		#endif
 		
 		for (int i=0; i<t->Children.Length(); i++)
 		{
