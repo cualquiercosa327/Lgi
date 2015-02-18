@@ -2294,16 +2294,16 @@ bool GCss::Selector::ToString(GStream &p)
 				p.Print("#%s", pt.Value.Get());
 				break;
 			case SelPseudo:
-				LgiAssert(0);
+				p.Print(":%s", pt.Value.Get());
 				break;
 			case CombDesc:
-				LgiAssert(0);
+				p.Print(" ");
 				break;
 			case CombChild:
-				LgiAssert(0);
+				p.Print(">");
 				break;
 			case CombAdjacent:
-				LgiAssert(0);
+				p.Print("+");
 				break;
 			default:
 				LgiAssert(0);
