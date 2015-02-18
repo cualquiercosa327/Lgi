@@ -29,6 +29,8 @@
 #define ENABLE_IMAGE_RESIZING		1
 #define DOCUMENT_LOAD_IMAGES		1
 
+#define ALLOW_TABLE_GROWTH			1
+
 #define LUIS_DEBUG					0
 #define CRASH_TRACE					0
 #ifdef MAC
@@ -2787,9 +2789,9 @@ void GTag::SetStyle()
 		}
 		case TAG_BODY:
 		{
-			PaddingLeft(Len(DefaultBodyMargin));
-			PaddingTop(Len(DefaultBodyMargin));
-			PaddingRight(Len(DefaultBodyMargin));
+			MarginLeft(Len(DefaultBodyMargin));
+			MarginTop(Len(DefaultBodyMargin));
+			MarginRight(Len(DefaultBodyMargin));
 			
 			if (Get("text", s))
 			{
@@ -3744,7 +3746,15 @@ bool GTag::GetWidthMetrics(GTag *Table, uint16 &Min, uint16 &Max)
 			if (w.IsValid() && !w.IsDynamic())
 			{
 				// Fixed width table...
-				Min = Max = (int)w.Value;
+				int CellSpacing = BorderSpacing().ToPx(Min, GetFont());
+				if (CellSpacing == 15)
+				{
+					int asd=0;
+				}
+				
+				int Px = ((int)w.Value) + (CellSpacing << 1);
+				Min = max(Min, Px);
+				Max = max(Max, Px);
 				return true;
 			}
 			else
@@ -4033,7 +4043,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 
 	// Resolve total table width.
 	TableWidth = Table->Width();
-	AvailableX = f->ResolveX(TableWidth, Font, false);
+	AvailableX = f->ResolveX(TableWidth, Font, false) + (CellSpacing << 1);
 	GCss::Len MaxWidth = Table->MaxWidth();
 	if (MaxWidth.IsValid())
 	{
@@ -4241,6 +4251,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	
 	if (TotalX > AvailableX)
 	{
+		#if !ALLOW_TABLE_GROWTH
 		// Deallocate space if overused
 		// Take some from the largest column
 		int Largest = 0;
@@ -4259,6 +4270,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 		}
 
 		DumpCols("AfterSpaceDealloc");
+		#endif
 	}
 	else if (TotalX < AvailableX)
 	{
@@ -4347,8 +4359,8 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	}
 	
 	// Cell positioning
-	int Cx = BorderX1;
-	int Cy = TableBorder.y1 + TablePadding.y1;
+	int Cx = BorderX1 + CellSpacing;
+	int Cy = TableBorder.y1 + TablePadding.y1 + CellSpacing;
 	
 	for (y=0; y<s.y; y++)
 	{
@@ -4418,7 +4430,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 			Prev = t;
 		}
 		
-		Cx = BorderX1;
+		Cx = BorderX1 + CellSpacing;
 		Cy += MaxRow[y] + CellSpacing;
 	}
 
@@ -5230,7 +5242,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 		}
 	}
 
-	if (Display() == DispBlock || Disp == DispInlineBlock)
+	if (Disp == DispBlock || Disp == DispInlineBlock)
 	{		
 		GCss::Len Ht = Height();
 		GCss::Len MaxHt = MaxHeight();
@@ -5262,7 +5274,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 			if (Diff)
 				Flow->max_cx += Diff;
 			
-			Size.y = Flow->y2;
+			Size.y = Flow->y2 > 0 ? Flow->y2 - 1 : 0;
 			Flow->y1 = Flow->y2;
 			Flow->x2 = Flow->x1 + BlockFlowWidth;
 
@@ -5298,7 +5310,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 			{
 				Flow->y2 += Flow->ResolveX(PaddingBottom(), GetFont(), true);
 				Flow->y2 += Flow->ResolveX(BorderBottom(), GetFont(), true);
-				Size.y = Flow->y2 - Flow->y1 + 1;
+				Size.y = Flow->y2 - Flow->y1;
 			}
 			
 			CenterText();
@@ -5830,6 +5842,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 			pDC->ClipRgn(0);
 			break;
 		}
+		/*
 		case TAG_TABLE:
 		{
 			if (Html->Environment)
@@ -5885,6 +5898,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 			}			
 			break;
 		}
+		*/
 		default:
 		{
 			// ColorDef _back = BackgroundColor();
@@ -5897,12 +5911,10 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 				if (Img.Img)
 				{
 					GRect Clip(0, 0, Size.x-1, Size.y-1);
-					pDC->ClipRgn(&Clip);
-					
-					GRect r;
-					r.ZOff(Size.x-1, Size.y-1);
-					FillRectWithImage(pDC, &r, Img.Img, BackgroundRepeat());
-					
+					pDC->ClipRgn(&Clip);					
+					FillRectWithImage(pDC, &Clip, Img.Img, BackgroundRepeat());					
+					pDC->ClipRgn(NULL);
+
 					back.Empty();
 				}
 			}
