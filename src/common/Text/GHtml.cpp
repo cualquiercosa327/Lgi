@@ -20,7 +20,7 @@
 #include "GDisplayString.h"
 #include "GPalette.h"
 
-#define DEBUG_TABLE_LAYOUT			0
+#define DEBUG_TABLE_LAYOUT			1
 #define DEBUG_RESTYLE				0
 #define DEBUG_TAG_BY_POS			0
 #define DEBUG_SELECTION				0
@@ -2789,9 +2789,9 @@ void GTag::SetStyle()
 		}
 		case TAG_BODY:
 		{
-			MarginLeft(Len(DefaultBodyMargin));
-			MarginTop(Len(DefaultBodyMargin));
-			MarginRight(Len(DefaultBodyMargin));
+			MarginLeft(Len(Get("leftmargin", s) ? s : DefaultBodyMargin));
+			MarginTop(Len(Get("topmargin", s) ? s : DefaultBodyMargin));
+			MarginRight(Len(Get("rightmargin", s) ? s : DefaultBodyMargin));
 			
 			if (Get("text", s))
 			{
@@ -3866,8 +3866,8 @@ void GTag::LayoutTable(GFlowRegion *f)
 		#endif
 		Cell->Cells = new GHtmlTableLayout(this);
 		#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
-		if (Cells && Debug)
-			Cells->Dump();
+		if (Cell->Cells && Debug)
+			Cell->Cells->Dump();
 		#endif
 	}
 	if (Cell->Cells)
@@ -4043,7 +4043,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 
 	// Resolve total table width.
 	TableWidth = Table->Width();
-	AvailableX = f->ResolveX(TableWidth, Font, false) + (CellSpacing << 1);
+	AvailableX = f->ResolveX(TableWidth, Font, false);	
 	GCss::Len MaxWidth = Table->MaxWidth();
 	if (MaxWidth.IsValid())
 	{
@@ -4118,7 +4118,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 					
 					#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 					if (Table->Debug)
-						LgiTrace("Content[%i,%i] min=%i max=%i\n", x, y, t->MinContent, t->MaxContent);
+						LgiTrace("Content[%i,%i] min=%i max=%i\n", x, y, t->Cell->MinContent, t->Cell->MaxContent);
 					#endif
 
 					if (t->Cell->Span.x == 1)
@@ -4325,7 +4325,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 
 					#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 					if (Table->Debug)
-						LgiTrace("[%i,%i]=%i,%i Rx=%i\n", t->Cell.x, t->Cell.y, t->Size.x, t->Size.y, Rx);
+						LgiTrace("[%i,%i]=%i,%i\n", t->Cell->Span.x, t->Cell->Span.y, t->Size.x, t->Size.y);
 					#endif
 				}
 
