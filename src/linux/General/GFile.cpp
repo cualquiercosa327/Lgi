@@ -379,7 +379,7 @@ bool FileExists(const char *FileName, char *CorrectCase)
 		{
 			Status = true;
 		}
-		else
+		else if (CorrectCase)
 		{
 			// Look for altenate case by enumerating the directory
 			char d[256];
