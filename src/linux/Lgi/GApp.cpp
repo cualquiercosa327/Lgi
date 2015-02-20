@@ -576,7 +576,7 @@ void GApp::SetConfig(GXmlTag *Tag)
 {
 	if (IsOk() && Tag)
 	{
-		GXmlTag *Old = GetConfig(Tag->Tag);
+		GXmlTag *Old = GetConfig(Tag->GetTag());
 		if (Old)
 		{
 			Old->RemoveTag();
@@ -633,7 +633,7 @@ GXmlTag *GApp::GetConfig(const char *Tag)
 
 	if (Tag && d->Config)
 	{
-		return d->Config->GetTag(Tag);
+		return d->Config->GetChildTag(Tag);
 	}
 
 	return 0;
@@ -1097,6 +1097,7 @@ GlibPostMessage(GlibEventParams *p)
 	{
 		printf("%s:%i - Failed to find widget(%p) for PostMessage.\n", _FL, w);
 		
+		#if 0
 		static int Count = 0;
 		if (Count++ < 5)
 		{
@@ -1107,6 +1108,7 @@ GlibPostMessage(GlibEventParams *p)
 			printf("%s:%i - Too many widget not found errors.\n", _FL);
 			LgiExitApp();
 		}
+		#endif
 	}
 	#else
     gtk_propagate_event(p->w, p->e);

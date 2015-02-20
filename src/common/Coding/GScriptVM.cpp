@@ -20,7 +20,9 @@
 #define SetScriptError			c.u8 = e; LgiAssert(0); Status = ScriptError
 #define CurrentScriptAddress	(c.u8 - Base)
 
+#ifdef WIN32
 extern "C" uint64 __cdecl CallExtern64(void *FuncAddr, NativeInt *Ret, uint32 Args, void *Arg);
+#endif
 
 GExecutionStatus GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Args)
 {

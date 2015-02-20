@@ -466,11 +466,7 @@ lgi_widget_drag_motion(GtkWidget	   *widget,
 	
 	GdcPt2 p(x, y);
 	int Result = Target->WillAccept(Formats, p, 0);
-
 	Formats.DeleteArrays();
-
-	printf("lgi_widget_drag_motion %i,%i = %i\n", p.x, p.y, Result);
-
 	if (Result != DROPEFFECT_NONE)
 	{
 		GdkDragAction action = DropEffectToAction(Result);
@@ -487,26 +483,53 @@ lgi_widget_drag_drop(GtkWidget	       *widget,
 					gint                y,
 					guint               time_)
 {
-	LgiTrace("lgi_widget_drag_drop\n");
-
-	Gtk::GList *Types = gdk_drag_context_list_targets(context);
-	if (!Types)
+	LgiWidget *v = LGI_WIDGET(widget);
+	if (!v || !v->target)
+	{
+		printf("%s:%i - LGI_WIDGET failed.\n", _FL);
 		return false;
+	}
 	
-	GdkAtom TargetType = (GdkAtom)Types->data;
-	if (!TargetType)
+	GDragDropTarget *Target = v->target->DropTarget();
+	if (!Target)
+	{
+		printf("%s:%i - View '%s' doesn't have drop target.\n", _FL, v->target->GetClass());
 		return false;
+	}
+
+	// Convert the GTK list of formats to our own List
+	List<char> Formats;
+	for (Gtk::GList *Types = gdk_drag_context_list_targets(context); Types; Types = Types->next)
+	{
+		gchar *Type = gdk_atom_name((GdkAtom)Types->data);
+		if (Type)
+			Formats.Insert(NewStr(Type));
+	}
+
+	// Select a format from the supplied types
+	GdcPt2 p(x, y);
+	int Result = Target->WillAccept(Formats, p, 0);
+	if (Result == DROPEFFECT_NONE)
+		return false;
+
+	char *drop_format = Formats.First();
+	Formats.Delete(drop_format);
+	Formats.DeleteArrays();
+	// LgiTrace("lgi_widget_drag_drop, fmt=%s\n", drop_format);
 
 	// Request the data...
 	gtk_drag_get_data
 	(
 		widget,
 		context,
-		TargetType,
+		gdk_atom_intern(drop_format, false),
 		time_
 	);
+
+	DeleteArray(drop_format);
 	
-	return true;}
+	return true;
+}
 
 static void
 lgi_widget_drag_data_received(GtkWidget        *widget,
@@ -837,5 +860,6 @@ lgi_widget_init(LgiWidget *w)
 	w->h = 0;
 	w->pour_largest = false;
 	w->drag_over_widget = false;
+	w->drop_format = NULL;
 }
 

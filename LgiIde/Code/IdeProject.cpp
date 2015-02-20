@@ -640,7 +640,8 @@ public:
 		}
 		else
 		{
-			Status = Edit->Open(File);
+			GAutoString Full = GetFullPath();
+			Status = Edit->Open(Full);
 		}
 		
 		return Status;
@@ -3685,7 +3686,6 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 					GHashTable DepFiles;
 
 					const char *TargetType = d->Settings.GetStr(ProjTargetType, NULL, Platform);
-					printf("TargetType=%s\n", TargetType);
 					if (TargetType)
 					{
 						if (!stricmp(TargetType, "Executable"))
@@ -3695,7 +3695,6 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 									
 							GStringPipe Rules;
 							IdeProject *Dep;
-							printf("Deps=%i\n", Deps.Length());
 							for (Dep=Deps.First(); Dep; Dep=Deps.Next())
 							{
 								// Get dependency to create it's own makefile...
@@ -3731,7 +3730,6 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 									AllDeps.Sort(StrSort);
 
 									Rules.Print("%s : ", Buf);
-									printf("AllDeps.Length()=%i\n", AllDeps.Length());
 									for (int i=0; i<AllDeps.Length(); i++)
 									{
 										if (i)
@@ -3917,9 +3915,6 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 						{
 							if (Processed.Find(Src))
 								continue;
-
-							if (stristr(Src, "GBitmap.h"))
-								printf("Processing GBitmap.h\n");
 
 							Done = false;
 							Processed.Add(Src);

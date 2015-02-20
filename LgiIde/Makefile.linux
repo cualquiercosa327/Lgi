@@ -129,6 +129,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../include/common/GPassword.h \
 	../include/common/GPath.h \
 	../include/common/GPixelRops.h \
+	../include/common/GPoint.h \
 	../include/common/GPopup.h \
 	../include/common/GPrinter.h \
 	../include/common/GProcess.h \
@@ -1440,6 +1441,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GColourSpace.h \
 	../include/common/GRect.h \
 	../include/common/GFont.h \
+	../include/common/GPoint.h \
 	../include/common/GColour.h \
 	../include/common/GFilter.h
 
@@ -1604,6 +1606,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GColourSpace.h \
 	../include/common/GRect.h \
 	../include/common/GFont.h \
+	../include/common/GPoint.h \
 	../include/common/GColour.h \
 	../include/common/GFilter.h
 
@@ -1950,6 +1953,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GUtf8.h \
 	../include/common/GScrollBar.h \
 	../include/common/GCss.h
+
+../include/common/GPoint.h : 
 
 ../../../../../../usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-core.h : /usr/include/glib-2.0/glib.h \
 	/usr/include/glib-2.0/glib-object.h \
@@ -2369,7 +2374,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GPanel.h \
 	../include/linux/Gtk/LgiWidget.h
 
-../include/common/GRect.h : 
+../include/common/GRect.h : ../include/common/GPoint.h
 
 ../../../../../../usr/include/glib-2.0/gio/gzlibcompressor.h : /usr/include/glib-2.0/gio/gconverter.h \
 	/usr/include/glib-2.0/gio/gfileinfo.h
@@ -3657,7 +3662,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/glib-2.0/gobject/gtype.h : /usr/include/glib-2.0/glib.h
 
-../include/common/GRect.h : 
+../include/common/GRect.h : ../include/common/GPoint.h
 
 ../src/common/Widgets/GProgress.cpp : ../include/common/Lgi.h \
 	../include/common/GProgress.h \
@@ -4132,6 +4137,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../../../../../../usr/include/glib-2.0/gio/ginetaddress.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../../usr/include/gtk-2.0/gdk/gdkvisual.h : /usr/include/gtk-2.0/gdk/gdktypes.h
+
+../include/common/GPoint.h : 
 
 ../../../../../../usr/include/glib-2.0/gio/gsocketconnection.h : /usr/include/glib-2.0/glib-object.h \
 	/usr/include/glib-2.0/gio/gsocket.h \

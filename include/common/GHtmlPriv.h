@@ -153,7 +153,7 @@ struct GHtmlTableLayout
 class GTag : public GHtmlElement
 {
 	friend struct GHtmlTableLayout;
-	friend class HtmlEdit;
+	friend class ::HtmlEdit;
 	
 public:
 	enum HtmlControlType

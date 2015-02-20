@@ -54,8 +54,11 @@ public:
 
 				// Remove leading 'File:'
 				if (strnicmp(File, "file:", 5) == 0) File += 5;
-				#ifdef WIN32
+				#if defined(WIN32)
 				while (*File == '/')
+					File++;
+				#elif defined(LINUX)
+				for (int i=0; i<2 && *File == '/'; i++)
 					File++;
 				#endif
 
