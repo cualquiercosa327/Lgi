@@ -2561,7 +2561,7 @@ bool ResDialog::Res_GetItems(ResObject *Obj, List<ResObject> *l)
 	return false;
 }
 
-void ResDialog::Create(GXmlTag *load)
+void ResDialog::Create(GXmlTag *load, SerialiseContext *Ctx)
 {
 	CtrlDlg *Dlg = new CtrlDlg(this, load);
 	if (Dlg)
@@ -2572,7 +2572,12 @@ void ResDialog::Create(GXmlTag *load)
 		Dlg->SetParent(this);
 
 		if (load)
-			Read(load, Lr8File);
+		{
+			if (Ctx)
+				Read(load, *Ctx);
+			else
+				LgiAssert(0);
+		}
 		else
 		{
 			Dlg->ResDialogCtrl::SetPos(r);
@@ -2675,11 +2680,12 @@ void ResDialog::Copy(bool Delete)
 		// write the strings out at the top of the block
 		// so that we can reference them from the objects
 		// below.
+		SerialiseContext Ctx;
 		for (c = All.First(); c; c = All.Next())
 		{
 			// Write the string out
 			GXmlTag *t = new GXmlTag;
-			if (t && c->Str->Write(t, Lr8File))
+			if (t && c->Str->Write(t, Ctx))
 			{
 				Root->InsertTag(t);
 			}
@@ -2855,7 +2861,8 @@ void ResDialog::Paste()
 						LgiAssert(Symbols);
 
 						ResString *Str = Symbols->CreateStr();
-						if (Str && Str->Read(t, Lr8File))
+						SerialiseContext Ctx;
+						if (Str && Str->Read(t, Ctx))
 						{
 							// setup remap object, so that we can make all the strings
 							// unique
@@ -3699,7 +3706,7 @@ bool ResDialog::Test(ErrorCollection *e)
 	return true;
 }
 
-bool ResDialog::Read(GXmlTag *t, ResFileFormat Format)
+bool ResDialog::Read(GXmlTag *t, SerialiseContext &Ctx)
 {
 	bool Status = false;
 
@@ -3752,7 +3759,7 @@ void ResDialog::CleanSymbols()
 	}
 }
 
-bool ResDialog::Write(GXmlTag *t, ResFileFormat Format)
+bool ResDialog::Write(GXmlTag *t, SerialiseContext &Ctx)
 {
 	bool Status = false;
 	ResDialogCtrl *Ctrl = dynamic_cast<ResDialogCtrl*>(Children.First());

@@ -144,6 +144,20 @@ public:
 	GArray<ErrorInfo> StrErr;
 };
 
+struct SerialiseContext
+{
+	ResFileFormat Format;
+	GStringPipe Log;
+	GArray<ResString*> FixId;
+	
+	SerialiseContext() : Log(512)
+	{
+		Format = Lr8File;
+	}
+	
+	void PostLoad(AppWnd *App);
+};
+
 class Resource
 {
 	friend class AppWnd;
@@ -168,7 +182,7 @@ public:
 	virtual bool Attach(GViewI *Parent);
 	virtual int Type() { return ResType; }
 	virtual void Type(int i) { ResType = i; }
-	virtual void Create(GXmlTag *load) = 0; // called when users creates
+	virtual void Create(GXmlTag *load, SerialiseContext *ctx) = 0; // called when users creates
 	virtual ResStringGroup *GetStringGroup() { return 0; }
 	
 	// Sub classes
@@ -178,8 +192,8 @@ public:
 	
 	// Serialization
 	virtual bool Test(ErrorCollection *e) = 0;
-	virtual bool Read(GXmlTag *t, ResFileFormat Format) = 0;
-	virtual bool Write(GXmlTag *t, ResFileFormat Format) = 0;
+	virtual bool Read(GXmlTag *t, SerialiseContext &Ctx) = 0;
+	virtual bool Write(GXmlTag *t, SerialiseContext &Ctx) = 0;
 	virtual StringList *GetStrs() { return NULL; }
 
 	// Clipboard
@@ -200,10 +214,10 @@ public:
 	ResFolder(AppWnd *w, int t, bool enabled = true);
 	GView *Wnd() { return dynamic_cast<GView*>(this); }
 
-	void Create(GXmlTag *load) { LgiAssert(0); }
+	void Create(GXmlTag *load, SerialiseContext *ctx) { LgiAssert(0); }
 	bool Test(ErrorCollection *e) { return false; }
-	bool Read(GXmlTag *t, ResFileFormat Format) { return false; }
-	bool Write(GXmlTag *t, ResFileFormat Format) { return false; }
+	bool Read(GXmlTag *t, SerialiseContext &Ctx) { return false; }
+	bool Write(GXmlTag *t, SerialiseContext &Ctx) { return false; }
 };
 
 class ResFrame : public GLayout
@@ -660,7 +674,7 @@ public:
 
 	// ---------------------------------------------------------------------
 	// Application
-	Resource *NewObject(GXmlTag *load, int Type, bool Select = true);
+	Resource *NewObject(SerialiseContext ctx, GXmlTag *load, int Type, bool Select = true);
 	bool InsertObject(int Type, Resource *r, bool Select = true);
 	void DelObject(Resource *r);
 	bool ListObjects(List<Resource> &Lst);
@@ -760,7 +774,7 @@ public:
 	ResCss(AppWnd *w, int type = TYPE_CSS);
 	~ResCss();
 
-	void Create(GXmlTag *load);
+	void Create(GXmlTag *Load, SerialiseContext *Ctx);
 	GView *Wnd() { return dynamic_cast<GView*>(this); }
 	void OnShowLanguages();
 
@@ -772,8 +786,8 @@ public:
 
 	// Serialize
 	bool Test(ErrorCollection *e);
-	bool Read(GXmlTag *t, ResFileFormat Format);
-	bool Write(GXmlTag *t, ResFileFormat Format);
+	bool Read(GXmlTag *t, SerialiseContext &Ctx);
+	bool Write(GXmlTag *t, SerialiseContext &Ctx);
 };
 
 extern void OpenTableLayoutTest(GViewI *p);

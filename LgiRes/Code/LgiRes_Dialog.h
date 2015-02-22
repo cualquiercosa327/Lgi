@@ -161,7 +161,7 @@ protected:
 public:
 	ResDialog(AppWnd *w, int type = TYPE_DIALOG);
 	~ResDialog();
-	void Create(GXmlTag *load);
+	void Create(GXmlTag *load, SerialiseContext *Ctx);
 
 	const char *GetClass() { return "ResDialog"; }
 	GView *Wnd() { return dynamic_cast<GView*>(this); }
@@ -226,8 +226,8 @@ public:
 	void _Paint(GSurface *pDC = 0, int Ox = 0, int Oy = 0);
 
 	bool Test(ErrorCollection *e);
-	bool Read(GXmlTag *Tag, ResFileFormat Format);
-	bool Write(GXmlTag *Tag, ResFileFormat Format);
+	bool Read(GXmlTag *Tag, SerialiseContext &Ctx);
+	bool Write(GXmlTag *Tag, SerialiseContext &Ctx);
 };
 
 class ResDialogUi : public GLayout

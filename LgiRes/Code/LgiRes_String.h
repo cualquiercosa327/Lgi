@@ -92,8 +92,8 @@ public:
 
 	// Persistence
 	bool Test(ErrorCollection *e);
-	bool Read(GXmlTag *t, ResFileFormat Format);
-	bool Write(GXmlTag *t, ResFileFormat Format);
+	bool Read(GXmlTag *t, SerialiseContext &Ctx);
+	bool Write(GXmlTag *t, SerialiseContext &Ctx);
 };
 
 #define RESIZE_X1			0x0001
@@ -127,7 +127,7 @@ public:
 	ResStringGroup *GetStringGroup() { return this; }
 
 	// Methods
-	void Create(GXmlTag *load);
+	void Create(GXmlTag *load, SerialiseContext *ctx);
 	ResString *CreateStr(bool User = false);
 	void DeleteStr(ResString *Str);
 	ResString *FindName(char *Name);
@@ -158,8 +158,8 @@ public:
 	void OnRightClick(GSubMenu *RClick);
 	void OnCommand(int Cmd);
 	bool Test(ErrorCollection *e);
-	bool Read(GXmlTag *t, ResFileFormat Format);
-	bool Write(GXmlTag *t, ResFileFormat Format);
+	bool Read(GXmlTag *t, SerialiseContext &Ctx);
+	bool Write(GXmlTag *t, SerialiseContext &Ctx);
 	ResStringGroup *IsStringGroup() { return this; }
 
 	// GList

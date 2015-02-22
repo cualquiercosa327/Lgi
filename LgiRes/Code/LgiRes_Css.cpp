@@ -70,10 +70,12 @@ ResCss::~ResCss()
 {
 }
 
-void ResCss::Create(GXmlTag *load)
+void ResCss::Create(GXmlTag *load, SerialiseContext *Ctx)
 {
-    if (load)
-        Read(load, Lr8File);
+    if (load && Ctx)
+    {
+        Read(load, *Ctx);
+    }
 }
 
 void ResCss::OnShowLanguages()
@@ -103,7 +105,7 @@ bool ResCss::Test(ErrorCollection *e)
     return true;
 }
 
-bool ResCss::Read(GXmlTag *t, ResFileFormat Format)
+bool ResCss::Read(GXmlTag *t, SerialiseContext &Ctx)
 {
     if (!t->IsTag("style"))
         return false;
@@ -114,7 +116,7 @@ bool ResCss::Read(GXmlTag *t, ResFileFormat Format)
     return true;
 }
 
-bool ResCss::Write(GXmlTag *t, ResFileFormat Format)
+bool ResCss::Write(GXmlTag *t, SerialiseContext &Ctx)
 {
     if (Ui)
         Ui->Save();

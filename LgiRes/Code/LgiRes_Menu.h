@@ -67,7 +67,7 @@ public:
 	ResMenu(AppWnd *w, int type = TYPE_MENU);
 	~ResMenu();
 
-	void Create(GXmlTag *load);
+	void Create(GXmlTag *load, SerialiseContext *Ctx);
 	GView *Wnd() { return dynamic_cast<GView*>(this); }
 	void SetLanguages() { if (Group) Group->SetLanguages(); }
 	List<ResString> *GetStrs() { return (Group)?Group->GetStrs():0; }
@@ -92,8 +92,8 @@ public:
 
 	// Serialize
 	bool Test(ErrorCollection *e);
-	bool Read(GXmlTag *t, ResFileFormat Format);
-	bool Write(GXmlTag *t, ResFileFormat Format);
+	bool Read(GXmlTag *t, SerialiseContext &Ctx);
+	bool Write(GXmlTag *t, SerialiseContext &Ctx);
 };
 
 class ResMenuUi : public GLayout

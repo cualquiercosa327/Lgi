@@ -318,12 +318,17 @@ void ResMenu::EnumItems(List<ResMenuItem> &Items)
 	AddChildren(this, Items);
 }
 
-void ResMenu::Create(GXmlTag *load)
+void ResMenu::Create(GXmlTag *load, SerialiseContext *Ctx)
 {
 	Name("IDM_MENU");
 
 	if (load)
-		Read(load, Lr8File);
+	{
+		if (Ctx)
+			Read(load, *Ctx);
+		else
+			LgiAssert(0);
+	}
 
 	if (Resource::Item) Resource::Item->Update();
 	Visible(true);
@@ -560,7 +565,7 @@ bool ResMenu::Test(ErrorCollection *e)
 	return Group->Test(e);
 }
 
-bool ResMenu::Read(GXmlTag *t, ResFileFormat Format)
+bool ResMenu::Read(GXmlTag *t, SerialiseContext &Ctx)
 {
 	bool Status = true;
 
@@ -576,16 +581,16 @@ bool ResMenu::Read(GXmlTag *t, ResFileFormat Format)
 		{
 			if (Group)
 			{
-				if (!Group->Read(c, Format))
+				if (!Group->Read(c, Ctx))
 				{
 					Status = false;
-					LgiAssert(!"Failed to read string group");
+					Ctx.Log.Print("%s:%i - Failed to read string group.\n", _FL);
 				}
 			}
 			else
 			{
 				Status = false;
-				LgiAssert(!"No group to read.");
+				Ctx.Log.Print("%s:%i - No Group to read.\n", _FL);
 			}
 		}
 		else if (c->IsTag("submenu") ||
@@ -598,13 +603,13 @@ bool ResMenu::Read(GXmlTag *t, ResFileFormat Format)
 			else
 			{
 				Status = false;
-				LgiAssert(!"Failed to read menu item");
+				Ctx.Log.Print("%s:%i - Failed to read menu item.\n", _FL);
 				DeleteObj(i);
 			}
 		}
 		else
 		{
-			LgiAssert(!"Unexpected tag.");
+			Ctx.Log.Print("%s:%i - Unexpected tag.\n", _FL);
 			break;
 		}
 	}
@@ -612,7 +617,7 @@ bool ResMenu::Read(GXmlTag *t, ResFileFormat Format)
 	return Status;
 }
 
-bool ResMenu::Write(GXmlTag *t, ResFileFormat Format)
+bool ResMenu::Write(GXmlTag *t, SerialiseContext &Ctx)
 {
 	bool Status = true;
 
@@ -624,7 +629,7 @@ bool ResMenu::Write(GXmlTag *t, ResFileFormat Format)
 	if (Group)
 	{
 		GXmlTag *g = new GXmlTag;
-		if (g && Group->Write(g, Format))
+		if (g && Group->Write(g, Ctx))
 		{
 			t->InsertTag(g);
 		}

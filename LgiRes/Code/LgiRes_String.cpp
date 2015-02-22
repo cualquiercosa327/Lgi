@@ -370,97 +370,103 @@ bool ResString::Test(ErrorCollection *e)
 	return Status;
 }
 
-bool ResString::Read(GXmlTag *t, ResFileFormat Format)
+bool ResString::Read(GXmlTag *t, SerialiseContext &Ctx)
 {
-	if (t && t->IsTag("string"))
+	if (!t || !t->IsTag("string"))
 	{
-		char *n = 0;
+		Ctx.Log.Print("%s:%i - Not a string tag (Tag='%s').\n", _FL, t->GetTag());
+		return false;
+	}
 
-		int Ref = t->GetAsInt("Ref");
-		if (!Ref)
-			return false;
-		
-		SetRef(Ref);
-		if ((n = t->GetAttr("Define")) &&
-			ValidStr(n))
+	char *n = 0;
+
+	int Ref = t->GetAsInt("Ref");
+	if (!Ref)
+	{
+		Ctx.Log.Print("%s:%i - String has no Ref number.\n", _FL);
+		return false;
+	}
+	
+	SetRef(Ref);
+	if ((n = t->GetAttr("Define")) &&
+		ValidStr(n))
+	{
+		SetDefine(n);
+
+		char *c;
+		if ((c = t->GetAttr("Cid")) ||
+			(c = t->GetAttr("Id")))
 		{
-			SetDefine(n);
-
-			char *c;
-			if ((c = t->GetAttr("Cid")) ||
-				(c = t->GetAttr("Id")))
+			int Cid = atoi(c);
+			if (!Cid)
 			{
-				int Cid = atoi(c);
-				if (!Cid)
-				{
-					LgiAssert(!"No id?");
-					return false;
-				}
-
+				Ctx.Log.Print("%s:%i - String missing id (ref=%i)\n", _FL, Ref);
+				Ctx.FixId.Add(this);
+			}
+			else
+			{
 				SetId(Cid);
 			}
 		}
-		if ((n = t->GetAttr("Tag")))
-		{
-			DeleteArray(Tag);
-			Tag = NewStr(n);
-		}
+	}
+	if ((n = t->GetAttr("Tag")))
+	{
+		DeleteArray(Tag);
+		Tag = NewStr(n);
+	}
 
-
-		for (int i=0; i<t->Attr.Length(); i++)
+	for (int i=0; i<t->Attr.Length(); i++)
+	{
+		GXmlAttr *v = &t->Attr[i];
+		if (v->GetName())
 		{
-			GXmlAttr *v = &t->Attr[i];
-			if (v->GetName())
+			GLanguage *Lang = GFindLang(v->GetName());
+			if (!Lang &&
+				v->GetName()[0] == 'T' &&
+				v->GetName()[1] == 'e' &&
+				v->GetName()[2] == 'x' &&
+				v->GetName()[3] == 't' &&
+				v->GetName()[4] == '(')
 			{
-				GLanguage *Lang = GFindLang(v->GetName());
-				if (!Lang &&
-					v->GetName()[0] == 'T' &&
-					v->GetName()[1] == 'e' &&
-					v->GetName()[2] == 'x' &&
-					v->GetName()[3] == 't' &&
-					v->GetName()[4] == '(')
-				{
-					Lang = GFindOldLang(atoi(v->GetName()+5));
-					LgiAssert(Lang); // This really should be a valid string
-				}
+				Lang = GFindOldLang(atoi(v->GetName()+5));
+				LgiAssert(Lang); // This really should be a valid string
+			}
 
-				if (Lang)
+			if (Lang)
+			{
+				if (Ctx.Format == Lr8File)
 				{
-					if (Format == Lr8File)
-					{
-						LgiAssert(LgiIsUtf8(v->GetName()));
-						Set(v->GetValue(), Lang->Id);
-					}
-					else if (Format == CodepageFile)
-					{
-						char *Utf8 = (char*)LgiNewConvertCp("utf-8", v->GetValue(), Lang->CodePage);
-						Set(Utf8 ? Utf8 : v->GetValue(), Lang->Id);
-						if (Utf8)
-						{
-							DeleteArray(Utf8);
-						}
-					}
-					else if (Format == XmlFile)
-					{
-						char *x = DecodeXml(v->GetValue());
-						if (x)
-						{
-							Set(x, Lang->Id);
-							DeleteArray(x);
-						}
-					}
-					else
-						LgiAssert(0);
+					LgiAssert(LgiIsUtf8(v->GetName()));
+					Set(v->GetValue(), Lang->Id);
 				}
+				else if (Ctx.Format == CodepageFile)
+				{
+					char *Utf8 = (char*)LgiNewConvertCp("utf-8", v->GetValue(), Lang->CodePage);
+					Set(Utf8 ? Utf8 : v->GetValue(), Lang->Id);
+					if (Utf8)
+					{
+						DeleteArray(Utf8);
+					}
+				}
+				else if (Ctx.Format == XmlFile)
+				{
+					char *x = DecodeXml(v->GetValue());
+					if (x)
+					{
+						Set(x, Lang->Id);
+						DeleteArray(x);
+					}
+				}
+				else
+					LgiAssert(0);
 			}
 		}
-
-		return true;
 	}
-	return false;
+
+	return true;
 }
 
-bool ResString::Write(GXmlTag *t, ResFileFormat Format)
+bool ResString::Write(GXmlTag *t, SerialiseContext &Ctx)
 {
 	t->SetTag("String");
 	t->SetAttr("Ref", Ref);
@@ -488,7 +494,7 @@ bool ResString::Write(GXmlTag *t, ResFileFormat Format)
 			char *Mem = 0;
 			char *String = 0;
 
-			if (Format == Lr8File)
+			if (Ctx.Format == Lr8File)
 			{
 				// Don't save the string if it's the same as the English
 				if (English && !s->IsEnglish())
@@ -502,7 +508,7 @@ bool ResString::Write(GXmlTag *t, ResFileFormat Format)
 				// Save this string
 				String = s->GetStr();
 			}
-			else if (Format == CodepageFile)
+			else if (Ctx.Format == CodepageFile)
 			{
 				GLanguage *Li = GFindLang(s->GetLang());
 				if (Li)
@@ -512,7 +518,7 @@ bool ResString::Write(GXmlTag *t, ResFileFormat Format)
 
 				if (!String) String = s->GetStr();
 			}
-			else if (Format == XmlFile)
+			else if (Ctx.Format == XmlFile)
 			{
 				// Don't save the string if it's the same as the English
 				if (English && !s->IsEnglish())
@@ -1372,14 +1378,14 @@ bool ResStringGroup::Test(ErrorCollection *e)
 	return Status;
 }
 
-bool ResStringGroup::Read(GXmlTag *t, ResFileFormat Format)
+bool ResStringGroup::Read(GXmlTag *t, SerialiseContext &Ctx)
 {
 	bool Status = false;
 
 	char *p = 0;
 	if ((p = t->GetAttr("Name")))
 	{
-		if (Format == XmlFile)
+		if (Ctx.Format == XmlFile)
 		{
 			char *x = DecodeXml(p);
 			if (x)
@@ -1401,7 +1407,7 @@ bool ResStringGroup::Read(GXmlTag *t, ResFileFormat Format)
 		for (GXmlTag *c = t->Children.First(); c; c = t->Children.Next())
 		{
 			ResString *s = new ResString(this);
-			if (s && s->Read(c, Format))
+			if (s && s->Read(c, Ctx))
 			{
 				for (StrLang *i=s->Items.First(); i; i=s->Items.Next())
 				{
@@ -1414,7 +1420,7 @@ bool ResStringGroup::Read(GXmlTag *t, ResFileFormat Format)
 			}
 			else
 			{
-				Status = false;
+				// Lets not fail everything here... just keep trying to read
 				DeleteObj(s);
 			}
 		}
@@ -1431,12 +1437,12 @@ bool ResStringGroup::Read(GXmlTag *t, ResFileFormat Format)
 	return Status;
 }
 
-bool ResStringGroup::Write(GXmlTag *t, ResFileFormat Format)
+bool ResStringGroup::Write(GXmlTag *t, SerialiseContext &Ctx)
 {
 	bool Status = true;
 
 	t->SetTag("string-group");
-	char *n = Format == XmlFile ? EncodeXml(Name()) : NewStr(Name());
+	char *n = Ctx.Format == XmlFile ? EncodeXml(Name()) : NewStr(Name());
 	t->SetAttr("Name", n);
 	DeleteArray(n);
 
@@ -1446,7 +1452,7 @@ bool ResStringGroup::Write(GXmlTag *t, ResFileFormat Format)
 		if (s && (s->Define || s->Items.Length() > 0))
 		{
 			GXmlTag *c = new GXmlTag;
-			if (c && s->Write(c, Format))
+			if (c && s->Write(c, Ctx))
 			{
 				t->InsertTag(c);
 			}
@@ -1495,7 +1501,8 @@ void ResStringGroup::OnCommand(int Cmd)
 				GFile F;
 				if (F.Open(Select.Name(), O_READ))
 				{
-					Resource *Res = AppWindow->NewObject(0, -Type());
+					SerialiseContext Ctx;
+					Resource *Res = AppWindow->NewObject(Ctx, 0, -Type());
 					if (Res)
 					{
 						// TODO
@@ -1532,10 +1539,15 @@ void ResStringGroup::OnCommand(int Cmd)
 	}
 }
 
-void ResStringGroup::Create(GXmlTag *load)
+void ResStringGroup::Create(GXmlTag *load, SerialiseContext *ctx)
 {
 	if (load)
-		Read(load, Lr8File);
+	{
+		if (ctx)
+			Read(load, *ctx);
+		else
+			LgiAssert(0);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////
