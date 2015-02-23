@@ -312,7 +312,7 @@ void GDialog::EndModal(int Code)
 	}
 	else
 	{
-		LgiAssert(0);
+		// LgiAssert(0);
 	}
 }
 

@@ -222,17 +222,14 @@ gboolean GWindow::OnGtkEvent(GtkWidget *widget, GdkEvent *event)
 		return FALSE;
 	}
 
-	// printf("%s::OnGtkEvent(%i)\n", GetClass(), event->type);
+	// printf("%p - %s::OnGtkEvent(%i)\n", this, GetClass(), event->type);
 	switch (event->type)
 	{
 		case GDK_DELETE:
 		{
 			bool Close = OnRequestClose(false);
 			if (Close)
-			{
 				OnGtkDelete();
-				delete this;
-			}
 			return !Close;
 		}
 		case GDK_DESTROY:

@@ -438,9 +438,9 @@ bool GView::_Mouse(GMouse &m, bool Move)
 gboolean GtkViewCallback(GtkWidget *widget, GdkEvent *event, GView *This)
 {
 	#if 0
-	printf("GtkViewCallback, widget=%p, event=%p, event=%x, This=%p\n",
+	printf("GtkViewCallback, widget=%p, event=%p, event=%x, This=%p(%s\"%s\")\n",
 		widget, event,
-		event->type, This);
+		event->type, This, (NativeInt)This > 0x1000 ? This->GetClass() : 0, (NativeInt)This > 0x1000 ? This->Name() : 0);
 	#endif
 	
 	if (event->type < 0 || event->type > 1000)

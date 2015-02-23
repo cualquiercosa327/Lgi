@@ -1133,10 +1133,9 @@ ParsingStart:
 		{
 			if (TagName[0] == '?')
 			{
-				char *TmpStr = NewStr(TagName, t - TagName);
-				GXmlTag Temp(TmpStr);
-				Temp.Allocator = Alloc;
-				DeleteArray(TmpStr);
+				GAutoString TmpStr(NewStr(TagName, t - TagName));
+				GXmlTag Temp(TmpStr, Alloc);
+				TmpStr.Reset();
 				bool bTrue = true;
 
 				while (*t)

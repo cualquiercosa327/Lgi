@@ -445,9 +445,6 @@ public:
 		}
 		
 		printf("Screen: %i x %i @ %i bpp (%s)\n", ScrX, ScrY, ScrBits, GColourSpaceToString(ScrColourSpace));
-
-		// Work out the size of a 24bit pixel
-		char *Data =(char*) malloc(4);
 		
 		// printf("Pixel24Size=%i\n", Pixel24Size);
 		OptVal[GDC_PROMOTE_ON_LOAD] = ScrBits;
