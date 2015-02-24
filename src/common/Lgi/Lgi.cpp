@@ -947,7 +947,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 			}
 			case LSP_USER_APPS:
 			{
-				#if defined WINDOWS
+				#if defined WIN32
 				GAutoString f(GetWindowsFolder(
 					#ifdef WIN64
 					CSIDL_PROGRAM_FILES
@@ -955,9 +955,11 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 					CSIDL_PROGRAM_FILESX86
 					#endif
 					));
-				if (!f) return false;
-				strcpy_s(Dst, DstSize, f);
-				Status = true;
+				if (f)
+				{
+					strcpy_s(Dst, DstSize, f);
+					Status = true;
+				}
 				#elif defined MAC
 				strcpy_s(Dst, DstSize, "/Applications");
 				Status = true;
