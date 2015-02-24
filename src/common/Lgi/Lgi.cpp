@@ -980,6 +980,30 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 				
 				break;
 			}
+			case LSP_USER_APPS:
+			{
+				#if defined WINDOWS
+				GAutoString f(GetWindowsFolder(
+					#ifdef WIN64
+					CSIDL_PROGRAM_FILES
+					#else
+					CSIDL_PROGRAM_FILESX86
+					#endif
+					));
+				if (!f) return false;
+				strcpy_s(Dst, DstSize, f);
+				Status = true;
+				#elif defined MAC
+				strcpy_s(Dst, DstSize, "/Applications");
+				Status = true;
+				#elif defined LINUX
+				strcpy_s(Dst, DstSize, "/usr/bin");
+				Status = true;
+				#elif defined BEOS
+				LgiAssert(!"Impl me.");
+				#endif
+				break;
+			}
 			case LSP_APP_INSTALL:
 			{
 				if (LgiGetExePath(Dst, DstSize))

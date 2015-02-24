@@ -477,48 +477,65 @@ enum LgiSystemPath
 	///		[Mac] = /System
 	///		[Linux] /boot
 	LSP_OS,
+
 	/// The system library folder
 	///		[Win32] = e.g. C:\Windows\System32
 	///		[Mac] = /Library
 	///		[Linux] = /usr/lib
 	LSP_OS_LIB,
+
 	/// A folder for storing temporary files. These files are usually
 	/// deleted automatically later by the system.
 	///		[Win32] = ~\Local Settings\Temp
 	///		[Mac] = ~/Library/Caches/TemporaryItems
 	///		[Linux] = /tmp
 	LSP_TEMP,
+
 	/// System wide application data
 	///		[Win32] = ~\..\All Users\Application Data
 	///		[Mac] = /System/Library
 	///		[Linux] = /usr
 	LSP_COMMON_APP_DATA,
+
 	/// User specific application data
 	///		[Win32] = ~\Application Data
 	///		[Mac] = ~/Library
 	///		[Linux] = /usr
 	LSP_USER_APP_DATA,
+
 	/// Machine + user specific application data (probably should not use)
 	///		[Win32] = ~\Local Settings\Application Data
 	///		[Mac] = ~/Library
 	///		[Linux] = /usr/local
 	LSP_LOCAL_APP_DATA,
+
 	/// Desktop dir
 	///		i.e. ~/Desktop
 	LSP_DESKTOP,
+
 	/// Home dir
 	///		i.e. ~
 	LSP_HOME,
+
+	/// Application install folder:
+	///		[Win]   c:\Program Files
+	///		[Mac]   /Applications
+	///		[Linux] /usr/bin
+	LSP_USER_APPS,
+
 	/// The running application's path.
 	/// [Mac] This doesn't include the "Contents/MacOS" part of the path inside the bundle.
 	LSP_EXE,
+
 	/// The system trash folder.
 	LSP_TRASH,
+
 	/// The app's install folder.
 	///		[Win32] = $ExePath (sans '\Release' or '\Debug')
 	///		[Mac/Linux] = $ExePath
 	/// Where $ExePath is the folder the application is running from
 	LSP_APP_INSTALL,
+
 	/// The app's root folder (Where config and data should be stored)
 	/// GOptionsFile uses LSP_APP_ROOT as the default location.
 	///		[Win32] = ~\Application Data\$AppName
@@ -527,18 +544,22 @@ enum LgiSystemPath
 	/// Where $AppName = GApp::GetName.
 	/// If the given folder doesn't exist it will be created.
 	LSP_APP_ROOT,
+
 	/// This is the user's documents folder
 	///		[Win32] ~\My Documents
 	///		[Mac] ~\Documents
 	LSP_USER_DOCUMENTS,
+
 	/// This is the user's music folder
 	///		[Win32] ~\My Music
 	///		[Mac] ~\Music
 	LSP_USER_MUSIC,
+
 	/// This is the user's video folder
 	///		[Win32] ~\My Videos
 	///		[Mac] ~\Movies
 	LSP_USER_VIDEO,
+
 	/// This is the user's download folder
 	///		~\Downloads
 	LSP_USER_DOWNLOADS,
