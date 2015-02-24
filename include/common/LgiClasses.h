@@ -341,6 +341,9 @@ public:
 	/// Gets the singleton symbol lookup class
 	class GSymLookup *GetSymLookup();
 
+	/// \returns true if the process is running with elevated permissions
+	bool IsElevated();
+
 	// OS Specific
 	#if defined WIN32
 
