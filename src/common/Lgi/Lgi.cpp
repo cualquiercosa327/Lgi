@@ -982,7 +982,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 			}
 			case LSP_USER_APPS:
 			{
-				#if defined WINDOWS
+				#if defined WIN32
 				GAutoString f(GetWindowsFolder(
 					#ifdef WIN64
 					CSIDL_PROGRAM_FILES
