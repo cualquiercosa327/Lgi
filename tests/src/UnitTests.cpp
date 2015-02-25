@@ -5,10 +5,13 @@ void UnitTests()
 {
 	GArray<UnitTest*> Tests;
 
+	#if 0
 	Tests.Add(new GAutoPtrTest);
 	Tests.Add(new GCssTest);
 	Tests.Add(new GMatrixTest);
 	Tests.Add(new GContainers);
+	#endif
+	Tests.Add(new GStringClassTest);
 
 	for (int i=0; i<Tests.Length(); i++)
 	{

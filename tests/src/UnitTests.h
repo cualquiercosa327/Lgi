@@ -1,10 +1,10 @@
 #ifndef _UNIT_TESTS_H_
 #define _UNIT_TESTS_H_
 
-class UnitTest: public GBase
+class UnitTest : public GBase
 {
 public:
-	UnitTest(char *name)
+	UnitTest(const char *name)
 	{
 		Name(name);
 	}
@@ -62,5 +62,17 @@ public:
 
 	bool Run();
 };
+
+class GStringClassTest : public UnitTest
+{
+	class GStringClassTestPriv *d;
+
+public:
+	GStringClassTest();
+	~GStringClassTest();
+
+	bool Run();
+};
+
 
 #endif
