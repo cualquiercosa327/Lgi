@@ -16,25 +16,26 @@ class GString
 	struct RefStr
 	{
 		int32 Refs;
+		uint32 Len;
 		char Str[1];
 	}	*Str;
 	
 	inline void _strip(GString &ret, const char *set, bool left, bool right)
 	{
-		char *s = Get();
-		if (s)
-		{
-			if (!set) set = " \t\r\n";
-			
-			while (left && *s && strchr(set, *s))
-				s++;
-			
-			char *e = s + strlen(s);
-			while (right && e > s && strchr(set, e[-1]))
-				e--;
-			
-			ret.Set(s, e - s);
-		}
+		if (!Str) return;
+		
+		char *s = Str->Str;
+		char *e = s + Str->Len;
+
+		if (!set) set = " \t\r\n";
+		
+		while (left && *s && strchr(set, *s))
+			s++;
+		
+		while (right && e > s && strchr(set, e[-1]))
+			e--;
+		
+		ret.Set(s, e - s);
 	}
 
 public:
@@ -137,6 +138,7 @@ public:
 			return false;
 		
 		Str->Refs = 1;
+		Str->Len = len;
 		#ifdef LGI_UNIT_TESTS
 		RefStrCount++;
 		#endif
@@ -173,6 +175,12 @@ public:
 	operator char *()
 	{
 		return Str ? Str->Str : NULL;
+	}
+	
+	/// Gets the length in bytes
+	uint32 Length()
+	{
+		return Str ? Str->Len : 0;
 	}
 
 	/// Splits the string into parts
@@ -214,7 +222,7 @@ public:
 		GArray<unsigned> ALen;
 		for (unsigned i=0; i<a.Length(); i++)
 		{
-			ALen[i] = strlen(a[i].Get());
+			ALen[i] = a[i].Length();
 			Bytes += ALen[i];
 		}
 		
@@ -306,7 +314,8 @@ public:
 	/// Returns a copy of the string with all the characters converted to lower case
 	GString Lower()
 	{
-		GString s(*this);
+		GString s;
+		s.Set(Get());
 		StrLwr(s.Get());
 		return s;
 	}
@@ -314,7 +323,8 @@ public:
 	/// Returns a copy of the string with all the characters converted to upper case
 	GString Upper()
 	{
-		GString s(*this);
+		GString s;
+		s.Set(Get());
 		StrUpr(s.Get());
 		return s;
 	}
@@ -323,19 +333,18 @@ public:
 	GString operator() (int index)
 	{
 		GString s;
-		char *c = Get();
-		if (c)
+		if (Str)
 		{
-			int len = strlen(c);
+			char *c = Str->Str;
 			if (index < 0)
 			{
-				int idx = len + index;
+				int idx = Str->Len + index;
 				if (idx >= 0)
 				{
 					s.Set(c + idx, 1);
 				}
 			}
-			else if (index < len)
+			else if (index < Str->Len)
 			{
 				s.Set(c + index, 1);
 			}
@@ -347,15 +356,14 @@ public:
 	GString operator() (int start, int end)
 	{
 		GString s;
-		char *c = Get();
-		if (c)
+		if (Str)
 		{
-			int len = strlen(c);
-			int start_idx = start < 0 ? len + start + 1 : start;
-			int end_idx = end < 0 ? len + end + 1 : end;
+			char *c = Str->Str;
+			int start_idx = start < 0 ? Str->Len + start + 1 : start;
+			int end_idx = end < 0 ? Str->Len + end + 1 : end;
 			if (start_idx >= 0 && end_idx > start_idx)
 				s.Set(c + start_idx, end_idx - start_idx);
-		}		
+		}
 		return s;
 	}
 
@@ -365,7 +373,7 @@ public:
 		GString ret;
 		_strip(ret, set, true, true);
 		return ret;
-	}	
+	}
 
 	/// Strip off any leading whitespace	
 	GString LStrip(const char *set = NULL)

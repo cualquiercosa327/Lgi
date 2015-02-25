@@ -14,6 +14,7 @@ public:
 
 	bool FAIL(char *File, int Line, char *Msg)
 	{
+		LgiAssert(0);
 		printf("%s:%i - Error in %s: %s\n", File, Line, Name(), Msg);
 		return false;
 	}

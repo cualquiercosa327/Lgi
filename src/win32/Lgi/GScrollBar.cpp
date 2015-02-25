@@ -216,11 +216,15 @@ void GScrollBar::SetParent(GViewI *p)
 
 int64 GScrollBar::Value()
 {
+	LgiAssert(d->Min < 1000000);
+
 	return limit(d->Value, d->Min, d->Max);
 }
 
 void GScrollBar::Value(int64 p)
 {
+	LgiAssert(d->Min < 1000000);
+
 	int64 Val = limit(p, d->Min, d->Max);
 	if (d->Value != Val)
 	{
@@ -249,6 +253,8 @@ void GScrollBar::SetLimits(int64 Low, int64 High)
 	{
 		d->Shift++;
 	}
+ 
+	LgiAssert(Low < 1000000);
  
 	d->Min = Low;
 	d->Max = High;

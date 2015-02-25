@@ -28,7 +28,7 @@ bool GStringClassTest::Run()
 		GString a("test");
 		GString b = a;
 	}
-	if (GString::RefStrCount != 0) return false;
+	if (GString::RefStrCount != 0) return FAIL(_FL, "RefStrCount mismatch");
 
 	// Assignment operator test
 	{
@@ -36,90 +36,118 @@ bool GStringClassTest::Run()
 		GString b;
 		b = a;
 	}
-	if (GString::RefStrCount != 0) return false;
+	if (GString::RefStrCount != 0) return FAIL(_FL, "RefStrCount mismatch");
 
 	// Split/Join tests
 	{
-		GString a("123,456,789");
-		if (GString::RefStrCount != 1) return false;
+		const char *Base = "123,456,789";
+		GString a(Base);
+		if (GString::RefStrCount != 1) return FAIL(_FL, "RefStrCount mismatch");
 		GString::Array b = a.Split(",");
-		if (GString::RefStrCount != 4) return false;
+		if (GString::RefStrCount != 4) return FAIL(_FL, "RefStrCount mismatch");
 		GString sep("-");
-		if (GString::RefStrCount != 5) return false;
+		if (GString::RefStrCount != 5) return FAIL(_FL, "RefStrCount mismatch");
 		GString c = sep.Join(b);
-		if (GString::RefStrCount != 6) return false;
+		if (GString::RefStrCount != 6) return FAIL(_FL, "RefStrCount mismatch");
 		if (c.Get() && stricmp(c.Get(), "123-456-789"))
-			return false;
+			return FAIL(_FL, "Joined string incorrect");
 		if (b[1].Int() != 456)
-			return false;		
+			return FAIL(_FL, "Int cast failure");
+		if (strcmp(Base, a))
+			return FAIL(_FL, "Original string modified");
 	}
-	if (GString::RefStrCount != 0) return false;
+	if (GString::RefStrCount != 0) return FAIL(_FL, "RefStrCount mismatch");
 	
 	// C string assignment / cast testing
 	{
 		const char *cstr = "Test";
-		GString a = cstr;
+		GString a;
+		a = cstr;
 		if (_stricmp(cstr, a))
-			return false;
+			return FAIL(_FL, "C String assignment failed");
+		if (strcmp(cstr, a))
+			return FAIL(_FL, "Original string modified");
 	}
-	if (GString::RefStrCount != 0) return false;
+	if (GString::RefStrCount != 0) return FAIL(_FL, "RefStrCount mismatch");
+	
+	// Upper / lower case conversion
+	{
+		const char *cstr = "Test";
+		GString a = cstr, b;
+		b = a.Lower();
+		if (strcmp(a, "Test") != 0 ||
+			strcmp(b, "test"))
+			return FAIL(_FL, "Lower failed");
+
+		b = a.Upper();
+		if (strcmp(a, "Test") != 0 ||
+			strcmp(b, "TEST"))
+			return FAIL(_FL, "Upper failed");
+	}
+	if (GString::RefStrCount != 0) return FAIL(_FL, "RefStrCount mismatch");
 	
 	// Find testing
 	{
 		GString a("This is a test string");
 		GString b; // Empty
 		if (a.Find("asdasdwer") >= 0)
-			return false;
+			return FAIL(_FL, "Find failed");
 		if (a.Find(NULL) >= 0)
-			return false;
+			return FAIL(_FL, "Find failed");
 		if (b.Find(NULL) >= 0)
-			return false;
+			return FAIL(_FL, "Find failed");
 		if (b.Find("Asdwegewr") >= 0)
-			return false;
+			return FAIL(_FL, "Find failed");
 		if (a.Find("This") != 0)
-			return false;
+			return FAIL(_FL, "Find failed");
 		if (a.Find("test") != 10)
-			return false;
+			return FAIL(_FL, "Find failed");
 		if (a.Find("string") != 15)
-			return false;
+			return FAIL(_FL, "Find failed");
 		if (a.Find("is") != 2)
-			return false;
+			return FAIL(_FL, "Find failed");
 		if (a.RFind("is") != 5)
-			return false;
+			return FAIL(_FL, "RFind failed");
 		if (a.RFind("string") != 15)
-			return false;
+			return FAIL(_FL, "RFind failed");
 		if (a.RFind(NULL) >= 0)
-			return false;
+			return FAIL(_FL, "RFind failed");
 	}
-	if (GString::RefStrCount != 0) return false;
+	if (GString::RefStrCount != 0) return FAIL(_FL, "RefStrCount mismatch");
 	
 	// Substring testing
 	{
-		GString a("This is a test string");
+		const char *Base = "This is a test string";
+		GString a(Base);
 		GString b;
 		b = a(5);
 		if (_stricmp(b, "i"))
-			return false;
+			return FAIL(_FL, "Char substring failed");
 		b = a(-1);
 		if (_stricmp(b, "g"))
-			return false;
+			return FAIL(_FL, "Char substring failed");
 		b = a(5, 7);
 		if (_stricmp(b, "is"))
-			return false;
+			return FAIL(_FL, "Range substring failed");
+		if (strcmp(Base, a))
+			return FAIL(_FL, "Original string modified");
 	}
-	if (GString::RefStrCount != 0) return false;
+	if (GString::RefStrCount != 0) return FAIL(_FL, "RefStrCount mismatch");
 	
 	// Whitespace strip testing
 	{
-		GString a("  \ta test. \t\r\n");
+		const char *Base = "  \ta test. \t\r\n";
+		GString a(Base);
 		if (_stricmp(a.Strip(), "a test."))
-			return false;
+			return FAIL(_FL, "Strip whitespace failed.");
 		if (_stricmp(a.LStrip(), "a test. \t\r\n"))
-			return false;
+			return FAIL(_FL, "Strip whitespace failed.");
 		if (_stricmp(a.RStrip(), "  \ta test."))
-			return false;
+			return FAIL(_FL, "Strip whitespace failed.");
+		if (strcmp(Base, a))
+			return FAIL(_FL, "Original string modified");
 	}
-	if (GString::RefStrCount != 0) return false;
+	if (GString::RefStrCount != 0) return FAIL(_FL, "RefStrCount mismatch");
 
 	return true;
 }
