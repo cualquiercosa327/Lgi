@@ -11,15 +11,24 @@
 #include <xmath.h>
 #include "GUtf8.h"
 
+/// A pythonic string class.
 class GString
 {
+protected:
+	/// This structure holds the string's data itself and is shared
+	/// between one or more GString instances.
 	struct RefStr
 	{
+		/// A reference count
 		int32 Refs;
+		/// The bytes in 'Str' not including the NULL terminator
 		uint32 Len;
+		/// The first byte of the string. Further bytes are allocated
+		/// off the end of the structure using malloc. This must always
+		/// be the last element in the struct.
 		char Str[1];
 	}	*Str;
-	
+
 	inline void _strip(GString &ret, const char *set, bool left, bool right)
 	{
 		if (!Str) return;
@@ -176,15 +185,77 @@ public:
 	{
 		return Str ? Str->Str : NULL;
 	}
+
+	/// Concatenation operator
+	GString operator +(const GString &s)
+	{
+		GString Ret;
+		int Len = Length() + s.Length();
+		if (Ret.Set(NULL, Len))
+		{
+			char *p = Ret.Get();
+			if (p)
+			{
+				if (Str)
+				{
+					memcpy(p, Str->Str, Str->Len);
+					p += Str->Len;
+				}
+				if (s.Str)
+				{
+					memcpy(p, s.Str->Str, s.Str->Len);
+					p += s.Str->Len;
+				}
+				*p++ = 0;
+			}
+		}
+		
+		return Ret;
+	}
+
+	/// Concatenation / assignment operator
+	GString &operator +=(const GString &s)
+	{
+		int Len = Length() + s.Length();
+		int Alloc = sizeof(RefStr) + Len;
+		RefStr *rs = (RefStr*)malloc(Alloc);
+		if (rs)
+		{
+			rs->Refs = 1;
+			rs->Len = Len;
+			#ifdef LGI_UNIT_TESTS
+			RefStrCount++;
+			#endif
+			
+			char *p = rs->Str;
+			if (Str)
+			{
+				memcpy(p, Str->Str, Str->Len);
+				p += Str->Len;
+			}
+			if (s.Str)
+			{
+				memcpy(p, s.Str->Str, s.Str->Len);
+				p += s.Str->Len;
+			}
+			*p++ = 0;
+			LgiAssert(p - (char*)rs <= Alloc);
+			
+			Empty();
+			Str = rs;
+		}
+		
+		return *this;
+	}
 	
 	/// Gets the length in bytes
-	uint32 Length()
+	uint32 Length() const
 	{
 		return Str ? Str->Len : 0;
 	}
 
-	/// Splits the string into parts
-	Array Split(const char *Sep, int Count = -1, bool CaseSen = false)
+	/// Splits the string into parts using a separator
+	Array SplitSep(const char *Sep, int Count = -1, bool CaseSen = false)
 	{
 		Array a;
 
@@ -205,6 +276,55 @@ public:
 			if (*Prev)
 				a.New().Set(Prev);
 
+		}
+
+		a.SetFixedLength();
+		return a;
+	}
+
+	/// Splits the string into parts using delimiter chars
+	Array SplitDelimit(const char *Delimiters = NULL, int Count = -1, bool GroupDelimiters = true)
+	{
+		Array a;
+
+		if (Str)
+		{
+			const char *delim = Delimiters ? Delimiters : " \t\r\n";
+			const char *s = Get();			
+			while (*s)
+			{
+				// Skip over non-delimiters
+				const char *e = s;
+				while (*e && !strchr(delim, *e))
+					e++;
+
+				if (e > s || !GroupDelimiters)
+					a.New().Set(s, e - s);
+
+				s = e;
+				if (*s) s++;
+				if (GroupDelimiters)
+				{
+					// Skip any delimiters
+					while (*s && strchr(delim, *s))
+						s++;
+				}
+
+				// Create the string			
+				if (Count > 0 && a.Length() >= (uint32)Count)
+					break;
+			}
+			
+			if
+			(
+				*s ||
+				(
+					!GroupDelimiters &&
+					s > Get() &&
+					strchr(delim, s[-1])
+				)
+			)
+				a.New().Set(s);
 		}
 
 		a.SetFixedLength();

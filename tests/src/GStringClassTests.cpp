@@ -43,7 +43,7 @@ bool GStringClassTest::Run()
 		const char *Base = "123,456,789";
 		GString a(Base);
 		if (GString::RefStrCount != 1) return FAIL(_FL, "RefStrCount mismatch");
-		GString::Array b = a.Split(",");
+		GString::Array b = a.SplitSep(",");
 		if (GString::RefStrCount != 4) return FAIL(_FL, "RefStrCount mismatch");
 		GString sep("-");
 		if (GString::RefStrCount != 5) return FAIL(_FL, "RefStrCount mismatch");
@@ -53,6 +53,16 @@ bool GStringClassTest::Run()
 			return FAIL(_FL, "Joined string incorrect");
 		if (b[1].Int() != 456)
 			return FAIL(_FL, "Int cast failure");
+
+		GString d(",,123,345,,");
+		b = d.SplitDelimit(",", -1, false);
+		if (b.Length() != 6)
+			return FAIL(_FL, "Wrong token count");
+
+		b = d.SplitDelimit(",", -1, true);
+		if (b.Length() != 2)
+			return FAIL(_FL, "Wrong token count");
+
 		if (strcmp(Base, a))
 			return FAIL(_FL, "Original string modified");
 	}
@@ -145,6 +155,29 @@ bool GStringClassTest::Run()
 		if (_stricmp(a.RStrip(), "  \ta test."))
 			return FAIL(_FL, "Strip whitespace failed.");
 		if (strcmp(Base, a))
+			return FAIL(_FL, "Original string modified");
+	}
+	if (GString::RefStrCount != 0) return FAIL(_FL, "RefStrCount mismatch");
+
+	// Concatenation tests
+	{
+		const char *Base1 = "This is the first part. ";
+		const char *Base2 = "This is the 2nd part.";
+		GString a(Base1);
+		GString b(Base2);
+		GString c;
+		c = a + b;
+		if (strcmp(c, "This is the first part. This is the 2nd part."))
+			return FAIL(_FL, "Concat string incorrect");
+
+		GString d(Base1);
+		d += b;
+		if (strcmp(d, "This is the first part. This is the 2nd part."))
+			return FAIL(_FL, "Concat string incorrect");
+		
+		if (strcmp(Base1, a))
+			return FAIL(_FL, "Original string modified");
+		if (strcmp(Base2, b))
 			return FAIL(_FL, "Original string modified");
 	}
 	if (GString::RefStrCount != 0) return FAIL(_FL, "RefStrCount mismatch");
