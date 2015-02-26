@@ -464,7 +464,7 @@ public:
 					s.Set(c + idx, 1);
 				}
 			}
-			else if (index < Str->Len)
+			else if (index < (int)Str->Len)
 			{
 				s.Set(c + index, 1);
 			}

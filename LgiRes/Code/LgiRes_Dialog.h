@@ -12,7 +12,6 @@
 #ifndef __LGIRES_DIALOG_H
 #define __LGIRES_DIALOG_H
 
-#include "GXml.h"
 #include "Res.h"
 #include "LgiRes_String.h"
 

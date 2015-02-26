@@ -8,7 +8,6 @@
 
 #include "Lgi.h"
 #include "INet.h"
-#include "GXml.h"
 #include "GDocApp.h"
 #include "GProperties.h"
 #include "GVariant.h"

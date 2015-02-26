@@ -12,7 +12,6 @@
 #ifndef __LGIRES_STRING_H
 #define __LGIRES_STRING_H
 
-#include "GXml.h"
 #include "Res.h"
 #include "GList.h"
 

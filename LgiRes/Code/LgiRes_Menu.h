@@ -12,7 +12,6 @@
 #ifndef __LGIRES_MENU_H
 #define __LGIRES_MENU_H
 
-#include "GXml.h"
 #include "Res.h"
 #include "LgiRes_String.h"
 
