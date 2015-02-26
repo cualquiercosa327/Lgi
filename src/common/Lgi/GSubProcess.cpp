@@ -186,8 +186,12 @@ bool GSubProcess::Dupe(PipeHandle Old, PipeHandle &New)
 bool GSubProcess::IsRunning()
 {
 	#if defined(POSIX)
-	LgiAssert(0);		
-	return true;
+	int i = wait4(ChildPid, &ExitValue, WNOHANG, 0);
+	if (i)
+	{
+		ChildPid = 0;
+	}
+	return ChildPid != 0;
 	#elif defined(WIN32)
 	if (!GetExitCodeProcess(ChildHnd, &ExitValue))
 		return false;
@@ -372,7 +376,9 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 			sp->Args.Add(NULL);
 			execvp(sp->Exe, &sp->Args[0]);
 		
-			printf("%s:%i - execvp failed.\n", _FL);
+			printf("%s:%i - execvp('%s').\n", _FL, sp->Exe.Get());
+			for (int i=0; i<sp->Args.Length(); i++)
+				printf("%s:%i - Args[%i]='%s'\n", _FL, i, sp->Args[i]);
 			Status = false;
 			break;
 		}

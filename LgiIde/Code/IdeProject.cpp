@@ -2527,7 +2527,7 @@ GDebugContext *IdeProject::Execute(ExeAction Act)
 			}
 			else
 			{
-				LgiMsg(Tree, "Executable file doesn't exist.\n", AppName);
+				LgiMsg(Tree, "Executable '%s' doesn't exist.\n", AppName, MB_OK, e);
 			}
 		}
 	}

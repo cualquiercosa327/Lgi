@@ -25,13 +25,20 @@
 			</Makefile>
 			<Executable>
 				<Linux>
-					<Debug>htmledit</Debug>
-					<Release>htmledit</Release>
+					<Debug>./htmleditor</Debug>
+					<Release>./htmleditor</Release>
 				</Linux>
 			</Executable>
 			<Compiler>
 				<Linux>gcc</Linux>
 			</Compiler>
+			<Arguments>
+				<All />
+			</Arguments>
+			<Defines>
+				<All />
+				<Linux />
+			</Defines>
 		</General>
 		<Build>
 			<IncludePaths>
@@ -51,6 +58,17 @@
 			<TargetType>
 				<All>Executable</All>
 			</TargetType>
+			<Libraries>
+				<All />
+				<Linux />
+			</Libraries>
+			<LibraryPaths>
+				<All />
+				<Linux />
+			</LibraryPaths>
+			<TargetName>
+				<Linux />
+			</TargetName>
 		</Build>
 		<Editor>
 			<TabSize>
@@ -62,6 +80,12 @@
 			<UseHardTabs>
 				<All>1</All>
 			</UseHardTabs>
+			<ShowWhiteSpace />
+			<CommentFile />
+			<CommentFunction />
 		</Editor>
+		<Advanced>
+			<OtherMakefileRules />
+		</Advanced>
 	</Settings>
 </Project>

@@ -113,8 +113,12 @@ class Gdb : public GDebugger, public GThread
 	int Main()
 	{
 		char s[MAX_PATH];
+		#ifdef WIN32
 		const char *Shell = "C:\\Windows\\System32\\cmd.exe";
 		const char *Path = "C:\\MinGW\\bin\\gdb.exe";
+		#else
+		const char *Path = "gdb";
+		#endif
 		if (ValidStr(Args))
 			sprintf_s(s, sizeof(s), "\"%s\" -- %s", Exe.Get(), Args.Get());
 		else
