@@ -153,13 +153,16 @@ public:
 	GXmlTag *CreateTag(const char *Name, char *Content = 0);
 	/// Inserts a child tag.
 	virtual void InsertTag(GXmlTag *t);
-	/// Removes this tag from the DOM heirarchy.
+	/// Removes this tag from the DOM hierarchy.
 	virtual void RemoveTag();
 
 	/// Copy operator, doesn't effect children.
 	GXmlTag &operator =(GXmlTag &t);
 	/// Copy method, deep option copies all child elements as well.
 	bool Copy(GXmlTag &t, bool Deep = false);
+	
+	/// Retrieve elements using XPath notation.
+	bool XPath(GArray<GXmlTag*> &Results, const char *Path);
 };
 
 /// In the case your inheriting objects from GXmlTag you need to instantiate your

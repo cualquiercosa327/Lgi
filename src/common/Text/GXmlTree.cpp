@@ -411,6 +411,11 @@ bool GXmlTag::Copy(GXmlTag &t, bool Deep)
 	return true;
 }
 
+bool GXmlTag::XPath(GArray<GXmlTag*> &Results, const char *Path)
+{
+	return false;
+}
+
 GXmlTag &GXmlTag::operator =(GXmlTag &t)
 {
 	Copy(t);

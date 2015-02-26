@@ -10,13 +10,13 @@
 /// This class allows you to serialize data between the user interface and a
 /// GDom instance. Useful for storing user visible application settings in
 /// XML or an optons file.
-class GXmlToUi
+class GXmlTreeUi
 {
-	class GXmlToUiPriv *d;
+	class GXmlTreeUiPriv *d;
 
 public:
-	GXmlToUi();
-	virtual ~GXmlToUi();
+	GXmlTreeUi();
+	virtual ~GXmlTreeUi();
 
 	typedef GListItem *(*CreateListItem)(void *User);
 	typedef GTreeItem *(*CreateTreeItem)(void *User);

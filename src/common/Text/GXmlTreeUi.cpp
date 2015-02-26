@@ -19,8 +19,8 @@ struct Mapping
 {
 	int Id;
 	int Hint;
-	GXmlToUi::CreateListItem ListItemFactory;
-	GXmlToUi::CreateTreeItem TreeItemFactory;
+	GXmlTreeUi::CreateListItem ListItemFactory;
+	GXmlTreeUi::CreateTreeItem TreeItemFactory;
 	GVariant ChildElements;
 	void *User;
 
@@ -64,28 +64,28 @@ struct Mapping
 	}
 };
 
-class GXmlToUiPriv
+class GXmlTreeUiPriv
 {
 public:
 	GHashTbl<const char*,Mapping*> Maps;
 	
-	~GXmlToUiPriv()
+	~GXmlTreeUiPriv()
 	{
 	    Maps.DeleteObjects();
 	}
 };
 
-GXmlToUi::GXmlToUi()
+GXmlTreeUi::GXmlTreeUi()
 {
-	d = new GXmlToUiPriv;
+	d = new GXmlTreeUiPriv;
 }
 
-GXmlToUi::~GXmlToUi()
+GXmlTreeUi::~GXmlTreeUi()
 {
 	DeleteObj(d);
 }
 
-void GXmlToUi::EmptyAll(GViewI *Ui)
+void GXmlTreeUi::EmptyAll(GViewI *Ui)
 {
 	if (Ui)
 	{
@@ -97,7 +97,7 @@ void GXmlToUi::EmptyAll(GViewI *Ui)
 	}
 }
 
-void GXmlToUi::EnableAll(GViewI *Ui, bool Enable)
+void GXmlTreeUi::EnableAll(GViewI *Ui, bool Enable)
 {
 	if (Ui)
 	{
@@ -108,7 +108,7 @@ void GXmlToUi::EnableAll(GViewI *Ui, bool Enable)
 	}
 }
 
-void GXmlToUi::Map(const char *Attr, int UiIdent, int Type)
+void GXmlTreeUi::Map(const char *Attr, int UiIdent, int Type)
 {
 	if (UiIdent > 0 &&
 		(Attr != 0 || Type == GV_DOM))
@@ -129,7 +129,7 @@ void GXmlToUi::Map(const char *Attr, int UiIdent, int Type)
 	}
 }
 
-void GXmlToUi::Map(const char *Attr, int UiIdent, CreateListItem Factory, const char *ChildElements, void *User)
+void GXmlTreeUi::Map(const char *Attr, int UiIdent, CreateListItem Factory, const char *ChildElements, void *User)
 {
 	if (Attr && UiIdent > 0 && Factory && ChildElements)
 	{
@@ -152,7 +152,7 @@ void GXmlToUi::Map(const char *Attr, int UiIdent, CreateListItem Factory, const 
 	}
 }
 
-void GXmlToUi::Map(const char *Attr, int UiIdent, CreateTreeItem Factory, const char *ChildElements, void *User)
+void GXmlTreeUi::Map(const char *Attr, int UiIdent, CreateTreeItem Factory, const char *ChildElements, void *User)
 {
 	if (Attr && UiIdent > 0 && Factory && ChildElements)
 	{
@@ -175,7 +175,7 @@ void GXmlToUi::Map(const char *Attr, int UiIdent, CreateTreeItem Factory, const 
 	}
 }
 
-void GXmlToUi::EmptyMaps()
+void GXmlTreeUi::EmptyMaps()
 {
 	d->Maps.DeleteObjects();
 }
@@ -242,7 +242,7 @@ int GetDataType(char *str)
 	return GV_NULL;
 }
 
-bool GXmlToUi::Convert(GDom *Tag, GViewI *Ui, bool ToUI)
+bool GXmlTreeUi::Convert(GDom *Tag, GViewI *Ui, bool ToUI)
 {
 	bool Status = false;
 
