@@ -231,7 +231,7 @@ bool GDebugContext::UpdateLocals()
 				case GV_VOID_PTR:
 				{
 					it->SetText(v.Type ? v.Type.Get() : "void*", 1);
-					sprintf_s(s, sizeof(s), "0x%p", v.Value.Value.Ptr);
+					sprintf_s(s, sizeof(s), "%p", v.Value.Value.Ptr);
 					break;
 				}
 				default:

@@ -485,6 +485,30 @@ public:
 };
 */
 
+class BuildThread : public GThread, public GStream
+{
+	IdeProject *Proj;
+	GAutoString Makefile;
+	GAutoString Args;
+	GAutoPtr<GSubProcess> SubProc;
+
+	enum CompilerType
+	{
+		VisualStudio,
+		MingW,
+		Gcc
+	} Compiler;
+
+public:
+	BuildThread(IdeProject *proj, char *mf, const char *args = 0);
+	~BuildThread();
+	
+	int Write(const void *Buffer, int Size, int Flags = 0);
+	char *FindExe();
+	GAutoString WinToMingWPath(const char *path);
+	int Main();
+};
+
 class IdeProjectPrivate
 {
 public:
@@ -492,9 +516,9 @@ public:
 	IdeProject *Project;
 	bool Dirty;
 	char *FileName;
-	class BuildThread *Build;
 	IdeProject *ParentProject;
 	IdeProjectSettings Settings;
+	GAutoPtr<BuildThread> Build;
 
 	IdeProjectPrivate(AppWnd *a, IdeProject *project) :
 		Project(project),
@@ -504,7 +528,6 @@ public:
 		Dirty = false;
 		FileName = 0;
 		ParentProject = 0;
-		Build = 0;
 	}
 
 	~IdeProjectPrivate()
@@ -1959,203 +1982,197 @@ IdeCommon *IdeCommon::GetSubFolder(IdeProject *Project, char *Name, bool Create)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class BuildThread : public GThread, public GStream
+BuildThread::BuildThread(IdeProject *proj, char *mf, const char *args) : GThread("BuildThread")
 {
-	IdeProject *Proj;
-	BuildThread **Me;
-	GAutoString Makefile;
-	GAutoString Args;
+	Proj = proj;
+	Makefile.Reset(NewStr(mf));
+	Args.Reset(NewStr(args));
 
-	enum CompilerType
-	{
-		VisualStudio,
-		MingW,
-		Gcc
-	} Compiler;
-
-public:
-	BuildThread(IdeProject *proj, BuildThread **ptr, char *mf, const char *args = 0) : GThread("BuildThread")
-	{
-		Proj = proj;
-		*(Me = ptr) = this;
-		DeleteOnExit = true;
-
-		Makefile.Reset(NewStr(mf));
-		Args.Reset(NewStr(args));
-
-		GAutoString Comp(NewStr(Proj->GetSettings()->GetStr(ProjCompiler)));
-		if (!stricmp(Comp, "VisualStudio"))
-			Compiler = VisualStudio;
-		else if (!stricmp(Comp, "MingW"))
-			Compiler = MingW;
-		else
-			Compiler = Gcc;		
-		
-		if (Proj->GetApp())
-		{
-			Proj->GetApp()->PostEvent(M_APPEND_TEXT, 0, 0);
-		}
-		Run();
-	}
+	GAutoString Comp(NewStr(Proj->GetSettings()->GetStr(ProjCompiler)));
+	if (!stricmp(Comp, "VisualStudio"))
+		Compiler = VisualStudio;
+	else if (!stricmp(Comp, "MingW"))
+		Compiler = MingW;
+	else
+		Compiler = Gcc;		
 	
-	int Write(const void *Buffer, int Size, int Flags = 0)
+	if (Proj->GetApp())
 	{
-		if (Proj->GetApp())
-		{
-			Proj->GetApp()->PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr((char*)Buffer, Size), 0);
-		}
-		return Size;
+		Proj->GetApp()->PostEvent(M_APPEND_TEXT, 0, 0);
 	}
+	Run();
+}
 
-	char *FindExe()
+BuildThread::~BuildThread()
+{
+	if (SubProc)
+		SubProc->Interrupt();
+
+	while (!IsExited())
 	{
-		char Exe[256] = "";
-		GToken p(getenv("PATH"), LGI_PATH_SEPARATOR);
+		LgiSleep(10);
+	}
+}
+
+int BuildThread::Write(const void *Buffer, int Size, int Flags)
+{
+	if (Proj->GetApp())
+	{
+		Proj->GetApp()->PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr((char*)Buffer, Size), 0);
+	}
+	return Size;
+}
+
+char *BuildThread::FindExe()
+{
+	char Exe[256] = "";
+	GToken p(getenv("PATH"), LGI_PATH_SEPARATOR);
+	
+	if (Compiler == VisualStudio)
+	{
+		for (int i=0; i<p.Length(); i++)
+		{
+			char Path[256];
+			LgiMakePath(Path, sizeof(Path), p[i], "msdev.exe");
+			if (FileExists(Path))
+			{
+				return NewStr(Path);
+			}
+		}
+	}
+	else
+	{
+		if (Compiler == MingW)
+		{
+			// Have a look in the default spot first...
+			const char *Def = "C:\\MinGW\\msys\\1.0\\bin\\make.exe";
+			if (FileExists(Def))
+			{
+				return NewStr(Def);
+			}				
+		}
 		
-		if (Compiler == VisualStudio)
+		if (!FileExists(Exe))
 		{
 			for (int i=0; i<p.Length(); i++)
 			{
-				char Path[256];
-				LgiMakePath(Path, sizeof(Path), p[i], "msdev.exe");
-				if (FileExists(Path))
+				LgiMakePath
+				(
+					Exe,
+					sizeof(Exe),
+					p[i],
+					"make"
+					#ifdef WIN32
+					".exe"
+					#endif
+				);
+				if (FileExists(Exe))
 				{
-					return NewStr(Path);
+					return NewStr(Exe);
 				}
+			}
+		}
+	}
+	
+	return 0;
+}
+
+GAutoString BuildThread::WinToMingWPath(const char *path)
+{
+	GToken t(path, "\\");
+	GStringPipe a(256);
+	for (int i=0; i<t.Length(); i++)
+	{
+		char *p = t[i];
+		char *colon = strchr(p, ':');
+		if (colon)
+		{
+			*colon = 0;
+			StrLwr(p);
+		}
+		a.Print("/%s", p);				
+	}
+	return GAutoString(a.NewStr());
+}
+
+int BuildThread::Main()
+{
+	const char *Err = 0;
+	char ErrBuf[256];
+	
+	const char *Exe = FindExe();
+	if (Exe)
+	{
+		bool Status = false;
+		GAutoString MakePath(NewStr(Makefile));
+		GVariant Jobs;
+		if (!Proj->GetApp()->GetOptions()->GetValue(OPT_Jobs, Jobs) || Jobs.CastInt32() < 1)
+			Jobs = 2;
+
+		if (Compiler == VisualStudio)
+		{
+			char a[256];
+			sprintf(a, "\"%s\" /make \"All - Win32 Debug\"", Makefile.Get());
+			GProcess Make;
+			Status = Make.Run(Exe, a, 0, true, 0, this);
+
+			if (!Status)
+			{
+				Err = "Running make failed";
+				LgiTrace("%s,%i - %s.\n", _FL, Err);
 			}
 		}
 		else
 		{
+			GStringPipe a;
+			char InitDir[MAX_PATH];
+			LgiMakePath(InitDir, sizeof(InitDir), MakePath, "..");
+			
 			if (Compiler == MingW)
 			{
-				// Have a look in the default spot first...
-				const char *Def = "C:\\MinGW\\msys\\1.0\\bin\\make.exe";
-				if (FileExists(Def))
-				{
-					return NewStr(Def);
-				}				
-			}
-			
-			if (!FileExists(Exe))
-			{
-				for (int i=0; i<p.Length(); i++)
-				{
-					LgiMakePath
-					(
-						Exe,
-						sizeof(Exe),
-						p[i],
-						"make"
-						#ifdef WIN32
-						".exe"
-						#endif
-					);
-					if (FileExists(Exe))
-					{
-						return NewStr(Exe);
-					}
-				}
-			}
-		}
-		
-		return 0;
-	}
-	
-	GAutoString WinToMingWPath(const char *path)
-	{
-		GToken t(path, "\\");
-		GStringPipe a(256);
-		for (int i=0; i<t.Length(); i++)
-		{
-			char *p = t[i];
-			char *colon = strchr(p, ':');
-			if (colon)
-			{
-				*colon = 0;
-				StrLwr(p);
-			}
-			a.Print("/%s", p);				
-		}
-		return GAutoString(a.NewStr());
-	}
-	
-	int Main()
-	{
-		const char *Err = 0;
-		char ErrBuf[256];
-		
-		const char *Exe = FindExe();
-		if (Exe)
-		{
-			bool Status = false;
-			GAutoString MakePath(NewStr(Makefile));
-			GVariant Jobs;
-			if (!Proj->GetApp()->GetOptions()->GetValue(OPT_Jobs, Jobs) || Jobs.CastInt32() < 1)
-				Jobs = 2;
-
-			if (Compiler == VisualStudio)
-			{
-				char a[256];
-				sprintf(a, "\"%s\" /make \"All - Win32 Debug\"", Makefile.Get());
-				GProcess Make;
-				Status = Make.Run(Exe, a, 0, true, 0, this);
-
-				if (!Status)
-				{
-					Err = "Running make failed";
-					LgiTrace("%s,%i - %s.\n", _FL, Err);
-				}
+				char *Dir = strrchr(MakePath, DIR_CHAR);
+				#if 1
+				a.Print("/C \"%s\" -f \"%s\"", Exe, Dir ? Dir + 1 : MakePath.Get());
+				#else
+				a.Print("/C set");
+				#endif
+				Exe = "C:\\Windows\\System32\\cmd.exe";
 			}
 			else
 			{
-				GStringPipe a;
-				char InitDir[MAX_PATH];
-				LgiMakePath(InitDir, sizeof(InitDir), MakePath, "..");
-				
-				if (Compiler == MingW)
-				{
-					char *Dir = strrchr(MakePath, DIR_CHAR);
-					#if 1
-					a.Print("/C \"%s\" -f \"%s\"", Exe, Dir ? Dir + 1 : MakePath.Get());
-					#else
-					a.Print("/C set");
-					#endif
-					Exe = "C:\\Windows\\System32\\cmd.exe";
-				}
+				if (Jobs.CastInt32())
+					a.Print("-j %i -f \"%s\"", Jobs.CastInt32(), MakePath.Get());
 				else
-				{
-					if (Jobs.CastInt32())
-						a.Print("-j %i -f \"%s\"", Jobs.CastInt32(), MakePath.Get());
-					else
-						a.Print("-f \"%s\"", MakePath.Get());
-				}
+					a.Print("-f \"%s\"", MakePath.Get());
+			}
 
-				if (Args)
-					a.Print(" %s", Args.Get());
-				GAutoString Temp(a.NewStr());
+			if (Args)
+				a.Print(" %s", Args.Get());
+			GAutoString Temp(a.NewStr());
 
-				GSubProcess SubProc(Exe, Temp);
-				SubProc.SetInitFolder(InitDir);
+			if (SubProc.Reset(new GSubProcess(Exe, Temp)))
+			{
+				SubProc->SetInitFolder(InitDir);
 				if (Compiler == MingW)
-					SubProc.SetEnvironment("PATH", "c:\\MingW\\bin;C:\\MinGW\\msys\\1.0\\bin;%PATH%");
+					SubProc->SetEnvironment("PATH", "c:\\MingW\\bin;C:\\MinGW\\msys\\1.0\\bin;%PATH%");
 				
-				if ((Status = SubProc.Start(true, false)))
+				if ((Status = SubProc->Start(true, false)))
 				{
 					// Read all the output					
 					char Buf[256];
 					int rd;
-					while ( (rd = SubProc.Read(Buf, sizeof(Buf))) > 0 )
+					while ( (rd = SubProc->Read(Buf, sizeof(Buf))) > 0 )
 					{
 						Write(Buf, rd);
 					}
 					
-					uint32 ex = SubProc.GetExitValue();
+					uint32 ex = SubProc->GetExitValue();
 					Print("Make exited with %i (0x%x)\n", ex, ex);
 				}
 				else
 				{
 					// Create a nice error message.
-					GAutoString ErrStr = LgiErrorCodeToString(SubProc.GetErrorCode());
+					GAutoString ErrStr = LgiErrorCodeToString(SubProc->GetErrorCode());
 					if (ErrStr)
 					{
 						char *e = ErrStr + strlen(ErrStr);
@@ -2164,31 +2181,30 @@ public:
 					}
 					
 					sprintf_s(ErrBuf, sizeof(ErrBuf), "Running make failed with %i (%s)\n",
-						SubProc.GetErrorCode(),
+						SubProc->GetErrorCode(),
 						ErrStr.Get());
 					Err = ErrBuf;
 				}
 			}
 		}
-		else
-		{
-			Err = "Couldn't find 'make'";
-			LgiTrace("%s,%i - %s.\n", _FL, Err);
-		}
-	
-		if (Proj->GetApp())
-		{
-			Proj->GetApp()->UpdateState(-1, false);
-			if (Err)
-			{
-				Proj->GetApp()->PostEvent(M_BUILD_ERR, 0, (GMessage::Param)NewStr(Err));
-			}
-		}
-		
-		*Me = 0;
-		return 0;
 	}
-};
+	else
+	{
+		Err = "Couldn't find 'make'";
+		LgiTrace("%s,%i - %s.\n", _FL, Err);
+	}
+
+	if (Proj->GetApp())
+	{
+		Proj->GetApp()->UpdateState(-1, false);
+		if (Err)
+		{
+			Proj->GetApp()->PostEvent(M_BUILD_ERR, 0, (GMessage::Param)NewStr(Err));
+		}
+	}
+	
+	return 0;
+}
 
 //////////////////////////////////////////////////////////////////////////////////
 IdeProject::IdeProject(AppWnd *App) : IdeCommon(NULL)
@@ -2365,7 +2381,7 @@ void IdeProject::Clean()
 		GAutoString m = GetMakefile();
 		if (m)
 		{		
-			new BuildThread(this, &d->Build, m, "clean");
+			d->Build.Reset(new BuildThread(this, m, "clean"));
 		}
 	}
 }
@@ -2542,9 +2558,14 @@ void IdeProject::Build(bool All)
 		GAutoString m = GetMakefile();
 		if (m)
 		{		
-			new BuildThread(this, &d->Build, m);
+			d->Build.Reset(new BuildThread(this, m));
 		}
 	}
+}
+
+void IdeProject::StopBuild()
+{
+	d->Build.Reset();
 }
 
 bool IdeProject::Serialize()

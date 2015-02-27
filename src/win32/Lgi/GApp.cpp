@@ -1,3 +1,4 @@
+#define _WIN32_WINNT 0x600
 #include "Lgi.h"
 #include <ole2.h>
 #include <commctrl.h>
@@ -1004,15 +1005,17 @@ bool GApp::IsWine()
 bool GApp::IsElevated()
 {
     bool fRet = false;
+
     HANDLE hToken = NULL;
     if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken ))
     {
         TOKEN_ELEVATION Elevation;
-        DWORD cbSize = sizeof(TOKEN_ELEVATION);
+        DWORD cbSize = sizeof(Elevation);
         if (GetTokenInformation(hToken, TokenElevation, &Elevation, sizeof(Elevation), &cbSize))
             fRet = Elevation.TokenIsElevated;
     }
     if (hToken)
         CloseHandle(hToken);
+
     return fRet;
 }

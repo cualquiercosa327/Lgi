@@ -2242,6 +2242,13 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			}
 			break;			
 		}
+		case IDM_STOP_BUILD:
+		{
+			IdeProject *p = RootProject();
+			if (p)
+				p->Build(false);
+			break;
+		}
 		case IDM_CLEAN:
 		{
 			SaveAll();

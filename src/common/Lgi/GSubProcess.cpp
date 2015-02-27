@@ -506,7 +506,7 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 							&Attr,				// lpProcessAttributes
 							NULL,				// lpThreadAttributes
 							TRUE,				// bInheritHandles
-							CREATE_NO_WINDOW|CREATE_UNICODE_ENVIRONMENT, // dwCreationFlags
+							CREATE_NO_WINDOW|CREATE_UNICODE_ENVIRONMENT|CREATE_NEW_PROCESS_GROUP, // dwCreationFlags
 							WEnv,				// lpEnvironment
 							WInitialFolder,		// lpCurrentDirectory
 							&Info,				// lpStartupInfo
@@ -554,6 +554,17 @@ int GSubProcess::Wait()
 	}
 	#endif
 	return Status;
+}
+
+void GSubProcess::Interrupt()
+{
+	#ifdef POSIX
+	if (ChildHnd != -1)
+		kill(ChildHnd, SIGINT);
+	#elif defined(WIN32)
+	if (ChildHnd)
+		GenerateConsoleCtrlEvent(CTRL_C_EVENT, ChildPid);
+	#endif
 }
 
 int GSubProcess::Read(void *Buf, int Size, int Flags)

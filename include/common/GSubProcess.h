@@ -100,6 +100,7 @@ public:
 	void Connect(GSubProcess *child);
 	bool Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdout = true);
 	int Wait();
+	void Interrupt();
 	
 	// IO
 	int Read(void *Buf, int Size, int Flags = 0);
