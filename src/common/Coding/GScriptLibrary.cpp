@@ -240,6 +240,9 @@ bool SystemFunctions::Sprintf(GVariant *Ret, ArgumentArray &Args)
 		}
 	}
 
+    #ifdef LINUX
+    return false;
+    #else
 	a = (va_list) &Params[0];
 
 	#ifndef WIN32
@@ -251,6 +254,7 @@ bool SystemFunctions::Sprintf(GVariant *Ret, ArgumentArray &Args)
 	*Ret = Buf;
 
 	return true;
+	#endif
 }
 
 bool SystemFunctions::ReadTextFile(GVariant *Ret, ArgumentArray &Args)

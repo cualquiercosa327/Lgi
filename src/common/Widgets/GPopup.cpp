@@ -234,6 +234,9 @@ public:
 
 					#elif defined __GTK_H__
 					
+					GdcPt2 p(0, 0);
+					GRect rc(0, 0, -1, -1);
+					/*
 					hOver = WindowFromPoint(m.x, m.y);
 					GRect rc;
 					GdcPt2 p(m.x, m.y);
@@ -252,6 +255,7 @@ public:
 					{
 						// LgiTrace("No hOver\n");
 					}
+					*/
 					
 					#elif defined(MAC) || defined(BEOS)
 					
@@ -266,9 +270,9 @@ public:
 
 					// is the mouse inside the client area?
 					bool Inside = ! (p.x < 0 ||
-										p.y < 0 ||
-										p.x >= rc.X() ||
-										p.y >= rc.Y());
+									p.y < 0 ||
+									p.x >= rc.X() ||
+									p.y >= rc.Y());
 					
 					OsView hWnd = (Inside) ? hOver : 0;
 

@@ -1973,7 +1973,7 @@ public:
 										pos = strstr(sStart, sub);
 
 									if (pos)
-										*Dst = pos - s;
+										*Dst = (int)(pos - s);
 									else
 										*Dst = -1;
 									break;

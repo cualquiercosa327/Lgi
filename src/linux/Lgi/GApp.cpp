@@ -1061,6 +1061,12 @@ bool GApp::GetClipBoardContent(OsView Hnd, GVariant &v, GArray<char*> &Types)
 }
 #endif
 
+bool GApp::IsElevated()
+{
+	return geteuid() == 0;
+}
+
+
 GSymLookup *GApp::GetSymLookup()
 {
 	return d;
