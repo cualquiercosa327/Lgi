@@ -127,8 +127,7 @@ public:
 	
 	// Debugger events...
 	int Write(const void *Ptr, int Size, int Flags = 0);
-	void OnChildLoaded(bool Loaded);
-	void OnRunState(bool Running);
+	void OnState(bool Debugging, bool Running);
 	void OnFileLine(const char *File, int Line);
 	void OnError(int Code, const char *Str);
 	void OnCrash(int Code);

@@ -1308,13 +1308,21 @@ void AppWnd::OnReceiveFiles(GArray<char*> &Files)
 	Raise();
 }
 
-void AppWnd::OnRunState(bool Running)
+void AppWnd::OnDebugState(bool Debugging, bool Running)
 {
-	SetCtrlEnabled(IDM_PAUSE_DEBUG, Running);
-	SetCtrlEnabled(IDM_STEP_INTO, !Running);
-	SetCtrlEnabled(IDM_STEP_OVER, !Running);
-	SetCtrlEnabled(IDM_STEP_OUT, !Running);
-	SetCtrlEnabled(IDM_RUN_TO, !Running);
+	d->Debugging = Debugging;
+
+	SetCtrlEnabled(IDM_START_DEBUG, !Debugging);
+	SetCtrlEnabled(IDM_PAUSE_DEBUG, Debugging && Running);
+	SetCtrlEnabled(IDM_RESTART_DEBUGGING, Debugging);
+	SetCtrlEnabled(IDM_STOP_DEBUG, Debugging);
+
+	SetCtrlEnabled(IDM_STEP_INTO, Debugging && !Running);
+	SetCtrlEnabled(IDM_STEP_OVER, Debugging && !Running);
+	SetCtrlEnabled(IDM_STEP_OUT, Debugging && !Running);
+	SetCtrlEnabled(IDM_RUN_TO, Debugging && !Running);
+	
+	// printf("OnDebugState(%i, %i)\n", Debugging, Running);
 }
 
 void AppWnd::UpdateState(int Debugging, int Building)
@@ -1642,6 +1650,15 @@ GMessage::Result AppWnd::OnEvent(GMessage *m)
 {
 	switch (MsgCode(m))
 	{
+		case M_BUILD_DONE:
+		{
+			UpdateState(-1, false);
+			
+			IdeProject *p = RootProject();
+			if (p)
+				p->StopBuild();
+			break;
+		}
 		case M_BUILD_ERR:
 		{
 			char *Msg = (char*)MsgB(m);

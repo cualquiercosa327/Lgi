@@ -21,8 +21,12 @@
 
 #define DEBUG_FIND_DEFN			0
 
-#define M_APPEND_TEXT			(M_USER+1)
-#define M_BUILD_ERR				(M_USER+2)
+enum IdeMessages
+{
+	M_APPEND_TEXT = M_USER+1,
+	M_BUILD_ERR,
+	M_BUILD_DONE,
+};
 
 #define ICON_PROJECT			0
 #define ICON_DEPENDANCY			1
@@ -219,7 +223,7 @@ public:
 	bool OnRequestClose(bool IsClose);
 	int OnNotify(GViewI *Ctrl, int Flags);
 	GMessage::Result OnEvent(GMessage *m);
-	void OnRunState(bool Running);
+	void OnDebugState(bool Debugging, bool Running);
 };
 
 #include "IdeDoc.h"

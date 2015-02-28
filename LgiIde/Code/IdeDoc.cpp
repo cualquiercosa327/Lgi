@@ -259,30 +259,36 @@ void EditTray::OnMouseClick(GMouse &m)
 				GSubMenu *s = new GSubMenu;
 				if (s)
 				{
+					GArray<DefnInfo*> a;					
 					int n=1;
-					for (DefnInfo *i=Funcs.First(); i; i=Funcs.Next(), n++)
+					
+					for (DefnInfo *i=Funcs.First(); i; i=Funcs.Next())
 					{
 						char Buf[256], *o = Buf;
 						
-						for (char *k = i->Name; *k; k++)
+						if (i->Type != DefnEnumValue)
 						{
-							if (*k == '&')
+							for (char *k = i->Name; *k; k++)
 							{
-								*o++ = '&';
-								*o++ = '&';
+								if (*k == '&')
+								{
+									*o++ = '&';
+									*o++ = '&';
+								}
+								else if (*k == '\t')
+								{
+									*o++ = ' ';
+								}
+								else
+								{
+									*o++ = *k;
+								}
 							}
-							else if (*k == '\t')
-							{
-								*o++ = ' ';
-							}
-							else
-							{
-								*o++ = *k;
-							}
+							*o++ = 0;
+							
+							a[n] = i;
+							s->AppendItem(Buf, n++, true);
 						}
-						*o++ = 0;
-						
-						s->AppendItem(Buf, n, true);
 					}
 					
 					GdcPt2 p(m.x, m.y);
@@ -290,7 +296,7 @@ void EditTray::OnMouseClick(GMouse &m)
 					int Goto = s->Float(this, p.x, p.y, true);
 					if (Goto)
 					{
-						DefnInfo *Info = Funcs[Goto-1];
+						DefnInfo *Info = a[Goto];
 						if (Info)
 						{
 							Ctrl->SetLine(Info->Line + 1);

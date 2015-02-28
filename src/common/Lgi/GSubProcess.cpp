@@ -559,8 +559,8 @@ int GSubProcess::Wait()
 void GSubProcess::Interrupt()
 {
 	#ifdef POSIX
-	if (ChildHnd != -1)
-		kill(ChildHnd, SIGINT);
+	if (ChildPid != -1)
+		kill(ChildPid, SIGINT);
 	#elif defined(WIN32)
 	if (ChildHnd)
 		GenerateConsoleCtrlEvent(CTRL_C_EVENT, ChildPid);

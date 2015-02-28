@@ -63,7 +63,9 @@ public:
 		SetPos(r);
 		MoveToCenter();
 		SetQuitOnClose(true);
+		#ifdef WIN32
 		SetIcon((const char*)IDI_APP);
+		#endif
 		
 		if (Attach(0))
 		{

@@ -12,6 +12,7 @@ class Gdb : public GDebugger, public GThread
 	GDebugEvents *Events;
 	GAutoPtr<GSubProcess> Sp;
 	GAutoString Exe, Args, InitDir;
+	bool DebuggingProcess;
 	bool Running;
 	bool AtPrompt;
 	char Line[256], *LinePtr;
@@ -43,6 +44,11 @@ class Gdb : public GDebugger, public GThread
 		}
 	}
 	
+	void OnExit()
+	{
+		Events->OnState(DebuggingProcess = false, Running = false);
+	}
+	
 	void OnLine(const char *Start, int Length)
 	{
 		// Send output
@@ -56,6 +62,11 @@ class Gdb : public GDebugger, public GThread
 		if (stristr(Line, "received signal SIGSEGV"))
 		{
 			Events->OnCrash(0);
+		}
+		else if (stristr(Line, "[Inferior") &&
+				 stristr(Line, "exited"))
+		{
+			OnExit();
 		}
 	}
 	
@@ -96,7 +107,7 @@ class Gdb : public GDebugger, public GThread
 					if (Running ^ !AtPrompt)
 					{
 						Running = !AtPrompt;
-						Events->OnRunState(Running);
+						Events->OnState(DebuggingProcess, Running);
 					}
 					
 					if (OutStream)
@@ -150,6 +161,9 @@ class Gdb : public GDebugger, public GThread
 			}			
 		}
 
+		if (Events)
+			Events->OnState(DebuggingProcess = false, Running = false);
+
 		Log("Debugger exited.\n");
 		return 0;
 	}
@@ -171,7 +185,7 @@ class Gdb : public GDebugger, public GThread
 			}
 			*/
 			
-			LgiTrace("Waited %I64ims for Looping state...\n", LgiCurrentTime() - Start);
+			// LgiTrace("Waited %I64ims for Looping state...\n", LgiCurrentTime() - Start);
 		}
 
 		uint64 Start = LgiCurrentTime();
@@ -186,7 +200,7 @@ class Gdb : public GDebugger, public GThread
 			return false;
 		}
 
-		LgiTrace("Waited %I64ims for AtPrompt...\n", LgiCurrentTime() - Start);
+		// LgiTrace("Waited %I64ims for AtPrompt...\n", LgiCurrentTime() - Start);
 		return true;
 	}
 	
@@ -312,6 +326,8 @@ public:
 	bool Unload()
 	{
 		Cmd("q");
+		if (DebuggingProcess)
+			Events->OnState(DebuggingProcess = false, Running = false);
 		return false;
 	}
 	
@@ -332,6 +348,7 @@ public:
 			
 			if (Cmd("r"))
 			{
+				Events->OnState(DebuggingProcess = true, Running = true);
 				Running = true;
 				return true;
 			}

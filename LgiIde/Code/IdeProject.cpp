@@ -2194,13 +2194,12 @@ int BuildThread::Main()
 		LgiTrace("%s,%i - %s.\n", _FL, Err);
 	}
 
-	if (Proj->GetApp())
+	AppWnd *w = Proj->GetApp();
+	if (w)
 	{
-		Proj->GetApp()->UpdateState(-1, false);
+		w->PostEvent(M_BUILD_DONE);		
 		if (Err)
-		{
 			Proj->GetApp()->PostEvent(M_BUILD_ERR, 0, (GMessage::Param)NewStr(Err));
-		}
 	}
 	
 	return 0;

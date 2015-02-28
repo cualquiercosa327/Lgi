@@ -8,8 +8,7 @@ class GDebugEvents : public GStream
 public:
 	virtual ~GDebugEvents() {}
 	
-	virtual void OnChildLoaded(bool Loaded) = 0;
-	virtual void OnRunState(bool Running) = 0;
+	virtual void OnState(bool Debugging, bool Running) = 0;
 	virtual void OnFileLine(const char *File, int Line) = 0;
 	virtual void OnError(int Code, const char *Str) = 0;
 	virtual void OnCrash(int Code) = 0;

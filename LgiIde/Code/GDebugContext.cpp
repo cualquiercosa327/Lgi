@@ -446,14 +446,10 @@ void GDebugContext::OnMemoryDump(const char *Addr, int WordSize, int Width, bool
 	}
 }
 
-void GDebugContext::OnChildLoaded(bool Loaded)
-{
-}
-
-void GDebugContext::OnRunState(bool Running)
+void GDebugContext::OnState(bool Debugging, bool Running)
 {
 	if (d->App)
-		d->App->OnRunState(Running);
+		d->App->OnDebugState(Debugging, Running);
 }
 
 void GDebugContext::OnFileLine(const char *File, int Line)
