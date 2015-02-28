@@ -651,6 +651,7 @@ public:
 	GSubMenu *CreateMakefileMenu;
 	FindSymbolSystem FindSym;
 	GArray<GAutoString> SystemIncludePaths;
+	GArray<BreakPoint> BreakPoints;
 	
 	// Debugging
 	GDebugContext *DbgContext;
@@ -1405,9 +1406,65 @@ bool AppWnd::OnRequestClose(bool IsClose)
 	return GWindow::OnRequestClose(IsClose);
 }
 
+bool AppWnd::OnBreakPoint(BreakPoint &b, bool Add)
+{
+	List<IdeDoc>::I it = d->Docs.Start();
+	for (IdeDoc *doc = *it; doc; doc = *++it)
+	{
+		char *fn = doc->GetFileName();
+		if (!_stricmp(fn, b.File))
+		{
+			doc->AddBreakPoint(b.Line, Add);
+		}
+	}
+
+	return true;
+}
+
+bool AppWnd::LoadDocBreakPoints(IdeDoc *doc)
+{
+	if (!doc)
+		return false;
+
+	char *fn = doc->GetFileName();
+	for (int i=0; i<d->BreakPoints.Length(); i++)
+	{
+		BreakPoint &b = d->BreakPoints[i];
+		if (!_stricmp(fn, b.File))
+		{
+			doc->AddBreakPoint(b.Line, true);
+		}
+	}
+
+	return true;
+}
+
 bool AppWnd::ToggleBreakpoint(const char *File, int Line)
 {
-	return false;
+	bool DeleteBp = false;
+
+	for (int i=0; i<d->BreakPoints.Length(); i++)
+	{
+		BreakPoint &b = d->BreakPoints[i];
+		if (!_stricmp(File, b.File) &&
+			b.Line == Line)
+		{
+			OnBreakPoint(b, false);
+			d->BreakPoints.DeleteAt(i);
+			DeleteBp = true;
+			break;
+		}
+	}
+	
+	if (!DeleteBp)
+	{
+		BreakPoint &b = d->BreakPoints.New();
+		b.File = File;
+		b.Line = Line;
+		OnBreakPoint(b, true);
+	}
+	
+	return true;
 }
 
 void AppWnd::OnLocationChange(const char *File, int Line)

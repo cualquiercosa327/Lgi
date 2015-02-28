@@ -4179,6 +4179,12 @@ int GTextView3::ScrollYPixel()
 	return ScrollYLine() * LineY;
 }
 
+void GTextView3::OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour)
+{
+	pDC->Colour(colour);
+	pDC->Rectangle(&r);
+}
+
 void GTextView3::OnPaint(GSurface *pDC)
 {
 	#if LGI_EXCEPTIONS
@@ -4254,7 +4260,10 @@ void GTextView3::OnPaint(GSurface *pDC)
 			// top margin
 			pDC->Rectangle(0, 0, r.x2, d->rPadding.y1-1);
 			// left margin
-			pDC->Rectangle(0, d->rPadding.y1, d->rPadding.x1-1, r.y2);
+			{
+				GRect LeftMargin(0, d->rPadding.y1, d->rPadding.x1-1, r.y2);
+				OnPaintLeftMargin(pDC, LeftMargin, PAINT_BORDER);
+			}
 		
 			// draw lines of text
 			int k = ScrollYLine();

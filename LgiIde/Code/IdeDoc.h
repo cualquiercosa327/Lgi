@@ -66,6 +66,7 @@ public:
 
 class IdeDoc : public GMdiChild
 {
+	friend class DocEdit;
 	class IdeDocPrivate *d;
 
 public:
@@ -87,6 +88,7 @@ public:
 	void OnPosChange();
 	void OnPaint(GSurface *pDC);
 	bool IsFile(const char *File);
+	bool AddBreakPoint(int Line, bool Add);
 
 	// Source tools
 	bool BuildIncludePaths(GArray<char*> &Paths, IdePlatform Platform, bool IncludeSysPaths);

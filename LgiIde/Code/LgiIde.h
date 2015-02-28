@@ -164,6 +164,12 @@ public:
 	virtual void OnSaveComplete(bool Status) = 0;
 };
 
+struct BreakPoint
+{
+	GString File;
+	int Line;
+};
+
 class AppWnd : public GWindow
 {
 	class AppWndPrivate *d;
@@ -214,6 +220,8 @@ public:
 	bool GetSystemIncludePaths(GArray<char*> &Paths);
 	class GDebugContext *GetDebugContext();
 	bool ToggleBreakpoint(const char *File, int Line);
+	bool OnBreakPoint(BreakPoint &b, bool Add);
+	bool LoadDocBreakPoints(IdeDoc *doc);
 	
 	// Events
 	void OnLocationChange(const char *File, int Line);

@@ -416,6 +416,32 @@ void EditTray::OnMouseClick(GMouse &m)
 	}
 }
 
+class IdeDocPrivate : public NodeView
+{
+	GAutoString FileName;
+	GAutoString Buffer;
+
+public:
+	IdeDoc *Doc;
+	AppWnd *App;
+	IdeProject *Project;
+	bool IsDirty;
+	class DocEdit *Edit;
+	EditTray *Tray;
+	GHashTbl<int, bool> BreakPoints;
+	
+	IdeDocPrivate(IdeDoc *d, AppWnd *a, NodeSource *src, const char *file);
+	void OnDelete();
+	void UpdateName();
+	char *GetDisplayName();
+	bool IsFile(const char *File);
+	char *GetLocalFile();
+	void SetFileName(char *f);
+	bool Load();
+	bool Save();
+	void OnSaveComplete(bool Status);
+};
+
 class DocEdit : public GTextView3, public GDocumentEnv
 {
 	IdeDoc *Doc;
@@ -476,20 +502,43 @@ public:
 		SetEnv(0);
 	}
 
+	void OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour)
+	{
+		GTextView3::OnPaintLeftMargin(pDC, r, colour);
+		int Y = ScrollYLine();
+		
+		int TopPaddingPx = GetCss(true)->PaddingTop().ToPx(GetClient().Y(), GetFont());
+		
+		pDC->Colour(GColour(222, 0, 0));
+		List<GTextLine>::I it = GTextView3::Line.Start(Y);
+		int DocOffset = (*it)->r.y1;
+		for (GTextLine *l = *it; l; l = *++it, Y++)
+		{
+			if (Doc->d->BreakPoints.Find(Y+1))
+			{
+				int r = l->r.Y() >> 1;
+				pDC->FilledCircle(8, l->r.y1 + r + TopPaddingPx - DocOffset, r - 1);
+			}
+		}
+	}
+
 	void OnMouseClick(GMouse &m)
 	{
 		if (m.x < 16)
 		{
-			// Margin click... work out the line
-			int Y = (VScroll) ? (int)VScroll->Value() : 0;
-			GFont *f = GetFont();
-			if (!f) return;
-			GCss::Len PaddingTop = GetCss(true)->PaddingTop();
-			int TopPx = PaddingTop.ToPx(GetClient().Y(), f);
-			int Idx = ((m.y - TopPx) / f->GetHeight()) + Y + 1;
-			if (Idx > 0 && Idx <= GTextView3::Line.Length())
+			if (m.Down())
 			{
-				Doc->OnMarginClick(Idx);
+				// Margin click... work out the line
+				int Y = (VScroll) ? (int)VScroll->Value() : 0;
+				GFont *f = GetFont();
+				if (!f) return;
+				GCss::Len PaddingTop = GetCss(true)->PaddingTop();
+				int TopPx = PaddingTop.ToPx(GetClient().Y(), f);
+				int Idx = ((m.y - TopPx) / f->GetHeight()) + Y + 1;
+				if (Idx > 0 && Idx <= GTextView3::Line.Length())
+				{
+					Doc->OnMarginClick(Idx);
+				}
 			}
 		}
 		else
@@ -765,205 +814,193 @@ bool DocEdit::OnMenu(GDocView *View, int Id)
 	return true;
 }
 
-class IdeDocPrivate : public NodeView
+////////////////////////////////////////////////////////////////////////////////////////////
+IdeDocPrivate::IdeDocPrivate(IdeDoc *d, AppWnd *a, NodeSource *src, const char *file) : NodeView(src)
 {
-	GAutoString FileName;
-	GAutoString Buffer;
-
-public:
-	IdeDoc *Doc;
-	AppWnd *App;
-	IdeProject *Project;
-	bool IsDirty;
-	DocEdit *Edit;
-	EditTray *Tray;
+	IsDirty = false;
+	App = a;
+	Doc = d;
+	Project = 0;
+	FileName.Reset(NewStr(file));
 	
-	IdeDocPrivate(IdeDoc *d, AppWnd *a, NodeSource *src, const char *file) : NodeView(src)
+	GFontType Font, *Use = 0;
+	if (Font.Serialize(App->GetOptions(), OPT_EditorFont, false))
 	{
-		IsDirty = false;
-		App = a;
-		Doc = d;
-		Project = 0;
-		FileName.Reset(NewStr(file));
-		
-		GFontType Font, *Use = 0;
-		if (Font.Serialize(App->GetOptions(), OPT_EditorFont, false))
-		{
-			Use = &Font;
-		}		
-		
-		Doc->AddView(Edit = new DocEdit(Doc, Use));
-		Doc->AddView(Tray = new EditTray(Edit, Doc));
-
-		if (src || file)
-			Load();
-	}
-
-	void OnDelete()
-	{
-		IdeDoc *Temp = Doc;
-		DeleteObj(Temp);
-	}
-
-	void UpdateName()
-	{
-		char n[MAX_PATH+30];
-		
-		GAutoString Dsp(GetDisplayName());
-		char *File = Dsp;
-		#if MDI_TAB_STYLE
-		char *Dir = File ? strrchr(File, DIR_CHAR) : NULL;
-		if (Dir) File = Dir + 1;
-		#endif
-		
-		strcpy_s(n, sizeof(n), File ? File : Untitled);
-		if (Edit->IsDirty())
-		{
-			strcat(n, " (changed)");
-		}	
-		Doc->Name(n);
-	}
-
-	char *GetDisplayName()
-	{
-		if (nSrc)
-		{
-			char *Fn = nSrc->GetFileName();
-			if (Fn)
-			{
-				if (stristr(Fn, "://"))
-				{
-					GUri u(nSrc->GetFileName());
-					if (u.Pass)
-					{
-						DeleteArray(u.Pass);
-						u.Pass = NewStr("******");
-					}
-					
-					return u.GetUri().Release();
-				}
-				else if (*Fn == '.')
-				{
-					GAutoString a = nSrc->GetFullPath();
-					return a.Release();
-				}
-			}
-
-			return NewStr(Fn);
-		}
-
-		return NewStr(FileName);
-	}
-
-	bool IsFile(const char *File)
-	{
-		GAutoString Mem;
-		char *f = NULL;
-		
-		if (nSrc)
-		{
-			Mem = nSrc->GetFullPath();
-			f = Mem;
-		}
-		else
-		{
-			f = FileName;
-		}
-
-		if (!f)
-			return false;
-
-		GToken doc(f, DIR_STR);
-		GToken in(File, DIR_STR);
-		int in_pos = in.Length() - 1;
-		int doc_pos = doc.Length() - 1;
-		while (in_pos >= 0 && doc_pos >= 0)
-		{
-			char *i = in[in_pos--];
-			char *d = doc[doc_pos--];
-			if (!i || !d)
-			{
-				return false;
-			}
-			
-			if (!strcmp(i, ".") ||
-				!strcmp(i, ".."))
-			{
-				continue;
-			}
-			
-			if (stricmp(i, d))
-			{
-				return false;
-			}
-		}
-		
-		return true;
-	}
+		Use = &Font;
+	}		
 	
-	char *GetLocalFile()
+	Doc->AddView(Edit = new DocEdit(Doc, Use));
+	Doc->AddView(Tray = new EditTray(Edit, Doc));
+
+	if (src || file)
+		Load();
+}
+
+void IdeDocPrivate::OnDelete()
+{
+	IdeDoc *Temp = Doc;
+	DeleteObj(Temp);
+}
+
+void IdeDocPrivate::UpdateName()
+{
+	char n[MAX_PATH+30];
+	
+	GAutoString Dsp(GetDisplayName());
+	char *File = Dsp;
+	#if MDI_TAB_STYLE
+	char *Dir = File ? strrchr(File, DIR_CHAR) : NULL;
+	if (Dir) File = Dir + 1;
+	#endif
+	
+	strcpy_s(n, sizeof(n), File ? File : Untitled);
+	if (Edit->IsDirty())
 	{
-		if (nSrc)
+		strcat(n, " (changed)");
+	}	
+	Doc->Name(n);
+}
+
+char *IdeDocPrivate::GetDisplayName()
+{
+	if (nSrc)
+	{
+		char *Fn = nSrc->GetFileName();
+		if (Fn)
 		{
-			if (nSrc->IsWeb())
-				return nSrc->GetLocalCache();
-			
-			Buffer = nSrc->GetFullPath();
-			return Buffer;
+			if (stristr(Fn, "://"))
+			{
+				GUri u(nSrc->GetFileName());
+				if (u.Pass)
+				{
+					DeleteArray(u.Pass);
+					u.Pass = NewStr("******");
+				}
+				
+				return u.GetUri().Release();
+			}
+			else if (*Fn == '.')
+			{
+				GAutoString a = nSrc->GetFullPath();
+				return a.Release();
+			}
 		}
-		
-		return FileName;
+
+		return NewStr(Fn);
 	}
 
-	void SetFileName(char *f)
+	return NewStr(FileName);
+}
+
+bool IdeDocPrivate::IsFile(const char *File)
+{
+	GAutoString Mem;
+	char *f = NULL;
+	
+	if (nSrc)
 	{
-		if (nSrc)
-		{
-		}
-		else
-		{
-			FileName.Reset(NewStr(f));
-		}
+		Mem = nSrc->GetFullPath();
+		f = Mem;
+	}
+	else
+	{
+		f = FileName;
 	}
 
-	bool Load()
-	{
-		if (nSrc)
-		{
-			return nSrc->Load(Edit, this);
-		}
-		else if (FileName)
-		{
-			return Edit->Open(FileName);
-		}
-
+	if (!f)
 		return false;
-	}
 
-	bool Save()
+	GToken doc(f, DIR_STR);
+	GToken in(File, DIR_STR);
+	int in_pos = in.Length() - 1;
+	int doc_pos = doc.Length() - 1;
+	while (in_pos >= 0 && doc_pos >= 0)
 	{
-		bool Status = false;
-		
-		if (nSrc)
+		char *i = in[in_pos--];
+		char *d = doc[doc_pos--];
+		if (!i || !d)
 		{
-			Status = nSrc->Save(Edit, this);
-		}
-		else if (FileName)
-		{
-			Status = Edit->Save(FileName);
-			OnSaveComplete(Status);
+			return false;
 		}
 		
-		return Status;
+		if (!strcmp(i, ".") ||
+			!strcmp(i, ".."))
+		{
+			continue;
+		}
+		
+		if (stricmp(i, d))
+		{
+			return false;
+		}
 	}
+	
+	return true;
+}
 
-	void OnSaveComplete(bool Status)
+char *IdeDocPrivate::GetLocalFile()
+{
+	if (nSrc)
 	{
-		IsDirty = false;
-		UpdateName();
+		if (nSrc->IsWeb())
+			return nSrc->GetLocalCache();
+		
+		Buffer = nSrc->GetFullPath();
+		return Buffer;
 	}
-};
+	
+	return FileName;
+}
 
+void IdeDocPrivate::SetFileName(char *f)
+{
+	if (nSrc)
+	{
+	}
+	else
+	{
+		FileName.Reset(NewStr(f));
+	}
+}
+
+bool IdeDocPrivate::Load()
+{
+	if (nSrc)
+	{
+		return nSrc->Load(Edit, this);
+	}
+	else if (FileName)
+	{
+		return Edit->Open(FileName);
+	}
+
+	return false;
+}
+
+bool IdeDocPrivate::Save()
+{
+	bool Status = false;
+	
+	if (nSrc)
+	{
+		Status = nSrc->Save(Edit, this);
+	}
+	else if (FileName)
+	{
+		Status = Edit->Save(FileName);
+		OnSaveComplete(Status);
+	}
+	
+	return Status;
+}
+
+void IdeDocPrivate::OnSaveComplete(bool Status)
+{
+	IsDirty = false;
+	UpdateName();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
 IdeDoc::IdeDoc(AppWnd *a, NodeSource *src, const char *file)
 {
 	d = new IdeDocPrivate(this, a, src, file);
@@ -1105,6 +1142,19 @@ bool IdeDoc::IsFile(const char *File)
 	return File ? d->IsFile(File) : false;
 }
 
+bool IdeDoc::AddBreakPoint(int Line, bool Add)
+{
+	if (Add)
+		d->BreakPoints.Add(Line, true);
+	else
+		d->BreakPoints.Delete(Line);
+	
+	if (d->Edit)
+		d->Edit->Invalidate();
+
+	return true;
+}
+
 IdeProject *IdeDoc::GetProject()
 {
 	return d->Project;
@@ -1113,6 +1163,10 @@ IdeProject *IdeDoc::GetProject()
 void IdeDoc::SetProject(IdeProject *p)
 {
 	d->Project = p;
+	
+	if (d->Project->GetApp() &&
+		d->BreakPoints.Length() == 0)
+		d->Project->GetApp()->LoadDocBreakPoints(this);
 }
 
 char *IdeDoc::GetFileName()
