@@ -873,7 +873,6 @@ bool GApp::GetAppsForMimeType(char *Mime, GArray<GAppInfo*> &Apps)
 	return Apps.Length() > 0;
 }
 
-#ifdef LINUX
 GLibrary *GApp::GetWindowManagerLib()
 {
 	if (this != NULL && !d->WmLib)
@@ -938,11 +937,15 @@ bool GApp::GetClipBoardContent(OsView Hnd, GVariant &v, GArray<char*> &Types)
 {
 	return false;
 }
-#endif
 
 GSymLookup *GApp::GetSymLookup()
 {
 	return d;
+}
+
+bool GApp::IsElevated()
+{
+	return geteuid() == 0;
 }
 
 using namespace Gtk;

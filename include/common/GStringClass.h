@@ -8,7 +8,11 @@
 #ifndef _GSTRING_H_
 #define _GSTRING_H_
 
+#ifdef LINUX
+#include <math.h>
+#else
 #include <xmath.h>
+#endif
 #include "GUtf8.h"
 
 /// A pythonic string class.

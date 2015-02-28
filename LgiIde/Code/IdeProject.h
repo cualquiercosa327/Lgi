@@ -32,7 +32,7 @@ public:
 	IdeCommon(IdeProject *p);
 	~IdeCommon();
 
-	void OnOpen(GXmlTag *Src);	
+	bool OnOpen(GXmlTag *Src);	
 	void CollectAllSubProjects(List<IdeProject> &c);
 	void CollectAllSource(GArray<char*> &c, IdePlatform Platform);
 	void SortChildren();

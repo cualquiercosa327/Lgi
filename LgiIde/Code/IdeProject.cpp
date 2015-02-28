@@ -1092,7 +1092,7 @@ public:
 											{
 												Project->SetDirty();
 												delete this;
-												return true;
+												return false;
 												break;
 											}
 											case 3: // Browse
@@ -1841,12 +1841,13 @@ IdeCommon::~IdeCommon()
 	Remove();
 }
 
-void IdeCommon::OnOpen(GXmlTag *Src)
+bool IdeCommon::OnOpen(GXmlTag *Src)
 {
 	Copy(*Src);
 	Write = false;
-	Serialize();
-	
+	if (!Serialize())
+		return false;
+
 	List<GXmlTag>::I it = Src->Children.Start();
 	for (GXmlTag *c = *it; c; c = *++it)
 	{
@@ -1855,11 +1856,13 @@ void IdeCommon::OnOpen(GXmlTag *Src)
 			ProjectNode *pn = new ProjectNode(Project);
 			if (pn)
 			{
-				pn->OnOpen(c);
-				InsertTag(pn);
+				if (pn->OnOpen(c))
+					InsertTag(pn);
 			}
 		}
 	}
+	
+	return true;
 }
 
 void IdeCommon::CollectAllSubProjects(List<IdeProject> &c)

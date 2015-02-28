@@ -393,6 +393,7 @@ LgiMenuItem::GMenuItem(::GMenu *m, GSubMenu *p, const char *txt, int Pos, const 
 	Child = NULL;
 	Menu = m;
 	Parent = p;
+	InSetCheck = false;
 
 	Position = Pos;
 
