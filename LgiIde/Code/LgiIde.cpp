@@ -1405,6 +1405,11 @@ bool AppWnd::OnRequestClose(bool IsClose)
 	return GWindow::OnRequestClose(IsClose);
 }
 
+bool AppWnd::ToggleBreakpoint(const char *File, int Line)
+{
+	return false;
+}
+
 void AppWnd::OnLocationChange(const char *File, int Line)
 {
 	if (!File)

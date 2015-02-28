@@ -8,6 +8,7 @@
 #include "INet.h"
 #include "GClipBoard.h"
 #include "GDisplayString.h"
+#include "GScrollBar.h"
 
 const char *Untitled = "[untitled]";
 static const char *White = " \r\t\n";
@@ -432,6 +433,7 @@ public:
 		SetFindReplaceParams(GlobalFindReplace);
 		
 		CanScrollX = true;
+		GetCss(true)->PaddingLeft(GCss::Len(GCss::LenPx, 16 + 2));
 		
 		if (!f)
 		{
@@ -472,6 +474,28 @@ public:
 	~DocEdit()
 	{
 		SetEnv(0);
+	}
+
+	void OnMouseClick(GMouse &m)
+	{
+		if (m.x < 16)
+		{
+			// Margin click... work out the line
+			int Y = (VScroll) ? (int)VScroll->Value() : 0;
+			GFont *f = GetFont();
+			if (!f) return;
+			GCss::Len PaddingTop = GetCss(true)->PaddingTop();
+			int TopPx = PaddingTop.ToPx(GetClient().Y(), f);
+			int Idx = ((m.y - TopPx) / f->GetHeight()) + Y + 1;
+			if (Idx > 0 && Idx <= GTextView3::Line.Length())
+			{
+				Doc->OnMarginClick(Idx);
+			}
+		}
+		else
+		{
+			GTextView3::OnMouseClick(m);
+		}
 	}
 
 	void SetCursor(int i, bool Select, bool ForceFullUpdate = false)
@@ -964,6 +988,12 @@ enum
 void IdeDoc::OnLineChange(int Line)
 {
 	d->App->OnLocationChange(d->GetLocalFile(), Line);
+}
+
+void IdeDoc::OnMarginClick(int Line)
+{
+	GAutoString Dn(d->GetDisplayName());
+	d->App->ToggleBreakpoint(Dn, Line);
 }
 
 void IdeDoc::OnTitleClick(GMouse &m)

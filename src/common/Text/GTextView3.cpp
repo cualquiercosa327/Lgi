@@ -11,6 +11,8 @@
 #endif
 #include "GClipBoard.h"
 #include "GDisplayString.h"
+#include "GViewPriv.h"
+#include "GCssTools.h"
 
 #define DefaultCharset              "utf-8" // historically LgiAnsiToLgiCp()
 #define SubtractPtr(a, b)			((a) - (b))
@@ -101,10 +103,11 @@ public:
 	}
 };
 
-class GTextView3Private
+class GTextView3Private : public GCss
 {
 public:
-	GRect Margin;
+	GTextView3 *View;
+	GRect rPadding;
 	int PourX;
 	bool LayoutDirty;
 	int DirtyStart, DirtyLen;
@@ -121,8 +124,9 @@ public:
 	int MapLen;
 	char16 *MapBuf;
 
-	GTextView3Private()
+	GTextView3Private(GTextView3 *view)
 	{
+		View = view;
 		SimpleDelete = false;
 		WordSelectMode = -1;
 		PourX = -1;
@@ -136,9 +140,7 @@ public:
 		CenterCursor = false;
 		
 		LayoutDirty = true;
-		Margin.x1 = Margin.y1 = Margin.x2 = 2;
-		Margin.y2 = 0;
-
+		rPadding.ZOff(0, 0);
 		MapBuf = 0;
 		MapLen = 0;
 		
@@ -161,6 +163,20 @@ public:
 		LayoutDirty = true;
 		DirtyStart = Start;
 		DirtyLen = Len;
+	}
+
+	void OnChange(PropType Prop)
+	{
+		if (Prop == GCss::PropPadding ||
+			Prop == GCss::PropPaddingLeft ||
+			Prop == GCss::PropPaddingRight ||
+			Prop == GCss::PropPaddingTop ||
+			Prop == GCss::PropPaddingBottom)
+		{
+			GCssTools t(this, View->GetFont());
+			rPadding.ZOff(0, 0);
+			rPadding = t.ApplyPadding(rPadding);
+		}
 	}
 };
 
@@ -285,7 +301,8 @@ GTextView3::GTextView3(	int Id,
 	: ResObject(Res_Custom)
 {
 	// init vars
-	d = new GTextView3Private;
+	GView::d->Css.Reset(d = new GTextView3Private(this));
+	
 	LineY = 1;
 	MaxX = 0;
 	Blink = true;
@@ -314,6 +331,7 @@ GTextView3::GTextView3(	int Id,
 	#endif
 	Underline = 0;
 	BackColour = LC_WORKSPACE;
+	d->Padding(GCss::Len(GCss::LenPx, 2));
 
 	#ifdef _DEBUG
 	// debug times
@@ -372,7 +390,7 @@ GTextView3::GTextView3(	int Id,
 	}
 
 	CursorPos.ZOff(1, LineY-1);
-	CursorPos.Offset(d->Margin.x1, d->Margin.y1);
+	CursorPos.Offset(d->rPadding.x1, d->rPadding.y1);
 
 	GRect r;
 	r.ZOff(cx-1, cy-1);
@@ -391,7 +409,7 @@ GTextView3::~GTextView3()
 	if (Font != SysFont) DeleteObj(Font);
 	DeleteObj(FixedFont);
 	DeleteObj(Underline);
-	DeleteObj(d);
+	// 'd' is owned by the GView::Css auto ptr
 }
 
 char16 *GTextView3::MapText(char16 *Str, int Len, bool RtlTrailingSpace)
@@ -608,8 +626,7 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 	#endif
 
 	GRect Client = GetClient();
-	int Mx = Client.X() - d->Margin.x1;
-	// int y = 0;
+	int Mx = Client.X() - d->rPadding.x1 - d->rPadding.x2;
 
 	MaxX = 0;
 
@@ -731,7 +748,7 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 				if (l)
 				{
 					l->Start = LastChar;
-					l->r.x1 = d->Margin.x1;
+					l->r.x1 = d->rPadding.x1;
 					l->Len = e - LastChar;
 					l->r.x2 = l->r.x1 + Cx;
 					LastChar = ++e;
@@ -858,7 +875,7 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 				{
 					l->Start = i;
 					l->Len = e - i;
-					l->r.x1 = d->Margin.x1;
+					l->r.x1 = d->rPadding.x1;
 					l->r.x2 = l->r.x1 + Width - 1;
 
 					l->r.y1 = Cy;
@@ -885,7 +902,7 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 		{
 			l->Start = Size;
 			l->Len = 0;
-			l->r.x1 = l->r.x2 = d->Margin.x1;
+			l->r.x1 = l->r.x2 = d->rPadding.x1;
 			l->r.y1 = Cy;
 			l->r.y2 = l->r.y1 + LineY - 1;
 
@@ -896,8 +913,7 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 		}
 	}
 
-	GRect c = GetClient();
-	bool ScrollYNeeded = c.Y() < (Line.Length() * LineY);
+	bool ScrollYNeeded = Client.Y() < (Line.Length() * LineY);
 	SetScrollBars(false, ScrollYNeeded);
 	d->LayoutDirty = false;
 	UpdateScrollBars();
@@ -1660,7 +1676,7 @@ void GTextView3::GetTextExtent(int &x, int &y)
 {
 	PourText(0, Size);
 
-	x = MaxX + d->Margin.x1;
+	x = MaxX + d->rPadding.x1;
 	y = Line.Length() * LineY;
 }
 
@@ -1810,7 +1826,7 @@ void GTextView3::SetCursor(int i, bool Select, bool ForceFullUpdate)
 			if (SLine->r.Valid())
 			{
 				u = SLine->r;
-				u.Offset(0, d->Margin.y1-ScrollYPixel());
+				u.Offset(0, d->rPadding.y1-ScrollYPixel());
 			}
 			else
 				u.Set(0, 0, Client.X()-1, 1); // Start of visible page 
@@ -1819,7 +1835,7 @@ void GTextView3::SetCursor(int i, bool Select, bool ForceFullUpdate)
 			if (ELine->r.Valid())
 			{
 				b = ELine->r;
-				b.Offset(0, d->Margin.y1-ScrollYPixel());
+				b.Offset(0, d->rPadding.y1-ScrollYPixel());
 			}
 			else
 			{
@@ -1844,7 +1860,7 @@ void GTextView3::SetCursor(int i, bool Select, bool ForceFullUpdate)
 
 		// update the line the cursor moved to
 		GRect r = To->r;
-		r.Offset(-ScrollX, d->Margin.y1-DocOffset);
+		r.Offset(-ScrollX, d->rPadding.y1-DocOffset);
 		r.x2 = X();
 		Invalidate(&r);
 
@@ -1853,7 +1869,7 @@ void GTextView3::SetCursor(int i, bool Select, bool ForceFullUpdate)
 			// update the line the cursor came from,
 			// if it's a different line from the "to"
 			r = From->r;
-			r.Offset(-ScrollX, d->Margin.y1-DocOffset);
+			r.Offset(-ScrollX, d->rPadding.y1-DocOffset);
 			r.x2 = X();
 			Invalidate(&r);
 		}
@@ -2905,7 +2921,6 @@ int GTextView3::HitText(int x, int y)
 				int Char = 0;
 				
 				GDisplayString Ds(Font, MapText(Text + l->Start, l->Len), l->Len, 0);
-				Ds.SetTabOrigin(d->Margin.x1);
 				Char = Ds.CharAt(At);
 
 				return l->Start + Char;
@@ -4166,14 +4181,10 @@ int GTextView3::ScrollYPixel()
 
 void GTextView3::OnPaint(GSurface *pDC)
 {
-	// LgiTrace("GTextView3::%i OnPaint Focus=%i\n", GetId(), Focus());
-
 	#if LGI_EXCEPTIONS
 	try
 	{
 	#endif
-		// int StartTime = LgiCurrentTime();
-
 		if (d->LayoutDirty)
 		{
 			PourText(d->DirtyStart, d->DirtyLen);
@@ -4211,8 +4222,6 @@ void GTextView3::OnPaint(GSurface *pDC)
 
 		GColour Whitespace = Fore.Mix(Back, 0.85f);
 
-		// printf("GTextView colours, Focus=%i, SelTxt=%s, SelBk=%s\n", HasFocus, SelectedText.GetStr(), SelectedBack.GetStr());
-
 		if (!Enabled())
 		{
 			Fore.Set(LC_LOW, 24);
@@ -4228,7 +4237,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 			#ifdef DOUBLE_BUFFER_PAINT
 			&&
 			pMem &&
-			pMem->Create(r.X()-d->Margin.x1, LineY, GdcD->GetBits())
+			pMem->Create(r.X()-d->rPadding.x1, LineY, GdcD->GetBits())
 			#endif
 			)
 		{
@@ -4243,9 +4252,9 @@ void GTextView3::OnPaint(GSurface *pDC)
 			// draw margins
 			pDC->Colour(PAINT_BORDER);
 			// top margin
-			pDC->Rectangle(0, 0, r.x2, d->Margin.y1-1);
+			pDC->Rectangle(0, 0, r.x2, d->rPadding.y1-1);
 			// left margin
-			pDC->Rectangle(0, d->Margin.y1, d->Margin.x1-1, r.y2);
+			pDC->Rectangle(0, d->rPadding.y1, d->rPadding.x1-1, r.y2);
 		
 			// draw lines of text
 			int k = ScrollYLine();
@@ -4269,7 +4278,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 			DocOffset = (l) ? l->r.y1 : 0;
 
 			// loop through all visible lines
-			int y = d->Margin.y1;
+			int y = d->rPadding.y1;
 			for (; l && l->r.y1+Dy < r.Y(); l=Line.Next())
 			{
 				GRect Tr = l->r;
@@ -4341,7 +4350,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 
 					LgiAssert(Block != 0);	// sanity check
 					
-					int TabOri = Tr.x1 - d->Margin.x1;
+					int TabOri = Tr.x1 - d->rPadding.x1;
 
 					if (NextStyle &&							// There is a style
 						(Cur < SelMin || Cur >= SelMax) &&		// && we're not drawing a selection block
@@ -4456,7 +4465,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 						GDisplayString Ds(Font, MapText(Text+l->Start, At), At);
 						Ds.ShowVisibleTab(ShowWhiteSpace);
 						int CursorX = Ds.X();
-						CursorPos.Offset(d->Margin.x1 + CursorX, Tr.y1);
+						CursorPos.Offset(d->rPadding.x1 + CursorX, Tr.y1);
 						
 						if (CanScrollX)
 						{
@@ -4480,7 +4489,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 						{
 							GRect c = CursorPos;
 							#ifdef DOUBLE_BUFFER_PAINT
-							c.Offset(-d->Margin.x1, -y);
+							c.Offset(-d->rPadding.x1, -y);
 							#endif
 
 							pOut->Colour((!ReadOnly) ? Fore : GColour(192, 192, 192));
@@ -4504,7 +4513,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 
 				#ifdef DOUBLE_BUFFER_PAINT
 				// dump to screen
-				pDC->Blt(d->Margin.x1, y, pOut);
+				pDC->Blt(d->rPadding.x1, y, pOut);
 				#endif
 				y += LineY;
 
@@ -4516,7 +4525,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 				// printf("White %i, k=%i Lines=%i\n", r.y2 - y, k, Line.Length());
 
 				pDC->Colour(Back);
-				pDC->Rectangle(d->Margin.x1, y, r.x2, r.y2);
+				pDC->Rectangle(d->rPadding.x1, y, r.x2, r.y2);
 			}
 
 			#ifdef DOUBLE_BUFFER_PAINT
@@ -4658,21 +4667,6 @@ void GTextView3::OnUrl(char *Url)
 	{
 		Environment->OnNavigate(this, Url);
 	}
-}
-
-GRect &GTextView3::GetMargin()
-{
-	return d->Margin;
-}
-
-void GTextView3::SetMargin(GRect &m)
-{
-	d->Margin.x1 = max(m.x1, 0);
-	d->Margin.y1 = max(m.y1, 0);
-	d->Margin.x2 = max(m.x2, 0);
-	d->Margin.y2 = max(m.y2, 0);
-	
-	Invalidate();
 }
 
 bool GTextView3::OnLayout(GViewLayoutInfo &Inf)

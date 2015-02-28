@@ -96,6 +96,7 @@ public:
 
 	// Events
 	void OnLineChange(int Line);
+	void OnMarginClick(int Line);
 	
 	// Impl
 	void OnTitleClick(GMouse &m);

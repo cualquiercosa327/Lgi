@@ -9,9 +9,9 @@ GRect GCssTools::ApplyMargin(GRect &in)
 	GRect r = in;
 	
 	// Insert by the margin
-	GCss::Len margin = Css->Margin();
+	GCss::Len margin = Css->Padding();
 	#define DoMargin(name, edge, box, sign) \
-		{ GCss::Len m = Css->Margin##name(); \
+		{ GCss::Len m = Css->Padding##name(); \
 		r.edge sign (m.IsValid() ? m : margin).ToPx(in.box(), Font); }
 	DoMargin(Left, x1, X, +=)
 	DoMargin(Top, y1, Y, +=)

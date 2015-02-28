@@ -16,6 +16,7 @@
 #include "GDocView.h"
 #include "GOptionsFile.h"
 #include "FindSymbol.h"
+#include "GStringClass.h"
 
 #define LgiIdeVer				0.0
 
@@ -212,6 +213,7 @@ public:
 	bool FindSymbol(const char *Syn, GArray<FindSymResult> &Results);
 	bool GetSystemIncludePaths(GArray<char*> &Paths);
 	class GDebugContext *GetDebugContext();
+	bool ToggleBreakpoint(const char *File, int Line);
 	
 	// Events
 	void OnLocationChange(const char *File, int Line);
