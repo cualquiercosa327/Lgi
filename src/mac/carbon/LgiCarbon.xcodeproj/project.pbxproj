@@ -52,7 +52,6 @@
 		344AF39008E04707004ED88C /* GVariant.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344AF38F08E04707004ED88C /* GVariant.cpp */; };
 		344AF39608E0476A004ED88C /* GApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344AF39508E0476A004ED88C /* GApp.cpp */; };
 		344AF3A108E048C2004ED88C /* GProcess.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344AF3A008E048C2004ED88C /* GProcess.cpp */; };
-		344AF3AF08E049CA004ED88C /* GXml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344AF3AE08E049CA004ED88C /* GXml.cpp */; };
 		344AF3C308E04A94004ED88C /* LgiDefs.h in Headers */ = {isa = PBXBuildFile; fileRef = 344AF3C208E04A94004ED88C /* LgiDefs.h */; };
 		344AF3C908E04B32004ED88C /* GProperties.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344AF3C808E04B32004ED88C /* GProperties.cpp */; };
 		344AF3CC08E04B63004ED88C /* GLibrary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344AF3CB08E04B63004ED88C /* GLibrary.cpp */; };
@@ -221,7 +220,6 @@
 		344AF38F08E04707004ED88C /* GVariant.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GVariant.cpp; path = ../../common/Lgi/GVariant.cpp; sourceTree = "<group>"; };
 		344AF39508E0476A004ED88C /* GApp.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GApp.cpp; path = Lgi/GApp.cpp; sourceTree = "<group>"; };
 		344AF3A008E048C2004ED88C /* GProcess.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GProcess.cpp; path = ../../common/Lgi/GProcess.cpp; sourceTree = "<group>"; };
-		344AF3AE08E049CA004ED88C /* GXml.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GXml.cpp; path = ../../common/Text/GXml.cpp; sourceTree = "<group>"; };
 		344AF3C208E04A94004ED88C /* LgiDefs.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LgiDefs.h; path = ../../../include/common/LgiDefs.h; sourceTree = "<group>"; };
 		344AF3C808E04B32004ED88C /* GProperties.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GProperties.cpp; path = ../../common/General/GProperties.cpp; sourceTree = "<group>"; };
 		344AF3CB08E04B63004ED88C /* GLibrary.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GLibrary.cpp; path = ../../common/Lgi/GLibrary.cpp; sourceTree = "<group>"; };
@@ -590,7 +588,6 @@
 				3413BBC11349EC6900AE15B0 /* GXmlTree.h */,
 				34B4A52F0C059A2100CDD0D1 /* GUtf8.cpp */,
 				34B9545C0939DB5A00477A2D /* GString.h */,
-				344AF3AE08E049CA004ED88C /* GXml.cpp */,
 				344AF35E08E0322F004ED88C /* GToken.cpp */,
 				344AF35F08E0322F004ED88C /* GXmlTree.cpp */,
 				34CDDAEA08C5DFB1005EAAC7 /* GString.cpp */,
@@ -975,7 +972,6 @@
 				344AF39008E04707004ED88C /* GVariant.cpp in Sources */,
 				344AF39608E0476A004ED88C /* GApp.cpp in Sources */,
 				344AF3A108E048C2004ED88C /* GProcess.cpp in Sources */,
-				344AF3AF08E049CA004ED88C /* GXml.cpp in Sources */,
 				344AF3C908E04B32004ED88C /* GProperties.cpp in Sources */,
 				344AF3CC08E04B63004ED88C /* GLibrary.cpp in Sources */,
 				344AF3DD08E04C75004ED88C /* GObject.cpp in Sources */,
