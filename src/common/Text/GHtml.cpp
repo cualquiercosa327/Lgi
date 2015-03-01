@@ -4643,10 +4643,6 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, int LineHeight, 
 		GDisplayString ds2(Font, Tr->Text, Tr->Len);
 		Tr->x2 = ds2.X();
 		Tr->y2 = LineHeight > 0 ? LineHeight - 1 : 0;
-		if (LineHeight <= 0)
-		{
-			int asd=0;
-		}
 		
 		if (Wrap)
 		{

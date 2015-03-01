@@ -38,7 +38,17 @@ GSubMenu::GSubMenu(const char *name, bool Popup)
 
 GSubMenu::~GSubMenu()
 {
-	Items.DeleteObjects();
+	while (Items.Length())
+	{
+		GMenuItem *i = Items.First();
+		if (i->Parent != this)
+		{
+			i->Parent = NULL;
+			Items.Delete(i);
+		}
+		delete i;
+	}
+	
 	if (Info)
 	{
 		DisposeMenu(Info);
@@ -424,6 +434,11 @@ GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, const char *Str, int Pos, const char
 
 GMenuItem::~GMenuItem()
 {
+	if (Parent)
+	{
+		Parent->Items.Delete(this);
+		Parent = NULL;
+	}
 	DeleteObj(Child);
 	DeleteObj(d);
 }
@@ -845,7 +860,7 @@ bool GMenuItem::ScanForAccel()
 											false,
 											Key);
 				if (e) printf("%s:%i - SetMenuItemCommandKey(%i/%c) failed with %i\n",
-								__FILE__, __LINE__, Key, Key, (int)e);
+								_FL, Key, Key, (int)e);
 				break;
 			}
 		}
