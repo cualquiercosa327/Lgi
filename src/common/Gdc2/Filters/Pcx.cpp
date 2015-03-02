@@ -248,14 +248,14 @@ GFilter::IoStatus GdcPcx::ReadImage(GSurface *pDC, GStream *In)
 						}
 					}
 
-					Status = true;
+					Status = IoSuccess;
 
 					DeleteObj(buf);
 					DeleteObj(pbuf);
 
 					if (y != Sy)
 					{
-						return false;
+						return IoError;
 					}
 				}
 			}
@@ -265,9 +265,9 @@ GFilter::IoStatus GdcPcx::ReadImage(GSurface *pDC, GStream *In)
 	return Status;
 }
 
-bool GdcPcx::WriteImage(GStream *Out, GSurface *pDC)
+GFilter::IoStatus GdcPcx::WriteImage(GStream *Out, GSurface *pDC)
 {
-	bool Status = false;
+	IoStatus Status = IoError;
 
 	if (pDC && Out)
 	{
@@ -336,9 +336,9 @@ bool GdcPcx::WriteImage(GStream *Out, GSurface *pDC)
 			{
 				uchar *p = Header.Palette + (i * 3);
 				
-				p[0] = (*Pal)[i]->R;
-				p[1] = (*Pal)[i]->G;
-				p[2] = (*Pal)[i]->B;
+				p[0] = (*Pal)[i]->r;
+				p[1] = (*Pal)[i]->g;
+				p[2] = (*Pal)[i]->b;
 			}
 		}
 
@@ -479,7 +479,7 @@ bool GdcPcx::WriteImage(GStream *Out, GSurface *pDC)
 						uchar c = Buf[i];
 	
 						// search forward to see how many bytes we can archive
-						for (; i+Len < Header.Line AND Buf[i+Len] == c AND Len < 63; Len++);
+						for (; i+Len < Header.Line && Buf[i+Len] == c && Len < 63; Len++);
 	
 						if (Len > 1)
 						{
@@ -518,20 +518,20 @@ bool GdcPcx::WriteImage(GStream *Out, GSurface *pDC)
 			DeleteArray(Buf);
 		}
 		// Write out any 256 colour palette
-		if (Pal AND Pal->GetSize() > 16)
+		if (Pal && Pal->GetSize() > 16)
 		{
 			c = 12;
 			Out->Write(&c, 1);
 
 			for (i=0; i<Pal->GetSize(); i++)
 			{
-				Out->Write(&(*Pal)[i]->R, 1);
-				Out->Write(&(*Pal)[i]->G, 1);
-				Out->Write(&(*Pal)[i]->B, 1);
+				Out->Write(&(*Pal)[i]->r, 1);
+				Out->Write(&(*Pal)[i]->g, 1);
+				Out->Write(&(*Pal)[i]->b, 1);
 			}
 		}
 
-		Status = true;
+		Status = IoSuccess;
 	}
 
 	return Status;

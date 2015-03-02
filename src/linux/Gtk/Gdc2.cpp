@@ -68,6 +68,17 @@ void GPalette::Set(GPalette *pPal)
 	}
 }
 
+void GPalette::Set(int Index, int r, int g, int b)
+{
+	GdcRGB *rgb = (*this)[Index];
+	if (rgb)
+	{
+		rgb->r = r;
+		rgb->g = g;
+		rgb->b = b;
+	}
+}
+
 void GPalette::Set(uchar *pPal, int s)
 {
 	DeleteArray(Data);

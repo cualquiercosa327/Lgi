@@ -155,12 +155,12 @@ class GLinearGradient : public GGradient
 public:
 	void Rectangle(int X, int Y)
 	{
-		COLOUR Fore = CBit(24, c, Dest->Bits);
+		COLOUR Fore = CBit(24, c, GColourSpaceToBits(Dest->Cs));
 		int Fr = R24(Fore);
 		int Fg = G24(Fore);
 		int Fb = B24(Fore);
 
-		COLOUR Back = CBit(24, Background, Dest->Bits);
+		COLOUR Back = CBit(24, Background, GColourSpaceToBits(Dest->Cs));
 		int Br = R24(Back);
 		int Bg = G24(Back);
 		int Bb = B24(Back);
@@ -212,7 +212,7 @@ public:
 			double CosA = cos(Ang);
 			int CompY = sin(Ang) * (y - Ky);
 
-			switch (Dest->Bits)
+			switch (GColourSpaceToBits(Dest->Cs))
 			{
 				case 16:
 				{
@@ -269,12 +269,12 @@ public:
 
 	void Rectangle(int X, int Y)
 	{
-		COLOUR Fore = CBit(24, c, Dest->Bits);
+		COLOUR Fore = CBit(24, c, GColourSpaceToBits(Dest->Cs));
 		int Fr = R24(Fore);
 		int Fg = G24(Fore);
 		int Fb = B24(Fore);
 
-		COLOUR Back = CBit(24, Background, Dest->Bits);
+		COLOUR Back = CBit(24, Background, GColourSpaceToBits(Dest->Cs));
 		int Br = R24(Back);
 		int Bg = G24(Back);
 		int Bb = B24(Back);
@@ -293,7 +293,7 @@ public:
 			DySq *= DySq;
 			double Dx;
 
-			switch (Dest->Bits)
+			switch (GColourSpaceToBits(Dest->Cs))
 			{
 				case 16:
 				{
@@ -346,7 +346,7 @@ public:
 class GGradientFactory : public GApplicatorFactory
 {
 public:
-	GApplicator *Create(int Bits, int Op)
+	GApplicator *Create(GColourSpace Cs, int Op)
 	{
 		if (Op == 5)
 		{

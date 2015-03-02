@@ -541,10 +541,8 @@ public:
 				}
 			}
 		}
-		else
-		{
-			GTextView3::OnMouseClick(m);
-		}
+
+		GTextView3::OnMouseClick(m);
 	}
 
 	void SetCursor(int i, bool Select, bool ForceFullUpdate = false)

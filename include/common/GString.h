@@ -140,6 +140,19 @@ LgiFunc char *strcpy_s
 	const char *src
 );
 
+/// \brief Safe string copy
+LgiFunc char *strncpy_s
+(
+	/// The destination string buffer
+	char *dst,
+	/// The size in bytes of 'dst'
+	size_t dst_len,
+	/// The string to append to 'dst'
+	const char *src,
+	/// Max size of src
+	size_t src_len
+);
+
 /// \brief Safe string append
 ///
 /// This function should be used anytime the size of the destination
