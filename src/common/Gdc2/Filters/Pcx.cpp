@@ -15,14 +15,15 @@
 #include "Gdc2.h"
 #include "GString.h"
 #include "GVariant.h"
+#include "GPalette.h"
 
 class GdcPcx : public GFilter {
 public:
 	Format GetFormat() { return FmtPcx; }
 	int GetCapabilites() { return FILTER_CAP_READ | FILTER_CAP_WRITE; }
-	bool ReadImage(GSurface *pDC, GStream *In);
-	bool WriteImage(GStream *Out, GSurface *pDC);
-
+	IoStatus ReadImage(GSurface *Out, GStream *In);
+	IoStatus WriteImage(GStream *Out, GSurface *In);
+	
 	bool GetVariant(const char *n, GVariant &v, char *a)
 	{
 		if (!stricmp(n, LGI_FILTER_TYPE))
@@ -42,7 +43,7 @@ public:
 // Object Factory
 class GdcPcxFactory : public GFilterFactory
 {
-	bool CheckFile(char *File, int Access, uchar *Hint)
+	bool CheckFile(const char *File, int Access, const uchar *Hint)
 	{
 		return (File) ? stristr(File, ".pcx") != 0 : false;
 	}
@@ -80,9 +81,9 @@ typedef struct {
 
 } PCX_HEADER;
 
-bool GdcPcx::ReadImage(GSurface *pDC, GStream *In)
+GFilter::IoStatus GdcPcx::ReadImage(GSurface *pDC, GStream *In)
 {
-	bool Status = false;
+	IoStatus Status = IoError;
 
 	if (pDC && In)
 	{
@@ -134,12 +135,12 @@ bool GdcPcx::ReadImage(GSurface *pDC, GStream *In)
 				uchar *pbuf = new uchar[Header.Line];
 				uchar *dest = 0;
 
-				if (buf AND pbuf)
+				if (buf && pbuf)
 				{
 					uint update = 10,x,y = 0;
 					uchar a,b,c,p;
 
-					while (y < Sy AND update)
+					while (y < Sy && update)
 					{
 						memset(buf, 0, Line);
 

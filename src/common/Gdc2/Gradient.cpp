@@ -30,7 +30,7 @@ public:
 			Alpha = 0;
 
 			Ptr = d->Base;
-			Bytes = d->Bits / 8;
+			Bytes = GColourSpaceToBits(d->Cs) / 8;
 			return true;
 		}
 
