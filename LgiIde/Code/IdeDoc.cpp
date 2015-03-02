@@ -1166,7 +1166,7 @@ void IdeDoc::SetProject(IdeProject *p)
 	
 	if (d->Project->GetApp() &&
 		d->BreakPoints.Length() == 0)
-		d->Project->GetApp()->LoadDocBreakPoints(this);
+		d->Project->GetApp()->LoadBreakPoints(this);
 }
 
 char *IdeDoc::GetFileName()

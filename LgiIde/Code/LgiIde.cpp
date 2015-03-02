@@ -22,6 +22,7 @@
 #include "GTextLabel.h"
 #include "GCombo.h"
 #include "GCheckBox.h"
+#include "GDebugger.h"
 
 #define IDM_SAVE				102
 #define IDM_RECENT_FILE			1000
@@ -651,7 +652,7 @@ public:
 	GSubMenu *CreateMakefileMenu;
 	FindSymbolSystem FindSym;
 	GArray<GAutoString> SystemIncludePaths;
-	GArray<BreakPoint> BreakPoints;
+	GArray<GDebugger::BreakPoint> BreakPoints;
 	
 	// Debugging
 	GDebugContext *DbgContext;
@@ -1311,7 +1312,10 @@ void AppWnd::OnReceiveFiles(GArray<char*> &Files)
 
 void AppWnd::OnDebugState(bool Debugging, bool Running)
 {
-	d->Debugging = Debugging;
+	if (d->Debugging != Debugging)
+	{
+		d->Debugging = Debugging;
+	}
 
 	SetCtrlEnabled(IDM_START_DEBUG, !Debugging);
 	SetCtrlEnabled(IDM_PAUSE_DEBUG, Debugging && Running);
@@ -1406,7 +1410,7 @@ bool AppWnd::OnRequestClose(bool IsClose)
 	return GWindow::OnRequestClose(IsClose);
 }
 
-bool AppWnd::OnBreakPoint(BreakPoint &b, bool Add)
+bool AppWnd::OnBreakPoint(GDebugger::BreakPoint &b, bool Add)
 {
 	List<IdeDoc>::I it = d->Docs.Start();
 	for (IdeDoc *doc = *it; doc; doc = *++it)
@@ -1421,7 +1425,7 @@ bool AppWnd::OnBreakPoint(BreakPoint &b, bool Add)
 	return true;
 }
 
-bool AppWnd::LoadDocBreakPoints(IdeDoc *doc)
+bool AppWnd::LoadBreakPoints(IdeDoc *doc)
 {
 	if (!doc)
 		return false;
@@ -1429,11 +1433,24 @@ bool AppWnd::LoadDocBreakPoints(IdeDoc *doc)
 	char *fn = doc->GetFileName();
 	for (int i=0; i<d->BreakPoints.Length(); i++)
 	{
-		BreakPoint &b = d->BreakPoints[i];
+		GDebugger::BreakPoint &b = d->BreakPoints[i];
 		if (!_stricmp(fn, b.File))
 		{
 			doc->AddBreakPoint(b.Line, true);
 		}
+	}
+
+	return true;
+}
+
+bool AppWnd::LoadBreakPoints(GDebugger *db)
+{
+	if (!db)
+		return false;
+
+	for (int i=0; i<d->BreakPoints.Length(); i++)
+	{
+		db->SetBreakPoint(&d->BreakPoints[i]);
 	}
 
 	return true;
@@ -1445,7 +1462,7 @@ bool AppWnd::ToggleBreakpoint(const char *File, int Line)
 
 	for (int i=0; i<d->BreakPoints.Length(); i++)
 	{
-		BreakPoint &b = d->BreakPoints[i];
+		GDebugger::BreakPoint &b = d->BreakPoints[i];
 		if (!_stricmp(File, b.File) &&
 			b.Line == Line)
 		{
@@ -1458,7 +1475,7 @@ bool AppWnd::ToggleBreakpoint(const char *File, int Line)
 	
 	if (!DeleteBp)
 	{
-		BreakPoint &b = d->BreakPoints.New();
+		GDebugger::BreakPoint &b = d->BreakPoints.New();
 		b.File = File;
 		b.Line = Line;
 		OnBreakPoint(b, true);

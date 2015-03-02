@@ -17,6 +17,7 @@
 #include "GOptionsFile.h"
 #include "FindSymbol.h"
 #include "GStringClass.h"
+#include "GDebugger.h"
 
 #define LgiIdeVer				0.0
 
@@ -164,12 +165,6 @@ public:
 	virtual void OnSaveComplete(bool Status) = 0;
 };
 
-struct BreakPoint
-{
-	GString File;
-	int Line;
-};
-
 class AppWnd : public GWindow
 {
 	class AppWndPrivate *d;
@@ -218,10 +213,6 @@ public:
 	IdeDoc *GotoReference(const char *File, int Line, bool WithHistory = true);
 	bool FindSymbol(const char *Syn, GArray<FindSymResult> &Results);
 	bool GetSystemIncludePaths(GArray<char*> &Paths);
-	class GDebugContext *GetDebugContext();
-	bool ToggleBreakpoint(const char *File, int Line);
-	bool OnBreakPoint(BreakPoint &b, bool Add);
-	bool LoadDocBreakPoints(IdeDoc *doc);
 	
 	// Events
 	void OnLocationChange(const char *File, int Line);
@@ -233,6 +224,13 @@ public:
 	bool OnRequestClose(bool IsClose);
 	int OnNotify(GViewI *Ctrl, int Flags);
 	GMessage::Result OnEvent(GMessage *m);
+
+	// Debugging support
+	class GDebugContext *GetDebugContext();
+	bool ToggleBreakpoint(const char *File, int Line);
+	bool OnBreakPoint(GDebugger::BreakPoint &b, bool Add);
+	bool LoadBreakPoints(IdeDoc *doc);
+	bool LoadBreakPoints(GDebugger *db);
 	void OnDebugState(bool Debugging, bool Running);
 };
 

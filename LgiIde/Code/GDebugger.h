@@ -2,6 +2,7 @@
 #define _GDEBUGGER_H_
 
 #include "GVariant.h"
+#include "GStringClass.h"
 
 class GDebugEvents : public GStream
 {
@@ -19,12 +20,17 @@ class GDebugger
 public:
 	struct BreakPoint
 	{
-		GAutoString File;
-		uint8 *Data;
-		int Param;
-		bool Enabled;
-	};	
-	
+		GString File;
+		int Line;
+		
+		BreakPoint &operator =(const BreakPoint &b)
+		{
+			File = b.File;
+			Line = b.Line;
+			return *this;
+		}
+	};
+
 	struct Variable
 	{
 		enum ScopeType

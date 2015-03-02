@@ -18,6 +18,7 @@ class Gdb : public GDebugger, public GThread
 	char Line[256], *LinePtr;
 	int CurFrame;
 	bool SetAsmType;
+	GArray<BreakPoint> BreakPoints;
 
 	// Various output modes.
 	GStream *OutStream;
@@ -143,8 +144,12 @@ class Gdb : public GDebugger, public GThread
 		
 		if (!Sp->Start(true, true, false))
 			return -1;
-		
+
 		State = Looping;
+
+		for (int i=0; i<BreakPoints.Length(); i++)
+			AddBp(BreakPoints[i]);
+
 		char Buf[513];
 		while (State == Looping && Sp->IsRunning())
 		{
@@ -363,16 +368,33 @@ public:
 		
 		return false;
 	}
+
+	bool AddBp(BreakPoint &bp)
+	{
+		char cmd[MAX_PATH];
+		sprintf_s(cmd, sizeof(cmd), "break %s:%i", bp.File.Get(), bp.Line);
+		return Cmd(cmd);
+	}
 	
 	bool SetBreakPoint(BreakPoint *bp)
 	{
-		LgiAssert(0);
-		return false;
+		if (!bp)
+			return false;
+		BreakPoints.Add(*bp);
+		
+		if (DebuggingProcess)
+		{
+			if (Running)
+				LgiAssert(0); // impl interrupt
+			else
+				AddBp(*bp);
+		}
+		return true;
 	}
 	
 	bool GetBreakPoints(GArray<BreakPoint> &bps)
 	{
-		LgiAssert(0);
+		bps = BreakPoints;
 		return false;
 	}
 	

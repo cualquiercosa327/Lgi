@@ -16,6 +16,7 @@ public:
 	GDebugContext *Ctx;
 	AppWnd *App;
 	IdeProject *Proj;
+	bool InDebugging;
 	GAutoPtr<GDebugger> Db;
 	GAutoString Exe, Args;
 	
@@ -28,6 +29,7 @@ public:
 		App = NULL;
 		Proj = NULL;
 		MemDumpStart = 0;
+		InDebugging = false;
 	}
 	
 	~GDebugContextPriv()
@@ -449,7 +451,19 @@ void GDebugContext::OnMemoryDump(const char *Addr, int WordSize, int Width, bool
 void GDebugContext::OnState(bool Debugging, bool Running)
 {
 	if (d->App)
+	{
 		d->App->OnDebugState(Debugging, Running);
+	}
+	
+	if (d->InDebugging != Debugging && d->Db)
+	{
+		d->InDebugging = Debugging;
+		if (Debugging)
+		{
+			// Load break points from app into debugger...
+			d->App->LoadBreakPoints(d->Db);
+		}
+	}
 }
 
 void GDebugContext::OnFileLine(const char *File, int Line)
