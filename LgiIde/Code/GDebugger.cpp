@@ -146,9 +146,7 @@ class Gdb : public GDebugger, public GThread
 			return -1;
 
 		State = Looping;
-
-		for (int i=0; i<BreakPoints.Length(); i++)
-			AddBp(BreakPoints[i]);
+		DebuggingProcess = true;
 
 		char Buf[513];
 		while (State == Looping && Sp->IsRunning())
@@ -350,10 +348,16 @@ public:
 				SetAsmType = true;
 				Cmd("set disassembly-flavor intel");
 			}
+
+			printf("Set Running bp=%i\n", BreakPoints.Length());
+			for (int i=0; i<BreakPoints.Length(); i++)
+			{
+				AddBp(BreakPoints[i]);
+			}
 			
 			if (Cmd("r"))
 			{
-				Events->OnState(DebuggingProcess = true, Running = true);
+				Events->OnState(DebuggingProcess, Running = true);
 				Running = true;
 				return true;
 			}
@@ -371,24 +375,35 @@ public:
 
 	bool AddBp(BreakPoint &bp)
 	{
-		char cmd[MAX_PATH];
-		sprintf_s(cmd, sizeof(cmd), "break %s:%i", bp.File.Get(), bp.Line);
-		return Cmd(cmd);
+		bool Ret = false;
+		if (!bp.Added)
+		{
+			char cmd[MAX_PATH];
+			sprintf_s(cmd, sizeof(cmd), "break %s:%i", bp.File.Get(), bp.Line);
+			Ret = Cmd(cmd);
+			if (Ret)
+				bp.Added = true;
+		}
+		return Ret;
 	}
 	
 	bool SetBreakPoint(BreakPoint *bp)
 	{
 		if (!bp)
 			return false;
-		BreakPoints.Add(*bp);
+		
+		BreakPoint &n = BreakPoints.New();
+		n = *bp;
+		n.Added = false;
 		
 		if (DebuggingProcess)
 		{
 			if (Running)
-				LgiAssert(0); // impl interrupt
+				printf("Can't add break point while running.\n");
 			else
 				AddBp(*bp);
 		}
+		
 		return true;
 	}
 	

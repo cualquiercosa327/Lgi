@@ -22,6 +22,7 @@ public:
 	{
 		GString File;
 		int Line;
+		bool Added;
 		
 		BreakPoint &operator =(const BreakPoint &b)
 		{
