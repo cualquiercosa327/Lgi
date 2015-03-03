@@ -1413,10 +1413,12 @@ bool AppWnd::OnRequestClose(bool IsClose)
 bool AppWnd::OnBreakPoint(GDebugger::BreakPoint &b, bool Add)
 {
 	List<IdeDoc>::I it = d->Docs.Start();
+
 	for (IdeDoc *doc = *it; doc; doc = *++it)
 	{
 		char *fn = doc->GetFileName();
-		if (!_stricmp(fn, b.File))
+		bool Match = !_stricmp(fn, b.File);
+		if (Match)
 		{
 			doc->AddBreakPoint(b.Line, Add);
 		}

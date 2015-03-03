@@ -399,30 +399,62 @@ void GScreenDC::Line(int x1, int y1, int x2, int y2)
 
 void GScreenDC::Circle(double cx, double cy, double radius)
 {
-	//d->p.drawArc(cx, cy, radius);
+	gdk_draw_arc(d->d, d->gc, false,
+			 	cx - radius, cy - radius,
+			 	radius * 2.0,
+			 	radius * 2.0,
+			 	0,
+			 	360 * 64);
 }
 
 void GScreenDC::FilledCircle(double cx, double cy, double radius)
 {
-	//d->p.fillArc(cx, cy, radius);
+	gdk_draw_arc(d->d, d->gc, true,
+			 	cx - radius, cy - radius,
+			 	radius * 2.0,
+			 	radius * 2.0,
+			 	0,
+			 	360 * 64);
 }
 
 void GScreenDC::Arc(double cx, double cy, double radius, double start, double end)
 {
-	//d->p.drawArc(cx, cy, radius, start, end);
+	gdk_draw_arc(d->d, d->gc, false,
+			 	cx - radius, cy - radius,
+			 	radius * 2.0,
+			 	radius * 2.0,
+			 	start * 64.0,
+			 	end * 64.0);
 }
 
 void GScreenDC::FilledArc(double cx, double cy, double radius, double start, double end)
 {
-	//d->p.fillArc(cx, cy, radius, start, end);
+	gdk_draw_arc(d->d, d->gc, true,
+			 	cx - radius, cy - radius,
+			 	radius * 2.0,
+			 	radius * 2.0,
+			 	start * 64.0,
+			 	end * 64.0);
 }
 
 void GScreenDC::Ellipse(double cx, double cy, double x, double y)
 {
+	gdk_draw_arc(d->d, d->gc, false,
+			 	cx - (x / 2), cy - (y / 2),
+			 	x,
+			 	y,
+			 	0,
+			 	360 * 64);
 }
 
 void GScreenDC::FilledEllipse(double cx, double cy, double x, double y)
 {
+	gdk_draw_arc(d->d, d->gc, true,
+			 	cx - (x / 2), cy - (y / 2),
+			 	x,
+			 	y,
+			 	0,
+			 	360 * 64);
 }
 
 void GScreenDC::Box(int x1, int y1, int x2, int y2)
@@ -509,17 +541,21 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 
 void GScreenDC::StretchBlt(GRect *d, GSurface *Src, GRect *s)
 {
+	LgiAssert(0);
 }
 
 void GScreenDC::Polygon(int Points, GdcPt2 *Data)
 {
+	LgiAssert(0);
 }
 
 void GScreenDC::Bezier(int Threshold, GdcPt2 *Pt)
 {
+	LgiAssert(0);
 }
 
 void GScreenDC::FloodFill(int x, int y, int Mode, COLOUR Border, GRect *Bounds)
 {
+	LgiAssert(0);
 }
 

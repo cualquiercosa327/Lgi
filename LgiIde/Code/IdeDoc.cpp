@@ -508,7 +508,7 @@ public:
 		int Y = ScrollYLine();
 		
 		int TopPaddingPx = GetCss(true)->PaddingTop().ToPx(GetClient().Y(), GetFont());
-		
+
 		pDC->Colour(GColour(222, 0, 0));
 		List<GTextLine>::I it = GTextView3::Line.Start(Y);
 		int DocOffset = (*it)->r.y1;
