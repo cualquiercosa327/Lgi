@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project>
-	<Node Name="Source Files" Type="1" Platforms="15" Open="1">
+	<Node Name="Source Files" Type="1" Platforms="15" Open="0">
 		<Node Name="Core" Type="1" Platforms="15" Open="0">
 			<Node Name="DateTime" Type="1" Platforms="15" Open="0">
 				<Node File=".\src\common\General\GDateTime.cpp" Type="2" Platforms="15" />
@@ -379,12 +379,17 @@ WINDOWS</Debug>
 					<Release>WINNATIVE
 WINDOWS</Release>
 				</Windows>
+				<Linux />
 			</Defines>
 			<Compiler>
 				<Windows>MingW</Windows>
 			</Compiler>
-			<Executable />
-			<Arguments />
+			<Executable>
+				<Linux />
+			</Executable>
+			<Arguments>
+				<All />
+			</Arguments>
 		</General>
 		<Build>
 			<IncludePaths>
@@ -446,6 +451,7 @@ be
 game
 textencoding</Release>
 				</Haiku>
+				<All />
 			</Libraries>
 			<TargetType>
 				<All>DynamicLibrary</All>
@@ -464,7 +470,10 @@ textencoding</Release>
 					<Release>lgi</Release>
 				</Linux>
 			</TargetName>
-			<LibraryPaths />
+			<LibraryPaths>
+				<All />
+				<Linux />
+			</LibraryPaths>
 		</Build>
 		<Editor>
 			<TabSize>
@@ -479,7 +488,11 @@ textencoding</Release>
 			<UseHardTabs>
 				<All>1</All>
 			</UseHardTabs>
+			<CommentFile />
+			<CommentFunction />
 		</Editor>
-		<Advanced />
+		<Advanced>
+			<OtherMakefileRules />
+		</Advanced>
 	</Settings>
 </Project>
