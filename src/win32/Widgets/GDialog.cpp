@@ -383,6 +383,7 @@ int GDialog::DoModeless()
     if (p && p->GetWindow() != p)
         p = p->GetWindow();
     
+    d->IsModal = false;
 	if (Attach(0))
 	{
 	    AttachChildren();

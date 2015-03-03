@@ -10,6 +10,12 @@
 class GListItemRadioBtn : public GListItemColumn
 {
 public:
+	enum RadioExclusion
+	{
+		ListExclusive, // select one option in the list (column based)
+		ItemExclusive, // select one option amoungst those in the item (row based)
+	}	Type;
+
 	/// Constructor
 	GListItemRadioBtn
 	(
@@ -17,10 +23,13 @@ public:
 		GListItem *host,
 		/// The column to draw in.
 		int column,
+		/// Type of exclusion
+		RadioExclusion type,
 		/// The initial value.
 		bool value = false
 	) : GListItemColumn(host, column)
 	{
+		Type = type;
 		GListItemColumn::Value(value);
 	}
 
@@ -63,29 +72,46 @@ public:
 		// Set me
 		GListItemColumn::Value(i);
 
-		// Switch off any other controls in the list...
-		if (i &&
-			GetList())
+		if (i)
 		{
-			List<GListItem>::I Items = GetAllItems()->Start();
-			for (GListItem *i=*Items; i; i=*++Items)
+			// Switch off any other controls in the row / column...
+			if (Type == ListExclusive)
 			{
-				List<GListItemColumn>::I Cols = i->GetItemCols()->Start();
-				for (GListItemColumn *c=*Cols; c; c=*++Cols)
+				if (!GetList())
+					return;
+				List<GListItem>::I Items = GetAllItems()->Start();
+				for (GListItem *i=*Items; i; i=*++Items)
 				{
-					if (c->GetColumn() == GetColumn())
+					List<GListItemColumn>::I Cols = i->GetItemCols()->Start();
+					for (GListItemColumn *c=*Cols; c; c=*++Cols)
 					{
-						GListItemRadioBtn *r = dynamic_cast<GListItemRadioBtn*>(c);
-						if (r != this)
+						if (c->GetColumn() == GetColumn())
 						{
-							r->Value(0);
-							break;
+							GListItemRadioBtn *r = dynamic_cast<GListItemRadioBtn*>(c);
+							if (r != this)
+							{
+								r->Value(0);
+								break;
+							}
 						}
 					}
 				}
 			}
+			else if (Type == ItemExclusive)
+			{
+				List<GListItemColumn>::I Cols = GetItem()->GetItemCols()->Start();
+				for (GListItemColumn *c=*Cols; c; c=*++Cols)
+				{
+					GListItemRadioBtn *r = dynamic_cast<GListItemRadioBtn*>(c);
+					if (r && r != this)
+					{
+						r->Value(false);
+					}
+				}
+			}
 
-			GetList()->SendNotify(GITEM_NOTIFY_CHANGE);
+			if (GetList())
+				GetList()->SendNotify(GITEM_NOTIFY_CHANGE);
 		}
 	}
 };

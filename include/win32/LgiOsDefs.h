@@ -89,6 +89,9 @@ public:
 		a = A;
 		b = B;
 	}
+	
+	WPARAM A() { return a; }
+	LPARAM B() { return b; }
 };
 
 class LgiClass OsAppArguments
