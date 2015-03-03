@@ -8,9 +8,10 @@ enum DebugMessages
 {
 	M_RUN_STATE = M_USER + 100,
 	M_ON_CRASH,
+	M_FILE_LINE,
 };
 
-class GDebugContextPriv
+class GDebugContextPriv : public GMutex
 {
 public:
 	GDebugContext *Ctx;
@@ -20,16 +21,22 @@ public:
 	GAutoPtr<GDebugger> Db;
 	GAutoString Exe, Args;
 	
+	GAutoString SeekFile;
+	int SeekLine;
+	bool SeekCurrentIp;
+	
 	NativeInt MemDumpStart;
 	GArray<uint8> MemDump;
 
-	GDebugContextPriv(GDebugContext *ctx)
+	GDebugContextPriv(GDebugContext *ctx) : GMutex("GDebugContextPriv")
 	{
 		Ctx = ctx;
 		App = NULL;
 		Proj = NULL;
 		MemDumpStart = 0;
 		InDebugging = false;
+		SeekLine = 0;
+		SeekCurrentIp = false;
 	}
 	
 	~GDebugContextPriv()
@@ -127,6 +134,16 @@ GMessage::Param GDebugContext::OnEvent(GMessage *m)
 		case M_ON_CRASH:
 		{
 			d->UpdateCallStack();
+			break;
+		}
+		case M_FILE_LINE:
+		{
+			GAutoString File;
+			{
+				GMutex::Auto a(d, _FL);
+				File = d->SeekFile;
+			}
+			d->App->GotoReference(File, d->SeekLine, d->SeekCurrentIp);
 			break;
 		}
 	}
@@ -291,7 +308,10 @@ bool GDebugContext::OnCommand(int Cmd)
 		case IDM_START_DEBUG:
 		{
 			if (d->Db)
+			{
+				d->App->LoadBreakPoints(d->Db);
 				d->Db->SetRuning(true);
+			}
 			break;
 		}
 		case IDM_ATTACH_TO_PROCESS:
@@ -458,18 +478,28 @@ void GDebugContext::OnState(bool Debugging, bool Running)
 	if (d->InDebugging != Debugging && d->Db)
 	{
 		d->InDebugging = Debugging;
-		if (Debugging)
-		{
-			// Load break points from app into debugger...
-			d->App->LoadBreakPoints(d->Db);
-		}
 	}
 }
 
-void GDebugContext::OnFileLine(const char *File, int Line)
+void GDebugContext::OnFileLine(const char *File, int Line, bool CurrentIp)
 {
 	if (File && d->App)
-		d->App->GotoReference(File, Line);
+	{
+		if (d->App->InThread())
+		{
+			d->App->GotoReference(File, Line, CurrentIp);
+		}
+		else
+		{
+			{
+				GMutex::Auto a(d, _FL);
+				d->SeekFile.Reset(NewStr(File));
+				d->SeekLine = Line;
+				d->SeekCurrentIp = CurrentIp;
+			}
+			d->App->PostEvent(M_FILE_LINE);
+		}
+	}
 }
 
 int GDebugContext::Write(const void *Ptr, int Size, int Flags)

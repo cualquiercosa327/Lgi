@@ -19,6 +19,7 @@ class Gdb : public GDebugger, public GThread
 	int CurFrame;
 	bool SetAsmType;
 	GArray<BreakPoint> BreakPoints;
+	int BreakPointIdx;
 
 	// Various output modes.
 	GStream *OutStream;
@@ -30,6 +31,15 @@ class Gdb : public GDebugger, public GThread
 		Looping,
 		Exiting,
 	}	State;
+	
+	void SetRunState(bool r)
+	{
+		if (r != Running)
+		{
+			printf("SetRunState(%i)\n", r);
+			Running = r;
+		}
+	}
 
 	void Log(const char *Fmt, ...)
 	{
@@ -47,7 +57,34 @@ class Gdb : public GDebugger, public GThread
 	
 	void OnExit()
 	{
-		Events->OnState(DebuggingProcess = false, Running = false);
+		SetRunState(false);
+		Events->OnState(DebuggingProcess = false, Running);
+	}
+	
+	void OnBreakPoint(const char *Str, int Len)
+	{
+		while (Len > 0 && strchr(WhiteSpace, *Str))
+		{
+			Str++;
+			Len--;
+		}
+		
+		// printf("OnBreakPoint: %.*s\n", Len-1, Str);
+		
+		if (strnicmp(Str, "at ", 3) == 0)
+		{
+			GString f;
+			f.Set(Str + 3, Len - 3);
+			GString::Array a = f.SplitDelimit(":");
+			if (a.Length() == 2)
+			{
+				Events->OnFileLine(a[0], a[1].Int(), true);
+			}
+			else printf("%s:%i - Not the right arg count.\n", _FL);
+			
+			BreakPointIdx = -1;
+		}
+		else printf("Not end of breakpoint.\n");
 	}
 	
 	void OnLine(const char *Start, int Length)
@@ -60,7 +97,11 @@ class Gdb : public GDebugger, public GThread
 		else
 			Events->Write(Start, Length);
 
-		if (stristr(Line, "received signal SIGSEGV"))
+		if (BreakPointIdx > 0)
+		{
+			OnBreakPoint(Start, Length);
+		}
+		else if (stristr(Line, "received signal SIGSEGV"))
 		{
 			Events->OnCrash(0);
 		}
@@ -69,6 +110,11 @@ class Gdb : public GDebugger, public GThread
 		{
 			OnExit();
 		}
+		else if (BreakPointIdx < 0 &&
+				strncmp(Line, "Breakpoint ", 11) == 0)
+		{
+			BreakPointIdx = atoi(Line+11);
+		}		
 	}
 	
 	void OnRead(const char *Ptr, int Bytes)
@@ -107,7 +153,7 @@ class Gdb : public GDebugger, public GThread
 				{
 					if (Running ^ !AtPrompt)
 					{
-						Running = !AtPrompt;
+						SetRunState(!AtPrompt);
 						Events->OnState(DebuggingProcess, Running);
 					}
 					
@@ -142,9 +188,11 @@ class Gdb : public GDebugger, public GThread
 		if (InitDir)
 			Sp->SetInitFolder(InitDir);
 		
+		printf("Starting gdb subprocess...\n");
 		if (!Sp->Start(true, true, false))
 			return -1;
 
+		printf("Entering gdb loop...\n");
 		State = Looping;
 		DebuggingProcess = true;
 
@@ -164,8 +212,12 @@ class Gdb : public GDebugger, public GThread
 			}			
 		}
 
+		printf("Exiting gdb loop...\n");
 		if (Events)
-			Events->OnState(DebuggingProcess = false, Running = false);
+		{
+			SetRunState(false);
+			Events->OnState(DebuggingProcess = false, Running);
+		}
 
 		Log("Debugger exited.\n");
 		return 0;
@@ -245,6 +297,8 @@ public:
 		OutLines = NULL;
 		CurFrame = 0;
 		SetAsmType = false;
+		DebuggingProcess = false;
+		BreakPointIdx = -1;
 	}
 	
 	~Gdb()
@@ -330,7 +384,10 @@ public:
 	{
 		Cmd("q");
 		if (DebuggingProcess)
-			Events->OnState(DebuggingProcess = false, Running = false);
+		{
+			SetRunState(false);
+			Events->OnState(DebuggingProcess = false, Running);
+		}
 		return false;
 	}
 	
@@ -349,16 +406,10 @@ public:
 				Cmd("set disassembly-flavor intel");
 			}
 
-			printf("Set Running bp=%i\n", BreakPoints.Length());
-			for (int i=0; i<BreakPoints.Length(); i++)
-			{
-				AddBp(BreakPoints[i]);
-			}
-			
 			if (Cmd("r"))
 			{
-				Events->OnState(DebuggingProcess, Running = true);
-				Running = true;
+				SetRunState(true);
+				Events->OnState(DebuggingProcess, Running);
 				return true;
 			}
 		}
@@ -380,7 +431,11 @@ public:
 		{
 			char cmd[MAX_PATH];
 			sprintf_s(cmd, sizeof(cmd), "break %s:%i", bp.File.Get(), bp.Line);
+			printf("AddBp: %s\n", cmd);
+			BreakPointIdx = 0;
 			Ret = Cmd(cmd);
+			WaitPrompt();
+			BreakPointIdx = -1;
 			if (Ret)
 				bp.Added = true;
 		}
@@ -396,13 +451,21 @@ public:
 		n = *bp;
 		n.Added = false;
 		
-		if (DebuggingProcess)
+		uint64 Start = LgiCurrentTime();
+		while (!DebuggingProcess)
 		{
-			if (Running)
-				printf("Can't add break point while running.\n");
-			else
-				AddBp(*bp);
+			LgiSleep(5);
+			if (LgiCurrentTime()-Start > 2000)
+			{
+				LgiAssert(0);
+				return false;
+			}
 		}
+		
+		if (Running)
+			printf("Can't add break point while running.\n");
+		else
+			AddBp(*bp);
 		
 		return true;
 	}

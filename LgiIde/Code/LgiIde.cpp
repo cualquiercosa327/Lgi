@@ -671,7 +671,7 @@ public:
 			if (HistoryLoc > CursorHistory.Length()) HistoryLoc = CursorHistory.Length();
 
 			FileLoc &Loc = CursorHistory[HistoryLoc-1];
-			App->GotoReference(Loc.File, Loc.Line, false);
+			App->GotoReference(Loc.File, Loc.Line, false, false);
 		}
 	}
 	
@@ -802,7 +802,7 @@ public:
 		GAutoString Full;
 		if (FindSource(Full, File, Context))
 		{
-			IdeDoc *Doc = App->GotoReference(Full, Line);			
+			IdeDoc *Doc = App->GotoReference(Full, Line, false);			
 		}
 	}
 	
@@ -1452,7 +1452,9 @@ bool AppWnd::LoadBreakPoints(GDebugger *db)
 
 	for (int i=0; i<d->BreakPoints.Length(); i++)
 	{
-		db->SetBreakPoint(&d->BreakPoints[i]);
+		GDebugger::BreakPoint &bp = d->BreakPoints[i];
+		printf("Load %s:%i\n", bp.File.Get(), bp.Line);
+		db->SetBreakPoint(&bp);
 	}
 
 	return true;
@@ -1556,7 +1558,7 @@ IdeDoc *AppWnd::NewDocWnd(const char *FileName, NodeSource *Src)
 	return Doc;
 }
 
-IdeDoc *AppWnd::GotoReference(const char *File, int Line, bool WithHistory)
+IdeDoc *AppWnd::GotoReference(const char *File, int Line, bool CurIp, bool WithHistory)
 {
 	if (!WithHistory)
 		d->InHistorySeek = true;
@@ -2198,7 +2200,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			FindSymResult r = d->FindSym.OpenSearchDlg(this);
 			if (r.File)
 			{
-				GotoReference(r.File, r.Line);
+				GotoReference(r.File, r.Line, false);
 			}
 			break;
 		}

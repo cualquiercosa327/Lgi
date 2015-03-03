@@ -210,7 +210,7 @@ public:
 	GOptionsFile *GetOptions();
 	GList *GetFtpLog();
 	IdeDoc *FindOpenFile(char *FileName);
-	IdeDoc *GotoReference(const char *File, int Line, bool WithHistory = true);
+	IdeDoc *GotoReference(const char *File, int Line, bool CurIp, bool WithHistory = true);
 	bool FindSymbol(const char *Syn, GArray<FindSymResult> &Results);
 	bool GetSystemIncludePaths(GArray<char*> &Paths);
 	
