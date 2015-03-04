@@ -2897,7 +2897,7 @@ void ResDialog::Paste()
 				List<ResDialogCtrl> NewCtrls;
 				for (t = Root.Children.First(); t; t = Root.Children.Next())
 				{
-					if (t->IsTag("string"))
+					if (!t->IsTag("string"))
 					{
 						// object (not string)
 						CreateSymbols = false;
@@ -3410,8 +3410,6 @@ void ResDialog::DrawSelection(GSurface *pDC)
     if (Selection.Length() == 0)
         return;
 
-    //pDC->SetOrigin(0, 0);
-    
 	// Draw selection
 	for (ResDialogCtrl *Ctrl = Selection.First(); Ctrl; Ctrl = Selection.Next())
 	{
