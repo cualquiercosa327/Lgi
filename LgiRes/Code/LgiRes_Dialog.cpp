@@ -1271,6 +1271,7 @@ void CtrlRadio::OnPaint(GSurface *pDC)
 CtrlTab::CtrlTab(ResDialog *dlg, GXmlTag *load) :
 	ResDialogCtrl(dlg, Res_Tab, load)
 {
+	Str->UpdateWnd = this;
 }
 
 IMPL_DIALOG_CTRL(CtrlTab)

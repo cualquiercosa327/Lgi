@@ -385,6 +385,7 @@ FtpOpenStatus IFtp::Open(GSocketI *S, char *RemoteHost, int Port, char *User, ch
 	try
 	{
 		Socket.Reset(S);
+		S->SetTimeout(15 * 1000);
 		Authenticated = false;	
 
 		if (!Port)
