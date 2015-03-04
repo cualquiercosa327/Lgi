@@ -1797,8 +1797,10 @@ GSurface *GdcDevice::Load(const char *Name, bool UseOSLoader)
 
 			#elif WINNATIVE && defined(_MSC_VER)
 			
+			/*
 			char *Ext = LgiGetExtension((char*)Name);
 			if (Ext && stricmp(Ext, "gif") && stricmp(Ext, "png"))
+			*/
 			{
 				IImgCtx *Ctx = 0;
 				HRESULT hr = CoCreateInstance(CLSID_IImgCtx, NULL, CLSCTX_INPROC_SERVER, IID_IImgCtx, (LPVOID*)&Ctx);

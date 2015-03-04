@@ -418,6 +418,7 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int LineLen, bool KeepData)
 					}
 					else
 					{
+						DWORD err = GetLastError();
 						#if 1
 						LgiAssert(!"Create bmp failed.");
 						#endif
