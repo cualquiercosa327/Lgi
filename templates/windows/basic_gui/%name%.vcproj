@@ -188,6 +188,10 @@
 					RelativePath="%lgi.folder%\src\common\Lgi\LgiMain.cpp"
 					>
 				</File>
+				<File
+					RelativePath=".\%name%.manifest"
+					>
+				</File>
 			</Filter>
 		</Filter>
 	</Files>

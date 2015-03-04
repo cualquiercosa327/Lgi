@@ -98,84 +98,6 @@
 			/>
 		</Configuration>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory="$(PlatformName)$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)$(ConfigurationName)"
-			ConfigurationType="1"
-			CharacterSet="2"
-			WholeProgramOptimization="1"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\include\win32,..\include\common,..\..\..\..\CodeLib\libpng,..\..\..\..\CodeLib\zlib"
-				PreprocessorDefinitions="WIN32;NDEBUG;WINDOWS"
-				RuntimeLibrary="2"
-				UsePrecompiledHeader="0"
-				WarningLevel="1"
-				Detect64BitPortabilityProblems="false"
-				DebugInformationFormat="3"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="imm32.lib"
-				OutputFile="$(OutDir)\LgiRes.exe"
-				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\lib"
-				GenerateDebugInformation="true"
-				SubSystem="2"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
-				TargetMachine="1"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
-		<Configuration
 			Name="Debug|x64"
 			OutputDirectory="$(PlatformName)$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)$(ConfigurationName)"
@@ -231,6 +153,84 @@
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 				TargetMachine="17"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory="$(PlatformName)$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)$(ConfigurationName)"
+			ConfigurationType="1"
+			CharacterSet="2"
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="..\include\win32,..\include\common,..\..\..\..\CodeLib\libpng,..\..\..\..\CodeLib\zlib"
+				PreprocessorDefinitions="WIN32;NDEBUG;WINDOWS"
+				RuntimeLibrary="2"
+				UsePrecompiledHeader="0"
+				WarningLevel="1"
+				Detect64BitPortabilityProblems="false"
+				DebugInformationFormat="3"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="imm32.lib"
+				OutputFile="$(OutDir)\LgiRes.exe"
+				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\lib"
+				GenerateDebugInformation="true"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -414,6 +414,10 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+			<File
+				RelativePath=".\Code\LgiRes.manifest"
+				>
+			</File>
 			<File
 				RelativePath=".\Code\Script1.rc"
 				>
