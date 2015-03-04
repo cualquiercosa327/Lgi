@@ -38,7 +38,7 @@ public:
 	}
 };
 
-int Cmp(GListItem *a, GListItem *b, int d)
+int Cmp(GListItem *a, GListItem *b, NativeInt d)
 {
 	return stricmp(a->GetText(2), b->GetText(2));
 }

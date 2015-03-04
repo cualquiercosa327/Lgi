@@ -34,8 +34,14 @@ GAbout::GAbout(	GView *parent,
 	#endif
 
 	GStringPipe p;
+	const char *OsName = LgiGetOsName();
+	#if defined(_WIN64)
+	OsName = "Win64";
+	#elif defined(WIN32)
+	OsName = "Win32";
+	#endif	
 	
-	p.Print("%s v%s (%s %s)\n", AppName, Ver, LgiGetOsName(), Build);
+	p.Print("%s v%s (%s %s)\n", AppName, Ver, OsName, Build);
 	p.Print("Build: %s, %s\n\n", __DATE__, __TIME__);
 	if (Url) p.Print("Homepage:\n\t%s\n", Url);
 	if (Email) p.Print("Email:\n\t%s\n", Email);

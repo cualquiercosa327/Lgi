@@ -978,7 +978,7 @@ int ResString::Compare(ResString *r, int Column)
 	return -1;
 }
 
-int ResStringCompareFunc(GListItem *a, GListItem *b, int Data)
+int ResStringCompareFunc(GListItem *a, GListItem *b, NativeInt Data)
 {
 	ResString *A = dynamic_cast<ResString*>(a);
 	if (A)
@@ -1095,7 +1095,7 @@ void ResStringGroup::AppendLanguage(GLanguageId Id)
 	}
 }
 
-int RefCmp(ResString *a, ResString *b, int d)
+int RefCmp(ResString *a, ResString *b, NativeInt d)
 {
 	return a->GetRef() - b->GetRef();
 }

@@ -2612,7 +2612,7 @@ void SerialiseContext::PostLoad(AppWnd *App)
 	}
 }
 
-int DialogNameCompare(ResDialog *a, ResDialog *b, int Data)
+int DialogNameCompare(ResDialog *a, ResDialog *b, NativeInt Data)
 {
 	char *A = (a)?a->Name():0;
 	char *B = (b)?b->Name():0;
