@@ -13,6 +13,7 @@
 #include "GTabView.h"
 #include "GSkinEngine.h"
 #include "GDisplayString.h"
+#include "GTableLayout.h"
 
 #ifdef WIN32
 
@@ -605,6 +606,20 @@ void GTabView::OnPosChange()
 				for (GViewI *c = It->First(); c; c = It->Next())
 				{
 					c->Pour(Rgn);
+				}
+			}
+			else
+			{
+				GAutoPtr<GViewIterator> It(p->IterateViews());
+				if (It->Length() == 1)
+				{
+					GTableLayout *tl = dynamic_cast<GTableLayout*>(It->First());
+					if (tl)
+					{
+						GRect r = p->GetClient();
+						r.Size(GTableLayout::CellSpacing, GTableLayout::CellSpacing);
+						tl->SetPos(r);
+					}
 				}
 			}
 		}
