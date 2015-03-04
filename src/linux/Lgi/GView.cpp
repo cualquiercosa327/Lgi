@@ -918,6 +918,7 @@ bool GView::Detach()
 		{
 			int Detached = 0;
 			GViewI *c, *prev = NULL;
+
 			while (c = Children.First())
 			{
 				LgiAssert(!prev || c != prev);

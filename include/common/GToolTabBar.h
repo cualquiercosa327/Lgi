@@ -26,7 +26,9 @@ class GToolTab : public GToolButton
 
 public:
 	GToolTab();
-	~GToolTab() {}
+	~GToolTab();
+
+	const char *GetClass() { return "GToolTab"; }
 
 	/// Override this event to attach controls to the current view.
 	virtual void OnSelect() {}
@@ -49,6 +51,8 @@ class GToolTabBar : public GToolBar
 public:
 	GToolTabBar();
 	~GToolTabBar();
+
+	const char *GetClass() { return "GToolTabBar"; }
 
 	int64 Value();
 	void Value(int64 i);

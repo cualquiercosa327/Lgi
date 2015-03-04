@@ -21,6 +21,10 @@ GToolTab::GToolTab() : GToolButton(16, 16)
 	#endif
 }
 
+GToolTab::~GToolTab()
+{
+}
+
 void GToolTab::OnPaint(GSurface *pDC)
 {
 	#if 1
