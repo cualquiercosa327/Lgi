@@ -22,7 +22,7 @@ public:
 		Info.fMask = SIF_ALL; // | SIF_DISABLENOSCROLL;
 		Info.nMax = -1;
 		Shift = 0;
-		Max = Max = Page = Value = 0;
+		Min = Max = Page = Value = 0;
 	}
 };
 
