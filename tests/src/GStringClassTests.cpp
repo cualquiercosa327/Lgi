@@ -129,15 +129,16 @@ bool GStringClassTest::Run()
 	{
 		const char *Base = "This is a test string";
 		GString a(Base);
-		GString b;
+		int b;
 		b = a(5);
-		if (_stricmp(b, "i"))
+		if (b != 'i')
 			return FAIL(_FL, "Char substring failed");
 		b = a(-1);
-		if (_stricmp(b, "g"))
+		if (b != 'g')
 			return FAIL(_FL, "Char substring failed");
-		b = a(5, 7);
-		if (_stricmp(b, "is"))
+		GString c;
+		c = a(5, 7);
+		if (_stricmp(c, "is"))
 			return FAIL(_FL, "Range substring failed");
 		if (strcmp(Base, a))
 			return FAIL(_FL, "Original string modified");

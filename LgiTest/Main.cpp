@@ -11,7 +11,7 @@ void GStringTest()
 	GString end = a(-5, -1);
 	
 	GString sep(", ");
-	GString::Array parts = GString("This is a test").SplitSep(" ");
+	GString::Array parts = GString("This is a test").Split(" ");
 	GString joined = sep.Join(parts);
 	
 	GString src("  asdwer   ");

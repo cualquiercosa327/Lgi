@@ -1460,8 +1460,7 @@ bool GDom::GetValue(const char *Var, GVariant &Value)
 			{
 				if (Name[0] == 0)
 				{
-					LgiTrace("%s:%i - Warning name parse failed for '%s'\n",
-						__FILE__, __LINE__, Var);
+					LgiTrace("%s:%i - Warning name parse failed for '%s'\n", _FL, Var);
 				}
 				else
 				{
