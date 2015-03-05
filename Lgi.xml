@@ -206,7 +206,7 @@
 				<Node File="./src/common/Gdc2/GRect.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GRect.h" Type="3" Platforms="15" />
 			</Node>
-			<Node Name="Surfaces" Type="1" Platforms="15" Open="0">
+			<Node Name="Surfaces" Type="1" Platforms="15" Open="1">
 				<Node Name="Haiku" Type="1" Platforms="15" Open="0">
 					<Node File="./src/beos/Gdc2/GMemDC.cpp" Type="2" Platforms="8" />
 					<Node File="./src/beos/Gdc2/GPrintDC.cpp" Type="2" Platforms="8" />
@@ -311,7 +311,7 @@
 				<Node File="./src/beos/Lgi/GLayout.cpp" Type="2" Platforms="8" />
 				<Node File="./src/beos/Lgi/GWidgets.cpp" Type="2" Platforms="8" />
 			</Node>
-			<Node Name="Linux" Type="1" Platforms="15" Open="1">
+			<Node Name="Linux" Type="1" Platforms="15" Open="0">
 				<Node File="./src/linux/Lgi/GLayout.cpp" Type="2" Platforms="2" />
 				<Node File="./src/linux/Lgi/GWidgets.cpp" Type="2" Platforms="2" />
 				<Node File="./include/common/LgiWidgets.h" Type="3" Platforms="15" />

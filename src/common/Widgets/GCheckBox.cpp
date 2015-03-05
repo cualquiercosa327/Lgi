@@ -25,6 +25,8 @@ public:
 		Over = false;
 		Three = false;
 		Txt = 0;
+		ValuePos.ZOff(-1, -1);
+
 	}
 
 	~GCheckBoxPrivate()

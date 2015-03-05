@@ -793,13 +793,15 @@ ObjContainer::ObjContainer(AppWnd *w) :
 	Insert(Strings = new ObjTreeItem( new ResFolder(Window, -TYPE_STRING)));
 	Insert(Menus   = new ObjTreeItem( new ResFolder(Window, -TYPE_MENU)));
 
-	char *f = LgiFindFile("_icons.gif");
+	const char *IconFile = "_icons.gif";
+	GAutoString f(LgiFindFile(IconFile));
 	if (f)
 	{
 		Images = LgiLoadImageList(f, 16, 16);
-		LgiAssert(Images);
-		DeleteArray(f);
-		SetImageList(Images, false);
+		if (Images)
+			SetImageList(Images, false);
+		else
+			LgiTrace("%s:%i - failed to load '%s'\n", _FL, IconFile);
 	}
 }
 

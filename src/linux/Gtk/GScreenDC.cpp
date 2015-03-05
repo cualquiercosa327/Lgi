@@ -31,8 +31,8 @@ public:
 		x = y = Bits = 0;
 		Own = false;
 		v = 0;
-		d = 0;
-		gc = 0;
+		d = NULL;
+		gc = NULL;
 		Client.ZOff(-1, -1);
 	}
 	
@@ -89,6 +89,7 @@ GScreenDC::GScreenDC(Gtk::GdkDrawable *Drawable)
 {
 	d = new GScreenPrivate;
 	d->Own = false;
+	d->d = Drawable;
 }
 
 GScreenDC::GScreenDC(GView *view, void *param)
@@ -101,16 +102,37 @@ GScreenDC::GScreenDC(GView *view, void *param)
 		d->Bits = 0;
 		d->Own = false;
 
-	    GdkScreen *s = gdk_display_get_default_screen(gdk_display_get_default());
-	    if (s)
-	    {
-	        GdkVisual *v = gdk_screen_get_system_visual(s);
-	        if (v)
-	        {
-	            d->Bits = v->depth;
-		        ColourSpace = GdkVisualToColourSpace(v, v->depth);
-	        }
-	    }
+		OsView v = view->Handle();
+		if (v)
+		{
+			d->d = v->window;
+			if (d->gc = gdk_gc_new(v->window))
+			{
+			    GdkScreen *s = gdk_gc_get_screen(d->gc);
+			    if (s)
+			    {
+			        GdkVisual *v = gdk_screen_get_system_visual(s);
+			        if (v)
+			        {
+			            d->Bits = v->depth;
+				        ColourSpace = GdkVisualToColourSpace(v, v->depth);
+			        }
+			    }
+			}
+		}
+		else
+		{
+		    GdkScreen *s = gdk_display_get_default_screen(gdk_display_get_default());
+		    if (s)
+		    {
+		        GdkVisual *v = gdk_screen_get_system_visual(s);
+		        if (v)
+		        {
+		            d->Bits = v->depth;
+			        ColourSpace = GdkVisualToColourSpace(v, v->depth);
+		        }
+		    }
+		}
     }
 }
 
@@ -530,12 +552,19 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 	GMemDC *Mem;
 	if (Mem = dynamic_cast<GMemDC*>(Src))
 	{
-		gdk_draw_image( d->d,
-						d->gc,
-						Mem->GetImage(),
-						br.SrcClip.x1, br.SrcClip.y1,
-						Dx, Dy,
-						br.SrcClip.X(), br.SrcClip.Y());
+		if (d->d && d->gc)
+		{
+			gdk_draw_image( d->d,
+							d->gc,
+							Mem->GetImage(),
+							br.SrcClip.x1, br.SrcClip.y1,
+							Dx, Dy,
+							br.SrcClip.X(), br.SrcClip.Y());
+		}
+		else
+		{
+			LgiTrace("%s:%i - Error missing d=%p, gc=%p\n", _FL, d->d, d->gc);
+		}
 	}
 }
 

@@ -8,7 +8,7 @@
 
 CC = gcc
 CPP = g++
-Target = lgiresproj
+Target = lgires
 ifndef Build
 	Build = Debug
 endif
@@ -39,8 +39,7 @@ Inc = \
 	`pkg-config --cflags gtk+-2.0`
 
 # Dependencies
-Depends =	 \
-			LgiRes_ControlTree.o \
+Depends =	LgiRes_ControlTree.o \
 			LgiRes_Dialog.o \
 			LgiRes_TableLayout.o \
 			LgiRes_Menu.o \
@@ -51,8 +50,10 @@ Depends =	 \
 			ShowLanguages.o \
 			GAbout.o \
 			GDocApp.o \
+			Gif.o \
 			GOptionsFile.o \
-			LgiMain.o
+			LgiMain.o \
+			Lzw.o
 
 # Target
 # Executable target
@@ -916,6 +917,13 @@ GDocApp.o : ../src/common/Lgi/GDocApp.cpp ../include/common/GDocApp.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
+Gif.o : ../src/common/Gdc2/Filters/Gif.cpp ../include/common/Lgi.h \
+	../include/common/Lzw.h \
+	../include/common/GVariant.h \
+	../include/common/GPalette.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
 GOptionsFile.o : ../src/common/Lgi/GOptionsFile.cpp ../include/common/Lgi.h \
 	../include/common/GOptionsFile.h
 	@echo $(<F) [$(Build)]
@@ -923,6 +931,11 @@ GOptionsFile.o : ../src/common/Lgi/GOptionsFile.cpp ../include/common/Lgi.h \
 
 LgiMain.o : ../src/common/Lgi/LgiMain.cpp ../include/common/Lgi.h \
 	../include/common/GToken.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
+	../include/common/Lzw.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -1799,6 +1812,8 @@ LgiMain.o : ../src/common/Lgi/LgiMain.cpp ../include/common/Lgi.h \
 	/usr/include/pango-1.0/pango/pango-break.h \
 	/usr/include/pango-1.0/pango/pango-item.h \
 	/usr/include/pango-1.0/pango/pango-glyph.h
+
+../include/common/Lzw.h : 
 
 ../../../../../../usr/include/glib-2.0/glib/gtrashstack.h : /usr/include/glib-2.0/glib/gutils.h
 
