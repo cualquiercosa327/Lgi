@@ -2135,7 +2135,10 @@ int BuildThread::Main()
 			{
 				char *Dir = strrchr(MakePath, DIR_CHAR);
 				#if 1
-				a.Print("/C \"%s\" -f \"%s\"", Exe, Dir ? Dir + 1 : MakePath.Get());
+				a.Print("/C \"%s\"", Exe);
+				if (Jobs.CastInt32() > 1)
+					a.Print(" -j %i", Jobs.CastInt32());
+				a.Print(" -f \"%s\"", Dir ? Dir + 1 : MakePath.Get());
 				#else
 				a.Print("/C set");
 				#endif

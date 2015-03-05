@@ -2346,7 +2346,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		{
 			IdeProject *p = RootProject();
 			if (p)
-				p->Build(false);
+				p->StopBuild();
 			break;
 		}
 		case IDM_CLEAN:

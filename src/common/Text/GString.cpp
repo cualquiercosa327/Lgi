@@ -10,7 +10,7 @@
 
 char WhiteSpace[] = " \t\r\n";
 
-#if !defined(WINDOWS)
+#if !defined(_MSC_VER)
 char *strncpy_s(char *dest, size_t dest_size, const char *src, size_t src_size)
 {
 	if (dest && src)

@@ -43,7 +43,7 @@ bool GStringClassTest::Run()
 		const char *Base = "123,456,789";
 		GString a(Base);
 		if (GString::RefStrCount != 1) return FAIL(_FL, "RefStrCount mismatch");
-		GString::Array b = a.SplitSep(",");
+		GString::Array b = a.Split(",");
 		if (GString::RefStrCount != 4) return FAIL(_FL, "RefStrCount mismatch");
 		GString sep("-");
 		if (GString::RefStrCount != 5) return FAIL(_FL, "RefStrCount mismatch");

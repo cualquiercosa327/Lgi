@@ -22,14 +22,27 @@
 #include "GPalette.h"
 
 namespace t {
-#include "tiffio.h"
+#include "libtiff/tiffio.h"
 }
 
 // Libtiff support
 class LibTiff : public GLibrary
 {
 public:
-	LibTiff() : GLibrary("libtiff") {}
+	LibTiff() :
+		GLibrary
+		(
+			"libtiff"
+			#if defined(_WIN64)
+				"9x64"
+			#elif defined(WIN32)
+				"9x32"
+			#endif
+			#if 0 // defined(_DEBUG) && defined(WIN32)
+			"d"
+			#endif
+		)
+		{}
 
 	DynFunc2(t::TIFF*, TIFFOpen, const char*, a, const char*, b);
 	DynFunc10(t::TIFF*, TIFFClientOpen,

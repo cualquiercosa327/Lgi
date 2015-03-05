@@ -124,11 +124,6 @@ public:
 #define IsWin9x							(GApp::Win9x)
 #define DefaultOsView(t)				NULL
 
-#if defined(__GNUC__)
-#define stricmp							strcasecmp
-#define strnicmp						strncasecmp
-#endif
-
 // Key redefs
 #define VK_PAGEUP						VK_PRIOR
 #define VK_PAGEDOWN						VK_NEXT
@@ -298,8 +293,8 @@ extern bool LgiToWindowsCursor(LgiCursor Cursor);
 #define atoi64						_atoi64
 
 #ifdef __GNUC__
-#define strcpy_s strncpy
-#define strcat_s strncat
+// #define stricmp							strcasecmp
+// #define strnicmp						strncasecmp
 #define vsnprintf_s vsnprintf
 #define swprintf_s snwprintf
 #define vsprintf_s vsnprintf

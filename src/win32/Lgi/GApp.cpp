@@ -1,4 +1,7 @@
 #define _WIN32_WINNT 0x600
+#ifndef _MSC_VER
+#include <basetyps.h>
+#endif
 #include "Lgi.h"
 #include <ole2.h>
 #include <commctrl.h>

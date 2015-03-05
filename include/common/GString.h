@@ -121,9 +121,11 @@ LgiFunc char *stristr
 
 #endif
 
-#ifndef WINNATIVE
+#if !defined(_MSC_VER)
 
+#if !defined(WIN32)
 LgiFunc int strnicmp(const char *a, const char *b, int i);
+#endif
 
 /// \brief Safe string copy
 ///

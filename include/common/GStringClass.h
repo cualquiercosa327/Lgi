@@ -8,9 +8,8 @@
 #ifndef _GSTRING_H_
 #define _GSTRING_H_
 
-#ifdef LINUX
 #include <math.h>
-#else
+#ifdef _MSC_VER
 #include <xmath.h>
 #endif
 #include "GUtf8.h"
@@ -259,7 +258,7 @@ public:
 	}
 
 	/// Splits the string into parts using a separator
-	Array SplitSep(const char *Sep, int Count = -1, bool CaseSen = false)
+	Array Split(const char *Sep, int Count = -1, bool CaseSen = false)
 	{
 		Array a;
 
