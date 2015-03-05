@@ -18,6 +18,7 @@ class Gdb : public GDebugger, public GThread
 	char Line[256], *LinePtr;
 	int CurFrame;
 	bool SetAsmType;
+	bool SetPendingOn;
 	GArray<BreakPoint> BreakPoints;
 	int BreakPointIdx;
 
@@ -31,6 +32,36 @@ class Gdb : public GDebugger, public GThread
 		Looping,
 		Exiting,
 	}	State;
+
+	bool ParseLocation(StrArray &p)
+	{
+		for (int i=0; i<p.Length(); i++)
+		{
+			GString s(p[i]);
+			GString::Array a(s.SplitDelimit(WhiteSpace));
+			if (a.Length() > 0)
+			{
+				int At = 0;
+				for (; At < a.Length() && stricmp(a[At], "at") != 0; At++)
+					;
+				if (At < a.Length() - 1) // Found the 'at'
+				{
+					GString::Array ref = a[At+1].Split(":");
+					if (ref.Length() == 2)
+					{
+						Events->OnFileLine(NativePath(ref[0]), ref[1].Int(), true);
+						return true;
+					}
+				}
+				else if (IsDigit(a[0](0)));
+				{
+					Events->OnFileLine(NULL, a[0].Int(), true);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 	
 	void SetRunState(bool r)
 	{
@@ -61,6 +92,16 @@ class Gdb : public GDebugger, public GThread
 		Events->OnState(DebuggingProcess = false, Running);
 	}
 	
+	char *NativePath(char *p)
+	{
+		for (char *c = p; *c; c++)
+		{
+			if (*c == '/' || *c == '\\')
+				*c = DIR_CHAR;
+		}
+		return p;
+	}
+	
 	void OnBreakPoint(const char *Str, int Len)
 	{
 		while (Len > 0 && strchr(WhiteSpace, *Str))
@@ -69,16 +110,19 @@ class Gdb : public GDebugger, public GThread
 			Len--;
 		}
 		
-		// printf("OnBreakPoint: %.*s\n", Len-1, Str);
+		GString f(Str, Len);
+		GString::Array a = f.SplitDelimit(" \t");
+		int At = 0;
+		// Find 'at'
+		for (; At < a.Length() && stricmp(a[At], "at") != 0; At++)
+			;
 		
-		if (strnicmp(Str, "at ", 3) == 0)
+		if (At < a.Length() - 1) // Found the 'at'
 		{
-			GString f;
-			f.Set(Str + 3, Len - 3);
-			GString::Array a = f.SplitDelimit(":");
-			if (a.Length() == 2)
+			GString::Array ref = a[At+1].SplitDelimit(":");
+			if (ref.Length() == 2)
 			{
-				Events->OnFileLine(a[0], a[1].Int(), true);
+				Events->OnFileLine(NativePath(ref[0]), ref[1].Int(), true);
 			}
 			else printf("%s:%i - Not the right arg count.\n", _FL);
 			
@@ -101,19 +145,22 @@ class Gdb : public GDebugger, public GThread
 		{
 			OnBreakPoint(Start, Length);
 		}
-		else if (stristr(Line, "received signal SIGSEGV"))
+		else if (stristr(Start, "received signal SIGSEGV"))
 		{
 			Events->OnCrash(0);
 		}
-		else if (stristr(Line, "[Inferior") &&
-				 stristr(Line, "exited"))
+		else if (stristr(Start, "[Inferior") &&
+				 stristr(Start, "exited"))
 		{
 			OnExit();
 		}
 		else if (BreakPointIdx < 0 &&
-				strncmp(Line, "Breakpoint ", 11) == 0)
+				strncmp(Start, "Breakpoint ", 11) == 0)
 		{
-			BreakPointIdx = atoi(Line+11);
+			Start += 11;
+			Length -= 11;
+			BreakPointIdx = atoi(Start);
+			OnBreakPoint(Start, Length);
 		}		
 	}
 	
@@ -273,13 +320,17 @@ class Gdb : public GDebugger, public GThread
 		OutLines = Arr;		
 		AtPrompt = false;
 
+		uint64 Start = LgiCurrentTime();
 		int Wr = Sp->Write(str, ch);
 		if (Wr != ch)
 			return false;
 
 		if (OutStream || OutLines)
 		{		
+			uint64 Wait0 = LgiCurrentTime();
 			WaitPrompt();
+			uint64 Wait1 = LgiCurrentTime();
+			LgiTrace("Cmd timing "LGI_PrintfInt64" "LGI_PrintfInt64"\n", Wait0-Start, Wait1-Wait0);
 			LgiAssert(OutStream == NULL && OutLines == NULL);
 		}
 		
@@ -297,6 +348,7 @@ public:
 		OutLines = NULL;
 		CurFrame = 0;
 		SetAsmType = false;
+		SetPendingOn = false;
 		DebuggingProcess = false;
 		BreakPointIdx = -1;
 	}
@@ -429,9 +481,16 @@ public:
 		bool Ret = false;
 		if (!bp.Added)
 		{
+			if (!SetPendingOn)
+			{
+				Cmd("set breakpoint pending on");
+				SetPendingOn = true;
+			}
+			
 			char cmd[MAX_PATH];
-			sprintf_s(cmd, sizeof(cmd), "break %s:%i", bp.File.Get(), bp.Line);
-			printf("AddBp: %s\n", cmd);
+			char *File = bp.File.Get();
+			char *Last = strrchr(File, DIR_CHAR);
+			sprintf_s(cmd, sizeof(cmd), "break %s:%i", Last ? Last + 1 : File, bp.Line);
 			BreakPointIdx = 0;
 			Ret = Cmd(cmd);
 			WaitPrompt();
@@ -689,17 +748,26 @@ public:
 
 	bool StepInto()
 	{
-		return Cmd("step");
+		StrArray p;
+		if (!Cmd("step", NULL, &p))
+			return false;
+		return ParseLocation(p);
 	}
 
 	bool StepOver()
 	{
-		return Cmd("next");
+		StrArray p;
+		if (!Cmd("next", NULL, &p))
+			return false;
+		return ParseLocation(p);
 	}
 
 	bool StepOut()
 	{
-		return Cmd("finish");
+		StrArray p;
+		if (!Cmd("finish", NULL, &p))
+			return false;
+		return ParseLocation(p);
 	}
 
 	bool Break()

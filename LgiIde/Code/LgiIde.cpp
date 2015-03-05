@@ -1315,6 +1315,13 @@ void AppWnd::OnDebugState(bool Debugging, bool Running)
 	if (d->Debugging != Debugging)
 	{
 		d->Debugging = Debugging;
+		if (!Debugging)
+		{
+			IdeDoc::ClearCurrentIp();
+			IdeDoc *c = GetCurrentDoc();
+			if (c && c->GetEdit())
+				c->GetEdit()->Invalidate();
+		}
 	}
 
 	SetCtrlEnabled(IDM_START_DEBUG, !Debugging);
@@ -1326,8 +1333,6 @@ void AppWnd::OnDebugState(bool Debugging, bool Running)
 	SetCtrlEnabled(IDM_STEP_OVER, Debugging && !Running);
 	SetCtrlEnabled(IDM_STEP_OUT, Debugging && !Running);
 	SetCtrlEnabled(IDM_RUN_TO, Debugging && !Running);
-	
-	// printf("OnDebugState(%i, %i)\n", Debugging, Running);
 }
 
 void AppWnd::UpdateState(int Debugging, int Building)
@@ -1453,7 +1458,6 @@ bool AppWnd::LoadBreakPoints(GDebugger *db)
 	for (int i=0; i<d->BreakPoints.Length(); i++)
 	{
 		GDebugger::BreakPoint &bp = d->BreakPoints[i];
-		printf("Load %s:%i\n", bp.File.Get(), bp.Line);
 		db->SetBreakPoint(&bp);
 	}
 
@@ -1558,15 +1562,22 @@ IdeDoc *AppWnd::NewDocWnd(const char *FileName, NodeSource *Src)
 	return Doc;
 }
 
+IdeDoc *AppWnd::GetCurrentDoc()
+{
+	if (d->Mdi)
+		return dynamic_cast<IdeDoc*>(d->Mdi->GetTop());
+	return NULL;
+}
+
 IdeDoc *AppWnd::GotoReference(const char *File, int Line, bool CurIp, bool WithHistory)
 {
 	if (!WithHistory)
 		d->InHistorySeek = true;
 
-	IdeDoc *Doc = OpenFile(File);
+	IdeDoc *Doc = File ? OpenFile(File) : GetCurrentDoc();
 	if (Doc)
 	{
-		Doc->GetEdit()->SetLine(Line);
+		Doc->SetLine(Line, CurIp);
 	}
 
 	if (!WithHistory)
@@ -1616,7 +1627,7 @@ IdeDoc *AppWnd::OpenFile(const char *FileName, NodeSource *Src)
 	IdeDoc *Doc = 0;
 	
 	const char *File = Src ? Src->GetFileName() : FileName;
-	if (Src || FileExists(File))
+	if (Src || ValidStr(File))
 	{
 		Doc = d->IsFileOpen(File);
 
@@ -2310,6 +2321,18 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			}
 			break;
 		}
+		case IDM_TOGGLE_BREAKPOINT:
+		{
+			IdeDoc *Cur = GetCurrentDoc();
+			if (Cur)
+			{
+				if (Cur->GetEdit())
+				{
+					ToggleBreakpoint(Cur->GetFileName(), Cur->GetEdit()->GetLine());
+				}
+			}
+			break;
+		}
 		case IDM_ATTACH_TO_PROCESS:
 		case IDM_PAUSE_DEBUG:
 		case IDM_RESTART_DEBUGGING:
@@ -2317,7 +2340,6 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		case IDM_STEP_INTO:
 		case IDM_STEP_OVER:
 		case IDM_STEP_OUT:
-		case IDM_TOGGLE_BREAKPOINT:
 		{
 			if (d->DbgContext)
 				d->DbgContext->OnCommand(Cmd);

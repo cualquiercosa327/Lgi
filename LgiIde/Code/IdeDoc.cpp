@@ -509,7 +509,7 @@ public:
 		
 		int TopPaddingPx = GetCss(true)->PaddingTop().ToPx(GetClient().Y(), GetFont());
 
-		pDC->Colour(GColour(222, 0, 0));
+		pDC->Colour(GColour(200, 0, 0));
 		List<GTextLine>::I it = GTextView3::Line.Start(Y);
 		int DocOffset = (*it)->r.y1;
 		for (GTextLine *l = *it; l; l = *++it, Y++)
@@ -518,6 +518,26 @@ public:
 			{
 				int r = l->r.Y() >> 1;
 				pDC->FilledCircle(8, l->r.y1 + r + TopPaddingPx - DocOffset, r - 1);
+			}
+		}
+
+		char *Fn = Doc->GetFileName();
+		bool DocMatch = IdeDoc::CurIpDoc && !_stricmp(Fn, IdeDoc::CurIpDoc);
+
+		{
+			// We have the current IP location
+			it = GTextView3::Line.Start();
+			int Idx = 1;
+			for (GTextLine *ln = *it; ln; ln = *++it, Idx++)
+			{
+				if (DocMatch && Idx == IdeDoc::CurIpLine)
+				{
+					ln->Back.Rgb(255, 255, 0);
+				}
+				else
+				{
+					ln->Back.Empty();
+				}
 			}
 		}
 	}
@@ -668,10 +688,6 @@ public:
 		}
 	}
 	
-	void PourStyle(int Start, int Length)
-	{
-	}
-
 	bool Pour(GRegion &r)
 	{
 		GRect c = r.Bound();
@@ -999,6 +1015,9 @@ void IdeDocPrivate::OnSaveComplete(bool Status)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
+GAutoString IdeDoc::CurIpDoc;
+int IdeDoc::CurIpLine = -1;
+
 IdeDoc::IdeDoc(AppWnd *a, NodeSource *src, const char *file)
 {
 	d = new IdeDocPrivate(this, a, src, file);
@@ -1151,6 +1170,26 @@ bool IdeDoc::AddBreakPoint(int Line, bool Add)
 		d->Edit->Invalidate();
 
 	return true;
+}
+
+void IdeDoc::ClearCurrentIp()
+{
+	CurIpDoc.Reset();
+	CurIpLine = -1;
+}
+
+void IdeDoc::SetLine(int Line, bool CurIp)
+{
+	if (CurIp)
+	{
+		CurIpLine = Line;
+		CurIpDoc.Reset(NewStr(GetFileName()));
+	}
+	
+	if (GetEdit())
+	{
+		GetEdit()->SetLine(Line);
+	}
 }
 
 IdeProject *IdeDoc::GetProject()

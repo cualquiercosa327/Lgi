@@ -69,6 +69,9 @@ class IdeDoc : public GMdiChild
 	friend class DocEdit;
 	class IdeDocPrivate *d;
 
+	static GAutoString CurIpDoc;
+	static int CurIpLine;
+
 public:
 	IdeDoc(class AppWnd *a, NodeSource *src, const char *file);
 	~IdeDoc();
@@ -89,6 +92,8 @@ public:
 	void OnPaint(GSurface *pDC);
 	bool IsFile(const char *File);
 	bool AddBreakPoint(int Line, bool Add);
+	void SetLine(int Line, bool CurIp);
+	static void ClearCurrentIp();
 
 	// Source tools
 	bool BuildIncludePaths(GArray<char*> &Paths, IdePlatform Platform, bool IncludeSysPaths);

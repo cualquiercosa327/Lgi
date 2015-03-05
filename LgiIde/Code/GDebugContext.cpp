@@ -303,6 +303,7 @@ bool GDebugContext::ParseFrameReference(const char *Frame, GAutoString &File, in
 
 bool GDebugContext::OnCommand(int Cmd)
 {
+	LgiTrace("OnCommand(%i)\n", Cmd);
 	switch (Cmd)
 	{
 		case IDM_START_DEBUG:
@@ -483,7 +484,7 @@ void GDebugContext::OnState(bool Debugging, bool Running)
 
 void GDebugContext::OnFileLine(const char *File, int Line, bool CurrentIp)
 {
-	if (File && d->App)
+	if (d->App)
 	{
 		if (d->App->InThread())
 		{

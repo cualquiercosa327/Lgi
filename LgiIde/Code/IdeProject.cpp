@@ -1651,25 +1651,37 @@ public:
 			}
 			else if (strchr(In, DIR_CHAR))
 			{
-				// Match full path
-				if (File[0] == '.')
+				// Match partial or full path
+				char Full[MAX_PATH] = "";
+				
+				if (LgiIsRelativePath(File))
 				{
 					GAutoString Base = Project->GetBasePath();
 					if (Base)
-					{
-						char f[MAX_PATH];
-						LgiMakePath(f, sizeof(f), Base, File);
-						
-						Match = stricmp(f, In) == 0;
-					}
+						LgiMakePath(Full, sizeof(Full), Base, File);
 					else
-					{
-						printf("%s,%i - Couldn't get full IDoc path.\n", __FILE__, __LINE__);
-					}
+						LgiTrace("%s,%i - Couldn't get full IDoc path.\n", __FILE__, __LINE__);
 				}
 				else
 				{
-					Match = stricmp(File, In) == 0;
+					strcpy_s(Full, sizeof(Full), File);
+				}
+				
+				GString MyPath(Full);
+				GString::Array MyArr = MyPath.Split(DIR_STR);
+				GString InPath(In);
+				GString::Array InArr = InPath.Split(DIR_STR);
+				int Common = min(MyArr.Length(), InArr.Length());
+				Match = true;
+				for (int i = 0; i < Common; i++)
+				{
+					char *a = MyArr[MyArr.Length()-(i+1)];
+					char *b = InArr[InArr.Length()-(i+1)];
+					if (_stricmp(a, b))
+					{
+						Match = false;
+						break;
+					}
 				}
 			}
 			else
@@ -2925,13 +2937,13 @@ char *IdeProject::FindFullPath(const char *File, class ProjectNode **Node)
 	return Full;		
 }
 
-bool IdeProject::InProject(const char *FullPath, bool Open, IdeDoc **Doc)
+bool IdeProject::InProject(const char *Path, bool Open, IdeDoc **Doc)
 {
 	ProjectNode *n = 0;
 
 	ForAllProjectNodes(c)
 	{
-		if ((n = c->FindFile(FullPath, 0)))
+		if ((n = c->FindFile(Path, 0)))
 		{
 			break;
 		}

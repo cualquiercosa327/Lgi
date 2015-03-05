@@ -165,7 +165,7 @@ public:
 	void Clean();
 	GDebugContext *Execute(ExeAction Act = ExeRun);
 	char *FindFullPath(const char *File, class ProjectNode **Node = NULL);
-	bool InProject(const char *FullPath, bool Open, class IdeDoc **Doc = 0);
+	bool InProject(const char *Path, bool Open, class IdeDoc **Doc = 0);
 	const char *GetFileComment();
 	const char *GetFunctionComment();
 	bool CreateMakefile(IdePlatform Platform);

@@ -453,26 +453,26 @@ public:
 	}
 
 	/// Gets the character at 'index'
-	GString operator() (int index)
+	int operator() (int index)
 	{
-		GString s;
-		if (Str)
+		if (!Str)
+			return 0;
+
+		char *c = Str->Str;
+		if (index < 0)
 		{
-			char *c = Str->Str;
-			if (index < 0)
+			int idx = Str->Len + index;
+			if (idx >= 0)
 			{
-				int idx = Str->Len + index;
-				if (idx >= 0)
-				{
-					s.Set(c + idx, 1);
-				}
-			}
-			else if (index < (int)Str->Len)
-			{
-				s.Set(c + index, 1);
+				return c[idx];
 			}
 		}
-		return s;
+		else if (index < (int)Str->Len)
+		{
+			return c[index];
+		}
+		
+		return 0;
 	}
 	
 	/// Gets the string between at 'start' and 'end' (not including the end'th character)
