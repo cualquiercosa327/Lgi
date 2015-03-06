@@ -469,6 +469,16 @@ Gtk::gint LgiKeyToGtkKey(int Key, const char *ShortCut)
 		#ifdef GDK_BackSpace
 		case VK_BACKSPACE: return GDK_BackSpace;
 		#endif
+
+		case VK_UP:
+			return GDK_Up;
+		case VK_DOWN:
+			return GDK_Down;
+		case VK_LEFT:
+			return GDK_Left;
+		case VK_RIGHT:
+			return GDK_Right;
+
 		case VK_F1:
 			return GDK_F1;
 		case VK_F2:
@@ -576,6 +586,22 @@ bool LgiMenuItem::ScanForAccel()
 				else if (stricmp(k, "Backspace") == 0)
 				{
 					Key = VK_BACKSPACE;
+				}
+				else if (stricmp(k, "Left") == 0)
+				{
+					Key = VK_LEFT;
+				}
+				else if (stricmp(k, "Up") == 0)
+				{
+					Key = VK_UP;
+				}
+				else if (stricmp(k, "Right") == 0)
+				{
+					Key = VK_RIGHT;
+				}
+				else if (stricmp(k, "Down") == 0)
+				{
+					Key = VK_DOWN;
 				}
 				else if (stricmp(k, "Space") == 0)
 				{
