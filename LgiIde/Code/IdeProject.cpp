@@ -13,6 +13,7 @@
 #include "GClipBoard.h"
 #include "GDropFiles.h"
 #include "GSubProcess.h"
+#include <direct.h>
 
 extern const char *Untitled;
 
@@ -515,7 +516,7 @@ public:
 	AppWnd *App;
 	IdeProject *Project;
 	bool Dirty;
-	char *FileName;
+	GAutoString FileName;
 	IdeProject *ParentProject;
 	IdeProjectSettings Settings;
 	GAutoPtr<BuildThread> Build;
@@ -526,13 +527,7 @@ public:
 	{
 		App = a;
 		Dirty = false;
-		FileName = 0;
 		ParentProject = 0;
-	}
-
-	~IdeProjectPrivate()
-	{
-		DeleteArray(FileName);
 	}
 
 	void CollectAllFiles(GTreeNode *Base, GArray<ProjectNode*> &Files, bool SubProjects, int Platform);
@@ -2676,7 +2671,7 @@ void IdeProject::CreateProject()
 {
 	Empty();
 	
-	DeleteArray(d->FileName);
+	d->FileName.Reset();
 	d->App->GetTree()->Insert(this);
 	
 	ProjectNode *f = new ProjectNode(this);
@@ -2702,8 +2697,19 @@ bool IdeProject::OpenFile(char *FileName)
 	bool Status = false;
 	
 	Empty();
-	DeleteArray(d->FileName);
-	d->FileName = NewStr(FileName);
+
+	if (LgiIsRelativePath(FileName))
+	{
+		char p[MAX_PATH];
+		getcwd(p, sizeof(p));
+		LgiMakePath(p, sizeof(p), p, FileName);
+		d->FileName.Reset(NewStr(p));
+	}
+	else
+	{
+		d->FileName.Reset(NewStr(FileName));
+	}
+
 	if (d->FileName)
 	{
 		GFile f;
@@ -2768,7 +2774,7 @@ void IdeProject::SetClean()
 			s.Name("Project.xml");
 			if (s.Save())
 			{
-				d->FileName = NewStr(s.Name());
+				d->FileName.Reset(NewStr(s.Name()));
 				d->App->OnFile(d->FileName, true);
 				Update();
 			}

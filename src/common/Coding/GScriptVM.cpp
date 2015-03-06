@@ -1011,7 +1011,7 @@ void GDebugView::PourText(int Start, int Len)
 		if (CurLine == Idx)
 		{
 			l->c.Rgb(0, 0, 0);
-			l->Back.Rgb(0xff, 0xe0, 0x00);
+			l->Back.Set(LC_DEBUG_CURRENT_LINE, 24);
 		}
 		else
 		{

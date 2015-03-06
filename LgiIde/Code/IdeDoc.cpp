@@ -532,7 +532,7 @@ public:
 			{
 				if (DocMatch && Idx == IdeDoc::CurIpLine)
 				{
-					ln->Back.Rgb(255, 255, 0);
+					ln->Back.Set(LC_DEBUG_CURRENT_LINE, 24);
 				}
 				else
 				{

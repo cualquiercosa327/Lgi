@@ -243,7 +243,7 @@ void LgiInitColours()
 	_LgiColours[i++] = LookupColour("text_color", Black); // LC_MENU_TEXT
 	_LgiColours[i++] = GdcMixColour(LookupColour("selected_bg_color", Sel), _LgiColours[11]); // LC_NON_FOCUS_SEL_BACK
 	_LgiColours[i++] = LookupColour("selected_fg_color", White); // LC_NON_FOCUS_SEL_FORE
-	LgiAssert(i == LC_MAXIMUM);
+	LgiAssert(i <= LC_MAXIMUM);
 
 	#elif defined(WINDOWS)
 
@@ -265,7 +265,7 @@ void LgiInitColours()
 	_LgiColours[i++] = ConvertWinColour(GetSysColor(COLOR_MENUTEXT)); // LC_MENU_TEXT
 	_LgiColours[i++] = ConvertWinColour(GetSysColor(COLOR_BTNFACE)); // LC_NON_FOCUS_SEL_BACK
 	_LgiColours[i++] = ConvertWinColour(GetSysColor(COLOR_BTNTEXT)); // LC_NON_FOCUS_SEL_FORE
-	LgiAssert(i == LC_MAXIMUM);
+	LgiAssert(i <= LC_MAXIMUM);
 
 	#else // defaults for non-windows, plain greys
 
@@ -326,6 +326,8 @@ void LgiInitColours()
 		#define MixComp(a)		( (a(_LgiColours[7])+a(_LgiColours[9])) / 2 )
 		_LgiColours[8] = Rgb24(MixComp(R24), MixComp(G24), MixComp(B24));
 	}
+	
+	_LgiColours[23] = Rgb24(0xff, 0xe0, 0x00);
 
 	// Read any settings out of config
 	i = 5;

@@ -345,7 +345,9 @@ enum LgiOs
 /// Selection forground colour when not in focus
 #define LC_NON_FOCUS_SEL_FORE			LgiColour(22)
 
-#define LC_MAXIMUM						23
+#define LC_DEBUG_CURRENT_LINE			LgiColour(23)
+
+#define LC_MAXIMUM						24
 
 // Edge types
 enum LgiEdge
