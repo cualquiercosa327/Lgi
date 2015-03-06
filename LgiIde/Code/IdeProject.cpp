@@ -1,3 +1,8 @@
+#if defined(WIN32)
+#include <direct.h>
+#else
+#include <unistd.h>
+#endif
 #include <stdio.h>
 
 #include "Lgi.h"
@@ -13,7 +18,6 @@
 #include "GClipBoard.h"
 #include "GDropFiles.h"
 #include "GSubProcess.h"
-#include <direct.h>
 
 extern const char *Untitled;
 
