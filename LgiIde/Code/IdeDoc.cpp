@@ -544,7 +544,7 @@ public:
 
 	void OnMouseClick(GMouse &m)
 	{
-		if (m.x < 16)
+		if (m.x < 10)
 		{
 			if (m.Down())
 			{
