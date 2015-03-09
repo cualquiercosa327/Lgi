@@ -275,19 +275,10 @@ class Gdb : public GDebugger, public GThread
 		if (State == Init)
 		{
 			uint64 Start = LgiCurrentTime();
-			while (State == Init /*&& LgiCurrentTime() - Start < 2000*/)
+			while (State == Init)
 			{
 				LgiSleep(1);
 			}
-			/*
-			if (State == Init)
-			{
-				LgiAssert(0);
-				return false;
-			}
-			*/
-			
-			// LgiTrace("Waited %I64ims for Looping state...\n", LgiCurrentTime() - Start);
 		}
 
 		uint64 Start = LgiCurrentTime();
@@ -302,14 +293,15 @@ class Gdb : public GDebugger, public GThread
 			return false;
 		}
 
-		// LgiTrace("Waited %I64ims for AtPrompt...\n", LgiCurrentTime() - Start);
 		return true;
 	}
 	
 	bool Cmd(const char *c, GStream *Output = NULL, StrArray *Arr = NULL)
 	{
 		if (!WaitPrompt())
+		{
 			return false;
+		}
 
 		char str[256];
 		int ch = sprintf_s(str, sizeof(str), "%s\n", c);

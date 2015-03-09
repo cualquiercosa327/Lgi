@@ -1071,7 +1071,8 @@ bool GMenu::OnKey(GView *v, GKey &k)
 				GMenuItem *i = FindItem(a->GetId());
 				if (!i || i->Enabled())
 				{
-					Window->OnCommand(a->GetId(), 0, 0);
+					int Cmd = a->GetId();
+					Window->OnCommand(Cmd, 0, 0);
 					return true;
 				}
 			}

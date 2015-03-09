@@ -2099,7 +2099,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 
 				if (SysOnKey(this, Msg))
 				{
-					// LgiTrace("SysOnKey true, Msg=0x%x\n", Msg->Msg);
+					LgiTrace("SysOnKey true, Msg=0x%x %x,%x\n", Msg->Msg, Msg->a, Msg->b);
 					return 0;
 				}
 				else
@@ -2148,6 +2148,20 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 						else
 						{
 							OnKey(Key);
+						}
+					}
+
+					if (Msg->Msg == WM_SYSKEYUP || Msg->Msg == WM_SYSKEYDOWN)
+					{
+						if (Key.vkey >= VK_F1 &&
+							Key.vkey <= VK_F12 &&
+							Key.Alt() == false)
+						{
+							// So in LgiIde if you press F10 (debug next) you get a hang
+							// sometimes in DefWindowProc. Until I figure out what's going
+							// on this code exits before calling DefWindowProc without
+							// breaking other WM_SYSKEY* functionality (esp Alt+F4).
+							return 0;
 						}
 					}
 				}
@@ -2268,10 +2282,19 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 	return 0;
 
 ReturnDefaultProc:
+	uint64 start = LgiCurrentTime();
+	LRESULT r;
 	if (IsWin9x)
-		return DefWindowProcA(_View, Msg->Msg, Msg->a, Msg->b);
+		r = DefWindowProcA(_View, Msg->Msg, Msg->a, Msg->b);
 	else
-		return DefWindowProcW(_View, Msg->Msg, Msg->a, Msg->b);
+		r = DefWindowProcW(_View, Msg->Msg, Msg->a, Msg->b);
+	uint64 now = LgiCurrentTime();
+	if (now - start > 1000)
+	{
+		LgiTrace("DefWindowProc(0x%.4x, %i, %i) took %ims\n",
+			Msg->Msg, Msg->a, Msg->b, (int)(now - start));
+	}
+	return r;
 }
 
 GViewI *GView::FindControl(OsView hCtrl)
