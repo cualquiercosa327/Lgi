@@ -9,6 +9,7 @@
 */
 
 #include <stdio.h>
+#include <CdErr.h>
 #include "Lgi.h"
 
 class GFileSelectPrivate
@@ -29,8 +30,6 @@ class GFileSelectPrivate
 	List<char>		Files;
 	bool			ShowReadOnly;
 	bool			ReadOnly;
-
-	#if defined WIN32
 
 	char *TypeStrA()
 	{
@@ -99,6 +98,34 @@ class GFileSelectPrivate
 
 		Info.Flags |= OFN_EXPLORER;
 		Files.DeleteArrays();
+	}
+
+	bool DoFallback(OPENFILENAMEA &Info)
+	{
+		DWORD err = CommDlgExtendedError();
+		if (err == FNERR_INVALIDFILENAME)
+		{
+			// Something about the filename is making the dialog unhappy...
+			// So nuke it and go without.
+			Info.lpstrFile[0] = 0;
+			return true;
+		}
+
+		return false;
+	}
+
+	bool DoFallback(OPENFILENAMEW &Info)
+	{
+		DWORD err = CommDlgExtendedError();
+		if (err == FNERR_INVALIDFILENAME)
+		{
+			// Something about the filename is making the dialog unhappy...
+			// So nuke it and go without.
+			Info.lpstrFile[0] = 0;
+			return true;
+		}
+
+		return false;
 	}
 
 	void AfterDlg(OPENFILENAMEA &Info, bool Status)
@@ -216,17 +243,6 @@ class GFileSelectPrivate
 		DeleteArray((char16*&)Info.lpstrFilter);
 		SelectedType = Info.nFilterIndex - 1;
 	}
-
-	#elif defined BEOS
-
-	BFilePanel		*Panel;
-	BMessenger		*Messenger;
-
-	void Wait();
-	void MessageReceived(BMessage *message);
-	bool DoDialog(file_panel_mode Mode, int32 NodeType = B_FILE_NODE);
-
-	#endif
 
 	GFileSelectPrivate()
 	{
@@ -393,17 +409,20 @@ bool GFileSelect::Open()
 
 	if (IsWin9x)
 	{
-		OPENFILENAMEA	Info;
+		OPENFILENAMEA Info;
 		d->BeforeDlg(Info);
-		d->AfterDlg(Info, Status = GetOpenFileName(&Info));
+		Status = GetOpenFileNameA(&Info);
+		if (!Status && d->DoFallback(Info))
+			Status = GetOpenFileNameA(&Info);
+		d->AfterDlg(Info, Status);
 	}
 	else
 	{
-		OPENFILENAMEW	Info;
+		OPENFILENAMEW Info;
 		d->BeforeDlg(Info);
 		Status = GetOpenFileNameW(&Info);
-		if (!Status)
-			LgiTrace("GetOpenFileName failed with 0x%x\n", GetLastError());
+		if (!Status && d->DoFallback(Info))
+			Status = GetOpenFileNameW(&Info);
 		d->AfterDlg(Info, Status);
 	}
 
@@ -473,13 +492,19 @@ bool GFileSelect::Save()
 	{
 		OPENFILENAMEA	Info;
 		d->BeforeDlg(Info);
-		d->AfterDlg(Info, Status = GetSaveFileName(&Info));
+		Status = GetSaveFileNameA(&Info);
+		if (!Status && d->DoFallback(Info))
+			Status = GetSaveFileNameA(&Info);		
+		d->AfterDlg(Info, Status);
 	}
 	else
 	{
 		OPENFILENAMEW	Info;
 		d->BeforeDlg(Info);
-		d->AfterDlg(Info, Status = GetSaveFileNameW(&Info));
+		Status = GetSaveFileNameW(&Info);
+		if (!Status && d->DoFallback(Info))
+			Status = GetSaveFileNameW(&Info);		
+		d->AfterDlg(Info, Status);
 	}
 
 	return Status && Length() > 0;
