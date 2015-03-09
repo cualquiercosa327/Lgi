@@ -127,6 +127,11 @@ class GFileSelectPrivate
 
 			ReadOnly = TestFlag(Info.Flags, OFN_READONLY);
 		}
+		else
+		{
+			DWORD err = CommDlgExtendedError();
+			LgiTrace("%s:%i - FileNameDlg error 0x%x\n", _FL, err);
+		}
 
 		DeleteArray(Info.lpstrFile);
 		DeleteArray((char*&)Info.lpstrInitialDir);
@@ -145,7 +150,7 @@ class GFileSelectPrivate
 		
 		if (Info.lpstrFile)
 		{
-			Info.lpstrFile[0] = 0;
+			memset(Info.lpstrFile, 0, sizeof(*Info.lpstrFile) * Info.nMaxFile);
 
 			char16 *s = LgiNewUtf8To16(FileStr);
 			if (s)
@@ -199,6 +204,11 @@ class GFileSelectPrivate
 			}
 
 			ReadOnly = TestFlag(Info.Flags, OFN_READONLY);
+		}
+		else
+		{
+			DWORD err = CommDlgExtendedError();
+			LgiTrace("%s:%i - FileNameDlg error 0x%x\n", _FL, err);
 		}
 
 		DeleteArray(Info.lpstrFile);
