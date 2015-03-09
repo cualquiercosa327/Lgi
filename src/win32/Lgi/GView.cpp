@@ -2282,18 +2282,22 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 	return 0;
 
 ReturnDefaultProc:
+	#ifdef _DEBUG
 	uint64 start = LgiCurrentTime();
+	#endif
 	LRESULT r;
 	if (IsWin9x)
 		r = DefWindowProcA(_View, Msg->Msg, Msg->a, Msg->b);
 	else
 		r = DefWindowProcW(_View, Msg->Msg, Msg->a, Msg->b);
+	#ifdef _DEBUG
 	uint64 now = LgiCurrentTime();
 	if (now - start > 1000)
 	{
 		LgiTrace("DefWindowProc(0x%.4x, %i, %i) took %ims\n",
 			Msg->Msg, Msg->a, Msg->b, (int)(now - start));
 	}
+	#endif
 	return r;
 }
 
