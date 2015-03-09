@@ -303,7 +303,6 @@ bool GDebugContext::ParseFrameReference(const char *Frame, GAutoString &File, in
 
 bool GDebugContext::OnCommand(int Cmd)
 {
-	LgiTrace("OnCommand(%i)\n", Cmd);
 	switch (Cmd)
 	{
 		case IDM_START_DEBUG:

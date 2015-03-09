@@ -22,6 +22,11 @@ class Gdb : public GDebugger, public GThread
 	GArray<BreakPoint> BreakPoints;
 	int BreakPointIdx;
 
+	// Current location tracking
+	GString CurFile;
+	int CurLine;
+	StrArray Untagged;
+
 	// Various output modes.
 	GStream *OutStream;
 	StrArray *OutLines;
@@ -139,7 +144,10 @@ class Gdb : public GDebugger, public GThread
 		else if (OutStream)
 			OutStream->Write(Start, Length);
 		else
+		{
+			Untagged.New().Reset(NewStr(Start, Length));
 			Events->Write(Start, Length);
+		}	
 
 		if (BreakPointIdx > 0)
 		{
@@ -161,7 +169,15 @@ class Gdb : public GDebugger, public GThread
 			Length -= 11;
 			BreakPointIdx = atoi(Start);
 			OnBreakPoint(Start, Length);
-		}		
+		}
+		else
+		{
+			// Untagged file/line?
+			if (ParseLocation(Untagged))
+			{
+				Untagged.Length(0);
+			}
+		}
 	}
 	
 	void OnRead(const char *Ptr, int Bytes)
@@ -740,26 +756,17 @@ public:
 
 	bool StepInto()
 	{
-		StrArray p;
-		if (!Cmd("step", NULL, &p))
-			return false;
-		return ParseLocation(p);
+		return Cmd("step");
 	}
 
 	bool StepOver()
 	{
-		StrArray p;
-		if (!Cmd("next", NULL, &p))
-			return false;
-		return ParseLocation(p);
+		return Cmd("next");
 	}
 
 	bool StepOut()
 	{
-		StrArray p;
-		if (!Cmd("finish", NULL, &p))
-			return false;
-		return ParseLocation(p);
+		return Cmd("finish");
 	}
 
 	bool Break()
