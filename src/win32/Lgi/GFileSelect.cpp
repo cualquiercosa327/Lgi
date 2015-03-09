@@ -9,6 +9,7 @@
 */
 
 #include <stdio.h>
+#include <CdErr.h>
 #include "Lgi.h"
 
 class GFileSelectPrivate
@@ -29,8 +30,6 @@ class GFileSelectPrivate
 	List<char>		Files;
 	bool			ShowReadOnly;
 	bool			ReadOnly;
-
-	#if defined WIN32
 
 	char *TypeStrA()
 	{
@@ -101,6 +100,34 @@ class GFileSelectPrivate
 		Files.DeleteArrays();
 	}
 
+	bool DoFallback(OPENFILENAMEA &Info)
+	{
+		DWORD err = CommDlgExtendedError();
+		if (err == FNERR_INVALIDFILENAME)
+		{
+			// Something about the filename is making the dialog unhappy...
+			// So nuke it and go without.
+			Info.lpstrFile[0] = 0;
+			return true;
+		}
+
+		return false;
+	}
+
+	bool DoFallback(OPENFILENAMEW &Info)
+	{
+		DWORD err = CommDlgExtendedError();
+		if (err == FNERR_INVALIDFILENAME)
+		{
+			// Something about the filename is making the dialog unhappy...
+			// So nuke it and go without.
+			Info.lpstrFile[0] = 0;
+			return true;
+		}
+
+		return false;
+	}
+
 	void AfterDlg(OPENFILENAMEA &Info, bool Status)
 	{
 		if (Status)
@@ -127,6 +154,11 @@ class GFileSelectPrivate
 
 			ReadOnly = TestFlag(Info.Flags, OFN_READONLY);
 		}
+		else
+		{
+			DWORD err = CommDlgExtendedError();
+			LgiTrace("%s:%i - FileNameDlg error 0x%x\n", _FL, err);
+		}
 
 		DeleteArray(Info.lpstrFile);
 		DeleteArray((char*&)Info.lpstrInitialDir);
@@ -145,7 +177,7 @@ class GFileSelectPrivate
 		
 		if (Info.lpstrFile)
 		{
-			Info.lpstrFile[0] = 0;
+			memset(Info.lpstrFile, 0, sizeof(*Info.lpstrFile) * Info.nMaxFile);
 
 			char16 *s = LgiNewUtf8To16(FileStr);
 			if (s)
@@ -200,23 +232,17 @@ class GFileSelectPrivate
 
 			ReadOnly = TestFlag(Info.Flags, OFN_READONLY);
 		}
+		else
+		{
+			DWORD err = CommDlgExtendedError();
+			LgiTrace("%s:%i - FileNameDlg error 0x%x\n", _FL, err);
+		}
 
 		DeleteArray(Info.lpstrFile);
 		DeleteArray((char16*&)Info.lpstrInitialDir);
 		DeleteArray((char16*&)Info.lpstrFilter);
 		SelectedType = Info.nFilterIndex - 1;
 	}
-
-	#elif defined BEOS
-
-	BFilePanel		*Panel;
-	BMessenger		*Messenger;
-
-	void Wait();
-	void MessageReceived(BMessage *message);
-	bool DoDialog(file_panel_mode Mode, int32 NodeType = B_FILE_NODE);
-
-	#endif
 
 	GFileSelectPrivate()
 	{
@@ -385,15 +411,18 @@ bool GFileSelect::Open()
 	{
 		OPENFILENAMEA	Info;
 		d->BeforeDlg(Info);
-		d->AfterDlg(Info, Status = GetOpenFileName(&Info));
+		Status = GetOpenFileNameA(&Info);
+		if (!Status && d->DoFallback(Info))
+			Status = GetOpenFileNameA(&Info);
+		d->AfterDlg(Info, Status);
 	}
 	else
 	{
 		OPENFILENAMEW	Info;
 		d->BeforeDlg(Info);
 		Status = GetOpenFileNameW(&Info);
-		if (!Status)
-			LgiTrace("GetOpenFileName failed with 0x%x\n", GetLastError());
+		if (!Status && d->DoFallback(Info))
+			Status = GetOpenFileNameW(&Info);
 		d->AfterDlg(Info, Status);
 	}
 
@@ -463,13 +492,19 @@ bool GFileSelect::Save()
 	{
 		OPENFILENAMEA	Info;
 		d->BeforeDlg(Info);
-		d->AfterDlg(Info, Status = GetSaveFileName(&Info));
+		Status = GetSaveFileNameA(&Info);
+		if (!Status && d->DoFallback(Info))
+			Status = GetSaveFileNameA(&Info);		
+		d->AfterDlg(Info, Status);
 	}
 	else
 	{
 		OPENFILENAMEW	Info;
 		d->BeforeDlg(Info);
-		d->AfterDlg(Info, Status = GetSaveFileNameW(&Info));
+		Status = GetSaveFileNameW(&Info);
+		if (!Status && d->DoFallback(Info))
+			Status = GetSaveFileNameW(&Info);		
+		d->AfterDlg(Info, Status);
 	}
 
 	return Status && Length() > 0;
