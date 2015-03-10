@@ -14,7 +14,7 @@
 #define TIME_INSTRUCTIONS		0
 #define POST_EXECUTE_STATE		0
 
-#define BREAK_POINT				0x0000009F
+// #define BREAK_POINT				0x0000009F
 
 #define ExitScriptExecution		c.u8 = e
 #define SetScriptError			c.u8 = e; /* LgiAssert(0); */ Status = ScriptError

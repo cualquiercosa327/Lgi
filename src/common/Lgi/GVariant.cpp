@@ -587,7 +587,7 @@ bool GVariant::SetHashTable(GHashTable *Table, bool Copy)
 	}
 	else
 	{
-		Value.Hash = Table;
+		Value.Hash = Table ? Table : new GHashTable;
 	}
 
 	return Value.Hash != 0;
