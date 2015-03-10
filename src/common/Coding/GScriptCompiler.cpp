@@ -260,6 +260,7 @@ class TokenRanges
 	};
 
 	GArray<Range> r;
+	char fl[MAX_PATH + 32];
 
 public:
 	void Empty()
@@ -280,12 +281,25 @@ public:
 			Range &n = r[i];
 			if (Tok >= n.Start && Tok < n.Start + (int)n.Lines.Length())
 			{
-				static char fl[256];
 				sprintf_s(fl, sizeof(fl), "%s:%i", n.File.Str(), n.Lines[Tok - n.Start]);
 				return fl;
 			}
 		}
 		return 0;
+	}
+
+	char *GetLine(int Line)
+	{
+		if (r.Length() > 0)
+		{
+			Range &Last = r.Last();
+			sprintf_s(fl, sizeof(fl), "%s:%i", Last.File.Str(), Line);
+		}
+		else
+		{
+			sprintf_s(fl, sizeof(fl), "$unknown:%i", Line);
+		}
+		return fl;
 	}
 
 	/// Add a file/line reference for the next token
@@ -303,20 +317,20 @@ public:
 		}
 		else
 		{
-			int Last = r.Length()-1;
-			char *LastFile = r[Last].File.Str();
+			Range &Last = r.Last();
+			char *LastFile = Last.File.Str();
 			if (_stricmp(LastFile?LastFile:Empty, FileName?FileName:Empty) != 0)
 			{
 				// File changed...
 				Range &n = r.New();
 				n.File = FileName;
-				n.Start = r[Last].Start + r[Last].Lines.Length();
+				n.Start = Last.Start + Last.Lines.Length();
 				n.Lines.Add(Line);
 			}
 			else
 			{
 				// Same file...
-				r[Last].Lines.Add(Line);
+				Last.Lines.Add(Line);
 			}
 		}
 	}
@@ -330,7 +344,8 @@ class GCompilerPriv :
 	GHashTbl<const char*, GVariantType> Types;
 
 public:
-	GScriptContext *Ctx;
+	GScriptContext *SysCtx;
+	GScriptContext *UserCtx;
 	GCompiledCode *Code;
 	GStream *Log;
 	GArray<char16*> Tokens;	
@@ -351,7 +366,8 @@ public:
 
 	GCompilerPriv() : ExpTok(0, false)
 	{
-		Ctx = 0;
+		SysCtx = NULL;
+		UserCtx = NULL;
 		Code = 0;
 		Log = 0;
 		Script = 0;
@@ -397,7 +413,8 @@ public:
 
 	void Empty()
 	{
-		Ctx = 0;
+		SysCtx = NULL;
+		UserCtx = NULL;
 		DeleteObj(Code);
 		Log = 0;
 		Tokens.DeleteArrays();
@@ -406,7 +423,16 @@ public:
 		Defines.DeleteArrays();
 	}
 
-	bool OnError(int Tok, const char *Msg, ...)
+	/// Prints the error message
+	bool OnError
+	(
+		/// The line number (less than 0) or Token index (greater than 0)
+		int LineOrTok,
+		/// The format for the string (printf)
+		const char *Msg,
+		/// Variable argument list
+		...
+	)
 	{
 		char Buf[512];
 		va_list Arg;
@@ -415,7 +441,7 @@ public:
 		#define _vsnprintf vsnprintf
 		#endif
 		vsprintf_s(Buf, sizeof(Buf), Msg, Arg);
-		Log->Print("CompileError:%s - %s\n", Lines[Tok], Buf);
+		Log->Print("%s - Error: %s\n", LineOrTok < 0 ? Lines.GetLine(-LineOrTok) : Lines[LineOrTok], Buf);
 		va_end(Arg);
 
 		return false;
@@ -573,28 +599,59 @@ public:
 					int Len;
 					if (!StrnicmpW(t + 1, sInclude, Len = StrlenW(sInclude)))
 					{
-						char16 *Raw = LexCpp(s, LexStrdup);
-						char16 *File = TrimStrW(Raw, (char16*)L"\"\'");
-						DeleteArray(Raw);
+						GAutoWString Raw(LexCpp(s, LexStrdup));
+						GAutoWString File(TrimStrW(Raw, (char16*)L"\"\'"));
 						if (File)
 						{
 							GVariant v;
 							char *IncCode = 0;
-							v.OwnStr(File);
+							v.OwnStr(File.Release());
 
-							if ((IncCode = Ctx->GetIncludeFile(v.Str())))
+							if (UserCtx)
 							{
-								Lex(IncCode, v.Str());
+								if ((IncCode = UserCtx->GetIncludeFile(v.Str())))
+								{
+									Lex(IncCode, v.Str());
+								}
+								else
+								{
+									if (Lines.Length() == 0 && FileName)
+										Lines.Add(FileName, Line);
+									DeleteArray(t);
+									return OnError(-Line, "Ctx failed to include '%s'", v.Str());
+								}
 							}
 							else
 							{
-								DeleteArray(t);
-								return OnError(Lines.Length()-1, "Couldn't include '%s'", v.Str());
+								if (LgiIsRelativePath(v.Str()))
+								{
+									char p[MAX_PATH];
+									LgiMakePath(p, sizeof(p), FileName, "..");
+									LgiMakePath(p, sizeof(p), p, v.Str());
+									v = p;
+								}
+								
+								if (FileExists(v.Str()))
+								{
+									Lex(IncCode, v.Str());
+								}
+								else
+								{								
+									if (Lines.Length() == 0 && FileName)
+										Lines.Add(FileName, Line);
+									DeleteArray(t);
+									return OnError(-Line, "Couldn't include '%s'", v.Str());
+								}
 							}
 
 							DeleteArray(IncCode);
 						}
-						else OnError(Tokens.Length(), "No file for #include.");
+						else
+						{
+							if (Lines.Length() == 0 && FileName)
+								Lines.Add(FileName, Line);
+							OnError(-Line, "No file for #include.");
+						}
 					}
 					else if (!StrnicmpW(t + 1, sDefine, Len = StrlenW(sDefine)))
 					{
@@ -878,7 +935,7 @@ public:
 
 		// Gets the first part of the variable.
 		GVarRef Cur = FindVariable(n.Variable[0].Name, true);
-		if (Cur.Index < 0)
+		if (!Cur.Valid())
 			return false;
 
 		if (n.Variable.Length() > 1)
@@ -999,7 +1056,7 @@ public:
 	}
 
 	/// Convert a token stream to a var ref
-	bool TokenToVarRef(Node &n)
+	bool TokenToVarRef(Node &n, GVarRef *&LValue)
 	{
 		if (!n.Reg.Valid())
 		{
@@ -1039,6 +1096,7 @@ public:
 				}
 
 				n.Reg = v;
+				LValue = NULL;
 
 				// Does it have an array deref?
 				if (n.Variable[0].Array.Length())
@@ -1174,11 +1232,27 @@ public:
 						break;
 					}
 				}
+
+				LValue = NULL;
 			}
 			else if (n.IsContextFunc())
 			{
 				// Method call, create byte codes to put func value into n.Reg
-				if (AllocReg(n.Reg, _FL))
+				GVarRef *OutRef;
+				if (LValue)
+				{
+					OutRef = LValue;
+				}
+				else
+				{
+					if (!AllocReg(n.Reg, _FL))
+					{
+						return OnError(n.Tok, "Can't allocate register for method return value.");
+					}
+					OutRef = &n.Reg;
+				}
+				
+				if (OutRef)
 				{
 					DebugInfo(n.Tok);
 
@@ -1199,7 +1273,7 @@ public:
 					p.u8 = Start;
 					*p.u8++ = ICallMethod;
 					*p.fn++ = n.ContextFunc;
-					*p.r++ = n.Reg;
+					*p.r++ = *OutRef;
 					*p.u16++ = n.Args.Length();
 					for (unsigned i=0; i<n.Args.Length(); i++)
 					{
@@ -1212,13 +1286,26 @@ public:
 					{
 						DeallocReg(a[i]);
 					}
-				}
-				else return OnError(n.Tok, "Can't allocate register for method return value.");
+				}				
 			}
 			else if (n.IsScriptFunc())
 			{
 				// Call to a script function, create byte code to call function
-				if (AllocReg(n.Reg, _FL))
+				GVarRef *OutRef;
+				if (LValue)
+				{
+					OutRef = LValue;
+				}
+				else
+				{
+					if (!AllocReg(n.Reg, _FL))
+					{
+						return OnError(n.Tok, "Can't allocate register for method return value.");
+					}
+					OutRef = &n.Reg;
+				}
+				
+				if (OutRef)
 				{
 					DebugInfo(n.Tok);
 
@@ -1263,7 +1350,7 @@ public:
 						*p.u16++ = 0;
 					}
 
-					*p.r++ = n.Reg;
+					*p.r++ = *OutRef;
 					*p.u16++ = n.Args.Length();
 					for (unsigned i=0; i<n.Args.Length(); i++)
 					{
@@ -1703,7 +1790,8 @@ public:
 			{
 				Node &a = n[OpIdx + (Type == OpPrefix ? 1 : -1)];
 
-				if (TokenToVarRef(a))
+				GVarRef *NullRef = NULL;
+				if (TokenToVarRef(a, NullRef))
 				{
 					GVarRef Reg;
 					if (a.Reg.Scope != SCOPE_REGISTER)
@@ -1760,14 +1848,34 @@ public:
 
 				Node &a = n[OpIdx-1];
 				Node &b = n[OpIdx+1];
-
-				if (TokenToVarRef(b))
+				
+				GVarRef *LValue = NULL;
+				GVarRef LRef;
+				if (Op == OpAssign &&
+					OpIdx == 1 &&
+					a.Variable.Length() == 1)
 				{
-					if ((int)Op == (int)IAssign)
+					// Can the node 'a' be considered an L value?
+					LRef = FindVariable(a.Variable[0].Name, true);
+					if (LRef.Valid())
+						LValue = &LRef;
+				}
+
+				if (TokenToVarRef(b, LValue))
+				{
+					GVarRef *NullRef = NULL;
+					
+					if (Op == OpAssign)
 					{
-						AssignVarRef(a, b.Reg);
+						if (LValue)
+							; // We already did the assignment as part of the
+							  // L value optimisation.
+						else
+							// However without the L value we have to do the output
+							// assignment.
+							AssignVarRef(a, b.Reg);
 					}
-					else if (TokenToVarRef(a))
+					else if (TokenToVarRef(a, NullRef))
 					{
 						GVarRef Reg;
 						if (a.Reg.Scope != SCOPE_REGISTER)
@@ -1819,7 +1927,8 @@ public:
 		{
 			if (!n[0].Reg.Valid())
 			{
-				if (!TokenToVarRef(n[0]))
+				GVarRef *NullRef = NULL;
+				if (!TokenToVarRef(n[0], NullRef))
 				{
 					return false;
 				}
@@ -2842,13 +2951,14 @@ bool GCompiler::Compile
 		}
 	}
 
-	d->Ctx = UserContext;
-	if (d->Ctx)
+	d->SysCtx = SysContext;
+	d->UserCtx = UserContext;
+	if (d->UserCtx)
 	{
-		GHostFunc *f = d->Ctx->GetCommands();
+		GHostFunc *f = d->UserCtx->GetCommands();
 		for (int i=0; f[i].Method; i++)
 		{
-			f[i].Context = d->Ctx;
+			f[i].Context = d->UserCtx;
 			
 			if (!d->Methods.Find(f[i].Method))
 				d->Methods.Add(f[i].Method, f+i);
@@ -2905,6 +3015,7 @@ GScriptEngine::GScriptEngine(GViewI *parent, GScriptContext *UserContext, GVmDeb
 	d->Parent = parent;
 	d->UserContext = UserContext;
 	d->Callback = Callback;
+	d->SysContext.SetEngine(this);
 }
 
 GScriptEngine::~GScriptEngine()

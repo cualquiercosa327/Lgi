@@ -1,6 +1,7 @@
 #include "Lgi.h"
 #include "GScripting.h"
 #include "../src/common/Coding/GScriptingPriv.h"
+#include "GStringClass.h"
 
 struct ConsoleLog : public GStream
 {
@@ -54,6 +55,7 @@ public:
 	
 	bool Run(const char *File)
 	{
+		bool Disassemble = LgiApp->GetOption("disassemble");
 		if (!FileExists(File))
 		{
 			printf("Error: '%s' not found.\n", File);
@@ -93,6 +95,23 @@ public:
 		{
 			printf("Warning: Execution succeeded with warnings '%s'.\n", SrcFile.Get());
 			return false;
+		}
+		
+		printf("Success: %s\n", File);
+		
+		if (Disassemble)
+		{
+			GString f = File;
+			int Idx = f.RFind(".");
+			if (Idx > 0)
+			{
+				f = f(0, Idx) + ".asm";
+				GAutoString a(ReadTextFile(f));
+				if (a)
+				{
+					printf("%s\n", a.Get());
+				}
+			}
 		}
 		
 		return s == ScriptSuccess;

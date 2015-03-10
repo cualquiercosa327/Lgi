@@ -19,6 +19,12 @@
 #define ExitScriptExecution		c.u8 = e
 #define SetScriptError			c.u8 = e; LgiAssert(0); Status = ScriptError
 #define CurrentScriptAddress	(c.u8 - Base)
+#define CheckParam(ptr)			if (!(ptr)) \
+								{ \
+									OnException(CurrentScriptAddress, "Pointer NULL Check"); \
+									SetScriptError; \
+									break; \
+								}
 
 #ifdef WIN32
 extern "C" uint64 __cdecl CallExtern64(void *FuncAddr, NativeInt *Ret, uint32 Args, void *Arg);
@@ -357,6 +363,13 @@ public:
 				Log->Print("\n");
 			}
 		}
+	}
+
+	bool OnException(uint32 Address, const char *Msg, ...)
+	{
+		if (Log)
+			Log->Print("%s Exception: %s\n", Code->AddrToSourceRef(Address), Msg);
+		return false;
 	}
 
 	GExecutionStatus Decompile(GScriptContext *Context, GCompiledCode *Code, GStream *log)

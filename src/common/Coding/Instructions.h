@@ -518,6 +518,7 @@ case IArrayGet:
 	{
 		case GV_LIST:
 		{
+			CheckParam(Var->Value.Lst);
 			GVariant *t = Var->Value.Lst->ItemAt(Idx->CastInt32());
 			if (t)
 			{
@@ -537,6 +538,7 @@ case IArrayGet:
 		}
 		case GV_HASHTABLE:
 		{
+			CheckParam(Var->Value.Hash);
 			GVariant *t = (GVariant*)Var->Value.Hash->Find(Idx->CastString());
 			if (t) *Dst = *t;
 			else Dst->Empty();
@@ -579,11 +581,13 @@ case IArraySet:
 	{
 		case GV_LIST:
 		{
+			CheckParam(Var->Value.Lst);
 			(*Var->Value.Lst).Insert(new GVariant(*Val), Idx->CastInt32());
 			break;
 		}
 		case GV_HASHTABLE:
 		{
+			CheckParam(Var->Value.Hash);
 			GVariant *Old = (GVariant*)Var->Value.Hash->Find(Idx->CastString());
 			DeleteObj(Old);
 			Var->Value.Hash->Add(Idx->CastString(), new GVariant(*Val));
@@ -935,6 +939,7 @@ case IDomGet:
 			}
 			case GV_LIST:
 			{
+				CheckParam(Dom->Value.Lst);
 				GDomProperty p = GStringToProp(sName);
 				if (p == ObjLength)
 					(*Dst) = (int)Dom->Value.Lst->Length();
@@ -942,6 +947,7 @@ case IDomGet:
 			}
 			case GV_HASHTABLE:
 			{
+				CheckParam(Dom->Value.Hash);
 				GDomProperty p = GStringToProp(sName);
 				if (p == ObjLength)
 					(*Dst) = (int)Dom->Value.Hash->Length();
@@ -1206,8 +1212,7 @@ case IDomCall:
 		}
 		case GV_LIST:
 		{
-			LgiAssert(Dom->Value.Lst != NULL);
-			
+			CheckParam(Dom->Value.Lst);
 			GDomProperty p = GStringToProp(sName);
 			switch (p)
 			{
@@ -1280,8 +1285,7 @@ case IDomCall:
 		}
 		case GV_HASHTABLE:
 		{
-			LgiAssert(Dom->Value.Hash != NULL);
-			
+			CheckParam(Dom->Value.Hash);
 			GDomProperty p = GStringToProp(sName);
 			switch (p)
 			{

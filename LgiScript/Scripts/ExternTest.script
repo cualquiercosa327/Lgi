@@ -1,0 +1,10 @@
+/*
+ * This is a test script
+ *
+ * Author: Matthew Allen <fret@memecode.com>
+ */
+
+extern "Kernel32.dll" int GetWindowsDirectoryA(_out_ char *Folder, int Size);
+
+buf = New(256);
+r = GetWindowsDirectoryA(buf, buf.length);
