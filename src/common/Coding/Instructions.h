@@ -22,7 +22,7 @@ default:
 	if (Log)
 		Log->Print("\t%p Unknown instruction: %i\n", CurrentScriptAddress - 1, c.u8[-1]);
 	#endif
-	LgiAssert(!"Unknown instruction");
+	OnException(_FL, CurrentScriptAddress, "Unknown instruction");
 	SetScriptError;
 	break;
 }
@@ -55,7 +55,7 @@ case IAssign:
 	GResolveRef Dst = Resolve();
 	GResolveRef Src = Resolve();
 	#ifdef VM_EXECUTE
-	LgiAssert(Dst != Src);
+	CheckParam(Dst != Src);
 	*Dst = *Src;
 	#endif
 	break;
@@ -72,7 +72,7 @@ case IJump:
 
 	int32 Jmp = *c.i32++;
 	#ifdef VM_EXECUTE
-	LgiAssert(Jmp != 0);
+	CheckParam(Jmp != 0);
 	c.u8 += Jmp;
 	#endif
 	break;
@@ -90,7 +90,7 @@ case IJumpZero:
 	GResolveRef Exp = Resolve();
 	int32 Jmp = *c.i32++;
 	#ifdef VM_EXECUTE
-	LgiAssert(Jmp != 0);
+	CheckParam(Jmp != 0);
 	if (!Exp->CastInt32())
 	{
 		c.u8 += Jmp;
@@ -339,7 +339,7 @@ case ICallMethod:
 
 		#if VM_EXECUTE
 		Arg[i] = Resolve();
-		LgiAssert(Arg[i] != NULL);
+		CheckParam(Arg[i] != NULL);
 		#else
 		c.r++;
 		#endif
@@ -471,7 +471,7 @@ case IRet:
 		if (Sf.ReturnValue)
 		{
 			*Sf.ReturnValue = *ReturnValue;
-			LgiAssert(Sf.ReturnValue->Type == ReturnValue->Type);
+			CheckParam(Sf.ReturnValue->Type == ReturnValue->Type);
 		}
 
 		Frames.Length(Frames.Length()-1);
@@ -529,7 +529,7 @@ case IArrayGet:
 						*Var = *t;
 						DeleteObj(t);
 					}
-					else LgiAssert(0);
+					else CheckParam(!"List delete failed.");
 				}
 				else *Dst = *t;
 			}
@@ -542,11 +542,6 @@ case IArrayGet:
 			GVariant *t = (GVariant*)Var->Value.Hash->Find(Idx->CastString());
 			if (t) *Dst = *t;
 			else Dst->Empty();
-			break;
-		}
-		case GV_STRING:
-		{
-			LgiAssert(!"Implement me");
 			break;
 		}
 		default:
@@ -591,11 +586,6 @@ case IArraySet:
 			GVariant *Old = (GVariant*)Var->Value.Hash->Find(Idx->CastString());
 			DeleteObj(Old);
 			Var->Value.Hash->Add(Idx->CastString(), new GVariant(*Val));
-			break;
-		}
-		case GV_STRING:
-		{
-			LgiAssert(!"Implement me");
 			break;
 		}
 		default:
@@ -897,7 +887,7 @@ case IDomGet:
 			case GV_GSURFACE:
 			{
 				GDom *dom = Dom->CastDom();
-				LgiAssert(dom != NULL);
+				CheckParam(dom != NULL);
 				bool Ret = dom->GetVariant(sName, *Dst, CastArrayIndex(Arr));
 				if (!Ret)
 				{
@@ -913,7 +903,7 @@ case IDomGet:
 			}
 			case GV_DATETIME:
 			{
-				LgiAssert(Dom->Value.Date != NULL);
+				CheckParam(Dom->Value.Date != NULL);
 				bool Ret = Dom->Value.Date->GetVariant(sName, *Dst, CastArrayIndex(Arr));
 				if (!Ret)
 				{
@@ -1043,7 +1033,7 @@ case IDomSet:
 		case GV_GSURFACE:
 		{
 			GDom *dom = Dom->CastDom();
-			LgiAssert(dom != NULL);
+			CheckParam(dom != NULL);
 			bool Ret = dom->SetVariant(sName, *Value, CastArrayIndex(Arr));
 			if (!Ret)
 			{
@@ -1058,7 +1048,7 @@ case IDomSet:
 		}
 		case GV_DATETIME:
 		{
-			LgiAssert(Dom->Value.Date != NULL);
+			CheckParam(Dom->Value.Date != NULL);
 			bool Ret = Dom->Value.Date->SetVariant(sName, *Value, CastArrayIndex(Arr));
 			if (!Ret)
 			{
@@ -1169,11 +1159,7 @@ case IDomCall:
 	}
 	
 	char *sName = Name->Str();
-	if (!sName)
-	{
-		LgiAssert(!"No value");
-		break;
-	}
+	CheckParam(sName)
 
 	switch (Dom->Type)
 	{
@@ -1182,7 +1168,7 @@ case IDomCall:
 		case GV_GSURFACE:
 		{
 			GDom *dom = Dom->CastDom();
-			LgiAssert(dom != NULL);
+			CheckParam(dom);
 			bool Ret = dom->CallMethod(sName, Dst, Arg);
 			if (!Ret)
 			{
@@ -1197,7 +1183,7 @@ case IDomCall:
 		}
 		case GV_DATETIME:
 		{
-			LgiAssert(Dom->Value.Date != NULL);
+			CheckParam(Dom->Value.Date);
 			bool Ret = Dom->Value.Date->CallMethod(sName, Dst, Arg);
 			if (!Ret)
 			{
@@ -1505,7 +1491,7 @@ case IDomCall:
 				}
 				case StrRfind:
 				{
-					LgiAssert(0);
+					CheckParam(0);
 					break;
 				}
 				case StrLower:
@@ -1616,7 +1602,7 @@ case IDomCall:
 			c.r++;
 			break;
 		default:
-			LgiAssert(0);
+			OnException(_FL, CurrentScriptAddress, "Unsupported scope.");
 			return ScriptError;
 	}
 	

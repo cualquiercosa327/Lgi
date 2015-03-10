@@ -14,15 +14,16 @@
 #define TIME_INSTRUCTIONS		0
 #define POST_EXECUTE_STATE		0
 
-// #define BREAK_POINT				0x0000001F
+#define BREAK_POINT				0x0000009F
 
 #define ExitScriptExecution		c.u8 = e
-#define SetScriptError			c.u8 = e; LgiAssert(0); Status = ScriptError
+#define SetScriptError			c.u8 = e; /* LgiAssert(0); */ Status = ScriptError
 #define CurrentScriptAddress	(c.u8 - Base)
 #define CheckParam(ptr)			if (!(ptr)) \
 								{ \
-									OnException(CurrentScriptAddress, "Pointer NULL Check"); \
-									SetScriptError; \
+									OnException(_FL, CurrentScriptAddress, #ptr); \
+									c.u8 = e; \
+									Status = ScriptError; \
 									break; \
 								}
 
@@ -270,9 +271,11 @@ public:
 	RunType StepType;
 	GVmDebuggerCallback *DbgCallback;
 	GVmDebugger *Debugger;
+	GVirtualMachine *Vm;
 
-	GVirtualMachinePriv(GVmDebuggerCallback *Callback)
+	GVirtualMachinePriv(GVirtualMachine *vm, GVmDebuggerCallback *Callback)
 	{
+		Vm = vm;
 		Log = NULL;
 		Code = NULL;
 		Debugger = NULL;
@@ -365,11 +368,19 @@ public:
 		}
 	}
 
-	bool OnException(uint32 Address, const char *Msg, ...)
+	void OnException(const char *File, int Line, uint32 Address, const char *Msg)
 	{
 		if (Log)
-			Log->Print("%s Exception: %s\n", Code->AddrToSourceRef(Address), Msg);
-		return false;
+		{
+			char *Last = strrchr((char*)File, DIR_CHAR);
+			Log->Print("%s Exception: %s (%s:%i)\n", Code->AddrToSourceRef(Address), Msg, Last?Last+1:File, Line);
+		}
+		
+		if (Vm->OpenDebugger(Code->GetFileName()))
+		{
+			Debugger->OnAddress(Address);
+			Debugger->OnError(Msg);
+		}
 	}
 
 	GExecutionStatus Decompile(GScriptContext *Context, GCompiledCode *Code, GStream *log)
@@ -613,6 +624,11 @@ public:
 				uint8 TimedOpCode = *c.u8;
 				QueryPerformanceCounter(&start);
 				#endif
+				
+				#ifdef BREAK_POINT
+				if (c.u8 - Base == BREAK_POINT)
+					_asm int 3
+				#endif
 
 				switch (*c.u8++)
 				{
@@ -696,7 +712,7 @@ public:
 
 GVirtualMachine::GVirtualMachine(GVmDebuggerCallback *callback)
 {
-	d = new GVirtualMachinePriv(callback);
+	d = new GVirtualMachinePriv(this, callback);
 }
 
 GVirtualMachine::~GVirtualMachine()
