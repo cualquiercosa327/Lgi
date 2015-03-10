@@ -1068,3 +1068,8 @@ GSymLookup *GApp::GetSymLookup()
 {
 	return &d->SymLookup;
 }
+
+bool GApp::IsElevated()
+{
+	return geteuid() == 0;
+}
