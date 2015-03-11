@@ -344,8 +344,23 @@ public:
 				break;
 			}
 			case GV_NULL:
+			{
 				Log->Print("null");
 				break;
+			}
+			case GV_BINARY:
+			{
+				Log->Print("(Binary[%i])", v.Value.Binary.Length);
+				if (v.Value.Binary.Data)
+				{
+					int i;
+					for (i=0; i<16 && i < v.Value.Binary.Length; i++)
+						Log->Print(" %.2x", ((uint8*)v.Value.Binary.Data)[i]);
+					if (i < v.Value.Binary.Length)
+						Log->Print("...");
+				}
+				break;
+			}
 			default:
 				Log->Print("(Type-%i) ????", v.Type);
 				break;
@@ -380,6 +395,10 @@ public:
 		{
 			Debugger->OnAddress(Address);
 			Debugger->OnError(Msg);
+		}
+		else
+		{
+			LgiAssert(!"Scripting engine exception");
 		}
 	}
 

@@ -1623,12 +1623,6 @@ case IDomCall:
 	#endif
 	break;
 }
-/*
-case ICallSystem:
-{
-	break;
-}
-*/
 
 #undef Resolve
 #undef GResolveRef

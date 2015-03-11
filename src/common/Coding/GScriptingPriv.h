@@ -41,8 +41,6 @@
 	_i(ICallScript,			64,					"CallScript") \
 	/** Calls a method defined by the script context */ \
 	_i(ICallMethod,			65,					"CallMethod") \
-	/** Calls a "C" method in an external DLL */ \
-	_i(ICallSystem,			66,					"CallSystem") \
 	_i(IDomGet,				67,					"DomGet") \
 	_i(IDomSet,				68,					"DomSet") \
 	_i(IPush,				69,					"Push") \
