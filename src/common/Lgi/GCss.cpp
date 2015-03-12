@@ -884,6 +884,11 @@ bool GCss::InheritResolve(PropMap &Contrib)
 										Mine->Value = SizeXLarge;
 										break;
 			                        }
+			                        case SizeSmaller:
+			                        {
+										// Just stick with smaller...
+										break;
+			                        }
 			                        default:
 			                        {
 			                            LgiAssert(!"Not impl");
@@ -935,6 +940,11 @@ bool GCss::InheritResolve(PropMap &Contrib)
 			                        case SizeXXLarge:
 			                        {
 										// No higher sizess...
+										break;
+			                        }
+			                        case SizeLarger:
+			                        {
+										// Just stick with larger....
 										break;
 			                        }
 			                        default:
