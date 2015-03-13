@@ -909,7 +909,7 @@ bool GFileSystem::Delete(char *FileName, bool ToTrash)
 	return Delete(Files, 0, ToTrash);
 }
 
-bool GFileSystem::CreateFolder(char *PathName)
+bool GFileSystem::CreateFolder(const char *PathName)
 {
 	bool Status = false;
 	if (Win9x)

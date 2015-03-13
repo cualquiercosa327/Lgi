@@ -278,7 +278,7 @@ public:
 	);
 	
 	/// Create a directory
-	bool CreateFolder(char *PathName);
+	bool CreateFolder(const char *PathName);
 	
 	/// Remove's a directory	
 	bool RemoveFolder
