@@ -3747,10 +3747,6 @@ bool GTag::GetWidthMetrics(GTag *Table, uint16 &Min, uint16 &Max)
 			{
 				// Fixed width table...
 				int CellSpacing = BorderSpacing().ToPx(Min, GetFont());
-				if (CellSpacing == 15)
-				{
-					int asd=0;
-				}
 				
 				int Px = ((int)w.Value) + (CellSpacing << 1);
 				Min = max(Min, Px);

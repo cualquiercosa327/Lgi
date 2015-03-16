@@ -423,7 +423,8 @@ public:
 			AView && BView && CView)
 		{
 			GRect c = GetClient();
-			GRegion rgn = c;
+			GRegion rgn;
+			rgn = c;
 			if (Status)
 			{
 				Status->Pour(rgn);
