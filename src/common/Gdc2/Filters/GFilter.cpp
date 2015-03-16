@@ -182,6 +182,55 @@ bool GdcBmp::SetSize(GStream *s, long *Info, GSurface *pDC)
 	return Status;
 }
 
+template<typename SrcPx, typename DstPx>
+void PixelConvert(DstPx *d, SrcPx *s, int x)
+{
+	s += x - 1;
+	d += x - 1;
+	
+	register uint8 r,g,b;
+	while (x-- > 0)
+	{
+		// Because the src and dst may overlap, we can't do a straight copy
+		r = s->r;
+		g = s->g;
+		b = s->b;
+		
+		d->r = r;
+		d->g = g;
+		d->b = b;
+		
+		s--;
+		d--;
+	}
+}
+
+bool RowConvert(uint8 *Ptr, int x, GColourSpace DstCs, GColourSpace SrcCs)
+{
+	switch (DstCs)
+	{
+		case CsRgbx32:
+			switch (SrcCs)
+			{
+				case CsRgb24:
+					PixelConvert((GRgbx32*)Ptr, (GRgb24*)Ptr, x);
+					break;
+				case CsBgr24:
+					PixelConvert((GRgbx32*)Ptr, (GBgr24*)Ptr, x);
+					break;
+				default:
+					LgiAssert(0);
+					return false;
+			}
+			break;
+		default:
+			LgiAssert(0);
+			return false;
+	}
+
+	return true;
+}
+
 GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 {
 	if (!pDC || !In)
@@ -326,7 +375,7 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 				// 4 bit RLE compressed image
 
 				// not implemented
-				printf("%s:%i - BI_RLE4 not implemented.\n", __FILE__, __LINE__);
+				printf("%s:%i - BI_RLE4 not implemented.\n", _FL);
 			}
 			else
 			{
@@ -335,6 +384,23 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 				{
 					Meter->SetDescription("scanlines");
 					Meter->SetLimits(0, pMem->y-1);
+				}
+				
+				GColourSpace SrcCs = CsNone;
+				switch (ActualBits)
+				{
+					case 8:
+						SrcCs = CsIndex8;
+						break;
+					case 16:
+						SrcCs = CsRgb16;
+						break;
+					case 24:
+						SrcCs = CsBgr24;
+						break;
+					case 32:
+						SrcCs = CsArgb32;
+						break;
 				}
 
 				// straight
@@ -412,51 +478,31 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 						}
 						break;
 					}
-					case 24:
-					#ifdef XWIN
-					{
-						for (int i=pMem->y-1; i>=0; i--)
-						{
-							uchar *Ptr = pMem->Base + (pMem->Line * i);
-							Status &= In->Read(Ptr, ScanSize) == ScanSize;
-
-							ulong *Out = ((ulong*)Ptr) + (pDC->X()-1);
-							uchar *In = Ptr + ((pDC->X()-1) * 3);
-							for (int x=0; x<pDC->X(); x++)
-							{
-								*Out-- = Rgb32(In[2], In[1], In[0]);
-								In -= 3;
-							}
-							
-							if (Meter) Meter->Value(pMem->y-1-i);
-						}
-						break;
-					}
-					#endif
-					case 8:
-					case 16:
-					case 32:
-					{
-						for (int i=pMem->y-1; i>=0; i--)
-						{
-						    // int64 Pos = In->GetPos();
-						    int r = In->Read(pMem->Base + (pMem->Line * i), ScanSize);
-						    // LgiTrace("Read scan %i = %i @ %I64i\n", i, r, Pos);
-						    if (r != ScanSize)
-						    {
-							    Status = IoError;
-							    break;
-							}
-							
-							if (Meter) Meter->Value(pMem->y-1-i);
-						}
-						
-						break;
-					}
 					default:
 					{
-						Status = IoUnsupportedFormat;
-						printf("%s:%i - Bmp had unsupported bit depth.\n", __FILE__, __LINE__);
+						GColourSpace DstCs = pDC->GetColourSpace();
+						for (int i=pMem->y-1; i>=0; i--)
+						{
+							uint8 *Ptr = pMem->Base + (pMem->Line * i);
+							int r = In->Read(Ptr, ScanSize);
+							if (r != ScanSize)
+							{
+								Status = IoError;
+								break;
+							}
+							
+							if (DstCs != SrcCs)
+							{
+								if (!RowConvert(Ptr, pMem->x, DstCs, SrcCs))
+								{
+									Status = IoUnsupportedFormat;
+									printf("%s:%i - Bmp had unsupported bit depth.\n", _FL);
+									break;
+								}
+							}
+
+							if (Meter) Meter->Value(pMem->y-1-i);
+						}
 						break;
 					}
 				}
