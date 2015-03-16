@@ -113,12 +113,17 @@ GMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Where
 													(UInt8*)Str, strlen(Str),
 													kCFStringEncodingUTF8,
 													false);
-			OSStatus e = AppendMenuItemTextWithCFString(Info, s, 0, 0, &i->Info);
-			if (e) printf("%s:%i - AppendMenuItemTextWithCFString failed (e=%i)\n", __FILE__, __LINE__, (int)e);
-			#if DEBUG_INFO
-			else printf("AppendMenuItemTextWithCFString(%p, %s)=%p\n", Info, Str, i->Info);
-			#endif
-			CFRelease(s);
+			if (!s)
+				s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)"#error", 6, kCFStringEncodingUTF8, false);
+			if (s)
+			{
+				OSStatus e = AppendMenuItemTextWithCFString(Info, s, 0, 0, &i->Info);
+				if (e) printf("%s:%i - AppendMenuItemTextWithCFString failed (e=%i)\n", __FILE__, __LINE__, (int)e);
+				#if DEBUG_INFO
+				else printf("AppendMenuItemTextWithCFString(%p, %s)=%p\n", Info, Str, i->Info);
+				#endif
+				CFRelease(s);
+			}
 			
 			i->Id(Id);
 			i->Enabled(Enabled);
@@ -962,10 +967,16 @@ bool GMenuItem::Name(const char *n)
 	{
 		CFStringRef s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)Tmp, strlen(Tmp), kCFStringEncodingUTF8, false);
 
-		SetMenuItemTextWithCFString(Parent->Info, Info, s);
-		// if (e) printf("%s:%i - SetMenuItemTextWithCFString(%p, %s) failed with %i.\n", _FL, Parent->Info, Tmp, e);
+		if (!s)
+			s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)"#error", 6, kCFStringEncodingUTF8, false);
 
-		CFRelease(s);
+		if (s)
+		{
+			SetMenuItemTextWithCFString(Parent->Info, Info, s);
+			// if (e) printf("%s:%i - SetMenuItemTextWithCFString(%p, %s) failed with %i.\n", _FL, Parent->Info, Tmp, e);
+
+			CFRelease(s);
+		}
 	}
 
 	DeleteArray(Tmp);

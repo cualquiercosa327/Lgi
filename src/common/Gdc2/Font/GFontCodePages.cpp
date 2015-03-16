@@ -1029,7 +1029,9 @@ void *LgiNewConvertCp(const char *OutCp, const void *In, const char *InCp, int I
 				GFontSystem *Fs = GFontSystem::Inst();
 				if (Fs)
 				{
-					if (!Fs->IconvConvert(OutInfo->GetIconvName(), &b, InInfo->GetIconvName(), (const char*&)In, InLen))
+					const char *InCs = InInfo->GetIconvName();
+					const char *OutCs = OutInfo->GetIconvName();
+					if (!Fs->IconvConvert(OutCs, &b, InCs, (const char*&)In, InLen))
 					{
 						InCp = "iso-8859-1";
 						goto BufConvert;

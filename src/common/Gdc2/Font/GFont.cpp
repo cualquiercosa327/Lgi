@@ -1088,14 +1088,15 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 			return false;
 		}
 		
+		char *sFace = Face();
 		CFStringRef fontName = CFStringCreateWithBytes(	kCFAllocatorDefault,
-														(UInt8*)Face(),
-														strlen(Face()),
+														(UInt8*)sFace,
+														strlen(sFace),
 														kCFStringEncodingUTF8,
 														false);
 		if (!fontName)
 		{
-			printf("%s:%i - Couldn't create cfstr from '%s'\n", _FL, Face());
+			// printf("%s:%i - Couldn't create cfstr from '%s'\n", _FL, Face());
 			return false;
 		}
 		

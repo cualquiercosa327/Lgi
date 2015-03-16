@@ -359,6 +359,8 @@ bool GFontSystem::HasIconv(bool Quiet)
 static CFStringEncoding CharsetToEncoding(const char *cs)
 {
 	CFStringRef InputCs = CFStringCreateWithCString(0, cs, kCFStringEncodingUTF8);
+	if (!InputCs)
+		return kCFStringEncodingUTF8; // Um what to do here?
 	CFStringEncoding enc = CFStringConvertIANACharSetNameToEncoding(InputCs);
 	CFRelease(InputCs);
 	return enc;

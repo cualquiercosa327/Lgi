@@ -109,7 +109,7 @@ LgiFunc void LgiSleep(int i);
 #define LGI_GViewMagic				0x14412662
 #define LGI_FileDropFormat			"furl" // typeFileURL
 #define LGI_LgiDropFormat			"lgi "
-#define LGI_WideCharset				"utf-32"
+#define LGI_WideCharset				"utf-16"
 #define LGI_PrintfInt64				"%lli"
 #define atoi64						atoll
 #define sprintf_s					snprintf

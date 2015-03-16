@@ -361,6 +361,7 @@ char *DecodeRfc2047(char *Str)
 						char *Utf8 = (char*)LgiNewConvertCp("utf-8", Block, Cp);
 						if (Utf8)
 						{
+							LgiAssert(LgiIsUtf8(Utf8));
 							Temp.Write((uchar*)Utf8, strlen(Utf8));
 							DeleteArray(Utf8);
 						}
