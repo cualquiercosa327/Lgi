@@ -14,19 +14,13 @@
 #include "GViewPriv.h"
 #include "GCssTools.h"
 
-#define DefaultCharset              "utf-8" // historically LgiAnsiToLgiCp()
+#define DefaultCharset              "utf-8"
 #define SubtractPtr(a, b)			((a) - (b))
 
 #define GDCF_UTF8					-1
 #define LUIS_DEBUG					0
 #define POUR_DEBUG					0
 #define PROFILE_POUR				0
-
-/*
-#ifdef BEOS
-#define DOUBLE_BUFFER_PAINT
-#endif
-*/
 
 #define ALLOC_BLOCK					64
 #define IDC_VS						1000
@@ -732,8 +726,6 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 		for (int i=Start; i<Size; i = e)
 		{
 			// seek till next char of interest
-			// int Chars = 0;
-
 			if (WrapType == TEXTED_WRAP_NONE)
 			{
 				// Seek line/doc end
@@ -914,8 +906,8 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 	}
 
 	bool ScrollYNeeded = Client.Y() < (Line.Length() * LineY);
+	d->LayoutDirty = ScrollYNeeded ^ (VScroll != NULL);
 	SetScrollBars(false, ScrollYNeeded);
-	d->LayoutDirty = false;
 	UpdateScrollBars();
 	
 	#if PROFILE_POUR
