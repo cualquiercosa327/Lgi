@@ -290,6 +290,8 @@ void GRop24To24(DstPx *dst, SrcPx *src, int px)
 	if ((uint8*)d == (uint8*)s)
 	{
 		register uint8 r, g, b;
+		d += px - 1;
+		s += px - 1;
 		while (Px--)
 		{
 			r = s->r;
@@ -298,8 +300,8 @@ void GRop24To24(DstPx *dst, SrcPx *src, int px)
 			d->r = r;
 			d->g = g;
 			d->b = b;
-			s++;
-			d++;
+			s--;
+			d--;
 		}
 	}
 	else

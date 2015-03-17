@@ -83,15 +83,15 @@ public:
 	const char *GetClass() { return "GdcApp16Set"; }
 	void Set()
 	{
-		*Ptr.u16 = c;
+		*this->Ptr.u16 = this->c;
 	}
 	
 	void VLine(int height)
 	{
 		while (height--)
 		{
-			*Ptr.u16 = c;
-			Ptr.u8 += Dest->Line;
+			*this->Ptr.u16 = this->c;
+			this->Ptr.u8 += this->Dest->Line;
 		}
 	}
 
@@ -142,9 +142,9 @@ public:
 		while (y--)
 		{
 			for (int n=0; n<x; n++)
-				Ptr.u16[n] = c;
+				this->Ptr.u16[n] = this->c;
 			
-			Ptr.u8 += Dest->Line;
+			this->Ptr.u8 += this->Dest->Line;
 		}
 	#endif
 	}
@@ -178,25 +178,25 @@ public:
 				for (int y=0; y<Src->y; y++)
 				{
 					uchar *s = ((uchar*)Src->Base) + (y * Src->Line);
-					uint16 *d = Ptr.u16;
+					uint16 *d = this->Ptr.u16;
 
 					for (int x=0; x<Src->x; x++)
 					{
 						*d++ = c[*s++];
 					}
 
-					Ptr.u8 += Dest->Line;
+					this->Ptr.u8 += this->Dest->Line;
 				}
 				break;
 			}
 			default:
 			{
 				GBmpMem Dst;
-				Dst.Base = Ptr.u8;
+				Dst.Base = this->Ptr.u8;
 				Dst.x = Src->x;
 				Dst.y = Src->y;
-				Dst.Cs = Dest->Cs;
-				Dst.Line = Dest->Line;				
+				Dst.Cs = this->Dest->Cs;
+				Dst.Line = this->Dest->Line;				
 				if (!LgiRopUniversal(&Dst, Src))
 				{
 					return false;
