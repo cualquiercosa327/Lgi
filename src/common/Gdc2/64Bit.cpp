@@ -319,55 +319,15 @@ public:
 		
 		if (!SrcAlpha)
 		{
-			if (Dest->Cs == Src->Cs)
+			GBmpMem Dst;
+			Dst.Base = u8;
+			Dst.x = Src->x;
+			Dst.y = Src->y;
+			Dst.Cs = Dest->Cs;
+			Dst.Line = Dest->Line;				
+			if (!LgiRopUniversal(&Dst, Src))
 			{
-				uchar *s = Src->Base;
-				for (int y=0; y<Src->y; y++)
-				{
-					MemCpy(p, s, Src->x * 3);
-					s += Src->Line;
-					u8 += Dest->Line;
-				}
-			}
-			else
-			{
-				switch (Src->Cs)
-				{
-					#define CopyCaseNoAlpha(name) \
-						case Cs##name: return CopyBltNoAlphaUpScale<G##name>(Src);
-					#define CopyCaseWithAlpha(name) \
-						case Cs##name: return CopyBltWithAlphaUpScale<G##name>(Src);
-
-					CopyCaseNoAlpha(Rgb24);
-					CopyCaseNoAlpha(Bgr24);
-					CopyCaseNoAlpha(Xrgb32);
-					CopyCaseNoAlpha(Xbgr32);
-					CopyCaseNoAlpha(Rgbx32);
-					CopyCaseNoAlpha(Bgrx32);
-
-					CopyCaseWithAlpha(Argb32);
-					CopyCaseWithAlpha(Abgr32);
-					CopyCaseWithAlpha(Rgba32);
-					CopyCaseWithAlpha(Bgra32);
-
-					case CsRgb48:
-						return CopyBltNoAlpha<GRgb48>(Src);
-					case CsBgr48:
-						return CopyBltNoAlpha<GBgr48>(Src);
-
-					case CsRgba64:
-						return CopyBltWithAlpha<GRgba64>(Src);
-					case CsBgra64:
-						return CopyBltWithAlpha<GBgra64>(Src);
-					case CsArgb64:
-						return CopyBltWithAlpha<GArgb64>(Src);
-					case CsAbgr64:
-						return CopyBltWithAlpha<GAbgr64>(Src);
-
-					default:
-						LgiAssert(!"Impl me.");
-						break;
-				}
+				return false;
 			}
 		}
 		else

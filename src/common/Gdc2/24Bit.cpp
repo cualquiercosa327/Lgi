@@ -21,7 +21,11 @@
 class LgiClass GdcApp24 : public GApplicator
 {
 protected:
-	System24BitPixel *Ptr;
+	union
+	{
+		uint8 *u8;
+		System24BitPixel *Ptr;
+	};
 
 public:
 	GdcApp24()
@@ -261,38 +265,15 @@ public:
 		
 		if (!SrcAlpha)
 		{
-			if (Dest->Cs == Src->Cs)
+			GBmpMem Dst;
+			Dst.Base = u8;
+			Dst.x = Src->x;
+			Dst.y = Src->y;
+			Dst.Cs = Dest->Cs;
+			Dst.Line = Dest->Line;				
+			if (!LgiRopUniversal(&Dst, Src))
 			{
-				uchar *s = Src->Base;
-				for (int y=0; y<Src->y; y++)
-				{
-					MemCpy(p, s, Src->x * 3);
-					s += Src->Line;
-					u8 += Dest->Line;
-				}
-			}
-			else
-			{
-				switch (Src->Cs)
-				{
-					#define CopyCase(name) \
-						case Cs##name: return CopyBlt<G##name>(Src);
-
-					CopyCase(Rgb24);
-					CopyCase(Bgr24);
-					CopyCase(Xrgb32);
-					CopyCase(Xbgr32);
-					CopyCase(Rgbx32);
-					CopyCase(Bgrx32);
-
-					CopyCase(Argb32);
-					CopyCase(Abgr32);
-					CopyCase(Rgba32);
-					CopyCase(Bgra32);
-					default:
-						LgiAssert(!"Impl me.");
-						break;
-				}
+				return false;
 			}
 		}
 		else
@@ -447,11 +428,6 @@ bool GdcApp24Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 	{
 		switch (Src->Cs)
 		{
-			default:
-			{
-				LgiAssert(!"Not impl.");
-				break;
-			}
 			case CsIndex8:
 			{
 				if (SPal)
@@ -514,100 +490,17 @@ bool GdcApp24Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case System15BitColourSpace:
+			default:
 			{
-				for (int y=0; y<Src->y; y++)
+				GBmpMem Dst;
+				Dst.Base = u8;
+				Dst.x = Src->x;
+				Dst.y = Src->y;
+				Dst.Cs = Dest->Cs;
+				Dst.Line = Dest->Line;				
+				if (!LgiRopUniversal(&Dst, Src))
 				{
-					ushort *s = (ushort*) (Src->Base + (Src->Line * y));
-					ushort *e = s + Src->x;
-					System24BitPixel *d = Ptr;
-
-					while (s < e)
-					{
-						d->r = Rc15(*s);
-						d->g = Gc15(*s);
-						d->b = Bc15(*s);
-
-						s++;
-						d++;
-					}
-
-					((uint8*&)Ptr) += Dest->Line;
-				}
-				break;
-			}
-			case System16BitColourSpace:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					ushort *s = (ushort*) (Src->Base + (Src->Line * y));
-					ushort *e = s + Src->x;
-					System24BitPixel *d = Ptr;
-
-					while (s < e)
-					{
-						d->b = ((*s & 0x001F) << 3) | ((*s & 0x001C) >> 2);
-						d->g = ((*s & 0x07E0) >> 3) | ((*s & 0x0600) >> 9);
-						d->r = ((*s & 0xF800) >> 8) | ((*s & 0xE000) >> 13);
-
-						s++;
-						d++;
-					}
-
-					((uint8*&)Ptr) += Dest->Line;
-				}
-				break;
-			}
-			case System24BitColourSpace:
-			{
-				uchar *s = Src->Base;
-				for (int y=0; y<Src->y; y++)
-				{
-					MemCpy(Ptr, s, Src->x * 3);
-					s += Src->Line;
-					((uint8*&)Ptr) += Dest->Line;
-				}
-				break;
-			}
-			case System32BitColourSpace:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					System24BitPixel *d = (System24BitPixel*) Ptr;
-					System32BitPixel *s = (System32BitPixel*) (Src->Base + (y * Src->Line));
-					System32BitPixel *e = s + Src->x;
-
-					while (s < e)
-					{
-						d->r = s->r;
-						d->g = s->g;
-						d->b = s->b;
-						s++;
-						d++;
-					}
-
-					((uint8*&)Ptr) += Dest->Line;
-				}
-				break;
-			}
-			case CsBgr48:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					System24BitPixel *d = (System24BitPixel*) Ptr;
-					GBgr48 *s = (GBgr48*) (Src->Base + (y * Src->Line));
-					GBgr48 *e = s + Src->x;
-
-					while (s < e)
-					{
-						d->r = s->r >> 8;
-						d->g = s->g >> 8;
-						d->b = s->b >> 8;
-						s++;
-						d++;
-					}
-
-					((uint8*&)Ptr) += Dest->Line;
+					return false;
 				}
 				break;
 			}

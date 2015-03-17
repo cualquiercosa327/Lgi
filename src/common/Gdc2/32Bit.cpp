@@ -308,25 +308,15 @@ public:
 			}
 			else
 			{
-				switch (Src->Cs)
+				GBmpMem Dst;
+				Dst.Base = u8;
+				Dst.x = Src->x;
+				Dst.y = Src->y;
+				Dst.Cs = Dest->Cs;
+				Dst.Line = Dest->Line;				
+				if (!LgiRopUniversal(&Dst, Src))
 				{
-					#define CopyCase(name, bits) \
-						case Cs##name: return CopyBlt##bits<G##name>(Src);
-
-					CopyCase(Rgb24, 24);
-					CopyCase(Bgr24, 24);
-					CopyCase(Xrgb32, 24);
-					CopyCase(Xbgr32, 24);
-					CopyCase(Rgbx32, 24);
-					CopyCase(Bgrx32, 24);
-
-					CopyCase(Argb32, 32);
-					CopyCase(Abgr32, 32);
-					CopyCase(Rgba32, 32);
-					CopyCase(Bgra32, 32);
-					default:
-						LgiAssert(!"Impl me.");
-						break;
+					return false;
 				}
 			}
 		}
@@ -500,11 +490,6 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 	{
 		switch (Src->Cs)
 		{
-			default:
-			{
-				LgiAssert(!"Not impl.");
-				break;
-			}
 			case CsIndex8:
 			{
 				if (SPal)
@@ -564,122 +549,17 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case System15BitColourSpace:
+			default:
 			{
-				for (int y=0; y<Src->y; y++)
+				GBmpMem Dst;
+				Dst.Base = Ptr.u8;
+				Dst.x = Src->x;
+				Dst.y = Src->y;
+				Dst.Cs = Dest->Cs;
+				Dst.Line = Dest->Line;				
+				if (!LgiRopUniversal(&Dst, Src))
 				{
-					ushort *s = (ushort*) (Src->Base + (Src->Line * y));
-					System32BitPixel *d = Ptr.p;
-					System32BitPixel *e = d + Src->x;
-					
-					while (d < e)
-					{
-						d->r = Rc15(*s);
-						d->g = Gc15(*s);
-						d->b = Bc15(*s);
-						s++;
-						d++;
-					}
-					
-					Ptr.u8 += Dest->Line;
-				}
-				break;
-			}
-			case System16BitColourSpace:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					ushort *s = (ushort*) (Src->Base + (Src->Line * y));
-					System32BitPixel *d = Ptr.p;
-					System32BitPixel *e = d + Src->x;
-					
-					while (d < e)
-					{
-						d->r = Rc16(*s);
-						d->g = Gc16(*s);
-						d->b = Bc16(*s);
-						s++;
-						d++;
-					}
-					
-					Ptr.u8 += Dest->Line;
-				}
-				break;
-			}
-			case CsBgr24:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					GBgr24 *s = (GBgr24*) ((char*)Src->Base + (y * Src->Line));
-					System32BitPixel *d = Ptr.p;
-					System32BitPixel *e = d + Src->x;
-					
-					while (d < e)
-					{
-						d->r = s->r;
-						d->g = s->g;
-						d->b = s->b;
-						d->a = 255;
-						d++;
-						s++;
-					}
-
-					Ptr.u8 += Dest->Line;
-				}
-				break;
-			}
-			case CsRgbx32:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					GRgbx32 *s = (GRgbx32*) ((char*)Src->Base + (y * Src->Line));
-					System32BitPixel *d = Ptr.p;
-					System32BitPixel *e = d + Src->x;
-					
-					while (d < e)
-					{
-						d->r = s->r;
-						d->g = s->g;
-						d->b = s->b;
-						d->a = 255;
-						d++;
-						s++;
-					}
-
-					Ptr.u8 += Dest->Line;
-				}
-				break;
-			}
-			case System32BitColourSpace:
-			{
-				uchar *s = Src->Base;
-				for (int y=0; y<Src->y; y++)
-				{
-					MemCpy(Ptr.p, s, Src->x << 2);
-					s += Src->Line;
-					Ptr.u8 += Dest->Line;
-				}
-				break;
-			}
-			case CsBgra64:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					GBgra64 *s = (GBgra64*) ((char*)Src->Base + (y * Src->Line));
-					System32BitPixel *d = Ptr.p;
-					System32BitPixel *e = d + Src->x;
-					
-					while (d < e)
-					{
-						d->r = s->r >> 8;
-						d->g = s->g >> 8;
-						d->b = s->b >> 8;
-						d->a = s->a >> 8;
-						d++;
-						s++;
-					}
-
-					Ptr.u8 += Dest->Line;
+					return false;
 				}
 				break;
 			}

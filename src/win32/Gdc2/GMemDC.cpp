@@ -430,27 +430,7 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int LineLen, bool KeepData)
 			else
 			{
 				// Non-native colour space support...
-				switch (Bits)
-				{
-					case 48:
-						#ifdef WIN32
-						ColourSpace = CsBgr48;
-						#else
-						ColourSpace = CsRgb48;
-						#endif
-						break;
-					case 64:
-						#ifdef WIN32
-						ColourSpace = CsBgra64;
-						#else
-						ColourSpace = CsRgba64;
-						#endif
-						break;
-					default:
-						LgiAssert(!"Unknown bitdepth.");
-						break;
-				}
-
+				ColourSpace = Cs;
 				if (ColourSpace)
 				{
 					// Non-native image data

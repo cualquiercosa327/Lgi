@@ -1,7 +1,16 @@
 #include "Lgi.h"
 #include "GEdit.h"
+#include "GButton.h"
+#include "GDisplayString.h"
 
 #include "GStringClass.h"
+
+enum Ctrls
+{
+	IDC_EDIT1 = 100,
+	IDC_EDIT2,
+	IDC_BLT_TEST,
+};
 
 void GStringTest()
 {
@@ -21,6 +30,127 @@ void GStringTest()
 	
 }
 
+GColourSpace RgbColourSpaces[] =
+{
+	/*
+	CsIndex1,
+	CsIndex4,
+	CsIndex8,
+	CsAlpha8,
+	*/
+	CsRgb15,
+	CsBgr15,
+	CsRgb16,
+	CsBgr16,
+	CsRgb24,
+	CsBgr24,
+	CsRgbx32,
+	CsBgrx32,
+	CsXrgb32,
+	CsXbgr32,
+	CsRgba32,
+	CsBgra32,
+	CsArgb32,
+	CsAbgr32,
+	CsBgr48,
+	CsRgb48,
+	CsBgra64,
+	CsRgba64,
+	CsAbgr64,
+	CsArgb64,
+	/*
+	CsHls32,
+	CsCmyk32,
+	*/
+	CsNone,
+};
+
+class BltTest : public GWindow
+{
+	struct Test
+	{
+		GColourSpace Src, Dst;
+		GMemDC Result;
+		
+		void Create()
+		{
+			if (!Result.Create(16, 16, Dst))
+				return;
+			for (int y=0; y<Result.Y(); y++)
+			{
+				Result.Colour(Rgb24(y * 16, 0, 0), 24);
+				for (int x=0; x<Result.X(); x++)
+				{
+					Result.Set(x, y);
+				}
+			}
+			
+			GMemDC SrcDC;
+			if (!SrcDC.Create(16, 16, Src))
+				return;
+			
+			// Result.Blt(0, 0, &SrcDC);
+		}
+	};
+	
+	GArray<Test*> a;
+
+public:
+	BltTest()
+	{
+		Name("BltTest");
+		GRect r(0, 0, 1200, 1000);
+		SetPos(r);
+		MoveToCenter();
+		
+		if (Attach(0))
+		{
+			Visible(true);
+			
+			for (int Si=0; RgbColourSpaces[Si]; Si++)
+			{
+				for (int Di=0; RgbColourSpaces[Di]; Di++)
+				{
+					Test *t = new Test;
+					t->Src = RgbColourSpaces[Si];
+					t->Dst = RgbColourSpaces[Di];
+					t->Create();
+					a.Add(t);
+				}
+			}
+		}
+	}
+	
+	void OnPaint(GSurface *pDC)
+	{
+		pDC->Colour(LC_WORKSPACE, 24);
+		pDC->Rectangle();
+		
+		int x = 10;
+		int y = 10;
+		for (unsigned i=0; i<a.Length(); i++)
+		{
+			char s[256];
+			Test *t = a[i];
+			sprintf_s(s, sizeof(s), "%s->%s", GColourSpaceToString(t->Src), GColourSpaceToString(t->Dst));
+			GDisplayString ds(SysFont, s);
+			ds.Draw(pDC, x, y);
+			y += ds.Y();
+			if (t->Result.Y())
+			{
+				pDC->Blt(x, y, &t->Result);
+				y += t->Result.Y();
+			}
+			y += 10;
+			if (Y() - y < 100)
+			{
+				y = 10;
+				x += 150;
+			}
+		}
+	}
+};
+
 class App : public GWindow
 {
 	GEdit *e;
@@ -36,8 +166,9 @@ public:
 		
 		if (Attach(0))
 		{
-			AddView(e = new GEdit(100, 10, 10, 200, 22));
-			AddView(e2 = new GEdit(101, 10, 50, 200, 22));
+			AddView(e = new GEdit(IDC_EDIT1, 10, 10, 200, 22));
+			AddView(e2 = new GEdit(IDC_EDIT1, 10, 50, 200, 22));
+			AddView(new GButton(IDC_BLT_TEST, 10, 200, -1, -1, "Blt Test"));
 			// e->Focus(true);
 			e->Password(true);
 			e->SetEmptyText("(this is a test)");
@@ -45,6 +176,18 @@ public:
 			AttachChildren();
 			Visible(true);
 		}
+	}
+	
+	int OnNotify(GViewI *Ctrl, int Flags)
+	{
+		switch (Ctrl->GetId())
+		{
+			case IDC_BLT_TEST:
+				new BltTest();
+				break;
+		}
+		
+		return 0;
 	}
 };
 

@@ -182,55 +182,6 @@ bool GdcBmp::SetSize(GStream *s, long *Info, GSurface *pDC)
 	return Status;
 }
 
-template<typename SrcPx, typename DstPx>
-void PixelConvert(DstPx *d, SrcPx *s, int x)
-{
-	s += x - 1;
-	d += x - 1;
-	
-	register uint8 r,g,b;
-	while (x-- > 0)
-	{
-		// Because the src and dst may overlap, we can't do a straight copy
-		r = s->r;
-		g = s->g;
-		b = s->b;
-		
-		d->r = r;
-		d->g = g;
-		d->b = b;
-		
-		s--;
-		d--;
-	}
-}
-
-bool RowConvert(uint8 *Ptr, int x, GColourSpace DstCs, GColourSpace SrcCs)
-{
-	switch (DstCs)
-	{
-		case CsRgbx32:
-			switch (SrcCs)
-			{
-				case CsRgb24:
-					PixelConvert((GRgbx32*)Ptr, (GRgb24*)Ptr, x);
-					break;
-				case CsBgr24:
-					PixelConvert((GRgbx32*)Ptr, (GBgr24*)Ptr, x);
-					break;
-				default:
-					LgiAssert(0);
-					return false;
-			}
-			break;
-		default:
-			LgiAssert(0);
-			return false;
-	}
-
-	return true;
-}
-
 GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 {
 	if (!pDC || !In)
@@ -493,7 +444,7 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 							
 							if (DstCs != SrcCs)
 							{
-								if (!RowConvert(Ptr, pMem->x, DstCs, SrcCs))
+								if (!LgiRopRgb(Ptr, DstCs, Ptr, SrcCs, pMem->x))
 								{
 									Status = IoUnsupportedFormat;
 									printf("%s:%i - Bmp had unsupported bit depth.\n", _FL);

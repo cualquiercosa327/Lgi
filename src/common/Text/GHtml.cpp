@@ -7991,6 +7991,8 @@ bool GHtml::GetVariant(const char *Name, GVariant &Value, char *Array)
 {
 	if (!_stricmp(Name, "supportLists"))
 		Value = false;
+	else if (!_stricmp(Name, "vml"))
+		Value = false;
 	else
 		return false;
 

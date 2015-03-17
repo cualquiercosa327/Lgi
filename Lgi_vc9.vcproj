@@ -1221,6 +1221,10 @@
 					RelativePath=".\src\common\Gdc2\Path\GPath.cpp"
 					>
 				</File>
+				<File
+					RelativePath=".\include\common\GRops.h"
+					>
+				</File>
 				<Filter
 					Name="Font"
 					>

@@ -195,6 +195,36 @@ public:
 	{
 		return GColourSpaceToBits(Cs);
 	}
+	
+	void GetMemoryExtents(uchar *&Start, uchar *&End)
+	{
+		if (Line < 0)
+		{
+			Start = Base + (y * Line);
+			End = Base + Line;
+		}
+		else
+		{
+			Start = Base;
+			End = Base + (y * Line);
+		}
+	}
+	
+	bool Overlap(GBmpMem *Mem)
+	{
+		uchar *ThisStart, *ThisEnd;
+		GetMemoryExtents(ThisStart, ThisEnd);
+
+		uchar *MemStart, *MemEnd;
+		GetMemoryExtents(MemStart, MemEnd);
+		
+		if (ThisEnd < MemStart)
+			return false;
+		if (ThisStart > MemEnd)
+			return false;
+
+		return true;
+	}
 };
 
 
@@ -1215,5 +1245,23 @@ LgiFunc void LgiFillGradient(GSurface *pDC, GRect &r, bool Vert, GArray<GColourS
 /// Draws a windows HICON onto a surface at Dx, Dy
 LgiFunc void LgiDrawIcon(GSurface *pDC, int Dx, int Dy, HICON ico);
 #endif
+
+/// Row copy operator for full RGB (8 bit components)
+bool LgiRopRgb
+(
+	// Pointer to destination pixel buffer
+	uint8 *Dst,
+	// Destination colour space (must be 8bit components)
+	GColourSpace DstCs,
+	// Pointer to source pixel buffer (if this overlaps 'Dst', set 'Overlap' to true)
+	uint8 *Src,
+	// Source colour space (must be 8bit components)
+	GColourSpace SrcCs,
+	// Number of pixels to convert
+	int Px
+);
+
+/// Universal bit blt method
+bool LgiRopUniversal(GBmpMem *Dst, GBmpMem *Src);
 
 #endif

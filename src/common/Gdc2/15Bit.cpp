@@ -14,206 +14,151 @@
 #include "GPalette.h"
 
 /// 15 bit rgb applicators
-class LgiClass GdcApp15 : public GApplicator
+template<typename Pixel, GColourSpace Cs>
+class GdcApp15 : public GApplicator
 {
 protected:
-	uchar *Ptr;
+	union
+	{
+		uint8 *u8;
+		uint16 *u16;
+		Pixel *p;
+	}	Ptr;
 
 public:
 	GdcApp15()
 	{
-		Ptr = 0;
+		Ptr.u8 = NULL;
 	}
 
 	const char *GetClass() { return "GdcApp15"; }
-	bool SetSurface(GBmpMem *d, GPalette *p, GBmpMem *a);
-	void SetPtr(int x, int y);
-	void IncX();
-	void IncY();
-	void IncPtr(int X, int Y);
-	COLOUR Get();
+
+	bool SetSurface(GBmpMem *d, GPalette *p, GBmpMem *a)
+	{
+		if (d && d->Cs == Cs)
+		{
+			Dest = d;
+			Pal = p;
+			Ptr.u8 = d->Base;
+			Alpha = 0;
+			return true;
+		}
+		else
+		{
+			LgiAssert(0);
+		}
+		
+		return false;
+	}
+
+	void SetPtr(int x, int y)
+	{
+		LgiAssert(Dest && Dest->Base);
+		Ptr.u8 = Dest->Base + ((y * Dest->Line) + x + x);
+	}
+
+	void IncX()
+	{
+		Ptr.p++;
+	}
+	
+	void IncY()
+	{
+		Ptr.u8 += Dest->Line;
+	}
+	
+	void IncPtr(int X, int Y)
+	{
+		Ptr.u16 += X;
+		Ptr.u8 += Y;
+	}
+	
+	COLOUR Get()
+	{
+		return *Ptr.u16;
+	}
 };
 
-class LgiClass GdcApp15Set : public GdcApp15 {
+template<typename Pixel, GColourSpace Cs>
+class GdcApp15Set : public GdcApp15<Pixel, Cs>
+{
 public:
 	const char *GetClass() { return "GdcApp15Set"; }
-	void Set();
-	void VLine(int height);
-	void Rectangle(int x, int y);
-	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha);
-};
-
-class LgiClass GdcApp15And : public GdcApp15 {
-public:
-	const char *GetClass() { return "GdcApp15And"; }
-	void Set();
-	void VLine(int height);
-	void Rectangle(int x, int y);
-	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha);
-};
-
-class LgiClass GdcApp15Or : public GdcApp15 {
-public:
-	const char *GetClass() { return "GdcApp15Or"; }
-	void Set();
-	void VLine(int height);
-	void Rectangle(int x, int y);
-	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha);
-};
-
-class LgiClass GdcApp15Xor : public GdcApp15 {
-public:
-	const char *GetClass() { return "GdcApp15Xor"; }
-	void Set();
-	void VLine(int height);
-	void Rectangle(int x, int y);
-	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha);
-};
-
-GApplicator *GApp15::Create(GColourSpace Cs, int Op)
-{
-	if (Cs == CsRgb15)
+	void Set()
 	{
-		switch (Op)
+		*Ptr.u16 = c;
+	}
+	
+	void VLine(int height)
+	{
+		while (height--)
 		{
-			case GDC_SET:
-				return new GdcApp15Set;
-			case GDC_AND:
-				return new GdcApp15And;
-			case GDC_OR:
-				return new GdcApp15Or;
-			case GDC_XOR:
-				return new GdcApp15Xor;
+			*Ptr.u16 = c;
+			Ptr.u8 += Dest->Line;
 		}
 	}
-	return 0;
-}
-////////////////////////////////////////////////////////////////////////////////////////
-#define sPtr			((ushort*)Ptr)
 
-bool GdcApp15::SetSurface(GBmpMem *d, GPalette *p, GBmpMem *a)
-{
-	if (d && d->Cs == CsRgb15)
+	void Rectangle(int x, int y)
 	{
-		Dest = d;
-		Pal = p;
-		Ptr = d->Base;
-		Alpha = 0;
-		return true;
-	}
-	return false;
-}
+	#if defined(GDC_USE_ASM) && defined(_MSC_VER)
 
-void GdcApp15::SetPtr(int x, int y)
-{
-	LgiAssert(Dest && Dest->Base);
-	Ptr = Dest->Base + ((y * Dest->Line) + x + x);
-}
+	// this duplicates the colour twice in eax to allow us to fill
+	// two pixels at per write. this means we are using the whole
+	// 32-bit bandwidth to the video card :)
 
-void GdcApp15::IncX()
-{
-	Ptr += 2;
-}
-
-void GdcApp15::IncY()
-{
-	Ptr += Dest->Line;
-}
-
-void GdcApp15::IncPtr(int X, int Y)
-{
-	Ptr += (Y * Dest->Line) + X + X;
-}
-
-COLOUR GdcApp15::Get()
-{
-	return *sPtr;
-}
-
-// 15 bit set sub functions
-void GdcApp15Set::Set()
-{
-	*sPtr = c;
-}
-
-void GdcApp15Set::VLine(int height)
-{
-	while (height--)
-	{
-		*sPtr = c;
-		Ptr += Dest->Line;
-	}
-}
-
-void GdcApp15Set::Rectangle(int x, int y)
-{
-#if defined(GDC_USE_ASM) && defined(_MSC_VER)
-
-// this duplicates the colour twice in eax to allow us to fill
-// two pixels at per write. this means we are using the whole
-// 32-bit bandwidth to the video card :)
-
-	if (y > 0)
-	{
-		if (x > 1)
+		if (y > 0)
 		{
-			uchar *p = Ptr;
-			COLOUR fill = c | (c << 15);
-			int Line = Dest->Line;
+			if (x > 1)
+			{
+				uchar *p = Ptr.u8;
+				COLOUR fill = c | (c << 15);
+				int Line = Dest->Line;
 
-			_asm {
-				mov esi, p
-				mov eax, fill
-				mov edx, Line
-				mov bx, ax
-				shl eax, 15
-				mov ax, bx
-			LoopY:	mov edi, esi
-				add esi, edx
-				mov ecx, x
-				shr ecx, 1
-			LoopX:	mov [edi], eax
-				add edi, 4
-				dec ecx
-				jnz LoopX
-				test x, 1
-				jz Next
-				mov [edi], ax
-			Next:	dec y
-				jnz LoopY
+				_asm {
+					mov esi, p
+					mov eax, fill
+					mov edx, Line
+					mov bx, ax
+					shl eax, 15
+					mov ax, bx
+				LoopY:	mov edi, esi
+					add esi, edx
+					mov ecx, x
+					shr ecx, 1
+				LoopX:	mov [edi], eax
+					add edi, 4
+					dec ecx
+					jnz LoopX
+					test x, 1
+					jz Next
+					mov [edi], ax
+				Next:	dec y
+					jnz LoopY
+				}
+			}
+			else if (x == 1)
+			{
+				VLine(y);
 			}
 		}
-		else if (x == 1)
+	#else
+		while (y--)
 		{
-			VLine(y);
+			for (int n=0; n<x; n++)
+				Ptr.u16[n] = c;
+			
+			Ptr.u8 += Dest->Line;
 		}
+	#endif
 	}
-#else
-	while (y--)
-	{
-		for (int n=0; n<x; n++) sPtr[n] = c;
-		Ptr += Dest->Line;
-	}
-#endif
-}
 
-bool GdcApp15Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
-{
-	if (Src)
+	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 	{
-		/*
-		printf("GdcApp15Set::Blt Src(%p, %i,%i,%i) Dest(%i,%i,%i)\n",
-				Src->Base, Src->x, Src->y, Src->Bits,
-				Dest->x, Dest->y, Dest->Bits);
-		*/
-		
+		if (!Src)
+			return false;
+
 		switch (Src->Cs)
 		{
-			default:
-			{
-				LgiAssert(!"Not impl.");
-				break;
-			}
 			case CsIndex8:
 			{
 				ushort c[256];
@@ -236,100 +181,108 @@ bool GdcApp15Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				for (int y=0; y<Src->y; y++)
 				{
 					uchar *s = ((uchar*)Src->Base) + (y * Src->Line);
-					ushort *d = (ushort*) Ptr;
+					uint16 *d = Ptr.u16;
 
 					for (int x=0; x<Src->x; x++)
 					{
 						*d++ = c[*s++];
 					}
 
-					Ptr += Dest->Line;
+					Ptr.u8 += Dest->Line;
 				}
 				break;
 			}
-			case CsRgb15:
+			default:
 			{
-				uchar *s = Src->Base;
-				for (int y=0; y<Src->y; y++)
+				GBmpMem Dst;
+				Dst.Base = Ptr.u8;
+				Dst.x = Src->x;
+				Dst.y = Src->y;
+				Dst.Cs = Dest->Cs;
+				Dst.Line = Dest->Line;				
+				if (!LgiRopUniversal(&Dst, Src))
 				{
-					MemCpy(Ptr, s, Src->x * 2);
-					s += Src->Line;
-					Ptr += Dest->Line;
+					return false;
 				}
-				break;
-			}
-			case CsRgb16:
-			{
-				ushort *s = (ushort*) Src->Base;
-				ushort *d = (ushort*) Ptr;
-
-				for (int y=0; y<Src->y; y++)
-				{
-					ushort *NextS = (ushort*) (((uchar*) s) + Src->Line);
-					ushort *NextD = (ushort*) (((uchar*) d) + Dest->Line);
-
-					for (int x=0; x<Src->x; x++)
-					{
-						*d = Rgb16To15(*s);
-						d++;
-						s++;
-					}
-
-					s = NextS;
-					d = NextD;
-				}
-
-				Ptr = (uchar*) d;
-				break;
-			}
-			case CsBgr24:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					GBgr24 *s = (GBgr24*) (Src->Base + (y * Src->Line));
-					ushort *d = (ushort*) Ptr;
-					ushort *e = d + Src->x;
-
-					while (d < e)
-					{
-						*d++ = Rgb15(s->r, s->g, s->b);
-						s++;
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case CsArgb32:
-			{
-				ulong *s = (ulong*) Src->Base;
-				ushort *d = (ushort*) Ptr;
-
-				for (int y=0; y<Src->y; y++)
-				{
-					ulong *NextS = (ulong*) (((uchar*) s) + Src->Line);
-					ushort *NextD = (ushort*) (((uchar*) d) + Dest->Line);
-
-					for (int x=0; x<Src->x; x++)
-					{
-						*d = Rgb32To15(*s);
-						d++;
-						s++;
-					}
-
-					s = NextS;
-					d = NextD;
-				}
-
-				Ptr = (uchar*) d;
 				break;
 			}
 		}
-	}
-	return true;
-}
 
+		return true;
+	}
+	
+};
+
+template<typename Pixel, GColourSpace Cs>
+class GdcApp15And : public GdcApp15<Pixel, Cs> {
+public:
+	const char *GetClass() { return "GdcApp15And"; }
+	void Set();
+	void VLine(int height);
+	void Rectangle(int x, int y);
+	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha);
+};
+
+template<typename Pixel, GColourSpace Cs>
+class GdcApp15Or : public GdcApp15<Pixel, Cs> {
+public:
+	const char *GetClass() { return "GdcApp15Or"; }
+	void Set();
+	void VLine(int height);
+	void Rectangle(int x, int y);
+	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha);
+};
+
+template<typename Pixel, GColourSpace Cs>
+class GdcApp15Xor : public GdcApp15<Pixel, Cs> {
+public:
+	const char *GetClass() { return "GdcApp15Xor"; }
+	void Set();
+	void VLine(int height);
+	void Rectangle(int x, int y);
+	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha);
+};
+
+GApplicator *GApp15::Create(GColourSpace Cs, int Op)
+{
+	if (Cs == CsRgb15)
+	{
+		switch (Op)
+		{
+			case GDC_SET:
+				return new GdcApp15Set<GRgb15, CsRgb15>;
+				/*
+			case GDC_AND:
+				return new GdcApp15And<GRgb15, CsRgb15>;
+			case GDC_OR:
+				return new GdcApp15Or<GRgb15, CsRgb15>;
+			case GDC_XOR:
+				return new GdcApp15Xor<GRgb15, CsRgb15>;
+				*/
+		}
+	}
+	else if (Cs == CsBgr15)
+	{
+		switch (Op)
+		{
+			case GDC_SET:
+				return new GdcApp15Set<GBgr15, CsBgr15>;
+				/*
+			case GDC_AND:
+				return new GdcApp15And<GBgr15, CsBgr15>;
+			case GDC_OR:
+				return new GdcApp15Or<GBgr15, CsBgr15>;
+			case GDC_XOR:
+				return new GdcApp15Xor<GBgr15, CsBgr15>;
+				*/
+		}
+	}
+	
+	return NULL;
+}
+////////////////////////////////////////////////////////////////////////////////////////
 // 15 bit or sub functions
+/*
 void GdcApp15Or::Set()
 {
 	*sPtr |= c;
@@ -445,3 +398,4 @@ bool GdcApp15Xor::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 	}
 	return true;
 }
+*/

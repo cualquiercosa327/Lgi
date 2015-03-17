@@ -224,38 +224,15 @@ public:
 		
 		if (!SrcAlpha)
 		{
-			if (Dest->Cs == Src->Cs)
+			GBmpMem Dst;
+			Dst.Base = u8;
+			Dst.x = Src->x;
+			Dst.y = Src->y;
+			Dst.Cs = Dest->Cs;
+			Dst.Line = Dest->Line;				
+			if (!LgiRopUniversal(&Dst, Src))
 			{
-				uchar *s = Src->Base;
-				for (int y=0; y<Src->y; y++)
-				{
-					MemCpy(p, s, Src->x * 3);
-					s += Src->Line;
-					u8 += Dest->Line;
-				}
-			}
-			else
-			{
-				switch (Src->Cs)
-				{
-					#define CopyCase(name) \
-						case Cs##name: return CopyBlt<G##name>(Src);
-
-					CopyCase(Rgb24);
-					CopyCase(Bgr24);
-					CopyCase(Xrgb32);
-					CopyCase(Xbgr32);
-					CopyCase(Rgbx32);
-					CopyCase(Bgrx32);
-
-					CopyCase(Argb32);
-					CopyCase(Abgr32);
-					CopyCase(Rgba32);
-					CopyCase(Bgra32);
-					default:
-						LgiAssert(!"Impl me.");
-						break;
-				}
+				return false;
 			}
 		}
 		else
