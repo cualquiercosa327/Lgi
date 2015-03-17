@@ -33,5 +33,5 @@ for dst_cs in colourspaces:
 	for src_cs in colourspaces:
 		if IsRgb(dst_cs) and IsRgb(src_cs):
 			print "case JointCs("+dst_cs+", "+src_cs+"):"
-			print "\tGRop" + CsToBits(src_cs) + "To" + CsToBits(dst_cs) + "((" + CsToPx(dst_cs) + "*)d, (" + CsToPx(src_cs) + "*)d, x);"
+			print "\tGRop" + CsToBits(src_cs) + "To" + CsToBits(dst_cs) + "((" + CsToPx(dst_cs) + "*)d, (" + CsToPx(src_cs) + "*)s, x);"
 			print "\tbreak;"
