@@ -745,7 +745,7 @@ GFilter::IoStatus GdcGif::ReadImage(GSurface *pdc, GStream *in)
 						}
 						else
 						{
-							printf("%s:%i - Failed to create output surface.\n", __FILE__, __LINE__);
+							printf("%s:%i - Failed to create output surface.\n", _FL);
 						}
 
 						Done = true;

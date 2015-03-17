@@ -18,8 +18,10 @@
 #include "GPalette.h"
 
 #ifndef WIN32
-#define BI_RLE8       1L
-#define BI_RLE4       2L
+#define BI_RGB			0L
+#define BI_RLE8			1L
+#define BI_RLE4			2L
+#define BI_BITFIELDS	3L
 #else
 #include "Lgi.h"
 #include <objbase.h>
@@ -338,6 +340,12 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 				}
 				
 				GColourSpace SrcCs = CsNone;
+				if (Info.Compression == BI_BITFIELDS)
+				{
+					uint32 fields[3];
+					Read(In, fields, sizeof(fields));
+				}
+
 				switch (ActualBits)
 				{
 					case 8:
@@ -444,12 +452,14 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 							
 							if (DstCs != SrcCs)
 							{
+								/*
 								if (!LgiRopRgb(Ptr, DstCs, Ptr, SrcCs, pMem->x))
 								{
 									Status = IoUnsupportedFormat;
 									printf("%s:%i - Bmp had unsupported bit depth.\n", _FL);
 									break;
 								}
+								*/
 							}
 
 							if (Meter) Meter->Value(pMem->y-1-i);
@@ -517,26 +527,45 @@ GFilter::IoStatus GdcBmp::WriteImage(GStream *Out, GSurface *pDC)
 
 	Out->SetSize(0);
 
+	#define Wr(var) Out->Write(&var, sizeof(var))
+
 	File.Type = BMP_ID;
 	File.OffsetToData = sizeof(BMP_FILE) + sizeof(BMP_WININFO) + (Colours * 4);
 	File.Size = File.OffsetToData + (abs(pMem->Line) * pMem->y);
 	File.Reserved1 = 0;
 	File.Reserved2 = 0;
 
+	bool Written =	Wr(File.Type);
+	Written &= Wr(File.Size);
+	Written &= Wr(File.Reserved1);
+	Written &= Wr(File.Reserved2);
+	Written &= Wr(File.OffsetToData);
+
 	Info.Size = sizeof(BMP_WININFO);
 	Info.Sx = pMem->x;
 	Info.Sy = pMem->y;
 	Info.Planes = 1;
 	Info.Bits = UsedBits;
-	Info.Compression = 0;
+	Info.Compression = UsedBits == 16 || UsedBits == 32 ? BI_BITFIELDS : BI_RGB;
 	Info.DataSize = 0;
 	Info.XPels = 3000;
 	Info.YPels = 3000;
 	Info.ColoursUsed = Colours;
 	Info.ColourImportant = Colours;
 
-	if (Out->Write(&File, sizeof(File)) &&
-		Out->Write(&Info, sizeof(Info)))
+	Written =	Wr(Info.Size) &&
+				Wr(Info.Sx) &&
+				Wr(Info.Sy) &&
+				Wr(Info.Planes) &&
+				Wr(Info.Bits) &&
+				Wr(Info.Compression) &&
+				Wr(Info.DataSize) &&
+				Wr(Info.XPels) &&
+				Wr(Info.YPels) &&
+				Wr(Info.ColoursUsed) &&
+				Wr(Info.ColourImportant);
+
+	if (Written)
 	{
 		if (pMem->Cs == CsIndex8)
 		{
@@ -644,6 +673,25 @@ GFilter::IoStatus GdcBmp::WriteImage(GStream *Out, GSurface *pDC)
 			}
 			default:
 			{
+				if (UsedBits == 16)
+				{
+					System16BitPixel px[6];
+					ZeroObj(px);
+					px[0].r = 0x1f;
+					px[2].g = 0x3f;
+					px[4].b = 0x1f;
+					Out->Write(px, sizeof(px));
+				}
+				else if (UsedBits == 32)
+				{
+					System32BitPixel px[3];
+					ZeroObj(px);
+					px[0].r = 0xff;
+					px[1].g = 0xff;
+					px[2].b = 0xff;
+					Out->Write(px, sizeof(px));
+				}
+				
 				for (int i=pMem->y-1; i>=0; i--)
 				{
 					int w = Out->Write(pMem->Base + (i * pMem->Line), Bytes);
@@ -928,7 +976,7 @@ GFilter::IoStatus GdcIco::ReadImage(GSurface *pDC, GStream *In)
 		else
 		{
 			printf("%s:%i - Header size error: %i != %i + %i, Img: %ix%i @ %i bits\n",
-				__FILE__, __LINE__,
+				_FL,
 				Header.DataSize, XorSize, AndSize,
 				Header.Sx, Header.Sy, Header.Bits);
 		}

@@ -1250,7 +1250,7 @@ bool LgiRopUniversal(GBmpMem *Dst, GBmpMem *Src)
 		// No conversion idiom
 		uint8 *d = Dst->Base;
 		uint8 *s = Src->Base;
-		int Bytes = (SrcBits * Cx) >> 8;
+		int Bytes = (SrcBits * Cx) >> 3;
 		for (int y=0; y<Cy; y++)
 		{
 			memcpy(d, s, Bytes);

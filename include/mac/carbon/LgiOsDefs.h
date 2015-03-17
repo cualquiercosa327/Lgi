@@ -57,6 +57,9 @@ public:
 		a = A;
 		b = B;
 	}
+	
+	Param A() { return a; }
+	Param B() { return b; }
 };
 
 class OsAppArguments
