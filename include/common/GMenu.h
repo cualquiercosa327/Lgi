@@ -283,8 +283,7 @@ protected:
 	GMenuItem		*MatchShortcut(GKey &k);
 	#else
 	int				_Id;
-	bool			_Check;
-	bool			_Enabled;	
+	int				_Flags;
 	#endif
 
 	virtual void _Measure(GdcPt2 &Size);

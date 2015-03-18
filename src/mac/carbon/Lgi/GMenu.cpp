@@ -38,7 +38,17 @@ GSubMenu::GSubMenu(const char *name, bool Popup)
 
 GSubMenu::~GSubMenu()
 {
-	Items.DeleteObjects();
+	while (Items.Length())
+	{
+		GMenuItem *i = Items.First();
+		if (i->Parent != this)
+		{
+			i->Parent = NULL;
+			Items.Delete(i);
+		}
+		delete i;
+	}
+	
 	if (Info)
 	{
 		DisposeMenu(Info);
@@ -99,13 +109,21 @@ GMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Where
 			Items.Insert(i, Where);
 			
 			Str = i->Name();
-			CFStringRef s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)Str, strlen(Str), kCFStringEncodingUTF8, false);
-			OSStatus e = AppendMenuItemTextWithCFString(Info, s, 0, 0, &i->Info);
-			if (e) printf("%s:%i - AppendMenuItemTextWithCFString failed (e=%i)\n", __FILE__, __LINE__, (int)e);
-			#if DEBUG_INFO
-			else printf("AppendMenuItemTextWithCFString(%p, %s)=%p\n", Info, Str, i->Info);
-			#endif
-			CFRelease(s);
+			CFStringRef s = CFStringCreateWithBytes(kCFAllocatorDefault,
+													(UInt8*)Str, strlen(Str),
+													kCFStringEncodingUTF8,
+													false);
+			if (!s)
+				s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)"#error", 6, kCFStringEncodingUTF8, false);
+			if (s)
+			{
+				OSStatus e = AppendMenuItemTextWithCFString(Info, s, 0, 0, &i->Info);
+				if (e) printf("%s:%i - AppendMenuItemTextWithCFString failed (e=%i)\n", __FILE__, __LINE__, (int)e);
+				#if DEBUG_INFO
+				else printf("AppendMenuItemTextWithCFString(%p, %s)=%p\n", Info, Str, i->Info);
+				#endif
+				CFRelease(s);
+			}
 			
 			i->Id(Id);
 			i->Enabled(Enabled);
@@ -179,22 +197,38 @@ GSubMenu *GSubMenu::AppendSub(const char *Str, int Where)
 				
 				Str = i->Name();
 				s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)Str, strlen(Str), kCFStringEncodingUTF8, false);
-				e = SetMenuTitleWithCFString(i->Child->Info, s);
-				if (e) printf("%s:%i - SetMenuTitleWithCFString failed (e=%i)\n", __FILE__, __LINE__, (int)e);
-				#if DEBUG_INFO
-				else printf("SetMenuTitleWithCFString(%p, %s)\n", i->Child->Info, Str);
-				#endif
-				CFRelease(s);
+				if (s)
+				{
+					e = SetMenuTitleWithCFString(i->Child->Info, s);
+					if (e) printf("%s:%i - SetMenuTitleWithCFString failed (e=%i)\n", __FILE__, __LINE__, (int)e);
+					#if DEBUG_INFO
+					else printf("SetMenuTitleWithCFString(%p, %s)\n", i->Child->Info, Str);
+					#endif
+					CFRelease(s);
+				}
 				
 				i->Info = Items.IndexOf(i) + 1;
 				s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)Str, strlen(Str), kCFStringEncodingUTF8, false);
-				e = InsertMenuItemTextWithCFString(Info, s, i->Info - 1, 0, 0);
-				CFRelease(s);
-				if (e) printf("%s:%i - Error: AppendMenuItemTextWithCFString(%p)=%i\n", __FILE__, __LINE__, Parent->Parent->Info, Parent->Info);
+				if (s)
+				{
+					e = InsertMenuItemTextWithCFString(Info, s, i->Info - 1, 0, 0);
+					CFRelease(s);
+				}
+				if (e)
+					printf("%s:%i - Error: AppendMenuItemTextWithCFString(%p)=%i\n",
+							_FL,
+							Parent && Parent->Parent ? Parent->Parent->Info : NULL,
+							Parent ? Parent->Info : NULL);
 				else
 				{
 					e = SetMenuItemHierarchicalMenu(Info, i->Info, i->Child->Info);	
-					if (e) printf("%s:%i - Error: SetMenuItemHierarchicalMenu(%p, %i, %p) = %i\n", __FILE__, __LINE__, Parent->Parent->Info, Parent->Info, Info, (int)e);
+					if (e)
+						printf("%s:%i - Error: SetMenuItemHierarchicalMenu(%p, %i, %p) = %i\n",
+								_FL,
+								Parent && Parent->Parent ? Parent->Parent->Info : NULL,
+								Parent ? Parent->Info : NULL,
+								Info,
+								(int)e);
 				}
 			}
 		}
@@ -385,7 +419,7 @@ GMenuItem::GMenuItem()
 	Parent = NULL;
 	_Icon = -1;
 	_Id = 0;
-	_Check = false;
+	_Flags = 0;
 }
 
 GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, const char *Str, int Pos, const char *Shortcut)
@@ -398,13 +432,18 @@ GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, const char *Str, int Pos, const char
 	Child = NULL;
 	_Icon = -1;
 	_Id = 0;
-	_Check = false;
+	_Flags = 0;
 	d->Shortcut.Reset(NewStr(Shortcut));
 	Name(Str);
 }
 
 GMenuItem::~GMenuItem()
 {
+	if (Parent)
+	{
+		Parent->Items.Delete(this);
+		Parent = NULL;
+	}
 	DeleteObj(Child);
 	DeleteObj(d);
 }
@@ -826,7 +865,7 @@ bool GMenuItem::ScanForAccel()
 											false,
 											Key);
 				if (e) printf("%s:%i - SetMenuItemCommandKey(%i/%c) failed with %i\n",
-								__FILE__, __LINE__, Key, Key, (int)e);
+								_FL, Key, Key, (int)e);
 				break;
 			}
 		}
@@ -898,10 +937,13 @@ void GMenuItem::Separator(bool s)
 
 void GMenuItem::Checked(bool c)
 {
-	_Check = c;
+	if (c)
+		SetFlag(_Flags, ODS_CHECKED);
+	else
+		ClearFlag(_Flags, ODS_CHECKED);
 	if (Parent)
 	{
-		CheckMenuItem(Parent->Info, Info, _Check);
+		CheckMenuItem(Parent->Info, Info, c);
 	}
 }
 
@@ -925,10 +967,16 @@ bool GMenuItem::Name(const char *n)
 	{
 		CFStringRef s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)Tmp, strlen(Tmp), kCFStringEncodingUTF8, false);
 
-		SetMenuItemTextWithCFString(Parent->Info, Info, s);
-		// if (e) printf("%s:%i - SetMenuItemTextWithCFString(%p, %s) failed with %i.\n", _FL, Parent->Info, Tmp, e);
+		if (!s)
+			s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)"#error", 6, kCFStringEncodingUTF8, false);
 
-		CFRelease(s);
+		if (s)
+		{
+			SetMenuItemTextWithCFString(Parent->Info, Info, s);
+			// if (e) printf("%s:%i - SetMenuItemTextWithCFString(%p, %s) failed with %i.\n", _FL, Parent->Info, Tmp, e);
+
+			CFRelease(s);
+		}
 	}
 
 	DeleteArray(Tmp);
@@ -1060,7 +1108,7 @@ bool GMenuItem::Separator()
 
 bool GMenuItem::Checked()
 {
-	return _Check;
+	return TestFlag(_Flags, ODS_CHECKED);
 }
 
 bool GMenuItem::Enabled()
@@ -1255,7 +1303,7 @@ bool GAccelerator::Match(GKey &k)
 {
 	int Press = (uint) k.c16;
 	
-	#if 1
+	#if 0
 	printf("GAccelerator::Match %i(%c)%s%s%s = %i(%c)%s%s%s\n",
 		Press,
 		Press>=' '?Press:'.',
