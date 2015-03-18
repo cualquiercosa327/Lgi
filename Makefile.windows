@@ -479,7 +479,9 @@ GColourReduce.o : ./src/common/Gdc2/Tools/GColourReduce.cpp ./include/common/Gdc
 
 GdcCommon.o : ./src/common/Gdc2/GdcCommon.cpp ./include/common/Lgi.h \
 	./include/common/GPalette.h \
-	./include/common/GPixelRops.h
+	./include/common/GPixelRops.h \
+	./include/common/GRops.h \
+	./src/common/Gdc2/GRopsCases.cpp
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -939,6 +941,10 @@ MibAccess.o : ./src/win32/INet/MibAccess.cpp
 
 ./include/common/GClipBoard.h : 
 
+.\include\common\LgiClass.h : ./include/common/LgiInc.h \
+	./include/common/LgiDefs.h \
+	./include/common/GAutoPtr.h
+
 ./include/common/GDocView.h : ./include/common/GVariant.h
 
 ./include/common/GTextLabel.h : 
@@ -958,11 +964,9 @@ MibAccess.o : ./src/win32/INet/MibAccess.cpp
 
 ./include/common/GPassword.h : 
 
-.\include\common\LgiClass.h : ./include/common/LgiInc.h \
-	./include/common/LgiDefs.h \
-	./include/common/GAutoPtr.h
-
 ./include/win32/LgiOsClasses.h : ./include/common/GRegKey.h
+
+.\include\common\GRegKey.h : ./include/common/GContainers.h
 
 ./include/common/GViewPriv.h : 
 
@@ -979,6 +983,8 @@ MibAccess.o : ./src/win32/INet/MibAccess.cpp
 
 ./include/common/GToken.h : ./include/common/GArray.h
 
+.\include\common\GDisplayString.h : 
+
 ./include/common/Lgi.h : ./include/common/LgiInc.h \
 	./include/win32/LgiOsDefs.h \
 	./include/common/LgiMsgs.h \
@@ -993,40 +999,7 @@ MibAccess.o : ./src/win32/INet/MibAccess.cpp
 	./include/common/LgiClasses.h \
 	./include/common/LgiCommon.h
 
-.\include\common\LgiClasses.h : ./include/common/GMutex.h \
-	./include/win32/LgiOsClasses.h \
-	./include/common/GMem.h \
-	./include/common/GArray.h \
-	./include/common/LgiCommon.h \
-	./include/common/GXmlTree.h \
-	./include/common/GDragAndDrop.h \
-	./include/common/GMenu.h \
-	./include/common/LgiWidgets.h \
-	./include/common/Progress.h \
-	./include/common/GProgress.h \
-	./include/common/GFileSelect.h \
-	./include/common/GFindReplaceDlg.h \
-	./include/common/GToolBar.h \
-	./include/common/GThread.h \
-	./include/common/GInput.h \
-	./include/common/GPrinter.h
-
-.\include\common\GFileSelect.h : 
-
 .\include\common\Progress.h : ./include/common/GMutex.h
-
-.\include\common\GPrinter.h : 
-
-.\include\common\LgiWidgets.h : 
-
-.\include\common\LgiMsgs.h : 
-
-.\include\common\GFile.h : ./include/common/GMem.h \
-	./include/common/GStream.h \
-	./include/common/GArray.h \
-	./include/common/GRefCount.h
-
-.\include\common\GFindReplaceDlg.h : 
 
 .\include\common\Gdc2.h : ./include/win32/LgiOsDefs.h \
 	./include/common/LgiInc.h \
@@ -1050,13 +1023,6 @@ MibAccess.o : ./src/win32/INet/MibAccess.cpp
 
 .\include\common\GColour.h : ./include/common/GColourSpace.h
 
-.\include\win32\Core.h : 
-
-.\include\common\GFont.h : ./include/common/GRect.h \
-	./include/win32/LgiOsClasses.h \
-	./include/common/GColour.h \
-	./include/common/GCapabilities.h
-
 .\include\common\GHashTable.h : ./include/common/GMem.h \
 	./include/common/GArray.h \
 	./include/common/GString.h \
@@ -1064,16 +1030,23 @@ MibAccess.o : ./src/win32/INet/MibAccess.cpp
 
 .\include\common\GLibrary.h : 
 
-.\include\common\GDragAndDrop.h : ./include/common/GVariant.h \
-	./include/common/GCom.h
+.\include\common\LgiMsgs.h : 
+
+.\include\common\GFile.h : ./include/common/GMem.h \
+	./include/common/GStream.h \
+	./include/common/GArray.h \
+	./include/common/GRefCount.h
+
+.\include\win32\Core.h : 
+
+.\include\common\GFont.h : ./include/common/GRect.h \
+	./include/win32/LgiOsClasses.h \
+	./include/common/GColour.h \
+	./include/common/GCapabilities.h
 
 ./include/common/GMutex.h : 
 
-.\include\common\LgiCommon.h : ./include/common/GMem.h \
-	./include/common/GArray.h \
-	./include/common/LgiClass.h
-
-.\include\common\GRect.h : ./include/common/GPoint.h
+.\include\common\GCom.h : ./include/common/GContainers.h
 
 ./include/common/GMem.h : ./include/common/LgiInc.h \
 	./include/win32/LgiOsDefs.h
@@ -1086,22 +1059,15 @@ MibAccess.o : ./src/win32/INet/MibAccess.cpp
 	./include/common/GMem.h \
 	./include/common/GArray.h
 
-.\include\common\GDisplayString.h : 
-
 ./include/common/GdiLeak.h : 
+
+.\include\common\LgiCommon.h : ./include/common/GMem.h \
+	./include/common/GArray.h \
+	./include/common/LgiClass.h
 
 ./include/common/GBitmap.h : 
 
-.\include\common\GFilter.h : ./include/common/GContainers.h
-
-.\include\common\GCom.h : ./include/common/GContainers.h
-
-.\include\common\GStream.h : ./include/common/GDom.h
-
-.\include\common\LgiInterfaces.h : ./include/common/GMem.h \
-	./include/common/GArray.h \
-	./include/win32/LgiOsDefs.h \
-	./include/common/GColour.h
+.\include\common\GRect.h : ./include/common/GPoint.h
 
 ./include/common/Base64.h : ./include/common/LgiDefs.h
 
@@ -1112,14 +1078,35 @@ MibAccess.o : ./src/win32/INet/MibAccess.cpp
 
 .\include\common\LgiNetInc.h : 
 
-.\include\common\GThread.h : ./include/common/GMutex.h
-
 ./include/common/GVariant.h : ./include/common/GDom.h \
 	./include/common/GDateTime.h \
 	./include/common/GContainers.h \
 	./include/common/GHashTable.h
 
 ./include/common/GScrollBar.h : 
+
+.\include\common\GFilter.h : ./include/common/GContainers.h
+
+./include/win32/StackWalker.h : 
+
+./include/common/GCombo.h : 
+
+.\include\common\GStream.h : ./include/common/GDom.h
+
+.\include\common\LgiInterfaces.h : ./include/common/GMem.h \
+	./include/common/GArray.h \
+	./include/win32/LgiOsDefs.h \
+	./include/common/GColour.h
+
+./include/common/GArray.h : ./include/common/LgiDefs.h
+
+./include/common/GTabView.h : 
+
+./include/common/GPath.h : ./include/common/GMatrix.h
+
+.\include\common\GMatrix.h : 
+
+.\include\common\LgiInc.h : 
 
 .\include\common\GList.h : ./include/common/GMem.h \
 	./include/common/GArray.h \
@@ -1135,18 +1122,6 @@ MibAccess.o : ./src/win32/INet/MibAccess.cpp
 	./include/common/GAutoPtr.h \
 	./include/common/GString.h \
 	./include/common/GHashTable.h
-
-./include/win32/StackWalker.h : 
-
-./include/common/GCombo.h : 
-
-./include/common/GArray.h : ./include/common/LgiDefs.h
-
-./include/common/GTabView.h : 
-
-./include/common/GPath.h : ./include/common/GMatrix.h
-
-.\include\common\GMatrix.h : 
 
 ./include/common/GItemContainer.h : ./include/common/GPopup.h
 
@@ -1168,16 +1143,20 @@ MibAccess.o : ./src/win32/INet/MibAccess.cpp
 	./include/common/GColour.h \
 	./include/common/GFilter.h
 
-.\include\common\GString.h : ./include/common/LgiDefs.h \
-	./include/win32/LgiOsDefs.h
+./include/common/GRops.h : 
 
-.\include\common\LgiInc.h : 
+.\include\common\GItemContainer.h : ./include/common/GPopup.h
 
 ./include/common/GTextView3.h : ./include/common/GDocView.h \
 	./include/common/GUndo.h \
 	./include/common/GDragAndDrop.h
 
-.\include\common\GToolBar.h : ./include/common/GImageList.h
+.\include\common\GUndo.h : 
+
+.\include\common\GDragAndDrop.h : ./include/common/GVariant.h \
+	./include/common/GCom.h
+
+.\include\common\GDocView.h : ./include/common/GVariant.h
 
 ./include/common/GString.h : ./include/common/LgiDefs.h \
 	./include/win32/LgiOsDefs.h
@@ -1212,14 +1191,18 @@ MibAccess.o : ./src/win32/INet/MibAccess.cpp
 
 .\include\common\GTextLabel.h : 
 
-.\include\common\GItemContainer.h : ./include/common/GPopup.h
+.\include\common\GString.h : ./include/common/LgiDefs.h \
+	./include/win32/LgiOsDefs.h
 
 ./include/common/GFontSelect.h : 
 
-.\include\common\LgiDefs.h : ./include/common/LgiInc.h \
-	./include/common/GAutoPtr.h
+.\include\common\GImageList.h : 
 
-.\include\common\GDocView.h : ./include/common/GVariant.h
+.\include\common\LgiRes.h : ./include/common/Res.h \
+	./include/common/GContainers.h \
+	./include/common/GCss.h
+
+.\include\common\Res.h : ./include/common/GXmlTree.h
 
 ./include/common/GUtf8.h : 
 
@@ -1228,8 +1211,6 @@ MibAccess.o : ./src/win32/INet/MibAccess.cpp
 
 ./include/common/GCapabilities.h : ./include/common/GHashTable.h
 
-.\include\common\GInput.h : 
-
 ./include/common/GPalette.h : ./include/common/GColourSpace.h \
 	./include/common/GFile.h
 
@@ -1237,7 +1218,8 @@ MibAccess.o : ./src/win32/INet/MibAccess.cpp
 
 ./include/common/GCom.h : ./include/common/GContainers.h
 
-.\include\common\GImageList.h : 
+.\include\common\LgiDefs.h : ./include/common/LgiInc.h \
+	./include/common/GAutoPtr.h
 
 ./include/common/GCss.h : ./include/common/LgiInc.h \
 	./include/win32/LgiOsDefs.h \
@@ -1247,33 +1229,35 @@ MibAccess.o : ./src/win32/INet/MibAccess.cpp
 	./include/common/GString.h \
 	./include/common/GHashTable.h
 
-.\include\common\LgiRes.h : ./include/common/Res.h \
-	./include/common/GContainers.h \
-	./include/common/GCss.h
-
-.\include\common\Res.h : ./include/common/GXmlTree.h
-
 ./include/common/GContainers.h : ./include/common/LgiInc.h \
 	./include/win32/LgiOsDefs.h \
 	./include/common/GStream.h
 
-.\include\win32\LgiOsClasses.h : ./include/common/GRegKey.h
+.\include\common\GAutoPtr.h : 
 
-.\include\common\GMenu.h : ./include/common/GXmlTree.h \
-	./include/common/Res.h \
-	./include/common/GImageList.h
+.\include\common\GScrollBar.h : 
 
 ./include/common/GDateTime.h : 
 
 ./include/common/GCheckBox.h : 
 
+.\include\common\GPoint.h : 
+
+.\include\common\GXmlTree.h : ./include/common/GHashTable.h \
+	./include/common/GRefCount.h \
+	./include/common/GDom.h
+
 ./include/win32/GSymLookup.h : 
 
 ./include/common/GProgress.h : 
 
+.\include\common\GColourSpace.h : 
+
 ./include/common/GPixelRops.h : 
 
-.\include\common\GAutoPtr.h : 
+.\include\win32\LgiOsClasses.h : ./include/common/GRegKey.h
+
+./src/common/Gdc2/GRopsCases.cpp : 
 
 ./include/win32/LgiOsDefs.h : ./include/common/LgiInc.h \
 	./include/common/LgiDefs.h \
@@ -1281,40 +1265,11 @@ MibAccess.o : ./src/win32/INet/MibAccess.cpp
 
 ./include/common/GMru.h : ./include/common/GProperties.h
 
-.\include\common\GScrollBar.h : 
-
-.\include\common\GPoint.h : 
+.\include\common\GPopup.h : 
 
 ./include/common/GLibrary.h : 
 
-.\include\common\GXmlTree.h : ./include/common/GHashTable.h \
-	./include/common/GRefCount.h \
-	./include/common/GDom.h
-
 ./include/common/GEdit.h : ./include/common/GTextView3.h
-
-.\include\common\GColourSpace.h : 
-
-.\include\common\GDateTime.h : 
-
-.\include\common\GUndo.h : 
-
-.\include\common\GPopup.h : 
-
-./include/common/GTableLayout.h : ./include/common/GCss.h
-
-.\include\common\GRegKey.h : ./include/common/GContainers.h
-
-.\include\common\GProgress.h : 
-
-./include/common/INet.h : ./include/common/GMem.h \
-	./include/common/GContainers.h \
-	./include/common/LgiNetInc.h \
-	./include/common/GStream.h \
-	./include/common/LgiInterfaces.h \
-	./include/common/GString.h
-
-./include/common/GRegKey.h : ./include/common/GContainers.h
 
 .\include\common\GToken.h : ./include/common/GArray.h
 
@@ -1328,6 +1283,57 @@ MibAccess.o : ./src/win32/INet/MibAccess.cpp
 	./include/common/GDateTime.h \
 	./include/common/GContainers.h \
 	./include/common/GHashTable.h
+
+./include/common/GTableLayout.h : ./include/common/GCss.h
+
+./include/common/INet.h : ./include/common/GMem.h \
+	./include/common/GContainers.h \
+	./include/common/LgiNetInc.h \
+	./include/common/GStream.h \
+	./include/common/LgiInterfaces.h \
+	./include/common/GString.h
+
+./include/common/GRegKey.h : ./include/common/GContainers.h
+
+.\include\common\LgiClasses.h : ./include/common/GMutex.h \
+	./include/win32/LgiOsClasses.h \
+	./include/common/GMem.h \
+	./include/common/GArray.h \
+	./include/common/LgiCommon.h \
+	./include/common/GXmlTree.h \
+	./include/common/GDragAndDrop.h \
+	./include/common/GMenu.h \
+	./include/common/LgiWidgets.h \
+	./include/common/Progress.h \
+	./include/common/GProgress.h \
+	./include/common/GFileSelect.h \
+	./include/common/GFindReplaceDlg.h \
+	./include/common/GToolBar.h \
+	./include/common/GThread.h \
+	./include/common/GInput.h \
+	./include/common/GPrinter.h
+
+.\include\common\GProgress.h : 
+
+.\include\common\GPrinter.h : 
+
+.\include\common\GFileSelect.h : 
+
+.\include\common\LgiWidgets.h : 
+
+.\include\common\GFindReplaceDlg.h : 
+
+.\include\common\GThread.h : ./include/common/GMutex.h
+
+.\include\common\GToolBar.h : ./include/common/GImageList.h
+
+.\include\common\GInput.h : 
+
+.\include\common\GMenu.h : ./include/common/GXmlTree.h \
+	./include/common/Res.h \
+	./include/common/GImageList.h
+
+.\include\common\GDateTime.h : 
 
 ./include/common/GThreadEvent.h : 
 

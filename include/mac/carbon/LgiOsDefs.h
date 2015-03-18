@@ -164,6 +164,8 @@ LgiFunc void LgiSleep(int i);
 #define LGI_ALL_FILES				"*"
 /// The stardard extension for dynamically linked code
 #define LGI_LIBRARY_EXT				"dylib"
+/// The standard executable extension
+#define LGI_EXECUTABLE_EXT			""
 
 // Carbon user events
 #define GViewThisPtr				'gvtp'

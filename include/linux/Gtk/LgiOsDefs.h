@@ -237,6 +237,8 @@ LgiFunc void _lgi_sleep(int i);
 	#define LGI_ALL_FILES			"*.*"
 	/// The stardard extension for dynamically linked code
 	#define LGI_LIBRARY_EXT			"dll"
+	/// The standard executable extension
+	#define LGI_EXECUTABLE_EXT		".exe"
 #else
 	/// The directory separator character on Linux as a char
 	#define DIR_CHAR				'/'
@@ -248,6 +250,8 @@ LgiFunc void _lgi_sleep(int i);
 	#define LGI_ALL_FILES			"*"
 	/// The stardard extension for dynamically linked code
 	#define LGI_LIBRARY_EXT			"so"
+	/// The standard executable extension
+	#define LGI_EXECUTABLE_EXT		""
 #endif
 /// The standard end of line string for Linux
 #define EOL_SEQUENCE				"\n"

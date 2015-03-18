@@ -266,6 +266,7 @@ typedef SOCKET							OsSocket;
 #define LGI_PATH_SEPARATOR				";"
 #define LGI_ALL_FILES					"*.*"
 #define LGI_LIBRARY_EXT					"dll"
+#define LGI_EXECUTABLE_EXT				".exe"
 
 /////////////////////////////////////////////////////////////////////////////////////
 // Typedefs

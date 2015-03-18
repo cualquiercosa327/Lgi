@@ -3832,18 +3832,29 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 							m.Print("# Create the output folder\n"
 									"outputfolder :\n"
 									"	-mkdir -p $(BuildDir) 2> /dev/null\n"
-									"\n"
-									"# Clean out targets\n"
+									"\n");
+								
+							m.Print("# Clean out targets\n"
 									"clean :\n"
-									"	rm -f $(BuildDir)/*.o $(Target).%s\n"
-									"	@echo Cleaned $(BuildDir)\n"
-									"\n",
-									#ifdef WIN32
-									".exe"
-									#else
-									""
-									#endif
-									);
+									"	rm -f $(BuildDir)/*.o $(Target)%s\n"
+									"	@echo Cleaned $(BuildDir)\n",
+									LGI_EXECUTABLE_EXT);
+							
+							for (IdeProject *d=Deps.First(); d; d=Deps.Next())
+							{
+								GAutoString mk = d->GetMakefile();
+								if (mk)
+								{
+									GAutoString my_base = GetBasePath();
+									GAutoString dep_base = d->GetBasePath();
+									GAutoString rel_dir = LgiMakeRelativePath(my_base, dep_base);
+									char *mk_leaf = strrchr(mk, DIR_CHAR);
+									m.Print("	make -C \"%s\" -f \"%s\" clean\n",
+										ToUnixPath(rel_dir ? rel_dir.Get() : dep_base.Get()),
+										ToUnixPath(mk_leaf ? mk_leaf + 1 : mk.Get()));
+								}
+							}
+							m.Print("\n");
 						}
 						// Shared library
 						else if (!stricmp(TargetType, "DynamicLibrary"))
