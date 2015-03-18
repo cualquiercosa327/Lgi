@@ -49,7 +49,9 @@ enum GColourSpace
 	CsAlpha8 = GDC_COLOUR_SPACE_1(CtAlpha, 8), // Alpha channel only
 
 	// uint16 types
+	CsArgb15 = GDC_COLOUR_SPACE_4(CtAlpha, 1, CtRed, 5, CtGreen, 5, CtBlue, 5),
 	CsRgb15 = GDC_COLOUR_SPACE_3(CtRed, 5, CtGreen, 5, CtBlue, 5),
+	CsAbgr15 = GDC_COLOUR_SPACE_4(CtAlpha, 1, CtBlue, 5, CtGreen, 5, CtRed, 5),
 	CsBgr15 = GDC_COLOUR_SPACE_3(CtBlue, 5, CtGreen, 5, CtRed, 5),
 	CsRgb16 = GDC_COLOUR_SPACE_3(CtRed, 5, CtGreen, 6, CtBlue, 5),
 	CsBgr16 = GDC_COLOUR_SPACE_3(CtBlue, 5, CtGreen, 6, CtRed, 5),
@@ -89,29 +91,43 @@ enum GColourSpace
 #endif
 
 struct GRgb15 {
-	uint16 pad : 1;
-	uint16 r : 5;
-	uint16 g : 5;
 	uint16 b : 5;
+	uint16 g : 5;
+	uint16 r : 5;
+	uint16 pad : 1;
+};
+
+struct GArgb15 {
+	uint16 b : 5;
+	uint16 g : 5;
+	uint16 r : 5;
+	uint16 a : 1;
 };
 
 struct GBgr15 {
-	uint16 pad : 1;
-	uint16 b : 5;
-	uint16 g : 5;
 	uint16 r : 5;
+	uint16 g : 5;
+	uint16 b : 5;
+	uint16 pad : 1;
+};
+
+struct GAbgr15 {
+	uint16 r : 5;
+	uint16 g : 5;
+	uint16 b : 5;
+	uint16 a : 1;
 };
 
 struct GRgb16 {
-	uint16 r : 5;
-	uint16 g : 6;
 	uint16 b : 5;
+	uint16 g : 6;
+	uint16 r : 5;
 };
 
 struct GBgr16 {
-	uint16 b : 5;
-	uint16 g : 6;
 	uint16 r : 5;
+	uint16 g : 6;
+	uint16 b : 5;
 };
 
 struct GRgb24 {
@@ -198,13 +214,13 @@ union GColourSpaceBits
 	uint32 All;
 	struct {
 		uint32 Size4 : 4;
-		uint32 Type4 : 4;
+		GComponentType Type4 : 4;
 		uint32 Size3 : 4;
-		uint32 Type3 : 4;
+		GComponentType Type3 : 4;
 		uint32 Size2 : 4;
-		uint32 Type2 : 4;
+		GComponentType Type2 : 4;
 		uint32 Size1 : 4;
-		uint32 Type1 : 4;
+		GComponentType Type1 : 4;
 	} Bits;
 };
 

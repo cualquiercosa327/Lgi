@@ -1,8 +1,10 @@
 #ifndef _GROPS_H_
 #define _GROPS_H_
 
+#define IsOverlapping()	 ((uint8*)dst == (uint8*)src)
+
 #define OverlapCheck()							\
-	if ((uint8*)dst == (uint8*)src)				\
+	if (IsOverlapping())						\
 	{											\
 		LgiAssert(!"regions can't overlap.");	\
 		return;									\
@@ -133,15 +135,31 @@ void GRop15To16(DstPx *dst, SrcPx *src, int px)
 	register SrcPx *s = src;
 	register int Px = px;
 
-	OverlapCheck()
-
-	while (Px--)
+	if (IsOverlapping())
 	{
-		d->r = s->r;
-		d->g = (uint16)(s->g << 1) | (s->g >> 4);
-		d->b = s->b;
-		s++;
-		d++;
+		register uint8 r, g, b;
+		while (Px--)
+		{
+			r = s->r;
+			g = s->g;
+			b = s->b;
+			d->r = r;
+			d->g = (g << 1) | (g >> 4);
+			d->b = b;
+			s++;
+			d++;
+		}
+	}
+	else
+	{
+		while (Px--)
+		{
+			d->r = s->r;
+			d->g = (uint16)(s->g << 1) | (s->g >> 4);
+			d->b = s->b;
+			s++;
+			d++;
+		}
 	}
 }
 
@@ -152,15 +170,31 @@ void GRop16To16(DstPx *dst, SrcPx *src, int px)
 	register SrcPx *s = src;
 	register int Px = px;
 
-	OverlapCheck()
-
-	while (Px--)
+	if (IsOverlapping())
 	{
-		d->r = s->r;
-		d->g = s->g;
-		d->b = s->b;
-		s++;
-		d++;
+		register uint8 r, g, b;
+		while (Px--)
+		{
+			r = s->r;
+			g = s->g;
+			b = s->b;
+			d->r = r;
+			d->g = g;
+			d->b = b;
+			s++;
+			d++;
+		}
+	}
+	else
+	{
+		while (Px--)
+		{
+			d->r = s->r;
+			d->g = s->g;
+			d->b = s->b;
+			s++;
+			d++;
+		}
 	}
 }
 
@@ -444,16 +478,34 @@ void GRop32To32(DstPx *dst, SrcPx *src, int px)
 	register SrcPx *s = src;
 	register int Px = px;
 
-	OverlapCheck()
-
-	while (Px--)
+	if (IsOverlapping())
 	{
-		d->r = s->r;
-		d->g = s->g;
-		d->b = s->b;
-		d->a = s->a;
-		s++;
-		d++;
+		register uint8 r, g, b, a;
+		while (Px--)
+		{
+			r = s->r;
+			g = s->g;
+			b = s->b;
+			a = s->a;
+			d->r = r;
+			d->g = g;
+			d->b = b;
+			d->a = a;
+			s++;
+			d++;
+		}
+	}
+	else
+	{
+		while (Px--)
+		{
+			d->r = s->r;
+			d->g = s->g;
+			d->b = s->b;
+			d->a = s->a;
+			s++;
+			d++;
+		}
 	}
 }
 

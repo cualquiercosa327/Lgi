@@ -753,26 +753,8 @@ public:
 				}
 				break;
 			}
+			case System16BitColourSpace:
 			case System24BitColourSpace:
-			{
-				if (Callback && (!TileCache || TileCache->X() != TileSize || TileCache->Y() != TileSize))
-				{
-					TileCache.Reset(new GMemDC(TileSize, TileSize, System32BitColourSpace));
-				}
-				
-				if (TileCache)
-				{
-					GRect s;
-					s.ZOff(TileSize-1, TileSize-1);
-					s.Offset(Sx, Sy);
-					
-					GdcPt2 off(Sx, Sy);
-					Callback->DrawBackground(TileCache, off, NULL);
-					TileCache->Op(GDC_ALPHA);
-					TileCache->Blt(0, 0, Src, &s);
-				}
-				break;
-			}
 			case System32BitColourSpace:
 			{
 				if (Callback && (!TileCache || TileCache->X() != TileSize || TileCache->Y() != TileSize))

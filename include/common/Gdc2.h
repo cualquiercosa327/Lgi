@@ -1247,7 +1247,7 @@ LgiFunc void LgiDrawIcon(GSurface *pDC, int Dx, int Dy, HICON ico);
 #endif
 
 /// Row copy operator for full RGB (8 bit components)
-bool LgiRopRgb
+LgiFunc bool LgiRopRgb
 (
 	// Pointer to destination pixel buffer
 	uint8 *Dst,
@@ -1262,6 +1262,6 @@ bool LgiRopRgb
 );
 
 /// Universal bit blt method
-bool LgiRopUniversal(GBmpMem *Dst, GBmpMem *Src);
+LgiFunc bool LgiRopUniversal(GBmpMem *Dst, GBmpMem *Src);
 
 #endif

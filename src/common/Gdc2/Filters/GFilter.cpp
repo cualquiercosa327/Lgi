@@ -69,8 +69,6 @@ class GdcBmp : public GFilter
 	int ActualBits;
 	int ScanSize;
 
-	bool SetSize(GStream *s, long *Info, GSurface *pDC);
-
 public:
 	int GetCapabilites() { return FILTER_CAP_READ | FILTER_CAP_WRITE; }
 	Format GetFormat() { return FmtBmp; }
@@ -129,59 +127,129 @@ public:
 
 class BMP_WININFO {
 public:
+	// Win2 hdr (12 bytes)
 	int32		Size;
 	int32		Sx;
 	int32		Sy;
 	uint16		Planes;
 	uint16		Bits;
+	
+	// Win3 hdr (40 bytes)
 	uint32		Compression;
 	uint32		DataSize;
 	int32		XPels;
 	int32		YPels;
 	uint32		ColoursUsed;
 	uint32		ColourImportant;
-};
 
-class BMP_OS2INFO {
-public:
-	int32		Size;
-	uint32		Sx;
-	uint32		Sy;
-	uint32		Planes;
-	uint32		Bits;
+	// Win4 hdr (108 bytes)
+	uint32 RedMask;       /* Mask identifying bits of red component */
+	uint32 GreenMask;     /* Mask identifying bits of green component */
+	uint32 BlueMask;      /* Mask identifying bits of blue component */
+	uint32 AlphaMask;     /* Mask identifying bits of alpha component */
+	uint32 CSType;        /* Color space type */
+	uint32 RedX;          /* X coordinate of red endpoint */
+	uint32 RedY;          /* Y coordinate of red endpoint */
+	uint32 RedZ;          /* Z coordinate of red endpoint */
+	uint32 GreenX;        /* X coordinate of green endpoint */
+	uint32 GreenY;        /* Y coordinate of green endpoint */
+	uint32 GreenZ;        /* Z coordinate of green endpoint */
+	uint32 BlueX;         /* X coordinate of blue endpoint */
+	uint32 BlueY;         /* Y coordinate of blue endpoint */
+	uint32 BlueZ;         /* Z coordinate of blue endpoint */
+	uint32 GammaRed;      /* Gamma red coordinate scale value */
+	uint32 GammaGreen;    /* Gamma green coordinate scale value */
+	uint32 GammaBlue;     /* Gamma blue coordinate scale value */
+
+	bool Read(GStream &f)
+	{
+		ZeroObj(*this);
+		int64 Start = f.GetPos();
+		
+		#define Rd(var) if (f.Read(&var, sizeof(var)) != sizeof(var)) return false;
+		Rd(Size);
+		Rd(Sx);
+		Rd(Sy);
+		Rd(Planes);
+		Rd(Bits);
+		
+		if (Size >= 40)
+		{
+			Rd(Compression);
+			Rd(DataSize);
+			Rd(XPels);
+			Rd(YPels);
+			Rd(ColoursUsed);
+			Rd(ColourImportant);
+		}
+		
+		if (Size >= 54)
+		{
+			Rd(RedMask);
+			Rd(GreenMask);
+			Rd(BlueMask);
+		}
+
+		if (Size >= 56)
+		{
+			Rd(AlphaMask);
+		}
+		
+		if (Size >= 108)
+		{
+			Rd(CSType);
+			Rd(RedX);
+			Rd(RedY);
+			Rd(RedZ);
+			Rd(GreenX);
+			Rd(GreenY);
+			Rd(GreenZ);
+			Rd(BlueX);
+			Rd(BlueY);
+			Rd(BlueZ);
+			Rd(GammaRed);
+			Rd(GammaGreen);
+			Rd(GammaBlue);
+		}
+
+		int64 End = f.GetPos();
+		int64 Bytes = End - Start;
+		return Bytes >= 12;
+	}
 };
 
 #ifdef WIN32
 #pragma pack(pop, before_pack)
 #endif
 
-bool GdcBmp::SetSize(GStream *s, long *Info, GSurface *pDC)
+static int CountSetBits(uint32 b)
 {
-	bool Status = false;
-
-	switch (*Info)
+	int Count = 0;
+	for (int i=0; i<sizeof(b)<<3; i++)
 	{
-		case sizeof(BMP_WININFO):
-		{
-			BMP_WININFO *i = (BMP_WININFO*) Info;
-			ActualBits = i->Bits;
-			ScanSize = BMPWIDTH(i->Sx * i->Bits);
-			Status = pDC->Create(i->Sx, i->Sy, max(i->Bits, 8), ScanSize);
-			break;
-		}
-
-		case sizeof(BMP_OS2INFO):
-		{
-			BMP_OS2INFO *i = (BMP_OS2INFO*) Info;
-			ActualBits = i->Bits;
-			ScanSize = BMPWIDTH(i->Sx * i->Bits);
-			Status = pDC->Create(i->Sx, i->Sy, max(i->Bits, 8), ScanSize);
-			s->SetPos(s->GetPos() + (sizeof(BMP_OS2INFO)-sizeof(BMP_WININFO)));
-			break;
-		}
+		if ((b & (1 << i)) != 0)
+			Count++;
 	}
+	return Count;
+}
 
-	return Status;
+struct MaskComp
+{
+	GComponentType Type;
+	uint32 Mask;
+	int Bits;
+	
+	void Set(GComponentType t, int mask)
+	{
+		Type = t;
+		Mask = mask;
+		Bits = CountSetBits(Mask);
+	}
+};
+
+int CompSort(MaskComp *a, MaskComp *b)
+{
+	return b->Mask - a->Mask;
 }
 
 GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
@@ -189,302 +257,321 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 	if (!pDC || !In)
 		return GFilter::IoError;
 
-	GFilter::IoStatus Status = IoError;
 	ActualBits = 0;
 	ScanSize = 0;
 	
 	BMP_FILE File;
 	BMP_WININFO Info;
 	GRect Cr;
-
+	
 	Read(In, &File.Type, sizeof(File.Type));
 	Read(In, &File.Size, sizeof(File.Size));
 	Read(In, &File.Reserved1, sizeof(File.Reserved1));
 	Read(In, &File.Reserved2, sizeof(File.Reserved2));
 	Read(In, &File.OffsetToData, sizeof(File.OffsetToData));
 
-	Read(In, &Info.Size, sizeof(Info.Size));
-	Read(In, &Info.Sx, sizeof(Info.Sx));
-	Read(In, &Info.Sy, sizeof(Info.Sy));
-	Read(In, &Info.Planes, sizeof(Info.Planes));
-	Read(In, &Info.Bits, sizeof(Info.Bits));
-	Read(In, &Info.Compression, sizeof(Info.Compression));
-	Read(In, &Info.DataSize, sizeof(Info.DataSize));
-	Read(In, &Info.XPels, sizeof(Info.XPels));
-	Read(In, &Info.YPels, sizeof(Info.YPels));
-	Read(In, &Info.ColoursUsed, sizeof(Info.ColoursUsed));
-	Read(In, &Info.ColourImportant, sizeof(Info.ColourImportant));
+	if (!Info.Read(*In))
+		return GFilter::IoError;
 
-	if (File.Type == BMP_ID)
+	if (File.Type != BMP_ID)
+		return GFilter::IoUnsupportedFormat;
+
+	ActualBits = Info.Bits;
+	ScanSize = BMPWIDTH(Info.Sx * Info.Bits);
+	if (!pDC->Create(Info.Sx, Info.Sy, max(Info.Bits, 8), ScanSize))
+		return GFilter::IoError;
+
+	if (pDC->GetBits() <= 8)
 	{
-		if (SetSize(In, (long*) &Info, pDC))
+		int Colours = 1 << ActualBits;
+		GPalette *Palette = new GPalette;
+		if (Palette)
 		{
-			if (pDC->GetBits() <= 8)
+			Palette->SetSize(Colours);
+			GdcRGB *Start = (*Palette)[0];
+			if (Start)
 			{
-				int Colours = 1 << ActualBits;
-				GPalette *Palette = new GPalette;
-				if (Palette)
-				{
-					Palette->SetSize(Colours);
-					GdcRGB *Start = (*Palette)[0];
-					if (Start)
-					{
-						In->Read(Start, sizeof(GdcRGB)*Colours);
-						Palette->SwapRAndB();
-					}
-
-					Palette->Update();
-					pDC->Palette(Palette);
-				}
+				In->Read(Start, sizeof(GdcRGB)*Colours);
+				Palette->SwapRAndB();
 			}
 
-			GBmpMem *pMem = GetSurface(pDC);
-			In->SetPos(File.OffsetToData);
+			Palette->Update();
+			pDC->Palette(Palette);
+		}
+	}
 
-			Status = GFilter::IoSuccess;
+	GBmpMem *pMem = GetSurface(pDC);
+	In->SetPos(File.OffsetToData);
 
-			if (Info.Compression == BI_RLE8)
+	GFilter::IoStatus Status = IoSuccess;
+	if (Info.Compression == BI_RLE8)
+	{
+		// 8 bit RLE compressed image
+		int Remaining = In->GetSize() - In->GetPos();
+		uchar *Data = new uchar[Remaining];
+		if (Data)
+		{
+			if (In->Read(Data, Remaining) == Remaining)
 			{
-				// 8 bit RLE compressed image
-				int Remaining = In->GetSize() - In->GetPos();
-				uchar *Data = new uchar[Remaining];
-				if (Data)
+				int x=0, y=pDC->Y()-1;
+				uchar *p = Data;
+				bool Done = false;
+
+				while (!Done && p < Data + Remaining)
 				{
-					if (In->Read(Data, Remaining) == Remaining)
+					uchar Length = *p++;
+					uchar Colour = *p++;
+
+					if (Length == 0)
 					{
-						int x=0, y=pDC->Y()-1;
-						uchar *p = Data;
-						bool Done = false;
-
-						while (!Done && p < Data + Remaining)
+						switch (Colour)
 						{
-							uchar Length = *p++;
-							uchar Colour = *p++;
-
-							if (Length == 0)
+							case 0:
 							{
-								switch (Colour)
-								{
-									case 0:
-									{
-										x = 0;
-										y--;
-										break;
-									}
-									case 1:
-									{
-										Done = true;
-										break;
-									}
-									case 2:
-									{
-										x += *p++;
-										y -= *p++;
-										break;
-									}
-									default:
-									{
-										// absolute mode
-										uchar *Pixel = (*pDC)[y];
-										if (Pixel && y >= 0 && y < pDC->Y())
-										{
-											int Len = min(Colour, pDC->X() - x);
-											if (Len > 0)
-											{
-												memcpy(Pixel + x, p, Len);
-												x += Colour;
-												p += Colour;
-											}
-										}
-										else
-										{
-											p += Colour;
-										}
-										if ((NativeInt) p & 1) p++;
-										break;
-									}
-								}
+								x = 0;
+								y--;
+								break;
 							}
-							else
+							case 1:
 							{
-								// encoded mode
+								Done = true;
+								break;
+							}
+							case 2:
+							{
+								x += *p++;
+								y -= *p++;
+								break;
+							}
+							default:
+							{
+								// absolute mode
 								uchar *Pixel = (*pDC)[y];
 								if (Pixel && y >= 0 && y < pDC->Y())
 								{
-									int Len = min(Length, pDC->X() - x);
+									int Len = min(Colour, pDC->X() - x);
 									if (Len > 0)
 									{
-										memset(Pixel + x, Colour, Len);
-										x += Length;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-			else if (Info.Compression == BI_RLE4)
-			{
-				// 4 bit RLE compressed image
-
-				// not implemented
-				printf("%s:%i - BI_RLE4 not implemented.\n", _FL);
-			}
-			else
-			{
-				// Progress
-				if (Meter)
-				{
-					Meter->SetDescription("scanlines");
-					Meter->SetLimits(0, pMem->y-1);
-				}
-				
-				GColourSpace SrcCs = CsNone;
-				if (Info.Compression == BI_BITFIELDS)
-				{
-					uint32 fields[3];
-					Read(In, fields, sizeof(fields));
-				}
-
-				switch (ActualBits)
-				{
-					case 8:
-						SrcCs = CsIndex8;
-						break;
-					case 16:
-						SrcCs = CsRgb16;
-						break;
-					case 24:
-						SrcCs = CsBgr24;
-						break;
-					case 32:
-						SrcCs = CsArgb32;
-						break;
-				}
-
-				// straight
-				switch (ActualBits)
-				{
-					case 1:
-					{
-						uchar *Buffer = new uchar[ScanSize];
-						if (Buffer)
-						{
-							for (int y=pMem->y-1; y>=0; y--)
-							{
-								if (In->Read(Buffer, ScanSize) == ScanSize)
-								{
-									uchar Mask = 0x80;
-									uchar *d = Buffer;
-									for (int x=0; x<pDC->X(); x++)
-									{
-										pDC->Colour((*d & Mask) ? 1 : 0);
-										pDC->Set(x, y);
-
-										Mask >>= 1;
-										if (!Mask)
-										{
-											Mask = 0x80;
-											d++;
-										}
+										memcpy(Pixel + x, p, Len);
+										x += Colour;
+										p += Colour;
 									}
 								}
 								else
 								{
-								    Status = IoError;
-									break;
+									p += Colour;
 								}
-
-								if (Meter) Meter->Value(pMem->y-1-y);
-							}
-
-							DeleteArray(Buffer);
-						}
-						break;
-					}
-					case 4:
-					{
-						uchar *Buffer = new uchar[ScanSize];
-						if (Buffer)
-						{
-							for (int y=pMem->y-1; y>=0; y--)
-							{
-								if (In->Read(Buffer, ScanSize) != ScanSize)
-								{
-								    Status = IoError;
-								    break;
-								}
-
-								uchar *d = Buffer;
-								for (int x=0; x<pDC->X(); x++)
-								{
-									if (x & 1)
-									{
-										pDC->Colour(*d & 0xf);
-										d++;
-									}
-									else
-									{
-										pDC->Colour(*d >> 4);
-									}
-									pDC->Set(x, y);
-								}
-
-								if (Meter) Meter->Value(pMem->y-1-y);
-							}
-
-							DeleteArray(Buffer);
-						}
-						break;
-					}
-					default:
-					{
-						GColourSpace DstCs = pDC->GetColourSpace();
-						for (int i=pMem->y-1; i>=0; i--)
-						{
-							uint8 *Ptr = pMem->Base + (pMem->Line * i);
-							int r = In->Read(Ptr, ScanSize);
-							if (r != ScanSize)
-							{
-								Status = IoError;
+								if ((NativeInt) p & 1) p++;
 								break;
 							}
-							
-							if (DstCs != SrcCs)
-							{
-								/*
-								if (!LgiRopRgb(Ptr, DstCs, Ptr, SrcCs, pMem->x))
-								{
-									Status = IoUnsupportedFormat;
-									printf("%s:%i - Bmp had unsupported bit depth.\n", _FL);
-									break;
-								}
-								*/
-							}
-
-							if (Meter) Meter->Value(pMem->y-1-i);
 						}
-						break;
+					}
+					else
+					{
+						// encoded mode
+						uchar *Pixel = (*pDC)[y];
+						if (Pixel && y >= 0 && y < pDC->Y())
+						{
+							int Len = min(Length, pDC->X() - x);
+							if (Len > 0)
+							{
+								memset(Pixel + x, Colour, Len);
+								x += Length;
+							}
+						}
 					}
 				}
 			}
+		}
+	}
+	else if (Info.Compression == BI_RLE4)
+	{
+		// 4 bit RLE compressed image
 
-			Cr.ZOff(pDC->X()-1, pDC->Y()-1);
-			pDC->Update(GDC_BITS_CHANGE|GDC_PAL_CHANGE);
-		}
-		else
-		{
-			Cr.ZOff(-1, -1);
-			printf("%s:%i - SetSize failed.\n", __FILE__, __LINE__);
-		}
+		// not implemented
+		printf("%s:%i - BI_RLE4 not implemented.\n", _FL);
 	}
 	else
 	{
-		Cr.ZOff(-1, -1);
-		printf("%s:%i - Bmp type check failed '%.2s'.\n", __FILE__, __LINE__, (char*)&File.Type);
+		// Progress
+		if (Meter)
+		{
+			Meter->SetDescription("scanlines");
+			Meter->SetLimits(0, pMem->y-1);
+		}
+		
+		GColourSpace SrcCs = CsNone;
+
+		switch (ActualBits)
+		{
+			case 8:
+				SrcCs = CsIndex8;
+				break;
+			case 15:
+				SrcCs = CsRgb15;
+				break;
+			case 16:
+				SrcCs = CsRgb16;
+				break;
+			case 24:
+				SrcCs = CsBgr24;
+				break;
+			case 32:
+				SrcCs = CsBgra32;
+				break;
+		}
+
+		if (Info.Compression == BI_BITFIELDS)
+		{
+			// Should we try and create a colour space from these fields?
+			GArray<MaskComp> Comps;
+			Comps.New().Set(CtRed, Info.RedMask);
+			Comps.New().Set(CtGreen, Info.GreenMask);
+			Comps.New().Set(CtBlue, Info.BlueMask);
+			if (Info.AlphaMask)
+				Comps.New().Set(CtAlpha, Info.AlphaMask);
+			Comps.Sort(CompSort);			
+
+			GColourSpaceBits Cs;
+			Cs.All = 0;
+			for (int i=0; i<Comps.Length(); i++)
+			{
+				MaskComp &c = Comps[i];
+				Cs.All <<= 8;
+				Cs.All |= (c.Type << 4) | c.Bits;
+			}
+			
+			SrcCs = (GColourSpace) Cs.All;
+		}
+
+		// straight
+		switch (ActualBits)
+		{
+			case 1:
+			{
+				uchar *Buffer = new uchar[ScanSize];
+				if (Buffer)
+				{
+					for (int y=pMem->y-1; y>=0; y--)
+					{
+						if (In->Read(Buffer, ScanSize) == ScanSize)
+						{
+							uchar Mask = 0x80;
+							uchar *d = Buffer;
+							for (int x=0; x<pDC->X(); x++)
+							{
+								pDC->Colour((*d & Mask) ? 1 : 0);
+								pDC->Set(x, y);
+
+								Mask >>= 1;
+								if (!Mask)
+								{
+									Mask = 0x80;
+									d++;
+								}
+							}
+						}
+						else
+						{
+						    Status = IoError;
+							break;
+						}
+
+						if (Meter) Meter->Value(pMem->y-1-y);
+					}
+
+					DeleteArray(Buffer);
+				}
+				break;
+			}
+			case 4:
+			{
+				uchar *Buffer = new uchar[ScanSize];
+				if (Buffer)
+				{
+					for (int y=pMem->y-1; y>=0; y--)
+					{
+						if (In->Read(Buffer, ScanSize) != ScanSize)
+						{
+						    Status = IoError;
+						    break;
+						}
+
+						uchar *d = Buffer;
+						for (int x=0; x<pDC->X(); x++)
+						{
+							if (x & 1)
+							{
+								pDC->Colour(*d & 0xf);
+								d++;
+							}
+							else
+							{
+								pDC->Colour(*d >> 4);
+							}
+							pDC->Set(x, y);
+						}
+
+						if (Meter) Meter->Value(pMem->y-1-y);
+					}
+
+					DeleteArray(Buffer);
+				}
+				break;
+			}
+			default:
+			{
+				GColourSpace DstCs = pDC->GetColourSpace();
+				for (int i=pMem->y-1; i>=0; i--)
+				{
+					uint8 *Ptr = pMem->Base + (pMem->Line * i);
+					int r = In->Read(Ptr, ScanSize);
+					if (r != ScanSize)
+					{
+						Status = IoError;
+						break;
+					}
+					
+					if (DstCs != SrcCs)
+					{
+						/*
+						if (SrcCs == CsArgb15)
+						{
+							uint16 *p = (uint16*)Ptr;
+							uint16 *e = p + pMem->x;
+							while (p < e)
+							{
+								*p = LgiSwap16(*p);
+								p++;
+							}
+						}
+						*/
+						
+						if (Ptr == pMem->Base)
+						{
+							GArgb15 *s = (GArgb15*)Ptr;
+							int asd=0;
+						}
+						
+						if (!LgiRopRgb(Ptr, DstCs, Ptr, SrcCs, pMem->x))
+						{
+							Status = IoUnsupportedFormat;
+							printf("%s:%i - Bmp had unsupported bit depth.\n", _FL);
+							break;
+						}
+						
+					}
+
+					if (Meter) Meter->Value(pMem->y-1-i);
+				}
+				break;
+			}
+		}
 	}
 
+	Cr.ZOff(pDC->X()-1, pDC->Y()-1);
 	pDC->ClipRgn(&Cr);
+	pDC->Update(GDC_BITS_CHANGE|GDC_PAL_CHANGE);
 	
 	return Status;
 }
@@ -529,41 +616,43 @@ GFilter::IoStatus GdcBmp::WriteImage(GStream *Out, GSurface *pDC)
 
 	#define Wr(var) Out->Write(&var, sizeof(var))
 
+	Info.Compression = UsedBits == 16 || UsedBits == 32 ? BI_BITFIELDS : BI_RGB;
+	int BitFieldSize = Info.Compression == BI_BITFIELDS ? 16 : 0;
+	Info.Size = 40 + BitFieldSize;
+
 	File.Type = BMP_ID;
-	File.OffsetToData = sizeof(BMP_FILE) + sizeof(BMP_WININFO) + (Colours * 4);
+	File.OffsetToData = sizeof(BMP_FILE) + Info.Size;
 	File.Size = File.OffsetToData + (abs(pMem->Line) * pMem->y);
 	File.Reserved1 = 0;
 	File.Reserved2 = 0;
 
-	bool Written =	Wr(File.Type);
-	Written &= Wr(File.Size);
-	Written &= Wr(File.Reserved1);
-	Written &= Wr(File.Reserved2);
-	Written &= Wr(File.OffsetToData);
-
-	Info.Size = sizeof(BMP_WININFO);
 	Info.Sx = pMem->x;
 	Info.Sy = pMem->y;
 	Info.Planes = 1;
 	Info.Bits = UsedBits;
-	Info.Compression = UsedBits == 16 || UsedBits == 32 ? BI_BITFIELDS : BI_RGB;
 	Info.DataSize = 0;
 	Info.XPels = 3000;
 	Info.YPels = 3000;
 	Info.ColoursUsed = Colours;
 	Info.ColourImportant = Colours;
 
-	Written =	Wr(Info.Size) &&
-				Wr(Info.Sx) &&
-				Wr(Info.Sy) &&
-				Wr(Info.Planes) &&
-				Wr(Info.Bits) &&
-				Wr(Info.Compression) &&
-				Wr(Info.DataSize) &&
-				Wr(Info.XPels) &&
-				Wr(Info.YPels) &&
-				Wr(Info.ColoursUsed) &&
-				Wr(Info.ColourImportant);
+	bool Written =	Wr(File.Type) &&
+					Wr(File.Size) &&
+					Wr(File.Reserved1) &&
+					Wr(File.Reserved2) &&
+					Wr(File.OffsetToData) &&
+					
+					Wr(Info.Size) &&
+					Wr(Info.Sx) &&
+					Wr(Info.Sy) &&
+					Wr(Info.Planes) &&
+					Wr(Info.Bits) &&
+					Wr(Info.Compression) &&
+					Wr(Info.DataSize) &&
+					Wr(Info.XPels) &&
+					Wr(Info.YPels) &&
+					Wr(Info.ColoursUsed) &&
+					Wr(Info.ColourImportant);
 
 	if (Written)
 	{
@@ -675,7 +764,7 @@ GFilter::IoStatus GdcBmp::WriteImage(GStream *Out, GSurface *pDC)
 			{
 				if (UsedBits == 16)
 				{
-					System16BitPixel px[6];
+					System16BitPixel px[4];
 					ZeroObj(px);
 					px[0].r = 0x1f;
 					px[2].g = 0x3f;
@@ -684,7 +773,7 @@ GFilter::IoStatus GdcBmp::WriteImage(GStream *Out, GSurface *pDC)
 				}
 				else if (UsedBits == 32)
 				{
-					System32BitPixel px[3];
+					System32BitPixel px[4];
 					ZeroObj(px);
 					px[0].r = 0xff;
 					px[1].g = 0xff;

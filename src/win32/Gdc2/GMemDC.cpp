@@ -276,6 +276,14 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 	return Create(x, y, cs, LineLen, KeepData);
 }
 
+enum BmpComp
+{
+	BmpRed,
+	BmpGrn,
+	BmpBlu,
+	BmpAlp	
+};
+
 bool GMemDC::Create(int x, int y, GColourSpace Cs, int LineLen, bool KeepData)
 {
 	bool Status = FALSE;
@@ -294,7 +302,7 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int LineLen, bool KeepData)
 	{
 		int Bits = GColourSpaceToBits(Cs);
 		int Colours = Bits <= 8 ? 1 << Bits : 0;
-		int SizeOf = sizeof(BITMAPINFO)+(2*sizeof(uint32))+(sizeof(RGBQUAD)*Colours);
+		int SizeOf = sizeof(BITMAPINFO)+(3*sizeof(uint32))+(sizeof(RGBQUAD)*Colours);
 		d->Info = (PBITMAPINFO) new char[SizeOf];
 		if (d->Info)
 		{
@@ -327,24 +335,52 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int LineLen, bool KeepData)
 				{
 					ColourSpace = Cs;
 
-					BitFeilds[0] = 0x7C00;
-					BitFeilds[1] = 0x03E0;
-					BitFeilds[2] = 0x001F;
+					#if 1
+					union
+					{
+						uint32 u16;
+						System15BitPixel p;
+					};
+
+					u16 = 0; p.r = -1; BitFeilds[BmpRed] = u16;
+					u16 = 0; p.g = -1; BitFeilds[BmpGrn] = u16;
+					u16 = 0; p.b = -1; BitFeilds[BmpBlu] = u16;
+					#else
+					BitFeilds[BmpRed] = 0x001F;
+					BitFeilds[BmpGrn] = 0x03E0;
+					BitFeilds[BmpBlu] = 0x7C00;
+					#endif
+					BitFeilds[BmpAlp] = 0;
 
 					d->Info->bmiHeader.biBitCount = 16;
 					d->Info->bmiHeader.biCompression = BI_BITFIELDS;
+					d->Info->bmiHeader.biSize += sizeof(*BitFeilds) * 4;
 					break;
 				}
 				case System16BitColourSpace:
 				{
 					ColourSpace = Cs;
 
-					BitFeilds[0] = 0xF800;
-					BitFeilds[1] = 0x07E0;
-					BitFeilds[2] = 0x001F;
+					#if 1
+					union
+					{
+						uint32 u16;
+						System16BitPixel p;
+					};
+
+					u16 = 0; p.r = -1; BitFeilds[BmpRed] = u16;
+					u16 = 0; p.g = -1; BitFeilds[BmpGrn] = u16;
+					u16 = 0; p.b = -1; BitFeilds[BmpBlu] = u16;
+					#else
+					BitFeilds[BmpRed] = 0x001F;
+					BitFeilds[BmpGrn] = 0x07E0;
+					BitFeilds[BmpBlu] = 0xF800;
+					#endif
+					BitFeilds[BmpAlp] = 0;
 
 					d->Info->bmiHeader.biBitCount = 16;
 					d->Info->bmiHeader.biCompression = BI_BITFIELDS;
+					d->Info->bmiHeader.biSize += sizeof(*BitFeilds) * 4;
 					break;
 				}
 				case System24BitColourSpace:
@@ -358,13 +394,20 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int LineLen, bool KeepData)
 				case System32BitColourSpace:
 				{
 					ColourSpace = Cs;
+					union
+					{
+						uint32 u32;
+						System32BitPixel p;
+					};
 
-					BitFeilds[0] = 0x00FF0000;
-					BitFeilds[1] = 0x0000FF00;
-					BitFeilds[2] = 0x000000FF;
+					u32 = 0; p.r = -1; BitFeilds[BmpRed] = u32;
+					u32 = 0; p.g = -1; BitFeilds[BmpGrn] = u32;
+					u32 = 0; p.b = -1; BitFeilds[BmpBlu] = u32;
+					u32 = 0; p.a = -1; BitFeilds[BmpAlp] = u32;
 
 					d->Info->bmiHeader.biBitCount = 32;
 					d->Info->bmiHeader.biCompression = BI_BITFIELDS;
+					d->Info->bmiHeader.biSize += sizeof(*BitFeilds) * 4;
 					break;
 				}
 				default:

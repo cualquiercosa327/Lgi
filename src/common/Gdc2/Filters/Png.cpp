@@ -43,19 +43,11 @@
 #include "GVariant.h"
 
 // Pixel formats
-typedef uint8 Png8;
-typedef GRgb24 Png24;
+typedef uint8   Png8;
+typedef GRgb24  Png24;
 typedef GRgba32 Png32;
-
-struct Png48
-{
-	uint16 r, g, b;
-};
-
-struct Png64
-{
-	uint16 r, g, b, a;
-};
+typedef GRgb48  Png48;
+typedef GRgba64 Png64;
 
 const char sLibrary[] =
 	#if defined(MAC) || defined(LINUX)
@@ -767,6 +759,17 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 							}
 							case 24:
 							{
+								#if 1
+								GColourSpace InCs = Lib->png_get_bit_depth(png_ptr, info_ptr) == 16 ? CsRgb48 : CsRgb24;
+								if (!LgiRopRgb(Scan, OutCs, Scan0[y], InCs, pDC->X()))
+								{
+									LgiTrace("%s:%i - Unsupported colour space: 0x%x (%s)\n",
+											_FL,	
+											pDC->GetColourSpace(),
+											GColourSpaceToString(pDC->GetColourSpace()));
+									y = pDC->Y();
+								}
+								#else
 							    switch (OutCs)
 							    {
 									#define Read24Case(name, bits) \
@@ -801,11 +804,23 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 										LgiAssert(!"Not impl.");
 										break;
 								}
+								#endif
 								break;
 							}
 							case 32:
 							{
-							    switch (pDC->GetColourSpace())
+								#if 1
+								GColourSpace InCs = Lib->png_get_bit_depth(png_ptr, info_ptr) == 16 ? CsRgba64 : CsRgba32;
+								if (!LgiRopRgb(Scan, OutCs, Scan0[y], InCs, pDC->X()))
+								{
+									LgiTrace("%s:%i - Unsupported colour space: 0x%x (%s)\n",
+											_FL,	
+											pDC->GetColourSpace(),
+											GColourSpaceToString(pDC->GetColourSpace()));
+									y = pDC->Y();
+								}
+								#else
+								switch (pDC->GetColourSpace())
 							    {
 									#define Read32Case(name, bits) \
 										case Cs##name: \
@@ -839,6 +854,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 										LgiAssert(!"Not impl.");
 										break;
 								}
+								#endif
 								break;
 							}
 							default:
