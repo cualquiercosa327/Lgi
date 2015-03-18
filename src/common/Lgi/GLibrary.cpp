@@ -34,8 +34,8 @@ bool GLibrary::Load(const char *File)
 		// if you specify no extension in the application this will correctly set
 		// it for the OS your running thus removing the need for #ifdef's in your
 		// app. sweet!
-		char *Dot = strrchr(f, '.');
-		if (!Dot || strchr(Dot, DIR_CHAR))
+		char *Ext = LgiGetExtension((char*)File);
+		if (!Ext || _stricmp(Ext, LGI_LIBRARY_EXT))
 		{
 			ch += sprintf_s(f+ch, sizeof(f)-ch, ".%s", LGI_LIBRARY_EXT);
 		}
