@@ -30,8 +30,9 @@ public:
 	bool SnapToEdge;
 	GAutoString Icon;
 	
-	// Zoom state
+	// State
 	GdkWindowState State;
+	bool HadCreateEvent;
 	
 	// Focus stuff
 	OsView FirstFocus;
@@ -44,6 +45,7 @@ public:
 		Focus = NULL;
 		Active = false;
 		State = (Gtk::GdkWindowState)0;
+		HadCreateEvent = false;
 		
 		Sx = Sy = 0;
 		Dynamic = true;
@@ -335,8 +337,11 @@ bool GWindow::Attach(GViewI *p)
             gtk_container_add(GTK_CONTAINER(Wnd), _Root);
             gtk_widget_show(_Root);
         }
+
+		// This call sets up the GdkWindow handle
+		gtk_widget_realize(GTK_WIDGET(Wnd));
 		
-		OnCreate();
+		// Do a rough layout of child windows
 		Pour();
 
 		// Add icon
@@ -355,6 +360,9 @@ bool GWindow::Attach(GViewI *p)
 		{
 			_Default->Invalidate();
 		}
+		
+		// Call on create
+		OnCreate();
 		
 		Status = true;
 	}

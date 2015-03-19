@@ -1052,6 +1052,8 @@ char16 *GHtmlParser::CleanText(const char *s, int Len, bool ConversionAllowed, b
 
 	if (s && Len > 0)
 	{
+	    printf("Clean %p %i '%.*s'\n", s, Len, min(Len, 10), s);
+	    
 		bool Has8 = false;
 		if (Len >= 0)
 		{

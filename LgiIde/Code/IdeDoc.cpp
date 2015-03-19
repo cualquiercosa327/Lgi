@@ -522,7 +522,9 @@ public:
 		}
 
 		char *Fn = Doc->GetFileName();
-		bool DocMatch = IdeDoc::CurIpDoc && !_stricmp(Fn, IdeDoc::CurIpDoc);
+		bool DocMatch = IdeDoc::CurIpDoc &&
+						Fn &&
+						!_stricmp(Fn, IdeDoc::CurIpDoc);
 
 		{
 			// We have the current IP location
