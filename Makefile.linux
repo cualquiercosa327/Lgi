@@ -498,7 +498,9 @@ GColourReduce.o : ./src/common/Gdc2/Tools/GColourReduce.cpp ./include/common/Gdc
 
 GdcCommon.o : ./src/common/Gdc2/GdcCommon.cpp ./include/common/Lgi.h \
 	./include/common/GPalette.h \
-	./include/common/GPixelRops.h
+	./include/common/GPixelRops.h \
+	./include/common/GRops.h \
+	./src/common/Gdc2/GRopsCases.cpp
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -1465,6 +1467,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 	/usr/include/pango-1.0/pango/pango-glyph.h \
 	/usr/include/pango-1.0/pango/pango-script.h \
 	/usr/include/glib-2.0/gmodule.h
+
+./include/common/GRops.h : 
 
 ./include/common/Progress.h : ./include/common/GMutex.h
 
@@ -3194,6 +3198,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 ../../../../../usr/include/gtk-2.0/gtk/gtktoolbutton.h : /usr/include/gtk-2.0/gtk/gtktoolitem.h
 
 ./include/common/GLibrary.h : 
+
+./src/common/Gdc2/GRopsCases.cpp : 
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkrecentfilter.h : /usr/include/glib-2.0/glib-object.h
 

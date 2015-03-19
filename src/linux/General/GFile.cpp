@@ -873,7 +873,7 @@ bool GFileSystem::Delete(char *FileName, bool ToTrash)
 	return false;
 }
 
-bool GFileSystem::CreateFolder(char *PathName)
+bool GFileSystem::CreateFolder(const char *PathName)
 {
 	int r = mkdir(PathName, S_IRWXU | S_IXGRP | S_IXOTH);
 	if (r)

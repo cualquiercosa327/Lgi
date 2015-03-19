@@ -140,6 +140,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../include/common/GRect.h \
 	../include/common/GRefCount.h \
 	../include/common/GRegKey.h \
+	../include/common/GRops.h \
 	../include/common/GScrollBar.h \
 	../include/common/GSkinEngine.h \
 	../include/common/GSlider.h \
@@ -196,6 +197,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../src/common/Gdc2/GColour.cpp \
 	../src/common/Gdc2/GdcCommon.cpp \
 	../src/common/Gdc2/GRect.cpp \
+	../src/common/Gdc2/GRopsCases.cpp \
 	../src/common/Gdc2/GSurface.cpp \
 	../src/common/Gdc2/Path/GPath.cpp \
 	../src/common/Gdc2/Tools/GColourReduce.cpp \
@@ -842,8 +844,9 @@ outputfolder :
 
 # Clean out targets
 clean :
-	rm -f $(BuildDir)/*.o $(Target).
+	rm -f $(BuildDir)/*.o $(Target)
 	@echo Cleaned $(BuildDir)
+	+make -C "../" -f "Makefile.linux" clean
 
 GDebugContext.o : ./Code/GDebugContext.cpp ../include/common/Lgi.h \
 	./Code/LgiIde.h \
@@ -932,7 +935,8 @@ IdeDoc.o : ./Code/IdeDoc.cpp ../include/common/Lgi.h \
 	../include/common/GLexCpp.h \
 	../include/common/INet.h \
 	../include/common/GClipBoard.h \
-	../include/common/GDisplayString.h
+	../include/common/GDisplayString.h \
+	../include/common/GScrollBar.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -984,6 +988,7 @@ LgiIde.o : ./Code/LgiIde.cpp ../include/common/Lgi.h \
 	../include/common/GTextLabel.h \
 	../include/common/GCombo.h \
 	../include/common/GCheckBox.h \
+	./Code/GDebugger.h \
 	../include/common/GSubProcess.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -1024,7 +1029,9 @@ GTextView3.o : ../src/common/Text/GTextView3.cpp ../include/common/Lgi.h \
 	../include/common/GInput.h \
 	../include/common/GScrollBar.h \
 	../include/common/GClipBoard.h \
-	../include/common/GDisplayString.h
+	../include/common/GDisplayString.h \
+	../include/common/GViewPriv.h \
+	../include/common/GCssTools.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -1890,7 +1897,9 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../src/common/Gdc2/GdcCommon.cpp : ../include/common/Lgi.h \
 	../include/common/GPalette.h \
-	../include/common/GPixelRops.h
+	../include/common/GPixelRops.h \
+	../include/common/GRops.h \
+	../src/common/Gdc2/GRopsCases.cpp
 
 ../include/common/GPixelRops.h : 
 
@@ -1978,7 +1987,9 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GInput.h \
 	../include/common/GScrollBar.h \
 	../include/common/GClipBoard.h \
-	../include/common/GDisplayString.h
+	../include/common/GDisplayString.h \
+	../include/common/GViewPriv.h \
+	../include/common/GCssTools.h
 
 ../../../../../../usr/include/glib-2.0/gio/gasyncresult.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -2412,6 +2423,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../include/common/GFilter.h : ../include/common/GContainers.h
 
+../include/common/GRops.h : 
+
 ../../../../../../usr/include/gtk-2.0/gtk/gtkframe.h : /usr/include/gtk-2.0/gtk/gtkbin.h
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkcelllayout.h : /usr/include/gtk-2.0/gtk/gtkcellrenderer.h \
@@ -2769,7 +2782,10 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkcellrenderertext.h : /usr/include/gtk-2.0/gtk/gtkcellrenderer.h
 
-./Code/GDebugger.h : ../include/common/GVariant.h
+./Code/GDebugger.h : ../include/common/GVariant.h \
+	../include/common/GStringClass.h
+
+../include/common/GStringClass.h : ../include/common/GUtf8.h
 
 ../../../../../../usr/include/glib-2.0/gobject/gparam.h : /usr/include/glib-2.0/gobject/gvalue.h
 
@@ -3352,12 +3368,15 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../include/common/LgiDefs.h : ../include/common/LgiInc.h \
 	../include/common/GAutoPtr.h
 
+../src/common/Gdc2/GRopsCases.cpp : 
+
 ../../../../../../usr/include/glib-2.0/gio/gvfs.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../src/common/Widgets/GTabView.cpp : ../include/common/Lgi.h \
 	../include/common/GTabView.h \
 	../include/common/GSkinEngine.h \
-	../include/common/GDisplayString.h
+	../include/common/GDisplayString.h \
+	../include/common/GTableLayout.h
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkradiomenuitem.h : /usr/include/gtk-2.0/gtk/gtkcheckmenuitem.h
 
@@ -3603,6 +3622,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GDocView.h \
 	../include/common/GOptionsFile.h \
 	./Code/FindSymbol.h \
+	../include/common/GStringClass.h \
+	./Code/GDebugger.h \
 	./Code/IdeDoc.h \
 	./Code/IdeProject.h \
 	./Code/FindInFiles.h
@@ -3695,6 +3716,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../include/common/GDataDlg.h : ../include/common/GProperties.h \
 	../include/common/GScrollBar.h \
 	../include/common/GTextLabel.h
+
+../include/common/GRops.h : 
 
 ../../../../../../usr/include/glib-2.0/glib/gmain.h : /usr/include/glib-2.0/glib/gpoll.h \
 	/usr/include/glib-2.0/glib/gslist.h \
@@ -3824,7 +3847,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtktipsquery.h : /usr/include/gtk-2.0/gtk/gtk.h
 
-./Code/GDebugger.h : ../include/common/GVariant.h
+./Code/GDebugger.h : ../include/common/GVariant.h \
+	../include/common/GStringClass.h
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtktextmark.h : 
 
@@ -4184,6 +4208,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GdiLeak.h
 
 ../include/common/GViewPriv.h : 
+
+../src/common/Gdc2/GRopsCases.cpp : 
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkseparator.h : /usr/include/gtk-2.0/gtk/gtkwidget.h
 

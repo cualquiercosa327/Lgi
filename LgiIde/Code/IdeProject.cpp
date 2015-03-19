@@ -3849,7 +3849,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 									GAutoString dep_base = d->GetBasePath();
 									GAutoString rel_dir = LgiMakeRelativePath(my_base, dep_base);
 									char *mk_leaf = strrchr(mk, DIR_CHAR);
-									m.Print("	make -C \"%s\" -f \"%s\" clean\n",
+									m.Print("	+make -C \"%s\" -f \"%s\" clean\n",
 										ToUnixPath(rel_dir ? rel_dir.Get() : dep_base.Get()),
 										ToUnixPath(mk_leaf ? mk_leaf + 1 : mk.Get()));
 								}
