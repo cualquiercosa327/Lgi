@@ -88,38 +88,70 @@ enum GColourSpace
 #ifdef WIN32
 #pragma pack(push, before_pack)
 #pragma pack(1)
+#define BIT_PACK_LSB_FIRST	1
+#else
+#define BIT_PACK_LSB_FIRST	0
 #endif
 
+
 struct GRgb15 {
+	#if BIT_PACK_LSB_FIRST
 	uint16 b : 5;
 	uint16 g : 5;
 	uint16 r : 5;
 	uint16 pad : 1;
+	#else
+	uint16 pad : 1;
+	uint16 r : 5;
+	uint16 g : 5;
+	uint16 b : 5;
+	#endif
 };
 
 struct GArgb15 {
+	#if BIT_PACK_LSB_FIRST
 	uint16 b : 5;
 	uint16 g : 5;
 	uint16 r : 5;
 	uint16 a : 1;
+	#else
+	uint16 a : 1;
+	uint16 r : 5;
+	uint16 g : 5;
+	uint16 b : 5;
+	#endif
 };
 
 struct GBgr15 {
+	#if BIT_PACK_LSB_FIRST
 	uint16 r : 5;
 	uint16 g : 5;
 	uint16 b : 5;
 	uint16 pad : 1;
+	#else
+	uint16 pad : 1;
+	uint16 b : 5;
+	uint16 g : 5;
+	uint16 r : 5;
+	#endif
 };
 
 struct GAbgr15 {
+	#if BIT_PACK_LSB_FIRST
 	uint16 r : 5;
 	uint16 g : 5;
 	uint16 b : 5;
 	uint16 a : 1;
+	#else
+	uint16 a : 1;
+	uint16 b : 5;
+	uint16 g : 5;
+	uint16 r : 5;
+	#endif
 };
 
 struct GRgb16 {
-	#if 1
+	#if !BIT_PACK_LSB_FIRST
 	uint16 r : 5;
 	uint16 g : 6;
 	uint16 b : 5;
@@ -131,7 +163,7 @@ struct GRgb16 {
 };
 
 struct GBgr16 {
-	#if 0
+	#if BIT_PACK_LSB_FIRST
 	uint16 r : 5;
 	uint16 g : 6;
 	uint16 b : 5;
