@@ -23,6 +23,7 @@
 #include "GDisplayString.h"
 #include "GdiLeak.h"
 #include "GDisplayString.h"
+#include "GStringClass.h"
 
 #ifdef FontChange
 #undef FontChange
@@ -1575,30 +1576,73 @@ bool GFontType::GetSystemFont(const char *Which)
 	static bool First = true;
 	if (First)
 	{
-		Gtk::GtkStyle *s = Gtk::gtk_style_new();
-		if (s)
+		bool ConfigFontUsed = false;
+		char p[MAX_PATH];
+		LgiGetSystemPath(LSP_HOME, p, sizeof(p));
+		LgiMakePath(p, sizeof(p), p, ".lgi.conf");
+		if (FileExists(p))
 		{
-			const char *fam = Gtk::pango_font_description_get_family(s->font_desc);
-			if (fam)
+			GAutoString a(ReadTextFile(p));
+			if (a)
 			{
-				strcpy_s(DefFont, sizeof(DefFont), fam);
+				GString s;
+				s = a.Get();
+				GString::Array Lines = s.Split("\n");
+				for (int i=0; i<Lines.Length(); i++)
+				{
+					if (Lines[i].Find("=")>=0)
+					{
+						GString::Array p = Lines[i].Split("=", 1);
+						if (!_stricmp(p[0].Lower(), "font"))
+						{
+							GString::Array d = p[1].Split(":");
+							if (d.Length() > 1)
+							{
+								strcpy_s(DefFont, sizeof(DefFont), d[0]);
+								int PtSize = d[1].Int();
+								if (PtSize > 0)
+								{
+									DefSize = PtSize;
+									ConfigFontUsed = true;
+									
+									printf("Config font %s : %i\n", DefFont, DefSize);
+								}
+							}
+						}
+					}
+				}
 			}
-			else printf("%s:%i - pango_font_description_get_family failed.\n", _FL);
-
-			if (Gtk::pango_font_description_get_size_is_absolute(s->font_desc))
-			{
-				float Px = Gtk::pango_font_description_get_size(s->font_desc) / PANGO_SCALE;
-				float Dpi = 96.0; // FIXME: some reasonable default
-				DefSize = (Px * 72.0) / Dpi;
-			}
-			else
-			{
-				DefSize = Gtk::pango_font_description_get_size(s->font_desc) / PANGO_SCALE;
-			}
-			
-			g_object_unref(s);
+			else printf("Can't read '%s'\n", p);
 		}
-		else printf("%s:%i - gtk_style_new failed.\n", _FL);
+		else printf("'%s' doesn't exist\n", p);
+		
+		if (!ConfigFontUsed)
+		{	
+			Gtk::GtkStyle *s = Gtk::gtk_style_new();
+			if (s)
+			{
+				const char *fam = Gtk::pango_font_description_get_family(s->font_desc);
+				if (fam)
+				{
+					strcpy_s(DefFont, sizeof(DefFont), fam);
+				}
+				else printf("%s:%i - pango_font_description_get_family failed.\n", _FL);
+
+				if (Gtk::pango_font_description_get_size_is_absolute(s->font_desc))
+				{
+					float Px = Gtk::pango_font_description_get_size(s->font_desc) / PANGO_SCALE;
+					float Dpi = 96.0; // FIXME: some reasonable default
+					DefSize = (Px * 72.0) / Dpi;
+				}
+				else
+				{
+					DefSize = Gtk::pango_font_description_get_size(s->font_desc) / PANGO_SCALE;
+				}
+				
+				g_object_unref(s);
+			}
+			else printf("%s:%i - gtk_style_new failed.\n", _FL);
+		}
 		
 		First = false;
 	}

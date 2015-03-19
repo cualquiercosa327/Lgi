@@ -119,15 +119,27 @@ struct GAbgr15 {
 };
 
 struct GRgb16 {
+	#if 1
+	uint16 r : 5;
+	uint16 g : 6;
+	uint16 b : 5;
+	#else
 	uint16 b : 5;
 	uint16 g : 6;
 	uint16 r : 5;
+	#endif
 };
 
 struct GBgr16 {
+	#if 0
 	uint16 r : 5;
 	uint16 g : 6;
 	uint16 b : 5;
+	#else
+	uint16 b : 5;
+	uint16 g : 6;
+	uint16 r : 5;
+	#endif
 };
 
 struct GRgb24 {

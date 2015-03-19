@@ -832,9 +832,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	/usr/include/pango-1.0/pango/pango-types.h \
 	/usr/include/pango-1.0/pango/pango-utils.h \
 	/usr/include/pango-1.0/pango/pango.h \
-	/usr/include/pango-1.0/pango/pangocairo.h \
-	/usr/lib/x86_64-linux-gnu/glib-2.0/include/glibconfig.h \
-	/usr/lib/x86_64-linux-gnu/gtk-2.0/include/gdkconfig.h
+	/usr/include/pango-1.0/pango/pangocairo.h
 	export Build=$(Build); \
 	$(MAKE) -C .. -f Makefile.linux
 

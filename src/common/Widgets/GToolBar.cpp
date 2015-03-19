@@ -354,6 +354,9 @@ GImageList::GImageList(int x, int y, GSurface *pDC)
 		#endif
 		))
 	{
+		printf("GImageList blt %s -> %s\n",
+			GColourSpaceToString(GetColourSpace()),
+			GColourSpaceToString(pDC->GetColourSpace()));
 		Blt(0, 0, pDC);
 		
 		#if defined(__GTK_H__)

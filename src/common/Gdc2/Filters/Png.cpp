@@ -690,12 +690,15 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 					// Copy in the scanlines
 					int ActualBits = pDC->GetBits();
 					int ScanLen = Lib->png_get_image_width(png_ptr, info_ptr) * ActualBits / 8;
+
+					GColourSpace OutCs = pDC->GetColourSpace();
+					printf("Png read %i->%s\n", RequestBits, GColourSpaceToString(OutCs));
+
 					for (int y=0; y<pDC->Y(); y++)
 					{
 						uchar *Scan = (*pDC)[y];
 						LgiAssert(Scan != NULL);
 
-						GColourSpace OutCs = pDC->GetColourSpace();
 						switch (RequestBits)
 						{
 							case 1:
@@ -759,7 +762,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 							}
 							case 24:
 							{
-								#if 1
+								#if 0
 								GColourSpace InCs = Lib->png_get_bit_depth(png_ptr, info_ptr) == 16 ? CsRgb48 : CsRgb24;
 								if (!LgiRopRgb(Scan, OutCs, Scan0[y], InCs, pDC->X()))
 								{
@@ -809,7 +812,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 							}
 							case 32:
 							{
-								#if 1
+								#if 0
 								GColourSpace InCs = Lib->png_get_bit_depth(png_ptr, info_ptr) == 16 ? CsRgba64 : CsRgba32;
 								if (!LgiRopRgb(Scan, OutCs, Scan0[y], InCs, pDC->X()))
 								{

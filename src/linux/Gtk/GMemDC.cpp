@@ -78,10 +78,11 @@ cairo_surface_t *GMemDC::GetSurface(GRect &r)
 	switch (d->Img->depth)
 	{
 		case 8: fmt = CAIRO_FORMAT_A8; break;
+		case 16: fmt = CAIRO_FORMAT_RGB16_565; break;
 		case 24: fmt = CAIRO_FORMAT_RGB24; break;
 		case 32: fmt = CAIRO_FORMAT_ARGB32; break;
 		default:
-			LgiAssert(!"Not a bit depth that cairo supports");
+			printf("%s:%i - '%i' bit depth that cairo supports\n", _FL, d->Img->depth);
 			return NULL;
 	}
 
@@ -101,10 +102,11 @@ cairo_t *GMemDC::GetCairo()
 		switch (d->Img->depth)
 		{
 			case 8: fmt = CAIRO_FORMAT_A8; break;
+			case 16: fmt = CAIRO_FORMAT_RGB16_565; break;
 			case 24: fmt = CAIRO_FORMAT_RGB24; break;
 			case 32: fmt = CAIRO_FORMAT_ARGB32; break;
 			default:
-				LgiAssert(!"Not a bit depth that cairo supports");
+				printf("%s:%i - '%i' bit depth that cairo supports\n", _FL, d->Img->depth);
 				return 0;
 		}
 

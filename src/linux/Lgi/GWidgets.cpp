@@ -233,10 +233,7 @@ bool GDialog::SetupDialog(bool Modal)
 		}
 	}
 	
-	OnCreate();
-	AttachChildren();
 	GView *gv = this;
-
 	g_signal_connect(	G_OBJECT(Wnd),
 						"delete_event",
 						G_CALLBACK(GtkViewCallback),
@@ -261,6 +258,10 @@ bool GDialog::SetupDialog(bool Modal)
 						"focus-out-event",
 						G_CALLBACK(GtkViewCallback),
 						gv);
+
+	gtk_widget_realize(GTK_WIDGET(Wnd));
+	OnCreate();
+	AttachChildren();
 
 	if (!_Default)
 	{
