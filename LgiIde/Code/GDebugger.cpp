@@ -260,7 +260,7 @@ class Gdb : public GDebugger, public GThread
 		DebuggingProcess = true;
 
 		char Buf[513];
-		while (State == Looping && Sp->IsRunning())
+		while (State == Looping && Sp->IsRunning() && DebuggingProcess)
 		{
 			#ifdef _DEBUG
 			ZeroObj(Buf);
