@@ -608,12 +608,41 @@ void GImageList::Draw(GSurface *pDest, int Dx, int Dy, int Image, GColour Backgr
 
 				#elif defined __GTK_H__
 
-				if (pDest->SupportsAlphaCompositing())
+				if (GetBits() < 32)
 				{
+					// No source alpha, do colour keying
+					GBlitRegions rgn(pDest, Dx, Dy, this, &r);
+					if (rgn.Valid() && GetBits() == 16)
+					{
+						register uint16 *s = (uint16*)(*this)[0], *d;
+						uint16 key = *s;
+						uint16 back = Rgb24To16(Background.c24());
+						
+						for (int y=0; y<rgn.SrcClip.Y(); y++)
+						{
+							s = (uint16*) (*this)[rgn.SrcClip.y1+y] + rgn.SrcClip.x1;
+							d = (uint16*) (*pDest)[rgn.DstClip.y1+y] + rgn.DstClip.x1;
+							uint16 *e = s + rgn.SrcClip.X();
+							while (s < e)
+							{
+								if (*s == key)
+									*d++ = back;
+								else
+									*d++ = *s;
+								s++;
+							}
+						}
+					}
+					else LgiAssert(!"Unsupport bit depth.");
+				}
+				else if (pDest->SupportsAlphaCompositing())
+				{
+					// Src and Dst alpha supported... best case.
 					pDest->Blt(Dx, Dy, this, &r);
 				}
 				else
 				{
+					// Dest doesn't support alpha... do a manual blt
 					GMemDC Buf(d->Sx, d->Sy, System32BitColourSpace);
 					Buf.Colour(Background);
 					Buf.Rectangle();
