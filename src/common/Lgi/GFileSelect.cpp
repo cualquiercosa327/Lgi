@@ -160,25 +160,6 @@ public:
 			GSurface *pDC = FileSelectIcons.Create();
 			if (pDC)
 			{
-				/*
-				printf("pDC->Bit=%i\n", pDC->GetBits());
-				if (pDC->GetBits() == 32)
-				{
-					COLOUR c = pDC->Get(0, 0);
-					printf("c = %x\n", c);
-					for (int y=0; y<pDC->Y(); y++)
-					{
-						uint32 *p = (uint32*)(*pDC)[y];
-						uint32 *e = p + pDC->X();
-						while (p < e)
-						{
-							if (c == *p) *p = 0;
-							p++;
-						}
-					}
-				}
-				*/
-				
 				Icons = new GImageList(16, 16, pDC);
 				if (Icons)
 				{

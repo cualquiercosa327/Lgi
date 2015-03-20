@@ -552,7 +552,30 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 	GMemDC *Mem;
 	if (Mem = dynamic_cast<GMemDC*>(Src))
 	{
-		if (d->d && d->gc)
+		GMemDC Tmp;
+		if (Mem->GetColourSpace() != GetColourSpace())
+		{
+			// Do an on the fly colour space conversion... this is slow though
+			if (Tmp.Create(br.SrcClip.X(), br.SrcClip.Y(), GetColourSpace()))
+			{
+				Tmp.Blt(0, 0, Mem, &br.SrcClip);
+				printf("On the fly Mem->Scr conversion: %s->%s\n",
+					GColourSpaceToString(Mem->GetColourSpace()),
+					GColourSpaceToString(GetColourSpace()));
+
+				Mem = &Tmp;
+				br.SrcClip = Tmp.Bounds();
+			}
+			else
+			{
+				printf("Failed to Mem->Scr Blt: %s->%s\n",
+					GColourSpaceToString(Mem->GetColourSpace()),
+					GColourSpaceToString(GetColourSpace()));
+				return;
+			}
+		}
+
+		if (d->d && d->gc && Mem->GetImage())
 		{
 			gdk_draw_image( d->d,
 							d->gc,
@@ -563,7 +586,8 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 		}
 		else
 		{
-			LgiTrace("%s:%i - Error missing d=%p, gc=%p\n", _FL, d->d, d->gc);
+			LgiTrace("%s:%i - Error missing d=%p, gc=%p, img=%p\n",
+				_FL, d->d, d->gc, Mem->GetImage());
 		}
 	}
 }

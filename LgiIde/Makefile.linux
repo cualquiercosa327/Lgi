@@ -31,7 +31,7 @@ Libs = \
 	`pkg-config --libs gtk+-2.0` \
 	-static-libgcc \
 	-llgi$(Tag) \
-	-L/home/matthew/Code/Lgi/trunk/$(BuildDir)
+	-L/home/pi/Code/Lgi/trunk/$(BuildDir)
 
 # Includes
 Inc = \
@@ -146,6 +146,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../include/common/GSlider.h \
 	../include/common/GStream.h \
 	../include/common/GString.h \
+	../include/common/GStringClass.h \
 	../include/common/GTableLayout.h \
 	../include/common/GTabView.h \
 	../include/common/GTextLabel.h \
@@ -564,250 +565,6 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	/usr/include/glib-2.0/gobject/gvalue.h \
 	/usr/include/glib-2.0/gobject/gvaluearray.h \
 	/usr/include/glib-2.0/gobject/gvaluetypes.h \
-	/usr/include/gtk-2.0/gdk/gdk.h \
-	/usr/include/gtk-2.0/gdk/gdkapplaunchcontext.h \
-	/usr/include/gtk-2.0/gdk/gdkcairo.h \
-	/usr/include/gtk-2.0/gdk/gdkcolor.h \
-	/usr/include/gtk-2.0/gdk/gdkcursor.h \
-	/usr/include/gtk-2.0/gdk/gdkdisplay.h \
-	/usr/include/gtk-2.0/gdk/gdkdisplaymanager.h \
-	/usr/include/gtk-2.0/gdk/gdkdnd.h \
-	/usr/include/gtk-2.0/gdk/gdkdrawable.h \
-	/usr/include/gtk-2.0/gdk/gdkenumtypes.h \
-	/usr/include/gtk-2.0/gdk/gdkevents.h \
-	/usr/include/gtk-2.0/gdk/gdkfont.h \
-	/usr/include/gtk-2.0/gdk/gdkgc.h \
-	/usr/include/gtk-2.0/gdk/gdkimage.h \
-	/usr/include/gtk-2.0/gdk/gdkinput.h \
-	/usr/include/gtk-2.0/gdk/gdkkeys.h \
-	/usr/include/gtk-2.0/gdk/gdkkeysyms-compat.h \
-	/usr/include/gtk-2.0/gdk/gdkkeysyms.h \
-	/usr/include/gtk-2.0/gdk/gdkpango.h \
-	/usr/include/gtk-2.0/gdk/gdkpixbuf.h \
-	/usr/include/gtk-2.0/gdk/gdkpixmap.h \
-	/usr/include/gtk-2.0/gdk/gdkprivate.h \
-	/usr/include/gtk-2.0/gdk/gdkproperty.h \
-	/usr/include/gtk-2.0/gdk/gdkregion.h \
-	/usr/include/gtk-2.0/gdk/gdkrgb.h \
-	/usr/include/gtk-2.0/gdk/gdkscreen.h \
-	/usr/include/gtk-2.0/gdk/gdkselection.h \
-	/usr/include/gtk-2.0/gdk/gdkspawn.h \
-	/usr/include/gtk-2.0/gdk/gdktestutils.h \
-	/usr/include/gtk-2.0/gdk/gdktypes.h \
-	/usr/include/gtk-2.0/gdk/gdkvisual.h \
-	/usr/include/gtk-2.0/gdk/gdkwindow.h \
-	/usr/include/gtk-2.0/gdk/gdkx.h \
-	/usr/include/gtk-2.0/gtk/gtk.h \
-	/usr/include/gtk-2.0/gtk/gtkaboutdialog.h \
-	/usr/include/gtk-2.0/gtk/gtkaccelgroup.h \
-	/usr/include/gtk-2.0/gtk/gtkaccellabel.h \
-	/usr/include/gtk-2.0/gtk/gtkaccelmap.h \
-	/usr/include/gtk-2.0/gtk/gtkaccessible.h \
-	/usr/include/gtk-2.0/gtk/gtkaction.h \
-	/usr/include/gtk-2.0/gtk/gtkactiongroup.h \
-	/usr/include/gtk-2.0/gtk/gtkactivatable.h \
-	/usr/include/gtk-2.0/gtk/gtkadjustment.h \
-	/usr/include/gtk-2.0/gtk/gtkalignment.h \
-	/usr/include/gtk-2.0/gtk/gtkarrow.h \
-	/usr/include/gtk-2.0/gtk/gtkaspectframe.h \
-	/usr/include/gtk-2.0/gtk/gtkassistant.h \
-	/usr/include/gtk-2.0/gtk/gtkbbox.h \
-	/usr/include/gtk-2.0/gtk/gtkbin.h \
-	/usr/include/gtk-2.0/gtk/gtkbindings.h \
-	/usr/include/gtk-2.0/gtk/gtkbox.h \
-	/usr/include/gtk-2.0/gtk/gtkbuildable.h \
-	/usr/include/gtk-2.0/gtk/gtkbuilder.h \
-	/usr/include/gtk-2.0/gtk/gtkbutton.h \
-	/usr/include/gtk-2.0/gtk/gtkcalendar.h \
-	/usr/include/gtk-2.0/gtk/gtkcelleditable.h \
-	/usr/include/gtk-2.0/gtk/gtkcelllayout.h \
-	/usr/include/gtk-2.0/gtk/gtkcellrenderer.h \
-	/usr/include/gtk-2.0/gtk/gtkcellrendereraccel.h \
-	/usr/include/gtk-2.0/gtk/gtkcellrenderercombo.h \
-	/usr/include/gtk-2.0/gtk/gtkcellrendererpixbuf.h \
-	/usr/include/gtk-2.0/gtk/gtkcellrendererprogress.h \
-	/usr/include/gtk-2.0/gtk/gtkcellrendererspin.h \
-	/usr/include/gtk-2.0/gtk/gtkcellrendererspinner.h \
-	/usr/include/gtk-2.0/gtk/gtkcellrenderertext.h \
-	/usr/include/gtk-2.0/gtk/gtkcellrenderertoggle.h \
-	/usr/include/gtk-2.0/gtk/gtkcellview.h \
-	/usr/include/gtk-2.0/gtk/gtkcheckbutton.h \
-	/usr/include/gtk-2.0/gtk/gtkcheckmenuitem.h \
-	/usr/include/gtk-2.0/gtk/gtkclipboard.h \
-	/usr/include/gtk-2.0/gtk/gtkclist.h \
-	/usr/include/gtk-2.0/gtk/gtkcolorbutton.h \
-	/usr/include/gtk-2.0/gtk/gtkcolorsel.h \
-	/usr/include/gtk-2.0/gtk/gtkcolorseldialog.h \
-	/usr/include/gtk-2.0/gtk/gtkcombo.h \
-	/usr/include/gtk-2.0/gtk/gtkcombobox.h \
-	/usr/include/gtk-2.0/gtk/gtkcomboboxentry.h \
-	/usr/include/gtk-2.0/gtk/gtkcomboboxtext.h \
-	/usr/include/gtk-2.0/gtk/gtkcontainer.h \
-	/usr/include/gtk-2.0/gtk/gtkctree.h \
-	/usr/include/gtk-2.0/gtk/gtkcurve.h \
-	/usr/include/gtk-2.0/gtk/gtkdebug.h \
-	/usr/include/gtk-2.0/gtk/gtkdialog.h \
-	/usr/include/gtk-2.0/gtk/gtkdnd.h \
-	/usr/include/gtk-2.0/gtk/gtkdrawingarea.h \
-	/usr/include/gtk-2.0/gtk/gtkeditable.h \
-	/usr/include/gtk-2.0/gtk/gtkentry.h \
-	/usr/include/gtk-2.0/gtk/gtkentrybuffer.h \
-	/usr/include/gtk-2.0/gtk/gtkentrycompletion.h \
-	/usr/include/gtk-2.0/gtk/gtkenums.h \
-	/usr/include/gtk-2.0/gtk/gtkeventbox.h \
-	/usr/include/gtk-2.0/gtk/gtkexpander.h \
-	/usr/include/gtk-2.0/gtk/gtkfilechooser.h \
-	/usr/include/gtk-2.0/gtk/gtkfilechooserbutton.h \
-	/usr/include/gtk-2.0/gtk/gtkfilechooserdialog.h \
-	/usr/include/gtk-2.0/gtk/gtkfilechooserwidget.h \
-	/usr/include/gtk-2.0/gtk/gtkfilefilter.h \
-	/usr/include/gtk-2.0/gtk/gtkfilesel.h \
-	/usr/include/gtk-2.0/gtk/gtkfixed.h \
-	/usr/include/gtk-2.0/gtk/gtkfontbutton.h \
-	/usr/include/gtk-2.0/gtk/gtkfontsel.h \
-	/usr/include/gtk-2.0/gtk/gtkframe.h \
-	/usr/include/gtk-2.0/gtk/gtkgamma.h \
-	/usr/include/gtk-2.0/gtk/gtkgc.h \
-	/usr/include/gtk-2.0/gtk/gtkhandlebox.h \
-	/usr/include/gtk-2.0/gtk/gtkhbbox.h \
-	/usr/include/gtk-2.0/gtk/gtkhbox.h \
-	/usr/include/gtk-2.0/gtk/gtkhpaned.h \
-	/usr/include/gtk-2.0/gtk/gtkhruler.h \
-	/usr/include/gtk-2.0/gtk/gtkhscale.h \
-	/usr/include/gtk-2.0/gtk/gtkhscrollbar.h \
-	/usr/include/gtk-2.0/gtk/gtkhseparator.h \
-	/usr/include/gtk-2.0/gtk/gtkhsv.h \
-	/usr/include/gtk-2.0/gtk/gtkiconfactory.h \
-	/usr/include/gtk-2.0/gtk/gtkicontheme.h \
-	/usr/include/gtk-2.0/gtk/gtkiconview.h \
-	/usr/include/gtk-2.0/gtk/gtkimage.h \
-	/usr/include/gtk-2.0/gtk/gtkimagemenuitem.h \
-	/usr/include/gtk-2.0/gtk/gtkimcontext.h \
-	/usr/include/gtk-2.0/gtk/gtkimcontextsimple.h \
-	/usr/include/gtk-2.0/gtk/gtkimmulticontext.h \
-	/usr/include/gtk-2.0/gtk/gtkinfobar.h \
-	/usr/include/gtk-2.0/gtk/gtkinputdialog.h \
-	/usr/include/gtk-2.0/gtk/gtkinvisible.h \
-	/usr/include/gtk-2.0/gtk/gtkitem.h \
-	/usr/include/gtk-2.0/gtk/gtkitemfactory.h \
-	/usr/include/gtk-2.0/gtk/gtklabel.h \
-	/usr/include/gtk-2.0/gtk/gtklayout.h \
-	/usr/include/gtk-2.0/gtk/gtklinkbutton.h \
-	/usr/include/gtk-2.0/gtk/gtklist.h \
-	/usr/include/gtk-2.0/gtk/gtklistitem.h \
-	/usr/include/gtk-2.0/gtk/gtkliststore.h \
-	/usr/include/gtk-2.0/gtk/gtkmain.h \
-	/usr/include/gtk-2.0/gtk/gtkmarshal.h \
-	/usr/include/gtk-2.0/gtk/gtkmenu.h \
-	/usr/include/gtk-2.0/gtk/gtkmenubar.h \
-	/usr/include/gtk-2.0/gtk/gtkmenuitem.h \
-	/usr/include/gtk-2.0/gtk/gtkmenushell.h \
-	/usr/include/gtk-2.0/gtk/gtkmenutoolbutton.h \
-	/usr/include/gtk-2.0/gtk/gtkmessagedialog.h \
-	/usr/include/gtk-2.0/gtk/gtkmisc.h \
-	/usr/include/gtk-2.0/gtk/gtkmodules.h \
-	/usr/include/gtk-2.0/gtk/gtkmountoperation.h \
-	/usr/include/gtk-2.0/gtk/gtknotebook.h \
-	/usr/include/gtk-2.0/gtk/gtkobject.h \
-	/usr/include/gtk-2.0/gtk/gtkoffscreenwindow.h \
-	/usr/include/gtk-2.0/gtk/gtkoldeditable.h \
-	/usr/include/gtk-2.0/gtk/gtkoptionmenu.h \
-	/usr/include/gtk-2.0/gtk/gtkorientable.h \
-	/usr/include/gtk-2.0/gtk/gtkpagesetup.h \
-	/usr/include/gtk-2.0/gtk/gtkpaned.h \
-	/usr/include/gtk-2.0/gtk/gtkpapersize.h \
-	/usr/include/gtk-2.0/gtk/gtkpixmap.h \
-	/usr/include/gtk-2.0/gtk/gtkplug.h \
-	/usr/include/gtk-2.0/gtk/gtkpreview.h \
-	/usr/include/gtk-2.0/gtk/gtkprintcontext.h \
-	/usr/include/gtk-2.0/gtk/gtkprintoperation.h \
-	/usr/include/gtk-2.0/gtk/gtkprintoperationpreview.h \
-	/usr/include/gtk-2.0/gtk/gtkprintsettings.h \
-	/usr/include/gtk-2.0/gtk/gtkprogress.h \
-	/usr/include/gtk-2.0/gtk/gtkprogressbar.h \
-	/usr/include/gtk-2.0/gtk/gtkradioaction.h \
-	/usr/include/gtk-2.0/gtk/gtkradiobutton.h \
-	/usr/include/gtk-2.0/gtk/gtkradiomenuitem.h \
-	/usr/include/gtk-2.0/gtk/gtkradiotoolbutton.h \
-	/usr/include/gtk-2.0/gtk/gtkrange.h \
-	/usr/include/gtk-2.0/gtk/gtkrc.h \
-	/usr/include/gtk-2.0/gtk/gtkrecentaction.h \
-	/usr/include/gtk-2.0/gtk/gtkrecentchooser.h \
-	/usr/include/gtk-2.0/gtk/gtkrecentchooserdialog.h \
-	/usr/include/gtk-2.0/gtk/gtkrecentchoosermenu.h \
-	/usr/include/gtk-2.0/gtk/gtkrecentchooserwidget.h \
-	/usr/include/gtk-2.0/gtk/gtkrecentfilter.h \
-	/usr/include/gtk-2.0/gtk/gtkrecentmanager.h \
-	/usr/include/gtk-2.0/gtk/gtkruler.h \
-	/usr/include/gtk-2.0/gtk/gtkscale.h \
-	/usr/include/gtk-2.0/gtk/gtkscalebutton.h \
-	/usr/include/gtk-2.0/gtk/gtkscrollbar.h \
-	/usr/include/gtk-2.0/gtk/gtkscrolledwindow.h \
-	/usr/include/gtk-2.0/gtk/gtkselection.h \
-	/usr/include/gtk-2.0/gtk/gtkseparator.h \
-	/usr/include/gtk-2.0/gtk/gtkseparatormenuitem.h \
-	/usr/include/gtk-2.0/gtk/gtkseparatortoolitem.h \
-	/usr/include/gtk-2.0/gtk/gtksettings.h \
-	/usr/include/gtk-2.0/gtk/gtkshow.h \
-	/usr/include/gtk-2.0/gtk/gtksignal.h \
-	/usr/include/gtk-2.0/gtk/gtksizegroup.h \
-	/usr/include/gtk-2.0/gtk/gtksocket.h \
-	/usr/include/gtk-2.0/gtk/gtkspinbutton.h \
-	/usr/include/gtk-2.0/gtk/gtkspinner.h \
-	/usr/include/gtk-2.0/gtk/gtkstatusbar.h \
-	/usr/include/gtk-2.0/gtk/gtkstatusicon.h \
-	/usr/include/gtk-2.0/gtk/gtkstock.h \
-	/usr/include/gtk-2.0/gtk/gtkstyle.h \
-	/usr/include/gtk-2.0/gtk/gtktable.h \
-	/usr/include/gtk-2.0/gtk/gtktearoffmenuitem.h \
-	/usr/include/gtk-2.0/gtk/gtktestutils.h \
-	/usr/include/gtk-2.0/gtk/gtktext.h \
-	/usr/include/gtk-2.0/gtk/gtktextbuffer.h \
-	/usr/include/gtk-2.0/gtk/gtktextbufferrichtext.h \
-	/usr/include/gtk-2.0/gtk/gtktextchild.h \
-	/usr/include/gtk-2.0/gtk/gtktextiter.h \
-	/usr/include/gtk-2.0/gtk/gtktextmark.h \
-	/usr/include/gtk-2.0/gtk/gtktexttag.h \
-	/usr/include/gtk-2.0/gtk/gtktexttagtable.h \
-	/usr/include/gtk-2.0/gtk/gtktextview.h \
-	/usr/include/gtk-2.0/gtk/gtktipsquery.h \
-	/usr/include/gtk-2.0/gtk/gtktoggleaction.h \
-	/usr/include/gtk-2.0/gtk/gtktogglebutton.h \
-	/usr/include/gtk-2.0/gtk/gtktoggletoolbutton.h \
-	/usr/include/gtk-2.0/gtk/gtktoolbar.h \
-	/usr/include/gtk-2.0/gtk/gtktoolbutton.h \
-	/usr/include/gtk-2.0/gtk/gtktoolitem.h \
-	/usr/include/gtk-2.0/gtk/gtktoolitemgroup.h \
-	/usr/include/gtk-2.0/gtk/gtktoolpalette.h \
-	/usr/include/gtk-2.0/gtk/gtktoolshell.h \
-	/usr/include/gtk-2.0/gtk/gtktooltip.h \
-	/usr/include/gtk-2.0/gtk/gtktooltips.h \
-	/usr/include/gtk-2.0/gtk/gtktree.h \
-	/usr/include/gtk-2.0/gtk/gtktreednd.h \
-	/usr/include/gtk-2.0/gtk/gtktreeitem.h \
-	/usr/include/gtk-2.0/gtk/gtktreemodel.h \
-	/usr/include/gtk-2.0/gtk/gtktreemodelfilter.h \
-	/usr/include/gtk-2.0/gtk/gtktreemodelsort.h \
-	/usr/include/gtk-2.0/gtk/gtktreeselection.h \
-	/usr/include/gtk-2.0/gtk/gtktreesortable.h \
-	/usr/include/gtk-2.0/gtk/gtktreestore.h \
-	/usr/include/gtk-2.0/gtk/gtktreeview.h \
-	/usr/include/gtk-2.0/gtk/gtktreeviewcolumn.h \
-	/usr/include/gtk-2.0/gtk/gtktypebuiltins.h \
-	/usr/include/gtk-2.0/gtk/gtktypeutils.h \
-	/usr/include/gtk-2.0/gtk/gtkuimanager.h \
-	/usr/include/gtk-2.0/gtk/gtkvbbox.h \
-	/usr/include/gtk-2.0/gtk/gtkvbox.h \
-	/usr/include/gtk-2.0/gtk/gtkversion.h \
-	/usr/include/gtk-2.0/gtk/gtkviewport.h \
-	/usr/include/gtk-2.0/gtk/gtkvolumebutton.h \
-	/usr/include/gtk-2.0/gtk/gtkvpaned.h \
-	/usr/include/gtk-2.0/gtk/gtkvruler.h \
-	/usr/include/gtk-2.0/gtk/gtkvscale.h \
-	/usr/include/gtk-2.0/gtk/gtkvscrollbar.h \
-	/usr/include/gtk-2.0/gtk/gtkvseparator.h \
-	/usr/include/gtk-2.0/gtk/gtkwidget.h \
-	/usr/include/gtk-2.0/gtk/gtkwindow.h \
 	/usr/include/pango-1.0/pango/pango-attributes.h \
 	/usr/include/pango-1.0/pango/pango-bidi-type.h \
 	/usr/include/pango-1.0/pango/pango-break.h \
@@ -832,7 +589,253 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	/usr/include/pango-1.0/pango/pango-types.h \
 	/usr/include/pango-1.0/pango/pango-utils.h \
 	/usr/include/pango-1.0/pango/pango.h \
-	/usr/include/pango-1.0/pango/pangocairo.h
+	/usr/include/pango-1.0/pango/pangocairo.h \
+	/usr/lib/arm-linux-gnueabihf/glib-2.0/include/glibconfig.h \
+	/usr/local/include/gtk-2.0/gdk/gdk.h \
+	/usr/local/include/gtk-2.0/gdk/gdkapplaunchcontext.h \
+	/usr/local/include/gtk-2.0/gdk/gdkcairo.h \
+	/usr/local/include/gtk-2.0/gdk/gdkcolor.h \
+	/usr/local/include/gtk-2.0/gdk/gdkcursor.h \
+	/usr/local/include/gtk-2.0/gdk/gdkdisplay.h \
+	/usr/local/include/gtk-2.0/gdk/gdkdisplaymanager.h \
+	/usr/local/include/gtk-2.0/gdk/gdkdnd.h \
+	/usr/local/include/gtk-2.0/gdk/gdkdrawable.h \
+	/usr/local/include/gtk-2.0/gdk/gdkenumtypes.h \
+	/usr/local/include/gtk-2.0/gdk/gdkevents.h \
+	/usr/local/include/gtk-2.0/gdk/gdkfont.h \
+	/usr/local/include/gtk-2.0/gdk/gdkgc.h \
+	/usr/local/include/gtk-2.0/gdk/gdkimage.h \
+	/usr/local/include/gtk-2.0/gdk/gdkinput.h \
+	/usr/local/include/gtk-2.0/gdk/gdkkeys.h \
+	/usr/local/include/gtk-2.0/gdk/gdkkeysyms-compat.h \
+	/usr/local/include/gtk-2.0/gdk/gdkkeysyms.h \
+	/usr/local/include/gtk-2.0/gdk/gdkpango.h \
+	/usr/local/include/gtk-2.0/gdk/gdkpixbuf.h \
+	/usr/local/include/gtk-2.0/gdk/gdkpixmap.h \
+	/usr/local/include/gtk-2.0/gdk/gdkprivate.h \
+	/usr/local/include/gtk-2.0/gdk/gdkproperty.h \
+	/usr/local/include/gtk-2.0/gdk/gdkregion.h \
+	/usr/local/include/gtk-2.0/gdk/gdkrgb.h \
+	/usr/local/include/gtk-2.0/gdk/gdkscreen.h \
+	/usr/local/include/gtk-2.0/gdk/gdkselection.h \
+	/usr/local/include/gtk-2.0/gdk/gdkspawn.h \
+	/usr/local/include/gtk-2.0/gdk/gdktestutils.h \
+	/usr/local/include/gtk-2.0/gdk/gdktypes.h \
+	/usr/local/include/gtk-2.0/gdk/gdkvisual.h \
+	/usr/local/include/gtk-2.0/gdk/gdkwindow.h \
+	/usr/local/include/gtk-2.0/gdk/gdkx.h \
+	/usr/local/include/gtk-2.0/gtk/gtk.h \
+	/usr/local/include/gtk-2.0/gtk/gtkaboutdialog.h \
+	/usr/local/include/gtk-2.0/gtk/gtkaccelgroup.h \
+	/usr/local/include/gtk-2.0/gtk/gtkaccellabel.h \
+	/usr/local/include/gtk-2.0/gtk/gtkaccelmap.h \
+	/usr/local/include/gtk-2.0/gtk/gtkaccessible.h \
+	/usr/local/include/gtk-2.0/gtk/gtkaction.h \
+	/usr/local/include/gtk-2.0/gtk/gtkactiongroup.h \
+	/usr/local/include/gtk-2.0/gtk/gtkactivatable.h \
+	/usr/local/include/gtk-2.0/gtk/gtkadjustment.h \
+	/usr/local/include/gtk-2.0/gtk/gtkalignment.h \
+	/usr/local/include/gtk-2.0/gtk/gtkarrow.h \
+	/usr/local/include/gtk-2.0/gtk/gtkaspectframe.h \
+	/usr/local/include/gtk-2.0/gtk/gtkassistant.h \
+	/usr/local/include/gtk-2.0/gtk/gtkbbox.h \
+	/usr/local/include/gtk-2.0/gtk/gtkbin.h \
+	/usr/local/include/gtk-2.0/gtk/gtkbindings.h \
+	/usr/local/include/gtk-2.0/gtk/gtkbox.h \
+	/usr/local/include/gtk-2.0/gtk/gtkbuildable.h \
+	/usr/local/include/gtk-2.0/gtk/gtkbuilder.h \
+	/usr/local/include/gtk-2.0/gtk/gtkbutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcalendar.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcelleditable.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcelllayout.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcellrenderer.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcellrendereraccel.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcellrenderercombo.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcellrendererpixbuf.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcellrendererprogress.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcellrendererspin.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcellrendererspinner.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcellrenderertext.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcellrenderertoggle.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcellview.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcheckbutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcheckmenuitem.h \
+	/usr/local/include/gtk-2.0/gtk/gtkclipboard.h \
+	/usr/local/include/gtk-2.0/gtk/gtkclist.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcolorbutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcolorsel.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcolorseldialog.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcombo.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcombobox.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcomboboxentry.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcomboboxtext.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcontainer.h \
+	/usr/local/include/gtk-2.0/gtk/gtkctree.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcurve.h \
+	/usr/local/include/gtk-2.0/gtk/gtkdebug.h \
+	/usr/local/include/gtk-2.0/gtk/gtkdialog.h \
+	/usr/local/include/gtk-2.0/gtk/gtkdnd.h \
+	/usr/local/include/gtk-2.0/gtk/gtkdrawingarea.h \
+	/usr/local/include/gtk-2.0/gtk/gtkeditable.h \
+	/usr/local/include/gtk-2.0/gtk/gtkentry.h \
+	/usr/local/include/gtk-2.0/gtk/gtkentrybuffer.h \
+	/usr/local/include/gtk-2.0/gtk/gtkentrycompletion.h \
+	/usr/local/include/gtk-2.0/gtk/gtkenums.h \
+	/usr/local/include/gtk-2.0/gtk/gtkeventbox.h \
+	/usr/local/include/gtk-2.0/gtk/gtkexpander.h \
+	/usr/local/include/gtk-2.0/gtk/gtkfilechooser.h \
+	/usr/local/include/gtk-2.0/gtk/gtkfilechooserbutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtkfilechooserdialog.h \
+	/usr/local/include/gtk-2.0/gtk/gtkfilechooserwidget.h \
+	/usr/local/include/gtk-2.0/gtk/gtkfilefilter.h \
+	/usr/local/include/gtk-2.0/gtk/gtkfilesel.h \
+	/usr/local/include/gtk-2.0/gtk/gtkfixed.h \
+	/usr/local/include/gtk-2.0/gtk/gtkfontbutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtkfontsel.h \
+	/usr/local/include/gtk-2.0/gtk/gtkframe.h \
+	/usr/local/include/gtk-2.0/gtk/gtkgamma.h \
+	/usr/local/include/gtk-2.0/gtk/gtkgc.h \
+	/usr/local/include/gtk-2.0/gtk/gtkhandlebox.h \
+	/usr/local/include/gtk-2.0/gtk/gtkhbbox.h \
+	/usr/local/include/gtk-2.0/gtk/gtkhbox.h \
+	/usr/local/include/gtk-2.0/gtk/gtkhpaned.h \
+	/usr/local/include/gtk-2.0/gtk/gtkhruler.h \
+	/usr/local/include/gtk-2.0/gtk/gtkhscale.h \
+	/usr/local/include/gtk-2.0/gtk/gtkhscrollbar.h \
+	/usr/local/include/gtk-2.0/gtk/gtkhseparator.h \
+	/usr/local/include/gtk-2.0/gtk/gtkhsv.h \
+	/usr/local/include/gtk-2.0/gtk/gtkiconfactory.h \
+	/usr/local/include/gtk-2.0/gtk/gtkicontheme.h \
+	/usr/local/include/gtk-2.0/gtk/gtkiconview.h \
+	/usr/local/include/gtk-2.0/gtk/gtkimage.h \
+	/usr/local/include/gtk-2.0/gtk/gtkimagemenuitem.h \
+	/usr/local/include/gtk-2.0/gtk/gtkimcontext.h \
+	/usr/local/include/gtk-2.0/gtk/gtkimcontextsimple.h \
+	/usr/local/include/gtk-2.0/gtk/gtkimmulticontext.h \
+	/usr/local/include/gtk-2.0/gtk/gtkinfobar.h \
+	/usr/local/include/gtk-2.0/gtk/gtkinputdialog.h \
+	/usr/local/include/gtk-2.0/gtk/gtkinvisible.h \
+	/usr/local/include/gtk-2.0/gtk/gtkitem.h \
+	/usr/local/include/gtk-2.0/gtk/gtkitemfactory.h \
+	/usr/local/include/gtk-2.0/gtk/gtklabel.h \
+	/usr/local/include/gtk-2.0/gtk/gtklayout.h \
+	/usr/local/include/gtk-2.0/gtk/gtklinkbutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtklist.h \
+	/usr/local/include/gtk-2.0/gtk/gtklistitem.h \
+	/usr/local/include/gtk-2.0/gtk/gtkliststore.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmain.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmarshal.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmenu.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmenubar.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmenuitem.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmenushell.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmenutoolbutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmessagedialog.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmisc.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmodules.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmountoperation.h \
+	/usr/local/include/gtk-2.0/gtk/gtknotebook.h \
+	/usr/local/include/gtk-2.0/gtk/gtkobject.h \
+	/usr/local/include/gtk-2.0/gtk/gtkoffscreenwindow.h \
+	/usr/local/include/gtk-2.0/gtk/gtkoldeditable.h \
+	/usr/local/include/gtk-2.0/gtk/gtkoptionmenu.h \
+	/usr/local/include/gtk-2.0/gtk/gtkorientable.h \
+	/usr/local/include/gtk-2.0/gtk/gtkpagesetup.h \
+	/usr/local/include/gtk-2.0/gtk/gtkpaned.h \
+	/usr/local/include/gtk-2.0/gtk/gtkpapersize.h \
+	/usr/local/include/gtk-2.0/gtk/gtkpixmap.h \
+	/usr/local/include/gtk-2.0/gtk/gtkplug.h \
+	/usr/local/include/gtk-2.0/gtk/gtkpreview.h \
+	/usr/local/include/gtk-2.0/gtk/gtkprintcontext.h \
+	/usr/local/include/gtk-2.0/gtk/gtkprintoperation.h \
+	/usr/local/include/gtk-2.0/gtk/gtkprintoperationpreview.h \
+	/usr/local/include/gtk-2.0/gtk/gtkprintsettings.h \
+	/usr/local/include/gtk-2.0/gtk/gtkprogress.h \
+	/usr/local/include/gtk-2.0/gtk/gtkprogressbar.h \
+	/usr/local/include/gtk-2.0/gtk/gtkradioaction.h \
+	/usr/local/include/gtk-2.0/gtk/gtkradiobutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtkradiomenuitem.h \
+	/usr/local/include/gtk-2.0/gtk/gtkradiotoolbutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtkrange.h \
+	/usr/local/include/gtk-2.0/gtk/gtkrc.h \
+	/usr/local/include/gtk-2.0/gtk/gtkrecentaction.h \
+	/usr/local/include/gtk-2.0/gtk/gtkrecentchooser.h \
+	/usr/local/include/gtk-2.0/gtk/gtkrecentchooserdialog.h \
+	/usr/local/include/gtk-2.0/gtk/gtkrecentchoosermenu.h \
+	/usr/local/include/gtk-2.0/gtk/gtkrecentchooserwidget.h \
+	/usr/local/include/gtk-2.0/gtk/gtkrecentfilter.h \
+	/usr/local/include/gtk-2.0/gtk/gtkrecentmanager.h \
+	/usr/local/include/gtk-2.0/gtk/gtkruler.h \
+	/usr/local/include/gtk-2.0/gtk/gtkscale.h \
+	/usr/local/include/gtk-2.0/gtk/gtkscalebutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtkscrollbar.h \
+	/usr/local/include/gtk-2.0/gtk/gtkscrolledwindow.h \
+	/usr/local/include/gtk-2.0/gtk/gtkselection.h \
+	/usr/local/include/gtk-2.0/gtk/gtkseparator.h \
+	/usr/local/include/gtk-2.0/gtk/gtkseparatormenuitem.h \
+	/usr/local/include/gtk-2.0/gtk/gtkseparatortoolitem.h \
+	/usr/local/include/gtk-2.0/gtk/gtksettings.h \
+	/usr/local/include/gtk-2.0/gtk/gtkshow.h \
+	/usr/local/include/gtk-2.0/gtk/gtksignal.h \
+	/usr/local/include/gtk-2.0/gtk/gtksizegroup.h \
+	/usr/local/include/gtk-2.0/gtk/gtksocket.h \
+	/usr/local/include/gtk-2.0/gtk/gtkspinbutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtkspinner.h \
+	/usr/local/include/gtk-2.0/gtk/gtkstatusbar.h \
+	/usr/local/include/gtk-2.0/gtk/gtkstatusicon.h \
+	/usr/local/include/gtk-2.0/gtk/gtkstock.h \
+	/usr/local/include/gtk-2.0/gtk/gtkstyle.h \
+	/usr/local/include/gtk-2.0/gtk/gtktable.h \
+	/usr/local/include/gtk-2.0/gtk/gtktearoffmenuitem.h \
+	/usr/local/include/gtk-2.0/gtk/gtktestutils.h \
+	/usr/local/include/gtk-2.0/gtk/gtktext.h \
+	/usr/local/include/gtk-2.0/gtk/gtktextbuffer.h \
+	/usr/local/include/gtk-2.0/gtk/gtktextbufferrichtext.h \
+	/usr/local/include/gtk-2.0/gtk/gtktextchild.h \
+	/usr/local/include/gtk-2.0/gtk/gtktextiter.h \
+	/usr/local/include/gtk-2.0/gtk/gtktextmark.h \
+	/usr/local/include/gtk-2.0/gtk/gtktexttag.h \
+	/usr/local/include/gtk-2.0/gtk/gtktexttagtable.h \
+	/usr/local/include/gtk-2.0/gtk/gtktextview.h \
+	/usr/local/include/gtk-2.0/gtk/gtktipsquery.h \
+	/usr/local/include/gtk-2.0/gtk/gtktoggleaction.h \
+	/usr/local/include/gtk-2.0/gtk/gtktogglebutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtktoggletoolbutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtktoolbar.h \
+	/usr/local/include/gtk-2.0/gtk/gtktoolbutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtktoolitem.h \
+	/usr/local/include/gtk-2.0/gtk/gtktoolitemgroup.h \
+	/usr/local/include/gtk-2.0/gtk/gtktoolpalette.h \
+	/usr/local/include/gtk-2.0/gtk/gtktoolshell.h \
+	/usr/local/include/gtk-2.0/gtk/gtktooltip.h \
+	/usr/local/include/gtk-2.0/gtk/gtktooltips.h \
+	/usr/local/include/gtk-2.0/gtk/gtktree.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreednd.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreeitem.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreemodel.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreemodelfilter.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreemodelsort.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreeselection.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreesortable.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreestore.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreeview.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreeviewcolumn.h \
+	/usr/local/include/gtk-2.0/gtk/gtktypebuiltins.h \
+	/usr/local/include/gtk-2.0/gtk/gtktypeutils.h \
+	/usr/local/include/gtk-2.0/gtk/gtkuimanager.h \
+	/usr/local/include/gtk-2.0/gtk/gtkvbbox.h \
+	/usr/local/include/gtk-2.0/gtk/gtkvbox.h \
+	/usr/local/include/gtk-2.0/gtk/gtkversion.h \
+	/usr/local/include/gtk-2.0/gtk/gtkviewport.h \
+	/usr/local/include/gtk-2.0/gtk/gtkvolumebutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtkvpaned.h \
+	/usr/local/include/gtk-2.0/gtk/gtkvruler.h \
+	/usr/local/include/gtk-2.0/gtk/gtkvscale.h \
+	/usr/local/include/gtk-2.0/gtk/gtkvscrollbar.h \
+	/usr/local/include/gtk-2.0/gtk/gtkvseparator.h \
+	/usr/local/include/gtk-2.0/gtk/gtkwidget.h \
+	/usr/local/include/gtk-2.0/gtk/gtkwindow.h \
+	/usr/local/lib/gtk-2.0/include/gdkconfig.h
 	export Build=$(Build); \
 	$(MAKE) -C .. -f Makefile.linux
 
@@ -1064,10 +1067,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GInput.h \
 	../include/common/GPrinter.h
 
-../../../../../../usr/include/gtk-2.0/gdk/gdkpixbuf.h : /usr/include/cairo/cairo.h \
-	/usr/include/gtk-2.0/gdk/gdktypes.h \
-	/usr/include/gtk-2.0/gdk/gdkrgb.h \
-	/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkclipboard.h : /usr/local/include/gtk-2.0/gtk/gtkselection.h
 
 ../include/common/GString.h : ../include/common/LgiDefs.h \
 	../include/linux/Gtk/LgiOsDefs.h
@@ -1076,18 +1076,11 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/glib-2.0/glib/gstringchunk.h : /usr/include/glib-2.0/glib/gtypes.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkscale.h : /usr/include/gtk-2.0/gtk/gtkrange.h
-
 ../../../../../../usr/include/glib-2.0/gio/gdbusmethodinvocation.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../../usr/include/glib-2.0/glib/ghostutils.h : /usr/include/glib-2.0/glib/gtypes.h
 
 ../../../../../../usr/include/cairo/cairo-version.h : 
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkpagesetup.h : /usr/include/gtk-2.0/gtk/gtkpapersize.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkstatusicon.h : /usr/include/gtk-2.0/gtk/gtkimage.h \
-	/usr/include/gtk-2.0/gtk/gtkmenu.h
 
 ../../../../../../usr/include/atk-1.0/atk/atkstreamablecontent.h : /usr/include/atk-1.0/atk/atkobject.h
 
@@ -1116,7 +1109,13 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	/usr/include/glib-2.0/gio/gcancellable.h \
 	/usr/include/glib-2.0/gio/gioerror.h
 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkcontainer.h : /usr/local/include/gtk-2.0/gtk/gtkwidget.h \
+	/usr/local/include/gtk-2.0/gtk/gtkadjustment.h
+
 ../include/linux/Gtk/LgiOsClasses.h : 
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkcellrenderercombo.h : /usr/local/include/gtk-2.0/gtk/gtktreemodel.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcellrenderertext.h
 
 ../../../../../../usr/include/atk-1.0/atk/atkcomponent.h : /usr/include/atk-1.0/atk/atkobject.h \
 	/usr/include/atk-1.0/atk/atkutil.h
@@ -1125,14 +1124,21 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/glib-2.0/gio/gapplication.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../../../../../../usr/include/gtk-2.0/gdk/gdkenumtypes.h : /usr/include/glib-2.0/glib-object.h
-
 ../src/common/General/GExeCheck.cpp : ../include/common/Lgi.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkmain.h : /usr/local/include/gtk-2.0/gdk/gdk.h \
+	/usr/local/include/gtk-2.0/gtk/gtkwidget.h \
+	/usr/local/include/gtk-2.0/gtk/gtkbox.h \
+	/usr/local/include/gtk-2.0/gtk/gtkwindow.h
 
 ../../../../../../usr/include/glib-2.0/glib/gbitlock.h : /usr/include/glib-2.0/glib/gtypes.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkaccelgroup.h : /usr/include/gtk-2.0/gdk/gdk.h \
-	/usr/include/gtk-2.0/gtk/gtkenums.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkuimanager.h : /usr/local/include/gtk-2.0/gtk/gtkaccelgroup.h \
+	/usr/local/include/gtk-2.0/gtk/gtkwidget.h \
+	/usr/local/include/gtk-2.0/gtk/gtkaction.h \
+	/usr/local/include/gtk-2.0/gtk/gtkactiongroup.h
+
+../include/common/GMutex.h : 
 
 ../include/common/GPixelRops.h : 
 
@@ -1141,11 +1147,20 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GToken.h \
 	../include/linux/Gtk/LgiWinManGlue.h
 
+../include/linux/Gtk/LgiWinManGlue.h : ../include/common/LgiDefs.h \
+	../include/common/GMem.h \
+	../include/common/GArray.h \
+	../include/common/LgiClass.h
+
 ../include/common/LgiWidgets.h : 
 
-../../../../../../usr/include/glib-2.0/gobject/gmarshal.h : 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktreeview.h : /usr/local/include/gtk-2.0/gtk/gtkcontainer.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreemodel.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreeviewcolumn.h \
+	/usr/local/include/gtk-2.0/gtk/gtkdnd.h \
+	/usr/local/include/gtk-2.0/gtk/gtkentry.h
 
-../../../../../../usr/include/gtk-2.0/gdk/gdkkeysyms.h : /usr/include/gtk-2.0/gdk/gdkkeysyms-compat.h
+../../../../../../usr/include/glib-2.0/gobject/gmarshal.h : 
 
 ../../../../../../usr/include/glib-2.0/glib/gdir.h : /usr/include/glib-2.0/glib/gerror.h
 
@@ -1184,7 +1199,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/atk-1.0/atk/atkutil.h : /usr/include/atk-1.0/atk/atkobject.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkenums.h : /usr/include/glib-2.0/glib-object.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkinvisible.h : /usr/local/include/gtk-2.0/gtk/gtkwidget.h
 
 ../src/common/Lgi/LgiRand.cpp : ../include/common/GMem.h \
 	../include/common/GFile.h \
@@ -1195,21 +1210,15 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	/usr/include/glib-2.0/glib.h \
 	/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf.h
 
-../include/common/LgiWidgets.h : 
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkrecentchoosermenu.h : /usr/include/gtk-2.0/gtk/gtkmenu.h \
-	/usr/include/gtk-2.0/gtk/gtkrecentchooser.h
-
 ../src/linux/Lgi/GThread.cpp : ../include/common/Lgi.h
 
-../../../../../../usr/include/gtk-2.0/gdk/gdkdisplaymanager.h : /usr/include/gtk-2.0/gdk/gdktypes.h \
-	/usr/include/gtk-2.0/gdk/gdkdisplay.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkadjustment.h : /usr/local/include/gtk-2.0/gdk/gdk.h \
+	/usr/local/include/gtk-2.0/gtk/gtkobject.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkradioaction.h : /usr/include/gtk-2.0/gtk/gtktoggleaction.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkseparatortoolitem.h : /usr/local/include/gtk-2.0/gtk/gtktoolitem.h
 
-../../../../../../usr/include/gtk-2.0/gdk/gdkwindow.h : /usr/include/gtk-2.0/gdk/gdkdrawable.h \
-	/usr/include/gtk-2.0/gdk/gdktypes.h \
-	/usr/include/gtk-2.0/gdk/gdkevents.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkaccessible.h : /usr/include/atk-1.0/atk/atk.h \
+	/usr/local/include/gtk-2.0/gtk/gtkwidget.h
 
 ../../../../../../usr/include/glib-2.0/glib/genviron.h : /usr/include/glib-2.0/glib/gtypes.h
 
@@ -1223,13 +1232,14 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GDisplayString.h \
 	../include/common/GSkinEngine.h
 
+../include/common/GDisplayString.h : /usr/include/pango-1.0/pango/pango.h \
+	/usr/include/pango-1.0/pango/pangocairo.h
+
 ../../../../../../usr/include/glib-2.0/glib/gnode.h : /usr/include/glib-2.0/glib/gmem.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkliststore.h : /usr/lib/x86_64-linux-gnu/gtk-2.0/include/gdkconfig.h \
-	/usr/include/gtk-2.0/gtk/gtktreemodel.h \
-	/usr/include/gtk-2.0/gtk/gtktreesortable.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkhbox.h : /usr/include/gtk-2.0/gtk/gtkbox.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktoolpalette.h : /usr/local/include/gtk-2.0/gtk/gtkcontainer.h \
+	/usr/local/include/gtk-2.0/gtk/gtkdnd.h \
+	/usr/local/include/gtk-2.0/gtk/gtktoolitem.h
 
 ../include/common/Base64.h : ../include/common/LgiDefs.h
 
@@ -1241,23 +1251,24 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/glib-2.0/glib/gqsort.h : /usr/include/glib-2.0/glib/gtypes.h
 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkoptionmenu.h : /usr/local/include/gtk-2.0/gtk/gtk.h
+
 ../include/common/GdcTools.h : 
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkaboutdialog.h : /usr/include/gtk-2.0/gtk/gtkdialog.h
-
-../../../../../../usr/include/gtk-2.0/gdk/gdkproperty.h : /usr/include/gtk-2.0/gdk/gdktypes.h
 
 ../../../../../../usr/include/glib-2.0/gio/gdbusserver.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../../../../../../usr/include/gtk-2.0/gdk/gdkpixmap.h : /usr/include/gtk-2.0/gdk/gdktypes.h \
-	/usr/include/gtk-2.0/gdk/gdkdrawable.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkbbox.h : /usr/local/include/gtk-2.0/gtk/gtkbox.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkshow.h : 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkprogressbar.h : /usr/local/include/gtk-2.0/gtk/gtkprogress.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkfontsel.h : /usr/include/gtk-2.0/gtk/gtkdialog.h \
-	/usr/include/gtk-2.0/gtk/gtkvbox.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkprogress.h : /usr/local/include/gtk-2.0/gtk/gtkwidget.h \
+	/usr/local/include/gtk-2.0/gtk/gtkadjustment.h
 
-../../../../../../usr/include/gtk-2.0/gdk/gdkselection.h : /usr/include/gtk-2.0/gdk/gdktypes.h
+../include/common/GItemContainer.h : ../include/common/GPopup.h
+
+../include/common/GPopup.h : 
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkvscrollbar.h : /usr/local/include/gtk-2.0/gtk/gtkscrollbar.h
 
 ../include/common/GArray.h : ../include/common/LgiDefs.h
 
@@ -1275,32 +1286,28 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GDisplayString.h \
 	../include/common/GdiLeak.h
 
-../include/common/GButton.h : 
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkscalebutton.h : /usr/include/gtk-2.0/gtk/gtkbutton.h
+../include/common/GCombo.h : 
 
 ../include/common/GListItemRadioBtn.h : 
 
-../include/common/GXmlTree.h : ../include/common/GHashTable.h \
-	../include/common/GRefCount.h \
-	../include/common/GDom.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkobject.h : /usr/local/lib/gtk-2.0/include/gdkconfig.h \
+	/usr/local/include/gtk-2.0/gtk/gtkenums.h \
+	/usr/local/include/gtk-2.0/gtk/gtktypeutils.h \
+	/usr/local/include/gtk-2.0/gtk/gtkdebug.h
 
-../include/common/GHashTable.h : ../include/common/GMem.h \
-	../include/common/GArray.h \
-	../include/common/GString.h \
-	../include/common/LgiClass.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktogglebutton.h : /usr/local/include/gtk-2.0/gtk/gtkbutton.h
 
 ../../../../../../usr/include/pango-1.0/pango/pango-break.h : /usr/include/glib-2.0/glib.h \
 	/usr/include/pango-1.0/pango/pango-item.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkselection.h : /usr/include/gtk-2.0/gtk/gtkwidget.h \
-	/usr/include/gtk-2.0/gtk/gtktextiter.h
 
 ../../../../../../usr/include/glib-2.0/glib/gcharset.h : /usr/include/glib-2.0/glib/gtypes.h
 
 ../../../../../../usr/include/glib-2.0/glib/gbase64.h : /usr/include/glib-2.0/glib/gtypes.h
 
 ../../../../../../usr/include/glib-2.0/gio/gdbuserror.h : /usr/include/glib-2.0/gio/giotypes.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkicontheme.h : /usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf.h \
+	/usr/local/include/gtk-2.0/gdk/gdk.h
 
 ../src/common/Lgi/GVariant.cpp : ../include/common/Lgi.h \
 	../include/common/GVariant.h \
@@ -1325,13 +1332,27 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GScrollBar.h \
 	../include/common/GTree.h
 
+../include/common/GScrollBar.h : 
+
+../include/common/GTabView.h : 
+
 ../include/common/GProgress.h : 
 
 ../src/common/Widgets/GBox.cpp : ../include/common/Lgi.h \
 	../include/common/GBox.h \
 	../include/common/GCssTools.h
 
+../include/common/GBox.h : 
+
 ../../../../../../usr/include/glib-2.0/gio/gtlsdatabase.h : /usr/include/glib-2.0/gio/giotypes.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkiconview.h : /usr/local/include/gtk-2.0/gtk/gtkcontainer.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreemodel.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcellrenderer.h \
+	/usr/local/include/gtk-2.0/gtk/gtkselection.h \
+	/usr/local/include/gtk-2.0/gtk/gtktooltip.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktree.h : /usr/local/include/gtk-2.0/gtk/gtkcontainer.h
 
 ../../../../../../usr/include/glib-2.0/gio/gsettings.h : /usr/include/glib-2.0/gio/gsettingsschema.h \
 	/usr/include/glib-2.0/gio/giotypes.h
@@ -1343,12 +1364,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/glib-2.0/gio/gnetworkmonitor.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtktogglebutton.h : /usr/include/gtk-2.0/gtk/gtkbutton.h
-
-../include/linux/Gtk/LgiOsClasses.h : 
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkiconfactory.h : /usr/include/gtk-2.0/gdk/gdk.h \
-	/usr/include/gtk-2.0/gtk/gtkrc.h
+../include/common/GFontSelect.h : 
 
 ../../../../../../usr/include/glib-2.0/gio/gtlsinteraction.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -1359,20 +1375,11 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GButton.h \
 	../include/common/GCss.h
 
-../include/common/GViewPriv.h : 
-
-../include/common/GEdit.h : ../include/common/GTextView3.h
-
 ../../../../../../usr/include/glib-2.0/glib/gdataset.h : /usr/include/glib-2.0/glib/gquark.h
 
-../../../../../../usr/include/glib-2.0/glib/gtypes.h : /usr/lib/x86_64-linux-gnu/glib-2.0/include/glibconfig.h \
+../../../../../../usr/include/glib-2.0/glib/gtypes.h : /usr/lib/arm-linux-gnueabihf/glib-2.0/include/glibconfig.h \
 	/usr/include/glib-2.0/glib/gmacros.h \
 	/usr/include/glib-2.0/glib/gversionmacros.h
-
-../include/common/GVariant.h : ../include/common/GDom.h \
-	../include/common/GDateTime.h \
-	../include/common/GContainers.h \
-	../include/common/GHashTable.h
 
 ../src/linux/Gtk/Gdc2.cpp : ../include/common/Lgi.h \
 	../include/common/GPalette.h
@@ -1380,7 +1387,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../../../../../../usr/include/glib-2.0/glib/gscanner.h : /usr/include/glib-2.0/glib/gdataset.h \
 	/usr/include/glib-2.0/glib/ghash.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtktooltip.h : /usr/include/gtk-2.0/gtk/gtkwindow.h
+../include/linux/Gtk/LgiOsClasses.h : 
 
 ../src/linux/Lgi/GGeneral.cpp : ../include/common/Lgi.h \
 	../include/common/GProcess.h \
@@ -1391,40 +1398,43 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/glib-2.0/gio/gnetworkaddress.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtksignal.h : /usr/include/gtk-2.0/gtk/gtkenums.h \
-	/usr/include/gtk-2.0/gtk/gtktypeutils.h \
-	/usr/include/gtk-2.0/gtk/gtkobject.h \
-	/usr/include/gtk-2.0/gtk/gtkmarshal.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkcellrendereraccel.h : /usr/local/include/gtk-2.0/gtk/gtkcellrenderertext.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkprintsettings.h : /usr/include/gtk-2.0/gtk/gtkpapersize.h
+../include/common/GContainers.h : ../include/common/LgiInc.h \
+	../include/linux/Gtk/LgiOsDefs.h \
+	../include/common/GStream.h
 
 ../../../../../../usr/include/glib-2.0/gio/gdbusauthobserver.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../../usr/include/glib-2.0/gio/gmenu.h : /usr/include/glib-2.0/gio/gmenumodel.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkinfobar.h : /usr/include/gtk-2.0/gtk/gtkhbox.h \
-	/usr/include/gtk-2.0/gtk/gtkenums.h
-
 ../../../../../../usr/include/glib-2.0/glib/ghmac.h : /usr/include/glib-2.0/glib/gtypes.h
+
+../include/common/GCheckBox.h : 
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkimcontext.h : /usr/local/include/gtk-2.0/gdk/gdk.h \
+	/usr/local/include/gtk-2.0/gtk/gtkobject.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkwindow.h : /usr/local/include/gtk-2.0/gtk/gtkaccelgroup.h \
+	/usr/local/include/gtk-2.0/gtk/gtkbin.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktable.h : /usr/local/include/gtk-2.0/gtk/gtkcontainer.h
 
 ../src/common/Lgi/GToolTip.cpp : ../include/common/Lgi.h \
 	../include/common/GDisplayString.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkvbox.h : /usr/include/gtk-2.0/gtk/gtkbox.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkfilefilter.h : /usr/include/glib-2.0/glib-object.h
 
 ../../../../../../usr/include/glib-2.0/glib/gtimezone.h : /usr/include/glib-2.0/glib/gtypes.h
 
 ../../../../../../usr/include/glib-2.0/gio/gdbusutils.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkprintoperation.h : /usr/include/cairo/cairo.h \
-	/usr/include/gtk-2.0/gtk/gtkmain.h \
-	/usr/include/gtk-2.0/gtk/gtkwindow.h \
-	/usr/include/gtk-2.0/gtk/gtkpagesetup.h \
-	/usr/include/gtk-2.0/gtk/gtkprintsettings.h \
-	/usr/include/gtk-2.0/gtk/gtkprintcontext.h \
-	/usr/include/gtk-2.0/gtk/gtkprintoperationpreview.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkbuilder.h : /usr/local/lib/gtk-2.0/include/gdkconfig.h \
+	/usr/include/glib-2.0/glib-object.h
 
 ../../../../../../usr/include/glib-2.0/gio/gmemoryoutputstream.h : /usr/include/glib-2.0/gio/goutputstream.h
+
+../../../../../../usr/lib/arm-linux-gnueabihf/glib-2.0/include/glibconfig.h : /usr/include/glib-2.0/glib/gmacros.h
 
 ../../../../../../usr/include/glib-2.0/gio/gsocketservice.h : /usr/include/glib-2.0/gio/gsocketlistener.h
 
@@ -1450,7 +1460,12 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GColour.h \
 	../include/common/GFilter.h
 
-../include/common/GColour.h : ../include/common/GColourSpace.h
+../include/common/GFont.h : ../include/common/GRect.h \
+	../include/linux/Gtk/LgiOsClasses.h \
+	../include/common/GColour.h \
+	../include/common/GCapabilities.h
+
+../include/common/GFilter.h : ../include/common/GContainers.h
 
 ../include/common/GColourSpace.h : 
 
@@ -1459,23 +1474,24 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/glib-2.0/glib/deprecated/gmain.h : /usr/include/glib-2.0/glib/gmain.h
 
-../include/common/GPath.h : ../include/common/GMatrix.h
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkdisplaymanager.h : /usr/local/include/gtk-2.0/gdk/gdktypes.h \
+	/usr/local/include/gtk-2.0/gdk/gdkdisplay.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkseparatormenuitem.h : /usr/include/gtk-2.0/gtk/gtkmenuitem.h
+../include/common/GPath.h : ../include/common/GMatrix.h
 
 ../../../../../../usr/include/glib-2.0/glib/gversion.h : /usr/include/glib-2.0/glib/gtypes.h
 
-../include/common/GProgress.h : 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkpixmap.h : /usr/local/include/gtk-2.0/gtk/gtk.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkimmulticontext.h : /usr/include/gtk-2.0/gtk/gtkimcontext.h \
-	/usr/include/gtk-2.0/gtk/gtkmenushell.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktoggletoolbutton.h : /usr/local/include/gtk-2.0/gtk/gtktoolbutton.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkrecentchooser.h : /usr/local/include/gtk-2.0/gtk/gtkwidget.h \
+	/usr/local/include/gtk-2.0/gtk/gtkrecentmanager.h \
+	/usr/local/include/gtk-2.0/gtk/gtkrecentfilter.h
 
 ../../../../../../usr/include/glib-2.0/gio/ginitable.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../../usr/include/glib-2.0/gio/gtcpwrapperconnection.h : /usr/include/glib-2.0/gio/gtcpconnection.h
-
-../include/common/GPalette.h : ../include/common/GColourSpace.h \
-	../include/common/GFile.h
 
 ../../../../../../usr/include/glib-2.0/glib/deprecated/gcache.h : /usr/include/glib-2.0/glib/glist.h
 
@@ -1484,19 +1500,18 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../../../../../../usr/include/glib-2.0/gobject/gbinding.h : /usr/include/glib-2.0/glib.h \
 	/usr/include/glib-2.0/gobject/gobject.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkentrybuffer.h : /usr/include/glib-2.0/glib-object.h
-
-../include/common/GMatrix.h : 
-
 ../../../../../../usr/include/glib-2.0/gio/gtlsbackend.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../../usr/include/glib-2.0/gio/gdbusconnection.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../include/common/GThread.h : ../include/common/GMutex.h
-
 ../../../../../../usr/include/glib-2.0/gio/gfileoutputstream.h : /usr/include/glib-2.0/gio/goutputstream.h
 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkcalendar.h : /usr/local/include/gtk-2.0/gtk/gtkwidget.h \
+	/usr/local/include/gtk-2.0/gtk/gtksignal.h
+
 ../../../../../../usr/include/glib-2.0/gobject/gvaluetypes.h : /usr/include/glib-2.0/gobject/gvalue.h
+
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkspawn.h : /usr/local/include/gtk-2.0/gdk/gdkscreen.h
 
 ../include/common/GCssTools.h : 
 
@@ -1508,26 +1523,15 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/atk-1.0/atk/atkversion.h : 
 
-../../../../../../usr/include/gtk-2.0/gtk/gtktable.h : /usr/include/gtk-2.0/gtk/gtkcontainer.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkradiomenuitem.h : /usr/local/include/gtk-2.0/gtk/gtkcheckmenuitem.h
 
-../include/common/GTree.h : ../include/common/GItemContainer.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkadjustment.h : /usr/include/gtk-2.0/gdk/gdk.h \
-	/usr/include/gtk-2.0/gtk/gtkobject.h
-
-../../../../../../usr/include/gtk-2.0/gdk/gdkfont.h : /usr/include/gtk-2.0/gdk/gdktypes.h \
-	/usr/include/pango-1.0/pango/pango.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkaspectframe.h : /usr/include/gtk-2.0/gtk/gtkframe.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkcellrendererprogress.h : /usr/local/include/gtk-2.0/gtk/gtkcellrenderer.h
 
 ../../../../../../usr/include/atk-1.0/atk/atkrelationset.h : /usr/include/glib-2.0/glib-object.h \
 	/usr/include/atk-1.0/atk/atkobject.h \
 	/usr/include/atk-1.0/atk/atkrelation.h
 
 ../include/common/GBitmap.h : 
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkaccessible.h : /usr/include/atk-1.0/atk/atk.h \
-	/usr/include/gtk-2.0/gtk/gtkwidget.h
 
 ../include/common/GUtf8.h : 
 
@@ -1543,9 +1547,13 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/pango-1.0/pango/pango-coverage.h : /usr/include/glib-2.0/glib.h
 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkorientable.h : /usr/local/include/gtk-2.0/gtk/gtkwidget.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkcellrenderer.h : /usr/local/include/gtk-2.0/gtk/gtkcelleditable.h
+
 ../../../../../../usr/include/pango-1.0/pango/pango-bidi-type.h : /usr/include/glib-2.0/glib.h
 
-../include/common/GCapabilities.h : ../include/common/GHashTable.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkvseparator.h : /usr/local/include/gtk-2.0/gtk/gtkseparator.h
 
 ../include/common/LgiInc.h : 
 
@@ -1559,12 +1567,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/glib-2.0/glib/gfileutils.h : /usr/include/glib-2.0/glib/gerror.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkoptionmenu.h : /usr/include/gtk-2.0/gtk/gtk.h
-
 ../../../../../../usr/include/pango-1.0/pango/pango-glyph.h : /usr/include/pango-1.0/pango/pango-types.h \
 	/usr/include/pango-1.0/pango/pango-item.h
-
-../include/common/GScrollBar.h : 
 
 ../../../../../../usr/include/pango-1.0/pango/pango-renderer.h : /usr/include/pango-1.0/pango/pango-layout.h
 
@@ -1590,34 +1594,13 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	/usr/include/pango-1.0/pango/pango-script.h \
 	/usr/include/pango-1.0/pango/pango-bidi-type.h
 
-../include/common/GDragAndDrop.h : ../include/common/GVariant.h \
-	../include/common/GCom.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkhandlebox.h : /usr/local/include/gtk-2.0/gtk/gtkbin.h
 
 ../src/common/Lgi/GObject.cpp : ../include/common/Gdc2.h \
 	../include/common/LgiCommon.h \
 	../include/common/GString.h
 
-../include/common/Gdc2.h : ../include/linux/Gtk/LgiOsDefs.h \
-	../include/common/LgiInc.h \
-	../include/common/LgiClass.h \
-	../include/common/Progress.h \
-	../include/common/GFile.h \
-	../include/common/GMem.h \
-	../include/common/Core.h \
-	../include/common/GContainers.h \
-	../include/common/GCapabilities.h \
-	../include/common/GRefCount.h \
-	../include/common/GLibrary.h \
-	../include/common/GColourSpace.h \
-	../include/common/GRect.h \
-	../include/common/GFont.h \
-	../include/common/GPoint.h \
-	../include/common/GColour.h \
-	../include/common/GFilter.h
-
 ../include/common/GMru.h : ../include/common/GProperties.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkcellrenderer.h : /usr/include/gtk-2.0/gtk/gtkcelleditable.h
 
 ../../../../../../usr/include/atk-1.0/atk/atkhypertext.h : /usr/include/atk-1.0/atk/atkobject.h \
 	/usr/include/atk-1.0/atk/atkhyperlink.h
@@ -1625,17 +1608,12 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../../../../../../usr/include/glib-2.0/glib/gmessages.h : /usr/include/glib-2.0/glib/gtypes.h \
 	/usr/include/glib-2.0/glib/gmacros.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkactivatable.h : /usr/include/gtk-2.0/gtk/gtkaction.h \
-	/usr/include/gtk-2.0/gtk/gtktypeutils.h
-
 ../../../../../../usr/include/glib-2.0/gio/gmemoryinputstream.h : /usr/include/glib-2.0/gio/ginputstream.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtktoolitem.h : /usr/include/gtk-2.0/gtk/gtkbin.h \
-	/usr/include/gtk-2.0/gtk/gtktooltips.h \
-	/usr/include/gtk-2.0/gtk/gtkmenuitem.h \
-	/usr/include/gtk-2.0/gtk/gtksizegroup.h
+../include/common/GDragAndDrop.h : ../include/common/GVariant.h \
+	../include/common/GCom.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkvscrollbar.h : /usr/include/gtk-2.0/gtk/gtkscrollbar.h
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkkeys.h : /usr/local/include/gtk-2.0/gdk/gdktypes.h
 
 ../include/common/GAutoPtr.h : 
 
@@ -1643,226 +1621,19 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GUndo.h \
 	../include/common/GDragAndDrop.h
 
-../../../../../../usr/include/gtk-2.0/gdk/gdkspawn.h : /usr/include/gtk-2.0/gdk/gdkscreen.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtksizegroup.h : /usr/include/gtk-2.0/gtk/gtkwidget.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtk.h : /usr/include/gtk-2.0/gdk/gdk.h \
-	/usr/include/gtk-2.0/gtk/gtkaboutdialog.h \
-	/usr/include/gtk-2.0/gtk/gtkaccelgroup.h \
-	/usr/include/gtk-2.0/gtk/gtkaccellabel.h \
-	/usr/include/gtk-2.0/gtk/gtkaccelmap.h \
-	/usr/include/gtk-2.0/gtk/gtkaccessible.h \
-	/usr/include/gtk-2.0/gtk/gtkaction.h \
-	/usr/include/gtk-2.0/gtk/gtkactiongroup.h \
-	/usr/include/gtk-2.0/gtk/gtkactivatable.h \
-	/usr/include/gtk-2.0/gtk/gtkadjustment.h \
-	/usr/include/gtk-2.0/gtk/gtkalignment.h \
-	/usr/include/gtk-2.0/gtk/gtkarrow.h \
-	/usr/include/gtk-2.0/gtk/gtkaspectframe.h \
-	/usr/include/gtk-2.0/gtk/gtkassistant.h \
-	/usr/include/gtk-2.0/gtk/gtkbbox.h \
-	/usr/include/gtk-2.0/gtk/gtkbin.h \
-	/usr/include/gtk-2.0/gtk/gtkbindings.h \
-	/usr/include/gtk-2.0/gtk/gtkbox.h \
-	/usr/include/gtk-2.0/gtk/gtkbuildable.h \
-	/usr/include/gtk-2.0/gtk/gtkbuilder.h \
-	/usr/include/gtk-2.0/gtk/gtkbutton.h \
-	/usr/include/gtk-2.0/gtk/gtkcalendar.h \
-	/usr/include/gtk-2.0/gtk/gtkcelleditable.h \
-	/usr/include/gtk-2.0/gtk/gtkcelllayout.h \
-	/usr/include/gtk-2.0/gtk/gtkcellrenderer.h \
-	/usr/include/gtk-2.0/gtk/gtkcellrendereraccel.h \
-	/usr/include/gtk-2.0/gtk/gtkcellrenderercombo.h \
-	/usr/include/gtk-2.0/gtk/gtkcellrendererpixbuf.h \
-	/usr/include/gtk-2.0/gtk/gtkcellrendererprogress.h \
-	/usr/include/gtk-2.0/gtk/gtkcellrendererspin.h \
-	/usr/include/gtk-2.0/gtk/gtkcellrendererspinner.h \
-	/usr/include/gtk-2.0/gtk/gtkcellrenderertext.h \
-	/usr/include/gtk-2.0/gtk/gtkcellrenderertoggle.h \
-	/usr/include/gtk-2.0/gtk/gtkcellview.h \
-	/usr/include/gtk-2.0/gtk/gtkcheckbutton.h \
-	/usr/include/gtk-2.0/gtk/gtkcheckmenuitem.h \
-	/usr/include/gtk-2.0/gtk/gtkclipboard.h \
-	/usr/include/gtk-2.0/gtk/gtkcolorbutton.h \
-	/usr/include/gtk-2.0/gtk/gtkcolorsel.h \
-	/usr/include/gtk-2.0/gtk/gtkcolorseldialog.h \
-	/usr/include/gtk-2.0/gtk/gtkcombobox.h \
-	/usr/include/gtk-2.0/gtk/gtkcomboboxentry.h \
-	/usr/include/gtk-2.0/gtk/gtkcomboboxtext.h \
-	/usr/include/gtk-2.0/gtk/gtkcontainer.h \
-	/usr/include/gtk-2.0/gtk/gtkdebug.h \
-	/usr/include/gtk-2.0/gtk/gtkdialog.h \
-	/usr/include/gtk-2.0/gtk/gtkdnd.h \
-	/usr/include/gtk-2.0/gtk/gtkdrawingarea.h \
-	/usr/include/gtk-2.0/gtk/gtkeditable.h \
-	/usr/include/gtk-2.0/gtk/gtkentry.h \
-	/usr/include/gtk-2.0/gtk/gtkentrybuffer.h \
-	/usr/include/gtk-2.0/gtk/gtkentrycompletion.h \
-	/usr/include/gtk-2.0/gtk/gtkenums.h \
-	/usr/include/gtk-2.0/gtk/gtkeventbox.h \
-	/usr/include/gtk-2.0/gtk/gtkexpander.h \
-	/usr/include/gtk-2.0/gtk/gtkfixed.h \
-	/usr/include/gtk-2.0/gtk/gtkfilechooser.h \
-	/usr/include/gtk-2.0/gtk/gtkfilechooserbutton.h \
-	/usr/include/gtk-2.0/gtk/gtkfilechooserdialog.h \
-	/usr/include/gtk-2.0/gtk/gtkfilechooserwidget.h \
-	/usr/include/gtk-2.0/gtk/gtkfilefilter.h \
-	/usr/include/gtk-2.0/gtk/gtkfontbutton.h \
-	/usr/include/gtk-2.0/gtk/gtkfontsel.h \
-	/usr/include/gtk-2.0/gtk/gtkframe.h \
-	/usr/include/gtk-2.0/gtk/gtkgc.h \
-	/usr/include/gtk-2.0/gtk/gtkhandlebox.h \
-	/usr/include/gtk-2.0/gtk/gtkhbbox.h \
-	/usr/include/gtk-2.0/gtk/gtkhbox.h \
-	/usr/include/gtk-2.0/gtk/gtkhpaned.h \
-	/usr/include/gtk-2.0/gtk/gtkhruler.h \
-	/usr/include/gtk-2.0/gtk/gtkhscale.h \
-	/usr/include/gtk-2.0/gtk/gtkhscrollbar.h \
-	/usr/include/gtk-2.0/gtk/gtkhseparator.h \
-	/usr/include/gtk-2.0/gtk/gtkhsv.h \
-	/usr/include/gtk-2.0/gtk/gtkiconfactory.h \
-	/usr/include/gtk-2.0/gtk/gtkicontheme.h \
-	/usr/include/gtk-2.0/gtk/gtkiconview.h \
-	/usr/include/gtk-2.0/gtk/gtkimage.h \
-	/usr/include/gtk-2.0/gtk/gtkimagemenuitem.h \
-	/usr/include/gtk-2.0/gtk/gtkimcontext.h \
-	/usr/include/gtk-2.0/gtk/gtkimcontextsimple.h \
-	/usr/include/gtk-2.0/gtk/gtkimmulticontext.h \
-	/usr/include/gtk-2.0/gtk/gtkinfobar.h \
-	/usr/include/gtk-2.0/gtk/gtkinvisible.h \
-	/usr/include/gtk-2.0/gtk/gtkitem.h \
-	/usr/include/gtk-2.0/gtk/gtklabel.h \
-	/usr/include/gtk-2.0/gtk/gtklayout.h \
-	/usr/include/gtk-2.0/gtk/gtklinkbutton.h \
-	/usr/include/gtk-2.0/gtk/gtkliststore.h \
-	/usr/include/gtk-2.0/gtk/gtkmain.h \
-	/usr/include/gtk-2.0/gtk/gtkmenu.h \
-	/usr/include/gtk-2.0/gtk/gtkmenubar.h \
-	/usr/include/gtk-2.0/gtk/gtkmenuitem.h \
-	/usr/include/gtk-2.0/gtk/gtkmenushell.h \
-	/usr/include/gtk-2.0/gtk/gtkmenutoolbutton.h \
-	/usr/include/gtk-2.0/gtk/gtkmessagedialog.h \
-	/usr/include/gtk-2.0/gtk/gtkmisc.h \
-	/usr/include/gtk-2.0/gtk/gtkmodules.h \
-	/usr/include/gtk-2.0/gtk/gtkmountoperation.h \
-	/usr/include/gtk-2.0/gtk/gtknotebook.h \
-	/usr/include/gtk-2.0/gtk/gtkobject.h \
-	/usr/include/gtk-2.0/gtk/gtkoffscreenwindow.h \
-	/usr/include/gtk-2.0/gtk/gtkorientable.h \
-	/usr/include/gtk-2.0/gtk/gtkpagesetup.h \
-	/usr/include/gtk-2.0/gtk/gtkpapersize.h \
-	/usr/include/gtk-2.0/gtk/gtkpaned.h \
-	/usr/include/gtk-2.0/gtk/gtkplug.h \
-	/usr/include/gtk-2.0/gtk/gtkprintcontext.h \
-	/usr/include/gtk-2.0/gtk/gtkprintoperation.h \
-	/usr/include/gtk-2.0/gtk/gtkprintoperationpreview.h \
-	/usr/include/gtk-2.0/gtk/gtkprintsettings.h \
-	/usr/include/gtk-2.0/gtk/gtkprogressbar.h \
-	/usr/include/gtk-2.0/gtk/gtkradioaction.h \
-	/usr/include/gtk-2.0/gtk/gtkradiobutton.h \
-	/usr/include/gtk-2.0/gtk/gtkradiomenuitem.h \
-	/usr/include/gtk-2.0/gtk/gtkradiotoolbutton.h \
-	/usr/include/gtk-2.0/gtk/gtkrange.h \
-	/usr/include/gtk-2.0/gtk/gtkrc.h \
-	/usr/include/gtk-2.0/gtk/gtkrecentaction.h \
-	/usr/include/gtk-2.0/gtk/gtkrecentchooser.h \
-	/usr/include/gtk-2.0/gtk/gtkrecentchooserdialog.h \
-	/usr/include/gtk-2.0/gtk/gtkrecentchoosermenu.h \
-	/usr/include/gtk-2.0/gtk/gtkrecentchooserwidget.h \
-	/usr/include/gtk-2.0/gtk/gtkrecentfilter.h \
-	/usr/include/gtk-2.0/gtk/gtkrecentmanager.h \
-	/usr/include/gtk-2.0/gtk/gtkruler.h \
-	/usr/include/gtk-2.0/gtk/gtkscale.h \
-	/usr/include/gtk-2.0/gtk/gtkscalebutton.h \
-	/usr/include/gtk-2.0/gtk/gtkscrollbar.h \
-	/usr/include/gtk-2.0/gtk/gtkscrolledwindow.h \
-	/usr/include/gtk-2.0/gtk/gtkselection.h \
-	/usr/include/gtk-2.0/gtk/gtkseparator.h \
-	/usr/include/gtk-2.0/gtk/gtkseparatormenuitem.h \
-	/usr/include/gtk-2.0/gtk/gtkseparatortoolitem.h \
-	/usr/include/gtk-2.0/gtk/gtksettings.h \
-	/usr/include/gtk-2.0/gtk/gtkshow.h \
-	/usr/include/gtk-2.0/gtk/gtksizegroup.h \
-	/usr/include/gtk-2.0/gtk/gtksocket.h \
-	/usr/include/gtk-2.0/gtk/gtkspinbutton.h \
-	/usr/include/gtk-2.0/gtk/gtkspinner.h \
-	/usr/include/gtk-2.0/gtk/gtkstatusbar.h \
-	/usr/include/gtk-2.0/gtk/gtkstatusicon.h \
-	/usr/include/gtk-2.0/gtk/gtkstock.h \
-	/usr/include/gtk-2.0/gtk/gtkstyle.h \
-	/usr/include/gtk-2.0/gtk/gtktable.h \
-	/usr/include/gtk-2.0/gtk/gtktearoffmenuitem.h \
-	/usr/include/gtk-2.0/gtk/gtktextbuffer.h \
-	/usr/include/gtk-2.0/gtk/gtktextbufferrichtext.h \
-	/usr/include/gtk-2.0/gtk/gtktextchild.h \
-	/usr/include/gtk-2.0/gtk/gtktextiter.h \
-	/usr/include/gtk-2.0/gtk/gtktextmark.h \
-	/usr/include/gtk-2.0/gtk/gtktexttag.h \
-	/usr/include/gtk-2.0/gtk/gtktexttagtable.h \
-	/usr/include/gtk-2.0/gtk/gtktextview.h \
-	/usr/include/gtk-2.0/gtk/gtktoggleaction.h \
-	/usr/include/gtk-2.0/gtk/gtktogglebutton.h \
-	/usr/include/gtk-2.0/gtk/gtktoggletoolbutton.h \
-	/usr/include/gtk-2.0/gtk/gtktoolbar.h \
-	/usr/include/gtk-2.0/gtk/gtktoolbutton.h \
-	/usr/include/gtk-2.0/gtk/gtktoolitem.h \
-	/usr/include/gtk-2.0/gtk/gtktoolitemgroup.h \
-	/usr/include/gtk-2.0/gtk/gtktoolpalette.h \
-	/usr/include/gtk-2.0/gtk/gtktoolshell.h \
-	/usr/include/gtk-2.0/gtk/gtktooltip.h \
-	/usr/include/gtk-2.0/gtk/gtktestutils.h \
-	/usr/include/gtk-2.0/gtk/gtktreednd.h \
-	/usr/include/gtk-2.0/gtk/gtktreemodel.h \
-	/usr/include/gtk-2.0/gtk/gtktreemodelfilter.h \
-	/usr/include/gtk-2.0/gtk/gtktreemodelsort.h \
-	/usr/include/gtk-2.0/gtk/gtktreeselection.h \
-	/usr/include/gtk-2.0/gtk/gtktreesortable.h \
-	/usr/include/gtk-2.0/gtk/gtktreestore.h \
-	/usr/include/gtk-2.0/gtk/gtktreeview.h \
-	/usr/include/gtk-2.0/gtk/gtktreeviewcolumn.h \
-	/usr/include/gtk-2.0/gtk/gtktypeutils.h \
-	/usr/include/gtk-2.0/gtk/gtkuimanager.h \
-	/usr/include/gtk-2.0/gtk/gtkvbbox.h \
-	/usr/include/gtk-2.0/gtk/gtkvbox.h \
-	/usr/include/gtk-2.0/gtk/gtkversion.h \
-	/usr/include/gtk-2.0/gtk/gtkviewport.h \
-	/usr/include/gtk-2.0/gtk/gtkvolumebutton.h \
-	/usr/include/gtk-2.0/gtk/gtkvpaned.h \
-	/usr/include/gtk-2.0/gtk/gtkvruler.h \
-	/usr/include/gtk-2.0/gtk/gtkvscale.h \
-	/usr/include/gtk-2.0/gtk/gtkvscrollbar.h \
-	/usr/include/gtk-2.0/gtk/gtkvseparator.h \
-	/usr/include/gtk-2.0/gtk/gtkwidget.h \
-	/usr/include/gtk-2.0/gtk/gtkwindow.h \
-	/usr/include/gtk-2.0/gtk/gtktext.h \
-	/usr/include/gtk-2.0/gtk/gtktree.h \
-	/usr/include/gtk-2.0/gtk/gtktreeitem.h \
-	/usr/include/gtk-2.0/gtk/gtkclist.h \
-	/usr/include/gtk-2.0/gtk/gtkcombo.h \
-	/usr/include/gtk-2.0/gtk/gtkctree.h \
-	/usr/include/gtk-2.0/gtk/gtkcurve.h \
-	/usr/include/gtk-2.0/gtk/gtkfilesel.h \
-	/usr/include/gtk-2.0/gtk/gtkgamma.h \
-	/usr/include/gtk-2.0/gtk/gtkinputdialog.h \
-	/usr/include/gtk-2.0/gtk/gtkitemfactory.h \
-	/usr/include/gtk-2.0/gtk/gtklist.h \
-	/usr/include/gtk-2.0/gtk/gtklistitem.h \
-	/usr/include/gtk-2.0/gtk/gtkoldeditable.h \
-	/usr/include/gtk-2.0/gtk/gtkoptionmenu.h \
-	/usr/include/gtk-2.0/gtk/gtkpixmap.h \
-	/usr/include/gtk-2.0/gtk/gtkpreview.h \
-	/usr/include/gtk-2.0/gtk/gtkprogress.h \
-	/usr/include/gtk-2.0/gtk/gtksignal.h \
-	/usr/include/gtk-2.0/gtk/gtktipsquery.h \
-	/usr/include/gtk-2.0/gtk/gtktooltips.h
+../include/common/GDocView.h : ../include/common/GVariant.h
 
 ../../../../../../usr/include/glib-2.0/glib/grand.h : /usr/include/glib-2.0/glib/gtypes.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtklayout.h : /usr/local/include/gtk-2.0/gtk/gtkcontainer.h \
+	/usr/local/include/gtk-2.0/gtk/gtkadjustment.h
 
 ../src/common/Gdc2/GSurface.cpp : ../include/common/Gdc2.h \
 	../include/common/GdiLeak.h \
 	../include/common/GPalette.h \
 	../include/common/GVariant.h
+
+../include/common/GProcess.h : ../include/common/GStream.h
 
 ../include/common/GRadioGroup.h : 
 
@@ -1872,36 +1643,20 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GContainers.h \
 	../include/common/GCss.h
 
-../include/common/GTextView3.h : ../include/common/GDocView.h \
-	../include/common/GUndo.h \
-	../include/common/GDragAndDrop.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkhpaned.h : /usr/include/gtk-2.0/gtk/gtkpaned.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkvscale.h : /usr/include/gtk-2.0/gtk/gtkscale.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkaction.h : /usr/local/include/gtk-2.0/gtk/gtkwidget.h
 
 ../../../../../../usr/include/glib-2.0/gio/gtlspassword.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkimcontextsimple.h : /usr/include/gtk-2.0/gtk/gtkimcontext.h
-
 ../../../../../../usr/include/glib-2.0/gobject/genums.h : /usr/include/glib-2.0/gobject/gtype.h
 
-../include/common/GFont.h : ../include/common/GRect.h \
-	../include/linux/Gtk/LgiOsClasses.h \
-	../include/common/GColour.h \
-	../include/common/GCapabilities.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtklist.h : /usr/include/gtk-2.0/gtk/gtk.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkrecentchoosermenu.h : /usr/local/include/gtk-2.0/gtk/gtkmenu.h \
+	/usr/local/include/gtk-2.0/gtk/gtkrecentchooser.h
 
 ../src/common/Gdc2/GdcCommon.cpp : ../include/common/Lgi.h \
 	../include/common/GPalette.h \
 	../include/common/GPixelRops.h \
 	../include/common/GRops.h \
 	../src/common/Gdc2/GRopsCases.cpp
-
-../include/common/GPixelRops.h : 
-
-../include/common/GCssTools.h : 
 
 ../../../../../../usr/include/glib-2.0/gio/gpropertyaction.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -1911,11 +1666,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GToken.h
 
 ../../../../../../usr/include/glib-2.0/gio/gresource.h : /usr/include/glib-2.0/gio/giotypes.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkentrycompletion.h : /usr/include/gtk-2.0/gtk/gtktreemodel.h \
-	/usr/include/gtk-2.0/gtk/gtkliststore.h \
-	/usr/include/gtk-2.0/gtk/gtktreeviewcolumn.h \
-	/usr/include/gtk-2.0/gtk/gtktreemodelfilter.h
 
 ../../../../../../usr/include/pango-1.0/pango/pango-glyph-item.h : /usr/include/pango-1.0/pango/pango-attributes.h \
 	/usr/include/pango-1.0/pango/pango-break.h \
@@ -1933,13 +1683,27 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../../../../../../usr/include/glib-2.0/glib/gslist.h : /usr/include/glib-2.0/glib/gmem.h \
 	/usr/include/glib-2.0/glib/gnode.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkcellrendererspinner.h : /usr/include/gtk-2.0/gtk/gtkcellrenderer.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkcurve.h : /usr/local/include/gtk-2.0/gtk/gtkdrawingarea.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkcolorsel.h : /usr/local/include/gtk-2.0/gtk/gtkdialog.h \
+	/usr/local/include/gtk-2.0/gtk/gtkvbox.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkprintoperation.h : /usr/include/cairo/cairo.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmain.h \
+	/usr/local/include/gtk-2.0/gtk/gtkwindow.h \
+	/usr/local/include/gtk-2.0/gtk/gtkpagesetup.h \
+	/usr/local/include/gtk-2.0/gtk/gtkprintsettings.h \
+	/usr/local/include/gtk-2.0/gtk/gtkprintcontext.h \
+	/usr/local/include/gtk-2.0/gtk/gtkprintoperationpreview.h
 
 ../src/common/Gdc2/16Bit.cpp : ../include/common/Gdc2.h \
 	../include/common/GPalette.h
 
 ../../../../../../usr/include/glib-2.0/glib/gunicode.h : /usr/include/glib-2.0/glib/gerror.h \
 	/usr/include/glib-2.0/glib/gtypes.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktreednd.h : /usr/local/include/gtk-2.0/gtk/gtktreemodel.h \
+	/usr/local/include/gtk-2.0/gtk/gtkdnd.h
 
 ../src/common/Widgets/GTableLayout.cpp : ../include/common/Lgi.h \
 	../include/common/GTableLayout.h \
@@ -1963,6 +1727,16 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../include/common/GPoint.h : 
 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkradiotoolbutton.h : /usr/local/include/gtk-2.0/gtk/gtktoggletoolbutton.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktypebuiltins.h : /usr/include/glib-2.0/glib-object.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkoldeditable.h : /usr/local/include/gtk-2.0/gtk/gtk.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtklistitem.h : /usr/local/include/gtk-2.0/gtk/gtk.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkmenuitem.h : /usr/local/include/gtk-2.0/gtk/gtkitem.h
+
 ../../../../../../usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-core.h : /usr/include/glib-2.0/glib.h \
 	/usr/include/glib-2.0/glib-object.h \
 	/usr/include/glib-2.0/gio/gio.h
@@ -1973,12 +1747,26 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GDisplayString.h \
 	../include/common/GTextView3.h
 
+../include/common/GTextView3.h : ../include/common/GDocView.h \
+	../include/common/GUndo.h \
+	../include/common/GDragAndDrop.h
+
+../include/common/GToken.h : ../include/common/GArray.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkimmulticontext.h : /usr/local/include/gtk-2.0/gtk/gtkimcontext.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmenushell.h
+
 ../src/common/Gdc2/8Bit.cpp : ../include/common/Gdc2.h \
 	../include/common/GPalette.h
+
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkgc.h : /usr/local/include/gtk-2.0/gdk/gdkcolor.h \
+	/usr/local/include/gtk-2.0/gdk/gdktypes.h
 
 ../src/common/General/GPassword.cpp : ../include/common/Lgi.h \
 	../include/common/GPassword.h \
 	../include/common/GVariant.h
+
+../include/common/GPassword.h : 
 
 ../src/common/Text/GTextView3.cpp : ../include/common/Lgi.h \
 	../include/common/GTextView3.h \
@@ -1999,23 +1787,48 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	/usr/include/pango-1.0/pango/pango-types.h \
 	/usr/include/glib-2.0/glib-object.h
 
-../include/common/LgiCommon.h : ../include/common/GMem.h \
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkfilesel.h : /usr/local/include/gtk-2.0/gtk/gtk.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkfontbutton.h : /usr/local/include/gtk-2.0/gtk/gtkbutton.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktextiter.h : /usr/local/include/gtk-2.0/gtk/gtktexttag.h \
+	/usr/local/include/gtk-2.0/gtk/gtktextchild.h
+
+../include/common/GAutoPtr.h : 
+
+../include/common/GFile.h : ../include/common/GMem.h \
+	../include/common/GStream.h \
 	../include/common/GArray.h \
-	../include/common/LgiClass.h
+	../include/common/GRefCount.h
 
 ../../../../../../usr/include/glib-2.0/gio/gbytesicon.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../include/common/GProgressDlg.h : 
 
-../../../../../../usr/include/gtk-2.0/gtk/gtktypebuiltins.h : /usr/include/glib-2.0/glib-object.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkcelllayout.h : /usr/local/include/gtk-2.0/gtk/gtkcellrenderer.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreeviewcolumn.h \
+	/usr/local/include/gtk-2.0/gtk/gtkbuildable.h \
+	/usr/local/include/gtk-2.0/gtk/gtkbuilder.h
+
+../include/common/Lgi.h : ../include/common/LgiInc.h \
+	../include/linux/Gtk/LgiOsDefs.h \
+	../include/common/LgiMsgs.h \
+	../include/common/LgiDefs.h \
+	../include/common/GMem.h \
+	../include/common/GString.h \
+	../include/common/LgiClass.h \
+	../include/common/Progress.h \
+	../include/common/GFile.h \
+	../include/common/Gdc2.h \
+	../include/common/LgiRes.h \
+	../include/common/LgiClasses.h \
+	../include/common/LgiCommon.h
 
 ../include/common/GFindReplaceDlg.h : 
 
 ../include/common/GUndo.h : 
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkclipboard.h : /usr/include/gtk-2.0/gtk/gtkselection.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkfilefilter.h : /usr/include/glib-2.0/glib-object.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkdrawingarea.h : /usr/local/include/gtk-2.0/gtk/gtkwidget.h
 
 ../src/linux/Gtk/GScreenDC.cpp : ../include/common/Lgi.h
 
@@ -2023,11 +1836,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ./Code/GHistory.h : ../include/common/GPopup.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtktreeview.h : /usr/include/gtk-2.0/gtk/gtkcontainer.h \
-	/usr/include/gtk-2.0/gtk/gtktreemodel.h \
-	/usr/include/gtk-2.0/gtk/gtktreeviewcolumn.h \
-	/usr/include/gtk-2.0/gtk/gtkdnd.h \
-	/usr/include/gtk-2.0/gtk/gtkentry.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktearoffmenuitem.h : /usr/local/include/gtk-2.0/gtk/gtkmenuitem.h
 
 ../../../../../../usr/include/glib-2.0/gio/gsimpleproxyresolver.h : /usr/include/glib-2.0/gio/gproxyresolver.h
 
@@ -2040,11 +1849,9 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/glib-2.0/gio/gmountoperation.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkcurve.h : /usr/include/gtk-2.0/gtk/gtkdrawingarea.h
+../include/common/GdiLeak.h : 
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkradiobutton.h : /usr/include/gtk-2.0/gtk/gtkcheckbutton.h
-
-../include/common/GDocView.h : ../include/common/GVariant.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkeventbox.h : /usr/local/include/gtk-2.0/gtk/gtkbin.h
 
 ../include/common/Lgi.h : ../include/common/LgiInc.h \
 	../include/linux/Gtk/LgiOsDefs.h \
@@ -2060,87 +1867,72 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/LgiClasses.h \
 	../include/common/LgiCommon.h
 
-../include/common/LgiClasses.h : ../include/common/GMutex.h \
-	../include/linux/Gtk/LgiOsClasses.h \
-	../include/common/GMem.h \
-	../include/common/GArray.h \
-	../include/common/LgiCommon.h \
-	../include/common/GXmlTree.h \
-	../include/common/GDragAndDrop.h \
-	../include/common/GMenu.h \
-	../include/common/LgiWidgets.h \
-	../include/common/Progress.h \
-	../include/common/GProgress.h \
-	../include/common/GFileSelect.h \
-	../include/common/GFindReplaceDlg.h \
-	../include/common/GToolBar.h \
-	../include/common/GThread.h \
-	../include/common/GInput.h \
-	../include/common/GPrinter.h
-
-../include/common/LgiMsgs.h : 
-
 ../../../../../../usr/include/atk-1.0/atk/atknoopobject.h : 
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkhruler.h : /usr/include/gtk-2.0/gtk/gtkruler.h
 
 ../../../../../../usr/include/glib-2.0/glib/goption.h : /usr/include/glib-2.0/glib/gerror.h \
 	/usr/include/glib-2.0/glib/gquark.h
 
-../../../../../../usr/include/gtk-2.0/gdk/gdkregion.h : /usr/include/gtk-2.0/gdk/gdktypes.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkcolorbutton.h : /usr/local/include/gtk-2.0/gtk/gtkbutton.h
 
 ../../../../../../usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-io.h : /usr/include/glib-2.0/glib.h \
 	/usr/include/glib-2.0/gmodule.h \
 	/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-core.h \
 	/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-animation.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkscrolledwindow.h : /usr/include/gtk-2.0/gtk/gtkhscrollbar.h \
-	/usr/include/gtk-2.0/gtk/gtkvscrollbar.h \
-	/usr/include/gtk-2.0/gtk/gtkviewport.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkstock.h : /usr/local/include/gtk-2.0/gdk/gdk.h \
+	/usr/local/include/gtk-2.0/gtk/gtktypeutils.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkcontainer.h : /usr/include/gtk-2.0/gtk/gtkwidget.h \
-	/usr/include/gtk-2.0/gtk/gtkadjustment.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkwidget.h : /usr/local/include/gtk-2.0/gdk/gdk.h \
+	/usr/local/include/gtk-2.0/gtk/gtkaccelgroup.h \
+	/usr/local/include/gtk-2.0/gtk/gtkobject.h \
+	/usr/local/include/gtk-2.0/gtk/gtkadjustment.h \
+	/usr/local/include/gtk-2.0/gtk/gtkstyle.h \
+	/usr/local/include/gtk-2.0/gtk/gtksettings.h \
+	/usr/include/atk-1.0/atk/atk.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkmenu.h : /usr/include/gtk-2.0/gtk/gtkaccelgroup.h \
-	/usr/include/gtk-2.0/gtk/gtkmenushell.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkstatusbar.h : /usr/local/include/gtk-2.0/gtk/gtkhbox.h
 
 ../../../../../../usr/include/glib-2.0/gio/gfileattribute.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../include/common/GFileSelect.h : 
+../include/common/GStream.h : ../include/common/GDom.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkactiongroup.h : /usr/include/gtk-2.0/gtk/gtkaction.h \
-	/usr/include/gtk-2.0/gtk/gtktypeutils.h
+../include/common/INetTools.h : ../include/common/GContainers.h \
+	../include/common/LgiNetInc.h
 
 ../../../../../../usr/include/glib-2.0/gio/gmenumodel.h : /usr/include/glib-2.0/glib-object.h \
 	/usr/include/glib-2.0/gio/giotypes.h
 
-../include/common/GSlider.h : 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktooltips.h : /usr/local/include/gtk-2.0/gtk/gtkwidget.h \
+	/usr/local/include/gtk-2.0/gtk/gtkwindow.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktextview.h : /usr/local/include/gtk-2.0/gtk/gtkcontainer.h \
+	/usr/local/include/gtk-2.0/gtk/gtkimcontext.h \
+	/usr/local/include/gtk-2.0/gtk/gtktextbuffer.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmenu.h
 
 ../../../../../../usr/include/glib-2.0/gio/gdbusactiongroup.h : 
 
-../../../../../../usr/include/gtk-2.0/gdk/gdkx.h : /usr/include/gtk-2.0/gdk/gdkprivate.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktoolitemgroup.h : /usr/local/include/gtk-2.0/gtk/gtkcontainer.h \
+	/usr/local/include/gtk-2.0/gtk/gtktoolitem.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkuimanager.h : /usr/include/gtk-2.0/gtk/gtkaccelgroup.h \
-	/usr/include/gtk-2.0/gtk/gtkwidget.h \
-	/usr/include/gtk-2.0/gtk/gtkaction.h \
-	/usr/include/gtk-2.0/gtk/gtkactiongroup.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtktextbufferrichtext.h : /usr/include/gtk-2.0/gtk/gtktextbuffer.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkbuilder.h : /usr/lib/x86_64-linux-gnu/gtk-2.0/include/gdkconfig.h \
-	/usr/include/glib-2.0/glib-object.h
+../include/common/GArray.h : ../include/common/LgiDefs.h
 
 ../../../../../../usr/include/glib-2.0/glib/gstrfuncs.h : /usr/include/glib-2.0/glib/gmacros.h \
 	/usr/include/glib-2.0/glib/gtypes.h
 
 ./Code/resdefs.h : 
 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkhscale.h : /usr/local/include/gtk-2.0/gtk/gtkscale.h
+
 ../src/common/General/GFileCommon.cpp : ../include/common/Lgi.h \
 	../include/common/GVariant.h
 
 ../../../../../../usr/include/glib-2.0/glib/gatomic.h : /usr/include/glib-2.0/glib/gtypes.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkinvisible.h : /usr/include/gtk-2.0/gtk/gtkwidget.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkbuildable.h : /usr/local/include/gtk-2.0/gtk/gtkbuilder.h \
+	/usr/local/include/gtk-2.0/gtk/gtktypeutils.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktext.h : /usr/local/include/gtk-2.0/gtk/gtkoldeditable.h
 
 ../../../../../../usr/include/glib-2.0/gio/gactiongroup.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -2149,23 +1941,10 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GString.h \
 	../include/common/LgiCommon.h
 
-../include/common/Lgi.h : ../include/common/LgiInc.h \
-	../include/linux/Gtk/LgiOsDefs.h \
-	../include/common/LgiMsgs.h \
-	../include/common/LgiDefs.h \
-	../include/common/GMem.h \
-	../include/common/GString.h \
-	../include/common/LgiClass.h \
-	../include/common/Progress.h \
-	../include/common/GFile.h \
-	../include/common/Gdc2.h \
-	../include/common/LgiRes.h \
-	../include/common/LgiClasses.h \
-	../include/common/LgiCommon.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkcellrendererspinner.h : /usr/local/include/gtk-2.0/gtk/gtkcellrenderer.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkcheckmenuitem.h : /usr/include/gtk-2.0/gtk/gtkmenuitem.h
-
-../include/common/Core.h : 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkcomboboxentry.h : /usr/local/include/gtk-2.0/gtk/gtkcombobox.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreemodel.h
 
 ../../../../../../usr/include/atk-1.0/atk/atkmisc.h : /usr/include/glib-2.0/glib-object.h
 
@@ -2173,11 +1952,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../src/common/Gdc2/GRect.cpp : ../include/common/Gdc2.h \
 	../include/common/GToken.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkfilechooserwidget.h : /usr/include/gtk-2.0/gtk/gtkfilechooser.h \
-	/usr/include/gtk-2.0/gtk/gtkvbox.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkorientable.h : /usr/include/gtk-2.0/gtk/gtkwidget.h
 
 ../include/common/GDateTime.h : 
 
@@ -2192,21 +1966,28 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/glib-2.0/glib/gerror.h : /usr/include/glib-2.0/glib/gquark.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkhsv.h : /usr/include/gtk-2.0/gtk/gtkwidget.h
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkscreen.h : /usr/include/cairo/cairo.h \
+	/usr/local/include/gtk-2.0/gdk/gdktypes.h \
+	/usr/local/include/gtk-2.0/gdk/gdkdisplay.h
 
 ../../../../../../usr/include/glib-2.0/gio/gsimpleasyncresult.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkmisc.h : /usr/include/gtk-2.0/gtk/gtkwidget.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkrecentaction.h : /usr/local/include/gtk-2.0/gtk/gtkaction.h \
+	/usr/local/include/gtk-2.0/gtk/gtkrecentmanager.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkprogress.h : /usr/include/gtk-2.0/gtk/gtkwidget.h \
-	/usr/include/gtk-2.0/gtk/gtkadjustment.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkvseparator.h : /usr/include/gtk-2.0/gtk/gtkseparator.h
+../include/common/Progress.h : ../include/common/GMutex.h
 
 ../include/win32/GSymLookup.h : 
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkstock.h : /usr/include/gtk-2.0/gdk/gdk.h \
-	/usr/include/gtk-2.0/gtk/gtktypeutils.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktreesortable.h : /usr/local/include/gtk-2.0/gtk/gtktreemodel.h \
+	/usr/local/include/gtk-2.0/gtk/gtktypeutils.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtklabel.h : /usr/local/include/gtk-2.0/gtk/gtkmisc.h \
+	/usr/local/include/gtk-2.0/gtk/gtkwindow.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmenu.h
+
+../include/common/GString.h : ../include/common/LgiDefs.h \
+	../include/linux/Gtk/LgiOsDefs.h
 
 ../../../../../../usr/include/glib-2.0/gio/gdbusobjectmanagerserver.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -2227,18 +2008,12 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/atk-1.0/atk/atkplug.h : 
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkcellrenderertoggle.h : /usr/include/gtk-2.0/gtk/gtkcellrenderer.h
-
 ../../../../../../usr/include/glib-2.0/gio/gcredentials.h : /usr/include/glib-2.0/gio/giotypes.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtklinkbutton.h : /usr/local/include/gtk-2.0/gtk/gtkbutton.h
 
 ../include/common/GMem.h : ../include/common/LgiInc.h \
 	../include/linux/Gtk/LgiOsDefs.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkplug.h : /usr/include/gtk-2.0/gtk/gtksocket.h \
-	/usr/include/gtk-2.0/gtk/gtkwindow.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkrecentaction.h : /usr/include/gtk-2.0/gtk/gtkaction.h \
-	/usr/include/gtk-2.0/gtk/gtkrecentmanager.h
 
 ../src/common/Resource/Res.cpp : ../include/common/Lgi.h \
 	../include/common/Res.h \
@@ -2247,29 +2022,47 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../include/common/GColour.h : ../include/common/GColourSpace.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtktreesortable.h : /usr/include/gtk-2.0/gtk/gtktreemodel.h \
-	/usr/include/gtk-2.0/gtk/gtktypeutils.h
+../include/common/GUtf8.h : 
+
+../include/common/LgiDefs.h : ../include/common/LgiInc.h \
+	../include/common/GAutoPtr.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkseparatormenuitem.h : /usr/local/include/gtk-2.0/gtk/gtkmenuitem.h
+
+../include/common/GCapabilities.h : ../include/common/GHashTable.h
+
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkdrawable.h : /usr/local/include/gtk-2.0/gdk/gdktypes.h \
+	/usr/local/include/gtk-2.0/gdk/gdkgc.h \
+	/usr/local/include/gtk-2.0/gdk/gdkrgb.h \
+	/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf.h \
+	/usr/include/cairo/cairo.h
 
 ../../../../../../usr/include/glib-2.0/gio/goutputstream.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../../usr/include/glib-2.0/gio/gsettingsschema.h : /usr/include/glib-2.0/glib-object.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkiconview.h : /usr/include/gtk-2.0/gtk/gtkcontainer.h \
-	/usr/include/gtk-2.0/gtk/gtktreemodel.h \
-	/usr/include/gtk-2.0/gtk/gtkcellrenderer.h \
-	/usr/include/gtk-2.0/gtk/gtkselection.h \
-	/usr/include/gtk-2.0/gtk/gtktooltip.h
 
 ../../../../../../usr/include/glib-2.0/glib/gchecksum.h : /usr/include/glib-2.0/glib/gtypes.h \
 	/usr/include/glib-2.0/glib/gbytes.h
 
 ../../../../../../usr/include/glib-2.0/glib/gurifuncs.h : /usr/include/glib-2.0/glib/gtypes.h
 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkcelleditable.h : /usr/local/include/gtk-2.0/gtk/gtkwidget.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkcellview.h : /usr/local/include/gtk-2.0/gtk/gtkwidget.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcellrenderer.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreemodel.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkvpaned.h : /usr/local/include/gtk-2.0/gtk/gtkpaned.h
+
 ../src/common/INet/Base64.cpp : ../include/common/GMem.h \
 	../include/common/LgiInc.h \
 	../include/common/Base64.h
 
-../include/common/GTabView.h : 
+../include/common/Base64.h : ../include/common/LgiDefs.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktreemodelsort.h : /usr/local/lib/gtk-2.0/include/gdkconfig.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreemodel.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreesortable.h
 
 ../../../../../../usr/include/pango-1.0/pango/pango-language.h : /usr/include/glib-2.0/glib.h \
 	/usr/include/glib-2.0/glib-object.h \
@@ -2280,7 +2073,9 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	/usr/include/glib-2.0/glib/gbytes.h \
 	/usr/include/glib-2.0/glib/gutils.h
 
-../include/common/GFindReplaceDlg.h : 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkframe.h : /usr/local/include/gtk-2.0/gtk/gtkbin.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktreeselection.h : /usr/local/include/gtk-2.0/gtk/gtktreeview.h
 
 ../include/common/GFontSelect.h : 
 
@@ -2288,8 +2083,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/linux/Gtk/LgiOsDefs.h \
 	../include/common/GMem.h \
 	../include/common/GMutex.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtksocket.h : /usr/include/gtk-2.0/gtk/gtkcontainer.h
 
 ../include/common/GDom.h : ../include/common/LgiInterfaces.h \
 	../include/common/GMem.h \
@@ -2302,10 +2095,14 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../src/common/Lgi/GThreadCommon.cpp : ../include/common/Lgi.h
 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkcheckbutton.h : /usr/local/include/gtk-2.0/gtk/gtktogglebutton.h
+
 ../../../../../../usr/include/atk-1.0/atk/atkeditabletext.h : /usr/include/atk-1.0/atk/atkobject.h \
 	/usr/include/atk-1.0/atk/atktext.h
 
 ../include/common/LgiMsgs.h : 
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkeditable.h : /usr/local/include/gtk-2.0/gtk/gtkwidget.h
 
 ../include/common/GRefCount.h : 
 
@@ -2313,28 +2110,30 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/glib-2.0/gio/gdataoutputstream.h : /usr/include/glib-2.0/gio/gfilteroutputstream.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkcelleditable.h : /usr/include/gtk-2.0/gtk/gtkwidget.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktreestore.h : /usr/local/lib/gtk-2.0/include/gdkconfig.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreemodel.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreesortable.h
+
+../include/common/GFindReplaceDlg.h : 
 
 ../../../../../../usr/include/glib-2.0/gmodule.h : /usr/include/glib-2.0/glib.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkicontheme.h : /usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf.h \
-	/usr/include/gtk-2.0/gdk/gdk.h
-
 ../../../../../../usr/include/glib-2.0/gio/gsocket.h : /usr/include/glib-2.0/gio/giotypes.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkmessagedialog.h : /usr/local/include/gtk-2.0/gtk/gtkdialog.h \
+	/usr/local/include/gtk-2.0/gtk/gtkenums.h
 
 ../../../../../../usr/include/glib-2.0/glib/gutils.h : /usr/include/glib-2.0/glib/gtypes.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtklabel.h : /usr/include/gtk-2.0/gtk/gtkmisc.h \
-	/usr/include/gtk-2.0/gtk/gtkwindow.h \
-	/usr/include/gtk-2.0/gtk/gtkmenu.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkspinbutton.h : /usr/local/include/gtk-2.0/gtk/gtkentry.h \
+	/usr/local/include/gtk-2.0/gtk/gtkadjustment.h
+
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkcursor.h : /usr/local/include/gtk-2.0/gdk/gdktypes.h \
+	/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf.h
 
 ../../../../../../usr/include/glib-2.0/gio/gpollableinputstream.h : /usr/include/glib-2.0/gio/gio.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkitem.h : /usr/include/gtk-2.0/gtk/gtkbin.h
-
 ../../../../../../usr/include/glib-2.0/gio/giotypes.h : /usr/include/glib-2.0/gio/gioenums.h
-
-../../../../../../usr/include/gtk-2.0/gdk/gdkdnd.h : /usr/include/gtk-2.0/gdk/gdktypes.h
 
 ../../../../../../usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-transform.h : /usr/include/glib-2.0/glib.h \
 	/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-core.h
@@ -2354,16 +2153,15 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GUtf8.h \
 	../include/common/GDisplayString.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkgc.h : /usr/include/gtk-2.0/gdk/gdk.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkversion.h : 
 
 ../../../../../../usr/include/atk-1.0/atk/atkstateset.h : /usr/include/glib-2.0/glib-object.h \
 	/usr/include/atk-1.0/atk/atkobject.h \
 	/usr/include/atk-1.0/atk/atkstate.h
 
-../../../../../../usr/include/atk-1.0/atk/atkstate.h : /usr/include/glib-2.0/glib-object.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkassistant.h : /usr/local/include/gtk-2.0/gtk/gtkwindow.h
 
-../include/common/GMem.h : ../include/common/LgiInc.h \
-	../include/linux/Gtk/LgiOsDefs.h
+../../../../../../usr/include/atk-1.0/atk/atkstate.h : /usr/include/glib-2.0/glib-object.h
 
 ../src/linux/Lgi/GWidgets.cpp : ../include/common/Lgi.h \
 	../include/common/GSlider.h \
@@ -2373,8 +2171,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/linux/Gtk/LgiWidget.h
 
 ../../../../../../usr/include/glib-2.0/gio/gsocketaddressenumerator.h : /usr/include/glib-2.0/gio/giotypes.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkimagemenuitem.h : /usr/include/gtk-2.0/gtk/gtkmenuitem.h
 
 ../src/linux/Lgi/GWindow.cpp : ../include/common/Lgi.h \
 	../include/common/GDragAndDrop.h \
@@ -2388,47 +2184,39 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../../../../../../usr/include/glib-2.0/gio/gzlibcompressor.h : /usr/include/glib-2.0/gio/gconverter.h \
 	/usr/include/glib-2.0/gio/gfileinfo.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkoffscreenwindow.h : /usr/include/gtk-2.0/gtk/gtkwindow.h
-
-../include/linux/Gtk/LgiOsDefs.h : ../include/common/LgiDefs.h \
-	../include/common/LgiInc.h \
-	/usr/include/gtk-2.0/gtk/gtk.h
-
-../include/common/GDateTime.h : 
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkrc.h : /usr/include/gtk-2.0/gtk/gtkstyle.h
-
 ../src/common/General/GProperties.cpp : ../include/linux/Gtk/LgiOsDefs.h \
 	../include/common/GFile.h \
 	../include/common/GProperties.h \
 	../include/common/GString.h \
 	../include/common/GVariant.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkdnd.h : /usr/include/gtk-2.0/gtk/gtkwidget.h \
-	/usr/include/gtk-2.0/gtk/gtkselection.h
+../include/linux/Gtk/LgiOsDefs.h : ../include/common/LgiDefs.h \
+	../include/common/LgiInc.h \
+	/usr/local/include/gtk-2.0/gtk/gtk.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkfixed.h : /usr/local/include/gtk-2.0/gtk/gtkcontainer.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkscrolledwindow.h : /usr/local/include/gtk-2.0/gtk/gtkhscrollbar.h \
+	/usr/local/include/gtk-2.0/gtk/gtkvscrollbar.h \
+	/usr/local/include/gtk-2.0/gtk/gtkviewport.h
 
 ../../../../../../usr/include/glib-2.0/gobject/gvaluearray.h : /usr/include/glib-2.0/gobject/gvalue.h
 
-../include/common/GProperties.h : ../include/common/GContainers.h \
-	../include/common/LgiClass.h \
-	../include/common/GString.h
+../../../../../../usr/local/include/gtk-2.0/gdk/gdktestutils.h : /usr/local/include/gtk-2.0/gdk/gdkwindow.h
 
 ../../../../../../usr/include/glib-2.0/glib/ghook.h : /usr/include/glib-2.0/glib/gmem.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkfontbutton.h : /usr/include/gtk-2.0/gtk/gtkbutton.h
-
 ../../../../../../usr/include/glib-2.0/glib/gthreadpool.h : /usr/include/glib-2.0/glib/gthread.h
 
-../include/common/GFilter.h : ../include/common/GContainers.h
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkcolor.h : /usr/include/cairo/cairo.h \
+	/usr/local/include/gtk-2.0/gdk/gdktypes.h
 
 ../include/common/GRops.h : 
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkframe.h : /usr/include/gtk-2.0/gtk/gtkbin.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkhsv.h : /usr/local/include/gtk-2.0/gtk/gtkwidget.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkcelllayout.h : /usr/include/gtk-2.0/gtk/gtkcellrenderer.h \
-	/usr/include/gtk-2.0/gtk/gtktreeviewcolumn.h \
-	/usr/include/gtk-2.0/gtk/gtkbuildable.h \
-	/usr/include/gtk-2.0/gtk/gtkbuilder.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktreemodel.h : /usr/include/glib-2.0/glib-object.h \
+	/usr/local/include/gtk-2.0/gtk/gtkobject.h
 
 ../include/common/GImageList.h : 
 
@@ -2436,11 +2224,9 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../include/common/GToolBar.h : ../include/common/GImageList.h
 
-../../../../../../usr/include/glib-2.0/gio/gdbusmenumodel.h : /usr/include/glib-2.0/gio/gdbusconnection.h
+../include/common/GImageList.h : 
 
-../include/common/GDom.h : ../include/common/LgiInterfaces.h \
-	../include/common/GMem.h \
-	../include/common/GArray.h
+../../../../../../usr/include/glib-2.0/gio/gdbusmenumodel.h : /usr/include/glib-2.0/gio/gdbusconnection.h
 
 ../src/common/Skins/Gel/Gel.cpp : ../include/common/Lgi.h \
 	../include/common/GSkinEngine.h \
@@ -2451,18 +2237,24 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GRadioGroup.h \
 	../include/common/GDisplayString.h
 
+../include/common/GPath.h : ../include/common/GMatrix.h
+
 ../../../../../../usr/include/glib-2.0/gio/gfilteroutputstream.h : /usr/include/glib-2.0/gio/goutputstream.h
 
 ../src/common/Text/GDocView.cpp : ../include/common/Lgi.h \
 	../include/common/GDocView.h \
 	../include/common/INet.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtktreednd.h : /usr/include/gtk-2.0/gtk/gtktreemodel.h \
-	/usr/include/gtk-2.0/gtk/gtkdnd.h
+../include/common/INet.h : ../include/common/GMem.h \
+	../include/common/GContainers.h \
+	../include/common/LgiNetInc.h \
+	../include/common/GStream.h \
+	../include/common/LgiInterfaces.h \
+	../include/common/GString.h
 
 ../../../../../../usr/include/glib-2.0/glib/gspawn.h : /usr/include/glib-2.0/glib/gerror.h
 
-../include/common/GInput.h : 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkvruler.h : /usr/local/include/gtk-2.0/gtk/gtkruler.h
 
 ../src/common/Lgi/GThreadEvent.cpp : ../include/common/Lgi.h \
 	../include/common/GThreadEvent.h
@@ -2472,6 +2264,10 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../../../../../../usr/include/glib-2.0/glib/gvarianttype.h : /usr/include/glib-2.0/glib/gmessages.h \
 	/usr/include/glib-2.0/glib/gtypes.h
 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktestutils.h : 
+
+../include/common/GPanel.h : ../include/common/GDisplayString.h
+
 ../include/common/GList.h : ../include/common/GMem.h \
 	../include/common/GArray.h \
 	../include/common/GPopup.h \
@@ -2479,14 +2275,9 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GCss.h \
 	../include/common/GItemContainer.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkimcontext.h : /usr/include/gtk-2.0/gdk/gdk.h \
-	/usr/include/gtk-2.0/gtk/gtkobject.h
-
 ../../../../../../usr/include/pango-1.0/pango/pango-item.h : /usr/include/pango-1.0/pango/pango-types.h
 
 ../../../../../../usr/include/glib-2.0/gio/gsubprocesslauncher.h : /usr/include/glib-2.0/gio/giotypes.h
-
-../include/common/GImageList.h : 
 
 ../src/common/Gdc2/Tools/GdcTools.cpp : ../include/common/Gdc2.h \
 	../include/common/GdcTools.h \
@@ -2495,6 +2286,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../include/common/GdcTools.h : 
 
 ../../../../../../usr/include/glib-2.0/glib/gqueue.h : /usr/include/glib-2.0/glib/glist.h
+
+../include/common/LgiInc.h : 
 
 ../../../../../../usr/include/glib-2.0/gio/gsocketconnectable.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -2508,12 +2301,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GString.h \
 	../include/common/GHashTable.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkfilesel.h : /usr/include/gtk-2.0/gtk/gtk.h
-
 ../include/common/GCapabilities.h : ../include/common/GHashTable.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkcalendar.h : /usr/include/gtk-2.0/gtk/gtkwidget.h \
-	/usr/include/gtk-2.0/gtk/gtksignal.h
 
 ../src/common/Hash/md5/md5.c : 
 
@@ -2523,29 +2311,229 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/glib-2.0/glib/gmacros.h : 
 
-../../../../../../usr/include/gtk-2.0/gdk/gdkkeysyms-compat.h : 
+../include/common/GUndo.h : 
 
 ../include/common/GMatrix.h : 
 
-../include/common/GRefCount.h : 
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkrecentmanager.h : /usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf.h \
-	/usr/include/gtk-2.0/gdk/gdk.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkfixed.h : /usr/include/gtk-2.0/gtk/gtkcontainer.h
+../include/common/LgiNetInc.h : 
 
 ../include/common/GThread.h : ../include/common/GMutex.h
 
-../../../../../../usr/include/gtk-2.0/gdk/gdkcolor.h : /usr/include/cairo/cairo.h \
-	/usr/include/gtk-2.0/gdk/gdktypes.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtk.h : /usr/local/include/gtk-2.0/gdk/gdk.h \
+	/usr/local/include/gtk-2.0/gtk/gtkaboutdialog.h \
+	/usr/local/include/gtk-2.0/gtk/gtkaccelgroup.h \
+	/usr/local/include/gtk-2.0/gtk/gtkaccellabel.h \
+	/usr/local/include/gtk-2.0/gtk/gtkaccelmap.h \
+	/usr/local/include/gtk-2.0/gtk/gtkaccessible.h \
+	/usr/local/include/gtk-2.0/gtk/gtkaction.h \
+	/usr/local/include/gtk-2.0/gtk/gtkactiongroup.h \
+	/usr/local/include/gtk-2.0/gtk/gtkactivatable.h \
+	/usr/local/include/gtk-2.0/gtk/gtkadjustment.h \
+	/usr/local/include/gtk-2.0/gtk/gtkalignment.h \
+	/usr/local/include/gtk-2.0/gtk/gtkarrow.h \
+	/usr/local/include/gtk-2.0/gtk/gtkaspectframe.h \
+	/usr/local/include/gtk-2.0/gtk/gtkassistant.h \
+	/usr/local/include/gtk-2.0/gtk/gtkbbox.h \
+	/usr/local/include/gtk-2.0/gtk/gtkbin.h \
+	/usr/local/include/gtk-2.0/gtk/gtkbindings.h \
+	/usr/local/include/gtk-2.0/gtk/gtkbox.h \
+	/usr/local/include/gtk-2.0/gtk/gtkbuildable.h \
+	/usr/local/include/gtk-2.0/gtk/gtkbuilder.h \
+	/usr/local/include/gtk-2.0/gtk/gtkbutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcalendar.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcelleditable.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcelllayout.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcellrenderer.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcellrendereraccel.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcellrenderercombo.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcellrendererpixbuf.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcellrendererprogress.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcellrendererspin.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcellrendererspinner.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcellrenderertext.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcellrenderertoggle.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcellview.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcheckbutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcheckmenuitem.h \
+	/usr/local/include/gtk-2.0/gtk/gtkclipboard.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcolorbutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcolorsel.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcolorseldialog.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcombobox.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcomboboxentry.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcomboboxtext.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcontainer.h \
+	/usr/local/include/gtk-2.0/gtk/gtkdebug.h \
+	/usr/local/include/gtk-2.0/gtk/gtkdialog.h \
+	/usr/local/include/gtk-2.0/gtk/gtkdnd.h \
+	/usr/local/include/gtk-2.0/gtk/gtkdrawingarea.h \
+	/usr/local/include/gtk-2.0/gtk/gtkeditable.h \
+	/usr/local/include/gtk-2.0/gtk/gtkentry.h \
+	/usr/local/include/gtk-2.0/gtk/gtkentrybuffer.h \
+	/usr/local/include/gtk-2.0/gtk/gtkentrycompletion.h \
+	/usr/local/include/gtk-2.0/gtk/gtkenums.h \
+	/usr/local/include/gtk-2.0/gtk/gtkeventbox.h \
+	/usr/local/include/gtk-2.0/gtk/gtkexpander.h \
+	/usr/local/include/gtk-2.0/gtk/gtkfixed.h \
+	/usr/local/include/gtk-2.0/gtk/gtkfilechooser.h \
+	/usr/local/include/gtk-2.0/gtk/gtkfilechooserbutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtkfilechooserdialog.h \
+	/usr/local/include/gtk-2.0/gtk/gtkfilechooserwidget.h \
+	/usr/local/include/gtk-2.0/gtk/gtkfilefilter.h \
+	/usr/local/include/gtk-2.0/gtk/gtkfontbutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtkfontsel.h \
+	/usr/local/include/gtk-2.0/gtk/gtkframe.h \
+	/usr/local/include/gtk-2.0/gtk/gtkgc.h \
+	/usr/local/include/gtk-2.0/gtk/gtkhandlebox.h \
+	/usr/local/include/gtk-2.0/gtk/gtkhbbox.h \
+	/usr/local/include/gtk-2.0/gtk/gtkhbox.h \
+	/usr/local/include/gtk-2.0/gtk/gtkhpaned.h \
+	/usr/local/include/gtk-2.0/gtk/gtkhruler.h \
+	/usr/local/include/gtk-2.0/gtk/gtkhscale.h \
+	/usr/local/include/gtk-2.0/gtk/gtkhscrollbar.h \
+	/usr/local/include/gtk-2.0/gtk/gtkhseparator.h \
+	/usr/local/include/gtk-2.0/gtk/gtkhsv.h \
+	/usr/local/include/gtk-2.0/gtk/gtkiconfactory.h \
+	/usr/local/include/gtk-2.0/gtk/gtkicontheme.h \
+	/usr/local/include/gtk-2.0/gtk/gtkiconview.h \
+	/usr/local/include/gtk-2.0/gtk/gtkimage.h \
+	/usr/local/include/gtk-2.0/gtk/gtkimagemenuitem.h \
+	/usr/local/include/gtk-2.0/gtk/gtkimcontext.h \
+	/usr/local/include/gtk-2.0/gtk/gtkimcontextsimple.h \
+	/usr/local/include/gtk-2.0/gtk/gtkimmulticontext.h \
+	/usr/local/include/gtk-2.0/gtk/gtkinfobar.h \
+	/usr/local/include/gtk-2.0/gtk/gtkinvisible.h \
+	/usr/local/include/gtk-2.0/gtk/gtkitem.h \
+	/usr/local/include/gtk-2.0/gtk/gtklabel.h \
+	/usr/local/include/gtk-2.0/gtk/gtklayout.h \
+	/usr/local/include/gtk-2.0/gtk/gtklinkbutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtkliststore.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmain.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmenu.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmenubar.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmenuitem.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmenushell.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmenutoolbutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmessagedialog.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmisc.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmodules.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmountoperation.h \
+	/usr/local/include/gtk-2.0/gtk/gtknotebook.h \
+	/usr/local/include/gtk-2.0/gtk/gtkobject.h \
+	/usr/local/include/gtk-2.0/gtk/gtkoffscreenwindow.h \
+	/usr/local/include/gtk-2.0/gtk/gtkorientable.h \
+	/usr/local/include/gtk-2.0/gtk/gtkpagesetup.h \
+	/usr/local/include/gtk-2.0/gtk/gtkpapersize.h \
+	/usr/local/include/gtk-2.0/gtk/gtkpaned.h \
+	/usr/local/include/gtk-2.0/gtk/gtkplug.h \
+	/usr/local/include/gtk-2.0/gtk/gtkprintcontext.h \
+	/usr/local/include/gtk-2.0/gtk/gtkprintoperation.h \
+	/usr/local/include/gtk-2.0/gtk/gtkprintoperationpreview.h \
+	/usr/local/include/gtk-2.0/gtk/gtkprintsettings.h \
+	/usr/local/include/gtk-2.0/gtk/gtkprogressbar.h \
+	/usr/local/include/gtk-2.0/gtk/gtkradioaction.h \
+	/usr/local/include/gtk-2.0/gtk/gtkradiobutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtkradiomenuitem.h \
+	/usr/local/include/gtk-2.0/gtk/gtkradiotoolbutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtkrange.h \
+	/usr/local/include/gtk-2.0/gtk/gtkrc.h \
+	/usr/local/include/gtk-2.0/gtk/gtkrecentaction.h \
+	/usr/local/include/gtk-2.0/gtk/gtkrecentchooser.h \
+	/usr/local/include/gtk-2.0/gtk/gtkrecentchooserdialog.h \
+	/usr/local/include/gtk-2.0/gtk/gtkrecentchoosermenu.h \
+	/usr/local/include/gtk-2.0/gtk/gtkrecentchooserwidget.h \
+	/usr/local/include/gtk-2.0/gtk/gtkrecentfilter.h \
+	/usr/local/include/gtk-2.0/gtk/gtkrecentmanager.h \
+	/usr/local/include/gtk-2.0/gtk/gtkruler.h \
+	/usr/local/include/gtk-2.0/gtk/gtkscale.h \
+	/usr/local/include/gtk-2.0/gtk/gtkscalebutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtkscrollbar.h \
+	/usr/local/include/gtk-2.0/gtk/gtkscrolledwindow.h \
+	/usr/local/include/gtk-2.0/gtk/gtkselection.h \
+	/usr/local/include/gtk-2.0/gtk/gtkseparator.h \
+	/usr/local/include/gtk-2.0/gtk/gtkseparatormenuitem.h \
+	/usr/local/include/gtk-2.0/gtk/gtkseparatortoolitem.h \
+	/usr/local/include/gtk-2.0/gtk/gtksettings.h \
+	/usr/local/include/gtk-2.0/gtk/gtkshow.h \
+	/usr/local/include/gtk-2.0/gtk/gtksizegroup.h \
+	/usr/local/include/gtk-2.0/gtk/gtksocket.h \
+	/usr/local/include/gtk-2.0/gtk/gtkspinbutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtkspinner.h \
+	/usr/local/include/gtk-2.0/gtk/gtkstatusbar.h \
+	/usr/local/include/gtk-2.0/gtk/gtkstatusicon.h \
+	/usr/local/include/gtk-2.0/gtk/gtkstock.h \
+	/usr/local/include/gtk-2.0/gtk/gtkstyle.h \
+	/usr/local/include/gtk-2.0/gtk/gtktable.h \
+	/usr/local/include/gtk-2.0/gtk/gtktearoffmenuitem.h \
+	/usr/local/include/gtk-2.0/gtk/gtktextbuffer.h \
+	/usr/local/include/gtk-2.0/gtk/gtktextbufferrichtext.h \
+	/usr/local/include/gtk-2.0/gtk/gtktextchild.h \
+	/usr/local/include/gtk-2.0/gtk/gtktextiter.h \
+	/usr/local/include/gtk-2.0/gtk/gtktextmark.h \
+	/usr/local/include/gtk-2.0/gtk/gtktexttag.h \
+	/usr/local/include/gtk-2.0/gtk/gtktexttagtable.h \
+	/usr/local/include/gtk-2.0/gtk/gtktextview.h \
+	/usr/local/include/gtk-2.0/gtk/gtktoggleaction.h \
+	/usr/local/include/gtk-2.0/gtk/gtktogglebutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtktoggletoolbutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtktoolbar.h \
+	/usr/local/include/gtk-2.0/gtk/gtktoolbutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtktoolitem.h \
+	/usr/local/include/gtk-2.0/gtk/gtktoolitemgroup.h \
+	/usr/local/include/gtk-2.0/gtk/gtktoolpalette.h \
+	/usr/local/include/gtk-2.0/gtk/gtktoolshell.h \
+	/usr/local/include/gtk-2.0/gtk/gtktooltip.h \
+	/usr/local/include/gtk-2.0/gtk/gtktestutils.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreednd.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreemodel.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreemodelfilter.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreemodelsort.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreeselection.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreesortable.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreestore.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreeview.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreeviewcolumn.h \
+	/usr/local/include/gtk-2.0/gtk/gtktypeutils.h \
+	/usr/local/include/gtk-2.0/gtk/gtkuimanager.h \
+	/usr/local/include/gtk-2.0/gtk/gtkvbbox.h \
+	/usr/local/include/gtk-2.0/gtk/gtkvbox.h \
+	/usr/local/include/gtk-2.0/gtk/gtkversion.h \
+	/usr/local/include/gtk-2.0/gtk/gtkviewport.h \
+	/usr/local/include/gtk-2.0/gtk/gtkvolumebutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtkvpaned.h \
+	/usr/local/include/gtk-2.0/gtk/gtkvruler.h \
+	/usr/local/include/gtk-2.0/gtk/gtkvscale.h \
+	/usr/local/include/gtk-2.0/gtk/gtkvscrollbar.h \
+	/usr/local/include/gtk-2.0/gtk/gtkvseparator.h \
+	/usr/local/include/gtk-2.0/gtk/gtkwidget.h \
+	/usr/local/include/gtk-2.0/gtk/gtkwindow.h \
+	/usr/local/include/gtk-2.0/gtk/gtktext.h \
+	/usr/local/include/gtk-2.0/gtk/gtktree.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreeitem.h \
+	/usr/local/include/gtk-2.0/gtk/gtkclist.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcombo.h \
+	/usr/local/include/gtk-2.0/gtk/gtkctree.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcurve.h \
+	/usr/local/include/gtk-2.0/gtk/gtkfilesel.h \
+	/usr/local/include/gtk-2.0/gtk/gtkgamma.h \
+	/usr/local/include/gtk-2.0/gtk/gtkinputdialog.h \
+	/usr/local/include/gtk-2.0/gtk/gtkitemfactory.h \
+	/usr/local/include/gtk-2.0/gtk/gtklist.h \
+	/usr/local/include/gtk-2.0/gtk/gtklistitem.h \
+	/usr/local/include/gtk-2.0/gtk/gtkoldeditable.h \
+	/usr/local/include/gtk-2.0/gtk/gtkoptionmenu.h \
+	/usr/local/include/gtk-2.0/gtk/gtkpixmap.h \
+	/usr/local/include/gtk-2.0/gtk/gtkpreview.h \
+	/usr/local/include/gtk-2.0/gtk/gtkprogress.h \
+	/usr/local/include/gtk-2.0/gtk/gtksignal.h \
+	/usr/local/include/gtk-2.0/gtk/gtktipsquery.h \
+	/usr/local/include/gtk-2.0/gtk/gtktooltips.h
 
 ../../../../../../usr/include/atk-1.0/atk/atksocket.h : 
 
 ../../../../../../usr/include/glib-2.0/gio/gfilemonitor.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../../usr/include/glib-2.0/gio/gproxyaddress.h : /usr/include/glib-2.0/gio/ginetsocketaddress.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkbox.h : /usr/include/gtk-2.0/gtk/gtkcontainer.h
 
 ../src/common/Text/GXmlTree.cpp : ../include/common/Lgi.h \
 	../include/common/GXmlTree.h \
@@ -2558,48 +2546,42 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/glib-2.0/glib/gslice.h : /usr/include/glib-2.0/glib/gtypes.h
 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkmenushell.h : /usr/local/include/gtk-2.0/gtk/gtkcontainer.h
+
 ../../../../../../usr/include/glib-2.0/gio/gtlsfiledatabase.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../include/common/GPopup.h : 
+../include/common/LgiRes.h : ../include/common/Res.h \
+	../include/common/GContainers.h \
+	../include/common/GCss.h
+
+../include/common/GToolBar.h : ../include/common/GImageList.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktypeutils.h : /usr/local/include/gtk-2.0/gtk/gtktypebuiltins.h
+
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkdnd.h : /usr/local/include/gtk-2.0/gdk/gdktypes.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkpaned.h : /usr/local/include/gtk-2.0/gtk/gtkcontainer.h
 
 ../include/common/GDropFiles.h : ../include/common/GToken.h \
 	../include/common/INet.h \
 	../include/common/GVariant.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkobject.h : /usr/lib/x86_64-linux-gnu/gtk-2.0/include/gdkconfig.h \
-	/usr/include/gtk-2.0/gtk/gtkenums.h \
-	/usr/include/gtk-2.0/gtk/gtktypeutils.h \
-	/usr/include/gtk-2.0/gtk/gtkdebug.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtktoolpalette.h : /usr/include/gtk-2.0/gtk/gtkcontainer.h \
-	/usr/include/gtk-2.0/gtk/gtkdnd.h \
-	/usr/include/gtk-2.0/gtk/gtktoolitem.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkfilechooser.h : /usr/local/include/gtk-2.0/gtk/gtkfilefilter.h \
+	/usr/local/include/gtk-2.0/gtk/gtkwidget.h
 
 ../../../../../../usr/include/glib-2.0/gio/gsocketlistener.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../../usr/include/glib-2.0/gio/gsimpleaction.h : /usr/include/glib-2.0/gio/giotypes.h
-
-../include/common/GFile.h : ../include/common/GMem.h \
-	../include/common/GStream.h \
-	../include/common/GArray.h \
-	../include/common/GRefCount.h
 
 ../src/common/Text/GUtf8.cpp : ../include/common/Lgi.h \
 	../include/common/GUtf8.h
 
 ../include/common/GTextLog.h : ../include/common/GTextView3.h
 
-../include/common/GMutex.h : 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkbutton.h : /usr/local/include/gtk-2.0/gtk/gtkbin.h \
+	/usr/local/include/gtk-2.0/gtk/gtkimage.h
 
-../include/common/GCom.h : ../include/common/GContainers.h
-
-../include/common/GCss.h : ../include/common/LgiInc.h \
-	../include/linux/Gtk/LgiOsDefs.h \
-	../include/common/GMem.h \
-	../include/common/Gdc2.h \
-	../include/common/GAutoPtr.h \
-	../include/common/GString.h \
-	../include/common/GHashTable.h
+../include/common/GClipBoard.h : 
 
 ../../../../../../usr/include/atk-1.0/atk/atkhyperlinkimpl.h : /usr/include/atk-1.0/atk/atkobject.h \
 	/usr/include/atk-1.0/atk/atkhyperlink.h
@@ -2611,9 +2593,12 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../../../../../../usr/include/pango-1.0/pango/pango-utils.h : /usr/include/glib-2.0/glib.h \
 	/usr/include/pango-1.0/pango/pango-font.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkcellrendererpixbuf.h : /usr/include/gtk-2.0/gtk/gtkcellrenderer.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkcombobox.h : /usr/local/include/gtk-2.0/gtk/gtkbin.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreemodel.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreeview.h
 
-../include/linux/Gtk/LgiWidget.h : 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkdnd.h : /usr/local/include/gtk-2.0/gtk/gtkwidget.h \
+	/usr/local/include/gtk-2.0/gtk/gtkselection.h
 
 ../src/common/Widgets/GProgressDlg.cpp : ../include/common/Lgi.h \
 	../include/common/GProgressDlg.h \
@@ -2623,9 +2608,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/glib-2.0/gio/gresolver.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkprogressbar.h : /usr/include/gtk-2.0/gtk/gtkprogress.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkbin.h : /usr/include/gtk-2.0/gtk/gtkcontainer.h
+../include/common/GTextLabel.h : 
 
 ../../../../../../usr/include/glib-2.0/gio/gproxyaddressenumerator.h : /usr/include/glib-2.0/gio/gsocketaddressenumerator.h
 
@@ -2635,9 +2618,13 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/Res.h \
 	../include/common/GImageList.h
 
+../include/linux/Gtk/LgiWidget.h : 
+
 ../../../../../../usr/include/cairo/cairo-features.h : 
 
 ../../../../../../usr/include/glib-2.0/glib/galloca.h : /usr/include/glib-2.0/glib/gtypes.h
+
+../include/common/GPoint.h : 
 
 ../src/common/Lgi/Lgi.cpp : ../include/common/Lgi.h \
 	../include/common/GToken.h \
@@ -2649,16 +2636,12 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/linux/GSymLookup.h \
 	../include/common/GLibrary.h
 
-../include/linux/GSymLookup.h : ../include/common/GProcess.h
-
-../include/win32/GSymLookup.h : 
+../include/common/GRegKey.h : ../include/common/GContainers.h
 
 ../../../../../../usr/include/glib-2.0/gio/giomodule.h : /usr/include/glib-2.0/gio/giotypes.h \
 	/usr/include/glib-2.0/gmodule.h
 
 ../../../../../../usr/include/glib-2.0/gio/gioenums.h : /usr/include/glib-2.0/glib-object.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtklinkbutton.h : /usr/include/gtk-2.0/gtk/gtkbutton.h
 
 ../../../../../../usr/include/pango-1.0/pango/pangocairo.h : /usr/include/pango-1.0/pango/pango.h \
 	/usr/include/cairo/cairo.h
@@ -2682,12 +2665,19 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/glib-2.0/gobject/gvalue.h : /usr/include/glib-2.0/gobject/gtype.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkhandlebox.h : /usr/include/gtk-2.0/gtk/gtkbin.h
+../include/common/Res.h : ../include/common/GXmlTree.h
 
 ../../../../../../usr/include/pango-1.0/pango/pango-layout.h : /usr/include/pango-1.0/pango/pango-attributes.h \
 	/usr/include/pango-1.0/pango/pango-context.h \
 	/usr/include/pango-1.0/pango/pango-glyph-item.h \
 	/usr/include/pango-1.0/pango/pango-tabs.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkclist.h : /usr/local/include/gtk-2.0/gtk/gtksignal.h \
+	/usr/local/include/gtk-2.0/gtk/gtkalignment.h \
+	/usr/local/include/gtk-2.0/gtk/gtklabel.h \
+	/usr/local/include/gtk-2.0/gtk/gtkbutton.h \
+	/usr/local/include/gtk-2.0/gtk/gtkhscrollbar.h \
+	/usr/local/include/gtk-2.0/gtk/gtkvscrollbar.h
 
 ../../../../../../usr/include/glib-2.0/glib.h : /usr/include/glib-2.0/glib/galloca.h \
 	/usr/include/glib-2.0/glib/garray.h \
@@ -2775,32 +2765,38 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/glib-2.0/gio/gfileicon.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkfilechooserbutton.h : /usr/include/gtk-2.0/gtk/gtkhbox.h \
-	/usr/include/gtk-2.0/gtk/gtkfilechooser.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkaccelmap.h : /usr/local/include/gtk-2.0/gtk/gtkaccelgroup.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkcellrenderertext.h : /usr/include/gtk-2.0/gtk/gtkcellrenderer.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkpapersize.h : /usr/local/include/gtk-2.0/gtk/gtkenums.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktextchild.h : /usr/local/lib/gtk-2.0/include/gdkconfig.h \
+	/usr/include/glib-2.0/glib-object.h
+
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkevents.h : /usr/local/include/gtk-2.0/gdk/gdkcolor.h \
+	/usr/local/include/gtk-2.0/gdk/gdktypes.h \
+	/usr/local/include/gtk-2.0/gdk/gdkdnd.h \
+	/usr/local/include/gtk-2.0/gdk/gdkinput.h
+
+../../../../../../usr/include/glib-2.0/gobject/gparam.h : /usr/include/glib-2.0/gobject/gvalue.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkitemfactory.h : /usr/local/include/gtk-2.0/gtk/gtk.h
+
+../../../../../../usr/include/glib-2.0/glib/gdatetime.h : /usr/include/glib-2.0/glib/gtimezone.h
+
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkx.h : /usr/local/include/gtk-2.0/gdk/gdkprivate.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkspinner.h : /usr/local/include/gtk-2.0/gtk/gtkdrawingarea.h
 
 ./Code/GDebugger.h : ../include/common/GVariant.h \
 	../include/common/GStringClass.h
 
 ../include/common/GStringClass.h : ../include/common/GUtf8.h
 
-../../../../../../usr/include/glib-2.0/gobject/gparam.h : /usr/include/glib-2.0/gobject/gvalue.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkcolorsel.h : /usr/include/gtk-2.0/gtk/gtkdialog.h \
-	/usr/include/gtk-2.0/gtk/gtkvbox.h
-
-../../../../../../usr/include/glib-2.0/glib/gdatetime.h : /usr/include/glib-2.0/glib/gtimezone.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkpaned.h : /usr/include/gtk-2.0/gtk/gtkcontainer.h
+../include/common/GViewPriv.h : 
 
 ../src/common/Lgi/GMru.cpp : ../include/common/Lgi.h \
 	../include/common/GMru.h \
 	../include/common/GVariant.h
-
-../include/common/GMru.h : ../include/common/GProperties.h
-
-../include/common/GCombo.h : 
 
 ../include/common/Res.h : ../include/common/GXmlTree.h
 
@@ -2810,33 +2806,16 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../../../../../../usr/include/atk-1.0/atk/atkrelation.h : /usr/include/glib-2.0/glib-object.h \
 	/usr/include/atk-1.0/atk/atkrelationtype.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkmountoperation.h : 
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkwindow.h : /usr/include/gtk-2.0/gtk/gtkaccelgroup.h \
-	/usr/include/gtk-2.0/gtk/gtkbin.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtklistitem.h : /usr/include/gtk-2.0/gtk/gtk.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkmenuitem.h : /usr/include/gtk-2.0/gtk/gtkitem.h
-
-../include/common/GPath.h : ../include/common/GMatrix.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkspinbutton.h : /usr/include/gtk-2.0/gtk/gtkentry.h \
-	/usr/include/gtk-2.0/gtk/gtkadjustment.h
-
-../include/common/GRegKey.h : ../include/common/GContainers.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkmain.h : /usr/include/gtk-2.0/gdk/gdk.h \
-	/usr/include/gtk-2.0/gtk/gtkwidget.h \
-	/usr/include/gtk-2.0/gtk/gtkbox.h \
-	/usr/include/gtk-2.0/gtk/gtkwindow.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkruler.h : /usr/local/include/gtk-2.0/gtk/gtkwidget.h
 
 ../../../../../../usr/include/glib-2.0/gobject/glib-types.h : /usr/include/glib-2.0/glib.h
 
-../include/common/GProcess.h : ../include/common/GStream.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkhbox.h : /usr/local/include/gtk-2.0/gtk/gtkbox.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtktextiter.h : /usr/include/gtk-2.0/gtk/gtktexttag.h \
-	/usr/include/gtk-2.0/gtk/gtktextchild.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkfilechooserwidget.h : /usr/local/include/gtk-2.0/gtk/gtkfilechooser.h \
+	/usr/local/include/gtk-2.0/gtk/gtkvbox.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkcomboboxtext.h : /usr/local/include/gtk-2.0/gtk/gtkcombobox.h
 
 ../include/common/GDragAndDrop.h : ../include/common/GVariant.h \
 	../include/common/GCom.h
@@ -2851,32 +2830,28 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../../../../../../usr/include/glib-2.0/glib/gbytes.h : /usr/include/glib-2.0/glib/gtypes.h \
 	/usr/include/glib-2.0/glib/garray.h
 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkbox.h : /usr/local/include/gtk-2.0/gtk/gtkcontainer.h
+
 ../../../../../../usr/include/glib-2.0/glib/deprecated/gcompletion.h : /usr/include/glib-2.0/glib/glist.h
 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktexttag.h : /usr/local/include/gtk-2.0/gdk/gdk.h \
+	/usr/local/include/gtk-2.0/gtk/gtkenums.h \
+	/usr/local/include/gtk-2.0/gtk/gtkobject.h
+
 ../include/common/GPrinter.h : 
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktipsquery.h : /usr/local/include/gtk-2.0/gtk/gtk.h
+
+../include/common/GBitmap.h : 
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkinputdialog.h : /usr/local/include/gtk-2.0/gtk/gtkdialog.h
 
 ../include/common/IFtp.h : ../include/common/INet.h \
 	../include/common/GDateTime.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtktreeviewcolumn.h : /usr/include/gtk-2.0/gtk/gtkcellrenderer.h \
-	/usr/include/gtk-2.0/gtk/gtktreemodel.h \
-	/usr/include/gtk-2.0/gtk/gtktreesortable.h \
-	/usr/include/gtk-2.0/gtk/gtkobject.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkshow.h : 
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkclist.h : /usr/include/gtk-2.0/gtk/gtksignal.h \
-	/usr/include/gtk-2.0/gtk/gtkalignment.h \
-	/usr/include/gtk-2.0/gtk/gtklabel.h \
-	/usr/include/gtk-2.0/gtk/gtkbutton.h \
-	/usr/include/gtk-2.0/gtk/gtkhscrollbar.h \
-	/usr/include/gtk-2.0/gtk/gtkvscrollbar.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkpixmap.h : /usr/include/gtk-2.0/gtk/gtk.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtktreemodelfilter.h : /usr/lib/x86_64-linux-gnu/gtk-2.0/include/gdkconfig.h \
-	/usr/include/gtk-2.0/gtk/gtktreemodel.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkrecentchooserwidget.h : /usr/include/gtk-2.0/gtk/gtkrecentchooser.h \
-	/usr/include/gtk-2.0/gtk/gtkvbox.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkmarshal.h : /usr/include/glib-2.0/glib-object.h
 
 ./Code/IdeProject.h : ../include/common/GXmlTree.h \
 	../include/common/GDragAndDrop.h \
@@ -2884,15 +2859,23 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GOptionsFile.h \
 	./Code/GDebugger.h
 
+./Code/GDebugger.h : ../include/common/GVariant.h \
+	../include/common/GStringClass.h
+
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkkeysyms-compat.h : 
+
 ../../../../../../usr/include/libpng12/png.h : /usr/include/libpng12/pngconf.h
 
 ../../../../../../usr/include/libpng12/pngconf.h : 
 
-../include/common/Res.h : ../include/common/GXmlTree.h
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkdisplay.h : /usr/local/include/gtk-2.0/gdk/gdktypes.h \
+	/usr/local/include/gtk-2.0/gdk/gdkevents.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkdialog.h : /usr/local/include/gtk-2.0/gtk/gtkwindow.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkscrollbar.h : /usr/local/include/gtk-2.0/gtk/gtkrange.h
 
 ../../../../../../usr/include/glib-2.0/gio/gpermission.h : /usr/include/glib-2.0/gio/giotypes.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkcomboboxtext.h : /usr/include/gtk-2.0/gtk/gtkcombobox.h
 
 ../../../../../../usr/include/glib-2.0/gio/gzlibdecompressor.h : /usr/include/glib-2.0/gio/gconverter.h \
 	/usr/include/glib-2.0/gio/gfileinfo.h
@@ -2901,14 +2884,10 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	/usr/include/atk-1.0/atk/atkstate.h \
 	/usr/include/atk-1.0/atk/atkrelationtype.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkeventbox.h : /usr/include/gtk-2.0/gtk/gtkbin.h
-
 ../src/common/Widgets/GTextLabel.cpp : ../include/common/Lgi.h \
 	../include/common/GTextLabel.h \
 	../include/common/GUtf8.h \
 	../include/common/GDisplayString.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkversion.h : 
 
 ../../../../../../usr/include/glib-2.0/glib/deprecated/gthread.h : /usr/include/glib-2.0/glib/gthread.h
 
@@ -2922,7 +2901,16 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../src/common/Lgi/GCssTools.cpp : ../include/common/Lgi.h \
 	../include/common/GCssTools.h
 
-../include/common/GUtf8.h : 
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkvisual.h : /usr/local/include/gtk-2.0/gdk/gdktypes.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkimcontextsimple.h : /usr/local/include/gtk-2.0/gtk/gtkimcontext.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkprintcontext.h : /usr/include/pango-1.0/pango/pango.h \
+	/usr/local/include/gtk-2.0/gtk/gtkpagesetup.h
+
+../include/common/GRect.h : ../include/common/GPoint.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkbin.h : /usr/local/include/gtk-2.0/gtk/gtkcontainer.h
 
 ../src/common/Widgets/GRadioGroup.cpp : ../include/common/Lgi.h \
 	../include/common/GSkinEngine.h \
@@ -2930,22 +2918,37 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GCheckBox.h \
 	../include/common/GDisplayString.h
 
-../include/common/GAutoPtr.h : 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkentrycompletion.h : /usr/local/include/gtk-2.0/gtk/gtktreemodel.h \
+	/usr/local/include/gtk-2.0/gtk/gtkliststore.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreeviewcolumn.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreemodelfilter.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtktooltips.h : /usr/include/gtk-2.0/gtk/gtkwidget.h \
-	/usr/include/gtk-2.0/gtk/gtkwindow.h
+../include/common/Gdc2.h : ../include/linux/Gtk/LgiOsDefs.h \
+	../include/common/LgiInc.h \
+	../include/common/LgiClass.h \
+	../include/common/Progress.h \
+	../include/common/GFile.h \
+	../include/common/GMem.h \
+	../include/common/Core.h \
+	../include/common/GContainers.h \
+	../include/common/GCapabilities.h \
+	../include/common/GRefCount.h \
+	../include/common/GLibrary.h \
+	../include/common/GColourSpace.h \
+	../include/common/GRect.h \
+	../include/common/GFont.h \
+	../include/common/GPoint.h \
+	../include/common/GColour.h \
+	../include/common/GFilter.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkruler.h : /usr/include/gtk-2.0/gtk/gtkwidget.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtktextview.h : /usr/include/gtk-2.0/gtk/gtkcontainer.h \
-	/usr/include/gtk-2.0/gtk/gtkimcontext.h \
-	/usr/include/gtk-2.0/gtk/gtktextbuffer.h \
-	/usr/include/gtk-2.0/gtk/gtkmenu.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkprintsettings.h : /usr/local/include/gtk-2.0/gtk/gtkpapersize.h
 
 ../../../../../../usr/include/glib-2.0/gio/gfilterinputstream.h : /usr/include/glib-2.0/gio/ginputstream.h
 
 ../../../../../../usr/include/pango-1.0/pango/pango-fontmap.h : /usr/include/pango-1.0/pango/pango-font.h \
 	/usr/include/pango-1.0/pango/pango-fontset.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktextmark.h : 
 
 ../../../../../../usr/include/cairo/cairo-deprecated.h : 
 
@@ -2954,19 +2957,15 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/INetTools.h \
 	../include/common/GString.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkcolorseldialog.h : /usr/include/gtk-2.0/gtk/gtkdialog.h \
-	/usr/include/gtk-2.0/gtk/gtkcolorsel.h \
-	/usr/include/gtk-2.0/gtk/gtkvbox.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkvbbox.h : /usr/local/include/gtk-2.0/gtk/gtkbbox.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkprintcontext.h : /usr/include/pango-1.0/pango/pango.h \
-	/usr/include/gtk-2.0/gtk/gtkpagesetup.h
+../include/common/GRops.h : 
 
 ../include/common/GItemContainer.h : ../include/common/GPopup.h
 
 ../../../../../../usr/include/glib-2.0/glib/gtimer.h : /usr/include/glib-2.0/glib/gtypes.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkfilechooserdialog.h : /usr/include/gtk-2.0/gtk/gtkdialog.h \
-	/usr/include/gtk-2.0/gtk/gtkfilechooser.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkexpander.h : /usr/local/include/gtk-2.0/gtk/gtkbin.h
 
 ../include/common/LgiClass.h : ../include/common/LgiInc.h \
 	../include/common/LgiDefs.h \
@@ -2991,11 +2990,25 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/glib-2.0/gio/gseekable.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkbbox.h : /usr/include/gtk-2.0/gtk/gtkbox.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkbindings.h : /usr/local/include/gtk-2.0/gdk/gdk.h \
+	/usr/local/include/gtk-2.0/gtk/gtkobject.h
 
 ../include/common/GLibrary.h : 
 
 ../../../../../../usr/include/glib-2.0/gio/gproxy.h : /usr/include/glib-2.0/gio/giotypes.h
+
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkpixbuf.h : /usr/include/cairo/cairo.h \
+	/usr/local/include/gtk-2.0/gdk/gdktypes.h \
+	/usr/local/include/gtk-2.0/gdk/gdkrgb.h \
+	/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkentry.h : /usr/local/include/gtk-2.0/gtk/gtkeditable.h \
+	/usr/local/include/gtk-2.0/gtk/gtkimcontext.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmenu.h \
+	/usr/local/include/gtk-2.0/gtk/gtkentrybuffer.h \
+	/usr/local/include/gtk-2.0/gtk/gtkentrycompletion.h \
+	/usr/local/include/gtk-2.0/gtk/gtkimage.h \
+	/usr/local/include/gtk-2.0/gtk/gtkselection.h
 
 ../../../../../../usr/include/glib-2.0/gio/gdbusnamewatching.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -3031,9 +3044,22 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GFontSelect.h \
 	../include/common/GDisplayString.h \
 	../include/common/GdiLeak.h \
+	../include/common/GStringClass.h \
 	../include/common/GUtf8.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkstatusbar.h : /usr/include/gtk-2.0/gtk/gtkhbox.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtknotebook.h : /usr/local/include/gtk-2.0/gtk/gtkcontainer.h
+
+../include/common/GPrinter.h : 
+
+../include/common/GList.h : ../include/common/GMem.h \
+	../include/common/GArray.h \
+	../include/common/GPopup.h \
+	../include/common/GDisplayString.h \
+	../include/common/GCss.h \
+	../include/common/GItemContainer.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkviewport.h : /usr/local/include/gtk-2.0/gtk/gtkadjustment.h \
+	/usr/local/include/gtk-2.0/gtk/gtkbin.h
 
 ../src/common/Widgets/GToolBar.cpp : ../include/common/Lgi.h \
 	../include/common/GToken.h \
@@ -3062,22 +3088,18 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/atk-1.0/atk/atkwindow.h : /usr/include/atk-1.0/atk/atkobject.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtktree.h : /usr/include/gtk-2.0/gtk/gtkcontainer.h
-
 ../src/common/Lgi/GMemStream.cpp : ../include/common/Lgi.h \
 	../include/common/GStream.h
+
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkprivate.h : /usr/local/include/gtk-2.0/gdk/gdk.h
 
 ../../../../../../usr/include/glib-2.0/gio/gioerror.h : /usr/include/glib-2.0/glib.h \
 	/usr/include/glib-2.0/gio/gioenums.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkbuildable.h : /usr/include/gtk-2.0/gtk/gtkbuilder.h \
-	/usr/include/gtk-2.0/gtk/gtktypeutils.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkalignment.h : /usr/local/include/gtk-2.0/gtk/gtkbin.h
 
 ../src/common/Lgi/GOptionsFile.cpp : ../include/common/Lgi.h \
 	../include/common/GOptionsFile.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtklayout.h : /usr/include/gtk-2.0/gtk/gtkcontainer.h \
-	/usr/include/gtk-2.0/gtk/gtkadjustment.h
 
 ../include/common/GClipBoard.h : 
 
@@ -3085,36 +3107,34 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/glib-2.0/gio/gdbusmessage.h : /usr/include/glib-2.0/gio/giotypes.h
 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkradioaction.h : /usr/local/include/gtk-2.0/gtk/gtktoggleaction.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkvbox.h : /usr/local/include/gtk-2.0/gtk/gtkbox.h
+
 ../../../../../../usr/include/glib-2.0/gio/gemblem.h : /usr/include/glib-2.0/gio/gioenums.h
 
 ../src/linux/Gtk/LgiWidget.cpp : ../include/common/Lgi.h \
 	../include/common/GDragAndDrop.h \
 	../include/linux/Gtk/LgiWidget.h \
-	/usr/include/gtk-2.0/gdk/gdkkeysyms.h
+	/usr/local/include/gtk-2.0/gdk/gdkkeysyms.h
 
 ../../../../../../usr/include/glib-2.0/gio/gvolume.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkaction.h : /usr/include/gtk-2.0/gtk/gtkwidget.h
+../include/common/GFileSelect.h : 
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkvbbox.h : /usr/include/gtk-2.0/gtk/gtkbbox.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktoolbar.h : /usr/local/include/gtk-2.0/gtk/gtkcontainer.h \
+	/usr/local/include/gtk-2.0/gtk/gtktooltips.h \
+	/usr/local/include/gtk-2.0/gtk/gtktoolitem.h \
+	/usr/local/include/gtk-2.0/gtk/gtkpixmap.h \
+	/usr/local/include/gtk-2.0/gtk/gtksignal.h
 
 ../include/common/GTextLabel.h : 
 
-../../../../../../usr/include/gtk-2.0/gdk/gdkdrawable.h : /usr/include/gtk-2.0/gdk/gdktypes.h \
-	/usr/include/gtk-2.0/gdk/gdkgc.h \
-	/usr/include/gtk-2.0/gdk/gdkrgb.h \
-	/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf.h \
-	/usr/include/cairo/cairo.h
-
-../../../../../../usr/lib/x86_64-linux-gnu/gtk-2.0/include/gdkconfig.h : 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtksettings.h : /usr/local/include/gtk-2.0/gtk/gtkrc.h
 
 ../src/common/Lgi/GDataDlg.cpp : ../include/common/Lgi.h \
 	../include/common/GPassword.h \
 	../include/common/GDataDlg.h
-
-../include/common/GDataDlg.h : ../include/common/GProperties.h \
-	../include/common/GScrollBar.h \
-	../include/common/GTextLabel.h
 
 ../../../../../../usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-loader.h : /usr/include/glib-2.0/glib.h \
 	/usr/include/glib-2.0/glib-object.h \
@@ -3122,35 +3142,38 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-animation.h \
 	/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-io.h
 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkrecentchooserwidget.h : /usr/local/include/gtk-2.0/gtk/gtkrecentchooser.h \
+	/usr/local/include/gtk-2.0/gtk/gtkvbox.h
+
 ../../../../../../usr/include/glib-2.0/gio/gremoteactiongroup.h : /usr/include/glib-2.0/gio/giotypes.h
-
-../include/common/GClipBoard.h : 
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkcellview.h : /usr/include/gtk-2.0/gtk/gtkwidget.h \
-	/usr/include/gtk-2.0/gtk/gtkcellrenderer.h \
-	/usr/include/gtk-2.0/gtk/gtktreemodel.h
 
 ../../../../../../usr/include/glib-2.0/gio/gtestdbus.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../src/linux/Lgi/GDragAndDrop.cpp : ../include/common/Lgi.h \
 	../include/common/GDragAndDrop.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkentry.h : /usr/include/gtk-2.0/gtk/gtkeditable.h \
-	/usr/include/gtk-2.0/gtk/gtkimcontext.h \
-	/usr/include/gtk-2.0/gtk/gtkmenu.h \
-	/usr/include/gtk-2.0/gtk/gtkentrybuffer.h \
-	/usr/include/gtk-2.0/gtk/gtkentrycompletion.h \
-	/usr/include/gtk-2.0/gtk/gtkimage.h \
-	/usr/include/gtk-2.0/gtk/gtkselection.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkmountoperation.h : 
+
+../include/common/LgiClass.h : ../include/common/LgiInc.h \
+	../include/common/LgiDefs.h \
+	../include/common/GAutoPtr.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktreeitem.h : /usr/local/include/gtk-2.0/gtk/gtkitem.h
+
+../include/common/GProgress.h : 
+
+../include/common/GMru.h : ../include/common/GProperties.h
 
 ../../../../../../usr/include/glib-2.0/gio/gaction.h : /usr/include/glib-2.0/gio/giotypes.h
-
-../include/common/GRadioGroup.h : 
 
 ../../../../../../usr/include/pango-1.0/pango/pango-tabs.h : /usr/include/pango-1.0/pango/pango-types.h
 
 ../src/linux/Gtk/GPrintDC.cpp : ../include/common/Lgi.h \
 	../include/common/GLibraryUtils.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkaboutdialog.h : /usr/local/include/gtk-2.0/gtk/gtkdialog.h
+
+../include/common/GLibrary.h : 
 
 ../../../../../../usr/include/pango-1.0/pango/pango-engine.h : /usr/include/pango-1.0/pango/pango-types.h \
 	/usr/include/pango-1.0/pango/pango-item.h \
@@ -3158,8 +3181,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	/usr/include/pango-1.0/pango/pango-glyph.h \
 	/usr/include/pango-1.0/pango/pango-script.h \
 	/usr/include/glib-2.0/gmodule.h
-
-../include/common/GTextLabel.h : 
 
 ../src/common/Gdc2/15Bit.cpp : ../include/common/Gdc2.h \
 	../include/common/GPalette.h
@@ -3174,7 +3195,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/linux/GSymLookup.h \
 	../include/common/GToken.h \
 	../include/common/GUtf8.h \
-	/usr/include/gtk-2.0/gdk/gdkx.h
+	/usr/local/include/gtk-2.0/gdk/gdkx.h
 
 ../../../../../../usr/include/glib-2.0/gio/gmenuexporter.h : /usr/include/glib-2.0/gio/gdbusconnection.h \
 	/usr/include/glib-2.0/gio/gmenumodel.h
@@ -3183,16 +3204,12 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/glib-2.0/gio/gtlsserverconnection.h : /usr/include/glib-2.0/gio/gtlsconnection.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkeditable.h : /usr/include/gtk-2.0/gtk/gtkwidget.h
-
-../include/common/Progress.h : ../include/common/GMutex.h
-
 ../../../../../../usr/include/glib-2.0/glib/gregex.h : /usr/include/glib-2.0/glib/gerror.h \
 	/usr/include/glib-2.0/glib/gstring.h
 
-../include/common/GSkinEngine.h : ../include/common/GList.h
-
-../include/common/GCheckBox.h : 
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkwindow.h : /usr/local/include/gtk-2.0/gdk/gdkdrawable.h \
+	/usr/local/include/gtk-2.0/gdk/gdktypes.h \
+	/usr/local/include/gtk-2.0/gdk/gdkevents.h
 
 ../src/common/Lgi/GCss.cpp : ../include/common/GCss.h \
 	../include/common/LgiCommon.h
@@ -3203,30 +3220,44 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../src/common/Widgets/GScrollBar.cpp : ../include/common/Lgi.h \
 	../include/common/GScrollBar.h
 
-../include/common/GUndo.h : 
-
-../include/common/GdiLeak.h : 
-
 ../../../../../../usr/include/atk-1.0/atk/atkhyperlink.h : /usr/include/atk-1.0/atk/atkaction.h
 
 ../../../../../../usr/include/glib-2.0/gio/gcontenttype.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../../usr/include/glib-2.0/gio/gproxyresolver.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../../../../../../usr/include/gtk-2.0/gdk/gdkapplaunchcontext.h : /usr/include/glib-2.0/gio/gio.h \
-	/usr/include/gtk-2.0/gdk/gdkscreen.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktreeviewcolumn.h : /usr/local/include/gtk-2.0/gtk/gtkcellrenderer.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreemodel.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreesortable.h \
+	/usr/local/include/gtk-2.0/gtk/gtkobject.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkscalebutton.h : /usr/local/include/gtk-2.0/gtk/gtkbutton.h
 
 ../../../../../../usr/include/glib-2.0/gio/gdbusobjectmanagerclient.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../include/common/GBox.h : 
 
+../include/common/GMenu.h : ../include/common/GXmlTree.h \
+	../include/common/Res.h \
+	../include/common/GImageList.h
+
 ../../../../../../usr/include/pango-1.0/pango/pango-enum-types.h : /usr/include/glib-2.0/glib-object.h
 
-../include/common/GStream.h : ../include/common/GDom.h
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkfont.h : /usr/local/include/gtk-2.0/gdk/gdktypes.h \
+	/usr/include/pango-1.0/pango/pango.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtktreestore.h : /usr/lib/x86_64-linux-gnu/gtk-2.0/include/gdkconfig.h \
-	/usr/include/gtk-2.0/gtk/gtktreemodel.h \
-	/usr/include/gtk-2.0/gtk/gtktreesortable.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktextbufferrichtext.h : /usr/local/include/gtk-2.0/gtk/gtktextbuffer.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktoolshell.h : /usr/local/include/gtk-2.0/gtk/gtkenums.h \
+	/usr/include/pango-1.0/pango/pango.h \
+	/usr/local/include/gtk-2.0/gtk/gtksizegroup.h
+
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkpixmap.h : /usr/local/include/gtk-2.0/gdk/gdktypes.h \
+	/usr/local/include/gtk-2.0/gdk/gdkdrawable.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkhscrollbar.h : /usr/local/include/gtk-2.0/gtk/gtkscrollbar.h
+
+../include/common/GStringClass.h : ../include/common/GUtf8.h
 
 ../../../../../../usr/include/pango-1.0/pango/pango-script.h : /usr/include/glib-2.0/glib.h \
 	/usr/include/pango-1.0/pango/pango-language.h
@@ -3239,13 +3270,13 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../src/common/Lgi/GStream.cpp : ../include/common/Lgi.h \
 	../include/common/GStream.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkoldeditable.h : /usr/include/gtk-2.0/gtk/gtk.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkmenutoolbutton.h : /usr/include/gtk-2.0/gtk/gtkmenu.h \
-	/usr/include/gtk-2.0/gtk/gtktoolbutton.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkseparator.h : /usr/local/include/gtk-2.0/gtk/gtkwidget.h
 
 ../../../../../../usr/include/atk-1.0/atk/atkimage.h : /usr/include/atk-1.0/atk/atkobject.h \
 	/usr/include/atk-1.0/atk/atkutil.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkiconfactory.h : /usr/local/include/gtk-2.0/gdk/gdk.h \
+	/usr/local/include/gtk-2.0/gtk/gtkrc.h
 
 ../src/common/Gdc2/Tools/GColourReduce.cpp : ../include/common/Gdc2.h \
 	../include/common/GPalette.h
@@ -3254,11 +3285,11 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/glib-2.0/gio/gdbusobjectproxy.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkspinner.h : /usr/include/gtk-2.0/gtk/gtkdrawingarea.h
-
 ../../../../../../usr/include/glib-2.0/gio/gbufferedoutputstream.h : /usr/include/glib-2.0/gio/gfilteroutputstream.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkassistant.h : /usr/include/gtk-2.0/gtk/gtkwindow.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkcolorseldialog.h : /usr/local/include/gtk-2.0/gtk/gtkdialog.h \
+	/usr/local/include/gtk-2.0/gtk/gtkcolorsel.h \
+	/usr/local/include/gtk-2.0/gtk/gtkvbox.h
 
 ../src/common/Lgi/GFileSelect.cpp : ../include/common/Lgi.h \
 	../include/common/GPopup.h \
@@ -3274,38 +3305,18 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../include/common/GFilter.h : ../include/common/GContainers.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkwidget.h : /usr/include/gtk-2.0/gdk/gdk.h \
-	/usr/include/gtk-2.0/gtk/gtkaccelgroup.h \
-	/usr/include/gtk-2.0/gtk/gtkobject.h \
-	/usr/include/gtk-2.0/gtk/gtkadjustment.h \
-	/usr/include/gtk-2.0/gtk/gtkstyle.h \
-	/usr/include/gtk-2.0/gtk/gtksettings.h \
-	/usr/include/atk-1.0/atk/atk.h
-
 ../../../../../../usr/include/glib-2.0/gio/gnotification.h : /usr/include/glib-2.0/gio/giotypes.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkdrawingarea.h : /usr/include/gtk-2.0/gtk/gtkwidget.h
-
-../include/linux/Gtk/LgiWinManGlue.h : ../include/common/LgiDefs.h \
-	../include/common/GMem.h \
-	../include/common/GArray.h \
-	../include/common/LgiClass.h
 
 ../../../../../../usr/include/glib-2.0/gobject/gsourceclosure.h : /usr/include/glib-2.0/gobject/gclosure.h \
 	/usr/include/glib-2.0/gobject/glib-types.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkcellrendererprogress.h : /usr/include/gtk-2.0/gtk/gtkcellrenderer.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkpagesetup.h : /usr/local/include/gtk-2.0/gtk/gtkpapersize.h
 
-../../../../../../usr/include/gtk-2.0/gdk/gdktestutils.h : /usr/include/gtk-2.0/gdk/gdkwindow.h
+../include/common/GButton.h : 
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkrecentchooser.h : /usr/include/gtk-2.0/gtk/gtkwidget.h \
-	/usr/include/gtk-2.0/gtk/gtkrecentmanager.h \
-	/usr/include/gtk-2.0/gtk/gtkrecentfilter.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkmenubar.h : /usr/local/include/gtk-2.0/gtk/gtkmenushell.h
 
-../include/common/GString.h : ../include/common/LgiDefs.h \
-	../include/linux/Gtk/LgiOsDefs.h
-
-../include/common/GBox.h : 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkcellrenderertoggle.h : /usr/local/include/gtk-2.0/gtk/gtkcellrenderer.h
 
 ../../../../../../usr/include/glib-2.0/gio/gdbusintrospection.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -3325,20 +3336,15 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/glib-2.0/gio/gtlsclientconnection.h : /usr/include/glib-2.0/gio/gtlsconnection.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkhscale.h : /usr/include/gtk-2.0/gtk/gtkscale.h
-
-../../../../../../usr/include/glib-2.0/gio/gactionmap.h : /usr/include/glib-2.0/gio/giotypes.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtktexttag.h : /usr/include/gtk-2.0/gdk/gdk.h \
-	/usr/include/gtk-2.0/gtk/gtkenums.h \
-	/usr/include/gtk-2.0/gtk/gtkobject.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtktreemodel.h : /usr/include/glib-2.0/glib-object.h \
-	/usr/include/gtk-2.0/gtk/gtkobject.h
-
 ../../../../../../usr/include/pango-1.0/pango/pango-font.h : /usr/include/pango-1.0/pango/pango-coverage.h \
 	/usr/include/pango-1.0/pango/pango-types.h \
 	/usr/include/glib-2.0/glib-object.h
+
+../../../../../../usr/include/glib-2.0/gio/gactionmap.h : /usr/include/glib-2.0/gio/giotypes.h
+
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkpango.h : /usr/local/include/gtk-2.0/gdk/gdktypes.h
+
+../include/common/Core.h : 
 
 ../src/common/Lgi/GMutex.cpp : ../include/common/Lgi.h
 
@@ -3347,11 +3353,16 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GArray.h \
 	../include/common/LgiClass.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkcolorbutton.h : /usr/include/gtk-2.0/gtk/gtkbutton.h
+../include/common/GColour.h : ../include/common/GColourSpace.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkmarshal.h : /usr/include/glib-2.0/glib-object.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkfilechooserbutton.h : /usr/local/include/gtk-2.0/gtk/gtkhbox.h \
+	/usr/local/include/gtk-2.0/gtk/gtkfilechooser.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtktestutils.h : 
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkenumtypes.h : /usr/include/glib-2.0/glib-object.h
+
+../include/common/GCssTools.h : 
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtklist.h : /usr/local/include/gtk-2.0/gtk/gtk.h
 
 ../../../../../../usr/include/glib-2.0/glib/gtestutils.h : /usr/include/glib-2.0/glib/gmessages.h \
 	/usr/include/glib-2.0/glib/gstring.h \
@@ -3360,13 +3371,10 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../include/common/GInput.h : 
 
-../../../../../../usr/include/gtk-2.0/gdk/gdkdisplay.h : /usr/include/gtk-2.0/gdk/gdktypes.h \
-	/usr/include/gtk-2.0/gdk/gdkevents.h
-
-../include/common/LgiDefs.h : ../include/common/LgiInc.h \
-	../include/common/GAutoPtr.h
-
-../src/common/Gdc2/GRopsCases.cpp : 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtksignal.h : /usr/local/include/gtk-2.0/gtk/gtkenums.h \
+	/usr/local/include/gtk-2.0/gtk/gtktypeutils.h \
+	/usr/local/include/gtk-2.0/gtk/gtkobject.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmarshal.h
 
 ../../../../../../usr/include/glib-2.0/gio/gvfs.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -3376,23 +3384,17 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GDisplayString.h \
 	../include/common/GTableLayout.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkradiomenuitem.h : /usr/include/gtk-2.0/gtk/gtkcheckmenuitem.h
-
 ../include/common/GXmlTree.h : ../include/common/GHashTable.h \
 	../include/common/GRefCount.h \
 	../include/common/GDom.h
 
-../include/common/GToken.h : ../include/common/GArray.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkoffscreenwindow.h : /usr/local/include/gtk-2.0/gtk/gtkwindow.h
 
 ../include/linux/Gtk/LgiOsDefs.h : ../include/common/LgiDefs.h \
 	../include/common/LgiInc.h \
-	/usr/include/gtk-2.0/gtk/gtk.h
+	/usr/local/include/gtk-2.0/gtk/gtk.h
 
 ../src/common/Widgets/GSplitter.cpp : ../include/common/Lgi.h
-
-../../../../../../usr/include/gtk-2.0/gdk/gdkscreen.h : /usr/include/cairo/cairo.h \
-	/usr/include/gtk-2.0/gdk/gdktypes.h \
-	/usr/include/gtk-2.0/gdk/gdkdisplay.h
 
 ../include/common/INet.h : ../include/common/GMem.h \
 	../include/common/GContainers.h \
@@ -3403,40 +3405,15 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../include/common/GEdit.h : ../include/common/GTextView3.h
 
-../../../../../../usr/include/gtk-2.0/gdk/gdkkeys.h : /usr/include/gtk-2.0/gdk/gdktypes.h
+../include/common/GProperties.h : ../include/common/GContainers.h \
+	../include/common/LgiClass.h \
+	../include/common/GString.h
 
 ../../../../../../usr/include/glib-2.0/gio/gfile.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../../../../../../usr/include/glib-2.0/gio/gthreadedsocketservice.h : /usr/include/glib-2.0/gio/gsocketservice.h
+../include/common/LgiMsgs.h : 
 
-../../../../../../usr/include/gtk-2.0/gdk/gdk.h : /usr/include/gtk-2.0/gdk/gdkapplaunchcontext.h \
-	/usr/include/gtk-2.0/gdk/gdkcairo.h \
-	/usr/include/gtk-2.0/gdk/gdkcolor.h \
-	/usr/include/gtk-2.0/gdk/gdkcursor.h \
-	/usr/include/gtk-2.0/gdk/gdkdisplay.h \
-	/usr/include/gtk-2.0/gdk/gdkdisplaymanager.h \
-	/usr/include/gtk-2.0/gdk/gdkdnd.h \
-	/usr/include/gtk-2.0/gdk/gdkdrawable.h \
-	/usr/include/gtk-2.0/gdk/gdkenumtypes.h \
-	/usr/include/gtk-2.0/gdk/gdkevents.h \
-	/usr/include/gtk-2.0/gdk/gdkfont.h \
-	/usr/include/gtk-2.0/gdk/gdkgc.h \
-	/usr/include/gtk-2.0/gdk/gdkimage.h \
-	/usr/include/gtk-2.0/gdk/gdkinput.h \
-	/usr/include/gtk-2.0/gdk/gdkkeys.h \
-	/usr/include/gtk-2.0/gdk/gdkpango.h \
-	/usr/include/gtk-2.0/gdk/gdkpixbuf.h \
-	/usr/include/gtk-2.0/gdk/gdkpixmap.h \
-	/usr/include/gtk-2.0/gdk/gdkproperty.h \
-	/usr/include/gtk-2.0/gdk/gdkregion.h \
-	/usr/include/gtk-2.0/gdk/gdkrgb.h \
-	/usr/include/gtk-2.0/gdk/gdkscreen.h \
-	/usr/include/gtk-2.0/gdk/gdkselection.h \
-	/usr/include/gtk-2.0/gdk/gdkspawn.h \
-	/usr/include/gtk-2.0/gdk/gdktestutils.h \
-	/usr/include/gtk-2.0/gdk/gdktypes.h \
-	/usr/include/gtk-2.0/gdk/gdkvisual.h \
-	/usr/include/gtk-2.0/gdk/gdkwindow.h
+../../../../../../usr/include/glib-2.0/gio/gthreadedsocketservice.h : /usr/include/glib-2.0/gio/gsocketservice.h
 
 ../src/common/Gdc2/Path/GPath.cpp : ../include/common/Lgi.h \
 	../include/common/GPath.h \
@@ -3444,8 +3421,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GDisplayString.h
 
 ../include/common/GThreadEvent.h : 
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkcellrendererspin.h : /usr/include/gtk-2.0/gtk/gtkcellrenderertext.h
 
 ../src/common/Lgi/GFindReplace.cpp : ../include/common/Lgi.h \
 	../include/common/GTextView3.h \
@@ -3455,6 +3430,24 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GButton.h \
 	../include/common/GTableLayout.h
 
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkcairo.h : /usr/local/include/gtk-2.0/gdk/gdkcolor.h \
+	/usr/local/include/gtk-2.0/gdk/gdkpixbuf.h \
+	/usr/include/pango-1.0/pango/pangocairo.h
+
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkinput.h : /usr/local/include/gtk-2.0/gdk/gdktypes.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkcellrenderertext.h : /usr/local/include/gtk-2.0/gtk/gtkcellrenderer.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkentrybuffer.h : /usr/include/glib-2.0/glib-object.h
+
+../include/common/LgiCommon.h : ../include/common/GMem.h \
+	../include/common/GArray.h \
+	../include/common/LgiClass.h
+
+../include/linux/GSymLookup.h : ../include/common/GProcess.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkgc.h : /usr/local/include/gtk-2.0/gdk/gdk.h
+
 ../include/common/GVariant.h : ../include/common/GDom.h \
 	../include/common/GDateTime.h \
 	../include/common/GContainers.h \
@@ -3462,10 +3455,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../src/linux/Gtk/GMemDC.cpp : ../include/common/Gdc2.h \
 	../include/common/GString.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkcombobox.h : /usr/include/gtk-2.0/gtk/gtkbin.h \
-	/usr/include/gtk-2.0/gtk/gtktreemodel.h \
-	/usr/include/gtk-2.0/gtk/gtktreeview.h
 
 ../../../../../../usr/include/glib-2.0/gio/gio.h : /usr/include/glib-2.0/gio/giotypes.h \
 	/usr/include/glib-2.0/gio/gaction.h \
@@ -3604,16 +3593,16 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	/usr/include/glib-2.0/gio/gdbusmenumodel.h \
 	/usr/include/glib-2.0/gio/gnotification.h
 
-../../../../../../usr/include/gtk-2.0/gdk/gdkpango.h : /usr/include/gtk-2.0/gdk/gdktypes.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkvpaned.h : /usr/include/gtk-2.0/gtk/gtkpaned.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkliststore.h : /usr/local/lib/gtk-2.0/include/gdkconfig.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreemodel.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreesortable.h
 
 ../include/common/INetTools.h : ../include/common/GContainers.h \
 	../include/common/LgiNetInc.h
 
-../include/common/Base64.h : ../include/common/LgiDefs.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkmodules.h : /usr/local/include/gtk-2.0/gtk/gtksettings.h
 
-../../../../../../usr/include/gtk-2.0/gdk/gdkrgb.h : /usr/include/gtk-2.0/gdk/gdktypes.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkpreview.h : /usr/local/include/gtk-2.0/gtk/gtk.h
 
 ./Code/LgiIde.h : ./Code/resource.h \
 	./Code/resdefs.h \
@@ -3629,11 +3618,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ./Code/IdeDoc.h : ../include/common/GMdi.h \
 	../include/common/GTextView3.h
 
-./Code/resdefs.h : 
-
 ./Code/FindSymbol.h : 
-
-./Code/resource.h : 
 
 ./Code/IdeProject.h : ../include/common/GXmlTree.h \
 	../include/common/GDragAndDrop.h \
@@ -3641,14 +3626,18 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GOptionsFile.h \
 	./Code/GDebugger.h
 
+../include/common/GMdi.h : 
+
 ./Code/FindInFiles.h : ./Code/GHistory.h
 
 ./Code/GHistory.h : ../include/common/GPopup.h
 
+./Code/resource.h : 
+
 ../../../../../../usr/include/glib-2.0/glib/gmappedfile.h : /usr/include/glib-2.0/glib/gbytes.h \
 	/usr/include/glib-2.0/glib/gerror.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkmenushell.h : /usr/include/gtk-2.0/gtk/gtkcontainer.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkrc.h : /usr/local/include/gtk-2.0/gtk/gtkstyle.h
 
 ../include/common/GLexCpp.h : ../include/common/LgiInc.h \
 	../include/linux/Gtk/LgiOsDefs.h \
@@ -3656,24 +3645,15 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/glib-2.0/gio/gfileinputstream.h : /usr/include/glib-2.0/gio/ginputstream.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtktypeutils.h : /usr/include/gtk-2.0/gtk/gtktypebuiltins.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkaspectframe.h : /usr/local/include/gtk-2.0/gtk/gtkframe.h
 
 ../include/common/GPopup.h : 
 
-../include/common/GPassword.h : 
-
-../include/common/GArray.h : ../include/common/LgiDefs.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkaccellabel.h : /usr/local/include/gtk-2.0/gtk/gtklabel.h
 
 ../../../../../../usr/include/atk-1.0/atk/atkregistry.h : /usr/include/glib-2.0/glib-object.h
 
-../include/common/GToolBar.h : ../include/common/GImageList.h
-
-../include/common/INet.h : ../include/common/GMem.h \
-	../include/common/GContainers.h \
-	../include/common/LgiNetInc.h \
-	../include/common/GStream.h \
-	../include/common/LgiInterfaces.h \
-	../include/common/GString.h
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkselection.h : /usr/local/include/gtk-2.0/gdk/gdktypes.h
 
 ../../../../../../usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-features.h : /usr/include/glib-2.0/glib.h
 
@@ -3681,20 +3661,21 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/glib-2.0/gobject/gtype.h : /usr/include/glib-2.0/glib.h
 
-../include/common/GRect.h : ../include/common/GPoint.h
+../include/common/GMem.h : ../include/common/LgiInc.h \
+	../include/linux/Gtk/LgiOsDefs.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkstyle.h : /usr/local/include/gtk-2.0/gdk/gdk.h \
+	/usr/local/include/gtk-2.0/gtk/gtkenums.h
+
+../include/common/GXmlTree.h : ../include/common/GHashTable.h \
+	../include/common/GRefCount.h \
+	../include/common/GDom.h
 
 ../src/common/Widgets/GProgress.cpp : ../include/common/Lgi.h \
 	../include/common/GProgress.h \
 	../include/common/GCss.h
 
 ../include/common/GMutex.h : 
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkaccelmap.h : /usr/include/gtk-2.0/gtk/gtkaccelgroup.h
-
-../../../../../../usr/include/gtk-2.0/gdk/gdkcursor.h : /usr/include/gtk-2.0/gdk/gdktypes.h \
-	/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf.h
-
-../include/common/GFontSelect.h : 
 
 ../src/common/Widgets/GCombo.cpp : ../include/common/Lgi.h \
 	../include/common/GVariant.h \
@@ -3703,19 +3684,30 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GDisplayString.h \
 	../include/common/GUtf8.h
 
-../../../../../../usr/include/gtk-2.0/gdk/gdkprivate.h : /usr/include/gtk-2.0/gdk/gdk.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkcheckmenuitem.h : /usr/local/include/gtk-2.0/gtk/gtkmenuitem.h
 
-../../../../../../usr/include/gtk-2.0/gdk/gdkcairo.h : /usr/include/gtk-2.0/gdk/gdkcolor.h \
-	/usr/include/gtk-2.0/gdk/gdkpixbuf.h \
-	/usr/include/pango-1.0/pango/pangocairo.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkmenu.h : /usr/local/include/gtk-2.0/gtk/gtkaccelgroup.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmenushell.h
 
-../../../../../../usr/include/gtk-2.0/gdk/gdkinput.h : /usr/include/gtk-2.0/gdk/gdktypes.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkmenutoolbutton.h : /usr/local/include/gtk-2.0/gtk/gtkmenu.h \
+	/usr/local/include/gtk-2.0/gtk/gtktoolbutton.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkfilechooserdialog.h : /usr/local/include/gtk-2.0/gtk/gtkdialog.h \
+	/usr/local/include/gtk-2.0/gtk/gtkfilechooser.h
 
 ../include/common/GDataDlg.h : ../include/common/GProperties.h \
 	../include/common/GScrollBar.h \
 	../include/common/GTextLabel.h
 
-../include/common/GRops.h : 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkactivatable.h : /usr/local/include/gtk-2.0/gtk/gtkaction.h \
+	/usr/local/include/gtk-2.0/gtk/gtktypeutils.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkselection.h : /usr/local/include/gtk-2.0/gtk/gtkwidget.h \
+	/usr/local/include/gtk-2.0/gtk/gtktextiter.h
+
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkproperty.h : /usr/local/include/gtk-2.0/gdk/gdktypes.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkdebug.h : /usr/include/glib-2.0/glib.h
 
 ../../../../../../usr/include/glib-2.0/glib/gmain.h : /usr/include/glib-2.0/glib/gpoll.h \
 	/usr/include/glib-2.0/glib/gslist.h \
@@ -3733,17 +3725,18 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../../../../../../usr/include/glib-2.0/gobject/gtypemodule.h : /usr/include/glib-2.0/gobject/gobject.h \
 	/usr/include/glib-2.0/gobject/genums.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkcheckbutton.h : /usr/include/gtk-2.0/gtk/gtktogglebutton.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkhseparator.h : /usr/local/include/gtk-2.0/gtk/gtkseparator.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtktoolbar.h : /usr/include/gtk-2.0/gtk/gtkcontainer.h \
-	/usr/include/gtk-2.0/gtk/gtktooltips.h \
-	/usr/include/gtk-2.0/gtk/gtktoolitem.h \
-	/usr/include/gtk-2.0/gtk/gtkpixmap.h \
-	/usr/include/gtk-2.0/gtk/gtksignal.h
+../include/common/GDom.h : ../include/common/LgiInterfaces.h \
+	../include/common/GMem.h \
+	../include/common/GArray.h
 
-../include/common/GContainers.h : ../include/common/LgiInc.h \
-	../include/linux/Gtk/LgiOsDefs.h \
-	../include/common/GStream.h
+../include/common/GVariant.h : ../include/common/GDom.h \
+	../include/common/GDateTime.h \
+	../include/common/GContainers.h \
+	../include/common/GHashTable.h
+
+../include/common/GMatrix.h : 
 
 ../../../../../../usr/include/glib-2.0/glib-object.h : /usr/include/glib-2.0/gobject/gbinding.h \
 	/usr/include/glib-2.0/gobject/gboxed.h \
@@ -3760,25 +3753,16 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	/usr/include/glib-2.0/gobject/gvaluearray.h \
 	/usr/include/glib-2.0/gobject/gvaluetypes.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkrecentchooserdialog.h : /usr/include/gtk-2.0/gtk/gtkdialog.h \
-	/usr/include/gtk-2.0/gtk/gtkrecentchooser.h
-
 ../include/common/GTree.h : ../include/common/GItemContainer.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkcellrenderercombo.h : /usr/include/gtk-2.0/gtk/gtktreemodel.h \
-	/usr/include/gtk-2.0/gtk/gtkcellrenderertext.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktoolbutton.h : /usr/local/include/gtk-2.0/gtk/gtktoolitem.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkpapersize.h : /usr/include/gtk-2.0/gtk/gtkenums.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkvolumebutton.h : /usr/local/include/gtk-2.0/gtk/gtkscalebutton.h
 
-../include/common/GList.h : ../include/common/GMem.h \
-	../include/common/GArray.h \
-	../include/common/GPopup.h \
-	../include/common/GDisplayString.h \
-	../include/common/GCss.h \
-	../include/common/GItemContainer.h
+../include/common/GThread.h : ../include/common/GMutex.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtktextchild.h : /usr/lib/x86_64-linux-gnu/gtk-2.0/include/gdkconfig.h \
-	/usr/include/glib-2.0/glib-object.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkprintoperationpreview.h : /usr/include/cairo/cairo.h \
+	/usr/local/include/gtk-2.0/gtk/gtkprintcontext.h
 
 ../include/common/GPalette.h : ../include/common/GColourSpace.h \
 	../include/common/GFile.h
@@ -3797,19 +3781,18 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../include/linux/Gtk/LgiWidget.h : 
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkhscrollbar.h : /usr/include/gtk-2.0/gtk/gtkscrollbar.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkvruler.h : /usr/include/gtk-2.0/gtk/gtkruler.h
-
 ../include/common/GCombo.h : 
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkvolumebutton.h : /usr/include/gtk-2.0/gtk/gtkscalebutton.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkmisc.h : /usr/local/include/gtk-2.0/gtk/gtkwidget.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkstyle.h : /usr/include/gtk-2.0/gdk/gdk.h \
-	/usr/include/gtk-2.0/gtk/gtkenums.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkarrow.h : /usr/local/include/gtk-2.0/gtk/gtkmisc.h
 
-../include/common/INetTools.h : ../include/common/GContainers.h \
-	../include/common/LgiNetInc.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktextbuffer.h : /usr/local/include/gtk-2.0/gtk/gtkwidget.h \
+	/usr/local/include/gtk-2.0/gtk/gtkclipboard.h \
+	/usr/local/include/gtk-2.0/gtk/gtktexttagtable.h \
+	/usr/local/include/gtk-2.0/gtk/gtktextiter.h \
+	/usr/local/include/gtk-2.0/gtk/gtktextmark.h \
+	/usr/local/include/gtk-2.0/gtk/gtktextchild.h
 
 ../../../../../../usr/include/pango-1.0/pango/pango-features.h : 
 
@@ -3830,49 +3813,67 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/glib-2.0/gio/gdatainputstream.h : /usr/include/glib-2.0/gio/gbufferedinputstream.h
 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktoggleaction.h : /usr/local/include/gtk-2.0/gtk/gtkaction.h
+
 ../../../../../../usr/include/glib-2.0/glib/gthread.h : /usr/include/glib-2.0/glib/gatomic.h \
 	/usr/include/glib-2.0/glib/gerror.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkseparatortoolitem.h : /usr/include/gtk-2.0/gtk/gtktoolitem.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkgamma.h : /usr/local/include/gtk-2.0/gtk/gtkvbox.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtktext.h : /usr/include/gtk-2.0/gtk/gtkoldeditable.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkplug.h : /usr/local/include/gtk-2.0/gtk/gtksocket.h \
+	/usr/local/include/gtk-2.0/gtk/gtkwindow.h
+
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkrgb.h : /usr/local/include/gtk-2.0/gdk/gdktypes.h
 
 ../src/linux/Lgi/GClipBoard.cpp : ../include/common/Lgi.h \
 	../include/common/GVariant.h \
 	../include/common/GClipBoard.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkdebug.h : /usr/include/glib-2.0/glib.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkhpaned.h : /usr/local/include/gtk-2.0/gtk/gtkpaned.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtktipsquery.h : /usr/include/gtk-2.0/gtk/gtk.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkvscale.h : /usr/local/include/gtk-2.0/gtk/gtkscale.h
 
-./Code/GDebugger.h : ../include/common/GVariant.h \
-	../include/common/GStringClass.h
+../include/common/GDataDlg.h : ../include/common/GProperties.h \
+	../include/common/GScrollBar.h \
+	../include/common/GTextLabel.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtktextmark.h : 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkcellrendererpixbuf.h : /usr/local/include/gtk-2.0/gtk/gtkcellrenderer.h
+
+../include/common/LgiClasses.h : ../include/common/GMutex.h \
+	../include/linux/Gtk/LgiOsClasses.h \
+	../include/common/GMem.h \
+	../include/common/GArray.h \
+	../include/common/LgiCommon.h \
+	../include/common/GXmlTree.h \
+	../include/common/GDragAndDrop.h \
+	../include/common/GMenu.h \
+	../include/common/LgiWidgets.h \
+	../include/common/Progress.h \
+	../include/common/GProgress.h \
+	../include/common/GFileSelect.h \
+	../include/common/GFindReplaceDlg.h \
+	../include/common/GToolBar.h \
+	../include/common/GThread.h \
+	../include/common/GInput.h \
+	../include/common/GPrinter.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkrange.h : /usr/local/include/gtk-2.0/gtk/gtkadjustment.h \
+	/usr/local/include/gtk-2.0/gtk/gtkwidget.h
 
 ../../../../../../usr/include/glib-2.0/gio/gvolumemonitor.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkscrollbar.h : /usr/include/gtk-2.0/gtk/gtkrange.h
-
-../include/common/GDisplayString.h : /usr/include/pango-1.0/pango/pango.h \
-	/usr/include/pango-1.0/pango/pangocairo.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkexpander.h : /usr/include/gtk-2.0/gtk/gtkbin.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkstatusicon.h : /usr/local/include/gtk-2.0/gtk/gtkimage.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmenu.h
 
 ../../../../../../usr/include/glib-2.0/gio/gsubprocess.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkprintoperationpreview.h : /usr/include/cairo/cairo.h \
-	/usr/include/gtk-2.0/gtk/gtkprintcontext.h
-
 ../../../../../../usr/include/glib-2.0/gio/gnativevolumemonitor.h : /usr/include/glib-2.0/gio/gvolumemonitor.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtktoggleaction.h : /usr/include/gtk-2.0/gtk/gtkaction.h
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkkeysyms.h : /usr/local/include/gtk-2.0/gdk/gdkkeysyms-compat.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkbindings.h : /usr/include/gtk-2.0/gdk/gdk.h \
-	/usr/include/gtk-2.0/gtk/gtkobject.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkimagemenuitem.h : /usr/local/include/gtk-2.0/gtk/gtkmenuitem.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtktoolitemgroup.h : /usr/include/gtk-2.0/gtk/gtkcontainer.h \
-	/usr/include/gtk-2.0/gtk/gtktoolitem.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkcombo.h : /usr/local/include/gtk-2.0/gtk/gtk.h
 
 ../../../../../../usr/include/glib-2.0/glib/gquark.h : /usr/include/glib-2.0/glib/gtypes.h
 
@@ -3885,35 +3886,49 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	/usr/include/glib-2.0/glib-object.h \
 	/usr/include/pango-1.0/pango/pango-types.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtknotebook.h : /usr/include/gtk-2.0/gtk/gtkcontainer.h
+../include/common/GPalette.h : ../include/common/GColourSpace.h \
+	../include/common/GFile.h
+
+../../../../../../usr/local/include/gtk-2.0/gdk/gdktypes.h : /usr/include/glib-2.0/glib.h \
+	/usr/include/pango-1.0/pango/pango.h \
+	/usr/include/glib-2.0/glib-object.h \
+	/usr/local/lib/gtk-2.0/include/gdkconfig.h
 
 ../../../../../../usr/include/glib-2.0/glib/gpoll.h : /usr/include/glib-2.0/glib/gtypes.h
+
+../include/common/GCom.h : ../include/common/GContainers.h
 
 ../../../../../../usr/include/glib-2.0/glib/gsequence.h : /usr/include/glib-2.0/glib/gtypes.h
 
 ../../../../../../usr/include/glib-2.0/glib/gversionmacros.h : 
 
+../include/common/GCss.h : ../include/common/LgiInc.h \
+	../include/linux/Gtk/LgiOsDefs.h \
+	../include/common/GMem.h \
+	../include/common/Gdc2.h \
+	../include/common/GAutoPtr.h \
+	../include/common/GString.h \
+	../include/common/GHashTable.h
+
 ../../../../../../usr/include/glib-2.0/gio/gconverteroutputstream.h : /usr/include/glib-2.0/gio/gfilteroutputstream.h \
 	/usr/include/glib-2.0/gio/gconverter.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkarrow.h : /usr/include/gtk-2.0/gtk/gtkmisc.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkradiobutton.h : /usr/local/include/gtk-2.0/gtk/gtkcheckbutton.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkviewport.h : /usr/include/gtk-2.0/gtk/gtkadjustment.h \
-	/usr/include/gtk-2.0/gtk/gtkbin.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkitem.h : /usr/local/include/gtk-2.0/gtk/gtkbin.h
 
-../include/common/GMenu.h : ../include/common/GXmlTree.h \
-	../include/common/Res.h \
-	../include/common/GImageList.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkmenubar.h : /usr/include/gtk-2.0/gtk/gtkmenushell.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkcomboboxentry.h : /usr/include/gtk-2.0/gtk/gtkcombobox.h \
-	/usr/include/gtk-2.0/gtk/gtktreemodel.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkbutton.h : /usr/include/gtk-2.0/gtk/gtkbin.h \
-	/usr/include/gtk-2.0/gtk/gtkimage.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkaccelgroup.h : /usr/local/include/gtk-2.0/gdk/gdk.h \
+	/usr/local/include/gtk-2.0/gtk/gtkenums.h
 
 ../../../../../../usr/include/glib-2.0/glib/gtree.h : /usr/include/glib-2.0/glib/gnode.h
+
+../include/common/GDateTime.h : 
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktexttagtable.h : /usr/local/include/gtk-2.0/gtk/gtktexttag.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkctree.h : /usr/local/include/gtk-2.0/gtk/gtkclist.h
+
+../include/common/GPixelRops.h : 
 
 ../src/common/Gdc2/GColour.cpp : ../include/common/Lgi.h \
 	../include/common/GPalette.h
@@ -3921,7 +3936,13 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../../../../../../usr/include/glib-2.0/gio/gconverterinputstream.h : /usr/include/glib-2.0/gio/gfilterinputstream.h \
 	/usr/include/glib-2.0/gio/gconverter.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkgamma.h : /usr/include/gtk-2.0/gtk/gtkvbox.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktreemodelfilter.h : /usr/local/lib/gtk-2.0/include/gdkconfig.h \
+	/usr/local/include/gtk-2.0/gtk/gtktreemodel.h
+
+../include/common/LgiWidgets.h : 
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkrecentchooserdialog.h : /usr/local/include/gtk-2.0/gtk/gtkdialog.h \
+	/usr/local/include/gtk-2.0/gtk/gtkrecentchooser.h
 
 ../src/common/Lgi/GAlert.cpp : ../include/common/Lgi.h \
 	../include/common/GTextLabel.h \
@@ -3933,13 +3954,18 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../../../../../../usr/include/glib-2.0/glib/gdate.h : /usr/include/glib-2.0/glib/gtypes.h \
 	/usr/include/glib-2.0/glib/gquark.h
 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkactiongroup.h : /usr/local/include/gtk-2.0/gtk/gtkaction.h \
+	/usr/local/include/gtk-2.0/gtk/gtktypeutils.h
+
+../include/win32/GSymLookup.h : 
+
 ../../../../../../usr/include/glib-2.0/glib/gbookmarkfile.h : /usr/include/glib-2.0/glib/gerror.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkhbbox.h : /usr/local/include/gtk-2.0/gtk/gtkbbox.h
 
 ../src/linux/Lgi/GPrinter.cpp : ../include/common/Lgi.h \
 	../include/common/GList.h \
 	../include/common/GButton.h
-
-../include/common/GPanel.h : ../include/common/GDisplayString.h
 
 ../../../../../../usr/include/glib-2.0/gio/gtlscertificate.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -3949,125 +3975,90 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	/usr/include/pango-1.0/pango/pango-fontmap.h \
 	/usr/include/pango-1.0/pango/pango-attributes.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkrange.h : /usr/include/gtk-2.0/gtk/gtkadjustment.h \
-	/usr/include/gtk-2.0/gtk/gtkwidget.h
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkapplaunchcontext.h : /usr/include/glib-2.0/gio/gio.h \
+	/usr/local/include/gtk-2.0/gdk/gdkscreen.h
 
 ../src/common/General/GDateTime.cpp : ../include/common/Lgi.h \
 	../include/common/GDateTime.h \
 	../include/common/GToken.h \
 	../include/common/GDocView.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkfilechooser.h : /usr/include/gtk-2.0/gtk/gtkfilefilter.h \
-	/usr/include/gtk-2.0/gtk/gtkwidget.h
+../src/common/Gdc2/GRopsCases.cpp : 
 
 ../../../../../../usr/include/atk-1.0/atk/atktable.h : /usr/include/atk-1.0/atk/atkobject.h
 
 ../include/common/GFileSelect.h : 
 
-../../../../../../usr/include/gtk-2.0/gtk/gtktexttagtable.h : /usr/include/gtk-2.0/gtk/gtktexttag.h
-
 ../../../../../../usr/include/glib-2.0/glib/ggettext.h : /usr/include/glib-2.0/glib/gtypes.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtksettings.h : /usr/include/gtk-2.0/gtk/gtkrc.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkhruler.h : /usr/local/include/gtk-2.0/gtk/gtkruler.h
 
-../include/common/LgiInc.h : 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkfontsel.h : /usr/local/include/gtk-2.0/gtk/gtkdialog.h \
+	/usr/local/include/gtk-2.0/gtk/gtkvbox.h
 
-../include/common/GTableLayout.h : ../include/common/GCss.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkcombo.h : /usr/include/gtk-2.0/gtk/gtk.h
-
-../include/common/GPrinter.h : 
+../include/common/GEdit.h : ../include/common/GTextView3.h
 
 ../include/common/LgiNetInc.h : 
 
-../../../../../../usr/include/gtk-2.0/gtk/gtktreeitem.h : /usr/include/gtk-2.0/gtk/gtkitem.h
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkregion.h : /usr/local/include/gtk-2.0/gdk/gdktypes.h
 
-../../../../../../usr/lib/x86_64-linux-gnu/glib-2.0/include/glibconfig.h : /usr/include/glib-2.0/glib/gmacros.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkrecentmanager.h : /usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf.h \
+	/usr/local/include/gtk-2.0/gdk/gdk.h
 
-../../../../../../usr/include/gtk-2.0/gdk/gdktypes.h : /usr/include/glib-2.0/glib.h \
-	/usr/include/pango-1.0/pango/pango.h \
-	/usr/include/glib-2.0/glib-object.h \
-	/usr/lib/x86_64-linux-gnu/gtk-2.0/include/gdkconfig.h
-
-../../../../../../usr/include/gtk-2.0/gdk/gdkevents.h : /usr/include/gtk-2.0/gdk/gdkcolor.h \
-	/usr/include/gtk-2.0/gdk/gdktypes.h \
-	/usr/include/gtk-2.0/gdk/gdkdnd.h \
-	/usr/include/gtk-2.0/gdk/gdkinput.h
+../include/common/GTableLayout.h : ../include/common/GCss.h
 
 ../src/common/Gdc2/24Bit.cpp : ../include/common/Gdc2.h \
 	../include/common/GPalette.h
 
-../../../../../../usr/include/gtk-2.0/gdk/gdkgc.h : /usr/include/gtk-2.0/gdk/gdkcolor.h \
-	/usr/include/gtk-2.0/gdk/gdktypes.h
+../../../../../../usr/local/include/gtk-2.0/gdk/gdkimage.h : /usr/local/include/gtk-2.0/gdk/gdktypes.h
 
-../include/common/GBitmap.h : 
-
-../include/common/GItemContainer.h : ../include/common/GPopup.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkalignment.h : /usr/include/gtk-2.0/gtk/gtkbin.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkcellrendereraccel.h : /usr/include/gtk-2.0/gtk/gtkcellrenderertext.h
+../include/common/GHashTable.h : ../include/common/GMem.h \
+	../include/common/GArray.h \
+	../include/common/GString.h \
+	../include/common/LgiClass.h
 
 ../../../../../../usr/include/glib-2.0/glib/gmarkup.h : /usr/include/glib-2.0/glib/gerror.h \
 	/usr/include/glib-2.0/glib/gslist.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtktreemodelsort.h : /usr/lib/x86_64-linux-gnu/gtk-2.0/include/gdkconfig.h \
-	/usr/include/gtk-2.0/gtk/gtktreemodel.h \
-	/usr/include/gtk-2.0/gtk/gtktreesortable.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtktreeselection.h : /usr/include/gtk-2.0/gtk/gtktreeview.h
-
-../include/common/GOptionsFile.h : ../include/common/GVariant.h \
-	../include/common/GXmlTree.h \
-	../include/common/GMutex.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkaccellabel.h : /usr/include/gtk-2.0/gtk/gtklabel.h
 
 ../../../../../../usr/include/glib-2.0/gio/gappinfo.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../../usr/include/glib-2.0/glib/gconvert.h : /usr/include/glib-2.0/glib/gerror.h
 
+../../../../../../usr/local/lib/gtk-2.0/include/gdkconfig.h : 
+
+../include/common/GOptionsFile.h : ../include/common/GVariant.h \
+	../include/common/GXmlTree.h \
+	../include/common/GMutex.h
+
 ../include/common/GListItemCheckBox.h : ../include/common/GList.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkimage.h : /usr/include/glib-2.0/gio/gio.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmisc.h
 
 ../../../../../../usr/include/glib-2.0/glib/gbacktrace.h : /usr/include/glib-2.0/glib/gtypes.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkctree.h : /usr/include/gtk-2.0/gtk/gtkclist.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtksizegroup.h : /usr/local/include/gtk-2.0/gtk/gtkwidget.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtktoggletoolbutton.h : /usr/include/gtk-2.0/gtk/gtktoolbutton.h
+../include/common/GRefCount.h : 
 
 ../../../../../../usr/include/glib-2.0/gio/gnetworkservice.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkradiotoolbutton.h : /usr/include/gtk-2.0/gtk/gtktoggletoolbutton.h
-
 ../../../../../../usr/include/atk-1.0/atk/atkrelationtype.h : /usr/include/glib-2.0/glib.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkmodules.h : /usr/include/gtk-2.0/gtk/gtksettings.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkpreview.h : /usr/include/gtk-2.0/gtk/gtk.h
-
 ../include/common/GMdi.h : 
-
-../include/common/LgiRes.h : ../include/common/Res.h \
-	../include/common/GContainers.h \
-	../include/common/GCss.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkmessagedialog.h : /usr/include/gtk-2.0/gtk/gtkdialog.h \
-	/usr/include/gtk-2.0/gtk/gtkenums.h
 
 ../../../../../../usr/include/pango-1.0/pango/pango-attributes.h : /usr/include/pango-1.0/pango/pango-font.h \
 	/usr/include/glib-2.0/glib-object.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkhbbox.h : /usr/include/gtk-2.0/gtk/gtkbbox.h
-
 ../include/common/GdiLeak.h : 
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkrecentfilter.h : /usr/include/glib-2.0/glib-object.h
 
 ../src/common/Gdc2/Font/GFontCodePages.cpp : ../include/common/Lgi.h \
 	../include/common/GToken.h \
 	../include/common/GUtf8.h
 
 ../include/common/GDocView.h : ../include/common/GVariant.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkitemfactory.h : /usr/include/gtk-2.0/gtk/gtk.h
 
 ../../../../../../usr/include/glib-2.0/gio/gfilenamecompleter.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -4080,9 +4071,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ./Code/FtpThread.h : ../include/common/GList.h \
 	../include/common/IFtp.h
 
-../include/common/IFtp.h : ../include/common/INet.h \
-	../include/common/GDateTime.h
-
 ../src/common/Gdc2/Filters/GFilter.cpp : ../include/common/Gdc2.h \
 	../include/common/GString.h \
 	../include/common/GVariant.h \
@@ -4091,30 +4079,29 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GPalette.h \
 	../include/common/Lgi.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkhseparator.h : /usr/include/gtk-2.0/gtk/gtkseparator.h
-
 ../../../../../../usr/include/glib-2.0/gio/gtcpconnection.h : /usr/include/glib-2.0/gio/gsocketconnection.h
 
 ../../../../../../usr/include/glib-2.0/gio/gdbusobjectskeleton.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../include/common/LgiClass.h : ../include/common/LgiInc.h \
-	../include/common/LgiDefs.h \
-	../include/common/GAutoPtr.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktooltip.h : /usr/local/include/gtk-2.0/gtk/gtkwindow.h
 
 ../../../../../../usr/include/glib-2.0/gobject/gclosure.h : /usr/include/glib-2.0/gobject/gtype.h
 
-../include/common/GProgressDlg.h : 
+../include/common/GSlider.h : 
 
 ../include/common/GStream.h : ../include/common/GDom.h
 
 ../../../../../../usr/include/atk-1.0/atk/atkdocument.h : /usr/include/atk-1.0/atk/atkobject.h \
 	/usr/include/atk-1.0/atk/atkutil.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkdialog.h : /usr/include/gtk-2.0/gtk/gtkwindow.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtktoolitem.h : /usr/local/include/gtk-2.0/gtk/gtkbin.h \
+	/usr/local/include/gtk-2.0/gtk/gtktooltips.h \
+	/usr/local/include/gtk-2.0/gtk/gtkmenuitem.h \
+	/usr/local/include/gtk-2.0/gtk/gtksizegroup.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtktoolbutton.h : /usr/include/gtk-2.0/gtk/gtktoolitem.h
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkscale.h : /usr/local/include/gtk-2.0/gtk/gtkrange.h
 
-../include/common/GLibrary.h : 
+../include/common/GProgressDlg.h : 
 
 ../src/common/Gdc2/Alpha.cpp : ../include/common/Gdc2.h \
 	../include/common/GPath.h \
@@ -4137,13 +4124,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../../../../../../usr/include/glib-2.0/gio/gdbusproxy.h : /usr/include/glib-2.0/gio/giotypes.h \
 	/usr/include/glib-2.0/gio/gdbusintrospection.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkrecentfilter.h : /usr/include/glib-2.0/glib-object.h
-
-../../../../../../usr/include/gtk-2.0/gdk/gdkimage.h : /usr/include/gtk-2.0/gdk/gdktypes.h
-
 ../../../../../../usr/include/glib-2.0/gio/gmount.h : /usr/include/glib-2.0/gio/giotypes.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtktearoffmenuitem.h : /usr/include/gtk-2.0/gtk/gtkmenuitem.h
 
 ../src/linux/Lgi/GView.cpp : ../include/common/Lgi.h \
 	../include/common/GDragAndDrop.h \
@@ -4158,24 +4139,20 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/glib-2.0/gio/ginetaddress.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../../../../../../usr/include/gtk-2.0/gdk/gdkvisual.h : /usr/include/gtk-2.0/gdk/gdktypes.h
+./Code/resdefs.h : 
 
-../include/common/GPoint.h : 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkinfobar.h : /usr/local/include/gtk-2.0/gtk/gtkhbox.h \
+	/usr/local/include/gtk-2.0/gtk/gtkenums.h
+
+../include/common/GInput.h : 
+
+../include/common/GRadioGroup.h : 
 
 ../../../../../../usr/include/glib-2.0/gio/gsocketconnection.h : /usr/include/glib-2.0/glib-object.h \
 	/usr/include/glib-2.0/gio/gsocket.h \
 	/usr/include/glib-2.0/gio/giostream.h
 
 ../../../../../../usr/include/glib-2.0/gio/gdbusinterfaceskeleton.h : /usr/include/glib-2.0/gio/giotypes.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtktextbuffer.h : /usr/include/gtk-2.0/gtk/gtkwidget.h \
-	/usr/include/gtk-2.0/gtk/gtkclipboard.h \
-	/usr/include/gtk-2.0/gtk/gtktexttagtable.h \
-	/usr/include/gtk-2.0/gtk/gtktextiter.h \
-	/usr/include/gtk-2.0/gtk/gtktextmark.h \
-	/usr/include/gtk-2.0/gtk/gtktextchild.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkinputdialog.h : /usr/include/gtk-2.0/gtk/gtkdialog.h
 
 ../../../../../../usr/include/glib-2.0/gobject/gobject.h : /usr/include/glib-2.0/gobject/gtype.h \
 	/usr/include/glib-2.0/gobject/gvalue.h \
@@ -4184,20 +4161,11 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	/usr/include/glib-2.0/gobject/gsignal.h \
 	/usr/include/glib-2.0/gobject/gboxed.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtktoolshell.h : /usr/include/gtk-2.0/gtk/gtkenums.h \
-	/usr/include/pango-1.0/pango/pango.h \
-	/usr/include/gtk-2.0/gtk/gtksizegroup.h
-
-../include/common/LgiNetInc.h : 
-
 ../src/linux/Lgi/GMenuGtk.cpp : ../include/common/Lgi.h \
 	../include/common/GUtf8.h \
 	../include/common/GToken.h \
 	../include/common/GDisplayString.h \
-	/usr/include/gtk-2.0/gdk/gdkkeysyms-compat.h
-
-../../../../../../usr/include/gtk-2.0/gtk/gtkimage.h : /usr/include/glib-2.0/gio/gio.h \
-	/usr/include/gtk-2.0/gtk/gtkmisc.h
+	/usr/local/include/gtk-2.0/gdk/gdkkeysyms-compat.h
 
 ../include/common/GParseCpp.h : 
 
@@ -4207,11 +4175,45 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../include/common/GViewPriv.h : 
 
+../../../../../../usr/local/include/gtk-2.0/gdk/gdk.h : /usr/local/include/gtk-2.0/gdk/gdkapplaunchcontext.h \
+	/usr/local/include/gtk-2.0/gdk/gdkcairo.h \
+	/usr/local/include/gtk-2.0/gdk/gdkcolor.h \
+	/usr/local/include/gtk-2.0/gdk/gdkcursor.h \
+	/usr/local/include/gtk-2.0/gdk/gdkdisplay.h \
+	/usr/local/include/gtk-2.0/gdk/gdkdisplaymanager.h \
+	/usr/local/include/gtk-2.0/gdk/gdkdnd.h \
+	/usr/local/include/gtk-2.0/gdk/gdkdrawable.h \
+	/usr/local/include/gtk-2.0/gdk/gdkenumtypes.h \
+	/usr/local/include/gtk-2.0/gdk/gdkevents.h \
+	/usr/local/include/gtk-2.0/gdk/gdkfont.h \
+	/usr/local/include/gtk-2.0/gdk/gdkgc.h \
+	/usr/local/include/gtk-2.0/gdk/gdkimage.h \
+	/usr/local/include/gtk-2.0/gdk/gdkinput.h \
+	/usr/local/include/gtk-2.0/gdk/gdkkeys.h \
+	/usr/local/include/gtk-2.0/gdk/gdkpango.h \
+	/usr/local/include/gtk-2.0/gdk/gdkpixbuf.h \
+	/usr/local/include/gtk-2.0/gdk/gdkpixmap.h \
+	/usr/local/include/gtk-2.0/gdk/gdkproperty.h \
+	/usr/local/include/gtk-2.0/gdk/gdkregion.h \
+	/usr/local/include/gtk-2.0/gdk/gdkrgb.h \
+	/usr/local/include/gtk-2.0/gdk/gdkscreen.h \
+	/usr/local/include/gtk-2.0/gdk/gdkselection.h \
+	/usr/local/include/gtk-2.0/gdk/gdkspawn.h \
+	/usr/local/include/gtk-2.0/gdk/gdktestutils.h \
+	/usr/local/include/gtk-2.0/gdk/gdktypes.h \
+	/usr/local/include/gtk-2.0/gdk/gdkvisual.h \
+	/usr/local/include/gtk-2.0/gdk/gdkwindow.h
+
+../include/common/IFtp.h : ../include/common/INet.h \
+	../include/common/GDateTime.h
+
 ../src/common/Gdc2/GRopsCases.cpp : 
 
-../../../../../../usr/include/gtk-2.0/gtk/gtkseparator.h : /usr/include/gtk-2.0/gtk/gtkwidget.h
+../include/common/GTree.h : ../include/common/GItemContainer.h
 
-../include/common/GMdi.h : 
+../include/common/GSkinEngine.h : ../include/common/GList.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkcellrendererspin.h : /usr/local/include/gtk-2.0/gtk/gtkcellrenderertext.h
 
 ../src/common/INet/INet.cpp : ../include/common/GFile.h \
 	../include/common/INet.h \
@@ -4225,6 +4227,10 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../src/common/Hash/md5/md5.h : ../include/common/LgiInc.h
 
+../../../../../../usr/local/include/gtk-2.0/gtk/gtksocket.h : /usr/local/include/gtk-2.0/gtk/gtkcontainer.h
+
+../../../../../../usr/local/include/gtk-2.0/gtk/gtkenums.h : /usr/include/glib-2.0/glib-object.h
+
 VPATH=%.cpp \
 	./Code \
 	../include/common \
@@ -4232,17 +4238,16 @@ VPATH=%.cpp \
 	../include/linux \
 	../include/linux/Gtk \
 	./thread \
-	../../../../../../usr/include/gtk-2.0 \
-	../../../../../../usr/lib/x86_64-linux-gnu/gtk-2.0/include \
+	../../../../../../usr/local/include/gtk-2.0 \
+	../../../../../../usr/local/lib/gtk-2.0/include \
 	../../../../../../usr/include/atk-1.0 \
 	../../../../../../usr/include/cairo \
 	../../../../../../usr/include/gdk-pixbuf-2.0 \
 	../../../../../../usr/include/pango-1.0 \
-	../../../../../../usr/include/gio-unix-2.0 \
-	../../../../../../usr/include/freetype2 \
 	../../../../../../usr/include/glib-2.0 \
-	../../../../../../usr/lib/x86_64-linux-gnu/glib-2.0/include \
+	../../../../../../usr/lib/arm-linux-gnueabihf/glib-2.0/include \
 	../../../../../../usr/include/pixman-1 \
+	../../../../../../usr/include/freetype2 \
 	../../../../../../usr/include/libpng12 \
 	../../../../../../usr/include/harfbuzz \
 	$(BuildDir)

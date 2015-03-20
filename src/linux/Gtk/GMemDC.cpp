@@ -212,6 +212,20 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 			Vis = NULL;
 	    }
 	}
+	else if (Vis && Bits == 32)
+	{
+		int SysVisBits = gdk_visual_get_depth(Vis);
+		// printf("SysVisBits=%i\n", SysVisBits);
+		if (SysVisBits != Bits)
+		{
+			GdkVisual *Vis32 = gdk_visual_get_best_with_depth(Bits);
+			// printf("Vis32=%p\n", Vis32);
+			if (Vis32)
+				Vis = Vis32;
+			else
+				Vis = NULL;
+		}
+	}
 	
 	if (Vis)
 	{
@@ -220,15 +234,9 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 								x,
 								y);
 	}
-	else d->Img = NULL;
-
-	if (!d->Img)
+	else
 	{
-		/* In cases where gdk_image_new doesn't support the visual format we need
-		   (say 8 bit images) then it will fail and return NULL. Thats OK so long
-		   as we don't need to Blt to the screen. Lgi can operate on the image
-		   anyway using it's built in drawing functionality. */
-		int asd=0;
+		d->Img = NULL;
 	}
 
 	if (!pMem)

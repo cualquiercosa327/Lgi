@@ -608,6 +608,10 @@ void GImageList::Draw(GSurface *pDest, int Dx, int Dy, int Image, GColour Backgr
 
 				#elif defined __GTK_H__
 
+				printf("ImgListDraw %s->%s\n",
+					GColourSpaceToString(GetColourSpace()),
+					GColourSpaceToString(pDest->GetColourSpace()));
+					
 				if (GetBits() < 32)
 				{
 					// No source alpha, do colour keying
@@ -1548,7 +1552,16 @@ void GToolBar::_BuildCache(GImageList *From)
 	}
 
 	d->IconCache.Reset(new GMemDC);
-	if (!d->IconCache->Create(From->X(), From->Y() * 3, 32))
+	
+	GColourSpace CacheCs = System32BitColourSpace;
+	#ifdef LINUX
+	if (GdcD->GetBits() == 16)
+	{
+		CacheCs = GdcD->GetColourSpace();
+	}
+	#endif
+	
+	if (!d->IconCache->Create(From->X(), From->Y() * 3, CacheCs))
 	{
 		LgiAssert(!"Can't create bitmap.");
 		return;
