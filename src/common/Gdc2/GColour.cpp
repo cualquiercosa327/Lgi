@@ -23,7 +23,7 @@ GColour::GColour(uint32 c, int bits, GPalette *palette)
 	Set(c, bits, palette);
 }
 
-int GColour::HlsValue(double fN1, double fN2, double fHue)
+int GColour::HlsValue(double fN1, double fN2, double fHue) const
 {
 	if (fHue > 360.0) fHue -= 360.0;
 	else if (fHue < 0.0) fHue += 360.0;
@@ -142,27 +142,27 @@ uint32 GColour::Get(int bits)
 	return 0;
 }
 
-uint8 GColour::r()
+uint8 GColour::r() const
 {
 	return R32(c32());
 }
 
-uint8 GColour::g()
+uint8 GColour::g() const
 {
 	return G32(c32());
 }
 
-uint8 GColour::b()
+uint8 GColour::b() const
 {
 	return B32(c32());
 }
 
-uint8 GColour::a()
+uint8 GColour::a() const
 {
 	return A32(c32());
 }
 
-uint8 GColour::c8()
+uint8 GColour::c8() const
 {
 	return index;
 }
@@ -174,7 +174,7 @@ void GColour::c8(uint8 c, GPalette *p)
 	index = c;
 }
 
-uint32 GColour::c24()
+uint32 GColour::c24() const
 {
 	if (space == System32BitColourSpace)
 	{
@@ -218,7 +218,7 @@ void GColour::c24(uint32 c)
 	pal = NULL;
 }
 
-uint32 GColour::c32()
+uint32 GColour::c32() const
 {
 	if (space == System32BitColourSpace)
 	{
@@ -243,43 +243,37 @@ uint32 GColour::c32()
 		
 		return Rgb32(index, index, index); // monochome
 	}
-	else if ((space = CsHls32))
+	else if (space == CsHls32)
 	{
 		// Convert from HLS back to RGB
-		if (hls.s == 0)
+		GHls32 Hls = hls;
+		if (Hls.s == 0)
 		{
-			rgb.r = 0;
-			rgb.g = 0;
-			rgb.b = 0;
-			rgb.a = 255;
+			return Rgba32(0, 0, 0, 255);
 		}
 		else
 		{
-			while (hls.h >= 360)
-				hls.h -= 360;			
+			while (Hls.h >= 360)
+				Hls.h -= 360;			
 			while (hls.h < 0)
-				hls.h += 360;
+				Hls.h += 360;
 		
-			double fHue = (double) hls.h, fM1, fM2;
-			double fLightness = ((double) hls.l) / 255.0;
-			double fSaturation = ((double) hls.s) / 255.0;
+			double fHue = (double) Hls.h, fM1, fM2;
+			double fLightness = ((double) Hls.l) / 255.0;
+			double fSaturation = ((double) Hls.s) / 255.0;
 		
-			if (hls.l < 128)
+			if (Hls.l < 128)
 				fM2 = fLightness * (1 + fSaturation);
 			else
 				fM2 = fLightness + fSaturation - (fLightness * fSaturation);
 		
 			fM1 = 2.0 * fLightness - fM2;
 
-			rgb.r = HlsValue(fM1, fM2, fHue + 120.0);
-			rgb.g = HlsValue(fM1, fM2, fHue);
-			rgb.b = HlsValue(fM1, fM2, fHue - 120.0);
-			rgb.a = 255;
+			uint8 r = HlsValue(fM1, fM2, fHue + 120.0);
+			uint8 g = HlsValue(fM1, fM2, fHue);
+			uint8 b = HlsValue(fM1, fM2, fHue - 120.0);
+			return Rgb32(r, g, b);
 		}
-
-		pal = NULL;
-		space = System32BitColourSpace;
-		return Rgba32(rgb.r, rgb.g, rgb.b, rgb.a);
 	}
 
 	// Transparent?

@@ -2,14 +2,6 @@
 #define _IMAGE_LIST_H_
 
 ////////////////////////////////////////////////////////////////////////
-
-/// GImageList::Draw() flag: Draw as selected
-#define IMGLST_SELECTED				0x0001
-/// GImageList::Draw() flag: Draw disabled
-#define IMGLST_DISABLED				0x0002
-/// GImageList::Draw() flag: Draw with GDC
-#define IMGLST_GDC					0x0004
-
 /// \brief A list of images/icons all the same size
 ///
 /// Currently the image list treats the pixel at (0,0) as the transparent colour key.
@@ -57,9 +49,8 @@ public:
 		int Image,
 		/// The background colour if not alpha compositing is available
 		GColour Background,
-		/// Drawing options
-		/// \sa The defines starting at IMGLST_SELECTED in GToolBar.h
-		int Flags = 0
+		/// Draw in disabled mode...
+		bool Disabled = false
 	);
 };
 

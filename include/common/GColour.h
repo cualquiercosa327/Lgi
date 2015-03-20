@@ -19,7 +19,7 @@ protected:
 	};
 	GColourSpace space;
 
-	int HlsValue(double fN1, double fN2, double fHue);
+	int HlsValue(double fN1, double fN2, double fHue) const;
 
 public:
 	/// Transparent
@@ -32,6 +32,11 @@ public:
 	GColour(uint32 c, int bits, GPalette *palette = NULL);
 	GColourSpace GetColourSpace();
 	
+	bool operator ==(const GColour &c)
+	{
+		return c32() == c.c32();
+	}
+	
 	bool IsValid();
 	void Empty();
 	bool Transparent();
@@ -41,23 +46,23 @@ public:
 	void Set(uint32 c, int bits, GPalette *palette = NULL);
 	uint32 Get(int bits);
 	/// Gets the red component (0-255)
-	uint8 r();
+	uint8 r() const;
 	/// Gets the green component (0-255)
-	uint8 g();
+	uint8 g() const;
 	/// Gets the blue component (0-255)
-	uint8 b();
+	uint8 b() const;
 	/// Gets the alpha component (0-255)
-	uint8 a();
+	uint8 a() const;
 	// Gets the indexed colour
-	uint8 c8();
+	uint8 c8() const;
 	// Sets indexed colour
 	void c8(uint8 c, GPalette *p);
 	// Get as 24 bit colour
-	uint32 c24();
+	uint32 c24() const;
 	/// Set 24 bit colour
 	void c24(uint32 c);
 	/// Get 32 bit colour
-	uint32 c32();
+	uint32 c32() const;
 	/// Set 32 bit colour
 	void c32(uint32 c);
 	/// Mixes 'Tint' with the current colour and returns it 
