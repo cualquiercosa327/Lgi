@@ -1392,14 +1392,12 @@ bool GTree::OnKey(GKey &k)
 				GTreeItem *s = Selection();
 				if (s)
 				{
-					GRect *r = &s->d->Pos;
+					GRect *r = &s->d->Text;
 					if (r)
 					{
-						GdcPt2 Scroll = _ScrollPos();
-						
 						GMouse m;
-						m.x = r->x1 + (r->X() >> 1) - Scroll.x;
-						m.y = r->y1 + (r->Y() >> 1) - Scroll.y;
+						m.x = r->x1 + (r->X() >> 1);
+						m.y = r->y1 + (r->Y() >> 1);
 						m.Target = this;
 						m.ViewCoords = true;
 						m.Down(true);

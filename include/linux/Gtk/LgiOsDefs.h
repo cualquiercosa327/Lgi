@@ -14,18 +14,18 @@
 #include <stdlib.h>
 #include <stdio.h>
 #ifdef WIN32
-#define WIN32_LEAN_AND_MEAN
-#include "windows.h"
-#include "winsock2.h"
-#include "ShellAPI.h"
-#define WIN32GTK                    1
-#define WINNATIVE					0
+	#define WIN32_LEAN_AND_MEAN
+	#include "windows.h"
+	#include "winsock2.h"
+	#include "ShellAPI.h"
+	#define WIN32GTK                    1
+	#define WINNATIVE					0
 #else
-#define _MULTI_THREADED
-#include <pthread.h>
-#define LINUX						1
-#define XP_CTRLS					1
-#define POSIX						1
+	#define _MULTI_THREADED
+	#include <pthread.h>
+	#define LINUX						1
+	#define XP_CTRLS					1
+	#define POSIX						1
 #endif
 
 #undef stricmp

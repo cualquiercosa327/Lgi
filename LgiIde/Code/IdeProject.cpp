@@ -2840,8 +2840,7 @@ void IdeProject::OnMouseClick(GMouse &m)
 		Sub.AppendItem("New Web Folder", IDM_WEB_FOLDER, true);
 		Sub.AppendSeparator();
 		Sub.AppendItem("Settings", IDM_SETTINGS, true);
-		Sub.AppendItem("Insert Dependancy", IDM_INSERT_DEP, true);
-		Sub.AppendItem("Properties", IDM_PROPERTIES, true);
+		Sub.AppendItem("Insert Dependency", IDM_INSERT_DEP, true);
 
 		m.ToScreen();
 		GdcPt2 c = _ScrollPos();
@@ -2898,30 +2897,6 @@ void IdeProject::OnMouseClick(GMouse &m)
 						InsertTag(New);
 						SetDirty();
 					}
-				}
-				break;
-			}
-			case IDM_PROPERTIES:
-			{
-				GArray<char*> sections;
-				IdeProject *proj = this;
-				while (	proj &&
-						proj->GetFileName() &&
-						LgiIsRelativePath(proj->GetFileName()))
-				{
-					sections.AddAt(0, proj->GetFileName());
-					proj = proj->GetParentProject();
-				}
-				if (proj)
-				{
-					char p[MAX_PATH];
-					strcpy_s(p, sizeof(p), proj->GetFileName());
-					for (int i=0; i<sections.Length(); i++)
-					{
-						LgiMakePath(p, sizeof(p), p, sections[i]);
-					}
-				
-					LgiMsg(Tree, "Path: %s", AppName, MB_OK, p);
 				}
 				break;
 			}

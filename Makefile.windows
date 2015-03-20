@@ -505,6 +505,7 @@ GFont.o : ./src/common/Gdc2/Font/GFont.cpp ./include/common/Lgi.h \
 	./include/common/GFontSelect.h \
 	./include/common/GDisplayString.h \
 	./include/common/GdiLeak.h \
+	./include/common/GStringClass.h \
 	./include/common/GUtf8.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -1205,6 +1206,10 @@ MibAccess.o : ./src/win32/INet/MibAccess.cpp
 .\include\common\Res.h : ./include/common/GXmlTree.h
 
 ./include/common/GUtf8.h : 
+
+./include/common/GStringClass.h : ./include/common/GUtf8.h
+
+.\include\common\GUtf8.h : 
 
 ./include/common/LgiDefs.h : ./include/common/LgiInc.h \
 	./include/common/GAutoPtr.h

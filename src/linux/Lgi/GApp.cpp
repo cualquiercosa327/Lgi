@@ -873,6 +873,7 @@ bool GApp::GetAppsForMimeType(char *Mime, GArray<GAppInfo*> &Apps)
 	return Apps.Length() > 0;
 }
 
+#ifndef WIN32
 GLibrary *GApp::GetWindowManagerLib()
 {
 	if (this != NULL && !d->WmLib)
@@ -937,6 +938,7 @@ bool GApp::GetClipBoardContent(OsView Hnd, GVariant &v, GArray<char*> &Types)
 {
 	return false;
 }
+#endif
 
 GSymLookup *GApp::GetSymLookup()
 {
@@ -945,7 +947,12 @@ GSymLookup *GApp::GetSymLookup()
 
 bool GApp::IsElevated()
 {
+	#ifdef WIN32
+	LgiAssert(!"What API works here?");
+	return false;
+	#else
 	return geteuid() == 0;
+	#endif
 }
 
 using namespace Gtk;

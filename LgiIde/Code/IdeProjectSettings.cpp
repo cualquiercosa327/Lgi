@@ -113,6 +113,7 @@ SettingInfo AllSettings[] =
 	{ProjDefines,				GV_STRING,		"Defines",			sGeneral,	SF_MULTILINE|SF_CONFIG_SPECIFIC},
 	{ProjCompiler,				GV_INT32,		"Compiler",			sGeneral,	SF_PLATFORM_SPECIFC|SF_ENUM},
 	{ProjIncludePaths,			GV_STRING,		"IncludePaths",		sBuild,		SF_MULTILINE|SF_CONFIG_SPECIFIC},
+	{ProjSystemIncludes,		GV_STRING,		"SystemIncludes",	sBuild,		SF_MULTILINE|SF_CONFIG_SPECIFIC|SF_PLATFORM_SPECIFC},
 	{ProjLibraries,				GV_STRING,		"Libraries",		sBuild,		SF_MULTILINE|SF_CONFIG_SPECIFIC},
 	{ProjLibraryPaths,			GV_STRING,		"LibraryPaths",		sBuild,		SF_MULTILINE|SF_CONFIG_SPECIFIC},
 	{ProjTargetType,			GV_INT32,		"TargetType",		sBuild,		SF_CROSSPLATFORM|SF_ENUM},
@@ -196,9 +197,9 @@ public:
 		return FindConfig(CurConfig);
 	}
 
-	const char *PlatformToString(bool PlatformSpecific, IdePlatform Platform)
+	const char *PlatformToString(int Flags, IdePlatform Platform)
 	{
-		if (PlatformSpecific)
+		if (Flags & SF_PLATFORM_SPECIFC)
 		{
 			if (Platform >= 0 && Platform < PlatformMax)
 			{
@@ -211,12 +212,12 @@ public:
 		return sAllPlatforms;
 	}
 
-	char *BuildPath(ProjSetting s, bool PlatformSpecific, IdePlatform Platform, int Config = -1)
+	char *BuildPath(ProjSetting s, int Flags, IdePlatform Platform, int Config = -1)
 	{
 		SettingInfo *i = Map.Find(s);
 		LgiAssert(i);
 
-		const char *PlatformStr = PlatformToString(PlatformSpecific, Platform);
+		const char *PlatformStr = PlatformToString(Flags, Platform);
 		int Ch = sprintf_s(	PathBuf, sizeof(PathBuf),
 							"%s.%s.%s",
 							i->Category,
@@ -239,7 +240,7 @@ class GSettingDetail : public GLayout, public ResObject
 	GTableLayout *Tbl;
 	IdeProjectSettingsPriv *d;
 	SettingInfo *Setting;
-	bool PlatformSpecific;
+	int Flags;
 	
 	struct CtrlInfo
 	{
@@ -262,7 +263,7 @@ class GSettingDetail : public GLayout, public ResObject
 public:
 	GSettingDetail() : ResObject(Res_Custom)
 	{
-		PlatformSpecific = false;
+		Flags = 0;
 		d = NULL;
 		Setting = NULL;
 		AddView(Tbl = new GTableLayout);
@@ -298,7 +299,7 @@ public:
 		char *Path;
 		int CellY = i * 2;
 		GLayoutCell *c = Tbl->GetCell(0, CellY);
-		c->Add(Ctrls[i].Text = new GText(IDC_TEXT_BASE + i, 0, 0, -1, -1, Path = d->BuildPath(Setting->Setting, PlatformSpecific, PlatformCurrent, Config)));
+		c->Add(Ctrls[i].Text = new GText(IDC_TEXT_BASE + i, 0, 0, -1, -1, Path = d->BuildPath(Setting->Setting, Flags, PlatformCurrent, Config)));
 		c = Tbl->GetCell(0, CellY + 1);
 		
 		GXmlTag *t = d->Editing.GetChildTag(Path);
@@ -344,7 +345,7 @@ public:
 		else LgiAssert(!"Unknown type?");
 	}
 	
-	void SetSetting(SettingInfo *setting, bool plat_spec)
+	void SetSetting(SettingInfo *setting, int flags)
 	{
 		if (Setting)
 		{
@@ -393,7 +394,7 @@ public:
 		Tbl->Empty();
 		Ctrls.Length(0);
 		Setting = setting;
-		PlatformSpecific = plat_spec;
+		Flags = flags;
 		
 		if (Setting)
 		{
@@ -445,13 +446,13 @@ class SettingItem : public GTreeItem
 	
 public:
 	SettingInfo *Setting;
-	bool PlatformSpecific;
+	int Flags;
 
-	SettingItem(SettingInfo *setting, bool plat_spec, ProjectSettingsDlg *dlg)
+	SettingItem(SettingInfo *setting, int flags, ProjectSettingsDlg *dlg)
 	{
 		Setting = setting;
 		Dlg = dlg;
-		PlatformSpecific = plat_spec;
+		Flags = flags;
 	}
 	
 	void Select(bool b);
@@ -462,17 +463,25 @@ class ProjectSettingsDlg : public GDialog
 	IdeProjectSettingsPriv *d;
 	GTree *Tree;
 	GSettingDetail *Detail;
+	uint64 DefLockOut;
 
 public:
 	ProjectSettingsDlg(GViewI *parent, IdeProjectSettingsPriv *priv)
 	{
 		Tree = NULL;
 		Detail = NULL;
+		DefLockOut = 0;
 		d = priv;
 		SetParent(parent);
 		if (LoadFromResource(IDD_PROJECT_SETTINGS2))
 		{
 			MoveToCenter();
+			
+			GAutoString FullPath = d->Project->GetFullPath();
+			if (FullPath)
+			{
+				SetCtrlName(IDC_PATH, FullPath);
+			}
 			
 			if (GetViewById(IDC_SETTINGS, Tree))
 			{
@@ -495,14 +504,14 @@ public:
 
 					if (!i->Flag.PlatformSpecific)
 					{
-						SettingItem *All = new SettingItem(i, false, this);
+						SettingItem *All = new SettingItem(i, 0, this);
 						All->SetText(sAllPlatforms);
 						Item->Insert(All);
 					}
 
 					if (!i->Flag.CrossPlatform)
 					{
-						SettingItem *Platform = new SettingItem(i, true, this);
+						SettingItem *Platform = new SettingItem(i, SF_PLATFORM_SPECIFC, this);
 						Platform->SetText(sCurrentPlatform);
 						Item->Insert(Platform);
 					}
@@ -513,6 +522,42 @@ public:
 			{
 				Detail->SetPriv(d);
 			}
+			
+			GView *Search;
+			if (GetViewById(IDC_SEARCH, Search))
+				Search->Focus(true);
+		}
+	}
+	
+	GTreeItem *FindItem(GTreeItem *i, const char *search)
+	{
+		char *s = i->GetText(0);
+		if (s && search && stristr(s, search))
+			return i;
+		
+		for (GTreeItem *c = i->GetChild(); c; c = c->GetNext())
+		{
+			GTreeItem *f = FindItem(c, search);
+			if (f)
+				return f;
+		}
+		return NULL;
+	}
+	
+	void OnSearch(const char *s)
+	{
+		if (!Tree) return;
+		GTreeItem *f = NULL;
+		for (GTreeItem *i = Tree->GetChild(); i && !f; i = i->GetNext())
+		{
+			f = FindItem(i, s);
+		}
+		if (f)
+		{
+			f->Select(true);
+			for (GTreeItem *i = f; i; i = i->GetParent())
+				i->Expanded(true);
+			Tree->Focus(true);
 		}
 	}
 	
@@ -520,13 +565,57 @@ public:
 	{
 		switch (Ctrl->GetId())
 		{
+			case IDC_BROWSE:
+			{
+				const char *s = GetCtrlName(IDC_PATH);
+				if (!s)
+					break;
+				char p[MAX_PATH];
+				
+				#ifdef WIN32
+				sprintf_s(p, sizeof(p), "/e,/select,\"%s\"", s);
+				LgiExecute("explorer", p);
+				#else
+				LgiMakePath(p, sizeof(p), s, "..");
+				if (DirExists(p))
+					LgiExecute(p);
+				#endif
+				break;
+			}
+			case IDC_SEARCH:
+			{
+				if (Flags == VK_RETURN)
+				{
+					DefLockOut = LgiCurrentTime();
+					OnSearch(GetCtrlName(IDC_SEARCH));
+				}
+				else
+				{
+					SetCtrlEnabled(IDC_CLEAR_SEARCH, ValidStr(Ctrl->Name()));
+				}
+				break;
+			}
+			case IDC_CLEAR_SEARCH:
+			{
+				SetCtrlName(IDC_SEARCH, NULL);
+				OnSearch(NULL);
+				break;
+			}
 			case IDOK:
-				Detail->SetSetting(NULL, false);
+			{
+				if (LgiCurrentTime() - DefLockOut < 500)
+					break;
+				Detail->SetSetting(NULL, 0);
 				EndModal(1);
 				break;
+			}
 			case IDCANCEL:
+			{
+				if (LgiCurrentTime() - DefLockOut < 500)
+					break;
 				EndModal(0);
 				break;
+			}
 		}
 		
 		return GDialog::OnNotify(Ctrl, Flags);
@@ -534,7 +623,7 @@ public:
 	
 	void OnSelect(SettingItem *si)
 	{
-		Detail->SetSetting(si->Setting, si->PlatformSpecific);
+		Detail->SetSetting(si->Setting, si->Flags);
 	}
 };
 
@@ -668,7 +757,7 @@ void IdeProjectSettings::InitAllSettings(bool ClearCurrent)
 			{
 				if (!i->Flag.PlatformSpecific)
 				{
-					p = d->BuildPath(i->Setting, false, PlatformCurrent, Cfg);
+					p = d->BuildPath(i->Setting, 0, PlatformCurrent, Cfg);
 					d->Active.GetChildTag(p, true);
 					if (t && !t->Content && Default.Type != GV_NULL)
 						t->SetContent(Default.Str());
@@ -676,7 +765,7 @@ void IdeProjectSettings::InitAllSettings(bool ClearCurrent)
 				
 				if (!i->Flag.CrossPlatform)
 				{
-					p = d->BuildPath(i->Setting, true, PlatformCurrent, Cfg);
+					p = d->BuildPath(i->Setting, SF_PLATFORM_SPECIFC, PlatformCurrent, Cfg);
 					d->Active.GetChildTag(p, true);
 					if (t && !t->Content && Default.Type != GV_NULL)
 						t->SetContent(Default.Str());
@@ -687,7 +776,7 @@ void IdeProjectSettings::InitAllSettings(bool ClearCurrent)
 		{
 			if (!i->Flag.PlatformSpecific)
 			{
-				p = d->BuildPath(i->Setting, false, PlatformCurrent, -1);
+				p = d->BuildPath(i->Setting, 0, PlatformCurrent, -1);
 				t = d->Active.GetChildTag(p, true);
 				if (t && !t->Content && Default.Type != GV_NULL)
 					t->SetContent(Default.Str());
@@ -695,7 +784,7 @@ void IdeProjectSettings::InitAllSettings(bool ClearCurrent)
 
 			if (!i->Flag.CrossPlatform)
 			{
-				p = d->BuildPath(i->Setting, true, PlatformCurrent, -1);
+				p = d->BuildPath(i->Setting, SF_PLATFORM_SPECIFC, PlatformCurrent, -1);
 				t = d->Active.GetChildTag(p, true);
 				if (t && !t->Content && Default.Type != GV_NULL)
 					t->SetContent(Default.Str());
@@ -763,7 +852,7 @@ const char *IdeProjectSettings::GetStr(ProjSetting Setting, const char *Default,
 	int Bytes = 0;
 	if (!s->Flag.PlatformSpecific)
 	{
-		GXmlTag *t = d->Active.GetChildTag(d->BuildPath(Setting, false, Platform));
+		GXmlTag *t = d->Active.GetChildTag(d->BuildPath(Setting, 0, Platform));
 		if (t && t->Content)
 		{
 			Strs.Add(t->Content);
@@ -772,7 +861,7 @@ const char *IdeProjectSettings::GetStr(ProjSetting Setting, const char *Default,
 	}
 	if (!s->Flag.CrossPlatform)
 	{
-		GXmlTag *t = d->Active.GetChildTag(d->BuildPath(Setting, true, Platform));
+		GXmlTag *t = d->Active.GetChildTag(d->BuildPath(Setting, SF_PLATFORM_SPECIFC, Platform));
 		if (t && t->Content)
 		{
 			Strs.Add(t->Content);
@@ -808,7 +897,7 @@ int IdeProjectSettings::GetInt(ProjSetting Setting, int Default, IdePlatform Pla
 	
 	if (!s->Flag.PlatformSpecific)
 	{
-		GXmlTag *t = d->Active.GetChildTag(d->BuildPath(Setting, false, Platform));
+		GXmlTag *t = d->Active.GetChildTag(d->BuildPath(Setting, 0, Platform));
 		if (t)
 		{
 			Status = t->Content ? atoi(t->Content) : 0;
@@ -816,7 +905,7 @@ int IdeProjectSettings::GetInt(ProjSetting Setting, int Default, IdePlatform Pla
 	}
 	else if (!s->Flag.CrossPlatform)
 	{
-		GXmlTag *t = d->Active.GetChildTag(d->BuildPath(Setting, true, Platform));
+		GXmlTag *t = d->Active.GetChildTag(d->BuildPath(Setting, SF_PLATFORM_SPECIFC, Platform));
 		if (t)
 		{
 			Status = t->Content ? atoi(t->Content) : 0;

@@ -5,12 +5,17 @@
  * Email: fret@memecode.com
  * Created: 16 Sept 2014
  */
-#ifndef _GSTRING_H_
-#define _GSTRING_H_
+#ifndef _GSTRING_CLASS_H_
+#define _GSTRING_CLASS_H_
 
+#ifdef _MSC_VER
+	// This fixes compile errors in VS2008/Gtk
+	#undef _SIGN_DEFINED
+	#undef abs
+#endif
 #include <math.h>
 #ifdef _MSC_VER
-#include <xmath.h>
+	#include <xmath.h>
 #endif
 #include "GUtf8.h"
 

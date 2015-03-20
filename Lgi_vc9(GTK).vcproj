@@ -48,7 +48,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="1"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="include\common;include\linux\gtk;&quot;..\..\..\CodeLib\Gtk\include\gtk-2.0&quot;;&quot;..\..\..\CodeLib\Gtk\include\glib-2.0&quot;;&quot;..\..\..\CodeLib\Gtk\lib\glib-2.0\include&quot;;..\..\..\CodeLib\Gtk\include\cairo;&quot;..\..\..\CodeLib\Gtk\include\pango-1.0&quot;;&quot;..\..\..\CodeLib\Gtk\lib\gtk-2.0\include&quot;;&quot;..\..\..\CodeLib\Gtk\include\atk-1.0&quot;;&quot;..\..\..\CodeLib\libiconv-1.9.1\include&quot;;&quot;..\..\..\CodeLib\gtk\include\gdk-pixbuf-2.0&quot;"
+				AdditionalIncludeDirectories="include\common;include\linux\gtk;&quot;..\..\..\CodeLib\Gtk\include\gtk-2.0&quot;;&quot;..\..\..\CodeLib\Gtk\include\glib-2.0&quot;;&quot;..\..\..\CodeLib\Gtk\lib\glib-2.0\include&quot;;..\..\..\CodeLib\Gtk\include\cairo;&quot;..\..\..\CodeLib\Gtk\include\pango-1.0&quot;;&quot;..\..\..\CodeLib\Gtk\lib\gtk-2.0\include&quot;;&quot;..\..\..\CodeLib\Gtk\include\atk-1.0&quot;;..\..\..\CodeLib\libiconv\include;&quot;..\..\..\CodeLib\gtk\include\gdk-pixbuf-2.0&quot;"
 				PreprocessorDefinitions="NDEBUG;WIN32;WINDOWS;LGI_RES;LGI_LIBRARY"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -144,7 +144,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="include\common;include\linux\gtk;&quot;..\..\..\CodeLib\Gtk\include\gtk-2.0&quot;;&quot;..\..\..\CodeLib\Gtk\include\glib-2.0&quot;;&quot;..\..\..\CodeLib\Gtk\lib\glib-2.0\include&quot;;..\..\..\CodeLib\Gtk\include\cairo;&quot;..\..\..\CodeLib\Gtk\include\pango-1.0&quot;;&quot;..\..\..\CodeLib\Gtk\lib\gtk-2.0\include&quot;;&quot;..\..\..\CodeLib\Gtk\include\atk-1.0&quot;;&quot;..\..\..\CodeLib\libiconv-1.9.1\include&quot;;&quot;..\..\..\CodeLib\gtk\include\gdk-pixbuf-2.0&quot;"
+				AdditionalIncludeDirectories="include\common;include\linux\gtk;&quot;..\..\..\CodeLib\Gtk\include\gtk-2.0&quot;;&quot;..\..\..\CodeLib\Gtk\include\glib-2.0&quot;;&quot;..\..\..\CodeLib\Gtk\lib\glib-2.0\include&quot;;..\..\..\CodeLib\Gtk\include\cairo;&quot;..\..\..\CodeLib\Gtk\include\pango-1.0&quot;;&quot;..\..\..\CodeLib\Gtk\lib\gtk-2.0\include&quot;;&quot;..\..\..\CodeLib\Gtk\include\atk-1.0&quot;;..\..\..\CodeLib\libiconv\include;&quot;..\..\..\CodeLib\gtk\include\gdk-pixbuf-2.0&quot;"
 				PreprocessorDefinitions="LGI_LIBRARY;_DEBUG;WIN32;WINDOWS;LGI_RES"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -578,14 +578,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\common\Widgets\GList.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\include\common\GList.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\common\GListItemCheckBox.h"
 					>
 				</File>
@@ -670,14 +662,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\common\Widgets\GTree.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\include\common\GTree.h"
-					>
-				</File>
-				<File
 					RelativePath=".\src\linux\Lgi\GWidgets.cpp"
 					>
 				</File>
@@ -702,6 +686,34 @@
 					</File>
 					<File
 						RelativePath=".\src\common\Lgi\GCssTools.cpp"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="Item Container"
+					>
+					<File
+						RelativePath=".\src\common\Widgets\GItemContainer.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\include\common\GItemContainer.h"
+						>
+					</File>
+					<File
+						RelativePath=".\src\common\Widgets\GList.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\include\common\GList.h"
+						>
+					</File>
+					<File
+						RelativePath=".\src\common\Widgets\GTree.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\include\common\GTree.h"
 						>
 					</File>
 				</Filter>
@@ -779,6 +791,10 @@
 				</File>
 				<File
 					RelativePath="include\common\GString.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\common\GStringClass.h"
 					>
 				</File>
 				<File

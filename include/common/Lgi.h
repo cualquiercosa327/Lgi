@@ -204,7 +204,7 @@
 #define __LGI_H
 
 /// Library version
-#define LGI_VER								"3.6.0"
+#define LGI_VER								"3.8.0"
 
 /// \brief Define as '1' if Iconv is available else as '0'
 /// \sa http://www.gnu.org/software/libiconv

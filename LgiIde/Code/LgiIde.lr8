@@ -121,6 +121,7 @@
 		<String Ref="120" Cid="2" Define="IDCANCEL" en="Cancel" />
 		<String Ref="121" Cid="121" Define="IDS_121" en="Add" />
 		<String Ref="122" Cid="-1" Define="IDC_STATIC" en="Look for:" />
+		<String Ref="136" Cid="-1" Define="IDC_STATIC" en="Path:" />
 		<String Ref="176" Cid="2" Define="IDCANCEL" en="Cancel" />
 		<String Ref="177" Cid="2" Define="IDCANCEL" en="Cancel" />
 		<String Ref="178" Cid="1" Define="IDOK" en="Save" />
@@ -156,6 +157,8 @@
 		<String Ref="210" Cid="2" Define="IDCANCEL" en="Cancel" />
 		<String Ref="212" Cid="-1" Define="IDC_STATIC" en="Concurrent jobs:" />
 		<String Ref="213" Cid="213" Define="IDC_JOBS" />
+		<String Ref="231" Cid="97" Define="IDC_PATH" />
+		<String Ref="232" Cid="232" Define="IDC_BROWSE" en="..." />
 	</string-group>
 	<style name="General">.fixed {
 	width: 18px;
@@ -546,16 +549,27 @@
 		<TableLayout pos="7,7,636,538" ref="208" cols="0.500,0.500" rows="0.333,0.333,0.333">
 			<tr>
 				<td colspan="2">
-					<TableLayout pos="21,21,461,97" ref="206" cols="0.333,0.333,0.333" rows="1.000">
+					<TableLayout pos="21,21,461,118" ref="206" cols="0.333,0.333,0.333" rows="0.500,0.500">
 						<tr>
 							<td valign="Center">
-								<StaticText pos="7,14,136,34" ref="209" />
+								<StaticText pos="14,7,90,20" ref="136" />
 							</td>
 							<td>
-								<EditBox Pos="142,14,271,34" ref="201" />
+								<EditBox Pos="147,7,272,27" ref="231" />
 							</td>
 							<td>
-								<Button pos="315,14,335,34" ref="202" Enabled="0" />
+								<Button pos="357,7,377,27" ref="232" />
+							</td>
+						</tr>
+						<tr>
+							<td valign="Center">
+								<StaticText pos="7,54,136,74" ref="209" />
+							</td>
+							<td>
+								<EditBox Pos="147,56,272,76" ref="201" />
+							</td>
+							<td>
+								<Button pos="357,56,377,76" ref="202" Enabled="0" />
 							</td>
 						</tr>
 					</TableLayout>

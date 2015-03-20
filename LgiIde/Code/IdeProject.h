@@ -52,6 +52,7 @@ enum ProjSetting
 	ProjDefines,
 	ProjCompiler,
 	ProjIncludePaths,
+	ProjSystemIncludes,
 	ProjLibraries,
 	ProjLibraryPaths,
 	ProjTargetType,

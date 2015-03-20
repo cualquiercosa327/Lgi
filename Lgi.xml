@@ -163,7 +163,7 @@
 			<Node File="./src/common/Lgi/GFontSelect.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Lgi/GInput.cpp" Type="2" Platforms="15" />
 		</Node>
-		<Node Name="Graphics" Type="1" Platforms="15" Open="1">
+		<Node Name="Graphics" Type="1" Platforms="15" Open="0">
 			<Node Name="_Core" Type="1" Platforms="15" Open="1">
 				<Node Name="Haiku" Type="1" Platforms="15" Open="0">
 					<Node File=".\src\beos\Gdc2\Gdc2.cpp" Type="2" Platforms="8" />
@@ -174,14 +174,14 @@
 				<Node Name="Win32" Type="1" Platforms="15" Open="0">
 					<Node File="./src/win32/Gdc2/Gdc2.cpp" Type="2" Platforms="1" />
 				</Node>
-				<Node File="./src/common/Gdc2/GColour.cpp" Type="2" Platforms="15" />
-				<Node File="./include/common/GColour.h" Type="3" Platforms="15" />
-				<Node File="./src/common/Gdc2/Tools/GColourReduce.cpp" Type="2" Platforms="15" />
-				<Node File="./include/common/GColourSpace.h" Type="3" Platforms="15" />
-				<Node File="./include/common/Gdc2.h" Type="3" Platforms="15" />
-				<Node File="./src/common/Gdc2/GdcCommon.cpp" Type="2" Platforms="15" />
-				<Node File="./src/common/Gdc2/Tools/GdcTools.cpp" Type="2" Platforms="15" />
-				<Node File="./include/common/GFilter.h" Type="3" Platforms="15" />
+				<Node File=".\src\common\Gdc2\GColour.cpp" Type="2" Platforms="15" />
+				<Node File=".\include\common\GColour.h" Type="3" Platforms="15" />
+				<Node File=".\src\common\Gdc2\Tools\GColourReduce.cpp" Type="2" Platforms="15" />
+				<Node File=".\include\common\GColourSpace.h" Type="3" Platforms="15" />
+				<Node File=".\include\common\Gdc2.h" Type="3" Platforms="15" />
+				<Node File=".\src\common\Gdc2\GdcCommon.cpp" Type="2" Platforms="15" />
+				<Node File=".\src\common\Gdc2\Tools\GdcTools.cpp" Type="2" Platforms="15" />
+				<Node File=".\include\common\GFilter.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Font" Type="1" Platforms="15" Open="0">
 				<Node File="./src/common/Gdc2/Font/GDisplayString.cpp" Type="2" Platforms="15" />
@@ -214,16 +214,16 @@
 					<Node File="./src/beos/Gdc2/GScreenDC.cpp" Type="2" Platforms="8" />
 				</Node>
 				<Node Name="Linux" Type="1" Platforms="15" Open="1">
-					<Node File="./src/linux/Gtk/GMemDC.cpp" Type="2" Platforms="2" />
-					<Node File="./src/linux/Gtk/GPrintDC.cpp" Type="2" Platforms="2" />
-					<Node File="./src/linux/Gtk/GScreenDC.cpp" Type="2" Platforms="2" />
+					<Node File=".\src\linux\Gtk\GMemDC.cpp" Type="2" Platforms="2" />
+					<Node File=".\src\linux\Gtk\GPrintDC.cpp" Type="2" Platforms="2" />
+					<Node File=".\src\linux\Gtk\GScreenDC.cpp" Type="2" Platforms="2" />
 				</Node>
 				<Node Name="Win32" Type="1" Platforms="15" Open="0">
 					<Node File="./src/win32/Gdc2/GScreenDC.cpp" Type="2" Platforms="1" />
 					<Node File="./src/win32/Gdc2/GPrintDC.cpp" Type="2" Platforms="1" />
 					<Node File="./src/win32/Gdc2/GMemDC.cpp" Type="2" Platforms="1" />
 				</Node>
-				<Node File="./src/common/Gdc2/GSurface.cpp" Type="2" Platforms="15" />
+				<Node File=".\src\common\Gdc2\GSurface.cpp" Type="2" Platforms="15" />
 			</Node>
 			<Node Name="Gdi Leak" Type="1" Platforms="15" Open="0">
 				<Node File="./src/win32/Gdc2/GdiLeak.cpp" Type="2" Platforms="1" />
@@ -380,13 +380,12 @@ WINDOWS</Debug>
 					<Release>WINNATIVE
 WINDOWS</Release>
 				</Windows>
-				<Linux />
 			</Defines>
 			<Compiler>
 				<Windows>MingW</Windows>
 			</Compiler>
 			<Executable>
-				<Linux />
+				<Windows />
 			</Executable>
 			<Arguments>
 				<All />
@@ -473,7 +472,7 @@ textencoding</Release>
 			</TargetName>
 			<LibraryPaths>
 				<All />
-				<Linux />
+				<Windows />
 			</LibraryPaths>
 		</Build>
 		<Editor>
