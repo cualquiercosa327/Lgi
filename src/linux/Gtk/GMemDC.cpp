@@ -237,7 +237,7 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 			Vis = NULL;
 	    }
 	}
-	else if (Vis && Bits == 32)
+	else if (Vis)
 	{
 		int SysVisBits = gdk_visual_get_depth(Vis);
 		if (SysVisBits != Bits)
@@ -298,13 +298,14 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 	ColourSpace = pMem->Cs;
 
 	#if 0
-	printf("GMemDC::Create(%i,%i,%i) gdk_image_new(vis=%i,%i,%i,%i) img(%i,%i,%p) cs=%x\n",
-		x, y, Bits,
-		Vis->depth, Vis->byte_order, Vis->colormap_size, Vis->bits_per_rgb,
-		d->Img->bits_per_pixel,
-		d->Img->bpl,
-		d->Img->mem,
-		ColourSpace);
+	if (Vis && d->Img)
+		printf("GMemDC::Create(%i,%i,%i) gdk_image_new(vis=%i,%i,%i,%i) img(%i,%i,%p) cs=%s\n",
+			x, y, Bits,
+			Vis->depth, Vis->byte_order, Vis->colormap_size, Vis->bits_per_rgb,
+			d->Img->bits_per_pixel,
+			d->Img->bpl,
+			d->Img->mem,
+			GColourSpaceToString(ColourSpace));
 	#endif
 
 	#if 0

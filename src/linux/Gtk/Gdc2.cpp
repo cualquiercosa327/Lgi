@@ -883,6 +883,8 @@ union EndianTest
 	short s;
 };
 
+#define VisualToColourSpaceDebug	0
+
 GColourSpace GdkVisualToColourSpace(Gtk::GdkVisual *v, int output_bits)
 {
 	uint32 c = CsNone;
@@ -894,7 +896,9 @@ GColourSpace GdkVisualToColourSpace(Gtk::GdkVisual *v, int output_bits)
 		Test.b[1] = 0;
 		bool LittleEndian = Test.s == 1;
 		
-		// printf("GdkVisualToColourSpace, Type: %i, LittleEndian=%i\n", v->type, LittleEndian);
+		#if VisualToColourSpaceDebug
+		printf("GdkVisualToColourSpace, Type: %i, LittleEndian=%i\n", v->type, LittleEndian);
+		#endif
 		switch (v->type)
 		{
 			default:
@@ -927,14 +931,14 @@ GColourSpace GdkVisualToColourSpace(Gtk::GdkVisual *v, int output_bits)
 	
 				int bits = GColourSpaceToBits((GColourSpace) c);
 	
-				/*
+				#if VisualToColourSpaceDebug
 				printf("GdkVisualToColourSpace, rgb: %i/%i, %i/%i, %i/%i  bits: %i  output_bits: %i\n",
 					v->red_prec, v->red_shift,
 					v->green_prec, v->green_shift,
 					v->blue_prec, v->blue_shift,
 					bits, output_bits
 					);
-				*/
+				#endif
 				
 				if (bits != output_bits)
 				{
@@ -968,6 +972,9 @@ GColourSpace GdkVisualToColourSpace(Gtk::GdkVisual *v, int output_bits)
 	}
 	
 	Cs = (GColourSpace)c;
+	#if VisualToColourSpaceDebug
+	printf("GdkVisualToColourSpace %x %s\n", Cs, GColourSpaceToString(Cs));
+	#endif
 	return Cs;
 }
 

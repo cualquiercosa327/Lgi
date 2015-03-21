@@ -553,7 +553,9 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 	if (Mem = dynamic_cast<GMemDC*>(Src))
 	{
 		GMemDC Tmp;
-		if (Mem->GetColourSpace() != GetColourSpace())
+		if (Mem->GetColourSpace() != GetColourSpace() &&
+			Mem->GetBits() > 16 &&
+			GetBits() <= 16)
 		{
 			// Do an on the fly colour space conversion... this is slow though
 			if (Tmp.Create(br.SrcClip.X(), br.SrcClip.Y(), GetColourSpace()))

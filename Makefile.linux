@@ -206,8 +206,7 @@ GApp.o : ./src/linux/Lgi/GApp.cpp ./include/common/Lgi.h \
 	./include/win32/GSymLookup.h \
 	./include/linux/GSymLookup.h \
 	./include/common/GToken.h \
-	./include/common/GUtf8.h \
-	/usr/local/include/gtk-2.0/gdk/gdkx.h
+	./include/common/GUtf8.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -246,8 +245,7 @@ GWindow.o : ./src/linux/Lgi/GWindow.cpp ./include/common/Lgi.h \
 
 LgiWidget.o : ./src/linux/Gtk/LgiWidget.cpp ./include/common/Lgi.h \
 	./include/common/GDragAndDrop.h \
-	./include/linux/Gtk/LgiWidget.h \
-	/usr/local/include/gtk-2.0/gdk/gdkkeysyms.h
+	./include/linux/Gtk/LgiWidget.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -294,8 +292,7 @@ GContainers.o : ./src/common/General/GContainers.cpp ./include/common/GMem.h \
 GMenuGtk.o : ./src/linux/Lgi/GMenuGtk.cpp ./include/common/Lgi.h \
 	./include/common/GUtf8.h \
 	./include/common/GToken.h \
-	./include/common/GDisplayString.h \
-	/usr/local/include/gtk-2.0/gdk/gdkkeysyms-compat.h
+	./include/common/GDisplayString.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -2105,8 +2102,7 @@ md5.o : ./src/common/Hash/md5/md5.c
 	/usr/include/glib-2.0/gio/gfileinfo.h
 
 ./include/linux/Gtk/LgiOsDefs.h : ./include/common/LgiDefs.h \
-	./include/common/LgiInc.h \
-	/usr/local/include/gtk-2.0/gtk/gtk.h
+	./include/common/LgiInc.h
 
 ./include/common/GDataDlg.h : ./include/common/GProperties.h \
 	./include/common/GScrollBar.h \
@@ -2777,8 +2773,7 @@ md5.o : ./src/common/Hash/md5/md5.c
 ../../../../../usr/local/include/gtk-2.0/gtk/gtktypebuiltins.h : /usr/include/glib-2.0/glib-object.h
 
 ./include/linux/Gtk/LgiOsDefs.h : ./include/common/LgiDefs.h \
-	./include/common/LgiInc.h \
-	/usr/local/include/gtk-2.0/gtk/gtk.h
+	./include/common/LgiInc.h
 
 ../../../../../usr/local/include/gtk-2.0/gtk/gtkpaned.h : /usr/local/include/gtk-2.0/gtk/gtkcontainer.h
 
