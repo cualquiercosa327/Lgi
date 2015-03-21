@@ -272,7 +272,7 @@ public:
 			const char *s = Get(), *Prev = s;
 			int SepLen = strlen(Sep);
 			
-			while (s = CaseSen ? strstr(s, Sep) : stristr(s, Sep))
+			while ((s = CaseSen ? strstr(s, Sep) : stristr(s, Sep)))
 			{
 				a.New().Set(Prev, s - Prev);
 				s += SepLen;
@@ -424,14 +424,14 @@ public:
 		char *found, *prev = NULL;
 		int str_len = strlen(needle);
 		while
-		(
+		((
 			found =
 			(
 				(end > 0) ?
 				strnstr(c, needle, end - start) :
 				strstr(c, needle)
 			)
-		)
+		))
 		{
 			prev = found;
 			c = found + str_len;

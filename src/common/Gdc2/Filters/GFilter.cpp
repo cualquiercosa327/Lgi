@@ -167,7 +167,7 @@ public:
 		int64 Start = f.GetPos();
 		
 		#define Rd(var) if (f.Read(&var, sizeof(var)) != sizeof(var)) \
-			{ printf("Bmp.Read(%i) failed\n", sizeof(var)); return false; }
+			{ printf("Bmp.Read(%i) failed\n", (int)sizeof(var)); return false; }
 		Rd(Size);
 		Rd(Sx);
 		Rd(Sy);

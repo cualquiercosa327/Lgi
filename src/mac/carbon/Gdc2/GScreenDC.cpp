@@ -15,9 +15,13 @@ public:
 	GArray<GRect> Stack;
 	COLOUR Cur;
 	int Bits;
+	int Op;
+	NativeInt ConstAlpha;
 	
 	GScreenPrivate()
 	{
+		Op = GDC_SET;
+		ConstAlpha = 255;
 		Wnd = 0;
 		Bits = GdcD->GetBits();
 		Cur = Rgb32(0, 0, 0);
@@ -279,10 +283,12 @@ COLOUR GScreenDC::Colour(COLOUR c, int Bits)
 	return Prev;
 }
 
-int GScreenDC::Op(int Op)
+int GScreenDC::Op(int op, NativeInt Param)
 {
-	int Prev = GDC_SET;
-	return Prev;
+	int Old = d->Op;
+	d->Op = op;
+	d->ConstAlpha = Param;
+	return Old;
 }
 
 COLOUR GScreenDC::Colour()
@@ -292,7 +298,7 @@ COLOUR GScreenDC::Colour()
 
 int GScreenDC::Op()
 {
-	return GDC_SET;
+	return d->Op;
 }
 
 int GScreenDC::X()
@@ -525,7 +531,14 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 						r.size.height = b.Y();
 						CGImageRef Img = *i;
 						
+						bool HasConstAlpha = d->ConstAlpha >= 0 && d->ConstAlpha <= 255;
+						if (HasConstAlpha)
+							CGContextSetAlpha(d->Ctx, d->ConstAlpha / 255.0);
+					 
 						HIViewDrawCGImage(d->Ctx, &r, Img);
+
+						if (HasConstAlpha)
+							CGContextSetAlpha(d->Ctx, 1.0);
 						
 						DeleteObj(i);
 					}

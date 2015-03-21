@@ -71,7 +71,7 @@ protected:
 	#if defined(POSIX)
 	pid_t ChildPid;
 	Pipe Io;
-	uint32 ExitValue;
+	int ExitValue; // was uint32
 	bool Dupe(PipeHandle Old, PipeHandle New);
 	#elif defined(WIN32)
 	DWORD ChildPid;

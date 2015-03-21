@@ -1384,6 +1384,10 @@ GApplicator *GSurface::CreateApplicator(int Op, GColourSpace Cs)
 				LgiAssert(!"Memory context has no colour space...");
 			}
 		}
+		else if (IsScreen())
+		{
+			Cs = GdcD->GetColourSpace();
+		}
 		else
 		{
 			LgiAssert(!"No memory context to read colour space from.");
@@ -1391,7 +1395,7 @@ GApplicator *GSurface::CreateApplicator(int Op, GColourSpace Cs)
 	}
 	
 	pA = GApplicatorFactory::NewApp(Cs, Op);
-	if (pA && pMem)
+	if (pA)
 	{
 		if (DrawOnAlpha())
 		{
@@ -1542,7 +1546,7 @@ COLOUR GSurface::Colour(COLOUR c, int Bits)
 	return Prev.c32();
 }
 
-int GSurface::Op(int NewOp)
+int GSurface::Op(int NewOp, NativeInt Param)
 {
 	int PrevOp = (pApp) ? pApp->GetOp() : GDC_SET;
 	if (!pApp || PrevOp != NewOp)
@@ -1570,6 +1574,8 @@ int GSurface::Op(int NewOp)
 		if (pApp)
 		{
 			Colour(cCurrent);
+			if (Param >= 0)
+				pApp->SetVar(GAPP_ALPHA_A, Param);
 		}
 		else
 		{

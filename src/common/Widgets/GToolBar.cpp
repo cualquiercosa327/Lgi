@@ -266,9 +266,11 @@ void GImageList::Draw(GSurface *pDC, int Dx, int Dy, int Image, GColour Backgrou
 		pDC->Colour(Background);
 		pDC->Rectangle(&rDst);
 		*/
-		int Old = pDC->Op(GDC_ALPHA);
+
+		int Old = pDC->Op(GDC_ALPHA, Disabled ? 40 : -1);
 		pDC->Blt(Dx, Dy, this, &rSrc);
 		pDC->Op(Old);
+
 		/*
 		printf("SupportsAlphaCompositing cache %s->%s\n",
 			GColourSpaceToString(GetColourSpace()),

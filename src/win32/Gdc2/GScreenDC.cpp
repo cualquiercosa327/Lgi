@@ -714,7 +714,6 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 			case GDC_ALPHA:
 			{
 				if (GdcD->AlphaBlend &&
-					// GdcD->GetBits() > 8 &&
 					Src->GetBits() == 32)
 				{
 					HDC hDestDC = StartDC();

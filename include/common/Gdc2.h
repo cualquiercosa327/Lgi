@@ -269,7 +269,7 @@ public:
 	GColourSpace GetColourSpace() { return Dest ? Dest->Cs : CsNone; }
 
 	/// Sets the operator
-	void SetOp(int o) { Op = o; }
+	void SetOp(int o, int Param = -1) { Op = o; }
 	/// Gets the operator
 	int GetOp() { return Op; }
 	/// Gets the bit depth
@@ -479,10 +479,10 @@ public:
 		GColour c
 	);
 	/// Gets the current blending mode in operation
-	virtual int Op() { return (pApp) ? pApp->GetOp() : 0; }
+	virtual int Op() { return (pApp) ? pApp->GetOp() : GDC_SET; }
 	/// Sets the current blending mode in operation
 	/// \sa GDC_SET, GDC_AND, GDC_OR, GDC_XOR and GDC_ALPHA
-	virtual int Op(int Op);
+	virtual int Op(int Op, NativeInt Param = -1);
 	/// Gets the width in pixels
 	virtual int X() { return (pMem) ? pMem->x : 0; }
 	/// Gets the height in pixels
@@ -701,7 +701,7 @@ public:
 	GColour Colour(GColour c);
 
 	int Op();
-	int Op(int Op);
+	int Op(int Op, NativeInt Param = -1);
 
 	int X();
 	int Y();

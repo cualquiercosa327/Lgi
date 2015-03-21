@@ -28,5 +28,18 @@
          landmarkName = "GLocalFS::ListElements()"
          landmarkType = "5">
       </FileBreakpoint>
+      <FileBreakpoint
+         shouldBeEnabled = "Yes"
+         ignoreCount = "0"
+         continueAfterRunningActions = "No"
+         filePath = "../../src/common/Gdc2/GSurface.cpp"
+         timestampString = "448670486.811845"
+         startingColumnNumber = "9223372036854775807"
+         endingColumnNumber = "9223372036854775807"
+         startingLineNumber = "1412"
+         endingLineNumber = "1412"
+         landmarkName = "GSurface::CreateApplicator(int Op, GColourSpace Cs)"
+         landmarkType = "5">
+      </FileBreakpoint>
    </FileBreakpoints>
 </Bucket>
