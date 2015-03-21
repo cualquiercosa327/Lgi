@@ -718,20 +718,56 @@ char *GWindow::Name()
 	return GBase::Name();
 }
 
+struct CallbackParams
+{
+	GRect Menu;
+	int Depth;
+	
+	CallbackParams()
+	{
+		Menu.ZOff(-1, -1);
+		Depth = 0;
+	}
+};
+
+void ClientCallback(GtkWidget *w, CallbackParams *p)
+{
+	/*
+	printf("%.*sCallback %s\n",
+		p->Depth,
+		"                                         ", gtk_widget_get_name(w));
+	*/
+	const char *Name = gtk_widget_get_name(w);
+	if (Name && !_stricmp(Name, "GtkMenuBar"))
+	{
+		GtkRequisition alloc;
+		gtk_widget_size_request(w, &alloc);
+		p->Menu.ZOff(alloc.width-1, alloc.height-1);
+	}
+	
+	if (!p->Menu.Valid())
+	{
+		p->Depth++;
+		if (GTK_IS_CONTAINER(w))
+			gtk_container_forall(GTK_CONTAINER(w), ClientCallback, p);
+		p->Depth--;
+	}
+}
+
 GRect &GWindow::GetClient(bool ClientSpace)
 {
 	static GRect r;
-	
 	r = GView::GetClient(ClientSpace);
-	/*
-	if (Menu &&
-		Menu->Handle())
+	if (Wnd)
 	{
-		GRect p = Menu->GetPos();
-		r.y1 = p.y2 + 1;
+		CallbackParams p;
+		gtk_container_forall(GTK_CONTAINER(Wnd), ClientCallback, &p);
+		if (p.Menu.Valid())
+		{
+			// printf("MenuSize=%s\n", p.Menu.GetStr());
+			r.y2 -= p.Menu.Y();
+		}
 	}
-	*/
-	
 	return r;
 }
 
@@ -878,24 +914,6 @@ void GWindow::Pour()
 	GRegion Client(GetClient());
 	GViewI *MenuView = 0;
 
-	/*
-	if (Menu &&
-		Menu->Handle() &&
-		Menu->Handle()->View())
-	{
-		MenuView = Menu->Handle()->View();
-		MenuView->Pour(Client);
-		
-		GRect *r = &MenuView->GetPos();
-		Client.Subtract(r);
-		// printf("Menu=%p MenuPos=%s\n", MenuView, r->GetStr());
-	}
-	else if (Menu)
-	{
-		printf("%s:%i - Menu has no view!\n", __FILE__, __LINE__);
-	}
-	*/
-	
 	GRegion Update(Client);
 	bool HasTools = false;
 	GViewI *v;

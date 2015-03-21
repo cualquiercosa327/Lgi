@@ -118,7 +118,7 @@ class GdcBmpFactory : public GFilterFactory
 
 class BMP_FILE {
 public:
-	uint16		Type;
+	char		Type[2];
 	uint32		Size;
 	uint16		Reserved1;
 	uint16		Reserved2;
@@ -166,7 +166,8 @@ public:
 		ZeroObj(*this);
 		int64 Start = f.GetPos();
 		
-		#define Rd(var) if (f.Read(&var, sizeof(var)) != sizeof(var)) return false;
+		#define Rd(var) if (f.Read(&var, sizeof(var)) != sizeof(var)) \
+			{ printf("Bmp.Read(%i) failed\n", sizeof(var)); return false; }
 		Rd(Size);
 		Rd(Sx);
 		Rd(Sy);
@@ -214,6 +215,7 @@ public:
 
 		int64 End = f.GetPos();
 		int64 Bytes = End - Start;
+		printf("Bmp.Bytes=%i\n", (int)Bytes);
 		return Bytes >= 12;
 	}
 };
@@ -270,16 +272,29 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 	Read(In, &File.Reserved2, sizeof(File.Reserved2));
 	Read(In, &File.OffsetToData, sizeof(File.OffsetToData));
 
-	if (!Info.Read(*In))
-		return GFilter::IoError;
+	printf("Bmp.Read pos=%i\n", (int)In->GetPos());
 
-	if (File.Type != BMP_ID)
+	if (!Info.Read(*In))
+	{
+		printf("%s:%i - BmpHdr read failed.\n", _FL);
+		return GFilter::IoError;
+	}
+
+	printf("Bmp.Read pos=%i\n", (int)In->GetPos());
+
+	if (File.Type[0] != 'B' || File.Type[1] != 'M')
+	{
+		printf("%s:%i - Bmp file id failed: '%.2s'.\n", _FL, File.Type);
 		return GFilter::IoUnsupportedFormat;
+	}
 
 	ActualBits = Info.Bits;
 	ScanSize = BMPWIDTH(Info.Sx * Info.Bits);
 	if (!pDC->Create(Info.Sx, Info.Sy, max(Info.Bits, 8), ScanSize))
+	{
+		printf("%s:%i - MemDC(%i,%i,%i) failed.\n", _FL, Info.Sx, Info.Sy, max(Info.Bits, 8));
 		return GFilter::IoError;
+	}
 
 	if (pDC->GetBits() <= 8)
 	{
@@ -521,6 +536,8 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 			}
 			default:
 			{
+				printf("Bmp.Read pos=%i\n", (int)In->GetPos());
+
 				GColourSpace DstCs = pDC->GetColourSpace();
 				for (int i=pMem->y-1; i>=0; i--)
 				{
@@ -529,30 +546,12 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 					if (r != ScanSize)
 					{
 						Status = IoError;
+						printf("%s:%i - Bmp read err, wanted %i, got %i.\n", _FL, ScanSize, r);
 						break;
 					}
 					
 					if (DstCs != SrcCs)
 					{
-						/*
-						if (SrcCs == CsArgb15)
-						{
-							uint16 *p = (uint16*)Ptr;
-							uint16 *e = p + pMem->x;
-							while (p < e)
-							{
-								*p = LgiSwap16(*p);
-								p++;
-							}
-						}
-						*/
-						
-						if (Ptr == pMem->Base)
-						{
-							GArgb15 *s = (GArgb15*)Ptr;
-							int asd=0;
-						}
-						
 						if (!LgiRopRgb(Ptr, DstCs, Ptr, SrcCs, pMem->x))
 						{
 							Status = IoUnsupportedFormat;
@@ -574,6 +573,22 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 	pDC->Update(GDC_BITS_CHANGE|GDC_PAL_CHANGE);
 	
 	return Status;
+}
+
+template<typename T>
+int SwapWrite(GStream *Out, T v)
+{
+	#if 0 // __ORDER_BIG_ENDIAN__
+	uint8 *s = (uint8*)&v;
+	uint8 *e = s + sizeof(v) - 1;
+	while (s < e)
+	{
+		uint8 tmp = *s;
+		*s++ = *e;
+		*e-- = tmp;
+	}
+	#endif
+	return Out->Write(&v, sizeof(v));
 }
 
 GFilter::IoStatus GdcBmp::WriteImage(GStream *Out, GSurface *pDC)
@@ -614,14 +629,15 @@ GFilter::IoStatus GdcBmp::WriteImage(GStream *Out, GSurface *pDC)
 
 	Out->SetSize(0);
 
-	#define Wr(var) Out->Write(&var, sizeof(var))
+	#define Wr(var) SwapWrite(Out, var)
 
 	Info.Compression = UsedBits == 16 || UsedBits == 32 ? BI_BITFIELDS : BI_RGB;
 	int BitFieldSize = Info.Compression == BI_BITFIELDS ? 16 : 0;
 	Info.Size = 40 + BitFieldSize;
 
-	File.Type = BMP_ID;
-	File.OffsetToData = sizeof(BMP_FILE) + Info.Size;
+	File.Type[0] = 'B';
+	File.Type[1] = 'M';
+	File.OffsetToData = 14 + Info.Size;
 	File.Size = File.OffsetToData + (abs(pMem->Line) * pMem->y);
 	File.Reserved1 = 0;
 	File.Reserved2 = 0;
@@ -636,13 +652,15 @@ GFilter::IoStatus GdcBmp::WriteImage(GStream *Out, GSurface *pDC)
 	Info.ColoursUsed = Colours;
 	Info.ColourImportant = Colours;
 
-	bool Written =	Wr(File.Type) &&
+	bool Written =	Out->Write(File.Type, 2) &&
 					Wr(File.Size) &&
 					Wr(File.Reserved1) &&
 					Wr(File.Reserved2) &&
-					Wr(File.OffsetToData) &&
+					Wr(File.OffsetToData);
+
+	printf("Bmp.Write pos=%i File.OffsetToData=%i\n", (int)Out->GetPos(), File.OffsetToData);
 					
-					Wr(Info.Size) &&
+	Written =		Wr(Info.Size) &&
 					Wr(Info.Sx) &&
 					Wr(Info.Sy) &&
 					Wr(Info.Planes) &&
@@ -653,6 +671,8 @@ GFilter::IoStatus GdcBmp::WriteImage(GStream *Out, GSurface *pDC)
 					Wr(Info.YPels) &&
 					Wr(Info.ColoursUsed) &&
 					Wr(Info.ColourImportant);
+
+	printf("Bmp.Write pos=%i\n", (int)Out->GetPos());
 
 	if (Written)
 	{
@@ -780,6 +800,9 @@ GFilter::IoStatus GdcBmp::WriteImage(GStream *Out, GSurface *pDC)
 					px[2].b = 0xff;
 					Out->Write(px, sizeof(px));
 				}
+
+				printf("Bmp.Write pos=%i\n", (int)Out->GetPos());
+
 				
 				for (int i=pMem->y-1; i>=0; i--)
 				{
