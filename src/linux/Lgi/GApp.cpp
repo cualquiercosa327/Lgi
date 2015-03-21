@@ -142,7 +142,7 @@ public:
 
 #endif
 
-#ifdef XWIN
+#if 1
 /////////////////////////////////////////////////////////////////////////////
 //
 // Attempts to cleanup and call drkonqi to process the crash
@@ -152,47 +152,12 @@ void LgiCrashHandler(int Sig)
 	// Don't get into an infinite loop
    	signal(SIGSEGV, SIG_DFL);
 
-	/*
+	#if 1
 	// Our pid
 	int MyPid = getpid();	
 	printf("LgiCrashHandler trigger MyPid=%i\n", MyPid);
-
-	// Fork to run the crash handler
-	pid_t Pid = fork();
-	if (Pid <= 0)
-	{
-		// Pass our state down to the crash handler...
-		XObject o;
-		int Args = 0;
-		char *Arg[32];
-		char SigName[16], PidName[16];
-		ZeroObj(Arg);
-
-		sprintf(SigName, "%i", Sig);	
-		sprintf(PidName, "%i", MyPid);
-
-		Arg[Args++] = "drkonqi";
-		Arg[Args++] = "--display";
-		Arg[Args++] = XDisplayString(o.XDisplay());
-		Arg[Args++] = "--appname";
-        Arg[Args++] = LgiApp->AppWnd ? LgiApp->AppWnd->Name() : (char*)"Lgi";
-        Arg[Args++] = "--signal";
-        Arg[Args++] = SigName;
-        Arg[Args++] = "--pid";
-        Arg[Args++] = PidName;
-        
-		setgid(getgid());
-		setuid(getuid());
-
-		execvp("drkonqi", Arg);
-	}
-	else
-	{
-		// Wait for child to exit
-		waitpid(Pid, NULL, 0);
-		_exit(253);
-	}
-	*/
+	exit(-1);
+	#endif
 }
 #endif
 
@@ -327,7 +292,7 @@ GApp::GApp(OsAppArguments &AppArgs, const char *name, GAppArguments *Args) :
 
 	MouseHook = new GMouseHook;
 
-	#if defined XWIN
+	#if 1
 	// Setup the SIGSEGV signal to call the KDE crash handler
 	if (!GetOption("nch") &&
 		LgiGetWindowManager() == WM_Kde)

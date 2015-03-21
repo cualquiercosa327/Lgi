@@ -157,17 +157,11 @@ public:
 
 		if (!Icons)
 		{
-			GSurface *pDC = FileSelectIcons.Create();
-			if (pDC)
-			{
-				Icons = new GImageList(16, 16, pDC);
-				if (Icons)
-				{
-					#if WINNATIVE
-					Icons->Create(pDC->X(), pDC->Y(), pDC->GetBits());
-					#endif
-				}
-			}
+			Icons = new GImageList(16, 16, FileSelectIcons.Create(0xF81F));
+			#if WINNATIVE
+			if (Icons)
+				Icons->Create(pDC->X(), pDC->Y(), pDC->GetBits());
+			#endif
 		}
 	}
 
@@ -258,7 +252,7 @@ public:
 			#endif
 		}
 
-		Icons->Draw(pDC, c.x1+x+Down, c.y1+y+Down, Icon, Background, Enabled() ? 0 : IMGLST_DISABLED);
+		Icons->Draw(pDC, c.x1+x+Down, c.y1+y+Down, Icon, Background, !Enabled());
 	}
 
 	void OnFocus(bool f)

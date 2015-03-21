@@ -458,16 +458,36 @@ void GRop24To32(DstPx *dst, SrcPx *src, int px)
 	register SrcPx *s = src;
 	register int Px = px;
 
-	OverlapCheck()
-
-	while (Px--)
+	if (IsOverlapping())
 	{
-		d->r = s->r;
-		d->g = s->g;
-		d->b = s->b;
-		d->a = 255;
-		s++;
-		d++;
+		register uint8 r, g, b;
+		d += px - 1;
+		s += px - 1;
+		
+		while (Px--)
+		{
+			r = s->r;
+			g = s->g;
+			b = s->b;
+			d->r = r;
+			d->g = g;
+			d->b = b;
+			d->a = 255;
+			s--;
+			d--;
+		}
+	}
+	else
+	{
+		while (Px--)
+		{
+			d->r = s->r;
+			d->g = s->g;
+			d->b = s->b;
+			d->a = 255;
+			s++;
+			d++;
+		}
 	}
 }
 

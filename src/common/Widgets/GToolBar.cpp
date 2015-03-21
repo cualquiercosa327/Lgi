@@ -217,6 +217,11 @@ GImageList::GImageList(int x, int y, GSurface *pDC)
 				}
 			}
 		}
+		
+		static int Idx = 0;
+		char s[256];
+		sprintf_s(s, sizeof(s), "imglst_%i.bmp", Idx++);
+		WriteDC(s, this);
 	}
 }
 
@@ -262,6 +267,11 @@ void GImageList::Draw(GSurface *pDC, int Dx, int Dy, int Image, GColour Backgrou
 		int Old = pDC->Op(GDC_ALPHA);
 		pDC->Blt(Dx, Dy, this, &rSrc);
 		pDC->Op(Old);
+		/*
+		printf("SupportsAlphaCompositing cache %s->%s\n",
+			GColourSpaceToString(GetColourSpace()),
+			GColourSpaceToString(pDC->GetColourSpace()));
+		*/
 	}
 	else
 	{
@@ -275,6 +285,11 @@ void GImageList::Draw(GSurface *pDC, int Dx, int Dy, int Image, GColour Backgrou
 			if (pApp)
 				pApp->SetVar(GAPP_ALPHA_A, Disabled ? 40 : 255);
 
+			/*
+			printf("Creating cache %s->%s\n",
+				GColourSpaceToString(GetColourSpace()),
+				GColourSpaceToString(Cache->GetColourSpace()));
+			*/
 			Cache->Blt(rSrc.x1, rSrc.y1, this, &rSrc);
 		}	
 		

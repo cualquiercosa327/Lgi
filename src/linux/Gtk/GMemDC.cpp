@@ -74,6 +74,9 @@ GMemDC::~GMemDC()
 
 cairo_surface_t *GMemDC::GetSurface(GRect &r)
 {
+	if (!d->Img)
+		return NULL;
+
 	cairo_format_t fmt = CAIRO_FORMAT_ARGB32;
 	switch (d->Img->depth)
 	{
@@ -99,20 +102,42 @@ cairo_t *GMemDC::GetCairo()
 	if (!Cairo)
 	{
 		cairo_format_t fmt = CAIRO_FORMAT_ARGB32;
-		switch (d->Img->depth)
+		int bits;
+		if (d->Img)
+			bits = d->Img->depth;
+		else if (pMem)
+			bits = GColourSpaceToBits(pMem->Cs);
+		else
+			return NULL;
+
+		switch (bits)
 		{
 			case 8: fmt = CAIRO_FORMAT_A8; break;
 			case 16: fmt = CAIRO_FORMAT_RGB16_565; break;
 			case 24: fmt = CAIRO_FORMAT_RGB24; break;
 			case 32: fmt = CAIRO_FORMAT_ARGB32; break;
 			default:
-				printf("%s:%i - '%i' bit depth that cairo supports\n", _FL, d->Img->depth);
-				return 0;
+				printf("%s:%i - '%i' bit depth that cairo supports\n", _FL, bits);
+				return NULL;
 		}
 
 		if (!d->Surface)
 		{
-			d->Surface = cairo_image_surface_create_for_data((uchar*)d->Img->mem, fmt, d->Img->width, d->Img->height, d->Img->bpl);
+			if (d->Img)
+			{
+				d->Surface = cairo_image_surface_create_for_data((uchar*)d->Img->mem,
+																fmt,
+																d->Img->width, d->Img->height,
+																d->Img->bpl);
+			}
+			else if (pMem)
+			{
+				d->Surface = cairo_image_surface_create_for_data((uchar*)pMem->Base,
+																fmt,
+																pMem->x, pMem->y,
+																pMem->Line);
+			}
+			else return NULL;
 			LgiAssert(d->Surface);
 		}
 
@@ -215,11 +240,9 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 	else if (Vis && Bits == 32)
 	{
 		int SysVisBits = gdk_visual_get_depth(Vis);
-		// printf("SysVisBits=%i\n", SysVisBits);
 		if (SysVisBits != Bits)
 		{
 			GdkVisual *Vis32 = gdk_visual_get_best_with_depth(Bits);
-			// printf("Vis32=%p\n", Vis32);
 			if (Vis32)
 				Vis = Vis32;
 			else
@@ -233,6 +256,15 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 								Vis,
 								x,
 								y);
+		if (d->Img)
+		{
+			int ImgDepth = gdk_image_get_depth(d->Img);
+			if (Bits != ImgDepth)
+			{
+				printf("%s:%i - GMemDC::Create bit depth different %i -> %i\n",
+						_FL, Bits, ImgDepth);
+			}
+		}
 	}
 	else
 	{

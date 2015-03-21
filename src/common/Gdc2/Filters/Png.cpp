@@ -692,8 +692,6 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 					int ScanLen = Lib->png_get_image_width(png_ptr, info_ptr) * ActualBits / 8;
 
 					GColourSpace OutCs = pDC->GetColourSpace();
-					printf("Png read %i->%s\n", RequestBits, GColourSpaceToString(OutCs));
-
 					for (int y=0; y<pDC->Y(); y++)
 					{
 						uchar *Scan = (*pDC)[y];

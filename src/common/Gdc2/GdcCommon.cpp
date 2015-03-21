@@ -856,7 +856,7 @@ GColourSpace GBitsToColourSpace(int Bits)
 GSurface *GInlineBmp::Create(uint32 TransparentPx)
 {
 	GSurface *pDC = new GMemDC;
-	if (pDC->Create(X, Y, 32))
+	if (pDC->Create(X, Y, System32BitColourSpace))
 	{
 		int Line = X * Bits / 8;
 		for (int y=0; y<Y; y++)
