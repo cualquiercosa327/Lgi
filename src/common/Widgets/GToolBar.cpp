@@ -258,12 +258,14 @@ void GImageList::Draw(GSurface *pDC, int Dx, int Dy, int Image, GColour Backgrou
 	
 	if (pDC->SupportsAlphaCompositing())
 	{
+		/*
 		GRect rDst;
 		rDst.ZOff(d->Sx-1, d->Sy-1);
 		rDst.Offset(Dx, Dy);
 
 		pDC->Colour(Background);
 		pDC->Rectangle(&rDst);
+		*/
 		int Old = pDC->Op(GDC_ALPHA);
 		pDC->Blt(Dx, Dy, this, &rSrc);
 		pDC->Op(Old);
@@ -906,11 +908,17 @@ void GToolButton::OnPaint(GSurface *pDC)
 				if (Par->d->ImgList)
 				{
 					// Draw cached
-					Par->_DrawFromCache(pDC, IconPos.x1, IconPos.y1, ImgIndex, Over, !e);
+					GColour Background(Over ? ToolBarHilightColour : LC_MED, 24);
+					if (pDC->SupportsAlphaCompositing())
+					{
+						pDC->Colour(Background);
+						pDC->Rectangle(&IconPos);
+					}
+					Par->d->ImgList->Draw(pDC, IconPos.x1, IconPos.y1, ImgIndex, Background, !e);
 					Unpainted.Subtract(&IconPos);
 
 					// Fill in the rest of the area
-					pDC->Colour(Background, 24);
+					pDC->Colour(Background);
 					for (GRect *r = Unpainted.First(); r; r = Unpainted.Next())
 					{
 						pDC->Rectangle(r);
@@ -931,7 +939,6 @@ void GToolButton::OnPaint(GSurface *pDC)
 				pDC->Colour(LC_MED, 24);
 				pDC->Rectangle(&p);
 			}
-			
 
 			// Text
 			if (Par->d->Text &&
@@ -1413,79 +1420,6 @@ GFont *GToolBar::GetFont()
 	return d->Font;
 }
 
-void GToolBar::_BuildCache(GImageList *From)
-{
-	/*
-	if (!From)
-	{
-		LgiAssert(0);
-		return;
-	}
-
-	d->IconCache.Reset(new GMemDC);
-	
-	GColourSpace CacheCs = System32BitColourSpace;
-	#ifdef LINUX
-	if (GdcD->GetBits() == 16)
-	{
-		CacheCs = GdcD->GetColourSpace();
-	}
-	#endif
-	
-	if (!d->IconCache->Create(From->X(), From->Y() * 3, CacheCs))
-	{
-		LgiAssert(!"Can't create bitmap.");
-		return;
-	}
-
-	GColour Background(LC_MED, 24), HilightColour(ToolBarHilightColour, 24);
-	d->IconCache->Colour(Background);
-	d->IconCache->Rectangle();
-	d->IconCache->Colour(HilightColour);
-	d->IconCache->Rectangle(0, IconHilight * From->Y(), d->IconCache->X()-1, (IconHilight + 1) * From->Y() - 1);
-
-	d->IconCache->Op(GDC_ALPHA);
-	GApplicator *pApp = d->IconCache->Applicator();
-	for (int i=0; i<From->GetItems(); i++)
-	{
-		if (pApp)
-			pApp->SetVar(GAPP_ALPHA_A, 255);
-		From->Draw(d->IconCache, i * From->TileX(), 0, i, Background);
-		From->Draw(d->IconCache, i * From->TileX(), From->TileY(), i, HilightColour);
-
-		if (pApp)
-			pApp->SetVar(GAPP_ALPHA_A, 40);
-		From->Draw(d->IconCache, i * From->TileX(), From->TileY() * 2, i, Background);
-	}
-	*/
-}
-
-void GToolBar::_DrawFromCache(GSurface *pDC, int x, int y, int Index, bool Hilight, bool Disabled)
-{
-	if (pDC /*&& d->IconCache*/)
-	{
-		/*
-		GRect s;
-		int YOffset =	(Hilight && !Disabled ? 1 : 0)
-						+
-						(Disabled ? 2 : 0);
-		
-		s.ZOff(d->ImgList->TileX()-1, d->ImgList->TileY()-1);
-		s.Offset
-		(
-			d->ImgList->TileX() * Index,
-			d->ImgList->TileY() * YOffset
-		);
-
-		// printf("DrawFromCache %i, hi=%i, dis=%i, off=%i, s=%s\n", Index, Hilight, Disabled, YOffset, s.GetStr());
-		pDC->Blt(x, y, d->IconCache, &s);
-		*/
-		
-		GColour Background(LC_MED, 24), HilightColour(ToolBarHilightColour, 24);
-		d->ImgList->Draw(pDC, x, y, Index, Hilight ? HilightColour : Background, Disabled);
-	}
-}
-
 bool GToolBar::Pour(GRegion &r)
 {
 	int PosX = BORDER_SPACER;
@@ -1746,7 +1680,6 @@ bool GToolBar::SetDC(GSurface *pNewDC, int bx, int by)
 		if (d->ImgList)
 		{
 			d->OwnImgList = true;
-			_BuildCache(d->ImgList);
 			return true;
 		}
 	}
@@ -1761,15 +1694,12 @@ GImageList *GToolBar::GetImageList()
 bool GToolBar::SetImageList(GImageList *l, int bx, int by, bool Own)
 {
 	if (d->OwnImgList)
-	{
 		DeleteObj(d->ImgList);
-	}
+
 	d->OwnImgList = Own;
 	d->Bx = bx;
 	d->By = by;
-
 	d->ImgList = l;
-	_BuildCache(d->ImgList);
 
 	return d->ImgList != 0;
 }
