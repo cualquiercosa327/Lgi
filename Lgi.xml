@@ -163,26 +163,26 @@
 			<Node File="./src/common/Lgi/GFontSelect.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Lgi/GInput.cpp" Type="2" Platforms="15" />
 		</Node>
-		<Node Name="Graphics" Type="1" Platforms="15" Open="1">
+		<Node Name="Graphics" Type="1" Platforms="15" Open="0">
 			<Node Name="_Core" Type="1" Platforms="15" Open="1">
 				<Node Name="Haiku" Type="1" Platforms="15" Open="0">
 					<Node File=".\src\beos\Gdc2\Gdc2.cpp" Type="2" Platforms="8" />
 				</Node>
 				<Node Name="Linux" Type="1" Platforms="15" Open="1">
-					<Node File="./src/linux/Gtk/Gdc2.cpp" Type="2" Platforms="2" />
+					<Node File=".\src\linux\Gtk\Gdc2.cpp" Type="2" Platforms="2" />
 				</Node>
 				<Node Name="Win32" Type="1" Platforms="15" Open="0">
 					<Node File="./src/win32/Gdc2/Gdc2.cpp" Type="2" Platforms="1" />
 				</Node>
-				<Node File="./src/common/Gdc2/GColour.cpp" Type="2" Platforms="15" />
-				<Node File="./include/common/GColour.h" Type="3" Platforms="15" />
-				<Node File="./src/common/Gdc2/Tools/GColourReduce.cpp" Type="2" Platforms="15" />
-				<Node File="./include/common/GColourSpace.h" Type="3" Platforms="15" />
-				<Node File="./include/common/Gdc2.h" Type="3" Platforms="15" />
-				<Node File="./src/common/Gdc2/GdcCommon.cpp" Type="2" Platforms="15" />
-				<Node File="./src/common/Gdc2/Tools/GdcTools.cpp" Type="2" Platforms="15" />
-				<Node File="./include/common/GdcTools.h" Type="3" Platforms="15" />
-				<Node File="./include/common/GFilter.h" Type="3" Platforms="15" />
+				<Node File=".\src\common\Gdc2\GColour.cpp" Type="2" Platforms="15" />
+				<Node File=".\include\common\GColour.h" Type="3" Platforms="15" />
+				<Node File=".\src\common\Gdc2\Tools\GColourReduce.cpp" Type="2" Platforms="15" />
+				<Node File=".\include\common\GColourSpace.h" Type="3" Platforms="15" />
+				<Node File=".\include\common\Gdc2.h" Type="3" Platforms="15" />
+				<Node File=".\src\common\Gdc2\GdcCommon.cpp" Type="2" Platforms="15" />
+				<Node File=".\src\common\Gdc2\Tools\GdcTools.cpp" Type="2" Platforms="15" />
+				<Node File=".\include\common\GdcTools.h" Type="3" Platforms="15" />
+				<Node File=".\include\common\GFilter.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Font" Type="1" Platforms="15" Open="0">
 				<Node File="./src/common/Gdc2/Font/GDisplayString.cpp" Type="2" Platforms="15" />
@@ -202,7 +202,7 @@
 				<Node File="./src/common/Gdc2/Alpha.cpp" Type="2" Platforms="15" />
 			</Node>
 			<Node Name="Filters" Type="1" Platforms="15" Open="1">
-				<Node File="./src/common/Gdc2/Filters/GFilter.cpp" Type="2" Platforms="15" />
+				<Node File=".\src\common\Gdc2\Filters\GFilter.cpp" Type="2" Platforms="15" />
 			</Node>
 			<Node Name="Rect/Region" Type="1" Platforms="15" Open="0">
 				<Node File="./src/common/Gdc2/GRect.cpp" Type="2" Platforms="15" />
@@ -215,16 +215,16 @@
 					<Node File="./src/beos/Gdc2/GScreenDC.cpp" Type="2" Platforms="8" />
 				</Node>
 				<Node Name="Linux" Type="1" Platforms="15" Open="1">
-					<Node File="./src/linux/Gtk/GMemDC.cpp" Type="2" Platforms="2" />
-					<Node File="./src/linux/Gtk/GPrintDC.cpp" Type="2" Platforms="2" />
-					<Node File="./src/linux/Gtk/GScreenDC.cpp" Type="2" Platforms="2" />
+					<Node File=".\src\linux\Gtk\GMemDC.cpp" Type="2" Platforms="2" />
+					<Node File=".\src\linux\Gtk\GPrintDC.cpp" Type="2" Platforms="2" />
+					<Node File=".\src\linux\Gtk\GScreenDC.cpp" Type="2" Platforms="2" />
 				</Node>
 				<Node Name="Win32" Type="1" Platforms="15" Open="0">
 					<Node File="./src/win32/Gdc2/GScreenDC.cpp" Type="2" Platforms="1" />
 					<Node File="./src/win32/Gdc2/GPrintDC.cpp" Type="2" Platforms="1" />
 					<Node File="./src/win32/Gdc2/GMemDC.cpp" Type="2" Platforms="1" />
 				</Node>
-				<Node File="./src/common/Gdc2/GSurface.cpp" Type="2" Platforms="15" />
+				<Node File=".\src\common\Gdc2\GSurface.cpp" Type="2" Platforms="15" />
 			</Node>
 			<Node Name="Gdi Leak" Type="1" Platforms="15" Open="0">
 				<Node File="./src/win32/Gdc2/GdiLeak.cpp" Type="2" Platforms="1" />
@@ -265,43 +265,43 @@
 			<Node File="./src/common/Text/GXmlTree.cpp" Type="2" Platforms="15" />
 			<Node File="./include/common/GXmlTree.h" Type="3" Platforms="15" />
 		</Node>
-		<Node Name="Widgets" Type="1" Platforms="15" Open="1">
+		<Node Name="Widgets" Type="1" Platforms="15" Open="0">
 			<Node Name="Common" Type="1" Platforms="15" Open="1">
-				<Node File="./src/common/Widgets/GBitmap.cpp" Type="2" Platforms="15" />
-				<Node File="./src/common/Widgets/GButton.cpp" Type="2" Platforms="15" />
-				<Node File="./include/common/GButton.h" Type="3" Platforms="15" />
-				<Node File="./src/common/Widgets/GCheckBox.cpp" Type="2" Platforms="15" />
-				<Node File="./include/common/GCheckBox.h" Type="3" Platforms="15" />
-				<Node File="./src/common/Widgets/GCombo.cpp" Type="2" Platforms="15" />
-				<Node File="./include/common/GCombo.h" Type="3" Platforms="15" />
-				<Node File="./src/common/Text/GDocView.cpp" Type="2" Platforms="14" />
-				<Node File="./src/common/Widgets/GEdit.cpp" Type="2" Platforms="14" />
-				<Node File="./include/common/GEdit.h" Type="3" Platforms="15" />
-				<Node File="./src/common/Widgets/GItemContainer.cpp" Type="2" Platforms="15" />
-				<Node File="./src/common/Widgets/GList.cpp" Type="2" Platforms="15" />
-				<Node File="./include/common/GList.h" Type="3" Platforms="15" />
-				<Node File="./include/common/GListItemCheckBox.h" Type="3" Platforms="15" />
-				<Node File="./include/common/GListItemRadioBtn.h" Type="3" Platforms="15" />
-				<Node File="./src/common/Widgets/GPanel.cpp" Type="2" Platforms="15" />
-				<Node File="./src/common/Widgets/GPopup.cpp" Type="2" Platforms="15" />
-				<Node File="./include/common/GPopup.h" Type="3" Platforms="15" />
-				<Node File="./src/common/Widgets/GProgress.cpp" Type="2" Platforms="14" />
-				<Node File="./include/common/GProgress.h" Type="3" Platforms="15" />
-				<Node File="./src/common/Widgets/GProgressDlg.cpp" Type="2" Platforms="15" />
-				<Node File="./src/common/Widgets/GRadioGroup.cpp" Type="2" Platforms="15" />
-				<Node File="./include/common/GRadioGroup.h" Type="3" Platforms="15" />
-				<Node File="./src/common/Widgets/GScrollBar.cpp" Type="2" Platforms="14" />
-				<Node File="./include/common/GScrollBar.h" Type="3" Platforms="15" />
-				<Node File="./src/common/Widgets/GStatusBar.cpp" Type="2" Platforms="15" />
-				<Node File="./src/common/Widgets/GTabView.cpp" Type="2" Platforms="15" />
-				<Node File="./include/common/GTabView.h" Type="3" Platforms="15" />
-				<Node File="./src/common/Widgets/GTextLabel.cpp" Type="2" Platforms="15" />
-				<Node File="./include/common/GTextLabel.h" Type="3" Platforms="15" />
-				<Node File="./src/common/Text/GTextView3.cpp" Type="2" Platforms="14" />
-				<Node File="./src/common/Widgets/GToolBar.cpp" Type="2" Platforms="15" />
-				<Node File="./include/common/GToolBar.h" Type="3" Platforms="15" />
-				<Node File="./src/common/Widgets/GTree.cpp" Type="2" Platforms="15" />
-				<Node File="./include/common/GTree.h" Type="3" Platforms="15" />
+				<Node File=".\src\common\Widgets\GBitmap.cpp" Type="2" Platforms="15" />
+				<Node File=".\src\common\Widgets\GButton.cpp" Type="2" Platforms="15" />
+				<Node File=".\include\common\GButton.h" Type="3" Platforms="15" />
+				<Node File=".\src\common\Widgets\GCheckBox.cpp" Type="2" Platforms="15" />
+				<Node File=".\include\common\GCheckBox.h" Type="3" Platforms="15" />
+				<Node File=".\src\common\Widgets\GCombo.cpp" Type="2" Platforms="15" />
+				<Node File=".\include\common\GCombo.h" Type="3" Platforms="15" />
+				<Node File=".\src\common\Text\GDocView.cpp" Type="2" Platforms="14" />
+				<Node File=".\src\common\Widgets\GEdit.cpp" Type="2" Platforms="14" />
+				<Node File=".\include\common\GEdit.h" Type="3" Platforms="15" />
+				<Node File=".\src\common\Widgets\GItemContainer.cpp" Type="2" Platforms="15" />
+				<Node File=".\src\common\Widgets\GList.cpp" Type="2" Platforms="15" />
+				<Node File=".\include\common\GList.h" Type="3" Platforms="15" />
+				<Node File=".\include\common\GListItemCheckBox.h" Type="3" Platforms="15" />
+				<Node File=".\include\common\GListItemRadioBtn.h" Type="3" Platforms="15" />
+				<Node File=".\src\common\Widgets\GPanel.cpp" Type="2" Platforms="15" />
+				<Node File=".\src\common\Widgets\GPopup.cpp" Type="2" Platforms="15" />
+				<Node File=".\include\common\GPopup.h" Type="3" Platforms="15" />
+				<Node File=".\src\common\Widgets\GProgress.cpp" Type="2" Platforms="14" />
+				<Node File=".\include\common\GProgress.h" Type="3" Platforms="15" />
+				<Node File=".\src\common\Widgets\GProgressDlg.cpp" Type="2" Platforms="15" />
+				<Node File=".\src\common\Widgets\GRadioGroup.cpp" Type="2" Platforms="15" />
+				<Node File=".\include\common\GRadioGroup.h" Type="3" Platforms="15" />
+				<Node File=".\src\common\Widgets\GScrollBar.cpp" Type="2" Platforms="14" />
+				<Node File=".\include\common\GScrollBar.h" Type="3" Platforms="15" />
+				<Node File=".\src\common\Widgets\GStatusBar.cpp" Type="2" Platforms="15" />
+				<Node File=".\src\common\Widgets\GTabView.cpp" Type="2" Platforms="15" />
+				<Node File=".\include\common\GTabView.h" Type="3" Platforms="15" />
+				<Node File=".\src\common\Widgets\GTextLabel.cpp" Type="2" Platforms="15" />
+				<Node File=".\include\common\GTextLabel.h" Type="3" Platforms="15" />
+				<Node File=".\src\common\Text\GTextView3.cpp" Type="2" Platforms="14" />
+				<Node File=".\src\common\Widgets\GToolBar.cpp" Type="2" Platforms="15" />
+				<Node File=".\include\common\GToolBar.h" Type="3" Platforms="15" />
+				<Node File=".\src\common\Widgets\GTree.cpp" Type="2" Platforms="15" />
+				<Node File=".\include\common\GTree.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Css" Type="1" Platforms="15" Open="0">
 				<Node File="./src/common/Lgi/GCss.cpp" Type="2" Platforms="15" />
@@ -381,13 +381,12 @@ WINDOWS</Debug>
 					<Release>WINNATIVE
 WINDOWS</Release>
 				</Windows>
-				<Linux />
 			</Defines>
 			<Compiler>
 				<Windows>MingW</Windows>
 			</Compiler>
 			<Executable>
-				<Linux />
+				<Windows />
 			</Executable>
 			<Arguments>
 				<All />
@@ -473,11 +472,11 @@ textencoding</Release>
 				</Linux>
 			</TargetName>
 			<SystemIncludes>
-				<Linux />
+				<Windows />
 			</SystemIncludes>
 			<LibraryPaths>
 				<All />
-				<Linux />
+				<Windows />
 			</LibraryPaths>
 		</Build>
 		<Editor>

@@ -33,6 +33,7 @@ public:
 	COLOUR		Col;
 	int			Sx, Sy;
 	GGlobalColour *Gc;
+	NativeInt	ConstAlpha;
 	
 	class NullObjects
 	{
@@ -73,6 +74,7 @@ public:
 		Sx = Sy = 0;
 		Release = End = false;
 		Client.ZOff(-1, -1);
+		ConstAlpha = -1;
 	}
 
 	#else
@@ -428,7 +430,7 @@ GColour GScreenDC::Colour(GColour c)
 	return cPrev;
 }
 
-int GScreenDC::Op(int Op)
+int GScreenDC::Op(int Op, NativeInt Param)
 {
 	int Prev = d->Mode;
 	int Rop;
@@ -464,6 +466,7 @@ int GScreenDC::Op(int Op)
 
 	SetROP2(hDC, Rop);
 	d->Mode = Op;
+	d->ConstAlpha = Param;
 
 	return Prev;
 }
@@ -722,7 +725,10 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 					BLENDFUNCTION Blend;
 					Blend.BlendOp = AC_SRC_OVER;
 					Blend.BlendFlags = 0;
-					Blend.SourceConstantAlpha = 255;
+					Blend.SourceConstantAlpha = d->ConstAlpha >= 0 &&
+												d->ConstAlpha <= 255 ?
+												d->ConstAlpha :
+												255;
 					Blend.AlphaFormat = AC_SRC_ALPHA;
 
 					if (!GdcD->AlphaBlend(	hDestDC,
@@ -738,38 +744,10 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 
 					Src->EndDC();
 					EndDC();
-
 					return;
 				}
 				else
 				{
-					/*
-					GSurface *Temp = new GMemDC(b.X(), b.Y(), 32);
-					if (Temp)
-					{
-						POINT p = {x, y};
-						ClientToScreen(hWnd, &p);
-
-						HDC hTempDC = Temp->StartDC();
-
-						HDC hSrcDC = GetWindowDC(GetDesktopWindow());
-						BitBlt(hTempDC, 0, 0, b.X(), b.Y(), hSrcDC, p.x, p.y, SRCCOPY);
-						ReleaseDC(hWnd, hSrcDC);
-
-						Temp->Op(GDC_ALPHA);
-						Temp->Blt(0, 0, Src);
-
-						HDC hDestDC = StartDC();
-						BitBlt(hDestDC, x, y, b.X(), b.Y(), hTempDC, 0, 0, SRCCOPY);
-						EndDC();
-
-						Temp->EndDC();
-
-						DeleteObj(Temp);
-						return;
-					}
-					*/
-
 					// Lame '95
 					RowOp = SRCCOPY;
 				}
