@@ -224,7 +224,7 @@ public:
 	GAutoString					References;
 	
 	// Protocol specific
-	void						*Private;
+	GAutoString					UserData;
 
 	// Class
 	MailMessage();
