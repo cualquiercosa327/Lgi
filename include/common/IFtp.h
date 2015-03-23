@@ -101,18 +101,18 @@ public:
 
 	// Directory
 	virtual bool GetDir(GAutoString &Dir) = 0;
-	virtual bool SetDir(char *Dir) = 0;
-	virtual bool CreateDir(char *Dir) = 0;
-	virtual bool DeleteDir(char *Dir) = 0;
+	virtual bool SetDir(const char *Dir) = 0;
+	virtual bool CreateDir(const char *Dir) = 0;
+	virtual bool DeleteDir(const char *Dir) = 0;
 	virtual bool ListDir(List<IFtpEntry> *Dir) = 0;
 	virtual bool UpDir() = 0;
 	
 	// File
-	virtual bool DeleteFile(char *Remote) = 0;
-	virtual bool DownloadFile(char *Local, IFtpEntry *Remote, bool Binary = true) = 0;
-	virtual bool UploadFile(char *Local, char *Remote, bool Binary = true) = 0;
-	virtual bool RenameFile(char *From, char *To) = 0;
-	virtual bool SetPerms(char *File, int Perms) = 0;
+	virtual bool DeleteFile(const char *Remote) = 0;
+	virtual bool DownloadFile(const char *Local, IFtpEntry *Remote, bool Binary = true) = 0;
+	virtual bool UploadFile(const char *Local, const char *Remote, bool Binary = true) = 0;
+	virtual bool RenameFile(const char *From, const char *To) = 0;
+	virtual bool SetPerms(const char *File, int Perms) = 0;
 	virtual bool ResumeAt(int64 Pos) = 0;
 	virtual void Abort() = 0;
 };
@@ -128,7 +128,7 @@ protected:
 
 	int WriteLine(char *Msg = 0);
 	int ReadLine(char *Msg = 0, int MsgSize = 0);
-	bool TransferFile(char *Local, char *Remote, int64 RemoteSize, bool Upload, bool Binary);
+	bool TransferFile(const char *Local, const char *Remote, int64 RemoteSize, bool Upload, bool Binary);
 
 	// Data connections
 	char Ip[64];
@@ -150,8 +150,8 @@ protected:
 	
 	bool SetupData(bool Binary);
 	bool ConnectData();
-	char *ToFtpCs(char *s);
-	char *FromFtpCs(char *s);
+	char *ToFtpCs(const char *s);
+	char *FromFtpCs(const char *s);
 
 public:
 	/// Construct an FTP protocol handler.
@@ -191,26 +191,26 @@ public:
 	/// \returns the current remote folder.
 	bool GetDir(GAutoString &Dir);
 	/// Sets the current remote folder.
-	bool SetDir(char *Dir);
+	bool SetDir(const char *Dir);
 	/// Create a new sub-folder under the current remote folder.
-	bool CreateDir(char *Dir);
+	bool CreateDir(const char *Dir);
 	/// Delete a sub-folder under the current folder.
-	bool DeleteDir(char *Dir);
+	bool DeleteDir(const char *Dir);
 	/// List the current remote folder contents.
 	bool ListDir(List<IFtpEntry> *Dir);
 	/// Move up to the parent remote folder.
 	bool UpDir();
 	
 	/// Delete a file in the current remote folder
-	bool DeleteFile(char *Remote);
+	bool DeleteFile(const char *Remote);
 	/// Download a file from the current remote folder
-	bool DownloadFile(char *Local, IFtpEntry *Remote, bool Binary = true);
+	bool DownloadFile(const char *Local, IFtpEntry *Remote, bool Binary = true);
 	/// Upload a local file to the current remote folder
-	bool UploadFile(char *Local, char *Remote, bool Binary = true);
+	bool UploadFile(const char *Local, const char *Remote, bool Binary = true);
 	/// Rename a file or folder in the current remote folder
-	bool RenameFile(char *From, char *To);
+	bool RenameFile(const char *From, const char *To);
 	/// Set the permissions on a file in the current remote folder
-	bool SetPerms(char *File, int Perms);
+	bool SetPerms(const char *File, int Perms);
 	/// Set the resume point before downloading a file
 	bool ResumeAt(int64 Pos);
 	/// Abort the current transfer

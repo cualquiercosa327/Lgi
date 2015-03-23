@@ -55,7 +55,7 @@ int LookupMonth(char *m)
 	const char *Months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 	for (int i=0; i<12; i++)
 	{
-		if (m && stricmp(m, Months[i]) == 0)
+		if (m && _stricmp(m, Months[i]) == 0)
 		{
 			return i + 1;
 		}
@@ -98,7 +98,7 @@ IFtpEntry::IFtpEntry(char *Entry, const char *Cs)
 			{
 				// M$ format
 				_Size = T[2];
-				if (stricmp(_Size, "<dir>") == 0)
+				if (_stricmp(_Size, "<dir>") == 0)
 				{
 					Attributes |= IFTP_DIR;
 				}
@@ -145,7 +145,7 @@ IFtpEntry::IFtpEntry(char *Entry, const char *Cs)
 					}
 
 					char DateStr[64];
-					sprintf(DateStr, "%i/%i/%i", Day, Month, Year);
+					sprintf_s(DateStr, sizeof(DateStr), "%i/%i/%i", Day, Month, Year);
 					Date.SetDate(DateStr);
 				}
 			}
@@ -246,12 +246,12 @@ const char *IFtp::GetError()
 	return d->ErrBuf;
 }
 
-char *IFtp::ToFtpCs(char *s)
+char *IFtp::ToFtpCs(const char *s)
 {
 	return (char*) LgiNewConvertCp(GetCharset(), s, "utf-8");
 }
 
-char *IFtp::FromFtpCs(char *s)
+char *IFtp::FromFtpCs(const char *s)
 {
 	return (char*) LgiNewConvertCp("utf-8", s, GetCharset());
 }
@@ -401,12 +401,12 @@ FtpOpenStatus IFtp::Open(GSocketI *S, char *RemoteHost, int Port, char *User, ch
 			if (User)
 			{
 				// User/pass
-				sprintf(d->OutBuf, "USER %s\r\n", User);
+				sprintf_s(d->OutBuf, sizeof(d->OutBuf), "USER %s\r\n", User);
 				if (WriteLine())
 				{
 					Verify(ReadLine(), 331);
 
-					sprintf(d->OutBuf, "PASS %s\r\n", ValidStr(Password) ? Password : (char*)"");
+					sprintf_s(d->OutBuf, sizeof(d->OutBuf), "PASS %s\r\n", ValidStr(Password) ? Password : (char*)"");
 					if (WriteLine())
 					{
 						Verify(ReadLine(), 230);
@@ -417,12 +417,12 @@ FtpOpenStatus IFtp::Open(GSocketI *S, char *RemoteHost, int Port, char *User, ch
 			else
 			{
 				// Anonymous
-				sprintf(d->OutBuf, "USER anonymous\r\n");
+				sprintf_s(d->OutBuf, sizeof(d->OutBuf), "USER anonymous\r\n");
 				if (WriteLine())
 				{
 					Verify(ReadLine(), 331);
 
-					sprintf(d->OutBuf, "PASS me@privacy.net\r\n"); // garrenteed to never
+					sprintf_s(d->OutBuf, sizeof(d->OutBuf), "PASS me@privacy.net\r\n"); // garrenteed to never
 															// be allocated to an IP
 					if (WriteLine())
 					{
@@ -442,7 +442,7 @@ FtpOpenStatus IFtp::Open(GSocketI *S, char *RemoteHost, int Port, char *User, ch
 			}
 
 			#if 0
-			sprintf(d->OutBuf, "FEAT\r\n");
+			sprintf_s(d->OutBuf, sizeof(d->OutBuf), "FEAT\r\n");
 			if (WriteLine())
 			{
 				int r = ReadLine();
@@ -485,7 +485,7 @@ void IFtp::Noop()
 {
 	if (IsOpen())
 	{
-		sprintf(d->OutBuf, "NOOP\r\n");
+		sprintf_s(d->OutBuf, sizeof(d->OutBuf), "NOOP\r\n");
 		if (WriteLine())
 		{
 			ReadLine();
@@ -503,7 +503,7 @@ bool IFtp::GetDir(GAutoString &Dir)
 		{
 			char Temp[256];
 
-			sprintf(d->OutBuf, "PWD\r\n");
+			sprintf_s(d->OutBuf, sizeof(d->OutBuf), "PWD\r\n");
 			WriteLine();
 			Verify(ReadLine(Temp, sizeof(Temp)), 257);
 
@@ -528,7 +528,7 @@ bool IFtp::GetDir(GAutoString &Dir)
 	return Status;
 }
 
-bool IFtp::SetDir(char *Dir)
+bool IFtp::SetDir(const char *Dir)
 {
 	bool Status = false;
 
@@ -539,7 +539,7 @@ bool IFtp::SetDir(char *Dir)
 			char *f = ToFtpCs(Dir);
 			if (f)
 			{
-				sprintf(d->OutBuf, "CWD %s\r\n", f);
+				sprintf_s(d->OutBuf, sizeof(d->OutBuf), "CWD %s\r\n", f);
 				WriteLine();
 				Verify(ReadLine(), 250);
 
@@ -556,7 +556,7 @@ bool IFtp::SetDir(char *Dir)
 	return Status;
 }
 
-bool IFtp::CreateDir(char *Dir)
+bool IFtp::CreateDir(const char *Dir)
 {
 	bool Status = false;
 
@@ -567,7 +567,7 @@ bool IFtp::CreateDir(char *Dir)
 			char *f = ToFtpCs(Dir);
 			if (f)
 			{
-				sprintf(d->OutBuf, "MKD %s\r\n", f);
+				sprintf_s(d->OutBuf, sizeof(d->OutBuf), "MKD %s\r\n", f);
 				WriteLine();
 				VerifyRange(ReadLine(), 2);
 
@@ -588,7 +588,7 @@ bool IFtp::CreateDir(char *Dir)
 	return Status;
 }
 
-bool IFtp::DeleteDir(char *Dir)
+bool IFtp::DeleteDir(const char *Dir)
 {
 	bool Status = false;
 
@@ -599,7 +599,7 @@ bool IFtp::DeleteDir(char *Dir)
 			char *f = ToFtpCs(Dir);
 			if (f)
 			{
-				sprintf(d->OutBuf, "RMD %s\r\n", f);
+				sprintf_s(d->OutBuf, sizeof(d->OutBuf), "RMD %s\r\n", f);
 				WriteLine();
 				VerifyRange(ReadLine(), 2);
 
@@ -628,7 +628,7 @@ bool IFtp::UpDir()
 	{
 		if (IsOpen())
 		{
-			sprintf(d->OutBuf, "CDUP\r\n");
+			sprintf_s(d->OutBuf, sizeof(d->OutBuf), "CDUP\r\n");
 			WriteLine();
 			VerifyRange(ReadLine(0), 2);
 
@@ -712,7 +712,7 @@ bool IFtp::ListDir(List<IFtpEntry> *Dir)
 			d->Listen.Reset();
 			
 			// Parse the results
-			int Len = Buf.GetSize();
+			int Len = (int)Buf.GetSize();
 			if (Status && Len)
 			{
 				char *Text = new char[Len+1];
@@ -730,7 +730,7 @@ bool IFtp::ListDir(List<IFtpEntry> *Dir)
 					#endif
 
 					GToken Lines(Text, "\r\n");
-					for (int i=0; i<Lines.Length(); i++)
+					for (unsigned i=0; i<Lines.Length(); i++)
 					{
 						IFtpEntry *e = new IFtpEntry(Lines[i], GetCharset());
 						if (e && e->Name)
@@ -769,7 +769,7 @@ bool IFtp::ListDir(List<IFtpEntry> *Dir)
 	return Status;
 }
 
-bool IFtp::RenameFile(char *From, char *To)
+bool IFtp::RenameFile(const char *From, const char *To)
 {
 	bool Status = false;
 
@@ -782,12 +782,12 @@ bool IFtp::RenameFile(char *From, char *To)
 			if (f && t)
 			{
 				// From
-				sprintf(d->OutBuf, "RNFR %s\r\n", f);
+				sprintf_s(d->OutBuf, sizeof(d->OutBuf), "RNFR %s\r\n", f);
 				WriteLine();
 				VerifyRange(ReadLine(), 3);
 
 				// To
-				sprintf(d->OutBuf, "RNTO %s\r\n", t);
+				sprintf_s(d->OutBuf, sizeof(d->OutBuf), "RNTO %s\r\n", t);
 				WriteLine();
 				VerifyRange(ReadLine(), 2);
 
@@ -809,7 +809,7 @@ bool IFtp::RenameFile(char *From, char *To)
 	return Status;
 }
 
-bool IFtp::DeleteFile(char *Remote)
+bool IFtp::DeleteFile(const char *Remote)
 {
 	bool Status = false;
 
@@ -820,7 +820,7 @@ bool IFtp::DeleteFile(char *Remote)
 			char *f = ToFtpCs(Remote);
 			if (f)
 			{
-				sprintf(d->OutBuf, "DELE %s\r\n", f);
+				sprintf_s(d->OutBuf, sizeof(d->OutBuf), "DELE %s\r\n", f);
 				WriteLine();
 				VerifyRange(ReadLine(), 2);
 
@@ -841,7 +841,7 @@ bool IFtp::DeleteFile(char *Remote)
 	return Status;
 }
 
-bool IFtp::DownloadFile(char *Local, IFtpEntry *Remote, bool Binary)
+bool IFtp::DownloadFile(const char *Local, IFtpEntry *Remote, bool Binary)
 {
 	if (Remote && Remote->Name)
 	{
@@ -850,14 +850,14 @@ bool IFtp::DownloadFile(char *Local, IFtpEntry *Remote, bool Binary)
 	return false;
 }
 
-bool IFtp::UploadFile(char *Local, char *Remote, bool Binary)
+bool IFtp::UploadFile(const char *Local, const char *Remote, bool Binary)
 {
 	return TransferFile(Local, Remote, LgiFileSize(Local), true, Binary);
 }
 
 bool IFtp::ResumeAt(int64 Pos)
 {
-	sprintf(d->OutBuf, "REST " LGI_PrintfInt64 "\r\n", Pos);
+	sprintf_s(d->OutBuf, sizeof(d->OutBuf), "REST " LGI_PrintfInt64 "\r\n", Pos);
 
 	WriteLine();
 	int FtpStatus = ReadLine();
@@ -866,7 +866,7 @@ bool IFtp::ResumeAt(int64 Pos)
 	return Status;
 }
 
-bool IFtp::TransferFile(char *Local, char *Remote, int64 Size, bool Upload, bool Binary)
+bool IFtp::TransferFile(const char *Local, const char *Remote, int64 Size, bool Upload, bool Binary)
 {
 	bool Status = false;
 	bool Aborted = false;
@@ -886,7 +886,7 @@ bool IFtp::TransferFile(char *Local, char *Remote, int64 Size, bool Upload, bool
 				{
 					// Data command
 					char *f = ToFtpCs(Remote);
-					sprintf(d->OutBuf, "%s %s\r\n", (Upload)?"STOR":"RETR", f ? f : Remote);
+					sprintf_s(d->OutBuf, sizeof(d->OutBuf), "%s %s\r\n", (Upload)?"STOR":"RETR", f ? f : Remote);
 					WriteLine();
 					DeleteArray(f);
 
@@ -1009,7 +1009,7 @@ bool IFtp::TransferFile(char *Local, char *Remote, int64 Size, bool Upload, bool
 							if (AbortTransfer || (Meter && Meter->Cancel()))
 							{
 								// send abort command
-								sprintf(d->OutBuf, "ABOR\r\n");
+								sprintf_s(d->OutBuf, sizeof(d->OutBuf), "ABOR\r\n");
 								WriteLine();
 								if ((ReadLine()/100) == 4) // temp msg
 								{
@@ -1061,7 +1061,7 @@ bool IFtp::TransferFile(char *Local, char *Remote, int64 Size, bool Upload, bool
 			{
 				// couldn't open file...
 				char Str[256];
-				sprintf(Str, "Error: Couldn't open '%s' for %s", Local, (Upload)?(char*)"reading":(char*)"writing");
+				sprintf_s(Str, sizeof(Str), "Error: Couldn't open '%s' for %s", Local, (Upload)?(char*)"reading":(char*)"writing");
 				Socket->OnInformation(Str);
 			}
 		}
@@ -1093,7 +1093,7 @@ bool IFtp::SetupData(bool Binary)
 			{
 				GStreamI *nstream = Socket->Clone();
 				GSocket *nsock = dynamic_cast<GSocket*>(nstream);
-				LgiAssert(nsock);
+				LgiAssert(nsock != NULL);
 				d->Data.Reset(nsock);
 			}
 			else
@@ -1115,7 +1115,7 @@ bool IFtp::SetupData(bool Binary)
 				(!Binary && d->CurMode != FT_Ascii))
 			{
 				// Type command
-				sprintf(d->OutBuf, "TYPE %c\r\n", Binary ? 'I' : 'A');
+				sprintf_s(d->OutBuf, sizeof(d->OutBuf), "TYPE %c\r\n", Binary ? 'I' : 'A');
 				if (WriteLine())
 				{
 					VerifyRange(ReadLine(), 2);
@@ -1127,7 +1127,7 @@ bool IFtp::SetupData(bool Binary)
 			{
 				// Try the PASV command first... it's better for
 				// getting out of a firewall to the server
-				sprintf(d->OutBuf, "PASV\r\n");
+				sprintf_s(d->OutBuf, sizeof(d->OutBuf), "PASV\r\n");
 				WriteLine();
 
 				char Temp[256];
@@ -1146,7 +1146,7 @@ bool IFtp::SetupData(bool Binary)
 							GToken T(Start, ",");
 							if (T.Length() == 6)
 							{
-								sprintf(Ip, "%s.%s.%s.%s", T[0], T[1], T[2], T[3]);
+								sprintf_s(Ip, sizeof(Ip), "%s.%s.%s.%s", T[0], T[1], T[2], T[3]);
 								Port = (atoi(T[4])<<8) | atoi(T[5]);
 								PassiveMode = true;
 								return true;
@@ -1190,7 +1190,7 @@ bool IFtp::SetupData(bool Binary)
 					}
 				}
 
-				sprintf(d->OutBuf, "PORT %s,%i,%i\r\n", Ip, Port>>8, Port&0xFF);
+				sprintf_s(d->OutBuf, sizeof(d->OutBuf), "PORT %s,%i,%i\r\n", Ip, Port>>8, Port&0xFF);
 				WriteLine();
 				VerifyRange(ReadLine(), 2);
 				Status = true;
@@ -1213,7 +1213,7 @@ bool IFtp::ConnectData()
 {
 	if (PassiveMode)
 	{
-		return d->Data->Open(Ip, Port);
+		return d->Data->Open(Ip, Port) != 0;
 	}
 	else
 	{
@@ -1225,7 +1225,7 @@ bool IFtp::ConnectData()
 	return false;
 }
 
-bool IFtp::SetPerms(char *File, int Perms)
+bool IFtp::SetPerms(const char *File, int Perms)
 {
 	bool Status = false;
 
@@ -1236,7 +1236,7 @@ bool IFtp::SetPerms(char *File, int Perms)
 			char *f = ToFtpCs(File);
 			if (f)
 			{
-				sprintf(d->OutBuf, "SITE CHMOD %3.3X %s\r\n", Perms, File);
+				sprintf_s(d->OutBuf, sizeof(d->OutBuf), "SITE CHMOD %3.3X %s\r\n", Perms, File);
 				WriteLine();
 				VerifyRange(ReadLine(), 2);
 

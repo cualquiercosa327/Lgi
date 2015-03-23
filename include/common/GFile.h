@@ -265,12 +265,12 @@ public:
 	);
 
 	/// Delete file
-	bool Delete(char *FileName, bool ToTrash = true);
+	bool Delete(const char *FileName, bool ToTrash = true);
 	/// Delete files
 	bool Delete
 	(
 		/// The list of files to delete
-		GArray<char*> &Files,
+		GArray<const char*> &Files,
 		/// A list of status codes where 0 means success and non-zero is an error code, usually an OS error code. NULL if not required.
 		GArray<int> *Status = 0,
 		/// true if you want the files moved to the trash folder, false if you want them deleted directly
@@ -278,7 +278,7 @@ public:
 	);
 	
 	/// Create a directory
-	bool CreateFolder(const char *PathName);
+	bool CreateFolder(const char *PathName, bool CreateParentFoldersIfNeeded = false);
 	
 	/// Remove's a directory	
 	bool RemoveFolder

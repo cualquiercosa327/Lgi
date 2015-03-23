@@ -54,7 +54,7 @@ bool GSubProcess::Pipe::Create
 )
 {
 	#if defined(WIN32)
-	return CreatePipe(&Read, &Write, pAttr, 0);
+	return CreatePipe(&Read, &Write, pAttr, 0) != 0;
 	#else
 	return pipe(Handles) != NULL_PIPE;
 	#endif
@@ -149,7 +149,7 @@ GSubProcess::Variable *GSubProcess::GetEnvVar(const char *Var, bool Create)
 		#endif
 	}
 	
-	for (int i=0; i<Environment.Length(); i++)
+	for (unsigned i=0; i<Environment.Length(); i++)
 	{
 		if (!_stricmp(Environment[i].Var, Var))
 		{
@@ -179,7 +179,7 @@ bool GSubProcess::Dupe(PipeHandle Old, PipeHandle &New)
 {
 	return DuplicateHandle(	GetCurrentProcess(), Old,
 							GetCurrentProcess(), &New,
-							0, false, DUPLICATE_SAME_ACCESS);
+							0, false, DUPLICATE_SAME_ACCESS) != 0;
 }
 #endif
 
@@ -278,7 +278,7 @@ bool GSubProcess::SetEnvironment(const char *Var, const char *Value)
 		// Remove missing paths from the list
 		GToken t(v->Val, LGI_PATH_SEPARATOR);
 		GStringPipe p;
-		for (int i=0; i<t.Length(); i++)
+		for (unsigned i=0; i<t.Length(); i++)
 		{
 			char *Dir = t[i];
 			if (DirExists(Dir))
@@ -414,10 +414,10 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 	else
 	{
 		char *Ext = LgiGetExtension(Exe);
-		bool HasExt = Ext && stricmp(Ext, "exe") == 0;
+		bool HasExt = Ext && _stricmp(Ext, "exe") == 0;
 		
 		GToken p(getenv("PATH"), LGI_PATH_SEPARATOR);
-		for (int i=0; i<p.Length(); i++)
+		for (unsigned i=0; i<p.Length(); i++)
 		{
 			char s[MAX_PATH];
 			LgiMakePath(s, sizeof(s), p[i], Exe);
@@ -440,12 +440,12 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 	
 	char16 WArg[512];
 	int Ch = 0;
-	for (int i=1; i<Args.Length(); i++)
+	for (unsigned i=0; i<Args.Length(); i++)
 	{
 		char *a = Args[i];
 		GAutoWString aw(LgiNewUtf8To16(a));
 		
-		if (i)
+		if (i > 0)
 		{
 			WArg[Ch++] = ' ';
 		}
@@ -489,7 +489,7 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 		if (EnvironmentChanged)
 		{
 			GMemQueue q(256);
-			for (int i=0; i<Environment.Length(); i++)
+			for (unsigned i=0; i<Environment.Length(); i++)
 			{
 				Variable &v = Environment[i];
 				GAutoWString Var(LgiNewUtf8To16(v.Var));

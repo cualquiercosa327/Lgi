@@ -767,7 +767,7 @@ bool GFileSystem::Copy(char *From, char *To, int *ErrorCode, CopyFileCallback Ca
 	return i == Size;
 }
 
-bool GFileSystem::Delete(GArray<char*> &Files, GArray<int> *Status, bool ToTrash)
+bool GFileSystem::Delete(GArray<const char*> &Files, GArray<int> *Status, bool ToTrash)
 {
 	bool Ret = true;
 
@@ -899,31 +899,49 @@ bool GFileSystem::Delete(GArray<char*> &Files, GArray<int> *Status, bool ToTrash
 	return Ret;
 }
 
-bool GFileSystem::Delete(char *FileName, bool ToTrash)
+bool GFileSystem::Delete(const char *FileName, bool ToTrash)
 {
 	if (!FileName)
 		return false;
 
-	GArray<char*> Files;
+	GArray<const char*> Files;
 	Files.Add(FileName);
 	return Delete(Files, 0, ToTrash);
 }
 
-bool GFileSystem::CreateFolder(const char *PathName)
+bool GFileSystem::CreateFolder(const char *PathName, bool CreateParentFoldersIfNeeded)
 {
-	bool Status = false;
-	if (Win9x)
+	GAutoWString w(LgiNewUtf8To16(PathName));
+	bool Status = ::CreateDirectoryW(w, NULL);
+	
+	if (!Status &&
+		CreateParentFoldersIfNeeded)
 	{
-		char *c8 = LgiToNativeCp(PathName);
-		Status = ::CreateDirectoryA(c8, NULL);
-		DeleteArray(c8);
-	}
-	else
-	{
-		char16 *w = LgiNewUtf8To16(PathName);
-		Status = ::CreateDirectoryW(w, NULL);
-		DeleteArray(w);
-	}
+		DWORD err = GetLastError();
+		if (err == ERROR_PATH_NOT_FOUND)
+		{
+			char Base[MAX_PATH];
+			strcpy_s(Base, sizeof(Base), PathName);
+			do
+			{
+				char *Leaf = strrchr(Base, DIR_CHAR);
+				if (!Leaf) return false;
+				*Leaf = 0;
+			}
+			while (!DirExists(Base));
+			
+			GToken Parts(PathName + strlen(Base), DIR_STR);
+			for (int i=0; i<Parts.Length(); i++)
+			{
+				LgiMakePath(Base, sizeof(Base), Base, Parts[i]);
+				GAutoWString w(LgiNewUtf8To16(Base));
+				Status = ::CreateDirectoryW(w, NULL);
+				if (!Status)
+					break;
+			}
+		}
+	}	
+	
 	return Status;
 }
 

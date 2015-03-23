@@ -4,7 +4,7 @@
 #ifndef _GTAR_FILE_H_
 #define _GTAR_FILE_H_
 
-#include "ZlibWrapper.h"
+#include "GStringClass.h"
 
 /// Tar file parser
 class GTarParser
@@ -16,12 +16,12 @@ public:
 	/// in here with the appropriate parsing but I don't need them (yet).
 	struct GTarFile
 	{
-		GVariant Dir;
-		GVariant Name;
+		GString Dir;
+		GString Name;
 		GDateTime Modified;
 		int64 Size;
 
-		int Blocks()
+		int64 Blocks()
 		{
 			return (Size / 512) + (Size % 512 ? 1 : 0);
 		}
@@ -52,12 +52,6 @@ public:
 	};
 
 protected:
-	/// The compression lib
-	Zlib z;
-
-	/// The stream wrapper around the lib
-	GZlibFile f;
-
 	/// Convert octal number to decimal
 	int64 Octal(char *o)
 	{
@@ -85,7 +79,7 @@ protected:
 
 	/// Called every time a file is parsed
 	/// \returns true if this function consumes the body of the file
-	virtual bool Process(GTarFile &f, GStream &s, bool &SkipFile)
+	virtual bool Process(GTarFile &f, GStreamI *s, bool &SkipOverFile)
 	{
 		if (Files)
 		{
@@ -94,31 +88,48 @@ protected:
 		if (ExtractTo)
 		{
 			char o[MAX_PATH];
-			LgiMakePath(o, sizeof(o), ExtractTo, f.Dir.Str());
-			if (!DirExists(o))
-				FileDev->CreateDirectory(o);
-			LgiMakePath(o, sizeof(o), o, f.Name.Str());
+			
+			if (f.Dir)
+			{
+				LgiMakePath(o, sizeof(o), ExtractTo, f.Dir);
+				if (!DirExists(o) &&
+					!FileDev->CreateFolder(o, true))
+				{
+					return false;
+				}
+				LgiMakePath(o, sizeof(o), o, f.Name);
+			}
+			else
+			{	
+				LgiMakePath(o, sizeof(o), ExtractTo, f.Name);
+			}
+			
 			GFile Out;
 			if (Out.Open(o, O_WRITE))
 			{
 				char Buf[512];
-				int Blocks = f.Blocks();
+				int64 Blocks = f.Blocks();
 				int64 ToWrite = f.Size;
 				for (int i=0; i<Blocks; i++)
 				{
-					int r = s.Read(Buf, sizeof(Buf));
+					int r = s->Read(Buf, sizeof(Buf));
 					if (r <= 0)
 						return false;
 
-					int Len = ToWrite < r ? ToWrite : r;
-					int w = Out.Write(Buf, Len);
+					int64 Len = ToWrite < r ? ToWrite : r;
+					int w = Out.Write(Buf, (int)Len);
 					if (w != Len)
 						return false;
 					
 					ToWrite -= w;
 				}
 
-				SkipFile = true;
+				SkipOverFile = false;
+			}
+			else
+			{
+				LgiTrace("%s:%i - Failed to open '%s' for writing.\n", _FL, o);
+				return false;
 			}
 		}
 
@@ -126,74 +137,74 @@ protected:
 	}
 
 	/// Main parsing loop
-	bool Parse(char *FileName, int Mode)
+	bool Parse(GStreamI *File, int Mode)
 	{
-		bool Status = false;
+		if (!File)
+			return false;
 
-		if (Status = f.Open(FileName, Mode))
+		GTarHdr Hdr;
+		int Size = sizeof(Hdr);
+		
+		int r;
+		while ((r = File->Read(&Hdr, sizeof(Hdr))) > 0)
 		{
-			GTarHdr Hdr;
-			int Size = sizeof(Hdr);
-			
-			int r;
-			while ((r = f.Read(&Hdr, sizeof(Hdr))) > 0)
+			int64 FileSize = Octal(Hdr.Size);
+			if (FileSize)
 			{
-				int64 FileSize = Octal(Hdr.Size);
-				if (FileSize)
+				GTarFile t;
+				char *d = strrchr(Hdr.Name, '/');
+				if (d == Hdr.Name)
+					t.Name = Hdr.Name + 1;
+				else if (d)
 				{
-					GTarFile t;
-					char *d = strrchr(Hdr.Name, '/');
-					if (d == Hdr.Name)
-						t.Name = Hdr.Name + 1;
-					else if (d)
-					{
-						*d++ = 0;
-						t.Name = d;
-						t.Dir = Hdr.Name;
-						d[-1] = '/';
-					}
-					else
-						t.Name = Hdr.Name;
-					
-					t.Size = FileSize;
+					*d++ = 0;
+					t.Name = d;
+					t.Dir = Hdr.Name;
+					d[-1] = '/';
+				}
+				else
+				{
+					t.Name = Hdr.Name;
+				}
+				
+				t.Size = FileSize;
 
-					int ModTime = Octal(Hdr.ModifiedTime);
-					t.Modified.Set((time_t)ModTime);
+				int64 ModTime = Octal(Hdr.ModifiedTime);
+				t.Modified.Set((time_t)ModTime);
 
-					bool SkipFile = true;
-					if (!Process(t, f, SkipFile))
-						break;
-					
-					if (SkipFile)
+				bool SkipOverFile = true;
+				if (!Process(t, File, SkipOverFile))
+					break;
+				
+				if (SkipOverFile)
+				{
+					// Read over the file contents
+					int64 Blocks = t.Blocks();
+					char Buf[512];
+					for (int i=0; i<Blocks; i++)
 					{
-						// Read over the file contents
-						int Blocks = t.Blocks();
-						char Buf[512];
-						for (int i=0; i<Blocks; i++)
+						r = File->Read(&Buf, sizeof(Buf));
+						if (r != sizeof(Buf))
 						{
-							r = f.Read(&Buf, sizeof(Buf));
-							if (r != sizeof(Buf))
-							{
-								break;
-							}
+							break;
 						}
 					}
 				}
 			}
 		}
 
-		return Status;
+		return true;
 	}
 
 public:
-	GTarParser() : f(&z)
+	GTarParser()
 	{
 		Files = 0;
 		ExtractTo = 0;
 	}
 
 	/// Get a directory listing of the tar file
-	bool DirList(char *File, GArray<GTarFile> &Out)
+	bool DirList(GStreamI *File, GArray<GTarFile> &Out)
 	{
 		bool Status = false;
 		
@@ -205,17 +216,14 @@ public:
 	}
 
 	/// Extract all the tar file contents to a folder
-	bool Extract(char *File, char *OutFolder)
+	bool Extract(GStreamI *File, char *OutFolder)
 	{
-		bool Status = false;
-		
-		if (OutFolder)
-		{
-			ExtractTo = OutFolder;
-			Status = Parse(File, O_READ);
-			ExtractTo = 0;
-		}
-		
+		if (!OutFolder)
+			return false;
+
+		ExtractTo = OutFolder;
+		bool Status = Parse(File, O_READ);
+		ExtractTo = 0;
 		return Status;
 	}
 };

@@ -290,6 +290,47 @@ public:
 		return a;
 	}
 
+	/// Splits the string into parts using a separator
+	Array RSplit(const char *Sep, int Count = -1, bool CaseSen = false)
+	{
+		Array a;
+
+		if (Str && Sep)
+		{
+			const char *s = Get();
+			int SepLen = strlen(Sep);
+			
+			GArray<const char*> seps;
+			
+			while ((s = CaseSen ? strstr(s, Sep) : stristr(s, Sep)))
+			{
+				seps.Add(s);
+				s += SepLen;
+			}
+			
+			int i;
+			int Last = seps.Length() - 1;
+			for (i=Last; i>=0; i--)
+			{
+				const char *part = seps[i] + SepLen;
+				
+				if (i == Last)
+					a.New().Set(part);
+				else
+					a.New().Set(part, seps[i+1]-part);
+				
+				if (Count > 0 && a.Length() >= (uint32)Count)
+					break;
+			}
+			
+			const char *End = seps[i > 0 ? i : 0];
+			a.New().Set(s, End - s);
+		}
+
+		a.SetFixedLength();
+		return a;
+	}
+
 	/// Splits the string into parts using delimiter chars
 	Array SplitDelimit(const char *Delimiters = NULL, int Count = -1, bool GroupDelimiters = true)
 	{
