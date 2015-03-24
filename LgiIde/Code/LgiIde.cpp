@@ -1398,15 +1398,15 @@ void AppWnd::SaveAll()
 void AppWnd::CloseAll()
 {
 	SaveAll();
-	d->Docs.DeleteObjects();
+	while (d->Docs.First())
+		delete d->Docs.First();
 	
 	IdeProject *p = RootProject();
 	if (p)
-	{
 		DeleteObj(p);
-	}
 	
-	d->Projects.DeleteObjects();	
+	while (d->Projects.First())
+		delete d->Projects.First();	
 }
 
 bool AppWnd::OnRequestClose(bool IsClose)
