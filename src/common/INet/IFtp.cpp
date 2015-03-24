@@ -420,7 +420,9 @@ FtpOpenStatus IFtp::Open(GSocketI *S, char *RemoteHost, int Port, char *User, ch
 				sprintf_s(d->OutBuf, sizeof(d->OutBuf), "USER anonymous\r\n");
 				if (WriteLine())
 				{
-					Verify(ReadLine(), 331);
+					int Code = ReadLine();
+					if (Code / 100 > 3)
+						throw Code;
 
 					sprintf_s(d->OutBuf, sizeof(d->OutBuf), "PASS me@privacy.net\r\n"); // garrenteed to never
 															// be allocated to an IP
@@ -457,7 +459,7 @@ FtpOpenStatus IFtp::Open(GSocketI *S, char *RemoteHost, int Port, char *User, ch
 	}
 	catch (int Error)
 	{
-		printf("%s:%i - error: %i\n", _FL, Error);
+		LgiTrace("%s:%i - Error: %i\n", _FL, Error);
 		Status = FO_Error;
 	}
 

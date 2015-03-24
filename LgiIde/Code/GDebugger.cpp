@@ -36,6 +36,7 @@ class Gdb : public GDebugger, public GThread
 		Init,
 		Looping,
 		Exiting,
+		ProcessError
 	}	State;
 
 	bool ParseLocation(StrArray &p)
@@ -253,7 +254,14 @@ class Gdb : public GDebugger, public GThread
 		
 		printf("Starting gdb subprocess...\n");
 		if (!Sp->Start(true, true, false))
+		{
+			State = ProcessError;
+			GAutoString ErrMsg = LgiErrorCodeToString(Sp->GetErrorCode());
+			char s[256];
+			sprintf_s(s, sizeof(s), "Failed to start gdb, error: 0x%x (%s)\n", Sp->GetErrorCode(), ErrMsg.Get());
+			Events->OnError(Sp->GetErrorCode(), s);
 			return -1;
+		}
 
 		printf("Entering gdb loop...\n");
 		State = Looping;
@@ -298,7 +306,9 @@ class Gdb : public GDebugger, public GThread
 		}
 
 		uint64 Start = LgiCurrentTime();
-		while (!AtPrompt && LgiCurrentTime() - Start < 2000)
+		while (!AtPrompt &&
+				LgiCurrentTime() - Start < 2000 &&
+				State == Looping)
 		{
 			LgiSleep(1);
 		}
@@ -519,10 +529,10 @@ public:
 		n.Added = false;
 		
 		uint64 Start = LgiCurrentTime();
-		while (!DebuggingProcess)
+		while (State != ProcessError && !DebuggingProcess)
 		{
 			LgiSleep(5);
-			if (LgiCurrentTime()-Start > 2000)
+			if (LgiCurrentTime()-Start > 3000)
 			{
 				LgiAssert(0);
 				return false;

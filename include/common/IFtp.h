@@ -145,7 +145,7 @@ protected:
 	// void *FactoryParam;
 
 	// State
-	int RestorePos;
+	int64 RestorePos;
 	bool AbortTransfer;
 	
 	bool SetupData(bool Binary);

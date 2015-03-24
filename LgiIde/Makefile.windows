@@ -30,7 +30,7 @@ Libs = \
 	-L../Debug \
 	-limm32 \
 	-llgi$(Tag) \
-	-Lc:/Data/Code/Lgi/trunk/$(BuildDir)
+	-LC:/Code/Lgi/trunk/$(BuildDir)
 
 # Includes
 Inc = \
@@ -87,6 +87,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).dll outputfolder $(Depends)
 	../include/common/GDataDlg.h \
 	../include/common/GDateTime.h \
 	../include/common/Gdc2.h \
+	../include/common/GdcTools.h \
 	../include/common/GdiLeak.h \
 	../include/common/GDom.h \
 	../include/common/GDragAndDrop.h \
@@ -476,8 +477,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 ../include/common/GString.h : ../include/common/LgiDefs.h \
 	../include/win32/LgiOsDefs.h
 
-..\include\common\GProgress.h : 
-
 ../src/common/Widgets/GProgressDlg.cpp : ../include/common/Lgi.h \
 	../include/common/GProgressDlg.h \
 	../include/common/GTextLabel.h \
@@ -503,6 +502,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 	../include/common/Res.h \
 	../include/common/GImageList.h
 
+..\include\common\GProgress.h : 
+
 ../src/common/Lgi/GFindReplace.cpp : ../include/common/Lgi.h \
 	../include/common/GTextView3.h \
 	../include/common/GTextLabel.h \
@@ -511,8 +512,12 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 	../include/common/GButton.h \
 	../include/common/GTableLayout.h
 
+..\include\common\GCheckBox.h : 
+
 ../src/common/Lgi/GLibrary.cpp : ../include/common/Lgi.h \
 	../include/common/GToken.h
+
+..\include\common\GTextLabel.h : 
 
 ../src/common/Lgi/Lgi.cpp : ../include/common/Lgi.h \
 	../include/common/GToken.h \
@@ -541,16 +546,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 	../include/common/GContainers.h \
 	../include/common/GHashTable.h
 
-..\include\common\GDateTime.h : 
-
-..\include\common\Progress.h : ../include/common/GMutex.h
-
-..\include\common\GMem.h : ../include/common/LgiInc.h \
-	../include/win32/LgiOsDefs.h
-
-..\include\common\GContainers.h : ../include/common/LgiInc.h \
-	../include/win32/LgiOsDefs.h \
-	../include/common/GStream.h
+..\include\common\GToolBar.h : ../include/common/GImageList.h
 
 ../src/common/Widgets/GTableLayout.cpp : ../include/common/Lgi.h \
 	../include/common/GTableLayout.h \
@@ -572,20 +568,14 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 	../include/common/GScrollBar.h \
 	../include/common/GCss.h
 
-..\include\common\GCombo.h : 
-
-..\include\common\GArray.h : ../include/common/LgiDefs.h
-
-..\include\common\GPrinter.h : 
-
 ../include/common/INetTools.h : ../include/common/GContainers.h \
 	../include/common/LgiNetInc.h
 
-..\include\common\GFileSelect.h : 
+..\include\common\GContainers.h : ../include/common/LgiInc.h \
+	../include/win32/LgiOsDefs.h \
+	../include/common/GStream.h
 
-..\include\common\GTableLayout.h : ../include/common/GCss.h
-
-..\include\common\Res.h : ../include/common/GXmlTree.h
+..\include\common\LgiInc.h : 
 
 ./Code/LgiIde.h : ./Code/resource.h \
 	./Code/resdefs.h \
@@ -598,14 +588,16 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 	./Code/IdeProject.h \
 	./Code/FindInFiles.h
 
-.\Code\resdefs.h : 
-
 ../include/common/GTabView.h : 
+
+..\include\common\GFileSelect.h : 
 
 ../src/common/General/GExeCheck.cpp : ../include/common/Lgi.h
 
 ./Code/GDebugger.h : ../include/common/GVariant.h \
 	../include/common/GStringClass.h
+
+..\include\common\GTree.h : ../include/common/GItemContainer.h
 
 ../src/common/Lgi/GGuiUtils.cpp : ../include/common/Lgi.h \
 	../include/common/GSkinEngine.h \
@@ -619,7 +611,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 
 ../include/common/Res.h : ../include/common/GXmlTree.h
 
-..\include\common\GButton.h : 
+..\include\common\GDocView.h : ../include/common/GVariant.h
 
 ../src/win32/Gdc2/GPrintDC.cpp : ../include/common/Lgi.h \
 	../include/common/GdiLeak.h
@@ -628,7 +620,11 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 
 ../include/common/GDisplayString.h : 
 
+..\include\common\GButton.h : 
+
 ../include/common/GToken.h : ../include/common/GArray.h
+
+..\include\common\GCapabilities.h : ../include/common/GHashTable.h
 
 ../src/common/Lgi/LgiRand.cpp : ../include/common/GMem.h \
 	../include/common/GFile.h \
@@ -636,6 +632,10 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 	../include/common/LgiCommon.h
 
 ../src/common/Lgi/GTrayIcon.cpp : ../include/common/Lgi.h
+
+.\Code\FindInFiles.h : ./Code/GHistory.h
+
+..\include\common\GImageList.h : 
 
 ..\include\common\Lgi.h : ../include/common/LgiInc.h \
 	../include/win32/LgiOsDefs.h \
@@ -672,47 +672,20 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 	../include/common/GDisplayString.h \
 	../include/common/GSkinEngine.h
 
-..\include\common\LgiClass.h : ../include/common/LgiInc.h \
-	../include/common/LgiDefs.h \
-	../include/common/GAutoPtr.h
-
 ./Code/IdeProject.h : ../include/common/GXmlTree.h \
 	../include/common/GDragAndDrop.h \
 	../include/common/GTree.h \
 	../include/common/GOptionsFile.h \
 	./Code/GDebugger.h
 
-..\include\common\Gdc2.h : ../include/win32/LgiOsDefs.h \
-	../include/common/LgiInc.h \
-	../include/common/LgiClass.h \
-	../include/common/Progress.h \
-	../include/common/GFile.h \
-	../include/common/GMem.h \
-	../include/win32/Core.h \
-	../include/common/GContainers.h \
-	../include/common/GCapabilities.h \
-	../include/common/GRefCount.h \
-	../include/common/GLibrary.h \
-	../include/common/GColourSpace.h \
-	../include/common/GRect.h \
-	../include/common/GFont.h \
-	../include/common/GPoint.h \
-	../include/common/GColour.h \
-	../include/common/GFilter.h
-
-..\include\common\GColour.h : ../include/common/GColourSpace.h
-
-..\include\common\GLibrary.h : 
-
-..\include\common\LgiMsgs.h : 
-
-..\include\common\GFile.h : ../include/common/GMem.h \
-	../include/common/GStream.h \
-	../include/common/GArray.h \
-	../include/common/GRefCount.h
+..\include\common\LgiNetInc.h : 
 
 ../src/common/Widgets/GStatusBar.cpp : ../include/common/Lgi.h \
 	../include/common/GDisplayString.h
+
+../include/common/GdcTools.h : 
+
+..\include\common\LgiMsgs.h : 
 
 ../src/common/Widgets/GTextLabel.cpp : ../include/common/Lgi.h \
 	../include/common/GTextLabel.h \
@@ -726,11 +699,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 	../include/common/GPalette.h
 
 ../include/common/GLibraryUtils.h : 
-
-..\include\common\GDragAndDrop.h : ../include/common/GVariant.h \
-	../include/common/GCom.h
-
-..\include\common\GCssTools.h : 
 
 ../src/common/Widgets/GRadioGroup.cpp : ../include/common/Lgi.h \
 	../include/common/GSkinEngine.h \
@@ -760,6 +728,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 
 ../include/common/GListItemRadioBtn.h : 
 
+..\include\common\GToken.h : ../include/common/GArray.h
+
 ../src/common/INet/INetTools.cpp : ../include/common/GMem.h \
 	../include/win32/LgiOsDefs.h \
 	../include/common/INetTools.h \
@@ -768,12 +738,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 ../include/win32/LgiOsDefs.h : ../include/common/LgiInc.h \
 	../include/common/LgiDefs.h \
 	../include/common/LgiClass.h
-
-.\Code\IdeProject.h : ../include/common/GXmlTree.h \
-	../include/common/GDragAndDrop.h \
-	../include/common/GTree.h \
-	../include/common/GOptionsFile.h \
-	./Code/GDebugger.h
 
 ../src/common/Text/GString.cpp : ../include/common/GMem.h \
 	../include/win32/LgiOsDefs.h \
@@ -791,6 +755,12 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 ../src/win32/Widgets/GEdit.cpp : ../include/common/Lgi.h \
 	../include/common/GSkinEngine.h \
 	../include/common/GEdit.h
+
+.\Code\IdeProject.h : ../include/common/GXmlTree.h \
+	../include/common/GDragAndDrop.h \
+	../include/common/GTree.h \
+	../include/common/GOptionsFile.h \
+	./Code/GDebugger.h
 
 ../include/common/GLibrary.h : 
 
@@ -822,8 +792,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 	../include/common/GBox.h \
 	../include/common/GCssTools.h
 
-..\include\common\GBox.h : 
-
 ../src/common/Gdc2/Font/GFont.cpp : ../include/common/Lgi.h \
 	../include/common/GVariant.h \
 	../include/common/GFontSelect.h \
@@ -832,14 +800,32 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 	../include/common/GStringClass.h \
 	../include/common/GUtf8.h
 
-..\include\common\LgiCommon.h : ../include/common/GMem.h \
-	../include/common/GArray.h \
-	../include/common/LgiClass.h
+..\include\common\GTabView.h : 
 
 ../include/common/GFile.h : ../include/common/GMem.h \
 	../include/common/GStream.h \
 	../include/common/GArray.h \
 	../include/common/GRefCount.h
+
+..\include\common\GRefCount.h : 
+
+..\include\common\LgiClasses.h : ../include/common/GMutex.h \
+	../include/win32/LgiOsClasses.h \
+	../include/common/GMem.h \
+	../include/common/GArray.h \
+	../include/common/LgiCommon.h \
+	../include/common/GXmlTree.h \
+	../include/common/GDragAndDrop.h \
+	../include/common/GMenu.h \
+	../include/common/LgiWidgets.h \
+	../include/common/Progress.h \
+	../include/common/GProgress.h \
+	../include/common/GFileSelect.h \
+	../include/common/GFindReplaceDlg.h \
+	../include/common/GToolBar.h \
+	../include/common/GThread.h \
+	../include/common/GInput.h \
+	../include/common/GPrinter.h
 
 ../src/common/Widgets/GToolBar.cpp : ../include/common/Lgi.h \
 	../include/common/GToken.h \
@@ -862,39 +848,35 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 	../include/common/GButton.h \
 	../include/common/GCss.h
 
-..\include\common\GPath.h : ../include/common/GMatrix.h
-
-..\include\win32\GSymLookup.h : 
-
 ..\include\common\GdiLeak.h : 
-
-..\include\common\GMru.h : ../include/common/GProperties.h
 
 ../src/common/Lgi/GMemStream.cpp : ../include/common/Lgi.h \
 	../include/common/GStream.h
-
-..\include\common\GProperties.h : ../include/common/GContainers.h \
-	../include/common/LgiClass.h \
-	../include/common/GString.h
 
 ../src/common/Lgi/GOptionsFile.cpp : ../include/common/Lgi.h \
 	../include/common/GOptionsFile.h
 
 ../include/common/GClipBoard.h : 
 
+..\include\common\GViewPriv.h : 
+
+.\Code\resdefs.h : 
+
+..\include\common\GRops.h : 
+
 ..\include\common\GStream.h : ../include/common/GDom.h
 
-..\include\common\GMatrix.h : 
-
-..\include\common\GThread.h : ../include/common/GMutex.h
-
 ../include/common/GTextLabel.h : 
+
+..\include\common\GArray.h : ../include/common/LgiDefs.h
+
+..\include\common\GPrinter.h : 
 
 ../src/common/Lgi/GDataDlg.cpp : ../include/common/Lgi.h \
 	../include/common/GPassword.h \
 	../include/common/GDataDlg.h
 
-..\include\common\GPassword.h : 
+..\include\common\GThread.h : ../include/common/GMutex.h
 
 ../src/win32/Gdc2/GScreenDC.cpp : ../include/common/Gdc2.h \
 	../include/common/GdiLeak.h \
@@ -904,20 +886,19 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 	../include/common/GClipBoard.h \
 	../include/common/GPalette.h
 
-..\include\common\INet.h : ../include/common/GMem.h \
-	../include/common/GContainers.h \
-	../include/common/LgiNetInc.h \
-	../include/common/GStream.h \
-	../include/common/LgiInterfaces.h \
-	../include/common/GString.h
+..\include\common\GPixelRops.h : 
 
-..\include\common\LgiInterfaces.h : ../include/common/GMem.h \
-	../include/common/GArray.h \
-	../include/win32/LgiOsDefs.h \
-	../include/common/GColour.h
+..\include\common\LgiWidgets.h : 
 
 ../src/common/Lgi/GToolTip.cpp : ../include/common/Lgi.h \
 	../include/common/GDisplayString.h
+
+..\include\common\GList.h : ../include/common/GMem.h \
+	../include/common/GArray.h \
+	../include/common/GPopup.h \
+	../include/common/GDisplayString.h \
+	../include/common/GCss.h \
+	../include/common/GItemContainer.h
 
 ../src/common/Gdc2/15Bit.cpp : ../include/common/Gdc2.h \
 	../include/common/GPalette.h
@@ -929,9 +910,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 	../include/win32/StackWalker.h \
 	../include/win32/GSymLookup.h
 
-..\include\common\GProcess.h : ../include/common/GStream.h
-
-..\include\common\GUtf8.h : 
+..\include\win32\StackWalker.h : 
 
 ../src/win32/Lgi/GDragAndDrop.cpp : ../include/common/Lgi.h \
 	../include/common/GDragAndDrop.h
@@ -958,22 +937,59 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 	../include/common/GColour.h \
 	../include/common/GFilter.h
 
+..\include\common\GColour.h : ../include/common/GColourSpace.h
+
+..\include\common\GColourSpace.h : 
+
+..\include\common\GFont.h : ../include/common/GRect.h \
+	../include/win32/LgiOsClasses.h \
+	../include/common/GColour.h \
+	../include/common/GCapabilities.h
+
+..\include\common\GRect.h : ../include/common/GPoint.h
+
+..\include\common\GLibraryUtils.h : 
+
 ../src/common/Lgi/GCss.cpp : ../include/common/GCss.h \
 	../include/common/LgiCommon.h
 
-..\include\common\INetTools.h : ../include/common/GContainers.h \
-	../include/common/LgiNetInc.h
-
 ../include/common/GBox.h : 
+
+..\include\common\GHashTable.h : ../include/common/GMem.h \
+	../include/common/GArray.h \
+	../include/common/GString.h \
+	../include/common/LgiClass.h
 
 ..\include\common\GString.h : ../include/common/LgiDefs.h \
 	../include/win32/LgiOsDefs.h
 
-..\include\common\GImageList.h : 
+..\include\common\LgiClass.h : ../include/common/LgiInc.h \
+	../include/common/LgiDefs.h \
+	../include/common/GAutoPtr.h
+
+..\include\common\Gdc2.h : ../include/win32/LgiOsDefs.h \
+	../include/common/LgiInc.h \
+	../include/common/LgiClass.h \
+	../include/common/Progress.h \
+	../include/common/GFile.h \
+	../include/common/GMem.h \
+	../include/win32/Core.h \
+	../include/common/GContainers.h \
+	../include/common/GCapabilities.h \
+	../include/common/GRefCount.h \
+	../include/common/GLibrary.h \
+	../include/common/GColourSpace.h \
+	../include/common/GRect.h \
+	../include/common/GFont.h \
+	../include/common/GPoint.h \
+	../include/common/GColour.h \
+	../include/common/GFilter.h
 
 ../include/common/GCssTools.h : 
 
 ../src/common/Lgi/GWindowCommon.cpp : ../include/common/Lgi.h
+
+..\include\common\GLibrary.h : 
 
 ../include/common/GProcess.h : ../include/common/GStream.h
 
@@ -983,10 +999,13 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 ..\include\common\LgiDefs.h : ../include/common/LgiInc.h \
 	../include/common/GAutoPtr.h
 
-..\include\common\GAutoPtr.h : 
+..\include\common\GBox.h : 
 
 ../src/common/Gdc2/Tools/GColourReduce.cpp : ../include/common/Gdc2.h \
 	../include/common/GPalette.h
+
+..\include\common\GDragAndDrop.h : ../include/common/GVariant.h \
+	../include/common/GCom.h
 
 ../include/common/GUtf8.h : 
 
@@ -1001,31 +1020,27 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 
 ../include/common/GScrollBar.h : 
 
-..\include\common\GEdit.h : ../include/common/GTextView3.h
-
 ../include/common/GFilter.h : ../include/common/GContainers.h
 
-..\include\common\GXmlTree.h : ../include/common/GHashTable.h \
-	../include/common/GRefCount.h \
-	../include/common/GDom.h
-
-.\Code\resource.h : 
+../src/win32/INet/MibAccess.cpp : 
 
 .\Code\IdeDoc.h : ../include/common/GMdi.h \
 	../include/common/GTextView3.h
 
-../src/win32/INet/MibAccess.cpp : 
-
 ../include/common/LgiInc.h : 
-
-..\include\common\GStringClass.h : ../include/common/GUtf8.h
 
 ../src/win32/Lgi/GScrollBar.cpp : ../include/common/Lgi.h \
 	../include/common/GScrollBar.h
 
+..\include\common\GMenu.h : ../include/common/GXmlTree.h \
+	../include/common/Res.h \
+	../include/common/GImageList.h
+
 ../include/common/LgiCommon.h : ../include/common/GMem.h \
 	../include/common/GArray.h \
 	../include/common/LgiClass.h
+
+..\include\common\GDisplayString.h : 
 
 ../src/common/Lgi/GProcess.cpp : ../include/common/Lgi.h \
 	../include/common/GProcess.h \
@@ -1038,6 +1053,10 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 	../include/common/GString.h
 
 ../include/common/GMru.h : ../include/common/GProperties.h
+
+..\include\common\GProperties.h : ../include/common/GContainers.h \
+	../include/common/LgiClass.h \
+	../include/common/GString.h
 
 ../src/common/Widgets/GTree.cpp : ../include/common/Lgi.h \
 	../include/common/GTree.h \
@@ -1054,29 +1073,24 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 	../include/common/GViewPriv.h \
 	../include/common/GCss.h
 
-..\include\common\GToken.h : ../include/common/GArray.h
+..\include\common\GDropFiles.h : ../include/common/GToken.h \
+	../include/common/INet.h \
+	../include/common/GVariant.h
+
+..\include\common\Base64.h : ../include/common/LgiDefs.h
 
 ../src/win32/Lgi/GLayout.cpp : ../include/common/Lgi.h \
 	../include/common/GScrollBar.h
 
 ../src/common/Lgi/GMutex.cpp : ../include/common/Lgi.h
 
-..\include\common\GVariant.h : ../include/common/GDom.h \
-	../include/common/GDateTime.h \
-	../include/common/GContainers.h \
-	../include/common/GHashTable.h
-
-..\include\common\GDropFiles.h : ../include/common/GToken.h \
-	../include/common/INet.h \
-	../include/common/GVariant.h
-
 ../include/common/GTextView3.h : ../include/common/GDocView.h \
 	../include/common/GUndo.h \
 	../include/common/GDragAndDrop.h
 
-../include/common/GInput.h : 
+..\include\common\GUndo.h : 
 
-..\include\win32\StackWalker.h : 
+../include/common/GInput.h : 
 
 ../src/win32/Widgets/GSlider.cpp : ../include/common/Lgi.h \
 	../include/common/GSlider.h
@@ -1115,43 +1129,31 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 
 ../include/common/GEdit.h : ../include/common/GTextView3.h
 
-..\include\common\LgiClasses.h : ../include/common/GMutex.h \
-	../include/win32/LgiOsClasses.h \
-	../include/common/GMem.h \
-	../include/common/GArray.h \
-	../include/common/LgiCommon.h \
-	../include/common/GXmlTree.h \
-	../include/common/GDragAndDrop.h \
-	../include/common/GMenu.h \
-	../include/common/LgiWidgets.h \
-	../include/common/Progress.h \
-	../include/common/GProgress.h \
-	../include/common/GFileSelect.h \
-	../include/common/GFindReplaceDlg.h \
-	../include/common/GToolBar.h \
-	../include/common/GThread.h \
-	../include/common/GInput.h \
-	../include/common/GPrinter.h
+..\include\common\GMru.h : ../include/common/GProperties.h
 
-..\include\common\GUndo.h : 
+..\include\common\GClipBoard.h : 
 
-..\include\common\Base64.h : ../include/common/LgiDefs.h
+..\include\common\INet.h : ../include/common/GMem.h \
+	../include/common/GContainers.h \
+	../include/common/LgiNetInc.h \
+	../include/common/GStream.h \
+	../include/common/LgiInterfaces.h \
+	../include/common/GString.h
 
-..\include\common\GDataDlg.h : ../include/common/GProperties.h \
-	../include/common/GScrollBar.h \
-	../include/common/GTextLabel.h
+.\Code\GDebugger.h : ../include/common/GVariant.h \
+	../include/common/GStringClass.h
+
+.\Code\GHistory.h : ../include/common/GPopup.h
 
 ../include/common/GLexCpp.h : ../include/common/LgiInc.h \
 	../include/win32/LgiOsDefs.h \
 	../include/common/GString.h
 
-..\include\common\GTree.h : ../include/common/GItemContainer.h
+..\include\common\Res.h : ../include/common/GXmlTree.h
 
-..\include\common\GSlider.h : 
+..\include\common\GItemContainer.h : ../include/common/GPopup.h
 
-..\include\common\GPixelRops.h : 
-
-..\include\common\LgiWidgets.h : 
+..\include\common\GProcess.h : ../include/common/GStream.h
 
 ../src/common/Gdc2/8Bit.cpp : ../include/common/Gdc2.h \
 	../include/common/GPalette.h
@@ -1167,32 +1169,17 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 	../include/common/GMutex.h \
 	../include/common/GString.h
 
+..\include\common\GSlider.h : 
+
 ../src/common/General/GPassword.cpp : ../include/common/Lgi.h \
 	../include/common/GPassword.h \
 	../include/common/GVariant.h
 
 ../include/common/GPopup.h : 
 
-..\include\win32\LgiOsDefs.h : ../include/common/LgiInc.h \
-	../include/common/LgiDefs.h \
-	../include/common/LgiClass.h
-
-..\include\common\GCapabilities.h : ../include/common/GHashTable.h
-
 ../include/common/GProgressDlg.h : 
 
-..\include\common\GPalette.h : ../include/common/GColourSpace.h \
-	../include/common/GFile.h
-
-..\include\common\GOptionsFile.h : ../include/common/GVariant.h \
-	../include/common/GXmlTree.h \
-	../include/common/GMutex.h
-
-..\include\common\GRefCount.h : 
-
-..\include\common\GDom.h : ../include/common/LgiInterfaces.h \
-	../include/common/GMem.h \
-	../include/common/GArray.h
+..\include\common\GInput.h : 
 
 ../src/win32/Lgi/GApp.cpp : ../include/common/Lgi.h \
 	../include/common/GSkinEngine.h \
@@ -1211,6 +1198,10 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 
 ./Code/GHistory.h : ../include/common/GPopup.h
 
+..\include\common\LgiRes.h : ../include/common/Res.h \
+	../include/common/GContainers.h \
+	../include/common/GCss.h
+
 ../include/common/LgiInterfaces.h : ../include/common/GMem.h \
 	../include/common/GArray.h \
 	../include/win32/LgiOsDefs.h \
@@ -1219,11 +1210,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 ../include/common/GDataDlg.h : ../include/common/GProperties.h \
 	../include/common/GScrollBar.h \
 	../include/common/GTextLabel.h
-
-..\include\common\GHashTable.h : ../include/common/GMem.h \
-	../include/common/GArray.h \
-	../include/common/GString.h \
-	../include/common/LgiClass.h
 
 ../include/common/Lgi.h : ../include/common/LgiInc.h \
 	../include/win32/LgiOsDefs.h \
@@ -1245,16 +1231,21 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 	../include/common/GDisplayString.h \
 	../include/common/GThreadEvent.h
 
-..\include\common\GThreadEvent.h : 
-
-..\include\common\LgiNetInc.h : 
-
-..\include\common\GProgressDlg.h : 
+..\include\common\GAutoPtr.h : 
 
 ../include/common/GTree.h : ../include/common/GItemContainer.h
 
+..\include\common\GScrollBar.h : 
+
 ../include/common/GPalette.h : ../include/common/GColourSpace.h \
 	../include/common/GFile.h
+
+..\include\common\GFile.h : ../include/common/GMem.h \
+	../include/common/GStream.h \
+	../include/common/GArray.h \
+	../include/common/GRefCount.h
+
+..\include\common\GPoint.h : 
 
 ../src/common/Lgi/GInput.cpp : ../include/common/Lgi.h \
 	../include/common/GTextLabel.h \
@@ -1262,14 +1253,13 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 	../include/common/GButton.h \
 	../include/common/GDisplayString.h
 
-..\include\win32\Core.h : 
+..\include\common\GXmlTree.h : ../include/common/GHashTable.h \
+	../include/common/GRefCount.h \
+	../include/common/GDom.h
 
 ./Code/resdefs.h : 
 
-..\include\common\GFont.h : ../include/common/GRect.h \
-	../include/win32/LgiOsClasses.h \
-	../include/common/GColour.h \
-	../include/common/GCapabilities.h
+..\include\win32\Core.h : 
 
 ../include/common/GCombo.h : 
 
@@ -1281,6 +1271,10 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 ../src/common/General/GFileCommon.cpp : ../include/common/Lgi.h \
 	../include/common/GVariant.h
 
+..\include\common\GStringClass.h : ../include/common/GUtf8.h
+
+..\include\common\GCssTools.h : 
+
 ../src/common/General/GContainers.cpp : ../include/common/GMem.h \
 	../include/common/GContainers.h \
 	../include/common/GString.h \
@@ -1288,16 +1282,16 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 
 ./Code/SpaceTabConv.h : 
 
-..\include\common\GFindReplaceDlg.h : 
+..\include\common\GPopup.h : 
 
 ../src/common/Gdc2/GRect.cpp : ../include/common/Gdc2.h \
 	../include/common/GToken.h
 
-..\include\common\GMdi.h : 
-
-..\include\common\GDisplayString.h : 
+..\include\common\GFindReplaceDlg.h : 
 
 ../include/common/GDateTime.h : 
+
+..\include\common\GMutex.h : 
 
 ../src/common/Widgets/GList.cpp : ../include/common/Lgi.h \
 	../include/common/GSkinEngine.h \
@@ -1306,32 +1300,33 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 	../include/common/GScrollBar.h \
 	../include/common/GDisplayString.h
 
+..\include\common\GTextView3.h : ../include/common/GDocView.h \
+	../include/common/GUndo.h \
+	../include/common/GDragAndDrop.h
+
+..\include\common\GVariant.h : ../include/common/GDom.h \
+	../include/common/GDateTime.h \
+	../include/common/GContainers.h \
+	../include/common/GHashTable.h
+
 ../src/win32/Widgets/GDialog.cpp : ../include/common/Lgi.h \
 	../include/common/GTableLayout.h \
 	../include/common/GDisplayString.h
 
-..\include\common\GCom.h : ../include/common/GContainers.h
-
-..\include\common\GCss.h : ../include/common/LgiInc.h \
-	../include/win32/LgiOsDefs.h \
-	../include/common/GMem.h \
-	../include/common/Gdc2.h \
-	../include/common/GAutoPtr.h \
-	../include/common/GString.h \
-	../include/common/GHashTable.h
+../include/common/GButton.h : 
 
 ..\include\common\GRadioGroup.h : 
-
-../include/common/GButton.h : 
 
 ../include/common/GMem.h : ../include/common/LgiInc.h \
 	../include/win32/LgiOsDefs.h
 
+..\include\common\LgiCommon.h : ../include/common/GMem.h \
+	../include/common/GArray.h \
+	../include/common/LgiClass.h
+
 ../src/win32/Widgets/GProgress.cpp : ../include/common/Lgi.h \
 	../include/common/GProgress.h \
 	../include/common/GCss.h
-
-..\include\common\GSkinEngine.h : ../include/common/GList.h
 
 ../src/common/Resource/Res.cpp : ../include/common/Lgi.h \
 	../include/common/Res.h \
@@ -1340,56 +1335,62 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 
 ../include/common/GColour.h : ../include/common/GColourSpace.h
 
-..\include\common\GRect.h : ../include/common/GPoint.h
+..\include\common\GPassword.h : 
 
 ../include/common/GFont.h : ../include/common/GRect.h \
 	../include/win32/LgiOsClasses.h \
 	../include/common/GColour.h \
 	../include/common/GCapabilities.h
 
+..\include\common\GSkinEngine.h : ../include/common/GList.h
+
+..\include\common\GPath.h : ../include/common/GMatrix.h
+
+..\include\common\GMatrix.h : 
+
+..\include\win32\GSymLookup.h : 
+
 ..\include\common\GBitmap.h : 
-
-..\include\common\GClipBoard.h : 
-
-..\include\common\GViewPriv.h : 
-
-..\include\common\GFilter.h : ../include/common/GContainers.h
 
 ../src/common/INet/Base64.cpp : ../include/common/GMem.h \
 	../include/common/LgiInc.h \
 	../include/common/Base64.h
 
-..\include\common\GRops.h : 
+..\include\common\GFilter.h : ../include/common/GContainers.h
 
-..\include\common\GTextLabel.h : 
+..\include\common\GCombo.h : 
 
 ../include/common/GDom.h : ../include/common/LgiInterfaces.h \
 	../include/common/GMem.h \
 	../include/common/GArray.h
 
+..\include\common\Progress.h : ../include/common/GMutex.h
+
+..\include\common\GMem.h : ../include/common/LgiInc.h \
+	../include/win32/LgiOsDefs.h
+
 ../src/common/Lgi/GThreadCommon.cpp : ../include/common/Lgi.h
+
+..\include\common\GDataDlg.h : ../include/common/GProperties.h \
+	../include/common/GScrollBar.h \
+	../include/common/GTextLabel.h
+
+..\include\common\GTableLayout.h : ../include/common/GCss.h
+
+..\include\common\LgiInterfaces.h : ../include/common/GMem.h \
+	../include/common/GArray.h \
+	../include/win32/LgiOsDefs.h \
+	../include/common/GColour.h
 
 ../src/common/Gdc2/GColour.cpp : ../include/common/Lgi.h \
 	../include/common/GPalette.h
-
-..\include\common\LgiInc.h : 
-
-..\include\common\GToolBar.h : ../include/common/GImageList.h
 
 ../src/common/Lgi/GAlert.cpp : ../include/common/Lgi.h \
 	../include/common/GTextLabel.h \
 	../include/common/GButton.h \
 	../include/common/GDisplayString.h
 
-..\include\common\GList.h : ../include/common/GMem.h \
-	../include/common/GArray.h \
-	../include/common/GPopup.h \
-	../include/common/GDisplayString.h \
-	../include/common/GCss.h \
-	../include/common/GItemContainer.h
-
-.\Code\GDebugger.h : ../include/common/GVariant.h \
-	../include/common/GStringClass.h
+..\include\common\GThreadEvent.h : 
 
 ../include/common/GContainers.h : ../include/common/LgiInc.h \
 	../include/win32/LgiOsDefs.h \
@@ -1400,7 +1401,9 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 	../include/common/GToken.h \
 	../include/common/GDocView.h
 
-..\include\common\GItemContainer.h : ../include/common/GPopup.h
+..\include\win32\LgiOsDefs.h : ../include/common/LgiInc.h \
+	../include/common/LgiDefs.h \
+	../include/common/LgiClass.h
 
 ../src/common/Gdc2/Font/GDisplayString.cpp : ../include/common/Lgi.h \
 	../include/common/GVariant.h \
@@ -1409,11 +1412,20 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 	../include/common/GUtf8.h \
 	../include/common/GDisplayString.h
 
+..\include\common\GOptionsFile.h : ../include/common/GVariant.h \
+	../include/common/GXmlTree.h \
+	../include/common/GMutex.h
+
 ../include/common/GFileSelect.h : 
 
-..\include\common\GLibraryUtils.h : 
+..\include\common\GPalette.h : ../include/common/GColourSpace.h \
+	../include/common/GFile.h
 
-..\include\common\GDocView.h : ../include/common/GVariant.h
+..\include\common\GDom.h : ../include/common/LgiInterfaces.h \
+	../include/common/GMem.h \
+	../include/common/GArray.h
+
+..\include\common\GUtf8.h : 
 
 ../include/common/GRect.h : ../include/common/GPoint.h
 
@@ -1423,18 +1435,11 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 	../include/common/GString.h \
 	../include/common/GVariant.h
 
-..\include\common\GInput.h : 
+..\include\common\INetTools.h : ../include/common/GContainers.h \
+	../include/common/LgiNetInc.h
 
 ../src/common/Gdc2/24Bit.cpp : ../include/common/Gdc2.h \
 	../include/common/GPalette.h
-
-.\Code\FindInFiles.h : ./Code/GHistory.h
-
-.\Code\GHistory.h : ../include/common/GPopup.h
-
-..\include\common\LgiRes.h : ../include/common/Res.h \
-	../include/common/GContainers.h \
-	../include/common/GCss.h
 
 ../include/common/GColourSpace.h : 
 
@@ -1448,6 +1453,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 	../include/common/GCheckBox.h \
 	../include/common/GRadioGroup.h \
 	../include/common/GDisplayString.h
+
+..\include\common\GProgressDlg.h : 
 
 ../include/common/GListItemCheckBox.h : ../include/common/GList.h
 
@@ -1495,8 +1502,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 
 ../include/common/GDocView.h : ../include/common/GVariant.h
 
-..\include\common\GScrollBar.h : 
-
 ../src/common/Widgets/GBitmap.cpp : ../include/common/Lgi.h \
 	../include/common/GBitmap.h \
 	../include/common/GTableLayout.h
@@ -1514,6 +1519,9 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 ./Code/FtpThread.h : ../include/common/GList.h \
 	../include/common/IFtp.h
 
+..\include\common\IFtp.h : ../include/common/INet.h \
+	../include/common/GDateTime.h
+
 ../src/common/Gdc2/Filters/GFilter.cpp : ../include/common/Gdc2.h \
 	../include/common/GString.h \
 	../include/common/GVariant.h \
@@ -1522,32 +1530,23 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 	../include/common/GPalette.h \
 	../include/common/Lgi.h
 
-..\include\common\GPoint.h : 
-
 ../src/common/Hash/md5/md5.c : 
 
 ./Code/FindSymbol.h : 
 
-..\include\common\GColourSpace.h : 
+..\include\common\GEdit.h : ../include/common/GTextView3.h
 
 ../include/common/GStream.h : ../include/common/GDom.h
 
+.\Code\resource.h : 
+
 ../src/win32/General/GMem.cpp : ../include/common/GMem.h \
 	../include/common/LgiDefs.h
-
-..\include\common\IFtp.h : ../include/common/INet.h \
-	../include/common/GDateTime.h
 
 ../src/common/Gdc2/Alpha.cpp : ../include/common/Gdc2.h \
 	../include/common/GPath.h \
 	../include/common/GPixelRops.h \
 	../include/common/GPalette.h
-
-..\include\win32\LgiOsClasses.h : ../include/common/GRegKey.h
-
-..\include\common\GMenu.h : ../include/common/GXmlTree.h \
-	../include/common/Res.h \
-	../include/common/GImageList.h
 
 ../include/common/GThread.h : ../include/common/GMutex.h
 
@@ -1556,16 +1555,22 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 	../include/common/GToken.h \
 	../include/common/GString.h
 
-..\include\common\GPopup.h : 
+..\include\common\GMdi.h : 
+
+..\include\win32\LgiOsClasses.h : ../include/common/GRegKey.h
+
+..\include\common\GCom.h : ../include/common/GContainers.h
+
+..\include\common\GCss.h : ../include/common/LgiInc.h \
+	../include/win32/LgiOsDefs.h \
+	../include/common/GMem.h \
+	../include/common/Gdc2.h \
+	../include/common/GAutoPtr.h \
+	../include/common/GString.h \
+	../include/common/GHashTable.h
 
 ../src/win32/Lgi/GPrinter.cpp : ../include/common/Lgi.h \
 	../include/common/Base64.h
-
-..\include\common\GMutex.h : 
-
-..\include\common\GTextView3.h : ../include/common/GDocView.h \
-	../include/common/GUndo.h \
-	../include/common/GDragAndDrop.h
 
 ../src/common/Text/GXmlTree.cpp : ../include/common/Lgi.h \
 	../include/common/GXmlTree.h \
@@ -1588,10 +1593,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 	../include/common/INet.h \
 	../include/common/GVariant.h
 
-..\include\common\GTabView.h : 
-
-.\Code\FindSymbol.h : 
-
 ../src/common/Text/GUtf8.cpp : ../include/common/Lgi.h \
 	../include/common/GUtf8.h
 
@@ -1609,7 +1610,9 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../../../../CodeLib/libpng/png.h \
 
 ..\src\common\Hash\md5\md5.h : ../include/common/LgiInc.h
 
-..\include\common\GCheckBox.h : 
+.\Code\FindSymbol.h : 
+
+..\include\common\GDateTime.h : 
 
 VPATH=%.cpp \
 	.\Code \

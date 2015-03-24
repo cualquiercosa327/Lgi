@@ -519,7 +519,7 @@ GAutoString LgiErrorCodeToString(uint32 ErrorCode)
 										NULL))
     {
         DWORD dwBytesWritten;
-		Str.Reset(NewStr(MessageBuffer, dwBufferLength));
+		Str.Reset(TrimStr(NewStr(MessageBuffer, dwBufferLength)));
         LocalFree(MessageBuffer);
     }
 

@@ -310,21 +310,24 @@ public:
 			
 			int i;
 			int Last = seps.Length() - 1;
+			GString p;
 			for (i=Last; i>=0; i--)
 			{
 				const char *part = seps[i] + SepLen;
 				
 				if (i == Last)
-					a.New().Set(part);
+					p.Set(part);
 				else
-					a.New().Set(part, seps[i+1]-part);
+					p.Set(part, seps[i+1]-part);
+				a.AddAt(0, p);
 				
 				if (Count > 0 && a.Length() >= (uint32)Count)
 					break;
 			}
 			
 			const char *End = seps[i > 0 ? i : 0];
-			a.New().Set(s, End - s);
+			p.Set(Get(), End - Get());
+			a.AddAt(0, p);
 		}
 
 		a.SetFixedLength();

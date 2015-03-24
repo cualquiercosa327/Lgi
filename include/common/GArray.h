@@ -474,6 +474,7 @@ public:
 			}
 
 			// Insert item
+			memset(p + Index, 0, sizeof(*p));
 			p[Index] = n;
 
 			return true;
