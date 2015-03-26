@@ -5167,11 +5167,6 @@ void GTag::OnFlow(GFlowRegion *Flow)
 			// Setup the line height cache
 			if (LineHeightCache < 0)
 			{
-				if (Debug)
-				{
-					int asd=0;
-				}
-				
 				GCss::PropMap Map;
 				GCss Final;
 				Map.Add(PropLineHeight, new GCss::PropArray);
@@ -5184,19 +5179,19 @@ void GTag::OnFlow(GFlowRegion *Flow)
 				Map.DeleteObjects();
 
 				GCss::Len CssLineHeight = Final.LineHeight();    
-				if ((Font = GetFont()))
+				if (f)
 				{
-					int FontPx = FontPxHeight(Font);
+					int FontPx = FontPxHeight(f);
 					
 					if (!CssLineHeight.IsValid() ||
 						CssLineHeight.Type == GCss::LenAuto ||
 						CssLineHeight.Type == GCss::LenNormal)
 					{
-						LineHeightCache = FontPx;
+						LineHeightCache = f->GetHeight();
 					}
 					else
 					{					
-						LineHeightCache = CssLineHeight.ToPx(FontPx, Font);
+						LineHeightCache = CssLineHeight.ToPx(FontPx, f);
 					}
 				}
 			}
