@@ -62,6 +62,8 @@
 #define DefaultMissingCellColour	GT_TRANSPARENT // Rgb32(0xf0,0xf0,0xf0)
 #define ShowNbsp					0
 
+#define FontPxHeight(fnt)			(fnt->GetHeight() - (int)(fnt->Leading() + 0.5))
+
 #if 0 // def _DEBUG
 #define DefaultTableBorder			Rgb32(0xf8, 0xf8, 0xf8)
 #else
@@ -265,7 +267,6 @@ public:
 			GArray<int> Map; // map of point-sizes to heights
 			int NearestPoint = 0;
 			int Diff = 1000;
-			#define PxHeight(fnt) (fnt->GetHeight() - (int)(fnt->Leading() + 0.5))
 
 			// Look for cached fonts of the right size...
 			for (f=Fonts.First(); f; f=Fonts.Next())
@@ -277,7 +278,7 @@ public:
 					f->Underline() == IsUnderline)
 				{
 				    int PtSize = f->PointSize();
-				    int Height = PxHeight(f);
+				    int Height = FontPxHeight(f);
 					Map[PtSize] = Height;
 
 					if (!NearestPoint)
@@ -292,13 +293,13 @@ public:
 						}
 					}
 					
-					if (RequestPx < PxHeight(f) &&
+					if (RequestPx < FontPxHeight(f) &&
 					    f->PointSize() == MinimumPointSize)
 				    {
 				        return f;
 				    }
 
-					Diff = PxHeight(f) - RequestPx;
+					Diff = FontPxHeight(f) - RequestPx;
 					if (abs(Diff) < 2)
 					{
 						return f;
@@ -337,7 +338,7 @@ public:
 					}
 				}
 				
-				int ActualHeight = PxHeight(Tmp);
+				int ActualHeight = FontPxHeight(Tmp);
 				Diff = ActualHeight - RequestPx;
 				if (Diff == 0)
 				{
@@ -1809,8 +1810,8 @@ GFont *GTag::GetFont()
 			FontWeight()                != FontWeightInherit    ||
 			TextDecoration()            != TextDecorInherit)
 		{
-			GCss c = *this;
-
+			GCss c;
+			
             GCss::PropMap Map;
             Map.Add(PropFontFamily, new GCss::PropArray);
 			Map.Add(PropFontSize, new GCss::PropArray);
@@ -1819,7 +1820,7 @@ GFont *GTag::GetFont()
 			Map.Add(PropFontWeight, new GCss::PropArray);
 			Map.Add(PropTextDecoration, new GCss::PropArray);
 
-			for (GTag *t = ToTag(Parent); t; t = ToTag(t->Parent))
+			for (GTag *t = this; t; t = ToTag(t->Parent))
 			{
 				if (!c.InheritCollect(*t, Map))
 					break;
@@ -5166,6 +5167,11 @@ void GTag::OnFlow(GFlowRegion *Flow)
 			// Setup the line height cache
 			if (LineHeightCache < 0)
 			{
+				if (Debug)
+				{
+					int asd=0;
+				}
+				
 				GCss::PropMap Map;
 				GCss Final;
 				Map.Add(PropLineHeight, new GCss::PropArray);
@@ -5180,15 +5186,17 @@ void GTag::OnFlow(GFlowRegion *Flow)
 				GCss::Len CssLineHeight = Final.LineHeight();    
 				if ((Font = GetFont()))
 				{
+					int FontPx = FontPxHeight(Font);
+					
 					if (!CssLineHeight.IsValid() ||
 						CssLineHeight.Type == GCss::LenAuto ||
 						CssLineHeight.Type == GCss::LenNormal)
 					{
-						LineHeightCache = Font->GetHeight();
+						LineHeightCache = FontPx;
 					}
 					else
 					{					
-						LineHeightCache = CssLineHeight.ToPx(Font->GetHeight(), Font);
+						LineHeightCache = CssLineHeight.ToPx(FontPx, Font);
 					}
 				}
 			}

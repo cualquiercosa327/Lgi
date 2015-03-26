@@ -705,38 +705,38 @@ bool GCss::InheritCollect(GCss &c, PropMap &Contrib)
 	{
 		switch (p >> 8)
 		{
-			#define InheritEnum(prop, type, inherit) \
-				case prop: \
-				{ \
+			#define InheritEnum(prop, type, inherit)	\
+				case prop:								\
+				{										\
 					type *Mine = (type*)Props.Find(p); \
 					if (!Mine || *Mine == inherit) \
-					{ \
+					{									\
 						type *Theirs = (type*)c.Props.Find(p); \
 						if (Theirs) \
 						{ \
 							if (!Mine) Props.Add(p, Mine = new type); \
 							*Mine = *Theirs; \
-						} \
-						else StillInherit++; \
+						}									\
+						else StillInherit++;				\
 					} \
-					break; \
+					break;								\
 				}
 
-			#define InheritClass(prop, type, inherit) \
-				case prop: \
-				{ \
+			#define InheritClass(prop, type, inherit)	\
+				case prop:								\
+				{										\
 					type *Mine = (type*)Props.Find(p); \
 					if (!Mine || Mine->Type == inherit) \
-					{ \
+					{									\
 						type *Theirs = (type*)c.Props.Find(p); \
 						if (Theirs) \
 						{ \
 							if (!Mine) Props.Add(p, Mine = new type); \
 							*Mine = *Theirs; \
-						} \
-						else StillInherit++; \
+						}									\
+						else StillInherit++;				\
 					} \
-					break; \
+					break;								\
 				}
 
 
@@ -826,10 +826,16 @@ bool GCss::InheritResolve(PropMap &Contrib)
 	    {
             case TypeLen:
             {
-				Len *Mine = (Len*)Props.Find(p);
+				Len *Mine = 0;
 			    for (int i=a->Length()-1; i>=0; i--)
 			    {
 			        Len *Cur = (Len*)(*a)[i];
+			        if (!Mine)
+			        {
+						Props.Add(p, Mine = new Len(*Cur));
+						continue;
+			        }
+			        
 			        if (Cur->IsDynamic())
 			        {
 			            switch (Cur->Type)

@@ -877,17 +877,17 @@ void GToolButton::OnPaint(GSurface *pDC)
 		if (GetId() >= 0)
 		{
 			// Draw border
-			COLOUR Background = e && Over ? ToolBarHilightColour : LC_MED;
+			GColour Background(e && Over ? ToolBarHilightColour : LC_MED, 24);
 			if (Down)
 			{
 				// Sunken if the button is pressed
 				LgiThinBorder(pDC, p, DefaultSunkenEdge);
-				pDC->Colour(Background, 24);
+				pDC->Colour(Background);
 				pDC->Box(&p);
 			}
 			else
 			{
-				pDC->Colour(Background, 24);
+				pDC->Colour(Background);
 				pDC->Box(&p);
 				p.Size(1, 1);
 			}
@@ -912,7 +912,6 @@ void GToolButton::OnPaint(GSurface *pDC)
 				if (Par->d->ImgList)
 				{
 					// Draw cached
-					GColour Background(Over ? ToolBarHilightColour : LC_MED, 24);
 					if (pDC->SupportsAlphaCompositing())
 					{
 						pDC->Colour(Background);
