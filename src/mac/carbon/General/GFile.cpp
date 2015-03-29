@@ -852,7 +852,7 @@ bool GFileSystem::Copy(char *From, char *To, int *ErrorCode, CopyFileCallback Ca
 	*/
 }
 
-bool GFileSystem::Delete(GArray<char*> &Files, GArray<int> *Status, bool ToTrash)
+bool GFileSystem::Delete(GArray<const char*> &Files, GArray<int> *Status, bool ToTrash)
 {
 	bool Error = false;
 
@@ -938,20 +938,42 @@ bool GFileSystem::Delete(GArray<char*> &Files, GArray<int> *Status, bool ToTrash
 	return !Error;
 }
 
-bool GFileSystem::Delete(char *FileName, bool ToTrash)
+bool GFileSystem::Delete(const char *FileName, bool ToTrash)
 {
 	if (FileName)
 	{
-		GArray<char*> f;
+		GArray<const char*> f;
 		f.Add(FileName);
 		return Delete(f, 0, ToTrash);
 	}
 	return false;
 }
 
-bool GFileSystem::CreateFolder(const char *PathName)
+bool GFileSystem::CreateFolder(const char *PathName, bool CreateParentFolders)
 {
-	return mkdir(PathName, S_IRWXU | S_IXGRP | S_IXOTH) == 0;
+	int r = mkdir(PathName, S_IRWXU | S_IXGRP | S_IXOTH);
+	if (r && CreateParentFolders)
+	{
+		char Base[MAX_PATH];
+		strcpy_s(Base, sizeof(Base), PathName);
+		do
+		{
+			char *Leaf = strrchr(Base, DIR_CHAR);
+			if (!Leaf) return false;
+			*Leaf = 0;
+		}
+		while (!DirExists(Base));
+		
+		GToken Parts(PathName + strlen(Base), DIR_STR);
+		for (int i=0; i<Parts.Length(); i++)
+		{
+			LgiMakePath(Base, sizeof(Base), Base, Parts[i]);
+			r = mkdir(Base, S_IRWXU | S_IXGRP | S_IXOTH);
+			if (r)
+				break;
+		}
+	}
+	return r == 0;
 }
 
 bool GFileSystem::RemoveFolder(char *PathName, bool Recurse)
@@ -997,50 +1019,13 @@ bool GFileSystem::Move(char *OldName, char *NewName)
 	if (rename(OldName, NewName))
 	{
 		printf("%s:%i - rename failed, error: %s(%i)\n",
-			__FILE__, __LINE__,
+			_FL,
 			GetErrorName(errno), errno);
 		return false;
 	}
 	
 	return true;
 }
-
-
-/*
-bool Match(char *Name, char *Mask)
-{
-	strupr(Name);
-	strupr(Mask);
-
-	while (*Name AND *Mask)
-	{
-		if (*Mask == '*')
-		{
-			if (*Name == *(Mask+1))
-			{
-				Mask++;
-			}
-			else
-			{
-				Name++;
-			}
-		}
-		else if (*Mask == '?' OR *Mask == *Name)
-		{
-			Mask++;
-			Name++;
-		}
-		else
-		{
-			return false;
-		}
-	}
-
-	while (*Mask AND ((*Mask == '*') OR (*Mask == '.'))) Mask++;
-
-	return (*Name == 0 AND *Mask == 0);
-}
-*/
 
 short DaysInMonth[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 int LeapYear(int year)

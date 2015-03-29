@@ -1052,10 +1052,11 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 						
 						CGRect rect = *r;
 						rect.origin.x -= Ox;
-						rect.origin.y = pDC->Y() - rect.origin.y + Oy;
+						rect.origin.y = pDC->Y() - rect.origin.y + Oy - rect.size.height;
 						rect.size.width += 1.0;
 						rect.size.height += 1.0;
 						CGContextClipToRect(pDC->Handle(), rect);
+						// CGContextStrokeRect(pDC->Handle(), rect);
 					}
 					
 					e = ATSUDrawText(Hnd, kATSUFromTextBeginning, kATSUToTextEnd, Long2Fix(px - Ox), Long2Fix(y) - fAscent);
