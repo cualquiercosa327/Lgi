@@ -220,10 +220,12 @@ GImageList::GImageList(int x, int y, GSurface *pDC)
 			}
 		}
 		
+		#if 0
 		static int Idx = 0;
 		char s[256];
 		sprintf_s(s, sizeof(s), "imglst_%i.bmp", Idx++);
 		WriteDC(s, this);
+		#endif
 	}
 }
 

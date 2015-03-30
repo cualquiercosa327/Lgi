@@ -133,6 +133,10 @@ public:
 
 	#endif
 	
+	#ifdef MAC
+	EventHandlerRef DndHandler;
+	#endif
+	
 	GViewPrivate();
 	~GViewPrivate();
 	

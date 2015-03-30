@@ -9,6 +9,10 @@
 extern void NextTabStop(GViewI *v, int dir);
 extern void SetDefaultFocus(GViewI *v);
 
+#define DND_NEW_API
+// #define DND_TRACKING_DEBUG	1
+#define DEBUG_KEYS			0
+
 ///////////////////////////////////////////////////////////////////////
 class HookInfo
 {
@@ -280,6 +284,10 @@ void GWindow::SetFocus(GViewI *ctrl, FocusType type)
 	}
 }
 
+#ifdef DND_NEW_API
+
+#else
+
 OSErr GWindowTrackingHandler(	DragTrackingMessage message,
 								WindowRef theWindow,
 								void * handlerRefCon,
@@ -304,8 +312,6 @@ OSErr GWindowReceiveHandler(    WindowRef theWindow,
 	
 	return 0;
 }
-
-// #define DND_TRACKING_DEBUG	1
 
 OSErr GWindow::HandlerCallback(DragTrackingMessage *tracking, DragRef theDrag)
 {
@@ -364,6 +370,9 @@ printf("\tGView=%p\n", gv);
 			List<char> Formats;
 
 			UInt16 Items = 0;
+			ItemCount *outItemCount;
+			// PasteboardGetItemCount(PasteboardRef inPasteboard, &outItemCount);
+			
 			e = CountDragItems(theDrag, &Items);
 			if (e) printf("CountDragItems=%i Items=%i\n", e, Items);
 			DragItemRef ItemRef = 0;
@@ -626,9 +635,14 @@ printf("\tTarget(%s) not accepting these formats.\n", gv?gv->GetClass():"(none)"
 	
 	return Status;
 }
+#endif
 
 void GWindow::SetDragHandlers(bool On)
 {
+	#ifdef DND_NEW_API
+	SetAutomaticControlDragTrackingEnabledForWindow(Wnd, On);
+	// SetControlDragTrackingEnabled((ControlRef) Wnd, On);
+	#else
 	if (On)
 	{
 		if (Wnd)
@@ -676,6 +690,7 @@ void GWindow::SetDragHandlers(bool On)
 			d->ReceiveHandler = 0;
 		}
 	}
+	#endif
 }
 
 static void _ClearChildHandles(GViewI *v)
@@ -1201,6 +1216,43 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 			}
 			break;
 		}
+		case kEventClassControl:
+		{
+			switch (eventKind)
+			{
+				case kEventControlDragEnter:
+				{
+					printf("kEventControlDragEnter\n");
+					bool acceptDrop = true;
+					SetEventParameter(	inEvent,
+										kEventParamControlWouldAcceptDrop,
+										typeBoolean,
+										sizeof(acceptDrop),
+										&acceptDrop);
+					result = noErr;
+					break;
+				}
+				case kEventControlDragWithin:
+				{
+					printf("kEventControlDragWithin\n");
+					result = noErr;
+					break;
+				}
+				case kEventControlDragLeave:
+				{
+					printf("kEventControlDragLeave\n");
+					result = noErr;
+					break;
+				}
+				case kEventControlDragReceive:
+				{
+					printf("kEventControlDragReceive\n");
+					result = noErr;
+					break;
+				}
+			}
+			break;
+		}
 		case kEventClassUser:
 		{
 			if (eventKind == kEventUser)
@@ -1304,6 +1356,11 @@ bool GWindow::Attach(GViewI *p)
 			{ kEventClassMouse, kEventMouseMoved },
 			{ kEventClassMouse, kEventMouseDragged },
 			{ kEventClassMouse, kEventMouseWheelMoved },
+			
+			{ kEventClassControl, kEventControlDragEnter },
+			{ kEventClassControl, kEventControlDragWithin },
+			{ kEventClassControl, kEventControlDragLeave },
+			{ kEventClassControl, kEventControlDragReceive },
 			
 			{ kEventClassUser, kEventUser }
 
@@ -1444,42 +1501,6 @@ bool GWindow::HandleViewMouse(GView *v, GMouse &m)
 	return true;
 }
 
-#define DEBUG_KEYS			0
-
-/*
-	// Any window in a popup always gets the key...
-	for (GView *p = v; p; p = p->GetParent())
-	{
-		GPopup *Popup;
-		if (Popup = dynamic_cast<GPopup*>(p))
-		{
-			Status = v->OnKey(k);
-			if (!Status)
-			{
-				if (k.c16 == VK_ESCAPE)
-				{
-					// Popup window (or child) didn't handle the key, and the user
-					// pressed ESC, so do the default thing and close the popup.
-					Popup->Cancelled = true;
-					Popup->Visible(false);
-				}
-				else
-				{
-					#if DEBUG_KEYS
-					printf("Popup ignores '%c' down=%i alt=%i ctrl=%i sh=%i\n", k.c16, k.Down(), k.Alt(), k.Ctrl(), k.Shift());
-					#endif
-					break;
-				}
-			}
-			
-			#if DEBUG_KEYS
-			printf("Popup ate '%c' down=%i alt=%i ctrl=%i sh=%i\n", k.c16, k.Down(), k.Alt(), k.Ctrl(), k.Shift());
-			#endif
-			
-			goto AllDone;
-		}
-	}
-*/
 
 bool GWindow::HandleViewKey(GView *v, GKey &k)
 {

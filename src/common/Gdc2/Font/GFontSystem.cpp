@@ -277,44 +277,23 @@ bool GFontSystem::EnumerateFonts(List<const char> &Fonts)
 		
 		#elif defined MAC && !defined COCOA
 
-		// ATSFontFilter myFontFilter;
-		ATSFontFamilyIterator myFamilyIterator;
-		OSStatus status = ATSFontFamilyIteratorCreate (	kATSFontContextLocal,
-														NULL,
-														NULL,
-														kATSOptionFlagsUnRestrictedScope,
-														&myFamilyIterator);		 
-		while (status == noErr)
+		CFArrayRef fontFamilies = CTFontManagerCopyAvailableFontFamilyNames();
+		if (fontFamilies)
 		{
-			ATSFontFamilyRef myFamilyRef;
-			status = ATSFontFamilyIteratorNext (myFamilyIterator,
-												&myFamilyRef);
-	 
-			if (status == noErr)
+			for(CFIndex i = 0; i < CFArrayGetCount(fontFamilies); i++)
 			{
-				CFStringRef Name;
-				status = ATSFontFamilyGetName(myFamilyRef, kATSOptionFlagsUnRestrictedScope, &Name);
-				
-				char n[256];
-				if (CFStringGetCString(Name, n, sizeof(n), kCFStringEncodingUTF8))
+				CFStringRef fontName = (CFStringRef) CFArrayGetValueAtIndex(fontFamilies, i);
+				if (fontName)
 				{
-					AllFonts.Insert(NewStr(n));
+					char n[256];
+					if (CFStringGetCString(fontName, n, sizeof(n), kCFStringEncodingUTF8))
+					{
+						AllFonts.Insert(NewStr(n));
+					}
 				}
 			}
-			else if (status == kATSIterationScopeModified)
-			{
-				status = ATSFontFamilyIteratorReset (
-								kATSFontContextLocal,
-								NULL,
-								NULL,
-								kATSOptionFlagsUnRestrictedScope,
-								&myFamilyIterator);
-				
-				// Add your code here to take any actions needed because of the
-				// reset operation.
-			}
+			CFRelease(fontFamilies);
 		}
-		status = ATSFontFamilyIteratorRelease(&myFamilyIterator);
 		
 		#endif
 

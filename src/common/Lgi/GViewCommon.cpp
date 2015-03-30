@@ -1101,6 +1101,10 @@ GDragDropTarget *GView::DropTarget(GDragDropTarget *Set)
 	return d->DropTarget;
 }
 
+#if defined MAC
+extern pascal OSStatus LgiViewDndHandler(EventHandlerCallRef inHandlerCallRef, EventRef inEvent, void *inUserData);
+#endif
+
 bool GView::DropTarget(bool t)
 {
 	bool Status = false;
@@ -1131,7 +1135,9 @@ bool GView::DropTarget(bool t)
 		}
 	}
 	else LgiAssert(!"No window handle");
+
 	#elif defined MAC
+
 	GWindow *Wnd = dynamic_cast<GWindow*>(GetWindow());
 	if (Wnd)
 	{
@@ -1139,6 +1145,35 @@ bool GView::DropTarget(bool t)
 		if (!d->DropTarget)
 			d->DropTarget = t ? Wnd : 0;
 	}
+
+	if (t)
+	{
+		static EventTypeSpec DragEvents[] =
+		{
+			{ kEventClassControl, kEventControlDragEnter },
+			{ kEventClassControl, kEventControlDragWithin },
+			{ kEventClassControl, kEventControlDragLeave },
+			{ kEventClassControl, kEventControlDragReceive },
+		};
+		
+		if (!d->DndHandler)
+		{
+			OSStatus e = ::InstallControlEventHandler(_View,
+													NewEventHandlerUPP(LgiViewDndHandler),
+													GetEventTypeCount(DragEvents),
+													DragEvents,
+													(void*)this,
+													&d->DndHandler);
+			if (e) LgiTrace("%s:%i - InstallEventHandler failed (%i)\n", _FL, e);
+		}
+		SetControlDragTrackingEnabled(_View, true);
+	}
+	else
+	{
+		SetControlDragTrackingEnabled(_View, false);
+	}
+
+
 	#elif defined __GTK_H__
 	if (_View)
 	{
