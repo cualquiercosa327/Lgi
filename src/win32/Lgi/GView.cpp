@@ -2117,18 +2117,6 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 						Key.c16 = Msg->a;
 					}
 
-					#if 0
-					for (HWND hWnd = Msg->hWnd; hWnd; hWnd = ::GetParent(hWnd))
-						LgiTrace("%p < ", hWnd);
-					LgiTrace("\n");
-					
-					for (GViewI *v = this; v; v = v->GetParent())
-						LgiTrace("%p,%s,%i < ", v->Handle(), v->GetClass(), IsWindowVisible(v->Handle()));
-					LgiTrace("\n");
-
-					Key.Trace("WM_KEY");
-					#endif
-
 					if (Key.c16 == VK_TAB && ConsumeTabKey)
 					{
 						ConsumeTabKey--;

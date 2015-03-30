@@ -4020,10 +4020,11 @@ bool GTextView3::OnKey(GKey &k)
 						case 'c':
 						case 'C':
 						{
+							if (k.Shift())
+								return false;
+							
 							if (k.Down())
-							{
 								Copy();
-							}
 							return true;
 							break;
 						}
