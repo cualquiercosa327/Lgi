@@ -356,6 +356,7 @@ class LgiClass GView : virtual public GViewI, virtual public GBase
 	friend OSStatus LgiRootCtrlProc(EventHandlerCallRef, EventRef, void *);
 	friend OSStatus CarbonControlProc(EventHandlerCallRef, EventRef, void *);
 	friend OSStatus GViewProc(EventHandlerCallRef, EventRef, void *);
+	friend OSStatus LgiViewDndHandler(EventHandlerCallRef inHandlerCallRef, EventRef inEvent, void *inUserData);
 	#endif
 
 	#elif defined BEOS

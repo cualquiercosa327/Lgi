@@ -135,6 +135,7 @@ public:
 	
 	#ifdef MAC
 	EventHandlerRef DndHandler;
+	GAutoString AcceptedDropFormat;
 	#endif
 	
 	GViewPrivate();

@@ -279,6 +279,178 @@ GViewPrivate::~GViewPrivate()
 	LgiAssert(Pulse == 0);
 }
 
+struct DragParams
+{
+	GdcPt2 Pt;
+	List<char> Formats;
+	GVariant Data;
+	int KeyState;
+	
+	DragParams(GView *v, DragRef Drag, const char *Drop)
+	{
+		KeyState = 0;
+		
+		// Get the mouse position
+		Point mouse;
+		Point globalPinnedMouse;
+		OSErr err = GetDragMouse(Drag, &mouse, &globalPinnedMouse);
+		if (err)
+		{
+			printf("%s:%i - GetDragMouse failed with %i\n", _FL, err);
+		}
+		else
+		{
+			Pt.x = mouse.h;
+			Pt.y = mouse.v;
+			v->PointToView(Pt);
+		}
+		
+		// Get the keyboard state
+		SInt16 modifiers = 0;
+		SInt16 mouseDownModifiers = 0;
+		SInt16 mouseUpModifiers = 0;
+		err = GetDragModifiers(Drag, &modifiers, &mouseDownModifiers, &mouseUpModifiers);
+		if (err)
+		{
+			printf("%s:%i - GetDragModifiers failed with %i\n", _FL, err);
+		}
+		else
+		{
+			if (modifiers & cmdKey)
+				KeyState |= LGI_EF_SYSTEM;
+			if (modifiers & shiftKey)
+				KeyState |= LGI_EF_SHIFT;
+			if (modifiers & optionKey)
+				KeyState |= LGI_EF_ALT;
+			if (modifiers & controlKey)
+				KeyState |= LGI_EF_CTRL;
+		}
+
+		// Get the data formats
+		PasteboardRef Pb;
+		OSStatus e = GetDragPasteboard(Drag, &Pb);
+		if (e)
+		{
+			printf("%s:%i - GetDragPasteboard failed with %li\n", _FL, e);
+		}
+		else
+		{
+			ItemCount Items = 0;
+			PasteboardGetItemCount(Pb, &Items);
+			if (Drop)
+			{
+				printf("Items=%li\n", Items);
+				if (Items > 1)
+					Data.SetList();
+			}
+			for (CFIndex i=1; i<=Items; i++)
+			{
+				PasteboardItemID Item;
+				e = PasteboardGetItemIdentifier(Pb, i, &Item);
+				if (e)
+				{
+					printf("%s:%i - PasteboardGetItemIdentifier[%li]=%li\n", _FL, i-1, e);
+					continue;
+				}
+				
+				CFArrayRef FlavorTypes;
+				e = PasteboardCopyItemFlavors(Pb, Item, &FlavorTypes);
+				if (e)
+				{
+					printf("%s:%i - PasteboardCopyItemFlavors[%li]=%li\n", _FL, i-1, e);
+					continue;
+				}
+				
+				CFIndex Types = CFArrayGetCount(FlavorTypes);
+				if (Drop)
+					printf("[%li] FlavorTypes=%li\n", i, Types);
+				for (CFIndex t=0; t<Types; t++)
+				{
+					CFStringRef flavor = (CFStringRef)CFArrayGetValueAtIndex(FlavorTypes, t);
+					if (flavor)
+					{
+						char n[256];
+						if (CFStringGetCString(flavor, n, sizeof(n), kCFStringEncodingUTF8))
+						{
+							if (Drop)
+							{
+								if (!_stricmp(n, Drop))
+								{
+									if (Formats.Length() == 0)
+										Formats.Insert(NewStr(Drop));
+
+									CFDataRef Ref;
+									e = PasteboardCopyItemFlavorData(Pb, Item, flavor, &Ref);
+									if (e)
+									{
+										printf("%s:%i - PasteboardCopyItemFlavorData failed with %lu.\n", _FL, e);
+									}
+									else
+									{
+										CFIndex Len = CFDataGetLength(Ref);
+										const UInt8 *Ptr = CFDataGetBytePtr(Ref);
+										if (Len > 0 && Ptr != NULL)
+										{
+											uint8 *Cp = new uint8[Len+1];
+											if (Cp)
+											{
+												memcpy(Cp, Ptr, Len);
+												Cp[Len] = 0;
+												
+												if (Items > 1)
+												{
+													GVariant *v = new GVariant;
+													if (v)
+													{
+														v->SetBinary(Len, Cp, true);
+														Data.Value.Lst->Insert(v);
+													}
+												}
+												else
+												{
+													Data.SetBinary(Len, Cp, true);
+												}
+											}
+										}
+										else
+										{
+											printf("%s:%i - Pasteboard data error: %p %li.\n", _FL, Ptr, Len);
+										}
+										
+										CFRelease(Ref);
+									}
+								}
+							}
+							else
+							{
+								Formats.Insert(NewStr(n));
+							}
+						}
+					}
+				}
+				CFRelease(FlavorTypes);
+			}
+		}
+	}
+	
+	~DragParams()
+	{
+		Formats.DeleteArrays();
+	}
+	
+	DragActions Map(int Accept)
+	{
+		DragActions a = 0;
+		if (Accept & DROPEFFECT_COPY)
+			a |= kDragActionCopy;
+		if (Accept & DROPEFFECT_MOVE)
+			a |= kDragActionMove;
+		if (Accept & DROPEFFECT_LINK)
+			a |= kDragActionAlias;
+		return a;
+	}
+};
+
 pascal OSStatus LgiViewDndHandler(EventHandlerCallRef inHandlerCallRef, EventRef inEvent, void *inUserData)
 {
 	OSStatus result = eventNotHandledErr;
@@ -327,66 +499,20 @@ pascal OSStatus LgiViewDndHandler(EventHandlerCallRef inHandlerCallRef, EventRef
 		}
 		case kEventControlDragWithin:
 		{
-			// Get the mouse position
-			Point mouse;
-			Point globalPinnedMouse;
-			OSErr err = GetDragMouse(Drag, &mouse, &globalPinnedMouse);
-			if (err)
-			{
-				printf("%s:%i - GetDragMouse failed with %li\n", _FL, e);
-				break;
-			}
-			GdcPt2 Pt(mouse.h, mouse.v);
-			v->PointToView(Pt);
-
-			// Get the data formats
-			PasteboardRef Pb;
-			e = GetDragPasteboard(Drag, &Pb);
-			if (e)
-			{
-				printf("%s:%i - GetDragPasteboard failed with %li\n", _FL, result = e);
-				break;
-			}
-			List<char> Formats;
-			ItemCount Items = 0;
-			PasteboardGetItemCount(Pb, &Items);
-			for (CFIndex i=1; i<=Items; i++)
-			{
-				PasteboardItemID Item;
-				e = PasteboardGetItemIdentifier(Pb, i, &Item);
-				if (e)
-				{
-					printf("%s:%i - PasteboardGetItemIdentifier[%li]=%li\n", _FL, i-1, e);
-					continue;
-				}
-				
-				CFArrayRef FlavorTypes;
-				e = PasteboardCopyItemFlavors(Pb, Item, &FlavorTypes);
-				if (e)
-				{
-					printf("%s:%i - PasteboardCopyItemFlavors[%li]=%li\n", _FL, i-1, e);
-					continue;
-				}
-				
-				CFIndex Types = CFArrayGetCount(FlavorTypes);
-				for (CFIndex t=0; t<Types; t++)
-				{
-					CFStringRef flavor = (CFStringRef)CFArrayGetValueAtIndex(FlavorTypes, t);
-					if (flavor)
-					{
-						char n[256];
-						if (CFStringGetCString(flavor, n, sizeof(n), kCFStringEncodingUTF8))
-						{
-							Formats.Insert(NewStr(n));
-						}
-					}
-				}
-				CFRelease(FlavorTypes);
-			}
+			DragParams p(v, Drag, NULL);
 
 			// Call the handler
-			int Accept = Target->WillAccept(Formats, Pt, 0/*keys*/);
-			printf("kEventControlDragWithin %ix%i %s\n", Pt.x, Pt.y, v->GetClass());
+			int Accept = Target->WillAccept(p.Formats, p.Pt, p.KeyState);
+			if (Accept)
+			{
+				v->d->AcceptedDropFormat.Reset(NewStr(p.Formats.First()));
+				LgiAssert(v->d->AcceptedDropFormat.Get());
+			}
+			printf("kEventControlDragWithin %ix%i accept=%i class=%s\n",
+				p.Pt.x, p.Pt.y,
+				Accept,
+				v->GetClass());
+			SetDragDropAction(Drag, p.Map(Accept));
 			result = noErr;
 			break;
 		}
@@ -402,16 +528,21 @@ pascal OSStatus LgiViewDndHandler(EventHandlerCallRef inHandlerCallRef, EventRef
 		{
 			printf("kEventControlDragReceive\n");
 			
-			char *Format = NULL;
-			GVariant Data;
-			GdcPt2 Pt;
-			int KeyState = 0;
-			
-			Target->OnDrop(	Format,
-			&Data,
-							Pt,
-							KeyState);
-			
+			int Accept = 0;
+			if (v->d->AcceptedDropFormat)
+			{
+				DragParams p(v, Drag, v->d->AcceptedDropFormat);
+				int Accept = Target->OnDrop(v->d->AcceptedDropFormat,
+											&p.Data,
+											p.Pt,
+											p.KeyState);
+				SetDragDropAction(Drag, p.Map(Accept));
+			}
+			else
+			{
+				printf("%s:%i - No accepted drop format. (view=%s)\n", _FL, v->GetClass());
+				SetDragDropAction(Drag, kDragActionNothing);
+			}
 			result = noErr;
 			break;
 		}

@@ -103,7 +103,12 @@ public:
 		
 		for (int i=0; i<a.Length(); i++)
 		{
-			char *s = a[i]->Str();
+			GVariant *v = a[i];
+			char *s = NULL;
+			if (v->Type == GV_STRING)
+				s = v->Str();
+			else if (v->Type == GV_BINARY)
+				s = (char*)v->Value.Binary.Data;
 			if (s)
 			{
 				GUri u(s);
@@ -112,7 +117,8 @@ public:
 					u.Host &&
 					stricmp(u.Host, "localhost") == 0)
 				{
-					Add(NewStr(u.Path));
+					GAutoString a = u.Decode(u.Path);
+					Add(a.Release());
 				}
 			}
 		}

@@ -41,5 +41,18 @@
          landmarkName = "GSurface::CreateApplicator(int Op, GColourSpace Cs)"
          landmarkType = "5">
       </FileBreakpoint>
+      <FileBreakpoint
+         shouldBeEnabled = "Yes"
+         ignoreCount = "0"
+         continueAfterRunningActions = "No"
+         filePath = "../Code/IdeProject.cpp"
+         timestampString = "449447644.199174"
+         startingColumnNumber = "9223372036854775807"
+         endingColumnNumber = "9223372036854775807"
+         startingLineNumber = "4153"
+         endingLineNumber = "4153"
+         landmarkName = "IdeTree::OnDrop(char *Format, GVariant *Data, GdcPt2 p, int KeyState)"
+         landmarkType = "5">
+      </FileBreakpoint>
    </FileBreakpoints>
 </Bucket>
