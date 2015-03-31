@@ -300,10 +300,10 @@ int GCss::Len::ToPx(int Box, GFont *Font, int Dpi)
 		    return (int)Value;
 		
 		case LenPt:
-		    return (int) (Value * Dpi / 72.0);
+		    return (int) (Value * (Dpi > 0 ? Dpi : LgiScreenDpi()) / 72.0);
 
 		case LenCm:
-		    return (int) (Value * Dpi / 2.54);
+		    return (int) (Value * (Dpi > 0 ? Dpi : LgiScreenDpi()) / 2.54);
 		    
 		case LenEm:
 		    return (int) (Value * (Font ? Font->GetHeight() : 18));

@@ -1064,6 +1064,7 @@ public:
 	int X();
 	/// Returns the current screen height
 	int Y();
+	/// \returns the current DPI setting
 
 	GGlobalColour *GetGlobalColour();
 
@@ -1263,5 +1264,7 @@ LgiFunc bool LgiRopRgb
 
 /// Universal bit blt method
 LgiFunc bool LgiRopUniversal(GBmpMem *Dst, GBmpMem *Src);
+
+LgiFunc int LgiScreenDpi();
 
 #endif

@@ -44,7 +44,7 @@ int WinPointToHeight(int Pt)
 	HDC hDC = GetDC(hWnd);
 	if (hDC)
 	{
-		Ht = -MulDiv(Pt, GetDeviceCaps(hDC, LOGPIXELSY), 72);
+		Ht = -MulDiv(Pt, GetDeviceCaps(hDC, LOGPIXELSY), LgiScreenDpi());
 		ReleaseDC(hWnd, hDC);
 	}
 
@@ -58,7 +58,7 @@ int WinHeightToPoint(int Ht)
 	HDC hDC = GetDC(hWnd);
 	if (hDC)
 	{
-		Pt = -MulDiv(Ht, 72, GetDeviceCaps(hDC, LOGPIXELSY));
+		Pt = -MulDiv(Ht, LgiScreenDpi(), GetDeviceCaps(hDC, LOGPIXELSY));
 		ReleaseDC(hWnd, hDC);
 	}
 
@@ -765,7 +765,7 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 	d->Param = Param;
 	HDC hDC = (Param) ? (HDC)Param : GetDC(0);
 	int LogPixelsY = GetDeviceCaps(hDC, LOGPIXELSY);
-	int Win32Height = -MulDiv(PointSize(), LogPixelsY, 72);
+	int Win32Height = -MulDiv(PointSize(), LogPixelsY, LgiScreenDpi());
 	
 	GTypeFace::d->IsSymbol = GTypeFace::d->_Face &&
 								(
@@ -1189,7 +1189,7 @@ bool GFont::Create(GFontType *LogFont, NativeInt Param)
 	{
 		// set props
 		HDC hDC = GetDC(0);
-		PointSize(-MulDiv(LogFont->Info.lfHeight, 72, GetDeviceCaps(hDC, LOGPIXELSY)));
+		PointSize(-MulDiv(LogFont->Info.lfHeight, LgiScreenDpi(), GetDeviceCaps(hDC, LOGPIXELSY)));
 		ReleaseDC(0, hDC);
 
 		Face(LogFont->Info.lfFaceName);
@@ -1631,7 +1631,7 @@ bool GFontType::GetSystemFont(const char *Which)
 				if (Gtk::pango_font_description_get_size_is_absolute(s->font_desc))
 				{
 					float Px = Gtk::pango_font_description_get_size(s->font_desc) / PANGO_SCALE;
-					float Dpi = 96.0; // FIXME: some reasonable default
+					float Dpi = (float)LgiScreenDpi();
 					DefSize = (Px * 72.0) / Dpi;
 				}
 				else

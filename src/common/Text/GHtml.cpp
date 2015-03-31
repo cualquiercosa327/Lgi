@@ -506,8 +506,6 @@ class GFlowRegion
 
 public:
 	GHtml *Html;
-	int ScreenDpi;				// Haha, where should I get this from?
-
 	int x1, x2;					// Left and right margins
 	int y1;						// Current y position
 	int y2;						// Maximum used y position
@@ -520,7 +518,6 @@ public:
 	GFlowRegion(GHtml *html, bool inbody)
 	{
 		Html = html;
-		ScreenDpi = 96;
 		x1 = x2 = y1 = y2 = cx = my = max_cx = 0;
 		InBody = inbody;
 	}
@@ -528,7 +525,6 @@ public:
 	GFlowRegion(GHtml *html, GRect r, bool inbody)
 	{
 		Html = html;
-		ScreenDpi = 96;
 		max_cx = cx = x1 = r.x1;
 		y1 = y2 = r.y1;
 		x2 = r.x2;
@@ -539,7 +535,6 @@ public:
 	GFlowRegion(GFlowRegion &r)
 	{
 		Html = r.Html;
-		ScreenDpi = 96;
 		x1 = r.x1;
 		x2 = r.x2;
 		y1 = r.y1;
@@ -647,9 +642,9 @@ public:
 			case GCss::LenPx:
 				return min((int)l.Value, X());
 			case GCss::LenPt:
-				return (int) (l.Value * ScreenDpi / 72.0);
+				return (int) (l.Value * LgiScreenDpi() / 72.0);
 			case GCss::LenCm:
-				return (int) (l.Value * ScreenDpi / 2.54);
+				return (int) (l.Value * LgiScreenDpi() / 2.54);
 			case GCss::LenEm:
 			{
 				if (!f)
@@ -708,15 +703,11 @@ public:
 			case GCss::LenNormal:
 			case GCss::LenPx:
 				return (int)l.Value;
-
 			case GCss::LenPt:
-			{
-				return (int) (l.Value * ScreenDpi / 72.0);
-			}
+				return (int) (l.Value * LgiScreenDpi() / 72.0);
 			case GCss::LenCm:
-			{
-				return (int) (l.Value * ScreenDpi / 2.54);
-			}
+				return (int) (l.Value * LgiScreenDpi() / 2.54);
+
 			case GCss::LenEm:
 			{
 				if (!f)

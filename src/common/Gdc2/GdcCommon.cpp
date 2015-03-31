@@ -1282,3 +1282,9 @@ bool LgiRopUniversal(GBmpMem *Dst, GBmpMem *Src)
 	LgiAssert(!"Unsupported pixel conversion.");
 	return false;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+int LgiScreenDpi()
+{
+	return 96; // A reasonable default.
+}

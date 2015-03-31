@@ -21,9 +21,9 @@
 			<Node File="./Code/FindSymbol.h" Type="3" Platforms="15" />
 		</Node>
 		<Node Name="Source Code" Type="1" Platforms="15" Open="0">
-			<Node File="../src/common/Coding/GLexCpp.cpp" Type="2" Platforms="15" />
-			<Node File="../src/common/Coding/GParseCpp.cpp" Type="2" Platforms="15" />
-			<Node File="./Code/SysCharSupport.cpp" Type="2" Platforms="15" />
+			<Node File="..\src\common\Coding\GLexCpp.cpp" Type="2" Platforms="15" />
+			<Node File="..\src\common\Coding\GParseCpp.cpp" Type="2" Platforms="15" />
+			<Node File=".\Code\SysCharSupport.cpp" Type="2" Platforms="15" />
 		</Node>
 		<Node File=".\Code\GHistory.cpp" Type="2" Platforms="15" />
 		<Node File=".\Code\GHistory.h" Type="3" Platforms="15" />
