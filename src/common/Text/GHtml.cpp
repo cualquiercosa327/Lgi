@@ -424,12 +424,12 @@ public:
 		{
 			double Table[] =
 			{
-				0.4, // SizeXXSmall
-				0.5, // SizeXSmall
-				0.7, // SizeSmall
+				0.6, // SizeXXSmall
+				0.75, // SizeXSmall
+				0.85, // SizeSmall
 				1.0, // SizeMedium
-				1.3, // SizeLarge
-				1.7, // SizeXLarge
+				1.2, // SizeLarge
+				1.5, // SizeXLarge
 				2.0, // SizeXXLarge
 			};
 

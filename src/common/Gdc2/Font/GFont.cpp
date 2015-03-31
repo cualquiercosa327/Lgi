@@ -37,30 +37,36 @@
 #include <mbctype.h>
 #endif
 
-int WinPointToHeight(int Pt)
+int WinPointToHeight(int Pt, HDC hDC)
 {
 	int Ht = 0;
-	HWND hWnd = GetDesktopWindow();
-	HDC hDC = GetDC(hWnd);
+
+	HWND hDestktop = NULL;
+	if (!hDC)
+		hDC = GetDC(hDestktop = GetDesktopWindow());
+	
 	if (hDC)
-	{
-		Ht = -MulDiv(Pt, GetDeviceCaps(hDC, LOGPIXELSY), LgiScreenDpi());
-		ReleaseDC(hWnd, hDC);
-	}
+		Ht = -MulDiv(Pt, GetDeviceCaps(hDC, LOGPIXELSY), 72);
+
+	if (hDestktop)
+		ReleaseDC(hDestktop, hDC);
 
 	return Ht;
 }
 
-int WinHeightToPoint(int Ht)
+int WinHeightToPoint(int Ht, HDC hDC)
 {
 	int Pt = 0;
-	HWND hWnd = GetDesktopWindow();
-	HDC hDC = GetDC(hWnd);
+
+	HWND hDestktop = NULL;
+	if (!hDC)
+		hDC = GetDC(hDestktop = GetDesktopWindow());
+	
 	if (hDC)
-	{
-		Pt = -MulDiv(Ht, LgiScreenDpi(), GetDeviceCaps(hDC, LOGPIXELSY));
-		ReleaseDC(hWnd, hDC);
-	}
+		Pt = -MulDiv(Ht, 72, GetDeviceCaps(hDC, LOGPIXELSY));
+
+	if (hDestktop)
+		ReleaseDC(hDestktop, hDC);
 
 	return Pt;
 }
@@ -764,8 +770,7 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 	
 	d->Param = Param;
 	HDC hDC = (Param) ? (HDC)Param : GetDC(0);
-	int LogPixelsY = GetDeviceCaps(hDC, LOGPIXELSY);
-	int Win32Height = -MulDiv(PointSize(), LogPixelsY, LgiScreenDpi());
+	int Win32Height = WinPointToHeight(PointSize(), hDC);
 	
 	GTypeFace::d->IsSymbol = GTypeFace::d->_Face &&
 								(
@@ -1188,10 +1193,7 @@ bool GFont::Create(GFontType *LogFont, NativeInt Param)
 	if (LogFont)
 	{
 		// set props
-		HDC hDC = GetDC(0);
-		PointSize(-MulDiv(LogFont->Info.lfHeight, LgiScreenDpi(), GetDeviceCaps(hDC, LOGPIXELSY)));
-		ReleaseDC(0, hDC);
-
+		PointSize(WinHeightToPoint(LogFont->Info.lfHeight));
 		Face(LogFont->Info.lfFaceName);
 		Quality(LogFont->Info.lfQuality);
 		Bold(LogFont->Info.lfWeight >= FW_BOLD);
