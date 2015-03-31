@@ -33,6 +33,7 @@ struct GFontSelectPriv
 	GList *Lst;
 	GBitmap *Bmp;
 	GCombo *PtSizes;
+	bool Running;
 	
 	GFontSelectPriv()
 	{
@@ -40,6 +41,7 @@ struct GFontSelectPriv
 		Lst = NULL;
 		Bmp = NULL;
 		PtSizes = NULL;
+		Running = false;
 	}
 };
 
@@ -114,6 +116,7 @@ GFontSelect::GFontSelect(GView *Parent, void *Init, int InitLen)
 	SetCtrlValue(IDC_ITALIC, Italic);
 	SetCtrlValue(IDC_UNDERLINE, Underline);
 
+	d->Running = true;
 	OnNotify(d->PtSizes, 0);
 }
 
@@ -176,6 +179,8 @@ void GFontSelect::EnumerateFonts()
 
 void GFontSelect::UpdatePreview()
 {
+	if (!d->Running)
+		return;
 	UiToThis();
 	
 	GFont f;
