@@ -406,6 +406,18 @@ struct DragParams
 														Data.Value.Lst->Insert(v);
 													}
 												}
+												else if (!_stricmp(LGI_LgiDropFormat, Drop))
+												{
+													GDragDropSource *Src = NULL;
+													if (Len == sizeof(Src))
+													{
+														Src = *((GDragDropSource**)Ptr);
+														Data.Empty();
+														Data.Type = GV_VOID_PTR;
+														Data.Value.Ptr = Src;
+													}
+													else LgiAssert(!"Wrong pointer size");
+												}
 												else
 												{
 													Data.SetBinary(Len, Cp, true);
