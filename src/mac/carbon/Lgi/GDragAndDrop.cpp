@@ -135,13 +135,7 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 	}
 
 	GDragDropSource *Src = this;
-	uint32 LgiFmt;
-	memcpy(&LgiFmt, LGI_LgiDropFormat, 4);
-	#ifndef __BIG_ENDIAN__
-	LgiFmt = LgiSwap32(LgiFmt);
-	#endif
 
-	#if 1
 	CFStringRef FlavorType = CFStringCreateWithCString(NULL, LGI_LgiDropFormat, kCFStringEncodingUTF8);
 	CFDataRef Data = CFDataCreate(NULL, (const UInt8 *)&Src, sizeof(Src));
 	PasteboardFlavorFlags Flags = kPasteboardFlavorSenderOnly;
@@ -149,89 +143,59 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 	if (status) printf("%s:%i - PasteboardPutItemFlavor=%li\n", _FL, status);
 	CFRelease(FlavorType);
 	CFRelease(Data);
-	#else
-	OSErr e = AddDragItemFlavor(Drag,
-								1000,
-								LgiFmt,
-								(const void*) &Src,
-								sizeof(Src),
-								flavorSenderOnly | flavorNotSaved);
-	if (e) printf("%s:%i - AddDragItemFlavor=%i\n", _FL, e);
-	#endif
 	
 	int n = 1;
 	for (char *f = Formats.First(); f; f = Formats.Next(), n++)
 	{
-		// if (strlen(f) == 4)
+		GVariant Data;
+		GArray<GVariant*> a;
+		if (GetData(&Data, f))
 		{
-			/*
-			FlavorType t;
-			memcpy(&t, f, 4);
-			#ifndef __BIG_ENDIAN__
-			t = LgiSwap32(t);
-			#endif
-			*/
-			
-			GVariant Data;
-			GArray<GVariant*> a;
-			if (GetData(&Data, f))
+			if (Data.Type == GV_LIST)
 			{
-				if (Data.Type == GV_LIST)
+				for (GVariant *i=Data.Value.Lst->First(); i; i=Data.Value.Lst->Next())
 				{
-					for (GVariant *i=Data.Value.Lst->First(); i; i=Data.Value.Lst->Next())
-					{
-						a.Add(i);
-					}
-				}
-				else a.Add(&Data);
-				
-				for (int i=0; i<a.Length(); i++)
-				{
-					void *Ptr = NULL;
-					int Size = 0;
-					GVariant *v = a[i];
-					
-					if (v->Type == GV_STRING)
-					{
-						Ptr = v->Str();
-						if (Ptr)
-							Size = strlen((char*)Ptr);
-					}
-					else if (v->Type == GV_BINARY)
-					{
-						Ptr = v->Value.Binary.Data;
-						Size = v->Value.Binary.Length;
-					}
-					else
-					{
-						printf("%s:%i - Unsupported drag flavour %i\n", _FL, v->Type);
-						LgiAssert(0);
-					}
-					
-					if (Ptr)
-					{
-						#if 1
-						CFStringRef FlavorType = CFStringCreateWithCString(NULL, f, kCFStringEncodingUTF8);
-						CFDataRef Data = CFDataCreate(NULL, (const UInt8 *)Ptr, Size);
-						PasteboardFlavorFlags Flags = kPasteboardFlavorNoFlags;
-						status = PasteboardPutItemFlavor(Pb, (PasteboardItemID)n, FlavorType, Data, Flags);
-						if (status) printf("%s:%i - PasteboardPutItemFlavor=%li\n", _FL, status);
-						CFRelease(FlavorType);
-						CFRelease(Data);
-						#else
-						e = AddDragItemFlavor(Drag,
-											1000+i,
-											t,
-											Ptr,
-											Size,
-											flavorNotSaved);
-						if (e) printf("%s:%i - AddDragItemFlavor=%i\n", _FL, e);
-						#endif
-					}
+					a.Add(i);
 				}
 			}
-			else printf("%s:%i - GetData failed.\n", _FL);
+			else a.Add(&Data);
+			
+			for (int i=0; i<a.Length(); i++)
+			{
+				void *Ptr = NULL;
+				int Size = 0;
+				GVariant *v = a[i];
+				
+				if (v->Type == GV_STRING)
+				{
+					Ptr = v->Str();
+					if (Ptr)
+						Size = strlen((char*)Ptr);
+				}
+				else if (v->Type == GV_BINARY)
+				{
+					Ptr = v->Value.Binary.Data;
+					Size = v->Value.Binary.Length;
+				}
+				else
+				{
+					printf("%s:%i - Unsupported drag flavour %i\n", _FL, v->Type);
+					LgiAssert(0);
+				}
+				
+				if (Ptr)
+				{
+					CFStringRef FlavorType = CFStringCreateWithCString(NULL, f, kCFStringEncodingUTF8);
+					CFDataRef Data = CFDataCreate(NULL, (const UInt8 *)Ptr, Size);
+					PasteboardFlavorFlags Flags = kPasteboardFlavorNoFlags;
+					status = PasteboardPutItemFlavor(Pb, (PasteboardItemID)n, FlavorType, Data, Flags);
+					if (status) printf("%s:%i - PasteboardPutItemFlavor=%li\n", _FL, status);
+					CFRelease(FlavorType);
+					CFRelease(Data);
+				}
+			}
 		}
+		else printf("%s:%i - GetData failed.\n", _FL);
 	}
 	
 	GMemDC m;

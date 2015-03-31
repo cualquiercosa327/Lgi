@@ -544,7 +544,7 @@ void GTreeItem::_PaintText(GItem::ItemPaintCtx &Ctx)
 				if (Ctx.Columns > 1)
 					Ctx.pDC->Colour(Ctx.Back);
 				else
-					Ctx.pDC->Colour(LC_WORKSPACE);
+					Ctx.pDC->Colour(LC_WORKSPACE, 24);
 				Ctx.pDC->Rectangle(&r);
 			}
 		}

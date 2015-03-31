@@ -279,6 +279,12 @@ GViewPrivate::~GViewPrivate()
 	LgiAssert(Pulse == 0);
 }
 
+struct DropItemFlavor
+{
+	PasteboardItemID	ItemId;
+	CFStringRef			Flavor;
+};
+
 struct DragParams
 {
 	GdcPt2 Pt;
@@ -329,6 +335,7 @@ struct DragParams
 		// Get the data formats
 		PasteboardRef Pb;
 		OSStatus e = GetDragPasteboard(Drag, &Pb);
+		GArray<DropItemFlavor> ItemFlavors;
 		if (e)
 		{
 			printf("%s:%i - GetDragPasteboard failed with %li\n", _FL, e);
@@ -340,8 +347,6 @@ struct DragParams
 			if (Drop)
 			{
 				printf("Items=%li\n", Items);
-				if (Items > 1)
-					Data.SetList();
 			}
 			for (CFIndex i=1; i<=Items; i++)
 			{
@@ -378,65 +383,78 @@ struct DragParams
 								{
 									if (Formats.Length() == 0)
 										Formats.Insert(NewStr(Drop));
-
-									CFDataRef Ref;
-									e = PasteboardCopyItemFlavorData(Pb, Item, flavor, &Ref);
-									if (e)
-									{
-										printf("%s:%i - PasteboardCopyItemFlavorData failed with %lu.\n", _FL, e);
-									}
-									else
-									{
-										CFIndex Len = CFDataGetLength(Ref);
-										const UInt8 *Ptr = CFDataGetBytePtr(Ref);
-										if (Len > 0 && Ptr != NULL)
-										{
-											uint8 *Cp = new uint8[Len+1];
-											if (Cp)
-											{
-												memcpy(Cp, Ptr, Len);
-												Cp[Len] = 0;
-												
-												if (Items > 1)
-												{
-													GVariant *v = new GVariant;
-													if (v)
-													{
-														v->SetBinary(Len, Cp, true);
-														Data.Value.Lst->Insert(v);
-													}
-												}
-												else if (!_stricmp(LGI_LgiDropFormat, Drop))
-												{
-													GDragDropSource *Src = NULL;
-													if (Len == sizeof(Src))
-													{
-														Src = *((GDragDropSource**)Ptr);
-														Data.Empty();
-														Data.Type = GV_VOID_PTR;
-														Data.Value.Ptr = Src;
-													}
-													else LgiAssert(!"Wrong pointer size");
-												}
-												else
-												{
-													Data.SetBinary(Len, Cp, true);
-												}
-											}
-										}
-										else
-										{
-											printf("%s:%i - Pasteboard data error: %p %li.\n", _FL, Ptr, Len);
-										}
 										
-										CFRelease(Ref);
-									}
+									DropItemFlavor &Fl = ItemFlavors.New();
+									Fl.ItemId = Item;
+									Fl.Flavor = flavor;
 								}
 							}
 							else
 							{
 								Formats.Insert(NewStr(n));
 							}
+						}
+					}
+				}
+				
+				if (ItemFlavors.Length())
+				{
+					if (ItemFlavors.Length() > 1)
+						Data.SetList();
+					
+					for (unsigned i=0; i<ItemFlavors.Length(); i++)
+					{
+						CFDataRef Ref;
+						e = PasteboardCopyItemFlavorData(Pb, ItemFlavors[i].ItemId, ItemFlavors[i].Flavor, &Ref);
+						if (e)
+						{
+							printf("%s:%i - PasteboardCopyItemFlavorData failed with %lu.\n", _FL, e);
+						}
+						else
+						{
+							CFIndex Len = CFDataGetLength(Ref);
+							const UInt8 *Ptr = CFDataGetBytePtr(Ref);
+							if (Len > 0 && Ptr != NULL)
+							{
+								uint8 *Cp = new uint8[Len+1];
+								if (Cp)
+								{
+									memcpy(Cp, Ptr, Len);
+									Cp[Len] = 0;
+									
+									if (ItemFlavors.Length() > 1)
+									{
+										GVariant *v = new GVariant;
+										if (v)
+										{
+											v->SetBinary(Len, Cp, true);
+											Data.Value.Lst->Insert(v);
+										}
+									}
+									else if (!_stricmp(LGI_LgiDropFormat, Drop))
+									{
+										GDragDropSource *Src = NULL;
+										if (Len == sizeof(Src))
+										{
+											Src = *((GDragDropSource**)Ptr);
+											Data.Empty();
+											Data.Type = GV_VOID_PTR;
+											Data.Value.Ptr = Src;
+										}
+										else LgiAssert(!"Wrong pointer size");
+									}
+									else
+									{
+										Data.SetBinary(Len, Cp, true);
+									}
+								}
+							}
+							else
+							{
+								printf("%s:%i - Pasteboard data error: %p %li.\n", _FL, Ptr, Len);
+							}
+							
+							CFRelease(Ref);
 						}
 					}
 				}

@@ -41,44 +41,5 @@
          landmarkName = "GSurface::CreateApplicator(int Op, GColourSpace Cs)"
          landmarkType = "5">
       </FileBreakpoint>
-      <FileBreakpoint
-         shouldBeEnabled = "Yes"
-         ignoreCount = "0"
-         continueAfterRunningActions = "No"
-         filePath = "../Code/IdeProject.cpp"
-         timestampString = "449447644.199174"
-         startingColumnNumber = "9223372036854775807"
-         endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "4153"
-         endingLineNumber = "4153"
-         landmarkName = "IdeTree::OnDrop(char *Format, GVariant *Data, GdcPt2 p, int KeyState)"
-         landmarkType = "5">
-      </FileBreakpoint>
-      <FileBreakpoint
-         shouldBeEnabled = "Yes"
-         ignoreCount = "0"
-         continueAfterRunningActions = "No"
-         filePath = "../../src/mac/carbon/Lgi/GView.cpp"
-         timestampString = "449458722.293569"
-         startingColumnNumber = "9223372036854775807"
-         endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "411"
-         endingLineNumber = "411"
-         landmarkName = "DragParams(GView *v, DragRef Drag, const char *Drop)"
-         landmarkType = "7">
-      </FileBreakpoint>
-      <FileBreakpoint
-         shouldBeEnabled = "Yes"
-         ignoreCount = "0"
-         continueAfterRunningActions = "No"
-         filePath = "../Code/IdeProject.cpp"
-         timestampString = "449459986.272692"
-         startingColumnNumber = "9223372036854775807"
-         endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "770"
-         endingLineNumber = "770"
-         landmarkName = "GetData(GVariant *Data, char *Format)"
-         landmarkType = "7">
-      </FileBreakpoint>
    </FileBreakpoints>
 </Bucket>
