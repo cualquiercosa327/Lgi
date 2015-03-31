@@ -14,6 +14,7 @@
 #include "GTextLabel.h"
 #include "GDisplayString.h"
 #include "GdiLeak.h"
+#include "GTableLayout.h"
 
 #define IDD_FONT					1000
 #define IDC_FONT					1001
@@ -26,9 +27,26 @@
 
 int FontSizes[] = { 8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 48, 72, 100, 0 };
 
+struct GFontSelectPriv
+{
+	GTableLayout *Tbl;
+	GList *Lst;
+	GBitmap *Bmp;
+	GCombo *PtSizes;
+	
+	GFontSelectPriv()
+	{
+		Tbl = NULL;
+		Lst = NULL;
+		Bmp = NULL;
+		PtSizes = NULL;
+	}
+};
+
 GFontSelect::GFontSelect(GView *Parent, void *Init, int InitLen)
 {
 	// Initialize
+	d = new GFontSelectPriv;
 	Face = 0;
 	Size = 0;
 	Bold = false;
@@ -49,20 +67,22 @@ GFontSelect::GFontSelect(GView *Parent, void *Init, int InitLen)
 
 	// Setup dialog
 	int y = 20;
-	Children.Insert(Ctrl1 = new GList(IDC_FONT, 14, 14, 161, 147));
-		Ctrl1->AddColumn(LgiLoadString(L_FONTUI_FACE, "Face"), 140);
-		Ctrl1->MultiSelect(false);
-	Children.Insert(Ctrl2 = new GRadioGroup(IDM_STATIC, 182, 7, 98, 91, LgiLoadString(L_FONTUI_STYLE, "Style")));
-		Ctrl2->AddView(Ctrl4 = new GCheckBox(IDC_BOLD,		11, y, -1, -1, LgiLoadString(L_FONTUI_BOLD, "Bold")));
-		Ctrl2->AddView(Ctrl5 = new GCheckBox(IDC_ITALIC,	11, y+20, -1, -1, LgiLoadString(L_FONTUI_ITALIC, "Italic")));
-		Ctrl2->AddView(Ctrl3 = new GCheckBox(IDC_UNDERLINE,	11, y+40, -1, -1, LgiLoadString(L_FONTUI_UNDERLINE, "Underline")));
-	Children.Insert(Ctrl6 = new GRadioGroup(IDM_STATIC, 182, 105, 98, 56, LgiLoadString(L_FONTUI_PTSIZE, "Pt Size")));
-		Ctrl6->AddView(Ctrl7 = new GEdit(IDC_PT_SIZE,		11, y, 56, 21, ""));
-		Ctrl6->AddView(Ctrl8 = new GCombo(IDC_SELECT_SIZE,	70, y, 20, 21, ""));
-	Children.Insert(Ctrl9 = new GBitmap(IDC_PREVIEW, 14, 182, 0));
-	Children.Insert(Ctrl10 = new GText(IDM_STATIC, 14, 166, -1, -1, LgiLoadString(L_FONTUI_PREVIEW, "Preview:")));
-	Children.Insert(Ctrl11 = new GButton(IDOK, 175, 259, 49, 21, LgiLoadString(L_BTN_OK, "Ok")));
-	Children.Insert(Ctrl12 = new GButton(IDCANCEL, 231, 259, 49, 21, LgiLoadString(L_BTN_CANCEL, "Cancel")));
+	Children.Insert(d->Lst = new GList(IDC_FONT, 14, 14, 161, 147));
+		d->Lst->AddColumn(LgiLoadString(L_FONTUI_FACE, "Face"), 140);
+		d->Lst->MultiSelect(false);
+	
+	GRadioGroup *rg;
+	Children.Insert(rg = new GRadioGroup(IDM_STATIC, 182, 7, 98, 91, LgiLoadString(L_FONTUI_STYLE, "Style")));
+		rg->AddView(new GCheckBox(IDC_BOLD,		11, y, -1, -1, LgiLoadString(L_FONTUI_BOLD, "Bold")));
+		rg->AddView(new GCheckBox(IDC_ITALIC,	11, y+20, -1, -1, LgiLoadString(L_FONTUI_ITALIC, "Italic")));
+		rg->AddView(new GCheckBox(IDC_UNDERLINE,	11, y+40, -1, -1, LgiLoadString(L_FONTUI_UNDERLINE, "Underline")));
+	Children.Insert(rg = new GRadioGroup(IDM_STATIC, 182, 105, 98, 56, LgiLoadString(L_FONTUI_PTSIZE, "Pt Size")));
+		rg->AddView(new GEdit(IDC_PT_SIZE,		11, y, 56, 21, ""));
+		rg->AddView(d->PtSizes = new GCombo(IDC_SELECT_SIZE,	70, y, 20, 21, ""));
+	Children.Insert(d->Bmp = new GBitmap(IDC_PREVIEW, 14, 182, 0));
+	Children.Insert(new GText(IDM_STATIC, 14, 166, -1, -1, LgiLoadString(L_FONTUI_PREVIEW, "Preview:")));
+	Children.Insert(new GButton(IDOK, 175, 259, 49, 21, LgiLoadString(L_BTN_OK, "Ok")));
+	Children.Insert(new GButton(IDCANCEL, 231, 259, 49, 21, LgiLoadString(L_BTN_CANCEL, "Cancel")));
 
 	// Populate the contents of the controls
 	int n = 0;
@@ -70,29 +90,29 @@ GFontSelect::GFontSelect(GView *Parent, void *Init, int InitLen)
 	{
 		char Str[32];
 		sprintf_s(Str, sizeof(Str), "%i", *s);
-		Ctrl8->Insert(Str);
+		d->PtSizes->Insert(Str);
 
 		if (*s == Size)
 		{
-			Ctrl8->Value(n);
+			d->PtSizes->Value(n);
 		}
 	}
 	EnumerateFonts();
-	Ctrl4->Value(Bold);
-	Ctrl5->Value(Italic);
-	Ctrl3->Value(Underline);
+	SetCtrlValue(IDC_BOLD, Bold);
+	SetCtrlValue(IDC_ITALIC, Italic);
+	SetCtrlValue(IDC_UNDERLINE, Underline);
 
-	OnNotify(Ctrl8, 0);
+	OnNotify(d->PtSizes, 0);
 }
 
 GFontSelect::~GFontSelect()
 {
-	DeleteArray(Face);
+	DeleteObj(d);
 }
 
 char *GFontSelect::GetSelectedFace()
 {
-	GListItem *i = Ctrl1->GetSelected();
+	GListItem *i = d->Lst->GetSelected();
 	if (i)
 	{
 		return i->GetText(0);
@@ -108,7 +128,7 @@ void GFontSelect::InsertFont(const char *f)
 		if (i)
 		{
 			i->SetText(f, 0);
-			Ctrl1->Insert(i);
+			d->Lst->Insert(i);
 
 			if (stricmp(f, Face) == 0)
 			{
@@ -137,7 +157,7 @@ void GFontSelect::EnumerateFonts()
 			DeleteArray((char*&)n);
 		}
 
-		Ctrl1->Sort(SortFunc, 0);
+		d->Lst->Sort(SortFunc, 0);
 	}
 }
 
@@ -194,14 +214,14 @@ void GFontSelect::UpdatePreview()
 				}
 			}
 
-			Ctrl9->SetDC(Dc);
+			d->Bmp->SetDC(Dc);
 		}
 	}
 }
 
 void GFontSelect::OnCreate()
 {
-	GListItem *i = Ctrl1->GetSelected();
+	GListItem *i = d->Lst->GetSelected();
 	if (i)
 	{
 		i->ScrollTo();
@@ -212,10 +232,10 @@ void GFontSelect::UiToThis()
 {
 	DeleteArray(Face);
 	Face = NewStr(GetSelectedFace());
-	Size = Ctrl7->Name() ? atoi(Ctrl7->Name()) : 0;
-	Underline = Ctrl3->Value();
-	Bold = Ctrl4->Value();
-	Italic = Ctrl5->Value();
+	Size = GetCtrlValue(IDC_PT_SIZE);
+	Underline = GetCtrlValue(IDC_UNDERLINE);
+	Bold = GetCtrlValue(IDC_BOLD);
+	Italic = GetCtrlValue(IDC_ITALIC);
 }
 
 bool GFontSelect::Serialize(void *Data, int DataLen, bool Write)
@@ -293,7 +313,7 @@ int GFontSelect::OnNotify(GViewI *Ctrl, int Flags)
 	{
 		case IDC_SELECT_SIZE:
 		{
-			SetCtrlValue(IDC_PT_SIZE, atoi(Ctrl8->Name()));
+			SetCtrlValue(IDC_PT_SIZE, atoi(Ctrl->Name()));
 			// fall thru
 		}
 		case IDC_BOLD:
