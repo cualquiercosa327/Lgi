@@ -22,34 +22,14 @@
 /// \endcode
 class GFontSelect : public GDialog
 {
-	GList *Ctrl1;
-	GRadioGroup *Ctrl2;
-	GCheckBox *Ctrl3;
-	GCheckBox *Ctrl4;
-	GCheckBox *Ctrl5;
-	GRadioGroup *Ctrl6;
-	GEdit *Ctrl7;
-	GCombo *Ctrl8;
-	GBitmap *Ctrl9;
-	GText *Ctrl10;
-	GButton *Ctrl11;
-	GButton *Ctrl12;
-
+	struct GFontSelectPriv *d;
+	
 	char *GetSelectedFace();
 	void InsertFont(const char *Face);
 	void EnumerateFonts();
 	void OnCreate();
 	void UpdatePreview();
 	void UiToThis();
-
-	/*
-	#ifdef WIN32
-	static int CALLBACK _Enum(	ENUMLOGFONT FAR *lpelf,
-								NEWTEXTMETRIC FAR *lpntm,
-								int FontType,
-								LPARAM lParam);
-	#endif
-	*/
 
 public:
 	/// The face of the font selected

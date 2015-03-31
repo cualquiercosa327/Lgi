@@ -66,23 +66,35 @@ GFontSelect::GFontSelect(GView *Parent, void *Init, int InitLen)
 	MoveToCenter();
 
 	// Setup dialog
-	int y = 20;
-	Children.Insert(d->Lst = new GList(IDC_FONT, 14, 14, 161, 147));
+	AddView(d->Tbl = new GTableLayout);
+
+	GRadioGroup *rg;
+	GLayoutCell *c = d->Tbl->GetCell(0, 0, true, 1, 2);
+		c->Add(d->Lst = new GList(IDC_FONT, 14, 14, 161, 147));
 		d->Lst->AddColumn(LgiLoadString(L_FONTUI_FACE, "Face"), 140);
 		d->Lst->MultiSelect(false);
 	
-	GRadioGroup *rg;
-	Children.Insert(rg = new GRadioGroup(IDM_STATIC, 182, 7, 98, 91, LgiLoadString(L_FONTUI_STYLE, "Style")));
-		rg->AddView(new GCheckBox(IDC_BOLD,		11, y, -1, -1, LgiLoadString(L_FONTUI_BOLD, "Bold")));
-		rg->AddView(new GCheckBox(IDC_ITALIC,	11, y+20, -1, -1, LgiLoadString(L_FONTUI_ITALIC, "Italic")));
-		rg->AddView(new GCheckBox(IDC_UNDERLINE,	11, y+40, -1, -1, LgiLoadString(L_FONTUI_UNDERLINE, "Underline")));
-	Children.Insert(rg = new GRadioGroup(IDM_STATIC, 182, 105, 98, 56, LgiLoadString(L_FONTUI_PTSIZE, "Pt Size")));
-		rg->AddView(new GEdit(IDC_PT_SIZE,		11, y, 56, 21, ""));
-		rg->AddView(d->PtSizes = new GCombo(IDC_SELECT_SIZE,	70, y, 20, 21, ""));
-	Children.Insert(d->Bmp = new GBitmap(IDC_PREVIEW, 14, 182, 0));
-	Children.Insert(new GText(IDM_STATIC, 14, 166, -1, -1, LgiLoadString(L_FONTUI_PREVIEW, "Preview:")));
-	Children.Insert(new GButton(IDOK, 175, 259, 49, 21, LgiLoadString(L_BTN_OK, "Ok")));
-	Children.Insert(new GButton(IDCANCEL, 231, 259, 49, 21, LgiLoadString(L_BTN_CANCEL, "Cancel")));
+	c = d->Tbl->GetCell(1, 0, true, 1, 1);
+		c->Add(rg = new GRadioGroup(IDM_STATIC, 0, 0, 100, 100, LgiLoadString(L_FONTUI_STYLE, "Style")));
+		rg->AddView(new GCheckBox(IDC_BOLD, 0, 0, -1, -1, LgiLoadString(L_FONTUI_BOLD, "Bold")));
+		rg->AddView(new GCheckBox(IDC_ITALIC, 0, 0, -1, -1, LgiLoadString(L_FONTUI_ITALIC, "Italic")));
+		rg->AddView(new GCheckBox(IDC_UNDERLINE, 0, 0, -1, -1, LgiLoadString(L_FONTUI_UNDERLINE, "Underline")));
+	
+	c = d->Tbl->GetCell(1, 1, true, 1, 1);
+		c->Add(rg = new GRadioGroup(IDM_STATIC, 0, 0, 100, 100, LgiLoadString(L_FONTUI_PTSIZE, "Pt Size")));
+		rg->AddView(new GEdit(IDC_PT_SIZE, 0, 0, 56, 21, ""));
+		rg->AddView(d->PtSizes = new GCombo(IDC_SELECT_SIZE, 0, 0, 20, 20, ""));
+	
+	c = d->Tbl->GetCell(0, 2, true, 2, 1);
+		c->Add(new GText(IDM_STATIC, 0, 0, -1, -1, LgiLoadString(L_FONTUI_PREVIEW, "Preview:")));
+	
+	c = d->Tbl->GetCell(0, 3, true, 2, 1);
+		c->Add(d->Bmp = new GBitmap(IDC_PREVIEW, 14, 182, 0));
+	
+	c = d->Tbl->GetCell(0, 4, true, 2, 1);
+		c->TextAlign(GCss::Len(GCss::AlignRight));
+		c->Add(new GButton(IDOK, 175, 259, 49, 21, LgiLoadString(L_BTN_OK, "Ok")));
+		c->Add(new GButton(IDCANCEL, 231, 259, 49, 21, LgiLoadString(L_BTN_CANCEL, "Cancel")));
 
 	// Populate the contents of the controls
 	int n = 0;
@@ -158,6 +170,7 @@ void GFontSelect::EnumerateFonts()
 		}
 
 		d->Lst->Sort(SortFunc, 0);
+		d->Lst->ResizeColumnsToContent();
 	}
 }
 
