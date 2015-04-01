@@ -308,7 +308,7 @@ GColour GScreenDC::Colour(GColour c)
 	return Prev;
 }
 
-int GScreenDC::Op(int ROP)
+int GScreenDC::Op(int ROP, NativeInt Param)
 {
 	int Prev = Op();
 

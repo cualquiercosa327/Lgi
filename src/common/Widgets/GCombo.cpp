@@ -556,16 +556,6 @@ void GCombo::OnPaint(GSurface *pDC)
 	{
 		GRect r(0, 0, X()-1, Y()-1);
 
-		/*
-		if (r.Y() != COMBO_HEIGHT)
-		{
-			GRect t = GetPos();
-			t.y2 = t.y1 + COMBO_HEIGHT - 1;
-			SetPos(t, true);
-			r.ZOff(t.X()-1, t.Y()-1);
-		}
-		*/
-
 		// draw shadowed border
 		pDC->Colour(LC_SHADOW, 24);
 		pDC->Line(r.x1+2, r.y2, r.x2, r.y2);

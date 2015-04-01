@@ -689,9 +689,7 @@ public:
 		{
 			// Font
 			if (Ctrl->GetFont() == SysFont)
-			{
 				Ctrl->SetFont(SysBold);
-			}
 
 			// Back
 			GCss::ColorDef Back;
@@ -721,6 +719,12 @@ public:
 					GRect c = Ctrl->GetClient();
 					c.x1 += 8;
 					c.x2 -= n + 3;
+					
+					if (Text->X() > Ctrl->X() - tx - 32)
+					{
+						// Make the text fit
+						Text->TruncateWithDots(Ctrl->X() - tx - 32);
+					}
 
 					GFont *f = Text->GetFont();
 					f->Transparent(true);

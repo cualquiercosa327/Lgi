@@ -671,16 +671,17 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 			{
 				GCombo *Cbo = Izza(GCombo);
 				GFont *f = Cbo->GetFont();
-				int x = 0;
+				int min_x = -1, max_x = 0;
 				char *t;
 				for (int i=0; (t = (*Cbo)[i]); i++)
 				{
 					GDisplayString ds(f, t);
-					x = max(ds.X() + 4, x);
+					min_x = min_x < 0 ? ds.X() : min(min_x, ds.X());
+					max_x = max(ds.X() + 4, max_x);
 				}				
 				
-				Min = max(Min, x + 32);
-				Max = max(Max, x + 32);
+				Min = max(Min, min_x + 32);
+				Max = max(Max, max_x + 32);
 				if (Flag < SizeGrow)
 					Flag = SizeGrow;
 			}

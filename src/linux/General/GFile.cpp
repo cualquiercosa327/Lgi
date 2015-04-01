@@ -813,7 +813,7 @@ bool GFileSystem::Copy(char *From, char *To, int *Status, CopyFileCallback Callb
 	return false;
 }
 
-bool GFileSystem::Delete(GArray<char*> &Files, GArray<int> *Status, bool ToTrash)
+bool GFileSystem::Delete(GArray<const char*> &Files, GArray<int> *Status, bool ToTrash)
 {
 	bool Error = false;
 
@@ -862,18 +862,18 @@ bool GFileSystem::Delete(GArray<char*> &Files, GArray<int> *Status, bool ToTrash
 	return !Error;
 }
 
-bool GFileSystem::Delete(char *FileName, bool ToTrash)
+bool GFileSystem::Delete(const char *FileName, bool ToTrash)
 {
 	if (FileName)
 	{
-		GArray<char*> f;
+		GArray<const char*> f;
 		f.Add(FileName);
 		return Delete(f, 0, ToTrash);
 	}
 	return false;
 }
 
-bool GFileSystem::CreateFolder(const char *PathName)
+bool GFileSystem::CreateFolder(const char *PathName, bool CreateParentTree)
 {
 	int r = mkdir(PathName, S_IRWXU | S_IXGRP | S_IXOTH);
 	if (r)
