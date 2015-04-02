@@ -19,6 +19,7 @@ class GDocAppPrivate
 {
 public:
 	// Data
+	GWindow				*App;
 	GAutoString			OptionsFile;
 	GAutoString			OptionsParam;
 	char				*AppName;
@@ -27,8 +28,9 @@ public:
 	bool				Dirty;
 	GDocAppInstallMode	Mode;
 
-	GDocAppPrivate(char *param)
+	GDocAppPrivate(GWindow *app, char *param)
 	{
+		App = app;
 		OptionsParam.Reset(NewStr(param));
 		AppName = 0;
 		Icon = 0;
@@ -125,7 +127,19 @@ public:
 		if (!p) return false;
 
 		p->SetFile(OptionsFile);
-		return p->Serialize(Write);
+		bool Result = p->Serialize(Write);
+		if (Write && !Result)
+		{
+			// Probably because we don't have write access to the install folder?
+			LgiMsg(	App,
+					"Failed to write options to '%s' (mode=%s)",
+					App->Name(),
+					MB_OK,
+					OptionsFile.Get(),
+					Mode == InstallPortable ? "Portable" : "Desktop");
+		}
+		
+		return Result;
 	}
 
 	////////////////////////////////////////////////////////////////////////////
@@ -178,7 +192,7 @@ GDocApp<OptionsFmt>::GDocApp(const char *appname, const TCHAR *icon, char *optsn
 {
 	Options = 0;
 	_LangOptsName = 0;
-	d = new GDocAppPrivate(optsname);
+	d = new GDocAppPrivate(this, optsname);
 	
 	GRect r(0, 0, 800, 600);
 	SetPos(r);
@@ -236,7 +250,6 @@ GDocApp<OptionsFmt>::GDocApp(const char *appname, const TCHAR *icon, char *optsn
 template <typename OptionsFmt>
 GDocApp<OptionsFmt>::~GDocApp()
 {
-	// LgiTrace("~GDocApp()\n");
 	DeleteObj(d);
 	DeleteObj(Options);
 }
@@ -295,10 +308,8 @@ bool GDocApp<OptionsFmt>::_DoSerialize(bool Write)
 	{
 		const char *Ext = d->GetExtension(Options);
 		d->OptionsFile = d->GetOptionsFile(Ext);
-		// LgiTrace("d->OptionsFile='%s'\n", d->OptionsFile.Get());
 	}
 
-	// LgiTrace("Options='%p'\n", Options);
 	if (!Options)
 	{
 		if (FileExists(d->OptionsFile))
@@ -351,7 +362,6 @@ bool GDocApp<OptionsFmt>::_DoSerialize(bool Write)
 template <typename OptionsFmt>
 bool GDocApp<OptionsFmt>::_SerializeFile(bool Write)
 {
-	// LgiTrace("_SerializeFile(%i) file='%s'\n", Write, d->OptionsFile.Get());
 	return d->SerializeOpts(Options, Write);
 }
 
