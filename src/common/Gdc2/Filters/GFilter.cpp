@@ -167,7 +167,7 @@ public:
 		int64 Start = f.GetPos();
 		
 		#define Rd(var) if (f.Read(&var, sizeof(var)) != sizeof(var)) \
-			{ printf("Bmp.Read(%i) failed\n", (int)sizeof(var)); return false; }
+			{ LgiTrace("Bmp.Read(%i) failed\n", (int)sizeof(var)); return false; }
 		Rd(Size);
 		Rd(Sx);
 		Rd(Sy);
@@ -215,7 +215,6 @@ public:
 
 		int64 End = f.GetPos();
 		int64 Bytes = End - Start;
-		printf("Bmp.Bytes=%i\n", (int)Bytes);
 		return Bytes >= 12;
 	}
 };
@@ -272,19 +271,15 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 	Read(In, &File.Reserved2, sizeof(File.Reserved2));
 	Read(In, &File.OffsetToData, sizeof(File.OffsetToData));
 
-	printf("Bmp.Read pos=%i\n", (int)In->GetPos());
-
 	if (!Info.Read(*In))
 	{
-		printf("%s:%i - BmpHdr read failed.\n", _FL);
+		LgiTrace("%s:%i - BmpHdr read failed.\n", _FL);
 		return GFilter::IoError;
 	}
 
-	printf("Bmp.Read pos=%i\n", (int)In->GetPos());
-
 	if (File.Type[0] != 'B' || File.Type[1] != 'M')
 	{
-		printf("%s:%i - Bmp file id failed: '%.2s'.\n", _FL, File.Type);
+		LgiTrace("%s:%i - Bmp file id failed: '%.2s'.\n", _FL, File.Type);
 		return GFilter::IoUnsupportedFormat;
 	}
 
@@ -292,7 +287,7 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 	ScanSize = BMPWIDTH(Info.Sx * Info.Bits);
 	if (!pDC->Create(Info.Sx, Info.Sy, max(Info.Bits, 8), ScanSize))
 	{
-		printf("%s:%i - MemDC(%i,%i,%i) failed.\n", _FL, Info.Sx, Info.Sy, max(Info.Bits, 8));
+		LgiTrace("%s:%i - MemDC(%i,%i,%i) failed.\n", _FL, Info.Sx, Info.Sy, max(Info.Bits, 8));
 		return GFilter::IoError;
 	}
 
@@ -404,7 +399,7 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 		// 4 bit RLE compressed image
 
 		// not implemented
-		printf("%s:%i - BI_RLE4 not implemented.\n", _FL);
+		LgiTrace("%s:%i - BI_RLE4 not implemented.\n", _FL);
 	}
 	else
 	{
@@ -536,8 +531,6 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 			}
 			default:
 			{
-				printf("Bmp.Read pos=%i\n", (int)In->GetPos());
-
 				GColourSpace DstCs = pDC->GetColourSpace();
 				for (int i=pMem->y-1; i>=0; i--)
 				{
@@ -546,7 +539,7 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 					if (r != ScanSize)
 					{
 						Status = IoError;
-						printf("%s:%i - Bmp read err, wanted %i, got %i.\n", _FL, ScanSize, r);
+						LgiTrace("%s:%i - Bmp read err, wanted %i, got %i.\n", _FL, ScanSize, r);
 						break;
 					}
 					
@@ -555,7 +548,7 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 						if (!LgiRopRgb(Ptr, DstCs, Ptr, SrcCs, pMem->x))
 						{
 							Status = IoUnsupportedFormat;
-							printf("%s:%i - Bmp had unsupported bit depth.\n", _FL);
+							LgiTrace("%s:%i - Bmp had unsupported bit depth.\n", _FL);
 							break;
 						}
 						
@@ -658,8 +651,6 @@ GFilter::IoStatus GdcBmp::WriteImage(GStream *Out, GSurface *pDC)
 					Wr(File.Reserved2) &&
 					Wr(File.OffsetToData);
 
-	printf("Bmp.Write pos=%i File.OffsetToData=%i\n", (int)Out->GetPos(), File.OffsetToData);
-					
 	Written =		Wr(Info.Size) &&
 					Wr(Info.Sx) &&
 					Wr(Info.Sy) &&
@@ -671,8 +662,6 @@ GFilter::IoStatus GdcBmp::WriteImage(GStream *Out, GSurface *pDC)
 					Wr(Info.YPels) &&
 					Wr(Info.ColoursUsed) &&
 					Wr(Info.ColourImportant);
-
-	printf("Bmp.Write pos=%i\n", (int)Out->GetPos());
 
 	if (Written)
 	{
@@ -798,12 +787,10 @@ GFilter::IoStatus GdcBmp::WriteImage(GStream *Out, GSurface *pDC)
 					px[0].r = 0xff;
 					px[1].g = 0xff;
 					px[2].b = 0xff;
+					px[3].a = 0xff;
 					Out->Write(px, sizeof(px));
 				}
 
-				printf("Bmp.Write pos=%i\n", (int)Out->GetPos());
-
-				
 				for (int i=pMem->y-1; i>=0; i--)
 				{
 					int w = Out->Write(pMem->Base + (i * pMem->Line), Bytes);
@@ -979,7 +966,7 @@ GFilter::IoStatus GdcIco::ReadImage(GSurface *pDC, GStream *In)
 		}
 
 		/*
-		printf("BytesInRes=%i, Xor=%i, And=%i, Pal=%i, BytesLeft=%i\n",
+		LgiTrace("BytesInRes=%i, Xor=%i, And=%i, Pal=%i, BytesLeft=%i\n",
 			BytesInRes,
 			XorSize,
 			AndSize,
@@ -1087,7 +1074,7 @@ GFilter::IoStatus GdcIco::ReadImage(GSurface *pDC, GStream *In)
 		}
 		else
 		{
-			printf("%s:%i - Header size error: %i != %i + %i, Img: %ix%i @ %i bits\n",
+			LgiTrace("%s:%i - Header size error: %i != %i + %i, Img: %ix%i @ %i bits\n",
 				_FL,
 				Header.DataSize, XorSize, AndSize,
 				Header.Sx, Header.Sy, Header.Bits);
@@ -1911,17 +1898,17 @@ GSurface *GdcDevice::Load(const char *Name, bool UseOSLoader)
 			
 			CFURLRef FileUrl = CFURLCreateFromFileSystemRepresentation(0, (const UInt8*)Name, strlen(Name), false);
 			if (!FileUrl)
-				printf("%s:%i - CFURLCreateFromFileSystemRepresentation failed.\n", _FL);
+				LgiTrace("%s:%i - CFURLCreateFromFileSystemRepresentation failed.\n", _FL);
 			else
 			{
 				CGImageSourceRef Src = CGImageSourceCreateWithURL(FileUrl, 0);
 				if (!Src)
-					printf("%s:%i - CGImageSourceCreateWithURL failed.\n", _FL);
+					LgiTrace("%s:%i - CGImageSourceCreateWithURL failed.\n", _FL);
 				else
 				{
 					CGImageRef Img = CGImageSourceCreateImageAtIndex(Src, 0, 0);
 					if (!Img)
-						printf("%s:%i - CGImageSourceCreateImageAtIndex failed.\n", _FL);
+						LgiTrace("%s:%i - CGImageSourceCreateImageAtIndex failed.\n", _FL);
 					else
 					{
 						size_t x = CGImageGetWidth(Img);
@@ -1939,7 +1926,7 @@ GSurface *GdcDevice::Load(const char *Name, bool UseOSLoader)
 						}
 						else
 						{
-							printf("%s:%i - pMemDC->Create failed.\n", _FL);
+							LgiTrace("%s:%i - pMemDC->Create failed.\n", _FL);
 							pDC.Reset();
 						}
 						
