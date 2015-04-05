@@ -290,7 +290,7 @@ public:
 		}
 
 		Ver = ParseSslVersion(t[1]);
-		if (Ver.Length() != 4)
+		if (Ver.Length() < 3)
 		{
 			Err.Print("%s:%i - SSLeay_version: not enough tokens\n", _FL);
 			goto OnError;

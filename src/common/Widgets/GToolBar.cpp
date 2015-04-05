@@ -173,6 +173,9 @@ GImageList::GImageList(int x, int y, GSurface *pDC)
 	if (pDC &&
 		Create(pDC->X(), pDC->Y(), System32BitColourSpace))
 	{
+		Colour(0, 32);
+		Rectangle();
+		
 		int Old = Op(GDC_ALPHA);
 		Blt(0, 0, pDC);
 		Op(Old);

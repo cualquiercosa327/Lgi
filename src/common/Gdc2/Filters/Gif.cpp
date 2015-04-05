@@ -704,7 +704,7 @@ GFilter::IoStatus GdcGif::ReadImage(GSurface *pdc, GStream *in)
 						linewidth = sx;
 						interlace = LocalBits.Interlaced != 0;
 
-						if (pDC->Create(sx, sy, 8))
+						if (pDC->Create(sx, sy, CsIndex8))
 						{
 							if (LocalBits.LocalColorTable)
 							{
