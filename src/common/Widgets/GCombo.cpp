@@ -538,7 +538,7 @@ void GCombo::OnPaint(GSurface *pDC)
 								0,
 								LgiLabelUPP ? LgiLabelUPP : LgiLabelUPP = NewThemeButtonDrawUPP(LgiLabelProc),
 								(UInt32)&User);
-	
+	if (e) printf("%s:%i - DrawThemeButton failed %i\n", _FL, e);
 	d->Cur = Info;
 	
 	#else

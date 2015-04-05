@@ -635,7 +635,7 @@ void GRadioButton::OnPaint(GSurface *pDC)
                                     0,
                                     LgiLabelUPP ? LgiLabelUPP : LgiLabelUPP = NewThemeButtonDrawUPP(LgiLabelProc),
                                     (UInt32)&User);
-        
+        if (err) printf("%s:%i - DrawThemeButton failed %i\n", _FL, err);
         d->Cur = Info;
         
         #else

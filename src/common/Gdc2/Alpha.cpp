@@ -356,18 +356,22 @@ void GdcApp8Alpha::Rectangle(int x, int y)
 	while (y--)
 	{
 		uchar *p = Ptr;
-		for (int X=0; X<x; X++)
+		uchar *e = Ptr + x;
+		while (p < e)
 		{
-			*p++ = Remap[*p];
+			*p = Remap[*p];
+			p++;
 		}
 		Ptr += Dest->Line;
 
 		if (APtr)
 		{
 			uchar *a = APtr;
-			for (int X=0; X<x; X++)
+			e = a + x;
+			while (a < e)
 			{
-				*a++ += DivLut[(255 - *a) * alpha];
+				*a += DivLut[(255 - *a) * alpha];
+				a++;
 			}
 			APtr += Alpha->Line;
 		}
@@ -1067,12 +1071,13 @@ bool GdcApp15Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 						while (d < e)
 						{
 							Src = c + *s++;
-							*d++ = Rgb15
+							*d = Rgb15
 							(
 								DivLut[oma * Rc15(*d)] + Src->r,
 								DivLut[oma * Gc15(*d)] + Src->g,
 								DivLut[oma * Bc15(*d)] + Src->b
 							);
+							d++;
 						}
 					}
 
@@ -1523,9 +1528,10 @@ bool GdcApp16Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 
 					while (d < e)
 					{
-						*d++ = Rgb16(	Div255((oma * Rc16(*d)) + (alpha * s->r)),
+						*d = Rgb16(	Div255((oma * Rc16(*d)) + (alpha * s->r)),
 										Div255((oma * Gc16(*d)) + (alpha * s->g)),
 										Div255((oma * Bc16(*d)) + (alpha * s->b)));
+						d++;
 						s++;
 					}
 

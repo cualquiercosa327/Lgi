@@ -451,7 +451,7 @@ protected:
 		int Edge
 	);
 
-	void _Delete();
+	virtual void _Delete();
 	GViewI *FindReal(GdcPt2 *Offset = 0);
 	bool HandleCapture(GView *Wnd, bool c);
 	
@@ -1142,6 +1142,10 @@ protected:
 	void OnGtkDelete();
 	Gtk::gboolean OnGtkEvent(Gtk::GtkWidget *widget, Gtk::GdkEvent *event);
 
+	#endif
+	
+	#ifdef MAC
+	void _Delete();
 	#endif
 
 	/// The default button

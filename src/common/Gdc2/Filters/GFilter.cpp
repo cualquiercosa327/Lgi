@@ -250,7 +250,7 @@ struct MaskComp
 
 int CompSort(MaskComp *a, MaskComp *b)
 {
-	return b->Mask - a->Mask;
+	return b->Mask < a->Mask ? 1 : -1;
 }
 
 GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
@@ -431,6 +431,7 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 				break;
 		}
 
+		#if 1
 		if (Info.Compression == BI_BITFIELDS)
 		{
 			// Should we try and create a colour space from these fields?
@@ -453,6 +454,7 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 			
 			SrcCs = (GColourSpace) Cs.All;
 		}
+		#endif
 
 		// straight
 		switch (ActualBits)

@@ -964,7 +964,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 	if (pDC && !pDC->IsScreen())
 		pDC->GetOrigin(Ox, Oy);
 
-	if (!Font->Transparent())
+	if (pDC && !Font->Transparent())
 	{
 		GColour Old = pDC->Colour(Font->Back());
 		if (r)

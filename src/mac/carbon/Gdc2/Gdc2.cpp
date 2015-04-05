@@ -209,7 +209,7 @@ int GPalette::MatchRgb(COLOUR Rgb)
 		int b = B24(Rgb);
 		ulong *squares = GdcD->GetCharSquares();
 		ulong mindist = 200000;
-		ulong bestcolor;
+		ulong bestcolor = 0;
 		ulong curdist;
 		long rdist;
 		long gdist;
@@ -953,7 +953,7 @@ void GdcDevice::SetColourPaletteType(int Type)
 COLOUR GdcDevice::GetColour(COLOUR Rgb24, GSurface *pDC)
 {
 	int Bits = (pDC) ? pDC->GetBits() : GetBits();
-	COLOUR C;
+	COLOUR C = 0;
 
 	switch (Bits)
 	{

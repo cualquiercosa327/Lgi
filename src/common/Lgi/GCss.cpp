@@ -2399,7 +2399,8 @@ bool GCss::Selector::Parse(const char *&s)
 				char *e = strchr(s + 1, ')');
 				if (e && e - s < 100)
 				{
-					n.Param.Reset(NewStr(++s, e - s));
+					s++;
+					n.Param.Reset(NewStr(s, e - s));
 					s = e + 1;
 				}
 			}			

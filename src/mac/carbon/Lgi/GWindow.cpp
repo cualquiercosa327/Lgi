@@ -132,8 +132,6 @@ GWindow::GWindow() :
 
 GWindow::~GWindow()
 {
-	SetDragHandlers(false);
-	
 	if (LgiApp->AppWnd == this)
 	{
 		LgiApp->AppWnd = 0;
@@ -640,8 +638,8 @@ printf("\tTarget(%s) not accepting these formats.\n", gv?gv->GetClass():"(none)"
 void GWindow::SetDragHandlers(bool On)
 {
 	#ifdef DND_NEW_API
-	SetAutomaticControlDragTrackingEnabledForWindow(Wnd, On);
-	// SetControlDragTrackingEnabled((ControlRef) Wnd, On);
+	if (Wnd && _View)
+		SetAutomaticControlDragTrackingEnabledForWindow(Wnd, On);
 	#else
 	if (On)
 	{
@@ -806,6 +804,12 @@ void GWindow::_OnViewDelete()
 	{
 		delete this;
 	}
+}
+
+void GWindow::_Delete()
+{
+	SetDragHandlers(false);
+	GView::_Delete();
 }
 
 bool GWindow::PostEvent(int Event, int a, int b)
@@ -1395,6 +1399,8 @@ bool GWindow::Attach(GViewI *p)
 			}
 
 			HIViewChangeFeatures(_View, kHIViewIsOpaque, 0);
+			
+			printf("Root_View is %p\n", _View);
 		}
 
 		Status = true;

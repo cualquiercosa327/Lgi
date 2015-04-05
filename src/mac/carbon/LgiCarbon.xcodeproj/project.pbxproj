@@ -906,7 +906,7 @@
 		0867D690FE84028FC02AAC07 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0440;
+				LastUpgradeCheck = 0620;
 			};
 			buildConfigurationList = 34BA94DB0B33ADB400493CD3 /* Build configuration list for PBXProject "LgiCarbon" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -1136,6 +1136,7 @@
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				INSTALL_PATH = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
 					"-D_DEBUG",
 					"-DMAC",
@@ -1158,6 +1159,7 @@
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				INSTALL_PATH = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
 					"-DMAC",
 					"-DLGI_LIBRARY",

@@ -4,20 +4,20 @@
 /// Colour component type
 enum GComponentType
 {
-	CtNone,
-	CtIndex,
-	CtRed,
-	CtGreen,
-	CtBlue,
-	CtAlpha,
-	CtPad,
-	CtHue,
-	CtSaturation,
-	CtLuminance,
-	CtCyan,
-	CtMagenta,
-	CtYellow,
-	CtBlack
+	CtNone,			// 0
+	CtIndex,		// 1
+	CtRed,			// 2
+	CtGreen,		// 3
+	CtBlue,			// 4
+	CtAlpha,		// 5
+	CtPad,			// 6
+	CtHue,			// 7
+	CtSaturation,	// 8
+	CtLuminance,	// 9
+	CtCyan,			// 10
+	CtMagenta,		// 11
+	CtYellow,		// 12
+	CtBlack			// 13
 };
 
 // Component construction: 4bits type, 4bits size. 8 bits per component.
