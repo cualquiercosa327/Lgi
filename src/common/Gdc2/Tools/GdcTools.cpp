@@ -257,9 +257,9 @@ bool InvertDC(GSurface *pDC)
 					{
 						for (int x=0; x<pDC->X(); x++)
 						{
-							*d++ = 255 - *d;
-							*d++ = 255 - *d;
-							*d++ = 255 - *d;
+							*d = 255 - *d; d++;
+							*d = 255 - *d; d++;
+							*d = 255 - *d; d++;
 						}
 					}
 				}
@@ -274,9 +274,9 @@ bool InvertDC(GSurface *pDC)
 					{
 						for (int x=0; x<pDC->X(); x++)
 						{
-							*d++ = 255 - *d;
-							*d++ = 255 - *d;
-							*d++ = 255 - *d;
+							*d = 255 - *d; d++;
+							*d = 255 - *d; d++;
+							*d = 255 - *d; d++;
 							d++; // leave alpha channel alone
 						}
 					}

@@ -516,30 +516,63 @@ void GCombo::OnPaint(GSurface *pDC)
 
 	#if defined MAC && !defined COCOA
 
-	pDC->Colour(LC_MED, 24);	
-	pDC->Rectangle();
+		pDC->Colour(LC_MED, 24);
+		pDC->Rectangle();
 
-	GRect c = GetClient();
-	Rect Bounds = { c.y1, c.x1+2, c.y2-1, c.x2-1 };
-	ThemeButtonDrawInfo Info;
-	Info.state = Enabled() ? kThemeStateActive : kThemeStateInactive;
-	Info.value = Focus() ? kThemeButtonOn : kThemeButtonOff;
-	Info.adornment = Focus() ? kThemeAdornmentFocus : kThemeAdornmentNone;
+		GRect c = GetClient();
+
+		#if 1
 	
-	GLabelData User;
-	User.Ctrl = this;
-	User.pDC = pDC;
-	User.r.y1 = 1;
-	User.Justification = teJustLeft;
-	OSStatus e = DrawThemeButton(&Bounds,
-								kThemePopupButton,
-								&Info,
-								&d->Cur,
-								0,
-								LgiLabelUPP ? LgiLabelUPP : LgiLabelUPP = NewThemeButtonDrawUPP(LgiLabelProc),
-								(UInt32)&User);
-	if (e) printf("%s:%i - DrawThemeButton failed %i\n", _FL, e);
-	d->Cur = Info;
+			c.Size(1, 1);
+			c.y2 -= 1;
+			HIRect Bounds = c;
+			HIThemeButtonDrawInfo Info;
+			HIRect LabelRect;
+	
+			Info.version = 0;
+			Info.state = Enabled() ? kThemeStateActive : kThemeStateInactive;
+			Info.kind = kThemePopupButton;
+			Info.value = Focus() ? kThemeButtonOn : kThemeButtonOff;
+			Info.adornment = Focus() ? kThemeAdornmentFocus : kThemeAdornmentNone;
+	
+			OSStatus e = HIThemeDrawButton(	  &Bounds,
+											  &Info,
+											  pDC->Handle(),
+											  kHIThemeOrientationNormal,
+											  &LabelRect);
+	
+			if (e) printf("%s:%i - HIThemeDrawButton failed %li\n", _FL, e);
+			else if (d->Text)
+			{
+				d->Text->GetFont()->Transparent(true);
+				d->Text->Draw(pDC, LabelRect.origin.x, LabelRect.origin.y);
+			}
+
+		#else
+
+			Rect Bounds = { c.y1, c.x1+2, c.y2-1, c.x2-1 };
+			ThemeButtonDrawInfo Info;
+			Info.state = Enabled() ? kThemeStateActive : kThemeStateInactive;
+			Info.value = Focus() ? kThemeButtonOn : kThemeButtonOff;
+			Info.adornment = Focus() ? kThemeAdornmentFocus : kThemeAdornmentNone;
+			
+			GLabelData User;
+			User.Ctrl = this;
+			User.pDC = pDC;
+			User.r.y1 = 1;
+			User.Justification = teJustLeft;
+	
+			OSStatus e = DrawThemeButton(&Bounds,
+										kThemePopupButton,
+										&Info,
+										&d->Cur,
+										0,
+										LgiLabelUPP ? LgiLabelUPP : LgiLabelUPP = NewThemeButtonDrawUPP(LgiLabelProc),
+										(UInt32)&User);
+			if (e) printf("%s:%i - DrawThemeButton failed %li\n", _FL, e);
+			d->Cur = Info;
+
+		#endif
 	
 	#else
 	

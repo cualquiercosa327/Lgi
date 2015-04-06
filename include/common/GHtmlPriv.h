@@ -437,7 +437,7 @@ public:
 	// Positioning
 	int RelX() { return Pos.x + (int)MarginLeft().Value; }
 	int RelY() { return Pos.y + (int)MarginTop().Value; }
-	inline GdcPt2 AbsolutePos();
+	GdcPt2 AbsolutePos();
 	inline int AbsX() { return AbsolutePos().x; }
 	inline int AbsY() { return AbsolutePos().y; }
 	GRect GetRect(bool Client = true);
