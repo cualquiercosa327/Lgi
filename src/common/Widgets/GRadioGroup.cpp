@@ -290,11 +290,6 @@ public:
 	bool Over;
 	GDisplayString *Txt;
 
-    #if defined MAC && !defined COCOA
-	ThemeButtonDrawInfo Cur;
-    #endif
-
-
 	GRadioButtonPrivate()
 	{
 		Txt = 0;
@@ -616,28 +611,26 @@ void GRadioButton::OnPaint(GSurface *pDC)
             GRect p = v->GetPos();
             cli.Offset(p.x1, p.y1);
         }
-        
-        Rect Bounds = { c.y1+4, c.x1, c.y2-1, c.x2-1 };
-        ThemeButtonDrawInfo Info;
-        Info.state = d->Val ? kThemeStatePressed : (Enabled() ? kThemeStateActive : kThemeStateInactive);
-        Info.value = d->Val ? kThemeButtonOn : kThemeButtonOff;
-        Info.adornment = Focus() ? kThemeAdornmentFocus : kThemeAdornmentNone;
+		
+		GRect rc(c.x1, c.y1 + 4, c.x2 - 1, c.y2 - 1);
+		HIRect Bounds = rc;
+		HIThemeButtonDrawInfo Info;
+		HIRect LabelRect;
 
-        GLabelData User;
-        User.Ctrl = this;
-        User.pDC = pDC;
-        User.r.y1 = 2;
-        User.Justification = teJustCenter;
-        OSStatus err = DrawThemeButton(&Bounds,
-                                    kThemeRadioButton,
-                                    &Info,
-                                    &d->Cur,
-                                    0,
-                                    LgiLabelUPP ? LgiLabelUPP : LgiLabelUPP = NewThemeButtonDrawUPP(LgiLabelProc),
-                                    (UInt32)&User);
-        if (err) printf("%s:%i - DrawThemeButton failed %i\n", _FL, err);
-        d->Cur = Info;
-        
+		Info.version = 0;
+		Info.state = d->Val ? kThemeStatePressed : (Enabled() ? kThemeStateActive : kThemeStateInactive);
+		Info.kind = kThemeRadioButton;
+		Info.value = d->Val ? kThemeButtonOn : kThemeButtonOff;
+		Info.adornment = Focus() ? kThemeAdornmentFocus : kThemeAdornmentNone;
+
+		OSStatus err = HIThemeDrawButton(&Bounds,
+										&Info,
+										pDC->Handle(),
+										kHIThemeOrientationNormal,
+										&LabelRect);
+
+		if (err) printf("%s:%i - HIThemeDrawButton failed %li\n", _FL, err);
+		
         #else
 
 		// Draw border

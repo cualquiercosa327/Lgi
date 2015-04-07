@@ -1399,8 +1399,6 @@ bool GWindow::Attach(GViewI *p)
 			}
 
 			HIViewChangeFeatures(_View, kHIViewIsOpaque, 0);
-			
-			printf("Root_View is %p\n", _View);
 		}
 
 		Status = true;

@@ -262,133 +262,128 @@ void GCombo::DoMenu()
 	}
 	else
 	{
-		GSubMenu *RClick = new GSubMenu;
-		if (RClick)
-		{
-			int Base = 1000;
-			int i=0;
+		GSubMenu RClick;
+		int Base = 1000;
+		int i=0;
 
-			if (d->Sub)
+		if (d->Sub)
+		{
+			if (d->Sub == GV_INT32)
 			{
-				if (d->Sub == GV_INT32)
-				{
-					d->Items.Sort(IntCompare, 0);
-				}
-				else if (d->Sub == GV_DOUBLE)
-				{
-					d->Items.Sort(DblCompare, 0);
-				}
-				else
-				{
-					d->Items.Sort(StringCompare, 0);
-				}
+				d->Items.Sort(IntCompare, 0);
 			}
-			else if (d->SortItems)
+			else if (d->Sub == GV_DOUBLE)
+			{
+				d->Items.Sort(DblCompare, 0);
+			}
+			else
 			{
 				d->Items.Sort(StringCompare, 0);
 			}
+		}
+		else if (d->SortItems)
+		{
+			d->Items.Sort(StringCompare, 0);
+		}
 
-			char *c = d->Items.First();
-			if (c)
+		char *c = d->Items.First();
+		if (c)
+		{
+			if (d->Sub)
 			{
-				if (d->Sub)
+				int n = 0;
+				double dbl = 0;
+				char16 f = 0;
+				GSubMenu *m = 0;
+				for (; c; c = d->Items.Next(), i++)
 				{
-					int n = 0;
-					double dbl = 0;
-					char16 f = 0;
-					GSubMenu *m = 0;
-					for (; c; c = d->Items.Next(), i++)
+					GUtf8Ptr u(c);
+					if (d->Sub == GV_INT32)
 					{
-						GUtf8Ptr u(c);
-						if (d->Sub == GV_INT32)
+						int ci = atoi(c);
+						if (!m || n != ci)
 						{
-							int ci = atoi(c);
-							if (!m || n != ci)
-							{
-								char Name[16];
-								sprintf_s(Name, sizeof(Name), "%i...", n = ci);
-								m = RClick->AppendSub(Name);
-							}
-						}
-						else if (d->Sub == GV_DOUBLE)
-						{
-							double cd = atof(c);
-							if (!m || dbl != cd)
-							{
-								char Name[16];
-								sprintf_s(Name, sizeof(Name), "%f", dbl = cd);
-								char *e = Name+strlen(Name)-1;
-								while (e > Name && e[0] == '0') *e-- = 0;
-								strcat(Name, "...");
-								m = RClick->AppendSub(Name);
-							}
-						}
-						else
-						{
-							if (!m || f != u)
-							{
-								char16 Name[16], *n = Name;
-								*n++ = (f = u);
-								*n++ = '.';
-								*n++ = '.';
-								*n++ = '.';
-								*n++ = 0;
-								GAutoString a(LgiNewUtf16To8(Name));
-								m = RClick->AppendSub(a);
-							}
-						}
-
-						switch (d->SelState)
-						{
-							default:
-								m->AppendItem(c, Base+i, i != d->Current);
-								break;
-							case SelectedHide:
-								if (i != d->Current)
-									m->AppendItem(c, Base+i, true);
-								break;
-							case SelectedShow:
-								m->AppendItem(c, Base+i, true);
-								break;
+							char Name[16];
+							sprintf_s(Name, sizeof(Name), "%i...", n = ci);
+							m = RClick.AppendSub(Name);
 						}
 					}
-				}
-				else
-				{
-					for (; c; c = d->Items.Next(), i++)
+					else if (d->Sub == GV_DOUBLE)
 					{
-						switch (d->SelState)
+						double cd = atof(c);
+						if (!m || dbl != cd)
 						{
-							default:
-								RClick->AppendItem(c, Base+i, i != d->Current);
-								break;
-							case SelectedHide:
-								if (i != d->Current)
-									RClick->AppendItem(c, Base+i, true);
-								break;
-							case SelectedShow:
-								RClick->AppendItem(c, Base+i, true);
-								break;
+							char Name[16];
+							sprintf_s(Name, sizeof(Name), "%f", dbl = cd);
+							char *e = Name+strlen(Name)-1;
+							while (e > Name && e[0] == '0') *e-- = 0;
+							strcat(Name, "...");
+							m = RClick.AppendSub(Name);
 						}
+					}
+					else
+					{
+						if (!m || f != u)
+						{
+							char16 Name[16], *n = Name;
+							*n++ = (f = u);
+							*n++ = '.';
+							*n++ = '.';
+							*n++ = '.';
+							*n++ = 0;
+							GAutoString a(LgiNewUtf16To8(Name));
+							m = RClick.AppendSub(a);
+						}
+					}
+
+					switch (d->SelState)
+					{
+						default:
+							m->AppendItem(c, Base+i, i != d->Current);
+							break;
+						case SelectedHide:
+							if (i != d->Current)
+								m->AppendItem(c, Base+i, true);
+							break;
+						case SelectedShow:
+							m->AppendItem(c, Base+i, true);
+							break;
 					}
 				}
 			}
 			else
 			{
-				RClick->AppendItem("", Base+i, false);
+				for (; c; c = d->Items.Next(), i++)
+				{
+					switch (d->SelState)
+					{
+						default:
+							RClick.AppendItem(c, Base+i, i != d->Current);
+							break;
+						case SelectedHide:
+							if (i != d->Current)
+								RClick.AppendItem(c, Base+i, true);
+							break;
+						case SelectedShow:
+							RClick.AppendItem(c, Base+i, true);
+							break;
+					}
+				}
 			}
+		}
+		else
+		{
+			RClick.AppendItem("", Base+i, false);
+		}
 
-			int Result = RClick->Float(this, p.x, p.y, true);
-			if (Result >= Base)
-			{
-				d->Current = Result - Base;
-				DeleteObj(d->Text);
-				Invalidate();
+		int Result = RClick.Float(this, p.x, p.y, true);
+		if (Result >= Base)
+		{
+			d->Current = Result - Base;
+			DeleteObj(d->Text);
+			Invalidate();
 
-				SendNotify(d->Current);
-			}
-			
-			DeleteObj(RClick);
+			SendNotify(d->Current);
 		}
 	}
 }

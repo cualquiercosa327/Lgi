@@ -219,8 +219,6 @@ GViewProc
 		}
 	}
 	
-	printf("event %d,%d\n", (unsigned)eventClass, (unsigned)eventKind);
-
 	return Status;
 }
 

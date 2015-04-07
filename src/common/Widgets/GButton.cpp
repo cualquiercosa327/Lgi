@@ -31,10 +31,6 @@ public:
 	bool WantsDefault;
 	GDisplayString *Txt;
 	
-	#if defined MAC && !defined COCOA
-	ThemeButtonDrawInfo Cur;
-	#endif
-
 	GButtonPrivate()
 	{
 		Pressed = 0;
@@ -42,12 +38,6 @@ public:
 		Over = 0;
 		Txt = 0;
 		WantsDefault = false;
-		
-		#if defined MAC && !defined COCOA
-		Cur.state = kThemeStateInactive;
-		Cur.value = kThemeButtonOff;
-		Cur.adornment = kThemeAdornmentNone;
-		#endif
 	}
 
 	~GButtonPrivate()
@@ -77,6 +67,7 @@ GButton::GButton(int id, int x, int y, int cx, int cy, const char *name) :
 	SetPos(r);
 	SetId(id);
 	SetTabStop(true);
+	SetFont(SysBold, false);
 	
 	if (LgiApp->SkinEngine)
 	{
@@ -150,38 +141,38 @@ GMessage::Result GButton::OnEvent(GMessage *Msg)
 
 void GButton::OnMouseClick(GMouse &m)
 {
-	if (Enabled())
+	if (!Enabled())
+		return;
+
+	bool Click = IsCapturing();
+	m.Trace("OnMouseClick");
+	
+	Capture(m.Down());
+
+	if (Click ^ m.Down())
 	{
-		bool Click = IsCapturing();
-		
-		Capture(m.Down());
-
-		if (Click ^ m.Down())
+		if (d->Over)
 		{
-			if (d->Over)
+			if (m.Down())
 			{
-				if (m.Down())
-				{
-					d->Pressed++;
-					Focus(true);
-				}
-				else
-				{
-					d->Pressed--;
-				}
+				d->Pressed++;
+				Focus(true);
+			}
+			else
+			{
+				d->Pressed--;
+			}
 
-				Invalidate();
+			Invalidate();
 
-				if (!m.Down() &&
-					d->Pressed == 0)
-				{
-					// This may delete ourself, so do it last.
-					OnClick();
-				}
+			if (!m.Down() &&
+				d->Pressed == 0)
+			{
+				// This may delete ourself, so do it last.
+				OnClick();
 			}
 		}
 	}
-	else LgiTrace("%s:%i - Not enabled.\n", _FL);
 }
 
 void GButton::OnMouseEnter(GMouse &m)
@@ -189,6 +180,7 @@ void GButton::OnMouseEnter(GMouse &m)
 	d->Over = true;
 	if (IsCapturing())
 	{
+		m.Trace("OnMouseEnter");
 		Value(d->Pressed + 1);
 	}
 	else if (Enabled())
@@ -203,6 +195,7 @@ void GButton::OnMouseExit(GMouse &m)
 	d->Over = false;
 	if (IsCapturing())
 	{
+		m.Trace("OnMouseExit");
 		Value(d->Pressed - 1);
 	}
 	else if (Enabled())
@@ -298,26 +291,37 @@ void GButton::OnPaint(GSurface *pDC)
 		c.Offset(p.x1, p.y1);
 	}
 	
-	Rect Bounds = { c.y1, c.x1+2, c.y2-1, c.x2-1 };
-	ThemeButtonDrawInfo Info;
+	GRect rc = c;
+	rc.x1 += 2;
+	rc.y2 -= 1;
+	rc.x2 -= 1;
+	HIRect Bounds = rc;
+	HIThemeButtonDrawInfo Info;
+	HIRect LabelRect;
+
+	Info.version = 0;
 	Info.state = d->Pressed ? kThemeStatePressed : (Enabled() ? kThemeStateActive : kThemeStateInactive);
+	Info.kind = kThemePushButton;
 	Info.value = Default() ? kThemeButtonOn : kThemeButtonOff;
 	Info.adornment = Focus() ? kThemeAdornmentFocus : kThemeAdornmentNone;
 
-	GLabelData User;
-	User.Ctrl = this;
-	User.pDC = pDC;
-	User.r.y1 = 2;
-	User.Justification = teJustCenter;
-	OSStatus e = DrawThemeButton(&Bounds,
-								kThemePushButton,
-								&Info,
-								&d->Cur,
-								0,
-								LgiLabelUPP ? LgiLabelUPP : LgiLabelUPP = NewThemeButtonDrawUPP(LgiLabelProc),
-								(UInt32)&User);
-	if (e) printf("%s:%i - DrawThemeButton failed %i\n", _FL, e);
-	d->Cur = Info;
+	OSStatus e = HIThemeDrawButton(	  &Bounds,
+									  &Info,
+									  pDC->Handle(),
+									  kHIThemeOrientationNormal,
+									  &LabelRect);
+
+	if (e) printf("%s:%i - HIThemeDrawButton failed %li\n", _FL, e);
+	else if (d->Txt)
+	{
+		GFont *f = d->Txt->GetFont();
+		f->Transparent(true);
+		f->Fore(LC_TEXT);
+		
+		int Ox = (LabelRect.size.width - d->Txt->X()) / 2;
+		int Oy = (LabelRect.size.height - d->Txt->Y() + 1) / 2;
+		d->Txt->Draw(pDC, LabelRect.origin.x+Ox, LabelRect.origin.y+Oy);
+	}
 	
 	#else
 

@@ -6484,9 +6484,6 @@ bool GHtml::Name(const char *s)
 		DeleteArray(t);
 	}
 
-    int Len = strlen(s);
-    printf("Html.Name %p %i %p\n%s\n", s, Len, s + Len, s);
-
 	// Parse
 	d->IsParsing = true;
 	ParseDocument(s);

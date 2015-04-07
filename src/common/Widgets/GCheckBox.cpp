@@ -15,10 +15,6 @@ public:
 	GDisplayString *Txt;
 	GRect ValuePos;
 
-    #if defined MAC && !defined COCOA
-	ThemeButtonDrawInfo Cur;
-    #endif
-
 	GCheckBoxPrivate()
 	{
 		Val = 0;
@@ -260,7 +256,7 @@ void GCheckBox::OnPaint(GSurface *pDC)
 
             GRect p;
             p.ZOff(d->Txt->X()-1, d->Txt->Y()-1);
-            p.Offset(t.x1 + 10, t.y1 + ((t.Y() - d->Txt->Y()) >> 1) - 1);
+            p.Offset(t.x1 + 10, t.y1 + ((t.Y() - d->Txt->Y()) >> 1));
 			if (en)
 			{
 				d->Txt->Draw(pDC, p.x1, p.y1, &t);
@@ -286,76 +282,72 @@ void GCheckBox::OnPaint(GSurface *pDC)
 
         #if defined MAC && !defined COCOA
 
-        #if 1
-        GColour Background(LC_MED, 24);
-        if (GetCss())
-        {
-            GCss::ColorDef Bk = GetCss()->BackgroundColor();
-            if (Bk.Type == GCss::ColorRgb)
-                Background.Set(Bk.Rgb32, 32);
-        }
-        pDC->Colour(Background);
-        pDC->Rectangle(&d->ValuePos);
-        #endif
+			GColour Background(LC_MED, 24);
+			if (GetCss())
+			{
+				GCss::ColorDef Bk = GetCss()->BackgroundColor();
+				if (Bk.Type == GCss::ColorRgb)
+					Background.Set(Bk.Rgb32, 32);
+			}
+			pDC->Colour(Background);
+			pDC->Rectangle(&d->ValuePos);
 
-        GRect c = GetClient();
-        for (GViewI *v = this; v && !v->Handle(); v = v->GetParent())
-        {
-            GRect p = v->GetPos();
-            c.Offset(p.x1, p.y1);
-        }
-        
-        Rect Bounds = { d->ValuePos.y1+4, d->ValuePos.x1, d->ValuePos.y2-1, d->ValuePos.x2-1 };
-        ThemeButtonDrawInfo Info;
-        Info.state = d->Val ? kThemeStatePressed : (Enabled() ? kThemeStateActive : kThemeStateInactive);
-        Info.value = d->Val ? kThemeButtonOn : kThemeButtonOff;
-        Info.adornment = Focus() ? kThemeAdornmentFocus : kThemeAdornmentNone;
-
-        GLabelData User;
-        User.Ctrl = this;
-        User.pDC = pDC;
-        User.r.y1 = 2;
-        User.Justification = teJustCenter;
-        OSStatus e = DrawThemeButton(&Bounds,
-                                    kThemeCheckBox,
-                                    &Info,
-                                    &d->Cur,
-                                    0,
-                                    LgiLabelUPP ? LgiLabelUPP : LgiLabelUPP = NewThemeButtonDrawUPP(LgiLabelProc),
-                                    (UInt32)&User);
-        if (e) printf("%s:%i - DrawThemeButton failed %i\n", _FL, e);
-        d->Cur = Info;
-        
+			GRect c = GetClient();
+			for (GViewI *v = this; v && !v->Handle(); v = v->GetParent())
+			{
+				GRect p = v->GetPos();
+				c.Offset(p.x1, p.y1);
+			}
+			
+			HIRect Bounds = c;
+			HIThemeButtonDrawInfo Info;
+			HIRect LabelRect;
+	
+			Info.version = 0;
+			Info.state = d->Val ? kThemeStatePressed : (Enabled() ? kThemeStateActive : kThemeStateInactive);
+			Info.kind = kThemeCheckBox;
+			Info.value = d->Val ? kThemeButtonOn : kThemeButtonOff;
+			Info.adornment = Focus() ? kThemeAdornmentFocus : kThemeAdornmentNone;
+	
+			OSStatus e = HIThemeDrawButton(	  &Bounds,
+											  &Info,
+											  pDC->Handle(),
+											  kHIThemeOrientationNormal,
+											  &LabelRect);
+	
+			if (e) printf("%s:%i - HIThemeDrawButton failed %li\n", _FL, e);
+		
+		
         #else
     
-        LgiWideBorder(pDC, d->ValuePos, DefaultSunkenEdge);
-		pDC->Colour(d->Over || !en ? LC_MED : LC_WORKSPACE, 24);
-		pDC->Rectangle(&d->ValuePos);
-		pDC->Colour(en ? LC_TEXT : LC_LOW, 24);
+			LgiWideBorder(pDC, d->ValuePos, DefaultSunkenEdge);
+			pDC->Colour(d->Over || !en ? LC_MED : LC_WORKSPACE, 24);
+			pDC->Rectangle(&d->ValuePos);
+			pDC->Colour(en ? LC_TEXT : LC_LOW, 24);
 
-		if (d->Three && d->Val == 2)
-		{
-			for (int y=d->ValuePos.y1; y<=d->ValuePos.y2; y++)
+			if (d->Three && d->Val == 2)
 			{
-				for (int x=d->ValuePos.x1; x<=d->ValuePos.x2; x++)
+				for (int y=d->ValuePos.y1; y<=d->ValuePos.y2; y++)
 				{
-					if ( (x&1) ^ (y&1) )
+					for (int x=d->ValuePos.x1; x<=d->ValuePos.x2; x++)
 					{
-						pDC->Set(x, y);
+						if ( (x&1) ^ (y&1) )
+						{
+							pDC->Set(x, y);
+						}
 					}
 				}
 			}
-		}
-		else if (d->Val)
-		{
-			pDC->Line(d->ValuePos.x1+1, d->ValuePos.y1+1, d->ValuePos.x2-1, d->ValuePos.y2-1);
-			pDC->Line(d->ValuePos.x1+1, d->ValuePos.y1+2, d->ValuePos.x2-2, d->ValuePos.y2-1);
-			pDC->Line(d->ValuePos.x1+2, d->ValuePos.y1+1, d->ValuePos.x2-1, d->ValuePos.y2-2);
+			else if (d->Val)
+			{
+				pDC->Line(d->ValuePos.x1+1, d->ValuePos.y1+1, d->ValuePos.x2-1, d->ValuePos.y2-1);
+				pDC->Line(d->ValuePos.x1+1, d->ValuePos.y1+2, d->ValuePos.x2-2, d->ValuePos.y2-1);
+				pDC->Line(d->ValuePos.x1+2, d->ValuePos.y1+1, d->ValuePos.x2-1, d->ValuePos.y2-2);
 
-			pDC->Line(d->ValuePos.x1+1, d->ValuePos.y2-1, d->ValuePos.x2-1, d->ValuePos.y1+1);
-			pDC->Line(d->ValuePos.x1+1, d->ValuePos.y2-2, d->ValuePos.x2-2, d->ValuePos.y1+1);
-			pDC->Line(d->ValuePos.x1+2, d->ValuePos.y2-1, d->ValuePos.x2-1, d->ValuePos.y1+2);
-		}
+				pDC->Line(d->ValuePos.x1+1, d->ValuePos.y2-1, d->ValuePos.x2-1, d->ValuePos.y1+1);
+				pDC->Line(d->ValuePos.x1+1, d->ValuePos.y2-2, d->ValuePos.x2-2, d->ValuePos.y1+1);
+				pDC->Line(d->ValuePos.x1+2, d->ValuePos.y2-1, d->ValuePos.x2-1, d->ValuePos.y1+2);
+			}
         
         #endif
 	}

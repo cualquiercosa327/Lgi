@@ -49,7 +49,7 @@ public:
 		char Exe[MAX_PATH];
 		if (LgiGetExeFile(Exe, sizeof(Exe)))
 		{
-			LgiMakePath(Exe, sizeof(Exe), Exe, "Contents/MacOS/libssl.dylib");
+			LgiMakePath(Exe, sizeof(Exe), Exe, "Contents/MacOS/libssl.1.0.0.dylib");
 			if (FileExists(Exe))
 			{
 				Load(Exe);
