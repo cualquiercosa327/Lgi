@@ -379,6 +379,7 @@ struct DragParams
 						{
 							if (Drop)
 							{
+								printf("[%li][%li]='%s'\n", i, t, n);
 								if (!_stricmp(n, Drop))
 								{
 									if (Formats.Length() == 0)
@@ -458,6 +459,7 @@ struct DragParams
 						}
 					}
 				}
+				ItemFlavors.Length(0);
 				CFRelease(FlavorTypes);
 			}
 		}
