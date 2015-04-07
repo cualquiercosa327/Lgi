@@ -27,12 +27,14 @@ public:
 	GRect Client;
 	GdkImage *Img;
 	cairo_surface_t *Surface;
+	GColourSpace CreateCs;
 
     GMemDCPrivate()
     {
 		Client.ZOff(-1, -1);
 		Img = 0;
 		Surface = 0;
+		CreateCs = CsNone;
     }
 
     ~GMemDCPrivate()
@@ -210,17 +212,28 @@ void GMemDC::SetOrigin(int x, int y)
 	Translate();
 }
 
-bool GMemDC::Create(int x, int y, GColourSpace Cs, int LineLen, bool KeepData)
+GColourSpace GMemDC::GetCreateCs()
 {
-	return Create(x, y, GColourSpaceToBits(Cs), LineLen, KeepData);
+	// Sometimes the colour space we get is different to the requested colour space.
+	// This function returns the original requested colour space.
+	return d->CreateCs;
 }
 
 bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 {
-	if (x < 1 || y < 1 || Bits < 1) return false;
-	if (Bits < 8) Bits = 8;
+	return Create(x, y, GBitsToColourSpace(Bits), LineLen, KeepData);
+}
+
+bool GMemDC::Create(int x, int y, GColourSpace Cs, int LineLen, bool KeepData)
+{
+	int Bits = GColourSpaceToBits(Cs);
+	if (x < 1 || y < 1 || Bits < 1)
+		return false;
+	if (Bits < 8)
+		Bits = 8;
 
 	Empty();
+	d->CreateCs = Cs;
 	
 	GdkVisual Fallback;
 	GdkVisual *Vis = gdk_visual_get_system();
@@ -237,18 +250,6 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 			Vis = NULL;
 	    }
 	}
-	else if (Vis)
-	{
-		int SysVisBits = gdk_visual_get_depth(Vis);
-		if (SysVisBits != Bits)
-		{
-			GdkVisual *Vis32 = gdk_visual_get_best_with_depth(Bits);
-			if (Vis32)
-				Vis = Vis32;
-			else
-				Vis = NULL;
-		}
-	}
 	
 	if (Vis)
 	{
@@ -256,15 +257,6 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 								Vis,
 								x,
 								y);
-		if (d->Img)
-		{
-			int ImgDepth = gdk_image_get_depth(d->Img);
-			if (Bits != ImgDepth)
-			{
-				printf("%s:%i - GMemDC::Create bit depth different %i -> %i\n",
-						_FL, Bits, ImgDepth);
-			}
-		}
 	}
 	else
 	{
@@ -291,7 +283,7 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 		// Generate our own memory
 		pMem->Line = (((pMem->x * Bits) + 31) / 32) << 2;
 		pMem->Base = new uchar[pMem->y * pMem->Line];
-		pMem->Cs = GBitsToColourSpace(Bits);
+		pMem->Cs = Cs;
 		pMem->Flags |= GDC_OWN_MEMORY;
 	}
 	

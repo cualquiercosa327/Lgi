@@ -553,7 +553,7 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 	if (Mem = dynamic_cast<GMemDC*>(Src))
 	{
 		GMemDC Tmp;
-		if (Mem->GetColourSpace() != GetColourSpace() &&
+		if (Mem->GetCreateCs() != GetColourSpace() &&
 			Mem->GetBits() > 16 &&
 			GetBits() <= 16)
 		{

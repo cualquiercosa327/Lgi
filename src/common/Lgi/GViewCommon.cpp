@@ -410,6 +410,10 @@ void GView::OnNcPaint(GSurface *pDC, GRect &r)
 
 void GView::_Paint(GSurface *pDC, int Ox, int Oy)
 {
+	#if defined __GTK_H__
+	d->InPaint = true;
+	#endif
+
 	// Create temp DC if needed...
 	GAutoPtr<GSurface> Local;
 	if (!pDC)
@@ -477,6 +481,10 @@ void GView::_Paint(GSurface *pDC, int Ox, int Oy)
 	
 	if (HasClient)
 		pDC->SetClient(0);
+
+	#if defined __GTK_H__
+	d->InPaint = false;
+	#endif
 }
 
 GViewI *GView::GetParent()

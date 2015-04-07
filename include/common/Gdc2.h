@@ -901,6 +901,7 @@ public:
 		GdcPt2 GetSize();
 		Gtk::cairo_t *GetCairo();
 		Gtk::cairo_surface_t *GetSurface(GRect &r);
+		GColourSpace GetCreateCs();
 
 		#elif defined(BEOS)
 

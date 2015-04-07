@@ -126,6 +126,7 @@ GViewPrivate::GViewPrivate()
 	Popup = 0;
 	TabStop = 0;
 	Pulse = 0;
+	InPaint = false;
 }
 
 GViewPrivate::~GViewPrivate()
@@ -538,7 +539,7 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 {
 	if (IsAttached())
 	{
-		if (InThread())
+		if (InThread() && !d->InPaint)
 		{
 			GRect Client;
 			if (Frame)

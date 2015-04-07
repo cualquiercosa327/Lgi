@@ -292,7 +292,7 @@ GApp::GApp(OsAppArguments &AppArgs, const char *name, GAppArguments *Args) :
 
 	MouseHook = new GMouseHook;
 
-	#if 1
+	#if 0
 	// Setup the SIGSEGV signal to call the KDE crash handler
 	if (!GetOption("nch") &&
 		LgiGetWindowManager() == WM_Kde)
@@ -355,29 +355,6 @@ GApp::~GApp()
 	TheApp = 0;
 }
 
-/*
-char *GApp::GetName()
-{
-	if (!d->Name)
-	{
-		char n[MAX_PATH];
-		if (LgiGetExeFile(n, sizeof(n)))
-		{
-			char *dir = strrchr(n, DIR_CHAR);
-			if (dir)
-			{
-				dir++;
-				char *e = LgiGetExtension(dir);
-				if (e) e[-1] = 0;
-				d->Name.Reset(NewStr(dir));
-			}
-		}
-	}
-	
-    return d->Name;
-}
-*/
-
 GApp *GApp::ObjInstance()
 {
 	return TheApp;
@@ -386,13 +363,7 @@ GApp *GApp::ObjInstance()
 bool GApp::IsOk()
 {
 	bool Status = 	(this != 0) &&
-					(d != 0)
-					/*
-					#ifdef XWIN
-					&& (XDisplay() != 0)
-					#endif
-					*/
-					;
+					(d != 0);
 					
 	LgiAssert(Status);
 	return Status;

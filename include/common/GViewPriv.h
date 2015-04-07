@@ -127,6 +127,7 @@ public:
 		bool			TabStop;
 
 		#if defined __GTK_H__
+		bool			InPaint;
 		#elif defined(MAC) && !defined(COCOA)
 		static HIObjectClassRef BaseClass;
 		#endif

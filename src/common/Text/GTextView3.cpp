@@ -906,8 +906,13 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 	}
 
 	bool ScrollYNeeded = Client.Y() < (Line.Length() * LineY);
-	d->LayoutDirty = ScrollYNeeded ^ (VScroll != NULL);
-	SetScrollBars(false, ScrollYNeeded);
+	bool ScrollChange = ScrollYNeeded ^ (VScroll != NULL);
+	d->LayoutDirty = ScrollChange;
+	if (ScrollChange)
+	{
+		printf("%s:%i - SetScrollBars(%i)\n", _FL, ScrollYNeeded);
+		SetScrollBars(false, ScrollYNeeded);
+	}
 	UpdateScrollBars();
 	
 	#if PROFILE_POUR
@@ -2805,7 +2810,12 @@ void GTextView3::OnPosChange()
 
 		GRect c = GetClient();
 		bool ScrollYNeeded = c.Y() < (Line.Length() * LineY);
-		SetScrollBars(false, ScrollYNeeded);
+		bool ScrollChange = ScrollYNeeded ^ (VScroll != NULL);
+		if (ScrollChange)
+		{
+			printf("%s:%i - SetScrollBars(%i)\n", _FL, ScrollYNeeded);
+			SetScrollBars(false, ScrollYNeeded);
+		}
 		UpdateScrollBars();
 
 		if (GetWrapType() && d->PourX != X())
