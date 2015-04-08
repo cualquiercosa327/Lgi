@@ -777,8 +777,6 @@ bool GView::GetMouse(GMouse &m, bool ScreenCoords)
 	
 	if (_View)
 	{
-		#if defined __GTK_H__
-		
 		gint x = 0, y = 0;
 		GdkModifierType mask;
 		GdkScreen *wnd_scr = gtk_window_get_screen(GTK_WINDOW(WindowHandle()));
@@ -799,9 +797,9 @@ bool GView::GetMouse(GMouse &m, bool ScreenCoords)
 			m.x = x;
 			m.y = y;
 		}
+		m.SetModifer(mask);
 		
 		return true;
-		#endif
 	}
 	else if (GetParent())
 	{

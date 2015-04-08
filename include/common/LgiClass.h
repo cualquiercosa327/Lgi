@@ -120,11 +120,20 @@ public:
 	
 	void SetModifer(uint32 modifierKeys)
 	{
-		#ifdef MAC
+		#if defined(MAC)
+
 		System(modifierKeys & cmdKey);
 		Shift(modifierKeys & shiftKey);
 		Alt(modifierKeys & optionKey);
 		Ctrl(modifierKeys & controlKey);
+
+		#elif defined(__GTK_H__)
+		
+		System(modifierKeys & Gtk::GDK_MOD4_MASK);
+		Shift(modifierKeys & Gtk::GDK_SHIFT_MASK);
+		Alt(modifierKeys & Gtk::GDK_MOD1_MASK);
+		Ctrl(modifierKeys & Gtk::GDK_CONTROL_MASK);
+		
 		#endif
 	}
 };

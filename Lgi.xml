@@ -381,17 +381,12 @@ WINDOWS</Debug>
 					<Release>WINNATIVE
 WINDOWS</Release>
 				</Windows>
-				<Linux />
 			</Defines>
 			<Compiler>
 				<Windows>MingW</Windows>
 			</Compiler>
-			<Executable>
-				<Linux />
-			</Executable>
-			<Arguments>
-				<All />
-			</Arguments>
+			<Executable />
+			<Arguments />
 		</General>
 		<Build>
 			<IncludePaths>
@@ -453,7 +448,6 @@ be
 game
 textencoding</Release>
 				</Haiku>
-				<All />
 			</Libraries>
 			<TargetType>
 				<All>DynamicLibrary</All>
@@ -472,13 +466,8 @@ textencoding</Release>
 					<Release>lgi</Release>
 				</Linux>
 			</TargetName>
-			<SystemIncludes>
-				<Linux />
-			</SystemIncludes>
-			<LibraryPaths>
-				<All />
-				<Linux />
-			</LibraryPaths>
+			<SystemIncludes />
+			<LibraryPaths />
 		</Build>
 		<Editor>
 			<TabSize>
@@ -493,11 +482,7 @@ textencoding</Release>
 			<UseHardTabs>
 				<All>1</All>
 			</UseHardTabs>
-			<CommentFile />
-			<CommentFunction />
 		</Editor>
-		<Advanced>
-			<OtherMakefileRules />
-		</Advanced>
+		<Advanced />
 	</Settings>
 </Project>
