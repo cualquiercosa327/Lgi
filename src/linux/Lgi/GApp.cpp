@@ -152,12 +152,13 @@ void LgiCrashHandler(int Sig)
 	// Don't get into an infinite loop
    	signal(SIGSEGV, SIG_DFL);
 
-	#if 1
+	#ifndef _MSC_VER
 	// Our pid
 	int MyPid = getpid();	
 	printf("LgiCrashHandler trigger MyPid=%i\n", MyPid);
-	exit(-1);
 	#endif
+
+	exit(-1);
 }
 #endif
 

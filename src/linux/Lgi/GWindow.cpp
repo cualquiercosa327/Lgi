@@ -749,7 +749,7 @@ void ClientCallback(GtkWidget *w, CallbackParams *p)
 	{
 		p->Depth++;
 		if (GTK_IS_CONTAINER(w))
-			gtk_container_forall(GTK_CONTAINER(w), ClientCallback, p);
+			gtk_container_forall(GTK_CONTAINER(w), (GtkCallback)ClientCallback, p);
 		p->Depth--;
 	}
 }
@@ -761,7 +761,7 @@ GRect &GWindow::GetClient(bool ClientSpace)
 	if (Wnd)
 	{
 		CallbackParams p;
-		gtk_container_forall(GTK_CONTAINER(Wnd), ClientCallback, &p);
+		gtk_container_forall(GTK_CONTAINER(Wnd), (GtkCallback)ClientCallback, &p);
 		if (p.Menu.Valid())
 		{
 			// printf("MenuSize=%s\n", p.Menu.GetStr());
