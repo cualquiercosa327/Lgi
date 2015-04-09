@@ -3900,6 +3900,10 @@ void GHtmlTableLayout::AllocatePx(int StartCol, int Cols, int MinPx)
 		{
 			NonGrowable.Add(x);
 		}
+		else if (MinCol[x] == 0 && TotalX < AvailPx)
+		{
+			Growable.Add(x);
+		}
 		
 		if (SizeCol[x].Type == GCss::LenInherit)
 			SizeInherit.Add(x);
@@ -4175,6 +4179,11 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 						t->Cell->MinContent = max(t->Cell->MinContent, Px);
 						t->Cell->MaxContent = max(t->Cell->MaxContent, Px);
 					}
+
+					#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
+					if (Table->Debug)
+						LgiTrace("Content[%i,%i] min=%i max=%i\n", x, y, t->Cell->MinContent, t->Cell->MaxContent);
+					#endif
 
 					if (t->Cell->MinContent > ColMin)
 						AllocatePx(t->Cell->Pos.x, t->Cell->Span.x, t->Cell->MinContent);
@@ -7423,14 +7432,12 @@ void GHtml::OnMouseClick(GMouse &m)
 					}
 					case IDM_VIEW_SRC:
 					{
-						LgiCheckHeap();
 						if (Vs)
 						{
 							DeleteObj(Tag);
 							IsHtml = !IsHtml;
 							ParseDocument(Source);
 						}
-						LgiCheckHeap();
 						break;
 					}
 					case IDM_COPY_SRC:
@@ -7438,16 +7445,14 @@ void GHtml::OnMouseClick(GMouse &m)
 						if (Source)
 						{
 							GClipBoard c(this);
-							if (Is8Bit(Source))
+							const char *ViewCs = GetCharset();
+							if (ViewCs)
 							{
-								GAutoWString w((char16*)LgiNewConvertCp(LGI_WideCharset, Source, DocCharSet ? DocCharSet : (char*)"windows-1252"));
+								GAutoWString w((char16*)LgiNewConvertCp(LGI_WideCharset, Source, ViewCs));
 								if (w)
 									c.TextW(w);
 							}
-							else
-							{
-								c.Text(Source);
-							}
+							else c.Text(Source);
 						}
 						break;
 					}
@@ -7471,119 +7476,175 @@ void GHtml::OnMouseClick(GMouse &m)
 					}
 					case IDM_EXTERNAL:
 					{
-						char Path[256];
-						if (Source && LgiGetSystemPath(LSP_TEMP, Path, sizeof(Path)))
+						if (!Source)
 						{
-							char f[32];
-							sprintf_s(f, sizeof(f), "_%i.html", LgiRand(1000000));
-							LgiMakePath(Path, sizeof(Path), Path, f);
-							
-							GFile F;
-							if (F.Open(Path, O_WRITE))
+							LgiTrace("%s:%i - No HTML source code.\n", _FL);
+							break;
+						}
+
+						char Path[MAX_PATH];
+						if (!LgiGetSystemPath(LSP_TEMP, Path, sizeof(Path)))
+						{
+							LgiTrace("%s:%i - Failed to get the system path.\n", _FL);
+							break;
+						}
+						
+						char f[32];
+						sprintf_s(f, sizeof(f), "_%i.html", LgiRand(1000000));
+						LgiMakePath(Path, sizeof(Path), Path, f);
+						
+						GFile F;
+						if (!F.Open(Path, O_WRITE))
+						{
+							LgiTrace("%s:%i - Failed to open '%s' for writing.\n", _FL, Path);
+							break;
+						}
+
+						GStringPipe Ex;
+						bool Error = false;
+						
+						F.SetSize(0);
+
+						GAutoWString SrcMem;
+						const char *ViewCs = GetCharset();
+						if (ViewCs)
+							SrcMem.Reset((char16*)LgiNewConvertCp(LGI_WideCharset, Source, ViewCs));
+						else
+							SrcMem.Reset(LgiNewUtf8To16(Source));						
+
+						for (char16 *s=SrcMem; s && *s;)
+						{
+							char16 *cid = StristrW(s, L"cid:");
+							while (cid && !strchr("\'\"", cid[-1]))
 							{
-								GStringPipe Ex;
-								bool Error = false;
-								
-								F.SetSize(0);
+								cid = StristrW(cid+1, L"cid:");
+							}
 
-								for (char *s=Source; s && *s;)
+							if (cid)
+							{
+								char16 Delim = cid[-1];
+								char16 *e = StrchrW(cid, Delim);
+								if (e)
 								{
-									char *cid = stristr(s, "cid:");
-									while (cid && !strchr("\'\"", cid[-1]))
+									*e = 0;
+									if (StrchrW(cid, '\n'))
 									{
-										cid = stristr(cid+1, "cid:");
-									}
-
-									if (cid)
-									{
-										char Delim = cid[-1];
-										char *e = strchr(cid, Delim);
-										if (e)
-										{
-											*e = 0;
-											if (strchr(cid, '\n'))
-											{
-												*e = Delim;
-												Error = true;
-												break;
-											}
-											else
-											{
-												char File[MAX_PATH] = "";
-												if (Environment)
-												{
-													GDocumentEnv::LoadJob *j = Environment->NewJob();
-													if (j)
-													{
-														j->Uri.Reset(NewStr(cid));
-														j->Env = Environment;
-														j->Pref = GDocumentEnv::LoadJob::FmtFilename;
-														j->UserUid = GetDocumentUid();
-
-														GDocumentEnv::LoadType Result = Environment->GetContent(j);
-														if (Result == GDocumentEnv::LoadImmediate)
-														{
-															if (j->Filename)
-																strcpy_s(File, sizeof(File), j->Filename);
-														}
-														else if (Result == GDocumentEnv::LoadDeferred)
-														{
-															d->DeferredLoads++;
-														}
-														
-														DeleteObj(j);
-													}
-												}
-												
-												*e = Delim;
-												Ex.Push(s, cid - s);
-												if (File[0])
-												{
-													char *d;
-													while ((d = strchr(File, '\\')))
-													{
-														*d = '/';
-													}
-													
-													Ex.Push("file:///");
-													Ex.Push(File);
-												}
-												s = e;
-											}
-										}
-										else
-										{
-											Error = true;
-											break;
-										}
+										*e = Delim;
+										Error = true;
+										break;
 									}
 									else
 									{
-										Ex.Push(s);
-										break;
-									}
-								}
-
-								if (!Error)
-								{
-									GAutoString Final(Ex.NewStr());
-									if (Final)
-									{
-										F.Write(Final, strlen(Final));
-										F.Close();
-										
-										GAutoString Err;
-										if (!LgiExecute(Path, NULL, NULL, &Err))
+										char File[MAX_PATH] = "";
+										if (Environment)
 										{
-											LgiMsg(	this,
-													"Failed to open '%s'\n%s",
-													LgiApp ? LgiApp->Name() : GetClass(),
-													MB_OK,
-													Path,
-													Err.Get());
+											GDocumentEnv::LoadJob *j = Environment->NewJob();
+											if (j)
+											{
+												j->Uri.Reset(LgiNewUtf16To8(cid));
+												j->Env = Environment;
+												j->Pref = GDocumentEnv::LoadJob::FmtFilename;
+												j->UserUid = GetDocumentUid();
+
+												GDocumentEnv::LoadType Result = Environment->GetContent(j);
+												if (Result == GDocumentEnv::LoadImmediate)
+												{
+													if (j->Filename)
+														strcpy_s(File, sizeof(File), j->Filename);
+												}
+												else if (Result == GDocumentEnv::LoadDeferred)
+												{
+													d->DeferredLoads++;
+												}
+												
+												DeleteObj(j);
+											}
 										}
+										
+										*e = Delim;
+										Ex.Push(s, cid - s);
+										if (File[0])
+										{
+											char *d;
+											while ((d = strchr(File, '\\')))
+											{
+												*d = '/';
+											}
+											
+											Ex.Push(L"file:///");
+											
+											GAutoWString w(LgiNewUtf8To16(File));
+											Ex.Push(w);
+										}
+										s = e;
 									}
 								}
+								else
+								{
+									Error = true;
+									break;
+								}
+							}
+							else
+							{
+								Ex.Push(s);
+								break;
+							}
+						}
+
+						if (!Error)
+						{
+							int64 WideChars = Ex.GetSize() / sizeof(char16);
+							GAutoWString w(Ex.NewStrW());
+							bool Only8Bit = true;
+							for (char16 *c = w; *c; c++)
+							{
+								if (*c > 0xff)
+								{
+									Only8Bit = false;
+									break;
+								}
+							}
+							
+							if (Only8Bit)
+							{
+								GAutoString Final;
+								
+								// Convert to 8bit chars
+								if (!Final.Reset(new char[(size_t)WideChars+1]))
+									break;
+
+								char *o = Final;
+								for (char16 *i = w; *i; i++)
+								{
+									*o++ = (char)*i;
+								}
+								*o = 0;
+								F.Write(Final, o - Final);
+								F.Close();
+							}
+							else
+							{
+								// Write a byte order mark and then unicode...
+								union {
+									uint16 ByteOrderMark;
+									uint8 Chars[2];
+								};
+								ByteOrderMark = 0xfeff;
+								F.Write(&ByteOrderMark, sizeof(ByteOrderMark));
+								F.Write(w, (int)WideChars * sizeof(char16));
+								F.Close();
+							}
+							
+							GAutoString Err;
+							if (!LgiExecute(Path, NULL, NULL, &Err))
+							{
+								LgiMsg(	this,
+										"Failed to open '%s'\n%s",
+										LgiApp ? LgiApp->Name() : GetClass(),
+										MB_OK,
+										Path,
+										Err.Get());
 							}
 						}
 						break;

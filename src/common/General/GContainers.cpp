@@ -1377,22 +1377,26 @@ int GStringPipe::Pop(char *Str, int BufSize)
 	return 0;
 }
 
-int GStringPipe::Push(const char *Str, int Len)
+int GStringPipe::Push(const char *Str, int Chars)
 {
-	if (Str)
-	{
-		return Write((void*)Str, (Len>=0) ? Len : strlen(Str));
-	}
-	return 0;
+	if (!Str)
+		return 0;
+
+	if (Chars < 0)
+		Chars = strlen(Str);
+
+	return Write((void*)Str, Chars);
 }
 
-int GStringPipe::Push(const char16 *Str, int Len)
+int GStringPipe::Push(const char16 *Str, int Chars)
 {
-	if (Str)
-	{
-		return Write((void*)Str, ((Len>=0) ? Len : StrlenW(Str)) * sizeof(char16));
-	}
-	return 0;
+	if (!Str)
+		return 0;
+
+	if (Chars < 0)
+		Chars = StrlenW(Str);
+
+	return Write((void*)Str, Chars * sizeof(char16));
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
