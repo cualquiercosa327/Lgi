@@ -613,6 +613,48 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 						{
 							InPreTag = true;
 						}
+						if (Elem->TagId == TAG_META)
+						{
+							GAutoString Cs;
+
+							const char *s;
+							if (Elem->Get("http-equiv", s) &&
+								_stricmp(s, "Content-Type") == 0)
+							{
+								const char *ContentType;
+								if (Elem->Get("content", ContentType))
+								{
+									char *CharSet = stristr(ContentType, "charset=");
+									if (CharSet)
+									{
+										char16 *cs = NULL;
+										ParsePropValue(CharSet + 8, cs);
+										Cs.Reset(LgiNewUtf16To8(cs));
+										DeleteArray(cs);
+									}
+								}
+							}
+
+							if (Elem->Get("name", s) && _stricmp(s, "charset") == 0 && Elem->Get("content", s))
+							{
+								Cs.Reset(NewStr(s));
+							}
+							else if (Elem->Get("charset", s))
+							{
+								Cs.Reset(NewStr(s));
+							}
+
+							if (Cs)
+							{
+								if (Cs &&
+									_stricmp(Cs, "utf-16") != 0 &&
+									_stricmp(Cs, "utf-32") != 0 &&
+									LgiGetCsInfo(Cs))
+								{
+									DocCharSet = Cs;
+								}
+							}
+						}
 					}
 
 					if (IsBlock(Elem->Display()) || Elem->TagId == TAG_BR)
@@ -1088,7 +1130,8 @@ char16 *GHtmlParser::CleanText(const char *s, int Len, bool ConversionAllowed, b
 			View->GetCharset() &&
 			!View->GetOverideDocCharset())
 		{
-			char *DocText = (char*)LgiNewConvertCp(DocCharSet, s, View->GetCharset(), Len);
+			const char *ViewCs = View->GetCharset();
+			char *DocText = (char*)LgiNewConvertCp(DocCharSet, s, ViewCs, Len);
 			t = (char16*) LgiNewConvertCp(LGI_WideCharset, DocText, DocCharSet, -1);
 			DeleteArray(DocText);
 		}
@@ -1098,7 +1141,8 @@ char16 *GHtmlParser::CleanText(const char *s, int Len, bool ConversionAllowed, b
 		}
 		else
 		{
-			t = (char16*) LgiNewConvertCp(LGI_WideCharset, s, View->GetCharset() ? View->GetCharset() : DefaultCs, Len);
+			const char *ViewCs = View->GetCharset();
+			t = (char16*) LgiNewConvertCp(LGI_WideCharset, s, ViewCs ? ViewCs : DefaultCs, Len);
 		}
 
 		if (t && ConversionAllowed)

@@ -2870,6 +2870,7 @@ void GTag::SetStyle()
 	        FontSize(l);
 	        break;
 	    }
+	    /*
 		case TAG_META:
 		{
 			GAutoString Cs;
@@ -2908,11 +2909,12 @@ void GTag::SetStyle()
 					_stricmp(Cs, "utf-32") != 0 &&
 					LgiGetCsInfo(Cs))
 				{
-					Html->SetCharset(Cs);
+					// Html->SetCharset(Cs);
 				}
 			}
 			break;
 		}
+		*/
 		case TAG_BODY:
 		{
 			if (BackgroundColor().Type != ColorInherit)
