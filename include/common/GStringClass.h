@@ -77,7 +77,7 @@ public:
 		Array &operator =(const Array &a)
 		{
 			SetFixedLength(false);
-			*this = a;
+			*((GArray<GString>*)this) = a;
 			SetFixedLength(true);
 			return *this;
 		}
