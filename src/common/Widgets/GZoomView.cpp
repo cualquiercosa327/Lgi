@@ -38,6 +38,9 @@ struct ZoomTile : public GMemDC
 		if (Bits > 32)
 			Bits >>= 1;
 		
+		if (Bits <= 8)
+			return System32BitColourSpace;
+		
 		return GBitsToColourSpace(Bits);
 	}
 	
@@ -465,7 +468,7 @@ public:
 				pal[i].p32.a = 255;
 			}
 
-			#ifdef _DEBUG
+			#if 0 // def _DEBUG
 			Dst->Colour(GColour(255, 0, 255));
 			Dst->Rectangle();
 			#endif
@@ -748,6 +751,7 @@ public:
 						pal[i].p32.r = i;
 						pal[i].p32.g = i;
 						pal[i].p32.b = i;
+						printf("Greyscae\n");
 					}
 					pal[i].p32.a = 255;
 				}
@@ -799,7 +803,7 @@ public:
 					
 					while (src < end)
 					{
-						Dst->Colour(pal[*src++].u32);
+						Dst->Colour(pal[*src++].u32, 32);
 						Dst->Rectangle(DstX, DstY, DstX+f, DstY+f);
 						DstX += Factor; 
 					}

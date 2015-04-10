@@ -836,9 +836,11 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 	if (WmLib)
 	{
 		Proc_LgiWmGetPath WmGetPath = (Proc_LgiWmGetPath) WmLib->GetAddress("LgiWmGetPath");
-		if (WmGetPath && WmGetPath(Which, Dst, DstSize))
+		char Buf[MAX_PATH];
+		if (WmGetPath && WmGetPath(Which, Buf, sizeof(Buf)))
 		{
-			return true;
+			Path = Buf;
+			return Path;
 		}
 	}
 	#endif
@@ -995,11 +997,9 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 				#endif
 				);
 			#elif defined MAC
-			strcpy_s(Dst, DstSize, "/Applications");
-			Status = true;
+			Path = "/Applications";
 			#elif defined LINUX
-			strcpy_s(Dst, DstSize, "/usr/bin");
-			Status = true;
+			Path = "/usr/bin";
 			#elif defined BEOS
 			LgiAssert(!"Impl me.");
 			#endif
@@ -1064,10 +1064,9 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 				Name = Dot;
 				struct passwd *pw = getpwuid(getuid());
 				if (pw)
-				{
-					Base.Reset(NewStr(pw->pw_dir));
-				}
-				else LgiAssert(0);
+					Path = pw->pw_dir;
+				else
+					LgiAssert(0);
 			#else
 				LgiAssert(0);
 			#endif
@@ -1105,8 +1104,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 
 			#else
 
-			strcpy_s(Dst, DstSize, "/boot"); // it'll do for now...
-			Status = true;
+			Path = "/boot"; // it'll do for now...
 
 			#endif
 			break;
@@ -1126,8 +1124,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 
 			#else
 
-			strcpy_s(Dst, DstSize, "/lib"); // it'll do for now...
-			Status = true;
+			Path = "/lib"; // it'll do for now...
 
 			#endif
 			break;
@@ -1162,8 +1159,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 
 			#else
 
-			strcpy_s(Dst, DstSize, "/tmp"); // it'll do for now...
-			Status = true;
+			Path = "/tmp"; // it'll do for now...
 
 			#endif
 			break;
@@ -1191,13 +1187,11 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 
 			#elif defined LINUX
 
-			strcpy_s(Dst, DstSize, "/usr");
-			Status = true;
+			Path = "/usr";
 
 			#elif defined BEOS
 
-			strcpy_s(Dst, DstSize, "/boot/apps");
-			Status = true;
+			Path = "/boot/apps";
 
 			#endif
 			break;
@@ -1225,8 +1219,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 
 			#elif defined LINUX
 
-			strcpy_s(Dst, DstSize, "/usr");
-			Status = true;
+			Path = "/usr";
 
 			#endif
 			break;
@@ -1271,12 +1264,10 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 				#ifdef LINUX
 				WindowManager wm = LgiGetWindowManager();
 				if (wm == WM_Gnome)
-					sprintf_s(Dst, sizeof(Dst), "%s/.gnome-desktop", pw->pw_dir);
+					Path.Printf("%s/.gnome-desktop", pw->pw_dir);
 				else
 				#endif
-					sprintf_s(Dst, sizeof(Dst), "%s/Desktop", pw->pw_dir);
-					
-				Status = true;
+					Path.Printf("%s/Desktop", pw->pw_dir);
 			}
 
 			#elif defined BEOS
@@ -1301,10 +1292,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 
 			struct passwd *pw = getpwuid(getuid());
 			if (pw)
-			{
-				strcpy_s(Dst, DstSize, pw->pw_dir);
-				Status = true;
-			}
+				Path = pw->pw_dir;
 
 			#elif defined BEOS
 
@@ -1365,11 +1353,9 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 							printf("%s:%i - Run 'kde-config' failed.\n", __FILE__, __LINE__);
 						}
 					}
+
 					if (ValidStr(KdeTrash))
-					{
-						strcpy_s(Dst, DstSize, KdeTrash);
-						Status = true;
-					}
+						Path = KdeTrash;
 					break;
 				}
 				default:

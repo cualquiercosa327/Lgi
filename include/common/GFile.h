@@ -454,7 +454,7 @@ public:
 		
 		Path &operator =(const char *p)
 		{
-			GString s = p;
+			GString s(p);
 			*((GString::Array*)this) = s.SplitDelimit("\\/");
 			SetFixedLength(false);
 			return *this;
@@ -469,7 +469,7 @@ public:
 		
 		Path &operator +=(const char *p)
 		{
-			GString s = p;
+			GString s(p);
 			*this += s;
 			return *this;
 		}

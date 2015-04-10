@@ -57,9 +57,7 @@ public:
 		GMouse m;
 		m.x = x;
 		m.y = y;
-		m.Shift((mask & GDK_SHIFT_MASK) != 0);
-		m.Ctrl((mask & GDK_CONTROL_MASK) != 0);
-		m.Alt((mask & GDK_MOD1_MASK) != 0);
+		m.SetModifer(mask);
 		m.Left(true);
 		m.Down(true);
 		m.Double(Now - LastClickTime < DoubleClickTime);

@@ -74,14 +74,10 @@ public:
 			*this = (Array&)a;
 		}
 		
-		Array &operator =(Array &a)
+		Array &operator =(const Array &a)
 		{
 			SetFixedLength(false);
-			Length(a.Length());
-			for (uint32 i=0; i<a.Length(); i++)
-			{
-				(*this)[i] = a[i];
-			}
+			*this = a;
 			SetFixedLength(true);
 			return *this;
 		}
