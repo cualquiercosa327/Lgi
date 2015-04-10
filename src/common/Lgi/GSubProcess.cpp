@@ -416,7 +416,17 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 		char *Ext = LgiGetExtension(Exe);
 		bool HasExt = Ext && _stricmp(Ext, "exe") == 0;
 		
+		#ifdef WIN32
+		GToken p;
+		char *sPath = NULL;
+		size_t sSize;
+		errno_t err = _dupenv_s(&sPath, &sSize, "PATH");
+		if (err == 0)
+			p.Parse(sPath, LGI_PATH_SEPARATOR);
+		free(sPath);
+		#else
 		GToken p(getenv("PATH"), LGI_PATH_SEPARATOR);
+		#endif
 		for (unsigned i=0; i<p.Length(); i++)
 		{
 			char s[MAX_PATH];

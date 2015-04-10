@@ -5,72 +5,60 @@
 #include "Lgi.h"
 #include "GStream.h"
 
-#if defined(WIN32)
-p_vscprintf lgi_vscprintf = 0;
-#endif
-
 //////////////////////////////////////////////////////////////////////
-int GStreamPrintf(GStreamI *Stream, int Flags, const char *Format, va_list &Arg)
+int LgiPrintf(GString &Str, const char *Format, va_list &Arg)
 {
-	int Chars = 0;
-
-	if (Stream)
+	int Bytes = 0;
+	
+	if (Format)
 	{
-		va_list Cpy;
-
 		#ifndef WIN32
-
+		va_list Cpy;
 		va_copy(Cpy, Arg);
-		int Size = vsnprintf(0, 0, Format, Cpy);
-		if (Size > 0)
-		{
-			GAutoString Buffer(new char[Size+1]);
-			if (Buffer)
-			{
-				vsprintf(Buffer, Format, Arg);
-				Stream->Write(Buffer, Size, Flags);
-			}
-		}
-
+		Bytes = vsnprintf(0, 0, Format, Cpy);
 		#else
-
-		if (lgi_vscprintf)
-		{
-			// WinXP and up...
-			Chars = lgi_vscprintf(Format, Arg);
-			if (Chars > 0)
-			{
-				GAutoString Buf(new char[Chars+1]);
-				if (Buf)
-				{
-					vsprintf(Buf, Format, Arg);
-					Stream->Write(Buf, Chars, Flags);
-				}
-			}
-		}
-		else
-		{
-			// Win2k or earlier, no _vscprintf for us...
-			// so we'll just have to bump the buffer size
-			// until it fits;
-			for (int Size = 256; Size <= (256 << 10); Size <<= 2)
-			{
-				GAutoString Buf(new char[Size]);
-				if (!Buf)
-					break;
-
-				int c = vsnprintf(Buf, Size, Format, Arg);
-				if (c > 0)
-				{
-					Stream->Write(Buf, Chars = c, Flags);
-					break;
-				}
-			}			
-		}
+		Bytes = _vscprintf(Format, Arg);
 		#endif
+
+		if (Bytes > 0 && Str.Set(NULL, Bytes))
+			vsprintf(Str.Get(), Format, Arg);
 	}
 
-	return Chars;
+	return Bytes;
+}
+
+int LgiPrintf(GAutoString &Str, const char *Format, va_list &Arg)
+{
+	int Bytes = 0;
+	
+	if (Format)
+	{
+		#ifndef WIN32
+		va_list Cpy;
+		va_copy(Cpy, Arg);
+		Bytes = vsnprintf(0, 0, Format, Cpy);
+		#else
+		Bytes = _vscprintf(Format, Arg);
+		#endif
+
+		if (Bytes > 0 && Str.Reset(new char[Bytes+1]))
+			vsprintf(Str, Format, Arg);
+	}
+
+	return Bytes;
+}
+
+int GStreamPrintf(GStreamI *Stream, int Flags, const char *Format, va_list &Arg)
+{
+	if (!Stream || !Format)
+		return 0;
+
+	GAutoString a;
+	int Bytes = LgiPrintf(a, Format, Arg);
+	if (!a || Bytes == 0)
+		return 0;
+	
+	return Stream->Write(a, Bytes, Flags);
 }
 
 int GStreamPrint(GStreamI *s, const char *fmt, ...)

@@ -131,12 +131,18 @@ IFtpEntry::IFtpEntry(char *Entry, const char *Cs)
 						Date.SetTime(YearOrTime);
 
 						// Default the year
-						time_t Time = time(NULL);
-						tm *ptm = localtime(&Time);
+						#ifdef WIN32
+						__time64_t now = _time64(NULL);
+						struct tm ptm;
+						errno_t err = _localtime64_s(&ptm, &now);
+						if (err == 0)
+							Year = 1900 + ptm.tm_year;
+						#else
+						time_t now = time(NULL);
+						tm *ptm = localtime(&now);
 						if (ptm)
-						{
 							Year = 1900 + ptm->tm_year;
-						}
+						#endif
 					}
 					else 
 					{
@@ -903,7 +909,7 @@ bool IFtp::TransferFile(const char *Local, const char *Remote, int64 Size, bool 
 						if (Temp)
 						{
 							int64 Processed = 0;
-							int64 Len = 0;
+							int Len = 0;
 
 							if (Meter)
 							{
@@ -975,7 +981,7 @@ bool IFtp::TransferFile(const char *Local, const char *Remote, int64 Size, bool 
 									d->F->Seek(RestorePos, SEEK_SET);
 									if (Meter && RestorePos > 0)
 									{
-										Meter->SetParameter(10, RestorePos);
+										Meter->SetParameter(10, (int)RestorePos);
 									}
 									RestorePos = 0;
 

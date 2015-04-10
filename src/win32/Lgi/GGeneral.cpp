@@ -838,45 +838,28 @@ bool GRegKey::GetValueNames(List<char> &n)
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
-char *GetWindowsFolder(int Id)
+GString GetWindowsFolder(int Id)
 {
 	GLibrary Shell("Shell32");
-	
-	if (LgiGetOs() == LGI_OS_WIN9X)
+	GString s;
+	char16 wp[MAX_PATH] = { 0 };
+	pSHGetSpecialFolderPathW w = (pSHGetSpecialFolderPathW) Shell.GetAddress("SHGetSpecialFolderPathW");
+	if (w)
 	{
-		char ap[MAX_PATH] = "";
-		pSHGetSpecialFolderPathA a = (pSHGetSpecialFolderPathA) Shell.GetAddress("SHGetSpecialFolderPathA");
-
-		if (a && a(0, ap, Id, false))
+		BOOL result = w(0, wp, Id, false);
+		if (result && ValidStrW(wp))
 		{
-			if (ValidStr(ap))
-			{
-				char *s = LgiFromNativeCp(ap);
-
-				return s;
-			}
+			GAutoString Tmp(LgiNewUtf16To8(wp));
+			s = Tmp;
 		}
-	}
-	else
-	{
-		char16 wp[MAX_PATH] = { 0 };
-		pSHGetSpecialFolderPathW w = (pSHGetSpecialFolderPathW) Shell.GetAddress("SHGetSpecialFolderPathW");
-		if (w)
+		else
 		{
-			BOOL result = w(0, wp, Id, false);
-			if (result && ValidStrW(wp))
-			{
-				return LgiNewUtf16To8(wp);
-			}
-			else
-			{
-				DWORD e = GetLastError();
-				LgiAssert(!"Error getting system folder.");
-			}
+			DWORD e = GetLastError();
+			LgiAssert(!"Error getting system folder.");
 		}
 	}
 
-	return 0;
+	return s;
 }
 
 //////////////////////////////////////////////////////////////////////

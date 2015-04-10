@@ -8,6 +8,7 @@
 #ifndef _GSTRING_CLASS_H_
 #define _GSTRING_CLASS_H_
 
+#include <stdarg.h>
 #ifdef _MSC_VER
 	// This fixes compile errors in VS2008/Gtk
 	#undef _SIGN_DEFINED
@@ -18,6 +19,9 @@
 	#include <xmath.h>
 #endif
 #include "GUtf8.h"
+#include "GString.h"
+
+LgiExtern int LgiPrintf(class GString &Str, const char *Format, va_list &Arg);
 
 /// A pythonic string class.
 class GString
@@ -126,7 +130,7 @@ public:
 	}
 	
 	/// Returns the pointer to the string data
-	char *Get()
+	char *Get() const
 	{
 		return Str ? Str->Str : NULL;
 	}
@@ -137,7 +141,7 @@ public:
 		/// Can be a pointer to string data or NULL to create an empty buffer (requires valid length)
 		const char *str,
 		/// Byte length of input string or -1 to copy till the NULL terminator.
-		int len = -1
+		NativeInt len = -1
 	)
 	{
 		Empty();
@@ -335,14 +339,14 @@ public:
 	}
 
 	/// Splits the string into parts using delimiter chars
-	Array SplitDelimit(const char *Delimiters = NULL, int Count = -1, bool GroupDelimiters = true)
+	Array SplitDelimit(const char *Delimiters = NULL, int Count = -1, bool GroupDelimiters = true) const
 	{
 		Array a;
 
 		if (Str)
 		{
 			const char *delim = Delimiters ? Delimiters : " \t\r\n";
-			const char *s = Get();			
+			const char *s = Get();
 			while (*s)
 			{
 				// Skip over non-delimiters
@@ -561,6 +565,17 @@ public:
 		GString ret;
 		_strip(ret, set, false, true);
 		return ret;
+	}
+
+	/// Prints a formatted string to this object
+	int Printf(const char *Fmt, ...)
+	{
+		Empty();
+		va_list Arg;
+		va_start(Arg, Fmt);
+		int Bytes = LgiPrintf(*this, Fmt, Arg);
+		va_end(Arg);
+		return Bytes;
 	}
 };
 

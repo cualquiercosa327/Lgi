@@ -25,6 +25,14 @@
 #include "GMem.h"
 #include "GArray.h"
 #include "LgiClass.h"
+#include "GStringClass.h"
+
+/// Returns the system path specified
+/// \ingroup Base
+LgiExtern GString LgiGetSystemPath(
+	/// Which path to retreive
+	LgiSystemPath Which
+);
 
 #ifdef __cplusplus
 extern "C"

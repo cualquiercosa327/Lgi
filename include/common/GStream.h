@@ -13,8 +13,10 @@
 #include <vadefs.h>
 #endif
 #include "GDom.h"
+#include "GStringClass.h"
 
 /// Stream printf
+LgiExtern int LgiPrintf(GAutoString &Str, const char *Format, va_list &Arg);
 LgiFunc int GStreamPrintf(GStreamI *s, int flags, const char *Format, va_list &Arg);
 LgiFunc int GStreamPrint(GStreamI *s, const char *fmt, ...);
 

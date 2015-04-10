@@ -15,6 +15,7 @@
 #include "GStream.h"
 #include "GArray.h"
 #include "GRefCount.h"
+#include "GStringClass.h"
 
 #ifdef WIN32
 
@@ -388,7 +389,7 @@ public:
 	/// \brief Reads bytes into memory from the current file pointer.
 	/// \return The number of bytes read or <= 0.
 	int Read(void *Buffer, int Size, int Flags = 0);
-
+	
 	/// \brief Writes bytes from memory to the current file pointer.
 	/// \return The number of bytes written or <= 0.
 	int Write(const void *Buffer, int Size, int Flags = 0);
@@ -437,6 +438,107 @@ public:
 	bool GetVariant(const char *Name, GVariant &Value, char *Array = NULL);
 	bool SetVariant(const char *Name, GVariant &Value, char *Array = NULL);
 	bool CallMethod(const char *Name, GVariant *ReturnValue, GArray<GVariant*> &Args);
+
+	// Path handling
+	class LgiClass Path : public GString::Array
+	{
+		GString Full;
+		
+	public:
+		Path(const char *init = NULL)
+		{
+			SetFixedLength(false);
+			if (init)
+				*this = init;
+		}
+		
+		Path &operator =(const char *p)
+		{
+			GString s = p;
+			*((GString::Array*)this) = s.SplitDelimit("\\/");
+			SetFixedLength(false);
+			return *this;
+		}
+
+		Path &operator =(const GString &s)
+		{
+			*((GString::Array*)this) = s.SplitDelimit("\\/");
+			SetFixedLength(false);
+			return *this;
+		}
+		
+		Path &operator +=(const char *p)
+		{
+			GString s = p;
+			*this += s;
+			return *this;
+		}
+		
+		Path &operator +=(const GString &p)
+		{
+			GString::Array a = p.SplitDelimit("\\/");
+			for (unsigned i=0; i<a.Length(); i++)
+			{
+				GString &s = a[i];
+				if (!_stricmp(s, "."))
+					;
+				else if (!_stricmp(s, ".."))
+					Parent();
+				else
+					New() = s;
+			}
+			return *this;
+		}
+		
+		Path &Parent()
+		{
+			if (Length() > 0)
+				Length(Length()-1);
+			return *this;
+		}
+		
+		operator const char *()
+		{
+			GString Sep(DIR_STR);
+			Full = Sep.Join(*this);
+			return Full;
+		}
+
+		GString GetFull()
+		{
+			GString Sep(DIR_STR);
+			Full = Sep.Join(*this);
+			return Full;
+		}
+		
+		GString GetSystem(LgiSystemPath Which);
+	};
+
+	/// Read the whole file into a string
+	GString Read()
+	{
+		GString s;
+		int64 sz = GetSize();
+		NativeInt nsz = (NativeInt)sz;
+		if (nsz > 0 &&
+			nsz == sz &&
+			s.Set(NULL, nsz))
+		{
+			int Block = 1 << 30;
+			NativeInt i;
+			for (i = 0; i < nsz; )
+			{
+				int Len = min(Block, nsz - i);
+				int rd = Read(s.Get() + i, Len);
+				if (rd <= 0)
+					break;
+				i += rd;
+			}
+
+			s.Get()[i] = 0;
+		}
+		return s;
+	}
 };
 
 // Functions

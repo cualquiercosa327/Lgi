@@ -528,12 +528,10 @@ GXmlTag *GApp::GetConfig(const char *Tag)
 	if (IsOk() && !d->Config)
 	{
 		const char File[] = "lgi.conf";
-		char Path[256];
+		char Path[MAX_PATH];
 		if (LgiGetExePath(Path, sizeof(Path)))
 		{
-			if (Path[strlen(Path)-1] != DIR_CHAR) strcat(Path, DIR_STR);
-			strcat(Path, File);
-
+			LgiMakePath(Path, sizeof(Path), Path, File);
 			if (FileExists(Path))
 			{
 				d->Config = new GXmlTag("Config");

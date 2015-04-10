@@ -784,7 +784,30 @@ bool LgiGetTempPath(char *Dst, int DstSize)
 
 bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 {
-	bool Status = false;
+	if (!Dst || DstSize <= 0)
+		return false;
+
+	GFile::Path p;
+	GString s = p.GetSystem(Which);
+	if (!s)
+		return false;
+
+	strcpy_s(Dst, DstSize, s);
+	return true;
+}
+
+GString LgiGetSystemPath(LgiSystemPath Which)
+{
+	GFile::Path p;
+	if (!p.GetSystem(Which))
+		return GString();
+	
+	return p.GetFull();
+}
+
+GString GFile::Path::GetSystem(LgiSystemPath Which)
+{
+	GString Path;
 
 	#if defined(WIN32)
 		#if !defined(CSIDL_MYDOCUMENTS)
@@ -807,266 +830,221 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 		#endif
 	#endif
 
-	if (Dst)
+	#ifdef LINUX
+	// Ask our window manager add-on if it knows the path
+	GLibrary *WmLib = LgiApp ? LgiApp->GetWindowManagerLib() : NULL;
+	if (WmLib)
 	{
-		#ifdef LINUX
-		// Ask our window manager add-on if it knows the path
-		GLibrary *WmLib = LgiApp ? LgiApp->GetWindowManagerLib() : NULL;
-		if (WmLib)
+		Proc_LgiWmGetPath WmGetPath = (Proc_LgiWmGetPath) WmLib->GetAddress("LgiWmGetPath");
+		if (WmGetPath && WmGetPath(Which, Dst, DstSize))
 		{
-			Proc_LgiWmGetPath WmGetPath = (Proc_LgiWmGetPath) WmLib->GetAddress("LgiWmGetPath");
-			if (WmGetPath && WmGetPath(Which, Dst, DstSize))
-			{
-				return true;
-			}
+			return true;
 		}
-		#endif
-		
-		switch (Which)
+	}
+	#endif
+	
+	switch (Which)
+	{
+		case LSP_USER_DOWNLOADS:
 		{
-			case LSP_USER_DOWNLOADS:
+			#if defined(WIN32) && defined(_MSC_VER)
+
+			// OMG!!!! Really?
+			
+			#ifndef REFKNOWNFOLDERID
+			typedef GUID KNOWNFOLDERID;
+			#define REFKNOWNFOLDERID const KNOWNFOLDERID &
+			GUID FOLDERID_Downloads = {0x374DE290,0x123F,0x4565,{0x91,0x64,0x39,0xC4,0x92,0x5E,0x46,0x7B}};
+			#endif
+			
+			GLibrary Shell("Shell32.dll");
+			typedef HRESULT (STDAPICALLTYPE *pSHGetKnownFolderPath)(REFKNOWNFOLDERID rfid, DWORD dwFlags, HANDLE hToken, PWSTR *ppszPath);
+			pSHGetKnownFolderPath SHGetKnownFolderPath = (pSHGetKnownFolderPath)Shell.GetAddress("SHGetKnownFolderPath");
+			if (SHGetKnownFolderPath)
 			{
-				#if defined(WIN32) && defined(_MSC_VER)
-
-				// OMG!!!! Really?
-				
-				#ifndef REFKNOWNFOLDERID
-				typedef GUID KNOWNFOLDERID;
-				#define REFKNOWNFOLDERID const KNOWNFOLDERID &
-				GUID FOLDERID_Downloads = {0x374DE290,0x123F,0x4565,{0x91,0x64,0x39,0xC4,0x92,0x5E,0x46,0x7B}};
-				#endif
-				
-				GLibrary Shell("Shell32.dll");
-				typedef HRESULT (STDAPICALLTYPE *pSHGetKnownFolderPath)(REFKNOWNFOLDERID rfid, DWORD dwFlags, HANDLE hToken, PWSTR *ppszPath);
-				pSHGetKnownFolderPath SHGetKnownFolderPath = (pSHGetKnownFolderPath)Shell.GetAddress("SHGetKnownFolderPath");
-				if (SHGetKnownFolderPath)
+				PWSTR ptr = NULL;
+				HRESULT r = SHGetKnownFolderPath(FOLDERID_Downloads, 0, NULL, &ptr);
+				if (SUCCEEDED(r))
 				{
-					PWSTR ptr = NULL;
-					HRESULT r = SHGetKnownFolderPath(FOLDERID_Downloads, 0, NULL, &ptr);
-					if (SUCCEEDED(r))
-					{
-						GAutoString u8(LgiNewUtf16To8(ptr));
-						if (u8)
-						{
-							strcpy_s(Dst, DstSize, u8);
-							Status = true;
-						}
-						CoTaskMemFree(ptr);
-					}
+					GAutoString u8(LgiNewUtf16To8(ptr));
+					if (u8)
+						Path = u8;
+					CoTaskMemFree(ptr);
 				}
-
-				if (!Status)
-				{
-					GRegKey k(false, "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders");
-					char *p = k.GetStr("{374DE290-123F-4565-9164-39C4925E467B}");
-					if (DirExists(p))
-					{
-						strcpy_s(Dst, DstSize, p);
-						Status = true;
-					}
-				}
-				
-				if (!Status)
-				{
-					GAutoString MyDoc(GetWindowsFolder(CSIDL_MYDOCUMENTS));
-					if (MyDoc)
-					{
-						LgiMakePath(Dst, DstSize, MyDoc, "Downloads");
-						Status = DirExists(Dst);
-					}
-				}
-
-				if (!Status)
-				{
-					GAutoString MyDoc(GetWindowsFolder(CSIDL_PROFILE));
-					if (MyDoc)
-					{
-						LgiMakePath(Dst, DstSize, MyDoc, "Downloads");
-						Status = DirExists(Dst);
-					}
-				}
-
-				#else
-
-				LgiAssert(!"Not implemented");
-
-				#endif
-				break;
 			}
-			case LSP_USER_DOCUMENTS:
+
+			if (!Path.Get())
 			{
-				#if defined(WIN32) && defined(_MSC_VER)
-
-				GAutoString f(GetWindowsFolder(CSIDL_PERSONAL));
-				if (f)
-				{
-					strcpy_s(Dst, DstSize, f);
-					Status = true;
-				}
-
-				#else
-
-				LgiAssert(!"Not implemented");
-
-				#endif
-				
-				break;
+				GRegKey k(false, "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders");
+				char *p = k.GetStr("{374DE290-123F-4565-9164-39C4925E467B}");
+				if (DirExists(p))
+					Path = p;
 			}
-			case LSP_USER_MUSIC:
+			
+			if (!Path.Get())
 			{
-				#if defined WIN32
-
-				GAutoString f(GetWindowsFolder(CSIDL_MYMUSIC));
-				if (f)
+				GString MyDoc = GetWindowsFolder(CSIDL_MYDOCUMENTS);
+				if (MyDoc)
 				{
-					strcpy_s(Dst, DstSize, f);
-					Status = true;
+					char Buf[MAX_PATH];
+					LgiMakePath(Buf, sizeof(Buf), MyDoc, "Downloads");
+					if (DirExists(Buf))
+						Path = Buf;
 				}
-				
-				#elif defined MAC && !defined COCOA
-				
-				FSRef Ref;
-				OSErr e = FSFindFolder(kUserDomain, kMusicDocumentsFolderType, kDontCreateFolder, &Ref);
-				if (e) printf("%s:%i - FSFindFolder failed e=%i\n", _FL, e);
-				else
-				{
-					GAutoString a = FSRefPath(Ref);
-					if (a)
-					{
-						strcpy_s(Dst, DstSize, a);
-						return true;
-					}
-				}				
-
-				#else
-
-				LgiAssert(!"Not implemented");
-
-				#endif
-				
-				break;
 			}
-			case LSP_USER_VIDEO:
-			{
-				#if defined WIN32
 
-				GAutoString f(GetWindowsFolder(CSIDL_MYVIDEO));
-				if (f)
+			if (!Path.Get())
+			{
+				GString Profile = GetWindowsFolder(CSIDL_PROFILE);
+				if (Profile)
 				{
-					strcpy_s(Dst, DstSize, f);
-					Status = true;
+					char Buf[MAX_PATH];
+					LgiMakePath(Buf, sizeof(Buf), Profile, "Downloads");
+					if (DirExists(Buf))
+						Path = Buf;
 				}
-
-				#elif defined MAC && !defined COCOA
-
-				FSRef Ref;
-				OSErr e = FSFindFolder(kUserDomain, kMovieDocumentsFolderType, kDontCreateFolder, &Ref);
-				if (e) printf("%s:%i - FSFindFolder failed e=%i\n", _FL, e);
-				else
-				{
-					GAutoString a = FSRefPath(Ref);
-					if (a)
-					{
-						strcpy_s(Dst, DstSize, a);
-						return true;
-					}
-				}
-
-				#else
-
-				LgiAssert(!"Not implemented");
-
-				#endif
-				
-				break;
 			}
-			case LSP_USER_APPS:
+
+			#else
+
+			LgiAssert(!"Not implemented");
+
+			#endif
+			break;
+		}
+		case LSP_USER_DOCUMENTS:
+		{
+			#if defined(WIN32) && defined(_MSC_VER)
+
+			Path = GetWindowsFolder(CSIDL_PERSONAL);
+
+			#else
+
+			LgiAssert(!"Not implemented");
+
+			#endif
+			
+			break;
+		}
+		case LSP_USER_MUSIC:
+		{
+			#if defined WIN32
+
+			Path = GetWindowsFolder(CSIDL_MYMUSIC);
+			
+			#elif defined MAC && !defined COCOA
+			
+			FSRef Ref;
+			OSErr e = FSFindFolder(kUserDomain, kMusicDocumentsFolderType, kDontCreateFolder, &Ref);
+			if (e) printf("%s:%i - FSFindFolder failed e=%i\n", _FL, e);
+			else
 			{
-				#if defined WIN32
-				GAutoString f(GetWindowsFolder(
-					#ifdef WIN64
-					CSIDL_PROGRAM_FILES
-					#else
-					CSIDL_PROGRAM_FILESX86
-					#endif
-					));
-				if (!f) return false;
-				strcpy_s(Dst, DstSize, f);
-				Status = true;
-				#elif defined MAC
-				strcpy_s(Dst, DstSize, "/Applications");
-				Status = true;
-				#elif defined LINUX
-				strcpy_s(Dst, DstSize, "/usr/bin");
-				Status = true;
-				#elif defined BEOS
-				LgiAssert(!"Impl me.");
-				#endif
-				break;
-			}
-			case LSP_APP_INSTALL:
-			{
-				if (LgiGetExePath(Dst, DstSize))
+				GAutoString a = FSRefPath(Ref);
+				if (a)
 				{
-					#if defined WIN32
-
-					char *Last = strrchr(Dst, DIR_CHAR);
-					if (Last)
-					{
-						if (stristr(Last,
-							#ifdef _DEBUG
-							"Debug"
-							#else
-							"Release"
-							#endif
-							))
-							*Last = 0;
-					}
-					
-					#elif defined MAC
-
-					char *Last = strrchr(Dst, DIR_CHAR);
-					if (Last)
-					{
-						if (!stricmp(Last,
-							#ifdef _DEBUG
-							"/Debug"
-							#else
-							"/Release"
-							#endif
-							))
-							*Last = 0;
-					}
-					if ((Last = strrchr(Dst, DIR_CHAR)))
-					{
-						if (!stricmp(Last, "/build"))
-							*Last = 0;
-					}
-
-					#endif
-
+					strcpy_s(Dst, DstSize, a);
 					return true;
 				}
+			}				
+
+			#else
+
+			LgiAssert(!"Not implemented");
+
+			#endif
+			
+			break;
+		}
+		case LSP_USER_VIDEO:
+		{
+			#if defined WIN32
+
+			Path = GetWindowsFolder(CSIDL_MYVIDEO);
+
+			#elif defined MAC && !defined COCOA
+
+			FSRef Ref;
+			OSErr e = FSFindFolder(kUserDomain, kMovieDocumentsFolderType, kDontCreateFolder, &Ref);
+			if (e) printf("%s:%i - FSFindFolder failed e=%i\n", _FL, e);
+			else
+			{
+				GAutoString a = FSRefPath(Ref);
+				if (a)
+				{
+					strcpy_s(Dst, DstSize, a);
+					return true;
+				}
+			}
+
+			#else
+
+			LgiAssert(!"Not implemented");
+
+			#endif
+			
+			break;
+		}
+		case LSP_USER_APPS:
+		{
+			#if defined WIN32
+			Path = GetWindowsFolder(
+				#ifdef WIN64
+				CSIDL_PROGRAM_FILES
+				#else
+				CSIDL_PROGRAM_FILESX86
+				#endif
+				);
+			#elif defined MAC
+			strcpy_s(Dst, DstSize, "/Applications");
+			Status = true;
+			#elif defined LINUX
+			strcpy_s(Dst, DstSize, "/usr/bin");
+			Status = true;
+			#elif defined BEOS
+			LgiAssert(!"Impl me.");
+			#endif
+			break;
+		}
+		case LSP_APP_INSTALL:
+		{
+			Path = LgiGetSystemPath(LSP_EXE);
+			if (Path)
+			{
+				int Last = Path.RFind(DIR_STR);
+				if (Last > 0)
+				{
+					GString s = Path(Last, -1);
+					if
+					(
+						stristr(s,
+								#ifdef _DEBUG
+								"Debug"
+								#else
+								"Release"
+								#endif
+								)
+					)
+						Path = Path(0, Last);
+				}					
+			}
+			break;
+		}
+		case LSP_APP_ROOT:
+		{
+			#ifndef LGI_STATIC
+			if (!LgiApp)
+			{
+				LgiAssert(0);
 				break;
 			}
-			case LSP_APP_ROOT:
+			char *Name = LgiApp->Name();
+			if (!Name)
 			{
-				#ifndef LGI_STATIC
-				if (!LgiApp)
-				{
-					LgiAssert(0);
-					break;
-				}
-				char *Name = LgiApp->Name();
-				if (!Name)
-				{
-					LgiAssert(0);
-					break;
-				}
+				LgiAssert(0);
+				break;
+			}
 
-				GAutoString Base;
-				
-				#if defined MAC && !defined COCOA
+			#if defined MAC && !defined COCOA
 				FSRef Ref;
 				OSErr e = FSFindFolder(kUserDomain, kDomainLibraryFolderType, kDontCreateFolder, &Ref);
 				if (e)
@@ -1078,9 +1056,9 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 				{
 					Base = FSRefPath(Ref);
 				}
-				#elif defined WIN32
-				Base.Reset(GetWindowsFolder(CSIDL_APPDATA));
-				#elif defined LINUX
+			#elif defined WIN32
+				Path = GetWindowsFolder(CSIDL_APPDATA);
+			#elif defined LINUX
 				char Dot[128];
 				snprintf(Dot, sizeof(Dot), ".%s", Name);
 				Name = Dot;
@@ -1090,399 +1068,345 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 					Base.Reset(NewStr(pw->pw_dir));
 				}
 				else LgiAssert(0);
-				#else
+			#else
 				LgiAssert(0);
-				#endif
+			#endif
 
-				if (Base)
+			if (Path)
+			{
+				Path += DIR_STR;
+				Path += Name;
+			}
+			#endif
+			break;
+		}
+		case LSP_OS:
+		{
+			#if defined WIN32
+
+			char p[MAX_PATH];
+			if (GetWindowsDirectory(p, sizeof(p)) > 0)
+				Path = p;
+
+			#elif defined MAC && !defined COCOA
+			
+			FSRef Ref;
+			OSErr e = FSFindFolder(kOnAppropriateDisk,  kSystemFolderType, kDontCreateFolder, &Ref);
+			if (e) printf("%s:%i - FSFindFolder failed e=%i\n", __FILE__, __LINE__, e);
+			else
+			{
+				GAutoString u = FSRefPath(Ref);
+				if (u)
 				{
-					LgiMakePath(Dst, DstSize, Base, Name);
+					strcpy_s(Dst, DstSize, u);
 					Status = true;
 				}
+			}
+
+			#else
+
+			strcpy_s(Dst, DstSize, "/boot"); // it'll do for now...
+			Status = true;
+
+			#endif
+			break;
+		}
+		case LSP_OS_LIB:
+		{
+			#if defined WIN32
+
+			char p[MAX_PATH];
+			if (GetSystemDirectory(p, sizeof(p)) > 0)
+				Path = p;
+			
+			#elif defined MAC
+			
+			strcpy_s(Dst, DstSize, "/Library");
+			Status = true;
+
+			#else
+
+			strcpy_s(Dst, DstSize, "/lib"); // it'll do for now...
+			Status = true;
+
+			#endif
+			break;
+		}
+		case LSP_TEMP:
+		{
+			#if defined WIN32
+
+			char16 t[MAX_PATH];
+			if (GetTempPathW(CountOf(t), t) > 0)
+			{
+				GAutoString utf(LgiNewUtf16To8(t));
+				if (utf)
+					Path = utf;
+			}
+
+			#elif defined MAC && !defined COCOA
+			
+			FSRef Ref;
+			OSErr e = FSFindFolder(kUserDomain, kTemporaryFolderType, kCreateFolder, &Ref);
+			if (e) LgiTrace("%s:%i - FSFindFolder failed e=%i\n", _FL, e);
+			else
+			{
+				GAutoString u = FSRefPath(Ref);
+				if (u)
+				{
+					strcpy_s(Dst, DstSize, u);
+					Status = true;
+				}
+				else LgiTrace("%s:%i - FSRefPath failed.\n", _FL);
+			}
+
+			#else
+
+			strcpy_s(Dst, DstSize, "/tmp"); // it'll do for now...
+			Status = true;
+
+			#endif
+			break;
+		}
+		case LSP_COMMON_APP_DATA:
+		{
+			#if defined WIN32
+
+			Path = GetWindowsFolder(CSIDL_COMMON_APPDATA);
+			
+			#elif defined MAC && !defined COCOA
+			
+			FSRef Ref;
+			OSErr e = FSFindFolder(kOnSystemDisk, kDomainLibraryFolderType, kDontCreateFolder, &Ref);
+			if (e) printf("%s:%i - FSFindFolder failed e=%i\n", __FILE__, __LINE__, e);
+			else
+			{
+				GAutoString u = FSRefPath(Ref);
+				if (u)
+				{
+					strcpy_s(Dst, DstSize, u);
+					Status = true;
+				}
+			}
+
+			#elif defined LINUX
+
+			strcpy_s(Dst, DstSize, "/usr");
+			Status = true;
+
+			#elif defined BEOS
+
+			strcpy_s(Dst, DstSize, "/boot/apps");
+			Status = true;
+
+			#endif
+			break;
+		}
+		case LSP_USER_APP_DATA:
+		{
+			#if defined WIN32
+			
+			Path = GetWindowsFolder(CSIDL_APPDATA);
+
+			#elif defined MAC && !defined COCOA
+			
+			FSRef Ref;
+			OSErr e = FSFindFolder(kUserDomain, kDomainLibraryFolderType, kDontCreateFolder, &Ref);
+			if (e) printf("%s:%i - FSFindFolder failed e=%i\n", __FILE__, __LINE__, e);
+			else
+			{
+				GAutoString u = FSRefPath(Ref);
+				if (u)
+				{
+					strcpy_s(Dst, DstSize, u);
+					Status = true;
+				}
+			}
+
+			#elif defined LINUX
+
+			strcpy_s(Dst, DstSize, "/usr");
+			Status = true;
+
+			#endif
+			break;
+		}
+		case LSP_LOCAL_APP_DATA:
+		{
+			#if defined WIN32
+			
+			Path = GetWindowsFolder(CSIDL_LOCAL_APPDATA);
+			
+			#else
+			LgiAssert(!"Impl me.");
+			#endif
+			break;
+		}
+		case LSP_DESKTOP:
+		{
+			#if defined(WINDOWS) && defined(_MSC_VER)
+
+			Path = GetWindowsFolder(CSIDL_DESKTOPDIRECTORY);
+			
+			#elif defined MAC && !defined COCOA
+			
+			FSRef Ref;
+			OSErr e = FSFindFolder(kOnAppropriateDisk, kDesktopFolderType, kDontCreateFolder, &Ref);
+			if (e) printf("%s:%i - FSFindFolder failed e=%i\n", __FILE__, __LINE__, e);
+			else
+			{
+				GAutoString u = FSRefPath(Ref);
+				if (u)
+				{
+					strcpy_s(Dst, DstSize, u);
+					Status = true;
+				}
+			}
+
+			#elif defined POSIX
+
+			struct passwd *pw = getpwuid(getuid());
+			if (pw)
+			{
+				#ifdef LINUX
+				WindowManager wm = LgiGetWindowManager();
+				if (wm == WM_Gnome)
+					sprintf_s(Dst, sizeof(Dst), "%s/.gnome-desktop", pw->pw_dir);
 				else
 				#endif
-				{
-					LgiAssert(0);
-				}
-				break;
+					sprintf_s(Dst, sizeof(Dst), "%s/Desktop", pw->pw_dir);
+					
+				Status = true;
 			}
-			case LSP_OS:
+
+			#elif defined BEOS
+
+			strcpy_s(Dst, DstSize, "/boot/home/Desktop");
+			Status = true;
+			
+			#endif
+			break;
+		}
+		case LSP_HOME:
+		{
+			#if defined WIN32
+
+			#ifndef CSIDL_PROFILE
+			#define CSIDL_PROFILE 0x0028
+			#endif 
+
+			Path = GetWindowsFolder(CSIDL_PROFILE);
+
+			#elif defined POSIX
+
+			struct passwd *pw = getpwuid(getuid());
+			if (pw)
 			{
-				#if defined WIN32
+				strcpy_s(Dst, DstSize, pw->pw_dir);
+				Status = true;
+			}
 
-				char p[MAX_PATH];
-				if (GetWindowsDirectory(p, sizeof(p)) > 0)
-				{
-					strcpy_s(Dst, DstSize, p);
-					Status = true;
-				}
+			#elif defined BEOS
 
-				#elif defined MAC && !defined COCOA
-				
-				FSRef Ref;
-				OSErr e = FSFindFolder(kOnAppropriateDisk,  kSystemFolderType, kDontCreateFolder, &Ref);
-				if (e) printf("%s:%i - FSFindFolder failed e=%i\n", __FILE__, __LINE__, e);
-				else
+			strcpy_s(Dst, DstSize, "/boot/home");
+			Status = true;
+
+			#endif
+			break;
+		}
+		case LSP_EXE:
+		{
+			char Buf[MAX_PATH];
+			if (LgiGetExeFile(Buf, sizeof(Buf)))
+			{
+				LgiTrimDir(Buf);
+				Path = Buf;
+			}
+			break;
+		}
+		case LSP_TRASH:
+		{
+			#if defined LINUX
+			
+			switch (LgiGetWindowManager())
+			{
+				case WM_Kde:
 				{
-					GAutoString u = FSRefPath(Ref);
-					if (u)
+					static char KdeTrash[256] = "";
+					
+					if (!ValidStr(KdeTrash))
 					{
-						strcpy_s(Dst, DstSize, u);
-						Status = true;
-					}
-				}
-
-				#else
-
-				strcpy_s(Dst, DstSize, "/boot"); // it'll do for now...
-				Status = true;
-
-				#endif
-				break;
-			}
-			case LSP_OS_LIB:
-			{
-				#if defined WIN32
-
-				char p[MAX_PATH];
-				if (GetSystemDirectory(p, sizeof(p)) > 0)
-				{
-					strcpy_s(Dst, DstSize, p);
-					Status = true;
-				}
-
-				
-				#elif defined MAC
-				
-				strcpy_s(Dst, DstSize, "/Library");
-				Status = true;
-
-				#else
-
-				strcpy_s(Dst, DstSize, "/lib"); // it'll do for now...
-				Status = true;
-
-				#endif
-				break;
-			}
-			case LSP_TEMP:
-			{
-				#if defined WIN32
-
-				if (LgiGetOs() == LGI_OS_WIN9X)
-				{
-					char t[256];
-					if (GetTempPath(sizeof(t), t) > 0)
-					{
-						char *utf = LgiToNativeCp(t);
-						if (utf)
+						// Ask KDE where the current trash is...
+						GProcess p;
+						GStringPipe o;
+						if (p.Run("kde-config", "--userpath trash", 0, true, 0, &o))
 						{
-							strcpy_s(Dst, DstSize, utf);
-							DeleteArray(utf);
-							Status = true;
-						}
-					}
-				}
-				else
-				{
-					char16 t[256];
-					if (GetTempPathW(CountOf(t), t) > 0)
-					{
-						char *utf = LgiNewUtf16To8(t);
-						if (utf)
-						{
-							strcpy_s(Dst, DstSize, utf);
-							DeleteArray(utf);
-							Status = true;
-						}
-					}
-				}
-
-				#elif defined MAC && !defined COCOA
-				
-				FSRef Ref;
-				OSErr e = FSFindFolder(kUserDomain, kTemporaryFolderType, kCreateFolder, &Ref);
-				if (e) LgiTrace("%s:%i - FSFindFolder failed e=%i\n", _FL, e);
-				else
-				{
-					GAutoString u = FSRefPath(Ref);
-					if (u)
-					{
-						strcpy_s(Dst, DstSize, u);
-						Status = true;
-					}
-					else LgiTrace("%s:%i - FSRefPath failed.\n", _FL);
-				}
-
-				#else
-
-				strcpy_s(Dst, DstSize, "/tmp"); // it'll do for now...
-				Status = true;
-
-				#endif
-				break;
-			}
-			case LSP_COMMON_APP_DATA:
-			{
-				#if defined WIN32
-
-				GAutoString f(GetWindowsFolder(CSIDL_COMMON_APPDATA));
-				if (f)
-				{
-					strcpy_s(Dst, DstSize, f);
-					Status = true;
-				}
-				
-				#elif defined MAC && !defined COCOA
-				
-				FSRef Ref;
-				OSErr e = FSFindFolder(kOnSystemDisk, kDomainLibraryFolderType, kDontCreateFolder, &Ref);
-				if (e) printf("%s:%i - FSFindFolder failed e=%i\n", __FILE__, __LINE__, e);
-				else
-				{
-					GAutoString u = FSRefPath(Ref);
-					if (u)
-					{
-						strcpy_s(Dst, DstSize, u);
-						Status = true;
-					}
-				}
-
-				#elif defined LINUX
-
-				strcpy_s(Dst, DstSize, "/usr");
-				Status = true;
-
-				#elif defined BEOS
-
-				strcpy_s(Dst, DstSize, "/boot/apps");
-				Status = true;
-
-				#endif
-				break;
-			}
-			case LSP_USER_APP_DATA:
-			{
-				#if defined WIN32
-				GAutoString f(GetWindowsFolder(CSIDL_APPDATA));
-				if (f)
-				{
-					strcpy_s(Dst, DstSize, f);
-					Status = true;
-				}
-
-				#elif defined MAC && !defined COCOA
-				
-				FSRef Ref;
-				OSErr e = FSFindFolder(kUserDomain, kDomainLibraryFolderType, kDontCreateFolder, &Ref);
-				if (e) printf("%s:%i - FSFindFolder failed e=%i\n", __FILE__, __LINE__, e);
-				else
-				{
-					GAutoString u = FSRefPath(Ref);
-					if (u)
-					{
-						strcpy_s(Dst, DstSize, u);
-						Status = true;
-					}
-				}
-
-				#elif defined LINUX
-
-				strcpy_s(Dst, DstSize, "/usr");
-				Status = true;
-
-				#endif
-				break;
-			}
-			case LSP_LOCAL_APP_DATA:
-			{
-				#if defined WIN32
-				GAutoString f(GetWindowsFolder(CSIDL_LOCAL_APPDATA));
-				if (f)
-				{
-					strcpy_s(Dst, DstSize, f);
-					Status = true;
-				}
-				#else
-				LgiAssert(!"Impl me.");
-				#endif
-				break;
-			}
-			case LSP_DESKTOP:
-			{
-				#if defined(WINDOWS) && defined(_MSC_VER)
-
-				GAutoString f(GetWindowsFolder(CSIDL_DESKTOPDIRECTORY));
-				if (f)
-				{
-					strcpy_s(Dst, DstSize, f);
-					Status = true;
-				}
-
-				#elif defined MAC && !defined COCOA
-				
-				FSRef Ref;
-				OSErr e = FSFindFolder(kOnAppropriateDisk, kDesktopFolderType, kDontCreateFolder, &Ref);
-				if (e) printf("%s:%i - FSFindFolder failed e=%i\n", __FILE__, __LINE__, e);
-				else
-				{
-					GAutoString u = FSRefPath(Ref);
-					if (u)
-					{
-						strcpy_s(Dst, DstSize, u);
-						Status = true;
-					}
-				}
-
-				#elif defined POSIX
-
-				struct passwd *pw = getpwuid(getuid());
-				if (pw)
-				{
-					#ifdef LINUX
-					WindowManager wm = LgiGetWindowManager();
-					if (wm == WM_Gnome)
-						sprintf_s(Dst, sizeof(Dst), "%s/.gnome-desktop", pw->pw_dir);
-					else
-					#endif
-						sprintf_s(Dst, sizeof(Dst), "%s/Desktop", pw->pw_dir);
-						
-					Status = true;
-				}
-
-				#elif defined BEOS
-
-				strcpy_s(Dst, DstSize, "/boot/home/Desktop");
-				Status = true;
-				
-				#endif
-				break;
-			}
-			case LSP_HOME:
-			{
-				#if defined WIN32
-
-				#ifndef CSIDL_PROFILE
-				#define CSIDL_PROFILE 0x0028
-				#endif 
-
-				GAutoString f(GetWindowsFolder(CSIDL_PROFILE));
-				if (f)
-				{
-					strcpy_s(Dst, DstSize, f);
-					Status = true;
-				}
-
-				#elif defined POSIX
-
-				struct passwd *pw = getpwuid(getuid());
-				if (pw)
-				{
-					strcpy_s(Dst, DstSize, pw->pw_dir);
-					Status = true;
-				}
-
-				#elif defined BEOS
-
-				strcpy_s(Dst, DstSize, "/boot/home");
-				Status = true;
-
-				#endif
-				break;
-			}
-			case LSP_EXE:
-			{
-				if (LgiGetExeFile(Dst, DstSize))
-				{
-					LgiTrimDir(Dst);
-					Status = true;
-				}
-				break;
-			}
-			case LSP_TRASH:
-			{
-				#if defined LINUX
-				
-				switch (LgiGetWindowManager())
-				{
-					case WM_Kde:
-					{
-						static char KdeTrash[256] = "";
-						
-						if (!ValidStr(KdeTrash))
-						{
-							// Ask KDE where the current trash is...
-							GProcess p;
-							GStringPipe o;
-							if (p.Run("kde-config", "--userpath trash", 0, true, 0, &o))
+							char *s = o.NewStr();
+							if (s)
 							{
-								char *s = o.NewStr();
-								if (s)
-								{
-									// Store it..
-									strcpy_s(KdeTrash, sizeof(KdeTrash), s);
-									DeleteArray(s);
+								// Store it..
+								strcpy_s(KdeTrash, sizeof(KdeTrash), s);
+								DeleteArray(s);
 
-									// Clear out any crap at the end...
-									char *e = KdeTrash + strlen(KdeTrash) - 1;
-									while (e > KdeTrash && strchr(" \r\n\t/", *e))
-									{
-										*e-- = 0;
-									}
-								}
-								else
+								// Clear out any crap at the end...
+								char *e = KdeTrash + strlen(KdeTrash) - 1;
+								while (e > KdeTrash && strchr(" \r\n\t/", *e))
 								{
-									printf("%s:%i - No output from 'kde-config'.\n", __FILE__, __LINE__);
+									*e-- = 0;
 								}
 							}
 							else
 							{
-								printf("%s:%i - Run 'kde-config' failed.\n", __FILE__, __LINE__);
+								printf("%s:%i - No output from 'kde-config'.\n", __FILE__, __LINE__);
 							}
 						}
-						if (ValidStr(KdeTrash))
+						else
 						{
-							strcpy_s(Dst, DstSize, KdeTrash);
-							Status = true;
+							printf("%s:%i - Run 'kde-config' failed.\n", __FILE__, __LINE__);
 						}
-						break;
 					}
-					default:
+					if (ValidStr(KdeTrash))
 					{
-						printf("%s:%i - Unknown window manager.\n", __FILE__, __LINE__);
-						break;
-					}
-				}
-				
-				#elif defined MAC && !defined COCOA
-				
-				FSRef Ref;
-				OSErr e = FSFindFolder(kUserDomain, kTrashFolderType, kDontCreateFolder, &Ref);
-				if (e) printf("%s:%i - FSFindFolder failed e=%i\n", __FILE__, __LINE__, e);
-				else
-				{
-					GAutoString u = FSRefPath(Ref);
-					if (u)
-					{
-						strcpy_s(Dst, DstSize, u);
+						strcpy_s(Dst, DstSize, KdeTrash);
 						Status = true;
 					}
+					break;
 				}
-
-				#elif defined WIN32
-
-				// This should work but doesn't... *shrug*
-				// char *f = GetWin32Folder(CSIDL_BITBUCKET);
-
-				#else
-
-				#endif
-				break;
+				default:
+				{
+					printf("%s:%i - Unknown window manager.\n", __FILE__, __LINE__);
+					break;
+				}
 			}
+			
+			#elif defined MAC && !defined COCOA
+			
+			FSRef Ref;
+			OSErr e = FSFindFolder(kUserDomain, kTrashFolderType, kDontCreateFolder, &Ref);
+			if (e) printf("%s:%i - FSFindFolder failed e=%i\n", __FILE__, __LINE__, e);
+			else
+			{
+				GAutoString u = FSRefPath(Ref);
+				if (u)
+				{
+					strcpy_s(Dst, DstSize, u);
+					Status = true;
+				}
+			}
+
+			#elif defined WIN32
+
+			// This should work but doesn't... *shrug*
+			// char *f = GetWin32Folder(CSIDL_BITBUCKET);
+
+			#else
+
+			#endif
+			break;
 		}
 	}
 
-	return Status;
+	return Path;
 }
 
 bool LgiGetExeFile(char *Dst, int DstSize)
