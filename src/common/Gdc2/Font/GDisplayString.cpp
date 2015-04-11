@@ -18,6 +18,30 @@
 
 #define DEBUG_CHAR_AT				0
 
+template<typename Out, typename In>
+bool StringConvert(Out *&out, uint32 *OutLen, const In *in, int InLen)
+{
+	char OutCs[8], InCs[8];
+	sprintf_s(OutCs, sizeof(OutCs), "utf-%i", (int)sizeof(Out)<<3);
+	sprintf_s(InCs, sizeof(InCs), "utf-%i", (int)sizeof(In)<<3);
+
+	if (InLen < 0)
+		InLen = StringLen(in);
+
+	out = (Out*)LgiNewConvertCp
+		(
+			OutCs,
+			in,
+			InCs,
+			InLen*sizeof(In)
+		);
+	
+	if (out && OutLen)
+		*OutLen = StringLen(out);
+	
+	return out != NULL;
+}
+
 //////////////////////////////////////////////////////////////////////
 #define SubtractPtr(a, b)			(	(((NativeInt)(a))-((NativeInt)(b))) / sizeof(*a)	)
 #define IsTabChar(c)				(c == '\t' || (c == 0x2192 && VisibleTab))
@@ -30,8 +54,7 @@ GDisplayString::GDisplayString(GFont *f, const char *s, int l, GSurface *pdc)
 	Font = f;
 	
 	#if defined(MAC) || WINNATIVE
-	Str = LgiNewUtf8To16(s, l);
-	len = Str ? StrlenW(Str) : 0;
+	StringConvert(Str, &len, s, l);
 	#else
 	Str = NewStr(s, l);
 	len = Str ? strlen(Str) : 0;
@@ -50,7 +73,7 @@ GDisplayString::GDisplayString(GFont *f, const char *s, int l, GSurface *pdc)
 	Hnd = 0;
 	if (Font && Str)
 	{
-		len = l >= 0 ? l : StrlenW(Str);
+		len = l >= 0 ? l : StringLen(Str);
 		if (len > 0)
 		{
 			ATSUCreateTextLayout(&Hnd);
@@ -78,8 +101,7 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc)
 	Font = f;
 
     #if defined(MAC) || WINNATIVE	
-	Str = NewStrW(s, len = l);
-	len = Str ? StrlenW(Str) : 0;
+	StringConvert(Str, &len, s, l);
 	#else
 	Str = LgiNewUtf16To8(s, l < 0 ? -1 : l * sizeof(char16));
 	len = Str ? strlen(Str) : 0;
@@ -94,14 +116,10 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc)
 	#if defined MAC && !defined COCOA
 	
 	Hnd = 0;
-	if (Font && Str)
+	if (Font && Str && len > 0)
 	{
-		len = l >= 0 ? l : StrlenW(Str);
-		if (len > 0)
-		{
-			OSStatus e = ATSUCreateTextLayout(&Hnd);
-			if (e) printf("%s:%i - ATSUCreateTextLayout failed with %i.\n", __FILE__, __LINE__, (int)e);
-		}
+		OSStatus e = ATSUCreateTextLayout(&Hnd);
+		if (e) printf("%s:%i - ATSUCreateTextLayout failed with %i.\n", __FILE__, __LINE__, (int)e);
 	}
 	
 	#elif defined __GTK_H__
@@ -191,16 +209,20 @@ void GDisplayString::Layout()
 	OSStatus e = ATSUSetTextPointerLocation(Hnd, Str, 0, len, len);
 	if (e)
 	{
-		GAutoString a(LgiNewUtf16To8(Str));
-		printf("%s:%i - ATSUSetTextPointerLocation failed with errorcode %i (%s)\n", _FL, (int)e, a.Get());
+		char *a = 0;
+		StringConvert(a, NULL, Str, len);
+		printf("%s:%i - ATSUSetTextPointerLocation failed with errorcode %i (%s)\n", _FL, (int)e, a);
+		DeleteArray(a);
 		return;
 	}
 
 	e = ATSUSetRunStyle(Hnd, Font->Handle(), 0, len);
 	if (e)
 	{
-		GAutoString a(LgiNewUtf16To8(Str));
-		printf("%s:%i - ATSUSetRunStyle failed with errorcode %i (%s)\n", _FL, (int)e, a.Get());
+		char *a = 0;
+		StringConvert(a, NULL, Str, len);
+		printf("%s:%i - ATSUSetRunStyle failed with errorcode %i (%s)\n", _FL, (int)e, a);
+		DeleteArray(a);
 		return;
 	}
 
@@ -236,8 +258,10 @@ void GDisplayString::Layout()
 									&fDescent);
 	if (e)
 	{
-		GAutoString a(LgiNewUtf16To8(Str));
-		printf("%s:%i - ATSUGetUnjustifiedBounds failed with errorcode %i (%s)\n", _FL, (int)e, a.Get());
+		char *a = 0;
+		StringConvert(a, NULL, Str, len);
+		printf("%s:%i - ATSUGetUnjustifiedBounds failed with errorcode %i (%s)\n", _FL, (int)e, a);
+		DeleteArray(a);
 		return;
 	}
 
@@ -675,7 +699,7 @@ int GDisplayString::CharAt(int Px)
 		UniCharArrayOffset Off = 0, Off2 = 0;
 		Boolean IsLeading;
 		OSStatus e = ATSUPositionToOffset(Hnd, FloatToFixed(Px), FloatToFixed(y / 2), &Off, &IsLeading, &Off2);
-		if (e) printf("%s:%i - ATSUPositionToOffset failed with %i, CharAt(%i) x=%i len=%i\n", __FILE__, __LINE__, (int)e, Px, x, len);
+		if (e) printf("%s:%i - ATSUPositionToOffset failed with %i, CharAt(%i) x=%i len=%i\n", _FL, (int)e, Px, x, len);
 		else
 		{
 			// printf("CharAt(%i) off=%i,%i Leading=%i x=%i len=%i\n", Px, Off, Off2, IsLeading, x, len);
@@ -1066,8 +1090,10 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 				}
 				if (e)
 				{
-					GAutoString a(LgiNewUtf16To8(Str));
-					printf("%s:%i - ATSUDrawText failed with %i, len=%i, str=%.20s\n", _FL, (int)e, len, a.Get());
+					char *a = 0;
+					StringConvert(a, NULL, Str, len);
+					printf("%s:%i - ATSUDrawText failed with %i, len=%i, str=%.20s\n", _FL, (int)e, len, a);
+					DeleteArray(a);
 				}
 			}
 		}

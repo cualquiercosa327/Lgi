@@ -593,13 +593,17 @@ GCharset::GCharset(const char *cp, const char *des, short *map, const char *alt)
 		{
 			Type = CpUtf8;
 		}
-		else if (stricmp(cp, "utf-16") == 0 || stricmp(cp, "utf-32") == 0)
+		else if (stricmp(cp, "utf-16") == 0)
 		{
-			Type = CpWide;
+			Type = CpUtf16;
+		}
+		else if (stricmp(cp, "utf-32") == 0)
+		{
+			Type = CpUtf32;
 		}
 		else if (stricmp(cp, "ucs-2") == 0)
 		{
-			Type = CpWide;
+			Type = CpUtf16;
 			IconvName = "UCS-2-INTERNAL";
 		}
 		else if (UnicodeMap)
@@ -621,7 +625,9 @@ GCharset::GCharset(const char *cp, const char *des, short *map, const char *alt)
 
 bool GCharset::IsUnicode()
 {
-	return (Type == CpUtf8) || (Type == CpWide);
+	return	(Type == CpUtf8) ||
+			(Type == CpUtf16) ||
+			(Type == CpUtf32);
 }
 
 const char *GCharset::GetIconvName()
@@ -899,12 +905,18 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 							Utf32 = LgiUtf8To32((uint8 *&)In8, InLen);
 							break;
 						}
-						case CpWide:
+						case CpUtf16:
 						{
-							Utf32 = LgiUtf16To32((char16 *&)In8, InLen);
+							Utf32 = LgiUtf16To32((uint16 *&)In8, InLen);
 
 							if (Utf32 == 0xfeff || Utf32 == 0xfffe)
 								continue;
+							break;
+						}
+						case CpUtf32:
+						{
+							Utf32 = *((uint32*&)In8)++;
+							InLen -= 4;
 							break;
 						}
 						default:
@@ -970,9 +982,15 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 							}
 							break;
 						}
-						case CpWide:
+						case CpUtf16:
 						{
-							LgiUtf32To16(Utf32, (char16*&)Out8, OutLen);
+							LgiUtf32To16(Utf32, (uint16*&)Out8, OutLen);
+							break;
+						}
+						case CpUtf32:
+						{
+							*((uint32*&)Out8)++ = Utf32;
+							OutLen -= 4;
 							break;
 						}
                         default:
@@ -995,6 +1013,25 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 	return Status;
 }
 
+template<typename T>
+T *DupeString(T *s, int Len = -1)
+{
+	if (!s)
+		return NULL;
+	if (Len < 0)
+	{
+		Len = 0;
+		while (s[Len])
+			Len++;
+	}
+	T *ns = new T[Len+1];
+	if (!ns)
+		return NULL;
+	memcpy(ns, s, sizeof(T) * Len);
+	ns[Len] = 0;
+	return ns;
+}
+
 void *LgiNewConvertCp(const char *OutCp, const void *In, const char *InCp, int InLen)
 {
 	GMemQueue b;
@@ -1012,9 +1049,13 @@ void *LgiNewConvertCp(const char *OutCp, const void *In, const char *InCp, int I
 
 			if (!stricmp(InCp, OutCp))
 			{
-				if (InInfo->Type == CpWide)
+				if (InInfo->Type == CpUtf16)
 				{
-					return NewStrW((char16*)In, InLen);
+					return DupeString((uint16*)In, InLen/sizeof(uint16));
+				}
+				else if (InInfo->Type == CpUtf32)
+				{
+					return DupeString((uint32*)In, InLen/sizeof(uint32));
 				}
 				else
 				{
@@ -1121,9 +1162,13 @@ int LgiCharLen(const void *Str, const char *Cp, int Bytes)
 					}
 					return Len;
 				}
-				case CpWide:
+				case CpUtf16:
 				{
-					return StrlenW((char16*)Str);
+					return StringLen((uint16*)Str);
+				}
+				case CpUtf32:
+				{
+					return StringLen((uint32*)Str);
 				}
 			}
 		}

@@ -160,7 +160,7 @@ inline bool LgiUtf32To8(uint32 c, uint8 *&i, int &Len)
 }
 
 /// Convert a single utf-16 char to utf-32
-inline uint32 LgiUtf16To32(char16 *&i, int &Len)
+inline uint32 LgiUtf16To32(uint16 *&i, int &Len)
 {
 	if (Len > 1)
 	{
@@ -176,7 +176,7 @@ inline uint32 LgiUtf16To32(char16 *&i, int &Len)
 			// 2 word UTF
 			if (Len > 3)
 			{
-				Len -= sizeof(char16)<<1;
+				Len -= sizeof(uint16)<<1;
 				int w = (*i & 0x3c0) >> 6;
 				int zy = *i++ & 0x3f;
 				return ((w + 1) << 16) | (zy << 10) | (*i++ & 0x3ff);
@@ -184,7 +184,7 @@ inline uint32 LgiUtf16To32(char16 *&i, int &Len)
 		}
 
 		// 1 word UTF
-		Len -= sizeof(char16);
+		Len -= sizeof(uint16);
 		return *i++;
 	}
 
@@ -192,7 +192,7 @@ inline uint32 LgiUtf16To32(char16 *&i, int &Len)
 }
 
 /// Convert a single utf-32 char to utf-16
-inline void LgiUtf32To16(uint32 c, char16 *&i, int &Len)
+inline void LgiUtf32To16(uint32 c, uint16 *&i, int &Len)
 {
 	if (c & 0xffff0000)
 	{
@@ -202,7 +202,7 @@ inline void LgiUtf32To16(uint32 c, char16 *&i, int &Len)
 			int w = (c >> 16) - 1;
 			*i++ = 0xd800 | (w << 6) | ((c & 0xfc00) >> 10);
 			*i++ = 0xdc00 | (c & 0x3ff);
-			Len -= sizeof(char16) << 1;
+			Len -= sizeof(uint16) << 1;
 		}
 	}
 
@@ -210,7 +210,7 @@ inline void LgiUtf32To16(uint32 c, char16 *&i, int &Len)
 	if (Len > 1)
 	{
 		*i++ = c;
-		Len -= sizeof(char16);
+		Len -= sizeof(uint16);
 	}
 }
 

@@ -88,23 +88,7 @@ typedef		unsigned long long			uint64;
 ///		<li> MatchStrW()
 /// </ul>
 
-	#if defined(__MINGW32__) || defined(BEOS)
-	
-		typedef		wchar_t						char16;
-		
-	#else
-
-		#if _MSC_VER > 1300
-		
-			typedef		wchar_t						char16;
-			
-		#else
-		
-			typedef		unsigned short				char16;
-			
-		#endif
-
-	#endif
+	typedef		wchar_t						char16;
 
 #else // LINUX
 

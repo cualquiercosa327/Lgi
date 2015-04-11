@@ -62,7 +62,8 @@ bool _get_path_FSRef(FSRef &fs, GStringPipe &a)
 	{
 		if (_get_path_FSRef(Parent, a))
 		{
-			GAutoString u(LgiNewUtf16To8((char16*)Name.unicode, Name.length * sizeof(char16)));
+			GAutoString u((char*)LgiNewConvertCp("utf-8", Name.unicode, "utf-16", Name.length * sizeof(Name.unicode[0]) ));
+
 			// printf("CatInfo = '%s' %x %x\n", u.Get(), Cat.nodeID, Cat.volume);
 			if (u && Cat.nodeID > 2)
 			{
@@ -943,10 +944,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 			{
 				GAutoString a = FSRefPath(Ref);
 				if (a)
-				{
-					strcpy_s(Dst, DstSize, a);
-					return true;
-				}
+					Path = a.Get();
 			}				
 
 			#else
@@ -972,10 +970,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 			{
 				GAutoString a = FSRefPath(Ref);
 				if (a)
-				{
-					strcpy_s(Dst, DstSize, a);
-					return true;
-				}
+					Path = a.Get();
 			}
 
 			#else
@@ -1054,7 +1049,8 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 				}
 				else
 				{
-					Base = FSRefPath(Ref);
+					GAutoString Base = FSRefPath(Ref);
+					Path = Base.Get();
 				}
 			#elif defined WIN32
 				Path = GetWindowsFolder(CSIDL_APPDATA);
@@ -1096,10 +1092,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 			{
 				GAutoString u = FSRefPath(Ref);
 				if (u)
-				{
-					strcpy_s(Dst, DstSize, u);
-					Status = true;
-				}
+					Path = u.Get();
 			}
 
 			#else
@@ -1119,8 +1112,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 			
 			#elif defined MAC
 			
-			strcpy_s(Dst, DstSize, "/Library");
-			Status = true;
+			Path = "/Library";
 
 			#else
 
@@ -1151,8 +1143,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 				GAutoString u = FSRefPath(Ref);
 				if (u)
 				{
-					strcpy_s(Dst, DstSize, u);
-					Status = true;
+					Path = u.Get();
 				}
 				else LgiTrace("%s:%i - FSRefPath failed.\n", _FL);
 			}
@@ -1179,10 +1170,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 			{
 				GAutoString u = FSRefPath(Ref);
 				if (u)
-				{
-					strcpy_s(Dst, DstSize, u);
-					Status = true;
-				}
+					Path = u.Get();
 			}
 
 			#elif defined LINUX
@@ -1211,10 +1199,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 			{
 				GAutoString u = FSRefPath(Ref);
 				if (u)
-				{
-					strcpy_s(Dst, DstSize, u);
-					Status = true;
-				}
+					Path = u.Get();
 			}
 
 			#elif defined LINUX
@@ -1250,10 +1235,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 			{
 				GAutoString u = FSRefPath(Ref);
 				if (u)
-				{
-					strcpy_s(Dst, DstSize, u);
-					Status = true;
-				}
+					Path = u.Get();
 			}
 
 			#elif defined POSIX
@@ -1374,10 +1356,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 			{
 				GAutoString u = FSRefPath(Ref);
 				if (u)
-				{
-					strcpy_s(Dst, DstSize, u);
-					Status = true;
-				}
+					Path = u.Get();
 			}
 
 			#elif defined WIN32

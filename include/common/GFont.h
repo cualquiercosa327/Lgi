@@ -306,7 +306,8 @@ enum GCharSetType
 	CpNone,
 	CpMapped,
 	CpUtf8,
-	CpWide,
+	CpUtf16,
+	CpUtf32,
 	CpIconv,
 	CpWindowsDb
 };

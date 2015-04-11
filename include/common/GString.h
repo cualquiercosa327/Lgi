@@ -44,6 +44,16 @@ Char *StrUpr(Char *c)
 	return c;
 }
 
+template<typename T>
+int StringLen(T *s)
+{
+	if (!s) return 0;
+	int len = 0;
+	while (s[len])
+		len++;
+	return len;
+}
+
 // 8 bit strings
 
 /// Returns a pointer to the char 'c' if found in the first 'Len' bytes of the string 's'
