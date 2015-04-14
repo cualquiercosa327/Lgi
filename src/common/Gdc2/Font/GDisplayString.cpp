@@ -105,7 +105,7 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc)
 	#else
 	Str = LgiNewUtf16To8(s, l < 0 ? -1 : l * sizeof(char16));
 	len = Str ? strlen(Str) : 0;
-	#endif	
+	#endif
 	
 	x = y = 0;
 	TabOrigin = 0;

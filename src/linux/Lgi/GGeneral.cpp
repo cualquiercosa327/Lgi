@@ -541,8 +541,6 @@ WindowManager LgiGetWindowManager()
 					{
 						*n = 0;
 						
-						// printf("Buf=%s\n", Buf);
-						
 						if (stristr(Buf, "gnome-settings") != 0 ||
 							stristr(Buf, "gnome-session") != 0 ||
 							stristr(Buf, "gnome-panel") != 0)

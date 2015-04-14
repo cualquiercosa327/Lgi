@@ -1633,7 +1633,7 @@ char *GTextView3::GetSelection()
 	{
 		int Start = min(SelStart, SelEnd);
 		int End = max(SelStart, SelEnd);
-		return (char*)LgiNewConvertCp("utf-8", Text + Start, "utf-16", (End-Start)*sizeof(Text[0]) );
+		return (char*)LgiNewConvertCp("utf-8", Text + Start, LGI_WideCharset, (End-Start)*sizeof(Text[0]) );
 	}
 
 	return 0;
@@ -1897,7 +1897,7 @@ bool GTextView3::Cut()
 		#ifdef WIN32
 		Txt16 = ConvertToCrLf(Txt16);
 		#endif
-		char *Txt8 = (char*)LgiNewConvertCp(LgiAnsiToLgiCp(), Txt16, "utf-16");
+		char *Txt8 = (char*)LgiNewConvertCp(LgiAnsiToLgiCp(), Txt16, LGI_WideCharset);
 
 		GClipBoard Clip(this);
 
@@ -1924,7 +1924,7 @@ bool GTextView3::Copy()
 		#ifdef WIN32
 		Txt16 = ConvertToCrLf(Txt16);
 		#endif
-		char *Txt8 = (char*)LgiNewConvertCp(LgiAnsiToLgiCp(), Txt16, "utf-16");
+		char *Txt8 = (char*)LgiNewConvertCp(LgiAnsiToLgiCp(), Txt16, LGI_WideCharset);
 
 		GClipBoard Clip(this);
 		
@@ -2119,7 +2119,7 @@ bool GTextView3::Save(const char *Name, const char *CharSet)
 		{
 			bool Status = false;
 			
-			char *c8 = (char*)LgiNewConvertCp(CharSet ? CharSet : DefaultCharset, Text, "utf-16", Size * sizeof(char16));
+			char *c8 = (char*)LgiNewConvertCp(CharSet ? CharSet : DefaultCharset, Text, LGI_WideCharset, Size * sizeof(char16));
 			if (c8)
 			{
 				int Len = (int)strlen(c8);
@@ -4610,7 +4610,7 @@ GMessage::Result GTextView3::OnEvent(GMessage *Msg)
 					{
 						ImmGetCompositionString(hIMC, GCS_RESULTSTR, Buf, Size);
 
-						char16 *Utf = (char16*)LgiNewConvertCp("utf-16", Buf, LgiAnsiToLgiCp(), Size);
+						char16 *Utf = (char16*)LgiNewConvertCp(LGI_WideCharset, Buf, LgiAnsiToLgiCp(), Size);
 						if (Utf)
 						{
 							Insert(Cursor, Utf, StrlenW(Utf));

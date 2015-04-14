@@ -1337,7 +1337,7 @@ const char *LgiDetectCharset(const char *Utf8, int Len, List<char> *Prefs)
 {
 	const char *Status = "utf-8"; // The default..
 
-	GAutoWString Utf((char16*)LgiNewConvertCp("utf-16", Utf8, "utf-8", Len));
+	GAutoWString Utf((char16*)LgiNewConvertCp(LGI_WideCharset, Utf8, "utf-8", Len));
 	if (Utf)
 	{
 		if (Prefs)

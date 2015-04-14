@@ -2771,7 +2771,6 @@ void Test()
 	{
 		// So something with 'Buf'
 		Buf[r] = 0;
-		LgiTrace("Buf='%s'\n", Buf);
 	}
 }
 

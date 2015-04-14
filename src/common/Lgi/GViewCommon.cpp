@@ -1723,7 +1723,7 @@ bool GView::NameW(const char16 *n)
 		char16 *Txt = GBase::NameW();
 		if (IsWin9x)
 		{
-			char *Temp = (char*)LgiNewConvertCp(LgiAnsiToLgiCp(), n, "utf-16");
+			char *Temp = (char*)LgiNewConvertCp(LgiAnsiToLgiCp(), n, LGI_WideCharset);
 			if (Temp)
 			{
 				SetWindowText(_View, Temp);
