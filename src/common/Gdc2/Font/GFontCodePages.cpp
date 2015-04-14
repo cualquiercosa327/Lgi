@@ -755,7 +755,7 @@ int LgiByteLen(const void *p, const char *cp)
 {
 	if (p && cp)
 	{
-		if (stricmp(cp, "utf-16") == 0)
+		if (stricmp(cp, LGI_WideCharset) == 0)
 		{
 			return StrlenW((char16*)p) * sizeof(char16);
 		}
@@ -1066,7 +1066,7 @@ char16 *LgiNewUtf8To16(const char *In, int InLen)
 {
 	if (In)
 	{
-		return (char16*) LgiNewConvertCp("utf-16", In, "utf-8", InLen);
+		return (char16*) LgiNewConvertCp(LGI_WideCharset, In, "utf-8", InLen);
 	}
 
 	return 0;
@@ -1076,7 +1076,7 @@ char *LgiNewUtf16To8(const char16 *In, int InLen)
 {
 	if (In)
 	{
-		return (char*) LgiNewConvertCp("utf-8", In, "utf-16", InLen);
+		return (char*) LgiNewConvertCp("utf-8", In, LGI_WideCharset, InLen);
 	}
 
 	return 0;
@@ -1277,7 +1277,7 @@ const char *LgiDetectCharset(const char *Utf8, int Len, List<char> *Prefs)
 {
 	const char *Status = "utf-8"; // The default..
 
-	GAutoWString Utf((char16*)LgiNewConvertCp("utf-16", Utf8, "utf-8", Len));
+	GAutoWString Utf((char16*)LgiNewConvertCp(LGI_WideCharset, Utf8, "utf-8", Len));
 	if (Utf)
 	{
 		if (Prefs)
