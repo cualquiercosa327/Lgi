@@ -757,23 +757,6 @@ GCharset *LgiGetCpInfo(const char *Cs)
 
 /////////////////////////////////////////////////////////////////////////////
 // Utf-16 conversion
-int LgiByteLen(const void *p, const char *cp)
-{
-	if (p && cp)
-	{
-		if (stricmp(cp, "utf-16") == 0)
-		{
-			return StrlenW((char16*)p) * sizeof(char16);
-		}
-		else
-		{
-			return strlen((char*)p);
-		}
-	}
-
-	return 0;
-}
-
 int LgiCpToAnsi(char *cp)
 {
 	int Ansi = 0;
@@ -803,7 +786,21 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 
 			if (InLen < 0)
 			{
-				InLen = LgiByteLen(In, InCp);
+				switch (InInfo->Type)
+				{
+					case CpMapped:
+					case CpUtf8:
+					case CpIconv:
+						InLen = strlen((char*)In);
+						break;
+					case CpUtf16:
+					case CpWindowsDb:
+						InLen = StringLen((uint16*)In) << 1;
+						break;
+					case CpUtf32:
+						InLen = StringLen((uint32*)In) << 2;
+						break;
+				}
 			}
 
 			#ifdef WIN32
@@ -1044,7 +1041,21 @@ void *LgiNewConvertCp(const char *OutCp, const void *In, const char *InCp, int I
 		{
 			if (InLen < 0)
 			{
-				InLen = LgiByteLen(In, InCp);
+				switch (InInfo->Type)
+				{
+					case CpMapped:
+					case CpUtf8:
+					case CpIconv:
+						InLen = strlen((char*)In);
+						break;
+					case CpUtf16:
+					case CpWindowsDb:
+						InLen = StringLen((uint16*)In) << 1;
+						break;
+					case CpUtf32:
+						InLen = StringLen((uint32*)In) << 2;
+						break;
+				}
 			}
 
 			if (!stricmp(InCp, OutCp))

@@ -85,10 +85,6 @@ LgiFunc bool LgiIsCpImplemented(const char *Cp);
 /// \ingroup Text
 LgiFunc const char *LgiAnsiToLgiCp(int AnsiCodePage = -1);
 
-/// Calculate the byte length of a string
-/// \ingroup Text
-LgiFunc int LgiByteLen(const void *Str, const char *Cp);
-
 /// Calculate the number of characters in a string
 /// \ingroup Text
 LgiFunc int LgiCharLen(const void *Str, const char *Cp, int Bytes = -1);

@@ -430,21 +430,12 @@ bool LgiGetDriveInfo
 /****************************** Classes ***************************************/
 GVolume::GVolume()
 {
-	_Name = 0;
-	_Path = 0;
 	_Type = VT_NONE;
 	_Flags = 0;
 	_Size = 0;
 	_Free = 0;
 }
 
-GVolume::~GVolume()
-{
-	DeleteArray(_Name);
-	DeleteArray(_Path);
-}
-
-////////////////////////////////////////////////////////////////////////////////
 class GWin32Volume : public GVolume
 {
 	bool IsRoot;
@@ -454,7 +445,7 @@ public:
 	GWin32Volume(LgiSystemPath Type, char *Name)
 	{
 		IsRoot = Type == LSP_HOME;
-		_Name = NewStr(Name);
+		_Name = Name;
 		_Type = VT_FOLDER;
 
 		int Id = 0;
@@ -476,11 +467,11 @@ public:
 		char p[DIR_PATH_SIZE];
 		if (Id)
 		{
-			_Path = GetWindowsFolder(Id);
+			_Path = WinGetSpecialFolderPath(Id);
 		}
-		else if (LgiGetSystemPath(Type, p, sizeof(p)))
+		else
 		{
-			_Path = NewStr(p);
+			_Path = LgiGetSystemPath(Type);
 		}
 	}
 
@@ -495,7 +486,7 @@ public:
 			type != DRIVE_NO_ROOT_DIR)
 		{
 			char Buf[DIR_PATH_SIZE];
-			char *Desc = 0;
+			const char *Desc = 0;
 			switch (type)
 			{
 				case DRIVE_REMOVABLE:
@@ -507,22 +498,18 @@ public:
 					{
 						Desc = Buf;
 					}
-					else
-					{
-						// Desc = (char*)(Which > 1 ? "Removable" : "Floppy");
-					}
 					break;
 				}
 				case DRIVE_REMOTE:
-					Desc = (char*)"Network";
+					Desc = "Network";
 					_Type = VT_NETWORK_SHARE;
 					break;
 				case DRIVE_CDROM:
-					Desc = (char*)"Cdrom";
+					Desc = "Cdrom";
 					_Type = VT_CDROM;
 					break;
 				case DRIVE_RAMDISK:
-					Desc = (char*)"Ramdisk";
+					Desc = "Ramdisk";
 					_Type = VT_RAMDISK;
 					break;
 				case DRIVE_FIXED:
@@ -546,18 +533,16 @@ public:
 			{
 				char s[DIR_PATH_SIZE];
 				sprintf_s(s, sizeof(s), "%s (%.2s)", Desc, Drive);
-				_Name = NewStr(s);
+				_Name = s;
 			}
 			
-			_Path = NewStr(Drive);
+			_Path = Drive;
 		}
 	}
 
 	~GWin32Volume()
 	{
 		_Sub.DeleteObjects();
-		DeleteArray(_Name);
-		DeleteArray(_Path);
 	}
 
 	bool IsMounted()
@@ -610,7 +595,7 @@ public:
 	GDirectory *GetContents()
 	{
 		GDirectory *Dir = 0;
-		if (_Path)
+		if (_Path.Get())
 		{
 			if (Dir = new GDirectory)
 			{

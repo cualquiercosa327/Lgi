@@ -519,18 +519,10 @@ bool LgiGetDriveInfo
 /****************************** Classes *************************************************************************************/
 GVolume::GVolume()
 {
-	_Name = 0;
-	_Path = 0;
 	_Type = VT_NONE;
 	_Flags = 0;
 	_Size = 0;
 	_Free = 0;
-}
-
-GVolume::~GVolume()
-{
-	DeleteArray(_Name);
-	DeleteArray(_Path);
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -546,8 +538,6 @@ public:
 	GLinuxVolume(int w)
 	{
 		Which = w;
-		_Name = 0;
-		_Path = 0;
 		_Type = VT_NONE;
 		_Flags = 0;
 		_Size = 0;
@@ -555,14 +545,9 @@ public:
 
 		if (Which < 0)
 		{
-			_Name = NewStr("Desktop");
+			_Name = "Desktop";
 			_Type = VT_DESKTOP;
-
-			char s[256];
-			if (LgiGetSystemPath(LSP_DESKTOP, s, sizeof(s)))
-			{
-				_Path = NewStr(s);
-			}
+			_Path = LgiGetSystemPath(LSP_DESKTOP);
 		}
 	}
 
@@ -589,8 +574,8 @@ public:
 			GLinuxVolume *v = new GLinuxVolume(0);
 			if (v)
 			{
-				v->_Path = NewStr("/");
-				v->_Name = NewStr("Root");
+				v->_Path = "/";
+				v->_Name = "Root";
 				v->_Type = VT_HARDDISK;
 				_Sub.Insert(v);
 			}
@@ -601,8 +586,8 @@ public:
 				v = new GLinuxVolume(0);
 				if (v)
 				{
-					v->_Path = NewStr(pw->pw_dir);
-					v->_Name = NewStr("Home");
+					v->_Path = pw->pw_dir;
+					v->_Name = "Home";
 					v->_Type = VT_HARDDISK;
 					_Sub.Insert(v);
 				}
@@ -639,8 +624,8 @@ public:
 								if (v)
 								{
 									char *MountName = strrchr(Mount, '/');
-									v->_Name = NewStr(MountName ? MountName + 1 : Mount);
-									v->_Path = NewStr(Mount);
+									v->_Name = (MountName ? MountName + 1 : Mount);
+									v->_Path = Mount;
 									v->_Type = VT_HARDDISK;
 
 									char *Device = M[0];

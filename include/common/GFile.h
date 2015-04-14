@@ -195,8 +195,8 @@ class LgiClass GVolume
 	friend class GFileSystem;
 
 protected:
-	char *_Name;
-	char *_Path;
+	GString _Name;
+	GString _Path;
 	int _Type;			// VT_??
 	int _Flags;			// VA_??
 	int64 _Size;
@@ -204,7 +204,7 @@ protected:
 
 public:
 	GVolume();
-	virtual ~GVolume();
+	virtual ~GVolume() {}
 
 	char *Name() { return _Name; }
 	char *Path() { return _Path; }

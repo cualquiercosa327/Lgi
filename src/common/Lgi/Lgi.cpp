@@ -883,7 +883,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 			
 			if (!Path.Get())
 			{
-				GString MyDoc = GetWindowsFolder(CSIDL_MYDOCUMENTS);
+				GString MyDoc = WinGetSpecialFolderPath(CSIDL_MYDOCUMENTS);
 				if (MyDoc)
 				{
 					char Buf[MAX_PATH];
@@ -895,7 +895,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 
 			if (!Path.Get())
 			{
-				GString Profile = GetWindowsFolder(CSIDL_PROFILE);
+				GString Profile = WinGetSpecialFolderPath(CSIDL_PROFILE);
 				if (Profile)
 				{
 					char Buf[MAX_PATH];
@@ -916,7 +916,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 		{
 			#if defined(WIN32) && defined(_MSC_VER)
 
-			Path = GetWindowsFolder(CSIDL_PERSONAL);
+			Path = WinGetSpecialFolderPath(CSIDL_PERSONAL);
 
 			#else
 
@@ -930,7 +930,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 		{
 			#if defined WIN32
 
-			Path = GetWindowsFolder(CSIDL_MYMUSIC);
+			Path = WinGetSpecialFolderPath(CSIDL_MYMUSIC);
 			
 			#elif defined MAC && !defined COCOA
 			
@@ -956,7 +956,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 		{
 			#if defined WIN32
 
-			Path = GetWindowsFolder(CSIDL_MYVIDEO);
+			Path = WinGetSpecialFolderPath(CSIDL_MYVIDEO);
 
 			#elif defined MAC && !defined COCOA
 
@@ -981,7 +981,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 		case LSP_USER_APPS:
 		{
 			#if defined WIN32
-			Path = GetWindowsFolder(
+			Path = WinGetSpecialFolderPath(
 				#ifdef WIN64
 				CSIDL_PROGRAM_FILES
 				#else
@@ -1050,7 +1050,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 					Path = Base.Get();
 				}
 			#elif defined WIN32
-				Path = GetWindowsFolder(CSIDL_APPDATA);
+				Path = WinGetSpecialFolderPath(CSIDL_APPDATA);
 			#elif defined LINUX
 				char Dot[128];
 				snprintf(Dot, sizeof(Dot), ".%s", Name);
@@ -1156,7 +1156,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 		{
 			#if defined WIN32
 
-			Path = GetWindowsFolder(CSIDL_COMMON_APPDATA);
+			Path = WinGetSpecialFolderPath(CSIDL_COMMON_APPDATA);
 			
 			#elif defined MAC && !defined COCOA
 			
@@ -1185,7 +1185,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 		{
 			#if defined WIN32
 			
-			Path = GetWindowsFolder(CSIDL_APPDATA);
+			Path = WinGetSpecialFolderPath(CSIDL_APPDATA);
 
 			#elif defined MAC && !defined COCOA
 			
@@ -1210,7 +1210,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 		{
 			#if defined WIN32
 			
-			Path = GetWindowsFolder(CSIDL_LOCAL_APPDATA);
+			Path = WinGetSpecialFolderPath(CSIDL_LOCAL_APPDATA);
 			
 			#else
 			LgiAssert(!"Impl me.");
@@ -1221,7 +1221,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 		{
 			#if defined(WINDOWS) && defined(_MSC_VER)
 
-			Path = GetWindowsFolder(CSIDL_DESKTOPDIRECTORY);
+			Path = WinGetSpecialFolderPath(CSIDL_DESKTOPDIRECTORY);
 			
 			#elif defined MAC && !defined COCOA
 			
@@ -1265,7 +1265,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 			#define CSIDL_PROFILE 0x0028
 			#endif 
 
-			Path = GetWindowsFolder(CSIDL_PROFILE);
+			Path = WinGetSpecialFolderPath(CSIDL_PROFILE);
 
 			#elif defined POSIX
 

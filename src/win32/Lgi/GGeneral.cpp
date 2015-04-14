@@ -838,7 +838,7 @@ bool GRegKey::GetValueNames(List<char> &n)
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
-GString GetWindowsFolder(int Id)
+GString WinGetSpecialFolderPath(int Id)
 {
 	GLibrary Shell("Shell32");
 	GString s;

@@ -565,9 +565,9 @@ LgiFunc int stricmp(const char *a, const char *b);
 #else
 LgiFunc class GViewI *GWindowFromHandle(OsView hWnd);
 LgiFunc int GetMouseWheelLines();
-LgiFunc int WinPointToHeight(int Pt);
-LgiFunc int WinHeightToPoint(int Ht);
-LgiFunc char *GetWindowsFolder(int Id);
+LgiFunc int WinPointToHeight(int Pt, HDC hDC = NULL);
+LgiFunc int WinHeightToPoint(int Ht, HDC hDC = NULL);
+LgiExtern class GString WinGetSpecialFolderPath(int Id);
 
 typedef BOOL (__stdcall *pSHGetSpecialFolderPathA)(HWND hwndOwner, LPSTR lpszPath, int nFolder, BOOL fCreate);
 typedef BOOL (__stdcall *pSHGetSpecialFolderPathW)(HWND hwndOwner, LPWSTR lpszPath, int nFolder, BOOL fCreate);

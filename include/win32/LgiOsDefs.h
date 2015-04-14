@@ -278,7 +278,7 @@ LgiFunc class GViewI *GWindowFromHandle(OsView hWnd);
 LgiFunc int GetMouseWheelLines();
 LgiFunc int WinPointToHeight(int Pt, HDC hDC = NULL);
 LgiFunc int WinHeightToPoint(int Ht, HDC hDC = NULL);
-LgiExtern class GString GetWindowsFolder(int Id);
+LgiExtern class GString WinGetSpecialFolderPath(int Id);
 
 /// Convert a string d'n'd format to an OS dependant integer.
 LgiFunc int FormatToInt(char *s);
