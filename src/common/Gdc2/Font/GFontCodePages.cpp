@@ -807,7 +807,7 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 			}
 
 			#ifdef WIN32
-			if (InInfo->Type == CpWindowsDb && OutInfo->Type == CpWide)
+			if (InInfo->Type == CpWindowsDb && OutInfo->Type == CpUtf16)
 			{
 				// mb -> unicode
 				char Cp[32];
@@ -830,7 +830,7 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 				}
 				return (NativeInt)Out-(NativeInt)Start;
 			}
-			else if (InInfo->Type == CpWide && OutInfo->Type == CpWindowsDb)
+			else if (InInfo->Type == CpUtf16 && OutInfo->Type == CpWindowsDb)
 			{
 				// unicode -> mb
 				char Cp[32];

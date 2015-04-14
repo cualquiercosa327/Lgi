@@ -800,10 +800,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 GString LgiGetSystemPath(LgiSystemPath Which)
 {
 	GFile::Path p;
-	if (!p.GetSystem(Which))
-		return GString();
-	
-	return p.GetFull();
+	return p.GetSystem(Which);
 }
 
 GString GFile::Path::GetSystem(LgiSystemPath Which)
