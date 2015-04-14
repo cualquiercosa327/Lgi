@@ -698,11 +698,15 @@ int GDisplayString::CharAt(int Px)
 	{
 		UniCharArrayOffset Off = 0, Off2 = 0;
 		Boolean IsLeading;
+		
+		#if 0
+		CTLineGetStringIndexForPosition
+		#else
 		OSStatus e = ATSUPositionToOffset(Hnd, FloatToFixed(Px), FloatToFixed(y / 2), &Off, &IsLeading, &Off2);
 		if (e) printf("%s:%i - ATSUPositionToOffset failed with %i, CharAt(%i) x=%i len=%i\n", _FL, (int)e, Px, x, len);
 		else
+		#endif
 		{
-			// printf("CharAt(%i) off=%i,%i Leading=%i x=%i len=%i\n", Px, Off, Off2, IsLeading, x, len);
 			Status = Off;
 		}
 	}

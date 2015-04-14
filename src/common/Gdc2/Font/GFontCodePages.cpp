@@ -800,6 +800,9 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 					case CpUtf32:
 						InLen = StringLen((uint32*)In) << 2;
 						break;
+					default:
+						LgiAssert(0);
+						return 0;
 				}
 			}
 
@@ -1055,6 +1058,9 @@ void *LgiNewConvertCp(const char *OutCp, const void *In, const char *InCp, int I
 					case CpUtf32:
 						InLen = StringLen((uint32*)In) << 2;
 						break;
+					default:
+						LgiAssert(0);
+						return NULL;
 				}
 			}
 

@@ -456,18 +456,10 @@ bool LgiGetDriveInfo
 /****************************** Classes *************************************************************************************/
 GVolume::GVolume()
 {
-	_Name = 0;
-	_Path = 0;
 	_Type = VT_NONE;
 	_Flags = 0;
 	_Size = 0;
 	_Free = 0;
-}
-
-GVolume::~GVolume()
-{
-	DeleteArray(_Name);
-	DeleteArray(_Path);
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -483,8 +475,6 @@ public:
 	GMacVolume(int w)
 	{
 		Which = w;
-		_Name = 0;
-		_Path = 0;
 		_Type = VT_NONE;
 		_Flags = 0;
 		_Size = 0;
@@ -492,13 +482,9 @@ public:
 
 		if (Which < 0)
 		{
-			_Name = NewStr("Desktop");
-
-			char p[256];
-			if (LgiGetSystemPath(LSP_DESKTOP, p, sizeof(p)))
-			{
-				_Path = NewStr(p);
-			}
+			_Name = "Desktop";
+			_Type = VT_DESKTOP;
+			_Path = LgiGetSystemPath(LSP_DESKTOP);
 		}
 	}
 	
@@ -531,8 +517,8 @@ public:
 			GMacVolume *v = new GMacVolume(0);
 			if (v)
 			{
-				v->_Path = NewStr("/");
-				v->_Name = NewStr("Root");
+				v->_Path = "/";
+				v->_Name = "Root";
 				v->_Type = VT_HARDDISK;
 				_Sub.Insert(v);
 			}
@@ -543,8 +529,8 @@ public:
 				v = new GMacVolume(0);
 				if (v)
 				{
-					v->_Path = NewStr(pw->pw_dir);
-					v->_Name = NewStr("Home");
+					v->_Path = pw->pw_dir;
+					v->_Name = "Home";
 					v->_Type = VT_HARDDISK;
 					_Sub.Insert(v);
 				}
