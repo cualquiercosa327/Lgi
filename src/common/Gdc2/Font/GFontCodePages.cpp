@@ -1107,22 +1107,18 @@ void *LgiNewConvertCp(const char *OutCp, const void *In, const char *InCp, int I
 
 char16 *LgiNewUtf8To16(const char *In, int InLen)
 {
-	if (In)
-	{
-		return (char16*) LgiNewConvertCp("utf-16", In, "utf-8", InLen);
-	}
+	if (!In)
+		return NULL;
 
-	return 0;
+	return (char16*) LgiNewConvertCp(LGI_WideCharset, In, "utf-8", InLen);
 }
 
 char *LgiNewUtf16To8(const char16 *In, int InLen)
 {
-	if (In)
-	{
-		return (char*) LgiNewConvertCp("utf-8", In, "utf-16", InLen);
-	}
+	if (!In)
+		return NULL;
 
-	return 0;
+	return (char*) LgiNewConvertCp("utf-8", In, LGI_WideCharset, InLen);
 }
 
 int LgiCharLen(const void *Str, const char *Cp, int Bytes)
