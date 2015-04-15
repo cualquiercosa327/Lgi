@@ -90,14 +90,21 @@ public:
 	}
 	
 	/// String constructor
-	GString(const char *str, int len = -1)
+	GString(const char *str, int len)
 	{
 		Str = NULL;
 		Set(str, len);
 	}
 
+	/// const char* constructor
+	GString(const char *str)
+	{
+		Str = NULL;
+		Set(str);
+	}
+
 	/// GString constructor
-	GString(GString &s)
+	GString(const GString &s)
 	{
 		Str = s.Str;
 		if (Str)
