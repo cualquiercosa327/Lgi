@@ -3514,6 +3514,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 						PlatformCap);
 				#ifdef LINUX
 				m.Print(" -D_FILE_OFFSET_BITS=64"); // >:-(
+				m.Print(" -DPOSIX");
 				#endif
 			}
 			

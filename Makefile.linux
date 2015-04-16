@@ -15,7 +15,7 @@ endif
 BuildDir = $(Build)
 
 Flags = -fPIC -w -fno-inline -fpermissive
-Defs = -DLINUX -D_REENTRANT -D_FILE_OFFSET_BITS=64 -DLGI_LIBRARY -DHAS_FILE_CMD=1
+Defs = -DLINUX -D_REENTRANT -D_FILE_OFFSET_BITS=64 -DPOSIX -DLGI_LIBRARY -DHAS_FILE_CMD=1
 
 ifeq ($(Build),Debug)
 	Defs += -D_DEBUG
@@ -1099,7 +1099,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ./include/common/LgiCommon.h : ./include/common/GMem.h \
 	./include/common/GArray.h \
-	./include/common/LgiClass.h
+	./include/common/LgiClass.h \
+	./include/common/GStringClass.h
 
 ./include/common/GArray.h : ./include/common/LgiDefs.h
 
@@ -1263,7 +1264,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 ./include/common/GFile.h : ./include/common/GMem.h \
 	./include/common/GStream.h \
 	./include/common/GArray.h \
-	./include/common/GRefCount.h
+	./include/common/GRefCount.h \
+	./include/common/GStringClass.h
 
 ./include/common/GDisplayString.h : /usr/include/pango-1.0/pango/pango.h \
 	/usr/include/pango-1.0/pango/pangocairo.h
@@ -1322,7 +1324,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ./include/common/LgiCommon.h : ./include/common/GMem.h \
 	./include/common/GArray.h \
-	./include/common/LgiClass.h
+	./include/common/LgiClass.h \
+	./include/common/GStringClass.h
 
 ./include/common/GToolBar.h : ./include/common/GImageList.h
 
@@ -1411,7 +1414,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 	/usr/include/glib-2.0/glib/gmacros.h \
 	/usr/include/glib-2.0/glib/gversionmacros.h
 
-./include/common/GStream.h : ./include/common/GDom.h
+./include/common/GStream.h : ./include/common/GDom.h \
+	./include/common/GStringClass.h
 
 ./include/common/Base64.h : ./include/common/LgiDefs.h
 
@@ -1500,7 +1504,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/pango-1.0/pango/pango-enum-types.h : /usr/include/glib-2.0/glib-object.h
 
-./include/common/GStream.h : ./include/common/GDom.h
+./include/common/GStream.h : ./include/common/GDom.h \
+	./include/common/GStringClass.h
 
 ../../../../../usr/include/glib-2.0/glib/deprecated/gcache.h : /usr/include/glib-2.0/glib/glist.h
 
@@ -1988,7 +1993,10 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/glib-2.0/gio/gsimpleasyncresult.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../../../../../usr/include/glib-2.0/gio/gdbusobjectmanagerserver.h : /usr/include/glib-2.0/gio/giotypes.h
+./include/common/GStringClass.h : ./include/common/GUtf8.h \
+	./include/common/GString.h
+
+./include/common/GUtf8.h : 
 
 ./include/common/GMem.h : ./include/common/LgiInc.h \
 	./include/linux/Gtk/LgiOsDefs.h
@@ -2033,6 +2041,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 	./include/common/GDom.h
 
 ../../../../../usr/include/glib-2.0/glib/garray.h : /usr/include/glib-2.0/glib/gtypes.h
+
+../../../../../usr/include/glib-2.0/gio/gdbusobjectmanagerserver.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../usr/include/glib-2.0/gio/gcredentials.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -2689,7 +2699,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ./include/common/GUtf8.h : 
 
-./include/common/GStringClass.h : ./include/common/GUtf8.h
+./include/common/GStringClass.h : ./include/common/GUtf8.h \
+	./include/common/GString.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkcelllayout.h : /usr/include/gtk-2.0/gtk/gtkcellrenderer.h \
 	/usr/include/gtk-2.0/gtk/gtktreeviewcolumn.h \
@@ -2793,7 +2804,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 ./include/common/GFile.h : ./include/common/GMem.h \
 	./include/common/GStream.h \
 	./include/common/GArray.h \
-	./include/common/GRefCount.h
+	./include/common/GRefCount.h \
+	./include/common/GStringClass.h
 
 ./include/common/GMutex.h : 
 
@@ -2874,8 +2886,6 @@ md5.o : ./src/common/Hash/md5/md5.c
 ../../../../../usr/include/gtk-2.0/gtk/gtkeventbox.h : /usr/include/gtk-2.0/gtk/gtkbin.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkversion.h : 
-
-./include/common/GUtf8.h : 
 
 ../../../../../usr/include/gtk-2.0/gtk/gtktooltips.h : /usr/include/gtk-2.0/gtk/gtkwidget.h \
 	/usr/include/gtk-2.0/gtk/gtkwindow.h
