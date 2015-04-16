@@ -359,7 +359,7 @@ public:
 		{
 			if (stristr(mi->Shortcut(), Text))
 			{
-				if (r = new Result(App, mi->GetStr(), InLang))
+				if ((r = new Result(App, mi->GetStr(), InLang)))
 				{
 					r->Menu = mi;
 					return r;

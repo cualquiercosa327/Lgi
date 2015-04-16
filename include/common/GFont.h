@@ -127,38 +127,38 @@ public:
 	/// Turns glyph substitution on or off
 	void SubGlyphs(bool i);
 
-	/// Get the font face
+	/// \returns the font face
 	char *Face();
-	/// Get the point size
+	/// \returns the point size
 	int PointSize();
-	/// Gets the tabsize in pixels
+	/// \returns the tabsize in pixels
 	int TabSize();
-	/// Gets the quality setting
+	/// \returns the quality setting
 	int Quality();
-	/// Gets the foreground colour in 24bit RGB.
+	/// \returns the foreground colour.
 	GColour Fore();
-	/// Gets the background colour in 24bit RGB.
+	/// \returns the background colour.
 	GColour Back();
-	/// Returns the font weight.
+	/// \returns the font weight.
 	int GetWeight();
-	/// Returns true if this is a bold font.
+	/// \returns true if this is a bold font.
 	bool Bold() { return GetWeight() >= FW_BOLD; }
-	/// Returns true if this is a italic font.
+	/// \returns true if this is a italic font.
 	bool Italic();
-	/// Returns true if this font is drawn with an underline.
+	/// \returns true if this font is drawn with an underline.
 	bool Underline();
-	/// Returns true if no background will be drawn.
+	/// \returns true if no background will be drawn.
 	bool Transparent();
-	/// Returns true if glyph substitution will be done.
+	/// \returns true if glyph substitution will be done.
 	bool SubGlyphs();
-	/// Returns the amount of space above the baseline.
+	/// \returns the amount of space above the baseline.
 	double Ascent();
-	/// Returns the amount of space below the baseline.
+	/// \returns the amount of space below the baseline.
 	double Descent();
-	/// Returns the amount of normally unused space at the top of the Ascent.
+	/// \returns the amount of normally unused space at the top of the Ascent.
 	double Leading();
 
-	/// /returns true if the font types are the same
+	/// \returns true if the font types are the same
 	bool operator ==(GTypeFace &t);
 
 	/// Set the foreground and background in 24-bit colour.

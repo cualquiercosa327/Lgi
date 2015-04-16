@@ -3851,7 +3851,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 		#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 		if (Debug)
 		{
-			int asd=0;
+			//int asd=0;
 		}
 		#endif
 		Cell->Cells = new GHtmlTableLayout(this);
@@ -4887,7 +4887,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 	#ifdef _DEBUG
 	if (Debug)
 	{
-		int asd=0;
+		//int asd=0;
 	}
 	#endif
 	
@@ -5028,7 +5028,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 		}
 	}
 
-	int OldFlowMy = Flow->my;
+	// int OldFlowMy = Flow->my;
 	if (Disp == DispBlock || Disp == DispInlineBlock)
 	{
 		// This is a block level element, so end the previous non-block elements
@@ -5671,7 +5671,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 	#ifdef _DEBUG
 	if (Debug)
 	{
-		int asd=0;
+		//int asd=0;
 	}
 	#endif
 	

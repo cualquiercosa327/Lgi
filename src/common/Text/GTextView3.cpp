@@ -354,20 +354,13 @@ GTextView3::GTextView3(	int Id,
 	{
 		GFontType Type;
 		if (Type.GetSystemFont("Fixed"))
-		{
 			Font = Type.Create();
-		}
-		else printf("%s:%i - failed to create font.\n", __FILE__, __LINE__);
+		else
+			printf("%s:%i - failed to create font.\n", _FL);
 	}
-	if (!Font)
-	{
-		LgiTrace("%s:%i - Failed to create font, FontType=%p\n", _FL, FontType);
-		Font = SysFont;
-	}
+
 	if (Font)
 	{
-		// Font->PointSize(Font->PointSize() + 2);
-
 		SetTabStop(true);
 
 		Underline = new GFont;
@@ -381,6 +374,11 @@ GTextView3::GTextView3(	int Id,
 		}
 
 		OnFontChange();
+	}
+	else
+	{
+		LgiTrace("%s:%i - Failed to create font, FontType=%p\n", _FL, FontType);
+		Font = SysFont;
 	}
 
 	CursorPos.ZOff(1, LineY-1);

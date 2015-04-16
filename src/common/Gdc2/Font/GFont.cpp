@@ -513,31 +513,7 @@ void GFont::_OnPropChange(bool FontChange)
 {
 	if (FontChange)
 	{
-		#if defined WIN32
-		if (d->hFont)
-		{
-			/*
-			if (this == SysFont)
-			{
-				LgiAssert(0);
-			}
-			*/
-
-			DeleteObject(d->hFont);
-			d->hFont = 0;
-		}
-		#elif defined BEOS
-		if (this == SysFont)
-		{
-			LgiAssert(0);
-		}
-		else
-		{
-			Create(0, 0, 0);
-		}
-		#else
-		d->Dirty = true;
-		#endif
+		Destroy();
 	}
 }
 
@@ -1071,23 +1047,12 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 	
 	OSStatus e;
 
-	#if 0
-
-	e = MakeThemeATSUIStyle(kThemeApplicationFont, &d->hFont);
-	if (e) printf("%s:%i - MakeThemeATSUIStyle failed with %i\n", _FL, e);
-	else return true;
-
-	#else
-
 	if (this == SysFont)
-	{
-		printf("%s:%i - WARNING: you are re-creating the system font... this is bad!!!!\n", __FILE__, __LINE__);
-	}
+		printf("%s:%i - WARNING: you are re-creating the system font... this is bad!!!!\n", _FL);
 
 	if (Face() && !(e = ATSUCreateStyle(&d->hFont)))
 	{
 		// Lookup ID
-		#if 1
 		if (!Face())
 		{
 			LgiAssert(!"No font face");
@@ -1101,25 +1066,14 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 														kCFStringEncodingUTF8,
 														false);
 		if (!fontName)
-		{
-			// printf("%s:%i - Couldn't create cfstr from '%s'\n", _FL, Face());
 			return false;
-		}
 		
 		ATSFontRef atsFont = ATSFontFindFromName(fontName, kATSOptionFlagsDefault);
 		CFRelease(fontName);
-		ATSUFontID font = (ATSUFontID)atsFont; // FMGetFontFromATSFontRef
-		#else
-		ATSUFontID font = 0;
-		e = ATSUFindFontFromName(Face(),
-								strlen(Face()),
-								kFontFamilyName,
-								(FontPlatformCode)kFontNoPlatform,
-								(FontScriptCode)kFontNoScript,
-								(FontLanguageCode)kFontNoLanguage,
-								&font);
-		#endif
-		if (!e)
+		ATSUFontID font = (ATSUFontID)atsFont;
+		if (e)
+			printf("%s:%i - Error getting font id (e=%i)\n", _FL, (int)e);
+		else
 		{
 			Fixed Size;
 			Size = PointSize() << 16;
@@ -1142,18 +1096,12 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 				return true;
 			}
 		}
-		else
-		{
-			printf("%s:%i - Error getting font id (e=%i)\n", __FILE__, __LINE__, (int)e);
-		}
 	}
 	else
 	{
-		printf("%s:%i - Error creating font (e=%i)\n", __FILE__, __LINE__, (int)e);
+		printf("%s:%i - Error creating font (e=%i)\n", _FL, (int)e);
 	}
 	
-	#endif
-
 	#endif
 
 	return false;

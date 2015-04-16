@@ -28,6 +28,7 @@ class LgiClass GDisplayString
 	OsChar *Str;
 	GFont *Font;
 	uint32 x, y, len;
+	int xf, yf;
 	uint16 TabOrigin;
 	
 	// Flags
@@ -138,6 +139,12 @@ public:
 	void Size(int *x, int *y);
 	/// Returns the number of characters that fit in 'x' pixels.
 	int CharAt(int x);
+
+	// Fractional sizes
+	static int Fraction;
+	int Xf(); // Width
+	int Yf(); // Height
+	int SizeF(int *x, int *y);
 
 	/// Draws the string onto a device surface
 	void Draw

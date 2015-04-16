@@ -47,6 +47,15 @@ bool StringConvert(Out *&out, uint32 *OutLen, const In *in, int InLen)
 #define IsTabChar(c)				(c == '\t' || (c == 0x2192 && VisibleTab))
 
 static OsChar GDisplayStringDots[] = {'.', '.', '.', 0};
+int GDisplayString::Fraction =
+#if defined __GTK_H__
+	PANGO_SCALE
+#elif defined MAC
+	0x10000
+#else
+	1
+#endif
+	;
 
 GDisplayString::GDisplayString(GFont *f, const char *s, int l, GSurface *pdc)
 {
@@ -63,6 +72,8 @@ GDisplayString::GDisplayString(GFont *f, const char *s, int l, GSurface *pdc)
 	#endif
 	
 	x = y = 0;
+	xf = 0;
+	yf = 0;
 	TabOrigin = 0;
 	LaidOut = 0;
 	AppendDots = 0;
@@ -108,6 +119,8 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc)
 	#endif
 	
 	x = y = 0;
+	xf = 0;
+	yf = 0;
 	TabOrigin = 0;
 	LaidOut = 0;
 	AppendDots = 0;
@@ -194,12 +207,9 @@ void GDisplayString::Layout()
 	}
 	
 	Gtk::pango_layout_set_text(Hnd, Str, len);
-	
-	int px, py;
-	Gtk::pango_layout_get_size(Hnd, &px, &py);
-	
-	x = (px + PANGO_SCALE - 1) / PANGO_SCALE;
-	y = (py + PANGO_SCALE - 1) / PANGO_SCALE;
+	Gtk::pango_layout_get_size(Hnd, &xf, &yf);
+	x = (xf + PANGO_SCALE - 1) / PANGO_SCALE;
+	y = (yf + PANGO_SCALE - 1) / PANGO_SCALE;
 	
 	#elif defined MAC && !defined COCOA
 	
@@ -265,8 +275,10 @@ void GDisplayString::Layout()
 		return;
 	}
 
-	x = (fTextAfter - fTextBefore + 0xffff) >> 16;
-	y = (fAscent + fDescent) >> 16;
+	xf = fTextAfter - fTextBefore;
+	yf = fAscent + fDescent;
+	x = (xf + 0xffff) >> 16;
+	y = (yf + 0xffff) >> 16;
 	ATSUSetTransientFontMatching(Hnd, true);
 	
 	#elif defined WINNATIVE
@@ -382,6 +394,9 @@ void GDisplayString::Layout()
 			Info.Length(Info.Length()-1);
 		}
 	}
+	
+	xf = x;
+	yf = y;
 	
 	#elif defined BEOS
 	
@@ -587,10 +602,36 @@ int GDisplayString::X()
 	return x;
 }
 
+int GDisplayString::Xf()
+{
+    Layout();
+	return xf;
+}
+
 int GDisplayString::Y()
 {
     Layout();
 	return y;
+}
+
+int GDisplayString::Yf()
+{
+    Layout();
+	return y;
+}
+
+void GDisplayString::Size(int *sx, int *sy)
+{
+    Layout();
+	if (sx) *sx = x;
+	if (sy) *sy = y;
+}
+
+int GDisplayString::SizeF(int *sx, int *sy)
+{
+    Layout();
+	if (sx) *sx = xf;
+	if (sy) *sy = yf;
 }
 
 int GDisplayString::Length()
@@ -658,13 +699,6 @@ void GDisplayString::Length(int New)
 	}
 
 	#endif
-}
-
-void GDisplayString::Size(int *sx, int *sy)
-{
-    Layout();
-	if (sx) *sx = x;
-	if (sy) *sy = y;
 }
 
 int GDisplayString::CharAt(int Px)
@@ -1050,7 +1084,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 
 				if (pDC->IsScreen())
 				{
-					CGContextSaveGState(pDC->Handle());
+					CGContextSaveGState(dc);
 
 					if (r)
 					{
@@ -1058,39 +1092,33 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 						// rect.origin.y -= rect.size.height;
 						rect.size.width += 1.0;
 						rect.size.height += 1.0;
-						#if 1
-						CGContextClipToRect(pDC->Handle(), rect);
-						#else
-						CGContextSetLineWidth(pDC->Handle(), 1.0);
-						CGContextStrokeRect(pDC->Handle(), rect);
-						#endif
+						CGContextClipToRect(dc, rect);
 					}
-					CGContextTranslateCTM(pDC->Handle(), 0, pDC->Y()-1);
-					CGContextScaleCTM(pDC->Handle(), 1.0, -1.0);
+					CGContextTranslateCTM(dc, 0, pDC->Y()-1);
+					CGContextScaleCTM(dc, 1.0, -1.0);
 
 					e = ATSUDrawText(Hnd, kATSUFromTextBeginning, kATSUToTextEnd, Long2Fix(px - Ox), Long2Fix(y) - fAscent);
 
-					CGContextRestoreGState(pDC->Handle());
+					CGContextRestoreGState(dc);
 				}
 				else
 				{
 					if (r)
 					{
-						CGContextSaveGState(pDC->Handle());
+						CGContextSaveGState(dc);
 						
 						CGRect rect = *r;
 						rect.origin.x -= Ox;
 						rect.origin.y = pDC->Y() - rect.origin.y + Oy - rect.size.height;
 						rect.size.width += 1.0;
 						rect.size.height += 1.0;
-						CGContextClipToRect(pDC->Handle(), rect);
-						// CGContextStrokeRect(pDC->Handle(), rect);
+						CGContextClipToRect(dc, rect);
 					}
 					
 					e = ATSUDrawText(Hnd, kATSUFromTextBeginning, kATSUToTextEnd, Long2Fix(px - Ox), Long2Fix(y) - fAscent);
 					
 					if (r)
-						CGContextRestoreGState(pDC->Handle());
+						CGContextRestoreGState(dc);
 				}
 				if (e)
 				{
