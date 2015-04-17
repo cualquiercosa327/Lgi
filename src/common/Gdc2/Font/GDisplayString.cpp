@@ -1162,10 +1162,17 @@ void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc)
 								(double)b.g()/255.0,
 								(double)b.b()/255.0);
 
-	if (!Font->Transparent() && r)
+	if (!Font->Transparent() && frc)
 	{
 		Gtk::cairo_new_path(cr);
-		Gtk::cairo_rectangle(cr, r->x1 - Ox, r->y1 - Oy, r->X(), r->Y());
+		Gtk::cairo_rectangle
+		(
+			cr,
+			((double)frc->x1 / Scale) - Ox,
+			((double)frc->y1 / Scale) - Oy,
+			(double)frc->X() / Scale,
+			(double)frc->Y() / Scale
+		);
 		Gtk::cairo_fill(cr);
 	}
 
@@ -1176,7 +1183,7 @@ void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc)
 		((double)fy/Scale)-Oy
 	);
 	
-	if (!Font->Transparent() && !r)
+	if (!Font->Transparent() && !frc)
 	{
 		Gtk::cairo_new_path(cr);
 		Gtk::cairo_rectangle(cr, 0, 0, x, y);
