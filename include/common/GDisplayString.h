@@ -131,33 +131,54 @@ public:
 	/// Returns the pointer to the native string
 	operator const OsChar*() { return Str; }
 
-	/// Returns the width of the whole string
-	int X();
-	/// Returns the height of the whole string
-	int Y();
-	/// Returns the width and height of the whole string
-	void Size(int *x, int *y);
-	/// Returns the number of characters that fit in 'x' pixels.
-	int CharAt(int x);
+	// API that use full pixel sizes:
 
-	// Fractional sizes
-	static int Fraction;
-	int Xf(); // Width
-	int Yf(); // Height
-	int SizeF(int *x, int *y);
+		/// Returns the width of the whole string
+		int X();
+		/// Returns the height of the whole string
+		int Y();
+		/// Returns the width and height of the whole string
+		GdcPt2 Size();
+		/// Returns the number of characters that fit in 'x' pixels.
+		int CharAt(int x);
 
-	/// Draws the string onto a device surface
-	void Draw
-	(
-		/// The output device
-		GSurface *pDC,
-		/// The x coordinate of the top left corner of the output box
-		int x,
-		/// The y coordinate of the top left corner of the output box
-		int y,
-		/// An optional clipping rectangle. If the font is not transparent this rectangle will be filled with the background colour.
-		GRect *r = 0
-	);
+		/// Draws the string onto a device surface
+		void Draw
+		(
+			/// The output device
+			GSurface *pDC,
+			/// The x coordinate of the top left corner of the output box
+			int x,
+			/// The y coordinate of the top left corner of the output box
+			int y,
+			/// An optional clipping rectangle. If the font is not transparent this rectangle will be filled with the background colour.
+			GRect *r = NULL
+		);
+
+	// API that uses fractional pixel sizes.
+		
+		/// This is the value for 1 pixel.
+		static const int Scale;
+		
+		/// \returns the fractional width of the string
+		int FX();
+		/// \returns the fractional height of the string
+		int FY();
+		/// \returns both the fractional width and height of the string
+		GdcPt2 FSize();
+		/// Draws the string using fractional co-ordinates.
+		void FDraw
+		(
+			/// The output device
+			GSurface *pDC,
+			/// The fractional x coordinate of the top left corner of the output box
+			int fx,
+			/// The fractional y coordinate of the top left corner of the output box
+			int fy,
+			/// [Optional] fractional clipping rectangle. If the font is not transparent 
+			/// this rectangle will be filled with the background colour.
+			GRect *frc = NULL
+		);
 };
 
 #endif

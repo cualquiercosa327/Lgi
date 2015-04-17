@@ -18,6 +18,12 @@
 
 #define DEBUG_CHAR_AT				0
 
+#if defined(__GTK_H__) || (defined(MAC) && !defined(COCOA))
+#define DISPLAY_STRING_FRACTIONAL_NATIVE	1
+#else
+#define DISPLAY_STRING_FRACTIONAL_NATIVE	0
+#endif
+
 template<typename Out, typename In>
 bool StringConvert(Out *&out, uint32 *OutLen, const In *in, int InLen)
 {
@@ -47,7 +53,7 @@ bool StringConvert(Out *&out, uint32 *OutLen, const In *in, int InLen)
 #define IsTabChar(c)				(c == '\t' || (c == 0x2192 && VisibleTab))
 
 static OsChar GDisplayStringDots[] = {'.', '.', '.', 0};
-int GDisplayString::Fraction =
+const int GDisplayString::Scale =
 #if defined __GTK_H__
 	PANGO_SCALE
 #elif defined MAC
@@ -596,111 +602,6 @@ void GDisplayString::TruncateWithDots(int Width)
 	#endif
 }
 
-int GDisplayString::X()
-{
-    Layout();
-	return x;
-}
-
-int GDisplayString::Xf()
-{
-    Layout();
-	return xf;
-}
-
-int GDisplayString::Y()
-{
-    Layout();
-	return y;
-}
-
-int GDisplayString::Yf()
-{
-    Layout();
-	return y;
-}
-
-void GDisplayString::Size(int *sx, int *sy)
-{
-    Layout();
-	if (sx) *sx = x;
-	if (sy) *sy = y;
-}
-
-int GDisplayString::SizeF(int *sx, int *sy)
-{
-    Layout();
-	if (sx) *sx = xf;
-	if (sy) *sy = yf;
-}
-
-int GDisplayString::Length()
-{
-	return len;
-}
-
-void GDisplayString::Length(int New)
-{
-    Layout();
-
-	#if WINNATIVE
-	
-	if (New < len)
-	{
-		GFontSystem *Sys = GFontSystem::Inst();
-		
-		int CurX = 0;
-		int CurLen = 0;
-		for (int i=0; i<Info.Length(); i++)
-		{
-			// Is the cut point in this block?
-			if (New >= CurLen && New < CurLen + Info[i].Len )
-			{
-				// In this block
-				int Offset = New - CurLen;
-				Info[i].Len = Offset;
-				Info[i].Str[Info[i].Len] = 0;
-
-				// Get the font for this block of characters
-				GFont *f = 0;
-				if (Info[i].FontId)
-				{
-					f = Sys->Font[Info[i].FontId];
-					f->PointSize(Font->PointSize());
-					f->Transparent(Font->Transparent());
-					if (!f->Handle())
-					{
-						f->Create();
-					}
-				}
-				else
-				{
-					f = Font;
-				}
-
-				// Chop the current block and re-measure
-				int ChoppedX, Unused;
-				f->_Measure(ChoppedX, Unused, Info[i].Str, Info[i].Len);
-				Info[i].X = ChoppedX;
-				x = CurX + Info[i].X;
-				Info.Length(i + 1);
-				
-				// Leave the loop
-				break;
-			}
-			
-			CurX += Info[i].X;
-			CurLen += Info[i].Len;
-		}
-	}
-	else
-	{
-		printf("%s:%i - New>=Len (%i>=%i)\n", __FILE__, __LINE__, New, len);
-	}
-
-	#endif
-}
-
 int GDisplayString::CharAt(int Px)
 {
 	int Status = -1;
@@ -878,258 +779,109 @@ int GDisplayString::CharAt(int Px)
 	return Status;
 }
 
+int GDisplayString::Length()
+{
+	return len;
+}
+
+void GDisplayString::Length(int New)
+{
+    Layout();
+
+	#if WINNATIVE
+	
+	if (New < len)
+	{
+		GFontSystem *Sys = GFontSystem::Inst();
+		
+		int CurX = 0;
+		int CurLen = 0;
+		for (int i=0; i<Info.Length(); i++)
+		{
+			// Is the cut point in this block?
+			if (New >= CurLen && New < CurLen + Info[i].Len )
+			{
+				// In this block
+				int Offset = New - CurLen;
+				Info[i].Len = Offset;
+				Info[i].Str[Info[i].Len] = 0;
+
+				// Get the font for this block of characters
+				GFont *f = 0;
+				if (Info[i].FontId)
+				{
+					f = Sys->Font[Info[i].FontId];
+					f->PointSize(Font->PointSize());
+					f->Transparent(Font->Transparent());
+					if (!f->Handle())
+					{
+						f->Create();
+					}
+				}
+				else
+				{
+					f = Font;
+				}
+
+				// Chop the current block and re-measure
+				int ChoppedX, Unused;
+				f->_Measure(ChoppedX, Unused, Info[i].Str, Info[i].Len);
+				Info[i].X = ChoppedX;
+				x = CurX + Info[i].X;
+				Info.Length(i + 1);
+				
+				// Leave the loop
+				break;
+			}
+			
+			CurX += Info[i].X;
+			CurLen += Info[i].Len;
+		}
+	}
+	else
+	{
+		printf("%s:%i - New>=Len (%i>=%i)\n", __FILE__, __LINE__, New, len);
+	}
+
+	#endif
+}
+
+int GDisplayString::X()
+{
+    Layout();
+	return x;
+}
+
+int GDisplayString::Y()
+{
+    Layout();
+	return y;
+}
+
+GdcPt2 GDisplayString::Size()
+{
+    Layout();
+	return GdcPt2(x, y);
+}
+
 void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 {
     Layout();
 
-	#if defined __GTK_H__
-	
-	Gtk::pango_context_set_font_description(GFontSystem::Inst()->GetContext(), Font->Handle());
-	Gtk::cairo_t *cr = pDC->GetCairo();
-	if (!cr)
-	{
-		LgiAssert(!"Can't get cairo.");
-		return;
-	}
+	#if DISPLAY_STRING_FRACTIONAL_NATIVE
 
-	// printf("Draw %i,%i sys=%i bold=%i, hnd=%p, Str='%.20s'\n", px, py, 	Font==SysFont, Font==SysBold, Font->Handle(), Str);
-
-	int Ox = 0, Oy = 0;
-	pDC->GetOrigin(Ox, Oy);
-	
-	GRect Client;
-	if (pDC->GetClient(&Client) && Client.Valid())
+	// GTK / Mac use fractional pixels, so call the fractional version:
+	GRect rc;
+	if (r)
 	{
-		Gtk::cairo_rectangle(cr, Client.x1, Client.y1, Client.X(), Client.Y());
-		Gtk::cairo_clip(cr);
-		Gtk::cairo_new_path(cr);
-	}
-	else
-	{
-		Client.ZOff(-1, -1);
+		rc = *r;
+		rc.x1 *= Scale;
+		rc.y1 *= Scale;
+		rc.x2 *= Scale;
+		rc.y2 *= Scale;
 	}
 	
-	GColour b = Font->Back();
-	
-	Gtk::cairo_set_source_rgb(cr,
-								(double)b.r()/255.0,
-								(double)b.g()/255.0,
-								(double)b.b()/255.0);
-
-	if (!Font->Transparent() && r)
-	{
-		Gtk::cairo_new_path(cr);
-		Gtk::cairo_rectangle(cr, r->x1 - Ox, r->y1 - Oy, r->X(), r->Y());
-		Gtk::cairo_fill(cr);
-	}
-
-	cairo_translate(cr, px-Ox, py-Oy);
-	
-	if (!Font->Transparent() && !r)
-	{
-		Gtk::cairo_new_path(cr);
-		Gtk::cairo_rectangle(cr, 0, 0, x, y);
-		Gtk::cairo_fill(cr);
-	}
-	if (Hnd)
-	{
-	    GColour f = Font->Fore();
-	    Gtk::cairo_set_source_rgb(	cr,
-								    (double)f.r()/255.0,
-								    (double)f.g()/255.0,
-								    (double)f.b()/255.0);
-	    Gtk::pango_cairo_show_layout(cr, Hnd);
-	}
-	
-	cairo_identity_matrix(cr);
-	if (Client.Valid())
-	{
-		Gtk::cairo_reset_clip(cr);
-	}
-	
-	#elif defined(BEOS)
-
-	if (pDC && Font)
-	{
-		rgb_color Fg, Bk;
-
-		// Create colours
-		GColour c = Font->Fore();
-		Fg.red = c.r();
-		Fg.green = c.g();
-		Fg.blue = c.b();
-
-		c = Font->Back();
-		Bk.red = c.r();
-		Bk.green = c.g();
-		Bk.blue = c.b();
-
-		// Paint text
-		BView *Hnd = pDC->Handle();
-		if (Hnd)
-		{
-			GLocker Locker(Hnd, _FL);
-			Locker.Lock();
-
-			// Draw background if required.		
-			if (!Font->Transparent())
-			{
-				Hnd->SetHighColor(Bk);
-				if (r)
-				{
-					BRect rc(r->x1, r->y1, r->x2, r->y2);
-					Hnd->FillRect(rc);
-				}
-				else
-				{
-					GRect b;
-					b.ZOff(x-1, y-1);
-					b.Offset(px, py);
-					BRect rc(b.x1, b.y1, b.x2, b.y2);
-					Hnd->FillRect(rc);				
-				}
-			}
-
-			// Draw foreground text segments		
-			Hnd->SetHighColor(Fg);
-			Hnd->SetLowColor(Bk);			
-			Hnd->SetFont(Font->Handle());
-
-			int CurX = 0;
-			for (int i=0; i<Blocks; i++)
-			{
-				CharInfo *ci = Info + i;
-				BPoint pos(px + CurX, py + Font->Ascent());
-				if (ci->Str[0] != '\t')
-					Hnd->DrawString(ci->Str, ci->Len, pos);
-				#if 0 // useful to debug where strings are drawn
-				{
-					GRect r;
-					r.ZOff(ci->X-1, Font->GetHeight()-1);
-					r.Offset(px + CurX, py);
-					pDC->Box(&r);
-				}
-				#endif
-				CurX += ci->X;
-			}
-			
-			if (!pDC->IsScreen())
-				Hnd->Sync();
-		}
-		else printf("%s:%i - Error: no BView to draw on.\n", _FL);
-	}
-	else printf("%s:%i - Error: no DC or Font.\n", _FL);
-
-	#elif defined MAC && !defined COCOA
-
-	int Ox = 0, Oy = 0;
-	if (pDC && !pDC->IsScreen())
-		pDC->GetOrigin(Ox, Oy);
-
-	if (pDC && !Font->Transparent())
-	{
-		GColour Old = pDC->Colour(Font->Back());
-		if (r)
-		{
-			GRect a = r;
-			pDC->Rectangle(&a);
-		}
-		else
-		{
-			GRect a(px, py, px + x - 1, py + y - 1);
-			pDC->Rectangle(&a);
-		}
-		pDC->Colour(Old);
-	}
-	
-	if (Hnd && pDC && len > 0)
-	{
-		OSStatus e;
-		OsPainter				dc = pDC->Handle();
-		ATSUAttributeTag        Tags[1] = {kATSUCGContextTag};
-		ByteCount               Sizes[1] = {sizeof(CGContextRef)};
-		ATSUAttributeValuePtr   Values[1] = {&dc};
-
-		e = ATSUSetLayoutControls(Hnd, 1, Tags, Sizes, Values);
-		if (e)
-		{
-			printf("%s:%i - ATSUSetLayoutControls failed (e=%i)\n", _FL, (int)e);
-		}
-		else
-		{
-			// Set style attr
-			ATSURGBAlphaColor c;
-			GColour Fore = Font->Fore();
-			c.red   = (double) Fore.r() / 255.0;
-			c.green = (double) Fore.g() / 255.0;
-			c.blue  = (double) Fore.b() / 255.0;
-			c.alpha = 1.0;
-			
-			ATSUAttributeTag Tags[]			= {kATSURGBAlphaColorTag};
-			ATSUAttributeValuePtr Values[]	= {&c};
-			ByteCount Lengths[]				= {sizeof(c)};
-			
-			e = ATSUSetAttributes(  Font->Handle(),
-									CountOf(Tags),
-									Tags,
-									Lengths,
-									Values);
-			if (e)
-			{
-				printf("%s:%i - Error setting font attr (e=%i)\n", _FL, (int)e);
-			}
-			else
-			{
-				int y = (pDC->Y() - py + Oy);
-
-				if (pDC->IsScreen())
-				{
-					CGContextSaveGState(dc);
-
-					if (r)
-					{
-						CGRect rect = *r;
-						// rect.origin.y -= rect.size.height;
-						rect.size.width += 1.0;
-						rect.size.height += 1.0;
-						CGContextClipToRect(dc, rect);
-					}
-					CGContextTranslateCTM(dc, 0, pDC->Y()-1);
-					CGContextScaleCTM(dc, 1.0, -1.0);
-
-					e = ATSUDrawText(Hnd, kATSUFromTextBeginning, kATSUToTextEnd, Long2Fix(px - Ox), Long2Fix(y) - fAscent);
-
-					CGContextRestoreGState(dc);
-				}
-				else
-				{
-					if (r)
-					{
-						CGContextSaveGState(dc);
-						
-						CGRect rect = *r;
-						rect.origin.x -= Ox;
-						rect.origin.y = pDC->Y() - rect.origin.y + Oy - rect.size.height;
-						rect.size.width += 1.0;
-						rect.size.height += 1.0;
-						CGContextClipToRect(dc, rect);
-					}
-					
-					e = ATSUDrawText(Hnd, kATSUFromTextBeginning, kATSUToTextEnd, Long2Fix(px - Ox), Long2Fix(y) - fAscent);
-					
-					if (r)
-						CGContextRestoreGState(dc);
-				}
-				if (e)
-				{
-					char *a = 0;
-					StringConvert(a, NULL, Str, len);
-					printf("%s:%i - ATSUDrawText failed with %i, len=%i, str=%.20s\n", _FL, (int)e, len, a);
-					DeleteArray(a);
-				}
-			}
-		}
-	}
+	FDraw(pDC, px * Scale, py * Scale, r ? &rc : NULL);
 	
 	#elif defined WINNATIVE
 	
@@ -1261,6 +1013,300 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 	{
 		pDC->Colour(Font->Back());
 		pDC->Rectangle(r);
+	}
+	
+	#elif defined(BEOS)
+
+	if (pDC && Font)
+	{
+		rgb_color Fg, Bk;
+
+		// Create colours
+		GColour c = Font->Fore();
+		Fg.red = c.r();
+		Fg.green = c.g();
+		Fg.blue = c.b();
+
+		c = Font->Back();
+		Bk.red = c.r();
+		Bk.green = c.g();
+		Bk.blue = c.b();
+
+		// Paint text
+		BView *Hnd = pDC->Handle();
+		if (Hnd)
+		{
+			GLocker Locker(Hnd, _FL);
+			Locker.Lock();
+
+			// Draw background if required.		
+			if (!Font->Transparent())
+			{
+				Hnd->SetHighColor(Bk);
+				if (r)
+				{
+					BRect rc(r->x1, r->y1, r->x2, r->y2);
+					Hnd->FillRect(rc);
+				}
+				else
+				{
+					GRect b;
+					b.ZOff(x-1, y-1);
+					b.Offset(px, py);
+					BRect rc(b.x1, b.y1, b.x2, b.y2);
+					Hnd->FillRect(rc);				
+				}
+			}
+
+			// Draw foreground text segments		
+			Hnd->SetHighColor(Fg);
+			Hnd->SetLowColor(Bk);			
+			Hnd->SetFont(Font->Handle());
+
+			int CurX = 0;
+			for (int i=0; i<Blocks; i++)
+			{
+				CharInfo *ci = Info + i;
+				BPoint pos(px + CurX, py + Font->Ascent());
+				if (ci->Str[0] != '\t')
+					Hnd->DrawString(ci->Str, ci->Len, pos);
+				#if 0 // useful to debug where strings are drawn
+				{
+					GRect r;
+					r.ZOff(ci->X-1, Font->GetHeight()-1);
+					r.Offset(px + CurX, py);
+					pDC->Box(&r);
+				}
+				#endif
+				CurX += ci->X;
+			}
+			
+			if (!pDC->IsScreen())
+				Hnd->Sync();
+		}
+		else printf("%s:%i - Error: no BView to draw on.\n", _FL);
+	}
+	else printf("%s:%i - Error: no DC or Font.\n", _FL);
+
+	#endif
+}
+
+int GDisplayString::FX()
+{
+    Layout();
+	return xf;
+}
+
+int GDisplayString::FY()
+{
+    Layout();
+	return y;
+}
+
+GdcPt2 GDisplayString::FSize()
+{
+    Layout();
+	return GdcPt2(xf, yf);
+}
+
+void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc)
+{
+    Layout();
+
+	#if !DISPLAY_STRING_FRACTIONAL_NATIVE
+
+	// BeOS / Windows don't use fractional pixels, so call the integer version:
+	GRect rc;
+	if (frc)
+	{
+		rc = *frc;
+		rc.x1 /= Scale;
+		rc.y1 /= Scale;
+		rc.x2 /= Scale;
+		rc.y2 /= Scale;
+	}
+	
+	Draw(pDC, fx / Scale, fy / Scale, frc ? &rc : NULL);
+
+	#elif defined __GTK_H__
+	
+	Gtk::pango_context_set_font_description(GFontSystem::Inst()->GetContext(), Font->Handle());
+	Gtk::cairo_t *cr = pDC->GetCairo();
+	if (!cr)
+	{
+		LgiAssert(!"Can't get cairo.");
+		return;
+	}
+
+	// printf("Draw %i,%i sys=%i bold=%i, hnd=%p, Str='%.20s'\n", px, py, 	Font==SysFont, Font==SysBold, Font->Handle(), Str);
+
+	int Ox = 0, Oy = 0;
+	pDC->GetOrigin(Ox, Oy);
+	
+	GRect Client;
+	if (pDC->GetClient(&Client) && Client.Valid())
+	{
+		Gtk::cairo_rectangle(cr, Client.x1, Client.y1, Client.X(), Client.Y());
+		Gtk::cairo_clip(cr);
+		Gtk::cairo_new_path(cr);
+	}
+	else
+	{
+		Client.ZOff(-1, -1);
+	}
+	
+	GColour b = Font->Back();
+	
+	Gtk::cairo_set_source_rgb(cr,
+								(double)b.r()/255.0,
+								(double)b.g()/255.0,
+								(double)b.b()/255.0);
+
+	if (!Font->Transparent() && r)
+	{
+		Gtk::cairo_new_path(cr);
+		Gtk::cairo_rectangle(cr, r->x1 - Ox, r->y1 - Oy, r->X(), r->Y());
+		Gtk::cairo_fill(cr);
+	}
+
+	cairo_translate
+	(
+		cr,
+		((double)fx/Scale)-Ox,
+		((double)fy/Scale)-Oy
+	);
+	
+	if (!Font->Transparent() && !r)
+	{
+		Gtk::cairo_new_path(cr);
+		Gtk::cairo_rectangle(cr, 0, 0, x, y);
+		Gtk::cairo_fill(cr);
+	}
+	if (Hnd)
+	{
+	    GColour f = Font->Fore();
+	    Gtk::cairo_set_source_rgb(	cr,
+								    (double)f.r()/255.0,
+								    (double)f.g()/255.0,
+								    (double)f.b()/255.0);
+	    Gtk::pango_cairo_show_layout(cr, Hnd);
+	}
+	
+	Gtk::cairo_identity_matrix(cr);
+	if (Client.Valid())
+	{
+		Gtk::cairo_reset_clip(cr);
+	}
+	
+	#elif defined MAC && !defined COCOA
+
+	int Ox = 0, Oy = 0;
+	if (pDC && !pDC->IsScreen())
+		pDC->GetOrigin(Ox, Oy);
+
+	if (pDC && !Font->Transparent())
+	{
+		GColour Old = pDC->Colour(Font->Back());
+		if (r)
+		{
+			GRect a = r;
+			pDC->Rectangle(&a);
+		}
+		else
+		{
+			GRect a(px, py, px + x - 1, py + y - 1);
+			pDC->Rectangle(&a);
+		}
+		pDC->Colour(Old);
+	}
+	
+	if (Hnd && pDC && len > 0)
+	{
+		OSStatus e;
+		OsPainter				dc = pDC->Handle();
+		ATSUAttributeTag        Tags[1] = {kATSUCGContextTag};
+		ByteCount               Sizes[1] = {sizeof(CGContextRef)};
+		ATSUAttributeValuePtr   Values[1] = {&dc};
+
+		e = ATSUSetLayoutControls(Hnd, 1, Tags, Sizes, Values);
+		if (e)
+		{
+			printf("%s:%i - ATSUSetLayoutControls failed (e=%i)\n", _FL, (int)e);
+		}
+		else
+		{
+			// Set style attr
+			ATSURGBAlphaColor c;
+			GColour Fore = Font->Fore();
+			c.red   = (double) Fore.r() / 255.0;
+			c.green = (double) Fore.g() / 255.0;
+			c.blue  = (double) Fore.b() / 255.0;
+			c.alpha = 1.0;
+			
+			ATSUAttributeTag Tags[]			= {kATSURGBAlphaColorTag};
+			ATSUAttributeValuePtr Values[]	= {&c};
+			ByteCount Lengths[]				= {sizeof(c)};
+			
+			e = ATSUSetAttributes(  Font->Handle(),
+									CountOf(Tags),
+									Tags,
+									Lengths,
+									Values);
+			if (e)
+			{
+				printf("%s:%i - Error setting font attr (e=%i)\n", _FL, (int)e);
+			}
+			else
+			{
+				int y = (pDC->Y() - py + Oy);
+
+				if (pDC->IsScreen())
+				{
+					CGContextSaveGState(dc);
+
+					if (r)
+					{
+						CGRect rect = *r;
+						// rect.origin.y -= rect.size.height;
+						rect.size.width += 1.0;
+						rect.size.height += 1.0;
+						CGContextClipToRect(dc, rect);
+					}
+					CGContextTranslateCTM(dc, 0, pDC->Y()-1);
+					CGContextScaleCTM(dc, 1.0, -1.0);
+
+					e = ATSUDrawText(Hnd, kATSUFromTextBeginning, kATSUToTextEnd, Long2Fix(px - Ox), Long2Fix(y) - fAscent);
+
+					CGContextRestoreGState(dc);
+				}
+				else
+				{
+					if (r)
+					{
+						CGContextSaveGState(dc);
+						
+						CGRect rect = *r;
+						rect.origin.x -= Ox;
+						rect.origin.y = pDC->Y() - rect.origin.y + Oy - rect.size.height;
+						rect.size.width += 1.0;
+						rect.size.height += 1.0;
+						CGContextClipToRect(dc, rect);
+					}
+					
+					e = ATSUDrawText(Hnd, kATSUFromTextBeginning, kATSUToTextEnd, Long2Fix(px - Ox), Long2Fix(y) - fAscent);
+					
+					if (r)
+						CGContextRestoreGState(dc);
+				}
+				if (e)
+				{
+					char *a = 0;
+					StringConvert(a, NULL, Str, len);
+					printf("%s:%i - ATSUDrawText failed with %i, len=%i, str=%.20s\n", _FL, (int)e, len, a);
+					DeleteArray(a);
+				}
+			}
+		}
 	}
 	
 	#endif
