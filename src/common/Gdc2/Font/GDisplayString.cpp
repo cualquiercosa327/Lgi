@@ -1208,16 +1208,24 @@ void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc)
 	#elif defined MAC && !defined COCOA
 
 	int Ox = 0, Oy = 0;
+	int px = fx >> 16;
+	int py = fy >> 16;
+	GRect rc;
+	if (frc)
+		rc.Set(	frc->x1 >> 16,
+				frc->y1 >> 16,
+				frc->x2 >> 16,
+				frc->y2 >> 16);
+
 	if (pDC && !pDC->IsScreen())
 		pDC->GetOrigin(Ox, Oy);
 
 	if (pDC && !Font->Transparent())
 	{
 		GColour Old = pDC->Colour(Font->Back());
-		if (r)
+		if (frc)
 		{
-			GRect a = r;
-			pDC->Rectangle(&a);
+			pDC->Rectangle(&rc);
 		}
 		else
 		{
@@ -1271,10 +1279,9 @@ void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc)
 				{
 					CGContextSaveGState(dc);
 
-					if (r)
+					if (frc)
 					{
-						CGRect rect = *r;
-						// rect.origin.y -= rect.size.height;
+						CGRect rect = rc;
 						rect.size.width += 1.0;
 						rect.size.height += 1.0;
 						CGContextClipToRect(dc, rect);
@@ -1282,17 +1289,17 @@ void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc)
 					CGContextTranslateCTM(dc, 0, pDC->Y()-1);
 					CGContextScaleCTM(dc, 1.0, -1.0);
 
-					e = ATSUDrawText(Hnd, kATSUFromTextBeginning, kATSUToTextEnd, Long2Fix(px - Ox), Long2Fix(y) - fAscent);
+					e = ATSUDrawText(Hnd, kATSUFromTextBeginning, kATSUToTextEnd, fx - Long2Fix(Ox), Long2Fix(y) - fAscent);
 
 					CGContextRestoreGState(dc);
 				}
 				else
 				{
-					if (r)
+					if (frc)
 					{
 						CGContextSaveGState(dc);
 						
-						CGRect rect = *r;
+						CGRect rect = rc;
 						rect.origin.x -= Ox;
 						rect.origin.y = pDC->Y() - rect.origin.y + Oy - rect.size.height;
 						rect.size.width += 1.0;
@@ -1302,7 +1309,7 @@ void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc)
 					
 					e = ATSUDrawText(Hnd, kATSUFromTextBeginning, kATSUToTextEnd, Long2Fix(px - Ox), Long2Fix(y) - fAscent);
 					
-					if (r)
+					if (frc)
 						CGContextRestoreGState(dc);
 				}
 				if (e)

@@ -4186,7 +4186,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 		pDC->GetOrigin(Ox, Oy);
 		pDC->SetOrigin(Ox+ScrollX, Oy);
 		
-		#if 0
+		#if 1
 		// Coverage testing...
 		pDC->Colour(Rgb24(255, 0, 255), 24);
 		pDC->Rectangle();
@@ -4298,10 +4298,13 @@ void GTextView3::OnPaint(GSurface *pDC)
 					Font->Colour(fore, back);
 				}
 
-				// draw text
-				int Done = 0;	// how many chars on this line have we 
-								// processed so far
-				int TextX = 0;	// pixels we have moved so far
+				// How many chars on this line have we
+				// processed so far:
+				int Done = 0;
+
+				// Fractional pixels we have moved so far:
+				int FX = d->rPadding.x1 * GDisplayString::Scale;
+				int FY = Tr.y1 * GDisplayString::Scale;
 				
 				// loop through all sections of similar text on a line
 				while (Done < l->Len)
@@ -4367,14 +4370,16 @@ void GTextView3::OnPaint(GSurface *pDC)
 												Block + RtlTrailingSpace);
 							Ds.ShowVisibleTab(ShowWhiteSpace);
 							Ds.SetTabOrigin(TabOri);
-							TextX = Ds.X();
-							Ds.Draw(pOut, Tr.x1, Tr.y1, 0);
+							Ds.FDraw(pOut, FX, FY, 0);
+							FX += Ds.FX();
 
 							if (NextStyle->Decor == GStyle::DecorSquiggle)
 							{
 								pOut->Colour(NextStyle->DecorColour.c24(), 24);
-								for (int i=0; i<TextX; i++)
-									pOut->Set(Tr.x1+i, Tr.y2-(i%2));
+								int x = FX / GDisplayString::Scale;
+								int End = x + Ds.X();
+								while (x < End)
+									pOut->Set(x, Tr.y2-(x%2));
 							}
 
 							GColour fore = l->c.IsValid() ? l->c : Fore;
@@ -4394,9 +4399,8 @@ void GTextView3::OnPaint(GSurface *pDC)
 											Block + RtlTrailingSpace);
 						Ds.ShowVisibleTab(ShowWhiteSpace);
 						Ds.SetTabOrigin(TabOri);
-						TextX = Ds.X();
-
-						Ds.Draw(pOut, Tr.x1, Tr.y1, 0);
+						Ds.FDraw(pOut, FX, FY, 0);
+						FX += Ds.FX();
 					}
 
 					if (NextStyle &&
@@ -4423,10 +4427,11 @@ void GTextView3::OnPaint(GSurface *pDC)
 						NextSelection = (NextSelection == SelMin) ? SelMax : -1;
 					}
 
-					Tr.x1 += TextX;
 					Done += Block + RtlTrailingSpace;
 				
 				} // end block loop
+
+				Tr.x1 = FX / GDisplayString::Scale;
 
 				// eol processing
 				int EndOfLine = l->Start+l->Len;
