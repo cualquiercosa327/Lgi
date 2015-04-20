@@ -227,8 +227,6 @@ static GAutoString ParseVer(void *Resource, char *Part)
 extern int MouseRollMsg;
 typedef HRESULT (CALLBACK *fDllGetVersion)(DLLVERSIONINFO *);
 
-bool GApp::Win9x = LgiGetOs() == LGI_OS_WIN9X;
-
 GApp::GApp(OsAppArguments &AppArgs, const char *AppName, GAppArguments *ObjArgs)
 {
 	// GApp instance

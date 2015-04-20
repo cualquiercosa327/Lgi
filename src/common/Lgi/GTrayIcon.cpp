@@ -29,12 +29,7 @@ public:
 	int TrayCreateMsg;
 	int MyId;
 
-	union
-	{
-		NOTIFYICONDATAA	a;
-		NOTIFYICONDATAW	w;
-	}
-	TrayIcon;
+	NOTIFYICONDATAW	TrayIcon;
 
 	typedef HICON IconRef;
 
@@ -227,7 +222,7 @@ bool GTrayIcon::Load(const TCHAR *Str)
 bool GTrayIcon::Visible()
 {
 	#if WINNATIVE
-	return d->TrayIcon.a.cbSize != 0;
+	return d->TrayIcon.cbSize != 0;
 	#else
 	return d->Visible;
 	#endif
@@ -245,33 +240,16 @@ void GTrayIcon::Visible(bool v)
 			HICON Cur = d->Icon[d->Val];
 
 			ZeroObj(d->TrayIcon);
-			if (IsWin9x)
-			{
-				d->TrayIcon.a.cbSize = sizeof(d->TrayIcon.a);
-				d->TrayIcon.a.hWnd = d->Parent ? d->Parent->Handle() : 0;
-				d->TrayIcon.a.uID = d->MyId = Id++;
-				d->TrayIcon.a.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
-				d->TrayIcon.a.uCallbackMessage = M_TRAY_NOTIFY;
-				d->TrayIcon.a.hIcon = Cur;
-				
-				char *n = LgiToNativeCp(Name());
-				strncpy(d->TrayIcon.a.szTip, n?n:"", sizeof(d->TrayIcon.a.szTip));
-				DeleteArray(n);
+			
+			d->TrayIcon.cbSize = sizeof(d->TrayIcon);
+			d->TrayIcon.hWnd = d->Parent ? d->Parent->Handle() : 0;
+			d->TrayIcon.uID = d->MyId = Id++;
+			d->TrayIcon.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
+			d->TrayIcon.uCallbackMessage = M_TRAY_NOTIFY;
+			d->TrayIcon.hIcon = Cur;
+			StrncpyW(d->TrayIcon.szTip, (char16*)(NameW()?NameW():L""), CountOf(d->TrayIcon.szTip));
 
-				Shell_NotifyIconA(NIM_ADD, &d->TrayIcon.a);
-			}
-			else
-			{
-				d->TrayIcon.w.cbSize = sizeof(d->TrayIcon.w);
-				d->TrayIcon.w.hWnd = d->Parent ? d->Parent->Handle() : 0;
-				d->TrayIcon.w.uID = d->MyId = Id++;
-				d->TrayIcon.w.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
-				d->TrayIcon.w.uCallbackMessage = M_TRAY_NOTIFY;
-				d->TrayIcon.w.hIcon = Cur;
-				StrncpyW(d->TrayIcon.w.szTip, (char16*)(NameW()?NameW():L""), sizeof(d->TrayIcon.w.szTip));
-
-				Shell_NotifyIconW(NIM_ADD, &d->TrayIcon.w);
-			}
+			Shell_NotifyIconW(NIM_ADD, &d->TrayIcon);
 			
 			#elif defined(__GTK_H__)
 
@@ -308,14 +286,7 @@ void GTrayIcon::Visible(bool v)
 		{
 			#if WINNATIVE
 			
-			if (IsWin9x)
-			{
-				Shell_NotifyIconA(NIM_DELETE, &d->TrayIcon.a);
-			}
-			else
-			{
-				Shell_NotifyIconW(NIM_DELETE, &d->TrayIcon.w);
-			}
+			Shell_NotifyIconW(NIM_DELETE, &d->TrayIcon);
 			ZeroObj(d->TrayIcon);
 
 			#elif defined(__GTK_H__)
@@ -358,29 +329,14 @@ void GTrayIcon::Value(int64 v)
 
 			ZeroObj(d->TrayIcon);
 
-			if (IsWin9x)
-			{
-				d->TrayIcon.a.cbSize = sizeof(d->TrayIcon.a);
-				d->TrayIcon.a.hWnd = d->Parent ? d->Parent->Handle() : 0;
-				d->TrayIcon.a.uID = d->MyId;
-				d->TrayIcon.a.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
-				d->TrayIcon.a.uCallbackMessage = M_TRAY_NOTIFY;
-				d->TrayIcon.a.hIcon = Cur;
-				char *n = LgiToNativeCp(Name());
-				strncpy(d->TrayIcon.a.szTip, n?n:"", sizeof(d->TrayIcon.a.szTip));
-				Shell_NotifyIconA(NIM_MODIFY, &d->TrayIcon.a);
-			}
-			else
-			{
-				d->TrayIcon.w.cbSize = sizeof(d->TrayIcon.w);
-				d->TrayIcon.w.hWnd = d->Parent ? d->Parent->Handle() : 0;
-				d->TrayIcon.w.uID = d->MyId;
-				d->TrayIcon.w.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
-				d->TrayIcon.w.uCallbackMessage = M_TRAY_NOTIFY;
-				d->TrayIcon.w.hIcon = Cur;
-				StrncpyW(d->TrayIcon.w.szTip, (char16*)(NameW()?NameW():L""), sizeof(d->TrayIcon.w.szTip));
-				Shell_NotifyIconW(NIM_MODIFY, &d->TrayIcon.w);
-			}
+			d->TrayIcon.cbSize = sizeof(d->TrayIcon);
+			d->TrayIcon.hWnd = d->Parent ? d->Parent->Handle() : 0;
+			d->TrayIcon.uID = d->MyId;
+			d->TrayIcon.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
+			d->TrayIcon.uCallbackMessage = M_TRAY_NOTIFY;
+			d->TrayIcon.hIcon = Cur;
+			StrncpyW(d->TrayIcon.szTip, (char16*)(NameW()?NameW():L""), sizeof(d->TrayIcon.szTip));
+			Shell_NotifyIconW(NIM_MODIFY, &d->TrayIcon);
 		}
 		
 		#elif defined __GTK_H__

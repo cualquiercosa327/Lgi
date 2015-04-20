@@ -230,15 +230,15 @@ GDocApp<OptionsFmt>::GDocApp(const char *appname, const TCHAR *icon, char *optsn
 			p.w = (TCHAR*)icon;
 			if (p.i < 0x10000)
 			{
-				c->Class.w.hIcon = LoadIcon(LgiProcessInst(), MAKEINTRESOURCE(icon));
+				c->Class.hIcon = LoadIcon(LgiProcessInst(), MAKEINTRESOURCE(icon));
 			}
 			else
 			{
 				GAutoWString wIcon(NewStrW(icon));
-				c->Class.w.hIcon = LoadIcon(LgiProcessInst(), wIcon);
+				c->Class.hIcon = LoadIcon(LgiProcessInst(), wIcon);
 			}
 			#else
-			c->Class.a.hIcon = LoadIcon(LgiProcessInst(), ((NativeInt)icon&0xffff0000)?icon:MAKEINTRESOURCE(icon));
+			c->Class.hIcon = LoadIcon(LgiProcessInst(), ((NativeInt)icon&0xffff0000)?icon:MAKEINTRESOURCE(icon));
 			#endif
 		}
 		#else

@@ -378,18 +378,6 @@ typedef WINUSERAPI BOOL (WINAPI *pEnumDisplayDevicesW)(PVOID, DWORD, PDISPLAY_DE
 typedef WINUSERAPI BOOL (WINAPI *pEnumDisplaySettingsA)(LPCSTR lpszDeviceName, DWORD iModeNum, LPDEVMODEA lpDevMode);
 typedef WINUSERAPI BOOL (WINAPI *pEnumDisplaySettingsW)(LPCWSTR lpszDeviceName, DWORD iModeNum, LPDEVMODEW lpDevMode);
 
-union DISPLAY_DEVICEU
-{
-	DISPLAY_DEVICEA a;
-	DISPLAY_DEVICEW w;
-};
-
-union DEVMODEU
-{
-	DEVMODEA a[2];
-	DEVMODEW w[2];
-};
-
 #endif
 
 bool LgiGetDisplays(::GArray<GDisplayInfo*> &Displays, GRect *AllDisplays)
@@ -398,59 +386,32 @@ bool LgiGetDisplays(::GArray<GDisplayInfo*> &Displays, GRect *AllDisplays)
 	if (AllDisplays)
 		AllDisplays->ZOff(-1, -1);
 
-	bool Win9x = IsWin9x;
 	GLibrary User32("User32");
-	DISPLAY_DEVICEU disp;
+	DISPLAY_DEVICEW disp;
 	ZeroObj(disp);
-	if (Win9x)
-		disp.a.cb = sizeof(disp.a);
-	else
-		disp.w.cb = sizeof(disp.w);
-	pEnumDisplayDevicesA EnumDisplayDevicesA = (pEnumDisplayDevicesA) User32.GetAddress("EnumDisplayDevicesA");
+	disp.cb = sizeof(disp);
 	pEnumDisplayDevicesW EnumDisplayDevicesW = (pEnumDisplayDevicesW) User32.GetAddress("EnumDisplayDevicesW");
-	pEnumDisplaySettingsA EnumDisplaySettingsA = (pEnumDisplaySettingsA) User32.GetAddress("EnumDisplaySettingsA");
 	pEnumDisplaySettingsW EnumDisplaySettingsW = (pEnumDisplaySettingsW) User32.GetAddress("EnumDisplaySettingsW");
 
 	for (int i=0;
-		Win9x ? EnumDisplayDevicesA(0, i, &disp.a, 0) : EnumDisplayDevicesW(0, i, &disp.w, 0);
+		EnumDisplayDevicesW(0, i, &disp, 0);
 		i++)
 	{
-		DEVMODEU mode;
+		DEVMODEW mode;
 		ZeroObj(mode);
-		if (Win9x)
-		{
-			mode.a[0].dmSize = sizeof(mode.a[0]);
-			mode.a[0].dmDriverExtra = sizeof(mode.a[0]);
-		}
-		else
-		{
-			mode.w[0].dmSize = sizeof(mode.w[0]);
-			mode.w[0].dmDriverExtra = sizeof(mode.w[0]);
-		}
+		mode.dmSize = sizeof(mode);
+		mode.dmDriverExtra = sizeof(mode);
 
-		if
-		(
-			Win9x
-			?
-			EnumDisplaySettingsA((char*)disp.a.DeviceName, ENUM_CURRENT_SETTINGS, mode.a)
-			:
-			EnumDisplaySettingsW(disp.w.DeviceName, ENUM_CURRENT_SETTINGS, mode.w)
-		)
+		if (EnumDisplaySettingsW(disp.DeviceName, ENUM_CURRENT_SETTINGS, &mode))
 		{
 			GDisplayInfo *Dsp = new GDisplayInfo;
 			if (Dsp)
 			{
-				if (Win9x)
-					Dsp->r.ZOff(mode.a->dmPelsWidth-1, mode.a->dmPelsHeight-1);
-				else
-					Dsp->r.ZOff(mode.w->dmPelsWidth-1, mode.w->dmPelsHeight-1);
+				Dsp->r.ZOff(mode.dmPelsWidth-1, mode.dmPelsHeight-1);
 
-				if ((IsWin9x ? mode.a->dmFields : mode.w->dmFields) & DM_POSITION)
+				if (mode.dmFields & DM_POSITION)
 				{
-					if (Win9x)
-						Dsp->r.Offset(mode.a->dmPosition.x, mode.a->dmPosition.y);
-					else
-						Dsp->r.Offset(mode.w->dmPosition.x, mode.w->dmPosition.y);
+					Dsp->r.Offset(mode.dmPosition.x, mode.dmPosition.y);
 				}
 				if (AllDisplays)
 				{
@@ -460,47 +421,24 @@ bool LgiGetDisplays(::GArray<GDisplayInfo*> &Displays, GRect *AllDisplays)
 						*AllDisplays = Dsp->r;
 				}
 
-				if (Win9x)
-					disp.a.cb = sizeof(disp.a);
-				else
-					disp.w.cb = sizeof(disp.w);
+				disp.cb = sizeof(disp);
 
-				if (Win9x)
+				Dsp->BitDepth = mode.dmBitsPerPel;
+				Dsp->Refresh = mode.dmDisplayFrequency;
+				Dsp->Name = LgiNewUtf16To8(disp.DeviceString);
+				Dsp->Device = LgiNewUtf16To8(disp.DeviceName);
+
+				DISPLAY_DEVICEW temp = disp;
+				if (EnumDisplayDevicesW(temp.DeviceName, 0, &disp, 0))
 				{
-					Dsp->BitDepth = mode.a->dmBitsPerPel;
-					Dsp->Refresh = mode.a->dmDisplayFrequency;
-					Dsp->Name = LgiFromNativeCp((char*)disp.a.DeviceString);
-					Dsp->Device = LgiFromNativeCp((char*)disp.a.DeviceName);
-
-					DISPLAY_DEVICEA temp = disp.a;
-					if (EnumDisplayDevicesA(temp.DeviceName, 0, &disp.a, 0))
-					{
-						Dsp->Monitor = LgiFromNativeCp((char*)disp.a.DeviceString);
-					}
-				}
-				else
-				{
-					Dsp->BitDepth = mode.w->dmBitsPerPel;
-					Dsp->Refresh = mode.w->dmDisplayFrequency;
-					Dsp->Name = LgiNewUtf16To8(disp.w.DeviceString);
-					Dsp->Device = LgiNewUtf16To8(disp.w.DeviceName);
-
-					DISPLAY_DEVICEW temp = disp.w;
-					if (EnumDisplayDevicesW(temp.DeviceName, 0, &disp.w, 0))
-					{
-						Dsp->Monitor = LgiNewUtf16To8(disp.w.DeviceString);
-					}
+					Dsp->Monitor = LgiNewUtf16To8(disp.DeviceString);
 				}
 
 				Displays.Add(Dsp);
 			}
 		}
 
-		if (Win9x)
-			disp.a.cb = sizeof(disp.a);
-		else
-			disp.w.cb = sizeof(disp.w);
-
+		disp.cb = sizeof(disp);
 	}
 
 	#endif
