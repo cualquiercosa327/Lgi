@@ -506,7 +506,9 @@ public:
 			Full = Sep.Join(*this);
 			return Full;
 		}
-		
+
+		bool IsFile();
+		bool IsFolder();
 		GString GetSystem(LgiSystemPath Which);
 	};
 

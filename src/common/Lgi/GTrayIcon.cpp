@@ -28,9 +28,7 @@ public:
 	
 	int TrayCreateMsg;
 	int MyId;
-
 	NOTIFYICONDATAW	TrayIcon;
-
 	typedef HICON IconRef;
 
 	#elif defined(__GTK_H__)
@@ -249,7 +247,10 @@ void GTrayIcon::Visible(bool v)
 			d->TrayIcon.hIcon = Cur;
 			StrncpyW(d->TrayIcon.szTip, (char16*)(NameW()?NameW():L""), CountOf(d->TrayIcon.szTip));
 
-			Shell_NotifyIconW(NIM_ADD, &d->TrayIcon);
+			if (!Shell_NotifyIconW(NIM_ADD, &d->TrayIcon))
+			{
+				int asd=0;
+			}			
 			
 			#elif defined(__GTK_H__)
 
@@ -286,7 +287,10 @@ void GTrayIcon::Visible(bool v)
 		{
 			#if WINNATIVE
 			
-			Shell_NotifyIconW(NIM_DELETE, &d->TrayIcon);
+			if (!Shell_NotifyIconW(NIM_DELETE, &d->TrayIcon))
+			{
+				int asd=0;
+			}
 			ZeroObj(d->TrayIcon);
 
 			#elif defined(__GTK_H__)
@@ -336,7 +340,10 @@ void GTrayIcon::Value(int64 v)
 			d->TrayIcon.uCallbackMessage = M_TRAY_NOTIFY;
 			d->TrayIcon.hIcon = Cur;
 			StrncpyW(d->TrayIcon.szTip, (char16*)(NameW()?NameW():L""), sizeof(d->TrayIcon.szTip));
-			Shell_NotifyIconW(NIM_MODIFY, &d->TrayIcon);
+			if (!Shell_NotifyIconW(NIM_MODIFY, &d->TrayIcon))
+			{
+				int asd=0;
+			}
 		}
 		
 		#elif defined __GTK_H__

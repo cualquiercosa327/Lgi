@@ -803,6 +803,16 @@ GString LgiGetSystemPath(LgiSystemPath Which)
 	return p.GetSystem(Which);
 }
 
+bool GFile::Path::IsFile()
+{
+	return FileExists(GetFull());
+}
+
+bool GFile::Path::IsFolder()
+{
+	return DirExists(GetFull());
+}
+
 GString GFile::Path::GetSystem(LgiSystemPath Which)
 {
 	GString Path;
