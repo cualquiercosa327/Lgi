@@ -767,7 +767,7 @@ bool MailIMap::ReadResponse(int Cmd, bool Plus)
 				for (char *Dlg = Dialog[Pos]; !Done && Dlg; Dlg = Dialog.Next())
 				{
 					Pos++;
-					if (Cmd < 0 || (Plus && _stricmp(Dlg, "+") == 0))
+					if (Cmd < 0 || (Plus && *Dlg == '+'))
 					{
 						Status = Done = true;
 					}
