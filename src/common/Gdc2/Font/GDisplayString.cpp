@@ -53,15 +53,6 @@ bool StringConvert(Out *&out, uint32 *OutLen, const In *in, int InLen)
 #define IsTabChar(c)				(c == '\t' || (c == 0x2192 && VisibleTab))
 
 static OsChar GDisplayStringDots[] = {'.', '.', '.', 0};
-const int GDisplayString::Scale =
-#if defined __GTK_H__
-	PANGO_SCALE
-#elif defined MAC
-	0x10000
-#else
-	1
-#endif
-	;
 
 GDisplayString::GDisplayString(GFont *f, const char *s, int l, GSurface *pdc)
 {
@@ -584,7 +575,7 @@ void GDisplayString::TruncateWithDots(int Width)
 	if (Str)
 	{
 		ATSULineTruncation truc = kATSUTruncateEnd;
-		ATSUTextMeasurement width = Width << 16;
+		ATSUTextMeasurement width = Width << Shift;
 
 		ATSUAttributeTag        tags[] = {kATSULineWidthTag, kATSULineTruncationTag};
 		ByteCount               sizes[] = {sizeof(width), sizeof(truc)};
@@ -875,13 +866,13 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 	if (r)
 	{
 		rc = *r;
-		rc.x1 *= Scale;
-		rc.y1 *= Scale;
-		rc.x2 *= Scale;
-		rc.y2 *= Scale;
+		rc.x1 <<= FShift;
+		rc.y1 <<= FShift;
+		rc.x2 <<= FShift;
+		rc.y2 <<= FShift;
 	}
 	
-	FDraw(pDC, px * Scale, py * Scale, r ? &rc : NULL);
+	FDraw(pDC, px << FShift, py << FShift, r ? &rc : NULL);
 	
 	#elif defined WINNATIVE
 	
@@ -1120,13 +1111,13 @@ void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc)
 	if (frc)
 	{
 		rc = *frc;
-		rc.x1 /= Scale;
-		rc.y1 /= Scale;
-		rc.x2 /= Scale;
-		rc.y2 /= Scale;
+		rc.x1 >>= FShift;
+		rc.y1 >>= FShift;
+		rc.x2 >>= FShift;
+		rc.y2 >>= FShift;
 	}
 	
-	Draw(pDC, fx / Scale, fy / Scale, frc ? &rc : NULL);
+	Draw(pDC, fx >> FShift, fy >> FShift, frc ? &rc : NULL);
 
 	#elif defined __GTK_H__
 	
@@ -1168,10 +1159,10 @@ void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc)
 		Gtk::cairo_rectangle
 		(
 			cr,
-			((double)frc->x1 / Scale) - Ox,
-			((double)frc->y1 / Scale) - Oy,
-			(double)frc->X() / Scale,
-			(double)frc->Y() / Scale
+			((double)frc->x1 / FScale) - Ox,
+			((double)frc->y1 / FScale) - Oy,
+			(double)frc->X() / FScale,
+			(double)frc->Y() / FScale
 		);
 		Gtk::cairo_fill(cr);
 	}
@@ -1179,8 +1170,8 @@ void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc)
 	cairo_translate
 	(
 		cr,
-		((double)fx/Scale)-Ox,
-		((double)fy/Scale)-Oy
+		((double)fx / FScale) - Ox,
+		((double)fy / FScale) - Oy
 	);
 	
 	if (!Font->Transparent() && !frc)

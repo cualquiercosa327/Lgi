@@ -287,7 +287,6 @@ public:
 	// OS Specific
 	#if defined WIN32
 
-	static bool IsWin9x;
 	HINSTANCE GetInstance();
 	int GetShow();
 

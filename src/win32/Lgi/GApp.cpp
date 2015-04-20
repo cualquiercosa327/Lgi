@@ -257,6 +257,8 @@ int64 Time = LgiCurrentTime();
 	LgiAssert(sizeof(uint64) == 8);
 
 	LgiAssert(sizeof(char16) == 2);
+	
+	LgiAssert(GDisplayString::FScale == (1 << GDisplayString::FShift));
 
 DumpTime("start");
 

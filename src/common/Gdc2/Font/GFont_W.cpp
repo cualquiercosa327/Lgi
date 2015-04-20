@@ -55,31 +55,11 @@ int GFont::_CharAt(int x, OsChar *Str, int Len)
 	if (hOldFont)
 	{
 		SIZE Size = {0, 0};
-		if (IsWin9x)
+
+		if (!GetTextExtentExPointW(hDC, Str, Len, x, &Fit, 0, &Size))
 		{
-			char *Buf = new char[Len << 1];
-			if (Buf)
-			{
-				int Bytes = WideCharToMultiByte(CP_ACP, 0, Str, Len, Buf, Len<<1, 0, 0);
-				Buf[Bytes] = 0;
-				int Chars =
-				#ifdef __GNUC__
-					// FIXME
-					strlen(Buf);
-				#else
-					_mbstrlen(Buf);
-				#endif
-				GetTextExtentExPointA(hDC, Buf, Chars, x, &Fit, 0, &Size);
-				DeleteArray(Buf);
-			}
-		}
-		else
-		{
-			if (!GetTextExtentExPointW(hDC, Str, Len, x, &Fit, 0, &Size))
-			{
-				DWORD e = GetLastError();
-				Fit = -1;
-			}
+			DWORD e = GetLastError();
+			Fit = -1;
 		}
 		
 		SelectObject(hDC, hOldFont);

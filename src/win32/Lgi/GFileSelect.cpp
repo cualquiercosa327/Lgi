@@ -67,39 +67,6 @@ class GFileSelectPrivate
 		return (char16*)p.New(sizeof(char16));
 	}
 
-	void BeforeDlg(OPENFILENAME &Info)
-	{
-		ZeroObj(Info);
-		Info.lStructSize = sizeof(Info);
-		Info.lpstrFilter = TypeStrA();
-		Info.lpstrInitialDir = NewStr(InitDir);
-		Info.nMaxFile = 4096;
-		Info.lpstrFile = new char[Info.nMaxFile];
-		if (Info.lpstrFile)
-		{
-			Info.lpstrFile[0] = 0;
-
-			GAutoString s(LgiToNativeCp(FileStr));
-			if (s)
-				strcpy_s(Info.lpstrFile, Info.nMaxFile, s);
-		}
-
-		Info.hwndOwner = ParentWnd ? ParentWnd->Handle() : 0;
-
-		if (CanMultiSelect)
-			Info.Flags |= OFN_ALLOWMULTISELECT;
-		else
-			Info.Flags &= ~OFN_ALLOWMULTISELECT;
-
-		if (ShowReadOnly)
-			Info.Flags &= ~OFN_HIDEREADONLY;
-		else
-			Info.Flags |= OFN_HIDEREADONLY;
-
-		Info.Flags |= OFN_EXPLORER;
-		Files.DeleteArrays();
-	}
-
 	bool DoFallback(OPENFILENAMEA &Info)
 	{
 		DWORD err = CommDlgExtendedError();
@@ -126,44 +93,6 @@ class GFileSelectPrivate
 		}
 
 		return false;
-	}
-
-	void AfterDlg(OPENFILENAMEA &Info, bool Status)
-	{
-		if (Status)
-		{
-			MultiSelected = strlen(Info.lpstrFile) < Info.nFileOffset;
-			if (MultiSelected)
-			{
-				char s[MAX_PATH << 1];
-				strcpy_s(s, sizeof(s), Info.lpstrFile);
-				char *e = s + strlen(s);
-				if (*e != DIR_CHAR) *e++ = DIR_CHAR;
-				char *f = Info.lpstrFile + Info.nFileOffset;
-				while (*f)
-				{
-					strcpy_s(e, sizeof(s) - (e - s), f);
-					Files.Insert(LgiFromNativeCp(s));
-					f += strlen(f) + 1;
-				}
-			}
-			else
-			{
-				Files.Insert(LgiFromNativeCp(Info.lpstrFile));
-			}
-
-			ReadOnly = TestFlag(Info.Flags, OFN_READONLY);
-		}
-		else
-		{
-			DWORD err = CommDlgExtendedError();
-			LgiTrace("%s:%i - FileNameDlg error 0x%x\n", _FL, err);
-		}
-
-		DeleteArray(Info.lpstrFile);
-		DeleteArray((char*&)Info.lpstrInitialDir);
-		DeleteArray((char*&)Info.lpstrFilter);
-		SelectedType = Info.nFilterIndex - 1;
 	}
 
 	void BeforeDlg(OPENFILENAMEW &Info)
@@ -407,24 +336,12 @@ bool GFileSelect::Open()
 {
 	bool Status = FALSE;
 
-	if (IsWin9x)
-	{
-		OPENFILENAMEA	Info;
-		d->BeforeDlg(Info);
-		Status = GetOpenFileNameA(&Info);
-		if (!Status && d->DoFallback(Info))
-			Status = GetOpenFileNameA(&Info);
-		d->AfterDlg(Info, Status);
-	}
-	else
-	{
-		OPENFILENAMEW	Info;
-		d->BeforeDlg(Info);
+	OPENFILENAMEW	Info;
+	d->BeforeDlg(Info);
+	Status = GetOpenFileNameW(&Info);
+	if (!Status && d->DoFallback(Info))
 		Status = GetOpenFileNameW(&Info);
-		if (!Status && d->DoFallback(Info))
-			Status = GetOpenFileNameW(&Info);
-		d->AfterDlg(Info, Status);
-	}
+	d->AfterDlg(Info, Status);
 
 	return Status && Length() > 0;
 }
@@ -488,24 +405,12 @@ bool GFileSelect::Save()
 {
 	bool Status = FALSE;
 
-	if (IsWin9x)
-	{
-		OPENFILENAMEA	Info;
-		d->BeforeDlg(Info);
-		Status = GetSaveFileNameA(&Info);
-		if (!Status && d->DoFallback(Info))
-			Status = GetSaveFileNameA(&Info);		
-		d->AfterDlg(Info, Status);
-	}
-	else
-	{
-		OPENFILENAMEW	Info;
-		d->BeforeDlg(Info);
-		Status = GetSaveFileNameW(&Info);
-		if (!Status && d->DoFallback(Info))
-			Status = GetSaveFileNameW(&Info);		
-		d->AfterDlg(Info, Status);
-	}
+	OPENFILENAMEW	Info;
+	d->BeforeDlg(Info);
+	Status = GetSaveFileNameW(&Info);
+	if (!Status && d->DoFallback(Info))
+		Status = GetSaveFileNameW(&Info);		
+	d->AfterDlg(Info, Status);
 
 	return Status && Length() > 0;
 }

@@ -1016,32 +1016,14 @@ GMessage::Result GWindow::OnEvent(GMessage *Msg)
 				GArray<char*> FileNames;
 				int Count = 0;
 				
-				if (IsWin9x)
-				{
-					Count = DragQueryFile(hDrop, -1, NULL, 0);;
-				}
-				else
-				{
-					Count = DragQueryFileW(hDrop, -1, NULL, 0);
-				}
+				Count = DragQueryFileW(hDrop, -1, NULL, 0);
 
 				for (int i=0; i<Count; i++)
 				{
-					if (IsWin9x)
+					char16 FileName[256];
+					if (DragQueryFileW(hDrop, i, FileName, sizeof(FileName)-1) > 0)
 					{
-						char FileName[256];
-						if (DragQueryFile(hDrop, i, FileName, sizeof(FileName)-1) > 0)
-						{
-							FileNames.Add(LgiFromNativeCp(FileName));
-						}
-					}
-					else
-					{
-						char16 FileName[256];
-						if (DragQueryFileW(hDrop, i, FileName, sizeof(FileName)-1) > 0)
-						{
-							FileNames.Add(LgiNewUtf16To8(FileName));
-						}
+						FileNames.Add(LgiNewUtf16To8(FileName));
 					}
 				}
 

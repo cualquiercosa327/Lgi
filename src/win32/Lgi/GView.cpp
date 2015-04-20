@@ -160,48 +160,37 @@ GKey::GKey(int v, int flags)
 
 	vkey = v;
 	c16 = 0;
-	if (IsWin9x)
+
+	#if OLD_WM_CHAR_MODE
+	
+	c16 = vkey;
+	
+	#else
+
+	typedef int (WINAPI *p_ToUnicode)(UINT, UINT, PBYTE, LPWSTR, int, UINT);
+
+	static bool First = true;
+	static p_ToUnicode ToUnicode = 0;
+
+	if (First)
 	{
-		uchar c = (uchar)vkey; 
-		
-		const void *In = &c;
-		int Len = 1;
-		Cp = LgiAnsiToLgiCp(GetInputACP());
-		LgiBufConvertCp(&c16, "ucs-2", sizeof(c16), In, Cp, Len);
+		ToUnicode = (p_ToUnicode) GetProcAddress(LoadLibrary("User32.dll"), "ToUnicode");
+		First = false;
 	}
-	else
+
+	if (ToUnicode)
 	{
-		#if OLD_WM_CHAR_MODE
-		
-		c16 = vkey;
-		
-		#else
-
-		typedef int (WINAPI *p_ToUnicode)(UINT, UINT, PBYTE, LPWSTR, int, UINT);
-
-		static bool First = true;
-		static p_ToUnicode ToUnicode = 0;
-
-		if (First)
+		BYTE state[256];
+		GetKeyboardState(state);
+		char16 w[4];
+		int r = ToUnicode(vkey, flags & 0x7f, state, w, CountOf(w), 0);
+		if (r == 1)
 		{
-			ToUnicode = (p_ToUnicode) GetProcAddress(LoadLibrary("User32.dll"), "ToUnicode");
-			First = false;
+			c16 = w[0];
 		}
-
-		if (ToUnicode)
-		{
-			BYTE state[256];
-			GetKeyboardState(state);
-			char16 w[4];
-			int r = ToUnicode(vkey, flags & 0x7f, state, w, CountOf(w), 0);
-			if (r == 1)
-			{
-				c16 = w[0];
-			}
-		}
-
-		#endif
 	}
+
+	#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -239,14 +228,7 @@ LRESULT CALLBACK GWin32Class::Redir(HWND hWnd, UINT m, WPARAM a, LPARAM b)
 		return Wnd->OnEvent(&Msg);
 	}
 
-	if (IsWin9x)
-	{
-		return DefWindowProcA(hWnd, m, a, b);
-	}
-	else
-	{
-		return DefWindowProcW(hWnd, m, a, b);
-	}
+	return DefWindowProcW(hWnd, m, a, b);
 }
 
 LRESULT CALLBACK GWin32Class::SubClassRedir(HWND hWnd, UINT m, WPARAM a, LPARAM b)
@@ -290,14 +272,7 @@ LRESULT CALLBACK GWin32Class::SubClassRedir(HWND hWnd, UINT m, WPARAM a, LPARAM 
 		return Status;
 	}
 
-	if (IsWin9x)
-	{
-		return DefWindowProcA(hWnd, m, a, b);
-	}
-	else
-	{
-		return DefWindowProcW(hWnd, m, a, b);
-	}
+	return DefWindowProcW(hWnd, m, a, b);
 }
 
 GWin32Class::GWin32Class(const char *name)
@@ -306,36 +281,18 @@ GWin32Class::GWin32Class(const char *name)
 
 	ZeroObj(Class);
 
-	if (IsWin9x)
-	{
-		Class.a.lpfnWndProc = (WNDPROC) Redir;
-		Class.a.style = CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW;
-		Class.a.cbWndExtra = GWL_EXTRA_BYTES;
-		Class.a.cbSize = sizeof(Class.a);
-	}
-	else
-	{
-		Class.w.lpfnWndProc = (WNDPROC) Redir;
-		Class.w.style = CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW;
-		Class.w.cbWndExtra = GWL_EXTRA_BYTES;
-		Class.w.cbSize = sizeof(Class.w);
-	}
+	Class.lpfnWndProc = (WNDPROC) Redir;
+	Class.style = CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW;
+	Class.cbWndExtra = GWL_EXTRA_BYTES;
+	Class.cbSize = sizeof(Class);
 
 	ParentProc = 0;
 }
 
 GWin32Class::~GWin32Class()
 {
-	if (IsWin9x)
-	{
-		UnregisterClassA(Name(), LgiProcessInst());
-	}
-	else
-	{
-		UnregisterClassW(NameW(), LgiProcessInst());
-	}
-
-	Class.a.lpszClassName = NULL;
+	UnregisterClassW(NameW(), LgiProcessInst());
+	Class.lpszClassName = NULL;
 }
 
 GWin32Class *GWin32Class::Create(const char *ClassName)
@@ -374,21 +331,12 @@ GWin32Class *GWin32Class::Create(const char *ClassName)
 bool GWin32Class::Register()
 {
 	bool Status = false;
-	if (!Class.a.lpszClassName)
+	if (!Class.lpszClassName)
 	{
-		Class.a.hInstance = LgiProcessInst();
-		if (IsWin9x)
-		{
-			Class.a.lpszClassName = Name();
-			Status = RegisterClassExA(&Class.a) != 0;
-			LgiAssert(Status);
-		}
-		else
-		{
-			Class.w.lpszClassName = NameW();
-			Status = RegisterClassExW(&Class.w) != 0;
-			LgiAssert(Status);
-		}
+		Class.hInstance = LgiProcessInst();
+		Class.lpszClassName = NameW();
+		Status = RegisterClassExW(&Class) != 0;
+		LgiAssert(Status);
 	}
 
 	return Status;
@@ -398,59 +346,31 @@ bool GWin32Class::SubClass(char *Parent)
 {
 	bool Status = false;
 
-	if (IsWin9x)
+	if (!Class.lpszClassName)
 	{
-		if (!Class.a.lpszClassName)
+		HBRUSH hBr = Class.hbrBackground;
+		GAutoWString p(LgiNewUtf8To16(Parent));
+		if (p)
 		{
-			HBRUSH hBr = Class.a.hbrBackground;
-			if (GetClassInfoExA(LgiProcessInst(), Parent, &Class.a))
+			if (GetClassInfoExW(LgiProcessInst(), p, &Class))
 			{
-				ParentProc = Class.a.lpfnWndProc;
+				ParentProc = Class.lpfnWndProc;
 				if (hBr)
 				{
-					Class.a.hbrBackground = hBr;
+					Class.hbrBackground = hBr;
 				}
 
-				Class.a.cbWndExtra = max(Class.a.cbWndExtra, GWL_EXTRA_BYTES);
-				Class.a.hInstance = LgiProcessInst();
-				Class.a.lpfnWndProc = (WNDPROC) SubClassRedir;
+				Class.cbWndExtra = max(Class.cbWndExtra, GWL_EXTRA_BYTES);
+				Class.hInstance = LgiProcessInst();
+				Class.lpfnWndProc = (WNDPROC) SubClassRedir;
 
-				Class.a.lpszClassName = Name();
-
-				Status = RegisterClassExA(&Class.a) != 0;
+				Class.lpszClassName = NameW();
+				Status = RegisterClassExW(&Class) != 0;
 				LgiAssert(Status);
 			}
 		}
-		else Status = true;
 	}
-	else
-	{
-		if (!Class.w.lpszClassName)
-		{
-			HBRUSH hBr = Class.w.hbrBackground;
-			GAutoWString p(LgiNewUtf8To16(Parent));
-			if (p)
-			{
-				if (GetClassInfoExW(LgiProcessInst(), p, &Class.w))
-				{
-					ParentProc = Class.w.lpfnWndProc;
-					if (hBr)
-					{
-						Class.w.hbrBackground = hBr;
-					}
-
-					Class.w.cbWndExtra = max(Class.w.cbWndExtra, GWL_EXTRA_BYTES);
-					Class.w.hInstance = LgiProcessInst();
-					Class.w.lpfnWndProc = (WNDPROC) SubClassRedir;
-
-					Class.w.lpszClassName = NameW();
-					Status = RegisterClassExW(&Class.w) != 0;
-					LgiAssert(Status);
-				}
-			}
-		}
-		else Status = true;
-	}
+	else Status = true;
 
 	return Status;
 }
@@ -654,12 +574,12 @@ GWin32Class *GView::CreateClassW32(const char *Class, HICON Icon, int AddStyles)
 		{
 			if (Icon)
 			{
-				c->Class.a.hIcon = Icon;
+				c->Class.hIcon = Icon;
 			}
 
 			if (AddStyles)
 			{
-				c->Class.a.style |= AddStyles;
+				c->Class.style |= AddStyles;
 			}
 
 			c->Register();
@@ -706,38 +626,18 @@ bool GView::Attach(GViewI *p)
 		if (!TestFlag(WndFlags, GWF_SYS_BORDER))
 			ExStyle &= ~(WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE);
 							
-		if (IsWin9x)
-		{
-			char *Text = LgiToNativeCp(GBase::Name());
+		char16 *Text = GBase::NameW();
 
-			_View = CreateWindowExA(ExStyle,
-									Cls->Name(),
-									Text,
-									Style,
-									Pos.x1, Pos.y1,
-									Pos.X(), Pos.Y(),
-									Parent ? Parent->Handle() : 0,
-									NULL,
-									LgiProcessInst(),
-									(GViewI*) this);
-
-			DeleteArray(Text);
-		}
-		else
-		{
-			char16 *Text = GBase::NameW();
-
-			_View = CreateWindowExW(ExStyle,
-									Cls->NameW(),
-									Text,
-									Style,
-									Pos.x1, Pos.y1,
-									Pos.X(), Pos.Y(),
-									Parent ? Parent->Handle() : 0,
-									NULL,
-									LgiProcessInst(),
-									(GViewI*) this);
-		}
+		_View = CreateWindowExW(ExStyle,
+								Cls->NameW(),
+								Text,
+								Style,
+								Pos.x1, Pos.y1,
+								Pos.X(), Pos.Y(),
+								Parent ? Parent->Handle() : 0,
+								NULL,
+								LgiProcessInst(),
+								(GViewI*) this);
 
 		#ifdef _DEBUG
 		if (!_View)
@@ -2273,11 +2173,7 @@ ReturnDefaultProc:
 	#ifdef _DEBUG
 	uint64 start = LgiCurrentTime();
 	#endif
-	LRESULT r;
-	if (IsWin9x)
-		r = DefWindowProcA(_View, Msg->Msg, Msg->a, Msg->b);
-	else
-		r = DefWindowProcW(_View, Msg->Msg, Msg->a, Msg->b);
+	LRESULT r = DefWindowProcW(_View, Msg->Msg, Msg->a, Msg->b);
 	#ifdef _DEBUG
 	uint64 now = LgiCurrentTime();
 	if (now - start > 1000)

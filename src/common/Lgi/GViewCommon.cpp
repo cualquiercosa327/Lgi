@@ -1653,17 +1653,8 @@ bool GView::Name(const char *n)
 	if (_View)
 	{
 		#if WINNATIVE
-		if (IsWin9x)
-		{
-			char *Temp = LgiToNativeCp(n);
-			SetWindowText(_View, Temp?Temp:"");
-			DeleteArray(Temp);
-		}
-		else
-		{
-			char16 *Temp = GBase::NameW();
-			SetWindowTextW(_View, Temp ? Temp : L"");
-		}
+		char16 *Temp = GBase::NameW();
+		SetWindowTextW(_View, Temp ? Temp : L"");
 		#endif
 	}
 
@@ -1677,36 +1668,7 @@ char *GView::Name()
 	#if WINNATIVE
 	if (_View)
 	{
-		if (IsWin9x)
-		{
-			int Length = GetWindowTextLength(_View);
-			if (Length > 0)
-			{
-				char *Buf = new char[Length+1];
-				if (Buf)
-				{
-					Buf[0] = 0;
-					int Chars = GetWindowText(_View, Buf, Length+1);
-					Buf[Chars] = 0;
-
-					char *Temp = (char*)LgiNewConvertCp("utf-8", Buf, LgiAnsiToLgiCp());
-					if (Temp)
-					{
-						GBase::Name(Temp);
-						DeleteArray(Temp);
-					}
-				}
-				DeleteArray(Buf);
-			}
-			else
-			{
-				GBase::Name(0);
-			}
-		}
-		else
-		{
-			GView::NameW();
-		}
+		GView::NameW();
 	}
 	#endif
 
@@ -1721,19 +1683,7 @@ bool GView::NameW(const char16 *n)
 	if (_View && n)
 	{
 		char16 *Txt = GBase::NameW();
-		if (IsWin9x)
-		{
-			char *Temp = (char*)LgiNewConvertCp(LgiAnsiToLgiCp(), n, LGI_WideCharset);
-			if (Temp)
-			{
-				SetWindowText(_View, Temp);
-				DeleteArray(Temp);
-			}
-		}
-		else
-		{
-			SetWindowTextW(_View, Txt);
-		}
+		SetWindowTextW(_View, Txt);
 	}
 	#endif
 
@@ -1746,29 +1696,22 @@ char16 *GView::NameW()
 	#if WINNATIVE
 	if (_View)
 	{
-		if (IsWin9x)
+		int Length = GetWindowTextLengthW(_View);
+		if (Length > 0)
 		{
-			GView::Name();
+			char16 *Buf = new char16[Length+1];
+			if (Buf)
+			{
+				Buf[0] = 0;
+				int Chars = GetWindowTextW(_View, Buf, Length+1);
+				Buf[Chars] = 0;
+				GBase::NameW(Buf);
+			}
+			DeleteArray(Buf);
 		}
 		else
 		{
-			int Length = GetWindowTextLengthW(_View);
-			if (Length > 0)
-			{
-				char16 *Buf = new char16[Length+1];
-				if (Buf)
-				{
-					Buf[0] = 0;
-					int Chars = GetWindowTextW(_View, Buf, Length+1);
-					Buf[Chars] = 0;
-					GBase::NameW(Buf);
-				}
-				DeleteArray(Buf);
-			}
-			else
-			{
-				GBase::NameW(0);
-			}
+			GBase::NameW(0);
 		}
 	}
 	#endif

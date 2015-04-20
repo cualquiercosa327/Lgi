@@ -100,11 +100,7 @@ public:
 	static LRESULT CALLBACK SubClassRedir(OsView hWnd, UINT m, WPARAM a, LPARAM b);
 
 public:
-	union
-	{
-		WNDCLASSEXA a;
-		WNDCLASSEXW w;
-	} Class;
+	WNDCLASSEXW Class;
 
 	GWin32Class(const char *Name);
 	~GWin32Class();

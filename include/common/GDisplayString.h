@@ -157,8 +157,25 @@ public:
 
 	// API that uses fractional pixel sizes.
 		
-		/// This is the value for 1 pixel.
-		static const int Scale;
+		enum
+		{
+			#if defined __GTK_H__
+				/// This is the value for 1 pixel.
+				FScale = PANGO_SCALE,
+				/// This is bitwise shift to convert between integer and fractional
+				FShift = 10
+			#elif defined MAC
+				/// This is the value for 1 pixel.
+				FScale = 0x10000,
+				/// This is bitwise shift to convert between integer and fractional
+				FShift = 16
+			#else
+				/// This is the value for 1 pixel.
+				FScale = 1,
+				/// This is bitwise shift to convert between integer and fractional
+				FShift = 0
+			#endif
+		};
 		
 		/// \returns the fractional width of the string
 		int FX();

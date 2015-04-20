@@ -4186,7 +4186,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 		pDC->GetOrigin(Ox, Oy);
 		pDC->SetOrigin(Ox+ScrollX, Oy);
 		
-		#if 1
+		#if 0
 		// Coverage testing...
 		pDC->Colour(Rgb24(255, 0, 255), 24);
 		pDC->Rectangle();
@@ -4303,8 +4303,8 @@ void GTextView3::OnPaint(GSurface *pDC)
 				int Done = 0;
 
 				// Fractional pixels we have moved so far:
-				int FX = d->rPadding.x1 * GDisplayString::Scale;
-				int FY = Tr.y1 * GDisplayString::Scale;
+				int FX = d->rPadding.x1 << GDisplayString::FShift;
+				int FY = Tr.y1 << GDisplayString::FShift;
 				
 				// loop through all sections of similar text on a line
 				while (Done < l->Len)
@@ -4376,7 +4376,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 							if (NextStyle->Decor == GStyle::DecorSquiggle)
 							{
 								pOut->Colour(NextStyle->DecorColour.c24(), 24);
-								int x = FX / GDisplayString::Scale;
+								int x = FX >> GDisplayString::FShift;
 								int End = x + Ds.X();
 								while (x < End)
 									pOut->Set(x, Tr.y2-(x%2));
@@ -4431,7 +4431,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 				
 				} // end block loop
 
-				Tr.x1 = FX / GDisplayString::Scale;
+				Tr.x1 = FX >> GDisplayString::FShift;
 
 				// eol processing
 				int EndOfLine = l->Start+l->Len;

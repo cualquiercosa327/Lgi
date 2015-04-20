@@ -236,10 +236,6 @@ public:
 	GFileSystem();
 	~GFileSystem();
 	
-	#ifdef WIN32
-	static bool Win9x;
-	#endif
-	
 	/// Return the current instance of the file system. The shorthand for this is "FileDev".
 	static GFileSystem *GetInstance() { return Instance; }
 

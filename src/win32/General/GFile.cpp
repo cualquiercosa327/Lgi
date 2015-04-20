@@ -87,30 +87,13 @@ bool FileExists(const char *Name, char *CorrectCase)
 	{
 		HANDLE hFind = INVALID_HANDLE_VALUE;
 		
-		if (GFileSystem::Win9x)
+		GAutoWString n(LgiNewUtf8To16(Name));
+		if (n)
 		{
-			char *n = LgiToNativeCp(Name);
-			if (n)
-			{
-				WIN32_FIND_DATA Info;
-				hFind = FindFirstFile(n, &Info);
-				if (hFind != INVALID_HANDLE_VALUE)
-					Status = strcmp(Info.cFileName, ".") != 0;
-				DeleteArray(n);
-			}
-		}
-		else
-		{
-			
-			char16 *n = LgiNewUtf8To16(Name);
-			if (n)
-			{
-				WIN32_FIND_DATAW Info;
-				hFind = FindFirstFileW(n, &Info);
-				if (hFind != INVALID_HANDLE_VALUE)
-					Status = StrcmpW(Info.cFileName, L".") != 0;
-				DeleteArray(n);
-			}
+			WIN32_FIND_DATAW Info;
+			hFind = FindFirstFileW(n, &Info);
+			if (hFind != INVALID_HANDLE_VALUE)
+				Status = StrcmpW(Info.cFileName, L".") != 0;
 		}
 
 		if (hFind != INVALID_HANDLE_VALUE)
@@ -125,19 +108,8 @@ bool FileExists(const char *Name, char *CorrectCase)
 
 bool DirExists(const char *Dir, char *CorrectCase)
 {
-	DWORD e = 0;
-	if (GFileSystem::Win9x)
-	{
-		char *n = LgiToNativeCp(Dir);
-		e = GetFileAttributesA(n);
-		DeleteArray(n);
-	}
-	else
-	{
-		char16 *n = LgiNewUtf8To16(Dir);
-		e = GetFileAttributesW(n);
-		DeleteArray(n);
-	}
+	GAutoWString n(LgiNewUtf8To16(Dir));
+	DWORD e = GetFileAttributesW(n);
 	return e != 0xFFFFFFFF && TestFlag(e, FILE_ATTRIBUTE_DIRECTORY);
 }
 
@@ -378,48 +350,21 @@ bool LgiGetDriveInfo
 
 	if (Path)
 	{
-		if (GFileSystem::Win9x)
+		GAutoWString w(LgiNewUtf8To16(Path));
+		if (w)
 		{
-			char *a = LgiToNativeCp(Path);
-			if (a)
+			char16 *d = StrchrW(w, DIR_CHAR);
+			if (d) *d = 0;
+
+			if (GetDiskFreeSpaceExW(w,
+									&available,
+									&total,
+									&free))
 			{
-				char *d = strchr(a, DIR_CHAR);
-				if (d) *d = 0;
-
-				if (GetDiskFreeSpaceExA(a,
-										&available,
-										&total,
-										&free))
-				{
-					if (Free) *Free = free.QuadPart;
-					if (Size) *Size = total.QuadPart;
-					if (Available) *Available = available.QuadPart;
-					Status = true;
-				}
-
-				DeleteArray(a);
-			}
-		}
-		else
-		{
-			char16 *w = LgiNewUtf8To16(Path);
-			if (w)
-			{
-				char16 *d = StrchrW(w, DIR_CHAR);
-				if (d) *d = 0;
-
-				if (GetDiskFreeSpaceExW(w,
-										&available,
-										&total,
-										&free))
-				{
-					if (Free) *Free = free.QuadPart;
-					if (Size) *Size = total.QuadPart;
-					if (Available) *Available = available.QuadPart;
-					Status = true;
-				}
-
-				DeleteArray(w);
+				if (Free) *Free = free.QuadPart;
+				if (Size) *Size = total.QuadPart;
+				if (Available) *Available = available.QuadPart;
+				Status = true;
 			}
 		}
 	}
@@ -610,7 +555,6 @@ public:
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-bool GFileSystem::Win9x = false;
 GFileSystem *GFileSystem::Instance = 0;
 
 class GFileSystemPrivate
@@ -634,7 +578,6 @@ GFileSystem::GFileSystem()
 	Instance = this;
 	d = new GFileSystemPrivate;
 	Root = 0;
-	Win9x = LgiGetOs() == LGI_OS_WIN9X;
 }
 
 GFileSystem::~GFileSystem()
@@ -767,67 +710,32 @@ bool GFileSystem::Delete(GArray<const char*> &Files, GArray<int> *Status, bool T
 		{
 			int e;
 
-			if (Win9x)
+			pSHFileOperationW f = (pSHFileOperationW) d->Shell->GetAddress("SHFileOperationW");
+			if (f)
 			{
-				pSHFileOperationA f = (pSHFileOperationA) d->Shell->GetAddress("SHFileOperationA");
-				if (f)
+				GArray<char16> Name;
+				for (int i=0; i<Files.Length(); i++)
 				{
-					GArray<char> Name;
-					for (int i=0; i<Files.Length(); i++)
-					{
-						char *Mem = LgiToNativeCp(Files[i]);
-						if (Mem)
-						{
-							int In = strlen(Mem);
-							int Len = Name.Length();
-
-							Name.Length(Len + In + 1);
-							strcpy(&Name[Len], Mem);
-
-							DeleteArray(Mem);
-						}
-					}
-					Name.Add(0);
-
-					SHFILEOPSTRUCTA s;
-					ZeroObj(s);
-					s.hwnd = 0;
-					s.wFunc = FO_DELETE;
-					s.pFrom = &Name[0];
-					s.fFlags = FOF_ALLOWUNDO;
-
-					e = f(&s);
+					int InSize = strlen(Files[i]);
+					char16 Buf[300];
+					ZeroObj(Buf);
+					const void *InPtr = Files[i];
+					LgiBufConvertCp(Buf, LGI_WideCharset, sizeof(Buf), InPtr, "utf-8", InSize);
+					int Chars = StrlenW(Buf);
+					int Len = Name.Length();
+					Name.Length(Len + Chars + 1);
+					StrcpyW(&Name[Len], Buf);
 				}
-			}
-			else
-			{
-				pSHFileOperationW f = (pSHFileOperationW) d->Shell->GetAddress("SHFileOperationW");
-				if (f)
-				{
-					GArray<char16> Name;
-					for (int i=0; i<Files.Length(); i++)
-					{
-						int InSize = strlen(Files[i]);
-						char16 Buf[300];
-						ZeroObj(Buf);
-						const void *InPtr = Files[i];
-						LgiBufConvertCp(Buf, LGI_WideCharset, sizeof(Buf), InPtr, "utf-8", InSize);
-						int Chars = StrlenW(Buf);
-						int Len = Name.Length();
-						Name.Length(Len + Chars + 1);
-						StrcpyW(&Name[Len], Buf);
-					}
-					Name.Add(0);
+				Name.Add(0);
 
-					SHFILEOPSTRUCTW s;
-					ZeroObj(s);
-					s.hwnd = 0;
-					s.wFunc = FO_DELETE;
-					s.pFrom = &Name[0];
-					s.fFlags = FOF_ALLOWUNDO;
+				SHFILEOPSTRUCTW s;
+				ZeroObj(s);
+				s.hwnd = 0;
+				s.wFunc = FO_DELETE;
+				s.pFrom = &Name[0];
+				s.fFlags = FOF_ALLOWUNDO;
 
-					e = f(&s);
-				}
+				e = f(&s);
 			}
 
 			Ret = e == 0;
@@ -846,30 +754,13 @@ bool GFileSystem::Delete(GArray<const char*> &Files, GArray<int> *Status, bool T
 		{
 			DWORD e = 0;
 
-			if (Win9x)
+			GAutoWString n(LgiNewUtf8To16(Files[i]));
+			if (n)
 			{
-				char *n = LgiToNativeCp(Files[i]);
-				if (n)
+				SetFileAttributesW(n, FILE_ATTRIBUTE_ARCHIVE);
+				if (!::DeleteFileW(n))
 				{
-					SetFileAttributes(n, FILE_ATTRIBUTE_ARCHIVE);
-					if (!::DeleteFile(n))
-					{
-						e = GetLastError();
-					}
-					DeleteArray(n);
-				}
-			}
-			else
-			{
-				char16 *n = LgiNewUtf8To16(Files[i]);
-				if (n)
-				{
-					SetFileAttributesW(n, FILE_ATTRIBUTE_ARCHIVE);
-					if (!::DeleteFileW(n))
-					{
-						e = GetLastError();
-					}
-					DeleteArray(n);
+					e = GetLastError();
 				}
 			}
 
@@ -905,7 +796,7 @@ bool GFileSystem::CreateFolder(const char *PathName, bool CreateParentFoldersIfN
 		DWORD err = GetLastError();
 		if (err == ERROR_PATH_NOT_FOUND)
 		{
-			char Base[MAX_PATH];
+			char Base[DIR_PATH_SIZE];
 			strcpy_s(Base, sizeof(Base), PathName);
 			do
 			{
@@ -972,24 +863,9 @@ bool GFileSystem::SetCurrentFolder(char *PathName)
 {
 	bool Status = false;
 	
-	if (Win9x)
-	{
-		char *n = LgiToNativeCp(PathName);
-		if (n)
-		{
-			Status = ::SetCurrentDirectory(n);
-			DeleteArray(n);
-		}
-	}
-	else
-	{
-		char16 *w = LgiNewUtf8To16(PathName);
-		if (w)
-		{
-			Status = ::SetCurrentDirectoryW(w);
-			DeleteArray(w);
-		}
-	}
+	GAutoWString w(LgiNewUtf8To16(PathName));
+	if (w)
+		Status = ::SetCurrentDirectoryW(w);
 
 	return Status;
 }
@@ -998,42 +874,14 @@ bool GFileSystem::GetCurrentFolder(char *PathName, int Length)
 {
 	bool Status = false;
 
-	if (Win9x)
+	GAutoWString w(new char16[DIR_PATH_SIZE+1]);
+	if (w && ::GetCurrentDirectoryW(DIR_PATH_SIZE, w) > 0)
 	{
-		char *s = new char[Length+1];
+		GAutoString s(LgiNewUtf16To8(w));
 		if (s)
 		{
-			if (::GetCurrentDirectory(Length, s) > 0)
-			{
-				char *n = LgiFromNativeCp(s);
-				if (n)
-				{
-					strcpy_s(PathName, Length, n);
-					Status = true;
-					DeleteArray(n);
-				}
-			}
-
-			DeleteArray(s);
-		}
-	}
-	else
-	{
-		char16 *w = new char16[Length+1];
-		if (w)
-		{
-			if (::GetCurrentDirectoryW(Length, w) > 0)
-			{
-				char *s = LgiNewUtf16To8(w);
-				if (s)
-				{
-					strcpy_s(PathName, Length, s);
-					DeleteArray(s);
-					Status = true;
-				}
-			}
-
-			DeleteArray(w);
+			strcpy_s(PathName, Length, s);
+			Status = true;
 		}
 	}
 
@@ -1046,29 +894,10 @@ bool GFileSystem::Move(char *OldName, char *NewName)
 
 	if (OldName && NewName)
 	{
-		if (Win9x)
-		{
-			char *New = LgiToNativeCp(NewName);
-			char *Old = LgiToNativeCp(OldName);
-
-			if (New && Old)
-				Status = ::MoveFileA(Old, New);
-
-			DeleteArray(New);
-			DeleteArray(Old);
-		}
-		else
-		{
-			char16 *New = LgiNewUtf8To16(NewName);
-			char16 *Old = LgiNewUtf8To16(OldName);
-
-			if (New && Old)
-				Status = ::MoveFileW(Old, New);
-
-			DeleteArray(New);
-			DeleteArray(Old);
-		}
-
+		GAutoWString New(LgiNewUtf8To16(NewName));
+		GAutoWString Old(LgiNewUtf8To16(OldName));
+		if (New && Old)
+			Status = ::MoveFileW(Old, New);
 	}
 
 	return Status;
@@ -1256,11 +1085,7 @@ struct GDirectoryPriv
 	char			BasePath[DIR_PATH_SIZE];
 	GAutoString     Utf;
 	HANDLE			Handle;
-	union
-	{
-		WIN32_FIND_DATAA a;
-		WIN32_FIND_DATAW w;
-	} Data;
+	WIN32_FIND_DATAW Data;
 
 	GDirectoryPriv()
 	{
@@ -1330,45 +1155,23 @@ int GDirectory::First(const char *InName, const char *Pattern)
 	}
 
 	// dir
-	if (GFileSystem::Win9x)
+	GAutoWString p(LgiNewUtf8To16(Name));
+	if (p)
 	{
-		char *path = LgiToNativeCp(Name);
-		if (path)
+		char16 w[DIR_PATH_SIZE];
+		w[0] = 0;
+		DWORD Chars = GetFullPathNameW(p, CountOf(w), w, NULL);
+		if (Chars == 0)
 		{
-			char n[DIR_PATH_SIZE] = "";
-			GetFullPathName(path, sizeof(n), n, NULL);
-			DeleteArray(path);
-			
-			char *utf = LgiFromNativeCp(n);
-			if (utf)
-			{
-				strcpy_s(d->BasePath, sizeof(d->BasePath), utf);
-				DeleteArray(utf);
-			}
+			DWORD e = GetLastError();
+			StrcpyW(w, p);
 		}
-	}
-	else
-	{
-		char16 *p = LgiNewUtf8To16(Name);
-		if (p)
-		{
-			char16 w[DIR_PATH_SIZE];
-			w[0] = 0;
-			DWORD Chars = GetFullPathNameW(p, CountOf(w), w, NULL);
-			if (Chars == 0)
-			{
-				DWORD e = GetLastError();
-				StrcpyW(w, p);
-			}
-			DeleteArray(p);
 
-			char *utf = LgiNewUtf16To8(w);
-			if (utf)
-			{
-				strcpy_s(d->BasePath, sizeof(d->BasePath), utf);
-				DeleteArray(utf);
-			}
-		}
+		GAutoString utf(LgiNewUtf16To8(w));
+		if (utf)
+			strcpy_s(d->BasePath, sizeof(d->BasePath), utf);
+		else
+			d->BasePath[0] = 0;
 	}
 
 	char Str[DIR_PATH_SIZE];
@@ -1384,24 +1187,9 @@ int GDirectory::First(const char *InName, const char *Pattern)
 		strcpy_s(Str, sizeof(Str), d->BasePath);
 	}
 
-	if (GFileSystem::Win9x)
-	{
-		char *s = LgiToNativeCp(Str);
-		if (s)
-		{
-			d->Handle = FindFirstFile(s, &d->Data.a);
-			DeleteArray(s);
-		}
-	}
-	else
-	{
-		char16 *s = LgiNewUtf8To16(Str);
-		if (s)
-		{
-			d->Handle = FindFirstFileW(s, &d->Data.w);
-			DeleteArray(s);
-		}
-	}
+	GAutoWString s(LgiNewUtf8To16(Str));
+	if (s)
+		d->Handle = FindFirstFileW(s, &d->Data);
 
 	if (d->Handle != INVALID_HANDLE_VALUE)
 	{
@@ -1423,14 +1211,7 @@ int GDirectory::Next()
 
 	if (d->Handle != INVALID_HANDLE_VALUE)
 	{
-		if (GFileSystem::Win9x)
-		{
-			Status = FindNextFile(d->Handle, &d->Data.a);
-		}
-		else
-		{
-			Status = FindNextFileW(d->Handle, &d->Data.w);
-		}
+		Status = FindNextFileW(d->Handle, &d->Data);
 	}
 
 	return Status;
@@ -1456,62 +1237,27 @@ int GDirectory::GetUser(bool Group)
 
 bool GDirectory::IsReadOnly()
 {
-	if (GFileSystem::Win9x)
-	{
-		return (d->Data.a.dwFileAttributes & FA_READONLY) != 0;
-	}
-	else
-	{
-		return (d->Data.w.dwFileAttributes & FA_READONLY) != 0;
-	}
+	return (d->Data.dwFileAttributes & FA_READONLY) != 0;
 }
 
 bool GDirectory::IsDir()
 {
-	if (GFileSystem::Win9x)
-	{
-		return (d->Data.a.dwFileAttributes & FA_DIRECTORY) != 0;
-	}
-	else
-	{
-		return (d->Data.w.dwFileAttributes & FA_DIRECTORY) != 0;
-	}
+	return (d->Data.dwFileAttributes & FA_DIRECTORY) != 0;
 }
 
 bool GDirectory::IsSymLink()
 {
-	if (GFileSystem::Win9x)
-	{
-		return (d->Data.a.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0;
-	}
-	else
-	{
-		return (d->Data.w.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0;
-	}
+	return (d->Data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0;
 }
 
 bool GDirectory::IsHidden()
 {
-	if (GFileSystem::Win9x)
-	{
-		return (d->Data.a.dwFileAttributes & FA_HIDDEN) != 0;
-	}
-	else
-	{
-		return (d->Data.w.dwFileAttributes & FA_HIDDEN) != 0;
-	}
+	return (d->Data.dwFileAttributes & FA_HIDDEN) != 0;
 }
 
 long GDirectory::GetAttributes()
 {
-	if (GFileSystem::Win9x)
-	{
-		return d->Data.a.dwFileAttributes;
-	}
-	else
-	{
-		return d->Data.w.dwFileAttributes;
-	}
+	return d->Data.dwFileAttributes;
 }
 
 int GDirectory::GetType()
@@ -1523,14 +1269,7 @@ char *GDirectory::GetName()
 {
 	if (!d->Utf)
 	{
-	    if (GFileSystem::Win9x)
-	    {
-		    d->Utf.Reset(LgiFromNativeCp(d->Data.a.cFileName));
-	    }
-	    else
-	    {
-		    d->Utf.Reset(LgiNewUtf16To8(d->Data.w.cFileName));
-	    }
+	    d->Utf.Reset(LgiNewUtf16To8(d->Data.cFileName));
 	}
 	
 	return d->Utf;
@@ -1538,50 +1277,22 @@ char *GDirectory::GetName()
 
 const uint64 GDirectory::GetCreationTime()
 {
-	if (GFileSystem::Win9x)
-	{
-		return ((uint64) d->Data.a.ftCreationTime.dwHighDateTime) << 32 | d->Data.a.ftCreationTime.dwLowDateTime;
-	}
-	else
-	{
-		return ((uint64) d->Data.w.ftCreationTime.dwHighDateTime) << 32 | d->Data.w.ftCreationTime.dwLowDateTime;
-	}
+	return ((uint64) d->Data.ftCreationTime.dwHighDateTime) << 32 | d->Data.ftCreationTime.dwLowDateTime;
 }
 
 const uint64 GDirectory::GetLastAccessTime()
 {
-	if (GFileSystem::Win9x)
-	{
-		return ((uint64) d->Data.a.ftLastAccessTime.dwHighDateTime) << 32 | d->Data.a.ftLastAccessTime.dwLowDateTime;
-	}
-	else
-	{
-		return ((uint64) d->Data.w.ftLastAccessTime.dwHighDateTime) << 32 | d->Data.w.ftLastAccessTime.dwLowDateTime;
-	}
+	return ((uint64) d->Data.ftLastAccessTime.dwHighDateTime) << 32 | d->Data.ftLastAccessTime.dwLowDateTime;
 }
 
 const uint64 GDirectory::GetLastWriteTime()
 {
-	if (GFileSystem::Win9x)
-	{
-		return ((uint64) d->Data.a.ftLastWriteTime.dwHighDateTime) << 32 | d->Data.a.ftLastWriteTime.dwLowDateTime;
-	}
-	else
-	{
-		return ((uint64) d->Data.w.ftLastWriteTime.dwHighDateTime) << 32 | d->Data.w.ftLastWriteTime.dwLowDateTime;
-	}
+	return ((uint64) d->Data.ftLastWriteTime.dwHighDateTime) << 32 | d->Data.ftLastWriteTime.dwLowDateTime;
 }
 
 const uint64 GDirectory::GetSize()
 {
-	if (GFileSystem::Win9x)
-	{
-		return ((uint64) d->Data.a.nFileSizeHigh) << 32 | d->Data.a.nFileSizeLow;
-	}
-	else
-	{
-		return ((uint64) d->Data.w.nFileSizeHigh) << 32 | d->Data.w.nFileSizeLow;
-	}
+	return ((uint64) d->Data.nFileSizeHigh) << 32 | d->Data.nFileSizeLow;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -1695,35 +1406,16 @@ int GFile::Open(const char *File, int Mode)
 			return false;
 		}
 		
-		if (GFileSystem::Win9x)
+		GAutoWString n(LgiNewUtf8To16(File));
+		if (n)
 		{
-			char *n = LgiToNativeCp(File);
-			if (n)
-			{
-				d->hFile = CreateFile(	n,
-										Mode,
-										FILE_SHARE_READ | (SharedAccess ? FILE_SHARE_WRITE : 0),
-										0,
-										(Mode & O_WRITE) ? OPEN_ALWAYS : OPEN_EXISTING,
-										NoCache ? FILE_FLAG_NO_BUFFERING : 0,
-										NULL);
-				DeleteArray(n);
-			}
-		}
-		else
-		{
-			char16 *n = LgiNewUtf8To16(File);
-			if (n)
-			{
-				d->hFile = CreateFileW(	n,
-										Mode,
-										FILE_SHARE_READ | (SharedAccess ? FILE_SHARE_WRITE : 0),
-										0,
-										(Mode & O_WRITE) ? OPEN_ALWAYS : OPEN_EXISTING,
-										NoCache ? FILE_FLAG_NO_BUFFERING : 0,
-										NULL);
-				DeleteArray(n);
-			}
+			d->hFile = CreateFileW(	n,
+									Mode,
+									FILE_SHARE_READ | (SharedAccess ? FILE_SHARE_WRITE : 0),
+									0,
+									(Mode & O_WRITE) ? OPEN_ALWAYS : OPEN_EXISTING,
+									NoCache ? FILE_FLAG_NO_BUFFERING : 0,
+									NULL);
 		}
 
 		if (!ValidHandle(d->hFile))

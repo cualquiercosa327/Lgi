@@ -241,30 +241,18 @@ bool GDragDropSource::CreateFileDrop(GVariant *OutputData, GMouse &m, List<char>
 {
 	if (OutputData && Files.First())
 	{
-		int Size = sizeof(DROPFILES) + ((IsWin9x) ? sizeof(char) : sizeof(char16));
+		int Size = sizeof(DROPFILES) + sizeof(char16);
 
 		List<char> Native;
 		List<char16> NativeW;
 		for (char *File=Files.First(); File; File=Files.Next())
 		{
-			if (IsWin9x)
+			char16 *f = LgiNewUtf8To16(File);
+			if (f)
 			{
-				char *f = LgiToNativeCp(File);
-				if (f)
-				{
-					Size += strlen(f) + 1;
-					Native.Insert(f);
-				}
-			}
-			else
-			{
-				char16 *f = LgiNewUtf8To16(File);
-				if (f)
-				{
-					int Len = StrlenW(f) + 1;
-					Size += Len * sizeof(char16);
-					NativeW.Insert(f);
-				}
+				int Len = StrlenW(f) + 1;
+				Size += Len * sizeof(char16);
+				NativeW.Insert(f);
 			}
 		}
 
@@ -272,32 +260,19 @@ bool GDragDropSource::CreateFileDrop(GVariant *OutputData, GMouse &m, List<char>
 		if (Dp)
 		{
 			Dp->pFiles = sizeof(DROPFILES);
-			Dp->fWide = !IsWin9x;
+			Dp->fWide = TRUE;
 			Dp->fNC = true;
 			Dp->pt.x = m.x;
 			Dp->pt.y = m.y;
 
-			if (IsWin9x)
+			char16 *f = (char16*) (((char*)Dp) + Dp->pFiles);
+			for (char16 *File=NativeW.First(); File; File=NativeW.Next())
 			{
-				char *f = ((char*)Dp) + Dp->pFiles;
-				for (char *File=Native.First(); File; File=Native.Next())
-				{
-					strcpy(f, File);
-					f += strlen(File) + 1;
-				}
-				*f++ = 0;
+				int Len = StrlenW(File) + 1;
+				StrcpyW(f, File);
+				f += Len;
 			}
-			else
-			{
-				char16 *f = (char16*) (((char*)Dp) + Dp->pFiles);
-				for (char16 *File=NativeW.First(); File; File=NativeW.Next())
-				{
-					int Len = StrlenW(File) + 1;
-					StrcpyW(f, File);
-					f += Len;
-				}
-				*f++ = 0;
-			}
+			*f++ = 0;
 
 			OutputData->SetBinary(Size, (uchar*)Dp);
 			DeleteArray((char*&)Dp);
