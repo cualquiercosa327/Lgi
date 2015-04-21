@@ -4371,7 +4371,6 @@ void GTextView3::OnPaint(GSurface *pDC)
 							Ds.ShowVisibleTab(ShowWhiteSpace);
 							Ds.SetTabOrigin(TabOri);
 							Ds.FDraw(pOut, FX, FY, 0);
-							FX += Ds.FX();
 
 							if (NextStyle->Decor == GStyle::DecorSquiggle)
 							{
@@ -4379,8 +4378,13 @@ void GTextView3::OnPaint(GSurface *pDC)
 								int x = FX >> GDisplayString::FShift;
 								int End = x + Ds.X();
 								while (x < End)
+								{
 									pOut->Set(x, Tr.y2-(x%2));
+									x++;
+								}
 							}
+
+							FX += Ds.FX();
 
 							GColour fore = l->c.IsValid() ? l->c : Fore;
 							GColour back = l->Back.IsValid() ? l->Back : Back;
