@@ -575,7 +575,7 @@ void GDisplayString::TruncateWithDots(int Width)
 	if (Str)
 	{
 		ATSULineTruncation truc = kATSUTruncateEnd;
-		ATSUTextMeasurement width = Width << Shift;
+		ATSUTextMeasurement width = Width << FShift;
 
 		ATSUAttributeTag        tags[] = {kATSULineWidthTag, kATSULineTruncationTag};
 		ByteCount               sizes[] = {sizeof(width), sizeof(truc)};
@@ -1199,14 +1199,14 @@ void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc)
 	#elif defined MAC && !defined COCOA
 
 	int Ox = 0, Oy = 0;
-	int px = fx >> 16;
-	int py = fy >> 16;
+	int px = fx >> FShift;
+	int py = fy >> FShift;
 	GRect rc;
 	if (frc)
-		rc.Set(	frc->x1 >> 16,
-				frc->y1 >> 16,
-				frc->x2 >> 16,
-				frc->y2 >> 16);
+		rc.Set(	frc->x1 >> FShift,
+				frc->y1 >> FShift,
+				frc->x2 >> FShift,
+				frc->y2 >> FShift);
 
 	if (pDC && !pDC->IsScreen())
 		pDC->GetOrigin(Ox, Oy);
