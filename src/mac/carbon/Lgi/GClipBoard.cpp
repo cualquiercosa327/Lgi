@@ -94,7 +94,9 @@ bool GClipBoard::TextW(char16 *Str, bool AutoEmpty)
 		{
 			OSStatus e;
 
-			CFDataRef Data = CFDataCreate(kCFAllocatorDefault, (UInt8*)wTxt.Get(), StrlenW(wTxt) * sizeof(*Str));
+			GAutoPtr<uint16> w((uint16*)LgiNewConvertCp("utf-16", wTxt, LGI_WideCharset));
+
+			CFDataRef Data = CFDataCreate(kCFAllocatorDefault, (UInt8*)w.Get(), StringLen(w.Get()) * sizeof(uint16));
 			if (!Data) printf("%s:%i - CFDataCreate failed\n", _FL);
 			else
 			{
@@ -167,29 +169,31 @@ char16 *GClipBoard::TextW()
 				}
 
 				int Size = CFDataGetLength(Data);
-				int Ch = Size / sizeof(char16);
-				wTxt.Reset(new char16[Ch+1]);
-				if (!wTxt)
+				int Ch = Size / sizeof(uint16);
+				GAutoPtr<uint16> w(new uint16[Ch+1]);
+				if (!w)
 					continue;
 
-				memcpy(wTxt, CFDataGetBytePtr(Data), Size);
-				wTxt[Ch] = 0;
+				memcpy(w, CFDataGetBytePtr(Data), Size);
+				w[Ch] = 0;
 														
 				// Convert '\r' to '\n', which all Lgi applications expect
 				bool HasR = false, HasN = false;
-				for (char16 *c = wTxt; *c; c++)
+				for (uint16 *c = w; *c; c++)
 				{
 					if (*c == '\n') HasN = true;
 					else if (*c == '\r') HasR = true;
 				}
 				if (HasR && !HasN)
 				{
-					for (char16 *c = wTxt; *c; c++)
+					for (uint16 *c = w; *c; c++)
 					{
 						if (*c == '\r')
 							*c = '\n';
 					}
 				}
+				
+				wTxt.Reset((char16*)LgiNewConvertCp(LGI_WideCharset, w, "utf-16", Size));
 				break;
 			}
 		}					
