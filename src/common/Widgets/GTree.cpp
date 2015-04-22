@@ -1040,6 +1040,16 @@ void GTree::_UpdateBelow(int y, bool Now)
 	Invalidate(&u, Now);
 }
 
+void GTree::ClearDs(int Col)
+{
+	GTreeItem *n;
+	List<GTreeItem>::I it = Items.Start();
+	for (GTreeItem *i=*it; i; i=*++it)
+	{
+		i->_ClearDs(Col);
+	}
+}
+
 GdcPt2 GTree::_ScrollPos()
 {
 	/*

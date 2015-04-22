@@ -2,6 +2,7 @@
 #include "GItemContainer.h"
 #include "GDisplayString.h"
 #include "GSkinEngine.h"
+#include "GScrollBar.h"
 
 // Colours
 #if defined(WIN32)
@@ -317,18 +318,71 @@ int GItemContainer::HitColumn(int x, int y, GItemColumn *&Resize, GItemColumn *&
 	return Index;
 }
 
+DeclGArrayCompare(ColInfoCmp, GItemContainer::ColInfo, void)
+{
+	int AGrowPx = a->GrowPx();
+	int BGrowPx = b->GrowPx();
+	return AGrowPx - BGrowPx;
+}
+
+void GItemContainer::GetColumnSizes(ColSizes &cs)
+{
+	// Read in the current sizes
+	cs.FixedPx = 0;
+	cs.ResizePx = 0;
+	for (int i=0; i<Columns.Length(); i++)
+	{
+		GItemColumn *c = Columns[i];
+		if (c->Resizable())
+		{
+			ColInfo &Inf = cs.Info.New();
+			Inf.Col = c;
+			Inf.Idx = i;
+			Inf.ContentPx = c->GetContentSize();
+			Inf.WidthPx = c->Width();
+
+			cs.ResizePx += Inf.WidthPx;
+		}
+		else
+		{
+			cs.FixedPx += c->Width();
+		}
+	}
+}
+
 void GItemContainer::ResizeColumnsToContent(int Border)
 {
 	if (Lock(_FL))
 	{
-		for (int i=0; i<Columns.Length(); i++)
+		// Read in the current sizes
+		ColSizes Sizes;
+		GetColumnSizes(Sizes);
+		
+		// Allocate space
+		int AvailablePx = GetClient().X() - 5;
+		if (VScroll)
+			AvailablePx -= VScroll->X();
+
+		int ExpandPx = AvailablePx - (Sizes.FixedPx + Sizes.ResizePx);
+		if (ExpandPx > 0)
 		{
-			GItemColumn *c = Columns[i];
-			if (c->Resizable())
+			Sizes.Info.Sort(ColInfoCmp, (void*)NULL);
+			for (int i=0; i<Sizes.Info.Length(); i++)
 			{
-				c->Width(c->GetContentSize() + Border);
+				ColInfo &Inf = Sizes.Info[i];
+				if (Inf.Col)
+				{
+					int AddPx = min(Inf.GrowPx() + Border, ExpandPx);
+					if (AddPx > 0)
+					{
+						Inf.Col->Width(Inf.WidthPx + AddPx);
+						ClearDs(Inf.Idx);
+						ExpandPx -= AddPx;
+					}
+				}
 			}
 		}
+
 		Unlock();
 	}
 

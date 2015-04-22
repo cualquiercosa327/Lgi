@@ -296,6 +296,21 @@ class LgiClass GItemContainer :
 	public GImageListOwner 
 {
 	friend class GItemColumn;
+
+public:
+	struct ColInfo
+	{
+		int Idx, ContentPx, WidthPx;
+		GItemColumn *Col;
+		int GrowPx() { return WidthPx < ContentPx ? ContentPx - WidthPx : 0; }
+	};
+	
+	struct ColSizes
+	{
+		GArray<ColInfo> Info;
+		int FixedPx;
+		int ResizePx;
+	};
 	
 protected:
 	int Flags;
@@ -309,7 +324,14 @@ protected:
 	GAutoPtr<GItemColumn> IconCol;
 	class GDragColumn *DragCol;
 
+	/// Returns size information for columns
+	void GetColumnSizes(ColSizes &cs);
+	
+	/// Paints all the column headings
 	void PaintColumnHeadings(GSurface *pDC);
+	
+	/// This clears all the display string cache for a given column
+	virtual void ClearDs(int Col) = 0;
 
 public:
 	GItemContainer();

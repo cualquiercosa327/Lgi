@@ -178,6 +178,7 @@ protected:
 	GTreeItem *GetAdjacent(GTreeItem *From, bool Down);
 	void OnDragEnter();
 	void OnDragExit();
+	void ClearDs(int Col);
 	
 public:
 	GTree(int id, int x, int y, int cx, int cy, const char *name = 0);

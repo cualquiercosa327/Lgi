@@ -1458,9 +1458,32 @@ void GList::OnMouseClick(GMouse &m)
 				{
 					if (m.Double())
 					{
-						Resize->Width(Resize->GetContentSize() + DEFAULT_COLUMN_SPACING);
-						ClearDs(Index);
-						Invalidate();
+						if (m.Modifier())
+						{
+							ResizeColumnsToContent();
+						}
+						else
+						{
+							ColSizes Sizes;
+							GetColumnSizes(Sizes);
+							
+							int AvailablePx = GetClient().X() - 5;
+							if (VScroll)
+								AvailablePx -= VScroll->X();
+
+							int ExpandPx = AvailablePx - (Sizes.FixedPx + Sizes.ResizePx);
+							if (ExpandPx > 0)
+							{
+								int MaxPx = Resize->GetContentSize() + DEFAULT_COLUMN_SPACING;
+								int AddPx = min(ExpandPx, MaxPx - Resize->Width());
+								if (AddPx > 0)
+								{
+									Resize->Width(Resize->Width() + AddPx);
+									ClearDs(Index);
+									Invalidate();
+								}
+							}
+						}
 					}
 					else
 					{
