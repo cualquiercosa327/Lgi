@@ -117,12 +117,36 @@ GMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Where
 				s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)"#error", 6, kCFStringEncodingUTF8, false);
 			if (s)
 			{
-				OSStatus e = AppendMenuItemTextWithCFString(Info, s, 0, 0, &i->Info);
-				if (e) printf("%s:%i - AppendMenuItemTextWithCFString failed (e=%i)\n", __FILE__, __LINE__, (int)e);
+				OSStatus e;
+
+				if (Where >= 0)
+				{
+					e = InsertMenuItemTextWithCFString(Info, s, Where, 0, 0);
+				}
+				else
+				{
+					e = AppendMenuItemTextWithCFString(Info, s, 0, 0, &i->Info);
+				}
+
+				if (e)
+					printf("%s:%i - AppendMenuItemTextWithCFString failed (e=%i)\n", _FL, (int)e);
 				#if DEBUG_INFO
-				else printf("AppendMenuItemTextWithCFString(%p, %s)=%p\n", Info, Str, i->Info);
+				else
+					printf("Append|Insert.MenuItemTextWithCFString(%p, %s)=%p\n", Info, Str, i->Info);
 				#endif
+
 				CFRelease(s);
+			}
+			
+			if (Where >= 0)
+			{
+				// We have to reindex everything (do the indexes change anyway?)
+				List<GMenuItem>::I it = Items.Start();
+				int n = 1;
+				for (GMenuItem *mi = *it; mi; mi = *++it)
+				{
+					mi->Info = n++;
+				}
 			}
 			
 			i->Id(Id);

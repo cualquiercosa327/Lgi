@@ -9,8 +9,8 @@
 /* Begin PBXBuildFile section */
 		3408B1E21729F11300397078 /* LgiRes_Css.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3408B1E11729F11300397078 /* LgiRes_Css.cpp */; };
 		342D774A11FA4929005BADBD /* LgiMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 342D774911FA4929005BADBD /* LgiMain.cpp */; };
-		3444A35712275B75004ADADE /* Lgi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3444A35612275B75004ADADE /* Lgi.framework */; };
-		3444A35912275B7B004ADADE /* Lgi.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3444A35612275B75004ADADE /* Lgi.framework */; };
+		34369DF91AEB22EC00A49586 /* Lgi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 34369DF61AEB22CD00A49586 /* Lgi.framework */; };
+		34369DFA1AEB22EF00A49586 /* Lgi.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 34369DF61AEB22CD00A49586 /* Lgi.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		34F3E972148730DA009D9AC5 /* LgiRes_ControlTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34F3E966148730DA009D9AC5 /* LgiRes_ControlTree.cpp */; };
 		34F3E973148730DA009D9AC5 /* LgiRes_Dialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34F3E967148730DA009D9AC5 /* LgiRes_Dialog.cpp */; };
 		34F3E974148730DA009D9AC5 /* LgiRes_Menu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34F3E969148730DA009D9AC5 /* LgiRes_Menu.cpp */; };
@@ -35,6 +35,16 @@
 		8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20286C33FDCF999611CA2CEA /* Carbon.framework */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		34369DF51AEB22CD00A49586 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 34369DF11AEB22CD00A49586 /* LgiCarbon.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 8DC2EF5B0486A6940098B216;
+			remoteInfo = Lgi;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		34EFB74D0C295A2A0053C935 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -42,7 +52,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				3444A35912275B7B004ADADE /* Lgi.framework in CopyFiles */,
+				34369DFA1AEB22EF00A49586 /* Lgi.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -55,7 +65,7 @@
 		32DBCF6D0370B57F00C91783 /* LgiRes_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LgiRes_Prefix.pch; sourceTree = "<group>"; };
 		3408B1E11729F11300397078 /* LgiRes_Css.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiRes_Css.cpp; path = Code/LgiRes_Css.cpp; sourceTree = "<group>"; };
 		342D774911FA4929005BADBD /* LgiMain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiMain.cpp; path = ../src/common/Lgi/LgiMain.cpp; sourceTree = SOURCE_ROOT; };
-		3444A35612275B75004ADADE /* Lgi.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Lgi.framework; path = ../src/mac/carbon/build/Debug/Lgi.framework; sourceTree = SOURCE_ROOT; };
+		34369DF11AEB22CD00A49586 /* LgiCarbon.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = LgiCarbon.xcodeproj; path = ../src/mac/carbon/LgiCarbon.xcodeproj; sourceTree = "<group>"; };
 		34F3E966148730DA009D9AC5 /* LgiRes_ControlTree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiRes_ControlTree.cpp; path = Code/LgiRes_ControlTree.cpp; sourceTree = "<group>"; };
 		34F3E967148730DA009D9AC5 /* LgiRes_Dialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiRes_Dialog.cpp; path = Code/LgiRes_Dialog.cpp; sourceTree = "<group>"; };
 		34F3E968148730DA009D9AC5 /* LgiRes_Dialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LgiRes_Dialog.h; path = Code/LgiRes_Dialog.h; sourceTree = "<group>"; };
@@ -91,7 +101,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */,
-				3444A35712275B75004ADADE /* Lgi.framework in Frameworks */,
+				34369DF91AEB22EC00A49586 /* Lgi.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -159,12 +169,20 @@
 		20286C32FDCF999611CA2CEA /* External Frameworks and Libraries */ = {
 			isa = PBXGroup;
 			children = (
-				3444A35612275B75004ADADE /* Lgi.framework */,
+				34369DF11AEB22CD00A49586 /* LgiCarbon.xcodeproj */,
 				20286C33FDCF999611CA2CEA /* Carbon.framework */,
 				4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */,
 				4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */,
 			);
 			name = "External Frameworks and Libraries";
+			sourceTree = "<group>";
+		};
+		34369DF21AEB22CD00A49586 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				34369DF61AEB22CD00A49586 /* Lgi.framework */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		34B7EA6B0A64B4DE00657E69 /* Lgi */ = {
@@ -221,12 +239,28 @@
 			);
 			mainGroup = 20286C29FDCF999611CA2CEA /* i.Ftp */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 34369DF21AEB22CD00A49586 /* Products */;
+					ProjectRef = 34369DF11AEB22CD00A49586 /* LgiCarbon.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				8D0C4E890486CD37000505A6 /* LgiRes */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		34369DF61AEB22CD00A49586 /* Lgi.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Lgi.framework;
+			remoteRef = 34369DF51AEB22CD00A49586 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		8D0C4E8C0486CD37000505A6 /* Resources */ = {
@@ -297,7 +331,7 @@
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEBUG_INFORMATION_FORMAT = dwarf;
 				FRAMEWORK_SEARCH_PATHS = ../src/mac/carbon/build/Debug;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
@@ -313,7 +347,9 @@
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				PRODUCT_NAME = LgiRes;
+				SDKROOT = macosx;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Development;
@@ -324,7 +360,7 @@
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = YES;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEBUG_INFORMATION_FORMAT = dwarf;
 				FRAMEWORK_SEARCH_PATHS = ../build/Release;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -336,7 +372,9 @@
 					"$(inherited)",
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				PRODUCT_NAME = LgiRes;
+				SDKROOT = macosx;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Deployment;
