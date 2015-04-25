@@ -42,8 +42,8 @@ bool StringConvert(Out *&out, uint32 *OutLen, const In *in, int InLen)
 			InLen*sizeof(In)
 		);
 	
-	if (out && OutLen)
-		*OutLen = StringLen(out);
+	if (OutLen)
+		*OutLen = out ? StringLen(out) : 0;
 	
 	return out != NULL;
 }
