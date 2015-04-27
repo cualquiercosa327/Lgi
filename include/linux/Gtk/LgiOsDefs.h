@@ -143,16 +143,16 @@ public:
 	GMessage(Gtk::GdkEvent *e);
 	~GMessage();
 
-	int Type();
+	int Msg();
 	Param A();
 	Param B();
 	void Set(int m, Param a, Param b);
 	bool Send(OsView Wnd);
 };
 
-#define MsgCode(Msg)				Msg->Type()
-#define MsgA(Msg)					Msg->A()
-#define MsgB(Msg)					Msg->B()
+#define MsgCode(m)					m->Msg()
+#define MsgA(m)						m->A()
+#define MsgB(m)						m->B()
 
 // Sockets
 #define ValidSocket(s)				((s)>=0)

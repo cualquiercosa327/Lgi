@@ -288,11 +288,11 @@ bool GScrollBar::Invalidate(GRect *r, bool Repaint, bool NonClient)
 
 GMessage::Result GScrollBar::OnEvent(GMessage *Msg)
 {
-	int Status = SubClass ? SubClass->CallParent(Handle(), Msg->Msg, Msg->a, Msg->b) : 0;
+	int Status = SubClass ? SubClass->CallParent(Handle(), Msg->m, Msg->a, Msg->b) : 0;
 
-	if ((Msg->Msg == WM_HSCROLL && !Vertical())
+	if ((Msg->m == WM_HSCROLL && !Vertical())
 		||
-		(Msg->Msg == WM_VSCROLL && Vertical()))
+		(Msg->m == WM_VSCROLL && Vertical()))
 	{
 		SCROLLINFO Si;
 		ZeroObj(Si);

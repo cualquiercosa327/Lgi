@@ -1043,8 +1043,8 @@ static int ConsumeTabKey = 0;
 bool SysOnKey(GView *w, GMessage *m)
 {
 	if (m->a == VK_TAB &&
-		(m->Msg == WM_KEYDOWN ||
-		m->Msg == WM_SYSKEYDOWN) )
+		(m->m == WM_KEYDOWN ||
+		m->m == WM_SYSKEYDOWN) )
 	{
 		if (!TestFlag(w->d->WndDlgCode, DLGC_WANTTAB) &&
 			!TestFlag(w->d->WndDlgCode, DLGC_WANTALLKEYS))
@@ -1204,7 +1204,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 
 	if (_View)
 	{
-		switch (Msg->Msg)
+		switch (Msg->m)
 		{
 			case WM_CTLCOLOREDIT:
 			case WM_CTLCOLORSTATIC:
@@ -1907,8 +1907,8 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				Ms.x = (short) (Msg->b&0xFFFF);
 				Ms.y = (short) (Msg->b>>16);
 				Ms.Flags = _lgi_get_key_flags() | LGI_EF_LEFT;
-				Ms.Down(Msg->Msg != WM_LBUTTONUP);
-				Ms.Double(Msg->Msg == WM_LBUTTONDBLCLK);
+				Ms.Down(Msg->m != WM_LBUTTONUP);
+				Ms.Double(Msg->m == WM_LBUTTONDBLCLK);
 
 				if (_Capturing)
 				{
@@ -1938,8 +1938,8 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				Ms.x = (short) (Msg->b&0xFFFF);
 				Ms.y = (short) (Msg->b>>16);
 				Ms.Flags = _lgi_get_key_flags() | LGI_EF_RIGHT;
-				Ms.Down(Msg->Msg != WM_RBUTTONUP);
-				Ms.Double(Msg->Msg == WM_RBUTTONDBLCLK);
+				Ms.Down(Msg->m != WM_RBUTTONUP);
+				Ms.Double(Msg->m == WM_RBUTTONDBLCLK);
 
 				if (_Capturing)
 				{
@@ -1966,8 +1966,8 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				Ms.x = (short) (Msg->b&0xFFFF);
 				Ms.y = (short) (Msg->b>>16);
 				Ms.Flags = _lgi_get_key_flags() | LGI_EF_MIDDLE;
- 				Ms.Down(Msg->Msg != WM_MBUTTONUP);
-				Ms.Double(Msg->Msg == WM_MBUTTONDBLCLK);
+ 				Ms.Down(Msg->m != WM_MBUTTONUP);
+				Ms.Double(Msg->m == WM_MBUTTONDBLCLK);
 
 				if (_Capturing)
 				{
@@ -1993,13 +1993,13 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			{
 				static char AltCode[32];
 				bool IsDialog = TestFlag(WndFlags, GWF_DIALOG);
-				bool IsDown = Msg->Msg == WM_KEYDOWN || Msg->Msg == WM_SYSKEYDOWN;
+				bool IsDown = Msg->m == WM_KEYDOWN || Msg->m == WM_SYSKEYDOWN;
 				int KeyFlags = _lgi_get_key_flags();
 				HWND hwnd = _View;
 
 				if (SysOnKey(this, Msg))
 				{
-					LgiTrace("SysOnKey true, Msg=0x%x %x,%x\n", Msg->Msg, Msg->a, Msg->b);
+					LgiTrace("SysOnKey true, Msg=0x%x %x,%x\n", Msg->m, Msg->a, Msg->b);
 					return 0;
 				}
 				else
@@ -2039,7 +2039,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 						}
 					}
 
-					if (Msg->Msg == WM_SYSKEYUP || Msg->Msg == WM_SYSKEYDOWN)
+					if (Msg->m == WM_SYSKEYUP || Msg->m == WM_SYSKEYDOWN)
 					{
 						if (Key.vkey >= VK_F1 &&
 							Key.vkey <= VK_F12 &&
@@ -2144,7 +2144,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				
 				if (!(WndFlags & GWF_DIALOG))
 				{
-					Status = DefWindowProcW(_View, Msg->Msg, Msg->a, Msg->b);
+					Status = DefWindowProcW(_View, Msg->m, Msg->a, Msg->b);
 				}
 
 				if (Edge && rc && !TestFlag(WndFlags, GWF_SYS_BORDER))
@@ -2173,13 +2173,13 @@ ReturnDefaultProc:
 	#ifdef _DEBUG
 	uint64 start = LgiCurrentTime();
 	#endif
-	LRESULT r = DefWindowProcW(_View, Msg->Msg, Msg->a, Msg->b);
+	LRESULT r = DefWindowProcW(_View, Msg->m, Msg->a, Msg->b);
 	#ifdef _DEBUG
 	uint64 now = LgiCurrentTime();
 	if (now - start > 1000)
 	{
 		LgiTrace("DefWindowProc(0x%.4x, %i, %i) took %ims\n",
-			Msg->Msg, Msg->a, Msg->b, (int)(now - start));
+			Msg->m, Msg->a, Msg->b, (int)(now - start));
 	}
 	#endif
 	return r;

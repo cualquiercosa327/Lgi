@@ -419,7 +419,7 @@ extern GButton *FindDefault(GView *w);
 
 GMessage::Result GDialog::OnEvent(GMessage *Msg)
 {
-	switch (Msg->Msg)
+	switch (Msg->m)
 	{
 		#if USE_DIALOGBOXINDIRECTPARAM
 		case WM_INITDIALOG:
@@ -533,7 +533,7 @@ GMessage::Result GControl::OnEvent(GMessage *Msg)
 	int Status = 0;
 
 	// Pre-OS event handler
-	switch (Msg->Msg)
+	switch (Msg->m)
 	{
 		case WM_CREATE:
 		{
@@ -577,7 +577,7 @@ GMessage::Result GControl::OnEvent(GMessage *Msg)
 	
 	// OS event handler
 	if (SubClass)
-		Status = SubClass->CallParent(Handle(), Msg->Msg, Msg->a, Msg->b);
+		Status = SubClass->CallParent(Handle(), Msg->m, Msg->a, Msg->b);
 
 	return Status;
 }

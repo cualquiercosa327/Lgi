@@ -644,7 +644,7 @@ GMessage::Param GView::OnEvent(GMessage *Msg)
 	ThreadCheck();
 	
 	int Id;
-	switch (Id = Msg->Type())
+	switch (Id = Msg->Msg())
 	{
 		#if 0 // def M_GTHREADWORK_COMPELTE
 		case M_GTHREADWORK_COMPELTE:

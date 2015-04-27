@@ -184,7 +184,7 @@ int64 GEdit::Value()
 GMessage::Result GEdit::OnEvent(GMessage *Msg)
 {
 	#if EDIT_PROCESSING
-	switch (Msg->Msg)
+	switch (Msg->m)
 	{
 		case WM_DESTROY:
 		{
@@ -197,7 +197,7 @@ GMessage::Result GEdit::OnEvent(GMessage *Msg)
 			if (d->InEmptyMode && SubClass)
 			{
 				// LgiTrace("GEdit WM_SETTEXT - calling parent, inempty=%i\n", d->InEmptyMode);
-				return SubClass->CallParent(Handle(), Msg->Msg, Msg->a, Msg->b);
+				return SubClass->CallParent(Handle(), Msg->m, Msg->a, Msg->b);
 			}
 			else
 			{

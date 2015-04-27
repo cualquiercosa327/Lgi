@@ -67,7 +67,7 @@ class LgiClass GMessage
 {
 public:
 	HWND hWnd;
-	int Msg;
+	int m;
 	WPARAM a;
 	LPARAM b;
 	
@@ -77,7 +77,7 @@ public:
 	GMessage()
 	{
 		hWnd = 0;
-		Msg = 0;
+		m = 0;
 		a = 0;
 		b = 0;
 	}
@@ -85,11 +85,12 @@ public:
 	GMessage(int M, WPARAM A = 0, LPARAM B = 0)
 	{
 		hWnd = 0;
-		Msg = M;
+		m = M;
 		a = A;
 		b = B;
 	}
 	
+	int Msg() { return m; }
 	WPARAM A() { return a; }
 	LPARAM B() { return b; }
 };
@@ -117,9 +118,9 @@ public:
 
 //////////////////////////////////////////////////////////////////
 // Defines
-#define MsgCode(m)						(m->Msg)
-#define MsgA(m)							(m->a)
-#define MsgB(m)							(m->b)
+#define MsgCode(msg)					((msg)->m)
+#define MsgA(msg)						((msg)->a)
+#define MsgB(msg)						((msg)->b)
 #define CreateMsg(m, a, b)				GMessage(m, a, b)
 #define IsWin9x							(GApp::Win9x)
 #define DefaultOsView(t)				NULL

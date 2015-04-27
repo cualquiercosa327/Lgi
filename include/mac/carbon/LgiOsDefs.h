@@ -57,7 +57,8 @@ public:
 		a = A;
 		b = B;
 	}
-	
+
+	int Msg() { return m; }	
 	Param A() { return a; }
 	Param B() { return b; }
 };

@@ -1101,7 +1101,7 @@ bool GMessage::Send(GtkWidget *Wnd)
 	return Status;
 }
 
-int GMessage::Type()
+int GMessage::Msg()
 {
 	if (Event && Event->type == Gtk::GDK_CLIENT_EVENT)
 		return Event->client.data.l[0];

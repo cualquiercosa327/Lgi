@@ -266,7 +266,7 @@ GMessage::Result RLogView::OnEvent(GMessage *Msg)
 				OnNcPaint(&DeviceContext);
 			}
 
-			return DefWindowProc(Handle(), Msg->Msg, Msg->a, Msg->b);
+			return DefWindowProc(Handle(), Msg->m, Msg->a, Msg->b);
 		}
 		case WM_NCCALCSIZE:
 		{
@@ -277,7 +277,7 @@ GMessage::Result RLogView::OnEvent(GMessage *Msg)
 							rc->bottom);
 
 			// this is required to draw the scroll bar
-			return DefWindowProc(Handle(), Msg->Msg, Msg->a, Msg->b);
+			return DefWindowProc(Handle(), Msg->m, Msg->a, Msg->b);
 		}
 		#endif
 	}

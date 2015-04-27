@@ -311,7 +311,7 @@ void GItemEdit::Visible(bool i)
 
 GMessage::Result GItemEdit::OnEvent(GMessage *Msg)
 {
-	switch (MsgCode(Msg))
+	switch (Msg->Msg())
 	{
 		case M_LOSING_FOCUS:
 		{
@@ -946,7 +946,7 @@ bool GItemContainer::DeleteColumn(GItemColumn *Col)
 
 GMessage::Result GList::OnEvent(GMessage *Msg)
 {
-	switch (MsgCode(Msg))
+	switch (Msg->Msg())
 	{
 		#ifdef WIN32
 		case WM_VSCROLL:

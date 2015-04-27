@@ -40,12 +40,12 @@ class GMessage : public XlibEvent
 public:
 	GMessage(int M = 0, int A = 0, int B = 0) : XlibEvent(GetLocal())
 	{
-		m() = M;
+		Msg() = M;
 		a() = A;
 		b() = B;
 	}
 
-	int &m() { return (int&) (GetEvent()->xclient.message_type); }
+	int &Msg() { return (int&) (GetEvent()->xclient.message_type); }
 	int &a() { return (int&) (Data()[0]); }
 	int &b() { return (int&) (Data()[1]); }
 
