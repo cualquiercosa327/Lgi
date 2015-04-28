@@ -303,10 +303,8 @@ public:
 	virtual bool OnMove(GDataFolderI *new_parent, GDataFolderI *old_parent, GArray<GDataI*> &items) = 0;
 	/// When an item changes
 	virtual bool OnChange(GArray<GDataI*> &items, int FieldHint) = 0;
-	/// Notifcation of integer property change
-	virtual void OnIntPropChange(GDataStoreI *store, int prop) {}
-	/// Notifcation of string property change
-	virtual void OnStrPropChange(GDataStoreI *store, int prop) {}
+	/// Notifcation of property change
+	virtual void OnPropChange(GDataStoreI *Store, int Prop, GVariantType Type) {}
 	/// Get the logging stream
 	virtual GStreamI *GetLogger(GDataStoreI *store) { return 0; }
 	/// Search for a object by type and name
