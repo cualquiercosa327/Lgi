@@ -605,6 +605,7 @@ public:
 	char *Current;
 	char *Flags;
 	GHashTable Capability;
+	GString WebLoginUri;
 
 	MailIMapPrivate()
 	{
@@ -637,6 +638,11 @@ MailIMap::~MailIMap()
 		ClearUid();
 		DeleteObj(d);
 	}
+}
+
+const char *MailIMap::GetWebLoginUri()
+{
+	return d->WebLoginUri;
 }
 
 bool MailIMap::IsOnline()
@@ -1066,7 +1072,31 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 
 								if (WriteBuf())
 								{
-									LoggedIn = ReadResponse(AuthCmd);
+									if (ReadResponse(AuthCmd))
+									{
+										LoggedIn = true;
+									}
+									else
+									{
+										// Look for WEBALERT from Google
+										for (char *s = Dialog.First(); s; s = Dialog.Next())
+										{
+											char *start = strchr(s, '[');
+											char *end = start ? strrchr(start, ']') : NULL;
+											if (start && end)
+											{
+												start++;
+												if (_strnicmp(start, "WEBALERT", 8) == 0)
+												{
+													start += 8;
+													while (*start && strchr(WhiteSpace, *start))
+														start++;
+													
+													d->WebLoginUri.Set(start, end - start);
+												}
+											}
+										}
+									}
 								}
 							}
 						}						

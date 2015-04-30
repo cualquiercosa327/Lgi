@@ -809,6 +809,7 @@ public:
 	void SetExpungeOnExit(bool b);
 	bool ServerOption(char *Opt);
 	bool IsOnline();
+	const char *GetWebLoginUri();
 
 	// Connection
 	bool Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Password, char *&Cookie, int Flags = 0);
@@ -817,7 +818,6 @@ public:
 
 	// Commands available while connected
 	bool Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks = 0);
-	// bool GetParts(int Message, GStreamI &Out, const char *Parts, char **Flags = 0);
 	int GetMessages();
 	bool Delete(int Message);
 	int Sizeof(int Message);
