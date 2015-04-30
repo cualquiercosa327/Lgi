@@ -5,7 +5,7 @@
 **      DESCRIPTION:    Common file/directory selection dialog
 **
 **      Copyright (C) 1998-2001, Matthew Allen
-**              fret@ozemail.com.au
+**              fret@memecode.com
 */
 
 #include <stdio.h>

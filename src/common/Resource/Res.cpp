@@ -6,7 +6,7 @@
 **
 **
 **	Copyright (C) 1999, Matthew Allen
-**		fret@ozemail->com->au
+**		fret@memecode.com
 */
 
 ////////////////////////////////////////////////////////////////////

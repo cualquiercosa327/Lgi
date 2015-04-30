@@ -5,7 +5,7 @@
 **      DESCRIPTION:    Mail app
 **
 **      Copyright (C) 1998, Matthew Allen
-**              fret@ozemail.com.au
+**              fret@memecode.com
 */
 
 #include <stdio.h>
