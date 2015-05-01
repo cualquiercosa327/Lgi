@@ -607,6 +607,7 @@ public:
 	char *Flags;
 	GHashTable Capability;
 	GString WebLoginUri;
+	MailIMap::OAuthParams OAuth;
 
 	MailIMapPrivate()
 	{
@@ -639,6 +640,11 @@ MailIMap::~MailIMap()
 		ClearUid();
 		DeleteObj(d);
 	}
+}
+
+void MailIMap::SetOAuthParams(OAuthParams &p)
+{
+	d->OAuth = p;
 }
 
 const char *MailIMap::GetWebLoginUri()
@@ -1379,26 +1385,15 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 					}
 					else if (!_stricmp(AuthType, "XOAUTH"))
 					{
-						GString ClientID, ClientSecret, RedirURIs;
-						GString AuthUri, RevokeUri, TokenUri;
-						
-						if (stristr(RemoteHost, "google"))
-						{
-							ClientID = "968484784648-2igrbn8trpv01vlia1063ms7kht13i6q.apps.googleusercontent.com";
-							ClientSecret = "s3hgv8XomLhOUTdEI3R_cwg_";
-							RedirURIs = "urn:ietf:wg:oauth:2.0:oob\nhttp://localhost";
-							AuthUri = "https://accounts.google.com/o/oauth2/auth";
-							RevokeUri = "https://accounts.google.com/o/oauth2/revoke";
-							TokenUri = "https://accounts.google.com/o/oauth2/token";
-						}
-						
-						if (ClientID && ClientSecret && RedirURIs &&
-							AuthUri && TokenUri)
+						if (d->OAuth.IsValid())
 						{
 							GMemQueue p;
 							GAutoString Err;
 							GProxyUri Proxy;
-							bool r = LgiGetUri(&p, &Err, TokenUri, NULL, Proxy.Host ? &Proxy : NULL);
+							bool r = LgiGetUri(&p, &Err, d->OAuth.TokenUri, NULL, Proxy.Host ? &Proxy : NULL);
+							if (r)
+							{
+							}
 						}
 					}
 					else

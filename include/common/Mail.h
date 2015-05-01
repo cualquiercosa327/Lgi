@@ -782,6 +782,26 @@ public:
 		GAutoString Param;
 		int Id;
 	};
+	
+	struct OAuthParams
+	{
+		GString ClientID;
+		GString ClientSecret;
+		GString RedirURIs;
+		GString AuthUri;
+		GString RevokeUri;
+		GString TokenUri;
+		
+		bool IsValid()
+		{
+			return ClientID &&
+				ClientSecret &&
+				RedirURIs &&
+				AuthUri &&
+				RevokeUri &&
+				TokenUri;
+		}
+	};
 
 	/// This callback is used to notify the application using this object of IMAP fetch responses.
 	/// \returns true if the application wants to continue reading and has taken ownership of the strings in "Parts".
@@ -810,6 +830,7 @@ public:
 	bool ServerOption(char *Opt);
 	bool IsOnline();
 	const char *GetWebLoginUri();
+	void SetOAuthParams(OAuthParams &p);
 
 	// Connection
 	bool Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Password, char *&Cookie, int Flags = 0);
