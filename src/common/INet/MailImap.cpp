@@ -10,6 +10,7 @@
 #include "INetTools.h"
 #include "GUtf8.h"
 #include "GDocView.h"
+#include "IHttp.h"
 
 ////////////////////////////////////////////////////////////////////////////
 #if GPL_COMPATIBLE
@@ -1376,79 +1377,30 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 							}
 						}
 					}
-					/*
 					else if (!_stricmp(AuthType, "XOAUTH"))
 					{
-						GAutoPtr<GSocketI> Ssl(dynamic_cast<GSocketI*>(Socket->Clone()));
-						if (Ssl)
+						GString ClientID, ClientSecret, RedirURIs;
+						GString AuthUri, RevokeUri, TokenUri;
+						
+						if (stristr(RemoteHost, "google"))
 						{
-							GStringPipe p;
-							GAutoString Hdr, Body;
-							int StatusCode = 0;
-							char Url[256];
-							sprintf_s(Url, sizeof(Url), "http://mail.google.com/mail/b/%s/imap/", User);
-							if (Http(Ssl, &Hdr, &Body, &StatusCode, "POST", Url, 0, 0))
-							{
-								bool Status = true;
-								for (int i=0; i<5 && StatusCode == 302; i++)
-								{
-									GAutoString Redirect(InetGetHeaderField(Hdr, "Location"));
-									if (Redirect)
-									{
-										Status = Http(Ssl, &Hdr, &Body, &StatusCode, "POST", Redirect, 0, 0);
-										if (Status)
-											break;
-									}
-									else break;									
-								}
-
-								if (Status)
-								{
-									GUri u;
-									GAutoString UriUserName = u.Encode(User);
-									
-									GAutoString Nonce, Signature, Timestamp, Token;
-									p.Print("%x", LgiRand());
-									Nonce.Reset(p.NewStr());
-									p.Print("%i", time(0));
-									Timestamp.Reset(p.NewStr());
-
-									p.Print("GET https://mail.google.com/mail/b/%s/imap/?xoauth_requestor_id=%s "
-											"oauth_consumer_key=\"anonymous\", "
-											"oauth_nonce=\"%s\", "
-											"oauth_signature=\"%s\", "
-											"oauth_signature_method=\"PLAINTEXT\", "
-											"oauth_timestamp=\"%s\", "
-											"oauth_token=\"%s\", "
-											"oauth_version=\"1.0\"",
-											User,
-											UriUserName.Get(),
-											Nonce.Get(),
-											Signature.Get(),
-											Timestamp.Get(),
-											Token.Get());
-
-									GAutoString Bin(p.NewStr());
-									int BinLen = strlen(Bin);
-									int B64Len = BufferLen_BinTo64(BinLen);
-									GAutoString B64(new char[B64Len+1]);
-									int c = ConvertBinaryToBase64(B64, B64Len, (uchar*)Bin.Get(), BinLen);
-									B64[B64Len] = 0;
-
-									int AuthCmd = d->NextCmd++;
-									p.Print("A%04.4i AUTHENTICATE XOAUTH %s\r\n", AuthCmd, B64.Get());
-									GAutoString Cmd(p.NewStr());
-									int w = Socket->Write(Cmd, strlen(Cmd));
-									Log(Cmd, GSocketI::SocketMsgSend);
-									if (w > 0)
-									{
-										LoggedIn = ReadResponse(AuthCmd);							
-									}
-								}
-							}
+							ClientID = "968484784648-2igrbn8trpv01vlia1063ms7kht13i6q.apps.googleusercontent.com";
+							ClientSecret = "s3hgv8XomLhOUTdEI3R_cwg_";
+							RedirURIs = "urn:ietf:wg:oauth:2.0:oob\nhttp://localhost";
+							AuthUri = "https://accounts.google.com/o/oauth2/auth";
+							RevokeUri = "https://accounts.google.com/o/oauth2/revoke";
+							TokenUri = "https://accounts.google.com/o/oauth2/token";
+						}
+						
+						if (ClientID && ClientSecret && RedirURIs &&
+							AuthUri && TokenUri)
+						{
+							GMemQueue p;
+							GAutoString Err;
+							GProxyUri Proxy;
+							bool r = LgiGetUri(&p, &Err, TokenUri, NULL, Proxy.Host ? &Proxy : NULL);
 						}
 					}
-					*/
 					else
 					{
 						char s[256];

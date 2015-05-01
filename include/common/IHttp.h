@@ -96,4 +96,19 @@ public:
 	}
 };
 
+/// This method will download a URI.
+bool LgiGetUri
+(
+	/// The output stream to put the data
+	GStream *Out,
+	/// Any error message
+	GAutoString *OutError,
+	/// The input URI to retreive
+	const char *InUri,
+	/// [Optional] Extra headers to use
+	const char *InHeaders = NULL,
+	/// [Optional] The proxy to use
+	GUri *InProxy = NULL
+);
+
 #endif
