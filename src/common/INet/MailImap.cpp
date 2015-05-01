@@ -1383,17 +1383,37 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 							}
 						}
 					}
-					else if (!_stricmp(AuthType, "XOAUTH"))
+					else if (!_stricmp(AuthType, "XOAUTH2"))
 					{
 						if (d->OAuth.IsValid())
 						{
-							GMemQueue p;
-							GAutoString Err;
-							GProxyUri Proxy;
-							bool r = LgiGetUri(&p, &Err, d->OAuth.TokenUri, NULL, Proxy.Host ? &Proxy : NULL);
-							if (r)
+							int AuthCmd = d->NextCmd++;
+							sprintf_s(Buf, sizeof(Buf), "A%4.4i AUTHENTICATE XOAUTH2\r\n", AuthCmd);
+							if (WriteBuf())
 							{
+								if (ReadResponse(AuthCmd))
+								{
+									GMemQueue p;
+									GAutoString Err;
+									GString s;
+									GString::Array Redir = d->OAuth.RedirURIs.Split("\n");
+									s.Printf("%s?response_type=code&client_id=$s&redirect_uri=%s",
+											d->OAuth.TokenUri.Get(),
+											d->OAuth.ClientID.Get(),
+											Redir[0].Get());
+									
+									bool r = LgiGetUri(&p, &Err, s, NULL, d->OAuth.Proxy.Host ? &d->OAuth.Proxy : NULL);
+									if (r)
+									{
+										int asd = 0; // now what?								
+									}
+								}
 							}
+						}
+						else						
+						{
+							sprintf_s(Buf, sizeof(Buf), "Error: Unknown OAUTH server '%s' (ask fret@memecode.com to fix)", RemoteHost);
+							Log(Buf, GSocketI::SocketMsgError);
 						}
 					}
 					else

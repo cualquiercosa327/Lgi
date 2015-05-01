@@ -791,6 +791,7 @@ public:
 		GString AuthUri;
 		GString RevokeUri;
 		GString TokenUri;
+		GUri Proxy;
 		
 		bool IsValid()
 		{
