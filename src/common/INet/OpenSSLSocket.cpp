@@ -10,7 +10,9 @@
 */
 
 #include <stdio.h>
-#ifndef WINDOWS
+#ifdef WINDOWS
+#pragma comment(lib,"Ws2_32.lib")
+#else
 #include <unistd.h>
 #endif
 
