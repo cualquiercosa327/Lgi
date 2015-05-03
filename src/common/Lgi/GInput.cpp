@@ -29,7 +29,7 @@ GInput::GInput(GViewI *parent, const char *InitStr, const char *Msg, const char 
 	int Dx = LgiApp->GetMetric(LGI_MET_DECOR_X) + 10;
 	int Dy = LgiApp->GetMetric(LGI_MET_DECOR_Y);
 	
-	int ContextX = 200;
+	int ContextX = 400;
 	ContextX = max(ContextX, MsgDs.X() + 40);
 	ContextX = min(ContextX, (int)(GdcD->X() * 0.8));
 	int EditX = ContextX;

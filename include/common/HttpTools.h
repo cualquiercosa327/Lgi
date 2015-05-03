@@ -8,6 +8,7 @@ extern void XmlToStream(GStream *s, GXmlTag *x, char *Css = 0);
 extern GXmlTag *GetFormField(GXmlTag *Form, char *Field);
 extern char *HtmlTidy(char *Html);
 extern GSurface *GetHttpImage(char *Uri);
+extern void StrFormEncode(GStream &p, char *s, bool InValue);
 
 struct WebPage
 {

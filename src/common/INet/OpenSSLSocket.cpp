@@ -579,11 +579,11 @@ bool SslSocket::GetVariant(const char *Name, GVariant &Val, char *Arr)
 	return false;
 }
 
-void SslSocket::Log(const char *Str, SocketMsgType Type)
+void SslSocket::Log(const char *Str, int Bytes, SocketMsgType Type)
 {
 	if (d->Logger && ValidStr(Str))
 	{
-		d->Logger->Write(Str, strlen(Str), Type);
+		d->Logger->Write(Str, Bytes<0?strlen(Str):Bytes, Type);
 	}
 }
 
@@ -595,8 +595,8 @@ void SslSocket::Error(const char *file, int line, const char *Msg)
 	#endif
 
 	char Buf[512];
-	sprintf_s(Buf, sizeof(Buf), "Error: %s:%i - %s\n", Part ? Part + 1 : file, line, Msg);
-	Log(Buf, SocketMsgError);
+	int Ch = sprintf_s(Buf, sizeof(Buf), "Error: %s:%i - %s\n", Part ? Part + 1 : file, line, Msg);
+	Log(Buf, Ch, SocketMsgError);
 }
 
 OsSocket SslSocket::Handle(OsSocket Set)
@@ -984,6 +984,8 @@ void SslSocket::OnWrite(const char *Data, int Len)
 		}
 	}
 	#endif
+	
+	Log(Data, Len, SocketMsgSend);
 }
 
 void SslSocket::OnRead(char *Data, int Len)
@@ -1000,6 +1002,8 @@ void SslSocket::OnRead(char *Data, int Len)
 		}
 	}
 	#endif
+
+	Log(Data, Len, SocketMsgReceive);
 }
 
 int SslSocket::Write(const void *Data, int Len, int Flags)
@@ -1211,8 +1215,8 @@ void SslSocket::OnError(int ErrorCode, const char *ErrorDescription)
 {
 	char s[MAX_PATH];
 DebugTrace("%s:%i - OnError=%i,%s\n", _FL, ErrorCode, ErrorDescription);
-	sprintf_s(s, sizeof(s), "Error %i: %s\n", ErrorCode, ErrorDescription);
-	Log(s, SocketMsgError);
+	int Ch = sprintf_s(s, sizeof(s), "Error %i: %s\n", ErrorCode, ErrorDescription);
+	Log(s, Ch, SocketMsgError);
 }
 
 void SslSocket::DebugTrace(const char *fmt, ...)
@@ -1251,7 +1255,7 @@ void SslSocket::OnInformation(const char *Str)
 		*o++ = 0;
 		LgiAssert((o-a) <= Len);
 				
-		Log(a, SocketMsgInfo);
+		Log(a, -1, SocketMsgInfo);
 		
 		Str = *nl ? nl + 1 : nl;
 	}

@@ -773,6 +773,7 @@ protected:
 	bool ReadResponse(int Cmd = -1, bool Plus = false);
 	bool Read(GStreamI *Out = 0);
 	bool ReadLine();
+	bool IsResponse(const char *Buf, int Cmd, bool &Ok);
 
 public:
 	// Typedefs
@@ -832,6 +833,7 @@ public:
 	bool IsOnline();
 	const char *GetWebLoginUri();
 	void SetOAuthParams(OAuthParams &p);
+	void SetParentWindow(GViewI *wnd);
 
 	// Connection
 	bool Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Password, char *&Cookie, int Flags = 0);
