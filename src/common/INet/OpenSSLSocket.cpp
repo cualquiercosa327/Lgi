@@ -985,7 +985,7 @@ void SslSocket::OnWrite(const char *Data, int Len)
 	}
 	#endif
 	
-	Log(Data, Len, SocketMsgSend);
+	// Log(Data, Len, SocketMsgSend);
 }
 
 void SslSocket::OnRead(char *Data, int Len)
@@ -1003,7 +1003,7 @@ void SslSocket::OnRead(char *Data, int Len)
 	}
 	#endif
 
-	Log(Data, Len, SocketMsgReceive);
+	// Log(Data, Len, SocketMsgReceive);
 }
 
 int SslSocket::Write(const void *Data, int Len, int Flags)

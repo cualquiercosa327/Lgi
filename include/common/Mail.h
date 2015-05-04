@@ -794,6 +794,10 @@ public:
 		GString TokenUri;
 		GUri Proxy;
 		
+		GString AccessToken;
+		GString RefreshToken;
+		int ExpiresIn;
+		
 		bool IsValid()
 		{
 			return ClientID &&

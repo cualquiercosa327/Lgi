@@ -1490,12 +1490,13 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 									GStringPipe In, Out;
 									In.Print("code=");
 									StrFormEncode(In, Cookie, true);
-									In.Print("&client_id=");
-									StrFormEncode(In, d->OAuth.ClientID, true);
-									In.Print("&client_secret=");
-									StrFormEncode(In, d->OAuth.ClientSecret, true);
 									In.Print("&redirect_uri=");
 									StrFormEncode(In, Redir[0], true);
+									In.Print("&client_id=");
+									StrFormEncode(In, d->OAuth.ClientID, true);
+									In.Print("&scope=");
+									In.Print("&client_secret=");
+									StrFormEncode(In, d->OAuth.ClientSecret, true);
 									In.Print("&grant_type=authorization_code");
 									
 									if (d->OAuth.Proxy.Host)
@@ -1519,27 +1520,22 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 													ContentLength);
 											bool Result = Http.Post(Uri, &In, &StatusCode, &Out, NULL, Hdrs);
 											GAutoString sOut(Out.NewStr());
-											LgiTrace("%s\n", sOut.Get());
-
-											int asd=0;
-
-											/*
+											GXmlTag t;
+											if (Result && JsonDecode(t, sOut))
 											{
-											  "access_token":"1/fFAGRNJru1FTz70BzhT3Zg",
-											  "expires_in":3920,
-											  "token_type":"Bearer",
-											  "refresh_token":"1/xEoDL4iW3cxlI7yDbSRFYNG01kVKM2C-259HOF2aQbI"
+												d->OAuth.AccessToken = t.GetAttr("access_token");
+												d->OAuth.RefreshToken = t.GetAttr("refresh_token");
+												d->OAuth.ExpiresIn = t.GetAsInt("expires_in");
 											}
-											*/
 										}
 									}
 								}
 							}
 							
-							if (ValidStr(Cookie))
+							if (ValidStr(d->OAuth.AccessToken))
 							{
 								GString s;
-								s.Printf("user=%s\001auth=Bearer %s\001\001", User, Cookie);
+								s.Printf("user=%s\001auth=Bearer %s\001\001", User, d->OAuth.AccessToken.Get());
 								Base64Str(s);						
 							
 								int AuthCmd = d->NextCmd++;
@@ -1549,8 +1545,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 									Dialog.DeleteArrays();
 									if (Read(NULL))
 									{
-										char *l = Dialog.First();
-										if (l)
+										for (char *l = Dialog.First(); l; l = Dialog.Next())
 										{
 											if (*l == '+')
 											{
@@ -1574,9 +1569,14 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 													
 												}
 											}
+											else if (*l == '*')
+											{
+											}
 											else
 											{
-												IsResponse(l, AuthCmd, LoggedIn);
+												if (IsResponse(l, AuthCmd, LoggedIn) &&
+													LoggedIn)
+													break;												
 											}
 										}
 									}
