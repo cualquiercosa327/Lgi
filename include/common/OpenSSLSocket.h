@@ -46,8 +46,8 @@ public:
 	int GetTimeout();
 	void SetTimeout(int ms);
 
-	int Write(const void *Data, int Len, int Flags);
-	int Read(void *Data, int Len, int Flags);
+	int Write(const void *Data, int Len, int Flags = 0);
+	int Read(void *Data, int Len, int Flags = 0);
 	void OnWrite(const char *Data, int Len);
 	void OnRead(char *Data, int Len);
 

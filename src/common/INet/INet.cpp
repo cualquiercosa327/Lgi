@@ -886,13 +886,6 @@ bool GSocket::Accept(GSocketI *c)
 		int Length = sizeof(Address);
 		NewSocket = accept(d->Socket, &Address, &Length);
 		#else
-		
-		/*
-		socklen_t Length = sizeof(Address);
-		NewSocket = accept(d->Socket, &Address, &Length);
-		#endif
-
-		*/
 		int Loop = 0;
 		socklen_t Length = sizeof(Address);
 		while (ValidSocket(d->Socket))
@@ -910,10 +903,7 @@ bool GSocket::Accept(GSocketI *c)
 		#endif
 		
 		if (ValidSocket(NewSocket))
-		{
-			c->Handle(NewSocket);
-			return true;
-		}
+			return ValidSocket(c->Handle(NewSocket));
 		
 		return false;
 	}

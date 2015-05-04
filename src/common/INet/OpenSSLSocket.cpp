@@ -88,16 +88,10 @@ public:
 	DynFunc1(int, SSL_open, SSL*, s);
 	DynFunc1(int, SSL_connect, SSL*, s);
 	DynFunc0(int, SSL_load_error_strings);
-  	DynFunc1(SSL_CTX*, SSL_CTX_new, SSL_METHOD*, meth);
-	DynFunc0(SSL_METHOD*, SSLv23_client_method);
-	DynFunc3(int, SSL_CTX_load_verify_locations, SSL_CTX*, ctx, const char*, CAfile, const char*, CApath);
-	DynFunc1(int, SSL_CTX_free, SSL_CTX*, ctx);
 	DynFunc4(long, SSL_ctrl, SSL*, ssl, int, cmd, long, larg, void*, parg);
 	DynFunc1(int, SSL_shutdown, SSL*, s);
 	DynFunc1(int, SSL_free, SSL*, ssl);
 	DynFunc1(int, SSL_get_fd, const SSL *, s);
-
-
 	DynFunc2(int, SSL_set_fd, SSL*, s, int, fd);
 	DynFunc1(SSL*, SSL_new, SSL_CTX*, ctx);
 	DynFunc1(BIO*, BIO_new_ssl_connect, SSL_CTX*, ctx);
@@ -108,6 +102,18 @@ public:
 	DynFunc3(int, SSL_set_bio, SSL*, s, BIO*, rbio, BIO*, wbio);
 	DynFunc3(int, SSL_write, SSL*, ssl, const void*, buf, int, num);
 	DynFunc3(int, SSL_read, SSL*, ssl, const void*, buf, int, num);
+	DynFunc1(BIO *,	SSL_get_rbio, const SSL *, s);
+	DynFunc1(int, SSL_accept, SSL *, ssl);
+	
+	DynFunc0(SSL_METHOD*, SSLv23_client_method);
+	DynFunc0(SSL_METHOD*, SSLv23_server_method);
+
+  	DynFunc1(SSL_CTX*, SSL_CTX_new, SSL_METHOD*, meth);	
+	DynFunc3(int, SSL_CTX_load_verify_locations, SSL_CTX*, ctx, const char*, CAfile, const char*, CApath);
+	DynFunc3(int, SSL_CTX_use_certificate_file, SSL_CTX*, ctx, const char*, file, int, type);
+	DynFunc3(int, SSL_CTX_use_PrivateKey_file, SSL_CTX*, ctx, const char*, file, int, type);
+	DynFunc1(int, SSL_CTX_check_private_key, const SSL_CTX*, ctx);
+	DynFunc1(int, SSL_CTX_free, SSL_CTX*, ctx);
 
 #ifdef WIN32
 // If this is freaking you out then good... openssl-win32 ships 
@@ -144,6 +150,7 @@ public:
 	DynFunc0(BIO_METHOD*, BIO_s_socket);
 	DynFunc1(BIO*, BIO_new_connect, char *, host_port);
 	DynFunc4(long, BIO_ctrl, BIO*, bp, int, cmd, long, larg, void*, parg);
+	DynFunc4(long, BIO_int_ctrl, BIO *, bp, int, cmd, long, larg, int, iarg);
 	DynFunc3(int, BIO_read, BIO*, b, void*, data, int, len);
 	DynFunc3(int, BIO_write, BIO*, b, const void*, data, int, len);
 	DynFunc1(int, BIO_free, BIO*, a);
@@ -238,8 +245,10 @@ class OpenSSL :
 	#endif
 	public LibSSL
 {
+	SSL_CTX *Server;
+
 public:
-	SSL_CTX *Ctx;
+	SSL_CTX *Client;
 	GArray<GMutex*> Locks;
 	GAutoString ErrorMsg;
 
@@ -307,13 +316,13 @@ public:
 			goto OnError;
 		}
 		
-		Ctx = SSL_CTX_new(SSLv23_client_method());
-		if (!Ctx)
+		Client = SSL_CTX_new(SSLv23_client_method());
+		if (!Client)
 		{
 			long e = ERR_get_error();
 			char *Msg = ERR_error_string(e, 0);
 			
-			Err.Print("%s:%i - SSL_CTX_new failed with '%s' (%i)\n", _FL, Msg, e);
+			Err.Print("%s:%i - SSL_CTX_new(client) failed with '%s' (%i)\n", _FL, Msg, e);
 			goto OnError;
 		}
 		
@@ -327,17 +336,52 @@ public:
 
 	OpenSSL()
 	{
-		Ctx = 0;
+		Client = NULL;
+		Server = NULL;
 	}
 
 	~OpenSSL()
 	{
-		if (Ctx)
+		if (Client)
 		{
-			SSL_CTX_free(Ctx);
-			Ctx = 0;
+			SSL_CTX_free(Client);
+			Client = NULL;
+		}
+		if (Server)
+		{
+			SSL_CTX_free(Server);
+			Server = NULL;
 		}
 		Locks.DeleteObjects();
+	}
+	
+	SSL_CTX *GetServer(SslSocket *sock, const char *CertFile, const char *KeyFile)
+	{
+		if (!Server)
+		{
+			Server = SSL_CTX_new(SSLv23_server_method());
+			if (Server)
+			{
+				if (CertFile)
+					SSL_CTX_use_certificate_file(Server, CertFile, SSL_FILETYPE_PEM);
+				if (KeyFile)
+					SSL_CTX_use_PrivateKey_file(Server, KeyFile, SSL_FILETYPE_PEM);
+				if (!SSL_CTX_check_private_key(Server))
+				{
+					LgiAssert(0);
+				}
+ 			}
+			else
+			{
+				long e = ERR_get_error();
+				char *Msg = ERR_error_string(e, 0);
+				GStringPipe p;
+				p.Print("%s:%i - SSL_CTX_new(server) failed with '%s' (%i)\n", _FL, Msg, e);
+				ErrorMsg.Reset(p.NewStr());
+				sock->DebugTrace("%s", ErrorMsg.Get());
+			}
+		}
+		return Server;
 	}
 
 	bool IsOk(SslSocket *sock)
@@ -602,7 +646,36 @@ void SslSocket::Error(const char *file, int line, const char *Msg)
 OsSocket SslSocket::Handle(OsSocket Set)
 {
 	OsSocket h = INVALID_SOCKET;
-	if (Bio)
+	
+	if (Set != INVALID_SOCKET)
+	{
+		long r;
+		bool IsError = false;
+		if (!Ssl)
+		{
+			Ssl = Library->SSL_new(Library->GetServer(this, NULL, NULL));
+		}
+		if (Ssl)
+		{
+			r = Library->SSL_set_fd(Ssl, Set);
+			Bio = Library->SSL_get_rbio(Ssl);
+			r = Library->SSL_accept(Ssl);
+			if (r <= 0)
+				IsError = true;
+			else if (r == 1)
+				h = Set;
+		}
+		else IsError = true;
+
+		if (IsError)
+		{
+			long e = Library->ERR_get_error();
+			char *Msg = Library->ERR_error_string(e, 0);
+			Log(Msg, -1, SocketMsgError);
+			return INVALID_SOCKET;
+		}
+	}
+	else if (Bio)
 	{
 		Library->BIO_get_fd(Bio, &h);
 		#ifdef _WIN64
@@ -610,6 +683,7 @@ OsSocket SslSocket::Handle(OsSocket Set)
 		h &= 0xffffffff;
 		#endif
 	}
+	
 	return h;
 }
 
@@ -637,14 +711,14 @@ DebugTrace("%s:%i - SslSocket::Open(%s,%i)\n", _FL, HostAddr, Port);
 		{
 			// SSL connection..
 			d->IsSSL = true;
-			if (Library->Ctx)
+			if (Library->Client)
 			{
 				const char *CertDir = "/u/matthew/cert";
-				int r = Library->SSL_CTX_load_verify_locations(Library->Ctx, 0, CertDir);
+				int r = Library->SSL_CTX_load_verify_locations(Library->Client, 0, CertDir);
 DebugTrace("%s:%i - SSL_CTX_load_verify_locations=%i\n", _FL, r);
 				if (r > 0)
 				{
-					Bio = Library->BIO_new_ssl_connect(Library->Ctx);
+					Bio = Library->BIO_new_ssl_connect(Library->Client);
 DebugTrace("%s:%i - BIO_new_ssl_connect=%p\n", _FL, Bio);
 					if (Bio)
 					{
@@ -796,13 +870,13 @@ bool SslSocket::SetVariant(const char *Name, GVariant &Value, char *Arr)
 			}
 			else
 			{
-				if (!Library->Ctx)
+				if (!Library->Client)
 				{
-					Error(_FL, "Library->Ctx is null.");
+					Error(_FL, "Library->Client is null.");
 				}
 				else
 				{
-					Ssl = Library->SSL_new(Library->Ctx);
+					Ssl = Library->SSL_new(Library->Client);
 DebugTrace("%s:%i - SSL_new=%p\n", _FL, Ssl);
 					if (!Ssl)
 					{
