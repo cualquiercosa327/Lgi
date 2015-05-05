@@ -2249,7 +2249,7 @@ MailReceiveFolder::~MailReceiveFolder()
 	DeleteObj(d);
 }
 
-bool MailReceiveFolder::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Password, char *&Cookie, int Flags)
+bool MailReceiveFolder::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Password, GDom *SettingStore, int Flags)
 {
 	// We don't use the socket so just free it here...
 	DeleteObj(S);
@@ -2534,7 +2534,9 @@ bool MailPop3::ListCmd(const char *Cmd, GHashTbl<const char*, bool> &Results)
 	return true;
 }
 
-bool MailPop3::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Password, char *&Cookie, int Flags)
+#define OPT_Pop3NoApop		"NoAPOP"
+
+bool MailPop3::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Password, GDom *SettingStore, int Flags)
 {
 	bool Status = false;
 	bool RemoveMail = false;
@@ -2585,8 +2587,10 @@ bool MailPop3::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *P
 				Socket->Open(Server, Port) &&
 				ReadReply())
 			{
-				bool NoAPOP = Cookie ? stristr(Cookie, "NoAPOP") != NULL : 0;
-				if (!NoAPOP)
+				GVariant NoAPOP = false;
+				if (SettingStore)
+					SettingStore->GetValue(OPT_Pop3NoApop, NoAPOP);
+				if (!NoAPOP.CastInt32())
 				{
 					char *s = strchr(Buffer + 3, '<');
 					if (s)
@@ -2647,9 +2651,10 @@ bool MailPop3::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *P
 
 						if (!Authed)
 						{
-							DeleteArray(Cookie);
 							DeleteArray(Apop);
-							Cookie = NewStr("NoAPOP");
+							GVariant NoAPOP = true;
+							if (SettingStore)
+								SettingStore->SetValue(OPT_Pop3NoApop, NoAPOP);
 							S->Close();
 							goto ReStartConnection;
 						}

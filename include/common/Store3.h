@@ -495,7 +495,8 @@ extern GDataStoreI *OpenImap
 	GCapabilityClient *caps,
 	MailProtocolProgress *prog[2],
 	GStream *Log,
-	int AccoundId = 0
+	int AccoundId,
+	GAutoPtr<class ProtocolSettingStore> store
 );
 
 //////////////////////////////////////////////////////////////////////////////

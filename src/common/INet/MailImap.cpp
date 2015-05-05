@@ -14,6 +14,8 @@
 #include "HttpTools.h"
 #include "OpenSSLSocket.h"
 
+#define OPT_ImapOAuth2AuthCode		"OAuth2.Code"
+
 ////////////////////////////////////////////////////////////////////////////
 #if GPL_COMPATIBLE
 #include "AuthNtlm/Ntlm.h"
@@ -1056,7 +1058,7 @@ public:
 	}
 };
 
-bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *Password, char *&Cookie, int Flags)
+bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *Password, GDom *SettingStore, int Flags)
 {
 	bool Status = false;
 
@@ -1589,13 +1591,15 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 							continue;
 						}
 
-						if (!ValidStr(Cookie))
+						GVariant AuthCode;
+						if (SettingStore)
+							SettingStore->GetValue(OPT_ImapOAuth2AuthCode, AuthCode);
+						if (!ValidStr(AuthCode.Str()))
 						{
 							OAuthWebServer WebServer;
 							
 							// Launch browser to get Access Token
 							GString Uri;
-							// GString::Array Redir = d->OAuth.RedirURIs.Split("\n");
 							GString LocalHost;
 							LocalHost.Printf("http://localhost:%i", WebServer.GetPort());
 							
@@ -1635,7 +1639,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 									}
 								}
 								
-								Cookie = NewStr(t.GetAttr("code"));
+								AuthCode = t.GetAttr("code");
 								WebServer.SetResponse(	"HTTP/1.1 200 OK\r\n"
 														"Content-Type: text/html\r\n"
 														"\r\n"
@@ -1643,7 +1647,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 														"<head>\n"
 														"<script type=\"text/javascript\">\n"
 														"    window.close();\n"
-														"</script\n"
+														"</script>\n"
 														"</head>\n"
 														"<body>Received response.</body>\n"
 														"</html>\n");
@@ -1655,7 +1659,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 								Cookie = NewStr(Dlg.Str);
 							#endif
 								
-							if (ValidStr(Cookie))
+							if (ValidStr(AuthCode.Str()))
 							{
 								// Now exchange the Auth Token for an Access Token (omg this is so complicated).
 								Uri = "https://www.googleapis.com/oauth2/v3/token";
@@ -1664,7 +1668,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 								IHttp Http;
 								GStringPipe In, Out;
 								In.Print("code=");
-								StrFormEncode(In, Cookie, true);
+								StrFormEncode(In, AuthCode.Str(), true);
 								In.Print("&redirect_uri=");
 								StrFormEncode(In, LocalHost, true);
 								In.Print("&client_id=");

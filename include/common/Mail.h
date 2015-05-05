@@ -572,9 +572,9 @@ public:
 		char *User,
 		/// The password for authentication
 		char *Password,
-		/// A cookie that the implementation can store things in, which persists across sessions. (Dynamically allocated string)
-		char *&Cookie,
-		/// Any optional flags: #MAIL_SOURCE_STARTTLS, #MAIL_SOURCE_AUTH, #MAIL_SOURCE_USE_PLAIN, #MAIL_SOURCE_USE_LOGIN
+		/// [Optional] Persistant storage of settings
+		GDom *SettingStore,
+		/// [Optional] Flags: #MAIL_SOURCE_STARTTLS, #MAIL_SOURCE_AUTH, #MAIL_SOURCE_USE_PLAIN, #MAIL_SOURCE_USE_LOGIN
 		int Flags = 0) = 0;
 	/// Closes the connection
 	virtual bool Close() = 0;
@@ -665,7 +665,7 @@ public:
 	~MailPop3();
 
 	// Connection
-	bool Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Password, char *&Cookie, int Flags = 0);
+	bool Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Password, GDom *SettingStore, int Flags = 0);
 	bool Close();
 
 	// Commands available while connected
@@ -689,7 +689,7 @@ public:
 	~MailReceiveFolder();
 
 	// Connection
-	bool Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Password, char *&Cookie, int Flags = 0);
+	bool Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Password, GDom *SettingStore, int Flags = 0);
 	bool Close();
 
 	// Commands available while connected
@@ -714,7 +714,7 @@ public:
 	~MailPhp();
 
 	// Connection
-	bool Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Password, char *&Cookie, int Flags = 0);
+	bool Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Password, GDom *SettingStore, int Flags = 0);
 	bool Close();
 
 	// Commands available while connected
@@ -840,7 +840,7 @@ public:
 	void SetParentWindow(GViewI *wnd);
 
 	// Connection
-	bool Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Password, char *&Cookie, int Flags = 0);
+	bool Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Password, GDom *SettingStore, int Flags = 0);
 	bool Close(); // Non-threadsafe soft close (normal operation)
 	bool GetCapabilities(GArray<char*> &s);
 
