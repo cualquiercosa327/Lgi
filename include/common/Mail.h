@@ -790,8 +790,10 @@ public:
 		GString ClientSecret;
 		GString RedirURIs;
 		GString AuthUri;
+		GString ApiUri;
 		GString RevokeUri;
 		GString TokenUri;
+		GString Scope;
 		GUri Proxy;
 		
 		GString AccessToken;
@@ -805,7 +807,9 @@ public:
 				RedirURIs &&
 				AuthUri &&
 				RevokeUri &&
-				TokenUri;
+				TokenUri &&
+				Scope &&
+				ApiUri;
 		}
 	};
 

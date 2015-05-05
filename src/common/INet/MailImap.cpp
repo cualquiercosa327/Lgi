@@ -1591,137 +1591,172 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 							continue;
 						}
 
+						GString Uri;
+						GString RedirUri;
 						GVariant AuthCode;
 						if (SettingStore)
 							SettingStore->GetValue(OPT_ImapOAuth2AuthCode, AuthCode);
+						
 						if (!ValidStr(AuthCode.Str()))
 						{
 							OAuthWebServer WebServer;
 							
 							// Launch browser to get Access Token
-							GString Uri;
-							GString LocalHost;
-							LocalHost.Printf("http://localhost:%i", WebServer.GetPort());
+							bool UsingLocalhost = WebServer.GetPort() > 0;
+							if (UsingLocalhost)
+							{
+								// In this case the local host webserver is successfully listening
+								// on a port and ready to receive the redirect.
+								RedirUri.Printf("http://localhost:%i", WebServer.GetPort());
+							}
+							else
+							{
+								// Something went wrong with the localhost webserver and we need to
+								// provide an alternateive way of getting the AuthCode
+								GString::Array a = d->OAuth.RedirURIs.Split("\n");
+								for (unsigned i=0; i<a.Length(); i++)
+								{
+									if (a[i].Find("localhost") < 0)
+									{
+										RedirUri = a[i];
+										break;
+									}
+								}
+							}
 							
-							GUri u;
-							Uri.Printf("%s?client_id=%s&redirect_uri=%s&response_type=code&scope=https://mail.google.com/",
+							Uri.Printf("%s?client_id=%s&redirect_uri=%s&response_type=code&scope=%s",
 								d->OAuth.AuthUri.Get(),
 								d->OAuth.ClientID.Get(),
-								LocalHost.Get());
+								RedirUri.Get(),
+								d->OAuth.Scope.Get());
 							LgiExecute(Uri);
 							
-							#if 1
-							// Wait for localhost webserver to receive the response
-							GString Req = WebServer.GetRequest();
-							if (Req)
+							if (UsingLocalhost)
 							{
-								GXmlTag t;
-								GString::Array a = Req.Split("\r\n");
-								if (a.Length() > 0)
+								// Wait for localhost webserver to receive the response
+								GString Req = WebServer.GetRequest();
+								if (Req)
 								{
-									GString::Array p = a[0].Split(" ");
-									if (p.Length() > 1)
+									GXmlTag t;
+									GString::Array a = Req.Split("\r\n");
+									if (a.Length() > 0)
 									{
-										int Q = p[1].Find("?");
-										if (Q >= 0)
+										GString::Array p = a[0].Split(" ");
+										if (p.Length() > 1)
 										{
-											GString Params = p[1](Q+1, -1);
-											a = Params.Split("&");
-											for (unsigned i=0; i<a.Length(); i++)
+											int Q = p[1].Find("?");
+											if (Q >= 0)
 											{
-												GString::Array v = a[i].Split("=");
-												if (v.Length() == 2)
+												GString Params = p[1](Q+1, -1);
+												a = Params.Split("&");
+												for (unsigned i=0; i<a.Length(); i++)
 												{
-													t.SetAttr(v[0], v[1]);
-												}												
+													GString::Array v = a[i].Split("=");
+													if (v.Length() == 2)
+													{
+														t.SetAttr(v[0], v[1]);
+													}												
+												}
 											}
 										}
 									}
+									
+									AuthCode = t.GetAttr("code");
+									
+									GString Resp;
+									Resp.Printf("HTTP/1.1 200 OK\r\n"
+												"Content-Type: text/html\r\n"
+												"\r\n"
+												"<html>\n"
+												"<head>\n"
+												"<script type=\"text/javascript\">\n"
+												"    window.close();\n"
+												"</script>\n"
+												"</head>\n"
+												"<body>OAuth2Client: %s</body>\n"
+												"</html>\n",
+												AuthCode.Str() ? "Received auth code OK" : "Failed to get auth code");
+									
+									WebServer.SetResponse(Resp);
 								}
-								
-								AuthCode = t.GetAttr("code");
-								WebServer.SetResponse(	"HTTP/1.1 200 OK\r\n"
-														"Content-Type: text/html\r\n"
-														"\r\n"
-														"<html>\n"
-														"<head>\n"
-														"<script type=\"text/javascript\">\n"
-														"    window.close();\n"
-														"</script>\n"
-														"</head>\n"
-														"<body>Received response.</body>\n"
-														"</html>\n");
 							}
-							#else
-							// Allow the user to paste the Auth Token in.
-							GInput Dlg(d->ParentWnd, "", "Enter AccessToken:", "IMAP OAuth2 Authentication");
-							if (Dlg.DoModal())
-								Cookie = NewStr(Dlg.Str);
-							#endif
-								
-							if (ValidStr(AuthCode.Str()))
+							else
 							{
-								// Now exchange the Auth Token for an Access Token (omg this is so complicated).
-								Uri = "https://www.googleapis.com/oauth2/v3/token";
-								GUri u(Uri);
-								
-								IHttp Http;
-								GStringPipe In, Out;
-								In.Print("code=");
-								StrFormEncode(In, AuthCode.Str(), true);
-								In.Print("&redirect_uri=");
-								StrFormEncode(In, LocalHost, true);
-								In.Print("&client_id=");
-								StrFormEncode(In, d->OAuth.ClientID, true);
-								In.Print("&scope=");
-								In.Print("&client_secret=");
-								StrFormEncode(In, d->OAuth.ClientSecret, true);
-								In.Print("&grant_type=authorization_code");
-								
-								if (d->OAuth.Proxy.Host)
-									Http.SetProxy(d->OAuth.Proxy.Host, d->OAuth.Proxy.Port?d->OAuth.Proxy.Port:HTTP_PORT);
-								
-								SslSocket *ssl;
-								GStringPipe Log;
-								GAutoPtr<GSocketI> Ssl(ssl = new SslSocket(&Log));
-								if (Ssl)
-								{
-									ssl->SetSslOnConnect(true);
-									Ssl->SetTimeout(10 * 1000);
-									if (Http.Open(Ssl, u.Host, u.Port?u.Port:HTTPS_PORT))
-									{										
-										int StatusCode = 0;
-										int ContentLength = (int)In.GetSize();
-										char Hdrs[256];
-										sprintf_s(Hdrs, sizeof(Hdrs),
-												"Content-Type: application/x-www-form-urlencoded\r\n"
-												"Content-Length: %i\r\n",
-												ContentLength);
-										bool Result = Http.Post(Uri, &In, &StatusCode, &Out, NULL, Hdrs);
-										GAutoString sOut(Out.NewStr());
-										GXmlTag t;
-										if (Result && JsonDecode(t, sOut))
-										{
-											d->OAuth.AccessToken = t.GetAttr("access_token");
-											d->OAuth.RefreshToken = t.GetAttr("refresh_token");
-											d->OAuth.ExpiresIn = t.GetAsInt("expires_in");
-										}
+								// Allow the user to paste the Auth Token in.
+								GInput Dlg(d->ParentWnd, "", "Enter Authorisation Token:", "IMAP OAuth2 Authentication");
+								if (Dlg.DoModal())
+									AuthCode = Dlg.Str.Get();
+							}
+						}
+
+						if (ValidStr(AuthCode.Str()))
+						{
+							// Now exchange the Auth Token for an Access Token (omg this is so complicated).
+							Uri = d->OAuth.ApiUri;
+							GUri u(Uri);
+							
+							IHttp Http;
+							GStringPipe In, Out;
+							In.Print("code=");
+							StrFormEncode(In, AuthCode.Str(), true);
+							In.Print("&redirect_uri=");
+							StrFormEncode(In, RedirUri, true);
+							In.Print("&client_id=");
+							StrFormEncode(In, d->OAuth.ClientID, true);
+							In.Print("&scope=");
+							In.Print("&client_secret=");
+							StrFormEncode(In, d->OAuth.ClientSecret, true);
+							In.Print("&grant_type=authorization_code");
+							
+							if (d->OAuth.Proxy.Host)
+								Http.SetProxy(	d->OAuth.Proxy.Host,
+												d->OAuth.Proxy.Port ? d->OAuth.Proxy.Port : HTTP_PORT);
+							
+							SslSocket *ssl;
+							GStringPipe Log;
+							GAutoPtr<GSocketI> Ssl(ssl = new SslSocket(&Log));
+							if (Ssl)
+							{
+								ssl->SetSslOnConnect(true);
+								Ssl->SetTimeout(10 * 1000);
+								if (Http.Open(	Ssl,
+												u.Host,
+												u.Port ? u.Port : HTTPS_PORT))
+								{										
+									int StatusCode = 0;
+									int ContentLength = (int)In.GetSize();
+									char Hdrs[256];
+									sprintf_s(Hdrs, sizeof(Hdrs),
+											"Content-Type: application/x-www-form-urlencoded\r\n"
+											"Content-Length: %i\r\n",
+											ContentLength);
+									bool Result = Http.Post(Uri, &In, &StatusCode, &Out, NULL, Hdrs);
+									GAutoString sOut(Out.NewStr());
+									GXmlTag t;
+									if (Result && JsonDecode(t, sOut))
+									{
+										d->OAuth.AccessToken = t.GetAttr("access_token");
+										d->OAuth.RefreshToken = t.GetAttr("refresh_token");
+										d->OAuth.ExpiresIn = t.GetAsInt("expires_in");
 									}
 								}
 							}
 						}
 						
+						// Bail if there is no access token
 						if (!ValidStr(d->OAuth.AccessToken))
 						{
-							sprintf_s(Buf, sizeof(Buf), "Error: No OAUTH2 access token.");
-							Log(Buf, GSocketI::SocketMsgError);
+							sprintf_s(Buf, sizeof(Buf), "Warning: No OAUTH2 Access Token.");
+							Log(Buf, GSocketI::SocketMsgWarning);
 							continue;
 						}
 						
+						// Construct the XOAUTH2 parameter
 						GString s;
 						s.Printf("user=%s\001auth=Bearer %s\001\001", User, d->OAuth.AccessToken.Get());
 						Base64Str(s);						
 					
+						// Issue the IMAP command
 						int AuthCmd = d->NextCmd++;
 						sprintf_s(Buf, sizeof(Buf), "A%4.4i AUTHENTICATE XOAUTH2 %s\r\n", AuthCmd, s.Get());
 						if (WriteBuf())
@@ -1759,7 +1794,14 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 									{
 										if (IsResponse(l, AuthCmd, LoggedIn) &&
 											LoggedIn)
-											break;												
+										{
+											if (SettingStore)
+											{
+												// Login successful, so persist the AuthCode for next time
+												SettingStore->SetValue(OPT_ImapOAuth2AuthCode, AuthCode);
+											}
+											break;
+										}
 									}
 								}
 							}
