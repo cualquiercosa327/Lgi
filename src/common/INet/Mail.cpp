@@ -21,6 +21,12 @@
 #include "GDateTime.h"
 #include "GDocView.h"
 
+const char sTextPlain[] = "text/plain";
+const char sTextHtml[] = "text/html";
+const char sMultipartMixed[] = "multipart/mixed";
+const char sMultipartAlternative[] = "multipart/alternative";
+const char sMultipartRelated[] = "multipart/related";
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
 LogEntry::LogEntry(const char *t, int len, COLOUR col)
 {
@@ -3851,10 +3857,9 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 		sprintf_s(Buffer, sizeof(Buffer), "MIME-Version: 1.0\r\n");
 		Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
 		
-		char StrMultipartAlternative[] = "multipart/alternative";
 		if (MultiPart)
 		{
-			char *Type = MultipartMixed ? (char*)"multipart/mixed" : StrMultipartAlternative;
+			const char *Type = MultipartMixed ? sMultipartMixed : sMultipartAlternative;
 			sprintf_s(Buffer, sizeof(Buffer), "Content-Type: %s;\r\n\tboundary=\"%s\"\r\n", Type, Separator);
 			Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
 		}
@@ -3873,7 +3878,7 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 					sprintf_s(AlternateBoundry, sizeof(AlternateBoundry), "----=_NextPart_%8.8X.%8.8X", (uint32)++Now, (uint32)LgiGetCurrentThread());
 					sprintf_s(Buffer, sizeof(Buffer),
 							"Content-Type: %s;\r\n\tboundary=\"%s\"\r\n",
-							StrMultipartAlternative,
+							sMultipartAlternative,
 							AlternateBoundry);
 					Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
 
