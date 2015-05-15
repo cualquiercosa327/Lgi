@@ -693,6 +693,30 @@ public:
 
 		return 0;
 	}
+	
+	bool LimitX(int &x, GCss::Len Min, GCss::Len Max, GFont *f)
+	{
+		bool Limited = false;
+		if (Min.IsValid())
+		{
+			int Px = Min.ToPx(x2 - x1 + 1, f, false);
+			if (Px > x)
+			{
+				x = Px;
+				Limited = true;
+			}
+		}
+		if (Max.IsValid())
+		{
+			int Px = Max.ToPx(x2 - x1 + 1, f, false);
+			if (Px < x)
+			{
+				x = Px;
+				Limited = true;
+			}
+		}
+		return Limited;
+	}
 
 	int ResolveY(GCss::Len l, GFont *f, bool IsMargin)
 	{
@@ -768,6 +792,31 @@ public:
 		}
 
 		return 0;
+	}
+
+	bool LimitY(int &y, GCss::Len Min, GCss::Len Max, GFont *f)
+	{
+		bool Limited = false;
+		int TotalY = Html ? Html->Y() : 0;
+		if (Min.IsValid())
+		{
+			int Px = Min.ToPx(TotalY, f, false);
+			if (Px > y)
+			{
+				y = Px;
+				Limited = true;
+			}
+		}
+		if (Max.IsValid())
+		{
+			int Px = Max.ToPx(TotalY, f, false);
+			if (Px < y)
+			{
+				y = Px;
+				Limited = true;
+			}
+		}
+		return Limited;
 	}
 
 	GRect ResolveMargin(GCss *Src, GFont *Font)
@@ -2742,6 +2791,10 @@ void GTag::SetStyle()
 				l.Parse(s, PropBorderSpacing, ParseRelaxed))
 			{
 				BorderSpacing(l);
+			}
+			else
+			{
+				BorderSpacing(GCss::Len(GCss::LenPx, 2.0f));
 			}
 
 			if (Get("cellpadding", s) &&
@@ -4930,41 +4983,61 @@ void GTag::OnFlow(GFlowRegion *Flow)
 			GCss::Len w = Width();
 			GCss::Len h = Height();
 			GAutoPtr<GDisplayString> a;
-			
-			if (w.IsValid() && w.Type != LenAuto)
+			int ImgX, ImgY;			
+			if (Image)
 			{
-				Size.x = Flow->ResolveX(w, GetFont(), false);
-			}
-			else if (Image)
-			{
-				Size.x = Image->X();
-			}
-			
-			if (h.IsValid() && w.Type != LenAuto)
-			{
-				Size.y = Flow->ResolveY(h, GetFont(), false);
-			}
-			else if (Image)
-			{
-				Size.y = Image->Y();
+				ImgX = Image->X();
+				ImgY = Image->Y();
 			}
 			else if (Get("alt", ImgAltText) && ValidStr(ImgAltText))
 			{
-				GDisplayString a(Html->GetFont(), ImgAltText);
-				Size.x = a.X() + 4;
-				Size.y = a.Y() + 4;
+				GDisplayString a(f, ImgAltText);
+				ImgX = a.X() + 4;
+				ImgY = a.Y() + 4;
+			}
+			else
+			{
+				ImgX = DefaultImgSize;
+				ImgY = DefaultImgSize;
+			}
+			
+			double AspectRatio = ImgY != 0 ? (double)ImgX / ImgY : 1.0;
+			bool XLimit = false, YLimit = false;
+
+			if (w.IsValid() && w.Type != LenAuto)
+			{
+				Size.x = Flow->ResolveX(w, GetFont(), false);
+				XLimit = true;
+			}
+			else
+			{
+				Size.x = ImgX;
+			}
+			XLimit |= Flow->LimitX(Size.x, MinWidth(), MaxWidth(), f);
+
+			if (h.IsValid() && w.Type != LenAuto)
+			{
+				Size.y = Flow->ResolveY(h, GetFont(), false);
+				YLimit = true;
+			}
+			else
+			{
+				Size.y = ImgY;
+			}
+			YLimit |= Flow->LimitY(Size.y, MinHeight(), MaxHeight(), f);
+
+			if (XLimit ^ YLimit)
+			{
+				if (XLimit)
+				{
+					Size.y = (int) ceil((double)Size.x / AspectRatio);
+				}
+				else
+				{
+					Size.x = (int) ceil((double)Size.y * AspectRatio);
+				}
 			}
 
-			if (!Size.x || !Size.y)
-			{
-				if (Get("alt", ImgAltText) && ValidStr(ImgAltText))
-					a.Reset(new GDisplayString(Html->GetFont(), ImgAltText));
-			}
-			if (!Size.x)
-				Size.x = a ? a->X() + 4 : DefaultImgSize;
-			if (!Size.y)
-				Size.y = a ? a->Y() + 4 : DefaultImgSize;
-				
 			if (Disp == DispInline)
 			{
 				Restart = false;
@@ -5344,6 +5417,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 			}
 			case TAG_IMG:
 			{
+				/*
 				Len Ht = Height();
 				if (Ht.IsValid() && Ht.Type != LenAuto)
 				{
@@ -5364,6 +5438,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 				{
 					Size.y = DefaultImgSize;
 				}
+				*/
 
 				Flow->cx += Size.x;
 				Flow->y2 = max(Flow->y2, Flow->y1 + Size.y - 1);
@@ -5746,48 +5821,30 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 			
 			if (Image)
 			{
-				GCss::Len w = Width();
-				GCss::Len h = Height();
-				
 				#if ENABLE_IMAGE_RESIZING
-				if ((w.IsValid() || h.IsValid()) && !ImageResized)
+				if
+				(
+					!ImageResized &&
+					(				
+						Size.x != Image->X() ||
+						Size.y != Image->Y()
+					)
+				)
 				{
-					if (Size.x != Image->X() ||
-						Size.y != Image->Y())
+					ImageResized = true;
+
+					GColourSpace Cs = Image->GetColourSpace();
+					if (Cs == CsIndex8 &&
+						Image->AlphaDC())
+						Cs = System32BitColourSpace;
+					
+					GAutoPtr<GSurface> r(new GMemDC(Size.x, Size.y, Cs));
+					if (r)
 					{
-						ImageResized = true;
-						int Nx, Ny;
-						double Aspect = (double)Image->X() / Image->Y();
-						if (w.IsValid() && h.IsValid())
-						{
-							Nx = Size.x;
-							Ny = Size.y;
-						}
-						else if (w.IsValid())
-						{
-							Nx = Size.x;
-							Ny = (int) (Size.x / Aspect);
-						}
-						else if (h.IsValid())
-						{
-							Ny = Size.y;
-							Nx = (int) (Size.y * Aspect);
-						}
-						else LgiAssert(0);
-						
-						GColourSpace Cs = Image->GetColourSpace();
-						if (Cs == CsIndex8 &&
-							Image->AlphaDC())
-							Cs = System32BitColourSpace;
-						
-						GAutoPtr<GSurface> r(new GMemDC(Nx, Ny, Cs));
-						if (r)
-						{
-							if (Cs == CsIndex8)
-								r->Palette(new GPalette(Image->Palette()));
-							ResampleDC(r, Image);
-							Image = r;
-						}
+						if (Cs == CsIndex8)
+							r->Palette(new GPalette(Image->Palette()));
+						ResampleDC(r, Image);
+						Image = r;
 					}
 				}
 				#endif
