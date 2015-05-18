@@ -89,6 +89,9 @@ bool LgiGetFileMimeType(const char *File, char *Mime, int BufLen)
 		char *Dot = strrchr((char*)File, '.');
 		if (Dot)
 		{
+			bool AssertOnError = GRegKey::AssertOnError;
+			GRegKey::AssertOnError = false;
+			
 			GRegKey Key(false, "HKEY_CLASSES_ROOT\\%s", Dot);
 			if (Key.IsOk())
 			{
@@ -129,6 +132,8 @@ bool LgiGetFileMimeType(const char *File, char *Mime, int BufLen)
 					}
 				}
 			}
+
+			GRegKey::AssertOnError = AssertOnError;
 		}
 
 		if (!Status)
