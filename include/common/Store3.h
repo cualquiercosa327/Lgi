@@ -499,6 +499,20 @@ extern GDataStoreI *OpenImap
 	GAutoPtr<class ProtocolSettingStore> store
 );
 
+/// Open a MAPI store
+/// \return a valid ptr or NULL on failure
+extern GDataStoreI *OpenMapiStore
+(
+	/// The host name of the MAPI server
+	const char *Server,
+	/// The username to login as
+	const char *Username,
+	/// Their password
+	const char *Password,
+	/// Event interface,
+	GDataEventsI *Callback
+);
+
 //////////////////////////////////////////////////////////////////////////////
 // Common implementation of interfaces
 template <class T>

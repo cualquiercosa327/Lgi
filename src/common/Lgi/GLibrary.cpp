@@ -162,26 +162,17 @@ bool GLibrary::Unload()
 
 void *GLibrary::GetAddress(const char *Resource)
 {
-	void *p = 0;
+	void *p = NULL;
 	
 	if (Resource && hLib)
 	{
 		#if defined WIN32
 		p = (void*) GetProcAddress(hLib, Resource);
-		/*
-		#elif defined BEOS
-		get_image_symbol(hLib, Resource, B_SYMBOL_TYPE_TEXT, (void**) &p);
-		*/
 		#elif defined(LINUX) || defined(MAC) || defined(BEOS)
 		p = dlsym(hLib, Resource);
 		#else
 		LgiAssert(0);
 		#endif
-		
-		if (!p)
-		{
-			// printf("GLibrary::GetAddress(%s) failed\n", Resource);
-		}
 	}
 
 	return p;
