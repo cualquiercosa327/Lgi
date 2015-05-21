@@ -9,6 +9,7 @@
 #include "Base64.h"
 #include "Progress.h"
 #include "GVariant.h"
+#include "GStringClass.h"
 
 #ifndef GPL_COMPATIBLE
 #define GPL_COMPATIBLE						0
@@ -773,6 +774,7 @@ protected:
 	bool ReadResponse(int Cmd = -1, bool Plus = false);
 	bool Read(GStreamI *Out = 0);
 	bool ReadLine();
+	bool IsResponse(const char *Buf, int Cmd, bool &Ok);
 
 public:
 	// Typedefs
@@ -781,6 +783,35 @@ public:
 		GAutoString Cmd;
 		GAutoString Param;
 		int Id;
+	};
+
+	struct OAuthParams
+	{
+		GString ClientID;
+		GString ClientSecret;
+		GString RedirURIs;
+		GString AuthUri;
+		GString ApiUri;
+		GString RevokeUri;
+		GString TokenUri;
+		GString Scope;
+		GUri Proxy;
+		
+		GString AccessToken;
+		GString RefreshToken;
+		int ExpiresIn;
+		
+		bool IsValid()
+		{
+			return ClientID &&
+				ClientSecret &&
+				RedirURIs &&
+				AuthUri &&
+				RevokeUri &&
+				TokenUri &&
+				Scope &&
+				ApiUri;
+		}
 	};
 
 	/// This callback is used to notify the application using this object of IMAP fetch responses.
@@ -809,6 +840,9 @@ public:
 	void SetExpungeOnExit(bool b);
 	bool ServerOption(char *Opt);
 	bool IsOnline();
+	const char *GetWebLoginUri();
+	void SetOAuthParams(OAuthParams &p);
+	void SetParentWindow(GViewI *wnd);
 
 	// Connection
 	bool Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Password, char *&Cookie, int Flags = 0);
@@ -817,7 +851,6 @@ public:
 
 	// Commands available while connected
 	bool Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks = 0);
-	// bool GetParts(int Message, GStreamI &Out, const char *Parts, char **Flags = 0);
 	int GetMessages();
 	bool Delete(int Message);
 	int Sizeof(int Message);

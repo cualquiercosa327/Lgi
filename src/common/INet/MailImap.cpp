@@ -10,6 +10,11 @@
 #include "INetTools.h"
 #include "GUtf8.h"
 #include "GDocView.h"
+#include "IHttp.h"
+#include "HttpTools.h"
+#include "OpenSSLSocket.h"
+
+#define OPT_ImapOAuth2AuthCode		"OAuth2.Code"
 
 ////////////////////////////////////////////////////////////////////////////
 #if GPL_COMPATIBLE
@@ -28,6 +33,65 @@ static const char *sRfc822Size		= "RFC822.SIZE";
 #define SkipWhite(s)	while ((s - Buffer) < Used && strchr(" \t", *s)) s++;
 #define SkipNonWhite(s) while ((s - Buffer) < Used && !strchr(WhiteSpace, *s)) s++;
 #define ExpectChar(ch)	{ if ((s - Buffer) >= Used || *s != ch) return 0; s++; }
+
+bool Base64Str(GString &s)
+{
+	GString b64;
+	int Base64Len = BufferLen_BinTo64(s.Length());
+	if (!b64.Set(NULL, Base64Len))
+		return false;
+	
+	int Ch = ConvertBinaryToBase64(b64.Get(), b64.Length(), (uchar*)s.Get(), s.Length());
+	LgiAssert(Ch == b64.Length());
+	s = b64;
+	return true;
+}
+
+bool UnBase64Str(GString &s)
+{
+	GString Bin;
+	int BinLen = BufferLen_64ToBin(s.Length());
+	if (!Bin.Set(NULL, BinLen))
+		return false;
+	
+	int Ch = ConvertBase64ToBinary((uchar*)Bin.Get(), Bin.Length(), s.Get(), s.Length());
+	LgiAssert(Ch <= (int)Bin.Length());
+	s = Bin;
+	s.Get()[Ch] = 0;
+	return true;
+}
+
+#define SkipWhiteSpace(s)			while (*s && IsWhiteSpace(*s)) s++;
+bool JsonDecode(GXmlTag &t, const char *s)
+{
+	if (*s != '{')
+		return false;
+	s++;	
+	while (*s)
+	{
+		SkipWhiteSpace(s);
+		if (*s != '\"')
+			break;
+		GAutoString Variable(LgiTokStr(s));
+		SkipWhiteSpace(s);
+		if (*s != ':')
+			return false;
+		s++;
+		SkipWhiteSpace(s);
+		GAutoString Value(LgiTokStr(s));
+		SkipWhiteSpace(s);
+		
+		t.SetAttr(Variable, Value);
+		if (*s != ',')
+			break;
+		s++;
+	}
+		
+	if (*s != '}')
+		return false;
+	s++;
+	return true;
+}
 
 struct StrRange
 {
@@ -605,9 +669,13 @@ public:
 	char *Current;
 	char *Flags;
 	GHashTable Capability;
+	GString WebLoginUri;
+	MailIMap::OAuthParams OAuth;
+	GViewI *ParentWnd;
 
 	MailIMapPrivate()
 	{
+		ParentWnd = NULL;
 		FolderSep = '/';
 		NextCmd = 1;
 		Logging = true;
@@ -637,6 +705,21 @@ MailIMap::~MailIMap()
 		ClearUid();
 		DeleteObj(d);
 	}
+}
+
+void MailIMap::SetParentWindow(GViewI *wnd)
+{
+	d->ParentWnd = wnd;
+}
+
+void MailIMap::SetOAuthParams(OAuthParams &p)
+{
+	d->OAuth = p;
+}
+
+const char *MailIMap::GetWebLoginUri()
+{
+	return d->WebLoginUri;
 }
 
 bool MailIMap::IsOnline()
@@ -753,6 +836,20 @@ bool MailIMap::Read(GStreamI *Out)
 	return Lines > 0;
 }
 
+bool MailIMap::IsResponse(const char *Buf, int Cmd, bool &Ok)
+{
+	char Num[8];
+	int Ch = sprintf_s(Num, sizeof(Num), "A%4.4i ", Cmd);
+	if (!Buf || _strnicmp(Buf, Num, Ch) != 0)
+		return false;
+
+	Ok = _strnicmp(Buf+Ch, "OK", 2) == 0;
+	if (!Ok)
+		ServerMsg.Reset(NewStr(Buf+Ch));
+	
+	return true;
+}
+
 bool MailIMap::ReadResponse(int Cmd, bool Plus)
 {
 	bool Done = false;
@@ -772,15 +869,8 @@ bool MailIMap::ReadResponse(int Cmd, bool Plus)
 						Status = Done = true;
 					}
 
-					char Num[8];
-					sprintf_s(Num, sizeof(Num), "A%4.4i ", Cmd);
-					if (_strnicmp(Dlg, Num, 6) == 0)
-					{
+					if (IsResponse(Dlg, Cmd, Status))
 						Done = true;
-						Status = _strnicmp(Dlg+6, "OK", 2) == 0;
-						if (!Status)
-							ServerMsg.Reset(NewStr(Dlg+6));
-					}
 					
 					if (d->Logging)
 						Log(Dlg, GSocketI::SocketMsgReceive);
@@ -845,6 +935,147 @@ int GsaslCallback(Gsasl *ctx, Gsasl_session *sctx, Gsasl_property prop)
 	return 0;
 }
 #endif
+
+void StrFormEncode(GStream &p, char *s, bool InValue)
+{
+	for (char *c = s; *c; c++)
+	{
+		if (isalpha(*c) || isdigit(*c) || *c == '_' || *c == '.' || (!InValue && *c == '+') || *c == '-' || *c == '%')
+		{
+			p.Write(c, 1);
+		}
+		else if (*c == ' ')
+		{
+			p.Write((char*)"+", 1);
+		}
+		else
+		{
+			p.Print("%%%02.2X", *c);
+		}
+	}
+}
+
+class OAuthWebServer : public GThread, public GMutex
+{
+	bool Loop;
+	int Port;
+	GSocket Listen;
+	GAutoString Req;
+	GString Resp;
+
+public:
+	OAuthWebServer() :
+		GThread("OAuthWebServerThread"),
+		GMutex("OAuthWebServerMutex")
+	{
+		Loop = true;
+		if (Listen.Listen())
+		{
+			Port = Listen.GetLocalPort();
+			Run();
+		}
+		else Port = 0;
+	}
+	
+	~OAuthWebServer()
+	{
+		Loop = false;
+		while (!IsExited())
+			LgiSleep(10);
+	}
+	
+	int GetPort()
+	{
+		return Port;
+	}
+
+	GString GetRequest()
+	{
+		GString r;
+		
+		while (!r)
+		{
+			if (Lock(_FL))
+			{
+				if (Req)
+					r = Req;
+				Unlock();
+			}
+		}
+		
+		return r;
+	}
+	
+	void SetResponse(const char *r)
+	{
+		if (Lock(_FL))
+		{
+			Resp = r;
+			Unlock();
+		}
+	}
+	
+	int Main()
+	{
+		GAutoPtr<GSocket> s;
+		while (Loop)
+		{
+			if (Listen.CanAccept(100))
+			{
+				s.Reset(new GSocket);
+				
+				if (!Listen.Accept(s))
+					s.Reset();
+				else
+				{
+					GArray<char> Mem;
+					int r;
+					char buf[512];
+					do 
+					{
+						r = s->Read(buf, sizeof(buf));
+						if (r > 0)
+						{
+							Mem.Add(buf, r);
+							bool End = strnstr(&Mem[0], "\r\n\r\n", Mem.Length()) != NULL;
+							if (End)
+								break;
+						}	
+					}
+					while (r > 0);
+					
+					if (Lock(_FL))
+					{
+						Mem.Add(0);
+						Req.Reset(Mem.Release());
+						Unlock();
+					}
+					
+					GString Response;
+					do
+					{
+						if (Lock(_FL))
+						{
+							if (Resp)
+								Response = Resp;
+							Unlock();
+						}
+						if (!Response)
+							LgiSleep(10);
+					}
+					while (Loop && !Response);
+					
+					if (Response)
+					{
+						s->Write(Response, Response.Length());
+					}
+				}
+			}
+			else LgiSleep(10);
+		}
+		return 0;
+	}
+};
 
 bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *Password, char *&Cookie, int Flags)
 {
@@ -1346,79 +1577,235 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 							}
 						}
 					}
-					/*
-					else if (!_stricmp(AuthType, "XOAUTH"))
+					else if (!_stricmp(AuthType, "XOAUTH2"))
 					{
-						GAutoPtr<GSocketI> Ssl(dynamic_cast<GSocketI*>(Socket->Clone()));
-						if (Ssl)
+						if (!d->OAuth.IsValid())
 						{
-							GStringPipe p;
-							GAutoString Hdr, Body;
-							int StatusCode = 0;
-							char Url[256];
-							sprintf_s(Url, sizeof(Url), "http://mail.google.com/mail/b/%s/imap/", User);
-							if (Http(Ssl, &Hdr, &Body, &StatusCode, "POST", Url, 0, 0))
+							sprintf_s(Buf, sizeof(Buf), "Error: Unknown OAUTH2 server '%s' (ask fret@memecode.com to fix)", RemoteHost);
+							Log(Buf, GSocketI::SocketMsgError);
+							continue;
+						}
+
+						GString Uri;
+						GString RedirUri;
+						GVariant AuthCode;
+						/* FIXME
+						if (SettingStore)
+							SettingStore->GetValue(OPT_ImapOAuth2AuthCode, AuthCode);
+						*/
+						
+						if (!ValidStr(AuthCode.Str()))
+						{
+							OAuthWebServer WebServer;
+							
+							// Launch browser to get Access Token
+							bool UsingLocalhost = WebServer.GetPort() > 0;
+							if (UsingLocalhost)
 							{
-								bool Status = true;
-								for (int i=0; i<5 && StatusCode == 302; i++)
+								// In this case the local host webserver is successfully listening
+								// on a port and ready to receive the redirect.
+								RedirUri.Printf("http://localhost:%i", WebServer.GetPort());
+							}
+							else
+							{
+								// Something went wrong with the localhost webserver and we need to
+								// provide an alternateive way of getting the AuthCode
+								GString::Array a = d->OAuth.RedirURIs.Split("\n");
+								for (unsigned i=0; i<a.Length(); i++)
 								{
-									GAutoString Redirect(InetGetHeaderField(Hdr, "Location"));
-									if (Redirect)
+									if (a[i].Find("localhost") < 0)
 									{
-										Status = Http(Ssl, &Hdr, &Body, &StatusCode, "POST", Redirect, 0, 0);
-										if (Status)
+										RedirUri = a[i];
 											break;
 									}
-									else break;									
 								}
-
-								if (Status)
+							}
+							
+							Uri.Printf("%s?client_id=%s&redirect_uri=%s&response_type=code&scope=%s",
+								d->OAuth.AuthUri.Get(),
+								d->OAuth.ClientID.Get(),
+								RedirUri.Get(),
+								d->OAuth.Scope.Get());
+							LgiExecute(Uri);
+							
+							if (UsingLocalhost)
+							{
+								// Wait for localhost webserver to receive the response
+								GString Req = WebServer.GetRequest();
+								if (Req)
 								{
-									GUri u;
-									GAutoString UriUserName = u.Encode(User);
-									
-									GAutoString Nonce, Signature, Timestamp, Token;
-									p.Print("%x", LgiRand());
-									Nonce.Reset(p.NewStr());
-									p.Print("%i", time(0));
-									Timestamp.Reset(p.NewStr());
-
-									p.Print("GET https://mail.google.com/mail/b/%s/imap/?xoauth_requestor_id=%s "
-											"oauth_consumer_key=\"anonymous\", "
-											"oauth_nonce=\"%s\", "
-											"oauth_signature=\"%s\", "
-											"oauth_signature_method=\"PLAINTEXT\", "
-											"oauth_timestamp=\"%s\", "
-											"oauth_token=\"%s\", "
-											"oauth_version=\"1.0\"",
-											User,
-											UriUserName.Get(),
-											Nonce.Get(),
-											Signature.Get(),
-											Timestamp.Get(),
-											Token.Get());
-
-									GAutoString Bin(p.NewStr());
-									int BinLen = strlen(Bin);
-									int B64Len = BufferLen_BinTo64(BinLen);
-									GAutoString B64(new char[B64Len+1]);
-									int c = ConvertBinaryToBase64(B64, B64Len, (uchar*)Bin.Get(), BinLen);
-									B64[B64Len] = 0;
-
-									int AuthCmd = d->NextCmd++;
-									p.Print("A%04.4i AUTHENTICATE XOAUTH %s\r\n", AuthCmd, B64.Get());
-									GAutoString Cmd(p.NewStr());
-									int w = Socket->Write(Cmd, strlen(Cmd));
-									Log(Cmd, GSocketI::SocketMsgSend);
-									if (w > 0)
+									GXmlTag t;
+									GString::Array a = Req.Split("\r\n");
+									if (a.Length() > 0)
 									{
-										LoggedIn = ReadResponse(AuthCmd);							
+										GString::Array p = a[0].Split(" ");
+										if (p.Length() > 1)
+										{
+											int Q = p[1].Find("?");
+											if (Q >= 0)
+											{
+												GString Params = p[1](Q+1, -1);
+												a = Params.Split("&");
+												for (unsigned i=0; i<a.Length(); i++)
+												{
+													GString::Array v = a[i].Split("=");
+													if (v.Length() == 2)
+													{
+														t.SetAttr(v[0], v[1]);
+													}												
+												}
+											}
+										}
+									}
+									
+									AuthCode = t.GetAttr("code");
+									
+									GString Resp;
+									Resp.Printf("HTTP/1.1 200 OK\r\n"
+												"Content-Type: text/html\r\n"
+												"\r\n"
+												"<html>\n"
+												"<head>\n"
+												"<script type=\"text/javascript\">\n"
+												"    window.close();\n"
+												"</script>\n"
+												"</head>\n"
+												"<body>OAuth2Client: %s</body>\n"
+												"</html>\n",
+												AuthCode.Str() ? "Received auth code OK" : "Failed to get auth code");
+
+									WebServer.SetResponse(Resp);
+								}
+							}
+							else
+							{
+								// Allow the user to paste the Auth Token in.
+								GInput Dlg(d->ParentWnd, "", "Enter Authorisation Token:", "IMAP OAuth2 Authentication");
+								if (Dlg.DoModal())
+									AuthCode = Dlg.Str.Get();
+							}
+						}
+
+						if (ValidStr(AuthCode.Str()))
+						{
+							// Now exchange the Auth Token for an Access Token (omg this is so complicated).
+							Uri = d->OAuth.ApiUri;
+							GUri u(Uri);
+							
+							IHttp Http;
+							GStringPipe In, Out;
+							In.Print("code=");
+							StrFormEncode(In, AuthCode.Str(), true);
+							In.Print("&redirect_uri=");
+							StrFormEncode(In, RedirUri, true);
+							In.Print("&client_id=");
+							StrFormEncode(In, d->OAuth.ClientID, true);
+							In.Print("&scope=");
+							In.Print("&client_secret=");
+							StrFormEncode(In, d->OAuth.ClientSecret, true);
+							In.Print("&grant_type=authorization_code");
+							
+							if (d->OAuth.Proxy.Host)
+								Http.SetProxy(	d->OAuth.Proxy.Host,
+												d->OAuth.Proxy.Port ? d->OAuth.Proxy.Port : HTTP_PORT);
+							
+							SslSocket *ssl;
+							GStringPipe Log;
+							GAutoPtr<GSocketI> Ssl(ssl = new SslSocket(&Log));
+							if (Ssl)
+							{
+								ssl->SetSslOnConnect(true);
+								Ssl->SetTimeout(10 * 1000);
+								if (Http.Open(	Ssl,
+												u.Host,
+												u.Port ? u.Port : HTTPS_PORT))
+								{										
+									int StatusCode = 0;
+									int ContentLength = (int)In.GetSize();
+									char Hdrs[256];
+									sprintf_s(Hdrs, sizeof(Hdrs),
+											"Content-Type: application/x-www-form-urlencoded\r\n"
+											"Content-Length: %i\r\n",
+											ContentLength);
+									bool Result = Http.Post(Uri, &In, &StatusCode, &Out, NULL, Hdrs);
+									GAutoString sOut(Out.NewStr());
+									GXmlTag t;
+									if (Result && JsonDecode(t, sOut))
+									{
+										d->OAuth.AccessToken = t.GetAttr("access_token");
+										d->OAuth.RefreshToken = t.GetAttr("refresh_token");
+										d->OAuth.ExpiresIn = t.GetAsInt("expires_in");
+									}
+								}
+							}
+						}
+						
+						// Bail if there is no access token
+						if (!ValidStr(d->OAuth.AccessToken))
+						{
+							sprintf_s(Buf, sizeof(Buf), "Warning: No OAUTH2 Access Token.");
+							Log(Buf, GSocketI::SocketMsgWarning);
+							continue;
+						}
+									
+						// Construct the XOAUTH2 parameter
+						GString s;
+						s.Printf("user=%s\001auth=Bearer %s\001\001", User, d->OAuth.AccessToken.Get());
+						Base64Str(s);						
+
+						// Issue the IMAP command
+						int AuthCmd = d->NextCmd++;
+						sprintf_s(Buf, sizeof(Buf), "A%4.4i AUTHENTICATE XOAUTH2 %s\r\n", AuthCmd, s.Get());
+						if (WriteBuf())
+						{
+							Dialog.DeleteArrays();
+							if (Read(NULL))
+							{
+								for (char *l = Dialog.First(); l; l = Dialog.Next())
+								{
+									if (*l == '+')
+									{
+										l++;
+										while (*l && strchr(WhiteSpace, *l))
+											l++;
+										s = l;
+										UnBase64Str(s);
+										Log(s, GSocketI::SocketMsgError);
+										
+										GXmlTag t;
+										JsonDecode(t, s);
+										int StatusCode = t.GetAsInt("status");
+
+										sprintf_s(Buf, sizeof(Buf), "\r\n");
+										WriteBuf();
+										
+										if (StatusCode == 400)
+										{
+											// Refresh the token...?											
+										}
+									}
+									else if (*l == '*')
+									{
+									}
+									else
+									{
+										if (IsResponse(l, AuthCmd, LoggedIn) &&
+											LoggedIn)
+										{
+											/* FIXME
+											if (SettingStore)
+											{
+												// Login successful, so persist the AuthCode for next time
+												SettingStore->SetValue(OPT_ImapOAuth2AuthCode, AuthCode);
+											}
+											*/
+											break;
+										}
 									}
 								}
 							}
 						}
 					}
-					*/
 					else
 					{
 						char s[256];
@@ -1677,8 +2064,12 @@ bool MailIMap::Fetch(bool ByUid, const char *Seq, const char *Parts, FetchCallba
 	if (Lock(_FL))
 	{
 		int Cmd = d->NextCmd++;
-		if (sprintf_s(Buf, sizeof(Buf), "A%4.4i %sFETCH %s (%s)\r\n", Cmd, ByUid ? "UID " : "", Seq, Parts) > 0 &&
-			WriteBuf())
+		GStringPipe p(256);
+		p.Print("A%4.4i %sFETCH ", Cmd, ByUid ? "UID " : "");
+		p.Write(Seq, strlen(Seq));
+		p.Print(" (%s)\r\n", Parts);
+		GAutoString WrBuf(p.NewStr());
+		if (WriteBuf(false, WrBuf))
 		{
 			ClearDialog();
 
