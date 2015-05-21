@@ -1608,10 +1608,8 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 						GString Uri;
 						GString RedirUri;
 						GVariant AuthCode;
-						/* FIXME
-						if (SettingStore)
-							SettingStore->GetValue(OPT_ImapOAuth2AuthCode, AuthCode);
-						*/
+						if (Cookie)
+							AuthCode = Cookie;
 						
 						if (!ValidStr(AuthCode.Str()))
 						{
@@ -1628,7 +1626,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 							else
 							{
 								// Something went wrong with the localhost webserver and we need to
-								// provide an alternateive way of getting the AuthCode
+								// provide an alternative way of getting the AuthCode
 								GString::Array a = d->OAuth.RedirURIs.Split("\n");
 								for (unsigned i=0; i<a.Length(); i++)
 								{
@@ -1716,6 +1714,10 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 
 						if (ValidStr(AuthCode.Str()))
 						{
+							// Save the AuthCode
+							DeleteArray(Cookie);
+							Cookie = NewStr(AuthCode.Str());
+
 							// Now exchange the Auth Token for an Access Token (omg this is so complicated).
 							Uri = d->OAuth.ApiUri;
 							GUri u(Uri);
@@ -1820,13 +1822,6 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 										if (IsResponse(l, AuthCmd, LoggedIn) &&
 											LoggedIn)
 										{
-											/* FIXME
-											if (SettingStore)
-											{
-												// Login successful, so persist the AuthCode for next time
-												SettingStore->SetValue(OPT_ImapOAuth2AuthCode, AuthCode);
-											}
-											*/
 											break;
 										}
 									}
