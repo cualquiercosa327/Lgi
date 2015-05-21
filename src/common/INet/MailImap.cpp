@@ -672,10 +672,12 @@ public:
 	GString WebLoginUri;
 	MailIMap::OAuthParams OAuth;
 	GViewI *ParentWnd;
+	bool *LoopState;
 
 	MailIMapPrivate()
 	{
 		ParentWnd = NULL;
+		LoopState = NULL;
 		FolderSep = '/';
 		NextCmd = 1;
 		Logging = true;
@@ -705,6 +707,11 @@ MailIMap::~MailIMap()
 		ClearUid();
 		DeleteObj(d);
 	}
+}
+
+void MailIMap::SetLoopState(bool *LoopState)
+{
+	d->LoopState = LoopState;
 }
 
 void MailIMap::SetParentWindow(GViewI *wnd)
@@ -970,11 +977,11 @@ public:
 		return Port;
 	}
 
-	GString GetRequest()
+	GString GetRequest(bool *Loop)
 	{
 		GString r;
 		
-		while (!r)
+		while (!r && (!Loop || *Loop))
 		{
 			if (Lock(_FL))
 			{
@@ -982,6 +989,9 @@ public:
 					r = Req;
 				Unlock();
 			}
+			
+			if (!r)
+				LgiSleep(50);
 		}
 		
 		return r;
@@ -1634,7 +1644,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 							if (UsingLocalhost)
 							{
 								// Wait for localhost webserver to receive the response
-								GString Req = WebServer.GetRequest();
+								GString Req = WebServer.GetRequest(d->LoopState);
 								if (Req)
 								{
 									GXmlTag t;

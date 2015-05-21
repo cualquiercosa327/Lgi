@@ -1904,8 +1904,10 @@ bool GCss::Len::Parse(const char *&s, PropType Prop, ParsingStyle ParseType)
 		else if (ParseWord(s, "em")) Type = LenEm;
 		else if (ParseWord(s, "ex")) Type = LenEx;
 		else if (ParseWord(s, "cm")) Type = LenCm;
+		/*
 		else if (IsAlpha(*s))
 			return false;
+		*/
 		else if (ParseType == ParseRelaxed)
 		{
 			if (Prop == PropLineHeight)

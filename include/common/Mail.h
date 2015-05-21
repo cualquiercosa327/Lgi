@@ -848,6 +848,7 @@ public:
 	const char *GetWebLoginUri();
 	void SetOAuthParams(OAuthParams &p);
 	void SetParentWindow(GViewI *wnd);
+	void SetLoopState(bool *LoopState);
 
 	// Connection
 	bool Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Password, GDom *SettingStore, int Flags = 0);

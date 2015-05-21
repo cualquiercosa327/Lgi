@@ -4980,8 +4980,12 @@ void GTag::OnFlow(GFlowRegion *Flow)
 		{
 			Size.x = Size.y = 0;
 
-			GCss::Len w = Width();
-			GCss::Len h = Height();
+			GCss::Len w    = Width();
+			GCss::Len h    = Height();
+			GCss::Len MinX = MinWidth();
+			GCss::Len MaxX = MaxWidth();
+			GCss::Len MinY = MinHeight();
+			GCss::Len MaxY = MaxHeight();
 			GAutoPtr<GDisplayString> a;
 			int ImgX, ImgY;			
 			if (Image)
@@ -5036,6 +5040,18 @@ void GTag::OnFlow(GFlowRegion *Flow)
 				{
 					Size.x = (int) ceil((double)Size.y * AspectRatio);
 				}
+			}
+			if (MinY.IsValid())
+			{
+				int Px = Flow->ResolveY(MinY, GetFont(), false);
+				if (Size.y < Px)
+					Size.y = Px;
+			}
+			if (MaxY.IsValid())
+			{
+				int Px = Flow->ResolveY(MaxY, GetFont(), false);
+				if (Size.y > Px)
+					Size.y = Px;
 			}
 
 			if (Disp == DispInline)
