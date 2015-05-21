@@ -672,10 +672,12 @@ public:
 	GString WebLoginUri;
 	MailIMap::OAuthParams OAuth;
 	GViewI *ParentWnd;
+	bool *LoopState;
 
 	MailIMapPrivate()
 	{
 		ParentWnd = NULL;
+		LoopState = NULL;
 		FolderSep = '/';
 		NextCmd = 1;
 		Logging = true;
@@ -705,6 +707,11 @@ MailIMap::~MailIMap()
 		ClearUid();
 		DeleteObj(d);
 	}
+}
+
+void MailIMap::SetLoopState(bool *LoopState)
+{
+	d->LoopState = LoopState;
 }
 
 void MailIMap::SetParentWindow(GViewI *wnd)
@@ -962,6 +969,7 @@ class OAuthWebServer : public GThread, public GMutex
 	GSocket Listen;
 	GAutoString Req;
 	GString Resp;
+	bool Finished;
 
 public:
 	OAuthWebServer() :
@@ -975,6 +983,7 @@ public:
 			Run();
 		}
 		else Port = 0;
+		Finished = false;
 	}
 	
 	~OAuthWebServer()
@@ -989,11 +998,11 @@ public:
 		return Port;
 	}
 
-	GString GetRequest()
+	GString GetRequest(bool *Loop)
 	{
 		GString r;
 		
-		while (!r)
+		while (!r && (!Loop || *Loop))
 		{
 			if (Lock(_FL))
 			{
@@ -1001,6 +1010,9 @@ public:
 					r = Req;
 				Unlock();
 			}
+			
+			if (!r)
+				LgiSleep(50);
 		}
 		
 		return r;
@@ -1013,6 +1025,11 @@ public:
 			Resp = r;
 			Unlock();
 		}
+	}
+	
+	bool IsFinished()
+	{
+		return Finished;
 	}
 	
 	int Main()
@@ -1051,6 +1068,7 @@ public:
 						Unlock();
 					}
 					
+					// Wait for the response...
 					GString Response;
 					do
 					{
@@ -1066,13 +1084,14 @@ public:
 					while (Loop && !Response);
 					
 					if (Response)
-					{
 						s->Write(Response, Response.Length());
-					}
+					Loop = false;
 				}
 			}
 			else LgiSleep(10);
 		}
+
+		Finished = true;
 		return 0;
 	}
 };
@@ -1631,7 +1650,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 							if (UsingLocalhost)
 							{
 								// Wait for localhost webserver to receive the response
-								GString Req = WebServer.GetRequest();
+								GString Req = WebServer.GetRequest(d->LoopState);
 								if (Req)
 								{
 									GXmlTag t;
@@ -1675,6 +1694,15 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 												AuthCode.Str() ? "Received auth code OK" : "Failed to get auth code");
 
 									WebServer.SetResponse(Resp);
+									
+									// Wait for the response to get sent...
+									uint64 Start = LgiCurrentTime();
+									while (!WebServer.IsFinished())
+									{
+										if (LgiCurrentTime() - Start > 5000)
+											break;
+										LgiSleep(50);
+									}
 								}
 							}
 							else
