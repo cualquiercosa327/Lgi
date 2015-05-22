@@ -503,12 +503,14 @@ extern GDataStoreI *OpenImap
 /// \return a valid ptr or NULL on failure
 extern GDataStoreI *OpenMapiStore
 (
-	/// The host name of the MAPI server
-	const char *Server,
+	/// The MAPI profile name
+	const char *Profile,
 	/// The username to login as
 	const char *Username,
 	/// Their password
 	const char *Password,
+	/// The account ID
+	uint64 AccountId,
 	/// Event interface,
 	GDataEventsI *Callback
 );
