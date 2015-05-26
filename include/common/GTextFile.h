@@ -19,6 +19,7 @@ public:
 protected:
 	bool First;
 	int Used;
+	bool InEndOfLine;
 	GPointer Pos;
 	EncodingType Type;
 	GArray<uint8> Buf;
@@ -28,6 +29,7 @@ public:
 	GTextFile(const char *charset = NULL)
 	{
 		First = true;
+		InEndOfLine = false;
 		Used = 0;
 		Pos.u8 = NULL;
 		Type = Unknown;
@@ -246,10 +248,26 @@ public:
 				}
 			}
 			
-			if (ch == '\r')
-				continue;
-			if (ch == 0 || ch == '\n')
+			if (ch == 0)
 				break;
+
+			if (ch == '\r' || ch == '\n')
+			{
+				if (InEndOfLine)
+				{
+					continue;
+				}
+				else
+				{
+					InEndOfLine = true;
+					break;
+				}
+			}
+			else
+			{
+				InEndOfLine = false;
+			}
+			
 			Out[OutPos++] = ch;
 		}
 		
