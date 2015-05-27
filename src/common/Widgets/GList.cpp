@@ -1922,6 +1922,9 @@ void GList::OnMouseMove(GMouse &m)
 			case CLICK_COLUMN:
 			{
 				bool Update = false;
+				if (d->DragData < 0 || d->DragData >= Columns.Length())
+					break;
+					
 				GItemColumn *c = Columns[d->DragData];
 				if (c)
 				{
