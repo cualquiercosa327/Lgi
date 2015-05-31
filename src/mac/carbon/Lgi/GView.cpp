@@ -290,7 +290,7 @@ struct DragParams
 	GVariant Data;
 	int KeyState;
 	
-	DragParams(GView *v, DragRef Drag, const char *Drop)
+	DragParams(GViewI *v, DragRef Drag, const char *Drop)
 	{
 		KeyState = 0;
 		
@@ -513,7 +513,6 @@ pascal OSStatus LgiViewDndHandler(EventHandlerCallRef inHandlerCallRef, EventRef
 	{
 		case kEventControlDragEnter:
 		{
-			printf("kEventControlDragEnter\n");
 			bool acceptDrop = true;
 			
 			SetEventParameter(	inEvent,
@@ -529,20 +528,35 @@ pascal OSStatus LgiViewDndHandler(EventHandlerCallRef inHandlerCallRef, EventRef
 		}
 		case kEventControlDragWithin:
 		{
-			DragParams p(v, Drag, NULL);
+			GAutoPtr<DragParams> param(new DragParams(v, Drag, NULL));
 
 			// Call the handler
-			int Accept = Target->WillAccept(p.Formats, p.Pt, p.KeyState);
+			int Accept = Target->WillAccept(param->Formats, param->Pt, param->KeyState);
+			for (GViewI *p = v->GetParent(); param && !Accept && p; p = p->GetParent())
+			{
+				GDragDropTarget *pt = p->DropTarget();
+				if (pt)
+				{
+					param.Reset(new DragParams(p, Drag, NULL));
+					Accept = pt->WillAccept(param->Formats, param->Pt, param->KeyState);
+					if (Accept)
+					{
+						v = p->GetGView();
+						Target = pt;
+						break;
+					}
+				}
+			}
 			if (Accept)
 			{
-				v->d->AcceptedDropFormat.Reset(NewStr(p.Formats.First()));
+				v->d->AcceptedDropFormat.Reset(NewStr(param->Formats.First()));
 				LgiAssert(v->d->AcceptedDropFormat.Get());
 			}
 			printf("kEventControlDragWithin %ix%i accept=%i class=%s\n",
-				p.Pt.x, p.Pt.y,
+				param->Pt.x, param->Pt.y,
 				Accept,
 				v->GetClass());
-			SetDragDropAction(Drag, p.Map(Accept));
+			SetDragDropAction(Drag, param->Map(Accept));
 			result = noErr;
 			break;
 		}
@@ -559,14 +573,28 @@ pascal OSStatus LgiViewDndHandler(EventHandlerCallRef inHandlerCallRef, EventRef
 			printf("kEventControlDragReceive\n");
 			
 			int Accept = 0;
-			if (v->d->AcceptedDropFormat)
+			GView *DropView = NULL;
+			for (GView *p = v; p; p = p->GetParent() ? p->GetParent()->GetGView() : NULL)
 			{
-				DragParams p(v, Drag, v->d->AcceptedDropFormat);
-				int Accept = Target->OnDrop(v->d->AcceptedDropFormat,
-											&p.Data,
-											p.Pt,
-											p.KeyState);
-				SetDragDropAction(Drag, p.Map(Accept));
+				if (p->d->AcceptedDropFormat)
+				{
+					DropView = p;
+					break;
+				}
+			}
+			if (DropView &&
+				DropView->d->AcceptedDropFormat)
+			{
+				GDragDropTarget *pt = DropView->DropTarget();
+				if (pt)
+				{
+					DragParams p(DropView, Drag, DropView->d->AcceptedDropFormat);
+					int Accept = pt->OnDrop(DropView->d->AcceptedDropFormat,
+												&p.Data,
+												p.Pt,
+												p.KeyState);
+					SetDragDropAction(Drag, p.Map(Accept));
+				}
 			}
 			else
 			{

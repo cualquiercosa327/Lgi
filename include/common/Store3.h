@@ -499,6 +499,7 @@ extern GDataStoreI *OpenImap
 	GAutoPtr<class ProtocolSettingStore> store
 );
 
+#ifdef WIN32
 /// Open a MAPI store
 /// \return a valid ptr or NULL on failure
 extern GDataStoreI *OpenMapiStore
@@ -514,6 +515,7 @@ extern GDataStoreI *OpenMapiStore
 	/// Event interface,
 	GDataEventsI *Callback
 );
+#endif
 
 //////////////////////////////////////////////////////////////////////////////
 // Common implementation of interfaces
