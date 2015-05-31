@@ -1700,11 +1700,15 @@ CarbonControlProc
 
 						if
 						(
-							k.c16 == VK_APPS ||
-							k.c16 == VK_DELETE
+							k.c16 == VK_APPS
+							/* || k.c16 == VK_DELETE */
 						)
 						{
-							// printf("RawDown key=%i sh=%i,alt=%i,ctrl=%i v=%p\n", k.c16, k.Shift(), k.Alt(), k.Ctrl(), v->Handle());
+							/*
+							printf("%s:%i - RawDown key=%i sh=%i,alt=%i,ctrl=%i v=%p\n",
+								_FL,
+								k.c16, k.Shift(), k.Alt(), k.Ctrl(), v->Handle());
+							*/
 
 							GWindow *Wnd = v->GetWindow();
 							if (Wnd) Wnd->HandleViewKey(v, k);
@@ -1724,10 +1728,22 @@ CarbonControlProc
 					UInt32		key = 0;
 					UInt32		mods = 0;
 
-					OSStatus e = GetEventParameter(inEvent, kEventParamKeyCode, typeUInt32, NULL, sizeof(UInt32), NULL, &key);
-					if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, (int)e);
-					e = GetEventParameter(inEvent, kEventParamKeyModifiers, typeUInt32, NULL, sizeof(mods), NULL, &mods);
-					if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, (int)e);
+					OSStatus e = GetEventParameter(	inEvent,
+													kEventParamKeyCode,
+													typeUInt32,
+													NULL,
+													sizeof(UInt32),
+													NULL,
+													&key);
+					if (e) printf("%s:%i - error %i\n", _FL, (int)e);
+					e = GetEventParameter(	inEvent,
+											kEventParamKeyModifiers,
+											typeUInt32,
+											NULL,
+											sizeof(mods),
+											NULL,
+											&mods);
+					if (e) printf("%s:%i - error %i\n", _FL, (int)e);
 					
 					GKey k;
 					if ((k.c16 = VirtualKeyToLgi(key)))
@@ -1740,7 +1756,11 @@ CarbonControlProc
 						if (mods & 0x100) k.System(true);
 						GetIsChar(k, mods);
 
-						// printf("RawUp key=%i sh=%i,alt=%i,ctrl=%i\n", k.c16, k.Shift(), k.Alt(), k.Ctrl());
+						/*
+						printf("%s:%i - RawUp key=%i sh=%i,alt=%i,ctrl=%i\n",
+							_FL,
+							k.c16, k.Shift(), k.Alt(), k.Ctrl());
+							*/
 						
 						GWindow *Wnd = v->GetWindow();
 						if (Wnd) Wnd->HandleViewKey(v, k);
@@ -1797,7 +1817,8 @@ CarbonControlProc
 					UniChar *utf = text;
 					int size = actualSize;
 					k.c16 = k.vkey = LgiUtf16To32(utf, size);
-					// printf("char=%i\n", k.c16);
+					
+					// printf("%s:%i - char=%i\n", _FL, k.c16);
 					
 					switch (k.c16)
 					{
