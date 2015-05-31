@@ -1332,41 +1332,41 @@ int VirtualKeyToLgi(UInt32 Virt)
 {
 	switch (Virt)
 	{
-		// various
-		case 122: return VK_F1;
-		case 120: return VK_F2;
-		case 99: return VK_F3;
-		case 118: return VK_F4;
-		case 96: return VK_F5;
-		case 97: return VK_F6;
-		case 98: return VK_F7;
-		case 100: return VK_F8;
-		case 101: return VK_F9;
-		case 109: return VK_F10;
-		case 103: return VK_F11;
+		// various cmdKeyBit
+		case kVK_F1: return VK_F1;
+		case kVK_F2: return VK_F2;
+		case kVK_F3: return VK_F3;
+		case kVK_F4: return VK_F4;
+		case kVK_F5: return VK_F5;
+		case kVK_F6: return VK_F6;
+		case kVK_F7: return VK_F7;
+		case kVK_F8: return VK_F8;
+		case kVK_F9: return VK_F9;
+		case kVK_F10: return VK_F10;
+		case kVK_F11: return VK_F11;
 		case 110: return VK_APPS;
-		case 111: return VK_F12;
+		case kVK_F12: return VK_F12;
 		
-		case 123: return VK_LEFT;
-		case 124: return VK_RIGHT;
-		case 125: return VK_DOWN;
-		case 126: return VK_UP;
+		case kVK_LeftArrow: return VK_LEFT;
+		case kVK_RightArrow: return VK_RIGHT;
+		case kVK_DownArrow: return VK_DOWN;
+		case kVK_UpArrow: return VK_UP;
 		case 114: return VK_INSERT;
-		case 116: return VK_PAGEUP;
-		case 121: return VK_PAGEDOWN;
+		case kVK_PageUp: return VK_PAGEUP;
+		case kVK_PageDown: return VK_PAGEDOWN;
 
-		case 53: return VK_ESCAPE;
-		case 51: return VK_BACKSPACE;
-		case 117: return VK_DELETE;
+		case kVK_Escape: return VK_ESCAPE;
+		case kVK_Delete: return VK_BACKSPACE;
+		case kVK_ForwardDelete: return VK_DELETE;
 		
-		case 115: return VK_HOME;
-		case 119: return VK_END;
+		case kVK_Home: return VK_HOME;
+		case kVK_End: return VK_END;
 		
 		// whitespace
 		case 76: return VK_RETURN;
-		case 36: return '\r';
-		case 48: return '\t';
-		case 49: return ' ';
+		case kVK_Return: return '\r';
+		case kVK_Tab: return '\t';
+		case kVK_Space: return ' ';
 		
 		// delimiters
 		case 27: return '-';
@@ -1671,10 +1671,22 @@ CarbonControlProc
 					UInt32		key = 0;
 					UInt32		mods = 0;
 
-					OSStatus e = GetEventParameter(inEvent, kEventParamKeyCode, typeUInt32, NULL, sizeof(UInt32), NULL, &key);
-					if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, (int)e);
-					e = GetEventParameter(inEvent, kEventParamKeyModifiers, typeUInt32, NULL, sizeof(mods), NULL, &mods);
-					if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, (int)e);
+					OSStatus e = GetEventParameter(	inEvent,
+													kEventParamKeyCode,
+													typeUInt32,
+													NULL,
+													sizeof(UInt32),
+													NULL,
+													&key);
+					if (e) printf("%s:%i - error %i\n", _FL, (int)e);
+					e = GetEventParameter(	inEvent,
+											kEventParamKeyModifiers,
+											typeUInt32,
+											NULL,
+											sizeof(mods),
+											NULL,
+											&mods);
+					if (e) printf("%s:%i - error %i\n", _FL, (int)e);
 					
 					GKey k;
 					if ((k.c16 = VirtualKeyToLgi(key)))
@@ -1771,13 +1783,13 @@ CarbonControlProc
 					text = new UniChar[actualSize+1];
 					e = GetEventParameter(inEvent, kEventParamTextInputSendText, typeUnicodeText, NULL, actualSize, NULL, text);
 					e = GetEventParameter(inEvent, kEventParamTextInputSendKeyboardEvent, typeEventRef, NULL, sizeof(src), NULL, &src);
-					if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, (int)e);
+					if (e) printf("%s:%i - error %i\n", _FL, (int)e);
 					else
 					{
 						e = GetEventParameter(src, kEventParamKeyModifiers, typeUInt32, NULL, sizeof(mods), NULL, &mods);
-						if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, (int)e);
+						if (e) printf("%s:%i - error %i\n", _FL, (int)e);
 						e = GetEventParameter(src, kEventParamKeyCode, typeUInt32, NULL, sizeof(UInt32), NULL, &key);
-						if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, (int)e);
+						if (e) printf("%s:%i - error %i\n", _FL, (int)e);
 					}
 					
 					GKey k;
@@ -1789,7 +1801,7 @@ CarbonControlProc
 					
 					switch (k.c16)
 					{
-						#define MapKey(v, kc) case v: k.c16 = kc; break
+						#define MapKey(v, kc) case v: { k.vkey=kc; k.c16 = kc; break; }
 						MapKey(1, VK_HOME);
 						MapKey(3, VK_RETURN);
 						MapKey(4, VK_END);
@@ -1800,7 +1812,11 @@ CarbonControlProc
 						case 16:
 						{
 							int c = VirtualKeyToLgi(key);
-							if (c) k.c16 = c;
+							if (c)
+							{
+								k.vkey = c;
+								k.c16 = c;
+							}
 							break;
 						}
 					}
