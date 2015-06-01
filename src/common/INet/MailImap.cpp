@@ -950,6 +950,7 @@ class OAuthWebServer : public GThread, public GMutex
 	GSocket Listen;
 	GAutoString Req;
 	GString Resp;
+	bool Finished;
 
 public:
 	OAuthWebServer() :
@@ -963,6 +964,7 @@ public:
 			Run();
 		}
 		else Port = 0;
+		Finished = false;
 	}
 	
 	~OAuthWebServer()
@@ -1006,6 +1008,11 @@ public:
 		}
 	}
 	
+	bool IsFinished()
+	{
+		return Finished;
+	}
+	
 	int Main()
 	{
 		GAutoPtr<GSocket> s;
@@ -1042,6 +1049,7 @@ public:
 						Unlock();
 					}
 					
+					// Wait for the response...
 					GString Response;
 					do
 					{
@@ -1057,13 +1065,14 @@ public:
 					while (Loop && !Response);
 					
 					if (Response)
-					{
 						s->Write(Response, Response.Length());
-					}
+					Loop = false;
 				}
 			}
 			else LgiSleep(10);
 		}
+
+		Finished = true;
 		return 0;
 	}
 };
@@ -1622,7 +1631,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 							else
 							{
 								// Something went wrong with the localhost webserver and we need to
-								// provide an alternateive way of getting the AuthCode
+								// provide an alternative way of getting the AuthCode
 								GString::Array a = d->OAuth.RedirURIs.Split("\n");
 								for (unsigned i=0; i<a.Length(); i++)
 								{
@@ -1688,6 +1697,15 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 												AuthCode.Str() ? "Received auth code OK" : "Failed to get auth code");
 									
 									WebServer.SetResponse(Resp);
+									
+									// Wait for the response to get sent...
+									uint64 Start = LgiCurrentTime();
+									while (!WebServer.IsFinished())
+									{
+										if (LgiCurrentTime() - Start > 5000)
+											break;
+										LgiSleep(50);
+									}
 								}
 							}
 							else
