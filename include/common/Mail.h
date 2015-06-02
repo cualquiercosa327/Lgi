@@ -152,11 +152,6 @@ public:
 				int MimeDataLength);
 };
 
-#define MAIL_ADDR_TO				0
-#define MAIL_ADDR_CC				1
-#define MAIL_ADDR_BCC				2
-#define MAIL_ADDR_FROM				3
-
 /// Address dscriptor
 class AddressDescriptor : public GBase
 {
@@ -197,14 +192,6 @@ public:
 		return Status;
 	}
 };
-
-// FIELD_PRIORITY is equivilent to the header field: X-Priority
-//	1 - High
-//	...
-//	5 - Low
-#define MAIL_PRIORITY_HIGH				1
-#define MAIL_PRIORITY_NORMAL			3 // ???
-#define MAIL_PRIORITY_LOW				5
 
 class MailMessage
 {

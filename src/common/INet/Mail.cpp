@@ -20,6 +20,7 @@
 #include "INetTools.h"
 #include "GDateTime.h"
 #include "GDocView.h"
+#include "Store3Defs.h"
 
 const char sTextPlain[] = "text/plain";
 const char sTextHtml[] = "text/html";
