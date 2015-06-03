@@ -342,7 +342,7 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 
 				// Map the MIME type to a .ext
 				GRegKey MimeEntry(false, "HKEY_CLASSES_ROOT\\MIME\\Database\\Content Type\\%s", Mime);
-				char *e = MimeEntry.GetStr("Extension");
+				char *e = MimeEntry.IsOk() ? MimeEntry.GetStr("Extension") : NULL;
 				if (e)
 					strcpy_s(Ext, sizeof(Ext), e);
 				if (Ext[0])

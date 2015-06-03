@@ -218,7 +218,7 @@ int64 GScrollBar::Value()
 {
 	LgiAssert(d->Min < 1000000);
 
-	return limit(d->Value, d->Min, d->Max);
+	return limit(d->Value, d->Min, d->Max - d->Page + 1);
 }
 
 void GScrollBar::Value(int64 p)
