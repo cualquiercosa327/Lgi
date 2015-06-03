@@ -260,8 +260,9 @@ enum Store3Fields
 	// Misc additional fields
 	FIELD_LABEL = 110,					// (char*) Mail label
 	FIELD_CHARSET = 111,				// (char*) A character set
-	FIELD_ALT_EMAIL = 112,				// (char*) alternative, non-deafult email addresses
-										// the default addr is stored under 'FIELD_EMAIL'
+	FIELD_ALT_EMAIL = 112,				// (char*) Comma separated list of alternative,
+										// non-default email addresses. The default addr 
+										// is stored under 'FIELD_EMAIL'
 	FIELD_UID = 113,					// (char*)
 	FIELD_TITLE = 114,					// (char*)
 	FIELD_TIMEZONE = 115,				// (char*)
@@ -271,7 +272,7 @@ enum Store3Fields
 	FIELD_FOLDER_PERM_WRITE = 119,		// (int64)
 	FIELD_GROUP_NAME = 120,				// (char*) The name of a contact group
 	FIELD_HTML_CHARSET = 121,			// (char*) The character set of the HTML body part
-	// FIELD_ADDRESSED_TO = 122,		// **deprecated**
+	FIELD_POSITION = 122,				// (char*) Role in organisation
 	FIELD_GROUP_LIST = 123,				// (char*)
 	FIELD_FOLDER_THREAD = 124,			// (int64)
 	FIELD_ACCOUNT_ID = 125,				// (int64) The ID of an account
@@ -291,8 +292,8 @@ enum Store3Fields
 	FIELD_WIDTH = 137,					// (int64)
 	// #define FIELD_ATTACHMENT_CONTENT	139	- Deprecated
 	// #define FIELD_ATTACHMENTS		140 - Deprecated, use FIELD_MIME_SEG instead
-	FIELD_CACHE_FILENAME = 141,			// (char*)
-	FIELD_CACHE_FLAGS = 142,			// (char*)
+	FIELD_CACHE_FILENAME = 141,			// (char*) IMAP backend: the filename
+	FIELD_CACHE_FLAGS = 142,			// (char*) IMAP backend: IMAP flags
 	FIELD_DONT_SHOW_PREVIEW = 143,		// (bool)
 	FIELD_STORE_PASSWORD = 144,			// (char*)
 	FIELD_LOADED = 145,					// (Store3DataState)
