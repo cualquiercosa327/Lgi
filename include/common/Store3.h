@@ -105,27 +105,6 @@ enum Store3Status
 	Store3Success,
 };
 
-/// GDataI load state
-enum Store3DataState
-{
-	Store3None,
-	Store3Headers,
-	Store3Loaded,
-};
-
-/// Folder system type
-enum Store3SystemFolder
-{
-	Store3SystemNone,
-	Store3SystemInbox,
-	Store3SystemTrash,
-	Store3SystemOutbox,
-	Store3SystemSent,
-	Store3SystemCalendar,
-	Store3SystemContacts,
-	Store3SystemSpam,
-};
-
 /// Possible parts of UI
 enum Store3UiFields
 {
