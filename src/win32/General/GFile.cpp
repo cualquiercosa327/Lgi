@@ -389,7 +389,7 @@ class GWin32Volume : public GVolume
 public:
 	GWin32Volume(LgiSystemPath Type, char *Name)
 	{
-		IsRoot = Type == LSP_HOME;
+		IsRoot = Type == LSP_ROOT;
 		_Name = Name;
 		_Type = VT_FOLDER;
 
@@ -595,7 +595,7 @@ GVolume *GFileSystem::GetRootVolume()
 {
 	if (!Root)
 	{
-		Root = new GWin32Volume(LSP_HOME, "Home");
+		Root = new GWin32Volume(LSP_ROOT, "Computer");
 		
 		GAutoPtr<GVolume> v(new GWin32Volume(LSP_DESKTOP, "Desktop"));
 		Root->Insert(v);
