@@ -720,6 +720,10 @@
 						RelativePath=".\include\common\GDragAndDrop.h"
 						>
 					</File>
+					<File
+						RelativePath=".\include\common\GDropFiles.h"
+						>
+					</File>
 				</Filter>
 				<Filter
 					Name="Menus"

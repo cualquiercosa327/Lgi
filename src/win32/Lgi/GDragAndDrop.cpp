@@ -27,8 +27,8 @@ int MapW32FlagsToLgi(int W32Flags)
 	int f = 0;
 
 	if (W32Flags & MK_CONTROL) f |= LGI_EF_CTRL;
-	if (W32Flags & MK_SHIFT) f |= LGI_EF_SHIFT;
-	if (W32Flags & MK_ALT) f |= LGI_EF_ALT;
+	if (W32Flags & MK_SHIFT)   f |= LGI_EF_SHIFT;
+	if (W32Flags & MK_ALT)     f |= LGI_EF_ALT;
 	if (W32Flags & MK_LBUTTON) f |= LGI_EF_LEFT;
 	if (W32Flags & MK_MBUTTON) f |= LGI_EF_MIDDLE;
 	if (W32Flags & MK_RBUTTON) f |= LGI_EF_RIGHT;
@@ -647,12 +647,13 @@ HRESULT STDMETHODCALLTYPE GDragDropTarget::Drop(IDataObject *pDataObject, DWORD 
 	char *FormatName;
 	if (FormatName = Formats.First())
 	{
-		bool FileContents = strcmp(FormatName, CFSTR_FILECONTENTS) == 0;
+		bool IsStreamDrop = !_stricmp(FormatName, LGI_StreamDropFormat);
+		bool IsFileContents = !_stricmp(FormatName, CFSTR_FILECONTENTS);
 
 		FORMATETC Format;
 		Format.cfFormat = FormatToInt(FormatName);
 		Format.dwAspect = DVASPECT_CONTENT;
-		Format.lindex = FileContents ? 0 : -1;
+		Format.lindex = IsFileContents ? 0 : -1;
 		Format.tymed = TYMED_ISTREAM | TYMED_HGLOBAL;
 		Format.ptd = 0;
 
@@ -670,18 +671,76 @@ HRESULT STDMETHODCALLTYPE GDragDropTarget::Drop(IDataObject *pDataObject, DWORD 
 					int Size = GlobalSize(Medium.hGlobal);
 					void *Ptr = GlobalLock(Medium.hGlobal);
 					if (Ptr)
-					{
-						GVariant v;
-						v.SetBinary(Size, Ptr);
-						OnDrop(FormatName, &v, Pt, MapW32FlagsToLgi(grfKeyState));
+					{	
+						if (IsStreamDrop)
+						{
+							// Do special case handling of CFSTR_FILEDESCRIPTORW here,
+							// because we need to call GetData more times to get the file
+							// contents as well... and the layers after this don't have the
+							// capability to do it.
+							GVariant v;
+							v.SetList();
+							
+							// For each file...
+							LPFILEGROUPDESCRIPTORW Gd = (LPFILEGROUPDESCRIPTORW)Ptr;
+							for (UINT i = 0; i < Gd->cItems; i++)
+							{
+								FORMATETC Fmt;
+								Fmt.cfFormat = FormatToInt(CFSTR_FILECONTENTS);
+								Fmt.dwAspect = DVASPECT_CONTENT;
+								Fmt.lindex = i;
+								Fmt.tymed = TYMED_ISTREAM;
+								Fmt.ptd = 0;
 
+								STGMEDIUM Med;
+								ZeroObj(Med);
+								
+								// Get the stream for it...
+								HRESULT res = pDataObject->GetData(&Fmt, &Med);
+								GAutoPtr<GVariant> s;
+								if (SUCCEEDED(res) &&
+									Med.tymed == TYMED_ISTREAM &&
+									s.Reset(new GVariant))
+								{
+									IStreamWrap *w = new IStreamWrap(Med.pstm);
+									if (w)
+									{
+										// Wrap a GStream around it so we can talk to it...
+										s->Type = GV_STREAM;
+										s->Value.Stream.Ptr = w;
+										s->Value.Stream.Own = true;
+
+										// Store the name/size as well...
+										w->Desc.Reset(new FILEDESCRIPTORW(Gd->fgd[i]));
+
+										// Store it in the list of variants for the drop
+										v.Value.Lst->Insert(s.Release());
+									}
+								}
+							}
+							
+							if (v.Value.Lst->Length() > 0)
+								OnDrop(FormatName, &v, Pt, MapW32FlagsToLgi(grfKeyState));
+						}
+						else
+						{
+							// Default handling
+							GVariant v;
+							v.SetBinary(Size, Ptr);
+							OnDrop(FormatName, &v, Pt, MapW32FlagsToLgi(grfKeyState));
+						}
+						
 						GlobalUnlock(Ptr);
 					}
 					break;
 				}
 				case TYMED_ISTREAM:
 				{
-					int asd=0;
+					GVariant v;
+					v.Type = GV_STREAM;
+					v.Value.Stream.Own = true;
+					v.Value.Stream.Ptr = new IStreamWrap(Medium.pstm);
+					OnDrop(FormatName, &v, Pt, MapW32FlagsToLgi(grfKeyState));
 					break;
 				}
 				default:

@@ -883,7 +883,8 @@ case IDomGet:
 		switch (Dom->Type)
 		{
 			case GV_DOM:
-			case GV_GFILE:
+			// case GV_GFILE:
+			case GV_STREAM:
 			case GV_GSURFACE:
 			{
 				GDom *dom = Dom->CastDom();
@@ -1029,7 +1030,8 @@ case IDomSet:
 	switch (Dom->Type)
 	{
 		case GV_DOM:
-		case GV_GFILE:
+		// case GV_GFILE:
+		case GV_STREAM:
 		case GV_GSURFACE:
 		{
 			GDom *dom = Dom->CastDom();
@@ -1164,7 +1166,8 @@ case IDomCall:
 	switch (Dom->Type)
 	{
 		case GV_DOM:
-		case GV_GFILE:
+		// case GV_GFILE:
+		case GV_STREAM:
 		case GV_GSURFACE:
 		{
 			GDom *dom = Dom->CastDom();

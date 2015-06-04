@@ -153,6 +153,7 @@ typedef SOCKET							OsSocket;
 
 #define LGI_GViewMagic					0x14412662
 #define LGI_FileDropFormat				"CF_HDROP"
+#define LGI_StreamDropFormat			CFSTR_FILEDESCRIPTORW
 #define LGI_WideCharset					"ucs-2"
 #define LGI_PrintfInt64					"%I64i"
 #define LGI_IllegalFileNameChars		"\t\r\n/\\:*?\"<>|"

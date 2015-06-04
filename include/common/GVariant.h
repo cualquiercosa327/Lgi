@@ -59,8 +59,12 @@ enum GVariantType
 	GV_GMOUSE,
 	/// Pointer to GKey
 	GV_GKEY,
+	/*
 	/// Pointer to GFile
 	GV_GFILE
+	*/
+	/// Pointer to GStream
+	GV_STREAM,
 };
 
 /// Language operators
@@ -166,12 +170,20 @@ public:
 		    class GSurface *Ptr;
 		    bool Own;
 		} Surface;
+		/*
 		/// Valid when Type == #GV_GFILE
 		struct
 		{
 			class GFile *Ptr;
 			bool Own;
 		} File;
+		*/
+		/// Valid when Type == #GV_STREAM
+		struct
+		{
+			class GStream *Ptr;
+			bool Own;
+		} Stream;
 		/// Valid when Type == #GV_GVIEW
 		class GView *View;
 		/// Valid when Type == #GV_GMOUSE

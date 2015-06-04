@@ -131,4 +131,32 @@ public:
     }
 };
 
+class GDropStreams : public GArray<GStream*>
+{
+public:
+	GDropStreams(GVariant &v)
+	{
+		#if defined(WINDOWS)
+		if (v.Type == GV_LIST)
+		{
+			for (GVariant *f = v.Value.Lst->First(); f; f = v.Value.Lst->Next())
+			{
+				if (f->Type == GV_STREAM)
+				{
+					Add(f->Value.Stream.Ptr);
+					f->Value.Stream.Own = false;
+				}
+			}
+		}		
+		#elif defined(MAC)
+		#elif defined(LINUX)
+		#endif
+	}
+	
+	~GDropStreams()
+	{
+		DeleteObjects();
+	}
+};
+
 #endif

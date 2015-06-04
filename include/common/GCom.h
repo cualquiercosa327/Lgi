@@ -7,7 +7,10 @@
 #endif
 #include <wtypes.h>
 #include <oaidl.h>
+#include <ShlObj.h>
+
 #include "GContainers.h"
+#include "GVariant.h"
 
 template <class T>
 class GUnknownImpl : public T
@@ -137,5 +140,114 @@ public:
 		return S_OK;
 	}
 };
+
+class IStreamWrap : public GStream
+{
+	IStream *s;
+	
+public:
+	GAutoPtr<FILEDESCRIPTORW> Desc;
+
+	IStreamWrap(IStream *str) { s = str; }	
+	~IStreamWrap() { Close(); }
+
+	int Open(const char *Str = 0, int Int = 0) { return IsOpen(); }
+	bool IsOpen() { return s != NULL; }
+
+	bool GetVariant(const char *Name, GVariant &Value, char *Array = NULL)
+	{
+		if (!Desc) return false;
+		GDomProperty p = GStringToProp(Name);
+		switch (p)
+		{
+			case ObjName:
+				Value.OwnStr(LgiNewUtf16To8(Desc->cFileName));
+				return true;
+			case ObjLength:
+				Value = ((int64) Desc->nFileSizeHigh << 32) | Desc->nFileSizeLow;
+				return true;
+			default:
+				LgiAssert(!"Unknown field.");
+				break;
+		}
+		
+		return false;
+	}
+	
+	bool SetVariant(const char *Name, GVariant &Value, char *Array = NULL)
+	{
+		LgiAssert(!"Impl me.");
+		return false;
+	}
+
+	int Close()
+	{
+		if (s)
+		{
+			s->Release();
+			s = NULL;
+		}
+		return 0;
+	}
+
+	int64 GetSize()
+	{
+		STATSTG sz;
+		HRESULT res = s->Stat(&sz, STATFLAG_DEFAULT);
+		if (SUCCEEDED(res))
+			return sz.cbSize.QuadPart;
+		return -1;
+	}
+
+	int64 SetSize(int64 Size)
+	{
+		ULARGE_INTEGER sz;
+		sz.QuadPart = Size;
+		HRESULT res = s->SetSize(sz);
+		return SUCCEEDED(res) ? Size : -1;
+	}
+
+	int64 GetPos()
+	{
+		LARGE_INTEGER i;
+		ULARGE_INTEGER o;
+		i.QuadPart = 0;
+		HRESULT res = s->Seek(i, STREAM_SEEK_CUR, &o);
+		if (SUCCEEDED(res))
+			return o.QuadPart;
+		return -1;
+	}
+
+	int64 SetPos(int64 Pos)
+	{
+		LARGE_INTEGER i;
+		ULARGE_INTEGER o;
+		i.QuadPart = Pos;
+		HRESULT res = s->Seek(i, STREAM_SEEK_SET, &o);
+		if (SUCCEEDED(res))
+			return o.QuadPart;
+		return -1;
+	}
+
+	int Read(void *Ptr, int Size, int Flags = 0)
+	{
+		ULONG Rd = 0;
+		HRESULT res = s->Read(Ptr, Size, &Rd);
+		return SUCCEEDED(res) ? Rd : 0;
+	}
+	
+	int Write(const void *Ptr, int Size, int Flags = 0)
+	{
+		ULONG Wr = 0;
+		HRESULT res = s->Write(Ptr, Size, &Wr);
+		return SUCCEEDED(res) ? Wr : 0;
+	}
+
+	GStreamI *Clone()
+	{
+		return new IStreamWrap(s);
+	}
+};
+
 
 #endif

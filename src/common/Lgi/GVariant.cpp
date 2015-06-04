@@ -29,7 +29,8 @@ const char *GVariant::TypeToString(GVariantType t)
 		case GV_GVIEW:		return "View";
 		case GV_GMOUSE:		return "MouseEvent";
 		case GV_GKEY:		return "KeyboardEvent";
-		case GV_GFILE:		return "File";
+		// case GV_GFILE:		return "File";
+		case GV_STREAM:		return "Stream";
 	}
 	
 	return NULL;
@@ -214,8 +215,12 @@ bool GVariant::operator ==(GVariant &v)
 			return Value.Surface.Ptr == v.Value.Surface.Ptr;
 		case GV_GVIEW:
 			return Value.View == v.Value.View;
+		/*
 		case GV_GFILE:
 			return Value.File.Ptr == v.Value.File.Ptr;
+		*/
+		case GV_STREAM:
+			return Value.Stream.Ptr == v.Value.Stream.Ptr;
 		case GV_GMOUSE:
 			return Value.Mouse == v.Value.Mouse;
 		case GV_GKEY:
@@ -487,12 +492,20 @@ GVariant &GVariant::operator =(GVariant const &i)
 				Value.Surface.Ptr->AddRef();
 			break;
 		}
+		/*
 		case GV_GFILE:
 		{
 			Value.File = i.Value.File;
 			if (Value.File.Own &&
 				Value.File.Ptr)
 				Value.File.Ptr->AddRef();
+			break;
+		}
+		*/
+		case GV_STREAM:
+		{
+			Value.Stream.Ptr = i.Value.Stream.Ptr;
+			Value.Stream.Own = false;			
 			break;
 		}
 		default:
@@ -745,6 +758,7 @@ void GVariant::Empty()
 		    }
 		    break;
 		}
+		/*
 		case GV_GFILE:
 		{
 			if (Value.File.Ptr &&
@@ -752,6 +766,17 @@ void GVariant::Empty()
 			{
 				Value.File.Ptr->DecRef();
 				Value.File.Ptr = NULL;
+			}
+			break;
+		}
+		*/
+		case GV_STREAM:
+		{
+			if (Value.Stream.Ptr)
+			{
+				if (Value.Stream.Own)
+					delete Value.Stream.Ptr;
+				Value.Stream.Ptr = NULL;
 			}
 			break;
 		}
@@ -929,8 +954,12 @@ GDom *GVariant::CastDom()
 			return Value.Dom;
 		case GV_DOMREF:
 			return Value.DomRef.Dom;
+		/*
 		case GV_GFILE:
 			return Value.File.Ptr;
+		*/
+		case GV_STREAM:
+			return Value.Stream.Ptr;
 		case GV_GSURFACE:
 			return Value.Surface.Ptr;
 	}
@@ -979,8 +1008,12 @@ bool GVariant::CastBool()
 			return Value.Op != OpNull;
 		case GV_CUSTOM:
 			return Value.Custom.Dom != 0 && Value.Custom.Data != 0;
+		/*
 		case GV_GFILE:
 			return Value.File.Ptr != NULL;
+		*/
+		case GV_STREAM:
+			return Value.Stream.Ptr != NULL;
 
 		// As far as I understand this is the behavour in Python, which I'm using for
 		// a reference to what the "correct" thing to do here is. Basically it's treating

@@ -508,12 +508,21 @@ bool SystemFunctions::New(GVariant *Ret, ArgumentArray &Args)
 		case TypeFile:
 		{
 			Ret->Empty();
+			
+			#if 1
+			Ret->Type = GV_STREAM;
+			Ret->Value.Stream.Ptr = new GFile;
+			if (Ret->Value.Stream.Ptr)
+				Ret->Value.Stream.Own = true;
+			#else
 			Ret->Type = GV_GFILE;
 			if ((Ret->Value.File.Ptr = new GFile))
 			{
 				Ret->Value.File.Ptr->AddRef();
 				Ret->Value.File.Own = true;
 			}
+			#endif
+			
 			break;
 		}
 		case TypeDateTime:
