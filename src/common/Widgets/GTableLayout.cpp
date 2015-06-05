@@ -604,6 +604,20 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 			{
 				Min = Max = Wid.ToPx(Max, v->GetFont());
 			}
+			else if (Izza(GText))
+			{
+				PreLayoutTextCtrl(v, Min, Max);
+				if (Max > Min)
+				{
+					if (Flag < SizeGrow)
+						Flag = SizeGrow;
+				}
+				else
+				{
+					if (Flag < SizeFixed)
+						Flag = SizeFixed;
+				}
+			}
 			else if (v->OnLayout(Inf))
 			{
 				if (Inf.Width.Max < 0)
@@ -619,20 +633,6 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 				if (Inf.Width.Min)
 				{
 					Min = max(Min, Inf.Width.Min);
-				}
-			}
-			else if (Izza(GText))
-			{
-				PreLayoutTextCtrl(v, Min, Max);
-				if (Max > Min)
-				{
-					if (Flag < SizeGrow)
-						Flag = SizeGrow;
-				}
-				else
-				{
-					if (Flag < SizeFixed)
-						Flag = SizeFixed;
 				}
 			}
 			else if (Izza(GCheckBox) ||
@@ -944,7 +944,6 @@ void TableCell::PostLayout()
 		if (Tbl)
 		{
 			r.Dimension(Pos.X(), Pos.Y());
-			// LgiTrace("    TblPost %s\n", r.GetStr());
 		}
 		else if
 		(

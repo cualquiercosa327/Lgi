@@ -81,11 +81,11 @@ bool GProgress::OnLayout(GViewLayoutInfo &Inf)
 	    Inf.Width.Max = 10000;
 	    Inf.Width.Min = 64;
 	}
-	else if (!Inf.Height.Max)
+	else
 	{
 		Inf.Height.Max = Inf.Height.Min = 10;
 	}
-	else return false;
+
 	return true;
 }
 

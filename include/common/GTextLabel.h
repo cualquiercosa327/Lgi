@@ -56,6 +56,7 @@ public:
 	// Events
 	void OnPaint(GSurface *pDC);
 	void OnPosChange();
+	bool OnLayout(GViewLayoutInfo &Inf);
 };
 
 #endif

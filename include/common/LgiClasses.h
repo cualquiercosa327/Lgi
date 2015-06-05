@@ -928,7 +928,21 @@ public:
 	int OnCommand(int Cmd, int Event, OsView Wnd);
 	/// Called after the view is attached to a new parent
 	void OnAttach();
-	/// Called to get layout information for the control
+	
+	/// Called to get layout information for the control. It's called
+	/// up to 3 times to collect various dimensions:
+	/// 1) PreLayout: Get the maximum width, and optionally the minimum width.
+	///		Called with both widths set to zero.
+	///		Must fill out Inf.Width.Max. Use -1 to fill all available space.
+	///		Optionally fill out the min width.
+	/// 2) Layout: Called to work out height.
+	///		Called with both widths set to the size of the cell (non-zero).
+	///		Must fill out Inf.Height.Max.
+	///		Min height currently not used.
+	/// 3) PostLayout: Called to work out height.
+	///		Called with both widths set to the size of the cell (non-zero).
+	///		Must fill out Inf.Height.Max.
+	///		Min height currently not used.
 	bool OnLayout(GViewLayoutInfo &Inf) { return false; }
 
 	#if defined(_DEBUG)
