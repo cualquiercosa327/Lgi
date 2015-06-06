@@ -112,6 +112,7 @@ LgiFunc void LgiSleep(int i);
 
 #define LGI_GViewMagic				0x14412662
 #define LGI_FileDropFormat			"public.file-url" // typeFileURL
+#define LGI_StreamDropFormat		"public.file-promise" // flavorTypePromiseHFS
 #define LGI_LgiDropFormat			"lgi "
 #define LGI_WideCharset				"utf-32"
 #define LGI_PrintfInt64				"%lli"
