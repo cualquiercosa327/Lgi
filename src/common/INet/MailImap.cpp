@@ -788,11 +788,12 @@ bool MailIMap::WriteBuf(bool ObsurePass, const char *Buffer)
 				if (Sp)
 				{
 					Sp++;
-					strcpy_s(Sp, sizeof(Buffer)-(Sp-Buffer), "********\r\n");
+					GString s;
+					s.Printf("%.*s********\r\n", Sp - Buffer, Buffer);
+					Log(s.Get(), GSocketI::SocketMsgSend);
 				}
 			}
-
-			Log(Buffer, GSocketI::SocketMsgSend);
+			else Log(Buffer, GSocketI::SocketMsgSend);
 
 			return true;
 		}
