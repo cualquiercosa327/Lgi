@@ -66,6 +66,7 @@ public:
 	void OnMouseExit(GMouse &m);
 	bool OnKey(GKey &k);
 	void OnFocus(bool f);
+	void OnPosChange();
 	void OnPaint(GSurface *pDC);
 	void OnAttach();
 	GMessage::Result OnEvent(GMessage *Msg);

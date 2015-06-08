@@ -910,7 +910,7 @@ void GItemColumn::OnPaint(GSurface *pDC, GRect &Rgn)
 			GSkinState State;
 			
 			State.pScreen = pDC;			
-			State.Text = &d->Txt;
+			State.Text.Add(d->Txt);
 			State.Rect = Rgn;
 			State.Value = Value();
 			State.Enabled = GetList()->Enabled();

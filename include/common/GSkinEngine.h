@@ -23,13 +23,13 @@
 class GSkinState
 {
 public:
-	int Size;				// Class size, for version checking
-	GSurface *pScreen;		// Output surface
-	GDisplayString **Text;	// The display string for the view
-	GRect Rect;				// Region to paint (if relevant)
-	bool MouseOver;			// TRUE if the mouse is over the view
-	int64 Value;				// Value of the control if available
-	bool Enabled;			// TRUE if the control is enabled
+	int Size;						// Class size, for version checking
+	GSurface *pScreen;				// Output surface
+	GArray<GDisplayString*> Text;	// The display string for the view
+	GRect Rect;						// Region to paint (if relevant)
+	bool MouseOver;					// TRUE if the mouse is over the view
+	int64 Value;					// Value of the control if available
+	bool Enabled;					// TRUE if the control is enabled
 
 	GSkinState()
 	{
@@ -37,7 +37,6 @@ public:
 		Enabled = true;
 		Size = sizeof(*this);
 		pScreen = 0;
-		Text = 0;
 		MouseOver = false;
 	}
 };

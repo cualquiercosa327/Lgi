@@ -5,35 +5,52 @@
 #include "GSkinEngine.h"
 #include "GCheckBox.h"
 #include "GDisplayString.h"
+#include "GDisplayStringLayout.h"
 
-class GCheckBoxPrivate
+class GCheckBoxPrivate : public GMutex, public GDisplayStringLayout
 {
+	GCheckBox *Ctrl;
+	
 public:
 	int Val;
 	bool Over;
 	bool Three;
-	GDisplayString *Txt;
 	GRect ValuePos;
 
-	GCheckBoxPrivate()
+	GCheckBoxPrivate(GCheckBox *ctrl) : GMutex("GCheckBoxPrivate")
 	{
+		Ctrl = ctrl;
 		Val = 0;
 		Over = false;
 		Three = false;
-		Txt = 0;
+		Wrap = true;
 		ValuePos.ZOff(-1, -1);
-
 	}
 
-	~GCheckBoxPrivate()
+	bool PreLayout(int &Min, int &Max)
 	{
-		DeleteObj(Txt);
+		if (Lock(_FL))
+		{
+			GFont *f = Ctrl->GetFont();
+			char *s = Ctrl->GBase::Name();
+			DoPreLayout(f, s, Min, Max);
+			Unlock();
+		}
+		else return false;
+		return true;
 	}
 
-	void Layout(GFont *f, char *s)
-	{
-		DeleteObj(Txt);
-		Txt = new GDisplayString(f, s);
+	bool Layout(int Px)
+	{		
+		if (Lock(_FL))
+		{
+			GFont *f = Ctrl->GetFont();
+			char *s = Ctrl->GBase::Name();
+			DoLayout(f, s, Px);
+			Unlock();
+		}
+		else return false;
+		return true;
 	}
 };
 
@@ -49,10 +66,10 @@ static int PadYPx = 0;
 GCheckBox::GCheckBox(int id, int x, int y, int cx, int cy, const char *name, int InitState) :
 	ResObject(Res_CheckBox)
 {
-	d = new GCheckBoxPrivate;
+	d = new GCheckBoxPrivate(this);
     Name(name);
-	if (cx < 0 && d->Txt) cx = d->Txt->X() + PadXPx;
-	if (cy < 0 && d->Txt) cy = max(d->Txt->Y(), 16) + PadYPx;
+	if (cx < 0) cx = d->Max.x + PadXPx;
+	if (cy < 0) cy = max(d->Max.y, 16) + PadYPx;
 
 	d->Val = InitState;
 	GRect r(x, y, x+cx, y+cy);
@@ -68,20 +85,19 @@ GCheckBox::~GCheckBox()
 
 bool GCheckBox::OnLayout(GViewLayoutInfo &Inf)
 {
-    if (!Inf.Width.Max)
-    {
-        Inf.Width.Min =
-            Inf.Width.Max =
-            (d->Txt ? d->Txt->X() : 0) + PadXPx;
-    }
-    else
-    {
-        Inf.Height.Min =
-            Inf.Height.Max =
-//                (d->Txt ? d->Txt->Y() : GetFont()->GetHeight()) + PadYPx;
-                GetFont()->GetHeight() + PadYPx;
-    }
-    return true;    
+	if (!Inf.Width.Max)
+	{
+		d->PreLayout(Inf.Width.Min, Inf.Width.Max);
+		Inf.Width.Min += PadXPx;
+		Inf.Width.Max += PadXPx;
+	}
+	else
+	{
+		d->Layout(Inf.Width.Max);
+		Inf.Height.Min = d->Min.y + PadYPx;
+		Inf.Height.Max = d->Max.y + PadYPx;
+	}
+	return true;    
 }
 
 void GCheckBox::OnAttach()
@@ -121,22 +137,36 @@ void GCheckBox::Value(int64 i)
 
 bool GCheckBox::Name(const char *n)
 {
-	bool Status = GView::Name(n);
-	d->Layout(GetFont(), GBase::Name());
+	bool Status = false;
+	if (d->Lock(_FL))
+	{
+		Status = GView::Name(n);
+		d->Unlock();
+	}
+	d->Layout(X());
 	return Status;
 }
 
 bool GCheckBox::NameW(const char16 *n)
 {
-	bool Status = GView::NameW(n);
-	d->Layout(GetFont(), GBase::Name());
+	bool Status = false;
+	if (d->Lock(_FL))
+	{
+		Status = GView::NameW(n);
+		d->Unlock();
+	}
+	d->Layout(X());
 	return Status;
 }
 
 void GCheckBox::SetFont(GFont *Fnt, bool OwnIt)
 {
-	GView::SetFont(Fnt, OwnIt);
-	d->Layout(GetFont(), GBase::Name());
+	if (d->Lock(_FL))
+	{
+		GView::SetFont(Fnt, OwnIt);
+		d->Unlock();
+	}
+	d->Layout(X());
 	Invalidate();
 }
 
@@ -222,15 +252,25 @@ void GCheckBox::OnFocus(bool f)
 	Invalidate();
 }
 
+void GCheckBox::OnPosChange()
+{
+	d->Layout(X());
+}
+
 void GCheckBox::OnPaint(GSurface *pDC)
 {
+	if (d->Strs.Length() > 1)
+	{
+		int asd=0;
+	}
+
     if (GApp::SkinEngine &&
 		TestFlag(GApp::SkinEngine->GetFeatures(), GSKIN_CHECKBOX))
 	{
 		GSkinState State;
 		State.pScreen = pDC;
 		State.MouseOver = d->Over;
-		State.Text = &d->Txt;
+		State.Text = d->Strs;
 		d->ValuePos.Set(0, 0, 15, 15);
 		GApp::SkinEngine->OnPaint_GCheckBox(this, &State);
 	}
@@ -247,37 +287,15 @@ void GCheckBox::OnPaint(GSurface *pDC)
 			pDC->Rectangle(0, d->ValuePos.y2+1, d->ValuePos.x2, r.y2);
 		}
 
-		if (d->Txt)
+		GRect t = r;
+		t.x1 = d->ValuePos.x2 + 1;
+        GColour cFore(LC_TEXT, 24);
+        GColour cBack(LC_MED, 24);
+
+		if (d->Lock(_FL))
 		{
-			GRect t = r;
-			t.x1 = d->ValuePos.x2 + 1;
-            f->Colour(LC_TEXT, LC_MED);
-			f->Transparent(false);
-
-            GRect p;
-            p.ZOff(d->Txt->X()-1, d->Txt->Y()-1);
-            p.Offset(t.x1 + 10, t.y1 + ((t.Y() - d->Txt->Y()) >> 1));
-			if (en)
-			{
-				d->Txt->Draw(pDC, p.x1, p.y1, &t);
-
-				if (Focus() && ValidStr(Name()))
-				{
-                    GRect f = p;
-                    f.Size(-2, -2);
-					pDC->Colour(LC_LOW, 24);
-					pDC->Box(&f);
-				}
-			}
-			else
-			{
-				f->Colour(LC_LIGHT, LC_MED);
-				d->Txt->Draw(pDC, p.x1 + 1, p.y1 + 1, &t);
-				
-				f->Transparent(true);
-				f->Colour(LC_LOW, LC_MED);
-				d->Txt->Draw(pDC, p.x1, p.y1, &t);
-			}
+			d->Paint(pDC, GetFont(), t, cFore, cBack, en);
+			d->Unlock();
 		}
 
         #if defined MAC && !defined COCOA

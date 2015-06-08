@@ -1061,6 +1061,10 @@
 						>
 					</File>
 					<File
+						RelativePath=".\include\common\GDisplayStringLayout.h"
+						>
+					</File>
+					<File
 						RelativePath=".\src\common\Widgets\GTableLayout.cpp"
 						>
 					</File>
@@ -1234,10 +1238,6 @@
 					>
 					<File
 						RelativePath=".\src\common\Gdc2\Font\GDisplayString.cpp"
-						>
-					</File>
-					<File
-						RelativePath=".\include\common\GDisplayStringLayout.h"
 						>
 					</File>
 					<File

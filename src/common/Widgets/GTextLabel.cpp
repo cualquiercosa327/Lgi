@@ -7,25 +7,42 @@
 
 class GTextPrivate : public GDisplayStringLayout, public GMutex
 {
+	GText *Ctrl;
+
 public:
-	GTextPrivate() : GMutex("GTextPrivate")
+	GTextPrivate(GText *ctrl) : GMutex("GTextPrivate")
 	{
+		Ctrl = ctrl;
 	}
 
-	void Layout(GFont *f, char *s, int Width)
+	bool PreLayout(int &Min, int &Max)
 	{
 		if (Lock(_FL))
 		{
-			Create(f, s, Width);
+			DoPreLayout(Ctrl->GetFont(), Ctrl->GBase::Name(), Min, Max);
 			Unlock();
 		}
+		else return false;
+		return true;
 	}
+
+	bool Layout(int Px)
+	{		
+		if (Lock(_FL))
+		{
+			DoLayout(Ctrl->GetFont(), Ctrl->GBase::Name(), Px);
+			Unlock();
+		}
+		else return false;
+		return true;
+	}
+
 };
 
 GText::GText(int id, int x, int y, int cx, int cy, const char *name) :
 	ResObject(Res_StaticText)
 {
-	d = new GTextPrivate;
+	d = new GTextPrivate(this);
 	Name(name);
 
 	if (cx < 0) cx = d->Max.x;
@@ -49,14 +66,14 @@ bool GText::GetWrap()
 void GText::SetWrap(bool b)
 {
 	d->Wrap = b;
-	d->Layout(GetFont(), GBase::Name(), X());
+	d->Layout(X());
 	Invalidate();
 }
 
 bool GText::Name(const char *n)
 {
 	bool Status = GView::Name(n);
-	d->Layout(GetFont(), GBase::Name(), X());
+	d->Layout(X());
 	Invalidate();
 	return Status;
 }
@@ -64,7 +81,7 @@ bool GText::Name(const char *n)
 bool GText::NameW(const char16 *n)
 {
 	bool Status = GView::NameW(n);
-	d->Layout(GetFont(), GBase::Name(), X());
+	d->Layout(X());
 	Invalidate();
 	return Status;
 }
@@ -72,7 +89,7 @@ bool GText::NameW(const char16 *n)
 void GText::SetFont(GFont *Fnt, bool OwnIt)
 {
 	GView::SetFont(Fnt, OwnIt);
-	d->Layout(GetFont(), GBase::Name(), X());
+	d->Layout(X());
 	Invalidate();
 }
 
@@ -97,7 +114,7 @@ void GText::OnPosChange()
 {
 	if (d->Wrap)
 	{
-		d->Layout(GetFont(), GBase::Name(), X());
+		d->Layout(X());
 	}
 }
 
@@ -105,11 +122,12 @@ bool GText::OnLayout(GViewLayoutInfo &Inf)
 {
 	if (!Inf.Width.Min)
 	{
-		Inf.Width.Min = d->Min.x;
-		Inf.Width.Max = d->Max.x;
+		d->PreLayout(Inf.Width.Min,
+					 Inf.Width.Max);
 	}
 	else
 	{
+		d->Layout(Inf.Width.Max);
 		Inf.Height.Min = d->Min.y;
 		Inf.Height.Max = d->Max.y;
 	}

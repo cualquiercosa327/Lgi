@@ -390,88 +390,85 @@ class GelSkin : public GSkinEngine
 		return Mem;
 	}
 
-	void DrawText(GSurface *pDC, GDisplayString *Text, int x, int y, GRect &r, bool Enabled, GViewI *Ctrl)
+	void DrawText(GSurface *pDC, GArray<GDisplayString*> &Text, int x, int y, GRect &rcFill, bool Enabled, GViewI *Ctrl)
 	{
-		GCss::ColorDef Back;
+		GCss::ColorDef CssFore, CssBack;
+		GColour Fore, Back, Light, Low;
 		if (Ctrl->GetCss())
-			Back = Ctrl->GetCss()->BackgroundColor();
-
-		if (Text && r.X() > 3)
 		{
+			CssFore = Ctrl->GetCss()->Color();
+			if (CssFore.Type == GCss::ColorRgb)
+				Fore.Set(CssFore.Rgb32, 32);
+			CssBack = Ctrl->GetCss()->BackgroundColor();
+			if (CssBack.Type == GCss::ColorRgb)
+				Back.Set(CssBack.Rgb32, 32);
+		}
+		if (!Fore.IsValid())
+			Fore.Set(LC_TEXT, 24);
+		if (!Back.IsValid())
+			Back.Set(LC_MED, 24);
+		if (!Enabled)
+		{
+			Light.Set(LC_LIGHT, 24);
+			Low.Set(LC_LOW, 24);
+		}
+
+		GRegion Rgn = rcFill;
+		if (Text.Length() > 0 && rcFill.X() > 3)
+		{
+			GFont *f = Text[0]->GetFont();
+			
 			if (Enabled)
+				f->Colour(Fore, Back);
+			
+			int yOff = 0;
+			for (unsigned i=0; i<Text.Length(); i++)
 			{
-				Text->GetFont()->Colour(LC_TEXT, LC_MED);
-				if (Ctrl->Focus())
+				GDisplayString *t = Text[i];
+				GRect c;
+				c.ZOff(t->X() - 1, t->Y() - 1);
+				c.Offset(x, y + yOff);
+				Rgn.Subtract(&c);
+				
+				if (Enabled)
 				{
-					GRect c = r;
-					c.x2 = min(c.x2, c.x1 + Text->X() + 6);
-					pDC->Colour(LC_MIDGREY, 24);
-					pDC->Box(&c);
-					c.Size(1, 1);
-
-					if (Back.Type == GCss::ColorRgb)
-						pDC->Colour(Back.Rgb32, 32);
-					else
-						pDC->Colour(LC_MED, 24);
-					pDC->Rectangle(&c);
-
-					c.Size(-1, -1);
-					if (c.x2 < r.x2)
+					if (Ctrl->Focus())
 					{
-						pDC->Rectangle(c.x2 + 1, r.y1, r.x2, r.y2);
-					}
-					
-					Text->GetFont()->Transparent(true);
-					Text->Draw(pDC, x, y, &r);
-				}
-				else
-				{
-					if (Back.Type == GCss::ColorRgb)
-					{
-						pDC->Colour(Back.Rgb32, 32);
-						pDC->Rectangle(&r);
-						Text->GetFont()->Transparent(true);
-						Text->Draw(pDC, x, y, &r);
+						pDC->Colour(LC_MIDGREY, 24);
+						pDC->Box(&c);
+						c.Size(1, 1);
+						pDC->Colour(Back);
+						pDC->Rectangle(&c);
+						c.Size(-1, -1);
+						
+						f->Transparent(true);
+						t->Draw(pDC, c.x1, c.y1, &c);
 					}
 					else
 					{
-						Text->GetFont()->Transparent(false);
-						Text->Draw(pDC, x, y, &r);
+						f->Transparent(false);
+						t->Draw(pDC, c.x1, c.y1, &c);
 					}
-				}
-			}
-			else
-			{
-				if (Back.Type == GCss::ColorRgb)
-				{
-					pDC->Colour(Back.Rgb32, 32);
-					pDC->Rectangle(&r);
-
-					Text->GetFont()->Transparent(true);
-					Text->GetFont()->Colour(LC_LIGHT, LC_MED);
-					Text->Draw(pDC, x + 1, y + 1, &r);
-					Text->GetFont()->Colour(LC_LOW, LC_MED);
-					Text->Draw(pDC, x, y, &r);
 				}
 				else
 				{
-					Text->GetFont()->Transparent(false);
-					Text->GetFont()->Colour(LC_LIGHT, LC_MED);
-					Text->Draw(pDC, x + 1, y + 1, &r);
+					f->Transparent(false);
+					f->Colour(Light, Back);
+					t->Draw(pDC, x + 1, y + 1, &c);
 
-					Text->GetFont()->Transparent(true);
-					Text->GetFont()->Colour(LC_LOW, LC_MED);
-					Text->Draw(pDC, x, y, &r);
+					f->Transparent(true);
+					f->Colour(Low, Back);
+					t->Draw(pDC, x, y, &c);
 				}
+				
+				yOff += t->Y();
 			}
 		}
-		else
+		
+		pDC->Colour(Back);
+		for (GRect *rc = Rgn.First(); rc; rc = Rgn.Next())
 		{
-			if (Back.Type == GCss::ColorRgb)
-				pDC->Colour(Back.Rgb32, 32);
-			else
-				pDC->Colour(LC_MED, 24);
-			pDC->Rectangle(&r);
+			pDC->Rectangle(rc);
 		}
 	}
 
@@ -602,7 +599,7 @@ public:
 			
 			GSurface *Out = &Mem;
 			
-			GDisplayString *Text = State->Text ? *State->Text : 0;
+			GDisplayString *Text = State->Text.Length() > 0 ? State->Text[0] : NULL;
 			if (Text)
 			{
 				int sx = Text->X(), sy = Text->Y();
@@ -708,7 +705,7 @@ public:
 			
 			if (Ctrl->X() > 32)
 			{
-				GDisplayString *Text = State->Text ? *State->Text : 0;
+				GDisplayString *Text = State->Text.Length() ? State->Text[0] : 0;
 				if (Text)
 				{
 					int sx = Text->X(), sy = Text->Y();
@@ -828,7 +825,7 @@ public:
 			if (t.Valid())
 			{
 				DrawText(State->pScreen,
-						State->Text ? *State->Text : 0,
+						State->Text,
 						Mem->X() + 4, 0,
 						t,
 						Flags & Btn_Enabled,
@@ -876,9 +873,9 @@ public:
 			if (t.Valid())
 			{
 				int y = 0;
-				if (State->Text)
+				if (State->Text.Length())
 				{
-					GDisplayString *ds = *State->Text;
+					GDisplayString *ds = State->Text[0];
 					if (ds && t.Y() > ds->Y())
 					{
 						y = (t.Y() - ds->Y()) >> 1;
@@ -886,7 +883,7 @@ public:
 				}
 				
 				DrawText(State->pScreen,
-						State->Text ? *State->Text : 0,
+						State->Text,
 						Mem->X() + 4, y,
 						t,
 						Flags & Btn_Enabled,

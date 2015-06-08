@@ -500,6 +500,12 @@ void GCombo::SetFont(GFont *Fnt, bool OwnIt)
 	Invalidate();
 }
 
+void GCombo::OnPosChange()
+{
+	if (d->Text && d->Text->IsTruncated())
+		DeleteObj(d->Text);
+}
+
 void GCombo::OnPaint(GSurface *pDC)
 {
 	if (!d->Text)
@@ -576,7 +582,7 @@ void GCombo::OnPaint(GSurface *pDC)
 	{
 		GSkinState State;
 		State.pScreen = pDC;
-		State.Text = &d->Text;
+		State.Text.Add(d->Text);
 		State.Enabled = Enabled();
 		GApp::SkinEngine->OnPaint_GCombo(this, &State);
 	}

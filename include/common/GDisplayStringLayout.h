@@ -8,6 +8,7 @@ struct GDisplayStringLayout
 {
 	// Min and max bounds
 	GdcPt2 Min, Max;
+	int MinLines;
 	
 	// Wrap setting
 	bool Wrap;
@@ -19,7 +20,7 @@ struct GDisplayStringLayout
 	{
 		Min.x = Max.x = 0;
 		Min.y = Max.y = 0;
-		
+		MinLines = 0;		
 		Wrap = false;
 	}
 	
@@ -49,12 +50,59 @@ struct GDisplayStringLayout
 		return 0;
 	}
 
+	// Pre-layout min/max calculation
+	void DoPreLayout(GFont *f, char *t, int &Min, int &Max)
+	{
+		int MyMin = 0;
+		int MyMax = 0;
+
+		if (t && f)
+		{
+			GDisplayString Sp(f, " ");
+			int X = 0;
+
+			char White[] = " \t\r\n";
+			for (char *s = t; *s; )
+			{
+				while (*s && strchr(White, *s))
+				{
+					if (*s == '\n')
+					{
+						X = 0;
+					}
+					s++;
+				}
+				char *e = s;
+				while (*e)
+				{
+					uint32 c = NextChar(e);
+					if (c == 0)
+						break;
+					if (e > s && LGI_BreakableChar(c))
+						break;
+					e = LgiSeekUtf8(e, 1);
+				}
+
+				GDisplayString d(f, s, e - s);
+				MyMin = max(d.X(), MyMin);
+				X += d.X() + (*e == ' ' ? Sp.X() : 0);
+				MyMax = max(X, MyMax);
+
+				s = *e && strchr(White, *e) ? e + 1 : e;
+			}
+		}
+
+		Min = max(Min, MyMin);
+		Max = max(Max, MyMax);
+	}	
+
 	// Create the lines from text
-	bool Create(GFont *f, char *s, int Width)
+	bool DoLayout(GFont *f, char *s, int Width, bool Debug = false)
 	{
 		// Empty
 		Min.x = Max.x = 0;
 		Min.y = Max.y = 0;
+		MinLines = 0;
 		Strs.DeleteObjects();
 
 		// Param validation
@@ -67,6 +115,7 @@ struct GDisplayStringLayout
 			char *e = strchr(s, '\n');
 			if (!e) e = s + strlen(s);
 			int Len = e - s;
+			MinLines++;
 
 			// Create a display string for the entire line
 			GDisplayString *n = new GDisplayString(f, Len ? s : (char*)"", Len ? Len : 1);
@@ -74,10 +123,7 @@ struct GDisplayStringLayout
 			{
 				// Do min / max size calculation
 				Min.x = Min.x ? min(Min.x, n->X()) : n->X();
-				Min.y += n->Y();
-				
 				Max.x = max(Max.x, n->X());
-				Max.y += n->Y();
 			
 				if (Wrap && n->X() > Width)
 				{
@@ -108,6 +154,7 @@ struct GDisplayStringLayout
 
 						DeleteObj(n);
 						n = new GDisplayString(f, s, e - s);
+						MinLines--;
 					}
 				}
 
@@ -116,27 +163,43 @@ struct GDisplayStringLayout
 			
 			s = *e == '\n' ? e + 1 : e;
 		}
+
+		Min.y = f->GetHeight() * MinLines;
+		Max.y = f->GetHeight() * Strs.Length();
+		
+		if (Debug)
+			LgiTrace("CreateTxtLayout(%i) min=%i,%i  max=%i,%i\n",
+				Width,
+				Min.x, Min.y,
+				Max.x, Min.y);
 		
 		return true;
 	}
 	
 	void Paint(GSurface *pDC, GFont *f, GRect &rc, GColour &Fore, GColour &Back, bool Enabled)
 	{
-		f->Transparent(Back.Transparent());
-		f->Colour(Fore, Back);
+		GRegion Rgn = rc;
+		
+		if (Enabled)
+		{
+			f->Transparent(Back.Transparent());
+			f->Colour(Fore, Back);
+		}
 
+		// Draw all the text
 		int y = 0;
 		for (unsigned i=0; i<Strs.Length(); i++)
 		{
 			GDisplayString *s = Strs[i];
+			GRect r(0, y, rc.X() - 1, y + s->Y() - 1);
+			Rgn.Subtract(&r);
+
 			if (Enabled)
 			{
-				GRect r(0, y, rc.X()-1, y + s->Y() - 1);
 				s->Draw(pDC, 0, y, &r);
 			}
 			else
 			{
-				GRect r(0, y, rc.X()-1, y + s->Y() - 1);
 				f->Transparent(Back.Transparent());
 				f->Colour(GColour(LC_LIGHT, 24), Back);
 				s->Draw(pDC, 1, y+1, &r);
@@ -149,9 +212,10 @@ struct GDisplayStringLayout
 			y += s->Y();
 		}
 
-		if (y < rc.Y())
+		// Fill any remaining area with background...
+		pDC->Colour(Back);
+		for (GRect *r=Rgn.First(); r; r=Rgn.Next())
 		{
-			pDC->Colour(Back);
 			pDC->Rectangle(0, y, rc.X()-1, rc.Y()-1);
 		}
 	}

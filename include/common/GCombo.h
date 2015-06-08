@@ -107,6 +107,7 @@ public:
 	void OnMouseClick(GMouse &m);
 	bool OnKey(GKey &k);
 	void OnFocus(bool f);
+	void OnPosChange();
 	void OnPaint(GSurface *pDC);
 	void SetFont(GFont *Fnt, bool OwnIt = false);
 	void OnAttach();

@@ -34,7 +34,7 @@ enum CellFlag
 #define Izza(c)				dynamic_cast<c*>(v)
 #define DEBUG_LAYOUT		0
 #define DEBUG_PROFILE		0
-#define DEBUG_DRAW_CELLS	0
+#define DEBUG_DRAW_CELLS	1
 
 int GTableLayout::CellSpacing = 4;
 
@@ -235,52 +235,7 @@ static uint32 NextChar(char *s)
 	return LgiUtf8To32((uint8*&)s, Len);
 }
 
-void PreLayoutTextCtrl(GView *v, int &Min, int &Max)
-{
-	int MyMin = 0;
-	int MyMax = 0;
 
-	char *t = v->Name();
-	GFont *f = v->GetFont();
-	if (t && f)
-	{
-		GDisplayString Sp(f, " ");
-		int X = 0;
-
-		char White[] = " \t\r\n";
-		for (char *s = t; *s; )
-		{
-			while (*s && strchr(White, *s))
-			{
-				if (*s == '\n')
-				{
-					X = 0;
-				}
-				s++;
-			}
-			char *e = s;
-			while (*e)
-			{
-				uint32 c = NextChar(e);
-				if (c == 0)
-					break;
-				if (e > s && LGI_BreakableChar(c))
-					break;
-				e = LgiSeekUtf8(e, 1);
-			}
-
-			GDisplayString d(f, s, e - s);
-			MyMin = max(d.X(), MyMin);
-			X += d.X() + (*e == ' ' ? Sp.X() : 0);
-			MyMax = max(X, MyMax);
-
-			s = *e && strchr(White, *e) ? e + 1 : e;
-		}
-	}
-
-	Min = max(Min, MyMin);
-	Max = max(Max, MyMax);
-}
 
 int LayoutTextCtrl(GView *v, int Offset, int Width)
 {
@@ -604,6 +559,7 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 			{
 				Min = Max = Wid.ToPx(Max, v->GetFont());
 			}
+			/*
 			else if (Izza(GText))
 			{
 				PreLayoutTextCtrl(v, Min, Max);
@@ -618,6 +574,7 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 						Flag = SizeFixed;
 				}
 			}
+			*/
 			else if (v->OnLayout(Inf))
 			{
 				if (Inf.Width.Max < 0)
@@ -635,6 +592,7 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 					Min = max(Min, Inf.Width.Min);
 				}
 			}
+			/*
 			else if (Izza(GCheckBox) ||
 					 Izza(GRadioButton))
 			{
@@ -643,6 +601,7 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 				Min = max(Min, cmin + 16);
 				Max = max(Max, cmax + 16);
 			}
+			*/
 			else if (Izza(GButton))
 			{
 				GDisplayString ds(v->GetFont(), v->Name());
@@ -861,8 +820,7 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 				MaxY = max(MaxY, 1000);
 			}
 		}
-		else if (Izza(GCheckBox) ||
-				 Izza(GRadioButton))
+		else if (Izza(GRadioButton))
 		{
 			int y = v->GetFont()->GetHeight() + 2;
 			
