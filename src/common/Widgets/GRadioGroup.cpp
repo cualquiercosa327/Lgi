@@ -246,7 +246,7 @@ void GRadioGroup::OnPaint(GSurface *pDC)
 		GSkinState State;
 		State.pScreen = pDC;
 		State.MouseOver = false;
-		State.Text.Add(d->Txt);
+		State.ptrText = &d->Txt;
 		GApp::SkinEngine->OnPaint_GRadioGroup(this, &State);
 	}
 	else
@@ -554,7 +554,7 @@ void GRadioButton::OnPaint(GSurface *pDC)
 		GSkinState State;
 		State.pScreen = pDC;
 		State.MouseOver = d->Over;
-		State.Text.Add(d->Txt);
+		State.ptrText = &d->Txt;
 		GApp::SkinEngine->OnPaint_GRadioButton(this, &State);
 	}
 	else

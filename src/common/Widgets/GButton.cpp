@@ -331,7 +331,7 @@ void GButton::OnPaint(GSurface *pDC)
 		GSkinState State;
 		State.pScreen = pDC;
 		State.MouseOver = d->Over;
-		State.Text.Add(d->Txt);
+		State.ptrText = &d->Txt;
 		GApp::SkinEngine->OnPaint_GButton(this, &State);
 	}
 	else

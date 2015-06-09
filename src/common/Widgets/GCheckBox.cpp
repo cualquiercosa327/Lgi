@@ -270,7 +270,7 @@ void GCheckBox::OnPaint(GSurface *pDC)
 		GSkinState State;
 		State.pScreen = pDC;
 		State.MouseOver = d->Over;
-		State.Text = d->Strs;
+		State.aText = &d->Strs;
 		d->ValuePos.Set(0, 0, 15, 15);
 		GApp::SkinEngine->OnPaint_GCheckBox(this, &State);
 	}

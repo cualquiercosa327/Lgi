@@ -390,7 +390,7 @@ class GelSkin : public GSkinEngine
 		return Mem;
 	}
 
-	void DrawText(GSurface *pDC, GArray<GDisplayString*> &Text, int x, int y, GRect &rcFill, bool Enabled, GViewI *Ctrl)
+	void DrawText(GSkinState *State, int x, int y, GRect &rcFill, bool Enabled, GViewI *Ctrl)
 	{
 		GCss::ColorDef CssFore, CssBack;
 		GColour Fore, Back, Light, Low;
@@ -414,17 +414,19 @@ class GelSkin : public GSkinEngine
 		}
 
 		GRegion Rgn = rcFill;
-		if (Text.Length() > 0 && rcFill.X() > 3)
+		GArray<GDisplayString*> *Text = State->AllText();
+		GSurface *pDC = State->pScreen;
+		if (Text && Text->Length() > 0 && rcFill.X() > 3)
 		{
-			GFont *f = Text[0]->GetFont();
+			GFont *f = Text->First()->GetFont();
 			
 			if (Enabled)
 				f->Colour(Fore, Back);
 			
 			int yOff = 0;
-			for (unsigned i=0; i<Text.Length(); i++)
+			for (unsigned i=0; i<Text->Length(); i++)
 			{
-				GDisplayString *t = Text[i];
+				GDisplayString *t = (*Text)[i];
 				GRect c;
 				c.ZOff(t->X() - 1, t->Y() - 1);
 				c.Offset(x, y + yOff);
@@ -599,7 +601,7 @@ public:
 			
 			GSurface *Out = &Mem;
 			
-			GDisplayString *Text = State->Text.Length() > 0 ? State->Text[0] : NULL;
+			GDisplayString *Text = State->FirstText();
 			if (Text)
 			{
 				int sx = Text->X(), sy = Text->Y();
@@ -705,7 +707,7 @@ public:
 			
 			if (Ctrl->X() > 32)
 			{
-				GDisplayString *Text = State->Text.Length() ? State->Text[0] : 0;
+				GDisplayString *Text = State->FirstText();
 				if (Text)
 				{
 					int sx = Text->X(), sy = Text->Y();
@@ -824,8 +826,7 @@ public:
 			GRect t(Mem->X(), 0, Ctrl->X()-1, Ctrl->Y()-1);
 			if (t.Valid())
 			{
-				DrawText(State->pScreen,
-						State->Text,
+				DrawText(State,
 						Mem->X() + 4, 0,
 						t,
 						Flags & Btn_Enabled,
@@ -873,17 +874,16 @@ public:
 			if (t.Valid())
 			{
 				int y = 0;
-				if (State->Text.Length())
+				if (State->TextObjects())
 				{
-					GDisplayString *ds = State->Text[0];
+					GDisplayString *ds = State->FirstText();
 					if (ds && t.Y() > ds->Y())
 					{
 						y = (t.Y() - ds->Y()) >> 1;
 					}					
 				}
 				
-				DrawText(State->pScreen,
-						State->Text,
+				DrawText(State,
 						Mem->X() + 4, y,
 						t,
 						Flags & Btn_Enabled,

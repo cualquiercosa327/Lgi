@@ -22,10 +22,13 @@
 // Drawing state
 class GSkinState
 {
+	GArray<GDisplayString*> Tmp;
+	
 public:
 	int Size;						// Class size, for version checking
 	GSurface *pScreen;				// Output surface
-	GArray<GDisplayString*> Text;	// The display string for the view
+	GArray<GDisplayString*> *aText;	// Array of display strings for the view
+	GDisplayString **ptrText;		// Ptr to ptr for display string
 	GRect Rect;						// Region to paint (if relevant)
 	bool MouseOver;					// TRUE if the mouse is over the view
 	int64 Value;					// Value of the control if available
@@ -33,11 +36,50 @@ public:
 
 	GSkinState()
 	{
+		aText = NULL;
+		ptrText = NULL;
 		Value = 0;
 		Enabled = true;
 		Size = sizeof(*this);
 		pScreen = 0;
 		MouseOver = false;
+	}
+
+	int TextObjects()
+	{
+		if (aText)
+			return aText->Length();
+		if (ptrText)
+			return *ptrText != NULL ? 1 : 0;
+		return 0;
+	}
+	
+	GDisplayString *FirstText()
+	{
+		if (aText)
+		{
+			return aText->Length() > 0 ? aText->First() : NULL;
+		}
+		else if (ptrText)
+		{
+			return *ptrText;
+		}
+		
+		return NULL;
+	}
+	
+	GArray<GDisplayString*> *AllText()
+	{
+		if (aText)
+			return aText;
+		
+		if (ptrText && *ptrText && Tmp.Length(1))
+		{
+			Tmp[0] = *ptrText;
+			return &Tmp;
+		}
+		
+		return NULL;
 	}
 };
 

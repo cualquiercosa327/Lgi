@@ -482,7 +482,6 @@ void GTabView::OnPaint(GSurface *pDC)
 		GSkinState State;
 		State.pScreen = pDC;
 		State.MouseOver = false;
-		State.Text = 0;
 		GApp::SkinEngine->OnPaint_GTabView(this, &State);
 	}
 	else

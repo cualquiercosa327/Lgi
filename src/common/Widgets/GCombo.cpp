@@ -31,6 +31,8 @@ int StringCompare(char *a, char *b, NativeInt c)
 
 class GComboPrivate
 {
+	GDisplayString *Text;
+
 public:
 	int Current;
 	bool SortItems;
@@ -40,7 +42,6 @@ public:
 	int LastKey;
 	GAutoString Find;
 	GSubMenu *Menu;
-	GDisplayString *Text;
 	GCombo::SelectedState SelState;
 
 	#if defined MAC && !defined COCOA
@@ -69,6 +70,24 @@ public:
 		Items.DeleteArrays();
 		DeleteObj(Menu);
 		DeleteObj(Text);
+	}
+	
+	GDisplayString *GetText(const char *File, int Line)
+	{
+		LgiTrace("GCombo::GetText %p %s:%i\n", Text, File, Line);
+		return Text;
+	}
+
+	void SetText(GDisplayString *ds, const char *File, int Line)
+	{
+		LgiTrace("GCombo::SetText %p->%p %s:%i\n", Text, ds, File, Line);
+		DeleteObj(Text);
+		Text = ds;
+	}
+	
+	GDisplayString **GetTextPtr()
+	{
+		return &Text;
 	}
 };
 
@@ -153,7 +172,7 @@ bool GCombo::Name(const char *n)
 		{
 			d->Items.Insert(New);
 			d->Current = d->Items.Length() - 1;
-			DeleteObj(d->Text);
+			d->SetText(NULL, _FL);
 			Invalidate();
 		}
 		else return false;
@@ -161,7 +180,7 @@ bool GCombo::Name(const char *n)
 	else
 	{
 		d->Current = 0;
-		DeleteObj(d->Text);
+		d->SetText(NULL, _FL);
 		Invalidate();
 	}
 
@@ -178,7 +197,7 @@ void GCombo::Value(int64 i)
 	if (d->Current != i)
 	{
 		d->Current = i;
-		DeleteObj(d->Text);
+		d->SetText(NULL, _FL);
 		Invalidate();
 
 		SendNotify(d->Current);
@@ -380,7 +399,7 @@ void GCombo::DoMenu()
 		if (Result >= Base)
 		{
 			d->Current = Result - Base;
-			DeleteObj(d->Text);
+			d->SetText(NULL, _FL);
 			Invalidate();
 
 			SendNotify(d->Current);
@@ -491,28 +510,24 @@ void GCombo::OnFocus(bool f)
 void GCombo::SetFont(GFont *Fnt, bool OwnIt)
 {
 	GView::SetFont(Fnt, OwnIt);
-	DeleteObj(d->Text);
-	char *n = Name();
-	if (n)
-	{
-		d->Text = new GDisplayString(GetFont(), n);
-	}
+	d->SetText(new GDisplayString(GetFont(), Name()), _FL);
 	Invalidate();
 }
 
 void GCombo::OnPosChange()
 {
-	if (d->Text && d->Text->IsTruncated())
-		DeleteObj(d->Text);
+	GDisplayString *ds = d->GetText(_FL);
+	if (ds && ds->IsTruncated())
+		d->SetText(NULL, _FL);
 }
 
 void GCombo::OnPaint(GSurface *pDC)
 {
-	if (!d->Text)
+	if (!d->GetText(_FL))
 	{
 		char *n = Name();
 		if (n)
-			d->Text = new GDisplayString(GetFont(), n);
+			d->SetText(new GDisplayString(GetFont(), n), _FL);
 	}
 
 	#if defined MAC && !defined COCOA
@@ -582,7 +597,7 @@ void GCombo::OnPaint(GSurface *pDC)
 	{
 		GSkinState State;
 		State.pScreen = pDC;
-		State.Text.Add(d->Text);
+		State.ptrText = d->GetTextPtr();
 		State.Enabled = Enabled();
 		GApp::SkinEngine->OnPaint_GCombo(this, &State);
 	}
@@ -636,24 +651,25 @@ void GCombo::OnPaint(GSurface *pDC)
 		r.Size(1, 1);
 		if (r.Valid())
 		{
-			if (d->Text)
+			GDisplayString *ds = d->GetText(_FL);
+			if (ds)
 			{
 				if (Enabled())
 				{
 					bool f = Focus();
 					SysFont->Colour(f ? LC_FOCUS_SEL_FORE : LC_TEXT, f ? LC_FOCUS_SEL_BACK : LC_MED);
 					SysFont->Transparent(false);
-					d->Text->Draw(pDC, r.x1, r.y1, &r);
+					ds->Draw(pDC, r.x1, r.y1, &r);
 				}
 				else
 				{
 					SysFont->Transparent(false);
 					SysFont->Colour(LC_LIGHT, LC_MED);
-					d->Text->Draw(pDC, r.x1+1, r.y1+1, &r);
+					ds->Draw(pDC, r.x1+1, r.y1+1, &r);
 
 					SysFont->Transparent(true);
 					SysFont->Colour(LC_LOW, 0);
-					d->Text->Draw(pDC, r.x1, r.y1, &r);
+					ds->Draw(pDC, r.x1, r.y1, &r);
 				}
 			}
 			else
