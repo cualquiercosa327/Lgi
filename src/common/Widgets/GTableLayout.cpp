@@ -34,7 +34,7 @@ enum CellFlag
 #define Izza(c)				dynamic_cast<c*>(v)
 #define DEBUG_LAYOUT		0
 #define DEBUG_PROFILE		0
-#define DEBUG_DRAW_CELLS	1
+#define DEBUG_DRAW_CELLS	0
 
 int GTableLayout::CellSpacing = 4;
 
@@ -43,9 +43,9 @@ const char *FlagToString(CellFlag f)
 	switch (f)
 	{
 		case SizeUnknown: return "Unknown";
-		case SizeFixed: return "Fixed";
-		case SizeGrow: return "Grow";
-		case SizeFill: return "Fill";
+		case SizeFixed:   return "Fixed";
+		case SizeGrow:    return "Grow";
+		case SizeFill:    return "Fill";
 	}
 	return "error";
 }
@@ -228,14 +228,13 @@ void DistributeSize(GArray<int> &a, GArray<CellFlag> &Flags, int Start, int Span
 	}
 }
 
+/*
 static uint32 NextChar(char *s)
 {
 	int Len = 0;
 	while (s[Len] && Len < 6) Len++;
 	return LgiUtf8To32((uint8*&)s, Len);
 }
-
-
 
 int LayoutTextCtrl(GView *v, int Offset, int Width)
 {
@@ -302,6 +301,7 @@ int LayoutTextCtrl(GView *v, int Offset, int Width)
 
 	return Ht;
 }
+*/
 
 GCss::LengthType ConvertAlign(char *s, bool x_axis)
 {
@@ -319,16 +319,25 @@ GCss::LengthType ConvertAlign(char *s, bool x_axis)
 class TableCell : public GLayoutCell
 {
 public:
+	struct Child
+	{
+		GViewLayoutInfo Inf;
+		GView *View;
+		bool IsLayout;
+	};
+
 	GTableLayout *Table;
 	GRect Cell;		// Cell position
 	GRect Pos;		// Pixel position
 	GRect Padding;	// Cell padding from CSS styles
-	GArray<GView*> Children;
+	GArray<Child> Children;
 	GCss::DisplayType Disp;
 
 	TableCell(GTableLayout *t, int Cx, int Cy);
 	bool Add(GView *v);	
 	bool Remove(GView *v);
+	bool RemoveAll();
+	Child *HasView(GView *v);
 
 	bool IsSpanned();
 	bool GetVariant(const char *Name, GVariant &Value, char *Array);
@@ -391,22 +400,54 @@ TableCell::TableCell(GTableLayout *t, int Cx, int Cy)
 	Disp = GCss::DispBlock;
 }
 
+TableCell::Child *TableCell::HasView(GView *v)
+{
+	unsigned Len = Children.Length();
+	if (!Len)
+		return NULL;
+
+	Child *s = &Children[0];
+	Child *e = s + Len;
+	while (s < e)
+	{
+		if (s->View == v)
+			return s;
+		s++;
+	}
+	return NULL;
+}
+
 bool TableCell::Add(GView *v)
 {
-	if (Children.HasItem(v))
+	if (HasView(v))
 		return false;
+
 	Table->AddView(v);
-	Children.Add(v);
+	Children.New().View = v;
 	return true;
 }
 
 bool TableCell::Remove(GView *v)
 {
-	if (!Children.HasItem(v))
+	Child *c = HasView(v);
+	if (!c)
 		return false;
+		
 	Table->DelView(v);
-	Children.Delete(v, true);
+
+	int Idx = c - &Children.First();
+	Children.DeleteAt(Idx, true);
 	return true;
+}
+
+bool TableCell::RemoveAll()
+{
+	Child *c = &Children[0];
+	for (unsigned i=0; i<Children.Length(); i++)
+	{
+		DeleteObj(c[i].View);
+	}
+	return Children.Length(0);
 }
 
 bool TableCell::IsSpanned()
@@ -442,7 +483,7 @@ bool TableCell::SetVariant(const char *Name, GVariant &Value, char *Array)
 					GView *gv = dynamic_cast<GView*>(o);
 					if (gv)
 					{
-						Children.Add(gv);
+						Children.New().View = gv;
 						Table->Children.Insert(gv);
 						gv->SetParent(Table);
 
@@ -542,14 +583,16 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 	}
 	else
 	{
-		for (int i=0; i<Children.Length(); i++)
+		Child *c = &Children[0];
+		for (int i=0; i<Children.Length(); i++, c++)
 		{
-			GView *v = Children[i];
+			GView *v = c->View;
 			if (!v)
 				continue;
+				
+			ZeroObj(c->Inf);
 			
 			const char *Cls = v->GetClass();
-			GViewLayoutInfo Inf;
 			GCss *Css = v->GetCss();
 			GCss::Len Wid;
 			if (Css)
@@ -559,49 +602,23 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 			{
 				Min = Max = Wid.ToPx(Max, v->GetFont());
 			}
-			/*
-			else if (Izza(GText))
+			else if (v->OnLayout(c->Inf))
 			{
-				PreLayoutTextCtrl(v, Min, Max);
-				if (Max > Min)
-				{
-					if (Flag < SizeGrow)
-						Flag = SizeGrow;
-				}
-				else
-				{
-					if (Flag < SizeFixed)
-						Flag = SizeFixed;
-				}
-			}
-			*/
-			else if (v->OnLayout(Inf))
-			{
-				if (Inf.Width.Max < 0)
+				if (c->Inf.Width.Max < 0)
 				{
 					if (Flag < SizeFill)
 						Flag = SizeFill;
 				}
-				else
+				else	
 				{
-					Max = max(Max, Inf.Width.Max);
+					Max = max(Max, c->Inf.Width.Max);
 				}
 
-				if (Inf.Width.Min)
+				if (c->Inf.Width.Min)
 				{
-					Min = max(Min, Inf.Width.Min);
+					Min = max(Min, c->Inf.Width.Min);
 				}
 			}
-			/*
-			else if (Izza(GCheckBox) ||
-					 Izza(GRadioButton))
-			{
-				int cmin = 0, cmax = 0;
-				PreLayoutTextCtrl(v, cmin, cmax);
-				Min = max(Min, cmin + 16);
-				Max = max(Max, cmax + 16);
-			}
-			*/
 			else if (Izza(GButton))
 			{
 				GDisplayString ds(v->GetFont(), v->Name());
@@ -683,7 +700,6 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 				if (Tbl)
 				{
 					Tbl->d->LayoutHorizontal(Table->GetClient(), &Min, &Max, &Flag);
-					// LgiTrace("    TblHorz = %i, %i, %s\n", Min, Max, FlagToString(Flag));
 				}
 				else
 				{
@@ -726,14 +742,15 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 	Width -= Padding.x1 + Padding.x2;
 	LgiAssert(Width >= 0);
 	
-	for (int i=0; i<Children.Length(); i++)
+	Child *c = &Children[0];
+	for (int i=0; i<Children.Length(); i++, c++)
 	{
-		GView *v = Children[i];
+		GView *v = c->View;
 		if (!v)
 			continue;
 
 		const char *Cls = v->GetClass();
-		GTableLayout *Tbl;
+		GTableLayout *Tbl = NULL;
 		GRadioGroup *Grp;
 		GCss *Css = v->GetCss();
 		GCss::Len Ht;
@@ -743,33 +760,23 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 		if (i)
 			Pos.y2 += GTableLayout::CellSpacing;
 
-		GViewLayoutInfo Inf;
-		Inf.Width.Min = Inf.Width.Max = Width;
+		if (c->Inf.Width.Min > Width)
+			c->Inf.Width.Min = Width;
+		if (c->Inf.Width.Max > Width)
+			c->Inf.Width.Max = Width;
 
 		if (Ht.IsValid())
 		{
 			MinY = MaxY = Ht.ToPx(MaxY, v->GetFont());
 		}
-		else if (v->OnLayout(Inf))
+		else if (v->OnLayout(c->Inf))
 		{
 			// Supports layout info
-			if (Inf.Height.Max < 0)
+			if (c->Inf.Height.Max < 0)
 				Flags = SizeFill;
 			else
-				Pos.y2 += Inf.Height.Max - 1;
-		}
-		else if (Izza(GText))
-		{
-			GText *Txt = dynamic_cast<GText*>(v);
-			if (Txt && Txt->GetWrap() == false)
-				Txt->SetWrap(true);
-
-			int y = LayoutTextCtrl(v, 0, Pos.X());
-			Pos.y2 += y;
-			
-			GRect r = v->GetPos();
-			r.y2 = r.y1 + y - 1;
-			v->SetPos(r);
+				Pos.y2 += c->Inf.Height.Max - 1;
+			c->IsLayout = true;
 		}
 		else if (Izza(GScrollBar))
 		{
@@ -856,8 +863,6 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 			r.ZOff(Width-1, Table->Y()-1);
 			Tbl->d->LayoutVertical(r, &MinY, &MaxY, &Flags);
 			Pos.y2 += MinY;
-			
-			// LgiTrace("    TblVert = %i, %i, %s\n", MinY, MaxY, FlagToString(Flags));
 		}
 		else
 		{
@@ -878,10 +883,13 @@ void TableCell::PostLayout()
 	int MaxY = Padding.y1;
 	int RowStart = 0;
 	GArray<GRect> New;
+	int WidthPx = Pos.X() - Padding.x1 - Padding.x2;
+	int HeightPx = Pos.Y() - Padding.y1 - Padding.y2;
 
-	for (int i=0; i<Children.Length(); i++)
+	Child *c = &Children[0];
+	for (int i=0; i<Children.Length(); i++, c++)
 	{
-		GView *v = Children[i];
+		GView *v = c->View;
 		if (!v)
 			continue;
 
@@ -895,9 +903,10 @@ void TableCell::PostLayout()
 		GRect r = v->GetPos();
 		r.Offset(Pos.x1 - r.x1 + Cx, Pos.y1 - r.y1 + Cy);
 
-		GViewLayoutInfo Inf;
-		Inf.Width.Max = Pos.X() - Padding.x1 - Padding.x2;
-		Inf.Height.Max = Pos.Y() - Padding.y1 - Padding.y2;
+		if (c->Inf.Width.Max >= WidthPx)
+			c->Inf.Width.Max = WidthPx;
+		if (c->Inf.Height.Max >= HeightPx)
+			c->Inf.Height.Max = HeightPx;
 
 		if (Tbl)
 		{
@@ -913,20 +922,21 @@ void TableCell::PostLayout()
 		{
 			r.y2 = Pos.y2;
 		}
-		else if (v->OnLayout(Inf))
+		else if (c->IsLayout)
 		{
-			if (Inf.Height.Max < 0)
+			if (c->Inf.Height.Max < 0)
 				r.y2 = Pos.y2;
 			else
-				r.y2 = r.y1 + Inf.Height.Max - 1;
+				r.y2 = r.y1 + c->Inf.Height.Max - 1;
 		}
 
 		if (!Izza(GButton) && !Tbl)
 		{
-			if (Inf.Width.Max < 0)
-				Inf.Width.Max = Pos.X() - Padding.x1 - Padding.x2;
-				
-			r.x2 = r.x1 + Inf.Width.Max - 1;
+			if (c->Inf.Width.Max <= 0 ||
+				c->Inf.Width.Max >= WidthPx)
+				r.x2 = r.x1 + WidthPx - 1;
+			else if (c->Inf.Width.Max)
+				r.x2 = r.x1 + c->Inf.Width.Max - 1;
 		}
 
 		New[i] = r;
@@ -988,7 +998,7 @@ void TableCell::PostLayout()
 	}
 	for (n=0; n<Children.Length(); n++)
 	{
-		GView *v = Children[n];
+		GView *v = Children[n].View;
 		if (!v)
 			break;
 
@@ -1035,7 +1045,7 @@ void GTableLayoutPrivate::Empty(GRect *Range)
 			TableCell *c = Cells[i];
 			if (Range->Overlap(&c->Cell))
 			{
-				c->Children.DeleteObjects();
+				c->RemoveAll();
 				Cells.DeleteAt(i--, true);
 				DeleteObj(c);
 			}
@@ -1386,6 +1396,11 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 	#if DEBUG_PROFILE
 	int64 Start = LgiCurrentTime();
 	#endif
+	
+	if (Ctrl->GetId() == 889)
+	{
+		int asd=0;
+	}	
 
 	LayoutHorizontal(Client);
 	LayoutVertical(Client);
@@ -1580,7 +1595,7 @@ void GTableLayout::OnChildrenChanged(GViewI *Wnd, bool Attaching)
 			TableCell *c = d->Cells[i];
 			for (int n=0; n<c->Children.Length(); n++)
 			{
-				if (c->Children[n] == Wnd)
+				if (c->Children[n].View == Wnd)
 				{
 					c->Children.DeleteAt(n);
 					return;

@@ -935,14 +935,14 @@ public:
 	///		Called with both widths set to zero.
 	///		Must fill out Inf.Width.Max. Use -1 to fill all available space.
 	///		Optionally fill out the min width.
-	/// 2) Layout: Called to work out height.
-	///		Called with both widths set to the size of the cell (non-zero).
+	/// 2) Layout: Called to work out row height.
+	///		Called with:
+	///			- Width.Min unchanged from previous call.
+	///			- Width.Max is limited to Cell size.
 	///		Must fill out Inf.Height.Max.
 	///		Min height currently not used.
-	/// 3) PostLayout: Called to work out height.
-	///		Called with both widths set to the size of the cell (non-zero).
-	///		Must fill out Inf.Height.Max.
-	///		Min height currently not used.
+	/// 3) PostLayout: Called to position view in cell.
+	///		Not called.
 	bool OnLayout(GViewLayoutInfo &Inf) { return false; }
 
 	#if defined(_DEBUG)

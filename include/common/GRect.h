@@ -129,13 +129,13 @@ public:
 	/// Enlarges this rectangle to include all points in 'a'
 	void Union(GRect *a);
 
-	/// Makes this rectangle include all points in 'a' and 'b'
+	/// Makes this rectangle include all points in 'a' OR 'b'
 	void Union(GRect *a, GRect *b);
 
-	/// Makes this rectangle the intersection of 'this' and 'a'
+	/// Makes this rectangle the intersection of 'this' AND 'a'
 	void Intersection(GRect *a);
 
-	/// Makes this rectangle the intersection of 'a' and 'b'
+	/// Makes this rectangle the intersection of 'a' AND 'b'
 	void Intersection(GRect *a, GRect *b);
 
 	/// Returns a static string formated to include the points in the order: x1,y1,x2,y2
