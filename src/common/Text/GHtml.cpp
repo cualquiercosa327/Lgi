@@ -3768,7 +3768,7 @@ bool GTag::GetWidthMetrics(GTag *Table, uint16 &Min, uint16 &Max)
 				}
 				else
 				{
-					Min = Max = (int)w.Value;
+					Min = Max = w.ToPx(0, GetFont());
 				}
 			}
 			else
@@ -3815,7 +3815,7 @@ bool GTag::GetWidthMetrics(GTag *Table, uint16 &Min, uint16 &Max)
 						GTag *t = c.Get(x, y);
 						if (t)
 						{
-							uint16 a = 0, b = 0;
+							uint16 a = 0, b = 0;							
 							if (t->GetWidthMetrics(Table, a, b))
 							{
 								ColMin[x] = max(ColMin[x], a);
@@ -3919,26 +3919,19 @@ void GTag::LayoutTable(GFlowRegion *f)
 
 void GHtmlTableLayout::AllocatePx(int StartCol, int Cols, int MinPx)
 {
-	// Get the existing size of the column set
-	int TotalX = GetTotalX(StartCol, Cols);
-	
-	// Calculate the maximum space we have for this column set
-	int AvailPx = AvailableX - BorderX1 - BorderX2;
-	for (int x=0; x<StartCol; x++)
-		AvailPx -= MinCol[x];
-	for (int x = StartCol + Cols; x < s.x; x++)
-		AvailPx -= MinCol[x];
-	
-	// Check there is more space?
-	if (TotalX >= AvailPx)
-	{
-		// No more space... so bail
+	// Get the existing total size and size of the column set
+	int CurrentTotalX = GetTotalX();
+	int CurrentSpanX = GetTotalX(StartCol, Cols);
+	int MaxAdditionalPx = AvailableX - CurrentTotalX;
+	if (MaxAdditionalPx <= 0)
 		return;
-	}
 
+	// Calculate the maximum space we have for this column set
+	int AvailPx = (CurrentSpanX + MaxAdditionalPx) - BorderX1 - BorderX2;
+	
 	// Allocate any remaining space...
 	bool HasToFillAllAvailable = TableWidth.IsValid();
-	int RemainingPx = AvailPx - TotalX;
+	int RemainingPx = MaxAdditionalPx;
 	GArray<int> Growable, NonGrowable, SizeInherit;
 	int GrowablePx = 0;
 	for (int x=StartCol; x<StartCol+Cols; x++)
@@ -3953,7 +3946,7 @@ void GHtmlTableLayout::AllocatePx(int StartCol, int Cols, int MinPx)
 		{
 			NonGrowable.Add(x);
 		}
-		else if (MinCol[x] == 0 && TotalX < AvailPx)
+		else if (MinCol[x] == 0 && CurrentSpanX < AvailPx)
 		{
 			Growable.Add(x);
 		}
@@ -4055,6 +4048,62 @@ void GHtmlTableLayout::AllocatePx(int StartCol, int Cols, int MinPx)
 				LgiAssert(MinCol[x] >= 0);
 			}
 		}
+	}
+}
+
+struct ColInfo
+{
+	int Large;
+	int Growable;
+	int Idx;
+	int Px;
+};
+
+int ColInfoCmp(ColInfo *a, ColInfo *b)
+{
+	int LDiff = b->Large - a->Large;
+	int LGrow = b->Growable - a->Growable;
+	int LSize = b->Px - a->Px;
+	return LDiff + LGrow + LSize;
+}
+
+void GHtmlTableLayout::DeallocatePx(int StartCol, int Cols, int MaxPx)
+{
+	int TotalPx = GetTotalX(StartCol, Cols);
+	if (TotalPx <= MaxPx)
+		return;
+	
+	int TrimPx = TotalPx - MaxPx;
+	GArray<ColInfo> Inf;
+	int HalfMax = MaxPx >> 1;
+	int Interesting = 0;
+	int InterestingPx = 0;
+	
+	for (int x=StartCol; x<StartCol+Cols; x++)
+	{
+		ColInfo &ci = Inf.New();
+		ci.Idx = x;
+		ci.Px = MinCol[x];
+		ci.Large = MinCol[x] > HalfMax;
+		ci.Growable = MinCol[x] < MaxCol[x];
+		if (ci.Large || ci.Growable)
+		{
+			Interesting++;
+			InterestingPx += ci.Px;
+		}
+	}
+	
+	Inf.Sort(ColInfoCmp);
+	
+	for (unsigned i=0; i<Cols; i++)
+	{
+		ColInfo &ci = Inf[i];
+		double r = (double)ci.Px / InterestingPx;
+		int DropPx = r * TrimPx;
+		if (DropPx < MinCol[ci.Idx])
+			MinCol[ci.Idx] -= DropPx;
+		else
+			LgiAssert(0);
 	}
 }
 
@@ -4183,6 +4232,11 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	
 	// How much space used so far?
 	int TotalX = GetTotalX();
+	if (TotalX > AvailableX)
+	{
+		DeallocatePx(0, MinCol.Length(), AvailableX);
+		TotalX = GetTotalX();
+	}
 
 	#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 	#define DumpCols(msg) \

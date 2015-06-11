@@ -145,6 +145,7 @@ struct GHtmlTableLayout
 
 	int GetTotalX(int StartCol = 0, int Cols = -1);
 	void AllocatePx(int StartCol, int Cols, int MinPx);
+	void DeallocatePx(int StartCol, int Cols, int MaxPx);
 	void LayoutTable(GFlowRegion *f);
 	
 	void Dump();

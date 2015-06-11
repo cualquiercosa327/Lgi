@@ -345,7 +345,17 @@ public:
 		bool operator ==(const Len &l) { return Type == l.Type && FloatIsEqual(Value, l.Value); }
 		bool operator !=(const Len &l) { return !(*this == l); }
 		bool ToString(GStream &p);
-		int ToPx(int Box = 0, GFont *Font = 0, int Dpi = -1);
+		
+		/// Convert the length to pixels
+		int ToPx
+		(
+			/// The size of the parent box if known, or -1 if unknown.
+			int Box = 0,
+			/// Any relevant font
+			GFont *Font = 0,
+			/// The DPI of the relevant device if known, or -1 if unknown
+			int Dpi = -1
+		);
 	};
 
 	struct LgiClass ColorStop
