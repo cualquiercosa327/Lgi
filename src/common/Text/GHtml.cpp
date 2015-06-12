@@ -4416,7 +4416,6 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 					
 					GCss::Len Ht = t->Height();
 					GFlowRegion r(Table->Html, Box, true);
-					// int Rx = r.X();
 					
 					t->OnFlow(&r);
 					
@@ -4428,11 +4427,6 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 
 						DistributeSize(MaxRow, y, t->Cell->Span.y, t->Size.y, CellSpacing);
 					}
-
-					#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
-					if (Table->Debug)
-						LgiTrace("[%i,%i]=%i,%i\n", t->Cell->Span.x, t->Cell->Span.y, t->Size.x, t->Size.y);
-					#endif
 				}
 
 				x += t->Cell->Span.x;
@@ -4505,7 +4499,9 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 			{
 				if (t->Cell->Pos.x == x && t->Cell->Pos.y == y)
 				{
-					int RowPadOffset = RowPad[y].y1 - t->Cell->PaddingPx.y1;
+					int RowPadOffset =	RowPad[y].y1 -
+										t->Cell->BorderPx.y1 -
+										t->Cell->PaddingPx.y1;
 					
 					t->Pos.x = Cx;
 					t->Pos.y = Cy + RowPadOffset;
@@ -4524,6 +4520,14 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 					}
 					
 					Table->Size.x = max(Cx + BorderX2, Table->Size.x);
+
+					#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
+					if (Table->Debug)
+						LgiTrace("cell(%i,%i) = pos(%i,%i)+size(%i,%i)\n",
+							t->Cell->Pos.x, t->Cell->Pos.y,
+							t->Pos.x, t->Pos.y,
+							t->Size.x, t->Size.y);
+					#endif
 				}
 				else
 				{
@@ -4539,7 +4543,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 		Cx = BorderX1 + CellSpacing;
 		Cy += MaxRow[y] + CellSpacing;
 	}
-
+	
 	switch (Table->Cell->XAlign ? Table->Cell->XAlign : ToTag(Table->Parent)->GetAlign(true))
 	{
 		case GCss::AlignCenter:
@@ -4994,7 +4998,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 	#ifdef _DEBUG
 	if (Debug)
 	{
-		//int asd=0;
+		int asd=0;
 	}
 	#endif
 	
@@ -5414,7 +5418,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 			if (Diff)
 				Flow->max_cx += Diff;
 			
-			Size.y = Flow->y2 > 0 ? Flow->y2 - 1 : 0;
+			Size.y = Flow->y2 > 0 ? Flow->y2 : 0;
 			Flow->y1 = Flow->y2;
 			Flow->x2 = Flow->x1 + BlockFlowWidth;
 
@@ -5816,7 +5820,8 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 	#ifdef _DEBUG
 	if (Debug)
 	{
-		//int asd=0;
+		int asd=0;		
+		LgiTrace("%s::OnPaint - %i,%i\n", Tag, -Px, -Py);
 	}
 	#endif
 	
@@ -5966,63 +5971,6 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 			pDC->ClipRgn(0);
 			break;
 		}
-		/*
-		case TAG_TABLE:
-		{
-			if (Html->Environment)
-			{
-				GCss::ImageDef Img = BackgroundImage();
-				if (Img.Type >= ImageOwn)
-				{
-					GRect Clip(0, 0, Size.x-1, Size.y-1);
-					pDC->ClipRgn(&Clip);
-					
-					GRect r;
-					r.ZOff(Size.x-1, Size.y-1);
-					FillRectWithImage(pDC, &r, Img.Img, BackgroundRepeat());
-				}
-			}
-
-			// Draw border
-			PaintBorder(pDC);
-			
-			if (Cell && Cell->Cells)
-			{
-				GHtmlTableLayout *l = Cell->Cells;
-				if (DefaultTableBorder != GT_TRANSPARENT)
-				{
-					GRect r(l->TableBorder.x1 + l->TablePadding.x1,
-							l->TableBorder.y1 + l->TablePadding.y1,
-							Size.x - 1 - l->TableBorder.x2 - l->TablePadding.x2,
-							Size.y - 1 - l->TableBorder.y2 - l->TablePadding.y2);
-					GRegion c(r);
-					
-					List<GTag> AllTd;
-					Cell->Cells->GetAll(AllTd);
-					for (GTag *t=AllTd.First(); t; t=AllTd.Next())
-					{
-						r.Set(0, 0, t->Size.x-1, t->Size.y-1);
-						for (; t && t!=this; t=ToTag(t->Parent))
-						{
-							r.Offset(t->Pos.x, t->Pos.y);
-						}
-						c.Subtract(&r);
-					}
-
-					if (BackgroundColor().Type == ColorInherit)
-						pDC->Colour(DefaultTableBorder, 32);
-					else
-						pDC->Colour(BackgroundColor().Rgb32, 32);
-					
-					for (GRect *p=c.First(); p; p=c.Next())
-					{
-						pDC->Rectangle(p);
-					}
-				}
-			}			
-			break;
-		}
-		*/
 		default:
 		{
 			// ColorDef _back = BackgroundColor();
