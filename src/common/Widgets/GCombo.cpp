@@ -558,10 +558,10 @@ void GCombo::OnPaint(GSurface *pDC)
 											  &LabelRect);
 	
 			if (e) printf("%s:%i - HIThemeDrawButton failed %li\n", _FL, e);
-			else if (d->Text)
+			else if (d->GetText(_FL))
 			{
-				d->Text->GetFont()->Transparent(true);
-				d->Text->Draw(pDC, LabelRect.origin.x, LabelRect.origin.y);
+				d->GetText(_FL)->GetFont()->Transparent(true);
+				d->GetText(_FL)->Draw(pDC, LabelRect.origin.x, LabelRect.origin.y);
 			}
 
 		#else

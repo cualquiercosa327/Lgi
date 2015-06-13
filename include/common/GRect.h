@@ -270,7 +270,7 @@ class LgiClass GRegion : public GRect
 public:
 	GRegion();
 	GRegion(int X1, int Y1, int X2, int Y2);
-	GRegion(GRect &r);
+	GRegion(const GRect &r);
 	#ifndef COCOA
 	GRegion(OsRect &r);
 	#endif

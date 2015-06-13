@@ -178,7 +178,7 @@ struct GDisplayStringLayout
 	
 	void Paint(GSurface *pDC, GFont *f, GRect &rc, GColour &Fore, GColour &Back, bool Enabled)
 	{
-		GRegion Rgn = rc;
+		GRegion Rgn(rc);
 		
 		if (Enabled)
 		{

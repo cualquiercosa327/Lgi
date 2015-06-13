@@ -355,7 +355,7 @@ GRegion::GRegion(int X1, int Y1, int X2, int Y2) : GRect(X1, Y1, X2, Y2)
 	}
 }
 
-GRegion::GRegion(GRect &r) : GRect(r)
+GRegion::GRegion(const GRect &r) : GRect(r)
 {
 	Size = Alloc = 0;	
 	Current = 0;

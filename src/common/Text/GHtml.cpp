@@ -371,9 +371,14 @@ public:
 			}
 			while (PtSize > MinimumPointSize && PtSize < 100);
 
-			Fonts.Insert(f = BestFont.Release());
-			LgiAssert(f && f->Face() != NULL);
-			return f;
+			if (BestFont)
+			{
+				Fonts.Insert(f = BestFont.Release());
+				LgiAssert(f && f->Face() != NULL);
+				return f;
+			}
+			
+			return SysFont;
 		}
 		else if (Size.Type == GCss::LenPt)
 		{
@@ -486,7 +491,7 @@ public:
 			return f;
 		}
 
-		return 0;
+		return NULL;
 	}
 };
 
@@ -4095,7 +4100,7 @@ void GHtmlTableLayout::DeallocatePx(int StartCol, int Cols, int MaxPx)
 	
 	Inf.Sort(ColInfoCmp);
 	
-	for (unsigned i=0; i<Cols; i++)
+	for (unsigned i=0; i<Interesting; i++)
 	{
 		ColInfo &ci = Inf[i];
 		double r = (double)ci.Px / InterestingPx;
@@ -4998,7 +5003,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 	#ifdef _DEBUG
 	if (Debug)
 	{
-		int asd=0;
+		// int asd=0;
 	}
 	#endif
 	
@@ -5040,8 +5045,8 @@ void GTag::OnFlow(GFlowRegion *Flow)
 
 			GCss::Len w    = Width();
 			GCss::Len h    = Height();
-			GCss::Len MinX = MinWidth();
-			GCss::Len MaxX = MaxWidth();
+			// GCss::Len MinX = MinWidth();
+			// GCss::Len MaxX = MaxWidth();
 			GCss::Len MinY = MinHeight();
 			GCss::Len MaxY = MaxHeight();
 			GAutoPtr<GDisplayString> a;
@@ -5820,8 +5825,8 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 	#ifdef _DEBUG
 	if (Debug)
 	{
-		int asd=0;		
-		LgiTrace("%s::OnPaint - %i,%i\n", Tag, -Px, -Py);
+		// int asd=0;
+		LgiTrace("%s::OnPaint - %i,%i\n", Tag.Get(), -Px, -Py);
 	}
 	#endif
 	
