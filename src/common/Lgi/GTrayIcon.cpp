@@ -66,8 +66,6 @@ public:
 		m.Right(button == 3);
 		m.Down(true);
 		
-		LgiTrace("button=%x\n", button);
-		m.Trace("OnMenu");
 		Parent->OnTrayClick(m);
 	}
 

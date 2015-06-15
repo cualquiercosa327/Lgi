@@ -2929,7 +2929,7 @@ bool GCompiler::Compile
 )
 {
 	if (!Script)
-		return NULL;
+		return false;
 
 	GStringPipe p;
 	
@@ -2984,6 +2984,14 @@ bool GCompiler::Compile
 			d->ScriptArgs = Args;
 			Status = d->Compile();
 		}
+		else
+		{
+			d->OnError(0, "Failed to lex script.\n");
+		}
+	}
+	else
+	{
+		d->OnError(0, "Allocation failed.\n");
 	}
 
 	d->Code = NULL;

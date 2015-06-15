@@ -145,10 +145,7 @@ void GButton::OnMouseClick(GMouse &m)
 		return;
 
 	bool Click = IsCapturing();
-	m.Trace("OnMouseClick");
-	
 	Capture(m.Down());
-
 	if (Click ^ m.Down())
 	{
 		if (d->Over)
@@ -180,7 +177,6 @@ void GButton::OnMouseEnter(GMouse &m)
 	d->Over = true;
 	if (IsCapturing())
 	{
-		m.Trace("OnMouseEnter");
 		Value(d->Pressed + 1);
 	}
 	else if (Enabled())
@@ -195,7 +191,6 @@ void GButton::OnMouseExit(GMouse &m)
 	d->Over = false;
 	if (IsCapturing())
 	{
-		m.Trace("OnMouseExit");
 		Value(d->Pressed - 1);
 	}
 	else if (Enabled())

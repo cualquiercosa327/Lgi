@@ -557,7 +557,6 @@ SslSocket::SslSocket(GStreamI *logger, GCapabilityClient *caps, bool sslonconnec
 	else
 	{
 		OnError(0, "Can't load or find OpenSSL library.");
-		LgiAssert(!"No OpenSSL library.");
 	}
 }
 

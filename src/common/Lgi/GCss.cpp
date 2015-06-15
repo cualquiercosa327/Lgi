@@ -312,7 +312,6 @@ int GCss::Len::ToPx(int Box, GFont *Font, int Dpi)
 		    return (int) (Value * (Font ? Font->Ascent() : 18)); // haha I don't care.
 		
 		case LenPercent:
-			LgiAssert(Box > 0); // Really should have a box at this point...
 			if (Box > 0)
 				return (int) (Box * Value / 100.0);
 			else
