@@ -74,13 +74,13 @@ public:
 	
 	GDisplayString *GetText(const char *File, int Line)
 	{
-		LgiTrace("GCombo::GetText %p %s:%i\n", Text, File, Line);
+		// LgiTrace("GCombo::GetText %p %s:%i\n", Text, File, Line);
 		return Text;
 	}
 
 	void SetText(GDisplayString *ds, const char *File, int Line)
 	{
-		LgiTrace("GCombo::SetText %p->%p %s:%i\n", Text, ds, File, Line);
+		// LgiTrace("GCombo::SetText %p->%p %s:%i\n", Text, ds, File, Line);
 		DeleteObj(Text);
 		Text = ds;
 	}

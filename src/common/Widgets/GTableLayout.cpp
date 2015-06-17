@@ -32,7 +32,8 @@ enum CellFlag
 #include "GCss.h"
 
 #define Izza(c)				dynamic_cast<c*>(v)
-#define DEBUG_LAYOUT		0
+// #define DEBUG_LAYOUT		535 // define to ID of control to dump (0 to disable)
+#define DEBUG_LAYOUT		1150
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 
@@ -75,76 +76,97 @@ int Cmp(UnderInfo *a, UnderInfo *b)
 	return b->Grow - a->Grow;
 }
 
-void DistributeUnusedSpace(	GArray<int> &Min,
-							GArray<int> &Max,
-							GArray<CellFlag> &Flags,
-							int Total,
-							int CellSpacing)
+static void
+DistributeUnusedSpace(	GArray<int> &Min,
+						GArray<int> &Max,
+						GArray<CellFlag> &Flags,
+						int Total,
+						int CellSpacing,
+						GStream *Debug = NULL)
 {
 	// Now allocate unused space
 	int Borders = Min.Length() - 1;
 	int Sum = CountRange<int>(Min, 0, Borders) + (Borders * CellSpacing);
-	if (Sum < Total)
+	if (Sum >= Total)
+		return;
+
+	int i, Avail = Total - Sum;
+
+	// Do growable ones first
+	GArray<UnderInfo> Unders;
+	int UnknownGrow = 0;
+	for (i=0; i<Min.Length(); i++)
 	{
-		int i, Avail = Total - Sum;
-
-		// Do growable ones first
-		GArray<UnderInfo> Unders;
-		int UnknownGrow = 0;
-		for (i=0; i<Min.Length(); i++)
+		CellFlag f = Flags[i];
+		if (/* f == SizeGrow ||*/ f == SizeFill)
 		{
-			CellFlag f = Flags[i];
-			if (/* f == SizeGrow ||*/ f == SizeFill)
-			{
-				UnderInfo &u = Unders.New();
-				u.Col = i;
-				u.Grow = 0;
-				u.Priority = f == SizeGrow ? 2 : 3;
-				UnknownGrow++;
-			}
-			else if (Max[i] > Min[i])
-			{
-				UnderInfo &u = Unders.New();
-				u.Col = i;
-				u.Grow = Max[i] - Min[i];
-				if (u.Grow > Avail)
-				{
-				    u.Grow = 0;
-				    u.Priority = 2;
-				    UnknownGrow++;
-				}
-				else
-				{
-				    u.Priority = u.Grow < Avail >> 1 ? 0 : 1;
-				}
-			}
+			UnderInfo &u = Unders.New();
+			u.Col = i;
+			u.Grow = 0;
+			u.Priority = f == SizeGrow ? 2 : 3;
+			UnknownGrow++;
+			
+			if (Debug)
+				Debug->Print("\t\tAdding[%i] fill, pri=%i\n", i, u.Priority);
 		}
-		Unders.Sort(Cmp);
-
-        int UnknownSplit = 0;
-		for (i=0; Avail>0 && i<Unders.Length(); i++)
+		else if (Max[i] > Min[i])
 		{
-		    UnderInfo &u = Unders[i];
-			if (u.Grow)
+			UnderInfo &u = Unders.New();
+			u.Col = i;
+			u.Grow = Max[i] - Min[i];
+			if (u.Grow > Avail)
 			{
-			    Min[u.Col] += u.Grow;
-			    Avail -= u.Grow;
+			    u.Grow = 0;
+			    u.Priority = 2;
+			    UnknownGrow++;
 			}
 			else
 			{
-			    if (!UnknownSplit)
-			        UnknownSplit = Avail / UnknownGrow;
-			    if (!UnknownSplit)
-			        UnknownSplit = Avail;
-			        
-			    Min[u.Col] += UnknownSplit;
-			    Avail -= UnknownSplit;
+			    u.Priority = u.Grow < Avail >> 1 ? 0 : 1;
 			}
+
+			if (Debug)
+				Debug->Print("\t\tAdding[%i] grow, pri=%i\n", i, u.Priority);
+		}
+	}
+	
+	Unders.Sort(Cmp);
+
+    int UnknownSplit = 0;
+	for (i=0; Avail>0 && i<Unders.Length(); i++)
+	{
+	    UnderInfo &u = Unders[i];
+		if (u.Grow)
+		{
+			if (Debug)
+				Debug->Print("\t\tGrow[%i] %i += %i\n", i, Min[u.Col], u.Grow);
+
+		    Min[u.Col] += u.Grow;
+		    Avail -= u.Grow;
+		}
+		else
+		{
+		    if (!UnknownSplit)
+		        UnknownSplit = Avail / UnknownGrow;
+		    if (!UnknownSplit)
+		        UnknownSplit = Avail;
+		        
+			if (Debug)
+				Debug->Print("\t\tFill[%i] %i += %i\n", i, Min[u.Col], UnknownSplit);
+
+		    Min[u.Col] += UnknownSplit;
+		    Avail -= UnknownSplit;
 		}
 	}
 }
 
-void DistributeSize(GArray<int> &a, GArray<CellFlag> &Flags, int Start, int Span, int Size, int Border)
+static void
+DistributeSize(	GArray<int> &a,
+				GArray<CellFlag> &Flags,
+				int Start, int Span,
+				int Size,
+				int Border,
+				GStream *Debug = NULL)
 {
 	// Calculate the current size of the cells
 	int Cur = -Border;
@@ -154,154 +176,84 @@ void DistributeSize(GArray<int> &a, GArray<CellFlag> &Flags, int Start, int Span
 	}
 
 	// Is there more to allocate?
-	if (Cur < Size)
-	{
-		// Get list of growable cells
-		GArray<int> Grow, Fill;
-		int ExistingGrowSize = 0;
-		int ExistingFillSize = 0;
+	if (Cur >= Size)
+		return;
 
-		for (int i=Start; i<Start+Span; i++)
-		{
-		    switch (Flags[i])
+	// Get list of growable cells
+	GArray<int> Grow, Fill;
+	int ExistingGrowPx = 0;
+	int ExistingFillPx = 0;
+
+	if (Debug)
+	{
+		int as=0;
+	}
+
+	for (int i=Start; i<Start+Span; i++)
+	{
+	    switch (Flags[i])
+	    {
+			default:
+				break;
+	        case SizeGrow:
 		    {
-				default:
-					break;
-		        case SizeGrow:
-			    {
-				    Grow.Add(i);
-				    ExistingGrowSize += a[i];
-				    break;
-			    }
-			    case SizeFill:
-			    {
-				    Fill.Add(i);
-				    ExistingFillSize += a[i];
-			        break;
-			    }
-			}
-		}
-
-		int AdditionalSize = Size - Cur;
-		if (Fill.Length())
-		{
-			// Distribute size amongst the growable cells
-			int PerFillSize = AdditionalSize / Fill.Length();
-			if (PerFillSize <= 0)
-			    PerFillSize = 1;
-			    
-			for (int i=0; i<Fill.Length(); i++)
-			{
-				int Cell = Fill[i];
-				int Add = i == Fill.Length() - 1 ? AdditionalSize : PerFillSize;
-				a[Cell] = a[Cell] + Add;
-				AdditionalSize -= Add;
-			}
-		}
-		else if (Grow.Length())
-		{
-			// Distribute size amongst the growable cells
-			int AdditionalSize = Size - Cur;
-			for (int i=0; i<Grow.Length(); i++)
-			{
-				int Cell = Grow[i];
-				int Add;
-				if (a[Cell] && ExistingGrowSize)
-				    Add = a[Cell] * AdditionalSize / ExistingGrowSize;
-				else
-				    Add = max(1, AdditionalSize / Grow.Length());
-				a[Cell] = a[Cell] + Add;
-			}
-		}
-		else
-		{
-			// Distribute size amongst the cells
-			int Needs = Size - Cur;
-			int Part = Needs / Span;
-			for (int k=0; k<Span; k++)
-			{
-				int Add = k < Span - 1 ? Part : Needs;
-				a[Start+k] = a[Start+k] + Add;
-				Needs -= Add;
-			}
+			    Grow.Add(i);
+			    ExistingGrowPx += a[i];
+			    break;
+		    }
+		    case SizeFill:
+		    {
+			    Fill.Add(i);
+			    ExistingFillPx += a[i];
+		        break;
+		    }
 		}
 	}
-}
 
-/*
-static uint32 NextChar(char *s)
-{
-	int Len = 0;
-	while (s[Len] && Len < 6) Len++;
-	return LgiUtf8To32((uint8*&)s, Len);
-}
-
-int LayoutTextCtrl(GView *v, int Offset, int Width)
-{
-	int Ht = 0;
-
-	char *t = v->Name();
-	GFont *f = v->GetFont();
-	if (t && f)
+	int AdditionalSize = Size - Cur;
+	if (Fill.Length())
 	{
-		int y = f->GetHeight();
-
-		char *end = t + strlen(t);
-		for (char *s = t; s && *s; )
+		// Distribute size amongst the growable cells
+		int PerFillSize = AdditionalSize / Fill.Length();
+		if (PerFillSize <= 0)
+		    PerFillSize = 1;
+		    
+		for (int i=0; i<Fill.Length(); i++)
 		{
-			// Find the end of the line...
-			int MaxLine = 0;
-			while (s[MaxLine] && s[MaxLine] != '\n' && MaxLine < 1000)
-				MaxLine++;
-			if (!MaxLine)
-			{
-				if (s[MaxLine] == '\n')
-				{
-					s++;
-					Ht += y;
-					continue;
-				}
-				break;
-			}
-
-			// Create a string to measure...
-			LgiAssert(s + MaxLine <= end);
-			GDisplayString d(f, s, MaxLine);
-			if (!(const OsChar*)d)
-			{
-				LgiAssert(0);
-				break;
-			}
-
-			// Find break point
-			int Ch = d.CharAt(Width);
-			if (Ch < 0)
-			{
-				LgiAssert(0);
-				break;
-			}
-
-			char *e = LgiSeekUtf8(s, Ch);
-			while (	*e &&
-					*e != '\n' &&
-					e > s)
-			{
-				uint32 c = NextChar(e);
-
-				if (LGI_BreakableChar(c))
-					break;
-
-				e = LgiSeekUtf8(e, -1, t);
-			}
-
-			s = *e ? LgiSeekUtf8(e, 1) : e;
-			Ht += y;
+			int Cell = Fill[i];
+			int Add = i == Fill.Length() - 1 ? AdditionalSize : PerFillSize;
+			a[Cell] = a[Cell] + Add;
+			AdditionalSize -= Add;
 		}
 	}
-
-	return Ht;
+	else if (Grow.Length())
+	{
+		// Distribute size amongst the growable cells
+		int AdditionalSize = Size - Cur;
+		for (int i=0; i<Grow.Length(); i++)
+		{
+			int Cell = Grow[i];
+			int Add;
+			if (a[Cell] && ExistingGrowPx)
+			    Add = a[Cell] * AdditionalSize / ExistingGrowPx;
+			else
+			    Add = max(1, AdditionalSize / Grow.Length());
+			a[Cell] = a[Cell] + Add;
+		}
+	}
+	else
+	{
+		// Distribute size amongst the cells
+		int Needs = Size - Cur;
+		int Part = Needs / Span;
+		for (int k=0; k<Span; k++)
+		{
+			int Add = k < Span - 1 ? Part : Needs;
+			a[Start+k] = a[Start+k] + Add;
+			Needs -= Add;
+		}
+	}
 }
-*/
 
 GCss::LengthType ConvertAlign(char *s, bool x_axis)
 {
@@ -353,6 +305,7 @@ public:
 class GTableLayoutPrivate
 {
 	bool InLayout;
+	bool DebugLayout;
 
 public:
 	GArray<double> Rows, Cols;
@@ -617,6 +570,9 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 				if (c->Inf.Width.Min)
 				{
 					Min = max(Min, c->Inf.Width.Min);
+					if (c->Inf.Width.Max > c->Inf.Width.Min &&
+						Flag == SizeUnknown)
+						Flag = SizeGrow;
 				}
 			}
 			else if (Izza(GButton))
@@ -1012,6 +968,7 @@ void TableCell::PostLayout()
 GTableLayoutPrivate::GTableLayoutPrivate(GTableLayout *ctrl)
 {
 	InLayout = false;
+	DebugLayout = false;
 	Ctrl = ctrl;
 	FirstLayout = true;
 	CellSpacing = GTableLayout::CellSpacing;
@@ -1095,8 +1052,8 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 	MaxCol.Length(0);
 	MinRow.Length(0);
 	MaxRow.Length(0);
-	ColFlags.Length(Cols.Length());
-	RowFlags.Length(Rows.Length());
+	ColFlags.Length(0);
+	RowFlags.Length(0);
 		
 	// Do pre-layout to determine minimum and maximum column widths
 	for (Cy=0; Cy<Rows.Length(); Cy++)
@@ -1112,6 +1069,10 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 					c->Cell.X() == 1 &&
 					c->Cell.Y() == 1)
 				{
+					if (DebugLayout)
+					{
+						int asd=0;
+					}
 					c->PreLayout(MinCol[Cx], MaxCol[Cx], ColFlags[Cx]);
 				}
 
@@ -1123,11 +1084,15 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 	}
 
 	#if DEBUG_LAYOUT
-	Dbg.Print("Layout Id=%i, Size=%i,%i\n", Ctrl->GetId(), Client.X(), Client.Y());
-
-	for (i=0; i<Cols.Length(); i++)
+	if (DebugLayout)
 	{
-		Dbg.Print("\tColBeforeSpan[%i]: min=%i max=%i (%s)\n", i, MinCol[i], MaxCol[i], FlagToString(ColFlags[i]));
+		Dbg.Print("Layout Id=%i, Size=%i,%i\n", Ctrl->GetId(), Client.X(), Client.Y());
+		for (i=0; i<Cols.Length(); i++)
+		{
+			Dbg.Print("\tLayoutHorizontal.AfterSingle[%i]: min=%i max=%i (%s)\n",
+				i, MinCol[i], MaxCol[i],
+				FlagToString(ColFlags[i]));
+		}
 	}
 	#endif
 
@@ -1141,10 +1106,15 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 			{
 				if (c->Cell.x1 == Cx &&
 					c->Cell.y1 == Cy &&
-					(c->Cell.X() > 1 || c->Cell.Y() > 1))
+					c->Cell.X() > 1)
 				{
 					int Min = 0, Max = 0;
 					CellFlag Flag = SizeUnknown;
+
+					if (DebugLayout)
+					{
+						int sd=0;
+					}
 
 					if (c->Width().IsValid())
 					{
@@ -1160,17 +1130,40 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 						Max = Client.X();
 					if (Flag)
 					{
+						bool HasFlag = false;
+						bool HasUnknown = false;
 						for (i=c->Cell.x1; i<=c->Cell.x2; i++)
 						{
 							if (ColFlags[i] == Flag)
-								break;
-							if (!ColFlags[i])
-								ColFlags[i] = Flag;
+							{
+								HasFlag = true;
+							}
+							else if (ColFlags[i] == SizeUnknown)
+							{
+								HasUnknown = true;
+							}
+						}
+						
+						if (!HasFlag)
+						{
+							for (i=c->Cell.x1; i<=c->Cell.x2; i++)
+							{
+								if (HasUnknown)
+								{
+									if (ColFlags[i] == SizeUnknown)
+										ColFlags[i] = Flag;
+								}
+								else
+								{
+									if (ColFlags[i] < Flag)
+										ColFlags[i] = Flag;
+								}
+							}
 						}
 					}
-
+					
 					DistributeSize(MinCol, ColFlags, c->Cell.x1, c->Cell.X(), Min, CellSpacing);
-					DistributeSize(MaxCol, ColFlags, c->Cell.x1, c->Cell.X(), Flag >= SizeGrow ? Client.X() : Max, CellSpacing);
+					// DistributeSize(MaxCol, ColFlags, c->Cell.x1, c->Cell.X(), Max, CellSpacing, DebugLayout?&Dbg:NULL);
 				}
 
 				Cx += c->Cell.X();
@@ -1187,19 +1180,25 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 	}
 
 	#if DEBUG_LAYOUT
-	for (i=0; i<Cols.Length(); i++)
+	if (DebugLayout)
 	{
-		Dbg.Print("\tColBefore[%i]: min=%i max=%i (%s)\n", i, MinCol[i], MaxCol[i], FlagToString(ColFlags[i]));
+		for (i=0; i<Cols.Length(); i++)
+		{
+			Dbg.Print("\tLayoutHorizontal.AfterSpanned[%i]: min=%i max=%i (%s)\n", i, MinCol[i], MaxCol[i], FlagToString(ColFlags[i]));
+		}
 	}
 	#endif
 
 	// Now allocate unused space
-	DistributeUnusedSpace(MinCol, MaxCol, ColFlags, Client.X(), CellSpacing);
+	DistributeUnusedSpace(MinCol, MaxCol, ColFlags, Client.X(), CellSpacing, DebugLayout?&Dbg:NULL);
 
 	#if DEBUG_LAYOUT
-	for (i=0; i<Cols.Length(); i++)
+	if (DebugLayout)
 	{
-		Dbg.Print("\tColAfter[%i]: min=%i max=%i (%s)\n", i, MinCol[i], MaxCol[i], FlagToString(ColFlags[i]));
+		for (i=0; i<Cols.Length(); i++)
+		{
+			Dbg.Print("\tLayoutHorizontal.AfterDist[%i]: min=%i max=%i (%s)\n", i, MinCol[i], MaxCol[i], FlagToString(ColFlags[i]));
+		}
 	}
 	#endif
 	
@@ -1227,8 +1226,6 @@ void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, Ce
 {
 	int Cx, Cy, i;
 
-	// printf("\t\t\trows=%i row[0]=%i\n", MinRow.Length(), MinRow[0]);
-
 	// Do row height layout for single cells
 	for (Cy=0; Cy<Rows.Length(); Cy++)
 	{
@@ -1243,8 +1240,6 @@ void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, Ce
 					int x = CountRange<int>(MinCol, c->Cell.x1, c->Cell.x2) +
 							((c->Cell.X() - 1) * CellSpacing);
 					c->Layout(x, MinRow[Cy], MaxRow[Cy], RowFlags[Cy]);
-					
-					// printf("\t\t\trow layout %i,%i = %i,%i\n", c->Cell.x1, c->Cell.y1, MinRow[Cy], MaxRow[Cy]);
 				}
 
 				Cx += c->Cell.X();
@@ -1301,9 +1296,12 @@ void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, Ce
 	}
 
 	#if DEBUG_LAYOUT
-	for (i=0; i<Rows.Length(); i++)
+	if (DebugLayout)
 	{
-		Dbg.Print("\tRowBefore[%i]: min=%i max=%i (%s)\n", i, MinRow[i], MaxRow[i], FlagToString(RowFlags[i]));
+		for (i=0; i<Rows.Length(); i++)
+		{
+			Dbg.Print("\tLayoutVertical.AfterSpanned[%i]: min=%i max=%i (%s)\n", i, MinRow[i], MaxRow[i], FlagToString(RowFlags[i]));
+		}
 	}
 	#endif
 
@@ -1311,16 +1309,19 @@ void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, Ce
 	DistributeUnusedSpace(MinRow, MaxRow, RowFlags, Client.Y(), CellSpacing);
 	
 	#if DEBUG_LAYOUT
-	for (i=0; i<Rows.Length(); i++)
+	if (DebugLayout)
 	{
-		Dbg.Print("\tRowAfter[%i]: min=%i max=%i (%s)\n", i, MinRow[i], MaxRow[i], FlagToString(RowFlags[i]));
+		for (i=0; i<Rows.Length(); i++)
+		{
+			Dbg.Print("\tLayoutVertical.AfterDist[%i]: min=%i max=%i (%s)\n", i, MinRow[i], MaxRow[i], FlagToString(RowFlags[i]));
+		}
+		for (i=0; i<Cols.Length(); i++)
+		{
+			Dbg.Print("\tLayoutVertical.Final[%i]=%i\n", i, MinCol[i]);
+		}
+		GAutoString DbgStr(Dbg.NewStr());
+		LgiTrace("%s", DbgStr.Get());
 	}
-	for (i=0; i<Cols.Length(); i++)
-	{
-		Dbg.Print("\tFinalCol[%i]=%i\n", i, MinCol[i]);
-	}
-	GAutoString DbgStr(Dbg.NewStr());
-	LgiTrace("%s", DbgStr.Get());
 	#endif
 
 	// Collect together our sizes
@@ -1389,15 +1390,19 @@ void GTableLayoutPrivate::Layout(GRect &Client)
     {    
         LgiAssert(!"In layout, no recursion should happen.");
         return;
-    }    
+    }
         
     InLayout = true;
+    
+    #if DEBUG_LAYOUT
+    DebugLayout = Ctrl->GetId() == DEBUG_LAYOUT;
+    #endif
 
 	#if DEBUG_PROFILE
 	int64 Start = LgiCurrentTime();
 	#endif
 	
-	if (Ctrl->GetId() == 889)
+	if (Ctrl->GetId() == 535)
 	{
 		int asd=0;
 	}	
