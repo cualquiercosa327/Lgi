@@ -1106,7 +1106,7 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 			{
 				if (c->Cell.x1 == Cx &&
 					c->Cell.y1 == Cy &&
-					c->Cell.X() > 1)
+					(c->Cell.X() > 1 || c->Cell.Y() > 1))
 				{
 					int Min = 0, Max = 0;
 					CellFlag Flag = SizeUnknown;

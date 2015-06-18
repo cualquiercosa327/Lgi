@@ -476,8 +476,7 @@ public:
 			Log = Code->SysContext->GetLog();
 		else if (Code->UserContext && Code->UserContext->GetLog())
 			Log = Code->UserContext->GetLog();
-		else
-			LgiTrace("%s:%i - Execution without a log?\n", _FL);
+		// else LgiTrace("%s:%i - Execution without a log?\n", _FL);
 			
 		LgiAssert(sizeof(GVarRef) == 4);
 
