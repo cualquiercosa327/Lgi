@@ -109,6 +109,7 @@ char16 *GHtmlParser::DecodeEntities(const char *s, int len)
 				{
 					// Unicode Number
 					char n[32] = "", *p = n;
+					char16 Ch;
 					
 					i++;
 					
@@ -126,6 +127,8 @@ char16 *GHtmlParser::DecodeEntities(const char *s, int len)
 						{
 							*p++ = *i++;
 						}
+						*p++ = 0;
+						Ch = htoi(n);
 					}
 					else
 					{
@@ -134,14 +137,12 @@ char16 *GHtmlParser::DecodeEntities(const char *s, int len)
 						{
 							*p++ = *i++;
 						}
+						*p++ = 0;
+						Ch = atoi(n);
 					}
-					*p++ = 0;
 					
-					char16 Ch = atoi(n);
 					if (Ch)
-					{
 						*o++ = Ch;
-					}
 					
 					if (*i && *i != ';')
 						i--;
@@ -291,6 +292,12 @@ char *GHtmlParser::ParsePropList(char *s, GHtmlElement *Obj, bool &Closed)
 
 			if (Name && Value)
 			{
+				#if defined(_DEBUG) && 0
+				if (!_stricmp(Name, "debug"))
+				{
+					int asd=0;
+				}
+				#endif
 				Obj->Set(Name, Value);
 			}
 
