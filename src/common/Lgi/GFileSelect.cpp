@@ -22,6 +22,7 @@
 #include "GCombo.h"
 #include "GTree.h"
 #include "GTableLayout.h"
+#include "GBox.h"
 
 #define FSI_FILE			0
 #define FSI_DIRECTORY		1
@@ -351,18 +352,23 @@ public:
 #define IDC_FILE					1010
 #define IDC_TYPE					1011
 #define IDC_SHOWHIDDEN				1012
+#define IDC_SUB_TBL					1013
+#define IDC_BOOKMARKS				1014
 
 class GFileSelectDlg :
 	public GDialog
 {
 	GRect OldPos;
 	GRect MinSize;
+	GArray<GString> Links;
 	
 public:
 	GFileSelectPrivate *d;
 
 	GTableLayout *Tbl;
+	GBox *Sub;
 
+	GTree *Bookmarks;
 	GText *Ctrl1;
 	GEdit *Ctrl2;
 	GFolderDrop *Ctrl3;
@@ -401,6 +407,34 @@ public:
 
 		return false;
 	}
+	
+	void Add(GTreeItem *i, GVolume *v)
+	{
+		if (!i || !v)
+			return;
+		i->SetText(v->Name(), 0);
+		i->SetText(v->Path(), 1);
+		
+		for (unsigned n=0; n<Links.Length(); n++)
+		{
+			if (v->Path() && !_stricmp(v->Path(), Links[n]))
+			{
+				Links.DeleteAt(n--);
+				break;
+			}
+		}
+		
+		for (GVolume *cv = v->First(); cv; cv = cv->Next())
+		{
+			GTreeItem *ci = new GTreeItem;
+			if (ci)
+			{
+				i->Insert(ci);
+				i->Expanded(true);
+				Add(ci, cv);
+			}
+		}
+	}
 };
 
 GFileSelectDlg::GFileSelectDlg(GFileSelectPrivate *select)
@@ -419,6 +453,8 @@ GFileSelectDlg::GFileSelectDlg(GFileSelectPrivate *select)
 	UpBtn = 0;
 	NewDirBtn = 0;
 	Ctrl2 = 0;
+	Sub = NULL;
+	Bookmarks = NULL;
 
 	d = select;
 	SetParent(d->Parent);
@@ -447,7 +483,10 @@ GFileSelectDlg::GFileSelectDlg(GFileSelectPrivate *select)
 	// 2nd row
 	x = 0; y++;
 	c = Tbl->GetCell(x, y, true, 6, 1);
-	c->Add(FileLst = new GFolderList(this, IDC_VIEW, 14, 35, 448, 226));
+	c->Add(Sub = new GBox(IDC_SUB_TBL));
+	Sub->AddView(Bookmarks = new GTree(IDC_BOOKMARKS, 0, 0, -1, -1));
+	Bookmarks->GetCss(true)->Width(GCss::Len(GCss::LenPx, 150.0));
+	Sub->AddView(FileLst = new GFolderList(this, IDC_VIEW, 14, 35, 448, 226));
 	
 	// 3rd row
 	x = 0; y++;
@@ -473,7 +512,6 @@ GFileSelectDlg::GFileSelectDlg(GFileSelectPrivate *select)
 	x = 0; y++;
 	c = Tbl->GetCell(x++, y, true, 6);
 	c->Add(ShowHidden = new GCheckBox(IDC_SHOWHIDDEN, 14, 326, -1, -1, "Show hidden files."));
-	
 
 	// Init
 	if (BackBtn)
@@ -538,6 +576,26 @@ GFileSelectDlg::GFileSelectDlg(GFileSelectPrivate *select)
 
 	RegisterHook(this, GKeyEvents);
 	FileLst->Focus(true);
+	
+	LgiGetUsersLinks(Links);
+	GTreeItem *RootItem = new GTreeItem;
+	if (RootItem)
+	{
+		Bookmarks->Insert(RootItem);
+		Add(RootItem, FileDev->GetRootVolume());
+	}
+	for (unsigned n=0; n<Links.Length(); n++)
+	{
+		GTreeItem *ci = new GTreeItem;
+		if (ci)
+		{
+			char *p = Links[n];
+			char *leaf = strrchr(p, DIR_CHAR);
+			ci->SetText(leaf?leaf+1:p, 0);
+			ci->SetText(p, 1);
+			RootItem->Insert(ci);
+		}
+	}
 }
 
 GFileSelectDlg::~GFileSelectDlg()
@@ -610,6 +668,23 @@ int GFileSelectDlg::OnNotify(GViewI *Ctrl, int Flags)
 {
 	switch (Ctrl->GetId())
 	{
+		case IDC_BOOKMARKS:
+		{
+			if (Flags == GITEM_NOTIFY_SELECT && Bookmarks)
+			{
+				GTreeItem *s = Bookmarks->Selection();
+				if (s)
+				{
+					char *p = s->GetText(1);
+					if (DirExists(p))
+					{
+						SetCtrlName(IDC_PATH, p);
+						OnFolder();
+					}
+				}
+			}
+			break;
+		}
 		case IDC_PATH:
 		{
 			if (Flags == VK_RETURN)
@@ -1614,3 +1689,52 @@ bool GFileSelect::Save()
 	return Dlg.DoModal() == IDOK;
 }
 
+///////////////////////////////////////////////////////////////////////////////////
+#if defined(LINUX)
+#include "GUri.h"
+#endif
+bool LgiGetUsersLinks(GArray<GString> &Links)
+{
+	GString Folder = LgiGetSystemPath(LSP_USER_LINKS);
+	if (!Folder)
+		return false;
+	
+	#if defined(WINDOWS)
+		GDirectory d;
+		for (int b = d.First(Folder); b; b = d.Next())
+		{
+			char *s = d.GetName();
+			if (s && stristr(s, ".lnk"))
+			{
+				char lnk[MAX_PATH];
+				if (d.Path(lnk, sizeof(lnk)) &&
+					ResolveShortcut(lnk, lnk, sizeof(lnk)))
+				{
+					Links.New() = lnk;
+				}
+			}
+		}		
+	#elif defined(LINUX)
+		char p[MAX_PATH];
+		if (!LgiMakePath(p, sizeof(p), Folder, "Bookmarks"))
+			return false;
+
+		GAutoString Txt(ReadTextFile(p));
+		if (!Txt)
+			return false;		
+
+		GString s = Txt;
+		GString::Array a = s.Split("\n");
+		for (unsigned i=0; i<a.Length(); i++)
+		{
+			GUri u(a[i]);
+			if (u.Protocol && !_stricmp(u.Protocol, "file"))
+				Links.New() = u.Path;
+		}
+	#else
+		LgiAssert(!"Not impl yet.");
+		return false;
+	#endif
+	
+	return true;
+}

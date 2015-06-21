@@ -186,7 +186,11 @@ LgiFunc void _lgi_sleep(int i);
 /// Drag and drop format for a file
 #define LGI_FileDropFormat			"text/uri-list"
 #define LGI_IllegalFileNameChars	"\t\r\n/\\:*?\"<>|"
+#ifdef WINDOWS
+#define LGI_WideCharset				"ucs-2"
+#else
 #define LGI_WideCharset				"utf-32"
+#endif
 #define LGI_PrintfInt64				"%Li"
 
 #ifndef SND_ASYNC

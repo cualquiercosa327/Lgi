@@ -550,6 +550,12 @@ enum LgiSystemPath
 	/// This is the user's download folder
 	///		~\Downloads
 	LSP_USER_DOWNLOADS,
+
+	/// This is the user's links folder
+	///		[Win32] = ~\Links
+	///		[Mac]   = ???
+	///		[Linux] = ???
+	LSP_USER_LINKS,
 };
 
 // Deprecated method defines

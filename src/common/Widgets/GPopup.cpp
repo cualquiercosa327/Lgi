@@ -975,6 +975,8 @@ void GDropDown::OnPaint(GSurface *pDC)
 {
 	GRect r = GetClient();
 	r.Offset(-r.x1, -r.y1);
+	if (!r.Valid())
+		return;
 
 	if (GApp::SkinEngine &&
 		TestFlag(GApp::SkinEngine->GetFeatures(), GSKIN_BUTTON))

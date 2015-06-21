@@ -558,6 +558,15 @@ LgiCursor GBox::GetCursor(int x, int y)
 		return LCUR_Normal;
 }
 
+bool GBox::OnLayout(GViewLayoutInfo &Inf)
+{
+	Inf.Width.Min = -1;
+	Inf.Width.Max = -1;
+	Inf.Height.Min = -1;
+	Inf.Height.Max = -1;
+	return true;
+}
+
 bool GBox::Serialize(GDom *Dom, const char *OptName, bool Write)
 {
 	if (Write)
@@ -566,6 +575,8 @@ bool GBox::Serialize(GDom *Dom, const char *OptName, bool Write)
 	else
 	{
 	}
+
+	LgiAssert(0);
 	
 	return false;
 }

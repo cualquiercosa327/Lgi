@@ -40,6 +40,7 @@ public:
 	GMessage::Param OnEvent(GMessage *Msg);
 	bool Pour(GRegion &r);
 	LgiCursor GetCursor(int x, int y);
+	bool OnLayout(GViewLayoutInfo &Inf);
 
 	bool Serialize(GDom *Dom, const char *OptName, bool Write);	
 	bool SetSize(int ViewIndex, GCss::Len Size);

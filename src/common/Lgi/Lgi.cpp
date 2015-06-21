@@ -818,6 +818,9 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 	GString Path;
 
 	#if defined(WIN32)
+		#ifndef CSIDL_PROFILE
+			#define CSIDL_PROFILE						0x0028
+		#endif 
 		#if !defined(CSIDL_MYDOCUMENTS)
 			#define CSIDL_MYDOCUMENTS					0x0005
 		#endif
@@ -914,6 +917,28 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 						Path = Buf;
 				}
 			}
+
+			#else
+
+			LgiAssert(!"Not implemented");
+
+			#endif
+			break;
+		}
+		case LSP_USER_LINKS:
+		{
+			GString Home = LgiGetSystemPath(LSP_HOME);
+			char p[MAX_PATH];
+			
+			#if defined(WIN32)
+
+			if (LgiMakePath(p, sizeof(p), Home, "Links"))
+				Path = p;
+
+			#elif defined(LINUX)
+
+			if (LgiMakePath(p, sizeof(p), Home, ".config/gtk-3.0"))
+				Path = p;
 
 			#else
 
@@ -1270,10 +1295,6 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 		case LSP_HOME:
 		{
 			#if defined WIN32
-
-			#ifndef CSIDL_PROFILE
-			#define CSIDL_PROFILE 0x0028
-			#endif 
 
 			Path = WinGetSpecialFolderPath(CSIDL_PROFILE);
 

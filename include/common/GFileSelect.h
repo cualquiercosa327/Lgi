@@ -1,6 +1,8 @@
 #ifndef __GFILE_SELECT_H
 #define __GFILE_SELECT_H
 
+LgiFunc bool LgiGetUsersLinks(GArray<GString> &Links);
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // File select dialog
 class LgiClass GFileType : public GBase
