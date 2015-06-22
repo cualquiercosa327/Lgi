@@ -116,6 +116,7 @@ public:
 				}
 			}
 		}
+		
 		return Ds[Col];
 	}
 	
@@ -1513,6 +1514,7 @@ void GTree::OnMouseClick(GMouse &m)
 			d->LastClick.y = m.y;
 
 			d->LastHit = ItemAtPoint(m.x, m.y);
+			m.Trace("ItemClick");
 			if (d->LastHit)
 			{
 				GdcPt2 c = _ScrollPos();
@@ -1899,7 +1901,6 @@ void GTree::SelectDropTarget(GTreeItem *Item)
 		GTreeItem *Old = d->DropTarget;
 		
 		d->DropTarget = Item;
-		// printf("    Setting DropTarget = %p\n", d->DropTarget);
 		if (Old)
 		{
 			Old->Update();

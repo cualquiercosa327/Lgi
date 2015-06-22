@@ -1691,7 +1691,7 @@ bool GFileSelect::Save()
 
 ///////////////////////////////////////////////////////////////////////////////////
 #if defined(LINUX)
-#include "GUri.h"
+#include "INet.h"
 #endif
 bool LgiGetUsersLinks(GArray<GString> &Links)
 {
@@ -1716,14 +1716,20 @@ bool LgiGetUsersLinks(GArray<GString> &Links)
 		}		
 	#elif defined(LINUX)
 		char p[MAX_PATH];
-		if (!LgiMakePath(p, sizeof(p), Folder, "Bookmarks"))
+		if (!LgiMakePath(p, sizeof(p), Folder, "bookmarks"))
+		{
+			LgiTrace("%s:%i - Failed to make path '%s'\n", _FL, Folder.Get());
 			return false;
+		}
 
 		GAutoString Txt(ReadTextFile(p));
 		if (!Txt)
-			return false;		
+		{
+			LgiTrace("%s:%i - failed to read '%s'\n", _FL, p);
+			return false;
+		}
 
-		GString s = Txt;
+		GString s = Txt.Get();
 		GString::Array a = s.Split("\n");
 		for (unsigned i=0; i<a.Length(); i++)
 		{

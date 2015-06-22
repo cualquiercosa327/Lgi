@@ -309,11 +309,8 @@ GApp::GApp(OsAppArguments &AppArgs, const char *name, GAppArguments *Args) :
 	if (SysFontType.GetSystemFont("System"))
 	{
 		SystemNormal = SysFontType.Create();
-
 		if (SystemNormal)
-		{
 			SystemNormal->Transparent(true);
-		}
 		
 		SystemBold = SysFontType.Create();
 		if (SystemBold)
