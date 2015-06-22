@@ -16,3 +16,7 @@ void LgiShowFileProperties(OsView Parent, const char *Filename)
 	NSPerformService(@"Finder/Show Info", pboard);
 }
 
+bool LgiBrowseToFile(const char *Filename)
+{
+	return false;
+}

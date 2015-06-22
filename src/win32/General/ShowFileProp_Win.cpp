@@ -17,3 +17,10 @@ void LgiShowFileProperties(OsView Parent, const char *Filename)
 	info.fMask = SEE_MASK_INVOKEIDLIST;
 	ShellExecuteEx(&info);
 }
+
+bool LgiBrowseToFile(const char *Filename)
+{
+	char Args[MAX_PATH];
+	sprintf(Args, "/e,/select,\"%s\"", Filename);
+	return LgiExecute("explorer", Args);
+}
