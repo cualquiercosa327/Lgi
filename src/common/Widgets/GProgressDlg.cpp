@@ -100,10 +100,11 @@ Progress &Progress::operator =(Progress &p)
 #define IDC_RATE				102
 #define IDC_PROGRESS			103
 #define IDC_BUTTON				104
+#define IDC_TABLE				105
 
 #if 1
 #define PANE_X					300
-#define PANE_Y					130
+#define PANE_Y					100
 #else
 #define PANE_X					260
 #define PANE_Y					85
@@ -118,7 +119,7 @@ GProgressPane::GProgressPane()
 	Wait = false;
 	Ref = 0;
 
-	if (AddView(t = new GTableLayout))
+	if (AddView(t = new GTableLayout(IDC_TABLE)))
 	{
 		OnPosChange();
 		
@@ -161,6 +162,7 @@ void GProgressPane::SetLimits(int64 l, int64 h)
 void GProgressPane::Value(int64 v)
 {
 	char Str[256];
+	bool Update = false;
 
 	Progress::Value(v);
 	if (Start == 0)
@@ -185,7 +187,7 @@ void GProgressPane::Value(int64 v)
 		}
 		
 		sprintf_s(Str, sizeof(Str), "@ %.2f %s / sec", PerSec * Scale, (Type) ? Type : "");
-		Rate->Name(Str);
+		Update |= Rate->Name(Str);
 	}
 
 	if (ValText)
@@ -205,7 +207,7 @@ void GProgressPane::Value(int64 v)
 				(Type) ? Type : "");
 		}
 		
-		ValText->Name(Str);
+		Update |= ValText->Name(Str);
 	}
 
 	if (Bar)
@@ -226,6 +228,9 @@ void GProgressPane::Value(int64 v)
 			Bar->Value(0);
 		}
 	}
+	
+	if (Update && ValText)
+		ValText->SendNotify(GTABLELAYOUT_REFRESH);
 }
 
 void GProgressPane::OnCreate()
@@ -326,6 +331,25 @@ GProgressDlg::~GProgressDlg()
 	EndModeless(true);
 }
 
+bool GProgressDlg::OnRequestClose(bool OsClose)
+{
+	if (Wait)
+	{
+		for (int i=0; i<Progri.Length(); i++)
+		{
+			GProgressPane *pp = Progri[i];
+			if (pp)
+			{
+				pp->Cancel(true);
+			}
+		}
+		
+		return false;
+	}
+	
+	return GDialog::OnRequestClose(OsClose);
+}
+
 void GProgressDlg::Resize()
 {
 	GRect r, c = GetPos();
@@ -363,7 +387,25 @@ void GProgressDlg::OnCreate()
 
 void GProgressDlg::OnPosChange()
 {
-	Resize();
+	GRect c = GetClient();
+	
+	// Layout all the panes...
+	int y = 0;
+	for (int i=0; i<Progri.Length(); i++)
+	{
+		GProgressPane *p = Progri[i];
+		if (p)
+		{
+			GRect r = p->GetPos();
+			r.Offset(0, y-r.y1);
+			r.x2 = c.x2;
+			
+			p->SetPos(r);
+			p->Visible(true);
+			
+			y = r.y2 + 1;
+		}
+	}
 }
 
 GMessage::Result GProgressDlg::OnEvent(GMessage *Msg)

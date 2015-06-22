@@ -20,7 +20,7 @@
 			<Node File="./Code/FindSymbol.cpp" Type="2" Platforms="15" />
 			<Node File="./Code/FindSymbol.h" Type="3" Platforms="15" />
 		</Node>
-		<Node Name="Source Code" Type="1" Platforms="15" Open="1">
+		<Node Name="Source Code" Type="1" Platforms="15" Open="0">
 			<Node File="../src/common/Coding/GLexCpp.cpp" Type="2" Platforms="15" />
 			<Node File="../src/common/Coding/GParseCpp.cpp" Type="2" Platforms="15" />
 			<Node File="./Code/SysCharSupport.cpp" Type="2" Platforms="15" />
@@ -78,11 +78,14 @@ WINNATIVE</Release>
 					<Debug>POSIX</Debug>
 					<Release>POSIX</Release>
 				</Linux>
+				<All />
 			</Defines>
 			<Compiler>
 				<Windows>MingW</Windows>
 			</Compiler>
-			<Arguments />
+			<Arguments>
+				<All />
+			</Arguments>
 		</General>
 		<Build>
 			<IncludePaths>
@@ -124,12 +127,14 @@ WINNATIVE</Release>
 					<Release>`pkg-config --libs gtk+-2.0`
 -static-libgcc</Release>
 				</Linux>
+				<All />
 			</Libraries>
 			<LibraryPaths>
 				<All>
 					<Debug>..\Debug</Debug>
 					<Release>..\Release</Release>
 				</All>
+				<Linux />
 			</LibraryPaths>
 			<TargetType>
 				<All>Executable</All>
@@ -155,6 +160,7 @@ C:\Data\CodeLib\Gtk\include\gtk-2.0\gdk</Debug>
 					<Release>C:\Data\CodeLib\Gtk\include\gtk-2.0\gtk
 C:\Data\CodeLib\Gtk\include\gtk-2.0\gdk</Release>
 				</Windows>
+				<Linux />
 			</SystemIncludes>
 		</Build>
 		<Editor>
@@ -170,7 +176,11 @@ C:\Data\CodeLib\Gtk\include\gtk-2.0\gdk</Release>
 			<UseHardTabs>
 				<All>1</All>
 			</UseHardTabs>
+			<CommentFile />
+			<CommentFunction />
 		</Editor>
-		<Advanced />
+		<Advanced>
+			<OtherMakefileRules />
+		</Advanced>
 	</Settings>
 </Project>

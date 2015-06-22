@@ -720,6 +720,8 @@ NativeInt GFont::GetParam()
 bool GFont::Create(const char *face, int height, NativeInt Param)
 {
 	bool FaceChanging = false;
+	bool SizeChanging = false;
+	bool ValidInitFaceSize = ValidStr(Face()) && PointSize() > 0;
 
 	if (face)
 	{
@@ -733,7 +735,18 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 	
 	if (height > 0)
 	{
+		SizeChanging = GTypeFace::d->_PtSize != height;
 		GTypeFace::d->_PtSize = height;
+	}
+	
+	if ((SizeChanging || FaceChanging) && this == SysFont && ValidInitFaceSize)
+	{
+		LgiTrace("Warning: Changing sysfont definition.\n");
+	}
+	
+	if (this == SysFont)
+	{
+		printf("Setting sysfont up '%s' %i\n", Face(), PointSize());
 	}
 
 	#if WINNATIVE
@@ -1583,6 +1596,7 @@ bool GFontType::GetSystemFont(const char *Which)
 					float Px = Gtk::pango_font_description_get_size(s->font_desc) / PANGO_SCALE;
 					float Dpi = (float)LgiScreenDpi();
 					DefSize = (Px * 72.0) / Dpi;
+					printf("pango px=%f, Dpi=%f\n", Px, Dpi);
 				}
 				else
 				{
