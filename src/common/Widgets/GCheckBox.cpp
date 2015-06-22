@@ -56,7 +56,7 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Check box
-static int PadXPx = 30;
+static int PadXPx = 24;
 #ifdef MAC
 static int PadYPx = 8;
 #else
@@ -259,11 +259,11 @@ void GCheckBox::OnPosChange()
 
 void GCheckBox::OnPaint(GSurface *pDC)
 {
-	if (d->Strs.Length() > 1)
-	{
-		int asd=0;
-	}
-
+	#if 1
+	pDC->Colour(GColour(255, 0, 255));
+	pDC->Rectangle();
+	#endif
+	
     if (GApp::SkinEngine &&
 		TestFlag(GApp::SkinEngine->GetFeatures(), GSKIN_CHECKBOX))
 	{
@@ -279,8 +279,14 @@ void GCheckBox::OnPaint(GSurface *pDC)
 		bool en = Enabled();
 		GFont *f = GetFont();
 
-		GRect r(0, 0, X()-1, Y()-1);
+		GRect r = GetClient();
+		
+		#if defined MAC && !defined COCOA
+		d->ValuePos.Set(0, 0, PadXPx, 16);
+		#else
 		d->ValuePos.Set(0, 0, 12, 12);
+		#endif
+		
 		if (d->ValuePos.y2 < r.y2)
 		{
 			pDC->Colour(LC_MED, 24);

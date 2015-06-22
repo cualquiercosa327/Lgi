@@ -187,26 +187,26 @@ struct GDisplayStringLayout
 		}
 
 		// Draw all the text
-		int y = 0;
+		int y = rc.y1;
 		for (unsigned i=0; i<Strs.Length(); i++)
 		{
 			GDisplayString *s = Strs[i];
-			GRect r(0, y, rc.X() - 1, y + s->Y() - 1);
+			GRect r(rc.x1, y, rc.x2, y + s->Y() - 1);
 			Rgn.Subtract(&r);
 
 			if (Enabled)
 			{
-				s->Draw(pDC, 0, y, &r);
+				s->Draw(pDC, rc.x1, y, &r);
 			}
 			else
 			{
 				f->Transparent(Back.Transparent());
 				f->Colour(GColour(LC_LIGHT, 24), Back);
-				s->Draw(pDC, 1, y+1, &r);
+				s->Draw(pDC, rc.x1+1, y+1, &r);
 				
 				f->Transparent(true);
 				f->Colour(LC_LOW, LC_MED);
-				s->Draw(pDC, 0, y, &r);
+				s->Draw(pDC, rc.x1, y, &r);
 			}
 			
 			y += s->Y();
@@ -216,7 +216,7 @@ struct GDisplayStringLayout
 		pDC->Colour(Back);
 		for (GRect *r=Rgn.First(); r; r=Rgn.Next())
 		{
-			pDC->Rectangle(0, y, rc.X()-1, rc.Y()-1);
+			pDC->Rectangle(r);
 		}
 	}
 };

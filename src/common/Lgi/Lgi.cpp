@@ -858,6 +858,8 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 	
 	switch (Which)
 	{
+		default:
+			break;
 		case LSP_USER_DOWNLOADS:
 		{
 			#if defined(WIN32) && defined(_MSC_VER)
