@@ -33,7 +33,7 @@ enum CellFlag
 
 #define Izza(c)				dynamic_cast<c*>(v)
 // #define DEBUG_LAYOUT		535 // define to ID of control to dump (0 to disable)
-#define DEBUG_LAYOUT		1150
+#define DEBUG_LAYOUT		24
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 
@@ -105,9 +105,11 @@ DistributeUnusedSpace(	GArray<int> &Min,
 			u.Grow = 0;
 			u.Priority = f == SizeGrow ? 2 : 3;
 			UnknownGrow++;
-			
+
+			/*			
 			if (Debug)
 				Debug->Print("\t\tAdding[%i] fill, pri=%i\n", i, u.Priority);
+			*/
 		}
 		else if (Max[i] > Min[i])
 		{
@@ -125,8 +127,10 @@ DistributeUnusedSpace(	GArray<int> &Min,
 			    u.Priority = u.Grow < Avail >> 1 ? 0 : 1;
 			}
 
+			/*
 			if (Debug)
 				Debug->Print("\t\tAdding[%i] grow, pri=%i\n", i, u.Priority);
+			*/
 		}
 	}
 	
@@ -138,8 +142,10 @@ DistributeUnusedSpace(	GArray<int> &Min,
 	    UnderInfo &u = Unders[i];
 		if (u.Grow)
 		{
+			/*
 			if (Debug)
 				Debug->Print("\t\tGrow[%i] %i += %i\n", i, Min[u.Col], u.Grow);
+			*/
 
 		    Min[u.Col] += u.Grow;
 		    Avail -= u.Grow;
@@ -150,9 +156,11 @@ DistributeUnusedSpace(	GArray<int> &Min,
 		        UnknownSplit = Avail / UnknownGrow;
 		    if (!UnknownSplit)
 		        UnknownSplit = Avail;
-		        
+		    
+		    /*    
 			if (Debug)
 				Debug->Print("\t\tFill[%i] %i += %i\n", i, Min[u.Col], UnknownSplit);
+			*/
 
 		    Min[u.Col] += UnknownSplit;
 		    Avail -= UnknownSplit;
@@ -542,7 +550,7 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 			GView *v = c->View;
 			if (!v)
 				continue;
-				
+
 			ZeroObj(c->Inf);
 			
 			const char *Cls = v->GetClass();
@@ -694,7 +702,8 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 	
 	int BtnX = 0;
 	int BtnRows = -1;
-			
+	
+	GCss::Len CssWidth = GCss::Width();
 	Width -= Padding.x1 + Padding.x2;
 	LgiAssert(Width >= 0);
 	
@@ -705,6 +714,15 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 		if (!v)
 			continue;
 
+		if (CssWidth.Type != LenInherit)
+		{
+			// In the case where the CSS width is set, we need to default the
+			// OnLayout info with valid widths otherwise the OnLayout calls will
+			// not fill out the height, but initialise the width instead.
+			c->Inf.Width.Min = Width;
+			c->Inf.Width.Max = Width;
+		}
+		
 		const char *Cls = v->GetClass();
 		GTableLayout *Tbl = NULL;
 		GRadioGroup *Grp;
@@ -854,7 +872,7 @@ void TableCell::PostLayout()
 			v->Visible(false);
 			continue;
 		}
-			
+		
 		GTableLayout *Tbl = Izza(GTableLayout);
 		GRect r = v->GetPos();
 		r.Offset(Pos.x1 - r.x1 + Cx, Pos.y1 - r.y1 + Cy);
