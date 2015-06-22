@@ -1,4 +1,5 @@
 #include "Lgi.h"
+#include <tchar.h>
 
 void LgiShowFileProperties(OsView Parent, const char *Filename)
 {
@@ -16,4 +17,9 @@ void LgiShowFileProperties(OsView Parent, const char *Filename)
 	info.nShow = SW_SHOW;
 	info.fMask = SEE_MASK_INVOKEIDLIST;
 	ShellExecuteEx(&info);
+}
+
+bool LgiBrowseToFile(const char *Filename)
+{
+	return false;
 }
