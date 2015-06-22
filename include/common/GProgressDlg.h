@@ -110,6 +110,7 @@ public:
 	void OnPaint(GSurface *pDC);
 	void OnCreate();
 	void OnPosChange();
+	bool OnRequestClose(bool OsClose);
 };
 
 #endif
