@@ -118,12 +118,9 @@ GProgressPane::GProgressPane()
 	Wait = false;
 	Ref = 0;
 
-	GTableLayout *t;
 	if (AddView(t = new GTableLayout))
 	{
-		GRect cr = GetClient();
-		cr.Size(7, 7);
-		t->SetPos(cr);
+		OnPosChange();
 		
 		int Row = 0;
 		GLayoutCell *c = t->GetCell(0, Row++, true, 2, 1);
@@ -263,24 +260,20 @@ int GProgressPane::OnNotify(GViewI *Ctrl, int Flags)
 
 void GProgressPane::OnPaint(GSurface *pDC)
 {
-	GRect r(0, 0, X()-1, Y()-1);
+	GRect r = GetClient();
 	LgiThinBorder(pDC, r, DefaultRaisedEdge);
 	pDC->Colour(LC_MED, 24);
 	pDC->Rectangle(&r);
 }
 
-bool GProgressPane::Pour(GRegion &r)
+void GProgressPane::OnPosChange()
 {
-	GRect *Best = FindLargest(r);
-	if (Best)
+	if (t)
 	{
-		GRect r, p = GetPos();
-		r.ZOff(Best->X(), PANE_Y);
-		r.Offset(Best->x1-p.x1, Best->y1-p.y1);
-		SetPos(r, true);
-		return true;
+		GRect cr = GetClient();
+		cr.Size(4, 4);
+		t->SetPos(cr);
 	}
-	return false;
 }
 
 GFont *GProgressPane::GetFont()
@@ -368,18 +361,7 @@ void GProgressDlg::OnCreate()
 
 void GProgressDlg::OnPosChange()
 {
-	GDialog::OnPosChange();
-	/*
-	GRect c = GetClient();
-	GViewIterator *it = IterateViews();
-	for (GViewI *v = it->First(); v; v = it->Next())
-	{
-		GRect r = v->GetPos();
-		r.x2 = c.x2;
-		v->SetPos(r);
-	}
-	DeleteObj(it);
-	*/
+	Resize();
 }
 
 GMessage::Result GProgressDlg::OnEvent(GMessage *Msg)

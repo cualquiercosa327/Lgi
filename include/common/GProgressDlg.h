@@ -5,6 +5,8 @@
 #ifndef __GPROGRESSDLG_H
 #define __GPROGRESSDLG_H
 
+#include "GTableLayout.h"
+
 class LgiClass ProgressList : public List<Progress>
 {
 	bool InUse;
@@ -26,6 +28,7 @@ class LgiClass GProgressPane : public Progress, public GLayout
 protected:
 	bool Wait;
 
+	GTableLayout *t;
 	GText *Desc;
 	GText *ValText;
 	GText *Rate;
@@ -47,7 +50,7 @@ public:
 	void OnCreate();
 	int OnNotify(GViewI *Ctrl, int Flags);
 	void OnPaint(GSurface *pDC);
-	bool Pour(GRegion &r);
+	void OnPosChange();
 };
 
 /// Progress dialog
