@@ -272,6 +272,8 @@ void GProgressPane::OnPosChange()
 	{
 		GRect cr = GetClient();
 		cr.Size(4, 4);
+		
+		printf("tpos=%s\n", cr.GetStr());
 		t->SetPos(cr);
 	}
 }

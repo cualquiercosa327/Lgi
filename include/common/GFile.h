@@ -565,4 +565,10 @@ LgiFunc const char *GetErrorName(int e);
 /// Get information about the disk that a file resides on.
 LgiFunc bool LgiGetDriveInfo(char *Path, uint64 *Free, uint64 *Size = 0, uint64 *Available = 0);
 
+/// Shows the file's properties dialog
+LgiFunc void LgiShowFileProperties(OsView Parent, const char *Filename);
+
+/// Opens to the file or folder in the OS file browser (Explorer/Finder etc)
+LgiFunc bool LgiBrowseToFile(const char *Filename);
+
 #endif
