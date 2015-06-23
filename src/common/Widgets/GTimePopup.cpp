@@ -239,7 +239,7 @@ int GTimePopup::OnNotify(GViewI *c, int f)
 					if (n)
 					{
 						n->Name(t);
-						n->SendNotify(M_CHANGE);
+						n->SendNotify(GNotifyValueChanged);
 						Visible(false);
 					}
 				}

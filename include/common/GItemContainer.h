@@ -2,59 +2,10 @@
 #define _ITEM_CONTAINER_H_
 
 #include "GPopup.h"
+#include "GNotifications.h"
 
 class GItemContainer;
 #define DragColumnColour				LC_LOW
-
-// GItemContainer notification flags
-enum GItemContainerNotify
-{
-	/// Item inserted
-	/// \sa GList, GView::OnNotify
-	GITEM_NOTIFY_INSERT,
-	/// Item deleted
-	/// \sa GList, GView::OnNotify
-	GITEM_NOTIFY_DELETE,
-	/// Item selected
-	/// \sa GList, GView::OnNotify
-	GITEM_NOTIFY_SELECT,
-	/// Item clicked
-	/// \sa GList, GView::OnNotify
-	GITEM_NOTIFY_CLICK,
-	/// Item double clicked
-	/// \sa GList, GView::OnNotify
-	GITEM_NOTIFY_DBL_CLICK,
-	/// Item changed
-	/// \sa GList, GView::OnNotify
-	GITEM_NOTIFY_CHANGE,
-	/// Column changed
-	/// \sa GList, GView::OnNotify
-	GITEM_NOTIFY_COLS_CHANGE,
-	/// Column sized
-	/// \sa GList, GView::OnNotify
-	GITEM_NOTIFY_COLS_SIZE,
-	/// Column clicks
-	/// \sa GList, GView::OnNotify
-	GITEM_NOTIFY_COLS_CLICK,
-	/// Backspace pressed
-	/// \sa GList, GView::OnNotify
-	GITEM_NOTIFY_BACKSPACE,
-	/// Return/Enter pressed
-	/// \sa GList, GView::OnNotify
-	GITEM_NOTIFY_RETURN,
-	/// Delete pressed
-	/// \sa GList, GView::OnNotify
-	GITEM_NOTIFY_DEL_KEY,
-	/// Escape pressed
-	/// \sa GList, GView::OnNotify
-	GITEM_NOTIFY_ESC_KEY,
-	/// Items dropped on the control
-	GITEM_NOTIFY_ITEMS_DROPPED,
-	/// Sent when the control requests a context menu 
-	/// outside of the existing items, i.e. in the blank
-	/// space below the items.
-	GITEM_NOTIFY_CONTEXT_MENU,
-};
 
 /// Base class for items in widget containers
 class LgiClass GItem : virtual public GEventsI
