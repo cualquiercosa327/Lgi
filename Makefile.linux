@@ -436,7 +436,9 @@ GFileSelect.o : ./src/common/Lgi/GFileSelect.cpp ./include/common/Lgi.h \
 	./include/common/GCheckBox.h \
 	./include/common/GCombo.h \
 	./include/common/GTree.h \
-	./include/common/GTableLayout.h
+	./include/common/GTableLayout.h \
+	./include/common/GBox.h \
+	./include/common/INet.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -708,7 +710,8 @@ GButton.o : ./src/common/Widgets/GButton.cpp ./include/common/Lgi.h \
 GCheckBox.o : ./src/common/Widgets/GCheckBox.cpp ./include/common/Lgi.h \
 	./include/common/GSkinEngine.h \
 	./include/common/GCheckBox.h \
-	./include/common/GDisplayString.h
+	./include/common/GDisplayString.h \
+	./include/common/GDisplayStringLayout.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -738,7 +741,8 @@ GEdit.o : ./src/common/Widgets/GEdit.cpp ./include/common/Lgi.h \
 GItemContainer.o : ./src/common/Widgets/GItemContainer.cpp ./include/common/Lgi.h \
 	./include/common/GItemContainer.h \
 	./include/common/GDisplayString.h \
-	./include/common/GSkinEngine.h
+	./include/common/GSkinEngine.h \
+	./include/common/GScrollBar.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -808,8 +812,7 @@ GTabView.o : ./src/common/Widgets/GTabView.cpp ./include/common/Lgi.h \
 
 GTextLabel.o : ./src/common/Widgets/GTextLabel.cpp ./include/common/Lgi.h \
 	./include/common/GTextLabel.h \
-	./include/common/GUtf8.h \
-	./include/common/GDisplayString.h
+	./include/common/GDisplayStringLayout.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -1040,7 +1043,7 @@ md5.o : ./src/common/Hash/md5/md5.c
 ../../../../../usr/include/glib-2.0/glib/gmappedfile.h : /usr/include/glib-2.0/glib/gbytes.h \
 	/usr/include/glib-2.0/glib/gerror.h
 
-./include/common/GProgressDlg.h : 
+./include/common/GProgressDlg.h : ./include/common/GTableLayout.h
 
 ../../../../../usr/include/glib-2.0/glib/gbitlock.h : /usr/include/glib-2.0/glib/gtypes.h
 
@@ -1521,6 +1524,11 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ./include/common/GdcTools.h : 
 
+./include/common/GDisplayStringLayout.h : ./include/common/GUtf8.h \
+	./include/common/GDisplayString.h
+
+./include/common/GUtf8.h : 
+
 ../../../../../usr/include/glib-2.0/gobject/gtypeplugin.h : /usr/include/glib-2.0/gobject/gtype.h
 
 ../../../../../usr/include/pango-1.0/pango/pango-script.h : /usr/include/glib-2.0/glib.h \
@@ -1996,8 +2004,6 @@ md5.o : ./src/common/Hash/md5/md5.c
 ./include/common/GStringClass.h : ./include/common/GUtf8.h \
 	./include/common/GString.h
 
-./include/common/GUtf8.h : 
-
 ./include/common/GMem.h : ./include/common/LgiInc.h \
 	./include/linux/Gtk/LgiOsDefs.h
 
@@ -2173,6 +2179,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 	./include/linux/Gtk/LgiOsDefs.h
 
 ./include/common/LgiInc.h : 
+
+./include/common/GTableLayout.h : ./include/common/GCss.h
 
 ./include/linux/Gtk/LgiOsDefs.h : ./include/common/LgiDefs.h \
 	./include/common/LgiInc.h \
@@ -2809,7 +2817,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ./include/common/GMutex.h : 
 
-./include/common/GCom.h : ./include/common/GContainers.h
+./include/common/GCom.h : ./include/common/GContainers.h \
+	./include/common/GVariant.h
 
 ../../../../../usr/include/atk-1.0/atk/atkhyperlinkimpl.h : /usr/include/atk-1.0/atk/atkobject.h \
 	/usr/include/atk-1.0/atk/atkhyperlink.h

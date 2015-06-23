@@ -1514,7 +1514,6 @@ void GTree::OnMouseClick(GMouse &m)
 			d->LastClick.y = m.y;
 
 			d->LastHit = ItemAtPoint(m.x, m.y);
-			m.Trace("ItemClick");
 			if (d->LastHit)
 			{
 				GdcPt2 c = _ScrollPos();

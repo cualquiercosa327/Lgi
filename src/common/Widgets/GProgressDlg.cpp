@@ -112,6 +112,7 @@ Progress &Progress::operator =(Progress &p)
 
 GProgressPane::GProgressPane()
 {
+	t = NULL;
 	GRect r(0, 0, PANE_X-1, PANE_Y-1);
 	SetPos(r);
 	Name("Progress");
@@ -277,8 +278,6 @@ void GProgressPane::OnPosChange()
 	{
 		GRect cr = GetClient();
 		cr.Size(4, 4);
-		
-		printf("tpos=%s\n", cr.GetStr());
 		t->SetPos(cr);
 	}
 }
