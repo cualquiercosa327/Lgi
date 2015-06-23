@@ -14,7 +14,9 @@
 #include "GString.h"
 #include "GHashTable.h"
 
+#ifndef LINUX
 #pragma pack(push, 1)
+#endif
 
 /// Css property container
 class LgiClass GCss
@@ -1166,6 +1168,8 @@ protected:
 	}
 };
 
+#ifndef LINUX
 #pragma pack(pop)
+#endif
 
 #endif

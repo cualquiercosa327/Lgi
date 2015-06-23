@@ -5823,7 +5823,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 	if (Debug)
 	{
 		int asd=0;		
-		LgiTrace("%s::OnPaint - %i,%i\n", Tag, -Px, -Py);
+		LgiTrace("%s::OnPaint - %i,%i\n", Tag.Get(), -Px, -Py);
 	}
 	#endif
 	
