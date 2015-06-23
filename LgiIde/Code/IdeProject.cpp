@@ -1533,10 +1533,7 @@ public:
 				{
 					GAutoString Path = GetFullPath();
 					if (Path)
-					{
-						LgiTrimDir(Path);
-						LgiExecute(Path);
-					}
+						LgiBrowseToFile(Path);
 					break;
 				}
 				case IDM_OPEN_TERM:

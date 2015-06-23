@@ -568,18 +568,8 @@ public:
 			case IDC_BROWSE:
 			{
 				const char *s = GetCtrlName(IDC_PATH);
-				if (!s)
-					break;
-				char p[MAX_PATH];
-				
-				#ifdef WIN32
-				sprintf_s(p, sizeof(p), "/e,/select,\"%s\"", s);
-				LgiExecute("explorer", p);
-				#else
-				LgiMakePath(p, sizeof(p), s, "..");
-				if (DirExists(p))
-					LgiExecute(p);
-				#endif
+				if (s)
+					LgiBrowseToFile(s);
 				break;
 			}
 			case IDC_SEARCH:
