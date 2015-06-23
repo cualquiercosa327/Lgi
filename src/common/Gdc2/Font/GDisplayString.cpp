@@ -868,8 +868,8 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 		rc = *r;
 		rc.x1 <<= FShift;
 		rc.y1 <<= FShift;
-		rc.x2 <<= FShift;
-		rc.y2 <<= FShift;
+		rc.x2 = (rc.x2 + 1) << FShift;
+		rc.y2 = (rc.y2 + 1) << FShift;
 	}
 	
 	FDraw(pDC, px << FShift, py << FShift, r ? &rc : NULL);
