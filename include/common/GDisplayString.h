@@ -75,7 +75,7 @@ class LgiClass GDisplayString
 
 	#endif
 
-	void Layout();
+	void Layout(bool Debug = false);
 
 public:
 	/// Constructor

@@ -163,8 +163,7 @@ void GDisplayString::UpdateTabs(int Offset, int Size, bool Debug)
 {
 	if (Hnd &&
 		Font &&
-		Font->TabSize() &&
-		LastTabOffset != Offset)
+		Font->TabSize())
 	{
 		int Len = 16;
 		LastTabOffset = Offset;
@@ -192,7 +191,7 @@ void GDisplayString::UpdateTabs(int Offset, int Size, bool Debug)
 }
 #endif
 
-void GDisplayString::Layout()
+void GDisplayString::Layout(bool Debug)
 {
     if (LaidOut)
         return;
@@ -214,7 +213,24 @@ void GDisplayString::Layout()
 	}
 
 	Gtk::pango_context_set_font_description(GFontSystem::Inst()->GetContext(), Font->Handle());
-	UpdateTabs(TabOrigin, Font->TabSize());
+
+	int TabSizePx = Font->TabSize();
+	int TabSizeF = TabSizePx * FScale;
+	int TabOffsetF = DrawOffsetF % TabSizeF;
+	int OffsetF = TabOffsetF ? TabSizeF - TabOffsetF : 0;
+	/*
+	if (Debug)
+	{
+		printf("'%s', TabSizeF=%i, TabOffsetF=%i, DrawOffsetF=%i, OffsetF=%i\n",
+			Str,
+			TabSizeF,
+			TabOffsetF,
+			DrawOffsetF,
+			OffsetF);
+	}
+	*/
+	UpdateTabs(OffsetF / FScale, Font->TabSize());
+
 
 	if (Font->Underline())
 	{
@@ -1138,7 +1154,7 @@ GdcPt2 GDisplayString::FSize()
 
 void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc, bool Debug)
 {
-    Layout();
+    Layout(Debug);
 
 	#if !DISPLAY_STRING_FRACTIONAL_NATIVE
 
@@ -1203,20 +1219,6 @@ void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc, bool Debug
 
 	double Dx = ((double)fx / FScale) - Ox;
 	double Dy = ((double)fy / FScale) - Oy;
-
-	int TabSize = Font->TabSize();
-	int TabSizeF = TabSize * FScale;
-	int TabX = (fx - (TabOrigin * FScale)) % TabSizeF;
-	if (Debug)
-	{
-		printf("'%s', fx=%i, TabSizeF=%i, TabX=%i, TabOrigin=%i\n",
-			Str,
-			fx,
-			TabSizeF,
-			TabX,
-			TabOrigin);
-	}
-	UpdateTabs((TabSizeF-TabX)/FScale, Font->TabSize(), Debug);
 
 	cairo_translate(cr, Dx, Dy);	
 	
