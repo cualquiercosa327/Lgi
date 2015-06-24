@@ -29,7 +29,7 @@ class LgiClass GDisplayString
 	GFont *Font;
 	uint32 x, y, len;
 	int xf, yf;
-	uint16 TabOrigin;
+	int DrawOffsetF;
 	
 	// Flags
 	uint8 LaidOut : 1;
@@ -102,10 +102,11 @@ public:
 	);
 	virtual ~GDisplayString();
 	
-	/// \returns the tab origin
-	int GetTabOrigin();
-	/// Sets the tab origin
-	void SetTabOrigin(int o);	
+	/// \returns the draw offset used to calculate tab spacing (in Px)
+	int GetDrawOffset();
+	/// Sets the draw offset used to calculate tab spacing (in Px)
+	void SetDrawOffset(int Px);
+
 	/// Returns the ShowVisibleTab setting.
 	/// Treats Unicode-2192 (left arrow) as a tab char
 	bool ShowVisibleTab();
@@ -179,6 +180,10 @@ public:
 			#endif
 		};
 		
+		/// \returns the draw offset used to calculate tab spacing (in fractional units)
+		int GetDrawOffsetF();
+		/// Sets the draw offset used to calculate tab spacing (in fractional units)
+		void SetDrawOffsetF(int Fpx);	
 		/// \returns the fractional width of the string
 		int FX();
 		/// \returns the fractional height of the string

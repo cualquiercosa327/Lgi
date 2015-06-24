@@ -74,7 +74,7 @@ GDisplayString::GDisplayString(GFont *f, const char *s, int l, GSurface *pdc)
 	x = y = 0;
 	xf = 0;
 	yf = 0;
-	TabOrigin = 0;
+	DrawOffsetF = 0;
 	LaidOut = 0;
 	AppendDots = 0;
 	VisibleTab = 0;
@@ -120,7 +120,7 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc)
 	x = y = 0;
 	xf = 0;
 	yf = 0;
-	TabOrigin = 0;
+	DrawOffsetF = 0;
 	LaidOut = 0;
 	AppendDots = 0;
 	VisibleTab = 0;
@@ -359,7 +359,7 @@ void GDisplayString::Layout()
 						// Handle tab(s)
 						for (int t=0; t<Info[i].Len; t++)
 						{
-							int Dx = TabSize - ((Info[i].X + x + TabOrigin) % TabSize);
+							int Dx = TabSize - ((Info[i].X + x + GetDrawOffset()) % TabSize);
 							Info[i].X += Dx;
 						}
 						x += Info[i].X;
@@ -492,16 +492,16 @@ void GDisplayString::Layout()
 	#endif
 }
 
-int GDisplayString::GetTabOrigin()
+int GDisplayString::GetDrawOffset()
 {
-    return TabOrigin;
+    return DrawOffsetF >> FShift;
 }
 
-void GDisplayString::SetTabOrigin(int o)
+void GDisplayString::SetDrawOffset(int Px)
 {
 	if (LaidOut)
-		printf("%s:%i - No point setting TabOrigin after string is laid out.\n", _FL);
-    TabOrigin = o;
+		LgiAssert(!"No point setting TabOrigin after string is laid out.\n");
+    DrawOffsetF = Px << FShift;
 }
 
 bool GDisplayString::ShowVisibleTab()
@@ -972,7 +972,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 							int X = px;
 							for (int n=0; n<Info[i].Len; n++)
 							{
-								int Dx = TabSize - ((X - Ox + TabOrigin) % TabSize);
+								int Dx = TabSize - ((X - Ox + GetDrawOffset()) % TabSize);
 								GRect Char(X, b.y1, X + Dx - 1, b.y2);
 								GColour WsCol = f->WhitespaceColour();
 								LgiAssert(WsCol.IsValid());
@@ -1104,6 +1104,18 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 	else printf("%s:%i - Error: no DC or Font.\n", _FL);
 
 	#endif
+}
+
+int GDisplayString::GetDrawOffsetF()
+{
+    return DrawOffsetF;
+}
+
+void GDisplayString::SetDrawOffsetF(int Fpx)
+{
+	if (LaidOut)
+		LgiAssert(!"No point setting TabOrigin after string is laid out.\n");
+    DrawOffsetF = Fpx;
 }
 
 int GDisplayString::FX()

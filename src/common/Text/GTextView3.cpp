@@ -4305,7 +4305,8 @@ void GTextView3::OnPaint(GSurface *pDC)
 										NextSelection < l->Start + l->Len;
 
 				// Fractional pixels we have moved so far:
-				int FX = d->rPadding.x1 << GDisplayString::FShift;
+				int MarginF = d->rPadding.x1 << GDisplayString::FShift;
+				int FX = MarginF;
 				int FY = Tr.y1 << GDisplayString::FShift;
 				
 				// loop through all sections of similar text on a line
@@ -4347,7 +4348,10 @@ void GTextView3::OnPaint(GSurface *pDC)
 
 					LgiAssert(Block != 0);	// sanity check
 					
-					int TabOri = d->rPadding.x1;
+					if (LineHasSelection)
+					{
+						int asd=0;
+					}
 
 					if (NextStyle &&							// There is a style
 						(Cur < SelMin || Cur >= SelMax) &&		// && we're not drawing a selection block
@@ -4370,7 +4374,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 														Block,
 														RtlTrailingSpace != 0),
 												Block + RtlTrailingSpace);
-							Ds.SetTabOrigin(TabOri);
+							Ds.SetDrawOffsetF(FX - MarginF);
 							Ds.ShowVisibleTab(ShowWhiteSpace);
 							Ds.FDraw(pOut, FX, FY, 0, LineHasSelection);
 
@@ -4403,7 +4407,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 													Block,
 													RtlTrailingSpace != 0),
 											Block + RtlTrailingSpace);
-						Ds.SetTabOrigin(TabOri);
+						Ds.SetDrawOffsetF(FX - MarginF);
 						Ds.ShowVisibleTab(ShowWhiteSpace);
 						Ds.FDraw(pOut, FX, FY, 0, LineHasSelection);
 						FX += Ds.FX();
