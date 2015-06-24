@@ -43,6 +43,7 @@ Inc = \
 Depends =	GDateTime.o \
 			GDragAndDrop.o \
 			GFile.o \
+			ShowFileProp_Linux.o \
 			GExeCheck.o \
 			GFileCommon.o \
 			GApp.o \
@@ -185,6 +186,10 @@ GFile.o : ./src/linux/General/GFile.cpp ./include/common/LgiDefs.h \
 	./include/common/Gdc2.h \
 	./include/common/LgiCommon.h \
 	./include/common/GString.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+ShowFileProp_Linux.o : ./src/linux/General/ShowFileProp_Linux.cpp ./include/common/Lgi.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 

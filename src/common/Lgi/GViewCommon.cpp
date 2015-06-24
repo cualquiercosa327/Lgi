@@ -1573,7 +1573,7 @@ bool GView::InThread()
 	return CurThread == ViewThread;
 	#else
 	OsThreadId Me = LgiGetCurrentThread();
-	return LgiApp->GetGuiThread() == Me;
+	return LgiApp && LgiApp->GetGuiThread() == Me;
 	#endif
 }
 

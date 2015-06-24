@@ -48,6 +48,8 @@ class LgiClass GDisplayString
 	#elif defined __GTK_H__
 	
 	Gtk::PangoLayout *Hnd;
+	int LastTabOffset;
+	void UpdateTabs(int Offset, int Size, bool Debug = false);
 	
 	#elif defined(WINNATIVE) || defined(BEOS)
 	
@@ -194,7 +196,9 @@ public:
 			int fy,
 			/// [Optional] fractional clipping rectangle. If the font is not transparent 
 			/// this rectangle will be filled with the background colour.
-			GRect *frc = NULL
+			GRect *frc = NULL,
+			/// [Optional] print debug info
+			bool Debug = false
 		);
 };
 

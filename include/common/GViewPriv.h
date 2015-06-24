@@ -66,7 +66,7 @@ public:
 
 	int Main()
 	{
-		while (Loop)
+		while (Loop && LgiApp)
 		{
 			LgiSleep(Length);
 			if (Loop && View)
