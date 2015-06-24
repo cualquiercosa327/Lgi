@@ -1448,6 +1448,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\common\GNotifications.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\common\Lgi.h"
 				>
 			</File>

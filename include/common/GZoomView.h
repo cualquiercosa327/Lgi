@@ -4,6 +4,7 @@
 #define _ZOOM_VIEW_H_
 
 #include "GPath.h"
+#include "GNotifications.h"
 
 class GZoomViewCallback
 {
@@ -64,11 +65,6 @@ public:
 	};
 
 	// Notifications
-	enum NotifyEvents
-	{
-		NotifyViewportChanged = 1000,
-	};
-
 	GZoomView(GZoomViewCallback *App);
 	~GZoomView();
 

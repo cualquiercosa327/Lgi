@@ -104,12 +104,6 @@ class LgiClass GTabPage :
 	virtual void OnButtonPaint(GSurface *pDC);
 
 public:
-	enum NotifyType
-	{
-		TabPage_BtnNone,
-		TabPage_BtnClick
-	};
-
 	GTabPage(const char *name);
 	~GTabPage();
 
