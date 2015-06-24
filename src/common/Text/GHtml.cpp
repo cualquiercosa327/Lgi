@@ -5373,6 +5373,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 				Flow->x2 = old.x2;
 				Flow->cx = old.cx;
 				Flow->y1 = old.y1;
+				Flow->y2 = old.y2;
 				break;
 			}
 			default:
