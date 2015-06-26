@@ -4,7 +4,7 @@
 		<Node File="./Code/lgires.lr8" Type="5" Platforms="7" />
 	</Node>
 	<Node Name="Objects" Type="1" Open="1" Platforms="7">
-		<Node Name="Dialog" Type="1" Open="1" Platforms="7">
+		<Node Name="Dialog" Type="1" Open="0" Platforms="7">
 			<Node File="./Code/LgiRes_ControlTree.cpp" Type="2" Platforms="15" />
 			<Node File="./Code/LgiRes_Dialog.cpp" Type="2" Platforms="7" />
 			<Node File="./Code/LgiRes_Dialog.h" Type="3" Platforms="7" />
@@ -47,8 +47,13 @@
 			<Compiler>
 				<Linux>gcc</Linux>
 			</Compiler>
-			<Arguments />
-			<Defines />
+			<Arguments>
+				<All />
+			</Arguments>
+			<Defines>
+				<All />
+				<Linux />
+			</Defines>
 		</General>
 		<Build>
 			<IncludePaths>
@@ -68,14 +73,23 @@
 			<TargetType>
 				<All>Executable</All>
 			</TargetType>
-			<Libraries />
-			<LibraryPaths />
+			<Libraries>
+				<All />
+				<Linux />
+			</Libraries>
+			<LibraryPaths>
+				<All />
+				<Linux />
+			</LibraryPaths>
 			<TargetName>
 				<Linux>
 					<Debug>lgires</Debug>
 					<Release>lgires</Release>
 				</Linux>
 			</TargetName>
+			<SystemIncludes>
+				<Linux />
+			</SystemIncludes>
 		</Build>
 		<Editor>
 			<TabSize>
@@ -90,7 +104,11 @@
 			<UseHardTabs>
 				<All>1</All>
 			</UseHardTabs>
+			<CommentFile />
+			<CommentFunction />
 		</Editor>
-		<Advanced />
+		<Advanced>
+			<OtherMakefileRules />
+		</Advanced>
 	</Settings>
 </Project>

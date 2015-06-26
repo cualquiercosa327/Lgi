@@ -243,6 +243,7 @@ GDocApp<OptionsFmt>::GDocApp(const char *appname, const TCHAR *icon, char *optsn
 		}
 		#else
 		d->Icon = NewStr(icon);
+		SetIcon(d->Icon);
 		#endif
 	}
 }

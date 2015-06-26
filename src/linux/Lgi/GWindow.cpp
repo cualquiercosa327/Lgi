@@ -134,14 +134,14 @@ bool GWindow::SetIcon(const char *FileName)
 			Gtk::GdkPixbuf *pixbuf = Gtk::gdk_pixbuf_new_from_file(FileName, &error);
 			if (pixbuf)
 			{
-				/*
+				#if 1
 				printf("Calling gtk_window_set_icon with '%s' (%ix%i, %ich, %ibytes/line)\n",
 					FileName,
 					gdk_pixbuf_get_width(pixbuf),
 					gdk_pixbuf_get_height(pixbuf),
 					gdk_pixbuf_get_n_channels(pixbuf),
 					gdk_pixbuf_get_rowstride(pixbuf));
-				*/
+				#endif
 									
 				Gtk::gtk_window_set_icon(Wnd, pixbuf);
 			}
@@ -151,6 +151,7 @@ bool GWindow::SetIcon(const char *FileName)
 	
 	if (FileName != d->Icon)
 		 d->Icon.Reset(NewStr(FileName));
+
 	return d->Icon != NULL;
 }
 

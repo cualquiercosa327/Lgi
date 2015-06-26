@@ -840,7 +840,7 @@ bool ObjContainer::ListObjects(List<Resource> &Lst)
 #ifdef WIN32
 char *Icon = MAKEINTRESOURCE(IDI_ICON1);
 #else
-char *Icon = 0;
+char *Icon = "icon.png";
 #endif
 
 AppWnd::AppWnd() :
