@@ -273,6 +273,11 @@ bool GDebugContext::UpdateLocals()
 	return true;
 }
 
+void GDebugContext::UpdateCallStack()
+{
+	d->UpdateCallStack();
+}
+
 bool GDebugContext::ParseFrameReference(const char *Frame, GAutoString &File, int &Line)
 {
 	if (!Frame)

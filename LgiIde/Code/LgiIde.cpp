@@ -1923,6 +1923,13 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 				{
 					if (d->DbgContext)
 						d->DbgContext->UpdateRegisters();
+					break;
+				}
+				case AppWnd::CallStackTab:
+				{
+					if (d->DbgContext)
+						d->DbgContext->UpdateCallStack();
+					break;
 				}
 				default:
 					break;

@@ -117,6 +117,7 @@ public:
 	bool SetFrame(int Frame);
 	bool UpdateLocals();
 	bool UpdateRegisters();
+	void UpdateCallStack();
 	bool DumpObject(const char *Var);
 	
 	// Ui events...
