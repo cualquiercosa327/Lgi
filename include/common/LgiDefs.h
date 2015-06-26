@@ -11,6 +11,10 @@
 
 #include "LgiInc.h"
 
+#if defined(WIN32) && defined(__GNUC__)
+#define PLATFORM_MINGW
+#endif
+
 // Unsafe typedefs, for backward compatibility
 typedef		unsigned char				uchar;
 typedef		unsigned short				ushort;

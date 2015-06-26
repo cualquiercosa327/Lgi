@@ -15,6 +15,24 @@
 #error "Include GMem.h first"
 #endif
 
+#if defined(PLATFORM_MINGW)
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifndef _QSORT_S_DEFINED
+#define _QSORT_S_DEFINED
+_CRTIMP void __cdecl qsort_s(void *_Base,
+							size_t _NumOfElements,
+							size_t _SizeOfElements,
+							int (__cdecl *_PtFuncCompare)(void *,const void *,const void *),
+							void *_Context);
+#endif
+#ifdef __cplusplus
+}
+#endif
+#endif
+
+
 /// \brief Growable type-safe array.
 /// \ingroup Base
 ///
@@ -491,7 +509,7 @@ public:
 	}
 
 	// Sorts the array with a comparison function (can I get a standard here?)
-	#if defined(_MSC_VER)
+	#if defined(_MSC_VER) || defined(PLATFORM_MINGW)
 	
 		#define DeclGArrayCompare(func_name, type, user_type) \
 			int func_name(user_type *param, type *a, type *b)
