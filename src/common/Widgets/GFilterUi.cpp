@@ -821,7 +821,7 @@ void GFilterItem::ShowControls(bool s)
 		StartCtrl(Cbo, OpCbo, 0, GCombo);
 		StartCtrl(d->ValueBtn, ValueEd, d->Value, GEdit);
 		
-		if (d->OpCbo && !d->OpCbo->GetItems())
+		if (d->OpCbo && !d->OpCbo->Length())
 		{
 			GArray<char*> Ops;
 			if (d->Data->Callback(	(GFilterView*) GetTree(),
