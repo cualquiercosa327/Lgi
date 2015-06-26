@@ -673,8 +673,8 @@ GMessage::Param GView::OnEvent(GMessage *Msg)
 		}
 		case M_CHANGE:
 		{
-			GViewI *Ctrl = dynamic_cast<GViewI*>((GViewI*) MsgA(Msg));
-			if (Ctrl)
+			GViewI *Ctrl;
+			if (GetViewById(MsgA(Msg), Ctrl))
 			{
 				return OnNotify(Ctrl, MsgB(Msg));
 			}

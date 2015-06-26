@@ -1332,6 +1332,7 @@ void AppWnd::OnDebugState(bool Debugging, bool Running)
 			d->Output &&
 			d->Output->DebugTab)
 		{
+			printf("d->Output->DebugTab=%p\n", d->Output->DebugTab);
 			d->Output->DebugTab->SendNotify();
 		}
 	}

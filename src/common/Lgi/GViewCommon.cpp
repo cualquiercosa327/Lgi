@@ -565,6 +565,8 @@ void GView::SendNotify(int Data)
 			#else
             LgiAssert(GetId() > 0); // We must have a valid ctrl ID at this point, otherwise
 									// the receiver will never be able to find our object.
+            
+            printf("Post M_CHANGE %i %i\n", GetId(), Data);
             n->PostEvent(M_CHANGE, GetId(), Data);
             #endif
 		}

@@ -946,7 +946,7 @@ public:
 						}
 					}
 					
-					n->PostEvent(M_CHANGE, (int)(GViewI*)Bmp, 0);
+					Bmp->SendNotify();
 				}
 			}
 		}

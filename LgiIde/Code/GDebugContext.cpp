@@ -77,7 +77,7 @@ public:
 					Ctx->CallStack->Insert(it);
 				}
 				
-				Ctx->CallStack->SendNotify(M_CHANGE);
+				Ctx->CallStack->SendNotify();
 			}
 		}
 	}
