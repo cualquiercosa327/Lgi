@@ -24,7 +24,6 @@ public:
 	GAutoString			OptionsParam;
 	char				*AppName;
 	GAutoString			CurFile;
-	char				*Icon;
 	bool				Dirty;
 	GDocAppInstallMode	Mode;
 
@@ -33,7 +32,6 @@ public:
 		App = app;
 		OptionsParam.Reset(NewStr(param));
 		AppName = 0;
-		Icon = 0;
 		Dirty = 0;
 		Mode = InstallPortable;
 	}
@@ -42,7 +40,6 @@ public:
 	{
 		// Release memory
 		DeleteArray(AppName);
-		DeleteArray(Icon);
 	}
 	
 	GAutoString GetOptionsFile(const char *Ext)
@@ -242,8 +239,8 @@ GDocApp<OptionsFmt>::GDocApp(const char *appname, const TCHAR *icon, char *optsn
 			#endif
 		}
 		#else
-		d->Icon = NewStr(icon);
-		SetIcon(d->Icon);
+		if (icon)
+			SetIcon(icon);
 		#endif
 	}
 }
@@ -381,18 +378,6 @@ bool GDocApp<OptionsFmt>::_Create()
 	{
 		Name(d->AppName);
 	
-		#if defined LINUX
-		if (d->Icon)
-		{
-			char *Path = LgiFindFile(d->Icon);
-			if (Path)
-			{
-				// Handle()->setIcon(Path);
-				DeleteArray(Path);
-			}
-		}
-		#endif
-
 		if (X() < 1)
 		{	
 			GRect r(100, 100, 600, 500);

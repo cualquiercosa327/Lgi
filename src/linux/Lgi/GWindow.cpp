@@ -28,7 +28,7 @@ public:
 	GKey LastKey;
 	::GArray<HookInfo> Hooks;
 	bool SnapToEdge;
-	GAutoString Icon;
+	::GString Icon;
 	
 	// State
 	GdkWindowState State;
@@ -134,7 +134,7 @@ bool GWindow::SetIcon(const char *FileName)
 			Gtk::GdkPixbuf *pixbuf = Gtk::gdk_pixbuf_new_from_file(FileName, &error);
 			if (pixbuf)
 			{
-				#if 1
+				#if 0
 				printf("Calling gtk_window_set_icon with '%s' (%ix%i, %ich, %ibytes/line)\n",
 					FileName,
 					gdk_pixbuf_get_width(pixbuf),
@@ -149,8 +149,8 @@ bool GWindow::SetIcon(const char *FileName)
 		}
 	}
 	
-	if (FileName != d->Icon)
-		 d->Icon.Reset(NewStr(FileName));
+	if (FileName != d->Icon.Get())
+		d->Icon = FileName;
 
 	return d->Icon != NULL;
 }
@@ -347,13 +347,6 @@ bool GWindow::Attach(GViewI *p)
 		// Do a rough layout of child windows
 		Pour();
 
-		// Add icon
-		if (d->Icon)
-		{
-			SetIcon(d->Icon);
-			d->Icon.Reset();
-		}
-		
 		// Setup default button...
 		if (!_Default)
 		{
@@ -366,6 +359,13 @@ bool GWindow::Attach(GViewI *p)
 		
 		// Call on create
 		OnCreate();
+
+		// Add icon
+		if (d->Icon)
+		{
+			SetIcon(d->Icon);
+			d->Icon.Empty();
+		}
 		
 		Status = true;
 	}

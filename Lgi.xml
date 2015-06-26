@@ -65,7 +65,7 @@
 					<Node File="./src/win32/Lgi/LgiException.cpp" Type="2" Platforms="1" />
 				</Node>
 				<Node File="./src/common/Lgi/GViewCommon.cpp" Type="2" Platforms="15" />
-				<Node File=".\include\common\GViewPriv.h" Type="3" Platforms="15" />
+				<Node File="./include/common/GViewPriv.h" Type="3" Platforms="15" />
 				<Node File="./src/common/Lgi/GWindowCommon.cpp" Type="2" Platforms="15" />
 			</Node>
 			<Node Name="Libraries" Type="1" Platforms="15" Open="0">
@@ -146,12 +146,12 @@
 				<Node File=".\src\common\Lgi\GVariant.cpp" Type="2" Platforms="15" />
 				<Node File=".\include\common\GVariant.h" Type="3" Platforms="15" />
 			</Node>
-			<Node File=".\src\common\Lgi\GGuiUtils.cpp" Type="2" Platforms="15" />
-			<Node File=".\src\common\Lgi\GObject.cpp" Type="2" Platforms="15" />
-			<Node File=".\src\common\Lgi\GToolTip.cpp" Type="2" Platforms="15" />
-			<Node File=".\src\common\Lgi\GTrayIcon.cpp" Type="2" Platforms="15" />
-			<Node File=".\src\common\Lgi\Lgi.cpp" Type="2" Platforms="15" />
-			<Node File=".\src\common\Lgi\LgiMsg.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/Lgi/GGuiUtils.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/Lgi/GObject.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/Lgi/GToolTip.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/Lgi/GTrayIcon.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/Lgi/Lgi.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/Lgi/LgiMsg.cpp" Type="2" Platforms="15" />
 		</Node>
 		<Node Name="Dialogs" Type="1" Platforms="15" Open="0">
 			<Node Name="Xp" Type="1" Platforms="15" Open="0">
@@ -384,12 +384,13 @@ WINDOWS</Debug>
 					<Release>WINNATIVE
 WINDOWS</Release>
 				</Windows>
+				<Linux />
 			</Defines>
 			<Compiler>
 				<Windows>MingW</Windows>
 			</Compiler>
 			<Executable>
-				<Windows />
+				<Linux />
 			</Executable>
 			<Arguments>
 				<All />
@@ -475,11 +476,11 @@ textencoding</Release>
 				</Linux>
 			</TargetName>
 			<SystemIncludes>
-				<Windows />
+				<Linux />
 			</SystemIncludes>
 			<LibraryPaths>
 				<All />
-				<Windows />
+				<Linux />
 			</LibraryPaths>
 		</Build>
 		<Editor>
