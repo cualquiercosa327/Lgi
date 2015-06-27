@@ -21,7 +21,7 @@ public:
 	GAutoPtr<GDebugger> Db;
 	GAutoString Exe, Args;
 	
-	GAutoString SeekFile;
+	GString SeekFile;
 	int SeekLine;
 	bool SeekCurrentIp;
 	
@@ -77,7 +77,7 @@ public:
 					Ctx->CallStack->Insert(it);
 				}
 				
-				Ctx->CallStack->SendNotify(M_CHANGE);
+				Ctx->CallStack->SendNotify();
 			}
 		}
 	}
@@ -138,7 +138,7 @@ GMessage::Param GDebugContext::OnEvent(GMessage *m)
 		}
 		case M_FILE_LINE:
 		{
-			GAutoString File;
+			GString File;
 			{
 				GMutex::Auto a(d, _FL);
 				File = d->SeekFile;
@@ -271,6 +271,11 @@ bool GDebugContext::UpdateLocals()
 	Locals->ResizeColumnsToContent();
 	
 	return true;
+}
+
+void GDebugContext::UpdateCallStack()
+{
+	d->UpdateCallStack();
 }
 
 bool GDebugContext::ParseFrameReference(const char *Frame, GAutoString &File, int &Line)
@@ -483,22 +488,30 @@ void GDebugContext::OnState(bool Debugging, bool Running)
 
 void GDebugContext::OnFileLine(const char *File, int Line, bool CurrentIp)
 {
-	if (d->App)
+	if (!d->App)
+		return;
+	
+	if (!File && !Line)
 	{
-		if (d->App->InThread())
+		printf("%s:%i - Error: No File or Line... one or both must be valid.\n", _FL);
+		return;
+	}
+
+	if (d->App->InThread())
+	{
+		d->App->GotoReference(File, Line, CurrentIp);
+	}
+	else
+	{
 		{
-			d->App->GotoReference(File, Line, CurrentIp);
+			GMutex::Auto a(d, _FL);
+			if (File)
+				d->SeekFile = File;
+			d->SeekLine = Line;
+			d->SeekCurrentIp = CurrentIp;
 		}
-		else
-		{
-			{
-				GMutex::Auto a(d, _FL);
-				d->SeekFile.Reset(NewStr(File));
-				d->SeekLine = Line;
-				d->SeekCurrentIp = CurrentIp;
-			}
-			d->App->PostEvent(M_FILE_LINE);
-		}
+
+		d->App->PostEvent(M_FILE_LINE);
 	}
 }
 

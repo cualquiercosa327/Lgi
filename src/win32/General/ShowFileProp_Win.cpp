@@ -1,4 +1,5 @@
 #include "Lgi.h"
+#include <tchar.h>
 
 void LgiShowFileProperties(OsView Parent, const char *Filename)
 {

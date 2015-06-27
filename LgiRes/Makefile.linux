@@ -15,7 +15,7 @@ endif
 BuildDir = $(Build)
 
 Flags = -fPIC -w -fno-inline -fpermissive
-Defs = -DLINUX -D_REENTRANT -D_FILE_OFFSET_BITS=64
+Defs = -DLINUX -D_REENTRANT -D_FILE_OFFSET_BITS=64 -DPOSIX
 
 ifeq ($(Build),Debug)
 	Defs += -D_DEBUG
@@ -86,6 +86,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../include/common/GdcTools.h \
 	../include/common/GdiLeak.h \
 	../include/common/GDisplayString.h \
+	../include/common/GDisplayStringLayout.h \
 	../include/common/GDocView.h \
 	../include/common/GDom.h \
 	../include/common/GDragAndDrop.h \
@@ -111,6 +112,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../include/common/GMime.h \
 	../include/common/GMru.h \
 	../include/common/GMutex.h \
+	../include/common/GNotifications.h \
 	../include/common/GOptionsFile.h \
 	../include/common/GPalette.h \
 	../include/common/GPanel.h \
@@ -128,11 +130,13 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../include/common/GRect.h \
 	../include/common/GRefCount.h \
 	../include/common/GRegKey.h \
+	../include/common/GRops.h \
 	../include/common/GScrollBar.h \
 	../include/common/GSkinEngine.h \
 	../include/common/GSlider.h \
 	../include/common/GStream.h \
 	../include/common/GString.h \
+	../include/common/GStringClass.h \
 	../include/common/GTableLayout.h \
 	../include/common/GTabView.h \
 	../include/common/GTextLabel.h \
@@ -184,6 +188,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../src/common/Gdc2/GColour.cpp \
 	../src/common/Gdc2/GdcCommon.cpp \
 	../src/common/Gdc2/GRect.cpp \
+	../src/common/Gdc2/GRopsCases.cpp \
 	../src/common/Gdc2/GSurface.cpp \
 	../src/common/Gdc2/Path/GPath.cpp \
 	../src/common/Gdc2/Tools/GColourReduce.cpp \
@@ -258,6 +263,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../src/common/Widgets/GTree.cpp \
 	../src/linux/General/GFile.cpp \
 	../src/linux/General/GMem.cpp \
+	../src/linux/General/ShowFileProp_Linux.cpp \
 	../src/linux/Gtk/Gdc2.cpp \
 	../src/linux/Gtk/GMemDC.cpp \
 	../src/linux/Gtk/GPrintDC.cpp \
@@ -830,8 +836,9 @@ outputfolder :
 
 # Clean out targets
 clean :
-	rm -f $(BuildDir)/*.o $(Target).
+	rm -f $(BuildDir)/*.o $(Target)
 	@echo Cleaned $(BuildDir)
+	+make -C "../" -f "Makefile.linux" clean
 
 LgiRes_ControlTree.o : ./Code/LgiRes_ControlTree.cpp ../include/common/GButton.h \
 	../include/common/GVariant.h \
@@ -1114,7 +1121,8 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 ../src/common/Widgets/GItemContainer.cpp : ../include/common/Lgi.h \
 	../include/common/GItemContainer.h \
 	../include/common/GDisplayString.h \
-	../include/common/GSkinEngine.h
+	../include/common/GSkinEngine.h \
+	../include/common/GScrollBar.h
 
 ../../../../../../usr/include/glib-2.0/glib/gnode.h : /usr/include/glib-2.0/glib/gmem.h
 
@@ -1139,6 +1147,8 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 ../../../../../../usr/include/gtk-2.0/gtk/gtkaboutdialog.h : /usr/include/gtk-2.0/gtk/gtkdialog.h
 
 ../../../../../../usr/include/gtk-2.0/gdk/gdkproperty.h : /usr/include/gtk-2.0/gdk/gdktypes.h
+
+../src/linux/General/ShowFileProp_Linux.cpp : ../include/common/Lgi.h
 
 ../../../../../../usr/include/glib-2.0/gio/gdbusserver.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -1166,7 +1176,8 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 	../include/common/GBitmap.h \
 	../include/common/GTextLabel.h \
 	../include/common/GDisplayString.h \
-	../include/common/GdiLeak.h
+	../include/common/GdiLeak.h \
+	../include/common/GTableLayout.h
 
 ../include/common/GButton.h : 
 
@@ -1232,7 +1243,8 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 ../include/common/GFile.h : ../include/common/GMem.h \
 	../include/common/GStream.h \
 	../include/common/GArray.h \
-	../include/common/GRefCount.h
+	../include/common/GRefCount.h \
+	../include/common/GStringClass.h
 
 ../../../../../../usr/include/glib-2.0/gio/gnetworkmonitor.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -1463,7 +1475,8 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 
 ../include/common/LgiCommon.h : ../include/common/GMem.h \
 	../include/common/GArray.h \
-	../include/common/LgiClass.h
+	../include/common/LgiClass.h \
+	../include/common/GStringClass.h
 
 ../include/linux/GSymLookup.h : ../include/common/GProcess.h
 
@@ -1759,7 +1772,8 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 
 ../include/common/GRadioGroup.h : 
 
-../include/common/GTableLayout.h : ../include/common/GCss.h
+../include/common/GTableLayout.h : ../include/common/GCss.h \
+	../include/common/GNotifications.h
 
 ../include/common/LgiRes.h : ../include/common/Res.h \
 	../include/common/GContainers.h \
@@ -1788,7 +1802,9 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 
 ../src/common/Gdc2/GdcCommon.cpp : ../include/common/Lgi.h \
 	../include/common/GPalette.h \
-	../include/common/GPixelRops.h
+	../include/common/GPixelRops.h \
+	../include/common/GRops.h \
+	../src/common/Gdc2/GRopsCases.cpp
 
 ../include/common/GPixelRops.h : 
 
@@ -1894,11 +1910,12 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 
 ../include/common/LgiCommon.h : ../include/common/GMem.h \
 	../include/common/GArray.h \
-	../include/common/LgiClass.h
+	../include/common/LgiClass.h \
+	../include/common/GStringClass.h
 
 ../../../../../../usr/include/glib-2.0/gio/gbytesicon.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../include/common/GProgressDlg.h : 
+../include/common/GProgressDlg.h : ../include/common/GTableLayout.h
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtktypebuiltins.h : /usr/include/glib-2.0/glib-object.h
 
@@ -1935,7 +1952,8 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkradiobutton.h : /usr/include/gtk-2.0/gtk/gtkcheckbutton.h
 
-../include/common/GDocView.h : ../include/common/GVariant.h
+../include/common/GDocView.h : ../include/common/GVariant.h \
+	../include/common/GNotifications.h
 
 ../include/common/Lgi.h : ../include/common/LgiInc.h \
 	../include/linux/Gtk/LgiOsDefs.h \
@@ -2117,6 +2135,9 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 ../../../../../../usr/include/atk-1.0/atk/atkplug.h : 
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkcellrenderertoggle.h : /usr/include/gtk-2.0/gtk/gtkcellrenderer.h
+
+../include/common/GStringClass.h : ../include/common/GUtf8.h \
+	../include/common/GString.h
 
 ../../../../../../usr/include/glib-2.0/gio/gcredentials.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -2310,6 +2331,8 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 
 ../include/common/GFilter.h : ../include/common/GContainers.h
 
+../include/common/GRops.h : 
+
 ../../../../../../usr/include/gtk-2.0/gtk/gtkframe.h : /usr/include/gtk-2.0/gtk/gtkbin.h
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkcelllayout.h : /usr/include/gtk-2.0/gtk/gtkcellrenderer.h \
@@ -2385,7 +2408,8 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 
 ../../../../../../usr/include/glib-2.0/gio/gsocketconnectable.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../include/common/GCom.h : ../include/common/GContainers.h
+../include/common/GCom.h : ../include/common/GContainers.h \
+	../include/common/GVariant.h
 
 ../include/common/GCss.h : ../include/common/LgiInc.h \
 	../include/linux/Gtk/LgiOsDefs.h \
@@ -2468,14 +2492,16 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 ../include/common/GFile.h : ../include/common/GMem.h \
 	../include/common/GStream.h \
 	../include/common/GArray.h \
-	../include/common/GRefCount.h
+	../include/common/GRefCount.h \
+	../include/common/GStringClass.h
 
 ../src/common/Text/GUtf8.cpp : ../include/common/Lgi.h \
 	../include/common/GUtf8.h
 
 ../include/common/GMutex.h : 
 
-../include/common/GCom.h : ../include/common/GContainers.h
+../include/common/GCom.h : ../include/common/GContainers.h \
+	../include/common/GVariant.h
 
 ../include/common/GCss.h : ../include/common/LgiInc.h \
 	../include/linux/Gtk/LgiOsDefs.h \
@@ -2735,6 +2761,8 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 	/usr/include/gtk-2.0/gtk/gtktreesortable.h \
 	/usr/include/gtk-2.0/gtk/gtkobject.h
 
+../include/common/GNotifications.h : 
+
 ../../../../../../usr/include/gtk-2.0/gtk/gtkclist.h : /usr/include/gtk-2.0/gtk/gtksignal.h \
 	/usr/include/gtk-2.0/gtk/gtkalignment.h \
 	/usr/include/gtk-2.0/gtk/gtklabel.h \
@@ -2744,11 +2772,11 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkpixmap.h : /usr/include/gtk-2.0/gtk/gtk.h
 
-../../../../../../usr/include/gtk-2.0/gtk/gtktreemodelfilter.h : /usr/lib/x86_64-linux-gnu/gtk-2.0/include/gdkconfig.h \
-	/usr/include/gtk-2.0/gtk/gtktreemodel.h
-
 ../../../../../../usr/include/gtk-2.0/gtk/gtkrecentchooserwidget.h : /usr/include/gtk-2.0/gtk/gtkrecentchooser.h \
 	/usr/include/gtk-2.0/gtk/gtkvbox.h
+
+../../../../../../usr/include/gtk-2.0/gtk/gtktreemodelfilter.h : /usr/lib/x86_64-linux-gnu/gtk-2.0/include/gdkconfig.h \
+	/usr/include/gtk-2.0/gtk/gtktreemodel.h
 
 ../include/common/Res.h : ../include/common/GXmlTree.h
 
@@ -2767,8 +2795,7 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 
 ../src/common/Widgets/GTextLabel.cpp : ../include/common/Lgi.h \
 	../include/common/GTextLabel.h \
-	../include/common/GUtf8.h \
-	../include/common/GDisplayString.h
+	../include/common/GDisplayStringLayout.h
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkversion.h : 
 
@@ -2823,7 +2850,8 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 ../../../../../../usr/include/gtk-2.0/gtk/gtkprintcontext.h : /usr/include/pango-1.0/pango/pango.h \
 	/usr/include/gtk-2.0/gtk/gtkpagesetup.h
 
-../include/common/GItemContainer.h : ../include/common/GPopup.h
+../include/common/GItemContainer.h : ../include/common/GPopup.h \
+	../include/common/GNotifications.h
 
 ../../../../../../usr/include/glib-2.0/glib/gtimer.h : /usr/include/glib-2.0/glib/gtypes.h
 
@@ -2847,7 +2875,8 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 ../src/common/Widgets/GCheckBox.cpp : ../include/common/Lgi.h \
 	../include/common/GSkinEngine.h \
 	../include/common/GCheckBox.h \
-	../include/common/GDisplayString.h
+	../include/common/GDisplayString.h \
+	../include/common/GDisplayStringLayout.h
 
 ../../../../../../usr/include/glib-2.0/gio/gactiongroupexporter.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -2893,6 +2922,7 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 	../include/common/GFontSelect.h \
 	../include/common/GDisplayString.h \
 	../include/common/GdiLeak.h \
+	../include/common/GStringClass.h \
 	../include/common/GUtf8.h
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkstatusbar.h : /usr/include/gtk-2.0/gtk/gtkhbox.h
@@ -3086,7 +3116,11 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 
 ../../../../../../usr/include/pango-1.0/pango/pango-enum-types.h : /usr/include/glib-2.0/glib-object.h
 
-../include/common/GStream.h : ../include/common/GDom.h
+../include/common/GStream.h : ../include/common/GDom.h \
+	../include/common/GStringClass.h
+
+../include/common/GStringClass.h : ../include/common/GUtf8.h \
+	../include/common/GString.h
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtktreestore.h : /usr/lib/x86_64-linux-gnu/gtk-2.0/include/gdkconfig.h \
 	/usr/include/gtk-2.0/gtk/gtktreemodel.h \
@@ -3111,6 +3145,9 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 ../../../../../../usr/include/atk-1.0/atk/atkimage.h : /usr/include/atk-1.0/atk/atkobject.h \
 	/usr/include/atk-1.0/atk/atkutil.h
 
+../include/common/GDisplayStringLayout.h : ../include/common/GUtf8.h \
+	../include/common/GDisplayString.h
+
 ../src/common/Gdc2/Tools/GColourReduce.cpp : ../include/common/Gdc2.h \
 	../include/common/GPalette.h
 
@@ -3134,7 +3171,9 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 	../include/common/GCheckBox.h \
 	../include/common/GCombo.h \
 	../include/common/GTree.h \
-	../include/common/GTableLayout.h
+	../include/common/GTableLayout.h \
+	../include/common/GBox.h \
+	../include/common/INet.h
 
 ../include/common/GFilter.h : ../include/common/GContainers.h
 
@@ -3230,12 +3269,15 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 ../include/common/LgiDefs.h : ../include/common/LgiInc.h \
 	../include/common/GAutoPtr.h
 
+../src/common/Gdc2/GRopsCases.cpp : 
+
 ../../../../../../usr/include/glib-2.0/gio/gvfs.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../src/common/Widgets/GTabView.cpp : ../include/common/Lgi.h \
 	../include/common/GTabView.h \
 	../include/common/GSkinEngine.h \
-	../include/common/GDisplayString.h
+	../include/common/GDisplayString.h \
+	../include/common/GTableLayout.h
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkradiomenuitem.h : /usr/include/gtk-2.0/gtk/gtkcheckmenuitem.h
 
@@ -3542,6 +3584,8 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 	../include/common/GScrollBar.h \
 	../include/common/GTextLabel.h
 
+../include/common/GRops.h : 
+
 ../../../../../../usr/include/glib-2.0/glib/gmain.h : /usr/include/glib-2.0/glib/gpoll.h \
 	/usr/include/glib-2.0/glib/gslist.h \
 	/usr/include/glib-2.0/glib/gthread.h
@@ -3733,6 +3777,8 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 ../../../../../../usr/include/gtk-2.0/gtk/gtkbutton.h : /usr/include/gtk-2.0/gtk/gtkbin.h \
 	/usr/include/gtk-2.0/gtk/gtkimage.h
 
+../include/common/GNotifications.h : 
+
 ../../../../../../usr/include/glib-2.0/glib/gtree.h : /usr/include/glib-2.0/glib/gnode.h
 
 ../src/common/Gdc2/GColour.cpp : ../include/common/Lgi.h \
@@ -3792,7 +3838,8 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 
 ../include/common/LgiInc.h : 
 
-../include/common/GTableLayout.h : ../include/common/GCss.h
+../include/common/GTableLayout.h : ../include/common/GCss.h \
+	../include/common/GNotifications.h
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkcombo.h : /usr/include/gtk-2.0/gtk/gtk.h
 
@@ -3822,7 +3869,8 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 
 ../include/common/GBitmap.h : 
 
-../include/common/GItemContainer.h : ../include/common/GPopup.h
+../include/common/GItemContainer.h : ../include/common/GPopup.h \
+	../include/common/GNotifications.h
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkalignment.h : /usr/include/gtk-2.0/gtk/gtkbin.h
 
@@ -3883,7 +3931,8 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 	../include/common/GToken.h \
 	../include/common/GUtf8.h
 
-../include/common/GDocView.h : ../include/common/GVariant.h
+../include/common/GDocView.h : ../include/common/GVariant.h \
+	../include/common/GNotifications.h
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkitemfactory.h : /usr/include/gtk-2.0/gtk/gtk.h
 
@@ -3915,9 +3964,10 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 
 ../../../../../../usr/include/glib-2.0/gobject/gclosure.h : /usr/include/glib-2.0/gobject/gtype.h
 
-../include/common/GProgressDlg.h : 
+../include/common/GProgressDlg.h : ../include/common/GTableLayout.h
 
-../include/common/GStream.h : ../include/common/GDom.h
+../include/common/GStream.h : ../include/common/GDom.h \
+	../include/common/GStringClass.h
 
 ../../../../../../usr/include/atk-1.0/atk/atkdocument.h : /usr/include/atk-1.0/atk/atkobject.h \
 	/usr/include/atk-1.0/atk/atkutil.h
@@ -4017,7 +4067,12 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 
 ../include/common/GViewPriv.h : 
 
+../src/common/Gdc2/GRopsCases.cpp : 
+
 ../../../../../../usr/include/gtk-2.0/gtk/gtkseparator.h : /usr/include/gtk-2.0/gtk/gtkwidget.h
+
+../include/common/GDisplayStringLayout.h : ../include/common/GUtf8.h \
+	../include/common/GDisplayString.h
 
 ../src/common/INet/INet.cpp : ../include/common/GFile.h \
 	../include/common/INet.h \

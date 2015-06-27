@@ -95,7 +95,7 @@ public:
 		int Index = -1
 	);
 	/// Gets the items in the list
-	int GetItems();
+	int Length();
 	/// Returns the item at index 'i'
 	char *operator [](int i);
 

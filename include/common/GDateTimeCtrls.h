@@ -4,6 +4,7 @@
 #define _DATE_TIME_CTRLS_
 
 #include "MonthView.h"
+#include "GNotifications.h"
 
 /// This is a popup window to select a time.
 class GTimePopup : public GPopup

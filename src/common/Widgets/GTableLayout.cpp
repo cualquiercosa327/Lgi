@@ -33,7 +33,7 @@ enum CellFlag
 
 #define Izza(c)				dynamic_cast<c*>(v)
 // #define DEBUG_LAYOUT		535 // define to ID of control to dump (0 to disable)
-#define DEBUG_LAYOUT		105
+// #define DEBUG_LAYOUT		105
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 
@@ -1420,7 +1420,6 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 	int64 Start = LgiCurrentTime();
 	#endif
 
-	printf("Layout=%s\n", Client.GetStr());
 	LayoutHorizontal(Client);
 	LayoutVertical(Client);
 	LayoutPost(Client);

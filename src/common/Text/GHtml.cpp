@@ -4079,7 +4079,7 @@ void GHtmlTableLayout::DeallocatePx(int StartCol, int Cols, int MaxPx)
 	int TrimPx = TotalPx - MaxPx;
 	GArray<ColInfo> Inf;
 	int HalfMax = MaxPx >> 1;
-	int Interesting = 0;
+	unsigned Interesting = 0;
 	int InterestingPx = 0;
 	
 	for (int x=StartCol; x<StartCol+Cols; x++)
@@ -4102,7 +4102,7 @@ void GHtmlTableLayout::DeallocatePx(int StartCol, int Cols, int MaxPx)
 	{
 		ColInfo &ci = Inf[i];
 		double r = (double)ci.Px / InterestingPx;
-		int DropPx = r * TrimPx;
+		int DropPx = (int) (r * TrimPx);
 		if (DropPx < MinCol[ci.Idx])
 			MinCol[ci.Idx] -= DropPx;
 		else
@@ -5376,6 +5376,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 				Flow->x2 = old.x2;
 				Flow->cx = old.cx;
 				Flow->y1 = old.y1;
+				Flow->y2 = old.y2;
 				break;
 			}
 			default:

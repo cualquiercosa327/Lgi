@@ -502,6 +502,15 @@ public:
 		SetEnv(0);
 	}
 
+	void InvalidateLine(int Idx)
+	{
+		GTextLine *Ln = GTextView3::Line[Idx];
+		if (Ln)
+		{
+			Invalidate(&Ln->r);
+		}
+	}
+	
 	void OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour)
 	{
 		GTextView3::OnPaintLeftMargin(pDC, r, colour);
@@ -521,11 +530,7 @@ public:
 			}
 		}
 
-		char *Fn = Doc->GetFileName();
-		bool DocMatch = IdeDoc::CurIpDoc &&
-						Fn &&
-						!_stricmp(Fn, IdeDoc::CurIpDoc);
-
+		bool DocMatch = Doc->IsCurrentIp();
 		{
 			// We have the current IP location
 			it = GTextView3::Line.Start();
@@ -1017,7 +1022,7 @@ void IdeDocPrivate::OnSaveComplete(bool Status)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-GAutoString IdeDoc::CurIpDoc;
+GString IdeDoc::CurIpDoc;
 int IdeDoc::CurIpLine = -1;
 
 IdeDoc::IdeDoc(AppWnd *a, NodeSource *src, const char *file)
@@ -1174,9 +1179,18 @@ bool IdeDoc::AddBreakPoint(int Line, bool Add)
 	return true;
 }
 
+bool IdeDoc::IsCurrentIp()
+{
+	char *Fn = GetFileName();
+	bool DocMatch = CurIpDoc &&
+					Fn &&
+					!_stricmp(Fn, CurIpDoc);
+	return DocMatch;
+}
+
 void IdeDoc::ClearCurrentIp()
 {
-	CurIpDoc.Reset();
+	CurIpDoc.Empty();
 	CurIpLine = -1;
 }
 
@@ -1184,13 +1198,19 @@ void IdeDoc::SetLine(int Line, bool CurIp)
 {
 	if (CurIp)
 	{
+		if (d->Edit && IsCurrentIp() && CurIpLine >= 0)
+		{
+			// Invalidate the old IP location
+			d->Edit->InvalidateLine(CurIpLine);
+		}
+		
 		CurIpLine = Line;
-		CurIpDoc.Reset(NewStr(GetFileName()));
+		CurIpDoc = GetFileName();
 	}
 	
-	if (GetEdit())
+	if (d->Edit)
 	{
-		GetEdit()->SetLine(Line);
+		d->Edit->SetLine(Line);
 	}
 }
 

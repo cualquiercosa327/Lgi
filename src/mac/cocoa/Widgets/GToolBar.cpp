@@ -1037,15 +1037,6 @@ void GToolButton::OnCommand()
 	}
 }
 
-void GToolButton::SendNotify(int Flags)
-{
-	GViewI *w = (GetNotify()) ? GetNotify() : GetParent();
-	if (w)
-	{
-		w->PostEvent(M_CHANGE, (int)(GViewI*)this, Flags);
-	}
-}
-
 void GToolButton::OnMouseClick(GMouse &m)
 {
 	GToolBar *ToolBar = dynamic_cast<GToolBar*>(GetParent());

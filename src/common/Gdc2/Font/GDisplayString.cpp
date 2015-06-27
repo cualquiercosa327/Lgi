@@ -16,6 +16,9 @@
 #undef FontChange
 #endif
 
+//345678123456781234567812345678
+	//	2nd
+
 #define DEBUG_CHAR_AT				0
 
 #if defined(__GTK_H__) || (defined(MAC) && !defined(COCOA))
@@ -71,7 +74,7 @@ GDisplayString::GDisplayString(GFont *f, const char *s, int l, GSurface *pdc)
 	x = y = 0;
 	xf = 0;
 	yf = 0;
-	TabOrigin = 0;
+	DrawOffsetF = 0;
 	LaidOut = 0;
 	AppendDots = 0;
 	VisibleTab = 0;
@@ -91,13 +94,12 @@ GDisplayString::GDisplayString(GFont *f, const char *s, int l, GSurface *pdc)
 	#elif defined __GTK_H__
 	
 	Hnd = 0;
+	LastTabOffset = -1;
 	if (Font && Str)
 	{
 		len = l >= 0 ? l : strlen(Str);
 		if (len > 0)
-		{
 			Hnd = Gtk::pango_layout_new(GFontSystem::Inst()->GetContext());
-		}
 	}
 	
 	#endif
@@ -118,7 +120,7 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc)
 	x = y = 0;
 	xf = 0;
 	yf = 0;
-	TabOrigin = 0;
+	DrawOffsetF = 0;
 	LaidOut = 0;
 	AppendDots = 0;
 	VisibleTab = 0;
@@ -156,7 +158,40 @@ GDisplayString::~GDisplayString()
 	DeleteArray(Str);
 }
 
-void GDisplayString::Layout()
+#if defined __GTK_H__
+void GDisplayString::UpdateTabs(int Offset, int Size, bool Debug)
+{
+	if (Hnd &&
+		Font &&
+		Font->TabSize())
+	{
+		int Len = 16;
+		LastTabOffset = Offset;
+		
+		Gtk::PangoTabArray *t = Gtk::pango_tab_array_new(Len, true);
+		if (t)
+		{
+			for (int i=0; i<Len; i++)
+			{
+				int Pos = (i * Size) + Offset;
+				Gtk::pango_tab_array_set_tab(t,
+											i,
+											Gtk::PANGO_TAB_LEFT,
+											Pos);
+				if (Debug)
+					printf("%i, ", Pos);
+			}
+			if (Debug)
+				printf("\n");
+			
+			Gtk::pango_layout_set_tabs(Hnd, t);
+			Gtk::pango_tab_array_free(t);
+		}
+	}
+}
+#endif
+
+void GDisplayString::Layout(bool Debug)
 {
     if (LaidOut)
         return;
@@ -178,21 +213,24 @@ void GDisplayString::Layout()
 	}
 
 	Gtk::pango_context_set_font_description(GFontSystem::Inst()->GetContext(), Font->Handle());
-	if (Font->TabSize())
+
+	int TabSizePx = Font->TabSize();
+	int TabSizeF = TabSizePx * FScale;
+	int TabOffsetF = DrawOffsetF % TabSizeF;
+	int OffsetF = TabOffsetF ? TabSizeF - TabOffsetF : 0;
+	/*
+	if (Debug)
 	{
-		int Len = 32;
-		Gtk::PangoTabArray *t = Gtk::pango_tab_array_new(Len, true);
-		if (t)
-		{
-			for (int i=0; i<Len; i++)
-			{
-				Gtk::pango_tab_array_set_tab(t, i, Gtk::PANGO_TAB_LEFT, i * Font->TabSize());
-			}
-			
-			Gtk::pango_layout_set_tabs(Hnd, t);
-			Gtk::pango_tab_array_free(t);
-		}
+		printf("'%s', TabSizeF=%i, TabOffsetF=%i, DrawOffsetF=%i, OffsetF=%i\n",
+			Str,
+			TabSizeF,
+			TabOffsetF,
+			DrawOffsetF,
+			OffsetF);
 	}
+	*/
+	UpdateTabs(OffsetF / FScale, Font->TabSize());
+
 
 	if (Font->Underline())
 	{
@@ -337,7 +375,7 @@ void GDisplayString::Layout()
 						// Handle tab(s)
 						for (int t=0; t<Info[i].Len; t++)
 						{
-							int Dx = TabSize - ((Info[i].X + x + TabOrigin) % TabSize);
+							int Dx = TabSize - ((Info[i].X + x + GetDrawOffset()) % TabSize);
 							Info[i].X += Dx;
 						}
 						x += Info[i].X;
@@ -470,14 +508,16 @@ void GDisplayString::Layout()
 	#endif
 }
 
-int GDisplayString::GetTabOrigin()
+int GDisplayString::GetDrawOffset()
 {
-    return TabOrigin;
+    return DrawOffsetF >> FShift;
 }
 
-void GDisplayString::SetTabOrigin(int o)
+void GDisplayString::SetDrawOffset(int Px)
 {
-    TabOrigin = o;
+	if (LaidOut)
+		LgiAssert(!"No point setting TabOrigin after string is laid out.\n");
+    DrawOffsetF = Px << FShift;
 }
 
 bool GDisplayString::ShowVisibleTab()
@@ -868,8 +908,8 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 		rc = *r;
 		rc.x1 <<= FShift;
 		rc.y1 <<= FShift;
-		rc.x2 <<= FShift;
-		rc.y2 <<= FShift;
+		rc.x2 = (rc.x2 + 1) << FShift;
+		rc.y2 = (rc.y2 + 1) << FShift;
 	}
 	
 	FDraw(pDC, px << FShift, py << FShift, r ? &rc : NULL);
@@ -948,7 +988,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 							int X = px;
 							for (int n=0; n<Info[i].Len; n++)
 							{
-								int Dx = TabSize - ((X - Ox + TabOrigin) % TabSize);
+								int Dx = TabSize - ((X - Ox + GetDrawOffset()) % TabSize);
 								GRect Char(X, b.y1, X + Dx - 1, b.y2);
 								GColour WsCol = f->WhitespaceColour();
 								LgiAssert(WsCol.IsValid());
@@ -1082,6 +1122,18 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 	#endif
 }
 
+int GDisplayString::GetDrawOffsetF()
+{
+    return DrawOffsetF;
+}
+
+void GDisplayString::SetDrawOffsetF(int Fpx)
+{
+	if (LaidOut)
+		LgiAssert(!"No point setting TabOrigin after string is laid out.\n");
+    DrawOffsetF = Fpx;
+}
+
 int GDisplayString::FX()
 {
     Layout();
@@ -1100,9 +1152,9 @@ GdcPt2 GDisplayString::FSize()
 	return GdcPt2(xf, yf);
 }
 
-void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc)
+void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc, bool Debug)
 {
-    Layout();
+    Layout(Debug);
 
 	#if !DISPLAY_STRING_FRACTIONAL_NATIVE
 
@@ -1128,8 +1180,6 @@ void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc)
 		LgiAssert(!"Can't get cairo.");
 		return;
 	}
-
-	// printf("Draw %i,%i sys=%i bold=%i, hnd=%p, Str='%.20s'\n", px, py, 	Font==SysFont, Font==SysBold, Font->Handle(), Str);
 
 	int Ox = 0, Oy = 0;
 	pDC->GetOrigin(Ox, Oy);
@@ -1167,12 +1217,10 @@ void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc)
 		Gtk::cairo_fill(cr);
 	}
 
-	cairo_translate
-	(
-		cr,
-		((double)fx / FScale) - Ox,
-		((double)fy / FScale) - Oy
-	);
+	double Dx = ((double)fx / FScale) - Ox;
+	double Dy = ((double)fy / FScale) - Oy;
+
+	cairo_translate(cr, Dx, Dy);	
 	
 	if (!Font->Transparent() && !frc)
 	{

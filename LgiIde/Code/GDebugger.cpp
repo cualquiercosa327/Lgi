@@ -50,6 +50,7 @@ class Gdb : public GDebugger, public GThread
 				int At = 0;
 				for (; At < a.Length() && stricmp(a[At], "at") != 0; At++)
 					;
+				
 				if (At < a.Length() - 1) // Found the 'at'
 				{
 					GString::Array ref = a[At+1].Split(":");
@@ -59,10 +60,14 @@ class Gdb : public GDebugger, public GThread
 						return true;
 					}
 				}
-				else if (IsDigit(a[0](0)));
+				else
 				{
-					Events->OnFileLine(NULL, a[0].Int(), true);
-					return true;
+					int Line = a[0].Int();
+					if (Line)
+					{
+						Events->OnFileLine(NULL, Line, true);
+						return true;
+					}
 				}
 			}
 		}
@@ -110,15 +115,21 @@ class Gdb : public GDebugger, public GThread
 	
 	void OnBreakPoint(const char *Str, int Len)
 	{
+		// Trim off the whitespace...
 		while (Len > 0 && strchr(WhiteSpace, *Str))
 		{
 			Str++;
 			Len--;
 		}
-		
+		while (Len > 0 && strchr(WhiteSpace, Str[Len-1]))
+		{
+			Len--;
+		}
+
 		GString f(Str, Len);
 		GString::Array a = f.SplitDelimit(" \t");
 		int At = 0;
+
 		// Find 'at'
 		for (; At < a.Length() && stricmp(a[At], "at") != 0; At++)
 			;
@@ -139,6 +150,8 @@ class Gdb : public GDebugger, public GThread
 	
 	void OnLine(const char *Start, int Length)
 	{
+		// printf("OnLine: '%.*s'\n", Length-1, Start);
+
 		// Send output
 		if (OutLines)
 			OutLines->New().Reset(NewStr(Start, Length - 1));
@@ -164,7 +177,8 @@ class Gdb : public GDebugger, public GThread
 			OnExit();
 		}
 		else if (BreakPointIdx < 0 &&
-				strncmp(Start, "Breakpoint ", 11) == 0)
+				strncmp(Start, "Breakpoint ", 11) == 0 &&
+				IsDigit(Start[11]))
 		{
 			Start += 11;
 			Length -= 11;

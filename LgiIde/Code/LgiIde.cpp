@@ -647,6 +647,7 @@ public:
 	GTree *Tree;
 	IdeOutput *Output;
 	bool Debugging;
+	bool Running;
 	bool Building;
 	GSubMenu *WindowsMenu;
 	GSubMenu *CreateMakefileMenu;
@@ -699,6 +700,7 @@ public:
 		Finder = 0;
 		Output = 0;
 		Debugging = false;
+		Running = false;
 		Building = false;
 		RecentFilesMenu = 0;
 		RecentProjectsMenu = 0;
@@ -1323,7 +1325,18 @@ void AppWnd::OnDebugState(bool Debugging, bool Running)
 				c->GetEdit()->Invalidate();
 		}
 	}
-
+	if (d->Running != Running)
+	{
+		d->Running = Running;
+		if (!d->Running &&
+			d->Output &&
+			d->Output->DebugTab)
+		{
+			printf("d->Output->DebugTab=%p\n", d->Output->DebugTab);
+			d->Output->DebugTab->SendNotify();
+		}
+	}
+	
 	SetCtrlEnabled(IDM_START_DEBUG, !Debugging);
 	SetCtrlEnabled(IDM_PAUSE_DEBUG, Debugging && Running);
 	SetCtrlEnabled(IDM_RESTART_DEBUGGING, Debugging);
@@ -1923,6 +1936,13 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 				{
 					if (d->DbgContext)
 						d->DbgContext->UpdateRegisters();
+					break;
+				}
+				case AppWnd::CallStackTab:
+				{
+					if (d->DbgContext)
+						d->DbgContext->UpdateCallStack();
+					break;
 				}
 				default:
 					break;

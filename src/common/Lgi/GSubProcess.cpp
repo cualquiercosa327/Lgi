@@ -416,7 +416,7 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 		char *Ext = LgiGetExtension(Exe);
 		bool HasExt = Ext && _stricmp(Ext, "exe") == 0;
 		
-		#ifdef WIN32
+		#if defined(WIN32) && !defined(PLATFORM_MINGW)
 		GToken p;
 		char *sPath = NULL;
 		size_t sSize;

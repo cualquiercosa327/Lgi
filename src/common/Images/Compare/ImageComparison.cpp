@@ -1016,7 +1016,7 @@ int ImageCompareDlg::OnNotify(GViewI *Ctrl, int Flags)
 		}
 		case IDC_TAB_PAGE:
 		{
-			if (Flags == GTabPage::TabPage_BtnClick)
+			if (Flags == TabPage_BtnClick)
 			{
 				GTabPage *p = dynamic_cast<GTabPage*>(Ctrl);
 				LgiAssert(p);

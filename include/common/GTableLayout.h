@@ -5,9 +5,7 @@
 #define _GTABLE_LAYOUT_H_
 
 #include "GCss.h"
-
-#define GTABLELAYOUT_LAYOUT_CHANGED			20
-#define GTABLELAYOUT_REFRESH                21
+#include "GNotifications.h"
 
 /// A layout cell, not currently implemened.
 class GLayoutCell : public GDom, public GCss

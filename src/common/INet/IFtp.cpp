@@ -131,7 +131,7 @@ IFtpEntry::IFtpEntry(char *Entry, const char *Cs)
 						Date.SetTime(YearOrTime);
 
 						// Default the year
-						#ifdef WIN32
+						#if defined(WIN32) && !defined(PLATFORM_MINGW)
 						__time64_t now = _time64(NULL);
 						struct tm ptm;
 						errno_t err = _localtime64_s(&ptm, &now);

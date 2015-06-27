@@ -160,7 +160,7 @@ void GDatePopup::OnMouseClick(GMouse &m)
 				char s[64];
 				Mv.Get().GetDate(s, sizeof(s));
 				n->Name(s);
-				n->SendNotify(M_CHANGE);
+				n->SendNotify(GNotifyValueChanged);
 			}
 			Visible(false);
 			return;
@@ -233,7 +233,7 @@ bool GDatePopup::OnKey(GKey &k)
 			{
 				if (Owner)
 				{
-					Owner->SendNotify(M_CHANGE);
+					Owner->SendNotify(GNotifyValueChanged);
 					// Popup->SetDate(Mv.Date(true));
 				}
 				Visible(false);
