@@ -180,6 +180,9 @@ struct GDisplayStringLayout
 	{
 		GRegion Rgn(rc);
 		
+		if (!pDC || !f)
+			return false;
+		
 		if (Enabled)
 		{
 			f->Transparent(Back.Transparent());

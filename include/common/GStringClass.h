@@ -580,6 +580,39 @@ public:
 		va_end(Arg);
 		return Bytes;
 	}
+	
+	#if defined(MAC) && __COREFOUNDATION_CFBASE__
+	
+	GString &operator =(CFStringRef r)
+	{
+		CFIndex length = CFStringGetLength(r);
+		CFRange range = CFRangeMake(0, length);
+		CFIndex usedBufLen = 0;
+		CFIndex slen = CFStringGetBytes(r,
+										range,
+										kCFStringEncodingUTF8,
+										'?',
+										false,
+										NULL,
+										0,
+										&usedBufLen);
+		if (Set(NULL, slen))
+		{
+			CFStringGetBytes(			r,
+										range,
+										kCFStringEncodingUTF8,
+										'?',
+										false,
+										(UInt8*)Str->Str,
+										Str->Len,
+										&usedBufLen);
+			Str->Str[slen] = 0; // NULL terminate
+		}
+		
+		return *this;
+	}
+	
+	#endif
 };
 
 #endif
