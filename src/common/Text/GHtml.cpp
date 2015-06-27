@@ -371,6 +371,9 @@ public:
 			}
 			while (PtSize > MinimumPointSize && PtSize < 100);
 
+			if (!BestFont)
+				return Owner->GetFont();
+
 			Fonts.Insert(f = BestFont.Release());
 			LgiAssert(f && f->Face() != NULL);
 			return f;
@@ -5823,7 +5826,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 	if (Debug)
 	{
 		int asd=0;		
-		LgiTrace("%s::OnPaint - %i,%i\n", Tag, -Px, -Py);
+		LgiTrace("%s::OnPaint - %i,%i\n", Tag.Get(), -Px, -Py);
 	}
 	#endif
 	
