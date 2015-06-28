@@ -181,7 +181,7 @@ struct GDisplayStringLayout
 		GRegion Rgn(rc);
 		
 		if (!pDC || !f)
-			return false;
+			return;
 		
 		if (Enabled)
 		{

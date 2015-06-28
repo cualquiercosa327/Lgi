@@ -4,31 +4,24 @@
 enum GNotifyType
 {
 	GNotifyNull,
-	GNotifyValueChanged,
 
-	// GDocView
-	GNotifyDocChanged,
-	GNotifyDocLoaded,
-	GNotifyCursorChanged,
-	GNotifySelectionChanged,
-	GNotifyCharsetChanged,
-	GNotifyFixedWidthChanged,
-	GNotifyShowImagesChanged,
-
-	// GTableLayout
-	GNotifyTableLayout_LayoutChanged,
-	GNotifyTableLayout_Refresh,
-
-	// GZoomView
-	GNotifyViewport_Changed,
-
-	// GTabPage
-	GNotifyTabPage_ButtonClick,
+	/// Return/Enter pressed
+	/// \sa GList, GView::OnNotify
+	GNotify_ReturnKey = VK_RETURN,
+	/// Backspace pressed
+	/// \sa GList, GView::OnNotify
+	GNotify_BackspaceKey = VK_BACKSPACE,
+	/// Delete pressed
+	/// \sa GList, GView::OnNotify
+	GNotify_DeleteKey = VK_DELETE,
+	/// Escape pressed
+	/// \sa GList, GView::OnNotify
+	GNotify_EscapeKey = VK_ESCAPE,
 
 	// GItemContainer notification flags
 	/// Item inserted
 	/// \sa GList, GView::OnNotify
-	GNotifyItem_Insert,
+	GNotifyItem_Insert = 0x100,
 	/// Item deleted
 	/// \sa GList, GView::OnNotify
 	GNotifyItem_Delete,
@@ -53,24 +46,35 @@ enum GNotifyType
 	/// Column clicks
 	/// \sa GList, GView::OnNotify
 	GNotifyItem_ColumnClicked,
-	/// Backspace pressed
-	/// \sa GList, GView::OnNotify
-	GNotifyItem_Backspace,
-	/// Return/Enter pressed
-	/// \sa GList, GView::OnNotify
-	GNotifyItem_ReturnKey,
-	/// Delete pressed
-	/// \sa GList, GView::OnNotify
-	GNotifyItem_DeleteKey,
-	/// Escape pressed
-	/// \sa GList, GView::OnNotify
-	GNotifyItem_EscapeKey,
 	/// Items dropped on the control
 	GNotifyItem_ItemsDropped,
 	/// Sent when the control requests a context menu 
 	/// outside of the existing items, i.e. in the blank
 	/// space below the items.
 	GNotifyItem_ContextMenu,
+
+	// Generic value changed
+	GNotifyValueChanged,
+
+	// GDocView
+	GNotifyDocChanged,
+	GNotifyDocLoaded,
+	GNotifyCursorChanged,
+	GNotifySelectionChanged,
+	GNotifyCharsetChanged,
+	GNotifyFixedWidthChanged,
+	GNotifyShowImagesChanged,
+
+	// GTableLayout
+	GNotifyTableLayout_LayoutChanged,
+	GNotifyTableLayout_Refresh,
+
+	// GZoomView
+	GNotifyViewport_Changed,
+
+	// GTabPage
+	GNotifyTabPage_ButtonClick,
+
 	
 	
 	/// User app notification IDs should start with this value:

@@ -1142,23 +1142,23 @@ bool GList::OnKey(GKey &k)
 					if (!k.IsChar)
 					#endif
 					{
-						SendNotify(GNotifyItem_ReturnKey);
+						SendNotify(GNotify_ReturnKey);
 					}
 					break;
 				}
 				case VK_BACKSPACE:
 				{
-					SendNotify(GNotifyItem_Backspace);
+					SendNotify(GNotify_BackspaceKey);
 					break;
 				}
 				case VK_ESCAPE:
 				{
-					SendNotify(GNotifyItem_EscapeKey);
+					SendNotify(GNotify_EscapeKey);
 					break;
 				}
 				case VK_DELETE:
 				{
-					SendNotify(GNotifyItem_DeleteKey);
+					SendNotify(GNotify_DeleteKey);
 					break;					
 				}
 				case VK_UP:
