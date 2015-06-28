@@ -25,16 +25,25 @@
 // Includes
 #include "LgiInc.h"
 
+/// This turns on the Core Text implementation.
+/// If '0' the old ATSUI implementation is used.
+#define USE_CORETEXT		1
+
 //////////////////////////////////////////////////////////////////
 // Typedefs
 typedef WindowRef			OsWindow;
 typedef ControlRef			OsView;
 typedef pthread_t           OsThread;
 typedef UniChar				OsChar;
-typedef ATSUStyle			OsFont;
 typedef CGContextRef		OsPainter;
 typedef CGContextRef		OsBitmap;
 typedef int					OsProcessId;
+
+#if USE_CORETEXT
+typedef CTFontRef			OsFont;
+#else
+typedef ATSUStyle			OsFont;
+#endif
 
 class LgiClass GMessage
 {

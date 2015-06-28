@@ -371,6 +371,9 @@ public:
 			}
 			while (PtSize > MinimumPointSize && PtSize < 100);
 
+			if (!BestFont)
+				return Owner->GetFont();
+
 			Fonts.Insert(f = BestFont.Release());
 			LgiAssert(f && f->Face() != NULL);
 			return f;
