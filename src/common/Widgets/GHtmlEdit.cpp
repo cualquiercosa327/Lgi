@@ -321,7 +321,7 @@ public:
 	void OnDocumentChange()
 	{
 		Source.Reset();
-		SendNotify(GTVN_DOC_CHANGED);
+		SendNotify(GNotifyDocChanged);
 	}
 
 	bool OnContextMenuCreate(struct GTagHit &Hit, GSubMenu &RClick)
@@ -1071,7 +1071,7 @@ public:
 		}
 		
 		Invalidate();
-		SendNotify(GTVN_CURSOR_CHANGED);
+		SendNotify(GNotifyCursorChanged);
 	}
 
 	bool GetLine(GTag *t, int idx, GArray<GFlowRect*> &Rects)
@@ -2640,8 +2640,8 @@ int GHtmlEdit::OnNotify(GViewI *c, int f)
 		case IDC_HTML_EDIT:
 		{
 			#ifdef _DEBUG
-			if (TestFlag(f, GTVN_CURSOR_CHANGED) ||
-				TestFlag(f, GTVN_DOC_CHANGED))
+			if (f == GNotifyCursorChanged ||
+				f == GNotifyDocChanged)
 			{
 				if (d->DebugWnd)
 					d->DebugWnd->Invalidate();

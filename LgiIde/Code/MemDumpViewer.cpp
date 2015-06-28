@@ -170,7 +170,7 @@ public:
 			{
 				switch (f)
 				{
-					case GITEM_NOTIFY_SELECT:
+					case GNotifyItem_Select:
 					{
 						GListItem *s = Lst->GetSelected();
 						if (s)
@@ -183,7 +183,7 @@ public:
 						}
 						break;
 					}
-					case GITEM_NOTIFY_COLS_CLICK:
+					case GNotifyItem_ColumnClicked:
 					{
 						int Col;
 						GMouse m;

@@ -1322,7 +1322,7 @@ bool GTextView3::Insert(GArray<EditInfo> &Edits)
 		}
 	}
 
-	SendNotify(GTVN_DOC_CHANGED);
+	SendNotify(GNotifyDocChanged);
 	return true;
 }
 
@@ -1489,7 +1489,7 @@ bool GTextView3::Delete(GArray<EditInfo> &Edits)
 		#endif
 	}
 
-	SendNotify(GTVN_DOC_CHANGED);
+	SendNotify(GNotifyDocChanged);
 	return true;
 }
 
@@ -1888,7 +1888,7 @@ void GTextView3::SetCursor(int i, bool Select, bool ForceFullUpdate)
 	if (c != Cursor)
 	{
 		// Send off notify
-		SendNotify(GTVN_CURSOR_CHANGED);
+		SendNotify(GNotifyCursorChanged);
 	}
 
 //int _Time = LgiCurrentTime() - _Start;
@@ -2252,8 +2252,8 @@ bool GTextView3::DoCase(bool Upper)
 			d->SetDirty(Min, 0);
 			Invalidate();
 
-			printf("docase GTVN_DOC_CHANGED\n");
-			SendNotify(GTVN_DOC_CHANGED);
+			printf("docase GNotifyDocChanged\n");
+			SendNotify(GNotifyDocChanged);
 		}
 	}
 	
@@ -3045,7 +3045,7 @@ void GTextView3::OnMouseClick(GMouse &m)
 						case IDM_FIXED:
 						{
 							SetFixedWidthFont(!GetFixedWidthFont());							
-							SendNotify(GTVN_FIXED_WIDTH_CHANGED);
+							SendNotify(GNotifyFixedWidthChanged);
 							break;
 						}
 						case IDM_CUT:

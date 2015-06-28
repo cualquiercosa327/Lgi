@@ -1255,7 +1255,7 @@ int IdeDoc::OnNotify(GViewI *v, int f)
 		{
 			switch (f)
 			{
-				case GTVN_DOC_CHANGED:
+				case GNotifyDocChanged:
 				{
 					if (!d->IsDirty)
 					{
@@ -1264,7 +1264,7 @@ int IdeDoc::OnNotify(GViewI *v, int f)
 					}
 					break;
 				}
-				case GTVN_CURSOR_CHANGED:
+				case GNotifyCursorChanged:
 				{
 					if (d->Tray)
 					{

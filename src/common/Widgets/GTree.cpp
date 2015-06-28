@@ -1180,7 +1180,7 @@ void GTree::OnItemSelect(GTreeItem *Item)
 	if (Item)
 	{
 		Item->OnSelect();
-		SendNotify(GITEM_NOTIFY_SELECT);
+		SendNotify(GNotifyItem_Select);
 	}
 }
 

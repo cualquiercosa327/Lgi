@@ -803,7 +803,7 @@ bool GTextView2::Insert(int At, char *Data, int Len)
 			GView *n = GetNotify()?GetNotify():GetParent();
 			if (n)
 			{
-				n->OnNotify(this, GTVN_DOC_CHANGED);
+				n->OnNotify(this, GNotifyDocChanged);
 			}
 
 			return true;
@@ -839,7 +839,7 @@ bool GTextView2::Delete(int At, int Len)
 			GView *n = GetNotify()?GetNotify():GetParent();
 			if (n)
 			{
-				n->OnNotify(this, GTVN_DOC_CHANGED);
+				n->OnNotify(this, GNotifyDocChanged);
 			}
 
 			Status = true;
@@ -1074,7 +1074,7 @@ void GTextView2::SetCursor(int i, bool Select, bool ForceFullUpdate)
 			GView *n = GetNotify()?GetNotify():GetParent();
 			if (n)
 			{
-				n->OnNotify(this, GTVN_CURSOR_CHANGED);
+				n->OnNotify(this, GNotifyCursorChanged);
 			}
 		}
 	}

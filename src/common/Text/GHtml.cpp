@@ -7018,7 +7018,7 @@ void GHtml::SetLoadImages(bool i)
 	if (i ^ GetLoadImages())
 	{
 		GDocView::SetLoadImages(i);
-		SendNotify(GTVN_SHOW_IMGS_CHANGED);
+		SendNotify(GNotifyShowImagesChanged);
 
 		if (GetLoadImages() && Tag)
 		{
@@ -7407,7 +7407,7 @@ void GHtml::OnMouseClick(GMouse &m)
 					}
 
 					Invalidate();
-					SendNotify(GTVN_SELECTION_CHANGED);
+					SendNotify(GNotifySelectionChanged);
 				}
 			}
 			else if (Hit.NearestText)
@@ -7423,7 +7423,7 @@ void GHtml::OnMouseClick(GMouse &m)
 				#endif
 
 				OnCursorChanged();
-				SendNotify(GTVN_SELECTION_CHANGED);
+				SendNotify(GNotifySelectionChanged);
 			}
 			else
 			{
@@ -7745,7 +7745,7 @@ void GHtml::OnMouseClick(GMouse &m)
 
 								Invalidate();
 
-								SendNotify(GTVN_CODEPAGE_CHANGED);
+								SendNotify(GNotifyCharsetChanged);
 							}								
 						}
 						else
@@ -7767,7 +7767,7 @@ void GHtml::OnMouseClick(GMouse &m)
 		{
 			Selection->Selection = -1;
 			Selection = 0;
-			SendNotify(GTVN_SELECTION_CHANGED);
+			SendNotify(GNotifySelectionChanged);
 
 			#if DEBUG_SELECTION
 			LgiTrace("NoSelect on release\n");
@@ -7778,7 +7778,7 @@ void GHtml::OnMouseClick(GMouse &m)
 
 void GHtml::OnLoad()
 {
-	SendNotify(GTVN_DOC_LOADED);
+	SendNotify(GNotifyDocLoaded);
 }
 
 GTag *GHtml::GetTagByPos(int x, int y, int *Index, GdcPt2 *LocalCoords, bool DebugLog)
@@ -7895,7 +7895,7 @@ void GHtml::OnMouseMove(GMouse &m)
 			OnCursorChanged();
 			Invalidate();
 			
-			SendNotify(GTVN_SELECTION_CHANGED);
+			SendNotify(GNotifySelectionChanged);
 
 			#if DEBUG_SELECTION
 			LgiTrace("CreateSelection '%20S' %i\n", Hit.NearestText->Text(), Hit.Index);
@@ -7949,7 +7949,7 @@ void GHtml::OnMouseMove(GMouse &m)
 
 			OnCursorChanged();
 			Invalidate();
-			SendNotify(GTVN_SELECTION_CHANGED);
+			SendNotify(GNotifySelectionChanged);
 		}
 	}
 }

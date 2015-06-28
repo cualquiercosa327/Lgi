@@ -231,7 +231,7 @@ void GProgressPane::Value(int64 v)
 	}
 	
 	if (Update && ValText)
-		ValText->SendNotify(GTABLELAYOUT_REFRESH);
+		ValText->SendNotify(GNotifyTableLayout_Refresh);
 }
 
 void GProgressPane::OnCreate()

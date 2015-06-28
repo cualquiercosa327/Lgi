@@ -1535,7 +1535,7 @@ bool GZoomView::OnMouseWheel(double Lines)
 		// Update the screen        
 		// FIXME... mark stuff dirty
 		Invalidate();
-		SendNotify(NotifyViewportChanged);
+		SendNotify(GNotifyViewport_Changed);
 	}
 	else
 	{
@@ -1546,7 +1546,7 @@ bool GZoomView::OnMouseWheel(double Lines)
 			if (HScroll)
 			{
 				HScroll->Value((int64) (HScroll->Value() + (Lines * 5)));
-				SendNotify(NotifyViewportChanged);
+				SendNotify(GNotifyViewport_Changed);
 			}
 		}
 		else
@@ -1555,7 +1555,7 @@ bool GZoomView::OnMouseWheel(double Lines)
 			if (VScroll)
 			{
 				VScroll->Value((int64) (VScroll->Value() + (Lines * 5)));
-				SendNotify(NotifyViewportChanged);
+				SendNotify(GNotifyViewport_Changed);
 			}
 		}
 	}
@@ -1592,7 +1592,7 @@ void GZoomView::OnPulse()
 			if (Amount)
 			{
 				VScroll->Value(VScroll->Value() + Amount);
-				SendNotify(NotifyViewportChanged);
+				SendNotify(GNotifyViewport_Changed);
 				Update = true;
 			}
 		}
@@ -1607,7 +1607,7 @@ void GZoomView::OnPulse()
 			if (Amount)
 			{
 				HScroll->Value(HScroll->Value() + Amount);
-				SendNotify(NotifyViewportChanged);
+				SendNotify(GNotifyViewport_Changed);
 				Update = true;
 			}
 		}
@@ -1643,7 +1643,7 @@ int GZoomView::OnNotify(GViewI *v, int f)
 			#ifdef WIN32
 			UpdateWindow(Handle());
 			#endif
-			SendNotify(NotifyViewportChanged);
+			SendNotify(GNotifyViewport_Changed);
 			break;
 		}
 	}

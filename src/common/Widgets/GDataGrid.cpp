@@ -441,7 +441,7 @@ void GDataGrid::OnItemClick(GListItem *Item, GMouse &m)
 				{
 					d->Deleted.Add(IndexOf(i));
 				}
-				SendNotify(GITEM_NOTIFY_DELETE);
+				SendNotify(GNotifyItem_Delete);
 				d->Deleted.Length(0);
 
 				Sel.Delete(d->NewRecord);
@@ -613,7 +613,7 @@ int GDataGrid::OnDrop(char *Format, GVariant *Data, GdcPt2 Pt, int KeyState)
 		{
 			d->Dropped.Add(Item[i]);
 		}
-		SendNotify(GITEM_NOTIFY_ITEMS_DROPPED);
+		SendNotify(GNotifyItem_ItemsDropped);
 		return DROPEFFECT_COPY;
 	}
 

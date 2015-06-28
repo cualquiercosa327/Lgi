@@ -918,7 +918,7 @@ void GList::OnItemSelect(GArray<GListItem*> &It)
 	}
 
 	// Notify selection change
-	SendNotify(GITEM_NOTIFY_SELECT);
+	SendNotify(GNotifyItem_Select);
 }
 
 bool GItemContainer::DeleteColumn(GItemColumn *Col)
@@ -934,7 +934,7 @@ bool GItemContainer::DeleteColumn(GItemColumn *Col)
 			DeleteObj(Col);
 			UpdateAllItems();
 
-			SendNotify(GITEM_NOTIFY_COLS_CHANGE);
+			SendNotify(GNotifyItem_ColumnsChanged);
 			Status = true;
 		}
 
@@ -1142,23 +1142,23 @@ bool GList::OnKey(GKey &k)
 					if (!k.IsChar)
 					#endif
 					{
-						SendNotify(GITEM_NOTIFY_RETURN);
+						SendNotify(GNotifyItem_ReturnKey);
 					}
 					break;
 				}
 				case VK_BACKSPACE:
 				{
-					SendNotify(GITEM_NOTIFY_BACKSPACE);
+					SendNotify(GNotifyItem_Backspace);
 					break;
 				}
 				case VK_ESCAPE:
 				{
-					SendNotify(GITEM_NOTIFY_ESC_KEY);
+					SendNotify(GNotifyItem_EscapeKey);
 					break;
 				}
 				case VK_DELETE:
 				{
-					SendNotify(GITEM_NOTIFY_DEL_KEY);
+					SendNotify(GNotifyItem_DeleteKey);
 					break;					
 				}
 				case VK_UP:
@@ -1637,7 +1637,7 @@ void GList::OnMouseClick(GMouse &m)
 
 						if (SelectionChanged)
 						{
-							SendNotify(GITEM_NOTIFY_SELECT);
+							SendNotify(GNotifyItem_Select);
 						}
 					}
 
@@ -1647,11 +1647,11 @@ void GList::OnMouseClick(GMouse &m)
 				if (!HandlerHung)
 				{
 					if (m.IsContextMenu())
-						SendNotify(GITEM_NOTIFY_CONTEXT_MENU);
+						SendNotify(GNotifyItem_ContextMenu);
 					else if (m.Double())
-						SendNotify(GITEM_NOTIFY_DBL_CLICK);
+						SendNotify(GNotifyItem_DoubleClick);
 					else
-						SendNotify(GITEM_NOTIFY_CLICK);
+						SendNotify(GNotifyItem_Click);
 				}
 			}
 		}
@@ -2203,7 +2203,7 @@ bool GList::Insert(List<GListItem> &l, int Index, bool Update)
 			Invalidate();
 
 			// Notify
-			SendNotify(GITEM_NOTIFY_INSERT);
+			SendNotify(GNotifyItem_Insert);
 		}
 	}
 
@@ -2279,7 +2279,7 @@ bool GList::Remove(GListItem *i)
 					OnItemSelect(s);
 				}
 
-				Note->OnNotify(this, GITEM_NOTIFY_DELETE);
+				Note->OnNotify(this, GNotifyItem_Delete);
 			}
 
 			Status = true;
@@ -2804,7 +2804,7 @@ void GItemContainer::OnColumnClick(int Col, GMouse &m)
 {
 	ColClick = Col;
 	ColMouse = m;
-	SendNotify(GITEM_NOTIFY_COLS_CLICK);
+	SendNotify(GNotifyItem_ColumnClicked);
 }
 
 bool GItemContainer::GetColumnClickInfo(int &Col, GMouse &m)

@@ -7,71 +7,70 @@ enum GNotifyType
 	GNotifyValueChanged,
 
 	// GDocView
-	GTVN_DOC_CHANGED,
-	GTVN_CURSOR_CHANGED,
-	GTVN_SELECTION_CHANGED,
-	GTVN_CODEPAGE_CHANGED,
-	GTVN_FIXED_WIDTH_CHANGED,
-	GTVN_SHOW_IMGS_CHANGED,
-	GTVN_DOC_LOADED,
+	GNotifyDocChanged,
+	GNotifyDocLoaded,
+	GNotifyCursorChanged,
+	GNotifySelectionChanged,
+	GNotifyCharsetChanged,
+	GNotifyFixedWidthChanged,
+	GNotifyShowImagesChanged,
 
 	// GTableLayout
-	GTABLELAYOUT_LAYOUT_CHANGED,
-	GTABLELAYOUT_REFRESH,
+	GNotifyTableLayout_LayoutChanged,
+	GNotifyTableLayout_Refresh,
 
 	// GZoomView
-	NotifyViewportChanged,
+	GNotifyViewport_Changed,
 
 	// GTabPage
-	TabPage_BtnNone,
-	TabPage_BtnClick,
+	GNotifyTabPage_ButtonClick,
 
 	// GItemContainer notification flags
 	/// Item inserted
 	/// \sa GList, GView::OnNotify
-	GITEM_NOTIFY_INSERT,
+	GNotifyItem_Insert,
 	/// Item deleted
 	/// \sa GList, GView::OnNotify
-	GITEM_NOTIFY_DELETE,
+	GNotifyItem_Delete,
 	/// Item selected
 	/// \sa GList, GView::OnNotify
-	GITEM_NOTIFY_SELECT,
+	GNotifyItem_Select,
 	/// Item clicked
 	/// \sa GList, GView::OnNotify
-	GITEM_NOTIFY_CLICK,
+	GNotifyItem_Click,
 	/// Item double clicked
 	/// \sa GList, GView::OnNotify
-	GITEM_NOTIFY_DBL_CLICK,
+	GNotifyItem_DoubleClick,
 	/// Item changed
 	/// \sa GList, GView::OnNotify
-	GITEM_NOTIFY_CHANGE,
+	GNotifyItem_Change,
 	/// Column changed
 	/// \sa GList, GView::OnNotify
-	GITEM_NOTIFY_COLS_CHANGE,
+	GNotifyItem_ColumnsChanged,
 	/// Column sized
 	/// \sa GList, GView::OnNotify
-	GITEM_NOTIFY_COLS_SIZE,
+	GNotifyItem_ColumnsResized,
 	/// Column clicks
 	/// \sa GList, GView::OnNotify
-	GITEM_NOTIFY_COLS_CLICK,
+	GNotifyItem_ColumnClicked,
 	/// Backspace pressed
 	/// \sa GList, GView::OnNotify
-	GITEM_NOTIFY_BACKSPACE,
+	GNotifyItem_Backspace,
 	/// Return/Enter pressed
 	/// \sa GList, GView::OnNotify
-	GITEM_NOTIFY_RETURN,
+	GNotifyItem_ReturnKey,
 	/// Delete pressed
 	/// \sa GList, GView::OnNotify
-	GITEM_NOTIFY_DEL_KEY,
+	GNotifyItem_DeleteKey,
 	/// Escape pressed
 	/// \sa GList, GView::OnNotify
-	GITEM_NOTIFY_ESC_KEY,
+	GNotifyItem_EscapeKey,
 	/// Items dropped on the control
-	GITEM_NOTIFY_ITEMS_DROPPED,
+	GNotifyItem_ItemsDropped,
 	/// Sent when the control requests a context menu 
 	/// outside of the existing items, i.e. in the blank
 	/// space below the items.
-	GITEM_NOTIFY_CONTEXT_MENU,
+	GNotifyItem_ContextMenu,
 	
 	
 	/// User app notification IDs should start with this value:

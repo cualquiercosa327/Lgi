@@ -1554,7 +1554,7 @@ public:
                 SetPos(r);
                 AttachChildren();
                 
-                SendNotify(GTABLELAYOUT_REFRESH);
+                SendNotify(GNotifyTableLayout_Refresh);
             }
         }        
     }

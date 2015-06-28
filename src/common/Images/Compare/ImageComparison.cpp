@@ -943,7 +943,7 @@ int ImageCompareDlg::OnNotify(GViewI *Ctrl, int Flags)
 	{
 		case IDC_LIST:
 		{
-			if (Flags == GITEM_NOTIFY_DBL_CLICK)
+			if (Flags == GNotifyItem_DoubleClick)
 			{
 				GListItem *s = d->lst->GetSelected();
 				if (s)
@@ -1016,7 +1016,7 @@ int ImageCompareDlg::OnNotify(GViewI *Ctrl, int Flags)
 		}
 		case IDC_TAB_PAGE:
 		{
-			if (Flags == TabPage_BtnClick)
+			if (Flags == GNotifyTabPage_ButtonClick)
 			{
 				GTabPage *p = dynamic_cast<GTabPage*>(Ctrl);
 				LgiAssert(p);

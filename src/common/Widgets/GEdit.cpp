@@ -76,7 +76,7 @@ void GEdit::SetEmptyText(const char *EmptyText)
 
 void GEdit::SendNotify(int Data)
 {
-	if (Data == GTVN_DOC_CHANGED)
+	if (Data == GNotifyDocChanged)
 		return GTextView3::SendNotify(0);
 	else if (Data == VK_RETURN)
 		return GTextView3::SendNotify(Data);

@@ -111,7 +111,7 @@ public:
 			}
 
 			if (GetList())
-				GetList()->SendNotify(GITEM_NOTIFY_CHANGE);
+				GetList()->SendNotify(GNotifyItem_Change);
 		}
 	}
 };

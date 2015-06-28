@@ -126,9 +126,9 @@ public:
 	{
 		if (c->GetId() == IDC_EDITOR &&
 			#if 1
-			(f == GTVN_DOC_CHANGED || f == GTVN_CURSOR_CHANGED) &&
+			(f == GNotifyDocChanged || f == GNotifyCursorChanged) &&
 			#else
-			(f == GTVN_DOC_CHANGED) &&
+			(f == GNotifyDocChanged) &&
 			#endif
 			Edit)
 		{

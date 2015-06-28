@@ -698,7 +698,7 @@ void GTabPage::HasButton(bool b)
 void GTabPage::OnButtonClick(GMouse &m)
 {
 	if (GetId() > 0)
-		SendNotify(TabPage_BtnClick);
+		SendNotify(GNotifyTabPage_ButtonClick);
 }
 
 void GTabPage::OnButtonPaint(GSurface *pDC)

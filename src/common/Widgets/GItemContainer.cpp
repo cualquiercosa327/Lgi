@@ -202,7 +202,7 @@ GItemColumn *GItemContainer::AddColumn(const char *Name, int Width, int Where)
 		{
 			Columns.AddAt(Where, c);
 			UpdateAllItems();
-			SendNotify(GITEM_NOTIFY_COLS_CHANGE);
+			SendNotify(GNotifyItem_ColumnsChanged);
 		}
 		Unlock();
 	}
@@ -220,7 +220,7 @@ bool GItemContainer::AddColumn(GItemColumn *Col, int Where)
 		if (Status)
 		{
 			UpdateAllItems();
-			SendNotify(GITEM_NOTIFY_COLS_CHANGE);
+			SendNotify(GNotifyItem_ColumnsChanged);
 		}
 
 		Unlock();
@@ -277,7 +277,7 @@ void GItemContainer::EmptyColumns()
 {
 	Columns.DeleteObjects();
 	Invalidate(&ColumnHeader);
-	SendNotify(GITEM_NOTIFY_COLS_CHANGE);
+	SendNotify(GNotifyItem_ColumnsChanged);
 }
 
 int GItemContainer::HitColumn(int x, int y, GItemColumn *&Resize, GItemColumn *&Over)
@@ -657,7 +657,7 @@ void GItemColumn::Width(int i)
 		GViewI *n = d->Parent->GetNotify() ? d->Parent->GetNotify() : d->Parent->GetParent();
 		if (n)
 		{
-			n->OnNotify(d->Parent, GITEM_NOTIFY_COLS_SIZE);
+			n->OnNotify(d->Parent, GNotifyItem_ColumnsResized);
 		}
 	}
 }

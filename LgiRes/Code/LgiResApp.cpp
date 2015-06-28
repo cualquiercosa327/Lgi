@@ -743,7 +743,7 @@ int FieldView::OnNotify(GViewI *Ctrl, int Flags)
 	if (!Ignore)
 	{
 		GTextView3 *Tv = dynamic_cast<GTextView3*>(Ctrl);
-		if (Tv && Flags == GTVN_CURSOR_CHANGED)
+		if (Tv && Flags == GNotifyCursorChanged)
 		{
 			return 0;
 		}

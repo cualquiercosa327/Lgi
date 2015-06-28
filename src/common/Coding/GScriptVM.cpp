@@ -1511,7 +1511,7 @@ int GVmDebuggerWnd::OnNotify(GViewI *Ctrl, int Flags)
 	{
 		case IDC_SOURCE_LST:
 		{
-			if (Flags != GITEM_NOTIFY_DBL_CLICK)
+			if (Flags != GNotifyItem_DoubleClick)
 				break;
 
 			GListItem *it = d->SourceLst->GetSelected();

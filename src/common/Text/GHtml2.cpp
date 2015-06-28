@@ -7192,7 +7192,7 @@ void GHtml2::SetLoadImages(bool i)
 	if (i ^ GetLoadImages())
 	{
 		GDocView::SetLoadImages(i);
-		SendNotify(GTVN_SHOW_IMGS_CHANGED);
+		SendNotify(GNotifyShowImagesChanged);
 
 		if (GetLoadImages() && Tag)
 		{
@@ -7804,7 +7804,7 @@ void GHtml2::OnMouseClick(GMouse &m)
 
 									Invalidate();
 
-									SendNotify(GTVN_CODEPAGE_CHANGED);
+									SendNotify(GNotifyCharsetChanged);
 								}								
 							}
 							break;

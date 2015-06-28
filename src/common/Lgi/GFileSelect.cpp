@@ -670,7 +670,7 @@ int GFileSelectDlg::OnNotify(GViewI *Ctrl, int Flags)
 	{
 		case IDC_BOOKMARKS:
 		{
-			if (Flags == GITEM_NOTIFY_SELECT && Bookmarks)
+			if (Flags == GNotifyItem_Select && Bookmarks)
 			{
 				GTreeItem *s = Bookmarks->Selection();
 				if (s)

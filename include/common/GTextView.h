@@ -5,11 +5,6 @@
 #define TEXTED_WRAP_NONE			0	// no word wrap
 #define TEXTED_WRAP_REFLOW			1	// dynamically wrap line to editor width
 
-// Notify flags
-#define GTVN_DOC_CHANGED			0x0001
-#define GTVN_CURSOR_CHANGED			0x0002
-#define GTVN_CODEPAGE_CHANGED		0x0004
-
 // Util macros
 #define IsWhiteSpace(c)				(strchr(GTextView::WhiteSpace, c) != 0)
 #define IsDelimiter(c)				(strchr(GTextView::Delimiters, c) != 0)

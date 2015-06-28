@@ -1424,7 +1424,7 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 	LayoutVertical(Client);
 	LayoutPost(Client);
 
-	Ctrl->SendNotify(GTABLELAYOUT_LAYOUT_CHANGED);
+	Ctrl->SendNotify(GNotifyTableLayout_LayoutChanged);
 	#if DEBUG_PROFILE
 	LgiTrace("GTableLayout::Layout = %i ms\n", (int)(LgiCurrentTime()-Start));
 	#endif
@@ -1627,7 +1627,7 @@ void GTableLayout::OnChildrenChanged(GViewI *Wnd, bool Attaching)
 
 int GTableLayout::OnNotify(GViewI *c, int f)
 {
-    if (f == GTABLELAYOUT_REFRESH)
+    if (f == GNotifyTableLayout_Refresh)
     {
         OnPosChange();
     }

@@ -645,7 +645,7 @@ int FindSymbolDlg::OnNotify(GViewI *v, int f)
 		}
 		case IDC_RESULTS:
 		{
-			if (f == GITEM_NOTIFY_DBL_CLICK)
+			if (f == GNotifyItem_DoubleClick)
 			{
 				// Fall throu
 			}

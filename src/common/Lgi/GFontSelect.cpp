@@ -343,7 +343,7 @@ int GFontSelect::OnNotify(GViewI *Ctrl, int Flags)
 		}
 		case IDC_FONT:
 		{
-			if (Flags == GITEM_NOTIFY_SELECT)
+			if (Flags == GNotifyItem_Select)
 			{
 				UpdatePreview();
 			}
