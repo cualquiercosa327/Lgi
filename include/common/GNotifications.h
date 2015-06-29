@@ -78,7 +78,7 @@ enum GNotifyType
 	
 	
 	/// User app notification IDs should start with this value:
-	GNotifyUserApp = 1000
+	GNotifyUserApp = 0x10000
 	/*
 	e.g.
 	enum MyAppNotifications
