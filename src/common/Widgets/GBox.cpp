@@ -514,7 +514,7 @@ void GBox::OnMouseMove(GMouse &m)
 
 void GBox::OnChildrenChanged(GViewI *Wnd, bool Attaching)
 {
-	#if 1
+	#if 0
 	LgiTrace("GBox::OnChildrenChanged(%s, %i)\n", Wnd ? Wnd->GetClass() : NULL, Attaching);
 	for (int i=0; i<Children.Length(); i++)
 		LgiTrace("	[%i]=%s hnd=%p vis=%i\n", i, Children[i]->GetClass(), Children[i]->Handle(), Children[i]->Visible());
