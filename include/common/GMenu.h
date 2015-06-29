@@ -250,7 +250,7 @@ class LgiClass GMenuItem :
 	friend class GSubMenu;
 	friend class GMenu;
 	friend class GView;
-	friend class LgiMenuItem;
+	// friend class LgiMenuItem;
 	friend class SubMenuImpl;
 	friend class MenuItemImpl;
 	friend class MenuImpl;

@@ -14,6 +14,9 @@
 #include "GToken.h"
 #include "GDisplayString.h"
 
+using namespace Gtk;
+typedef ::GMenuItem LgiMenuItem;
+
 ///////////////////////////////////////////////////////////////////////////////////////////////
 GSubMenu::GSubMenu(const char *name, bool Popup)
 {
@@ -32,7 +35,7 @@ GSubMenu::~GSubMenu()
 {
 	while (Items.Length())
 	{
-		GMenuItem *i = Items.First();
+		LgiMenuItem *i = Items.First();
 		LgiAssert(i->Parent == this);
 		DeleteObj(i);
 	}
@@ -53,14 +56,14 @@ int GSubMenu::Length()
 	return Items.Length();
 }
 
-GMenuItem *GSubMenu::ItemAt(int Id)
+LgiMenuItem *GSubMenu::ItemAt(int Id)
 {
 	return Items.ItemAt(Id);
 }
 
-GMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Where, const char *Shortcut)
+LgiMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Where, const char *Shortcut)
 {
-	GMenuItem *i = new GMenuItem(Menu, this, Str, Where < 0 ? Items.Length() : Where, Shortcut);
+	LgiMenuItem *i = new LgiMenuItem(Menu, this, Str, Where < 0 ? Items.Length() : Where, Shortcut);
 	if (i)
 	{
 		i->Id(Id);
@@ -69,12 +72,12 @@ GMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Where
 
 		Items.Insert(i, Where);
 
-		Gtk::GtkWidget *item = GtkCast(i->Handle(), gtk_widget, GtkWidget);
+		GtkWidget *item = GtkCast(i->Handle(), gtk_widget, GtkWidget);
 		LgiAssert(item);
 		if (item)
 		{
-			Gtk::gtk_menu_shell_append(Info, item);
-			Gtk::gtk_widget_show(item);
+			gtk_menu_shell_append(Info, item);
+			gtk_widget_show(item);
 		}
 
 		return i;
@@ -83,9 +86,9 @@ GMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Where
 	return 0;
 }
 
-GMenuItem *GSubMenu::AppendSeparator(int Where)
+LgiMenuItem *GSubMenu::AppendSeparator(int Where)
 {
-	GMenuItem *i = new GMenuItem;
+	LgiMenuItem *i = new LgiMenuItem;
 	if (i)
 	{
 		i->Parent = this;
@@ -111,7 +114,7 @@ GMenuItem *GSubMenu::AppendSeparator(int Where)
 GSubMenu *GSubMenu::AppendSub(const char *Str, int Where)
 {
 	GBase::Name(Str);
-	GMenuItem *i = new GMenuItem(Menu, this, Str, Where < 0 ? Items.Length() : Where, NULL);
+	LgiMenuItem *i = new LgiMenuItem(Menu, this, Str, Where < 0 ? Items.Length() : Where, NULL);
 	if (i)
 	{
 		i->Id(-1);
@@ -152,7 +155,7 @@ GSubMenu *GSubMenu::AppendSub(const char *Str, int Where)
 void GSubMenu::ClearHandle()
 {
 	Info = NULL;
-	for (GMenuItem *i = Items.First(); i; i = Items.Next())
+	for (LgiMenuItem *i = Items.First(); i; i = Items.Next())
 	{
 		i->ClearHandle();
 	}
@@ -160,7 +163,7 @@ void GSubMenu::ClearHandle()
 
 void GSubMenu::Empty()
 {
-	GMenuItem *i;
+	LgiMenuItem *i;
 	while (i = Items.First())
 	{
 		RemoveItem(i);
@@ -173,7 +176,7 @@ bool GSubMenu::RemoveItem(int i)
 	return RemoveItem(Items.ItemAt(i));
 }
 
-bool GSubMenu::RemoveItem(GMenuItem *Item)
+bool GSubMenu::RemoveItem(LgiMenuItem *Item)
 {
 	if (Item && Items.HasItem(Item))
 	{
@@ -183,10 +186,19 @@ bool GSubMenu::RemoveItem(GMenuItem *Item)
 	return false;
 }
 
-bool GSubMenu::IsContext(GMenuItem *Item)
+bool GSubMenu::IsContext(LgiMenuItem *Item)
 {
 	if (!_ContextMenuId)
-		return false;
+	{
+		LgiMenuItem *i = GetParent();
+		GSubMenu *s = i ? i->GetParent() : NULL;
+		if (s)
+			// Walk up the chain of menus to find the top...
+			return s->IsContext(Item);
+		else
+			// Ok we got to the top
+			return false;
+	}
 	
 	*_ContextMenuId = Item->Id();
 	Gtk::gtk_main_quit();
@@ -246,7 +258,7 @@ int GSubMenu::Float(GView *From, int x, int y, bool Left)
 
 GSubMenu *GSubMenu::FindSubMenu(int Id)
 {
-	for (GMenuItem *i = Items.First(); i; i = Items.Next())
+	for (LgiMenuItem *i = Items.First(); i; i = Items.Next())
 	{
 		GSubMenu *Sub = i->Sub();
 
@@ -268,9 +280,9 @@ GSubMenu *GSubMenu::FindSubMenu(int Id)
 	return 0;
 }
 
-GMenuItem *GSubMenu::FindItem(int Id)
+LgiMenuItem *GSubMenu::FindItem(int Id)
 {
-	for (GMenuItem *i = Items.First(); i; i = Items.Next())
+	for (LgiMenuItem *i = Items.First(); i; i = Items.Next())
 	{
 		GSubMenu *Sub = i->Sub();
 
@@ -325,16 +337,17 @@ static GAutoString MenuItemParse(const char *s)
 	return GAutoString(NewStr(buf));
 }
 
-static void MenuItemCallback(GMenuItem *Item)
+static void MenuItemCallback(LgiMenuItem *Item)
 {
-	if (!Item->Sub())
+	if (!Item->Sub() && !Item->InSetCheck)
 	{
 		GSubMenu *Parent = Item->GetParent();
 		if (!Parent || !Parent->IsContext(Item))
 		{
-			GMenu *m = Item->GetMenu();
+			::GMenu *m = Item->GetMenu();
 			if (m)
 			{
+				// Attached to a mean, so send an event to the window
 				GViewI *w = m->WindowHandle();
 				if (w)
 				{
@@ -342,31 +355,33 @@ static void MenuItemCallback(GMenuItem *Item)
 				}
 				else LgiAssert(!"No window for menu to send to");
 			}
-			else LgiAssert(!"Menuitem not attached to menu");
+			else
+			{
+				// Could be just a popup menu... in which case do nothing.				
+			}
 		}
 	}
 }
 
-GMenuItem::GMenuItem()
+LgiMenuItem::GMenuItem()
 {
 	Info = GtkCast(Gtk::gtk_separator_menu_item_new(), gtk_menu_item, GtkMenuItem);
 	Child = NULL;
 	Menu = NULL;
 	Parent = NULL;
+	InSetCheck = false;
 	
 	Position = -1;
 	
 	_Icon = -1;
 	_Id = 0;
-	_Enabled = true;
-	_Check = false;
 }
 
-GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, const char *txt, int Pos, const char *shortcut)
+LgiMenuItem::GMenuItem(::GMenu *m, GSubMenu *p, const char *txt, int Pos, const char *shortcut)
 {
 	GAutoString Txt = MenuItemParse(txt);
 	GBase::Name(txt);
-	Info = GtkCast(Gtk::gtk_menu_item_new_with_mnemonic(Txt), gtk_menu_item, GtkMenuItem);
+	Info = GTK_MENU_ITEM(gtk_menu_item_new_with_mnemonic(Txt));
 
 	Gtk::gulong ret = Gtk::g_signal_connect_data(Info,
 												"activate",
@@ -378,281 +393,22 @@ GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, const char *txt, int Pos, const char
 	Child = NULL;
 	Menu = m;
 	Parent = p;
+	InSetCheck = false;
 
 	Position = Pos;
 
 	_Icon = -1;
 	_Id = 0;
-	_Enabled = true;
-	_Check = false;
 
 	ShortCut.Reset(NewStr(shortcut));
 	ScanForAccel();
 }
 
-GMenuItem::~GMenuItem()
+LgiMenuItem::~GMenuItem()
 {
 	if (Info)
 		Remove();
 	DeleteObj(Child);
-}
-
-// the following 3 functions paint the menus according the to
-// windows standard. but also allow for correct drawing of menuitem
-// icons. some implementations of windows force the program back
-// to the 8-bit palette when specifying the icon graphic, thus removing
-// control over the colours displayed. these functions remove that
-// limitation and also provide the application the ability to override
-// the default painting behaviour if desired.
-void GMenuItem::_Measure(GdcPt2 &Size)
-{
-	GFont *Font = Menu && Menu->GetFont() ? Menu->GetFont() : SysFont;
-	bool BaseMenu = Parent == Menu; // true if attached to a windows menu
-									// else is a submenu
-	int Ht = Font->GetHeight();
-	// int IconX = BaseMenu ? ((24-Ht)/2)-Ht : 20;
-	int IconX = BaseMenu ? 2 : 16;
-
-	if (Separator())
-	{
-		Size.x = 8;
-		Size.y = 8;
-	}
-	else
-	{
-		// remove '&' chars for string measurement
-		char Str[256];
-		char *n = Name(), *i = n, *o = Str;
-
-		while (i && *i)
-		{
-			if (*i == '&')
-			{
-				if (i[1] == '&')
-				{
-					*o++ = *i++;
-				}
-			}
-			else
-			{
-				*o++ = *i;
-			}
-
-			i++;
-		}
-		*o++ = 0;
-		
-		// check for accelerators
-		char *Tab = strchr(Str, '\t');
-		
-		if (Tab)
-		{
-			// string with accel
-			GDisplayString Name(Font, Str, (int)Tab-(int)Str);
-			GDisplayString ShCut(Font, Tab+1);
-			Size.x = IconX + 32 + Name.X() + ShCut.X();
-
-		}
-		else
-		{
-			// normal string
-			GDisplayString ds(Font, Str);
-			Size.x = IconX + ds.X() + 4;
-		}
-
-		if (!BaseMenu)
-		{
-			// leave room for child pointer
-			Size.x += Child ? 8 : 0;
-		}
-
-		Size.y = max(IconX, Ht+2);
-	}
-}
-
-#define Time(a, b) ((double)(b - a) / 1000)
-
-void GMenuItem::_PaintText(GSurface *pDC, int x, int y, int Width)
-{
-	char *n = Name();
-	if (n)
-	{
-		GFont *Font = Menu && Menu->GetFont() ? Menu->GetFont() : SysFont;
-		bool Underline = false;
-		int CharY = Font->GetHeight();
-
-		char *e = 0;
-		for (char *s=n; s && *s; s = *e ? e : 0)
-		{
-			switch (*s)
-			{
-				case '&':
-				{
-					if (s[1] == '&')
-					{
-						e = s + 2;
-						GDisplayString d(Font, "&");
-						d.Draw(pDC, x, y, 0);
-						x += d.X();
-					}
-					else
-					{
-						Underline = true;
-						e = s + 1;
-					}
-					break;
-				}
-				case '\t':
-				{
-					GDisplayString ds(Font, e + 1);
-					x = Width - ds.X() - 8;
-					e = s + 1;
-					break;
-				}
-				default:
-				{
-					if (Underline)
-					{
-						LgiNextUtf8(e);
-					}
-					else
-					{
-						for (e = s; *e; e++)
-						{
-							if (*e == '\t') break;
-							if (*e == '&') break;
-						}
-					}
-
-					int Len = e - s;
-					if (Len > 0)
-					{
-						// paint text till that point
-						GDisplayString d(Font, s, Len);
-						d.Draw(pDC, x, y, 0);
-
-						if (Underline)
-						{
-							GDisplayString ds(Font, s, 1); 
-							int UnderX = ds.X();
-							int Ascent = ceil(Font->Ascent());
-							pDC->Colour(Font->Fore());
-							pDC->Line(x, y+Ascent+1, x+max(UnderX-2, 1), y+Ascent+1);
-							Underline = false;
-						}
-
-						x += d.X();
-					}
-					break;
-				}
-			}
-		}
-	}
-
-}
-
-void GMenuItem::_Paint(GSurface *pDC, int Flags)
-{
-	bool BaseMenu = Parent == Menu;
-	int IconX = BaseMenu ? 5 : 20;
-	bool Selected = TestFlag(Flags, ODS_SELECTED);
-	bool Disabled = TestFlag(Flags, ODS_DISABLED);
-	bool Checked = TestFlag(Flags, ODS_CHECKED);
-	
-	GRect r(0, 0, pDC->X()-1, pDC->Y()-1);
-	char *Text = Name();
-
-	if (Separator())
-	{
-		// Paint a separator
-		int Cy = r.Y() / 2;
-
-		pDC->Colour(LC_MED, 24);
-		pDC->Rectangle();
-
-		pDC->Colour(LC_LOW, 24);
-		pDC->Line(0, Cy-1, pDC->X()-1, Cy-1);
-		
-		pDC->Colour(LC_LIGHT, 24);
-		pDC->Line(0, Cy, pDC->X()-1, Cy);
-	}
-	else
-	{
-		// Paint a text menu item
-		COLOUR Fore = LC_TEXT; // Selected ? LC_SEL_TEXT : LC_TEXT;
-		COLOUR Back = Selected ? LC_HIGH : LC_MED; // Selected ? LC_SELECTION : LC_MED;
-		int x = IconX;
-		int y = 1;
-
-		// For a submenu
-		pDC->Colour(Back, 24);
-		pDC->Rectangle(&r);
-
-		// Draw the text on top
-		GFont *Font = Menu && Menu->GetFont() ? Menu->GetFont() : SysFont;
-		Font->Transparent(true);
-		if (Disabled)
-		{
-			// Disabled text
-			if (!Selected)
-			{
-				Font->Colour(LC_LIGHT, 0);
-				_PaintText(pDC, x+1, y+1, r.X());
-			}
-			// Else selected... don't draw the hilight
-
-			// "greyed" text...
-			Font->Colour(LC_LOW, 0);
-			_PaintText(pDC, x, y, r.X());
-		}
-		else
-		{
-			// Normal coloured text
-			Font->Colour(Fore, 0);
-			_PaintText(pDC, x, y, r.X());
-		}
-
-		GImageList *ImgLst = (Menu && Menu->GetImageList()) ? Menu->GetImageList() : Parent ? Parent->GetImageList() : 0;
-
-		// Draw icon/check mark
-		if (Checked && IconX > 0)
-		{
-			// it's a check!
-			int x = 4;
-			int y = 6;
-			
-			pDC->Colour(Fore, 24);
-			pDC->Line(x, y, x+2, y+2);
-			pDC->Line(x+2, y+2, x+6, y-2);
-			y++;
-			pDC->Line(x, y, x+2, y+2);
-			pDC->Line(x+2, y+2, x+6, y-2);
-			y++;
-			pDC->Line(x, y, x+2, y+2);
-			pDC->Line(x+2, y+2, x+6, y-2);
-		}
-		else if (ImgLst &&
-				_Icon >= 0)
-		{
-			// it's an icon!
-			GColour Bk(Back, 24);
-			ImgLst->Draw(pDC, 0, 0, _Icon, Bk);
-		}
-
-		// Sub menu arrow
-		if (Child && !dynamic_cast<GMenu*>(Parent))
-		{
-			pDC->Colour(LC_TEXT, 24);
-
-			int x = r.x2 - 4;
-			int y = r.y1 + (r.Y()/2);
-			for (int i=0; i<4; i++)
-			{
-				pDC->Line(x, y-i, x, y+i);
-				x--;
-			}
-		}
-	}
 }
 
 #if GtkVer(2, 24)
@@ -713,6 +469,16 @@ Gtk::gint LgiKeyToGtkKey(int Key, const char *ShortCut)
 		#ifdef GDK_BackSpace
 		case VK_BACKSPACE: return GDK_BackSpace;
 		#endif
+
+		case VK_UP:
+			return GDK_Up;
+		case VK_DOWN:
+			return GDK_Down;
+		case VK_LEFT:
+			return GDK_Left;
+		case VK_RIGHT:
+			return GDK_Right;
+
 		case VK_F1:
 			return GDK_F1;
 		case VK_F2:
@@ -751,7 +517,7 @@ Gtk::gint LgiKeyToGtkKey(int Key, const char *ShortCut)
 	return 0;
 }
 
-bool GMenuItem::ScanForAccel()
+bool LgiMenuItem::ScanForAccel()
 {
 	if (!Menu)
 		return false;
@@ -821,6 +587,22 @@ bool GMenuItem::ScanForAccel()
 				{
 					Key = VK_BACKSPACE;
 				}
+				else if (stricmp(k, "Left") == 0)
+				{
+					Key = VK_LEFT;
+				}
+				else if (stricmp(k, "Up") == 0)
+				{
+					Key = VK_UP;
+				}
+				else if (stricmp(k, "Right") == 0)
+				{
+					Key = VK_RIGHT;
+				}
+				else if (stricmp(k, "Down") == 0)
+				{
+					Key = VK_DOWN;
+				}
 				else if (stricmp(k, "Space") == 0)
 				{
 					Key = ' ';
@@ -870,19 +652,19 @@ bool GMenuItem::ScanForAccel()
 	return false;
 }
 
-GSubMenu *GMenuItem::GetParent()
+GSubMenu *LgiMenuItem::GetParent()
 {
 	return Parent;
 }
 
-void GMenuItem::ClearHandle()
+void LgiMenuItem::ClearHandle()
 {
 	Info = NULL;
 	if (Child)
 		Child->ClearHandle();
 }
 
-bool GMenuItem::Remove()
+bool LgiMenuItem::Remove()
 {
 	if (!Parent)
 	{
@@ -905,12 +687,12 @@ bool GMenuItem::Remove()
 	return true;
 }
 
-void GMenuItem::Id(int i)
+void LgiMenuItem::Id(int i)
 {
 	_Id = i;
 }
 
-void GMenuItem::Separator(bool s)
+void LgiMenuItem::Separator(bool s)
 {
 	if (s)
 	{
@@ -918,12 +700,226 @@ void GMenuItem::Separator(bool s)
 	}
 }
 
-void GMenuItem::Checked(bool c)
+struct MenuItemIndex
 {
-	_Check = c;
+	Gtk::GtkWidget *w;
+	int Current;
+	int Index;
+	
+	MenuItemIndex()
+	{
+		Index = -1;
+		Current = 0;
+		w = NULL;
+	}
+};
+
+static void
+FindMenuItemIndex(Gtk::GtkWidget *w, Gtk::gpointer data)
+{
+	MenuItemIndex *d = (MenuItemIndex*)data;
+
+	printf("w=%p d->w=%p name=%s cur=%i d->Index=%i\n", w, d->w, G_OBJECT_TYPE_NAME(w), d->Current, d->Index);
+	if (w == d->w)
+		d->Index = d->Current;
+	d->Current++;
 }
 
-bool GMenuItem::Name(const char *n)
+int
+gtk_container_get_child_index(GtkContainer *c, GtkWidget *child)
+{
+	MenuItemIndex Idx;
+	if (c && child)
+	{
+		Idx.w = child;
+		gtk_container_foreach(c, FindMenuItemIndex, &Idx);
+	}
+	return Idx.Index;
+}
+
+bool LgiMenuItem::Replace(Gtk::GtkWidget *newWid)
+{
+	if (!newWid || !Info)
+	{
+		LgiTrace("%s:%i - Error: New=%p Old=%p\n", newWid, Info);
+		return false;
+	}
+
+	// Get widget
+	GtkWidget *w = GTK_WIDGET(Info);
+	
+	// Is is attach already?
+	if (gtk_widget_get_parent(w))
+	{
+		// Yes!
+		GtkContainer *c = GTK_CONTAINER(Parent->Info);
+		if (c)
+		{			
+			// Find index
+			int PIdx = Parent->Items.IndexOf(this);
+			LgiAssert(PIdx >= 0);
+		
+			// Remove old item
+			gtk_container_remove(c, w);
+		
+			// Add new item
+			gtk_menu_shell_insert(Parent->Info, newWid, PIdx);
+			gtk_widget_show(newWid);
+		}
+		else LgiTrace("%s:%i - GTK_CONTAINER failed.\n", _FL);
+	}
+	else
+	{
+		// Delete it
+		g_object_unref(Info);
+	}
+	
+	Info = GTK_MENU_ITEM(newWid);
+	return Info != NULL;
+}
+
+void LgiMenuItem::Icon(int i)
+{
+	_Icon = i;
+	
+	if (Info && GetMenu())
+	{
+		// Is the item a image menu item?
+		if (!GTK_IS_IMAGE_MENU_ITEM(Info) && _Icon >= 0)
+		{
+			// Create a image menu item
+			GAutoString Txt = MenuItemParse(Name());
+			GtkWidget *w = gtk_image_menu_item_new_with_mnemonic(Txt);
+
+			// Attach our signal
+			gulong ret = g_signal_connect_data(	w,
+												"activate",
+												(GCallback) MenuItemCallback,
+												this,
+												NULL,
+												G_CONNECT_SWAPPED);
+
+			// Replace the existing menu item with this new one
+			if (w)
+				Replace(w);
+			else
+				LgiAssert(!"No new widget.");
+		}
+		
+		if (_Icon >= 0 && GTK_IS_IMAGE_MENU_ITEM(Info))
+		{
+			GImageList *lst = GetMenu()->GetImageList();
+			GtkImageMenuItem *imi = GTK_IMAGE_MENU_ITEM(Info);
+			if (!lst)
+			{
+				LgiTrace("%s:%i - No image list to create icon with.\n", _FL);
+			}
+			else if (!imi)
+			{
+				LgiTrace("%s:%i - No image menu item to set icon.\n", _FL);
+			}
+			else
+			{
+				// Attempt to read the background colour from the theme settings...
+				// Default back to LC_MED if we can't get it.
+				GColour Back;				
+				GdkColor colour;
+				GtkStyle *style = gtk_rc_get_style(GTK_WIDGET(Info));
+				if (gtk_style_lookup_color(style, "bg_color", &colour))
+					Back.Rgb(colour.red>>8, colour.green>>8, colour.blue>>8);
+				else
+					Back.Set(LC_MED, 24);
+    
+   				// Create sub-image of the icon
+				if (!IconImg.Reset(new GMemDC(lst->TileX(), lst->TileY(), System32BitColourSpace)))
+				{
+					LgiTrace("%s:%i - Couldn't create icon image.\n", _FL);
+					return;
+				}
+				
+				// Init to blank, then blt the pixels across...
+				IconImg->Colour(Back);
+				IconImg->Rectangle();
+				GRect r(0, 0, lst->TileX()-1, lst->TileY()-1);
+				r.Offset(lst->TileX() * _Icon, 0);
+				IconImg->Op(GDC_ALPHA);
+				IconImg->Blt(0, 0, lst, &r);
+				
+				// Get the sub-image of the icon
+				GdkImage *img = IconImg->GetImage();
+				if (!img)
+				{
+					LgiTrace("%s:%i - GetImage failed.\n", _FL);
+					return;
+				}
+				
+				// Create a new widget to wrap it...
+				GtkWidget *img_wid = gtk_image_new_from_image(img, NULL);
+				if (!img_wid)
+				{
+					LgiTrace("%s:%i - gtk_image_new_from_image failed.\n", _FL);
+					return;
+				}
+				gtk_widget_show(img_wid);
+
+				// Set the menu item's image as that icon widget
+				gtk_image_menu_item_set_always_show_image(imi, true);
+				gtk_image_menu_item_set_image(imi, img_wid);
+				
+				// printf("Setting '%s' to img %p (%i)\n", Name(), img_wid, _Icon);
+			}
+		}
+	}
+}
+
+void LgiMenuItem::Checked(bool c)
+{
+	if (c)
+		SetFlag(_Flags, ODS_CHECKED);
+	else
+		ClearFlag(_Flags, ODS_CHECKED);
+
+	if (Info)
+	{
+		InSetCheck = true;
+		
+		// Is the item a checked menu item?
+		if (!GTK_IS_CHECK_MENU_ITEM(Info) && c)
+		{
+			// Create a checkable menu item...
+			GAutoString Txt = MenuItemParse(Name());
+			GtkWidget *w = gtk_check_menu_item_new_with_mnemonic(Txt);
+
+			// Attach our signal
+			gulong ret = g_signal_connect_data(	w,
+												"activate",
+												(GCallback) MenuItemCallback,
+												this,
+												NULL,
+												G_CONNECT_SWAPPED);
+
+			// Replace the existing menu item with this new one
+			if (w)
+				Replace(w);
+			else
+				LgiAssert(!"No new widget.");
+		}
+		
+		if (GTK_IS_CHECK_MENU_ITEM(Info))
+		{
+			// Now mark is checked
+			GtkCheckMenuItem *chk = GTK_CHECK_MENU_ITEM(Info);
+			if (chk)
+			{
+				Gtk::gtk_check_menu_item_set_active(chk, c);
+			}
+		}
+		
+		InSetCheck = false;
+	}
+}
+
+bool LgiMenuItem::Name(const char *n)
 {
 	bool Status = GBase::Name(n);	
 	
@@ -940,88 +936,86 @@ bool GMenuItem::Name(const char *n)
 	return Status;
 }
 
-void GMenuItem::Enabled(bool e)
+void LgiMenuItem::Enabled(bool e)
 {
-	_Enabled = e;
+	if (e)
+		ClearFlag(_Flags, ODS_DISABLED);
+	else
+		SetFlag(_Flags, ODS_DISABLED);
 	
 	if (Info)
 	{
-		Gtk::gtk_widget_set_sensitive(GtkCast(Info, gtk_widget, GtkWidget), e);
+		gtk_widget_set_sensitive(GtkCast(Info, gtk_widget, GtkWidget), e);
  	}
 }
 
-void GMenuItem::Focus(bool f)
+void LgiMenuItem::Focus(bool f)
 {
 }
 
-void GMenuItem::Sub(GSubMenu *s)
+void LgiMenuItem::Sub(GSubMenu *s)
 {
 	Child = s;
 }
 
-void GMenuItem::Icon(int i)
-{
-	_Icon = i;
-}
-
-void GMenuItem::Visible(bool i)
+void LgiMenuItem::Visible(bool i)
 {
 }
 
-int GMenuItem::Id()
+int LgiMenuItem::Id()
 {
 	return _Id;
 }
 
-char *GMenuItem::Name()
+char *LgiMenuItem::Name()
 {
 	return GBase::Name();
 }
 
-bool GMenuItem::Separator()
+bool LgiMenuItem::Separator()
 {
 	return _Id == -2;
 }
 
-bool GMenuItem::Checked()
+bool LgiMenuItem::Checked()
 {
-	return _Check;
+	return TestFlag(_Flags, ODS_CHECKED);
 }
 
-bool GMenuItem::Enabled()
+bool LgiMenuItem::Enabled()
 {
-	return _Enabled;
+	return !TestFlag(_Flags, ODS_DISABLED);
 }
 
-bool GMenuItem::Visible()
+bool LgiMenuItem::Visible()
 {
 	return true;
 }
 
-bool GMenuItem::Focus()
+bool LgiMenuItem::Focus()
 {
 	return 0;
 }
 
-GSubMenu *GMenuItem::Sub()
+GSubMenu *LgiMenuItem::Sub()
 {
 	return Child;
 }
 
-int GMenuItem::Icon()
+int LgiMenuItem::Icon()
 {
 	return _Icon;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-GFont *GMenu::_Font = 0;
+GFont *::GMenu::_Font = 0;
 
 class GMenuPrivate
 {
 public:
 };
 
-GMenu::GMenu() : GSubMenu("", false)
+::GMenu::GMenu() : GSubMenu("", false)
 {
 	Menu = this;
 	d = NULL;
@@ -1029,12 +1023,12 @@ GMenu::GMenu() : GSubMenu("", false)
 	Info = GtkCast(Gtk::gtk_menu_bar_new(), gtk_menu_shell, GtkMenuShell);
 }
 
-GMenu::~GMenu()
+::GMenu::~GMenu()
 {
 	Accel.DeleteObjects();
 }
 
-GFont *GMenu::GetFont()
+GFont *::GMenu::GetFont()
 {
 	if (!_Font)
 	{
@@ -1069,7 +1063,7 @@ GFont *GMenu::GetFont()
 	return _Font ? _Font : SysFont;
 }
 
-bool GMenu::Attach(GViewI *p)
+bool ::GMenu::Attach(GViewI *p)
 {
 	if (!p)
 	{
@@ -1116,13 +1110,13 @@ bool GMenu::Attach(GViewI *p)
 	return true;
 }
 
-bool GMenu::Detach()
+bool ::GMenu::Detach()
 {
 	bool Status = false;
 	return Status;
 }
 
-bool GMenu::OnKey(GView *v, GKey &k)
+bool ::GMenu::OnKey(GView *v, GKey &k)
 {
 	if (k.Down())
 	{
@@ -1137,12 +1131,12 @@ bool GMenu::OnKey(GView *v, GKey &k)
 		}
 		
 		if (k.Alt() &&
-			!dynamic_cast<GMenuItem*>(v) &&
+			!dynamic_cast<LgiMenuItem*>(v) &&
 			!dynamic_cast<GSubMenu*>(v))
 		{
 			bool Hide = false;
 			
-			for (GMenuItem *s=Items.First(); s; s=Items.Next())
+			for (LgiMenuItem *s=Items.First(); s; s=Items.Next())
 			{
 				if (!s->Separator())
 				{

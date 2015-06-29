@@ -15,7 +15,7 @@ endif
 BuildDir = $(Build)
 
 Flags = -fPIC -w -fno-inline -fpermissive
-Defs = -DLINUX -D_REENTRANT -D_FILE_OFFSET_BITS=64 -DLGI_LIBRARY
+Defs = -DLINUX -D_REENTRANT -D_FILE_OFFSET_BITS=64 -DPOSIX -DLGI_LIBRARY
 
 ifeq ($(Build),Debug)
 	Defs += -D_DEBUG
@@ -352,7 +352,8 @@ GMemStream.o : ./src/common/Lgi/GMemStream.cpp ./include/common/Lgi.h \
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GStream.o : ./src/common/Lgi/GStream.cpp ./include/common/Lgi.h \
-	./include/common/GStream.h
+	./include/common/GStream.h \
+	./include/common/GStringClass.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -2354,6 +2355,11 @@ md5.o : ./src/common/Hash/md5/md5.c
 ./include/common/GScrollBar.h : 
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkframe.h : /usr/include/gtk-2.0/gtk/gtkbin.h
+
+./include/common/GUtf8.h : 
+
+./include/common/GStringClass.h : ./include/common/GUtf8.h \
+	./include/common/GString.h
 
 ./include/common/GUtf8.h : 
 
