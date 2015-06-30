@@ -1927,7 +1927,7 @@ bool GCss::Len::Parse(const char *&s, PropType Prop, ParsingStyle ParseType)
 			return false;
 	}
 	else return false;
-		
+
 	return true;
 }
 

@@ -4073,7 +4073,7 @@ int ColInfoCmp(ColInfo *a, ColInfo *b)
 void GHtmlTableLayout::DeallocatePx(int StartCol, int Cols, int MaxPx)
 {
 	int TotalPx = GetTotalX(StartCol, Cols);
-	if (TotalPx <= MaxPx)
+	if (TotalPx <= MaxPx || MaxPx == 0)
 		return;
 	
 	int TrimPx = TotalPx - MaxPx;
@@ -4142,7 +4142,11 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 
 	// Resolve total table width.
 	TableWidth = Table->Width();
-	AvailableX = f->ResolveX(TableWidth, Font, false);	
+	if (TableWidth.IsValid())
+		AvailableX = f->ResolveX(TableWidth, Font, false);
+	else
+		AvailableX = f->X();
+
 	GCss::Len MaxWidth = Table->MaxWidth();
 	if (MaxWidth.IsValid())
 	{
