@@ -3,6 +3,8 @@
 #include "GSubProcess.h"
 #include "GToken.h"
 
+#define DEBUG_SHOW_GDB_IO		0
+
 const char sPrompt[] = "(gdb) ";
 
 class Gdb : public GDebugger, public GThread
@@ -78,8 +80,8 @@ class Gdb : public GDebugger, public GThread
 	{
 		if (r != Running)
 		{
-			printf("SetRunState(%i)\n", r);
 			Running = r;
+			Events->OnState(DebuggingProcess, Running);
 		}
 	}
 
@@ -99,8 +101,8 @@ class Gdb : public GDebugger, public GThread
 	
 	void OnExit()
 	{
+		DebuggingProcess = false;
 		SetRunState(false);
-		Events->OnState(DebuggingProcess = false, Running);
 	}
 	
 	char *NativePath(char *p)
@@ -150,7 +152,9 @@ class Gdb : public GDebugger, public GThread
 	
 	void OnLine(const char *Start, int Length)
 	{
-		// printf("OnLine: '%.*s'\n", Length-1, Start);
+		#if DEBUG_SHOW_GDB_IO
+		printf("Receive: '%.*s'\n", Length-1, Start);
+		#endif
 
 		// Send output
 		if (OutLines)
@@ -232,7 +236,6 @@ class Gdb : public GDebugger, public GThread
 					if (Running ^ !AtPrompt)
 					{
 						SetRunState(!AtPrompt);
-						Events->OnState(DebuggingProcess, Running);
 					}
 					
 					if (OutStream)
@@ -279,10 +282,9 @@ class Gdb : public GDebugger, public GThread
 
 		printf("Entering gdb loop...\n");
 		State = Looping;
-		DebuggingProcess = true;
 
 		char Buf[513];
-		while (State == Looping && Sp->IsRunning() && DebuggingProcess)
+		while (State == Looping && Sp->IsRunning())
 		{
 			#ifdef _DEBUG
 			ZeroObj(Buf);
@@ -300,8 +302,9 @@ class Gdb : public GDebugger, public GThread
 		printf("Exiting gdb loop...\n");
 		if (Events)
 		{
+			DebuggingProcess = false;
+			Running = true;
 			SetRunState(false);
-			Events->OnState(DebuggingProcess = false, Running);
 		}
 
 		Log("Debugger exited.\n");
@@ -315,7 +318,16 @@ class Gdb : public GDebugger, public GThread
 			uint64 Start = LgiCurrentTime();
 			while (State == Init)
 			{
-				LgiSleep(1);
+				uint64 Now = LgiCurrentTime();
+				if (Now - Start < 5000)
+				{
+					LgiSleep(10);
+				}
+				else
+				{
+					printf("%s:%i - WaitPrompt init wait failed.\n", _FL);
+					return false;
+				}
 			}
 		}
 
@@ -338,6 +350,13 @@ class Gdb : public GDebugger, public GThread
 	
 	bool Cmd(const char *c, GStream *Output = NULL, StrArray *Arr = NULL)
 	{
+		if (!ValidStr(c))
+		{
+			printf("%s:%i - Not a valid command.\n", _FL);
+			LgiAssert(!"Not a valid command.");
+			return false;
+		}
+		
 		if (!WaitPrompt())
 		{
 			return false;
@@ -346,6 +365,9 @@ class Gdb : public GDebugger, public GThread
 		char str[256];
 		int ch = sprintf_s(str, sizeof(str), "%s\n", c);
 
+		#if DEBUG_SHOW_GDB_IO
+		printf("Send: '%s'\n", c);
+		#endif
 		Events->Write(str, ch);
 		LinePtr = Line;
 		OutStream = Output;
@@ -460,8 +482,24 @@ public:
 
 	bool Restart()
 	{
-		Cmd("r");
-		return false;
+		if (Running)
+			Break();
+		
+		GString a;
+		if (Args)
+			a.Printf("r %s", Args.Get());
+		else if (Args)
+			a = "r";
+
+		bool Status = Cmd(a);
+		if (Status)
+		{
+			DebuggingProcess = true;
+			Running = false;
+			SetRunState(true);
+		}
+		
+		return Status;
 	}
 
 	bool Unload()
@@ -469,8 +507,9 @@ public:
 		Cmd("q");
 		if (DebuggingProcess)
 		{
+			DebuggingProcess = false;
+			Running = true;
 			SetRunState(false);
-			Events->OnState(DebuggingProcess = false, Running);
 		}
 		return false;
 	}
@@ -490,10 +529,18 @@ public:
 				Cmd("set disassembly-flavor intel");
 			}
 
-			if (Cmd("r"))
+			GString a;
+			if (DebuggingProcess)
+				a = "c";
+			else if (Args)
+				a.Printf("r %s", Args.Get());
+			else
+				a = "r";
+
+			if (Cmd(a))
 			{
+				DebuggingProcess = true;
 				SetRunState(true);
-				Events->OnState(DebuggingProcess, Running);
 				return true;
 			}
 		}
@@ -542,13 +589,14 @@ public:
 		n = *bp;
 		n.Added = false;
 		
+		// Make sure the child 'gdb' is running...
 		uint64 Start = LgiCurrentTime();
-		while (State != ProcessError && !DebuggingProcess)
+		while (State == Init)
 		{
 			LgiSleep(5);
 			if (LgiCurrentTime()-Start > 3000)
 			{
-				LgiAssert(0);
+				printf("%s:%i - SetBreakPoint init wait failed...\n", _FL);
 				return false;
 			}
 		}
@@ -780,17 +828,26 @@ public:
 
 	bool StepInto()
 	{
-		return Cmd("step");
+		bool Status = Cmd("step");
+		if (Status)
+			SetRunState(true);
+		return Status;
 	}
 
 	bool StepOver()
 	{
-		return Cmd("next");
+		bool Status = Cmd("next");
+		if (Status)
+			SetRunState(true);
+		return Status;
 	}
 
 	bool StepOut()
 	{
-		return Cmd("finish");
+		bool Status = Cmd("finish");
+		if (Status)
+			SetRunState(true);
+		return Status;
 	}
 
 	bool Break()
