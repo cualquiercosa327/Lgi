@@ -142,8 +142,16 @@
 			<String Ref="41" Cid="521" Define="IDM_ABOUT" en="&About" />
 			<String Ref="42" Cid="522" Define="IDM_TOOLS" en="&Tools" />
 			<String Ref="43" Cid="523" Define="IDM_TABLELAYOUT_TEST" en="Test TableLayouts" />
+			<String Ref="44" Cid="524" Define="IDM_CUT" en="Cut" />
+			<String Ref="45" Cid="525" Define="IDM_COPY" en="Copy" />
+			<String Ref="46" Cid="526" Define="IDM_PASTE" en="Paste" />
+			<String Ref="47" Cid="527" Define="IDM_MENU_527" />
 		</string-group>
 		<submenu Ref="15">
+			<menuitem Ref="44" Shortcut="Ctrl+X" />
+			<menuitem Ref="45" Shortcut="Ctrl+C" />
+			<menuitem Ref="46" Shortcut="Ctrl+V" />
+			<menuitem Sep="1" />
 			<menuitem Ref="17" Shortcut="Ctrl+F" />
 			<menuitem Ref="30" Shortcut="F3" />
 		</submenu>

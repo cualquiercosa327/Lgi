@@ -827,6 +827,15 @@ bool ObjContainer::AppendChildren(ObjTreeItem *Res, List<Resource> &Lst)
 	return Status;
 }
 
+Resource *ObjContainer::CurrentResource()
+{
+	ObjTreeItem *Item = dynamic_cast<ObjTreeItem*>(Selection());
+	if (!Item)
+		return NULL;
+	
+	return Item->GetObj();
+}
+
 bool ObjContainer::ListObjects(List<Resource> &Lst)
 {
 	bool Status = AppendChildren(Style, Lst);
@@ -838,9 +847,9 @@ bool ObjContainer::ListObjects(List<Resource> &Lst)
 
 //////////////////////////////////////////////////////////////////////////////
 #ifdef WIN32
-char *Icon = MAKEINTRESOURCE(IDI_ICON1);
+const char *Icon = MAKEINTRESOURCE(IDI_ICON1);
 #else
-char *Icon = "icon64.png";
+const char *Icon = "icon64.png";
 #endif
 
 AppWnd::AppWnd() :
@@ -1268,6 +1277,27 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Handle)
 		case IDM_NEXT:
 		{
 			LgiMsg(this, "Not implemented :(", AppName);
+			break;
+		}
+		case IDM_CUT:
+		{
+			Resource *r = Objs->CurrentResource();
+			if (r)
+				r->Copy(true);
+			break;
+		}
+		case IDM_COPY:
+		{
+			Resource *r = Objs->CurrentResource();
+			if (r)
+				r->Copy(false);
+			break;
+		}
+		case IDM_PASTE:
+		{
+			Resource *r = Objs->CurrentResource();
+			if (r)
+				r->Paste();
 			break;
 		}
 		case IDM_TABLELAYOUT_TEST:
@@ -1785,8 +1815,7 @@ void AppWnd::GotoObject(ResString *s,
 			}
 			else
 			{
-				printf("%s:%i - couldn't find resources tree item\n",
-					__FILE__, __LINE__);
+				printf("%s:%i - couldn't find resources tree item\n", _FL);
 			}
 		}
 	}
