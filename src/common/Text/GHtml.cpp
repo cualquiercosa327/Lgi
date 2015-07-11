@@ -4106,7 +4106,7 @@ void GHtmlTableLayout::DeallocatePx(int StartCol, int Cols, int MaxPx)
 		if (DropPx < MinCol[ci.Idx])
 			MinCol[ci.Idx] -= DropPx;
 		else
-			LgiAssert(0);
+			break;
 	}
 }
 
