@@ -178,15 +178,33 @@ GMenuItem *GSubMenu::AppendSeparator(int Where)
 
 		if (Info)
 		{
-			OSStatus e = AppendMenuItemTextWithCFString(Info, 0, kMenuItemAttrSeparator, 0, &i->Info);
-			if (e) printf("%s:%i - AppendMenuItemTextWithCFString failed (e=%i)\n", __FILE__, __LINE__, (int)e);
+			OSStatus e;
+			if (Where >= 0)
+			{
+				e = InsertMenuItemTextWithCFString(	Info,
+													NULL,
+													Where,
+													kMenuItemAttrSeparator,
+													0);
+				if (!e)
+					i->Info = Where;
+			}
+			else
+			{
+				e = AppendMenuItemTextWithCFString(	Info,
+													NULL,
+													kMenuItemAttrSeparator,
+													0,
+													&i->Info);
+			}
+			if (e) printf("%s:%i - InsertMenuItemTextWithCFString failed (e=%i)\n", _FL, (int)e);
 			#if DEBUG_INFO
-			else printf("AppendMenuItemTextWithCFString(%p, ---)=%p\n", Info, i->Info);
+			else printf("InsertMenuItemTextWithCFString(%p, ---)=%p\n", Info, i->Info);
 			#endif
 		}
 		else
 		{
-			printf("%s:%i - No menu to attach item to.\n", __FILE__, __LINE__);
+			printf("%s:%i - No menu to attach item to.\n", _FL);
 		}
 		
 		return i;

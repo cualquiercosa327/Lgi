@@ -801,6 +801,21 @@ bool GView::_Mouse(GMouse &m, bool Move)
 
 	GWindow *Wnd = GetWindow();
 
+	if (_Over != this)
+	{
+		if (_Over)
+		{
+			_Over->OnMouseExit(m);
+		}
+
+		_Over = this;
+
+		if (_Over)
+		{
+			_Over->OnMouseEnter(m);
+		}
+	}
+
 	if (_Capturing)
 	{
 		if (_Capturing != m.Target)
@@ -826,21 +841,6 @@ bool GView::_Mouse(GMouse &m, bool Move)
 	}
 	else
 	{
-		if (_Over != this)
-		{
-			if (_Over)
-			{
-				_Over->OnMouseExit(m);
-			}
-
-			_Over = this;
-
-			if (_Over)
-			{
-				_Over->OnMouseEnter(m);
-			}
-		}
-			
 		GView *Target = dynamic_cast<GView*>(_Over ? _Over : this);
 		GLayout *Lo = dynamic_cast<GLayout*>(Target);
 		GRect Client = Lo ? Lo->GetClient(false) : Target->GView::GetClient(false);
@@ -1530,7 +1530,7 @@ CarbonControlProc
 		{
 			if (!v)
 			{
-				LgiTrace("%s:%i - No view ptr.\n", __FILE__, __LINE__);
+				LgiTrace("%s:%i - No view ptr.\n", _FL);
 				return Status;
 			}
 
@@ -1608,20 +1608,9 @@ CarbonControlProc
 				{
 					ControlPartCode Part;
 					OSStatus e = GetEventParameter(inEvent, kEventParamControlPart, typeControlPartCode, NULL, sizeof(Part), NULL, &Part);
-					if (e) printf("%s:%i - error (%i)\n", __FILE__, __LINE__, (int)e);
+					if (e) printf("%s:%i - error (%i)\n", _FL, (int)e);
 					
 					bool f = Part != kControlFocusNoPart;
-
-					/*
-					GView *p = 0;
-					if (dynamic_cast<GEdit*>(v))
-					{
-						GViewI *i = v->Children.First();
-						p = i ? i->GetGView() : v;
-					}
-					else p = v;
-					*/
-
 					#if 0
 					printf("Focus change id=%i %s (%s) %i -> %i\n",
 						v->GetId(), v->GetClass(), p->GetClass(), TestFlag(p->WndFlags, GWF_FOCUS), f);

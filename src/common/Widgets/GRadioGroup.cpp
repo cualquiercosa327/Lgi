@@ -54,7 +54,11 @@ GRadioGroup::~GRadioGroup()
 	DeleteObj(d);
 }
 
-#define RADIO_GRID  7
+#ifdef MAC
+#define RADIO_GRID  0
+#else
+#define RADIO_GRID  2
+#endif
 
 bool GRadioGroup::OnLayout(GViewLayoutInfo &Inf)
 {
@@ -309,7 +313,7 @@ public:
 
 static int PadXPx = 30;
 #ifdef MAC
-static int PadYPx = 8;
+static int PadYPx = 6;
 #else
 static int PadYPx = 4;
 #endif

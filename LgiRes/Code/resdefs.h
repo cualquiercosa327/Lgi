@@ -40,3 +40,7 @@
 #define IDM_ABOUT								521
 #define IDM_TOOLS								522
 #define IDM_TABLELAYOUT_TEST					523
+#define IDM_CUT									524
+#define IDM_COPY								525
+#define IDM_PASTE								526
+#define IDM_MENU_527							527

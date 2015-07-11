@@ -961,7 +961,7 @@ bool IFtp::TransferFile(const char *Local, const char *Remote, int64 Size, bool 
 											}
 											else
 											{
-												printf("%s:%i - Data->Write failed, %i of "LGI_PrintfInt64" bytes written.\n",
+												printf("%s:%i - Data->Write failed, %i of %i bytes written.\n",
 													_FL, WriteLen, Len);
 												Error = true;
 											}

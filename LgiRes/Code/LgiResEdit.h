@@ -26,9 +26,11 @@
 // window messages
 #define	IDM_UNDO					201
 #define	IDM_REDO					202
+/*
 #define	IDM_CUT						203
 #define	IDM_COPY					204
 #define	IDM_PASTE					205
+*/
 
 #define	IDM_DELETE					300
 #define	IDM_RENAME					301
@@ -268,6 +270,7 @@ public:
 	ObjContainer(AppWnd *w);
 	~ObjContainer();
 
+	Resource *CurrentResource();
 	bool ListObjects(List<Resource> &Lst);
 };
 
