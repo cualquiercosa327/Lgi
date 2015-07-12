@@ -442,15 +442,19 @@ bool GFont::Destroy()
 	if (d->hFont)
 	{
 		#ifdef WIN32
-		DeleteObject(d->hFont);
+			DeleteObject(d->hFont);
 		#elif defined MAC && !defined COCOA
-		ATSUDisposeStyle(d->hFont);
+			#if USE_CORETEXT
+			CFRelease(d->hFont);
+			#else
+			ATSUDisposeStyle(d->hFont);
+			#endif
 		#elif defined LINUX
-		Gtk::pango_font_description_free(d->hFont);
+			Gtk::pango_font_description_free(d->hFont);
 		#elif defined BEOS
-		DeleteObj(d->hFont);
+			DeleteObj(d->hFont);
 		#else
-		LgiAssert(0);
+			LgiAssert(0);
 		#endif
 		
 		d->hFont = 0;
@@ -648,7 +652,7 @@ type_4_cmap *GetUnicodeTable(HFONT hFont, uint16 &Length)
 					for (int i = 0; i < Tables; i++)
 					{
 						Sub[i].platform_id = INT16_SWAP(Sub[i].platform_id);
-					Sub[i].encoding_id = INT16_SWAP(Sub[i].encoding_id);
+						Sub[i].encoding_id = INT16_SWAP(Sub[i].encoding_id);
 						Sub[i].offset = INT32_SWAP(Sub[i].offset);
 
 						if (Sub[i].platform_id == MICROSOFT_PLATFORM_ID &&
@@ -1052,68 +1056,86 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 	
 	#elif defined MAC && !defined COCOA
 	
-	if (d->hFont)
-	{
-		ATSUDisposeStyle(d->hFont);
-		d->hFont = 0;
-	}
-	
-	OSStatus e;
-
-	if (this == SysFont)
-		printf("%s:%i - WARNING: you are re-creating the system font... this is bad!!!!\n", _FL);
-
-	if (Face() && !(e = ATSUCreateStyle(&d->hFont)))
-	{
-		// Lookup ID
-		if (!Face())
-		{
-			LgiAssert(!"No font face");
-			return false;
-		}
+		Destroy();
 		
-		char *sFace = Face();
-		CFStringRef fontName = CFStringCreateWithBytes(	kCFAllocatorDefault,
-														(UInt8*)sFace,
-														strlen(sFace),
-														kCFStringEncodingUTF8,
-														false);
-		if (!fontName)
-			return false;
-		
-		ATSFontRef atsFont = ATSFontFindFromName(fontName, kATSOptionFlagsDefault);
-		CFRelease(fontName);
-		ATSUFontID font = (ATSUFontID)atsFont;
-		if (e)
-			printf("%s:%i - Error getting font id (e=%i)\n", _FL, (int)e);
-		else
-		{
-			Fixed Size;
-			Size = PointSize() << 16;
-			Boolean IsBold = Bold();
-			Boolean IsItalic = Italic();
-			Boolean IsUnder = Underline();
-			
-			// Set style attr
-			ATSUAttributeTag Tags[]			= {kATSUFontTag, kATSUSizeTag, kATSUQDItalicTag, kATSUQDUnderlineTag, kATSUQDBoldfaceTag};
-			ATSUAttributeValuePtr Values[]	= {&font,        &Size,        &IsItalic,        &IsUnder,            &IsBold};
-			ByteCount Lengths[]				= {sizeof(font), sizeof(Size), sizeof(IsItalic), sizeof(IsUnder),     sizeof(IsBold)};
-			if (!(e = ATSUSetAttributes(d->hFont,
-										CountOf(Tags),
-										Tags,
-										Lengths,
-										Values)))
+		OSStatus e;
+
+		if (this == SysFont)
+			printf("%s:%i - WARNING: you are re-creating the system font... this is bad!!!!\n", _FL);
+
+		#if USE_CORETEXT
+
+			if (Face())
 			{
-				GDisplayString ds(this, "A");
-				d->Height = ds.Y();
-				return true;
+				CFStringRef nm = CFStringCreateWithCString(kCFAllocatorDefault, Face(), kCFStringEncodingUTF8);
+				CGAffineTransform *matrix = NULL;
+				d->hFont = CTFontCreateWithName(nm, PointSize(), matrix);
+				CFRelease(nm);
+				
+				if (d->hFont)
+				{
+					GTypeFace::d->_Ascent = CTFontGetAscent(d->hFont);
+					GTypeFace::d->_Descent = CTFontGetDescent(d->hFont);
+					GTypeFace::d->_Leading = CTFontGetLeading(d->hFont);
+					return true;
+				}
 			}
-		}
-	}
-	else
-	{
-		printf("%s:%i - Error creating font (e=%i)\n", _FL, (int)e);
-	}
+
+		#else
+
+			if (Face() && !(e = ATSUCreateStyle(&d->hFont)))
+			{
+				// Lookup ID
+				if (!Face())
+				{
+					LgiAssert(!"No font face");
+					return false;
+				}
+				
+				char *sFace = Face();
+				CFStringRef fontName = CFStringCreateWithBytes(	kCFAllocatorDefault,
+																(UInt8*)sFace,
+																strlen(sFace),
+																kCFStringEncodingUTF8,
+																false);
+				if (!fontName)
+					return false;
+				
+				ATSFontRef atsFont = ATSFontFindFromName(fontName, kATSOptionFlagsDefault);
+				CFRelease(fontName);
+				ATSUFontID font = (ATSUFontID)atsFont;
+				if (e)
+					printf("%s:%i - Error getting font id (e=%i)\n", _FL, (int)e);
+				else
+				{
+					Fixed Size;
+					Size = PointSize() << 16;
+					Boolean IsBold = Bold();
+					Boolean IsItalic = Italic();
+					Boolean IsUnder = Underline();
+					
+					// Set style attr
+					ATSUAttributeTag Tags[]			= {kATSUFontTag, kATSUSizeTag, kATSUQDItalicTag, kATSUQDUnderlineTag, kATSUQDBoldfaceTag};
+					ATSUAttributeValuePtr Values[]	= {&font,        &Size,        &IsItalic,        &IsUnder,            &IsBold};
+					ByteCount Lengths[]				= {sizeof(font), sizeof(Size), sizeof(IsItalic), sizeof(IsUnder),     sizeof(IsBold)};
+					if (!(e = ATSUSetAttributes(d->hFont,
+												CountOf(Tags),
+												Tags,
+												Lengths,
+												Values)))
+					{
+						GDisplayString ds(this, "A");
+						d->Height = ds.Y();
+						return true;
+					}
+				}
+			}
+			else
+			{
+				printf("%s:%i - Error creating font (e=%i)\n", _FL, (int)e);
+			}
+
+		#endif
 	
 	#endif
 
@@ -1621,45 +1643,70 @@ bool GFontType::GetSystemFont(const char *Which)
 			// read from system
 			#if defined WIN32
 
-			if (InfoOk)
-			{
-				// Copy the font metrics
-				memcpy(&Info, &info.lfMessageFont, sizeof(Info));
-				Status = true;
-			}
+				if (InfoOk)
+				{
+					// Copy the font metrics
+					memcpy(&Info, &info.lfMessageFont, sizeof(Info));
+					Status = true;
+				}
 
 			#elif defined BEOS
 
-			// BeOS has no system wide setting so give a valid default
-			Info.Face("Swis721 BT");
-			Info.PointSize(11);
-			Status = true;
+				// BeOS has no system wide setting so give a valid default
+				Info.Face("Swis721 BT");
+				Info.PointSize(11);
+				Status = true;
 
 			#elif defined __GTK_H__
 
-			Info.Face(DefFont);
-			Info.PointSize(DefSize);
-			Status = true;
+				Info.Face(DefFont);
+				Info.PointSize(DefSize);
+				Status = true;
 		
 			#elif defined MAC && !defined COCOA
 			
-			Str255 Name;
-			SInt16 Size;
-			Style St;
-			OSStatus e = GetThemeFont(	kThemeSmallSystemFont,
-										smSystemScript,
-										Name,
-										&Size,
-										&St);
-			if (e) printf("%s:%i - GetThemeFont failed with %i\n", __FILE__, __LINE__, (int)e);
-			else
-			{
-				Info.Face(p2c(Name));
-				Info.PointSize(Size);
-				Status = true;
-				
-				// printf("System=%s,%i\n", Info.Face(), Size);
-			}
+
+				#if USE_CORETEXT
+
+				CTFontRef f = CTFontCreateUIFontForLanguage(kCTFontSystemFontType, 0.0f, NULL);
+				if (f)
+				{
+					CFStringRef nm = CTFontCopyFamilyName(f);
+					CGFloat     sz = CTFontGetSize(f);
+					if (nm)
+					{
+						GString name;
+						name = nm;
+						Info.Face(name.Strip("."));
+						Info.PointSize(sz);
+						Status = true;
+						
+						CFRelease(nm);
+					}
+					
+					CFRelease(f);
+				}
+
+				#else
+			
+				Str255 Name;
+				SInt16 Size;
+				Style St;
+				OSStatus e = GetThemeFont(	kThemeSmallSystemFont,
+											smSystemScript,
+											Name,
+											&Size,
+											&St);
+				if (e) printf("%s:%i - GetThemeFont failed with %i\n", __FILE__, __LINE__, (int)e);
+				else
+				{
+					Info.Face(p2c(Name));
+					Info.PointSize(Size);
+					Status = true;
+					
+					// printf("System=%s,%i\n", Info.Face(), Size);
+				}
+				#endif
 
 			#endif
 		}
@@ -1693,21 +1740,29 @@ bool GFontType::GetSystemFont(const char *Which)
 
 			#elif defined MAC && !defined COCOA
 			
-			Str255 Name;
-			SInt16 Size;
-			Style St;
-			OSStatus e = GetThemeFont(	kThemeMenuItemFont,
-										smSystemScript,
-										Name,
-										&Size,
-										&St);
-			if (e) printf("%s:%i - GetThemeFont failed with %i\n", __FILE__, __LINE__, (int)e);
-			else
-			{
-				Info.Face(p2c(Name));
-				Info.PointSize(Size);
-				Status = true;
-			}
+				#if USE_CORETEXT
+
+					LgiAssert(!"Impl get font info.");
+
+				#else
+
+					Str255 Name;
+					SInt16 Size;
+					Style St;
+					OSStatus e = GetThemeFont(	kThemeMenuItemFont,
+												smSystemScript,
+												Name,
+												&Size,
+												&St);
+					if (e) printf("%s:%i - GetThemeFont failed with %i\n", __FILE__, __LINE__, (int)e);
+					else
+					{
+						Info.Face(p2c(Name));
+						Info.PointSize(Size);
+						Status = true;
+					}
+			
+				#endif
 
 			#endif
 		}
@@ -1718,45 +1773,54 @@ bool GFontType::GetSystemFont(const char *Which)
 		if (!Status)
 		{
 			#if defined WIN32
-			if (InfoOk)
-			{
-				// Copy the font metrics
-				memcpy(&Info, &info.lfCaptionFont, sizeof(Info));
-				Status = true;
-			}
+
+				if (InfoOk)
+				{
+					// Copy the font metrics
+					memcpy(&Info, &info.lfCaptionFont, sizeof(Info));
+					Status = true;
+				}
 			
 			#elif defined BEOS
 
-			// BeOS has no system wide setting so give a valid default
-			Info.Face("Swis721 BT");
-			Info.PointSize(11);
-			Status = true;
+				// BeOS has no system wide setting so give a valid default
+				Info.Face("Swis721 BT");
+				Info.PointSize(11);
+				Status = true;
 
 			#elif defined LINUX
 
 			#elif defined __GTK_H__
 
-			Info.Face(DefFont);
-			Info.PointSize(DefSize-1);
-			Status = true;
+				Info.Face(DefFont);
+				Info.PointSize(DefSize-1);
+				Status = true;
 
 			#elif defined MAC && !defined COCOA
 			
-			Str255 Name;
-			SInt16 Size;
-			Style St;
-			OSStatus e = GetThemeFont(	kThemeToolbarFont,
-										smSystemScript,
-										Name,
-										&Size,
-										&St);
-			if (e) printf("%s:%i - GetThemeFont failed with %i\n", __FILE__, __LINE__, (int)e);
-			else
-			{
-				Info.Face(p2c(Name));
-				Info.PointSize(Size);
-				Status = true;
-			}
+				#if USE_CORETEXT
+
+				LgiAssert(!"Impl get font info.");
+			
+				#else
+			
+				Str255 Name;
+				SInt16 Size;
+				Style St;
+				OSStatus e = GetThemeFont(	kThemeToolbarFont,
+											smSystemScript,
+											Name,
+											&Size,
+											&St);
+				if (e) printf("%s:%i - GetThemeFont failed with %i\n", __FILE__, __LINE__, (int)e);
+				else
+				{
+					Info.Face(p2c(Name));
+					Info.PointSize(Size);
+					Status = true;
+				}
+			
+				#endif
 
 			#endif
 		}
@@ -1790,21 +1854,29 @@ bool GFontType::GetSystemFont(const char *Which)
 
 			#elif defined MAC && !defined COCOA
 			
-			Str255 Name;
-			SInt16 Size;
-			Style St;
-			OSStatus e = GetThemeFont(	kThemeToolbarFont,
-										smSystemScript,
-										Name,
-										&Size,
-										&St);
-			if (e) printf("%s:%i - GetThemeFont failed with %i\n", __FILE__, __LINE__, (int)e);
-			else
-			{
-				Info.Face(p2c(Name));
-				Info.PointSize(Size);
-				Status = true;
-			}
+				#if USE_CORETEXT
+
+				LgiAssert(!"Impl get font info.");
+			
+				#else
+			
+				Str255 Name;
+				SInt16 Size;
+				Style St;
+				OSStatus e = GetThemeFont(	kThemeToolbarFont,
+											smSystemScript,
+											Name,
+											&Size,
+											&St);
+				if (e) printf("%s:%i - GetThemeFont failed with %i\n", __FILE__, __LINE__, (int)e);
+				else
+				{
+					Info.Face(p2c(Name));
+					Info.PointSize(Size);
+					Status = true;
+				}
+			
+				#endif
 
 			#endif
 		}
@@ -1847,21 +1919,29 @@ bool GFontType::GetSystemFont(const char *Which)
 			
 			#elif defined MAC && !defined COCOA
 			
-			Str255 Name;
-			SInt16 Size;
-			Style St;
-			OSStatus e = GetThemeFont(	kThemeSmallSystemFont,
-										smSystemScript,
-										Name,
-										&Size,
-										&St);
-			if (e) printf("%s:%i - GetThemeFont failed with %i\n", __FILE__, __LINE__, (int)e);
-			else
-			{
-				Info.Face(p2c(Name));
-				Info.PointSize(Size - 2);
-				Status = true;
-			}
+				#if USE_CORETEXT
+
+				LgiAssert(!"Impl get font info.");
+			
+				#else
+			
+				Str255 Name;
+				SInt16 Size;
+				Style St;
+				OSStatus e = GetThemeFont(	kThemeSmallSystemFont,
+											smSystemScript,
+											Name,
+											&Size,
+											&St);
+				if (e) printf("%s:%i - GetThemeFont failed with %i\n", __FILE__, __LINE__, (int)e);
+				else
+				{
+					Info.Face(p2c(Name));
+					Info.PointSize(Size - 2);
+					Status = true;
+				}
+			
+				#endif
 
 			#endif
 		}

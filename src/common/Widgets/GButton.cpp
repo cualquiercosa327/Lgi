@@ -310,12 +310,15 @@ void GButton::OnPaint(GSurface *pDC)
 	else if (d->Txt)
 	{
 		GFont *f = d->Txt->GetFont();
-		f->Transparent(true);
-		f->Fore(LC_TEXT);
-		
-		int Ox = (LabelRect.size.width - d->Txt->X()) / 2;
-		int Oy = (LabelRect.size.height - d->Txt->Y() + 1) / 2;
-		d->Txt->Draw(pDC, LabelRect.origin.x+Ox, LabelRect.origin.y+Oy);
+		if (f)
+		{
+			f->Transparent(true);
+			f->Fore(LC_TEXT);
+			
+			int Ox = (LabelRect.size.width - d->Txt->X()) / 2;
+			int Oy = (LabelRect.size.height - d->Txt->Y() + 1) / 2;
+			d->Txt->Draw(pDC, LabelRect.origin.x+Ox, LabelRect.origin.y+Oy);
+		}
 	}
 	
 	#else

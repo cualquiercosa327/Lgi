@@ -63,12 +63,16 @@ GDisplayString::GDisplayString(GFont *f, const char *s, int l, GSurface *pdc)
 	Font = f;
 	
 	#if defined(MAC) || WINNATIVE
-	StringConvert(Str, &len, s, l);
+
+		StringConvert(Str, &len, s, l);
+
 	#else
-	Str = NewStr(s, l);
-	len = Str ? strlen(Str) : 0;
-	if (!LgiIsUtf8(Str))
-		printf("%s:%i - Not valid utf\n", _FL);
+
+		Str = NewStr(s, l);
+		len = Str ? strlen(Str) : 0;
+		if (!LgiIsUtf8(Str))
+			printf("%s:%i - Not valid utf\n", _FL);
+
 	#endif
 	
 	x = y = 0;
@@ -81,26 +85,30 @@ GDisplayString::GDisplayString(GFont *f, const char *s, int l, GSurface *pdc)
 	
 	#if defined MAC && !defined COCOA
 	
-	Hnd = 0;
-	if (Font && Str)
-	{
-		len = l >= 0 ? l : StringLen(Str);
-		if (len > 0)
+		Hnd = 0;
+		if (Font && Str)
 		{
-			ATSUCreateTextLayout(&Hnd);
+			len = l >= 0 ? l : StringLen(Str);
+			if (len > 0)
+			{
+				#if USE_CORETEXT
+					LgiAssert(!"Impl create layout.");
+				#else
+					ATSUCreateTextLayout(&Hnd);
+				#endif
+			}
 		}
-	}
 	
 	#elif defined __GTK_H__
 	
-	Hnd = 0;
-	LastTabOffset = -1;
-	if (Font && Str)
-	{
-		len = l >= 0 ? l : strlen(Str);
-		if (len > 0)
-			Hnd = Gtk::pango_layout_new(GFontSystem::Inst()->GetContext());
-	}
+		Hnd = 0;
+		LastTabOffset = -1;
+		if (Font && Str)
+		{
+			len = l >= 0 ? l : strlen(Str);
+			if (len > 0)
+				Hnd = Gtk::pango_layout_new(GFontSystem::Inst()->GetContext());
+		}
 	
 	#endif
 }
@@ -111,10 +119,14 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc)
 	Font = f;
 
     #if defined(MAC) || WINNATIVE	
-	StringConvert(Str, &len, s, l);
+
+		StringConvert(Str, &len, s, l);
+
 	#else
-	Str = LgiNewUtf16To8(s, l < 0 ? -1 : l * sizeof(char16));
-	len = Str ? strlen(Str) : 0;
+
+		Str = LgiNewUtf16To8(s, l < 0 ? -1 : l * sizeof(char16));
+		len = Str ? strlen(Str) : 0;
+
 	#endif
 	
 	x = y = 0;
@@ -127,20 +139,28 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc)
 
 	#if defined MAC && !defined COCOA
 	
-	Hnd = 0;
-	if (Font && Str && len > 0)
-	{
-		OSStatus e = ATSUCreateTextLayout(&Hnd);
-		if (e) printf("%s:%i - ATSUCreateTextLayout failed with %i.\n", __FILE__, __LINE__, (int)e);
-	}
+		Hnd = 0;
+		if (Font && Str && len > 0)
+		{
+			#if USE_CORETEXT
+
+				LgiAssert(!"Impl create layout.");
+
+			#else
+
+				OSStatus e = ATSUCreateTextLayout(&Hnd);
+				if (e) printf("%s:%i - ATSUCreateTextLayout failed with %i.\n", _FL, (int)e);
+
+			#endif
+		}
 	
 	#elif defined __GTK_H__
 	
-	Hnd = 0;
-	if (Font && Str && len > 0)
-	{
-		Hnd = Gtk::pango_layout_new(GFontSystem::Inst()->GetContext());
-	}
+		Hnd = 0;
+		if (Font && Str && len > 0)
+		{
+			Hnd = Gtk::pango_layout_new(GFontSystem::Inst()->GetContext());
+		}
 	
 	#endif
 }
@@ -148,11 +168,23 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc)
 GDisplayString::~GDisplayString()
 {
 	#if defined MAC && !defined COCOA
-	if (Hnd)
-		ATSUDisposeTextLayout(Hnd);
+
+		#if USE_CORETEXT
+
+			LgiAssert(!"Impl delete text layout.");
+
+		#else
+
+		if (Hnd)
+			ATSUDisposeTextLayout(Hnd);
+
+		#endif
+
 	#elif defined __GTK_H__
-	if (Hnd)
-		g_object_unref(Hnd);
+
+		if (Hnd)
+			g_object_unref(Hnd);
+
 	#endif
 	
 	DeleteArray(Str);
@@ -200,310 +232,318 @@ void GDisplayString::Layout(bool Debug)
     
 	#if defined __GTK_H__
 	
-	if (!Hnd || !Font->Handle())
-	{
-		// LgiTrace("%s:%i - Missing handle: %p,%p\n", _FL, Hnd, Font->Handle());
-		return;
-	}
+		if (!Hnd || !Font->Handle())
+		{
+			// LgiTrace("%s:%i - Missing handle: %p,%p\n", _FL, Hnd, Font->Handle());
+			return;
+		}
 
-	if (!LgiIsUtf8(Str))
-	{
-		LgiTrace("%s:%i - Not utf8\n", _FL);
-		return;
-	}
+		if (!LgiIsUtf8(Str))
+		{
+			LgiTrace("%s:%i - Not utf8\n", _FL);
+			return;
+		}
 
-	Gtk::pango_context_set_font_description(GFontSystem::Inst()->GetContext(), Font->Handle());
+		Gtk::pango_context_set_font_description(GFontSystem::Inst()->GetContext(), Font->Handle());
 
-	int TabSizePx = Font->TabSize();
-	int TabSizeF = TabSizePx * FScale;
-	int TabOffsetF = DrawOffsetF % TabSizeF;
-	int OffsetF = TabOffsetF ? TabSizeF - TabOffsetF : 0;
-	/*
-	if (Debug)
-	{
-		printf("'%s', TabSizeF=%i, TabOffsetF=%i, DrawOffsetF=%i, OffsetF=%i\n",
-			Str,
-			TabSizeF,
-			TabOffsetF,
-			DrawOffsetF,
-			OffsetF);
-	}
-	*/
-	UpdateTabs(OffsetF / FScale, Font->TabSize());
+		int TabSizePx = Font->TabSize();
+		int TabSizeF = TabSizePx * FScale;
+		int TabOffsetF = DrawOffsetF % TabSizeF;
+		int OffsetF = TabOffsetF ? TabSizeF - TabOffsetF : 0;
+		/*
+		if (Debug)
+		{
+			printf("'%s', TabSizeF=%i, TabOffsetF=%i, DrawOffsetF=%i, OffsetF=%i\n",
+				Str,
+				TabSizeF,
+				TabOffsetF,
+				DrawOffsetF,
+				OffsetF);
+		}
+		*/
+		UpdateTabs(OffsetF / FScale, Font->TabSize());
 
 
-	if (Font->Underline())
-	{
-		Gtk::PangoAttrList *attrs = Gtk::pango_attr_list_new();
-		Gtk::PangoAttribute *attr = Gtk::pango_attr_underline_new(Gtk::PANGO_UNDERLINE_SINGLE);
-		Gtk::pango_attr_list_insert(attrs, attr);
-		Gtk::pango_layout_set_attributes(Hnd, attrs);
-		Gtk::pango_attr_list_unref(attrs);
-	}
-	
-	Gtk::pango_layout_set_text(Hnd, Str, len);
-	Gtk::pango_layout_get_size(Hnd, &xf, &yf);
-	x = (xf + PANGO_SCALE - 1) / PANGO_SCALE;
-	y = (yf + PANGO_SCALE - 1) / PANGO_SCALE;
+		if (Font->Underline())
+		{
+			Gtk::PangoAttrList *attrs = Gtk::pango_attr_list_new();
+			Gtk::PangoAttribute *attr = Gtk::pango_attr_underline_new(Gtk::PANGO_UNDERLINE_SINGLE);
+			Gtk::pango_attr_list_insert(attrs, attr);
+			Gtk::pango_layout_set_attributes(Hnd, attrs);
+			Gtk::pango_attr_list_unref(attrs);
+		}
+		
+		Gtk::pango_layout_set_text(Hnd, Str, len);
+		Gtk::pango_layout_get_size(Hnd, &xf, &yf);
+		x = (xf + PANGO_SCALE - 1) / PANGO_SCALE;
+		y = (yf + PANGO_SCALE - 1) / PANGO_SCALE;
 	
 	#elif defined MAC && !defined COCOA
 	
-	if (!Hnd || !Str)
-		return;
+		if (!Hnd || !Str)
+			return;
 
-	OSStatus e = ATSUSetTextPointerLocation(Hnd, Str, 0, len, len);
-	if (e)
-	{
-		char *a = 0;
-		StringConvert(a, NULL, Str, len);
-		printf("%s:%i - ATSUSetTextPointerLocation failed with errorcode %i (%s)\n", _FL, (int)e, a);
-		DeleteArray(a);
-		return;
-	}
+		#if USE_CORETEXT
 
-	e = ATSUSetRunStyle(Hnd, Font->Handle(), 0, len);
-	if (e)
-	{
-		char *a = 0;
-		StringConvert(a, NULL, Str, len);
-		printf("%s:%i - ATSUSetRunStyle failed with errorcode %i (%s)\n", _FL, (int)e, a);
-		DeleteArray(a);
-		return;
-	}
-
-	ATSUTextMeasurement fTextBefore;
-	ATSUTextMeasurement fTextAfter;
-
-	if (pDC)
-	{
-		OsPainter dc = pDC->Handle();
-		ATSUAttributeTag        Tags[1] = {kATSUCGContextTag};
-		ByteCount               Sizes[1] = {sizeof(CGContextRef)};
-		ATSUAttributeValuePtr   Values[1] = {&dc};
-
-		e = ATSUSetLayoutControls(Hnd, 1, Tags, Sizes, Values);
-		if (e) printf("%s:%i - ATSUSetLayoutControls failed (e=%i)\n", _FL, (int)e);
-	}
+			LgiAssert(!"Impl text layout.");
 	
-	ATSUTab Tabs[32];
-	for (int i=0; i<CountOf(Tabs); i++)
-	{
-		Tabs[i].tabPosition = (i * Font->TabSize()) << 16;
-		Tabs[i].tabType = kATSULeftTab;
-	}
-	e = ATSUSetTabArray(Hnd, Tabs, CountOf(Tabs));
-	if (e) printf("%s:%i - ATSUSetTabArray failed (e=%i)\n", _FL, (int)e);
+		#else
+	
+			OSStatus e = ATSUSetTextPointerLocation(Hnd, Str, 0, len, len);
+			if (e)
+			{
+				char *a = 0;
+				StringConvert(a, NULL, Str, len);
+				printf("%s:%i - ATSUSetTextPointerLocation failed with errorcode %i (%s)\n", _FL, (int)e, a);
+				DeleteArray(a);
+				return;
+			}
 
-	e = ATSUGetUnjustifiedBounds(	Hnd,
-									kATSUFromTextBeginning,
-									kATSUToTextEnd,
-									&fTextBefore,
-									&fTextAfter,
-									&fAscent,
-									&fDescent);
-	if (e)
-	{
-		char *a = 0;
-		StringConvert(a, NULL, Str, len);
-		printf("%s:%i - ATSUGetUnjustifiedBounds failed with errorcode %i (%s)\n", _FL, (int)e, a);
-		DeleteArray(a);
-		return;
-	}
+			e = ATSUSetRunStyle(Hnd, Font->Handle(), 0, len);
+			if (e)
+			{
+				char *a = 0;
+				StringConvert(a, NULL, Str, len);
+				printf("%s:%i - ATSUSetRunStyle failed with errorcode %i (%s)\n", _FL, (int)e, a);
+				DeleteArray(a);
+				return;
+			}
 
-	xf = fTextAfter - fTextBefore;
-	yf = fAscent + fDescent;
-	x = (xf + 0xffff) >> 16;
-	y = (yf + 0xffff) >> 16;
-	ATSUSetTransientFontMatching(Hnd, true);
+			ATSUTextMeasurement fTextBefore;
+			ATSUTextMeasurement fTextAfter;
+
+			if (pDC)
+			{
+				OsPainter dc = pDC->Handle();
+				ATSUAttributeTag        Tags[1] = {kATSUCGContextTag};
+				ByteCount               Sizes[1] = {sizeof(CGContextRef)};
+				ATSUAttributeValuePtr   Values[1] = {&dc};
+
+				e = ATSUSetLayoutControls(Hnd, 1, Tags, Sizes, Values);
+				if (e) printf("%s:%i - ATSUSetLayoutControls failed (e=%i)\n", _FL, (int)e);
+			}
+			
+			ATSUTab Tabs[32];
+			for (int i=0; i<CountOf(Tabs); i++)
+			{
+				Tabs[i].tabPosition = (i * Font->TabSize()) << 16;
+				Tabs[i].tabType = kATSULeftTab;
+			}
+			e = ATSUSetTabArray(Hnd, Tabs, CountOf(Tabs));
+			if (e) printf("%s:%i - ATSUSetTabArray failed (e=%i)\n", _FL, (int)e);
+
+			e = ATSUGetUnjustifiedBounds(	Hnd,
+											kATSUFromTextBeginning,
+											kATSUToTextEnd,
+											&fTextBefore,
+											&fTextAfter,
+											&fAscent,
+											&fDescent);
+			if (e)
+			{
+				char *a = 0;
+				StringConvert(a, NULL, Str, len);
+				printf("%s:%i - ATSUGetUnjustifiedBounds failed with errorcode %i (%s)\n", _FL, (int)e, a);
+				DeleteArray(a);
+				return;
+			}
+
+			xf = fTextAfter - fTextBefore;
+			yf = fAscent + fDescent;
+			x = (xf + 0xffff) >> 16;
+			y = (yf + 0xffff) >> 16;
+			ATSUSetTransientFontMatching(Hnd, true);
+
+		#endif
 	
 	#elif defined WINNATIVE
 	
-	int sx, sy, i = 0;
-	if (!Font)
-		return;
-	if (!Font->Handle())
-		Font->Create();
-	
-	y = Font->GetHeight();
-
-	GFontSystem *Sys = GFontSystem::Inst();
-	if (Sys && Str)
-	{
-		GFont *f = Font;
-		OsChar *s;
-		bool GlyphSub = Font->SubGlyphs();
-
-		Info[i].Str = Str;
-
-		int TabSize = Font->TabSize() ? Font->TabSize() : 32;
-
-		bool WasTab = IsTabChar(*Str);
-		f = GlyphSub ? Sys->GetGlyph(*Str, Font) : Font;
-		if (f && f != Font)
-		{
-			f->PointSize(Font->PointSize());
-			f->SetWeight(Font->GetWeight());
-			if (!f->Handle())
-				f->Create();
-		}
-
-		bool Debug = WasTab;
+		int sx, sy, i = 0;
+		if (!Font)
+			return;
+		if (!Font->Handle())
+			Font->Create();
 		
-		for (s=Str; true; NextOsChar(s))
+		y = Font->GetHeight();
+
+		GFontSystem *Sys = GFontSystem::Inst();
+		if (Sys && Str)
 		{
-			GFont *n = GlyphSub ? Sys->GetGlyph(*s, Font) : Font;
-			bool Change =	n != f ||					// The font changed
-							(IsTabChar(*s) ^ WasTab) ||	// Entering/leaving a run of tabs
-							!*s ||						// Hit a NULL character
-							(s - Info[i].Str) >= 1000;	// This is to stop very long segments not rendering
-			if (Change)
+			GFont *f = Font;
+			OsChar *s;
+			bool GlyphSub = Font->SubGlyphs();
+
+			Info[i].Str = Str;
+
+			int TabSize = Font->TabSize() ? Font->TabSize() : 32;
+
+			bool WasTab = IsTabChar(*Str);
+			f = GlyphSub ? Sys->GetGlyph(*Str, Font) : Font;
+			if (f && f != Font)
 			{
-				// End last segment
-				if (n && n != Font)
-				{
-					n->PointSize(Font->PointSize());
-					n->SetWeight(Font->GetWeight());
-					if (!n->Handle())
-						n->Create();
-				}
-
-				Info[i].Len = s - Info[i].Str;
-				if (Info[i].Len)
-				{
-					if (WasTab)
-					{
-						// Handle tab(s)
-						for (int t=0; t<Info[i].Len; t++)
-						{
-							int Dx = TabSize - ((Info[i].X + x + GetDrawOffset()) % TabSize);
-							Info[i].X += Dx;
-						}
-						x += Info[i].X;
-					}
-					else
-					{
-						GFont *m = f;
-
-						#if 0
-						// This code is causing email to display very slowly in Scribe...
-						// I guess I should rewrite the glyph substitution code to be
-						// better aware of point size differences.
-						if (f && (f->GetHeight() > Font->GetHeight()))
-						{
-							Info[i].SizeDelta = -1;
-							f->PointSize(Font->PointSize() + Info[i].SizeDelta);
-							f->Create();
-						}
-						#endif
-
-						if (!f)
-						{
-							// no font, so ? out the chars... as they aren't available anyway
-							// printf("Font Cache Miss, Len=%i\n\t", Info[i].Len);
-							m = Font;
-							for (int n=0; n<Info[i].Len; n++)
-							{
-								Info[i].Str[n] = '?';
-							}
-						}
-						m->_Measure(sx, sy, Info[i].Str, Info[i].Len);
-						x += Info[i].X = sx > 0xffff ? 0xffff : sx;
-					}
-					Info[i].FontId = !f || Font == f ? 0 : Sys->Lut[Info[i].Str[0]];
-
-					i++;
-				}
-
-				f = n;
-
-				// Start next segment
-				WasTab = IsTabChar(*s);
-				Info[i].Str = s;
+				f->PointSize(Font->PointSize());
+				f->SetWeight(Font->GetWeight());
+				if (!f->Handle())
+					f->Create();
 			}
 
-			if (!*s) break;
-		}
+			bool Debug = WasTab;
+			
+			for (s=Str; true; NextOsChar(s))
+			{
+				GFont *n = GlyphSub ? Sys->GetGlyph(*s, Font) : Font;
+				bool Change =	n != f ||					// The font changed
+								(IsTabChar(*s) ^ WasTab) ||	// Entering/leaving a run of tabs
+								!*s ||						// Hit a NULL character
+								(s - Info[i].Str) >= 1000;	// This is to stop very long segments not rendering
+				if (Change)
+				{
+					// End last segment
+					if (n && n != Font)
+					{
+						n->PointSize(Font->PointSize());
+						n->SetWeight(Font->GetWeight());
+						if (!n->Handle())
+							n->Create();
+					}
 
-		if (Info.Length() > 0 && Info.Last().Len == 0)
-		{
-			Info.Length(Info.Length()-1);
+					Info[i].Len = s - Info[i].Str;
+					if (Info[i].Len)
+					{
+						if (WasTab)
+						{
+							// Handle tab(s)
+							for (int t=0; t<Info[i].Len; t++)
+							{
+								int Dx = TabSize - ((Info[i].X + x + GetDrawOffset()) % TabSize);
+								Info[i].X += Dx;
+							}
+							x += Info[i].X;
+						}
+						else
+						{
+							GFont *m = f;
+
+							#if 0
+							// This code is causing email to display very slowly in Scribe...
+							// I guess I should rewrite the glyph substitution code to be
+							// better aware of point size differences.
+							if (f && (f->GetHeight() > Font->GetHeight()))
+							{
+								Info[i].SizeDelta = -1;
+								f->PointSize(Font->PointSize() + Info[i].SizeDelta);
+								f->Create();
+							}
+							#endif
+
+							if (!f)
+							{
+								// no font, so ? out the chars... as they aren't available anyway
+								// printf("Font Cache Miss, Len=%i\n\t", Info[i].Len);
+								m = Font;
+								for (int n=0; n<Info[i].Len; n++)
+								{
+									Info[i].Str[n] = '?';
+								}
+							}
+							m->_Measure(sx, sy, Info[i].Str, Info[i].Len);
+							x += Info[i].X = sx > 0xffff ? 0xffff : sx;
+						}
+						Info[i].FontId = !f || Font == f ? 0 : Sys->Lut[Info[i].Str[0]];
+
+						i++;
+					}
+
+					f = n;
+
+					// Start next segment
+					WasTab = IsTabChar(*s);
+					Info[i].Str = s;
+				}
+
+				if (!*s) break;
+			}
+
+			if (Info.Length() > 0 && Info.Last().Len == 0)
+			{
+				Info.Length(Info.Length()-1);
+			}
 		}
-	}
-	
-	xf = x;
-	yf = y;
+		
+		xf = x;
+		yf = y;
 	
 	#elif defined BEOS
 	
-	if (Font && Font->Handle())
-	{
-		int TabSize = Font->TabSize() ? Font->TabSize() : 32;
-		char *End = Str + len;
-		GArray<CharInfo> a;
-		char *s = Str;
-		
-		x = 0;
-		while (s < End)
+		if (Font && Font->Handle())
 		{
-			char *Start = s;
-			while (s < End && *s && *s != '\t')
-				s++;
-
-			if (s > Start)
-			{
-				// Normal segment
-				CharInfo &i = a.New();
-				i.Str = Start;
-				i.Len = s - Start;
-				
-				GdcPt2 size = Font->StringBounds(i.Str, i.Len);
-				i.X = size.x;
-				i.FontId = -1;
-				i.SizeDelta = 0;
-				
-				x += size.x;
-			}
+			int TabSize = Font->TabSize() ? Font->TabSize() : 32;
+			char *End = Str + len;
+			GArray<CharInfo> a;
+			char *s = Str;
 			
-			Start = s;
-			while (s < End && *s && *s == '\t')
-				s++;
-
-			if (s > Start)
+			x = 0;
+			while (s < End)
 			{
-				// Tabs segment
-				CharInfo &i = a.New();
-				i.Str = Start;
-				i.Len = s - Start;
-				
-				i.X = 0;
-				i.FontId = -1;
-				i.SizeDelta = 0;
-				
-				for (int n=0; n<i.Len; n++)
+				char *Start = s;
+				while (s < End && *s && *s != '\t')
+					s++;
+
+				if (s > Start)
 				{
-					int Dx = TabSize - ((x + TabOrigin) % TabSize);
-					i.X += Dx;
-					x += Dx;
+					// Normal segment
+					CharInfo &i = a.New();
+					i.Str = Start;
+					i.Len = s - Start;
+					
+					GdcPt2 size = Font->StringBounds(i.Str, i.Len);
+					i.X = size.x;
+					i.FontId = -1;
+					i.SizeDelta = 0;
+					
+					x += size.x;
+				}
+				
+				Start = s;
+				while (s < End && *s && *s == '\t')
+					s++;
+
+				if (s > Start)
+				{
+					// Tabs segment
+					CharInfo &i = a.New();
+					i.Str = Start;
+					i.Len = s - Start;
+					
+					i.X = 0;
+					i.FontId = -1;
+					i.SizeDelta = 0;
+					
+					for (int n=0; n<i.Len; n++)
+					{
+						int Dx = TabSize - ((x + TabOrigin) % TabSize);
+						i.X += Dx;
+						x += Dx;
+					}
 				}
 			}
-		}
-		
-		LgiAssert(s == End);
-		
-		Blocks = a.Length();
-		Info = a.Release();
-		y = Font->GetHeight();
+			
+			LgiAssert(s == End);
+			
+			Blocks = a.Length();
+			Info = a.Release();
+			y = Font->GetHeight();
 
-		#if 0
-		printf("Layout '%s' = %i,%i\n", Str, x, y);
-		for (int i=0; i<Blocks; i++)
-		{
-			CharInfo *ci = Info + i;
-			printf("  [%i]=%s,%i x=%i\n", i, ci->Str, ci->Len, ci->X);
+			#if 0
+			printf("Layout '%s' = %i,%i\n", Str, x, y);
+			for (int i=0; i<Blocks; i++)
+			{
+				CharInfo *ci = Info + i;
+				printf("  [%i]=%s,%i x=%i\n", i, ci->Str, ci->Len, ci->X);
+			}
+			#endif		
 		}
-		#endif		
-	}
-	else printf("%s:%i - No font or handle.\n", _FL);
+		else printf("%s:%i - No font or handle.\n", _FL);
 	
 	#endif
 }
@@ -612,23 +652,31 @@ void GDisplayString::TruncateWithDots(int Width)
 	
 	#else
 	
-	if (Str)
-	{
-		ATSULineTruncation truc = kATSUTruncateEnd;
-		ATSUTextMeasurement width = Width << FShift;
+		#if USE_CORETEXT
 
-		ATSUAttributeTag        tags[] = {kATSULineWidthTag, kATSULineTruncationTag};
-		ByteCount               sizes[] = {sizeof(width), sizeof(truc)};
-		ATSUAttributeValuePtr   values[] = {&width, &truc};
+			LgiAssert(!"Impl truncate text layout.");
+	
+		#else
+	
+			if (!Str)
+				return;
 
-		OSStatus e = ATSUSetLayoutControls(	Hnd,
-											CountOf(tags),
-											tags,
-											sizes,
-											values);
-		if (e)
-			printf("%s:%i - ATSUSetLayoutControls failed (e=%i)\n", _FL, (int)e);
-	}
+			ATSULineTruncation truc = kATSUTruncateEnd;
+			ATSUTextMeasurement width = Width << FShift;
+
+			ATSUAttributeTag        tags[] = {kATSULineWidthTag, kATSULineTruncationTag};
+			ByteCount               sizes[] = {sizeof(width), sizeof(truc)};
+			ATSUAttributeValuePtr   values[] = {&width, &truc};
+
+			OSStatus e = ATSUSetLayoutControls(	Hnd,
+												CountOf(tags),
+												tags,
+												sizes,
+												values);
+			if (e)
+				printf("%s:%i - ATSUSetLayoutControls failed (e=%i)\n", _FL, (int)e);
+	
+		#endif
 	
 	#endif
 }
@@ -665,12 +713,16 @@ int GDisplayString::CharAt(int Px)
 		UniCharArrayOffset Off = 0, Off2 = 0;
 		Boolean IsLeading;
 		
-		#if 0
-		CTLineGetStringIndexForPosition
+		#if USE_CORETEXT
+
+			LgiAssert(!"Impl get char at position.");
+
 		#else
-		OSStatus e = ATSUPositionToOffset(Hnd, FloatToFixed(Px), FloatToFixed(y / 2), &Off, &IsLeading, &Off2);
-		if (e) printf("%s:%i - ATSUPositionToOffset failed with %i, CharAt(%i) x=%i len=%i\n", _FL, (int)e, Px, x, len);
-		else
+
+			OSStatus e = ATSUPositionToOffset(Hnd, FloatToFixed(Px), FloatToFixed(y / 2), &Off, &IsLeading, &Off2);
+			if (e) printf("%s:%i - ATSUPositionToOffset failed with %i, CharAt(%i) x=%i len=%i\n", _FL, (int)e, Px, x, len);
+			else
+
 		#endif
 		{
 			Status = Off;
@@ -1278,88 +1330,96 @@ void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc, bool Debug
 	{
 		OSStatus e;
 		OsPainter				dc = pDC->Handle();
-		ATSUAttributeTag        Tags[1] = {kATSUCGContextTag};
-		ByteCount               Sizes[1] = {sizeof(CGContextRef)};
-		ATSUAttributeValuePtr   Values[1] = {&dc};
 
-		e = ATSUSetLayoutControls(Hnd, 1, Tags, Sizes, Values);
-		if (e)
-		{
-			printf("%s:%i - ATSUSetLayoutControls failed (e=%i)\n", _FL, (int)e);
-		}
-		else
-		{
-			// Set style attr
-			ATSURGBAlphaColor c;
-			GColour Fore = Font->Fore();
-			c.red   = (double) Fore.r() / 255.0;
-			c.green = (double) Fore.g() / 255.0;
-			c.blue  = (double) Fore.b() / 255.0;
-			c.alpha = 1.0;
-			
-			ATSUAttributeTag Tags[]			= {kATSURGBAlphaColorTag};
-			ATSUAttributeValuePtr Values[]	= {&c};
-			ByteCount Lengths[]				= {sizeof(c)};
-			
-			e = ATSUSetAttributes(  Font->Handle(),
-									CountOf(Tags),
-									Tags,
-									Lengths,
-									Values);
+		#if USE_CORETEXT
+
+			LgiAssert(!"Impl draw layout.");
+
+		#else
+
+			ATSUAttributeTag        Tags[1] = {kATSUCGContextTag};
+			ByteCount               Sizes[1] = {sizeof(CGContextRef)};
+			ATSUAttributeValuePtr   Values[1] = {&dc};
+
+			e = ATSUSetLayoutControls(Hnd, 1, Tags, Sizes, Values);
 			if (e)
 			{
-				printf("%s:%i - Error setting font attr (e=%i)\n", _FL, (int)e);
+				printf("%s:%i - ATSUSetLayoutControls failed (e=%i)\n", _FL, (int)e);
 			}
 			else
 			{
-				int y = (pDC->Y() - py + Oy);
-
-				if (pDC->IsScreen())
+				// Set style attr
+				ATSURGBAlphaColor c;
+				GColour Fore = Font->Fore();
+				c.red   = (double) Fore.r() / 255.0;
+				c.green = (double) Fore.g() / 255.0;
+				c.blue  = (double) Fore.b() / 255.0;
+				c.alpha = 1.0;
+				
+				ATSUAttributeTag Tags[]			= {kATSURGBAlphaColorTag};
+				ATSUAttributeValuePtr Values[]	= {&c};
+				ByteCount Lengths[]				= {sizeof(c)};
+				
+				e = ATSUSetAttributes(  Font->Handle(),
+										CountOf(Tags),
+										Tags,
+										Lengths,
+										Values);
+				if (e)
 				{
-					CGContextSaveGState(dc);
-
-					if (frc)
-					{
-						CGRect rect = rc;
-						rect.size.width += 1.0;
-						rect.size.height += 1.0;
-						CGContextClipToRect(dc, rect);
-					}
-					CGContextTranslateCTM(dc, 0, pDC->Y()-1);
-					CGContextScaleCTM(dc, 1.0, -1.0);
-
-					e = ATSUDrawText(Hnd, kATSUFromTextBeginning, kATSUToTextEnd, fx - Long2Fix(Ox), Long2Fix(y) - fAscent);
-
-					CGContextRestoreGState(dc);
+					printf("%s:%i - Error setting font attr (e=%i)\n", _FL, (int)e);
 				}
 				else
 				{
-					if (frc)
+					int y = (pDC->Y() - py + Oy);
+
+					if (pDC->IsScreen())
 					{
 						CGContextSaveGState(dc);
-						
-						CGRect rect = rc;
-						rect.origin.x -= Ox;
-						rect.origin.y = pDC->Y() - rect.origin.y + Oy - rect.size.height;
-						rect.size.width += 1.0;
-						rect.size.height += 1.0;
-						CGContextClipToRect(dc, rect);
-					}
-					
-					e = ATSUDrawText(Hnd, kATSUFromTextBeginning, kATSUToTextEnd, Long2Fix(px - Ox), Long2Fix(y) - fAscent);
-					
-					if (frc)
+
+						if (frc)
+						{
+							CGRect rect = rc;
+							rect.size.width += 1.0;
+							rect.size.height += 1.0;
+							CGContextClipToRect(dc, rect);
+						}
+						CGContextTranslateCTM(dc, 0, pDC->Y()-1);
+						CGContextScaleCTM(dc, 1.0, -1.0);
+
+						e = ATSUDrawText(Hnd, kATSUFromTextBeginning, kATSUToTextEnd, fx - Long2Fix(Ox), Long2Fix(y) - fAscent);
+
 						CGContextRestoreGState(dc);
-				}
-				if (e)
-				{
-					char *a = 0;
-					StringConvert(a, NULL, Str, len);
-					printf("%s:%i - ATSUDrawText failed with %i, len=%i, str=%.20s\n", _FL, (int)e, len, a);
-					DeleteArray(a);
+					}
+					else
+					{
+						if (frc)
+						{
+							CGContextSaveGState(dc);
+							
+							CGRect rect = rc;
+							rect.origin.x -= Ox;
+							rect.origin.y = pDC->Y() - rect.origin.y + Oy - rect.size.height;
+							rect.size.width += 1.0;
+							rect.size.height += 1.0;
+							CGContextClipToRect(dc, rect);
+						}
+						
+						e = ATSUDrawText(Hnd, kATSUFromTextBeginning, kATSUToTextEnd, Long2Fix(px - Ox), Long2Fix(y) - fAscent);
+						
+						if (frc)
+							CGContextRestoreGState(dc);
+					}
+					if (e)
+					{
+						char *a = 0;
+						StringConvert(a, NULL, Str, len);
+						printf("%s:%i - ATSUDrawText failed with %i, len=%i, str=%.20s\n", _FL, (int)e, len, a);
+						DeleteArray(a);
+					}
 				}
 			}
-		}
+		#endif
 	}
 	
 	#endif

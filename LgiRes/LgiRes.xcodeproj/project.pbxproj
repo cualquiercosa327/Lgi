@@ -225,7 +225,7 @@
 		20286C28FDCF999611CA2CEA /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0450;
+				LastUpgradeCheck = 0620;
 			};
 			buildConfigurationList = 34BA95070B33B2BB00493CD3 /* Build configuration list for PBXProject "LgiRes" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -350,6 +350,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				PRODUCT_NAME = LgiRes;
 				SDKROOT = macosx;
+				STRIP_INSTALLED_PRODUCT = NO;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Development;
@@ -391,7 +392,7 @@
 					"$(OTHER_CFLAGS)",
 					"-fvisibility=default",
 				);
-				SDKROOT = macosx10.7;
+				SDKROOT = macosx;
 				USER_HEADER_SEARCH_PATHS = "../include/mac/carbon ../include/common";
 				VALID_ARCHS = i386;
 			};
@@ -406,7 +407,7 @@
 					"$(OTHER_CFLAGS)",
 					"-fvisibility=default",
 				);
-				SDKROOT = macosx10.7;
+				SDKROOT = macosx;
 				USER_HEADER_SEARCH_PATHS = "../include/mac/carbon ../include/common";
 				VALID_ARCHS = i386;
 			};

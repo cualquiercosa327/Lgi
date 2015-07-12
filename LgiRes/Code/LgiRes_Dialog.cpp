@@ -680,7 +680,6 @@ void ResDialogCtrl::OnMouseClick(GMouse &m)
 					char *p = Clip;
 					while (*p && strchr(" \r\n\t", *p)) p++;
 					PasteData = *p == '<';
-					DeleteArray(Clip);
 				}
 			}
 
@@ -2805,15 +2804,11 @@ void ResDialog::Paste()
 	char *Data = 0;
 	{
 		GClipBoard Clip(Ui);
-		GAutoWString w(Clip.TextW());
+		char16 *w = Clip.TextW();
 		if (w)
-		{
 			Data = Mem = LgiNewUtf16To8(w);
-		}
 		else
-		{
 			Data = Clip.Text();
-		}
 	}
 	if (Data)
 	{
