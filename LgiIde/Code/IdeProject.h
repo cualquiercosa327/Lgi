@@ -119,6 +119,7 @@ public:
 	bool UpdateRegisters();
 	void UpdateCallStack();
 	bool DumpObject(const char *Var);
+	bool OnBreakPoint(GDebugger::BreakPoint &b, bool Add);
 	
 	// Ui events...
 	bool OnCommand(int Cmd);

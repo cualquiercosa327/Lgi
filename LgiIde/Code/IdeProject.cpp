@@ -3750,7 +3750,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 									if (Parts.Length() == 2)
 										sprintf_s(t, sizeof(t), "lib%s$(Tag).%s", Parts[0], Parts[1]);
 									else
-										LgiAssert(0);
+										sprintf_s(t, sizeof(t), "%s", Parts[0]);
 
 									sprintf(Buf, "%s/$(BuildDir)/%s", Rel, t);
 									m.Print(" %s", Buf);

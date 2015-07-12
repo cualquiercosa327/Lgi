@@ -315,8 +315,14 @@ bool GDebugContext::OnCommand(int Cmd)
 			if (d->Db)
 			{
 				d->App->LoadBreakPoints(d->Db);
-				d->Db->SetRuning(true);
+				d->Db->SetRunning(true);
 			}
+			break;
+		}
+		case IDM_CONTINUE:
+		{
+			if (d->Db)
+				d->Db->SetRunning(true);
 			break;
 		}
 		case IDM_ATTACH_TO_PROCESS:
@@ -334,7 +340,7 @@ bool GDebugContext::OnCommand(int Cmd)
 		case IDM_PAUSE_DEBUG:
 		{
 			if (d->Db)
-				d->Db->SetRuning(false);
+				d->Db->SetRunning(false);
 			break;
 		}
 		case IDM_RESTART_DEBUGGING:
@@ -535,4 +541,15 @@ void GDebugContext::OnError(int Code, const char *Str)
 void GDebugContext::OnCrash(int Code)
 {
 	d->App->PostEvent(M_ON_CRASH);
+}
+
+bool GDebugContext::OnBreakPoint(GDebugger::BreakPoint &b, bool Add)
+{
+	if (!d->Db)
+		return false;
+	
+	if (Add)
+		d->Db->SetBreakPoint(&b);
+	else
+		d->Db->RemoveBreakPoint(&b);
 }

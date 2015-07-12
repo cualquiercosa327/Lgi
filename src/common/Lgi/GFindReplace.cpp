@@ -59,26 +59,6 @@ GFindDlg::GFindDlg(GView *Parent, char *Init, GFrCallback Callback, void *UserDa
 	SetParent(Parent);
 	Name(LgiLoadString(L_FR_FIND, "Find"));
 
-    #if 0
-
-	GRect r(0, 0, 380, 130);
-	SetPos(r);
-	MoveToCenter();
-
-	Children.Insert(new GText(IDS_16, 14, 14, -1, -1, LgiLoadString(L_FR_FIND_WHAT, "Find what:")));
-	
-	Children.Insert(d->Edit = new GEdit(IDC_TEXT, 91, 7, 168, 21, ""));
-	// Children.Insert(new GCombo(IDC_PREV_SEARCH, 259, 7, 21, 21, ""));
-	
-	Children.Insert(new GCheckBox(IDC_MATCH_WORD, 14, 42, -1, -1, LgiLoadString(L_FR_MATCH_WORD, "Match whole word only")));
-	Children.Insert(new GCheckBox(IDC_MATCH_CASE, 14, 63, -1, -1, LgiLoadString(L_FR_MATCH_CASE, "Match case")));
-	Children.Insert(new GCheckBox(IDC_SELECTION_ONLY, 14, 84, -1, -1, LgiLoadString(L_FR_SELECTION_ONLY, "Selection only")));
-	
-	Children.Insert(new GButton(IDOK, 294, 7, 70, 21, LgiLoadString(L_FR_FIND_NEXT, "Find Next")));
-	Children.Insert(new GButton(IDCANCEL, 294, 35, 70, 21, LgiLoadString(L_BTN_CANCEL, "Cancel")));
-
-    #else
-
 	GRect r(0, 0, 450, 300);
 	SetPos(r);
 	MoveToCenter();
@@ -119,8 +99,6 @@ GFindDlg::GFindDlg(GView *Parent, char *Init, GFrCallback Callback, void *UserDa
 	    SetPos(r);
 	}	
     
-    #endif
-	
 	if (d->Edit) d->Edit->Focus(true);
 }
 
@@ -165,6 +143,7 @@ int GFindDlg::OnNotify(GViewI *Ctrl, int Flags)
 			Find = NewStr(GetCtrlName(IDC_TEXT));
 			MatchWord = GetCtrlValue(IDC_MATCH_WORD);
 			MatchCase = GetCtrlValue(IDC_MATCH_CASE);
+			printf("%s:%i Find OnNot %s, %i, %i, %i\n", Find, MatchWord, MatchCase);
 
 			if (d->Callback)
 			{

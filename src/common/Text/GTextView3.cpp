@@ -1926,6 +1926,7 @@ bool GTextView3::Copy()
 
 		GClipBoard Clip(this);
 		
+		printf("%s:%i - text view copy -> clip\n", _FL);
 		Clip.Text(Txt8);
 		Clip.TextW(Txt16, false);
 		
@@ -2586,6 +2587,7 @@ int GTextView3::MatchText(char16 *Find, bool MatchWord, bool MatchCase, bool Sel
 
 bool GTextView3::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly)
 {
+	printf("%s:%i - OnFind(%S, %i, %i, %i)\n", _FL, Find, MatchWord, MatchCase, SelectionOnly);
 	int Loc = MatchText(Find, MatchWord, MatchCase, SelectionOnly);
 	if (Loc >= 0)
 	{
@@ -4578,6 +4580,7 @@ GMessage::Result GTextView3::OnEvent(GMessage *Msg)
 		}
 		case M_COPY:
 		{
+			printf("M_COPY received.\n");
 			Copy();
 			break;
 		}

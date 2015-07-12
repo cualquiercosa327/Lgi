@@ -1337,7 +1337,7 @@ void AppWnd::OnDebugState(bool Debugging, bool Running)
 		}
 	}
 	
-	SetCtrlEnabled(IDM_START_DEBUG, !Debugging);
+	SetCtrlEnabled(IDM_START_DEBUG, !Debugging || !Running);
 	SetCtrlEnabled(IDM_PAUSE_DEBUG, Debugging && Running);
 	SetCtrlEnabled(IDM_RESTART_DEBUGGING, Debugging);
 	SetCtrlEnabled(IDM_STOP_DEBUG, Debugging);
@@ -1442,6 +1442,11 @@ bool AppWnd::OnBreakPoint(GDebugger::BreakPoint &b, bool Add)
 		}
 	}
 
+	if (d->DbgContext)
+	{
+		d->DbgContext->OnBreakPoint(b, Add);
+	}
+	
 	return true;
 }
 
@@ -2172,6 +2177,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		case IDM_COPY:
 		{
 			GViewI *v = GetFocus();
+			printf("IDM_COPY v=%p\n", v);
 			if (v)
 			{
 				v->PostEvent(M_COPY);
@@ -2321,23 +2327,30 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		{
 			SaveAll();
 			IdeProject *p = RootProject();
-			if (p)
+			if (!p)
 			{
-				if ((d->DbgContext = p->Execute(ExeDebug)))
-				{
-					d->DbgContext->DebuggerLog = d->Output->DebuggerLog;
-					d->DbgContext->Watch = d->Output->Watch;
-					d->DbgContext->Locals = d->Output->Locals;
-					d->DbgContext->CallStack = d->Output->CallStack;
-					d->DbgContext->ObjectDump = d->Output->ObjectDump;
-					d->DbgContext->Registers = d->Output->Registers;
-					d->DbgContext->MemoryDump = d->Output->MemoryDump;
-					
-					d->DbgContext->OnCommand(IDM_START_DEBUG);
-					
-					d->Output->Tab->Value(AppWnd::DebugTab);
-					d->Output->DebugEdit->Focus(true);
-				}
+				LgiMsg(this, "No project loaded.", "Error");
+				break;
+			}
+
+			if (d->DbgContext)
+			{
+				d->DbgContext->OnCommand(IDM_CONTINUE);
+			}
+			else if ((d->DbgContext = p->Execute(ExeDebug)))
+			{
+				d->DbgContext->DebuggerLog = d->Output->DebuggerLog;
+				d->DbgContext->Watch = d->Output->Watch;
+				d->DbgContext->Locals = d->Output->Locals;
+				d->DbgContext->CallStack = d->Output->CallStack;
+				d->DbgContext->ObjectDump = d->Output->ObjectDump;
+				d->DbgContext->Registers = d->Output->Registers;
+				d->DbgContext->MemoryDump = d->Output->MemoryDump;
+				
+				d->DbgContext->OnCommand(IDM_START_DEBUG);
+				
+				d->Output->Tab->Value(AppWnd::DebugTab);
+				d->Output->DebugEdit->Focus(true);
 			}
 			break;
 		}

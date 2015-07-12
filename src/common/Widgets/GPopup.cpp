@@ -101,7 +101,7 @@ public:
 		#endif
 
 		#if defined(LINUX)
-		LgiTrace("Mouse hook thread not running! (FIXME)\n");
+		// LgiTrace("Mouse hook thread not running! (FIXME)\n");
 		#else
 		Loop = true;
 		Run();

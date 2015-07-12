@@ -519,7 +519,7 @@ public:
 		return Running;
 	}
 	
-	bool SetRuning(bool Run)
+	bool SetRunning(bool Run)
 	{
 		if (Run)
 		{
@@ -570,9 +570,31 @@ public:
 			char *File = bp.File.Get();
 			char *Last = strrchr(File, DIR_CHAR);
 			sprintf_s(cmd, sizeof(cmd), "break %s:%i", Last ? Last + 1 : File, bp.Line);
+			
 			BreakPointIdx = 0;
-			Ret = Cmd(cmd);
+			
+			StrArray Lines;
+			Ret = Cmd(cmd, NULL, &Lines);
 			WaitPrompt();
+			
+			for (unsigned i=0; i<Lines.Length(); i++)
+			{
+				GString s;
+				s = Lines[i];
+				GString::Array p = s.Split(" ");
+				if (p.Length() >= 2 &&
+					!_stricmp(p[0], "breakpoint"))
+				{
+					int Idx = p[1].Int();
+					if (Idx)
+					{
+						bp.Index = Idx;
+						printf("Setting bp index to %i\n", Idx);
+					}
+				}
+				printf("bp[%i]='%s'\n", i, Lines[i].Get());
+			}
+			
 			BreakPointIdx = -1;
 			if (Ret)
 				bp.Added = true;
@@ -584,10 +606,6 @@ public:
 	{
 		if (!bp)
 			return false;
-		
-		BreakPoint &n = BreakPoints.New();
-		n = *bp;
-		n.Added = false;
 		
 		// Make sure the child 'gdb' is running...
 		uint64 Start = LgiCurrentTime();
@@ -601,10 +619,22 @@ public:
 			}
 		}
 		
+		bp->Added = false;
 		if (Running)
 			printf("Can't add break point while running.\n");
-		else
-			AddBp(*bp);
+		else if (AddBp(*bp))
+		{
+			BreakPoint &n = BreakPoints.New();
+			n = *bp;
+		}
+		
+		return true;
+	}
+
+	bool RemoveBreakPoint(BreakPoint *bp)
+	{
+		if (!bp)
+			return false;
 		
 		return true;
 	}
