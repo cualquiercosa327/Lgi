@@ -986,7 +986,9 @@ char *IdeDocPrivate::GetLocalFile()
 		if (nSrc->IsWeb())
 			return nSrc->GetLocalCache();
 		
-		Buffer = nSrc->GetFullPath();
+		GAutoString fp = nSrc->GetFullPath();
+		if (_stricmp(fp?fp:"", Buffer?Buffer:""))
+			Buffer = fp;
 		return Buffer;
 	}
 	
