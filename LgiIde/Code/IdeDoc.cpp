@@ -446,8 +446,11 @@ class DocEdit : public GTextView3, public GDocumentEnv
 {
 	IdeDoc *Doc;
 	int CurLine;
+	GdcPt2 MsClick;
 
 public:
+	static int LeftMarginPx;
+
 	DocEdit(IdeDoc *d, GFontType *f) : GTextView3(IDC_EDIT, 0, 0, 100, 100, f)
 	{
 		Doc = d;
@@ -459,7 +462,7 @@ public:
 		SetFindReplaceParams(GlobalFindReplace);
 		
 		CanScrollX = true;
-		GetCss(true)->PaddingLeft(GCss::Len(GCss::LenPx, 16 + 2));
+		GetCss(true)->PaddingLeft(GCss::Len(GCss::LenPx, LeftMarginPx + 2));
 		
 		if (!f)
 		{
@@ -551,21 +554,36 @@ public:
 
 	void OnMouseClick(GMouse &m)
 	{
-		if (m.x < 10)
+		if (m.Down())
 		{
-			if (m.Down())
+			if (HasSelection())
 			{
-				// Margin click... work out the line
-				int Y = (VScroll) ? (int)VScroll->Value() : 0;
-				GFont *f = GetFont();
-				if (!f) return;
-				GCss::Len PaddingTop = GetCss(true)->PaddingTop();
-				int TopPx = PaddingTop.ToPx(GetClient().Y(), f);
-				int Idx = ((m.y - TopPx) / f->GetHeight()) + Y + 1;
-				if (Idx > 0 && Idx <= GTextView3::Line.Length())
-				{
-					Doc->OnMarginClick(Idx);
-				}
+				MsClick.x = -100;
+				MsClick.y = -100;
+			}
+			else
+			{
+				MsClick.x = m.x;
+				MsClick.y = m.y;
+			}
+		}
+		else if
+		(
+			m.x < LeftMarginPx &&
+			abs(m.x - MsClick.x) < 5 &&
+			abs(m.y - MsClick.y) < 5
+		)
+		{
+			// Margin click... work out the line
+			int Y = (VScroll) ? (int)VScroll->Value() : 0;
+			GFont *f = GetFont();
+			if (!f) return;
+			GCss::Len PaddingTop = GetCss(true)->PaddingTop();
+			int TopPx = PaddingTop.ToPx(GetClient().Y(), f);
+			int Idx = ((m.y - TopPx) / f->GetHeight()) + Y + 1;
+			if (Idx > 0 && Idx <= GTextView3::Line.Length())
+			{
+				Doc->OnMarginClick(Idx);
 			}
 		}
 
@@ -705,6 +723,8 @@ public:
 		return true;
 	}
 };
+
+int DocEdit::LeftMarginPx = 16;
 
 bool DocEdit::OnMenu(GDocView *View, int Id)
 {
