@@ -162,10 +162,9 @@ class Gdb : public GDebugger, public GThread
 		else if (OutStream)
 			OutStream->Write(Start, Length);
 		else
-		{
 			Untagged.New().Reset(NewStr(Start, Length));
-			Events->Write(Start, Length);
-		}	
+
+		Events->Write(Start, Length);
 
 		if (BreakPointIdx > 0)
 		{
@@ -380,11 +379,15 @@ class Gdb : public GDebugger, public GThread
 			return false;
 
 		if (OutStream || OutLines)
-		{		
+		{	
+			/*	
 			uint64 Wait0 = LgiCurrentTime();
+			*/
 			WaitPrompt();
+			/*
 			uint64 Wait1 = LgiCurrentTime();
 			LgiTrace("Cmd timing "LGI_PrintfInt64" "LGI_PrintfInt64"\n", Wait0-Start, Wait1-Wait0);
+			*/
 			LgiAssert(OutStream == NULL && OutLines == NULL);
 		}
 		
@@ -605,7 +608,10 @@ public:
 	bool SetBreakPoint(BreakPoint *bp)
 	{
 		if (!bp)
+		{
+			printf("%s:%i - SetBreakPoint failed, param error.\n", _FL);
 			return false;
+		}
 		
 		// Make sure the child 'gdb' is running...
 		uint64 Start = LgiCurrentTime();
@@ -618,14 +624,21 @@ public:
 				return false;
 			}
 		}
-		
+
 		bp->Added = false;
 		if (Running)
-			printf("Can't add break point while running.\n");
-		else if (AddBp(*bp))
 		{
-			BreakPoint &n = BreakPoints.New();
-			n = *bp;
+			printf("%s:%i - Can't add break point while running.\n", _FL);
+			return false;
+		}
+		else
+		{
+			printf("SetBreakPoint: Adding '%s:%i'\n", bp->File.Get(), bp->Line);
+			if (AddBp(*bp))
+			{
+				BreakPoint &n = BreakPoints.New();
+				n = *bp;
+			}
 		}
 		
 		return true;
@@ -635,6 +648,65 @@ public:
 	{
 		if (!bp)
 			return false;
+
+		// Make sure the child 'gdb' is running...
+		uint64 Start = LgiCurrentTime();
+		while (State == Init)
+		{
+			LgiSleep(5);
+			if (LgiCurrentTime()-Start > 3000)
+			{
+				printf("%s:%i - SetBreakPoint init wait failed...\n", _FL);
+				return false;
+			}
+		}
+
+		if (Running)
+		{
+			printf("%s:%i - Can't add break point while running.\n", _FL);
+			return false;
+		}
+		else
+		{
+			unsigned i;
+			for (i=0; i<BreakPoints.Length(); i++)
+			{
+				if (*bp == BreakPoints[i])
+				{
+					break;
+				}
+			}
+			
+			if (i < BreakPoints.Length())
+			{
+				printf("RemoveBreakPoint: Removing(%i) '%s:%i' idx=%i\n",
+					i,
+					bp->File.Get(),
+					bp->Line,
+					BreakPoints[i].Index);
+				
+				char c[256];
+				sprintf_s(c, sizeof(c), "delete %i", BreakPoints[i].Index);
+				bool Status = Cmd(c);
+				if (Status)
+				{				
+					BreakPoints.DeleteAt(i);
+				}
+				else
+				{
+					printf("%s:%i - The cmd '%s' failed.\n", _FL, c);
+					return false;
+				}
+			}
+			else
+			{
+				printf("%s:%i - Failed to find break point '%s:%i'\n",
+					_FL,
+					bp->File.Get(),
+					bp->Line);
+				return false;
+			}
+		}
 		
 		return true;
 	}

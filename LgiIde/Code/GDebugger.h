@@ -39,6 +39,15 @@ public:
 			Line = b.Line;
 			return *this;
 		}
+		
+		bool operator ==(const BreakPoint &b)
+		{
+			if (File == b.File &&
+				Line == b.Line)
+				return true;
+			
+			return false;
+		}
 	};
 
 	struct Variable

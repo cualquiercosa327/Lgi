@@ -2127,7 +2127,7 @@ bool GTextView3::Save(const char *Name, const char *CharSet)
 					Status = true;
 
 					int BufLen = 1 << 20;
-					GAutoPtr<char> Buf(new char[BufLen]);
+					GAutoString Buf(new char[BufLen]);
 					char *b = Buf;
 					char *e = Buf + BufLen;
 					char *c = c8;

@@ -1442,6 +1442,7 @@ bool AppWnd::OnBreakPoint(GDebugger::BreakPoint &b, bool Add)
 		}
 	}
 
+	printf("AppWnd::OnBreakPoint %p\n", d->DbgContext);
 	if (d->DbgContext)
 	{
 		d->DbgContext->OnBreakPoint(b, Add);
