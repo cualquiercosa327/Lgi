@@ -546,8 +546,12 @@ void GDebugContext::OnCrash(int Code)
 bool GDebugContext::OnBreakPoint(GDebugger::BreakPoint &b, bool Add)
 {
 	if (!d->Db)
+	{
+		printf("%s:%i - No debugger loaded.\n", _FL);
 		return false;
+	}
 	
+	printf("GDebugContext::OnBreakPoint(%s:%i, %i)\n", b.File.Get(), b.Line, Add);
 	if (Add)
 		d->Db->SetBreakPoint(&b);
 	else

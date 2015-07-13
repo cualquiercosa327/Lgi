@@ -505,12 +505,20 @@ public:
 		SetEnv(0);
 	}
 
+	int GetTopPaddingPx()
+	{
+		return GetCss(true)->PaddingTop().ToPx(GetClient().Y(), GetFont());
+	}
+
 	void InvalidateLine(int Idx)
 	{
 		GTextLine *Ln = GTextView3::Line[Idx];
 		if (Ln)
 		{
-			Invalidate(&Ln->r);
+			int PadPx = GetTopPaddingPx();
+			GRect r = Ln->r;
+			r.Offset(0, -ScrollYPixel() + PadPx);
+			Invalidate(&r);
 		}
 	}
 	
@@ -519,7 +527,7 @@ public:
 		GTextView3::OnPaintLeftMargin(pDC, r, colour);
 		int Y = ScrollYLine();
 		
-		int TopPaddingPx = GetCss(true)->PaddingTop().ToPx(GetClient().Y(), GetFont());
+		int TopPaddingPx = GetTopPaddingPx();
 
 		pDC->Colour(GColour(200, 0, 0));
 		List<GTextLine>::I it = GTextView3::Line.Start(Y);
@@ -1218,14 +1226,34 @@ void IdeDoc::SetLine(int Line, bool CurIp)
 {
 	if (CurIp)
 	{
-		if (d->Edit && IsCurrentIp() && CurIpLine >= 0)
-		{
-			// Invalidate the old IP location
-			d->Edit->InvalidateLine(CurIpLine);
-		}
+		GString CurDoc = GetFileName();
 		
-		CurIpLine = Line;
-		CurIpDoc = GetFileName();
+		if (ValidStr(CurIpDoc) ^ ValidStr(CurDoc)
+			||
+			(CurIpDoc && CurDoc && strcmp(CurDoc, CurIpDoc) != 0)
+			||
+			Line != CurIpLine)
+		{
+			bool Cur = IsCurrentIp();
+			if (d->Edit && Cur && CurIpLine >= 0)
+			{
+				// Invalidate the old IP location
+				d->Edit->InvalidateLine(CurIpLine - 1);
+			}
+			else
+			{
+				printf("Not inval old line: %p, %i, %i\n",
+					d->Edit,
+					Cur,
+					CurIpLine);
+			}
+			
+			CurIpLine = Line;
+			CurIpDoc = CurDoc;
+			printf("CurIpDoc '%s' = CurDoc '%s'\n", CurIpDoc.Get(), CurDoc.Get());
+			
+			d->Edit->InvalidateLine(CurIpLine - 1);
+		}
 	}
 	
 	if (d->Edit)

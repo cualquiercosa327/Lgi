@@ -173,6 +173,18 @@ public:
 		Str->Str[len] = 0;
 		return true;
 	}
+
+	/// Equality operator
+	bool operator ==(const GString &s)
+	{
+		const char *a = Get();
+		const char *b = s.Get();
+		if (!a && !b)
+			return true;
+		if (!a || !b)
+			return false;
+		return !strcmp(a, b);
+	}
 	
 	/// Assignment operator to copy one string to another
 	GString &operator =(const GString &s)

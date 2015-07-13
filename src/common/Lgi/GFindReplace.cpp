@@ -140,10 +140,12 @@ int GFindDlg::OnNotify(GViewI *Ctrl, int Flags)
 		{
 			// Save controls
 			DeleteArray(Find);
+			
 			Find = NewStr(GetCtrlName(IDC_TEXT));
 			MatchWord = GetCtrlValue(IDC_MATCH_WORD);
 			MatchCase = GetCtrlValue(IDC_MATCH_CASE);
-			printf("%s:%i Find OnNot %s, %i, %i, %i\n", Find, MatchWord, MatchCase);
+			
+			printf("%s:%i Find OnNot %s, %i, %i\n", _FL, Find, MatchWord, MatchCase);
 
 			if (d->Callback)
 			{

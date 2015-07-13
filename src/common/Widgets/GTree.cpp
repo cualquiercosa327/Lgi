@@ -16,7 +16,7 @@
 #define TreeUpdateNow		false
 #else
 #define TreeUpdateNow		true
-#endif
+#endif:
 
 #define ForAll(Items)		List<GTreeItem>::I it = Items.Start(); for (GTreeItem *c = *it; c; c = *++it)
 
