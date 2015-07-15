@@ -2,6 +2,11 @@
 #include "GDebugger.h"
 #include "GSubProcess.h"
 #include "GToken.h"
+#ifdef POSIX
+#include <sys/types.h>
+#include <signal.h>
+#include <errno.h>
+#endif
 
 #define DEBUG_SHOW_GDB_IO		0
 
@@ -23,6 +28,7 @@ class Gdb : public GDebugger, public GThread
 	bool SetPendingOn;
 	GArray<BreakPoint> BreakPoints;
 	int BreakPointIdx;
+	int ProcessId;
 
 	// Current location tracking
 	GString CurFile;
@@ -174,10 +180,36 @@ class Gdb : public GDebugger, public GThread
 		{
 			Events->OnCrash(0);
 		}
-		else if (stristr(Start, "[Inferior") &&
-				 stristr(Start, "exited"))
+		else if (*Start == '[')
 		{
-			OnExit();
+			if (stristr(Start, "Inferior") && stristr(Start, "exited"))
+			{
+				OnExit();
+			}
+			else if (stristr(Start, "New Thread"))
+			{
+				GString s(Start, Length);
+				GString::Array a = s.SplitDelimit("[] ()");
+				int ThreadId = -1;
+				for (unsigned i=0; i<a.Length(); i++)
+				{
+					if (a[i] == GString("LWP") && i < a.Length() - 1)
+					{
+						ThreadId = a[i+1].Int();
+						break;
+					}
+				}
+				if (ThreadId > 0)
+				{
+					// Ok so whats the process ID?
+					int Pid = Gtk::getpgid(ThreadId);
+					if (Pid > 0 && ProcessId < 0)
+					{
+						printf("Got the thread id: %i, and pid: %i\n", ThreadId, ProcessId);
+					}					
+				}
+				else printf("%s:%i - No thread id?\n", _FL);
+			}
 		}
 		else if (BreakPointIdx < 0 &&
 				strncmp(Start, "Breakpoint ", 11) == 0 &&
@@ -408,6 +440,7 @@ public:
 		SetPendingOn = false;
 		DebuggingProcess = false;
 		BreakPointIdx = -1;
+		ProcessId = -1;
 	}
 	
 	~Gdb()
@@ -954,12 +987,27 @@ public:
 
 	bool Break()
 	{
-		if (Cmd("\x03"))
+		#ifdef POSIX
+		if (ProcessId < 0)
 		{
-			Running = false;
-			return true;
+			printf("%s:%i - No process ID (yet?).\n", _FL);
+			return false;
 		}
+		
+		printf("%s:%i - sending SIGINT to %i(0x%x)...\n", _FL, ProcessId, ProcessId);
+		int result = Gtk::kill(ProcessId, SIGINT);
+		if (!result)
+		{
+			printf("%s:%i - success... waiting prompt\n", _FL);
+			return WaitPrompt();
+		}
+		
+		printf("%s:%i - kill failed with %i(0x%x)\n", _FL, errno, errno);
 		return false;
+		#else
+		LgiAssert(!"Impl me");
+		return false;
+		#endif		
 	}
 
 	bool UserCommand(const char *cmd)
