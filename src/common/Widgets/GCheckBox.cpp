@@ -7,6 +7,14 @@
 #include "GDisplayString.h"
 #include "GDisplayStringLayout.h"
 
+static int PadXPx = 24;
+#ifdef MAC
+static int PadYPx = 8;
+#else
+static int PadYPx = 0;
+#endif
+static int MinYSize = 16;
+
 class GCheckBoxPrivate : public GMutex, public GDisplayStringLayout
 {
 	GCheckBox *Ctrl;
@@ -48,6 +56,10 @@ public:
 			char *s = Ctrl->GBase::Name();
 			DoLayout(f, s, Px);
 			Unlock();
+			if (Min.y < MinYSize)
+				Min.y = MinYSize;
+			if (Max.y < MinYSize)
+				Max.y = MinYSize;
 		}
 		else return false;
 		return true;
@@ -56,20 +68,13 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Check box
-static int PadXPx = 24;
-#ifdef MAC
-static int PadYPx = 8;
-#else
-static int PadYPx = 0;
-#endif
-
 GCheckBox::GCheckBox(int id, int x, int y, int cx, int cy, const char *name, int InitState) :
 	ResObject(Res_CheckBox)
 {
 	d = new GCheckBoxPrivate(this);
     Name(name);
 	if (cx < 0) cx = d->Max.x + PadXPx;
-	if (cy < 0) cy = max(d->Max.y, 16) + PadYPx;
+	if (cy < 0) cy = max(d->Max.y, MinYSize) + PadYPx;
 
 	d->Val = InitState;
 	GRect r(x, y, x+cx, y+cy);
@@ -282,7 +287,7 @@ void GCheckBox::OnPaint(GSurface *pDC)
 		GRect r = GetClient();
 		
 		#if defined MAC && !defined COCOA
-		d->ValuePos.Set(0, 0, PadXPx, 16);
+		d->ValuePos.Set(0, 0, PadXPx, MinYSize);
 		#else
 		d->ValuePos.Set(0, 0, 12, 12);
 		#endif

@@ -269,7 +269,7 @@
 			<Node File="./include/common/GXmlTree.h" Type="3" Platforms="15" />
 		</Node>
 		<Node Name="Widgets" Type="1" Platforms="15" Open="1">
-			<Node Name="Common" Type="1" Platforms="15" Open="1">
+			<Node Name="Common" Type="1" Platforms="15" Open="0">
 				<Node File="./src/common/Widgets/GBitmap.cpp" Type="2" Platforms="15" />
 				<Node File="./src/common/Widgets/GButton.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GButton.h" Type="3" Platforms="15" />
@@ -329,12 +329,13 @@
 				<Node File="./src/win32/Widgets/GProgress.cpp" Type="2" Platforms="1" />
 				<Node File="./src/win32/Lgi/GScrollBar.cpp" Type="2" Platforms="1" />
 			</Node>
-			<Node Name="Layout" Type="1" Platforms="15" Open="0">
+			<Node Name="Layout" Type="1" Platforms="15" Open="1">
 				<Node File="./src/common/Widgets/GBox.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GBox.h" Type="3" Platforms="15" />
+				<Node File="./include/common/GDisplayStringLayout.h" Type="3" Platforms="15" />
+				<Node File="./src/common/Widgets/GSplitter.cpp" Type="2" Platforms="15" />
 				<Node File="./src/common/Widgets/GTableLayout.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GTableLayout.h" Type="3" Platforms="15" />
-				<Node File="./src/common/Widgets/GSplitter.cpp" Type="2" Platforms="15" />
 			</Node>
 		</Node>
 	</Node>
