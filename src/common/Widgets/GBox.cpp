@@ -205,11 +205,25 @@ void GBox::OnPaint(GSurface *pDC)
 	GCssTools tools(GetCss(), GetFont());
 	cli = tools.PaintBorderAndPadding(pDC, cli);
 
-	for (int i=0; i<d->Spacers.Length(); i++)
+	int ChildViews = Children.Length();
+	if (ChildViews == 0)
 	{
-		Spacer &s = d->Spacers[i];
-		pDC->Colour(s.Colour);
-		pDC->Rectangle(&s.Pos);
+		pDC->Colour(LC_MED, 24);
+		pDC->Rectangle(&cli);
+	}
+	else
+	{
+		#if 1 // coverage check...
+		pDC->Colour(GColour(255, 0, 255));
+		pDC->Rectangle(&cli);
+		#endif
+		
+		for (int i=0; i<d->Spacers.Length(); i++)
+		{
+			Spacer &s = d->Spacers[i];
+			pDC->Colour(s.Colour);
+			pDC->Rectangle(&s.Pos);
+		}
 	}
 }
 

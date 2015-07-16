@@ -711,7 +711,7 @@ public:
 				if (Text)
 				{
 					int sx = Text->X(), sy = Text->Y();
-					int tx = 8;
+					int tx = GCombo::Pad.x1;
 					int ty = (Ctrl->Y()-sy) >> 1;
 						
 					int Off = 0;
@@ -719,10 +719,12 @@ public:
 					c.x1 += 8;
 					c.x2 -= n + 3;
 					
-					if (Text->X() > Ctrl->X() - tx - 32)
+					int Cx = Ctrl->X();
+					int PadX = GCombo::Pad.x1 + GCombo::Pad.x2;
+					if (Text->X() > PadX)
 					{
 						// Make the text fit
-						Text->TruncateWithDots(Ctrl->X() - tx - 32);
+						Text->TruncateWithDots(Cx - PadX);
 					}
 
 					GFont *f = Text->GetFont();
