@@ -244,7 +244,7 @@ void FindInFilesThread::SearchFile(char *File)
 		}
 		else
 		{
-			printf("Couldn't Read file.\n");
+			LgiTrace("%s:%i - Couldn't Read file.\n", _FL);
 		}
 	}
 }

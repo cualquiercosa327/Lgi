@@ -248,7 +248,7 @@ void EditTray::OnMouseClick(GMouse &m)
 			}
 			else
 			{
-				printf("%s:%i - No include paths set.\n", __FILE__, __LINE__);
+				LgiTrace("%s:%i - No include paths set.\n", _FL);
 			}
 		}
 		else if (FuncBtn.Overlap(m.x, m.y))
@@ -311,7 +311,7 @@ void EditTray::OnMouseClick(GMouse &m)
 			}
 			else
 			{
-				printf("%s:%i - No functions in input.\n", __FILE__, __LINE__);
+				LgiTrace("%s:%i - No functions in input.\n", _FL);
 			}
 		}
 		else if (SymBtn.Overlap(m.x, m.y))
@@ -386,12 +386,12 @@ void EditTray::OnMouseClick(GMouse &m)
 									else
 									{
 										char *f = Def->File;
-										printf("%s:%i - Couldn't open doc '%s'\n", _FL, f);
+										LgiTrace("%s:%i - Couldn't open doc '%s'\n", _FL, f);
 									}
 								}
 								else
 								{
-									printf("%s:%i - No project / app ptr.\n", _FL);
+									LgiTrace("%s:%i - No project / app ptr.\n", _FL);
 								}
 							}
 						}
@@ -836,24 +836,24 @@ bool DocEdit::OnMenu(GDocView *View, int Id)
 							}
 							else
 							{
-								printf("%s:%i - No function name.\n", __FILE__, __LINE__);
+								LgiTrace("%s:%i - No function name.\n", _FL);
 							}
 						}
 						else
 						{
-							printf("%s:%i - OpenBracketIndex not found.\n", __FILE__, __LINE__);
+							LgiTrace("%s:%i - OpenBracketIndex not found.\n", _FL);
 						}
 						
 						Tokens.DeleteArrays();
 					}
 					else
 					{
-						printf("%s:%i - No input text.\n", __FILE__, __LINE__);
+						LgiTrace("%s:%i - No input text.\n", _FL);
 					}
 				}
 				else
 				{
-					printf("%s:%i - No template.\n", __FILE__, __LINE__);
+					LgiTrace("%s:%i - No template.\n", _FL);
 				}
 				break;
 			}
@@ -1242,17 +1242,9 @@ void IdeDoc::SetLine(int Line, bool CurIp)
 				// Invalidate the old IP location
 				d->Edit->InvalidateLine(CurIpLine - 1);
 			}
-			else
-			{
-				printf("Not inval old line: %p, %i, %i\n",
-					d->Edit,
-					Cur,
-					CurIpLine);
-			}
 			
 			CurIpLine = Line;
 			CurIpDoc = CurDoc;
-			printf("CurIpDoc '%s' = CurDoc '%s'\n", CurIpDoc.Get(), CurDoc.Get());
 			
 			d->Edit->InvalidateLine(CurIpLine - 1);
 		}
@@ -1414,7 +1406,7 @@ bool IdeDoc::BuildIncludePaths(GArray<char*> &Paths, IdePlatform Platform, bool 
 {
 	if (!GetProject())
 	{
-		printf("%s:%i - GetProject failed.\n", _FL);
+		LgiTrace("%s:%i - GetProject failed.\n", _FL);
 		return false;
 	}
 
@@ -1426,7 +1418,7 @@ bool IdeDoc::BuildIncludePaths(GArray<char*> &Paths, IdePlatform Platform, bool 
 	}
 	else
 	{
-		printf("%s:%i - GetProject()->BuildIncludePaths failed.\n", _FL);
+		LgiTrace("%s:%i - GetProject()->BuildIncludePaths failed.\n", _FL);
 	}
 	
 	return Status;
@@ -1953,7 +1945,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 	{
 		for (DefnInfo *def = Defns.First(); def; def = Defns.Next())
 		{
-			printf("    def=%s:%i %s\n", def->File, def->Line, def->Name);
+			LgiTrace("    def=%s:%i %s\n", def->File, def->Line, def->Name);
 		}
 	}
 	
@@ -2003,7 +1995,7 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 
 	#if DEBUG_FIND_DEFN
 	GStringPipe Dbg;
-	printf("FindDefn(%S)\n", Symbol);
+	LgiTrace("FindDefn(%S)\n", Symbol);
 	#endif
 
 	GArray<char*> Paths;
@@ -2011,7 +2003,7 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 
 	if (!BuildIncludePaths(Paths, PlatformCurrent, true))
 	{
-		printf("%s:%i - BuildIncludePaths failed.\n", _FL);
+		LgiTrace("%s:%i - BuildIncludePaths failed.\n", _FL);
 		// return false;
 	}
 
@@ -2022,7 +2014,7 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 
 	if (!BuildHeaderList(Source, Headers, Paths))
 	{
-		printf("%s:%i - BuildHeaderList failed.\n", _FL);
+		LgiTrace("%s:%i - BuildHeaderList failed.\n", _FL);
 		// return false;
 	}
 
@@ -2077,7 +2069,7 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 			bool Found = false;
 			for (DefnInfo *Def=Defns.First(); Def; )
 			{
-				// printf("Def = %s,%i %s\n", Def->File, Def->Line, Def->Name);
+				// LgiTrace("Def = %s,%i %s\n", Def->File, Def->Line, Def->Name);
 				
 				if (MatchSymbol(Def, Symbol))
 				{
@@ -2105,7 +2097,7 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 	#if DEBUG_FIND_DEFN
 	{
 		GAutoString a(Dbg.NewStr());
-		if (a) printf("%s", a.Get());
+		if (a) LgiTrace("%s", a.Get());
 	}
 	#endif
 	

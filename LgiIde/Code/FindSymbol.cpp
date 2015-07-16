@@ -313,7 +313,7 @@ void FindSymbolThread::UpdateTags()
 		}
 		d->Unlock();
 	}
-	else printf("%s:%i - failed to lock.\n", _FL);	
+	else LgiTrace("%s:%i - failed to lock.\n", _FL);	
 	
 	char args[MAX_PATH];
 	sprintf_s(args, sizeof(args), "--excmd=number -f \"%s\" -L \"%s\"", d->CTagsIndexFile.Get(), tmp);
@@ -406,7 +406,7 @@ int FindSymbolThread::Main()
 				GArray<Symbol*> Matches;
 				
 				#if DEBUG_FIND_SYMBOL
-				printf("Searching for '%s'...\n", Req->Str.Get());
+				LgiTrace("Searching for '%s'...\n", Req->Str.Get());
 				#endif
 				
 				for (int i=0; State == Working && i<Syms.Length(); i++)
@@ -418,7 +418,7 @@ int FindSymbolThread::Main()
 				}
 				
 				#if DEBUG_FIND_SYMBOL
-				printf("Searched for '%s', got %i hits. %i requests remain\n", Req->Str.Get(), Matches.Length(), d->Requests.Length());
+				LgiTrace("Searched for '%s', got %i hits. %i requests remain\n", Req->Str.Get(), Matches.Length(), d->Requests.Length());
 				#endif
 				
 				if (Matches.Length())
@@ -544,7 +544,7 @@ void FindSymbolDlg::OnPulse()
 				}
 
 				#if DEBUG_FIND_SYMBOL
-				printf("OnPulse results for '%s' = %i\n", Req->Str.Get(), Req->Results.Length());
+				LgiTrace("OnPulse results for '%s' = %i\n", Req->Str.Get(), Req->Results.Length());
 				#endif				
 
 				for (int n=0; n<Req->Results.Length(); n++)
@@ -632,7 +632,7 @@ int FindSymbolDlg::OnNotify(GViewI *v, int f)
 						d->Unlock();
 						
 						#if DEBUG_FIND_SYMBOL
-						printf("OnNotify str '%s'\n", Str);
+						LgiTrace("OnNotify str '%s'\n", Str);
 						#endif
 						
 						#if !DEBUG_NO_THREAD

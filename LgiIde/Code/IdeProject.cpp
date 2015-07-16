@@ -1114,7 +1114,7 @@ public:
 						}
 						else
 						{
-							printf("%s:%i - Project::GetBasePath failed.\n", __FILE__, __LINE__);
+							LgiTrace("%s:%i - Project::GetBasePath failed.\n", _FL);
 						}
 					}
 				}
@@ -2286,12 +2286,12 @@ bool IdeProject::RelativePath(char *Out, char *In, bool Debug)
 		GAutoString Base = GetBasePath();
 		if (Base)
 		{
-if (Debug) printf("XmlBase='%s'\n     In='%s'\n", Base.Get(), In);
+if (Debug) LgiTrace("XmlBase='%s'\n     In='%s'\n", Base.Get(), In);
 			
 			GToken b(Base, DIR_STR);
 			GToken i(In, DIR_STR);
 			
-if (Debug) printf("Len %i-%i\n", b.Length(), i.Length());
+if (Debug) LgiTrace("Len %i-%i\n", b.Length(), i.Length());
 			
 			int ILen = i.Length() + (DirExists(In) ? 0 : 1);
 			int Max = min(b.Length(), ILen);
@@ -2304,21 +2304,21 @@ if (Debug) printf("Len %i-%i\n", b.Length(), i.Length());
 				#define StrCompare strcmp
 				#endif
 				
-if (Debug) printf("Cmd '%s'-'%s'\n", b[Common], i[Common]);
+if (Debug) LgiTrace("Cmd '%s'-'%s'\n", b[Common], i[Common]);
 				if (StrCompare(b[Common], i[Common]) != 0)
 				{
 					break;
 				}
 			}
 			
-if (Debug) printf("Common=%i\n", Common);
+if (Debug) LgiTrace("Common=%i\n", Common);
 			if (Common > 0)
 			{
 				if (Common < b.Length())
 				{
 					Out[0] = 0;
 					int Back = b.Length() - Common;
-if (Debug) printf("Back=%i\n", Back);
+if (Debug) LgiTrace("Back=%i\n", Back);
 					for (int n=0; n<Back; n++)
 					{
 						strcat(Out, "..");
@@ -3978,7 +3978,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 								else
 								{
 									strcpy_s(Rel, sizeof(Rel), a);
-									printf("%s:%i - Failed to make relative path '%s' '%s'\n",
+									LgiTrace("%s:%i - Failed to make relative path '%s' '%s'\n",
 										_FL,
 										Base.Get(), Src);
 								}
@@ -4084,7 +4084,7 @@ int IdeTree::WillAccept(List<char> &Formats, GdcPt2 p, int KeyState)
 	for (char *f=Formats.First(); f; )
 	{
 		if (First)
-			printf("    WillAccept='%s'\n", f);
+			LgiTrace("    WillAccept='%s'\n", f);
 		
 		if (stricmp(f, NODE_DROP_FORMAT) == 0 ||
 			stricmp(f, LGI_FileDropFormat) == 0)
@@ -4133,7 +4133,7 @@ int IdeTree::WillAccept(List<char> &Formats, GdcPt2 p, int KeyState)
 			}
 		}
 	}
-	else printf("%s:%i - No valid drop formats.\n", _FL);
+	else LgiTrace("%s:%i - No valid drop formats.\n", _FL);
 
 	return DROPEFFECT_NONE;
 }
@@ -4200,7 +4200,7 @@ int IdeTree::OnDrop(char *Format, GVariant *Data, GdcPt2 p, int KeyState)
 		GDropFiles Df(*Data);
 		for (int i=0; i<Df.Length(); i++)
 		{
-			printf("[%i]=%s\n", i, Df[i]);
+			LgiTrace("[%i]=%s\n", i, Df[i]);
 		}
 	}
 

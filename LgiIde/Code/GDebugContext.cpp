@@ -499,7 +499,7 @@ void GDebugContext::OnFileLine(const char *File, int Line, bool CurrentIp)
 	
 	if (!File && !Line)
 	{
-		printf("%s:%i - Error: No File or Line... one or both must be valid.\n", _FL);
+		LgiTrace("%s:%i - Error: No File or Line... one or both must be valid.\n", _FL);
 		return;
 	}
 
@@ -547,13 +547,12 @@ bool GDebugContext::OnBreakPoint(GDebugger::BreakPoint &b, bool Add)
 {
 	if (!d->Db)
 	{
-		printf("%s:%i - No debugger loaded.\n", _FL);
+		LgiTrace("%s:%i - No debugger loaded.\n", _FL);
 		return false;
 	}
 	
-	printf("GDebugContext::OnBreakPoint(%s:%i, %i)\n", b.File.Get(), b.Line, Add);
 	if (Add)
-		d->Db->SetBreakPoint(&b);
+		return d->Db->SetBreakPoint(&b);
 	else
-		d->Db->RemoveBreakPoint(&b);
+		return d->Db->RemoveBreakPoint(&b);
 }

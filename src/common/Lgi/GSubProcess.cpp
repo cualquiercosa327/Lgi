@@ -325,8 +325,6 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 	int Attr = 0;
 	#endif		
 	
-	// printf("Start %i processes... pipe[0]=%i,%i\n", p.Length(), Pipes[0].Read, Pipes[0].Write);
-
 	#if defined(POSIX)
 	::GArray<Pipe> Pipes;
 	Pipes.Length(Kids);
@@ -336,14 +334,14 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 	for (int i=1; i<Kids; i++)
 	{
 		Pipes[i].Create(&Attr);
-		// printf("%i) pipe[%i]=%i,%i\n", i, i, Pipes[i].Read, Pipes[i].Write);
+		// LgiTrace("%i) pipe[%i]=%i,%i\n", i, i, Pipes[i].Read, Pipes[i].Write);
 		
 		GSubProcess *sp = p[i-1];
 		sp->ChildPid = fork();
 
 		if (sp->ChildPid == -1)
 		{
-			printf("%s:%i - fork failed with %i", _FL, errno);
+			LgiTrace("%s:%i - fork failed with %i", _FL, errno);
 			exit(1);
 		}
 		else if (sp->ChildPid == 0)
@@ -363,7 +361,7 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 			Pipe &in = Pipes[i-1];
 			Pipe &out = Pipes[i];
 
-			// printf("%i) Child init %i->'%s'->%i\n", i, in.Read, sp->Exe.Get(), out.Write);
+			// LgiTrace("%i) Child init %i->'%s'->%i\n", i, in.Read, sp->Exe.Get(), out.Write);
 
 			Dupe(in.Read, STDIN_FILENO);
 			close(in.Write);
@@ -376,9 +374,9 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 			sp->Args.Add(NULL);
 			execvp(sp->Exe, &sp->Args[0]);
 		
-			printf("%s:%i - execvp('%s').\n", _FL, sp->Exe.Get());
+			LgiTrace("%s:%i - execvp('%s').\n", _FL, sp->Exe.Get());
 			for (int i=0; i<sp->Args.Length(); i++)
-				printf("%s:%i - Args[%i]='%s'\n", _FL, i, sp->Args[i]);
+				LgiTrace("%s:%i - Args[%i]='%s'\n", _FL, i, sp->Args[i]);
 			Status = false;
 			break;
 		}
@@ -402,7 +400,7 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 	else
 		close(Pipes.Last().Read);
 	
-	// printf("Final Handles %i, %i\n", Io.Read, Io.Write);
+	// LgiTrace("Final Handles %i, %i\n", Io.Read, Io.Write);
 	
 	#elif defined(WIN32)
 	

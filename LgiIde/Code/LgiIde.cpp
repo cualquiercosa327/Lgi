@@ -156,7 +156,7 @@ public:
 			if (p.Run("readelf", Args, 0, true, 0, &Out))
 			{
 				char *o = Out.NewStr();
-				// printf("o=%s\n", o);
+				// LgiTrace("o=%s\n", o);
 				if (o)
 				{
 					GToken t(o, "\r\n");
@@ -557,7 +557,7 @@ public:
 				char *Utf = &Buf[Channel][0];
 				if (!LgiIsUtf8(Utf, Size))
 				{
-					printf("Ch %i not utf len="LGI_PrintfInt64"\n", Channel, Size);
+					LgiTrace("Ch %i not utf len="LGI_PrintfInt64"\n", Channel, Size);
 					continue;
 				}
 				
@@ -756,7 +756,7 @@ public:
 			}
 			else
 			{
-				printf("%s:%i - Context '%s' not found in project.\n", _FL, Context);
+				LgiTrace("%s:%i - Context '%s' not found in project.\n", _FL, Context);
 			}
 		}
 
@@ -1050,7 +1050,7 @@ public:
 				{
 					if (stricmp(f, File) == 0)
 					{
-						printf("Remove '%s'\n", f);
+						LgiTrace("Remove '%s'\n", f);
 
 						(*r)->Delete(f);
 						DeleteArray(f);
@@ -1067,7 +1067,7 @@ public:
 	{
 		if (!File)
 		{
-			printf("%s:%i - No input File?\n", _FL);
+			LgiTrace("%s:%i - No input File?\n", _FL);
 			return NULL;
 		}
 		
@@ -1079,7 +1079,7 @@ public:
 			}
 		}
 
-		// printf("%s:%i - '%s' not found in %i docs.\n", _FL, File, Docs.Length());
+		// LgiTrace("%s:%i - '%s' not found in %i docs.\n", _FL, File, Docs.Length());
 		return 0;
 	}
 
@@ -1332,7 +1332,6 @@ void AppWnd::OnDebugState(bool Debugging, bool Running)
 			d->Output &&
 			d->Output->DebugTab)
 		{
-			printf("d->Output->DebugTab=%p\n", d->Output->DebugTab);
 			d->Output->DebugTab->SendNotify();
 		}
 	}
@@ -1442,7 +1441,6 @@ bool AppWnd::OnBreakPoint(GDebugger::BreakPoint &b, bool Add)
 		}
 	}
 
-	printf("AppWnd::OnBreakPoint %p\n", d->DbgContext);
 	if (d->DbgContext)
 	{
 		d->DbgContext->OnBreakPoint(b, Add);
@@ -2113,7 +2111,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			{
 				Doc->GetEdit()->Undo();
 			}
-			else printf("%s:%i - No focus doc.\n", _FL);
+			else LgiTrace("%s:%i - No focus doc.\n", _FL);
 			break;
 		}
 		case IDM_REDO:
@@ -2123,7 +2121,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			{
 				Doc->GetEdit()->Redo();
 			}
-			else printf("%s:%i - No focus doc.\n", _FL);
+			else LgiTrace("%s:%i - No focus doc.\n", _FL);
 			break;
 		}
 		case IDM_FIND:
@@ -2133,7 +2131,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			{
 				Doc->GetEdit()->DoFind();
 			}
-			else printf("%s:%i - No focus doc.\n", _FL);
+			else LgiTrace("%s:%i - No focus doc.\n", _FL);
 			break;
 		}
 		case IDM_FIND_NEXT:
@@ -2143,7 +2141,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			{
 				Doc->GetEdit()->DoFindNext();
 			}
-			else printf("%s:%i - No focus doc.\n", _FL);
+			else LgiTrace("%s:%i - No focus doc.\n", _FL);
 			break;
 		}
 		case IDM_REPLACE:
@@ -2153,7 +2151,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			{
 				Doc->GetEdit()->DoReplace();
 			}
-			else printf("%s:%i - No focus doc.\n", _FL);
+			else LgiTrace("%s:%i - No focus doc.\n", _FL);
 			break;
 		}
 		case IDM_GOTO:
@@ -2163,7 +2161,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			{
 				Doc->GetEdit()->DoGoto();
 			}
-			else printf("%s:%i - No focus doc.\n", _FL);
+			else LgiTrace("%s:%i - No focus doc.\n", _FL);
 			break;
 		}
 		case IDM_CUT:
@@ -2587,7 +2585,7 @@ IdeDoc *AppWnd::FocusDoc()
 		else
 		{
 			GViewI *f = GetFocus();
-			printf("%s:%i - Edit doesn't have focus, f=%p %s doc.edit=%p %s\n",
+			LgiTrace("%s:%i - Edit doesn't have focus, f=%p %s doc.edit=%p %s\n",
 				_FL, f, f ? f->GetClass() : 0,
 				Doc->GetEdit(),
 				Doc->Name());
