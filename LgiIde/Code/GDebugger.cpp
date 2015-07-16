@@ -202,11 +202,15 @@ class Gdb : public GDebugger, public GThread
 				if (ThreadId > 0)
 				{
 					// Ok so whats the process ID?
+					#ifdef POSIX
 					int Pid = Gtk::getpgid(ThreadId);
 					if (Pid > 0 && ProcessId < 0)
 					{
 						printf("Got the thread id: %i, and pid: %i\n", ThreadId, ProcessId);
-					}					
+					}
+					#else
+					LgiAssert(!"Impl me.");
+					#endif
 				}
 				else printf("%s:%i - No thread id?\n", _FL);
 			}

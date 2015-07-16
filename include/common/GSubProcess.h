@@ -26,7 +26,7 @@ class GSubProcess : public GStreamI
 public:
 	#if defined(WIN32)
 	typedef HANDLE PipeHandle;
-	typedef HANDLE ProcessId;
+	typedef DWORD ProcessId;
 	#else
 	typedef int PipeHandle;
 	typedef pid_t ProcessId;
