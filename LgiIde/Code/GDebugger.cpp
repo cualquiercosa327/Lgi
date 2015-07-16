@@ -206,8 +206,11 @@ class Gdb : public GDebugger, public GThread
 					int Pid = Gtk::getpgid(ThreadId);
 					if (Pid > 0 && ProcessId < 0)
 					{
-						LgiTrace("Got the thread id: %i, and pid: %i\n", ThreadId, ProcessId);
+						LgiTrace("Got the thread id: %i, and pid: %i\n", ThreadId, Pid);
+						ProcessId = Pid;
 					}
+					else
+						printf("Not setting pid: %i && %i\n", Pid > 0, ProcessId < 0);
 					#else
 					LgiAssert(!"Impl me.");
 					#endif
