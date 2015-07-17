@@ -6288,8 +6288,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 }
 
 //////////////////////////////////////////////////////////////////////
-GHtml::GHtml(int id, int x, int y, int cx, int cy, GDocumentEnv *e)
-	:
+GHtml::GHtml(int id, int x, int y, int cx, int cy, GDocumentEnv *e) :
 	GDocView(e),
 	ResObject(Res_Custom),
 	GHtmlParser(NULL)
@@ -6304,7 +6303,6 @@ GHtml::GHtml(int id, int x, int y, int cx, int cy, GDocumentEnv *e)
 	Cursor = 0;
 	Selection = 0;
 	SetBackColour(Rgb24To32(LC_WORKSPACE));
-	PrevTip = 0;
 	DocumentUid = 0;
 
 	_New();
