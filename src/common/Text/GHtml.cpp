@@ -1294,10 +1294,6 @@ GTag::~GTag()
 	{
 		Html->Selection = 0;
 	}
-	if (Html->PrevTip == this)
-	{
-		Html->PrevTip = 0;
-	}
 
 	DeleteObj(Ctrl);
 	Attr.DeleteArrays();
@@ -7860,33 +7856,25 @@ void GHtml::OnMouseMove(GMouse &m)
 	Tag->GetTagByPos(Hit, m.x, m.y + Offset, 0, false);
 	if (!Hit.Direct && !Hit.NearestText)
 		return;
-		
-	if (PrevTip &&
-		PrevTip != Tag)
-	{
-		Tip.DeleteTip(PrevTip->TipId);
-		PrevTip->TipId = 0;
-		PrevTip = 0;
-	}
 
 	GAutoString Uri;
 	GTag *HitTag = Hit.NearestText && Hit.Near == 0 ? Hit.NearestText : Hit.Direct;
-	if (Hit.LocalCoords.x >= 0 &&
+	if (HitTag &&
+		HitTag->TipId == 0 &&
+		Hit.LocalCoords.x >= 0 &&
 		Hit.LocalCoords.y >= 0 &&
-		HitTag->IsAnchor(&Uri))
+		HitTag->IsAnchor(&Uri) &&
+		Uri)
 	{
-		if (Uri)
+		if (!Tip.GetParent())
 		{
-			if (!Tip.GetParent())
-			{
-				Tip.Attach(this);
-			}
-
-			GRect r = Tag->GetRect(false);
-			r.Offset(0, -Offset);
-			PrevTip = Tag;
-			PrevTip->TipId = Tip.NewTip(Uri, r);
+			Tip.Attach(this);
 		}
+
+		GRect r = HitTag->GetRect(false);
+		r.Offset(0, -Offset);
+		HitTag->TipId = Tip.NewTip(Uri, r);
+		// LgiTrace("NewTip: %s @ %s, ID=%i\n", Uri.Get(), r.GetStr(), HitTag->TipId);
 	}
 
 	if (IsCapturing() &&

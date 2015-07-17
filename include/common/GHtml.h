@@ -45,7 +45,6 @@ protected:
 	char				IsHtml;
 	int					ViewWidth;
 	GToolTip			Tip;
-	GTag				*PrevTip;
 	GCss::Store			CssStore;
 	
 	// Display
