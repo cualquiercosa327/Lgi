@@ -8126,7 +8126,9 @@ bool GHtml::GetVariant(const char *Name, GVariant &Value, char *Array)
 {
 	if (!_stricmp(Name, "supportLists"))
 		Value = false;
-	else if (!_stricmp(Name, "vml"))
+	else if (!_stricmp(Name, "vml")) // Vector Markup Language
+		Value = false;
+	else if (!_stricmp(Name, "mso")) // mso = Microsoft Office
 		Value = false;
 	else
 		return false;
@@ -8184,7 +8186,11 @@ bool GHtml::EvaluateCondition(const char *Cond)
 				Result = v.CastInt32() != 0;
 				if (Not) Result = !Result;
 			}
-			else LgiTrace("%s:%i - Unsupported variable '%s'\n", _FL, s);
+			else
+			{
+				// If this fires: update GHtml::GetVariant with the variable.
+				LgiTrace("%s:%i - Unsupported variable '%s'\n", _FL, s);
+			}
 			Not = false;
 		}
 	}
