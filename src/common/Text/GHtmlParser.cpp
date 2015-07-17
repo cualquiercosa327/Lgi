@@ -557,10 +557,12 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 					}
 					#endif
 
+					/*
 					if (_stricmp("th", Elem->Tag) == 0)
 					{
 						Elem->Tag.Reset(NewStr("td"));
 					}
+					*/
 					
 					bool AlreadyOpen = false;
 					Elem->Info = GetTagInfo(Elem->Tag);

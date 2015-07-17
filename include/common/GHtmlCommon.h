@@ -30,6 +30,7 @@ enum HtmlTag
 	TAG_TABLE,
 		TAG_TR,
 		TAG_TD,
+		TAG_TH,
 	TAG_IMG,
 	TAG_DIV,
 	TAG_SPAN,

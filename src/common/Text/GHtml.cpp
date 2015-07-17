@@ -70,6 +70,8 @@
 #define DefaultTableBorder			GT_TRANSPARENT
 #endif
 
+#define IsTableCell(id)				( ((id) == TAG_TD) || ((id) == TAG_TH) )
+
 static char WordDelim[]	=			".,<>/?[]{}()*&^%$#@!+|\'\"";
 static char16 WhiteW[] =			{' ', '\t', '\r', '\n', 0};
 
@@ -1143,7 +1145,7 @@ GCss::LengthType GTag::GetAlign(bool x)
 		
 		if (x)
 		{
-			if (TagId == TAG_TD && Cell && Cell->XAlign)
+			if (IsTableCell(TagId) && Cell && Cell->XAlign)
 				l.Type = Cell->XAlign;
 			else
 				l = TextAlign();
@@ -2811,6 +2813,7 @@ void GTag::SetStyle()
 			break;
 		}
 		case TAG_TD:
+		case TAG_TH:
 		{
 			if (!Cell)
 				Cell = new TblCell;
@@ -3001,6 +3004,7 @@ void GTag::SetStyle()
 		case TAG_TR:
 			break;
 		case TAG_TD:
+		case TAG_TH:
 		{
 			LgiAssert(Cell != NULL);
 			
@@ -3631,7 +3635,7 @@ void GTag::ZeroTableElements()
 {
 	if (TagId == TAG_TABLE ||
 		TagId == TAG_TR ||
-		TagId == TAG_TD)
+		IsTableCell(TagId))
 	{
 		Size.x = 0;
 		Size.y = 0;
@@ -3756,6 +3760,7 @@ bool GTag::GetWidthMetrics(GTag *Table, uint16 &Min, uint16 &Max)
 			break;
 		}
 		case TAG_TD:
+		case TAG_TH:
 		{
 			Len w = Width();
 			if (w.IsValid())
@@ -5208,7 +5213,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 		// Set the width if any
 		if (Disp == DispBlock)
 		{
-			if (TagId != TAG_TD && Width().IsValid())
+			if (!IsTableCell(TagId) && Width().IsValid())
 				Size.x = Flow->ResolveX(Width(), f, false);
 			else
 				Size.x = Flow->X();
@@ -5396,7 +5401,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 	{		
 		GCss::Len Ht = Height();
 		GCss::Len MaxHt = MaxHeight();
-		bool AcceptHt = TagId != TAG_TD || Ht.Type != LenPercent;
+		bool AcceptHt = !IsTableCell(TagId) || Ht.Type != LenPercent;
 		if (Ht.IsValid())
 		{
 			int HtPx = Flow->ResolveY(Ht, GetFont(), false);
@@ -5417,6 +5422,9 @@ void GTag::OnFlow(GFlowRegion *Flow)
 			int OldFlowSize = Flow->x2 - Flow->x1 + 1;
 			Flow->Outdent(f, PaddingLeft(), PaddingTop(), PaddingRight(), PaddingBottom(), false);
 			Flow->Outdent(f, GCss::BorderLeft(), GCss::BorderTop(), GCss::BorderRight(), GCss::BorderBottom(), false);
+
+			Size.y = Flow->y2 > 0 ? Flow->y2 : 0;
+
 			Flow->Outdent(f, MarginLeft(), MarginTop(), MarginRight(), MarginBottom(), true);
 			
 			int NewFlowSize = Flow->x2 - Flow->x1 + 1;
@@ -5424,7 +5432,6 @@ void GTag::OnFlow(GFlowRegion *Flow)
 			if (Diff)
 				Flow->max_cx += Diff;
 			
-			Size.y = Flow->y2 > 0 ? Flow->y2 : 0;
 			Flow->y1 = Flow->y2;
 			Flow->x2 = Flow->x1 + BlockFlowWidth;
 
@@ -6265,7 +6272,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 	}
 	
 	#if DEBUG_TABLE_LAYOUT && 0
-	if (TagId == TAG_TD)
+	if (IsTableCell(TagId))
 	{
 		GTag *Tbl = this;
 		while (Tbl->TagId != TAG_TABLE && Tbl->Parent)
@@ -8284,7 +8291,7 @@ GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 			}
 			if (FakeRow)
 			{
-				if (r->TagId != TAG_TD && !FakeCell)
+				if (!IsTableCell(r->TagId) && !FakeCell)
 				{
 					if ((FakeCell = new GTag(Table->Html, FakeRow)))
 					{
@@ -8301,7 +8308,7 @@ GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 				int Idx = Table->Children.IndexOf(r);
 				r->Detach();
 
-				if (r->TagId == TAG_TD)
+				if (IsTableCell(r->TagId))
 				{
 					FakeRow->Attach(r);
 				}
@@ -8325,7 +8332,7 @@ GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 			for (unsigned i=0; i<r->Children.Length(); i++)
 			{
 				GTag *cell = ToTag(r->Children[i]);
-				if (cell->TagId != TAG_TD)
+				if (!IsTableCell(cell->TagId))
 				{
 					if (!FakeCell)
 					{
@@ -8360,7 +8367,7 @@ GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 					FakeCell = NULL;
 				}
 				
-				if (cell->TagId == TAG_TD)
+				if (IsTableCell(cell->TagId))
 				{
 					if (cell->Display() == GCss::DispNone)
 						continue;

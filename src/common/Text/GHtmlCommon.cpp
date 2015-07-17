@@ -18,6 +18,7 @@ static GHtmlElemInfo TagInfo[] =
 	{TAG_TABLE,			"table",		0,			GHtmlElemInfo::TI_BLOCK | GHtmlElemInfo::TI_NO_TEXT | GHtmlElemInfo::TI_TABLE},
 	{TAG_TR,			"tr",			"table",	GHtmlElemInfo::TI_BLOCK | GHtmlElemInfo::TI_NO_TEXT | GHtmlElemInfo::TI_TABLE},
 	{TAG_TD,			"td",			"tr",		GHtmlElemInfo::TI_BLOCK | GHtmlElemInfo::TI_TABLE},
+	{TAG_TH,			"th",			"tr",		GHtmlElemInfo::TI_BLOCK | GHtmlElemInfo::TI_TABLE},
 	{TAG_HEAD,			"head",			"html",		GHtmlElemInfo::TI_NONE | GHtmlElemInfo::TI_SINGLETON},
 	{TAG_BODY,			"body",			0,			GHtmlElemInfo::TI_BLOCK | GHtmlElemInfo::TI_NO_TEXT | GHtmlElemInfo::TI_SINGLETON},
 	{TAG_IMG,			"img",			0,			GHtmlElemInfo::TI_NEVER_CLOSES},
