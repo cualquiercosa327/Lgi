@@ -213,7 +213,7 @@ void GBox::OnPaint(GSurface *pDC)
 	}
 	else
 	{
-		#if 1 // coverage check...
+		#if 0 // coverage check...
 		pDC->Colour(GColour(255, 0, 255));
 		pDC->Rectangle(&cli);
 		#endif

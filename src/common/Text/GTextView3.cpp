@@ -2323,7 +2323,8 @@ bool GTextView3::DoFindNext()
 	return false;
 }
 
-bool Text_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User)
+static bool
+Text_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User)
 {
 	GTextView3 *v = (GTextView3*) User;
 

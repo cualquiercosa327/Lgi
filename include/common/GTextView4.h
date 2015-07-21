@@ -7,6 +7,7 @@
 
 #include "GDocView.h"
 #include "GUndo.h"
+#include "GDragAndDrop.h"
 
 // use CRLF as opposed to just LF
 // internally it uses LF only... this is just to remember what to
@@ -21,85 +22,99 @@ extern char Delimiters[];
 
 class GTextView4;
 
-class GTextStyle
-{
-	friend class GUrl;
-
-protected:
-	void RefreshLayout(int Start, int Len);
-
-public:
-	enum StyleDecor
-	{
-		DecorNone,
-		DecorSquiggle,
-	};
-
-	/// The view the style is for
-	GTextView4 *View;
-	/// When you write several bits of code to do styling assign them
-	/// different owner id's so that they can manage the lifespan of their
-	/// own styles. GTextView4::PourStyle is owner '0', anything else it
-	/// will leave alone.
-	int Owner;
-	/// The start index into the text buffer of the region to style.
-	int Start;
-	/// The length of the styled region
-	int Len;
-	/// The font to draw the styled text in
-	GFont *Font;
-	/// The colour to draw with (24 bit)
-	COLOUR c;
-	/// Optional extra decor not supported by the fonts
-	StyleDecor Style;
-	/// Colour for the optional decor.
-	COLOUR DecorColour;
-
-	/// Application base data
-	char *Data;
-
-	GTextStyle(int owner)
-	{
-		Owner = owner;
-		View = 0;
-		c = 0;
-		Font = 0;
-		Start = -1;
-		Len = 0;
-		Style = DecorNone;
-		DecorColour = 0;
-		Data = 0;
-	}
-
-	virtual bool OnMouseClick(GMouse *m) { return false; }
-	virtual bool OnMenu(GSubMenu *m) { return false; }
-	virtual void OnMenuClick(int i) {}
-	virtual TCHAR *GetCursor() { return 0; }
-
-	/// Returns true if this style overlaps the position of 's'
-	bool Overlap(GTextStyle *s)
-	{
-		if (s->Start + s->Len < Start ||
-			s->Start > Start + Len)
-			return false;
-
-		return true;
-	}
-};
-
 /// Unicode text editor control.
 class
-#ifdef MAC
+#if defined(MAC) || defined(__GTK_H__)
 LgiClass
 #endif
 	GTextView4 :
 	public GDocView,
-	public ResObject
+	public ResObject,
+	public GDragDropTarget
 {
-	friend class GTextStyle;
 	friend class GUrl;
 	friend class GTextView4Undo;
 	friend bool Text_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User);
+
+public:
+	class
+	#if defined(MAC) || defined(__GTK_H__)
+	LgiClass
+	#endif
+	GStyle
+	{
+		friend class GUrl;
+
+	protected:
+		void RefreshLayout(int Start, int Len);
+
+	public:
+		enum StyleDecor
+		{
+			DecorNone,
+			DecorSquiggle,
+		};
+
+		/// The view the style is for
+		GTextView4 *View;
+		/// When you write several bits of code to do styling assign them
+		/// different owner id's so that they can manage the lifespan of their
+		/// own styles. GTextView4::PourStyle is owner '0', anything else it
+		/// will leave alone.
+		int Owner;
+		/// The start index into the text buffer of the region to style.
+		int Start;
+		/// The length of the styled region
+		int Len;
+		/// The font to draw the styled text in
+		GFont *Font;
+		/// The colour to draw with. If transparent, then the default 
+		/// line colour is used.
+		GColour c;
+		/// Optional extra decor not supported by the fonts
+		StyleDecor Decor;
+		/// Colour for the optional decor.
+		GColour DecorColour;
+
+		/// Application base data
+		char *Data;
+
+		GStyle(int owner)
+		{
+			Owner = owner;
+			View = 0;
+			Font = 0;
+			Start = -1;
+			Len = 0;
+			Decor = DecorNone;
+			Data = 0;
+		}
+		
+		virtual ~GStyle() {}
+
+		virtual bool OnMouseClick(GMouse *m) { return false; }
+		virtual bool OnMenu(GSubMenu *m) { return false; }
+		virtual void OnMenuClick(int i) {}
+		virtual TCHAR *GetCursor() { return 0; }
+
+		/// Returns true if this style overlaps the position of 's'
+		bool Overlap(GStyle *s)
+		{
+			return Overlap(s->Start, s->Len);
+		}
+
+		/// Returns true if this style overlaps the position of 's'
+		bool Overlap(int sStart, int sLen)
+		{
+			if (sStart + sLen < Start ||
+				sStart >= Start + Len)
+				return false;
+
+			return true;
+		}
+	};
+
+	friend class GTextView4::GStyle;
 
 protected:
 	// Internal classes
@@ -117,11 +132,14 @@ protected:
 		int Start;		// Start offset
 		int Len;		// length of text
 		GRect r;		// Screen location
-		COLOUR Col;		// Colour of line
+		GColour c;		// Colour of line... transparent = default colour
+		GColour Back;	// Background colour or transparent
 
 		GTextLine()
 		{
-			Col = 0x80000000;
+			Start = -1;
+			Len = 0;
+			r.ZOff(-1, -1);
 		}
 		virtual ~GTextLine() {}
 		bool Overlap(int i)
@@ -150,7 +168,7 @@ protected:
 	GRect CursorPos;
 
 	List<GTextLine> Line;
-	List<GTextStyle> Style;		// sorted in 'Start' order
+	List<GStyle> Style;		// sorted in 'Start' order
 
 	// For ::Name(...)
 	char *TextCache;
@@ -166,7 +184,7 @@ protected:
 	GUndo UndoQue;
 
 	// private methods
-	GTextLine *GetLine(int Offset, int *Index = 0);
+	GTextLine *GetTextLine(int Offset, int *Index = 0);
 	int SeekLine(int Start, GTextViewSeek Where);
 	int TextWidth(GFont *f, char16 *s, int Len, int x, int Origin);
 	int ScrollYLine();
@@ -174,22 +192,24 @@ protected:
 	int MatchText(char16 *Text, bool MatchWord, bool MatchCase, bool SelectionOnly);
 	
 	// styles
-	bool InsertStyle(GTextStyle *s);
-	GTextStyle *GetNextStyle(int Where = -1);
-	GTextStyle *HitStyle(int i);
+	bool InsertStyle(GAutoPtr<GStyle> s);
+	GStyle *GetNextStyle(int Where = -1);
+	GStyle *HitStyle(int i);
 	int GetColumn();
+	int SpaceDepth(char16 *Start, char16 *End);
 
 	// Overridables
 	virtual void PourText(int Start, int Length);
 	virtual void PourStyle(int Start, int Length);
 	virtual void OnFontChange();
+	virtual void OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour);
 	virtual char16 *MapText(char16 *Str, int Len, bool RtlTrailingSpace = false);
 
 	#ifdef _DEBUG
 	// debug
-	int _PourTime;
-	int _StyleTime;
-	int _PaintTime;
+	uint64 _PourTime;
+	uint64 _StyleTime;
+	uint64 _PaintTime;
 	#endif
 
 public:
@@ -214,19 +234,6 @@ public:
 	const char *GetMimeType() { return "text/plain"; }
 	int GetSize() { return Size; }
 
-	struct EditInfo
-	{
-		int At;
-		int Len;
-		char16 *Txt;
-
-		int End() { return At + Len; }
-	};
-
-	virtual bool Insert(GArray<EditInfo> &Edits);
-	bool Insert(int At, char16 *Data, int Len);
-	virtual bool Delete(GArray<EditInfo> &Edits);
-	bool Delete(int At, int Len);
 	int HitText(int x, int y);
 	void DeleteSelection(char16 **Cut = 0);
 
@@ -243,10 +250,6 @@ public:
 	/// Sets the wrapping on the control, use #TEXTED_WRAP_NONE or #TEXTED_WRAP_REFLOW
 	void SetWrapType(uint8 i);
 	
-	// Margin
-	GRect &GetMargin();
-	void SetMargin(GRect &r);
-
 	// State / Selection
 	void SetCursor(int i, bool Select, bool ForceFullUpdate = false);
 	int IndexAt(int x, int y);
@@ -263,8 +266,8 @@ public:
 	char *GetSelection();
 
 	// File IO
-	bool Open(char *Name, char *Cs = 0);
-	bool Save(char *Name, char *Cs = 0);
+	bool Open(const char *Name, const char *Cs = 0);
+	bool Save(const char *Name, const char *Cs = 0);
 
 	// Clipboard IO
 	bool Cut();
@@ -287,7 +290,8 @@ public:
 	// Action Processing	
 	bool ClearDirty(bool Ask, char *FileName = 0);
 	void UpdateScrollBars(bool Reset = false);
-	void GotoLine(int Line);
+	int GetLine();
+	void SetLine(int Line);
 	GDocFindReplaceParams *CreateFindReplaceParams();
 	void SetFindReplaceParams(GDocFindReplaceParams *Params);
 
@@ -311,10 +315,16 @@ public:
 	int OnNotify(GViewI *Ctrl, int Flags);
 	void OnPulse();
 	int OnHitTest(int x, int y);
+	bool OnLayout(GViewLayoutInfo &Inf);
+	int WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState);
+	int OnDrop(char *Format, GVariant *Data, GdcPt2 Pt, int KeyState);
 
 	// Virtuals
+	virtual bool Insert(int At, char16 *Data, int Len);
+	virtual bool Delete(int At, int Len);
 	virtual void OnEnter(GKey &k);
 	virtual void OnUrl(char *Url);
+	virtual void DoContextMenu(GMouse &m);
 };
 
 #endif
